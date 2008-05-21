@@ -1,65 +1,84 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 6/6] DSP Gateway: remove manual clockdomain/powerdomain
-	tweaking
-Date: Tue, 20 May 2008 18:43:00 -0600
-Message-ID: <20080521004152.6131.45906.stgit@localhost.localdomain>
-References: <20080521003910.6131.63409.stgit@localhost.localdomain>
+From: "Kyungmin Park" <kmpark@infradead.org>
+Subject: Re: [PATCH] IRQ: simplify OMAP2 mask_irq/unmask_irq code
+Date: Wed, 21 May 2008 09:52:22 +0900
+Message-ID: <9c9fda240805201752y6f027dd0w2ee781eae09dab7c@mail.gmail.com>
+References: <alpine.DEB.1.00.0805201220090.9463@utopia.booyaka.com>
+	 <9c9fda240805201618y43d65160h246ea69a43785515@mail.gmail.com>
+	 <alpine.DEB.1.00.0805201802040.9463@utopia.booyaka.com>
+	 <48336F3C.5040004@balister.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45904 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933456AbYEUAqE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 May 2008 20:46:04 -0400
-In-Reply-To: <20080521003910.6131.63409.stgit@localhost.localdomain>
+Received: from wf-out-1314.google.com ([209.85.200.174]:8494 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754358AbYEUAwW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 May 2008 20:52:22 -0400
+Received: by wf-out-1314.google.com with SMTP id 27so1982323wfd.4
+        for <linux-omap@vger.kernel.org>; Tue, 20 May 2008 17:52:22 -0700 (PDT)
+In-Reply-To: <48336F3C.5040004@balister.org>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Toshihiro Kobayashi <toshihiro.kobayashi@nokia.com>
+To: Philip Balister <philip@balister.org>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, lethal@linux-sh.org
 
-The recent powerdomain and clockdomain layer updates for OMAP24XX should
-now control the DSP powerdomain and clockdomain automatically when
-DSP Gateway calls clk_{enable,disable}().  Remove the manual
-clockdomain/powerdomain register tweaks from DSP Gateway.
+On Wed, May 21, 2008 at 9:39 AM, Philip Balister <philip@balister.org> wrote:
+> Paul Walmsley wrote:
+>>
+>> Hello Kyungmin,
+>>
+>> On Wed, 21 May 2008, Kyungmin Park wrote:
+>>
+>>> On Wed, May 21, 2008 at 3:21 AM, Paul Walmsley <paul@pwsan.com> wrote:
+>>>>
+>>>>  static void omap_mask_irq(unsigned int irq)
+>>>>  {
+>>>> -       int offset = (irq >> 5) << 5;
+>>>> +       int offset = irq & (~(IRQ_BITS_PER_REG - 1));
+>>>>
+>>>> -       if (irq >= 64)
+>>>> -               irq %= 64;
+>>>> -       else if (irq >= 32)
+>>>> -               irq %= 32;
+>>>> +       irq %= IRQ_BITS_PER_REG;
+>>>
+>>> Is it the right conversion?
+>>> If the irq is greater then 32 and less then or equal to  64 it's
+>>> result is different.
+>>> E.g, If irq is 63 then original irq is 63, but new code is 31
+>>
+>> Hmm, in that condition, the result looks the same to me: irq % 32, either
+>> way?
+>>
+>> More practically, if you look at what it does with that irq variable
+>> afterwards, it seems to be a bug if irq is ever greater than 31:
+>>
+>>        intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_CLEAR0 +
+>>                        offset);
+>>
+>> I think the only case where the new code would work differently than the
+>> previous code is if irq > 95.  But that would be a bug, since the shift
+>> value would then be > 32, for a 32-bit register.
+>>
+>>> And if this code is right, how about to use mask instead of modulo op?
+>>> irq &= (IRQ_BITS_PER_REG - 1);
+>>
+>> Hehe, very good point, that would probably save even more cycles!  If you
+>> agree with the above, perhaps I can convert the code to use that also, and
+>> add your Signed-off-by also?
+>
+> On some code where I used % to detect a counter passing multiples of a
+> certain number, oprofile revealed that the % operator burned a lot of CPU
+> cycles. I suspect this had to do with the counter increasing to very large
+> numbers, but ever since, I've tried to avoid the % operator in critical
+> paths.
+>
+Yes, In embedded environment, we should avoid the multiple, divide,
+and modulo op as much as possible.
+It's best to use the bit operations.
 
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
-
- drivers/dsp/dspgateway/dsp_core.c |   13 -------------
- 1 files changed, 0 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/dsp/dspgateway/dsp_core.c b/drivers/dsp/dspgateway/dsp_core.c
-index 913376e..68cc9e6 100644
---- a/drivers/dsp/dspgateway/dsp_core.c
-+++ b/drivers/dsp/dspgateway/dsp_core.c
-@@ -460,16 +460,6 @@ static inline void dsp_clk_disable(void) {}
- #elif defined(CONFIG_ARCH_OMAP2)
- static inline void dsp_clk_enable(void)
- {
--	/*XXX should be handled in mach-omap[1,2] XXX*/
--	prm_write_mod_reg(OMAP24XX_FORCESTATE | (1 << OMAP_POWERSTATE_SHIFT),
--			  OMAP24XX_DSP_MOD, PM_PWSTCTRL);
--
--	cm_set_mod_reg_bits(OMAP2420_AUTO_DSP_IPI, OMAP24XX_DSP_MOD,
--			    CM_AUTOIDLE);
--
--	cm_set_mod_reg_bits(OMAP24XX_AUTOSTATE_DSP_MASK, OMAP24XX_DSP_MOD,
--			    CM_CLKSTCTRL);
--
- 	clk_enable(dsp_fck_handle);
- 	clk_enable(dsp_ick_handle);
- 	__dsp_per_enable();
-@@ -479,9 +469,6 @@ static inline void dsp_clk_disable(void)
- 	__dsp_per_disable();
- 	clk_disable(dsp_ick_handle);
- 	clk_disable(dsp_fck_handle);
--
--	prm_write_mod_reg(OMAP24XX_FORCESTATE | (3 << OMAP_POWERSTATE_SHIFT),
--			  OMAP24XX_DSP_MOD, PM_PWSTCTRL);
- }
- #endif
- 
-
-
+BR,
+Kyungmin Park
