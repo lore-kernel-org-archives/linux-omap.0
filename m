@@ -1,39 +1,48 @@
-From: "mohammed shareef" <mdshareef@gmail.com>
-Subject: omap osk and mistral touchscreen-ads7846
-Date: Thu, 22 May 2008 04:10:17 +0530
-Message-ID: <a1d91fa0805211540n11fc237dhed8deb988f8cbde4@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [PATCH 1/1] usb: musb: MUSB_OTG should depend on PM
+Date: Thu, 22 May 2008 03:47:33 +0300
+Message-ID: <1211417253-24699-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.184]:64051 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756958AbYEUWkV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2008 18:40:21 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so1677565tic.23
-        for <linux-omap@vger.kernel.org>; Wed, 21 May 2008 15:40:17 -0700 (PDT)
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:34982 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751152AbYEVAuD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2008 20:50:03 -0400
+Received: from esebh108.NOE.Nokia.com (esebh108.ntc.nokia.com [172.21.143.145])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m4M0ncQC013719
+	for <linux-omap@vger.kernel.org>; Thu, 22 May 2008 03:49:59 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: omap <linux-omap@vger.kernel.org>, linux-omap-open-source@linux.omap.com
+To: linux-omap@vger.kernel.org
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-Hello,
+Current musb Kconfig causes cyclic depency on x86
+arch. The best fix is to depend on PM in order to
+build on OTG mode.
 
-i have enabled the SPI and ADS7846 drivers during kernel (2.6.18)
-compilation. i could see in the kernel boot log that they are also
-initialized.
+Anyone interested in reproducing the error in your
+linux-omap trees, just make ARCH=x86 menuconfig
 
-////////////////////////////////////////////////////////////////////////
-ads7846 spi2.0: touchscreen + hwmon, irq 164
-input: ADS784x Touchscreen as /class/input/input1
-/////////////////////////////////////////////////////////////////////////
-but could someone tell me what should i do next to calibrate my touchscreen?
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/usb/musb/Kconfig |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-i even tried compiling tslib and added the executables to the file
-system. But when i run the executable
-/usr/X11/bin/ts_calibrate
+diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
+index a485a86..acbbd5f 100644
+--- a/drivers/usb/musb/Kconfig
++++ b/drivers/usb/musb/Kconfig
+@@ -88,10 +88,9 @@ config USB_MUSB_PERIPHERAL
+ 	  (With a "Mini-AB" connector, you should enable USB OTG.)
+ 
+ config USB_MUSB_OTG
+-	depends on USB && USB_GADGET && EXPERIMENTAL
++	depends on USB && USB_GADGET && PM && EXPERIMENTAL
+ 	bool "Both host and peripheral:  USB OTG (On The Go) Device"
+ 	select USB_GADGET_MUSB_HDRC
+-	select USB_OTG
+ 	select PM
+ 	help
+ 	   The most notable feature of USB OTG is support for a
+-- 
+1.5.5.1.125.gc697a
 
-i see no response on the LCD. the system just hangs.'
-
-thanx and regards,
-Shareef
