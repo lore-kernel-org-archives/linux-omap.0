@@ -1,100 +1,91 @@
-From: Steve Poulsen <spoulsen@css-design.us>
-Subject: Re: enabling uart2 on omap5912 osk
-Date: Thu, 22 May 2008 09:14:31 -0500
-Message-ID: <48357FC7.6080504@css-design.us>
-References: <a1d91fa0805202342k706a4389h54b5b89178991d86@mail.gmail.com>	<20080521154010.GY23002@atomide.com>	<a1d91fa0805211012v607195f2we8cc373b5a54ae4@mail.gmail.com>	<20080521174426.GC23002@atomide.com>	<db841a1287fea2504e17c787c8e25940@felipebalbi.com>	<20080521204822.GD23002@atomide.com> <a1d91fa0805211516y2651ce64u1930681831871f64@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 1/2] OMAP3 PM: convert open-coded iterator to use
+	pwrdm_for_each_clkdm()
+Date: Thu, 22 May 2008 11:33:54 -0600
+Message-ID: <20080522173347.1292.43995.stgit@localhost.localdomain>
+References: <20080522173035.1292.74243.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from elasmtp-spurfowl.atl.sa.earthlink.net ([209.86.89.66]:38304
-	"EHLO elasmtp-spurfowl.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750794AbYEVOOl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 May 2008 10:14:41 -0400
-In-Reply-To: <a1d91fa0805211516y2651ce64u1930681831871f64@mail.gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:41390 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756405AbYEVRgK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 May 2008 13:36:10 -0400
+In-Reply-To: <20080522173035.1292.74243.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: mohammed shareef <mdshareef@gmail.com>
-Cc: Felipe Balbi <me@felipebalbi.com>, omap <linux-omap@vger.kernel.org>, linux-omap-open-source@linux.omap.com
+To: linux-omap@vger.kernel.org
 
-If you do not have a "c" as the first character in the permissions, then 
-your device file is not a true device file, but just a file.  You should 
-delete that file (ttyS1) and create the device file:
+Convert iterators of the list of clockdomains in a powerdomain to use
+pwrdm_for_each_clkdm(), rather than an open-coded for-loop.
 
-mknod /dev/ttyS1 c 4 65
-mknod /dev/ttyS2 c 4 66
+This also fixes a bug when the D2D clockdomain is added to the 3430ES2
+chip.  The open-coded for-loop tested for a NULL pointer in pwrdm_clkdms[]
+to determine when to end the loop.  This causes the iterator to fall
+off the end of the array when the powerdomain contains the maximum number
+of clockdomains per powerdomain (currently 3).
 
-Steve
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
 
-mohammed shareef wrote:
-> hi,
->
-> i have changed the line in omap_osk.c to:
->
-> static struct omap_uart_config osk_uart_config __initdata = {
->       .enabled_uarts = ((1 << 0) | (1 << 1) | (1 << 2)),
-> };
->
-> And all the three UARTs are enabled now as i can see in the kernel boot-log:
->
-> serial8250.0: ttyS0 at MMIO 0xfffb0000 (irq = 46) is a ST16654
-> serial8250.0: ttyS1 at MMIO 0xfffb0800 (irq = 47) is a ST16654
-> serial8250.0: ttyS2 at MMIO 0xfffb9800 (irq = 15) is a ST16654
->
-> A node called ttyS0 is already there which is linked to uart0.
->
-> when i type:
->
-> ls -l /dev/ttyS0
-> crw-rw-rw-    1 root     root       4,  64 Aug  8  2004
-> \0x1b[1;35m/dev/ttyS0\0x1b[0m
-> # ls -l /dev/ttyS1
-> -rw-r--r--    1 root     root           16 May 21  2008
-> \0x1b[0;0m/dev/ttyS1\0x1b[0m
->
-> i have a question on the above output. the major and minor number for
-> ttyS0 are 4, 64 but fot ttyS1 i dont find a major number. what does
-> this indicate?
->
-> thanx for all the help.
->
-> regards,
-> Shareef
->
->
-> On Thu, May 22, 2008 at 2:18 AM, Tony Lindgren <tony@atomide.com> wrote:
->   
->> * Felipe Balbi <me@felipebalbi.com> [080521 12:37]:
->>     
->>> On Wed, 21 May 2008 10:44:28 -0700, Tony Lindgren <tony@atomide.com> wrote:
->>>       
->>>> * mohammed shareef <mdshareef@gmail.com> [080521 10:12]:
->>>>         
->>>>> i see the following lines in the omap-osk.c file regarding the uarts:
->>>>>
->>>>> static struct omap_uart_config osk_uart_config __initdata = {
->>>>>    .enabled_uarts = (1 << 0),
->>>>> };
->>>>>
->>>>>
->>>>> what does it mean? i want all my uarts (1,2,3) enabled. how do i have
->>>>> to modify the above line?
->>>>>           
->>>> How about try .enabled_uarts = 3
->>>>         
->>> this would enable only uarts 1 and 2, right?
->>> maybe it's enough :-p
->>>       
->> Oh yeh, that's true :)
->>
->> Tony
->>
->>     
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
->
->   
+ arch/arm/mach-omap2/pm34xx.c |   23 ++++++++++++++++++-----
+ 1 files changed, 18 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index a1bfb30..7e775cc 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -179,6 +179,22 @@ static int omap3_can_sleep(void)
+ 	return 1;
+ }
+ 
++/* _clkdm_deny_idle - private callback function used by set_pwrdm_state() */
++static int _clkdm_deny_idle(struct powerdomain *pwrdm,
++			    struct clockdomain *clkdm)
++{
++	omap2_clkdm_deny_idle(clkdm);
++	return 0;
++}
++
++/* _clkdm_allow_idle - private callback function used by set_pwrdm_state() */
++static int _clkdm_allow_idle(struct powerdomain *pwrdm,
++			     struct clockdomain *clkdm)
++{
++	omap2_clkdm_allow_idle(clkdm);
++	return 0;
++}
++
+ /* This sets pwrdm state (other than mpu & core. Currently only ON &
+  * RET are supported. Function is assuming that clkdm doesn't have
+  * hw_sup mode enabled. */
+@@ -186,7 +202,6 @@ static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+ {
+ 	u32 cur_state;
+ 	int ret = 0;
+-	int i = 0;
+ 
+ 	if (pwrdm == NULL || IS_ERR(pwrdm))
+ 		return -EINVAL;
+@@ -196,8 +211,7 @@ static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+ 	if (cur_state == state)
+ 		return ret;
+ 
+-	for (i = 0; pwrdm->pwrdm_clkdms[i]; i++)
+-		omap2_clkdm_deny_idle(pwrdm->pwrdm_clkdms[i]);
++	pwrdm_for_each_clkdm(pwrdm, _clkdm_deny_idle);
+ 
+ 	ret = pwrdm_set_next_pwrst(pwrdm, state);
+ 	if (ret) {
+@@ -206,8 +220,7 @@ static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+ 		goto err;
+ 	}
+ 
+-	for (i = 0; pwrdm->pwrdm_clkdms[i]; i++)
+-		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[i]);
++	pwrdm_for_each_clkdm(pwrdm, _clkdm_allow_idle);
+ 
+ err:
+ 	return ret;
+
 
