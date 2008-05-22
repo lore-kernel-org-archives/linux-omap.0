@@ -1,48 +1,46 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 1/1] usb: musb: MUSB_OTG should depend on PM
-Date: Thu, 22 May 2008 03:47:33 +0300
-Message-ID: <1211417253-24699-1-git-send-email-felipe.balbi@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Recent DMA changes broke omap1, CDAC broken on 3430
+Date: Wed, 21 May 2008 18:00:55 -0700
+Message-ID: <20080522010051.GH23002@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:34982 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751152AbYEVAuD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2008 20:50:03 -0400
-Received: from esebh108.NOE.Nokia.com (esebh108.ntc.nokia.com [172.21.143.145])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m4M0ncQC013719
-	for <linux-omap@vger.kernel.org>; Thu, 22 May 2008 03:49:59 +0300
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62170 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760775AbYEVBAw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 May 2008 21:00:52 -0400
+Received: from c-69-181-40-92.hsd1.ca.comcast.net ([69.181.40.92] helo=localhost.localdomain)
+	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1JyzAp-000ILL-4E
+	for linux-omap@vger.kernel.org; Thu, 22 May 2008 01:00:51 +0000
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-Current musb Kconfig causes cyclic depency on x86
-arch. The best fix is to depend on PM in order to
-build on OTG mode.
+Hi all,
 
-Anyone interested in reproducing the error in your
-linux-omap trees, just make ARCH=x86 menuconfig
+Turns out my recent DMA changes broke omap1 dma to some extent.
+I've pushed a fix for that, and also a fix for old alsa code,
+and a compile fix for H4.
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/usb/musb/Kconfig |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+I also fixed omap_get_dma_src/dst_pos() to return the current
+address. So if there are still some old drivers (wrongly) assuming
+this function returns the transfer count, they're even more broken
+now. Please everybody check your drivers for that.
 
-diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-index a485a86..acbbd5f 100644
---- a/drivers/usb/musb/Kconfig
-+++ b/drivers/usb/musb/Kconfig
-@@ -88,10 +88,9 @@ config USB_MUSB_PERIPHERAL
- 	  (With a "Mini-AB" connector, you should enable USB OTG.)
- 
- config USB_MUSB_OTG
--	depends on USB && USB_GADGET && EXPERIMENTAL
-+	depends on USB && USB_GADGET && PM && EXPERIMENTAL
- 	bool "Both host and peripheral:  USB OTG (On The Go) Device"
- 	select USB_GADGET_MUSB_HDRC
--	select USB_OTG
- 	select PM
- 	help
- 	   The most notable feature of USB OTG is support for a
--- 
-1.5.5.1.125.gc697a
+It also seems that omap3430sdp ES2.0 returns 0 for CDAC address.
+This means omap_get_dma_dst_pos() will always return 0, which
+may break some drivers..
 
+I have no idea why CDAC is 0 on 3430, there's something in TRM in
+"9.5.4 Synchronized Transfer Monitoring Using CDAC" about setting
+CDAC, but so far no luck. Maybe this only works for hardware triggered
+transfers?
+
+If anybody has ideas why CDAC is not behaving let me know!
+
+Cheers,
+
+Tony
