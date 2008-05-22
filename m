@@ -1,51 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Fix compiler error at pm-debug
-Date: Thu, 22 May 2008 12:50:39 -0700
-Message-ID: <20080522195038.GK23002@atomide.com>
-References: <20080521054330.GA5460@party>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: MMC/SD cards hotplug scenario
+Date: Thu, 22 May 2008 21:01:23 +0100
+Message-ID: <20080522200123.GS15328@flint.arm.linux.org.uk>
+References: <004e01c8bb09$989fac00$538918ac@ent.ti.com> <20080521073017.GB23427@flint.arm.linux.org.uk> <005d01c8bb25$63345fe0$538918ac@ent.ti.com> <20080521203202.6d84a02b@mjolnir.drzeus.cx> <0680EC522D0CC943BC586913CF3768C0015799CFD8@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60437 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750827AbYEVTug (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 May 2008 15:50:36 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:57016 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754134AbYEVUBv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 May 2008 16:01:51 -0400
 Content-Disposition: inline
-In-Reply-To: <20080521054330.GA5460@party>
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C0015799CFD8@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: linux-omap@vger.kernel.org
+To: "Syed Mohammed, Khasim" <khasim@ti.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Kyungmin Park <kyungmin.park@samsung.com> [080520 22:57]:
-> Fix compiler error at pm-debug
+On Fri, May 23, 2008 at 01:16:39AM +0530, Syed Mohammed, Khasim wrote:
+> > The obscene amount of noise here seems to be caused by ext2 being
+> > extremely persistent. This is generally a good thing for your data
+> > though. :)
+> >
+> > What is missing is a decent way for a block device to tell the upper
+> > layers that is gone with no hope of ever coming back. Right now we just
+> > tell it that there was a write error, which just makes the upper layers
+> > retry and retry.
+> >
+> In this scenario, do you think it would be right to kill the ongoing
+> copy from application space, say for example an UI is running for MMC
+> copy and when the card is removed the app gets notified may be through
+> hotplug event or signaling and then app just kills the process that is
+> issuing this copy request. This will prevent long running errors. Just
+> a thought,
 
-Thanks, pushing today.
+If you pick out the errors from 'cp', you'll see that the system is
+telling 'cp' that it's getting IO errors.  Nevertheless, 'cp' carries
+on trying to copy each file (and rightfully so.)
 
-Tony
+However, there is another issue here - if you're going to be ejecting
+a medium containing an ext2fs filesystem at some random point, you
+absolutely must run e2fsck before remounting it - the filesystem _will_
+be in an inconsistent state at the point you eject the card.
 
-> 
->   CC      arch/arm/mach-omap2/pm-debug.o
-> In file included from arch/arm/mach-omap2/pm-debug.c:30:
-> arch/arm/mach-omap2/prm.h: In function `prm_rmw_reg_bits':
-> arch/arm/mach-omap2/prm.h:107: error: implicit declaration of function `__raw_readl'
-> arch/arm/mach-omap2/prm.h:110: error: implicit declaration of function `__raw_writel'
-> arch/arm/mach-omap2/pm-debug.c: In function `serial_wait_tx':
-> arch/arm/mach-omap2/pm-debug.c:59: error: implicit declaration of function `__raw_readb'
-> make[1]: *** [arch/arm/mach-omap2/pm-debug.o] Error 1
-> make: *** [arch/arm/mach-omap2] Error 2
-> 
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
-> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-> index 361e52b..8a9f3c4 100644
-> --- a/arch/arm/mach-omap2/pm-debug.c
-> +++ b/arch/arm/mach-omap2/pm-debug.c
-> @@ -23,6 +23,7 @@
->  
->  #include <linux/clk.h>
->  #include <linux/err.h>
-> +#include <linux/io.h>
->  
->  #include <asm/arch/clock.h>
->  #include <asm/arch/board.h>
+Moreover, I wouldn't be surprised if you keep doing this with a card,
+that the card's firmware will eventually get confused and die.
+
+Basically, what I'm trying to say is that ejecting any medium randomly
+from the system is _always_ going to result in problems of some nature.
+Some of which you can reduce the impact from, others are fairly terminal.
+The only safe solution is the unmount, wait for data to be written, and
+then eject the card.
