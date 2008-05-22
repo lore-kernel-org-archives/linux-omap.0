@@ -1,122 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] IRQ: simplify OMAP2 mask_irq/unmask_irq code
-Date: Thu, 22 May 2008 12:50:11 -0700
-Message-ID: <20080522195011.GJ23002@atomide.com>
-References: <alpine.DEB.1.00.0805201915320.9463@utopia.booyaka.com> <20080521150554.GX23002@atomide.com> <alpine.DEB.1.00.0805211312580.15667@utopia.booyaka.com>
+Subject: Re: [PATCH] ARM: OMAP: Fix compiler error at pm-debug
+Date: Thu, 22 May 2008 12:50:39 -0700
+Message-ID: <20080522195038.GK23002@atomide.com>
+References: <20080521054330.GA5460@party>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60044 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60437 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752682AbYEVTuK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 May 2008 15:50:10 -0400
+	with ESMTP id S1750827AbYEVTug (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 May 2008 15:50:36 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.1.00.0805211312580.15667@utopia.booyaka.com>
+In-Reply-To: <20080521054330.GA5460@party>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, Paul Mundt <lethal@linux-sh.org>, Kyungmin Park <kmpark@infradead.org>
+To: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [080521 12:15]:
-> Hi Tony,
-> 
-> On Wed, 21 May 2008, Tony Lindgren wrote:
-> 
-> > * Paul Walmsley <paul@pwsan.com> [080520 18:20]:
-> > > 
-> > > Modify mach-omap2/irq.c to simplify the IRQ number-to-IRQ register and IRQ 
-> > > number-to-register bit calculations.
-> > 
-> > How about patching Jouni's new omap_irq_pending() for this too?
-> 
-> done - updated patch below.
+* Kyungmin Park <kyungmin.park@samsung.com> [080520 22:57]:
+> Fix compiler error at pm-debug
 
 Thanks, pushing today.
 
 Tony
 
 > 
-> - Paul
+>   CC      arch/arm/mach-omap2/pm-debug.o
+> In file included from arch/arm/mach-omap2/pm-debug.c:30:
+> arch/arm/mach-omap2/prm.h: In function `prm_rmw_reg_bits':
+> arch/arm/mach-omap2/prm.h:107: error: implicit declaration of function `__raw_readl'
+> arch/arm/mach-omap2/prm.h:110: error: implicit declaration of function `__raw_writel'
+> arch/arm/mach-omap2/pm-debug.c: In function `serial_wait_tx':
+> arch/arm/mach-omap2/pm-debug.c:59: error: implicit declaration of function `__raw_readb'
+> make[1]: *** [arch/arm/mach-omap2/pm-debug.o] Error 1
+> make: *** [arch/arm/mach-omap2] Error 2
 > 
-> 
-> [PATCH] IRQ: simplify OMAP2 mask_irq/unmask_irq code
-> 
-> Modify mach-omap2/irq.c to simplify the IRQ number-to-IRQ register and
-> IRQ number-to-register bit calculations.
-> 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Kyungmin Park <kmpark@infradead.org>
-> Acked-by: Paul Mundt <lethal@linux-sh.org>
-> 
-> size:
->    text    data     bss     dec     hex filename
-> 3272871  155128   98792 3526791  35d087 vmlinux.3430sdp
-> 3272839  155128   98792 3526759  35d067 vmlinux.3430sdp.patched
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 > ---
-> 
->  arch/arm/mach-omap2/irq.c |   27 ++++++++++++++-------------
->  1 files changed, 14 insertions(+), 13 deletions(-)
-> 
-> 
-> diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-> index f1e1e2e..94d2f93 100644
-> --- a/arch/arm/mach-omap2/irq.c
-> +++ b/arch/arm/mach-omap2/irq.c
-> @@ -28,6 +28,9 @@
->  #define INTC_MIR_SET0		0x008c
->  #define INTC_PENDING_IRQ0	0x0098
+> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+> index 361e52b..8a9f3c4 100644
+> --- a/arch/arm/mach-omap2/pm-debug.c
+> +++ b/arch/arm/mach-omap2/pm-debug.c
+> @@ -23,6 +23,7 @@
 >  
-> +/* Number of IRQ state bits in each MIR register */
-> +#define IRQ_BITS_PER_REG	32
-> +
->  /*
->   * OMAP2 has a number of different interrupt controllers, each interrupt
->   * controller is identified as its own "bank". Register definitions are
-> @@ -68,24 +71,18 @@ static void omap_ack_irq(unsigned int irq)
+>  #include <linux/clk.h>
+>  #include <linux/err.h>
+> +#include <linux/io.h>
 >  
->  static void omap_mask_irq(unsigned int irq)
->  {
-> -	int offset = (irq >> 5) << 5;
-> +	int offset = irq & (~(IRQ_BITS_PER_REG - 1));
->  
-> -	if (irq >= 64)
-> -		irq %= 64;
-> -	else if (irq >= 32)
-> -		irq %= 32;
-> +	irq &= (IRQ_BITS_PER_REG - 1);
->  
->  	intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_SET0 + offset);
->  }
->  
->  static void omap_unmask_irq(unsigned int irq)
->  {
-> -	int offset = (irq >> 5) << 5;
-> +	int offset = irq & (~(IRQ_BITS_PER_REG - 1));
->  
-> -	if (irq >= 64)
-> -		irq %= 64;
-> -	else if (irq >= 32)
-> -		irq %= 32;
-> +	irq &= (IRQ_BITS_PER_REG - 1);
->  
->  	intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_CLEAR0 + offset);
->  }
-> @@ -131,11 +128,15 @@ int omap_irq_pending(void)
->  		struct omap_irq_bank *bank = irq_banks + i;
->  		int irq;
->  
-> -		for (irq = 0; irq < bank->nr_irqs; irq += 32)
-> -			if (intc_bank_read_reg(bank, INTC_PENDING_IRQ0 +
-> -					       ((irq >> 5) << 5)))
-> +		for (irq = 0; irq < bank->nr_irqs; irq += IRQ_BITS_PER_REG) {
-> +			int offset = irq & (~(IRQ_BITS_PER_REG - 1));
-> +
-> +			if (intc_bank_read_reg(bank, (INTC_PENDING_IRQ0 +
-> +						      offset)))
->  				return 1;
-> +		}
->  	}
-> +
->  	return 0;
->  }
->  
+>  #include <asm/arch/clock.h>
+>  #include <asm/arch/board.h>
