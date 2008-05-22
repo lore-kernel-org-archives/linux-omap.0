@@ -1,58 +1,122 @@
-From: "Syed Mohammed, Khasim" <khasim@ti.com>
-Subject: RE: MMC/SD cards hotplug scenario
-Date: Fri, 23 May 2008 01:16:39 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C0015799CFD8@dbde02.ent.ti.com>
-References: <004e01c8bb09$989fac00$538918ac@ent.ti.com>
-	<20080521073017.GB23427@flint.arm.linux.org.uk>
-	<005d01c8bb25$63345fe0$538918ac@ent.ti.com>
- <20080521203202.6d84a02b@mjolnir.drzeus.cx>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] IRQ: simplify OMAP2 mask_irq/unmask_irq code
+Date: Thu, 22 May 2008 12:50:11 -0700
+Message-ID: <20080522195011.GJ23002@atomide.com>
+References: <alpine.DEB.1.00.0805201915320.9463@utopia.booyaka.com> <20080521150554.GX23002@atomide.com> <alpine.DEB.1.00.0805211312580.15667@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from soda.ext.ti.com ([198.47.26.145]:45190 "EHLO soda.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752886AbYEVTuP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 May 2008 15:50:15 -0400
-In-Reply-To: <20080521203202.6d84a02b@mjolnir.drzeus.cx>
-Content-Language: en-US
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60044 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752682AbYEVTuK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 May 2008 15:50:10 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.1.00.0805211312580.15667@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pierre Ossman <drzeus@drzeus.cx>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
-Cc: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, Paul Mundt <lethal@linux-sh.org>, Kyungmin Park <kmpark@infradead.org>
 
-Hi Pierre,
+* Paul Walmsley <paul@pwsan.com> [080521 12:15]:
+> Hi Tony,
+> 
+> On Wed, 21 May 2008, Tony Lindgren wrote:
+> 
+> > * Paul Walmsley <paul@pwsan.com> [080520 18:20]:
+> > > 
+> > > Modify mach-omap2/irq.c to simplify the IRQ number-to-IRQ register and IRQ 
+> > > number-to-register bit calculations.
+> > 
+> > How about patching Jouni's new omap_irq_pending() for this too?
+> 
+> done - updated patch below.
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Pierre
-> Ossman
-> Sent: Thursday, May 22, 2008 12:02 AM
-> To: Chikkature Rajashekar, Madhusudhan
-> Cc: 'Russell King - ARM Linux'; linux-omap@vger.kernel.org; linux-arm-kernel@lists.arm.linux.org.uk
-> Subject: Re: MMC/SD cards hotplug scenario
->
-> On Wed, 21 May 2008 15:01:00 +0530
-> "Madhusudhan Chikkature Rajashekar" <madhu.cr@ti.com> wrote:
->
-> > What I meant here is that reinsertion of the card does not seem to result in reinitialization of
-> the card consistently.
->
-> Previously, that has always been because of bad interactions with the
-> block layer. 2.6.24 should be more resilient though.
->
-> >
-<snip>
+Thanks, pushing today.
 
-> The obscene amount of noise here seems to be caused by ext2 being
-> extremely persistent. This is generally a good thing for your data
-> though. :)
->
-> What is missing is a decent way for a block device to tell the upper
-> layers that is gone with no hope of ever coming back. Right now we just
-> tell it that there was a write error, which just makes the upper layers
-> retry and retry.
->
-In this scenario, do you think it would be right to kill the ongoing copy from application space, say for example an UI is running for MMC copy and when the card is removed the app gets notified may be through hotplug event or signaling and then app just kills the process that is issuing this copy request. This will prevent long running errors. Just a thought,
+Tony
 
-Regards,
-Khasim
+> 
+> - Paul
+> 
+> 
+> [PATCH] IRQ: simplify OMAP2 mask_irq/unmask_irq code
+> 
+> Modify mach-omap2/irq.c to simplify the IRQ number-to-IRQ register and
+> IRQ number-to-register bit calculations.
+> 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Kyungmin Park <kmpark@infradead.org>
+> Acked-by: Paul Mundt <lethal@linux-sh.org>
+> 
+> size:
+>    text    data     bss     dec     hex filename
+> 3272871  155128   98792 3526791  35d087 vmlinux.3430sdp
+> 3272839  155128   98792 3526759  35d067 vmlinux.3430sdp.patched
+> ---
+> 
+>  arch/arm/mach-omap2/irq.c |   27 ++++++++++++++-------------
+>  1 files changed, 14 insertions(+), 13 deletions(-)
+> 
+> 
+> diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+> index f1e1e2e..94d2f93 100644
+> --- a/arch/arm/mach-omap2/irq.c
+> +++ b/arch/arm/mach-omap2/irq.c
+> @@ -28,6 +28,9 @@
+>  #define INTC_MIR_SET0		0x008c
+>  #define INTC_PENDING_IRQ0	0x0098
+>  
+> +/* Number of IRQ state bits in each MIR register */
+> +#define IRQ_BITS_PER_REG	32
+> +
+>  /*
+>   * OMAP2 has a number of different interrupt controllers, each interrupt
+>   * controller is identified as its own "bank". Register definitions are
+> @@ -68,24 +71,18 @@ static void omap_ack_irq(unsigned int irq)
+>  
+>  static void omap_mask_irq(unsigned int irq)
+>  {
+> -	int offset = (irq >> 5) << 5;
+> +	int offset = irq & (~(IRQ_BITS_PER_REG - 1));
+>  
+> -	if (irq >= 64)
+> -		irq %= 64;
+> -	else if (irq >= 32)
+> -		irq %= 32;
+> +	irq &= (IRQ_BITS_PER_REG - 1);
+>  
+>  	intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_SET0 + offset);
+>  }
+>  
+>  static void omap_unmask_irq(unsigned int irq)
+>  {
+> -	int offset = (irq >> 5) << 5;
+> +	int offset = irq & (~(IRQ_BITS_PER_REG - 1));
+>  
+> -	if (irq >= 64)
+> -		irq %= 64;
+> -	else if (irq >= 32)
+> -		irq %= 32;
+> +	irq &= (IRQ_BITS_PER_REG - 1);
+>  
+>  	intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_CLEAR0 + offset);
+>  }
+> @@ -131,11 +128,15 @@ int omap_irq_pending(void)
+>  		struct omap_irq_bank *bank = irq_banks + i;
+>  		int irq;
+>  
+> -		for (irq = 0; irq < bank->nr_irqs; irq += 32)
+> -			if (intc_bank_read_reg(bank, INTC_PENDING_IRQ0 +
+> -					       ((irq >> 5) << 5)))
+> +		for (irq = 0; irq < bank->nr_irqs; irq += IRQ_BITS_PER_REG) {
+> +			int offset = irq & (~(IRQ_BITS_PER_REG - 1));
+> +
+> +			if (intc_bank_read_reg(bank, (INTC_PENDING_IRQ0 +
+> +						      offset)))
+>  				return 1;
+> +		}
+>  	}
+> +
+>  	return 0;
+>  }
+>  
