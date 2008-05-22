@@ -1,32 +1,34 @@
-From: Felipe Balbi <me@felipebalbi.com>
+From: "arun c" <arun.edarath@gmail.com>
 Subject: Re: omap osk and mistral touchscreen-ads7846
-Date: Thu, 22 May 2008 02:39:58 -0500
-Message-ID: <7acf7ffc09ea15b37d2c492796e33add@felipebalbi.com>
-References: <a1d91fa0805211540n11fc237dhed8deb988f8cbde4@mail.gmail.com> <c656a4d20805212316jdf9eb72ma62059f8cfc49e82@mail.gmail.com> <a1d91fa0805220023i35666796k14773fbd1224d8c0@mail.gmail.com>
+Date: Thu, 22 May 2008 14:34:39 +0530
+Message-ID: <c656a4d20805220204g3db4fba3l43d0f3eea9d219c2@mail.gmail.com>
+References: <a1d91fa0805211540n11fc237dhed8deb988f8cbde4@mail.gmail.com>
+	 <c656a4d20805212316jdf9eb72ma62059f8cfc49e82@mail.gmail.com>
+	 <a1d91fa0805220023i35666796k14773fbd1224d8c0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:43055 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753738AbYEVHkB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 May 2008 03:40:01 -0400
+Received: from ti-out-0910.google.com ([209.85.142.187]:57913 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760573AbYEVJEl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 May 2008 05:04:41 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so1743959tic.23
+        for <linux-omap@vger.kernel.org>; Thu, 22 May 2008 02:04:39 -0700 (PDT)
 In-Reply-To: <a1d91fa0805220023i35666796k14773fbd1224d8c0@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: mohammed shareef <mdshareef@gmail.com>
-Cc: arun c <arunedarath@mistralsolutions.com>, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 
-
-
-On Thu, 22 May 2008 12:53:11 +0530, "mohammed shareef"
-<mdshareef@gmail.com> wrote:
+On Thu, May 22, 2008 at 12:53 PM, mohammed shareef <mdshareef@gmail.com> wrote:
 > hi arun/all,
-> 
+>
 > when i do cat for interrupts i get:
-> 
+>
 > # cat /proc/interrupts
->            CPU0
+>           CPU0
 >  19:          0         MPU  DMA
 >  20:          0         MPU  DMA
 >  21:          0         MPU  DMA
@@ -52,23 +54,23 @@ On Thu, 22 May 2008 12:53:11 +0530, "mohammed shareef"
 >  94:          0         MPU  DMA
 > 160:       1409        GPIO  eth0
 > 164:         24        GPIO  spi2.0
+> 178:          0        GPIO  serial wakeup
+> 197:          0        GPIO  serial wakeup
+> 209:      19773        GPIO  serial wakeup
+> 222:          0        GPIO  omap_cf
+> 353:          0       MPUIO  tps65010
+> 354:          0       MPUIO  mistral_wakeup
+> Err:          0
+>
+> looks like am not getting the touchscreen interrupts.
+>
+> i havent even calibrated my touchscreen. but i have enabled the SPI
+> interface and the ADS7846 touchscreen in the kernel. could you tell me
+> how to calibrate it or make it work? i guess i am missing out on some
+> files like i have nothing like ts_calibrate in my filesystem.
+>
+See this link, i think it can help you.
+http://linux.omap.com/pipermail/linux-omap-open-source/2005-March/003174.html
 
-Here's your interrupt line (if I'm not wrong).
-This touchscreen is connected via spi. If you go to
-arch/arm/mach-omap1/board-osk.c you'll see a
-spi_board_info.
-
-Just to be sure issue:
-
-watch 'cat /proc/interrupts'
-
-and keep touching the touchscreen. spi2.0 value should increase.
-
-
--- 
-Best Regards,
-
-Felipe Balbi
-http://felipebalbi.com
-me@felipebalbi.com
-
+Regards,
+Arun C
