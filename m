@@ -1,53 +1,63 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+From: Igor Stoppa <igor.stoppa@nokia.com>
 Subject: Re: MMC/SD cards hotplug scenario
-Date: Thu, 22 May 2008 21:01:23 +0100
-Message-ID: <20080522200123.GS15328@flint.arm.linux.org.uk>
-References: <004e01c8bb09$989fac00$538918ac@ent.ti.com> <20080521073017.GB23427@flint.arm.linux.org.uk> <005d01c8bb25$63345fe0$538918ac@ent.ti.com> <20080521203202.6d84a02b@mjolnir.drzeus.cx> <0680EC522D0CC943BC586913CF3768C0015799CFD8@dbde02.ent.ti.com>
+Date: Thu, 22 May 2008 20:39:39 +0000
+Message-ID: <1211488779.6430.12.camel@mort>
+References: <004e01c8bb09$989fac00$538918ac@ent.ti.com>
+	 <20080521073017.GB23427@flint.arm.linux.org.uk>
+	 <005d01c8bb25$63345fe0$538918ac@ent.ti.com>
+	 <20080521203202.6d84a02b@mjolnir.drzeus.cx>
+	 <0680EC522D0CC943BC586913CF3768C0015799CFD8@dbde02.ent.ti.com>
+	 <20080522200123.GS15328@flint.arm.linux.org.uk>
+Reply-To: igor.stoppa@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:57016 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754134AbYEVUBv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 May 2008 16:01:51 -0400
-Content-Disposition: inline
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C0015799CFD8@dbde02.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:59215 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758296AbYEVVAT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 May 2008 17:00:19 -0400
+In-Reply-To: <20080522200123.GS15328@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Syed Mohammed, Khasim" <khasim@ti.com>
-Cc: Pierre Ossman <drzeus@drzeus.cx>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "Syed Mohammed, Khasim" <khasim@ti.com>, Pierre Ossman <drzeus@drzeus.cx>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, May 23, 2008 at 01:16:39AM +0530, Syed Mohammed, Khasim wrote:
-> > The obscene amount of noise here seems to be caused by ext2 being
-> > extremely persistent. This is generally a good thing for your data
-> > though. :)
-> >
-> > What is missing is a decent way for a block device to tell the upper
-> > layers that is gone with no hope of ever coming back. Right now we just
-> > tell it that there was a write error, which just makes the upper layers
-> > retry and retry.
-> >
-> In this scenario, do you think it would be right to kill the ongoing
-> copy from application space, say for example an UI is running for MMC
-> copy and when the card is removed the app gets notified may be through
-> hotplug event or signaling and then app just kills the process that is
-> issuing this copy request. This will prevent long running errors. Just
-> a thought,
+Hi,
+On Thu, 2008-05-22 at 21:01 +0100, ext Russell King - ARM Linux wrote:
 
-If you pick out the errors from 'cp', you'll see that the system is
-telling 'cp' that it's getting IO errors.  Nevertheless, 'cp' carries
-on trying to copy each file (and rightfully so.)
+> Basically, what I'm trying to say is that ejecting any medium randomly
+> from the system is _always_ going to result in problems of some nature.
+> Some of which you can reduce the impact from, others are fairly terminal.
+> The only safe solution is the unmount, wait for data to be written, and
+> then eject the card.
 
-However, there is another issue here - if you're going to be ejecting
-a medium containing an ext2fs filesystem at some random point, you
-absolutely must run e2fsck before remounting it - the filesystem _will_
-be in an inconsistent state at the point you eject the card.
+from this point of view it is a watered down version of "what happens
+when the power is removed abruptly", which unfortunately cannot really
+be avoided on battery powered devices with removable battery.
 
-Moreover, I wouldn't be surprised if you keep doing this with a card,
-that the card's firmware will eventually get confused and die.
+If the system is supposed to survive such cases, then ext2 is probably
+not the best choice and a journaling fs (ext3 ?) should be considered.
 
-Basically, what I'm trying to say is that ejecting any medium randomly
-from the system is _always_ going to result in problems of some nature.
-Some of which you can reduce the impact from, others are fairly terminal.
-The only safe solution is the unmount, wait for data to be written, and
-then eject the card.
+With MMC even the way the power fails (vcore fading away before/after
+vio) affects the possibility of the embedded uC b0rking. So it needs to
+be addressed also at board HW level.
+
+This of course cannot be really controlled when the MMC is removed from
+the slot, unless there is a sensor on the MMC lid.
+
+Sensor that could be used for an emergency, controlled powerdown, with
+no sync.
+
+But on the Tablets we instead show a warning and tell the user to be
+nice and close back the lid: UI designers prefer such approach.
+
+Just my 2 cents.
+
+-- 
+Cheers, Igor
+
+---
+
+Igor Stoppa
+Nokia Devices R&D - Helsinki
