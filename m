@@ -1,63 +1,65 @@
-From: Igor Stoppa <igor.stoppa@nokia.com>
-Subject: Re: MMC/SD cards hotplug scenario
-Date: Thu, 22 May 2008 20:39:39 +0000
-Message-ID: <1211488779.6430.12.camel@mort>
-References: <004e01c8bb09$989fac00$538918ac@ent.ti.com>
-	 <20080521073017.GB23427@flint.arm.linux.org.uk>
-	 <005d01c8bb25$63345fe0$538918ac@ent.ti.com>
-	 <20080521203202.6d84a02b@mjolnir.drzeus.cx>
-	 <0680EC522D0CC943BC586913CF3768C0015799CFD8@dbde02.ent.ti.com>
-	 <20080522200123.GS15328@flint.arm.linux.org.uk>
-Reply-To: igor.stoppa@nokia.com
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: [PATCH 0/2] Add D2D clockdomain on OMAP3 ES2+
+Date: Fri, 23 May 2008 09:27:09 +0300
+Message-ID: <87wsllmt6q.fsf@trdhcp146196.ntc.nokia.com>
+References: <20080522173035.1292.74243.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:59215 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:62137 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758296AbYEVVAT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 May 2008 17:00:19 -0400
-In-Reply-To: <20080522200123.GS15328@flint.arm.linux.org.uk>
+	with ESMTP id S1753892AbYEWG1m convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 May 2008 02:27:42 -0400
+In-Reply-To: <20080522173035.1292.74243.stgit@localhost.localdomain> (ext Paul
+	Walmsley's message of "Thu, 22 May 2008 11:33:47 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "Syed Mohammed, Khasim" <khasim@ti.com>, Pierre Ossman <drzeus@drzeus.cx>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
 
-Hi,
-On Thu, 2008-05-22 at 21:01 +0100, ext Russell King - ARM Linux wrote:
+"ext Paul Walmsley" <paul@pwsan.com> writes:
 
-> Basically, what I'm trying to say is that ejecting any medium randomly
-> from the system is _always_ going to result in problems of some nature.
-> Some of which you can reduce the impact from, others are fairly terminal.
-> The only safe solution is the unmount, wait for data to be written, and
-> then eject the card.
+> Hello,
+>
+> This patch series adds D2D (die-to-die) clockdomain handling into
+> OMAP3 ES2+ builds.  It seems the D2D clockdomain logic is still
+> present on the chip and must be manually programmed to allow the
+> CORE_D2D clockdomain to go inactive.
+>
+> For this to work, the pm34xx.c code also had to be modified to use th=
+e
+> pwrdm_for_each_clkdm() iterator, lest the existing for-loop fall off
+> the end of pwrdm->pwrdm_clkdms[].  This also should fix an oops with
+> CONFIG_PM on any 3430ES1 boards out there.
 
-from this point of view it is a watered down version of "what happens
-when the power is removed abruptly", which unfortunately cannot really
-be avoided on battery powered devices with removable battery.
+That loop was a good catch, thanks.
 
-If the system is supposed to survive such cases, then ext2 is probably
-not the best choice and a journaling fs (ext3 ?) should be considered.
+Both patches acked.
 
-With MMC even the way the power fails (vcore fading away before/after
-vio) affects the possibility of the embedded uC b0rking. So it needs to
-be addressed also at board HW level.
+>
+> Tested on 3430SDP ES2.0.
+>
+>
+> - Paul
+>
+>
+> diffstat:
+>  arch/arm/mach-omap2/clockdomains.h |    9 ++++++++-
+>  arch/arm/mach-omap2/pm34xx.c       |   23 ++++++++++++++++++-----
+>  2 files changed, 26 insertions(+), 6 deletions(-)
+>
+> size:
+>    text    data     bss     dec     hex filename
+> 3280225  155416   98792 3534433  35ee61 vmlinux.3430sdp.orig
+> 3280305  155416   98792 3534513  35eeb1 vmlinux.3430sdp.patched
+>
 
-This of course cannot be really controlled when the MMC is removed from
-the slot, unless there is a sensor on the MMC lid.
+--=20
+Jouni H=C3=B6gander
 
-Sensor that could be used for an emergency, controlled powerdown, with
-no sync.
-
-But on the Tablets we instead show a warning and tell the user to be
-nice and close back the lid: UI designers prefer such approach.
-
-Just my 2 cents.
-
--- 
-Cheers, Igor
-
----
-
-Igor Stoppa
-Nokia Devices R&D - Helsinki
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
