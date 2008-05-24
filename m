@@ -1,84 +1,103 @@
-From: "Pablo Recabal" <pablorecabal@gmail.com>
-Subject: Can't build the DSP/BIOS LINK messaging library (OSK 5912, for CCS debugging)
-Date: Fri, 23 May 2008 13:26:15 -0400
-Message-ID: <4ccc24390805231026y40fe2cdeq44bd741b8005cbd9@mail.gmail.com>
-References: <4ccc24390805221413r4bc36976j157499d5d5c92f9f@mail.gmail.com>
-	 <4ccc24390805231024r25f3ee6g22a28d88694f644f@mail.gmail.com>
+From: "mohammed shareef" <mdshareef@gmail.com>
+Subject: Re: omap osk and mistral touchscreen-ads7846
+Date: Sat, 24 May 2008 09:11:47 +0530
+Message-ID: <a1d91fa0805232041l3f1346fei415a6bc0889ef7f7@mail.gmail.com>
+References: <a1d91fa0805211540n11fc237dhed8deb988f8cbde4@mail.gmail.com>
+	 <c656a4d20805212316jdf9eb72ma62059f8cfc49e82@mail.gmail.com>
+	 <a1d91fa0805220023i35666796k14773fbd1224d8c0@mail.gmail.com>
+	 <c656a4d20805220204g3db4fba3l43d0f3eea9d219c2@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.189]:63744 "EHLO
+Received: from ti-out-0910.google.com ([209.85.142.189]:19657 "EHLO
 	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751980AbYEWR1I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 May 2008 13:27:08 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so639314tic.23
-        for <linux-omap@vger.kernel.org>; Fri, 23 May 2008 10:27:05 -0700 (PDT)
-In-Reply-To: <4ccc24390805231024r25f3ee6g22a28d88694f644f@mail.gmail.com>
+	with ESMTP id S1758934AbYEXDlu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 May 2008 23:41:50 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so805917tic.23
+        for <linux-omap@vger.kernel.org>; Fri, 23 May 2008 20:41:48 -0700 (PDT)
+In-Reply-To: <c656a4d20805220204g3db4fba3l43d0f3eea9d219c2@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: me@felipebalbi.com, linux-omap@vger.kernel.org
 
-Hi Everyone,
-I'm new to this, and probably this is a very basic problem, but I'm
-still stuck with it so maybe someone can help.
+Hi,
 
-I'm following the dspusersguide for CCS debugging with osk5912 and
-JTAG emulator.
-I can't seem to build the dsplinkmsg.pjt... here is an extract from
-the log (the first lines):
+fortunately looks like am getting interrupts when i touch the
+touchscreen. i can say this because the spi interrupts were
+incremented when i touched. here is the output:
 
+# cat /proc/interrupts
+           CPU0
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+160:       2997        GPIO  eth0
+164:          0        GPIO  spi2.0
 
-> timake.exe dsplinkmsg.pjt debug
----------------------------  dsplinkmsg.pjt - Debug  ---------------------------
-[mqabuf.c] "C:\CCStudio_v3.3\C5500\cgtools\bin\cl55" -g -mg -q -pdr
--pdv -pden -fr"C:/CCStudio_v3.3/boards/osk5912/dsplink/dsp/make/OMAP/Debug"
--i"C:/CCStudio_v3.3/messaging/include"
--i"C:/CCStudio_v3.3/boards/osk5912/dsplink/dsp/make/OMAP/../../../dsp/src/mqa"
--i"C:/CCStudio_v3.3/boards/osk5912/dsplink/dsp/make/OMAP/../../../dsp/src/mqt"
--i"C:/CCStudio_v3.3/boards/osk5912/dsplink/dsp/make/OMAP/../../../dsp/inc"
--i"C:/CCStudio_v3.3/boards/osk5912/dsplink/dsp/make/OMAP/../../../dsp/inc/OMAP"
--d"_DEBUG" -d"_MSGQ_COMPONENT" -d"USE_CCS_BREAKPOINT" -ml -mn
--vcore:2.1 -@"../../make/OMAP/Debug.lkf" "mqabuf.c"
-"C:/CCStudio_v3.3/boards/osk5912/dsplink/dsp/make/OMAP/../../../dsp/inc/mqabuf.h",
-line 63: error #20:
-         identifier "MSGQ_AllocatorFxns" is undefined
- extern MSGQ_AllocatorFxns MQABUF_FXNS ;
-        ^
-"mqabuf.c", line 82: error #20: identifier "MSGQ_Status" is undefined
- MSGQ_Status
- ^
-"mqabuf.c", line 83: error #20: identifier "MSGQ_AllocatorHandle" is undefined
- MQABUF_open (MSGQ_AllocatorHandle mqaHandle) ;
-              ^
-"mqabuf.c", line 110: error #20: identifier "MSGQ_Status" is undefined
- MSGQ_Status
- ^
-"mqabuf.c", line 111: error #20: identifier "MSGQ_AllocatorHandle" is undefined
- MQABUF_close (MSGQ_AllocatorHandle mqaHandle) ;
-               ^
-"mqabuf.c", line 145: error #20: identifier "MSGQ_AllocatorHandle" is undefined
- MQABUF_alloc (MSGQ_AllocatorHandle mqaHandle, Uint16 * size) ;
-.
-.
-....
+# cat /proc/interrupts
+           CPU0
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+160:       3030        GPIO  eth0
+164:          5        GPIO  spi2.0
 
+we can observe that it has increased from 0 to 5.
 
-I have found the undefined objects in different msgq.h files in my
-computer, but replacing the msgq.h located in
-"C:\CCStudio_v3.3\bios_5_31_02\packages\ti\bios\include" doesn't work
-because other objects become undefined.
+do i need some executable files in my filesystem to calibrate it?
 
-The only thing I think is important to point out is that I'm working
-with CCS 3.3 and when I tried to install the MSGQ component
-(ALL-2.20-SA-to-UA-mq-1.01.00) from the osk5912 cdrom I got the
-following warning:
-"Setup has not found any valid products to update. Your system may be
-already up-to-date or you are attempting to install a serial update
-out of sequence. Setup will now abort"
+thanx and regards,
+Shareef
 
-Thanks
-
-Pablo Recabal
-University of Chile
+On Thu, May 22, 2008 at 2:34 PM, arun c <arun.edarath@gmail.com> wrote:
+> On Thu, May 22, 2008 at 12:53 PM, mohammed shareef <mdshareef@gmail.com> wrote:
+>> hi arun/all,
+>>
+>> when i do cat for interrupts i get:
+>>
+>> # cat /proc/interrupts
+>>           CPU0
+>>  19:          0         MPU  DMA
+>>  20:          0         MPU  DMA
+>>  21:          0         MPU  DMA
+>>  22:          0         MPU  DMA
+>>  23:          0         MPU  DMA
+>>  24:          0         MPU  DMA
+>>  25:       9834         MPU  LCD DMA
+>>  31:          3         MPU  lcdc
+>>  33:          1         MPU  omap-keypad
+>>  36:        313         MPU  i2c_omap
+>>  46:        148         MPU  serial
+>>  54:      19893         MPU  32KHz timer
+>>  78:          0         MPU  peripheral wakeup
+>>  85:          0         MPU  DMA
+>>  86:          0         MPU  DMA
+>>  87:          0         MPU  DMA
+>>  88:          0         MPU  DMA
+>>  89:          0         MPU  DMA
+>>  90:          0         MPU  DMA
+>>  91:          0         MPU  DMA
+>>  92:          0         MPU  DMA
+>>  93:          0         MPU  DMA
+>>  94:          0         MPU  DMA
+>> 160:       1409        GPIO  eth0
+>> 164:         24        GPIO  spi2.0
+>> 178:          0        GPIO  serial wakeup
+>> 197:          0        GPIO  serial wakeup
+>> 209:      19773        GPIO  serial wakeup
+>> 222:          0        GPIO  omap_cf
+>> 353:          0       MPUIO  tps65010
+>> 354:          0       MPUIO  mistral_wakeup
+>> Err:          0
+>>
+>> looks like am not getting the touchscreen interrupts.
+>>
+>> i havent even calibrated my touchscreen. but i have enabled the SPI
+>> interface and the ADS7846 touchscreen in the kernel. could you tell me
+>> how to calibrate it or make it work? i guess i am missing out on some
+>> files like i have nothing like ts_calibrate in my filesystem.
+>>
+> See this link, i think it can help you.
+> http://linux.omap.com/pipermail/linux-omap-open-source/2005-March/003174.html
+>
+> Regards,
+> Arun C
+>
