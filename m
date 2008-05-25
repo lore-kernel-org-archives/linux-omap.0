@@ -1,49 +1,31 @@
-From: Igor Stoppa <igor.stoppa@nokia.com>
-Subject: Re: [PATCH] Fix n800 build - Remove kernel config conditional
-	declaration of TSC2005 device config structures
-Date: Sun, 25 May 2008 12:23:56 +0000
-Message-ID: <1211718237.22815.118.camel@mort>
-References: <1211705141-12878-1-git-send-email-trickie@gmail.com>
-	 <83c2b2e00805250148j54bd3b77sb4740051d293f5dd@mail.gmail.com>
-Reply-To: igor.stoppa@nokia.com
+From: Radoslaw Szkodzinski <astralstorm@gen2.org>
+Subject: 2.6.26-rc3-omap vs N810 and Xomap
+Date: Sun, 25 May 2008 20:38:55 +0200
+Message-ID: <20080525203855.2f6037f6@gen2.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:37951 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761788AbYEYMo7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 25 May 2008 08:44:59 -0400
-In-Reply-To: <83c2b2e00805250148j54bd3b77sb4740051d293f5dd@mail.gmail.com>
+Received: from gen2.org ([194.181.7.159]:38619 "EHLO gen2.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755624AbYEYSsN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 25 May 2008 14:48:13 -0400
+Received: from localhost (host-89-228-135-37.gorzow.mm.pl [89.228.135.37])
+	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
+	(No client certificate requested)
+	by gen2.org (Postfix) with ESMTP id F07011214063
+	for <linux-omap@vger.kernel.org>; Sun, 25 May 2008 20:38:59 +0200 (CEST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext nick loeve <trickie@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi,
+Hello,
 
-On Sun, 2008-05-25 at 10:48 +0200, ext nick loeve wrote:
-> Hi,
-> 
-> This patch is if i do not build with CONFIG_TOUCHSCREEN_TSC2005 enabled.
-> 
-> I am trying to build a bare basics kernel for the n800,
+I've managed to get 2.6.26-rc3-omap booting (was quite easy actually).
+Now I hit a road block - I get everything to start, it boots nicely
+(checked with SSH), but fails to display anything except a white screen.
+Looks like Xomap can't (re)init framebuffer, or focus isn't transferred
+to it.
+Any known possible reasons?
 
-depending on what exactly is your goal, you might discover that it is
-not reachable: the bootloader does lots of initializations (lcd,
-usb, ...)  that are reset by the respective drivers. In case you don't
-include those drivers, you can kiss goodbye to working power management.
-
-The only way would be to create a section in the board file which groups
-all the resets and executes them regardless of the respective driver
-being enabled.
-
-The bootrom also does initialize the UART.
-
--- 
-Cheers, Igor
-
----
-
-Igor Stoppa
-Nokia Devices R&D - Helsinki
+AstralStorm
