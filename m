@@ -1,74 +1,59 @@
-From: "nick loeve" <trickie@gmail.com>
-Subject: Re: [PATCH] Fix n800 build - Remove kernel config conditional declaration of TSC2005 device config structures
-Date: Mon, 26 May 2008 08:42:34 +0200
-Message-ID: <83c2b2e00805252342r27d10902n5b188395e00655b3@mail.gmail.com>
-References: <1211705141-12878-1-git-send-email-trickie@gmail.com>
-	 <83c2b2e00805250148j54bd3b77sb4740051d293f5dd@mail.gmail.com>
-	 <1211718237.22815.118.camel@mort>
+From: "mohammed shareef" <mdshareef@gmail.com>
+Subject: omap 0sk and mistral touchscreen..
+Date: Mon, 26 May 2008 12:19:11 +0530
+Message-ID: <a1d91fa0805252349w266c2f8x11377f2dce066b93@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.186]:48597 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751171AbYEZGmm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 May 2008 02:42:42 -0400
-Received: by fk-out-0910.google.com with SMTP id 18so1662592fkq.5
-        for <linux-omap@vger.kernel.org>; Sun, 25 May 2008 23:42:40 -0700 (PDT)
-In-Reply-To: <1211718237.22815.118.camel@mort>
+Received: from ti-out-0910.google.com ([209.85.142.191]:48985 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751305AbYEZGtN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 May 2008 02:49:13 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so1047847tic.23
+        for <linux-omap@vger.kernel.org>; Sun, 25 May 2008 23:49:12 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: igor.stoppa@nokia.com
-Cc: linux-omap@vger.kernel.org
+To: omap <linux-omap@vger.kernel.org>, linux-omap-open-source@linux.omap.com
 
-Hi Igor,
+Dear All,
 
-On Sun, May 25, 2008 at 2:23 PM, Igor Stoppa <igor.stoppa@nokia.com> wrote:
-> Hi,
->
-> On Sun, 2008-05-25 at 10:48 +0200, ext nick loeve wrote:
->> Hi,
->>
->> This patch is if i do not build with CONFIG_TOUCHSCREEN_TSC2005 enabled.
->>
->> I am trying to build a bare basics kernel for the n800,
->
-> depending on what exactly is your goal, you might discover that it is
-> not reachable: the bootloader does lots of initializations (lcd,
-> usb, ...)  that are reset by the respective drivers. In case you don't
-> include those drivers, you can kiss goodbye to working power management.
+i cross-compiled the tslib for my filesystem as mentioned in:
+http://linux.omap.com/pipermail/linux-omap-open-source/2005-March/003174.html
 
-Ok. I was thinking there may be issues similar to that, but for now im
-just experimenting. I am also trying to get qemu system emulation
-working with a recent linux-omap kernel for the mamona project, which
-is how i started on this in the first place.
+and i have put the executables in the filesystem.
+when i do
+/usr/X11/bin/ts_calibrate
 
->
-> The only way would be to create a section in the board file which groups
-> all the resets and executes them regardless of the respective driver
-> being enabled.
->
+i dont get any "calibration request" on the LCD.
+But when i do:
 
-Hmmm sounds like a challenge :) Ill take a look.
+cat /dev/input/event1
 
-Thanks for the info
+i could see that i get stuff on my host computer when i touch the
+screen. which means that my toucscreen is associated with event1. i
+have even set up the proper environment variables.
 
-Cheers
+doing:
+cat /proc/interrupts
+also shows that spi interrupts incrementing on touching the screen.
 
+cat /proc/bus/input/devices
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="ADS784x Touchscreen"
+P: Phys=spi2.0/input0
+S: Sysfs=/class/input/input1
+H: Handlers=mouse0 event1 ts0
+B: EV=b
+B: KEY=400 0 0 0 0 0 0 0 0 0 0
+B: ABS=1000003
 
-> The bootrom also does initialize the UART.
->
-> --
-> Cheers, Igor
->
-> ---
->
-> Igor Stoppa
-> Nokia Devices R&D - Helsinki
->
+but running
+ts_calibrate doesnt show any cross-hairs on the LCD.
 
+could you tell me if am missing something?
 
-
--- 
-Nick Loeve
+thank you,
+warm regards,
+Shareef
