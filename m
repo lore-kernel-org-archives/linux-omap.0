@@ -1,82 +1,98 @@
-From: "Pablo Ravest" <pravest@gmail.com>
-Subject: Can't build the DSP/BIOS LINK messaging library (OSK 5912, for CCS debugging)
-Date: Mon, 26 May 2008 18:03:54 -0400
-Message-ID: <a4faa7a00805261503m4fad2c6aufac468e6c24e16e4@mail.gmail.com>
+From: "mohammed shareef" <mdshareef@gmail.com>
+Subject: Re: omap 0sk and mistral touchscreen..
+Date: Tue, 27 May 2008 09:56:12 +0530
+Message-ID: <a1d91fa0805262126v65745282k4ac45d3e71c1894f@mail.gmail.com>
+References: <a1d91fa0805252349w266c2f8x11377f2dce066b93@mail.gmail.com>
+	 <cb8016980805260842m2f06e9e8yb39fd91f1384d921@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:21026 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751161AbYEZWEd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 May 2008 18:04:33 -0400
-Received: by ug-out-1314.google.com with SMTP id h2so533661ugf.16
-        for <linux-omap@vger.kernel.org>; Mon, 26 May 2008 15:04:32 -0700 (PDT)
+Received: from ti-out-0910.google.com ([209.85.142.186]:49486 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750711AbYE0E0O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 May 2008 00:26:14 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so1555659tic.23
+        for <linux-omap@vger.kernel.org>; Mon, 26 May 2008 21:26:12 -0700 (PDT)
+In-Reply-To: <cb8016980805260842m2f06e9e8yb39fd91f1384d921@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
+To: Abraham Arce <abraham.arce.moreno@gmail.com>
+Cc: omap <linux-omap@vger.kernel.org>
 
-Hi Everyone,
-I'm new to this, and probably this is a very basic problem, but I'm
-still stuck with it so maybe someone can help.
+Dear Abraham,
 
-I'm following the dspusersguide for CCS debugging with osk5912 and
-JTAG emulator.
-I can't seem to build the dsplinkmsg.pjt... here is an extract from
-the log (the first lines):
+I am not receiving any error nor any messages on the LCD.. i have
+added the following environment variables:
 
+export TSLIB_TSDEVICE=/dev/input/event1
+export TSLIB_CONFFILE=/etc/ts.conf
+export TSLIB_CONSOLEDEVICE=/dev/ttyS0
+export TSLIB_FBDEVICE=/dev/fb0
+export TSLIB_PLUGINDIR=/usr/lib/ts
+export TSLIB_CALIBFILE=/etc/pointercal
 
-> timake.exe dsplinkmsg.pjt debug
----------------------------  dsplinkmsg.pjt - Debug  ---------------------------
-[mqabuf.c] "C:\CCStudio_v3.3\C5500\cgtools\bin\cl55" -g -mg -q -pdr
--pdv -pden -fr"C:/CCStudio_v3.3/boards
-/osk5912/dsplink/dsp/make/OMAP/Debug"
--i"C:/CCStudio_v3.3/messaging/include"
--i"C:/CCStudio_v3.3/boards/osk5912/dsplink/dsp/make/OMAP/../../../dsp/src/mqa"
--i"C:/CCStudio_v3.3/boards/osk5912/dsplink/dsp/make/OMAP/../../../dsp/src/mqt"
--i"C:/CCStudio_v3.3/boards/osk5912/dsplink/dsp/make/OMAP/../../../dsp/inc"
--i"C:/CCStudio_v3.3/boards/osk5912/dsplink/dsp/make/OMAP/../../../dsp/inc/OMAP"
--d"_DEBUG" -d"_MSGQ_COMPONENT" -d"USE_CCS_BREAKPOINT" -ml -mn
--vcore:2.1 -@"../../make/OMAP/Debug.lkf" "mqabuf.c"
-"C:/CCStudio_v3.3/boards/osk5912/dsplink/dsp/make/OMAP/../../../dsp/inc/mqabuf.h",
-line 63: error #20:
-       identifier "MSGQ_AllocatorFxns" is undefined
- extern MSGQ_AllocatorFxns MQABUF_FXNS ;
-      ^
-"mqabuf.c", line 82: error #20: identifier "MSGQ_Status" is undefined
- MSGQ_Status
- ^
-"mqabuf.c", line 83: error #20: identifier "MSGQ_AllocatorHandle" is undefined
- MQABUF_open (MSGQ_AllocatorHandle mqaHandle) ;
-            ^
-"mqabuf.c", line 110: error #20: identifier "MSGQ_Status" is undefined
- MSGQ_Status
- ^
-"mqabuf.c", line 111: error #20: identifier "MSGQ_AllocatorHandle" is undefined
- MQABUF_close (MSGQ_AllocatorHandle mqaHandle) ;
-             ^
-"mqabuf.c", line 145: error #20: identifier "MSGQ_AllocatorHandle" is undefined
- MQABUF_alloc (MSGQ_AllocatorHandle mqaHandle, Uint16 * size) ;
-.
-.
-....
+everything seems fine.. except that i dont get any calibration
+messages on the lcd.
 
+regards,
+Shareef
 
-I have found the undefined objects in different msgq.h files in my
-computer, but replacing the msgq.h located in
-"C:\CCStudio_v3.3\bios_5_31_02\packages\ti\bios\include" doesn't work
-because other objects become undefined.
-
-The only thing I think is important to point out is that I'm working
-with CCS 3.3 and when I tried to install the MSGQ component
-(ALL-2.20-SA-to-UA-mq-1.01.00) from the osk5912 cdrom I got the
-following warning:
-"Setup has not found any valid products to update. Your system may be
-already up-to-date or you are attempting to install a serial update
-out of sequence. Setup will now abort"
-
-Thanks
-
-Pablo Ravest
-Universidad de Chile
+On Mon, May 26, 2008 at 9:12 PM, Abraham Arce
+<abraham.arce.moreno@gmail.com> wrote:
+> On 5/26/08, mohammed shareef <mdshareef@gmail.com> wrote:
+>> Dear All,
+>>
+>> i cross-compiled the tslib for my filesystem as mentioned in:
+>> http://linux.omap.com/pipermail/linux-omap-open-source/2005-March/003174.html
+>>
+>> and i have put the executables in the filesystem.
+>> when i do
+>> /usr/X11/bin/ts_calibrate
+>>
+>> i dont get any "calibration request" on the LCD.
+>
+> when you run ts_calibrate what are the messages you are getting?
+>
+> are you receiving the following?
+>  Couldnt load module input
+> if so, add a third exported variable:
+>  export TSLIB_PLUGINDIR=/lib/ts
+>
+>> But when i do:
+>>
+>> cat /dev/input/event1
+>>
+>> i could see that i get stuff on my host computer when i touch the
+>> screen. which means that my toucscreen is associated with event1. i
+>> have even set up the proper environment variables.
+>>
+>> doing:
+>> cat /proc/interrupts
+>> also shows that spi interrupts incrementing on touching the screen.
+>>
+>> cat /proc/bus/input/devices
+>> I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+>> N: Name="ADS784x Touchscreen"
+>> P: Phys=spi2.0/input0
+>> S: Sysfs=/class/input/input1
+>> H: Handlers=mouse0 event1 ts0
+>> B: EV=b
+>> B: KEY=400 0 0 0 0 0 0 0 0 0 0
+>> B: ABS=1000003
+>>
+>> but running
+>> ts_calibrate doesnt show any cross-hairs on the LCD.
+>>
+>> could you tell me if am missing something?
+>>
+>> thank you,
+>> warm regards,
+>> Shareef
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
