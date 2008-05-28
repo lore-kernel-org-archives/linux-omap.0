@@ -1,78 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] Add D2D clockdomain on OMAP3 ES2+
-Date: Wed, 28 May 2008 13:42:16 -0700
-Message-ID: <20080528204216.GK8845@atomide.com>
-References: <20080522173035.1292.74243.stgit@localhost.localdomain> <87wsllmt6q.fsf@trdhcp146196.ntc.nokia.com>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: [PATCH 0/4] OMAP3 Beagle: update defconfig to match board file
+Date: Wed, 28 May 2008 14:23:16 -0700
+Message-ID: <5e088bd90805281423o4a9cfe4r74e60a60e16d4f79@mail.gmail.com>
+References: <5e088bd90805272245q4ab6c1aue4b4d7d76e025422@mail.gmail.com>
+	 <bf8bea47238577986216c6ae6927cbac@felipebalbi.com>
+	 <5e088bd90805280548j10d287cbxe417dfbd85b51a90@mail.gmail.com>
+	 <20080528202720.GF8845@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:65202 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752025AbYE1UmV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 May 2008 16:42:21 -0400
+Received: from fg-out-1718.google.com ([72.14.220.159]:59553 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753435AbYE1VXS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 May 2008 17:23:18 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so1869962fgg.17
+        for <linux-omap@vger.kernel.org>; Wed, 28 May 2008 14:23:16 -0700 (PDT)
+In-Reply-To: <20080528202720.GF8845@atomide.com>
 Content-Disposition: inline
-In-Reply-To: <87wsllmt6q.fsf@trdhcp146196.ntc.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?H=F6gander?= Jouni <jouni.hogander@nokia.com>
-Cc: ext Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <me@felipebalbi.com>
 
-* H=F6gander Jouni <jouni.hogander@nokia.com> [080522 23:27]:
-> "ext Paul Walmsley" <paul@pwsan.com> writes:
->=20
-> > Hello,
-> >
-> > This patch series adds D2D (die-to-die) clockdomain handling into
-> > OMAP3 ES2+ builds.  It seems the D2D clockdomain logic is still
-> > present on the chip and must be manually programmed to allow the
-> > CORE_D2D clockdomain to go inactive.
-> >
-> > For this to work, the pm34xx.c code also had to be modified to use =
-the
-> > pwrdm_for_each_clkdm() iterator, lest the existing for-loop fall of=
-f
-> > the end of pwrdm->pwrdm_clkdms[].  This also should fix an oops wit=
-h
-> > CONFIG_PM on any 3430ES1 boards out there.
->=20
-> That loop was a good catch, thanks.
->=20
-> Both patches acked.
+Tony,
 
-Pushing both today.
+I received one piece of feedback offlist.  Since I have to resubmit
+one patch, I'll do it as a consolidated patch and make life simpler
+for you.
 
-Tony
+Steve
 
->=20
-> >
-> > Tested on 3430SDP ES2.0.
-> >
-> >
-> > - Paul
-> >
-> >
-> > diffstat:
-> >  arch/arm/mach-omap2/clockdomains.h |    9 ++++++++-
-> >  arch/arm/mach-omap2/pm34xx.c       |   23 ++++++++++++++++++-----
-> >  2 files changed, 26 insertions(+), 6 deletions(-)
-> >
-> > size:
-> >    text    data     bss     dec     hex filename
-> > 3280225  155416   98792 3534433  35ee61 vmlinux.3430sdp.orig
-> > 3280305  155416   98792 3534513  35eeb1 vmlinux.3430sdp.patched
-> >
->=20
-> --=20
-> Jouni H=F6gander
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, May 28, 2008 at 1:27 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Steve Sakoman <sakoman@gmail.com> [080528 05:49]:
+>> What is your preference, Tony?  Would you like me to resubmit as a single patch?
+>
+> No need to resubmit thanks, although one patch would have been better
+> in this case :)
+>
+> Tony
+>
+>
+>>
+>> Steve
+>>
+>> On Wed, May 28, 2008 at 2:57 AM, Felipe Balbi <me@felipebalbi.com> wrote:
+>> >
+>> >
+>> > On Tue, 27 May 2008 22:45:03 -0700, "Steve Sakoman" <sakoman@gmail.com>
+>> > wrote:
+>> >> While preparing a set of patches to add nand support for beagle I
+>> >> noticed that the beagle defconfig hasn't kept up with the features
+>> >> present in board-omap3beagle.c
+>> >>
+>> >> This series of patches updates the defconfig to enable mmc, rtc, usb, and
+>> >> fb
+>> >
+>> > All of these could come in only one patch.
+>> >
+>> >
+>> > --
+>> > Best Regards,
+>> >
+>> > Felipe Balbi
+>> > http://felipebalbi.com
+>> > me@felipebalbi.com
+>> >
+>> >
+>
