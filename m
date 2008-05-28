@@ -1,81 +1,50 @@
-From: Roman Tereshonkov <roman.tereshonkov@nokia.com>
-Subject: [PATCH] Add SDTI device for the OMAP3 and unify address definitions.
-Date: Wed, 28 May 2008 15:17:22 +0300
-Message-ID: <1211977042-3278-1-git-send-email-roman.tereshonkov@nokia.com>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: [PATCH 0/4] OMAP3 Beagle: update defconfig to match board file
+Date: Wed, 28 May 2008 05:48:31 -0700
+Message-ID: <5e088bd90805280548j10d287cbxe417dfbd85b51a90@mail.gmail.com>
+References: <5e088bd90805272245q4ab6c1aue4b4d7d76e025422@mail.gmail.com>
+	 <bf8bea47238577986216c6ae6927cbac@felipebalbi.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:41963 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751004AbYE1MRq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 May 2008 08:17:46 -0400
-Received: from esebh108.NOE.Nokia.com (esebh108.ntc.nokia.com [172.21.143.145])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m4SCH3LA021641
-	for <linux-omap@vger.kernel.org>; Wed, 28 May 2008 07:17:43 -0500
+Received: from fg-out-1718.google.com ([72.14.220.157]:24971 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752362AbYE1Msn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 May 2008 08:48:43 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so1771884fgg.17
+        for <linux-omap@vger.kernel.org>; Wed, 28 May 2008 05:48:41 -0700 (PDT)
+In-Reply-To: <bf8bea47238577986216c6ae6927cbac@felipebalbi.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Roman Tereshonkov <roman.tereshonkov@nokia.com>
+To: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <me@felipebalbi.com>
 
+What is your preference, Tony?  Would you like me to resubmit as a single patch?
 
-Signed-off-by: Roman Tereshonkov <roman.tereshonkov@nokia.com>
----
- arch/arm/mach-omap2/devices.c |   23 ++++++++++++++++++++++-
- drivers/misc/sti/sti.c        |    2 +-
- 2 files changed, 23 insertions(+), 2 deletions(-)
+Steve
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index d02e9e5..d8fb3f8 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -92,7 +92,9 @@ static inline void omap_init_mbox(void) { }
- 
- #if defined(CONFIG_OMAP_STI)
- 
--#define OMAP2_STI_BASE		IO_ADDRESS(0x48068000)
-+#if defined(CONFIG_ARCH_OMAP2)
-+
-+#define OMAP2_STI_BASE		0x48068000
- #define OMAP2_STI_CHANNEL_BASE	0x54000000
- #define OMAP2_STI_IRQ		4
- 
-@@ -112,6 +114,25 @@ static struct resource sti_resources[] = {
- 		.flags		= IORESOURCE_IRQ,
- 	}
- };
-+#elif defined(CONFIG_ARCH_OMAP3)
-+
-+#define OMAP3_SDTI_BASE		0x54500000
-+#define OMAP3_SDTI_CHANNEL_BASE	0x54600000
-+
-+static struct resource sti_resources[] = {
-+	{
-+		.start		= OMAP3_SDTI_BASE,
-+		.end		= OMAP3_SDTI_BASE + 0xFFF,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3_SDTI_CHANNEL_BASE,
-+		.end		= OMAP3_SDTI_CHANNEL_BASE + SZ_1M - 1,
-+		.flags		= IORESOURCE_MEM,
-+	}
-+};
-+
-+#endif
- 
- static struct platform_device sti_device = {
- 	.name		= "sti",
-diff --git a/drivers/misc/sti/sti.c b/drivers/misc/sti/sti.c
-index e828860..880c34b 100644
---- a/drivers/misc/sti/sti.c
-+++ b/drivers/misc/sti/sti.c
-@@ -356,7 +356,7 @@ static int __devinit sti_probe(struct platform_device *pdev)
- 	if (unlikely(ret != 0))
- 		goto err;
- 
--	sti_base = res->start;
-+	sti_base = io_p2v(res->start);
- 
- 	/*
- 	 * OMAP 16xx keeps channels in a relatively sane location,
--- 
-1.5.5.1
-
+On Wed, May 28, 2008 at 2:57 AM, Felipe Balbi <me@felipebalbi.com> wrote:
+>
+>
+> On Tue, 27 May 2008 22:45:03 -0700, "Steve Sakoman" <sakoman@gmail.com>
+> wrote:
+>> While preparing a set of patches to add nand support for beagle I
+>> noticed that the beagle defconfig hasn't kept up with the features
+>> present in board-omap3beagle.c
+>>
+>> This series of patches updates the defconfig to enable mmc, rtc, usb, and
+>> fb
+>
+> All of these could come in only one patch.
+>
+>
+> --
+> Best Regards,
+>
+> Felipe Balbi
+> http://felipebalbi.com
+> me@felipebalbi.com
+>
+>
