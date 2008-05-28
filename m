@@ -1,40 +1,29 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 0/4] OMAP3 Beagle: update defconfig to match board file
-Date: Wed, 28 May 2008 04:57:44 -0500
-Message-ID: <bf8bea47238577986216c6ae6927cbac@felipebalbi.com>
-References: <5e088bd90805272245q4ab6c1aue4b4d7d76e025422@mail.gmail.com>
+From: Dmitriy Chumak <dmytro.chumak@inobject.com>
+Subject: sdio_writesb doesn't transfer data
+Date: Wed, 28 May 2008 14:02:25 +0300
+Message-ID: <200805281402.26024.dmytro.chumak@inobject.com>
+Reply-To: dmytro.chumak@inobject.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:46469 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751455AbYE1J5q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 May 2008 05:57:46 -0400
-In-Reply-To: <5e088bd90805272245q4ab6c1aue4b4d7d76e025422@mail.gmail.com>
+Received: from kyiv.inobject.com ([62.221.40.190]:25975 "EHLO
+	kyiv.inobject.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752354AbYE1LC3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 May 2008 07:02:29 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: omap <linux-omap@vger.kernel.org>
 
+hi *
 
+I have a problem with sdio_writesb. When I call it I get no error in return 
+code, but in function mmc_omap_irq (from drivers/mmc/host/omap_hsmmc.c) I get 
+status 0x11. It means CC | DDIR. And because there is no TC in status, 
+mmc_omap_xfer_done is not called, but I suppose that it should be called in 
+case of sdio_writesb. Maybe someone could tell me what does DDIR, CC, TC and 
+OD stand for (these are defines in drivers/mmc/host/omap_hsmmc.c)?
 
-On Tue, 27 May 2008 22:45:03 -0700, "Steve Sakoman" <sakoman@gmail.com>
-wrote:
-> While preparing a set of patches to add nand support for beagle I
-> noticed that the beagle defconfig hasn't kept up with the features
-> present in board-omap3beagle.c
-> 
-> This series of patches updates the defconfig to enable mmc, rtc, usb, and
-> fb
-
-All of these could come in only one patch.
-
-
--- 
-Best Regards,
-
-Felipe Balbi
-http://felipebalbi.com
-me@felipebalbi.com
-
+thanks
