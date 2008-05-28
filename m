@@ -1,40 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 2.6.26-rc3-omap vs N810 and Xomap
-Date: Tue, 27 May 2008 22:46:54 -0700
-Message-ID: <20080528054654.GS8845@atomide.com>
-References: <20080525203855.2f6037f6@gen2.org>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 0/4] OMAP3 Beagle: update defconfig to match board file
+Date: Wed, 28 May 2008 04:57:44 -0500
+Message-ID: <bf8bea47238577986216c6ae6927cbac@felipebalbi.com>
+References: <5e088bd90805272245q4ab6c1aue4b4d7d76e025422@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:52176 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753148AbYE1Fq5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 May 2008 01:46:57 -0400
-Content-Disposition: inline
-In-Reply-To: <20080525203855.2f6037f6@gen2.org>
+Received: from ns1.siteground211.com ([209.62.36.12]:46469 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751455AbYE1J5q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 May 2008 05:57:46 -0400
+In-Reply-To: <5e088bd90805272245q4ab6c1aue4b4d7d76e025422@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Radoslaw Szkodzinski <astralstorm@gen2.org>
+To: Steve Sakoman <sakoman@gmail.com>
 Cc: linux-omap@vger.kernel.org
 
-* Radoslaw Szkodzinski <astralstorm@gen2.org> [080525 11:49]:
-> Hello,
+
+
+On Tue, 27 May 2008 22:45:03 -0700, "Steve Sakoman" <sakoman@gmail.com>
+wrote:
+> While preparing a set of patches to add nand support for beagle I
+> noticed that the beagle defconfig hasn't kept up with the features
+> present in board-omap3beagle.c
 > 
-> I've managed to get 2.6.26-rc3-omap booting (was quite easy actually).
-> Now I hit a road block - I get everything to start, it boots nicely
-> (checked with SSH), but fails to display anything except a white screen.
-> Looks like Xomap can't (re)init framebuffer, or focus isn't transferred
-> to it.
-> Any known possible reasons?
+> This series of patches updates the defconfig to enable mmc, rtc, usb, and
+> fb
 
-Do you have any patches applied in addition to patching the machine_id?
+All of these could come in only one patch.
 
-I don't know about xomap, but last time I tried xserver-xorg-xfbdev
-from debian unstable worked. That is, without touchscreen until this
-patch is merged:
 
-https://bugs.launchpad.net/ubuntu/+source/xorg-server/+bug/219424
+-- 
+Best Regards,
 
-Are you starting xomap from chroot?
+Felipe Balbi
+http://felipebalbi.com
+me@felipebalbi.com
 
-Tony
