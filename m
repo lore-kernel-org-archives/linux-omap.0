@@ -1,71 +1,146 @@
-From: "mohammed shareef" <mdshareef@gmail.com>
-Subject: Re: omap 0sk and mistral touchscreen..
-Date: Wed, 28 May 2008 00:31:32 +0530
-Message-ID: <a1d91fa0805271201w4c3f7f0bw98ac9a4ac1bdc4f9@mail.gmail.com>
-References: <a1d91fa0805252349w266c2f8x11377f2dce066b93@mail.gmail.com>
-	 <a1d91fa0805262126v65745282k4ac45d3e71c1894f@mail.gmail.com>
-	 <001101c8bfb7$01e58ac0$310da8c0@mistral.in>
-	 <a1d91fa0805262232g4a441f5fwdb62a7015b1f0e84@mail.gmail.com>
-	 <cb8016980805262237q54980f33y6a58d7fdf25328f5@mail.gmail.com>
-	 <a1d91fa0805262239m10ae2836p776c94207852e19f@mail.gmail.com>
-	 <a1d91fa0805262330h5e3990b9u1ce4577d3fc269fa@mail.gmail.com>
-	 <a1d91fa0805270642i66744055oe2f3f72863065995@mail.gmail.com>
-	 <a1d91fa0805270702g41f95fdfi21cbd4a5a806951e@mail.gmail.com>
-	 <20080527184109.GB18735@kedavra.cpe.vivax.com.br>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] Misc fixes to this series (CF: Change omap_cf.c to use
+	omap_readw/writew instead of __REG for multi-omap)
+Date: Tue, 27 May 2008 17:51:46 -0700
+Message-ID: <20080528005145.GQ8845@atomide.com>
+References: <1210972076-23911-1-git-send-email-tony@atomide.com> <1210972076-23911-2-git-send-email-tony@atomide.com> <200805161426.18409.david-b@pacbell.net> <20080516214909.GC23002@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="cNdxnHkX5QqsyA0e"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.190]:60890 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756440AbYE0TBh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 May 2008 15:01:37 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so1915434tic.23
-        for <linux-omap@vger.kernel.org>; Tue, 27 May 2008 12:01:36 -0700 (PDT)
-In-Reply-To: <20080527184109.GB18735@kedavra.cpe.vivax.com.br>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63246 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754645AbYE1Avs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 May 2008 20:51:48 -0400
 Content-Disposition: inline
+In-Reply-To: <20080516214909.GC23002@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: "S. Rajeev" <srajeev@mistralsolutions.com>, omap <linux-omap@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com
 
-Hi,
 
-no i didnt specify the arch flag?
+--cNdxnHkX5QqsyA0e
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-what is the arch flag for omap 5912 osk?
+* Tony Lindgren <tony@atomide.com> [080516 14:49]:
+> * David Brownell <david-b@pacbell.net> [080516 14:26]:
+> > On Friday 16 May 2008, Tony Lindgren wrote:
+> > > @@ -38,19 +38,19 @@
+> > >  #define        CF_BASE 0xfffe2800
+> > >  
+> > >  /* status; read after IRQ */
+> > > -#define CF_STATUS_REG          __REG16(CF_BASE + 0x00)
+> > > +#define CF_STATUS                      (CF_BASE + 0x00)
+> > >  #      define  CF_STATUS_BAD_READ      (1 << 2)
+> > >  #      define  CF_STATUS_BAD_WRITE     (1 << 1)
+> > >  #      define  CF_STATUS_CARD_DETECT   (1 << 0)
+> > >  
+> > >  /* which chipselect (CS0..CS3) is used for CF (active low) */
+> > > -#define CF_CFG_REG             __REG16(CF_BASE + 0x02)
+> > > +#define CF_CFG                         (CF_BASE + 0x02)
+> > >  
+> > >	...
+> > 
+> > Trying to understand the plan here.  This first patches
+> > are to remove __REG*() access, we hillater patches will 
+> > be needed to convert things to omap_readl(BASE + OFFSET)
+> > style accessors?  (BASE being SOC-specific, and passed
+> > down from system init code.)
+> > 
+> > Not that CF is a good example of that.  I don't think
+> > it exists on current chips.  ;)
+> 
+> Well ideally we would set the base offset during driver init, then
+> just use  __raw_read/write().
+> 
+> But that's lot of work, so it's easier first to convert __REG access
+> to use omap_read/write(). I'll post multi-omap series as soon as I have
+> it booting.. But to give you and idea, we can have something like following
+> work for multi-omap.
 
-could you please tell me the full ./configure line?
+...
 
-thank you.
+Turns out there were bunch of issues with the patches above..
+Here's a patch fixing them. I will repost this series soon, just FYI.
 
-regards,
-Shareef
+Tony
 
-On Wed, May 28, 2008 at 12:11 AM, Felipe Balbi <me@felipebalbi.com> wrote:
-> On Tue, May 27, 2008 at 07:32:12PM +0530, mohammed shareef wrote:
->> Hi,
->> everything looks fine from the kernel side. I think the problem might
->> be in the file system. i have used the following options to get the
->> touchscreen files compiled from tslib:
->>
->> ./autogen.sh
->>
->> ./configure --prefix=/tslib --host=arm-linux-gnu
->>
->> make
->>
->> make install
->>
->> is it right?
->
-> Are you compiling inside the arm system??
-> doesn't tslib has a --target=<arch> flag??
->
-> --
-> Best Regards,
->
-> Felipe Balbi
-> me@felipebalbi.com
-> http://blog.felipebalbi.com
->
+--cNdxnHkX5QqsyA0e
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="fixes.patch"
+
+--- a/arch/arm/plat-omap/usb.c
++++ b/arch/arm/plat-omap/usb.c
+@@ -193,13 +193,10 @@ static u32 __init omap_usb0_init(unsigned nwires, unsigned is_device)
+ 
+ 		l = omap_readl(USB_TRANSCEIVER_CTRL);
+ 		l &= ~(7 << 4);
+-		omap_writel(l, USB_TRANSCEIVER_CTRL);
+-
+ 		if (!is_device) {
+-			l = omap_readl(USB_TRANSCEIVER_CTRL);
+ 			l |= (3 << 1);
+-			omap_writel(l, USB_TRANSCEIVER_CTRL);
+ 		}
++		omap_writel(l, USB_TRANSCEIVER_CTRL);
+ 
+ 		return 3 << 16;
+ 	}
+@@ -643,9 +640,6 @@ omap_otg_init(struct omap_usb_config *config)
+ 
+ 		w = omap_readw(ULPD_CLOCK_CTRL);
+ 		w &= ~USB_MCLK_EN;
+-		omap_writew(w, ULPD_CLOCK_CTRL);
+-
+-		w = omap_readw(ULPD_CLOCK_CTRL);
+ 		w |= DIS_USB_PVCI_CLK;
+ 		omap_writew(w, ULPD_CLOCK_CTRL);
+ 	}
+--- a/drivers/i2c/chips/isp1301_omap.c
++++ b/drivers/i2c/chips/isp1301_omap.c
+@@ -520,7 +520,7 @@ static void update_otg1(struct isp1301 *isp, u8 int_src)
+ 
+ 	otg_ctrl = omap_readl(OTG_CTRL) & OTG_CTRL_MASK;
+ 	otg_ctrl &= ~OTG_XCEIV_INPUTS;
+-	otg_ctrl &= (OTG_ID|OTG_ASESSVLD|OTG_VBUSVLD);
++	otg_ctrl &= ~(OTG_ID|OTG_ASESSVLD|OTG_VBUSVLD);
+ 
+ 
+ 	if (int_src & INTR_SESS_VLD)
+--- a/drivers/usb/gadget/omap_udc.c
++++ b/drivers/usb/gadget/omap_udc.c
+@@ -2858,7 +2858,6 @@ static int __init omap_udc_probe(struct platform_device *pdev)
+ 			 * means we always "need" the 48MHz clock.
+ 			 */
+ 			u32 tmp = omap_readl(FUNC_MUX_CTRL_0);
+-
+ 			tmp &= ~VBUS_CTRL_1510;
+ 			omap_writel(tmp, FUNC_MUX_CTRL_0);
+ 			tmp |= VBUS_MODE_1510;
+--- a/drivers/usb/gadget/omap_udc.h
++++ b/drivers/usb/gadget/omap_udc.h
+@@ -202,6 +202,6 @@ struct omap_udc {
+ #define	VBUS_MODE_1510		(1 << 18)	/* 0 hardware, 1 software */
+ 
+ #define	HMC_1510	((omap_readl(MOD_CONF_CTRL_0) >> 1) & 0x3f)
+-#define	HMC_1610	omap_readl(OTG_SYSCON_2 & 0x3f)
++#define	HMC_1610	(omap_readl(OTG_SYSCON_2) & 0x3f)
+ #define	HMC		(cpu_is_omap15xx() ? HMC_1510 : HMC_1610)
+ 
+--- a/drivers/usb/gadget/omap_udc.c
++++ b/drivers/usb/gadget/omap_udc.c
+@@ -2003,7 +2003,7 @@ static irqreturn_t omap_udc_pio_irq(int irq, void *_dev)
+ 		ep->irqs++;
+ 
+ 		omap_writew(epnum | UDC_EP_DIR | UDC_EP_SEL, UDC_EP_NUM);
+-		if (omap_readw(UDC_STAT_FLG & UDC_ACK)) {
++		if (omap_readw(UDC_STAT_FLG) & UDC_ACK) {
+ 			ep->ackwait = 0;
+ 			if (!list_empty(&ep->queue)) {
+ 				req = container_of(ep->queue.next,
+
+
+--cNdxnHkX5QqsyA0e--
