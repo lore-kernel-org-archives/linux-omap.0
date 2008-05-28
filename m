@@ -1,52 +1,55 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: [PATCH] Driver for omap34xx temperature sensor. second version.
-Date: Thu, 29 May 2008 01:08:14 +0200
-Message-ID: <B5748808-2B1B-4849-8324-844B4BF56F33@student.utwente.nl>
-References: <20080519135629.GB5040@codecarver.research.nokia.com> <20080523104942.GB4976@codecarver.research.nokia.com>
-Mime-Version: 1.0 (Apple Message framework v919.2)
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH]  ARM: OMAP: beagleboard defconfig: increase FB DMA
+	size to 4MB so the 1024x768x24 default fits
+Date: Wed, 28 May 2008 16:11:49 -0700
+Message-ID: <20080528231149.GA8013@atomide.com>
+References: <1212014024-4698-1-git-send-email-k.kooi@student.utwente.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx2.utsp.utwente.nl ([130.89.2.13]:42521 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754158AbYE1XIq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 May 2008 19:08:46 -0400
-Received: from [172.20.1.5] (vpn006023.vpn.utwente.nl [130.89.6.23])
-          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id m4SN8Ilg005614
-          for <linux-omap@vger.kernel.org>; Thu, 29 May 2008 01:08:18 +0200
-In-Reply-To: <20080523104942.GB4976@codecarver.research.nokia.com>
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:64886 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754200AbYE1XLw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 May 2008 19:11:52 -0400
+Content-Disposition: inline
+In-Reply-To: <1212014024-4698-1-git-send-email-k.kooi@student.utwente.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: linux-omap@vger.kernel.org, Koen Kooi <koen@openembedded.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+* Koen Kooi <k.kooi@student.utwente.nl> [080528 15:34]:
+> From: Koen Kooi <koen@openembedded.org>
+> 
+> beagleboard defconfig: increase FB DMA size to 4MB so the 1024x768x24 default fits
 
+OK, pushed this too.
 
-Op 23 mei 2008, om 12:49 heeft Peter 'p2' De Schrijver het volgende  
-geschreven:
+Tony
 
-> Hi,
->
-> This patch adds a hwmon driver for the OMAP34xx internal temperature
-> sensor. I get unusually high values (80 degrees and more) from this
-> sensor though.
-
-Same high values here as well:
-
-root@beagleboard:/sys/class/hwmon/hwmon0/device# cat temp1_input
-96
-
-does anyone from TI have a hint if the chip is really that hot, or  
-that we need to scale the value?
-
-regards,
-
-Koen
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFIPeXiMkyGM64RGpERAu+fAJ46X1J6jgnW5IAEs/o8CwhqtxIfGgCeNWpC
-RszRjwBZV1f/C1c+w6jmhDE=
-=PhBJ
------END PGP SIGNATURE-----
+> 
+> Signed-off-by: Koen Kooi <koen@openembedded.org>
+> ---
+>  arch/arm/configs/omap3_beagle_defconfig |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
+> index 6aec7b7..cce83e5 100644
+> --- a/arch/arm/configs/omap3_beagle_defconfig
+> +++ b/arch/arm/configs/omap3_beagle_defconfig
+> @@ -703,7 +703,7 @@ CONFIG_FB_CFB_IMAGEBLIT=y
+>  CONFIG_FB_OMAP=y
+>  # CONFIG_FB_OMAP_LCDC_EXTERNAL is not set
+>  # CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
+> -CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
+> +CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=4
+>  # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
+>  
+>  #
+> -- 
+> 1.5.4.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
