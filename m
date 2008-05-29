@@ -1,98 +1,71 @@
-From: "Eduardo Valentin" <edubezval@gmail.com>
-Subject: Re: [PATCH 1/4] PLAT-OMAP: MCBSP: Tranform into platform driver
-Date: Thu, 29 May 2008 11:30:04 -0400
-Message-ID: <a0580c510805290830p2709014i7b5e47a6365f005e@mail.gmail.com>
-References: <1210022587-7756-1-git-send-email-edubezval@gmail.com>
-	 <1210022587-7756-2-git-send-email-edubezval@gmail.com>
-	 <20080520234438.GR23002@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [PATCH 0/5] Updates on mcbsp driver (take #3)
+Date: Thu, 29 May 2008 11:31:35 -0400
+Message-ID: <1212075098-29819-1-git-send-email-edubezval@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.28]:48510 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753049AbYE2PaK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 May 2008 11:30:10 -0400
-Received: by yw-out-2324.google.com with SMTP id 9so2292465ywe.1
-        for <linux-omap@vger.kernel.org>; Thu, 29 May 2008 08:30:05 -0700 (PDT)
-In-Reply-To: <20080520234438.GR23002@atomide.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:41131 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754861AbYE2PbV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 May 2008 11:31:21 -0400
+Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m4TFV1Uk003635
+	for <linux-omap@vger.kernel.org>; Thu, 29 May 2008 18:31:19 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Chandra shekhar <x0044955@ti.com>, Eduardo Valentin <eduardo.valentin@indt.org.br>
+To: linux-omap@vger.kernel.org
+Cc: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-Hi Tony and Trilok,
+From: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
+Hi Tony,
 
-I was out of office this last week due to some trainings and brazilian holidays,
-so that's why this message is delayed.
+Here is the updated version of my previous patches.
+As on take #2, DMA and IRQ definitions were left as they are.
+Chandra is going to send his work on top of this series.
 
-I'm sending a version of this series including your patch and your comments.
-Please review them as usual. I think that Chandra can still put his
-work on top of this
-as the change is not that big.
+This series adds Tony's comments about clock usage on plat-omap/mcbsp.c.
+Now it is done only with usual clk_* functions calls. But a
+fake clock is created under mach-omap[1,2] to enable / disable
+correct clocks when necessary. I also included Tony's patch to fix
+clock definitions for 24xx.
 
-On Tue, May 20, 2008 at 7:44 PM, Tony Lindgren <tony@atomide.com> wrote:
-> Hi,
->
-> Some comments below.
+This patch series updates mcbsp driver by transforming it into
+a platform driver. This is a very initial implementation.
+Basically it moves machine specific code to their correct place
+and creates the platform driver necessary structures.
 
-<snip>
+It must be working for previous boards. For omap34xx it should
+work for mcbsp 1 and 2.
 
->
-> You need to check for the errors with clk_get here. Also, I needed the
-> attached patch to keep asoc working on 24xx.
+In order to do not break other places, I tryied to do not change
+previous API. But future improvements are needed.
 
-Ok. Including your patch to the series. Forgot to change this to 24xx clocks.
+Clock definitions for  mcbsp 1 and 2 were also modified to add
+correct support for omap34xx.
 
->
-> In general, how about create a custom clock for each mcbsp that handles
-> all the other clocks? That way you can have just one struct clk * for
-> each mcbsp and you can use standard clk_enable/disable calls instead
-> of the hard to read macros.
->
-> You can add the custom clocks to clock fwk with clk_register() during
-> the omap specific mcbsp init depending on which mcbsp's are in use
-> from board-*.c files. Then the custom clock defines it's own
-> enable/disable function that just calls the clk_enable/disable on the
-> right mcbsp clocks.
->
->
+Comments are wellcome.
 
-<snip>
+Cheers,
 
-> These macros make things hard to read.. It would be best to have
-> things set up in a way so you can just call clk_enable/disable in
-> mcbsp.c.
+Eduardo Valentin (4):
+  PLAT-OMAP: MCBSP: Tranform into platform driver
+  MACH-OMAP1: MCBSP: Add support for mcbsp on mach-omap1
+  Fix mcbsp clock definition on clock34xx.h
+  MACH-OMAP2: MCBSP: Add support for mcbsp on mach-omap2
 
-I thought to do it as you describe above but I made it different to
-avoid duplicated code into
-mach-omap1 and mach-omap2. However, as you said the code became too
-hard to understand,
-I believe it is better to make it simple.
+Tony Lindgren (1):
+  ARM: OMAP: Fix 24xx mcbsp clocks
 
-I'm going to send a new version of this series including:
-1. your patch to 24xx
-2. clock changes for mach-omap1 and mach-omap2
-3. module release for mach-omap1 and mach-omap2  as recommended by Trilok
+ arch/arm/mach-omap1/Makefile      |    2 +
+ arch/arm/mach-omap1/mcbsp.c       |  249 ++++++++++++++
+ arch/arm/mach-omap2/Makefile      |    2 +
+ arch/arm/mach-omap2/clock24xx.h   |   30 ++-
+ arch/arm/mach-omap2/clock34xx.h   |   30 ++-
+ arch/arm/mach-omap2/mcbsp.c       |  190 +++++++++++
+ arch/arm/plat-omap/devices.c      |   45 +++
+ arch/arm/plat-omap/mcbsp.c        |  662 ++++++++++++++-----------------------
+ include/asm-arm/arch-omap/mcbsp.h |   62 ++++-
+ 9 files changed, 841 insertions(+), 431 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/mcbsp.c
+ create mode 100644 arch/arm/mach-omap2/mcbsp.c
 
->
-> Tony
->
->
->> +int omap_mcbsp_init(void);
->> +void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data *config,
->> +                                     int size);
->>  void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg * config);
->>  int omap_mcbsp_request(unsigned int id);
->>  void omap_mcbsp_free(unsigned int id);
->> --
->> 1.5.5.1.67.gbdb8.dirty
->>
->
-
-
-
--- 
-Eduardo Bezerra Valentin
