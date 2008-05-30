@@ -1,57 +1,86 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/14] Big clean-up for multi-omap
-Date: Fri, 30 May 2008 14:41:10 -0700
-Message-ID: <20080530214109.GC30901@atomide.com>
-References: <1211948418-16455-1-git-send-email-tony@atomide.com>
+Subject: Re: [PATCH 0/5] Updates on mcbsp driver (take #4)
+Date: Fri, 30 May 2008 15:21:29 -0700
+Message-ID: <20080530222129.GD30901@atomide.com>
+References: <1212079850-28202-1-git-send-email-edubezval@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61110 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753231AbYE3VlN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 May 2008 17:41:13 -0400
-Received: from c-69-181-40-92.hsd1.ca.comcast.net ([69.181.40.92] helo=localhost.localdomain)
-	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1K2CLX-0008Ds-0p
-	for linux-omap@vger.kernel.org; Fri, 30 May 2008 21:41:12 +0000
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:52521 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751548AbYE3WVb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 May 2008 18:21:31 -0400
 Content-Disposition: inline
-In-Reply-To: <1211948418-16455-1-git-send-email-tony@atomide.com>
+In-Reply-To: <1212079850-28202-1-git-send-email-edubezval@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>
+Cc: linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-* Tony Lindgren <tony@atomide.com> [080527 21:20]:
-> Hi all,
+* Eduardo Valentin <edubezval@gmail.com> [080529 09:50]:
+> From: Eduardo Valentin <eduardo.valentin@indt.org.br>
 > 
-> Following patches clean up blockers for getting multi-omap closer
-> to working for omap2 like we have for omap1:
+> Hi Tony,
 > 
-> - Remove __REG macros, use omap_read/write() instead
+> Here is the updated version of my previous patches.
+> Now with modifications recommended by Anand and Andrew.
 > 
-> - Split omap24xx sram code so no register rewriting is needed
+> As on take #2, DMA and IRQ definitions were left as they are.
+> Chandra is going to send his work on top of this series.
 > 
-> - Introduce struct omap_globals to allow early cpu detection to
->   work
+> This series adds Tony's comments about clock usage on plat-omap/mcbsp.c.
+> Now it is done only with usual clk_* functions calls. But a
+> fake clock is created under mach-omap[1,2] to enable / disable
+> correct clocks when necessary. I also included Tony's patch to fix
+> clock definitions for 24xx.
 > 
-> - Make PRM and CM registers work for multi-omap
+> This patch series updates mcbsp driver by transforming it into
+> a platform driver. This is a very initial implementation.
+> Basically it moves machine specific code to their correct place
+> and creates the platform driver necessary structures.
 > 
-> The __REG patches were posted earlier, but had some issues. They
-> should be fixed now.
+> It must be working for previous boards. For omap34xx it should
+> work for mcbsp 1 and 2.
 > 
-> The first patch is to test primitive omap type detection with
-> DEBUG_LL. Could somebody please try it out on 15xx and make sure
-> you get output from DEBUG_LL?
+> In order to do not break other places, I tryied to do not change
+> previous API. But future improvements are needed.
 > 
-> Once the DEBU_LL patch works on all omaps, we can use the similar
-> detection for multi-omap non-optimized get_irq_nr_and_base too :)
+> Clock definitions for  mcbsp 1 and 2 were also modified to add
+> correct support for omap34xx.
 > 
-> These patches are against current linux-omap tree, I pushed few
-> fixes there so you pull before trying out these patches.
+> Thanks for last comments. More comments are wellcome. :)
 
-I've pushed this series refreshed and in slightly different order.
-I also left out the DEBUG_LL patch for now.
-
-Regards,
+Pushing this series today.
 
 Tony
+
+
+> 
+> Cheers,
+> 
+> Eduardo Valentin (4):
+>   PLAT-OMAP: MCBSP: Tranform into platform driver
+>   MACH-OMAP1: MCBSP: Add support for mcbsp on mach-omap1
+>   Fix mcbsp clock definition on clock34xx.h
+>   MACH-OMAP2: MCBSP: Add support for mcbsp on mach-omap2
+> 
+> Tony Lindgren (1):
+>   ARM: OMAP: Fix 24xx mcbsp clocks
+> 
+>  arch/arm/mach-omap1/Makefile      |    2 +
+>  arch/arm/mach-omap1/mcbsp.c       |  280 ++++++++++++++++
+>  arch/arm/mach-omap2/Makefile      |    2 +
+>  arch/arm/mach-omap2/clock24xx.h   |   30 ++-
+>  arch/arm/mach-omap2/clock34xx.h   |   30 ++-
+>  arch/arm/mach-omap2/mcbsp.c       |  208 ++++++++++++
+>  arch/arm/plat-omap/devices.c      |   45 +++
+>  arch/arm/plat-omap/mcbsp.c        |  662 ++++++++++++++-----------------------
+>  include/asm-arm/arch-omap/mcbsp.h |   62 ++++-
+>  9 files changed, 890 insertions(+), 431 deletions(-)
+>  create mode 100644 arch/arm/mach-omap1/mcbsp.c
+>  create mode 100644 arch/arm/mach-omap2/mcbsp.c
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
