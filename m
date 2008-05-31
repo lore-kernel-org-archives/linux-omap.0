@@ -1,82 +1,38 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: [PATCH v2] omap3beagle: add a platform device to hook up the GPIO leds to the leds-gpio driver
-Date: Sat, 31 May 2008 02:59:26 +0200
-Message-ID: <1212195566-22695-1-git-send-email-k.kooi@student.utwente.nl>
+From: "mohammed shareef" <mdshareef@gmail.com>
+Subject: x-windows on omap osk
+Date: Sat, 31 May 2008 10:40:38 +0530
+Message-ID: <a1d91fa0805302210g768a22dega1b4b4fe35cdcac3@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx2.utsp.utwente.nl ([130.89.2.13]:46509 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752221AbYEaA7j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 May 2008 20:59:39 -0400
+Received: from ti-out-0910.google.com ([209.85.142.191]:28564 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750889AbYEaFKk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 31 May 2008 01:10:40 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so80265tic.23
+        for <linux-omap@vger.kernel.org>; Fri, 30 May 2008 22:10:39 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Koen Kooi <koen@openembedded.org>
+To: omap <linux-omap@vger.kernel.org>
 
-From: Koen Kooi <koen@openembedded.org>
+Hi,
 
-omap3beagle: add a platform device to hook up the GPIO leds to the leds-gpio driver
- * on revision A5 and earlier board the two leds can't be controlled seperately, should be fixed in rev. B and C boards.
+when i compile xlibs-FixesExt, i get the following error:
 
-Changes since v1: indented structs with tabs
+checking for xextensions... Package xextensions was not found in the
+pkg-config search path.
+Perhaps you should add the directory containing `xextensions.pc'
+to the PKG_CONFIG_PATH environment variable
+No package 'xextensions' found
 
-Signed-off-by: Koen Kooi <koen@openembedded.org>
----
- arch/arm/mach-omap2/board-omap3beagle.c |   28 ++++++++++++++++++++++++++++
- 1 files changed, 28 insertions(+), 0 deletions(-)
+configure: error: Library requirements (xextensions) not met; consider
+adjusting the PKG_CONFIG_PATH environment variable if your libraries
+are in a nonstandard prefix so pkg-config can find them.
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index c992cc7..83891fc 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -19,6 +19,7 @@
- #include <linux/err.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/leds.h>
- 
- #include <asm/hardware.h>
- #include <asm/mach-types.h>
-@@ -72,6 +73,32 @@ static struct omap_lcd_config omap3_beagle_lcd_config __initdata = {
- 	.ctrl_name	= "internal",
- };
- 
-+struct gpio_led gpio_leds[] = {
-+	{
-+		.name = "beagleboard::led0",
-+		.default_trigger = "none",
-+		.gpio = 149,
-+	},
-+	{
-+		.name = "beagleboard::led1",
-+		.default_trigger = "none",
-+		.gpio = 150,
-+	},
-+};
-+
-+static struct gpio_led_platform_data gpio_led_info = {
-+	.leds = gpio_leds,
-+	.num_leds = ARRAY_SIZE(gpio_leds),
-+};
-+
-+static struct platform_device leds_gpio = {
-+	.name = "leds-gpio",
-+	.id   = -1,
-+	.dev  = {
-+		.platform_data = &gpio_led_info,
-+	},
-+};
-+
- static struct omap_board_config_kernel omap3_beagle_config[] __initdata = {
- 	{ OMAP_TAG_UART,	&omap3_beagle_uart_config },
- 	{ OMAP_TAG_MMC,		&omap3beagle_mmc_config },
-@@ -83,6 +110,7 @@ static struct platform_device *omap3_beagle_devices[] __initdata = {
- #ifdef CONFIG_RTC_DRV_TWL4030
- 	&omap3_beagle_twl4030rtc_device,
- #endif
-+	&leds_gpio,
- };
- 
- static void __init omap3_beagle_init(void)
--- 
-1.5.4.3
 
+what does it mean? could someone give the solution?
+
+Regards,
+shareef
