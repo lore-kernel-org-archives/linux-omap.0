@@ -1,57 +1,30 @@
-From: "mohammed shareef" <mdshareef@gmail.com>
-Subject: Re: zlib error in x-windows on omap osk
-Date: Sun, 1 Jun 2008 11:55:11 +0530
-Message-ID: <a1d91fa0805312325r643a509es65a7f9243fd4cba6@mail.gmail.com>
-References: <a1d91fa0805302340q10d4a00dn12087f0cf0e8c3dc@mail.gmail.com>
-	 <20080531090335.GA8786@kedavra.cpe.vivax.com.br>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: [PATCH 0/3] OMAP3 Beagle: Enable nand support
+Date: Sat, 31 May 2008 23:38:13 -0700
+Message-ID: <5e088bd90805312338j540aef97s4735eba05c736448@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.184]:26758 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750836AbYFAGZN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 1 Jun 2008 02:25:13 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so149003tic.23
-        for <linux-omap@vger.kernel.org>; Sat, 31 May 2008 23:25:11 -0700 (PDT)
-In-Reply-To: <20080531090335.GA8786@kedavra.cpe.vivax.com.br>
+Received: from rv-out-0506.google.com ([209.85.198.233]:30210 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751497AbYFAGiO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 1 Jun 2008 02:38:14 -0400
+Received: by rv-out-0506.google.com with SMTP id l9so526828rvb.1
+        for <linux-omap@vger.kernel.org>; Sat, 31 May 2008 23:38:13 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: omap <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Felipe,
+This series of patches adds nand support to the beagle board.
 
-what is zlib-dev?
+The first patch in the series builds on work by Teerth Reddy
+<teerth@ti.com> to extend the omap2 nand driver to work with both
+omap2 and omap3 architectures (as well as adding/clarifying comments).
 
-as per the tutorials the dependency for the Xlib is only zlib. i have
-installed zlib-1.2.2.
+The second patch adds the beagle nand support, and the final patch
+enables the nand driver and jffs2 support in the beagle defconfig.
 
-thanx and regards,
-Shareef
-
-On Sat, May 31, 2008 at 2:33 PM, Felipe Balbi <me@felipebalbi.com> wrote:
-> On Sat, May 31, 2008 at 12:10:31PM +0530, mohammed shareef wrote:
->> Hi all,
->>
->> when i run the autogen script for Xfonf in xlibs for x-windows, i get
->> the following error..
->>
->> checking for gzopen in -lz... no
->> configure: error: *** zlib is required
->> [sbox-ARM-GLIBC: ~/xwin_snapshot/xlibs/Xfont] >
->>
->>
->> i have already installed zlib..
->> all the previous xlib files compiled without any error.
->
-> how about zlib-dev?
->
-> --
-> Best Regards,
->
-> Felipe Balbi
-> me@felipebalbi.com
-> http://blog.felipebalbi.com
->
+The patch set was reviewed by Khasim Syed Mohammed <khasim@ti.com>
+prior to this submission.  It was tested on a Rev B beagle board.
