@@ -1,190 +1,61 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: [PATCH 3/3] OMAP3 Beagle: Enable nand and jffs2 support in defconfig
-Date: Sat, 31 May 2008 23:38:48 -0700
-Message-ID: <5e088bd90805312338h34588ab7nfd9becae91f02cae@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: [PATCH 0/3] OMAP3 Beagle: Enable nand support
+Date: Sun, 1 Jun 2008 10:07:50 +0200
+Message-ID: <191A72BD-39D5-4D63-96A7-B9C28252EFE6@student.utwente.nl>
+References: <5e088bd90805312338j540aef97s4735eba05c736448@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v924)
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.183]:7817 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751925AbYFAGit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 1 Jun 2008 02:38:49 -0400
-Received: by wa-out-1112.google.com with SMTP id j37so270616waf.23
-        for <linux-omap@vger.kernel.org>; Sat, 31 May 2008 23:38:49 -0700 (PDT)
-Content-Disposition: inline
+Received: from mx3.utsp.utwente.nl ([130.89.2.14]:14491 "EHLO mx.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751369AbYFAIII (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 1 Jun 2008 04:08:08 -0400
+Received: from [172.20.1.5] (vpn006023.vpn.utwente.nl [130.89.6.23])
+          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id m5187sGI022936
+          for <linux-omap@vger.kernel.org>; Sun, 1 Jun 2008 10:07:54 +0200
+In-Reply-To: <5e088bd90805312338j540aef97s4735eba05c736448@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-From: Steve Sakoman <steve@sakoman.com>
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Enable nand and jffs2 in defconfig
 
-Signed-off-by: Steve Sakoman <steve@sakoman.com>
----
- arch/arm/configs/omap3_beagle_defconfig |  100 +++++++++++++++++++++++++++++--
- 1 files changed, 95 insertions(+), 5 deletions(-)
+Op 1 jun 2008, om 08:38 heeft Steve Sakoman het volgende geschreven:
 
-diff --git a/arch/arm/configs/omap3_beagle_defconfig
-b/arch/arm/configs/omap3_beagle_defconfig
-index 6aec7b7..463c41d 100644
---- a/arch/arm/configs/omap3_beagle_defconfig
-+++ b/arch/arm/configs/omap3_beagle_defconfig
-@@ -1,7 +1,7 @@
- #
- # Automatically generated make config: don't edit
--# Linux kernel version: 2.6.26-rc3-omap1
--# Tue May 27 22:23:14 2008
-+# Linux kernel version: 2.6.26-rc4-omap1
-+# Sat May 31 20:49:17 2008
- #
- CONFIG_ARM=y
- CONFIG_SYS_SUPPORTS_APM_EMULATION=y
-@@ -170,7 +170,6 @@ CONFIG_ARCH_OMAP3=y
- #
- # OMAP Feature Selections
- #
--CONFIG_OMAP_DEBUG_SRAM_PATCH=y
- # CONFIG_OMAP_DEBUG_POWERDOMAIN is not set
- # CONFIG_OMAP_DEBUG_CLOCKDOMAIN is not set
- # CONFIG_OMAP_RESET_CLOCKS is not set
-@@ -415,7 +414,83 @@ CONFIG_PREVENT_FIRMWARE_BUILD=y
- # CONFIG_DEBUG_DEVRES is not set
- # CONFIG_SYS_HYPERVISOR is not set
- # CONFIG_CONNECTOR is not set
--# CONFIG_MTD is not set
-+CONFIG_MTD=y
-+# CONFIG_MTD_DEBUG is not set
-+# CONFIG_MTD_CONCAT is not set
-+CONFIG_MTD_PARTITIONS=y
-+# CONFIG_MTD_REDBOOT_PARTS is not set
-+# CONFIG_MTD_CMDLINE_PARTS is not set
-+# CONFIG_MTD_AFS_PARTS is not set
-+# CONFIG_MTD_AR7_PARTS is not set
-+
-+#
-+# User Modules And Translation Layers
-+#
-+CONFIG_MTD_CHAR=y
-+CONFIG_MTD_BLKDEVS=y
-+CONFIG_MTD_BLOCK=y
-+# CONFIG_FTL is not set
-+# CONFIG_NFTL is not set
-+# CONFIG_INFTL is not set
-+# CONFIG_RFD_FTL is not set
-+# CONFIG_SSFDC is not set
-+# CONFIG_MTD_OOPS is not set
-+
-+#
-+# RAM/ROM/Flash chip drivers
-+#
-+# CONFIG_MTD_CFI is not set
-+# CONFIG_MTD_JEDECPROBE is not set
-+CONFIG_MTD_MAP_BANK_WIDTH_1=y
-+CONFIG_MTD_MAP_BANK_WIDTH_2=y
-+CONFIG_MTD_MAP_BANK_WIDTH_4=y
-+# CONFIG_MTD_MAP_BANK_WIDTH_8 is not set
-+# CONFIG_MTD_MAP_BANK_WIDTH_16 is not set
-+# CONFIG_MTD_MAP_BANK_WIDTH_32 is not set
-+CONFIG_MTD_CFI_I1=y
-+CONFIG_MTD_CFI_I2=y
-+# CONFIG_MTD_CFI_I4 is not set
-+# CONFIG_MTD_CFI_I8 is not set
-+# CONFIG_MTD_RAM is not set
-+# CONFIG_MTD_ROM is not set
-+# CONFIG_MTD_ABSENT is not set
-+
-+#
-+# Mapping drivers for chip access
-+#
-+# CONFIG_MTD_COMPLEX_MAPPINGS is not set
-+# CONFIG_MTD_PLATRAM is not set
-+
-+#
-+# Self-contained MTD device drivers
-+#
-+# CONFIG_MTD_SLRAM is not set
-+# CONFIG_MTD_PHRAM is not set
-+# CONFIG_MTD_MTDRAM is not set
-+# CONFIG_MTD_BLOCK2MTD is not set
-+
-+#
-+# Disk-On-Chip Device Drivers
-+#
-+# CONFIG_MTD_DOC2000 is not set
-+# CONFIG_MTD_DOC2001 is not set
-+# CONFIG_MTD_DOC2001PLUS is not set
-+CONFIG_MTD_NAND=y
-+# CONFIG_MTD_NAND_VERIFY_WRITE is not set
-+# CONFIG_MTD_NAND_ECC_SMC is not set
-+# CONFIG_MTD_NAND_MUSEUM_IDS is not set
-+CONFIG_MTD_NAND_OMAP2=y
-+CONFIG_MTD_NAND_IDS=y
-+# CONFIG_MTD_NAND_DISKONCHIP is not set
-+# CONFIG_MTD_NAND_NANDSIM is not set
-+# CONFIG_MTD_NAND_PLATFORM is not set
-+# CONFIG_MTD_ALAUDA is not set
-+# CONFIG_MTD_ONENAND is not set
-+
-+#
-+# UBI - Unsorted block images
-+#
-+# CONFIG_MTD_UBI is not set
- # CONFIG_PARPORT is not set
- CONFIG_BLK_DEV=y
- # CONFIG_BLK_DEV_COW_COMMON is not set
-@@ -703,7 +778,7 @@ CONFIG_FB_CFB_IMAGEBLIT=y
- CONFIG_FB_OMAP=y
- # CONFIG_FB_OMAP_LCDC_EXTERNAL is not set
- # CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
--CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
-+CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=4
- # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
+> This series of patches adds nand support to the beagle board.
+>
+> The first patch in the series builds on work by Teerth Reddy
+> <teerth@ti.com> to extend the omap2 nand driver to work with both
+> omap2 and omap3 architectures (as well as adding/clarifying comments).
+>
+> The second patch adds the beagle nand support, and the final patch
+> enables the nand driver and jffs2 support in the beagle defconfig.
+>
+> The patch set was reviewed by Khasim Syed Mohammed <khasim@ti.com>
+> prior to this submission.  It was tested on a Rev B beagle board.
 
- #
-@@ -791,6 +866,7 @@ CONFIG_USB_MUSB_LOGLEVEL=0
- #
- # CONFIG_USB_ACM is not set
- # CONFIG_USB_PRINTER is not set
-+# CONFIG_USB_WDM is not set
+It also works on my rev A5 beagle board :)
 
- #
- # NOTE: USB_STORAGE enables SCSI, and 'SCSI disk support'
-@@ -873,6 +949,7 @@ CONFIG_MMC=y
- CONFIG_MMC_BLOCK=y
- CONFIG_MMC_BLOCK_BOUNCE=y
- # CONFIG_SDIO_UART is not set
-+# CONFIG_MMC_TEST is not set
+regards,
 
- #
- # MMC/SD Host Controller Drivers
-@@ -1001,6 +1078,17 @@ CONFIG_TMPFS=y
- # CONFIG_BEFS_FS is not set
- # CONFIG_BFS_FS is not set
- # CONFIG_EFS_FS is not set
-+CONFIG_JFFS2_FS=y
-+CONFIG_JFFS2_FS_DEBUG=0
-+CONFIG_JFFS2_FS_WRITEBUFFER=y
-+# CONFIG_JFFS2_FS_WBUF_VERIFY is not set
-+# CONFIG_JFFS2_SUMMARY is not set
-+# CONFIG_JFFS2_FS_XATTR is not set
-+# CONFIG_JFFS2_COMPRESSION_OPTIONS is not set
-+CONFIG_JFFS2_ZLIB=y
-+# CONFIG_JFFS2_LZO is not set
-+CONFIG_JFFS2_RTIME=y
-+# CONFIG_JFFS2_RUBIN is not set
- # CONFIG_CRAMFS is not set
- # CONFIG_VXFS_FS is not set
- # CONFIG_MINIX_FS is not set
-@@ -1235,6 +1323,8 @@ CONFIG_CRC_CCITT=y
- CONFIG_CRC32=y
- # CONFIG_CRC7 is not set
- CONFIG_LIBCRC32C=y
-+CONFIG_ZLIB_INFLATE=y
-+CONFIG_ZLIB_DEFLATE=y
- CONFIG_PLIST=y
- CONFIG_HAS_IOMEM=y
- CONFIG_HAS_IOPORT=y
--- 
-1.5.4.5
+Koen
+
+
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux- 
+> omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFIQljZMkyGM64RGpERAuLUAJ4iGlCUBu2LBDQpurvcQCN3QShGDgCgoBeH
+6TEsgu94ezlcrAKBA/J1lDE=
+=8WMR
+-----END PGP SIGNATURE-----
