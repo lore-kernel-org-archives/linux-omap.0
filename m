@@ -1,62 +1,120 @@
-From: "Bryan Wu" <cooloney@kernel.org>
-Subject: Re: [Question] MUSB: why not clear DMA interrupt in musbhsdma.c?
-Date: Tue, 3 Jun 2008 12:32:44 +0800
-Message-ID: <386072610806022132m2d515537wadd23c102aec2bf0@mail.gmail.com>
-References: <386072610806022015t654e46g92d184d949ad60ad@mail.gmail.com>
-	 <5A47E75E594F054BAF48C5E4FC4B92AB022B9C81C1@dbde02.ent.ti.com>
+From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+Subject: RE: [PATCH 0/3] ARM: OMAP: SmartReflex driver
+Date: Tue, 03 Jun 2008 09:02:24 +0300
+Message-ID: <1212472944.32058.31.camel@kj-ubuntu>
+References: <1212406192.32058.18.camel@kj-ubuntu>
+	 <CC3604C1-277A-4CE1-9B3D-EE0ADFB97E3E@student.utwente.nl>
+	 <B85A65D85D7EB246BE421B3FB0FBB593011132AD90@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.31]:40684 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751665AbYFCEcp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jun 2008 00:32:45 -0400
-Received: by yw-out-2324.google.com with SMTP id 9so696252ywe.1
-        for <linux-omap@vger.kernel.org>; Mon, 02 Jun 2008 21:32:44 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB022B9C81C1@dbde02.ent.ti.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.233]:62139 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752422AbYFCGCJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jun 2008 02:02:09 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593011132AD90@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Felipe Balbi <me@felipebalbi.com>
+To: "ext TK, Pratheesh Gangadhar" <pratheesh@ti.com>
+Cc: Koen Kooi <k.kooi@student.utwente.nl>, linux-omap <linux-omap@vger.kernel.org>
 
-On Tue, Jun 3, 2008 at 12:27 PM, Gadiyar, Anand <gadiyar@ti.com> wrote:
->> Hi folks,
->>
->> I am trying to enable the whole musb HS DMA code on Blackfin. But
->> found the is no place to clean the DMA interrupt flag in musbhsdma.c.
->> As a result, the irq always happens with the same DMA irq source. I
->> add some code to clear the DMA interrupt. Did I miss something here?
->
-> The DMA interrupt register is cleared on a read. I don't think you need
-> to explicitly clear it.
->
+Hi Pratheesh,
 
-Maybe there some difference between Blackfin and OMAP implementation.
->From the Datatsheet of BF54x, it said that:
----
-USB DMA Interrupt (USB_DMA_INTERRUPT) Register
-The USB_INTRTX register (see Figure 13-9) indicates which of the eight
-DMA master channels have a pending interrupt. When the status has been
-read by the processor core, the corresponding bit should have a 1 written
-to it by the software in order to clear the status.
----
+On ma, 2008-06-02 at 20:28 +0530, ext TK, Pratheesh Gangadhar wrote:
+> Koen,
+> 
+> You need to use NTargets from E-fuse for the correct operation. If E-fuse reads zero, then you are using a device without SmartReflex support or not guaranteed at least.
+> 
+> #define CONTROL_FUSE_OPP1_VDD1           0x48002380
+> #define CONTROL_FUSE_OPP2_VDD1           0x48002384
+> #define CONTROL_FUSE_OPP3_VDD1           0x48002388
+> #define CONTROL_FUSE_OPP4_VDD1           0x4800238C
+> #define CONTROL_FUSE_OPP5_VDD1           0x48002390
+> 
+> #define CONTROL_FUSE_OPP1_VDD2           0x48002394
+> #define CONTROL_FUSE_OPP2_VDD2           0x48002398
+> #define CONTROL_FUSE_OPP3_VDD2           0x4800239C
+> 
+> #define CONTROL_FUSE_SR                  0x480023A0
+> 
+> Those values present in the driver are meant for testing purposes only. Ideally in sr_enable, if current_nvalue reads zero we should return without enabling SmartReflex module.
+> 
+> 
+>         current_nvalue = sr_read_reg(sr, NVALUERECIPROCAL);
+> 
+>         if (nvalue_reciprocal == 0) {
+>                 DPRINTK("OPP doesn't support SmartReflex\n");
+>                 return;
+>         }
+> 
+>         if (current_nvalue == nvalue_reciprocal) {
+>                 DPRINTK("System is already at the desired voltage level\n");
+>                 return;
+>         }
 
-And without the clearing operation, the DMA irq handler will be called endless.
+This last if-statement is something that puzzled me while I was doing
+this patch-set. Shouldn't the SmartReflex be enabled even though we are
+at the desired voltage level at a given time. I mean, the operating
+conditions (temperature for one) could change over time and smartreflex
+will need to do it's magic in order to keep the device at a proper
+voltage level, right? 
 
-Thanks
--Bryan
 
->>
->> After enabling the musb HS DMA code for Blackfin, normal operation is
->> OK for mount/umount U-disks. But when I tried to write large file to
->> the U-DISK (such as 10Mbyte or 100Mbyte), speed is very slow and mush
->> slower than PIO mode, IMO.
->> Did you guy meet this issue before on OMAP?
->>
->> Thanks
->> -Bryan
->
-> - Anand
->
+> 
+> This driver needs modification to read NTargets from E-fuse rather than using hard coded values.
+
+Tony, I can update this patch set, or send an additional patch that adds
+the efuse support. Which will you prefer?
+
+
+Regards,
+Kalle
+
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Koen Kooi
+> Sent: Monday, June 02, 2008 6:02 PM
+> To: Kalle Jokiniemi
+> Cc: linux-omap
+> Subject: Re: [PATCH 0/3] ARM: OMAP: SmartReflex driver
+> 
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+> 
+> 
+> Op 2 jun 2008, om 13:29 heeft Kalle Jokiniemi het volgende geschreven:
+> 
+> > Here is an updated version of the SmartReflex driver.
+> >
+> > Patches 1 and 2 are same as before, but patch 3 has some new things:
+> >
+> > - Changed the register accessing to use the prm_xxx_mod_reg{_bits}()
+> >  functions.
+> >
+> > - Created a Kconfig entry for SmartReflex in "System type->TI OMAP
+> >  Implementations" menu.
+> >
+> > Tested on 3430SDP.
+> 
+> Compiles for beagleboard, but the board hangs after:
+> 
+> echo -n 1 > /sys/power/sr_vdd1_autocomp
+> echo -n 1 > /sys/power/sr_vdd2_autocomp
+> 
+> But that's likely to be a beagleboard specific problem.
+> 
+> regards,
+> 
+> Koen
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v1.4.5 (Darwin)
+> 
+> iD8DBQFIQ+g/MkyGM64RGpERAqwgAJ97AE4z0bIBZJs7nZcO1Npa8YkIcgCfY6KM
+> 3Hhr4AIdmzNiozdqs1uQUgg=
+> =rcQP
+> -----END PGP SIGNATURE-----
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
