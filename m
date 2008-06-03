@@ -1,136 +1,64 @@
-From: "TK, Pratheesh Gangadhar" <pratheesh@ti.com>
-Subject: RE: [PATCH 0/3] ARM: OMAP: SmartReflex driver
-Date: Tue, 3 Jun 2008 13:54:29 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593011132B103@dbde02.ent.ti.com>
-References: <1212406192.32058.18.camel@kj-ubuntu>
-	 <CC3604C1-277A-4CE1-9B3D-EE0ADFB97E3E@student.utwente.nl>
-	 <B85A65D85D7EB246BE421B3FB0FBB593011132AD90@dbde02.ent.ti.com>
- <1212472944.32058.31.camel@kj-ubuntu>
+From: "mohammed shareef" <mdshareef@gmail.com>
+Subject: Re: omap5912-osk bad magic number
+Date: Tue, 3 Jun 2008 14:03:34 +0530
+Message-ID: <a1d91fa0806030133k13b92fe3k6c3eb9733a1b9129@mail.gmail.com>
+References: <a1d91fa0806021043n2c0c74b6j9dcbf02d3cc05b06@mail.gmail.com>
+	 <20080602184641.GA6028@kedavra.cpe.vivax.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:54279 "EHLO calf.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750980AbYFCIZn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jun 2008 04:25:43 -0400
-In-Reply-To: <1212472944.32058.31.camel@kj-ubuntu>
-Content-Language: en-US
+Received: from ti-out-0910.google.com ([209.85.142.188]:23910 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751529AbYFCIdi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jun 2008 04:33:38 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so482281tic.23
+        for <linux-omap@vger.kernel.org>; Tue, 03 Jun 2008 01:33:34 -0700 (PDT)
+In-Reply-To: <20080602184641.GA6028@kedavra.cpe.vivax.com.br>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-Cc: Koen Kooi <k.kooi@student.utwente.nl>, linux-omap <linux-omap@vger.kernel.org>
+To: me@felipebalbi.com
+Cc: omap <linux-omap@vger.kernel.org>
 
-Kalle,
+i am using uImage only..
 
-Yes, you are right. You can remove the second if statement.
+here is what i do to make an image after compiling the kernel:
 
-Regards,
-Pratheesh
+arm-linux-objcopy -O binary -R .note -R .comment -S
+arch/arm/boot/compressed/vmlinux linux.bin
 
------Original Message-----
-From: Kalle Jokiniemi [mailto:ext-kalle.jokiniemi@nokia.com]
-Sent: Tuesday, June 03, 2008 11:32 AM
-To: TK, Pratheesh Gangadhar
-Cc: Koen Kooi; linux-omap
-Subject: RE: [PATCH 0/3] ARM: OMAP: SmartReflex driver
+gzip -9 linux.bin
 
-Hi Pratheesh,
+/tools/mkimage -A arm -O linux -T kernel -C gzip -a 0x10c08000 -e
+0x10c08000 -n 'Linux Kernel Image' -d linux.bin.gz uImage.cc
 
-On ma, 2008-06-02 at 20:28 +0530, ext TK, Pratheesh Gangadhar wrote:
-> Koen,
->
-> You need to use NTargets from E-fuse for the correct operation. If E-fuse reads zero, then you are using a device without SmartReflex support or not guaranteed at least.
->
-> #define CONTROL_FUSE_OPP1_VDD1           0x48002380
-> #define CONTROL_FUSE_OPP2_VDD1           0x48002384
-> #define CONTROL_FUSE_OPP3_VDD1           0x48002388
-> #define CONTROL_FUSE_OPP4_VDD1           0x4800238C
-> #define CONTROL_FUSE_OPP5_VDD1           0x48002390
->
-> #define CONTROL_FUSE_OPP1_VDD2           0x48002394
-> #define CONTROL_FUSE_OPP2_VDD2           0x48002398
-> #define CONTROL_FUSE_OPP3_VDD2           0x4800239C
->
-> #define CONTROL_FUSE_SR                  0x480023A0
->
-> Those values present in the driver are meant for testing purposes only. Ideally in sr_enable, if current_nvalue reads zero we should return without enabling SmartReflex module.
->
->
->         current_nvalue = sr_read_reg(sr, NVALUERECIPROCAL);
->
->         if (nvalue_reciprocal == 0) {
->                 DPRINTK("OPP doesn't support SmartReflex\n");
->                 return;
->         }
->
->         if (current_nvalue == nvalue_reciprocal) {
->                 DPRINTK("System is already at the desired voltage level\n");
->                 return;
->         }
+regards,
+Shareef
 
-This last if-statement is something that puzzled me while I was doing
-this patch-set. Shouldn't the SmartReflex be enabled even though we are
-at the desired voltage level at a given time. I mean, the operating
-conditions (temperature for one) could change over time and smartreflex
-will need to do it's magic in order to keep the device at a proper
-voltage level, right?
-
-
+On Tue, Jun 3, 2008 at 12:16 AM, Felipe Balbi <me@felipebalbi.com> wrote:
+> On Mon, Jun 02, 2008 at 11:13:48PM +0530, mohammed shareef wrote:
+>> Hi,
+>>
+>> i tried to re-compile my kernel by adding a few features and then
+>> transfered the new image using u-boot. Unfortunately am getting the
+>> following error:
+>>
+>> ## Booting image at 00100000 ...
+>> Bad Magic Number
+>> OMAP5912 OSK #
+>>
+>> The transfer seems to be complete and proper. all the environment
+>> variables are also ok. i tried replacing the new image with the
+>> previous working image. that also fails. could some one tell me whats
+>> worng?
 >
-> This driver needs modification to read NTargets from E-fuse rather than using hard coded values.
-
-Tony, I can update this patch set, or send an additional patch that adds
-the efuse support. Which will you prefer?
-
-
-Regards,
-Kalle
-
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Koen Kooi
-> Sent: Monday, June 02, 2008 6:02 PM
-> To: Kalle Jokiniemi
-> Cc: linux-omap
-> Subject: Re: [PATCH 0/3] ARM: OMAP: SmartReflex driver
+> use uImage instead of zImage
 >
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->
->
-> Op 2 jun 2008, om 13:29 heeft Kalle Jokiniemi het volgende geschreven:
->
-> > Here is an updated version of the SmartReflex driver.
-> >
-> > Patches 1 and 2 are same as before, but patch 3 has some new things:
-> >
-> > - Changed the register accessing to use the prm_xxx_mod_reg{_bits}()
-> >  functions.
-> >
-> > - Created a Kconfig entry for SmartReflex in "System type->TI OMAP
-> >  Implementations" menu.
-> >
-> > Tested on 3430SDP.
->
-> Compiles for beagleboard, but the board hangs after:
->
-> echo -n 1 > /sys/power/sr_vdd1_autocomp
-> echo -n 1 > /sys/power/sr_vdd2_autocomp
->
-> But that's likely to be a beagleboard specific problem.
->
-> regards,
->
-> Koen
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.4.5 (Darwin)
->
-> iD8DBQFIQ+g/MkyGM64RGpERAqwgAJ97AE4z0bIBZJs7nZcO1Npa8YkIcgCfY6KM
-> 3Hhr4AIdmzNiozdqs1uQUgg=
-> =rcQP
-> -----END PGP SIGNATURE-----
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Best Regards,
+>
+> Felipe Balbi
+> me@felipebalbi.com
+> http://blog.felipebalbi.com
+>
