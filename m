@@ -1,56 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Felipe Balbi <me@felipebalbi.com>
 Subject: Re: Booting 2.6.25 on the OMAP5912OSK
-Date: Tue, 3 Jun 2008 09:49:27 -0700
-Message-ID: <20080603164926.GC6992@atomide.com>
-References: <4842D6FB.2050508@balister.org> <94533b41efbc9aa07c7893a0a7de3080@felipebalbi.com> <48455B16.3000506@css-design.us>
+Date: Tue, 3 Jun 2008 20:32:36 +0300
+Message-ID: <20080603173235.GC29125@kedavra.cpe.vivax.com.br>
+References: <4842D6FB.2050508@balister.org> <94533b41efbc9aa07c7893a0a7de3080@felipebalbi.com> <48455B16.3000506@css-design.us> <20080603164926.GC6992@atomide.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:55245 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752837AbYFCQtd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jun 2008 12:49:33 -0400
+Received: from ns1.siteground211.com ([209.62.36.12]:34045 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753209AbYFCRcZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jun 2008 13:32:25 -0400
 Content-Disposition: inline
-In-Reply-To: <48455B16.3000506@css-design.us>
+In-Reply-To: <20080603164926.GC6992@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Poulsen <spoulsen@css-design.us>
-Cc: Felipe Balbi <me@felipebalbi.com>, Philip Balister <philip@balister.org>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Steve Poulsen <spoulsen@css-design.us>, Felipe Balbi <me@felipebalbi.com>, Philip Balister <philip@balister.org>, linux-omap@vger.kernel.org
 
-* Steve Poulsen <spoulsen@css-design.us> [080603 07:55]:
-> I too am seeing this same problem.  Do you know when this was introduced  
-> (kernel version)?  I am looking to update the kernel to address some  
-> flashing issues, and this is the only issue that remains for me.  I am  
-> thinking to revert back to the I2C of the version that should fix this  
-> issue.
->
-> Thanks!
->
-> Felipe Balbi wrote:
->> Hi,
->>
->> On Sun, 01 Jun 2008 13:06:03 -0400, Philip Balister <philip@balister.org>
->> wrote:
->>   
->>> i2c_omap i2c_omap.1: Transmit overflow
->>> tps65010: power off button
->>>     
->>
->> Sounds like a bug in our i2c-omap.c
->>
->> Tony do you know about any issues with i2c-omap.c after
->> highspeed i2c was introduced ?
->>
->> This could be a regression, I remember seeing this on
->> some tests I was doing with twl4030 but they seemed
->> to vanish. Looks like I missed something. I'll try
->> to reproduce my bug with twl4030 and after that dig a
->> bit on i2c driver and i2c omap trms (ugh).
->>
->> Anyways, if you could enable all debugging in i2c and
->> get more info when it happens, that would be great ;-)
+On Tue, Jun 03, 2008 at 09:49:27AM -0700, Tony Lindgren wrote:
+> Hmm, yeah sounds like something is broken.. Anybody want to try to
+> narrow it down with git-bisect?
 
-Hmm, yeah sounds like something is broken.. Anybody want to try to
-narrow it down with git-bisect?
+ok, there's an easy way to reproduce.
+echo host > /sys/devices/platform/musb_hdrc/mode
+from 3430sdp. Some of the transfers in
+drivers/i2c/chips/twl4030-usb.c:twl4030_set_host() is trigerring the
+overflow.
 
-Tony
+btw, that XUDF bit, means _underflow_ and not overflow, so anyone who
+finnishes the patch first care to send also a cleanup patch fixing that
+info ;-)
+
+I don't remember when it started to happen, but I remember that it used
+to work without any underflow. Still need to read more, maybe i'll do it
+tomorrow.
+
+-- 
+Best Regards,
+
+Felipe Balbi
+me@felipebalbi.com
+http://blog.felipebalbi.com
