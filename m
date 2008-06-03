@@ -1,92 +1,71 @@
-From: "mohammed shareef" <mdshareef@gmail.com>
-Subject: audio on omap5912 osk
-Date: Tue, 3 Jun 2008 15:40:13 +0530
-Message-ID: <a1d91fa0806030310m4ae72de4qe2a66d3fd75486eb@mail.gmail.com>
+From: "ananth" <ananth@lge.com>
+Subject: RE: Any one has ramfs Image for OMAP1510
+Date: Tue, 3 Jun 2008 16:04:41 +0530
+Message-ID: <C0B486D0719F49F085FE6CA34F7D1DA5@LGE.NET>
+References: <09A5BCEAD84B459FB17C941A0A345D1F@LGE.NET> <0680EC522D0CC943BC586913CF3768C001DE44669D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.187]:31561 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752284AbYFCKKP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jun 2008 06:10:15 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so495017tic.23
-        for <linux-omap@vger.kernel.org>; Tue, 03 Jun 2008 03:10:13 -0700 (PDT)
-Content-Disposition: inline
+Received: from LGEMRELSE3Q.lge.com ([156.147.1.113]:55369 "EHLO
+	LGEMRELSE3Q.lge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752357AbYFCKen (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jun 2008 06:34:43 -0400
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C001DE44669D@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: omap <linux-omap@vger.kernel.org>
-
-Hi,
-
-Am trying to run audio on my osk.
-
-i followed the instructions given in the below link..
-
-http://oskfordummies.hp.infoseek.co.jp/howto/audio.html
-
-my .config file of the kernel looks like this (regarding audio..)
-
-#
-# Sound
-#
-CONFIG_SOUND=m
-
-#
-# Advanced Linux Sound Architecture
-#
-CONFIG_SND=m
-CONFIG_SND_TIMER=m
-CONFIG_SND_PCM=m
-# CONFIG_SND_SEQUENCER is not set
-# CONFIG_SND_MIXER_OSS is not set
-# CONFIG_SND_PCM_OSS is not set
-# CONFIG_SND_DYNAMIC_MINORS is not set
-CONFIG_SND_SUPPORT_OLD_API=y
-CONFIG_SND_VERBOSE_PROCFS=y
-CONFIG_SND_VERBOSE_PRINTK=y
-# CONFIG_SND_DEBUG is not set
-
-#
-# Generic devices
-#
-# CONFIG_SND_DUMMY is not set
-# CONFIG_SND_MTPAV is not set
-
-#
-# ALSA ARM devices
-#
-CONFIG_SND_OMAP_AIC23=m
-# CONFIG_SND_OMAP_TSC2101 is not set
-# CONFIG_SND_OMAP_TSC2102 is not set
-
-#
-# PCMCIA devices
-#
-# CONFIG_SND_VXPOCKET is not set
-# CONFIG_SND_PDAUDIOCF is not set
-
-#
-# Open Sound System
-#
-CONFIG_SOUND_PRIME=m
-# CONFIG_OSS_OBSOLETE_DRIVER is not set
-# CONFIG_SOUND_MSNDCLAS is not set
-# CONFIG_SOUND_MSNDPIN is not set
+To: "'Syed Mohammed, Khasim'" <khasim@ti.com>, linux-omap@vger.kernel.org
 
 
-i configured it fot aic23 codec on the osk..
-thn i created the nodes..
 
-# mknod /dev/mixer c 14 0
-# mknod /dev/dsp c 14 3
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org
+[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Syed Mohammed, Khasim
+Sent: Tuesday, June 03, 2008 3:36 PM
+To: ananth; linux-omap@vger.kernel.org
+Subject: RE: Any one has ramfs Image for OMAP1510
 
-but when i run the audio configuration file, the system doesnt respond at all..
 
-i dont get back the prompt after i run this file..
 
-could someone tell me whats wrong..
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org
+[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of ananth
+> Sent: Tuesday, June 03, 2008 3:31 PM
+> To: linux-omap@vger.kernel.org
+> Subject: Any one has ramfs Image for OMAP1510
+>
+> Hi All
+>
+>
+>
+>             I am trying to boot the Linux on OMAP1510 Board. I am able to
+> load the kernel after building it from Linux-2.4.19
+>
+>
+>
+>             Now I am not having the file system, and I checked the site
+> http://www.wearablegroup.org/software/ramdisk, but the site itself is not
+> existing.
+>
+>
 
-thank you,
-regards,
-Shareef
+Did you try any of these, they are bit old so might work for you.
+
+http://linux.omap.com/pub/filesystem/
+
+
+Yes, I tried this Images to load directly into flash and got the problems, 
+I am in the process of using these images as NFS
+
+Which tool chain are you using for compiling the kernel?
+
+I built the arm-linux tool chain as mentioned in the swpa011.pdf file.
+
+Regards,
+Khasim
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
