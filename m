@@ -1,44 +1,32 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: omap5912-osk bad magic number
-Date: Mon, 2 Jun 2008 21:46:41 +0300
-Message-ID: <20080602184641.GA6028@kedavra.cpe.vivax.com.br>
-References: <a1d91fa0806021043n2c0c74b6j9dcbf02d3cc05b06@mail.gmail.com>
-Reply-To: me@felipebalbi.com
+From: "Bryan Wu" <cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [Question] MUSB: why not clear DMA interrupt in musbhsdma.c?
+Date: Tue, 3 Jun 2008 11:15:30 +0800
+Message-ID: <386072610806022015t654e46g92d184d949ad60ad@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:52876 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751602AbYFBSqV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jun 2008 14:46:21 -0400
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <a1d91fa0806021043n2c0c74b6j9dcbf02d3cc05b06@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: mohammed shareef <mdshareef@gmail.com>
-Cc: omap <linux-omap@vger.kernel.org>
 
-On Mon, Jun 02, 2008 at 11:13:48PM +0530, mohammed shareef wrote:
-> Hi,
-> 
-> i tried to re-compile my kernel by adding a few features and then
-> transfered the new image using u-boot. Unfortunately am getting the
-> following error:
-> 
-> ## Booting image at 00100000 ...
-> Bad Magic Number
-> OMAP5912 OSK #
-> 
-> The transfer seems to be complete and proper. all the environment
-> variables are also ok. i tried replacing the new image with the
-> previous working image. that also fails. could some one tell me whats
-> worng?
+Hi folks,
 
-use uImage instead of zImage
+I am trying to enable the whole musb HS DMA code on Blackfin. But
+found the is no place to clean the DMA interrupt flag in musbhsdma.c.
+As a result, the irq always happens with the same DMA irq source. I
+add some code to clear the DMA interrupt. Did I miss something here?
 
--- 
-Best Regards,
+After enabling the musb HS DMA code for Blackfin, normal operation is
+OK for mount/umount U-disks. But when I tried to write large file to
+the U-DISK (such as 10Mbyte or 100Mbyte), speed is very slow and mush
+slower than PIO mode, IMO.
+Did you guy meet this issue before on OMAP?
 
-Felipe Balbi
-me@felipebalbi.com
-http://blog.felipebalbi.com
+Thanks
+-Bryan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
