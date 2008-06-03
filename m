@@ -1,43 +1,29 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: user space program for omap gpio
-Date: Tue, 03 Jun 2008 06:50:10 -0500
-Message-ID: <2d71bf61e4343e1a8581e77e872e4ec2@felipebalbi.com>
-References: <a1d91fa0806020958p21d289edrf2c63c8333af9bd4@mail.gmail.com> <20080602174456.GB4964@kedavra.cpe.vivax.com.br> <a1d91fa0806030251w27a36bb3u62cd925845817efa@mail.gmail.com> <39d10518297acafea1e95228ee125562@felipebalbi.com> <a0580c510806030435o506a04f1k4a0267a02cba98b2@mail.gmail.com>
+From: "mohammed shareef" <mdshareef@gmail.com>
+Subject: Qt on omap5912 osk
+Date: Tue, 3 Jun 2008 18:14:34 +0530
+Message-ID: <a1d91fa0806030544t10bb9806qa3e0d1aacee4e831@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:39232 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753337AbYFCLuL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jun 2008 07:50:11 -0400
-In-Reply-To: <a0580c510806030435o506a04f1k4a0267a02cba98b2@mail.gmail.com>
+Received: from ti-out-0910.google.com ([209.85.142.191]:59586 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755345AbYFCMof (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jun 2008 08:44:35 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so511360tic.23
+        for <linux-omap@vger.kernel.org>; Tue, 03 Jun 2008 05:44:34 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>
-Cc: mohammed shareef <mdshareef@gmail.com>, omap <linux-omap@vger.kernel.org>
+To: omap <linux-omap@vger.kernel.org>
 
+hi,
 
+i am looking for a tutorial which explains how to comiple Qtopia for
+omap5912-osk. i have linux-2.6.18 running on my osk. could someone
+help me.
 
-On Tue, 3 Jun 2008 07:35:38 -0400, "Eduardo Valentin" <edubezval@gmail.com>
-wrote:
-> Hi Felipe,
-> 
-> Actually, David Brownell is working on something very similar. sysfs
-> for gpio lib.
-> 
-> http://kerneltrap.org/mailarchive/linux-kernel/2008/4/28/1640134
-> 
-> That'd be really useful indeed.
-> 
-> But  I believe it is not merged yet.
+thank you,
 
-That's actually really good :-)
-
--- 
-Best Regards,
-
-Felipe Balbi
-http://felipebalbi.com
-me@felipebalbi.com
-
+regards,
+Shareef
