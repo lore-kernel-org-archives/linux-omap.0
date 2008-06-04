@@ -1,34 +1,36 @@
-From: "mohammed shareef" <mdshareef@gmail.com>
-Subject: X11 - makekeys fails with floating point exception
-Date: Wed, 4 Jun 2008 10:28:50 +0530
-Message-ID: <a1d91fa0806032158o436483dduc658f39af168e6a7@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 5/5] ARM: OMAP: remove unnecessary locking in
+ clk_get_rate()
+Date: Wed, 4 Jun 2008 01:01:07 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0806040058450.1170@utopia.booyaka.com>
+References: <1211323550-5318-1-git-send-email-khilman@mvista.com> <1211323550-5318-2-git-send-email-khilman@mvista.com> <1211323550-5318-3-git-send-email-khilman@mvista.com> <1211323550-5318-4-git-send-email-khilman@mvista.com> <1211323550-5318-5-git-send-email-khilman@mvista.com>
+ <1211323550-5318-6-git-send-email-khilman@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.186]:57067 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751250AbYFDE6v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jun 2008 00:58:51 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so720983tic.23
-        for <linux-omap@vger.kernel.org>; Tue, 03 Jun 2008 21:58:50 -0700 (PDT)
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:36184 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751529AbYFDHBI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jun 2008 03:01:08 -0400
+In-Reply-To: <1211323550-5318-6-git-send-email-khilman@mvista.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: omap <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@mvista.com>
+Cc: linux-rt-users@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi,
 
-when i compile x-windows, the xlib--X11 fails with a floating point exception.
+Hi Kevin,
 
-../src/util/makekeys < /usr/include/X11/keysymdef.h > ks_tables_h
-/bin/sh: line 1: 12048 Floating point exception../src/util/makekeys <
-/usr/include/X11/keysymdef.h > ks_tables_h
-make[1]: *** [ks_tables.h] Error 136
-make[1]: Leaving directory `/root/omap5912/xwin_snapshot/xlibs/X11/src'
-make: *** [install-recursive] Error 1
+On Tue, 20 May 2008, Kevin Hilman wrote:
 
-could someone please tell me how to solve this
+> The locking in the get_rate() hook is unnecessary, and causes problems
+> when used with the -rt patch, since it may be called recursively.
+> 
+> Signed-off-by: Kevin Hilman <khilman@mvista.com>
 
-thank you,
-Shareef
+Acked-by: Paul Walmsley <paul@pwsan.com>
+
+BTW, looks like we could probably get rid of some of the other spinlocking 
+in plat-omap/clock.c also -- clk_get_usecount() ?
+
+- Paul
