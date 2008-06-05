@@ -1,99 +1,29 @@
 From: "mohammed shareef" <mdshareef@gmail.com>
-Subject: enabling audio on omap5912 osk
-Date: Thu, 5 Jun 2008 15:06:21 +0530
-Message-ID: <a1d91fa0806050236k403bd6ax19a4d472aff46c9c@mail.gmail.com>
+Subject: Re: enabling audio on omap5912 osk
+Date: Thu, 5 Jun 2008 15:35:51 +0530
+Message-ID: <a1d91fa0806050305n35cf616ewa4c731e34efc4919@mail.gmail.com>
+References: <a1d91fa0806050236k403bd6ax19a4d472aff46c9c@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.184]:53268 "EHLO
+Received: from ti-out-0910.google.com ([209.85.142.190]:55943 "EHLO
 	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753309AbYFEJgY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jun 2008 05:36:24 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so146155tic.23
-        for <linux-omap@vger.kernel.org>; Thu, 05 Jun 2008 02:36:21 -0700 (PDT)
+	with ESMTP id S1753112AbYFEKF4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jun 2008 06:05:56 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so150080tic.23
+        for <linux-omap@vger.kernel.org>; Thu, 05 Jun 2008 03:05:52 -0700 (PDT)
+In-Reply-To: <a1d91fa0806050236k403bd6ax19a4d472aff46c9c@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: omap <linux-omap@vger.kernel.org>
 
-Hi,
-
-Am trying to run audio on my oma5912-osk.
-
-i followed the instructions given in the below link..
-
-http://oskfordummies.hp.infoseek.co.jp/howto/audio.html
-
-my .config file of the kernel looks like this (regarding audio..)
-
-#
-# Sound
-#
-CONFIG_SOUND=m
-
-#
-# Advanced Linux Sound Architecture
-#
-CONFIG_SND=m
-CONFIG_SND_TIMER=m
-CONFIG_SND_PCM=m
-# CONFIG_SND_SEQUENCER is not set
-# CONFIG_SND_MIXER_OSS is not set
-# CONFIG_SND_PCM_OSS is not set
-# CONFIG_SND_DYNAMIC_MINORS is not set
-CONFIG_SND_SUPPORT_OLD_API=y
-CONFIG_SND_VERBOSE_PROCFS=y
-CONFIG_SND_VERBOSE_PRINTK=y
-# CONFIG_SND_DEBUG is not set
-
-#
-# Generic devices
-#
-# CONFIG_SND_DUMMY is not set
-# CONFIG_SND_MTPAV is not set
-
-#
-# ALSA ARM devices
-#
-CONFIG_SND_OMAP_AIC23=m
-# CONFIG_SND_OMAP_TSC2101 is not set
-# CONFIG_SND_OMAP_TSC2102 is not set
-
-#
-# PCMCIA devices
-#
-# CONFIG_SND_VXPOCKET is not set
-# CONFIG_SND_PDAUDIOCF is not set
-
-#
-# Open Sound System
-#
-CONFIG_SOUND_PRIME=m
-# CONFIG_OSS_OBSOLETE_DRIVER is not set
-# CONFIG_SOUND_MSNDCLAS is not set
-# CONFIG_SOUND_MSNDPIN is not set
-
-
-
-i configured the kernel for aic23 codec on the osk..
-then i created the nodes..
-
-# mknod /dev/mixer c 14 0
-# mknod /dev/dsp c 14 3
-
-but when i run the audio configuration file(mentioned in the
-tutorial), the system doesnt respond at all..
-
-i dont get back the prompt after i run this file..
-
-could someone tell me whats wrong..
-
-
-this is my kernel boot-up log:
+sorry, i attached the wrong boot-up log.. here is my boot-up log after
+enabling aic23 in kernel before compiling:
 
 Linux version 2.6.18-omap1 (root@localhost.localdomain) (gcc version
-3.4.1) #10 Mon Jun 2 22:49:46 IST 2008
+3.4.1) #11 Thu Jun 5 15:25:31 IST 2008
 CPU: ARM926EJ-S [41069263] revision 3 (ARMv5TEJ), cr=00053177
 Machine: TI-OSK
 Memory policy: ECC disabled, Data cache writeback
@@ -116,7 +46,7 @@ Console: colour dummy device 80x30
 Dentry cache hash table entries: 4096 (order: 2, 16384 bytes)
 Inode-cache hash table entries: 2048 (order: 1, 8192 bytes)
 Memory: 32MB = 32MB total
-Memory: 29864KB available (1993K code, 439K data, 112K init)
+Memory: 29748KB available (2089K code, 456K data, 112K init)
 Mount-cache hash table entries: 512
 CPU: Testing write buffer coherency: ok
 NET: Registered protocol family 16
@@ -170,6 +100,8 @@ smc91x.c: v1.1, sep 22 2004 by Nicolas Pitre <nico@cam.org>
 eth0: SMC91C94 (rev 9) at c2850300 IRQ 160 [nowait]
 eth0: Ethernet addr: 00:0e:99:02:0d:60
 i2c /dev entries driver
+Clock enabled to MCBSP1 & 3
+TLV320AIC23 I2C version 1.8 (10-Feb-2006)
 omapflash.0: Found 1 x16 devices at 0x0 in 16-bit bank
 omapflash.0: Found 1 x16 devices at 0x1000000 in 16-bit bank
  Intel/Sharp Extended Query Table at 0x0031
@@ -195,13 +127,17 @@ input: omap-keypad as /class/input/input0
 shareef: ads7846 probing
 ads7846 spi2.0: touchscreen + hwmon, irq 164
 input: ADS784x Touchscreen as /class/input/input1
+Advanced Linux Sound Architecture Driver Version 1.0.12rc1 (Thu Jun 22
+13:55:50 2006 UTC).
+audio support initialized
+ALSA device list:
+  #0: OSK AIC23
 TCP bic registered
 NET: Registered protocol family 1
 Disabling unused clock "usb_dc_ck"...  done
 FIXME: Clock "tc2_ck" seems unused
 Disabling unused clock "tc1_ck"...  done
 Skipping reset check for DSP domain clock "dsptim_ck"
-Skipping reset check for DSP domain clock "dspxor_ck"
 Skipping reset check for DSP domain clock "dspper_ck"
 eth0: link up
 IP-Config: Complete:
@@ -220,14 +156,82 @@ Starting System Init for OMAP5912OSK
 
 Please press Enter to activate this console.
 
-
-BusyBox v1.00-pre8 (2004.03.05-22:18+0000) Built-in shell (ash)
-Enter 'help' for a list of built-in commands.
-
--sh: can't access tty; job control turned off
-#
-
-
-thank you,
-regards,
-Shareef
+On Thu, Jun 5, 2008 at 3:06 PM, mohammed shareef <mdshareef@gmail.com> wrote:
+> Hi,
+>
+> Am trying to run audio on my oma5912-osk.
+>
+> i followed the instructions given in the below link..
+>
+> http://oskfordummies.hp.infoseek.co.jp/howto/audio.html
+>
+> my .config file of the kernel looks like this (regarding audio..)
+>
+> #
+> # Sound
+> #
+> CONFIG_SOUND=m
+>
+> #
+> # Advanced Linux Sound Architecture
+> #
+> CONFIG_SND=m
+> CONFIG_SND_TIMER=m
+> CONFIG_SND_PCM=m
+> # CONFIG_SND_SEQUENCER is not set
+> # CONFIG_SND_MIXER_OSS is not set
+> # CONFIG_SND_PCM_OSS is not set
+> # CONFIG_SND_DYNAMIC_MINORS is not set
+> CONFIG_SND_SUPPORT_OLD_API=y
+> CONFIG_SND_VERBOSE_PROCFS=y
+> CONFIG_SND_VERBOSE_PRINTK=y
+> # CONFIG_SND_DEBUG is not set
+>
+> #
+> # Generic devices
+> #
+> # CONFIG_SND_DUMMY is not set
+> # CONFIG_SND_MTPAV is not set
+>
+> #
+> # ALSA ARM devices
+> #
+> CONFIG_SND_OMAP_AIC23=m
+> # CONFIG_SND_OMAP_TSC2101 is not set
+> # CONFIG_SND_OMAP_TSC2102 is not set
+>
+> #
+> # PCMCIA devices
+> #
+> # CONFIG_SND_VXPOCKET is not set
+> # CONFIG_SND_PDAUDIOCF is not set
+>
+> #
+> # Open Sound System
+> #
+> CONFIG_SOUND_PRIME=m
+> # CONFIG_OSS_OBSOLETE_DRIVER is not set
+> # CONFIG_SOUND_MSNDCLAS is not set
+> # CONFIG_SOUND_MSNDPIN is not set
+>
+>
+>
+> i configured the kernel for aic23 codec on the osk..
+> then i created the nodes..
+>
+> # mknod /dev/mixer c 14 0
+> # mknod /dev/dsp c 14 3
+>
+> but when i run the audio configuration file(mentioned in the
+> tutorial), the system doesnt respond at all..
+>
+> i dont get back the prompt after i run this file..
+>
+> could someone tell me whats wrong..
+>
+>
+>
+> thank you,
+> regards,
+> Shareef
+>
