@@ -1,34 +1,31 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH] Fix for the i2c initialiation error on 2430sdp
-Date: Fri, 6 Jun 2008 21:07:06 +0300
-Message-ID: <20080606180706.GA27972@kedavra.cpe.vivax.com.br>
-References: <c656a4d20806060612s55b047b2p783056dfac058093@mail.gmail.com> <d2e4e528efc51e918b953d9b77673ea2@felipebalbi.com> <a0580c510806060757t63d84b82qa889c52f3adcb70c@mail.gmail.com> <FD7816A1-5B40-4554-99B4-1155B53671C1@student.utwente.nl>
+Subject: full linux history in git
+Date: Fri, 6 Jun 2008 21:13:04 +0300
+Message-ID: <20080606181303.GB27972@kedavra.cpe.vivax.com.br>
 Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:43431 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:45563 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751909AbYFFSHB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jun 2008 14:07:01 -0400
+	with ESMTP id S1751882AbYFFSMx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jun 2008 14:12:53 -0400
+Received: from a91-154-117-59.elisa-laajakaista.fi ([91.154.117.59]:19023 helo=kedavra.cpe.vivax.com.br)
+	by serv01.siteground211.com with esmtpsa (TLSv1:AES128-SHA:128)
+	(Exim 4.68)
+	(envelope-from <me@felipebalbi.com>)
+	id 1K4gQk-0004uw-To
+	for linux-omap@vger.kernel.org; Fri, 06 Jun 2008 13:12:51 -0500
 Content-Disposition: inline
-In-Reply-To: <FD7816A1-5B40-4554-99B4-1155B53671C1@student.utwente.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: Eduardo Valentin <edubezval@gmail.com>, Felipe Balbi <me@felipebalbi.com>, arun c <arunedarath@mistralsolutions.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Fri, Jun 06, 2008 at 05:28:44PM +0200, Koen Kooi wrote:
->> If that is the reason, it'd be good to add some comment here to avoid
->> people re-ordering it in the future.
->
-> I wonder if this applies to omap3 as well.
+FYI,
 
-Not really. i2c hs bus on omap3 is bus 1. So no problem :-)
+someone put the full linux history in only one git repository
 
-That might also be why they changed from bus2 to bus1, maybe. Just
-speculating here :-p
-
+http://marc.info/?l=linux-kernel&m=121276799115541&w=2
 
 -- 
 Best Regards,
