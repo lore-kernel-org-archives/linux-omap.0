@@ -1,35 +1,125 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: full linux history in git
-Date: Fri, 6 Jun 2008 21:13:04 +0300
-Message-ID: <20080606181303.GB27972@kedavra.cpe.vivax.com.br>
-Reply-To: me@felipebalbi.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: framebuffer and lcd question
+Date: Fri, 6 Jun 2008 20:57:04 +0200
+Message-ID: <EB74C93B-36C7-4E8A-B737-7652B030A2AD@student.utwente.nl>
+Mime-Version: 1.0 (Apple Message framework v924)
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:45563 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751882AbYFFSMx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jun 2008 14:12:53 -0400
-Received: from a91-154-117-59.elisa-laajakaista.fi ([91.154.117.59]:19023 helo=kedavra.cpe.vivax.com.br)
-	by serv01.siteground211.com with esmtpsa (TLSv1:AES128-SHA:128)
-	(Exim 4.68)
-	(envelope-from <me@felipebalbi.com>)
-	id 1K4gQk-0004uw-To
-	for linux-omap@vger.kernel.org; Fri, 06 Jun 2008 13:12:51 -0500
-Content-Disposition: inline
+Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:50826 "EHLO smtp.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751995AbYFFTCr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 Jun 2008 15:02:47 -0400
+Received: from [172.20.1.5] (vpn006121.vpn.utwente.nl [130.89.6.121])
+          by smtp.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id m56Iv7WC003504
+          for <linux-omap@vger.kernel.org>; Fri, 6 Jun 2008 20:57:09 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
 
-FYI,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-someone put the full linux history in only one git repository
+Hi,
 
-http://marc.info/?l=linux-kernel&m=121276799115541&w=2
+On the beagleboard we have the omapfb hooked up to a DVI framer  
+(TFP410), with the EDID hooked up to omap-i2c bus 3[1]. The 'problem'  
+we have is that we don't have a way to switch resolution in userspace  
+because of this:
 
--- 
-Best Regards,
+drivers/video/omap/lcd_omap3beagle.c
 
-Felipe Balbi
-me@felipebalbi.com
-http://blog.felipebalbi.com
+#define LCD_XRES                1600
+#define LCD_YRES                1200
+#define LCD_PIXCLOCK            65000 /* in kHz */
+
+[..]
+
+struct lcd_panel omap3beagle_panel = {
+         .name           = "omap3beagle",
+         .config         = OMAP_LCDC_PANEL_TFT,
+
+         .bpp            = 24,
+         .data_lines     = 24,
+         .x_res          = LCD_XRES,
+         .y_res          = LCD_YRES,
+
+[..]
+
+That hardcodes the resolution and bitdepth :(
+
+Ideally the kernel would read and parse the EDID and adjust the  
+resolution accordingly. We could use the fb_ddc driver:
+
+int beagleboard_probe_i2c_connector(struct fb_info *info, u8
+**out_edid)
+{
+         struct beagleboardfb_par *par = info->par;
+         u8 *edid = NULL;
+
+         DPRINTK("beagleboard DVI: Probe DDC\n);
+
+         edid = fb_ddc_read(&omap3-i2c.3);
+
+         *out_edid = edid;
+
+         return (edid) ? 0 : 1;
+
+}
+But I don't see a way make that work with omapfb and lcd_omap3beagle.  
+Does anyone have a suggestion on how to make this work? And after  
+that, how can we hook in the image and videoplane migration between  
+the DVI and s-video port?
+
+regards,
+
+Koen
+
+[1]
+
+root@beagleboard:/usr/sbin# decode-edid
+decode-edid: using bus 3 (autodetected)
+decode-edid: decode-edid version 1.1
+parse-edid: parse-edid version 1.4.1
+parse-edid: EDID checksum passed.
+
+         # EDID version 1 revision 3
+Section "Monitor"
+         # Block type: 2:0 3:fd
+         # Block type: 2:0 3:fc
+         Identifier "AU5131      "
+         VendorName "IVM"
+         ModelName "AU5131      "
+         # Block type: 2:0 3:fd
+         HorizSync 24-80
+         VertRefresh 50-85
+         # Max dot clock (video bandwidth) 160 MHz
+         # Block type: 2:0 3:fc
+         # Block type: 2:0 3:ff
+         # DPMS capabilities: Active off:yes  Suspend:yes  Standby:yes
+
+         Mode    "1600x1200"     # vfreq 60.000Hz, hfreq 75.000kHz
+                 DotClock        162.000000
+                 HTimings        1600 1664 1856 2160
+                 VTimings        1200 1201 1204 1250
+                 Flags   "+HSync" "+VSync"
+         EndMode
+         # Block type: 2:0 3:fd
+         # Block type: 2:0 3:fc
+         # Block type: 2:0 3:ff
+EndSection
+root@beagleboard:/usr/sbin#
+
+
+
+
+
+
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFISYiCMkyGM64RGpERAhSpAJwJLy2mNHCDFnpk8OPF3VHOczW5xACff7Jm
+ioqUAiN3JUTGLDJUO7qvGZI=
+=JaND
+-----END PGP SIGNATURE-----
