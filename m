@@ -1,237 +1,1012 @@
-From: "mohammed shareef" <mdshareef@gmail.com>
-Subject: Re: enabling audio on omap5912 osk
-Date: Thu, 5 Jun 2008 15:35:51 +0530
-Message-ID: <a1d91fa0806050305n35cf616ewa4c731e34efc4919@mail.gmail.com>
-References: <a1d91fa0806050236k403bd6ax19a4d472aff46c9c@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+Subject: [PATCH 1/3] ARM: OMAP: SmartReflex driver, reference source and header files
+Date: Fri,  6 Jun 2008 12:49:47 +0300
+Message-ID: <1212745789-13926-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.190]:55943 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753112AbYFEKF4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jun 2008 06:05:56 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so150080tic.23
-        for <linux-omap@vger.kernel.org>; Thu, 05 Jun 2008 03:05:52 -0700 (PDT)
-In-Reply-To: <a1d91fa0806050236k403bd6ax19a4d472aff46c9c@mail.gmail.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.105.134]:58526 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752303AbYFFJtX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jun 2008 05:49:23 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m569kuWf013093
+	for <linux-omap@vger.kernel.org>; Fri, 6 Jun 2008 04:49:20 -0500
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: omap <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
 
-sorry, i attached the wrong boot-up log.. here is my boot-up log after
-enabling aic23 in kernel before compiling:
+The following patch set integrates TI's SmartReflex driver. SmartReflex is a
+module that adjusts OMAP3 VDD1 and VDD2 operating voltages around the nominal
+values of current operating point depending on silicon characteristics and
+operating conditions.
 
-Linux version 2.6.18-omap1 (root@localhost.localdomain) (gcc version
-3.4.1) #11 Thu Jun 5 15:25:31 IST 2008
-CPU: ARM926EJ-S [41069263] revision 3 (ARMv5TEJ), cr=00053177
-Machine: TI-OSK
-Memory policy: ECC disabled, Data cache writeback
-OMAP162123 revision 2 handled as 16xx id: 350594085990091f
-SRAM: Mapped pa 0x20000000 to va 0xd0000000 size: 0x100000
-CPU0: D VIVT write-back cache
-CPU0: I cache: 16384 bytes, associativity 4, 32 byte lines, 128 sets
-CPU0: D cache: 8192 bytes, associativity 4, 32 byte lines, 64 sets
-Built 1 zonelists.  Total pages: 8192
-Kernel command line: console=ttyS0,115200n8 noinitrd
-ip=10.114.4.1:10.114.5.48:10.114.12.1:255.255.0.0:osk:eth0:off
-root=/dev/nfs rw nfsroot=10.114.5.48:/data/rootfs2.6,nolock mem=32M
-Clocks: ARM_SYSST: 0x1000 DPLL_CTL: 0x2833 ARM_CKCTL: 0x3000
-Clocking rate (xtal/DPLL1/MPU): 12.0/192.0/192.0 MHz
-Total of 128 interrupts in 4 interrupt banks
-OMAP GPIO hardware version 1.0
-MUX: initialized M7_1610_GPIO62
-PID hash table entries: 256 (order: 8, 1024 bytes)
-Console: colour dummy device 80x30
-Dentry cache hash table entries: 4096 (order: 2, 16384 bytes)
-Inode-cache hash table entries: 2048 (order: 1, 8192 bytes)
-Memory: 32MB = 32MB total
-Memory: 29748KB available (2089K code, 456K data, 112K init)
-Mount-cache hash table entries: 512
-CPU: Testing write buffer coherency: ok
-NET: Registered protocol family 16
-MUX: initialized P20_1610_GPIO4
+The driver creates two sysfs entries into /sys/power/ named "sr_vdd1_autocomp"
+and "sr_vdd2_autocomp" which can be used to activate SmartReflex modules 1 and
+2.
 
-shareef: spi registering
-OMAP DMA hardware version 1
-DMA capabilities: 000c0000:00000000:01ff:003f:007f
-Initializing OMAP McBSP system
-omap_dsp_init() done
-USB: hmc 16, usb0 2 wires
-i2c_omap i2c_omap.1: bus 0 rev2.2 at 100 kHz
-tps65010: version 2 May 2005
-No IRQF_TRIGGER set_type function for IRQ 353 (MPUIO)
-MUX: initialized N14_1610_UWIRE_CS0
-MUX: initialized P15_1610_UWIRE_CS3
+Use the following commands to enable SmartReflex:
 
-shareef: spi init
-NET: Registered protocol family 2
-IP route cache hash table entries: 256 (order: -2, 1024 bytes)
-TCP established hash table entries: 1024 (order: 0, 4096 bytes)
-TCP bind hash table entries: 512 (order: -1, 2048 bytes)
-TCP: Hash tables configured (established 1024 bind 512)
-TCP reno registered
-Power Management for TI OMAP.
-MUX: initialized T20_1610_LOW_PWR
-NetWinder Floating Point Emulator V0.97 (double precision)
-OMAP OCPI interconnect driver loaded
-JFFS2 version 2.2. (NAND) (C) 2001-2006 Red Hat, Inc.
-io scheduler noop registered
-io scheduler anticipatory registered
-io scheduler deadline registered
-io scheduler cfq registered (default)
-omapfb: configured for panel osk
-omapfb: LCDC initialized
-omapfb omapfb: Pixel clock divider value is obsolete.
-Try to set pixel_clock to 8000 and pcd to 0 in
-drivers/video/omap/lcd_osk.c and submit a patch.
-MUX: initialized PWL
-Console: switching to colour frame buffer device 30x40
-omapfb: Framebuffer initialized. Total vram 155648 planes 1
-omapfb: Pixclock 8000 kHz hfreq 20.1 kHz vfreq 63.3 Hz
-Serial: 8250/16550 driver $Revision: 1.90 $ 4 ports, IRQ sharing disabled
-serial8250.0: ttyS0 at MMIO 0xfffb0000 (irq = 46) is a ST16654
-serial8250.0: ttyS1 at MMIO 0xfffb0800 (irq = 47) is a ST16654
-serial8250.0: ttyS2 at MMIO 0xfffb9800 (irq = 15) is a ST16654
-RAMDISK driver initialized: 16 RAM disks of 8192K size 1024 blocksize
-loop: loaded (max 8 devices)
-PPP generic driver version 2.4.2
-smc91x.c: v1.1, sep 22 2004 by Nicolas Pitre <nico@cam.org>
-eth0: SMC91C94 (rev 9) at c2850300 IRQ 160 [nowait]
-eth0: Ethernet addr: 00:0e:99:02:0d:60
-i2c /dev entries driver
-Clock enabled to MCBSP1 & 3
-TLV320AIC23 I2C version 1.8 (10-Feb-2006)
-omapflash.0: Found 1 x16 devices at 0x0 in 16-bit bank
-omapflash.0: Found 1 x16 devices at 0x1000000 in 16-bit bank
- Intel/Sharp Extended Query Table at 0x0031
-Using buffer write method
-cfi_cmdset_0001: Erase suspend on write enabled
-Creating 4 MTD partitions on "omapflash.0":
-0x00000000-0x00020000 : "bootloader"
-0x00020000-0x00040000 : "params"
-0x00040000-0x00240000 : "kernel"
-0x00240000-0x02000000 : "filesystem"
-TI TSC2102 driver initializing
-MUX: initialized W11_1610_CF_CD1
-MUX: initialized P11_1610_CF_CD2
-MUX: initialized R11_1610_CF_IOIS16
-MUX: initialized V10_1610_CF_IREQ
-MUX: initialized W10_1610_CF_RESET
-omap_cf: cs2 on irq 222
-mice: PS/2 mouse device common for all mice
-ts: Compaq touchscreen protocol output
-OMAP Keypad Driver
-input: omap-keypad as /class/input/input0
+echo -n 1 > /sys/power/sr_vdd1_autocomp
+echo -n 1 > /sys/power/sr_vdd2_autocomp
 
-shareef: ads7846 probing
-ads7846 spi2.0: touchscreen + hwmon, irq 164
-input: ADS784x Touchscreen as /class/input/input1
-Advanced Linux Sound Architecture Driver Version 1.0.12rc1 (Thu Jun 22
-13:55:50 2006 UTC).
-audio support initialized
-ALSA device list:
-  #0: OSK AIC23
-TCP bic registered
-NET: Registered protocol family 1
-Disabling unused clock "usb_dc_ck"...  done
-FIXME: Clock "tc2_ck" seems unused
-Disabling unused clock "tc1_ck"...  done
-Skipping reset check for DSP domain clock "dsptim_ck"
-Skipping reset check for DSP domain clock "dspper_ck"
-eth0: link up
-IP-Config: Complete:
-      device=eth0, addr=10.114.4.1, mask=255.255.0.0, gw=10.114.12.1,
-     host=osk, domain=, nis-domain=(none),
-     bootserver=10.114.5.48, rootserver=10.114.5.48, rootpath=
-Looking up port of RPC 100003/2 on 10.114.5.48
-Looking up port of RPC 100005/1 on 10.114.5.48
-VFS: Mounted root (nfs filesystem).
-Freeing init memory: 112K
-init started:  BusyBox v1.00-pre8 (2004.03.05-22:18+0000) multi-call binary
+To disable:
 
-******************************************
-Starting System Init for OMAP5912OSK
-******************************************
+echo -n 0 > /sys/power/sr_vdd1_autocomp
+echo -n 0 > /sys/power/sr_vdd2_autocomp
 
-Please press Enter to activate this console.
+Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+---
+ arch/arm/mach-omap2/smartreflex.c |  815 +++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/smartreflex.h |  136 ++++++
+ 2 files changed, 951 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/smartreflex.c
+ create mode 100644 arch/arm/mach-omap2/smartreflex.h
 
-On Thu, Jun 5, 2008 at 3:06 PM, mohammed shareef <mdshareef@gmail.com> wrote:
-> Hi,
->
-> Am trying to run audio on my oma5912-osk.
->
-> i followed the instructions given in the below link..
->
-> http://oskfordummies.hp.infoseek.co.jp/howto/audio.html
->
-> my .config file of the kernel looks like this (regarding audio..)
->
-> #
-> # Sound
-> #
-> CONFIG_SOUND=m
->
-> #
-> # Advanced Linux Sound Architecture
-> #
-> CONFIG_SND=m
-> CONFIG_SND_TIMER=m
-> CONFIG_SND_PCM=m
-> # CONFIG_SND_SEQUENCER is not set
-> # CONFIG_SND_MIXER_OSS is not set
-> # CONFIG_SND_PCM_OSS is not set
-> # CONFIG_SND_DYNAMIC_MINORS is not set
-> CONFIG_SND_SUPPORT_OLD_API=y
-> CONFIG_SND_VERBOSE_PROCFS=y
-> CONFIG_SND_VERBOSE_PRINTK=y
-> # CONFIG_SND_DEBUG is not set
->
-> #
-> # Generic devices
-> #
-> # CONFIG_SND_DUMMY is not set
-> # CONFIG_SND_MTPAV is not set
->
-> #
-> # ALSA ARM devices
-> #
-> CONFIG_SND_OMAP_AIC23=m
-> # CONFIG_SND_OMAP_TSC2101 is not set
-> # CONFIG_SND_OMAP_TSC2102 is not set
->
-> #
-> # PCMCIA devices
-> #
-> # CONFIG_SND_VXPOCKET is not set
-> # CONFIG_SND_PDAUDIOCF is not set
->
-> #
-> # Open Sound System
-> #
-> CONFIG_SOUND_PRIME=m
-> # CONFIG_OSS_OBSOLETE_DRIVER is not set
-> # CONFIG_SOUND_MSNDCLAS is not set
-> # CONFIG_SOUND_MSNDPIN is not set
->
->
->
-> i configured the kernel for aic23 codec on the osk..
-> then i created the nodes..
->
-> # mknod /dev/mixer c 14 0
-> # mknod /dev/dsp c 14 3
->
-> but when i run the audio configuration file(mentioned in the
-> tutorial), the system doesnt respond at all..
->
-> i dont get back the prompt after i run this file..
->
-> could someone tell me whats wrong..
->
->
->
-> thank you,
-> regards,
-> Shareef
->
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+new file mode 100644
+index 0000000..dae7460
+--- /dev/null
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -0,0 +1,815 @@
++/*
++ * linux/arch/arm/mach-omap3/smartreflex.c
++ *
++ * OMAP34XX SmartReflex Voltage Control
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Lesly A M <x0080970@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/module.h>
++#include <linux/delay.h>
++#include <linux/err.h>
++#include <linux/clk.h>
++#include <linux/sysfs.h>
++
++#include <asm/arch/prcm.h>
++#include <asm/arch/power_companion.h>
++#include <linux/io.h>
++
++#include "prcm-regs.h"
++#include "smartreflex.h"
++
++
++/* #define DEBUG_SR 1 */
++#ifdef DEBUG_SR
++#  define DPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __func__ ,\
++									## args)
++#else
++#  define DPRINTK(fmt, args...)
++#endif
++
++struct omap_sr{
++	int srid;
++	int is_sr_reset;
++	int is_autocomp_active;
++	struct clk *fck;
++	u32 req_opp_no;
++	u32 opp1_nvalue, opp2_nvalue, opp3_nvalue, opp4_nvalue, opp5_nvalue;
++	u32 senp_mod, senn_mod;
++	u32 srbase_addr;
++	u32 vpbase_addr;
++};
++
++static struct omap_sr sr1 = {
++	.srid = SR1,
++	.is_sr_reset = 1,
++	.is_autocomp_active = 0,
++	.srbase_addr = OMAP34XX_SR1_BASE,
++};
++
++static struct omap_sr sr2 = {
++	.srid = SR2,
++	.is_sr_reset = 1,
++	.is_autocomp_active = 0,
++	.srbase_addr = OMAP34XX_SR2_BASE,
++};
++
++static inline void sr_write_reg(struct omap_sr *sr, int offset, u32 value)
++{
++	omap_writel(value, sr->srbase_addr + offset);
++}
++
++static inline void sr_modify_reg(struct omap_sr *sr, int offset, u32 mask,
++								u32 value)
++{
++	u32 reg_val;
++
++	reg_val = omap_readl(sr->srbase_addr + offset);
++	reg_val &= ~mask;
++	reg_val |= value;
++
++	omap_writel(reg_val, sr->srbase_addr + offset);
++}
++
++static inline u32 sr_read_reg(struct omap_sr *sr, int offset)
++{
++	return omap_readl(sr->srbase_addr + offset);
++}
++
++
++#ifndef USE_EFUSE_VALUES
++static void cal_reciprocal(u32 sensor, u32 *sengain, u32 *rnsen)
++{
++	u32 gn, rn, mul;
++
++	for (gn = 0; gn < GAIN_MAXLIMIT; gn++) {
++		mul = 1 << (gn + 8);
++		rn = mul / sensor;
++		if (rn < R_MAXLIMIT) {
++			*sengain = gn;
++			*rnsen = rn;
++		}
++	}
++}
++#endif
++
++static int sr_clk_enable(struct omap_sr *sr)
++{
++	if (clk_enable(sr->fck) != 0) {
++		printk(KERN_ERR "Could not enable sr%d_fck\n", sr->srid);
++		goto clk_enable_err;
++	}
++
++	/* set fclk- active , iclk- idle */
++	sr_modify_reg(sr, ERRCONFIG, SR_CLKACTIVITY_MASK,
++						SR_CLKACTIVITY_IOFF_FON);
++
++	return 0;
++
++clk_enable_err:
++	return -1;
++}
++
++static int sr_clk_disable(struct omap_sr *sr)
++{
++	/* set fclk, iclk- idle */
++	sr_modify_reg(sr, ERRCONFIG, SR_CLKACTIVITY_MASK,
++						SR_CLKACTIVITY_IOFF_FOFF);
++
++	clk_disable(sr->fck);
++	sr->is_sr_reset = 1;
++
++	return 0;
++}
++
++static void sr_set_nvalues(struct omap_sr *sr)
++{
++#ifdef USE_EFUSE_VALUES
++	u32 n1, n2;
++#else
++	u32 senpval, sennval;
++	u32 senpgain, senngain;
++	u32 rnsenp, rnsenn;
++#endif
++
++	if (sr->srid == SR1) {
++#ifdef USE_EFUSE_VALUES
++		/* Read values for VDD1 from EFUSE */
++#else
++		/* since E-Fuse Values are not available, calculating the
++		 * reciprocal of the SenN and SenP values for SR1
++		 */
++		sr->senp_mod = 0x03;        /* SenN-M5 enabled */
++		sr->senn_mod = 0x03;
++
++		/* for OPP5 */
++		senpval = 0x848 + 0x330;
++		sennval = 0xacd + 0x330;
++
++		cal_reciprocal(senpval, &senpgain, &rnsenp);
++		cal_reciprocal(sennval, &senngain, &rnsenn);
++
++		sr->opp5_nvalue =
++				((senpgain << NVALUERECIPROCAL_SENPGAIN_SHIFT) |
++				(senngain << NVALUERECIPROCAL_SENNGAIN_SHIFT) |
++				(rnsenp << NVALUERECIPROCAL_RNSENP_SHIFT) |
++				(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT));
++
++		/* for OPP4 */
++		senpval = 0x727 + 0x2a0;
++		sennval = 0x964 + 0x2a0;
++
++		cal_reciprocal(senpval, &senpgain, &rnsenp);
++		cal_reciprocal(sennval, &senngain, &rnsenn);
++
++		sr->opp4_nvalue =
++				((senpgain << NVALUERECIPROCAL_SENPGAIN_SHIFT) |
++				(senngain << NVALUERECIPROCAL_SENNGAIN_SHIFT) |
++				(rnsenp << NVALUERECIPROCAL_RNSENP_SHIFT) |
++				(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT));
++
++		/* for OPP3 */
++		senpval = 0x655 + 0x200;
++		sennval = 0x85b + 0x200;
++
++		cal_reciprocal(senpval, &senpgain, &rnsenp);
++		cal_reciprocal(sennval, &senngain, &rnsenn);
++
++		sr->opp3_nvalue =
++				((senpgain << NVALUERECIPROCAL_SENPGAIN_SHIFT) |
++				(senngain << NVALUERECIPROCAL_SENNGAIN_SHIFT) |
++				(rnsenp << NVALUERECIPROCAL_RNSENP_SHIFT) |
++				(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT));
++
++		/* for OPP2 */
++		senpval = 0x3be + 0x1a0;
++		sennval = 0x506 + 0x1a0;
++
++		cal_reciprocal(senpval, &senpgain, &rnsenp);
++		cal_reciprocal(sennval, &senngain, &rnsenn);
++
++		sr->opp2_nvalue =
++				((senpgain << NVALUERECIPROCAL_SENPGAIN_SHIFT) |
++				(senngain << NVALUERECIPROCAL_SENNGAIN_SHIFT) |
++				(rnsenp << NVALUERECIPROCAL_RNSENP_SHIFT) |
++				(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT));
++
++		/* for OPP1 */
++		senpval = 0x28c + 0x100;
++		sennval = 0x373 + 0x100;
++
++		cal_reciprocal(senpval, &senpgain, &rnsenp);
++		cal_reciprocal(sennval, &senngain, &rnsenn);
++
++		sr->opp1_nvalue =
++				((senpgain << NVALUERECIPROCAL_SENPGAIN_SHIFT) |
++				(senngain << NVALUERECIPROCAL_SENNGAIN_SHIFT) |
++				(rnsenp << NVALUERECIPROCAL_RNSENP_SHIFT) |
++				(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT));
++
++		sr_clk_enable(sr);
++		sr_write_reg(sr, NVALUERECIPROCAL, sr->opp3_nvalue);
++		sr_clk_disable(sr);
++
++#endif
++	} else if (sr->srid == SR2) {
++#ifdef USE_EFUSE_VALUES
++		/* Read values for VDD2 from EFUSE */
++#else
++		/* since E-Fuse Values are not available, calculating the
++		 * reciprocal of the SenN and SenP values for SR2
++		 */
++		sr->senp_mod = 0x03;
++		sr->senn_mod = 0x03;
++
++		/* for OPP3 */
++		senpval = 0x579 + 0x200;
++		sennval = 0x76f + 0x200;
++
++		cal_reciprocal(senpval, &senpgain, &rnsenp);
++		cal_reciprocal(sennval, &senngain, &rnsenn);
++
++		sr->opp3_nvalue =
++				((senpgain << NVALUERECIPROCAL_SENPGAIN_SHIFT) |
++				(senngain << NVALUERECIPROCAL_SENNGAIN_SHIFT) |
++				(rnsenp << NVALUERECIPROCAL_RNSENP_SHIFT) |
++				(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT));
++
++		/* for OPP2 */
++		senpval = 0x390 + 0x1c0;
++		sennval = 0x4f5 + 0x1c0;
++
++		cal_reciprocal(senpval, &senpgain, &rnsenp);
++		cal_reciprocal(sennval, &senngain, &rnsenn);
++
++		sr->opp2_nvalue =
++				((senpgain << NVALUERECIPROCAL_SENPGAIN_SHIFT) |
++				(senngain << NVALUERECIPROCAL_SENNGAIN_SHIFT) |
++				(rnsenp << NVALUERECIPROCAL_RNSENP_SHIFT) |
++				(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT));
++
++		/* for OPP1 */
++		senpval = 0x25d;
++		sennval = 0x359;
++
++		cal_reciprocal(senpval, &senpgain, &rnsenp);
++		cal_reciprocal(sennval, &senngain, &rnsenn);
++
++		sr->opp1_nvalue =
++				((senpgain << NVALUERECIPROCAL_SENPGAIN_SHIFT) |
++				(senngain << NVALUERECIPROCAL_SENNGAIN_SHIFT) |
++				(rnsenp << NVALUERECIPROCAL_RNSENP_SHIFT) |
++				(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT));
++
++#endif
++	}
++
++}
++
++static void sr_configure_vp(int srid)
++{
++	u32 vpconfig;
++
++	if (srid == SR1) {
++		vpconfig = PRM_VP1_CONFIG_ERROROFFSET | PRM_VP1_CONFIG_ERRORGAIN
++			| PRM_VP1_CONFIG_INITVOLTAGE | PRM_VP1_CONFIG_TIMEOUTEN;
++
++		PRM_VP1_CONFIG = vpconfig;
++		PRM_VP1_VSTEPMIN = PRM_VP1_VSTEPMIN_SMPSWAITTIMEMIN |
++						PRM_VP1_VSTEPMIN_VSTEPMIN;
++
++		PRM_VP1_VSTEPMAX = PRM_VP1_VSTEPMAX_SMPSWAITTIMEMAX |
++						PRM_VP1_VSTEPMAX_VSTEPMAX;
++
++		PRM_VP1_VLIMITTO = PRM_VP1_VLIMITTO_VDDMAX |
++			PRM_VP1_VLIMITTO_VDDMIN | PRM_VP1_VLIMITTO_TIMEOUT;
++
++		PRM_VP1_CONFIG |= PRM_VP1_CONFIG_INITVDD;
++		PRM_VP1_CONFIG &= ~PRM_VP1_CONFIG_INITVDD;
++
++	} else if (srid == SR2) {
++		vpconfig = PRM_VP2_CONFIG_ERROROFFSET | PRM_VP2_CONFIG_ERRORGAIN
++			| PRM_VP2_CONFIG_INITVOLTAGE | PRM_VP2_CONFIG_TIMEOUTEN;
++
++		PRM_VP2_CONFIG = vpconfig;
++		PRM_VP2_VSTEPMIN = PRM_VP2_VSTEPMIN_SMPSWAITTIMEMIN |
++						PRM_VP2_VSTEPMIN_VSTEPMIN;
++
++		PRM_VP2_VSTEPMAX = PRM_VP2_VSTEPMAX_SMPSWAITTIMEMAX |
++						PRM_VP2_VSTEPMAX_VSTEPMAX;
++
++		PRM_VP2_VLIMITTO = PRM_VP2_VLIMITTO_VDDMAX |
++			PRM_VP2_VLIMITTO_VDDMIN | PRM_VP2_VLIMITTO_TIMEOUT;
++
++		PRM_VP2_CONFIG |= PRM_VP2_CONFIG_INITVDD;
++		PRM_VP2_CONFIG &= ~PRM_VP2_CONFIG_INITVDD;
++
++	}
++}
++
++static void sr_configure_vc(void)
++{
++	PRM_VC_SMPS_SA =
++		(R_SRI2C_SLAVE_ADDR << PRM_VC_SMPS_SA1_SHIFT) |
++		(R_SRI2C_SLAVE_ADDR << PRM_VC_SMPS_SA0_SHIFT);
++
++	PRM_VC_SMPS_VOL_RA = (R_VDD2_SR_CONTROL << PRM_VC_SMPS_VOLRA1_SHIFT) |
++				(R_VDD1_SR_CONTROL << PRM_VC_SMPS_VOLRA0_SHIFT);
++
++	PRM_VC_CMD_VAL_0 = (PRM_VC_CMD_VAL0_ON << PRM_VC_CMD_ON_SHIFT) |
++			(PRM_VC_CMD_VAL0_ONLP << PRM_VC_CMD_ONLP_SHIFT) |
++			(PRM_VC_CMD_VAL0_RET << PRM_VC_CMD_RET_SHIFT) |
++			(PRM_VC_CMD_VAL0_OFF << PRM_VC_CMD_OFF_SHIFT);
++
++	PRM_VC_CMD_VAL_1 = (PRM_VC_CMD_VAL1_ON << PRM_VC_CMD_ON_SHIFT) |
++			(PRM_VC_CMD_VAL1_ONLP << PRM_VC_CMD_ONLP_SHIFT) |
++			(PRM_VC_CMD_VAL1_RET << PRM_VC_CMD_RET_SHIFT) |
++			(PRM_VC_CMD_VAL1_OFF << PRM_VC_CMD_OFF_SHIFT);
++
++	PRM_VC_CH_CONF = PRM_VC_CH_CONF_CMD1 | PRM_VC_CH_CONF_RAV1;
++
++	PRM_VC_I2C_CFG = PRM_VC_I2C_CFG_MCODE | PRM_VC_I2C_CFG_HSEN
++							| PRM_VC_I2C_CFG_SREN;
++
++	/* Setup voltctrl and other setup times */
++#ifdef CONFIG_SYSOFFMODE
++	PRM_VOLTCTRL = PRM_VOLTCTRL_AUTO_OFF | PRM_VOLTCTRL_AUTO_RET;
++	PRM_CLKSETUP = PRM_CLKSETUP_DURATION;
++	PRM_VOLTSETUP1 = (PRM_VOLTSETUP_TIME2 << PRM_VOLTSETUP_TIME2_OFFSET) |
++			(PRM_VOLTSETUP_TIME1 << PRM_VOLTSETUP_TIME1_OFFSET);
++	PRM_VOLTOFFSET = PRM_VOLTOFFSET_DURATION;
++	PRM_VOLTSETUP2 = PRM_VOLTSETUP2_DURATION;
++#else
++	PRM_VOLTCTRL |= PRM_VOLTCTRL_AUTO_RET;
++#endif
++
++}
++
++
++static void sr_configure(struct omap_sr *sr)
++{
++	u32 sys_clk, sr_clk_length = 0;
++	u32 sr_config;
++	u32 senp_en , senn_en;
++
++	senp_en = sr->senp_mod;
++	senn_en = sr->senn_mod;
++
++	sys_clk = prcm_get_system_clock_speed();
++
++	switch (sys_clk) {
++	case 12000:
++		sr_clk_length = SRCLKLENGTH_12MHZ_SYSCLK;
++		break;
++	case 13000:
++		sr_clk_length = SRCLKLENGTH_13MHZ_SYSCLK;
++		break;
++	case 19200:
++		sr_clk_length = SRCLKLENGTH_19MHZ_SYSCLK;
++		break;
++	case 26000:
++		sr_clk_length = SRCLKLENGTH_26MHZ_SYSCLK;
++		break;
++	case 38400:
++		sr_clk_length = SRCLKLENGTH_38MHZ_SYSCLK;
++		break;
++	default :
++		printk(KERN_ERR "Invalid sysclk value\n");
++		break;
++	}
++
++	DPRINTK(KERN_DEBUG "SR : sys clk %lu\n", sys_clk);
++	if (sr->srid == SR1) {
++		sr_config = SR1_SRCONFIG_ACCUMDATA |
++			(sr_clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
++			SRCONFIG_SENENABLE | SRCONFIG_ERRGEN_EN |
++			SRCONFIG_MINMAXAVG_EN |
++			(senn_en << SRCONFIG_SENNENABLE_SHIFT) |
++			(senp_en << SRCONFIG_SENPENABLE_SHIFT) |
++			SRCONFIG_DELAYCTRL;
++
++		sr_write_reg(sr, SRCONFIG, sr_config);
++
++		sr_write_reg(sr, AVGWEIGHT, SR1_AVGWEIGHT_SENPAVGWEIGHT |
++					SR1_AVGWEIGHT_SENNAVGWEIGHT);
++
++		sr_modify_reg(sr, ERRCONFIG, (SR_ERRWEIGHT_MASK |
++			SR_ERRMAXLIMIT_MASK | SR_ERRMINLIMIT_MASK),
++			(SR1_ERRWEIGHT | SR1_ERRMAXLIMIT | SR1_ERRMINLIMIT));
++
++	} else if (sr->srid == SR2) {
++		sr_config = SR2_SRCONFIG_ACCUMDATA |
++			(sr_clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
++			SRCONFIG_SENENABLE | SRCONFIG_ERRGEN_EN |
++			SRCONFIG_MINMAXAVG_EN |
++			(senn_en << SRCONFIG_SENNENABLE_SHIFT) |
++			(senp_en << SRCONFIG_SENPENABLE_SHIFT) |
++			SRCONFIG_DELAYCTRL;
++
++		sr_write_reg(sr, SRCONFIG, sr_config);
++
++		sr_write_reg(sr, AVGWEIGHT, SR2_AVGWEIGHT_SENPAVGWEIGHT |
++					SR2_AVGWEIGHT_SENNAVGWEIGHT);
++
++		sr_modify_reg(sr, ERRCONFIG, (SR_ERRWEIGHT_MASK |
++			SR_ERRMAXLIMIT_MASK | SR_ERRMINLIMIT_MASK),
++			(SR2_ERRWEIGHT | SR2_ERRMAXLIMIT | SR2_ERRMINLIMIT));
++
++	}
++	sr->is_sr_reset = 0;
++}
++
++static void sr_enable(struct omap_sr *sr, u32 target_opp_no)
++{
++	u32 nvalue_reciprocal, current_nvalue;
++
++	sr->req_opp_no = target_opp_no;
++
++	if (sr->srid == SR1) {
++		switch (target_opp_no) {
++		case 5:
++			nvalue_reciprocal = sr->opp5_nvalue;
++			break;
++		case 4:
++			nvalue_reciprocal = sr->opp4_nvalue;
++			break;
++		case 3:
++			nvalue_reciprocal = sr->opp3_nvalue;
++			break;
++		case 2:
++			nvalue_reciprocal = sr->opp2_nvalue;
++			break;
++		case 1:
++			nvalue_reciprocal = sr->opp1_nvalue;
++			break;
++		default:
++			nvalue_reciprocal = sr->opp3_nvalue;
++			break;
++		}
++	} else {
++		switch (target_opp_no) {
++		case 3:
++			nvalue_reciprocal = sr->opp3_nvalue;
++			break;
++		case 2:
++			nvalue_reciprocal = sr->opp2_nvalue;
++			break;
++		case 1:
++			nvalue_reciprocal = sr->opp1_nvalue;
++			break;
++		default:
++			nvalue_reciprocal = sr->opp3_nvalue;
++			break;
++		}
++	}
++
++	current_nvalue = sr_read_reg(sr, NVALUERECIPROCAL);
++
++	if (current_nvalue == nvalue_reciprocal) {
++		DPRINTK("System is already at the desired voltage level\n");
++		return;
++	}
++
++	sr_write_reg(sr, NVALUERECIPROCAL, nvalue_reciprocal);
++
++	/* Enable the interrupt */
++	sr_modify_reg(sr, ERRCONFIG,
++			(ERRCONFIG_VPBOUNDINTEN | ERRCONFIG_VPBOUNDINTST),
++			(ERRCONFIG_VPBOUNDINTEN | ERRCONFIG_VPBOUNDINTST));
++
++	if (sr->srid == SR1) {
++		/* Enable VP1 */
++		PRM_VP1_CONFIG |= PRM_VP1_CONFIG_VPENABLE;
++	} else if (sr->srid == SR2) {
++		/* Enable VP2 */
++		PRM_VP2_CONFIG |= PRM_VP2_CONFIG_VPENABLE;
++	}
++
++	/* SRCONFIG - enable SR */
++	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, SRCONFIG_SRENABLE);
++
++}
++
++static void sr_disable(struct omap_sr *sr)
++{
++	sr->is_sr_reset = 1;
++
++	/* SRCONFIG - disable SR */
++	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, ~SRCONFIG_SRENABLE);
++
++	if (sr->srid == SR1) {
++		/* Enable VP1 */
++		PRM_VP1_CONFIG &= ~PRM_VP1_CONFIG_VPENABLE;
++	} else if (sr->srid == SR2) {
++		/* Enable VP2 */
++		PRM_VP2_CONFIG &= ~PRM_VP2_CONFIG_VPENABLE;
++	}
++}
++
++
++void sr_start_vddautocomap(int srid, u32 target_opp_no)
++{
++	struct omap_sr *sr = NULL;
++
++	if (srid == SR1)
++		sr = &sr1;
++	else if (srid == SR2)
++		sr = &sr2;
++
++	if (sr->is_sr_reset == 1) {
++		sr_clk_enable(sr);
++		sr_configure(sr);
++	}
++
++	if (sr->is_autocomp_active == 1)
++		DPRINTK(KERN_WARNING "SR%d: VDD autocomp is already active\n",
++									srid);
++
++	sr->is_autocomp_active = 1;
++	sr_enable(sr, target_opp_no);
++}
++EXPORT_SYMBOL(sr_start_vddautocomap);
++
++int sr_stop_vddautocomap(int srid)
++{
++	struct omap_sr *sr = NULL;
++
++	if (srid == SR1)
++		sr = &sr1;
++	else if (srid == SR2)
++		sr = &sr2;
++
++	if (sr->is_autocomp_active == 1) {
++		sr_disable(sr);
++		sr_clk_disable(sr);
++		sr->is_autocomp_active = 0;
++		return SR_TRUE;
++	} else {
++		DPRINTK(KERN_WARNING "SR%d: VDD autocomp is not active\n",
++								srid);
++		return SR_FALSE;
++	}
++
++}
++EXPORT_SYMBOL(sr_stop_vddautocomap);
++
++void enable_smartreflex(int srid)
++{
++	u32 target_opp_no = 0;
++	struct omap_sr *sr = NULL;
++
++	if (srid == SR1)
++		sr = &sr1;
++	else if (srid == SR2)
++		sr = &sr2;
++
++	if (sr->is_autocomp_active == 1) {
++		if (sr->is_sr_reset == 1) {
++			if (srid == SR1) {
++				/* Enable SR clks */
++				CM_FCLKEN_WKUP |= SR1_CLK_ENABLE;
++				target_opp_no = get_opp_no(current_vdd1_opp);
++
++			} else if (srid == SR2) {
++				/* Enable SR clks */
++				CM_FCLKEN_WKUP |= SR2_CLK_ENABLE;
++				target_opp_no = get_opp_no(current_vdd2_opp);
++			}
++
++			sr_configure(sr);
++
++			sr_enable(sr, target_opp_no);
++		}
++	}
++}
++
++void disable_smartreflex(int srid)
++{
++	struct omap_sr *sr = NULL;
++
++	if (srid == SR1)
++		sr = &sr1;
++	else if (srid == SR2)
++		sr = &sr2;
++
++	if (sr->is_autocomp_active == 1) {
++		if (srid == SR1) {
++			/* Enable SR clk */
++			CM_FCLKEN_WKUP |= SR1_CLK_ENABLE;
++
++		} else if (srid == SR2) {
++			/* Enable SR clk */
++			CM_FCLKEN_WKUP |= SR2_CLK_ENABLE;
++		}
++
++		if (sr->is_sr_reset == 0) {
++
++			sr->is_sr_reset = 1;
++			/* SRCONFIG - disable SR */
++			sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE,
++							~SRCONFIG_SRENABLE);
++
++			if (sr->srid == SR1) {
++				/* Disable SR clk */
++				CM_FCLKEN_WKUP &= ~SR1_CLK_ENABLE;
++				/* Enable VP1 */
++				PRM_VP1_CONFIG &= ~PRM_VP1_CONFIG_VPENABLE;
++
++			} else if (sr->srid == SR2) {
++				/* Disable SR clk */
++				CM_FCLKEN_WKUP &= ~SR2_CLK_ENABLE;
++				/* Enable VP2 */
++				PRM_VP2_CONFIG &= ~PRM_VP2_CONFIG_VPENABLE;
++			}
++		}
++	}
++}
++
++
++/* Voltage Scaling using SR VCBYPASS */
++int sr_voltagescale_vcbypass(u32 target_opp, u8 vsel)
++{
++	int ret;
++	int sr_status = 0;
++	u32 vdd, target_opp_no;
++	u32 vc_bypass_value;
++	u32 reg_addr = 0;
++	u32 loop_cnt = 0, retries_cnt = 0;
++
++	vdd = get_vdd(target_opp);
++	target_opp_no = get_opp_no(target_opp);
++
++	if (vdd == PRCM_VDD1) {
++		sr_status = sr_stop_vddautocomap(SR1);
++
++		PRM_VC_CMD_VAL_0 = (PRM_VC_CMD_VAL_0 & ~PRM_VC_CMD_ON_MASK) |
++						(vsel << PRM_VC_CMD_ON_SHIFT);
++		reg_addr = R_VDD1_SR_CONTROL;
++
++	} else if (vdd == PRCM_VDD2) {
++		sr_status = sr_stop_vddautocomap(SR2);
++
++		PRM_VC_CMD_VAL_1 = (PRM_VC_CMD_VAL_1 & ~PRM_VC_CMD_ON_MASK) |
++						(vsel << PRM_VC_CMD_ON_SHIFT);
++		reg_addr = R_VDD2_SR_CONTROL;
++	}
++
++	vc_bypass_value = (vsel << PRM_VC_BYPASS_DATA_SHIFT) |
++			(reg_addr << PRM_VC_BYPASS_REGADDR_SHIFT) |
++			(R_SRI2C_SLAVE_ADDR << PRM_VC_BYPASS_SLAVEADDR_SHIFT);
++
++	PRM_VC_BYPASS_VAL = vc_bypass_value;
++
++	PRM_VC_BYPASS_VAL |= PRM_VC_BYPASS_VALID;
++
++	DPRINTK("%s : PRM_VC_BYPASS_VAL %X\n", __func__, PRM_VC_BYPASS_VAL);
++	DPRINTK("PRM_IRQST_MPU %X\n", PRM_IRQSTATUS_MPU);
++
++	while ((PRM_VC_BYPASS_VAL & PRM_VC_BYPASS_VALID) != 0x0) {
++		ret = loop_wait(&loop_cnt, &retries_cnt, 10);
++		if (ret != PRCM_PASS) {
++			printk(KERN_INFO "Loop count exceeded in check SR I2C"
++								"write\n");
++			return ret;
++		}
++	}
++
++	omap_udelay(T2_SMPS_UPDATE_DELAY);
++
++	if (sr_status) {
++		if (vdd == PRCM_VDD1)
++			sr_start_vddautocomap(SR1, target_opp_no);
++		else if (vdd == PRCM_VDD2)
++			sr_start_vddautocomap(SR2, target_opp_no);
++	}
++
++	return SR_PASS;
++}
++
++/* Sysfs interface to select SR VDD1 auto compensation */
++static ssize_t omap_sr_vdd1_autocomp_show(struct kset *subsys, char *buf)
++{
++	return sprintf(buf, "%d\n", sr1.is_autocomp_active);
++}
++
++static ssize_t omap_sr_vdd1_autocomp_store(struct kset *subsys,
++				const char *buf, size_t n)
++{
++	u32 current_vdd1opp_no;
++	unsigned short value;
++
++	if (sscanf(buf, "%hu", &value) != 1 || (value > 1)) {
++		printk(KERN_ERR "sr_vdd1_autocomp: Invalid value\n");
++		return -EINVAL;
++	}
++
++	current_vdd1opp_no = get_opp_no(current_vdd1_opp);
++
++	if (value == 0)
++		sr_stop_vddautocomap(SR1);
++	else
++		sr_start_vddautocomap(SR1, current_vdd1opp_no);
++
++	return n;
++}
++
++static struct subsys_attribute sr_vdd1_autocomp = {
++	.attr = {
++	.name = __stringify(sr_vdd1_autocomp),
++	.mode = 0644,
++	},
++	.show = omap_sr_vdd1_autocomp_show,
++	.store = omap_sr_vdd1_autocomp_store,
++};
++
++/* Sysfs interface to select SR VDD2 auto compensation */
++static ssize_t omap_sr_vdd2_autocomp_show(struct kset *subsys, char *buf)
++{
++	return sprintf(buf, "%d\n", sr2.is_autocomp_active);
++}
++
++static ssize_t omap_sr_vdd2_autocomp_store(struct kset *subsys,
++				const char *buf, size_t n)
++{
++	u32 current_vdd2opp_no;
++	unsigned short value;
++
++	if (sscanf(buf, "%hu", &value) != 1 || (value > 1)) {
++		printk(KERN_ERR "sr_vdd2_autocomp: Invalid value\n");
++		return -EINVAL;
++	}
++
++	current_vdd2opp_no = get_opp_no(current_vdd2_opp);
++
++	if (value == 0)
++		sr_stop_vddautocomap(SR2);
++	else
++		sr_start_vddautocomap(SR2, current_vdd2opp_no);
++
++	return n;
++}
++
++static struct subsys_attribute sr_vdd2_autocomp = {
++	.attr = {
++	.name = __stringify(sr_vdd2_autocomp),
++	.mode = 0644,
++	},
++	.show = omap_sr_vdd2_autocomp_show,
++	.store = omap_sr_vdd2_autocomp_store,
++};
++
++
++
++static int __init omap3_sr_init(void)
++{
++	int ret = 0;
++	u8 RdReg;
++
++#ifdef CONFIG_ARCH_OMAP34XX
++	sr1.fck = clk_get(NULL, "sr1_fck");
++	if (IS_ERR(sr1.fck))
++		printk(KERN_ERR "Could not get sr1_fck\n");
++
++	sr2.fck = clk_get(NULL, "sr2_fck");
++	if (IS_ERR(sr2.fck))
++		printk(KERN_ERR "Could not get sr2_fck\n");
++#endif /* #ifdef CONFIG_ARCH_OMAP34XX */
++
++	/* Call the VPConfig, VCConfig, set N Values. */
++	sr_set_nvalues(&sr1);
++	sr_configure_vp(SR1);
++
++	sr_set_nvalues(&sr2);
++	sr_configure_vp(SR2);
++
++	sr_configure_vc();
++
++	/* Enable SR on T2 */
++	ret = t2_in(PM_RECEIVER, &RdReg, R_DCDC_GLOBAL_CFG);
++	RdReg |= DCDC_GLOBAL_CFG_ENABLE_SRFLX;
++	ret |= t2_out(PM_RECEIVER, RdReg, R_DCDC_GLOBAL_CFG);
++
++
++	printk(KERN_INFO "SmartReflex driver initialized\n");
++
++	ret = subsys_create_file(&power_subsys, &sr_vdd1_autocomp);
++	if (ret)
++		printk(KERN_ERR "subsys_create_file failed: %d\n", ret);
++
++	ret = subsys_create_file(&power_subsys, &sr_vdd2_autocomp);
++	if (ret)
++		printk(KERN_ERR "subsys_create_file failed: %d\n", ret);
++
++	return 0;
++}
++
++arch_initcall(omap3_sr_init);
+diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
+new file mode 100644
+index 0000000..62907ef
+--- /dev/null
++++ b/arch/arm/mach-omap2/smartreflex.h
+@@ -0,0 +1,136 @@
++/*
++ * linux/arch/arm/mach-omap3/smartreflex.h
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Lesly A M <x0080970@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++
++/* SR Modules */
++#define SR1		1
++#define SR2		2
++
++#define SR_FAIL		1
++#define SR_PASS		0
++
++#define SR_TRUE		1
++#define SR_FALSE	0
++
++#define GAIN_MAXLIMIT	16
++#define R_MAXLIMIT	256
++
++#define SR1_CLK_ENABLE	(0x1 << 6)
++#define SR2_CLK_ENABLE	(0x1 << 7)
++
++/* PRM_VP1_CONFIG */
++#define PRM_VP1_CONFIG_ERROROFFSET	(0x00 << 24)
++#define PRM_VP1_CONFIG_ERRORGAIN	(0x20 << 16)
++
++#define PRM_VP1_CONFIG_INITVOLTAGE	(0x30 << 8) /* 1.2 volt */
++#define PRM_VP1_CONFIG_TIMEOUTEN	(0x1 << 3)
++#define PRM_VP1_CONFIG_INITVDD		(0x1 << 2)
++#define PRM_VP1_CONFIG_FORCEUPDATE	(0x1 << 1)
++#define PRM_VP1_CONFIG_VPENABLE		(0x1 << 0)
++
++/* PRM_VP1_VSTEPMIN */
++#define PRM_VP1_VSTEPMIN_SMPSWAITTIMEMIN	(0x01F4 << 8)
++#define PRM_VP1_VSTEPMIN_VSTEPMIN		(0x01 << 0)
++
++/* PRM_VP1_VSTEPMAX */
++#define PRM_VP1_VSTEPMAX_SMPSWAITTIMEMAX	(0x01F4 << 8)
++#define PRM_VP1_VSTEPMAX_VSTEPMAX		(0x04 << 0)
++
++/* PRM_VP1_VLIMITTO */
++#define PRM_VP1_VLIMITTO_VDDMAX		(0x3C << 24)
++#define PRM_VP1_VLIMITTO_VDDMIN		(0x0 << 16)
++#define PRM_VP1_VLIMITTO_TIMEOUT	(0xFFFF << 0)
++
++/* PRM_VP2_CONFIG */
++#define PRM_VP2_CONFIG_ERROROFFSET	(0x00 << 24)
++#define PRM_VP2_CONFIG_ERRORGAIN	(0x20 << 16)
++
++#define PRM_VP2_CONFIG_INITVOLTAGE	(0x30 << 8) /* 1.2 volt */
++#define PRM_VP2_CONFIG_TIMEOUTEN	(0x1 << 3)
++#define PRM_VP2_CONFIG_INITVDD		(0x1 << 2)
++#define PRM_VP2_CONFIG_FORCEUPDATE	(0x1 << 1)
++#define PRM_VP2_CONFIG_VPENABLE		(0x1 << 0)
++
++/* PRM_VP2_VSTEPMIN */
++#define PRM_VP2_VSTEPMIN_SMPSWAITTIMEMIN	(0x01F4 << 8)
++#define PRM_VP2_VSTEPMIN_VSTEPMIN		(0x01 << 0)
++
++/* PRM_VP2_VSTEPMAX */
++#define PRM_VP2_VSTEPMAX_SMPSWAITTIMEMAX	(0x01F4 << 8)
++#define PRM_VP2_VSTEPMAX_VSTEPMAX		(0x04 << 0)
++
++/* PRM_VP2_VLIMITTO */
++#define PRM_VP2_VLIMITTO_VDDMAX		(0x2C << 24)
++#define PRM_VP2_VLIMITTO_VDDMIN		(0x0 << 16)
++#define PRM_VP2_VLIMITTO_TIMEOUT	(0xFFFF << 0)
++
++/* SRCONFIG */
++#define SR1_SRCONFIG_ACCUMDATA		(0x1F4 << 22)
++#define SR2_SRCONFIG_ACCUMDATA		(0x1F4 << 22)
++
++#define SRCLKLENGTH_12MHZ_SYSCLK	0x3C
++#define SRCLKLENGTH_13MHZ_SYSCLK	0x41
++#define SRCLKLENGTH_19MHZ_SYSCLK	0x60
++#define SRCLKLENGTH_26MHZ_SYSCLK	0x82
++#define SRCLKLENGTH_38MHZ_SYSCLK	0xC0
++
++#define SRCONFIG_SRCLKLENGTH_SHIFT	12
++#define SRCONFIG_SENNENABLE_SHIFT	5
++#define SRCONFIG_SENPENABLE_SHIFT	3
++
++#define SRCONFIG_SRENABLE		(0x01 << 11)
++#define SRCONFIG_SENENABLE		(0x01 << 10)
++#define SRCONFIG_ERRGEN_EN		(0x01 << 9)
++#define SRCONFIG_MINMAXAVG_EN		(0x01 << 8)
++
++#define SRCONFIG_DELAYCTRL		(0x01 << 2)
++#define SRCONFIG_CLKCTRL		(0x00 << 0)
++
++/* AVGWEIGHT */
++#define SR1_AVGWEIGHT_SENPAVGWEIGHT	(0x03 << 2)
++#define SR1_AVGWEIGHT_SENNAVGWEIGHT	(0x03 << 0)
++
++#define SR2_AVGWEIGHT_SENPAVGWEIGHT	(0x01 << 2)
++#define SR2_AVGWEIGHT_SENNAVGWEIGHT	(0x01 << 0)
++
++/* NVALUERECIPROCAL */
++#define NVALUERECIPROCAL_SENPGAIN_SHIFT	20
++#define NVALUERECIPROCAL_SENNGAIN_SHIFT	16
++#define NVALUERECIPROCAL_RNSENP_SHIFT	8
++#define NVALUERECIPROCAL_RNSENN_SHIFT	0
++
++/* ERRCONFIG */
++#define SR_CLKACTIVITY_MASK		(0x03 << 20)
++#define SR_ERRWEIGHT_MASK		(0x07 << 16)
++#define SR_ERRMAXLIMIT_MASK		(0xFF << 8)
++#define SR_ERRMINLIMIT_MASK		(0xFF << 0)
++
++#define SR_CLKACTIVITY_IOFF_FOFF	(0x00 << 20)
++#define SR_CLKACTIVITY_IOFF_FON		(0x02 << 20)
++
++#define ERRCONFIG_VPBOUNDINTEN		(0x1 << 31)
++#define ERRCONFIG_VPBOUNDINTST		(0x1 << 30)
++
++#define SR1_ERRWEIGHT			(0x07 << 16)
++#define SR1_ERRMAXLIMIT			(0x02 << 8)
++#define SR1_ERRMINLIMIT			(0xFA << 0)
++
++#define SR2_ERRWEIGHT			(0x07 << 16)
++#define SR2_ERRMAXLIMIT			(0x02 << 8)
++#define SR2_ERRMINLIMIT			(0xF9 << 0)
++
++extern u32 current_vdd1_opp;
++extern u32 current_vdd2_opp;
++extern struct kset power_subsys;
++
++extern inline int loop_wait(u32 *lcnt, u32 *rcnt, u32 delay);
++extern void omap_udelay(u32 udelay);
++
+-- 
+1.5.4.3
+
