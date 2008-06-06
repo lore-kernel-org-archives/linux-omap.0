@@ -1,152 +1,171 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: [PATCH 0/3] ARM: OMAP: SmartReflex driver
-Date: Fri, 6 Jun 2008 13:01:27 +0200
-Message-ID: <831D4C4D-84B0-4B44-A701-1113D17231D0@student.utwente.nl>
-References: <1212406192.32058.18.camel@kj-ubuntu> <CC3604C1-277A-4CE1-9B3D-EE0ADFB97E3E@student.utwente.nl> <B85A65D85D7EB246BE421B3FB0FBB593011132AD90@dbde02.ent.ti.com> <1212472944.32058.31.camel@kj-ubuntu> <B85A65D85D7EB246BE421B3FB0FBB593011132B103@dbde02.ent.ti.com> <20080603151044.GB6992@atomide.com> <1212745780.17269.56.camel@kj-ubuntu>
-Mime-Version: 1.0 (Apple Message framework v924)
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+From: "arun c" <arunedarath@mistralsolutions.com>
+Subject: [PATCH] Fix for the i2c initialiation error on 2430sdp
+Date: Fri, 6 Jun 2008 18:42:56 +0530
+Message-ID: <c656a4d20806060612s55b047b2p783056dfac058093@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_Part_10516_28973189.1212757976548"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:45668 "EHLO smtp.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752563AbYFFLBw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 6 Jun 2008 07:01:52 -0400
-In-Reply-To: <1212745780.17269.56.camel@kj-ubuntu>
+Received: from ti-out-0910.google.com ([209.85.142.187]:44518 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751315AbYFFNM6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jun 2008 09:12:58 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so334201tic.23
+        for <linux-omap@vger.kernel.org>; Fri, 06 Jun 2008 06:12:56 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>, linux-omap <linux-omap@vger.kernel.org>
-Cc: Beagle Board <beagleboard@googlegroups.com>
+To: linux-omap@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+------=_Part_10516_28973189.1212757976548
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
+Hi all,
 
-Op 6 jun 2008, om 11:49 heeft Kalle Jokiniemi het volgende geschreven:
+The patch below fixes the i2c initialization error on 2430sdp.
+Now lcd and keyboard is working fine on my 2430sdp board.
 
-> Hi,
->
->>> Tony, I can update this patch set, or send an additional patch  
->>> that adds
->>> the efuse support. Which will you prefer?
->>
->> Well I guess updating it would be better if it's just defining them  
->> so
->> we have a working patch rather than patch and fix cycle.
->
-> It took a bit longer than I expected, but here's the updated
-> smartreflex driver that uses the E-fuse values. Thanks to Pratheesh  
-> for
-> helping out with the details of the implementation.
->
-> First patch remains as it was. Some new register and regbit defs have
-> been added to the second patch and the last patch now implements the
-> E-fuse parameters.
-
-On my beagleboard:
-
-root@beagleboard:/sys/power# echo -n 1 > /sys/power/sr_vdd1_autocomp
-OPP3 doesn't support SmartReflex
-SR1: VDD autocomp not activated
-root@beagleboard:/sys/power#
-root@beagleboard:/sys/power# echo -n 1 > /sys/power/sr_vdd2_autocomp
-OPP3 doesn't support SmartReflex
-SR2: VDD autocomp not activated
-root@beagleboard:/sys/power#
-
-The board doesn't crash anymore :)
-
-regards,
-
-Koen
+It was this commit abda15b1d2a48bb30dd79a7407d4ea8068975318
+which introduced the new style i2c registration for 2430sdp(For other
+omap boards also). The old style initialization was registering i2c bus 2
+(High speed 2.6Mhz)first and bus 1(low speed 400Khz) next but the
+commit changed the order in which registration is performed.
+Out of my curiosity I just reordered and things started working.
 
 
+I have attached the boot log also.
 
->
->
-> I also left in the software hard coded values under a "Smartreflex
-> testing support" entry in the Kconfig. For testing purposes only.
->
-> Again, tested on 3430SDP.
->
-> Regards,
-> Kalle
->
->>
->> Regards,
->>
->> Tony
->>
->>
->>
->>
->>>
->>>
->>> Regards,
->>> Kalle
->>>
->>>
->>>> -----Original Message-----
->>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org 
->>>> ] On Behalf Of Koen Kooi
->>>> Sent: Monday, June 02, 2008 6:02 PM
->>>> To: Kalle Jokiniemi
->>>> Cc: linux-omap
->>>> Subject: Re: [PATCH 0/3] ARM: OMAP: SmartReflex driver
->>>>
->>>> -----BEGIN PGP SIGNED MESSAGE-----
->>>> Hash: SHA1
->>>>
->>>>
->>>> Op 2 jun 2008, om 13:29 heeft Kalle Jokiniemi het volgende  
->>>> geschreven:
->>>>
->>>>> Here is an updated version of the SmartReflex driver.
->>>>>
->>>>> Patches 1 and 2 are same as before, but patch 3 has some new  
->>>>> things:
->>>>>
->>>>> - Changed the register accessing to use the  
->>>>> prm_xxx_mod_reg{_bits}()
->>>>> functions.
->>>>>
->>>>> - Created a Kconfig entry for SmartReflex in "System type->TI OMAP
->>>>> Implementations" menu.
->>>>>
->>>>> Tested on 3430SDP.
->>>>
->>>> Compiles for beagleboard, but the board hangs after:
->>>>
->>>> echo -n 1 > /sys/power/sr_vdd1_autocomp
->>>> echo -n 1 > /sys/power/sr_vdd2_autocomp
->>>>
->>>> But that's likely to be a beagleboard specific problem.
->>>>
->>>> regards,
->>>>
->>>> Koen
->>>> -----BEGIN PGP SIGNATURE-----
->>>> Version: GnuPG v1.4.5 (Darwin)
->>>>
->>>> iD8DBQFIQ+g/MkyGM64RGpERAqwgAJ97AE4z0bIBZJs7nZcO1Npa8YkIcgCfY6KM
->>>> 3Hhr4AIdmzNiozdqs1uQUgg=
->>>> =rcQP
->>>> -----END PGP SIGNATURE-----
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux- 
->>>> omap" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux- 
->>> omap" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+############################################################
+>From 5cd28262527a268d0c7ee5f5054fc2c7d8f554fb Mon Sep 17 00:00:00 2001
+From: arun <arunedarath@mistralsolutions.com>
+Date: Fri, 6 Jun 2008 18:18:50 +0530
+Subject: [PATCH] Fix for the i2c initialization error on 2430sdp
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
 
-iD8DBQFISRkJMkyGM64RGpERAqdKAJ9FPOr/tYcEO17LkM8Ku8fdsD1AuwCgjDwa
-L3YD0guaALhLrntQ05vXwKc=
-=vkoy
------END PGP SIGNATURE-----
+Signed-off-by: arun <arunedarath@mistralsolutions.com>
+---
+ arch/arm/mach-omap2/board-2430sdp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c
+b/arch/arm/mach-omap2/board-2430sdp.c
+index e078a2a..97420f7 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -379,8 +379,8 @@ static struct omap_board_config_kernel
+sdp2430_config[] __initdata = {
+
+ static int __init omap2430_i2c_init(void)
+ {
+-	omap_register_i2c_bus(1, 400, NULL, 0);
+ 	omap_register_i2c_bus(2, 2600, NULL, 0);
++	omap_register_i2c_bus(1, 400, NULL, 0);
+ 	return 0;
+ }
+
+-- 
+1.5.3.4
+
+
+####################################################
+
+Regards,
+Arun C
+
+------=_Part_10516_28973189.1212757976548
+Content-Type: application/octet-stream; name=i2c_error_fix_boot_log
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fh4qhb4j0
+Content-Disposition: attachment; filename=i2c_error_fix_boot_log
+
+VW5jb21wcmVzc2luZyBMaW51eC4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
+Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi5MaW51eCB2ZXJzaW9uIDIuNi4yNi1yYzQtb21hcDEtMDQ2
+NTAtZzI0ZDFkNTQtZGlydHkgKGFydW5jQGF0bGFzKSAoZ2NjIHZlcnNpb24gOENQVTogQVJNdjYt
+Y29tcGF0aWJsZSBwcm9jZXNzb3IgWzQxMDdiMzY1XSByZXZpc2lvbiA1IChBUk12NlRFSiksIGNy
+PTAwYzUzODdmCk1hY2hpbmU6IE9NQVAyNDMwIHNkcDI0MzAgYm9hcmQKTWVtb3J5IHBvbGljeTog
+RUNDIGRpc2FibGVkLCBEYXRhIGNhY2hlIHdyaXRlYmFjawpPTUFQMjQzMDw2PkVTMDw2PgpTUkFN
+OiBNYXBwZWQgcGEgMHg0MDIwMDAwMCB0byB2YSAweGQ3MDAwMDAwIHNpemU6IDB4MTAwMDAwCkNQ
+VTA6IEQgVklQVCB3cml0ZS1iYWNrIGNhY2hlCkNQVTA6IEkgY2FjaGU6IDMyNzY4IGJ5dGVzLCBh
+c3NvY2lhdGl2aXR5IDQsIDMyIGJ5dGUgbGluZXMsIDI1NiBzZXRzCkNQVTA6IEQgY2FjaGU6IDMy
+NzY4IGJ5dGVzLCBhc3NvY2lhdGl2aXR5IDQsIDMyIGJ5dGUgbGluZXMsIDI1NiBzZXRzCkJ1aWx0
+IDEgem9uZWxpc3RzIGluIFpvbmUgb3JkZXIsIG1vYmlsaXR5IGdyb3VwaW5nIG9uLiAgVG90YWwg
+cGFnZXM6IDMyNTEyCktlcm5lbCBjb21tYW5kIGxpbmU6IGNvbnNvbGU9dHR5UzAsMTE1MjAwbjgg
+bm9pbml0cmQgcm9vdD0vZGV2L25mcyBydyBpcD1kaGNwIG5wQ2xvY2tpbmcgcmF0ZSAoQ3J5c3Rh
+bC9EUExML01QVSk6IDEzLjAvNTMyLzI2NiBNSHoKR1BNQyByZXZpc2lvbiAzLjAKSVJROiBGb3Vu
+ZCBhbiBJTlRDIGF0IDB4NDgwZmUwMDAgKHJldmlzaW9uIDMuMCkgd2l0aCA5NiBpbnRlcnJ1cHRz
+ClRvdGFsIG9mIDk2IGludGVycnVwdHMgb24gMSBhY3RpdmUgY29udHJvbGxlcgpPTUFQMjQzeCBH
+UElPIGhhcmR3YXJlIHZlcnNpb24gMi40ClBJRCBoYXNoIHRhYmxlIGVudHJpZXM6IDUxMiAob3Jk
+ZXI6IDksIDIwNDggYnl0ZXMpCkNvbnNvbGU6IGNvbG91ciBkdW1teSBkZXZpY2UgODB4MzAKRGVu
+dHJ5IGNhY2hlIGhhc2ggdGFibGUgZW50cmllczogMTYzODQgKG9yZGVyOiA0LCA2NTUzNiBieXRl
+cykKSW5vZGUtY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiA4MTkyIChvcmRlcjogMywgMzI3Njgg
+Ynl0ZXMpCk1lbW9yeTogMTI4TUIgME1CID0gMTI4TUIgdG90YWwKTWVtb3J5OiAxMjY1OTJLQiBh
+dmFpbGFibGUgKDI4NzZLIGNvZGUsIDI4M0sgZGF0YSwgMTI4SyBpbml0KQpNb3VudC1jYWNoZSBo
+YXNoIHRhYmxlIGVudHJpZXM6IDUxMgpDUFU6IFRlc3Rpbmcgd3JpdGUgYnVmZmVyIGNvaGVyZW5j
+eTogb2sKbmV0X25hbWVzcGFjZTogMTkyIGJ5dGVzCk5FVDogUmVnaXN0ZXJlZCBwcm90b2NvbCBm
+YW1pbHkgMTYKTkFORDogRm91bmQgTkFORCBvbiBDUyAxCk9NQVAgRE1BIGhhcmR3YXJlIHJldmlz
+aW9uIDQuMApvbWFwX2RzcF9pbml0KCkgZG9uZQpVU0I6IE5vIGJvYXJkLXNwZWNpZmljIHBsYXRm
+b3JtIGNvbmZpZyBmb3VuZAppMmNfb21hcCBpMmNfb21hcC4yOiBidXMgMiByZXYzLjcgYXQgMjYw
+MCBrSHoKaTJjX29tYXAgaTJjX29tYXAuMTogYnVzIDEgcmV2My43IGF0IDQwMCBrSHoKVFdMNDAz
+MDogVFJZIGF0dGFjaCBTbGF2ZSBUV0w0MDMwLUlEMCBvbiBBZGFwdGVyIE9NQVAgSTJDIGFkYXB0
+ZXIgWzFdClRXTDQwMzA6IFRSWSBhdHRhY2ggU2xhdmUgVFdMNDAzMC1JRDEgb24gQWRhcHRlciBP
+TUFQIEkyQyBhZGFwdGVyIFsxXQpUV0w0MDMwOiBUUlkgYXR0YWNoIFNsYXZlIFRXTDQwMzAtSUQy
+IG9uIEFkYXB0ZXIgT01BUCBJMkMgYWRhcHRlciBbMV0KVFdMNDAzMDogVFJZIGF0dGFjaCBTbGF2
+ZSBUV0w0MDMwLUlEMyBvbiBBZGFwdGVyIE9NQVAgSTJDIGFkYXB0ZXIgWzFdCk5FVDogUmVnaXN0
+ZXJlZCBwcm90b2NvbCBmYW1pbHkgMgpJUCByb3V0ZSBjYWNoZSBoYXNoIHRhYmxlIGVudHJpZXM6
+IDEwMjQgKG9yZGVyOiAwLCA0MDk2IGJ5dGVzKQpUQ1AgZXN0YWJsaXNoZWQgaGFzaCB0YWJsZSBl
+bnRyaWVzOiA0MDk2IChvcmRlcjogMywgMzI3NjggYnl0ZXMpClRDUCBiaW5kIGhhc2ggdGFibGUg
+ZW50cmllczogNDA5NiAob3JkZXI6IDIsIDE2Mzg0IGJ5dGVzKQpUQ1A6IEhhc2ggdGFibGVzIGNv
+bmZpZ3VyZWQgKGVzdGFibGlzaGVkIDQwOTYgYmluZCA0MDk2KQpUQ1AgcmVubyByZWdpc3RlcmVk
+Ck5FVDogUmVnaXN0ZXJlZCBwcm90b2NvbCBmYW1pbHkgMQpOZXRXaW5kZXIgRmxvYXRpbmcgUG9p
+bnQgRW11bGF0b3IgVjAuOTcgKGRvdWJsZSBwcmVjaXNpb24pClZGUzogRGlzayBxdW90YXMgZHF1
+b3RfNi41LjEKRHF1b3QtY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiAxMDI0IChvcmRlciAwLCA0
+MDk2IGJ5dGVzKQpKRkZTMiB2ZXJzaW9uIDIuMi4gKE5BTkQpIC4uIDIwMDEtMjAwNiBSZWQgSGF0
+LCBJbmMuCm1zZ21uaSBoYXMgYmVlbiBzZXQgdG8gMjQ3IGZvciBpcGMgbmFtZXNwYWNlIGMwMzBl
+MzU4CmlvIHNjaGVkdWxlciBub29wIHJlZ2lzdGVyZWQKaW8gc2NoZWR1bGVyIGFudGljaXBhdG9y
+eSByZWdpc3RlcmVkIChkZWZhdWx0KQppbyBzY2hlZHVsZXIgZGVhZGxpbmUgcmVnaXN0ZXJlZApp
+byBzY2hlZHVsZXIgY2ZxIHJlZ2lzdGVyZWQKb21hcGZiOiBjb25maWd1cmVkIGZvciBwYW5lbCBz
+ZHAyNDMwCm9tYXBmYjogRElTUEMgdmVyc2lvbiAzLjAgaW5pdGlhbGl6ZWQKQ29uc29sZTogc3dp
+dGNoaW5nIHRvIGNvbG91ciBmcmFtZSBidWZmZXIgZGV2aWNlIDMweDQwCm9tYXBmYjogRnJhbWVi
+dWZmZXIgaW5pdGlhbGl6ZWQuIFRvdGFsIHZyYW0gMTU1NjQ4IHBsYW5lcyAxCm9tYXBmYjogUGl4
+Y2xvY2sgNDc1MCBrSHogaGZyZXEgMTYuNiBrSHogdmZyZXEgNTAuNSBIegpvbWFwX3JuZyBvbWFw
+X3JuZzogT01BUCBSYW5kb20gTnVtYmVyIEdlbmVyYXRvciB2ZXIuIDUwClNlcmlhbDogODI1MC8x
+NjU1MCBkcml2ZXIgJFJldmlzaW9uOiAxLjkwICQgNCBwb3J0cywgSVJRIHNoYXJpbmcgZW5hYmxl
+ZApzZXJpYWw4MjUwLjA6IHR0eVMwIGF0IE1NSU8gMHg0ODA2YTAwMCAoaXJxID0gNzIpIGlzIGEg
+U1QxNjY1NApjb25zb2xlIFt0dHlTMF0gZW5hYmxlZApzZXJpYWw4MjUwLjA6IHR0eVMxIGF0IE1N
+SU8gMHg0ODA2YzAwMCAoaXJxID0gNzMpIGlzIGEgU1QxNjY1NApzZXJpYWw4MjUwLjA6IHR0eVMy
+IGF0IE1NSU8gMHg0ODA2ZTAwMCAoaXJxID0gNzQpIGlzIGEgU1QxNjY1NApicmQ6IG1vZHVsZSBs
+b2FkZWQKbG9vcDogbW9kdWxlIGxvYWRlZApzbWM5MXguYzogdjEuMSwgc2VwIDIyIDIwMDQgYnkg
+Tmljb2xhcyBQaXRyZSA8bmljb0BjYW0ub3JnPgpldGgwOiBTTUM5MUM5NCAocmV2IDkpIGF0IGM4
+ODUwMzAwIElSUSAzMDkgW25vd2FpdF0KZXRoMDogRXRoZXJuZXQgYWRkcjogMDg6MDA6Mjg6MDE6
+MGE6ZGUKaTJjIC9kZXYgZW50cmllcyBkcml2ZXIKVFdMNDAzMCBHUElPIERlbXV4OiBJUlEgUmFu
+Z2UgMzg0IHRvIDQwMiwgSW5pdGlhbGl6YXRpb24gU3VjY2VzcwpvbWFwZmxhc2guMDogRm91bmQg
+MSB4MTYgZGV2aWNlcyBhdCAweDAgaW4gMTYtYml0IGJhbmsKb21hcGZsYXNoLjA6IEZvdW5kIDEg
+eDE2IGRldmljZXMgYXQgMHgyMDAwMDAwIGluIDE2LWJpdCBiYW5rCiBJbnRlbC9TaGFycCBFeHRl
+bmRlZCBRdWVyeSBUYWJsZSBhdCAweDAxMEEKIEludGVsL1NoYXJwIEV4dGVuZGVkIFF1ZXJ5IFRh
+YmxlIGF0IDB4MDEwQQogSW50ZWwvU2hhcnAgRXh0ZW5kZWQgUXVlcnkgVGFibGUgYXQgMHgwMTBB
+CiBJbnRlbC9TaGFycCBFeHRlbmRlZCBRdWVyeSBUYWJsZSBhdCAweDAxMEEKIEludGVsL1NoYXJw
+IEV4dGVuZGVkIFF1ZXJ5IFRhYmxlIGF0IDB4MDEwQQogSW50ZWwvU2hhcnAgRXh0ZW5kZWQgUXVl
+cnkgVGFibGUgYXQgMHgwMTBBClVzaW5nIGJ1ZmZlciB3cml0ZSBtZXRob2QKVXNpbmcgYXV0by11
+bmxvY2sgb24gcG93ZXItdXAvcmVzdW1lCmNmaV9jbWRzZXRfMDAwMTogRXJhc2Ugc3VzcGVuZCBv
+biB3cml0ZSBlbmFibGVkCk9NQVAyIE9uZU5BTkQgZHJpdmVyIGluaXRpYWxpemluZwppbnB1dDog
+b21hcF90d2w0MDMwa2V5cGFkIGFzIC9jbGFzcy9pbnB1dC9pbnB1dDAKT01BUCBXYXRjaGRvZyBU
+aW1lciBSZXYgMHgyMjogaW5pdGlhbCB0aW1lb3V0IDYwIHNlYwpUQ1AgY3ViaWMgcmVnaXN0ZXJl
+ZApORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDE3Ck5FVDogUmVnaXN0ZXJlZCBwcm90
+b2NvbCBmYW1pbHkgMTUKUlBDOiBSZWdpc3RlcmVkIHVkcCB0cmFuc3BvcnQgbW9kdWxlLgpSUEM6
+IFJlZ2lzdGVyZWQgdGNwIHRyYW5zcG9ydCBtb2R1bGUuClBvd2VyIE1hbmFnZW1lbnQgZm9yIE9N
+QVAyIGluaXRpYWxpemluZwpQUkNNIHJldmlzaW9uIDEuMApvbWFwZmIgb21hcGZiOiBpcnEgZXJy
+b3Igc3RhdHVzIDAwZTIKb21hcGZiIG9tYXBmYjogaXJxIGVycm9yIHN0YXR1cyAwMGMwCmV0aDA6
+IGxpbmsgdXAKU2VuZGluZyBESENQIHJlcXVlc3RzIC4sIE9LCklQLUNvbmZpZzogR290IERIQ1Ag
+YW5zd2VyIGZyb20gMC4wLjAuMCwgbXkgYWRkcmVzcyBpcyAxOTIuMTY4LjEzLjE5MwpJUC1Db25m
+aWc6IENvbXBsZXRlOgogICAgIGRldmljZT1ldGgwLCBhZGRyPTE5Mi4xNjguMTMuMTkzLCBtYXNr
+PTI1NS4yNTUuMjU1LjAsIGd3PTE5Mi4xNjguMTMuMSwKICAgICBob3N0PTE5Mi4xNjguMTMuMTkz
+LCBkb21haW49LCBuaXMtZG9tYWluPShub25lKSwKICAgICBib290c2VydmVyPTAuMC4wLjAsIHJv
+b3RzZXJ2ZXI9MTkyLjE2OC4xMy4yNDksIHJvb3RwYXRoPQpMb29raW5nIHVwIHBvcnQgb2YgUlBD
+IDEwMDAwMy8yIG9uIDE5Mi4xNjguMTMuMjQ5Ckxvb2tpbmcgdXAgcG9ydCBvZiBSUEMgMTAwMDA1
+LzEgb24gMTkyLjE2OC4xMy4yNDkKVkZTOiBNb3VudGVkIHJvb3QgKG5mcyBmaWxlc3lzdGVtKS4K
+RnJlZWluZyBpbml0IG1lbW9yeTogMTI4Swppbml0IHN0YXJ0ZWQ6IEJ1c3lCb3ggdjEuOS4wICgy
+MDA4LTAyLTEyIDExOjM0OjA4IElTVCkKc3RhcnRpbmcgcGlkIDI2MCwgdHR5ICcnOiAnL2V0Yy9y
+Yy5kL3JjUycKc3RhcnRpbmcgdXAgbG9jYWwgc3lzdGVtcwpzdGFydGluZyBwaWQgMjcxLCB0dHkg
+Jy9kZXYvdHR5UzAnOiAnL3NiaW4vZ2V0dHknCg==
+------=_Part_10516_28973189.1212757976548--
