@@ -1,16 +1,17 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 02/12] ARM: OMAP2: Clock: New OMAP2/3 DPLL rate rounding algorithm
-Date: Fri,  6 Jun 2008 18:35:07 -0700
-Message-ID: <1212802517-17885-3-git-send-email-tony@atomide.com>
+Subject: [PATCH 03/12] ARM: OMAP2: Powerdomain: Add base OMAP2/3 powerdomain code
+Date: Fri,  6 Jun 2008 18:35:08 -0700
+Message-ID: <1212802517-17885-4-git-send-email-tony@atomide.com>
 References: omap2-clocks-2008-06-06-183514
  <1212802517-17885-1-git-send-email-tony@atomide.com>
  <1212802517-17885-2-git-send-email-tony@atomide.com>
+ <1212802517-17885-3-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54832 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753690AbYFGBfY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jun 2008 21:35:24 -0400
-In-Reply-To: <1212802517-17885-2-git-send-email-tony@atomide.com>
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:57237 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754321AbYFGBf1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jun 2008 21:35:27 -0400
+In-Reply-To: <1212802517-17885-3-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
@@ -18,580 +19,1197 @@ Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <t
 
 From: Paul Walmsley <paul@pwsan.com>
 
-This patch adds a new rate rounding algorithm for DPLL clocks on the
-OMAP2/3 architecture.
+This patch creates an interface to the powerdomain registers in the
+PRM/CM modules on OMAP2/3.  This interface is intended to be used by
+PM code, e.g., pm.c; not by device drivers directly.
 
-For a desired DPLL target rate, there may be several
-multiplier/divider (M, N) values which will generate a sufficiently
-close rate.  Lower N values result in greater power economy.  However,
-lower N values can cause the difference between the rounded rate and
-the target rate ("rate error") to be larger than it would be with a
-higher N.  This can cause downstream devices to run more slowly than
-they otherwise would.
+Each powerdomain will be defined in later patches as static
+structures.  Also defined are dependencies between powerdomains,
+used for adding and removing PM_WKDEP and CM_SLEEPDEP bits.  The
+powerdomain structures are linked into a list at boot by
+pwrdm_register(), similar to the OMAP clock code.
 
-This DPLL rate rounding algorithm:
-
-- attempts to find the lowest possible N (DPLL divider) to reach the
-  target_rate (since, according to Richard Woodruff <r-woodruff@ti.com>,
-  lower N values save more power than higher N values).
-
-- allows developers to set an upper bound on the error between the
-  rounded rate and the desired target rate ("rate tolerance"), so an
-  appropriate balance between rate fidelity and power savings can be
-  set.  This maximum rate error tolerance is set via
-  omap2_set_dpll_rate_tolerance().
-
-- never returns a rounded rate higher than the target rate.
-
-The rate rounding algorithm caches the last rounded M, N, and rate
-computation to avoid rounding the rate twice for each clk_set_rate()
-call.  (This patch does not yet implement set_rate for DPLLs; that
-follows in a future patch.)
-
-The algorithm trades execution speed for rate accuracy.  It will find
-the (M, N) set that results in the least rate error, within a
-specified rate tolerance.  It does this by evaluating each divider
-setting - on OMAP3, this involves 128 steps.  Another approach to DPLL
-rate rounding would be to bail out as soon as a valid rate is found
-within the rate tolerance, which would trade rate accuracy for
-execution speed.  Alternate implementations welcome.
-
-This code is not yet used by the OMAP24XX DPLL clock, since it
-is currently defined as a composite clock, fusing the DPLL M,N and the
-M2 output divider.  This patch also renames the existing OMAP24xx DPLL
-programming functions to highlight that they program both the DPLL and
-the DPLL's output multiplier.
+The patch adds a Kconfig option, CONFIG_OMAP_DEBUG_POWERDOMAIN, which
+when enabled will emit verbose debug messages via pr_debug().
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 0243480..15675bc 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -41,6 +41,24 @@
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 93ee990..1001d42 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -4,7 +4,7 @@
  
- #define MAX_CLOCK_ENABLE_WAIT		100000
+ # Common support
+ obj-y := irq.o id.o io.o memory.o control.o prcm.o clock.o mux.o \
+-		devices.o serial.o gpmc.o timer-gp.o
++		devices.o serial.o gpmc.o timer-gp.o powerdomain.o
  
-+/* DPLL rate rounding: minimum DPLL multiplier, divider values */
-+#define DPLL_MIN_MULTIPLIER		1
-+#define DPLL_MIN_DIVIDER		1
-+
-+/* Possible error results from _dpll_test_mult */
-+#define DPLL_MULT_UNDERFLOW		(1 << 0)
-+
-+/*
-+ * Scale factor to mitigate roundoff errors in DPLL rate rounding.
-+ * The higher the scale factor, the greater the risk of arithmetic overflow,
-+ * but the closer the rounded rate to the target rate.  DPLL_SCALE_FACTOR
-+ * must be a power of DPLL_SCALE_BASE.
-+ */
-+#define DPLL_SCALE_FACTOR		64
-+#define DPLL_SCALE_BASE			2
-+#define DPLL_ROUNDING_VAL		((DPLL_SCALE_BASE / 2) * \
-+					 (DPLL_SCALE_FACTOR / DPLL_SCALE_BASE))
-+
- u8 cpu_mask;
+ obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
  
- /*-------------------------------------------------------------------------
-@@ -95,7 +113,7 @@ u32 omap2_get_dpll_rate(struct clk *clk)
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index 4263099..b008d35 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -62,11 +62,14 @@ static void omap3_dpll_recalc(struct clk *clk)
+ static void _omap3_dpll_write_clken(struct clk *clk, u8 clken_bits)
  {
- 	long long dpll_clk;
- 	u32 dpll_mult, dpll_div, dpll;
--	const struct dpll_data *dd;
-+	struct dpll_data *dd;
+ 	const struct dpll_data *dd;
++	u32 v;
  
  	dd = clk->dpll_data;
- 	/* REVISIT: What do we return on error? */
-@@ -724,6 +742,184 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
- 	return 0;
+ 
+-	cm_rmw_reg_bits(dd->enable_mask, clken_bits << __ffs(dd->enable_mask),
+-			dd->control_reg);
++	v = __raw_readl(dd->control_reg);
++	v &= ~dd->enable_mask;
++	v |= clken_bits << __ffs(dd->enable_mask);
++	__raw_writel(v, dd->control_reg);
  }
  
-+/* DPLL rate rounding code */
+ /* _omap3_wait_dpll_status: wait for a DPLL to enter a specific state */
+@@ -82,7 +85,7 @@ static int _omap3_wait_dpll_status(struct clk *clk, u8 state)
+ 	state <<= dd->idlest_bit;
+ 	idlest_mask = 1 << dd->idlest_bit;
+ 
+-	while (((cm_read_reg(dd->idlest_reg) & idlest_mask) != state) &&
++	while (((__raw_readl(dd->idlest_reg) & idlest_mask) != state) &&
+ 	       i < MAX_DPLL_WAIT_TRIES) {
+ 		i++;
+ 		udelay(1);
+@@ -285,7 +288,7 @@ static u32 omap3_dpll_autoidle_read(struct clk *clk)
+ 
+ 	dd = clk->dpll_data;
+ 
+-	v = cm_read_reg(dd->autoidle_reg);
++	v = __raw_readl(dd->autoidle_reg);
+ 	v &= dd->autoidle_mask;
+ 	v >>= __ffs(dd->autoidle_mask);
+ 
+@@ -304,6 +307,7 @@ static u32 omap3_dpll_autoidle_read(struct clk *clk)
+ static void omap3_dpll_allow_idle(struct clk *clk)
+ {
+ 	const struct dpll_data *dd;
++	u32 v;
+ 
+ 	if (!clk || !clk->dpll_data)
+ 		return;
+@@ -315,9 +319,10 @@ static void omap3_dpll_allow_idle(struct clk *clk)
+ 	 * by writing 0x5 instead of 0x1.  Add some mechanism to
+ 	 * optionally enter this mode.
+ 	 */
+-	cm_rmw_reg_bits(dd->autoidle_mask,
+-			DPLL_AUTOIDLE_LOW_POWER_STOP << __ffs(dd->autoidle_mask),
+-			dd->autoidle_reg);
++	v = __raw_readl(dd->autoidle_reg);
++	v &= ~dd->autoidle_mask;
++	v |= DPLL_AUTOIDLE_LOW_POWER_STOP << __ffs(dd->autoidle_mask);
++	__raw_writel(v, dd->autoidle_reg);
+ }
+ 
+ /**
+@@ -329,15 +334,17 @@ static void omap3_dpll_allow_idle(struct clk *clk)
+ static void omap3_dpll_deny_idle(struct clk *clk)
+ {
+ 	const struct dpll_data *dd;
++	u32 v;
+ 
+ 	if (!clk || !clk->dpll_data)
+ 		return;
+ 
+ 	dd = clk->dpll_data;
+ 
+-	cm_rmw_reg_bits(dd->autoidle_mask,
+-			DPLL_AUTOIDLE_DISABLE << __ffs(dd->autoidle_mask),
+-			dd->autoidle_reg);
++	v = __raw_readl(dd->autoidle_reg);
++	v &= ~dd->autoidle_mask;
++	v |= DPLL_AUTOIDLE_DISABLE << __ffs(dd->autoidle_mask);
++	__raw_writel(v, dd->autoidle_reg);
+ }
+ 
+ /* Clock control for DPLL outputs */
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+new file mode 100644
+index 0000000..2ae419e
+--- /dev/null
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -0,0 +1,909 @@
++/*
++ * OMAP powerdomain control
++ *
++ * Copyright (C) 2007-2008 Texas Instruments, Inc.
++ * Copyright (C) 2007-2008 Nokia Corporation
++ *
++ * Written by Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifdef CONFIG_OMAP_DEBUG_POWERDOMAIN
++# define DEBUG
++#endif
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/delay.h>
++#include <linux/spinlock.h>
++#include <linux/list.h>
++#include <linux/errno.h>
++#include <linux/err.h>
++#include <linux/io.h>
++
++#include <asm/atomic.h>
++
++#include "cm.h"
++#include "cm-regbits-34xx.h"
++#include "prm.h"
++#include "prm-regbits-34xx.h"
++
++#include <asm/arch/cpu.h>
++#include <asm/arch/powerdomain.h>
++
++/* pwrdm_list contains all registered struct powerdomains */
++static LIST_HEAD(pwrdm_list);
++
++/*
++ * pwrdm_rwlock protects pwrdm_list add and del ops - also reused to
++ * protect pwrdm_clkdms[] during clkdm add/del ops
++ */
++static DEFINE_RWLOCK(pwrdm_rwlock);
++
++
++/* Private functions */
++
++static u32 prm_read_mod_bits_shift(s16 domain, s16 idx, u32 mask)
++{
++	u32 v;
++
++	v = prm_read_mod_reg(domain, idx);
++	v &= mask;
++	v >>= __ffs(mask);
++
++	return v;
++}
++
++static struct powerdomain *_pwrdm_lookup(const char *name)
++{
++	struct powerdomain *pwrdm, *temp_pwrdm;
++
++	pwrdm = NULL;
++
++	list_for_each_entry(temp_pwrdm, &pwrdm_list, node) {
++		if (!strcmp(name, temp_pwrdm->name)) {
++			pwrdm = temp_pwrdm;
++			break;
++		}
++	}
++
++	return pwrdm;
++}
++
++/* _pwrdm_deps_lookup - look up the specified powerdomain in a pwrdm list */
++static struct powerdomain *_pwrdm_deps_lookup(struct powerdomain *pwrdm,
++					      struct pwrdm_dep *deps)
++{
++	struct pwrdm_dep *pd;
++
++	if (!pwrdm || !deps || !omap_chip_is(pwrdm->omap_chip))
++		return ERR_PTR(-EINVAL);
++
++	for (pd = deps; pd; pd++) {
++
++		if (!omap_chip_is(pd->omap_chip))
++			continue;
++
++		if (!pd->pwrdm && pd->pwrdm_name)
++			pd->pwrdm = pwrdm_lookup(pd->pwrdm_name);
++
++		if (pd->pwrdm == pwrdm)
++			break;
++
++	}
++
++	if (!pd)
++		return ERR_PTR(-ENOENT);
++
++	return pd->pwrdm;
++}
++
++
++/* Public functions */
 +
 +/**
-+ * omap2_dpll_set_rate_tolerance: set the error tolerance during rate rounding
-+ * @clk: struct clk * of the DPLL
-+ * @tolerance: maximum rate error tolerance
++ * pwrdm_init - set up the powerdomain layer
 + *
-+ * Set the maximum DPLL rate error tolerance for the rate rounding
-+ * algorithm.  The rate tolerance is an attempt to balance DPLL power
-+ * saving (the least divider value "n") vs. rate fidelity (the least
-+ * difference between the desired DPLL target rate and the rounded
-+ * rate out of the algorithm).  So, increasing the tolerance is likely
-+ * to decrease DPLL power consumption and increase DPLL rate error.
-+ * Returns -EINVAL if provided a null clock ptr or a clk that is not a
-+ * DPLL; or 0 upon success.
++ * Loop through the list of powerdomains, registering all that are
++ * available on the current CPU. If pwrdm_list is supplied and not
++ * null, all of the referenced powerdomains will be registered.  No
++ * return value.
 + */
-+int omap2_dpll_set_rate_tolerance(struct clk *clk, unsigned int tolerance)
++void pwrdm_init(struct powerdomain **pwrdm_list)
 +{
-+	if (!clk || !clk->dpll_data)
++	struct powerdomain **p = NULL;
++
++	if (pwrdm_list)
++		for (p = pwrdm_list; *p; p++)
++			pwrdm_register(*p);
++}
++
++/**
++ * pwrdm_register - register a powerdomain
++ * @pwrdm: struct powerdomain * to register
++ *
++ * Adds a powerdomain to the internal powerdomain list.  Returns
++ * -EINVAL if given a null pointer, -EEXIST if a powerdomain is
++ * already registered by the provided name, or 0 upon success.
++ */
++int pwrdm_register(struct powerdomain *pwrdm)
++{
++	unsigned long flags;
++	int ret = -EINVAL;
++
++	if (!pwrdm)
 +		return -EINVAL;
 +
-+	clk->dpll_data->rate_tolerance = tolerance;
++	if (!omap_chip_is(pwrdm->omap_chip))
++		return -EINVAL;
++
++	write_lock_irqsave(&pwrdm_rwlock, flags);
++	if (_pwrdm_lookup(pwrdm->name)) {
++		ret = -EEXIST;
++		goto pr_unlock;
++	}
++
++	list_add(&pwrdm->node, &pwrdm_list);
++
++	pr_debug("powerdomain: registered %s\n", pwrdm->name);
++	ret = 0;
++
++pr_unlock:
++	write_unlock_irqrestore(&pwrdm_rwlock, flags);
++
++	return ret;
++}
++
++/**
++ * pwrdm_unregister - unregister a powerdomain
++ * @pwrdm: struct powerdomain * to unregister
++ *
++ * Removes a powerdomain from the internal powerdomain list.  Returns
++ * -EINVAL if pwrdm argument is NULL.
++ */
++int pwrdm_unregister(struct powerdomain *pwrdm)
++{
++	unsigned long flags;
++
++	if (!pwrdm)
++		return -EINVAL;
++
++	write_lock_irqsave(&pwrdm_rwlock, flags);
++	list_del(&pwrdm->node);
++	write_unlock_irqrestore(&pwrdm_rwlock, flags);
++
++	pr_debug("powerdomain: unregistered %s\n", pwrdm->name);
 +
 +	return 0;
 +}
 +
-+static unsigned long _dpll_compute_new_rate(unsigned long parent_rate, unsigned int m, unsigned int n)
-+{
-+	unsigned long long num;
-+
-+	num = (unsigned long long)parent_rate * m;
-+	do_div(num, n);
-+	return num;
-+}
-+
-+/*
-+ * _dpll_test_mult - test a DPLL multiplier value
-+ * @m: pointer to the DPLL m (multiplier) value under test
-+ * @n: current DPLL n (divider) value under test
-+ * @new_rate: pointer to storage for the resulting rounded rate
-+ * @target_rate: the desired DPLL rate
-+ * @parent_rate: the DPLL's parent clock rate
++/**
++ * pwrdm_lookup - look up a powerdomain by name, return a pointer
++ * @name: name of powerdomain
 + *
-+ * This code tests a DPLL multiplier value, ensuring that the
-+ * resulting rate will not be higher than the target_rate, and that
-+ * the multiplier value itself is valid for the DPLL.  Initially, the
-+ * integer pointed to by the m argument should be prescaled by
-+ * multiplying by DPLL_SCALE_FACTOR.  The code will replace this with
-+ * a non-scaled m upon return.  This non-scaled m will result in a
-+ * new_rate as close as possible to target_rate (but not greater than
-+ * target_rate) given the current (parent_rate, n, prescaled m)
-+ * triple. Returns DPLL_MULT_UNDERFLOW in the event that the
-+ * non-scaled m attempted to underflow, which can allow the calling
-+ * function to bail out early; or 0 upon success.
++ * Find a registered powerdomain by its name.  Returns a pointer to the
++ * struct powerdomain if found, or NULL otherwise.
 + */
-+static int _dpll_test_mult(int *m, int n, unsigned long *new_rate,
-+			   unsigned long target_rate,
-+			   unsigned long parent_rate)
++struct powerdomain *pwrdm_lookup(const char *name)
 +{
-+	int flags = 0, carry = 0;
++	struct powerdomain *pwrdm;
++	unsigned long flags;
 +
-+	/* Unscale m and round if necessary */
-+	if (*m % DPLL_SCALE_FACTOR >= DPLL_ROUNDING_VAL)
-+		carry = 1;
-+	*m = (*m / DPLL_SCALE_FACTOR) + carry;
++	if (!name)
++		return NULL;
 +
-+	/*
-+	 * The new rate must be <= the target rate to avoid programming
-+	 * a rate that is impossible for the hardware to handle
-+	 */
-+	*new_rate = _dpll_compute_new_rate(parent_rate, *m, n);
-+	if (*new_rate > target_rate) {
-+		(*m)--;
-+		*new_rate = 0;
-+	}
++	read_lock_irqsave(&pwrdm_rwlock, flags);
++	pwrdm = _pwrdm_lookup(name);
++	read_unlock_irqrestore(&pwrdm_rwlock, flags);
 +
-+	/* Guard against m underflow */
-+	if (*m < DPLL_MIN_MULTIPLIER) {
-+		*m = DPLL_MIN_MULTIPLIER;
-+		*new_rate = 0;
-+		flags = DPLL_MULT_UNDERFLOW;
-+	}
-+
-+	if (*new_rate == 0)
-+		*new_rate = _dpll_compute_new_rate(parent_rate, *m, n);
-+
-+	return flags;
++	return pwrdm;
 +}
 +
 +/**
-+ * omap2_dpll_round_rate - round a target rate for an OMAP DPLL
-+ * @clk: struct clk * for a DPLL
-+ * @target_rate: desired DPLL clock rate
++ * pwrdm_for_each - call function on each registered clockdomain
++ * @fn: callback function *
 + *
-+ * Given a DPLL, a desired target rate, and a rate tolerance, round
-+ * the target rate to a possible, programmable rate for this DPLL.
-+ * Rate tolerance is assumed to be set by the caller before this
-+ * function is called.  Attempts to select the minimum possible n
-+ * within the tolerance to reduce power consumption.  Stores the
-+ * computed (m, n) in the DPLL's dpll_data structure so set_rate()
-+ * will not need to call this (expensive) function again.  Returns ~0
-+ * if the target rate cannot be rounded, either because the rate is
-+ * too low or because the rate tolerance is set too tightly; or the
-+ * rounded rate upon success.
++ * Call the supplied function for each registered powerdomain.  The
++ * callback function can return anything but 0 to bail out early from
++ * the iterator.  The callback function is called with the pwrdm_rwlock
++ * held for reading, so no powerdomain structure manipulation
++ * functions should be called from the callback, although hardware
++ * powerdomain control functions are fine.  Returns the last return
++ * value of the callback function, which should be 0 for success or
++ * anything else to indicate failure; or -EINVAL if the function
++ * pointer is null.
 + */
-+long omap2_dpll_round_rate(struct clk *clk, unsigned long target_rate)
++int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm))
 +{
-+	int m, n, r, e, scaled_max_m;
-+	unsigned long scaled_rt_rp, new_rate;
-+	int min_e = -1, min_e_m = -1, min_e_n = -1;
++	struct powerdomain *temp_pwrdm;
++	unsigned long flags;
++	int ret = 0;
 +
-+	if (!clk || !clk->dpll_data)
-+		return ~0;
++	if (!fn)
++		return -EINVAL;
 +
-+	pr_debug("clock: starting DPLL round_rate for clock %s, target rate "
-+		 "%ld\n", clk->name, target_rate);
-+
-+	scaled_rt_rp = target_rate / (clk->parent->rate / DPLL_SCALE_FACTOR);
-+	scaled_max_m = clk->dpll_data->max_multiplier * DPLL_SCALE_FACTOR;
-+
-+	clk->dpll_data->last_rounded_rate = 0;
-+
-+	for (n = clk->dpll_data->max_divider; n >= DPLL_MIN_DIVIDER; n--) {
-+
-+		/* Compute the scaled DPLL multiplier, based on the divider */
-+		m = scaled_rt_rp * n;
-+
-+		/*
-+		 * Since we're counting n down, a m overflow means we can
-+		 * can immediately skip to the next n
-+		 */
-+		if (m > scaled_max_m)
-+			continue;
-+
-+		r = _dpll_test_mult(&m, n, &new_rate, target_rate,
-+				    clk->parent->rate);
-+
-+		e = target_rate - new_rate;
-+		pr_debug("clock: n = %d: m = %d: rate error is %d "
-+			 "(new_rate = %ld)\n", n, m, e, new_rate);
-+
-+		if (min_e == -1 ||
-+		    min_e >= (int)(abs(e) - clk->dpll_data->rate_tolerance)) {
-+			min_e = e;
-+			min_e_m = m;
-+			min_e_n = n;
-+
-+			pr_debug("clock: found new least error %d\n", min_e);
-+		}
-+
-+		/*
-+		 * Since we're counting n down, a m underflow means we
-+		 * can bail out completely (since as n decreases in
-+		 * the next iteration, there's no way that m can
-+		 * increase beyond the current m)
-+		 */
-+		if (r & DPLL_MULT_UNDERFLOW)
++	read_lock_irqsave(&pwrdm_rwlock, flags);
++	list_for_each_entry(temp_pwrdm, &pwrdm_list, node) {
++		ret = (*fn)(temp_pwrdm);
++		if (ret)
 +			break;
 +	}
++	read_unlock_irqrestore(&pwrdm_rwlock, flags);
 +
-+	if (min_e < 0) {
-+		pr_debug("clock: error: target rate or tolerance too low\n");
-+		return ~0;
-+	}
-+
-+	clk->dpll_data->last_rounded_m = min_e_m;
-+	clk->dpll_data->last_rounded_n = min_e_n;
-+	clk->dpll_data->last_rounded_rate =
-+		_dpll_compute_new_rate(clk->parent->rate, min_e_m,  min_e_n);
-+
-+	pr_debug("clock: final least error: e = %d, m = %d, n = %d\n",
-+		 min_e, min_e_m, min_e_n);
-+	pr_debug("clock: final rate: %ld  (target rate: %ld)\n",
-+		 clk->dpll_data->last_rounded_rate, target_rate);
-+
-+	return clk->dpll_data->last_rounded_rate;
++	return ret;
 +}
 +
- /*-------------------------------------------------------------------------
-  * Omap2 clock reset and init functions
-  *-------------------------------------------------------------------------*/
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index f979485..3cd37cb 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -18,11 +18,16 @@
- 
- #include <asm/arch/clock.h>
- 
-+/* The maximum error between a target DPLL rate and the rounded rate in Hz */
-+#define DEFAULT_DPLL_RATE_TOLERANCE	50000
-+
- int omap2_clk_enable(struct clk *clk);
- void omap2_clk_disable(struct clk *clk);
- long omap2_clk_round_rate(struct clk *clk, unsigned long rate);
- int omap2_clk_set_rate(struct clk *clk, unsigned long rate);
- int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent);
-+int omap2_dpll_rate_tolerance_set(struct clk *clk, unsigned int tolerance);
-+long omap2_dpll_round_rate(struct clk *clk, unsigned long target_rate);
- 
- #ifdef CONFIG_OMAP_RESET_CLOCKS
- void omap2_clk_disable_unused(struct clk *clk);
-diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-index ece32d8..aa56787 100644
---- a/arch/arm/mach-omap2/clock24xx.c
-+++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -154,7 +154,7 @@ static void omap2_clk_fixed_disable(struct clk *clk)
-  * Uses the current prcm set to tell if a rate is valid.
-  * You can go slower, but not faster within a given rate set.
-  */
--static u32 omap2_dpll_round_rate(unsigned long target_rate)
-+long omap2_dpllcore_round_rate(unsigned long target_rate)
- {
- 	u32 high, low, core_clk_src;
- 
-@@ -183,14 +183,14 @@ static u32 omap2_dpll_round_rate(unsigned long target_rate)
- 
- }
- 
--static void omap2_dpll_recalc(struct clk *clk)
-+static void omap2_dpllcore_recalc(struct clk *clk)
- {
- 	clk->rate = omap2_get_dpll_rate_24xx(clk);
- 
- 	propagate_rate(clk);
- }
- 
--static int omap2_reprogram_dpll(struct clk *clk, unsigned long rate)
-+static int omap2_reprogram_dpllcore(struct clk *clk, unsigned long rate)
- {
- 	u32 cur_rate, low, mult, div, valid_rate, done_rate;
- 	u32 bypass = 0;
-@@ -209,7 +209,7 @@ static int omap2_reprogram_dpll(struct clk *clk, unsigned long rate)
- 	} else if ((rate == (cur_rate * 2)) && (mult == 1)) {
- 		omap2_reprogram_sdrc(CORE_CLK_SRC_DPLL_X2, 1);
- 	} else if (rate != cur_rate) {
--		valid_rate = omap2_dpll_round_rate(rate);
-+		valid_rate = omap2_dpllcore_round_rate(rate);
- 		if (valid_rate != rate)
- 			goto dpll_exit;
- 
-@@ -256,7 +256,7 @@ static int omap2_reprogram_dpll(struct clk *clk, unsigned long rate)
- 		omap2_init_memory_params(omap2_dll_force_needed());
- 		omap2_reprogram_sdrc(done_rate, 0);
- 	}
--	omap2_dpll_recalc(&dpll_ck);
-+	omap2_dpllcore_recalc(&dpll_ck);
- 	ret = 0;
- 
- dpll_exit:
-@@ -383,7 +383,7 @@ static int omap2_select_table_rate(struct clk *clk, unsigned long rate)
- 
- 		local_irq_restore(flags);
- 	}
--	omap2_dpll_recalc(&dpll_ck);
-+	omap2_dpllcore_recalc(&dpll_ck);
- 
- 	return 0;
- }
-diff --git a/arch/arm/mach-omap2/clock24xx.h b/arch/arm/mach-omap2/clock24xx.h
-index 06e1118..be4e255 100644
---- a/arch/arm/mach-omap2/clock24xx.h
-+++ b/arch/arm/mach-omap2/clock24xx.h
-@@ -30,12 +30,12 @@ static long omap2_round_to_table_rate(struct clk *clk, unsigned long rate);
- static void omap2_sys_clk_recalc(struct clk *clk);
- static void omap2_osc_clk_recalc(struct clk *clk);
- static void omap2_sys_clk_recalc(struct clk *clk);
--static void omap2_dpll_recalc(struct clk *clk);
-+static void omap2_dpllcore_recalc(struct clk *clk);
- static int omap2_clk_fixed_enable(struct clk *clk);
- static void omap2_clk_fixed_disable(struct clk *clk);
- static int omap2_enable_osc_ck(struct clk *clk);
- static void omap2_disable_osc_ck(struct clk *clk);
--static int omap2_reprogram_dpll(struct clk *clk, unsigned long rate);
-+static int omap2_reprogram_dpllcore(struct clk *clk, unsigned long rate);
- 
- /* Key dividers which make up a PRCM set. Ratio's for a PRCM are mandated.
-  * xtal_speed, dpll_speed, mpu_speed, CM_CLKSEL_MPU,CM_CLKSEL_DSP
-@@ -665,20 +665,27 @@ static struct clk alt_ck = {		/* Typical 54M or 48M, may not exist */
-  * deal with this
-  */
- 
--static const struct dpll_data dpll_dd = {
-+static struct dpll_data dpll_dd = {
- 	.mult_div1_reg		= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
- 	.mult_mask		= OMAP24XX_DPLL_MULT_MASK,
- 	.div1_mask		= OMAP24XX_DPLL_DIV_MASK,
-+	.max_multiplier		= 1024,
-+	.max_divider		= 16,
-+	.rate_tolerance		= DEFAULT_DPLL_RATE_TOLERANCE
- };
- 
-+/*
-+ * XXX Cannot add round_rate here yet, as this is still a composite clock,
-+ * not just a DPLL
++/**
++ * pwrdm_add_wkdep - add a wakeup dependency from pwrdm2 to pwrdm1
++ * @pwrdm1: wake this struct powerdomain * up (dependent)
++ * @pwrdm2: when this struct powerdomain * wakes up (source)
++ *
++ * When the powerdomain represented by pwrdm2 wakes up (due to an
++ * interrupt), wake up pwrdm1.	Implemented in hardware on the OMAP,
++ * this feature is designed to reduce wakeup latency of the dependent
++ * powerdomain.  Returns -EINVAL if presented with invalid powerdomain
++ * pointers, -ENOENT if pwrdm2 cannot wake up pwrdm1 in hardware, or
++ * 0 upon success.
 + */
- static struct clk dpll_ck = {
- 	.name		= "dpll_ck",
- 	.parent		= &sys_ck,		/* Can be func_32k also */
- 	.dpll_data	= &dpll_dd,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				RATE_PROPAGATES | ALWAYS_ENABLED,
--	.recalc		= &omap2_dpll_recalc,
--	.set_rate	= &omap2_reprogram_dpll,
-+	.recalc		= &omap2_dpllcore_recalc,
-+	.set_rate	= &omap2_reprogram_dpllcore,
- };
- 
- static struct clk apll96_ck = {
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-index e349d48..05757eb 100644
---- a/arch/arm/mach-omap2/clock34xx.h
-+++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -35,6 +35,10 @@ static u32 omap3_dpll_autoidle_read(struct clk *clk);
- static int omap3_noncore_dpll_enable(struct clk *clk);
- static void omap3_noncore_dpll_disable(struct clk *clk);
- 
-+/* Maximum DPLL multiplier, divider values for OMAP3 */
-+#define OMAP3_MAX_DPLL_MULT		2048
-+#define OMAP3_MAX_DPLL_DIV		128
++int pwrdm_add_wkdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2)
++{
++	struct powerdomain *p;
 +
- /*
-  * DPLL1 supplies clock to the MPU.
-  * DPLL2 supplies clock to the IVA2.
-@@ -255,7 +259,7 @@ static const struct clksel_rate div16_dpll_rates[] = {
- /* DPLL1 */
- /* MPU clock source */
- /* Type: DPLL */
--static const struct dpll_data dpll1_dd = {
-+static struct dpll_data dpll1_dd = {
- 	.mult_div1_reg	= OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_CLKSEL1_PLL),
- 	.mult_mask	= OMAP3430_MPU_DPLL_MULT_MASK,
- 	.div1_mask	= OMAP3430_MPU_DPLL_DIV_MASK,
-@@ -269,6 +273,9 @@ static const struct dpll_data dpll1_dd = {
- 	.autoidle_mask	= OMAP3430_AUTO_MPU_DPLL_MASK,
- 	.idlest_reg	= OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_IDLEST_PLL),
- 	.idlest_bit	= OMAP3430_ST_MPU_CLK_SHIFT,
-+	.max_multiplier = OMAP3_MAX_DPLL_MULT,
-+	.max_divider	= OMAP3_MAX_DPLL_DIV,
-+	.rate_tolerance = DEFAULT_DPLL_RATE_TOLERANCE
- };
++	if (!pwrdm1)
++		return -EINVAL;
++
++	p = _pwrdm_deps_lookup(pwrdm2, pwrdm1->wkdep_srcs);
++	if (IS_ERR(p)) {
++		pr_debug("powerdomain: hardware cannot set/clear wake up of "
++			 "%s when %s wakes up\n", pwrdm1->name, pwrdm2->name);
++		return IS_ERR(p);
++	}
++
++	pr_debug("powerdomain: hardware will wake up %s when %s wakes up\n",
++		 pwrdm1->name, pwrdm2->name);
++
++	prm_set_mod_reg_bits((1 << pwrdm2->dep_bit),
++			     pwrdm1->prcm_offs, PM_WKDEP);
++
++	return 0;
++}
++
++/**
++ * pwrdm_del_wkdep - remove a wakeup dependency from pwrdm2 to pwrdm1
++ * @pwrdm1: wake this struct powerdomain * up (dependent)
++ * @pwrdm2: when this struct powerdomain * wakes up (source)
++ *
++ * Remove a wakeup dependency that causes pwrdm1 to wake up when pwrdm2
++ * wakes up.  Returns -EINVAL if presented with invalid powerdomain
++ * pointers, -ENOENT if pwrdm2 cannot wake up pwrdm1 in hardware, or
++ * 0 upon success.
++ */
++int pwrdm_del_wkdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2)
++{
++	struct powerdomain *p;
++
++	if (!pwrdm1)
++		return -EINVAL;
++
++	p = _pwrdm_deps_lookup(pwrdm2, pwrdm1->wkdep_srcs);
++	if (IS_ERR(p)) {
++		pr_debug("powerdomain: hardware cannot set/clear wake up of "
++			 "%s when %s wakes up\n", pwrdm1->name, pwrdm2->name);
++		return IS_ERR(p);
++	}
++
++	pr_debug("powerdomain: hardware will no longer wake up %s after %s "
++		 "wakes up\n", pwrdm1->name, pwrdm2->name);
++
++	prm_clear_mod_reg_bits((1 << pwrdm2->dep_bit),
++			       pwrdm1->prcm_offs, PM_WKDEP);
++
++	return 0;
++}
++
++/**
++ * pwrdm_read_wkdep - read wakeup dependency state from pwrdm2 to pwrdm1
++ * @pwrdm1: wake this struct powerdomain * up (dependent)
++ * @pwrdm2: when this struct powerdomain * wakes up (source)
++ *
++ * Return 1 if a hardware wakeup dependency exists wherein pwrdm1 will be
++ * awoken when pwrdm2 wakes up; 0 if dependency is not set; -EINVAL
++ * if either powerdomain pointer is invalid; or -ENOENT if the hardware
++ * is incapable.
++ *
++ * REVISIT: Currently this function only represents software-controllable
++ * wakeup dependencies.  Wakeup dependencies fixed in hardware are not
++ * yet handled here.
++ */
++int pwrdm_read_wkdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2)
++{
++	struct powerdomain *p;
++
++	if (!pwrdm1)
++		return -EINVAL;
++
++	p = _pwrdm_deps_lookup(pwrdm2, pwrdm1->wkdep_srcs);
++	if (IS_ERR(p)) {
++		pr_debug("powerdomain: hardware cannot set/clear wake up of "
++			 "%s when %s wakes up\n", pwrdm1->name, pwrdm2->name);
++		return IS_ERR(p);
++	}
++
++	return prm_read_mod_bits_shift(pwrdm1->prcm_offs, PM_WKDEP,
++					(1 << pwrdm2->dep_bit));
++}
++
++/**
++ * pwrdm_add_sleepdep - add a sleep dependency from pwrdm2 to pwrdm1
++ * @pwrdm1: prevent this struct powerdomain * from sleeping (dependent)
++ * @pwrdm2: when this struct powerdomain * is active (source)
++ *
++ * Prevent pwrdm1 from automatically going inactive (and then to
++ * retention or off) if pwrdm2 is still active.	 Returns -EINVAL if
++ * presented with invalid powerdomain pointers or called on a machine
++ * that does not support software-configurable hardware sleep dependencies,
++ * -ENOENT if the specified dependency cannot be set in hardware, or
++ * 0 upon success.
++ */
++int pwrdm_add_sleepdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2)
++{
++	struct powerdomain *p;
++
++	if (!pwrdm1)
++		return -EINVAL;
++
++	if (!cpu_is_omap34xx())
++		return -EINVAL;
++
++	p = _pwrdm_deps_lookup(pwrdm2, pwrdm1->sleepdep_srcs);
++	if (IS_ERR(p)) {
++		pr_debug("powerdomain: hardware cannot set/clear sleep "
++			 "dependency affecting %s from %s\n", pwrdm1->name,
++			 pwrdm2->name);
++		return IS_ERR(p);
++	}
++
++	pr_debug("powerdomain: will prevent %s from sleeping if %s is active\n",
++		 pwrdm1->name, pwrdm2->name);
++
++	cm_set_mod_reg_bits((1 << pwrdm2->dep_bit),
++			    pwrdm1->prcm_offs, OMAP3430_CM_SLEEPDEP);
++
++	return 0;
++}
++
++/**
++ * pwrdm_del_sleepdep - remove a sleep dependency from pwrdm2 to pwrdm1
++ * @pwrdm1: prevent this struct powerdomain * from sleeping (dependent)
++ * @pwrdm2: when this struct powerdomain * is active (source)
++ *
++ * Allow pwrdm1 to automatically go inactive (and then to retention or
++ * off), independent of the activity state of pwrdm2.  Returns -EINVAL
++ * if presented with invalid powerdomain pointers or called on a machine
++ * that does not support software-configurable hardware sleep dependencies,
++ * -ENOENT if the specified dependency cannot be cleared in hardware, or
++ * 0 upon success.
++ */
++int pwrdm_del_sleepdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2)
++{
++	struct powerdomain *p;
++
++	if (!pwrdm1)
++		return -EINVAL;
++
++	if (!cpu_is_omap34xx())
++		return -EINVAL;
++
++	p = _pwrdm_deps_lookup(pwrdm2, pwrdm1->sleepdep_srcs);
++	if (IS_ERR(p)) {
++		pr_debug("powerdomain: hardware cannot set/clear sleep "
++			 "dependency affecting %s from %s\n", pwrdm1->name,
++			 pwrdm2->name);
++		return IS_ERR(p);
++	}
++
++	pr_debug("powerdomain: will no longer prevent %s from sleeping if "
++		 "%s is active\n", pwrdm1->name, pwrdm2->name);
++
++	cm_clear_mod_reg_bits((1 << pwrdm2->dep_bit),
++			      pwrdm1->prcm_offs, OMAP3430_CM_SLEEPDEP);
++
++	return 0;
++}
++
++/**
++ * pwrdm_read_sleepdep - read sleep dependency state from pwrdm2 to pwrdm1
++ * @pwrdm1: prevent this struct powerdomain * from sleeping (dependent)
++ * @pwrdm2: when this struct powerdomain * is active (source)
++ *
++ * Return 1 if a hardware sleep dependency exists wherein pwrdm1 will
++ * not be allowed to automatically go inactive if pwrdm2 is active;
++ * 0 if pwrdm1's automatic power state inactivity transition is independent
++ * of pwrdm2's; -EINVAL if either powerdomain pointer is invalid or called
++ * on a machine that does not support software-configurable hardware sleep
++ * dependencies; or -ENOENT if the hardware is incapable.
++ *
++ * REVISIT: Currently this function only represents software-controllable
++ * sleep dependencies.	Sleep dependencies fixed in hardware are not
++ * yet handled here.
++ */
++int pwrdm_read_sleepdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2)
++{
++	struct powerdomain *p;
++
++	if (!pwrdm1)
++		return -EINVAL;
++
++	if (!cpu_is_omap34xx())
++		return -EINVAL;
++
++	p = _pwrdm_deps_lookup(pwrdm2, pwrdm1->sleepdep_srcs);
++	if (IS_ERR(p)) {
++		pr_debug("powerdomain: hardware cannot set/clear sleep "
++			 "dependency affecting %s from %s\n", pwrdm1->name,
++			 pwrdm2->name);
++		return IS_ERR(p);
++	}
++
++	return prm_read_mod_bits_shift(pwrdm1->prcm_offs, OMAP3430_CM_SLEEPDEP,
++					(1 << pwrdm2->dep_bit));
++}
++
++/**
++ * pwrdm_get_mem_bank_count - get number of memory banks in this powerdomain
++ * @pwrdm: struct powerdomain *
++ *
++ * Return the number of controllable memory banks in powerdomain pwrdm,
++ * starting with 1.  Returns -EINVAL if the powerdomain pointer is null.
++ */
++int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm)
++{
++	if (!pwrdm)
++		return -EINVAL;
++
++	return pwrdm->banks;
++}
++
++/**
++ * pwrdm_set_next_pwrst - set next powerdomain power state
++ * @pwrdm: struct powerdomain * to set
++ * @pwrst: one of the PWRDM_POWER_* macros
++ *
++ * Set the powerdomain pwrdm's next power state to pwrst.  The powerdomain
++ * may not enter this state immediately if the preconditions for this state
++ * have not been satisfied.  Returns -EINVAL if the powerdomain pointer is
++ * null or if the power state is invalid for the powerdomin, or returns 0
++ * upon success.
++ */
++int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
++{
++	if (!pwrdm)
++		return -EINVAL;
++
++	if (!(pwrdm->pwrsts & (1 << pwrst)))
++		return -EINVAL;
++
++	pr_debug("powerdomain: setting next powerstate for %s to %0x\n",
++		 pwrdm->name, pwrst);
++
++	prm_rmw_mod_reg_bits(OMAP_POWERSTATE_MASK,
++			     (pwrst << OMAP_POWERSTATE_SHIFT),
++			     pwrdm->prcm_offs, PM_PWSTCTRL);
++
++	return 0;
++}
++
++/**
++ * pwrdm_read_next_pwrst - get next powerdomain power state
++ * @pwrdm: struct powerdomain * to get power state
++ *
++ * Return the powerdomain pwrdm's next power state.  Returns -EINVAL
++ * if the powerdomain pointer is null or returns the next power state
++ * upon success.
++ */
++int pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
++{
++	if (!pwrdm)
++		return -EINVAL;
++
++	return prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTCTRL,
++					OMAP_POWERSTATE_MASK);
++}
++
++/**
++ * pwrdm_read_pwrst - get current powerdomain power state
++ * @pwrdm: struct powerdomain * to get power state
++ *
++ * Return the powerdomain pwrdm's current power state.	Returns -EINVAL
++ * if the powerdomain pointer is null or returns the current power state
++ * upon success.
++ */
++int pwrdm_read_pwrst(struct powerdomain *pwrdm)
++{
++	if (!pwrdm)
++		return -EINVAL;
++
++	return prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTST,
++					OMAP_POWERSTATEST_MASK);
++}
++
++/**
++ * pwrdm_read_prev_pwrst - get previous powerdomain power state
++ * @pwrdm: struct powerdomain * to get previous power state
++ *
++ * Return the powerdomain pwrdm's previous power state.  Returns -EINVAL
++ * if the powerdomain pointer is null or returns the previous power state
++ * upon success.
++ */
++int pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
++{
++	if (!pwrdm)
++		return -EINVAL;
++
++	return prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP3430_PM_PREPWSTST,
++					OMAP3430_LASTPOWERSTATEENTERED_MASK);
++}
++
++/**
++ * pwrdm_set_logic_retst - set powerdomain logic power state upon retention
++ * @pwrdm: struct powerdomain * to set
++ * @pwrst: one of the PWRDM_POWER_* macros
++ *
++ * Set the next power state that the logic portion of the powerdomain
++ * pwrdm will enter when the powerdomain enters retention.  This will
++ * be either RETENTION or OFF, if supported.  Returns -EINVAL if the
++ * powerdomain pointer is null or the target power state is not not
++ * supported, or returns 0 upon success.
++ */
++int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
++{
++	if (!pwrdm)
++		return -EINVAL;
++
++	if (!(pwrdm->pwrsts_logic_ret & (1 << pwrst)))
++		return -EINVAL;
++
++	pr_debug("powerdomain: setting next logic powerstate for %s to %0x\n",
++		 pwrdm->name, pwrst);
++
++	/*
++	 * The register bit names below may not correspond to the
++	 * actual names of the bits in each powerdomain's register,
++	 * but the type of value returned is the same for each
++	 * powerdomain.
++	 */
++	prm_rmw_mod_reg_bits(OMAP3430_LOGICL1CACHERETSTATE,
++			     (pwrst << __ffs(OMAP3430_LOGICL1CACHERETSTATE)),
++			     pwrdm->prcm_offs, PM_PWSTCTRL);
++
++	return 0;
++}
++
++/**
++ * pwrdm_set_mem_onst - set memory power state while powerdomain ON
++ * @pwrdm: struct powerdomain * to set
++ * @bank: memory bank number to set (0-3)
++ * @pwrst: one of the PWRDM_POWER_* macros
++ *
++ * Set the next power state that memory bank x of the powerdomain
++ * pwrdm will enter when the powerdomain enters the ON state.  Bank
++ * will be a number from 0 to 3, and represents different types of
++ * memory, depending on the powerdomain.  Returns -EINVAL if the
++ * powerdomain pointer is null or the target power state is not not
++ * supported for this memory bank, -EEXIST if the target memory bank
++ * does not exist or is not controllable, or returns 0 upon success.
++ */
++int pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
++{
++	u32 m;
++
++	if (!pwrdm)
++		return -EINVAL;
++
++	if (pwrdm->banks < (bank + 1))
++		return -EEXIST;
++
++	if (!(pwrdm->pwrsts_mem_on[bank] & (1 << pwrst)))
++		return -EINVAL;
++
++	pr_debug("powerdomain: setting next memory powerstate for domain %s "
++		 "bank %0x while pwrdm-ON to %0x\n", pwrdm->name, bank, pwrst);
++
++	/*
++	 * The register bit names below may not correspond to the
++	 * actual names of the bits in each powerdomain's register,
++	 * but the type of value returned is the same for each
++	 * powerdomain.
++	 */
++	switch (bank) {
++	case 0:
++		m = OMAP3430_SHAREDL1CACHEFLATONSTATE_MASK;
++		break;
++	case 1:
++		m = OMAP3430_L1FLATMEMONSTATE_MASK;
++		break;
++	case 2:
++		m = OMAP3430_SHAREDL2CACHEFLATONSTATE_MASK;
++		break;
++	case 3:
++		m = OMAP3430_L2FLATMEMONSTATE_MASK;
++		break;
++	default:
++		WARN_ON(1); /* should never happen */
++		return -EEXIST;
++	}
++
++	prm_rmw_mod_reg_bits(m, (pwrst << __ffs(m)),
++			     pwrdm->prcm_offs, PM_PWSTCTRL);
++
++	return 0;
++}
++
++/**
++ * pwrdm_set_mem_retst - set memory power state while powerdomain in RET
++ * @pwrdm: struct powerdomain * to set
++ * @bank: memory bank number to set (0-3)
++ * @pwrst: one of the PWRDM_POWER_* macros
++ *
++ * Set the next power state that memory bank x of the powerdomain
++ * pwrdm will enter when the powerdomain enters the RETENTION state.
++ * Bank will be a number from 0 to 3, and represents different types
++ * of memory, depending on the powerdomain.  pwrst will be either
++ * RETENTION or OFF, if supported. Returns -EINVAL if the powerdomain
++ * pointer is null or the target power state is not not supported for
++ * this memory bank, -EEXIST if the target memory bank does not exist
++ * or is not controllable, or returns 0 upon success.
++ */
++int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
++{
++	u32 m;
++
++	if (!pwrdm)
++		return -EINVAL;
++
++	if (pwrdm->banks < (bank + 1))
++		return -EEXIST;
++
++	if (!(pwrdm->pwrsts_mem_ret[bank] & (1 << pwrst)))
++		return -EINVAL;
++
++	pr_debug("powerdomain: setting next memory powerstate for domain %s "
++		 "bank %0x while pwrdm-RET to %0x\n", pwrdm->name, bank, pwrst);
++
++	/*
++	 * The register bit names below may not correspond to the
++	 * actual names of the bits in each powerdomain's register,
++	 * but the type of value returned is the same for each
++	 * powerdomain.
++	 */
++	switch (bank) {
++	case 0:
++		m = OMAP3430_SHAREDL1CACHEFLATRETSTATE;
++		break;
++	case 1:
++		m = OMAP3430_L1FLATMEMRETSTATE;
++		break;
++	case 2:
++		m = OMAP3430_SHAREDL2CACHEFLATRETSTATE;
++		break;
++	case 3:
++		m = OMAP3430_L2FLATMEMRETSTATE;
++		break;
++	default:
++		WARN_ON(1); /* should never happen */
++		return -EEXIST;
++	}
++
++	prm_rmw_mod_reg_bits(m, (pwrst << __ffs(m)), pwrdm->prcm_offs,
++			     PM_PWSTCTRL);
++
++	return 0;
++}
++
++/**
++ * pwrdm_read_logic_pwrst - get current powerdomain logic retention power state
++ * @pwrdm: struct powerdomain * to get current logic retention power state
++ *
++ * Return the current power state that the logic portion of
++ * powerdomain pwrdm will enter
++ * Returns -EINVAL if the powerdomain pointer is null or returns the
++ * current logic retention power state upon success.
++ */
++int pwrdm_read_logic_pwrst(struct powerdomain *pwrdm)
++{
++	if (!pwrdm)
++		return -EINVAL;
++
++	return prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTST,
++					OMAP3430_LOGICSTATEST);
++}
++
++/**
++ * pwrdm_read_prev_logic_pwrst - get previous powerdomain logic power state
++ * @pwrdm: struct powerdomain * to get previous logic power state
++ *
++ * Return the powerdomain pwrdm's logic power state.  Returns -EINVAL
++ * if the powerdomain pointer is null or returns the previous logic
++ * power state upon success.
++ */
++int pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
++{
++	if (!pwrdm)
++		return -EINVAL;
++
++	/*
++	 * The register bit names below may not correspond to the
++	 * actual names of the bits in each powerdomain's register,
++	 * but the type of value returned is the same for each
++	 * powerdomain.
++	 */
++	return prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP3430_PM_PREPWSTST,
++					OMAP3430_LASTLOGICSTATEENTERED);
++}
++
++/**
++ * pwrdm_read_mem_pwrst - get current memory bank power state
++ * @pwrdm: struct powerdomain * to get current memory bank power state
++ * @bank: memory bank number (0-3)
++ *
++ * Return the powerdomain pwrdm's current memory power state for bank
++ * x.  Returns -EINVAL if the powerdomain pointer is null, -EEXIST if
++ * the target memory bank does not exist or is not controllable, or
++ * returns the current memory power state upon success.
++ */
++int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
++{
++	u32 m;
++
++	if (!pwrdm)
++		return -EINVAL;
++
++	if (pwrdm->banks < (bank + 1))
++		return -EEXIST;
++
++	/*
++	 * The register bit names below may not correspond to the
++	 * actual names of the bits in each powerdomain's register,
++	 * but the type of value returned is the same for each
++	 * powerdomain.
++	 */
++	switch (bank) {
++	case 0:
++		m = OMAP3430_SHAREDL1CACHEFLATSTATEST_MASK;
++		break;
++	case 1:
++		m = OMAP3430_L1FLATMEMSTATEST_MASK;
++		break;
++	case 2:
++		m = OMAP3430_SHAREDL2CACHEFLATSTATEST_MASK;
++		break;
++	case 3:
++		m = OMAP3430_L2FLATMEMSTATEST_MASK;
++		break;
++	default:
++		WARN_ON(1); /* should never happen */
++		return -EEXIST;
++	}
++
++	return prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTST, m);
++}
++
++/**
++ * pwrdm_read_prev_mem_pwrst - get previous memory bank power state
++ * @pwrdm: struct powerdomain * to get previous memory bank power state
++ * @bank: memory bank number (0-3)
++ *
++ * Return the powerdomain pwrdm's previous memory power state for bank
++ * x.  Returns -EINVAL if the powerdomain pointer is null, -EEXIST if
++ * the target memory bank does not exist or is not controllable, or
++ * returns the previous memory power state upon success.
++ */
++int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
++{
++	u32 m;
++
++	if (!pwrdm)
++		return -EINVAL;
++
++	if (pwrdm->banks < (bank + 1))
++		return -EEXIST;
++
++	/*
++	 * The register bit names below may not correspond to the
++	 * actual names of the bits in each powerdomain's register,
++	 * but the type of value returned is the same for each
++	 * powerdomain.
++	 */
++	switch (bank) {
++	case 0:
++		m = OMAP3430_LASTMEM1STATEENTERED_MASK;
++		break;
++	case 1:
++		m = OMAP3430_LASTMEM2STATEENTERED_MASK;
++		break;
++	case 2:
++		m = OMAP3430_LASTSHAREDL2CACHEFLATSTATEENTERED_MASK;
++		break;
++	case 3:
++		m = OMAP3430_LASTL2FLATMEMSTATEENTERED_MASK;
++		break;
++	default:
++		WARN_ON(1); /* should never happen */
++		return -EEXIST;
++	}
++
++	return prm_read_mod_bits_shift(pwrdm->prcm_offs,
++					OMAP3430_PM_PREPWSTST, m);
++}
++
++/**
++ * pwrdm_clear_all_prev_pwrst - clear previous powerstate register for a pwrdm
++ * @pwrdm: struct powerdomain * to clear
++ *
++ * Clear the powerdomain's previous power state register.  Clears the
++ * entire register, including logic and memory bank previous power states.
++ * Returns -EINVAL if the powerdomain pointer is null, or returns 0 upon
++ * success.
++ */
++int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
++{
++	if (!pwrdm)
++		return -EINVAL;
++
++	/*
++	 * XXX should get the powerdomain's current state here;
++	 * warn & fail if it is not ON.
++	 */
++
++	pr_debug("powerdomain: clearing previous power state reg for %s\n",
++		 pwrdm->name);
++
++	prm_write_mod_reg(0, pwrdm->prcm_offs, OMAP3430_PM_PREPWSTST);
++
++	return 0;
++}
++
++/**
++ * pwrdm_wait_transition - wait for powerdomain power transition to finish
++ * @pwrdm: struct powerdomain * to wait for
++ *
++ * If the powerdomain pwrdm is in the process of a state transition,
++ * spin until it completes the power transition, or until an iteration
++ * bailout value is reached. Returns -EINVAL if the powerdomain
++ * pointer is null, -EAGAIN if the bailout value was reached, or
++ * returns 0 upon success.
++ */
++int pwrdm_wait_transition(struct powerdomain *pwrdm)
++{
++	u32 c = 0;
++
++	if (!pwrdm)
++		return -EINVAL;
++
++	/*
++	 * REVISIT: pwrdm_wait_transition() may be better implemented
++	 * via a callback and a periodic timer check -- how long do we expect
++	 * powerdomain transitions to take?
++	 */
++
++	/* XXX Is this udelay() value meaningful? */
++	while ((prm_read_mod_reg(pwrdm->prcm_offs, PM_PWSTST) &
++		OMAP_INTRANSITION) &&
++	       (c++ < PWRDM_TRANSITION_BAILOUT))
++		udelay(1);
++
++	if (c >= PWRDM_TRANSITION_BAILOUT) {
++		printk(KERN_ERR "powerdomain: waited too long for "
++		       "powerdomain %s to complete transition\n", pwrdm->name);
++		return -EAGAIN;
++	}
++
++	pr_debug("powerdomain: completed transition in %d loops\n", c);
++
++	return 0;
++}
++
++
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index b917206..e815fa3 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -29,6 +29,18 @@ config OMAP_DEBUG_LEDS
+ 	depends on OMAP_DEBUG_DEVICES
+ 	default y if LEDS || LEDS_OMAP_DEBUG
  
- static struct clk dpll1_ck = {
-@@ -276,6 +283,7 @@ static struct clk dpll1_ck = {
- 	.parent		= &sys_ck,
- 	.dpll_data	= &dpll1_dd,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES | ALWAYS_ENABLED,
-+	.round_rate	= &omap2_dpll_round_rate,
- 	.recalc		= &omap3_dpll_recalc,
- };
- 
-@@ -317,7 +325,7 @@ static struct clk dpll1_x2m2_ck = {
- /* IVA2 clock source */
- /* Type: DPLL */
- 
--static const struct dpll_data dpll2_dd = {
-+static struct dpll_data dpll2_dd = {
- 	.mult_div1_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKSEL1_PLL),
- 	.mult_mask	= OMAP3430_IVA2_DPLL_MULT_MASK,
- 	.div1_mask	= OMAP3430_IVA2_DPLL_DIV_MASK,
-@@ -331,7 +339,10 @@ static const struct dpll_data dpll2_dd = {
- 	.autoidle_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_AUTOIDLE_PLL),
- 	.autoidle_mask	= OMAP3430_AUTO_IVA2_DPLL_MASK,
- 	.idlest_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_IDLEST_PLL),
--	.idlest_bit	= OMAP3430_ST_IVA2_CLK_SHIFT
-+	.idlest_bit	= OMAP3430_ST_IVA2_CLK_SHIFT,
-+	.max_multiplier = OMAP3_MAX_DPLL_MULT,
-+	.max_divider	= OMAP3_MAX_DPLL_DIV,
-+	.rate_tolerance = DEFAULT_DPLL_RATE_TOLERANCE
- };
- 
- static struct clk dpll2_ck = {
-@@ -341,6 +352,7 @@ static struct clk dpll2_ck = {
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES,
- 	.enable		= &omap3_noncore_dpll_enable,
- 	.disable	= &omap3_noncore_dpll_disable,
-+	.round_rate	= &omap2_dpll_round_rate,
- 	.recalc		= &omap3_dpll_recalc,
- };
- 
-@@ -371,7 +383,7 @@ static struct clk dpll2_m2_ck = {
-  * Source clock for all interfaces and for some device fclks
-  * REVISIT: Also supports fast relock bypass - not included below
-  */
--static const struct dpll_data dpll3_dd = {
-+static struct dpll_data dpll3_dd = {
- 	.mult_div1_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
- 	.mult_mask	= OMAP3430_CORE_DPLL_MULT_MASK,
- 	.div1_mask	= OMAP3430_CORE_DPLL_DIV_MASK,
-@@ -382,6 +394,9 @@ static const struct dpll_data dpll3_dd = {
- 	.recal_st_bit	= OMAP3430_CORE_DPLL_ST_SHIFT,
- 	.autoidle_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_AUTOIDLE),
- 	.autoidle_mask	= OMAP3430_AUTO_CORE_DPLL_MASK,
-+	.max_multiplier = OMAP3_MAX_DPLL_MULT,
-+	.max_divider	= OMAP3_MAX_DPLL_DIV,
-+	.rate_tolerance = DEFAULT_DPLL_RATE_TOLERANCE
- };
- 
- static struct clk dpll3_ck = {
-@@ -389,6 +404,7 @@ static struct clk dpll3_ck = {
- 	.parent		= &sys_ck,
- 	.dpll_data	= &dpll3_dd,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES | ALWAYS_ENABLED,
-+	.round_rate	= &omap2_dpll_round_rate,
- 	.recalc		= &omap3_dpll_recalc,
- };
- 
-@@ -545,7 +561,7 @@ static struct clk emu_core_alwon_ck = {
- /* DPLL4 */
- /* Supplies 96MHz, 54Mhz TV DAC, DSS fclk, CAM sensor clock, emul trace clk */
- /* Type: DPLL */
--static const struct dpll_data dpll4_dd = {
-+static struct dpll_data dpll4_dd = {
- 	.mult_div1_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL2),
- 	.mult_mask	= OMAP3430_PERIPH_DPLL_MULT_MASK,
- 	.div1_mask	= OMAP3430_PERIPH_DPLL_DIV_MASK,
-@@ -559,6 +575,9 @@ static const struct dpll_data dpll4_dd = {
- 	.autoidle_mask	= OMAP3430_AUTO_PERIPH_DPLL_MASK,
- 	.idlest_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST),
- 	.idlest_bit	= OMAP3430_ST_PERIPH_CLK_SHIFT,
-+	.max_multiplier = OMAP3_MAX_DPLL_MULT,
-+	.max_divider	= OMAP3_MAX_DPLL_DIV,
-+	.rate_tolerance = DEFAULT_DPLL_RATE_TOLERANCE
- };
- 
- static struct clk dpll4_ck = {
-@@ -568,6 +587,7 @@ static struct clk dpll4_ck = {
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES,
- 	.enable		= &omap3_noncore_dpll_enable,
- 	.disable	= &omap3_noncore_dpll_disable,
-+	.round_rate	= &omap2_dpll_round_rate,
- 	.recalc		= &omap3_dpll_recalc,
- };
- 
-@@ -843,7 +863,7 @@ static struct clk emu_per_alwon_ck = {
- /* Supplies 120MHz clock, USIM source clock */
- /* Type: DPLL */
- /* 3430ES2 only */
--static const struct dpll_data dpll5_dd = {
-+static struct dpll_data dpll5_dd = {
- 	.mult_div1_reg	= OMAP_CM_REGADDR(PLL_MOD, OMAP3430ES2_CM_CLKSEL4),
- 	.mult_mask	= OMAP3430ES2_PERIPH2_DPLL_MULT_MASK,
- 	.div1_mask	= OMAP3430ES2_PERIPH2_DPLL_DIV_MASK,
-@@ -857,6 +877,9 @@ static const struct dpll_data dpll5_dd = {
- 	.autoidle_mask	= OMAP3430ES2_AUTO_PERIPH2_DPLL_MASK,
- 	.idlest_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST2),
- 	.idlest_bit	= OMAP3430ES2_ST_PERIPH2_CLK_SHIFT,
-+	.max_multiplier = OMAP3_MAX_DPLL_MULT,
-+	.max_divider	= OMAP3_MAX_DPLL_DIV,
-+	.rate_tolerance = DEFAULT_DPLL_RATE_TOLERANCE
- };
- 
- static struct clk dpll5_ck = {
-@@ -866,6 +889,7 @@ static struct clk dpll5_ck = {
- 	.flags		= CLOCK_IN_OMAP3430ES2 | RATE_PROPAGATES,
- 	.enable		= &omap3_noncore_dpll_enable,
- 	.disable	= &omap3_noncore_dpll_disable,
-+	.round_rate	= &omap2_dpll_round_rate,
- 	.recalc		= &omap3_dpll_recalc,
- };
- 
-diff --git a/include/asm-arm/arch-omap/clock.h b/include/asm-arm/arch-omap/clock.h
-index 22daa5d..4c7b351 100644
---- a/include/asm-arm/arch-omap/clock.h
-+++ b/include/asm-arm/arch-omap/clock.h
-@@ -33,6 +33,13 @@ struct dpll_data {
- 	void __iomem		*mult_div1_reg;
- 	u32			mult_mask;
- 	u32			div1_mask;
-+	u16			last_rounded_m;
-+	u8			last_rounded_n;
-+	unsigned long		last_rounded_rate;
-+	unsigned int		rate_tolerance;
-+	u16			max_multiplier;
-+	u8			max_divider;
-+	u32			max_tolerance;
- #  if defined(CONFIG_ARCH_OMAP3)
- 	u8			modes;
- 	void __iomem		*control_reg;
-@@ -71,7 +78,7 @@ struct clk {
- 	void __iomem		*clksel_reg;
- 	u32			clksel_mask;
- 	const struct clksel	*clksel;
--	const struct dpll_data	*dpll_data;
-+	struct dpll_data	*dpll_data;
- #else
- 	__u8			rate_offset;
- 	__u8			src_offset;
++config OMAP_DEBUG_POWERDOMAIN
++	bool "Emit debug messages from powerdomain layer"
++	depends on ARCH_OMAP2 || ARCH_OMAP3
++	default n
++	help
++	  Say Y here if you want to compile in powerdomain layer
++	  debugging messages for OMAP2/3.   These messages can
++	  provide more detail as to why some powerdomain calls
++	  may be failing, and will also emit a descriptive message
++	  for every powerdomain register write.  However, the
++	  extra detail costs some memory.
++
+ config OMAP_RESET_CLOCKS
+ 	bool "Reset unused clocks during boot"
+ 	depends on ARCH_OMAP
+diff --git a/include/asm-arm/arch-omap/powerdomain.h b/include/asm-arm/arch-omap/powerdomain.h
+new file mode 100644
+index 0000000..4531b49
+--- /dev/null
++++ b/include/asm-arm/arch-omap/powerdomain.h
+@@ -0,0 +1,139 @@
++/*
++ * OMAP2/3 powerdomain control
++ *
++ * Copyright (C) 2007-8 Texas Instruments, Inc.
++ * Copyright (C) 2007-8 Nokia Corporation
++ *
++ * Written by Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef ASM_ARM_ARCH_OMAP_POWERDOMAIN
++#define ASM_ARM_ARCH_OMAP_POWERDOMAIN
++
++#include <linux/types.h>
++#include <linux/list.h>
++
++#include <asm/atomic.h>
++
++#include <asm/arch/cpu.h>
++
++
++/* Powerdomain basic power states */
++#define PWRDM_POWER_OFF		0x0
++#define PWRDM_POWER_RET		0x1
++#define PWRDM_POWER_INACTIVE	0x2
++#define PWRDM_POWER_ON		0x3
++
++/* Powerdomain allowable state bitfields */
++#define PWRSTS_OFF_ON		((1 << PWRDM_POWER_OFF) | \
++				 (1 << PWRDM_POWER_ON))
++
++#define PWRSTS_OFF_RET		((1 << PWRDM_POWER_OFF) | \
++				 (1 << PWRDM_POWER_RET))
++
++#define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | (1 << PWRDM_POWER_ON))
++
++
++/*
++ * Number of memory banks that are power-controllable.	On OMAP3430, the
++ * maximum is 4.
++ */
++#define PWRDM_MAX_MEM_BANKS	4
++
++/* XXX A completely arbitrary number. What is reasonable here? */
++#define PWRDM_TRANSITION_BAILOUT 100000
++
++struct powerdomain;
++
++/* Encodes dependencies between powerdomains - statically defined */
++struct pwrdm_dep {
++
++	/* Powerdomain name */
++	const char *pwrdm_name;
++
++	/* Powerdomain pointer - resolved by the powerdomain code */
++	struct powerdomain *pwrdm;
++
++	/* Flags to mark OMAP chip restrictions, etc. */
++	const struct omap_chip_id omap_chip;
++
++};
++
++struct powerdomain {
++
++	/* Powerdomain name */
++	const char *name;
++
++	/* the address offset from CM_BASE/PRM_BASE */
++	const s16 prcm_offs;
++
++	/* Used to represent the OMAP chip types containing this pwrdm */
++	const struct omap_chip_id omap_chip;
++
++	/* Bit shift of this powerdomain's PM_WKDEP/CM_SLEEPDEP bit */
++	const u8 dep_bit;
++
++	/* Powerdomains that can be told to wake this powerdomain up */
++	struct pwrdm_dep *wkdep_srcs;
++
++	/* Powerdomains that can be told to keep this pwrdm from inactivity */
++	struct pwrdm_dep *sleepdep_srcs;
++
++	/* Possible powerdomain power states */
++	const u8 pwrsts;
++
++	/* Possible logic power states when pwrdm in RETENTION */
++	const u8 pwrsts_logic_ret;
++
++	/* Number of software-controllable memory banks in this powerdomain */
++	const u8 banks;
++
++	/* Possible memory bank pwrstates when pwrdm in RETENTION */
++	const u8 pwrsts_mem_ret[PWRDM_MAX_MEM_BANKS];
++
++	/* Possible memory bank pwrstates when pwrdm is ON */
++	const u8 pwrsts_mem_on[PWRDM_MAX_MEM_BANKS];
++
++	struct list_head node;
++
++};
++
++
++void pwrdm_init(struct powerdomain **pwrdm_list);
++
++int pwrdm_register(struct powerdomain *pwrdm);
++int pwrdm_unregister(struct powerdomain *pwrdm);
++struct powerdomain *pwrdm_lookup(const char *name);
++
++int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm));
++
++int pwrdm_add_wkdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2);
++int pwrdm_del_wkdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2);
++int pwrdm_read_wkdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2);
++int pwrdm_add_sleepdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2);
++int pwrdm_del_sleepdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2);
++int pwrdm_read_sleepdep(struct powerdomain *pwrdm1, struct powerdomain *pwrdm2);
++
++int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm);
++
++int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst);
++int pwrdm_read_next_pwrst(struct powerdomain *pwrdm);
++int pwrdm_read_prev_pwrst(struct powerdomain *pwrdm);
++int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm);
++
++int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst);
++int pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
++int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
++
++int pwrdm_read_logic_pwrst(struct powerdomain *pwrdm);
++int pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm);
++int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
++int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
++
++int pwrdm_wait_transition(struct powerdomain *pwrdm);
++
++#endif
