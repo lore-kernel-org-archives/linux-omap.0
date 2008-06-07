@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 16/21] ARM: OMAP: Change omap_cf.c and omap_nor.c to use omap_readw/writew instead of __REG
-Date: Fri,  6 Jun 2008 18:30:48 -0700
-Message-ID: <1212802253-17797-17-git-send-email-tony@atomide.com>
+Subject: [PATCH 14/21] ARM: OMAP: Clean up interrupt lines to fix warnings for multi-omap
+Date: Fri,  6 Jun 2008 18:30:46 -0700
+Message-ID: <1212802253-17797-15-git-send-email-tony@atomide.com>
 References: omap-upstream-2008-06-06-183049
  <1212802253-17797-1-git-send-email-tony@atomide.com>
  <1212802253-17797-2-git-send-email-tony@atomide.com>
@@ -17,211 +17,246 @@ References: omap-upstream-2008-06-06-183049
  <1212802253-17797-12-git-send-email-tony@atomide.com>
  <1212802253-17797-13-git-send-email-tony@atomide.com>
  <1212802253-17797-14-git-send-email-tony@atomide.com>
- <1212802253-17797-15-git-send-email-tony@atomide.com>
- <1212802253-17797-16-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:55542 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933682AbYFGBbb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jun 2008 21:31:31 -0400
-In-Reply-To: <1212802253-17797-16-git-send-email-tony@atomide.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53403 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933639AbYFGBb0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jun 2008 21:31:26 -0400
+In-Reply-To: <1212802253-17797-14-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, linux-pcmcia@lists.infradead.org, linux-mtd@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-Change omap_cf.c and omap_nor.c to use omap_readw/writew instead of __REG.
-This is needed for multi-omap in the future.
+If boards with different NR_IRQS are compiled together, tons of
+compiler warnings are emitted about redefining NR_IRQS.
 
-Cc: David Brownell <david-b@pacbell.net>
-Cc: linux-pcmcia@lists.infradead.org
-Cc: linux-mtd@lists.infradead.org
-Signed-off-by: Tony Lindren <tony@atomide.com>
+This patch fixes the problem by adding up NR_IRQS in a common place.
 
-diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
-index a66505f..82ec34c 100644
---- a/arch/arm/mach-omap1/board-osk.c
-+++ b/arch/arm/mach-omap1/board-osk.c
-@@ -267,13 +267,17 @@ static struct i2c_board_info __initdata osk_i2c_board_info[] = {
+Patch also removes quite a bit of now unnecessary code.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap1/fpga.c b/arch/arm/mach-omap1/fpga.c
+index 30e1881..0cf62ef 100644
+--- a/arch/arm/mach-omap1/fpga.c
++++ b/arch/arm/mach-omap1/fpga.c
+@@ -32,7 +32,7 @@
  
- static void __init osk_init_smc91x(void)
+ static void fpga_mask_irq(unsigned int irq)
  {
-+	u32 l;
-+
- 	if ((gpio_request(0, "smc_irq")) < 0) {
- 		printk("Error requesting gpio 0 for smc91x irq\n");
+-	irq -= OMAP1510_IH_FPGA_BASE;
++	irq -= OMAP_FPGA_IRQ_BASE;
+ 
+ 	if (irq < 8)
+ 		__raw_writeb((__raw_readb(OMAP1510_FPGA_IMR_LO)
+@@ -65,7 +65,7 @@ static void fpga_ack_irq(unsigned int irq)
+ 
+ static void fpga_unmask_irq(unsigned int irq)
+ {
+-	irq -= OMAP1510_IH_FPGA_BASE;
++	irq -= OMAP_FPGA_IRQ_BASE;
+ 
+ 	if (irq < 8)
+ 		__raw_writeb((__raw_readb(OMAP1510_FPGA_IMR_LO) | (1 << irq)),
+@@ -95,8 +95,8 @@ void innovator_fpga_IRQ_demux(unsigned int irq, struct irq_desc *desc)
+ 	if (!stat)
  		return;
- 	}
  
- 	/* Check EMIFS wait states to fix errors with SMC_GET_PKT_HDR */
--	EMIFS_CCS(1) |= 0x3;
-+	l = omap_readl(EMIFS_CCS(1));
-+	l |= 0x3;
-+	omap_writel(l, EMIFS_CCS(1));
- }
+-	for (fpga_irq = OMAP1510_IH_FPGA_BASE;
+-	     (fpga_irq < (OMAP1510_IH_FPGA_BASE + NR_FPGA_IRQS)) && stat;
++	for (fpga_irq = OMAP_FPGA_IRQ_BASE;
++	     (fpga_irq < OMAP_FPGA_IRQ_END) && stat;
+ 	     fpga_irq++, stat >>= 1) {
+ 		if (stat & 1) {
+ 			d = irq_desc + fpga_irq;
+@@ -151,7 +151,7 @@ void omap1510_fpga_init_irq(void)
+ 	__raw_writeb(0, OMAP1510_FPGA_IMR_HI);
+ 	__raw_writeb(0, INNOVATOR_FPGA_IMR2);
  
- static void __init osk_init_cf(void)
-@@ -526,13 +530,16 @@ static void __init osk_mistral_init(void) { }
+-	for (i = OMAP1510_IH_FPGA_BASE; i < (OMAP1510_IH_FPGA_BASE + NR_FPGA_IRQS); i++) {
++	for (i = OMAP_FPGA_IRQ_BASE; i < OMAP_FPGA_IRQ_END; i++) {
  
- static void __init osk_init(void)
- {
-+	u32 l;
-+
- 	/* Workaround for wrong CS3 (NOR flash) timing
- 	 * There are some U-Boot versions out there which configure
- 	 * wrong CS3 memory timings. This mainly leads to CRC
- 	 * or similar errors if you use NOR flash (e.g. with JFFS2)
- 	 */
--	if (EMIFS_CCS(3) != EMIFS_CS3_VAL)
--		EMIFS_CCS(3) = EMIFS_CS3_VAL;
-+	l = omap_readl(EMIFS_CCS(3));
-+	if (l != EMIFS_CS3_VAL)
-+		omap_writel(EMIFS_CS3_VAL, EMIFS_CCS(3));
+ 		if (i == OMAP1510_INT_FPGA_TS) {
+ 			/*
+diff --git a/include/asm-arm/arch-omap/board-2430sdp.h b/include/asm-arm/arch-omap/board-2430sdp.h
+index e9c65ce..c7db900 100644
+--- a/include/asm-arm/arch-omap/board-2430sdp.h
++++ b/include/asm-arm/arch-omap/board-2430sdp.h
+@@ -36,9 +36,4 @@
  
- 	osk_flash_resource.end = osk_flash_resource.start = omap_cs3_phys();
- 	osk_flash_resource.end += SZ_32M - 1;
-diff --git a/drivers/mtd/maps/omap_nor.c b/drivers/mtd/maps/omap_nor.c
-index 240b0e2..fb7ba78 100644
---- a/drivers/mtd/maps/omap_nor.c
-+++ b/drivers/mtd/maps/omap_nor.c
-@@ -60,13 +60,22 @@ struct omapflash_info {
- static void omap_set_vpp(struct map_info *map, int enable)
- {
- 	static int	count;
+ #define TWL4030_IRQNUM			INT_24XX_SYS_NIRQ
+ 
+-/* TWL4030 Primary Interrupt Handler (PIH) interrupts */
+-#define IH_TWL4030_BASE			IH_BOARD_BASE
+-#define IH_TWL4030_END			(IH_TWL4030_BASE+8)
+-#define NR_IRQS				(IH_TWL4030_END)
 -
--	if (enable) {
--		if (count++ == 0)
--			OMAP_EMIFS_CONFIG_REG |= OMAP_EMIFS_CONFIG_WP;
--	} else {
--		if (count && (--count == 0))
--			OMAP_EMIFS_CONFIG_REG &= ~OMAP_EMIFS_CONFIG_WP;
-+	u32 l;
-+
-+	if (cpu_class_is_omap1()) {
-+		if (enable) {
-+			if (count++ == 0) {
-+				l = omap_readl(EMIFS_CONFIG);
-+				l |= OMAP_EMIFS_CONFIG_WP;
-+				omap_writel(l, EMIFS_CONFIG);
-+			}
-+		} else {
-+			if (count && (--count == 0)) {
-+				l = omap_readl(EMIFS_CONFIG);
-+				l &= ~OMAP_EMIFS_CONFIG_WP;
-+				omap_writel(l, EMIFS_CONFIG);
-+			}
-+		}
- 	}
- }
+ #endif /* __ASM_ARCH_OMAP_2430SDP_H */
+diff --git a/include/asm-arm/arch-omap/board-h3.h b/include/asm-arm/arch-omap/board-h3.h
+index 0f64044..c5d0f32 100644
+--- a/include/asm-arm/arch-omap/board-h3.h
++++ b/include/asm-arm/arch-omap/board-h3.h
+@@ -30,12 +30,6 @@
+ /* In OMAP1710 H3 the Ethernet is directly connected to CS1 */
+ #define OMAP1710_ETHR_START		0x04000300
  
-diff --git a/drivers/pcmcia/omap_cf.c b/drivers/pcmcia/omap_cf.c
-index 46314b4..569b746 100644
---- a/drivers/pcmcia/omap_cf.c
-+++ b/drivers/pcmcia/omap_cf.c
-@@ -38,19 +38,19 @@
- #define	CF_BASE	0xfffe2800
- 
- /* status; read after IRQ */
--#define CF_STATUS_REG		__REG16(CF_BASE + 0x00)
-+#define CF_STATUS			(CF_BASE + 0x00)
- #	define	CF_STATUS_BAD_READ	(1 << 2)
- #	define	CF_STATUS_BAD_WRITE	(1 << 1)
- #	define	CF_STATUS_CARD_DETECT	(1 << 0)
- 
- /* which chipselect (CS0..CS3) is used for CF (active low) */
--#define CF_CFG_REG		__REG16(CF_BASE + 0x02)
-+#define CF_CFG				(CF_BASE + 0x02)
- 
- /* card reset */
--#define CF_CONTROL_REG		__REG16(CF_BASE + 0x04)
-+#define CF_CONTROL			(CF_BASE + 0x04)
- #	define	CF_CONTROL_RESET	(1 << 0)
- 
--#define omap_cf_present() (!(CF_STATUS_REG & CF_STATUS_CARD_DETECT))
-+#define omap_cf_present() (!(omap_readw(CF_STATUS) & CF_STATUS_CARD_DETECT))
- 
- /*--------------------------------------------------------------------------*/
- 
-@@ -139,11 +139,11 @@ omap_cf_set_socket(struct pcmcia_socket *sock, struct socket_state_t *s)
- 		return -EINVAL;
- 	}
- 
--	control = CF_CONTROL_REG;
-+	control = omap_readw(CF_CONTROL);
- 	if (s->flags & SS_RESET)
--		CF_CONTROL_REG = CF_CONTROL_RESET;
-+		omap_writew(CF_CONTROL_RESET, CF_CONTROL);
- 	else
--		CF_CONTROL_REG = 0;
-+		omap_writew(0, CF_CONTROL);
- 
- 	pr_debug("%s: Vcc %d, io_irq %d, flags %04x csc %04x\n",
- 		driver_name, s->Vcc, s->io_irq, s->flags, s->csc_mask);
-@@ -270,7 +270,7 @@ static int __init omap_cf_probe(struct platform_device *pdev)
- 	omap_cfg_reg(V10_1610_CF_IREQ);
- 	omap_cfg_reg(W10_1610_CF_RESET);
- 
--	CF_CFG_REG = ~(1 << seg);
-+	omap_writew(~(1 << seg), CF_CFG);
- 
- 	pr_info("%s: cs%d on irq %d\n", driver_name, seg, irq);
- 
-@@ -279,14 +279,15 @@ static int __init omap_cf_probe(struct platform_device *pdev)
- 	 * CF/PCMCIA variants...
- 	 */
- 	pr_debug("%s: cs%d, previous ccs %08x acs %08x\n", driver_name,
--			seg, EMIFS_CCS(seg), EMIFS_ACS(seg));
--	EMIFS_CCS(seg) = 0x0004a1b3;	/* synch mode 4 etc */
--	EMIFS_ACS(seg) = 0x00000000;	/* OE hold/setup */
-+		seg, omap_readl(EMIFS_CCS(seg)), omap_readl(EMIFS_ACS(seg)));
-+	omap_writel(0x0004a1b3, EMIFS_CCS(seg));	/* synch mode 4 etc */
-+	omap_writel(0x00000000, EMIFS_ACS(seg));	/* OE hold/setup */
- 
- 	/* CF uses armxor_ck, which is "always" available */
- 
- 	pr_debug("%s: sts %04x cfg %04x control %04x %s\n", driver_name,
--		CF_STATUS_REG, CF_CFG_REG, CF_CONTROL_REG,
-+		omap_readw(CF_STATUS), omap_readw(CF_CFG),
-+		omap_readw(CF_CONTROL),
- 		omap_cf_present() ? "present" : "(not present)");
- 
- 	cf->socket.owner = THIS_MODULE;
-diff --git a/include/asm-arm/arch-omap/tc.h b/include/asm-arm/arch-omap/tc.h
-index 8ded218..65a9c82 100644
---- a/include/asm-arm/arch-omap/tc.h
-+++ b/include/asm-arm/arch-omap/tc.h
-@@ -75,16 +75,14 @@
- #ifndef	__ASSEMBLER__
- 
- /* EMIF Slow Interface Configuration Register */
--#define	OMAP_EMIFS_CONFIG_REG	__REG32(EMIFS_CONFIG)
+-#define MAXIRQNUM			(IH_BOARD_BASE)
+-#define MAXFIQNUM			MAXIRQNUM
+-#define MAXSWINUM			MAXIRQNUM
 -
- #define OMAP_EMIFS_CONFIG_FR		(1 << 4)
- #define OMAP_EMIFS_CONFIG_PDE		(1 << 3)
- #define OMAP_EMIFS_CONFIG_PWD_EN	(1 << 2)
- #define OMAP_EMIFS_CONFIG_BM		(1 << 1)
- #define OMAP_EMIFS_CONFIG_WP		(1 << 0)
+-#define NR_IRQS				(MAXIRQNUM + 1)
+-
+ extern void h3_mmc_init(void);
+ extern void h3_mmc_slot_cover_handler(void *arg, int state);
  
--#define EMIFS_CCS(n)		__REG32(EMIFS_CS0_CONFIG + (4 * (n)))
--#define EMIFS_ACS(n)		__REG32(EMIFS_ACS0 + (4 * (n)))
-+#define EMIFS_CCS(n)		(EMIFS_CS0_CONFIG + (4 * (n)))
-+#define EMIFS_ACS(n)		(EMIFS_ACS0 + (4 * (n)))
+diff --git a/include/asm-arm/arch-omap/board-innovator.h b/include/asm-arm/arch-omap/board-innovator.h
+index 56d2c98..9ca03de 100644
+--- a/include/asm-arm/arch-omap/board-innovator.h
++++ b/include/asm-arm/arch-omap/board-innovator.h
+@@ -36,9 +36,6 @@
+ #define OMAP1510P1_EMIFS_PRI_VALUE		0x00
+ #define OMAP1510P1_EMIFF_PRI_VALUE		0x00
  
- /* Almost all documentation for chip and board memory maps assumes
-  * BM is clear.  Most devel boards have a switch to control booting
-@@ -93,13 +91,13 @@
-  */
- static inline u32 omap_cs0_phys(void)
- {
--	return (OMAP_EMIFS_CONFIG_REG & OMAP_EMIFS_CONFIG_BM)
-+	return (omap_readl(EMIFS_CONFIG) & OMAP_EMIFS_CONFIG_BM)
- 			?  OMAP_CS3_PHYS : 0;
- }
+-#define NR_FPGA_IRQS		24
+-#define NR_IRQS                 (IH_BOARD_BASE + NR_FPGA_IRQS)
+-
+ #ifndef __ASSEMBLY__
+ void fpga_write(unsigned char val, int reg);
+ unsigned char fpga_read(int reg);
+diff --git a/include/asm-arm/arch-omap/board-perseus2.h b/include/asm-arm/arch-omap/board-perseus2.h
+index eb74420..d7429cb 100644
+--- a/include/asm-arm/arch-omap/board-perseus2.h
++++ b/include/asm-arm/arch-omap/board-perseus2.h
+@@ -36,10 +36,4 @@
+ #define OMAP_SDRAM_DEVICE		D256M_1X16_4B
+ #endif
  
- static inline u32 omap_cs3_phys(void)
- {
--	return (OMAP_EMIFS_CONFIG_REG & OMAP_EMIFS_CONFIG_BM)
-+	return (omap_readl(EMIFS_CONFIG) & OMAP_EMIFS_CONFIG_BM)
- 			? 0 : OMAP_CS3_PHYS;
- }
+-#define MAXIRQNUM		IH_BOARD_BASE
+-#define MAXFIQNUM		MAXIRQNUM
+-#define MAXSWINUM		MAXIRQNUM
+-
+-#define NR_IRQS			(MAXIRQNUM + 1)
+-
+ #endif
+diff --git a/include/asm-arm/arch-omap/fpga.h b/include/asm-arm/arch-omap/fpga.h
+index 6a883e0..f420881 100644
+--- a/include/asm-arm/arch-omap/fpga.h
++++ b/include/asm-arm/arch-omap/fpga.h
+@@ -169,30 +169,29 @@ struct h2p2_dbg_fpga {
+ #define OMAP1510_INT_FPGA		(IH_GPIO_BASE + 13)
  
+ /* IRQ Numbers for interrupts muxed through the FPGA */
+-#define OMAP1510_IH_FPGA_BASE		IH_BOARD_BASE
+-#define OMAP1510_INT_FPGA_ATN		(OMAP1510_IH_FPGA_BASE + 0)
+-#define OMAP1510_INT_FPGA_ACK		(OMAP1510_IH_FPGA_BASE + 1)
+-#define OMAP1510_INT_FPGA2		(OMAP1510_IH_FPGA_BASE + 2)
+-#define OMAP1510_INT_FPGA3		(OMAP1510_IH_FPGA_BASE + 3)
+-#define OMAP1510_INT_FPGA4		(OMAP1510_IH_FPGA_BASE + 4)
+-#define OMAP1510_INT_FPGA5		(OMAP1510_IH_FPGA_BASE + 5)
+-#define OMAP1510_INT_FPGA6		(OMAP1510_IH_FPGA_BASE + 6)
+-#define OMAP1510_INT_FPGA7		(OMAP1510_IH_FPGA_BASE + 7)
+-#define OMAP1510_INT_FPGA8		(OMAP1510_IH_FPGA_BASE + 8)
+-#define OMAP1510_INT_FPGA9		(OMAP1510_IH_FPGA_BASE + 9)
+-#define OMAP1510_INT_FPGA10		(OMAP1510_IH_FPGA_BASE + 10)
+-#define OMAP1510_INT_FPGA11		(OMAP1510_IH_FPGA_BASE + 11)
+-#define OMAP1510_INT_FPGA12		(OMAP1510_IH_FPGA_BASE + 12)
+-#define OMAP1510_INT_ETHER		(OMAP1510_IH_FPGA_BASE + 13)
+-#define OMAP1510_INT_FPGAUART1		(OMAP1510_IH_FPGA_BASE + 14)
+-#define OMAP1510_INT_FPGAUART2		(OMAP1510_IH_FPGA_BASE + 15)
+-#define OMAP1510_INT_FPGA_TS		(OMAP1510_IH_FPGA_BASE + 16)
+-#define OMAP1510_INT_FPGA17		(OMAP1510_IH_FPGA_BASE + 17)
+-#define OMAP1510_INT_FPGA_CAM		(OMAP1510_IH_FPGA_BASE + 18)
+-#define OMAP1510_INT_FPGA_RTC_A		(OMAP1510_IH_FPGA_BASE + 19)
+-#define OMAP1510_INT_FPGA_RTC_B		(OMAP1510_IH_FPGA_BASE + 20)
+-#define OMAP1510_INT_FPGA_CD		(OMAP1510_IH_FPGA_BASE + 21)
+-#define OMAP1510_INT_FPGA22		(OMAP1510_IH_FPGA_BASE + 22)
+-#define OMAP1510_INT_FPGA23		(OMAP1510_IH_FPGA_BASE + 23)
++#define OMAP1510_INT_FPGA_ATN		(OMAP_FPGA_IRQ_BASE + 0)
++#define OMAP1510_INT_FPGA_ACK		(OMAP_FPGA_IRQ_BASE + 1)
++#define OMAP1510_INT_FPGA2		(OMAP_FPGA_IRQ_BASE + 2)
++#define OMAP1510_INT_FPGA3		(OMAP_FPGA_IRQ_BASE + 3)
++#define OMAP1510_INT_FPGA4		(OMAP_FPGA_IRQ_BASE + 4)
++#define OMAP1510_INT_FPGA5		(OMAP_FPGA_IRQ_BASE + 5)
++#define OMAP1510_INT_FPGA6		(OMAP_FPGA_IRQ_BASE + 6)
++#define OMAP1510_INT_FPGA7		(OMAP_FPGA_IRQ_BASE + 7)
++#define OMAP1510_INT_FPGA8		(OMAP_FPGA_IRQ_BASE + 8)
++#define OMAP1510_INT_FPGA9		(OMAP_FPGA_IRQ_BASE + 9)
++#define OMAP1510_INT_FPGA10		(OMAP_FPGA_IRQ_BASE + 10)
++#define OMAP1510_INT_FPGA11		(OMAP_FPGA_IRQ_BASE + 11)
++#define OMAP1510_INT_FPGA12		(OMAP_FPGA_IRQ_BASE + 12)
++#define OMAP1510_INT_ETHER		(OMAP_FPGA_IRQ_BASE + 13)
++#define OMAP1510_INT_FPGAUART1		(OMAP_FPGA_IRQ_BASE + 14)
++#define OMAP1510_INT_FPGAUART2		(OMAP_FPGA_IRQ_BASE + 15)
++#define OMAP1510_INT_FPGA_TS		(OMAP_FPGA_IRQ_BASE + 16)
++#define OMAP1510_INT_FPGA17		(OMAP_FPGA_IRQ_BASE + 17)
++#define OMAP1510_INT_FPGA_CAM		(OMAP_FPGA_IRQ_BASE + 18)
++#define OMAP1510_INT_FPGA_RTC_A		(OMAP_FPGA_IRQ_BASE + 19)
++#define OMAP1510_INT_FPGA_RTC_B		(OMAP_FPGA_IRQ_BASE + 20)
++#define OMAP1510_INT_FPGA_CD		(OMAP_FPGA_IRQ_BASE + 21)
++#define OMAP1510_INT_FPGA22		(OMAP_FPGA_IRQ_BASE + 22)
++#define OMAP1510_INT_FPGA23		(OMAP_FPGA_IRQ_BASE + 23)
+ 
+ #endif
+diff --git a/include/asm-arm/arch-omap/irqs.h b/include/asm-arm/arch-omap/irqs.h
+index 8797365..7464c69 100644
+--- a/include/asm-arm/arch-omap/irqs.h
++++ b/include/asm-arm/arch-omap/irqs.h
+@@ -285,7 +285,41 @@
+ #define OMAP_MAX_GPIO_LINES	192
+ #define IH_GPIO_BASE		(128 + IH2_BASE)
+ #define IH_MPUIO_BASE		(OMAP_MAX_GPIO_LINES + IH_GPIO_BASE)
+-#define IH_BOARD_BASE		(16 + IH_MPUIO_BASE)
++#define OMAP_IRQ_END		(IH_MPUIO_BASE + 16)
++
++/* External FPGA handles interrupts on Innovator boards */
++#define	OMAP_FPGA_IRQ_BASE	(OMAP_IRQ_END)
++#ifdef	CONFIG_MACH_OMAP_INNOVATOR
++#define OMAP_FPGA_NR_IRQS	24
++#else
++#define OMAP_FPGA_NR_IRQS	0
++#endif
++#define OMAP_FPGA_IRQ_END	(OMAP_FPGA_IRQ_BASE + OMAP_FPGA_NR_IRQS)
++
++/* External TWL4030 can handle interrupts on 2430 and 34xx boards */
++#define	TWL4030_IRQ_BASE	(OMAP_FPGA_IRQ_END)
++#ifdef	CONFIG_TWL4030_CORE
++#define	TWL4030_BASE_NR_IRQS	8
++#define	TWL4030_PWR_NR_IRQS	8
++#else
++#define	TWL4030_BASE_NR_IRQS	0
++#define	TWL4030_PWR_NR_IRQS	0
++#endif
++#define TWL4030_IRQ_END		(TWL4030_IRQ_BASE + TWL4030_BASE_NR_IRQS)
++#define TWL4030_PWR_IRQ_BASE	TWL4030_IRQ_END
++#define	TWL4030_PWR_IRQ_END	(TWL4030_PWR_IRQ_BASE + TWL4030_PWR_NR_IRQS)
++
++/* External TWL4030 gpio interrupts are optional */
++#define TWL4030_GPIO_IRQ_BASE	TWL4030_PWR_IRQ_END
++#ifdef	CONFIG_TWL4030_GPIO
++#define TWL4030_GPIO_NR_IRQS	18
++#else
++#define	TWL4030_GPIO_NR_IRQS	0
++#endif
++#define TWL4030_GPIO_IRQ_END	(TWL4030_GPIO_IRQ_BASE + TWL4030_GPIO_NR_IRQS)
++
++/* Total number of interrupts depends on the enabled blocks above */
++#define NR_IRQS			TWL4030_GPIO_IRQ_END
+ 
+ #define OMAP_IRQ_BIT(irq)	(1 << ((irq) % 32))
+ 
+@@ -293,14 +327,6 @@
+ extern void omap_init_irq(void);
+ #endif
+ 
+-/*
+- * The definition of NR_IRQS is in board-specific header file, which is
+- * included via hardware.h
+- */
+ #include <asm/hardware.h>
+ 
+-#ifndef NR_IRQS
+-#define NR_IRQS                 IH_BOARD_BASE
+-#endif
+-
+ #endif
