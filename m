@@ -1,484 +1,292 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 02/16] ARM: OMAP2: Split sleep.S into sleep242x.S and sleep243x.S
-Date: Fri,  6 Jun 2008 19:12:28 -0700
-Message-ID: <1212804762-18413-1-git-send-email-tony@atomide.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:56622 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752589AbYFGCMo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jun 2008 22:12:44 -0400
-In-Reply-To: 1212803277-18007-1-git-send-email-tony@atomide.com
+Subject: [PATCH 03/16] ARM: OMAP2: Add non-CORE DPLL rate set code and M,N programming
+Date: Fri,  6 Jun 2008 19:12:29 -0700
+Message-ID: <1212804762-18413-2-git-send-email-tony@atomide.com>
 References: 1212803277-18007-1-git-send-email-tony@atomide.com
+ <1212804762-18413-1-git-send-email-tony@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49290 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752592AbYFGCMq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jun 2008 22:12:46 -0400
+In-Reply-To: <1212804762-18413-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-Some register offsets are different for 242x and 243x. This
-will allow compiling sleep code for both chips into the same
-kernel.
+From: Paul Walmsley <paul@pwsan.com>
 
-Note that some PM patches are still missing. The PM patches will
-be added later on once the base files are in sync with linux-omap
-tree.
+Add non-CORE DPLL rate set code and M,N programming for OMAP3.
+Connect it to OMAP34xx DPLLs 1, 2, 4, 5 via the clock framework.
 
+You may see some warnings on rate sets from the freqsel code.  The
+table that TI presented in the 3430 TRM Rev F does not cover Fint <
+750000, which definitely occurs in practice.  However, the lack of this
+freqsel case does not appear to impair the DPLL rate change.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index e7cf1b4..4e84673 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -14,7 +14,11 @@ obj-$(CONFIG_ARCH_OMAP2420)		+= sram242x.o
- obj-$(CONFIG_ARCH_OMAP2430)		+= sram243x.o
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index 93cb52c..408b51a 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -104,6 +104,42 @@ static int _omap3_wait_dpll_status(struct clk *clk, u8 state)
+ 	return ret;
+ }
  
- # Power Management
--obj-$(CONFIG_PM) += pm.o sleep.o
-+ifeq ($(CONFIG_PM),y)
-+obj-y					+= pm.o
-+obj-$(CONFIG_ARCH_OMAP2420)		+= sleep242x.o
-+obj-$(CONFIG_ARCH_OMAP2430)		+= sleep243x.o
-+endif
++/* From 3430 TRM ES2 4.7.6.2 */
++static u16 _omap3_dpll_compute_freqsel(struct clk *clk, u8 n)
++{
++	unsigned long fint;
++	u16 f = 0;
++
++	fint = clk->parent->rate / (n + 1);
++
++	pr_debug("clock: fint is %lu\n", fint);
++
++	if (fint >= 750000 && fint <= 1000000)
++		f = 0x3;
++	else if (fint > 1000000 && fint <= 1250000)
++		f = 0x4;
++	else if (fint > 1250000 && fint <= 1500000)
++		f = 0x5;
++	else if (fint > 1500000 && fint <= 1750000)
++		f = 0x6;
++	else if (fint > 1750000 && fint <= 2100000)
++		f = 0x7;
++	else if (fint > 7500000 && fint <= 10000000)
++		f = 0xB;
++	else if (fint > 10000000 && fint <= 12500000)
++		f = 0xC;
++	else if (fint > 12500000 && fint <= 15000000)
++		f = 0xD;
++	else if (fint > 15000000 && fint <= 17500000)
++		f = 0xE;
++	else if (fint > 17500000 && fint <= 21000000)
++		f = 0xF;
++	else
++		pr_debug("clock: unknown freqsel setting for %d\n", n);
++
++	return f;
++}
++
+ /* Non-CORE DPLL (e.g., DPLLs that do not control SDRC) clock functions */
  
- # Clock framework
- obj-$(CONFIG_ARCH_OMAP2)		+= clock24xx.o
-diff --git a/arch/arm/mach-omap2/sleep.S b/arch/arm/mach-omap2/sleep.S
-deleted file mode 100644
-index 46ccb9b..0000000
---- a/arch/arm/mach-omap2/sleep.S
-+++ /dev/null
-@@ -1,128 +0,0 @@
--/*
-- * linux/arch/arm/mach-omap2/sleep.S
-- *
-- * (C) Copyright 2004
-- * Texas Instruments, <www.ti.com>
-- * Richard Woodruff <r-woodruff2@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation; either version 2 of
-- * the License, or (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR /PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-- * MA 02111-1307 USA
-- */
--
--#include <linux/linkage.h>
--#include <asm/assembler.h>
--#include <asm/arch/io.h>
--#include <asm/arch/pm.h>
--
--#include "sdrc.h"
--
--/* First address of reserved address space?  apparently valid for OMAP2 & 3 */
--#define A_SDRC0_V		(0xC0000000)
--
--	.text
--
--/*
-- * Forces OMAP into idle state
-- *
-- * omap24xx_idle_loop_suspend() - This bit of code just executes the WFI
-- * for normal idles.
-- *
-- * Note: This code get's copied to internal SRAM at boot. When the OMAP
-- *	 wakes up it continues execution at the point it went to sleep.
-- */
--ENTRY(omap24xx_idle_loop_suspend)
--	stmfd	sp!, {r0, lr}		@ save registers on stack
--	mov	r0, #0			@ clear for mcr setup
--	mcr	p15, 0, r0, c7, c0, 4	@ wait for interrupt
--	ldmfd	sp!, {r0, pc}		@ restore regs and return
--
--ENTRY(omap24xx_idle_loop_suspend_sz)
--	.word	. - omap24xx_idle_loop_suspend
--
--/*
-- * omap242x_cpu_suspend() - Forces OMAP into deep sleep state by completing
-- * SDRC shutdown then ARM shutdown.  Upon wake MPU is back on so just restore
-- * SDRC.
-- *
-- * Input:
-- * R0 :	DLL ctrl value pre-Sleep
-- * R1 : Processor+Revision
-- *	2420: 0x21 = 242xES1, 0x26 = 242xES2.2
-- *	2430: 0x31 = 2430ES1, 0x32 = 2430ES2
-- *
-- * The if the DPLL is going to AutoIdle. It seems like the DPLL may be back on
-- * when we get called, but the DLL probably isn't.  We will wait a bit more in
-- * case the DPLL isn't quite there yet. The code will wait on DLL for DDR even
-- * if in unlocked mode.
-- *
-- * For less than 242x-ES2.2 upon wake from a sleep mode where the external
-- * oscillator was stopped, a timing bug exists where a non-stabilized 12MHz
-- * clock can pass into the PRCM can cause problems at DSP and IVA.
-- * To work around this the code will switch to the 32kHz source prior to sleep.
-- * Post sleep we will shift back to using the DPLL.  Apparently,
-- * CM_IDLEST_CLKGEN does not reflect the full clock change so you need to wait
-- * 3x12MHz + 3x32kHz clocks for a full switch.
-- *
-- * The DLL load value is not kept in RETENTION or OFF.	It needs to be restored
-- * at wake
-- */
--ENTRY(omap24xx_cpu_suspend)
--	stmfd	sp!, {r0 - r12, lr}	@ save registers on stack
--	mov	r3, #0x0		@ clear for mrc call
--	mcr	p15, 0, r3, c7, c10, 4	@ memory barrier, hope SDR/DDR finished
--	nop
--	nop
--	ldr	r3, A_SDRC_POWER	@ addr of sdrc power
--	ldr	r4, [r3]		@ value of sdrc power
--	orr	r4, r4, #0x40		@ enable self refresh on idle req
--	mov	r5, #0x2000		@ set delay (DPLL relock + DLL relock)
--	str	r4, [r3]		@ make it so
--	mov	r2, #0
--	nop
--	mcr	p15, 0, r2, c7, c0, 4	@ wait for interrupt
--	nop
--loop:
--	subs	r5, r5, #0x1		@ awake, wait just a bit
--	bne	loop
--
--	/* The DPLL has on before we take the DDR out of self refresh */
--	bic	r4, r4, #0x40		@ now clear self refresh bit.
--	str	r4, [r3]		@ put vlaue back.
--	ldr	r4, A_SDRC0		@ make a clock happen
--	ldr	r4, [r4]
--	nop				@ start auto refresh only after clk ok
--	movs	r0, r0			@ see if DDR or SDR
--	ldrne	r1, A_SDRC_DLLA_CTRL_S	@ get addr of DLL ctrl
--	strne	r0, [r1]		@ rewrite DLLA to force DLL reload
--	addne	r1, r1, #0x8		@ move to DLLB
--	strne	r0, [r1]		@ rewrite DLLB to force DLL reload
--
--	mov	r5, #0x1000
--loop2:
--	subs	r5, r5, #0x1
--	bne	loop2
--	/* resume*/
--	ldmfd	sp!, {r0 - r12, pc}	@ restore regs and return
--
--A_SDRC_POWER:
--	.word OMAP242X_SDRC_REGADDR(SDRC_POWER)
--A_SDRC0:
--	.word A_SDRC0_V
--A_SDRC_DLLA_CTRL_S:
--	.word OMAP242X_SDRC_REGADDR(SDRC_DLLA_CTRL)
--
--ENTRY(omap24xx_cpu_suspend_sz)
--	.word	. - omap24xx_cpu_suspend
--
-diff --git a/arch/arm/mach-omap2/sleep242x.S b/arch/arm/mach-omap2/sleep242x.S
-new file mode 100644
-index 0000000..33bdd01
---- /dev/null
-+++ b/arch/arm/mach-omap2/sleep242x.S
-@@ -0,0 +1,131 @@
-+/*
-+ * linux/arch/arm/mach-omap2/sleep.S
-+ *
-+ * (C) Copyright 2004
-+ * Texas Instruments, <www.ti.com>
-+ * Richard Woodruff <r-woodruff2@ti.com>
-+ *
-+ * (C) Copyright 2006 Nokia Corporation
-+ * Fixed idle loop sleep
-+ * Igor Stoppa <igor.stoppa@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation; either version 2 of
-+ * the License, or (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR /PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-+ * MA 02111-1307 USA
-+ */
-+
-+#include <linux/linkage.h>
-+#include <asm/assembler.h>
-+#include <asm/arch/io.h>
-+#include <asm/arch/pm.h>
-+
-+#include <asm/arch/omap24xx.h>
-+
-+#include "sdrc.h"
-+
-+/* First address of reserved address space?  apparently valid for OMAP2 & 3 */
-+#define A_SDRC0_V		(0xC0000000)
-+
-+	.text
-+
-+/*
-+ * Forces OMAP into idle state
-+ *
-+ * omap242x_idle_loop_suspend() - This bit of code just executes the WFI
-+ * for normal idles.
-+ *
-+ * Note: This code get's copied to internal SRAM at boot. When the OMAP
-+ *	 wakes up it continues execution at the point it went to sleep.
-+ */
-+ENTRY(omap242x_idle_loop_suspend)
-+	stmfd	sp!, {r0, lr}		@ save registers on stack
-+	mov	r0, #0x0		@ clear for mrc call
-+	mcr	p15, 0, r0, c7, c0, 4	@ wait for interrupt
-+	ldmfd	sp!, {r0, pc}		@ restore regs and return
-+
-+ENTRY(omap242x_idle_loop_suspend_sz)
-+	.word	. - omap242x_idle_loop_suspend
-+
-+/*
-+ * omap242x_cpu_suspend() - Forces OMAP into deep sleep state by completing
-+ * SDRC shutdown then ARM shutdown.  Upon wake MPU is back on so just restore
-+ * SDRC.
-+ *
-+ * Input:
-+ * R0 :	DLL ctrl value pre-Sleep
-+ *
-+ * The if the DPLL is going to AutoIdle. It seems like the DPLL may be back on
-+ * when we get called, but the DLL probably isn't.  We will wait a bit more in
-+ * case the DPLL isn't quite there yet. The code will wait on DLL for DDR even
-+ * if in unlocked mode.
-+ *
-+ * For less than 242x-ES2.2 upon wake from a sleep mode where the external
-+ * oscillator was stopped, a timing bug exists where a non-stabilized 12MHz
-+ * clock can pass into the PRCM can cause problems at DSP and IVA.
-+ * To work around this the code will switch to the 32kHz source prior to sleep.
-+ * Post sleep we will shift back to using the DPLL.  Apparently,
-+ * CM_IDLEST_CLKGEN does not reflect the full clock change so you need to wait
-+ * 3x12MHz + 3x32kHz clocks for a full switch.
-+ *
-+ * The DLL load value is not kept in RETENTION or OFF.	It needs to be restored
-+ * at wake
-+ */
-+ENTRY(omap242x_cpu_suspend)
-+	stmfd	sp!, {r0 - r12, lr}	@ save registers on stack
-+	mov	r3, #0x0		@ clear for mrc call
-+	mcr	p15, 0, r3, c7, c10, 4	@ memory barrier, hope SDR/DDR finished
-+	nop
-+	nop
-+	ldr	r3, omap2_ocs_sdrc_power	@ addr of sdrc power
-+	ldr	r4, [r3]		@ value of sdrc power
-+	orr	r4, r4, #0x40		@ enable self refresh on idle req
-+	mov	r5, #0x2000		@ set delay (DPLL relock + DLL relock)
-+	str	r4, [r3]		@ make it so
-+	mov	r2, #0
-+	nop
-+	mcr	p15, 0, r2, c7, c0, 4	@ wait for interrupt
-+	nop
-+loop:
-+	subs	r5, r5, #0x1		@ awake, wait just a bit
-+	bne	loop
-+
-+	/* The DPLL has on before we take the DDR out of self refresh */
-+	bic	r4, r4, #0x40		@ now clear self refresh bit.
-+	str	r4, [r3]		@ put vlaue back.
-+	ldr	r4, A_SDRC0		@ make a clock happen
-+	ldr	r4, [r4]
-+	nop				@ start auto refresh only after clk ok
-+	movs	r0, r0			@ see if DDR or SDR
-+	ldrne	r1, omap2_ocs_sdrc_dlla_ctrl	@ get addr of DLL ctrl
-+	strne	r0, [r1]		@ rewrite DLLA to force DLL reload
-+	addne	r1, r1, #0x8		@ move to DLLB
-+	strne	r0, [r1]		@ rewrite DLLB to force DLL reload
-+
-+	mov	r5, #0x1000
-+loop2:
-+	subs	r5, r5, #0x1
-+	bne	loop2
-+	/* resume*/
-+	ldmfd	sp!, {r0 - r12, pc}	@ restore regs and return
-+
-+omap2_ocs_sdrc_power:
-+	.word OMAP242X_SDRC_REGADDR(SDRC_POWER)
-+A_SDRC0:
-+	.word A_SDRC0_V
-+omap2_ocs_sdrc_dlla_ctrl:
-+	.word OMAP242X_SDRC_REGADDR(SDRC_DLLA_CTRL)
-+
-+ENTRY(omap242x_cpu_suspend_sz)
-+	.word	. - omap242x_cpu_suspend
-+
-diff --git a/arch/arm/mach-omap2/sleep243x.S b/arch/arm/mach-omap2/sleep243x.S
-new file mode 100644
-index 0000000..9a2b4b7
---- /dev/null
-+++ b/arch/arm/mach-omap2/sleep243x.S
-@@ -0,0 +1,131 @@
-+/*
-+ * linux/arch/arm/mach-omap2/sleep.S
-+ *
-+ * (C) Copyright 2004
-+ * Texas Instruments, <www.ti.com>
-+ * Richard Woodruff <r-woodruff2@ti.com>
-+ *
-+ * (C) Copyright 2006 Nokia Corporation
-+ * Fixed idle loop sleep
-+ * Igor Stoppa <igor.stoppa@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation; either version 2 of
-+ * the License, or (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR /PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-+ * MA 02111-1307 USA
-+ */
-+
-+#include <linux/linkage.h>
-+#include <asm/assembler.h>
-+#include <asm/arch/io.h>
-+#include <asm/arch/pm.h>
-+
-+#include <asm/arch/omap24xx.h>
-+
-+#include "sdrc.h"
-+
-+/* First address of reserved address space?  apparently valid for OMAP2 & 3 */
-+#define A_SDRC0_V		(0xC0000000)
-+
-+	.text
-+
-+/*
-+ * Forces OMAP into idle state
-+ *
-+ * omap243x_idle_loop_suspend() - This bit of code just executes the WFI
-+ * for normal idles.
-+ *
-+ * Note: This code get's copied to internal SRAM at boot. When the OMAP
-+ *	 wakes up it continues execution at the point it went to sleep.
-+ */
-+ENTRY(omap243x_idle_loop_suspend)
-+	stmfd	sp!, {r0, lr}		@ save registers on stack
-+	mov	r0, #0x0		@ clear for mrc call
-+	mcr	p15, 0, r0, c7, c0, 4	@ wait for interrupt
-+	ldmfd	sp!, {r0, pc}		@ restore regs and return
-+
-+ENTRY(omap243x_idle_loop_suspend_sz)
-+	.word	. - omap243x_idle_loop_suspend
-+
-+/*
-+ * omap243x_cpu_suspend() - Forces OMAP into deep sleep state by completing
-+ * SDRC shutdown then ARM shutdown.  Upon wake MPU is back on so just restore
-+ * SDRC.
-+ *
-+ * Input:
-+ * R0 :	DLL ctrl value pre-Sleep
-+ *
-+ * The if the DPLL is going to AutoIdle. It seems like the DPLL may be back on
-+ * when we get called, but the DLL probably isn't.  We will wait a bit more in
-+ * case the DPLL isn't quite there yet. The code will wait on DLL for DDR even
-+ * if in unlocked mode.
-+ *
-+ * For less than 242x-ES2.2 upon wake from a sleep mode where the external
-+ * oscillator was stopped, a timing bug exists where a non-stabilized 12MHz
-+ * clock can pass into the PRCM can cause problems at DSP and IVA.
-+ * To work around this the code will switch to the 32kHz source prior to sleep.
-+ * Post sleep we will shift back to using the DPLL.  Apparently,
-+ * CM_IDLEST_CLKGEN does not reflect the full clock change so you need to wait
-+ * 3x12MHz + 3x32kHz clocks for a full switch.
-+ *
-+ * The DLL load value is not kept in RETENTION or OFF.	It needs to be restored
-+ * at wake
-+ */
-+ENTRY(omap243x_cpu_suspend)
-+	stmfd	sp!, {r0 - r12, lr}	@ save registers on stack
-+	mov	r3, #0x0		@ clear for mrc call
-+	mcr	p15, 0, r3, c7, c10, 4	@ memory barrier, hope SDR/DDR finished
-+	nop
-+	nop
-+	ldr	r3, omap2_ocs_sdrc_power	@ addr of sdrc power
-+	ldr	r4, [r3]		@ value of sdrc power
-+	orr	r4, r4, #0x40		@ enable self refresh on idle req
-+	mov	r5, #0x2000		@ set delay (DPLL relock + DLL relock)
-+	str	r4, [r3]		@ make it so
-+	mov	r2, #0
-+	nop
-+	mcr	p15, 0, r2, c7, c0, 4	@ wait for interrupt
-+	nop
-+loop:
-+	subs	r5, r5, #0x1		@ awake, wait just a bit
-+	bne	loop
-+
-+	/* The DPLL has on before we take the DDR out of self refresh */
-+	bic	r4, r4, #0x40		@ now clear self refresh bit.
-+	str	r4, [r3]		@ put vlaue back.
-+	ldr	r4, A_SDRC0		@ make a clock happen
-+	ldr	r4, [r4]
-+	nop				@ start auto refresh only after clk ok
-+	movs	r0, r0			@ see if DDR or SDR
-+	ldrne	r1, omap2_ocs_sdrc_dlla_ctrl	@ get addr of DLL ctrl
-+	strne	r0, [r1]		@ rewrite DLLA to force DLL reload
-+	addne	r1, r1, #0x8		@ move to DLLB
-+	strne	r0, [r1]		@ rewrite DLLB to force DLL reload
-+
-+	mov	r5, #0x1000
-+loop2:
-+	subs	r5, r5, #0x1
-+	bne	loop2
-+	/* resume*/
-+	ldmfd	sp!, {r0 - r12, pc}	@ restore regs and return
-+
-+omap2_ocs_sdrc_power:
-+	.word OMAP243X_SDRC_REGADDR(SDRC_POWER)
-+A_SDRC0:
-+	.word A_SDRC0_V
-+omap2_ocs_sdrc_dlla_ctrl:
-+	.word OMAP243X_SDRC_REGADDR(SDRC_DLLA_CTRL)
-+
-+ENTRY(omap243x_cpu_suspend_sz)
-+	.word	. - omap243x_cpu_suspend
-+
-diff --git a/include/asm-arm/arch-omap/pm.h b/include/asm-arm/arch-omap/pm.h
-index 1458805..fc72584 100644
---- a/include/asm-arm/arch-omap/pm.h
-+++ b/include/asm-arm/arch-omap/pm.h
-@@ -135,20 +135,24 @@ extern void omap_pm_suspend(void);
- extern void omap730_cpu_suspend(unsigned short, unsigned short);
- extern void omap1510_cpu_suspend(unsigned short, unsigned short);
- extern void omap1610_cpu_suspend(unsigned short, unsigned short);
--extern void omap24xx_cpu_suspend(u32 dll_ctrl, u32 cpu_revision);
-+extern void omap242x_cpu_suspend(u32 dll_ctrl, u32 cpu_revision);
-+extern void omap243x_cpu_suspend(u32 dll_ctrl, u32 cpu_revision);
- extern void omap730_idle_loop_suspend(void);
- extern void omap1510_idle_loop_suspend(void);
- extern void omap1610_idle_loop_suspend(void);
--extern void omap24xx_idle_loop_suspend(void);
-+extern void omap242x_idle_loop_suspend(void);
-+extern void omap243x_idle_loop_suspend(void);
+ /*
+@@ -240,7 +276,7 @@ static int omap3_noncore_dpll_enable(struct clk *clk)
+ 	if (clk == &dpll3_ck)
+ 		return -EINVAL;
  
- extern unsigned int omap730_cpu_suspend_sz;
- extern unsigned int omap1510_cpu_suspend_sz;
- extern unsigned int omap1610_cpu_suspend_sz;
--extern unsigned int omap24xx_cpu_suspend_sz;
-+extern unsigned int omap242x_cpu_suspend_sz;
-+extern unsigned int omap243x_cpu_suspend_sz;
- extern unsigned int omap730_idle_loop_suspend_sz;
- extern unsigned int omap1510_idle_loop_suspend_sz;
- extern unsigned int omap1610_idle_loop_suspend_sz;
--extern unsigned int omap24xx_idle_loop_suspend_sz;
-+extern unsigned int omap242x_idle_loop_suspend_sz;
-+extern unsigned int omap243x_idle_loop_suspend_sz;
+-	if (clk->parent->rate == clk_get_rate(clk))
++	if (clk->parent->rate == omap2_get_dpll_rate(clk))
+ 		r = _omap3_noncore_dpll_bypass(clk);
+ 	else
+ 		r = _omap3_noncore_dpll_lock(clk);
+@@ -270,6 +306,109 @@ static void omap3_noncore_dpll_disable(struct clk *clk)
+ 	_omap3_noncore_dpll_stop(clk);
+ }
  
- #ifdef CONFIG_OMAP_SERIAL_WAKE
- extern void omap_serial_wake_trigger(int enable);
++
++/* Non-CORE DPLL rate set code */
++
++/*
++ * omap3_noncore_dpll_program - set non-core DPLL M,N values directly
++ * @clk: struct clk * of DPLL to set
++ * @m: DPLL multiplier to set
++ * @n: DPLL divider to set
++ * @freqsel: FREQSEL value to set
++ *
++ * Program the DPLL with the supplied M, N values, and wait for the DPLL to
++ * lock..  Returns -EINVAL upon error, or 0 upon success.
++ */
++static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
++{
++	struct dpll_data *dd;
++	u32 v;
++
++	if (!clk)
++		return -EINVAL;
++
++	dd = clk->dpll_data;
++	if (!dd)
++		return -EINVAL;
++
++	/*
++	 * According to the 12-5 CDP code from TI, "Limitation 2.5"
++	 * on 3430ES1 prevents us from changing DPLL multipliers or dividers
++	 * on DPLL4.
++	 */
++	if (is_sil_rev_equal_to(OMAP3430_REV_ES1_0) &&
++	    !strcmp("dpll4_ck", clk->name)) {
++		printk(KERN_ERR "clock: DPLL4 cannot change rate due to "
++		       "silicon 'Limitation 2.5' on 3430ES1.\n");
++		return -EINVAL;
++	}
++
++	/* 3430 ES2 TRM: 4.7.6.9 DPLL Programming Sequence */
++	_omap3_noncore_dpll_bypass(clk);
++
++	v = __raw_readl(dd->mult_div1_reg);
++	v &= ~(dd->mult_mask | dd->div1_mask);
++
++	/* Set mult (M), div1 (N), freqsel */
++	v |= m << __ffs(dd->mult_mask);
++	v |= n << __ffs(dd->div1_mask);
++	v |= freqsel << __ffs(dd->freqsel_mask);
++
++	__raw_writel(v, dd->mult_div1_reg);
++
++	/* We let the clock framework set the other output dividers later */
++
++	/* REVISIT: Set ramp-up delay? */
++
++	_omap3_noncore_dpll_lock(clk);
++
++	return 0;
++}
++
++/**
++ * omap3_noncore_dpll_set_rate - set non-core DPLL rate
++ * @clk: struct clk * of DPLL to set
++ * @rate: rounded target rate
++ *
++ * Program the DPLL with the rounded target rate.  Returns -EINVAL upon
++ * error, or 0 upon success.
++ */
++static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
++{
++	u16 freqsel;
++	struct dpll_data *dd;
++
++	if (!clk || !rate)
++		return -EINVAL;
++
++	dd = clk->dpll_data;
++	if (!dd)
++		return -EINVAL;
++
++	if (rate == omap2_get_dpll_rate(clk))
++		return 0;
++
++	if (dd->last_rounded_rate != rate)
++		omap2_dpll_round_rate(clk, rate);
++
++	if (dd->last_rounded_rate == 0)
++		return -EINVAL;
++
++	freqsel = _omap3_dpll_compute_freqsel(clk, dd->last_rounded_n);
++	if (!freqsel)
++		WARN_ON(1);
++
++	omap3_noncore_dpll_program(clk, dd->last_rounded_m, dd->last_rounded_n,
++				   freqsel);
++
++	omap3_dpll_recalc(clk);
++
++	return 0;
++}
++
++/* DPLL autoidle read/set code */
++
++
+ /**
+  * omap3_dpll_autoidle_read - read a DPLL's autoidle bits
+  * @clk: struct clk * of the DPLL to read
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index a1db551..aa871c2 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -34,6 +34,7 @@ static void omap3_dpll_deny_idle(struct clk *clk);
+ static u32 omap3_dpll_autoidle_read(struct clk *clk);
+ static int omap3_noncore_dpll_enable(struct clk *clk);
+ static void omap3_noncore_dpll_disable(struct clk *clk);
++static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate);
+ 
+ /* Maximum DPLL multiplier, divider values for OMAP3 */
+ #define OMAP3_MAX_DPLL_MULT		2048
+@@ -263,6 +264,7 @@ static struct dpll_data dpll1_dd = {
+ 	.mult_div1_reg	= OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_CLKSEL1_PLL),
+ 	.mult_mask	= OMAP3430_MPU_DPLL_MULT_MASK,
+ 	.div1_mask	= OMAP3430_MPU_DPLL_DIV_MASK,
++	.freqsel_mask	= OMAP3430_MPU_DPLL_FREQSEL_MASK,
+ 	.control_reg	= OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_CLKEN_PLL),
+ 	.enable_mask	= OMAP3430_EN_MPU_DPLL_MASK,
+ 	.modes		= (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
+@@ -284,6 +286,7 @@ static struct clk dpll1_ck = {
+ 	.dpll_data	= &dpll1_dd,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES | ALWAYS_ENABLED,
+ 	.round_rate	= &omap2_dpll_round_rate,
++	.set_rate	= &omap3_noncore_dpll_set_rate,
+ 	.recalc		= &omap3_dpll_recalc,
+ };
+ 
+@@ -329,6 +332,7 @@ static struct dpll_data dpll2_dd = {
+ 	.mult_div1_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKSEL1_PLL),
+ 	.mult_mask	= OMAP3430_IVA2_DPLL_MULT_MASK,
+ 	.div1_mask	= OMAP3430_IVA2_DPLL_DIV_MASK,
++	.freqsel_mask	= OMAP3430_IVA2_DPLL_FREQSEL_MASK,
+ 	.control_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKEN_PLL),
+ 	.enable_mask	= OMAP3430_EN_IVA2_DPLL_MASK,
+ 	.modes		= (1 << DPLL_LOW_POWER_STOP) | (1 << DPLL_LOCKED) |
+@@ -353,6 +357,7 @@ static struct clk dpll2_ck = {
+ 	.enable		= &omap3_noncore_dpll_enable,
+ 	.disable	= &omap3_noncore_dpll_disable,
+ 	.round_rate	= &omap2_dpll_round_rate,
++	.set_rate	= &omap3_noncore_dpll_set_rate,
+ 	.recalc		= &omap3_dpll_recalc,
+ };
+ 
+@@ -387,6 +392,7 @@ static struct dpll_data dpll3_dd = {
+ 	.mult_div1_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
+ 	.mult_mask	= OMAP3430_CORE_DPLL_MULT_MASK,
+ 	.div1_mask	= OMAP3430_CORE_DPLL_DIV_MASK,
++	.freqsel_mask	= OMAP3430_CORE_DPLL_FREQSEL_MASK,
+ 	.control_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_mask	= OMAP3430_EN_CORE_DPLL_MASK,
+ 	.auto_recal_bit	= OMAP3430_EN_CORE_DPLL_DRIFTGUARD_SHIFT,
+@@ -565,6 +571,7 @@ static struct dpll_data dpll4_dd = {
+ 	.mult_div1_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL2),
+ 	.mult_mask	= OMAP3430_PERIPH_DPLL_MULT_MASK,
+ 	.div1_mask	= OMAP3430_PERIPH_DPLL_DIV_MASK,
++	.freqsel_mask	= OMAP3430_PERIPH_DPLL_FREQSEL_MASK,
+ 	.control_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_mask	= OMAP3430_EN_PERIPH_DPLL_MASK,
+ 	.modes		= (1 << DPLL_LOW_POWER_STOP) | (1 << DPLL_LOCKED),
+@@ -588,6 +595,7 @@ static struct clk dpll4_ck = {
+ 	.enable		= &omap3_noncore_dpll_enable,
+ 	.disable	= &omap3_noncore_dpll_disable,
+ 	.round_rate	= &omap2_dpll_round_rate,
++	.set_rate	= &omap3_noncore_dpll_set_rate,
+ 	.recalc		= &omap3_dpll_recalc,
+ };
+ 
+@@ -867,6 +875,7 @@ static struct dpll_data dpll5_dd = {
+ 	.mult_div1_reg	= OMAP_CM_REGADDR(PLL_MOD, OMAP3430ES2_CM_CLKSEL4),
+ 	.mult_mask	= OMAP3430ES2_PERIPH2_DPLL_MULT_MASK,
+ 	.div1_mask	= OMAP3430ES2_PERIPH2_DPLL_DIV_MASK,
++	.freqsel_mask	= OMAP3430ES2_PERIPH2_DPLL_FREQSEL_MASK,
+ 	.control_reg	= OMAP_CM_REGADDR(PLL_MOD, OMAP3430ES2_CM_CLKEN2),
+ 	.enable_mask	= OMAP3430ES2_EN_PERIPH2_DPLL_MASK,
+ 	.modes		= (1 << DPLL_LOW_POWER_STOP) | (1 << DPLL_LOCKED),
+@@ -890,6 +899,7 @@ static struct clk dpll5_ck = {
+ 	.enable		= &omap3_noncore_dpll_enable,
+ 	.disable	= &omap3_noncore_dpll_disable,
+ 	.round_rate	= &omap2_dpll_round_rate,
++	.set_rate	= &omap3_noncore_dpll_set_rate,
+ 	.recalc		= &omap3_dpll_recalc,
+ };
+ 
+diff --git a/include/asm-arm/arch-omap/clock.h b/include/asm-arm/arch-omap/clock.h
+index f40253d..d1c04be 100644
+--- a/include/asm-arm/arch-omap/clock.h
++++ b/include/asm-arm/arch-omap/clock.h
+@@ -43,6 +43,7 @@ struct dpll_data {
+ 	u8			max_divider;
+ 	u32			max_tolerance;
+ #  if defined(CONFIG_ARCH_OMAP3)
++	u32			freqsel_mask;
+ 	u8			modes;
+ 	void __iomem		*control_reg;
+ 	u32			enable_mask;
