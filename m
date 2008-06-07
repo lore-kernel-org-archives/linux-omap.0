@@ -1,71 +1,217 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 07/16] ARM: OMAP2: Add clkdm_get_pwrdm()
-Date: Fri,  6 Jun 2008 19:12:33 -0700
-Message-ID: <1212804762-18413-6-git-send-email-tony@atomide.com>
+Subject: [PATCH 10/16] ARM: OMAP2: Use omap_globals for CPU detection for multi-omap
+Date: Fri,  6 Jun 2008 19:12:36 -0700
+Message-ID: <1212804762-18413-9-git-send-email-tony@atomide.com>
 References: 1212803277-18007-1-git-send-email-tony@atomide.com
  <1212804762-18413-1-git-send-email-tony@atomide.com>
  <1212804762-18413-2-git-send-email-tony@atomide.com>
  <1212804762-18413-3-git-send-email-tony@atomide.com>
  <1212804762-18413-4-git-send-email-tony@atomide.com>
  <1212804762-18413-5-git-send-email-tony@atomide.com>
+ <1212804762-18413-6-git-send-email-tony@atomide.com>
+ <1212804762-18413-7-git-send-email-tony@atomide.com>
+ <1212804762-18413-8-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:56695 "EHLO
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:56768 "EHLO
 	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754524AbYFGCMy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jun 2008 22:12:54 -0400
-In-Reply-To: <1212804762-18413-5-git-send-email-tony@atomide.com>
+	with ESMTP id S1755822AbYFGCNE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jun 2008 22:13:04 -0400
+In-Reply-To: <1212804762-18413-8-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-From: Paul Walmsley <paul@pwsan.com>
+This allows to get rid of the ifdefs and will allow simpler
+CPU detection in the future.
 
-Add clkdm_get_pwrdm() to the clockdomain code.  It will return a
-pointer to the powerdomain struct that the clockdomain is contained
-within.  Used by the PM code.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index ca944ec..6e5f892 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -315,6 +315,22 @@ int clkdm_for_each(int (*fn)(struct clockdomain *clkdm))
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index dff4b16..c7f9ab7 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -14,27 +14,17 @@
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
++#include <linux/io.h>
+ 
+-#include <asm/io.h>
+-
++#include <asm/arch/common.h>
+ #include <asm/arch/control.h>
+ #include <asm/arch/cpu.h>
+ 
+-#if defined(CONFIG_ARCH_OMAP2420)
+-#define TAP_BASE	io_p2v(0x48014000)
+-#elif defined(CONFIG_ARCH_OMAP2430)
+-#define TAP_BASE	io_p2v(0x4900A000)
+-#elif defined(CONFIG_ARCH_OMAP34XX)
+-#define TAP_BASE	io_p2v(0x4830A000)
+-#endif
++static u32 class;
++static void __iomem *tap_base;
++static u16 tap_prod_id;
+ 
+ #define OMAP_TAP_IDCODE		0x0204
+-#if defined(CONFIG_ARCH_OMAP34XX)
+-#define OMAP_TAP_PROD_ID	0x0210
+-#else
+-#define OMAP_TAP_PROD_ID	0x0208
+-#endif
+-
+ #define OMAP_TAP_DIE_ID_0	0x0218
+ #define OMAP_TAP_DIE_ID_1	0x021C
+ #define OMAP_TAP_DIE_ID_2	0x0220
+@@ -93,18 +83,24 @@ static u32 __init read_tap_reg(int reg)
+ 	 * it means its Cortex r0p0 which is 3430 ES1
+ 	 */
+ 	if ((((cpuid >> 4) & 0xFFF) == 0xC08) && ((cpuid & 0xF) == 0x0)) {
++
++		if (reg == tap_prod_id) {
++			regval = 0x000F00F0;
++			goto out;
++		}
++
+ 		switch (reg) {
+ 		case OMAP_TAP_IDCODE  : regval = 0x0B7AE02F; break;
+ 		/* Making DevType as 0xF in ES1 to differ from ES2 */
+-		case OMAP_TAP_PROD_ID : regval = 0x000F00F0; break;
+ 		case OMAP_TAP_DIE_ID_0: regval = 0x01000000; break;
+ 		case OMAP_TAP_DIE_ID_1: regval = 0x1012d687; break;
+ 		case OMAP_TAP_DIE_ID_2:	regval = 0x00000000; break;
+ 		case OMAP_TAP_DIE_ID_3:	regval = 0x2d2c0000; break;
+ 		}
+ 	} else
+-		regval = __raw_readl(TAP_BASE + reg);
++		regval = __raw_readl(tap_base + reg);
+ 
++out:
+ 	return regval;
+ 
+ }
+@@ -203,7 +199,7 @@ void __init omap2_check_revision(void)
+ 	u8  rev;
+ 
+ 	idcode = read_tap_reg(OMAP_TAP_IDCODE);
+-	prod_id = read_tap_reg(OMAP_TAP_PROD_ID);
++	prod_id = read_tap_reg(tap_prod_id);
+ 	hawkeye = (idcode >> 12) & 0xffff;
+ 	rev = (idcode >> 28) & 0x0f;
+ 	dev_type = (prod_id >> 16) & 0x0f;
+@@ -268,3 +264,39 @@ void __init omap2_check_revision(void)
+ 
  }
  
- 
-+/**
-+ * clkdm_get_pwrdm - return a ptr to the pwrdm that this clkdm resides in
-+ * @clkdm: struct clockdomain *
-+ *
-+ * Return a pointer to the struct powerdomain that the specified clockdomain
-+ * 'clkdm' exists in, or returns NULL if clkdm argument is NULL.
++#ifdef CONFIG_ARCH_OMAP3
++/*
++ * OMAP3 has L2 cache which has to be enabled by bootloader.
 + */
-+struct powerdomain *clkdm_get_pwrdm(struct clockdomain *clkdm)
++static int __init omap3_check_l2cache(void)
 +{
-+	if (!clkdm)
-+		return NULL;
++	u32 val;
 +
-+	return clkdm->pwrdm;
++	if (class < OMAP3430_REV_ES1_0)
++		return -ENODEV;
++
++	/* Get CP15 AUX register, bit 1 enabled indicates L2 cache is on */
++	asm volatile("mrc p15, 0, %0, c1, c0, 1":"=r" (val));
++
++	if ((val & 0x2) == 0)
++		printk(KERN_WARNING "Warning: L2 cache not enabled. Check "
++		       "your bootloader. L2 off results in performance loss\n");
++	else
++		pr_info("OMAP3 L2 cache enabled\n");
++
++	return 0;
 +}
 +
++arch_initcall(omap3_check_l2cache);
++#endif /* CONFIG_ARCH_OMAP3 */
 +
- /* Hardware clockdomain control */
- 
- /**
-diff --git a/include/asm-arm/arch-omap/clockdomain.h b/include/asm-arm/arch-omap/clockdomain.h
-index d2a4551..e71fee4 100644
---- a/include/asm-arm/arch-omap/clockdomain.h
-+++ b/include/asm-arm/arch-omap/clockdomain.h
-@@ -94,6 +94,9 @@ struct clockdomain *clkdm_lookup(const char *name);
- int clkdm_for_each(int (*fn)(struct clockdomain *clkdm));
- struct powerdomain *clkdm_get_pwrdm(struct clockdomain *clkdm);
- 
-+int clkdm_for_each(int (*fn)(struct clockdomain *clkdm));
-+struct powerdomain *clkdm_get_pwrdm(struct clockdomain *clkdm);
++void __init omap2_set_globals_tap(struct omap_globals *omap2_globals)
++{
++	class = omap2_globals->class;
++	tap_base = omap2_globals->tap;
 +
- void omap2_clkdm_allow_idle(struct clockdomain *clkdm);
- void omap2_clkdm_deny_idle(struct clockdomain *clkdm);
++	if (class == 0x3430)
++		tap_prod_id = 0x0210;
++	else
++		tap_prod_id = 0x0208;
++}
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+index f5e7612..38888e3 100644
+--- a/arch/arm/plat-omap/common.c
++++ b/arch/arm/plat-omap/common.c
+@@ -248,6 +248,7 @@ static struct omap_globals *omap2_globals;
  
+ static void __init __omap2_set_globals(void)
+ {
++	omap2_set_globals_tap(omap2_globals);
+ 	omap2_set_globals_memory(omap2_globals);
+ 	omap2_set_globals_control(omap2_globals);
+ 	omap2_set_globals_prcm(omap2_globals);
+@@ -259,6 +260,7 @@ static void __init __omap2_set_globals(void)
+ #if defined(CONFIG_ARCH_OMAP2420)
+ 
+ static struct omap_globals omap242x_globals = {
++	.class	= OMAP242X_CLASS,
+ 	.tap	= (__force void __iomem *)OMAP2_IO_ADDRESS(0x48014000),
+ 	.sdrc	= (__force void __iomem *)OMAP2_IO_ADDRESS(OMAP2420_SDRC_BASE),
+ 	.sms	= (__force void __iomem *)OMAP2_IO_ADDRESS(OMAP2420_SMS_BASE),
+@@ -277,6 +279,7 @@ void __init omap2_set_globals_242x(void)
+ #if defined(CONFIG_ARCH_OMAP2430)
+ 
+ static struct omap_globals omap243x_globals = {
++	.class	= OMAP243X_CLASS,
+ 	.tap	= (__force void __iomem *)OMAP2_IO_ADDRESS(0x4900a000),
+ 	.sdrc	= (__force void __iomem *)OMAP2_IO_ADDRESS(OMAP243X_SDRC_BASE),
+ 	.sms	= (__force void __iomem *)OMAP2_IO_ADDRESS(OMAP243X_SMS_BASE),
+@@ -295,6 +298,7 @@ void __init omap2_set_globals_243x(void)
+ #if defined(CONFIG_ARCH_OMAP3430)
+ 
+ static struct omap_globals omap343x_globals = {
++	.class	= OMAP343X_CLASS,
+ 	.tap	= (__force void __iomem *)OMAP2_IO_ADDRESS(0x4830A000),
+ 	.sdrc	= (__force void __iomem *)OMAP2_IO_ADDRESS(OMAP343X_SDRC_BASE),
+ 	.sms	= (__force void __iomem *)OMAP2_IO_ADDRESS(OMAP343X_SMS_BASE),
+diff --git a/include/asm-arm/arch-omap/common.h b/include/asm-arm/arch-omap/common.h
+index e4cce2e..7a48fc9 100644
+--- a/include/asm-arm/arch-omap/common.h
++++ b/include/asm-arm/arch-omap/common.h
+@@ -50,6 +50,7 @@ static inline int omap_register_i2c_bus(int bus_id, u32 clkrate,
+ 
+ /* IO bases for various OMAP processors */
+ struct omap_globals {
++	u32		class;		/* OMAP class to detect */
+ 	void __iomem	*tap;		/* Control module ID code */
+ 	void __iomem	*sdrc;		/* SDRAM Controller */
+ 	void __iomem	*sms;		/* SDRAM Memory Scheduler */
+@@ -63,6 +64,7 @@ void omap2_set_globals_243x(void);
+ void omap2_set_globals_343x(void);
+ 
+ /* These get called from omap2_set_globals_xxxx(), do not call these */
++void omap2_set_globals_tap(struct omap_globals *);
+ void omap2_set_globals_memory(struct omap_globals *);
+ void omap2_set_globals_control(struct omap_globals *);
+ void omap2_set_globals_prcm(struct omap_globals *);
+diff --git a/include/asm-arm/arch-omap/cpu.h b/include/asm-arm/arch-omap/cpu.h
+index 52db09f..33f26e9 100644
+--- a/include/asm-arm/arch-omap/cpu.h
++++ b/include/asm-arm/arch-omap/cpu.h
+@@ -346,9 +346,14 @@ IS_OMAP_TYPE(3430, 0x3430)
+ 		get_sil_revision(system_rev)
+ 
+ /* Various silicon macros defined here */
++#define OMAP242X_CLASS		0x24200000
+ #define OMAP2420_REV_ES1_0	0x24200000
+ #define OMAP2420_REV_ES2_0	0x24201000
++
++#define OMAP243X_CLASS		0x24300000
+ #define OMAP2430_REV_ES1_0	0x24300000
++
++#define OMAP343X_CLASS		0x34300000
+ #define OMAP3430_REV_ES1_0	0x34300000
+ #define OMAP3430_REV_ES2_0	0x34301000
+ #define OMAP3430_REV_ES2_1	0x34302000
