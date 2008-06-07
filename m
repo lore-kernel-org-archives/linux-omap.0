@@ -1,239 +1,108 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 11/16] ARM: OMAP2: Implement CPUfreq frequency table based on PRCM table
-Date: Fri,  6 Jun 2008 19:12:37 -0700
-Message-ID: <1212804762-18413-10-git-send-email-tony@atomide.com>
-References: 1212803277-18007-1-git-send-email-tony@atomide.com
- <1212804762-18413-1-git-send-email-tony@atomide.com>
- <1212804762-18413-2-git-send-email-tony@atomide.com>
- <1212804762-18413-3-git-send-email-tony@atomide.com>
- <1212804762-18413-4-git-send-email-tony@atomide.com>
- <1212804762-18413-5-git-send-email-tony@atomide.com>
- <1212804762-18413-6-git-send-email-tony@atomide.com>
- <1212804762-18413-7-git-send-email-tony@atomide.com>
- <1212804762-18413-8-git-send-email-tony@atomide.com>
- <1212804762-18413-9-git-send-email-tony@atomide.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:56785 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755898AbYFGCNG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jun 2008 22:13:06 -0400
-In-Reply-To: <1212804762-18413-9-git-send-email-tony@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Subject: [PATCH 12/12] ARM: OMAP2: Clock: Combine 34xx l3_icks and l4_icks
+Date: Fri,  6 Jun 2008 18:35:17 -0700
+Message-ID: <1212802517-17885-13-git-send-email-tony@atomide.com>
+References: omap2-clocks-2008-06-06-183514
+	<1212802517-17885-1-git-send-email-tony@atomide.com>
+	<1212802517-17885-2-git-send-email-tony@atomide.com>
+	<1212802517-17885-3-git-send-email-tony@atomide.com>
+	<1212802517-17885-4-git-send-email-tony@atomide.com>
+	<1212802517-17885-5-git-send-email-tony@atomide.com>
+	<1212802517-17885-6-git-send-email-tony@atomide.com>
+	<1212802517-17885-7-git-send-email-tony@atomide.com>
+	<1212802517-17885-8-git-send-email-tony@atomide.com>
+	<1212802517-17885-9-git-send-email-tony@atomide.com>
+	<1212802517-17885-10-git-send-email-tony@atomide.com>
+	<1212802517-17885-11-git-send-email-tony@atomide.com>
+	<1212802517-17885-12-git-send-email-tony@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
+In-Reply-To: <1212802517-17885-12-git-send-email-tony@atomide.com>
+List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://lists.arm.linux.org.uk/lurker/list/linux-arm-kernel.html>
+List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
+List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
+List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.arm.linux.org.uk
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@mvista.com>, Tony Lindgren <tony@atomide.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, =?utf-8?q?H=C3=B6gander=20Jouni?= <jouni.hogander@nokia.com>
+List-Id: linux-omap@vger.kernel.org
 
-From: Kevin Hilman <khilman@mvista.com>
-
-This patch adds a CPUfreq frequency-table implementation for OMAP2 by
-walking the PRCM rate-table for available entries and adding them to a
-CPUfreq table.
-
-CPUfreq can then be used to manage switching between all the available
-entries in the PRCM rate table.  Either use the CPUfreq sysfs
-interface directly, (see Section 3 of Documentation/cpu-freq/user-guide.txt)
-or use the cpufrequtils package:
-http://www.kernel.org/pub/linux/utils/kernel/cpufreq/cpufrequtils.html
-
-Signed-off-by: Kevin Hilman <khilman@mvista.com>
-
-Updated to try to use cpufreq_table if it exists.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-index 0454911..54cc6e1 100644
---- a/arch/arm/mach-omap2/clock24xx.c
-+++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -377,6 +377,45 @@ static int omap2_select_table_rate(struct clk *clk, unsigned long rate)
- 	return 0;
- }
- 
-+#ifdef CONFIG_CPU_FREQ
-+/*
-+ * Walk PRCM rate table and fillout cpufreq freq_table
-+ */
-+static struct cpufreq_frequency_table freq_table[ARRAY_SIZE(rate_table)];
-+
-+void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
-+{
-+	struct prcm_config *prcm;
-+	int i = 0;
-+
-+	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
-+		if (!(prcm->flags & cpu_mask))
-+			continue;
-+		if (prcm->xtal_speed != sys_ck.rate)
-+			continue;
-+
-+		/* don't put bypass rates in table */
-+		if (prcm->dpll_speed == prcm->xtal_speed)
-+			continue;
-+
-+		freq_table[i].index = i;
-+		freq_table[i].frequency = prcm->mpu_speed / 1000;
-+		i++;
-+	}
-+
-+	if (i == 0) {
-+		printk(KERN_WARNING "%s: failed to initialize frequency "
-+		       "table\n", __func__);
-+		return;
-+	}
-+
-+	freq_table[i].index = i;
-+	freq_table[i].frequency = CPUFREQ_TABLE_END;
-+
-+	*table = &freq_table[0];
-+}
-+#endif
-+
- static struct clk_functions omap2_clk_functions = {
- 	.clk_enable		= omap2_clk_enable,
- 	.clk_disable		= omap2_clk_disable,
-@@ -384,6 +423,9 @@ static struct clk_functions omap2_clk_functions = {
- 	.clk_set_rate		= omap2_clk_set_rate,
- 	.clk_set_parent		= omap2_clk_set_parent,
- 	.clk_disable_unused	= omap2_clk_disable_unused,
-+#ifdef	CONFIG_CPU_FREQ
-+	.clk_init_cpufreq_table	= omap2_clk_init_cpufreq_table,
-+#endif
- };
- 
- static u32 omap2_get_apll_clkin(void)
-diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
-index d719c15..fc6cd5e 100644
---- a/arch/arm/plat-omap/cpu-omap.c
-+++ b/arch/arm/plat-omap/cpu-omap.c
-@@ -24,9 +24,12 @@
- #include <asm/hardware.h>
- #include <asm/io.h>
- #include <asm/system.h>
-+#include <asm/arch/clock.h>
- 
- #define VERY_HI_RATE	900000000
- 
-+static struct cpufreq_frequency_table *freq_table;
-+
- #ifdef CONFIG_ARCH_OMAP1
- #define MPU_CLK		"mpu"
- #else
-@@ -39,6 +42,9 @@ static struct clk *mpu_clk;
- 
- int omap_verify_speed(struct cpufreq_policy *policy)
- {
-+	if (freq_table)
-+		return cpufreq_frequency_table_verify(policy, freq_table);
-+
- 	if (policy->cpu)
- 		return -EINVAL;
- 
-@@ -70,12 +76,26 @@ static int omap_target(struct cpufreq_policy *policy,
- 	struct cpufreq_freqs freqs;
- 	int ret = 0;
- 
-+	/* Ensure desired rate is within allowed range.  Some govenors
-+	 * (ondemand) will just pass target_freq=0 to get the minimum. */
-+	if (target_freq < policy->cpuinfo.min_freq)
-+		target_freq = policy->cpuinfo.min_freq;
-+	if (target_freq > policy->cpuinfo.max_freq)
-+		target_freq = policy->cpuinfo.max_freq;
-+
- 	freqs.old = omap_getspeed(0);
- 	freqs.new = clk_round_rate(mpu_clk, target_freq * 1000) / 1000;
- 	freqs.cpu = 0;
- 
-+	if (freqs.old == freqs.new)
-+		return ret;
-+
- 	cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
--	ret = clk_set_rate(mpu_clk, target_freq * 1000);
-+#ifdef CONFIG_CPU_FREQ_DEBUG
-+	printk(KERN_DEBUG "cpufreq-omap: transition: %u --> %u\n",
-+	       freqs.old, freqs.new);
-+#endif
-+	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
- 	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
- 
- 	return ret;
-@@ -83,16 +103,31 @@ static int omap_target(struct cpufreq_policy *policy,
- 
- static int __init omap_cpu_init(struct cpufreq_policy *policy)
- {
-+	int result = 0;
-+
- 	mpu_clk = clk_get(NULL, MPU_CLK);
- 	if (IS_ERR(mpu_clk))
- 		return PTR_ERR(mpu_clk);
- 
- 	if (policy->cpu != 0)
- 		return -EINVAL;
-+
- 	policy->cur = policy->min = policy->max = omap_getspeed(0);
--	policy->cpuinfo.min_freq = clk_round_rate(mpu_clk, 0) / 1000;
--	policy->cpuinfo.max_freq = clk_round_rate(mpu_clk, VERY_HI_RATE) / 1000;
--	policy->cpuinfo.transition_latency = CPUFREQ_ETERNAL;
-+
-+	clk_init_cpufreq_table(&freq_table);
-+	if (freq_table) {
-+		result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
-+		if (!result)
-+			cpufreq_frequency_table_get_attr(freq_table,
-+							policy->cpu);
-+	} else {
-+		policy->cpuinfo.min_freq = clk_round_rate(mpu_clk, 0) / 1000;
-+		policy->cpuinfo.max_freq = clk_round_rate(mpu_clk,
-+							VERY_HI_RATE) / 1000;
-+	}
-+
-+	/* FIXME: what's the actual transition time? */
-+	policy->cpuinfo.transition_latency = 10 * 1000 * 1000;
- 
- 	return 0;
- }
-@@ -103,6 +138,11 @@ static int omap_cpu_exit(struct cpufreq_policy *policy)
- 	return 0;
- }
- 
-+static struct freq_attr *omap_cpufreq_attr[] = {
-+	&cpufreq_freq_attr_scaling_available_freqs,
-+	NULL,
-+};
-+
- static struct cpufreq_driver omap_driver = {
- 	.flags		= CPUFREQ_STICKY,
- 	.verify		= omap_verify_speed,
-@@ -111,6 +151,7 @@ static struct cpufreq_driver omap_driver = {
- 	.init		= omap_cpu_init,
- 	.exit		= omap_cpu_exit,
- 	.name		= "omap",
-+	.attr		= omap_cpufreq_attr,
- };
- 
- static int __init omap_cpufreq_init(void)
-@@ -119,3 +160,11 @@ static int __init omap_cpufreq_init(void)
- }
- 
- arch_initcall(omap_cpufreq_init);
-+
-+/*
-+ * if ever we want to remove this, upon cleanup call:
-+ *
-+ * cpufreq_unregister_driver()
-+ * cpufreq_frequency_table_put_attr()
-+ */
-+
-diff --git a/include/asm-arm/arch-omap/clock.h b/include/asm-arm/arch-omap/clock.h
-index fc5abc3..bfaf7b6 100644
---- a/include/asm-arm/arch-omap/clock.h
-+++ b/include/asm-arm/arch-omap/clock.h
-@@ -121,6 +121,9 @@ extern void clk_allow_idle(struct clk *clk);
- extern void clk_deny_idle(struct clk *clk);
- extern int clk_get_usecount(struct clk *clk);
- extern void clk_enable_init_clocks(void);
-+#ifdef CONFIG_CPU_FREQ
-+extern void clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
-+#endif
- 
- /* Clock flags */
- #define RATE_CKCTL		(1 << 0)	/* Main fixed ratio clocks */
+RnJvbTogSMO2Z2FuZGVyIEpvdW5pIDxqb3VuaS5ob2dhbmRlckBub2tpYS5jb20+CgpFLmcgZHNz
+X2wzX2ljayBhbmQgZHNzX2w0X2ljayBoYXZlIHNhbWUgZ2F0aW5nIGNvbnRyb2wuIEhhdmluZyBv
+d24KY2xvY2sgZm9yIGJvdGggb2YgdGhlbSBjYXVzZXMgcmFjZSBjb25kaXRpb24gYmV0d2VlbiBl
+bmFibGUgLyBkaXNhYmxlLgoKVGhpcyBwYXRjaCBjb21iaW5lcyB0aGlzIGtpbmQgb2YgY2xvY2tz
+IGFuZCBuYW1lcyBuZXcgY2xvY2sgYXMgPG1vZHVsZT5faWNrLgoKU2lnbmVkLW9mZi1ieTogSm91
+bmkgSG9nYW5kZXIgPGpvdW5pLmhvZ2FuZGVyQG5va2lhLmNvbT4KQWNrZWQtYnk6IFBhdWwgV2Fs
+bXNsZXkgPHBhdWxAcHdzYW4uY29tPgpTaWduZWQtb2ZmLWJ5OiBUb255IExpbmRncmVuIDx0b255
+QGF0b21pZGUuY29tPgoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvY2xvY2szNHh4
+LmggYi9hcmNoL2FybS9tYWNoLW9tYXAyL2Nsb2NrMzR4eC5oCmluZGV4IGU4ZjIyYzQuLmExZGI1
+NTEgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvY2xvY2szNHh4LmgKKysrIGIvYXJj
+aC9hcm0vbWFjaC1vbWFwMi9jbG9jazM0eHguaApAQCAtMTE4OSwyNyArMTE4OSwzNCBAQCBzdGF0
+aWMgY29uc3Qgc3RydWN0IGNsa3NlbCBnZnhfbDNfY2xrc2VsW10gPSB7CiAJeyAucGFyZW50ID0g
+TlVMTCB9CiB9OwogCi1zdGF0aWMgc3RydWN0IGNsayBnZnhfbDNfZmNrID0gewotCS5uYW1lCQk9
+ICJnZnhfbDNfZmNrIiwKKy8qIFZpcnR1YWwgcGFyZW50IGNsb2NrIGZvciBnZnhfbDNfaWNrIGFu
+ZCBnZnhfbDNfZmNrICovCitzdGF0aWMgc3RydWN0IGNsayBnZnhfbDNfY2sgPSB7CisJLm5hbWUJ
+CT0gImdmeF9sM19jayIsCiAJLnBhcmVudAkJPSAmbDNfaWNrLAogCS5pbml0CQk9ICZvbWFwMl9p
+bml0X2Nsa3NlbF9wYXJlbnQsCiAJLmVuYWJsZV9yZWcJPSBPTUFQX0NNX1JFR0FERFIoR0ZYX01P
+RCwgQ01fSUNMS0VOKSwKIAkuZW5hYmxlX2JpdAk9IE9NQVBfRU5fR0ZYX1NISUZULAorCS5mbGFn
+cwkJPSBDTE9DS19JTl9PTUFQMzQzMEVTMSwKKwkucmVjYWxjCQk9ICZmb2xsb3dwYXJlbnRfcmVj
+YWxjLAorfTsKKworc3RhdGljIHN0cnVjdCBjbGsgZ2Z4X2wzX2ZjayA9IHsKKwkubmFtZQkJPSAi
+Z2Z4X2wzX2ZjayIsCisJLnBhcmVudAkJPSAmZ2Z4X2wzX2NrLAorCS5pbml0CQk9ICZvbWFwMl9p
+bml0X2Nsa3NlbF9wYXJlbnQsCiAJLmNsa3NlbF9yZWcJPSBPTUFQX0NNX1JFR0FERFIoR0ZYX01P
+RCwgQ01fQ0xLU0VMKSwKIAkuY2xrc2VsX21hc2sJPSBPTUFQX0NMS1NFTF9HRlhfTUFTSywKIAku
+Y2xrc2VsCQk9IGdmeF9sM19jbGtzZWwsCi0JLmZsYWdzCQk9IENMT0NLX0lOX09NQVAzNDMwRVMx
+IHwgUkFURV9QUk9QQUdBVEVTLAorCS5mbGFncwkJPSBDTE9DS19JTl9PTUFQMzQzMEVTMSB8IFJB
+VEVfUFJPUEFHQVRFUyB8CisJCQkJUEFSRU5UX0NPTlRST0xTX0NMT0NLLAogCS5jbGtkbV9uYW1l
+CT0gImdmeF8zNDMwZXMxX2Nsa2RtIiwKIAkucmVjYWxjCQk9ICZvbWFwMl9jbGtzZWxfcmVjYWxj
+LAogfTsKIAogc3RhdGljIHN0cnVjdCBjbGsgZ2Z4X2wzX2ljayA9IHsKIAkubmFtZQkJPSAiZ2Z4
+X2wzX2ljayIsCi0JLnBhcmVudAkJPSAmbDNfaWNrLAotCS5pbml0CQk9ICZvbWFwMl9pbml0X2Ns
+a19jbGtkbSwKLQkuZW5hYmxlX3JlZwk9IE9NQVBfQ01fUkVHQUREUihHRlhfTU9ELCBDTV9JQ0xL
+RU4pLAotCS5lbmFibGVfYml0CT0gT01BUF9FTl9HRlhfU0hJRlQsCi0JLmZsYWdzCQk9IENMT0NL
+X0lOX09NQVAzNDMwRVMxLAorCS5wYXJlbnQJCT0gJmdmeF9sM19jaywKKwkuZmxhZ3MJCT0gQ0xP
+Q0tfSU5fT01BUDM0MzBFUzEgfCBQQVJFTlRfQ09OVFJPTFNfQ0xPQ0ssCiAJLmNsa2RtX25hbWUJ
+PSAiZ2Z4XzM0MzBlczFfY2xrZG0iLAogCS5yZWNhbGMJCT0gJmZvbGxvd3BhcmVudF9yZWNhbGMs
+CiB9OwpAQCAtMjE1MywxOSArMjE2MCw5IEBAIHN0YXRpYyBzdHJ1Y3QgY2xrIGNhbV9tY2xrID0g
+ewogCS5yZWNhbGMJCT0gJm9tYXAyX2Nsa3NlbF9yZWNhbGMsCiB9OwogCi1zdGF0aWMgc3RydWN0
+IGNsayBjYW1fbDNfaWNrID0gewotCS5uYW1lCQk9ICJjYW1fbDNfaWNrIiwKLQkucGFyZW50CQk9
+ICZsM19pY2ssCi0JLmluaXQJCT0gJm9tYXAyX2luaXRfY2xrX2Nsa2RtLAotCS5lbmFibGVfcmVn
+CT0gT01BUF9DTV9SRUdBRERSKE9NQVAzNDMwX0NBTV9NT0QsIENNX0lDTEtFTiksCi0JLmVuYWJs
+ZV9iaXQJPSBPTUFQMzQzMF9FTl9DQU1fU0hJRlQsCi0JLmZsYWdzCQk9IENMT0NLX0lOX09NQVAz
+NDNYLAotCS5jbGtkbV9uYW1lCT0gImNhbV9jbGtkbSIsCi0JLnJlY2FsYwkJPSAmZm9sbG93cGFy
+ZW50X3JlY2FsYywKLX07Ci0KLXN0YXRpYyBzdHJ1Y3QgY2xrIGNhbV9sNF9pY2sgPSB7Ci0JLm5h
+bWUJCT0gImNhbV9sNF9pY2siLAorc3RhdGljIHN0cnVjdCBjbGsgY2FtX2ljayA9IHsKKwkvKiBI
+YW5kbGVzIGJvdGggTDMgYW5kIEw0IGNsb2NrcyAqLworCS5uYW1lCQk9ICJjYW1faWNrIiwKIAku
+cGFyZW50CQk9ICZsNF9pY2ssCiAJLmluaXQJCT0gJm9tYXAyX2luaXRfY2xrX2Nsa2RtLAogCS5l
+bmFibGVfcmVnCT0gT01BUF9DTV9SRUdBRERSKE9NQVAzNDMwX0NBTV9NT0QsIENNX0lDTEtFTiks
+CkBAIC0yMTk5LDE5ICsyMTk2LDkgQEAgc3RhdGljIHN0cnVjdCBjbGsgdXNiaG9zdF80OG1fZmNr
+ID0gewogCS5yZWNhbGMJCT0gJmZvbGxvd3BhcmVudF9yZWNhbGMsCiB9OwogCi1zdGF0aWMgc3Ry
+dWN0IGNsayB1c2Job3N0X2wzX2ljayA9IHsKLQkubmFtZQkJPSAidXNiaG9zdF9sM19pY2siLAot
+CS5wYXJlbnQJCT0gJmwzX2ljaywKLQkuaW5pdAkJPSAmb21hcDJfaW5pdF9jbGtfY2xrZG0sCi0J
+LmVuYWJsZV9yZWcJPSBPTUFQX0NNX1JFR0FERFIoT01BUDM0MzBFUzJfVVNCSE9TVF9NT0QsIENN
+X0lDTEtFTiksCi0JLmVuYWJsZV9iaXQJPSBPTUFQMzQzMEVTMl9FTl9VU0JIT1NUX1NISUZULAot
+CS5mbGFncwkJPSBDTE9DS19JTl9PTUFQMzQzMEVTMiwKLQkuY2xrZG1fbmFtZQk9ICJ1c2Job3N0
+X2Nsa2RtIiwKLQkucmVjYWxjCQk9ICZmb2xsb3dwYXJlbnRfcmVjYWxjLAotfTsKLQotc3RhdGlj
+IHN0cnVjdCBjbGsgdXNiaG9zdF9sNF9pY2sgPSB7Ci0JLm5hbWUJCT0gInVzYmhvc3RfbDRfaWNr
+IiwKK3N0YXRpYyBzdHJ1Y3QgY2xrIHVzYmhvc3RfaWNrID0geworCS8qIEhhbmRsZXMgYm90aCBM
+MyBhbmQgTDQgY2xvY2tzICovCisJLm5hbWUJCT0gInVzYmhvc3RfaWNrIiwKIAkucGFyZW50CQk9
+ICZsNF9pY2ssCiAJLmluaXQJCT0gJm9tYXAyX2luaXRfY2xrX2Nsa2RtLAogCS5lbmFibGVfcmVn
+CT0gT01BUF9DTV9SRUdBRERSKE9NQVAzNDMwRVMyX1VTQkhPU1RfTU9ELCBDTV9JQ0xLRU4pLApA
+QCAtMzA5Myw2ICszMDgwLDcgQEAgc3RhdGljIHN0cnVjdCBjbGsgKm9uY2hpcF8zNHh4X2Nsa3Nb
+XSBfX2luaXRkYXRhID0gewogCSZsM19pY2ssCiAJJmw0X2ljaywKIAkmcm1faWNrLAorCSZnZnhf
+bDNfY2ssCiAJJmdmeF9sM19mY2ssCiAJJmdmeF9sM19pY2ssCiAJJmdmeF9jZzFfY2ssCkBAIC0z
+MTc0LDEyICszMTYyLDEwIEBAIHN0YXRpYyBzdHJ1Y3QgY2xrICpvbmNoaXBfMzR4eF9jbGtzW10g
+X19pbml0ZGF0YSA9IHsKIAkmZHNzMl9hbHdvbl9mY2ssCiAJJmRzc19pY2ssCiAJJmNhbV9tY2xr
+LAotCSZjYW1fbDNfaWNrLAotCSZjYW1fbDRfaWNrLAorCSZjYW1faWNrLAogCSZ1c2Job3N0XzEy
+MG1fZmNrLAogCSZ1c2Job3N0XzQ4bV9mY2ssCi0JJnVzYmhvc3RfbDNfaWNrLAotCSZ1c2Job3N0
+X2w0X2ljaywKKwkmdXNiaG9zdF9pY2ssCiAJJnVzYmhvc3Rfc2FyX2ZjaywKIAkmdXNpbV9mY2ss
+CiAJJmdwdDFfZmNrLAoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpMaXN0IGFkbWluOiBodHRwOi8vbGlzdHMuYXJtLmxp
+bnV4Lm9yZy51ay9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwKRkFROiAgICAgICAg
+aHR0cDovL3d3dy5hcm0ubGludXgub3JnLnVrL21haWxpbmdsaXN0cy9mYXEucGhwCkV0aXF1ZXR0
+ZTogIGh0dHA6Ly93d3cuYXJtLmxpbnV4Lm9yZy51ay9tYWlsaW5nbGlzdHMvZXRpcXVldHRlLnBo
+cA==
