@@ -1,25 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 12/12] ARM: OMAP2: Clock: Combine 34xx l3_icks and l4_icks
-Date: Fri,  6 Jun 2008 18:35:17 -0700
-Message-ID: <1212802517-17885-13-git-send-email-tony@atomide.com>
-References: omap2-clocks-2008-06-06-183514
-	<1212802517-17885-1-git-send-email-tony@atomide.com>
-	<1212802517-17885-2-git-send-email-tony@atomide.com>
-	<1212802517-17885-3-git-send-email-tony@atomide.com>
-	<1212802517-17885-4-git-send-email-tony@atomide.com>
-	<1212802517-17885-5-git-send-email-tony@atomide.com>
-	<1212802517-17885-6-git-send-email-tony@atomide.com>
-	<1212802517-17885-7-git-send-email-tony@atomide.com>
-	<1212802517-17885-8-git-send-email-tony@atomide.com>
-	<1212802517-17885-9-git-send-email-tony@atomide.com>
-	<1212802517-17885-10-git-send-email-tony@atomide.com>
-	<1212802517-17885-11-git-send-email-tony@atomide.com>
-	<1212802517-17885-12-git-send-email-tony@atomide.com>
+Subject: [PATCH 00/16] Omap2 patches for post 2.6.26
+Date: Fri,  6 Jun 2008 18:47:41 -0700
+Message-ID: <1212803277-18007-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
-In-Reply-To: <1212802517-17885-12-git-send-email-tony@atomide.com>
+In-Reply-To: omap2-upstream-2008-06-06-184753
+References: omap2-upstream-2008-06-06-184753
+Message-Id: omap2-upstream-20080607182613-0-16
 List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
 List-Archive: <http://lists.arm.linux.org.uk/lurker/list/linux-arm-kernel.html>
@@ -30,79 +19,32 @@ List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
 Sender: linux-arm-kernel-bounces@lists.arm.linux.org.uk
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, =?utf-8?q?H=C3=B6gander=20Jouni?= <jouni.hogander@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-RnJvbTogSMO2Z2FuZGVyIEpvdW5pIDxqb3VuaS5ob2dhbmRlckBub2tpYS5jb20+CgpFLmcgZHNz
-X2wzX2ljayBhbmQgZHNzX2w0X2ljayBoYXZlIHNhbWUgZ2F0aW5nIGNvbnRyb2wuIEhhdmluZyBv
-d24KY2xvY2sgZm9yIGJvdGggb2YgdGhlbSBjYXVzZXMgcmFjZSBjb25kaXRpb24gYmV0d2VlbiBl
-bmFibGUgLyBkaXNhYmxlLgoKVGhpcyBwYXRjaCBjb21iaW5lcyB0aGlzIGtpbmQgb2YgY2xvY2tz
-IGFuZCBuYW1lcyBuZXcgY2xvY2sgYXMgPG1vZHVsZT5faWNrLgoKU2lnbmVkLW9mZi1ieTogSm91
-bmkgSG9nYW5kZXIgPGpvdW5pLmhvZ2FuZGVyQG5va2lhLmNvbT4KQWNrZWQtYnk6IFBhdWwgV2Fs
-bXNsZXkgPHBhdWxAcHdzYW4uY29tPgpTaWduZWQtb2ZmLWJ5OiBUb255IExpbmRncmVuIDx0b255
-QGF0b21pZGUuY29tPgoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvY2xvY2szNHh4
-LmggYi9hcmNoL2FybS9tYWNoLW9tYXAyL2Nsb2NrMzR4eC5oCmluZGV4IGU4ZjIyYzQuLmExZGI1
-NTEgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvY2xvY2szNHh4LmgKKysrIGIvYXJj
-aC9hcm0vbWFjaC1vbWFwMi9jbG9jazM0eHguaApAQCAtMTE4OSwyNyArMTE4OSwzNCBAQCBzdGF0
-aWMgY29uc3Qgc3RydWN0IGNsa3NlbCBnZnhfbDNfY2xrc2VsW10gPSB7CiAJeyAucGFyZW50ID0g
-TlVMTCB9CiB9OwogCi1zdGF0aWMgc3RydWN0IGNsayBnZnhfbDNfZmNrID0gewotCS5uYW1lCQk9
-ICJnZnhfbDNfZmNrIiwKKy8qIFZpcnR1YWwgcGFyZW50IGNsb2NrIGZvciBnZnhfbDNfaWNrIGFu
-ZCBnZnhfbDNfZmNrICovCitzdGF0aWMgc3RydWN0IGNsayBnZnhfbDNfY2sgPSB7CisJLm5hbWUJ
-CT0gImdmeF9sM19jayIsCiAJLnBhcmVudAkJPSAmbDNfaWNrLAogCS5pbml0CQk9ICZvbWFwMl9p
-bml0X2Nsa3NlbF9wYXJlbnQsCiAJLmVuYWJsZV9yZWcJPSBPTUFQX0NNX1JFR0FERFIoR0ZYX01P
-RCwgQ01fSUNMS0VOKSwKIAkuZW5hYmxlX2JpdAk9IE9NQVBfRU5fR0ZYX1NISUZULAorCS5mbGFn
-cwkJPSBDTE9DS19JTl9PTUFQMzQzMEVTMSwKKwkucmVjYWxjCQk9ICZmb2xsb3dwYXJlbnRfcmVj
-YWxjLAorfTsKKworc3RhdGljIHN0cnVjdCBjbGsgZ2Z4X2wzX2ZjayA9IHsKKwkubmFtZQkJPSAi
-Z2Z4X2wzX2ZjayIsCisJLnBhcmVudAkJPSAmZ2Z4X2wzX2NrLAorCS5pbml0CQk9ICZvbWFwMl9p
-bml0X2Nsa3NlbF9wYXJlbnQsCiAJLmNsa3NlbF9yZWcJPSBPTUFQX0NNX1JFR0FERFIoR0ZYX01P
-RCwgQ01fQ0xLU0VMKSwKIAkuY2xrc2VsX21hc2sJPSBPTUFQX0NMS1NFTF9HRlhfTUFTSywKIAku
-Y2xrc2VsCQk9IGdmeF9sM19jbGtzZWwsCi0JLmZsYWdzCQk9IENMT0NLX0lOX09NQVAzNDMwRVMx
-IHwgUkFURV9QUk9QQUdBVEVTLAorCS5mbGFncwkJPSBDTE9DS19JTl9PTUFQMzQzMEVTMSB8IFJB
-VEVfUFJPUEFHQVRFUyB8CisJCQkJUEFSRU5UX0NPTlRST0xTX0NMT0NLLAogCS5jbGtkbV9uYW1l
-CT0gImdmeF8zNDMwZXMxX2Nsa2RtIiwKIAkucmVjYWxjCQk9ICZvbWFwMl9jbGtzZWxfcmVjYWxj
-LAogfTsKIAogc3RhdGljIHN0cnVjdCBjbGsgZ2Z4X2wzX2ljayA9IHsKIAkubmFtZQkJPSAiZ2Z4
-X2wzX2ljayIsCi0JLnBhcmVudAkJPSAmbDNfaWNrLAotCS5pbml0CQk9ICZvbWFwMl9pbml0X2Ns
-a19jbGtkbSwKLQkuZW5hYmxlX3JlZwk9IE9NQVBfQ01fUkVHQUREUihHRlhfTU9ELCBDTV9JQ0xL
-RU4pLAotCS5lbmFibGVfYml0CT0gT01BUF9FTl9HRlhfU0hJRlQsCi0JLmZsYWdzCQk9IENMT0NL
-X0lOX09NQVAzNDMwRVMxLAorCS5wYXJlbnQJCT0gJmdmeF9sM19jaywKKwkuZmxhZ3MJCT0gQ0xP
-Q0tfSU5fT01BUDM0MzBFUzEgfCBQQVJFTlRfQ09OVFJPTFNfQ0xPQ0ssCiAJLmNsa2RtX25hbWUJ
-PSAiZ2Z4XzM0MzBlczFfY2xrZG0iLAogCS5yZWNhbGMJCT0gJmZvbGxvd3BhcmVudF9yZWNhbGMs
-CiB9OwpAQCAtMjE1MywxOSArMjE2MCw5IEBAIHN0YXRpYyBzdHJ1Y3QgY2xrIGNhbV9tY2xrID0g
-ewogCS5yZWNhbGMJCT0gJm9tYXAyX2Nsa3NlbF9yZWNhbGMsCiB9OwogCi1zdGF0aWMgc3RydWN0
-IGNsayBjYW1fbDNfaWNrID0gewotCS5uYW1lCQk9ICJjYW1fbDNfaWNrIiwKLQkucGFyZW50CQk9
-ICZsM19pY2ssCi0JLmluaXQJCT0gJm9tYXAyX2luaXRfY2xrX2Nsa2RtLAotCS5lbmFibGVfcmVn
-CT0gT01BUF9DTV9SRUdBRERSKE9NQVAzNDMwX0NBTV9NT0QsIENNX0lDTEtFTiksCi0JLmVuYWJs
-ZV9iaXQJPSBPTUFQMzQzMF9FTl9DQU1fU0hJRlQsCi0JLmZsYWdzCQk9IENMT0NLX0lOX09NQVAz
-NDNYLAotCS5jbGtkbV9uYW1lCT0gImNhbV9jbGtkbSIsCi0JLnJlY2FsYwkJPSAmZm9sbG93cGFy
-ZW50X3JlY2FsYywKLX07Ci0KLXN0YXRpYyBzdHJ1Y3QgY2xrIGNhbV9sNF9pY2sgPSB7Ci0JLm5h
-bWUJCT0gImNhbV9sNF9pY2siLAorc3RhdGljIHN0cnVjdCBjbGsgY2FtX2ljayA9IHsKKwkvKiBI
-YW5kbGVzIGJvdGggTDMgYW5kIEw0IGNsb2NrcyAqLworCS5uYW1lCQk9ICJjYW1faWNrIiwKIAku
-cGFyZW50CQk9ICZsNF9pY2ssCiAJLmluaXQJCT0gJm9tYXAyX2luaXRfY2xrX2Nsa2RtLAogCS5l
-bmFibGVfcmVnCT0gT01BUF9DTV9SRUdBRERSKE9NQVAzNDMwX0NBTV9NT0QsIENNX0lDTEtFTiks
-CkBAIC0yMTk5LDE5ICsyMTk2LDkgQEAgc3RhdGljIHN0cnVjdCBjbGsgdXNiaG9zdF80OG1fZmNr
-ID0gewogCS5yZWNhbGMJCT0gJmZvbGxvd3BhcmVudF9yZWNhbGMsCiB9OwogCi1zdGF0aWMgc3Ry
-dWN0IGNsayB1c2Job3N0X2wzX2ljayA9IHsKLQkubmFtZQkJPSAidXNiaG9zdF9sM19pY2siLAot
-CS5wYXJlbnQJCT0gJmwzX2ljaywKLQkuaW5pdAkJPSAmb21hcDJfaW5pdF9jbGtfY2xrZG0sCi0J
-LmVuYWJsZV9yZWcJPSBPTUFQX0NNX1JFR0FERFIoT01BUDM0MzBFUzJfVVNCSE9TVF9NT0QsIENN
-X0lDTEtFTiksCi0JLmVuYWJsZV9iaXQJPSBPTUFQMzQzMEVTMl9FTl9VU0JIT1NUX1NISUZULAot
-CS5mbGFncwkJPSBDTE9DS19JTl9PTUFQMzQzMEVTMiwKLQkuY2xrZG1fbmFtZQk9ICJ1c2Job3N0
-X2Nsa2RtIiwKLQkucmVjYWxjCQk9ICZmb2xsb3dwYXJlbnRfcmVjYWxjLAotfTsKLQotc3RhdGlj
-IHN0cnVjdCBjbGsgdXNiaG9zdF9sNF9pY2sgPSB7Ci0JLm5hbWUJCT0gInVzYmhvc3RfbDRfaWNr
-IiwKK3N0YXRpYyBzdHJ1Y3QgY2xrIHVzYmhvc3RfaWNrID0geworCS8qIEhhbmRsZXMgYm90aCBM
-MyBhbmQgTDQgY2xvY2tzICovCisJLm5hbWUJCT0gInVzYmhvc3RfaWNrIiwKIAkucGFyZW50CQk9
-ICZsNF9pY2ssCiAJLmluaXQJCT0gJm9tYXAyX2luaXRfY2xrX2Nsa2RtLAogCS5lbmFibGVfcmVn
-CT0gT01BUF9DTV9SRUdBRERSKE9NQVAzNDMwRVMyX1VTQkhPU1RfTU9ELCBDTV9JQ0xLRU4pLApA
-QCAtMzA5Myw2ICszMDgwLDcgQEAgc3RhdGljIHN0cnVjdCBjbGsgKm9uY2hpcF8zNHh4X2Nsa3Nb
-XSBfX2luaXRkYXRhID0gewogCSZsM19pY2ssCiAJJmw0X2ljaywKIAkmcm1faWNrLAorCSZnZnhf
-bDNfY2ssCiAJJmdmeF9sM19mY2ssCiAJJmdmeF9sM19pY2ssCiAJJmdmeF9jZzFfY2ssCkBAIC0z
-MTc0LDEyICszMTYyLDEwIEBAIHN0YXRpYyBzdHJ1Y3QgY2xrICpvbmNoaXBfMzR4eF9jbGtzW10g
-X19pbml0ZGF0YSA9IHsKIAkmZHNzMl9hbHdvbl9mY2ssCiAJJmRzc19pY2ssCiAJJmNhbV9tY2xr
-LAotCSZjYW1fbDNfaWNrLAotCSZjYW1fbDRfaWNrLAorCSZjYW1faWNrLAogCSZ1c2Job3N0XzEy
-MG1fZmNrLAogCSZ1c2Job3N0XzQ4bV9mY2ssCi0JJnVzYmhvc3RfbDNfaWNrLAotCSZ1c2Job3N0
-X2w0X2ljaywKKwkmdXNiaG9zdF9pY2ssCiAJJnVzYmhvc3Rfc2FyX2ZjaywKIAkmdXNpbV9mY2ss
-CiAJJmdwdDFfZmNrLAoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpMaXN0IGFkbWluOiBodHRwOi8vbGlzdHMuYXJtLmxp
-bnV4Lm9yZy51ay9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwKRkFROiAgICAgICAg
-aHR0cDovL3d3dy5hcm0ubGludXgub3JnLnVrL21haWxpbmdsaXN0cy9mYXEucGhwCkV0aXF1ZXR0
-ZTogIGh0dHA6Ly93d3cuYXJtLmxpbnV4Lm9yZy51ay9tYWlsaW5nbGlzdHMvZXRpcXVldHRlLnBo
-cA==
+Hi all,
+
+This patch series contains various omap2 patchs from linux-omap tree.
+Big chunk of the patches still improve the clock code. Also more
+clean-up to allow compiling omap2 and omap3 support into the same
+kernel. The patch also adds core omap3430 support, but no board
+files or PM at at this point.
+
+This patch series depends on earlier patch series:
+
+1. Omap upstream patches for post 2.6.26
+
+2. Omap2 clock patches for post 2.6.26
+
+This patch series also available via git at:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap2-upstream
+
+Regards,
+
+Tony
+
+-------------------------------------------------------------------
+List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
+FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
+Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
