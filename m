@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 08/21] ARM: OMAP: SRAM: Move omap2 sram-fn.S to sram242x.S
-Date: Fri,  6 Jun 2008 18:30:40 -0700
-Message-ID: <1212802253-17797-9-git-send-email-tony@atomide.com>
+Subject: [PATCH 11/21] ARM: OMAP: McBSP: Prepare for splitting into omap1 and omap2 code
+Date: Fri,  6 Jun 2008 18:30:43 -0700
+Message-ID: <1212802253-17797-12-git-send-email-tony@atomide.com>
 References: omap-upstream-2008-06-06-183049
  <1212802253-17797-1-git-send-email-tony@atomide.com>
  <1212802253-17797-2-git-send-email-tony@atomide.com>
@@ -11,692 +11,1154 @@ References: omap-upstream-2008-06-06-183049
  <1212802253-17797-6-git-send-email-tony@atomide.com>
  <1212802253-17797-7-git-send-email-tony@atomide.com>
  <1212802253-17797-8-git-send-email-tony@atomide.com>
+ <1212802253-17797-9-git-send-email-tony@atomide.com>
+ <1212802253-17797-10-git-send-email-tony@atomide.com>
+ <1212802253-17797-11-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53281 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764321AbYFGBbM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jun 2008 21:31:12 -0400
-In-Reply-To: <1212802253-17797-8-git-send-email-tony@atomide.com>
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:55415 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762039AbYFGBbV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jun 2008 21:31:21 -0400
+In-Reply-To: <1212802253-17797-11-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@indt.org.br>, Tony Lindgren <tony@atomide.com>
 
-This file will get split between sram242x.S and sram243x.S
-in following patch.
+From: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
+This patch transform mcbsp code to use platform data
+from arch/arm/plat-omap/devices.c
+
+It also gets ride of ifdefs on mcbsp.c code.
+To do it, a platform data structure was defined.
+
+Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 2feb687..6c59b26 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -3,7 +3,7 @@
- #
+diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+index 4a53f9b..7001794 100644
+--- a/arch/arm/plat-omap/devices.c
++++ b/arch/arm/plat-omap/devices.c
+@@ -24,6 +24,7 @@
+ #include <asm/arch/mux.h>
+ #include <asm/arch/gpio.h>
+ #include <asm/arch/menelaus.h>
++#include <asm/arch/mcbsp.h>
  
- # Common support
--obj-y := irq.o id.o io.o sram-fn.o memory.o control.o prcm.o clock.o mux.o \
-+obj-y := irq.o id.o io.o sram242x.o memory.o control.o prcm.o clock.o mux.o \
- 		devices.o serial.o gpmc.o timer-gp.o
+ #if	defined(CONFIG_OMAP_DSP) || defined(CONFIG_OMAP_DSP_MODULE)
  
- # Power Management
-diff --git a/arch/arm/mach-omap2/sram-fn.S b/arch/arm/mach-omap2/sram-fn.S
-deleted file mode 100644
-index 4a9e491..0000000
---- a/arch/arm/mach-omap2/sram-fn.S
-+++ /dev/null
-@@ -1,324 +0,0 @@
--/*
-- * linux/arch/arm/mach-omap2/sram-fn.S
-- *
-- * Omap2 specific functions that need to be run in internal SRAM
-- *
-- * (C) Copyright 2004
-- * Texas Instruments, <www.ti.com>
-- * Richard Woodruff <r-woodruff2@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation; either version 2 of
-- * the License, or (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR /PURPOSE. See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-- * MA 02111-1307 USA
-- */
--#include <linux/linkage.h>
--#include <asm/assembler.h>
--#include <asm/arch/io.h>
--#include <asm/hardware.h>
+@@ -145,6 +146,49 @@ static inline void omap_init_kp(void) {}
+ #endif
+ 
+ /*-------------------------------------------------------------------------*/
++#if defined(CONFIG_OMAP_MCBSP) || defined(CONFIG_OMAP_MCBSP_MODULE)
++
++static struct platform_device omap_mcbsp_devices[OMAP_MAX_MCBSP_COUNT];
++static int mcbsps_configured;
++
++void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data *config,
++					int size)
++{
++	int i;
++
++	if (size > OMAP_MAX_MCBSP_COUNT) {
++		printk(KERN_WARNING "Registered too many McBSPs platform_data."
++			" Using maximum (%d) available.\n",
++			OMAP_MAX_MCBSP_COUNT);
++		size = OMAP_MAX_MCBSP_COUNT;
++	}
++
++	for (i = 0; i < size; i++) {
++		struct platform_device *new_mcbsp = &omap_mcbsp_devices[i];
++		new_mcbsp->name = "omap-mcbsp";
++		new_mcbsp->id = i + 1;
++		new_mcbsp->dev.platform_data = &config[i];
++	}
++	mcbsps_configured = size;
++}
++
++static void __init omap_init_mcbsp(void)
++{
++	int i;
++
++	for (i = 0; i < mcbsps_configured; i++)
++		platform_device_register(&omap_mcbsp_devices[i]);
++}
++#else
++void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data *config,
++					int size)
++{  }
++
++static inline void __init omap_init_mcbsp(void)
++{  }
++#endif
++
++/*-------------------------------------------------------------------------*/
+ 
+ #if	defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
+ 
+@@ -440,6 +484,7 @@ static int __init omap_init_devices(void)
+ 	 */
+ 	omap_init_dsp();
+ 	omap_init_kp();
++	omap_init_mcbsp();
+ 	omap_init_mmc();
+ 	omap_init_uwire();
+ 	omap_init_wdt();
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 053de31..64cd8dd 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -15,6 +15,7 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/device.h>
++#include <linux/platform_device.h>
+ #include <linux/wait.h>
+ #include <linux/completion.h>
+ #include <linux/interrupt.h>
+@@ -25,83 +26,53 @@
+ #include <linux/irq.h>
+ 
+ #include <asm/arch/dma.h>
+-#include <asm/arch/mux.h>
+-#include <asm/arch/irqs.h>
+-#include <asm/arch/dsp_common.h>
+ #include <asm/arch/mcbsp.h>
+ 
+-#ifdef CONFIG_MCBSP_DEBUG
+-#define DBG(x...)	printk(x)
+-#else
+-#define DBG(x...)			do { } while (0)
+-#endif
 -
--#include "sdrc.h"
--#include "prm.h"
--#include "cm.h"
+-struct omap_mcbsp {
+-	u32                          io_base;
+-	u8                           id;
+-	u8                           free;
+-	omap_mcbsp_word_length       rx_word_length;
+-	omap_mcbsp_word_length       tx_word_length;
 -
--#define TIMER_32KSYNCT_CR_V	IO_ADDRESS(OMAP2420_32KSYNCT_BASE + 0x010)
+-	omap_mcbsp_io_type_t         io_type; /* IRQ or poll */
+-	/* IRQ based TX/RX */
+-	int                          rx_irq;
+-	int                          tx_irq;
 -
--	.text
+-	/* DMA stuff */
+-	u8                           dma_rx_sync;
+-	short                        dma_rx_lch;
+-	u8                           dma_tx_sync;
+-	short                        dma_tx_lch;
 -
--ENTRY(sram_ddr_init)
--	stmfd	sp!, {r0 - r12, lr}	@ save registers on stack
+-	/* Completion queues */
+-	struct completion            tx_irq_completion;
+-	struct completion            rx_irq_completion;
+-	struct completion            tx_dma_completion;
+-	struct completion            rx_dma_completion;
 -
--	mov	r12, r2			@ capture CS1 vs CS0
--	mov	r8, r3			@ capture force parameter
+-	/* Protect the field .free, while checking if the mcbsp is in use */
+-	spinlock_t                   lock;
+-};
 -
--	/* frequency shift down */
--	ldr	r2, cm_clksel2_pll	@ get address of dpllout reg
--	mov	r3, #0x1		@ value for 1x operation
--	str	r3, [r2]		@ go to L1-freq operation
+ static struct omap_mcbsp mcbsp[OMAP_MAX_MCBSP_COUNT];
+-#ifdef CONFIG_ARCH_OMAP1
+-static struct clk *mcbsp_dsp_ck;
+-static struct clk *mcbsp_api_ck;
+-static struct clk *mcbsp_dspxor_ck;
+-#endif
+-#ifdef CONFIG_ARCH_OMAP2
+-static struct clk *mcbsp1_ick;
+-static struct clk *mcbsp1_fck;
+-static struct clk *mcbsp2_ick;
+-static struct clk *mcbsp2_fck;
+-#endif
++
++#define omap_mcbsp_check_valid_id(id)	(mcbsp[id].pdata && \
++					mcbsp[id].pdata->ops && \
++					mcbsp[id].pdata->ops->check && \
++					(mcbsp[id].pdata->ops->check(id) == 0))
+ 
+ static void omap_mcbsp_dump_reg(u8 id)
+ {
+-	DBG("**** MCBSP%d regs ****\n", mcbsp[id].id);
+-	DBG("DRR2:  0x%04x\n", OMAP_MCBSP_READ(mcbsp[id].io_base, DRR2));
+-	DBG("DRR1:  0x%04x\n", OMAP_MCBSP_READ(mcbsp[id].io_base, DRR1));
+-	DBG("DXR2:  0x%04x\n", OMAP_MCBSP_READ(mcbsp[id].io_base, DXR2));
+-	DBG("DXR1:  0x%04x\n", OMAP_MCBSP_READ(mcbsp[id].io_base, DXR1));
+-	DBG("SPCR2: 0x%04x\n", OMAP_MCBSP_READ(mcbsp[id].io_base, SPCR2));
+-	DBG("SPCR1: 0x%04x\n", OMAP_MCBSP_READ(mcbsp[id].io_base, SPCR1));
+-	DBG("RCR2:  0x%04x\n", OMAP_MCBSP_READ(mcbsp[id].io_base, RCR2));
+-	DBG("RCR1:  0x%04x\n", OMAP_MCBSP_READ(mcbsp[id].io_base, RCR1));
+-	DBG("XCR2:  0x%04x\n", OMAP_MCBSP_READ(mcbsp[id].io_base, XCR2));
+-	DBG("XCR1:  0x%04x\n", OMAP_MCBSP_READ(mcbsp[id].io_base, XCR1));
+-	DBG("SRGR2: 0x%04x\n", OMAP_MCBSP_READ(mcbsp[id].io_base, SRGR2));
+-	DBG("SRGR1: 0x%04x\n", OMAP_MCBSP_READ(mcbsp[id].io_base, SRGR1));
+-	DBG("PCR0:  0x%04x\n", OMAP_MCBSP_READ(mcbsp[id].io_base, PCR0));
+-	DBG("***********************\n");
++	dev_dbg(mcbsp[id].dev, "**** McBSP%d regs ****\n", mcbsp[id].id);
++	dev_dbg(mcbsp[id].dev, "DRR2:  0x%04x\n",
++			OMAP_MCBSP_READ(mcbsp[id].io_base, DRR2));
++	dev_dbg(mcbsp[id].dev, "DRR1:  0x%04x\n",
++			OMAP_MCBSP_READ(mcbsp[id].io_base, DRR1));
++	dev_dbg(mcbsp[id].dev, "DXR2:  0x%04x\n",
++			OMAP_MCBSP_READ(mcbsp[id].io_base, DXR2));
++	dev_dbg(mcbsp[id].dev, "DXR1:  0x%04x\n",
++			OMAP_MCBSP_READ(mcbsp[id].io_base, DXR1));
++	dev_dbg(mcbsp[id].dev, "SPCR2: 0x%04x\n",
++			OMAP_MCBSP_READ(mcbsp[id].io_base, SPCR2));
++	dev_dbg(mcbsp[id].dev, "SPCR1: 0x%04x\n",
++			OMAP_MCBSP_READ(mcbsp[id].io_base, SPCR1));
++	dev_dbg(mcbsp[id].dev, "RCR2:  0x%04x\n",
++			OMAP_MCBSP_READ(mcbsp[id].io_base, RCR2));
++	dev_dbg(mcbsp[id].dev, "RCR1:  0x%04x\n",
++			OMAP_MCBSP_READ(mcbsp[id].io_base, RCR1));
++	dev_dbg(mcbsp[id].dev, "XCR2:  0x%04x\n",
++			OMAP_MCBSP_READ(mcbsp[id].io_base, XCR2));
++	dev_dbg(mcbsp[id].dev, "XCR1:  0x%04x\n",
++			OMAP_MCBSP_READ(mcbsp[id].io_base, XCR1));
++	dev_dbg(mcbsp[id].dev, "SRGR2: 0x%04x\n",
++			OMAP_MCBSP_READ(mcbsp[id].io_base, SRGR2));
++	dev_dbg(mcbsp[id].dev, "SRGR1: 0x%04x\n",
++			OMAP_MCBSP_READ(mcbsp[id].io_base, SRGR1));
++	dev_dbg(mcbsp[id].dev, "PCR0:  0x%04x\n",
++			OMAP_MCBSP_READ(mcbsp[id].io_base, PCR0));
++	dev_dbg(mcbsp[id].dev, "***********************\n");
+ }
+ 
+ static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *dev_id)
+ {
+ 	struct omap_mcbsp *mcbsp_tx = dev_id;
+ 
+-	DBG("TX IRQ callback : 0x%x\n",
+-	    OMAP_MCBSP_READ(mcbsp_tx->io_base, SPCR2));
++	dev_dbg(mcbsp_tx->dev, "TX IRQ callback : 0x%x\n",
++		OMAP_MCBSP_READ(mcbsp_tx->io_base, SPCR2));
+ 
+ 	complete(&mcbsp_tx->tx_irq_completion);
+ 
+@@ -112,8 +83,8 @@ static irqreturn_t omap_mcbsp_rx_irq_handler(int irq, void *dev_id)
+ {
+ 	struct omap_mcbsp *mcbsp_rx = dev_id;
+ 
+-	DBG("RX IRQ callback : 0x%x\n",
+-	    OMAP_MCBSP_READ(mcbsp_rx->io_base, SPCR2));
++	dev_dbg(mcbsp_rx->dev, "RX IRQ callback : 0x%x\n",
++		OMAP_MCBSP_READ(mcbsp_rx->io_base, SPCR2));
+ 
+ 	complete(&mcbsp_rx->rx_irq_completion);
+ 
+@@ -124,8 +95,8 @@ static void omap_mcbsp_tx_dma_callback(int lch, u16 ch_status, void *data)
+ {
+ 	struct omap_mcbsp *mcbsp_dma_tx = data;
+ 
+-	DBG("TX DMA callback : 0x%x\n",
+-	    OMAP_MCBSP_READ(mcbsp_dma_tx->io_base, SPCR2));
++	dev_dbg(mcbsp_dma_tx->dev, "TX DMA callback : 0x%x\n",
++		OMAP_MCBSP_READ(mcbsp_dma_tx->io_base, SPCR2));
+ 
+ 	/* We can free the channels */
+ 	omap_free_dma(mcbsp_dma_tx->dma_tx_lch);
+@@ -138,8 +109,8 @@ static void omap_mcbsp_rx_dma_callback(int lch, u16 ch_status, void *data)
+ {
+ 	struct omap_mcbsp *mcbsp_dma_rx = data;
+ 
+-	DBG("RX DMA callback : 0x%x\n",
+-	    OMAP_MCBSP_READ(mcbsp_dma_rx->io_base, SPCR2));
++	dev_dbg(mcbsp_dma_rx->dev, "RX DMA callback : 0x%x\n",
++		OMAP_MCBSP_READ(mcbsp_dma_rx->io_base, SPCR2));
+ 
+ 	/* We can free the channels */
+ 	omap_free_dma(mcbsp_dma_rx->dma_rx_lch);
+@@ -156,9 +127,16 @@ static void omap_mcbsp_rx_dma_callback(int lch, u16 ch_status, void *data)
+  */
+ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg *config)
+ {
+-	u32 io_base = mcbsp[id].io_base;
++	u32 io_base;
+ 
+-	DBG("OMAP-McBSP: McBSP%d  io_base: 0x%8x\n", id + 1, io_base);
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
++		return;
++	}
++
++	io_base = mcbsp[id].io_base;
++	dev_dbg(mcbsp[id].dev, "Configuring McBSP%d  io_base: 0x%8x\n",
++			mcbsp[id].id, io_base);
+ 
+ 	/* We write the given config */
+ 	OMAP_MCBSP_WRITE(io_base, SPCR2, config->spcr2);
+@@ -175,97 +153,22 @@ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg *config)
+ }
+ EXPORT_SYMBOL(omap_mcbsp_config);
+ 
+-static int omap_mcbsp_check(unsigned int id)
+-{
+-	if (cpu_is_omap730()) {
+-		if (id > OMAP_MAX_MCBSP_COUNT - 1) {
+-		       printk(KERN_ERR "OMAP-McBSP: McBSP%d doesn't exist\n",
+-				id + 1);
+-		       return -1;
+-		}
+-		return 0;
+-	}
 -
--	/* voltage shift down */
--	mov r9, #0x1			@ set up for L1 voltage call
--	bl voltage_shift		@ go drop voltage
+-	if (cpu_is_omap15xx() || cpu_is_omap16xx() || cpu_is_omap24xx()) {
+-		if (id > OMAP_MAX_MCBSP_COUNT) {
+-			printk(KERN_ERR "OMAP-McBSP: McBSP%d doesn't exist\n",
+-				id + 1);
+-			return -1;
+-		}
+-		return 0;
+-	}
 -
--	/* dll lock mode */
--	ldr	r11, sdrc_dlla_ctrl	@ addr of dlla ctrl
--	ldr	r10, [r11]		@ get current val
--	cmp	r12, #0x1		@ cs1 base (2422 es2.05/1)
--	addeq	r11, r11, #0x8		@ if cs1 base, move to DLLB
--	mvn	r9, #0x4		@ mask to get clear bit2
--	and	r10, r10, r9		@ clear bit2 for lock mode.
--	orr	r10, r10, #0x8		@ make sure DLL on (es2 bit pos)
--	orr	r10, r10, #0x2		@ 90 degree phase for all below 133Mhz
--	str	r10, [r11]		@ commit to DLLA_CTRL
--	bl	i_dll_wait		@ wait for dll to lock
+-	return -1;
+-}
 -
--	/* get dll value */
--	add	r11, r11, #0x4		@ get addr of status reg
--	ldr	r10, [r11]		@ get locked value
+-#ifdef CONFIG_ARCH_OMAP1
+-static void omap_mcbsp_dsp_request(void)
+-{
+-	if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
+-		int ret;
 -
--	/* voltage shift up */
--	mov r9, #0x0			@ shift back to L0-voltage
--	bl voltage_shift		@ go raise voltage
+-		ret = omap_dsp_request_mem();
+-		if (ret < 0) {
+-			printk(KERN_ERR "Could not get dsp memory: %i\n", ret);
+-			return;
+-		}
 -
--	/* frequency shift up */
--	mov	r3, #0x2		@ value for 2x operation
--	str	r3, [r2]		@ go to L0-freq operation
+-		clk_enable(mcbsp_dsp_ck);
+-		clk_enable(mcbsp_api_ck);
 -
--	/* reset entry mode for dllctrl */
--	sub	r11, r11, #0x4		@ move from status to ctrl
--	cmp	r12, #0x1		@ normalize if cs1 based
--	subeq	r11, r11, #0x8		@ possibly back to DLLA
--	cmp	r8, #0x1		@ if forced unlock exit
--	orreq	r1, r1, #0x4		@ make sure exit with unlocked value
--	str	r1, [r11]		@ restore DLLA_CTRL high value
--	add	r11, r11, #0x8		@ move to DLLB_CTRL addr
--	str	r1, [r11]		@ set value DLLB_CTRL
--	bl	i_dll_wait		@ wait for possible lock
+-		/* enable 12MHz clock to mcbsp 1 & 3 */
+-		clk_enable(mcbsp_dspxor_ck);
 -
--	/* set up for return, DDR should be good */
--	str r10, [r0]			@ write dll_status and return counter
--	ldmfd	sp!, {r0 - r12, pc}	@ restore regs and return
+-		/*
+-		 * DSP external peripheral reset
+-		 * FIXME: This should be moved to dsp code
+-		 */
+-		__raw_writew(__raw_readw(DSP_RSTCT2) | 1 | 1 << 1,
+-			     DSP_RSTCT2);
+-	}
+-}
 -
--	/* ensure the DLL has relocked */
--i_dll_wait:
--	mov	r4, #0x800		@ delay DLL relock, min 0x400 L3 clocks
--i_dll_delay:
--	subs	r4, r4, #0x1
--	bne	i_dll_delay
--	mov	pc, lr
+-static void omap_mcbsp_dsp_free(void)
+-{
+-	if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
+-		omap_dsp_release_mem();
+-		clk_disable(mcbsp_dspxor_ck);
+-		clk_disable(mcbsp_dsp_ck);
+-		clk_disable(mcbsp_api_ck);
+-	}
+-}
+-#endif
 -
+-#ifdef CONFIG_ARCH_OMAP2
+-static void omap2_mcbsp2_mux_setup(void)
+-{
+-	if (cpu_is_omap2420()) {
+-		omap_cfg_reg(Y15_24XX_MCBSP2_CLKX);
+-		omap_cfg_reg(R14_24XX_MCBSP2_FSX);
+-		omap_cfg_reg(W15_24XX_MCBSP2_DR);
+-		omap_cfg_reg(V15_24XX_MCBSP2_DX);
+-		omap_cfg_reg(V14_24XX_GPIO117);
+-	}
 -	/*
--	 * shift up or down voltage, use R9 as input to tell level.
--	 * wait for it to finish, use 32k sync counter, 1tick=31uS.
+-	 * Need to add MUX settings for OMAP 2430 SDP
 -	 */
--voltage_shift:
--	ldr	r4, prcm_voltctrl	@ get addr of volt ctrl.
--	ldr	r5, [r4]		@ get value.
--	ldr	r6, prcm_mask_val	@ get value of mask
--	and	r5, r5, r6		@ apply mask to clear bits
--	orr	r5, r5, r9		@ bulld value for L0/L1-volt operation.
--	str	r5, [r4]		@ set up for change.
--	mov	r3, #0x4000		@ get val for force
--	orr	r5, r5, r3		@ build value for force
--	str	r5, [r4]		@ Force transition to L1
+-}
+-#endif
 -
--	ldr	r3, timer_32ksynct_cr	@ get addr of counter
--	ldr	r5, [r3]		@ get value
--	add	r5, r5, #0x3		@ give it at most 93uS
--volt_delay:
--	ldr	r7, [r3]		@ get timer value
--	cmp	r5, r7			@ time up?
--	bhi	volt_delay		@ not yet->branch
--	mov	pc, lr			@ back to caller.
+ /*
+  * We can choose between IRQ based or polled IO.
+  * This needs to be called before omap_mcbsp_request().
+  */
+ int omap_mcbsp_set_io_type(unsigned int id, omap_mcbsp_io_type_t io_type)
+ {
+-	if (omap_mcbsp_check(id) < 0)
+-		return -EINVAL;
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
++		return -ENODEV;
++	}
+ 
+ 	spin_lock(&mcbsp[id].lock);
+ 
+ 	if (!mcbsp[id].free) {
+-		printk(KERN_ERR "OMAP-McBSP: McBSP%d is currently in use\n",
+-			id + 1);
++		dev_err(mcbsp[id].dev, "McBSP%d is currently in use\n",
++			mcbsp[id].id);
+ 		spin_unlock(&mcbsp[id].lock);
+ 		return -EINVAL;
+ 	}
+@@ -282,34 +185,20 @@ int omap_mcbsp_request(unsigned int id)
+ {
+ 	int err;
+ 
+-	if (omap_mcbsp_check(id) < 0)
+-		return -EINVAL;
 -
--/* relative load constants */
--cm_clksel2_pll:
--	.word OMAP2420_CM_REGADDR(PLL_MOD, CM_CLKSEL2)
--sdrc_dlla_ctrl:
--	.word OMAP242X_SDRC_REGADDR(SDRC_DLLA_CTRL)
--prcm_voltctrl:
--	.word OMAP2420_PRM_REGADDR(OCP_MOD, 0x50)
--prcm_mask_val:
--	.word 0xFFFF3FFC
--timer_32ksynct_cr:
--	.word TIMER_32KSYNCT_CR_V
--ENTRY(sram_ddr_init_sz)
--	.word	. - sram_ddr_init
+-#ifdef CONFIG_ARCH_OMAP1
+-	/*
+-	 * On 1510, 1610 and 1710, McBSP1 and McBSP3
+-	 * are DSP public peripherals.
+-	 */
+-	if (id == OMAP_MCBSP1 || id == OMAP_MCBSP3)
+-		omap_mcbsp_dsp_request();
+-#endif
 -
--/*
-- * Reprograms memory timings.
-- * r0 = [PRCM_FULL | PRCM_HALF] r1 = SDRC_DLLA_CTRL value r2 = [DDR | SDR]
-- * PRCM_FULL = 2, PRCM_HALF = 1, DDR = 1, SDR = 0
-- */
--ENTRY(sram_reprogram_sdrc)
--	stmfd	sp!, {r0 - r10, lr}	@ save registers on stack
--	mov	r3, #0x0		@ clear for mrc call
--	mcr	p15, 0, r3, c7, c10, 4	@ memory barrier, finish ARM SDR/DDR
--	nop
--	nop
--	ldr	r6, ddr_sdrc_rfr_ctrl	@ get addr of refresh reg
--	ldr	r5, [r6]		@ get value
--	mov	r5, r5, lsr #8		@ isolate rfr field and drop burst
+-#ifdef CONFIG_ARCH_OMAP2
+-	if (cpu_is_omap24xx()) {
+-		if (id == OMAP_MCBSP1) {
+-			clk_enable(mcbsp1_ick);
+-			clk_enable(mcbsp1_fck);
+-		} else {
+-			clk_enable(mcbsp2_ick);
+-			clk_enable(mcbsp2_fck);
+-		}
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
++		return -ENODEV;
+ 	}
+-#endif
++
++	if (mcbsp[id].pdata->ops->request)
++		mcbsp[id].pdata->ops->request(id);
++
++	clk_enable(mcbsp[id].clk);
+ 
+ 	spin_lock(&mcbsp[id].lock);
+ 	if (!mcbsp[id].free) {
+-		printk(KERN_ERR "OMAP-McBSP: McBSP%d is currently in use\n",
+-			id + 1);
++		dev_err(mcbsp[id].dev, "McBSP%d is currently in use\n",
++			mcbsp[id].id);
+ 		spin_unlock(&mcbsp[id].lock);
+ 		return -1;
+ 	}
+@@ -322,9 +211,9 @@ int omap_mcbsp_request(unsigned int id)
+ 		err = request_irq(mcbsp[id].tx_irq, omap_mcbsp_tx_irq_handler,
+ 					0, "McBSP", (void *) (&mcbsp[id]));
+ 		if (err != 0) {
+-			printk(KERN_ERR "OMAP-McBSP: Unable to "
+-					"request TX IRQ %d for McBSP%d\n",
+-					mcbsp[id].tx_irq, mcbsp[id].id);
++			dev_err(mcbsp[id].dev, "Unable to request TX IRQ %d "
++					"for McBSP%d\n", mcbsp[id].tx_irq,
++					mcbsp[id].id);
+ 			return err;
+ 		}
+ 
+@@ -333,9 +222,9 @@ int omap_mcbsp_request(unsigned int id)
+ 		err = request_irq(mcbsp[id].rx_irq, omap_mcbsp_rx_irq_handler,
+ 					0, "McBSP", (void *) (&mcbsp[id]));
+ 		if (err != 0) {
+-			printk(KERN_ERR "OMAP-McBSP: Unable to "
+-					"request RX IRQ %d for McBSP%d\n",
+-					mcbsp[id].rx_irq, mcbsp[id].id);
++			dev_err(mcbsp[id].dev, "Unable to request RX IRQ %d "
++					"for McBSP%d\n", mcbsp[id].rx_irq,
++					mcbsp[id].id);
+ 			free_irq(mcbsp[id].tx_irq, (void *) (&mcbsp[id]));
+ 			return err;
+ 		}
+@@ -349,32 +238,20 @@ EXPORT_SYMBOL(omap_mcbsp_request);
+ 
+ void omap_mcbsp_free(unsigned int id)
+ {
+-	if (omap_mcbsp_check(id) < 0)
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+ 		return;
 -
--	cmp	r0, #0x1		@ going to half speed?
--	movne	r9, #0x0		@ if up set flag up for pre up, hi volt
+-#ifdef CONFIG_ARCH_OMAP1
+-	if (cpu_class_is_omap1()) {
+-		if (id == OMAP_MCBSP1 || id == OMAP_MCBSP3)
+-			omap_mcbsp_dsp_free();
+ 	}
+-#endif
 -
--	blne	voltage_shift_c		@ adjust voltage
+-#ifdef CONFIG_ARCH_OMAP2
+-	if (cpu_is_omap24xx()) {
+-		if (id == OMAP_MCBSP1) {
+-			clk_disable(mcbsp1_ick);
+-			clk_disable(mcbsp1_fck);
+-		} else {
+-			clk_disable(mcbsp2_ick);
+-			clk_disable(mcbsp2_fck);
+-		}
+-	}
+-#endif
++
++	if (mcbsp[id].pdata->ops->free)
++		mcbsp[id].pdata->ops->free(id);
++
++	clk_disable(mcbsp[id].clk);
+ 
+ 	spin_lock(&mcbsp[id].lock);
+ 	if (mcbsp[id].free) {
+-		printk(KERN_ERR "OMAP-McBSP: McBSP%d was not reserved\n",
+-			id + 1);
++		dev_err(mcbsp[id].dev, "McBSP%d was not reserved\n",
++			mcbsp[id].id);
+ 		spin_unlock(&mcbsp[id].lock);
+ 		return;
+ 	}
+@@ -400,8 +277,10 @@ void omap_mcbsp_start(unsigned int id)
+ 	u32 io_base;
+ 	u16 w;
+ 
+-	if (omap_mcbsp_check(id) < 0)
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+ 		return;
++	}
+ 
+ 	io_base = mcbsp[id].io_base;
+ 
+@@ -435,8 +314,10 @@ void omap_mcbsp_stop(unsigned int id)
+ 	u32 io_base;
+ 	u16 w;
+ 
+-	if (omap_mcbsp_check(id) < 0)
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+ 		return;
++	}
+ 
+ 	io_base = mcbsp[id].io_base;
+ 
+@@ -457,7 +338,14 @@ EXPORT_SYMBOL(omap_mcbsp_stop);
+ /* polled mcbsp i/o operations */
+ int omap_mcbsp_pollwrite(unsigned int id, u16 buf)
+ {
+-	u32 base = mcbsp[id].io_base;
++	u32 base;
++
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
++		return -ENODEV;
++	}
++
++	base = mcbsp[id].io_base;
+ 	writew(buf, base + OMAP_MCBSP_REG_DXR1);
+ 	/* if frame sync error - clear the error */
+ 	if (readw(base + OMAP_MCBSP_REG_SPCR2) & XSYNC_ERR) {
+@@ -479,8 +367,8 @@ int omap_mcbsp_pollwrite(unsigned int id, u16 buf)
+ 				       (XRST),
+ 				       base + OMAP_MCBSP_REG_SPCR2);
+ 				udelay(10);
+-				printk(KERN_ERR
+-				       " Could not write to McBSP Register\n");
++				dev_err(mcbsp[id].dev, "Could not write to"
++					" McBSP%d Register\n", mcbsp[id].id);
+ 				return -2;
+ 			}
+ 		}
+@@ -492,7 +380,14 @@ EXPORT_SYMBOL(omap_mcbsp_pollwrite);
+ 
+ int omap_mcbsp_pollread(unsigned int id, u16 *buf)
+ {
+-	u32 base = mcbsp[id].io_base;
++	u32 base;
++
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
++		return -ENODEV;
++	}
++
++	base = mcbsp[id].io_base;
+ 	/* if frame sync error - clear the error */
+ 	if (readw(base + OMAP_MCBSP_REG_SPCR1) & RSYNC_ERR) {
+ 		/* clear error */
+@@ -513,8 +408,8 @@ int omap_mcbsp_pollread(unsigned int id, u16 *buf)
+ 				       (RRST),
+ 				       base + OMAP_MCBSP_REG_SPCR1);
+ 				udelay(10);
+-				printk(KERN_ERR
+-				       " Could not read from McBSP Register\n");
++				dev_err(mcbsp[id].dev, "Could not read from"
++					" McBSP%d Register\n", mcbsp[id].id);
+ 				return -2;
+ 			}
+ 		}
+@@ -531,12 +426,15 @@ EXPORT_SYMBOL(omap_mcbsp_pollread);
+ void omap_mcbsp_xmit_word(unsigned int id, u32 word)
+ {
+ 	u32 io_base;
+-	omap_mcbsp_word_length word_length = mcbsp[id].tx_word_length;
++	omap_mcbsp_word_length word_length;
+ 
+-	if (omap_mcbsp_check(id) < 0)
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+ 		return;
++	}
+ 
+ 	io_base = mcbsp[id].io_base;
++	word_length = mcbsp[id].tx_word_length;
+ 
+ 	wait_for_completion(&(mcbsp[id].tx_irq_completion));
+ 
+@@ -550,11 +448,14 @@ u32 omap_mcbsp_recv_word(unsigned int id)
+ {
+ 	u32 io_base;
+ 	u16 word_lsb, word_msb = 0;
+-	omap_mcbsp_word_length word_length = mcbsp[id].rx_word_length;
++	omap_mcbsp_word_length word_length;
+ 
+-	if (omap_mcbsp_check(id) < 0)
+-		return -EINVAL;
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
++		return -ENODEV;
++	}
+ 
++	word_length = mcbsp[id].rx_word_length;
+ 	io_base = mcbsp[id].io_base;
+ 
+ 	wait_for_completion(&(mcbsp[id].rx_irq_completion));
+@@ -569,11 +470,20 @@ EXPORT_SYMBOL(omap_mcbsp_recv_word);
+ 
+ int omap_mcbsp_spi_master_xmit_word_poll(unsigned int id, u32 word)
+ {
+-	u32 io_base = mcbsp[id].io_base;
+-	omap_mcbsp_word_length tx_word_length = mcbsp[id].tx_word_length;
+-	omap_mcbsp_word_length rx_word_length = mcbsp[id].rx_word_length;
++	u32 io_base;
++	omap_mcbsp_word_length tx_word_length;
++	omap_mcbsp_word_length rx_word_length;
+ 	u16 spcr2, spcr1, attempts = 0, word_lsb, word_msb = 0;
+ 
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
++		return -ENODEV;
++	}
++
++	io_base = mcbsp[id].io_base;
++	tx_word_length = mcbsp[id].tx_word_length;
++	rx_word_length = mcbsp[id].rx_word_length;
++
+ 	if (tx_word_length != rx_word_length)
+ 		return -EINVAL;
+ 
+@@ -587,7 +497,8 @@ int omap_mcbsp_spi_master_xmit_word_poll(unsigned int id, u32 word)
+ 			udelay(10);
+ 			OMAP_MCBSP_WRITE(io_base, SPCR2, spcr2 | XRST);
+ 			udelay(10);
+-			printk(KERN_ERR "McBSP transmitter not ready\n");
++			dev_err(mcbsp[id].dev, "McBSP%d transmitter not "
++				"ready\n", mcbsp[id].id);
+ 			return -EAGAIN;
+ 		}
+ 	}
+@@ -607,7 +518,8 @@ int omap_mcbsp_spi_master_xmit_word_poll(unsigned int id, u32 word)
+ 			udelay(10);
+ 			OMAP_MCBSP_WRITE(io_base, SPCR1, spcr1 | RRST);
+ 			udelay(10);
+-			printk(KERN_ERR "McBSP receiver not ready\n");
++			dev_err(mcbsp[id].dev, "McBSP%d receiver not "
++				"ready\n", mcbsp[id].id);
+ 			return -EAGAIN;
+ 		}
+ 	}
+@@ -623,11 +535,20 @@ EXPORT_SYMBOL(omap_mcbsp_spi_master_xmit_word_poll);
+ 
+ int omap_mcbsp_spi_master_recv_word_poll(unsigned int id, u32 *word)
+ {
+-	u32 io_base = mcbsp[id].io_base, clock_word = 0;
+-	omap_mcbsp_word_length tx_word_length = mcbsp[id].tx_word_length;
+-	omap_mcbsp_word_length rx_word_length = mcbsp[id].rx_word_length;
++	u32 io_base, clock_word = 0;
++	omap_mcbsp_word_length tx_word_length;
++	omap_mcbsp_word_length rx_word_length;
+ 	u16 spcr2, spcr1, attempts = 0, word_lsb, word_msb = 0;
+ 
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
++		return -ENODEV;
++	}
++
++	io_base = mcbsp[id].io_base;
++	tx_word_length = mcbsp[id].tx_word_length;
++	rx_word_length = mcbsp[id].rx_word_length;
++
+ 	if (tx_word_length != rx_word_length)
+ 		return -EINVAL;
+ 
+@@ -641,7 +562,8 @@ int omap_mcbsp_spi_master_recv_word_poll(unsigned int id, u32 *word)
+ 			udelay(10);
+ 			OMAP_MCBSP_WRITE(io_base, SPCR2, spcr2 | XRST);
+ 			udelay(10);
+-			printk(KERN_ERR "McBSP transmitter not ready\n");
++			dev_err(mcbsp[id].dev, "McBSP%d transmitter not "
++				"ready\n", mcbsp[id].id);
+ 			return -EAGAIN;
+ 		}
+ 	}
+@@ -661,7 +583,8 @@ int omap_mcbsp_spi_master_recv_word_poll(unsigned int id, u32 *word)
+ 			udelay(10);
+ 			OMAP_MCBSP_WRITE(io_base, SPCR1, spcr1 | RRST);
+ 			udelay(10);
+-			printk(KERN_ERR "McBSP receiver not ready\n");
++			dev_err(mcbsp[id].dev, "McBSP%d receiver not "
++				"ready\n", mcbsp[id].id);
+ 			return -EAGAIN;
+ 		}
+ 	}
+@@ -692,20 +615,24 @@ int omap_mcbsp_xmit_buffer(unsigned int id, dma_addr_t buffer,
+ 	int dest_port = 0;
+ 	int sync_dev = 0;
+ 
+-	if (omap_mcbsp_check(id) < 0)
+-		return -EINVAL;
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
++		return -ENODEV;
++	}
+ 
+ 	if (omap_request_dma(mcbsp[id].dma_tx_sync, "McBSP TX",
+ 				omap_mcbsp_tx_dma_callback,
+ 				&mcbsp[id],
+ 				&dma_tx_ch)) {
+-		printk(KERN_ERR "OMAP-McBSP: Unable to request DMA channel for"
+-				" McBSP%d TX. Trying IRQ based TX\n", id + 1);
++		dev_err(mcbsp[id].dev, " Unable to request DMA channel for "
++				"McBSP%d TX. Trying IRQ based TX\n",
++				mcbsp[id].id);
+ 		return -EAGAIN;
+ 	}
+ 	mcbsp[id].dma_tx_lch = dma_tx_ch;
+ 
+-	DBG("TX DMA on channel %d\n", dma_tx_ch);
++	dev_err(mcbsp[id].dev, "McBSP%d TX DMA on channel %d\n", mcbsp[id].id,
++		dma_tx_ch);
+ 
+ 	init_completion(&(mcbsp[id].tx_dma_completion));
+ 
+@@ -713,7 +640,7 @@ int omap_mcbsp_xmit_buffer(unsigned int id, dma_addr_t buffer,
+ 		src_port = OMAP_DMA_PORT_TIPB;
+ 		dest_port = OMAP_DMA_PORT_EMIFF;
+ 	}
+-	if (cpu_is_omap24xx())
++	if (cpu_class_is_omap2())
+ 		sync_dev = mcbsp[id].dma_tx_sync;
+ 
+ 	omap_set_dma_transfer_params(mcbsp[id].dma_tx_lch,
+@@ -749,20 +676,24 @@ int omap_mcbsp_recv_buffer(unsigned int id, dma_addr_t buffer,
+ 	int dest_port = 0;
+ 	int sync_dev = 0;
+ 
+-	if (omap_mcbsp_check(id) < 0)
+-		return -EINVAL;
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
++		return -ENODEV;
++	}
+ 
+ 	if (omap_request_dma(mcbsp[id].dma_rx_sync, "McBSP RX",
+ 				omap_mcbsp_rx_dma_callback,
+ 				&mcbsp[id],
+ 				&dma_rx_ch)) {
+-		printk(KERN_ERR "Unable to request DMA channel for McBSP%d RX."
+-				" Trying IRQ based RX\n", id + 1);
++		dev_err(mcbsp[id].dev, "Unable to request DMA channel for "
++				"McBSP%d RX. Trying IRQ based RX\n",
++				mcbsp[id].id);
+ 		return -EAGAIN;
+ 	}
+ 	mcbsp[id].dma_rx_lch = dma_rx_ch;
+ 
+-	DBG("RX DMA on channel %d\n", dma_rx_ch);
++	dev_err(mcbsp[id].dev, "McBSP%d RX DMA on channel %d\n", mcbsp[id].id,
++		dma_rx_ch);
+ 
+ 	init_completion(&(mcbsp[id].rx_dma_completion));
+ 
+@@ -770,7 +701,7 @@ int omap_mcbsp_recv_buffer(unsigned int id, dma_addr_t buffer,
+ 		src_port = OMAP_DMA_PORT_TIPB;
+ 		dest_port = OMAP_DMA_PORT_EMIFF;
+ 	}
+-	if (cpu_is_omap24xx())
++	if (cpu_class_is_omap2())
+ 		sync_dev = mcbsp[id].dma_rx_sync;
+ 
+ 	omap_set_dma_transfer_params(mcbsp[id].dma_rx_lch,
+@@ -809,8 +740,10 @@ void omap_mcbsp_set_spi_mode(unsigned int id,
+ {
+ 	struct omap_mcbsp_reg_cfg mcbsp_cfg;
+ 
+-	if (omap_mcbsp_check(id) < 0)
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+ 		return;
++	}
+ 
+ 	memset(&mcbsp_cfg, 0, sizeof(struct omap_mcbsp_reg_cfg));
+ 
+@@ -871,182 +804,93 @@ EXPORT_SYMBOL(omap_mcbsp_set_spi_mode);
+  * McBSP1 and McBSP3 are directly mapped on 1610 and 1510.
+  * 730 has only 2 McBSP, and both of them are MPU peripherals.
+  */
+-struct omap_mcbsp_info {
+-	u32 virt_base;
+-	u8 dma_rx_sync, dma_tx_sync;
+-	u16 rx_irq, tx_irq;
+-};
++static int __init omap_mcbsp_probe(struct platform_device *pdev)
++{
++	struct omap_mcbsp_platform_data *pdata = pdev->dev.platform_data;
++	int id = pdev->id - 1;
++	int ret = 0;
+ 
+-#ifdef CONFIG_ARCH_OMAP730
+-static const struct omap_mcbsp_info mcbsp_730[] = {
+-	[0] = { .virt_base = io_p2v(OMAP730_MCBSP1_BASE),
+-		.dma_rx_sync = OMAP_DMA_MCBSP1_RX,
+-		.dma_tx_sync = OMAP_DMA_MCBSP1_TX,
+-		.rx_irq = INT_730_McBSP1RX,
+-		.tx_irq = INT_730_McBSP1TX },
+-	[1] = { .virt_base = io_p2v(OMAP730_MCBSP2_BASE),
+-		.dma_rx_sync = OMAP_DMA_MCBSP3_RX,
+-		.dma_tx_sync = OMAP_DMA_MCBSP3_TX,
+-		.rx_irq = INT_730_McBSP2RX,
+-		.tx_irq = INT_730_McBSP2TX },
+-};
+-#endif
 -
--	cmp	r0, #0x1		@ going to half speed (post branch link)
--	moveq	r5, r5, lsr #1		@ divide by 2 if to half
--	movne	r5, r5, lsl #1		@ mult by 2 if to full
--	mov	r5, r5, lsl #8		@ put rfr field back into place
--	add	r5, r5, #0x1		@ turn on burst of 1
--	ldr	r4, ddr_cm_clksel2_pll	@ get address of out reg
--	ldr	r3, [r4]		@ get curr value
--	orr	r3, r3, #0x3
--	bic	r3, r3, #0x3		@ clear lower bits
--	orr	r3, r3, r0		@ new state value
--	str	r3, [r4]		@ set new state (pll/x, x=1 or 2)
--	nop
--	nop
+-#ifdef CONFIG_ARCH_OMAP15XX
+-static const struct omap_mcbsp_info mcbsp_1510[] = {
+-	[0] = { .virt_base = OMAP1510_MCBSP1_BASE,
+-		.dma_rx_sync = OMAP_DMA_MCBSP1_RX,
+-		.dma_tx_sync = OMAP_DMA_MCBSP1_TX,
+-		.rx_irq = INT_McBSP1RX,
+-		.tx_irq = INT_McBSP1TX },
+-	[1] = { .virt_base = io_p2v(OMAP1510_MCBSP2_BASE),
+-		.dma_rx_sync = OMAP_DMA_MCBSP2_RX,
+-		.dma_tx_sync = OMAP_DMA_MCBSP2_TX,
+-		.rx_irq = INT_1510_SPI_RX,
+-		.tx_irq = INT_1510_SPI_TX },
+-	[2] = { .virt_base = OMAP1510_MCBSP3_BASE,
+-		.dma_rx_sync = OMAP_DMA_MCBSP3_RX,
+-		.dma_tx_sync = OMAP_DMA_MCBSP3_TX,
+-		.rx_irq = INT_McBSP3RX,
+-		.tx_irq = INT_McBSP3TX },
+-};
+-#endif
 -
--	moveq	r9, #0x1		@ if speed down, post down, drop volt
--	bleq	voltage_shift_c
+-#if defined(CONFIG_ARCH_OMAP16XX)
+-static const struct omap_mcbsp_info mcbsp_1610[] = {
+-	[0] = { .virt_base = OMAP1610_MCBSP1_BASE,
+-		.dma_rx_sync = OMAP_DMA_MCBSP1_RX,
+-		.dma_tx_sync = OMAP_DMA_MCBSP1_TX,
+-		.rx_irq = INT_McBSP1RX,
+-		.tx_irq = INT_McBSP1TX },
+-	[1] = { .virt_base = io_p2v(OMAP1610_MCBSP2_BASE),
+-		.dma_rx_sync = OMAP_DMA_MCBSP2_RX,
+-		.dma_tx_sync = OMAP_DMA_MCBSP2_TX,
+-		.rx_irq = INT_1610_McBSP2_RX,
+-		.tx_irq = INT_1610_McBSP2_TX },
+-	[2] = { .virt_base = OMAP1610_MCBSP3_BASE,
+-		.dma_rx_sync = OMAP_DMA_MCBSP3_RX,
+-		.dma_tx_sync = OMAP_DMA_MCBSP3_TX,
+-		.rx_irq = INT_McBSP3RX,
+-		.tx_irq = INT_McBSP3TX },
+-};
+-#endif
 -
--	mcr	p15, 0, r3, c7, c10, 4	@ memory barrier
--	str	r5, [r6]		@ set new RFR_1 value
--	add	r6, r6, #0x30		@ get RFR_2 addr
--	str	r5, [r6]		@ set RFR_2
--	nop
--	cmp	r2, #0x1		@ (SDR or DDR) do we need to adjust DLL
--	bne	freq_out		@ leave if SDR, no DLL function
+-#if defined(CONFIG_ARCH_OMAP24XX)
+-static const struct omap_mcbsp_info mcbsp_24xx[] = {
+-	[0] = { .virt_base = IO_ADDRESS(OMAP24XX_MCBSP1_BASE),
+-		.dma_rx_sync = OMAP24XX_DMA_MCBSP1_RX,
+-		.dma_tx_sync = OMAP24XX_DMA_MCBSP1_TX,
+-		.rx_irq = INT_24XX_MCBSP1_IRQ_RX,
+-		.tx_irq = INT_24XX_MCBSP1_IRQ_TX,
+-		},
+-	[1] = { .virt_base = IO_ADDRESS(OMAP24XX_MCBSP2_BASE),
+-		.dma_rx_sync = OMAP24XX_DMA_MCBSP2_RX,
+-		.dma_tx_sync = OMAP24XX_DMA_MCBSP2_TX,
+-		.rx_irq = INT_24XX_MCBSP2_IRQ_RX,
+-		.tx_irq = INT_24XX_MCBSP2_IRQ_TX,
+-		},
+-};
+-#endif
++	if (!pdata) {
++		dev_err(&pdev->dev, "McBSP device initialized without"
++				"platform data\n");
++		ret = -EINVAL;
++		goto exit;
++	}
++
++	dev_dbg(&pdev->dev, "Initializing OMAP McBSP (%d).\n", pdev->id);
++
++	if (id >= OMAP_MAX_MCBSP_COUNT) {
++		dev_err(&pdev->dev, "Invalid McBSP device id (%d)\n", id);
++		ret = -EINVAL;
++		goto exit;
++	}
++
++	spin_lock_init(&mcbsp[id].lock);
++	mcbsp[id].id = id + 1;
++	mcbsp[id].free = 1;
++	mcbsp[id].dma_tx_lch = -1;
++	mcbsp[id].dma_rx_lch = -1;
++
++	mcbsp[id].io_base = pdata->virt_base;
++	/* Default I/O is IRQ based */
++	mcbsp[id].io_type = OMAP_MCBSP_IRQ_IO;
++	mcbsp[id].tx_irq = pdata->tx_irq;
++	mcbsp[id].rx_irq = pdata->rx_irq;
++	mcbsp[id].dma_rx_sync = pdata->dma_rx_sync;
++	mcbsp[id].dma_tx_sync = pdata->dma_tx_sync;
++
++	if (pdata->clk_name)
++		mcbsp[id].clk = clk_get(&pdev->dev, pdata->clk_name);
++	if (IS_ERR(mcbsp[id].clk)) {
++		mcbsp[id].free = 0;
++		dev_err(&pdev->dev,
++			"Invalid clock configuration for McBSP%d.\n",
++			mcbsp[id].id);
++		ret = -EINVAL;
++		goto exit;
++	}
++
++	mcbsp[id].pdata = pdata;
++	mcbsp[id].dev = &pdev->dev;
++	platform_set_drvdata(pdev, &mcbsp[id]);
++
++exit:
++	return ret;
++}
+ 
+-static int __init omap_mcbsp_init(void)
++static int omap_mcbsp_remove(struct platform_device *pdev)
+ {
+-	int mcbsp_count = 0, i;
+-	static const struct omap_mcbsp_info *mcbsp_info;
++	struct omap_mcbsp *mcbsp = platform_get_drvdata(pdev);
+ 
+-	printk(KERN_INFO "Initializing OMAP McBSP system\n");
++	platform_set_drvdata(pdev, NULL);
++	if (mcbsp) {
+ 
+-#ifdef CONFIG_ARCH_OMAP1
+-	mcbsp_dsp_ck = clk_get(0, "dsp_ck");
+-	if (IS_ERR(mcbsp_dsp_ck)) {
+-		printk(KERN_ERR "mcbsp: could not acquire dsp_ck handle.\n");
+-		return PTR_ERR(mcbsp_dsp_ck);
+-	}
+-	mcbsp_api_ck = clk_get(0, "api_ck");
+-	if (IS_ERR(mcbsp_api_ck)) {
+-		printk(KERN_ERR "mcbsp: could not acquire api_ck handle.\n");
+-		return PTR_ERR(mcbsp_api_ck);
+-	}
+-	mcbsp_dspxor_ck = clk_get(0, "dspxor_ck");
+-	if (IS_ERR(mcbsp_dspxor_ck)) {
+-		printk(KERN_ERR "mcbsp: could not acquire dspxor_ck handle.\n");
+-		return PTR_ERR(mcbsp_dspxor_ck);
+-	}
+-#endif
+-#ifdef CONFIG_ARCH_OMAP2
+-	mcbsp1_ick = clk_get(0, "mcbsp1_ick");
+-	if (IS_ERR(mcbsp1_ick)) {
+-		printk(KERN_ERR "mcbsp: could not acquire "
+-				"mcbsp1_ick handle.\n");
+-		return PTR_ERR(mcbsp1_ick);
+-	}
+-	mcbsp1_fck = clk_get(0, "mcbsp1_fck");
+-	if (IS_ERR(mcbsp1_fck)) {
+-		printk(KERN_ERR "mcbsp: could not acquire "
+-				"mcbsp1_fck handle.\n");
+-		return PTR_ERR(mcbsp1_fck);
+-	}
+-	mcbsp2_ick = clk_get(0, "mcbsp2_ick");
+-	if (IS_ERR(mcbsp2_ick)) {
+-		printk(KERN_ERR "mcbsp: could not acquire "
+-				"mcbsp2_ick handle.\n");
+-		return PTR_ERR(mcbsp2_ick);
+-	}
+-	mcbsp2_fck = clk_get(0, "mcbsp2_fck");
+-	if (IS_ERR(mcbsp2_fck)) {
+-		printk(KERN_ERR "mcbsp: could not acquire "
+-				"mcbsp2_fck handle.\n");
+-		return PTR_ERR(mcbsp2_fck);
+-	}
+-#endif
++		if (mcbsp->pdata && mcbsp->pdata->ops &&
++				mcbsp->pdata->ops->free)
++			mcbsp->pdata->ops->free(mcbsp->id);
+ 
+-#ifdef CONFIG_ARCH_OMAP730
+-	if (cpu_is_omap730()) {
+-		mcbsp_info = mcbsp_730;
+-		mcbsp_count = ARRAY_SIZE(mcbsp_730);
+-	}
+-#endif
+-#ifdef CONFIG_ARCH_OMAP15XX
+-	if (cpu_is_omap15xx()) {
+-		mcbsp_info = mcbsp_1510;
+-		mcbsp_count = ARRAY_SIZE(mcbsp_1510);
+-	}
+-#endif
+-#if defined(CONFIG_ARCH_OMAP16XX)
+-	if (cpu_is_omap16xx()) {
+-		mcbsp_info = mcbsp_1610;
+-		mcbsp_count = ARRAY_SIZE(mcbsp_1610);
+-	}
+-#endif
+-#if defined(CONFIG_ARCH_OMAP24XX)
+-	if (cpu_is_omap24xx()) {
+-		mcbsp_info = mcbsp_24xx;
+-		mcbsp_count = ARRAY_SIZE(mcbsp_24xx);
+-		omap2_mcbsp2_mux_setup();
+-	}
+-#endif
+-	for (i = 0; i < OMAP_MAX_MCBSP_COUNT ; i++) {
+-		if (i >= mcbsp_count) {
+-			mcbsp[i].io_base = 0;
+-			mcbsp[i].free = 0;
+-			continue;
+-		}
+-		mcbsp[i].id = i + 1;
+-		mcbsp[i].free = 1;
+-		mcbsp[i].dma_tx_lch = -1;
+-		mcbsp[i].dma_rx_lch = -1;
 -
--	/* With DDR, we need to take care of the DLL for the frequency change */
--	ldr	r2, ddr_sdrc_dlla_ctrl	@ addr of dlla ctrl
--	str	r1, [r2]		@ write out new SDRC_DLLA_CTRL
--	add	r2, r2, #0x8		@ addr to SDRC_DLLB_CTRL
--	str	r1, [r2]		@ commit to SDRC_DLLB_CTRL
--	mov	r1, #0x2000		@ wait DLL relock, min 0x400 L3 clocks
--dll_wait:
--	subs	r1, r1, #0x1
--	bne	dll_wait
--freq_out:
--	ldmfd	sp!, {r0 - r10, pc}	@ restore regs and return
--
--    /*
--     * shift up or down voltage, use R9 as input to tell level.
--     *	wait for it to finish, use 32k sync counter, 1tick=31uS.
--     */
--voltage_shift_c:
--	ldr	r10, ddr_prcm_voltctrl	@ get addr of volt ctrl
--	ldr	r8, [r10]		@ get value
--	ldr	r7, ddr_prcm_mask_val	@ get value of mask
--	and	r8, r8, r7		@ apply mask to clear bits
--	orr	r8, r8, r9		@ bulld value for L0/L1-volt operation.
--	str	r8, [r10]		@ set up for change.
--	mov	r7, #0x4000		@ get val for force
--	orr	r8, r8, r7		@ build value for force
--	str	r8, [r10]		@ Force transition to L1
--
--	ldr	r10, ddr_timer_32ksynct	@ get addr of counter
--	ldr	r8, [r10]		@ get value
--	add	r8, r8, #0x2		@ give it at most 62uS (min 31+)
--volt_delay_c:
--	ldr	r7, [r10]		@ get timer value
--	cmp	r8, r7			@ time up?
--	bhi	volt_delay_c		@ not yet->branch
--	mov	pc, lr			@ back to caller
--
--ddr_cm_clksel2_pll:
--	.word OMAP2420_CM_REGADDR(PLL_MOD, CM_CLKSEL2)
--ddr_sdrc_dlla_ctrl:
--	.word OMAP242X_SDRC_REGADDR(SDRC_DLLA_CTRL)
--ddr_sdrc_rfr_ctrl:
--	.word OMAP242X_SDRC_REGADDR(SDRC_RFR_CTRL_0)
--ddr_prcm_voltctrl:
--	.word OMAP2420_PRM_REGADDR(OCP_MOD, 0x50)
--ddr_prcm_mask_val:
--	.word 0xFFFF3FFC
--ddr_timer_32ksynct:
--	.word TIMER_32KSYNCT_CR_V
--
--ENTRY(sram_reprogram_sdrc_sz)
--	.word	. - sram_reprogram_sdrc
--
--/*
-- * Set dividers and pll. Also recalculate DLL value for DDR and unlock mode.
-- */
--ENTRY(sram_set_prcm)
--	stmfd	sp!, {r0-r12, lr}	@ regs to stack
--	adr	r4, pbegin		@ addr of preload start
--	adr	r8, pend		@ addr of preload end
--	mcrr	p15, 1, r8, r4, c12	@ preload into icache
--pbegin:
--	/* move into fast relock bypass */
--	ldr	r8, pll_ctl		@ get addr
--	ldr	r5, [r8]		@ get val
--	mvn	r6, #0x3		@ clear mask
--	and	r5, r5, r6		@ clear field
--	orr	r7, r5, #0x2		@ fast relock val
--	str	r7, [r8]		@ go to fast relock
--	ldr	r4, pll_stat		@ addr of stat
--block:
--	/* wait for bypass */
--	ldr	r8, [r4]		@ stat value
--	and	r8, r8, #0x3		@ mask for stat
--	cmp	r8, #0x1		@ there yet
--	bne	block			@ loop if not
--
--	/* set new dpll dividers _after_ in bypass */
--	ldr	r4, pll_div		@ get addr
--	str	r0, [r4]		@ set dpll ctrl val
--
--	ldr	r4, set_config		@ get addr
--	mov	r8, #1			@ valid cfg msk
--	str	r8, [r4]		@ make dividers take
--
--	mov	r4, #100		@ dead spin a bit
--wait_a_bit:
--	subs	r4, r4, #1		@ dec loop
--	bne	wait_a_bit		@ delay done?
--
--	/* check if staying in bypass */
--	cmp	r2, #0x1		@ stay in bypass?
--	beq	pend			@ jump over dpll relock
--
--	/* relock DPLL with new vals */
--	ldr	r5, pll_stat		@ get addr
--	ldr	r4, pll_ctl		@ get addr
--	orr	r8, r7, #0x3		@ val for lock dpll
--	str	r8, [r4]		@ set val
--	mov	r0, #1000		@ dead spin a bit
--wait_more:
--	subs	r0, r0, #1		@ dec loop
--	bne	wait_more		@ delay done?
--wait_lock:
--	ldr	r8, [r5]		@ get lock val
--	and	r8, r8, #3		@ isolate field
--	cmp	r8, #2			@ locked?
--	bne	wait_lock		@ wait if not
--pend:
--	/* update memory timings & briefly lock dll */
--	ldr	r4, sdrc_rfr		@ get addr
--	str	r1, [r4]		@ update refresh timing
--	ldr	r11, dlla_ctrl		@ get addr of DLLA ctrl
--	ldr	r10, [r11]		@ get current val
--	mvn	r9, #0x4		@ mask to get clear bit2
--	and	r10, r10, r9		@ clear bit2 for lock mode
--	orr	r10, r10, #0x8		@ make sure DLL on (es2 bit pos)
--	str	r10, [r11]		@ commit to DLLA_CTRL
--	add	r11, r11, #0x8		@ move to dllb
--	str	r10, [r11]		@ hit DLLB also
--
--	mov	r4, #0x800		@ relock time (min 0x400 L3 clocks)
--wait_dll_lock:
--	subs	r4, r4, #0x1
--	bne	wait_dll_lock
--	nop
--	ldmfd	sp!, {r0-r12, pc}	@ restore regs and return
--
--set_config:
--	.word OMAP2420_PRM_REGADDR(OCP_MOD, 0x80)
--pll_ctl:
--	.word OMAP2420_CM_REGADDR(PLL_MOD, CM_FCLKEN1)
--pll_stat:
--	.word OMAP2420_CM_REGADDR(PLL_MOD, CM_IDLEST1)
--pll_div:
--	.word OMAP2420_CM_REGADDR(PLL_MOD, CM_CLKSEL)
--sdrc_rfr:
--	.word OMAP242X_SDRC_REGADDR(SDRC_RFR_CTRL_0)
--dlla_ctrl:
--	.word OMAP242X_SDRC_REGADDR(SDRC_DLLA_CTRL)
--
--ENTRY(sram_set_prcm_sz)
--	.word	. - sram_set_prcm
-diff --git a/arch/arm/mach-omap2/sram242x.S b/arch/arm/mach-omap2/sram242x.S
-new file mode 100644
-index 0000000..4a9e491
---- /dev/null
-+++ b/arch/arm/mach-omap2/sram242x.S
-@@ -0,0 +1,324 @@
-+/*
-+ * linux/arch/arm/mach-omap2/sram-fn.S
-+ *
-+ * Omap2 specific functions that need to be run in internal SRAM
-+ *
-+ * (C) Copyright 2004
-+ * Texas Instruments, <www.ti.com>
-+ * Richard Woodruff <r-woodruff2@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation; either version 2 of
-+ * the License, or (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR /PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-+ * MA 02111-1307 USA
-+ */
-+#include <linux/linkage.h>
-+#include <asm/assembler.h>
-+#include <asm/arch/io.h>
-+#include <asm/hardware.h>
+-		mcbsp[i].io_base = mcbsp_info[i].virt_base;
+-		/* Default I/O is IRQ based */
+-		mcbsp[i].io_type = OMAP_MCBSP_IRQ_IO;
+-		mcbsp[i].tx_irq = mcbsp_info[i].tx_irq;
+-		mcbsp[i].rx_irq = mcbsp_info[i].rx_irq;
+-		mcbsp[i].dma_rx_sync = mcbsp_info[i].dma_rx_sync;
+-		mcbsp[i].dma_tx_sync = mcbsp_info[i].dma_tx_sync;
+-		spin_lock_init(&mcbsp[i].lock);
++		clk_disable(mcbsp->clk);
++		clk_put(mcbsp->clk);
 +
-+#include "sdrc.h"
-+#include "prm.h"
-+#include "cm.h"
++		mcbsp->clk = NULL;
++		mcbsp->free = 0;
++		mcbsp->dev = NULL;
+ 	}
+ 
+ 	return 0;
+ }
+ 
+-arch_initcall(omap_mcbsp_init);
++static struct platform_driver omap_mcbsp_driver = {
++	.probe		= omap_mcbsp_probe,
++	.remove		= omap_mcbsp_remove,
++	.driver		= {
++		.name	= "omap-mcbsp",
++	},
++};
 +
-+#define TIMER_32KSYNCT_CR_V	IO_ADDRESS(OMAP2420_32KSYNCT_BASE + 0x010)
++int __init omap_mcbsp_init(void)
++{
++	/* Register the McBSP driver */
++	return platform_driver_register(&omap_mcbsp_driver);
++}
 +
-+	.text
+diff --git a/include/asm-arm/arch-omap/mcbsp.h b/include/asm-arm/arch-omap/mcbsp.h
+index c7a0cc1..26c78f6 100644
+--- a/include/asm-arm/arch-omap/mcbsp.h
++++ b/include/asm-arm/arch-omap/mcbsp.h
+@@ -24,7 +24,11 @@
+ #ifndef __ASM_ARCH_OMAP_MCBSP_H
+ #define __ASM_ARCH_OMAP_MCBSP_H
+ 
++#include <linux/completion.h>
++#include <linux/spinlock.h>
 +
-+ENTRY(sram_ddr_init)
-+	stmfd	sp!, {r0 - r12, lr}	@ save registers on stack
+ #include <asm/hardware.h>
++#include <asm/arch/clock.h>
+ 
+ #define OMAP730_MCBSP1_BASE	0xfffb1000
+ #define OMAP730_MCBSP2_BASE	0xfffb1800
+@@ -40,6 +44,9 @@
+ #define OMAP24XX_MCBSP1_BASE	0x48074000
+ #define OMAP24XX_MCBSP2_BASE	0x48076000
+ 
++#define OMAP34XX_MCBSP1_BASE	0x48074000
++#define OMAP34XX_MCBSP2_BASE	0x49022000
 +
-+	mov	r12, r2			@ capture CS1 vs CS0
-+	mov	r8, r3			@ capture force parameter
+ #if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP730)
+ 
+ #define OMAP_MCBSP_REG_DRR2	0x00
+@@ -74,7 +81,8 @@
+ #define OMAP_MCBSP_REG_XCERG	0x3A
+ #define OMAP_MCBSP_REG_XCERH	0x3C
+ 
+-#define OMAP_MAX_MCBSP_COUNT 3
++#define OMAP_MAX_MCBSP_COUNT	3
++#define MAX_MCBSP_CLOCKS	3
+ 
+ #define AUDIO_MCBSP_DATAWRITE	(OMAP1510_MCBSP1_BASE + OMAP_MCBSP_REG_DXR1)
+ #define AUDIO_MCBSP_DATAREAD	(OMAP1510_MCBSP1_BASE + OMAP_MCBSP_REG_DRR1)
+@@ -117,7 +125,8 @@
+ #define OMAP_MCBSP_REG_XCERG	0x74
+ #define OMAP_MCBSP_REG_XCERH	0x78
+ 
+-#define OMAP_MAX_MCBSP_COUNT 2
++#define OMAP_MAX_MCBSP_COUNT	2
++#define MAX_MCBSP_CLOCKS	2
+ 
+ #define AUDIO_MCBSP_DATAWRITE	(OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DXR1)
+ #define AUDIO_MCBSP_DATAREAD	(OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DRR1)
+@@ -298,6 +307,55 @@ struct omap_mcbsp_spi_cfg {
+ 	omap_mcbsp_word_length		word_length;
+ };
+ 
++/* Platform specific configuration */
++struct omap_mcbsp_ops {
++	void (*request)(unsigned int);
++	void (*free)(unsigned int);
++	int (*check)(unsigned int);
++};
 +
-+	/* frequency shift down */
-+	ldr	r2, cm_clksel2_pll	@ get address of dpllout reg
-+	mov	r3, #0x1		@ value for 1x operation
-+	str	r3, [r2]		@ go to L1-freq operation
++struct omap_mcbsp_platform_data {
++	u32 virt_base;
++	u8 dma_rx_sync, dma_tx_sync;
++	u16 rx_irq, tx_irq;
++	struct omap_mcbsp_ops *ops;
++	char const *clk_name;
++};
 +
-+	/* voltage shift down */
-+	mov r9, #0x1			@ set up for L1 voltage call
-+	bl voltage_shift		@ go drop voltage
++struct omap_mcbsp {
++	struct device *dev;
++	u32 io_base;
++	u8 id;
++	u8 free;
++	omap_mcbsp_word_length rx_word_length;
++	omap_mcbsp_word_length tx_word_length;
 +
-+	/* dll lock mode */
-+	ldr	r11, sdrc_dlla_ctrl	@ addr of dlla ctrl
-+	ldr	r10, [r11]		@ get current val
-+	cmp	r12, #0x1		@ cs1 base (2422 es2.05/1)
-+	addeq	r11, r11, #0x8		@ if cs1 base, move to DLLB
-+	mvn	r9, #0x4		@ mask to get clear bit2
-+	and	r10, r10, r9		@ clear bit2 for lock mode.
-+	orr	r10, r10, #0x8		@ make sure DLL on (es2 bit pos)
-+	orr	r10, r10, #0x2		@ 90 degree phase for all below 133Mhz
-+	str	r10, [r11]		@ commit to DLLA_CTRL
-+	bl	i_dll_wait		@ wait for dll to lock
++	omap_mcbsp_io_type_t io_type; /* IRQ or poll */
++	/* IRQ based TX/RX */
++	int rx_irq;
++	int tx_irq;
 +
-+	/* get dll value */
-+	add	r11, r11, #0x4		@ get addr of status reg
-+	ldr	r10, [r11]		@ get locked value
++	/* DMA stuff */
++	u8 dma_rx_sync;
++	short dma_rx_lch;
++	u8 dma_tx_sync;
++	short dma_tx_lch;
 +
-+	/* voltage shift up */
-+	mov r9, #0x0			@ shift back to L0-voltage
-+	bl voltage_shift		@ go raise voltage
++	/* Completion queues */
++	struct completion tx_irq_completion;
++	struct completion rx_irq_completion;
++	struct completion tx_dma_completion;
++	struct completion rx_dma_completion;
 +
-+	/* frequency shift up */
-+	mov	r3, #0x2		@ value for 2x operation
-+	str	r3, [r2]		@ go to L0-freq operation
++	/* Protect the field .free, while checking if the mcbsp is in use */
++	spinlock_t lock;
++	struct omap_mcbsp_platform_data *pdata;
++	struct clk *clk;
++};
 +
-+	/* reset entry mode for dllctrl */
-+	sub	r11, r11, #0x4		@ move from status to ctrl
-+	cmp	r12, #0x1		@ normalize if cs1 based
-+	subeq	r11, r11, #0x8		@ possibly back to DLLA
-+	cmp	r8, #0x1		@ if forced unlock exit
-+	orreq	r1, r1, #0x4		@ make sure exit with unlocked value
-+	str	r1, [r11]		@ restore DLLA_CTRL high value
-+	add	r11, r11, #0x8		@ move to DLLB_CTRL addr
-+	str	r1, [r11]		@ set value DLLB_CTRL
-+	bl	i_dll_wait		@ wait for possible lock
-+
-+	/* set up for return, DDR should be good */
-+	str r10, [r0]			@ write dll_status and return counter
-+	ldmfd	sp!, {r0 - r12, pc}	@ restore regs and return
-+
-+	/* ensure the DLL has relocked */
-+i_dll_wait:
-+	mov	r4, #0x800		@ delay DLL relock, min 0x400 L3 clocks
-+i_dll_delay:
-+	subs	r4, r4, #0x1
-+	bne	i_dll_delay
-+	mov	pc, lr
-+
-+	/*
-+	 * shift up or down voltage, use R9 as input to tell level.
-+	 * wait for it to finish, use 32k sync counter, 1tick=31uS.
-+	 */
-+voltage_shift:
-+	ldr	r4, prcm_voltctrl	@ get addr of volt ctrl.
-+	ldr	r5, [r4]		@ get value.
-+	ldr	r6, prcm_mask_val	@ get value of mask
-+	and	r5, r5, r6		@ apply mask to clear bits
-+	orr	r5, r5, r9		@ bulld value for L0/L1-volt operation.
-+	str	r5, [r4]		@ set up for change.
-+	mov	r3, #0x4000		@ get val for force
-+	orr	r5, r5, r3		@ build value for force
-+	str	r5, [r4]		@ Force transition to L1
-+
-+	ldr	r3, timer_32ksynct_cr	@ get addr of counter
-+	ldr	r5, [r3]		@ get value
-+	add	r5, r5, #0x3		@ give it at most 93uS
-+volt_delay:
-+	ldr	r7, [r3]		@ get timer value
-+	cmp	r5, r7			@ time up?
-+	bhi	volt_delay		@ not yet->branch
-+	mov	pc, lr			@ back to caller.
-+
-+/* relative load constants */
-+cm_clksel2_pll:
-+	.word OMAP2420_CM_REGADDR(PLL_MOD, CM_CLKSEL2)
-+sdrc_dlla_ctrl:
-+	.word OMAP242X_SDRC_REGADDR(SDRC_DLLA_CTRL)
-+prcm_voltctrl:
-+	.word OMAP2420_PRM_REGADDR(OCP_MOD, 0x50)
-+prcm_mask_val:
-+	.word 0xFFFF3FFC
-+timer_32ksynct_cr:
-+	.word TIMER_32KSYNCT_CR_V
-+ENTRY(sram_ddr_init_sz)
-+	.word	. - sram_ddr_init
-+
-+/*
-+ * Reprograms memory timings.
-+ * r0 = [PRCM_FULL | PRCM_HALF] r1 = SDRC_DLLA_CTRL value r2 = [DDR | SDR]
-+ * PRCM_FULL = 2, PRCM_HALF = 1, DDR = 1, SDR = 0
-+ */
-+ENTRY(sram_reprogram_sdrc)
-+	stmfd	sp!, {r0 - r10, lr}	@ save registers on stack
-+	mov	r3, #0x0		@ clear for mrc call
-+	mcr	p15, 0, r3, c7, c10, 4	@ memory barrier, finish ARM SDR/DDR
-+	nop
-+	nop
-+	ldr	r6, ddr_sdrc_rfr_ctrl	@ get addr of refresh reg
-+	ldr	r5, [r6]		@ get value
-+	mov	r5, r5, lsr #8		@ isolate rfr field and drop burst
-+
-+	cmp	r0, #0x1		@ going to half speed?
-+	movne	r9, #0x0		@ if up set flag up for pre up, hi volt
-+
-+	blne	voltage_shift_c		@ adjust voltage
-+
-+	cmp	r0, #0x1		@ going to half speed (post branch link)
-+	moveq	r5, r5, lsr #1		@ divide by 2 if to half
-+	movne	r5, r5, lsl #1		@ mult by 2 if to full
-+	mov	r5, r5, lsl #8		@ put rfr field back into place
-+	add	r5, r5, #0x1		@ turn on burst of 1
-+	ldr	r4, ddr_cm_clksel2_pll	@ get address of out reg
-+	ldr	r3, [r4]		@ get curr value
-+	orr	r3, r3, #0x3
-+	bic	r3, r3, #0x3		@ clear lower bits
-+	orr	r3, r3, r0		@ new state value
-+	str	r3, [r4]		@ set new state (pll/x, x=1 or 2)
-+	nop
-+	nop
-+
-+	moveq	r9, #0x1		@ if speed down, post down, drop volt
-+	bleq	voltage_shift_c
-+
-+	mcr	p15, 0, r3, c7, c10, 4	@ memory barrier
-+	str	r5, [r6]		@ set new RFR_1 value
-+	add	r6, r6, #0x30		@ get RFR_2 addr
-+	str	r5, [r6]		@ set RFR_2
-+	nop
-+	cmp	r2, #0x1		@ (SDR or DDR) do we need to adjust DLL
-+	bne	freq_out		@ leave if SDR, no DLL function
-+
-+	/* With DDR, we need to take care of the DLL for the frequency change */
-+	ldr	r2, ddr_sdrc_dlla_ctrl	@ addr of dlla ctrl
-+	str	r1, [r2]		@ write out new SDRC_DLLA_CTRL
-+	add	r2, r2, #0x8		@ addr to SDRC_DLLB_CTRL
-+	str	r1, [r2]		@ commit to SDRC_DLLB_CTRL
-+	mov	r1, #0x2000		@ wait DLL relock, min 0x400 L3 clocks
-+dll_wait:
-+	subs	r1, r1, #0x1
-+	bne	dll_wait
-+freq_out:
-+	ldmfd	sp!, {r0 - r10, pc}	@ restore regs and return
-+
-+    /*
-+     * shift up or down voltage, use R9 as input to tell level.
-+     *	wait for it to finish, use 32k sync counter, 1tick=31uS.
-+     */
-+voltage_shift_c:
-+	ldr	r10, ddr_prcm_voltctrl	@ get addr of volt ctrl
-+	ldr	r8, [r10]		@ get value
-+	ldr	r7, ddr_prcm_mask_val	@ get value of mask
-+	and	r8, r8, r7		@ apply mask to clear bits
-+	orr	r8, r8, r9		@ bulld value for L0/L1-volt operation.
-+	str	r8, [r10]		@ set up for change.
-+	mov	r7, #0x4000		@ get val for force
-+	orr	r8, r8, r7		@ build value for force
-+	str	r8, [r10]		@ Force transition to L1
-+
-+	ldr	r10, ddr_timer_32ksynct	@ get addr of counter
-+	ldr	r8, [r10]		@ get value
-+	add	r8, r8, #0x2		@ give it at most 62uS (min 31+)
-+volt_delay_c:
-+	ldr	r7, [r10]		@ get timer value
-+	cmp	r8, r7			@ time up?
-+	bhi	volt_delay_c		@ not yet->branch
-+	mov	pc, lr			@ back to caller
-+
-+ddr_cm_clksel2_pll:
-+	.word OMAP2420_CM_REGADDR(PLL_MOD, CM_CLKSEL2)
-+ddr_sdrc_dlla_ctrl:
-+	.word OMAP242X_SDRC_REGADDR(SDRC_DLLA_CTRL)
-+ddr_sdrc_rfr_ctrl:
-+	.word OMAP242X_SDRC_REGADDR(SDRC_RFR_CTRL_0)
-+ddr_prcm_voltctrl:
-+	.word OMAP2420_PRM_REGADDR(OCP_MOD, 0x50)
-+ddr_prcm_mask_val:
-+	.word 0xFFFF3FFC
-+ddr_timer_32ksynct:
-+	.word TIMER_32KSYNCT_CR_V
-+
-+ENTRY(sram_reprogram_sdrc_sz)
-+	.word	. - sram_reprogram_sdrc
-+
-+/*
-+ * Set dividers and pll. Also recalculate DLL value for DDR and unlock mode.
-+ */
-+ENTRY(sram_set_prcm)
-+	stmfd	sp!, {r0-r12, lr}	@ regs to stack
-+	adr	r4, pbegin		@ addr of preload start
-+	adr	r8, pend		@ addr of preload end
-+	mcrr	p15, 1, r8, r4, c12	@ preload into icache
-+pbegin:
-+	/* move into fast relock bypass */
-+	ldr	r8, pll_ctl		@ get addr
-+	ldr	r5, [r8]		@ get val
-+	mvn	r6, #0x3		@ clear mask
-+	and	r5, r5, r6		@ clear field
-+	orr	r7, r5, #0x2		@ fast relock val
-+	str	r7, [r8]		@ go to fast relock
-+	ldr	r4, pll_stat		@ addr of stat
-+block:
-+	/* wait for bypass */
-+	ldr	r8, [r4]		@ stat value
-+	and	r8, r8, #0x3		@ mask for stat
-+	cmp	r8, #0x1		@ there yet
-+	bne	block			@ loop if not
-+
-+	/* set new dpll dividers _after_ in bypass */
-+	ldr	r4, pll_div		@ get addr
-+	str	r0, [r4]		@ set dpll ctrl val
-+
-+	ldr	r4, set_config		@ get addr
-+	mov	r8, #1			@ valid cfg msk
-+	str	r8, [r4]		@ make dividers take
-+
-+	mov	r4, #100		@ dead spin a bit
-+wait_a_bit:
-+	subs	r4, r4, #1		@ dec loop
-+	bne	wait_a_bit		@ delay done?
-+
-+	/* check if staying in bypass */
-+	cmp	r2, #0x1		@ stay in bypass?
-+	beq	pend			@ jump over dpll relock
-+
-+	/* relock DPLL with new vals */
-+	ldr	r5, pll_stat		@ get addr
-+	ldr	r4, pll_ctl		@ get addr
-+	orr	r8, r7, #0x3		@ val for lock dpll
-+	str	r8, [r4]		@ set val
-+	mov	r0, #1000		@ dead spin a bit
-+wait_more:
-+	subs	r0, r0, #1		@ dec loop
-+	bne	wait_more		@ delay done?
-+wait_lock:
-+	ldr	r8, [r5]		@ get lock val
-+	and	r8, r8, #3		@ isolate field
-+	cmp	r8, #2			@ locked?
-+	bne	wait_lock		@ wait if not
-+pend:
-+	/* update memory timings & briefly lock dll */
-+	ldr	r4, sdrc_rfr		@ get addr
-+	str	r1, [r4]		@ update refresh timing
-+	ldr	r11, dlla_ctrl		@ get addr of DLLA ctrl
-+	ldr	r10, [r11]		@ get current val
-+	mvn	r9, #0x4		@ mask to get clear bit2
-+	and	r10, r10, r9		@ clear bit2 for lock mode
-+	orr	r10, r10, #0x8		@ make sure DLL on (es2 bit pos)
-+	str	r10, [r11]		@ commit to DLLA_CTRL
-+	add	r11, r11, #0x8		@ move to dllb
-+	str	r10, [r11]		@ hit DLLB also
-+
-+	mov	r4, #0x800		@ relock time (min 0x400 L3 clocks)
-+wait_dll_lock:
-+	subs	r4, r4, #0x1
-+	bne	wait_dll_lock
-+	nop
-+	ldmfd	sp!, {r0-r12, pc}	@ restore regs and return
-+
-+set_config:
-+	.word OMAP2420_PRM_REGADDR(OCP_MOD, 0x80)
-+pll_ctl:
-+	.word OMAP2420_CM_REGADDR(PLL_MOD, CM_FCLKEN1)
-+pll_stat:
-+	.word OMAP2420_CM_REGADDR(PLL_MOD, CM_IDLEST1)
-+pll_div:
-+	.word OMAP2420_CM_REGADDR(PLL_MOD, CM_CLKSEL)
-+sdrc_rfr:
-+	.word OMAP242X_SDRC_REGADDR(SDRC_RFR_CTRL_0)
-+dlla_ctrl:
-+	.word OMAP242X_SDRC_REGADDR(SDRC_DLLA_CTRL)
-+
-+ENTRY(sram_set_prcm_sz)
-+	.word	. - sram_set_prcm
++int omap_mcbsp_init(void);
++void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data *config,
++					int size);
+ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg * config);
+ int omap_mcbsp_request(unsigned int id);
+ void omap_mcbsp_free(unsigned int id);
