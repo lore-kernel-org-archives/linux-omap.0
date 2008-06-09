@@ -1,59 +1,40 @@
-From: "arun c" <arunedarath@mistralsolutions.com>
-Subject: DISPC register values to eliminate the omapfb irq errors on 2430SDP
-Date: Mon, 9 Jun 2008 13:07:32 +0530
-Message-ID: <c656a4d20806090037h366eaeam9de95e74e210085e@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Jouni Hogander <jouni.hogander@nokia.com>
+Subject: [PATCH] PRCM: OMAP3: Fix to wrongly modified omap2_clk_wait_ready
+Date: Mon,  9 Jun 2008 12:32:40 +0300
+Message-ID: <1213003960-900-1-git-send-email-jouni.hogander@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.184]:54391 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753911AbYFIHhe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jun 2008 03:37:34 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so532513tic.23
-        for <linux-omap@vger.kernel.org>; Mon, 09 Jun 2008 00:37:32 -0700 (PDT)
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.233]:55524 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752701AbYFIJcw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jun 2008 05:32:52 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, tony@atomide.com
 
-FYI
+omap2_clk_wait_ready was wrongly modified to check
+registers contents. This fix changes it back to check
+addresses.
 
-By changing the gfx fifo threshold and burst size values
-i could able to completely eliminate the omapfb irq
-error messages on 2430 SDP board.
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+---
+ arch/arm/mach-omap2/clock.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-I am pasting the changes here for anybody
-who wants to try it out.
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index d3ab537..ed15868 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -246,8 +246,8 @@ static void omap2_clk_wait_ready(struct clk *clk)
+ 	/* REVISIT: What are the appropriate exclusions for 34XX? */
+ 	/* OMAP3: ignore DSS-mod clocks */
+ 	if (cpu_is_omap34xx() &&
+-	    ((reg & ~0xff) == cm_read_mod_reg(OMAP3430_DSS_MOD, 0) ||
+-	     (((reg & ~0xff) == cm_read_mod_reg(CORE_MOD, 0)) &&
++	    ((reg & ~0xff) == (__force u32)OMAP34XX_CM_REGADDR(OMAP3430_DSS_MOD, 0) ||
++	     (((reg & ~0xff) == (__force u32)OMAP34XX_CM_REGADDR(CORE_MOD, 0)) &&
+ 	      clk->enable_bit == OMAP3430_EN_SSI_SHIFT)))
+ 		return;
+ 
+-- 
+1.5.5
 
-##########################################
-
-diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
-index 6aff476..4cf83b6 100644
---- a/drivers/video/omap/dispc.c
-+++ b/drivers/video/omap/dispc.c
-@@ -290,8 +290,8 @@ static void setup_plane_fifo(int plane, int ext_mode)
- 		low = l * 3 / 4;
- 		high = l;
- 	} else {
--		low = l / 4;
--		high = l * 3 / 4;
-+		low = l - 64;
-+		high = l - 1;
- 	}
- 	MOD_REG_FLD(ftrs_reg[plane], FLD_MASK(16, 9) | FLD_MASK(0, 9),
- 			(high << 16) | low);
-@@ -409,7 +409,7 @@ static inline int _setup_plane(int plane, int channel_out,
- 	l |= cconv_en << 9;
-
- 	l &= ~(0x03 << burst_shift);
--	l |= DISPC_BURST_8x32 << burst_shift;
-+	l |= DISPC_BURST_16x32 << burst_shift;
-
- 	l &= ~(1 << chout_shift);
- 	l |= chout_val << chout_shift;
-
-###############################
-
-Regards,
-Arun C
