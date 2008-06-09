@@ -1,167 +1,56 @@
-From: "Pasam, Vijay" <vpasam@ti.com>
-Subject: RE: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
-Date: Mon, 9 Jun 2008 11:09:33 -0500
-Message-ID: <EBA93F3E4CB46947A4C5275F6308CF3E02C88AC4@dlee15.ent.ti.com>
-References: <904DEC693BE1AB429622C6F5ABA7E0B802600207@is01ex02.ittiam.com>
+From: Tom Cooksey <thomas.cooksey@trolltech.com>
+Subject: Accelerating video playback on OMAP2 & OMAP3
+Date: Mon, 9 Jun 2008 18:25:08 +0200
+Message-ID: <200806091825.08632.thomas.cooksey@trolltech.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:47786 "EHLO calf.ext.ti.com"
+Received: from hoat.troll.no ([62.70.27.150]:54597 "EHLO hoat.troll.no"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751839AbYFIQJp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jun 2008 12:09:45 -0400
-Content-class: urn:content-classes:message
-In-reply-to: <904DEC693BE1AB429622C6F5ABA7E0B802600207@is01ex02.ittiam.com>
+	id S1751714AbYFIQbn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jun 2008 12:31:43 -0400
+Received: from hoat.troll.no (tedur.troll.no [62.70.27.154])
+	by hoat.troll.no (Postfix) with SMTP id 5421220ACE
+	for <linux-omap@vger.kernel.org>; Mon,  9 Jun 2008 18:21:37 +0200 (CEST)
+Received: from sx01.troll.no (sx01.troll.no [62.70.27.21])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by hoat.troll.no (Postfix) with ESMTP id 4B373202F8
+	for <linux-omap@vger.kernel.org>; Mon,  9 Jun 2008 18:21:37 +0200 (CEST)
+Received: from sx01.troll.no (localhost.localdomain [127.0.0.1])
+	by sx01.troll.no (8.13.8/8.13.8) with ESMTP id m59GLbjR012936
+	for <linux-omap@vger.kernel.org>; Mon, 9 Jun 2008 18:21:37 +0200
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Viraj Karandikar <viraj.karandikar@ittiam.com>, "Gupta, Ramesh" <grgupta@ti.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-> Does DSP use virtual-to-physical mapping for all the 
-> addresses it accesses (including DSP's local buffers)?
-> Or it uses this mapping only to access shared buffers?
-> Wont it be a big overhead if DSP accesses all the memories 
-> through virtual-to-physical mapping?
-
-DSP has to access all the external memory buffers through DSP MMU.
-
-Best Regards
-Vijay
- 
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Viraj 
-> Karandikar
-> Sent: Monday, June 09, 2008 10:18 AM
-> To: Gupta, Ramesh; linux-omap@vger.kernel.org
-> Subject: RE: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
-> Viraj,
+I cam currently looking into accelerating video playback on the OMAP2420, OMAP2430, 
+OMAP3430 and eventually the OMAP3530 (once we recieve some hardware).
 
 
-> Thanks Ramesh.
-> I was reserving and mapping buffers "every time". This was 
-> not required.
-> I modified the code to reserve and map a buffer only once and 
-> use the mapped address for future.
-> This modification reduced the overhead.
-> 
-> I have one more doubt.
-> Does DSP use virtual-to-physical mapping for all the 
-> addresses it accesses (including DSP's local buffers)?
-> Or it uses this mapping only to access shared buffers?
-> Wont it be a big overhead if DSP accesses all the memories 
-> through virtual-to-physical mapping?
-> 
-> Regards,
-> Viraj
-> 
-> 
-> 
-> -----Original Message-----
-> From: Ramesh Gupta G [mailto:x0023949@ti.com]
-> Sent: Monday, June 09, 2008 11:03 AM
-> To: Viraj Karandikar; linux-omap-open-source@linux.omap.com
-> Subject: Re: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
-> 
-> Hi Vijay,
-> 
-> ----- Original Message -----
-> From: "Viraj Karandikar" <viraj.karandikar@ittiam.com>
-> To: <linux-omap-open-source@linux.omap.com>
-> Sent: Saturday, June 07, 2008 3:45 PM
-> Subject: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
-> 
-> 
-> >Hi all,
-> 
-> >I am working on omap3430 using bridge. I am using Dynamically Mapped
-> >Memory (DMM) method for sharing buffers.
-> 
-> >For sending buffers to DSP I am doing calls to
-> >DSPProcessor_ReserveMemory() and DSPProcessor_Map(). For these calls
-> are
-> >taking around 18ms (for 3-4MB buffers) which is not 
-> acceptable for the
-> >application. I am not able to understand why it is taking so 
-> much time?
-> 
-> Which version of bridge you are using?
-> We have optimized the code for DSPProcessor_Map(), You can see
-> significant
-> change in the
-> numbers with the latest code.
-> 
-> 
-> >My understanding of DMM method is ->
-> 
-> 
-> >- Use malloc() to allocate a buffer on ARM.
-> 
-> >- Reserve required chunk of memory from DMM pool (using
-> >DSPProcessor_ReserveMemory() )
-> 
-> >- Translate this memory to ARM virtual address space in
-> >DSPProcessor_Map() function.
-> 
-> Actually DSPProcessor_Map() maps ARM physical addresses to DSP Virtual
-> addresses.
-> 
-> >- Send the reserved memory address to DSP.
-> 
-> 
-> 
-> >Is this correct? I am confused about how exactly this happens.
-> 
-> You are correct except above point about DSPProcessor_Map().
-> 
-> >Also Ihave a doubt if the reserved memory address is from 
-> DSP physical
-> address
-> >space? Or is it from ARM virtual address space for DSP 
-> physical address
-> >space?
-> 
-> Reserved Memory is from DSP Virtual Address.
-> 
-> >Is DMM method does copy from malloc'ed address to reserved
-> >address in any way?
-> 
-> Do you mean copying the contents? No copying is involved. Only mapping
-> of
-> addresses is performed.
-> 
-> 
-> >It will be helpful if anybody put some light on this.
-> 
-> Please let me know if you see any issues.
-> 
-> 
-> 
-> >Regards,
-> 
-> >Viraj
-> 
-> 
-> Thanks & Regards
-> Ramesh Gupta G
-> 
-> **********************************************************************
-> This email and any files transmitted with it are confidential and
-> intended solely for the use of the individual or entity to whom they
-> are addressed. If you have received this email in error please notify
-> helpdesk@ittiam.com.
-> **********************************************************************
-> 
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>From what I understand, we can use the v4l2 interface to send buffers to the display
+hardware, which will do the scaling & YUV->RGB conversion in hardware. However, I was
+wondering what the options are for doing mpeg decode in hardware too. I believe the
+DaVinci platforms ship with GStreamer elements which will do MPEG decoding on the DSP
+and provide the output to a seperate GStreamer video sync. Are there any gstreamer
+elements avaliable to do the same on the OMAP2 & OMAP3 processors? If not, how can we
+accelerate the MPEG decode?
+
+We eventually want to be able to switch to rendering video frames into off-screen buffers.
+We hope this will allow us to upload them as a textures, which our compositing system can 
+use for window animations. Once the animation has finished and windows are static, we'd
+then switch back to using the v4l2 overlay.
+
+
+Help & advice is greatly appreciated! :-)
+
+
+Cheers,
+
+Tom
+
+
+PS: This is a repost ater the original was sent to the old mailing list. Sorry if you get it twice.
