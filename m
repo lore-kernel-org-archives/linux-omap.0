@@ -1,465 +1,463 @@
-From: "mohammed shareef" <mdshareef@gmail.com>
-Subject: compiling X11 fails at makekeys
-Date: Tue, 10 Jun 2008 12:24:40 +0530
-Message-ID: <a1d91fa0806092354n11e686d4ocaf1c73b85ab40d4@mail.gmail.com>
+From: "Rajendra Nayak" <rnayak@ti.com>
+Subject: [PATCH 01/02] OMAP3 CPUidle driver
+Date: Tue, 10 Jun 2008 12:39:00 +0530
+Message-ID: <0a2401c8cac8$db978770$68bf18ac@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-newbie-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-newbie-owner@vger.kernel.org
-To: omap <linux-omap@vger.kernel.org>, linux-newbie@vger.kernel.org, linux-x11@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from calf.ext.ti.com ([198.47.26.144]:57848 "EHLO calf.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751713AbYFJHJJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Jun 2008 03:09:09 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by calf.ext.ti.com (8.13.7/8.13.7) with ESMTP id m5A791rW008483
+	for <linux-omap@vger.kernel.org>; Tue, 10 Jun 2008 02:09:07 -0500
+Received: from a0393137pc (localhost [127.0.0.1])
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m5A790i8004626
+	for <linux-omap@vger.kernel.org>; Tue, 10 Jun 2008 12:39:00 +0530 (IST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Dear All,
+This patch adds the OMAP3 cpuidle driver. Irq enable/disable is done in the core cpuidle driver
+before it queries the governor for the next state.
 
-I am trying to compile X for omap5912-osk. i am following the steps given in:
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>   
 
-http://oskfordummies.hp.infoseek.co.jp/howto/x-window.html
+---
+ arch/arm/mach-omap2/Makefile      |    2 
+ arch/arm/mach-omap2/cpuidle34xx.c |  293 ++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/cpuidle34xx.h |   51 ++++++
+ arch/arm/mach-omap2/pm34xx.c      |    5 
+ drivers/cpuidle/cpuidle.c         |   10 +
+ 5 files changed, 359 insertions(+), 2 deletions(-)
 
-all the xlib- libraries are compiling till i reach the X11 library. i
-am struck at this point for a month now. some one please help me out.
+Index: linux-omap-2.6/arch/arm/mach-omap2/Makefile
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/Makefile	2008-06-09 20:15:33.855303920 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/Makefile	2008-06-09 20:15:39.569121361 +0530
+@@ -20,7 +20,7 @@ obj-y					+= pm.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
+ obj-$(CONFIG_ARCH_OMAP2420)		+= sleep242x.o
+ obj-$(CONFIG_ARCH_OMAP2430)		+= sleep243x.o
+-obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o
++obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o cpuidle34xx.o
+ obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+ endif
+ 
+Index: linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c	2008-06-10 11:41:27.644820323 +0530
+@@ -0,0 +1,293 @@
++/*
++ * linux/arch/arm/mach-omap2/cpuidle34xx.c
++ *
++ * OMAP3 CPU IDLE Routines
++ *
++ * Copyright (C) 2007-2008 Texas Instruments, Inc.
++ * Rajendra Nayak <rnayak@ti.com>
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Karthik Dasu <karthik-dp@ti.com>
++ *
++ * Copyright (C) 2006 Nokia Corporation
++ * Tony Lindgren <tony@atomide.com>
++ *
++ * Copyright (C) 2005 Texas Instruments, Inc.
++ * Richard Woodruff <r-woodruff2@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/cpuidle.h>
++#include <asm/arch/pm.h>
++#include <asm/arch/prcm.h>
++#include <asm/arch/powerdomain.h>
++#include <asm/arch/clockdomain.h>
++#include <asm/arch/irqs.h>
++#include "cpuidle34xx.h"
++
++#ifdef CONFIG_CPU_IDLE
++
++struct omap3_processor_cx omap3_power_states[OMAP3_MAX_STATES];
++struct omap3_processor_cx current_cx_state;
++
++static int omap3_idle_bm_check(void)
++{
++	/* Check for omap3_fclks_active() here once available */
++	return 0;
++}
++
++/* omap3_enter_idle - Programs OMAP3 to enter the specified state.
++ * returns the total time during which the system was idle.
++ */
++static int omap3_enter_idle(struct cpuidle_device *dev,
++			struct cpuidle_state *state)
++{
++	struct omap3_processor_cx *cx = cpuidle_get_statedata(state);
++	struct timespec ts_preidle, ts_postidle, ts_idle;
++	struct powerdomain *mpu_pd, *core_pd, *per_pd, *neon_pd;
++	int neon_pwrst;
++
++	current_cx_state = *cx;
++
++	if (cx->type == OMAP3_STATE_C0) {
++		/* Do nothing for C0, not even a wfi */
++		return 0;
++	}
++
++	/* Used to keep track of the total time in idle */
++	getnstimeofday(&ts_preidle);
++
++	mpu_pd = pwrdm_lookup("mpu_pwrdm");
++	core_pd = pwrdm_lookup("core_pwrdm");
++	per_pd = pwrdm_lookup("per_pwrdm");
++	neon_pd = pwrdm_lookup("neon_pwrdm");
++
++	/* Reset previous power state registers */
++	pwrdm_clear_all_prev_pwrst(mpu_pd);
++	pwrdm_clear_all_prev_pwrst(neon_pd);
++	pwrdm_clear_all_prev_pwrst(core_pd);
++	pwrdm_clear_all_prev_pwrst(per_pd);
++
++	if (omap_irq_pending())
++		return 0;
++
++	neon_pwrst = pwrdm_read_pwrst(neon_pd);
++
++	/* Program MPU/NEON to target state */
++	if (cx->mpu_state < PWRDM_POWER_ON) {
++		if (neon_pwrst == PWRDM_POWER_ON) {
++                        if (cx->mpu_state == PWRDM_POWER_RET)
++                                pwrdm_set_next_pwrst(neon_pd, PWRDM_POWER_RET);
++                        else if (cx->mpu_state == PWRDM_POWER_OFF)
++                                pwrdm_set_next_pwrst(neon_pd, PWRDM_POWER_OFF);
++		}
++		pwrdm_set_next_pwrst(mpu_pd, cx->mpu_state);
++	}
++
++	/* Program CORE to target state */
++	if (cx->core_state < PWRDM_POWER_ON)
++		pwrdm_set_next_pwrst(core_pd, cx->core_state);
++
++	/* Execute ARM wfi */
++	omap_sram_idle();
++
++	/* Program MPU/NEON to ON */
++	if (cx->mpu_state < PWRDM_POWER_ON) {
++		if (neon_pwrst == PWRDM_POWER_ON)
++			pwrdm_set_next_pwrst(neon_pd, PWRDM_POWER_ON);
++		pwrdm_set_next_pwrst(mpu_pd, PWRDM_POWER_ON);
++	}
++
++	if (cx->core_state < PWRDM_POWER_ON)
++		pwrdm_set_next_pwrst(core_pd, PWRDM_POWER_ON);
++
++	getnstimeofday(&ts_postidle);
++	ts_idle = timespec_sub(ts_postidle, ts_preidle);
++	return timespec_to_ns(&ts_idle);
++}
++
++/*
++ * omap3_enter_idle_bm - enter function for states with CPUIDLE_FLAG_CHECK_BM
++ *
++ * This function checks for all the pre-requisites needed for OMAP3 to enter
++ * CORE RET/OFF state. It then calls omap3_enter_idle to program the desired
++ * C state.
++ */
++static int omap3_enter_idle_bm(struct cpuidle_device *dev,
++			       struct cpuidle_state *state)
++{
++	struct cpuidle_state *new_state = NULL;
++	int i, j;
++
++	if ((state->flags & CPUIDLE_FLAG_CHECK_BM) && omap3_idle_bm_check()) {
++
++		/* Find current state in list */
++		for (i = 0; i < OMAP3_MAX_STATES; i++)
++			if (state == &dev->states[i])
++				break;
++		BUG_ON(i == OMAP3_MAX_STATES);
++
++		/* Back up to non 'CHECK_BM' state */
++		for (j = i - 1;  j > 0; j--) {
++			struct cpuidle_state *s = &dev->states[j];
++
++			if (!(s->flags & CPUIDLE_FLAG_CHECK_BM)) {
++				new_state = s;
++				break;
++			}
++		}
++
++		pr_debug("%s: Bus activity: Entering %s (instead of %s)\n",
++			__FUNCTION__, new_state->name, state->name);
++	}
++
++	return omap3_enter_idle(dev, new_state ? : state);
++}
++
++DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
++
++/* omap3_init_power_states - Initialises the OMAP3 specific C states.
++ * Below is the desciption of each C state.
++ *
++	C0 . System executing code
++	C1 . MPU WFI + Core active
++	C2 . MPU CSWR + Core active
++	C3 . MPU OFF + Core active
++	C4 . MPU CSWR + Core CSWR
++	C5 . MPU OFF + Core CSWR
++	C6 . MPU OFF + Core OFF
++ */
++void omap_init_power_states(void)
++{
++	/* C0 . System executing code */
++	omap3_power_states[0].valid = 1;
++	omap3_power_states[0].type = OMAP3_STATE_C0;
++	omap3_power_states[0].sleep_latency = 0;
++	omap3_power_states[0].wakeup_latency = 0;
++	omap3_power_states[0].threshold = 0;
++	omap3_power_states[0].mpu_state = PWRDM_POWER_ON;
++	omap3_power_states[0].core_state = PWRDM_POWER_ON;
++	omap3_power_states[0].flags = CPUIDLE_FLAG_TIME_VALID |
++				CPUIDLE_FLAG_SHALLOW;
++
++	/* C1 . MPU WFI + Core active */
++	omap3_power_states[1].valid = 1;
++	omap3_power_states[1].type = OMAP3_STATE_C1;
++	omap3_power_states[1].sleep_latency = 10;
++	omap3_power_states[1].wakeup_latency = 10;
++	omap3_power_states[1].threshold = 30;
++	omap3_power_states[1].mpu_state = PWRDM_POWER_ON;
++	omap3_power_states[1].core_state = PWRDM_POWER_ON;
++	omap3_power_states[1].flags = CPUIDLE_FLAG_TIME_VALID |
++				CPUIDLE_FLAG_SHALLOW;
++
++	/* C2 . MPU CSWR + Core active */
++	omap3_power_states[2].valid = 1;
++	omap3_power_states[2].type = OMAP3_STATE_C2;
++	omap3_power_states[2].sleep_latency = 50;
++	omap3_power_states[2].wakeup_latency = 50;
++	omap3_power_states[2].threshold = 300;
++	omap3_power_states[2].mpu_state = PWRDM_POWER_RET;
++	omap3_power_states[2].core_state = PWRDM_POWER_ON;
++	omap3_power_states[2].flags = CPUIDLE_FLAG_TIME_VALID |
++				CPUIDLE_FLAG_BALANCED;
++
++	/* C3 . MPU OFF + Core active */
++	omap3_power_states[3].valid = 0;
++	omap3_power_states[3].type = OMAP3_STATE_C3;
++	omap3_power_states[3].sleep_latency = 1500;
++	omap3_power_states[3].wakeup_latency = 1800;
++	omap3_power_states[3].threshold = 4000;
++	omap3_power_states[3].mpu_state = PWRDM_POWER_OFF;
++	omap3_power_states[3].core_state = PWRDM_POWER_RET;
++	omap3_power_states[3].flags = CPUIDLE_FLAG_TIME_VALID |
++				CPUIDLE_FLAG_BALANCED;
++
++	/* C4 . MPU CSWR + Core CSWR*/
++	omap3_power_states[4].valid = 1;
++	omap3_power_states[4].type = OMAP3_STATE_C4;
++	omap3_power_states[4].sleep_latency = 2500;
++	omap3_power_states[4].wakeup_latency = 7500;
++	omap3_power_states[4].threshold = 12000;
++	omap3_power_states[4].mpu_state = PWRDM_POWER_RET;
++	omap3_power_states[4].core_state = PWRDM_POWER_RET;
++	omap3_power_states[4].flags = CPUIDLE_FLAG_TIME_VALID |
++			CPUIDLE_FLAG_BALANCED | CPUIDLE_FLAG_CHECK_BM;
++
++	/* C5 . MPU OFF + Core CSWR */
++	omap3_power_states[5].valid = 0;
++	omap3_power_states[5].type = OMAP3_STATE_C5;
++	omap3_power_states[5].sleep_latency = 3000;
++	omap3_power_states[5].wakeup_latency = 8500;
++	omap3_power_states[5].threshold = 15000;
++	omap3_power_states[5].mpu_state = PWRDM_POWER_OFF;
++	omap3_power_states[5].core_state = PWRDM_POWER_RET;
++	omap3_power_states[5].flags = CPUIDLE_FLAG_TIME_VALID |
++			CPUIDLE_FLAG_BALANCED | CPUIDLE_FLAG_CHECK_BM;
++
++	/* C6 . MPU OFF + Core OFF */
++	omap3_power_states[6].valid = 0;
++	omap3_power_states[6].type = OMAP3_STATE_C6;
++	omap3_power_states[6].sleep_latency = 10000;
++	omap3_power_states[6].wakeup_latency = 30000;
++	omap3_power_states[6].threshold = 300000;
++	omap3_power_states[6].mpu_state = PWRDM_POWER_OFF;
++	omap3_power_states[6].core_state = PWRDM_POWER_OFF;
++	omap3_power_states[6].flags = CPUIDLE_FLAG_TIME_VALID |
++			CPUIDLE_FLAG_DEEP | CPUIDLE_FLAG_CHECK_BM;
++}
++
++struct cpuidle_driver omap3_idle_driver = {
++	.name = 	"omap3_idle",
++	.owner = 	THIS_MODULE,
++};
++/*
++ * omap3_idle_init - Init routine for OMAP3 idle.
++ * Registers the OMAP3 specific cpuidle driver with the cpuidle f/w
++ * with the valid set of states.
++ */
++int omap3_idle_init(void)
++{
++	int i, count = 0;
++	struct omap3_processor_cx *cx;
++	struct cpuidle_state *state;
++	struct cpuidle_device *dev;
++
++	omap_init_power_states();
++	cpuidle_register_driver(&omap3_idle_driver);
++
++	dev = &per_cpu(omap3_idle_dev, smp_processor_id());
++
++	for (i = 0; i < OMAP3_MAX_STATES; i++) {
++		cx = &omap3_power_states[i];
++		state = &dev->states[count];
++
++		if (!cx->valid)
++			continue;
++		cpuidle_set_statedata(state, cx);
++		state->exit_latency = cx->sleep_latency + cx->wakeup_latency;
++		state->target_residency = cx->threshold;
++		state->flags = cx->flags;
++		state->enter = (state->flags & CPUIDLE_FLAG_CHECK_BM) ?
++			omap3_enter_idle_bm : omap3_enter_idle;
++		sprintf(state->name, "C%d", count+1);
++		count++;
++	}
++
++	if (!count)
++		return -EINVAL;
++	dev->state_count = count;
++
++	if (cpuidle_register_device(dev)) {
++		printk(KERN_ERR "%s: CPUidle register device failed\n",
++		       __FUNCTION__);
++		return -EIO;
++	}
++
++	return 0;
++}
++__initcall(omap3_idle_init);
++#endif /* CONFIG_CPU_IDLE */
+Index: linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.h
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.h	2008-06-09 20:15:39.569121361 +0530
+@@ -0,0 +1,51 @@
++/*
++ * linux/arch/arm/mach-omap2/cpuidle34xx.h
++ *
++ * OMAP3 cpuidle structure definitions
++ *
++ * Copyright (C) 2007-2008 Texas Instruments, Inc.
++ * Written by Rajendra Nayak <rnayak@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ *
++ * History:
++ *
++ */
++
++#ifndef ARCH_ARM_MACH_OMAP2_CPUIDLE_34XX
++#define ARCH_ARM_MACH_OMAP2_CPUIDLE_34XX
++
++#define OMAP3_MAX_STATES 7
++#define OMAP3_STATE_C0 0 /* C0 - System executing code */
++#define OMAP3_STATE_C1 1 /* C1 - MPU WFI + Core active */
++#define OMAP3_STATE_C2 2 /* C2 - MPU CSWR + Core active */
++#define OMAP3_STATE_C3 3 /* C3 - MPU OFF + Core active */
++#define OMAP3_STATE_C4 4 /* C4 - MPU RET + Core RET */
++#define OMAP3_STATE_C5 5 /* C5 - MPU OFF + Core RET */
++#define OMAP3_STATE_C6 6 /* C6 - MPU OFF + Core OFF */
++
++extern void omap_sram_idle(void);
++extern int omap3_irq_pending(void);
++
++struct omap3_processor_cx {
++	u8 valid;
++	u8 type;
++	u32 sleep_latency;
++	u32 wakeup_latency;
++	u32 mpu_state;
++	u32 core_state;
++	u32 threshold;
++	u32 flags;
++};
++
++void omap_init_power_states(void);
++int omap3_idle_init(void);
++
++#endif /* ARCH_ARM_MACH_OMAP2_CPUIDLE_34XX */
++
+Index: linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/pm34xx.c	2008-06-09 20:15:33.855303920 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c	2008-06-09 20:16:20.976798343 +0530
+@@ -141,7 +141,7 @@ static irqreturn_t prcm_interrupt_handle
+ 	return IRQ_HANDLED;
+ }
+ 
+-static void omap_sram_idle(void)
++void omap_sram_idle(void)
+ {
+ 	/* Variable to tell what needs to be saved and restored
+ 	 * in omap_sram_idle*/
+@@ -156,6 +156,7 @@ static void omap_sram_idle(void)
+ 
+ 	mpu_next_state = pwrdm_read_next_pwrst(mpu_pwrdm);
+ 	switch (mpu_next_state) {
++	case PWRDM_POWER_ON:
+ 	case PWRDM_POWER_RET:
+ 		/* No need to save context */
+ 		save_state = 0;
+@@ -386,7 +387,9 @@ int __init omap3_pm_init(void)
+ 
+ 	prcm_setup_regs();
+ 
++#ifndef CONFIG_CPU_IDLE
+ 	pm_idle = omap3_pm_idle;
++#endif
+ 
+ err1:
+ 	return ret;
+Index: linux-omap-2.6/drivers/cpuidle/cpuidle.c
+===================================================================
+--- linux-omap-2.6.orig/drivers/cpuidle/cpuidle.c	2008-06-09 20:15:33.856303888 +0530
++++ linux-omap-2.6/drivers/cpuidle/cpuidle.c	2008-06-09 20:15:39.570121329 +0530
+@@ -58,6 +58,11 @@ static void cpuidle_idle_call(void)
+ 		return;
+ 	}
+ 
++#ifdef CONFIG_ARCH_OMAP3
++	local_irq_disable();
++	local_fiq_disable();
++#endif
++
+ 	/* ask the governor for the next state */
+ 	next_state = cpuidle_curr_governor->select(dev);
+ 	if (need_resched())
+@@ -70,6 +75,11 @@ static void cpuidle_idle_call(void)
+ 	target_state->time += (unsigned long long)dev->last_residency;
+ 	target_state->usage++;
+ 
++#ifdef CONFIG_ARCH_OMAP3
++	local_irq_enable();
++	local_fiq_enable();
++#endif
++
+ 	/* give the governor an opportunity to reflect on the outcome */
+ 	if (cpuidle_curr_governor->reflect)
+ 		cpuidle_curr_governor->reflect(dev);
 
-am attaching the build log (error at the last line):
-
-====================
-== Building X11  ==
-====================
-autoreconf: Entering directory `.'
-autoreconf: configure.ac: not using Gettext
-autoreconf: running: aclocal
-autoreconf: configure.ac: tracing
-autoreconf: running: libtoolize --copy
-libtoolize: `config.guess' exists: use `--force' to overwrite
-libtoolize: `config.sub' exists: use `--force' to overwrite
-libtoolize: `ltmain.sh' exists: use `--force' to overwrite
-autoreconf: running: /usr/bin/autoconf
-autoreconf: running: /usr/bin/autoheader
-autoreconf: running: automake --add-missing --copy --no-force
-nls/C/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/C/Makefile.am:1: (probably a GNU make extension)
-nls/armscii-8/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/armscii-8/Makefile.am:1: (probably a GNU make extension)
-nls/en_US.UTF-8/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/en_US.UTF-8/Makefile.am:1: (probably a GNU make extension)
-nls/georgian-academy/Makefile.am:1: shell basename `pwd`: non-POSIX
-variable name
-nls/georgian-academy/Makefile.am:1: (probably a GNU make extension)
-nls/georgian-ps/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/georgian-ps/Makefile.am:1: (probably a GNU make extension)
-nls/ibm-cp1133/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/ibm-cp1133/Makefile.am:1: (probably a GNU make extension)
-nls/iscii-dev/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/iscii-dev/Makefile.am:1: (probably a GNU make extension)
-nls/isiri-3342/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/isiri-3342/Makefile.am:1: (probably a GNU make extension)
-nls/iso8859-1/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/iso8859-1/Makefile.am:1: (probably a GNU make extension)
-nls/iso8859-10/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/iso8859-10/Makefile.am:1: (probably a GNU make extension)
-nls/iso8859-11/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/iso8859-11/Makefile.am:1: (probably a GNU make extension)
-nls/iso8859-13/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/iso8859-13/Makefile.am:1: (probably a GNU make extension)
-nls/iso8859-14/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/iso8859-14/Makefile.am:1: (probably a GNU make extension)
-nls/iso8859-15/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/iso8859-15/Makefile.am:1: (probably a GNU make extension)
-nls/iso8859-2/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/iso8859-2/Makefile.am:1: (probably a GNU make extension)
-nls/iso8859-3/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/iso8859-3/Makefile.am:1: (probably a GNU make extension)
-nls/iso8859-4/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/iso8859-4/Makefile.am:1: (probably a GNU make extension)
-nls/iso8859-5/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/iso8859-5/Makefile.am:1: (probably a GNU make extension)
-nls/iso8859-6/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/iso8859-6/Makefile.am:1: (probably a GNU make extension)
-nls/iso8859-7/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/iso8859-7/Makefile.am:1: (probably a GNU make extension)
-nls/iso8859-8/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/iso8859-8/Makefile.am:1: (probably a GNU make extension)
-nls/iso8859-9/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/iso8859-9/Makefile.am:1: (probably a GNU make extension)
-nls/iso8859-9e/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/iso8859-9e/Makefile.am:1: (probably a GNU make extension)
-nls/ja.JIS/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/ja.JIS/Makefile.am:1: (probably a GNU make extension)
-nls/ja.S90/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/ja.S90/Makefile.am:1: (probably a GNU make extension)
-nls/ja.SJIS/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/ja.SJIS/Makefile.am:1: (probably a GNU make extension)
-nls/ja.U90/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/ja.U90/Makefile.am:1: (probably a GNU make extension)
-nls/ja/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/ja/Makefile.am:1: (probably a GNU make extension)
-nls/ja_JP.UTF-8/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/ja_JP.UTF-8/Makefile.am:1: (probably a GNU make extension)
-nls/ko/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/ko/Makefile.am:1: (probably a GNU make extension)
-nls/ko_KR.UTF-8/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/ko_KR.UTF-8/Makefile.am:1: (probably a GNU make extension)
-nls/koi8-c/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/koi8-c/Makefile.am:1: (probably a GNU make extension)
-nls/koi8-r/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/koi8-r/Makefile.am:1: (probably a GNU make extension)
-nls/koi8-u/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/koi8-u/Makefile.am:1: (probably a GNU make extension)
-nls/microsoft-cp1251/Makefile.am:1: shell basename `pwd`: non-POSIX
-variable name
-nls/microsoft-cp1251/Makefile.am:1: (probably a GNU make extension)
-nls/microsoft-cp1255/Makefile.am:1: shell basename `pwd`: non-POSIX
-variable name
-nls/microsoft-cp1255/Makefile.am:1: (probably a GNU make extension)
-nls/microsoft-cp1256/Makefile.am:1: shell basename `pwd`: non-POSIX
-variable name
-nls/microsoft-cp1256/Makefile.am:1: (probably a GNU make extension)
-nls/mulelao-1/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/mulelao-1/Makefile.am:1: (probably a GNU make extension)
-nls/nokhchi-1/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/nokhchi-1/Makefile.am:1: (probably a GNU make extension)
-nls/tatar-cyr/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/tatar-cyr/Makefile.am:1: (probably a GNU make extension)
-nls/th_TH.UTF-8/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/th_TH.UTF-8/Makefile.am:1: (probably a GNU make extension)
-nls/th_TH/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/th_TH/Makefile.am:1: (probably a GNU make extension)
-nls/tscii-0/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/tscii-0/Makefile.am:1: (probably a GNU make extension)
-nls/vi_VN.tcvn/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/vi_VN.tcvn/Makefile.am:1: (probably a GNU make extension)
-nls/vi_VN.viscii/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/vi_VN.viscii/Makefile.am:1: (probably a GNU make extension)
-nls/zh_CN.UTF-8/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/zh_CN.UTF-8/Makefile.am:1: (probably a GNU make extension)
-nls/zh_CN.gbk/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/zh_CN.gbk/Makefile.am:1: (probably a GNU make extension)
-nls/zh_CN/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/zh_CN/Makefile.am:1: (probably a GNU make extension)
-nls/zh_HK.big5/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/zh_HK.big5/Makefile.am:1: (probably a GNU make extension)
-nls/zh_HK.big5hkscs/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/zh_HK.big5hkscs/Makefile.am:1: (probably a GNU make extension)
-nls/zh_TW.UTF-8/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/zh_TW.UTF-8/Makefile.am:1: (probably a GNU make extension)
-nls/zh_TW.big5/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/zh_TW.big5/Makefile.am:1: (probably a GNU make extension)
-nls/zh_TW/Makefile.am:1: shell basename `pwd`: non-POSIX variable name
-nls/zh_TW/Makefile.am:1: (probably a GNU make extension)
-src/Makefile.am:547: patsubst %.c,%.ii,$(libX11_la_SOURCES: non-POSIX
-variable name
-src/Makefile.am:547: (probably a GNU make extension)
-automake: compiling `makekeys.c' with per-target flags requires
-`AM_PROG_CC_C_O' in `configure.ac'
-src/util/Makefile.am:1:   while processing program `makekeys'
-autoreconf: Leaving directory `.'
-configure: WARNING: If you wanted to set the --build type, don't use --host.
-    If a cross compiler is detected then cross compile mode will be used.
-checking for a BSD-compatible install... /usr/bin/install -c
-checking whether build environment is sane... yes
-checking for a thread-safe mkdir -p... /bin/mkdir -p
-checking for gawk... gawk
-checking whether make sets $(MAKE)... yes
-checking for arm-linux-gnu-strip... no
-checking for strip... strip
-checking whether to enable maintainer-specific portions of Makefiles... yes
-checking build system type... i686-pc-linux-gnu
-checking host system type... arm-unknown-linux-gnu
-checking for style of include used by make... GNU
-checking for arm-linux-gnu-gcc... arm-linux-gcc
-checking for C compiler default output file name... a.out
-checking whether the C compiler works... yes
-checking whether we are cross compiling... yes
-checking for suffix of executables...
-checking for suffix of object files... o
-checking whether we are using the GNU C compiler... yes
-checking whether arm-linux-gcc accepts -g... yes
-checking for arm-linux-gcc option to accept ISO C89... none needed
-checking dependency style of arm-linux-gcc... gcc3
-checking for a sed that does not truncate output... /bin/sed
-checking for grep that handles long lines and -e... /bin/grep
-checking for egrep... /bin/grep -E
-checking for ld used by arm-linux-gcc... /usr/local/arm/3.4.1/arm-linux/bin/ld
-checking if the linker (/usr/local/arm/3.4.1/arm-linux/bin/ld) is GNU ld... yes
-checking for /usr/local/arm/3.4.1/arm-linux/bin/ld option to reload
-object files... -r
-checking for BSD-compatible nm... nm
-checking whether ln -s works... yes
-checking how to recognise dependent libraries... pass_all
-checking how to run the C preprocessor... arm-linux-gcc -E
-checking for ANSI C header files... yes
-checking for sys/types.h... yes
-checking for sys/stat.h... yes
-checking for stdlib.h... yes
-checking for string.h... yes
-checking for memory.h... yes
-checking for strings.h... yes
-checking for inttypes.h... yes
-checking for stdint.h... yes
-checking for unistd.h... yes
-checking dlfcn.h usability... yes
-checking dlfcn.h presence... yes
-checking for dlfcn.h... yes
-checking for arm-linux-gnu-g++... no
-checking for arm-linux-gnu-c++... no
-checking for arm-linux-gnu-gpp... no
-checking for arm-linux-gnu-aCC... no
-checking for arm-linux-gnu-CC... no
-checking for arm-linux-gnu-cxx... no
-checking for arm-linux-gnu-cc++... no
-checking for arm-linux-gnu-cl.exe... no
-checking for arm-linux-gnu-FCC... no
-checking for arm-linux-gnu-KCC... no
-checking for arm-linux-gnu-RCC... no
-checking for arm-linux-gnu-xlC_r... no
-checking for arm-linux-gnu-xlC... no
-checking for g++... g++
-configure: WARNING: In the future, Autoconf will not detect cross-tools
-whose name does not start with the host triplet.  If you think this
-configuration is useful to you, please write to autoconf@gnu.org.
-checking whether we are using the GNU C++ compiler... yes
-checking whether g++ accepts -g... yes
-checking dependency style of g++... gcc3
-checking how to run the C++ preprocessor... g++ -E
-checking for arm-linux-gnu-g77... no
-checking for arm-linux-gnu-xlf... no
-checking for arm-linux-gnu-f77... no
-checking for arm-linux-gnu-frt... no
-checking for arm-linux-gnu-pgf77... no
-checking for arm-linux-gnu-cf77... no
-checking for arm-linux-gnu-fort77... no
-checking for arm-linux-gnu-fl32... no
-checking for arm-linux-gnu-af77... no
-checking for arm-linux-gnu-xlf90... no
-checking for arm-linux-gnu-f90... no
-checking for arm-linux-gnu-pgf90... no
-checking for arm-linux-gnu-pghpf... no
-checking for arm-linux-gnu-epcf90... no
-checking for arm-linux-gnu-gfortran... no
-checking for arm-linux-gnu-g95... no
-checking for arm-linux-gnu-xlf95... no
-checking for arm-linux-gnu-f95... no
-checking for arm-linux-gnu-fort... no
-checking for arm-linux-gnu-ifort... no
-checking for arm-linux-gnu-ifc... no
-checking for arm-linux-gnu-efc... no
-checking for arm-linux-gnu-pgf95... no
-checking for arm-linux-gnu-lf95... no
-checking for arm-linux-gnu-ftn... no
-checking for g77... no
-checking for xlf... no
-checking for f77... no
-checking for frt... no
-checking for pgf77... no
-checking for cf77... no
-checking for fort77... no
-checking for fl32... no
-checking for af77... no
-checking for xlf90... no
-checking for f90... no
-checking for pgf90... no
-checking for pghpf... no
-checking for epcf90... no
-checking for gfortran... gfortran
-checking whether we are using the GNU Fortran 77 compiler... yes
-checking whether gfortran accepts -g... yes
-checking the maximum length of command line arguments... 32768
-checking command to parse nm output from arm-linux-gcc object... ok
-checking for objdir... .libs
-checking for arm-linux-gnu-ar... no
-checking for ar... ar
-checking for arm-linux-gnu-ranlib... no
-checking for ranlib... ranlib
-checking for arm-linux-gnu-strip... strip
-checking if arm-linux-gcc supports -fno-rtti -fno-exceptions... no
-checking for arm-linux-gcc option to produce PIC... -fPIC
-checking if arm-linux-gcc PIC flag -fPIC works... yes
-checking if arm-linux-gcc static flag -static works... yes
-checking if arm-linux-gcc supports -c -o file.o... yes
-checking whether the arm-linux-gcc linker
-(/usr/local/arm/3.4.1/arm-linux/bin/ld) supports shared libraries...
-yes
-checking whether -lc should be explicitly linked in... no
-checking dynamic linker characteristics... GNU/Linux ld.so
-checking how to hardcode library paths into programs... immediate
-checking whether stripping libraries is possible... yes
-checking if libtool supports shared libraries... yes
-checking whether to build shared libraries... yes
-checking whether to build static libraries... yes
-configure: creating libtool
-appending configuration tag "CXX" to libtool
-checking for ld used by g++... /usr/local/arm/3.4.1/arm-linux/bin/ld
-checking if the linker (/usr/local/arm/3.4.1/arm-linux/bin/ld) is GNU ld... yes
-checking whether the g++ linker
-(/usr/local/arm/3.4.1/arm-linux/bin/ld) supports shared libraries...
-yes
-checking for g++ option to produce PIC... -fPIC
-checking if g++ PIC flag -fPIC works... yes
-checking if g++ static flag -static works... yes
-checking if g++ supports -c -o file.o... yes
-checking whether the g++ linker
-(/usr/local/arm/3.4.1/arm-linux/bin/ld) supports shared libraries...
-yes
-checking dynamic linker characteristics... GNU/Linux ld.so
-checking how to hardcode library paths into programs... immediate
-appending configuration tag "F77" to libtool
-checking if libtool supports shared libraries... yes
-checking whether to build shared libraries... yes
-checking whether to build static libraries... yes
-checking for gfortran option to produce PIC... -fPIC
-checking if gfortran PIC flag -fPIC works... yes
-checking if gfortran static flag -static works... yes
-checking if gfortran supports -c -o file.o... yes
-checking whether the gfortran linker
-(/usr/local/arm/3.4.1/arm-linux/bin/ld) supports shared libraries...
-yes
-checking dynamic linker characteristics... GNU/Linux ld.so
-checking how to hardcode library paths into programs... immediate
-checking for arm-linux-gnu-gcc... (cached) arm-linux-gcc
-checking whether we are using the GNU C compiler... (cached) yes
-checking whether arm-linux-gcc accepts -g... (cached) yes
-checking for arm-linux-gcc option to accept ISO C89... (cached) none needed
-checking dependency style of arm-linux-gcc... (cached) gcc3
-checking whether to use XCB... (cached) no
-checking for arm-linux-gnu-pkg-config... no
-checking for pkg-config... /usr/bin/pkg-config
-checking pkg-config is at least version 0.9.0... yes
-checking for XPROTO... yes
-checking for X11... yes
-checking for XDMCP... yes
-checking for library containing dlopen... -ldl
-checking for dlfcn.h... (cached) yes
-checking for ANSI C header files... (cached) yes
-checking for strtol... yes
-checking for XdmcpWrap in -lXdmcp... yes
-checking for poll... yes
-checking keysymdef.h... /usr/include/X11/keysymdef.h
-configure: creating ./config.status
-config.status: creating Makefile
-config.status: creating include/Makefile
-config.status: creating include/X11/Xlibint.h
-config.status: creating man/Makefile
-config.status: creating src/Makefile
-config.status: creating src/util/Makefile
-config.status: creating nls/Makefile
-config.status: creating nls/C/Makefile
-config.status: creating nls/armscii-8/Makefile
-config.status: creating nls/en_US.UTF-8/Makefile
-config.status: creating nls/georgian-academy/Makefile
-config.status: creating nls/georgian-ps/Makefile
-config.status: creating nls/ibm-cp1133/Makefile
-config.status: creating nls/iscii-dev/Makefile
-config.status: creating nls/isiri-3342/Makefile
-config.status: creating nls/iso8859-1/Makefile
-config.status: creating nls/iso8859-10/Makefile
-config.status: creating nls/iso8859-11/Makefile
-config.status: creating nls/iso8859-13/Makefile
-config.status: creating nls/iso8859-14/Makefile
-config.status: creating nls/iso8859-15/Makefile
-config.status: creating nls/iso8859-2/Makefile
-config.status: creating nls/iso8859-3/Makefile
-config.status: creating nls/iso8859-4/Makefile
-config.status: creating nls/iso8859-5/Makefile
-config.status: creating nls/iso8859-6/Makefile
-config.status: creating nls/iso8859-7/Makefile
-config.status: creating nls/iso8859-8/Makefile
-config.status: creating nls/iso8859-9/Makefile
-config.status: creating nls/iso8859-9e/Makefile
-config.status: creating nls/ja/Makefile
-config.status: creating nls/ja.JIS/Makefile
-config.status: creating nls/ja.S90/Makefile
-config.status: creating nls/ja.SJIS/Makefile
-config.status: creating nls/ja.U90/Makefile
-config.status: creating nls/ja_JP.UTF-8/Makefile
-config.status: creating nls/ko/Makefile
-config.status: creating nls/ko_KR.UTF-8/Makefile
-config.status: creating nls/koi8-c/Makefile
-config.status: creating nls/koi8-r/Makefile
-config.status: creating nls/koi8-u/Makefile
-config.status: creating nls/microsoft-cp1251/Makefile
-config.status: creating nls/microsoft-cp1255/Makefile
-config.status: creating nls/microsoft-cp1256/Makefile
-config.status: creating nls/mulelao-1/Makefile
-config.status: creating nls/nokhchi-1/Makefile
-config.status: creating nls/tatar-cyr/Makefile
-config.status: creating nls/th_TH/Makefile
-config.status: creating nls/th_TH.UTF-8/Makefile
-config.status: creating nls/tscii-0/Makefile
-config.status: creating nls/vi_VN.tcvn/Makefile
-config.status: creating nls/vi_VN.viscii/Makefile
-config.status: creating nls/zh_CN/Makefile
-config.status: creating nls/zh_CN.UTF-8/Makefile
-config.status: creating nls/zh_CN.gbk/Makefile
-config.status: creating nls/zh_HK.big5/Makefile
-config.status: creating nls/zh_HK.big5hkscs/Makefile
-config.status: creating nls/zh_TW/Makefile
-config.status: creating nls/zh_TW.UTF-8/Makefile
-config.status: creating nls/zh_TW.big5/Makefile
-config.status: creating x11.pc
-config.status: creating src/config.h
-config.status: src/config.h is unchanged
-config.status: executing depfiles commands
-Making install in include
-make[1]: Entering directory `/root/omap5912/xwin_snapshot/xlibs/X11/include'
-make[2]: Entering directory `/root/omap5912/xwin_snapshot/xlibs/X11/include'
-make[2]: Nothing to be done for `install-exec-am'.
-test -z "/root/omap5912/xwin_snapshot/build/include/X11" || /bin/mkdir
--p "/root/omap5912/xwin_snapshot/build/include/X11"
- /usr/bin/install -c -m 644 'X11/XKBlib.h'
-'/root/omap5912/xwin_snapshot/build/include/X11/XKBlib.h'
- /usr/bin/install -c -m 644 'X11/Xcms.h'
-'/root/omap5912/xwin_snapshot/build/include/X11/Xcms.h'
- /usr/bin/install -c -m 644 'X11/Xlib.h'
-'/root/omap5912/xwin_snapshot/build/include/X11/Xlib.h'
- /usr/bin/install -c -m 644 'X11/Xlibint.h'
-'/root/omap5912/xwin_snapshot/build/include/X11/Xlibint.h'
- /usr/bin/install -c -m 644 'X11/Xlocale.h'
-'/root/omap5912/xwin_snapshot/build/include/X11/Xlocale.h'
- /usr/bin/install -c -m 644 'X11/Xresource.h'
-'/root/omap5912/xwin_snapshot/build/include/X11/Xresource.h'
- /usr/bin/install -c -m 644 'X11/Xutil.h'
-'/root/omap5912/xwin_snapshot/build/include/X11/Xutil.h'
- /usr/bin/install -c -m 644 'X11/cursorfont.h'
-'/root/omap5912/xwin_snapshot/build/include/X11/cursorfont.h'
- /usr/bin/install -c -m 644 'X11/region.h'
-'/root/omap5912/xwin_snapshot/build/include/X11/region.h'
-make[2]: Leaving directory `/root/omap5912/xwin_snapshot/xlibs/X11/include'
-make[1]: Leaving directory `/root/omap5912/xwin_snapshot/xlibs/X11/include'
-Making install in src
-make[1]: Entering directory `/root/omap5912/xwin_snapshot/xlibs/X11/src'
-cd util; make
-make[2]: Entering directory `/root/omap5912/xwin_snapshot/xlibs/X11/src/util'
-gcc -DHAVE_CONFIG_H -I. -I../../src    -Wall -Wpointer-arith
--Wstrict-prototypes        -Wmissing-prototypes -Wmissing-declarations
-    -Wnested-externs -fno-strict-aliasing -D_BSD_SOURCE
--D_XOPEN_SOURCE=500   -g -O2 -MT makekeys-makekeys.o -MD -MP -MF
-.deps/makekeys-makekeys.Tpo -c -o makekeys-makekeys.o `test -f
-'makekeys.c' || echo './'`makekeys.c
-mv -f .deps/makekeys-makekeys.Tpo .deps/makekeys-makekeys.Po
-/bin/sh ../../libtool --tag=CC   --mode=link gcc -Wall -Wpointer-arith
--Wstrict-prototypes      -Wmissing-prototypes -Wmissing-declarations
-  -Wnested-externs -fno-strict-aliasing -D_BSD_SOURCE
--D_XOPEN_SOURCE=500   -g -O2  -L/root/omap5912/xwin_snapshot/build/lib
- -o makekeys makekeys-makekeys.o  -ldl
-gcc -Wall -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes
--Wmissing-declarations -Wnested-externs -fno-strict-aliasing
--D_BSD_SOURCE -D_XOPEN_SOURCE=500 -g -O2 -o makekeys
-makekeys-makekeys.o  -L/root/omap5912/xwin_snapshot/build/lib -ldl
-make[2]: Leaving directory `/root/omap5912/xwin_snapshot/xlibs/X11/src/util'
-../src/util/makekeys < /usr/include/X11/keysymdef.h > ks_tables_h
-/bin/sh: line 1: 10412 Floating point exception../src/util/makekeys <
-/usr/include/X11/keysymdef.h > ks_tables_h
-make[1]: *** [ks_tables.h] Error 136
-make[1]: Leaving directory `/root/omap5912/xwin_snapshot/xlibs/X11/src'
-make: *** [install-recursive] Error 1
-[root@localhost xwin_snapshot]#
-
-could someone please help me.
-
-Thank you,
-Shareef
---
-To unsubscribe from this list: send the line "unsubscribe linux-newbie" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-Please read the FAQ at http://www.linux-learn.org/faqs
