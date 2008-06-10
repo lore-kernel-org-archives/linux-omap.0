@@ -1,198 +1,46 @@
-From: "Viraj Karandikar" <viraj.karandikar@ittiam.com>
-Subject: RE: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
-Date: Tue, 10 Jun 2008 21:21:27 +0530
-Message-ID: <904DEC693BE1AB429622C6F5ABA7E0B802600208@is01ex02.ittiam.com>
-References: <904DEC693BE1AB429622C6F5ABA7E0B802600203@is01ex02.ittiam.com> <036001c8c9f2$53f198f0$11dfa8c0@ent.ti.com> <904DEC693BE1AB429622C6F5ABA7E0B802600207@is01ex02.ittiam.com> <A8E8DDC23969AE4CB38FFF51016C778202D27E91@dlee10.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [PATCH 0/3]  Updates for tea5761 (take #3)
+Date: Tue, 10 Jun 2008 13:42:09 -0400
+Message-ID: <1213119732-13198-1-git-send-email-edubezval@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from Ittiam.com ([125.16.143.82]:1494 "EHLO is01ms02.ittiam.com"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751720AbYFJPzz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jun 2008 11:55:55 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <A8E8DDC23969AE4CB38FFF51016C778202D27E91@dlee10.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:40379 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756813AbYFJRmf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jun 2008 13:42:35 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m5AHfYaZ011339
+	for <linux-omap@vger.kernel.org>; Tue, 10 Jun 2008 20:42:31 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, linux-omap@vger.kernel.org
+To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Cc: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-Thanks Hari,
-I took these changes and built new bridgedriver.ko.
-I could see 50% reduction in time taken to queue a buffer of size of
-3MB. (old time: 28 ms, new time: 13 ms).
+From: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-If I reserve and map a buffer only once and use the mapped address for
-future (avoiding map/unmap every time) I get better numbers (9 ms).
-So only thing which I am doing is flushing the buffer for consistency
-since this buffer is input to codec on DSP.
+Hi guys,
 
-But 9ms only for flushing seems very high. 
-I am not 100% sure, but it seems like the kernel flush code is scanning 
-through all the virtual addresses of the buffer and flush if any of
-those are cached.
-But actually the L2 cache is only 256Kb. So a small part of the buffer
-might be in cache (< 256Kb). 
-This will add unnecessary overhead for huge (my buffer size is 3MB)
-buffers.
-Is there any way so that I can flush full cache to avoid overhead?
+Following recommendation from v4l people, I'm sending
+this update to our tea5761 driver.
 
+They already had a tuner for this device which communicates
+through i2c.
 
-Regards,
-Viraj
+I needed to update it because there were some register mis-utilization.
 
+Here is a series which updates their tuner and our driver.
 
+After acks and merging here in linux-omap I'll send it to v4l again.
 
+Cheers,
 
+Eduardo Valentin (3):
+  tea5761: Add init and sleep callbacks on tea5761 tuner
+  tea5761 tuner: fix registers utilization
+  radio-tea5761: Update driver
 
------Original Message-----
-From: Kanigeri, Hari [mailto:h-kanigeri2@ti.com] 
-Sent: Monday, June 09, 2008 10:51 PM
-To: Viraj Karandikar; Gupta, Ramesh; linux-omap@vger.kernel.org
-Subject: RE: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
+ drivers/media/common/tuners/tea5761.c |   55 +++-
+ drivers/media/radio/Kconfig           |    1 +
+ drivers/media/radio/Makefile          |    2 +
+ drivers/media/radio/radio-tea5761.c   |  570 ++++++++++++++++-----------------
+ 4 files changed, 329 insertions(+), 299 deletions(-)
 
-Hi Viraj,
-
-        You can use the attached file to get the DMM optimimzation that
-Ramesh is referring to.
-
-The location of this file is mpu_driver\src\wmd\omap\3430
-
-
-Thank you,
-Best regards,
-Hari
- 
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Viraj 
-> Karandikar
-> Sent: Monday, June 09, 2008 10:18 AM
-> To: Gupta, Ramesh; linux-omap@vger.kernel.org
-> Subject: RE: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
-> 
-> Thanks Ramesh.
-> I was reserving and mapping buffers "every time". This was not 
-> required.
-> I modified the code to reserve and map a buffer only once and use the 
-> mapped address for future.
-> This modification reduced the overhead.
-> 
-> I have one more doubt.
-> Does DSP use virtual-to-physical mapping for all the addresses it 
-> accesses (including DSP's local buffers)?
-> Or it uses this mapping only to access shared buffers?
-> Wont it be a big overhead if DSP accesses all the memories through 
-> virtual-to-physical mapping?
-> 
-> Regards,
-> Viraj
-> 
-> 
-> 
-> -----Original Message-----
-> From: Ramesh Gupta G [mailto:x0023949@ti.com]
-> Sent: Monday, June 09, 2008 11:03 AM
-> To: Viraj Karandikar; linux-omap-open-source@linux.omap.com
-> Subject: Re: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
-> 
-> Hi Vijay,
-> 
-> ----- Original Message -----
-> From: "Viraj Karandikar" <viraj.karandikar@ittiam.com>
-> To: <linux-omap-open-source@linux.omap.com>
-> Sent: Saturday, June 07, 2008 3:45 PM
-> Subject: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
-> 
-> 
-> >Hi all,
-> 
-> >I am working on omap3430 using bridge. I am using Dynamically Mapped 
-> >Memory (DMM) method for sharing buffers.
-> 
-> >For sending buffers to DSP I am doing calls to
-> >DSPProcessor_ReserveMemory() and DSPProcessor_Map(). For these calls
-> are
-> >taking around 18ms (for 3-4MB buffers) which is not
-> acceptable for the
-> >application. I am not able to understand why it is taking so
-> much time?
-> 
-> Which version of bridge you are using?
-> We have optimized the code for DSPProcessor_Map(), You can see 
-> significant change in the numbers with the latest code.
-> 
-> 
-> >My understanding of DMM method is ->
-> 
-> 
-> >- Use malloc() to allocate a buffer on ARM.
-> 
-> >- Reserve required chunk of memory from DMM pool (using
-> >DSPProcessor_ReserveMemory() )
-> 
-> >- Translate this memory to ARM virtual address space in
-> >DSPProcessor_Map() function.
-> 
-> Actually DSPProcessor_Map() maps ARM physical addresses to DSP Virtual
-> addresses.
-> 
-> >- Send the reserved memory address to DSP.
-> 
-> 
-> 
-> >Is this correct? I am confused about how exactly this happens.
-> 
-> You are correct except above point about DSPProcessor_Map().
-> 
-> >Also Ihave a doubt if the reserved memory address is from 
-> DSP physical
-> address
-> >space? Or is it from ARM virtual address space for DSP 
-> physical address
-> >space?
-> 
-> Reserved Memory is from DSP Virtual Address.
-> 
-> >Is DMM method does copy from malloc'ed address to reserved
-> >address in any way?
-> 
-> Do you mean copying the contents? No copying is involved. Only mapping
-> of
-> addresses is performed.
-> 
-> 
-> >It will be helpful if anybody put some light on this.
-> 
-> Please let me know if you see any issues.
-> 
-> 
-> 
-> >Regards,
-> 
-> >Viraj
-> 
-> 
-> Thanks & Regards
-> Ramesh Gupta G
-> 
-> **********************************************************************
-> This email and any files transmitted with it are confidential and
-> intended solely for the use of the individual or entity to whom they
-> are addressed. If you have received this email in error please notify
-> helpdesk@ittiam.com.
-> **********************************************************************
-> 
-> _______________________________________________
-> Linux-omap-open-source mailing list
-> Linux-omap-open-source@linux.omap.com
-> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
