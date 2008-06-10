@@ -1,40 +1,198 @@
-From: "mohammed shareef" <mdshareef@gmail.com>
-Subject: omap osk audio
-Date: Tue, 10 Jun 2008 20:03:56 +0530
-Message-ID: <a1d91fa0806100733o71e5f1dx5bed802e65275ccc@mail.gmail.com>
+From: "Viraj Karandikar" <viraj.karandikar@ittiam.com>
+Subject: RE: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
+Date: Tue, 10 Jun 2008 21:21:27 +0530
+Message-ID: <904DEC693BE1AB429622C6F5ABA7E0B802600208@is01ex02.ittiam.com>
+References: <904DEC693BE1AB429622C6F5ABA7E0B802600203@is01ex02.ittiam.com> <036001c8c9f2$53f198f0$11dfa8c0@ent.ti.com> <904DEC693BE1AB429622C6F5ABA7E0B802600207@is01ex02.ittiam.com> <A8E8DDC23969AE4CB38FFF51016C778202D27E91@dlee10.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.187]:60032 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751988AbYFJOd6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jun 2008 10:33:58 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so701880tic.23
-        for <linux-omap@vger.kernel.org>; Tue, 10 Jun 2008 07:33:56 -0700 (PDT)
-Content-Disposition: inline
+Received: from Ittiam.com ([125.16.143.82]:1494 "EHLO is01ms02.ittiam.com"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751720AbYFJPzz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jun 2008 11:55:55 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <A8E8DDC23969AE4CB38FFF51016C778202D27E91@dlee10.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: omap <linux-omap@vger.kernel.org>, linux-newbie@vger.kernel.org
+To: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, linux-omap@vger.kernel.org
 
-Dear all,
+Thanks Hari,
+I took these changes and built new bridgedriver.ko.
+I could see 50% reduction in time taken to queue a buffer of size of
+3MB. (old time: 28 ms, new time: 13 ms).
 
-I am working on omap osk. i want to enable audio on it. But am not
-able to do that. The kernel boot log says it has initialized audio
-device. but i am not able to configure the audio setting nor run some
-recording code. the system hangs and i have to restart.
+If I reserve and map a buffer only once and use the mapped address for
+future (avoiding map/unmap every time) I get better numbers (9 ms).
+So only thing which I am doing is flushing the buffer for consistency
+since this buffer is input to codec on DSP.
 
-the kernel boot code says:
+But 9ms only for flushing seems very high. 
+I am not 100% sure, but it seems like the kernel flush code is scanning 
+through all the virtual addresses of the buffer and flush if any of
+those are cached.
+But actually the L2 cache is only 256Kb. So a small part of the buffer
+might be in cache (< 256Kb). 
+This will add unnecessary overhead for huge (my buffer size is 3MB)
+buffers.
+Is there any way so that I can flush full cache to avoid overhead?
 
-TLV320AIC23 I2C version 1.8 (10-Feb-2006)
-audio support initialized
-ALSA device list:
- #0: OSK AIC23
 
-i have created nodes:
+Regards,
+Viraj
 
-# mknod /dev/mixer c 14 0
-# mknod /dev/dsp c 14 3
 
-thanx,
-Shareef
+
+
+
+-----Original Message-----
+From: Kanigeri, Hari [mailto:h-kanigeri2@ti.com] 
+Sent: Monday, June 09, 2008 10:51 PM
+To: Viraj Karandikar; Gupta, Ramesh; linux-omap@vger.kernel.org
+Subject: RE: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
+
+Hi Viraj,
+
+        You can use the attached file to get the DMM optimimzation that
+Ramesh is referring to.
+
+The location of this file is mpu_driver\src\wmd\omap\3430
+
+
+Thank you,
+Best regards,
+Hari
+ 
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Viraj 
+> Karandikar
+> Sent: Monday, June 09, 2008 10:18 AM
+> To: Gupta, Ramesh; linux-omap@vger.kernel.org
+> Subject: RE: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
+> 
+> Thanks Ramesh.
+> I was reserving and mapping buffers "every time". This was not 
+> required.
+> I modified the code to reserve and map a buffer only once and use the 
+> mapped address for future.
+> This modification reduced the overhead.
+> 
+> I have one more doubt.
+> Does DSP use virtual-to-physical mapping for all the addresses it 
+> accesses (including DSP's local buffers)?
+> Or it uses this mapping only to access shared buffers?
+> Wont it be a big overhead if DSP accesses all the memories through 
+> virtual-to-physical mapping?
+> 
+> Regards,
+> Viraj
+> 
+> 
+> 
+> -----Original Message-----
+> From: Ramesh Gupta G [mailto:x0023949@ti.com]
+> Sent: Monday, June 09, 2008 11:03 AM
+> To: Viraj Karandikar; linux-omap-open-source@linux.omap.com
+> Subject: Re: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
+> 
+> Hi Vijay,
+> 
+> ----- Original Message -----
+> From: "Viraj Karandikar" <viraj.karandikar@ittiam.com>
+> To: <linux-omap-open-source@linux.omap.com>
+> Sent: Saturday, June 07, 2008 3:45 PM
+> Subject: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
+> 
+> 
+> >Hi all,
+> 
+> >I am working on omap3430 using bridge. I am using Dynamically Mapped 
+> >Memory (DMM) method for sharing buffers.
+> 
+> >For sending buffers to DSP I am doing calls to
+> >DSPProcessor_ReserveMemory() and DSPProcessor_Map(). For these calls
+> are
+> >taking around 18ms (for 3-4MB buffers) which is not
+> acceptable for the
+> >application. I am not able to understand why it is taking so
+> much time?
+> 
+> Which version of bridge you are using?
+> We have optimized the code for DSPProcessor_Map(), You can see 
+> significant change in the numbers with the latest code.
+> 
+> 
+> >My understanding of DMM method is ->
+> 
+> 
+> >- Use malloc() to allocate a buffer on ARM.
+> 
+> >- Reserve required chunk of memory from DMM pool (using
+> >DSPProcessor_ReserveMemory() )
+> 
+> >- Translate this memory to ARM virtual address space in
+> >DSPProcessor_Map() function.
+> 
+> Actually DSPProcessor_Map() maps ARM physical addresses to DSP Virtual
+> addresses.
+> 
+> >- Send the reserved memory address to DSP.
+> 
+> 
+> 
+> >Is this correct? I am confused about how exactly this happens.
+> 
+> You are correct except above point about DSPProcessor_Map().
+> 
+> >Also Ihave a doubt if the reserved memory address is from 
+> DSP physical
+> address
+> >space? Or is it from ARM virtual address space for DSP 
+> physical address
+> >space?
+> 
+> Reserved Memory is from DSP Virtual Address.
+> 
+> >Is DMM method does copy from malloc'ed address to reserved
+> >address in any way?
+> 
+> Do you mean copying the contents? No copying is involved. Only mapping
+> of
+> addresses is performed.
+> 
+> 
+> >It will be helpful if anybody put some light on this.
+> 
+> Please let me know if you see any issues.
+> 
+> 
+> 
+> >Regards,
+> 
+> >Viraj
+> 
+> 
+> Thanks & Regards
+> Ramesh Gupta G
+> 
+> **********************************************************************
+> This email and any files transmitted with it are confidential and
+> intended solely for the use of the individual or entity to whom they
+> are addressed. If you have received this email in error please notify
+> helpdesk@ittiam.com.
+> **********************************************************************
+> 
+> _______________________________________________
+> Linux-omap-open-source mailing list
+> Linux-omap-open-source@linux.omap.com
+> http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
