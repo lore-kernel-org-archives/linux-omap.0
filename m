@@ -1,261 +1,92 @@
-From: "Viraj Karandikar" <viraj.karandikar@ittiam.com>
-Subject: RE: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
-Date: Wed, 11 Jun 2008 10:03:27 +0530
-Message-ID: <904DEC693BE1AB429622C6F5ABA7E0B80260020A@is01ex02.ittiam.com>
-References: <904DEC693BE1AB429622C6F5ABA7E0B802600203@is01ex02.ittiam.com> <036001c8c9f2$53f198f0$11dfa8c0@ent.ti.com> <904DEC693BE1AB429622C6F5ABA7E0B802600207@is01ex02.ittiam.com> <A8E8DDC23969AE4CB38FFF51016C778202D27E91@dlee10.ent.ti.com> <904DEC693BE1AB429622C6F5ABA7E0B802600208@is01ex02.ittiam.com> <A8E8DDC23969AE4CB38FFF51016C778202D2837A@dlee10.ent.ti.com>
+From: "Rodrigo Vivi" <rodrigo.vivi@gmail.com>
+Subject: Re: FW: driver DVI output OMAP3 EVM
+Date: Wed, 11 Jun 2008 01:42:38 -0300
+Message-ID: <bdb0025f0806102142j1c5d020bnfd7074b892c3c7e8@mail.gmail.com>
+References: <0680EC522D0CC943BC586913CF3768C001DE4464FE@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from Ittiam.com ([125.16.143.82]:1549 "EHLO is01ms02.ittiam.com"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750991AbYFKEh6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jun 2008 00:37:58 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <A8E8DDC23969AE4CB38FFF51016C778202D2837A@dlee10.ent.ti.com>
+Received: from rv-out-0506.google.com ([209.85.198.233]:53935 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752037AbYFKEmi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jun 2008 00:42:38 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so1262689rvb.1
+        for <linux-omap@vger.kernel.org>; Tue, 10 Jun 2008 21:42:38 -0700 (PDT)
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C001DE4464FE@dbde02.ent.ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, linux-omap@vger.kernel.org
-Cc: "Ameet U. Kalagi" <ameet.kalagi@ittiam.com>
+To: "Syed Mohammed, Khasim" <khasim@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Royer, Fabien" <f-royer@ti.com>
 
-Hari,
-Yes, performance of other applications will be impacted if we flush
-entire cache.
-Can we do something like, scan through cache entries and flush entries
-belonging to the buffer requested for flush?
-This can be done only while flushing huge buffers, so that flushing
-small buffers will not be affected.
-I am not sure how exactly cache operations are done in linux. But I
-think this could be done.
+Hi there,
 
+I'd like to use the vga output trough s-video conector. I already have
+this 3 files and they seems ok to me. Apparently they are setting
+correctly all bits.
+But when echoing "tv" to /sys/.../graphics the lcd is turned off but
+nothing appears on the tv...
 
-Regards,
-Viraj
+am I missing something?
 
+has anyone already tried to do it? is it working?
 
------Original Message-----
-From: Kanigeri, Hari [mailto:h-kanigeri2@ti.com] 
-Sent: Wednesday, June 11, 2008 12:38 AM
-To: Viraj Karandikar; Gupta, Ramesh; linux-omap@vger.kernel.org
-Subject: RE: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
-
-Hi Viraj,
-
-> I took these changes and built new bridgedriver.ko.
-> I could see 50% reduction in time taken to queue a buffer of size of
-> 3MB. (old time: 28 ms, new time: 13 ms).
- 
--------- Nice to hear the optimization worked for you.
-
-> But actually the L2 cache is only 256Kb. So a small part of the buffer
-> might be in cache (< 256Kb).
-> This will add unnecessary overhead for huge (my buffer size is 3MB)
-> buffers.
-> Is there any way so that I can flush full cache to avoid overhead?
-
--------- I did benchmark the flush part and the number I got is very
-close to what you observed. We are looking into the issue of reducing
-the flush time. I will inform once I find any improvements to this.
-As far as your question regarding flushing the entire cache, I am not
-sure if this is the best approach as this will have an impact on the
-performance of other applications running in the system.
-
-Thank you,
-Best regards,
-Hari
-
-> -----Original Message-----
-> From: Viraj Karandikar [mailto:viraj.karandikar@ittiam.com]
-> Sent: Tuesday, June 10, 2008 10:51 AM
-> To: Kanigeri, Hari; Gupta, Ramesh; linux-omap@vger.kernel.org
-> Subject: RE: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
-> 
-> Thanks Hari,
-> I took these changes and built new bridgedriver.ko.
-> I could see 50% reduction in time taken to queue a buffer of size of
-> 3MB. (old time: 28 ms, new time: 13 ms).
-> 
-> If I reserve and map a buffer only once and use the mapped address for
-> future (avoiding map/unmap every time) I get better numbers (9 ms).
-> So only thing which I am doing is flushing the buffer for consistency
-> since this buffer is input to codec on DSP.
-> 
-> But 9ms only for flushing seems very high.
-> I am not 100% sure, but it seems like the kernel flush code is
-scanning
-> through all the virtual addresses of the buffer and flush if any of
-> those are cached.
-> But actually the L2 cache is only 256Kb. So a small part of the buffer
-> might be in cache (< 256Kb).
-> This will add unnecessary overhead for huge (my buffer size is 3MB)
-> buffers.
-> Is there any way so that I can flush full cache to avoid overhead?
-> 
-> 
+On Mon, Jun 2, 2008 at 9:08 AM, Syed Mohammed, Khasim <khasim@ti.com> wrote:
+> Resending: I think you have received the attachments if not do let me know.
+>
+>> -----Original Message-----
+>> From: linux-omap-open-source-bounces@linux.omap.com [mailto:linux-omap-open-source-
+>> bounces@linux.omap.com] On Behalf Of Royer, Fabien
+>> Sent: Monday, June 02, 2008 4:55 PM
+>> To: linux-omap-open-source@linux.omap.com
+>> Subject: driver DVI output OMAP3 EVM
+>>
+>> Hello,
+>>
+>> I would like to know how to drive the DVI output on the OMAP3 EVM.
+>>
+>
+> Hi Fabien,
+>
+> If you use TI's release for OMAP3 EVM then the mods required to get DVI working is as given below, basically it is hardcoded version, LCD will not work from there on. At present we don't have a  version that allows you to dynamically switch between DVI and LCD. The files attached are bit old, may be you have to twik in a bit to get it compiled.
+>
+> Hardware:
+>
+> On EVM 3530 Base board, replace the Resistor R18 (It's near to DVI connector [TOP SIDE] of the board) with a 510 ohm (its 10K now).
+>
+> Software:
+>
+> The attached files have to be copied to respective directories.
+>
+> - arch/arm/plat-omap/display.c
+> - drivers/video/omap/omap_disp_out.c
+> - drivers/video/omap/omap_fb.c
+>
+> Changes for different resolution:
+>
+> It is now configured for 1280x720. If you want to modify it to your monitor resolution then do the following.
+>
+> 1) In arch/arm/plat-omap/display.c function omap2_disp_set_panel_size()
+>
+> dispc_reg_out(DISPC_SIZE_LCD,0x2CF04FF); /* it is 720 = 2cf , 1280 = 0x4ff */
+>
+> 2) In drivers/video/omap/omap_disp_out.c
+> #define H4_LCD_XRES             1280   /* Change these */
+> #define H4_LCD_YRES             720
+>
 > Regards,
-> Viraj
-> 
-> 
-> 
-> 
-> 
-> -----Original Message-----
-> From: Kanigeri, Hari [mailto:h-kanigeri2@ti.com]
-> Sent: Monday, June 09, 2008 10:51 PM
-> To: Viraj Karandikar; Gupta, Ramesh; linux-omap@vger.kernel.org
-> Subject: RE: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
-> 
-> Hi Viraj,
-> 
->         You can use the attached file to get the DMM optimimzation
-that
-> Ramesh is referring to.
-> 
-> The location of this file is mpu_driver\src\wmd\omap\3430
-> 
-> 
-> Thank you,
-> Best regards,
-> Hari
-> 
-> 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org
-> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Viraj
-> > Karandikar
-> > Sent: Monday, June 09, 2008 10:18 AM
-> > To: Gupta, Ramesh; linux-omap@vger.kernel.org
-> > Subject: RE: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
-> >
-> > Thanks Ramesh.
-> > I was reserving and mapping buffers "every time". This was not
-> > required.
-> > I modified the code to reserve and map a buffer only once and use
-the
-> > mapped address for future.
-> > This modification reduced the overhead.
-> >
-> > I have one more doubt.
-> > Does DSP use virtual-to-physical mapping for all the addresses it
-> > accesses (including DSP's local buffers)?
-> > Or it uses this mapping only to access shared buffers?
-> > Wont it be a big overhead if DSP accesses all the memories through
-> > virtual-to-physical mapping?
-> >
-> > Regards,
-> > Viraj
-> >
-> >
-> >
-> > -----Original Message-----
-> > From: Ramesh Gupta G [mailto:x0023949@ti.com]
-> > Sent: Monday, June 09, 2008 11:03 AM
-> > To: Viraj Karandikar; linux-omap-open-source@linux.omap.com
-> > Subject: Re: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
-> >
-> > Hi Vijay,
-> >
-> > ----- Original Message -----
-> > From: "Viraj Karandikar" <viraj.karandikar@ittiam.com>
-> > To: <linux-omap-open-source@linux.omap.com>
-> > Sent: Saturday, June 07, 2008 3:45 PM
-> > Subject: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
-> >
-> >
-> > >Hi all,
-> >
-> > >I am working on omap3430 using bridge. I am using Dynamically
-Mapped
-> > >Memory (DMM) method for sharing buffers.
-> >
-> > >For sending buffers to DSP I am doing calls to
-> > >DSPProcessor_ReserveMemory() and DSPProcessor_Map(). For these
-calls
-> > are
-> > >taking around 18ms (for 3-4MB buffers) which is not
-> > acceptable for the
-> > >application. I am not able to understand why it is taking so
-> > much time?
-> >
-> > Which version of bridge you are using?
-> > We have optimized the code for DSPProcessor_Map(), You can see
-> > significant change in the numbers with the latest code.
-> >
-> >
-> > >My understanding of DMM method is ->
-> >
-> >
-> > >- Use malloc() to allocate a buffer on ARM.
-> >
-> > >- Reserve required chunk of memory from DMM pool (using
-> > >DSPProcessor_ReserveMemory() )
-> >
-> > >- Translate this memory to ARM virtual address space in
-> > >DSPProcessor_Map() function.
-> >
-> > Actually DSPProcessor_Map() maps ARM physical addresses to DSP
-Virtual
-> > addresses.
-> >
-> > >- Send the reserved memory address to DSP.
-> >
-> >
-> >
-> > >Is this correct? I am confused about how exactly this happens.
-> >
-> > You are correct except above point about DSPProcessor_Map().
-> >
-> > >Also Ihave a doubt if the reserved memory address is from
-> > DSP physical
-> > address
-> > >space? Or is it from ARM virtual address space for DSP
-> > physical address
-> > >space?
-> >
-> > Reserved Memory is from DSP Virtual Address.
-> >
-> > >Is DMM method does copy from malloc'ed address to reserved
-> > >address in any way?
-> >
-> > Do you mean copying the contents? No copying is involved. Only
-mapping
-> > of
-> > addresses is performed.
-> >
-> >
-> > >It will be helpful if anybody put some light on this.
-> >
-> > Please let me know if you see any issues.
-> >
-> >
-> >
-> > >Regards,
-> >
-> > >Viraj
-> >
-> >
-> > Thanks & Regards
-> > Ramesh Gupta G
-> >
-> >
-**********************************************************************
-> > This email and any files transmitted with it are confidential and
-> > intended solely for the use of the individual or entity to whom they
-> > are addressed. If you have received this email in error please
-notify
-> > helpdesk@ittiam.com.
-> >
-**********************************************************************
-> >
-> > _______________________________________________
-> > Linux-omap-open-source mailing list
-> > Linux-omap-open-source@linux.omap.com
-> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe
-> > linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
+> Khasim
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+
+-- 
+Rodrigo Vivi
+INdT - Instituto Nokia de Tecnologia
+Blog: http://blog.vivi.eng.br
+GPG: 0x905BE242 @ wwwkeys.pgp.net
