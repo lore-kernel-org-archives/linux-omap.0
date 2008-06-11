@@ -1,123 +1,261 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Added sleep support to UART
-Date: Tue, 10 Jun 2008 17:52:15 -0700
-Message-ID: <20080611005214.GS23796@atomide.com>
-References: <1213106931-17954-1-git-send-email-tero.kristo@nokia.com>
+From: "Viraj Karandikar" <viraj.karandikar@ittiam.com>
+Subject: RE: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
+Date: Wed, 11 Jun 2008 10:03:27 +0530
+Message-ID: <904DEC693BE1AB429622C6F5ABA7E0B80260020A@is01ex02.ittiam.com>
+References: <904DEC693BE1AB429622C6F5ABA7E0B802600203@is01ex02.ittiam.com> <036001c8c9f2$53f198f0$11dfa8c0@ent.ti.com> <904DEC693BE1AB429622C6F5ABA7E0B802600207@is01ex02.ittiam.com> <A8E8DDC23969AE4CB38FFF51016C778202D27E91@dlee10.ent.ti.com> <904DEC693BE1AB429622C6F5ABA7E0B802600208@is01ex02.ittiam.com> <A8E8DDC23969AE4CB38FFF51016C778202D2837A@dlee10.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="VMt1DrMGOVs3KQwf"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:56107 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754850AbYFKAwP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jun 2008 20:52:15 -0400
-Content-Disposition: inline
-In-Reply-To: <1213106931-17954-1-git-send-email-tero.kristo@nokia.com>
+Received: from Ittiam.com ([125.16.143.82]:1549 "EHLO is01ms02.ittiam.com"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750991AbYFKEh6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jun 2008 00:37:58 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <A8E8DDC23969AE4CB38FFF51016C778202D2837A@dlee10.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, linux-omap@vger.kernel.org
+Cc: "Ameet U. Kalagi" <ameet.kalagi@ittiam.com>
 
+Hari,
+Yes, performance of other applications will be impacted if we flush
+entire cache.
+Can we do something like, scan through cache entries and flush entries
+belonging to the buffer requested for flush?
+This can be done only while flushing huge buffers, so that flushing
+small buffers will not be affected.
+I am not sure how exactly cache operations are done in linux. But I
+think this could be done.
 
---VMt1DrMGOVs3KQwf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-* Tero Kristo <tero.kristo@nokia.com> [080610 07:16]:
-> UART usage (e.g. serial console) now denies sleep for 5 seconds. This
-> makes it possible to use serial console when dynamic idle is enabled.
-> 
-> Also moved code from pm-debug.c to serial.c, and made pm24xx.c use this
-> new implementation.
-
-I've pushed some fixes to l-o tree for CONFIG_PM_DEBUG, and that
-requires the following patch for 24xx on top of your patch. Also changed
-to use div_s64() to avoid hitting the gcc bug "undefined reference
-to __aeabi_ldivmod'". 
 
 Regards,
-
-Tony
-
+Viraj
 
 
+-----Original Message-----
+From: Kanigeri, Hari [mailto:h-kanigeri2@ti.com] 
+Sent: Wednesday, June 11, 2008 12:38 AM
+To: Viraj Karandikar; Gupta, Ramesh; linux-omap@vger.kernel.org
+Subject: RE: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
 
---VMt1DrMGOVs3KQwf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline; filename=omap-uart-tero-fixes
+Hi Viraj,
 
->From e1d4cc54adacaa6a713e68b84151935f47be7895 Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Tue, 10 Jun 2008 17:39:15 -0700
-Subject: [PATCH] Fixes for 24xx debug uart handling
+> I took these changes and built new bridgedriver.ko.
+> I could see 50% reduction in time taken to queue a buffer of size of
+> 3MB. (old time: 28 ms, new time: 13 ms).
+ 
+-------- Nice to hear the optimization worked for you.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+> But actually the L2 cache is only 256Kb. So a small part of the buffer
+> might be in cache (< 256Kb).
+> This will add unnecessary overhead for huge (my buffer size is 3MB)
+> buffers.
+> Is there any way so that I can flush full cache to avoid overhead?
 
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index 27af921..304a2e8 100755
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -137,11 +137,12 @@ no_sleep:
- 
- 	if (omap2_pm_debug) {
- 		struct timespec t;
--		struct timespec ts_delta
-+		struct timespec ts_delta;
- 
- 		getnstimeofday(&t);
- 		ts_delta = timespec_sub(&t, &sleep_time);
--		omap2_pm_dump(0, 1, timespec_to_ns(&ts_delta) / NSEC_PER_USEC);
-+		omap2_pm_dump(0, 1,
-+			div_s64(timespec_to_ns(&ts_delta), NSEC_PER_USEC));
- 	}
- 	omap2_gpio_resume_after_retention();
- 
-@@ -155,16 +156,16 @@ no_sleep:
- 	prm_clear_mod_reg_bits(0x4 | 0x1, WKUP_MOD, PM_WKST);
- 
- 	/* MPU domain wake events */
--	l = prm_read_mod_reg(OCP_MOD, OMAP24XX_PRCM_IRQSTATUS_MPU_OFFSET);
-+	l = prm_read_mod_reg(OCP_MOD, OMAP2_PRM_IRQSTATUS_MPU_OFFSET);
- 	if (l & 0x01)
- 		prm_write_mod_reg(0x01, OCP_MOD,
--				OMAP24XX_PRCM_IRQSTATUS_MPU_OFFSET);
-+				OMAP2_PRM_IRQSTATUS_MPU_OFFSET);
- 	if (l & 0x20)
- 		prm_write_mod_reg(0x20, OCP_MOD,
--				OMAP24XX_PRCM_IRQSTATUS_MPU_OFFSET);
-+				OMAP2_PRM_IRQSTATUS_MPU_OFFSET);
- 
- 	/* Mask future PRCM-to-MPU interrupts */
--	prm_write_mod_reg(0x0, OCP_MOD, OMAP24XX_PRCM_IRQSTATUS_MPU_OFFSET);
-+	prm_write_mod_reg(0x0, OCP_MOD, OMAP2_PRM_IRQSTATUS_MPU_OFFSET);
- }
- 
- static int omap2_i2c_active(void)
-@@ -243,7 +244,7 @@ static void omap2_enter_mpu_retention(void)
- 		getnstimeofday(&t);
- 		ts_delta = timespec_sub(&t, &sleep_time);
- 		omap2_pm_dump(only_idle ? 2 : 1, 1,
--			timespec_to_ns(&ts_delta) / NSEC_PER_USEC);
-+			div_s64(timespec_to_ns(&ts_delta), NSEC_PER_USEC));
- 	}
- }
- 
-@@ -362,7 +363,7 @@ static void __init prcm_setup_regs(void)
- 
- 	/* Enable autoidle */
- 	prm_write_mod_reg(OMAP24XX_AUTOIDLE, OCP_MOD,
--				OMAP24XX_PRCM_SYSCONFIG_OFFSET);
-+				OMAP24XX_PRM_SYSCONFIG_OFFSET);
- 
- 	/* Set all domain wakeup dependencies */
- 	prm_write_mod_reg(OMAP_EN_WKUP_MASK, MPU_MOD, PM_WKDEP);
-@@ -491,7 +492,7 @@ int __init omap2_pm_init(void)
- 	u32 l;
- 
- 	printk(KERN_INFO "Power Management for OMAP2 initializing\n");
--	l = prm_read_mod_reg(OCP_MOD, OMAP24XX_PRCM_REVISION_OFFSET);
-+	l = prm_read_mod_reg(OCP_MOD, OMAP24XX_PRM_REVISION_OFFSET);
- 	printk(KERN_INFO "PRCM revision %d.%d\n", (l >> 4) & 0x0f, l & 0x0f);
- 
- 	/* Look up important powerdomains, clockdomains */
+-------- I did benchmark the flush part and the number I got is very
+close to what you observed. We are looking into the issue of reducing
+the flush time. I will inform once I find any improvements to this.
+As far as your question regarding flushing the entire cache, I am not
+sure if this is the best approach as this will have an impact on the
+performance of other applications running in the system.
 
---VMt1DrMGOVs3KQwf--
+Thank you,
+Best regards,
+Hari
+
+> -----Original Message-----
+> From: Viraj Karandikar [mailto:viraj.karandikar@ittiam.com]
+> Sent: Tuesday, June 10, 2008 10:51 AM
+> To: Kanigeri, Hari; Gupta, Ramesh; linux-omap@vger.kernel.org
+> Subject: RE: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
+> 
+> Thanks Hari,
+> I took these changes and built new bridgedriver.ko.
+> I could see 50% reduction in time taken to queue a buffer of size of
+> 3MB. (old time: 28 ms, new time: 13 ms).
+> 
+> If I reserve and map a buffer only once and use the mapped address for
+> future (avoiding map/unmap every time) I get better numbers (9 ms).
+> So only thing which I am doing is flushing the buffer for consistency
+> since this buffer is input to codec on DSP.
+> 
+> But 9ms only for flushing seems very high.
+> I am not 100% sure, but it seems like the kernel flush code is
+scanning
+> through all the virtual addresses of the buffer and flush if any of
+> those are cached.
+> But actually the L2 cache is only 256Kb. So a small part of the buffer
+> might be in cache (< 256Kb).
+> This will add unnecessary overhead for huge (my buffer size is 3MB)
+> buffers.
+> Is there any way so that I can flush full cache to avoid overhead?
+> 
+> 
+> Regards,
+> Viraj
+> 
+> 
+> 
+> 
+> 
+> -----Original Message-----
+> From: Kanigeri, Hari [mailto:h-kanigeri2@ti.com]
+> Sent: Monday, June 09, 2008 10:51 PM
+> To: Viraj Karandikar; Gupta, Ramesh; linux-omap@vger.kernel.org
+> Subject: RE: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
+> 
+> Hi Viraj,
+> 
+>         You can use the attached file to get the DMM optimimzation
+that
+> Ramesh is referring to.
+> 
+> The location of this file is mpu_driver\src\wmd\omap\3430
+> 
+> 
+> Thank you,
+> Best regards,
+> Hari
+> 
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Viraj
+> > Karandikar
+> > Sent: Monday, June 09, 2008 10:18 AM
+> > To: Gupta, Ramesh; linux-omap@vger.kernel.org
+> > Subject: RE: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
+> >
+> > Thanks Ramesh.
+> > I was reserving and mapping buffers "every time". This was not
+> > required.
+> > I modified the code to reserve and map a buffer only once and use
+the
+> > mapped address for future.
+> > This modification reduced the overhead.
+> >
+> > I have one more doubt.
+> > Does DSP use virtual-to-physical mapping for all the addresses it
+> > accesses (including DSP's local buffers)?
+> > Or it uses this mapping only to access shared buffers?
+> > Wont it be a big overhead if DSP accesses all the memories through
+> > virtual-to-physical mapping?
+> >
+> > Regards,
+> > Viraj
+> >
+> >
+> >
+> > -----Original Message-----
+> > From: Ramesh Gupta G [mailto:x0023949@ti.com]
+> > Sent: Monday, June 09, 2008 11:03 AM
+> > To: Viraj Karandikar; linux-omap-open-source@linux.omap.com
+> > Subject: Re: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
+> >
+> > Hi Vijay,
+> >
+> > ----- Original Message -----
+> > From: "Viraj Karandikar" <viraj.karandikar@ittiam.com>
+> > To: <linux-omap-open-source@linux.omap.com>
+> > Sent: Saturday, June 07, 2008 3:45 PM
+> > Subject: Sharing buffers between ARM-DSP on OMAP3430 over Bridge
+> >
+> >
+> > >Hi all,
+> >
+> > >I am working on omap3430 using bridge. I am using Dynamically
+Mapped
+> > >Memory (DMM) method for sharing buffers.
+> >
+> > >For sending buffers to DSP I am doing calls to
+> > >DSPProcessor_ReserveMemory() and DSPProcessor_Map(). For these
+calls
+> > are
+> > >taking around 18ms (for 3-4MB buffers) which is not
+> > acceptable for the
+> > >application. I am not able to understand why it is taking so
+> > much time?
+> >
+> > Which version of bridge you are using?
+> > We have optimized the code for DSPProcessor_Map(), You can see
+> > significant change in the numbers with the latest code.
+> >
+> >
+> > >My understanding of DMM method is ->
+> >
+> >
+> > >- Use malloc() to allocate a buffer on ARM.
+> >
+> > >- Reserve required chunk of memory from DMM pool (using
+> > >DSPProcessor_ReserveMemory() )
+> >
+> > >- Translate this memory to ARM virtual address space in
+> > >DSPProcessor_Map() function.
+> >
+> > Actually DSPProcessor_Map() maps ARM physical addresses to DSP
+Virtual
+> > addresses.
+> >
+> > >- Send the reserved memory address to DSP.
+> >
+> >
+> >
+> > >Is this correct? I am confused about how exactly this happens.
+> >
+> > You are correct except above point about DSPProcessor_Map().
+> >
+> > >Also Ihave a doubt if the reserved memory address is from
+> > DSP physical
+> > address
+> > >space? Or is it from ARM virtual address space for DSP
+> > physical address
+> > >space?
+> >
+> > Reserved Memory is from DSP Virtual Address.
+> >
+> > >Is DMM method does copy from malloc'ed address to reserved
+> > >address in any way?
+> >
+> > Do you mean copying the contents? No copying is involved. Only
+mapping
+> > of
+> > addresses is performed.
+> >
+> >
+> > >It will be helpful if anybody put some light on this.
+> >
+> > Please let me know if you see any issues.
+> >
+> >
+> >
+> > >Regards,
+> >
+> > >Viraj
+> >
+> >
+> > Thanks & Regards
+> > Ramesh Gupta G
+> >
+> >
+**********************************************************************
+> > This email and any files transmitted with it are confidential and
+> > intended solely for the use of the individual or entity to whom they
+> > are addressed. If you have received this email in error please
+notify
+> > helpdesk@ittiam.com.
+> >
+**********************************************************************
+> >
+> > _______________________________________________
+> > Linux-omap-open-source mailing list
+> > Linux-omap-open-source@linux.omap.com
+> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe
+> > linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
