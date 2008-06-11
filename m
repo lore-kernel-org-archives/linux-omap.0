@@ -1,78 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2: Fix build errors in pm24xx.c caused by
-	recent PRM patches
-Date: Wed, 11 Jun 2008 10:43:12 -0700
-Message-ID: <20080611174312.GY23796@atomide.com>
-References: <1213179086-5687-1-git-send-email-jarkko.nikula@nokia.com>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: [PATCH 0/3] OMAP3 Beagle: Enable nand support
+Date: Wed, 11 Jun 2008 11:17:47 -0700
+Message-ID: <5e088bd90806111117q2e22e44bpd938d3b678fde397@mail.gmail.com>
+References: <5e088bd90805312338j540aef97s4735eba05c736448@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:56800 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753646AbYFKRnM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jun 2008 13:43:12 -0400
+Received: from py-out-1112.google.com ([64.233.166.177]:30679 "EHLO
+	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751124AbYFKSRt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jun 2008 14:17:49 -0400
+Received: by py-out-1112.google.com with SMTP id p76so1503203pyb.10
+        for <linux-omap@vger.kernel.org>; Wed, 11 Jun 2008 11:17:48 -0700 (PDT)
+In-Reply-To: <5e088bd90805312338j540aef97s4735eba05c736448@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <1213179086-5687-1-git-send-email-jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Gmail seems to have messed with the wrapping on the initial
+submission.  I will resubmit using git-send-email.
 
-* Jarkko Nikula <jarkko.nikula@nokia.com> [080611 03:11]:
-> Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
-> ---
->  arch/arm/mach-omap2/pm24xx.c |   12 ++++++------
->  1 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-> index bcf3afe..69972a2 100644
-> --- a/arch/arm/mach-omap2/pm24xx.c
-> +++ b/arch/arm/mach-omap2/pm24xx.c
-> @@ -146,16 +146,16 @@ no_sleep:
->  	prm_clear_mod_reg_bits(0x4 | 0x1, WKUP_MOD, PM_WKST);
->  
->  	/* MPU domain wake events */
-> -	l = prm_read_mod_reg(OCP_MOD, OMAP24XX_PRCM_IRQSTATUS_MPU_OFFSET);
-> +	l = prm_read_mod_reg(OCP_MOD, OMAP2_PRM_IRQSTATUS_MPU_OFFSET);
->  	if (l & 0x01)
->  		prm_write_mod_reg(0x01, OCP_MOD,
-> -				OMAP24XX_PRCM_IRQSTATUS_MPU_OFFSET);
-> +				OMAP2_PRM_IRQSTATUS_MPU_OFFSET);
->  	if (l & 0x20)
->  		prm_write_mod_reg(0x20, OCP_MOD,
-> -				OMAP24XX_PRCM_IRQSTATUS_MPU_OFFSET);
-> +				OMAP2_PRM_IRQSTATUS_MPU_OFFSET);
->  
->  	/* Mask future PRCM-to-MPU interrupts */
-> -	prm_write_mod_reg(0x0, OCP_MOD, OMAP24XX_PRCM_IRQSTATUS_MPU_OFFSET);
-> +	prm_write_mod_reg(0x0, OCP_MOD, OMAP2_PRM_IRQSTATUS_MPU_OFFSET);
->  }
->  
->  static int omap2_i2c_active(void)
-> @@ -349,7 +349,7 @@ static void __init prcm_setup_regs(void)
->  
->  	/* Enable autoidle */
->  	prm_write_mod_reg(OMAP24XX_AUTOIDLE, OCP_MOD,
-> -				OMAP24XX_PRCM_SYSCONFIG_OFFSET);
-> +				OMAP24XX_PRM_SYSCONFIG_OFFSET);
->  
->  	/* Set all domain wakeup dependencies */
->  	prm_write_mod_reg(OMAP_EN_WKUP_MASK, MPU_MOD, PM_WKDEP);
-> @@ -478,7 +478,7 @@ int __init omap2_pm_init(void)
->  	u32 l;
->  
->  	printk(KERN_INFO "Power Management for OMAP2 initializing\n");
-> -	l = prm_read_mod_reg(OCP_MOD, OMAP24XX_PRCM_REVISION_OFFSET);
-> +	l = prm_read_mod_reg(OCP_MOD, OMAP24XX_PRM_REVISION_OFFSET);
->  	printk(KERN_INFO "PRCM revision %d.%d\n", (l >> 4) & 0x0f, l & 0x0f);
->  
->  	/* Look up important powerdomains, clockdomains */
+Steve
 
-Thanks, pushed. I guess I had Tero's debug uart patch still applied
-when doing the test build last night.
-
-Regards,
-
-Tony
+On Sat, May 31, 2008 at 11:38 PM, Steve Sakoman <sakoman@gmail.com> wrote:
+> This series of patches adds nand support to the beagle board.
+>
+> The first patch in the series builds on work by Teerth Reddy
+> <teerth@ti.com> to extend the omap2 nand driver to work with both
+> omap2 and omap3 architectures (as well as adding/clarifying comments).
+>
+> The second patch adds the beagle nand support, and the final patch
+> enables the nand driver and jffs2 support in the beagle defconfig.
+>
+> The patch set was reviewed by Khasim Syed Mohammed <khasim@ti.com>
+> prior to this submission.  It was tested on a Rev B beagle board.
+>
