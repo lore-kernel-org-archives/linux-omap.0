@@ -1,50 +1,44 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 0/3] Adding support for OMAP2EVM(Replacing 2430OSK)
-Date: Wed, 11 Jun 2008 06:30:35 -0500
-Message-ID: <5555135da289dac56cefe2a4ee46ac03@felipebalbi.com>
-References: <c656a4d20806110331q4065f7f9i653fe05ebff17cd5@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [PATCH] i2c: twl4030: warning: mixed declarations and code
+Date: Wed, 11 Jun 2008 14:55:23 +0300
+Message-ID: <1213185323-31758-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:42999 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750821AbYFKLai (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jun 2008 07:30:38 -0400
-In-Reply-To: <c656a4d20806110331q4065f7f9i653fe05ebff17cd5@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.233]:28334 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752070AbYFKL4x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jun 2008 07:56:53 -0400
+Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m5BBuSNQ006158
+	for <linux-omap@vger.kernel.org>; Wed, 11 Jun 2008 14:56:46 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arun c <arunedarath@mistralsolutions.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
+Latest patches for multi-omap support introduced
+it, removing.
 
+Trivial patch.
 
-On Wed, 11 Jun 2008 16:01:12 +0530, "arun c"
-<arunedarath@mistralsolutions.com> wrote:
-> Hi all,
-> 
-> The following set of patches adds support for
-> Mistral's OMAP2EVM board.
-> 
-> a) First patch replaces 2430OSK board files with omap2evm
-> b) Second patch provides compile support
-> c) Third patch completes the name change
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/i2c/chips/twl4030-usb.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-The problem will be with the legacy 2430osk, they still provide
-the old 1437 machine id, right ? If you remove all of it users
-won't be able to boot them until upgrading u-boot.
-
-Besides they carry a different processor (2430 on osk and 2530
-on evm). Maybe we keep support for both just sharing all board
-files ?
-
-board-n810.c shares everything with board-n800, maybe you
-should do something similar?
-
+diff --git a/drivers/i2c/chips/twl4030-usb.c b/drivers/i2c/chips/twl4030-usb.c
+index 7f93b4f..f546d42 100644
+--- a/drivers/i2c/chips/twl4030-usb.c
++++ b/drivers/i2c/chips/twl4030-usb.c
+@@ -625,8 +625,8 @@ static int twl4030_set_suspend(struct otg_transceiver *x, int suspend)
+ static int twl4030_set_peripheral(struct otg_transceiver *xceiv,
+ 		struct usb_gadget *gadget)
+ {
+-	struct twl4030_usb *twl = xceiv_to_twl(xceiv);
+ 	u32 l;
++	struct twl4030_usb *twl = xceiv_to_twl(xceiv);
+ 
+ 	if (!xceiv)
+ 		return -ENODEV;
 -- 
-Best Regards,
-
-Felipe Balbi
-http://felipebalbi.com
-me@felipebalbi.com
+1.5.6.rc1
 
