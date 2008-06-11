@@ -1,44 +1,2207 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH] i2c: twl4030: warning: mixed declarations and code
-Date: Wed, 11 Jun 2008 14:55:23 +0300
-Message-ID: <1213185323-31758-1-git-send-email-felipe.balbi@nokia.com>
+From: "arun c" <arun.edarath@gmail.com>
+Subject: [PATCH 1/3] Renaming files to reflect name change from 2430OSK to OMAP2EVM
+Date: Wed, 11 Jun 2008 17:41:47 +0530
+Message-ID: <c656a4d20806110511l5408446eh578c0f326d8eca99@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:28334 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752070AbYFKL4x (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jun 2008 07:56:53 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m5BBuSNQ006158
-	for <linux-omap@vger.kernel.org>; Wed, 11 Jun 2008 14:56:46 +0300
+Received: from ti-out-0910.google.com ([209.85.142.190]:21940 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751757AbYFKMLt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jun 2008 08:11:49 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so815773tic.23
+        for <linux-omap@vger.kernel.org>; Wed, 11 Jun 2008 05:11:47 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-Latest patches for multi-omap support introduced
-it, removing.
+>From c379ad7c092bd0230d6c24652a86abb2d8184d64 Mon Sep 17 00:00:00 2001
+From: arun <arunedarath@mistralsolutions.com>
+Date: Wed, 11 Jun 2008 14:43:34 +0530
+Subject: [PATCH] Renaming files to reflect name change from 2430OSK to OMAP2EVM
 
-Trivial patch.
+renamed:    arch/arm/configs/omap_2430osk_defconfig ->
+arch/arm/configs/omap2_evm_defconfig
+renamed:    arch/arm/mach-omap2/board-2430osk.c ->
+arch/arm/mach-omap2/board-omap2evm.c
+renamed:    include/asm-arm/arch-omap/board-2430osk.h ->
+include/asm-arm/arch-omap/board-omap2evm.h
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+Signed-off-by: arun <arunedarath@mistralsolutions.com>
 ---
- drivers/i2c/chips/twl4030-usb.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/configs/omap2_evm_defconfig       |  878 ++++++++++++++++++++++++++++
+ arch/arm/configs/omap_2430osk_defconfig    |  878 ----------------------------
+ arch/arm/mach-omap2/board-2430osk.c        |  143 -----
+ arch/arm/mach-omap2/board-omap2evm.c       |  143 +++++
+ include/asm-arm/arch-omap/board-2430osk.h  |   36 --
+ include/asm-arm/arch-omap/board-omap2evm.h |   36 ++
+ 6 files changed, 1057 insertions(+), 1057 deletions(-)
+ create mode 100644 arch/arm/configs/omap2_evm_defconfig
+ delete mode 100644 arch/arm/configs/omap_2430osk_defconfig
+ delete mode 100644 arch/arm/mach-omap2/board-2430osk.c
+ create mode 100644 arch/arm/mach-omap2/board-omap2evm.c
+ delete mode 100644 include/asm-arm/arch-omap/board-2430osk.h
+ create mode 100644 include/asm-arm/arch-omap/board-omap2evm.h
 
-diff --git a/drivers/i2c/chips/twl4030-usb.c b/drivers/i2c/chips/twl4030-usb.c
-index 7f93b4f..f546d42 100644
---- a/drivers/i2c/chips/twl4030-usb.c
-+++ b/drivers/i2c/chips/twl4030-usb.c
-@@ -625,8 +625,8 @@ static int twl4030_set_suspend(struct otg_transceiver *x, int suspend)
- static int twl4030_set_peripheral(struct otg_transceiver *xceiv,
- 		struct usb_gadget *gadget)
- {
--	struct twl4030_usb *twl = xceiv_to_twl(xceiv);
- 	u32 l;
-+	struct twl4030_usb *twl = xceiv_to_twl(xceiv);
- 
- 	if (!xceiv)
- 		return -ENODEV;
+diff --git a/arch/arm/configs/omap2_evm_defconfig
+b/arch/arm/configs/omap2_evm_defconfig
+new file mode 100644
+index 0000000..12a1298
+--- /dev/null
++++ b/arch/arm/configs/omap2_evm_defconfig
+@@ -0,0 +1,878 @@
++#
++# Automatically generated make config: don't edit
++# Linux kernel version: 2.6.23-omap1
++# Wed Oct 10 12:21:32 2007
++#
++CONFIG_ARM=y
++CONFIG_SYS_SUPPORTS_APM_EMULATION=y
++CONFIG_GENERIC_GPIO=y
++CONFIG_GENERIC_TIME=y
++CONFIG_GENERIC_CLOCKEVENTS=y
++CONFIG_MMU=y
++# CONFIG_NO_IOPORT is not set
++CONFIG_GENERIC_HARDIRQS=y
++CONFIG_STACKTRACE_SUPPORT=y
++CONFIG_LOCKDEP_SUPPORT=y
++CONFIG_TRACE_IRQFLAGS_SUPPORT=y
++CONFIG_HARDIRQS_SW_RESEND=y
++CONFIG_GENERIC_IRQ_PROBE=y
++CONFIG_RWSEM_GENERIC_SPINLOCK=y
++# CONFIG_ARCH_HAS_ILOG2_U32 is not set
++# CONFIG_ARCH_HAS_ILOG2_U64 is not set
++CONFIG_GENERIC_HWEIGHT=y
++CONFIG_GENERIC_CALIBRATE_DELAY=y
++CONFIG_ZONE_DMA=y
++CONFIG_VECTORS_BASE=0xffff0000
++CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
++
++#
++# General setup
++#
++CONFIG_EXPERIMENTAL=y
++CONFIG_BROKEN_ON_SMP=y
++CONFIG_LOCK_KERNEL=y
++CONFIG_INIT_ENV_ARG_LIMIT=32
++CONFIG_LOCALVERSION=""
++CONFIG_LOCALVERSION_AUTO=y
++CONFIG_SWAP=y
++CONFIG_SYSVIPC=y
++CONFIG_SYSVIPC_SYSCTL=y
++CONFIG_BSD_PROCESS_ACCT=y
++# CONFIG_BSD_PROCESS_ACCT_V3 is not set
++# CONFIG_USER_NS is not set
++# CONFIG_IKCONFIG is not set
++CONFIG_LOG_BUF_SHIFT=14
++CONFIG_SYSFS_DEPRECATED=y
++# CONFIG_RELAY is not set
++CONFIG_BLK_DEV_INITRD=y
++CONFIG_INITRAMFS_SOURCE=""
++CONFIG_CC_OPTIMIZE_FOR_SIZE=y
++CONFIG_SYSCTL=y
++CONFIG_EMBEDDED=y
++CONFIG_UID16=y
++# CONFIG_SYSCTL_SYSCALL is not set
++CONFIG_KALLSYMS=y
++# CONFIG_KALLSYMS_ALL is not set
++CONFIG_KALLSYMS_EXTRA_PASS=y
++CONFIG_HOTPLUG=y
++CONFIG_PRINTK=y
++CONFIG_BUG=y
++CONFIG_ELF_CORE=y
++CONFIG_BASE_FULL=y
++CONFIG_FUTEX=y
++CONFIG_ANON_INODES=y
++CONFIG_EPOLL=y
++CONFIG_SIGNALFD=y
++CONFIG_EVENTFD=y
++CONFIG_SHMEM=y
++CONFIG_VM_EVENT_COUNTERS=y
++CONFIG_SLAB=y
++# CONFIG_SLUB is not set
++# CONFIG_SLOB is not set
++CONFIG_RT_MUTEXES=y
++# CONFIG_TINY_SHMEM is not set
++CONFIG_BASE_SMALL=0
++CONFIG_MODULES=y
++CONFIG_MODULE_UNLOAD=y
++# CONFIG_MODULE_FORCE_UNLOAD is not set
++CONFIG_MODVERSIONS=y
++CONFIG_MODULE_SRCVERSION_ALL=y
++CONFIG_KMOD=y
++CONFIG_BLOCK=y
++# CONFIG_LBD is not set
++# CONFIG_BLK_DEV_IO_TRACE is not set
++# CONFIG_LSF is not set
++# CONFIG_BLK_DEV_BSG is not set
++
++#
++# IO Schedulers
++#
++CONFIG_IOSCHED_NOOP=y
++CONFIG_IOSCHED_AS=y
++CONFIG_IOSCHED_DEADLINE=y
++CONFIG_IOSCHED_CFQ=y
++CONFIG_DEFAULT_AS=y
++# CONFIG_DEFAULT_DEADLINE is not set
++# CONFIG_DEFAULT_CFQ is not set
++# CONFIG_DEFAULT_NOOP is not set
++CONFIG_DEFAULT_IOSCHED="anticipatory"
++
++#
++# System Type
++#
++# CONFIG_ARCH_AAEC2000 is not set
++# CONFIG_ARCH_INTEGRATOR is not set
++# CONFIG_ARCH_REALVIEW is not set
++# CONFIG_ARCH_VERSATILE is not set
++# CONFIG_ARCH_AT91 is not set
++# CONFIG_ARCH_CLPS7500 is not set
++# CONFIG_ARCH_CLPS711X is not set
++# CONFIG_ARCH_CO285 is not set
++# CONFIG_ARCH_EBSA110 is not set
++# CONFIG_ARCH_EP93XX is not set
++# CONFIG_ARCH_FOOTBRIDGE is not set
++# CONFIG_ARCH_NETX is not set
++# CONFIG_ARCH_H720X is not set
++# CONFIG_ARCH_IMX is not set
++# CONFIG_ARCH_IOP13XX is not set
++# CONFIG_ARCH_IOP32X is not set
++# CONFIG_ARCH_IOP33X is not set
++# CONFIG_ARCH_IXP23XX is not set
++# CONFIG_ARCH_IXP2000 is not set
++# CONFIG_ARCH_IXP4XX is not set
++# CONFIG_ARCH_L7200 is not set
++# CONFIG_ARCH_KS8695 is not set
++# CONFIG_ARCH_NS9XXX is not set
++# CONFIG_ARCH_MXC is not set
++# CONFIG_ARCH_PNX4008 is not set
++# CONFIG_ARCH_PXA is not set
++# CONFIG_ARCH_RPC is not set
++# CONFIG_ARCH_SA1100 is not set
++# CONFIG_ARCH_S3C2410 is not set
++# CONFIG_ARCH_SHARK is not set
++# CONFIG_ARCH_LH7A40X is not set
++# CONFIG_ARCH_DAVINCI is not set
++CONFIG_ARCH_OMAP=y
++
++#
++# TI OMAP Implementations
++#
++# CONFIG_ARCH_OMAP1 is not set
++CONFIG_ARCH_OMAP2=y
++# CONFIG_ARCH_OMAP3 is not set
++
++#
++# OMAP Feature Selections
++#
++# CONFIG_OMAP_RESET_CLOCKS is not set
++CONFIG_OMAP_BOOT_TAG=y
++# CONFIG_OMAP_BOOT_REASON is not set
++# CONFIG_OMAP_COMPONENT_VERSION is not set
++# CONFIG_OMAP_GPIO_SWITCH is not set
++CONFIG_OMAP_MUX=y
++# CONFIG_OMAP_MUX_DEBUG is not set
++# CONFIG_OMAP_MUX_WARNINGS is not set
++# CONFIG_OMAP_STI is not set
++# CONFIG_OMAP_MCBSP is not set
++# CONFIG_OMAP_MMU_FWK is not set
++# CONFIG_OMAP_MBOX_FWK is not set
++CONFIG_OMAP_MPU_TIMER=y
++# CONFIG_OMAP_32K_TIMER is not set
++CONFIG_OMAP_DM_TIMER=y
++# CONFIG_OMAP_LL_DEBUG_UART1 is not set
++# CONFIG_OMAP_LL_DEBUG_UART2 is not set
++CONFIG_OMAP_LL_DEBUG_UART3=y
++CONFIG_OMAP_SERIAL_WAKE=y
++# CONFIG_OMAP_DSP is not set
++# CONFIG_MACH_OMAP_GENERIC is not set
++
++#
++# OMAP Core Type
++#
++CONFIG_ARCH_OMAP24XX=y
++# CONFIG_ARCH_OMAP2420 is not set
++CONFIG_ARCH_OMAP2430=y
++
++#
++# OMAP Board Type
++#
++# CONFIG_MACH_NOKIA_N800 is not set
++# CONFIG_MACH_OMAP_H4 is not set
++# CONFIG_MACH_OMAP_APOLLON is not set
++# CONFIG_MACH_OMAP_APOLLON_PLUS is not set
++# CONFIG_MACH_OMAP_2430SDP is not set
++CONFIG_MACH_OMAP_2430OSK=y
++
++#
++# Boot options
++#
++
++#
++# Power management
++#
++
++#
++# Processor Type
++#
++CONFIG_CPU_32=y
++CONFIG_CPU_V6=y
++# CONFIG_CPU_32v6K is not set
++CONFIG_CPU_32v6=y
++CONFIG_CPU_ABRT_EV6=y
++CONFIG_CPU_PABRT_NOIFAR=y
++CONFIG_CPU_CACHE_V6=y
++CONFIG_CPU_CACHE_VIPT=y
++CONFIG_CPU_COPY_V6=y
++CONFIG_CPU_TLB_V6=y
++CONFIG_CPU_HAS_ASID=y
++CONFIG_CPU_CP15=y
++CONFIG_CPU_CP15_MMU=y
++
++#
++# Processor Features
++#
++CONFIG_ARM_THUMB=y
++# CONFIG_CPU_ICACHE_DISABLE is not set
++# CONFIG_CPU_DCACHE_DISABLE is not set
++# CONFIG_CPU_BPREDICT_DISABLE is not set
++# CONFIG_OUTER_CACHE is not set
++
++#
++# Bus support
++#
++# CONFIG_PCI_SYSCALL is not set
++# CONFIG_ARCH_SUPPORTS_MSI is not set
++
++#
++# PCCARD (PCMCIA/CardBus) support
++#
++# CONFIG_PCCARD is not set
++
++#
++# Kernel Features
++#
++# CONFIG_TICK_ONESHOT is not set
++# CONFIG_NO_HZ is not set
++# CONFIG_HIGH_RES_TIMERS is not set
++CONFIG_PREEMPT=y
++CONFIG_HZ=100
++CONFIG_AEABI=y
++CONFIG_OABI_COMPAT=y
++# CONFIG_ARCH_DISCONTIGMEM_ENABLE is not set
++CONFIG_SELECT_MEMORY_MODEL=y
++CONFIG_FLATMEM_MANUAL=y
++# CONFIG_DISCONTIGMEM_MANUAL is not set
++# CONFIG_SPARSEMEM_MANUAL is not set
++CONFIG_FLATMEM=y
++CONFIG_FLAT_NODE_MEM_MAP=y
++# CONFIG_SPARSEMEM_STATIC is not set
++CONFIG_SPLIT_PTLOCK_CPUS=4
++# CONFIG_RESOURCES_64BIT is not set
++CONFIG_ZONE_DMA_FLAG=1
++CONFIG_BOUNCE=y
++CONFIG_VIRT_TO_BUS=y
++# CONFIG_LEDS is not set
++CONFIG_ALIGNMENT_TRAP=y
++
++#
++# Boot options
++#
++CONFIG_ZBOOT_ROM_TEXT=0x0
++CONFIG_ZBOOT_ROM_BSS=0x0
++CONFIG_CMDLINE="root=/dev/ram0 rw console=ttyS0,115200n8
+initrd=0x80600000,8M ramdisk_size=8192"
++# CONFIG_XIP_KERNEL is not set
++# CONFIG_KEXEC is not set
++
++#
++# CPU Frequency scaling
++#
++# CONFIG_CPU_FREQ is not set
++
++#
++# Floating point emulation
++#
++
++#
++# At least one emulation must be selected
++#
++CONFIG_FPE_NWFPE=y
++# CONFIG_FPE_NWFPE_XP is not set
++# CONFIG_FPE_FASTFPE is not set
++# CONFIG_VFP is not set
++
++#
++# Userspace binary formats
++#
++CONFIG_BINFMT_ELF=y
++# CONFIG_BINFMT_AOUT is not set
++CONFIG_BINFMT_MISC=y
++
++#
++# Power management options
++#
++CONFIG_PM=y
++# CONFIG_PM_LEGACY is not set
++# CONFIG_PM_DEBUG is not set
++CONFIG_PM_SLEEP=y
++CONFIG_SUSPEND_UP_POSSIBLE=y
++CONFIG_SUSPEND=y
++# CONFIG_APM_EMULATION is not set
++
++#
++# Networking
++#
++# CONFIG_NET is not set
++
++#
++# Device Drivers
++#
++
++#
++# Generic Driver Options
++#
++CONFIG_STANDALONE=y
++CONFIG_PREVENT_FIRMWARE_BUILD=y
++# CONFIG_FW_LOADER is not set
++# CONFIG_DEBUG_DRIVER is not set
++# CONFIG_DEBUG_DEVRES is not set
++# CONFIG_SYS_HYPERVISOR is not set
++# CONFIG_MTD is not set
++# CONFIG_PARPORT is not set
++CONFIG_BLK_DEV=y
++# CONFIG_BLK_DEV_COW_COMMON is not set
++CONFIG_BLK_DEV_LOOP=y
++# CONFIG_BLK_DEV_CRYPTOLOOP is not set
++CONFIG_BLK_DEV_RAM=y
++CONFIG_BLK_DEV_RAM_COUNT=16
++CONFIG_BLK_DEV_RAM_SIZE=16384
++CONFIG_BLK_DEV_RAM_BLOCKSIZE=1024
++# CONFIG_CDROM_PKTCDVD is not set
++
++#
++# SCSI device support
++#
++# CONFIG_RAID_ATTRS is not set
++CONFIG_SCSI=m
++CONFIG_SCSI_DMA=y
++# CONFIG_SCSI_TGT is not set
++# CONFIG_SCSI_NETLINK is not set
++CONFIG_SCSI_PROC_FS=y
++
++#
++# SCSI support type (disk, tape, CD-ROM)
++#
++CONFIG_BLK_DEV_SD=m
++# CONFIG_CHR_DEV_ST is not set
++# CONFIG_CHR_DEV_OSST is not set
++# CONFIG_BLK_DEV_SR is not set
++CONFIG_CHR_DEV_SG=m
++# CONFIG_CHR_DEV_SCH is not set
++
++#
++# Some SCSI devices (e.g. CD jukebox) support multiple LUNs
++#
++# CONFIG_SCSI_MULTI_LUN is not set
++# CONFIG_SCSI_CONSTANTS is not set
++# CONFIG_SCSI_LOGGING is not set
++# CONFIG_SCSI_SCAN_ASYNC is not set
++CONFIG_SCSI_WAIT_SCAN=m
++
++#
++# SCSI Transports
++#
++# CONFIG_SCSI_SPI_ATTRS is not set
++# CONFIG_SCSI_FC_ATTRS is not set
++# CONFIG_SCSI_SAS_LIBSAS is not set
++CONFIG_SCSI_LOWLEVEL=y
++# CONFIG_SCSI_DEBUG is not set
++# CONFIG_ATA is not set
++# CONFIG_MD is not set
++
++#
++# Input device support
++#
++CONFIG_INPUT=y
++# CONFIG_INPUT_FF_MEMLESS is not set
++# CONFIG_INPUT_POLLDEV is not set
++
++#
++# Userland interfaces
++#
++# CONFIG_INPUT_MOUSEDEV is not set
++# CONFIG_INPUT_JOYDEV is not set
++# CONFIG_INPUT_TSDEV is not set
++CONFIG_INPUT_EVDEV=y
++# CONFIG_INPUT_EVBUG is not set
++
++#
++# Input Device Drivers
++#
++CONFIG_INPUT_KEYBOARD=y
++# CONFIG_KEYBOARD_ATKBD is not set
++# CONFIG_KEYBOARD_SUNKBD is not set
++# CONFIG_KEYBOARD_LKKBD is not set
++# CONFIG_KEYBOARD_XTKBD is not set
++# CONFIG_KEYBOARD_NEWTON is not set
++# CONFIG_KEYBOARD_STOWAWAY is not set
++# CONFIG_KEYBOARD_OMAP is not set
++# CONFIG_KEYBOARD_GPIO is not set
++# CONFIG_INPUT_MOUSE is not set
++# CONFIG_INPUT_JOYSTICK is not set
++# CONFIG_INPUT_TABLET is not set
++CONFIG_INPUT_TOUCHSCREEN=y
++CONFIG_TOUCHSCREEN_ADS7846=y
++# CONFIG_TOUCHSCREEN_FUJITSU is not set
++# CONFIG_TOUCHSCREEN_GUNZE is not set
++# CONFIG_TOUCHSCREEN_ELO is not set
++# CONFIG_TOUCHSCREEN_MTOUCH is not set
++# CONFIG_TOUCHSCREEN_MK712 is not set
++# CONFIG_TOUCHSCREEN_PENMOUNT is not set
++# CONFIG_TOUCHSCREEN_TOUCHRIGHT is not set
++# CONFIG_TOUCHSCREEN_TOUCHWIN is not set
++# CONFIG_TOUCHSCREEN_UCB1400 is not set
++# CONFIG_TOUCHSCREEN_TSC2102 is not set
++# CONFIG_TOUCHSCREEN_TSC210X is not set
++# CONFIG_INPUT_MISC is not set
++
++#
++# Hardware I/O ports
++#
++# CONFIG_SERIO is not set
++# CONFIG_GAMEPORT is not set
++
++#
++# Character devices
++#
++CONFIG_VT=y
++CONFIG_VT_CONSOLE=y
++CONFIG_HW_CONSOLE=y
++# CONFIG_VT_HW_CONSOLE_BINDING is not set
++# CONFIG_SERIAL_NONSTANDARD is not set
++
++#
++# Serial drivers
++#
++CONFIG_SERIAL_8250=y
++CONFIG_SERIAL_8250_CONSOLE=y
++CONFIG_SERIAL_8250_NR_UARTS=32
++CONFIG_SERIAL_8250_RUNTIME_UARTS=4
++CONFIG_SERIAL_8250_EXTENDED=y
++CONFIG_SERIAL_8250_MANY_PORTS=y
++CONFIG_SERIAL_8250_SHARE_IRQ=y
++CONFIG_SERIAL_8250_DETECT_IRQ=y
++CONFIG_SERIAL_8250_RSA=y
++
++#
++# Non-8250 serial port support
++#
++CONFIG_SERIAL_CORE=y
++CONFIG_SERIAL_CORE_CONSOLE=y
++CONFIG_UNIX98_PTYS=y
++# CONFIG_LEGACY_PTYS is not set
++# CONFIG_IPMI_HANDLER is not set
++CONFIG_WATCHDOG=y
++CONFIG_WATCHDOG_NOWAYOUT=y
++
++#
++# Watchdog Device Drivers
++#
++# CONFIG_SOFT_WATCHDOG is not set
++CONFIG_OMAP_WATCHDOG=y
++CONFIG_HW_RANDOM=y
++CONFIG_HW_RANDOM_OMAP=y
++# CONFIG_NVRAM is not set
++# CONFIG_R3964 is not set
++# CONFIG_RAW_DRIVER is not set
++# CONFIG_TCG_TPM is not set
++CONFIG_I2C=y
++CONFIG_I2C_BOARDINFO=y
++CONFIG_I2C_CHARDEV=y
++
++#
++# I2C Algorithms
++#
++# CONFIG_I2C_ALGOBIT is not set
++# CONFIG_I2C_ALGOPCF is not set
++# CONFIG_I2C_ALGOPCA is not set
++
++#
++# I2C Hardware Bus support
++#
++# CONFIG_I2C_GPIO is not set
++# CONFIG_I2C_OCORES is not set
++CONFIG_I2C_OMAP=y
++# CONFIG_I2C_PARPORT_LIGHT is not set
++# CONFIG_I2C_SIMTEC is not set
++# CONFIG_I2C_TAOS_EVM is not set
++# CONFIG_I2C_STUB is not set
++
++#
++# Miscellaneous I2C Chip support
++#
++# CONFIG_SENSORS_DS1337 is not set
++# CONFIG_SENSORS_DS1374 is not set
++# CONFIG_DS1682 is not set
++# CONFIG_SENSORS_EEPROM is not set
++# CONFIG_SENSORS_PCF8574 is not set
++# CONFIG_SENSORS_PCA9539 is not set
++# CONFIG_SENSORS_PCF8591 is not set
++# CONFIG_TPS65010 is not set
++# CONFIG_SENSORS_TLV320AIC23 is not set
++# CONFIG_GPIOEXPANDER_OMAP is not set
++CONFIG_TWL4030_CORE=y
++CONFIG_TWL4030_GPIO=y
++# CONFIG_SENSORS_MAX6875 is not set
++# CONFIG_SENSORS_TSL2550 is not set
++# CONFIG_MENELAUS is not set
++# CONFIG_I2C_DEBUG_CORE is not set
++# CONFIG_I2C_DEBUG_ALGO is not set
++# CONFIG_I2C_DEBUG_BUS is not set
++# CONFIG_I2C_DEBUG_CHIP is not set
++
++#
++# SPI support
++#
++CONFIG_SPI=y
++# CONFIG_SPI_DEBUG is not set
++CONFIG_SPI_MASTER=y
++
++#
++# SPI Master Controller Drivers
++#
++# CONFIG_SPI_BITBANG is not set
++# CONFIG_SPI_OMAP24XX is not set
++
++#
++# SPI Protocol Masters
++#
++# CONFIG_SPI_AT25 is not set
++# CONFIG_SPI_TSC2101 is not set
++# CONFIG_SPI_TSC2102 is not set
++# CONFIG_SPI_TSC210X is not set
++# CONFIG_SPI_TSC2301 is not set
++# CONFIG_SPI_SPIDEV is not set
++# CONFIG_SPI_TLE62X0 is not set
++# CONFIG_W1 is not set
++# CONFIG_HWMON is not set
++CONFIG_MISC_DEVICES=y
++# CONFIG_EEPROM_93CX6 is not set
++
++#
++# Multifunction device drivers
++#
++# CONFIG_MFD_SM501 is not set
++# CONFIG_NEW_LEDS is not set
++
++#
++# Multimedia devices
++#
++# CONFIG_VIDEO_DEV is not set
++CONFIG_DAB=y
++
++#
++# Graphics support
++#
++# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
++
++#
++# Display device support
++#
++# CONFIG_DISPLAY_SUPPORT is not set
++# CONFIG_VGASTATE is not set
++CONFIG_VIDEO_OUTPUT_CONTROL=m
++CONFIG_FB=y
++CONFIG_FIRMWARE_EDID=y
++# CONFIG_FB_DDC is not set
++# CONFIG_FB_CFB_FILLRECT is not set
++# CONFIG_FB_CFB_COPYAREA is not set
++# CONFIG_FB_CFB_IMAGEBLIT is not set
++# CONFIG_FB_SYS_FILLRECT is not set
++# CONFIG_FB_SYS_COPYAREA is not set
++# CONFIG_FB_SYS_IMAGEBLIT is not set
++# CONFIG_FB_SYS_FOPS is not set
++CONFIG_FB_DEFERRED_IO=y
++# CONFIG_FB_SVGALIB is not set
++# CONFIG_FB_MACMODES is not set
++# CONFIG_FB_BACKLIGHT is not set
++# CONFIG_FB_MODE_HELPERS is not set
++# CONFIG_FB_TILEBLITTING is not set
++
++#
++# Frame buffer hardware drivers
++#
++# CONFIG_FB_S1D13XXX is not set
++CONFIG_FB_OMAP=y
++# CONFIG_FB_OMAP_LCDC_EXTERNAL is not set
++# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
++CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
++# CONFIG_FB_VIRTUAL is not set
++
++#
++# Console display driver support
++#
++# CONFIG_VGA_CONSOLE is not set
++CONFIG_DUMMY_CONSOLE=y
++CONFIG_FRAMEBUFFER_CONSOLE=y
++# CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY is not set
++# CONFIG_FRAMEBUFFER_CONSOLE_ROTATION is not set
++# CONFIG_FONTS is not set
++CONFIG_FONT_8x8=y
++CONFIG_FONT_8x16=y
++CONFIG_LOGO=y
++# CONFIG_LOGO_LINUX_MONO is not set
++# CONFIG_LOGO_LINUX_VGA16 is not set
++CONFIG_LOGO_LINUX_CLUT224=y
++
++#
++# Sound
++#
++# CONFIG_SOUND is not set
++CONFIG_HID_SUPPORT=y
++CONFIG_HID=y
++# CONFIG_HID_DEBUG is not set
++# CONFIG_USB_SUPPORT is not set
++# CONFIG_MMC is not set
++CONFIG_RTC_LIB=y
++# CONFIG_RTC_CLASS is not set
++
++#
++# DMA Engine support
++#
++# CONFIG_DMA_ENGINE is not set
++
++#
++# DMA Clients
++#
++
++#
++# DMA Devices
++#
++
++#
++# CBUS support
++#
++# CONFIG_CBUS is not set
++
++#
++# File systems
++#
++CONFIG_EXT2_FS=y
++# CONFIG_EXT2_FS_XATTR is not set
++# CONFIG_EXT2_FS_XIP is not set
++CONFIG_EXT3_FS=y
++# CONFIG_EXT3_FS_XATTR is not set
++# CONFIG_EXT4DEV_FS is not set
++CONFIG_JBD=y
++# CONFIG_JBD_DEBUG is not set
++# CONFIG_REISERFS_FS is not set
++# CONFIG_JFS_FS is not set
++# CONFIG_FS_POSIX_ACL is not set
++# CONFIG_XFS_FS is not set
++# CONFIG_GFS2_FS is not set
++# CONFIG_MINIX_FS is not set
++# CONFIG_ROMFS_FS is not set
++CONFIG_INOTIFY=y
++CONFIG_INOTIFY_USER=y
++CONFIG_QUOTA=y
++# CONFIG_QFMT_V1 is not set
++CONFIG_QFMT_V2=y
++CONFIG_QUOTACTL=y
++CONFIG_DNOTIFY=y
++# CONFIG_AUTOFS_FS is not set
++# CONFIG_AUTOFS4_FS is not set
++# CONFIG_FUSE_FS is not set
++
++#
++# CD-ROM/DVD Filesystems
++#
++# CONFIG_ISO9660_FS is not set
++# CONFIG_UDF_FS is not set
++
++#
++# DOS/FAT/NT Filesystems
++#
++CONFIG_FAT_FS=y
++CONFIG_MSDOS_FS=y
++CONFIG_VFAT_FS=y
++CONFIG_FAT_DEFAULT_CODEPAGE=437
++CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
++# CONFIG_NTFS_FS is not set
++
++#
++# Pseudo filesystems
++#
++CONFIG_PROC_FS=y
++CONFIG_PROC_SYSCTL=y
++CONFIG_SYSFS=y
++CONFIG_TMPFS=y
++# CONFIG_TMPFS_POSIX_ACL is not set
++# CONFIG_HUGETLB_PAGE is not set
++CONFIG_RAMFS=y
++# CONFIG_CONFIGFS_FS is not set
++
++#
++# Miscellaneous filesystems
++#
++# CONFIG_ADFS_FS is not set
++# CONFIG_AFFS_FS is not set
++# CONFIG_HFS_FS is not set
++# CONFIG_HFSPLUS_FS is not set
++# CONFIG_BEFS_FS is not set
++# CONFIG_BFS_FS is not set
++# CONFIG_EFS_FS is not set
++# CONFIG_CRAMFS is not set
++# CONFIG_VXFS_FS is not set
++# CONFIG_HPFS_FS is not set
++# CONFIG_QNX4FS_FS is not set
++# CONFIG_SYSV_FS is not set
++# CONFIG_UFS_FS is not set
++
++#
++# Partition Types
++#
++CONFIG_PARTITION_ADVANCED=y
++# CONFIG_ACORN_PARTITION is not set
++# CONFIG_OSF_PARTITION is not set
++# CONFIG_AMIGA_PARTITION is not set
++# CONFIG_ATARI_PARTITION is not set
++# CONFIG_MAC_PARTITION is not set
++CONFIG_MSDOS_PARTITION=y
++# CONFIG_BSD_DISKLABEL is not set
++# CONFIG_MINIX_SUBPARTITION is not set
++# CONFIG_SOLARIS_X86_PARTITION is not set
++# CONFIG_UNIXWARE_DISKLABEL is not set
++# CONFIG_LDM_PARTITION is not set
++# CONFIG_SGI_PARTITION is not set
++# CONFIG_ULTRIX_PARTITION is not set
++# CONFIG_SUN_PARTITION is not set
++# CONFIG_KARMA_PARTITION is not set
++# CONFIG_EFI_PARTITION is not set
++# CONFIG_SYSV68_PARTITION is not set
++
++#
++# Native Language Support
++#
++CONFIG_NLS=y
++CONFIG_NLS_DEFAULT="iso8859-1"
++CONFIG_NLS_CODEPAGE_437=y
++# CONFIG_NLS_CODEPAGE_737 is not set
++# CONFIG_NLS_CODEPAGE_775 is not set
++# CONFIG_NLS_CODEPAGE_850 is not set
++# CONFIG_NLS_CODEPAGE_852 is not set
++# CONFIG_NLS_CODEPAGE_855 is not set
++# CONFIG_NLS_CODEPAGE_857 is not set
++# CONFIG_NLS_CODEPAGE_860 is not set
++# CONFIG_NLS_CODEPAGE_861 is not set
++# CONFIG_NLS_CODEPAGE_862 is not set
++# CONFIG_NLS_CODEPAGE_863 is not set
++# CONFIG_NLS_CODEPAGE_864 is not set
++# CONFIG_NLS_CODEPAGE_865 is not set
++# CONFIG_NLS_CODEPAGE_866 is not set
++# CONFIG_NLS_CODEPAGE_869 is not set
++# CONFIG_NLS_CODEPAGE_936 is not set
++# CONFIG_NLS_CODEPAGE_950 is not set
++# CONFIG_NLS_CODEPAGE_932 is not set
++# CONFIG_NLS_CODEPAGE_949 is not set
++# CONFIG_NLS_CODEPAGE_874 is not set
++# CONFIG_NLS_ISO8859_8 is not set
++# CONFIG_NLS_CODEPAGE_1250 is not set
++# CONFIG_NLS_CODEPAGE_1251 is not set
++# CONFIG_NLS_ASCII is not set
++# CONFIG_NLS_ISO8859_1 is not set
++# CONFIG_NLS_ISO8859_2 is not set
++# CONFIG_NLS_ISO8859_3 is not set
++# CONFIG_NLS_ISO8859_4 is not set
++# CONFIG_NLS_ISO8859_5 is not set
++# CONFIG_NLS_ISO8859_6 is not set
++# CONFIG_NLS_ISO8859_7 is not set
++# CONFIG_NLS_ISO8859_9 is not set
++# CONFIG_NLS_ISO8859_13 is not set
++# CONFIG_NLS_ISO8859_14 is not set
++# CONFIG_NLS_ISO8859_15 is not set
++# CONFIG_NLS_KOI8_R is not set
++# CONFIG_NLS_KOI8_U is not set
++# CONFIG_NLS_UTF8 is not set
++
++#
++# Profiling support
++#
++# CONFIG_PROFILING is not set
++
++#
++# Kernel hacking
++#
++# CONFIG_PRINTK_TIME is not set
++CONFIG_ENABLE_MUST_CHECK=y
++CONFIG_MAGIC_SYSRQ=y
++# CONFIG_UNUSED_SYMBOLS is not set
++# CONFIG_DEBUG_FS is not set
++# CONFIG_HEADERS_CHECK is not set
++CONFIG_DEBUG_KERNEL=y
++# CONFIG_DEBUG_SHIRQ is not set
++CONFIG_DETECT_SOFTLOCKUP=y
++CONFIG_SCHED_DEBUG=y
++# CONFIG_SCHEDSTATS is not set
++CONFIG_TIMER_STATS=y
++# CONFIG_DEBUG_SLAB is not set
++CONFIG_DEBUG_PREEMPT=y
++# CONFIG_DEBUG_RT_MUTEXES is not set
++# CONFIG_RT_MUTEX_TESTER is not set
++# CONFIG_DEBUG_SPINLOCK is not set
++CONFIG_DEBUG_MUTEXES=y
++# CONFIG_DEBUG_LOCK_ALLOC is not set
++# CONFIG_PROVE_LOCKING is not set
++# CONFIG_LOCK_STAT is not set
++# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
++# CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
++# CONFIG_DEBUG_KOBJECT is not set
++# CONFIG_DEBUG_BUGVERBOSE is not set
++# CONFIG_DEBUG_INFO is not set
++# CONFIG_DEBUG_VM is not set
++# CONFIG_DEBUG_LIST is not set
++CONFIG_FRAME_POINTER=y
++CONFIG_FORCED_INLINING=y
++# CONFIG_RCU_TORTURE_TEST is not set
++# CONFIG_FAULT_INJECTION is not set
++# CONFIG_DEBUG_USER is not set
++# CONFIG_DEBUG_ERRORS is not set
++CONFIG_DEBUG_LL=y
++# CONFIG_DEBUG_ICEDCC is not set
++
++#
++# Security options
++#
++# CONFIG_KEYS is not set
++# CONFIG_SECURITY is not set
++CONFIG_CRYPTO=y
++CONFIG_CRYPTO_ALGAPI=y
++CONFIG_CRYPTO_BLKCIPHER=y
++CONFIG_CRYPTO_MANAGER=y
++# CONFIG_CRYPTO_HMAC is not set
++# CONFIG_CRYPTO_XCBC is not set
++# CONFIG_CRYPTO_NULL is not set
++# CONFIG_CRYPTO_MD4 is not set
++CONFIG_CRYPTO_MD5=y
++# CONFIG_CRYPTO_SHA1 is not set
++# CONFIG_CRYPTO_SHA256 is not set
++# CONFIG_CRYPTO_SHA512 is not set
++# CONFIG_CRYPTO_WP512 is not set
++# CONFIG_CRYPTO_TGR192 is not set
++# CONFIG_CRYPTO_GF128MUL is not set
++CONFIG_CRYPTO_ECB=m
++CONFIG_CRYPTO_CBC=y
++CONFIG_CRYPTO_PCBC=m
++# CONFIG_CRYPTO_LRW is not set
++# CONFIG_CRYPTO_CRYPTD is not set
++CONFIG_CRYPTO_DES=y
++# CONFIG_CRYPTO_FCRYPT is not set
++# CONFIG_CRYPTO_BLOWFISH is not set
++# CONFIG_CRYPTO_TWOFISH is not set
++# CONFIG_CRYPTO_SERPENT is not set
++# CONFIG_CRYPTO_AES is not set
++# CONFIG_CRYPTO_CAST5 is not set
++# CONFIG_CRYPTO_CAST6 is not set
++# CONFIG_CRYPTO_TEA is not set
++# CONFIG_CRYPTO_ARC4 is not set
++# CONFIG_CRYPTO_KHAZAD is not set
++# CONFIG_CRYPTO_ANUBIS is not set
++# CONFIG_CRYPTO_DEFLATE is not set
++# CONFIG_CRYPTO_MICHAEL_MIC is not set
++# CONFIG_CRYPTO_CRC32C is not set
++# CONFIG_CRYPTO_CAMELLIA is not set
++# CONFIG_CRYPTO_TEST is not set
++CONFIG_CRYPTO_HW=y
++
++#
++# Library routines
++#
++CONFIG_BITREVERSE=y
++CONFIG_CRC_CCITT=y
++# CONFIG_CRC16 is not set
++# CONFIG_CRC_ITU_T is not set
++CONFIG_CRC32=y
++# CONFIG_CRC7 is not set
++CONFIG_LIBCRC32C=y
++CONFIG_PLIST=y
++CONFIG_HAS_IOMEM=y
++CONFIG_HAS_IOPORT=y
++CONFIG_HAS_DMA=y
+diff --git a/arch/arm/configs/omap_2430osk_defconfig
+b/arch/arm/configs/omap_2430osk_defconfig
+deleted file mode 100644
+index 12a1298..0000000
+--- a/arch/arm/configs/omap_2430osk_defconfig
++++ /dev/null
+@@ -1,878 +0,0 @@
+-#
+-# Automatically generated make config: don't edit
+-# Linux kernel version: 2.6.23-omap1
+-# Wed Oct 10 12:21:32 2007
+-#
+-CONFIG_ARM=y
+-CONFIG_SYS_SUPPORTS_APM_EMULATION=y
+-CONFIG_GENERIC_GPIO=y
+-CONFIG_GENERIC_TIME=y
+-CONFIG_GENERIC_CLOCKEVENTS=y
+-CONFIG_MMU=y
+-# CONFIG_NO_IOPORT is not set
+-CONFIG_GENERIC_HARDIRQS=y
+-CONFIG_STACKTRACE_SUPPORT=y
+-CONFIG_LOCKDEP_SUPPORT=y
+-CONFIG_TRACE_IRQFLAGS_SUPPORT=y
+-CONFIG_HARDIRQS_SW_RESEND=y
+-CONFIG_GENERIC_IRQ_PROBE=y
+-CONFIG_RWSEM_GENERIC_SPINLOCK=y
+-# CONFIG_ARCH_HAS_ILOG2_U32 is not set
+-# CONFIG_ARCH_HAS_ILOG2_U64 is not set
+-CONFIG_GENERIC_HWEIGHT=y
+-CONFIG_GENERIC_CALIBRATE_DELAY=y
+-CONFIG_ZONE_DMA=y
+-CONFIG_VECTORS_BASE=0xffff0000
+-CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
+-
+-#
+-# General setup
+-#
+-CONFIG_EXPERIMENTAL=y
+-CONFIG_BROKEN_ON_SMP=y
+-CONFIG_LOCK_KERNEL=y
+-CONFIG_INIT_ENV_ARG_LIMIT=32
+-CONFIG_LOCALVERSION=""
+-CONFIG_LOCALVERSION_AUTO=y
+-CONFIG_SWAP=y
+-CONFIG_SYSVIPC=y
+-CONFIG_SYSVIPC_SYSCTL=y
+-CONFIG_BSD_PROCESS_ACCT=y
+-# CONFIG_BSD_PROCESS_ACCT_V3 is not set
+-# CONFIG_USER_NS is not set
+-# CONFIG_IKCONFIG is not set
+-CONFIG_LOG_BUF_SHIFT=14
+-CONFIG_SYSFS_DEPRECATED=y
+-# CONFIG_RELAY is not set
+-CONFIG_BLK_DEV_INITRD=y
+-CONFIG_INITRAMFS_SOURCE=""
+-CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+-CONFIG_SYSCTL=y
+-CONFIG_EMBEDDED=y
+-CONFIG_UID16=y
+-# CONFIG_SYSCTL_SYSCALL is not set
+-CONFIG_KALLSYMS=y
+-# CONFIG_KALLSYMS_ALL is not set
+-CONFIG_KALLSYMS_EXTRA_PASS=y
+-CONFIG_HOTPLUG=y
+-CONFIG_PRINTK=y
+-CONFIG_BUG=y
+-CONFIG_ELF_CORE=y
+-CONFIG_BASE_FULL=y
+-CONFIG_FUTEX=y
+-CONFIG_ANON_INODES=y
+-CONFIG_EPOLL=y
+-CONFIG_SIGNALFD=y
+-CONFIG_EVENTFD=y
+-CONFIG_SHMEM=y
+-CONFIG_VM_EVENT_COUNTERS=y
+-CONFIG_SLAB=y
+-# CONFIG_SLUB is not set
+-# CONFIG_SLOB is not set
+-CONFIG_RT_MUTEXES=y
+-# CONFIG_TINY_SHMEM is not set
+-CONFIG_BASE_SMALL=0
+-CONFIG_MODULES=y
+-CONFIG_MODULE_UNLOAD=y
+-# CONFIG_MODULE_FORCE_UNLOAD is not set
+-CONFIG_MODVERSIONS=y
+-CONFIG_MODULE_SRCVERSION_ALL=y
+-CONFIG_KMOD=y
+-CONFIG_BLOCK=y
+-# CONFIG_LBD is not set
+-# CONFIG_BLK_DEV_IO_TRACE is not set
+-# CONFIG_LSF is not set
+-# CONFIG_BLK_DEV_BSG is not set
+-
+-#
+-# IO Schedulers
+-#
+-CONFIG_IOSCHED_NOOP=y
+-CONFIG_IOSCHED_AS=y
+-CONFIG_IOSCHED_DEADLINE=y
+-CONFIG_IOSCHED_CFQ=y
+-CONFIG_DEFAULT_AS=y
+-# CONFIG_DEFAULT_DEADLINE is not set
+-# CONFIG_DEFAULT_CFQ is not set
+-# CONFIG_DEFAULT_NOOP is not set
+-CONFIG_DEFAULT_IOSCHED="anticipatory"
+-
+-#
+-# System Type
+-#
+-# CONFIG_ARCH_AAEC2000 is not set
+-# CONFIG_ARCH_INTEGRATOR is not set
+-# CONFIG_ARCH_REALVIEW is not set
+-# CONFIG_ARCH_VERSATILE is not set
+-# CONFIG_ARCH_AT91 is not set
+-# CONFIG_ARCH_CLPS7500 is not set
+-# CONFIG_ARCH_CLPS711X is not set
+-# CONFIG_ARCH_CO285 is not set
+-# CONFIG_ARCH_EBSA110 is not set
+-# CONFIG_ARCH_EP93XX is not set
+-# CONFIG_ARCH_FOOTBRIDGE is not set
+-# CONFIG_ARCH_NETX is not set
+-# CONFIG_ARCH_H720X is not set
+-# CONFIG_ARCH_IMX is not set
+-# CONFIG_ARCH_IOP13XX is not set
+-# CONFIG_ARCH_IOP32X is not set
+-# CONFIG_ARCH_IOP33X is not set
+-# CONFIG_ARCH_IXP23XX is not set
+-# CONFIG_ARCH_IXP2000 is not set
+-# CONFIG_ARCH_IXP4XX is not set
+-# CONFIG_ARCH_L7200 is not set
+-# CONFIG_ARCH_KS8695 is not set
+-# CONFIG_ARCH_NS9XXX is not set
+-# CONFIG_ARCH_MXC is not set
+-# CONFIG_ARCH_PNX4008 is not set
+-# CONFIG_ARCH_PXA is not set
+-# CONFIG_ARCH_RPC is not set
+-# CONFIG_ARCH_SA1100 is not set
+-# CONFIG_ARCH_S3C2410 is not set
+-# CONFIG_ARCH_SHARK is not set
+-# CONFIG_ARCH_LH7A40X is not set
+-# CONFIG_ARCH_DAVINCI is not set
+-CONFIG_ARCH_OMAP=y
+-
+-#
+-# TI OMAP Implementations
+-#
+-# CONFIG_ARCH_OMAP1 is not set
+-CONFIG_ARCH_OMAP2=y
+-# CONFIG_ARCH_OMAP3 is not set
+-
+-#
+-# OMAP Feature Selections
+-#
+-# CONFIG_OMAP_RESET_CLOCKS is not set
+-CONFIG_OMAP_BOOT_TAG=y
+-# CONFIG_OMAP_BOOT_REASON is not set
+-# CONFIG_OMAP_COMPONENT_VERSION is not set
+-# CONFIG_OMAP_GPIO_SWITCH is not set
+-CONFIG_OMAP_MUX=y
+-# CONFIG_OMAP_MUX_DEBUG is not set
+-# CONFIG_OMAP_MUX_WARNINGS is not set
+-# CONFIG_OMAP_STI is not set
+-# CONFIG_OMAP_MCBSP is not set
+-# CONFIG_OMAP_MMU_FWK is not set
+-# CONFIG_OMAP_MBOX_FWK is not set
+-CONFIG_OMAP_MPU_TIMER=y
+-# CONFIG_OMAP_32K_TIMER is not set
+-CONFIG_OMAP_DM_TIMER=y
+-# CONFIG_OMAP_LL_DEBUG_UART1 is not set
+-# CONFIG_OMAP_LL_DEBUG_UART2 is not set
+-CONFIG_OMAP_LL_DEBUG_UART3=y
+-CONFIG_OMAP_SERIAL_WAKE=y
+-# CONFIG_OMAP_DSP is not set
+-# CONFIG_MACH_OMAP_GENERIC is not set
+-
+-#
+-# OMAP Core Type
+-#
+-CONFIG_ARCH_OMAP24XX=y
+-# CONFIG_ARCH_OMAP2420 is not set
+-CONFIG_ARCH_OMAP2430=y
+-
+-#
+-# OMAP Board Type
+-#
+-# CONFIG_MACH_NOKIA_N800 is not set
+-# CONFIG_MACH_OMAP_H4 is not set
+-# CONFIG_MACH_OMAP_APOLLON is not set
+-# CONFIG_MACH_OMAP_APOLLON_PLUS is not set
+-# CONFIG_MACH_OMAP_2430SDP is not set
+-CONFIG_MACH_OMAP_2430OSK=y
+-
+-#
+-# Boot options
+-#
+-
+-#
+-# Power management
+-#
+-
+-#
+-# Processor Type
+-#
+-CONFIG_CPU_32=y
+-CONFIG_CPU_V6=y
+-# CONFIG_CPU_32v6K is not set
+-CONFIG_CPU_32v6=y
+-CONFIG_CPU_ABRT_EV6=y
+-CONFIG_CPU_PABRT_NOIFAR=y
+-CONFIG_CPU_CACHE_V6=y
+-CONFIG_CPU_CACHE_VIPT=y
+-CONFIG_CPU_COPY_V6=y
+-CONFIG_CPU_TLB_V6=y
+-CONFIG_CPU_HAS_ASID=y
+-CONFIG_CPU_CP15=y
+-CONFIG_CPU_CP15_MMU=y
+-
+-#
+-# Processor Features
+-#
+-CONFIG_ARM_THUMB=y
+-# CONFIG_CPU_ICACHE_DISABLE is not set
+-# CONFIG_CPU_DCACHE_DISABLE is not set
+-# CONFIG_CPU_BPREDICT_DISABLE is not set
+-# CONFIG_OUTER_CACHE is not set
+-
+-#
+-# Bus support
+-#
+-# CONFIG_PCI_SYSCALL is not set
+-# CONFIG_ARCH_SUPPORTS_MSI is not set
+-
+-#
+-# PCCARD (PCMCIA/CardBus) support
+-#
+-# CONFIG_PCCARD is not set
+-
+-#
+-# Kernel Features
+-#
+-# CONFIG_TICK_ONESHOT is not set
+-# CONFIG_NO_HZ is not set
+-# CONFIG_HIGH_RES_TIMERS is not set
+-CONFIG_PREEMPT=y
+-CONFIG_HZ=100
+-CONFIG_AEABI=y
+-CONFIG_OABI_COMPAT=y
+-# CONFIG_ARCH_DISCONTIGMEM_ENABLE is not set
+-CONFIG_SELECT_MEMORY_MODEL=y
+-CONFIG_FLATMEM_MANUAL=y
+-# CONFIG_DISCONTIGMEM_MANUAL is not set
+-# CONFIG_SPARSEMEM_MANUAL is not set
+-CONFIG_FLATMEM=y
+-CONFIG_FLAT_NODE_MEM_MAP=y
+-# CONFIG_SPARSEMEM_STATIC is not set
+-CONFIG_SPLIT_PTLOCK_CPUS=4
+-# CONFIG_RESOURCES_64BIT is not set
+-CONFIG_ZONE_DMA_FLAG=1
+-CONFIG_BOUNCE=y
+-CONFIG_VIRT_TO_BUS=y
+-# CONFIG_LEDS is not set
+-CONFIG_ALIGNMENT_TRAP=y
+-
+-#
+-# Boot options
+-#
+-CONFIG_ZBOOT_ROM_TEXT=0x0
+-CONFIG_ZBOOT_ROM_BSS=0x0
+-CONFIG_CMDLINE="root=/dev/ram0 rw console=ttyS0,115200n8
+initrd=0x80600000,8M ramdisk_size=8192"
+-# CONFIG_XIP_KERNEL is not set
+-# CONFIG_KEXEC is not set
+-
+-#
+-# CPU Frequency scaling
+-#
+-# CONFIG_CPU_FREQ is not set
+-
+-#
+-# Floating point emulation
+-#
+-
+-#
+-# At least one emulation must be selected
+-#
+-CONFIG_FPE_NWFPE=y
+-# CONFIG_FPE_NWFPE_XP is not set
+-# CONFIG_FPE_FASTFPE is not set
+-# CONFIG_VFP is not set
+-
+-#
+-# Userspace binary formats
+-#
+-CONFIG_BINFMT_ELF=y
+-# CONFIG_BINFMT_AOUT is not set
+-CONFIG_BINFMT_MISC=y
+-
+-#
+-# Power management options
+-#
+-CONFIG_PM=y
+-# CONFIG_PM_LEGACY is not set
+-# CONFIG_PM_DEBUG is not set
+-CONFIG_PM_SLEEP=y
+-CONFIG_SUSPEND_UP_POSSIBLE=y
+-CONFIG_SUSPEND=y
+-# CONFIG_APM_EMULATION is not set
+-
+-#
+-# Networking
+-#
+-# CONFIG_NET is not set
+-
+-#
+-# Device Drivers
+-#
+-
+-#
+-# Generic Driver Options
+-#
+-CONFIG_STANDALONE=y
+-CONFIG_PREVENT_FIRMWARE_BUILD=y
+-# CONFIG_FW_LOADER is not set
+-# CONFIG_DEBUG_DRIVER is not set
+-# CONFIG_DEBUG_DEVRES is not set
+-# CONFIG_SYS_HYPERVISOR is not set
+-# CONFIG_MTD is not set
+-# CONFIG_PARPORT is not set
+-CONFIG_BLK_DEV=y
+-# CONFIG_BLK_DEV_COW_COMMON is not set
+-CONFIG_BLK_DEV_LOOP=y
+-# CONFIG_BLK_DEV_CRYPTOLOOP is not set
+-CONFIG_BLK_DEV_RAM=y
+-CONFIG_BLK_DEV_RAM_COUNT=16
+-CONFIG_BLK_DEV_RAM_SIZE=16384
+-CONFIG_BLK_DEV_RAM_BLOCKSIZE=1024
+-# CONFIG_CDROM_PKTCDVD is not set
+-
+-#
+-# SCSI device support
+-#
+-# CONFIG_RAID_ATTRS is not set
+-CONFIG_SCSI=m
+-CONFIG_SCSI_DMA=y
+-# CONFIG_SCSI_TGT is not set
+-# CONFIG_SCSI_NETLINK is not set
+-CONFIG_SCSI_PROC_FS=y
+-
+-#
+-# SCSI support type (disk, tape, CD-ROM)
+-#
+-CONFIG_BLK_DEV_SD=m
+-# CONFIG_CHR_DEV_ST is not set
+-# CONFIG_CHR_DEV_OSST is not set
+-# CONFIG_BLK_DEV_SR is not set
+-CONFIG_CHR_DEV_SG=m
+-# CONFIG_CHR_DEV_SCH is not set
+-
+-#
+-# Some SCSI devices (e.g. CD jukebox) support multiple LUNs
+-#
+-# CONFIG_SCSI_MULTI_LUN is not set
+-# CONFIG_SCSI_CONSTANTS is not set
+-# CONFIG_SCSI_LOGGING is not set
+-# CONFIG_SCSI_SCAN_ASYNC is not set
+-CONFIG_SCSI_WAIT_SCAN=m
+-
+-#
+-# SCSI Transports
+-#
+-# CONFIG_SCSI_SPI_ATTRS is not set
+-# CONFIG_SCSI_FC_ATTRS is not set
+-# CONFIG_SCSI_SAS_LIBSAS is not set
+-CONFIG_SCSI_LOWLEVEL=y
+-# CONFIG_SCSI_DEBUG is not set
+-# CONFIG_ATA is not set
+-# CONFIG_MD is not set
+-
+-#
+-# Input device support
+-#
+-CONFIG_INPUT=y
+-# CONFIG_INPUT_FF_MEMLESS is not set
+-# CONFIG_INPUT_POLLDEV is not set
+-
+-#
+-# Userland interfaces
+-#
+-# CONFIG_INPUT_MOUSEDEV is not set
+-# CONFIG_INPUT_JOYDEV is not set
+-# CONFIG_INPUT_TSDEV is not set
+-CONFIG_INPUT_EVDEV=y
+-# CONFIG_INPUT_EVBUG is not set
+-
+-#
+-# Input Device Drivers
+-#
+-CONFIG_INPUT_KEYBOARD=y
+-# CONFIG_KEYBOARD_ATKBD is not set
+-# CONFIG_KEYBOARD_SUNKBD is not set
+-# CONFIG_KEYBOARD_LKKBD is not set
+-# CONFIG_KEYBOARD_XTKBD is not set
+-# CONFIG_KEYBOARD_NEWTON is not set
+-# CONFIG_KEYBOARD_STOWAWAY is not set
+-# CONFIG_KEYBOARD_OMAP is not set
+-# CONFIG_KEYBOARD_GPIO is not set
+-# CONFIG_INPUT_MOUSE is not set
+-# CONFIG_INPUT_JOYSTICK is not set
+-# CONFIG_INPUT_TABLET is not set
+-CONFIG_INPUT_TOUCHSCREEN=y
+-CONFIG_TOUCHSCREEN_ADS7846=y
+-# CONFIG_TOUCHSCREEN_FUJITSU is not set
+-# CONFIG_TOUCHSCREEN_GUNZE is not set
+-# CONFIG_TOUCHSCREEN_ELO is not set
+-# CONFIG_TOUCHSCREEN_MTOUCH is not set
+-# CONFIG_TOUCHSCREEN_MK712 is not set
+-# CONFIG_TOUCHSCREEN_PENMOUNT is not set
+-# CONFIG_TOUCHSCREEN_TOUCHRIGHT is not set
+-# CONFIG_TOUCHSCREEN_TOUCHWIN is not set
+-# CONFIG_TOUCHSCREEN_UCB1400 is not set
+-# CONFIG_TOUCHSCREEN_TSC2102 is not set
+-# CONFIG_TOUCHSCREEN_TSC210X is not set
+-# CONFIG_INPUT_MISC is not set
+-
+-#
+-# Hardware I/O ports
+-#
+-# CONFIG_SERIO is not set
+-# CONFIG_GAMEPORT is not set
+-
+-#
+-# Character devices
+-#
+-CONFIG_VT=y
+-CONFIG_VT_CONSOLE=y
+-CONFIG_HW_CONSOLE=y
+-# CONFIG_VT_HW_CONSOLE_BINDING is not set
+-# CONFIG_SERIAL_NONSTANDARD is not set
+-
+-#
+-# Serial drivers
+-#
+-CONFIG_SERIAL_8250=y
+-CONFIG_SERIAL_8250_CONSOLE=y
+-CONFIG_SERIAL_8250_NR_UARTS=32
+-CONFIG_SERIAL_8250_RUNTIME_UARTS=4
+-CONFIG_SERIAL_8250_EXTENDED=y
+-CONFIG_SERIAL_8250_MANY_PORTS=y
+-CONFIG_SERIAL_8250_SHARE_IRQ=y
+-CONFIG_SERIAL_8250_DETECT_IRQ=y
+-CONFIG_SERIAL_8250_RSA=y
+-
+-#
+-# Non-8250 serial port support
+-#
+-CONFIG_SERIAL_CORE=y
+-CONFIG_SERIAL_CORE_CONSOLE=y
+-CONFIG_UNIX98_PTYS=y
+-# CONFIG_LEGACY_PTYS is not set
+-# CONFIG_IPMI_HANDLER is not set
+-CONFIG_WATCHDOG=y
+-CONFIG_WATCHDOG_NOWAYOUT=y
+-
+-#
+-# Watchdog Device Drivers
+-#
+-# CONFIG_SOFT_WATCHDOG is not set
+-CONFIG_OMAP_WATCHDOG=y
+-CONFIG_HW_RANDOM=y
+-CONFIG_HW_RANDOM_OMAP=y
+-# CONFIG_NVRAM is not set
+-# CONFIG_R3964 is not set
+-# CONFIG_RAW_DRIVER is not set
+-# CONFIG_TCG_TPM is not set
+-CONFIG_I2C=y
+-CONFIG_I2C_BOARDINFO=y
+-CONFIG_I2C_CHARDEV=y
+-
+-#
+-# I2C Algorithms
+-#
+-# CONFIG_I2C_ALGOBIT is not set
+-# CONFIG_I2C_ALGOPCF is not set
+-# CONFIG_I2C_ALGOPCA is not set
+-
+-#
+-# I2C Hardware Bus support
+-#
+-# CONFIG_I2C_GPIO is not set
+-# CONFIG_I2C_OCORES is not set
+-CONFIG_I2C_OMAP=y
+-# CONFIG_I2C_PARPORT_LIGHT is not set
+-# CONFIG_I2C_SIMTEC is not set
+-# CONFIG_I2C_TAOS_EVM is not set
+-# CONFIG_I2C_STUB is not set
+-
+-#
+-# Miscellaneous I2C Chip support
+-#
+-# CONFIG_SENSORS_DS1337 is not set
+-# CONFIG_SENSORS_DS1374 is not set
+-# CONFIG_DS1682 is not set
+-# CONFIG_SENSORS_EEPROM is not set
+-# CONFIG_SENSORS_PCF8574 is not set
+-# CONFIG_SENSORS_PCA9539 is not set
+-# CONFIG_SENSORS_PCF8591 is not set
+-# CONFIG_TPS65010 is not set
+-# CONFIG_SENSORS_TLV320AIC23 is not set
+-# CONFIG_GPIOEXPANDER_OMAP is not set
+-CONFIG_TWL4030_CORE=y
+-CONFIG_TWL4030_GPIO=y
+-# CONFIG_SENSORS_MAX6875 is not set
+-# CONFIG_SENSORS_TSL2550 is not set
+-# CONFIG_MENELAUS is not set
+-# CONFIG_I2C_DEBUG_CORE is not set
+-# CONFIG_I2C_DEBUG_ALGO is not set
+-# CONFIG_I2C_DEBUG_BUS is not set
+-# CONFIG_I2C_DEBUG_CHIP is not set
+-
+-#
+-# SPI support
+-#
+-CONFIG_SPI=y
+-# CONFIG_SPI_DEBUG is not set
+-CONFIG_SPI_MASTER=y
+-
+-#
+-# SPI Master Controller Drivers
+-#
+-# CONFIG_SPI_BITBANG is not set
+-# CONFIG_SPI_OMAP24XX is not set
+-
+-#
+-# SPI Protocol Masters
+-#
+-# CONFIG_SPI_AT25 is not set
+-# CONFIG_SPI_TSC2101 is not set
+-# CONFIG_SPI_TSC2102 is not set
+-# CONFIG_SPI_TSC210X is not set
+-# CONFIG_SPI_TSC2301 is not set
+-# CONFIG_SPI_SPIDEV is not set
+-# CONFIG_SPI_TLE62X0 is not set
+-# CONFIG_W1 is not set
+-# CONFIG_HWMON is not set
+-CONFIG_MISC_DEVICES=y
+-# CONFIG_EEPROM_93CX6 is not set
+-
+-#
+-# Multifunction device drivers
+-#
+-# CONFIG_MFD_SM501 is not set
+-# CONFIG_NEW_LEDS is not set
+-
+-#
+-# Multimedia devices
+-#
+-# CONFIG_VIDEO_DEV is not set
+-CONFIG_DAB=y
+-
+-#
+-# Graphics support
+-#
+-# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
+-
+-#
+-# Display device support
+-#
+-# CONFIG_DISPLAY_SUPPORT is not set
+-# CONFIG_VGASTATE is not set
+-CONFIG_VIDEO_OUTPUT_CONTROL=m
+-CONFIG_FB=y
+-CONFIG_FIRMWARE_EDID=y
+-# CONFIG_FB_DDC is not set
+-# CONFIG_FB_CFB_FILLRECT is not set
+-# CONFIG_FB_CFB_COPYAREA is not set
+-# CONFIG_FB_CFB_IMAGEBLIT is not set
+-# CONFIG_FB_SYS_FILLRECT is not set
+-# CONFIG_FB_SYS_COPYAREA is not set
+-# CONFIG_FB_SYS_IMAGEBLIT is not set
+-# CONFIG_FB_SYS_FOPS is not set
+-CONFIG_FB_DEFERRED_IO=y
+-# CONFIG_FB_SVGALIB is not set
+-# CONFIG_FB_MACMODES is not set
+-# CONFIG_FB_BACKLIGHT is not set
+-# CONFIG_FB_MODE_HELPERS is not set
+-# CONFIG_FB_TILEBLITTING is not set
+-
+-#
+-# Frame buffer hardware drivers
+-#
+-# CONFIG_FB_S1D13XXX is not set
+-CONFIG_FB_OMAP=y
+-# CONFIG_FB_OMAP_LCDC_EXTERNAL is not set
+-# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
+-CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
+-# CONFIG_FB_VIRTUAL is not set
+-
+-#
+-# Console display driver support
+-#
+-# CONFIG_VGA_CONSOLE is not set
+-CONFIG_DUMMY_CONSOLE=y
+-CONFIG_FRAMEBUFFER_CONSOLE=y
+-# CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY is not set
+-# CONFIG_FRAMEBUFFER_CONSOLE_ROTATION is not set
+-# CONFIG_FONTS is not set
+-CONFIG_FONT_8x8=y
+-CONFIG_FONT_8x16=y
+-CONFIG_LOGO=y
+-# CONFIG_LOGO_LINUX_MONO is not set
+-# CONFIG_LOGO_LINUX_VGA16 is not set
+-CONFIG_LOGO_LINUX_CLUT224=y
+-
+-#
+-# Sound
+-#
+-# CONFIG_SOUND is not set
+-CONFIG_HID_SUPPORT=y
+-CONFIG_HID=y
+-# CONFIG_HID_DEBUG is not set
+-# CONFIG_USB_SUPPORT is not set
+-# CONFIG_MMC is not set
+-CONFIG_RTC_LIB=y
+-# CONFIG_RTC_CLASS is not set
+-
+-#
+-# DMA Engine support
+-#
+-# CONFIG_DMA_ENGINE is not set
+-
+-#
+-# DMA Clients
+-#
+-
+-#
+-# DMA Devices
+-#
+-
+-#
+-# CBUS support
+-#
+-# CONFIG_CBUS is not set
+-
+-#
+-# File systems
+-#
+-CONFIG_EXT2_FS=y
+-# CONFIG_EXT2_FS_XATTR is not set
+-# CONFIG_EXT2_FS_XIP is not set
+-CONFIG_EXT3_FS=y
+-# CONFIG_EXT3_FS_XATTR is not set
+-# CONFIG_EXT4DEV_FS is not set
+-CONFIG_JBD=y
+-# CONFIG_JBD_DEBUG is not set
+-# CONFIG_REISERFS_FS is not set
+-# CONFIG_JFS_FS is not set
+-# CONFIG_FS_POSIX_ACL is not set
+-# CONFIG_XFS_FS is not set
+-# CONFIG_GFS2_FS is not set
+-# CONFIG_MINIX_FS is not set
+-# CONFIG_ROMFS_FS is not set
+-CONFIG_INOTIFY=y
+-CONFIG_INOTIFY_USER=y
+-CONFIG_QUOTA=y
+-# CONFIG_QFMT_V1 is not set
+-CONFIG_QFMT_V2=y
+-CONFIG_QUOTACTL=y
+-CONFIG_DNOTIFY=y
+-# CONFIG_AUTOFS_FS is not set
+-# CONFIG_AUTOFS4_FS is not set
+-# CONFIG_FUSE_FS is not set
+-
+-#
+-# CD-ROM/DVD Filesystems
+-#
+-# CONFIG_ISO9660_FS is not set
+-# CONFIG_UDF_FS is not set
+-
+-#
+-# DOS/FAT/NT Filesystems
+-#
+-CONFIG_FAT_FS=y
+-CONFIG_MSDOS_FS=y
+-CONFIG_VFAT_FS=y
+-CONFIG_FAT_DEFAULT_CODEPAGE=437
+-CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
+-# CONFIG_NTFS_FS is not set
+-
+-#
+-# Pseudo filesystems
+-#
+-CONFIG_PROC_FS=y
+-CONFIG_PROC_SYSCTL=y
+-CONFIG_SYSFS=y
+-CONFIG_TMPFS=y
+-# CONFIG_TMPFS_POSIX_ACL is not set
+-# CONFIG_HUGETLB_PAGE is not set
+-CONFIG_RAMFS=y
+-# CONFIG_CONFIGFS_FS is not set
+-
+-#
+-# Miscellaneous filesystems
+-#
+-# CONFIG_ADFS_FS is not set
+-# CONFIG_AFFS_FS is not set
+-# CONFIG_HFS_FS is not set
+-# CONFIG_HFSPLUS_FS is not set
+-# CONFIG_BEFS_FS is not set
+-# CONFIG_BFS_FS is not set
+-# CONFIG_EFS_FS is not set
+-# CONFIG_CRAMFS is not set
+-# CONFIG_VXFS_FS is not set
+-# CONFIG_HPFS_FS is not set
+-# CONFIG_QNX4FS_FS is not set
+-# CONFIG_SYSV_FS is not set
+-# CONFIG_UFS_FS is not set
+-
+-#
+-# Partition Types
+-#
+-CONFIG_PARTITION_ADVANCED=y
+-# CONFIG_ACORN_PARTITION is not set
+-# CONFIG_OSF_PARTITION is not set
+-# CONFIG_AMIGA_PARTITION is not set
+-# CONFIG_ATARI_PARTITION is not set
+-# CONFIG_MAC_PARTITION is not set
+-CONFIG_MSDOS_PARTITION=y
+-# CONFIG_BSD_DISKLABEL is not set
+-# CONFIG_MINIX_SUBPARTITION is not set
+-# CONFIG_SOLARIS_X86_PARTITION is not set
+-# CONFIG_UNIXWARE_DISKLABEL is not set
+-# CONFIG_LDM_PARTITION is not set
+-# CONFIG_SGI_PARTITION is not set
+-# CONFIG_ULTRIX_PARTITION is not set
+-# CONFIG_SUN_PARTITION is not set
+-# CONFIG_KARMA_PARTITION is not set
+-# CONFIG_EFI_PARTITION is not set
+-# CONFIG_SYSV68_PARTITION is not set
+-
+-#
+-# Native Language Support
+-#
+-CONFIG_NLS=y
+-CONFIG_NLS_DEFAULT="iso8859-1"
+-CONFIG_NLS_CODEPAGE_437=y
+-# CONFIG_NLS_CODEPAGE_737 is not set
+-# CONFIG_NLS_CODEPAGE_775 is not set
+-# CONFIG_NLS_CODEPAGE_850 is not set
+-# CONFIG_NLS_CODEPAGE_852 is not set
+-# CONFIG_NLS_CODEPAGE_855 is not set
+-# CONFIG_NLS_CODEPAGE_857 is not set
+-# CONFIG_NLS_CODEPAGE_860 is not set
+-# CONFIG_NLS_CODEPAGE_861 is not set
+-# CONFIG_NLS_CODEPAGE_862 is not set
+-# CONFIG_NLS_CODEPAGE_863 is not set
+-# CONFIG_NLS_CODEPAGE_864 is not set
+-# CONFIG_NLS_CODEPAGE_865 is not set
+-# CONFIG_NLS_CODEPAGE_866 is not set
+-# CONFIG_NLS_CODEPAGE_869 is not set
+-# CONFIG_NLS_CODEPAGE_936 is not set
+-# CONFIG_NLS_CODEPAGE_950 is not set
+-# CONFIG_NLS_CODEPAGE_932 is not set
+-# CONFIG_NLS_CODEPAGE_949 is not set
+-# CONFIG_NLS_CODEPAGE_874 is not set
+-# CONFIG_NLS_ISO8859_8 is not set
+-# CONFIG_NLS_CODEPAGE_1250 is not set
+-# CONFIG_NLS_CODEPAGE_1251 is not set
+-# CONFIG_NLS_ASCII is not set
+-# CONFIG_NLS_ISO8859_1 is not set
+-# CONFIG_NLS_ISO8859_2 is not set
+-# CONFIG_NLS_ISO8859_3 is not set
+-# CONFIG_NLS_ISO8859_4 is not set
+-# CONFIG_NLS_ISO8859_5 is not set
+-# CONFIG_NLS_ISO8859_6 is not set
+-# CONFIG_NLS_ISO8859_7 is not set
+-# CONFIG_NLS_ISO8859_9 is not set
+-# CONFIG_NLS_ISO8859_13 is not set
+-# CONFIG_NLS_ISO8859_14 is not set
+-# CONFIG_NLS_ISO8859_15 is not set
+-# CONFIG_NLS_KOI8_R is not set
+-# CONFIG_NLS_KOI8_U is not set
+-# CONFIG_NLS_UTF8 is not set
+-
+-#
+-# Profiling support
+-#
+-# CONFIG_PROFILING is not set
+-
+-#
+-# Kernel hacking
+-#
+-# CONFIG_PRINTK_TIME is not set
+-CONFIG_ENABLE_MUST_CHECK=y
+-CONFIG_MAGIC_SYSRQ=y
+-# CONFIG_UNUSED_SYMBOLS is not set
+-# CONFIG_DEBUG_FS is not set
+-# CONFIG_HEADERS_CHECK is not set
+-CONFIG_DEBUG_KERNEL=y
+-# CONFIG_DEBUG_SHIRQ is not set
+-CONFIG_DETECT_SOFTLOCKUP=y
+-CONFIG_SCHED_DEBUG=y
+-# CONFIG_SCHEDSTATS is not set
+-CONFIG_TIMER_STATS=y
+-# CONFIG_DEBUG_SLAB is not set
+-CONFIG_DEBUG_PREEMPT=y
+-# CONFIG_DEBUG_RT_MUTEXES is not set
+-# CONFIG_RT_MUTEX_TESTER is not set
+-# CONFIG_DEBUG_SPINLOCK is not set
+-CONFIG_DEBUG_MUTEXES=y
+-# CONFIG_DEBUG_LOCK_ALLOC is not set
+-# CONFIG_PROVE_LOCKING is not set
+-# CONFIG_LOCK_STAT is not set
+-# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
+-# CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
+-# CONFIG_DEBUG_KOBJECT is not set
+-# CONFIG_DEBUG_BUGVERBOSE is not set
+-# CONFIG_DEBUG_INFO is not set
+-# CONFIG_DEBUG_VM is not set
+-# CONFIG_DEBUG_LIST is not set
+-CONFIG_FRAME_POINTER=y
+-CONFIG_FORCED_INLINING=y
+-# CONFIG_RCU_TORTURE_TEST is not set
+-# CONFIG_FAULT_INJECTION is not set
+-# CONFIG_DEBUG_USER is not set
+-# CONFIG_DEBUG_ERRORS is not set
+-CONFIG_DEBUG_LL=y
+-# CONFIG_DEBUG_ICEDCC is not set
+-
+-#
+-# Security options
+-#
+-# CONFIG_KEYS is not set
+-# CONFIG_SECURITY is not set
+-CONFIG_CRYPTO=y
+-CONFIG_CRYPTO_ALGAPI=y
+-CONFIG_CRYPTO_BLKCIPHER=y
+-CONFIG_CRYPTO_MANAGER=y
+-# CONFIG_CRYPTO_HMAC is not set
+-# CONFIG_CRYPTO_XCBC is not set
+-# CONFIG_CRYPTO_NULL is not set
+-# CONFIG_CRYPTO_MD4 is not set
+-CONFIG_CRYPTO_MD5=y
+-# CONFIG_CRYPTO_SHA1 is not set
+-# CONFIG_CRYPTO_SHA256 is not set
+-# CONFIG_CRYPTO_SHA512 is not set
+-# CONFIG_CRYPTO_WP512 is not set
+-# CONFIG_CRYPTO_TGR192 is not set
+-# CONFIG_CRYPTO_GF128MUL is not set
+-CONFIG_CRYPTO_ECB=m
+-CONFIG_CRYPTO_CBC=y
+-CONFIG_CRYPTO_PCBC=m
+-# CONFIG_CRYPTO_LRW is not set
+-# CONFIG_CRYPTO_CRYPTD is not set
+-CONFIG_CRYPTO_DES=y
+-# CONFIG_CRYPTO_FCRYPT is not set
+-# CONFIG_CRYPTO_BLOWFISH is not set
+-# CONFIG_CRYPTO_TWOFISH is not set
+-# CONFIG_CRYPTO_SERPENT is not set
+-# CONFIG_CRYPTO_AES is not set
+-# CONFIG_CRYPTO_CAST5 is not set
+-# CONFIG_CRYPTO_CAST6 is not set
+-# CONFIG_CRYPTO_TEA is not set
+-# CONFIG_CRYPTO_ARC4 is not set
+-# CONFIG_CRYPTO_KHAZAD is not set
+-# CONFIG_CRYPTO_ANUBIS is not set
+-# CONFIG_CRYPTO_DEFLATE is not set
+-# CONFIG_CRYPTO_MICHAEL_MIC is not set
+-# CONFIG_CRYPTO_CRC32C is not set
+-# CONFIG_CRYPTO_CAMELLIA is not set
+-# CONFIG_CRYPTO_TEST is not set
+-CONFIG_CRYPTO_HW=y
+-
+-#
+-# Library routines
+-#
+-CONFIG_BITREVERSE=y
+-CONFIG_CRC_CCITT=y
+-# CONFIG_CRC16 is not set
+-# CONFIG_CRC_ITU_T is not set
+-CONFIG_CRC32=y
+-# CONFIG_CRC7 is not set
+-CONFIG_LIBCRC32C=y
+-CONFIG_PLIST=y
+-CONFIG_HAS_IOMEM=y
+-CONFIG_HAS_IOPORT=y
+-CONFIG_HAS_DMA=y
+diff --git a/arch/arm/mach-omap2/board-2430osk.c
+b/arch/arm/mach-omap2/board-2430osk.c
+deleted file mode 100644
+index 146dba3..0000000
+--- a/arch/arm/mach-omap2/board-2430osk.c
++++ /dev/null
+@@ -1,143 +0,0 @@
+-/*
+- * linux/arch/arm/mach-omap2/board-2430osk.c
+- *
+- * Copyright (C) 2007 Mistral Software Pvt Ltd
+- *
+- * Modified from mach-omap2/board-generic.c
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/init.h>
+-#include <linux/platform_device.h>
+-#include <linux/delay.h>
+-#include <linux/err.h>
+-#include <linux/clk.h>
+-
+-#include <asm/hardware.h>
+-#include <asm/mach-types.h>
+-#include <asm/mach/arch.h>
+-#include <asm/mach/map.h>
+-
+-#include <asm/arch/gpio.h>
+-#include <asm/arch/board.h>
+-#include <asm/arch/common.h>
+-
+-#include <asm/io.h>
+-
+-static void __init omap_2430osk_init_irq(void)
+-{
+-	omap2_init_common_hw();
+-	omap_init_irq();
+-	omap_gpio_init();
+-}
+-
+-static struct omap_uart_config osk2430_uart_config __initdata = {
+-	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+-};
+-
+-static struct omap_board_config_kernel osk2430_config[] __initdata = {
+-
+-	{OMAP_TAG_UART, &osk2430_uart_config},
+-};
+-
+-#if	defined(CONFIG_I2C_OMAP) || defined(CONFIG_I2C_OMAP_MODULE)
+-
+-#define OMAP2_I2C_BASE1		0x48070000
+-#define OMAP2_I2C_BASE2		0x48072000
+-#define OMAP2_I2C_INT1		56
+-#define OMAP2_I2C_INT2		57
+-
+-static u32 omap2_i2c1_clkrate	= 400;
+-static u32 omap2_i2c2_clkrate	= 2600;
+-
+-static struct resource i2c_resources1[] = {
+-	{
+-		.start	= OMAP2_I2C_BASE1,
+-		.end	= OMAP2_I2C_BASE1 + 0x3f,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.start	= OMAP2_I2C_INT1,
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-};
+-
+-static struct resource i2c_resources2[] = {
+-	{
+-		.start	= OMAP2_I2C_BASE2,
+-		.end	= OMAP2_I2C_BASE2 + 0x3f,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.start	= OMAP2_I2C_INT2,
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-};
+-
+-static struct platform_device omap_i2c_device1 = {
+-	.name		= "i2c_omap",
+-	.id		= 1,
+-	.num_resources	= ARRAY_SIZE(i2c_resources1),
+-	.resource	= i2c_resources1,
+-	.dev		= {
+-		.platform_data	= &omap2_i2c1_clkrate,
+-	},
+-};
+-
+-static struct platform_device omap_i2c_device2 = {
+-	.name		= "i2c_omap",
+-	.id		= 2,
+-	.num_resources	= ARRAY_SIZE(i2c_resources2),
+-	.resource	= i2c_resources2,
+-	.dev		= {
+-		.platform_data	= &omap2_i2c2_clkrate,
+-	},
+-};
+-
+-static void omap_init_i2c(void)
+-{
+-	(void) platform_device_register(&omap_i2c_device2);
+-	(void) platform_device_register(&omap_i2c_device1);
+-}
+-
+-#else
+-
+-static void omap_init_i2c(void) {}
+-
+-#endif
+-
+-static int __init omap2430_i2c_init(void)
+-{
+-	omap_init_i2c();
+-	return 0;
+-}
+-
+-static void __init omap_2430osk_init(void)
+-{
+-	omap_board_config = osk2430_config;
+-	omap_board_config_size = ARRAY_SIZE(osk2430_config);
+-	omap_serial_init();
+-}
+-
+-static void __init omap_2430osk_map_io(void)
+-{
+-	omap2_set_globals_243x();
+-	omap2_map_common_io();
+-}
+-
+-arch_initcall(omap2430_i2c_init);
+-
+-MACHINE_START(OMAP_2430OSK, "OMAP2430 2430OSK board")
+-	/* Maintainer: Syed Khasim */
+-	.phys_io	= 0x48000000,
+-	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
+-	.boot_params	= 0x80000100,
+-	.map_io		= omap_2430osk_map_io,
+-	.init_irq	= omap_2430osk_init_irq,
+-	.init_machine	= omap_2430osk_init,
+-	.timer		= &omap_timer,
+-MACHINE_END
+diff --git a/arch/arm/mach-omap2/board-omap2evm.c
+b/arch/arm/mach-omap2/board-omap2evm.c
+new file mode 100644
+index 0000000..146dba3
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-omap2evm.c
+@@ -0,0 +1,143 @@
++/*
++ * linux/arch/arm/mach-omap2/board-2430osk.c
++ *
++ * Copyright (C) 2007 Mistral Software Pvt Ltd
++ *
++ * Modified from mach-omap2/board-generic.c
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/delay.h>
++#include <linux/err.h>
++#include <linux/clk.h>
++
++#include <asm/hardware.h>
++#include <asm/mach-types.h>
++#include <asm/mach/arch.h>
++#include <asm/mach/map.h>
++
++#include <asm/arch/gpio.h>
++#include <asm/arch/board.h>
++#include <asm/arch/common.h>
++
++#include <asm/io.h>
++
++static void __init omap_2430osk_init_irq(void)
++{
++	omap2_init_common_hw();
++	omap_init_irq();
++	omap_gpio_init();
++}
++
++static struct omap_uart_config osk2430_uart_config __initdata = {
++	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
++};
++
++static struct omap_board_config_kernel osk2430_config[] __initdata = {
++
++	{OMAP_TAG_UART, &osk2430_uart_config},
++};
++
++#if	defined(CONFIG_I2C_OMAP) || defined(CONFIG_I2C_OMAP_MODULE)
++
++#define OMAP2_I2C_BASE1		0x48070000
++#define OMAP2_I2C_BASE2		0x48072000
++#define OMAP2_I2C_INT1		56
++#define OMAP2_I2C_INT2		57
++
++static u32 omap2_i2c1_clkrate	= 400;
++static u32 omap2_i2c2_clkrate	= 2600;
++
++static struct resource i2c_resources1[] = {
++	{
++		.start	= OMAP2_I2C_BASE1,
++		.end	= OMAP2_I2C_BASE1 + 0x3f,
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.start	= OMAP2_I2C_INT1,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static struct resource i2c_resources2[] = {
++	{
++		.start	= OMAP2_I2C_BASE2,
++		.end	= OMAP2_I2C_BASE2 + 0x3f,
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.start	= OMAP2_I2C_INT2,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static struct platform_device omap_i2c_device1 = {
++	.name		= "i2c_omap",
++	.id		= 1,
++	.num_resources	= ARRAY_SIZE(i2c_resources1),
++	.resource	= i2c_resources1,
++	.dev		= {
++		.platform_data	= &omap2_i2c1_clkrate,
++	},
++};
++
++static struct platform_device omap_i2c_device2 = {
++	.name		= "i2c_omap",
++	.id		= 2,
++	.num_resources	= ARRAY_SIZE(i2c_resources2),
++	.resource	= i2c_resources2,
++	.dev		= {
++		.platform_data	= &omap2_i2c2_clkrate,
++	},
++};
++
++static void omap_init_i2c(void)
++{
++	(void) platform_device_register(&omap_i2c_device2);
++	(void) platform_device_register(&omap_i2c_device1);
++}
++
++#else
++
++static void omap_init_i2c(void) {}
++
++#endif
++
++static int __init omap2430_i2c_init(void)
++{
++	omap_init_i2c();
++	return 0;
++}
++
++static void __init omap_2430osk_init(void)
++{
++	omap_board_config = osk2430_config;
++	omap_board_config_size = ARRAY_SIZE(osk2430_config);
++	omap_serial_init();
++}
++
++static void __init omap_2430osk_map_io(void)
++{
++	omap2_set_globals_243x();
++	omap2_map_common_io();
++}
++
++arch_initcall(omap2430_i2c_init);
++
++MACHINE_START(OMAP_2430OSK, "OMAP2430 2430OSK board")
++	/* Maintainer: Syed Khasim */
++	.phys_io	= 0x48000000,
++	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
++	.boot_params	= 0x80000100,
++	.map_io		= omap_2430osk_map_io,
++	.init_irq	= omap_2430osk_init_irq,
++	.init_machine	= omap_2430osk_init,
++	.timer		= &omap_timer,
++MACHINE_END
+diff --git a/include/asm-arm/arch-omap/board-2430osk.h
+b/include/asm-arm/arch-omap/board-2430osk.h
+deleted file mode 100644
+index 3b61bc1..0000000
+--- a/include/asm-arm/arch-omap/board-2430osk.h
++++ /dev/null
+@@ -1,36 +0,0 @@
+-/*
+- * linux/include/asm-arm/arch-omap/board-2430osk.h
+- *
+- * Hardware definitions for TI OMAP2430 OSK board.
+- *
+- * Based on board-2330sdp.h
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by the
+- * Free Software Foundation; either version 2 of the License, or (at your
+- * option) any later version.
+- *
+- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+- * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- * You should have received a copy of the GNU General Public License along
+- * with this program; if not, write to the Free Software Foundation, Inc.,
+- * 675 Mass Ave, Cambridge, MA 02139, USA.
+- */
+-
+-#ifndef __ASM_ARCH_OMAP_2430OSK_H
+-#define __ASM_ARCH_OMAP_2430OSK_H
+-
+-/* Placeholder for 2430OSK specific defines */
+-#define OMAP24XX_ETHR_START		0x08000300
+-#define OMAP24XX_ETHR_GPIO_IRQ		149
+-
+-#endif /* __ASM_ARCH_OMAP_2430OSK_H */
+diff --git a/include/asm-arm/arch-omap/board-omap2evm.h
+b/include/asm-arm/arch-omap/board-omap2evm.h
+new file mode 100644
+index 0000000..3b61bc1
+--- /dev/null
++++ b/include/asm-arm/arch-omap/board-omap2evm.h
+@@ -0,0 +1,36 @@
++/*
++ * linux/include/asm-arm/arch-omap/board-2430osk.h
++ *
++ * Hardware definitions for TI OMAP2430 OSK board.
++ *
++ * Based on board-2330sdp.h
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
++ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
++ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#ifndef __ASM_ARCH_OMAP_2430OSK_H
++#define __ASM_ARCH_OMAP_2430OSK_H
++
++/* Placeholder for 2430OSK specific defines */
++#define OMAP24XX_ETHR_START		0x08000300
++#define OMAP24XX_ETHR_GPIO_IRQ		149
++
++#endif /* __ASM_ARCH_OMAP_2430OSK_H */
 -- 
-1.5.6.rc1
-
+1.5.3.4
