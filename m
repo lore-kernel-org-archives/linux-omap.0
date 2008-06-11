@@ -1,183 +1,424 @@
 From: Steve Sakoman <steve@sakoman.com>
-Subject: [PATCH 3/3] OMAP3 Beagle: Enable nand and jffs2 support in defconfig
-Date: Wed, 11 Jun 2008 11:19:24 -0700
-Message-ID: <1213208364-18148-1-git-send-email-steve@sakoman.com>
+Subject: [PATCH 1/3] mtd omap2 nand driver: extend to work with omap3 boards
+Date: Wed, 11 Jun 2008 11:18:34 -0700
+Message-ID: <1213208314-18071-1-git-send-email-steve@sakoman.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from static-74-41-60-154.dsl1.pco.ca.frontiernet.net ([74.41.60.154]:36878
 	"EHLO tera.sakoman.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751334AbYFKSjq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jun 2008 14:39:46 -0400
+	with ESMTP id S1751334AbYFKSjt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jun 2008 14:39:49 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Steve Sakoman <steve@sakoman.com>
+Cc: Teerth Reddy <teerth@ti.com>, Steve Sakoman <steve@sakoman.com>Steve Sakoman <steve@sakoman.com>
 
-Enable nand and jffs2 in defconfig
+From: Teerth Reddy <teerth@ti.com>, Steve Sakoman <steve@sakoman.com>
+
+Extend omap2 mtd nand driver to work with ARCH_OMAP3 boards
 
 Signed-off-by: Steve Sakoman <steve@sakoman.com>
 ---
- arch/arm/configs/omap3_beagle_defconfig |  100 +++++++++++++++++++++++++++++--
- 1 files changed, 95 insertions(+), 5 deletions(-)
+ Kconfig |    6 -
+ omap2.c |  230 ++++++++++++++++++++++++++++++++++++++++------------------------
+ 2 files changed, 147 insertions(+), 89 deletions(-)
 
-diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
-index 6aec7b7..463c41d 100644
---- a/arch/arm/configs/omap3_beagle_defconfig
-+++ b/arch/arm/configs/omap3_beagle_defconfig
-@@ -1,7 +1,7 @@
- #
- # Automatically generated make config: don't edit
--# Linux kernel version: 2.6.26-rc3-omap1
--# Tue May 27 22:23:14 2008
-+# Linux kernel version: 2.6.26-rc4-omap1
-+# Sat May 31 20:49:17 2008
- #
- CONFIG_ARM=y
- CONFIG_SYS_SUPPORTS_APM_EMULATION=y
-@@ -170,7 +170,6 @@ CONFIG_ARCH_OMAP3=y
- #
- # OMAP Feature Selections
- #
--CONFIG_OMAP_DEBUG_SRAM_PATCH=y
- # CONFIG_OMAP_DEBUG_POWERDOMAIN is not set
- # CONFIG_OMAP_DEBUG_CLOCKDOMAIN is not set
- # CONFIG_OMAP_RESET_CLOCKS is not set
-@@ -415,7 +414,83 @@ CONFIG_PREVENT_FIRMWARE_BUILD=y
- # CONFIG_DEBUG_DEVRES is not set
- # CONFIG_SYS_HYPERVISOR is not set
- # CONFIG_CONNECTOR is not set
--# CONFIG_MTD is not set
-+CONFIG_MTD=y
-+# CONFIG_MTD_DEBUG is not set
-+# CONFIG_MTD_CONCAT is not set
-+CONFIG_MTD_PARTITIONS=y
-+# CONFIG_MTD_REDBOOT_PARTS is not set
-+# CONFIG_MTD_CMDLINE_PARTS is not set
-+# CONFIG_MTD_AFS_PARTS is not set
-+# CONFIG_MTD_AR7_PARTS is not set
-+
-+#
-+# User Modules And Translation Layers
-+#
-+CONFIG_MTD_CHAR=y
-+CONFIG_MTD_BLKDEVS=y
-+CONFIG_MTD_BLOCK=y
-+# CONFIG_FTL is not set
-+# CONFIG_NFTL is not set
-+# CONFIG_INFTL is not set
-+# CONFIG_RFD_FTL is not set
-+# CONFIG_SSFDC is not set
-+# CONFIG_MTD_OOPS is not set
-+
-+#
-+# RAM/ROM/Flash chip drivers
-+#
-+# CONFIG_MTD_CFI is not set
-+# CONFIG_MTD_JEDECPROBE is not set
-+CONFIG_MTD_MAP_BANK_WIDTH_1=y
-+CONFIG_MTD_MAP_BANK_WIDTH_2=y
-+CONFIG_MTD_MAP_BANK_WIDTH_4=y
-+# CONFIG_MTD_MAP_BANK_WIDTH_8 is not set
-+# CONFIG_MTD_MAP_BANK_WIDTH_16 is not set
-+# CONFIG_MTD_MAP_BANK_WIDTH_32 is not set
-+CONFIG_MTD_CFI_I1=y
-+CONFIG_MTD_CFI_I2=y
-+# CONFIG_MTD_CFI_I4 is not set
-+# CONFIG_MTD_CFI_I8 is not set
-+# CONFIG_MTD_RAM is not set
-+# CONFIG_MTD_ROM is not set
-+# CONFIG_MTD_ABSENT is not set
-+
-+#
-+# Mapping drivers for chip access
-+#
-+# CONFIG_MTD_COMPLEX_MAPPINGS is not set
-+# CONFIG_MTD_PLATRAM is not set
-+
-+#
-+# Self-contained MTD device drivers
-+#
-+# CONFIG_MTD_SLRAM is not set
-+# CONFIG_MTD_PHRAM is not set
-+# CONFIG_MTD_MTDRAM is not set
-+# CONFIG_MTD_BLOCK2MTD is not set
-+
-+#
-+# Disk-On-Chip Device Drivers
-+#
-+# CONFIG_MTD_DOC2000 is not set
-+# CONFIG_MTD_DOC2001 is not set
-+# CONFIG_MTD_DOC2001PLUS is not set
-+CONFIG_MTD_NAND=y
-+# CONFIG_MTD_NAND_VERIFY_WRITE is not set
-+# CONFIG_MTD_NAND_ECC_SMC is not set
-+# CONFIG_MTD_NAND_MUSEUM_IDS is not set
-+CONFIG_MTD_NAND_OMAP2=y
-+CONFIG_MTD_NAND_IDS=y
-+# CONFIG_MTD_NAND_DISKONCHIP is not set
-+# CONFIG_MTD_NAND_NANDSIM is not set
-+# CONFIG_MTD_NAND_PLATFORM is not set
-+# CONFIG_MTD_ALAUDA is not set
-+# CONFIG_MTD_ONENAND is not set
-+
-+#
-+# UBI - Unsorted block images
-+#
-+# CONFIG_MTD_UBI is not set
- # CONFIG_PARPORT is not set
- CONFIG_BLK_DEV=y
- # CONFIG_BLK_DEV_COW_COMMON is not set
-@@ -703,7 +778,7 @@ CONFIG_FB_CFB_IMAGEBLIT=y
- CONFIG_FB_OMAP=y
- # CONFIG_FB_OMAP_LCDC_EXTERNAL is not set
- # CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
--CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
-+CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=4
- # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
+diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
+index 3d5e432..02b9ced 100644
+--- a/drivers/mtd/nand/Kconfig
++++ b/drivers/mtd/nand/Kconfig
+@@ -70,10 +70,10 @@ config MTD_NAND_AMS_DELTA
+ 	  Support for NAND flash on Amstrad E3 (Delta).
  
- #
-@@ -791,6 +866,7 @@ CONFIG_USB_MUSB_LOGLEVEL=0
- #
- # CONFIG_USB_ACM is not set
- # CONFIG_USB_PRINTER is not set
-+# CONFIG_USB_WDM is not set
+ config MTD_NAND_OMAP2
+-	tristate "NAND Flash device on OMAP 2420H4/2430SDP boards"
+-	depends on (ARM && ARCH_OMAP2 && MTD_NAND)
++	tristate "NAND Flash device on OMAP2 and OMAP3"
++	depends on ARM && MTD_NAND && (ARCH_OMAP2 || ARCH_OMAP3)
+ 	help
+-          Support for NAND flash on Texas Instruments 2430SDP/2420H4 platforms.
++          Support for NAND flash on Texas Instruments OMAP2 and OMAP3 platforms.
  
- #
- # NOTE: USB_STORAGE enables SCSI, and 'SCSI disk support'
-@@ -873,6 +949,7 @@ CONFIG_MMC=y
- CONFIG_MMC_BLOCK=y
- CONFIG_MMC_BLOCK_BOUNCE=y
- # CONFIG_SDIO_UART is not set
-+# CONFIG_MMC_TEST is not set
+ config MTD_NAND_OMAP
+ 	tristate "NAND Flash device on OMAP H3/H2/P2 boards"
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 3b7307c..3aac1d2 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -111,15 +111,6 @@
+ static const char *part_probes[] = { "cmdlinepart", NULL };
+ #endif
  
- #
- # MMC/SD Host Controller Drivers
-@@ -1001,6 +1078,17 @@ CONFIG_TMPFS=y
- # CONFIG_BEFS_FS is not set
- # CONFIG_BFS_FS is not set
- # CONFIG_EFS_FS is not set
-+CONFIG_JFFS2_FS=y
-+CONFIG_JFFS2_FS_DEBUG=0
-+CONFIG_JFFS2_FS_WRITEBUFFER=y
-+# CONFIG_JFFS2_FS_WBUF_VERIFY is not set
-+# CONFIG_JFFS2_SUMMARY is not set
-+# CONFIG_JFFS2_FS_XATTR is not set
-+# CONFIG_JFFS2_COMPRESSION_OPTIONS is not set
-+CONFIG_JFFS2_ZLIB=y
-+# CONFIG_JFFS2_LZO is not set
-+CONFIG_JFFS2_RTIME=y
-+# CONFIG_JFFS2_RUBIN is not set
- # CONFIG_CRAMFS is not set
- # CONFIG_VXFS_FS is not set
- # CONFIG_MINIX_FS is not set
-@@ -1235,6 +1323,8 @@ CONFIG_CRC_CCITT=y
- CONFIG_CRC32=y
- # CONFIG_CRC7 is not set
- CONFIG_LIBCRC32C=y
-+CONFIG_ZLIB_INFLATE=y
-+CONFIG_ZLIB_DEFLATE=y
- CONFIG_PLIST=y
- CONFIG_HAS_IOMEM=y
- CONFIG_HAS_IOPORT=y
--- 
-1.5.4.5
-
+-static int hw_ecc = 1;
+-
+-/* new oob placement block for use with hardware ecc generation */
+-static struct nand_ecclayout omap_hw_eccoob = {
+-	.eccbytes = 12,
+-	.eccpos = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13},
+-	.oobfree = {{16, 32}, {33, 63} },
+-};
+-
+ struct omap_nand_info {
+ 	struct nand_hw_control		controller;
+ 	struct omap_nand_platform_data	*pdata;
+@@ -133,6 +124,13 @@ struct omap_nand_info {
+ 	void __iomem			*gpmc_cs_baseaddr;
+ 	void __iomem			*gpmc_baseaddr;
+ };
++
++/*
++ * omap_nand_wp - This function enable or disable the Write Protect feature on
++ * NAND device
++ * @mtd: MTD device structure
++ * @mode: WP ON/OFF
++ */
+ static void omap_nand_wp(struct mtd_info *mtd, int mode)
+ {
+ 	struct omap_nand_info *info = container_of(mtd,
+@@ -189,11 +187,11 @@ static void omap_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
+ }
+ 
+ /*
+-* omap_read_buf - read data from NAND controller into buffer
+-* @mtd: MTD device structure
+-* @buf: buffer to store date
+-* @len: number of bytes to read
+-*/
++ * omap_read_buf - read data from NAND controller into buffer
++ * @mtd: MTD device structure
++ * @buf: buffer to store date
++ * @len: number of bytes to read
++ */
+ static void omap_read_buf(struct mtd_info *mtd, u_char *buf, int len)
+ {
+ 	struct omap_nand_info *info = container_of(mtd,
+@@ -207,11 +205,11 @@ static void omap_read_buf(struct mtd_info *mtd, u_char *buf, int len)
+ }
+ 
+ /*
+-* omap_write_buf - write buffer to NAND controller
+-* @mtd: MTD device structure
+-* @buf: data buffer
+-* @len: number of bytes to write
+-*/
++ * omap_write_buf - write buffer to NAND controller
++ * @mtd: MTD device structure
++ * @buf: data buffer
++ * @len: number of bytes to write
++ */
+ static void omap_write_buf(struct mtd_info *mtd, const u_char * buf, int len)
+ {
+ 	struct omap_nand_info *info = container_of(mtd,
+@@ -250,10 +248,16 @@ static int omap_verify_buf(struct mtd_info *mtd, const u_char * buf, int len)
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_MTD_NAND_OMAP_HWECC
++/*
++ * omap_hwecc_init-Initialize the Hardware ECC for NAND flash in GPMC controller
++ * @mtd: MTD device structure
++ */
+ static void omap_hwecc_init(struct mtd_info *mtd)
+ {
+ 	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
+ 							mtd);
++	register struct nand_chip *chip = mtd->priv;
+ 	unsigned long val = 0x0;
+ 
+ 	/* Read from ECC Control Register */
+@@ -264,16 +268,15 @@ static void omap_hwecc_init(struct mtd_info *mtd)
+ 
+ 	/* Read from ECC Size Config Register */
+ 	val = __raw_readl(info->gpmc_baseaddr + GPMC_ECC_SIZE_CONFIG);
+-	/* ECCSIZE1=512 | ECCSIZE0=8bytes | Select eccResultsize[0123] */
+-	val = ((0x000000FF<<22) | (0x00000003<<12) | (0x0000000F));
++	/* ECCSIZE1=512 | Select eccResultsize[0-3] */
++	val = ((((chip->ecc.size >> 1) - 1) << 22) | (0x0000000F));
+ 	__raw_writel(val, info->gpmc_baseaddr + GPMC_ECC_SIZE_CONFIG);
+-
+-
+ }
+ 
+ /*
+- * This function will generate true ECC value, which can be used
++ * gen_true_ecc - This function will generate true ECC value, which can be used
+  * when correcting data read from NAND flash memory core
++ * @ecc_buf: buffer to store ecc code
+  */
+ static void gen_true_ecc(u8 *ecc_buf)
+ {
+@@ -289,8 +292,12 @@ static void gen_true_ecc(u8 *ecc_buf)
+ }
+ 
+ /*
+- * This function compares two ECC's and indicates if there is an error.
+- * If the error can be corrected it will be corrected to the buffer
++ * omap_compare_ecc - This function compares two ECC's and indicates if there
++ * is an error. If the error can be corrected it will be corrected to the
++ * buffer
++ * @ecc_data1:  ecc code from nand spare area
++ * @ecc_data2:  ecc code from hardware register obtained from hardware ecc
++ * @page_data:  page data
+  */
+ static int omap_compare_ecc(u8 *ecc_data1,	/* read from NAND memory */
+ 			    u8 *ecc_data2,	/* read from register */
+@@ -409,6 +416,14 @@ static int omap_compare_ecc(u8 *ecc_data1,	/* read from NAND memory */
+ 	}
+ }
+ 
++/*
++ * omap_correct_data - Compares the ecc read from nand spare area with ECC
++ * registers values and corrects one bit error if it has occured
++ * @mtd: MTD device structure
++ * @dat: page data
++ * @read_ecc: ecc read from nand flash
++ * @calc_ecc: ecc read from ECC registers
++ */
+ static int omap_correct_data(struct mtd_info *mtd, u_char * dat,
+ 				u_char * read_ecc, u_char * calc_ecc)
+ {
+@@ -436,65 +451,64 @@ static int omap_correct_data(struct mtd_info *mtd, u_char * dat,
+ }
+ 
+ /*
+-** Generate non-inverted ECC bytes.
+-**
+-** Using noninverted ECC can be considered ugly since writing a blank
+-** page ie. padding will clear the ECC bytes. This is no problem as long
+-** nobody is trying to write data on the seemingly unused page.
+-**
+-** Reading an erased page will produce an ECC mismatch between
+-** generated and read ECC bytes that has to be dealt with separately.
+-*/
++ * omap_calcuate_ecc - Generate non-inverted ECC bytes.
++ * Using noninverted ECC can be considered ugly since writing a blank
++ * page ie. padding will clear the ECC bytes. This is no problem as long
++ * nobody is trying to write data on the seemingly unused page. Reading
++ * an erased page will produce an ECC mismatch between generated and read
++ * ECC bytes that has to be dealt with separately.
++ * @mtd: MTD device structure
++ * @dat: The pointer to data on which ecc is computed
++ * @ecc_code: The ecc_code buffer
++ */
+ static int omap_calculate_ecc(struct mtd_info *mtd, const u_char *dat,
+ 				u_char *ecc_code)
+ {
+ 	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
+ 							mtd);
+ 	unsigned long val = 0x0;
+-	unsigned long reg, n;
+-
+-	/* Ex NAND_ECC_HW12_2048 */
+-	if ((info->nand.ecc.mode == NAND_ECC_HW) &&
+-		(info->nand.ecc.size  == 2048))
+-		n = 4;
+-	else
+-		n = 1;
++	unsigned long reg;
+ 
+ 	/* Start Reading from HW ECC1_Result = 0x200 */
+ 	reg = (unsigned long)(info->gpmc_baseaddr + GPMC_ECC1_RESULT);
+-	while (n--) {
+-		val = __raw_readl(reg);
+-		*ecc_code++ = val;		/* P128e, ..., P1e */
+-		*ecc_code++ = val >> 16;	/* P128o, ..., P1o */
+-		/* P2048o, P1024o, P512o, P256o, P2048e, P1024e, P512e, P256e */
+-		*ecc_code++ = ((val >> 8) & 0x0f) | ((val >> 20) & 0xf0);
+-		reg += 4;
+-	}
++	val = __raw_readl(reg);
++	*ecc_code++ = val;          /* P128e, ..., P1e */
++	*ecc_code++ = val >> 16;    /* P128o, ..., P1o */
++	/* P2048o, P1024o, P512o, P256o, P2048e, P1024e, P512e, P256e */
++	*ecc_code++ = ((val >> 8) & 0x0f) | ((val >> 20) & 0xf0);
++	reg += 4;
+ 
+ 	return 0;
+-} /* omap_calculate_ecc */
++}
+ 
++/*
++ * omap_enable_hwecc - This function enables the hardware ecc functionality
++ * @mtd: MTD device structure
++ * @mode: Read/Write mode
++ */
+ static void omap_enable_hwecc(struct mtd_info *mtd, int mode)
+ {
+ 	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
+ 							mtd);
++	register struct nand_chip *chip = mtd->priv;
++	unsigned int dev_width = (chip->options & NAND_BUSWIDTH_16) ? 1 : 0;
+ 	unsigned long val = __raw_readl(info->gpmc_baseaddr + GPMC_ECC_CONFIG);
+ 
+ 	switch (mode) {
+ 	case NAND_ECC_READ    :
+ 		__raw_writel(0x101, info->gpmc_baseaddr + GPMC_ECC_CONTROL);
+-		/* ECC 16 bit col) | ( CS 0 )  | ECC Enable */
+-		val = (1 << 7) | (0x0) | (0x1) ;
++		/* (ECC 16 or 8 bit col) | ( CS  )  | ECC Enable */
++		val = (dev_width << 7) | (info->gpmc_cs << 1) | (0x1);
+ 		break;
+ 	case NAND_ECC_READSYN :
+-		__raw_writel(0x100, info->gpmc_baseaddr + GPMC_ECC_CONTROL);
+-		/* ECC 16 bit col) | ( CS 0 )  | ECC Enable */
+-		val = (1 << 7) | (0x0) | (0x1) ;
++		 __raw_writel(0x100, info->gpmc_baseaddr + GPMC_ECC_CONTROL);
++		/* (ECC 16 or 8 bit col) | ( CS  )  | ECC Enable */
++		val = (dev_width << 7) | (info->gpmc_cs << 1) | (0x1);
+ 		break;
+ 	case NAND_ECC_WRITE   :
+ 		__raw_writel(0x101, info->gpmc_baseaddr + GPMC_ECC_CONTROL);
+-		/* ECC 16 bit col) | ( CS 0 )  | ECC Enable */
+-		val = (1 << 7) | (0x0) | (0x1) ;
++		/* (ECC 16 or 8 bit col) | ( CS  )  | ECC Enable */
++		val = (dev_width << 7) | (info->gpmc_cs << 1) | (0x1);
+ 		break;
+ 	default:
+ 		DEBUG(MTD_DEBUG_LEVEL0, "Error: Unrecognized Mode[%d]!\n",
+@@ -504,7 +518,38 @@ static void omap_enable_hwecc(struct mtd_info *mtd, int mode)
+ 
+ 	__raw_writel(val, info->gpmc_baseaddr + GPMC_ECC_CONFIG);
+ }
++#endif
+ 
++/*
++ * omap_wait - Wait function is called during Program and erase
++ * operations and the way it is called from MTD layer, we should wait
++ * till the NAND chip is ready after the programming/erase operation
++ * has completed.
++ * @mtd: MTD device structure
++ * @chip: NAND Chip structure
++ */
++static int omap_wait(struct mtd_info *mtd, struct nand_chip *chip)
++{
++	register struct nand_chip *this = mtd->priv;
++	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
++							mtd);
++	int status = 0;
++
++	this->IO_ADDR_W = (void *) info->gpmc_cs_baseaddr +
++						GPMC_CS_NAND_COMMAND;
++	this->IO_ADDR_R = (void *) info->gpmc_cs_baseaddr + GPMC_CS_NAND_DATA;
++
++	while (!(status & 0x40)) {
++		 __raw_writeb(NAND_CMD_STATUS & 0xFF, this->IO_ADDR_W);
++		status = __raw_readb(this->IO_ADDR_R);
++	}
++	return status;
++}
++
++/*
++ * omap_dev_ready - calls the platform specific dev_ready function
++ * @mtd: MTD device structure
++ */
+ static int omap_dev_ready(struct mtd_info *mtd)
+ {
+ 	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
+@@ -534,7 +579,7 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 	struct omap_nand_info		*info;
+ 	struct omap_nand_platform_data	*pdata;
+ 	int				err;
+-	unsigned long val;
++	unsigned long 			val;
+ 
+ 
+ 	pdata = pdev->dev.platform_data;
+@@ -568,15 +613,20 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	/* Enable RD PIN Monitoring Reg */
+-	val  = gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG1);
+-	val |= WR_RD_PIN_MONITORING;
+-	gpmc_cs_write_reg(info->gpmc_cs, GPMC_CS_CONFIG1, val);
++	if (pdata->dev_ready) {
++		val  = gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG1);
++		val |= WR_RD_PIN_MONITORING;
++		gpmc_cs_write_reg(info->gpmc_cs, GPMC_CS_CONFIG1, val);
++	}
+ 
+ 	val  = gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG7);
+ 	val &= ~(0xf << 8);
+ 	val |=  (0xc & 0xf) << 8;
+ 	gpmc_cs_write_reg(info->gpmc_cs, GPMC_CS_CONFIG7, val);
+ 
++	/* NAND write protect off */
++	omap_nand_wp(&info->mtd, NAND_WP_OFF);
++
+ 	if (!request_mem_region(info->phys_base, NAND_IO_SIZE,
+ 				pdev->dev.driver->name)) {
+ 		err = -EBUSY;
+@@ -597,29 +647,39 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 	info->nand.write_buf  = omap_write_buf;
+ 	info->nand.verify_buf = omap_verify_buf;
+ 
+-	info->nand.dev_ready  = omap_dev_ready;
+-	info->nand.chip_delay = 0;
+-
+-	/* Options */
+-	info->nand.options   = NAND_BUSWIDTH_16;
+-	info->nand.options  |= NAND_SKIP_BBTSCAN;
+-
+-	if (hw_ecc) {
+-		/* init HW ECC */
+-		omap_hwecc_init(&info->mtd);
+-
+-		info->nand.ecc.calculate = omap_calculate_ecc;
+-		info->nand.ecc.hwctl     = omap_enable_hwecc;
+-		info->nand.ecc.correct   = omap_correct_data;
+-		info->nand.ecc.mode      = NAND_ECC_HW;
+-		info->nand.ecc.bytes     = 12;
+-		info->nand.ecc.size      = 2048;
+-		info->nand.ecc.layout    = &omap_hw_eccoob;
+-
++	/*
++	* If RDY/BSY line is connected to OMAP then use the omap ready funcrtion
++	* and the generic nand_wait function which reads the status register
++	* after monitoring the RDY/BSY line.Otherwise use a standard chip delay
++	* which is slightly more than tR (AC Timing) of the NAND device and read
++	* status register until you get a failure or success
++	*/
++	if (pdata->dev_ready) {
++		info->nand.dev_ready = omap_dev_ready;
++		info->nand.chip_delay = 0;
+ 	} else {
+-		info->nand.ecc.mode = NAND_ECC_SOFT;
++		info->nand.waitfunc = omap_wait;
++		info->nand.chip_delay = 50;
+ 	}
+ 
++	info->nand.options  |= NAND_SKIP_BBTSCAN;
++	if ((gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG1) & 0x3000)
++								== 0x1000)
++		info->nand.options  |= NAND_BUSWIDTH_16;
++
++#ifdef CONFIG_MTD_NAND_OMAP_HWECC
++	info->nand.ecc.bytes		= 3;
++	info->nand.ecc.size		= 512;
++	info->nand.ecc.calculate	= omap_calculate_ecc;
++	info->nand.ecc.hwctl		= omap_enable_hwecc;
++	info->nand.ecc.correct		= omap_correct_data;
++	info->nand.ecc.mode		= NAND_ECC_HW;
++
++	/* init HW ECC */
++	omap_hwecc_init(&info->mtd);
++#else
++	info->nand.ecc.mode = NAND_ECC_SOFT;
++#endif
+ 
+ 	/* DIP switches on some boards change between 8 and 16 bit
+ 	 * bus widths for flash.  Try the other width if the first try fails.
+@@ -636,14 +696,12 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 	err = parse_mtd_partitions(&info->mtd, part_probes, &info->parts, 0);
+ 	if (err > 0)
+ 		add_mtd_partitions(&info->mtd, info->parts, err);
+-	else if (err < 0 && pdata->parts)
++	else if (err <= 0 && pdata->parts)
+ 		add_mtd_partitions(&info->mtd, pdata->parts, pdata->nr_parts);
+ 	else
+ #endif
+ 		add_mtd_device(&info->mtd);
+ 
+-	omap_nand_wp(&info->mtd, NAND_WP_OFF);
+-
+ 	platform_set_drvdata(pdev, &info->mtd);
+ 
+ 	return 0;
