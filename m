@@ -1,350 +1,1042 @@
-From: "arun c" <arunedarath@mistralsolutions.com>
-Subject: [PATCH 3/3] This patch completes the name change from 2430osk to OMAP2EVM
-Date: Wed, 11 Jun 2008 16:06:24 +0530
-Message-ID: <c656a4d20806110336h78105b9dq66889156c469721f@mail.gmail.com>
+From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP: SmartReflex driver, reference source
+	and header files
+Date: Wed, 11 Jun 2008 13:48:04 +0300
+Message-ID: <1213181284.9988.12.camel@kj-ubuntu>
+References: <1212745789-13926-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
+	 <20080610222046.GP23796@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_20010_4591096.1213180584304"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from po-out-1718.google.com ([72.14.252.159]:32646 "EHLO
-	po-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751741AbYFKKgZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jun 2008 06:36:25 -0400
-Received: by po-out-1718.google.com with SMTP id c31so5987083poi.1
-        for <linux-omap@vger.kernel.org>; Wed, 11 Jun 2008 03:36:25 -0700 (PDT)
+Received: from smtp.nokia.com ([192.100.122.230]:43897 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752713AbYFKKrC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jun 2008 06:47:02 -0400
+In-Reply-To: <20080610222046.GP23796@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-------=_Part_20010_4591096.1213180584304
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi,
 
->From 11262ea96e0fa73dd3470362b571a33b792bfb09 Mon Sep 17 00:00:00 2001
-From: arun <arunedarath@mistralsolutions.com>
-Date: Wed, 11 Jun 2008 15:46:10 +0530
-Subject: [PATCH] This patch completes the name change from 2430osk to OMAP2EVM
+Good comments. I'll tighten the patch-set into only two patches: regdefs
+and implementation. Some other comments below.
 
-Also
-	a) Changed old style i2c registration
-	b) Changed the Maintainer
+On ti, 2008-06-10 at 15:20 -0700, ext Tony Lindgren wrote:
+> > +
+> > +
+> > +/* #define DEBUG_SR 1 */
+> > +#ifdef DEBUG_SR
+> > +#  define DPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __func__ ,\
+> > +									## args)
+> > +#else
+> > +#  define DPRINTK(fmt, args...)
+> > +#endif
+> 
+> Please use the standard linux debugging functions instead.
 
-Signed-off-by: arun <arunedarath@mistralsolutions.com>
----
- arch/arm/mach-omap2/board-omap2evm.c       |  111 ++++++----------------------
- include/asm-arm/arch-omap/board-omap2evm.h |   14 ++--
- 2 files changed, 31 insertions(+), 94 deletions(-)
+Will do.
 
-diff --git a/arch/arm/mach-omap2/board-omap2evm.c
-b/arch/arm/mach-omap2/board-omap2evm.c
-index 146dba3..d00e502 100644
---- a/arch/arm/mach-omap2/board-omap2evm.c
-+++ b/arch/arm/mach-omap2/board-omap2evm.c
-@@ -1,7 +1,7 @@
- /*
-- * linux/arch/arm/mach-omap2/board-2430osk.c
-+ * linux/arch/arm/mach-omap2/board-omap2evm.c
-  *
-- * Copyright (C) 2007 Mistral Software Pvt Ltd
-+ * Copyright (C) 2008 Mistral Solutions Pvt Ltd
-  *
-  * Modified from mach-omap2/board-generic.c
-  *
-@@ -16,6 +16,7 @@
- #include <linux/delay.h>
- #include <linux/err.h>
- #include <linux/clk.h>
-+#include <linux/io.h>
+> 
+> 
+> > +struct omap_sr{
+> > +	int srid;
+> > +	int is_sr_reset;
+> > +	int is_autocomp_active;
+> > +	struct clk *fck;
+> > +	u32 req_opp_no;
+> > +	u32 opp1_nvalue, opp2_nvalue, opp3_nvalue, opp4_nvalue, opp5_nvalue;
+> > +	u32 senp_mod, senn_mod;
+> > +	u32 srbase_addr;
+> > +	u32 vpbase_addr;
+> > +};
+> > +
+> > +static struct omap_sr sr1 = {
+> > +	.srid = SR1,
+> > +	.is_sr_reset = 1,
+> > +	.is_autocomp_active = 0,
+> > +	.srbase_addr = OMAP34XX_SR1_BASE,
+> > +};
+> 
+> Please format struct data like linux code typically does, that is
+> align the values with tabs before the equal sign.
 
- #include <asm/hardware.h>
- #include <asm/mach-types.h>
-@@ -26,118 +27,54 @@
- #include <asm/arch/board.h>
- #include <asm/arch/common.h>
+OK.
 
--#include <asm/io.h>
--
--static void __init omap_2430osk_init_irq(void)
-+static void __init omap2_evm_init_irq(void)
- {
- 	omap2_init_common_hw();
- 	omap_init_irq();
- 	omap_gpio_init();
- }
+> 
+> 
+> > +static struct omap_sr sr2 = {
+> > +	.srid = SR2,
+> > +	.is_sr_reset = 1,
+> > +	.is_autocomp_active = 0,
+> > +	.srbase_addr = OMAP34XX_SR2_BASE,
+> > +};
+> > +
+> 
+> Here too.
+> 
+> 
+> > +static inline void sr_write_reg(struct omap_sr *sr, int offset, u32 value)
+> > +{
+> > +	omap_writel(value, sr->srbase_addr + offset);
+> > +}
+> > +
+> > +static inline void sr_modify_reg(struct omap_sr *sr, int offset, u32 mask,
+> > +								u32 value)
+> > +{
+> > +	u32 reg_val;
+> > +
+> > +	reg_val = omap_readl(sr->srbase_addr + offset);
+> > +	reg_val &= ~mask;
+> > +	reg_val |= value;
+> > +
+> > +	omap_writel(reg_val, sr->srbase_addr + offset);
+> > +}
+> > +
+> > +static inline u32 sr_read_reg(struct omap_sr *sr, int offset)
+> > +{
+> > +	return omap_readl(sr->srbase_addr + offset);
+> > +}
+> > +
+> > +
+> 
+> The read and write registers are better done using __raw_readl/writel()
+> instead. Unless the register address is static, the function adds the
+> IO offset every time unnecessarily.
+> 
+> So please set the sr->srbase_addr = io_v2p(SOME_PHYS_ADDR) during init
+> and change the read and write to use __raw_readl/writel() instead.
 
--static struct omap_uart_config osk2430_uart_config __initdata = {
-+static struct omap_uart_config omap2_evm_uart_config __initdata = {
- 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
- };
+did you mean "sr->srbase_addr = io_p2v(SOME_PHYS_ADDR)" ?
 
--static struct omap_board_config_kernel osk2430_config[] __initdata = {
--
--	{OMAP_TAG_UART, &osk2430_uart_config},
--};
--
--#if	defined(CONFIG_I2C_OMAP) || defined(CONFIG_I2C_OMAP_MODULE)
--
--#define OMAP2_I2C_BASE1		0x48070000
--#define OMAP2_I2C_BASE2		0x48072000
--#define OMAP2_I2C_INT1		56
--#define OMAP2_I2C_INT2		57
--
--static u32 omap2_i2c1_clkrate	= 400;
--static u32 omap2_i2c2_clkrate	= 2600;
--
--static struct resource i2c_resources1[] = {
--	{
--		.start	= OMAP2_I2C_BASE1,
--		.end	= OMAP2_I2C_BASE1 + 0x3f,
--		.flags	= IORESOURCE_MEM,
--	},
--	{
--		.start	= OMAP2_I2C_INT1,
--		.flags	= IORESOURCE_IRQ,
--	},
--};
--
--static struct resource i2c_resources2[] = {
--	{
--		.start	= OMAP2_I2C_BASE2,
--		.end	= OMAP2_I2C_BASE2 + 0x3f,
--		.flags	= IORESOURCE_MEM,
--	},
--	{
--		.start	= OMAP2_I2C_INT2,
--		.flags	= IORESOURCE_IRQ,
--	},
-+static struct omap_board_config_kernel omap2_evm_config[] __initdata = {
-+	{OMAP_TAG_UART, &omap2_evm_uart_config},
- };
+> 
+> 
+> > +#ifndef USE_EFUSE_VALUES
+> > +static void cal_reciprocal(u32 sensor, u32 *sengain, u32 *rnsen)
+> > +{
+> > +	u32 gn, rn, mul;
+> > +
+> > +	for (gn = 0; gn < GAIN_MAXLIMIT; gn++) {
+> > +		mul = 1 << (gn + 8);
+> > +		rn = mul / sensor;
+> > +		if (rn < R_MAXLIMIT) {
+> > +			*sengain = gn;
+> > +			*rnsen = rn;
+> > +		}
+> > +	}
+> > +}
+> > +#endif
+> > +
+> > +static int sr_clk_enable(struct omap_sr *sr)
+> > +{
+> > +	if (clk_enable(sr->fck) != 0) {
+> > +		printk(KERN_ERR "Could not enable sr%d_fck\n", sr->srid);
+> > +		goto clk_enable_err;
+> > +	}
+> > +
+> > +	/* set fclk- active , iclk- idle */
+> > +	sr_modify_reg(sr, ERRCONFIG, SR_CLKACTIVITY_MASK,
+> > +						SR_CLKACTIVITY_IOFF_FON);
+> > +
+> > +	return 0;
+> > +
+> > +clk_enable_err:
+> > +	return -1;
+> > +}
+> > +
+> > +static int sr_clk_disable(struct omap_sr *sr)
+> > +{
+> > +	/* set fclk, iclk- idle */
+> > +	sr_modify_reg(sr, ERRCONFIG, SR_CLKACTIVITY_MASK,
+> > +						SR_CLKACTIVITY_IOFF_FOFF);
+> > +
+> > +	clk_disable(sr->fck);
+> > +	sr->is_sr_reset = 1;
+> > +
+> > +	return 0;
+> > +}
+> 
+> Please don't add non-standard clk_enable/disable functions. Please use
+> the standard clock api instead so you can just call clk_enable/disable().
+> 
+> If you need to customize the clock, please just create a custom clock
+> with it's custom enable/disable function. See the new mcbsp code for
+> example.
 
--static struct platform_device omap_i2c_device1 = {
--	.name		= "i2c_omap",
--	.id		= 1,
--	.num_resources	= ARRAY_SIZE(i2c_resources1),
--	.resource	= i2c_resources1,
--	.dev		= {
--		.platform_data	= &omap2_i2c1_clkrate,
--	},
--};
--
--static struct platform_device omap_i2c_device2 = {
--	.name		= "i2c_omap",
--	.id		= 2,
--	.num_resources	= ARRAY_SIZE(i2c_resources2),
--	.resource	= i2c_resources2,
--	.dev		= {
--		.platform_data	= &omap2_i2c2_clkrate,
--	},
--};
--
--static void omap_init_i2c(void)
--{
--	(void) platform_device_register(&omap_i2c_device2);
--	(void) platform_device_register(&omap_i2c_device1);
--}
--
--#else
--
--static void omap_init_i2c(void) {}
--
--#endif
--
--static int __init omap2430_i2c_init(void)
-+static int __init omap2_evm_i2c_init(void)
- {
--	omap_init_i2c();
-+	/*
-+	 * Registering bus 2 first to avoid twl4030 misbehaving as OMAP2EVM
-+	 * has twl4030 on bus 2
-+	 */
-+	omap_register_i2c_bus(2, 2600, NULL, 0);
-+	omap_register_i2c_bus(1, 400, NULL, 0);
- 	return 0;
- }
+I'll look into this and see which would work better.
 
--static void __init omap_2430osk_init(void)
-+static void __init omap2_evm_init(void)
- {
--	omap_board_config = osk2430_config;
--	omap_board_config_size = ARRAY_SIZE(osk2430_config);
-+	omap_board_config = omap2_evm_config;
-+	omap_board_config_size = ARRAY_SIZE(omap2_evm_config);
- 	omap_serial_init();
- }
 
--static void __init omap_2430osk_map_io(void)
-+static void __init omap2_evm_map_io(void)
- {
- 	omap2_set_globals_243x();
- 	omap2_map_common_io();
- }
+> 
+> 
+> > +static void sr_set_nvalues(struct omap_sr *sr)
+> > +{
+> > +#ifdef USE_EFUSE_VALUES
+> > +	u32 n1, n2;
+> > +#else
+> > +	u32 senpval, sennval;
+> > +	u32 senpgain, senngain;
+> > +	u32 rnsenp, rnsenn;
+> > +#endif
+> > +
+> > +	if (sr->srid == SR1) {
+> > +#ifdef USE_EFUSE_VALUES
+> > +		/* Read values for VDD1 from EFUSE */
+> > +#else
+> 
+> These ifdefs look ugly, what if you had two functions, one for efuse
+> values and the other one for non-efuse values?
 
--arch_initcall(omap2430_i2c_init);
-+arch_initcall(omap2_evm_i2c_init);
+Yes, these are corrected in patch 3/3, but I'll tighten the patch-set
+into two patches, so these won't be lying around in any patch. 
 
--MACHINE_START(OMAP_2430OSK, "OMAP2430 2430OSK board")
--	/* Maintainer: Syed Khasim */
-+MACHINE_START(OMAP2EVM, "OMAP2EVM Board")
-+	/* Maintainer:  Arun KS <arunks@mistralsolutions.com> */
- 	.phys_io	= 0x48000000,
- 	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
--	.map_io		= omap_2430osk_map_io,
--	.init_irq	= omap_2430osk_init_irq,
--	.init_machine	= omap_2430osk_init,
-+	.map_io		= omap2_evm_map_io,
-+	.init_irq	= omap2_evm_init_irq,
-+	.init_machine	= omap2_evm_init,
- 	.timer		= &omap_timer,
- MACHINE_END
-diff --git a/include/asm-arm/arch-omap/board-omap2evm.h
-b/include/asm-arm/arch-omap/board-omap2evm.h
-index 3b61bc1..98273a9 100644
---- a/include/asm-arm/arch-omap/board-omap2evm.h
-+++ b/include/asm-arm/arch-omap/board-omap2evm.h
-@@ -1,9 +1,9 @@
- /*
-- * linux/include/asm-arm/arch-omap/board-2430osk.h
-+ * linux/include/asm-arm/arch-omap/board-omap2evm.h
-  *
-- * Hardware definitions for TI OMAP2430 OSK board.
-+ * Hardware definitions for Mistral's OMAP2EVM board.
-  *
-- * Based on board-2330sdp.h
-+ * Based on board-2430sdp.h
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-@@ -26,11 +26,11 @@
-  * 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
 
--#ifndef __ASM_ARCH_OMAP_2430OSK_H
--#define __ASM_ARCH_OMAP_2430OSK_H
-+#ifndef __ASM_ARCH_OMAP2_EVM_H
-+#define __ASM_ARCH_OMAP2_EVM_H
+> 
+> 
+> 
+> > +		/* since E-Fuse Values are not available, calculating the
+> > +		 * reciprocal of the SenN and SenP values for SR1
+> > +		 */
+> 
+> Please use standard Linux commenting style, see
+> Documentation/CodingStyle Chapter 8: Commenting...
 
--/* Placeholder for 2430OSK specific defines */
-+/* Placeholder for OMAP2EVM specific defines */
- #define OMAP24XX_ETHR_START		0x08000300
- #define OMAP24XX_ETHR_GPIO_IRQ		149
+Still learning ;)
 
--#endif /* __ASM_ARCH_OMAP_2430OSK_H */
-+#endif /* __ASM_ARCH_OMAP2_EVM_H */
--- 
-1.5.3.4
+> 
+> 
+> > +		sr->senp_mod = 0x03;        /* SenN-M5 enabled */
+> > +		sr->senn_mod = 0x03;
+> > +
+> > +		/* for OPP5 */
+> > +		senpval = 0x848 + 0x330;
+> > +		sennval = 0xacd + 0x330;
+> > +
+> > +		cal_reciprocal(senpval, &senpgain, &rnsenp);
+> > +		cal_reciprocal(sennval, &senngain, &rnsenn);
+> > +
+> > +		sr->opp5_nvalue =
+> > +				((senpgain << NVALUERECIPROCAL_SENPGAIN_SHIFT) |
+> > +				(senngain << NVALUERECIPROCAL_SENNGAIN_SHIFT) |
+> > +				(rnsenp << NVALUERECIPROCAL_RNSENP_SHIFT) |
+> > +				(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT));
+> > +
+> > +		/* for OPP4 */
+> > +		senpval = 0x727 + 0x2a0;
+> > +		sennval = 0x964 + 0x2a0;
+> > +
+> > +		cal_reciprocal(senpval, &senpgain, &rnsenp);
+> > +		cal_reciprocal(sennval, &senngain, &rnsenn);
+> > +
+> > +		sr->opp4_nvalue =
+> > +				((senpgain << NVALUERECIPROCAL_SENPGAIN_SHIFT) |
+> > +				(senngain << NVALUERECIPROCAL_SENNGAIN_SHIFT) |
+> > +				(rnsenp << NVALUERECIPROCAL_RNSENP_SHIFT) |
+> > +				(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT));
+> > +
+> > +		/* for OPP3 */
+> > +		senpval = 0x655 + 0x200;
+> > +		sennval = 0x85b + 0x200;
+> > +
+> > +		cal_reciprocal(senpval, &senpgain, &rnsenp);
+> > +		cal_reciprocal(sennval, &senngain, &rnsenn);
+> > +
+> > +		sr->opp3_nvalue =
+> > +				((senpgain << NVALUERECIPROCAL_SENPGAIN_SHIFT) |
+> > +				(senngain << NVALUERECIPROCAL_SENNGAIN_SHIFT) |
+> > +				(rnsenp << NVALUERECIPROCAL_RNSENP_SHIFT) |
+> > +				(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT));
+> > +
+> > +		/* for OPP2 */
+> > +		senpval = 0x3be + 0x1a0;
+> > +		sennval = 0x506 + 0x1a0;
+> > +
+> > +		cal_reciprocal(senpval, &senpgain, &rnsenp);
+> > +		cal_reciprocal(sennval, &senngain, &rnsenn);
+> > +
+> > +		sr->opp2_nvalue =
+> > +				((senpgain << NVALUERECIPROCAL_SENPGAIN_SHIFT) |
+> > +				(senngain << NVALUERECIPROCAL_SENNGAIN_SHIFT) |
+> > +				(rnsenp << NVALUERECIPROCAL_RNSENP_SHIFT) |
+> > +				(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT));
+> > +
+> > +		/* for OPP1 */
+> > +		senpval = 0x28c + 0x100;
+> > +		sennval = 0x373 + 0x100;
+> > +
+> > +		cal_reciprocal(senpval, &senpgain, &rnsenp);
+> > +		cal_reciprocal(sennval, &senngain, &rnsenn);
+> > +
+> > +		sr->opp1_nvalue =
+> > +				((senpgain << NVALUERECIPROCAL_SENPGAIN_SHIFT) |
+> > +				(senngain << NVALUERECIPROCAL_SENNGAIN_SHIFT) |
+> > +				(rnsenp << NVALUERECIPROCAL_RNSENP_SHIFT) |
+> > +				(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT));
+> > +
+> > +		sr_clk_enable(sr);
+> > +		sr_write_reg(sr, NVALUERECIPROCAL, sr->opp3_nvalue);
+> > +		sr_clk_disable(sr);
+> > +
+> 
+> Looks like instead of this copy and paste code for the values should
+> be set by some function or a loop?
+> 
 
-------=_Part_20010_4591096.1213180584304
-Content-Type: text/x-patch;
- name=0003-This-patch-completes-the-name-change-from-2430osk-to.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fhbq40gt0
-Content-Disposition: attachment;
- filename=0003-This-patch-completes-the-name-change-from-2430osk-to.patch
+I agree.
 
-RnJvbSAxMTI2MmVhOTZlMGZhNzNkZDM0NzAzNjJiNTcxYTMzYjc5MmJmYjA5IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBhcnVuIDxhcnVuZWRhcmF0aEBtaXN0cmFsc29sdXRpb25zLmNv
-bT4KRGF0ZTogV2VkLCAxMSBKdW4gMjAwOCAxNTo0NjoxMCArMDUzMApTdWJqZWN0OiBbUEFUQ0hd
-IFRoaXMgcGF0Y2ggY29tcGxldGVzIHRoZSBuYW1lIGNoYW5nZSBmcm9tIDI0MzBvc2sgdG8gT01B
-UDJFVk0KCkFsc28KCWEpIENoYW5nZWQgb2xkIHN0eWxlIGkyYyByZWdpc3RyYXRpb24KCWIpIENo
-YW5nZWQgdGhlIE1haW50YWluZXIKClNpZ25lZC1vZmYtYnk6IGFydW4gPGFydW5lZGFyYXRoQG1p
-c3RyYWxzb2x1dGlvbnMuY29tPgotLS0KIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDJl
-dm0uYyAgICAgICB8ICAxMTEgKysrKysrLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQogaW5jbHVkZS9h
-c20tYXJtL2FyY2gtb21hcC9ib2FyZC1vbWFwMmV2bS5oIHwgICAxNCArKy0tCiAyIGZpbGVzIGNo
-YW5nZWQsIDMxIGluc2VydGlvbnMoKyksIDk0IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2Fy
-Y2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDJldm0uYyBiL2FyY2gvYXJtL21hY2gtb21hcDIv
-Ym9hcmQtb21hcDJldm0uYwppbmRleCAxNDZkYmEzLi5kMDBlNTAyIDEwMDY0NAotLS0gYS9hcmNo
-L2FybS9tYWNoLW9tYXAyL2JvYXJkLW9tYXAyZXZtLmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFw
-Mi9ib2FyZC1vbWFwMmV2bS5jCkBAIC0xLDcgKzEsNyBAQAogLyoKLSAqIGxpbnV4L2FyY2gvYXJt
-L21hY2gtb21hcDIvYm9hcmQtMjQzMG9zay5jCisgKiBsaW51eC9hcmNoL2FybS9tYWNoLW9tYXAy
-L2JvYXJkLW9tYXAyZXZtLmMKICAqCi0gKiBDb3B5cmlnaHQgKEMpIDIwMDcgTWlzdHJhbCBTb2Z0
-d2FyZSBQdnQgTHRkCisgKiBDb3B5cmlnaHQgKEMpIDIwMDggTWlzdHJhbCBTb2x1dGlvbnMgUHZ0
-IEx0ZAogICoKICAqIE1vZGlmaWVkIGZyb20gbWFjaC1vbWFwMi9ib2FyZC1nZW5lcmljLmMKICAq
-CkBAIC0xNiw2ICsxNiw3IEBACiAjaW5jbHVkZSA8bGludXgvZGVsYXkuaD4KICNpbmNsdWRlIDxs
-aW51eC9lcnIuaD4KICNpbmNsdWRlIDxsaW51eC9jbGsuaD4KKyNpbmNsdWRlIDxsaW51eC9pby5o
-PgogCiAjaW5jbHVkZSA8YXNtL2hhcmR3YXJlLmg+CiAjaW5jbHVkZSA8YXNtL21hY2gtdHlwZXMu
-aD4KQEAgLTI2LDExOCArMjcsNTQgQEAKICNpbmNsdWRlIDxhc20vYXJjaC9ib2FyZC5oPgogI2lu
-Y2x1ZGUgPGFzbS9hcmNoL2NvbW1vbi5oPgogCi0jaW5jbHVkZSA8YXNtL2lvLmg+Ci0KLXN0YXRp
-YyB2b2lkIF9faW5pdCBvbWFwXzI0MzBvc2tfaW5pdF9pcnEodm9pZCkKK3N0YXRpYyB2b2lkIF9f
-aW5pdCBvbWFwMl9ldm1faW5pdF9pcnEodm9pZCkKIHsKIAlvbWFwMl9pbml0X2NvbW1vbl9odygp
-OwogCW9tYXBfaW5pdF9pcnEoKTsKIAlvbWFwX2dwaW9faW5pdCgpOwogfQogCi1zdGF0aWMgc3Ry
-dWN0IG9tYXBfdWFydF9jb25maWcgb3NrMjQzMF91YXJ0X2NvbmZpZyBfX2luaXRkYXRhID0gewor
-c3RhdGljIHN0cnVjdCBvbWFwX3VhcnRfY29uZmlnIG9tYXAyX2V2bV91YXJ0X2NvbmZpZyBfX2lu
-aXRkYXRhID0gewogCS5lbmFibGVkX3VhcnRzCT0gKCgxIDw8IDApIHwgKDEgPDwgMSkgfCAoMSA8
-PCAyKSksCiB9OwogCi1zdGF0aWMgc3RydWN0IG9tYXBfYm9hcmRfY29uZmlnX2tlcm5lbCBvc2sy
-NDMwX2NvbmZpZ1tdIF9faW5pdGRhdGEgPSB7Ci0KLQl7T01BUF9UQUdfVUFSVCwgJm9zazI0MzBf
-dWFydF9jb25maWd9LAotfTsKLQotI2lmCWRlZmluZWQoQ09ORklHX0kyQ19PTUFQKSB8fCBkZWZp
-bmVkKENPTkZJR19JMkNfT01BUF9NT0RVTEUpCi0KLSNkZWZpbmUgT01BUDJfSTJDX0JBU0UxCQkw
-eDQ4MDcwMDAwCi0jZGVmaW5lIE9NQVAyX0kyQ19CQVNFMgkJMHg0ODA3MjAwMAotI2RlZmluZSBP
-TUFQMl9JMkNfSU5UMQkJNTYKLSNkZWZpbmUgT01BUDJfSTJDX0lOVDIJCTU3Ci0KLXN0YXRpYyB1
-MzIgb21hcDJfaTJjMV9jbGtyYXRlCT0gNDAwOwotc3RhdGljIHUzMiBvbWFwMl9pMmMyX2Nsa3Jh
-dGUJPSAyNjAwOwotCi1zdGF0aWMgc3RydWN0IHJlc291cmNlIGkyY19yZXNvdXJjZXMxW10gPSB7
-Ci0JewotCQkuc3RhcnQJPSBPTUFQMl9JMkNfQkFTRTEsCi0JCS5lbmQJPSBPTUFQMl9JMkNfQkFT
-RTEgKyAweDNmLAotCQkuZmxhZ3MJPSBJT1JFU09VUkNFX01FTSwKLQl9LAotCXsKLQkJLnN0YXJ0
-CT0gT01BUDJfSTJDX0lOVDEsCi0JCS5mbGFncwk9IElPUkVTT1VSQ0VfSVJRLAotCX0sCi19Owot
-Ci1zdGF0aWMgc3RydWN0IHJlc291cmNlIGkyY19yZXNvdXJjZXMyW10gPSB7Ci0JewotCQkuc3Rh
-cnQJPSBPTUFQMl9JMkNfQkFTRTIsCi0JCS5lbmQJPSBPTUFQMl9JMkNfQkFTRTIgKyAweDNmLAot
-CQkuZmxhZ3MJPSBJT1JFU09VUkNFX01FTSwKLQl9LAotCXsKLQkJLnN0YXJ0CT0gT01BUDJfSTJD
-X0lOVDIsCi0JCS5mbGFncwk9IElPUkVTT1VSQ0VfSVJRLAotCX0sCitzdGF0aWMgc3RydWN0IG9t
-YXBfYm9hcmRfY29uZmlnX2tlcm5lbCBvbWFwMl9ldm1fY29uZmlnW10gX19pbml0ZGF0YSA9IHsK
-Kwl7T01BUF9UQUdfVUFSVCwgJm9tYXAyX2V2bV91YXJ0X2NvbmZpZ30sCiB9OwogCi1zdGF0aWMg
-c3RydWN0IHBsYXRmb3JtX2RldmljZSBvbWFwX2kyY19kZXZpY2UxID0gewotCS5uYW1lCQk9ICJp
-MmNfb21hcCIsCi0JLmlkCQk9IDEsCi0JLm51bV9yZXNvdXJjZXMJPSBBUlJBWV9TSVpFKGkyY19y
-ZXNvdXJjZXMxKSwKLQkucmVzb3VyY2UJPSBpMmNfcmVzb3VyY2VzMSwKLQkuZGV2CQk9IHsKLQkJ
-LnBsYXRmb3JtX2RhdGEJPSAmb21hcDJfaTJjMV9jbGtyYXRlLAotCX0sCi19OwotCi1zdGF0aWMg
-c3RydWN0IHBsYXRmb3JtX2RldmljZSBvbWFwX2kyY19kZXZpY2UyID0gewotCS5uYW1lCQk9ICJp
-MmNfb21hcCIsCi0JLmlkCQk9IDIsCi0JLm51bV9yZXNvdXJjZXMJPSBBUlJBWV9TSVpFKGkyY19y
-ZXNvdXJjZXMyKSwKLQkucmVzb3VyY2UJPSBpMmNfcmVzb3VyY2VzMiwKLQkuZGV2CQk9IHsKLQkJ
-LnBsYXRmb3JtX2RhdGEJPSAmb21hcDJfaTJjMl9jbGtyYXRlLAotCX0sCi19OwotCi1zdGF0aWMg
-dm9pZCBvbWFwX2luaXRfaTJjKHZvaWQpCi17Ci0JKHZvaWQpIHBsYXRmb3JtX2RldmljZV9yZWdp
-c3Rlcigmb21hcF9pMmNfZGV2aWNlMik7Ci0JKHZvaWQpIHBsYXRmb3JtX2RldmljZV9yZWdpc3Rl
-cigmb21hcF9pMmNfZGV2aWNlMSk7Ci19Ci0KLSNlbHNlCi0KLXN0YXRpYyB2b2lkIG9tYXBfaW5p
-dF9pMmModm9pZCkge30KLQotI2VuZGlmCi0KLXN0YXRpYyBpbnQgX19pbml0IG9tYXAyNDMwX2ky
-Y19pbml0KHZvaWQpCitzdGF0aWMgaW50IF9faW5pdCBvbWFwMl9ldm1faTJjX2luaXQodm9pZCkK
-IHsKLQlvbWFwX2luaXRfaTJjKCk7CisJLyoKKwkgKiBSZWdpc3RlcmluZyBidXMgMiBmaXJzdCB0
-byBhdm9pZCB0d2w0MDMwIG1pc2JlaGF2aW5nIGFzIE9NQVAyRVZNCisJICogaGFzIHR3bDQwMzAg
-b24gYnVzIDIKKwkgKi8KKwlvbWFwX3JlZ2lzdGVyX2kyY19idXMoMiwgMjYwMCwgTlVMTCwgMCk7
-CisJb21hcF9yZWdpc3Rlcl9pMmNfYnVzKDEsIDQwMCwgTlVMTCwgMCk7CiAJcmV0dXJuIDA7CiB9
-CiAKLXN0YXRpYyB2b2lkIF9faW5pdCBvbWFwXzI0MzBvc2tfaW5pdCh2b2lkKQorc3RhdGljIHZv
-aWQgX19pbml0IG9tYXAyX2V2bV9pbml0KHZvaWQpCiB7Ci0Jb21hcF9ib2FyZF9jb25maWcgPSBv
-c2syNDMwX2NvbmZpZzsKLQlvbWFwX2JvYXJkX2NvbmZpZ19zaXplID0gQVJSQVlfU0laRShvc2sy
-NDMwX2NvbmZpZyk7CisJb21hcF9ib2FyZF9jb25maWcgPSBvbWFwMl9ldm1fY29uZmlnOworCW9t
-YXBfYm9hcmRfY29uZmlnX3NpemUgPSBBUlJBWV9TSVpFKG9tYXAyX2V2bV9jb25maWcpOwogCW9t
-YXBfc2VyaWFsX2luaXQoKTsKIH0KIAotc3RhdGljIHZvaWQgX19pbml0IG9tYXBfMjQzMG9za19t
-YXBfaW8odm9pZCkKK3N0YXRpYyB2b2lkIF9faW5pdCBvbWFwMl9ldm1fbWFwX2lvKHZvaWQpCiB7
-CiAJb21hcDJfc2V0X2dsb2JhbHNfMjQzeCgpOwogCW9tYXAyX21hcF9jb21tb25faW8oKTsKIH0K
-IAotYXJjaF9pbml0Y2FsbChvbWFwMjQzMF9pMmNfaW5pdCk7CithcmNoX2luaXRjYWxsKG9tYXAy
-X2V2bV9pMmNfaW5pdCk7CiAKLU1BQ0hJTkVfU1RBUlQoT01BUF8yNDMwT1NLLCAiT01BUDI0MzAg
-MjQzME9TSyBib2FyZCIpCi0JLyogTWFpbnRhaW5lcjogU3llZCBLaGFzaW0gKi8KK01BQ0hJTkVf
-U1RBUlQoT01BUDJFVk0sICJPTUFQMkVWTSBCb2FyZCIpCisJLyogTWFpbnRhaW5lcjogIEFydW4g
-S1MgPGFydW5rc0BtaXN0cmFsc29sdXRpb25zLmNvbT4gKi8KIAkucGh5c19pbwk9IDB4NDgwMDAw
-MDAsCiAJLmlvX3BnX29mZnN0CT0gKCgweGQ4MDAwMDAwKSA+PiAxOCkgJiAweGZmZmMsCiAJLmJv
-b3RfcGFyYW1zCT0gMHg4MDAwMDEwMCwKLQkubWFwX2lvCQk9IG9tYXBfMjQzMG9za19tYXBfaW8s
-Ci0JLmluaXRfaXJxCT0gb21hcF8yNDMwb3NrX2luaXRfaXJxLAotCS5pbml0X21hY2hpbmUJPSBv
-bWFwXzI0MzBvc2tfaW5pdCwKKwkubWFwX2lvCQk9IG9tYXAyX2V2bV9tYXBfaW8sCisJLmluaXRf
-aXJxCT0gb21hcDJfZXZtX2luaXRfaXJxLAorCS5pbml0X21hY2hpbmUJPSBvbWFwMl9ldm1faW5p
-dCwKIAkudGltZXIJCT0gJm9tYXBfdGltZXIsCiBNQUNISU5FX0VORApkaWZmIC0tZ2l0IGEvaW5j
-bHVkZS9hc20tYXJtL2FyY2gtb21hcC9ib2FyZC1vbWFwMmV2bS5oIGIvaW5jbHVkZS9hc20tYXJt
-L2FyY2gtb21hcC9ib2FyZC1vbWFwMmV2bS5oCmluZGV4IDNiNjFiYzEuLjk4MjczYTkgMTAwNjQ0
-Ci0tLSBhL2luY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvYm9hcmQtb21hcDJldm0uaAorKysgYi9p
-bmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFwL2JvYXJkLW9tYXAyZXZtLmgKQEAgLTEsOSArMSw5IEBA
-CiAvKgotICogbGludXgvaW5jbHVkZS9hc20tYXJtL2FyY2gtb21hcC9ib2FyZC0yNDMwb3NrLmgK
-KyAqIGxpbnV4L2luY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvYm9hcmQtb21hcDJldm0uaAogICoK
-LSAqIEhhcmR3YXJlIGRlZmluaXRpb25zIGZvciBUSSBPTUFQMjQzMCBPU0sgYm9hcmQuCisgKiBI
-YXJkd2FyZSBkZWZpbml0aW9ucyBmb3IgTWlzdHJhbCdzIE9NQVAyRVZNIGJvYXJkLgogICoKLSAq
-IEJhc2VkIG9uIGJvYXJkLTIzMzBzZHAuaAorICogQmFzZWQgb24gYm9hcmQtMjQzMHNkcC5oCiAg
-KgogICogVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRl
-IGl0IGFuZC9vciBtb2RpZnkgaXQKICAqIHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVy
-YWwgUHVibGljIExpY2Vuc2UgYXMgcHVibGlzaGVkIGJ5IHRoZQpAQCAtMjYsMTEgKzI2LDExIEBA
-CiAgKiA2NzUgTWFzcyBBdmUsIENhbWJyaWRnZSwgTUEgMDIxMzksIFVTQS4KICAqLwogCi0jaWZu
-ZGVmIF9fQVNNX0FSQ0hfT01BUF8yNDMwT1NLX0gKLSNkZWZpbmUgX19BU01fQVJDSF9PTUFQXzI0
-MzBPU0tfSAorI2lmbmRlZiBfX0FTTV9BUkNIX09NQVAyX0VWTV9ICisjZGVmaW5lIF9fQVNNX0FS
-Q0hfT01BUDJfRVZNX0gKIAotLyogUGxhY2Vob2xkZXIgZm9yIDI0MzBPU0sgc3BlY2lmaWMgZGVm
-aW5lcyAqLworLyogUGxhY2Vob2xkZXIgZm9yIE9NQVAyRVZNIHNwZWNpZmljIGRlZmluZXMgKi8K
-ICNkZWZpbmUgT01BUDI0WFhfRVRIUl9TVEFSVAkJMHgwODAwMDMwMAogI2RlZmluZSBPTUFQMjRY
-WF9FVEhSX0dQSU9fSVJRCQkxNDkKIAotI2VuZGlmIC8qIF9fQVNNX0FSQ0hfT01BUF8yNDMwT1NL
-X0ggKi8KKyNlbmRpZiAvKiBfX0FTTV9BUkNIX09NQVAyX0VWTV9IICovCi0tIAoxLjUuMy40Cgo=
 
-------=_Part_20010_4591096.1213180584304--
+Regards,
+Kalle
+
+
+
+> Regards,
+> 
+> Tony
+> 
+> 
+> 
+> 
+> > +#endif
+> > +	} else if (sr->srid == SR2) {
+> > +#ifdef USE_EFUSE_VALUES
+> > +		/* Read values for VDD2 from EFUSE */
+> > +#else
+> > +		/* since E-Fuse Values are not available, calculating the
+> > +		 * reciprocal of the SenN and SenP values for SR2
+> > +		 */
+> > +		sr->senp_mod = 0x03;
+> > +		sr->senn_mod = 0x03;
+> > +
+> > +		/* for OPP3 */
+> > +		senpval = 0x579 + 0x200;
+> > +		sennval = 0x76f + 0x200;
+> > +
+> > +		cal_reciprocal(senpval, &senpgain, &rnsenp);
+> > +		cal_reciprocal(sennval, &senngain, &rnsenn);
+> > +
+> > +		sr->opp3_nvalue =
+> > +				((senpgain << NVALUERECIPROCAL_SENPGAIN_SHIFT) |
+> > +				(senngain << NVALUERECIPROCAL_SENNGAIN_SHIFT) |
+> > +				(rnsenp << NVALUERECIPROCAL_RNSENP_SHIFT) |
+> > +				(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT));
+> > +
+> > +		/* for OPP2 */
+> > +		senpval = 0x390 + 0x1c0;
+> > +		sennval = 0x4f5 + 0x1c0;
+> > +
+> > +		cal_reciprocal(senpval, &senpgain, &rnsenp);
+> > +		cal_reciprocal(sennval, &senngain, &rnsenn);
+> > +
+> > +		sr->opp2_nvalue =
+> > +				((senpgain << NVALUERECIPROCAL_SENPGAIN_SHIFT) |
+> > +				(senngain << NVALUERECIPROCAL_SENNGAIN_SHIFT) |
+> > +				(rnsenp << NVALUERECIPROCAL_RNSENP_SHIFT) |
+> > +				(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT));
+> > +
+> > +		/* for OPP1 */
+> > +		senpval = 0x25d;
+> > +		sennval = 0x359;
+> > +
+> > +		cal_reciprocal(senpval, &senpgain, &rnsenp);
+> > +		cal_reciprocal(sennval, &senngain, &rnsenn);
+> > +
+> > +		sr->opp1_nvalue =
+> > +				((senpgain << NVALUERECIPROCAL_SENPGAIN_SHIFT) |
+> > +				(senngain << NVALUERECIPROCAL_SENNGAIN_SHIFT) |
+> > +				(rnsenp << NVALUERECIPROCAL_RNSENP_SHIFT) |
+> > +				(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT));
+> > +
+> > +#endif
+> > +	}
+> > +
+> > +}
+> > +
+> > +static void sr_configure_vp(int srid)
+> > +{
+> > +	u32 vpconfig;
+> > +
+> > +	if (srid == SR1) {
+> > +		vpconfig = PRM_VP1_CONFIG_ERROROFFSET | PRM_VP1_CONFIG_ERRORGAIN
+> > +			| PRM_VP1_CONFIG_INITVOLTAGE | PRM_VP1_CONFIG_TIMEOUTEN;
+> > +
+> > +		PRM_VP1_CONFIG = vpconfig;
+> > +		PRM_VP1_VSTEPMIN = PRM_VP1_VSTEPMIN_SMPSWAITTIMEMIN |
+> > +						PRM_VP1_VSTEPMIN_VSTEPMIN;
+> > +
+> > +		PRM_VP1_VSTEPMAX = PRM_VP1_VSTEPMAX_SMPSWAITTIMEMAX |
+> > +						PRM_VP1_VSTEPMAX_VSTEPMAX;
+> > +
+> > +		PRM_VP1_VLIMITTO = PRM_VP1_VLIMITTO_VDDMAX |
+> > +			PRM_VP1_VLIMITTO_VDDMIN | PRM_VP1_VLIMITTO_TIMEOUT;
+> > +
+> > +		PRM_VP1_CONFIG |= PRM_VP1_CONFIG_INITVDD;
+> > +		PRM_VP1_CONFIG &= ~PRM_VP1_CONFIG_INITVDD;
+> > +
+> > +	} else if (srid == SR2) {
+> > +		vpconfig = PRM_VP2_CONFIG_ERROROFFSET | PRM_VP2_CONFIG_ERRORGAIN
+> > +			| PRM_VP2_CONFIG_INITVOLTAGE | PRM_VP2_CONFIG_TIMEOUTEN;
+> > +
+> > +		PRM_VP2_CONFIG = vpconfig;
+> > +		PRM_VP2_VSTEPMIN = PRM_VP2_VSTEPMIN_SMPSWAITTIMEMIN |
+> > +						PRM_VP2_VSTEPMIN_VSTEPMIN;
+> > +
+> > +		PRM_VP2_VSTEPMAX = PRM_VP2_VSTEPMAX_SMPSWAITTIMEMAX |
+> > +						PRM_VP2_VSTEPMAX_VSTEPMAX;
+> > +
+> > +		PRM_VP2_VLIMITTO = PRM_VP2_VLIMITTO_VDDMAX |
+> > +			PRM_VP2_VLIMITTO_VDDMIN | PRM_VP2_VLIMITTO_TIMEOUT;
+> > +
+> > +		PRM_VP2_CONFIG |= PRM_VP2_CONFIG_INITVDD;
+> > +		PRM_VP2_CONFIG &= ~PRM_VP2_CONFIG_INITVDD;
+> > +
+> > +	}
+> > +}
+> > +
+> > +static void sr_configure_vc(void)
+> > +{
+> > +	PRM_VC_SMPS_SA =
+> > +		(R_SRI2C_SLAVE_ADDR << PRM_VC_SMPS_SA1_SHIFT) |
+> > +		(R_SRI2C_SLAVE_ADDR << PRM_VC_SMPS_SA0_SHIFT);
+> > +
+> > +	PRM_VC_SMPS_VOL_RA = (R_VDD2_SR_CONTROL << PRM_VC_SMPS_VOLRA1_SHIFT) |
+> > +				(R_VDD1_SR_CONTROL << PRM_VC_SMPS_VOLRA0_SHIFT);
+> > +
+> > +	PRM_VC_CMD_VAL_0 = (PRM_VC_CMD_VAL0_ON << PRM_VC_CMD_ON_SHIFT) |
+> > +			(PRM_VC_CMD_VAL0_ONLP << PRM_VC_CMD_ONLP_SHIFT) |
+> > +			(PRM_VC_CMD_VAL0_RET << PRM_VC_CMD_RET_SHIFT) |
+> > +			(PRM_VC_CMD_VAL0_OFF << PRM_VC_CMD_OFF_SHIFT);
+> > +
+> > +	PRM_VC_CMD_VAL_1 = (PRM_VC_CMD_VAL1_ON << PRM_VC_CMD_ON_SHIFT) |
+> > +			(PRM_VC_CMD_VAL1_ONLP << PRM_VC_CMD_ONLP_SHIFT) |
+> > +			(PRM_VC_CMD_VAL1_RET << PRM_VC_CMD_RET_SHIFT) |
+> > +			(PRM_VC_CMD_VAL1_OFF << PRM_VC_CMD_OFF_SHIFT);
+> > +
+> > +	PRM_VC_CH_CONF = PRM_VC_CH_CONF_CMD1 | PRM_VC_CH_CONF_RAV1;
+> > +
+> > +	PRM_VC_I2C_CFG = PRM_VC_I2C_CFG_MCODE | PRM_VC_I2C_CFG_HSEN
+> > +							| PRM_VC_I2C_CFG_SREN;
+> > +
+> > +	/* Setup voltctrl and other setup times */
+> > +#ifdef CONFIG_SYSOFFMODE
+> > +	PRM_VOLTCTRL = PRM_VOLTCTRL_AUTO_OFF | PRM_VOLTCTRL_AUTO_RET;
+> > +	PRM_CLKSETUP = PRM_CLKSETUP_DURATION;
+> > +	PRM_VOLTSETUP1 = (PRM_VOLTSETUP_TIME2 << PRM_VOLTSETUP_TIME2_OFFSET) |
+> > +			(PRM_VOLTSETUP_TIME1 << PRM_VOLTSETUP_TIME1_OFFSET);
+> > +	PRM_VOLTOFFSET = PRM_VOLTOFFSET_DURATION;
+> > +	PRM_VOLTSETUP2 = PRM_VOLTSETUP2_DURATION;
+> > +#else
+> > +	PRM_VOLTCTRL |= PRM_VOLTCTRL_AUTO_RET;
+> > +#endif
+> > +
+> > +}
+> > +
+> > +
+> > +static void sr_configure(struct omap_sr *sr)
+> > +{
+> > +	u32 sys_clk, sr_clk_length = 0;
+> > +	u32 sr_config;
+> > +	u32 senp_en , senn_en;
+> > +
+> > +	senp_en = sr->senp_mod;
+> > +	senn_en = sr->senn_mod;
+> > +
+> > +	sys_clk = prcm_get_system_clock_speed();
+> > +
+> > +	switch (sys_clk) {
+> > +	case 12000:
+> > +		sr_clk_length = SRCLKLENGTH_12MHZ_SYSCLK;
+> > +		break;
+> > +	case 13000:
+> > +		sr_clk_length = SRCLKLENGTH_13MHZ_SYSCLK;
+> > +		break;
+> > +	case 19200:
+> > +		sr_clk_length = SRCLKLENGTH_19MHZ_SYSCLK;
+> > +		break;
+> > +	case 26000:
+> > +		sr_clk_length = SRCLKLENGTH_26MHZ_SYSCLK;
+> > +		break;
+> > +	case 38400:
+> > +		sr_clk_length = SRCLKLENGTH_38MHZ_SYSCLK;
+> > +		break;
+> > +	default :
+> > +		printk(KERN_ERR "Invalid sysclk value\n");
+> > +		break;
+> > +	}
+> > +
+> > +	DPRINTK(KERN_DEBUG "SR : sys clk %lu\n", sys_clk);
+> > +	if (sr->srid == SR1) {
+> > +		sr_config = SR1_SRCONFIG_ACCUMDATA |
+> > +			(sr_clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
+> > +			SRCONFIG_SENENABLE | SRCONFIG_ERRGEN_EN |
+> > +			SRCONFIG_MINMAXAVG_EN |
+> > +			(senn_en << SRCONFIG_SENNENABLE_SHIFT) |
+> > +			(senp_en << SRCONFIG_SENPENABLE_SHIFT) |
+> > +			SRCONFIG_DELAYCTRL;
+> > +
+> > +		sr_write_reg(sr, SRCONFIG, sr_config);
+> > +
+> > +		sr_write_reg(sr, AVGWEIGHT, SR1_AVGWEIGHT_SENPAVGWEIGHT |
+> > +					SR1_AVGWEIGHT_SENNAVGWEIGHT);
+> > +
+> > +		sr_modify_reg(sr, ERRCONFIG, (SR_ERRWEIGHT_MASK |
+> > +			SR_ERRMAXLIMIT_MASK | SR_ERRMINLIMIT_MASK),
+> > +			(SR1_ERRWEIGHT | SR1_ERRMAXLIMIT | SR1_ERRMINLIMIT));
+> > +
+> > +	} else if (sr->srid == SR2) {
+> > +		sr_config = SR2_SRCONFIG_ACCUMDATA |
+> > +			(sr_clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
+> > +			SRCONFIG_SENENABLE | SRCONFIG_ERRGEN_EN |
+> > +			SRCONFIG_MINMAXAVG_EN |
+> > +			(senn_en << SRCONFIG_SENNENABLE_SHIFT) |
+> > +			(senp_en << SRCONFIG_SENPENABLE_SHIFT) |
+> > +			SRCONFIG_DELAYCTRL;
+> > +
+> > +		sr_write_reg(sr, SRCONFIG, sr_config);
+> > +
+> > +		sr_write_reg(sr, AVGWEIGHT, SR2_AVGWEIGHT_SENPAVGWEIGHT |
+> > +					SR2_AVGWEIGHT_SENNAVGWEIGHT);
+> > +
+> > +		sr_modify_reg(sr, ERRCONFIG, (SR_ERRWEIGHT_MASK |
+> > +			SR_ERRMAXLIMIT_MASK | SR_ERRMINLIMIT_MASK),
+> > +			(SR2_ERRWEIGHT | SR2_ERRMAXLIMIT | SR2_ERRMINLIMIT));
+> > +
+> > +	}
+> > +	sr->is_sr_reset = 0;
+> > +}
+> > +
+> > +static void sr_enable(struct omap_sr *sr, u32 target_opp_no)
+> > +{
+> > +	u32 nvalue_reciprocal, current_nvalue;
+> > +
+> > +	sr->req_opp_no = target_opp_no;
+> > +
+> > +	if (sr->srid == SR1) {
+> > +		switch (target_opp_no) {
+> > +		case 5:
+> > +			nvalue_reciprocal = sr->opp5_nvalue;
+> > +			break;
+> > +		case 4:
+> > +			nvalue_reciprocal = sr->opp4_nvalue;
+> > +			break;
+> > +		case 3:
+> > +			nvalue_reciprocal = sr->opp3_nvalue;
+> > +			break;
+> > +		case 2:
+> > +			nvalue_reciprocal = sr->opp2_nvalue;
+> > +			break;
+> > +		case 1:
+> > +			nvalue_reciprocal = sr->opp1_nvalue;
+> > +			break;
+> > +		default:
+> > +			nvalue_reciprocal = sr->opp3_nvalue;
+> > +			break;
+> > +		}
+> > +	} else {
+> > +		switch (target_opp_no) {
+> > +		case 3:
+> > +			nvalue_reciprocal = sr->opp3_nvalue;
+> > +			break;
+> > +		case 2:
+> > +			nvalue_reciprocal = sr->opp2_nvalue;
+> > +			break;
+> > +		case 1:
+> > +			nvalue_reciprocal = sr->opp1_nvalue;
+> > +			break;
+> > +		default:
+> > +			nvalue_reciprocal = sr->opp3_nvalue;
+> > +			break;
+> > +		}
+> > +	}
+> > +
+> > +	current_nvalue = sr_read_reg(sr, NVALUERECIPROCAL);
+> > +
+> > +	if (current_nvalue == nvalue_reciprocal) {
+> > +		DPRINTK("System is already at the desired voltage level\n");
+> > +		return;
+> > +	}
+> > +
+> > +	sr_write_reg(sr, NVALUERECIPROCAL, nvalue_reciprocal);
+> > +
+> > +	/* Enable the interrupt */
+> > +	sr_modify_reg(sr, ERRCONFIG,
+> > +			(ERRCONFIG_VPBOUNDINTEN | ERRCONFIG_VPBOUNDINTST),
+> > +			(ERRCONFIG_VPBOUNDINTEN | ERRCONFIG_VPBOUNDINTST));
+> > +
+> > +	if (sr->srid == SR1) {
+> > +		/* Enable VP1 */
+> > +		PRM_VP1_CONFIG |= PRM_VP1_CONFIG_VPENABLE;
+> > +	} else if (sr->srid == SR2) {
+> > +		/* Enable VP2 */
+> > +		PRM_VP2_CONFIG |= PRM_VP2_CONFIG_VPENABLE;
+> > +	}
+> > +
+> > +	/* SRCONFIG - enable SR */
+> > +	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, SRCONFIG_SRENABLE);
+> > +
+> > +}
+> > +
+> > +static void sr_disable(struct omap_sr *sr)
+> > +{
+> > +	sr->is_sr_reset = 1;
+> > +
+> > +	/* SRCONFIG - disable SR */
+> > +	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, ~SRCONFIG_SRENABLE);
+> > +
+> > +	if (sr->srid == SR1) {
+> > +		/* Enable VP1 */
+> > +		PRM_VP1_CONFIG &= ~PRM_VP1_CONFIG_VPENABLE;
+> > +	} else if (sr->srid == SR2) {
+> > +		/* Enable VP2 */
+> > +		PRM_VP2_CONFIG &= ~PRM_VP2_CONFIG_VPENABLE;
+> > +	}
+> > +}
+> > +
+> > +
+> > +void sr_start_vddautocomap(int srid, u32 target_opp_no)
+> > +{
+> > +	struct omap_sr *sr = NULL;
+> > +
+> > +	if (srid == SR1)
+> > +		sr = &sr1;
+> > +	else if (srid == SR2)
+> > +		sr = &sr2;
+> > +
+> > +	if (sr->is_sr_reset == 1) {
+> > +		sr_clk_enable(sr);
+> > +		sr_configure(sr);
+> > +	}
+> > +
+> > +	if (sr->is_autocomp_active == 1)
+> > +		DPRINTK(KERN_WARNING "SR%d: VDD autocomp is already active\n",
+> > +									srid);
+> > +
+> > +	sr->is_autocomp_active = 1;
+> > +	sr_enable(sr, target_opp_no);
+> > +}
+> > +EXPORT_SYMBOL(sr_start_vddautocomap);
+> > +
+> > +int sr_stop_vddautocomap(int srid)
+> > +{
+> > +	struct omap_sr *sr = NULL;
+> > +
+> > +	if (srid == SR1)
+> > +		sr = &sr1;
+> > +	else if (srid == SR2)
+> > +		sr = &sr2;
+> > +
+> > +	if (sr->is_autocomp_active == 1) {
+> > +		sr_disable(sr);
+> > +		sr_clk_disable(sr);
+> > +		sr->is_autocomp_active = 0;
+> > +		return SR_TRUE;
+> > +	} else {
+> > +		DPRINTK(KERN_WARNING "SR%d: VDD autocomp is not active\n",
+> > +								srid);
+> > +		return SR_FALSE;
+> > +	}
+> > +
+> > +}
+> > +EXPORT_SYMBOL(sr_stop_vddautocomap);
+> > +
+> > +void enable_smartreflex(int srid)
+> > +{
+> > +	u32 target_opp_no = 0;
+> > +	struct omap_sr *sr = NULL;
+> > +
+> > +	if (srid == SR1)
+> > +		sr = &sr1;
+> > +	else if (srid == SR2)
+> > +		sr = &sr2;
+> > +
+> > +	if (sr->is_autocomp_active == 1) {
+> > +		if (sr->is_sr_reset == 1) {
+> > +			if (srid == SR1) {
+> > +				/* Enable SR clks */
+> > +				CM_FCLKEN_WKUP |= SR1_CLK_ENABLE;
+> > +				target_opp_no = get_opp_no(current_vdd1_opp);
+> > +
+> > +			} else if (srid == SR2) {
+> > +				/* Enable SR clks */
+> > +				CM_FCLKEN_WKUP |= SR2_CLK_ENABLE;
+> > +				target_opp_no = get_opp_no(current_vdd2_opp);
+> > +			}
+> > +
+> > +			sr_configure(sr);
+> > +
+> > +			sr_enable(sr, target_opp_no);
+> > +		}
+> > +	}
+> > +}
+> > +
+> > +void disable_smartreflex(int srid)
+> > +{
+> > +	struct omap_sr *sr = NULL;
+> > +
+> > +	if (srid == SR1)
+> > +		sr = &sr1;
+> > +	else if (srid == SR2)
+> > +		sr = &sr2;
+> > +
+> > +	if (sr->is_autocomp_active == 1) {
+> > +		if (srid == SR1) {
+> > +			/* Enable SR clk */
+> > +			CM_FCLKEN_WKUP |= SR1_CLK_ENABLE;
+> > +
+> > +		} else if (srid == SR2) {
+> > +			/* Enable SR clk */
+> > +			CM_FCLKEN_WKUP |= SR2_CLK_ENABLE;
+> > +		}
+> > +
+> > +		if (sr->is_sr_reset == 0) {
+> > +
+> > +			sr->is_sr_reset = 1;
+> > +			/* SRCONFIG - disable SR */
+> > +			sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE,
+> > +							~SRCONFIG_SRENABLE);
+> > +
+> > +			if (sr->srid == SR1) {
+> > +				/* Disable SR clk */
+> > +				CM_FCLKEN_WKUP &= ~SR1_CLK_ENABLE;
+> > +				/* Enable VP1 */
+> > +				PRM_VP1_CONFIG &= ~PRM_VP1_CONFIG_VPENABLE;
+> > +
+> > +			} else if (sr->srid == SR2) {
+> > +				/* Disable SR clk */
+> > +				CM_FCLKEN_WKUP &= ~SR2_CLK_ENABLE;
+> > +				/* Enable VP2 */
+> > +				PRM_VP2_CONFIG &= ~PRM_VP2_CONFIG_VPENABLE;
+> > +			}
+> > +		}
+> > +	}
+> > +}
+> > +
+> > +
+> > +/* Voltage Scaling using SR VCBYPASS */
+> > +int sr_voltagescale_vcbypass(u32 target_opp, u8 vsel)
+> > +{
+> > +	int ret;
+> > +	int sr_status = 0;
+> > +	u32 vdd, target_opp_no;
+> > +	u32 vc_bypass_value;
+> > +	u32 reg_addr = 0;
+> > +	u32 loop_cnt = 0, retries_cnt = 0;
+> > +
+> > +	vdd = get_vdd(target_opp);
+> > +	target_opp_no = get_opp_no(target_opp);
+> > +
+> > +	if (vdd == PRCM_VDD1) {
+> > +		sr_status = sr_stop_vddautocomap(SR1);
+> > +
+> > +		PRM_VC_CMD_VAL_0 = (PRM_VC_CMD_VAL_0 & ~PRM_VC_CMD_ON_MASK) |
+> > +						(vsel << PRM_VC_CMD_ON_SHIFT);
+> > +		reg_addr = R_VDD1_SR_CONTROL;
+> > +
+> > +	} else if (vdd == PRCM_VDD2) {
+> > +		sr_status = sr_stop_vddautocomap(SR2);
+> > +
+> > +		PRM_VC_CMD_VAL_1 = (PRM_VC_CMD_VAL_1 & ~PRM_VC_CMD_ON_MASK) |
+> > +						(vsel << PRM_VC_CMD_ON_SHIFT);
+> > +		reg_addr = R_VDD2_SR_CONTROL;
+> > +	}
+> > +
+> > +	vc_bypass_value = (vsel << PRM_VC_BYPASS_DATA_SHIFT) |
+> > +			(reg_addr << PRM_VC_BYPASS_REGADDR_SHIFT) |
+> > +			(R_SRI2C_SLAVE_ADDR << PRM_VC_BYPASS_SLAVEADDR_SHIFT);
+> > +
+> > +	PRM_VC_BYPASS_VAL = vc_bypass_value;
+> > +
+> > +	PRM_VC_BYPASS_VAL |= PRM_VC_BYPASS_VALID;
+> > +
+> > +	DPRINTK("%s : PRM_VC_BYPASS_VAL %X\n", __func__, PRM_VC_BYPASS_VAL);
+> > +	DPRINTK("PRM_IRQST_MPU %X\n", PRM_IRQSTATUS_MPU);
+> > +
+> > +	while ((PRM_VC_BYPASS_VAL & PRM_VC_BYPASS_VALID) != 0x0) {
+> > +		ret = loop_wait(&loop_cnt, &retries_cnt, 10);
+> > +		if (ret != PRCM_PASS) {
+> > +			printk(KERN_INFO "Loop count exceeded in check SR I2C"
+> > +								"write\n");
+> > +			return ret;
+> > +		}
+> > +	}
+> > +
+> > +	omap_udelay(T2_SMPS_UPDATE_DELAY);
+> > +
+> > +	if (sr_status) {
+> > +		if (vdd == PRCM_VDD1)
+> > +			sr_start_vddautocomap(SR1, target_opp_no);
+> > +		else if (vdd == PRCM_VDD2)
+> > +			sr_start_vddautocomap(SR2, target_opp_no);
+> > +	}
+> > +
+> > +	return SR_PASS;
+> > +}
+> > +
+> > +/* Sysfs interface to select SR VDD1 auto compensation */
+> > +static ssize_t omap_sr_vdd1_autocomp_show(struct kset *subsys, char *buf)
+> > +{
+> > +	return sprintf(buf, "%d\n", sr1.is_autocomp_active);
+> > +}
+> > +
+> > +static ssize_t omap_sr_vdd1_autocomp_store(struct kset *subsys,
+> > +				const char *buf, size_t n)
+> > +{
+> > +	u32 current_vdd1opp_no;
+> > +	unsigned short value;
+> > +
+> > +	if (sscanf(buf, "%hu", &value) != 1 || (value > 1)) {
+> > +		printk(KERN_ERR "sr_vdd1_autocomp: Invalid value\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	current_vdd1opp_no = get_opp_no(current_vdd1_opp);
+> > +
+> > +	if (value == 0)
+> > +		sr_stop_vddautocomap(SR1);
+> > +	else
+> > +		sr_start_vddautocomap(SR1, current_vdd1opp_no);
+> > +
+> > +	return n;
+> > +}
+> > +
+> > +static struct subsys_attribute sr_vdd1_autocomp = {
+> > +	.attr = {
+> > +	.name = __stringify(sr_vdd1_autocomp),
+> > +	.mode = 0644,
+> > +	},
+> > +	.show = omap_sr_vdd1_autocomp_show,
+> > +	.store = omap_sr_vdd1_autocomp_store,
+> > +};
+> > +
+> > +/* Sysfs interface to select SR VDD2 auto compensation */
+> > +static ssize_t omap_sr_vdd2_autocomp_show(struct kset *subsys, char *buf)
+> > +{
+> > +	return sprintf(buf, "%d\n", sr2.is_autocomp_active);
+> > +}
+> > +
+> > +static ssize_t omap_sr_vdd2_autocomp_store(struct kset *subsys,
+> > +				const char *buf, size_t n)
+> > +{
+> > +	u32 current_vdd2opp_no;
+> > +	unsigned short value;
+> > +
+> > +	if (sscanf(buf, "%hu", &value) != 1 || (value > 1)) {
+> > +		printk(KERN_ERR "sr_vdd2_autocomp: Invalid value\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	current_vdd2opp_no = get_opp_no(current_vdd2_opp);
+> > +
+> > +	if (value == 0)
+> > +		sr_stop_vddautocomap(SR2);
+> > +	else
+> > +		sr_start_vddautocomap(SR2, current_vdd2opp_no);
+> > +
+> > +	return n;
+> > +}
+> > +
+> > +static struct subsys_attribute sr_vdd2_autocomp = {
+> > +	.attr = {
+> > +	.name = __stringify(sr_vdd2_autocomp),
+> > +	.mode = 0644,
+> > +	},
+> > +	.show = omap_sr_vdd2_autocomp_show,
+> > +	.store = omap_sr_vdd2_autocomp_store,
+> > +};
+> > +
+> > +
+> > +
+> > +static int __init omap3_sr_init(void)
+> > +{
+> > +	int ret = 0;
+> > +	u8 RdReg;
+> > +
+> > +#ifdef CONFIG_ARCH_OMAP34XX
+> > +	sr1.fck = clk_get(NULL, "sr1_fck");
+> > +	if (IS_ERR(sr1.fck))
+> > +		printk(KERN_ERR "Could not get sr1_fck\n");
+> > +
+> > +	sr2.fck = clk_get(NULL, "sr2_fck");
+> > +	if (IS_ERR(sr2.fck))
+> > +		printk(KERN_ERR "Could not get sr2_fck\n");
+> > +#endif /* #ifdef CONFIG_ARCH_OMAP34XX */
+> > +
+> > +	/* Call the VPConfig, VCConfig, set N Values. */
+> > +	sr_set_nvalues(&sr1);
+> > +	sr_configure_vp(SR1);
+> > +
+> > +	sr_set_nvalues(&sr2);
+> > +	sr_configure_vp(SR2);
+> > +
+> > +	sr_configure_vc();
+> > +
+> > +	/* Enable SR on T2 */
+> > +	ret = t2_in(PM_RECEIVER, &RdReg, R_DCDC_GLOBAL_CFG);
+> > +	RdReg |= DCDC_GLOBAL_CFG_ENABLE_SRFLX;
+> > +	ret |= t2_out(PM_RECEIVER, RdReg, R_DCDC_GLOBAL_CFG);
+> > +
+> > +
+> > +	printk(KERN_INFO "SmartReflex driver initialized\n");
+> > +
+> > +	ret = subsys_create_file(&power_subsys, &sr_vdd1_autocomp);
+> > +	if (ret)
+> > +		printk(KERN_ERR "subsys_create_file failed: %d\n", ret);
+> > +
+> > +	ret = subsys_create_file(&power_subsys, &sr_vdd2_autocomp);
+> > +	if (ret)
+> > +		printk(KERN_ERR "subsys_create_file failed: %d\n", ret);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +arch_initcall(omap3_sr_init);
+> > diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
+> > new file mode 100644
+> > index 0000000..62907ef
+> > --- /dev/null
+> > +++ b/arch/arm/mach-omap2/smartreflex.h
+> > @@ -0,0 +1,136 @@
+> > +/*
+> > + * linux/arch/arm/mach-omap3/smartreflex.h
+> > + *
+> > + * Copyright (C) 2007 Texas Instruments, Inc.
+> > + * Lesly A M <x0080970@ti.com>
+> > + *
+> > + * This program is free software; you can redistribute it and/or modify
+> > + * it under the terms of the GNU General Public License version 2 as
+> > + * published by the Free Software Foundation.
+> > + */
+> > +
+> > +
+> > +/* SR Modules */
+> > +#define SR1		1
+> > +#define SR2		2
+> > +
+> > +#define SR_FAIL		1
+> > +#define SR_PASS		0
+> > +
+> > +#define SR_TRUE		1
+> > +#define SR_FALSE	0
+> > +
+> > +#define GAIN_MAXLIMIT	16
+> > +#define R_MAXLIMIT	256
+> > +
+> > +#define SR1_CLK_ENABLE	(0x1 << 6)
+> > +#define SR2_CLK_ENABLE	(0x1 << 7)
+> > +
+> > +/* PRM_VP1_CONFIG */
+> > +#define PRM_VP1_CONFIG_ERROROFFSET	(0x00 << 24)
+> > +#define PRM_VP1_CONFIG_ERRORGAIN	(0x20 << 16)
+> > +
+> > +#define PRM_VP1_CONFIG_INITVOLTAGE	(0x30 << 8) /* 1.2 volt */
+> > +#define PRM_VP1_CONFIG_TIMEOUTEN	(0x1 << 3)
+> > +#define PRM_VP1_CONFIG_INITVDD		(0x1 << 2)
+> > +#define PRM_VP1_CONFIG_FORCEUPDATE	(0x1 << 1)
+> > +#define PRM_VP1_CONFIG_VPENABLE		(0x1 << 0)
+> > +
+> > +/* PRM_VP1_VSTEPMIN */
+> > +#define PRM_VP1_VSTEPMIN_SMPSWAITTIMEMIN	(0x01F4 << 8)
+> > +#define PRM_VP1_VSTEPMIN_VSTEPMIN		(0x01 << 0)
+> > +
+> > +/* PRM_VP1_VSTEPMAX */
+> > +#define PRM_VP1_VSTEPMAX_SMPSWAITTIMEMAX	(0x01F4 << 8)
+> > +#define PRM_VP1_VSTEPMAX_VSTEPMAX		(0x04 << 0)
+> > +
+> > +/* PRM_VP1_VLIMITTO */
+> > +#define PRM_VP1_VLIMITTO_VDDMAX		(0x3C << 24)
+> > +#define PRM_VP1_VLIMITTO_VDDMIN		(0x0 << 16)
+> > +#define PRM_VP1_VLIMITTO_TIMEOUT	(0xFFFF << 0)
+> > +
+> > +/* PRM_VP2_CONFIG */
+> > +#define PRM_VP2_CONFIG_ERROROFFSET	(0x00 << 24)
+> > +#define PRM_VP2_CONFIG_ERRORGAIN	(0x20 << 16)
+> > +
+> > +#define PRM_VP2_CONFIG_INITVOLTAGE	(0x30 << 8) /* 1.2 volt */
+> > +#define PRM_VP2_CONFIG_TIMEOUTEN	(0x1 << 3)
+> > +#define PRM_VP2_CONFIG_INITVDD		(0x1 << 2)
+> > +#define PRM_VP2_CONFIG_FORCEUPDATE	(0x1 << 1)
+> > +#define PRM_VP2_CONFIG_VPENABLE		(0x1 << 0)
+> > +
+> > +/* PRM_VP2_VSTEPMIN */
+> > +#define PRM_VP2_VSTEPMIN_SMPSWAITTIMEMIN	(0x01F4 << 8)
+> > +#define PRM_VP2_VSTEPMIN_VSTEPMIN		(0x01 << 0)
+> > +
+> > +/* PRM_VP2_VSTEPMAX */
+> > +#define PRM_VP2_VSTEPMAX_SMPSWAITTIMEMAX	(0x01F4 << 8)
+> > +#define PRM_VP2_VSTEPMAX_VSTEPMAX		(0x04 << 0)
+> > +
+> > +/* PRM_VP2_VLIMITTO */
+> > +#define PRM_VP2_VLIMITTO_VDDMAX		(0x2C << 24)
+> > +#define PRM_VP2_VLIMITTO_VDDMIN		(0x0 << 16)
+> > +#define PRM_VP2_VLIMITTO_TIMEOUT	(0xFFFF << 0)
+> > +
+> > +/* SRCONFIG */
+> > +#define SR1_SRCONFIG_ACCUMDATA		(0x1F4 << 22)
+> > +#define SR2_SRCONFIG_ACCUMDATA		(0x1F4 << 22)
+> > +
+> > +#define SRCLKLENGTH_12MHZ_SYSCLK	0x3C
+> > +#define SRCLKLENGTH_13MHZ_SYSCLK	0x41
+> > +#define SRCLKLENGTH_19MHZ_SYSCLK	0x60
+> > +#define SRCLKLENGTH_26MHZ_SYSCLK	0x82
+> > +#define SRCLKLENGTH_38MHZ_SYSCLK	0xC0
+> > +
+> > +#define SRCONFIG_SRCLKLENGTH_SHIFT	12
+> > +#define SRCONFIG_SENNENABLE_SHIFT	5
+> > +#define SRCONFIG_SENPENABLE_SHIFT	3
+> > +
+> > +#define SRCONFIG_SRENABLE		(0x01 << 11)
+> > +#define SRCONFIG_SENENABLE		(0x01 << 10)
+> > +#define SRCONFIG_ERRGEN_EN		(0x01 << 9)
+> > +#define SRCONFIG_MINMAXAVG_EN		(0x01 << 8)
+> > +
+> > +#define SRCONFIG_DELAYCTRL		(0x01 << 2)
+> > +#define SRCONFIG_CLKCTRL		(0x00 << 0)
+> > +
+> > +/* AVGWEIGHT */
+> > +#define SR1_AVGWEIGHT_SENPAVGWEIGHT	(0x03 << 2)
+> > +#define SR1_AVGWEIGHT_SENNAVGWEIGHT	(0x03 << 0)
+> > +
+> > +#define SR2_AVGWEIGHT_SENPAVGWEIGHT	(0x01 << 2)
+> > +#define SR2_AVGWEIGHT_SENNAVGWEIGHT	(0x01 << 0)
+> > +
+> > +/* NVALUERECIPROCAL */
+> > +#define NVALUERECIPROCAL_SENPGAIN_SHIFT	20
+> > +#define NVALUERECIPROCAL_SENNGAIN_SHIFT	16
+> > +#define NVALUERECIPROCAL_RNSENP_SHIFT	8
+> > +#define NVALUERECIPROCAL_RNSENN_SHIFT	0
+> > +
+> > +/* ERRCONFIG */
+> > +#define SR_CLKACTIVITY_MASK		(0x03 << 20)
+> > +#define SR_ERRWEIGHT_MASK		(0x07 << 16)
+> > +#define SR_ERRMAXLIMIT_MASK		(0xFF << 8)
+> > +#define SR_ERRMINLIMIT_MASK		(0xFF << 0)
+> > +
+> > +#define SR_CLKACTIVITY_IOFF_FOFF	(0x00 << 20)
+> > +#define SR_CLKACTIVITY_IOFF_FON		(0x02 << 20)
+> > +
+> > +#define ERRCONFIG_VPBOUNDINTEN		(0x1 << 31)
+> > +#define ERRCONFIG_VPBOUNDINTST		(0x1 << 30)
+> > +
+> > +#define SR1_ERRWEIGHT			(0x07 << 16)
+> > +#define SR1_ERRMAXLIMIT			(0x02 << 8)
+> > +#define SR1_ERRMINLIMIT			(0xFA << 0)
+> > +
+> > +#define SR2_ERRWEIGHT			(0x07 << 16)
+> > +#define SR2_ERRMAXLIMIT			(0x02 << 8)
+> > +#define SR2_ERRMINLIMIT			(0xF9 << 0)
+> > +
+> > +extern u32 current_vdd1_opp;
+> > +extern u32 current_vdd2_opp;
+> > +extern struct kset power_subsys;
+> > +
+> > +extern inline int loop_wait(u32 *lcnt, u32 *rcnt, u32 delay);
+> > +extern void omap_udelay(u32 udelay);
+> > +
+> > -- 
+> > 1.5.4.3
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
