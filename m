@@ -1,93 +1,77 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 1/1] ARM:OMAP: fix driver MODULE_ALIAS()
-Date: Thu, 12 Jun 2008 10:40:14 +0300
-Message-ID: <1213256414-12309-1-git-send-email-Hiroshi.DOYU@nokia.com>
+From: <Tero.Kristo@nokia.com>
+Subject: RE: [PATCH] Added sleep support to UART
+Date: Thu, 12 Jun 2008 11:48:53 +0300
+Message-ID: <B71CE868F2BC2847B3F23C5A8EE3943024C0F4@vaebe110.NOE.Nokia.com>
+References: <> <1213106931-17954-1-git-send-email-tero.kristo@nokia.com> <alpine.DEB.1.00.0806111712520.21166@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:26425 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:37286 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752271AbYFLHke (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jun 2008 03:40:34 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m5C7eAPi005697
-	for <linux-omap@vger.kernel.org>; Thu, 12 Jun 2008 02:40:32 -0500
-Received: from oreo.research.nokia.com (esdhcp04066.research.nokia.com [172.21.40.66])
-	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m5C7eEOj010698
-	for <linux-omap@vger.kernel.org>; Thu, 12 Jun 2008 10:40:15 +0300
+	with ESMTP id S1752372AbYFLItV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jun 2008 04:49:21 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <alpine.DEB.1.00.0806111712520.21166@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: paul@pwsan.com
+Cc: linux-omap@vger.kernel.org
 
-Add a correct MODULE_ALIAS() entry for this driver to enable udev module
-loading.
+Hi, 
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
----
- drivers/input/keyboard/omap-twl4030keypad.c |    2 ++
- drivers/input/touchscreen/tsc2005.c         |    2 +-
- drivers/mmc/host/omap_hsmmc.c               |    3 ++-
- drivers/rtc/rtc-twl4030.c                   |    2 +-
- 4 files changed, 6 insertions(+), 3 deletions(-)
+>A few minor comments based on a quick look.
+>
+>In terms of the OMAP3 code, is that for retention-idle only, 
+>or does it work with off-idle also?  
 
-diff --git a/drivers/input/keyboard/omap-twl4030keypad.c b/drivers/input/keyboard/omap-twl4030keypad.c
-index 0344b4c..fc5d44e 100644
---- a/drivers/input/keyboard/omap-twl4030keypad.c
-+++ b/drivers/input/keyboard/omap-twl4030keypad.c
-@@ -350,6 +350,7 @@ static struct platform_driver omap_kp_driver = {
- 	.remove		= omap_kp_remove,
- 	.driver		= {
- 		.name	= "omap_twl4030keypad",
-+		.owner	= THIS_MODULE,
- 	},
- };
- 
-@@ -371,3 +372,4 @@ module_exit(omap_kp_exit);
- MODULE_AUTHOR("Texas Instruments");
- MODULE_DESCRIPTION("OMAP TWL4030 Keypad Driver");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:omap_twl4030keypad");
-diff --git a/drivers/input/touchscreen/tsc2005.c b/drivers/input/touchscreen/tsc2005.c
-index fa01799..93dc3c5 100644
---- a/drivers/input/touchscreen/tsc2005.c
-+++ b/drivers/input/touchscreen/tsc2005.c
-@@ -734,4 +734,4 @@ module_exit(tsc2005_exit);
- 
- MODULE_AUTHOR("Lauri Leukkunen <lauri.leukkunen@nokia.com>");
- MODULE_LICENSE("GPL");
--
-+MODULE_ALIAS("platform:tsc2005");
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 9c18c15..d399dca 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1106,6 +1106,7 @@ static struct platform_driver omap_mmc_driver = {
- 	.resume		= omap_mmc_resume,
- 	.driver		= {
- 		.name = DRIVER_NAME,
-+		.owner = THIS_MODULE,
- 	},
- };
- 
-@@ -1126,5 +1127,5 @@ module_exit(omap_mmc_cleanup);
- 
- MODULE_DESCRIPTION("OMAP High Speed Multimedia Card driver");
- MODULE_LICENSE("GPL");
--MODULE_ALIAS(DRIVER_NAME);
-+MODULE_ALIAS("platform:" DRIVER_NAME);
- MODULE_AUTHOR("Texas Instruments Inc");
-diff --git a/drivers/rtc/rtc-twl4030.c b/drivers/rtc/rtc-twl4030.c
-index ef0e175..7b0a4c5 100644
---- a/drivers/rtc/rtc-twl4030.c
-+++ b/drivers/rtc/rtc-twl4030.c
-@@ -624,7 +624,7 @@ static int twl4030_rtc_resume(struct platform_device *pdev)
- #define twl4030_rtc_resume  NULL
- #endif
- 
--MODULE_ALIAS("twl4030_rtc");
-+MODULE_ALIAS("platform:twl4030_rtc");
- static struct platform_driver twl4030rtc_driver = {
- 	.probe 		= twl4030_rtc_probe,
- 	.remove 	= __devexit_p(twl4030_rtc_remove),
--- 
-1.5.5.1.357.g1af8b
+That patch should basically work in off-mode also, however it requires
+correct settings in the padconfig registers which are currently done in
+the boot code. Also, currently I have not had any chance to actually
+test this in off-mode, I am still trying to get the off-mode work on my
+HW.
 
+>
+>On Tue, 10 Jun 2008, Tero Kristo wrote:
+>
+>> +const u32 omap2_uart_wk_bit[OMAP_MAX_NR_PORTS] = {
+>> +       OMAP24XX_ST_UART1, OMAP24XX_ST_UART2, OMAP24XX_ST_UART3 };
+>
+>Looks like that can be static.  
+
+True.
+
+>
+>> +/* UART padconfig registers, these may differ if 
+>non-default padconfig
+>> +   is used */
+>> +#define CONTROL_PADCONF_UART1_RX 0x48002182 #define 
+>> +CONTROL_PADCONF_UART2_RX 0x4800217A #define 
+>CONTROL_PADCONF_UART3_RX 
+>> +0x4800219E #define PADCONF_WAKEUP_ST 0x8000
+>
+>Please use omap_ctrl_read{b,w,l}() rather than 
+>omap_read{b,w,l}() for SCM addresses.
+
+Hmm yea, could do.
+
+>Also, the above are register addresses + 2.  Is it possible to 
+>use the actual register addresses (ideally they should be 
+>defined in include/asm-arm/arch-omap/control.h), do long 
+>reads, and simply shift the register contents for the serial 
+>ports that need it?
+
+These registers are currently not defined anywhere and I did not feel
+like wanting to put all the padconfig register definitions somewhere
+(all 200+ of them).... I don't think it is currently very clear how we
+want to handle these registers in general. Also, this fix is more or
+less temporary anyway while we are waiting for a real driver that
+handles UART clocks properly (the final solution will most likely use
+some of the elements of this though.)
+
+Also, the spec says that these registers can be accessed in either 8, 16
+or 32 bit modes so why make it unnecessarily complicated and potentially
+buggy with shifts (race conditions)?
+
+-Tero
