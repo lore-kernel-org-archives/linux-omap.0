@@ -1,77 +1,229 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCH] Added sleep support to UART
-Date: Thu, 12 Jun 2008 11:48:53 +0300
-Message-ID: <B71CE868F2BC2847B3F23C5A8EE3943024C0F4@vaebe110.NOE.Nokia.com>
-References: <> <1213106931-17954-1-git-send-email-tero.kristo@nokia.com> <alpine.DEB.1.00.0806111712520.21166@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 8BIT
+From: iqbal@ti.com
+Subject: [PATCH] Separate out 3430 LCD panel support from 2430 file
+Date: Thu, 12 Jun 2008 05:24:32 -0500
+Message-ID: <1213266272-8585-1-git-send-email-iqbal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:37286 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752372AbYFLItV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jun 2008 04:49:21 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <alpine.DEB.1.00.0806111712520.21166@utopia.booyaka.com>
+Received: from soda.ext.ti.com ([198.47.26.145]:43382 "EHLO soda.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755708AbYFLKYk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Jun 2008 06:24:40 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m5CAOZTr017167
+	for <linux-omap@vger.kernel.org>; Thu, 12 Jun 2008 05:24:40 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Iqbal Shareef <iqbal@ti.com>
 
-Hi, 
+From: Iqbal Shareef <iqbal@ti.com>
 
->A few minor comments based on a quick look.
->
->In terms of the OMAP3 code, is that for retention-idle only, 
->or does it work with off-idle also?  
+Separate out 3430 LCD panel support from 2430 SDP.
 
-That patch should basically work in off-mode also, however it requires
-correct settings in the padconfig registers which are currently done in
-the boot code. Also, currently I have not had any chance to actually
-test this in off-mode, I am still trying to get the off-mode work on my
-HW.
+Currently the support for the LCD on 3430SDP is added in the lcd_2430sdp.c
+file. This patch separates it out to a new file.
 
->
->On Tue, 10 Jun 2008, Tero Kristo wrote:
->
->> +const u32 omap2_uart_wk_bit[OMAP_MAX_NR_PORTS] = {
->> +       OMAP24XX_ST_UART1, OMAP24XX_ST_UART2, OMAP24XX_ST_UART3 };
->
->Looks like that can be static.  
+Signed-off-by: Iqbal Shareef  <iqbal@ti.com>
 
-True.
+---
+ arch/arm/mach-omap2/board-3430sdp.c |    2 +-
+ drivers/video/omap/Makefile         |    2 +-
+ drivers/video/omap/lcd_3430sdp.c    |  161 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 163 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/video/omap/lcd_3430sdp.c
 
->
->> +/* UART padconfig registers, these may differ if 
->non-default padconfig
->> +   is used */
->> +#define CONTROL_PADCONF_UART1_RX 0x48002182 #define 
->> +CONTROL_PADCONF_UART2_RX 0x4800217A #define 
->CONTROL_PADCONF_UART3_RX 
->> +0x4800219E #define PADCONF_WAKEUP_ST 0x8000
->
->Please use omap_ctrl_read{b,w,l}() rather than 
->omap_read{b,w,l}() for SCM addresses.
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index f6cd08b..7a216cc 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -204,7 +204,7 @@ static struct spi_board_info sdp3430_spi_board_info[] __initdata = {
+ };
+ 
+ static struct platform_device sdp3430_lcd_device = {
+-	.name		= "sdp2430_lcd",
++	.name		= "sdp3430_lcd",
+ 	.id		= -1,
+ };
+ 
+diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
+index fe7ee5d..a72a2d9 100644
+--- a/drivers/video/omap/Makefile
++++ b/drivers/video/omap/Makefile
+@@ -30,7 +30,7 @@ objs-y$(CONFIG_MACH_SX1) += lcd_sx1.o
+ 
+ objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
+ objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd_2430sdp.o
+-objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_2430sdp.o
++objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_3430sdp.o
+ objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
+ objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
+ objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
+diff --git a/drivers/video/omap/lcd_3430sdp.c b/drivers/video/omap/lcd_3430sdp.c
+new file mode 100644
+index 0000000..a8e4366
+--- /dev/null
++++ b/drivers/video/omap/lcd_3430sdp.c
+@@ -0,0 +1,161 @@
++/*
++ * LCD panel support for the TI 3430SDP board
++ *
++ * Copyright (C) 2008 Texas Instruments
++ * Author: Iqbal Shareef <iqbal@ti.com>
++ *
++ * Derived from drivers/video/omap/lcd_2430sdp.c
++ * Copyright (C) 2007 MontaVista
++ * Author: Hunyue Yau <hyau@mvista.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/i2c/twl4030.h>
++
++#include <asm/arch/gpio.h>
++#include <asm/arch/omapfb.h>
++
++#define SDP3430_LCD_PANEL_BACKLIGHT_GPIO	8
++#define SDP3430_LCD_PANEL_ENABLE_GPIO		5
++
++static unsigned backlight_gpio;
++static unsigned enable_gpio;
++
++#define LCD_PIXCLOCK_MAX			167000
++#define PM_RECEIVER				TWL4030_MODULE_PM_RECEIVER
++#define ENABLE_VAUX2_DEDICATED			0x03
++#define ENABLE_VAUX2_DEV_GRP			0x20
++#define ENABLE_VAUX3_DEDICATED			0x05
++#define ENABLE_VAUX3_DEV_GRP			0xE0
++
++static int sdp3430_panel_init(struct lcd_panel *panel,
++				struct omapfb_device *fbdev)
++{
++	enable_gpio    = SDP3430_LCD_PANEL_ENABLE_GPIO;
++	backlight_gpio = SDP3430_LCD_PANEL_BACKLIGHT_GPIO;
++
++	omap_request_gpio(enable_gpio);			/* LCD panel */
++	omap_request_gpio(backlight_gpio);		/* LCD backlight */
++	omap_set_gpio_direction(enable_gpio, 0);	/* output */
++	omap_set_gpio_direction(backlight_gpio, 0);	/* output */
++
++	return 0;
++}
++
++static void sdp3430_panel_cleanup(struct lcd_panel *panel)
++{
++	omap_free_gpio(backlight_gpio);
++	omap_free_gpio(enable_gpio);
++}
++
++static int sdp3430_panel_enable(struct lcd_panel *panel)
++{
++	omap_set_gpio_dataout(enable_gpio, 1);
++	omap_set_gpio_dataout(backlight_gpio, 1);
++
++	if (0 != twl4030_i2c_write_u8(PM_RECEIVER, ENABLE_VAUX3_DEDICATED,
++					TWL4030_VAUX3_DEDICATED))
++		return -EIO;
++	if (0 != twl4030_i2c_write_u8(PM_RECEIVER, ENABLE_VAUX3_DEV_GRP,
++					TWL4030_VAUX3_DEV_GRP))
++		return -EIO;
++
++	return 0;
++}
++
++static void sdp3430_panel_disable(struct lcd_panel *panel)
++{
++	omap_set_gpio_dataout(enable_gpio, 0);
++	omap_set_gpio_dataout(backlight_gpio, 0);
++}
++
++static unsigned long sdp3430_panel_get_caps(struct lcd_panel *panel)
++{
++	return 0;
++}
++
++struct lcd_panel sdp3430_panel = {
++	.name		= "sdp3430",
++	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
++			  OMAP_LCDC_INV_HSYNC,
++
++	.bpp		= 16,
++	.data_lines	= 16,
++	.x_res		= 240,
++	.y_res		= 320,
++	.hsw		= 3,		/* hsync_len (4) - 1 */
++	.hfp		= 3,		/* right_margin (4) - 1 */
++	.hbp		= 39,		/* left_margin (40) - 1 */
++	.vsw		= 1,		/* vsync_len (2) - 1 */
++	.vfp		= 2,		/* lower_margin */
++	.vbp		= 7,		/* upper_margin (8) - 1 */
++
++	.pixel_clock	= LCD_PIXCLOCK_MAX,
++
++	.init		= sdp3430_panel_init,
++	.cleanup	= sdp3430_panel_cleanup,
++	.enable		= sdp3430_panel_enable,
++	.disable	= sdp3430_panel_disable,
++	.get_caps	= sdp3430_panel_get_caps,
++};
++
++static int sdp3430_panel_probe(struct platform_device *pdev)
++{
++	omapfb_register_panel(&sdp3430_panel);
++	return 0;
++}
++
++static int sdp3430_panel_remove(struct platform_device *pdev)
++{
++	return 0;
++}
++
++static int sdp3430_panel_suspend(struct platform_device *pdev,
++					pm_message_t mesg)
++{
++	return 0;
++}
++
++static int sdp3430_panel_resume(struct platform_device *pdev)
++{
++	return 0;
++}
++
++struct platform_driver sdp3430_panel_driver = {
++	.probe		= sdp3430_panel_probe,
++	.remove		= sdp3430_panel_remove,
++	.suspend	= sdp3430_panel_suspend,
++	.resume		= sdp3430_panel_resume,
++	.driver		= {
++		.name		= "sdp3430_lcd",
++		.owner		= THIS_MODULE,
++	},
++};
++
++static int __init sdp3430_panel_drv_init(void)
++{
++	return platform_driver_register(&sdp3430_panel_driver);
++}
++
++static void __exit sdp3430_panel_drv_exit(void)
++{
++	platform_driver_unregister(&sdp3430_panel_driver);
++}
++
++module_init(sdp3430_panel_drv_init);
++module_exit(sdp3430_panel_drv_exit);
+-- 
+1.5.3.2
 
-Hmm yea, could do.
-
->Also, the above are register addresses + 2.  Is it possible to 
->use the actual register addresses (ideally they should be 
->defined in include/asm-arm/arch-omap/control.h), do long 
->reads, and simply shift the register contents for the serial 
->ports that need it?
-
-These registers are currently not defined anywhere and I did not feel
-like wanting to put all the padconfig register definitions somewhere
-(all 200+ of them).... I don't think it is currently very clear how we
-want to handle these registers in general. Also, this fix is more or
-less temporary anyway while we are waiting for a real driver that
-handles UART clocks properly (the final solution will most likely use
-some of the elements of this though.)
-
-Also, the spec says that these registers can be accessed in either 8, 16
-or 32 bit modes so why make it unnecessarily complicated and potentially
-buggy with shifts (race conditions)?
-
--Tero
