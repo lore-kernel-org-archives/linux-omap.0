@@ -1,53 +1,144 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 1/4] usb: musb: musb on omap3 has 32 endpoints
-Date: Fri, 13 Jun 2008 13:04:00 +0300
-Message-ID: <1213351443-3336-2-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 4/4] i2c: add MODULE_ALIAS to twl4030 drivers
+Date: Fri, 13 Jun 2008 13:04:03 +0300
+Message-ID: <1213351443-3336-5-git-send-email-felipe.balbi@nokia.com>
 References: <1213351443-3336-1-git-send-email-felipe.balbi@nokia.com>
+ <1213351443-3336-2-git-send-email-felipe.balbi@nokia.com>
+ <1213351443-3336-3-git-send-email-felipe.balbi@nokia.com>
+ <1213351443-3336-4-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:35995 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:36015 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756471AbYFMKFj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jun 2008 06:05:39 -0400
-In-Reply-To: <1213351443-3336-1-git-send-email-felipe.balbi@nokia.com>
+	with ESMTP id S1756850AbYFMKFo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jun 2008 06:05:44 -0400
+In-Reply-To: <1213351443-3336-4-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com, Felipe Balbi <felipe.balbi@nokia.com>
 
-Fix hdrc_cnf.h for omap3 configuration.
+When built as module, it helps udev to probe them.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- include/asm-arm/arch-omap/hdrc_cnf.h |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/i2c/chips/twl4030-core.c            |    1 +
+ drivers/i2c/chips/twl4030-gpio.c            |    1 +
+ drivers/i2c/chips/twl4030-madc.c            |    1 +
+ drivers/i2c/chips/twl4030-poweroff.c        |    1 +
+ drivers/i2c/chips/twl4030-pwrbutton.c       |    1 +
+ drivers/i2c/chips/twl4030-pwrirq.c          |    1 +
+ drivers/i2c/chips/twl4030-usb.c             |    1 +
+ drivers/input/keyboard/omap-twl4030keypad.c |    1 +
+ drivers/rtc/rtc-twl4030.c                   |    1 +
+ 9 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/include/asm-arm/arch-omap/hdrc_cnf.h b/include/asm-arm/arch-omap/hdrc_cnf.h
-index 74c8432..271214c 100644
---- a/include/asm-arm/arch-omap/hdrc_cnf.h
-+++ b/include/asm-arm/arch-omap/hdrc_cnf.h
-@@ -14,11 +14,11 @@
+diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
+index 8822653..adc45d4 100644
+--- a/drivers/i2c/chips/twl4030-core.c
++++ b/drivers/i2c/chips/twl4030-core.c
+@@ -908,6 +908,7 @@ static void __exit twl4030_exit(void)
+ subsys_initcall(twl4030_init);
+ module_exit(twl4030_exit);
  
- /* ** Number of Tx endpoints ** */
- /* Legal values are 1 - 16 (this value includes EP0) */
--#define MUSB_C_NUM_EPT 8
-+#define MUSB_C_NUM_EPT 16
++MODULE_ALIAS("i2c:" DRIVER_NAME);
+ MODULE_AUTHOR("Texas Instruments, Inc.");
+ MODULE_DESCRIPTION("I2C Core interface for TWL4030");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/i2c/chips/twl4030-gpio.c b/drivers/i2c/chips/twl4030-gpio.c
+index a448943..f16a48b 100644
+--- a/drivers/i2c/chips/twl4030-gpio.c
++++ b/drivers/i2c/chips/twl4030-gpio.c
+@@ -827,6 +827,7 @@ static void __exit gpio_twl4030_exit(void)
+ module_init(gpio_twl4030_init);
+ module_exit(gpio_twl4030_exit);
  
- /* ** Number of Rx endpoints ** */
- /* Legal values are 1 - 16 (this value includes EP0) */
--#define MUSB_C_NUM_EPR 8
-+#define MUSB_C_NUM_EPR 16
++MODULE_ALIAS("i2c:twl4030-gpio");
+ MODULE_AUTHOR("Texas Instruments, Inc.");
+ MODULE_DESCRIPTION("GPIO interface for TWL4030");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/i2c/chips/twl4030-madc.c b/drivers/i2c/chips/twl4030-madc.c
+index f53a3db..72b126b 100644
+--- a/drivers/i2c/chips/twl4030-madc.c
++++ b/drivers/i2c/chips/twl4030-madc.c
+@@ -448,6 +448,7 @@ static void __exit twl4030_madc_exit(void)
+ module_init(twl4030_madc_init);
+ module_exit(twl4030_madc_exit);
  
- /* ** Endpoint 1 to 15 direction types ** */
- /* C_EP1_DEF is defined if either Tx endpoint 1 or Rx endpoint 1 are used */
-@@ -163,7 +163,7 @@
-  * Legal values are 2 - 16
-  * This must be equal to the larger of C_NUM_EPT, C_NUM_EPR
-  */
--#define MUSB_C_NUM_EPS 8
-+#define MUSB_C_NUM_EPS 16
++MODULE_ALIAS("i2c:twl4030-adc");
+ MODULE_AUTHOR("Nokia Corporation");
+ MODULE_DESCRIPTION("twl4030 ADC driver");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/i2c/chips/twl4030-poweroff.c b/drivers/i2c/chips/twl4030-poweroff.c
+index 57c7fc7..0ebab0b 100644
+--- a/drivers/i2c/chips/twl4030-poweroff.c
++++ b/drivers/i2c/chips/twl4030-poweroff.c
+@@ -70,6 +70,7 @@ static void __exit twl4030_poweroff_exit(void)
+ module_init(twl4030_poweroff_init);
+ module_exit(twl4030_poweroff_exit);
  
- /* C_EPMAX_BITS is equal to the largest endpoint FIFO word address bits */
- #define MUSB_C_EPMAX_BITS 12
++MODULE_ALIAS("i2c:twl4030-poweroff");
+ MODULE_DESCRIPTION("Triton2 device power off");
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Peter De Schrijver");
+diff --git a/drivers/i2c/chips/twl4030-pwrbutton.c b/drivers/i2c/chips/twl4030-pwrbutton.c
+index cbc31aa..09adc67 100644
+--- a/drivers/i2c/chips/twl4030-pwrbutton.c
++++ b/drivers/i2c/chips/twl4030-pwrbutton.c
+@@ -154,6 +154,7 @@ static void __exit twl4030_pwrbutton_exit(void)
+ module_init(twl4030_pwrbutton_init);
+ module_exit(twl4030_pwrbutton_exit);
+ 
++MODULE_ALIAS("i2c:twl4030-pwrbutton");
+ MODULE_DESCRIPTION("Triton2 Power Button");
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Peter De Schrijver");
+diff --git a/drivers/i2c/chips/twl4030-pwrirq.c b/drivers/i2c/chips/twl4030-pwrirq.c
+index 8f1fec6..a4d2e92 100644
+--- a/drivers/i2c/chips/twl4030-pwrirq.c
++++ b/drivers/i2c/chips/twl4030-pwrirq.c
+@@ -222,5 +222,6 @@ static void __exit twl4030_pwrirq_exit(void)
+ 	}
+ }
+ 
++MODULE_ALIAS("i2c:twl4030-pwrirq");
+ subsys_initcall(twl4030_pwrirq_init);
+ module_exit(twl4030_pwrirq_exit);
+diff --git a/drivers/i2c/chips/twl4030-usb.c b/drivers/i2c/chips/twl4030-usb.c
+index f546d42..ab335ca 100644
+--- a/drivers/i2c/chips/twl4030-usb.c
++++ b/drivers/i2c/chips/twl4030-usb.c
+@@ -770,6 +770,7 @@ static void __exit twl4030_usb_exit(void)
+ subsys_initcall(twl4030_usb_init);
+ module_exit(twl4030_usb_exit);
+ 
++MODULE_ALIAS("i2c:twl4030-usb");
+ MODULE_AUTHOR("Texas Instruments, Inc.");
+ MODULE_DESCRIPTION("TWL4030 USB transceiver driver");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/input/keyboard/omap-twl4030keypad.c b/drivers/input/keyboard/omap-twl4030keypad.c
+index 0344b4c..94ab43b 100644
+--- a/drivers/input/keyboard/omap-twl4030keypad.c
++++ b/drivers/input/keyboard/omap-twl4030keypad.c
+@@ -368,6 +368,7 @@ static void __exit omap_kp_exit(void)
+ 
+ module_init(omap_kp_init);
+ module_exit(omap_kp_exit);
++MODULE_ALIAS("platform:omap_twl4030keypad");
+ MODULE_AUTHOR("Texas Instruments");
+ MODULE_DESCRIPTION("OMAP TWL4030 Keypad Driver");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/rtc/rtc-twl4030.c b/drivers/rtc/rtc-twl4030.c
+index ef0e175..e9386ba 100644
+--- a/drivers/rtc/rtc-twl4030.c
++++ b/drivers/rtc/rtc-twl4030.c
+@@ -647,6 +647,7 @@ static void __exit twl4030_rtc_exit(void)
+ 	platform_driver_unregister(&twl4030rtc_driver);
+ }
+ 
++MODULE_ALIAS("platform:twl4030_rtc");
+ MODULE_AUTHOR("Texas Instruments, MontaVista Software");
+ MODULE_LICENSE("GPL");;
+ 
 -- 
 1.5.6.rc1
 
