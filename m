@@ -1,45 +1,56 @@
-From: Somnt <er.somnt@gmail.com>
-Subject: Re: SDMA, RAM to RAM transfer issue
-Date: Fri, 13 Jun 2008 16:58:31 +0900
-Message-ID: <5b1a99070806130058u5a0840c6pd6dc0124fb7a34dc@mail.gmail.com>
-References: <5b1a99070806121834o10ce0a6cxa2b8552d8e1a283c@mail.gmail.com>
-	 <9E8AB4F8CD83E542A3EF3F7DD3E7C55F0547F7E7@dlee11.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [PATCH 3/4] i2c: allow twl modules to be built as modules
+Date: Fri, 13 Jun 2008 13:04:02 +0300
+Message-ID: <1213351443-3336-4-git-send-email-felipe.balbi@nokia.com>
+References: <1213351443-3336-1-git-send-email-felipe.balbi@nokia.com>
+ <1213351443-3336-2-git-send-email-felipe.balbi@nokia.com>
+ <1213351443-3336-3-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.29]:40112 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752302AbYFMH6w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jun 2008 03:58:52 -0400
-Received: by yw-out-2324.google.com with SMTP id 9so2438241ywe.1
-        for <linux-omap@vger.kernel.org>; Fri, 13 Jun 2008 00:58:31 -0700 (PDT)
-In-Reply-To: <9E8AB4F8CD83E542A3EF3F7DD3E7C55F0547F7E7@dlee11.ent.ti.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.233]:36000 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756777AbYFMKFk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jun 2008 06:05:40 -0400
+In-Reply-To: <1213351443-3336-3-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, Felipe Balbi <felipe.balbi@nokia.com>
 
-Hi! Brandon
+Besides twl core and twl gpio, all the others can
+be dynamically linked.
 
-thanks for the reply.
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/i2c/chips/Kconfig |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-config register values in Hex are as follwing:
+diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
+index cba8abf..b421727 100644
+--- a/drivers/i2c/chips/Kconfig
++++ b/drivers/i2c/chips/Kconfig
+@@ -150,7 +150,7 @@ config TWL4030_MADC
+ 	  called twl4030-madc.ko
+ 
+ config TWL4030_USB
+-	bool "TWL4030 USB Transceiver Driver"
++	tristate "TWL4030 USB Transceiver Driver"
+ 	depends on TWL4030_CORE
+ 
+ choice
+@@ -170,11 +170,11 @@ config TWL4030_USB_HS_ULPI
+ endchoice
+ 
+ config TWL4030_PWRBUTTON
+-	bool "TWL4030 Power button Driver"
++	tristate "TWL4030 Power button Driver"
+ 	depends on TWL4030_CORE
+ 
+ config TWL4030_POWEROFF
+-	bool "TWL4030 device poweroff"
++	tristate "TWL4030 device poweroff"
+ 	depends on TWL4030_CORE
+ 
+ config SENSORS_MAX6875
+-- 
+1.5.6.rc1
 
-Registers val CSDP: 2
-Registers val CEN: 100
-Registers val CFN: 1
-Registers val CSSA: 87978800
-Registers val CDSA: 87978c00
-Registers val CCR: 5000
-Registers val CSE: 1
-Registers val CSF: 1
-Registers val CDE: 1
-Registers val CDF: 1
-
-
-values taken just before triggering DMA from kernel module.
-all for channel 31.
-
-with wishes
-Somz
