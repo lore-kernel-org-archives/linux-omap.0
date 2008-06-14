@@ -1,36 +1,43 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 06/21] ARM: OMAP: DMA: Clean-up code
-Date: Sat, 14 Jun 2008 09:13:24 +0100
-Message-ID: <20080614081324.GJ32122@flint.arm.linux.org.uk>
-References: <1212802253-17797-1-git-send-email-tony@atomide.com> <1212802253-17797-2-git-send-email-tony@atomide.com> <1212802253-17797-3-git-send-email-tony@atomide.com> <1212802253-17797-4-git-send-email-tony@atomide.com> <1212802253-17797-5-git-send-email-tony@atomide.com> <1212802253-17797-6-git-send-email-tony@atomide.com> <1212802253-17797-7-git-send-email-tony@atomide.com>
+Subject: Re: [PATCH 11/21] ARM: OMAP: McBSP: Prepare for splitting into omap1 and omap2 code
+Date: Sat, 14 Jun 2008 09:17:20 +0100
+Message-ID: <20080614081720.GK32122@flint.arm.linux.org.uk>
+References: <1212802253-17797-3-git-send-email-tony@atomide.com> <1212802253-17797-4-git-send-email-tony@atomide.com> <1212802253-17797-5-git-send-email-tony@atomide.com> <1212802253-17797-6-git-send-email-tony@atomide.com> <1212802253-17797-7-git-send-email-tony@atomide.com> <1212802253-17797-8-git-send-email-tony@atomide.com> <1212802253-17797-9-git-send-email-tony@atomide.com> <1212802253-17797-10-git-send-email-tony@atomide.com> <1212802253-17797-11-git-send-email-tony@atomide.com> <1212802253-17797-12-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:44942 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:58650 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753452AbYFNINf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 14 Jun 2008 04:13:35 -0400
+	with ESMTP id S1753461AbYFNIRh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 14 Jun 2008 04:17:37 -0400
 Content-Disposition: inline
-In-Reply-To: <1212802253-17797-7-git-send-email-tony@atomide.com>
+In-Reply-To: <1212802253-17797-12-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, Eduardo Valentin <eduardo.valentin@indt.org.br>, linux-omap@vger.kernel.org
 
-On Fri, Jun 06, 2008 at 06:30:38PM -0700, Tony Lindgren wrote:
-> @@ -431,8 +474,8 @@ struct omap_dma_channel_params {
->  
->  extern void omap_set_dma_priority(int lch, int dst_port, int priority);
->  extern int omap_request_dma(int dev_id, const char *dev_name,
-> -			    void (* callback)(int lch, u16 ch_status, void *data),
-> -			    void *data, int *dma_ch);
-> +				void (*callback)(int lch, u16 ch_status,
-> +				void *data), void *data, int *dma_ch);
+On Fri, Jun 06, 2008 at 06:30:43PM -0700, Tony Lindgren wrote:
+> +#if defined(CONFIG_OMAP_MCBSP) || defined(CONFIG_OMAP_MCBSP_MODULE)
+> +
+> +static struct platform_device omap_mcbsp_devices[OMAP_MAX_MCBSP_COUNT];
+> +static int mcbsps_configured;
+> +
+> +void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data *config,
+> +					int size)
+> +{
+> +	int i;
+> +
+> +	if (size > OMAP_MAX_MCBSP_COUNT) {
+> +		printk(KERN_WARNING "Registered too many McBSPs platform_data."
+> +			" Using maximum (%d) available.\n",
+> +			OMAP_MAX_MCBSP_COUNT);
+> +		size = OMAP_MAX_MCBSP_COUNT;
+> +	}
+> +
+> +	for (i = 0; i < size; i++) {
+> +		struct platform_device *new_mcbsp = &omap_mcbsp_devices[i];
 
-This is an example where checkpatch is not entirely correct - wrapping
-the 'callback' type makes it less readable.  Just let it flow over column
-80, or maybe use:
-
-				void (*callback)(int, u16, void *),
-
-since all we actually need there is the type of the callback.
+Any reason this can't use the platform_device_alloc() API rather than
+having a static restriction on the number (coupled with the wastage of
+space for smaller 'size's ?)
