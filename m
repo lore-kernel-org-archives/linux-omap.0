@@ -1,35 +1,65 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH] Added sleep support to UART
-Date: Fri, 13 Jun 2008 18:36:25 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0806131830200.21863@utopia.booyaka.com>
-References: <> <1213106931-17954-1-git-send-email-tero.kristo@nokia.com> <alpine.DEB.1.00.0806111712520.21166@utopia.booyaka.com> <B71CE868F2BC2847B3F23C5A8EE3943024C0F4@vaebe110.NOE.Nokia.com>
+From: Somnt <er.somnt@gmail.com>
+Subject: Re: SDMA, RAM to RAM transfer issue
+Date: Sat, 14 Jun 2008 14:20:52 +0900
+Message-ID: <5b1a99070806132220g7e00d8b5yec485610c7a21e98@mail.gmail.com>
+References: <5b1a99070806121834o10ce0a6cxa2b8552d8e1a283c@mail.gmail.com>
+	 <9E8AB4F8CD83E542A3EF3F7DD3E7C55F0547F7E7@dlee11.ent.ti.com>
+	 <5b1a99070806130058u5a0840c6pd6dc0124fb7a34dc@mail.gmail.com>
+	 <9E8AB4F8CD83E542A3EF3F7DD3E7C55F0547FCD3@dlee11.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:48433 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752261AbYFNAg0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jun 2008 20:36:26 -0400
-In-Reply-To: <B71CE868F2BC2847B3F23C5A8EE3943024C0F4@vaebe110.NOE.Nokia.com>
+Received: from yw-out-2324.google.com ([74.125.46.29]:12315 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750722AbYFNFUx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 14 Jun 2008 01:20:53 -0400
+Received: by yw-out-2324.google.com with SMTP id 9so2670759ywe.1
+        for <linux-omap@vger.kernel.org>; Fri, 13 Jun 2008 22:20:52 -0700 (PDT)
+In-Reply-To: <9E8AB4F8CD83E542A3EF3F7DD3E7C55F0547FCD3@dlee11.ent.ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero.Kristo@nokia.com
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi Tero,
+Hi! Brandon
 
-Let me begin by saying that I don't care too much about the 32-bit SCM 
-register read change; I just happen to think that it is easier to read.  
-That said, one comment of yours bears some additional discussion:
+Thanks alot! for valuable input.......
 
-On Thu, 12 Jun 2008, Tero.Kristo@nokia.com wrote:
+i am now using  flush_cache_all();
+for making all memories updated for testing.
 
-> Also, the spec says that these registers can be accessed in either 8, 16
-> or 32 bit modes so why make it unnecessarily complicated and potentially
-> buggy with shifts (race conditions)?
+and it is working :)
 
-What race are you referring to?  Wouldn't such a race exist with the 
-current code?  (i.e., a shift should not cause any further race)
+with regards
+Somz
+
+On Sat, Jun 14, 2008 at 5:02 AM, Azbell, Brandon <b-azbell@ti.com> wrote:
+> Somz,
+>
+>        The parameter set looks fine and as you indicated, works fine
+> for the 1024 byte transfer.
+>
+>        Regarding the 64-byte transfer, which was not represented in the
+> parameters you provided, I suspect that it is getting stuck in the L1
+> Cache, or possibly L2 Cache, but not actually getting to system memory
+> (DDR).  For the 1024 byte transfer, the cache controllers may be needing
+> to flush to make room and therefore it "appears" to be working.
+>
+>        Do you perform a cache flush on the SRC buffer prior to
+> triggering the DMA?
+>        Also, do you perform a cache invalidate on the DST buffer prior
+> to reading the buffer and verifying the contents?
+>
+>        You should perform this in order to ensure the new contents of
+> the SRC buffer make it to system memory (DDR) prior to the DMA transfer.
+>
+> Brandon Azbell
+>
+>
 
 
-- Paul
+
+-- 
+"Like it or not, you're in
+the Software Business"
