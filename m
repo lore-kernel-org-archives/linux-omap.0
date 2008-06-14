@@ -1,41 +1,29 @@
-From: "Azbell, Brandon" <b-azbell@ti.com>
-Subject: RE: SDMA, RAM to RAM transfer issue
-Date: Fri, 13 Jun 2008 15:02:55 -0500
-Message-ID: <9E8AB4F8CD83E542A3EF3F7DD3E7C55F0547FCD3@dlee11.ent.ti.com>
-References: <5b1a99070806121834o10ce0a6cxa2b8552d8e1a283c@mail.gmail.com> <9E8AB4F8CD83E542A3EF3F7DD3E7C55F0547F7E7@dlee11.ent.ti.com> <5b1a99070806130058u5a0840c6pd6dc0124fb7a34dc@mail.gmail.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: [PATCH/RFC 2/2] Add Dspbridge driver to OMAP GIT kernel
+Date: Fri, 13 Jun 2008 19:01:33 -0500
+Message-ID: <A8E8DDC23969AE4CB38FFF51016C778202D975BB@dlee10.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41701 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50090 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752126AbYFMUDD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jun 2008 16:03:03 -0400
+	id S1757265AbYFNABo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jun 2008 20:01:44 -0400
 Content-class: urn:content-classes:message
-In-Reply-To: <5b1a99070806130058u5a0840c6pd6dc0124fb7a34dc@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Somnt <er.somnt@gmail.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, tony@atomide.com
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "Pasam, Vijay" <vpasam@ti.com>
 
-Somz,
 
-	The parameter set looks fine and as you indicated, works fine
-for the 1024 byte transfer.
+This patch adds the functionality to build the dspbridge driver
+using the Kernel build system.
 
-	Regarding the 64-byte transfer, which was not represented in the
-parameters you provided, I suspect that it is getting stuck in the L1
-Cache, or possibly L2 Cache, but not actually getting to system memory
-(DDR).  For the 1024 byte transfer, the cache controllers may be needing
-to flush to make room and therefore it "appears" to be working.
+http://www.omapzoom.org/pub/dspbridge/dspbridge_mpu_driver_config_option
+s.patch
 
-	Do you perform a cache flush on the SRC buffer prior to
-triggering the DMA?
-	Also, do you perform a cache invalidate on the DST buffer prior
-to reading the buffer and verifying the contents?
-
-	You should perform this in order to ensure the new contents of
-the SRC buffer make it to system memory (DDR) prior to the DMA transfer.
-
-Brandon Azbell 
-
+Thank you,
+Best regards,
+Hari
