@@ -1,23 +1,23 @@
 From: "Chandra shekhar" <x0044955@ti.com>
 Subject: [RFC/PATCH  3/4] McBSP support  for 34XX
-Date: Mon, 16 Jun 2008 17:51:05 +0530
-Message-ID: <003d01c8cfab$72fba1f0$318918ac@ent.ti.com>
+Date: Mon, 16 Jun 2008 17:54:20 +0530
+Message-ID: <003f01c8cfab$e7534350$318918ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45707 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:52939 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753455AbYFPMVP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Jun 2008 08:21:15 -0400
+	id S1752011AbYFPMYa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Jun 2008 08:24:30 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m5GCL7Ko008961
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m5GCOLJe022053
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 16 Jun 2008 07:21:14 -0500
+	for <linux-omap@vger.kernel.org>; Mon, 16 Jun 2008 07:24:28 -0500
 Received: from a0875540 (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m5GCL3G2023696
-	for <linux-omap@vger.kernel.org>; Mon, 16 Jun 2008 17:51:05 +0530 (IST)
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m5GCOKa6024653
+	for <linux-omap@vger.kernel.org>; Mon, 16 Jun 2008 17:54:20 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -404,7 +404,7 @@ Index: linux-omap-2.6/arch/arm/mach-omap2/mcbsp.c
 +	dt = (rx_params.data_type == OMAP_DMA_DATA_TYPE_S8) ? 1 :
 +		(rx_params.data_type == OMAP_DMA_DATA_TYPE_S16) ? 2 : 4;
 +
-+	/* SKIP_FIRST and sKIP_SECOND- 24 bit data in stereo mode*/
++	/* SKIP_FIRST and SKIP_SECOND- 24 bit data in mono mode*/
 +	if (rp->skip_alt == OMAP_MCBSP_SKIP_SECOND) {
 +		rx_params.dst_amode = OMAP_DMA_AMODE_DOUBLE_IDX;
 +		rx_params.dst_ei = (1);
@@ -496,7 +496,7 @@ Index: linux-omap-2.6/arch/arm/mach-omap2/mcbsp.c
 +		mcbsp[id].tx_word_length = 1;
 +	dt = mcbsp[id].tx_word_length;
 +
-+	/* SKIP_FIRST and sKIP_SECOND- 24 bit data in stereo mode*/
++	/* SKIP_FIRST and SKIP_SECOND- 24 bit data in mono mode*/
 +	if (tp->skip_alt == OMAP_MCBSP_SKIP_SECOND) {
 +		tx_params.src_amode = OMAP_DMA_AMODE_DOUBLE_IDX;
 +		tx_params.src_ei = (1);
