@@ -1,85 +1,84 @@
-From: James Chapman <jchapman@katalix.com>
-Subject: Re: ppp on 2.6.18
-Date: Mon, 16 Jun 2008 16:22:14 +0100
-Message-ID: <48568526.2080704@katalix.com>
-References: <a1d91fa0806160536r646577e2n7099431aa934a556@mail.gmail.com>	 <48566242.1080306@katalix.com>	 <18518.29942.550676.275051@gargle.gargle.HOWL>	 <a1d91fa0806160719u3dc02e20w50f7e02570cd21f3@mail.gmail.com>	 <48567AC8.3080404@katalix.com> <a1d91fa0806160810l6341cef5hd0ed5c1115d8a9b8@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: [PATCH] ARM: OMAP: armv7a Makefile: change -march flag to "armv7-a" so gcc 4.3.x works
+Date: Mon, 16 Jun 2008 15:50:37 +0200
+Message-ID: <47BEA242-E477-4E1C-B14A-BD2D76712CFF@student.utwente.nl>
+References: <1213368351-10664-1-git-send-email-koen@openembedded.org> <20080616132531.GE8848@atomide.com>
+Mime-Version: 1.0 (Apple Message framework v924)
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ppp-owner@vger.kernel.org>
-In-Reply-To: <a1d91fa0806160810l6341cef5hd0ed5c1115d8a9b8@mail.gmail.com>
-Sender: linux-ppp-owner@vger.kernel.org
-To: mohammed shareef <mdshareef@gmail.com>
-Cc: James Carlson <carlsonj@workingcode.com>, omap <linux-omap@vger.kernel.org>, linux-ppp@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:44749 "EHLO smtp.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752614AbYFPPX1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Jun 2008 11:23:27 -0400
+Received: from [10.0.11.46] (vestingbar.student.utwente.nl [130.89.119.192])
+          by smtp.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id m5GFHMWC000512
+          for <linux-omap@vger.kernel.org>; Mon, 16 Jun 2008 17:17:22 +0200
+In-Reply-To: <20080616132531.GE8848@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
 
-mohammed shareef wrote:
-> Dear James,
-> 
-> i did the following as u said:
-> 
-> ./configure --target=arm-linux --enable-arm --prefix=/root/Desktop/pppbuild
-> 
-> make CC=arm-linux-gcc LD=arm-linux-ld
-> 
-> it compiles without any error;
-> 
-> but when i do:
-> make install i get the following error:
-> 
-> install -d -m 755 /root/Desktop/pppbuild/sbin
-> install -d -m 755 /root/Desktop/pppbuild/share/man/man8
-> cd chat; make  install
-> make[1]: Entering directory `/root/Desktop/ppp-2.4.4/chat'
-> mkdir -p /root/Desktop/pppbuild/sbin /root/Desktop/pppbuild/share/man/man8
-> install -s -c chat /root/Desktop/pppbuild/sbin
-> strip: Unable to recognise the format of the input file
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-You need to add STRIP=arm-linux-strip and possibly 
-INSTALL=arm-linux-install to the make install command line. If that 
-fails, hack the -s out of the install command in chat/Makefile and strip 
-the file by hand.
 
-> `/root/Desktop/pppbuild/sbin/chat'
-> install: strip process terminated abnormally
-> make[1]: *** [install] Error 1
-> make[1]: Leaving directory `/root/Desktop/ppp-2.4.4/chat'
-> make: *** [install-progs] Error 2
-> 
-> thank you
-> 
-> On Mon, Jun 16, 2008 at 8:08 PM, James Chapman <jchapman@katalix.com> wrote:
->> mohammed shareef wrote:
->>> I downloaded a 2.4.4 ppp package and did the following to compile it
->>> for my omap-osk:
->>>
->>> ./configure --host=arm-linux --prefix=/root/Desktop/pppbuild
->>> make
->>> make install
->> The configure script isn't one that supports cross compilation,
->> unfortunately. So it is likely that you built files for your native desktop
->> system.
+Op 16 jun 2008, om 15:25 heeft Tony Lindgren het volgende geschreven:
+
+> * Koen Kooi <koen@openembedded.org> [080613 17:48]:
+>> armv7a Makefile: change -march flag to "armv7-a" so gcc 4.3.x  
+>> works, "armv7a" is a CSL-ism. CSL compilers accept both variants.
 >>
->> To cross compile, do
->> make CC=arm-linux-gcc LD=arm-linux-ld
+>> Tested with: gcc 4.2.4, 4.3.0, 4.3.1 and csl 2007q3, 2008q1
+>
+> Can you please post this to linux-arm-kernel@lists.arm.linux.org.uk
+> mailing list?
+
+Done
+
+>
+>
+> Thanks,
+>
+> Tony
+>
 >>
->> but make sure that your compiler uses its own version of the system headers,
->> not your desktop versions.
+>> Signed-off-by: Koen Kooi <koen@openembedded.org>
+>> ---
+>> arch/arm/Makefile |    2 +-
+>> 1 files changed, 1 insertions(+), 1 deletions(-)
 >>
+>> diff --git a/arch/arm/Makefile b/arch/arm/Makefile
+>> index 40a0b44..a3befbd 100644
+>> --- a/arch/arm/Makefile
+>> +++ b/arch/arm/Makefile
+>> @@ -47,7 +47,7 @@ comma = ,
+>> # Note that GCC does not numerically define an architecture version
+>> # macro, but instead defines a whole series of macros which makes
+>> # testing for a specific architecture or later rather impossible.
+>> -arch-$(CONFIG_CPU_32v7)		:=-D__LINUX_ARM_ARCH__=7 $(call cc- 
+>> option,-march=armv7a,-march=armv5t -Wa$(comma)-march=armv7a)
+>> +arch-$(CONFIG_CPU_32v7)		:=-D__LINUX_ARM_ARCH__=7 $(call cc- 
+>> option,-march=armv7-a,-march=armv5t -Wa$(comma)-march=armv7-a)
+>> arch-$(CONFIG_CPU_32v6)		:=-D__LINUX_ARM_ARCH__=6 $(call cc-option,- 
+>> march=armv6,-march=armv5t -Wa$(comma)-march=armv6)
+>> # Only override the compiler option if ARMv6. The ARMv6K extensions  
+>> are
+>> # always available in ARMv7
+>> -- 
+>> 1.5.4.3
 >>
 >> --
->> James Chapman
->> Katalix Systems Ltd
->> http://www.katalix.com
->> Catalysts for your Embedded Linux software development
->>
->>
-> 
+>> To unsubscribe from this list: send the line "unsubscribe linux- 
+>> omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
 
--- 
-James Chapman
-Katalix Systems Ltd
-http://www.katalix.com
-Catalysts for your Embedded Linux software development
-
+iD8DBQFIVm+vMkyGM64RGpERAt1mAJ400FDTLIzjWaWiZv2dWT168gdL9QCdGoBB
+u8JiNBxzKHzeOZ6NgkKFRMw=
+=iy5d
+-----END PGP SIGNATURE-----
