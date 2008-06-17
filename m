@@ -1,1057 +1,1486 @@
-From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-Subject: [PATCH 2/2] ARM: OMAP: SmartReflex driver integration
-Date: Tue, 17 Jun 2008 10:23:06 +0300
-Message-ID: <1213687386-15053-2-git-send-email-ext-kalle.jokiniemi@nokia.com>
-References: <>
- <1213687386-15053-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 05/21] ARM: OMAP: DMA: Remove __REG access
+Date: Tue, 17 Jun 2008 10:22:51 +0300
+Message-ID: <20080617072249.GB13078@atomide.com>
+References: <1212802253-17797-1-git-send-email-tony@atomide.com> <1212802253-17797-2-git-send-email-tony@atomide.com> <1212802253-17797-3-git-send-email-tony@atomide.com> <1212802253-17797-4-git-send-email-tony@atomide.com> <1212802253-17797-5-git-send-email-tony@atomide.com> <1212802253-17797-6-git-send-email-tony@atomide.com> <20080614080439.GH32122@flint.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="8GpibOaaTibBMecb"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:62680 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753324AbYFQHWL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jun 2008 03:22:11 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m5H7LV2X009439
-	for <linux-omap@vger.kernel.org>; Tue, 17 Jun 2008 02:22:09 -0500
-In-Reply-To: <1213687386-15053-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58969 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751798AbYFQHWV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jun 2008 03:22:21 -0400
+Content-Disposition: inline
+In-Reply-To: <20080614080439.GH32122@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 
-This patch integrates TI's SmartReflex driver into linux-omap. SmartReflex is
-a module that adjusts OMAP3 VDD1 and VDD2 operating voltages around the
-nominal values of current operating point depending on silicon
-characteristics and operating conditions.
 
-The patch adds Kconfig options "SmartReflex support" and a sub-option
-"SmartReflex testing support" under "System type"->"TI OMAP implementations"
-menu. The testing support can be used to test SmartReflex functionality, if
-the E-fuse values have not been set for the device. It however uses software
-hard coded sensor parameters, which may not work on all devices. Beware.
+--8GpibOaaTibBMecb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The driver creates two sysfs entries into /sys/power/ named
-"sr_vdd1_autocomp" and "sr_vdd2_autocomp" which can be used to activate
-voltage autocompensation feature of SmartReflex modules 1 and 2.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [080614 11:05]:
+> On Fri, Jun 06, 2008 at 06:30:37PM -0700, Tony Lindgren wrote:
+> > Remove __REG access in DMA code, use dma_read/write instead:
+> > 
+> > - dynamically set the omap_dma_base based on the omap type
+> > 
+> > - omap_read/write becomes dma_read/write
+> > - dma channel registers are read with dma_ch_read/write
+> > 
+> > Cc: David Brownell <david-b@pacbell.net>
+> > Cc: linux-usb@vger.kernel.org
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > 
+> > diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> > index 02f00a9..50f83bc 100644
+> > --- a/arch/arm/plat-omap/dma.c
+> > +++ b/arch/arm/plat-omap/dma.c
+> > @@ -126,6 +126,7 @@ static int dma_chan_count;
+> >  
+> >  static spinlock_t dma_chan_lock;
+> >  static struct omap_dma_lch *dma_chan;
+> > +void __iomem *omap_dma_base;
+> 
+> Shouldn't this be static?
 
-Use the following commands to enable autocompensation:
+Good catch, yes it can be static. Updated patch following.
 
-echo -n 1 > /sys/power/sr_vdd1_autocomp
-echo -n 1 > /sys/power/sr_vdd2_autocomp
+Tony
 
-To disable:
+--8GpibOaaTibBMecb
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="0005-omap-dma-reg.patch"
 
-echo -n 0 > /sys/power/sr_vdd1_autocomp
-echo -n 0 > /sys/power/sr_vdd2_autocomp
+>From b4f08a601bfe343db59e7a2b59a4a40d367555dd Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 17 Jun 2008 10:22:30 +0300
+Subject: [PATCH] ARM: OMAP: DMA: Remove __REG access
 
-Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
----
- arch/arm/mach-omap2/Makefile      |    3 +
- arch/arm/mach-omap2/pm34xx.c      |    9 +
- arch/arm/mach-omap2/smartreflex.c |  871 +++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/smartreflex.h |   21 +
- arch/arm/plat-omap/Kconfig        |   31 ++
- 5 files changed, 935 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/smartreflex.c
+Remove __REG access in DMA code, use dma_read/write instead:
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 5a572b0..38d9b29 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -24,6 +24,9 @@ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o
- obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
- endif
+- dynamically set the omap_dma_base based on the omap type
+- omap_read/write becomes dma_read/write
+- dma channel registers are read with dma_ch_read/write
+
+Cc: David Brownell <david-b@pacbell.net>
+Cc: linux-usb@vger.kernel.org
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 02f00a9..18e757a 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -126,6 +126,7 @@ static int dma_chan_count;
  
-+# SmartReflex driver
-+obj-$(CONFIG_OMAP_SMARTREFLEX)		+= smartreflex.o
-+
- # Clock framework
- obj-$(CONFIG_ARCH_OMAP2)		+= clock24xx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= clock34xx.o
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 40a5828..c7493f5 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -36,6 +36,7 @@
+ static spinlock_t dma_chan_lock;
+ static struct omap_dma_lch *dma_chan;
++static void __iomem *omap_dma_base;
  
- #include "prm.h"
- #include "pm.h"
-+#include "smartreflex.h"
+ static const u8 omap1_dma_irq[OMAP1_LOGICAL_DMA_CH_COUNT] = {
+ 	INT_DMA_CH0_6, INT_DMA_CH1_7, INT_DMA_CH2_8, INT_DMA_CH3,
+@@ -142,6 +143,24 @@ static inline void omap_enable_channel_irq(int lch);
+ #define REVISIT_24XX()		printk(KERN_ERR "FIXME: no %s on 24xx\n", \
+ 						__func__);
  
- struct power_state {
- 	struct powerdomain *pwrdm;
-@@ -259,6 +260,10 @@ static int omap3_pm_suspend(void)
- 	struct power_state *pwrst;
- 	int state, ret = 0;
- 
-+	/* XXX Disable smartreflex before entering suspend */
-+	disable_smartreflex(SR1);
-+	disable_smartreflex(SR2);
-+
- 	/* Read current next_pwrsts */
- 	list_for_each_entry(pwrst, &pwrst_list, node)
- 		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
-@@ -290,6 +295,10 @@ restore:
- 		printk(KERN_INFO "Successfully put all powerdomains "
- 		       "to target state\n");
- 
-+	/* XXX Enable smartreflex after suspend */
-+	enable_smartreflex(SR1);
-+	enable_smartreflex(SR2);
-+
- 	return ret;
- }
- 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-new file mode 100644
-index 0000000..0f3a659
---- /dev/null
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -0,0 +1,871 @@
-+/*
-+ * linux/arch/arm/mach-omap3/smartreflex.c
-+ *
-+ * OMAP34XX SmartReflex Voltage Control
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Kalle Jokiniemi
-+ *
-+ * Copyright (C) 2007 Texas Instruments, Inc.
-+ * Lesly A M <x0080970@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/module.h>
-+#include <linux/delay.h>
-+#include <linux/err.h>
-+#include <linux/clk.h>
-+#include <linux/sysfs.h>
-+#include <linux/kobject.h>
-+#include <linux/i2c/twl4030.h>
-+#include <linux/io.h>
-+
-+#include <asm/arch/omap34xx.h>
-+#include <asm/arch/control.h>
-+#include <asm/arch/clock.h>
-+
-+#include "prm.h"
-+#include "smartreflex.h"
-+#include "prm-regbits-34xx.h"
-+
-+/* XXX: These should be relocated where-ever the OPP implementation will be */
-+u32 current_vdd1_opp;
-+u32 current_vdd2_opp;
-+
-+struct omap_sr {
-+	int		srid;
-+	int		is_sr_reset;
-+	int		is_autocomp_active;
-+	struct clk 	*clk;
-+	u32 		clk_length;
-+	u32 		req_opp_no;
-+	u32 		opp1_nvalue, opp2_nvalue, opp3_nvalue, opp4_nvalue;
-+	u32		opp5_nvalue;
-+	u32		senp_mod, senn_mod;
-+	u32		srbase_addr;
-+	u32		vpbase_addr;
-+};
-+
-+/* Custom clocks to enable SR specific enable/disable functions. */
-+struct sr_custom_clk {
-+	struct clk 	clk;  /* meta-clock with custom enable/disable calls */
-+	struct clk 	*fck; /* actual functional clock */
-+	struct omap_sr 	*sr;
-+};
-+
-+static inline void sr_write_reg(struct omap_sr *sr, int offset, u32 value)
-+{
-+	__raw_writel(value, sr->srbase_addr + offset);
-+}
-+
-+static inline void sr_modify_reg(struct omap_sr *sr, int offset, u32 mask,
-+								u32 value)
-+{
-+	u32 reg_val;
-+
-+	reg_val = __raw_readl(sr->srbase_addr + offset);
-+	reg_val &= ~mask;
-+	reg_val |= value;
-+
-+	__raw_writel(reg_val, sr->srbase_addr + offset);
-+}
-+
-+static inline u32 sr_read_reg(struct omap_sr *sr, int offset)
-+{
-+	return __raw_readl(sr->srbase_addr + offset);
-+}
-+
-+/* Custom clock handling functions */
-+static int sr_clk_enable(struct clk *clk)
-+{
-+	struct sr_custom_clk *sr_clk = container_of(clk, struct sr_custom_clk,
-+									clk);
-+
-+	if (clk_enable(sr_clk->fck) != 0) {
-+		printk(KERN_ERR "Could not enable %s\n", sr_clk->fck->name);
-+		goto clk_enable_err;
-+	}
-+
-+	/* set fclk- active , iclk- idle */
-+	sr_modify_reg(sr_clk->sr, ERRCONFIG, SR_CLKACTIVITY_MASK,
-+						SR_CLKACTIVITY_IOFF_FON);
-+
-+	return 0;
-+
-+clk_enable_err:
-+	return -1;
-+}
-+
-+static void sr_clk_disable(struct clk *clk)
-+{
-+	struct sr_custom_clk *sr_clk = container_of(clk, struct sr_custom_clk,
-+									clk);
-+
-+	/* set fclk, iclk- idle */
-+	sr_modify_reg(sr_clk->sr, ERRCONFIG, SR_CLKACTIVITY_MASK,
-+						SR_CLKACTIVITY_IOFF_FOFF);
-+
-+	clk_disable(sr_clk->fck);
-+	sr_clk->sr->is_sr_reset = 1;
-+}
-+
-+static struct omap_sr sr1 = {
-+	.srid			= SR1,
-+	.is_sr_reset		= 1,
-+	.is_autocomp_active	= 0,
-+	.clk_length		= 0,
-+	.srbase_addr		= OMAP2_IO_ADDRESS(OMAP34XX_SR1_BASE),
-+};
-+
-+static struct omap_sr sr2 = {
-+	.srid			= SR2,
-+	.is_sr_reset		= 1,
-+	.is_autocomp_active	= 0,
-+	.clk_length		= 0,
-+	.srbase_addr		= OMAP2_IO_ADDRESS(OMAP34XX_SR2_BASE),
-+};
-+
-+static struct sr_custom_clk sr1_custom_clk = {
-+	.clk = {
-+			.name 		= "sr1_custom_clk",
-+			.enable		= sr_clk_enable,
-+			.disable	= sr_clk_disable,
-+	},
-+	.sr	= &sr1,
-+};
-+
-+static struct sr_custom_clk sr2_custom_clk = {
-+	.clk = {
-+			.name 		= "sr2_custom_clk",
-+			.enable		= sr_clk_enable,
-+			.disable	= sr_clk_disable,
-+	},
-+	.sr	= &sr2,
-+};
-+
-+static void cal_reciprocal(u32 sensor, u32 *sengain, u32 *rnsen)
-+{
-+	u32 gn, rn, mul;
-+
-+	for (gn = 0; gn < GAIN_MAXLIMIT; gn++) {
-+		mul = 1 << (gn + 8);
-+		rn = mul / sensor;
-+		if (rn < R_MAXLIMIT) {
-+			*sengain = gn;
-+			*rnsen = rn;
-+		}
-+	}
-+}
-+
-+static u32 cal_test_nvalue(u32 sennval, u32 senpval)
-+{
-+	u32 senpgain, senngain;
-+	u32 rnsenp, rnsenn;
-+
-+	/* Calculating the gain and reciprocal of the SenN and SenP values */
-+	cal_reciprocal(senpval, &senpgain, &rnsenp);
-+	cal_reciprocal(sennval, &senngain, &rnsenn);
-+
-+	return ((senpgain << NVALUERECIPROCAL_SENPGAIN_SHIFT) |
-+		(senngain << NVALUERECIPROCAL_SENNGAIN_SHIFT) |
-+		(rnsenp << NVALUERECIPROCAL_RNSENP_SHIFT) |
-+		(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT));
-+}
-+
-+static void sr_clk_init(struct sr_custom_clk *sr_clk)
-+{
-+	if (sr_clk->sr->srid == SR1) {
-+		sr_clk->fck = clk_get(NULL, "sr1_fck");
-+		if (IS_ERR(sr_clk->fck))
-+			printk(KERN_ERR "Could not get sr1_fck\n");
-+	} else if (sr_clk->sr->srid == SR2) {
-+		sr_clk->fck = clk_get(NULL, "sr2_fck");
-+		if (IS_ERR(sr_clk->fck))
-+			printk(KERN_ERR "Could not get sr2_fck\n");
-+	}
-+	clk_register(&sr_clk->clk);
-+}
-+
-+static void sr_set_clk_length(struct omap_sr *sr)
-+{
-+	struct clk *osc_sys_ck;
-+	u32 sys_clk = 0;
-+
-+	osc_sys_ck = clk_get(NULL, "osc_sys_ck");
-+	sys_clk = clk_get_rate(osc_sys_ck);
-+	clk_put(osc_sys_ck);
-+
-+	switch (sys_clk) {
-+	case 12000000:
-+		sr->clk_length = SRCLKLENGTH_12MHZ_SYSCLK;
-+		break;
-+	case 13000000:
-+		sr->clk_length = SRCLKLENGTH_13MHZ_SYSCLK;
-+		break;
-+	case 19200000:
-+		sr->clk_length = SRCLKLENGTH_19MHZ_SYSCLK;
-+		break;
-+	case 26000000:
-+		sr->clk_length = SRCLKLENGTH_26MHZ_SYSCLK;
-+		break;
-+	case 38400000:
-+		sr->clk_length = SRCLKLENGTH_38MHZ_SYSCLK;
-+		break;
-+	default :
-+		printk(KERN_ERR "Invalid sysclk value: %d\n", sys_clk);
-+		break;
-+	}
-+}
-+
-+static void sr_set_efuse_nvalues(struct omap_sr *sr)
-+{
-+	if (sr->srid == SR1) {
-+		sr->senn_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
-+					OMAP343X_SR1_SENNENABLE_MASK) >>
-+					OMAP343X_SR1_SENNENABLE_SHIFT;
-+
-+		sr->senp_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
-+					OMAP343X_SR1_SENPENABLE_MASK) >>
-+					OMAP343X_SR1_SENPENABLE_SHIFT;
-+
-+		sr->opp5_nvalue = omap_ctrl_readl(
-+					OMAP343X_CONTROL_FUSE_OPP5_VDD1);
-+		sr->opp4_nvalue = omap_ctrl_readl(
-+					OMAP343X_CONTROL_FUSE_OPP4_VDD1);
-+		sr->opp3_nvalue = omap_ctrl_readl(
-+					OMAP343X_CONTROL_FUSE_OPP3_VDD1);
-+		sr->opp2_nvalue = omap_ctrl_readl(
-+					OMAP343X_CONTROL_FUSE_OPP2_VDD1);
-+		sr->opp1_nvalue = omap_ctrl_readl(
-+					OMAP343X_CONTROL_FUSE_OPP1_VDD1);
-+	} else if (sr->srid == SR2) {
-+		sr->senn_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
-+					OMAP343X_SR2_SENNENABLE_MASK) >>
-+					OMAP343X_SR2_SENNENABLE_SHIFT;
-+
-+		sr->senp_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
-+					OMAP343X_SR2_SENPENABLE_MASK) >>
-+					OMAP343X_SR2_SENPENABLE_SHIFT;
-+
-+		sr->opp3_nvalue = omap_ctrl_readl(
-+					OMAP343X_CONTROL_FUSE_OPP3_VDD2);
-+		sr->opp2_nvalue = omap_ctrl_readl(
-+					OMAP343X_CONTROL_FUSE_OPP2_VDD2);
-+		sr->opp1_nvalue = omap_ctrl_readl(
-+					OMAP343X_CONTROL_FUSE_OPP1_VDD2);
-+	}
-+}
-+
-+/* Hard coded nvalues for testing purposes, may cause device to hang! */
-+static void sr_set_testing_nvalues(struct omap_sr *sr)
-+{
-+	if (sr->srid == SR1) {
-+		sr->senp_mod = 0x03;	/* SenN-M5 enabled */
-+		sr->senn_mod = 0x03;
-+
-+		/* calculate nvalues for each opp */
-+		sr->opp5_nvalue = cal_test_nvalue(0xacd + 0x330, 0x848 + 0x330);
-+		sr->opp4_nvalue = cal_test_nvalue(0x964 + 0x2a0, 0x727 + 0x2a0);
-+		sr->opp3_nvalue = cal_test_nvalue(0x85b + 0x200, 0x655 + 0x200);
-+		sr->opp2_nvalue = cal_test_nvalue(0x506 + 0x1a0, 0x3be + 0x1a0);
-+		sr->opp1_nvalue = cal_test_nvalue(0x373 + 0x100, 0x28c + 0x100);
-+	} else if (sr->srid == SR2) {
-+		sr->senp_mod = 0x03;
-+		sr->senn_mod = 0x03;
-+
-+		sr->opp3_nvalue = cal_test_nvalue(0x76f + 0x200, 0x579 + 0x200);
-+		sr->opp2_nvalue = cal_test_nvalue(0x4f5 + 0x1c0, 0x390 + 0x1c0);
-+		sr->opp1_nvalue = cal_test_nvalue(0x359, 0x25d);
-+	}
-+
-+}
-+
-+static void sr_set_nvalues(struct omap_sr *sr)
-+{
-+	if (SR_TESTING_NVALUES)
-+		sr_set_testing_nvalues(sr);
-+	else
-+		sr_set_efuse_nvalues(sr);
-+}
-+
-+static void sr_configure_vp(int srid)
-+{
-+	u32 vpconfig;
-+
-+	if (srid == SR1) {
-+		vpconfig = PRM_VP1_CONFIG_ERROROFFSET | PRM_VP1_CONFIG_ERRORGAIN
-+					| PRM_VP1_CONFIG_INITVOLTAGE
-+					| PRM_VP1_CONFIG_TIMEOUTEN;
-+
-+		prm_write_mod_reg(vpconfig, OMAP3430_GR_MOD,
-+					OMAP3_PRM_VP1_CONFIG_OFFSET);
-+		prm_write_mod_reg(PRM_VP1_VSTEPMIN_SMPSWAITTIMEMIN |
-+					PRM_VP1_VSTEPMIN_VSTEPMIN,
-+					OMAP3430_GR_MOD,
-+					OMAP3_PRM_VP1_VSTEPMIN_OFFSET);
-+
-+		prm_write_mod_reg(PRM_VP1_VSTEPMAX_SMPSWAITTIMEMAX |
-+					PRM_VP1_VSTEPMAX_VSTEPMAX,
-+					OMAP3430_GR_MOD,
-+					OMAP3_PRM_VP1_VSTEPMAX_OFFSET);
-+
-+		prm_write_mod_reg(PRM_VP1_VLIMITTO_VDDMAX |
-+					PRM_VP1_VLIMITTO_VDDMIN |
-+					PRM_VP1_VLIMITTO_TIMEOUT,
-+					OMAP3430_GR_MOD,
-+					OMAP3_PRM_VP1_VLIMITTO_OFFSET);
-+
-+		/* Trigger initVDD value copy to voltage processor */
-+		prm_set_mod_reg_bits(PRM_VP1_CONFIG_INITVDD, OMAP3430_GR_MOD,
-+					OMAP3_PRM_VP1_CONFIG_OFFSET);
-+		/* Clear initVDD copy trigger bit */
-+		prm_clear_mod_reg_bits(PRM_VP1_CONFIG_INITVDD, OMAP3430_GR_MOD,
-+					OMAP3_PRM_VP1_CONFIG_OFFSET);
-+
-+	} else if (srid == SR2) {
-+		vpconfig = PRM_VP2_CONFIG_ERROROFFSET | PRM_VP2_CONFIG_ERRORGAIN
-+					| PRM_VP2_CONFIG_INITVOLTAGE
-+					| PRM_VP2_CONFIG_TIMEOUTEN;
-+
-+		prm_write_mod_reg(vpconfig, OMAP3430_GR_MOD,
-+					OMAP3_PRM_VP2_CONFIG_OFFSET);
-+		prm_write_mod_reg(PRM_VP2_VSTEPMIN_SMPSWAITTIMEMIN |
-+					PRM_VP2_VSTEPMIN_VSTEPMIN,
-+					OMAP3430_GR_MOD,
-+					OMAP3_PRM_VP2_VSTEPMIN_OFFSET);
-+
-+		prm_write_mod_reg(PRM_VP2_VSTEPMAX_SMPSWAITTIMEMAX |
-+					PRM_VP2_VSTEPMAX_VSTEPMAX,
-+					OMAP3430_GR_MOD,
-+					OMAP3_PRM_VP2_VSTEPMAX_OFFSET);
-+
-+		prm_write_mod_reg(PRM_VP2_VLIMITTO_VDDMAX |
-+					PRM_VP2_VLIMITTO_VDDMIN |
-+					PRM_VP2_VLIMITTO_TIMEOUT,
-+					OMAP3430_GR_MOD,
-+					OMAP3_PRM_VP2_VLIMITTO_OFFSET);
-+
-+		/* Trigger initVDD value copy to voltage processor */
-+		prm_set_mod_reg_bits(PRM_VP2_CONFIG_INITVDD, OMAP3430_GR_MOD,
-+					OMAP3_PRM_VP2_CONFIG_OFFSET);
-+		/* Reset initVDD copy trigger bit */
-+		prm_clear_mod_reg_bits(PRM_VP2_CONFIG_INITVDD, OMAP3430_GR_MOD,
-+					OMAP3_PRM_VP2_CONFIG_OFFSET);
-+
-+	}
-+}
-+
-+static void sr_configure_vc(void)
-+{
-+	prm_write_mod_reg((R_SRI2C_SLAVE_ADDR << OMAP3430_SMPS_SA1_SHIFT) |
-+			(R_SRI2C_SLAVE_ADDR << OMAP3430_SMPS_SA0_SHIFT),
-+			OMAP3430_GR_MOD, OMAP3_PRM_VC_SMPS_SA_OFFSET);
-+
-+	prm_write_mod_reg((R_VDD2_SR_CONTROL << OMAP3430_VOLRA1_SHIFT) |
-+			(R_VDD1_SR_CONTROL << OMAP3430_VOLRA0_SHIFT),
-+			OMAP3430_GR_MOD, OMAP3_PRM_VC_SMPS_VOL_RA_OFFSET);
-+
-+	prm_write_mod_reg((OMAP3430_VC_CMD_VAL0_ON <<
-+		OMAP3430_VC_CMD_ON_SHIFT) |
-+		(OMAP3430_VC_CMD_VAL0_ONLP << OMAP3430_VC_CMD_ONLP_SHIFT) |
-+		(OMAP3430_VC_CMD_VAL0_RET << OMAP3430_VC_CMD_RET_SHIFT) |
-+		(OMAP3430_VC_CMD_VAL0_OFF << OMAP3430_VC_CMD_OFF_SHIFT),
-+		OMAP3430_GR_MOD, OMAP3_PRM_VC_CMD_VAL_0_OFFSET);
-+
-+	prm_write_mod_reg((OMAP3430_VC_CMD_VAL1_ON <<
-+		OMAP3430_VC_CMD_ON_SHIFT) |
-+		(OMAP3430_VC_CMD_VAL1_ONLP << OMAP3430_VC_CMD_ONLP_SHIFT) |
-+		(OMAP3430_VC_CMD_VAL1_RET << OMAP3430_VC_CMD_RET_SHIFT) |
-+		(OMAP3430_VC_CMD_VAL1_OFF << OMAP3430_VC_CMD_OFF_SHIFT),
-+		OMAP3430_GR_MOD, OMAP3_PRM_VC_CMD_VAL_1_OFFSET);
-+
-+	prm_write_mod_reg(OMAP3430_CMD1 | OMAP3430_RAV1,
-+				OMAP3430_GR_MOD,
-+				OMAP3_PRM_VC_CH_CONF_OFFSET);
-+
-+	prm_write_mod_reg(OMAP3430_MCODE_SHIFT | OMAP3430_HSEN | OMAP3430_SREN,
-+				OMAP3430_GR_MOD,
-+				OMAP3_PRM_VC_I2C_CFG_OFFSET);
-+
-+	/* Setup voltctrl and other setup times */
-+	/* XXX CONFIG_SYSOFFMODE has not been implemented yet */
-+#ifdef CONFIG_SYSOFFMODE
-+	prm_write_mod_reg(OMAP3430_AUTO_OFF | OMAP3430_AUTO_RET,
-+			OMAP3430_GR_MOD,
-+			OMAP3_PRM_VOLTCTRL_OFFSET);
-+
-+	prm_write_mod_reg(OMAP3430_CLKSETUP_DURATION, OMAP3430_GR_MOD,
-+			OMAP3_PRM_CLKSETUP_OFFSET);
-+	prm_write_mod_reg((OMAP3430_VOLTSETUP_TIME2 <<
-+			OMAP3430_VOLTSETUP_TIME2_OFFSET) |
-+			(OMAP3430_VOLTSETUP_TIME1 <<
-+			OMAP3430_VOLTSETUP_TIME1_OFFSET),
-+			OMAP3430_GR_MOD, OMAP3_PRM_VOLTSETUP1_OFFSET);
-+
-+	prm_write_mod_reg(OMAP3430_VOLTOFFSET_DURATION, OMAP3430_GR_MOD,
-+			OMAP3_PRM_VOLTOFFSET_OFFSET);
-+	prm_write_mod_reg(OMAP3430_VOLTSETUP2_DURATION, OMAP3430_GR_MOD,
-+			OMAP3_PRM_VOLTSETUP2_OFFSET);
-+#else
-+	prm_set_mod_reg_bits(OMAP3430_AUTO_RET, OMAP3430_GR_MOD,
-+			OMAP3_PRM_VOLTCTRL_OFFSET);
-+#endif
-+
-+}
-+
-+static void sr_configure(struct omap_sr *sr)
-+{
-+	u32 sr_config;
-+	u32 senp_en , senn_en;
-+
-+	if (sr->clk_length == 0)
-+		sr_set_clk_length(sr);
-+
-+	senp_en = sr->senp_mod;
-+	senn_en = sr->senn_mod;
-+	if (sr->srid == SR1) {
-+		sr_config = SR1_SRCONFIG_ACCUMDATA |
-+			(sr->clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
-+			SRCONFIG_SENENABLE | SRCONFIG_ERRGEN_EN |
-+			SRCONFIG_MINMAXAVG_EN |
-+			(senn_en << SRCONFIG_SENNENABLE_SHIFT) |
-+			(senp_en << SRCONFIG_SENPENABLE_SHIFT) |
-+			SRCONFIG_DELAYCTRL;
-+
-+		sr_write_reg(sr, SRCONFIG, sr_config);
-+		sr_write_reg(sr, AVGWEIGHT, SR1_AVGWEIGHT_SENPAVGWEIGHT |
-+					SR1_AVGWEIGHT_SENNAVGWEIGHT);
-+
-+		sr_modify_reg(sr, ERRCONFIG, (SR_ERRWEIGHT_MASK |
-+			SR_ERRMAXLIMIT_MASK | SR_ERRMINLIMIT_MASK),
-+			(SR1_ERRWEIGHT | SR1_ERRMAXLIMIT | SR1_ERRMINLIMIT));
-+
-+	} else if (sr->srid == SR2) {
-+		sr_config = SR2_SRCONFIG_ACCUMDATA |
-+			(sr->clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
-+			SRCONFIG_SENENABLE | SRCONFIG_ERRGEN_EN |
-+			SRCONFIG_MINMAXAVG_EN |
-+			(senn_en << SRCONFIG_SENNENABLE_SHIFT) |
-+			(senp_en << SRCONFIG_SENPENABLE_SHIFT) |
-+			SRCONFIG_DELAYCTRL;
-+
-+		sr_write_reg(sr, SRCONFIG, sr_config);
-+		sr_write_reg(sr, AVGWEIGHT, SR2_AVGWEIGHT_SENPAVGWEIGHT |
-+					SR2_AVGWEIGHT_SENNAVGWEIGHT);
-+		sr_modify_reg(sr, ERRCONFIG, (SR_ERRWEIGHT_MASK |
-+			SR_ERRMAXLIMIT_MASK | SR_ERRMINLIMIT_MASK),
-+			(SR2_ERRWEIGHT | SR2_ERRMAXLIMIT | SR2_ERRMINLIMIT));
-+
-+	}
-+	sr->is_sr_reset = 0;
-+}
-+
-+static int sr_enable(struct omap_sr *sr, u32 target_opp_no)
-+{
-+	u32 nvalue_reciprocal;
-+
-+	sr->req_opp_no = target_opp_no;
-+
-+	if (sr->srid == SR1) {
-+		switch (target_opp_no) {
-+		case 5:
-+			nvalue_reciprocal = sr->opp5_nvalue;
-+			break;
-+		case 4:
-+			nvalue_reciprocal = sr->opp4_nvalue;
-+			break;
-+		case 3:
-+			nvalue_reciprocal = sr->opp3_nvalue;
-+			break;
-+		case 2:
-+			nvalue_reciprocal = sr->opp2_nvalue;
-+			break;
-+		case 1:
-+			nvalue_reciprocal = sr->opp1_nvalue;
-+			break;
-+		default:
-+			nvalue_reciprocal = sr->opp3_nvalue;
-+			break;
-+		}
-+	} else {
-+		switch (target_opp_no) {
-+		case 3:
-+			nvalue_reciprocal = sr->opp3_nvalue;
-+			break;
-+		case 2:
-+			nvalue_reciprocal = sr->opp2_nvalue;
-+			break;
-+		case 1:
-+			nvalue_reciprocal = sr->opp1_nvalue;
-+			break;
-+		default:
-+			nvalue_reciprocal = sr->opp3_nvalue;
-+			break;
-+		}
-+	}
-+
-+	if (nvalue_reciprocal == 0) {
-+		printk(KERN_NOTICE "OPP%d doesn't support SmartReflex\n",
-+								target_opp_no);
-+		return SR_FALSE;
-+	}
-+
-+	sr_write_reg(sr, NVALUERECIPROCAL, nvalue_reciprocal);
-+
-+	/* Enable the interrupt */
-+	sr_modify_reg(sr, ERRCONFIG,
-+			(ERRCONFIG_VPBOUNDINTEN | ERRCONFIG_VPBOUNDINTST),
-+			(ERRCONFIG_VPBOUNDINTEN | ERRCONFIG_VPBOUNDINTST));
-+	if (sr->srid == SR1) {
-+		/* Enable VP1 */
-+		prm_set_mod_reg_bits(PRM_VP1_CONFIG_VPENABLE, OMAP3430_GR_MOD,
-+				OMAP3_PRM_VP1_CONFIG_OFFSET);
-+	} else if (sr->srid == SR2) {
-+		/* Enable VP2 */
-+		prm_set_mod_reg_bits(PRM_VP2_CONFIG_VPENABLE, OMAP3430_GR_MOD,
-+				OMAP3_PRM_VP2_CONFIG_OFFSET);
-+	}
-+
-+	/* SRCONFIG - enable SR */
-+	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, SRCONFIG_SRENABLE);
-+	return SR_TRUE;
-+}
-+
-+static void sr_disable(struct omap_sr *sr)
-+{
-+	sr->is_sr_reset = 1;
-+
-+	/* SRCONFIG - disable SR */
-+	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, ~SRCONFIG_SRENABLE);
-+
-+	if (sr->srid == SR1) {
-+		/* Disable VP1 */
-+		prm_clear_mod_reg_bits(PRM_VP1_CONFIG_VPENABLE, OMAP3430_GR_MOD,
-+					OMAP3_PRM_VP1_CONFIG_OFFSET);
-+	} else if (sr->srid == SR2) {
-+		/* Disable VP2 */
-+		prm_clear_mod_reg_bits(PRM_VP2_CONFIG_VPENABLE, OMAP3430_GR_MOD,
-+					OMAP3_PRM_VP2_CONFIG_OFFSET);
-+	}
-+}
-+
-+
-+void sr_start_vddautocomap(int srid, u32 target_opp_no)
-+{
-+	struct omap_sr *sr = NULL;
-+
-+	if (srid == SR1)
-+		sr = &sr1;
-+	else if (srid == SR2)
-+		sr = &sr2;
-+
-+	if (sr->is_sr_reset == 1) {
-+		clk_enable(sr->clk);
-+		sr_configure(sr);
-+	}
-+
-+	if (sr->is_autocomp_active == 1)
-+		printk(KERN_WARNING "SR%d: VDD autocomp is already active\n",
-+									srid);
-+
-+	sr->is_autocomp_active = 1;
-+	if (!sr_enable(sr, target_opp_no)) {
-+		printk(KERN_WARNING "SR%d: VDD autocomp not activated\n", srid);
-+		sr->is_autocomp_active = 0;
-+		if (sr->is_sr_reset == 1)
-+			clk_disable(sr->clk);
-+	}
-+}
-+EXPORT_SYMBOL(sr_start_vddautocomap);
-+
-+int sr_stop_vddautocomap(int srid)
-+{
-+	struct omap_sr *sr = NULL;
-+
-+	if (srid == SR1)
-+		sr = &sr1;
-+	else if (srid == SR2)
-+		sr = &sr2;
-+
-+	if (sr->is_autocomp_active == 1) {
-+		sr_disable(sr);
-+		clk_disable(sr->clk);
-+		sr->is_autocomp_active = 0;
-+		return SR_TRUE;
-+	} else {
-+		printk(KERN_WARNING "SR%d: VDD autocomp is not active\n",
-+								srid);
-+		return SR_FALSE;
-+	}
-+
-+}
-+EXPORT_SYMBOL(sr_stop_vddautocomap);
-+
-+void enable_smartreflex(int srid)
-+{
-+	u32 target_opp_no = 0;
-+	struct omap_sr *sr = NULL;
-+
-+	if (srid == SR1)
-+		sr = &sr1;
-+	else if (srid == SR2)
-+		sr = &sr2;
-+
-+	if (sr->is_autocomp_active == 1) {
-+		if (sr->is_sr_reset == 1) {
-+			/* Enable SR clks */
-+			clk_enable(sr->clk);
-+
-+			if (srid == SR1)
-+				target_opp_no = get_opp_no(current_vdd1_opp);
-+			else if (srid == SR2)
-+				target_opp_no = get_opp_no(current_vdd2_opp);
-+
-+			sr_configure(sr);
-+
-+			if (!sr_enable(sr, target_opp_no))
-+				clk_disable(sr->clk);
-+		}
-+	}
-+}
-+
-+void disable_smartreflex(int srid)
-+{
-+	struct omap_sr *sr = NULL;
-+
-+	if (srid == SR1)
-+		sr = &sr1;
-+	else if (srid == SR2)
-+		sr = &sr2;
-+
-+	if (sr->is_autocomp_active == 1) {
-+		if (sr->is_sr_reset == 0) {
-+
-+			sr->is_sr_reset = 1;
-+			/* SRCONFIG - disable SR */
-+			sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE,
-+							~SRCONFIG_SRENABLE);
-+
-+			/* Disable SR clk */
-+			clk_disable(sr->clk);
-+			if (sr->srid == SR1) {
-+				/* Disable VP1 */
-+				prm_clear_mod_reg_bits(PRM_VP1_CONFIG_VPENABLE,
-+						OMAP3430_GR_MOD,
-+						OMAP3_PRM_VP1_CONFIG_OFFSET);
-+			} else if (sr->srid == SR2) {
-+				/* Disable VP2 */
-+				prm_clear_mod_reg_bits(PRM_VP2_CONFIG_VPENABLE,
-+						OMAP3430_GR_MOD,
-+						OMAP3_PRM_VP2_CONFIG_OFFSET);
-+			}
-+		}
-+	}
-+}
-+
-+/* Voltage Scaling using SR VCBYPASS */
-+int sr_voltagescale_vcbypass(u32 target_opp, u8 vsel)
-+{
-+	int sr_status = 0;
-+	u32 vdd, target_opp_no;
-+	u32 vc_bypass_value;
-+	u32 reg_addr = 0;
-+	u32 loop_cnt = 0, retries_cnt = 0;
-+
-+	vdd = get_vdd(target_opp);
-+	target_opp_no = get_opp_no(target_opp);
-+
-+	if (vdd == PRCM_VDD1) {
-+		sr_status = sr_stop_vddautocomap(SR1);
-+
-+		prm_rmw_mod_reg_bits(OMAP3430_VC_CMD_ON_MASK,
-+					(vsel << OMAP3430_VC_CMD_ON_SHIFT),
-+					OMAP3430_GR_MOD,
-+					OMAP3_PRM_VC_CMD_VAL_0_OFFSET);
-+		reg_addr = R_VDD1_SR_CONTROL;
-+
-+	} else if (vdd == PRCM_VDD2) {
-+		sr_status = sr_stop_vddautocomap(SR2);
-+
-+		prm_rmw_mod_reg_bits(OMAP3430_VC_CMD_ON_MASK,
-+					(vsel << OMAP3430_VC_CMD_ON_SHIFT),
-+					OMAP3430_GR_MOD,
-+					OMAP3_PRM_VC_CMD_VAL_1_OFFSET);
-+		reg_addr = R_VDD2_SR_CONTROL;
-+	}
-+
-+	vc_bypass_value = (vsel << OMAP3430_DATA_SHIFT) |
-+			(reg_addr << OMAP3430_REGADDR_SHIFT) |
-+			(R_SRI2C_SLAVE_ADDR << OMAP3430_SLAVEADDR_SHIFT);
-+
-+	prm_write_mod_reg(vc_bypass_value, OMAP3430_GR_MOD,
-+			OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
-+
-+	vc_bypass_value = prm_set_mod_reg_bits(OMAP3430_VALID, OMAP3430_GR_MOD,
-+					OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
-+
-+	while ((vc_bypass_value & OMAP3430_VALID) != 0x0) {
-+		loop_cnt++;
-+		if (retries_cnt > 10) {
-+			printk(KERN_INFO "Loop count exceeded in check SR I2C"
-+								"write\n");
-+			return SR_FAIL;
-+		}
-+		if (loop_cnt > 50) {
-+			retries_cnt++;
-+			loop_cnt = 0;
-+			udelay(10);
-+		}
-+		vc_bypass_value = prm_read_mod_reg(OMAP3430_GR_MOD,
-+					OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
-+	}
-+
-+	udelay(T2_SMPS_UPDATE_DELAY);
-+
-+	if (sr_status) {
-+		if (vdd == PRCM_VDD1)
-+			sr_start_vddautocomap(SR1, target_opp_no);
-+		else if (vdd == PRCM_VDD2)
-+			sr_start_vddautocomap(SR2, target_opp_no);
-+	}
-+
-+	return SR_PASS;
-+}
-+
-+/* Sysfs interface to select SR VDD1 auto compensation */
-+static ssize_t omap_sr_vdd1_autocomp_show(struct kobject *kobj,
-+					struct kobj_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%d\n", sr1.is_autocomp_active);
-+}
-+
-+static ssize_t omap_sr_vdd1_autocomp_store(struct kobject *kobj,
-+					struct kobj_attribute *attr,
-+					const char *buf, size_t n)
-+{
-+	u32 current_vdd1opp_no;
-+	unsigned short value;
-+
-+	if (sscanf(buf, "%hu", &value) != 1 || (value > 1)) {
-+		printk(KERN_ERR "sr_vdd1_autocomp: Invalid value\n");
-+		return -EINVAL;
-+	}
-+
-+	current_vdd1opp_no = get_opp_no(current_vdd1_opp);
-+
-+	if (value == 0)
-+		sr_stop_vddautocomap(SR1);
-+	else
-+		sr_start_vddautocomap(SR1, current_vdd1opp_no);
-+
-+	return n;
-+}
-+
-+static struct kobj_attribute sr_vdd1_autocomp = {
-+	.attr = {
-+	.name = __stringify(sr_vdd1_autocomp),
-+	.mode = 0644,
-+	},
-+	.show = omap_sr_vdd1_autocomp_show,
-+	.store = omap_sr_vdd1_autocomp_store,
-+};
-+
-+/* Sysfs interface to select SR VDD2 auto compensation */
-+static ssize_t omap_sr_vdd2_autocomp_show(struct kobject *kobj,
-+					struct kobj_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%d\n", sr2.is_autocomp_active);
-+}
-+
-+static ssize_t omap_sr_vdd2_autocomp_store(struct kobject *kobj,
-+					struct kobj_attribute *attr,
-+					const char *buf, size_t n)
-+{
-+	u32 current_vdd2opp_no;
-+	unsigned short value;
-+
-+	if (sscanf(buf, "%hu", &value) != 1 || (value > 1)) {
-+		printk(KERN_ERR "sr_vdd2_autocomp: Invalid value\n");
-+		return -EINVAL;
-+	}
-+
-+	current_vdd2opp_no = get_opp_no(current_vdd2_opp);
-+
-+	if (value == 0)
-+		sr_stop_vddautocomap(SR2);
-+	else
-+		sr_start_vddautocomap(SR2, current_vdd2opp_no);
-+
-+	return n;
-+}
-+
-+static struct kobj_attribute sr_vdd2_autocomp = {
-+	.attr = {
-+	.name = __stringify(sr_vdd2_autocomp),
-+	.mode = 0644,
-+	},
-+	.show = omap_sr_vdd2_autocomp_show,
-+	.store = omap_sr_vdd2_autocomp_store,
-+};
-+
-+
-+
-+static int __init omap3_sr_init(void)
-+{
-+	int ret = 0;
-+	u8 RdReg;
-+
-+	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
-+		current_vdd1_opp = PRCM_VDD1_OPP3;
-+		current_vdd2_opp = PRCM_VDD2_OPP3;
-+	} else {
-+		current_vdd1_opp = PRCM_VDD1_OPP1;
-+		current_vdd2_opp = PRCM_VDD1_OPP1;
-+	}
-+	if (cpu_is_omap34xx()) {
-+		sr_clk_init(&sr1_custom_clk);
-+		sr_clk_init(&sr2_custom_clk);
-+		sr1.clk = clk_get(NULL, "sr1_custom_clk");
-+		sr2.clk = clk_get(NULL, "sr2_custom_clk");
-+	}
-+	sr_set_clk_length(&sr1);
-+	sr_set_clk_length(&sr2);
-+
-+	/* Call the VPConfig, VCConfig, set N Values. */
-+	sr_set_nvalues(&sr1);
-+	sr_configure_vp(SR1);
-+
-+	sr_set_nvalues(&sr2);
-+	sr_configure_vp(SR2);
-+
-+	sr_configure_vc();
-+
-+	/* Enable SR on T2 */
-+	ret = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &RdReg,
-+					R_DCDC_GLOBAL_CFG);
-+
-+	RdReg |= DCDC_GLOBAL_CFG_ENABLE_SRFLX;
-+	ret |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, RdReg,
-+					R_DCDC_GLOBAL_CFG);
-+
-+	printk(KERN_INFO "SmartReflex driver initialized\n");
-+
-+	ret = sysfs_create_file(power_kobj, &sr_vdd1_autocomp.attr);
-+	if (ret)
-+		printk(KERN_ERR "sysfs_create_file failed: %d\n", ret);
-+
-+	ret = sysfs_create_file(power_kobj, &sr_vdd2_autocomp.attr);
-+	if (ret)
-+		printk(KERN_ERR "sysfs_create_file failed: %d\n", ret);
-+
-+	return 0;
-+}
-+
-+late_initcall(omap3_sr_init);
-diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
-index 574329f..9b9904d 100644
---- a/arch/arm/mach-omap2/smartreflex.h
-+++ b/arch/arm/mach-omap2/smartreflex.h
-@@ -230,6 +230,27 @@
- #define PRCM_NO_VDD2_OPPS	3
- /* XXX: end remove/move */
- 
-+/* XXX: find more appropriate place for these once DVFS is in place */
-+extern u32 current_vdd1_opp;
-+extern u32 current_vdd2_opp;
-+
-+#ifdef CONFIG_OMAP_SMARTREFLEX_TESTING
-+#define SR_TESTING_NVALUES 	1
-+#else
-+#define SR_TESTING_NVALUES 	0
++#define dma_read(reg)							\
++({									\
++	u32 __val;							\
++	if (cpu_class_is_omap1())					\
++		__val = __raw_readw(omap_dma_base + OMAP1_DMA_##reg);	\
++	else								\
++		__val = __raw_readl(omap_dma_base + OMAP_DMA4_##reg);	\
++	__val;								\
++})
++
++#define dma_write(val, reg)						\
++({									\
++	if (cpu_class_is_omap1())					\
++		__raw_writew((u16)(val), omap_dma_base + OMAP1_DMA_##reg); \
++	else								\
++		__raw_writel((val), omap_dma_base + OMAP_DMA4_##reg);	\
++})
++
+ #ifdef CONFIG_ARCH_OMAP15XX
+ /* Returns 1 if the DMA module is in OMAP1510-compatible mode, 0 otherwise */
+ int omap_dma_in_1510_mode(void)
+@@ -176,13 +195,14 @@ static inline void set_gdma_dev(int req, int dev)
+ #define set_gdma_dev(req, dev)	do {} while (0)
  #endif
  
-+/*
-+ * Smartreflex module enable/disable interface.
-+ * NOTE: if smartreflex is not enabled from sysfs, these functions will not
-+ * do anything.
-+ */
-+#ifdef CONFIG_OMAP_SMARTREFLEX
-+void enable_smartreflex(int srid);
-+void disable_smartreflex(int srid);
-+#else
-+static inline void enable_smartreflex(int srid) {}
-+static inline void disable_smartreflex(int srid) {}
-+#endif
++/* Omap1 only */
+ static void clear_lch_regs(int lch)
+ {
+ 	int i;
+-	u32 lch_base = OMAP_DMA_BASE + lch * 0x40;
++	void __iomem *lch_base = omap_dma_base + OMAP1_DMA_CH_BASE(lch);
  
-+#endif
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index b085b07..960c13f 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -56,6 +56,37 @@ config OMAP_DEBUG_CLOCKDOMAIN
- 	  for every clockdomain register write.  However, the
- 	  extra detail costs some memory.
+ 	for (i = 0; i < 0x2c; i += 2)
+-		omap_writew(0, lch_base + i);
++		__raw_writew(0, lch_base + i);
+ }
  
-+config OMAP_SMARTREFLEX
-+	bool "SmartReflex support"
-+	depends on ARCH_OMAP34XX && TWL4030_CORE
-+	help
-+	  Say Y if you want to enable SmartReflex.
+ void omap_set_dma_priority(int lch, int dst_port, int priority)
+@@ -215,10 +235,14 @@ void omap_set_dma_priority(int lch, int dst_port, int priority)
+ 	}
+ 
+ 	if (cpu_class_is_omap2()) {
++		u32 ccr;
 +
-+	  SmartReflex can perform continuous dynamic voltage
-+	  scaling around the nominal operating point voltage
-+	  according to silicon characteristics and operating
-+	  conditions. Enabling SmartReflex reduces power
-+	  consumption.
++		ccr = dma_read(CCR(lch));
+ 		if (priority)
+-			OMAP_DMA_CCR_REG(lch) |= (1 << 6);
++			ccr |= (1 << 6);
+ 		else
+-			OMAP_DMA_CCR_REG(lch) &= ~(1 << 6);
++			ccr &= ~(1 << 6);
++		dma_write(ccr, CCR(lch));
+ 	}
+ }
+ 
+@@ -226,22 +250,33 @@ void omap_set_dma_transfer_params(int lch, int data_type, int elem_count,
+ 				  int frame_count, int sync_mode,
+ 				  int dma_trigger, int src_or_dst_synch)
+ {
+-	OMAP_DMA_CSDP_REG(lch) &= ~0x03;
+-	OMAP_DMA_CSDP_REG(lch) |= data_type;
++	u32 l;
 +
-+	  Please note, that by default SmartReflex is only
-+	  initialized. To enable the automatic voltage
-+	  compensation for VDD1 and VDD2, user must write 1 to
-+	  /sys/power/sr_vddX_autocomp, where X is 1 or 2.
++	l = dma_read(CSDP(lch));
++	l &= ~0x03;
++	l |= data_type;
++	dma_write(l, CSDP(lch));
+ 
+ 	if (cpu_class_is_omap1()) {
+-		OMAP_DMA_CCR_REG(lch) &= ~(1 << 5);
++		u16 ccr;
 +
-+config OMAP_SMARTREFLEX_TESTING
-+	bool "Smartreflex testing support"
-+	depends on OMAP_SMARTREFLEX
-+	default n
-+	help
-+	  Say Y if you want to enable SmartReflex testing with SW hardcoded
-+	  NVALUES intead of E-fuse NVALUES set in factory silicon testing.
++		ccr = dma_read(CCR(lch));
++		ccr &= ~(1 << 5);
+ 		if (sync_mode == OMAP_DMA_SYNC_FRAME)
+-			OMAP_DMA_CCR_REG(lch) |= 1 << 5;
++			ccr |= 1 << 5;
++		dma_write(ccr, CCR(lch));
+ 
+-		OMAP1_DMA_CCR2_REG(lch) &= ~(1 << 2);
++		ccr = dma_read(CCR2(lch));
++		ccr &= ~(1 << 2);
+ 		if (sync_mode == OMAP_DMA_SYNC_BLOCK)
+-			OMAP1_DMA_CCR2_REG(lch) |= 1 << 2;
++			ccr |= 1 << 2;
++		dma_write(ccr, CCR2(lch));
+ 	}
+ 
+ 	if (cpu_class_is_omap2() && dma_trigger) {
+-		u32 val = OMAP_DMA_CCR_REG(lch);
++		u32 val;
+ 
++		val = dma_read(CCR(lch));
+ 		val &= ~(3 << 19);
+ 		if (dma_trigger > 63)
+ 			val |= 1 << 20;
+@@ -266,11 +301,11 @@ void omap_set_dma_transfer_params(int lch, int data_type, int elem_count,
+ 		else
+ 			val &= ~(1 << 24);	/* dest synch */
+ 
+-		OMAP_DMA_CCR_REG(lch) = val;
++		dma_write(val, CCR(lch));
+ 	}
+ 
+-	OMAP_DMA_CEN_REG(lch) = elem_count;
+-	OMAP_DMA_CFN_REG(lch) = frame_count;
++	dma_write(elem_count, CEN(lch));
++	dma_write(frame_count, CFN(lch));
+ }
+ 
+ void omap_set_dma_color_mode(int lch, enum omap_dma_color_mode mode, u32 color)
+@@ -284,7 +319,9 @@ void omap_set_dma_color_mode(int lch, enum omap_dma_color_mode mode, u32 color)
+ 		return;
+ 	}
+ 
+-	w = OMAP1_DMA_CCR2_REG(lch) & ~0x03;
++	w = dma_read(CCR2(lch));
++	w &= ~0x03;
 +
-+	  In some devices the E-fuse values have not been set, even though
-+	  SmartReflex modules are included. Using these hardcoded values set
-+	  in software, one can test the SmartReflex features without E-fuse.
+ 	switch (mode) {
+ 	case OMAP_DMA_CONSTANT_FILL:
+ 		w |= 0x01;
+@@ -297,49 +334,81 @@ void omap_set_dma_color_mode(int lch, enum omap_dma_color_mode mode, u32 color)
+ 	default:
+ 		BUG();
+ 	}
+-	OMAP1_DMA_CCR2_REG(lch) = w;
++	dma_write(w, CCR2(lch));
+ 
+-	w = OMAP1_DMA_LCH_CTRL_REG(lch) & ~0x0f;
++	w = dma_read(LCH_CTRL(lch));
++	w &= ~0x0f;
+ 	/* Default is channel type 2D */
+ 	if (mode) {
+-		OMAP1_DMA_COLOR_L_REG(lch) = (u16)color;
+-		OMAP1_DMA_COLOR_U_REG(lch) = (u16)(color >> 16);
++		dma_write((u16)color, COLOR_L(lch));
++		dma_write((u16)(color >> 16), COLOR_U(lch));
+ 		w |= 1;		/* Channel type G */
+ 	}
+-	OMAP1_DMA_LCH_CTRL_REG(lch) = w;
++	dma_write(w, LCH_CTRL(lch));
+ }
+ 
+ void omap_set_dma_write_mode(int lch, enum omap_dma_write_mode mode)
+ {
+ 	if (cpu_class_is_omap2()) {
+-		OMAP_DMA_CSDP_REG(lch) &= ~(0x3 << 16);
+-		OMAP_DMA_CSDP_REG(lch) |= (mode << 16);
++		u32 csdp;
 +
-+	  WARNING: Enabling this option may cause your device to hang!
++		csdp = dma_read(CSDP(lch));
++		csdp &= ~(0x3 << 16);
++		csdp |= (mode << 16);
++		dma_write(csdp, CSDP(lch));
+ 	}
+ }
+ 
++void omap_set_dma_channel_mode(int lch, enum omap_dma_channel_mode mode)
++{
++	if (cpu_class_is_omap1() && !cpu_is_omap15xx()) {
++		u32 l;
 +
- config OMAP_RESET_CLOCKS
- 	bool "Reset unused clocks during boot"
- 	depends on ARCH_OMAP
--- 
-1.5.4.3
++		l = dma_read(LCH_CTRL(lch));
++		l &= ~0x7;
++		l |= mode;
++		dma_write(l, LCH_CTRL(lch));
++	}
++}
++EXPORT_SYMBOL(omap_set_dma_channel_mode);
++
+ /* Note that src_port is only for omap1 */
+ void omap_set_dma_src_params(int lch, int src_port, int src_amode,
+ 			     unsigned long src_start,
+ 			     int src_ei, int src_fi)
+ {
+ 	if (cpu_class_is_omap1()) {
+-		OMAP_DMA_CSDP_REG(lch) &= ~(0x1f << 2);
+-		OMAP_DMA_CSDP_REG(lch) |= src_port << 2;
+-	}
++		u16 w;
+ 
+-	OMAP_DMA_CCR_REG(lch) &= ~(0x03 << 12);
+-	OMAP_DMA_CCR_REG(lch) |= src_amode << 12;
++		w = dma_read(CSDP(lch));
++		w &= ~(0x1f << 2);
++		w |= src_port << 2;
++		dma_write(w, CSDP(lch));
+ 
+-	if (cpu_class_is_omap1()) {
+-		OMAP1_DMA_CSSA_U_REG(lch) = src_start >> 16;
+-		OMAP1_DMA_CSSA_L_REG(lch) = src_start;
++		w = dma_read(CCR(lch));
++		w &= ~(0x03 << 12);
++		w |= src_amode << 12;
++		dma_write(w, CCR(lch));
++
++		dma_write(src_start >> 16, CSSA_U(lch));
++		dma_write((u16)src_start, CSSA_L(lch));
++
++		dma_write(src_ei, CSEI(lch));
++		dma_write(src_fi, CSFI(lch));
+ 	}
+ 
+-	if (cpu_class_is_omap2())
+-		OMAP2_DMA_CSSA_REG(lch) = src_start;
++	if (cpu_class_is_omap2()) {
++		u32 l;
++
++		l = dma_read(CCR(lch));
++		l &= ~(0x03 << 12);
++		l |= src_amode << 12;
++		dma_write(l, CCR(lch));
+ 
+-	OMAP_DMA_CSEI_REG(lch) = src_ei;
+-	OMAP_DMA_CSFI_REG(lch) = src_fi;
++		dma_write(src_start, CSSA(lch));
++		dma_write(src_ei, CSEI(lch));
++		dma_write(src_fi, CSFI(lch));
++	}
+ }
+ 
+ void omap_set_dma_params(int lch, struct omap_dma_channel_params * params)
+@@ -366,21 +435,28 @@ void omap_set_dma_src_index(int lch, int eidx, int fidx)
+ 		REVISIT_24XX();
+ 		return;
+ 	}
+-	OMAP_DMA_CSEI_REG(lch) = eidx;
+-	OMAP_DMA_CSFI_REG(lch) = fidx;
++	dma_write(eidx, CSEI(lch));
++	dma_write(fidx, CSFI(lch));
+ }
+ 
+ void omap_set_dma_src_data_pack(int lch, int enable)
+ {
+-	OMAP_DMA_CSDP_REG(lch) &= ~(1 << 6);
++	u32 l;
++
++	l = dma_read(CSDP(lch));
++	l &= ~(1 << 6);
+ 	if (enable)
+-		OMAP_DMA_CSDP_REG(lch) |= (1 << 6);
++		l |= (1 << 6);
++	dma_write(l, CSDP(lch));
+ }
+ 
+ void omap_set_dma_src_burst_mode(int lch, enum omap_dma_burst_mode burst_mode)
+ {
+ 	unsigned int burst = 0;
+-	OMAP_DMA_CSDP_REG(lch) &= ~(0x03 << 7);
++	u32 l;
++
++	l = dma_read(CSDP(lch));
++	l &= ~(0x03 << 7);
+ 
+ 	switch (burst_mode) {
+ 	case OMAP_DMA_DATA_BURST_DIS:
+@@ -411,7 +487,9 @@ void omap_set_dma_src_burst_mode(int lch, enum omap_dma_burst_mode burst_mode)
+ 	default:
+ 		BUG();
+ 	}
+-	OMAP_DMA_CSDP_REG(lch) |= (burst << 7);
++
++	l |= (burst << 7);
++	dma_write(l, CSDP(lch));
+ }
+ 
+ /* Note that dest_port is only for OMAP1 */
+@@ -419,24 +497,30 @@ void omap_set_dma_dest_params(int lch, int dest_port, int dest_amode,
+ 			      unsigned long dest_start,
+ 			      int dst_ei, int dst_fi)
+ {
++	u32 l;
++
+ 	if (cpu_class_is_omap1()) {
+-		OMAP_DMA_CSDP_REG(lch) &= ~(0x1f << 9);
+-		OMAP_DMA_CSDP_REG(lch) |= dest_port << 9;
++		l = dma_read(CSDP(lch));
++		l &= ~(0x1f << 9);
++		l |= dest_port << 9;
++		dma_write(l, CSDP(lch));
+ 	}
+ 
+-	OMAP_DMA_CCR_REG(lch) &= ~(0x03 << 14);
+-	OMAP_DMA_CCR_REG(lch) |= dest_amode << 14;
++	l = dma_read(CCR(lch));
++	l &= ~(0x03 << 14);
++	l |= dest_amode << 14;
++	dma_write(l, CCR(lch));
+ 
+ 	if (cpu_class_is_omap1()) {
+-		OMAP1_DMA_CDSA_U_REG(lch) = dest_start >> 16;
+-		OMAP1_DMA_CDSA_L_REG(lch) = dest_start;
++		dma_write(dest_start >> 16, CDSA_U(lch));
++		dma_write(dest_start, CDSA_L(lch));
+ 	}
+ 
+ 	if (cpu_class_is_omap2())
+-		OMAP2_DMA_CDSA_REG(lch) = dest_start;
++		dma_write(dest_start, CDSA(lch));
+ 
+-	OMAP_DMA_CDEI_REG(lch) = dst_ei;
+-	OMAP_DMA_CDFI_REG(lch) = dst_fi;
++	dma_write(dst_ei, CDEI(lch));
++	dma_write(dst_fi, CDFI(lch));
+ }
+ 
+ void omap_set_dma_dest_index(int lch, int eidx, int fidx)
+@@ -445,21 +529,28 @@ void omap_set_dma_dest_index(int lch, int eidx, int fidx)
+ 		REVISIT_24XX();
+ 		return;
+ 	}
+-	OMAP_DMA_CDEI_REG(lch) = eidx;
+-	OMAP_DMA_CDFI_REG(lch) = fidx;
++	dma_write(eidx, CDEI(lch));
++	dma_write(fidx, CDFI(lch));
+ }
+ 
+ void omap_set_dma_dest_data_pack(int lch, int enable)
+ {
+-	OMAP_DMA_CSDP_REG(lch) &= ~(1 << 13);
++	u32 l;
++
++	l = dma_read(CSDP(lch));
++	l &= ~(1 << 13);
+ 	if (enable)
+-		OMAP_DMA_CSDP_REG(lch) |= 1 << 13;
++		l |= 1 << 13;
++	dma_write(l, CSDP(lch));
+ }
+ 
+ void omap_set_dma_dest_burst_mode(int lch, enum omap_dma_burst_mode burst_mode)
+ {
+ 	unsigned int burst = 0;
+-	OMAP_DMA_CSDP_REG(lch) &= ~(0x03 << 14);
++	u32 l;
++
++	l = dma_read(CSDP(lch));
++	l &= ~(0x03 << 14);
+ 
+ 	switch (burst_mode) {
+ 	case OMAP_DMA_DATA_BURST_DIS:
+@@ -489,7 +580,8 @@ void omap_set_dma_dest_burst_mode(int lch, enum omap_dma_burst_mode burst_mode)
+ 		BUG();
+ 		return;
+ 	}
+-	OMAP_DMA_CSDP_REG(lch) |= (burst << 14);
++	l |= (burst << 14);
++	dma_write(l, CSDP(lch));
+ }
+ 
+ static inline void omap_enable_channel_irq(int lch)
+@@ -498,18 +590,18 @@ static inline void omap_enable_channel_irq(int lch)
+ 
+ 	/* Clear CSR */
+ 	if (cpu_class_is_omap1())
+-		status = OMAP_DMA_CSR_REG(lch);
++		status = dma_read(CSR(lch));
+ 	else if (cpu_class_is_omap2())
+-		OMAP_DMA_CSR_REG(lch) = OMAP2_DMA_CSR_CLEAR_MASK;
++		dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR(lch));
+ 
+ 	/* Enable some nice interrupts. */
+-	OMAP_DMA_CICR_REG(lch) = dma_chan[lch].enabled_irqs;
++	dma_write(dma_chan[lch].enabled_irqs, CICR(lch));
+ }
+ 
+ static void omap_disable_channel_irq(int lch)
+ {
+ 	if (cpu_class_is_omap2())
+-		OMAP_DMA_CICR_REG(lch) = 0;
++		dma_write(0, CICR(lch));
+ }
+ 
+ void omap_enable_dma_irq(int lch, u16 bits)
+@@ -524,36 +616,45 @@ void omap_disable_dma_irq(int lch, u16 bits)
+ 
+ static inline void enable_lnk(int lch)
+ {
++	u32 l;
++
++	l = dma_read(CLNK_CTRL(lch));
++
+ 	if (cpu_class_is_omap1())
+-		OMAP_DMA_CLNK_CTRL_REG(lch) &= ~(1 << 14);
++		l &= ~(1 << 14);
+ 
+ 	/* Set the ENABLE_LNK bits */
+ 	if (dma_chan[lch].next_lch != -1)
+-		OMAP_DMA_CLNK_CTRL_REG(lch) =
+-			dma_chan[lch].next_lch | (1 << 15);
++		l = dma_chan[lch].next_lch | (1 << 15);
+ 
+ #ifndef CONFIG_ARCH_OMAP1
+ 	if (dma_chan[lch].next_linked_ch != -1)
+-		OMAP_DMA_CLNK_CTRL_REG(lch) =
+-			dma_chan[lch].next_linked_ch | (1 << 15);
++		l = dma_chan[lch].next_linked_ch | (1 << 15);
+ #endif
++
++	dma_write(l, CLNK_CTRL(lch));
+ }
+ 
+ static inline void disable_lnk(int lch)
+ {
++	u32 l;
++
++	l = dma_read(CLNK_CTRL(lch));
++
+ 	/* Disable interrupts */
+ 	if (cpu_class_is_omap1()) {
+-		OMAP_DMA_CICR_REG(lch) = 0;
++		dma_write(0, CICR(lch));
+ 		/* Set the STOP_LNK bit */
+-		OMAP_DMA_CLNK_CTRL_REG(lch) |= 1 << 14;
++		l |= 1 << 14;
+ 	}
+ 
+ 	if (cpu_class_is_omap2()) {
+ 		omap_disable_channel_irq(lch);
+ 		/* Clear the ENABLE_LNK bit */
+-		OMAP_DMA_CLNK_CTRL_REG(lch) &= ~(1 << 15);
++		l &= ~(1 << 15);
+ 	}
+ 
++	dma_write(l, CLNK_CTRL(lch));
+ 	dma_chan[lch].flags &= ~OMAP_DMA_ACTIVE;
+ }
+ 
+@@ -564,9 +665,9 @@ static inline void omap2_enable_irq_lch(int lch)
+ 	if (!cpu_class_is_omap2())
+ 		return;
+ 
+-	val = omap_readl(OMAP_DMA4_IRQENABLE_L0);
++	val = dma_read(IRQENABLE_L0);
+ 	val |= 1 << lch;
+-	omap_writel(val, OMAP_DMA4_IRQENABLE_L0);
++	dma_write(val, IRQENABLE_L0);
+ }
+ 
+ int omap_request_dma(int dev_id, const char *dev_name,
+@@ -623,9 +724,9 @@ int omap_request_dma(int dev_id, const char *dev_name,
+ 		}
+ 		/* Disable the 1510 compatibility mode and set the sync device
+ 		 * id. */
+-		OMAP_DMA_CCR_REG(free_ch) = dev_id | (1 << 10);
++		dma_write(dev_id | (1 << 10), CCR(free_ch));
+ 	} else if (cpu_is_omap730() || cpu_is_omap15xx()) {
+-		OMAP_DMA_CCR_REG(free_ch) = dev_id;
++		dma_write(dev_id, CCR(free_ch));
+ 	}
+ 
+ 	if (cpu_class_is_omap2()) {
+@@ -633,8 +734,8 @@ int omap_request_dma(int dev_id, const char *dev_name,
+ 
+ 		omap_enable_channel_irq(free_ch);
+ 		/* Clear the CSR register and IRQ status register */
+-		OMAP_DMA_CSR_REG(free_ch) = OMAP2_DMA_CSR_CLEAR_MASK;
+-		omap_writel(1 << free_ch, OMAP_DMA4_IRQSTATUS_L0);
++		dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR(free_ch));
++		dma_write(1 << free_ch, IRQSTATUS_L0);
+ 	}
+ 
+ 	*dma_ch_out = free_ch;
+@@ -660,27 +761,27 @@ void omap_free_dma(int lch)
+ 
+ 	if (cpu_class_is_omap1()) {
+ 		/* Disable all DMA interrupts for the channel. */
+-		OMAP_DMA_CICR_REG(lch) = 0;
++		dma_write(0, CICR(lch));
+ 		/* Make sure the DMA transfer is stopped. */
+-		OMAP_DMA_CCR_REG(lch) = 0;
++		dma_write(0, CCR(lch));
+ 	}
+ 
+ 	if (cpu_class_is_omap2()) {
+ 		u32 val;
+ 		/* Disable interrupts */
+-		val = omap_readl(OMAP_DMA4_IRQENABLE_L0);
++		val = dma_read(IRQENABLE_L0);
+ 		val &= ~(1 << lch);
+-		omap_writel(val, OMAP_DMA4_IRQENABLE_L0);
++		dma_write(val, IRQENABLE_L0);
+ 
+ 		/* Clear the CSR register and IRQ status register */
+-		OMAP_DMA_CSR_REG(lch) = OMAP2_DMA_CSR_CLEAR_MASK;
+-		omap_writel(1 << lch, OMAP_DMA4_IRQSTATUS_L0);
++		dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR(lch));
++		dma_write(1 << lch, IRQSTATUS_L0);
+ 
+ 		/* Disable all DMA interrupts for the channel. */
+-		OMAP_DMA_CICR_REG(lch) = 0;
++		dma_write(0, CICR(lch));
+ 
+ 		/* Make sure the DMA transfer is stopped. */
+-		OMAP_DMA_CCR_REG(lch) = 0;
++		dma_write(0, CCR(lch));
+ 		omap_clear_dma(lch);
+ 	}
+ }
+@@ -711,7 +812,7 @@ omap_dma_set_global_params(int arb_rate, int max_fifo_depth, int tparams)
+ 	reg = (arb_rate & 0xff) << 16;
+ 	reg |= (0xff & max_fifo_depth);
+ 
+-	omap_writel(reg, OMAP_DMA4_GCR_REG);
++	dma_write(reg, GCR);
+ }
+ EXPORT_SYMBOL(omap_dma_set_global_params);
+ 
+@@ -728,20 +829,21 @@ int
+ omap_dma_set_prio_lch(int lch, unsigned char read_prio,
+ 		      unsigned char write_prio)
+ {
+-	u32 w;
++	u32 l;
+ 
+ 	if (unlikely((lch < 0 || lch >= dma_lch_count))) {
+ 		printk(KERN_ERR "Invalid channel id\n");
+ 		return -EINVAL;
+ 	}
+-	w = OMAP_DMA_CCR_REG(lch);
+-	w &= ~((1 << 6) | (1 << 26));
++	l = dma_read(CCR(lch));
++	l &= ~((1 << 6) | (1 << 26));
+ 	if (cpu_is_omap2430() || cpu_is_omap34xx())
+-		w |= ((read_prio & 0x1) << 6) | ((write_prio & 0x1) << 26);
++		l |= ((read_prio & 0x1) << 6) | ((write_prio & 0x1) << 26);
+ 	else
+-		w |= ((read_prio & 0x1) << 6);
++		l |= ((read_prio & 0x1) << 6);
++
++	dma_write(l, CCR(lch));
+ 
+-	OMAP_DMA_CCR_REG(lch) = w;
+ 	return 0;
+ }
+ EXPORT_SYMBOL(omap_dma_set_prio_lch);
+@@ -757,18 +859,21 @@ void omap_clear_dma(int lch)
+ 	local_irq_save(flags);
+ 
+ 	if (cpu_class_is_omap1()) {
+-		int status;
+-		OMAP_DMA_CCR_REG(lch) &= ~OMAP_DMA_CCR_EN;
++		u32 l;
++
++		l = dma_read(CCR(lch));
++		l &= ~OMAP_DMA_CCR_EN;
++		dma_write(l, CCR(lch));
+ 
+ 		/* Clear pending interrupts */
+-		status = OMAP_DMA_CSR_REG(lch);
++		l = dma_read(CSR(lch));
+ 	}
+ 
+ 	if (cpu_class_is_omap2()) {
+ 		int i;
+-		u32 lch_base = OMAP_DMA4_BASE + lch * 0x60 + 0x80;
++		void __iomem *lch_base = omap_dma_base + OMAP_DMA4_CH_BASE(lch);
+ 		for (i = 0; i < 0x44; i += 4)
+-			omap_writel(0, lch_base + i);
++			__raw_writel(0, lch_base + i);
+ 	}
+ 
+ 	local_irq_restore(flags);
+@@ -776,6 +881,8 @@ void omap_clear_dma(int lch)
+ 
+ void omap_start_dma(int lch)
+ {
++	u32 l;
++
+ 	if (!omap_dma_in_1510_mode() && dma_chan[lch].next_lch != -1) {
+ 		int next_lch, cur_lch;
+ 		char dma_chan_link_map[OMAP_DMA4_LOGICAL_DMA_CH_COUNT];
+@@ -802,24 +909,28 @@ void omap_start_dma(int lch)
+ 		} while (next_lch != -1);
+ 	} else if (cpu_class_is_omap2()) {
+ 		/* Errata: Need to write lch even if not using chaining */
+-		OMAP_DMA_CLNK_CTRL_REG(lch) = lch;
++		dma_write(lch, CLNK_CTRL(lch));
+ 	}
+ 
+ 	omap_enable_channel_irq(lch);
+ 
++	l = dma_read(CCR(lch));
++
+ 	/* Errata: On ES2.0 BUFFERING disable must be set.
+ 	 * This will always fail on ES1.0 */
+-	if (cpu_is_omap24xx()) {
+-		OMAP_DMA_CCR_REG(lch) |= OMAP_DMA_CCR_EN;
+-	}
++	if (cpu_is_omap24xx())
++		l |= OMAP_DMA_CCR_EN;
+ 
+-	OMAP_DMA_CCR_REG(lch) |= OMAP_DMA_CCR_EN;
++	l |= OMAP_DMA_CCR_EN;
++	dma_write(l, CCR(lch));
+ 
+ 	dma_chan[lch].flags |= OMAP_DMA_ACTIVE;
+ }
+ 
+ void omap_stop_dma(int lch)
+ {
++	u32 l;
++
+ 	if (!omap_dma_in_1510_mode() && dma_chan[lch].next_lch != -1) {
+ 		int next_lch, cur_lch = lch;
+ 		char dma_chan_link_map[OMAP_DMA4_LOGICAL_DMA_CH_COUNT];
+@@ -843,9 +954,12 @@ void omap_stop_dma(int lch)
+ 
+ 	/* Disable all interrupts on the channel */
+ 	if (cpu_class_is_omap1())
+-		OMAP_DMA_CICR_REG(lch) = 0;
++		dma_write(0, CICR(lch));
++
++	l = dma_read(CCR(lch));
++	l &= ~OMAP_DMA_CCR_EN;
++	dma_write(l, CCR(lch));
+ 
+-	OMAP_DMA_CCR_REG(lch) &= ~OMAP_DMA_CCR_EN;
+ 	dma_chan[lch].flags &= ~OMAP_DMA_ACTIVE;
+ }
+ 
+@@ -887,12 +1001,20 @@ dma_addr_t omap_get_dma_src_pos(int lch)
+ {
+ 	dma_addr_t offset = 0;
+ 
+-	if (cpu_class_is_omap1())
+-		offset = (dma_addr_t) (OMAP1_DMA_CSSA_L_REG(lch) |
+-				       (OMAP1_DMA_CSSA_U_REG(lch) << 16));
++	if (cpu_is_omap15xx())
++		offset = dma_read(CPC(lch));
++	else
++		offset = dma_read(CSAC(lch));
+ 
+-	if (cpu_class_is_omap2())
+-		offset = OMAP_DMA_CSAC_REG(lch);
++	/*
++	 * omap 3.2/3.3 erratum: sometimes 0 is returned if CSAC/CDAC is
++	 * read before the DMA controller finished disabling the channel.
++	 */
++	if (!cpu_is_omap15xx() && offset == 0)
++		offset = dma_read(CSAC(lch));
++
++	if (cpu_class_is_omap1())
++		offset |= (dma_read(CSSA_U(lch)) << 16);
+ 
+ 	return offset;
+ }
+@@ -909,12 +1031,20 @@ dma_addr_t omap_get_dma_dst_pos(int lch)
+ {
+ 	dma_addr_t offset = 0;
+ 
+-	if (cpu_class_is_omap1())
+-		offset = (dma_addr_t) (OMAP1_DMA_CDSA_L_REG(lch) |
+-				       (OMAP1_DMA_CDSA_U_REG(lch) << 16));
++	if (cpu_is_omap15xx())
++		offset = dma_read(CPC(lch));
++	else
++		offset = dma_read(CDAC(lch));
+ 
+-	if (cpu_class_is_omap2())
+-		offset = OMAP_DMA_CDAC_REG(lch);
++	/*
++	 * omap 3.2/3.3 erratum: sometimes 0 is returned if CSAC/CDAC is
++	 * read before the DMA controller finished disabling the channel.
++	 */
++	if (!cpu_is_omap15xx() && offset == 0)
++		offset = dma_read(CDAC(lch));
++
++	if (cpu_class_is_omap1())
++		offset |= (dma_read(CDSA_U(lch)) << 16);
+ 
+ 	return offset;
+ }
+@@ -926,8 +1056,14 @@ dma_addr_t omap_get_dma_dst_pos(int lch)
+  */
+ int omap_get_dma_src_addr_counter(int lch)
+ {
+-	return (dma_addr_t) OMAP_DMA_CSAC_REG(lch);
++	return (dma_addr_t)dma_read(CSAC(lch));
++}
++
++int omap_get_dma_active_status(int lch)
++{
++	return (dma_read(CCR(lch)) & OMAP_DMA_CCR_EN) != 0;
+ }
++EXPORT_SYMBOL(omap_get_dma_active_status);
+ 
+ int omap_dma_running(void)
+ {
+@@ -939,7 +1075,7 @@ int omap_dma_running(void)
+ 			return 1;
+ 
+ 	for (lch = 0; lch < dma_chan_count; lch++)
+-		if (OMAP_DMA_CCR_REG(lch) & OMAP_DMA_CCR_EN)
++		if (dma_read(CCR(lch)) & OMAP_DMA_CCR_EN)
+ 			return 1;
+ 
+ 	return 0;
+@@ -1001,7 +1137,7 @@ void omap_dma_unlink_lch (int lch_head, int lch_queue)
+ /* Create chain of DMA channesls */
+ static void create_dma_lch_chain(int lch_head, int lch_queue)
+ {
+-	u32 w;
++	u32 l;
+ 
+ 	/* Check if this is the first link in chain */
+ 	if (dma_chan[lch_head].next_linked_ch == -1) {
+@@ -1021,15 +1157,15 @@ static void create_dma_lch_chain(int lch_head, int lch_queue)
+ 					lch_queue;
+ 	}
+ 
+-	w = OMAP_DMA_CLNK_CTRL_REG(lch_head);
+-	w &= ~(0x1f);
+-	w |= lch_queue;
+-	OMAP_DMA_CLNK_CTRL_REG(lch_head) = w;
++	l = dma_read(CLNK_CTRL(lch_head));
++	l &= ~(0x1f);
++	l |= lch_queue;
++	dma_write(l, CLNK_CTRL(lch_head));
+ 
+-	w = OMAP_DMA_CLNK_CTRL_REG(lch_queue);
+-	w &= ~(0x1f);
+-	w |= (dma_chan[lch_queue].next_linked_ch);
+-	OMAP_DMA_CLNK_CTRL_REG(lch_queue) = w;
++	l = dma_read(CLNK_CTRL(lch_queue));
++	l &= ~(0x1f);
++	l |= (dma_chan[lch_queue].next_linked_ch);
++	dma_write(l, CLNK_CTRL(lch_queue));
+ }
+ 
+ /**
+@@ -1256,7 +1392,7 @@ int omap_dma_chain_a_transfer(int chain_id, int src_start, int dest_start,
+ 			int elem_count, int frame_count, void *callbk_data)
+ {
+ 	int *channels;
+-	u32 w, lch;
++	u32 l, lch;
+ 	int start_dma = 0;
+ 
+ 	/* if buffer size is less than 1 then there is
+@@ -1297,13 +1433,13 @@ int omap_dma_chain_a_transfer(int chain_id, int src_start, int dest_start,
+ 
+ 	/* Set the params to the free channel */
+ 	if (src_start != 0)
+-		OMAP2_DMA_CSSA_REG(lch) = src_start;
++		dma_write(src_start, CSSA(lch));
+ 	if (dest_start != 0)
+-		OMAP2_DMA_CDSA_REG(lch) = dest_start;
++		dma_write(dest_start, CDSA(lch));
+ 
+ 	/* Write the buffer size */
+-	OMAP_DMA_CEN_REG(lch) = elem_count;
+-	OMAP_DMA_CFN_REG(lch) = frame_count;
++	dma_write(elem_count, CEN(lch));
++	dma_write(frame_count, CFN(lch));
+ 
+ 	/* If the chain is dynamically linked,
+ 	 * then we may have to start the chain if its not active */
+@@ -1330,8 +1466,8 @@ int omap_dma_chain_a_transfer(int chain_id, int src_start, int dest_start,
+ 				enable_lnk(dma_chan[lch].prev_linked_ch);
+ 				dma_chan[lch].state = DMA_CH_QUEUED;
+ 				start_dma = 0;
+-				if (0 == ((1 << 7) & (OMAP_DMA_CCR_REG
+-					(dma_chan[lch].prev_linked_ch)))) {
++				if (0 == ((1 << 7) & dma_read(
++					CCR(dma_chan[lch].prev_linked_ch)))) {
+ 					disable_lnk(dma_chan[lch].
+ 						    prev_linked_ch);
+ 					pr_debug("\n prev ch is stopped\n");
+@@ -1347,23 +1483,23 @@ int omap_dma_chain_a_transfer(int chain_id, int src_start, int dest_start,
+ 			}
+ 			omap_enable_channel_irq(lch);
+ 
+-			w = OMAP_DMA_CCR_REG(lch);
++			l = dma_read(CCR(lch));
+ 
+-			if ((0 == (w & (1 << 24))))
+-				w &= ~(1 << 25);
++			if ((0 == (l & (1 << 24))))
++				l &= ~(1 << 25);
+ 			else
+-				w |= (1 << 25);
++				l |= (1 << 25);
+ 			if (start_dma == 1) {
+-				if (0 == (w & (1 << 7))) {
+-					w |= (1 << 7);
++				if (0 == (l & (1 << 7))) {
++					l |= (1 << 7);
+ 					dma_chan[lch].state = DMA_CH_STARTED;
+ 					pr_debug("starting %d\n", lch);
+-					OMAP_DMA_CCR_REG(lch) = w;
++					dma_write(l, CCR(lch));
+ 				} else
+ 					start_dma = 0;
+ 			} else {
+-				if (0 == (w & (1 << 7)))
+-					OMAP_DMA_CCR_REG(lch) = w;
++				if (0 == (l & (1 << 7)))
++					dma_write(l, CCR(lch));
+ 			}
+ 			dma_chan[lch].flags |= OMAP_DMA_ACTIVE;
+ 		}
+@@ -1383,7 +1519,7 @@ EXPORT_SYMBOL(omap_dma_chain_a_transfer);
+ int omap_start_dma_chain_transfers(int chain_id)
+ {
+ 	int *channels;
+-	u32 w, i;
++	u32 l, i;
+ 
+ 	if (unlikely((chain_id < 0 || chain_id >= dma_lch_count))) {
+ 		printk(KERN_ERR "Invalid chain id\n");
+@@ -1407,16 +1543,16 @@ int omap_start_dma_chain_transfers(int chain_id)
+ 		omap_enable_channel_irq(channels[0]);
+ 	}
+ 
+-	w = OMAP_DMA_CCR_REG(channels[0]);
+-	w |= (1 << 7);
++	l = dma_read(CCR(channels[0]));
++	l |= (1 << 7);
+ 	dma_linked_lch[chain_id].chain_state = DMA_CHAIN_STARTED;
+ 	dma_chan[channels[0]].state = DMA_CH_STARTED;
+ 
+-	if ((0 == (w & (1 << 24))))
+-		w &= ~(1 << 25);
++	if ((0 == (l & (1 << 24))))
++		l &= ~(1 << 25);
+ 	else
+-		w |= (1 << 25);
+-	OMAP_DMA_CCR_REG(channels[0]) = w;
++		l |= (1 << 25);
++	dma_write(l, CCR(channels[0]));
+ 
+ 	dma_chan[channels[0]].flags |= OMAP_DMA_ACTIVE;
+ 	return 0;
+@@ -1434,7 +1570,7 @@ EXPORT_SYMBOL(omap_start_dma_chain_transfers);
+ int omap_stop_dma_chain_transfers(int chain_id)
+ {
+ 	int *channels;
+-	u32 w, i;
++	u32 l, i;
+ 	u32 sys_cf;
+ 
+ 	/* Check for input params */
+@@ -1453,18 +1589,18 @@ int omap_stop_dma_chain_transfers(int chain_id)
+ 	/* DMA Errata:
+ 	 * Special programming model needed to disable DMA before end of block
+ 	 */
+-	sys_cf = omap_readl(OMAP_DMA4_OCP_SYSCONFIG);
+-	w = sys_cf;
++	sys_cf = dma_read(OCP_SYSCONFIG);
++	l = sys_cf;
+ 	/* Middle mode reg set no Standby */
+-	w &= ~((1 << 12)|(1 << 13));
+-	omap_writel(w, OMAP_DMA4_OCP_SYSCONFIG);
++	l &= ~((1 << 12)|(1 << 13));
++	dma_write(l, OCP_SYSCONFIG);
+ 
+ 	for (i = 0; i < dma_linked_lch[chain_id].no_of_lchs_linked; i++) {
+ 
+ 		/* Stop the Channel transmission */
+-		w = OMAP_DMA_CCR_REG(channels[i]);
+-		w &= ~(1 << 7);
+-		OMAP_DMA_CCR_REG(channels[i]) = w;
++		l = dma_read(CCR(channels[i]));
++		l &= ~(1 << 7);
++		dma_write(l, CCR(channels[i]));
+ 
+ 		/* Disable the link in all the channels */
+ 		disable_lnk(channels[i]);
+@@ -1477,7 +1613,7 @@ int omap_stop_dma_chain_transfers(int chain_id)
+ 	OMAP_DMA_CHAIN_QINIT(chain_id);
+ 
+ 	/* Errata - put in the old value */
+-	omap_writel(sys_cf, OMAP_DMA4_OCP_SYSCONFIG);
++	dma_write(sys_cf, OCP_SYSCONFIG);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(omap_stop_dma_chain_transfers);
+@@ -1518,8 +1654,8 @@ int omap_get_dma_chain_index(int chain_id, int *ei, int *fi)
+ 	/* Get the current channel */
+ 	lch = channels[dma_linked_lch[chain_id].q_head];
+ 
+-	*ei = OMAP2_DMA_CCEN_REG(lch);
+-	*fi = OMAP2_DMA_CCFN_REG(lch);
++	*ei = dma_read(CCEN(lch));
++	*fi = dma_read(CCFN(lch));
+ 
+ 	return 0;
+ }
+@@ -1556,7 +1692,7 @@ int omap_get_dma_chain_dst_pos(int chain_id)
+ 	/* Get the current channel */
+ 	lch = channels[dma_linked_lch[chain_id].q_head];
+ 
+-	return (OMAP_DMA_CDAC_REG(lch));
++	return dma_read(CDAC(lch));
+ }
+ EXPORT_SYMBOL(omap_get_dma_chain_dst_pos);
+ 
+@@ -1590,7 +1726,7 @@ int omap_get_dma_chain_src_pos(int chain_id)
+ 	/* Get the current channel */
+ 	lch = channels[dma_linked_lch[chain_id].q_head];
+ 
+-	return (OMAP_DMA_CSAC_REG(lch));
++	return dma_read(CSAC(lch));
+ }
+ EXPORT_SYMBOL(omap_get_dma_chain_src_pos);
+ #endif
+@@ -1601,13 +1737,13 @@ EXPORT_SYMBOL(omap_get_dma_chain_src_pos);
+ 
+ static int omap1_dma_handle_ch(int ch)
+ {
+-	u16 csr;
++	u32 csr;
+ 
+ 	if (enable_1510_mode && ch >= 6) {
+ 		csr = dma_chan[ch].saved_csr;
+ 		dma_chan[ch].saved_csr = 0;
+ 	} else
+-		csr = OMAP_DMA_CSR_REG(ch);
++		csr = dma_read(CSR(ch));
+ 	if (enable_1510_mode && ch <= 2 && (csr >> 7) != 0) {
+ 		dma_chan[ch + 6].saved_csr = csr >> 7;
+ 		csr &= 0x7f;
+@@ -1659,12 +1795,12 @@ static irqreturn_t omap1_dma_irq_handler(int irq, void *dev_id)
+ 
+ static int omap2_dma_handle_ch(int ch)
+ {
+-	u32 status = OMAP_DMA_CSR_REG(ch);
++	u32 status = dma_read(CSR(ch));
+ 
+ 	if (!status) {
+ 		if (printk_ratelimit())
+ 			printk(KERN_WARNING "Spurious DMA IRQ for lch %d\n", ch);
+-		omap_writel(1 << ch, OMAP_DMA4_IRQSTATUS_L0);
++		dma_write(1 << ch, IRQSTATUS_L0);
+ 		return 0;
+ 	}
+ 	if (unlikely(dma_chan[ch].dev_id == -1)) {
+@@ -1687,14 +1823,14 @@ static int omap2_dma_handle_ch(int ch)
+ 		printk(KERN_INFO "DMA misaligned error with device %d\n",
+ 		       dma_chan[ch].dev_id);
+ 
+-	OMAP_DMA_CSR_REG(ch) = OMAP2_DMA_CSR_CLEAR_MASK;
+-	omap_writel(1 << ch, OMAP_DMA4_IRQSTATUS_L0);
++	dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR(ch));
++	dma_write(1 << ch, IRQSTATUS_L0);
+ 
+ 	/* If the ch is not chained then chain_id will be -1 */
+ 	if (dma_chan[ch].chain_id != -1) {
+ 		int chain_id = dma_chan[ch].chain_id;
+ 		dma_chan[ch].state = DMA_CH_NOTSTARTED;
+-		if (OMAP_DMA_CLNK_CTRL_REG(ch) & (1 << 15))
++		if (dma_read(CLNK_CTRL(ch)) & (1 << 15))
+ 			dma_chan[dma_chan[ch].next_linked_ch].state =
+ 							DMA_CH_STARTED;
+ 		if (dma_linked_lch[chain_id].chain_mode ==
+@@ -1704,13 +1840,13 @@ static int omap2_dma_handle_ch(int ch)
+ 		if (!OMAP_DMA_CHAIN_QEMPTY(chain_id))
+ 			OMAP_DMA_CHAIN_INCQHEAD(chain_id);
+ 
+-		status = OMAP_DMA_CSR_REG(ch);
++		status = dma_read(CSR(ch));
+ 	}
+ 
+ 	if (likely(dma_chan[ch].callback != NULL))
+ 		dma_chan[ch].callback(ch, status, dma_chan[ch].data);
+ 
+-	OMAP_DMA_CSR_REG(ch) = status;
++	dma_write(status, CSR(ch));
+ 
+ 	return 0;
+ }
+@@ -1721,7 +1857,7 @@ static irqreturn_t omap2_dma_irq_handler(int irq, void *dev_id)
+ 	u32 val;
+ 	int i;
+ 
+-	val = omap_readl(OMAP_DMA4_IRQSTATUS_L0);
++	val = dma_read(IRQSTATUS_L0);
+ 	if (val == 0) {
+ 		if (printk_ratelimit())
+ 			printk(KERN_WARNING "Spurious DMA IRQ\n");
+@@ -2109,10 +2245,19 @@ static int __init omap_init_dma(void)
+ {
+ 	int ch, r;
+ 
+-	if (cpu_class_is_omap1())
++	if (cpu_class_is_omap1()) {
++		omap_dma_base = (void __iomem *)IO_ADDRESS(OMAP1_DMA_BASE);
+ 		dma_lch_count = OMAP1_LOGICAL_DMA_CH_COUNT;
+-	else
++	} else if (cpu_is_omap24xx()) {
++		omap_dma_base = (void __iomem *)IO_ADDRESS(OMAP24XX_DMA4_BASE);
+ 		dma_lch_count = OMAP_DMA4_LOGICAL_DMA_CH_COUNT;
++	} else if (cpu_is_omap34xx()) {
++		omap_dma_base = (void __iomem *)IO_ADDRESS(OMAP34XX_DMA4_BASE);
++		dma_lch_count = OMAP_DMA4_LOGICAL_DMA_CH_COUNT;
++	} else {
++		pr_err("DMA init failed for unsupported omap\n");
++		return -ENODEV;
++	}
+ 
+ 	dma_chan = kzalloc(sizeof(struct omap_dma_lch) * dma_lch_count,
+ 				GFP_KERNEL);
+@@ -2134,21 +2279,21 @@ static int __init omap_init_dma(void)
+ 		enable_1510_mode = 1;
+ 	} else if (cpu_is_omap16xx() || cpu_is_omap730()) {
+ 		printk(KERN_INFO "OMAP DMA hardware version %d\n",
+-		       omap_readw(OMAP_DMA_HW_ID));
++		       dma_read(HW_ID));
+ 		printk(KERN_INFO "DMA capabilities: %08x:%08x:%04x:%04x:%04x\n",
+-		       (omap_readw(OMAP_DMA_CAPS_0_U) << 16) |
+-		       omap_readw(OMAP_DMA_CAPS_0_L),
+-		       (omap_readw(OMAP_DMA_CAPS_1_U) << 16) |
+-		       omap_readw(OMAP_DMA_CAPS_1_L),
+-		       omap_readw(OMAP_DMA_CAPS_2), omap_readw(OMAP_DMA_CAPS_3),
+-		       omap_readw(OMAP_DMA_CAPS_4));
++		       (dma_read(CAPS_0_U) << 16) |
++		       dma_read(CAPS_0_L),
++		       (dma_read(CAPS_1_U) << 16) |
++		       dma_read(CAPS_1_L),
++		       dma_read(CAPS_2), dma_read(CAPS_3),
++		       dma_read(CAPS_4));
+ 		if (!enable_1510_mode) {
+ 			u16 w;
+ 
+ 			/* Disable OMAP 3.0/3.1 compatibility mode. */
+-			w = omap_readw(OMAP_DMA_GSCR);
++			w = dma_read(GSCR);
+ 			w |= 1 << 3;
+-			omap_writew(w, OMAP_DMA_GSCR);
++			dma_write(w, GSCR);
+ 			dma_chan_count = 16;
+ 		} else
+ 			dma_chan_count = 9;
+@@ -2161,7 +2306,7 @@ static int __init omap_init_dma(void)
+ 			omap_writew(w, OMAP1610_DMA_LCD_CTRL);
+ 		}
+ 	} else if (cpu_class_is_omap2()) {
+-		u8 revision = omap_readb(OMAP_DMA4_REVISION);
++		u8 revision = dma_read(REVISION) & 0xff;
+ 		printk(KERN_INFO "OMAP DMA hardware revision %d.%d\n",
+ 		       revision >> 4, revision & 0xf);
+ 		dma_chan_count = OMAP_DMA4_LOGICAL_DMA_CH_COUNT;
+diff --git a/drivers/usb/gadget/omap_udc.c b/drivers/usb/gadget/omap_udc.c
+index 881d74c..86c029a 100644
+--- a/drivers/usb/gadget/omap_udc.c
++++ b/drivers/usb/gadget/omap_udc.c
+@@ -491,32 +491,6 @@ static int read_fifo(struct omap_ep *ep, struct omap_req *req)
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+-static inline dma_addr_t dma_csac(unsigned lch)
+-{
+-	dma_addr_t	csac;
+-
+-	/* omap 3.2/3.3 erratum: sometimes 0 is returned if CSAC/CDAC is
+-	 * read before the DMA controller finished disabling the channel.
+-	 */
+-	csac = OMAP_DMA_CSAC_REG(lch);
+-	if (csac == 0)
+-		csac = OMAP_DMA_CSAC_REG(lch);
+-	return csac;
+-}
+-
+-static inline dma_addr_t dma_cdac(unsigned lch)
+-{
+-	dma_addr_t	cdac;
+-
+-	/* omap 3.2/3.3 erratum: sometimes 0 is returned if CSAC/CDAC is
+-	 * read before the DMA controller finished disabling the channel.
+-	 */
+-	cdac = OMAP_DMA_CDAC_REG(lch);
+-	if (cdac == 0)
+-		cdac = OMAP_DMA_CDAC_REG(lch);
+-	return cdac;
+-}
+-
+ static u16 dma_src_len(struct omap_ep *ep, dma_addr_t start)
+ {
+ 	dma_addr_t	end;
+@@ -527,7 +501,7 @@ static u16 dma_src_len(struct omap_ep *ep, dma_addr_t start)
+ 	if (cpu_is_omap15xx())
+ 		return 0;
+ 
+-	end = dma_csac(ep->lch);
++	end = omap_get_dma_src_pos(ep->lch);
+ 	if (end == ep->dma_counter)
+ 		return 0;
+ 
+@@ -537,15 +511,11 @@ static u16 dma_src_len(struct omap_ep *ep, dma_addr_t start)
+ 	return end - start;
+ }
+ 
+-#define DMA_DEST_LAST(x) (cpu_is_omap15xx() \
+-		? OMAP_DMA_CSAC_REG(x) /* really: CPC */ \
+-		: dma_cdac(x))
+-
+ static u16 dma_dest_len(struct omap_ep *ep, dma_addr_t start)
+ {
+ 	dma_addr_t	end;
+ 
+-	end = DMA_DEST_LAST(ep->lch);
++	end = omap_get_dma_dst_pos(ep->lch);
+ 	if (end == ep->dma_counter)
+ 		return 0;
+ 
+@@ -596,7 +566,7 @@ static void next_in_dma(struct omap_ep *ep, struct omap_req *req)
+ 		0, 0);
+ 
+ 	omap_start_dma(ep->lch);
+-	ep->dma_counter = dma_csac(ep->lch);
++	ep->dma_counter = omap_get_dma_src_pos(ep->lch);
+ 	UDC_DMA_IRQ_EN_REG |= UDC_TX_DONE_IE(ep->dma_channel);
+ 	UDC_TXDMA_REG(ep->dma_channel) = UDC_TXN_START | txdma_ctrl;
+ 	req->dma_bytes = length;
+@@ -654,7 +624,7 @@ static void next_out_dma(struct omap_ep *ep, struct omap_req *req)
+ 	omap_set_dma_dest_params(ep->lch, OMAP_DMA_PORT_EMIFF,
+ 		OMAP_DMA_AMODE_POST_INC, req->req.dma + req->req.actual,
+ 		0, 0);
+-	ep->dma_counter = DMA_DEST_LAST(ep->lch);
++	ep->dma_counter = omap_get_dma_dst_pos(ep->lch);
+ 
+ 	UDC_RXDMA_REG(ep->dma_channel) = UDC_RXN_STOP | (packets - 1);
+ 	UDC_DMA_IRQ_EN_REG |= UDC_RX_EOT_IE(ep->dma_channel);
+@@ -834,7 +804,7 @@ static void dma_channel_claim(struct omap_ep *ep, unsigned channel)
+ 
+ 		/* channel type P: hw synch (fifo) */
+ 		if (cpu_class_is_omap1() && !cpu_is_omap15xx())
+-			OMAP1_DMA_LCH_CTRL_REG(ep->lch) = 2;
++			omap_set_dma_channel_mode(ep->lch, OMAP_DMA_LCH_P);
+ 	}
+ 
+ just_restart:
+@@ -881,7 +851,7 @@ static void dma_channel_release(struct omap_ep *ep)
+ 	else
+ 		req = NULL;
+ 
+-	active = ((1 << 7) & OMAP_DMA_CCR_REG(ep->lch)) != 0;
++	active = omap_get_dma_active_status(ep->lch);
+ 
+ 	DBG("%s release %s %cxdma%d %p\n", ep->ep.name,
+ 			active ? "active" : "idle",
+diff --git a/include/asm-arm/arch-omap/dma.h b/include/asm-arm/arch-omap/dma.h
+index 46fe5a4..d188100 100644
+--- a/include/asm-arm/arch-omap/dma.h
++++ b/include/asm-arm/arch-omap/dma.h
+@@ -22,107 +22,128 @@
+ #define __ASM_ARCH_DMA_H
+ 
+ /* Hardware registers for omap1 */
+-#define OMAP_DMA_BASE			(0xfffed800)
+-#define OMAP_DMA_GCR			(OMAP_DMA_BASE + 0x400)
+-#define OMAP_DMA_GSCR			(OMAP_DMA_BASE + 0x404)
+-#define OMAP_DMA_GRST			(OMAP_DMA_BASE + 0x408)
+-#define OMAP_DMA_HW_ID			(OMAP_DMA_BASE + 0x442)
+-#define OMAP_DMA_PCH2_ID		(OMAP_DMA_BASE + 0x444)
+-#define OMAP_DMA_PCH0_ID		(OMAP_DMA_BASE + 0x446)
+-#define OMAP_DMA_PCH1_ID		(OMAP_DMA_BASE + 0x448)
+-#define OMAP_DMA_PCHG_ID		(OMAP_DMA_BASE + 0x44a)
+-#define OMAP_DMA_PCHD_ID		(OMAP_DMA_BASE + 0x44c)
+-#define OMAP_DMA_CAPS_0_U		(OMAP_DMA_BASE + 0x44e)
+-#define OMAP_DMA_CAPS_0_L		(OMAP_DMA_BASE + 0x450)
+-#define OMAP_DMA_CAPS_1_U		(OMAP_DMA_BASE + 0x452)
+-#define OMAP_DMA_CAPS_1_L		(OMAP_DMA_BASE + 0x454)
+-#define OMAP_DMA_CAPS_2			(OMAP_DMA_BASE + 0x456)
+-#define OMAP_DMA_CAPS_3			(OMAP_DMA_BASE + 0x458)
+-#define OMAP_DMA_CAPS_4			(OMAP_DMA_BASE + 0x45a)
+-#define OMAP_DMA_PCH2_SR		(OMAP_DMA_BASE + 0x460)
+-#define OMAP_DMA_PCH0_SR		(OMAP_DMA_BASE + 0x480)
+-#define OMAP_DMA_PCH1_SR		(OMAP_DMA_BASE + 0x482)
+-#define OMAP_DMA_PCHD_SR		(OMAP_DMA_BASE + 0x4c0)
+-
+-/* Hardware registers for omap2 */
+-#if defined(CONFIG_ARCH_OMAP3)
+-#define OMAP_DMA4_BASE			(L4_34XX_BASE + 0x56000)
+-#else	/* CONFIG_ARCH_OMAP2 */
+-#define OMAP_DMA4_BASE			(L4_24XX_BASE + 0x56000)
+-#endif
+-
+-#define OMAP_DMA4_REVISION		(OMAP_DMA4_BASE + 0x00)
+-#define OMAP_DMA4_GCR_REG		(OMAP_DMA4_BASE + 0x78)
+-#define OMAP_DMA4_IRQSTATUS_L0		(OMAP_DMA4_BASE + 0x08)
+-#define OMAP_DMA4_IRQSTATUS_L1		(OMAP_DMA4_BASE + 0x0c)
+-#define OMAP_DMA4_IRQSTATUS_L2		(OMAP_DMA4_BASE + 0x10)
+-#define OMAP_DMA4_IRQSTATUS_L3		(OMAP_DMA4_BASE + 0x14)
+-#define OMAP_DMA4_IRQENABLE_L0		(OMAP_DMA4_BASE + 0x18)
+-#define OMAP_DMA4_IRQENABLE_L1		(OMAP_DMA4_BASE + 0x1c)
+-#define OMAP_DMA4_IRQENABLE_L2		(OMAP_DMA4_BASE + 0x20)
+-#define OMAP_DMA4_IRQENABLE_L3		(OMAP_DMA4_BASE + 0x24)
+-#define OMAP_DMA4_SYSSTATUS		(OMAP_DMA4_BASE + 0x28)
+-#define OMAP_DMA4_OCP_SYSCONFIG		(OMAP_DMA4_BASE + 0x2c)
+-#define OMAP_DMA4_CAPS_0		(OMAP_DMA4_BASE + 0x64)
+-#define OMAP_DMA4_CAPS_2		(OMAP_DMA4_BASE + 0x6c)
+-#define OMAP_DMA4_CAPS_3		(OMAP_DMA4_BASE + 0x70)
+-#define OMAP_DMA4_CAPS_4		(OMAP_DMA4_BASE + 0x74)
++#define OMAP1_DMA_BASE			(0xfffed800)
++
++#define OMAP1_DMA_GCR			0x400
++#define OMAP1_DMA_GSCR			0x404
++#define OMAP1_DMA_GRST			0x408
++#define OMAP1_DMA_HW_ID			0x442
++#define OMAP1_DMA_PCH2_ID		0x444
++#define OMAP1_DMA_PCH0_ID		0x446
++#define OMAP1_DMA_PCH1_ID		0x448
++#define OMAP1_DMA_PCHG_ID		0x44a
++#define OMAP1_DMA_PCHD_ID		0x44c
++#define OMAP1_DMA_CAPS_0_U		0x44e
++#define OMAP1_DMA_CAPS_0_L		0x450
++#define OMAP1_DMA_CAPS_1_U		0x452
++#define OMAP1_DMA_CAPS_1_L		0x454
++#define OMAP1_DMA_CAPS_2		0x456
++#define OMAP1_DMA_CAPS_3		0x458
++#define OMAP1_DMA_CAPS_4		0x45a
++#define OMAP1_DMA_PCH2_SR		0x460
++#define OMAP1_DMA_PCH0_SR		0x480
++#define OMAP1_DMA_PCH1_SR		0x482
++#define OMAP1_DMA_PCHD_SR		0x4c0
++
++/* Hardware registers for omap2 and omap3 */
++#define OMAP24XX_DMA4_BASE		(L4_24XX_BASE + 0x56000)
++#define OMAP34XX_DMA4_BASE		(L4_34XX_BASE + 0x56000)
++
++#define OMAP_DMA4_REVISION		0x00
++#define OMAP_DMA4_GCR			0x78
++#define OMAP_DMA4_IRQSTATUS_L0		0x08
++#define OMAP_DMA4_IRQSTATUS_L1		0x0c
++#define OMAP_DMA4_IRQSTATUS_L2		0x10
++#define OMAP_DMA4_IRQSTATUS_L3		0x14
++#define OMAP_DMA4_IRQENABLE_L0		0x18
++#define OMAP_DMA4_IRQENABLE_L1		0x1c
++#define OMAP_DMA4_IRQENABLE_L2		0x20
++#define OMAP_DMA4_IRQENABLE_L3		0x24
++#define OMAP_DMA4_SYSSTATUS		0x28
++#define OMAP_DMA4_OCP_SYSCONFIG		0x2c
++#define OMAP_DMA4_CAPS_0		0x64
++#define OMAP_DMA4_CAPS_2		0x6c
++#define OMAP_DMA4_CAPS_3		0x70
++#define OMAP_DMA4_CAPS_4		0x74
+ 
+ #define OMAP1_LOGICAL_DMA_CH_COUNT	17
+ #define OMAP_DMA4_LOGICAL_DMA_CH_COUNT	32	/* REVISIT: Is this 32 + 2? */
+ 
+-#ifdef CONFIG_ARCH_OMAP1
+-
+ /* Common channel specific registers for omap1 */
+-#define OMAP_DMA_CSDP_REG(n)		__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x00)
+-#define OMAP_DMA_CCR_REG(n)		__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x02)
+-#define OMAP_DMA_CICR_REG(n)		__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x04)
+-#define OMAP_DMA_CSR_REG(n)		__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x06)
+-#define OMAP_DMA_CEN_REG(n)		__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x10)
+-#define OMAP_DMA_CFN_REG(n)		__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x12)
+-#define OMAP_DMA_CSFI_REG(n)		__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x14)
+-#define OMAP_DMA_CSEI_REG(n)		__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x16)
+-#define OMAP_DMA_CSAC_REG(n)		__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x18)
+-#define OMAP_DMA_CDAC_REG(n)		__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x1a)
+-#define OMAP_DMA_CDEI_REG(n)		__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x1c)
+-#define OMAP_DMA_CDFI_REG(n)		__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x1e)
+-#define OMAP_DMA_CLNK_CTRL_REG(n)	__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x28)
+-
+-#else
++#define OMAP1_DMA_CH_BASE(n)		(0x40 * (n) + 0x00)
++#define OMAP1_DMA_CSDP(n)		(0x40 * (n) + 0x00)
++#define OMAP1_DMA_CCR(n)		(0x40 * (n) + 0x02)
++#define OMAP1_DMA_CICR(n)		(0x40 * (n) + 0x04)
++#define OMAP1_DMA_CSR(n)		(0x40 * (n) + 0x06)
++#define OMAP1_DMA_CEN(n)		(0x40 * (n) + 0x10)
++#define OMAP1_DMA_CFN(n)		(0x40 * (n) + 0x12)
++#define OMAP1_DMA_CSFI(n)		(0x40 * (n) + 0x14)
++#define OMAP1_DMA_CSEI(n)		(0x40 * (n) + 0x16)
++#define OMAP1_DMA_CPC(n)		(0x40 * (n) + 0x18)	/* 15xx only */
++#define OMAP1_DMA_CSAC(n)		(0x40 * (n) + 0x18)
++#define OMAP1_DMA_CDAC(n)		(0x40 * (n) + 0x1a)
++#define OMAP1_DMA_CDEI(n)		(0x40 * (n) + 0x1c)
++#define OMAP1_DMA_CDFI(n)		(0x40 * (n) + 0x1e)
++#define OMAP1_DMA_CLNK_CTRL(n)		(0x40 * (n) + 0x28)
+ 
+ /* Common channel specific registers for omap2 */
+-#define OMAP_DMA_CCR_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + 0x80)
+-#define OMAP_DMA_CLNK_CTRL_REG(n)	__REG32(OMAP_DMA4_BASE + 0x60 * (n) + 0x84)
+-#define OMAP_DMA_CICR_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + 0x88)
+-#define OMAP_DMA_CSR_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + 0x8c)
+-#define OMAP_DMA_CSDP_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + 0x90)
+-#define OMAP_DMA_CEN_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + 0x94)
+-#define OMAP_DMA_CFN_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + 0x98)
+-#define OMAP_DMA_CSEI_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + 0xa4)
+-#define OMAP_DMA_CSFI_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + 0xa8)
+-#define OMAP_DMA_CDEI_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + 0xac)
+-#define OMAP_DMA_CDFI_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + 0xb0)
+-#define OMAP_DMA_CSAC_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + 0xb4)
+-#define OMAP_DMA_CDAC_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + 0xb8)
+-
+-#endif
++#define OMAP_DMA4_CH_BASE(n)		(0x60 * (n) + 0x80)
++#define OMAP_DMA4_CCR(n)		(0x60 * (n) + 0x80)
++#define OMAP_DMA4_CLNK_CTRL(n)		(0x60 * (n) + 0x84)
++#define OMAP_DMA4_CICR(n)		(0x60 * (n) + 0x88)
++#define OMAP_DMA4_CSR(n)		(0x60 * (n) + 0x8c)
++#define OMAP_DMA4_CSDP(n)		(0x60 * (n) + 0x90)
++#define OMAP_DMA4_CEN(n)		(0x60 * (n) + 0x94)
++#define OMAP_DMA4_CFN(n)		(0x60 * (n) + 0x98)
++#define OMAP_DMA4_CSEI(n)		(0x60 * (n) + 0xa4)
++#define OMAP_DMA4_CSFI(n)		(0x60 * (n) + 0xa8)
++#define OMAP_DMA4_CDEI(n)		(0x60 * (n) + 0xac)
++#define OMAP_DMA4_CDFI(n)		(0x60 * (n) + 0xb0)
++#define OMAP_DMA4_CSAC(n)		(0x60 * (n) + 0xb4)
++#define OMAP_DMA4_CDAC(n)		(0x60 * (n) + 0xb8)
+ 
+ /* Channel specific registers only on omap1 */
+-#define OMAP1_DMA_CSSA_L_REG(n)		__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x08)
+-#define OMAP1_DMA_CSSA_U_REG(n)		__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x0a)
+-#define OMAP1_DMA_CDSA_L_REG(n)		__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x0c)
+-#define OMAP1_DMA_CDSA_U_REG(n)		__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x0e)
+-#define OMAP1_DMA_COLOR_L_REG(n)	__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x20)
+-#define OMAP1_DMA_CCR2_REG(n)		__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x24)
+-#define OMAP1_DMA_COLOR_U_REG(n)	__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x22)
+-#define OMAP1_DMA_LCH_CTRL_REG(n)	__REG16(OMAP_DMA_BASE + 0x40 * (n) + 0x2a)
++#define OMAP1_DMA_CSSA_L(n)		(0x40 * (n) + 0x08)
++#define OMAP1_DMA_CSSA_U(n)		(0x40 * (n) + 0x0a)
++#define OMAP1_DMA_CDSA_L(n)		(0x40 * (n) + 0x0c)
++#define OMAP1_DMA_CDSA_U(n)		(0x40 * (n) + 0x0e)
++#define OMAP1_DMA_COLOR_L(n)		(0x40 * (n) + 0x20)
++#define OMAP1_DMA_COLOR_U(n)		(0x40 * (n) + 0x22)
++#define OMAP1_DMA_CCR2(n)		(0x40 * (n) + 0x24)
++#define OMAP1_DMA_LCH_CTRL(n)		(0x40 * (n) + 0x2a)	/* not on 15xx */
++#define OMAP1_DMA_CCEN(n)		0
++#define OMAP1_DMA_CCFN(n)		0
+ 
+ /* Channel specific registers only on omap2 */
+-#define OMAP2_DMA_CSSA_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + 0x9c)
+-#define OMAP2_DMA_CDSA_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + 0xa0)
+-#define OMAP2_DMA_CCEN_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + 0xbc)
+-#define OMAP2_DMA_CCFN_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + 0xc0)
+-#define OMAP2_DMA_COLOR_REG(n)		__REG32(OMAP_DMA4_BASE + 0x60 * (n) + 0xc4)
++#define OMAP_DMA4_CSSA(n)		(0x60 * (n) + 0x9c)
++#define OMAP_DMA4_CDSA(n)		(0x60 * (n) + 0xa0)
++#define OMAP_DMA4_CCEN(n)		(0x60 * (n) + 0xbc)
++#define OMAP_DMA4_CCFN(n)		(0x60 * (n) + 0xc0)
++#define OMAP_DMA4_COLOR(n)		(0x60 * (n) + 0xc4)
++
++/* Dummy defines to keep multi-omap compiles happy */
++#define OMAP1_DMA_REVISION		0
++#define OMAP1_DMA_IRQSTATUS_L0		0
++#define OMAP1_DMA_IRQENABLE_L0		0
++#define OMAP1_DMA_OCP_SYSCONFIG		0
++#define OMAP_DMA4_HW_ID			0
++#define OMAP_DMA4_CAPS_0_L		0
++#define OMAP_DMA4_CAPS_0_U		0
++#define OMAP_DMA4_CAPS_1_L		0
++#define OMAP_DMA4_CAPS_1_U		0
++#define OMAP_DMA4_GSCR			0
++#define OMAP_DMA4_CPC(n)		0
++
++#define OMAP_DMA4_LCH_CTRL(n)		0
++#define OMAP_DMA4_COLOR_L(n)		0
++#define OMAP_DMA4_COLOR_U(n)		0
++#define OMAP_DMA4_CCR2(n)		0
++#define OMAP1_DMA_CSSA(n)		0
++#define OMAP1_DMA_CDSA(n)		0
++#define OMAP_DMA4_CSSA_L(n)		0
++#define OMAP_DMA4_CSSA_U(n)		0
++#define OMAP_DMA4_CDSA_L(n)		0
++#define OMAP_DMA4_CDSA_U(n)		0
+ 
+ /*----------------------------------------------------------------------------*/
+ 
+@@ -369,6 +390,13 @@ enum omap_dma_write_mode {
+ 	OMAP_DMA_WRITE_LAST_NON_POSTED
+ };
+ 
++enum omap_dma_channel_mode {
++	OMAP_DMA_LCH_2D = 0,
++	OMAP_DMA_LCH_G,
++	OMAP_DMA_LCH_P,
++	OMAP_DMA_LCH_PD
++};
++
+ struct omap_dma_channel_params {
+ 	int data_type;		/* data type 8,16,32 */
+ 	int elem_count;		/* number of elements in a frame */
+@@ -417,6 +445,7 @@ extern void omap_set_dma_transfer_params(int lch, int data_type,
+ extern void omap_set_dma_color_mode(int lch, enum omap_dma_color_mode mode,
+ 				    u32 color);
+ extern void omap_set_dma_write_mode(int lch, enum omap_dma_write_mode mode);
++extern void omap_set_dma_channel_mode(int lch, enum omap_dma_channel_mode mode);
+ 
+ extern void omap_set_dma_src_params(int lch, int src_port, int src_amode,
+ 				    unsigned long src_start,
+@@ -447,6 +476,7 @@ extern dma_addr_t omap_get_dma_src_pos(int lch);
+ extern dma_addr_t omap_get_dma_dst_pos(int lch);
+ extern int omap_get_dma_src_addr_counter(int lch);
+ extern void omap_clear_dma(int lch);
++extern int omap_get_dma_active_status(int lch);
+ extern int omap_dma_running(void);
+ extern void omap_dma_set_global_params(int arb_rate, int max_fifo_depth,
+ 				       int tparams);
 
+--8GpibOaaTibBMecb--
