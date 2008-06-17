@@ -1,82 +1,123 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 21/21] ARM: OMAP: Add OMAP chip type structure; clean up
- mach-omap2/id.c
-Date: Tue, 17 Jun 2008 09:43:00 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0806170856580.11210@utopia.booyaka.com>
-References: <1212802253-17797-13-git-send-email-tony@atomide.com> <1212802253-17797-14-git-send-email-tony@atomide.com> <1212802253-17797-15-git-send-email-tony@atomide.com> <1212802253-17797-16-git-send-email-tony@atomide.com> <1212802253-17797-17-git-send-email-tony@atomide.com>
- <1212802253-17797-18-git-send-email-tony@atomide.com> <1212802253-17797-19-git-send-email-tony@atomide.com> <1212802253-17797-20-git-send-email-tony@atomide.com> <1212802253-17797-21-git-send-email-tony@atomide.com> <1212802253-17797-22-git-send-email-tony@atomide.com>
- <20080614092235.GR32122@flint.arm.linux.org.uk>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH/RFC 1/2] Add Dspbridge driver to OMAP GIT kernel
+Date: Tue, 17 Jun 2008 11:49:11 -0500
+Message-ID: <A8E8DDC23969AE4CB38FFF51016C778202D97C48@dlee10.ent.ti.com>
+References: <A8E8DDC23969AE4CB38FFF51016C778202D975BA@dlee10.ent.ti.com> <ECC99C9B-90E9-4D91-9E74-7999D3868D20@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:44753 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750898AbYFQPnD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jun 2008 11:43:03 -0400
-In-Reply-To: <20080614092235.GR32122@flint.arm.linux.org.uk>
+Received: from calf.ext.ti.com ([198.47.26.144]:50522 "EHLO calf.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752999AbYFQQtT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jun 2008 12:49:19 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <ECC99C9B-90E9-4D91-9E74-7999D3868D20@student.utwente.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Koen Kooi <k.kooi@student.utwente.nl>, linux-omap@vger.kernel.org
+Cc: "Gupta, Ramesh" <grgupta@ti.com>
 
-
-Hello Russell,
-
-On Sat, 14 Jun 2008, Russell King - ARM Linux wrote:
-
-> On Fri, Jun 06, 2008 at 06:30:53PM -0700, Tony Lindgren wrote:
-> > omap_chip is set in mach-omap2/id.c by _set_omap_chip(). Other
-> > code should use the omap_chip_is() function to test against omap_chip.
+Hi Koen
 > 
-> > +/**
-> > + * omap_chip_is - test whether currently running OMAP matches a chip type
-> > + * @oc: omap_chip_t to test against
-> > + *
-> > + * Test whether the currently-running OMAP chip matches the supplied
-> > + * chip type 'oc'.  Returns 1 upon a match; 0 upon failure.
-> > + */
-> > +int omap_chip_is(struct omap_chip_id oci)
-> > +{
-> > +	return (oci.oc & omap_chip.oc) ? 1 : 0;
-> > +}
-> > +EXPORT_SYMBOL(omap_chip_is);
+> That still seems to have the OSAL layer. I don't think the linux
+> kernel needs code to support things like symbian and windows mobile.
+>
+
+--- Thank you for your comments. Can you please elaborate your specific
+concerns on the modules present in OSAL layer. Majority of the code that
+is present in this OSAL layer are not acting as wrappers to the kernel
+calls, and even the functions that are acting as wrappers (eg:
+MEM_Alloc) provides some additional debugging feature that are very
+handy in debugging some critical Bridge issues. Does renaming OSAL to
+some other name address your concern ? 
+
+Thank you,
+Best regards,
+Hari
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Koen Kooi
+> Sent: Saturday, June 14, 2008 3:48 AM
+> To: Kanigeri, Hari
+> Subject: Re: [PATCH/RFC 1/2] Add Dspbridge driver to OMAP GIT kernel
 > 
-> I've not seen any use cases for this function, so I don't know how it's
-> intended to be used.  However, is it really sensible for this to take a
-> structure rather than just a value?
-
-It was created as a structure so the size of the underlying bitmask can be 
-increased later without patching all of the structure definitions that use 
-it in other code.  (Originally it was a typedef.)  Here's a basic use 
-case:
-
-struct foo {
-	...
-	struct omap_chip_id omap_chip;
-};
-
-static const struct foo foo_instance_omap2420 = {
-	...
-	.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-};
-
-static const struct foo foo_instance_omap3430 = {
-	...
-	.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-};
-
-static const struct foo *foo_instances[] = {
-	&foo_instance_omap2420,
-	&foo_instance_omap3430,
-	NULL
-};
-
-void fn(void) {
-	for (p = foo_instances; p; p++) {
-		if (omap_chip_is(p->omap_chip) 
-			pr_debug("Chip type matches - use this structure");
-}
-
-
-- Paul
-
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+> 
+> 
+> Op 14 jun 2008, om 02:01 heeft Kanigeri, Hari het volgende geschreven:
+> 
+> >
+> > This patch adds the dspbridge driver functionality for OMAP3
+platform
+> > to the OMAP GIT kernel. DSP Bridge driver provides features to
+control
+> > and communicate with DSP enabling parallel processing for multimedia
+> > acceleration. It enables the applications running on MCU to offload
+> > the processing to DSP.
+> >
+> > Some of the key features of DSP Bridge are listed below.
+> >
+> > - Messaging: Ability to exchange fixed size control messages with
+DSP.
+> > - Dynamic memory management: Ability to dynamically map files to DSP
+> > address
+> > space.
+> > - Dynamic loading: Ability to dynamically load new nodes on DSP at
+run
+> > time.
+> > - Power Management: Static and dynamic power management for DSP.
+> >
+> > The patch is available at
+> > http://www.omapzoom.org/pub/dspbridge/dspbridge_mpu_driver.patch
+> >
+> > The documents for reference can be accessed from
+> > http://www.omapzoom.org/pub/dspbridge/db_linux_pguide.pdf
+> > http://www.omapzoom.org/pub/dspbridge/db_linux_rguide.pdf
+> > http://www.omapzoom.org/pub/dspbridge/
+> > Linux_Bridge_Integration_3430.pdf
+> >
+> > Please let me know your comments on how we can work to include the
+> > Dspbridge driver source code in OMAP GIT tree.
+> 
+> That still seems to have the OSAL layer. I don't think the linux
+> kernel needs code to support things like symbian and windows mobile.
+> 
+> regards,
+> 
+> Koen
+> 
+> 
+> 
+> 
+> 
+> >
+> > Please let me know if you need any additional information or
+questions
+> > on dspbridge.
+> >
+> > Thank you,
+> > Best regards,
+> > Hari
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-
+> > omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> 
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v1.4.5 (Darwin)
+> 
+> iD8DBQFIU4XDMkyGM64RGpERAp1cAKCl1amRWN9D0LbELsk0veON+TR6RwCfUPv8
+> TPiGLJ2+cjlf0tneY0UuPHE=
+> =GFHv
+> -----END PGP SIGNATURE-----
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
