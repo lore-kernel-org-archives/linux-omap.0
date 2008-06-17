@@ -1,64 +1,599 @@
-From: Roman Tereshonkov <roman.tereshonkov@nokia.com>
-Subject: [PATCH] The fix prevents kernel crash caused by twl4030 power button malfunction.
-Date: Tue, 17 Jun 2008 16:48:06 +0300
-Message-ID: <1213710486-19986-1-git-send-email-roman.tereshonkov@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] OMAP2/3 PM: Add OMAP PM no-op layer
+Date: Tue, 17 Jun 2008 09:01:38 -0600
+Message-ID: <20080617150122.20886.9290.stgit@localhost.localdomain>
+References: <20080617145905.20886.89236.stgit@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:19339 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755161AbYFQNtl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jun 2008 09:49:41 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m5HDbDsk032451
-	for <linux-omap@vger.kernel.org>; Tue, 17 Jun 2008 08:49:39 -0500
+Received: from utopia.booyaka.com ([72.9.107.138]:55214 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756077AbYFQPFO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jun 2008 11:05:14 -0400
+In-Reply-To: <20080617145905.20886.89236.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Roman Tereshonkov <roman.tereshonkov@nokia.com>
+Cc: tony@atomide.com, jouni.hogander@nokia.com, khilman@mvista.com
 
-If i2c connection is broken the twl4030 power button driver is unregistered.
-The function input_free_device has to be called only when
-input_register_device failed. Otherwise input_unregister_device is used.
+Add a default OMAP PM no-op layer, defining the interface between
+device drivers, CPUFreq, and DSP Bridge on one side; and hardware-speci=
+fic
+APIs on the other (e.g., powerdomain API, clock framework, etc).
+Copious documentation is in the omap-pm-noop.c file itself.
 
-Signed-off-by: Roman Tereshonkov <roman.tereshonkov@nokia.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+
 ---
- drivers/i2c/chips/twl4030-pwrbutton.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/i2c/chips/twl4030-pwrbutton.c b/drivers/i2c/chips/twl4030-pwrbutton.c
-index cbc31aa..a8258df 100644
---- a/drivers/i2c/chips/twl4030-pwrbutton.c
-+++ b/drivers/i2c/chips/twl4030-pwrbutton.c
-@@ -95,8 +95,10 @@ static int __init twl4030_pwrbutton_init(void)
- 	powerbutton_dev->name = "triton2-pwrbutton";
- 
- 	err = input_register_device(powerbutton_dev);
--	if (err)
--		goto free_input_dev;
-+	if (err) {
-+		input_free_device(powerbutton_dev);
-+		goto free_irq_and_out;
+ arch/arm/mach-omap2/io.c            |    4=20
+ arch/arm/plat-omap/Kconfig          |   13 +
+ arch/arm/plat-omap/Makefile         |    1=20
+ arch/arm/plat-omap/omap-pm-noop.c   |  409 +++++++++++++++++++++++++++=
+++++++++
+ include/asm-arm/arch-omap/omap-pm.h |   54 +++++
+ 5 files changed, 481 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/plat-omap/omap-pm-noop.c
+ create mode 100644 include/asm-arm/arch-omap/omap-pm.h
+
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 314994b..3070c1c 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -38,6 +38,8 @@
+ #include <asm/arch/clockdomain.h>
+ #include "clockdomains.h"
+=20
++#include <asm/arch/omap-pm.h>
++
+ /*
+  * The machine specific code may provide the extra mapping besides the
+  * default mapping provided here.
+@@ -197,9 +199,11 @@ void __init omap2_map_common_io(void)
+ void __init omap2_init_common_hw(void)
+ {
+ 	omap2_mux_init();
++	omap_pm_if_early_init();
+ 	pwrdm_init(powerdomains_omap);
+ 	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
+ 	omap2_clk_init();
++	omap_pm_if_init();
+ 	omap2_init_memory();
+ 	gpmc_init();
+ }
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index b085b07..aad8f24 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -216,4 +216,17 @@ config OMAP_SERIAL_WAKE
+=20
+ endmenu
+=20
++choice
++	prompt "OMAP PM layer selection"
++	depends on ARCH_OMAP
++	default OMAP_PM_NOOP
++
++config OMAP_PM_NONE
++	bool "No PM layer"
++
++config OMAP_PM_NOOP
++	bool "No-op/debug PM layer"
++
++endchoice
++
+ endif
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+index 93bbb64..d5453d5 100644
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -29,3 +29,4 @@ obj-$(CONFIG_OMAP_MMU_FWK) +=3D mmu.o
+ # OMAP mailbox framework
+ obj-$(CONFIG_OMAP_MBOX_FWK) +=3D mailbox.o
+=20
++obj-$(CONFIG_OMAP_PM_NOOP) +=3D omap-pm-noop.o
+\ No newline at end of file
+diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/oma=
+p-pm-noop.c
+new file mode 100644
+index 0000000..43cbee0
+--- /dev/null
++++ b/arch/arm/plat-omap/omap-pm-noop.c
+@@ -0,0 +1,409 @@
++/*
++ * omap-pm-noop.c - OMAP power management interface - dummy version
++ *
++ * This code implements the OMAP power management interface to
++ * drivers, CPUIdle, CPUFreq, and DSP Bridge.  It is strictly for
++ * debug/demonstration use, as it does nothing but printk() whenever a
++ * function is called (when DEBUG is defined, below)
++ *
++ * Copyright (C) 2008 Texas Instruments, Inc.
++ * Copyright (C) 2008 Nokia Corporation
++ * Paul Walmsley
++ *
++ * Interface developed by (in alphabetical order):
++ * Karthik Dasu, Amish Lakhani, Tony Lindgren, Rajendra Nayak, Sakari
++ * Poussa, Veeramanikandan Raju, Igor Stoppa, Paul Walmsley, Richard
++ * Woodruff
++ */
++
++#undef DEBUG
++
++#include <linux/init.h>
++#include <linux/cpufreq.h>
++#include <linux/device.h>
++
++#include <asm/arch/omap-pm.h>
++
++#include <asm/arch/powerdomain.h>
++
++
++/*
++ * Device-driver-originated constraints (via board-*.c files)
++ */
++
++/**
++ * omap_pm_set_min_bus_tput - set minimum bus throughput needed by dev=
+ice
++ * @dev: struct device *
++ * @tbus_id: interconnect to operate on (OCP_{INITIATOR,TARGET}_AGENT)
++ * @r: minimum throughput (in KiB/s)
++ *
++ * Request that the minimum data throughput on the OCP interconnect
++ * attached to device 'dev' interconnect agent 'tbus_id' be no less
++ * than 'r' KiB/s.
++ *
++ * It is expected that the OMAP PM or bus code will use this
++ * information to set the interconnect clock to run at the lowest
++ * possible speed that satisfies all current system users.  The PM or
++ * bus code will adjust the estimate based on its model of the bus, so
++ * device driver authors should attempt to specify an accurate
++ * quantity for their device use case, and let the PM or bus code
++ * overestimate the numbers as necessary to handle request/response
++ * latency, other competing users on the system, etc.  On OMAP2/3, if
++ * a driver requests a minimum L4 interconnect speed constraint, the
++ * code will also need to add an minimum L3 interconnect speed
++ * constraint,
++ *
++ * Multiple calls to set_min_bus_tput() will replace the previous rate
++ * value for this device.  To remove the interconnect throughput
++ * restriction for this device, call with r =3D 0.
++ *
++ * No return value.
++ */
++void omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigne=
+d long r)
++{
++	if (!dev || agent_id !=3D OCP_INITIATOR_AGENT ||
++	    agent_id !=3D OCP_TARGET_AGENT) {
++		WARN_ON(1);
++		return;
++	};
++
++	if (r =3D=3D 0)
++		pr_debug("OMAP PM: remove min bus tput constraint: "
++			 "dev %s for agent_id %d\n", dev_name(dev), agent_id);
++	else
++		pr_debug("OMAP PM: add min bus tput constraint: "
++			 "dev %s for agent_id %d: rate %ld KiB\n",
++			 dev_name(dev), agent_id, r);
++
++	/*
++	 * This code should model the interconnect and compute the
++	 * required clock frequency, convert that to a VDD2 OPP ID, then
++	 * set the VDD2 OPP appropriately.
++	 *
++	 * TI CDP code can call constraint_set here on the VDD2 OPP.
++	 */
++}
++
++
++/**
++ * omap_pm_set_max_dev_wakeup_lat - set the maximum device enable late=
+ncy
++ * @dev: struct device *
++ * @t: maximum device wakeup latency in microseconds
++ *
++ * Request that the maximum amount of time necessary for a device to
++ * become accessible after its clocks are enabled should be no greater
++ * than 't' microseconds.  Specifically, this represents the time from
++ * when a device driver enables device clocks with clk_enable(), to
++ * when the register reads and writes on the device will succeed.
++ * This function should be called before clk_disable() is called,
++ * since the power state transition decision may be made during
++ * clk_disable().
++ *
++ * It is intended that underlying PM code will use this information to
++ * determine what power state to put the powerdomain enclosing this
++ * device into.
++ *
++ * MPU wakeup latency can also be adjusted by this function, by
++ * passing the CPU device from get_cpu_sysdev(0).  In this case,
++ * set_max_dev_wakeup_lat() is intended to constrain the amount of
++ * time required for the MPU to respond to an interrupt and enter
++ * device driver code.
++ *
++ * Multiple calls to set_max_dev_wakeup_lat() will replace the
++ * previous wakeup latency values for this device.  To remove the wake=
+up
++ * latency restriction for this device, call with t =3D -1.
++ *
++ * No return value.
++ */
++void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t)
++{
++	if (!dev || t < -1) {
++		WARN_ON(1);
++		return;
++	};
++
++	if (t =3D=3D -1)
++		pr_debug("OMAP PM: remove max device latency constraint: "
++			 "dev %s\n", dev_name(dev));
++	else
++		pr_debug("OMAP PM: add max device latency constraint: "
++			 "dev %s, t =3D %ld usec\n", dev_name(dev), t);
++
++	/*
++	 * For current Linux, this needs to map the device to a
++	 * powerdomain, then go through the list of current max lat
++	 * constraints on that powerdomain and find the smallest.  If
++	 * the latency constraint has changed, the code should
++	 * recompute the state to enter for the next powerdomain
++	 * state.  Conceivably, this code should also determine
++	 * whether to actually disable the device clocks or not,
++	 * depending on how long it takes to re-enable the clocks.
++	 *
++	 * TI CDP code can call constraint_set here.
++	 */
++}
++
++
++/**
++ * omap_pm_set_max_dma_lat - set the maximum DMA transfer start latenc=
+y
++ * @dev: struct device *
++ * @t: maximum DMA transfer start latency in microseconds
++ *
++ * Request that the maximum DMA transfer start latency for this device
++ * 'dev' should be no greater than 't' microseconds.  "DMA transfer
++ * start latency" here is defined as the elapsed time from when a
++ * device (e.g., McBSP) requests that a DMA transfer start or continue=
+,
++ * to the time at which data starts to flow into that device from the
++ * DMA controller.
++ *
++ * It is intended that underlying PM code will use this information to
++ * determine what power state to put the CORE powerdomain into.
++ *
++ * Since DMA transfers may not involve the MPU, this function will not
++ * affect MPU wakeup latency.  Use set_max_cpu_lat() to do so.
++ * Similarly, this function will not affect device wakeup latency --
++ * use set_max_dev_wakeup_lat() to affect that.
++ *
++ * Multiple calls to set_max_dma_lat() will replace the previous t
++ * value for this device.  To remove the maximum DMA latency for this
++ * device, call with t =3D -1.
++ *
++ * No return value.
++ */
++void omap_pm_set_max_dma_lat(struct device *dev, long t)
++{
++	if (!dev || t < -1) {
++		WARN_ON(1);
++		return;
++	};
++
++	if (t =3D=3D -1)
++		pr_debug("OMAP PM: remove max DMA latency constraint: "
++			 "dev %s\n", dev_name(dev));
++	else
++		pr_debug("OMAP PM: add max DMA latency constraint: "
++			 "dev %s, t =3D %ld usec\n", dev_name(dev), t);
++
++	/*
++	 * For current Linux PM QOS params, this code should scan the
++	 * list of maximum CPU and DMA latencies and select the
++	 * smallest, then set cpu_dma_latency pm_qos_param
++	 * accordingly.
++	 *
++	 * For future Linux PM QOS params, with separate CPU and DMA
++	 * latency params, this code should just set the dma_latency param.
++	 *
++	 * TI CDP code can call constraint_set here.
++	 */
++
++}
++
++
++/*
++ * DSP Bridge-specific constraints
++ */
++
++/**
++ * omap_pm_dsp_set_min_opp - receive desired OPP target ID from DSP Br=
+idge
++ * @opp_id: target DSP OPP ID
++ *
++ * Set a minimum OPP ID for the DSP.  This is intended to be called
++ * only from the DSP Bridge MPU-side driver.  Unfortunately, the only
++ * information that code receives from the DSP/BIOS load estimator is =
+the
++ * target OPP ID; hence, this interface.  No return value.
++ */
++void omap_pm_dsp_set_min_opp(u8 opp_id)
++{
++	if (opp_id =3D=3D 0) {
++		WARN_ON(1);
++		return;
 +	}
- 
- 	err = twl4030_i2c_read_u8(TWL4030_MODULE_INT, &value, PWR_IMR1);
- 	if (err) {
-@@ -122,7 +124,7 @@ static int __init twl4030_pwrbutton_init(void)
- 	}
- 
- 	err = twl4030_i2c_write_u8(TWL4030_MODULE_INT,
--				   value | PWR_PWRON_BOTH , PWR_EDR1);
-+				   value | PWR_PWRON_BOTH, PWR_EDR1);
- 
- 	if (err) {
- 		printk(KERN_WARNING "I2C error %d while writing TWL4030"
-@@ -136,7 +138,7 @@ static int __init twl4030_pwrbutton_init(void)
- 
- 
- free_input_dev:
--	input_free_device(powerbutton_dev);
-+	input_unregister_device(powerbutton_dev);
- free_irq_and_out:
- 	free_irq(TWL4030_PWRIRQ_PWRBTN, NULL);
- out:
--- 
-1.5.5.1
++
++	pr_debug("OMAP PM: DSP requests minimum VDD1 OPP to be %d\n", opp_id)=
+;
++
++	/*
++	 *
++	 * For l-o dev tree, our VDD1 clk is keyed on OPP ID, so we
++	 * can just test to see which is higher, the CPU's desired OPP
++	 * ID or the DSP's desired OPP ID, and use whichever is
++	 * highest.
++	 *
++	 * In CDP12.14+, the VDD1 OPP custom clock that controls the DSP
++	 * rate is keyed on MPU speed, not the OPP ID.  So we need to
++	 * map the OPP ID to the MPU speed for use with clk_set_rate()
++	 * if it is higher than the current OPP clock rate.
++	 *
++	 */
++}
++
++
++/**
++ * omap_pm_dsp_get_opp - report the current DSP OPP ID
++ *
++ * Report the current OPP for the DSP.  Since on OMAP3, the DSP and
++ * MPU share a single voltage domain, the OPP ID returned back may
++ * represent a higher DSP speed than the OPP requested via
++ * omap_pm_dsp_set_min_opp().
++ *
++ * Returns the current VDD1 OPP ID, or 0 upon error.
++ */
++u8 omap_pm_dsp_get_opp(void)
++{
++	pr_debug("OMAP PM: DSP requests current DSP OPP ID\n");
++
++	/*
++	 * For l-o dev tree, call clk_get_rate() on VDD1 OPP clock
++	 *
++	 * CDP12.14+:
++	 * Call clk_get_rate() on the OPP custom clock, map that to an
++	 * OPP ID using the tables defined in board-*.c/chip-*.c files.
++	 */
++
++	return 0;
++}
++
++/*
++ * CPUFreq-originated constraint
++ *
++ * In the future, this should be handled by custom OPP clocktype
++ * functions.
++ */
++
++/**
++ * omap_pm_cpu_get_freq_table - return a cpufreq_frequency_table array=
+ ptr
++ *
++ * Provide a frequency table usable by CPUFreq for the current chip/bo=
+ard.
++ * Returns a pointer to a struct cpufreq_frequency_table array or NULL
++ * upon error.
++ */
++struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void)
++{
++	pr_debug("OMAP PM: CPUFreq request for frequency table\n");
++
++	/*
++	 * Allocate and build CPUFreq frequency table here: loop over
++	 * all VDD1 clkrates, pull out the mpu_ck frequencies, build
++	 * table
++	 */
++
++	return NULL;
++}
++
++/**
++ * omap_pm_cpu_set_freq - set the current minimum MPU frequency
++ * @f: MPU frequency in Hz
++ *
++ * Set the current minimum CPU frequency.  The actual CPU frequency
++ * used could end up higher if the DSP requested a higher OPP.
++ * Intended to be called by plat-omap/cpu_omap.c:omap_target().  No
++ * return value.
++ */
++void omap_pm_cpu_set_freq(unsigned long f)
++{
++	if (f =3D=3D 0) {
++		WARN_ON(1);
++		return;
++	}
++
++	pr_debug("OMAP PM: CPUFreq requests CPU frequency to be set to %lu\n"=
+,
++		 f);
++
++	/*
++	 * For l-o dev tree, determine whether MPU freq or DSP OPP id
++	 * freq is higher.  Find the OPP ID corresponding to the
++	 * higher frequency.  Call clk_round_rate() and clk_set_rate()
++	 * on the OPP custom clock.
++	 *
++	 * CDP should just be able to set the VDD1 OPP clock rate here.
++	 */
++}
++
++/**
++ * omap_pm_cpu_get_freq - report the current CPU frequency
++ *
++ * Returns the current MPU frequency, or 0 upon error.
++ */
++unsigned long omap_pm_cpu_get_freq(void)
++{
++	pr_debug("OMAP PM: CPUFreq requests current CPU frequency\n");
++
++	/*
++	 * Call clk_get_rate() on the mpu_ck.
++	 */
++
++	return 0;
++}
++
++/*
++ * Powerdomain usecounting hooks
++ */
++
++/**
++ * omap_pm_pwrdm_active - indicate that a power domain has become acti=
+ve
++ * @pwrdm: struct powerdomain *
++ *
++ * Notify the OMAP PM layer that the power domain 'pwrdm' has become a=
+ctive,
++ * presumably due to a device driver enabling an underlying clock.  Th=
+is
++ * function is intended to be called by a clockdomain node in the cloc=
+k
++ * framework.  No return value.
++ */
++void omap_pm_pwrdm_active(struct powerdomain *pwrdm)
++{
++	if (!pwrdm) {
++		WARN_ON(1);
++		return;
++	};
++
++	pr_debug("OMAP PM: powerdomain %s is becoming active\n", pwrdm->name)=
+;
++
++	/*
++	 * CDP code apparently will need these for the enable_power_domain()
++	 * and disable_power_domain() functions.
++	 */
++}
++
++/**
++ * omap_pm_pwrdm_inactive - indicate that a power domain has become in=
+active
++ * @pwrdm: struct powerdomain *
++ *
++ * Notify the OMAP PM layer that the power domain 'pwrdm' has become
++ * inactive, presumably due to a device driver disabling an underlying
++ * clock.  This function is intended to be called by a clockdomain
++ * node in the clock framework.  No return value.
++ */
++void omap_pm_pwrdm_inactive(struct powerdomain *pwrdm)
++{
++	if (!pwrdm) {
++		WARN_ON(1);
++		return;
++	};
++
++	pr_debug("OMAP PM: powerdomain %s is becoming inactive\n",
++		 pwrdm->name);
++
++	/*
++	 * CDP code apparently will need these for the enable_power_domain()
++	 * and disable_power_domain() functions.
++	 */
++}
++
++/*
++ * Should be called before clk framework since clk fw will call
++ * omap_pm_pwrdm_{in,}active()
++ */
++int __init omap_pm_if_early_init(void)
++{
++	return 0;
++}
++
++/* Must be called after clock framework is initialized */
++int __init omap_pm_if_init(void)
++{
++	return 0;
++}
++
++void omap_pm_if_exit(void)
++{
++	/* Deallocate CPUFreq frequency table here */
++}
++
+diff --git a/include/asm-arm/arch-omap/omap-pm.h b/include/asm-arm/arch=
+-omap/omap-pm.h
+new file mode 100644
+index 0000000..71565bf
+--- /dev/null
++++ b/include/asm-arm/arch-omap/omap-pm.h
+@@ -0,0 +1,54 @@
++/*
++ * omap-pm.h - OMAP power management interface
++ *
++ * Copyright (C) 2008 Texas Instruments, Inc.
++ * Copyright (C) 2008 Nokia Corporation
++ * Paul Walmsley
++ *
++ * Interface developed by (in alphabetical order): Karthik Dasu, Jouni
++ * H=C3=B6gander, Tony Lindgren, Rajendra Nayak, Sakari Poussa,
++ * Veeramanikandan Raju, Anand Sawant, Igor Stoppa, Paul Walmsley,
++ * Richard Woodruff
++ */
++
++#ifndef ASM_ARM_ARCH_OMAP_OMAP_PM_H
++#define ASM_ARM_ARCH_OMAP_OMAP_PM_H
++
++#include <linux/device.h>
++#include <linux/cpufreq.h>
++
++#include "powerdomain.h"
++
++
++/*
++ * agent_id values for use with omap_pm_set_min_bus_tput():
++ *
++ * OCP_INITIATOR_AGENT is only valid for devices that can act as
++ * initiators -- it represents the device's L3 interconnect
++ * connection.  OCP_TARGET_AGENT represents the device's L4
++ * interconnect connection.
++ */
++#define OCP_TARGET_AGENT		1
++#define OCP_INITIATOR_AGENT		2
++
++
++int __init omap_pm_if_early_init(void);
++int __init omap_pm_if_init(void);
++void omap_pm_if_exit(void);
++
++void omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigne=
+d long r);
++void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t);
++void omap_pm_set_max_dma_lat(struct device *dev, long t);
++
++void omap_pm_dsp_set_min_opp(u8 opp_id);
++u8 omap_pm_dsp_get_opp(void);
++
++struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void);
++void omap_pm_cpu_set_freq(unsigned long f);
++unsigned long omap_pm_cpu_get_freq(void);
++
++void omap_pm_pwrdm_active(struct powerdomain *pwrdm);
++void omap_pm_pwrdm_inactive(struct powerdomain *pwrdm);
++
++
++#endif
 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
