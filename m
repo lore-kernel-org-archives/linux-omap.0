@@ -1,68 +1,39 @@
-From: "Ramesh Gupta G" <x0023949@ti.com>
-Subject: Re: [PATCH] OMAP2/3 PM: Add OMAP PM no-op layer
-Date: Wed, 18 Jun 2008 20:26:51 +0530
-Message-ID: <0f2a01c8d153$8e39c2e0$11dfa8c0@ent.ti.com>
-References: <20080617145905.20886.89236.stgit@localhost.localdomain> <20080617150122.20886.9290.stgit@localhost.localdomain>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] suppress needless timer reprogramming {tick-sched.c}
+Date: Wed, 18 Jun 2008 09:28:41 -0700
+Message-ID: <200806180928.42084.david-b@pacbell.net>
+References: <3B6D69C3A9EBCA4BA5DA60D91302742904554EE1@dlee13.ent.ti.com> <200806150130.32901.david-b@pacbell.net> <13B9B4C6EF24D648824FF11BE8967162035B963D16@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:49242 "EHLO calf.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751555AbYFRO7t (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Jun 2008 10:59:49 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754744AbYFRQ25@vger.kernel.org>
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162035B963D16@dlee02.ent.ti.com>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Tony Lindgren <tony@atomide.com>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "TK, Pratheesh Gangadhar" <pratheesh@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
-Cc: tony@atomide.com, jouni.hogander@nokia.com, khilman@mvista.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, vpasam@ti.com
 
-Hi Paul,
+On Wednesday 18 June 2008, Woodruff, Richard wrote:
+> >
+> > As measured using ETM trace this drops my reprogramming penalty fro=
+m
+> > almost 60% CPU load down to 15% during high interrupt rate. =A0If y=
+ou like
+> > I can send traces to show this.
 
------ Original Message ----- 
-From: "Paul Walmsley" <paul@pwsan.com>
-To: <linux-omap@vger.kernel.org>
-Cc: <tony@atomide.com>; <jouni.hogander@nokia.com>; <khilman@mvista.com>
-Sent: Tuesday, June 17, 2008 8:31 PM
-Subject: [PATCH] OMAP2/3 PM: Add OMAP PM no-op layer
+More than doubling the available-for-real-use CPU time!  Impressive.
 
+I'd imagine that many systems using reprogrammable 32K timers for
+scheduling could win from such a patch, although not necessarily
+quite so visibly as on this ARM unless their CPU clocks were also
+in the 500+ MHz range.
 
+Seems like a "law of unintended consequences" here.  Use a 32K
+timer since it takes less power than a multi-MHz one, and so the
+faster clocks can be gated off more comprehensively (in hardware)
+to give more power savings.  Then throw NO_HZ on top to get one
+more increment of power savings ... whoops, it was assuming that
+it was dirt cheap to reprogram timers, major badness!
 
-> +/**
-> + * omap_pm_cpu_get_freq_table - return a cpufreq_frequency_table array
-ptr
-> + *
-> + * Provide a frequency table usable by CPUFreq for the current
-chip/board.
-> + * Returns a pointer to a struct cpufreq_frequency_table array or NULL
-> + * upon error.
-> + */
-> +struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void)
-> +{
-> + pr_debug("OMAP PM: CPUFreq request for frequency table\n");
-> +
-> + /*
-> + * Allocate and build CPUFreq frequency table here: loop over
-> + * all VDD1 clkrates, pull out the mpu_ck frequencies, build
-> + * table
-> + */
-> +
-> + return NULL;
-> +}
-> +
-
-Will this interface provides information of max number if OPPs supported and
-the frequency corresponding to eah OPP level?
-
-Notification of OPP level change to DSP
-------------------------------------------
-MPU Bridge is required to inform the DSP about OPP level change for load
-predictor use in DSP;
-this is done as part of in post notification in dspbridge. Do we have
-support for Post Notification in this framework?
-
-Please let us know your comments.
-
-Thanks & regards
-Ramesh Gupta G
-
+- Dave
