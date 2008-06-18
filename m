@@ -1,60 +1,41 @@
 From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: [RFC/PATCH  0/4] McBSP support  for 34XX
-Date: Wed, 18 Jun 2008 10:16:46 +0300
-Message-ID: <20080618101646.b25c6fbd.jarkko.nikula@nokia.com>
-References: <003a01c8cfab$67149ae0$318918ac@ent.ti.com>
+Subject: Re: [RFC/PATCH  1/4] McBSP support  for 34XX
+Date: Wed, 18 Jun 2008 10:23:07 +0300
+Message-ID: <20080618102307.95d99f49.jarkko.nikula@nokia.com>
+References: <003b01c8cfab$6f16edb0$318918ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:29578 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757891AbYFRHQo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jun 2008 03:16:44 -0400
-In-Reply-To: <003a01c8cfab$67149ae0$318918ac@ent.ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:50749 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751559AbYFRHXU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jun 2008 03:23:20 -0400
+In-Reply-To: <003b01c8cfab$6f16edb0$318918ac@ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: ext Chandra shekhar <x0044955@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-> Hi,
+On Mon, 16 Jun 2008 17:50:58 +0530
+"ext Chandra shekhar" <x0044955@ti.com> wrote:
+
 > 
-> Here is a patch that adds support for McBSP on 34XX.
-> It has been verified in digital loopback mode.
+> Signed-off-by: chandra shekhar <x0044955@ti.com>
+> ---
+>  arch/arm/configs/omap_3430sdp_defconfig |    1 
+>  arch/arm/mach-omap2/mcbsp.c             |   45 ++++++++++++++++++++++
+> ++++++++++ arch/arm/plat-omap/mcbsp.c              |    2 -
+>  include/asm-arm/arch-omap/mcbsp.h       |   34 +++++++++++++++++++++
+> +-- 4 files changed, 79 insertions(+), 3 deletions(-)
+...
+> +#define OMAP_MCBSP_BIT(ARG)	((0x01)<<(ARG))
+>  
+> +#define DILB			OMAP_MCBSP_BIT(5)
 > 
-Hi,
-
-I tested the set with N810 ASoC audio and still plays :-)
-
-Some comments. First, commit messages should more descriptive than
-"McBSP support for 34XX" for all of them. Like:
-
-1. Add support for OMAP34xx McBSP ports 3-4
-2. Fix register access width for OMAP34xx (this should be -rc patch?)
-3. ...
-
-> The patch includes the following features.
-> 
-> 1. McBSP enabled in defconfig
-This should go as a separate patch since it is for 3430dsp only.
-
-> 2. Supporting all the LP features.
-> 3. Support of DMA chaining mode and one time configuration for entire
-> transfer to improve performance.
-> 4. Independent configurations and transfer of Rx and Tx
-> 5. MCBSP data transfer in 8, 16 and 32 bit mode.
->
-I think we should have some expected use case for these before adding
-the features?
-
-> 6. instead of mcbsp client configuring all the register, it allows
-> clients to  configure parameters like clk polarity, clk src and other
-> parameters.
-> 
-This would be good direction. E.g. it's bit hacky how configuration is
-now done in sound/soc/omap/omap-mcbsp.c where McBSP register cache is
-have to use because all of the registers are written in once with
-omap_mcbsp_config.
+This OMAP_MCBSP_BIT(ARG) is needless. Usual (1 << 5) convention would
+be better or follow the same 0x0020 convention what mcbsp.h is doing
+currently.
 
 
 Jarkko
