@@ -1,58 +1,68 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH/RFC 1/2] Add Dspbridge driver to OMAP GIT kernel
-Date: Wed, 18 Jun 2008 09:58:46 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E049FC2C6@dlee03.ent.ti.com>
-References: <A8E8DDC23969AE4CB38FFF51016C778202D975BA@dlee10.ent.ti.com>
-	 <ECC99C9B-90E9-4D91-9E74-7999D3868D20@student.utwente.nl>
-	 <5d5443650806140650w22463060v3a3ad260ef144c97@mail.gmail.com>
-	 <A8E8DDC23969AE4CB38FFF51016C778202D97C4B@dlee10.ent.ti.com>
- <5d5443650806180604r26d1a8e1r51d0aeecc4a55d69@mail.gmail.com>
+From: "Ramesh Gupta G" <x0023949@ti.com>
+Subject: Re: [PATCH] OMAP2/3 PM: Add OMAP PM no-op layer
+Date: Wed, 18 Jun 2008 20:26:51 +0530
+Message-ID: <0f2a01c8d153$8e39c2e0$11dfa8c0@ent.ti.com>
+References: <20080617145905.20886.89236.stgit@localhost.localdomain> <20080617150122.20886.9290.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55560 "EHLO bear.ext.ti.com"
+Received: from calf.ext.ti.com ([198.47.26.144]:49242 "EHLO calf.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753741AbYFRO7c convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jun 2008 10:59:32 -0400
-In-Reply-To: <5d5443650806180604r26d1a8e1r51d0aeecc4a55d69@mail.gmail.com>
-Content-Language: en-US
+	id S1751555AbYFRO7t (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Jun 2008 10:59:49 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Trilok Soni <soni.trilok@gmail.com>
-Cc: Koen Kooi <k.kooi@student.utwente.nl>, "Gupta, Ramesh" <grgupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
+Cc: tony@atomide.com, jouni.hogander@nokia.com, khilman@mvista.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, vpasam@ti.com
 
-Hi Trilok,
+Hi Paul,
 
-> Hi Hari,
->
-> >
-> > >, doesn't use
-> > > common frameworks which were already written once for nokia
-> > > dspgateway,
-> >
-> > ---- It is agreed with Doyu-san that we will consider this as a long
-> > term plan.
-> >
->
-> Setting up a GIT tree for dspbridge driver, should not be on long term
-> plan, as long term plan should be to get dspbridge merged on to OMAP
-> GIT itself. In this case separate GIT tree, should serve as staging
-> tree and playground for cleanups so that others (specifically outside
-> TI guys) can watch your commits/comment and help you guys on cleanups.
-> It is really tough to track and review your changes as you are putting
-> very big patches and we are unable to keep sync with your changes in
-> incremental fashion.
->
-> For most of the open source guys, setting up GIT tree is sometime
-> first step in-order to make changes visible to others in better way :)
->
+----- Original Message ----- 
+From: "Paul Walmsley" <paul@pwsan.com>
+To: <linux-omap@vger.kernel.org>
+Cc: <tony@atomide.com>; <jouni.hogander@nokia.com>; <khilman@mvista.com>
+Sent: Tuesday, June 17, 2008 8:31 PM
+Subject: [PATCH] OMAP2/3 PM: Add OMAP PM no-op layer
 
------ The quote I made about long term plan is regarding common framework, and not about GIT tree.
 
->
-> --
-> ---Trilok Soni
-> http://triloksoni.wordpress.com
 
--Hari
+> +/**
+> + * omap_pm_cpu_get_freq_table - return a cpufreq_frequency_table array
+ptr
+> + *
+> + * Provide a frequency table usable by CPUFreq for the current
+chip/board.
+> + * Returns a pointer to a struct cpufreq_frequency_table array or NULL
+> + * upon error.
+> + */
+> +struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void)
+> +{
+> + pr_debug("OMAP PM: CPUFreq request for frequency table\n");
+> +
+> + /*
+> + * Allocate and build CPUFreq frequency table here: loop over
+> + * all VDD1 clkrates, pull out the mpu_ck frequencies, build
+> + * table
+> + */
+> +
+> + return NULL;
+> +}
+> +
+
+Will this interface provides information of max number if OPPs supported and
+the frequency corresponding to eah OPP level?
+
+Notification of OPP level change to DSP
+------------------------------------------
+MPU Bridge is required to inform the DSP about OPP level change for load
+predictor use in DSP;
+this is done as part of in post notification in dspbridge. Do we have
+support for Post Notification in this framework?
+
+Please let us know your comments.
+
+Thanks & regards
+Ramesh Gupta G
+
