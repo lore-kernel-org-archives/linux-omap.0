@@ -1,104 +1,69 @@
-From: "Praveen BP" <praveenbp@mistralsolutions.com>
-Subject: RE: JFFS2 Cleanmarker issue
-Date: Wed, 18 Jun 2008 10:29:56 +0530
-Message-ID: <200806180440.m5I4erAQ009432@mx04.mailboxcop.com>
-References: <4851CBA7.3040108@mistralsolutions.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: [PATCH 7/8] 34XX: PM: Workaround to disable mmc
+Date: Wed, 18 Jun 2008 10:00:33 +0300
+Message-ID: <87zlpjjkha.fsf@trdhcp146196.ntc.nokia.com>
+References: <87iqw85xlo.fsf@trdhcp146196.ntc.nokia.com>
+	<1213687871-30038-1-git-send-email-jouni.hogander@nokia.com>
+	<663b4c9bb83ca6e0f9e490db7bfdccce@felipebalbi.com>
+	<87d4mg460j.fsf@trdhcp146196.ntc.nokia.com>
+	<033d01c8d07d$17ffab20$38f6180a@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx04.mailboxcop.com ([206.125.223.74]:53139 "EHLO
-	mx04.mailboxcop.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753213AbYFRGdz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jun 2008 02:33:55 -0400
-Received: from secure3.apollohosting.com (secure3.apollohosting.com [206.125.215.253])
-	by mx04.mailboxcop.com (8.13.8/8.13.8) with ESMTP id m5I4erAQ009432
-	for <linux-omap@vger.kernel.org>; Tue, 17 Jun 2008 23:40:53 -0500
-In-Reply-To: <4851CBA7.3040108@mistralsolutions.com>
+Received: from smtp.nokia.com ([192.100.122.230]:26415 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752930AbYFRHAw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jun 2008 03:00:52 -0400
+In-Reply-To: <033d01c8d07d$17ffab20$38f6180a@ent.ti.com> (ext Madhusudhan
+	Chikkature's message of "Tue, 17 Jun 2008 18:51:43 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Suresh Rajashekara' <suresh@mistralsolutions.com>, linux-omap@vger.kernel.org
+To: ext Madhusudhan Chikkature <madhu.cr@ti.com>
+Cc: ext Felipe Balbi <me@felipebalbi.com>, linux-omap@vger.kernel.org
 
-Hi Suresh,
+"ext Madhusudhan Chikkature" <madhu.cr@ti.com> writes:
 
-Sorry for the delayed response. I was on leave for 3 days. 
+> ----- Original Message -----=20
+> From: ""H=C3=B6gander" Jouni" <jouni.hogander@nokia.com>
+> To: "ext Felipe Balbi" <me@felipebalbi.com>
+> Cc: <linux-omap@vger.kernel.org>
+> Sent: Tuesday, June 17, 2008 5:39 PM
+> Subject: Re: [PATCH 7/8] 34XX: PM: Workaround to disable mmc
+>
+>
+>> "ext Felipe Balbi" <me@felipebalbi.com> writes:
+>>
+>>> On Tue, 17 Jun 2008 10:31:11 +0300, Jouni Hogander
+>>> <jouni.hogander@nokia.com> wrote:
+>>>> Current hsmmc is not pm friendly. Disable it because it prevents o=
+map3
+>>>> retention
+>>>
+>>> Disabling will just hide the bug. Better making it modular
+>>> and let mmc guys dig on it.
+>>
+>> Ok, I can change it, if this set needs to be sent again. I think
+>> disabling mmc increases visibility of its PM problems. I mean missin=
+g
+>> mmc driver is more visible than missing PM in this case.
+>>
+>>>
+>>> What do you need to make it more pm friendly?
+>>
+>> Not to prevent omap retention.
+> When are you expecting the omap to go into retention? Is it in the
+> suspend path?
 
-Vinod had solved this problem when we were working in SMI. This has got
-something to do with the way you generate the jffs2 image (some command line
-parameter) and writing the image with nandwrite.
+I expect it to enter retention when suspending yes. It should also
+enter retention dynamically. I mean when mpu enters wfi in pm_idle loop=
+=2E
 
-He will be able to help you.
+--=20
+Jouni H=C3=B6gander
 
-Regards,
-Praveen.
-
------Original Message-----
-From: Suresh Rajashekara [mailto:rajashekara.suresh@gmail.com] On Behalf Of
-Suresh Rajashekara
-Sent: Friday, June 13, 2008 6:52 AM
-To: linux-omap@vger.kernel.org
-Subject: JFFS2 Cleanmarker issue
-
-Hi Everyone,
-
-Few necessary details before I explain my issue.
-
-Hardware I use: OMAP5912 based board
-Linux: 2.6.16-rc3 (rc!!, yes)
-
-Let me know if you guys need more details.
-
-The issue:
-I use the JFFS2 file system on the oneNAND flash. Every time I boot the 
-board I see the following on the serial console (I have 
-CONFIG_JFFS2_FS_DEBUG=2)
-
-<SNIP>
-jffs2_check_nand_cleanmarker(): Cleanmarker node not detected in block 
-at 00000000
-OOB at 00000000 was ff ff 00 19 03 03 ff ff ff ff ff 56 fe ff ff ff ff 
-ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-jffs_check_nand_cleanmarker returned 1
-jffs2_check_oob_empty returned 1
-JFFS2: Erase block at 0x00000000 is not formatted. It will be erased
-jffs2_check_nand_cleanmarker(): Cleanmarker node not detected in block 
-at 00020000
-OOB at 00020000 was ff ff 00 19 03 03 ff ff ff ff ff 56 fe ff ff ff ff 
-ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-jffs_check_nand_cleanmarker returned 1
-jffs2_check_oob_empty returned 1
-blah..
-.
-blah...
-.
-.
-</SNIP>
-
-Getting this on the first boot, is I guess expected. But this messages 
-repeats every time we reboot the board. I did some debugging and found 
-that the JFFS2 driver is marking these blocks and writes the clean markers.
-
-Since these prints were appearing on every boot, I read the oob area 
-which the jffs2 driver wrote to mark the cleanmarkers. I found the data 
-to be shifted. I tried Googling and also went through the GIT log 
-messages to find if this was a known issue, but could not find any. Is 
-this a known issue in 2.6.16-rc3.
-
-The developers who did the initial design have chosen to format the 
-partition using the nftl_format command. I read on the MTD howto that it 
-should not be used. I tried replacing that with "flash_eraseall -j" and 
-created the jffs2 file system using the command mkfs.jffs2 (I tried with 
-the correct page size and other stuff by looking in to the datasheet) 
-and wrote the jffs2 file system using the nand_write command, but none 
-helped.
-
-Could someone please point me in the right direction?
-
-Thanks in advance,
-
-Best Regards,
-Suresh
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
