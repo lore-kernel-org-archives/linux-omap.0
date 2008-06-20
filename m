@@ -1,71 +1,40 @@
-From: x0070977@dbdmail.itg.ti.com
-Subject: [RFC/PATCH 2/2] Triton Battery charger interface driver for
-     OMAP3430
-Date: Fri, 20 Jun 2008 17:36:00 +0530 (IST)
-Message-ID: <62852.192.168.10.89.1213963560.squirrel@dbdmail.itg.ti.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: FW: [PATCH] suppress needless timer reprogramming
+ {tick-sched.c} - test/comment
+Date: Fri, 20 Jun 2008 07:42:39 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162035B9BEBA5@dlee02.ent.ti.com>
+References: <13B9B4C6EF24D648824FF11BE8967162035B9BE166@dlee02.ent.ti.com>
+ <1aa81d795700f751f1a6fb401fcdc73e@felipebalbi.com>
+ <13B9B4C6EF24D648824FF11BE8967162035B9BE9CE@dlee02.ent.ti.com>
+ <f278ad39078f34bbfa6fc95f84411724@felipebalbi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:32848 "EHLO calf.ext.ti.com"
+Received: from soda.ext.ti.com ([198.47.26.145]:46138 "EHLO soda.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752506AbYFTMGG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Jun 2008 08:06:06 -0400
-Received: from dlep32.itg.ti.com ([157.170.170.70])
-	by calf.ext.ti.com (8.13.7/8.13.7) with ESMTP id m5KC60QT027633
-	for <linux-omap@vger.kernel.org>; Fri, 20 Jun 2008 07:06:05 -0500
-Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep32.itg.ti.com (8.13.7/8.13.7) with ESMTP id m5KC5wiv010346
-	for <linux-omap@vger.kernel.org>; Fri, 20 Jun 2008 07:05:59 -0500 (CDT)
+	id S1752984AbYFTMmy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Jun 2008 08:42:54 -0400
+In-Reply-To: <f278ad39078f34bbfa6fc95f84411724@felipebalbi.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
 
-From: Madhusudhan Chikkature <madhu.cr@ti.com>
-
-This patch updates the twl4030 usb driver to call the functionality supported
-by the TWL4030 battery charger interface driver to enable/disable battery
-charging upon cable attach/detach.
-
-Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
----
- drivers/i2c/chips/twl4030-usb.c |   13 +++++++++++--
- 1 files changed, 11 insertions(+), 2 deletions(-)
-
-Index: linux-omap-2.6/drivers/i2c/chips/twl4030-usb.c
-===================================================================
---- linux-omap-2.6.orig/drivers/i2c/chips/twl4030-usb.c	2008-06-20
-15:42:26.000000000 +0530
-+++ linux-omap-2.6/drivers/i2c/chips/twl4030-usb.c	2008-06-20
-15:47:40.000000000 +0530
-@@ -589,6 +589,12 @@
- 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, PROTECT_KEY);
- }
-
-+#ifdef CONFIG_TWL4030_BCI_BATTERY
-+extern int twl4030charger_usb_en(int enable);
-+#else
-+static inline int twl4030charger_usb_en(int enable) { return 0; }
-+#endif
-+
- static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
- {
- 	int ret = IRQ_NONE;
-@@ -601,10 +607,13 @@
- 		goto done;
- 	}
-
--	if (val & USB_PRES_RISING)
-+	if (val & USB_PRES_RISING) {
- 		twl4030_phy_resume();
--	else
-+		twl4030charger_usb_en(1);
-+	} else {
-+		twl4030charger_usb_en(0);
- 		twl4030_phy_suspend(0);
-+	}
-
- 	ret = IRQ_HANDLED;
-
-
-
+PiA+IFBlcmhhcHMgbW9yZSBleGNpdGluZyB3b3VsZCBiZSB0byBtYWtlIHN1cmUgeDg2IGRpZG4n
+dCBjYXJlLiAgTXkgQVJNDQo+ID4gdGFyZ2V0cyBvbmx5IHdvcmsgYmV0dGVyLg0KPg0KPiBiZXR0
+ZXIgc2VuZGluZyB0byBsa21sLCB0aGVuPw0KDQpBY3R1YWxseSBJIGRpZCB0aGF0IGZpcnN0IHdo
+ZW4gbXkgY29uZmlkZW5jZSB3YXMgaGlnaC4gTm8gb2J2aW91cyBpbnRlcmVzdC4gIFRoZSBzaWdu
+YWwgdG8gbm9pc2UgcmF0aW8gaXMgcHJldHR5IGhpZ2guIERhdmlkIEIuIGRpZCBjb21tZW50LiAg
+QXMgaXRzIGltcG9ydGFudCBmb3IgT01BUCBJJ2xsIG1ha2Ugc3VyZSB0byBjb250aW51ZSB0byBm
+b2xsb3cgdXAuDQoNCj4gSSdtIHByZXR0eSBzdXJlIGF0IGxlYXN0IGVoY2kgd2lsbCBiZSBwb3Np
+dGl2ZWx5IGFmZmVjdGVkLiBXZSBjb3VsZA0KPiBiZSBnZXR0aW5nIGFyb3VuZCA0MDBtYnBzIHRo
+cm91Z2hwdXQgd2l0aCBlaGNpIChhbmQgbXVzYikgYnV0IGxhc3QNCj4gdGltZSBJIHRyaWVkIEkg
+Z290IHNvbWV0aGluZyBhcm91bmQgMTUwbWJwcy4NCg0KRUhDSSBwcm9iYWJseSB3aWxsIGdhaW4u
+DQoNClRoZSBsYXN0IHJlY2VudCB0aW1lciBmaXggSSBwdXNoZWQgd2hpY2ggVG9ueSBoZWxwZWQg
+d2l0aCBhbHNvIHdhcyBjYXVnaHQgdGhlIHNhbWUga2luZCBvZiBlZmZlY3QgYXQgT01BUC4gIEl0
+IHNob3dlZCB1cCBhcyBNUDMgKHdpdGggbG93IGludGVycnVwdCBsb2FkKSB0YWtpbmcgbXVjaCBt
+b3JlIE1IeiB0aGVuIGl0IHNob3VsZC4gIEJ1dCB0aGF0IHdhcyBub3QgYXMgYSBkcmFtYXRpYyBp
+bXBhY3QgYXMgdGhlIGhpZ2ggaW50ZXJydXB0IGxvYWQgY2FzZXMuDQoNCkFzIHlvdSBjYW4gc2Vl
+IEVUTSBpcyByZWFsbHkgY29vbCA7KQ0KDQpSZWdhcmRzLA0KUmljaGFyZCBXLg0KDQo=
