@@ -1,199 +1,72 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/2] implement clock dynamic notifier array
-Date: Fri, 20 Jun 2008 17:14:29 -0600
-Message-ID: <20080620231354.21640.6034.stgit@localhost.localdomain>
-References: <20080620231155.21640.89851.stgit@localhost.localdomain>
+From: "Peter Teoh" <htmldeveloper@gmail.com>
+Subject: Re: Video playback on osk with linux-2.6.18
+Date: Sat, 21 Jun 2008 11:49:14 +0800
+Message-ID: <804dabb00806202049i13b7031ej7ee7f5857bea23cf@mail.gmail.com>
+References: <a1d91fa0806181223h19bb9f9dxb67300bfea953de9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46715 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756323AbYFTXPh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jun 2008 19:15:37 -0400
-In-Reply-To: <20080620231155.21640.89851.stgit@localhost.localdomain>
+Received: from an-out-0708.google.com ([209.85.132.245]:6342 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754228AbYFUDtR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jun 2008 23:49:17 -0400
+Received: by an-out-0708.google.com with SMTP id d40so352105and.103
+        for <linux-omap@vger.kernel.org>; Fri, 20 Jun 2008 20:49:16 -0700 (PDT)
+In-Reply-To: <a1d91fa0806181223h19bb9f9dxb67300bfea953de9@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: mohammed shareef <mdshareef@gmail.com>
+Cc: omap <linux-omap@vger.kernel.org>, linux-newbie@vger.kernel.org
 
-This patch implements the remaining code for notification of clock
-rate changes via the clock framework:
+Wow....looks like a exciting gadget to play with....
 
-- a notifier registration function, clk_notifier_register()
-
-- a notifier unregistration function, clk_notifier_unregister()
-
-- the clk_notify_post_rate_chg() call-chain function, has been fleshed out
-
-The implementation is via an atomic notifier, called with the clockfw
-spinlock held.  Callback functions must not sleep and must not re-enter
-the clock framework, and should execute quickly.
-
-In the medium-term future, there are likely to be few users of these
-notifiers.  So, rather than storing one notifier per struct clk,
-notifiers are stored in a separate, dynamically allocated list,
-effectively trading execution speed (in terms of a sequential scan of
-the notifier list) for memory savings.  The implementation is
-completely hidden from the callbacks and is easily changed if
-necessary.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
-
- arch/arm/plat-omap/clock.c |  118 +++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 115 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index 421d076..354f45f 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -22,6 +22,7 @@
- #include <linux/mutex.h>
- #include <linux/platform_device.h>
- #include <linux/cpufreq.h>
-+#include <linux/notifier.h>
- #include <linux/debugfs.h>
- 
- #include <asm/io.h>
-@@ -34,6 +35,8 @@ static DEFINE_SPINLOCK(clockfw_lock);
- 
- static struct clk_functions *arch_clock;
- 
-+static LIST_HEAD(clk_notifier_list);
-+
- /*-------------------------------------------------------------------------
-  * Standard clock functions defined in include/linux/clk.h
-  *-------------------------------------------------------------------------*/
-@@ -380,6 +383,110 @@ EXPORT_SYMBOL(clk_init_cpufreq_table);
- #endif
- 
- /**
-+<<<<<<< current:arch/arm/plat-omap/clock.c
-+=======
-+ * clk_notifier_register - add a clock rate change notifier
-+ * @clk: struct clk * to watch for rate echanges
-+ * @nb: struct notifier_block * with callback info
-+ *
-+ * Request notification after a frequency change on clock 'clk'.  This
-+ * uses an atomic notifier.  The callback will be called with
-+ * interrupts disabled; therefore callback code should be very
-+ * lightweight.  Callback code must not call back into the clock
-+ * framework.  Callback code will be passed the previous and new rate
-+ * of the clock.
-+ *
-+ * clk_notifier_register() must be called from process
-+ * context.  Returns -EINVAL if called with null arguments, -ENOMEM
-+ * upon allocation failure; otherwise, passes along the return value
-+ * of atomic_notifier_chain_register().
-+ */
-+int clk_notifier_register(struct clk *clk, struct notifier_block *nb)
-+{
-+	struct clk_notifier *cn = NULL, *cn_new = NULL;
-+	int r;
-+	unsigned long flags;
-+
-+	if (!clk || !nb)
-+		return -EINVAL;
-+
-+	/* Allocate this here speculatively so we can avoid GFP_ATOMIC */
-+	cn_new = kzalloc(sizeof(struct clk_notifier), GFP_KERNEL);
-+	if (!cn_new)
-+		return -ENOMEM;
-+
-+	spin_lock_irqsave(&clockfw_lock, flags);
-+
-+	list_for_each_entry(cn, &clk_notifier_list, node) {
-+		if (cn->clk == clk)
-+			break;
-+	}
-+
-+	if (cn->clk != clk) {
-+		cn_new->clk = clk;
-+		ATOMIC_INIT_NOTIFIER_HEAD(&cn_new->notifier_head);
-+
-+		list_add(&cn_new->node, &clk_notifier_list);
-+		cn = cn_new;
-+	} else {
-+		kfree(cn_new); /* didn't need it after all */
-+	}
-+
-+	r = atomic_notifier_chain_register(&cn->notifier_head, nb);
-+
-+	spin_unlock_irqrestore(&clockfw_lock, flags);
-+
-+	return r;
-+}
-+
-+/**
-+ * clk_notifier_unregister - remove a clock rate change notifier
-+ * @clk: struct clk *
-+ * @nb: struct notifier_block * with callback info
-+ *
-+ * Request no further notification for frequency changes on clock
-+ * 'clk'.  This function presently does not release memory allocated
-+ * by its corresponding _register function; see inline comments for
-+ * more informations.  Returns -EINVAL if called with null arguments;
-+ * otherwise, passes along the return value of
-+ * atomic_notifier_chain_unregister().
-+ */
-+int clk_notifier_unregister(struct clk *clk, struct notifier_block *nb)
-+{
-+	struct clk_notifier *cn = NULL;
-+	int r = -EINVAL;
-+	unsigned long flags;
-+
-+	if (!clk || !nb)
-+		return -EINVAL;
-+
-+	spin_lock_irqsave(&clockfw_lock, flags);
-+
-+	list_for_each_entry(cn, &clk_notifier_list, node) {
-+		if (cn->clk == clk)
-+			break;
-+	}
-+
-+	if (cn->clk == clk) {
-+		r = atomic_notifier_chain_unregister(&cn->notifier_head, nb);
-+
-+		/*
-+		 * XXX unfortunately it seems that there is no polite
-+		 * way to test if a notifier has zero users.  So once
-+		 * a post-notifier has been registered on a clock,
-+		 * that struct clk_notifier will not be freed, even if
-+		 * all of its users unregister.
-+		 */
-+	} else {
-+		r = -ENOENT;
-+	}
-+
-+	spin_unlock_irqrestore(&clockfw_lock, flags);
-+
-+	return r;
-+}
-+
-+/**
-  * clk_notify_post_rate_chg - call post-clk-rate-change notifier chain
-  * @clk: struct clk * that is changing rate
-  * @old_rate: old rate
-@@ -400,11 +507,16 @@ void clk_notify_post_rate_chg(struct clk *clk, unsigned long old_rate,
- 	cnd.old_rate = old_rate;
- 	cnd.new_rate = new_rate;
- 
--	/* XXX Call notifier here */
--
-+	list_for_each_entry(cn, &clk_notifier_list, node) {
-+		if (cn->clk == clk) {
-+			atomic_notifier_call_chain(&cn->notifier_head,
-+						   CLK_POST_RATE_CHANGE,
-+						   &cnd);
-+			break;
-+		}
-+	}
- }
- 
--
- /*-------------------------------------------------------------------------*/
- 
- #ifdef CONFIG_OMAP_RESET_CLOCKS
+On Thu, Jun 19, 2008 at 3:23 AM, mohammed shareef <mdshareef@gmail.com> wrote:
+> Dear All,
+>
+> I have an OSK-Omap5912 with linux-2.6.18 running on it. i want to add
+> video playback support to it. Has someone done this before? could you
+> suggest some ways to do it? thank you.
+>
+> regards,
+> Mohammed
 
 
+First:
+
+>From www.omap.com===>under "Design and Support" and "Sample" u can
+possibly find the technical document, and program samples and
+libraries to program the device.   Or enter the part number in the
+search box and find.
+
+or this site:
+
+http://omap.spectrumdigital.com/osk5912/ ==> here u can find all the
+hardware datasheet, software/hardware userguide - all specific to
+osk5912.
+
+http://omap.spectrumdigital.com/osk5912/bsp/index.html ==> codes samples here.
+
+2nd:
+
+There is a mailing list for this, subscribe here (and this one looks
+quite active...not sure how it compared with the one at
+linux-omap@vger.   Similarly, for Linux Kernel Newbies, the mailing
+list at kernelnewbies@nl.linux.org is much more active than that of
+linux-newbie@vger.
+
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
+
+and in particular, this email has a small program sample to control the device:
+
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-January/006205.html
+
+3rd:
+
+In the kernel source drivers/video/omap directory - not sure how
+useful, but datasheet from above should source be the best.
+
+-- 
+Regards,
+Peter Teoh
