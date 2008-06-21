@@ -1,89 +1,109 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: Boot failure on OMAP 3430 SDP
-Date: Sat, 21 Jun 2008 14:18:43 +0200
-Message-ID: <485CF1A3.4070101@googlemail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] OMAP3 clock: fix omap2_clk_wait_ready for OMAP3430ES2 DSS
+Date: Sat, 21 Jun 2008 11:05:10 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0806211054100.19765@utopia.booyaka.com>
 References: <5A47E75E594F054BAF48C5E4FC4B92AB022BE46296@dbde02.ent.ti.com>,<485CA347.909@googlemail.com> <5A47E75E594F054BAF48C5E4FC4B92AB022BB66209@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.191]:53810 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750939AbYFUMSz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Jun 2008 08:18:55 -0400
-Received: by fk-out-0910.google.com with SMTP id 18so1613915fkq.5
-        for <linux-omap@vger.kernel.org>; Sat, 21 Jun 2008 05:18:53 -0700 (PDT)
+Received: from utopia.booyaka.com ([72.9.107.138]:41675 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753145AbYFURFL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Jun 2008 13:05:11 -0400
 In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB022BB66209@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "jouni.hogander@nokia.com" <jouni.hogander@nokia.com>, Paul Walmsley <paul@pwsan.com>
+To: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Dirk Behme <dirk.behme@googlemail.com>, "jouni.hogander@nokia.com" <jouni.hogander@nokia.com>
 
-Gadiyar, Anand wrote:
->>>Hi all,
->>>
->>>Commit 5b36d70fa08f09de161487fe7f6e04200ffb8d71 breaks boot on OMAP3430 SDP. Reversing the patch allows the boot to work.
->>>
->>>Bootlog and the patch are shown below.
->>>
->>>Regards,
->>>Anand
->>>
->>>================================================
->>>
->>>commit 5b36d70fa08f09de161487fe7f6e04200ffb8d71
->>>Author: Jouni Hogander <jouni.hogander@nokia.com> >
->>>Date:   Mon Jun 9 12:32:40 2008 +0300
->>>
->>>    PRCM: OMAP3: Fix to wrongly modified omap2_clk_wait_ready
->>>
->>>    omap2_clk_wait_ready was wrongly modified to check
->>>    registers contents. This fix changes it back to check
->>>    addresses.
->>>
->>>    Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com> >
->>>    Acked-by: Paul Walmsley <paul@pwsan.com> >
->>>    Signed-off-by: Tony Lindgren <tony@atomide.com> >
->>>
->>>diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
->>>index d3ab537..ed15868 100644
->>>--- a/arch/arm/mach-omap2/clock.c
->>>+++ b/arch/arm/mach-omap2/clock.c
->>>@@ -246,8 +246,8 @@ static void omap2_clk_wait_ready(struct clk *clk)
->>>        /* REVISIT: What are the appropriate exclusions for 34XX? */
->>>        /* OMAP3: ignore DSS-mod clocks */
->>>        if (cpu_is_omap34xx() &&
->>>-           ((reg & ~0xff) == cm_read_mod_reg(OMAP3430_DSS_MOD, 0) ||
->>>-            (((reg & ~0xff) == cm_read_mod_reg(CORE_MOD, 0)) &&
->>>+           ((reg & ~0xff) == (__force u32)OMAP34XX_CM_REGADDR(OMAP3430_DSS_MOD, 0) ||
->>>+            (((reg & ~0xff) == (__force u32)OMAP34XX_CM_REGADDR(CORE_MOD, 0)) &&
->>>              clk-> >enable_bit == OMAP3430_EN_SSI_SHIFT)))
->>>                return;
->>
->>Hmm, looking at recent git, we already have OMAP34XX_CM_REGADDR
->>instead of cm_read_mod_reg there
->>
->>http://source.mvista.com/git/?p=linux-omap-2.6.git;a=blob;f=arch/arm/mach-omap2/clock.c;h=ed1586847db4dd95cff8016e4259b533f1582737;hb=HEAD
->>
->>and it seems that this patch is already applied
->>
->>http://source.mvista.com/git/?p=linux-omap-2.6.git;a=commitdiff;h=5b36d70fa08f09de161487fe7f6e04200ffb8d71
->>
->>?
->>
->>*BUT*: I still see below Unhandled fault at OMAP3 based Beagle board!
->>Any idea?
-> 
-> Oops. Sorry for this confusion. The patch inlined in the mail was the commit that
-> causes the boot failure - not the fix. I would rather have Jouni and Paul look at the
-> commit. I haven't looked too deeply at the patch to see why it causes the crash.
-> 
-> Until this is fixed, you might just want to apply the patch in reverse.
 
-Ah, yes, sorry for my misunderstanding! And many thanks for finding 
-the cause of this issue. Hopefully we will have a fix for this soon now.
+On OMAP3430ES2, DSS has both an initiator standby CM_IDLEST bit, and a
+target idle CM_IDLEST bit.  This is a departure from previous silicon,
+which only had an initiator standby bit.
 
-Sorry and thanks
+This means we need to test the target idle bit after enabling
+dss1_alwon_fclk.  Previous clock code has done the wrong thing since ES2
+came out: it's either tested the wrong bit, causing intermittent
 
-Dirk
+    Clock dss1_alwon_fck didn't enable in 100000 tries
 
+messages; or not tested anything at all, causing intermittent crashes 
+during DISPC initialization with:
+
+    Unhandled fault: external abort on non-linefetch (0x1028)
+
+This patch modifies omap2_clk_wait_ready() to wait for the DSS to become
+accessible after dss1_alwon_fclk is enabled.
+
+Thanks to Anand Gadiyar <gadiyar@ti.com> for identifying one of the
+problem patches.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+
+ arch/arm/mach-omap2/clock.c           |   30 ++++++++++++++++++++++++------
+ arch/arm/mach-omap2/cm-regbits-34xx.h |    4 +++-
+ 2 files changed, 27 insertions(+), 7 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index ed15868..1820f75 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -244,18 +244,36 @@ static void omap2_clk_wait_ready(struct clk *clk)
+ 	}
+ 
+ 	/* REVISIT: What are the appropriate exclusions for 34XX? */
+-	/* OMAP3: ignore DSS-mod clocks */
+-	if (cpu_is_omap34xx() &&
+-	    ((reg & ~0xff) == (__force u32)OMAP34XX_CM_REGADDR(OMAP3430_DSS_MOD, 0) ||
+-	     (((reg & ~0xff) == (__force u32)OMAP34XX_CM_REGADDR(CORE_MOD, 0)) &&
+-	      clk->enable_bit == OMAP3430_EN_SSI_SHIFT)))
+-		return;
++	if (cpu_is_omap34xx()) {
++
++		/* 3430ES1 DSS and SSI have no target idlest bits */
++		if (is_sil_rev_equal_to(OMAP3430_REV_ES1_0) &&
++		    ((reg & ~0xff) == (__force u32)OMAP34XX_CM_REGADDR(OMAP3430_DSS_MOD, 0) ||
++		     ((reg & ~0xff) == (__force u32)OMAP34XX_CM_REGADDR(CORE_MOD, 0) &&
++		      clk->enable_bit == OMAP3430_EN_SSI_SHIFT)))
++			return;
++
++		/* Even for 3430ES2 DSS, only wait for dss1_alwon_fclk */
++		if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0) &&
++		    (reg & ~0xff) == (__force u32)OMAP34XX_CM_REGADDR(OMAP3430_DSS_MOD, 0) &&
++		    clk->enable_bit != OMAP3430_EN_DSS1_SHIFT)
++			return;
++
++	}
+ 
+ 	/* Check if both functional and interface clocks
+ 	 * are running. */
+ 	bit = 1 << clk->enable_bit;
+ 	if (!(__raw_readl((__force void __iomem *)other_reg) & bit))
+ 		return;
++
++	/* OMAP3430ES2 DSS is an unusual case */
++	if (cpu_is_omap34xx() &&
++	    (reg & ~0xff) == (__force u32)OMAP34XX_CM_REGADDR(OMAP3430_DSS_MOD, 0) &&
++	    clk->enable_bit == OMAP3430_EN_DSS1_SHIFT) {
++		bit = OMAP3430ES2_ST_DSS_IDLE;
++	}
++
+ 	st_reg = ((other_reg & ~0xf0) | 0x20); /* CM_IDLEST* */
+ 
+ 	omap2_wait_clock_ready((__force void __iomem *)st_reg, bit, clk->name);
+diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+index 6ec66f4..946c552 100644
+--- a/arch/arm/mach-omap2/cm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+@@ -500,7 +500,9 @@
+ #define OMAP3430_CM_ICLKEN_DSS_EN_DSS_SHIFT		0
+ 
+ /* CM_IDLEST_DSS */
+-#define OMAP3430_ST_DSS					(1 << 0)
++#define OMAP3430ES2_ST_DSS_IDLE				(1 << 1)
++#define OMAP3430ES2_ST_DSS_STDBY			(1 << 0)
++#define OMAP3430ES1_ST_DSS				(1 << 0)
+ 
+ /* CM_AUTOIDLE_DSS */
+ #define OMAP3430_AUTO_DSS				(1 << 0)
