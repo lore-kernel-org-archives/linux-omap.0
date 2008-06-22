@@ -1,105 +1,37 @@
 From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: [PATCH] OMAP3 clock: fix omap2_clk_wait_ready for OMAP3430ES2 DSS
-Date: Sun, 22 Jun 2008 12:35:02 +0200
-Message-ID: <ACAEC52B-E9B4-4789-8D63-114C53846760@student.utwente.nl>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB022BE46296@dbde02.ent.ti.com>,<485CA347.909@googlemail.com> <5A47E75E594F054BAF48C5E4FC4B92AB022BB66209@dbde02.ent.ti.com> <alpine.DEB.1.00.0806211054100.19765@utopia.booyaka.com>
+Subject: DVFS, DPS and SLM on omap3
+Date: Sun, 22 Jun 2008 12:44:27 +0200
+Message-ID: <89D72A74-B768-4DDC-BBA7-B6039FC8D081@student.utwente.nl>
 Mime-Version: 1.0 (Apple Message framework v924)
 Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.utsp.utwente.nl ([130.89.2.8]:46881 "EHLO smtp.utwente.nl"
+Received: from smtp1.utsp.utwente.nl ([130.89.2.8]:47384 "EHLO smtp.utwente.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750942AbYFVKgs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 22 Jun 2008 06:36:48 -0400
-In-Reply-To: <alpine.DEB.1.00.0806211054100.19765@utopia.booyaka.com>
+	id S1751051AbYFVKpR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 22 Jun 2008 06:45:17 -0400
+Received: from [172.20.1.5] (vpn006085.vpn.utwente.nl [130.89.6.85])
+          by smtp.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id m5MAiTWU015511
+          for <linux-omap@vger.kernel.org>; Sun, 22 Jun 2008 12:44:29 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Dirk Behme <dirk.behme@googlemail.com>, "jouni.hogander@nokia.com" <jouni.hogander@nokia.com>
+To: linux-omap@vger.kernel.org
 
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
+Hi,
 
-Op 21 jun 2008, om 19:05 heeft Paul Walmsley het volgende geschreven:
-
->
-> On OMAP3430ES2, DSS has both an initiator standby CM_IDLEST bit, and a
-> target idle CM_IDLEST bit.  This is a departure from previous silicon,
-> which only had an initiator standby bit.
->
-> This means we need to test the target idle bit after enabling
-> dss1_alwon_fclk.  Previous clock code has done the wrong thing since  
-> ES2
-> came out: it's either tested the wrong bit, causing intermittent
->
->    Clock dss1_alwon_fck didn't enable in 100000 tries
->
-> messages; or not tested anything at all, causing intermittent crashes
-> during DISPC initialization with:
->
->    Unhandled fault: external abort on non-linefetch (0x1028)
->
-> This patch modifies omap2_clk_wait_ready() to wait for the DSS to  
-> become
-> accessible after dss1_alwon_fclk is enabled.
->
-> Thanks to Anand Gadiyar <gadiyar@ti.com> for identifying one of the
-> problem patches.
-
-What this patch and the timer suppression patch I now get:
-
-PowerTOP version 1.10      (C) 2007 Intel Corporation
-
-Cn                Avg residency       P-states (frequencies)
-C0 (cpu running)        ( 0.0%)
-C0                0.0ms ( 0.0%)
-C1              188.9ms (0.7%)*
-C2              2036.1ms (8.0%)*
-C3              23285.1ms (91.3%)*
-
-Wakeups-from-idle per second : 61.7     interval: 3.0s
-
-Top causes for wakeups:
-   44.9% ( 57.7)       <interrupt> : musb_hdrc.0
-   17.9% ( 23.0)       <interrupt> : gp timer
-   14.3% ( 18.3)   USB device 2-1.2 : LCD2USB Interface (Till Harbaum)
-    9.9% ( 12.7)         lcd4linux : do_nanosleep (hrtimer_wakeup)
-    7.5% (  9.7)   USB device 2-1.4 : Linksys USB2.0 Network Adapter  
-(USB)
-    3.9% (  5.0)            Xfbdev : fbcon_add_cursor_timer  
-(cursor_timer_handler)
-    0.5% (  0.7)              hald : schedule_timeout (process_timeout)
-    0.3% (  0.3)          dropbear : sk_reset_timer (tcp_write_timer)
-    0.3% (  0.3)     <kernel core> : neigh_table_init_no_netlink  
-(neigh_periodic_timer)
-    0.3% (  0.3)        pulseaudio : schedule_timeout (process_timeout)
-    0.3% (  0.3)              init : schedule_timeout (process_timeout)
-
-The dispc crashes are gone and I get fewer wakeups per second :)
+Does anyone know of patches floating around to do DVFS, DPS and SLM on  
+omap3 with linux-omap git?
 
 regards,
 
-Koen
-
-
-* There's a bug in powertop 1.10 that reports percentages wrong, so  
-the percentages  where approximated by hand.
-
-C0 (cpu running)        ( 0.0%)
-C0                0.0ms ( 0.0%)
-C1              176.5ms ( 4.7%)
-C2              3601.7ms (4090.7%)
-C3              17956.3ms (92938.0%)
-
-
-
-
-
+KOen
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.5 (Darwin)
 
-iD8DBQFIXirYMkyGM64RGpERAjGPAJ4n/G4/4q1KejekxSPQ3wul+nbtDwCcDG1d
-2M9UHNX77A2Fr0nNiv3AARw=
-=zvBO
+iD8DBQFIXi0NMkyGM64RGpERAp3aAJ9cwrvkq0BGdOBPrrM71JnHjecpOgCbBO7E
+Sk3QHT84ov4aWm6gS2S+KZs=
+=/duo
 -----END PGP SIGNATURE-----
