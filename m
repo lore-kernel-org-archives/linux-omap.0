@@ -1,100 +1,84 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH] ARM: OMAP3: Fix warnings in clock34xx.h
-Date: Sun, 22 Jun 2008 14:02:21 +0200
-Message-ID: <485E3F4D.7070508@googlemail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH] OMAP3 clock: fix omap2_clk_wait_ready for OMAP3430ES2
+ DSS
+Date: Sun, 22 Jun 2008 07:51:17 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162035BA2A659@dlee02.ent.ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB022BE46296@dbde02.ent.ti.com>,<485CA347.909@googlemail.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB022BB66209@dbde02.ent.ti.com>
+ <alpine.DEB.1.00.0806211054100.19765@utopia.booyaka.com>
+ <ACAEC52B-E9B4-4789-8D63-114C53846760@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020508080201070301080003"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.241]:11673 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751549AbYFVMCW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Jun 2008 08:02:22 -0400
-Received: by an-out-0708.google.com with SMTP id d40so483098and.103
-        for <linux-omap@vger.kernel.org>; Sun, 22 Jun 2008 05:02:19 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57942 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751680AbYFVMvc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Jun 2008 08:51:32 -0400
+In-Reply-To: <ACAEC52B-E9B4-4789-8D63-114C53846760@student.utwente.nl>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-
-This is a multi-part message in MIME format.
---------------020508080201070301080003
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Koen Kooi <k.kooi@student.utwente.nl>, Paul Walmsley <paul@pwsan.com>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Dirk Behme <dirk.behme@googlemail.com>, "jouni.hogander@nokia.com" <jouni.hogander@nokia.com>
 
 
-Fix warnings
+> PowerTOP version 1.10      (C) 2007 Intel Corporation
+>
+> Cn                Avg residency       P-states (frequencies)
+> C0 (cpu running)        ( 0.0%)
+> C0                0.0ms ( 0.0%)
+> C1              188.9ms (0.7%)*
+> C2              2036.1ms (8.0%)*
+> C3              23285.1ms (91.3%)*
+>
+> Wakeups-from-idle per second : 61.7     interval: 3.0s
+>
+> Top causes for wakeups:
+>    44.9% ( 57.7)       <interrupt> : musb_hdrc.0
+>    17.9% ( 23.0)       <interrupt> : gp timer
+>    14.3% ( 18.3)   USB device 2-1.2 : LCD2USB Interface (Till Harbaum)
+>     9.9% ( 12.7)         lcd4linux : do_nanosleep (hrtimer_wakeup)
+>     7.5% (  9.7)   USB device 2-1.4 : Linksys USB2.0 Network Adapter
+> (USB)
+>     3.9% (  5.0)            Xfbdev : fbcon_add_cursor_timer
+> (cursor_timer_handler)
+>     0.5% (  0.7)              hald : schedule_timeout (process_timeout)
+>     0.3% (  0.3)          dropbear : sk_reset_timer (tcp_write_timer)
+>     0.3% (  0.3)     <kernel core> : neigh_table_init_no_netlink
+> (neigh_periodic_timer)
+>     0.3% (  0.3)        pulseaudio : schedule_timeout (process_timeout)
+>     0.3% (  0.3)              init : schedule_timeout (process_timeout)
+>
+> The dispc crashes are gone and I get fewer wakeups per second :)
+>
+> regards,
+>
+> Koen
+>
+>
+> * There's a bug in powertop 1.10 that reports percentages wrong, so
+> the percentages  where approximated by hand.
+>
+> C0 (cpu running)        ( 0.0%)
+> C0                0.0ms ( 0.0%)
+> C1              176.5ms ( 4.7%)
+> C2              3601.7ms (4090.7%)
+> C3              17956.3ms (92938.0%)
 
-arch/arm/mach-omap2/clock34xx.h:178: warning: initialization makes 
-pointer from integer without a cast
-arch/arm/mach-omap2/clock34xx.h:204: warning: initialization makes 
-pointer from integer without a cast
-arch/arm/mach-omap2/clock34xx.h:229: warning: initialization makes 
-pointer from integer without a cast
-arch/arm/mach-omap2/clock34xx.h:2238: warning: initialization makes 
-pointer from integer without a cast
+Those C-State residency times are clearly wrong also.
 
-Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
+If you try hard with a minimal kernel the maximum sleep you can get is like 1.5 seconds.  The kernel has some hard coded timers with 1 to 2 second periods (like slab cache reaper threads).
 
---------------020508080201070301080003
-Content-Type: text/plain;
- name="clock34xx_h_warning_fix.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="clock34xx_h_warning_fix.txt"
+For our non-edge kernel code these things report about right.  As long as you have a 99.9% duty cycle of OFF to ON you get pretty good savings.
 
+The wake up information should be about right.  Your USB Networking with MUSB will probably assure you of never getting ultra low power numbers but probably good for development.
 
-Subject: ARM: OMAP3: Fix warnings in clock34xx.h 
-
-From: Dirk Behme <dirk.behme@gmail.com>
-
-Fix warnings
-
-arch/arm/mach-omap2/clock34xx.h:178: warning: initialization makes pointer from integer without a cast
-arch/arm/mach-omap2/clock34xx.h:204: warning: initialization makes pointer from integer without a cast
-arch/arm/mach-omap2/clock34xx.h:229: warning: initialization makes pointer from integer without a cast
-arch/arm/mach-omap2/clock34xx.h:2238: warning: initialization makes pointer from integer without a cast
-
-Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
-
----
-
-Index: linux-beagle/arch/arm/mach-omap2/clock34xx.h
-===================================================================
---- linux-beagle.orig/arch/arm/mach-omap2/clock34xx.h
-+++ linux-beagle/arch/arm/mach-omap2/clock34xx.h
-@@ -53,14 +53,20 @@ static int omap3_noncore_dpll_set_rate(s
- #define DPLL_LOW_POWER_BYPASS		0x5
- #define DPLL_LOCKED			0x7
- 
-+#define _OMAP34XX_PRM_REGADDR(module, reg)				\
-+	((__force void __iomem *)(OMAP34XX_PRM_REGADDR((module), (reg))))
-+
- #define OMAP3430_PRM_CLKSRC_CTRL					\
--	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0070)
-+	_OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0070)
- 
- #define OMAP3430_PRM_CLKSEL						\
--	OMAP34XX_PRM_REGADDR(OMAP3430_CCR_MOD, OMAP3_PRM_CLKSEL_OFFSET)
-+	_OMAP34XX_PRM_REGADDR(OMAP3430_CCR_MOD, OMAP3_PRM_CLKSEL_OFFSET)
- 
- #define OMAP3430_PRM_CLKOUT_CTRL					\
--	OMAP34XX_PRM_REGADDR(OMAP3430_CCR_MOD, OMAP3_PRM_CLKOUT_CTRL_OFFSET)
-+	_OMAP34XX_PRM_REGADDR(OMAP3430_CCR_MOD, OMAP3_PRM_CLKOUT_CTRL_OFFSET)
-+
-+#define OMAP3430_USBHOST_MOD						\
-+	_OMAP34XX_PRM_REGADDR(OMAP3430ES2_USBHOST_MOD, PM_PWSTCTRL)
- 
- /* PRM CLOCKS */
- 
-@@ -2235,7 +2241,7 @@ static struct clk usbhost_sar_fck = {
- 	.name		= "usbhost_sar_fck",
- 	.parent		= &osc_sys_ck,
- 	.init		= &omap2_init_clk_clkdm,
--	.enable_reg	= OMAP34XX_PRM_REGADDR(OMAP3430ES2_USBHOST_MOD, PM_PWSTCTRL),
-+	.enable_reg	= OMAP3430_USBHOST_MOD,
- 	.enable_bit	= OMAP3430ES2_SAVEANDRESTORE_SHIFT,
- 	.flags		= CLOCK_IN_OMAP3430ES2,
- 	.clkdm_name	= "usbhost_clkdm",
+What is that USB2LCD device?
 
 
---------------020508080201070301080003--
+
+Regards,
+Richard W.
+
+
