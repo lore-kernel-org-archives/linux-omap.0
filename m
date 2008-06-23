@@ -1,158 +1,103 @@
-From: "shekhar, chandra" <x0044955@ti.com>
-Subject: Re: [PATCH 11/21] ARM: OMAP: McBSP: Prepare for splitting intoomap1 and omap2 code
-Date: Mon, 23 Jun 2008 16:04:22 +0530
-Message-ID: <071401c8d51c$b5bf8fd0$6ff6180a@ent.ti.com>
-References: <1212802253-17797-5-git-send-email-tony@atomide.com> <1212802253-17797-6-git-send-email-tony@atomide.com> <1212802253-17797-7-git-send-email-tony@atomide.com> <1212802253-17797-8-git-send-email-tony@atomide.com> <1212802253-17797-9-git-send-email-tony@atomide.com> <1212802253-17797-10-git-send-email-tony@atomide.com> <1212802253-17797-11-git-send-email-tony@atomide.com> <1212802253-17797-12-git-send-email-tony@atomide.com> <20080614081720.GK32122@flint.arm.linux.org.uk> <20080617084153.GG13078@atomide.com> <20080623093947.GF7741@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/1] ARM:OMAP: fix driver MODULE_ALIAS()
+Date: Mon, 23 Jun 2008 13:38:42 +0300
+Message-ID: <20080623103840.GG7741@atomide.com>
+References: <1213256414-12309-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:44804 "EHLO calf.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754008AbYFWKei (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Jun 2008 06:34:38 -0400
+Received: from [63.208.196.178] ([63.208.196.178]:61590 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-FAIL-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1757248AbYFWKiR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Jun 2008 06:38:17 -0400
+Content-Disposition: inline
+In-Reply-To: <1213256414-12309-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Eduardo Valentin <eduardo.valentin@indt.org.br>, linux-omap@vger.kernel.org, "Nikula Jarkko (NRC/Helsinki)" <jarkko.nikula@nokia.com>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi,
-i was about to send the same patch.  it works fine for me.
-chandra Shekhar
+* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [080613 02:53]:
+> Add a correct MODULE_ALIAS() entry for this driver to enable udev module
+> loading.
 
+Pushing today.
 
------ Original Message ----- 
-From: "Tony Lindgren" <tony@atomide.com>
-To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
-Cc: <linux-arm-kernel@lists.arm.linux.org.uk>; "Eduardo Valentin" 
-<eduardo.valentin@indt.org.br>; <linux-omap@vger.kernel.org>; "Nikula Jarkko 
-(NRC/Helsinki)" <jarkko.nikula@nokia.com>
-Sent: Monday, June 23, 2008 3:09 PM
-Subject: Re: [PATCH 11/21] ARM: OMAP: McBSP: Prepare for splitting intoomap1 
-and omap2 code
+Tony
 
-
->* Tony Lindgren <tony@atomide.com> [080617 11:43]:
->> * Russell King - ARM Linux <linux@arm.linux.org.uk> [080614 11:17]:
->> > On Fri, Jun 06, 2008 at 06:30:43PM -0700, Tony Lindgren wrote:
->> > > +#if defined(CONFIG_OMAP_MCBSP) || defined(CONFIG_OMAP_MCBSP_MODULE)
->> > > +
->> > > +static struct platform_device 
->> > > omap_mcbsp_devices[OMAP_MAX_MCBSP_COUNT];
->> > > +static int mcbsps_configured;
->> > > +
->> > > +void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data 
->> > > *config,
->> > > + int size)
->> > > +{
->> > > + int i;
->> > > +
->> > > + if (size > OMAP_MAX_MCBSP_COUNT) {
->> > > + printk(KERN_WARNING "Registered too many McBSPs platform_data."
->> > > + " Using maximum (%d) available.\n",
->> > > + OMAP_MAX_MCBSP_COUNT);
->> > > + size = OMAP_MAX_MCBSP_COUNT;
->> > > + }
->> > > +
->> > > + for (i = 0; i < size; i++) {
->> > > + struct platform_device *new_mcbsp = &omap_mcbsp_devices[i];
->> >
->> > Any reason this can't use the platform_device_alloc() API rather than
->> > having a static restriction on the number (coupled with the wastage of
->> > space for smaller 'size's ?)
->>
->> I agree, this should be allocated. Eduardo, any comments?
->
-> Here's updated patch that uses platform_device_alloc().
->
-> Tony
->
-
-
---------------------------------------------------------------------------------
-
-
-> From 53f2999d681669df0645053dc572d97cda69823d Mon Sep 17 00:00:00 2001
-> From: Eduardo Valentin <eduardo.valentin@indt.org.br>
-> Date: Mon, 23 Jun 2008 12:37:30 +0300
-> Subject: [PATCH] ARM: OMAP: McBSP: Prepare for splitting into omap1 and 
-> omap2 code
->
-> This patch transform mcbsp code to use platform data
-> from arch/arm/plat-omap/devices.c
->
-> It also gets ride of ifdefs on mcbsp.c code.
-> To do it, a platform data structure was defined.
->
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
->
-> diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-> index 4a53f9b..81002b7 100644
-> --- a/arch/arm/plat-omap/devices.c
-> +++ b/arch/arm/plat-omap/devices.c
-> @@ -24,6 +24,7 @@
-> #include <asm/arch/mux.h>
-> #include <asm/arch/gpio.h>
-> #include <asm/arch/menelaus.h>
-> +#include <asm/arch/mcbsp.h>
->
-> #if defined(CONFIG_OMAP_DSP) || defined(CONFIG_OMAP_DSP_MODULE)
->
-> @@ -145,6 +146,53 @@ static inline void omap_init_kp(void) {}
-> #endif
->
-> /*-------------------------------------------------------------------------*/
-> +#if defined(CONFIG_OMAP_MCBSP) || defined(CONFIG_OMAP_MCBSP_MODULE)
-> +
-> +static struct platform_device **omap_mcbsp_devices;
-> +
-> +void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data 
-> *config,
-> + int size)
-> +{
-> + int i;
-> +
-> + if (size > OMAP_MAX_MCBSP_COUNT) {
-> + printk(KERN_WARNING "Registered too many McBSPs platform_data."
-> + " Using maximum (%d) available.\n",
-> + OMAP_MAX_MCBSP_COUNT);
-> + size = OMAP_MAX_MCBSP_COUNT;
-> + }
-> +
-> + omap_mcbsp_devices = kzalloc(size * sizeof(struct platform_device *),
-> +      GFP_KERNEL);
-> + if (!omap_mcbsp_devices) {
-> + printk(KERN_ERR "Could not register McBSP devices\n");
-> + return;
-> + }
-> +
-> + for (i = 0; i < size; i++) {
-> + struct platform_device *new_mcbsp;
-> + int ret;
-> +
-> + new_mcbsp = platform_device_alloc("omap-mcbsp", i + 1);
-> + if (!new_mcbsp)
-> + continue;
-> + new_mcbsp->dev.platform_data = &config[i];
-> + ret = platform_device_add(new_mcbsp);
-> + if (ret) {
-> + platform_device_put(new_mcbsp);
-> + continue;
-> + }
-> + omap_mcbsp_devices[i] = new_mcbsp;
-> + }
-> +}
-> +
-> +#else
-> +void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data 
-> *config,
-> + int size)
-> +{  }
-> +#endif
-> +
-> +/*-------------------------------------------------------------------------*/
-
+> 
+> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> ---
+>  drivers/input/keyboard/omap-twl4030keypad.c |    2 ++
+>  drivers/input/touchscreen/tsc2005.c         |    2 +-
+>  drivers/mmc/host/omap_hsmmc.c               |    3 ++-
+>  drivers/rtc/rtc-twl4030.c                   |    2 +-
+>  4 files changed, 6 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/input/keyboard/omap-twl4030keypad.c b/drivers/input/keyboard/omap-twl4030keypad.c
+> index 0344b4c..fc5d44e 100644
+> --- a/drivers/input/keyboard/omap-twl4030keypad.c
+> +++ b/drivers/input/keyboard/omap-twl4030keypad.c
+> @@ -350,6 +350,7 @@ static struct platform_driver omap_kp_driver = {
+>  	.remove		= omap_kp_remove,
+>  	.driver		= {
+>  		.name	= "omap_twl4030keypad",
+> +		.owner	= THIS_MODULE,
+>  	},
+>  };
+>  
+> @@ -371,3 +372,4 @@ module_exit(omap_kp_exit);
+>  MODULE_AUTHOR("Texas Instruments");
+>  MODULE_DESCRIPTION("OMAP TWL4030 Keypad Driver");
+>  MODULE_LICENSE("GPL");
+> +MODULE_ALIAS("platform:omap_twl4030keypad");
+> diff --git a/drivers/input/touchscreen/tsc2005.c b/drivers/input/touchscreen/tsc2005.c
+> index fa01799..93dc3c5 100644
+> --- a/drivers/input/touchscreen/tsc2005.c
+> +++ b/drivers/input/touchscreen/tsc2005.c
+> @@ -734,4 +734,4 @@ module_exit(tsc2005_exit);
+>  
+>  MODULE_AUTHOR("Lauri Leukkunen <lauri.leukkunen@nokia.com>");
+>  MODULE_LICENSE("GPL");
+> -
+> +MODULE_ALIAS("platform:tsc2005");
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 9c18c15..d399dca 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1106,6 +1106,7 @@ static struct platform_driver omap_mmc_driver = {
+>  	.resume		= omap_mmc_resume,
+>  	.driver		= {
+>  		.name = DRIVER_NAME,
+> +		.owner = THIS_MODULE,
+>  	},
+>  };
+>  
+> @@ -1126,5 +1127,5 @@ module_exit(omap_mmc_cleanup);
+>  
+>  MODULE_DESCRIPTION("OMAP High Speed Multimedia Card driver");
+>  MODULE_LICENSE("GPL");
+> -MODULE_ALIAS(DRIVER_NAME);
+> +MODULE_ALIAS("platform:" DRIVER_NAME);
+>  MODULE_AUTHOR("Texas Instruments Inc");
+> diff --git a/drivers/rtc/rtc-twl4030.c b/drivers/rtc/rtc-twl4030.c
+> index ef0e175..7b0a4c5 100644
+> --- a/drivers/rtc/rtc-twl4030.c
+> +++ b/drivers/rtc/rtc-twl4030.c
+> @@ -624,7 +624,7 @@ static int twl4030_rtc_resume(struct platform_device *pdev)
+>  #define twl4030_rtc_resume  NULL
+>  #endif
+>  
+> -MODULE_ALIAS("twl4030_rtc");
+> +MODULE_ALIAS("platform:twl4030_rtc");
+>  static struct platform_driver twl4030rtc_driver = {
+>  	.probe 		= twl4030_rtc_probe,
+>  	.remove 	= __devexit_p(twl4030_rtc_remove),
+> -- 
+> 1.5.5.1.357.g1af8b
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
