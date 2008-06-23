@@ -1,60 +1,36 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] usb: musb: MUSB_OTG should depend on PM
-Date: Mon, 23 Jun 2008 14:13:49 +0300
-Message-ID: <20080623111348.GR7741@atomide.com>
-References: <1213182432-23952-1-git-send-email-felipe.balbi@nokia.com> <1213182432-23952-2-git-send-email-felipe.balbi@nokia.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 1/4] usb: musb: musb on omap3 has 32 endpoints
+Date: Mon, 23 Jun 2008 14:14:55 +0300
+Message-ID: <20080623111455.GH4414@gandalf.research.nokia.com>
+References: <1213351443-3336-1-git-send-email-felipe.balbi@nokia.com> <1213351443-3336-2-git-send-email-felipe.balbi@nokia.com> <20080623111009.GM7741@atomide.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [63.208.196.178] ([63.208.196.178]:54295 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1755094AbYFWLNX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Jun 2008 07:13:23 -0400
+Received: from smtp.nokia.com ([192.100.122.230]:48079 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756287AbYFWLPy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jun 2008 07:15:54 -0400
 Content-Disposition: inline
-In-Reply-To: <1213182432-23952-2-git-send-email-felipe.balbi@nokia.com>
+In-Reply-To: <20080623111009.GM7741@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
 
-* Felipe Balbi <felipe.balbi@nokia.com> [080611 14:09]:
-> Current musb Kconfig causes cyclic depency on x86
-> arch. The best fix is to depend on PM in order to
-> build on OTG mode.
+On Mon, Jun 23, 2008 at 02:10:09PM +0300, Tony Lindgren wrote:
+> * Felipe Balbi <felipe.balbi@nokia.com> [080613 13:05]:
+> > Fix hdrc_cnf.h for omap3 configuration.
 > 
-> Anyone interested in reproducing the error in your
-> linux-omap trees, just make ARCH=x86 menuconfig
-
-I guess this is now obsolete with Dave's HAS_CLK patch?
-
-Tony
-
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> ---
->  drivers/usb/musb/Kconfig |    3 +--
->  1 files changed, 1 insertions(+), 2 deletions(-)
+> Does this break the configuration for omap2?
 > 
-> diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-> index a485a86..acbbd5f 100644
-> --- a/drivers/usb/musb/Kconfig
-> +++ b/drivers/usb/musb/Kconfig
-> @@ -88,10 +88,9 @@ config USB_MUSB_PERIPHERAL
->  	  (With a "Mini-AB" connector, you should enable USB OTG.)
->  
->  config USB_MUSB_OTG
-> -	depends on USB && USB_GADGET && EXPERIMENTAL
-> +	depends on USB && USB_GADGET && PM && EXPERIMENTAL
->  	bool "Both host and peripheral:  USB OTG (On The Go) Device"
->  	select USB_GADGET_MUSB_HDRC
-> -	select USB_OTG
->  	select PM
->  	help
->  	   The most notable feature of USB OTG is support for a
-> -- 
-> 1.5.6.rc1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> We should set these dynamically if different for omap2 and omap3
+> so we can compile both into the same kernel.
+
+Should check omap2430 trm to be sure, maybe someone in TI could help us
+with it ?
+
+Maybe we could bring it via platform_data as well?
+
+-- 
+	- Balbi
