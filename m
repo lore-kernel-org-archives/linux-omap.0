@@ -1,65 +1,55 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] usb: musb: musb on omap3 has 32 endpoints
-Date: Mon, 23 Jun 2008 14:10:09 +0300
-Message-ID: <20080623111009.GM7741@atomide.com>
-References: <1213351443-3336-1-git-send-email-felipe.balbi@nokia.com> <1213351443-3336-2-git-send-email-felipe.balbi@nokia.com>
+Subject: Re: [PATCH 2/4] usb: musb: add MODULE_ALIAS for udev module loading
+Date: Mon, 23 Jun 2008 14:11:04 +0300
+Message-ID: <20080623111103.GN7741@atomide.com>
+References: <1213351443-3336-1-git-send-email-felipe.balbi@nokia.com> <1213351443-3336-2-git-send-email-felipe.balbi@nokia.com> <1213351443-3336-3-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [63.208.196.179] ([63.208.196.179]:63236 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1752338AbYFWLJo (ORCPT
+Received: from [63.208.196.178] ([63.208.196.178]:52487 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-FAIL-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1751695AbYFWLKi (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Jun 2008 07:09:44 -0400
+	Mon, 23 Jun 2008 07:10:38 -0400
 Content-Disposition: inline
-In-Reply-To: <1213351443-3336-2-git-send-email-felipe.balbi@nokia.com>
+In-Reply-To: <1213351443-3336-3-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Balbi <felipe.balbi@nokia.com>
 Cc: linux-omap@vger.kernel.org
 
-* Felipe Balbi <felipe.balbi@nokia.com> [080613 13:05]:
-> Fix hdrc_cnf.h for omap3 configuration.
+* Felipe Balbi <felipe.balbi@nokia.com> [080613 13:06]:
+> platform drivers should add MODULE_ALIAS for allowing
+> udev module loading.
 
-Does this break the configuration for omap2?
-
-We should set these dynamically if different for omap2 and omap3
-so we can compile both into the same kernel.
+Pushing today.
 
 Tony
 
 > Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 > ---
->  include/asm-arm/arch-omap/hdrc_cnf.h |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
+>  drivers/usb/musb/musb_core.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
 > 
-> diff --git a/include/asm-arm/arch-omap/hdrc_cnf.h b/include/asm-arm/arch-omap/hdrc_cnf.h
-> index 74c8432..271214c 100644
-> --- a/include/asm-arm/arch-omap/hdrc_cnf.h
-> +++ b/include/asm-arm/arch-omap/hdrc_cnf.h
-> @@ -14,11 +14,11 @@
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> index 5b92f21..75c3013 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -134,11 +134,13 @@ MODULE_PARM_DESC(debug, "initial debug message level");
 >  
->  /* ** Number of Tx endpoints ** */
->  /* Legal values are 1 - 16 (this value includes EP0) */
-> -#define MUSB_C_NUM_EPT 8
-> +#define MUSB_C_NUM_EPT 16
+>  #define DRIVER_INFO DRIVER_DESC ", v" MUSB_VERSION
 >  
->  /* ** Number of Rx endpoints ** */
->  /* Legal values are 1 - 16 (this value includes EP0) */
-> -#define MUSB_C_NUM_EPR 8
-> +#define MUSB_C_NUM_EPR 16
+> -const char musb_driver_name[] = "musb_hdrc";
+> +#define MUSB_DRIVER_NAME "musb_hdrc"
+> +const char musb_driver_name[] = MUSB_DRIVER_NAME;
 >  
->  /* ** Endpoint 1 to 15 direction types ** */
->  /* C_EP1_DEF is defined if either Tx endpoint 1 or Rx endpoint 1 are used */
-> @@ -163,7 +163,7 @@
->   * Legal values are 2 - 16
->   * This must be equal to the larger of C_NUM_EPT, C_NUM_EPR
->   */
-> -#define MUSB_C_NUM_EPS 8
-> +#define MUSB_C_NUM_EPS 16
+>  MODULE_DESCRIPTION(DRIVER_INFO);
+>  MODULE_AUTHOR(DRIVER_AUTHOR);
+>  MODULE_LICENSE("GPL");
+> +MODULE_ALIAS("platform:" MUSB_DRIVER_NAME);
 >  
->  /* C_EPMAX_BITS is equal to the largest endpoint FIFO word address bits */
->  #define MUSB_C_EPMAX_BITS 12
+>  
+>  /*-------------------------------------------------------------------------*/
 > -- 
 > 1.5.6.rc1
 > 
