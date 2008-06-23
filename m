@@ -1,39 +1,46 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2] ARM: OMAP3: Fix warnings in clock34xx.h
-Date: Mon, 23 Jun 2008 13:08:24 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0806231308020.4919@utopia.booyaka.com>
-References: <485FCA78.9000209@googlemail.com>
+From: Miguel Angel Aguilar Ulloa <miguel.aguilar@ridgerun.com>
+Subject: [PATCH 3/3] OMAP3 EVM: Add twl4030 keypad driver support
+Date: Mon, 23 Jun 2008 15:51:20 -0600
+Message-ID: <48601AD8.7060303@ridgerun.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:58648 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759887AbYFWTIZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jun 2008 15:08:25 -0400
-In-Reply-To: <485FCA78.9000209@googlemail.com>
+Received: from mail.navvo.net ([74.208.67.6]:38892 "EHLO mail.navvo.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752353AbYFWWCX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Jun 2008 18:02:23 -0400
+Received: from [200.122.155.113] (helo=[192.168.10.40])
+	by mail.navvo.net with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.63)
+	(envelope-from <miguel.aguilar@ridgerun.com>)
+	id 1KAtPl-0002Zw-0E
+	for linux-omap@vger.kernel.org; Mon, 23 Jun 2008 16:17:30 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-On Mon, 23 Jun 2008, Dirk Behme wrote:
+Enable twl4030 keypad driver in omap3_evm_defconfig
 
-> Fix warnings
-> 
-> arch/arm/mach-omap2/clock34xx.h:178: warning: initialization makes pointer
-> from integer without a cast
-> arch/arm/mach-omap2/clock34xx.h:204: warning: initialization makes pointer
-> from integer without a cast
-> arch/arm/mach-omap2/clock34xx.h:229: warning: initialization makes pointer
-> from integer without a cast
-> arch/arm/mach-omap2/clock34xx.h:2238: warning: initialization makes pointer
-> from integer without a cast
-> 
-> Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
+Signed-off-by: Miguel Angel Aguilar <miguel.aguilar@ridgerun.com>
 
-Thanks, Dirk.
-
-
-Acked-by: Paul Walmsley <paul@pwsan.com>
-
-- Paul
+--- a/arch/arm/configs/omap3_evm_defconfig	2008-06-11 08:32:45.000000000 -0600
++++ b/arch/arm/configs/omap3_evm_defconfig	2008-06-23 14:35:23.000000000 -0600
+@@ -601,7 +601,16 @@ CONFIG_INPUT=y
+ #
+ # Input Device Drivers
+ #
+-# CONFIG_INPUT_KEYBOARD is not set
++CONFIG_INPUT_KEYBOARD=y
++# CONFIG_KEYBOARD_ATKBD is not set
++# CONFIG_KEYBOARD_SUNKBD is not set
++# CONFIG_KEYBOARD_LKKBD is not set
++# CONFIG_KEYBOARD_XTKBD is not set
++# CONFIG_KEYBOARD_NEWTON is not set
++# CONFIG_KEYBOARD_STOWAWAY is not set
++CONFIG_KEYBOARD_TWL4030=y
++# CONFIG_KEYBOARD_LM8323 is not set
++# CONFIG_KEYBOARD_GPIO is not set
+ # CONFIG_INPUT_MOUSE is not set
+ # CONFIG_INPUT_JOYSTICK is not set
+ # CONFIG_INPUT_TABLET is not set
