@@ -1,43 +1,1171 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] i2c: twl4030: warning: mixed declarations and code
-Date: Mon, 23 Jun 2008 16:00:05 +0300
-Message-ID: <20080623130004.GX7741@atomide.com>
-References: <1213185323-31758-1-git-send-email-felipe.balbi@nokia.com> <a0580c510806110653p65b64857y8de6897489d60466@mail.gmail.com> <20080611135502.GI20671@gandalf.research.nokia.com> <a0580c510806110702m655cf96by6dbd9800ef48adf4@mail.gmail.com>
+From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
+Subject: Re: [RFC/PATCH 1/2] Triton Battery charger interface driver for OMAP3430
+Date: Mon, 23 Jun 2008 19:04:51 +0530
+Message-ID: <04c401c8d535$ebf53dc0$35f6180a@ent.ti.com>
+References: <61775.192.168.10.89.1213963421.squirrel@dbdmail.itg.ti.com> <cc28162fe9818299156131c2374c3ba3@felipebalbi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [63.208.196.179] ([63.208.196.179]:61710 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1753798AbYFWM7l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Jun 2008 08:59:41 -0400
-Content-Disposition: inline
-In-Reply-To: <a0580c510806110702m655cf96by6dbd9800ef48adf4@mail.gmail.com>
+Received: from soda.ext.ti.com ([198.47.26.145]:35679 "EHLO soda.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753818AbYFWNfL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jun 2008 09:35:11 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>
-Cc: felipe.balbi@nokia.com, linux-omap@vger.kernel.org
+To: ext Felipe Balbi <me@felipebalbi.com>
+Cc: linux-omap@vger.kernel.org
 
-* Eduardo Valentin <edubezval@gmail.com> [080611 17:04]:
-> Hi Balbi,
-> 
-> On Wed, Jun 11, 2008 at 9:55 AM, Felipe Balbi <felipe.balbi@nokia.com> wrote:
-> > On Wed, Jun 11, 2008 at 09:53:45AM -0400, ext Eduardo Valentin wrote:
-> >> > -       struct twl4030_usb *twl = xceiv_to_twl(xceiv);
-> >> >        u32 l;
-> >> > +       struct twl4030_usb *twl = xceiv_to_twl(xceiv);
-> >>
-> >> To me you are just moving the place of this declaration.
-> >
-> > Yes, because ISO C99 forbids mixed declaraction and code. build
-> > tlw4030-usb and you'll see the warning. ;-)
-> 
-> Ok. I'd suggest changing the commit message to
-> i2c: twl4030: C99 warning: mixed declarations and code
-> 
-> But this is up to you :)
+Hi Felipe,
 
-Pushing today, that driver is not in mainline yet so the comments are
-just fine.
+Thanks for the comments. I will fix them and resend the patch.I have some clarification inlined for some of the comments.
 
-Tony
+Best regards,
+Madhu
+----- Original Message ----- 
+From: "Felipe Balbi" <me@felipebalbi.com>
+To: <x0070977@dbdmail.itg.ti.com>
+Cc: <linux-omap@vger.kernel.org>
+Sent: Monday, June 23, 2008 2:19 PM
+Subject: Re: [RFC/PATCH 1/2] Triton Battery charger interface driver for OMAP3430
+
+
+> 
+> 
+> On Fri, 20 Jun 2008 17:33:41 +0530 (IST), x0070977@dbdmail.itg.ti.com
+> wrote:
+> 
+>> Index: linux-omap-2.6/arch/arm/mach-omap2/devices.c
+>> ===================================================================
+>> --- linux-omap-2.6.orig/arch/arm/mach-omap2/devices.c 2008-06-20
+>> 15:39:56.000000000 +0530
+>> +++ linux-omap-2.6/arch/arm/mach-omap2/devices.c 2008-06-20
+>> 15:42:05.000000000
+>> +0530
+>> @@ -358,6 +358,22 @@
+>>  static inline void omap_hdq_init(void) {}
+>>  #endif
+>> 
+>> +#ifdef CONFIG_TWL4030_BCI_BATTERY
+>> +static struct platform_device omap_bci_battery_device = {
+>> + .name           = "twl4030-bci-battery",
+>> + .id             = 1,
+>> + .num_resources  = 0,
+>> + .resource       = NULL,
+> 
+> if you pass the struct resources you can use __raw_{read,write} which
+> would simplify a lot for you, but if you really don't want it, you
+> don't have to initialize it to NULL. Just because it's static, it's
+> enough for it to get NULLed.
+The battery driver uses twl4030_i2c_read_u8 and twl4030_i2c_write_u8 as low level interface(I2C) with
+standard twl4030.h defines. So no point of  _raw(read,write) and BASE address getting initialized through resource structure. Right?.
+I agree with your second point of no need to explicitely setting it to NULL though.
+
+> 
+>> +};
+>> +
+>> +static inline void omap_bci_battery_init(void)
+>> +{
+>> + (void) platform_device_register(&omap_bci_battery_device);
+>> +}
+>> +#else
+>> +static inline void omap_bci_battery_init(void) {}
+>> +#endif
+>> +
+> 
+> How about creating a special battery.c for this just like usb-musb.c,
+> usb-ehci.c
+> and hsmmc.c, so it's easier to reuse it and add such support only for
+> boards that
+> has twl4030.
+> 
+> It would be useful for omap multiboot, I suppose.
+I had put these under devices.c as there is not much board level configurations for BCI unlike hsmmc.
+I guess I can add a simple board file for battery that way it can used based on TWL4030 if it is a good idea.
+
+> 
+>> 
+>>
+> /*-------------------------------------------------------------------------*/
+>> 
+>>  static int __init omap2_init_devices(void)
+>> @@ -369,6 +385,7 @@
+>>  omap_init_mbox();
+>>  omap_init_mcspi();
+>>  omap_hdq_init();
+>> + omap_bci_battery_init();
+> 
+> And this would be added to board-files.
+Agreed considering the above point.
+> 
+>>  omap_init_sti();
+>>  omap_init_sha1_md5();
+>> 
+>> Index: linux-omap-2.6/drivers/power/Kconfig
+>> ===================================================================
+>> --- linux-omap-2.6.orig/drivers/power/Kconfig 2008-06-20
+>> 15:39:56.000000000 +0530
+>> +++ linux-omap-2.6/drivers/power/Kconfig 2008-06-20 15:42:05.000000000
+>> +0530
+>> @@ -70,4 +70,12 @@
+>>  help
+>>    Say Y here to enable support for batteries with BQ27200(I2C) chip.
+>> 
+>> +config TWL4030_BCI_BATTERY
+>> + bool "OMAP TWL4030 BCI Battery driver"
+> 
+> I'm pretty sure this can be tristate. Did you try that ?
+I agree. I can make it tristate.
+
+> 
+> 
+>> +struct twl4030_bci_device_info {
+>> + struct device *dev;
+>> +
+>> + unsigned long update_time;
+>> + int voltage_uV;
+>> + int bk_voltage_uV;
+>> + int current_uA;
+>> + int temp_C;
+>> + int charge_rsoc;
+>> + int charge_status;
+>> +
+>> + struct power_supply bat;
+>> + struct power_supply bk_bat;
+>> + struct delayed_work twl4030_bci_monitor_work;
+>> + struct delayed_work twl4030_bk_bci_monitor_work;
+>> +};
+>> +
+>> +static struct platform_driver twl4030_bci_battery_driver = {
+>> + .probe = twl4030_bci_battery_probe,
+>> + .remove = twl4030_bci_battery_remove,
+>> +#ifdef CONFIG_PM
+>> + .suspend = twl4030_bci_battery_suspend,
+>> + .resume = twl4030_bci_battery_resume,
+>> +#endif
+>> + .driver = {
+>> + .name = "twl4030-bci-battery",
+>> + },
+> 
+> how about tabifying these for better alignment ?
+Okay.
+> 
+>> +
+>> +static int twl4030madc_sw1_trigger(void);
+>> +static int read_bci_val(u8 reg_1);
+>> +static inline int clear_n_set(u8 mod_no, u8 clear, u8 set, u8 reg);
+>> +static int twl4030charger_presence(void);
+>> +
+>> +/*
+>> + * Twl4030 battery temperature lookup table.
+>> + */
+>> +const int twl4030battery_temp_tbl [] =
+>> +{
+>> +/* 0 C*/
+>> +27100,
+>> +26000, 24900, 23900, 22900, 22000, 21100, 20300, 19400, 18700, 17900,
+>> +17200, 16500, 15900, 15300, 14700, 14100, 13600, 13100, 12600, 12100,
+>> +11600, 11200, 10800, 10400, 10000, 9630,   9280,   8950,   8620,   8310,
+>> +8020,   7730,   7460,   7200,   6950,   6710,   6470,   6250,   6040,  
+>> 5830,
+>> +5640,   5450,   5260,   5090,   4920,   4760,   4600,   4450,   4310,  
+>> 4170,
+>> +4040,   3910,   3790,   3670,   3550
+>> +};
+>> +
+>> +/*
+>> + * Report and clear the charger presence event.
+>> + */
+>> +static inline int twl4030charger_presence_evt(void)
+>> +{
+>> + int ret;
+>> + u8 chg_sts, set = 0, clear = 0;
+>> +
+>> + /* read charger power supply status */
+>> + ret = twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &chg_sts,
+>> + REG_STS_HW_CONDITIONS);
+>> + if (ret)
+>> + return IRQ_NONE;
+>> +
+>> + /* If the AC charger have been connected */
+>> + if (chg_sts & STS_CHG) {
+>> + /* configuring falling edge detection for CHG_PRES */
+>> + set = CHG_PRES_FALLING;
+>> + clear = CHG_PRES_RISING;
+>> + }
+>> + /* If the AC charger have been disconnected */
+>> + else {
+>> + /* configuring rising edge detection for CHG_PRES */
+>> + set = CHG_PRES_RISING;
+>> + clear = CHG_PRES_FALLING;
+>> + }
+>> +
+>> + /* Update the interrupt edge detection register */
+>> + clear_n_set(TWL4030_MODULE_INT, clear, set, REG_PWR_EDR1);
+>> +
+>> + return 0;
+>> +}
+>> +
+>> +/*
+>> + * Interrupt service routine
+>> + *
+>> + * Attends to TWL 4030 power module interruptions events, specifically
+>> + * USB_PRES (USB charger presence) CHG_PRES (AC charger presence) events
+>> + *
+>> + */
+>> +static irqreturn_t twl4030charger_interrupt(int irq, void *dev_id)
+>> +{
+>> + struct twl4030_bci_device_info *di =
+>> + (struct twl4030_bci_device_info *)dev_id;
+> 
+>                         unneeded cast, please remove.
+Okay.
+> 
+>> +
+>> + twl4030charger_presence_evt();
+>> + power_supply_changed(&di->bat);
+>> +
+>> + return IRQ_HANDLED;
+>> +}
+>> +
+>> +/*
+>> + * This function handles the twl4030 battery presence interrupt
+>> + */
+>> +static int twl4030battery_presence_evt(void)
+>> +{
+>> + int ret;
+>> + u8 batstsmchg, batstspchg;
+>> +
+>> + /* check for the battery presence in main charge*/
+>> + ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE,
+>> + &batstsmchg, REG_BCIMFSTS3);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + /* check for the battery presence in precharge */
+>> + ret = twl4030_i2c_read_u8(TWL4030_MODULE_PRECHARGE,
+>> + &batstspchg, REG_BCIMFSTS1);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + /*
+>> + * REVISIT: Physically inserting/removing the batt
+>> + * does not seem to generate an int on 3430ES2 SDP.
+>> + */
+>> +
+>> + /* In case of the battery insertion event */
+>> + if ((batstspchg & BATSTSPCHG) || (batstsmchg & BATSTSMCHG)) {
+>> + ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, BATSTS_EDRRISIN,
+>> + BATSTS_EDRFALLING, REG_BCIEDR2);
+>> + if (ret)
+>> + return ret;
+>> + }
+>> +
+>> + /* In case of the battery removal event */
+>> + else {
+>> + ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, BATSTS_EDRFALLING,
+>> + BATSTS_EDRRISIN, REG_BCIEDR2);
+>> + if (ret)
+>> + return ret;
+>> + }
+>> +
+>> + return 0;
+>> +}
+>> +
+>> +/*
+>> + * This function handles the twl4030 battery voltage level interrupt.
+>> + */
+>> +static int twl4030battery_level_evt(void)
+>> +{
+>> + int ret;
+>> + u8 mfst;
+>> +
+>> + /* checking for threshold event */
+>> + ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE,
+>> + &mfst, REG_BCIMFSTS2);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + if (mfst & VBATOV4) {
+>> + LVL_4 = 1;
+>> + LVL_3 = LVL_2 = LVL_1 = 0;
+>> + } else if (mfst & VBATOV3) {
+>> + LVL_3 = 1;
+>> + LVL_4 = LVL_2 = LVL_1 = 0;
+>> + } else if (mfst & VBATOV2) {
+>> + LVL_2 = 1;
+>> + LVL_4 = LVL_3 = LVL_1 = 0;
+>> + } else {
+>> + LVL_1 = 1;
+>> + LVL_4 = LVL_3 = LVL_2 = 0;
+>> + }
+>> +
+>> + return 0;
+>> +}
+>> +
+>> +/*
+>> + * Interrupt service routine
+>> + *
+>> + * Attends to BCI interruptions events,
+>> + * specifically BATSTS (battery connection and removal)
+>> + * VBATOV (main battery voltage threshold) events
+>> + *
+>> + */
+>> +static irqreturn_t twl4030battery_interrupt(int irq, void *dev_id)
+>> +{
+>> + int ret;
+>> + u8 isr1a_val, isr2a_val, clear_2a, clear_1a;
+>> +
+>> + ret = twl4030_i2c_read_u8(TWL4030_MODULE_INTERRUPTS, &isr1a_val,
+>> + REG_BCIISR1A);
+>> + if (ret)
+>> + return IRQ_NONE;
+>> +
+>> + ret = twl4030_i2c_read_u8(TWL4030_MODULE_INTERRUPTS, &isr2a_val,
+>> + REG_BCIISR2A);
+>> + if (ret)
+>> + return IRQ_NONE;
+>> +
+>> + clear_2a = (isr2a_val & VBATLVL_ISR1)? (VBATLVL_ISR1): 0;
+>> + clear_1a = (isr1a_val & BATSTS_ISR1)? (BATSTS_ISR1): 0;
+>> +
+>> + /* cleaning BCI interrupt status flags */
+>> + ret = twl4030_i2c_write_u8(TWL4030_MODULE_INTERRUPTS,
+>> + clear_1a , REG_BCIISR1A);
+>> + if (ret)
+>> + return IRQ_NONE;
+>> +
+>> + ret = twl4030_i2c_write_u8(TWL4030_MODULE_INTERRUPTS,
+>> + clear_2a , REG_BCIISR2A);
+>> + if (ret)
+>> + return IRQ_NONE;
+>> +
+>> + /* battery connetion or removal event */
+>> + if (isr1a_val & BATSTS_ISR1)
+>> + twl4030battery_presence_evt();
+>> + /* battery voltage threshold event*/
+>> + else if (isr2a_val & VBATLVL_ISR1)
+>> + twl4030battery_level_evt();
+>> + else
+>> + return IRQ_NONE;
+>> +
+>> + return IRQ_HANDLED;
+>> +}
+>> +
+>> +/*
+>> + * Enable/Disable hardware battery level event notifications.
+>> + */
+>> +static int twl4030battery_hw_level_en(int enable)
+>> +{
+>> + int ret;
+>> +
+>> + if (enable) {
+>> + /* unmask VBATOV interrupt for INT1 */
+>> + ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, VBATLVL_IMR1,
+>> + 0, REG_BCIIMR2A);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + /* configuring interrupt edge detection for VBATOv */
+>> + ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, 0,
+>> + VBATLVL_EDRRISIN, REG_BCIEDR3);
+>> + if (ret)
+>> + return ret;
+>> + } else {
+>> + /* mask VBATOV interrupt for INT1 */
+>> + ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, 0,
+>> + VBATLVL_IMR1, REG_BCIIMR2A);
+>> + if (ret)
+>> + return ret;
+>> + }
+>> +
+>> + return 0;
+>> +}
+>> +
+>> +/*
+>> + * Enable/disable hardware battery presence event notifications.
+>> + */
+>> +static int twl4030battery_hw_presence_en(int enable)
+>> +{
+>> + int ret;
+>> +
+>> + if (enable) {
+>> + /* unmask BATSTS interrupt for INT1 */
+>> + ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, BATSTS_IMR1,
+>> + 0, REG_BCIIMR1A);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + /* configuring interrupt edge for BATSTS */
+>> + ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, 0,
+>> + BATSTS_EDRRISIN | BATSTS_EDRFALLING, REG_BCIEDR2);
+>> + if (ret)
+>> + return ret;
+>> + } else {
+>> + /* mask BATSTS interrupt for INT1 */
+>> + ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, 0,
+>> + BATSTS_IMR1, REG_BCIIMR1A);
+>> + if (ret)
+>> + return ret;
+>> + }
+>> +
+>> + return 0;
+>> +}
+>> +
+>> +/*
+>> + * Enable/Disable AC Charge funtionality.
+>> + */
+>> +static int twl4030charger_ac_en(int enable)
+>> +{
+>> + int ret;
+>> +
+>> + if (enable) {
+>> + /* forcing the field BCIAUTOAC (BOOT_BCI[0) to 1 */
+>> + ret = clear_n_set(TWL4030_MODULE_PM_MASTER, 0,
+>> + (CONFIG_DONE | BCIAUTOWEN | BCIAUTOAC),
+>> + REG_BOOT_BCI);
+>> + if (ret)
+>> + return ret;
+>> + } else {
+>> + /* forcing the field BCIAUTOAC (BOOT_BCI[0) to 0*/
+>> + ret = clear_n_set(TWL4030_MODULE_PM_MASTER, BCIAUTOAC,
+>> + (CONFIG_DONE | BCIAUTOWEN),
+>> + REG_BOOT_BCI);
+>> + if (ret)
+>> + return ret;
+>> + }
+>> + return 0;
+>> +}
+>> +
+>> +/*
+>> + * Enable/Disable USB Charge funtionality.
+>> + */
+>> +int twl4030charger_usb_en(int enable)
+>> +{
+>> + u8 value;
+>> + int ret;
+>> + unsigned long timeout;
+>> +
+>> + if (enable) {
+>> + /* Check for USB charger conneted */
+>> + ret = twl4030charger_presence();
+>> + if (ret < 0)
+>> + return ret;
+>> +
+>> + if (!(ret & USB_PW_CONN))
+>> + return -ENXIO;
+>> +
+>> + /* forcing the field BCIAUTOUSB (BOOT_BCI[1]) to 1 */
+>> + ret = clear_n_set(TWL4030_MODULE_PM_MASTER, 0,
+>> + (CONFIG_DONE | BCIAUTOWEN | BCIAUTOUSB),
+>> + REG_BOOT_BCI);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + ret = clear_n_set(TWL4030_MODULE_USB, 0, PHY_DPLL_CLK,
+>> + REG_PHY_CLK_CTRL);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + value = 0;
+>> + timeout = jiffies + msecs_to_jiffies(50);
+>> +
+>> + while ((!(value & PHY_DPLL_CLK)) &&
+>> + time_before(jiffies, timeout)) {
+>> + udelay(10);
+>> + ret = twl4030_i2c_read_u8(TWL4030_MODULE_USB, &value,
+>> + REG_PHY_CLK_CTRL_STS);
+>> + if (ret)
+>> + return ret;
+>> + }
+>> +
+>> + /* OTG_EN (POWER_CTRL[5]) to 1 */
+>> + ret = clear_n_set(TWL4030_MODULE_USB, 0, OTG_EN,
+>> + REG_POWER_CTRL);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + mdelay(50);
+>> +
+>> + /* forcing USBFASTMCHG(BCIMFSTS4[2]) to 1 */
+>> + ret = clear_n_set(TWL4030_MODULE_MAIN_CHARGE, 0,
+>> + USBFASTMCHG, REG_BCIMFSTS4);
+>> + if (ret)
+>> + return ret;
+>> + } else {
+>> + twl4030charger_presence();
+>> + ret = clear_n_set(TWL4030_MODULE_PM_MASTER, BCIAUTOUSB,
+>> + (CONFIG_DONE | BCIAUTOWEN), REG_BOOT_BCI);
+>> + if (ret)
+>> + return ret;
+>> + }
+>> +
+>> + return 0;
+>> +}
+>> +
+>> +/*
+>> + * Return battery temperature
+>> + * Or < 0 on failure.
+>> + */
+>> +static int twl4030battery_temperature(void)
+>> +{
+>> + u8 val;
+>> + int temp, curr, volt, res, ret;
+>> +
+>> + /* Getting and calculating the thermistor voltage */
+>> + ret = read_bci_val(T2_BATTERY_TEMP);
+>> + if (ret < 0)
+>> + return ret;
+>> +
+>> + volt = (ret * TEMP_STEP_SIZE) / TEMP_PSR_R;
+>> +
+>> + /* Getting and calculating the supply current in micro ampers */
+>> + ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE, &val,
+>> + REG_BCICTL2);
+>> + if (ret)
+>> + return 0;
+>> +
+>> + curr = ((val & ITHSENS) + 1) * 10;
+>> +
+>> + /* Getting and calculating the thermistor resistance in ohms*/
+>> + res = volt * 1000 / curr;
+>> +
+>> + /*calculating temperature*/
+>> + for (temp = 55; temp >= 0; temp--) {
+>> + int actual = twl4030battery_temp_tbl [temp];
+>> + if ((actual - res) >= 0)
+>> + break;
+>> + }
+>> +
+>> + return temp + 1;
+>> +}
+>> +
+>> +/*
+>> + * Return battery voltage
+>> + * Or < 0 on failure.
+>> + */
+>> +static int twl4030battery_voltage(void)
+>> +{
+>> + int volt = read_bci_val(T2_BATTERY_VOLT);
+>> +
+>> + return (volt * VOLT_STEP_SIZE) / VOLT_PSR_R;
+>> +}
+>> +
+>> +/*
+>> + * Return the battery current
+>> + * Or < 0 on failure.
+>> + */
+>> +static int twl4030battery_current(void)
+>> +{
+>> + int ret, curr = read_bci_val(T2_BATTERY_CUR);
+>> + u8 val;
+>> +
+>> + ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE, &val,
+>> + REG_BCICTL1);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + if (val & CGAIN) /* slope of 0.44 mV/mA */
+>> + return (curr * CURR_STEP_SIZE) / CURR_PSR_R1;
+>> + else /* slope of 0.88 mV/mA */
+>> + return (curr * CURR_STEP_SIZE) / CURR_PSR_R2;
+>> +}
+>> +
+>> +/*
+>> + * Return the battery backup voltage
+>> + * Or < 0 on failure.
+>> + */
+>> +static int twl4030backupbatt_voltage(void)
+>> +{
+>> + int ret, temp;
+>> + u8 volt;
+>> +
+>> + /* trigger MADC convertion */
+>> + twl4030madc_sw1_trigger();
+>> +
+>> + ret = twl4030_i2c_read_u8(TWL4030_MODULE_MADC, &volt,
+>> + REG_GPCH9 + 1);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + temp = ((int) volt) << 2;
+>> +
+>> + ret = twl4030_i2c_read_u8(TWL4030_MODULE_MADC, &volt,
+>> + REG_GPCH9);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + temp = temp + ((int) ((volt & MADC_LSB_MASK) >> 6));
+>> +
+>> + return  (temp * BK_VOLT_STEP_SIZE) / BK_VOLT_PSR_R;
+>> +}
+>> +
+>> +/*
+>> + * Returns an integer value, that means,
+>> + * NO_PW_CONN  no power supply is connected
+>> + * AC_PW_CONN  if the AC power supply is connected
+>> + * USB_PW_CONN  if the USB power supply is connected
+>> + * AC_PW_CONN + USB_PW_CONN if USB and AC power supplies are both
+>> connected
+>> + *
+>> + * Or < 0 on failure.
+>> + */
+>> +static int twl4030charger_presence(void)
+>> +{
+>> + int ret;
+>> + u8 hwsts;
+>> +
+>> + ret = twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &hwsts,
+>> + REG_STS_HW_CONDITIONS);
+>> + if (ret) {
+>> + pr_err("BATTERY DRIVER: error reading STS_HW_CONDITIONS \n");
+>> + return ret;
+>> + }
+>> +
+>> + ret = (hwsts & STS_CHG)? AC_PW_CONN: NO_PW_CONN;
+>> + ret += (hwsts & STS_VBUS)? USB_PW_CONN: NO_PW_CONN;
+>> +
+>> + if (ret & USB_PW_CONN)
+>> + usb_charger_flag = 1;
+>> + else
+>> + usb_charger_flag = 0;
+>> +
+>> + return ret;
+>> +
+>> +}
+>> +
+>> +/*
+>> + * Returns the main charge FSM status
+>> + * Or < 0 on failure.
+>> + */
+>> +static int twl4030bci_status(void)
+>> +{
+>> + int ret;
+>> + u8 status;
+>> +
+>> + ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE,
+>> + &status, REG_BCIMSTATEC);
+>> + if (ret) {
+>> + pr_err("BATTERY DRIVER: error reading BCIMSTATEC \n");
+>> + return ret;
+>> + }
+>> +
+>> + return (int) (status & BCIMSTAT_MASK);
+>> +}
+>> +
+>> +static int read_bci_val(u8 reg)
+>> +{
+>> + int ret, temp;
+>> + u8 val;
+>> +
+>> + /* reading MSB */
+>> + ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE, &val,
+>> + reg + 1);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + temp = ((int)(val & 0x03)) << 8;
+>> +
+>> + /* reading LSB */
+>> + ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE, &val,
+>> + reg);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + return temp | val;
+>> +}
+>> +
+>> +/*
+>> + * Triggers the sw1 request for the twl4030 module to measure the sw1
+>> selected
+>> + * channels
+>> + */
+>> +static int twl4030madc_sw1_trigger(void)
+>> +{
+>> + u8 val;
+>> + int ret;
+>> +
+>> + /* Triggering SW1 MADC convertion */
+>> + ret = twl4030_i2c_read_u8(TWL4030_MODULE_MADC, &val,
+>> + REG_CTRL_SW1);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + val |= SW1_TRIGGER;
+>> +
+>> + ret = twl4030_i2c_write_u8(TWL4030_MODULE_MADC, val,
+>> + REG_CTRL_SW1);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + /* Waiting until the SW1 conversion ends*/
+>> + val = 0;
+>> +
+>> + while (!(val & EOC_SW1)) {
+>> + ret = twl4030_i2c_read_u8(TWL4030_MODULE_MADC, &val,
+>> + REG_CTRL_SW1);
+>> + if (ret)
+>> + return ret;
+>> + mdelay(10);
+>> + }
+>> +
+>> + return 0;
+>> +}
+>> +
+>> +/*
+>> + * Settup the twl4030 MADC module to measure the backup
+>> + * battery voltage.
+>> + */
+>> +static int twl4030backupbatt_voltage_setup(void)
+>> +{
+>> + int ret;
+>> +
+>> + /* turning adc_on */
+>> + ret = twl4030_i2c_write_u8(TWL4030_MODULE_MADC, MADC_ON,
+>> + REG_CTRL1);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + /*setting MDC channel 9 to trigger by SW1*/
+>> + ret = clear_n_set(TWL4030_MODULE_MADC, 0, SW1_CH9_SEL,
+>> + REG_SW1SELECT_MSB);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + /* Starting backup batery charge */
+>> + ret = clear_n_set(TWL4030_MODULE_PM_RECEIVER, 0, BBCHEN,
+>> + REG_BB_CFG);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + return 0;
+>> +}
+>> +
+>> +/*
+>> + * Settup the twl4030 BCI and MADC module to measure battery
+>> + * temperature
+>> + */
+>> +static int twl4030battery_temp_setup(void)
+>> +{
+>> + int ret;
+>> +
+>> + /* Enabling thermistor current */
+>> + ret = clear_n_set(TWL4030_MODULE_MAIN_CHARGE, 0, ITHEN,
+>> + REG_BCICTL1);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + return 0;
+>> +}
+>> +
+>> +/*
+>> + * Sets and clears bits on an given register on a given module
+>> + */
+>> +static inline int clear_n_set(u8 mod_no, u8 clear, u8 set, u8 reg)
+>> +{
+>> + int ret;
+>> + u8 val = 0;
+>> +
+>> + /* Gets the initial register value */
+>> + ret = twl4030_i2c_read_u8(mod_no, &val, reg);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + /* Clearing all those bits to clear */
+>> + val &= ~(clear);
+>> +
+>> + /* Setting all those bits to set */
+>> + val |= set;
+>> +
+>> + /* Update the register */
+>> + ret = twl4030_i2c_write_u8(mod_no, val, reg);
+>> + if (ret)
+>> + return ret;
+>> +
+>> + return 0;
+>> +}
+>> +
+>> +static enum power_supply_property twl4030_bci_battery_props[] = {
+>> + POWER_SUPPLY_PROP_STATUS,
+>> + POWER_SUPPLY_PROP_ONLINE,
+>> + POWER_SUPPLY_PROP_VOLTAGE_NOW,
+>> + POWER_SUPPLY_PROP_CURRENT_NOW,
+>> + POWER_SUPPLY_PROP_CAPACITY,
+>> + POWER_SUPPLY_PROP_TEMP,
+>> +};
+>> +
+>> +static enum power_supply_property twl4030_bk_bci_battery_props[] = {
+>> + POWER_SUPPLY_PROP_VOLTAGE_NOW,
+>> +};
+>> +
+>> +static void
+>> +twl4030_bk_bci_battery_read_status(struct twl4030_bci_device_info *di)
+>> +{
+>> + di->bk_voltage_uV = twl4030backupbatt_voltage();
+>> + return;
+> 
+> unneeded return;
+Okay.
+> 
+>> +}
+>> +
+>> +static void twl4030_bk_bci_battery_work(struct delayed_work *work)
+> 
+>                               here you should pass a struct work_struct
+> 
+>> +{
+>> + struct twl4030_bci_device_info *di = container_of(work,
+>> + struct twl4030_bci_device_info, twl4030_bk_bci_monitor_work);
+> 
+>                          and this should be
+> twl4030_bk_bci_monitor_work.work
+> 
+>> +
+>> + twl4030_bk_bci_battery_read_status(di);
+>> + schedule_delayed_work(&di->twl4030_bk_bci_monitor_work, 500);
+>> + return;
+> 
+> unneeded return;
+Okay.
+> 
+>> +}
+>> +
+>> +static void twl4030_bci_battery_read_status(struct
+>> twl4030_bci_device_info *di)
+>> +{
+>> + di->temp_C = twl4030battery_temperature();
+>> + di->voltage_uV = twl4030battery_voltage();
+>> + di->current_uA = twl4030battery_current();
+>> +
+>> + return;
+> 
+> unneeded return;
+Okay
+> 
+>> +}
+>> +
+>> +static void
+>> +twl4030_bci_battery_update_status(struct twl4030_bci_device_info *di)
+>> +{
+>> + twl4030_bci_battery_read_status(di);
+>> + di->charge_status = POWER_SUPPLY_STATUS_UNKNOWN;
+>> +
+>> + if (power_supply_am_i_supplied(&di->bat))
+>> + di->charge_status = POWER_SUPPLY_STATUS_CHARGING;
+>> + else
+>> + di->charge_status = POWER_SUPPLY_STATUS_DISCHARGING;
+>> +
+>> + return;
+> 
+> unneeded return;
+Okay
+> 
+>> +}
+>> +
+>> +static void twl4030_bci_battery_work(struct delayed_work *work)
+>> +{
+>> + struct twl4030_bci_device_info *di = container_of(work,
+>> + struct twl4030_bci_device_info, twl4030_bci_monitor_work);
+>> +
+>> + twl4030_bci_battery_update_status(di);
+>> + schedule_delayed_work(&di->twl4030_bci_monitor_work, 100);
+>> + return;
+> 
+> unneeded return;
+Okay
+> 
+>> +}
+>> +
+>> +
+>> +#define to_twl4030_bci_device_info(x) container_of((x), \
+>> + struct twl4030_bci_device_info, bat);
+>> +
+>> +static void twl4030_bci_battery_external_power_changed(struct
+>> power_supply *psy)
+>> +{
+>> + struct twl4030_bci_device_info *di = to_twl4030_bci_device_info(psy);
+>> +
+>> + cancel_delayed_work(&di->twl4030_bci_monitor_work);
+>> + schedule_delayed_work(&di->twl4030_bci_monitor_work, 0);
+>> +}
+>> +
+>> +#define to_twl4030_bk_bci_device_info(x) container_of((x), \
+>> + struct twl4030_bci_device_info, bk_bat);
+>> +
+>> +static int twl4030_bk_bci_battery_get_property(struct power_supply *psy,
+>> + enum power_supply_property psp,
+>> + union power_supply_propval *val)
+>> +{
+>> + struct twl4030_bci_device_info *di =
+> to_twl4030_bk_bci_device_info(psy);
+>> +
+>> + switch (psp) {
+>> + case POWER_SUPPLY_PROP_VOLTAGE_NOW:
+>> + val->intval = di->bk_voltage_uV;
+>> + break;
+>> + default:
+>> + return -EINVAL;
+>> + }
+>> +
+>> + return 0;
+>> +}
+>> +
+>> +static int twl4030_bci_battery_get_property(struct power_supply *psy,
+>> + enum power_supply_property psp,
+>> + union power_supply_propval *val)
+>> +{
+>> + struct twl4030_bci_device_info *di = to_twl4030_bci_device_info(psy);
+>> + int status = 0;
+>> +
+>> + switch (psp) {
+>> + case POWER_SUPPLY_PROP_STATUS:
+>> + val->intval = di->charge_status;
+>> + return 0;
+>> + default:
+>> + break;
+>> + }
+>> +
+>> + switch (psp) {
+>> + case POWER_SUPPLY_PROP_VOLTAGE_NOW:
+>> + val->intval = di->voltage_uV;
+>> + break;
+>> + case POWER_SUPPLY_PROP_CURRENT_NOW:
+>> + val->intval = di->current_uA;
+>> + break;
+>> + case POWER_SUPPLY_PROP_TEMP:
+>> + val->intval = di->temp_C;
+>> + break;
+>> + case POWER_SUPPLY_PROP_ONLINE:
+>> + status = twl4030bci_status();
+>> + if ((status & AC_STATEC) == AC_STATEC)
+>> + val->intval = POWER_SUPPLY_TYPE_MAINS;
+>> + else if (usb_charger_flag)
+>> + val->intval = POWER_SUPPLY_TYPE_USB;
+>> + else
+>> + val->intval = 0;
+>> + break;
+>> + case POWER_SUPPLY_PROP_CAPACITY:
+>> + /*
+>> + * need to get the correct percentage value per the
+>> + * battery characteristics. Approx values for now.
+>> + */
+>> + if (di->voltage_uV < 2894 || LVL_1) {
+>> + val->intval = 5;
+>> + LVL_1 = 0;
+>> + } else if ((di->voltage_uV < 3451 && di->voltage_uV > 2894)
+>> + || LVL_2) {
+>> + val->intval = 20;
+>> + LVL_2 = 0;
+>> + } else if ((di->voltage_uV < 3902 && di->voltage_uV > 3451)
+>> + || LVL_3) {
+>> + val->intval = 50;
+>> + LVL_3 = 0;
+>> + } else if ((di->voltage_uV < 3949 && di->voltage_uV > 3902)
+>> + || LVL_4) {
+>> + val->intval = 75;
+>> + LVL_4 = 0;
+>> + } else if (di->voltage_uV > 3949)
+>> + val->intval = 90;
+>> + break;
+>> + default:
+>> + return -EINVAL;
+>> + }
+>> + return 0;
+>> +}
+>> +
+>> +static char *twl4030_bci_supplied_to[] = {
+>> + "twl4030_bci_battery",
+>> +};
+>> +
+>> +static int twl4030_bci_battery_probe(struct  platform_device *dev)
+>> +{
+>> + struct twl4030_bci_device_info *di;
+>> + int ret;
+>> +
+>> + di = kzalloc(sizeof(*di), GFP_KERNEL);
+>> + if (!di)
+>> + return -ENOMEM;
+>> +
+>> + platform_set_drvdata(dev, di);
+>> +
+>> + di->dev = &dev->dev;
+>> + di->bat.name = "twl4030_bci_battery";
+>> + di->bat.supplied_to = twl4030_bci_supplied_to;
+>> + di->bat.num_supplicants = ARRAY_SIZE(twl4030_bci_supplied_to);
+>> + di->bat.type = POWER_SUPPLY_TYPE_BATTERY;
+>> + di->bat.properties = twl4030_bci_battery_props;
+>> + di->bat.num_properties = ARRAY_SIZE(twl4030_bci_battery_props);
+>> + di->bat.get_property = twl4030_bci_battery_get_property;
+>> + di->bat.external_power_changed =
+>> + twl4030_bci_battery_external_power_changed;
+>> +
+>> + di->charge_status = POWER_SUPPLY_STATUS_UNKNOWN;
+>> +
+>> + di->bk_bat.name = "twl4030_bci_bk_battery";
+>> + di->bk_bat.type = POWER_SUPPLY_TYPE_BATTERY;
+>> + di->bk_bat.properties = twl4030_bk_bci_battery_props;
+>> + di->bk_bat.num_properties = ARRAY_SIZE(twl4030_bk_bci_battery_props);
+>> + di->bk_bat.get_property = twl4030_bk_bci_battery_get_property;
+>> + di->bk_bat.external_power_changed = NULL;
+>> +
+>> + twl4030charger_ac_en(ENABLE);
+>> + twl4030charger_usb_en(ENABLE);
+>> + twl4030battery_hw_level_en(ENABLE);
+>> + twl4030battery_hw_presence_en(ENABLE);
+>> +
+>> + /* settings for temperature sensing */
+>> + ret = twl4030battery_temp_setup();
+>> + if (ret)
+>> + goto temp_setup_fail;
+>> +
+>> + /* enabling GPCH09 for read back battery voltage */
+>> + ret = twl4030backupbatt_voltage_setup();
+>> + if (ret)
+>> + goto voltage_setup_fail;
+>> +
+>> + /* request BCI interruption */
+>> + ret = request_irq(TWL4030_MODIRQ_BCI, twl4030battery_interrupt,
+>> + IRQF_DISABLED, dev->name, NULL);
+>> + if (ret) {
+>> + pr_err("BATTERY DRIVER: (BCI) IRQ%d is not free.\n",
+>> + TWL4030_MODIRQ_PWR);
+>> + goto batt_irq_fail;
+>> + }
+>> +
+>> + /* request Power interruption */
+>> + ret = request_irq(TWL4030_PWRIRQ_CHG_PRES, twl4030charger_interrupt,
+>> + 0, dev->name, di);
+>> +
+>> + if (ret) {
+>> + pr_err("BATTERY DRIVER: (POWER) IRQ%d is not free.\n",
+>> + TWL4030_MODIRQ_PWR);
+>> + goto chg_irq_fail;
+>> + }
+>> +
+>> + ret = power_supply_register(&dev->dev, &di->bat);
+>> + if (ret) {
+>> + pr_err("BATTERY DRIVER: failed to register main battery\n");
+>> + goto batt_failed;
+>> + }
+>> +
+>> + INIT_DELAYED_WORK(&di->twl4030_bci_monitor_work,
+>> + twl4030_bci_battery_work);
+> 
+>        INIT_DELAYED_WORK_DEFERRABLE()???
+Do you mean INIT_DELAYED_WORK_DEFERRABLE() is a better choice here??
+> 
+>> + schedule_delayed_work(&di->twl4030_bci_monitor_work, 0);
+>> +
+>> + ret = power_supply_register(&dev->dev, &di->bk_bat);
+>> + if (ret) {
+>> + pr_err("BATTERY DRIVER: failed to register backup battery\n");
+>> + goto bk_batt_failed;
+>> + }
+>> +
+>> + INIT_DELAYED_WORK(&di->twl4030_bk_bci_monitor_work,
+>> + twl4030_bk_bci_battery_work);
+> 
+>        INIT_DELAYED_WORK_DEFERRABLE()???
+> 
+>> + schedule_delayed_work(&di->twl4030_bk_bci_monitor_work, 500);
+>> +
+>> + return 0;
+>> +
+>> +bk_batt_failed:
+>> + power_supply_unregister(&di->bat);
+>> +batt_failed:
+>> + free_irq(TWL4030_MODIRQ_PWR, di);
+>> +chg_irq_fail:
+>> +prev_setup_err:
+>> + free_irq(TWL4030_MODIRQ_BCI, NULL);
+>> +batt_irq_fail:
+>> +voltage_setup_fail:
+>> +temp_setup_fail:
+>> + twl4030charger_ac_en(DISABLE);
+>> + twl4030charger_usb_en(DISABLE);
+>> + twl4030battery_hw_level_en(DISABLE);
+>> + twl4030battery_hw_presence_en(DISABLE);
+>> + kfree(di);
+>> +
+>> + return ret;
+>> +}
+>> +
+>> +static int twl4030_bci_battery_remove(struct  platform_device *dev)
+>> +{
+>> + struct twl4030_bci_device_info *di = platform_get_drvdata(dev);
+>> +
+>> + twl4030charger_ac_en(DISABLE);
+>> + twl4030charger_usb_en(DISABLE);
+>> + twl4030battery_hw_level_en(DISABLE);
+>> + twl4030battery_hw_presence_en(DISABLE);
+>> +
+>> + free_irq(TWL4030_MODIRQ_BCI, NULL);
+>> + free_irq(TWL4030_MODIRQ_PWR, di);
+>> +
+>> + flush_scheduled_work();
+>> + power_supply_unregister(&di->bat);
+>> + power_supply_unregister(&di->bk_bat);
+>> + platform_set_drvdata(dev, NULL);
+>> + kfree(di);
+>> +
+>> + return 0;
+>> +}
+>> +
+>> +#ifdef CONFIG_PM
+>> +static int twl4030_bci_battery_suspend(struct platform_device *dev,
+>> + pm_message_t state)
+>> +{
+>> + struct twl4030_bci_device_info *di = platform_get_drvdata(dev);
+>> +
+>> + di->charge_status = POWER_SUPPLY_STATUS_UNKNOWN;
+>> + cancel_delayed_work(&di->twl4030_bci_monitor_work);
+>> + cancel_delayed_work(&di->twl4030_bk_bci_monitor_work);
+>> + return 0;
+>> +}
+>> +
+>> +static int twl4030_bci_battery_resume(struct platform_device *dev)
+>> +{
+>> + struct twl4030_bci_device_info *di = platform_get_drvdata(dev);
+>> +
+>> + schedule_delayed_work(&di->twl4030_bci_monitor_work, 0);
+>> + schedule_delayed_work(&di->twl4030_bk_bci_monitor_work, 50);
+>> + return 0;
+>> +}
+>> +#endif /* CONFIG_PM */
+>> +
+>> +/*
+>> + * Battery driver module initializer function
+>> + * registers battery driver structure
+>> + */
+>> +static int __init twl4030_battery_init(void)
+>> +{
+>> + return platform_driver_register(&twl4030_bci_battery_driver);
+>> +
+>> +}
+>> +
+>> +/*
+>> + * Battery driver module exit function
+>> + * unregister battery driver structure
+>> + */
+>> +static void __exit twl4030_battery_exit(void)
+>> +{
+>> + platform_driver_unregister(&twl4030_bci_battery_driver);
+>> +}
+>> +
+>> +module_init(twl4030_battery_init);
+>> +module_exit(twl4030_battery_exit);
+>> +MODULE_LICENSE("GPL");
+> 
+> missing MODULE_AUTHOR()
+> and MODULE_ALIAS("platform:twl4030-bci-battery");
+Okay
+> 
+> -- 
+> Best Regards,
+> 
+> Felipe Balbi
+> http://felipebalbi.com
+> me@felipebalbi.com
+> 
+>
