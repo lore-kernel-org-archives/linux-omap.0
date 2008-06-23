@@ -1,50 +1,107 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2] OMAP3 clock: fix omap2_clk_wait_ready for OMAP3430ES2
- DSS
-Date: Mon, 23 Jun 2008 08:52:00 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0806230849130.4919@utopia.booyaka.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB022BE46296@dbde02.ent.ti.com> <485CA347.909@googlemail.com> <5A47E75E594F054BAF48C5E4FC4B92AB022BB66209@dbde02.ent.ti.com> <alpine.DEB.1.00.0806211054100.19765@utopia.booyaka.com> <ACAEC52B-E9B4-4789-8D63-114C53846760@student.utwente.nl>
- <13B9B4C6EF24D648824FF11BE8967162035BA2A659@dlee02.ent.ti.com> <alpine.DEB.1.00.0806221308090.7503@utopia.booyaka.com> <874p7kad66.fsf@trdhcp146196.ntc.nokia.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [RFC/PATCH 1/2] Triton Battery charger interface driver for OMAP3430
+Date: Mon, 23 Jun 2008 09:53:16 -0500
+Message-ID: <cbbf72cc022c9baa52230371202fed66@felipebalbi.com>
+References: <61775.192.168.10.89.1213963421.squirrel@dbdmail.itg.ti.com> <cc28162fe9818299156131c2374c3ba3@felipebalbi.com> <04c401c8d535$ebf53dc0$35f6180a@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-292305806-1214232720=:4919"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42625 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753952AbYFWOwC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jun 2008 10:52:02 -0400
-In-Reply-To: <874p7kad66.fsf@trdhcp146196.ntc.nokia.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:48951 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752706AbYFWOxZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jun 2008 10:53:25 -0400
+In-Reply-To: <04c401c8d535$ebf53dc0$35f6180a@ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-15?Q?H=F6gander_Jouni?= <jouni.hogander@nokia.com>
-Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, Koen Kooi <k.kooi@student.utwente.nl>, "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Dirk Behme <dirk.behme@googlemail.com>
+To: Madhusudhan Chikkature <madhu.cr@ti.com>, Tony Lindgren <tony@atomide.com>, jouni.hogander@nokia.com
+Cc: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi,
 
---155748971-292305806-1214232720=:4919
-Content-Type: TEXT/PLAIN; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+On Mon, 23 Jun 2008 19:04:51 +0530, "Madhusudhan Chikkature"
+<madhu.cr@ti.com> wrote:
 
-Hi Jouni
+>> On Fri, 20 Jun 2008 17:33:41 +0530 (IST), x0070977@dbdmail.itg.ti.com
+>> wrote:
+>>
+>>> Index: linux-omap-2.6/arch/arm/mach-omap2/devices.c
+>>> ===================================================================
+>>> --- linux-omap-2.6.orig/arch/arm/mach-omap2/devices.c 2008-06-20
+>>> 15:39:56.000000000 +0530
+>>> +++ linux-omap-2.6/arch/arm/mach-omap2/devices.c 2008-06-20
+>>> 15:42:05.000000000
+>>> +0530
+>>> @@ -358,6 +358,22 @@
+>>>  static inline void omap_hdq_init(void) {}
+>>>  #endif
+>>>
+>>> +#ifdef CONFIG_TWL4030_BCI_BATTERY
+>>> +static struct platform_device omap_bci_battery_device = {
+>>> + .name           = "twl4030-bci-battery",
+>>> + .id             = 1,
+>>> + .num_resources  = 0,
+>>> + .resource       = NULL,
+>>
+>> if you pass the struct resources you can use __raw_{read,write} which
+>> would simplify a lot for you, but if you really don't want it, you
+>> don't have to initialize it to NULL. Just because it's static, it's
+>> enough for it to get NULLed.
+> The battery driver uses twl4030_i2c_read_u8 and twl4030_i2c_write_u8 as
+> low level interface(I2C) with
+> standard twl4030.h defines. So no point of  _raw(read,write) and BASE
+> address getting initialized through resource structure. Right?.
+> I agree with your second point of no need to explicitely setting it to
+> NULL though.
 
-On Mon, 23 Jun 2008, H=C3=B6gander Jouni wrote:
+The idea was to actually get rid of the i2c transfers and use
+__raw_read/write
+instead, but I suppose it's ok to use i2c transfers
 
-> Hello Paul,
->=20
-> It should actually wait for SSI also. Read my comments below.
+>>> +};
+>>> +
+>>> +static inline void omap_bci_battery_init(void)
+>>> +{
+>>> + (void) platform_device_register(&omap_bci_battery_device);
+>>> +}
+>>> +#else
+>>> +static inline void omap_bci_battery_init(void) {}
+>>> +#endif
+>>> +
 
-=2E..
+don't remember if I said on last mail, but this ifdef should be in
+a header file. Maybe include/linux/i2c/twl4030.h
 
-> And add this part
->=20
-> +       if (cpu_is_omap34xx() &&
-> +=09    prcm_mod =3D=3D OMAP34XX_CM_REGADDR(CORE_MOD, 0) &&
-> +=09    clk->enable_bit =3D=3D OMAP3430_EN_SSI_SHIFT) {
-> +=09=09bit =3D OMAP3430ES2_ST_SSI_IDLE;
+>> How about creating a special battery.c for this just like usb-musb.c,
+>> usb-ehci.c
+>> and hsmmc.c, so it's easier to reuse it and add such support only for
+>> boards that
+>> has twl4030.
+>>
+>> It would be useful for omap multiboot, I suppose.
+> I had put these under devices.c as there is not much board level
+> configurations for BCI unlike hsmmc.
+> I guess I can add a simple board file for battery that way it can used
+> based on TWL4030 if it is a good idea.
 
-what should OMAP3430ES2_ST_SSI_IDLE be set to?  I don't have any=20
-documentation here that defines this bit.
+I would like to hear from Tony and the others what do they think?
+would it be worthy adding an extra file for bci ??
+
+Tony, comments?
+
+>>        INIT_DELAYED_WORK_DEFERRABLE()???
+> Do you mean INIT_DELAYED_WORK_DEFERRABLE() is a better choice here??
+
+Yes, as it could be deferred on suspend/resume. I think INIT_DELAYED_WORK
+also blocks dynamic pm ?!?
+
+Maybe Jouni could clarify this one better. Jouni, any comments?
 
 
-- Paul
---155748971-292305806-1214232720=:4919--
+-- 
+Best Regards,
+
+Felipe Balbi
+http://felipebalbi.com
+me@felipebalbi.com
+
