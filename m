@@ -1,52 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP3:devices.c: Enabling 4-bit for SD card
-Date: Mon, 23 Jun 2008 15:47:04 +0300
-Message-ID: <20080623124703.GW7741@atomide.com>
-References: <200806161302.m5GD2Xg4007641@india.ti.com>
+Subject: Re: [PATCH] i2c: twl4030: warning: mixed declarations and code
+Date: Mon, 23 Jun 2008 16:00:05 +0300
+Message-ID: <20080623130004.GX7741@atomide.com>
+References: <1213185323-31758-1-git-send-email-felipe.balbi@nokia.com> <a0580c510806110653p65b64857y8de6897489d60466@mail.gmail.com> <20080611135502.GI20671@gandalf.research.nokia.com> <a0580c510806110702m655cf96by6dbd9800ef48adf4@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [63.208.196.178] ([63.208.196.178]:58887 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1753407AbYFWMql (ORCPT
+Received: from [63.208.196.179] ([63.208.196.179]:61710 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-FAIL-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1753798AbYFWM7l (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Jun 2008 08:46:41 -0400
+	Mon, 23 Jun 2008 08:59:41 -0400
 Content-Disposition: inline
-In-Reply-To: <200806161302.m5GD2Xg4007641@india.ti.com>
+In-Reply-To: <a0580c510806110702m655cf96by6dbd9800ef48adf4@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Purushotam Kumar <a0876542@india.ti.com>
-Cc: linux-omap@vger.kernel.org, anantgole@ti.com
+To: Eduardo Valentin <edubezval@gmail.com>
+Cc: felipe.balbi@nokia.com, linux-omap@vger.kernel.org
 
-* Purushotam Kumar <a0876542@india.ti.com> [080616 16:03]:
-> OMAP3:devices.c:Enabling 4-bit for SD card
+* Eduardo Valentin <edubezval@gmail.com> [080611 17:04]:
+> Hi Balbi,
 > 
-> SD card was working in 1-bit mode.This patch will configure SD card in 
-> 4-bit mode and hence performance  will increase.
+> On Wed, Jun 11, 2008 at 9:55 AM, Felipe Balbi <felipe.balbi@nokia.com> wrote:
+> > On Wed, Jun 11, 2008 at 09:53:45AM -0400, ext Eduardo Valentin wrote:
+> >> > -       struct twl4030_usb *twl = xceiv_to_twl(xceiv);
+> >> >        u32 l;
+> >> > +       struct twl4030_usb *twl = xceiv_to_twl(xceiv);
+> >>
+> >> To me you are just moving the place of this declaration.
+> >
+> > Yes, because ISO C99 forbids mixed declaraction and code. build
+> > tlw4030-usb and you'll see the warning. ;-)
 > 
-> Signed-off-by: Purushotam Kumar <purushotam@ti.com>
-> Acked-by: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
-> ---
->  arch/arm/plat-omap/devices.c |    4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+> Ok. I'd suggest changing the commit message to
+> i2c: twl4030: C99 warning: mixed declarations and code
 > 
-> Index: linux-omap-2.6/arch/arm/plat-omap/devices.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/plat-omap/devices.c
-> +++ linux-omap-2.6/arch/arm/plat-omap/devices.c
-> @@ -292,8 +292,10 @@ static void __init omap_init_mmc(void)
->  	mmc = &mmc_conf->mmc[0];
->  
->  	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
-> -		if (mmc->enabled)
-> +		if (mmc->enabled) {
-> +			mmc1_data.conf = *mmc;
->  			(void) platform_device_register(&mmc_omap_device1);
-> +		}
->  
->  #if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX)
->  		mmc = &mmc_conf->mmc[1];
+> But this is up to you :)
 
-I guess this should be also done for mmc2_data.conf?
+Pushing today, that driver is not in mainline yet so the comments are
+just fine.
 
 Tony
