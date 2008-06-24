@@ -1,78 +1,78 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP3 clock: DPLL{1,2}_FCLK clksel can divide by 4
-Date: Tue, 24 Jun 2008 01:12:35 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0806240111320.9741@utopia.booyaka.com>
+Subject: Re: [PATCH 2/8] PRCM: Workaround for pwrdn_x control
+Date: Tue, 24 Jun 2008 01:28:18 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0806240118000.9741@utopia.booyaka.com>
+References: <87iqw85xlo.fsf@trdhcp146196.ntc.nokia.com> <1213687856-29932-1-git-send-email-jouni.hogander@nokia.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47392 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:35473 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751623AbYFXHMg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jun 2008 03:12:36 -0400
+	with ESMTP id S1752103AbYFXH2T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jun 2008 03:28:19 -0400
+In-Reply-To: <1213687856-29932-1-git-send-email-jouni.hogander@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Jouni Hogander <jouni.hogander@nokia.com>
+Cc: linux-omap@vger.kernel.org
+
+Hello Jouni,
+
+On Tue, 17 Jun 2008, Jouni Hogander wrote:
+
+> Clock path should be powered down only after all it's clients are
+> properly disabled. Generally we don't have working implementation for
+> checking wether some clock is enabled or disabled.
+
+Just wanted to revisit this again briefly.  Is this patch intended to fix 
+DPLL output powerdown paths?  Or do all clocks need this for some reason?
+
+If the former, what do you think instead about adding a custom disable 
+function for the DPLL outputs which would include the udelay()?
+That way we might be able to avoid adding the udelay() to all clock 
+disable calls.
+
+- Paul
+
+>  arch/arm/mach-omap2/clock.c |   11 ++++++++++-
+>  1 files changed, 10 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+> index ed15868..9099ba6 100644
+> --- a/arch/arm/mach-omap2/clock.c
+> +++ b/arch/arm/mach-omap2/clock.c
+> @@ -329,6 +329,9 @@ void omap2_clk_disable(struct clk *clk)
+>  {
+>  	if (clk->usecount > 0 && !(--clk->usecount)) {
+>  		_omap2_clk_disable(clk);
+> +		/* XXX Currently we don't have working code for
+> +		 * checking wether clock is really disabled */
+> +		udelay(10);
+>  		if (clk->parent)
+>  			omap2_clk_disable(clk->parent);
+>  		if (clk->clkdm)
+> @@ -974,6 +977,12 @@ void omap2_clk_disable_unused(struct clk *clk)
+>  		return;
+>  
+>  	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
+> -	_omap2_clk_disable(clk);
+> +	/* XXX In case of omap3 we need to make sure that sequence is
+> +	 * correct when disabling clocks */
+> +	if (cpu_is_omap34xx()) {
+> +		omap2_clk_enable(clk);
+> +		omap2_clk_disable(clk);
+> +	} else
+> +		_omap2_clk_disable(clk);
+>  }
+>  #endif
+> -- 
+> 1.5.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
-OMAP34xx ES2 TRM Delta G to H states that the divider for DPLL1_FCLK and 
-DPLL2_FCLK can divide by 4 in addition to dividing by 1 and 2. Encode this 
-into the OMAP3 clock framework.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
-
- arch/arm/mach-omap2/clock34xx.h |   20 ++++++++++++++++----
- 1 files changed, 16 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-index b4dceea..9605744 100644
---- a/arch/arm/mach-omap2/clock34xx.h
-+++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -1029,8 +1029,15 @@ static struct clk corex2_fck = {
- 
- /* DPLL power domain clock controls */
- 
--static const struct clksel div2_core_clksel[] = {
--	{ .parent = &core_ck, .rates = div2_rates },
-+static const struct clksel_rate div4_rates[] = {
-+	{ .div = 1, .val = 1, .flags = RATE_IN_343X | DEFAULT_RATE },
-+	{ .div = 2, .val = 2, .flags = RATE_IN_343X },
-+	{ .div = 4, .val = 4, .flags = RATE_IN_343X },
-+	{ .div = 0 }
-+};
-+
-+static const struct clksel div4_core_clksel[] = {
-+	{ .parent = &core_ck, .rates = div4_rates },
- 	{ .parent = NULL }
- };
- 
-@@ -1044,7 +1051,7 @@ static struct clk dpll1_fck = {
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= _OMAP34XX_CM_REGADDR(MPU_MOD, OMAP3430_CM_CLKSEL1_PLL),
- 	.clksel_mask	= OMAP3430_MPU_CLK_SRC_MASK,
--	.clksel		= div2_core_clksel,
-+	.clksel		= div4_core_clksel,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
- 	.recalc		= &omap2_clksel_recalc,
-@@ -1119,7 +1126,7 @@ static struct clk dpll2_fck = {
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= _OMAP34XX_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKSEL1_PLL),
- 	.clksel_mask	= OMAP3430_IVA2_CLK_SRC_MASK,
--	.clksel		= div2_core_clksel,
-+	.clksel		= div4_core_clksel,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
- 	.recalc		= &omap2_clksel_recalc,
-@@ -1155,6 +1162,11 @@ static struct clk iva2_ck = {
- 
- /* Common interface clocks */
- 
-+static const struct clksel div2_core_clksel[] = {
-+	{ .parent = &core_ck, .rates = div2_rates },
-+	{ .parent = NULL }
-+};
-+
- static struct clk l3_ick = {
- 	.name		= "l3_ick",
- 	.parent		= &core_ck,
+- Paul
