@@ -1,32 +1,25 @@
 From: "Arun KS" <getarunks@gmail.com>
 Subject: Re: [PATCH 1/3] OMAP2EVM: add ethernet support (smc911x)
-Date: Tue, 24 Jun 2008 17:59:09 +0530
-Message-ID: <dfeb90390806240529v27c8e615leabdf441efff6004@mail.gmail.com>
+Date: Tue, 24 Jun 2008 18:24:11 +0530
+Message-ID: <dfeb90390806240554v549cf987h20c68685d3082f2b@mail.gmail.com>
 References: <dfeb90390806240504t3a900901t8879c3fc07aebb0f@mail.gmail.com>
 	 <0d8b982e9147570fe343aff404e7a1c6@felipebalbi.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.190]:12293 "EHLO
+Received: from ti-out-0910.google.com ([209.85.142.190]:15205 "EHLO
 	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751867AbYFXM3L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jun 2008 08:29:11 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so1313367tic.23
-        for <linux-omap@vger.kernel.org>; Tue, 24 Jun 2008 05:29:09 -0700 (PDT)
+	with ESMTP id S1750970AbYFXMyN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jun 2008 08:54:13 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so1317033tic.23
+        for <linux-omap@vger.kernel.org>; Tue, 24 Jun 2008 05:54:12 -0700 (PDT)
 In-Reply-To: <0d8b982e9147570fe343aff404e7a1c6@felipebalbi.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Balbi <me@felipebalbi.com>
 Cc: linux-omap@vger.kernel.org
-
-Hi Felipe,
-
-I will do the changes and resend the patches.
-
-Best Regards,
-Arun
 
 On Tue, Jun 24, 2008 at 5:42 PM, Felipe Balbi <me@felipebalbi.com> wrote:
 >
@@ -69,6 +62,8 @@ On Tue, Jun 24, 2008 at 5:42 PM, Felipe Balbi <me@felipebalbi.com> wrote:
 > it looks like drivers/net/smc911x doesn't use IORESOURCE_IRQ, am I
 > misreading it ?
 >
+
+Yes this driver uses platform_get_irq(pdev, 0) to get its irq number.
 >> +   },
 >> +};
 >> +
