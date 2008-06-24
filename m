@@ -1,41 +1,63 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH 1/4] usb: musb: musb on omap3 has 32 endpoints
-Date: Tue, 24 Jun 2008 09:52:05 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB022BE46969@dbde02.ent.ti.com>
-References: <1213351443-3336-1-git-send-email-felipe.balbi@nokia.com>
- <1213351443-3336-2-git-send-email-felipe.balbi@nokia.com>
- <20080623111009.GM7741@atomide.com>
- <20080623111455.GH4414@gandalf.research.nokia.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: [PATCH v2] OMAP3 clock: fix omap2_clk_wait_ready for OMAP3430ES2 DSS
+Date: Tue, 24 Jun 2008 08:54:13 +0300
+Message-ID: <877icfl6nu.fsf@trdhcp146196.ntc.nokia.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB022BE46296@dbde02.ent.ti.com>
+	<485CA347.909@googlemail.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB022BB66209@dbde02.ent.ti.com>
+	<alpine.DEB.1.00.0806211054100.19765@utopia.booyaka.com>
+	<ACAEC52B-E9B4-4789-8D63-114C53846760@student.utwente.nl>
+	<13B9B4C6EF24D648824FF11BE8967162035BA2A659@dlee02.ent.ti.com>
+	<alpine.DEB.1.00.0806221308090.7503@utopia.booyaka.com>
+	<874p7kad66.fsf@trdhcp146196.ntc.nokia.com>
+	<alpine.DEB.1.00.0806230849130.4919@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37895 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751077AbYFXEWR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jun 2008 00:22:17 -0400
-In-Reply-To: <20080623111455.GH4414@gandalf.research.nokia.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:38308 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752281AbYFXFy7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jun 2008 01:54:59 -0400
+In-Reply-To: <alpine.DEB.1.00.0806230849130.4919@utopia.booyaka.com> (ext Paul
+	Walmsley's message of "Mon, 23 Jun 2008 08:52:00 -0600 (MDT)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, ext Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Paul Walmsley <paul@pwsan.com>
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, Koen Kooi <k.kooi@student.utwente.nl>, "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Dirk Behme <dirk.behme@googlemail.com>
 
-> > > Fix hdrc_cnf.h for omap3 configuration.
-> >
-> > Does this break the configuration for omap2?
-> >
-> > We should set these dynamically if different for omap2 and omap3
-> > so we can compile both into the same kernel.
+"ext Paul Walmsley" <paul@pwsan.com> writes:
+
+> Hi Jouni
 >
-> Should check omap2430 trm to be sure, maybe someone in TI
-> could help us with it ?
+> On Mon, 23 Jun 2008, H=C3=B6gander Jouni wrote:
+>
+>> Hello Paul,
+>>=20
+>> It should actually wait for SSI also. Read my comments below.
+>
+> ...
+>
+>> And add this part
+>>=20
+>> +       if (cpu_is_omap34xx() &&
+>> +	    prcm_mod =3D=3D OMAP34XX_CM_REGADDR(CORE_MOD, 0) &&
+>> +	    clk->enable_bit =3D=3D OMAP3430_EN_SSI_SHIFT) {
+>> +		bit =3D OMAP3430ES2_ST_SSI_IDLE;
+>
+> what should OMAP3430ES2_ST_SSI_IDLE be set to?  I don't have any=20
+> documentation here that defines this bit.
 
-It won't break the 2430. The 2430 has 32 endpoints as well.
+Sorry for not to mention this in my first mail:
 
+#define OMAP3430ES2_ST_SSI_IDLE				(1 << 8)
+#define OMAP3430ES2_ST_SSI_STDBY			(1 << 0)
 
-> Maybe we could bring it via platform_data as well?
+--=20
+Jouni H=C3=B6gander
 
-Yep. That would be good.
-
-- Anand
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
