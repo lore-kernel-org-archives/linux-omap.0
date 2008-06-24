@@ -1,132 +1,98 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 1/3] OMAP2EVM: add ethernet support (smc911x)
-Date: Tue, 24 Jun 2008 07:12:44 -0500
-Message-ID: <0d8b982e9147570fe343aff404e7a1c6@felipebalbi.com>
-References: <dfeb90390806240504t3a900901t8879c3fc07aebb0f@mail.gmail.com>
+From: "Arun KS" <getarunks@gmail.com>
+Subject: [ PATCH 2/3 ] net:smc911x Modify driver to also work with omap24xx
+Date: Tue, 24 Jun 2008 17:44:33 +0530
+Message-ID: <dfeb90390806240514w62490fb9kdc1c189f3fd946f5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed;
+	boundary="----=_Part_4870_21581219.1214309673453"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:37890 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751643AbYFXMMq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jun 2008 08:12:46 -0400
-In-Reply-To: <dfeb90390806240504t3a900901t8879c3fc07aebb0f@mail.gmail.com>
+Received: from ti-out-0910.google.com ([209.85.142.184]:7016 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754555AbYFXMOf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jun 2008 08:14:35 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so1310928tic.23
+        for <linux-omap@vger.kernel.org>; Tue, 24 Jun 2008 05:14:34 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arun KS <getarunks@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+
+------=_Part_4870_21581219.1214309673453
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+net:smc911x Modify driver to also work with omap24xx
+
+Signed-off-by: Arun KS <arunks@mistralsolutions.com>
+---
+ drivers/net/Kconfig   |    2 +-
+ drivers/net/smc911x.h |    5 +++++
+ 2 files changed, 6 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/net/Kconfig b/drivers/net/Kconfig
+index 61ecee7..17d0a9c 100644
+--- a/drivers/net/Kconfig
++++ b/drivers/net/Kconfig
+@@ -955,7 +955,7 @@ config SMC911X
+    tristate "SMSC LAN911[5678] support"
+    select CRC32
+    select MII
+-   depends on ARCH_PXA || SH_MAGIC_PANEL_R2 || ARCH_OMAP34XX
++   depends on ARCH_PXA || SH_MAGIC_PANEL_R2 || ARCH_OMAP34XX || ARCH_OMAP24XX
+    help
+      This is a driver for SMSC's LAN911x series of Ethernet chipsets
+      including the new LAN9115, LAN9116, LAN9117, and LAN9118.
+diff --git a/drivers/net/smc911x.h b/drivers/net/smc911x.h
+index dad93a8..0f406a0 100644
+--- a/drivers/net/smc911x.h
++++ b/drivers/net/smc911x.h
+@@ -47,6 +47,11 @@
+   #define SMC_USE_32BIT        1
+   #define SMC_IRQ_SENSE        IRQF_TRIGGER_LOW
+   #define SMC_MEM_RESERVED 1
++#elif defined(CONFIG_ARCH_OMAP24XX)
++  #define SMC_USE_16BIT        0
++  #define SMC_USE_32BIT        1
++  #define SMC_IRQ_SENSE        IRQF_TRIGGER_LOW
++  #define SMC_MEM_RESERVED 1
+ #endif
 
 
+--
+1.5.3.4
 
-On Tue, 24 Jun 2008 17:34:59 +0530, "Arun KS" <getarunks@gmail.com> wrote:
-> From 58efa8d0019a7f777aaad2d43afb05170df25fae Mon Sep 17 00:00:00 2001
-> From: Arun KS <arunks@mistralsolutions.com>
-> Date: Tue, 24 Jun 2008 16:01:32 +0530
-> Subject: [PATCH] OMAP2EVM:  Adding ethernet support
-> 
-> OMAP2EVM: add ethernet support (smc911x)
-> 
-> Signed-off-by: Arun KS <arunks@mistralsolutions.com>
-> ---
->  arch/arm/mach-omap2/board-omap2evm.c       |   37
-> ++++++++++++++++++++++++++++
->  include/asm-arm/arch-omap/board-omap2evm.h |    5 ++-
->  2 files changed, 40 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap2evm.c
-> b/arch/arm/mach-omap2/board-omap2evm.c
-> index d00e502..e9a2cef 100644
-> --- a/arch/arm/mach-omap2/board-omap2evm.c
-> +++ b/arch/arm/mach-omap2/board-omap2evm.c
-> @@ -27,11 +27,43 @@
->  #include <asm/arch/board.h>
->  #include <asm/arch/common.h>
-> 
-> +static struct resource omap2evm_smc911x_resources[] = {
-> +   [0] =   {
-> +       .start  = OMAP2EVM_ETHR_START,
-> +       .end    = (OMAP2EVM_ETHR_START + OMAP2EVM_ETHR_SIZE - 1),
-> +       .flags  = IORESOURCE_MEM,
-> +   },
-> +   [1] =   {
-> +       .start  = OMAP_GPIO_IRQ(OMAP2EVM_ETHR_GPIO_IRQ),
-> +       .end    = OMAP_GPIO_IRQ(OMAP2EVM_ETHR_GPIO_IRQ),
-> +       .flags  = IORESOURCE_IRQ,
+------=_Part_4870_21581219.1214309673453
+Content-Type: text/x-patch;
+ name=0002-net-smc911x-Modify-driver-to-also-work-with-omap24xx.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fhugwl140
+Content-Disposition: attachment;
+ filename=0002-net-smc911x-Modify-driver-to-also-work-with-omap24xx.patch
 
-it looks like drivers/net/smc911x doesn't use IORESOURCE_IRQ, am I
-misreading it ?
+RnJvbSA4YjQ1YmZkNDBhY2E3ZDVmODkxOTVmOTVkNjY4YmFlNzhlMmRiYmE5IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBBcnVuIEtTIDxhcnVua3NAbWlzdHJhbHNvbHV0aW9ucy5jb20+
+CkRhdGU6IFR1ZSwgMjQgSnVuIDIwMDggMTc6MzM6MDggKzA1MzAKU3ViamVjdDogW1BBVENIXSBu
+ZXQ6c21jOTExeCBNb2RpZnkgZHJpdmVyIHRvIGFsc28gd29yayB3aXRoIG9tYXAyNHh4CgpuZXQ6
+c21jOTExeCBNb2RpZnkgZHJpdmVyIHRvIGFsc28gd29yayB3aXRoIG9tYXAyNHh4CgpTaWduZWQt
+b2ZmLWJ5OiBBcnVuIEtTIDxhcnVua3NAbWlzdHJhbHNvbHV0aW9ucy5jb20+Ci0tLQogZHJpdmVy
+cy9uZXQvS2NvbmZpZyAgIHwgICAgMiArLQogZHJpdmVycy9uZXQvc21jOTExeC5oIHwgICAgNSAr
+KysrKwogMiBmaWxlcyBjaGFuZ2VkLCA2IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb25zKC0pCgpk
+aWZmIC0tZ2l0IGEvZHJpdmVycy9uZXQvS2NvbmZpZyBiL2RyaXZlcnMvbmV0L0tjb25maWcKaW5k
+ZXggNjFlY2VlNy4uMTdkMGE5YyAxMDA2NDQKLS0tIGEvZHJpdmVycy9uZXQvS2NvbmZpZworKysg
+Yi9kcml2ZXJzL25ldC9LY29uZmlnCkBAIC05NTUsNyArOTU1LDcgQEAgY29uZmlnIFNNQzkxMVgK
+IAl0cmlzdGF0ZSAiU01TQyBMQU45MTFbNTY3OF0gc3VwcG9ydCIKIAlzZWxlY3QgQ1JDMzIKIAlz
+ZWxlY3QgTUlJCi0JZGVwZW5kcyBvbiBBUkNIX1BYQSB8fCBTSF9NQUdJQ19QQU5FTF9SMiB8fCBB
+UkNIX09NQVAzNFhYCisJZGVwZW5kcyBvbiBBUkNIX1BYQSB8fCBTSF9NQUdJQ19QQU5FTF9SMiB8
+fCBBUkNIX09NQVAzNFhYIHx8IEFSQ0hfT01BUDI0WFgKIAloZWxwCiAJICBUaGlzIGlzIGEgZHJp
+dmVyIGZvciBTTVNDJ3MgTEFOOTExeCBzZXJpZXMgb2YgRXRoZXJuZXQgY2hpcHNldHMKIAkgIGlu
+Y2x1ZGluZyB0aGUgbmV3IExBTjkxMTUsIExBTjkxMTYsIExBTjkxMTcsIGFuZCBMQU45MTE4Lgpk
+aWZmIC0tZ2l0IGEvZHJpdmVycy9uZXQvc21jOTExeC5oIGIvZHJpdmVycy9uZXQvc21jOTExeC5o
+CmluZGV4IGRhZDkzYTguLjBmNDA2YTAgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbmV0L3NtYzkxMXgu
+aAorKysgYi9kcml2ZXJzL25ldC9zbWM5MTF4LmgKQEAgLTQ3LDYgKzQ3LDExIEBACiAgICNkZWZp
+bmUgU01DX1VTRV8zMkJJVAkJMQogICAjZGVmaW5lIFNNQ19JUlFfU0VOU0UJCUlSUUZfVFJJR0dF
+Ul9MT1cKICAgI2RlZmluZSBTTUNfTUVNX1JFU0VSVkVECTEKKyNlbGlmIGRlZmluZWQoQ09ORklH
+X0FSQ0hfT01BUDI0WFgpCisgICNkZWZpbmUgU01DX1VTRV8xNkJJVAkJMAorICAjZGVmaW5lIFNN
+Q19VU0VfMzJCSVQJCTEKKyAgI2RlZmluZSBTTUNfSVJRX1NFTlNFCQlJUlFGX1RSSUdHRVJfTE9X
+CisgICNkZWZpbmUgU01DX01FTV9SRVNFUlZFRAkxCiAjZW5kaWYKIAogCi0tIAoxLjUuMy40Cgo=
 
-> +   },
-> +};
-> +
-> +static struct platform_device omap2evm_smc911x_device = {
-> +   .name       = "smc911x",
-> +   .id     = -1,
-> +   .num_resources  = ARRAY_SIZE(omap2evm_smc911x_resources),
-> +   .resource   = &omap2evm_smc911x_resources [0],
-> +};
-> +
-> +static inline void __init omap2evm_init_smc911x(void)
-> +{
-> +    if (omap_request_gpio(OMAP2EVM_ETHR_GPIO_IRQ) < 0) {
-> +       printk(KERN_ERR "Failed to request GPIO%d for smc911x IRQ\n",
-> +       OMAP2EVM_ETHR_GPIO_IRQ);
-> +       return;
-> +    }
-> +
-> +    omap_set_gpio_direction(OMAP2EVM_ETHR_GPIO_IRQ, 1);
-
-please use gpiolib ;-)
-
-> +}
-> +
->  static void __init omap2_evm_init_irq(void)
->  {
->     omap2_init_common_hw();
->     omap_init_irq();
->     omap_gpio_init();
-> +   omap2evm_init_smc911x();
->  }
-> 
->  static struct omap_uart_config omap2_evm_uart_config __initdata = {
-> @@ -53,8 +85,13 @@ static int __init omap2_evm_i2c_init(void)
->     return 0;
->  }
-> 
-> +static struct platform_device *omap2_evm_devices[] __initdata = {
-> +    &omap2evm_smc911x_device,
-> +};
-> +
->  static void __init omap2_evm_init(void)
->  {
-> +   platform_add_devices(omap2_evm_devices,
-> ARRAY_SIZE(omap2_evm_devices));
->     omap_board_config = omap2_evm_config;
->     omap_board_config_size = ARRAY_SIZE(omap2_evm_config);
->     omap_serial_init();
-> diff --git a/include/asm-arm/arch-omap/board-omap2evm.h
-> b/include/asm-arm/arch-omap/board-omap2evm.h
-> index 98273a9..d770c58 100644
-> --- a/include/asm-arm/arch-omap/board-omap2evm.h
-> +++ b/include/asm-arm/arch-omap/board-omap2evm.h
-> @@ -30,7 +30,8 @@
->  #define __ASM_ARCH_OMAP2_EVM_H
-> 
->  /* Placeholder for OMAP2EVM specific defines */
-> -#define OMAP24XX_ETHR_START        0x08000300
-> -#define OMAP24XX_ETHR_GPIO_IRQ     149
-> +#define OMAP2EVM_ETHR_START            0x2c000000
-> +#define OMAP2EVM_ETHR_SIZE         1024
-> +#define OMAP2EVM_ETHR_GPIO_IRQ     149
-> 
->  #endif /* __ASM_ARCH_OMAP2_EVM_H */
-> --
-> 1.5.3.4
--- 
-Best Regards,
-
-Felipe Balbi
-http://felipebalbi.com
-me@felipebalbi.com
-
+------=_Part_4870_21581219.1214309673453--
