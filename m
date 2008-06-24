@@ -1,64 +1,59 @@
-From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-Subject: [PATCH 1/1] ARM: OMAP: SmartReflex driver: enable in omap_3430sdp_defconfig
-Date: Tue, 24 Jun 2008 09:43:29 +0300
-Message-ID: <1214289809-24098-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] OMAP3 clock: fix DPLL jitter correction and rate
+ programming
+Date: Tue, 24 Jun 2008 01:11:21 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0806240109440.9741@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:43977 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751592AbYFXGnD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jun 2008 02:43:03 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m5O6h093018112
-	for <linux-omap@vger.kernel.org>; Tue, 24 Jun 2008 01:43:02 -0500
-In-Reply-To: <>
-References: <>
+Received: from utopia.booyaka.com ([72.9.107.138]:44580 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751128AbYFXHLX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jun 2008 03:11:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
 
-This patch enables the SmartReflex driver in omap_3430sdp_defconfig. Also removes
-obsolete options and adds new previously undefined options as "not set".
 
-Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+Fix DPLL jitter correction programming.  Previously, 
+omap3_noncore_dpll_program() stored the FREQSEL jitter correction 
+parameter to the wrong register.  This caused jitter correction to be set 
+incorrectly and also caused the DPLL divider to be programmed incorrectly.
+
+Also, fix DPLL divider programming.  An off-by-one error existed in 
+omap3_noncore_dpll_program(), causing DPLLs to be programmed with a higher 
+divider than intended.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/configs/omap_3430sdp_defconfig |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/configs/omap_3430sdp_defconfig b/arch/arm/configs/omap_3430sdp_defconfig
-index 947c25f..df03af3 100644
---- a/arch/arm/configs/omap_3430sdp_defconfig
-+++ b/arch/arm/configs/omap_3430sdp_defconfig
-@@ -1,7 +1,7 @@
- #
- # Automatically generated make config: don't edit
--# Linux kernel version: 2.6.26-rc4-omap1
--# Fri May 30 13:43:29 2008
-+# Linux kernel version: 2.6.26-rc7-omap1
-+# Tue Jun 24 08:42:24 2008
- #
- CONFIG_ARM=y
- CONFIG_SYS_SUPPORTS_APM_EMULATION=y
-@@ -170,9 +170,10 @@ CONFIG_ARCH_OMAP3=y
- #
- # OMAP Feature Selections
- #
--CONFIG_OMAP_DEBUG_SRAM_PATCH=y
- # CONFIG_OMAP_DEBUG_POWERDOMAIN is not set
- # CONFIG_OMAP_DEBUG_CLOCKDOMAIN is not set
-+CONFIG_OMAP_SMARTREFLEX=y
-+# CONFIG_OMAP_SMARTREFLEX_TESTING is not set
- CONFIG_OMAP_RESET_CLOCKS=y
- CONFIG_OMAP_BOOT_TAG=y
- CONFIG_OMAP_BOOT_REASON=y
-@@ -1017,6 +1018,7 @@ CONFIG_USB_MON=y
- # CONFIG_USB_TRANCEVIBRATOR is not set
- # CONFIG_USB_IOWARRIOR is not set
- CONFIG_USB_TEST=y
-+# CONFIG_USB_ISIGHTFW is not set
- CONFIG_USB_GADGET=y
- CONFIG_USB_GADGET_DEBUG=y
- CONFIG_USB_GADGET_DEBUG_FILES=y
--- 
-1.5.4.3
+ arch/arm/mach-omap2/clock34xx.c |   13 ++++++++-----
+ 1 files changed, 8 insertions(+), 5 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index 408b51a..8fdf8f3 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -346,14 +346,17 @@ static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
+ 	/* 3430 ES2 TRM: 4.7.6.9 DPLL Programming Sequence */
+ 	_omap3_noncore_dpll_bypass(clk);
+ 
++	/* Set jitter correction */
++	v = __raw_readl(dd->control_reg);
++	v &= ~dd->freqsel_mask;
++	v |= freqsel << __ffs(dd->freqsel_mask);
++	__raw_writel(v, dd->control_reg);
++
++	/* Set DPLL multiplier, divider */
+ 	v = __raw_readl(dd->mult_div1_reg);
+ 	v &= ~(dd->mult_mask | dd->div1_mask);
+-
+-	/* Set mult (M), div1 (N), freqsel */
+ 	v |= m << __ffs(dd->mult_mask);
+-	v |= n << __ffs(dd->div1_mask);
+-	v |= freqsel << __ffs(dd->freqsel_mask);
+-
++	v |= (n - 1) << __ffs(dd->div1_mask);
+ 	__raw_writel(v, dd->mult_div1_reg);
+ 
+ 	/* We let the clock framework set the other output dividers later */
