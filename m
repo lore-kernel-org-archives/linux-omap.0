@@ -1,42 +1,111 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP2/3 PM: Add OMAP PM no-op layer
-Date: Tue, 24 Jun 2008 01:33:23 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0806182351160.24288@utopia.booyaka.com>
-References: <20080617145905.20886.89236.stgit@localhost.localdomain> <20080617150122.20886.9290.stgit@localhost.localdomain> <0f2a01c8d153$8e39c2e0$11dfa8c0@ent.ti.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: [PATCH 2/8] PRCM: Workaround for pwrdn_x control
+Date: Tue, 24 Jun 2008 10:41:27 +0300
+Message-ID: <87mylbjn4o.fsf@trdhcp146196.ntc.nokia.com>
+References: <87iqw85xlo.fsf@trdhcp146196.ntc.nokia.com>
+	<1213687856-29932-1-git-send-email-jouni.hogander@nokia.com>
+	<alpine.DEB.1.00.0806240118000.9741@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:53202 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752043AbYFXHdY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jun 2008 03:33:24 -0400
-In-Reply-To: <0f2a01c8d153$8e39c2e0$11dfa8c0@ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:18656 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751225AbYFXHnI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jun 2008 03:43:08 -0400
+In-Reply-To: <alpine.DEB.1.00.0806240118000.9741@utopia.booyaka.com> (ext Paul
+	Walmsley's message of "Tue, 24 Jun 2008 01:28:18 -0600 (MDT)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ramesh Gupta G <x0023949@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, h-kanigeri2@ti.com, jouni.hogander@nokia.com, khilman@mvista.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, vpasam@ti.com
+To: ext Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
-Hello Ramesh, 
+"ext Paul Walmsley" <paul@pwsan.com> writes:
 
-On Wed, 18 Jun 2008, Ramesh Gupta G wrote:
+> Hello Jouni,
+>
+> On Tue, 17 Jun 2008, Jouni Hogander wrote:
+>
+>> Clock path should be powered down only after all it's clients are
+>> properly disabled. Generally we don't have working implementation fo=
+r
+>> checking wether some clock is enabled or disabled.
+>
+> Just wanted to revisit this again briefly.  Is this patch intended to=
+ fix=20
+> DPLL output powerdown paths?  Or do all clocks need this for some
+> reason?
 
-> Will this interface provides information of max number if OPPs supported and
-> the frequency corresponding to eah OPP level?
+Delay is needed only between client disable and output path power
+down.
 
-It could be added.  This is for DSPBridge use, not for the MPU, correct?  
-Is the idea essentially to replace the vdd1_dsp_freq[] array in 
-mpu_driver/src/rmgr/linux/common/drv_interface.c?  Can you tell me what 
-each of the 4 fields in vdd1_dsp_freq[] means?
+>
+> If the former, what do you think instead about adding a custom disabl=
+e=20
+> function for the DPLL outputs which would include the udelay()?
+> That way we might be able to avoid adding the udelay() to all clock=20
+> disable calls.
 
-Perhaps something similar to an OMAP PM function 
-"omap_pm_dsp_get_opp_table()" that DSPBridge could call on startup?
+Yes, this sounds more reasonable. I'm preparing one more version of
+of workaround set. I can do this also. What do you think, is this
+still workaround or are we planning to implement wait_rdy which checks
+also wether clock is disabled?
 
-> MPU Bridge is required to inform the DSP about OPP level change for load 
-> predictor use in DSP; this is done as part of in post notification in 
-> dspbridge. Do we have support for Post Notification in this framework?
+>
+> - Paul
+>
+>>  arch/arm/mach-omap2/clock.c |   11 ++++++++++-
+>>  1 files changed, 10 insertions(+), 1 deletions(-)
+>>=20
+>> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock=
+=2Ec
+>> index ed15868..9099ba6 100644
+>> --- a/arch/arm/mach-omap2/clock.c
+>> +++ b/arch/arm/mach-omap2/clock.c
+>> @@ -329,6 +329,9 @@ void omap2_clk_disable(struct clk *clk)
+>>  {
+>>  	if (clk->usecount > 0 && !(--clk->usecount)) {
+>>  		_omap2_clk_disable(clk);
+>> +		/* XXX Currently we don't have working code for
+>> +		 * checking wether clock is really disabled */
+>> +		udelay(10);
+>>  		if (clk->parent)
+>>  			omap2_clk_disable(clk->parent);
+>>  		if (clk->clkdm)
+>> @@ -974,6 +977,12 @@ void omap2_clk_disable_unused(struct clk *clk)
+>>  		return;
+>> =20
+>>  	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
+>> -	_omap2_clk_disable(clk);
+>> +	/* XXX In case of omap3 we need to make sure that sequence is
+>> +	 * correct when disabling clocks */
+>> +	if (cpu_is_omap34xx()) {
+>> +		omap2_clk_enable(clk);
+>> +		omap2_clk_disable(clk);
+>> +	} else
+>> +		_omap2_clk_disable(clk);
+>>  }
+>>  #endif
+>> --=20
+>> 1.5.5
+>>=20
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>=20
+>
+>
+> - Paul
+>
+>
 
-I just posted some patches for that a few days ago.  You should be able to 
-use those to notify DSPBridge of changes to iva2_ck.
+--=20
+Jouni H=C3=B6gander
 
-
-- Paul
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
