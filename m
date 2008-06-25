@@ -1,78 +1,120 @@
 From: Jouni Hogander <jouni.hogander@nokia.com>
-Subject: [PATCH 4/7] 34XX: PM: Workaround to check wether any fck is active before entering sleep
-Date: Wed, 25 Jun 2008 12:13:47 +0300
-Message-ID: <1214385227-25637-1-git-send-email-jouni.hogander@nokia.com>
+Subject: [PATCH 5/7] OMAP: PM: Add new sysfs option for disabling clocks when entering idle
+Date: Wed, 25 Jun 2008 12:13:49 +0300
+Message-ID: <1214385229-25658-1-git-send-email-jouni.hogander@nokia.com>
 References: <87ej6lj2ui.fsf@trdhcp146196.ntc.nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:58343 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754445AbYFYJO0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jun 2008 05:14:26 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:50033 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754445AbYFYJOi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jun 2008 05:14:38 -0400
 Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m5P9Dq2j007566
-	for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2008 12:14:23 +0300
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m5P9EWNh018637
+	for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2008 04:14:36 -0500
 Received: from localhost.localdomain (trdhcp146197.ntc.nokia.com [172.22.146.197])
-	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m5P9Dlou022464
-	for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2008 12:13:47 +0300
+	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m5P9DnIQ001857
+	for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2008 12:13:49 +0300
 In-Reply-To: <87ej6lj2ui.fsf@trdhcp146196.ntc.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-This workaround shouldn't be needed when all drivers are configuring
-their sysconfig registers properly and using their clocks properly.
+There are drivers that are not disabling their clocks (gpio &
+uart). These clocks need to be disabled if retention/off state is
+wanted when idling. Before disabling them in idle loop this option
+needs to be checked.
 
 Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |   31 +++++++++++++++++++++++++++++++
- 1 files changed, 31 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm.c |   37 +++++++++++++++++++++++++++++++------
+ arch/arm/mach-omap2/pm.h |    1 +
+ 2 files changed, 32 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index dc2e57d..edde254 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -174,10 +174,41 @@ static void omap_sram_idle(void)
- 	omap2_gpio_resume_after_retention();
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index bef58d7..b7434df 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -31,30 +31,51 @@
+ #include "pm.h"
+ 
+ unsigned short enable_dyn_sleep;
++unsigned short clocks_off_while_idle;
+ atomic_t sleep_block = ATOMIC_INIT(0);
+ 
++static ssize_t idle_show(struct kobject *, struct kobj_attribute *, char *);
++static ssize_t idle_store(struct kobject *k, struct kobj_attribute *,
++			  const char *buf, size_t n);
++
++static struct kobj_attribute sleep_while_idle_attr =
++	__ATTR(sleep_while_idle, 0644, idle_show, idle_store);
++
++static struct kobj_attribute clocks_off_while_idle_attr =
++	__ATTR(clocks_off_while_idle, 0644, idle_show, idle_store);
++
+ static ssize_t idle_show(struct kobject *kobj, struct kobj_attribute *attr,
+ 			 char *buf)
+ {
+-	return sprintf(buf, "%hu\n", enable_dyn_sleep);
++	if (attr == &sleep_while_idle_attr)
++		return sprintf(buf, "%hu\n", enable_dyn_sleep);
++	else if (attr == &clocks_off_while_idle_attr)
++		return sprintf(buf, "%hu\n", clocks_off_while_idle);
++	else
++		return -EINVAL;
  }
  
-+static int omap3_fclks_active(void)
-+{
-+	u32 fck_core1 = 0, fck_core3 = 0, fck_sgx = 0, fck_dss = 0,
-+		fck_cam = 0, fck_per = 0, fck_usbhost = 0;
-+
-+	fck_core1 = cm_read_mod_reg(CORE_MOD,
-+				    CM_FCLKEN1);
-+	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
-+		fck_core3 = cm_read_mod_reg(CORE_MOD,
-+					    OMAP3430ES2_CM_FCLKEN3);
-+		fck_sgx = cm_read_mod_reg(OMAP3430ES2_SGX_MOD,
-+					  CM_FCLKEN);
-+		fck_usbhost = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
-+					      CM_FCLKEN);
-+	} else
-+		fck_sgx = cm_read_mod_reg(GFX_MOD,
-+					  OMAP3430ES2_CM_FCLKEN3);
-+	fck_dss = cm_read_mod_reg(OMAP3430_DSS_MOD,
-+				  CM_FCLKEN);
-+	fck_cam = cm_read_mod_reg(OMAP3430_CAM_MOD,
-+				  CM_FCLKEN);
-+	fck_per = cm_read_mod_reg(OMAP3430_PER_MOD,
-+				  CM_FCLKEN);
-+	if (fck_core1 | fck_core3 | fck_sgx | fck_dss |
-+	    fck_cam | fck_per | fck_usbhost)
-+		return 1;
-+	return 0;
-+}
-+
- static int omap3_can_sleep(void)
+ static ssize_t idle_store(struct kobject *kobj, struct kobj_attribute *attr,
+ 			  const char *buf, size_t n)
  {
- 	if (!enable_dyn_sleep)
- 		return 0;
-+	if (omap3_fclks_active())
-+		return 0;
- 	if (atomic_read(&sleep_block) > 0)
- 		return 0;
- 	return 1;
+ 	unsigned short value;
++
+ 	if (sscanf(buf, "%hu", &value) != 1 ||
+ 	    (value != 0 && value != 1)) {
+-		printk(KERN_ERR "idle_sleep_store: Invalid value\n");
++		printk(KERN_ERR "idle_store: Invalid value\n");
+ 		return -EINVAL;
+ 	}
+-	enable_dyn_sleep = value;
++
++	if (attr == &sleep_while_idle_attr)
++		enable_dyn_sleep = value;
++	else if (attr == &clocks_off_while_idle_attr)
++		clocks_off_while_idle = value;
++	else
++		return -EINVAL;
++
+ 	return n;
+ }
+ 
+-static struct kobj_attribute sleep_while_idle_attr =
+-	__ATTR(sleep_while_idle, 0644, idle_show, idle_store);
+-
+ void omap2_block_sleep(void)
+ {
+ 	atomic_inc(&sleep_block);
+@@ -86,6 +107,10 @@ int __init omap_pm_init(void)
+ 	error = sysfs_create_file(power_kobj, &sleep_while_idle_attr.attr);
+ 	if (error)
+ 		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
++	error = sysfs_create_file(power_kobj,
++				  &clocks_off_while_idle_attr.attr);
++	if (error)
++		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
+ 
+ 	return error;
+ }
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 351456e..0aeb461 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -17,6 +17,7 @@ extern int omap2_pm_init(void);
+ extern int omap3_pm_init(void);
+ 
+ extern unsigned short enable_dyn_sleep;
++extern unsigned short clocks_off_while_idle;
+ extern atomic_t sleep_block;
+ 
+ #ifdef CONFIG_PM_DEBUG
 -- 
 1.5.5
 
