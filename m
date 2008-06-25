@@ -1,85 +1,78 @@
-From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: [PATCH 0/7] 34XX: PM: Workarounds to get omap3 to retention 3rd.
-Date: Wed, 25 Jun 2008 14:43:15 +0300
-Message-ID: <87r6alhh9o.fsf@trdhcp146196.ntc.nokia.com>
-References: <87ej6lj2ui.fsf@trdhcp146196.ntc.nokia.com>
-	<017101c8d6b7$f862e890$68bf18ac@ent.ti.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: RE: [PATCH 1/7] 34XX: PM: Workaround to build omap hsmmc as a module
+Date: Wed, 25 Jun 2008 07:03:54 -0500
+Message-ID: <863b7a523c5b5b6b6898e2d82fab6dda@felipebalbi.com>
+References: <87ej6lj2ui.fsf@trdhcp146196.ntc.nokia.com> <1214385220-25576-1-git-send-email-jouni.hogander@nokia.com> <0442c5b0cf27a0b9f892174dadba3c20@felipebalbi.com> <5A47E75E594F054BAF48C5E4FC4B92AB022BE47192@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:22557 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754285AbYFYLnr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jun 2008 07:43:47 -0400
-In-Reply-To: <017101c8d6b7$f862e890$68bf18ac@ent.ti.com> (ext Rajendra Nayak's
-	message of "Wed, 25 Jun 2008 17:08:19 +0530")
+Received: from ns1.siteground211.com ([209.62.36.12]:34261 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755137AbYFYMED (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jun 2008 08:04:03 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB022BE47192@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: Jouni Hogander <jouni.hogander@nokia.com>, linux-omap@vger.kernel.org
 
-"ext Rajendra Nayak" <rnayak@ti.com> writes:
+Hi,
 
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org=20
->> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Jouni Hogande=
-r
->> Sent: Wednesday, June 25, 2008 2:42 PM
->> To: linux-omap@vger.kernel.org
->> Subject: [PATCH 0/7] 34XX: PM: Workarounds to get omap3 to=20
->> retention 3rd.
->>=20
->> Hi,
->>=20
->> This patch set contains all workarounds that are needed to get omap3
->> to retention. Also patch from Tero Kristo to get PM to work if using
->> serial console is included in this set. Basically all patches in thi=
-s
->> set should be reverted one by one as correct fixes are implemented a=
-nd
->> applied.
->>=20
->> This patch set superseeds earlier version sent 2008-06-17 7:28:35.
->>=20
->> To get Omap into retention, this patch set still depends on:
->> 1. ARCH: OMAP: MUSB: Do not block sleep (Felipe Balbi)
->> 2. ARM: OMAP: SmartReflex driver: enable in=20
->> omap_3430sdp_defconfig (Kalle
->>    Jokiniemi)
->> 3. PRCM: 34XX: Fix wrong shift value used in dpll4_m4x2_ck enable bi=
-t
->> 4. Patch which removes control of usbhost_sar_fck from clock=20
->> tree (Paul
->>    Walmsley will send this soon)
->
-> I tried these steps on the 3430SDP but could'nt hit retention.
-> What is the 4th patch mentioned above which Paul is yet to send and
-> how does not having it prevent retention?
+On Wed, 25 Jun 2008 16:47:30 +0530, "Gadiyar, Anand" <gadiyar@ti.com>
+wrote:
 
-You can do something like this while waiting for patches from Paul:
+> Actually there is. It really depends on what you want to do with the
+> system.
+> 
+> For instance, the case where you are running a tight embedded system with
+> a ramdisk filesystem - the modules would have to sit on the filesystem
+and
+> would occupy precious space there. You might be better off having
+> everything built into the kernel.
+> 
+> That being said, in my opinion it should be possible to have everything
+as
+> modules with little difference in functionality. In this case if the OMAP
+> HSMMC driver is not PM-friendly, then that should be fixed. Making it
+build
+> as a module is at best a __temporary__ solution as Jouni points out.
+> 
+> The choice of building drivers into the kernel or as modules should be
+> left to whoever builds the kernel. The defconfigs make life easy during
+> testing but otherwise there is little reason to change them.
 
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/cloc=
-k34xx.h
-index b4dceea..8370f8a 100644
---- a/arch/arm/mach-omap2/clock34xx.h
-+++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -2237,7 +2237,7 @@ static struct clk usbhost_sar_fck =3D {
-        .init           =3D &omap2_init_clk_clkdm,
-        .enable_reg     =3D OMAP34XX_PRM_REGADDR(OMAP3430ES2_USBHOST_MO=
-D, PM_PWSTCTRL),
-        .enable_bit     =3D OMAP3430ES2_SAVEANDRESTORE_SHIFT,
--       .flags          =3D CLOCK_IN_OMAP3430ES2,
-+       .flags          =3D CLOCK_IN_OMAP3430ES2 | ALWAYS_ENABLED,
-        .clkdm_name     =3D "usbhost_clkdm",
-        .recalc         =3D &followparent_recalc,
- };
+That's true but 3430sdp is far from a tight embedded system. It's a full
+fledged omap3430-based board with plenty of memory space for everything
+we need.
 
---=20
-Jouni H=C3=B6gander
+On the other hand, building as module allow us to just unload the module
+if it's causing problems like preventing retetion. Besides, at least in
+case on the SDPs, most of the people will use nfs anyways, which makes
+a lot easier to upload the new modules to the board allowing us to test
+new features in a module without even rebooting the board, just by
+rmmod/insmod.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Again, I agree with that with a tight embedded system, it's better to
+have everything into the kernel, but then again, we have to believe
+that every single piece of sw is working exactly the way it should,
+which is not always true during the development process of our drivers.
+
+At least hsmmc and musb drivers still have some stuff to be taken
+care of. Having them as modules, would allow faster development
+cycle with less reboots on the target board.
+
+And like you said, if the defconfig is all modular (or all built-in)
+the user/manufacturer/hacker can always change it later. Although
+I defend that Reference Boards' defconfigs should be as modular
+as possible.
+
+My 2 cents ;-)
+
+-- 
+Best Regards,
+
+Felipe Balbi
+http://blog.felipebalbi.com
+me@felipebalbi.com
+
