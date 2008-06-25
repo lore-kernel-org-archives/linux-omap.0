@@ -1,123 +1,72 @@
-From: "arun c" <arun.edarath@gmail.com>
-Subject: Re: [PATCH 1/3] OMAP3 EVM: Add twl4030 keypad driver support
-Date: Wed, 25 Jun 2008 19:34:32 +0530
-Message-ID: <c656a4d20806250704y1d1129c3jf7997360da91388f@mail.gmail.com>
-References: <48601ACD.6040804@ridgerun.com>
+From: Dmitry Krivoschekov <dmitry.krivoschekov@gmail.com>
+Subject: Re: [PATCH 1/4] usb: musb: musb on omap3 has 32 endpoints
+Date: Wed, 25 Jun 2008 18:42:57 +0400
+Message-ID: <48625971.8060800@gmail.com>
+References: <1213351443-3336-1-git-send-email-felipe.balbi@nokia.com> <1213351443-3336-2-git-send-email-felipe.balbi@nokia.com> <20080623111009.GM7741@atomide.com> <20080623111455.GH4414@gandalf.research.nokia.com> <5A47E75E594F054BAF48C5E4FC4B92AB022BE46969@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.189]:19599 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756469AbYFYOEe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jun 2008 10:04:34 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so1661280tic.23
-        for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2008 07:04:33 -0700 (PDT)
-In-Reply-To: <48601ACD.6040804@ridgerun.com>
-Content-Disposition: inline
+Received: from fg-out-1718.google.com ([72.14.220.155]:42322 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759591AbYFYOnM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jun 2008 10:43:12 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so1383267fgg.17
+        for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2008 07:43:09 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB022BE46969@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Miguel Angel Aguilar Ulloa <miguel.aguilar@ridgerun.com>
-Cc: linux-omap@vger.kernel.org
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, ext Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Jun 24, 2008 at 3:21 AM, Miguel Angel Aguilar Ulloa
-<miguel.aguilar@ridgerun.com> wrote:
-> Add twl4030 keypad driver support to OMAP3 EVM
->
-> Signed-off-by: Miguel Angel Aguilar <miguel.aguilar@ridgerun.com>
->
-> --- a/arch/arm/mach-omap2/board-omap3evm.c      2008-06-23
-> 15:07:13.000000000 -0600
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c      2008-06-23
-> 14:32:29.000000000 -0600
-> @@ -19,6 +19,7 @@
-> #include <linux/err.h>
-> #include <linux/clk.h>
-> #include <linux/io.h>
-> +#include <linux/input.h>
-> #include <linux/spi/spi.h>
-> #include <linux/spi/ads7846.h>
->
-> @@ -28,6 +29,7 @@
-> #include <asm/mach/map.h>
->
-> #include <asm/arch/gpio.h>
-> +#include <asm/arch/keypad.h>
-> #include <asm/arch/board.h>
-> #include <asm/arch/hsmmc.h>
-> #include <asm/arch/usb-musb.h>
-> @@ -149,6 +151,56 @@ struct spi_board_info omap3evm_spi_board
->        },
-> };
->
-> +static int omap3evm_keymap[] = {
-> +       KEY(0, 0, KEY_LEFT),
-> +       KEY(0, 1, KEY_RIGHT),
-> +       KEY(0, 2, KEY_A),
-> +       KEY(0, 3, KEY_B),
-> +       KEY(0, 4, KEY_C),
-> +       KEY(1, 0, KEY_DOWN),
-> +       KEY(1, 1, KEY_UP),
-> +       KEY(1, 2, KEY_E),
-> +       KEY(1, 3, KEY_F),
-> +       KEY(1, 4, KEY_G),
-> +       KEY(2, 0, KEY_ENTER),
-> +       KEY(2, 1, KEY_I),
-> +       KEY(2, 2, KEY_J),
-> +       KEY(2, 3, KEY_K),
-> +       KEY(2, 4, KEY_3),
-> +       KEY(3, 0, KEY_M),
-> +       KEY(3, 1, KEY_N),
-> +       KEY(3, 2, KEY_O),
-> +       KEY(3, 3, KEY_P),
-> +       KEY(3, 4, KEY_Q),
-> +       KEY(4, 0, KEY_R),
-> +       KEY(4, 1, KEY_4),
-> +       KEY(4, 2, KEY_T),
-> +       KEY(4, 3, KEY_U),
-> +       KEY(4, 4, KEY_D),
-> +       KEY(5, 0, KEY_V),
-> +       KEY(5, 1, KEY_W),
-> +       KEY(5, 2, KEY_L),
-> +       KEY(5, 3, KEY_S),
-> +       KEY(5, 4, KEY_H),
-> +       0
-> +};
-> +
+apologies for being late with my comment, and it might be not directly
+related  to the initial patch but,
 
-Omap3evm has only 15 keys right?(Some body correct me if I am wrong).
-Then how the
-mapping and dividing into rows and columns is done?
-
-> +static struct omap_kp_platform_data omap3evm_kp_data = {
-> +       .rows           = 4,
-> +       .cols           = 4,
-> +       .keymap         = omap3evm_keymap,
-> +       .keymapsize     = ARRAY_SIZE(omap3evm_keymap),
-> +       .rep            = 1,
-> +};
-> +
-> +static struct platform_device omap3evm_kp_device = {
-> +       .name           = "omap_twl4030keypad",
-> +       .id             = -1,
-> +       .dev            = {
-> +                               .platform_data = &omap3evm_kp_data,
-> +                       },
-> +};
-> +
-> static void __init omap3_evm_init_irq(void)
-> {
->        omap2_init_common_hw();
-> @@ -165,6 +217,7 @@ static struct omap_board_config_kernel o
+Gadiyar, Anand wrote:
+>>>> Fix hdrc_cnf.h for omap3 configuration.
+>>> Does this break the configuration for omap2?
+>>>
+>>> We should set these dynamically if different for omap2 and omap3
+>>> so we can compile both into the same kernel.
+>> Should check omap2430 trm to be sure, maybe someone in TI
+>> could help us with it ?
 >
-> static struct platform_device *omap3_evm_devices[] __initdata = {
->        &omap3_evm_lcd_device,
-> +       &omap3evm_kp_device,
-> #ifdef CONFIG_RTC_DRV_TWL4030
->        &omap3_evm_twl4030rtc_device,
-> #endif
+> It won't break the 2430. The 2430 has 32 endpoints as well.
+to be more precise, OMAP2430 has 1 control + 15 TX + 15 RX endpoints,
+i.e.total of 31 eps.
+
+To me it's not clear if these TX/RX endpoints is really independent.  In
+other words,  is it
+really possible to schedule for example 1st TX and 1st RX endpoint at
+the same time (in the same USB frame)?
+
+If you look at Felipe's patch, it changes a total number of eps from 8
+to 16. In my understanding the driver is now able to schedule only this
+number of endpoints. That is, the driver consider both 1TX and 1RX
+endpoints as the same endpoint that is able to operate for Tx and Rx.
+And, the driver can use only 16 endpoints at the same time, not 31.
+
+But if all those 15Tx and 15Rx eps are mutually independent then it
+makes sense to treat them in another way, MUSB_C_NUM_EPS should be 31
+plus appropriate modifications to the driver are needed.
+
+
+Of course I may be missing something, please correct me if I'm wrong
+with my conclusions.
+
+
+Thanks,
+Dmitry
+>
+>
+>> Maybe we could bring it via platform_data as well?
+>
+> Yep. That would be good.
+>
+> - Anand
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
+
