@@ -1,65 +1,43 @@
-From: green <greenfreedom10@gmail.com>
-Subject: Latest git kernel won't build with muru.com N8x0 patch 2
-Date: Tue, 24 Jun 2008 22:59:39 -0500
-Message-ID: <20080625035939.GB3703@swansys>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="f2QGlHpHGjS2mn6Y"
+From: Jouni Hogander <jouni.hogander@nokia.com>
+Subject: [PATCH] PRCM: 34XX: Fix wrong shift value used in dpll4_m4x2_ck enable bit
+Date: Wed, 25 Jun 2008 08:38:02 +0300
+Message-ID: <1214372282-1862-1-git-send-email-jouni.hogander@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.236]:1790 "EHLO
-	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750841AbYFYD77 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jun 2008 23:59:59 -0400
-Received: by wr-out-0506.google.com with SMTP id 69so2436870wri.5
-        for <linux-omap@vger.kernel.org>; Tue, 24 Jun 2008 20:59:58 -0700 (PDT)
-Content-Disposition: inline
-Content-Language: en
+Received: from smtp.nokia.com ([192.100.122.230]:65329 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752459AbYFYFi3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jun 2008 01:38:29 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m5P5c020003726
+	for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2008 08:38:26 +0300
+Received: from localhost.localdomain (trdhcp146197.ntc.nokia.com [172.22.146.197])
+	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m5P5c2rE017788
+	for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2008 08:38:02 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux-OMAP List <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
+Enable bit for dpll4_m4x2_ck is OMAP3430_PWRDN_DSS1_SHIFT instead of
+OMAP3430_PWRDN_CAM_SHIFT.
 
---f2QGlHpHGjS2mn6Y
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+---
+ arch/arm/mach-omap2/clock34xx.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-The latest git kernel (6604ac6c8a14d583a463159f3a1601427dab7e05) won't buil=
-d=20
-with patch 2 applied of the muru.com n8x0-2008-05-20 patches.
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index b4dceea..4a8729a 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -819,7 +819,7 @@ static struct clk dpll4_m4x2_ck = {
+ 	.name		= "dpll4_m4x2_ck",
+ 	.parent		= &dpll4_m4_ck,
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(PLL_MOD, CM_CLKEN),
+-	.enable_bit	= OMAP3430_PWRDN_CAM_SHIFT,
++	.enable_bit	= OMAP3430_PWRDN_DSS1_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES | INVERT_ENABLE,
+ 	.recalc		= &omap3_clkoutx2_recalc,
+ };
+-- 
+1.5.5
 
-The last bit is here:
-  CC      drivers/cbus/retu.o
-  CC      drivers/cbus/retu-pwrbutton.o
-  CC      drivers/cbus/retu-rtc.o
-  CC      drivers/cbus/retu-wdt.o
-drivers/cbus/retu-wdt.c: In function =E2=80=98retu_wdt_ioctl=E2=80=99:
-drivers/cbus/retu-wdt.c:204: error: implicit declaration of function=20
-=E2=80=98omap_readw=E2=80=99
-make[2]: *** [drivers/cbus/retu-wdt.o] Error 1
-make[1]: *** [drivers/cbus] Error 2
-make: *** [drivers] Error 2
-
-The config is attached.
-
-The device powers off sporadically and I'm hoping an kernel upgrade will fi=
-x=20
-it.  The kernel I'm having (the power) problem with is somewhere around=20
-2.6.26-rc2; I'd like to catch up and see if it remains.
-
-Thanks.
-
---f2QGlHpHGjS2mn6Y
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFIYcKr682C+dBP+oQRAugJAJ9oXF5qxhTfuHdkZrOMxgAiuz8qkQCeNs0L
-w7DG8/fjUcXuzfhcypuPR9Q=
-=R5dx
------END PGP SIGNATURE-----
-
---f2QGlHpHGjS2mn6Y--
