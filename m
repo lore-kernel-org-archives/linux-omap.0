@@ -1,66 +1,123 @@
-From: Igor Stoppa <igor.stoppa@nokia.com>
-Subject: RE: [PATCH 1/7] 34XX: PM: Workaround to build omap hsmmc as
-	a	module
-Date: Wed, 25 Jun 2008 16:23:47 +0300
-Message-ID: <1214400227.24418.66.camel@mort>
-References: <87ej6lj2ui.fsf@trdhcp146196.ntc.nokia.com>
-	 <1214385220-25576-1-git-send-email-jouni.hogander@nokia.com>
-	 <0442c5b0cf27a0b9f892174dadba3c20@felipebalbi.com>
-	 <5A47E75E594F054BAF48C5E4FC4B92AB022BE47192@dbde02.ent.ti.com>
-	 <863b7a523c5b5b6b6898e2d82fab6dda@felipebalbi.com>
-	 <1214395879.24418.40.camel@mort>
-	 <5A47E75E594F054BAF48C5E4FC4B92AB022BED2575@dbde02.ent.ti.com>
-Reply-To: igor.stoppa@nokia.com
+From: "arun c" <arun.edarath@gmail.com>
+Subject: Re: [PATCH 1/3] OMAP3 EVM: Add twl4030 keypad driver support
+Date: Wed, 25 Jun 2008 19:34:32 +0530
+Message-ID: <c656a4d20806250704y1d1129c3jf7997360da91388f@mail.gmail.com>
+References: <48601ACD.6040804@ridgerun.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:31792 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755899AbYFYNen (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jun 2008 09:34:43 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB022BED2575@dbde02.ent.ti.com>
+Received: from ti-out-0910.google.com ([209.85.142.189]:19599 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756469AbYFYOEe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jun 2008 10:04:34 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so1661280tic.23
+        for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2008 07:04:33 -0700 (PDT)
+In-Reply-To: <48601ACD.6040804@ridgerun.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Gadiyar, Anand" <gadiyar@ti.com>
-Cc: ext Felipe Balbi <me@felipebalbi.com>, Jouni Hogander <jouni.hogander@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Miguel Angel Aguilar Ulloa <miguel.aguilar@ridgerun.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+On Tue, Jun 24, 2008 at 3:21 AM, Miguel Angel Aguilar Ulloa
+<miguel.aguilar@ridgerun.com> wrote:
+> Add twl4030 keypad driver support to OMAP3 EVM
+>
+> Signed-off-by: Miguel Angel Aguilar <miguel.aguilar@ridgerun.com>
+>
+> --- a/arch/arm/mach-omap2/board-omap3evm.c      2008-06-23
+> 15:07:13.000000000 -0600
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c      2008-06-23
+> 14:32:29.000000000 -0600
+> @@ -19,6 +19,7 @@
+> #include <linux/err.h>
+> #include <linux/clk.h>
+> #include <linux/io.h>
+> +#include <linux/input.h>
+> #include <linux/spi/spi.h>
+> #include <linux/spi/ads7846.h>
+>
+> @@ -28,6 +29,7 @@
+> #include <asm/mach/map.h>
+>
+> #include <asm/arch/gpio.h>
+> +#include <asm/arch/keypad.h>
+> #include <asm/arch/board.h>
+> #include <asm/arch/hsmmc.h>
+> #include <asm/arch/usb-musb.h>
+> @@ -149,6 +151,56 @@ struct spi_board_info omap3evm_spi_board
+>        },
+> };
+>
+> +static int omap3evm_keymap[] = {
+> +       KEY(0, 0, KEY_LEFT),
+> +       KEY(0, 1, KEY_RIGHT),
+> +       KEY(0, 2, KEY_A),
+> +       KEY(0, 3, KEY_B),
+> +       KEY(0, 4, KEY_C),
+> +       KEY(1, 0, KEY_DOWN),
+> +       KEY(1, 1, KEY_UP),
+> +       KEY(1, 2, KEY_E),
+> +       KEY(1, 3, KEY_F),
+> +       KEY(1, 4, KEY_G),
+> +       KEY(2, 0, KEY_ENTER),
+> +       KEY(2, 1, KEY_I),
+> +       KEY(2, 2, KEY_J),
+> +       KEY(2, 3, KEY_K),
+> +       KEY(2, 4, KEY_3),
+> +       KEY(3, 0, KEY_M),
+> +       KEY(3, 1, KEY_N),
+> +       KEY(3, 2, KEY_O),
+> +       KEY(3, 3, KEY_P),
+> +       KEY(3, 4, KEY_Q),
+> +       KEY(4, 0, KEY_R),
+> +       KEY(4, 1, KEY_4),
+> +       KEY(4, 2, KEY_T),
+> +       KEY(4, 3, KEY_U),
+> +       KEY(4, 4, KEY_D),
+> +       KEY(5, 0, KEY_V),
+> +       KEY(5, 1, KEY_W),
+> +       KEY(5, 2, KEY_L),
+> +       KEY(5, 3, KEY_S),
+> +       KEY(5, 4, KEY_H),
+> +       0
+> +};
+> +
 
-On Wed, 2008-06-25 at 18:10 +0530, ext Gadiyar, Anand wrote:
+Omap3evm has only 15 keys right?(Some body correct me if I am wrong).
+Then how the
+mapping and dividing into rows and columns is done?
 
-> My main bone of contention was the statement that there was no reason for
-> not building something as a module. There is a case for building drivers
-> into the kernel. Whether it is the best choice is something that depends
-> on what one is trying to achieve.
-
-As Felipe wrote, it is easy to reconfigure a module to be build in than
-it is to get a build in and have it to be compilable and usable as
-module. Developing a module gives you for free the builtin case.
-The other way is not always true.
-
-Your case of "let's veryfy all the modules at once by converting them to
-built-ins" is more the exception than the rule.
-
-> > And on top of that, having modules allows to makes it simpler to address
-> > in one go different boards and subarchitectures.
-> 
-> I'm afraid I don't understand. How would having a driver as a module or
-> built-in make a difference when targetting different boards?
-
-I can do just one build and use the same binary to do the deployment to
-different boards.
-
-That's the direction the kernel is currently going to, with code that
-probes for OMAP version and uses the appropriate register addresses.
-
-The bootloader can pass the board type as option.
-
--- 
-
-Cheers, Igor
-
----
-
-Igor Stoppa
-Maemo Software - Nokia Devices R&D - Helsinki
+> +static struct omap_kp_platform_data omap3evm_kp_data = {
+> +       .rows           = 4,
+> +       .cols           = 4,
+> +       .keymap         = omap3evm_keymap,
+> +       .keymapsize     = ARRAY_SIZE(omap3evm_keymap),
+> +       .rep            = 1,
+> +};
+> +
+> +static struct platform_device omap3evm_kp_device = {
+> +       .name           = "omap_twl4030keypad",
+> +       .id             = -1,
+> +       .dev            = {
+> +                               .platform_data = &omap3evm_kp_data,
+> +                       },
+> +};
+> +
+> static void __init omap3_evm_init_irq(void)
+> {
+>        omap2_init_common_hw();
+> @@ -165,6 +217,7 @@ static struct omap_board_config_kernel o
+>
+> static struct platform_device *omap3_evm_devices[] __initdata = {
+>        &omap3_evm_lcd_device,
+> +       &omap3evm_kp_device,
+> #ifdef CONFIG_RTC_DRV_TWL4030
+>        &omap3_evm_twl4030rtc_device,
+> #endif
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
