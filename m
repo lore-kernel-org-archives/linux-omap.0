@@ -1,64 +1,76 @@
 From: Jouni Hogander <jouni.hogander@nokia.com>
-Subject: [PATCH 0/7] 34XX: PM: Workarounds to get omap3 to retention 3rd.
-Date: Wed, 25 Jun 2008 12:11:49 +0300
-Message-ID: <87ej6lj2ui.fsf@trdhcp146196.ntc.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH 3/7] 34XX: PM: Workaround to reset all wkdeps
+Date: Wed, 25 Jun 2008 12:13:45 +0300
+Message-ID: <1214385225-25618-1-git-send-email-jouni.hogander@nokia.com>
+References: <87ej6lj2ui.fsf@trdhcp146196.ntc.nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:57978 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753492AbYFYJLy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jun 2008 05:11:54 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m5P9Bjto005602
-	for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2008 12:11:51 +0300
+Received: from smtp.nokia.com ([192.100.122.230]:25518 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754113AbYFYJNu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jun 2008 05:13:50 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m5P9DddT011407
+	for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2008 12:13:47 +0300
+Received: from localhost.localdomain (trdhcp146197.ntc.nokia.com [172.22.146.197])
+	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m5P9DjtJ001537
+	for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2008 12:13:45 +0300
+In-Reply-To: <87ej6lj2ui.fsf@trdhcp146196.ntc.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Hi,
+This workaround is needed until powerdomain code resets wkdeps.
 
-This patch set contains all workarounds that are needed to get omap3
-to retention. Also patch from Tero Kristo to get PM to work if using
-serial console is included in this set. Basically all patches in this
-set should be reverted one by one as correct fixes are implemented and
-applied.
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+---
+ arch/arm/mach-omap2/pm34xx.c |   20 ++++++++++++++++++--
+ 1 files changed, 18 insertions(+), 2 deletions(-)
 
-This patch set superseeds earlier version sent 2008-06-17 7:28:35.
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 2dccd0b..dc2e57d 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -332,6 +332,20 @@ static struct platform_suspend_ops omap_pm_ops = {
+ 
+ static void __init prcm_setup_regs(void)
+ {
++	/* XXX Reset all wkdeps. This should be done when initializing
++	 * powerdomains */
++	prm_write_mod_reg(0, OMAP3430_IVA2_MOD, PM_WKDEP);
++	prm_write_mod_reg(0, MPU_MOD, PM_WKDEP);
++	prm_write_mod_reg(0, OMAP3430_DSS_MOD, PM_WKDEP);
++	prm_write_mod_reg(0, OMAP3430_NEON_MOD, PM_WKDEP);
++	prm_write_mod_reg(0, OMAP3430_CAM_MOD, PM_WKDEP);
++	prm_write_mod_reg(0, OMAP3430_PER_MOD, PM_WKDEP);
++	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
++		prm_write_mod_reg(0, OMAP3430ES2_SGX_MOD, PM_WKDEP);
++		prm_write_mod_reg(0, OMAP3430ES2_USBHOST_MOD, PM_WKDEP);
++	} else
++		prm_write_mod_reg(0, GFX_MOD, PM_WKDEP);
++
+ 	/* XXX Enable interface clock autoidle for all modules. This
+ 	 * should be done by clockfw */
+ 	cm_write_mod_reg(
+@@ -487,6 +501,10 @@ int __init omap3_pm_init(void)
+ 
+ 	printk(KERN_ERR "Power Management for TI OMAP3.\n");
+ 
++	/* XXX prcm_setup_regs needs to be before enabling hw
++	 * supervised mode for powerdomains */
++	prcm_setup_regs();
++
+ 	ret = request_irq(INT_34XX_PRCM_MPU_IRQ,
+ 			  (irq_handler_t)prcm_interrupt_handler,
+ 			  IRQF_DISABLED, "prcm", NULL);
+@@ -513,8 +531,6 @@ int __init omap3_pm_init(void)
+ 
+ 	suspend_set_ops(&omap_pm_ops);
+ 
+-	prcm_setup_regs();
+-
+ 	pm_idle = omap3_pm_idle;
+ 
+ err1:
+-- 
+1.5.5
 
-To get Omap into retention, this patch set still depends on:
-1. ARCH: OMAP: MUSB: Do not block sleep (Felipe Balbi)
-2. ARM: OMAP: SmartReflex driver: enable in omap_3430sdp_defconfig (Kal=
-le
-   Jokiniemi)
-3. PRCM: 34XX: Fix wrong shift value used in dpll4_m4x2_ck enable bit
-4. Patch which removes control of usbhost_sar_fck from clock tree (Paul
-   Walmsley will send this soon)
-
-Test:
-1. Apply dependency patches and workaround set on top of them
-
-2. Enable disabling/enabling of gpio2-6 and uart clocks on idle:
-   $ echo 1 > /sys/power/clocks_off_while_idle
-
-3. Try out static suspend:
-   $ echo mem > /sys/power/state
-   Wake up from suspend by entering character to serial console. This
-   should print out:
-   "Successfully put all powerdomains to target state"
-
-4. Try out dynamic sleep:
-   $ echo 1 > /sys/power/sleep_while_idle
-   On Omap3430 SDP board VCORE_EN led can be used as an indicator. If
-   it starts to blink after a while then Omap enters retention on
-   idle. To make this work also display needs to be blanked.
-
---=20
-Jouni H=C3=B6gander
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
