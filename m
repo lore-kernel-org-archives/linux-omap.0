@@ -1,31 +1,46 @@
-From: "Hunter, Jon" <jon-hunter@ti.com>
-Subject: RE: undefined instruction
-Date: Wed, 25 Jun 2008 11:22:12 -0500
-Message-ID: <7B4574D56E4ADF438756313E9A172A8708CFE66C@dlee01.ent.ti.com>
-References: <a1d91fa0806250029x2bf114f5t2f45bb1472e96fbb@mail.gmail.com>
+From: Tom Cooksey <thomas.cooksey@trolltech.com>
+Subject: tslib on OMAP3
+Date: Wed, 25 Jun 2008 18:33:25 +0200
+Message-ID: <200806251833.25218.thomas.cooksey@trolltech.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+	charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:51098 "EHLO calf.ext.ti.com"
+Received: from hoat.troll.no ([62.70.27.150]:49619 "EHLO hoat.troll.no"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752290AbYFYQWW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jun 2008 12:22:22 -0400
-In-Reply-To: <a1d91fa0806250029x2bf114f5t2f45bb1472e96fbb@mail.gmail.com>
-Content-Language: en-US
+	id S1752043AbYFYQdc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Jun 2008 12:33:32 -0400
+Received: from hoat.troll.no (tedur.troll.no [62.70.27.154])
+	by hoat.troll.no (Postfix) with SMTP id E0296209F8
+	for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2008 18:33:25 +0200 (CEST)
+Received: from sx01.troll.no (sx01.troll.no [62.70.27.21])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by hoat.troll.no (Postfix) with ESMTP id DA783209D9
+	for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2008 18:33:25 +0200 (CEST)
+Received: from sx01.troll.no (localhost.localdomain [127.0.0.1])
+	by sx01.troll.no (8.13.8/8.13.8) with ESMTP id m5PGXPOS023666
+	for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2008 18:33:25 +0200
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: mohammed shareef <mdshareef@gmail.com>, omap <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-> then i changed the filename and the
-> tftpboot transfer started. But on the mid-way it complains  "undefined
-> instruction".
->
-> could some one please tell me where the problem is? thank you.
+Does anyone have tslib running well on an OMAP3?
+
+I have a LogicPD Zoom LPD3430 thing and a TI OMAP3430 SDP dev board,
+and both have similar issues. The touchscreen is on /dev/input/event1 and
+works, but is so inaccurate, it's almost unusable. After running ts_calibrate
+I'm testing with ts_test. If I press and hold with ts_test in draw mode, I can
+see just how inaccurate it is... After a few seconds I get a white blob about
+1/3 of the screen width in diameter.
+
+Has anyone got this to work correctly? If so, what tslib plugins/modules are 
+you using and with which parameters? I've tried various combinations and
+found some to give a slight improvement and others make it a lot worse.
 
 
-How big is the file that you are attempting to download over tftp?
 
-U-boot executes in the upper part of the RAM and so if your file is too big, then there is a good chance you are overwriting u-boot which would cause u-boot to crash eventually. U-boot does not protect against this. This would be a potential cause of an undefined instruction exception.
+Cheers,
 
-Jon
+Tom
