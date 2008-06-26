@@ -1,310 +1,69 @@
-From: "mohammed shareef" <mdshareef@gmail.com>
-Subject: Re: undefined instruction
-Date: Fri, 27 Jun 2008 00:56:58 +0530
-Message-ID: <a1d91fa0806261226i7c6a71bx6f42e179f363ebfa@mail.gmail.com>
-References: <a1d91fa0806250029x2bf114f5t2f45bb1472e96fbb@mail.gmail.com>
-	 <7B4574D56E4ADF438756313E9A172A8708CFE66C@dlee01.ent.ti.com>
-	 <a1d91fa0806260406q25815d09hd66a1784dbcf58a1@mail.gmail.com>
-	 <a1d91fa0806260829l6953e0b6o754b00b632efae47@mail.gmail.com>
-	 <4863BFCB.9040105@css-design.us>
-	 <a1d91fa0806260929h19e7c5k2173d4df63f53fa3@mail.gmail.com>
-	 <a1d91fa0806261040x669cdffwc93855b17afce32e@mail.gmail.com>
-	 <4863E0F0.7070905@css-design.us>
-	 <a1d91fa0806261200nbc44647ma99d4fad9f00b5f5@mail.gmail.com>
-	 <4863EB49.8050703@css-design.us>
+From: green <greenfreedom10@gmail.com>
+Subject: Re: Latest git kernel won't build with muru.com N8x0 patch 2
+Date: Thu, 26 Jun 2008 14:43:59 -0500
+Message-ID: <20080626194359.GB9938@swansys>
+References: <20080625035939.GB3703@swansys> <20080625210514.GA9938@swansys> <7B4574D56E4ADF438756313E9A172A8708D67141@dlee01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="KN5l+BnMqAQyZLvT"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.185]:57855 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752550AbYFZT1A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jun 2008 15:27:00 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so110937tic.23
-        for <linux-omap@vger.kernel.org>; Thu, 26 Jun 2008 12:26:58 -0700 (PDT)
-In-Reply-To: <4863EB49.8050703@css-design.us>
+Received: from py-out-1112.google.com ([64.233.166.176]:37798 "EHLO
+	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752031AbYFZUY6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jun 2008 16:24:58 -0400
+Received: by py-out-1112.google.com with SMTP id p76so60063pyb.10
+        for <linux-omap@vger.kernel.org>; Thu, 26 Jun 2008 13:24:57 -0700 (PDT)
 Content-Disposition: inline
+In-Reply-To: <7B4574D56E4ADF438756313E9A172A8708D67141@dlee01.ent.ti.com>
+Content-Language: en
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Poulsen <spoulsen@css-design.us>
-Cc: omap <linux-omap@vger.kernel.org>
+To: Linux-OMAP List <linux-omap@vger.kernel.org>
 
-the problem was that my kernel was extending beyond to 0x240000.. and
-i was then writing fs from ox240000. i then reflashed the kernel adn
-then shifted the fs image to 0x340000. but still when i do
 
-mount -t jffs2 /dev/mntblock3 /mnt/flash
+--KN5l+BnMqAQyZLvT
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-i get the same error.
+On Wed, 2008.06.25, 177, Hunter, Jon wrote:
+> > >   CC      drivers/cbus/retu-wdt.o
+> > > drivers/cbus/retu-wdt.c: In function 'retu_wdt_ioctl':
+> > > drivers/cbus/retu-wdt.c:204: error: implicit declaration of function
+> > > 'omap_readw'
+> > > make[2]: *** [drivers/cbus/retu-wdt.o] Error 1
+> > > make[1]: *** [drivers/cbus] Error 2
+> > > make: *** [drivers] Error 2
+>=20
+>=20
+> An implicit declaration of function error would imply that you are missin=
+g the appropriate header function. Hence, the compiler sees this as a decla=
+ration of a new function, instead of a function that has already been defin=
+ed elsewhere.
+>=20
+> > I removed lines 203-205 of drivers/cbus/retu-wdt.c (after patching); it
+> > seems
+> > to have fixed the problem for me.
+>=20
+>=20
+> Instead of removing the above lines, try including the header asm/io.h in=
+ the file drivers/cbus/retu-wdt.c. For example:
+>=20
+> #include <asm/io.h>
 
-cat /proc/mtd
+Okay, this works; thanks.
 
-dev   size     erasesize  name
-mtd0: 00020000 00020000 "bootloader"
-mtd1: 00020000 00020000 "params"
-mtd2: 00200000 00020000 "kernel"
-mtd3: 01dc0000 00020000 "filesystem"
+--KN5l+BnMqAQyZLvT
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-thank you
-regards,
-Shareef
-On Fri, Jun 27, 2008 at 12:47 AM, Steve Poulsen <spoulsen@css-design.us> wrote:
-> Mohammed,
->
-> Are you using NFS to boot, then mounting to /mnt/flash?   This is a good
-> test, but I just want to be sure it is what you are doing.
->
-> Can you post the output from:
-> #  cat /proc/mtd
->
-> Also, you need to check and verify that the data in the flash matches your
-> file.   Using a hex editor, examine your file (rootfs-jffs2.img).   Record a
-> few bytes at offset 0 and offset 0xc00000 (where you split it).   Make sure
-> the bytes just before and after the split point are recorded.
->
-> Now go to you board and examine the flash.  There are several ways to do
-> this.  One way is to copy the whole sector to a file (assuming you boot NFS
-> and have the space).
->
-> cp /dev/mtd3 somefile.img
->
-> Compare the image with the one you started with.   The new one will be
-> larger because you dump the whole flash section, so ignore the extra data.
->
-> This is not really a solution to your problem, but can give you some
-> techniques to help figure out how to determine what is wrong.
->
-> Good luck!
->
-> Steve
->
->
-> mohammed shareef wrote:
->
-> Dear Steve,
->
-> i did as you said, transfered both the images one after the other.
-> then i made nodes for mtd3 and mtdblock3
->
-> and i tried to test whether the fs is able to mount:
->
-> i did:
->
-> mount -t jffs2 /dev/mtdblock3 /mnt/flash
->
-> then i got the following error:
->
-> jffs2)scan)eraseblock():magic bitmask 0x1985 not found at 0x00000000:
-> 0x05cf instead
-> ..
-> ..
-> Old JFFS2 bitmask found at 0x00012cd8
-> You cannot use older JFFS2 filesystems with newer kernels
->
-> and it doesnt mount in /mnt/flash
->
-> could you please tell me whats wrong.
-> thank you,
-> regards,
-> Shareef
->
->
->
-> On Fri, Jun 27, 2008 at 12:03 AM, Steve Poulsen <spoulsen@css-design.us>
-> wrote:
->
->
-> Mohammed,
->
-> This is the correct approach.  As long as you avoid anything below 0x240000,
-> you avoid touching u-boot and the kernel.   I suggest to turn protect off
-> only for the sectors needed.  The sectors/addresses depends upon your flash.
->  If you are using the OSK, then these are told in the OSK newbie guide (I
-> can't recall and our flash is different).
-> For the OSK, the filesystem is at 0x240000.  Therefore, you transfer the
-> first file to 0x240000 and the next file transfers to 0x240000 + 0xc00000
-> (E40000).   This is purely a memory copy.   You don't need to combine.
-> When you place the two pieces next to each other, they are basically
-> combined.
-> I'm not sure you understand this, but when you use tftp, you are copying the
-> file to SDRAM.   This address is fixed for the OSK at 0x10000000.
-> Therefore the steps are:
->
-> 1) tftp part 1 into memory 0x10000000
-> 2) copy the memory of 0x10000000 to 0x240000
-> 3) tftp part 2 into memory 0x10000000
-> 4) copy the memory of 0x10000000 to 0xE40000
-> 5) Reset the board (You could boot from here if you wish, but a reset is
-> simpler and puts the flash back to protected)
->
-> Steve
->
-> mohammed shareef wrote:
->
->
-> i erased location 0x240000 to 0x1ffffff;
-> then i transfered the first file to location 0x240000, the size of the
-> first image was c00000 (12Mb)
-> but now i have the second image on RAM of osk.
-> the flash segment for ffs2 filesystem runs from 0x01000000 till
-> 0x0fffffff(please correct me if i am wrong).  i dont know to which
-> location on flash to transfer this to. could someone please help me on
-> this. thank you. and i also have doubts on how to combine the two
-> images on the flash and make it tun. thannk you.
-> regards,
-> Shareef
->
-> On Thu, Jun 26, 2008 at 9:59 PM, mohammed shareef <mdshareef@gmail.com>
-> wrote:
->
->
->
-> Dear Steve,
->
-> i split the file into two pieces:
->
-> split rootfs-jffs2.img --bytes=12m
->
-> so i have two files with xaa(12Mb) and xab(11.5Mb)
->
-> i was ablt to transfer the first file completely with any problem.
->  but i dont know what to do next. should i transfer the first image in
-> RAM to flash? could you please tell me how many sectors i need erase
-> and from which bank? i am afraid that i may end up erasing the u-boot.
-> thank you.
-> regards,
-> Shareef
->
-> On Thu, Jun 26, 2008 at 9:41 PM, Steve Poulsen <spoulsen@css-design.us>
-> wrote:
->
->
->
-> Mohammed,
->
-> When you tftp the file to memory, you need to make sure the filesize
-> fits in
-> the memory available.  Since you have experimentally done that and now
-> want
-> to flash the pieces, I suggest you look at the "split" command under
-> Linux.
->  You will need to split the file into pieces that fit into RAM and flash
-> at
-> the proper address.  If you split the file into two pieces, then you
-> will
-> need to flash the first piece at address X and the second piece at
-> address X
-> + 16meg.  You should make sure you split the file on a sector boundary.
->   If
-> you don't want to think about this, then you should erase/unprotect the
-> whole area you will need first, then transfer and flash the pieces. You
-> may
-> want to look at the omapfl utility.   With some modification, you could
-> flash your image more easily via USB.
->
-> Steve
->
-> mohammed shareef wrote:
->
->
->
-> Hi,
->
-> I tried to do the same procedure with a small filesystem image <
-> 16Mb... it worked. i didnt have such problems. so could someone please
-> tell me how to divide the filesystem image in to two and flash it?
-> thank you,
-> regards,
-> shareef
->
-> On Thu, Jun 26, 2008 at 4:36 PM, mohammed shareef <mdshareef@gmail.com>
-> wrote:
->
->
->
->
-> Hi,
->
-> i did the below. i got an image. but i am still having the same
-> problem
->
-> my file size is 23Mb
->
-> [root@localhost tftpboot]# mkfs.jffs2 --squash -r /data/rootfs2.6
-> -e131072 > /data/rootfs-jffs2.img
-> [root@localhost tftpboot]# cp /data/rootfs-jffs2.img
-> /tftpboot/rootfs-jffs2.img
->
-> \0x09
-> #################################################################
-> \0x09 #############undefined instruction
-> pc : [<e0000004>]    lr : [<00000002>]
-> sp : 1103fca4  ip : 11095dd8  fp : 00000001
-> r10: 10963410  r9 : 1103fd24  r8 : 1103ffdc
-> r7 : 270a30a1  r6 : 8695632d  r5 : 08016ffa  r4 : 5aebcc39
-> r3 : 00000032  r2 : 11095dd4  r1 : 000000a0  r0 : 00000000
-> Flags: nZCv  IRQs off  FIQs off  Mode SVC_32
-> Resetting CPU ...
->
-> could you please tell me what i should do. thank you.
-> regards,
-> Shareef
->
->
->
-> On Wed, Jun 25, 2008 at 9:52 PM, Hunter, Jon <jon-hunter@ti.com>
-> wrote:
->
->
->
->
-> then i changed the filename and the
-> tftpboot transfer started. But on the mid-way it complains
->  "undefined
-> instruction".
->
-> could some one please tell me where the problem is? thank you.
->
->
->
->
-> How big is the file that you are attempting to download over tftp?
->
-> U-boot executes in the upper part of the RAM and so if your file is
-> too
-> big, then there is a good chance you are overwriting u-boot which
-> would
-> cause u-boot to crash eventually. U-boot does not protect against
-> this. This
-> would be a potential cause of an undefined instruction exception.
->
-> Jon
->
->
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
->
->
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
->
->
->
->
->
->
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFIY/F/682C+dBP+oQRAnlFAKDXcCEuVCghLVxmp0xOFQpPRZKqBQCghbiG
+aInRMycajDQkEMCZBao/UPA=
+=GvUD
+-----END PGP SIGNATURE-----
+
+--KN5l+BnMqAQyZLvT--
