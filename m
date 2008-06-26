@@ -1,65 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] OMAP3: fix powerdomain hardware save-and-restore
-	support
-Date: Thu, 26 Jun 2008 16:42:10 +0300
-Message-ID: <20080626134209.GJ12992@atomide.com>
-References: <20080626000415.18779.25924.stgit@localhost.localdomain>
+Subject: Re: [PATCH 0/4] OMAP2/3 clock: fix some bugs in
+	omap2_clk_wait_ready()
+Date: Thu, 26 Jun 2008 16:44:07 +0300
+Message-ID: <20080626134407.GK12992@atomide.com>
+References: <20080626070305.16555.96759.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-bos.mailhop.org ([63.208.196.179]:64399 "EHLO
-	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751583AbYFZNmN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jun 2008 09:42:13 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57050 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760081AbYFZNoR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jun 2008 09:44:17 -0400
 Content-Disposition: inline
-In-Reply-To: <20080626000415.18779.25924.stgit@localhost.localdomain>
+In-Reply-To: <20080626070305.16555.96759.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, jouni.hogander@nokia.com, r-woodruff2@ti.com
+Cc: linux-omap@vger.kernel.org, gadiyar@ti.com, k.kooi@student.utwente.nl, dirk.behme@googlemail.com, igor.stoppa@nokia.com, r-woodruff2@ti.com, jouni.hogander@nokia.comD
 
-* Paul Walmsley <paul@pwsan.com> [080626 03:17]:
-> This series revises the support for automatic hardware-controlled
-> powerdomain context save-and-restore (SAR).  Previously, this was
-> partially handled through the clock framework; but handling it via the
-> powerdomain framework is a better solution.
+* Paul Walmsley <paul@pwsan.com> [080626 10:12]:
+> This patch series fixes some bugs in omap2_clk_wait_ready().  This function
+> waits for an OMAP module to become ready after both its functional and
+> interface clocks are enabled.  Not all OMAP modules support this process.
 > 
-> The patches:
+> In particular, this series:
 > 
-> - add functions to the powerdomain code to enable and disable
->   automatic SAR,
+> - does some minor code cleanup,
 > 
-> - move the USBHOST SAR support from the clock fw to the powerdomain
->   layer,
+> - waits for DSS to become available on OMAP3430ES2+,
 > 
-> - add support for USBTLL SAR,
+> - waits for SSI to become available on OMAP3430ES2+,
 > 
-> - enable SAR for all powerdomains that support it upon powerdomain
->   initialization.
+> - and adds a test for the OMAP2 portion of the code to verify that the
+>   clocks it tests for are in the CORE powerdomain.
 > 
-> Boot-tested on 3430SDP ES2.
+> These patches are possible due to the efforts of several people; credits
+> are listed in the individual patch descriptions.
+> 
+> Boot-tested on 3430SDP ES2 and 2430SDP.  
 
-Pushing these today.
+Pushing this series today.
 
 Tony
 
 > 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com> 
+> 
+> - Paul
+> 
 > 
 > ---
 > 
 > size:
 >    text    data     bss     dec     hex filename
 > 3391246  156920  107144 3655310  37c68e vmlinux.3430sdp.orig
-> 3391422  156872  107144 3655438  37c70e vmlinux.3430sdp.patched
+> 3391374  156920  107144 3655438  37c70e vmlinux.3430sdp.fixed
 > 
->  arch/arm/mach-omap2/clock34xx.h         |   12 -----
->  arch/arm/mach-omap2/pm34xx.c            |    4 ++
->  arch/arm/mach-omap2/powerdomain.c       |   68 +++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/powerdomains.h      |    3 +
->  arch/arm/mach-omap2/powerdomains34xx.h  |   24 ++++++++++-
->  include/asm-arm/arch-omap/powerdomain.h |   11 +++++
->  6 files changed, 107 insertions(+), 15 deletions(-)
+>  arch/arm/mach-omap2/clock.c           |   79 ++++++++++++++++++++++++++-------
+>  arch/arm/mach-omap2/cm-regbits-34xx.h |    7 ++-
+>  2 files changed, 67 insertions(+), 19 deletions(-)
+> 
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
