@@ -1,91 +1,93 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP3 clock: DPLL{1,2}_FCLK clksel can divide by 4
-Date: Thu, 26 Jun 2008 16:50:54 +0300
-Message-ID: <20080626135053.GM12992@atomide.com>
-References: <alpine.DEB.1.00.0806240111320.9741@utopia.booyaka.com>
+Subject: Re: [PATCH 0/2] Add clock post-rate-change notifier
+Date: Thu, 26 Jun 2008 16:52:39 +0300
+Message-ID: <20080626135238.GN12992@atomide.com>
+References: <20080620231155.21640.89851.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49302 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754914AbYFZNu5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jun 2008 09:50:57 -0400
+Received: from mho-02-bos.mailhop.org ([63.208.196.179]:60251 "EHLO
+	mho-02-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751256AbYFZNwm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jun 2008 09:52:42 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.1.00.0806240111320.9741@utopia.booyaka.com>
+In-Reply-To: <20080620231155.21640.89851.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [080624 10:12]:
+* Paul Walmsley <paul@pwsan.com> [080621 02:16]:
 > 
-> OMAP34xx ES2 TRM Delta G to H states that the divider for DPLL1_FCLK and 
-> DPLL2_FCLK can divide by 4 in addition to dividing by 1 and 2. Encode this 
-> into the OMAP3 clock framework.
+> This series adds a clock rate change notifier to the OMAP clock
+> framework.  Currently only post-rate-change notification is
+> implemented, although pre-rate-change notification is in the works.
+> 
+> Clock post-rate-change notifiers are intended for drivers that need to
+> be notified when other code (such as power management code) changes
+> their clock's rate.  DSPBridge is apparently one such user, but
+> drivers for UART, MCSPI, etc. are also candidates for these notifiers.
+> 
+> Drivers should use these notifiers by adding function pointers for
+> clk_notifier_register() and clk_notifier_unregister() to their
+> platform_data structure.  Ensure that the function pointers are not
+> NULL before calling, since non-OMAP platforms may not support this
+> notifier:
+> 
+>   if (pdata->clk_notifier_register)
+>      (*pdata->clk_notifier_register)(clk, &test_nb);
+> 
+> The callback code must not call back into the clock framework nor
+> sleep, as the clock framework spinlock is held for the duration of the
+> callbacks.  Callback functions should be short and lightweight.
+> 
+> ...
+> 
+> A few implementation notes.  Upon request, an alternate design was
+> also investigated based on the existing CPUFreq notifiers.  That
+> design was set aside, due to the following problems:
+> 
+> - CPUFreq notifier callbacks can sleep.  This will break the clock
+>   framework, since it calls the notifier inside a spinlock.
+> 
+> - Identifying the changed clock from the callback would require a new
+>   platform_data-based function in the clock framework, since struct
+>   cpufreq_freqs has no good way to pass it.
+> 
+> - CPUFreq notifiers depend on CPUFreq, which not everyone uses.
+> 
+> There was also some concern expressed that separate CPUFreq notifiers
+> and clk rate notifiers could race.  (That would only apply to the
+> clocks that are changed by CPUFreq, and any clocks downstream from
+> it.)  This doesn't appear to be a problem in practice, since CPUFreq
+> post-rate notifiers can only start after the clk post-rate notifiers
+> have completed and exited the clock framework.
+> 
+> The current implementation has been moderately tested with multiple
+> clock notifiers on both DPLLs and a downstream clock on 3430SDP.  Also
+> compile-tested for N800.
 
-Pushing today.
+Let's run these by linux-arm-kernel and linux-pm lists before we apply.
 
 Tony
 
 > 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> ---
 > 
->  arch/arm/mach-omap2/clock34xx.h |   20 ++++++++++++++++----
->  1 files changed, 16 insertions(+), 4 deletions(-)
+> - Paul
 > 
-> diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-> index b4dceea..9605744 100644
-> --- a/arch/arm/mach-omap2/clock34xx.h
-> +++ b/arch/arm/mach-omap2/clock34xx.h
-> @@ -1029,8 +1029,15 @@ static struct clk corex2_fck = {
->  
->  /* DPLL power domain clock controls */
->  
-> -static const struct clksel div2_core_clksel[] = {
-> -	{ .parent = &core_ck, .rates = div2_rates },
-> +static const struct clksel_rate div4_rates[] = {
-> +	{ .div = 1, .val = 1, .flags = RATE_IN_343X | DEFAULT_RATE },
-> +	{ .div = 2, .val = 2, .flags = RATE_IN_343X },
-> +	{ .div = 4, .val = 4, .flags = RATE_IN_343X },
-> +	{ .div = 0 }
-> +};
-> +
-> +static const struct clksel div4_core_clksel[] = {
-> +	{ .parent = &core_ck, .rates = div4_rates },
->  	{ .parent = NULL }
->  };
->  
-> @@ -1044,7 +1051,7 @@ static struct clk dpll1_fck = {
->  	.init		= &omap2_init_clksel_parent,
->  	.clksel_reg	= _OMAP34XX_CM_REGADDR(MPU_MOD, OMAP3430_CM_CLKSEL1_PLL),
->  	.clksel_mask	= OMAP3430_MPU_CLK_SRC_MASK,
-> -	.clksel		= div2_core_clksel,
-> +	.clksel		= div4_core_clksel,
->  	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
->  				PARENT_CONTROLS_CLOCK,
->  	.recalc		= &omap2_clksel_recalc,
-> @@ -1119,7 +1126,7 @@ static struct clk dpll2_fck = {
->  	.init		= &omap2_init_clksel_parent,
->  	.clksel_reg	= _OMAP34XX_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKSEL1_PLL),
->  	.clksel_mask	= OMAP3430_IVA2_CLK_SRC_MASK,
-> -	.clksel		= div2_core_clksel,
-> +	.clksel		= div4_core_clksel,
->  	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
->  				PARENT_CONTROLS_CLOCK,
->  	.recalc		= &omap2_clksel_recalc,
-> @@ -1155,6 +1162,11 @@ static struct clk iva2_ck = {
->  
->  /* Common interface clocks */
->  
-> +static const struct clksel div2_core_clksel[] = {
-> +	{ .parent = &core_ck, .rates = div2_rates },
-> +	{ .parent = NULL }
-> +};
-> +
->  static struct clk l3_ick = {
->  	.name		= "l3_ick",
->  	.parent		= &core_ck,
+> 
+>    text    data     bss     dec     hex filename
+> 3404721  158888  108176 3671785  3806e9 vmlinux.3430sdp.orig
+> 3405361  158896  108176 3672433  380971 vmlinux.3430sdp.patched
+> 
+>  arch/arm/mach-omap2/clock.c       |   37 ++++++++--
+>  arch/arm/mach-omap2/clock24xx.c   |   42 ++++++++++-
+>  arch/arm/mach-omap2/clock34xx.c   |   10 +++
+>  arch/arm/plat-omap/clock.c        |  144 +++++++++++++++++++++++++++++++++++++
+>  include/asm-arm/arch-omap/clock.h |   21 +++++
+>  5 files changed, 246 insertions(+), 8 deletions(-)
+> 
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
