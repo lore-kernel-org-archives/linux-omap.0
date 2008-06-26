@@ -1,140 +1,75 @@
-From: "Arun KS" <getarunks@gmail.com>
-Subject: Re: [ PATCH 2/3 ] net:smc911x Modify driver to also work with omap24xx
-Date: Thu, 26 Jun 2008 20:47:15 +0530
-Message-ID: <dfeb90390806260817o3d2dd180qbe97c77be44de94@mail.gmail.com>
-References: <dfeb90390806240514w62490fb9kdc1c189f3fd946f5@mail.gmail.com>
-	 <20080626122202.GE12992@atomide.com>
+From: "mohammed shareef" <mdshareef@gmail.com>
+Subject: Re: undefined instruction
+Date: Thu, 26 Jun 2008 20:59:09 +0530
+Message-ID: <a1d91fa0806260829l6953e0b6o754b00b632efae47@mail.gmail.com>
+References: <a1d91fa0806250029x2bf114f5t2f45bb1472e96fbb@mail.gmail.com>
+	 <7B4574D56E4ADF438756313E9A172A8708CFE66C@dlee01.ent.ti.com>
+	 <a1d91fa0806260406q25815d09hd66a1784dbcf58a1@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.186]:30240 "EHLO
+Received: from ti-out-0910.google.com ([209.85.142.188]:29490 "EHLO
 	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752095AbYFZPRR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jun 2008 11:17:17 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so63833tic.23
-        for <linux-omap@vger.kernel.org>; Thu, 26 Jun 2008 08:17:15 -0700 (PDT)
-In-Reply-To: <20080626122202.GE12992@atomide.com>
+	with ESMTP id S1754290AbYFZP3L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jun 2008 11:29:11 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so68460tic.23
+        for <linux-omap@vger.kernel.org>; Thu, 26 Jun 2008 08:29:09 -0700 (PDT)
+In-Reply-To: <a1d91fa0806260406q25815d09hd66a1784dbcf58a1@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: omap <linux-omap@vger.kernel.org>
 
-On Thu, Jun 26, 2008 at 5:52 PM, Tony Lindgren <tony@atomide.com> wrote:
+Hi,
+
+I tried to do the same procedure with a small filesystem image <
+16Mb... it worked. i didnt have such problems. so could someone please
+tell me how to divide the filesystem image in to two and flash it?
+thank you,
+regards,
+shareef
+
+On Thu, Jun 26, 2008 at 4:36 PM, mohammed shareef <mdshareef@gmail.com> wrote:
 > Hi,
 >
-> * Arun KS <getarunks@gmail.com> [080624 15:14]:
->> net:smc911x Modify driver to also work with omap24xx
+> i did the below. i got an image. but i am still having the same problem
 >
-> Few comments below.
+> my file size is 23Mb
 >
-> Also, can you please send this to the Linux netdev mailing list?
-> Also Cc linux-omap list too.
+> [root@localhost tftpboot]# mkfs.jffs2 --squash -r /data/rootfs2.6
+> -e131072 > /data/rootfs-jffs2.img
+> [root@localhost tftpboot]# cp /data/rootfs-jffs2.img /tftpboot/rootfs-jffs2.img
 >
->> Signed-off-by: Arun KS <arunks@mistralsolutions.com>
->> ---
->>  drivers/net/Kconfig   |    2 +-
->>  drivers/net/smc911x.h |    5 +++++
->>  2 files changed, 6 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/net/Kconfig b/drivers/net/Kconfig
->> index 61ecee7..17d0a9c 100644
->> --- a/drivers/net/Kconfig
->> +++ b/drivers/net/Kconfig
->> @@ -955,7 +955,7 @@ config SMC911X
->>     tristate "SMSC LAN911[5678] support"
->>     select CRC32
->>     select MII
->> -   depends on ARCH_PXA || SH_MAGIC_PANEL_R2 || ARCH_OMAP34XX
->> +   depends on ARCH_PXA || SH_MAGIC_PANEL_R2 || ARCH_OMAP34XX || ARCH_OMAP24XX
->>     help
->>       This is a driver for SMSC's LAN911x series of Ethernet chipsets
->>       including the new LAN9115, LAN9116, LAN9117, and LAN9118.
+> \0x09 #################################################################
+> \0x09 #############undefined instruction
+> pc : [<e0000004>]    lr : [<00000002>]
+> sp : 1103fca4  ip : 11095dd8  fp : 00000001
+> r10: 10963410  r9 : 1103fd24  r8 : 1103ffdc
+> r7 : 270a30a1  r6 : 8695632d  r5 : 08016ffa  r4 : 5aebcc39
+> r3 : 00000032  r2 : 11095dd4  r1 : 000000a0  r0 : 00000000
+> Flags: nZCv  IRQs off  FIQs off  Mode SVC_32
+> Resetting CPU ...
 >
-> Maybe have ARCH_OMAP24XX before ARCH_OMAP34XX to be consistent
-> how it's done elsewhere.
+> could you please tell me what i should do. thank you.
+> regards,
+> Shareef
 >
 >
->> diff --git a/drivers/net/smc911x.h b/drivers/net/smc911x.h
->> index dad93a8..0f406a0 100644
->> --- a/drivers/net/smc911x.h
->> +++ b/drivers/net/smc911x.h
->> @@ -47,6 +47,11 @@
->>    #define SMC_USE_32BIT        1
->>    #define SMC_IRQ_SENSE        IRQF_TRIGGER_LOW
->>    #define SMC_MEM_RESERVED 1
->> +#elif defined(CONFIG_ARCH_OMAP24XX)
->> +  #define SMC_USE_16BIT        0
->> +  #define SMC_USE_32BIT        1
->> +  #define SMC_IRQ_SENSE        IRQF_TRIGGER_LOW
->> +  #define SMC_MEM_RESERVED 1
-Here i used the tab itself, when this patch is applied it comes pretty fine in
-the code. I checked the patch with checkpatch.pl also. Can you tell me
-what is going wrong?
-
-After code formating issues are resolved i can resend the patch again.
-
-Regards,
-Arun
->>  #endif
 >
-> You should probably use tabs here in the new code even if old code
-> does not.
->
-> Regards,
->
-> Tony
->
+> On Wed, Jun 25, 2008 at 9:52 PM, Hunter, Jon <jon-hunter@ti.com> wrote:
+>>> then i changed the filename and the
+>>> tftpboot transfer started. But on the mid-way it complains  "undefined
+>>> instruction".
+>>>
+>>> could some one please tell me where the problem is? thank you.
 >>
 >>
->> --
->> 1.5.3.4
->
->> From 8b45bfd40aca7d5f89195f95d668bae78e2dbba9 Mon Sep 17 00:00:00 2001
->> From: Arun KS <arunks@mistralsolutions.com>
->> Date: Tue, 24 Jun 2008 17:33:08 +0530
->> Subject: [PATCH] net:smc911x Modify driver to also work with omap24xx
+>> How big is the file that you are attempting to download over tftp?
 >>
->> net:smc911x Modify driver to also work with omap24xx
+>> U-boot executes in the upper part of the RAM and so if your file is too big, then there is a good chance you are overwriting u-boot which would cause u-boot to crash eventually. U-boot does not protect against this. This would be a potential cause of an undefined instruction exception.
 >>
->> Signed-off-by: Arun KS <arunks@mistralsolutions.com>
->> ---
->>  drivers/net/Kconfig   |    2 +-
->>  drivers/net/smc911x.h |    5 +++++
->>  2 files changed, 6 insertions(+), 1 deletions(-)
+>> Jon
 >>
->> diff --git a/drivers/net/Kconfig b/drivers/net/Kconfig
->> index 61ecee7..17d0a9c 100644
->> --- a/drivers/net/Kconfig
->> +++ b/drivers/net/Kconfig
->> @@ -955,7 +955,7 @@ config SMC911X
->>       tristate "SMSC LAN911[5678] support"
->>       select CRC32
->>       select MII
->> -     depends on ARCH_PXA || SH_MAGIC_PANEL_R2 || ARCH_OMAP34XX
->> +     depends on ARCH_PXA || SH_MAGIC_PANEL_R2 || ARCH_OMAP34XX || ARCH_OMAP24XX
->>       help
->>         This is a driver for SMSC's LAN911x series of Ethernet chipsets
->>         including the new LAN9115, LAN9116, LAN9117, and LAN9118.
->> diff --git a/drivers/net/smc911x.h b/drivers/net/smc911x.h
->> index dad93a8..0f406a0 100644
->> --- a/drivers/net/smc911x.h
->> +++ b/drivers/net/smc911x.h
->> @@ -47,6 +47,11 @@
->>    #define SMC_USE_32BIT              1
->>    #define SMC_IRQ_SENSE              IRQF_TRIGGER_LOW
->>    #define SMC_MEM_RESERVED   1
->> +#elif defined(CONFIG_ARCH_OMAP24XX)
->> +  #define SMC_USE_16BIT              0
->> +  #define SMC_USE_32BIT              1
->> +  #define SMC_IRQ_SENSE              IRQF_TRIGGER_LOW
->> +  #define SMC_MEM_RESERVED   1
->>  #endif
->>
->>
->> --
->> 1.5.3.4
->>
->
 >
