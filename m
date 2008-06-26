@@ -1,150 +1,140 @@
-From: Miguel Aguilar <miguel.aguilar@ridgerun.com>
-Subject: Re: [PATCH 1/3] OMAP3 EVM: Add twl4030 keypad driver support
-Date: Thu, 26 Jun 2008 08:47:32 -0600
-Message-ID: <4863AC04.8040505@ridgerun.com>
-References: <48601ACD.6040804@ridgerun.com>	 <c656a4d20806250704y1d1129c3jf7997360da91388f@mail.gmail.com>	 <48626096.2030704@ridgerun.com> <c656a4d20806252329p59dde4a9q862817b078794f3f@mail.gmail.com>
+From: "Arun KS" <getarunks@gmail.com>
+Subject: Re: [ PATCH 2/3 ] net:smc911x Modify driver to also work with omap24xx
+Date: Thu, 26 Jun 2008 20:47:15 +0530
+Message-ID: <dfeb90390806260817o3d2dd180qbe97c77be44de94@mail.gmail.com>
+References: <dfeb90390806240514w62490fb9kdc1c189f3fd946f5@mail.gmail.com>
+	 <20080626122202.GE12992@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:38360 "EHLO mail.navvo.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752379AbYFZOnn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Jun 2008 10:43:43 -0400
-In-Reply-To: <c656a4d20806252329p59dde4a9q862817b078794f3f@mail.gmail.com>
+Received: from ti-out-0910.google.com ([209.85.142.186]:30240 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752095AbYFZPRR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jun 2008 11:17:17 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so63833tic.23
+        for <linux-omap@vger.kernel.org>; Thu, 26 Jun 2008 08:17:15 -0700 (PDT)
+In-Reply-To: <20080626122202.GE12992@atomide.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arun c <arun.edarath@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org
 
-arun c wrote:
-> On Wed, Jun 25, 2008 at 8:43 PM, Miguel Angel Aguilar Ulloa
-> <miguel.aguilar@ridgerun.com> wrote:
->> The OMAP3 EVM has 15 keys arranged in a matrix from SW4 to SW18, but it also
->> has a user key (power on/off) in SW3, this key is included in the keypad
->> mapping. This is how mapping is done in an 4x4 array.
+On Thu, Jun 26, 2008 at 5:52 PM, Tony Lindgren <tony@atomide.com> wrote:
+> Hi,
+>
+> * Arun KS <getarunks@gmail.com> [080624 15:14]:
+>> net:smc911x Modify driver to also work with omap24xx
+>
+> Few comments below.
+>
+> Also, can you please send this to the Linux netdev mailing list?
+> Also Cc linux-omap list too.
+>
+>> Signed-off-by: Arun KS <arunks@mistralsolutions.com>
+>> ---
+>>  drivers/net/Kconfig   |    2 +-
+>>  drivers/net/smc911x.h |    5 +++++
+>>  2 files changed, 6 insertions(+), 1 deletions(-)
 >>
->> arun c wrote:
->>> On Tue, Jun 24, 2008 at 3:21 AM, Miguel Angel Aguilar Ulloa
->>> <miguel.aguilar@ridgerun.com> wrote:
->>>> Add twl4030 keypad driver support to OMAP3 EVM
->>>>
->>>> Signed-off-by: Miguel Angel Aguilar <miguel.aguilar@ridgerun.com>
->>>>
->>>> --- a/arch/arm/mach-omap2/board-omap3evm.c      2008-06-23
->>>> 15:07:13.000000000 -0600
->>>> +++ b/arch/arm/mach-omap2/board-omap3evm.c      2008-06-23
->>>> 14:32:29.000000000 -0600
->>>> @@ -19,6 +19,7 @@
->>>> #include <linux/err.h>
->>>> #include <linux/clk.h>
->>>> #include <linux/io.h>
->>>> +#include <linux/input.h>
->>>> #include <linux/spi/spi.h>
->>>> #include <linux/spi/ads7846.h>
->>>>
->>>> @@ -28,6 +29,7 @@
->>>> #include <asm/mach/map.h>
->>>>
->>>> #include <asm/arch/gpio.h>
->>>> +#include <asm/arch/keypad.h>
->>>> #include <asm/arch/board.h>
->>>> #include <asm/arch/hsmmc.h>
->>>> #include <asm/arch/usb-musb.h>
->>>> @@ -149,6 +151,56 @@ struct spi_board_info omap3evm_spi_board
->>>>       },
->>>> };
->>>>
-> 
-> Yes option is there to add sw3 to key matrix. So we have a total of 16
-> keys, then
-> why there are more no of keys(30keys) in omap3evm_keymap[] array?
-> 
-Check new patch version
-> 
->>>> +static int omap3evm_keymap[] = {
->>>> +       KEY(0, 0, KEY_LEFT),
->>>> +       KEY(0, 1, KEY_RIGHT),
->>>> +       KEY(0, 2, KEY_A),
->>>> +       KEY(0, 3, KEY_B),
->>>> +       KEY(0, 4, KEY_C),
->>>> +       KEY(1, 0, KEY_DOWN),
->>>> +       KEY(1, 1, KEY_UP),
->>>> +       KEY(1, 2, KEY_E),
->>>> +       KEY(1, 3, KEY_F),
->>>> +       KEY(1, 4, KEY_G),
->>>> +       KEY(2, 0, KEY_ENTER),
->>>> +       KEY(2, 1, KEY_I),
->>>> +       KEY(2, 2, KEY_J),
->>>> +       KEY(2, 3, KEY_K),
->>>> +       KEY(2, 4, KEY_3),
->>>> +       KEY(3, 0, KEY_M),
->>>> +       KEY(3, 1, KEY_N),
->>>> +       KEY(3, 2, KEY_O),
->>>> +       KEY(3, 3, KEY_P),
->>>> +       KEY(3, 4, KEY_Q),
->>>> +       KEY(4, 0, KEY_R),
->>>> +       KEY(4, 1, KEY_4),
->>>> +       KEY(4, 2, KEY_T),
->>>> +       KEY(4, 3, KEY_U),
->>>> +       KEY(4, 4, KEY_D),
->>>> +       KEY(5, 0, KEY_V),
->>>> +       KEY(5, 1, KEY_W),
->>>> +       KEY(5, 2, KEY_L),
->>>> +       KEY(5, 3, KEY_S),
->>>> +       KEY(5, 4, KEY_H),
->>>> +       0
->>>> +};
->>>> +
->>> Omap3evm has only 15 keys right?(Some body correct me if I am wrong).
->>> Then how the
->>> mapping and dividing into rows and columns is done?
->>>
->>>> +static struct omap_kp_platform_data omap3evm_kp_data = {
->>>> +       .rows           = 4,
->>>> +       .cols           = 4,
->>>> +       .keymap         = omap3evm_keymap,
->>>> +       .keymapsize     = ARRAY_SIZE(omap3evm_keymap),
->>>> +       .rep            = 1,
->>>> +};
->>>> +
->>>> +static struct platform_device omap3evm_kp_device = {
->>>> +       .name           = "omap_twl4030keypad",
->>>> +       .id             = -1,
->>>> +       .dev            = {
->>>> +                               .platform_data = &omap3evm_kp_data,
->>>> +                       },
->>>> +};
->>>> +
->>>> static void __init omap3_evm_init_irq(void)
->>>> {
->>>>       omap2_init_common_hw();
->>>> @@ -165,6 +217,7 @@ static struct omap_board_config_kernel o
->>>>
->>>> static struct platform_device *omap3_evm_devices[] __initdata = {
->>>>       &omap3_evm_lcd_device,
->>>> +       &omap3evm_kp_device,
->>>> #ifdef CONFIG_RTC_DRV_TWL4030
->>>>       &omap3_evm_twl4030rtc_device,
->>>> #endif
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>
+>> diff --git a/drivers/net/Kconfig b/drivers/net/Kconfig
+>> index 61ecee7..17d0a9c 100644
+>> --- a/drivers/net/Kconfig
+>> +++ b/drivers/net/Kconfig
+>> @@ -955,7 +955,7 @@ config SMC911X
+>>     tristate "SMSC LAN911[5678] support"
+>>     select CRC32
+>>     select MII
+>> -   depends on ARCH_PXA || SH_MAGIC_PANEL_R2 || ARCH_OMAP34XX
+>> +   depends on ARCH_PXA || SH_MAGIC_PANEL_R2 || ARCH_OMAP34XX || ARCH_OMAP24XX
+>>     help
+>>       This is a driver for SMSC's LAN911x series of Ethernet chipsets
+>>       including the new LAN9115, LAN9116, LAN9117, and LAN9118.
+>
+> Maybe have ARCH_OMAP24XX before ARCH_OMAP34XX to be consistent
+> how it's done elsewhere.
+>
+>
+>> diff --git a/drivers/net/smc911x.h b/drivers/net/smc911x.h
+>> index dad93a8..0f406a0 100644
+>> --- a/drivers/net/smc911x.h
+>> +++ b/drivers/net/smc911x.h
+>> @@ -47,6 +47,11 @@
+>>    #define SMC_USE_32BIT        1
+>>    #define SMC_IRQ_SENSE        IRQF_TRIGGER_LOW
+>>    #define SMC_MEM_RESERVED 1
+>> +#elif defined(CONFIG_ARCH_OMAP24XX)
+>> +  #define SMC_USE_16BIT        0
+>> +  #define SMC_USE_32BIT        1
+>> +  #define SMC_IRQ_SENSE        IRQF_TRIGGER_LOW
+>> +  #define SMC_MEM_RESERVED 1
+Here i used the tab itself, when this patch is applied it comes pretty fine in
+the code. I checked the patch with checkpatch.pl also. Can you tell me
+what is going wrong?
+
+After code formating issues are resolved i can resend the patch again.
+
+Regards,
+Arun
+>>  #endif
+>
+> You should probably use tabs here in the new code even if old code
+> does not.
+>
+> Regards,
+>
+> Tony
+>
+>>
 >>
 >> --
->> Miguel Angel Aguilar Ulloa
->> Embedded Software Engineer
->> RidgeRun Embedded Solutions
->> miguel.aguilar@ridgerun.com
->> Office: +(506) 2225-9596
+>> 1.5.3.4
+>
+>> From 8b45bfd40aca7d5f89195f95d668bae78e2dbba9 Mon Sep 17 00:00:00 2001
+>> From: Arun KS <arunks@mistralsolutions.com>
+>> Date: Tue, 24 Jun 2008 17:33:08 +0530
+>> Subject: [PATCH] net:smc911x Modify driver to also work with omap24xx
 >>
-
-
--- 
-Miguel Angel Aguilar Ulloa
-Embedded Software Engineer
-RidgeRun Embedded Solutions
-miguel.aguilar@ridgerun.com
-Office: +(506) 2225-9596 
+>> net:smc911x Modify driver to also work with omap24xx
+>>
+>> Signed-off-by: Arun KS <arunks@mistralsolutions.com>
+>> ---
+>>  drivers/net/Kconfig   |    2 +-
+>>  drivers/net/smc911x.h |    5 +++++
+>>  2 files changed, 6 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/net/Kconfig b/drivers/net/Kconfig
+>> index 61ecee7..17d0a9c 100644
+>> --- a/drivers/net/Kconfig
+>> +++ b/drivers/net/Kconfig
+>> @@ -955,7 +955,7 @@ config SMC911X
+>>       tristate "SMSC LAN911[5678] support"
+>>       select CRC32
+>>       select MII
+>> -     depends on ARCH_PXA || SH_MAGIC_PANEL_R2 || ARCH_OMAP34XX
+>> +     depends on ARCH_PXA || SH_MAGIC_PANEL_R2 || ARCH_OMAP34XX || ARCH_OMAP24XX
+>>       help
+>>         This is a driver for SMSC's LAN911x series of Ethernet chipsets
+>>         including the new LAN9115, LAN9116, LAN9117, and LAN9118.
+>> diff --git a/drivers/net/smc911x.h b/drivers/net/smc911x.h
+>> index dad93a8..0f406a0 100644
+>> --- a/drivers/net/smc911x.h
+>> +++ b/drivers/net/smc911x.h
+>> @@ -47,6 +47,11 @@
+>>    #define SMC_USE_32BIT              1
+>>    #define SMC_IRQ_SENSE              IRQF_TRIGGER_LOW
+>>    #define SMC_MEM_RESERVED   1
+>> +#elif defined(CONFIG_ARCH_OMAP24XX)
+>> +  #define SMC_USE_16BIT              0
+>> +  #define SMC_USE_32BIT              1
+>> +  #define SMC_IRQ_SENSE              IRQF_TRIGGER_LOW
+>> +  #define SMC_MEM_RESERVED   1
+>>  #endif
+>>
+>>
+>> --
+>> 1.5.3.4
+>>
+>
+>
