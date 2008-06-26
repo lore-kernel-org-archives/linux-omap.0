@@ -1,48 +1,82 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: V4L on OMAP3
-Date: Thu, 26 Jun 2008 13:50:26 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940324A614BD@dbde02.ent.ti.com>
-References: <48634E9F.8040405@iis.fraunhofer.de>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH 1/7] 34XX: PM: Workaround to build omap hsmmc as a module
+Date: Thu, 26 Jun 2008 14:01:11 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB022BED282F@dbde02.ent.ti.com>
+References: <87ej6lj2ui.fsf@trdhcp146196.ntc.nokia.com>
+ <1214385220-25576-1-git-send-email-jouni.hogander@nokia.com>
+ <0442c5b0cf27a0b9f892174dadba3c20@felipebalbi.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB022BE47192@dbde02.ent.ti.com>
+ <863b7a523c5b5b6b6898e2d82fab6dda@felipebalbi.com>
+ <1214395879.24418.40.camel@mort>
+ <5A47E75E594F054BAF48C5E4FC4B92AB022BED2575@dbde02.ent.ti.com>
+ <1214400227.24418.66.camel@mort>
+ <5A47E75E594F054BAF48C5E4FC4B92AB022BED26D5@dbde02.ent.ti.com>
+ <2aa617f9c1b78b05e445377b9865041f@felipebalbi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39761 "EHLO arroyo.ext.ti.com"
+Received: from calf.ext.ti.com ([198.47.26.144]:35077 "EHLO calf.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757122AbYFZIUk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jun 2008 04:20:40 -0400
-In-Reply-To: <48634E9F.8040405@iis.fraunhofer.de>
+	id S1751427AbYFZIbd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Jun 2008 04:31:33 -0400
+In-Reply-To: <2aa617f9c1b78b05e445377b9865041f@felipebalbi.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ajit Motra <motraat@iis.fraunhofer.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: "igor.stoppa@nokia.com" <igor.stoppa@nokia.com>, Jouni Hogander <jouni.hogander@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Can you pleas tell me what kind of error message you are getting? And probably I may want to see your .config file.
-
-Thanks,
-Vaibhav Hiremath
-Senior Software Engg.
-Platform Support Products
-Texas Instruments Inc
-Ph: +91-80-25099927
-TI IP Ph: 509-9927
-http://dbdwss01.india.ti.com/pspproducts/
-
------Original Message-----
-From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Ajit Motra
-Sent: Thursday, June 26, 2008 1:39 PM
-To: linux-omap@vger.kernel.org
-Subject: V4L on OMAP3
-
-Hello,
-
- We received OMAP3 board from TI. This has linux from mistral on this. There is a node /dev/video0 on this but when I try to open this using O_RDONLY or O_RDWR option, this does not open device. Is V4L functionality missing in this case?
-We are using Linux version 2.6.22.1. We have registered our EVB on TI website but there are no new updates for OMAP3503.
-
-Thanks
-Motra
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PiA+IFRoYXQgd2Fzbid0IHdoYXQgSSBzYWlkIG9yIG1lYW50LiBXaGF0IEkgZGlkIHdhbnQgdG8g
+YnJpbmcgb3V0IHdhcyB0aGF0IGhhdmluZw0KPiA+IHNvbWV0aGluZyBidWlsdC1pbiBtaWdodCBn
+aXZlIGl0IG1vcmUgZXhwb3N1cmUgdG8gdGVzdCBieSBzb21lb25lIHdobyB3YXNuJ3QNCj4gPiBh
+Y3RpdmVseSB3b3JraW5nIG9uIHRoYXQgYXJlYS4gQW5kIG1vc3QgYnVncyBhcmUgY2F1Z2h0IGJ5
+IHBlb3BsZSBvdGhlciB0aGFuDQo+ID4gdGhlIGFjdGl2ZSBkZXZlbG9wZXJzLg0KPg0KPiBOb3Qg
+cmVhbGx5LCBhbm90aGVyIHVzZWNhc2UgZm9yIG1vZHVsYXIga2VybmVsIGlzIHRoYXQgd2UgZG9u
+J3Qgd2FubmENCj4gYWRkIGUuZy4gdGVhIChyYWRpbykgZHJpdmVyIGZvciBuODEwIGN1eiBpdCBk
+b2Vzbid0IGhhdmUgdGhhdCBjaGlwLg0KPiBXaXRoIG1vZHVsYXIga2VybmVsIHdpdGggcHJvcGVy
+IE1PRFVMRV9BTElBUygpIGFuZCB1ZGV2LCB5b3UganVzdA0KPiBmbGFzaCB0aGUgc2FtZSBrZXJu
+ZWwgYW5kIG1vZHVsZXMgaW4gYm90aCBuODAwIGFuZCBuODEwIGFuZCB0ZWEgZHJpdmVyDQo+IHdv
+dWxkIG9ubHkgYmUgcHJvYmVkIGluIG44MDAuDQo+DQo+IEkgdGhpbmsgdGhpcyBpcyB3aGF0IEln
+b3IgbWVhbnQgd2hlbiB3ZSBzYWlkIGFib3V0IHZhbGlkYXRpb24gYWNyb3NzDQo+IGJvYXJkcy4N
+Cg0KT2suIEZhaXIgZW5vdWdoLiBQb2ludCB0YWtlbi4NCg0KDQo+ID4gQXQgZmlyc3QgZ2xhbmNl
+IHRvIHlvdXIgZW1haWwsIEkgdGhvdWdodCB5b3UgaGFkIGEgdmFsaWQgcG9pbnQgaGVyZS4gVGhp
+bmtpbmcgYQ0KPiA+IGxpdHRsZSBtb3JlLCBJIHRoaW5rIHlvdXIgcG9pbnQgaXMgdmFsaWQgb25s
+eSBpZiB5b3UgaGFkIGEgbW9kdWxlIHRoYXQgc2hvdWxkIG5vdA0KPiA+IGJlIGxvYWRlZCBvbiBh
+IHBhcnRpY3VsYXIgYm9hcmQuIEluIHN1Y2ggYSBjYXNlLCB5b3Ugd291bGQgYW55d2F5IHdhbnQg
+dG8gZml4IHRoYXQNCj4gPiBtb2R1bGUuDQo+DQo+IE9yIHlvdSByZWx5IG9uIHVkZXYgcnVsZXMg
+YW5kIGtlZXAgdGhlIG1haW4ga2VybmVsIGNvZGUgc21hbGxlci4NCj4NCj4gPiBZZXMsIGhhdmlu
+ZyBhIG1vZHVsYXIga2VybmVsIGlzIHVzZWZ1bC4gQW5kIGl0IGlzIHByb2JhYmx5IHRoZSB3YXkg
+dG8gZ28uIEJ1dCBwbGVhc2UNCj4gPiBkb24ndCB0ZWxsIG1lIHRoYXQgeW91IGNhbid0IGRvIHRo
+ZSBzYW1lIHRoaW5ncyB3aXRoIGFsbW9zdCBldmVyeXRoaW5nIGJ1aWx0LWluLg0KPg0KPiBzb21l
+IHN0dWZmIHlvdSByZWFsbHkgY2FuJ3QuIElmIHlvdXIgbW1jIGRyaXZlciBnZXQgc3R1Y2sgc29t
+ZXdoZXJlLCB5b3UNCj4gY2FuJ3QgbW9kcHJvYmUgLXIgLWYgb21hcF9oc21tYyBhbmQgcmVzdGFy
+dCB5b3VyIHdvcmsgd2l0aCBhIGJ1aWx0LWluDQo+IG1tYyBkcml2ZXIuIFdpdGggbW9kdWxhciBr
+ZXJuZWwsIHdlIHJlYWxseSBjYW4gZG8gaXQ6IGZvcmNlZnVsbHkgcmVtb3ZlDQo+IHRoZSBkcml2
+ZXIgYW5kIHJlc2V0IHRoZSBjb250cm9sbGVyLCB0aGlzIHdvdWxkIGdpdmUgdXMgb3BvcnR1bml0
+eSB0bw0KPiBhbmFseXplIGxvZ3MgYW5kIHRyeSBhZ2FpbiBieSByZWxvYWRpbmcgdGhlIG1vZHVs
+ZS4NCj4NCj4gV2l0aCBhIGJ1aWx0LWluIGtlcm5lbCwgdGhlIG9ubHkgd2F5IG91dCBpcyByZWJv
+b3QuDQoNCkFncmVlZC4NCg0KPiA+IFRoZSAyNDMwIGRlZmNvbmZpZyBoYXMgYWxtb3N0IGV2ZXJ5
+dGhpbmcgbW9kdWxhciwgd2hpbGUgdGhlIDM0MzAgZGVmY29uZmlnIGRvZXNuJ3QuDQo+ID4gSSBw
+cm9wb3NlIHdlIHN0YXJ0IGEgc2VwYXJhdGUgZGVmY29uZmlnIGZvciB0aGUgbW9kdWxhciBjYXNl
+IG9yIHVzZSBhbGxtb2Rjb25maWcuDQo+ID4gTWF5YmUgZXZlbiBoYXZlIHRoaXMgYXMgdGhlIGRl
+ZmNvbmZpZyBmb3IgdGhlIG11bHRpLW9tYXAga2VybmVsLiBJZiB3ZSBrZWVwIHRoZQ0KPiA+IGlu
+ZGl2aWR1YWwgZGVmY29uZmlncyBhcyBhIG5lYXJseSBhbGwtYnVpbHQtaW4gY2FzZSwgd2UgY2Fu
+IHN0aWxsIGdldCB0aGUgYmVzdCBvZg0KPiA+IGJvdGggd29ybGRzLg0KPg0KPiBUaGUgdGhpbnMg
+aXMgdGhhdCBub3JtYWx5IHlvdSdkIGhhdmUgdWRldiBydW5uaW5nIGFueXdheXMsIGFuZCBpdCB3
+b3VsZA0KPiBhdXRvbWF0aWNhbGx5IGxvYWQgbW9kdWxlcyBiYXNlZCBvbiAvc3lzIGFuZCBjb3Jy
+ZWN0IE1PRFVMRV9BTElBUygpDQo+IGFuZCB0aGF0J3MgYWxyZWFkeSBhbm90aGVyIHRoaW5nIHRv
+IHRlc3QgdGhhdCBjYW4ndCBiZSB0ZXN0ZWQgd2l0aCBidWlsdC1pbg0KPiBtb2R1bGVzLg0KPg0K
+PiBXZSBrbm93IHRoYXQgc2V2ZXJhbCBvbWFwIGRyaXZlcnMgYXJlIG1pc3NpbmcgTU9EVUxFX0FM
+SUFTKCkgYW5kIHJlY2VudGx5IEkndmUNCj4gYWRkZWQgaXQgdG8gYWxsIHR3bDQwMzAgZHJpdmVy
+cyBmb3IgdGhhdCBwdXJwb3NlLg0KPg0KPiBXZSBjYW4gbm93IHJlbHkgdGhhdCB1ZGV2IHdpbGwg
+Y29ycmVjdGx5IGxvYWQgdGhlIG5lY2Vzc2FyeSBtb2R1bGUgd2hlbiB3ZQ0KPiBuZWVkIGl0LiBB
+bmQgd2hlbiBJIHN0YXRlZCB0aGF0IHRoZXJlJ3Mgbm8gcmVhc29uIGZvciBub3QgYnVpbGRpbmcN
+Cj4gZXZlcnl0aGluZyBhcyBkeW5hbWljIG1vZHVsZSBmb3Igb21hcHMsIEkgd2FzIGNvbnNpZGVy
+aW5nIHRoYXQgd2UgaGF2ZQ0KPiBlbm91Z2ggbWVtb3J5IGluIG91ciBib2FyZHMgYW5kIGdlbmVy
+YWx5IGRldmVsb3BlcnMgd2lsbCB1c2UgTkZTDQo+IHJvb3QgZmlsZSBzeXN0ZW0gYW55d2F5cy4N
+Cj4NCj4gSSB0aGluayB0aGlzIGRpc2N1c3Npb24gaXMgbm93IHdheSB0b28gbG9uZyBmb3Igc29t
+ZXRoaW5nIHJlYWxseQ0KPiBzaW1wbGU6IEZvciBkZXZlbG9wbWVudCBwdXJwb3NlcyBvbiBTRFBz
+LCBkeW5hbWljIGxpbmtlZCBtb2R1bGVzDQo+IGNhbiBpbmNyZWFzZSB0aGUgZGV2ZWxvcG1lbnQg
+Y3ljbGUgYnkgZGVjcmVhc2luZyB0aGUgYW1vdW50IG9mDQo+IGJ1aWxkL2ZsYXNoL3JlYm9vdCBj
+eWNsZXMuDQoNCk9rYXkuIEVuZCBvZiBkaXNjdXNzaW9uLiA6KQ0KDQotIEFuYW5kDQo=
