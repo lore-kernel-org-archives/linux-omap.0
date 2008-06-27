@@ -1,88 +1,68 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: [PATCH v3] ARM: OMAP3: Fix warnings in clock34xx.h
-Date: Fri, 27 Jun 2008 18:55:33 +0200
-Message-ID: <48651B85.9030904@googlemail.com>
+From: green <greenfreedom10@gmail.com>
+Subject: Re: N810 power problems, bootloader upgrade, won't boot
+Date: Fri, 27 Jun 2008 12:04:34 -0500
+Message-ID: <20080627170434.GF9938@swansys>
+References: <20080626231358.GD9938@swansys> <20080627072433.GA20119@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000808020006070703060105"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="c7hkjup166d4FzgN"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.31]:3216 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750882AbYF0Qzl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Jun 2008 12:55:41 -0400
-Received: by yw-out-2324.google.com with SMTP id 9so220767ywe.1
-        for <linux-omap@vger.kernel.org>; Fri, 27 Jun 2008 09:55:35 -0700 (PDT)
+Received: from an-out-0708.google.com ([209.85.132.249]:29401 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753182AbYF0REu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Jun 2008 13:04:50 -0400
+Received: by an-out-0708.google.com with SMTP id d40so123163and.103
+        for <linux-omap@vger.kernel.org>; Fri, 27 Jun 2008 10:04:50 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20080627072433.GA20119@atomide.com>
+Content-Language: en
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-
-This is a multi-part message in MIME format.
---------------000808020006070703060105
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Linux-OMAP List <linux-omap@vger.kernel.org>
 
 
-Fix warnings
+--c7hkjup166d4FzgN
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-arch/arm/mach-omap2/clock34xx.h:178: warning: initialization makes 
-pointer from integer without a cast
-arch/arm/mach-omap2/clock34xx.h:204: warning: initialization makes 
-pointer from integer without a cast
-arch/arm/mach-omap2/clock34xx.h:229: warning: initialization makes 
-pointer from integer without a cast
+On Fri, 2008.06.27, 179, Tony Lindgren wrote:
+> * green <greenfreedom10@gmail.com> [080627 02:14]:
+> > I've been having power problems with my N810.  These problems appear on=
+ startup=20
+> > (see three links below) and are supposedly fix by a bootloader upgrade,=
+ so I=20
+> > upgraded using the Maemo Diablo Fiasco image=20
+> > "RX-44_DIABLO_4.2008.23-14_PR_COMBINED_MR0_ARM.bin".  Perhaps this has =
+fixed=20
+> > the problem, but it has caused another: now the N810 won't boot with th=
+e=20
+> > kernels I build, nor will it boot with the zImage-n8x0-2008-05-15 test =
+kernel=20
+> > that Tony Lindgren provided recently.  By not booting I mean that I see=
+ the=20
+> > NOKIA splash screen only; nothing else happens.
+> >=20
+> > Any ideas what I need to do?  I'd rather not downgrade because of probl=
+ems I've=20
+> > had with the device suddenly powering off when idle [3].
+>=20
+> You need to leave out the machine id hack patch now, that's no longer
+> needed as the diablo image seems to use the official machine id.
 
-Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
+Okay, that works.  I should have thought of that myself.  Thanks!
 
+--c7hkjup166d4FzgN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
---------------000808020006070703060105
-Content-Type: text/plain;
- name="clock34xx_h_warning_fix.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="clock34xx_h_warning_fix.txt"
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
 
+iD8DBQFIZR2i682C+dBP+oQRAvt+AJ4ltNA8+FeAXVmsoMxEpohDU1pMVwCggk+C
+pqdMfqjDK9VIaJnRw3wb7TE=
+=CUlq
+-----END PGP SIGNATURE-----
 
-Subject: ARM: OMAP3: Fix warnings in clock34xx.h 
-
-From: Dirk Behme <dirk.behme@gmail.com>
-
-Fix warnings
-
-arch/arm/mach-omap2/clock34xx.h:178: warning: initialization makes pointer from integer without a cast
-arch/arm/mach-omap2/clock34xx.h:204: warning: initialization makes pointer from integer without a cast
-arch/arm/mach-omap2/clock34xx.h:229: warning: initialization makes pointer from integer without a cast
-
-
-Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
-
----
-
-Changes in V3: Update to recent git.
-
-Index: linux-beagle/arch/arm/mach-omap2/clock34xx.h
-===================================================================
---- linux-beagle.orig/arch/arm/mach-omap2/clock34xx.h
-+++ linux-beagle/arch/arm/mach-omap2/clock34xx.h
-@@ -53,14 +53,17 @@ static int omap3_noncore_dpll_set_rate(s
- #define DPLL_LOW_POWER_BYPASS		0x5
- #define DPLL_LOCKED			0x7
- 
-+#define _OMAP34XX_PRM_REGADDR(module, reg)				\
-+	((__force void __iomem *)(OMAP34XX_PRM_REGADDR((module), (reg))))
-+
- #define OMAP3430_PRM_CLKSRC_CTRL					\
--	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0070)
-+	_OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, OMAP3_PRM_CLKSRC_CTRL_OFFSET)
- 
- #define OMAP3430_PRM_CLKSEL						\
--	OMAP34XX_PRM_REGADDR(OMAP3430_CCR_MOD, OMAP3_PRM_CLKSEL_OFFSET)
-+	_OMAP34XX_PRM_REGADDR(OMAP3430_CCR_MOD, OMAP3_PRM_CLKSEL_OFFSET)
- 
- #define OMAP3430_PRM_CLKOUT_CTRL					\
--	OMAP34XX_PRM_REGADDR(OMAP3430_CCR_MOD, OMAP3_PRM_CLKOUT_CTRL_OFFSET)
-+	_OMAP34XX_PRM_REGADDR(OMAP3430_CCR_MOD, OMAP3_PRM_CLKOUT_CTRL_OFFSET)
- 
- /* PRM CLOCKS */
- 
-
---------------000808020006070703060105--
+--c7hkjup166d4FzgN--
