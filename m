@@ -1,69 +1,58 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [Question] MUSB: why not clear DMA interrupt in musbhsdma.c?
-Date: Sun, 29 Jun 2008 21:23:57 -0700
-Message-ID: <200806292123.57383.david-b@pacbell.net>
-References: <386072610806022015t654e46g92d184d949ad60ad@mail.gmail.com> <5A47E75E594F054BAF48C5E4FC4B92AB022B9C81C1@dbde02.ent.ti.com> <386072610806022132m2d515537wadd23c102aec2bf0@mail.gmail.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: [PATCH 0/6] 34XX: PM: Workarounds to get omap3 to retention 4th.
+Date: Mon, 30 Jun 2008 11:50:39 +0300
+Message-ID: <87tzfb9uhs.fsf@trdhcp146196.ntc.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:40251 "HELO
-	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750884AbYF3EX7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Jun 2008 00:23:59 -0400
-In-Reply-To: <386072610806022132m2d515537wadd23c102aec2bf0@mail.gmail.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.105.134]:62064 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751995AbYF3Iuv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jun 2008 04:50:51 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m5U8o49b012735
+	for <linux-omap@vger.kernel.org>; Mon, 30 Jun 2008 03:50:49 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bryan Wu <cooloney@kernel.org>
-Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Felipe Balbi <me@felipebalbi.com>
+To: linux-omap@vger.kernel.org
 
-On Monday 02 June 2008, Bryan Wu wrote:
-> > The DMA interrupt register is cleared on a read. I don't think you need
-> > to explicitly clear it.
-> 
-> Maybe there some difference between Blackfin and OMAP implementation.
-> From the Datatsheet of BF54x, it said that:
-> ---
-> ... When the status has been
-> read by the processor core, the corresponding bit should have a 1 written
-> to it by the software in order to clear the status.
-> ---
-> 
-> And without the clearing operation, the DMA irq handler will be called endless.
+Hi,
 
-Is there any problem having the IRQ and/or DMA glue
-for the Blackfin implementation handle this difference?
+This patch set contains all workarounds that are needed to get omap3
+to retention. Also patch from Tero Kristo to get PM to work if using
+serial console is included in this set. Basically all patches in this
+set should be reverted one by one as correct fixes are implemented and
+applied.
 
-Things were set up so that platform-specific IRQ and DMA
-modules could be plugged in ... perhaps not as easily as
-one might like (there's still a mess there), but it should
-be within the realm of possibility to make that behave.
+This patch set superseeds earlier version sent 2008-06-25 9:11:49.
 
-Having a comment in the code to highlight that particular
-difference will be the easy part.  Is that due to different
-revisions of the IP?  I'm told that Mentor went through a
-few iterations, going so far as to completely yank the DMA
-support from some versions.  :(
+To get Omap into retention, this patch set still depends on:
+1. ARCH: OMAP: MUSB: Do not block sleep (Felipe Balbi)
 
+Test:
+1. Apply dependency patch and workaround set on top of them
 
-> > > But when I tried to write large file to the U-DISK
-> > > (such as 10Mbyte or 100Mbyte), speed is very slow and mush 
-> > > slower than PIO mode, IMO.
+2. Enable disabling/enabling of gpio2-6 and uart clocks on idle:
+   $ echo 1 > /sys/power/clocks_off_while_idle
 
-I've certainly seen that "little" problem.  I couldn't tell
-if the root cause was from Mentor's DMA support or from the
-kind of USB-antagonistic DMA engine on DaVinci, but when the
-DMA logic has to generate an IRQ for each packet (to get sane
-semantics), it's hopeless getting good throughput unless it's
-dirt cheap to set up and complete DMA transfers.  (It isn't.)
+3. Try out static suspend:
+   $ echo mem > /sys/power/state
+   Wake up from suspend by entering character to serial console. This
+   should print out:
+   "Successfully put all powerdomains to target state"
 
-As has been seen elsewhere:  when the cost of DMA integration
-exceeds the cost to stuff the FIFO by hand, DMA is not a win.
-That's an issue with the drivers/dma framework sometimes too,
-though in that case the issue is purely software.
+4. Try out dynamic sleep:
+   $ echo 1 > /sys/power/sleep_while_idle
+   On Omap3430 SDP board VCORE_EN led can be used as an indicator. If
+   it starts to blink after a while then Omap enters retention on
+   idle. To make this work also display needs to be blanked.
 
-- Dave
+--=20
+Jouni H=C3=B6gander
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
