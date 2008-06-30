@@ -1,86 +1,904 @@
-From: "Bryan Wu" <cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [Question] MUSB: why not clear DMA interrupt in musbhsdma.c?
-Date: Mon, 30 Jun 2008 19:53:52 +0800
-Message-ID: <386072610806300453u3e0a1699kcf7084b0a947fba4@mail.gmail.com>
-References: <386072610806022015t654e46g92d184d949ad60ad@mail.gmail.com>
-	 <5A47E75E594F054BAF48C5E4FC4B92AB022B9C81C1@dbde02.ent.ti.com>
-	 <386072610806022132m2d515537wadd23c102aec2bf0@mail.gmail.com>
-	 <200806292123.57383.david-b@pacbell.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <200806292123.57383.david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-Cc: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [RFC][PATCH] usb: musb: pass configuration specifics via pdata
+Date: Mon, 30 Jun 2008 14:50:53 +0300
+Message-ID: <1214826653-19005-1-git-send-email-felipe.balbi@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:37559 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754945AbYF3L4j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jun 2008 07:56:39 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgre <tony@atomide.com>, David Brownell <david-b@pacbell.net>, Anand Gadiyar <gadiyar@ti.com>, Kevin Hilman <khilman@mvista.com>, Bryan Wu <cooloney@kernel.org>
 
-On Mon, Jun 30, 2008 at 12:23 PM, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org> wrote:
-> On Monday 02 June 2008, Bryan Wu wrote:
->> > The DMA interrupt register is cleared on a read. I don't think you need
->> > to explicitly clear it.
->>
->> Maybe there some difference between Blackfin and OMAP implementation.
->> From the Datatsheet of BF54x, it said that:
->> ---
->> ... When the status has been
->> read by the processor core, the corresponding bit should have a 1 written
->> to it by the software in order to clear the status.
->> ---
->>
->> And without the clearing operation, the DMA irq handler will be called endless.
->
-> Is there any problem having the IRQ and/or DMA glue
-> for the Blackfin implementation handle this difference?
->
-> Things were set up so that platform-specific IRQ and DMA
-> modules could be plugged in ... perhaps not as easily as
-> one might like (there's still a mess there), but it should
-> be within the realm of possibility to make that behave.
->
-> Having a comment in the code to highlight that particular
-> difference will be the easy part.  Is that due to different
-> revisions of the IP?  I'm told that Mentor went through a
-> few iterations, going so far as to completely yank the DMA
-> support from some versions.  :(
->
+Use platform_data to pass musb configuration-specific
+details to musb driver.
 
-Actually, I don't have any detail information about the IP from mentor
-of Blackfin.
-I just found the instruction from the Blackfin manual. We need to
-clear DMA IRQ flag
-manually on Blackfin, although it is not true on Davinci.
+It's easier to maintain in the sense that neither board
+will affect the other.
 
->
->> > > But when I tried to write large file to the U-DISK
->> > > (such as 10Mbyte or 100Mbyte), speed is very slow and mush
->> > > slower than PIO mode, IMO.
->
-> I've certainly seen that "little" problem.  I couldn't tell
-> if the root cause was from Mentor's DMA support or from the
-> kind of USB-antagonistic DMA engine on DaVinci, but when the
-> DMA logic has to generate an IRQ for each packet (to get sane
-> semantics), it's hopeless getting good throughput unless it's
-> dirt cheap to set up and complete DMA transfers.  (It isn't.)
->
-> As has been seen elsewhere:  when the cost of DMA integration
-> exceeds the cost to stuff the FIFO by hand, DMA is not a win.
-> That's an issue with the drivers/dma framework sometimes too,
-> though in that case the issue is purely software.
->
+For now tested on n800 only, wanna hear from everybody what
+guys think before test on omap3430sdp
 
-I did lots of test to compare the DMA and PIO such as a) dd large file
-to a USB flash disk, b) use bonnie++ to do performance test.
-The result is that no throughput improvement on DMA and CPU
-consumption is the same as PIO.
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Tony Lindgre <tony@atomide.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Anand Gadiyar <gadiyar@ti.com>
+Cc: Kevin Hilman <khilman@mvista.com>
+Cc: Bryan Wu <cooloney@kernel.org>
+---
+ arch/arm/mach-omap2/board-3430sdp.c  |   75 ++++++++++++++-
+ arch/arm/mach-omap2/board-n800-usb.c |   46 +++++++++-
+ arch/arm/mach-omap2/usb-musb.c       |   55 +++--------
+ arch/arm/mach-omap2/usb-tusb6010.c   |    1 -
+ drivers/usb/musb/musb_core.c         |   37 +++----
+ drivers/usb/musb/musb_core.h         |   14 +---
+ drivers/usb/musb/tusb6010.h          |  169 --------------------------------
+ include/asm-arm/arch-omap/hdrc_cnf.h |  177 ----------------------------------
+ include/asm-arm/arch-omap/usb-musb.h |    6 +-
+ include/linux/usb/musb.h             |   38 +++++++-
+ 10 files changed, 189 insertions(+), 429 deletions(-)
+ delete mode 100644 include/asm-arm/arch-omap/hdrc_cnf.h
 
-We hope to see the CPU usage of DMA mode is less than PIO mode, but
-didn't got the expectation.
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index f6cd08b..e3db60e 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -285,6 +285,79 @@ static int __init omap3430_i2c_init(void)
+ 
+ extern void __init sdp3430_flash_init(void);
+ 
++static struct musb_hdrc_eps_bits musb_eps[] = {
++	{	"ep1_tx", 10,	},
++	{	"ep1_rx", 10,	},
++	{	"ep2_tx", 9,	},
++	{	"ep2_rx", 9,	},
++	{	"ep3_tx", 3,	},
++	{	"ep3_rx", 3,	},
++	{	"ep4_tx", 3,	},
++	{	"ep4_rx", 3,	},
++	{	"ep5_tx", 3,	},
++	{	"ep5_rx", 3,	},
++	{	"ep6_tx", 3,	},
++	{	"ep6_rx", 3,	},
++	{	"ep7_tx", 3,	},
++	{	"ep7_rx", 3,	},
++	{	"ep8_tx", 2,	},
++	{	"ep8_rx", 2,	},
++	{	"ep9_tx", 2,	},
++	{	"ep9_rx", 2,	},
++	{	"ep10_tx", 2,	},
++	{	"ep10_rx", 2,	},
++	{	"ep11_tx", 2,	},
++	{	"ep11_rx", 2,	},
++	{	"ep12_tx", 2,	},
++	{	"ep12_rx", 2,	},
++	{	"ep13_tx", 2,	},
++	{	"ep13_rx", 2,	},
++	{	"ep14_tx", 2,	},
++	{	"ep14_rx", 2,	},
++	{	"ep15_tx", 2,	},
++	{	"ep15_rx", 2,	},
++};
++
++static struct musb_hdrc_config musb_config = {
++	.multipoint	= 1,
++	.dyn_fifo	= 1,
++	.soft_con	= 1,
++	.dma		= 1,
++	.num_eps	= 32,
++	.dma_channels	= 7,
++	.dma_req_chan	= (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3),
++	.ram_bits	= 12,
++	.eps_bits	= musb_eps,
++};
++
++static struct musb_hdrc_platform_data musb_plat = {
++#ifdef CONFIG_USB_MUSB_OTG
++	.mode		= MUSB_OTG,
++#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
++	.mode		= MUSB_HOST,
++#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
++	.mode		= MUSB_PERIPHERAL,
++#endif
++	.clock		= "hsotgusb_ick",
++	.config		= &musb_config,
++};
++
++static struct resource musb_resources[] = {
++	[0] = {
++		.start	= OMAP34XX_HSUSB_OTG_BASE,
++		.end	= OMAP34XX_HSUSB_OTG_BASE + SZ_8K - 1,
++		.flags	= IORESOURCE_MEM,
++	},
++	[1] = {	/* general IRQ */
++		.start	= INT_243X_HS_USB_MC,
++		.flags	= IORESOURCE_IRQ,
++	},
++	[2] = {	/* DMA IRQ */
++		.start	= INT_243X_HS_USB_DMA,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
+ static void __init omap_3430sdp_init(void)
+ {
+ 	platform_add_devices(sdp3430_devices, ARRAY_SIZE(sdp3430_devices));
+@@ -300,7 +373,7 @@ static void __init omap_3430sdp_init(void)
+ 	ads7846_dev_init();
+ 	sdp3430_flash_init();
+ 	omap_serial_init();
+-	usb_musb_init();
++	usb_musb_init(&musb_plat, musb_resources, ARRAY_SIZE(musb_resources));
+ 	usb_ehci_init();
+ 	hsmmc_init();
+ }
+diff --git a/arch/arm/mach-omap2/board-n800-usb.c b/arch/arm/mach-omap2/board-n800-usb.c
+index 7599f64..16ea8fc 100644
+--- a/arch/arm/mach-omap2/board-n800-usb.c
++++ b/arch/arm/mach-omap2/board-n800-usb.c
+@@ -35,14 +35,58 @@ static int tusb_set_clock(struct clk *osc_ck, int state);
+ #	define BOARD_MODE	MUSB_HOST
+ #endif
+ 
++static struct musb_hdrc_eps_bits musb_eps[] = {
++	{	"ep1_tx", 5,	},
++	{	"ep1_rx", 5,	},
++	{	"ep2_tx", 5,	},
++	{	"ep2_rx", 5,	},
++	{	"ep3_tx", 3,	},
++	{	"ep3_rx", 3,	},
++	{	"ep4_tx", 3,	},
++	{	"ep4_rx", 3,	},
++	{	"ep5_tx", 2,	},
++	{	"ep5_rx", 2,	},
++	{	"ep6_tx", 2,	},
++	{	"ep6_rx", 2,	},
++	{	"ep7_tx", 2,	},
++	{	"ep7_rx", 2,	},
++	{	"ep8_tx", 2,	},
++	{	"ep8_rx", 2,	},
++	{	"ep9_tx", 2,	},
++	{	"ep9_rx", 2,	},
++	{	"ep10_tx", 2,	},
++	{	"ep10_rx", 2,	},
++	{	"ep11_tx", 2,	},
++	{	"ep11_rx", 2,	},
++	{	"ep12_tx", 2,	},
++	{	"ep12_rx", 2,	},
++	{	"ep13_tx", 2,	},
++	{	"ep13_rx", 2,	},
++	{	"ep14_tx", 2,	},
++	{	"ep14_rx", 2,	},
++	{	"ep15_tx", 2,	},
++	{	"ep15_rx", 2,	},
++};
++
++static struct musb_hdrc_config musb_config = {
++	.multipoint	= 1,
++	.dyn_fifo	= 1,
++	.soft_con	= 1,
++	.dma		= 1,
++	.num_eps	= 32,
++	.dma_channels	= 7,
++	.ram_bits	= 12,
++	.eps_bits	= musb_eps,
++};
++
+ static struct musb_hdrc_platform_data tusb_data = {
+ 	.mode		= BOARD_MODE,
+-	.multipoint	= 1,
+ 	.set_power	= tusb_set_power,
+ 	.set_clock	= tusb_set_clock,
+ 	.min_power	= 25,	/* x2 = 50 mA drawn from VBUS as peripheral */
+ 	.power		= 100,	/* Max 100 mA VBUS for host mode */
+ 	.clock		= "osc_ck",
++	.config		= &musb_config,
+ };
+ 
+ /*
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index bd3556b..4dd3692 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -30,26 +30,6 @@
+ #include <asm/arch/usb.h>
+ 
+ #ifdef CONFIG_USB_MUSB_SOC
+-static struct resource musb_resources[] = {
+-	[0] = {
+-		.start	= cpu_is_omap34xx()
+-			? OMAP34XX_HSUSB_OTG_BASE
+-			: OMAP243X_HS_BASE,
+-		.end	= cpu_is_omap34xx()
+-			? OMAP34XX_HSUSB_OTG_BASE + SZ_8K - 1
+-			: OMAP243X_HS_BASE + SZ_8K -1,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	[1] = {	/* general IRQ */
+-		.start	= INT_243X_HS_USB_MC,
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-	[2] = {	/* DMA IRQ */
+-		.start	= INT_243X_HS_USB_DMA,
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-};
+-
+ static int clk_on;
+ 
+ static int musb_set_clock(struct clk *clk, int state)
+@@ -71,39 +51,32 @@ static int musb_set_clock(struct clk *clk, int state)
+ 	return 0;
+ }
+ 
+-static struct musb_hdrc_platform_data musb_plat = {
+-#ifdef CONFIG_USB_MUSB_OTG
+-	.mode		= MUSB_OTG,
+-#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
+-	.mode		= MUSB_HOST,
+-#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
+-	.mode		= MUSB_PERIPHERAL,
+-#endif
+-	.multipoint	= 1,
+-	.clock		= cpu_is_omap34xx()
+-			? "hsotgusb_ick"
+-			: "usbhs_ick",
+-	.set_clock	= musb_set_clock,
+-};
+-
+ static u64 musb_dmamask = ~(u32)0;
+ 
+ static struct platform_device musb_device = {
+ 	.name		= "musb_hdrc",
+-	.id		= 0,
++	.id		= -1,
+ 	.dev = {
+ 		.dma_mask		= &musb_dmamask,
+ 		.coherent_dma_mask	= 0xffffffff,
+-		.platform_data		= &musb_plat,
+ 	},
+-	.num_resources	= ARRAY_SIZE(musb_resources),
+-	.resource	= musb_resources,
+ };
+ #endif
+ 
+-
+-void __init usb_musb_init(void)
++void __init usb_musb_init(struct musb_hdrc_platform_data *pdata,
++		struct resource *resources, u32 num_resources)
+ {
++	if (!pdata || !resources || num_resources == 0) {
++		printk(KERN_ERR "No musb configuration found\n");
++		return;
++	}
++
++	musb_device.resource = resources;
++	musb_device.num_resources = num_resources;
++	pdata->set_clock = musb_set_clock;
++
++	musb_device.dev.platform_data = pdata;
++
+ #ifdef CONFIG_USB_MUSB_SOC
+ 	if (platform_device_register(&musb_device) < 0) {
+ 		printk(KERN_ERR "Unable to register HS-USB (MUSB) device\n");
+diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb-tusb6010.c
+index 9924300..75e2669 100644
+--- a/arch/arm/mach-omap2/usb-tusb6010.c
++++ b/arch/arm/mach-omap2/usb-tusb6010.c
+@@ -315,7 +315,6 @@ tusb6010_setup_interface(struct musb_hdrc_platform_data *data,
+ 		printk(error, 6, status);
+ 		return -ENODEV;
+ 	}
+-	data->multipoint = 1;
+ 	tusb_device.dev.platform_data = data;
+ 
+ 	/* REVISIT let the driver know what DMA channels work */
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 75c3013..39747c6 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -990,12 +990,6 @@ static void musb_shutdown(struct platform_device *pdev)
+  * We don't currently use dynamic fifo setup capability to do anything
+  * more than selecting one of a bunch of predefined configurations.
+  */
+-#ifdef MUSB_C_DYNFIFO_DEF
+-#define	can_dynfifo()	1
+-#else
+-#define	can_dynfifo()	0
+-#endif
+-
+ #if defined(CONFIG_USB_TUSB6010) || \
+ 	defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX)
+ static ushort __initdata fifo_mode = 4;
+@@ -1008,8 +1002,6 @@ module_param(fifo_mode, ushort, 0);
+ MODULE_PARM_DESC(fifo_mode, "initial endpoint configuration");
+ 
+ 
+-#define DYN_FIFO_SIZE (1<<(MUSB_C_RAM_BITS+2))
+-
+ enum fifo_style { FIFO_RXTX, FIFO_TX, FIFO_RX } __attribute__ ((packed));
+ enum buf_mode { BUF_SINGLE, BUF_DOUBLE } __attribute__ ((packed));
+ 
+@@ -1119,11 +1111,12 @@ fifo_setup(struct musb *musb, struct musb_hw_ep  *hw_ep,
+ 
+ 	c_size = size - 3;
+ 	if (cfg->mode == BUF_DOUBLE) {
+-		if ((offset + (maxpacket << 1)) > DYN_FIFO_SIZE)
++		if ((offset + (maxpacket << 1)) >
++				(1 << musb->config->ram_bits + 2))
+ 			return -EMSGSIZE;
+ 		c_size |= MUSB_FIFOSZ_DPB;
+ 	} else {
+-		if ((offset + maxpacket) > DYN_FIFO_SIZE)
++		if ((offset + maxpacket) > (1 << musb->config->ram_bits + 2))
+ 			return -EMSGSIZE;
+ 	}
+ 
+@@ -1219,13 +1212,13 @@ static int __init ep_config_from_table(struct musb *musb)
+ 	/* assert(offset > 0) */
+ 
+ 	/* NOTE:  for RTL versions >= 1.400 EPINFO and RAMINFO would
+-	 * be better than static MUSB_C_NUM_EPS and DYN_FIFO_SIZE...
++	 * be better than static musb->config->num_eps and DYN_FIFO_SIZE...
+ 	 */
+ 
+ 	for (i = 0; i < n; i++) {
+ 		u8	epn = cfg->hw_ep_num;
+ 
+-		if (epn >= MUSB_C_NUM_EPS) {
++		if (epn >= musb->config->num_eps) {
+ 			pr_debug("%s: invalid ep %d\n",
+ 					musb_driver_name, epn);
+ 			continue;
+@@ -1242,8 +1235,8 @@ static int __init ep_config_from_table(struct musb *musb)
+ 
+ 	printk(KERN_DEBUG "%s: %d/%d max ep, %d/%d memory\n",
+ 			musb_driver_name,
+-			n + 1, MUSB_C_NUM_EPS * 2 - 1,
+-			offset, DYN_FIFO_SIZE);
++			n + 1, musb->config->num_eps * 2 - 1,
++			offset, (1 << musb->config->ram_bits));
+ 
+ #ifdef CONFIG_USB_MUSB_HDRC_HCD
+ 	if (!musb->bulk_ep) {
+@@ -1270,7 +1263,7 @@ static int __init ep_config_from_hw(struct musb *musb)
+ 
+ 	/* FIXME pick up ep0 maxpacket size */
+ 
+-	for (epnum = 1; epnum < MUSB_C_NUM_EPS; epnum++) {
++	for (epnum = 1; epnum < musb->config->num_eps; epnum++) {
+ 		musb_ep_select(mbase, epnum);
+ 		hw_ep = musb->endpoints + epnum;
+ 
+@@ -1424,14 +1417,14 @@ static int __init musb_core_init(u16 musb_type, struct musb *musb)
+ 	musb->epmask = 1;
+ 
+ 	if (reg & MUSB_CONFIGDATA_DYNFIFO) {
+-		if (can_dynfifo())
++		if (musb->config->dyn_fifo)
+ 			status = ep_config_from_table(musb);
+ 		else {
+ 			ERR("reconfigure software for Dynamic FIFOs\n");
+ 			status = -ENODEV;
+ 		}
+ 	} else {
+-		if (!can_dynfifo())
++		if (!musb->config->dyn_fifo)
+ 			status = ep_config_from_hw(musb);
+ 		else {
+ 			ERR("reconfigure software for static FIFOs\n");
+@@ -1788,7 +1781,8 @@ static void musb_irq_work(struct work_struct *data)
+  */
+ 
+ static struct musb *__init
+-allocate_instance(struct device *dev, void __iomem *mbase)
++allocate_instance(struct device *dev,
++		struct musb_hdrc_config *config, void __iomem *mbase)
+ {
+ 	struct musb		*musb;
+ 	struct musb_hw_ep	*ep;
+@@ -1820,8 +1814,9 @@ allocate_instance(struct device *dev, void __iomem *mbase)
+ 	musb->mregs = mbase;
+ 	musb->ctrl_base = mbase;
+ 	musb->nIrq = -ENODEV;
++	musb->config = config;
+ 	for (epnum = 0, ep = musb->endpoints;
+-			epnum < MUSB_C_NUM_EPS;
++			epnum < musb->config->num_eps;
+ 			epnum++, ep++) {
+ 
+ 		ep->musb = musb;
+@@ -1932,7 +1927,7 @@ bad_config:
+ 	}
+ 
+ 	/* allocate */
+-	musb = allocate_instance(dev, ctrl);
++	musb = allocate_instance(dev, plat->config, ctrl);
+ 	if (!musb)
+ 		return -ENOMEM;
+ 
+@@ -1990,7 +1985,7 @@ bad_config:
+ 	musb_generic_disable(musb);
+ 
+ 	/* setup musb parts of the core (especially endpoints) */
+-	status = musb_core_init(plat->multipoint
++	status = musb_core_init(plat->config->multipoint
+ 			? MUSB_CONTROLLER_MHDRC
+ 			: MUSB_CONTROLLER_HDRC, musb);
+ 	if (status < 0)
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index c2cd5a9..73a794a 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -56,18 +56,6 @@ struct musb_ep;
+ #include "musb_debug.h"
+ #include "musb_dma.h"
+ 
+-#ifdef CONFIG_USB_MUSB_SOC
+-/*
+- * Get core configuration from a header converted (by cfg_conv)
+- * from the Verilog config file generated by the core config utility
+- *
+- * For now we assume that header is provided along with other
+- * arch-specific files.  Discrete chips will need a build tweak.
+- * So will using AHB IDs from silicon that provides them.
+- */
+-#include <asm/arch/hdrc_cnf.h>
+-#endif
+-
+ #include "musb_io.h"
+ #include "musb_regs.h"
+ 
+@@ -439,6 +427,8 @@ struct musb {
+ 	struct usb_gadget_driver *gadget_driver;	/* its driver */
+ #endif
+ 
++	struct musb_hdrc_config	*config;
++
+ #ifdef MUSB_CONFIG_PROC_FS
+ 	struct proc_dir_entry *proc_entry;
+ #endif
+diff --git a/drivers/usb/musb/tusb6010.h b/drivers/usb/musb/tusb6010.h
+index db6dad0..ab8c962 100644
+--- a/drivers/usb/musb/tusb6010.h
++++ b/drivers/usb/musb/tusb6010.h
+@@ -230,173 +230,4 @@ extern u8 tusb_get_revision(struct musb *musb);
+ #define TUSB_REV_30	0x30
+ #define TUSB_REV_31	0x31
+ 
+-/*----------------------------------------------------------------------------*/
+-
+-#ifdef CONFIG_USB_TUSB6010
+-
+-/* configuration parameters specific to this silicon */
+-
+-/* Number of Tx endpoints. Legal values are 1 - 16 (this value includes EP0) */
+-#define MUSB_C_NUM_EPT 16
+-
+-/* Number of Rx endpoints. Legal values are 1 - 16 (this value includes EP0) */
+-#define MUSB_C_NUM_EPR 16
+-
+-/* Endpoint 1 to 15 direction types. C_EP1_DEF is defined if either Tx endpoint
+- * 1 or Rx endpoint 1 are used.
+- */
+-#define MUSB_C_EP1_DEF
+-
+-/* C_EP1_TX_DEF is defined if Tx endpoint 1 is used */
+-#define MUSB_C_EP1_TX_DEF
+-
+-/* C_EP1_RX_DEF is defined if Rx endpoint 1 is used */
+-#define MUSB_C_EP1_RX_DEF
+-
+-/* C_EP1_TOR_DEF is defined if Tx endpoint 1 and Rx endpoint 1 share a FIFO */
+-/* #define C_EP1_TOR_DEF */
+-
+-/* C_EP1_TAR_DEF is defined if both Tx endpoint 1 and Rx endpoint 1 are used
+- * and do not share a FIFO.
+- */
+-#define MUSB_C_EP1_TAR_DEF
+-
+-/* Similarly for all other used endpoints */
+-#define MUSB_C_EP2_DEF
+-#define MUSB_C_EP2_TX_DEF
+-#define MUSB_C_EP2_RX_DEF
+-#define MUSB_C_EP2_TAR_DEF
+-#define MUSB_C_EP3_DEF
+-#define MUSB_C_EP3_TX_DEF
+-#define MUSB_C_EP3_RX_DEF
+-#define MUSB_C_EP3_TAR_DEF
+-#define MUSB_C_EP4_DEF
+-#define MUSB_C_EP4_TX_DEF
+-#define MUSB_C_EP4_RX_DEF
+-#define MUSB_C_EP4_TAR_DEF
+-
+-/* Endpoint 1 to 15 FIFO address bits. Legal values are 3 to 13 - corresponding
+- * to FIFO sizes of 8 to 8192 bytes. If an Tx endpoint shares a FIFO with an Rx
+- * endpoint then the Rx FIFO size must be the same as the Tx FIFO size. All
+- * endpoints 1 to 15 must be defined, unused endpoints should be set to 2.
+- */
+-#define MUSB_C_EP1T_BITS 5
+-#define MUSB_C_EP1R_BITS 5
+-#define MUSB_C_EP2T_BITS 5
+-#define MUSB_C_EP2R_BITS 5
+-#define MUSB_C_EP3T_BITS 3
+-#define MUSB_C_EP3R_BITS 3
+-#define MUSB_C_EP4T_BITS 3
+-#define MUSB_C_EP4R_BITS 3
+-
+-#define MUSB_C_EP5T_BITS 2
+-#define MUSB_C_EP5R_BITS 2
+-#define MUSB_C_EP6T_BITS 2
+-#define MUSB_C_EP6R_BITS 2
+-#define MUSB_C_EP7T_BITS 2
+-#define MUSB_C_EP7R_BITS 2
+-#define MUSB_C_EP8T_BITS 2
+-#define MUSB_C_EP8R_BITS 2
+-#define MUSB_C_EP9T_BITS 2
+-#define MUSB_C_EP9R_BITS 2
+-#define MUSB_C_EP10T_BITS 2
+-#define MUSB_C_EP10R_BITS 2
+-#define MUSB_C_EP11T_BITS 2
+-#define MUSB_C_EP11R_BITS 2
+-#define MUSB_C_EP12T_BITS 2
+-#define MUSB_C_EP12R_BITS 2
+-#define MUSB_C_EP13T_BITS 2
+-#define MUSB_C_EP13R_BITS 2
+-#define MUSB_C_EP14T_BITS 2
+-#define MUSB_C_EP14R_BITS 2
+-#define MUSB_C_EP15T_BITS 2
+-#define MUSB_C_EP15R_BITS 2
+-
+-/* Define the following constant if the USB2.0 Transceiver Macrocell data width
+- * is 16-bits.
+- */
+-/* #define C_UTM_16 */
+-
+-/* Define this constant if the CPU uses big-endian byte ordering. */
+-/* #define C_BIGEND */
+-
+-/* Define the following constant if any Tx endpoint is required to support
+- * multiple bulk packets.
+- */
+-/* #define C_MP_TX */
+-
+-/* Define the following constant if any Rx endpoint is required to support
+- * multiple bulk packets.
+- */
+-/* #define C_MP_RX */
+-
+-/* Define the following constant if any Tx endpoint is required to support high
+- * bandwidth ISO.
+- */
+-/* #define C_HB_TX */
+-
+-/* Define the following constant if any Rx endpoint is required to support high
+- * bandwidth ISO.
+- */
+-/* #define C_HB_RX */
+-
+-/* Define the following constant if software connect/disconnect control is
+- * required.
+- */
+-#define MUSB_C_SOFT_CON
+-
+-/* Define the following constant if Vendor Control Registers are required. */
+-/* #define C_VEND_REG */
+-
+-/* Vendor control register widths. */
+-#define MUSB_C_VCTL_BITS 4
+-#define MUSB_C_VSTAT_BITS 8
+-
+-/* Define the following constant to include a DMA controller. */
+-/* #define C_DMA */
+-
+-/* Define the following constant if 2 or more DMA channels are required. */
+-/* #define C_DMA2 */
+-
+-/* Define the following constant if 3 or more DMA channels are required. */
+-/* #define C_DMA3 */
+-
+-/* Define the following constant if 4 or more DMA channels are required. */
+-/* #define C_DMA4 */
+-
+-/* Define the following constant if 5 or more DMA channels are required. */
+-/* #define C_DMA5 */
+-
+-/* Define the following constant if 6 or more DMA channels are required. */
+-/* #define C_DMA6 */
+-
+-/* Define the following constant if 7 or more DMA channels are required. */
+-/* #define C_DMA7 */
+-
+-/* Define the following constant if 8 or more DMA channels are required. */
+-/* #define C_DMA8 */
+-
+-/* Enable Dynamic FIFO Sizing */
+-#define MUSB_C_DYNFIFO_DEF
+-
+-/* Derived constants. The following constants are derived from the previous
+- * configuration constants
+- */
+-
+-/* Total number of endpoints. Legal values are 2 - 16. This must be equal to
+- * the larger of C_NUM_EPT, C_NUM_EPR
+- */
+-/* #define MUSB_C_NUM_EPS 5 */
+-
+-/* C_EPMAX_BITS is equal to the largest endpoint FIFO word address bits */
+-#define MUSB_C_EPMAX_BITS 11
+-
+-/* C_RAM_BITS is the number of address bits required to address the RAM (32-bit
+- * addresses).  It is defined as log2 of the sum of 2** of all the endpoint FIFO
+- * dword address bits (rounded up).
+- */
+-#define MUSB_C_RAM_BITS 12
+-
+-#endif /* CONFIG_USB_TUSB6010 */
+-
+ #endif /* __TUSB6010_H__ */
+diff --git a/include/asm-arm/arch-omap/hdrc_cnf.h b/include/asm-arm/arch-omap/hdrc_cnf.h
+deleted file mode 100644
+index 74c8432..0000000
+--- a/include/asm-arm/arch-omap/hdrc_cnf.h
++++ /dev/null
+@@ -1,177 +0,0 @@
+-/*
+- * Copyright 2005 Mentor Graphics Corporation
+- * USB High-Speed Multi-Point Dual-Role Controller Configuration
+- *
+- * Copyright Mentor Graphics Corporation and Licensors 2004
+- * Copyright (C) 2005 by Texas Instruments
+- *
+- * This file contains configuration constants for the (m)hdrc
+- * silicon as integrated into DaVinci CPUs.
+- */
+-
+-#ifndef	__ARCH_MUSB_HDRC_CNF
+-#define	__ARCH_MUSB_HDRC_CNF
+-
+-/* ** Number of Tx endpoints ** */
+-/* Legal values are 1 - 16 (this value includes EP0) */
+-#define MUSB_C_NUM_EPT 8
+-
+-/* ** Number of Rx endpoints ** */
+-/* Legal values are 1 - 16 (this value includes EP0) */
+-#define MUSB_C_NUM_EPR 8
+-
+-/* ** Endpoint 1 to 15 direction types ** */
+-/* C_EP1_DEF is defined if either Tx endpoint 1 or Rx endpoint 1 are used */
+-#define MUSB_C_EP1_DEF
+-
+-/* C_EP1_TX_DEF is defined if Tx endpoint 1 is used */
+-#define MUSB_C_EP1_TX_DEF
+-
+-/* C_EP1_RX_DEF is defined if Rx endpoint 1 is used */
+-#define MUSB_C_EP1_RX_DEF
+-
+-/* C_EP1_TOR_DEF is defined if Tx endpoint 1 and Rx endpoint 1 share a FIFO */
+-/*`define C_EP1_TOR_DEF */
+-
+-/* C_EP1_TAR_DEF is defined if both Tx endpoint 1 and Rx endpoint 1 are used */
+-/* and do not share a FIFO */
+-#define MUSB_C_EP1_TAR_DEF
+-
+-/* Similarly for all other used endpoints */
+-#define MUSB_C_EP2_DEF
+-#define MUSB_C_EP2_TX_DEF
+-#define MUSB_C_EP2_RX_DEF
+-#define MUSB_C_EP2_TAR_DEF
+-#define MUSB_C_EP3_DEF
+-#define MUSB_C_EP3_TX_DEF
+-#define MUSB_C_EP3_RX_DEF
+-#define MUSB_C_EP3_TAR_DEF
+-#define MUSB_C_EP4_DEF
+-#define MUSB_C_EP4_TX_DEF
+-#define MUSB_C_EP4_RX_DEF
+-#define MUSB_C_EP4_TAR_DEF
+-#define MUSB_C_EP5_DEF
+-#define MUSB_C_EP5_TX_DEF
+-#define MUSB_C_EP5_RX_DEF
+-#define MUSB_C_EP5_TAR_DEF
+-#define MUSB_C_EP6_DEF
+-#define MUSB_C_EP6_TX_DEF
+-#define MUSB_C_EP6_RX_DEF
+-#define MUSB_C_EP6_TAR_DEF
+-#define MUSB_C_EP7_DEF
+-#define MUSB_C_EP7_TX_DEF
+-#define MUSB_C_EP7_RX_DEF
+-#define MUSB_C_EP7_TAR_DEF
+-
+-/* ** Endpoint 1 to 15 FIFO address bits ** */
+-/* Legal values are 3 to 13 - corresponding to FIFO sizes of 8 to 8192 bytes. */
+-/* If an Tx endpoint shares a FIFO with an Rx endpoint then the Rx FIFO size */
+-/* must be the same as the Tx FIFO size. */
+-/* All endpoints 1 to 15 must be defined, unused endpoints should be set to 2. */
+-#define MUSB_C_EP1T_BITS 10
+-#define MUSB_C_EP1R_BITS 10
+-#define MUSB_C_EP2T_BITS 9
+-#define MUSB_C_EP2R_BITS 9
+-#define MUSB_C_EP3T_BITS 3
+-#define MUSB_C_EP3R_BITS 3
+-#define MUSB_C_EP4T_BITS 3
+-#define MUSB_C_EP4R_BITS 3
+-#define MUSB_C_EP5T_BITS 3
+-#define MUSB_C_EP5R_BITS 3
+-#define MUSB_C_EP6T_BITS 3
+-#define MUSB_C_EP6R_BITS 3
+-#define MUSB_C_EP7T_BITS 3
+-#define MUSB_C_EP7R_BITS 3
+-#define MUSB_C_EP8T_BITS 2
+-#define MUSB_C_EP8R_BITS 2
+-#define MUSB_C_EP9T_BITS 2
+-#define MUSB_C_EP9R_BITS 2
+-#define MUSB_C_EP10T_BITS 2
+-#define MUSB_C_EP10R_BITS 2
+-#define MUSB_C_EP11T_BITS 2
+-#define MUSB_C_EP11R_BITS 2
+-#define MUSB_C_EP12T_BITS 2
+-#define MUSB_C_EP12R_BITS 2
+-#define MUSB_C_EP13T_BITS 2
+-#define MUSB_C_EP13R_BITS 2
+-#define MUSB_C_EP14T_BITS 2
+-#define MUSB_C_EP14R_BITS 2
+-#define MUSB_C_EP15T_BITS 2
+-#define MUSB_C_EP15R_BITS 2
+-
+-/* Define the following constant if the USB2.0 Transceiver Macrocell data width is 16-bits. */
+-/* `define C_UTM_16 */
+-
+-/* Define this constant if the CPU uses big-endian byte ordering. */
+-/*`define C_BIGEND */
+-
+-/* Define the following constant if any Tx endpoint is required to support multiple bulk packets. */
+-/* `define C_MP_TX */
+-
+-/* Define the following constant if any Rx endpoint is required to support multiple bulk packets. */
+-/* `define C_MP_RX */
+-
+-/* Define the following constant if any Tx endpoint is required to support high bandwidth ISO. */
+-/* `define C_HB_TX */
+-
+-/* Define the following constant if any Rx endpoint is required to support high bandwidth ISO. */
+-/* `define C_HB_RX */
+-
+-/* Define the following constant if software connect/disconnect control is required. */
+-#define MUSB_C_SOFT_CON
+-
+-/* Define the following constant if Vendor Control Registers are required. */
+-/* `define C_VEND_REG */
+-
+-/* Vendor control register widths. */
+-#define MUSB_C_VCTL_BITS 4
+-#define MUSB_C_VSTAT_BITS 8
+-
+-
+-/* Define the following constant to include a DMA controller. */
+-#define MUSB_C_DMA
+-
+-/* Define the following constant if 2 or more DMA channels are required. */
+-#define MUSB_C_DMA2
+-
+-/* Define the following constant if 3 or more DMA channels are required. */
+-#define MUSB_C_DMA3
+-
+-/* Define the following constant if 4 or more DMA channels are required. */
+-#define MUSB_C_DMA4
+-
+-/* Define the following constant if 5 or more DMA channels are required. */
+-/*`define C_DMA5 */
+-
+-/* Define the following constant if 6 or more DMA channels are required. */
+-/*`define C_DMA6 */
+-
+-/* Define the following constant if 7 or more DMA channels are required. */
+-/*`define C_DMA7 */
+-
+-/* Define the following constant if 8 or more DMA channels are required. */
+-/*`define C_DMA8 */
+-
+-
+-/* ** Enable Dynamic FIFO Sizing ** */
+-#define MUSB_C_DYNFIFO_DEF
+-
+-/* ** Derived constants ** */
+-/* The following constants are derived from the previous configuration constants */
+-
+-/* Total number of endpoints
+- * Legal values are 2 - 16
+- * This must be equal to the larger of C_NUM_EPT, C_NUM_EPR
+- */
+-#define MUSB_C_NUM_EPS 8
+-
+-/* C_EPMAX_BITS is equal to the largest endpoint FIFO word address bits */
+-#define MUSB_C_EPMAX_BITS 12
+-
+-/* C_RAM_BITS is the number of address bits required to address the RAM (32-bit
+- * addresses).  It is defined as log2 of the sum of 2** of all the endpoint FIFO
+- * dword address bits (rounded up).
+- */
+-#define MUSB_C_RAM_BITS 12
+-
+-#endif	/* __ARCH_MUSB_HDRC_CNF */
+diff --git a/include/asm-arm/arch-omap/usb-musb.h b/include/asm-arm/arch-omap/usb-musb.h
+index 4f0c830..e13aa2b 100644
+--- a/include/asm-arm/arch-omap/usb-musb.h
++++ b/include/asm-arm/arch-omap/usb-musb.h
+@@ -29,7 +29,11 @@
+ #ifndef __ASM_ARCH_OMAP_USB_MUSB_H
+ #define __ASM_ARCH_OMAP_USB_MUSB_H
+ 
+-extern void usb_musb_init(void);
++#include <linux/usb/musb.h>
++#include <linux/ioport.h>
++
++extern void usb_musb_init(struct musb_hdrc_platform_data *pdata,
++		struct resource *resources, u32 num_resources);
+ 
+ #endif /* __ASM_ARCH_OMAP_USB_MUSB_H */
+ 
+diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
+index d325a0d..630962c 100644
+--- a/include/linux/usb/musb.h
++++ b/include/linux/usb/musb.h
+@@ -19,6 +19,36 @@ enum musb_mode {
+ 
+ struct clk;
+ 
++struct musb_hdrc_eps_bits {
++	const char	name[16];
++	u8		bits;
++};
++
++struct musb_hdrc_config {
++	/* MUSB configuration-specific details */
++	unsigned	multipoint:1;	/* multipoint device */
++	unsigned	dyn_fifo:1;	/* supports dynamic fifo sizing */
++	unsigned	soft_con:1;	/* soft connect required */
++	unsigned	utm_16:1;	/* utm data witdh is 16 bits */
++	unsigned	big_endian:1;	/* true if CPU uses big-endian */
++	unsigned	mult_bulk_tx:1;	/* Tx ep required for multbulk pkts */
++	unsigned	mult_bulk_rx:1;	/* Rx ep required for multbulk pkts */
++	unsigned	high_iso_tx:1;	/* Tx ep required for HB iso */
++	unsigned	high_iso_rx:1;	/* Rx ep required for HD iso */
++	unsigned	dma:1;		/* supports DMA */
++	unsigned	vendor_req:1;	/* vendor registers required */
++
++	u8		num_eps;	/* number of endpoints _with_ ep0 */
++	u8		dma_channels;	/* number of dma channels */
++	u8		dyn_fifo_size;	/* dynamic size in bytes */
++	u8		vendor_ctrl;	/* vendor control reg width */
++	u8		vendor_stat;	/* vendor status reg witdh */
++	u8		dma_req_chan;	/* bitmask for required dma channels */
++	u8		ram_bits;	/* ram address size */
++
++	struct musb_hdrc_eps_bits *eps_bits;
++};
++
+ struct musb_hdrc_platform_data {
+ 	/* MUSB_HOST, MUSB_PERIPHERAL, or MUSB_OTG */
+ 	u8		mode;
+@@ -38,16 +68,14 @@ struct musb_hdrc_platform_data {
+ 	/* (HOST or OTG) msec/2 after VBUS on till power good */
+ 	u8		potpgt;
+ 
+-	/* TBD:  chip defaults should probably go someplace else,
+-	 * e.g. number of tx/rx endpoints, etc
+-	 */
+-	unsigned	multipoint:1;
+-
+ 	/* Power the device on or off */
+ 	int		(*set_power)(int state);
+ 
+ 	/* Turn device clock on or off */
+ 	int		(*set_clock)(struct clk *clock, int is_on);
++
++	/* MUSB configuration-specific details */
++	struct musb_hdrc_config	*config;
+ };
+ 
+ 
+-- 
+1.5.6.49.g112db
 
--Bryan Wu
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
