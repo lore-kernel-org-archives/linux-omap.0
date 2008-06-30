@@ -1,177 +1,98 @@
 From: "Arun KS" <getarunks@gmail.com>
-Subject: [Resend][PATCH 1/3] OMAP2EVM: Adding ethernet support
-Date: Mon, 30 Jun 2008 20:39:25 +0530
-Message-ID: <dfeb90390806300809w5df7dd14pb299b5dede1319a8@mail.gmail.com>
+Subject: [Resend][PATCH 2/3] net:smc911x Modify driver to also work with omap24xx
+Date: Mon, 30 Jun 2008 20:41:30 +0530
+Message-ID: <dfeb90390806300811g58e051e0xad80c4aa0574581@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="----=_Part_13023_20252553.1214838565486"
+	boundary="----=_Part_13039_13753415.1214838690713"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.184]:36398 "EHLO
+Received: from ti-out-0910.google.com ([209.85.142.190]:40524 "EHLO
 	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751331AbYF3PJ3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jun 2008 11:09:29 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so799847tic.23
-        for <linux-omap@vger.kernel.org>; Mon, 30 Jun 2008 08:09:25 -0700 (PDT)
+	with ESMTP id S1752154AbYF3PLd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jun 2008 11:11:33 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so800133tic.23
+        for <linux-omap@vger.kernel.org>; Mon, 30 Jun 2008 08:11:31 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-------=_Part_13023_20252553.1214838565486
+------=_Part_13039_13753415.1214838690713
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-OMAP2EVM: Add ethernet support (smc911x)
+net:smc911x Modify driver to also work with omap24xx
 
 Signed-off-by: Arun KS <arunks@mistralsolutions.com>
 ---
- arch/arm/mach-omap2/board-omap2evm.c       |   41 ++++++++++++++++++++++++++++
- include/asm-arm/arch-omap/board-omap2evm.h |    5 ++-
- 2 files changed, 44 insertions(+), 2 deletions(-)
+ drivers/net/Kconfig   |    2 +-
+ drivers/net/smc911x.h |    5 +++++
+ 2 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap2evm.c
-b/arch/arm/mach-omap2/board-omap2evm.c
-index d00e502..bcdf4a6 100644
---- a/arch/arm/mach-omap2/board-omap2evm.c
-+++ b/arch/arm/mach-omap2/board-omap2evm.c
-@@ -27,11 +27,47 @@
- #include <asm/arch/board.h>
- #include <asm/arch/common.h>
+diff --git a/drivers/net/Kconfig b/drivers/net/Kconfig
+index 61ecee7..ecda0b6 100644
+--- a/drivers/net/Kconfig
++++ b/drivers/net/Kconfig
+@@ -955,7 +955,7 @@ config SMC911X
+ 	tristate "SMSC LAN911[5678] support"
+ 	select CRC32
+ 	select MII
+-	depends on ARCH_PXA || SH_MAGIC_PANEL_R2 || ARCH_OMAP34XX
++	depends on ARCH_PXA || SH_MAGIC_PANEL_R2 || ARCH_OMAP24XX || ARCH_OMAP34XX
+ 	help
+ 	  This is a driver for SMSC's LAN911x series of Ethernet chipsets
+ 	  including the new LAN9115, LAN9116, LAN9117, and LAN9118.
+diff --git a/drivers/net/smc911x.h b/drivers/net/smc911x.h
+index dad93a8..0f406a0 100644
+--- a/drivers/net/smc911x.h
++++ b/drivers/net/smc911x.h
+@@ -47,6 +47,11 @@
+   #define SMC_USE_32BIT		1
+   #define SMC_IRQ_SENSE		IRQF_TRIGGER_LOW
+   #define SMC_MEM_RESERVED	1
++#elif defined(CONFIG_ARCH_OMAP24XX)
++  #define SMC_USE_16BIT		0
++  #define SMC_USE_32BIT		1
++  #define SMC_IRQ_SENSE		IRQF_TRIGGER_LOW
++  #define SMC_MEM_RESERVED	1
+ #endif
 
-+static struct resource omap2evm_smc911x_resources[] = {
-+	[0] =   {
-+		.start  = OMAP2EVM_ETHR_START,
-+		.end    = (OMAP2EVM_ETHR_START + OMAP2EVM_ETHR_SIZE - 1),
-+		.flags  = IORESOURCE_MEM,
-+	},
-+	[1] =   {
-+		.start  = OMAP_GPIO_IRQ(OMAP2EVM_ETHR_GPIO_IRQ),
-+		.end    = OMAP_GPIO_IRQ(OMAP2EVM_ETHR_GPIO_IRQ),
-+		.flags  = IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct platform_device omap2evm_smc911x_device = {
-+	.name       = "smc911x",
-+	.id     = -1,
-+	.num_resources  = ARRAY_SIZE(omap2evm_smc911x_resources),
-+	.resource   = &omap2evm_smc911x_resources [0],
-+};
-+
-+static inline void __init omap2evm_init_smc911x(void)
-+{
-+	int gpio = OMAP2EVM_ETHR_GPIO_IRQ;
-+	int ret;
-+
-+	ret = gpio_request(gpio, "smc911x IRQ");
-+	if (ret < 0) {
-+		printk(KERN_ERR "Failed to request GPIO %d for smc911x IRQ\n",
-+				gpio);
-+		return;
-+	}
-+	gpio_direction_input(gpio);
-+
-+}
-+
- static void __init omap2_evm_init_irq(void)
- {
- 	omap2_init_common_hw();
- 	omap_init_irq();
- 	omap_gpio_init();
-+	omap2evm_init_smc911x();
- }
 
- static struct omap_uart_config omap2_evm_uart_config __initdata = {
-@@ -53,8 +89,13 @@ static int __init omap2_evm_i2c_init(void)
- 	return 0;
- }
-
-+static struct platform_device *omap2_evm_devices[] __initdata = {
-+    &omap2evm_smc911x_device,
-+};
-+
- static void __init omap2_evm_init(void)
- {
-+	platform_add_devices(omap2_evm_devices, ARRAY_SIZE(omap2_evm_devices));
- 	omap_board_config = omap2_evm_config;
- 	omap_board_config_size = ARRAY_SIZE(omap2_evm_config);
- 	omap_serial_init();
-diff --git a/include/asm-arm/arch-omap/board-omap2evm.h
-b/include/asm-arm/arch-omap/board-omap2evm.h
-index 98273a9..d770c58 100644
---- a/include/asm-arm/arch-omap/board-omap2evm.h
-+++ b/include/asm-arm/arch-omap/board-omap2evm.h
-@@ -30,7 +30,8 @@
- #define __ASM_ARCH_OMAP2_EVM_H
-
- /* Placeholder for OMAP2EVM specific defines */
--#define OMAP24XX_ETHR_START		0x08000300
--#define OMAP24XX_ETHR_GPIO_IRQ		149
-+#define OMAP2EVM_ETHR_START			0x2c000000
-+#define OMAP2EVM_ETHR_SIZE			1024
-+#define OMAP2EVM_ETHR_GPIO_IRQ		149
-
- #endif /* __ASM_ARCH_OMAP2_EVM_H */
 -- 
 1.5.3.4
 
-------=_Part_13023_20252553.1214838565486
+------=_Part_13039_13753415.1214838690713
 Content-Type: text/x-patch;
- name=0001-OMAP2EVM-Adding-ethernet-support.patch
+ name=0002-net-smc911x-Modify-driver-to-also-work-with-omap24xx.patch
 Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fi37spig0
+X-Attachment-Id: f_fi37u6ak0
 Content-Disposition: attachment;
- filename=0001-OMAP2EVM-Adding-ethernet-support.patch
+ filename=0002-net-smc911x-Modify-driver-to-also-work-with-omap24xx.patch
 
-RnJvbSA2Mzg0ZGJjMTVmMDNiZjY0N2E5MGEzZDc2NzM0YWFlYjU4MGNkNjQ1IE1vbiBTZXAgMTcg
+RnJvbSAxODBiMGJjZDE5ZTM1YzExNTEyNjk3ZjNiNTFmZjkwMmNiNWU5MGUyIE1vbiBTZXAgMTcg
 MDA6MDA6MDAgMjAwMQpGcm9tOiBBcnVuIEtTIDxhcnVua3NAbWlzdHJhbHNvbHV0aW9ucy5jb20+
-CkRhdGU6IE1vbiwgMzAgSnVuIDIwMDggMTk6MjE6MzkgKzA1MzAKU3ViamVjdDogW1BBVENIXSBP
-TUFQMkVWTTogQWRkaW5nIGV0aGVybmV0IHN1cHBvcnQKCk9NQVAyRVZNOiBBZGQgZXRoZXJuZXQg
-c3VwcG9ydCAoc21jOTExeCkKClNpZ25lZC1vZmYtYnk6IEFydW4gS1MgPGFydW5rc0BtaXN0cmFs
-c29sdXRpb25zLmNvbT4KLS0tCiBhcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW9tYXAyZXZtLmMg
-ICAgICAgfCAgIDQxICsrKysrKysrKysrKysrKysrKysrKysrKysrKysKIGluY2x1ZGUvYXNtLWFy
-bS9hcmNoLW9tYXAvYm9hcmQtb21hcDJldm0uaCB8ICAgIDUgKystCiAyIGZpbGVzIGNoYW5nZWQs
-IDQ0IGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0v
-bWFjaC1vbWFwMi9ib2FyZC1vbWFwMmV2bS5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1v
-bWFwMmV2bS5jCmluZGV4IGQwMGU1MDIuLmJjZGY0YTYgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21h
-Y2gtb21hcDIvYm9hcmQtb21hcDJldm0uYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJk
-LW9tYXAyZXZtLmMKQEAgLTI3LDExICsyNyw0NyBAQAogI2luY2x1ZGUgPGFzbS9hcmNoL2JvYXJk
-Lmg+CiAjaW5jbHVkZSA8YXNtL2FyY2gvY29tbW9uLmg+CiAKK3N0YXRpYyBzdHJ1Y3QgcmVzb3Vy
-Y2Ugb21hcDJldm1fc21jOTExeF9yZXNvdXJjZXNbXSA9IHsKKwlbMF0gPSAgIHsKKwkJLnN0YXJ0
-ICA9IE9NQVAyRVZNX0VUSFJfU1RBUlQsCisJCS5lbmQgICAgPSAoT01BUDJFVk1fRVRIUl9TVEFS
-VCArIE9NQVAyRVZNX0VUSFJfU0laRSAtIDEpLAorCQkuZmxhZ3MgID0gSU9SRVNPVVJDRV9NRU0s
-CisJfSwKKwlbMV0gPSAgIHsKKwkJLnN0YXJ0ICA9IE9NQVBfR1BJT19JUlEoT01BUDJFVk1fRVRI
-Ul9HUElPX0lSUSksCisJCS5lbmQgICAgPSBPTUFQX0dQSU9fSVJRKE9NQVAyRVZNX0VUSFJfR1BJ
-T19JUlEpLAorCQkuZmxhZ3MgID0gSU9SRVNPVVJDRV9JUlEsCisJfSwKK307CisKK3N0YXRpYyBz
-dHJ1Y3QgcGxhdGZvcm1fZGV2aWNlIG9tYXAyZXZtX3NtYzkxMXhfZGV2aWNlID0geworCS5uYW1l
-ICAgICAgID0gInNtYzkxMXgiLAorCS5pZCAgICAgPSAtMSwKKwkubnVtX3Jlc291cmNlcyAgPSBB
-UlJBWV9TSVpFKG9tYXAyZXZtX3NtYzkxMXhfcmVzb3VyY2VzKSwKKwkucmVzb3VyY2UgICA9ICZv
-bWFwMmV2bV9zbWM5MTF4X3Jlc291cmNlcyBbMF0sCit9OworCitzdGF0aWMgaW5saW5lIHZvaWQg
-X19pbml0IG9tYXAyZXZtX2luaXRfc21jOTExeCh2b2lkKQoreworCWludCBncGlvID0gT01BUDJF
-Vk1fRVRIUl9HUElPX0lSUTsKKwlpbnQgcmV0OworCisJcmV0ID0gZ3Bpb19yZXF1ZXN0KGdwaW8s
-ICJzbWM5MTF4IElSUSIpOworCWlmIChyZXQgPCAwKSB7CisJCXByaW50ayhLRVJOX0VSUiAiRmFp
-bGVkIHRvIHJlcXVlc3QgR1BJTyAlZCBmb3Igc21jOTExeCBJUlFcbiIsCisJCQkJZ3Bpbyk7CisJ
-CXJldHVybjsKKwl9CisJZ3Bpb19kaXJlY3Rpb25faW5wdXQoZ3Bpbyk7CisKK30KKwogc3RhdGlj
-IHZvaWQgX19pbml0IG9tYXAyX2V2bV9pbml0X2lycSh2b2lkKQogewogCW9tYXAyX2luaXRfY29t
-bW9uX2h3KCk7CiAJb21hcF9pbml0X2lycSgpOwogCW9tYXBfZ3Bpb19pbml0KCk7CisJb21hcDJl
-dm1faW5pdF9zbWM5MTF4KCk7CiB9CiAKIHN0YXRpYyBzdHJ1Y3Qgb21hcF91YXJ0X2NvbmZpZyBv
-bWFwMl9ldm1fdWFydF9jb25maWcgX19pbml0ZGF0YSA9IHsKQEAgLTUzLDggKzg5LDEzIEBAIHN0
-YXRpYyBpbnQgX19pbml0IG9tYXAyX2V2bV9pMmNfaW5pdCh2b2lkKQogCXJldHVybiAwOwogfQog
-CitzdGF0aWMgc3RydWN0IHBsYXRmb3JtX2RldmljZSAqb21hcDJfZXZtX2RldmljZXNbXSBfX2lu
-aXRkYXRhID0geworICAgICZvbWFwMmV2bV9zbWM5MTF4X2RldmljZSwKK307CisKIHN0YXRpYyB2
-b2lkIF9faW5pdCBvbWFwMl9ldm1faW5pdCh2b2lkKQogeworCXBsYXRmb3JtX2FkZF9kZXZpY2Vz
-KG9tYXAyX2V2bV9kZXZpY2VzLCBBUlJBWV9TSVpFKG9tYXAyX2V2bV9kZXZpY2VzKSk7CiAJb21h
-cF9ib2FyZF9jb25maWcgPSBvbWFwMl9ldm1fY29uZmlnOwogCW9tYXBfYm9hcmRfY29uZmlnX3Np
-emUgPSBBUlJBWV9TSVpFKG9tYXAyX2V2bV9jb25maWcpOwogCW9tYXBfc2VyaWFsX2luaXQoKTsK
-ZGlmZiAtLWdpdCBhL2luY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvYm9hcmQtb21hcDJldm0uaCBi
-L2luY2x1ZGUvYXNtLWFybS9hcmNoLW9tYXAvYm9hcmQtb21hcDJldm0uaAppbmRleCA5ODI3M2E5
-Li5kNzcwYzU4IDEwMDY0NAotLS0gYS9pbmNsdWRlL2FzbS1hcm0vYXJjaC1vbWFwL2JvYXJkLW9t
-YXAyZXZtLmgKKysrIGIvaW5jbHVkZS9hc20tYXJtL2FyY2gtb21hcC9ib2FyZC1vbWFwMmV2bS5o
-CkBAIC0zMCw3ICszMCw4IEBACiAjZGVmaW5lIF9fQVNNX0FSQ0hfT01BUDJfRVZNX0gKIAogLyog
-UGxhY2Vob2xkZXIgZm9yIE9NQVAyRVZNIHNwZWNpZmljIGRlZmluZXMgKi8KLSNkZWZpbmUgT01B
-UDI0WFhfRVRIUl9TVEFSVAkJMHgwODAwMDMwMAotI2RlZmluZSBPTUFQMjRYWF9FVEhSX0dQSU9f
-SVJRCQkxNDkKKyNkZWZpbmUgT01BUDJFVk1fRVRIUl9TVEFSVAkJCTB4MmMwMDAwMDAKKyNkZWZp
-bmUgT01BUDJFVk1fRVRIUl9TSVpFCQkJMTAyNAorI2RlZmluZSBPTUFQMkVWTV9FVEhSX0dQSU9f
-SVJRCQkxNDkKIAogI2VuZGlmIC8qIF9fQVNNX0FSQ0hfT01BUDJfRVZNX0ggKi8KLS0gCjEuNS4z
-LjQKCg==
-------=_Part_13023_20252553.1214838565486--
+CkRhdGU6IE1vbiwgMzAgSnVuIDIwMDggMTk6MjQ6MjcgKzA1MzAKU3ViamVjdDogW1BBVENIXSBu
+ZXQ6c21jOTExeCBNb2RpZnkgZHJpdmVyIHRvIGFsc28gd29yayB3aXRoIG9tYXAyNHh4CgpuZXQ6
+c21jOTExeCBNb2RpZnkgZHJpdmVyIHRvIGFsc28gd29yayB3aXRoIG9tYXAyNHh4CgpTaWduZWQt
+b2ZmLWJ5OiBBcnVuIEtTIDxhcnVua3NAbWlzdHJhbHNvbHV0aW9ucy5jb20+Ci0tLQogZHJpdmVy
+cy9uZXQvS2NvbmZpZyAgIHwgICAgMiArLQogZHJpdmVycy9uZXQvc21jOTExeC5oIHwgICAgNSAr
+KysrKwogMiBmaWxlcyBjaGFuZ2VkLCA2IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb25zKC0pCgpk
+aWZmIC0tZ2l0IGEvZHJpdmVycy9uZXQvS2NvbmZpZyBiL2RyaXZlcnMvbmV0L0tjb25maWcKaW5k
+ZXggNjFlY2VlNy4uZWNkYTBiNiAxMDA2NDQKLS0tIGEvZHJpdmVycy9uZXQvS2NvbmZpZworKysg
+Yi9kcml2ZXJzL25ldC9LY29uZmlnCkBAIC05NTUsNyArOTU1LDcgQEAgY29uZmlnIFNNQzkxMVgK
+IAl0cmlzdGF0ZSAiU01TQyBMQU45MTFbNTY3OF0gc3VwcG9ydCIKIAlzZWxlY3QgQ1JDMzIKIAlz
+ZWxlY3QgTUlJCi0JZGVwZW5kcyBvbiBBUkNIX1BYQSB8fCBTSF9NQUdJQ19QQU5FTF9SMiB8fCBB
+UkNIX09NQVAzNFhYCisJZGVwZW5kcyBvbiBBUkNIX1BYQSB8fCBTSF9NQUdJQ19QQU5FTF9SMiB8
+fCBBUkNIX09NQVAyNFhYIHx8IEFSQ0hfT01BUDM0WFggCiAJaGVscAogCSAgVGhpcyBpcyBhIGRy
+aXZlciBmb3IgU01TQydzIExBTjkxMXggc2VyaWVzIG9mIEV0aGVybmV0IGNoaXBzZXRzCiAJICBp
+bmNsdWRpbmcgdGhlIG5ldyBMQU45MTE1LCBMQU45MTE2LCBMQU45MTE3LCBhbmQgTEFOOTExOC4K
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbmV0L3NtYzkxMXguaCBiL2RyaXZlcnMvbmV0L3NtYzkxMXgu
+aAppbmRleCBkYWQ5M2E4Li4wZjQwNmEwIDEwMDY0NAotLS0gYS9kcml2ZXJzL25ldC9zbWM5MTF4
+LmgKKysrIGIvZHJpdmVycy9uZXQvc21jOTExeC5oCkBAIC00Nyw2ICs0NywxMSBAQAogICAjZGVm
+aW5lIFNNQ19VU0VfMzJCSVQJCTEKICAgI2RlZmluZSBTTUNfSVJRX1NFTlNFCQlJUlFGX1RSSUdH
+RVJfTE9XCiAgICNkZWZpbmUgU01DX01FTV9SRVNFUlZFRAkxCisjZWxpZiBkZWZpbmVkKENPTkZJ
+R19BUkNIX09NQVAyNFhYKQorICAjZGVmaW5lIFNNQ19VU0VfMTZCSVQJCTAKKyAgI2RlZmluZSBT
+TUNfVVNFXzMyQklUCQkxCisgICNkZWZpbmUgU01DX0lSUV9TRU5TRQkJSVJRRl9UUklHR0VSX0xP
+VworICAjZGVmaW5lIFNNQ19NRU1fUkVTRVJWRUQJMQogI2VuZGlmCiAKIAotLSAKMS41LjMuNAoK
+
+------=_Part_13039_13753415.1214838690713--
