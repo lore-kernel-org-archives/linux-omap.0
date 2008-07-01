@@ -1,156 +1,44 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 09/11] gpio context save/restore
-Date: Tue, 1 Jul 2008 19:46:34 +0530
-Message-ID: <004601c8db85$110717f0$68bf18ac@ent.ti.com>
+Subject: [PATCH 10/11] i2c context save/restore
+Date: Tue, 1 Jul 2008 19:46:36 +0530
+Message-ID: <004701c8db85$12442bd0$68bf18ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:58728 "EHLO calf.ext.ti.com"
+Received: from soda.ext.ti.com ([198.47.26.145]:37965 "EHLO soda.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759675AbYGAOQl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Jul 2008 10:16:41 -0400
+	id S1759694AbYGAOQo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Jul 2008 10:16:44 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by calf.ext.ti.com (8.13.7/8.13.7) with ESMTP id m61EGY0d026714
-	for <linux-omap@vger.kernel.org>; Tue, 1 Jul 2008 09:16:40 -0500
+	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m61EGane003307
+	for <linux-omap@vger.kernel.org>; Tue, 1 Jul 2008 09:16:42 -0500
 Received: from a0393137pc (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m61EGXpk011584
-	for <linux-omap@vger.kernel.org>; Tue, 1 Jul 2008 19:46:33 +0530 (IST)
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m61EGXpl011584
+	for <linux-omap@vger.kernel.org>; Tue, 1 Jul 2008 19:46:35 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-This patch adds the context save restore functions for GPIO
+This patch does i2c init/re-init for every transfer
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/plat-omap/gpio.c          |   84 +++++++++++++++++++++++++++++++++++++
- include/asm-arm/arch-omap/common.h |    2 
- 2 files changed, 86 insertions(+)
+ drivers/i2c/busses/i2c-omap.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-Index: linux-omap-2.6/arch/arm/plat-omap/gpio.c
+Index: linux-omap-2.6/drivers/i2c/busses/i2c-omap.c
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/plat-omap/gpio.c	2008-07-01 10:40:21.453862942 +0530
-+++ linux-omap-2.6/arch/arm/plat-omap/gpio.c	2008-07-01 12:22:15.421076566 +0530
-@@ -102,6 +102,7 @@
- #define OMAP24XX_GPIO_IRQSTATUS2	0x0028
- #define OMAP24XX_GPIO_IRQENABLE2	0x002c
- #define OMAP24XX_GPIO_IRQENABLE1	0x001c
-+#define OMAP24XX_GPIO_WAKE_EN		0x0020
- #define OMAP24XX_GPIO_CTRL		0x0030
- #define OMAP24XX_GPIO_OE		0x0034
- #define OMAP24XX_GPIO_DATAIN		0x0038
-@@ -217,8 +218,24 @@ static struct gpio_bank gpio_bank_34xx[6
- 	{ OMAP34XX_GPIO6_BASE, INT_34XX_GPIO_BANK6, IH_GPIO_BASE + 160, METHOD_GPIO_24XX },
- };
+--- linux-omap-2.6.orig/drivers/i2c/busses/i2c-omap.c	2008-06-09 10:21:40.000000000 +0530
++++ linux-omap-2.6/drivers/i2c/busses/i2c-omap.c	2008-06-09 10:57:32.871082795 +0530
+@@ -490,6 +490,8 @@ omap_i2c_xfer(struct i2c_adapter *adap, 
  
-+struct gpio_restore_regs {
-+	u32 gpio_sysconfig;
-+	u32 gpio_wake_en;
-+	u32 gpio_ctrl;
-+	u32 gpio_oe;
-+	u32 gpio_leveldetect0;
-+	u32 gpio_leveldetect1;
-+	u32 gpio_risingdetect;
-+	u32 gpio_fallingdetect;
-+	u32 gpio_dataout;
-+	u32 gpio_setwkuena;
-+	u32 gpio_setdataout;
-+};
-+static struct gpio_restore_regs gpio_restore_banks[6];
- #endif
+ 	omap_i2c_unidle(dev);
  
++	omap_i2c_init(dev);
 +
-+
- static struct gpio_bank *gpio_bank;
- static int gpio_bank_count;
+ 	if ((r = omap_i2c_wait_for_bb(dev)) < 0)
+ 		goto out;
  
-@@ -1705,6 +1722,73 @@ void omap2_gpio_resume_after_retention(v
- 
- #endif
- 
-+#ifdef CONFIG_ARCH_OMAP34XX
-+/* save the registers of bank 2-6 */
-+void omap_gpio_save(void)
-+{
-+	int i;
-+	/* saving banks from 2-6 only */
-+	for (i = 1; i < gpio_bank_count; i++) {
-+		struct gpio_bank *bank = &gpio_bank[i];
-+		gpio_restore_banks[i].gpio_sysconfig =
-+			__raw_readl(bank->base + OMAP24XX_GPIO_SYSCONFIG);
-+		gpio_restore_banks[i].gpio_wake_en =
-+			__raw_readl(bank->base + OMAP24XX_GPIO_WAKE_EN);
-+		gpio_restore_banks[i].gpio_ctrl =
-+			__raw_readl(bank->base + OMAP24XX_GPIO_CTRL);
-+		gpio_restore_banks[i].gpio_oe =
-+			__raw_readl(bank->base + OMAP24XX_GPIO_OE);
-+		gpio_restore_banks[i].gpio_leveldetect0 =
-+			__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT0);
-+		gpio_restore_banks[i].gpio_leveldetect1 =
-+			__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT1);
-+		gpio_restore_banks[i].gpio_risingdetect =
-+			__raw_readl(bank->base + OMAP24XX_GPIO_RISINGDETECT);
-+		gpio_restore_banks[i].gpio_fallingdetect =
-+			__raw_readl(bank->base + OMAP24XX_GPIO_FALLINGDETECT);
-+		gpio_restore_banks[i].gpio_dataout =
-+			__raw_readl(bank->base + OMAP24XX_GPIO_DATAOUT);
-+		gpio_restore_banks[i].gpio_setwkuena =
-+			__raw_readl(bank->base + OMAP24XX_GPIO_SETWKUENA);
-+		gpio_restore_banks[i].gpio_setdataout =
-+			__raw_readl(bank->base + OMAP24XX_GPIO_SETDATAOUT);
-+	}
-+}
-+EXPORT_SYMBOL(omap_gpio_save);
-+
-+/* restore the required registers of bank 2-6 */
-+void omap_gpio_restore(void)
-+{
-+	int i;
-+	for (i = 1; i < gpio_bank_count; i++) {
-+		struct gpio_bank *bank = &gpio_bank[i];
-+		__raw_writel(gpio_restore_banks[i].gpio_sysconfig,
-+				bank->base + OMAP24XX_GPIO_SYSCONFIG);
-+		__raw_writel(gpio_restore_banks[i].gpio_wake_en,
-+				bank->base + OMAP24XX_GPIO_WAKE_EN);
-+		__raw_writel(gpio_restore_banks[i].gpio_ctrl,
-+				bank->base + OMAP24XX_GPIO_CTRL);
-+		__raw_writel(gpio_restore_banks[i].gpio_oe,
-+				bank->base + OMAP24XX_GPIO_OE);
-+		__raw_writel(gpio_restore_banks[i].gpio_leveldetect0,
-+				bank->base + OMAP24XX_GPIO_LEVELDETECT0);
-+		__raw_writel(gpio_restore_banks[i].gpio_leveldetect1,
-+				bank->base + OMAP24XX_GPIO_LEVELDETECT1);
-+		__raw_writel(gpio_restore_banks[i].gpio_risingdetect,
-+				bank->base + OMAP24XX_GPIO_RISINGDETECT);
-+		__raw_writel(gpio_restore_banks[i].gpio_fallingdetect,
-+				bank->base + OMAP24XX_GPIO_FALLINGDETECT);
-+		__raw_writel(gpio_restore_banks[i].gpio_dataout,
-+				bank->base + OMAP24XX_GPIO_DATAOUT);
-+		__raw_writel(gpio_restore_banks[i].gpio_setwkuena,
-+				bank->base + OMAP24XX_GPIO_SETWKUENA);
-+		__raw_writel(gpio_restore_banks[i].gpio_setdataout,
-+				bank->base + OMAP24XX_GPIO_SETDATAOUT);
-+	}
-+}
-+EXPORT_SYMBOL(omap_gpio_restore);
-+#endif
-+
- /*
-  * This may get called early from board specific init
-  * for boards that have interrupts routed via FPGA.
-Index: linux-omap-2.6/include/asm-arm/arch-omap/common.h
-===================================================================
---- linux-omap-2.6.orig/include/asm-arm/arch-omap/common.h	2008-07-01 11:08:08.845690400 +0530
-+++ linux-omap-2.6/include/asm-arm/arch-omap/common.h	2008-07-01 12:18:01.105258397 +0530
-@@ -36,6 +36,8 @@ extern struct sys_timer omap_timer;
- extern void omap_serial_init(void);
- extern void omap_serial_enable_clocks(int enable);
- extern int omap_serial_can_sleep(void);
-+extern void omap_gpio_save(void);
-+extern void omap_gpio_restore(void);
- extern void omap_serial_fclk_mask(u32 *f1, u32 *f2);
- void omap_serial_check_wakeup(void);
- #ifdef CONFIG_I2C_OMAP
 
