@@ -1,46 +1,62 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: [PATCH] ARM: OMAP: Add support to Nokia N810 WiMAX
-Date: Tue, 1 Jul 2008 15:39:07 +0300
-Message-ID: <20080701153907.55a7c131.jarkko.nikula@nokia.com>
-References: <1214898819-12471-1-git-send-email-jarkko.nikula@nokia.com>
-	<26a54b1545ac8acab8dae9c92cf3a285@felipebalbi.com>
-	<20080701132539.b4f89f1a.jarkko.nikula@nokia.com>
-	<13B9B4C6EF24D648824FF11BE8967162035BBF8741@dlee02.ent.ti.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [Question] MUSB: why not clear DMA interrupt in musbhsdma.c?
+Date: Tue, 1 Jul 2008 18:25:22 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB022BF6C991@dbde02.ent.ti.com>
+References: <386072610806022015t654e46g92d184d949ad60ad@mail.gmail.com>
+	 <5A47E75E594F054BAF48C5E4FC4B92AB022B9C81C1@dbde02.ent.ti.com>
+	 <386072610806022132m2d515537wadd23c102aec2bf0@mail.gmail.com>
+	 <200806292123.57383.david-b@pacbell.net>
+ <386072610806300453u3e0a1699kcf7084b0a947fba4@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:22288 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753889AbYGAMjy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jul 2008 08:39:54 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162035BBF8741@dlee02.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:52719 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758525AbYGAM4h convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jul 2008 08:56:37 -0400
+In-Reply-To: <386072610806300453u3e0a1699kcf7084b0a947fba4@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: ext Felipe Balbi <me@felipebalbi.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Bryan Wu <cooloney@kernel.org>, David Brownell <david-b@pacbell.net>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Felipe Balbi <me@felipebalbi.com>
 
-On Tue, 1 Jul 2008 07:09:10 -0500
-"ext Woodruff, Richard" <r-woodruff2@ti.com> wrote:
+<snip>
 
-> Hi,
-> > I forgot to mention that it seems that HS OMAP or something is
-> > ceasing the operation just few seconds after bootup. Initfs gets
-> > more scripts executed but Debian from mtdblock4 hangs just in init.
-> 
-> That is an odd statement.  Are you commenting about an EMU/HS chip
-> resetting during startup?
-> 
-Not resetting but the device seems to just stop during the process.
-Only idea what came to mind that probably HS OMAP in N810 WiMAX is
-causing this.
+> Actually, I don't have any detail information about the IP from mentor of Blackfin.
+> I just found the instruction from the Blackfin manual. We need to clear DMA IRQ flag
+> manually on Blackfin, although it is not true on Davinci.
+>
+> >
+> >> > > But when I tried to write large file to the U-DISK
+> >> > > (such as 10Mbyte or 100Mbyte), speed is very slow and mush
+> >> > > slower than PIO mode, IMO.
+> >
+> > I've certainly seen that "little" problem.  I couldn't tell
+> > if the root cause was from Mentor's DMA support or from the
+> > kind of USB-antagonistic DMA engine on DaVinci, but when the
+> > DMA logic has to generate an IRQ for each packet (to get sane
+> > semantics), it's hopeless getting good throughput unless it's
+> > dirt cheap to set up and complete DMA transfers.  (It isn't.)
+> >
+> > As has been seen elsewhere:  when the cost of DMA integration
+> > exceeds the cost to stuff the FIFO by hand, DMA is not a win.
+> > That's an issue with the drivers/dma framework sometimes too,
+> > though in that case the issue is purely software.
+> >
+>
+> I did lots of test to compare the DMA and PIO such as a) dd large file
+> to a USB flash disk, b) use bonnie++ to do performance test.
+> The result is that no throughput improvement on DMA and CPU
+> consumption is the same as PIO.
+>
+> We hope to see the CPU usage of DMA mode is less than PIO mode, but
+> didn't got the expectation.
 
-> There is a secure watch dog when needs to be taken care of and if you
-> program it right.  Generally your initial secure driver or stub ppa
-> will take care of this.
-> 
-Secure driver at least was missing in this trial what is indeed found
-in our release :-)
+Approximately how much is the performance you see with PIO mode (given that you also see the same with DMA mode)?
 
+Any chance you have dynamic tick suppression enabled (CONFIG_NO_HZ)?
+If so, could you try with nohz=off in your bootargs?
 
-Jarkko
+- Anand
