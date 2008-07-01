@@ -1,111 +1,125 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 06/11] mpu off state enabled
-Date: Tue, 1 Jul 2008 19:46:20 +0530
-Message-ID: <004301c8db85$08e0e970$68bf18ac@ent.ti.com>
+Subject: [PATCH 08/11] serial context save/restore
+Date: Tue, 1 Jul 2008 19:46:30 +0530
+Message-ID: <004501c8db85$0f2cb2a0$68bf18ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57370 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57383 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759571AbYGAOQ3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Jul 2008 10:16:29 -0400
+	id S1759651AbYGAOQk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Jul 2008 10:16:40 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m61EGKgT015729
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m61EGVxD015760
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 1 Jul 2008 09:16:28 -0500
+	for <linux-omap@vger.kernel.org>; Tue, 1 Jul 2008 09:16:38 -0500
 Received: from a0393137pc (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m61EGJGp011499
-	for <linux-omap@vger.kernel.org>; Tue, 1 Jul 2008 19:46:19 +0530 (IST)
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m61EGUGC011564
+	for <linux-omap@vger.kernel.org>; Tue, 1 Jul 2008 19:46:30 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-This patch updates the CPUidle code to handle MPU OFF related C states
+This patch adds the context save restore functions for UART
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |   19 +++++++++++++++----
- arch/arm/mach-omap2/cpuidle34xx.h |    5 +++++
- 2 files changed, 20 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/serial.c |   62 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/serial_reg.h   |    1 
+ 2 files changed, 63 insertions(+)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c
+Index: linux-omap-2.6/arch/arm/mach-omap2/serial.c
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/cpuidle34xx.c	2008-07-01 16:47:53.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c	2008-07-01 16:55:39.112465404 +0530
-@@ -82,8 +82,12 @@ static int omap3_enter_idle(struct cpuid
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/serial.c	2008-07-01 11:08:08.844690432 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/serial.c	2008-07-01 12:14:14.542572349 +0530
+@@ -83,6 +83,16 @@ static const u32 omap34xx_uart_padconf[O
+ 	CONTROL_PADCONF_UART3_RX
+ };
  
- 	/* Program MPU to target state */
- 	if (cx->mpu_state < PWRDM_POWER_ON) {
--		if (neon_pwrst == PWRDM_POWER_ON)
--			pwrdm_set_next_pwrst(neon_pd, PWRDM_POWER_RET);
-+		if (neon_pwrst == PWRDM_POWER_ON) {
-+			if (cx->mpu_state == PWRDM_POWER_RET)
-+				pwrdm_set_next_pwrst(neon_pd, PWRDM_POWER_RET);
-+			else if (cx->mpu_state == PWRDM_POWER_OFF)
-+				pwrdm_set_next_pwrst(neon_pd, PWRDM_POWER_OFF);
-+		}
- 		pwrdm_set_next_pwrst(mpu_pd, cx->mpu_state);
- 	}
- 
-@@ -99,9 +103,13 @@ static int omap3_enter_idle(struct cpuid
- 		pwrdm_set_next_pwrst(core_pd, cx->core_state);
- 	}
- 
-+	*(scratchpad_restore_addr) = restore_pointer_address;
++struct omap_uart_regs {
++	u16 dll;
++	u16 dlh;
++	u16 ier;
++	u16 sysc;
++	u16 scr;
++	u16 wer;
++};
++static struct omap_uart_regs uart_ctx[OMAP_MAX_NR_PORTS];
 +
- 	/* Execute ARM wfi */
- 	omap_sram_idle();
+ static struct plat_serial8250_port serial_platform_data[] = {
+ 	{
+ 		.membase	= (__force void __iomem *)IO_ADDRESS(OMAP_UART1_BASE),
+@@ -293,6 +303,58 @@ void __init omap_serial_init(void)
+ 	omap_serial_kick();
+ }
  
-+	*(scratchpad_restore_addr) = 0x0;
++void omap_save_uart_ctx(int unum)
++{
++	u16 lcr = 0;
 +
- 	/* Program MPU/NEON to ON */
- 	if (cx->mpu_state < PWRDM_POWER_ON) {
- 		if (neon_pwrst == PWRDM_POWER_ON)
-@@ -211,7 +219,7 @@ void omap_init_power_states(void)
- 						CPUIDLE_FLAG_BALANCED;
- 
- 	/* C3 . MPU OFF + Core active */
--	omap3_power_states[3].valid = 0;
-+	omap3_power_states[3].valid = 1;
- 	omap3_power_states[3].type = OMAP3_STATE_C3;
- 	omap3_power_states[3].sleep_latency = 1500;
- 	omap3_power_states[3].wakeup_latency = 1800;
-@@ -233,7 +241,7 @@ void omap_init_power_states(void)
- 			CPUIDLE_FLAG_BALANCED | CPUIDLE_FLAG_CHECK_BM;
- 
- 	/* C5 . MPU OFF + Core CSWR */
--	omap3_power_states[5].valid = 0;
-+	omap3_power_states[5].valid = 1;
- 	omap3_power_states[5].type = OMAP3_STATE_C5;
- 	omap3_power_states[5].sleep_latency = 3000;
- 	omap3_power_states[5].wakeup_latency = 8500;
-@@ -270,6 +278,9 @@ int omap3_idle_init(void)
- 	struct cpuidle_state *state;
- 	struct cpuidle_device *dev;
- 
-+	clear_scratchpad_contents();
-+	save_scratchpad_contents();
++	struct plat_serial8250_port *p = serial_platform_data + unum;
 +
- 	omap_init_power_states();
- 	cpuidle_register_driver(&omap3_idle_driver);
- 
-Index: linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.h
++	if (uart_ick[unum] == NULL)
++		return;
++
++	lcr = serial_read_reg(p, UART_LCR);
++	serial_write_reg(p, UART_LCR, 0xBF);
++	uart_ctx[unum].dll = serial_read_reg(p, UART_DLL);
++	uart_ctx[unum].dlh = serial_read_reg(p, UART_DLM);
++	serial_write_reg(p, UART_LCR, lcr);
++	uart_ctx[unum].ier = serial_read_reg(p, UART_IER);
++	uart_ctx[unum].sysc = serial_read_reg(p, UART_OMAP_SYSC);
++	uart_ctx[unum].scr = serial_read_reg(p, UART_OMAP_SCR);
++	uart_ctx[unum].wer = serial_read_reg(p, UART_OMAP_WER);
++}
++EXPORT_SYMBOL(omap_save_uart_ctx);
++
++void omap_restore_uart_ctx(int unum)
++{
++	u16 efr = 0;
++
++	struct plat_serial8250_port *p = serial_platform_data + unum;
++
++	if (uart_ick[unum] == NULL)
++		return;
++
++	serial_write_reg(p, UART_OMAP_MDR1, 0x7);
++	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
++	efr = serial_read_reg(p, UART_EFR);
++	serial_write_reg(p, UART_EFR, UART_EFR_ECB);
++	serial_write_reg(p, UART_LCR, 0x0); /* Operational mode */
++	serial_write_reg(p, UART_IER, 0x0);
++	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
++	serial_write_reg(p, UART_DLL, uart_ctx[unum].dll);
++	serial_write_reg(p, UART_DLM, uart_ctx[unum].dlh);
++	serial_write_reg(p, UART_LCR, 0x0); /* Operational mode */
++	serial_write_reg(p, UART_IER, uart_ctx[unum].ier);
++	serial_write_reg(p, UART_FCR, 0xA1);
++	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
++	serial_write_reg(p, UART_EFR, efr);
++	serial_write_reg(p, UART_LCR, UART_LCR_WLEN8);
++	serial_write_reg(p, UART_OMAP_SCR, uart_ctx[unum].scr);
++	serial_write_reg(p, UART_OMAP_WER, uart_ctx[unum].wer);
++	serial_write_reg(p, UART_OMAP_SYSC, uart_ctx[unum].sysc);
++	serial_write_reg(p, UART_OMAP_MDR1, 0x00); /* UART 16x mode */
++}
++EXPORT_SYMBOL(omap_restore_uart_ctx);
++
+ static struct platform_device serial_device = {
+ 	.name			= "serial8250",
+ 	.id			= PLAT8250_DEV_PLATFORM,
+Index: linux-omap-2.6/include/linux/serial_reg.h
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/cpuidle34xx.h	2008-07-01 16:25:16.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.h	2008-07-01 16:56:13.298377929 +0530
-@@ -40,6 +40,11 @@ extern void per_gpio_clk_enable(void);
- extern void per_gpio_clk_disable(void);
- extern void omap_serial_enable_clocks(int enable);
- extern int omap3_can_sleep();
-+extern void clear_scratchpad_contents(void);
-+extern void save_scratchpad_contents(void);
-+extern u32 *scratchpad_restore_addr;
-+extern u32 restore_pointer_address;
-+
- struct omap3_processor_cx {
- 	u8 valid;
- 	u8 type;
+--- linux-omap-2.6.orig/include/linux/serial_reg.h	2008-07-01 10:40:40.758251704 +0530
++++ linux-omap-2.6/include/linux/serial_reg.h	2008-07-01 12:08:11.157338527 +0530
+@@ -323,6 +323,7 @@
+ #define UART_OMAP_MVER		0x14	/* Module version register */
+ #define UART_OMAP_SYSC		0x15	/* System configuration register */
+ #define UART_OMAP_SYSS		0x16	/* System status register */
++#define UART_OMAP_WER           0x17    /* Wake-up enable register */
+ 
+ #endif /* _LINUX_SERIAL_REG_H */
+ 
 
