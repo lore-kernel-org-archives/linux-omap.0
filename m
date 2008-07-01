@@ -1,38 +1,83 @@
-From: "andrzej zaborowski" <balrogg@gmail.com>
-Subject: Re: [RFC][PATCH] usb: musb: pass configuration specifics via pdata
-Date: Mon, 30 Jun 2008 22:15:56 +0200
-Message-ID: <fb249edb0806301315y79612745jbd23c52f1ff1d775@mail.gmail.com>
-References: <1214826653-19005-1-git-send-email-felipe.balbi@nokia.com>
-	 <E25964AA-D229-4654-B24B-30A48708B056@student.utwente.nl>
-	 <20080630181655.GD4877@kedavra.cpe.vivax.com.br>
-	 <200806301133.15860.david-b@pacbell.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Jouni Hogander <jouni.hogander@nokia.com>
+Subject: [PATCH] OMAP: DISPC: Fix to disable also interface clocks
+Date: Tue,  1 Jul 2008 10:12:41 +0300
+Message-ID: <1214896361-3220-1-git-send-email-jouni.hogander@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.175]:43425 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751344AbYF3UQA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jun 2008 16:16:00 -0400
-Received: by ug-out-1314.google.com with SMTP id h2so306961ugf.16
-        for <linux-omap@vger.kernel.org>; Mon, 30 Jun 2008 13:15:56 -0700 (PDT)
-In-Reply-To: <200806301133.15860.david-b@pacbell.net>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:33133 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754784AbYGAHMw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jul 2008 03:12:52 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m617CI2p030015
+	for <linux-omap@vger.kernel.org>; Tue, 1 Jul 2008 10:12:49 +0300
+Received: from localhost.localdomain (trdhcp146197.ntc.nokia.com [172.22.146.197])
+	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m617Cf5D010536
+	for <linux-omap@vger.kernel.org>; Tue, 1 Jul 2008 10:12:41 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: David Brownell <david-b@pacbell.net>, Koen Kooi <k.kooi@student.utwente.nl>, Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Anand Gadiyar <gadiyar@ti.com>, Kevin Hilman <khilman@mvista.com>, Bryan Wu <cooloney@kernel.org>
+To: linux-omap@vger.kernel.org
 
-2008/6/30 David Brownell <david-b@pacbell.net>:
-> On Monday 30 June 2008, Felipe Balbi wrote:
->> The patch won't probe. But if you just copy what's added in board-omap3430sdp.c
->> should work.
->
-> Better:  that controller data should be provided by SOC glue
-> in those cases (omap2430, omap 3*, DaVinci, etc).  If it's
-> not board-specific, it doesn't belong in board-specific glue..
+Leaving interface clocks enabled causes dss pwrdm to stay in active
+state when mpu is in active state. This fix puts dss to sleep state
+when it is not needed.
 
-Yep, I believe same applies to devices with the TUSB6010 - musb-hdrc
-parameters are TUSB6010 specific and not board specific.
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+---
+ drivers/video/omap/dispc.c |   17 +++++------------
+ 1 files changed, 5 insertions(+), 12 deletions(-)
 
-Regards
+diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
+index 6aff476..ad436f5 100644
+--- a/drivers/video/omap/dispc.c
++++ b/drivers/video/omap/dispc.c
+@@ -914,18 +914,14 @@ static void put_dss_clocks(void)
+ 
+ static void enable_lcd_clocks(int enable)
+ {
+-	if (enable)
++	if (enable) {
++		clk_enable(dispc.dss_ick);
+ 		clk_enable(dispc.dss1_fck);
+-	else
++	}
++	else {
+ 		clk_disable(dispc.dss1_fck);
+-}
+-
+-static void enable_interface_clocks(int enable)
+-{
+-	if (enable)
+-		clk_enable(dispc.dss_ick);
+-	else
+ 		clk_disable(dispc.dss_ick);
++	}
+ }
+ 
+ static void enable_digit_clocks(int enable)
+@@ -1361,7 +1357,6 @@ static int omap_dispc_init(struct omapfb_device *fbdev, int ext_mode,
+ 	if ((r = get_dss_clocks()) < 0)
+ 		return r;
+ 
+-	enable_interface_clocks(1);
+ 	enable_lcd_clocks(1);
+ 
+ #ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
+@@ -1465,7 +1460,6 @@ fail2:
+ 	free_irq(INT_24XX_DSS_IRQ, fbdev);
+ fail1:
+ 	enable_lcd_clocks(0);
+-	enable_interface_clocks(0);
+ 	put_dss_clocks();
+ 
+ 	return r;
+@@ -1482,7 +1476,6 @@ static void omap_dispc_cleanup(void)
+ 	cleanup_fbmem();
+ 	free_palette_ram();
+ 	free_irq(INT_24XX_DSS_IRQ, dispc.fbdev);
+-	enable_interface_clocks(0);
+ 	put_dss_clocks();
+ }
+ 
+-- 
+1.5.5
+
