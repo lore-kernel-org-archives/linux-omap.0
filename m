@@ -1,55 +1,356 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: Add support to Nokia N810 WiMAX
-Date: Tue, 1 Jul 2008 08:11:41 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162035BBF87B7@dlee02.ent.ti.com>
-References: <1214898819-12471-1-git-send-email-jarkko.nikula@nokia.com>
-	<26a54b1545ac8acab8dae9c92cf3a285@felipebalbi.com>
-	<20080701132539.b4f89f1a.jarkko.nikula@nokia.com>
-	<13B9B4C6EF24D648824FF11BE8967162035BBF8741@dlee02.ent.ti.com>
- <20080701153907.55a7c131.jarkko.nikula@nokia.com>
+From: "Rajendra Nayak" <rnayak@ti.com>
+Subject: [PATCH 02/11] per/neon and core handling in idle
+Date: Tue, 1 Jul 2008 19:46:10 +0530
+Message-ID: <003f01c8db85$02c99dc0$68bf18ac@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from soda.ext.ti.com ([198.47.26.145]:34614 "EHLO soda.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45460 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752688AbYGANLy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jul 2008 09:11:54 -0400
-In-Reply-To: <20080701153907.55a7c131.jarkko.nikula@nokia.com>
-Content-Language: en-US
+	id S1758845AbYGAOQT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Jul 2008 10:16:19 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m61EGAud004847
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 1 Jul 2008 09:16:18 -0500
+Received: from a0393137pc (localhost [127.0.0.1])
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m61EG7un011322
+	for <linux-omap@vger.kernel.org>; Tue, 1 Jul 2008 19:46:09 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: ext Felipe Balbi <me@felipebalbi.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-> > > I forgot to mention that it seems that HS OMAP or something is
-> > > ceasing the operation just few seconds after bootup. Initfs gets
-> > > more scripts executed but Debian from mtdblock4 hangs just in init.
-> >
-> > That is an odd statement.  Are you commenting about an EMU/HS chip
-> > resetting during startup?
-> >
-> Not resetting but the device seems to just stop during the process.
-> Only idea what came to mind that probably HS OMAP in N810 WiMAX is
-> causing this.
+This patches adds handling of PER/NEON and CORE domain in idle.
 
-This is understandable actually.  Especially if you don't have some kind of reset sequence in your power chip linked up.
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
-For instance on 3430 + T2 you need to add a reset sequence script into T2's internal memory.  If you don't and you have CPUFREQ (dvfs) running, you can reboot at a time when the voltage is to low.  The ROM code expects a nominal (1.2v) voltage at reset time.  So when the DPLL spins up you can lock up and die.
+---
+ arch/arm/mach-omap2/cpuidle34xx.c |   98 +++++++++++++++++++++++++++++++-------
+ arch/arm/mach-omap2/cpuidle34xx.h |    6 +-
+ arch/arm/mach-omap2/pm34xx.c      |   58 ++++++++++++++--------
+ 3 files changed, 121 insertions(+), 41 deletions(-)
 
-BTW, this also kills the a 'reboot' command which ultimately just does a warm reset sequence with a prcm write.
-
-... actually in 2420 there are also errata around when its safe to issue a prcm based reset, this can also get you depending on your device.  This deals with the need to be in bypass at the time of the write.
-
-> > There is a secure watch dog when needs to be taken care of and if you
-> > program it right.  Generally your initial secure driver or stub ppa
-> > will take care of this.
-> >
-> Secure driver at least was missing in this trial what is indeed found
-> in our release :-)
-
-That would do it.  You need to take care of a couple bits else it won't make it.  This is doubly true on 3430 as your full or stub security driver needs to do a bit more.
-
-Regards,
-Richard W.
+Index: linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/cpuidle34xx.c	2008-07-01 18:48:09.962433167 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c	2008-07-01 18:48:12.884339399 +0530
+@@ -26,6 +26,8 @@
+ #include <asm/arch/pm.h>
+ #include <asm/arch/prcm.h>
+ #include <asm/arch/powerdomain.h>
++#include <asm/arch/clockdomain.h>
++#include <asm/arch/gpio.h>
+ #include "cpuidle34xx.h"
+ 
+ #ifdef CONFIG_CPU_IDLE
+@@ -35,6 +37,8 @@ struct omap3_processor_cx current_cx_sta
+ 
+ static int omap3_idle_bm_check(void)
+ {
++	if (!omap3_can_sleep())
++		return 1;
+ 	return 0;
+ }
+ 
+@@ -46,34 +50,86 @@ static int omap3_enter_idle(struct cpuid
+ {
+ 	struct omap3_processor_cx *cx = cpuidle_get_statedata(state);
+ 	struct timespec ts_preidle, ts_postidle, ts_idle;
+-	struct powerdomain *mpu_pd;
++	struct powerdomain *mpu_pd, *core_pd, *per_pd, *neon_pd;
++	int per_pwrst, neon_pwrst;
+ 
+ 	current_cx_state = *cx;
+ 
+-	/* Used to keep track of the total time in idle */
+-	getnstimeofday(&ts_preidle);
+-
+-
+ 	if (cx->type == OMAP3_STATE_C0) {
+ 		/* Do nothing for C0, not even a wfi */
+ 		return 0;
+ 	}
+ 
++	/* Used to keep track of the total time in idle */
++	getnstimeofday(&ts_preidle);
++
+ 	mpu_pd = pwrdm_lookup("mpu_pwrdm");
++	core_pd = pwrdm_lookup("core_pwrdm");
++	per_pd = pwrdm_lookup("per_pwrdm");
++	neon_pd = pwrdm_lookup("neon_pwrdm");
++
++	/* Reset previous power state registers */
++	pwrdm_clear_all_prev_pwrst(mpu_pd);
++	pwrdm_clear_all_prev_pwrst(neon_pd);
++	pwrdm_clear_all_prev_pwrst(core_pd);
++	pwrdm_clear_all_prev_pwrst(per_pd);
++
++	if (omap_irq_pending())
++		return 0;
++
++	per_pwrst = pwrdm_read_pwrst(per_pd);
++	neon_pwrst = pwrdm_read_pwrst(neon_pd);
++
+ 	/* Program MPU to target state */
+-	if (cx->mpu_state < PWRDM_POWER_ON)
++	if (cx->mpu_state < PWRDM_POWER_ON) {
++		if (neon_pwrst == PWRDM_POWER_ON)
++			pwrdm_set_next_pwrst(neon_pd, PWRDM_POWER_RET);
+ 		pwrdm_set_next_pwrst(mpu_pd, cx->mpu_state);
++	}
++
++	/* Program CORE and PER to target state */
++	if (cx->core_state < PWRDM_POWER_ON) {
++		if (per_pwrst == PWRDM_POWER_ON) {
++			omap2_gpio_prepare_for_retention();
++			if (clocks_off_while_idle) {
++				per_gpio_clk_disable();
++				omap_serial_enable_clocks(0);
++			}
++		}
++		pwrdm_set_next_pwrst(core_pd, cx->core_state);
++	}
+ 
+ 	/* Execute ARM wfi */
+ 	omap_sram_idle();
+ 
+-	/* Program MPU to ON */
+-	if (cx->mpu_state < PWRDM_POWER_ON)
++	/* Program MPU/NEON to ON */
++	if (cx->mpu_state < PWRDM_POWER_ON) {
++		if (neon_pwrst == PWRDM_POWER_ON)
++			pwrdm_set_next_pwrst(neon_pd, PWRDM_POWER_ON);
+ 		pwrdm_set_next_pwrst(mpu_pd, PWRDM_POWER_ON);
++	}
++
++	if (cx->core_state < PWRDM_POWER_ON) {
++		if (per_pwrst == PWRDM_POWER_ON) {
++			if (clocks_off_while_idle) {
++				omap_serial_enable_clocks(1);
++				per_gpio_clk_enable();
++			}
++			omap2_gpio_resume_after_retention();
++		}
++		pwrdm_set_next_pwrst(core_pd, PWRDM_POWER_ON);
++	}
++
++	pr_debug("MPU prev st:%x,NEON prev st:%x\n",
++			       pwrdm_read_prev_pwrst(mpu_pd),
++			       pwrdm_read_prev_pwrst(neon_pd));
++	pr_debug("PER prev st:%x,CORE prev st:%x\n",
++			       pwrdm_read_prev_pwrst(per_pd),
++			       pwrdm_read_prev_pwrst(core_pd));
+ 
+ 	getnstimeofday(&ts_postidle);
+ 	ts_idle = timespec_sub(ts_postidle, ts_preidle);
+-	return timespec_to_ns(&ts_idle);
++	return (u32)timespec_to_ns(&ts_idle)/1000;
+ }
+ 
+ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+@@ -130,7 +186,7 @@ void omap_init_power_states(void)
+ 	omap3_power_states[0].threshold = 0;
+ 	omap3_power_states[0].mpu_state = PWRDM_POWER_ON;
+ 	omap3_power_states[0].core_state = PWRDM_POWER_ON;
+-	omap3_power_states[0].flags = CPUIDLE_FLAG_TIME_VALID;
++	omap3_power_states[0].flags = CPUIDLE_FLAG_SHALLOW;
+ 
+ 	/* C1 . MPU WFI + Core active */
+ 	omap3_power_states[1].valid = 1;
+@@ -140,7 +196,8 @@ void omap_init_power_states(void)
+ 	omap3_power_states[1].threshold = 30;
+ 	omap3_power_states[1].mpu_state = PWRDM_POWER_ON;
+ 	omap3_power_states[1].core_state = PWRDM_POWER_ON;
+-	omap3_power_states[1].flags = CPUIDLE_FLAG_TIME_VALID;
++	omap3_power_states[1].flags = CPUIDLE_FLAG_TIME_VALID |
++						CPUIDLE_FLAG_SHALLOW;
+ 
+ 	/* C2 . MPU CSWR + Core active */
+ 	omap3_power_states[2].valid = 1;
+@@ -150,7 +207,8 @@ void omap_init_power_states(void)
+ 	omap3_power_states[2].threshold = 300;
+ 	omap3_power_states[2].mpu_state = PWRDM_POWER_RET;
+ 	omap3_power_states[2].core_state = PWRDM_POWER_ON;
+-	omap3_power_states[2].flags = CPUIDLE_FLAG_TIME_VALID;
++	omap3_power_states[2].flags = CPUIDLE_FLAG_TIME_VALID |
++						CPUIDLE_FLAG_BALANCED;
+ 
+ 	/* C3 . MPU OFF + Core active */
+ 	omap3_power_states[3].valid = 0;
+@@ -159,18 +217,20 @@ void omap_init_power_states(void)
+ 	omap3_power_states[3].wakeup_latency = 1800;
+ 	omap3_power_states[3].threshold = 4000;
+ 	omap3_power_states[3].mpu_state = PWRDM_POWER_OFF;
+-	omap3_power_states[3].core_state = PWRDM_POWER_RET;
+-	omap3_power_states[3].flags = CPUIDLE_FLAG_TIME_VALID;
++	omap3_power_states[3].core_state = PWRDM_POWER_ON;
++	omap3_power_states[3].flags = CPUIDLE_FLAG_TIME_VALID |
++			CPUIDLE_FLAG_BALANCED | CPUIDLE_FLAG_CHECK_BM;
+ 
+ 	/* C4 . MPU CSWR + Core CSWR*/
+-	omap3_power_states[4].valid = 0;
++	omap3_power_states[4].valid = 1;
+ 	omap3_power_states[4].type = OMAP3_STATE_C4;
+ 	omap3_power_states[4].sleep_latency = 2500;
+ 	omap3_power_states[4].wakeup_latency = 7500;
+ 	omap3_power_states[4].threshold = 12000;
+ 	omap3_power_states[4].mpu_state = PWRDM_POWER_RET;
+ 	omap3_power_states[4].core_state = PWRDM_POWER_RET;
+-	omap3_power_states[4].flags = CPUIDLE_FLAG_TIME_VALID;
++	omap3_power_states[4].flags = CPUIDLE_FLAG_TIME_VALID |
++			CPUIDLE_FLAG_BALANCED | CPUIDLE_FLAG_CHECK_BM;
+ 
+ 	/* C5 . MPU OFF + Core CSWR */
+ 	omap3_power_states[5].valid = 0;
+@@ -180,7 +240,8 @@ void omap_init_power_states(void)
+ 	omap3_power_states[5].threshold = 15000;
+ 	omap3_power_states[5].mpu_state = PWRDM_POWER_OFF;
+ 	omap3_power_states[5].core_state = PWRDM_POWER_RET;
+-	omap3_power_states[5].flags = CPUIDLE_FLAG_TIME_VALID;
++	omap3_power_states[5].flags = CPUIDLE_FLAG_TIME_VALID |
++			CPUIDLE_FLAG_BALANCED | CPUIDLE_FLAG_CHECK_BM;
+ 
+ 	/* C6 . MPU OFF + Core OFF */
+ 	omap3_power_states[6].valid = 0;
+@@ -190,7 +251,8 @@ void omap_init_power_states(void)
+ 	omap3_power_states[6].threshold = 300000;
+ 	omap3_power_states[6].mpu_state = PWRDM_POWER_OFF;
+ 	omap3_power_states[6].core_state = PWRDM_POWER_OFF;
+-	omap3_power_states[6].flags = CPUIDLE_FLAG_TIME_VALID;
++	omap3_power_states[6].flags = CPUIDLE_FLAG_TIME_VALID |
++			CPUIDLE_FLAG_DEEP | CPUIDLE_FLAG_CHECK_BM;
+ }
+ 
+ struct cpuidle_driver omap3_idle_driver = {
+Index: linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.h
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/cpuidle34xx.h	2008-07-01 18:48:09.962433167 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.h	2008-07-01 18:48:12.885339367 +0530
+@@ -33,11 +33,13 @@
+ /* Currently, we support only upto C2 */
+ #define MAX_SUPPORTED_STATES 3
+ 
++extern unsigned short clocks_off_while_idle;
+ extern void omap_sram_idle(void);
+-extern int omap3_irq_pending(void);
++extern int omap_irq_pending(void);
+ extern void per_gpio_clk_enable(void);
+ extern void per_gpio_clk_disable(void);
+-
++extern void omap_serial_enable_clocks(int enable);
++extern int omap3_can_sleep();
+ struct omap3_processor_cx {
+ 	u8 valid;
+ 	u8 type;
+Index: linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/pm34xx.c	2008-07-01 18:48:09.962433167 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c	2008-07-01 18:48:12.885339367 +0530
+@@ -61,7 +61,7 @@ static struct clk *gpio_fcks[NUM_OF_PERG
+ 
+ /* XXX This is for gpio fclk hack. Will be removed as gpio driver
+  * handles fcks correctly */
+-static void per_gpio_clk_enable(void)
++void per_gpio_clk_enable(void)
+ {
+ 	int i;
+ 	for (i = 1; i < NUM_OF_PERGPIOS + 1; i++)
+@@ -70,7 +70,7 @@ static void per_gpio_clk_enable(void)
+ 
+ /* XXX This is for gpio fclk hack. Will be removed as gpio driver
+  * handles fcks correctly */
+-static void per_gpio_clk_disable(void)
++void per_gpio_clk_disable(void)
+ {
+ 	int i;
+ 	for (i = 1; i < NUM_OF_PERGPIOS + 1; i++)
+@@ -202,25 +202,7 @@ void omap_sram_idle(void)
+ 		return;
+ 	}
+ 
+-	omap2_gpio_prepare_for_retention();
+-
+-	if (clocks_off_while_idle) {
+-		omap_serial_enable_clocks(0);
+-		/* XXX This is for gpio fclk hack. Will be removed as
+-		 * gpio driver * handles fcks correctly */
+-		per_gpio_clk_disable();
+-	}
+-
+ 	_omap_sram_idle(NULL, save_state, clocks_off_while_idle);
+-
+-	if (clocks_off_while_idle) {
+-		omap_serial_enable_clocks(1);
+-		/* XXX This is for gpio fclk hack. Will be removed as
+-		 * gpio driver * handles fcks correctly */
+-		per_gpio_clk_enable();
+-	}
+-
+-	omap2_gpio_resume_after_retention();
+ }
+ 
+ static int omap3_fclks_active(void)
+@@ -258,7 +240,7 @@ static int omap3_fclks_active(void)
+ 	return 0;
+ }
+ 
+-static int omap3_can_sleep(void)
++int omap3_can_sleep(void)
+ {
+ 	if (!enable_dyn_sleep)
+ 		return 0;
+@@ -329,8 +311,25 @@ static void omap3_pm_idle(void)
+ 	if (omap_irq_pending())
+ 		goto out;
+ 
++	omap2_gpio_prepare_for_retention();
++
++	if (clocks_off_while_idle) {
++		omap_serial_enable_clocks(0);
++		/* XXX This is for gpio fclk hack. Will be removed as
++		 * gpio driver * handles fcks correctly */
++		per_gpio_clk_disable();
++	}
++
+ 	omap_sram_idle();
+ 
++	if (clocks_off_while_idle) {
++		omap_serial_enable_clocks(1);
++		/* XXX This is for gpio fclk hack. Will be removed as
++		 * gpio driver * handles fcks correctly */
++		per_gpio_clk_enable();
++	}
++
++	omap2_gpio_resume_after_retention();
+ out:
+ 	local_fiq_enable();
+ 	local_irq_enable();
+@@ -363,8 +362,25 @@ static int omap3_pm_suspend(void)
+ 			goto restore;
+ 	}
+ 
++	omap2_gpio_prepare_for_retention();
++
++	if (clocks_off_while_idle) {
++		omap_serial_enable_clocks(0);
++		/* XXX This is for gpio fclk hack. Will be removed as
++		 * gpio driver * handles fcks correctly */
++		per_gpio_clk_disable();
++	}
++
+ 	omap_sram_idle();
+ 
++	if (clocks_off_while_idle) {
++		omap_serial_enable_clocks(1);
++		/* XXX This is for gpio fclk hack. Will be removed as
++		 * gpio driver * handles fcks correctly */
++		per_gpio_clk_enable();
++	}
++
++	omap2_gpio_resume_after_retention();
+ restore:
+ 	/* Restore next_pwrsts */
+ 	list_for_each_entry(pwrst, &pwrst_list, node) {
 
