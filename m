@@ -1,137 +1,231 @@
-From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: [PATCH 06/11] mpu off state enabled
-Date: Wed, 02 Jul 2008 15:19:16 +0300
-Message-ID: <87bq1gscl7.fsf@trdhcp146196.ntc.nokia.com>
-References: <004301c8db85$08e0e970$68bf18ac@ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: iqbal@ti.com
+Subject: [RESEND][PATCH]Separate out 3430 LCD panel support from 2430 file
+Date: Wed,  2 Jul 2008 07:24:24 -0500
+Message-ID: <1215001464-12691-1-git-send-email-iqbal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:33162 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754121AbYGBMTg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jul 2008 08:19:36 -0400
-In-Reply-To: <004301c8db85$08e0e970$68bf18ac@ent.ti.com> (ext Rajendra Nayak's
-	message of "Tue, 1 Jul 2008 19:46:20 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47722 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757131AbYGBMYd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Jul 2008 08:24:33 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m62CORcQ020689
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 2 Jul 2008 07:24:32 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Iqbal Shareef <iqbal@ti.com>
 
-"ext Rajendra Nayak" <rnayak@ti.com> writes:
+From: Iqbal Shareef <iqbal@ti.com>
 
-> This patch updates the CPUidle code to handle MPU OFF related C state=
-s
->
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->
-> ---
->  arch/arm/mach-omap2/cpuidle34xx.c |   19 +++++++++++++++----
->  arch/arm/mach-omap2/cpuidle34xx.h |    5 +++++
->  2 files changed, 20 insertions(+), 4 deletions(-)
->
-> Index: linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/cpuidle34xx.c	2008-07-01 =
-16:47:53.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c	2008-07-01 16:55=
-:39.112465404 +0530
-> @@ -82,8 +82,12 @@ static int omap3_enter_idle(struct cpuid
-> =20
->  	/* Program MPU to target state */
->  	if (cx->mpu_state < PWRDM_POWER_ON) {
-> -		if (neon_pwrst =3D=3D PWRDM_POWER_ON)
-> -			pwrdm_set_next_pwrst(neon_pd, PWRDM_POWER_RET);
-> +		if (neon_pwrst =3D=3D PWRDM_POWER_ON) {
-> +			if (cx->mpu_state =3D=3D PWRDM_POWER_RET)
-> +				pwrdm_set_next_pwrst(neon_pd, PWRDM_POWER_RET);
-> +			else if (cx->mpu_state =3D=3D PWRDM_POWER_OFF)
-> +				pwrdm_set_next_pwrst(neon_pd, PWRDM_POWER_OFF);
+Separate out 3430 LCD panel support from 2430 SDP.
 
-How about pwrdm_set_next_pwrst(neon_pd, cx->mpu_state)?
+Currently the support for the LCD on 3430SDP is added in the lcd_2430sdp.c
+file. This patch separates it out to a new file.
 
-> +		}
->  		pwrdm_set_next_pwrst(mpu_pd, cx->mpu_state);
->  	}
-> =20
-> @@ -99,9 +103,13 @@ static int omap3_enter_idle(struct cpuid
->  		pwrdm_set_next_pwrst(core_pd, cx->core_state);
->  	}
-> =20
-> +	*(scratchpad_restore_addr) =3D restore_pointer_address;
-> +
->  	/* Execute ARM wfi */
->  	omap_sram_idle();
-> =20
-> +	*(scratchpad_restore_addr) =3D 0x0;
-> +
->  	/* Program MPU/NEON to ON */
->  	if (cx->mpu_state < PWRDM_POWER_ON) {
->  		if (neon_pwrst =3D=3D PWRDM_POWER_ON)
-> @@ -211,7 +219,7 @@ void omap_init_power_states(void)
->  						CPUIDLE_FLAG_BALANCED;
-> =20
->  	/* C3 . MPU OFF + Core active */
-> -	omap3_power_states[3].valid =3D 0;
-> +	omap3_power_states[3].valid =3D 1;
->  	omap3_power_states[3].type =3D OMAP3_STATE_C3;
->  	omap3_power_states[3].sleep_latency =3D 1500;
->  	omap3_power_states[3].wakeup_latency =3D 1800;
-> @@ -233,7 +241,7 @@ void omap_init_power_states(void)
->  			CPUIDLE_FLAG_BALANCED | CPUIDLE_FLAG_CHECK_BM;
-> =20
->  	/* C5 . MPU OFF + Core CSWR */
-> -	omap3_power_states[5].valid =3D 0;
-> +	omap3_power_states[5].valid =3D 1;
->  	omap3_power_states[5].type =3D OMAP3_STATE_C5;
->  	omap3_power_states[5].sleep_latency =3D 3000;
->  	omap3_power_states[5].wakeup_latency =3D 8500;
-> @@ -270,6 +278,9 @@ int omap3_idle_init(void)
->  	struct cpuidle_state *state;
->  	struct cpuidle_device *dev;
-> =20
-> +	clear_scratchpad_contents();
-> +	save_scratchpad_contents();
-> +
->  	omap_init_power_states();
->  	cpuidle_register_driver(&omap3_idle_driver);
-> =20
-> Index: linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.h
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/cpuidle34xx.h	2008-07-01 =
-16:25:16.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.h	2008-07-01 16:56=
-:13.298377929 +0530
-> @@ -40,6 +40,11 @@ extern void per_gpio_clk_enable(void);
->  extern void per_gpio_clk_disable(void);
->  extern void omap_serial_enable_clocks(int enable);
->  extern int omap3_can_sleep();
-> +extern void clear_scratchpad_contents(void);
-> +extern void save_scratchpad_contents(void);
-> +extern u32 *scratchpad_restore_addr;
-> +extern u32 restore_pointer_address;
-> +
->  struct omap3_processor_cx {
->  	u8 valid;
->  	u8 type;
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
+Signed-off-by: Iqbal Shareef  <iqbal@ti.com>
 
---=20
-Jouni H=C3=B6gander
+---
+ arch/arm/mach-omap2/board-3430sdp.c |    2 +-
+ drivers/video/omap/Makefile         |    2 +-
+ drivers/video/omap/lcd_3430sdp.c    |  162 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 164 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/video/omap/lcd_3430sdp.c
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index f6cd08b..7a216cc 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -204,7 +204,7 @@ static struct spi_board_info sdp3430_spi_board_info[] __initdata = {
+ };
+ 
+ static struct platform_device sdp3430_lcd_device = {
+-	.name		= "sdp2430_lcd",
++	.name		= "sdp3430_lcd",
+ 	.id		= -1,
+ };
+ 
+diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
+index fe7ee5d..a72a2d9 100644
+--- a/drivers/video/omap/Makefile
++++ b/drivers/video/omap/Makefile
+@@ -30,7 +30,7 @@ objs-y$(CONFIG_MACH_SX1) += lcd_sx1.o
+ 
+ objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
+ objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd_2430sdp.o
+-objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_2430sdp.o
++objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_3430sdp.o
+ objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
+ objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
+ objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
+diff --git a/drivers/video/omap/lcd_3430sdp.c b/drivers/video/omap/lcd_3430sdp.c
+new file mode 100644
+index 0000000..20ac0e5
+--- /dev/null
++++ b/drivers/video/omap/lcd_3430sdp.c
+@@ -0,0 +1,162 @@
++/*
++ * LCD panel support for the TI 3430SDP board
++ *
++ * Copyright (C) 2008 Texas Instruments
++ * Author: Iqbal Shareef <iqbal@ti.com>
++ *
++ * Derived from drivers/video/omap/lcd_2430sdp.c
++ * Copyright (C) 2007 MontaVista
++ * Author: Hunyue Yau <hyau@mvista.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/i2c/twl4030.h>
++
++#include <asm/arch/gpio.h>
++#include <asm/arch/omapfb.h>
++
++#define SDP3430_LCD_PANEL_BACKLIGHT_GPIO	8
++#define SDP3430_LCD_PANEL_ENABLE_GPIO		5
++
++static unsigned backlight_gpio;
++static unsigned enable_gpio;
++
++#define LCD_PIXCLOCK_MAX			167000
++#define ENABLE_VAUX2_DEDICATED			0x03
++#define ENABLE_VAUX2_DEV_GRP			0x20
++#define ENABLE_VAUX3_DEDICATED			0x05
++#define ENABLE_VAUX3_DEV_GRP			0xE0
++
++static int sdp3430_panel_init(struct lcd_panel *panel,
++				struct omapfb_device *fbdev)
++{
++	enable_gpio    = SDP3430_LCD_PANEL_ENABLE_GPIO;
++	backlight_gpio = SDP3430_LCD_PANEL_BACKLIGHT_GPIO;
++
++	omap_request_gpio(enable_gpio);			/* LCD panel */
++	omap_request_gpio(backlight_gpio);		/* LCD backlight */
++	omap_set_gpio_direction(enable_gpio, 0);	/* output */
++	omap_set_gpio_direction(backlight_gpio, 0);	/* output */
++
++	return 0;
++}
++
++static void sdp3430_panel_cleanup(struct lcd_panel *panel)
++{
++	omap_free_gpio(backlight_gpio);
++	omap_free_gpio(enable_gpio);
++}
++
++static int sdp3430_panel_enable(struct lcd_panel *panel)
++{
++	omap_set_gpio_dataout(enable_gpio, 1);
++	omap_set_gpio_dataout(backlight_gpio, 1);
++
++	if (0 != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, ENABLE_VAUX3_DEDICATED,
++					TWL4030_VAUX3_DEDICATED))
++		return -EIO;
++	if (0 != twl4030_i2c_write_u8(PM_RECEIVER, ENABLE_VAUX3_DEV_GRP,
++					TWL4030_VAUX3_DEV_GRP))
++		return -EIO;
++
++	return 0;
++}
++
++static void sdp3430_panel_disable(struct lcd_panel *panel)
++{
++	omap_set_gpio_dataout(enable_gpio, 0);
++	omap_set_gpio_dataout(backlight_gpio, 0);
++}
++
++static unsigned long sdp3430_panel_get_caps(struct lcd_panel *panel)
++{
++	return 0;
++}
++
++struct lcd_panel sdp3430_panel = {
++	.name		= "sdp3430",
++	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
++			  OMAP_LCDC_INV_HSYNC,
++
++	.bpp		= 16,
++	.data_lines	= 16,
++	.x_res		= 240,
++	.y_res		= 320,
++	.hsw		= 3,		/* hsync_len (4) - 1 */
++	.hfp		= 3,		/* right_margin (4) - 1 */
++	.hbp		= 39,		/* left_margin (40) - 1 */
++	.vsw		= 1,		/* vsync_len (2) - 1 */
++	.vfp		= 2,		/* lower_margin */
++	.vbp		= 7,		/* upper_margin (8) - 1 */
++
++	.pixel_clock	= LCD_PIXCLOCK_MAX,
++
++	.init		= sdp3430_panel_init,
++	.cleanup	= sdp3430_panel_cleanup,
++	.enable		= sdp3430_panel_enable,
++	.disable	= sdp3430_panel_disable,
++	.get_caps	= sdp3430_panel_get_caps,
++};
++
++static int sdp3430_panel_probe(struct platform_device *pdev)
++{
++	omapfb_register_panel(&sdp3430_panel);
++	return 0;
++}
++
++static int sdp3430_panel_remove(struct platform_device *pdev)
++{
++	return 0;
++}
++
++static int sdp3430_panel_suspend(struct platform_device *pdev,
++					pm_message_t mesg)
++{
++	return 0;
++}
++
++static int sdp3430_panel_resume(struct platform_device *pdev)
++{
++	return 0;
++}
++
++struct platform_driver sdp3430_panel_driver = {
++	.probe		= sdp3430_panel_probe,
++	.remove		= sdp3430_panel_remove,
++	.suspend	= sdp3430_panel_suspend,
++	.resume		= sdp3430_panel_resume,
++	.driver		= {
++		.name		= "sdp3430_lcd",
++		.owner		= THIS_MODULE,
++	},
++};
++
++static int __init sdp3430_panel_drv_init(void)
++{
++	return platform_driver_register(&sdp3430_panel_driver);
++}
++
++static void __exit sdp3430_panel_drv_exit(void)
++{
++	platform_driver_unregister(&sdp3430_panel_driver);
++}
++
++module_init(sdp3430_panel_drv_init);
++module_exit(sdp3430_panel_drv_exit);
++
++MODULE_ALIAS("platform:sdp3430_lcd");
+-- 
+1.5.3.2
+
