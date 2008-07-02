@@ -1,84 +1,50 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: Kernel hang on OMAP3 based Beagle board, RTC issue?
-Date: Wed, 2 Jul 2008 22:18:11 +0200
-Message-ID: <AF70E37B-038B-4117-B69F-B2BCD9EFF6AA@student.utwente.nl>
-References: <486BDD2A.5070500@googlemail.com> <5A47E75E594F054BAF48C5E4FC4B92AB022BB6621C@dbde02.ent.ti.com>
-Mime-Version: 1.0 (Apple Message framework v926)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-1-499490748"
+From: suresh@mistralsolutions.com
+Subject: Suggestion required to switch to a new kernel
+Date: Wed, 02 Jul 2008 14:02:37 -0500
+Message-ID: <20080702140237.qt1dx5beo70g8048@webmail.mistralsolutions.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.utsp.utwente.nl ([130.89.2.8]:35410 "EHLO smtp.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754689AbYGBUS2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Jul 2008 16:18:28 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB022BB6621C@dbde02.ent.ti.com>
+Received: from mx04.mailboxcop.com ([206.125.223.74]:44122 "EHLO
+	mx04.mailboxcop.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755758AbYGBWDi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jul 2008 18:03:38 -0400
+Received: from secure3.apollohosting.com (secure3.apollohosting.com [206.125.215.253])
+	by mx04.mailboxcop.com (8.13.8/8.13.8) with ESMTP id m62J2bRW017288
+	for <linux-omap@vger.kernel.org>; Wed, 2 Jul 2008 14:02:38 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: Dirk Behme <dirk.behme@googlemail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Syed Mohammed, Khasim" <khasim@ti.com>
+To: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-1-499490748
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+Hi All,
 
+We are working on a product which is based on OMAP5912 (OSK). As of  
+now, we are using linux-omap 2.6.16-rc3.
 
-Op 2 jul 2008, om 22:03 heeft Gadiyar, Anand het volgende geschreven:
+We had issues with the JFFS2 cleanmarkers on oneNAND. JFFS2 driver in  
+2.6.16-rc3 did not understand the segmented OOB in oneNAND. Rather  
+than  trying to backport the driver fixes, we have decided to upgrade  
+to a new kernel which includes that fix (We noticed that it was fixed  
+in  2.6.21).
 
->> At Beagle IRC there was some discussion [1] [2] today about kernel
->> hang on OMAP3 based Beagle board. I'll try to summarize discussion  
->> and
->> Khasim's findings, maybe somebody here has an idea.
->>
->> Latest OMAP git kernel seems to hang on beagle board after some time.
->> You don't see any crash, but after a while typing, anything doesn't
->> work. SD stops as well, so you can only do stuff that's in ram, any  
->> IO
->> will block. It can take >1 day to get there, but mostly it's ~30  
->> minutes.
->>
->> Khasim found that it seems disabling RTC will remove the hang. When
->> booting the git kernel after some time there are no timer or PRCM
->> interrupts and the control resides in cpu_idle. We don't know where
->> exactly the problem in RTC is, but while browsing the history of  
->> files
->> related to RTC Khasim found that some changes were done to the files
->> to handle T2 interrupts in a centralized way for USB, Battery and  
->> RTC.
->> It seems even Battery broke with this patch set
->>
->> http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commitdiff;h=68d7477caca19c0b52b5d4e85700cd3e6115577f
->>
->> May be this is the change that is affecting RTC. But it's unclear why
->> it is affecting GP timer and PRCM interrupts.
->>
->> Any idea?
->>
->> Thanks and please correct if something is wrong in the summary
->>
->> Dirk
->
-> Khasim also found that T2 RTC is not enabled by default in 3430sdp
-> defconfig, but it appears to be enabled in the beagleboard defconfig.
-> Maybe you can get by by simply disabling T2 RTC in menuconfig for now?
+We would really appreciate suggestions from people on the list about  
+the kernel version that would be the best to switch to. We want to  
+know which kernel version is stable on OMAP. Some of our requirements  
+are;
 
-Tried that and I get the same hang, so I don't think the RTC is to  
-blame.
+1. DSP gateway should work on that kernel without any issues.
+2. Power management should be functional. Our product uses power  
+management to a great extent.
 
+We are thinking of 2.6.24 (or 2.6.23). Please let us know your suggestions.
 
---Apple-Mail-1-499490748
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: This is a digitally signed message part
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
+Thanks in advance,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
+Best Regards,
+Suresh
 
-iD8DBQFIa+KFMkyGM64RGpERAt5TAJ4gnKRFVgQhiTpwzxhtvPPLTHNzEACeIYIR
-bSYKTchEf6kDQM4z8na3Xkc=
-=e/yQ
------END PGP SIGNATURE-----
-
---Apple-Mail-1-499490748--
