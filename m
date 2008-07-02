@@ -1,481 +1,1105 @@
-From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: [PATCH 02/11] per/neon and core handling in idle
-Date: Wed, 02 Jul 2008 16:32:01 +0300
-Message-ID: <871w2cs97y.fsf@trdhcp146196.ntc.nokia.com>
-References: <003f01c8db85$02c99dc0$68bf18ac@ent.ti.com>
-	<87k5g4sdzt.fsf@trdhcp146196.ntc.nokia.com>
-	<000101c8dc44$39d36020$68bf18ac@ent.ti.com>
+From: "Rajendra Nayak" <rnayak@ti.com>
+Subject: RE: [PATCH 00/11] OMAP3 CPUidle patches
+Date: Wed, 2 Jul 2008 19:07:48 +0530
+Message-ID: <000701c8dc48$d1ce66a0$68bf18ac@ent.ti.com>
+References: <003d01c8db84$fe61fde0$68bf18ac@ent.ti.com> <20080702131127.GA4404@codecarver.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:43957 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751229AbYGBNcT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jul 2008 09:32:19 -0400
-In-Reply-To: <000101c8dc44$39d36020$68bf18ac@ent.ti.com> (ext Rajendra Nayak's
-	message of "Wed, 2 Jul 2008 18:34:55 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51467 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752622AbYGBNiE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Jul 2008 09:38:04 -0400
+In-Reply-To: <20080702131127.GA4404@codecarver.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Rajendra Nayak <rnayak@ti.com>
+To: 'Peter 'p2' De Schrijver' <peter.de-schrijver@nokia.com>
 Cc: linux-omap@vger.kernel.org
 
-"ext Rajendra Nayak" <rnayak@ti.com> writes:
+ 
 
-> =20
->> -----Original Message-----
->> From: "H=C3=B6gander" Jouni [mailto:jouni.hogander@nokia.com]=20
->> Sent: Wednesday, July 02, 2008 5:19 PM
->> To: ext Rajendra Nayak
->> Cc: linux-omap@vger.kernel.org
->> Subject: Re: [PATCH 02/11] per/neon and core handling in idle
->>=20
->> "ext Rajendra Nayak" <rnayak@ti.com> writes:
->>=20
->> > This patches adds handling of PER/NEON and CORE domain in idle.
->> >
->> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->> >
->> > ---
->> >  arch/arm/mach-omap2/cpuidle34xx.c |   98=20
->> +++++++++++++++++++++++++++++++-------
->> >  arch/arm/mach-omap2/cpuidle34xx.h |    6 +-
->> >  arch/arm/mach-omap2/pm34xx.c      |   58 ++++++++++++++--------
->> >  3 files changed, 121 insertions(+), 41 deletions(-)
->> >
->> > Index: linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c
->> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> > --- linux-omap-2.6.orig/arch/arm/mach-omap2/cpuidle34xx.c=09
->> 2008-07-01 18:48:09.962433167 +0530
->> > +++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c=09
->> 2008-07-01 18:48:12.884339399 +0530
->> > @@ -26,6 +26,8 @@
->> >  #include <asm/arch/pm.h>
->> >  #include <asm/arch/prcm.h>
->> >  #include <asm/arch/powerdomain.h>
->> > +#include <asm/arch/clockdomain.h>
->> > +#include <asm/arch/gpio.h>
->> >  #include "cpuidle34xx.h"
->> > =20
->> >  #ifdef CONFIG_CPU_IDLE
->> > @@ -35,6 +37,8 @@ struct omap3_processor_cx current_cx_sta
->> > =20
->> >  static int omap3_idle_bm_check(void)
->> >  {
->> > +	if (!omap3_can_sleep())
->> > +		return 1;
->> >  	return 0;
->> >  }
->> > =20
->> > @@ -46,34 +50,86 @@ static int omap3_enter_idle(struct cpuid
->> >  {
->> >  	struct omap3_processor_cx *cx =3D cpuidle_get_statedata(state);
->> >  	struct timespec ts_preidle, ts_postidle, ts_idle;
->> > -	struct powerdomain *mpu_pd;
->> > +	struct powerdomain *mpu_pd, *core_pd, *per_pd, *neon_pd;
->> > +	int per_pwrst, neon_pwrst;
->> > =20
->> >  	current_cx_state =3D *cx;
->> > =20
->> > -	/* Used to keep track of the total time in idle */
->> > -	getnstimeofday(&ts_preidle);
->> > -
->> > -
->> >  	if (cx->type =3D=3D OMAP3_STATE_C0) {
->> >  		/* Do nothing for C0, not even a wfi */
->> >  		return 0;
->> >  	}
->> > =20
->> > +	/* Used to keep track of the total time in idle */
->> > +	getnstimeofday(&ts_preidle);
->> > +
->> >  	mpu_pd =3D pwrdm_lookup("mpu_pwrdm");
->> > +	core_pd =3D pwrdm_lookup("core_pwrdm");
->> > +	per_pd =3D pwrdm_lookup("per_pwrdm");
->> > +	neon_pd =3D pwrdm_lookup("neon_pwrdm");
->> > +
->> > +	/* Reset previous power state registers */
->> > +	pwrdm_clear_all_prev_pwrst(mpu_pd);
->> > +	pwrdm_clear_all_prev_pwrst(neon_pd);
->> > +	pwrdm_clear_all_prev_pwrst(core_pd);
->> > +	pwrdm_clear_all_prev_pwrst(per_pd);
->> > +
->> > +	if (omap_irq_pending())
->> > +		return 0;
->> > +
->> > +	per_pwrst =3D pwrdm_read_pwrst(per_pd);
->> > +	neon_pwrst =3D pwrdm_read_pwrst(neon_pd);
->> > +
->> >  	/* Program MPU to target state */
->> > -	if (cx->mpu_state < PWRDM_POWER_ON)
->> > +	if (cx->mpu_state < PWRDM_POWER_ON) {
->> > +		if (neon_pwrst =3D=3D PWRDM_POWER_ON)
->> > +			pwrdm_set_next_pwrst(neon_pd, PWRDM_POWER_RET);
->> >  		pwrdm_set_next_pwrst(mpu_pd, cx->mpu_state);
->> > +	}
->> > +
->> > +	/* Program CORE and PER to target state */
->> > +	if (cx->core_state < PWRDM_POWER_ON) {
->> > +		if (per_pwrst =3D=3D PWRDM_POWER_ON) {
->> > +			omap2_gpio_prepare_for_retention();
->> > +			if (clocks_off_while_idle) {
->> > +				per_gpio_clk_disable();
->> > +				omap_serial_enable_clocks(0);
->> > +			}
->> > +		}
->>=20
->> Why this is here? Why per is not put to sleep state if core is not?
->> Shouldn't you just disable gpio clocks in omap_sram_idle and if all
->> clocks in per domain are cut off then per domain enters its sleep
->> state. No matter what is the state of core domain.
->>=20
->> Why per_pwrst is checked here? You know it is always on currently. I=
-t
->> won't never be anything else until those things in this if block is
->> done.
->>=20
->> As the day comes when per_pwrst here is something else than
->> PWRDM_POWER_ON then serial clocks in core domain are not disabled
->> because disabling them are in that block.
->
-> PER domain has a hardwired sleep dep with CORE-L3, hence the above.
-> Also IO wakeup works only while CORE is in RET/OFF. While CORE is act=
-ive=20
-> you need GPIO to wake you up. Hence cutting GPIO clocks only while=20
-> you attempt a CORE RET/OFF makes more sense, so that while GPIO is do=
-wn
-> the IO pad can wake you up.
+> -----Original Message-----
+> From: Peter 'p2' De Schrijver [mailto:peter.de-schrijver@nokia.com] 
+> Sent: Wednesday, July 02, 2008 6:41 PM
+> To: ext Rajendra Nayak
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 00/11] OMAP3 CPUidle patches
+> 
+> Hi Rajendra,
+> 
+> On Tue, Jul 01, 2008 at 07:46:01PM +0530, ext Rajendra Nayak wrote:
+> > Hi,
+> > 
+> > The following patches define and enable all of the below 
+> mentioned C states for OMAP3. 
+> > These are tested with a minimal kernel config on 
+> OMAP3430sdp as most drivers today don't have context 
+> save/restore in place and
+> > some even lack aggresive clock handling. 
+> > These apply on top of the workaround patch set submitted by Jouni. 
+> > ([PATCH 0/6] 34XX: PM: Workarounds to get omap3 to retention 4th.)
+> > 
+> > The following is neccessay even with a minimal config to 
+> achieve OFF.
+> >  $ echo 1 > /sys/power/sleep_while_idle
+> >  $ echo 1 > /sys/power/clocks_off_while_idle
+> >   
+> > The following C states are defined
+> > C0 - System executing code
+> > C1 - MPU WFI + Core active
+> > C2 - MPU CSWR + Core active
+> > C3 - MPU OFF + Core active
+> > C4 - MPU CSWR + Core CSWR
+> > C5 - MPU OFF + Core CSWR
+> > C6 - MPU OFF + Core OFF
+> 
+> I don't see the core domain going to off state. On VDD1 I 
+> measured 52uA
+> as the lowest consumption, VDD2 stays at 400uA. Maybe there is still a
+> problem in my config file ? I disabled ethernet but I do use NOR flash
+> to store the rootfs, so MTD needs to be enabled. Is that a problem ?
 
-This is something I didn't know. Now it seems to be reasonable also to
-me to do these clock disables here:) Now it seems that we might still
-need to have some mean to add these deps statically. Wkdep between
-core and per might be needed at some point. Currently dep between per
-and mpu is enough, but if gpio clock disable is added to gpio code,
-then wkdep needs to be added. If statement is still even more
-unnecessary here, because it will never be anything else than
-per_pwrst =3D=3D PWRDM_POWER_ON.
+Not sure, but you can try with my .config while I try with yours. 
+I was doing some more testing today, and I saw a hang after a while of
+idle activity with OFF being attempted multiple times.
+Using lauterbach showed me it being stuck up in prcm_interrupt_handler trying 
+to clear MPU_IRQSTATUS.
+Looks like in the PRCM interrupt handler somehow PM_WKST1_CORE is not cleared
+(I see it set to 0x2000) and hence MPU_IRQSTATUS fails to clear.
 
->
->>=20
->> > +		pwrdm_set_next_pwrst(core_pd, cx->core_state);
->> > +	}
->> > =20
->> >  	/* Execute ARM wfi */
->> >  	omap_sram_idle();
->> > =20
->> > -	/* Program MPU to ON */
->> > -	if (cx->mpu_state < PWRDM_POWER_ON)
->> > +	/* Program MPU/NEON to ON */
->> > +	if (cx->mpu_state < PWRDM_POWER_ON) {
->> > +		if (neon_pwrst =3D=3D PWRDM_POWER_ON)
->> > +			pwrdm_set_next_pwrst(neon_pd, PWRDM_POWER_ON);
->> >  		pwrdm_set_next_pwrst(mpu_pd, PWRDM_POWER_ON);
->> > +	}
->>=20
->> No need to do these as they are written anyway in the next round. MP=
-U
->> and NEON are not going to change their state in between.
->
-> Yes, I can remove these.
->
->>=20
->> > +
->> > +	if (cx->core_state < PWRDM_POWER_ON) {
->> > +		if (per_pwrst =3D=3D PWRDM_POWER_ON) {
->> > +			if (clocks_off_while_idle) {
->> > +				omap_serial_enable_clocks(1);
->> > +				per_gpio_clk_enable();
->> > +			}
->> > +			omap2_gpio_resume_after_retention();
->>=20
->> Similiar comments as before omap_sram_idle() for this block.
->>=20
->> > +		}
->> > +		pwrdm_set_next_pwrst(core_pd, PWRDM_POWER_ON);
->>=20
->> This can be also left to value before omap_sram_idle(), because it i=
-s
->> anyway written again in next round.
->>=20
->> > +	}
->> > +
->> > +	pr_debug("MPU prev st:%x,NEON prev st:%x\n",
->> > +			       pwrdm_read_prev_pwrst(mpu_pd),
->> > +			       pwrdm_read_prev_pwrst(neon_pd));
->> > +	pr_debug("PER prev st:%x,CORE prev st:%x\n",
->> > +			       pwrdm_read_prev_pwrst(per_pd),
->> > +			       pwrdm_read_prev_pwrst(core_pd));
->> > =20
->> >  	getnstimeofday(&ts_postidle);
->> >  	ts_idle =3D timespec_sub(ts_postidle, ts_preidle);
->> > -	return timespec_to_ns(&ts_idle);
->> > +	return (u32)timespec_to_ns(&ts_idle)/1000;
->> >  }
->> > =20
->> >  static int omap3_enter_idle_bm(struct cpuidle_device *dev,
->> > @@ -130,7 +186,7 @@ void omap_init_power_states(void)
->> >  	omap3_power_states[0].threshold =3D 0;
->> >  	omap3_power_states[0].mpu_state =3D PWRDM_POWER_ON;
->> >  	omap3_power_states[0].core_state =3D PWRDM_POWER_ON;
->> > -	omap3_power_states[0].flags =3D CPUIDLE_FLAG_TIME_VALID;
->> > +	omap3_power_states[0].flags =3D CPUIDLE_FLAG_SHALLOW;
->> > =20
->> >  	/* C1 . MPU WFI + Core active */
->> >  	omap3_power_states[1].valid =3D 1;
->> > @@ -140,7 +196,8 @@ void omap_init_power_states(void)
->> >  	omap3_power_states[1].threshold =3D 30;
->> >  	omap3_power_states[1].mpu_state =3D PWRDM_POWER_ON;
->> >  	omap3_power_states[1].core_state =3D PWRDM_POWER_ON;
->> > -	omap3_power_states[1].flags =3D CPUIDLE_FLAG_TIME_VALID;
->> > +	omap3_power_states[1].flags =3D CPUIDLE_FLAG_TIME_VALID |
->> > +						CPUIDLE_FLAG_SHALLOW;
->> > =20
->> >  	/* C2 . MPU CSWR + Core active */
->> >  	omap3_power_states[2].valid =3D 1;
->> > @@ -150,7 +207,8 @@ void omap_init_power_states(void)
->> >  	omap3_power_states[2].threshold =3D 300;
->> >  	omap3_power_states[2].mpu_state =3D PWRDM_POWER_RET;
->> >  	omap3_power_states[2].core_state =3D PWRDM_POWER_ON;
->> > -	omap3_power_states[2].flags =3D CPUIDLE_FLAG_TIME_VALID;
->> > +	omap3_power_states[2].flags =3D CPUIDLE_FLAG_TIME_VALID |
->> > +						CPUIDLE_FLAG_BALANCED;
->> > =20
->> >  	/* C3 . MPU OFF + Core active */
->> >  	omap3_power_states[3].valid =3D 0;
->> > @@ -159,18 +217,20 @@ void omap_init_power_states(void)
->> >  	omap3_power_states[3].wakeup_latency =3D 1800;
->> >  	omap3_power_states[3].threshold =3D 4000;
->> >  	omap3_power_states[3].mpu_state =3D PWRDM_POWER_OFF;
->> > -	omap3_power_states[3].core_state =3D PWRDM_POWER_RET;
->> > -	omap3_power_states[3].flags =3D CPUIDLE_FLAG_TIME_VALID;
->> > +	omap3_power_states[3].core_state =3D PWRDM_POWER_ON;
->> > +	omap3_power_states[3].flags =3D CPUIDLE_FLAG_TIME_VALID |
->> > +			CPUIDLE_FLAG_BALANCED | CPUIDLE_FLAG_CHECK_BM;
->> > =20
->> >  	/* C4 . MPU CSWR + Core CSWR*/
->> > -	omap3_power_states[4].valid =3D 0;
->> > +	omap3_power_states[4].valid =3D 1;
->> >  	omap3_power_states[4].type =3D OMAP3_STATE_C4;
->> >  	omap3_power_states[4].sleep_latency =3D 2500;
->> >  	omap3_power_states[4].wakeup_latency =3D 7500;
->> >  	omap3_power_states[4].threshold =3D 12000;
->> >  	omap3_power_states[4].mpu_state =3D PWRDM_POWER_RET;
->> >  	omap3_power_states[4].core_state =3D PWRDM_POWER_RET;
->> > -	omap3_power_states[4].flags =3D CPUIDLE_FLAG_TIME_VALID;
->> > +	omap3_power_states[4].flags =3D CPUIDLE_FLAG_TIME_VALID |
->> > +			CPUIDLE_FLAG_BALANCED | CPUIDLE_FLAG_CHECK_BM;
->> > =20
->> >  	/* C5 . MPU OFF + Core CSWR */
->> >  	omap3_power_states[5].valid =3D 0;
->> > @@ -180,7 +240,8 @@ void omap_init_power_states(void)
->> >  	omap3_power_states[5].threshold =3D 15000;
->> >  	omap3_power_states[5].mpu_state =3D PWRDM_POWER_OFF;
->> >  	omap3_power_states[5].core_state =3D PWRDM_POWER_RET;
->> > -	omap3_power_states[5].flags =3D CPUIDLE_FLAG_TIME_VALID;
->> > +	omap3_power_states[5].flags =3D CPUIDLE_FLAG_TIME_VALID |
->> > +			CPUIDLE_FLAG_BALANCED | CPUIDLE_FLAG_CHECK_BM;
->> > =20
->> >  	/* C6 . MPU OFF + Core OFF */
->> >  	omap3_power_states[6].valid =3D 0;
->> > @@ -190,7 +251,8 @@ void omap_init_power_states(void)
->> >  	omap3_power_states[6].threshold =3D 300000;
->> >  	omap3_power_states[6].mpu_state =3D PWRDM_POWER_OFF;
->> >  	omap3_power_states[6].core_state =3D PWRDM_POWER_OFF;
->> > -	omap3_power_states[6].flags =3D CPUIDLE_FLAG_TIME_VALID;
->> > +	omap3_power_states[6].flags =3D CPUIDLE_FLAG_TIME_VALID |
->> > +			CPUIDLE_FLAG_DEEP | CPUIDLE_FLAG_CHECK_BM;
->> >  }
->> > =20
->> >  struct cpuidle_driver omap3_idle_driver =3D {
->> > Index: linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.h
->> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> > --- linux-omap-2.6.orig/arch/arm/mach-omap2/cpuidle34xx.h=09
->> 2008-07-01 18:48:09.962433167 +0530
->> > +++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.h=09
->> 2008-07-01 18:48:12.885339367 +0530
->> > @@ -33,11 +33,13 @@
->> >  /* Currently, we support only upto C2 */
->> >  #define MAX_SUPPORTED_STATES 3
->> > =20
->> > +extern unsigned short clocks_off_while_idle;
->> >  extern void omap_sram_idle(void);
->> > -extern int omap3_irq_pending(void);
->> > +extern int omap_irq_pending(void);
->> >  extern void per_gpio_clk_enable(void);
->> >  extern void per_gpio_clk_disable(void);
->> > -
->> > +extern void omap_serial_enable_clocks(int enable);
->> > +extern int omap3_can_sleep();
->> >  struct omap3_processor_cx {
->> >  	u8 valid;
->> >  	u8 type;
->> > Index: linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c
->> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> > --- linux-omap-2.6.orig/arch/arm/mach-omap2/pm34xx.c=09
->> 2008-07-01 18:48:09.962433167 +0530
->> > +++ linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c=09
->> 2008-07-01 18:48:12.885339367 +0530
->> > @@ -61,7 +61,7 @@ static struct clk *gpio_fcks[NUM_OF_PERG
->> > =20
->> >  /* XXX This is for gpio fclk hack. Will be removed as gpio driver
->> >   * handles fcks correctly */
->> > -static void per_gpio_clk_enable(void)
->> > +void per_gpio_clk_enable(void)
->> >  {
->> >  	int i;
->> >  	for (i =3D 1; i < NUM_OF_PERGPIOS + 1; i++)
->> > @@ -70,7 +70,7 @@ static void per_gpio_clk_enable(void)
->> > =20
->> >  /* XXX This is for gpio fclk hack. Will be removed as gpio driver
->> >   * handles fcks correctly */
->> > -static void per_gpio_clk_disable(void)
->> > +void per_gpio_clk_disable(void)
->> >  {
->> >  	int i;
->> >  	for (i =3D 1; i < NUM_OF_PERGPIOS + 1; i++)
->> > @@ -202,25 +202,7 @@ void omap_sram_idle(void)
->> >  		return;
->> >  	}
->> > =20
->> > -	omap2_gpio_prepare_for_retention();
->> > -
->> > -	if (clocks_off_while_idle) {
->> > -		omap_serial_enable_clocks(0);
->> > -		/* XXX This is for gpio fclk hack. Will be removed as
->> > -		 * gpio driver * handles fcks correctly */
->> > -		per_gpio_clk_disable();
->> > -	}
->> > -
->> >  	_omap_sram_idle(NULL, save_state, clocks_off_while_idle);
->> > -
->> > -	if (clocks_off_while_idle) {
->> > -		omap_serial_enable_clocks(1);
->> > -		/* XXX This is for gpio fclk hack. Will be removed as
->> > -		 * gpio driver * handles fcks correctly */
->> > -		per_gpio_clk_enable();
->> > -	}
->> > -
->> > -	omap2_gpio_resume_after_retention();
->>=20
->> Couldn't these be left here. I assume you want to do gpio and serial
->> clock disabling only if per domain state is about to change. If this
->> is what you want then you should check that all other clocks in per
->> domain are disabled. If this is true then disable gpio and uart cloc=
-ks
->> here. Still this code could be left here if done that way.
->
-> All other fclks in PER are anyway checked for in omap3_fclks_active.
+here is the .config I use
+#
+# Automatically generated make config: don't edit
+# Linux kernel version: 2.6.26-rc8-omap1
+# Tue Jul  1 16:50:36 2008
+#
+CONFIG_ARM=y
+CONFIG_SYS_SUPPORTS_APM_EMULATION=y
+CONFIG_GENERIC_GPIO=y
+CONFIG_GENERIC_TIME=y
+CONFIG_GENERIC_CLOCKEVENTS=y
+CONFIG_MMU=y
+# CONFIG_NO_IOPORT is not set
+CONFIG_GENERIC_HARDIRQS=y
+CONFIG_STACKTRACE_SUPPORT=y
+CONFIG_LOCKDEP_SUPPORT=y
+CONFIG_TRACE_IRQFLAGS_SUPPORT=y
+CONFIG_HARDIRQS_SW_RESEND=y
+CONFIG_GENERIC_IRQ_PROBE=y
+CONFIG_RWSEM_GENERIC_SPINLOCK=y
+# CONFIG_ARCH_HAS_ILOG2_U32 is not set
+# CONFIG_ARCH_HAS_ILOG2_U64 is not set
+CONFIG_GENERIC_HWEIGHT=y
+CONFIG_GENERIC_CALIBRATE_DELAY=y
+CONFIG_ARCH_SUPPORTS_AOUT=y
+CONFIG_ZONE_DMA=y
+CONFIG_VECTORS_BASE=0xffff0000
+CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
 
-Yes, you are right. As there is that hw sleep dep per domain wont
-enter ret without core. For all cases where core sleeps fclk check is
-done.
+#
+# General setup
+#
+CONFIG_EXPERIMENTAL=y
+CONFIG_BROKEN_ON_SMP=y
+CONFIG_INIT_ENV_ARG_LIMIT=32
+CONFIG_LOCALVERSION=""
+CONFIG_LOCALVERSION_AUTO=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_SYSVIPC_SYSCTL=y
+# CONFIG_POSIX_MQUEUE is not set
+CONFIG_BSD_PROCESS_ACCT=y
+# CONFIG_BSD_PROCESS_ACCT_V3 is not set
+# CONFIG_TASKSTATS is not set
+# CONFIG_AUDIT is not set
+# CONFIG_IKCONFIG is not set
+CONFIG_LOG_BUF_SHIFT=14
+# CONFIG_CGROUPS is not set
+CONFIG_GROUP_SCHED=y
+CONFIG_FAIR_GROUP_SCHED=y
+# CONFIG_RT_GROUP_SCHED is not set
+CONFIG_USER_SCHED=y
+# CONFIG_CGROUP_SCHED is not set
+CONFIG_SYSFS_DEPRECATED=y
+CONFIG_SYSFS_DEPRECATED_V2=y
+# CONFIG_RELAY is not set
+# CONFIG_NAMESPACES is not set
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_INITRAMFS_SOURCE=""
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_SYSCTL=y
+CONFIG_EMBEDDED=y
+CONFIG_UID16=y
+# CONFIG_SYSCTL_SYSCALL is not set
+CONFIG_KALLSYMS=y
+# CONFIG_KALLSYMS_ALL is not set
+CONFIG_KALLSYMS_EXTRA_PASS=y
+CONFIG_HOTPLUG=y
+CONFIG_PRINTK=y
+CONFIG_BUG=y
+CONFIG_ELF_CORE=y
+CONFIG_COMPAT_BRK=y
+CONFIG_BASE_FULL=y
+CONFIG_FUTEX=y
+CONFIG_ANON_INODES=y
+CONFIG_EPOLL=y
+CONFIG_SIGNALFD=y
+CONFIG_TIMERFD=y
+CONFIG_EVENTFD=y
+CONFIG_SHMEM=y
+CONFIG_VM_EVENT_COUNTERS=y
+CONFIG_SLAB=y
+# CONFIG_SLUB is not set
+# CONFIG_SLOB is not set
+# CONFIG_PROFILING is not set
+# CONFIG_MARKERS is not set
+CONFIG_HAVE_OPROFILE=y
+# CONFIG_KPROBES is not set
+CONFIG_HAVE_KPROBES=y
+CONFIG_HAVE_KRETPROBES=y
+# CONFIG_HAVE_DMA_ATTRS is not set
+CONFIG_PROC_PAGE_MONITOR=y
+CONFIG_SLABINFO=y
+CONFIG_RT_MUTEXES=y
+# CONFIG_TINY_SHMEM is not set
+CONFIG_BASE_SMALL=0
+CONFIG_MODULES=y
+# CONFIG_MODULE_FORCE_LOAD is not set
+CONFIG_MODULE_UNLOAD=y
+# CONFIG_MODULE_FORCE_UNLOAD is not set
+CONFIG_MODVERSIONS=y
+CONFIG_MODULE_SRCVERSION_ALL=y
+CONFIG_KMOD=y
+CONFIG_BLOCK=y
+# CONFIG_LBD is not set
+# CONFIG_BLK_DEV_IO_TRACE is not set
+# CONFIG_LSF is not set
+# CONFIG_BLK_DEV_BSG is not set
 
->
->>=20
->> >  }
->> > =20
->> >  static int omap3_fclks_active(void)
->> > @@ -258,7 +240,7 @@ static int omap3_fclks_active(void)
->> >  	return 0;
->> >  }
->> > =20
->> > -static int omap3_can_sleep(void)
->> > +int omap3_can_sleep(void)
->> >  {
->> >  	if (!enable_dyn_sleep)
->> >  		return 0;
->> > @@ -329,8 +311,25 @@ static void omap3_pm_idle(void)
->> >  	if (omap_irq_pending())
->> >  		goto out;
->> > =20
->> > +	omap2_gpio_prepare_for_retention();
->> > +
->> > +	if (clocks_off_while_idle) {
->> > +		omap_serial_enable_clocks(0);
->> > +		/* XXX This is for gpio fclk hack. Will be removed as
->> > +		 * gpio driver * handles fcks correctly */
->> > +		per_gpio_clk_disable();
->> > +	}
->>=20
->> Same comment as above.
->>=20
->> > +
->> >  	omap_sram_idle();
->> > =20
->> > +	if (clocks_off_while_idle) {
->> > +		omap_serial_enable_clocks(1);
->> > +		/* XXX This is for gpio fclk hack. Will be removed as
->> > +		 * gpio driver * handles fcks correctly */
->> > +		per_gpio_clk_enable();
->> > +	}
->> > +
->> > +	omap2_gpio_resume_after_retention();
->>=20
->> and same goes here.
->>=20
->> >  out:
->> >  	local_fiq_enable();
->> >  	local_irq_enable();
->> > @@ -363,8 +362,25 @@ static int omap3_pm_suspend(void)
->> >  			goto restore;
->> >  	}
->> > =20
->> > +	omap2_gpio_prepare_for_retention();
->> > +
->> > +	if (clocks_off_while_idle) {
->> > +		omap_serial_enable_clocks(0);
->> > +		/* XXX This is for gpio fclk hack. Will be removed as
->> > +		 * gpio driver * handles fcks correctly */
->> > +		per_gpio_clk_disable();
->> > +	}
->> > +
->>=20
->> And here.
->>=20
->> >  	omap_sram_idle();
->> > =20
->> > +	if (clocks_off_while_idle) {
->> > +		omap_serial_enable_clocks(1);
->> > +		/* XXX This is for gpio fclk hack. Will be removed as
->> > +		 * gpio driver * handles fcks correctly */
->> > +		per_gpio_clk_enable();
->> > +	}
->> > +
->> > +	omap2_gpio_resume_after_retention();
->>=20
->> And here.
->>=20
->> >  restore:
->> >  	/* Restore next_pwrsts */
->> >  	list_for_each_entry(pwrst, &pwrst_list, node) {
->> >
->> > --
->> > To unsubscribe from this list: send the line "unsubscribe=20
->> linux-omap" in
->> > the body of a message to majordomo@vger.kernel.org
->> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> >
->> >
->>=20
->> --=20
->> Jouni H=C3=B6gander
->>=20
->>=20
->
->
->
+#
+# IO Schedulers
+#
+CONFIG_IOSCHED_NOOP=y
+CONFIG_IOSCHED_AS=y
+CONFIG_IOSCHED_DEADLINE=y
+CONFIG_IOSCHED_CFQ=y
+CONFIG_DEFAULT_AS=y
+# CONFIG_DEFAULT_DEADLINE is not set
+# CONFIG_DEFAULT_CFQ is not set
+# CONFIG_DEFAULT_NOOP is not set
+CONFIG_DEFAULT_IOSCHED="anticipatory"
+CONFIG_CLASSIC_RCU=y
 
---=20
-Jouni H=C3=B6gander
+#
+# System Type
+#
+# CONFIG_ARCH_AAEC2000 is not set
+# CONFIG_ARCH_INTEGRATOR is not set
+# CONFIG_ARCH_REALVIEW is not set
+# CONFIG_ARCH_VERSATILE is not set
+# CONFIG_ARCH_AT91 is not set
+# CONFIG_ARCH_CLPS7500 is not set
+# CONFIG_ARCH_CLPS711X is not set
+# CONFIG_ARCH_CO285 is not set
+# CONFIG_ARCH_EBSA110 is not set
+# CONFIG_ARCH_EP93XX is not set
+# CONFIG_ARCH_FOOTBRIDGE is not set
+# CONFIG_ARCH_NETX is not set
+# CONFIG_ARCH_H720X is not set
+# CONFIG_ARCH_IMX is not set
+# CONFIG_ARCH_IOP13XX is not set
+# CONFIG_ARCH_IOP32X is not set
+# CONFIG_ARCH_IOP33X is not set
+# CONFIG_ARCH_IXP23XX is not set
+# CONFIG_ARCH_IXP2000 is not set
+# CONFIG_ARCH_IXP4XX is not set
+# CONFIG_ARCH_L7200 is not set
+# CONFIG_ARCH_KS8695 is not set
+# CONFIG_ARCH_NS9XXX is not set
+# CONFIG_ARCH_MXC is not set
+# CONFIG_ARCH_ORION5X is not set
+# CONFIG_ARCH_PNX4008 is not set
+# CONFIG_ARCH_PXA is not set
+# CONFIG_ARCH_RPC is not set
+# CONFIG_ARCH_SA1100 is not set
+# CONFIG_ARCH_S3C2410 is not set
+# CONFIG_ARCH_SHARK is not set
+# CONFIG_ARCH_LH7A40X is not set
+# CONFIG_ARCH_DAVINCI is not set
+CONFIG_ARCH_OMAP=y
+# CONFIG_ARCH_MSM7X00A is not set
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+#
+# TI OMAP Implementations
+#
+CONFIG_ARCH_OMAP_OTG=y
+# CONFIG_ARCH_OMAP1 is not set
+# CONFIG_ARCH_OMAP2 is not set
+CONFIG_ARCH_OMAP3=y
+
+#
+# OMAP Feature Selections
+#
+# CONFIG_OMAP_DEBUG_POWERDOMAIN is not set
+# CONFIG_OMAP_DEBUG_CLOCKDOMAIN is not set
+CONFIG_OMAP_SMARTREFLEX=y
+CONFIG_OMAP_SMARTREFLEX_TESTING=y
+CONFIG_OMAP_RESET_CLOCKS=y
+CONFIG_OMAP_BOOT_TAG=y
+CONFIG_OMAP_BOOT_REASON=y
+# CONFIG_OMAP_COMPONENT_VERSION is not set
+# CONFIG_OMAP_GPIO_SWITCH is not set
+CONFIG_OMAP_MUX=y
+CONFIG_OMAP_MUX_DEBUG=y
+CONFIG_OMAP_MUX_WARNINGS=y
+# CONFIG_OMAP_MCBSP is not set
+# CONFIG_OMAP_MMU_FWK is not set
+# CONFIG_OMAP_MBOX_FWK is not set
+# CONFIG_OMAP_MPU_TIMER is not set
+CONFIG_OMAP_32K_TIMER=y
+CONFIG_OMAP_32K_TIMER_HZ=128
+CONFIG_OMAP_DM_TIMER=y
+CONFIG_OMAP_LL_DEBUG_UART1=y
+# CONFIG_OMAP_LL_DEBUG_UART2 is not set
+# CONFIG_OMAP_LL_DEBUG_UART3 is not set
+CONFIG_OMAP_SERIAL_WAKE=y
+CONFIG_ARCH_OMAP34XX=y
+CONFIG_ARCH_OMAP3430=y
+
+#
+# OMAP Board Type
+#
+# CONFIG_MACH_OMAP_LDP is not set
+CONFIG_MACH_OMAP_3430SDP=y
+# CONFIG_MACH_OMAP3EVM is not set
+# CONFIG_MACH_OMAP3_BEAGLE is not set
+
+#
+# Boot options
+#
+
+#
+# Power management
+#
+
+#
+# Processor Type
+#
+CONFIG_CPU_32=y
+CONFIG_CPU_32v6K=y
+CONFIG_CPU_V7=y
+CONFIG_CPU_32v7=y
+CONFIG_CPU_ABRT_EV7=y
+CONFIG_CPU_PABRT_IFAR=y
+CONFIG_CPU_CACHE_V7=y
+CONFIG_CPU_CACHE_VIPT=y
+CONFIG_CPU_COPY_V6=y
+CONFIG_CPU_TLB_V7=y
+CONFIG_CPU_HAS_ASID=y
+CONFIG_CPU_CP15=y
+CONFIG_CPU_CP15_MMU=y
+
+#
+# Processor Features
+#
+CONFIG_ARM_THUMB=y
+# CONFIG_ARM_THUMBEE is not set
+# CONFIG_CPU_ICACHE_DISABLE is not set
+# CONFIG_CPU_DCACHE_DISABLE is not set
+# CONFIG_CPU_BPREDICT_DISABLE is not set
+CONFIG_HAS_TLS_REG=y
+# CONFIG_OUTER_CACHE is not set
+
+#
+# Bus support
+#
+# CONFIG_PCI_SYSCALL is not set
+# CONFIG_ARCH_SUPPORTS_MSI is not set
+# CONFIG_PCCARD is not set
+
+#
+# Kernel Features
+#
+CONFIG_TICK_ONESHOT=y
+CONFIG_NO_HZ=y
+CONFIG_HIGH_RES_TIMERS=y
+CONFIG_GENERIC_CLOCKEVENTS_BUILD=y
+# CONFIG_PREEMPT is not set
+CONFIG_HZ=128
+CONFIG_AEABI=y
+CONFIG_OABI_COMPAT=y
+# CONFIG_ARCH_DISCONTIGMEM_ENABLE is not set
+CONFIG_SELECT_MEMORY_MODEL=y
+CONFIG_FLATMEM_MANUAL=y
+# CONFIG_DISCONTIGMEM_MANUAL is not set
+# CONFIG_SPARSEMEM_MANUAL is not set
+CONFIG_FLATMEM=y
+CONFIG_FLAT_NODE_MEM_MAP=y
+# CONFIG_SPARSEMEM_STATIC is not set
+# CONFIG_SPARSEMEM_VMEMMAP_ENABLE is not set
+CONFIG_PAGEFLAGS_EXTENDED=y
+CONFIG_SPLIT_PTLOCK_CPUS=4
+# CONFIG_RESOURCES_64BIT is not set
+CONFIG_ZONE_DMA_FLAG=1
+CONFIG_BOUNCE=y
+CONFIG_VIRT_TO_BUS=y
+# CONFIG_LEDS is not set
+CONFIG_ALIGNMENT_TRAP=y
+
+#
+# Boot options
+#
+CONFIG_ZBOOT_ROM_TEXT=0x0
+CONFIG_ZBOOT_ROM_BSS=0x0
+CONFIG_CMDLINE="root=/dev/nfs nfsroot=192.168.0.1:/home/user/buildroot
+ip=192.168.0.2:192.168.0.1:192.168.0.1:255.255.255.0:tgt:eth0:off rw console=ttyS2,115200n8"
+# CONFIG_XIP_KERNEL is not set
+# CONFIG_KEXEC is not set
+
+#
+# CPUIdle
+#
+
+#
+# CPU idle PM support
+#
+CONFIG_CPU_IDLE=y
+
+#
+# Governors
+#
+# CONFIG_CPU_IDLE_GOV_LADDER is not set
+CONFIG_CPU_IDLE_GOV_MENU=y
+
+#
+# CPU Frequency scaling
+#
+# CONFIG_CPU_FREQ is not set
+
+#
+# Floating point emulation
+#
+
+#
+# At least one emulation must be selected
+#
+# CONFIG_FPE_NWFPE is not set
+# CONFIG_FPE_FASTFPE is not set
+# CONFIG_VFP is not set
+
+#
+# Userspace binary formats
+#
+CONFIG_BINFMT_ELF=y
+# CONFIG_BINFMT_AOUT is not set
+CONFIG_BINFMT_MISC=y
+
+#
+# Power management options
+#
+CONFIG_PM=y
+# CONFIG_PM_DEBUG is not set
+CONFIG_PM_SLEEP=y
+CONFIG_SUSPEND=y
+CONFIG_SUSPEND_FREEZER=y
+# CONFIG_APM_EMULATION is not set
+CONFIG_ARCH_SUSPEND_POSSIBLE=y
+
+#
+# Networking
+#
+CONFIG_NET=y
+
+#
+# Networking options
+#
+CONFIG_PACKET=y
+# CONFIG_PACKET_MMAP is not set
+CONFIG_UNIX=y
+CONFIG_XFRM=y
+# CONFIG_XFRM_USER is not set
+# CONFIG_XFRM_SUB_POLICY is not set
+# CONFIG_XFRM_MIGRATE is not set
+# CONFIG_XFRM_STATISTICS is not set
+CONFIG_NET_KEY=y
+# CONFIG_NET_KEY_MIGRATE is not set
+CONFIG_INET=y
+# CONFIG_IP_MULTICAST is not set
+# CONFIG_IP_ADVANCED_ROUTER is not set
+CONFIG_IP_FIB_HASH=y
+CONFIG_IP_PNP=y
+CONFIG_IP_PNP_DHCP=y
+CONFIG_IP_PNP_BOOTP=y
+CONFIG_IP_PNP_RARP=y
+# CONFIG_NET_IPIP is not set
+# CONFIG_NET_IPGRE is not set
+# CONFIG_ARPD is not set
+# CONFIG_SYN_COOKIES is not set
+# CONFIG_INET_AH is not set
+# CONFIG_INET_ESP is not set
+# CONFIG_INET_IPCOMP is not set
+# CONFIG_INET_XFRM_TUNNEL is not set
+# CONFIG_INET_TUNNEL is not set
+CONFIG_INET_XFRM_MODE_TRANSPORT=y
+CONFIG_INET_XFRM_MODE_TUNNEL=y
+CONFIG_INET_XFRM_MODE_BEET=y
+# CONFIG_INET_LRO is not set
+CONFIG_INET_DIAG=y
+CONFIG_INET_TCP_DIAG=y
+# CONFIG_TCP_CONG_ADVANCED is not set
+CONFIG_TCP_CONG_CUBIC=y
+CONFIG_DEFAULT_TCP_CONG="cubic"
+# CONFIG_TCP_MD5SIG is not set
+# CONFIG_IPV6 is not set
+# CONFIG_NETWORK_SECMARK is not set
+# CONFIG_NETFILTER is not set
+# CONFIG_IP_DCCP is not set
+# CONFIG_IP_SCTP is not set
+# CONFIG_TIPC is not set
+# CONFIG_ATM is not set
+# CONFIG_BRIDGE is not set
+# CONFIG_VLAN_8021Q is not set
+# CONFIG_DECNET is not set
+# CONFIG_LLC2 is not set
+# CONFIG_IPX is not set
+# CONFIG_ATALK is not set
+# CONFIG_X25 is not set
+# CONFIG_LAPB is not set
+# CONFIG_ECONET is not set
+# CONFIG_WAN_ROUTER is not set
+# CONFIG_NET_SCHED is not set
+
+#
+# Network testing
+#
+# CONFIG_NET_PKTGEN is not set
+# CONFIG_HAMRADIO is not set
+# CONFIG_CAN is not set
+# CONFIG_IRDA is not set
+# CONFIG_BT is not set
+# CONFIG_AF_RXRPC is not set
+
+#
+# Wireless
+#
+# CONFIG_CFG80211 is not set
+# CONFIG_WIRELESS_EXT is not set
+# CONFIG_MAC80211 is not set
+# CONFIG_IEEE80211 is not set
+# CONFIG_RFKILL is not set
+# CONFIG_NET_9P is not set
+
+#
+# Device Drivers
+#
+
+#
+# Generic Driver Options
+#
+CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+CONFIG_STANDALONE=y
+CONFIG_PREVENT_FIRMWARE_BUILD=y
+# CONFIG_FW_LOADER is not set
+# CONFIG_DEBUG_DRIVER is not set
+# CONFIG_DEBUG_DEVRES is not set
+# CONFIG_SYS_HYPERVISOR is not set
+# CONFIG_CONNECTOR is not set
+# CONFIG_MTD is not set
+# CONFIG_PARPORT is not set
+# CONFIG_BLK_DEV is not set
+# CONFIG_MISC_DEVICES is not set
+CONFIG_HAVE_IDE=y
+# CONFIG_IDE is not set
+
+#
+# SCSI device support
+#
+# CONFIG_RAID_ATTRS is not set
+CONFIG_SCSI=y
+CONFIG_SCSI_DMA=y
+# CONFIG_SCSI_TGT is not set
+# CONFIG_SCSI_NETLINK is not set
+CONFIG_SCSI_PROC_FS=y
+
+#
+# SCSI support type (disk, tape, CD-ROM)
+#
+CONFIG_BLK_DEV_SD=y
+# CONFIG_CHR_DEV_ST is not set
+# CONFIG_CHR_DEV_OSST is not set
+# CONFIG_BLK_DEV_SR is not set
+# CONFIG_CHR_DEV_SG is not set
+# CONFIG_CHR_DEV_SCH is not set
+
+#
+# Some SCSI devices (e.g. CD jukebox) support multiple LUNs
+#
+# CONFIG_SCSI_MULTI_LUN is not set
+# CONFIG_SCSI_CONSTANTS is not set
+# CONFIG_SCSI_LOGGING is not set
+# CONFIG_SCSI_SCAN_ASYNC is not set
+CONFIG_SCSI_WAIT_SCAN=m
+
+#
+# SCSI Transports
+#
+# CONFIG_SCSI_SPI_ATTRS is not set
+# CONFIG_SCSI_FC_ATTRS is not set
+# CONFIG_SCSI_ISCSI_ATTRS is not set
+# CONFIG_SCSI_SAS_LIBSAS is not set
+# CONFIG_SCSI_SRP_ATTRS is not set
+CONFIG_SCSI_LOWLEVEL=y
+# CONFIG_ISCSI_TCP is not set
+# CONFIG_SCSI_DEBUG is not set
+# CONFIG_ATA is not set
+# CONFIG_MD is not set
+CONFIG_NETDEVICES=y
+# CONFIG_NETDEVICES_MULTIQUEUE is not set
+# CONFIG_DUMMY is not set
+# CONFIG_BONDING is not set
+# CONFIG_MACVLAN is not set
+# CONFIG_EQUALIZER is not set
+# CONFIG_TUN is not set
+# CONFIG_VETH is not set
+# CONFIG_PHYLIB is not set
+CONFIG_NET_ETHERNET=y
+CONFIG_MII=y
+# CONFIG_AX88796 is not set
+CONFIG_SMC91X=y
+# CONFIG_DM9000 is not set
+# CONFIG_SMC911X is not set
+# CONFIG_IBM_NEW_EMAC_ZMII is not set
+# CONFIG_IBM_NEW_EMAC_RGMII is not set
+# CONFIG_IBM_NEW_EMAC_TAH is not set
+# CONFIG_IBM_NEW_EMAC_EMAC4 is not set
+# CONFIG_B44 is not set
+CONFIG_NETDEV_1000=y
+# CONFIG_E1000E_ENABLED is not set
+CONFIG_NETDEV_10000=y
+
+#
+# Wireless LAN
+#
+# CONFIG_WLAN_PRE80211 is not set
+# CONFIG_WLAN_80211 is not set
+# CONFIG_IWLWIFI_LEDS is not set
+# CONFIG_WAN is not set
+# CONFIG_PPP is not set
+# CONFIG_SLIP is not set
+# CONFIG_NETCONSOLE is not set
+# CONFIG_NETPOLL is not set
+# CONFIG_NET_POLL_CONTROLLER is not set
+# CONFIG_ISDN is not set
+
+#
+# Input device support
+#
+CONFIG_INPUT=y
+# CONFIG_INPUT_FF_MEMLESS is not set
+# CONFIG_INPUT_POLLDEV is not set
+
+#
+# Userland interfaces
+#
+# CONFIG_INPUT_MOUSEDEV is not set
+# CONFIG_INPUT_JOYDEV is not set
+# CONFIG_INPUT_EVDEV is not set
+# CONFIG_INPUT_EVBUG is not set
+
+#
+# Input Device Drivers
+#
+# CONFIG_INPUT_KEYBOARD is not set
+# CONFIG_INPUT_MOUSE is not set
+# CONFIG_INPUT_JOYSTICK is not set
+# CONFIG_INPUT_TABLET is not set
+# CONFIG_INPUT_TOUCHSCREEN is not set
+# CONFIG_INPUT_MISC is not set
+
+#
+# Hardware I/O ports
+#
+# CONFIG_SERIO is not set
+# CONFIG_GAMEPORT is not set
+
+#
+# Character devices
+#
+CONFIG_VT=y
+CONFIG_VT_CONSOLE=y
+CONFIG_HW_CONSOLE=y
+# CONFIG_VT_HW_CONSOLE_BINDING is not set
+# CONFIG_DEVKMEM is not set
+# CONFIG_SERIAL_NONSTANDARD is not set
+
+#
+# Serial drivers
+#
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+CONFIG_SERIAL_8250_NR_UARTS=32
+CONFIG_SERIAL_8250_RUNTIME_UARTS=4
+CONFIG_SERIAL_8250_EXTENDED=y
+CONFIG_SERIAL_8250_MANY_PORTS=y
+CONFIG_SERIAL_8250_SHARE_IRQ=y
+CONFIG_SERIAL_8250_DETECT_IRQ=y
+CONFIG_SERIAL_8250_RSA=y
+
+#
+# Non-8250 serial port support
+#
+CONFIG_SERIAL_CORE=y
+CONFIG_SERIAL_CORE_CONSOLE=y
+CONFIG_UNIX98_PTYS=y
+# CONFIG_LEGACY_PTYS is not set
+# CONFIG_IPMI_HANDLER is not set
+CONFIG_HW_RANDOM=y
+# CONFIG_NVRAM is not set
+# CONFIG_R3964 is not set
+# CONFIG_RAW_DRIVER is not set
+# CONFIG_TCG_TPM is not set
+CONFIG_I2C=y
+CONFIG_I2C_BOARDINFO=y
+CONFIG_I2C_CHARDEV=y
+
+#
+# I2C Hardware Bus support
+#
+# CONFIG_I2C_GPIO is not set
+# CONFIG_I2C_OCORES is not set
+CONFIG_I2C_OMAP=y
+# CONFIG_I2C_PARPORT_LIGHT is not set
+# CONFIG_I2C_SIMTEC is not set
+# CONFIG_I2C_TAOS_EVM is not set
+# CONFIG_I2C_STUB is not set
+# CONFIG_I2C_PCA_PLATFORM is not set
+
+#
+# Miscellaneous I2C Chip support
+#
+# CONFIG_DS1682 is not set
+# CONFIG_SENSORS_EEPROM is not set
+# CONFIG_SENSORS_PCF8574 is not set
+# CONFIG_PCF8575 is not set
+# CONFIG_SENSORS_PCF8591 is not set
+# CONFIG_ISP1301_OMAP is not set
+# CONFIG_TPS65010 is not set
+# CONFIG_SENSORS_TLV320AIC23 is not set
+CONFIG_TWL4030_CORE=y
+CONFIG_TWL4030_GPIO=y
+# CONFIG_TWL4030_MADC is not set
+CONFIG_TWL4030_USB=y
+CONFIG_TWL4030_USB_HS_ULPI=y
+# CONFIG_TWL4030_PWRBUTTON is not set
+# CONFIG_TWL4030_POWEROFF is not set
+# CONFIG_SENSORS_MAX6875 is not set
+# CONFIG_SENSORS_TSL2550 is not set
+# CONFIG_LP5521 is not set
+# CONFIG_I2C_DEBUG_CORE is not set
+# CONFIG_I2C_DEBUG_ALGO is not set
+# CONFIG_I2C_DEBUG_BUS is not set
+# CONFIG_I2C_DEBUG_CHIP is not set
+# CONFIG_SPI is not set
+CONFIG_HAVE_GPIO_LIB=y
+
+#
+# GPIO Support
+#
+# CONFIG_DEBUG_GPIO is not set
+
+#
+# I2C GPIO expanders:
+#
+# CONFIG_GPIO_PCA953X is not set
+# CONFIG_GPIO_PCF857X is not set
+
+#
+# SPI GPIO expanders:
+#
+# CONFIG_W1 is not set
+# CONFIG_POWER_SUPPLY is not set
+# CONFIG_HWMON is not set
+# CONFIG_WATCHDOG is not set
+
+#
+# Sonics Silicon Backplane
+#
+CONFIG_SSB_POSSIBLE=y
+# CONFIG_SSB is not set
+
+#
+# Multifunction device drivers
+#
+# CONFIG_MFD_SM501 is not set
+# CONFIG_MFD_ASIC3 is not set
+# CONFIG_HTC_EGPIO is not set
+# CONFIG_HTC_PASIC3 is not set
+
+#
+# Multimedia devices
+#
+
+#
+# Multimedia core support
+#
+# CONFIG_VIDEO_DEV is not set
+# CONFIG_DVB_CORE is not set
+# CONFIG_VIDEO_MEDIA is not set
+
+#
+# Multimedia drivers
+#
+# CONFIG_DAB is not set
+
+#
+# Graphics support
+#
+# CONFIG_VGASTATE is not set
+# CONFIG_VIDEO_OUTPUT_CONTROL is not set
+# CONFIG_FB is not set
+# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
+
+#
+# Display device support
+#
+# CONFIG_DISPLAY_SUPPORT is not set
+
+#
+# Console display driver support
+#
+# CONFIG_VGA_CONSOLE is not set
+CONFIG_DUMMY_CONSOLE=y
+
+#
+# Sound
+#
+# CONFIG_SOUND is not set
+# CONFIG_HID_SUPPORT is not set
+# CONFIG_USB_SUPPORT is not set
+# CONFIG_MMC is not set
+# CONFIG_NEW_LEDS is not set
+CONFIG_RTC_LIB=y
+# CONFIG_RTC_CLASS is not set
+# CONFIG_UIO is not set
+
+#
+# CBUS support
+#
+# CONFIG_CBUS is not set
+
+#
+# File systems
+#
+CONFIG_EXT2_FS=y
+# CONFIG_EXT2_FS_XATTR is not set
+# CONFIG_EXT2_FS_XIP is not set
+CONFIG_EXT3_FS=y
+# CONFIG_EXT3_FS_XATTR is not set
+# CONFIG_EXT4DEV_FS is not set
+CONFIG_JBD=y
+# CONFIG_REISERFS_FS is not set
+# CONFIG_JFS_FS is not set
+# CONFIG_FS_POSIX_ACL is not set
+# CONFIG_XFS_FS is not set
+# CONFIG_OCFS2_FS is not set
+CONFIG_DNOTIFY=y
+CONFIG_INOTIFY=y
+CONFIG_INOTIFY_USER=y
+CONFIG_QUOTA=y
+# CONFIG_QUOTA_NETLINK_INTERFACE is not set
+CONFIG_PRINT_QUOTA_WARNING=y
+# CONFIG_QFMT_V1 is not set
+CONFIG_QFMT_V2=y
+CONFIG_QUOTACTL=y
+# CONFIG_AUTOFS_FS is not set
+# CONFIG_AUTOFS4_FS is not set
+# CONFIG_FUSE_FS is not set
+
+#
+# CD-ROM/DVD Filesystems
+#
+# CONFIG_ISO9660_FS is not set
+# CONFIG_UDF_FS is not set
+
+#
+# DOS/FAT/NT Filesystems
+#
+CONFIG_FAT_FS=y
+CONFIG_MSDOS_FS=y
+CONFIG_VFAT_FS=y
+CONFIG_FAT_DEFAULT_CODEPAGE=437
+CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
+# CONFIG_NTFS_FS is not set
+
+#
+# Pseudo filesystems
+#
+CONFIG_PROC_FS=y
+CONFIG_PROC_SYSCTL=y
+CONFIG_SYSFS=y
+CONFIG_TMPFS=y
+# CONFIG_TMPFS_POSIX_ACL is not set
+# CONFIG_HUGETLB_PAGE is not set
+# CONFIG_CONFIGFS_FS is not set
+
+#
+# Miscellaneous filesystems
+#
+# CONFIG_ADFS_FS is not set
+# CONFIG_AFFS_FS is not set
+# CONFIG_HFS_FS is not set
+# CONFIG_HFSPLUS_FS is not set
+# CONFIG_BEFS_FS is not set
+# CONFIG_BFS_FS is not set
+# CONFIG_EFS_FS is not set
+# CONFIG_CRAMFS is not set
+# CONFIG_VXFS_FS is not set
+# CONFIG_MINIX_FS is not set
+# CONFIG_HPFS_FS is not set
+# CONFIG_QNX4FS_FS is not set
+# CONFIG_ROMFS_FS is not set
+# CONFIG_SYSV_FS is not set
+# CONFIG_UFS_FS is not set
+CONFIG_NETWORK_FILESYSTEMS=y
+CONFIG_NFS_FS=y
+CONFIG_NFS_V3=y
+# CONFIG_NFS_V3_ACL is not set
+CONFIG_NFS_V4=y
+# CONFIG_NFSD is not set
+CONFIG_ROOT_NFS=y
+CONFIG_LOCKD=y
+CONFIG_LOCKD_V4=y
+CONFIG_NFS_COMMON=y
+CONFIG_SUNRPC=y
+CONFIG_SUNRPC_GSS=y
+# CONFIG_SUNRPC_BIND34 is not set
+CONFIG_RPCSEC_GSS_KRB5=y
+# CONFIG_RPCSEC_GSS_SPKM3 is not set
+# CONFIG_SMB_FS is not set
+# CONFIG_CIFS is not set
+# CONFIG_NCP_FS is not set
+# CONFIG_CODA_FS is not set
+# CONFIG_AFS_FS is not set
+
+#
+# Partition Types
+#
+CONFIG_PARTITION_ADVANCED=y
+# CONFIG_ACORN_PARTITION is not set
+# CONFIG_OSF_PARTITION is not set
+# CONFIG_AMIGA_PARTITION is not set
+# CONFIG_ATARI_PARTITION is not set
+# CONFIG_MAC_PARTITION is not set
+CONFIG_MSDOS_PARTITION=y
+# CONFIG_BSD_DISKLABEL is not set
+# CONFIG_MINIX_SUBPARTITION is not set
+# CONFIG_SOLARIS_X86_PARTITION is not set
+# CONFIG_UNIXWARE_DISKLABEL is not set
+# CONFIG_LDM_PARTITION is not set
+# CONFIG_SGI_PARTITION is not set
+# CONFIG_ULTRIX_PARTITION is not set
+# CONFIG_SUN_PARTITION is not set
+# CONFIG_KARMA_PARTITION is not set
+# CONFIG_EFI_PARTITION is not set
+# CONFIG_SYSV68_PARTITION is not set
+CONFIG_NLS=y
+CONFIG_NLS_DEFAULT="iso8859-1"
+CONFIG_NLS_CODEPAGE_437=y
+# CONFIG_NLS_CODEPAGE_737 is not set
+# CONFIG_NLS_CODEPAGE_775 is not set
+# CONFIG_NLS_CODEPAGE_850 is not set
+# CONFIG_NLS_CODEPAGE_852 is not set
+# CONFIG_NLS_CODEPAGE_855 is not set
+# CONFIG_NLS_CODEPAGE_857 is not set
+# CONFIG_NLS_CODEPAGE_860 is not set
+# CONFIG_NLS_CODEPAGE_861 is not set
+# CONFIG_NLS_CODEPAGE_862 is not set
+# CONFIG_NLS_CODEPAGE_863 is not set
+# CONFIG_NLS_CODEPAGE_864 is not set
+# CONFIG_NLS_CODEPAGE_865 is not set
+# CONFIG_NLS_CODEPAGE_866 is not set
+# CONFIG_NLS_CODEPAGE_869 is not set
+# CONFIG_NLS_CODEPAGE_936 is not set
+# CONFIG_NLS_CODEPAGE_950 is not set
+# CONFIG_NLS_CODEPAGE_932 is not set
+# CONFIG_NLS_CODEPAGE_949 is not set
+# CONFIG_NLS_CODEPAGE_874 is not set
+# CONFIG_NLS_ISO8859_8 is not set
+# CONFIG_NLS_CODEPAGE_1250 is not set
+# CONFIG_NLS_CODEPAGE_1251 is not set
+# CONFIG_NLS_ASCII is not set
+CONFIG_NLS_ISO8859_1=y
+# CONFIG_NLS_ISO8859_2 is not set
+# CONFIG_NLS_ISO8859_3 is not set
+# CONFIG_NLS_ISO8859_4 is not set
+# CONFIG_NLS_ISO8859_5 is not set
+# CONFIG_NLS_ISO8859_6 is not set
+# CONFIG_NLS_ISO8859_7 is not set
+# CONFIG_NLS_ISO8859_9 is not set
+# CONFIG_NLS_ISO8859_13 is not set
+# CONFIG_NLS_ISO8859_14 is not set
+# CONFIG_NLS_ISO8859_15 is not set
+# CONFIG_NLS_KOI8_R is not set
+# CONFIG_NLS_KOI8_U is not set
+# CONFIG_NLS_UTF8 is not set
+# CONFIG_DLM is not set
+
+#
+# Kernel hacking
+#
+# CONFIG_PRINTK_TIME is not set
+CONFIG_ENABLE_WARN_DEPRECATED=y
+CONFIG_ENABLE_MUST_CHECK=y
+CONFIG_FRAME_WARN=1024
+CONFIG_MAGIC_SYSRQ=y
+# CONFIG_UNUSED_SYMBOLS is not set
+# CONFIG_DEBUG_FS is not set
+# CONFIG_HEADERS_CHECK is not set
+CONFIG_DEBUG_KERNEL=y
+# CONFIG_DEBUG_SHIRQ is not set
+CONFIG_DETECT_SOFTLOCKUP=y
+CONFIG_SCHED_DEBUG=y
+# CONFIG_SCHEDSTATS is not set
+# CONFIG_TIMER_STATS is not set
+# CONFIG_DEBUG_OBJECTS is not set
+# CONFIG_DEBUG_SLAB is not set
+# CONFIG_DEBUG_RT_MUTEXES is not set
+# CONFIG_RT_MUTEX_TESTER is not set
+# CONFIG_DEBUG_SPINLOCK is not set
+CONFIG_DEBUG_MUTEXES=y
+# CONFIG_DEBUG_LOCK_ALLOC is not set
+# CONFIG_PROVE_LOCKING is not set
+# CONFIG_LOCK_STAT is not set
+# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
+# CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
+# CONFIG_DEBUG_KOBJECT is not set
+# CONFIG_DEBUG_BUGVERBOSE is not set
+CONFIG_DEBUG_INFO=y
+# CONFIG_DEBUG_VM is not set
+# CONFIG_DEBUG_WRITECOUNT is not set
+# CONFIG_DEBUG_LIST is not set
+# CONFIG_DEBUG_SG is not set
+CONFIG_FRAME_POINTER=y
+# CONFIG_BOOT_PRINTK_DELAY is not set
+# CONFIG_RCU_TORTURE_TEST is not set
+# CONFIG_BACKTRACE_SELF_TEST is not set
+# CONFIG_FAULT_INJECTION is not set
+# CONFIG_SAMPLES is not set
+# CONFIG_DEBUG_USER is not set
+# CONFIG_DEBUG_ERRORS is not set
+# CONFIG_DEBUG_STACK_USAGE is not set
+# CONFIG_DEBUG_LL is not set
+
+#
+# Security options
+#
+# CONFIG_KEYS is not set
+# CONFIG_SECURITY is not set
+# CONFIG_SECURITY_FILE_CAPABILITIES is not set
+CONFIG_CRYPTO=y
+
+#
+# Crypto core or helper
+#
+CONFIG_CRYPTO_ALGAPI=y
+CONFIG_CRYPTO_BLKCIPHER=y
+CONFIG_CRYPTO_MANAGER=y
+# CONFIG_CRYPTO_GF128MUL is not set
+# CONFIG_CRYPTO_NULL is not set
+# CONFIG_CRYPTO_CRYPTD is not set
+# CONFIG_CRYPTO_AUTHENC is not set
+# CONFIG_CRYPTO_TEST is not set
+
+#
+# Authenticated Encryption with Associated Data
+#
+# CONFIG_CRYPTO_CCM is not set
+# CONFIG_CRYPTO_GCM is not set
+# CONFIG_CRYPTO_SEQIV is not set
+
+#
+# Block modes
+#
+CONFIG_CRYPTO_CBC=y
+# CONFIG_CRYPTO_CTR is not set
+# CONFIG_CRYPTO_CTS is not set
+CONFIG_CRYPTO_ECB=m
+# CONFIG_CRYPTO_LRW is not set
+CONFIG_CRYPTO_PCBC=m
+# CONFIG_CRYPTO_XTS is not set
+
+#
+# Hash modes
+#
+# CONFIG_CRYPTO_HMAC is not set
+# CONFIG_CRYPTO_XCBC is not set
+
+#
+# Digest
+#
+# CONFIG_CRYPTO_CRC32C is not set
+# CONFIG_CRYPTO_MD4 is not set
+CONFIG_CRYPTO_MD5=y
+# CONFIG_CRYPTO_MICHAEL_MIC is not set
+# CONFIG_CRYPTO_SHA1 is not set
+# CONFIG_CRYPTO_SHA256 is not set
+# CONFIG_CRYPTO_SHA512 is not set
+# CONFIG_CRYPTO_TGR192 is not set
+# CONFIG_CRYPTO_WP512 is not set
+
+#
+# Ciphers
+#
+# CONFIG_CRYPTO_AES is not set
+# CONFIG_CRYPTO_ANUBIS is not set
+# CONFIG_CRYPTO_ARC4 is not set
+# CONFIG_CRYPTO_BLOWFISH is not set
+# CONFIG_CRYPTO_CAMELLIA is not set
+# CONFIG_CRYPTO_CAST5 is not set
+# CONFIG_CRYPTO_CAST6 is not set
+CONFIG_CRYPTO_DES=y
+# CONFIG_CRYPTO_FCRYPT is not set
+# CONFIG_CRYPTO_KHAZAD is not set
+# CONFIG_CRYPTO_SALSA20 is not set
+# CONFIG_CRYPTO_SEED is not set
+# CONFIG_CRYPTO_SERPENT is not set
+# CONFIG_CRYPTO_TEA is not set
+# CONFIG_CRYPTO_TWOFISH is not set
+
+#
+# Compression
+#
+# CONFIG_CRYPTO_DEFLATE is not set
+# CONFIG_CRYPTO_LZO is not set
+CONFIG_CRYPTO_HW=y
+
+#
+# Library routines
+#
+CONFIG_BITREVERSE=y
+# CONFIG_GENERIC_FIND_FIRST_BIT is not set
+# CONFIG_GENERIC_FIND_NEXT_BIT is not set
+CONFIG_CRC_CCITT=y
+# CONFIG_CRC16 is not set
+# CONFIG_CRC_ITU_T is not set
+CONFIG_CRC32=y
+# CONFIG_CRC7 is not set
+CONFIG_LIBCRC32C=y
+CONFIG_PLIST=y
+CONFIG_HAS_IOMEM=y
+CONFIG_HAS_IOPORT=y
+CONFIG_HAS_DMA=y
+
+> 
+> Thanks,
+> 
+> Peter.
+> 
+> PS: config file in attachement
+> 
+> -- 
+> goa is a state of mind
+> 
+
