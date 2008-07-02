@@ -1,231 +1,455 @@
-From: iqbal@ti.com
-Subject: [RESEND][PATCH]Separate out 3430 LCD panel support from 2430 file
-Date: Wed,  2 Jul 2008 07:24:24 -0500
-Message-ID: <1215001464-12691-1-git-send-email-iqbal@ti.com>
+From: "Rajendra Nayak" <rnayak@ti.com>
+Subject: RE: [PATCH 01/11] Basic cpuidle driver
+Date: Wed, 2 Jul 2008 18:00:30 +0530
+Message-ID: <000001c8dc3f$6ae768a0$68bf18ac@ent.ti.com>
+References: <003e01c8db85$01641a50$68bf18ac@ent.ti.com> <87od5gsf8h.fsf@trdhcp146196.ntc.nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47722 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:59755 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757131AbYGBMYd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Jul 2008 08:24:33 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m62CORcQ020689
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 2 Jul 2008 07:24:32 -0500
+	id S1751762AbYGBMbH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jul 2008 08:31:07 -0400
+In-Reply-To: <87od5gsf8h.fsf@trdhcp146196.ntc.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Iqbal Shareef <iqbal@ti.com>
+To: =?utf-8?Q?'=22H=C3=B6gander=22_Jouni'?= <jouni.hogander@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Iqbal Shareef <iqbal@ti.com>
+=20
 
-Separate out 3430 LCD panel support from 2430 SDP.
+> -----Original Message-----
+> From: "H=C3=B6gander" Jouni [mailto:jouni.hogander@nokia.com]=20
+> Sent: Wednesday, July 02, 2008 4:52 PM
+> To: ext Rajendra Nayak
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 01/11] Basic cpuidle driver
+>=20
+> Hi,
+>=20
+> General comment on this patch using top posting. There is no irq
+> disabling at all in cpuidle loop now. That might cause problems. If
+> you don't want to add that global irq disable you can still add it to
+> omap3 enter function. Do you think this is not needed?
 
-Currently the support for the LCD on 3430SDP is added in the lcd_2430sdp.c
-file. This patch separates it out to a new file.
+This is now done in omap3_enter_idle instead of the cpuidle f/w code.
+Its part of the last patch in the set [PATCH 11/11] CORE context save/r=
+estore.
 
-Signed-off-by: Iqbal Shareef  <iqbal@ti.com>
+>=20
+> "ext Rajendra Nayak" <rnayak@ti.com> writes:
+>=20
+> > OMAP3 Basic cpuidle=20
+> >
+> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> >
+> > ---
+> >  arch/arm/mach-omap2/Makefile      |    2=20
+> >  arch/arm/mach-omap2/cpuidle34xx.c |  245=20
+> ++++++++++++++++++++++++++++++++++++++
+> >  arch/arm/mach-omap2/cpuidle34xx.h |   56 ++++++++
+> >  arch/arm/mach-omap2/pm34xx.c      |    5=20
+> >  4 files changed, 306 insertions(+), 2 deletions(-)
+> >
+> > Index: linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > --- /dev/null	1970-01-01 00:00:00.000000000 +0000
+> > +++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c=09
+> 2008-07-01 11:28:39.600854345 +0530
+> > @@ -0,0 +1,245 @@
+> > +/*
+> > + * linux/arch/arm/mach-omap2/cpuidle34xx.c
+> > + *
+> > + * OMAP3 CPU IDLE Routines
+> > + *
+> > + * Copyright (C) 2007-2008 Texas Instruments, Inc.
+> > + * Rajendra Nayak <rnayak@ti.com>
+> > + *
+> > + * Copyright (C) 2007 Texas Instruments, Inc.
+> > + * Karthik Dasu <karthik-dp@ti.com>
+> > + *
+> > + * Copyright (C) 2006 Nokia Corporation
+> > + * Tony Lindgren <tony@atomide.com>
+> > + *
+> > + * Copyright (C) 2005 Texas Instruments, Inc.
+> > + * Richard Woodruff <r-woodruff2@ti.com>
+> > + *
+> > + * Based on pm.c for omap2
+> > + *
+> > + * This program is free software; you can redistribute it=20
+> and/or modify
+> > + * it under the terms of the GNU General Public License=20
+> version 2 as
+> > + * published by the Free Software Foundation.
+> > + */
+> > +
+> > +#include <linux/cpuidle.h>
+> > +#include <asm/arch/pm.h>
+> > +#include <asm/arch/prcm.h>
+> > +#include <asm/arch/powerdomain.h>
+> > +#include "cpuidle34xx.h"
+> > +
+> > +#ifdef CONFIG_CPU_IDLE
+> > +
+> > +struct omap3_processor_cx omap3_power_states[OMAP3_MAX_STATES];
+> > +struct omap3_processor_cx current_cx_state;
+> > +
+> > +static int omap3_idle_bm_check(void)
+> > +{
+> > +	return 0;
+> > +}
+> > +
+> > +/* omap3_enter_idle - Programs OMAP3 to enter the specified state.
+> > + * returns the total time during which the system was idle.
+> > + */
+> > +static int omap3_enter_idle(struct cpuidle_device *dev,
+> > +			struct cpuidle_state *state)
+> > +{
+> > +	struct omap3_processor_cx *cx =3D cpuidle_get_statedata(state);
+> > +	struct timespec ts_preidle, ts_postidle, ts_idle;
+> > +	struct powerdomain *mpu_pd;
+> > +
+> > +	current_cx_state =3D *cx;
+> > +
+> > +	/* Used to keep track of the total time in idle */
+> > +	getnstimeofday(&ts_preidle);
+> > +
+> > +
+> > +	if (cx->type =3D=3D OMAP3_STATE_C0) {
+> > +		/* Do nothing for C0, not even a wfi */
+> > +		return 0;
+> > +	}
+> > +
+> > +	mpu_pd =3D pwrdm_lookup("mpu_pwrdm");
+> > +	/* Program MPU to target state */
+> > +	if (cx->mpu_state < PWRDM_POWER_ON)
+> > +		pwrdm_set_next_pwrst(mpu_pd, cx->mpu_state);
+> > +
+> > +	/* Execute ARM wfi */
+> > +	omap_sram_idle();
+> > +
+> > +	/* Program MPU to ON */
+> > +	if (cx->mpu_state < PWRDM_POWER_ON)
+> > +		pwrdm_set_next_pwrst(mpu_pd, PWRDM_POWER_ON);
+> > +
+> > +	getnstimeofday(&ts_postidle);
+> > +	ts_idle =3D timespec_sub(ts_postidle, ts_preidle);
+> > +	return timespec_to_ns(&ts_idle);
+> > +}
+> > +
+> > +static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+> > +			       struct cpuidle_state *state)
+> > +{
+> > +	struct cpuidle_state *new_state =3D NULL;
+> > +	int i, j;
+> > +
+> > +	if ((state->flags & CPUIDLE_FLAG_CHECK_BM) &&=20
+> omap3_idle_bm_check()) {
+> > +
+> > +		/* Find current state in list */
+> > +		for (i =3D 0; i < OMAP3_MAX_STATES; i++)
+> > +			if (state =3D=3D &dev->states[i])
+> > +				break;
+> > +		BUG_ON(i =3D=3D OMAP3_MAX_STATES);
+> > +
+> > +		/* Back up to non 'CHECK_BM' state */
+> > +		for (j =3D i - 1;  j > 0; j--) {
+> > +			struct cpuidle_state *s =3D &dev->states[j];
+> > +
+> > +			if (!(s->flags & CPUIDLE_FLAG_CHECK_BM)) {
+> > +				new_state =3D s;
+> > +				break;
+> > +			}
+> > +		}
+> > +
+> > +		pr_debug("%s: Bus activity: Entering %s=20
+> (instead of %s)\n",
+> > +			__FUNCTION__, new_state->name, state->name);
+> > +	}
+> > +
+> > +	return omap3_enter_idle(dev, new_state ? : state);
+> > +}
+> > +
+> > +DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
+> > +
+> > +/* omap3_init_power_states - Initialises the OMAP3=20
+> specific C states.
+> > + * Below is the desciption of each C state.
+> > + *
+> > +	C0 . System executing code
+> > +	C1 . MPU WFI + Core active
+> > +	C2 . MPU CSWR + Core active
+> > +	C3 . MPU OFF + Core active
+> > +	C4 . MPU CSWR + Core CSWR
+> > +	C5 . MPU OFF + Core CSWR
+> > +	C6 . MPU OFF + Core OFF
+> > + */
+> > +void omap_init_power_states(void)
+> > +{
+> > +	/* C0 . System executing code */
+> > +	omap3_power_states[0].valid =3D 1;
+> > +	omap3_power_states[0].type =3D OMAP3_STATE_C0;
+> > +	omap3_power_states[0].sleep_latency =3D 0;
+> > +	omap3_power_states[0].wakeup_latency =3D 0;
+> > +	omap3_power_states[0].threshold =3D 0;
+> > +	omap3_power_states[0].mpu_state =3D PWRDM_POWER_ON;
+> > +	omap3_power_states[0].core_state =3D PWRDM_POWER_ON;
+> > +	omap3_power_states[0].flags =3D CPUIDLE_FLAG_TIME_VALID;
+> > +
+> > +	/* C1 . MPU WFI + Core active */
+> > +	omap3_power_states[1].valid =3D 1;
+> > +	omap3_power_states[1].type =3D OMAP3_STATE_C1;
+> > +	omap3_power_states[1].sleep_latency =3D 10;
+> > +	omap3_power_states[1].wakeup_latency =3D 10;
+> > +	omap3_power_states[1].threshold =3D 30;
+> > +	omap3_power_states[1].mpu_state =3D PWRDM_POWER_ON;
+> > +	omap3_power_states[1].core_state =3D PWRDM_POWER_ON;
+> > +	omap3_power_states[1].flags =3D CPUIDLE_FLAG_TIME_VALID;
+> > +
+> > +	/* C2 . MPU CSWR + Core active */
+> > +	omap3_power_states[2].valid =3D 1;
+> > +	omap3_power_states[2].type =3D OMAP3_STATE_C2;
+> > +	omap3_power_states[2].sleep_latency =3D 50;
+> > +	omap3_power_states[2].wakeup_latency =3D 50;
+> > +	omap3_power_states[2].threshold =3D 300;
+> > +	omap3_power_states[2].mpu_state =3D PWRDM_POWER_RET;
+> > +	omap3_power_states[2].core_state =3D PWRDM_POWER_ON;
+> > +	omap3_power_states[2].flags =3D CPUIDLE_FLAG_TIME_VALID;
+> > +
+> > +	/* C3 . MPU OFF + Core active */
+> > +	omap3_power_states[3].valid =3D 0;
+> > +	omap3_power_states[3].type =3D OMAP3_STATE_C3;
+> > +	omap3_power_states[3].sleep_latency =3D 1500;
+> > +	omap3_power_states[3].wakeup_latency =3D 1800;
+> > +	omap3_power_states[3].threshold =3D 4000;
+> > +	omap3_power_states[3].mpu_state =3D PWRDM_POWER_OFF;
+> > +	omap3_power_states[3].core_state =3D PWRDM_POWER_RET;
+> > +	omap3_power_states[3].flags =3D CPUIDLE_FLAG_TIME_VALID;
+> > +
+> > +	/* C4 . MPU CSWR + Core CSWR*/
+> > +	omap3_power_states[4].valid =3D 0;
+> > +	omap3_power_states[4].type =3D OMAP3_STATE_C4;
+> > +	omap3_power_states[4].sleep_latency =3D 2500;
+> > +	omap3_power_states[4].wakeup_latency =3D 7500;
+> > +	omap3_power_states[4].threshold =3D 12000;
+> > +	omap3_power_states[4].mpu_state =3D PWRDM_POWER_RET;
+> > +	omap3_power_states[4].core_state =3D PWRDM_POWER_RET;
+> > +	omap3_power_states[4].flags =3D CPUIDLE_FLAG_TIME_VALID;
+> > +
+> > +	/* C5 . MPU OFF + Core CSWR */
+> > +	omap3_power_states[5].valid =3D 0;
+> > +	omap3_power_states[5].type =3D OMAP3_STATE_C5;
+> > +	omap3_power_states[5].sleep_latency =3D 3000;
+> > +	omap3_power_states[5].wakeup_latency =3D 8500;
+> > +	omap3_power_states[5].threshold =3D 15000;
+> > +	omap3_power_states[5].mpu_state =3D PWRDM_POWER_OFF;
+> > +	omap3_power_states[5].core_state =3D PWRDM_POWER_RET;
+> > +	omap3_power_states[5].flags =3D CPUIDLE_FLAG_TIME_VALID;
+> > +
+> > +	/* C6 . MPU OFF + Core OFF */
+> > +	omap3_power_states[6].valid =3D 0;
+> > +	omap3_power_states[6].type =3D OMAP3_STATE_C6;
+> > +	omap3_power_states[6].sleep_latency =3D 10000;
+> > +	omap3_power_states[6].wakeup_latency =3D 30000;
+> > +	omap3_power_states[6].threshold =3D 300000;
+> > +	omap3_power_states[6].mpu_state =3D PWRDM_POWER_OFF;
+> > +	omap3_power_states[6].core_state =3D PWRDM_POWER_OFF;
+> > +	omap3_power_states[6].flags =3D CPUIDLE_FLAG_TIME_VALID;
+> > +}
+> > +
+> > +struct cpuidle_driver omap3_idle_driver =3D {
+> > +	.name =3D 	"omap3_idle",
+> > +	.owner =3D 	THIS_MODULE,
+> > +};
+> > +/*
+> > + * omap3_idle_init - Init routine for OMAP3 idle.=20
+> Registers the OMAP3 specific
+> > + * cpuidle driver with the cpuidle f/w with the valid set=20
+> of states.
+> > + */
+> > +int omap3_idle_init(void)
+> > +{
+> > +	int i, count =3D 0;
+> > +	struct omap3_processor_cx *cx;
+> > +	struct cpuidle_state *state;
+> > +	struct cpuidle_device *dev;
+> > +
+> > +	omap_init_power_states();
+> > +	cpuidle_register_driver(&omap3_idle_driver);
+> > +
+> > +	dev =3D &per_cpu(omap3_idle_dev, smp_processor_id());
+> > +
+> > +	for (i =3D 0; i < OMAP3_MAX_STATES; i++) {
+> > +		cx =3D &omap3_power_states[i];
+> > +		state =3D &dev->states[count];
+> > +
+> > +		if (!cx->valid)
+> > +			continue;
+> > +		cpuidle_set_statedata(state, cx);
+> > +		state->exit_latency =3D cx->sleep_latency +=20
+> cx->wakeup_latency;
+> > +		state->target_residency =3D cx->threshold;
+> > +		state->flags =3D cx->flags;
+> > +		state->enter =3D (state->flags & CPUIDLE_FLAG_CHECK_BM) ?
+> > +			omap3_enter_idle_bm : omap3_enter_idle;
+> > +		sprintf(state->name, "C%d", count+1);
+> > +		count++;
+> > +	}
+> > +
+> > +	if (!count)
+> > +		return -EINVAL;
+> > +	dev->state_count =3D count;
+> > +
+> > +	if (cpuidle_register_device(dev)) {
+> > +		printk(KERN_ERR "%s: CPUidle register device failed\n",
+> > +		       __FUNCTION__);
+> > +		return -EIO;
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +__initcall(omap3_idle_init);
+> > +#endif /* CONFIG_CPU_IDLE */
+> > Index: linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.h
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > --- /dev/null	1970-01-01 00:00:00.000000000 +0000
+> > +++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.h=09
+> 2008-07-01 11:18:53.084916741 +0530
+> > @@ -0,0 +1,56 @@
+> > +/*
+> > + * linux/arch/arm/mach-omap2/cpuidle34xx.h
+> > + *
+> > + * OMAP3 cpuidle structure definitions
+> > + *
+> > + * Copyright (C) 2007-2008 Texas Instruments, Inc.
+> > + * Written by Rajendra Nayak <rnayak@ti.com>
+> > + *
+> > + * This program is free software; you can redistribute it=20
+> and/or modify
+> > + * it under the terms of the GNU General Public License=20
+> version 2 as
+> > + * published by the Free Software Foundation.
+> > + *
+> > + * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+> > + * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+> > + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A=20
+> PARTICULAR PURPOSE.
+> > + *
+> > + * History:
+> > + *
+> > + */
+> > +
+> > +#ifndef ARCH_ARM_MACH_OMAP2_CPUIDLE_34XX
+> > +#define ARCH_ARM_MACH_OMAP2_CPUIDLE_34XX
+> > +
+> > +#define OMAP3_MAX_STATES 7
+> > +#define OMAP3_STATE_C0 0 /* C0 - System executing code */
+> > +#define OMAP3_STATE_C1 1 /* C1 - MPU WFI + Core active */
+> > +#define OMAP3_STATE_C2 2 /* C2 - MPU CSWR + Core active */
+> > +#define OMAP3_STATE_C3 3 /* C3 - MPU OFF + Core active */
+> > +#define OMAP3_STATE_C4 4 /* C4 - MPU RET + Core RET */
+> > +#define OMAP3_STATE_C5 5 /* C5 - MPU OFF + Core RET */
+> > +#define OMAP3_STATE_C6 6 /* C6 - MPU OFF + Core OFF */
+> > +
+> > +/* Currently, we support only upto C2 */
+> > +#define MAX_SUPPORTED_STATES 3
+> > +
+> > +extern void omap_sram_idle(void);
+> > +extern int omap3_irq_pending(void);
+> > +extern void per_gpio_clk_enable(void);
+> > +extern void per_gpio_clk_disable(void);
+> > +
+> > +struct omap3_processor_cx {
+> > +	u8 valid;
+> > +	u8 type;
+> > +	u32 sleep_latency;
+> > +	u32 wakeup_latency;
+> > +	u32 mpu_state;
+> > +	u32 core_state;
+> > +	u32 threshold;
+> > +	u32 flags;
+> > +};
+> > +
+> > +void omap_init_power_states(void);
+> > +int omap3_idle_init(void);
+> > +
+> > +#endif /* ARCH_ARM_MACH_OMAP2_CPUIDLE_34XX */
+> > +
+> > Index: linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > --- linux-omap-2.6.orig/arch/arm/mach-omap2/pm34xx.c=09
+> 2008-07-01 11:18:50.901988087 +0530
+> > +++ linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c=09
+> 2008-07-01 11:30:12.240859096 +0530
+> > @@ -176,7 +176,7 @@ static irqreturn_t prcm_interrupt_handle
+> >  	return IRQ_HANDLED;
+> >  }
+> > =20
+> > -static void omap_sram_idle(void)
+> > +void omap_sram_idle(void)
+> >  {
+> >  	/* Variable to tell what needs to be saved and restored
+> >  	 * in omap_sram_idle*/
+> > @@ -191,6 +191,7 @@ static void omap_sram_idle(void)
+> > =20
+> >  	mpu_next_state =3D pwrdm_read_next_pwrst(mpu_pwrdm);
+> >  	switch (mpu_next_state) {
+> > +	case PWRDM_POWER_ON:
+> >  	case PWRDM_POWER_RET:
+> >  		/* No need to save context */
+> >  		save_state =3D 0;
+> > @@ -623,7 +624,9 @@ int __init omap3_pm_init(void)
+> > =20
+> >  	suspend_set_ops(&omap_pm_ops);
+> > =20
+> > +#ifndef CONFIG_CPU_IDLE
+> >  	pm_idle =3D omap3_pm_idle;
+> > +#endif
+> > =20
+> >  	/* XXX This is for gpio fclk hack. Will be removed as=20
+> gpio driver
+> >  	 * handles fcks correctly */
+> > Index: linux-omap-2.6/arch/arm/mach-omap2/Makefile
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > --- linux-omap-2.6.orig/arch/arm/mach-omap2/Makefile=09
+> 2008-07-01 11:18:50.901988087 +0530
+> > +++ linux-omap-2.6/arch/arm/mach-omap2/Makefile=09
+> 2008-07-01 11:18:53.084916741 +0530
+> > @@ -20,7 +20,7 @@ obj-y					+=3D pm.o
+> >  obj-$(CONFIG_ARCH_OMAP2)		+=3D pm24xx.o
+> >  obj-$(CONFIG_ARCH_OMAP2420)		+=3D sleep242x.o
+> >  obj-$(CONFIG_ARCH_OMAP2430)		+=3D sleep243x.o
+> > -obj-$(CONFIG_ARCH_OMAP3)		+=3D pm34xx.o sleep34xx.o
+> > +obj-$(CONFIG_ARCH_OMAP3)		+=3D pm34xx.o sleep34xx.o=20
+> cpuidle34xx.o
+> >  obj-$(CONFIG_PM_DEBUG)			+=3D pm-debug.o
+> >  endif
+> > =20
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe=20
+> linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> >
+>=20
+> --=20
+> Jouni H=C3=B6gander
+>=20
+>=20
 
----
- arch/arm/mach-omap2/board-3430sdp.c |    2 +-
- drivers/video/omap/Makefile         |    2 +-
- drivers/video/omap/lcd_3430sdp.c    |  162 +++++++++++++++++++++++++++++++++++
- 3 files changed, 164 insertions(+), 2 deletions(-)
- create mode 100644 drivers/video/omap/lcd_3430sdp.c
-
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index f6cd08b..7a216cc 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -204,7 +204,7 @@ static struct spi_board_info sdp3430_spi_board_info[] __initdata = {
- };
- 
- static struct platform_device sdp3430_lcd_device = {
--	.name		= "sdp2430_lcd",
-+	.name		= "sdp3430_lcd",
- 	.id		= -1,
- };
- 
-diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
-index fe7ee5d..a72a2d9 100644
---- a/drivers/video/omap/Makefile
-+++ b/drivers/video/omap/Makefile
-@@ -30,7 +30,7 @@ objs-y$(CONFIG_MACH_SX1) += lcd_sx1.o
- 
- objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
- objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd_2430sdp.o
--objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_2430sdp.o
-+objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_3430sdp.o
- objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
- objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
- objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
-diff --git a/drivers/video/omap/lcd_3430sdp.c b/drivers/video/omap/lcd_3430sdp.c
-new file mode 100644
-index 0000000..20ac0e5
---- /dev/null
-+++ b/drivers/video/omap/lcd_3430sdp.c
-@@ -0,0 +1,162 @@
-+/*
-+ * LCD panel support for the TI 3430SDP board
-+ *
-+ * Copyright (C) 2008 Texas Instruments
-+ * Author: Iqbal Shareef <iqbal@ti.com>
-+ *
-+ * Derived from drivers/video/omap/lcd_2430sdp.c
-+ * Copyright (C) 2007 MontaVista
-+ * Author: Hunyue Yau <hyau@mvista.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
-+ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/i2c/twl4030.h>
-+
-+#include <asm/arch/gpio.h>
-+#include <asm/arch/omapfb.h>
-+
-+#define SDP3430_LCD_PANEL_BACKLIGHT_GPIO	8
-+#define SDP3430_LCD_PANEL_ENABLE_GPIO		5
-+
-+static unsigned backlight_gpio;
-+static unsigned enable_gpio;
-+
-+#define LCD_PIXCLOCK_MAX			167000
-+#define ENABLE_VAUX2_DEDICATED			0x03
-+#define ENABLE_VAUX2_DEV_GRP			0x20
-+#define ENABLE_VAUX3_DEDICATED			0x05
-+#define ENABLE_VAUX3_DEV_GRP			0xE0
-+
-+static int sdp3430_panel_init(struct lcd_panel *panel,
-+				struct omapfb_device *fbdev)
-+{
-+	enable_gpio    = SDP3430_LCD_PANEL_ENABLE_GPIO;
-+	backlight_gpio = SDP3430_LCD_PANEL_BACKLIGHT_GPIO;
-+
-+	omap_request_gpio(enable_gpio);			/* LCD panel */
-+	omap_request_gpio(backlight_gpio);		/* LCD backlight */
-+	omap_set_gpio_direction(enable_gpio, 0);	/* output */
-+	omap_set_gpio_direction(backlight_gpio, 0);	/* output */
-+
-+	return 0;
-+}
-+
-+static void sdp3430_panel_cleanup(struct lcd_panel *panel)
-+{
-+	omap_free_gpio(backlight_gpio);
-+	omap_free_gpio(enable_gpio);
-+}
-+
-+static int sdp3430_panel_enable(struct lcd_panel *panel)
-+{
-+	omap_set_gpio_dataout(enable_gpio, 1);
-+	omap_set_gpio_dataout(backlight_gpio, 1);
-+
-+	if (0 != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, ENABLE_VAUX3_DEDICATED,
-+					TWL4030_VAUX3_DEDICATED))
-+		return -EIO;
-+	if (0 != twl4030_i2c_write_u8(PM_RECEIVER, ENABLE_VAUX3_DEV_GRP,
-+					TWL4030_VAUX3_DEV_GRP))
-+		return -EIO;
-+
-+	return 0;
-+}
-+
-+static void sdp3430_panel_disable(struct lcd_panel *panel)
-+{
-+	omap_set_gpio_dataout(enable_gpio, 0);
-+	omap_set_gpio_dataout(backlight_gpio, 0);
-+}
-+
-+static unsigned long sdp3430_panel_get_caps(struct lcd_panel *panel)
-+{
-+	return 0;
-+}
-+
-+struct lcd_panel sdp3430_panel = {
-+	.name		= "sdp3430",
-+	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
-+			  OMAP_LCDC_INV_HSYNC,
-+
-+	.bpp		= 16,
-+	.data_lines	= 16,
-+	.x_res		= 240,
-+	.y_res		= 320,
-+	.hsw		= 3,		/* hsync_len (4) - 1 */
-+	.hfp		= 3,		/* right_margin (4) - 1 */
-+	.hbp		= 39,		/* left_margin (40) - 1 */
-+	.vsw		= 1,		/* vsync_len (2) - 1 */
-+	.vfp		= 2,		/* lower_margin */
-+	.vbp		= 7,		/* upper_margin (8) - 1 */
-+
-+	.pixel_clock	= LCD_PIXCLOCK_MAX,
-+
-+	.init		= sdp3430_panel_init,
-+	.cleanup	= sdp3430_panel_cleanup,
-+	.enable		= sdp3430_panel_enable,
-+	.disable	= sdp3430_panel_disable,
-+	.get_caps	= sdp3430_panel_get_caps,
-+};
-+
-+static int sdp3430_panel_probe(struct platform_device *pdev)
-+{
-+	omapfb_register_panel(&sdp3430_panel);
-+	return 0;
-+}
-+
-+static int sdp3430_panel_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static int sdp3430_panel_suspend(struct platform_device *pdev,
-+					pm_message_t mesg)
-+{
-+	return 0;
-+}
-+
-+static int sdp3430_panel_resume(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+struct platform_driver sdp3430_panel_driver = {
-+	.probe		= sdp3430_panel_probe,
-+	.remove		= sdp3430_panel_remove,
-+	.suspend	= sdp3430_panel_suspend,
-+	.resume		= sdp3430_panel_resume,
-+	.driver		= {
-+		.name		= "sdp3430_lcd",
-+		.owner		= THIS_MODULE,
-+	},
-+};
-+
-+static int __init sdp3430_panel_drv_init(void)
-+{
-+	return platform_driver_register(&sdp3430_panel_driver);
-+}
-+
-+static void __exit sdp3430_panel_drv_exit(void)
-+{
-+	platform_driver_unregister(&sdp3430_panel_driver);
-+}
-+
-+module_init(sdp3430_panel_drv_init);
-+module_exit(sdp3430_panel_drv_exit);
-+
-+MODULE_ALIAS("platform:sdp3430_lcd");
--- 
-1.5.3.2
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
