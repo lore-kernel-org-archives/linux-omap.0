@@ -1,46 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/3] OMAP3: EVM: KEYPAD: Fix Kconfig dependency
-Date: Thu, 3 Jul 2008 13:55:18 +0300
-Message-ID: <20080703105516.GT14276@atomide.com>
-References: <4862A888.2070808@ridgerun.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: [PATCH 2/2] ARM:OMAP2: irda support 3430
+Date: Thu, 3 Jul 2008 15:05:58 +0530
+Message-ID: <5d5443650807030235j7a09742k60a94e23c611caf4@mail.gmail.com>
+References: <63619.192.168.10.89.1215067554.squirrel@dbdmail.itg.ti.com>
+	 <5d5443650807030158o728c1d85p5062525d9c2a7a1e@mail.gmail.com>
+	 <006301c8dcef$9b362310$5cf6180a@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58712 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752217AbYGCMVW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2008 08:21:22 -0400
+Received: from ug-out-1314.google.com ([66.249.92.169]:62945 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754877AbYGCMWv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2008 08:22:51 -0400
+Received: by ug-out-1314.google.com with SMTP id h2so674987ugf.16
+        for <linux-omap@vger.kernel.org>; Thu, 03 Jul 2008 05:22:48 -0700 (PDT)
+In-Reply-To: <006301c8dcef$9b362310$5cf6180a@ent.ti.com>
 Content-Disposition: inline
-In-Reply-To: <4862A888.2070808@ridgerun.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Miguel Aguilar <miguel.aguilar@ridgerun.com>
+To: Girish S G <girishsg@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-* Miguel Aguilar <miguel.aguilar@ridgerun.com> [080625 23:18]:
-> Add twl4030 keypad driver support to OMAP3 EVM
+Hi Girish,
 
-Pushing today, this one needed fixing too for the path.
-
-Tony
-
-> Signed-off-by: Miguel Angel Aguilar <miguel.aguilar@ridgerun.com> ---
-> drivers/input/keyboard/Kconfig                 |    2 +-
-> 1 files changed, 1 insertions(+), 1 deletions(-)
+On Thu, Jul 3, 2008 at 3:01 PM, Girish S G <girishsg@ti.com> wrote:
+> ----- Original Message ----- From: "Trilok Soni" <soni.trilok@gmail.com>
 >
-> diff --git a/reference_kernel/drivers/input/keyboard/Kconfig b/linux-2.6.26/drivers/input/keyboard/Kconfig
-> index 0f96a30..cf86a7b 100644
-> --- a/reference_kernel/drivers/input/keyboard/Kconfig
-> +++ b/linux-2.6.26/drivers/input/keyboard/Kconfig
-> @@ -261,7 +261,7 @@ config KEYBOARD_OMAP
+>>> +static struct omap_irda_config irda_data = {
+>>> +       .transceiver_cap        = IR_SIRMODE | IR_MIRMODE | IR_FIRMODE,
+>>> +       .transceiver_mode       = transceiver_mode,
+>>> +       .select_irda            = select_irda,
+>>
+>>
+>> Please rename this hooks to 3430sdp_transceiver_mode and
+>> 3430sdp_select_irda. Check board_h4.c for example.
+>>
+> I think it can be made irda_transceiver_mode/irda_select.  And, as this is
+> in 3430 board file, prefixing it with 3430sdp serves no purpose i guess.
 >
-> config KEYBOARD_TWL4030
-> 	tristate "TI TWL4030 keypad support"
-> -	depends on TWL4030_CORE && (MACH_OMAP_2430SDP || MACH_OMAP_3430SDP)
-> +	depends on TWL4030_CORE && (MACH_OMAP_2430SDP || MACH_OMAP_3430SDP || MACH_OMAP3EVM)
-> 	help
-> 	  Say Y here if you want to use the OMAP TWL4030 keypad.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+I am leaving this decision to you. I am more interested in moving the
+platform data members below as platform resource and also changing the
+same for all the boards :)
+
+>
+>>> +       .rx_channel             = OMAP24XX_DMA_UART3_RX,
+>>> +       .tx_channel             = OMAP24XX_DMA_UART3_TX,
+>>> +       .dest_start             = OMAP_UART3_BASE,
+>>> +       .src_start              = OMAP_UART3_BASE,
+>>> +       .tx_trigger             = OMAP24XX_DMA_UART3_TX,
+>>> +       .rx_trigger             = OMAP24XX_DMA_UART3_RX,
+>>> +};
+>>
+>> Actually rx_channel to rx_trigger are not platform data and it is long
+>> pending cleanup. It would great if we can convert this to
+>> platform_resource, as it is chip specific not board specific.
+>>
+> Yes, I agree.
+>
+>
+> -girish
+>
+
+
+
+-- 
+---Trilok Soni
+http://triloksoni.wordpress.com
