@@ -1,126 +1,75 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] OMAP: PM: Add new sysfs option for disabling
-	clocks when entering idle
-Date: Thu, 3 Jul 2008 13:41:15 +0300
-Message-ID: <20080703104113.GQ14276@atomide.com>
-References: <87tzfb9uhs.fsf@trdhcp146196.ntc.nokia.com> <1214815968-23157-1-git-send-email-jouni.hogander@nokia.com>
+Subject: Re: [PATCH] CBUS: A workaround for ADC S/H HW bug: always keep ch
+	8 selected when S/H is used
+Date: Thu, 3 Jul 2008 13:20:07 +0300
+Message-ID: <20080703102005.GG14276@atomide.com>
+References: <1214832497-23911-1-git-send-email-mikko.k.ylinen@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56501 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58789 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752622AbYGCMSG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2008 08:18:06 -0400
+	with ESMTP id S1752217AbYGCMV1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2008 08:21:27 -0400
 Content-Disposition: inline
-In-Reply-To: <1214815968-23157-1-git-send-email-jouni.hogander@nokia.com>
+In-Reply-To: <1214832497-23911-1-git-send-email-mikko.k.ylinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jouni Hogander <jouni.hogander@nokia.com>
+To: Mikko Ylinen <mikko.k.ylinen@nokia.com>
 Cc: linux-omap@vger.kernel.org
 
-* Jouni Hogander <jouni.hogander@nokia.com> [080630 11:53]:
-> There are drivers that are not disabling their clocks (gpio &
-> uart). These clocks need to be disabled if retention/off state is
-> wanted when idling. Before disabling them in idle loop this option
-> needs to be checked.
+* Mikko Ylinen <mikko.k.ylinen@nokia.com> [080630 16:34]:
 
 Pushing today.
 
 Tony
 
-> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+> Signed-off-by: Mikko Ylinen <mikko.k.ylinen@nokia.com>
 > ---
->  arch/arm/mach-omap2/pm.c |   37 +++++++++++++++++++++++++++++++------
->  arch/arm/mach-omap2/pm.h |    1 +
->  2 files changed, 32 insertions(+), 6 deletions(-)
+>  drivers/cbus/retu.c |   12 ++++++++++++
+>  drivers/cbus/retu.h |    1 +
+>  2 files changed, 13 insertions(+), 0 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index bef58d7..b7434df 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -31,30 +31,51 @@
->  #include "pm.h"
->  
->  unsigned short enable_dyn_sleep;
-> +unsigned short clocks_off_while_idle;
->  atomic_t sleep_block = ATOMIC_INIT(0);
->  
-> +static ssize_t idle_show(struct kobject *, struct kobj_attribute *, char *);
-> +static ssize_t idle_store(struct kobject *k, struct kobj_attribute *,
-> +			  const char *buf, size_t n);
-> +
-> +static struct kobj_attribute sleep_while_idle_attr =
-> +	__ATTR(sleep_while_idle, 0644, idle_show, idle_store);
-> +
-> +static struct kobj_attribute clocks_off_while_idle_attr =
-> +	__ATTR(clocks_off_while_idle, 0644, idle_show, idle_store);
-> +
->  static ssize_t idle_show(struct kobject *kobj, struct kobj_attribute *attr,
->  			 char *buf)
->  {
-> -	return sprintf(buf, "%hu\n", enable_dyn_sleep);
-> +	if (attr == &sleep_while_idle_attr)
-> +		return sprintf(buf, "%hu\n", enable_dyn_sleep);
-> +	else if (attr == &clocks_off_while_idle_attr)
-> +		return sprintf(buf, "%hu\n", clocks_off_while_idle);
-> +	else
-> +		return -EINVAL;
->  }
->  
->  static ssize_t idle_store(struct kobject *kobj, struct kobj_attribute *attr,
->  			  const char *buf, size_t n)
->  {
->  	unsigned short value;
-> +
->  	if (sscanf(buf, "%hu", &value) != 1 ||
->  	    (value != 0 && value != 1)) {
-> -		printk(KERN_ERR "idle_sleep_store: Invalid value\n");
-> +		printk(KERN_ERR "idle_store: Invalid value\n");
+> diff --git a/drivers/cbus/retu.c b/drivers/cbus/retu.c
+> index 715b88d..4849841 100644
+> --- a/drivers/cbus/retu.c
+> +++ b/drivers/cbus/retu.c
+> @@ -114,9 +114,21 @@ int retu_read_adc(int channel)
 >  		return -EINVAL;
->  	}
-> -	enable_dyn_sleep = value;
+>  
+>  	spin_lock_irqsave(&retu_lock, flags);
 > +
-> +	if (attr == &sleep_while_idle_attr)
-> +		enable_dyn_sleep = value;
-> +	else if (attr == &clocks_off_while_idle_attr)
-> +		clocks_off_while_idle = value;
-> +	else
-> +		return -EINVAL;
+> +	if ((channel == 8) && retu_is_vilma) {
+> +		int scr = retu_read_reg(RETU_REG_ADCSCR);
+> +		int ch = (retu_read_reg(RETU_REG_ADCR) >> 10) & 0xf;
+> +		if (((scr & 0xff) != 0) && (ch != 8))
+> +			retu_write_reg (RETU_REG_ADCSCR, (scr & ~0xff));
+> +	}
 > +
->  	return n;
->  }
+>  	/* Select the channel and read result */
+>  	retu_write_reg(RETU_REG_ADCR, channel << 10);
+>  	res = retu_read_reg(RETU_REG_ADCR) & 0x3ff;
+> +
+> +	if (retu_is_vilma)
+> +		retu_write_reg(RETU_REG_ADCR, (1 << 13));
+> +
+>  	/* Unlock retu */
+>  	spin_unlock_irqrestore(&retu_lock, flags);
 >  
-> -static struct kobj_attribute sleep_while_idle_attr =
-> -	__ATTR(sleep_while_idle, 0644, idle_show, idle_store);
-> -
->  void omap2_block_sleep(void)
->  {
->  	atomic_inc(&sleep_block);
-> @@ -86,6 +107,10 @@ int __init omap_pm_init(void)
->  	error = sysfs_create_file(power_kobj, &sleep_while_idle_attr.attr);
->  	if (error)
->  		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
-> +	error = sysfs_create_file(power_kobj,
-> +				  &clocks_off_while_idle_attr.attr);
-> +	if (error)
-> +		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
->  
->  	return error;
->  }
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index 351456e..0aeb461 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -17,6 +17,7 @@ extern int omap2_pm_init(void);
->  extern int omap3_pm_init(void);
->  
->  extern unsigned short enable_dyn_sleep;
-> +extern unsigned short clocks_off_while_idle;
->  extern atomic_t sleep_block;
->  
->  #ifdef CONFIG_PM_DEBUG
+> diff --git a/drivers/cbus/retu.h b/drivers/cbus/retu.h
+> index 49f23e6..c9e044c 100644
+> --- a/drivers/cbus/retu.h
+> +++ b/drivers/cbus/retu.h
+> @@ -34,6 +34,7 @@
+>  #define RETU_REG_RTCHMAR	0x05	/* RTC hours and minutes alarm and time set register */
+>  #define RETU_REG_RTCCALR	0x06	/* RTC calibration register */
+>  #define RETU_REG_ADCR		0x08	/* ADC result */
+> +#define RETU_REG_ADCSCR		0x09	/* ADC sample ctrl */
+>  #define RETU_REG_CC1		0x0d	/* Common control register 1 */
+>  #define RETU_REG_CC2		0x0e	/* Common control register 2 */
+>  #define RETU_REG_CTRL_CLR	0x0f	/* Regulator clear register */
 > -- 
-> 1.5.5
+> 1.5.5.2
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
