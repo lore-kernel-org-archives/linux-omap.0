@@ -1,70 +1,74 @@
-From: "Kamat, Nishant" <nskamat@ti.com>
-Subject: RE: [PATCH] MTD: OMAP2-NAND: Fix partition reading from board info
-Date: Thu, 3 Jul 2008 04:18:39 -0500
-Message-ID: <DFEF307E035C8647B119E6A60DB62D4AE47C155A@dlee02.ent.ti.com>
-References: <9c9fda240807011627v60428f9eh3c2bb17cdc8ce6ea@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Git pull request for omap patches for post 2.6.26
+Date: Thu, 3 Jul 2008 13:11:42 +0300
+Message-ID: <20080703101139.GE14276@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <9c9fda240807011627v60428f9eh3c2bb17cdc8ce6ea@mail.gmail.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: linux-mtd-bounces@lists.infradead.org
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kyungmin Park <kmpark@infradead.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://lists.arm.linux.org.uk/lurker/list/linux-arm-kernel.html>
+List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
+List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
+List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.arm.linux.org.uk
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Russell,
+
+Please pull the omap patches for post-2.6.26 from:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap2-upstream
+
+The patches in question have been posted earlier to linux-arm-kernel
+as three separate sets:
+
+[PATCH 00/21] Omap upstream patches for post 2.6.26 [1]
+[PATCH 00/12] Omap2 clock patches for post 2.6.26 [2]
+[PATCH 00/16] Omap2 patches for post 2.6.26 [3]
+
+These patches can be also viewed at [4][5][6].
+
+As the earlier omap fixes have now been merged, I've rebased
+these patches on top of v2.6.26-rc8-204-gc461a97.
+
+Regards,
+
+Tony
 
 
-> Kyungmin Park on July 02, 2008 4:57 AM, wrote:
->
-> Hi,
->
-> It's should be sent to MTD list. and we also fix the NOR similar ways.
-> It's already posted but not committed.
+[1]
+http://lists.arm.linux.org.uk/lurker/message/20080607.014741.c6666812.en.html
+http://lists.arm.linux.org.uk/lurker/message/20080607.013033.9ad5054e.en.html
+...
 
+[2]
+http://lists.arm.linux.org.uk/lurker/message/20080607.015122.ee025150.en.html
+http://lists.arm.linux.org.uk/lurker/message/20080607.013506.bdb3222f.en.html
+...
 
-Posting the patch on MTD list. Please merge.
+[3]
+http://lists.arm.linux.org.uk/lurker/message/20080607.014741.c6666812.en.html
+http://lists.arm.linux.org.uk/lurker/message/20080607.014742.746c44a3.en.html
+http://lists.arm.linux.org.uk/lurker/message/20080607.021228.06b0242e.en.html#linux-arm-kernel
+...
 
----< Cut here >---
+[4]
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=097c584cd48844d9ef8402bdc6ab49e7e2135f31
 
-From: Nishant Kamat <nskamat@ti.com>
+[5]
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=5114490e93ae9e445365bd9ff9e6bd96ae816307
 
-This patch fixes the omap2 nand driver code that allows
-reading of partition data from board info.
+[6]
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=457dfc3bf3ac4ac1f6a5ab6651b52caed3f8d4da
 
-The parse_mtd_partitions() function no longer returns a
-negative error in case cmdline is not passed.
-See commit: b0d06afb607
-
-Signed-off-by: Nishant Kamat <nskamat@ti.com>
----
- drivers/mtd/nand/omap2.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
-
-Index: linux-omap-ti.ldp/drivers/mtd/nand/omap2.c
-===================================================================
---- linux-omap-ti.ldp.orig/drivers/mtd/nand/omap2.c     2008-06-30 22:01:50.000000000 +0530
-+++ linux-omap-ti.ldp/drivers/mtd/nand/omap2.c  2008-06-30 22:03:34.446471469 +0530
-@@ -699,7 +699,7 @@
-        err = parse_mtd_partitions(&info->mtd, part_probes, &info->parts, 0);
-        if (err > 0)
-                add_mtd_partitions(&info->mtd, info->parts, err);
--       else if (err < 0 && pdata->parts)
-+       else if (pdata->parts)
-                add_mtd_partitions(&info->mtd, pdata->parts, pdata->nr_parts);
-        else
- #endif
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+-------------------------------------------------------------------
+List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
+FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
+Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
