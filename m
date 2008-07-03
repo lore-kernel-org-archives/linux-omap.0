@@ -1,70 +1,90 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: [PATCH 2/2] ARM:OMAP2: irda support 3430
-Date: Thu, 3 Jul 2008 15:05:58 +0530
-Message-ID: <5d5443650807030235j7a09742k60a94e23c611caf4@mail.gmail.com>
-References: <63619.192.168.10.89.1215067554.squirrel@dbdmail.itg.ti.com>
-	 <5d5443650807030158o728c1d85p5062525d9c2a7a1e@mail.gmail.com>
-	 <006301c8dcef$9b362310$5cf6180a@ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/6] 34XX: PM: Workaround to check wether any fck is
+	active before entering sleep
+Date: Thu, 3 Jul 2008 13:40:07 +0300
+Message-ID: <20080703104004.GP14276@atomide.com>
+References: <87tzfb9uhs.fsf@trdhcp146196.ntc.nokia.com> <1214815966-23136-1-git-send-email-jouni.hogander@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:62945 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754877AbYGCMWv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2008 08:22:51 -0400
-Received: by ug-out-1314.google.com with SMTP id h2so674987ugf.16
-        for <linux-omap@vger.kernel.org>; Thu, 03 Jul 2008 05:22:48 -0700 (PDT)
-In-Reply-To: <006301c8dcef$9b362310$5cf6180a@ent.ti.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58964 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754900AbYGCMVl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2008 08:21:41 -0400
 Content-Disposition: inline
+In-Reply-To: <1214815966-23136-1-git-send-email-jouni.hogander@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Girish S G <girishsg@ti.com>
+To: Jouni Hogander <jouni.hogander@nokia.com>
 Cc: linux-omap@vger.kernel.org
 
-Hi Girish,
+* Jouni Hogander <jouni.hogander@nokia.com> [080630 11:53]:
+> This workaround shouldn't be needed when all drivers are configuring
+> their sysconfig registers properly and using their clocks properly.
 
-On Thu, Jul 3, 2008 at 3:01 PM, Girish S G <girishsg@ti.com> wrote:
-> ----- Original Message ----- From: "Trilok Soni" <soni.trilok@gmail.com>
->
->>> +static struct omap_irda_config irda_data = {
->>> +       .transceiver_cap        = IR_SIRMODE | IR_MIRMODE | IR_FIRMODE,
->>> +       .transceiver_mode       = transceiver_mode,
->>> +       .select_irda            = select_irda,
->>
->>
->> Please rename this hooks to 3430sdp_transceiver_mode and
->> 3430sdp_select_irda. Check board_h4.c for example.
->>
-> I think it can be made irda_transceiver_mode/irda_select.  And, as this is
-> in 3430 board file, prefixing it with 3430sdp serves no purpose i guess.
->
+Can you please update this one more time to add the comments above
+also to the code so we'll remember why it's there when reading the
+code?
 
-I am leaving this decision to you. I am more interested in moving the
-platform data members below as platform resource and also changing the
-same for all the boards :)
+Thanks,
 
->
->>> +       .rx_channel             = OMAP24XX_DMA_UART3_RX,
->>> +       .tx_channel             = OMAP24XX_DMA_UART3_TX,
->>> +       .dest_start             = OMAP_UART3_BASE,
->>> +       .src_start              = OMAP_UART3_BASE,
->>> +       .tx_trigger             = OMAP24XX_DMA_UART3_TX,
->>> +       .rx_trigger             = OMAP24XX_DMA_UART3_RX,
->>> +};
->>
->> Actually rx_channel to rx_trigger are not platform data and it is long
->> pending cleanup. It would great if we can convert this to
->> platform_resource, as it is chip specific not board specific.
->>
-> Yes, I agree.
->
->
-> -girish
->
+Tony
 
-
-
--- 
----Trilok Soni
-http://triloksoni.wordpress.com
+> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |   31 +++++++++++++++++++++++++++++++
+>  1 files changed, 31 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 449e7b5..92e56cd 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -174,10 +174,41 @@ static void omap_sram_idle(void)
+>  	omap2_gpio_resume_after_retention();
+>  }
+>  
+> +static int omap3_fclks_active(void)
+> +{
+> +	u32 fck_core1 = 0, fck_core3 = 0, fck_sgx = 0, fck_dss = 0,
+> +		fck_cam = 0, fck_per = 0, fck_usbhost = 0;
+> +
+> +	fck_core1 = cm_read_mod_reg(CORE_MOD,
+> +				    CM_FCLKEN1);
+> +	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
+> +		fck_core3 = cm_read_mod_reg(CORE_MOD,
+> +					    OMAP3430ES2_CM_FCLKEN3);
+> +		fck_sgx = cm_read_mod_reg(OMAP3430ES2_SGX_MOD,
+> +					  CM_FCLKEN);
+> +		fck_usbhost = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
+> +					      CM_FCLKEN);
+> +	} else
+> +		fck_sgx = cm_read_mod_reg(GFX_MOD,
+> +					  OMAP3430ES2_CM_FCLKEN3);
+> +	fck_dss = cm_read_mod_reg(OMAP3430_DSS_MOD,
+> +				  CM_FCLKEN);
+> +	fck_cam = cm_read_mod_reg(OMAP3430_CAM_MOD,
+> +				  CM_FCLKEN);
+> +	fck_per = cm_read_mod_reg(OMAP3430_PER_MOD,
+> +				  CM_FCLKEN);
+> +	if (fck_core1 | fck_core3 | fck_sgx | fck_dss |
+> +	    fck_cam | fck_per | fck_usbhost)
+> +		return 1;
+> +	return 0;
+> +}
+> +
+>  static int omap3_can_sleep(void)
+>  {
+>  	if (!enable_dyn_sleep)
+>  		return 0;
+> +	if (omap3_fclks_active())
+> +		return 0;
+>  	if (atomic_read(&sleep_block) > 0)
+>  		return 0;
+>  	return 1;
+> -- 
+> 1.5.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
