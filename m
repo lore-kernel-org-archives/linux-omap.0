@@ -1,55 +1,31 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] OMAP3: EVM: KEYPAD: Add twl4030 keypad to defconfig
-Date: Thu, 3 Jul 2008 13:56:45 +0300
-Message-ID: <20080703105642.GU14276@atomide.com>
-References: <4862A88E.30700@ridgerun.com>
+Subject: On vacation in July
+Date: Thu, 3 Jul 2008 14:10:23 +0300
+Message-ID: <20080703111020.GY14276@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50542 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50783 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751885AbYGCMLq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2008 08:11:46 -0400
+	with ESMTP id S1753263AbYGCMMD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2008 08:12:03 -0400
+Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
+	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1KEMgh-0006bL-OP
+	for linux-omap@vger.kernel.org; Thu, 03 Jul 2008 11:09:20 +0000
 Content-Disposition: inline
-In-Reply-To: <4862A88E.30700@ridgerun.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Miguel Aguilar <miguel.aguilar@ridgerun.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* Miguel Aguilar <miguel.aguilar@ridgerun.com> [080625 23:18]:
-> Enable twl4030 keypad driver in omap3_evm_defconfig
+Hi all,
 
-Pushing this one too after fixing the path.
+Just FYI, I'll be mostly offline and on vacation during July.
+
+I've pushed some patches today.. There are still pending patches
+on the mailing list that have to wait until the beginning of August.
+
+Cheers,
 
 Tony
-
-> Signed-off-by: Miguel Angel Aguilar <miguel.aguilar@ridgerun.com> ---
-> arch/arm/configs/omap3_evm_defconfig           |   11 ++++++++++-
-> 1 files changed, 10 insertions(+), 1 deletions(-)
->
-> diff --git a/reference_kernel/arch/arm/configs/omap3_evm_defconfig b/linux-2.6.26/arch/arm/configs/omap3_evm_defconfig
-> index 43ae0c8..718c914 100644
-> --- a/reference_kernel/arch/arm/configs/omap3_evm_defconfig
-> +++ b/linux-2.6.26/arch/arm/configs/omap3_evm_defconfig
-> @@ -601,7 +601,16 @@ CONFIG_INPUT=y
-> #
-> # Input Device Drivers
-> #
-> -# CONFIG_INPUT_KEYBOARD is not set
-> +CONFIG_INPUT_KEYBOARD=y
-> +# CONFIG_KEYBOARD_ATKBD is not set
-> +# CONFIG_KEYBOARD_SUNKBD is not set
-> +# CONFIG_KEYBOARD_LKKBD is not set
-> +# CONFIG_KEYBOARD_XTKBD is not set
-> +# CONFIG_KEYBOARD_NEWTON is not set
-> +# CONFIG_KEYBOARD_STOWAWAY is not set
-> +CONFIG_KEYBOARD_TWL4030=m
-> +# CONFIG_KEYBOARD_LM8323 is not set
-> +# CONFIG_KEYBOARD_GPIO is not set # CONFIG_INPUT_MOUSE is not set
-> # CONFIG_INPUT_JOYSTICK is not set
-> # CONFIG_INPUT_TABLET is not set
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
