@@ -1,34 +1,62 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP2/3 PM: Add OMAP PM no-op layer
-Date: Thu, 3 Jul 2008 09:09:00 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0807030907320.17241@utopia.booyaka.com>
-References: <20080617145905.20886.89236.stgit@localhost.localdomain> <20080617150122.20886.9290.stgit@localhost.localdomain> <0f2a01c8d153$8e39c2e0$11dfa8c0@ent.ti.com> <alpine.DEB.1.00.0806182351160.24288@utopia.booyaka.com>
- <003501c8dcfc$1b4e3a40$8cdfa8c0@ent.ti.com>
+From: Viktor Rosendahl <Viktor.Rosendahl@nokia.com>
+Subject: Re: [PATCH 1/1] twl4030-madc: Fix arbitrarily initialized function
+	pointer
+Date: Thu, 03 Jul 2008 18:26:17 +0300
+Message-ID: <1215098777.11098.46.camel@viktor.research.nokia.com>
+References: <1215005796-10117-1-git-send-email-viktor.rosendahl@nokia.com>
+	 <1215005796-10117-2-git-send-email-viktor.rosendahl@nokia.com>
+	 <f30014d3264cbcef10a9f0342fce7ac2@felipebalbi.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49804 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750826AbYGCPJB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2008 11:09:01 -0400
-In-Reply-To: <003501c8dcfc$1b4e3a40$8cdfa8c0@ent.ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:49320 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751253AbYGCPVV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2008 11:21:21 -0400
+In-Reply-To: <f30014d3264cbcef10a9f0342fce7ac2@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ramesh Gupta G <x0023949@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, h-kanigeri2@ti.com, jouni.hogander@nokia.com, khilman@mvista.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, vpasam@ti.com
+To: ext Felipe Balbi <me@felipebalbi.com>
+Cc: linux-omap@vger.kernel.org
 
-Hello Ramesh,
 
-On Thu, 3 Jul 2008, Ramesh Gupta G wrote:
-
-> > Perhaps something similar to an OMAP PM function
-> > "omap_pm_dsp_get_opp_table()" that DSPBridge could call on startup?
 > 
-> Can you please provide tentative dates for the patches available with above
-> function?
+> > +		req.func_cb	= NULL;
+> 
+> maybe below is a better patch:
+> 
+> diff --git a/drivers/i2c/chips/twl4030-madc.c
+> b/drivers/i2c/chips/twl4030-madc.c
+> index 72b126b..6d8915e 100644
+> --- a/drivers/i2c/chips/twl4030-madc.c
+> +++ b/drivers/i2c/chips/twl4030-madc.c
+> @@ -360,7 +360,7 @@ static int twl4030_madc_ioctl(struct inode *inode,
+> struct file *filp,
+>  
+>         switch (cmd) {
+>         case TWL4030_MADC_IOCX_ADC_RAW_READ: {
+> -               struct twl4030_madc_request req;
+> +               static struct twl4030_madc_request req;
+>                 if (par.channel >= TWL4030_MADC_MAX_CHANNELS)
+>                         return -EINVAL;
 
-DSPBridge already has all of that OPP/frequency information inside its 
-code, so that's what you should use until that function becomes available.
+I don't like this idea because:
+
+- It's fragile. This struct, which is not a const, gets initialized only
+once but we are still passing a pointer to it, expecting that a fairly
+complex function will not modify it. This assertion is probably true
+today but makes it easier for somebody to create a bug in the future.
+
+- You introduce another shared datum and it is only protected by the BKL
+in fs/ioctl.c:vfs_ioctl().
+
+- I didn't see any argument why this variable should be static. Making
+local variables static just to get cheap zero initialization is a weird
+thing to do IMO.
+
+best regards,
+
+Viktor
 
 
-- Paul
