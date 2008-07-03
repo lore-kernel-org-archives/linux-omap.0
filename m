@@ -1,48 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [resend][PATCH 0/3] Adding ethernet support on omap2evm
-Date: Thu, 3 Jul 2008 13:23:30 +0300
-Message-ID: <20080703102327.GJ14276@atomide.com>
-References: <dfeb90390806300804h6694c981h751ec9f4c5d5d832@mail.gmail.com>
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: Re: [PATCH 00/11] OMAP3 CPUidle patches
+Date: Thu, 3 Jul 2008 15:44:46 +0300
+Message-ID: <20080703124446.GB4512@codecarver.research.nokia.com>
+References: <003d01c8db84$fe61fde0$68bf18ac@ent.ti.com> <20080702131127.GA4404@codecarver.research.nokia.com> <000701c8dc48$d1ce66a0$68bf18ac@ent.ti.com> <20080702154253.GC4404@codecarver.research.nokia.com> <004d01c8dce8$56eec0b0$68bf18ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50780 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752633AbYGCMc3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2008 08:32:29 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:46344 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753808AbYGCMqJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2008 08:46:09 -0400
 Content-Disposition: inline
-In-Reply-To: <dfeb90390806300804h6694c981h751ec9f4c5d5d832@mail.gmail.com>
+In-Reply-To: <004d01c8dce8$56eec0b0$68bf18ac@ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arun KS <getarunks@gmail.com>
+To: ext Rajendra Nayak <rnayak@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-* Arun KS <getarunks@gmail.com> [080630 18:04]:
-> Hi all,
+On Thu, Jul 03, 2008 at 02:09:42PM +0530, ext Rajendra Nayak wrote:
+> > -----Original Message-----
+> > From: Peter 'p2' De Schrijver [mailto:peter.de-schrijver@nokia.com] 
+> > Sent: Wednesday, July 02, 2008 9:13 PM
+> > To: ext Rajendra Nayak
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: Re: [PATCH 00/11] OMAP3 CPUidle patches
+> > 
+> > Hi Rajendra,
+> > 
+> > > 
+> > > Not sure, but you can try with my .config while I try with yours. 
+> > > I was doing some more testing today, and I saw a hang after 
+> > a while of
+> > > idle activity with OFF being attempted multiple times.
+> > > Using lauterbach showed me it being stuck up in 
+> > prcm_interrupt_handler trying 
+> > > to clear MPU_IRQSTATUS.
+> > > Looks like in the PRCM interrupt handler somehow 
+> > PM_WKST1_CORE is not cleared
+> > > (I see it set to 0x2000) and hence MPU_IRQSTATUS fails to clear.
+> > > 
+> > 
+> > Ok. I disabled OneNAND support and now I get off mode on VDD2 as well.
+> > Consumption on VDD1 is 4uA and 32uA on VDD2. Unfortunately after the
+> > first wakeup, off mode is never reached again.
 > 
-> The following set of patches add ethernet support for omap2evm
-> I have incorporated the comments form Tony and Felipe.
+> Do you see a hang? or OFF is never achieved?
+
+No hang, but OFF is never achieved after the first UART wakeup.
+
+> Can you try with the latest fixes that I posted.
 > 
-> *  0001-OMAP2EVM-Adding-ethernet-support.patch
->        This patch modifies the board files for supporting smc9115
-> *  0002-net-smc911x-Modify-driver-to-also-work-with-omap24xx.patch
->        This patch modifies the driver files to add support for
-> omap24xx platforms
->         I will be sent this patch to linux-netdev also.
-> *  0003-Added-ethernet-driver-support-in-defconfig.patch
 
-Pushing this series today to linux-omap. Please remember to follow up
-on the smc911x changes on the netdev list!
+Doesn't change anything.
 
-Regards,
+Cheers,
 
-Tony
-
-
-> 
-> Best Regards,
-> Arun KS
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Peter.
+-- 
+goa is a state of mind
