@@ -1,55 +1,54 @@
-From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: RE: [PATCH 00/11] OMAP3 CPUidle patches
-Date: Thu, 3 Jul 2008 14:09:42 +0530
-Message-ID: <004d01c8dce8$56eec0b0$68bf18ac@ent.ti.com>
-References: <003d01c8db84$fe61fde0$68bf18ac@ent.ti.com> <20080702131127.GA4404@codecarver.research.nokia.com> <000701c8dc48$d1ce66a0$68bf18ac@ent.ti.com> <20080702154253.GC4404@codecarver.research.nokia.com>
+From: "Girish S G" <girishsg@ti.com>
+Subject: Re: [PATCH 2/2] ARM:OMAP2: irda support 3430
+Date: Thu, 3 Jul 2008 15:01:41 +0530
+Message-ID: <006301c8dcef$9b362310$5cf6180a@ent.ti.com>
+References: <63619.192.168.10.89.1215067554.squirrel@dbdmail.itg.ti.com> <5d5443650807030158o728c1d85p5062525d9c2a7a1e@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:36634 "EHLO calf.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53972 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751156AbYGCLzA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Jul 2008 07:55:00 -0400
-In-Reply-To: <20080702154253.GC4404@codecarver.research.nokia.com>
+	id S1754709AbYGCL6X (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Jul 2008 07:58:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Peter 'p2' De Schrijver' <peter.de-schrijver@nokia.com>
+To: Trilok Soni <soni.trilok@gmail.com>
 Cc: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Peter 'p2' De Schrijver [mailto:peter.de-schrijver@nokia.com] 
-> Sent: Wednesday, July 02, 2008 9:13 PM
-> To: ext Rajendra Nayak
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 00/11] OMAP3 CPUidle patches
-> 
-> Hi Rajendra,
-> 
-> > 
-> > Not sure, but you can try with my .config while I try with yours. 
-> > I was doing some more testing today, and I saw a hang after 
-> a while of
-> > idle activity with OFF being attempted multiple times.
-> > Using lauterbach showed me it being stuck up in 
-> prcm_interrupt_handler trying 
-> > to clear MPU_IRQSTATUS.
-> > Looks like in the PRCM interrupt handler somehow 
-> PM_WKST1_CORE is not cleared
-> > (I see it set to 0x2000) and hence MPU_IRQSTATUS fails to clear.
-> > 
-> 
-> Ok. I disabled OneNAND support and now I get off mode on VDD2 as well.
-> Consumption on VDD1 is 4uA and 32uA on VDD2. Unfortunately after the
-> first wakeup, off mode is never reached again.
+----- Original Message ----- 
+From: "Trilok Soni" <soni.trilok@gmail.com>
 
-Do you see a hang? or OFF is never achieved?
-Can you try with the latest fixes that I posted.
+>> +static struct omap_irda_config irda_data = {
+>> +       .transceiver_cap        = IR_SIRMODE | IR_MIRMODE | IR_FIRMODE,
+>> +       .transceiver_mode       = transceiver_mode,
+>> +       .select_irda            = select_irda,
+>
+>
+> Please rename this hooks to 3430sdp_transceiver_mode and
+> 3430sdp_select_irda. Check board_h4.c for example.
+>
+I think it can be made irda_transceiver_mode/irda_select.  And, as this is in 3430 board file, prefixing it with 3430sdp serves no 
+purpose i guess.
 
-> 
-> Cheers,
-> 
-> Peter.
-> 
+
+>> +       .rx_channel             = OMAP24XX_DMA_UART3_RX,
+>> +       .tx_channel             = OMAP24XX_DMA_UART3_TX,
+>> +       .dest_start             = OMAP_UART3_BASE,
+>> +       .src_start              = OMAP_UART3_BASE,
+>> +       .tx_trigger             = OMAP24XX_DMA_UART3_TX,
+>> +       .rx_trigger             = OMAP24XX_DMA_UART3_RX,
+>> +};
+>
+> Actually rx_channel to rx_trigger are not platform data and it is long
+> pending cleanup. It would great if we can convert this to
+> platform_resource, as it is chip specific not board specific.
+>
+Yes, I agree.
+
+
+-girish 
 
