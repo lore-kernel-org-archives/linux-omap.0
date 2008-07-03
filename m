@@ -1,60 +1,53 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: Re: [PATCH 00/11] OMAP3 CPUidle patches
-Date: Thu, 3 Jul 2008 15:44:46 +0300
-Message-ID: <20080703124446.GB4512@codecarver.research.nokia.com>
-References: <003d01c8db84$fe61fde0$68bf18ac@ent.ti.com> <20080702131127.GA4404@codecarver.research.nokia.com> <000701c8dc48$d1ce66a0$68bf18ac@ent.ti.com> <20080702154253.GC4404@codecarver.research.nokia.com> <004d01c8dce8$56eec0b0$68bf18ac@ent.ti.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [Resending - PATCH 1/3] Triton BCI driver device setup for OMAP3430
+Date: Thu, 03 Jul 2008 08:08:32 -0500
+Message-ID: <60b6f36a0c398d87284f428bc42c7a79@felipebalbi.com>
+References: <44944.192.168.10.88.1215086750.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:46344 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753808AbYGCMqJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2008 08:46:09 -0400
-Content-Disposition: inline
-In-Reply-To: <004d01c8dce8$56eec0b0$68bf18ac@ent.ti.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:33485 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762108AbYGCNIf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2008 09:08:35 -0400
+In-Reply-To: <44944.192.168.10.88.1215086750.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Madhusudhan Chikkature <madhu.cr@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org
 
-On Thu, Jul 03, 2008 at 02:09:42PM +0530, ext Rajendra Nayak wrote:
-> > -----Original Message-----
-> > From: Peter 'p2' De Schrijver [mailto:peter.de-schrijver@nokia.com] 
-> > Sent: Wednesday, July 02, 2008 9:13 PM
-> > To: ext Rajendra Nayak
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH 00/11] OMAP3 CPUidle patches
-> > 
-> > Hi Rajendra,
-> > 
-> > > 
-> > > Not sure, but you can try with my .config while I try with yours. 
-> > > I was doing some more testing today, and I saw a hang after 
-> > a while of
-> > > idle activity with OFF being attempted multiple times.
-> > > Using lauterbach showed me it being stuck up in 
-> > prcm_interrupt_handler trying 
-> > > to clear MPU_IRQSTATUS.
-> > > Looks like in the PRCM interrupt handler somehow 
-> > PM_WKST1_CORE is not cleared
-> > > (I see it set to 0x2000) and hence MPU_IRQSTATUS fails to clear.
-> > > 
-> > 
-> > Ok. I disabled OneNAND support and now I get off mode on VDD2 as well.
-> > Consumption on VDD1 is 4uA and 32uA on VDD2. Unfortunately after the
-> > first wakeup, off mode is never reached again.
-> 
-> Do you see a hang? or OFF is never achieved?
 
-No hang, but OFF is never achieved after the first UART wakeup.
 
-> Can you try with the latest fixes that I posted.
-> 
+On Thu, 3 Jul 2008 17:35:50 +0530 (IST), "Madhusudhan Chikkature"
+<madhu.cr@ti.com> wrote:
 
-Doesn't change anything.
+> Index: linux-omap-2.6/arch/arm/mach-omap2/bci.c
+> ===================================================================
+> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
+> +++ linux-omap-2.6/arch/arm/mach-omap2/bci.c	2008-07-03
+16:59:40.000000000
+> +0530
+> @@ -0,0 +1,34 @@
+> +/*
+> + * linux/arch/arm/mach-omap2/board-3430sdp-bci.c
 
-Cheers,
+just fix this name please.
 
-Peter.
+Style only.
+
+
+> +
+> +static struct platform_device twl4030_bci_battery_device = {
+> +	.name           = "twl4030-bci-battery",
+> +	.id             = 1,
+
+use -1. There will be no other twl4030-bci-battery in the system :-)
+
 -- 
-goa is a state of mind
+Best Regards,
+
+Felipe Balbi
+http://blog.felipebalbi.com
+me@felipebalbi.com
+
