@@ -1,30 +1,71 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH] input: keypad: General fixes to omap-twl4030keypad.c
-Date: Fri, 4 Jul 2008 15:12:22 +0300
-Message-ID: <20080704121222.GA21680@gandalf.research.nokia.com>
-References: <ca28e9a0d2999eeda7c8bb6760fdf017@felipebalbi.com> <1215164061-10704-1-git-send-email-felipe.balbi@nokia.com>
-Reply-To: felipe.balbi@nokia.com
+From: "Kamat, Nishant" <nskamat@ti.com>
+Subject: RE: [RESEND][PATCH]Separate out 3430 LCD panel support from 2430
+ file
+Date: Fri, 4 Jul 2008 07:13:26 -0500
+Message-ID: <DFEF307E035C8647B119E6A60DB62D4AE483AE25@dlee02.ent.ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB022BFE70AA@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:46377 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752522AbYGDMNe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jul 2008 08:13:34 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m64CCnuX023826
-	for <linux-omap@vger.kernel.org>; Fri, 4 Jul 2008 07:13:31 -0500
-Content-Disposition: inline
-In-Reply-To: <1215164061-10704-1-git-send-email-felipe.balbi@nokia.com>
+Received: from soda.ext.ti.com ([198.47.26.145]:50552 "EHLO soda.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752696AbYGDMNi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jul 2008 08:13:38 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB022BFE70AA@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: linux-omap@vger.kernel.org, Timo Kokkonen <timo.t.kokkonen@nokia.com>
+To: "Gadiyar, Anand" <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>, Iqbal <iqbal@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Jul 04, 2008 at 12:34:21PM +0300, Felipe Balbi wrote:
-> +	mutex_lock(&kp->lock);
+Emailing the fix on behalf of Iqbal:
 
-This should be mutex, final patch is coming.
+> -----Original Message-----
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Gadiyar, Anand
+> Subject: RE: [RESEND][PATCH]Separate out 3430 LCD panel
+> support from 2430 file
+>
+> > * iqbal@ti.com <iqbal@ti.com> [080702 15:25]:
+> > > From: Iqbal Shareef <iqbal@ti.com>
+> > >
+> > > Separate out 3430 LCD panel support from 2430 SDP.
+> > >
+> > > Currently the support for the LCD on 3430SDP is added in
+> > the lcd_2430sdp.c
+> > > file. This patch separates it out to a new file.
+> >
+> > Pushing today.
+> >
+> > Tony
+>
+> This one breaks compile on 3430. Will see if I can send a fix.
 
--- 
-	- Balbi
+----< Cut here >-------
+
+From: Iqbal Shareef <iqbal@ti.com>
+
+Fix SDP 3430 compile error
+
+The PM_RECEIVER macro is replaced with TWL4030_MODULE_PM_RECEIVER
+
+Signed-off-by: Iqbal Shareef  <iqbal@ti.com>
+---
+ drivers/video/omap/lcd_3430sdp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/video/omap/lcd_3430sdp.c b/drivers/video/omap/lcd_3430sdp.c
+index 20ac0e5..6e7a8b6 100644
+--- a/drivers/video/omap/lcd_3430sdp.c
++++ b/drivers/video/omap/lcd_3430sdp.c
+@@ -70,7 +70,7 @@ static int sdp3430_panel_enable(struct lcd_panel *panel)
+        if (0 != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, ENABLE_VAUX3_DEDICATED,
+                                        TWL4030_VAUX3_DEDICATED))
+                return -EIO;
+-       if (0 != twl4030_i2c_write_u8(PM_RECEIVER, ENABLE_VAUX3_DEV_GRP,
++       if (0 != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, ENABLE_VAUX3_DEV_GRP,
+                                        TWL4030_VAUX3_DEV_GRP))
+                return -EIO;
+
+--
+1.5.3.2
