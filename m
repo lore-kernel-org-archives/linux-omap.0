@@ -1,51 +1,149 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: [PATCH 00/11] OMAP3 CPUidle patches
-Date: Fri, 4 Jul 2008 11:45:22 +0200
-Message-ID: <A52278AB-0503-4962-846E-00E2D5099937@student.utwente.nl>
-References: <003d01c8db84$fe61fde0$68bf18ac@ent.ti.com> <20080702131127.GA4404@codecarver.research.nokia.com> <000701c8dc48$d1ce66a0$68bf18ac@ent.ti.com> <20080702154253.GC4404@codecarver.research.nokia.com> <004d01c8dce8$56eec0b0$68bf18ac@ent.ti.com> <87prpum7nr.fsf@trdhcp146196.ntc.nokia.com> <873amqknae.fsf@trdhcp146196.ntc.nokia.com>
-Mime-Version: 1.0 (Apple Message framework v926)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-3-634321058"
-Content-Transfer-Encoding: 7bit
+From: "Rajendra Nayak" <rnayak@ti.com>
+Subject: RE: [PATCH 00/11] OMAP3 CPUidle patches
+Date: Fri, 4 Jul 2008 15:15:59 +0530
+Message-ID: <011601c8ddba$c4031110$68bf18ac@ent.ti.com>
+References: <003d01c8db84$fe61fde0$68bf18ac@ent.ti.com><20080702131127.GA4404@codecarver.research.nokia.com><000701c8dc48$d1ce66a0$68bf18ac@ent.ti.com><20080702154253.GC4404@codecarver.research.nokia.com><004d01c8dce8$56eec0b0$68bf18ac@ent.ti.com><87prpum7nr.fsf@trdhcp146196.ntc.nokia.com> <873amqknae.fsf@trdhcp146196.ntc.nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx1.utsp.utwente.nl ([130.89.2.12]:51581 "EHLO mx.utwente.nl"
+Received: from bear.ext.ti.com ([192.94.94.41]:36370 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750774AbYGDJpz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Jul 2008 05:45:55 -0400
+	id S1751344AbYGDJqj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jul 2008 05:46:39 -0400
 In-Reply-To: <873amqknae.fsf@trdhcp146196.ntc.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?H=F6gander_Jouni?= <jouni.hogander@nokia.com>
-Cc: ext Rajendra Nayak <rnayak@ti.com>, 'Peter 'p2' De Schrijver' <peter.de-schrijver@nokia.com>, linux-omap@vger.kernel.org
+To: =?utf-8?Q?'=22H=C3=B6gander=22_Jouni'?= <jouni.hogander@nokia.com>
+Cc: 'Peter 'p2' De Schrijver' <peter.de-schrijver@nokia.com>, linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-3-634321058
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+> -----Original Message-----
+> From: "H=C3=B6gander" Jouni [mailto:jouni.hogander@nokia.com]=20
+> Sent: Friday, July 04, 2008 3:02 PM
+> To: ext Rajendra Nayak
+> Cc: 'Peter 'p2' De Schrijver'; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 00/11] OMAP3 CPUidle patches
+>=20
+> Let's continue this discussion in here to make sure that everybody
+> sees it.
+>=20
+> ext H=C3=B6gander Jouni <jouni.hogander@nokia.com> writes:
+>=20
+> > Hi Rajendra,
+> >
+> > "ext Rajendra Nayak" <rnayak@ti.com> writes:
+> >
+> >>> -----Original Message-----
+> >>> From: Peter 'p2' De Schrijver=20
+> [mailto:peter.de-schrijver@nokia.com]=20
+> >>> Sent: Wednesday, July 02, 2008 9:13 PM
+> >>> To: ext Rajendra Nayak
+> >>> Cc: linux-omap@vger.kernel.org
+> >>> Subject: Re: [PATCH 00/11] OMAP3 CPUidle patches
+> >>>=20
+> >>> Hi Rajendra,
+> >>>=20
+> >>> >=20
+> >>> > Not sure, but you can try with my .config while I try=20
+> with yours.=20
+> >>> > I was doing some more testing today, and I saw a hang after=20
+> >>> a while of
+> >>> > idle activity with OFF being attempted multiple times.
+> >>> > Using lauterbach showed me it being stuck up in=20
+> >>> prcm_interrupt_handler trying=20
+> >>> > to clear MPU_IRQSTATUS.
+> >>> > Looks like in the PRCM interrupt handler somehow=20
+> >>> PM_WKST1_CORE is not cleared
+> >>> > (I see it set to 0x2000) and hence MPU_IRQSTATUS fails to clear=
+=2E
+> >>> >=20
+> >>>=20
+> >>> Ok. I disabled OneNAND support and now I get off mode on=20
+> VDD2 as well.
+> >>> Consumption on VDD1 is 4uA and 32uA on VDD2.=20
+> Unfortunately after the
+> >>> first wakeup, off mode is never reached again.
+> >>
+> >> Do you see a hang? or OFF is never achieved?
+> >> Can you try with the latest fixes that I posted.
+> >
+> > As it seems to be hard to get similiar results with these patches,
+> > could you please send me your uImage?
+>=20
+> So Rajendra sent his uImage and it works quite ok what comes to off
+> mode on my sdp board. I still see problems with serial console (slow)
+> and on boot I need to generate manually interrupts to get it to
+> boot. Otherwise board hangs at this point:
 
+Yes, I noticed this as well. It takes quite long to bootup if you don't=
+=20
+generate UART interrupts.
+After bootup once RET/OFF is hit, it takes a few hits to come out of it
+as IO wakeup is missing.
 
-Op 4 jul 2008, om 11:32 heeft H=F6gander Jouni het volgende geschreven:
-> Rajendra, are you still using .config file you sent to me? Are all the
+>=20
+> eth0: link up
+> Sending DHCP requests ., OK
+> IP-Config: Got DHCP answer from 0.0.0.0, my address is 192.168.2.101
+> IP-Config: Complete:
+>      device=3Deth0, addr=3D192.168.2.101, mask=3D255.255.255.0,=20
+> gw=3D192.168.2.1,
+>      host=3D192.168.2.101, domain=3Dntc.nokia.com, nis-domain=3D(none=
+),
+>      bootserver=3D0.0.0.0, rootserver=3D172.22.146.197, rootpath=3D
+> Looking up port of RPC 100003/2 on 172.22.146.197
+> Looking up port of RPC 100005/1 on 172.22.146.197
+> VFS: Mounted root (nfs filesystem).
+> Freeing init memory: 108K
+>=20
+> Rajendra, are you still using .config file you sent to me? Are all th=
+e
 > changes in your tree available in l-o list.
 
-IK_CONFIG is such a timesaver in this kind of situations :)
+Yes, all the changes are part of the 11 patch set + 1 rework fixes patc=
+h I sent.
+To debug further, can you put a few prints in omap3_enter_idle and omap=
+3_enter_idle_bm
+to see what states are selected by the menu gov.=20
+We will then know if CORE RET/OFF is attempted but not achieved due to =
+some reason, or=20
+never attempted altogether.
 
-regards,
+>=20
+> >
+> >>
+> >>>=20
+> >>> Cheers,
+> >>>=20
+> >>> Peter.
+> >>>=20
+> >>
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe=20
+> linux-omap" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>
+> >>
+> >
+> > --=20
+> > Jouni H=C3=B6gander
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe=20
+> linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> >
+>=20
+> --=20
+> Jouni H=C3=B6gander
+>=20
+>=20
 
-Koen=
-
---Apple-Mail-3-634321058
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: This is a digitally signed message part
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFIbfE0MkyGM64RGpERAr2PAKCSjKbwLcBL3rghS5C3sWhmRVymFQCfSO2/
-RwXer7otvLpI8VjT+lAFaxY=
-=U6uY
------END PGP SIGNATURE-----
-
---Apple-Mail-3-634321058--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
