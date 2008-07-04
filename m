@@ -1,65 +1,84 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: [PATCH] ARM: OMAP3: Make I2C bus 2 configurable for BeagleBoard
-Date: Fri, 04 Jul 2008 09:10:51 +0200
-Message-ID: <486DCCFB.9060909@googlemail.com>
-References: <486DC2AF.4010401@googlemail.com> <20080704095502.a018a17a.jarkko.nikula@nokia.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: [PATCH 00/11] OMAP3 CPUidle patches
+Date: Fri, 04 Jul 2008 10:26:48 +0300
+Message-ID: <87prpum7nr.fsf@trdhcp146196.ntc.nokia.com>
+References: <003d01c8db84$fe61fde0$68bf18ac@ent.ti.com>
+	<20080702131127.GA4404@codecarver.research.nokia.com>
+	<000701c8dc48$d1ce66a0$68bf18ac@ent.ti.com>
+	<20080702154253.GC4404@codecarver.research.nokia.com>
+	<004d01c8dce8$56eec0b0$68bf18ac@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.235]:49016 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754326AbYGDHL0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jul 2008 03:11:26 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so1404887rvb.1
-        for <linux-omap@vger.kernel.org>; Fri, 04 Jul 2008 00:11:25 -0700 (PDT)
-In-Reply-To: <20080704095502.a018a17a.jarkko.nikula@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:40423 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755453AbYGDH1V convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jul 2008 03:27:21 -0400
+In-Reply-To: <004d01c8dce8$56eec0b0$68bf18ac@ent.ti.com> (ext Rajendra Nayak's
+	message of "Thu, 3 Jul 2008 14:09:42 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: ext Rajendra Nayak <rnayak@ti.com>
+Cc: 'Peter 'p2' De Schrijver' <peter.de-schrijver@nokia.com>, linux-omap@vger.kernel.org
 
-Jarkko Nikula wrote:
-> On Fri, 04 Jul 2008 08:26:55 +0200
-> "ext Dirk Behme" <dirk.behme@googlemail.com> wrote:
-> 
-> 
->>- Add configuration option for this
->>- Use configuration option in board-omap3beagle
->>- Ensure correct pin mux if I2C2 is enabled, independent of settings 
->>done by bootloader
->>
-> 
-> Why this CONFIG_I2C2_OMAP_BEAGLE in mux.c?
+Hi Rajendra,
 
-Because bootloader, e.g. uboot, might have set other mux for these 
-pins, e.g. GPIO168 and GPIO183.
+"ext Rajendra Nayak" <rnayak@ti.com> writes:
 
-Then, if CONFIG_MUX is enabled but I2C2 isn't, don't touch the pin mux 
-done by bootloader. But if I2C2 is enabled, make sure that the correct 
-mux settings are done independent of bootloader.
+>> -----Original Message-----
+>> From: Peter 'p2' De Schrijver [mailto:peter.de-schrijver@nokia.com]=20
+>> Sent: Wednesday, July 02, 2008 9:13 PM
+>> To: ext Rajendra Nayak
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: Re: [PATCH 00/11] OMAP3 CPUidle patches
+>>=20
+>> Hi Rajendra,
+>>=20
+>> >=20
+>> > Not sure, but you can try with my .config while I try with yours.=20
+>> > I was doing some more testing today, and I saw a hang after=20
+>> a while of
+>> > idle activity with OFF being attempted multiple times.
+>> > Using lauterbach showed me it being stuck up in=20
+>> prcm_interrupt_handler trying=20
+>> > to clear MPU_IRQSTATUS.
+>> > Looks like in the PRCM interrupt handler somehow=20
+>> PM_WKST1_CORE is not cleared
+>> > (I see it set to 0x2000) and hence MPU_IRQSTATUS fails to clear.
+>> >=20
+>>=20
+>> Ok. I disabled OneNAND support and now I get off mode on VDD2 as wel=
+l.
+>> Consumption on VDD1 is 4uA and 32uA on VDD2. Unfortunately after the
+>> first wakeup, off mode is never reached again.
+>
+> Do you see a hang? or OFF is never achieved?
+> Can you try with the latest fixes that I posted.
 
-Do you think this is wrong?
+As it seems to be hard to get similiar results with these patches,
+could you please send me your uImage?
 
-Thanks
+>
+>>=20
+>> Cheers,
+>>=20
+>> Peter.
+>>=20
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
 
-Dirk
+--=20
+Jouni H=C3=B6gander
 
-> --- linux-beagle.orig/arch/arm/mach-omap2/mux.c
-> +++ linux-beagle/arch/arm/mach-omap2/mux.c
-> @@ -231,10 +231,12 @@ MUX_CFG_34XX("K21_34XX_I2C1_SCL", 0x1ba,
->  		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
->  MUX_CFG_34XX("J21_34XX_I2C1_SDA", 0x1bc,
->  		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +#ifdef CONFIG_I2C2_OMAP_BEAGLE
->  MUX_CFG_34XX("AF15_34XX_I2C2_SCL", 0x1be,
->  		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
->  MUX_CFG_34XX("AE15_34XX_I2C2_SDA", 0x1c0,
->  		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +#endif
->  MUX_CFG_34XX("AF14_34XX_I2C3_SCL", 0x1c2,
->  		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
->  MUX_CFG_34XX("AG14_34XX_I2C3_SDA", 0x1c4,
-> 
-> 
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
