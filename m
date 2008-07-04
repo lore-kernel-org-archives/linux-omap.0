@@ -1,124 +1,55 @@
-From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
-Subject: [Resending - PATCH 1/3] Triton BCI driver device setup for OMAP3430
-Date: Fri, 4 Jul 2008 10:06:38 +0530 (IST)
-Message-ID: <46158.192.168.10.89.1215146198.squirrel@dbdmail.itg.ti.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: 34xx off-mode support fixes
+Date: Fri, 04 Jul 2008 08:11:43 +0300
+Message-ID: <87zloynshc.fsf@trdhcp146196.ntc.nokia.com>
+References: <1215100756-31445-1-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52106 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750711AbYGDEhZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Jul 2008 00:37:25 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:49197 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751199AbYGDFLt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jul 2008 01:11:49 -0400
+Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m645BL4q010493
+	for <linux-omap@vger.kernel.org>; Fri, 4 Jul 2008 00:11:47 -0500
+In-Reply-To: <1215100756-31445-1-git-send-email-tero.kristo@nokia.com> (ext
+	Tero Kristo's message of "Thu, 3 Jul 2008 18:59:13 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, me@felipebalbi.com
+To: ext Tero Kristo <tero.kristo@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Tony,
+Hi Tero,
 
-I fixed couple of minor comments from Filipe.
+"ext Tero Kristo" <tero.kristo@nokia.com> writes:
 
-Regards,
-Madhu
-----------------------------------------------------------------
+> Hi,
+>
+> This patch set contains some experimental fixes for the cpu-idle supp=
+ort from
+> Rajendra Nayak. With this patch set, all power domains enter OFF mode=
+ and
+> recover from it, at least while using suspend and/or dynamic idle. If=
+ you
+> are using these patches, you should disable CPU_IDLE support from ker=
+nel
+> config as I am not certain it works with this patch set yet. The last=
+ patch
+> contains some trial fix to cpuidle code, so it might work also if you=
+ are
+> lucky enough.
 
+Do you have any guesses what is wrong in Rajendras cpuidle
+code? Is it that dma save/restore? At least I couldn't figure it out
+from your patches.
 
-From: Madhusudhan Chikkature<madhu.cr@ti.com>
+--=20
+Jouni H=C3=B6gander
 
-Device setup/initialization for the Triton battery charger interface driver for
-the OMAP3430 SDP.
-
-Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
----
- arch/arm/mach-omap2/Makefile              |    3 +-
- arch/arm/mach-omap2/bci.c                 |   34 ++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-3430sdp.c       |    1
- include/asm-arm/arch-omap/board-3430sdp.h |    1
- 4 files changed, 38 insertions(+), 1 deletion(-)
-
-Index: linux-omap-2.6/arch/arm/mach-omap2/Makefile
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/Makefile	2008-07-03
-16:58:02.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/Makefile	2008-07-03 16:58:30.000000000
-+0530
-@@ -47,7 +47,8 @@ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= boar
- 					   hsmmc.o \
- 					   usb-musb.o \
- 					   usb-ehci.o \
--					   board-3430sdp-flash.o
-+					   board-3430sdp-flash.o \
-+					   bci.o
- obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
- 					   hsmmc.o \
- 					   usb-musb.o usb-ehci.o \
-Index: linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/board-3430sdp.c	2008-07-03
-16:58:02.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c	2008-07-03
-16:58:30.000000000 +0530
-@@ -299,6 +299,7 @@ static void __init omap_3430sdp_init(voi
- 				ARRAY_SIZE(sdp3430_spi_board_info));
- 	ads7846_dev_init();
- 	sdp3430_flash_init();
-+	twl4030_bci_battery_init();
- 	omap_serial_init();
- 	usb_musb_init();
- 	usb_ehci_init();
-Index: linux-omap-2.6/include/asm-arm/arch-omap/board-3430sdp.h
-===================================================================
---- linux-omap-2.6.orig/include/asm-arm/arch-omap/board-3430sdp.h	2008-07-03
-16:58:02.000000000 +0530
-+++ linux-omap-2.6/include/asm-arm/arch-omap/board-3430sdp.h	2008-07-03
-16:58:30.000000000 +0530
-@@ -31,6 +31,7 @@
-
- extern void sdp3430_usb_init(void);
- extern void sdp3430_flash_init(void);
-+extern void twl4030_bci_battery_init(void);
-
- #define DEBUG_BASE			0x08000000  /* debug board */
-
-Index: linux-omap-2.6/arch/arm/mach-omap2/bci.c
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-omap-2.6/arch/arm/mach-omap2/bci.c	2008-07-03 19:40:37.000000000 +0530
-@@ -0,0 +1,34 @@
-+/*
-+ * linux/arch/arm/mach-omap2/bci.c
-+ *
-+ * TWL4030 BCI platform device setup/initialization
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+
-+#if defined(CONFIG_TWL4030_BCI_BATTERY) || \
-+	defined(CONFIG_TWL4030_BCI_BATTERY_MODULE)
-+
-+static struct platform_device twl4030_bci_battery_device = {
-+	.name           = "twl4030-bci-battery",
-+	.id             = -1,
-+	.num_resources  = 0,
-+};
-+
-+void __init twl4030_bci_battery_init(void)
-+{
-+	(void) platform_device_register(&twl4030_bci_battery_device);
-+}
-+#else
-+void __init twl4030_bci_battery_init(void)
-+{
-+}
-+#endif
-
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
