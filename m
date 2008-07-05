@@ -1,65 +1,81 @@
-From: "andrzej zaborowski" <balrogg@gmail.com>
-Subject: Re: [RESEND][PATCH]Separate out 3430 LCD panel support from 2430 file
-Date: Fri, 4 Jul 2008 18:32:17 +0200
-Message-ID: <fb249edb0807040932k4f2977a4w380b50e7f3cce197@mail.gmail.com>
-References: <1215001464-12691-1-git-send-email-iqbal@ti.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: Kernel hang on OMAP3 based Beagle board, RTC issue?
+Date: Sat, 05 Jul 2008 09:25:42 +0200
+Message-ID: <486F21F6.7020208@googlemail.com>
+References: <486BDD2A.5070500@googlemail.com> <5A47E75E594F054BAF48C5E4FC4B92AB022BB6621C@dbde02.ent.ti.com> <AF70E37B-038B-4117-B69F-B2BCD9EFF6AA@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:6026 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757528AbYGDQcT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jul 2008 12:32:19 -0400
-Received: by ug-out-1314.google.com with SMTP id h2so814059ugf.16
-        for <linux-omap@vger.kernel.org>; Fri, 04 Jul 2008 09:32:18 -0700 (PDT)
-In-Reply-To: <1215001464-12691-1-git-send-email-iqbal@ti.com>
-Content-Disposition: inline
+Received: from nf-out-0910.google.com ([64.233.182.186]:12043 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751137AbYGEHZ4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Jul 2008 03:25:56 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so441446nfc.21
+        for <linux-omap@vger.kernel.org>; Sat, 05 Jul 2008 00:25:54 -0700 (PDT)
+In-Reply-To: <AF70E37B-038B-4117-B69F-B2BCD9EFF6AA@student.utwente.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: iqbal@ti.com
-Cc: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>
 
-2008/7/2  <iqbal@ti.com>:
-> From: Iqbal Shareef <iqbal@ti.com>
->
-> Separate out 3430 LCD panel support from 2430 SDP.
->
-> Currently the support for the LCD on 3430SDP is added in the lcd_2430sdp.c
-> file. This patch separates it out to a new file.
+Koen Kooi wrote:
+> 
+> Op 2 jul 2008, om 22:03 heeft Gadiyar, Anand het volgende geschreven:
+> 
+>>> At Beagle IRC there was some discussion [1] [2] today about kernel
+>>> hang on OMAP3 based Beagle board. I'll try to summarize discussion  and
+>>> Khasim's findings, maybe somebody here has an idea.
+>>>
+>>> Latest OMAP git kernel seems to hang on beagle board after some time.
+>>> You don't see any crash, but after a while typing, anything doesn't
+>>> work. SD stops as well, so you can only do stuff that's in ram, any  IO
+>>> will block. It can take >1 day to get there, but mostly it's ~30  
+>>> minutes.
+>>>
+>>> Khasim found that it seems disabling RTC will remove the hang. When
+>>> booting the git kernel after some time there are no timer or PRCM
+>>> interrupts and the control resides in cpu_idle. We don't know where
+>>> exactly the problem in RTC is, but while browsing the history of  files
+>>> related to RTC Khasim found that some changes were done to the files
+>>> to handle T2 interrupts in a centralized way for USB, Battery and  RTC.
+>>> It seems even Battery broke with this patch set
+>>>
+>>> http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commitdiff;h=68d7477caca19c0b52b5d4e85700cd3e6115577f 
+>>>
+>>>
+>>> May be this is the change that is affecting RTC. But it's unclear why
+>>> it is affecting GP timer and PRCM interrupts.
+>>>
+>>> Any idea?
+>>>
+>>> Thanks and please correct if something is wrong in the summary
+>>>
+>>> Dirk
+>>
+>>
+>> Khasim also found that T2 RTC is not enabled by default in 3430sdp
+>> defconfig, but it appears to be enabled in the beagleboard defconfig.
+>> Maybe you can get by by simply disabling T2 RTC in menuconfig for now?
+> 
+> 
+> Tried that and I get the same hang, so I don't think the RTC is to  blame.
 
-Isn't this a bit step backwards?  Code reuse is generally a good thing
-if it doesn't clutter the code too much, and if you do diff -pNaur
-lcd_2430sdp.c lcd_3430sdp.c in the current tree you will see that they
-are very similar.
+Short update just in case anybody has an idea:
 
-Additionally this patch leaves some of the 3430SDP code in
-lcd_2430sdp.c, you will still find this:
-#define SDP3430_LCD_PANEL_BACKLIGHT_GPIO 	24
-#define SDP3430_LCD_PANEL_ENABLE_GPIO 		28
-...
-	if (machine_is_omap_3430sdp()) {
-		enable_gpio    = SDP3430_LCD_PANEL_ENABLE_GPIO;
-		backlight_gpio = SDP3430_LCD_PANEL_BACKLIGHT_GPIO;
-	} else {
-		enable_gpio    = SDP2430_LCD_PANEL_ENABLE_GPIO;
-		backlight_gpio = SDP2430_LCD_PANEL_BACKLIGHT_GPIO;
-	}
-...
-	if (machine_is_omap_3430sdp()) {
-		ded_reg = TWL4030_VAUX3_DEDICATED;
-		ded_val = ENABLE_VAUX3_DEDICATED;
-		grp_reg = TWL4030_VAUX3_DEV_GRP;
-		grp_val = ENABLE_VAUX3_DEV_GRP;
-	} else {
-		ded_reg = TWL4030_VAUX2_DEDICATED;
-		ded_val = ENABLE_VAUX2_DEDICATED;
-		grp_reg = TWL4030_VAUX2_DEV_GRP;
-		grp_val = ENABLE_VAUX2_DEV_GRP;
-	}
+Gadiyar spent some time with git-bisect (thanks!):
 
-Another thing that isn't explained is why the GPIO numbers for
-backlight and enable changed from 24 and 28 to 8 and 5.
+It seems that the bad commit is probably between:
+# good: [3ffec4e18484c34838fa341de3848306c29ecd5d] 24XX: PM: Move pm.c 
+to pm24xx.c
+and sleep.S to sleep24xx.S
+and # bad: [458776cfe389ff03bd6c56c47e059df0778cdfca] OMAP3430SDP: 
+Enable config
+options CONFIG_OMAP_RESET_CLOCKS and CONFIG_SUSPEND
 
-Regards,
-Andrew
+This is a 9-patch series by Jouni Hogander related to suspend and 
+power-management.
+
+Dirk
+
+
