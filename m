@@ -1,16 +1,16 @@
 From: Dmitry Baryshkov <dbaryshkov@gmail.com>
-Subject: [PATCH 2/4] ohci: make distrust_firmware a quirk
-Date: Sun, 6 Jul 2008 14:26:10 +0400
-Message-ID: <20080706102610.GA29923__14371.3615987965$1215345102$gmane$org@doriath.ww600.siemens.net>
+Subject: [PATCH 3/4] Hook start_hnp into ohci struct
+Date: Sun, 6 Jul 2008 14:26:30 +0400
+Message-ID: <20080706102630.GA29934__27356.4112875194$1215345144$gmane$org@doriath.ww600.siemens.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.152]:63709 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751912AbYGFLui (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Jul 2008 07:50:38 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so678890fgg.17
-        for <linux-omap@vger.kernel.org>; Sun, 06 Jul 2008 04:50:37 -0700 (PDT)
+Received: from fk-out-0910.google.com ([209.85.128.184]:46457 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752739AbYGFLvE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Jul 2008 07:51:04 -0400
+Received: by fk-out-0910.google.com with SMTP id 18so1054826fkq.5
+        for <linux-omap@vger.kernel.org>; Sun, 06 Jul 2008 04:51:03 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,60 +18,57 @@ To: linux-usb@vger.kernel.org
 
 Signed-off-by: Dmitry Baryshkov <dbaryshkov@gmail.com>
 ---
- drivers/usb/host/ohci-hcd.c  |    6 +++++-
- drivers/usb/host/ohci-omap.c |    2 +-
+ drivers/usb/host/ohci-hub.c  |    4 +---
+ drivers/usb/host/ohci-omap.c |    1 +
  drivers/usb/host/ohci.h      |    1 +
- 3 files changed, 7 insertions(+), 2 deletions(-)
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/usb/host/ohci-hcd.c b/drivers/usb/host/ohci-hcd.c
-index a8160d6..df6f0e9 100644
---- a/drivers/usb/host/ohci-hcd.c
-+++ b/drivers/usb/host/ohci-hcd.c
-@@ -483,6 +483,9 @@ static int ohci_init (struct ohci_hcd *ohci)
- 	int ret;
- 	struct usb_hcd *hcd = ohci_to_hcd(ohci);
+diff --git a/drivers/usb/host/ohci-hub.c b/drivers/usb/host/ohci-hub.c
+index 79a7802..6a4e5b6 100644
+--- a/drivers/usb/host/ohci-hub.c
++++ b/drivers/usb/host/ohci-hub.c
+@@ -581,8 +581,6 @@ static int ohci_start_port_reset (struct usb_hcd *hcd, unsigned port)
+ 	return 0;
+ }
  
-+	if (distrust_firmware)
-+		ohci->flags |= OHCI_QUIRK_HUB_POWER;
-+
- 	disable (ohci);
- 	ohci->regs = hcd->regs;
+-static void start_hnp(struct ohci_hcd *ohci);
+-
+ #else
  
-@@ -689,7 +692,8 @@ retry:
- 		temp |= RH_A_NOCP;
- 		temp &= ~(RH_A_POTPGT | RH_A_NPS);
- 		ohci_writel (ohci, temp, &ohci->regs->roothub.a);
--	} else if ((ohci->flags & OHCI_QUIRK_AMD756) || distrust_firmware) {
-+	} else if ((ohci->flags & OHCI_QUIRK_AMD756) ||
-+			ohci->flags & OHCI_QUIRK_HUB_POWER) {
- 		/* hub power always on; required for AMD-756 and some
- 		 * Mac platforms.  ganged overcurrent reporting, if any.
- 		 */
+ #define	ohci_start_port_reset		NULL
+@@ -769,7 +767,7 @@ static int ohci_hub_control (
+ #ifdef	CONFIG_USB_OTG
+ 			if (hcd->self.otg_port == (wIndex + 1)
+ 					&& hcd->self.b_hnp_enable)
+-				start_hnp(ohci);
++				ohci->start_hnp(ohci);
+ 			else
+ #endif
+ 			ohci_writel (ohci, RH_PS_PSS,
 diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
-index 6859fb5..4f21646 100644
+index 4f21646..8b92532 100644
 --- a/drivers/usb/host/ohci-omap.c
 +++ b/drivers/usb/host/ohci-omap.c
-@@ -257,7 +257,7 @@ static int ohci_omap_init(struct usb_hcd *hcd)
- 			omap_cfg_reg(W4_USB_HIGHZ);
+@@ -222,6 +222,7 @@ static int ohci_omap_init(struct usb_hcd *hcd)
+ 			dev_err(hcd->self.controller, "can't find transceiver\n");
+ 			return -ENODEV;
  		}
- 		ohci_writel(ohci, rh, &ohci->regs->roothub.a);
--		distrust_firmware = 0;
-+		ohci->flags &= ~OHCI_QUIRK_HUB_POWER;
- 	} else if (machine_is_nokia770()) {
- 		/* We require a self-powered hub, which should have
- 		 * plenty of power. */
++		ohci->start_hnp = start_hnp;
+ 	}
+ #endif
+ 
 diff --git a/drivers/usb/host/ohci.h b/drivers/usb/host/ohci.h
-index dc544dd..4e3d9b2 100644
+index 4e3d9b2..90e17b0 100644
 --- a/drivers/usb/host/ohci.h
 +++ b/drivers/usb/host/ohci.h
-@@ -399,6 +399,7 @@ struct ohci_hcd {
- #define	OHCI_QUIRK_ZFMICRO	0x20			/* Compaq ZFMicro chipset*/
- #define	OHCI_QUIRK_NEC		0x40			/* lost interrupts */
- #define	OHCI_QUIRK_FRAME_NO	0x80			/* no big endian frame_no shift */
-+#define OHCI_QUIRK_HUB_POWER	0x100			/* distrust firmware power/oc setup */
- 	// there are also chip quirks/bugs in init logic
+@@ -371,6 +371,7 @@ struct ohci_hcd {
+ 	 * other external transceivers should be software-transparent
+ 	 */
+ 	struct otg_transceiver	*transceiver;
++	void (*start_hnp)(struct ohci_hcd *ohci);
  
- 	struct work_struct	nec_work;	/* Worker for NEC quirk */
+ 	/*
+ 	 * memory management for queue data structures
 -- 
 1.5.6
 
