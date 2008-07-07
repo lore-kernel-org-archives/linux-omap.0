@@ -1,104 +1,35 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH 00/11] OMAP3 CPUidle patches
-Date: Mon, 7 Jul 2008 19:28:42 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930111A74854@dbde02.ent.ti.com>
-References: <003d01c8db84$fe61fde0$68bf18ac@ent.ti.com>
-	<20080702131127.GA4404@codecarver.research.nokia.com>
-	<000701c8dc48$d1ce66a0$68bf18ac@ent.ti.com>
-	<20080702154253.GC4404@codecarver.research.nokia.com>
-	<004d01c8dce8$56eec0b0$68bf18ac@ent.ti.com>
-	<87prpum7nr.fsf@trdhcp146196.ntc.nokia.com>
-	<873amqknae.fsf@trdhcp146196.ntc.nokia.com>
-	<011601c8ddba$c4031110$68bf18ac@ent.ti.com>
-	<1215423520.6048.16.camel@kj-ubuntu>
- <87k5fy2f1r.fsf@trdhcp146196.ntc.nokia.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Git pull request for omap patches for post 2.6.26
+Date: Mon, 7 Jul 2008 21:05:37 +0100
+Message-ID: <20080707200537.GP29191@flint.arm.linux.org.uk>
+References: <20080703101139.GE14276@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:56957 "EHLO calf.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753783AbYGGN65 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 Jul 2008 09:58:57 -0400
-In-Reply-To: <87k5fy2f1r.fsf@trdhcp146196.ntc.nokia.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46008 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755344AbYGGUFy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jul 2008 16:05:54 -0400
+Content-Disposition: inline
+In-Reply-To: <20080703101139.GE14276@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?B?SMO2Z2FuZGVyIEpvdW5p?= <jouni.hogander@nokia.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, 'Peter 'p2' De Schrijver' <peter.de-schrijver@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-SSBhbSBzdGlsbCB0cnlpbmcgdG8gZmluZCBteSB3YXkgdGhydSB0aGUgY29kZWJhc2UgaW4gR0lU
-OyBidXQgaGVyZSBpcyB3aGF0IEkgY2FuIHN1Z2dlc3QgYmFzZWQgb24gc2ltaWxhciBwcm9ibGVt
-IGRpYWdub3NlZCAoc3RpbGwgdW5kZXIgdGVzdCkgb24gdGhlIE9NQVAzRVZNOg0KDQoxKSBTYXZl
-L3Jlc3RvcmUgdGhlIEdQSU9fSVJRRU5BQkxFMSwgR1BJT19JUlFFTkFCTEUyDQoyKSBTYXZlL3Jl
-c3RvcmUgdGhlIEdQSU9fSVJRU1RBVFVTMSwgR1BJT19JUlFTVEFUVVMyDQoNClRoaXMgbmVlZHMg
-dG8gYmUgZG9uZSBiZWZvcmUgZW50ZXJpbmcgKG9yIGxlYXZpbmcpIGRlZXBlciBDLXN0YXRlcy4N
-Cg0KSG9wZSB0aGlzIGhlbHBzLg0KDQpCZXN0IHJlZ2FyZHMsDQpTYW5qZWV2DQoNCi0tLS0tT3Jp
-Z2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBsaW51eC1vbWFwLW93bmVyQHZnZXIua2VybmVsLm9y
-ZyBbbWFpbHRvOmxpbnV4LW9tYXAtb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2Yg
-SMO2Z2FuZGVyIEpvdW5pDQpTZW50OiBNb25kYXksIEp1bHkgMDcsIDIwMDggMzoyNyBQTQ0KVG86
-IEthbGxlIEpva2luaWVtaQ0KQ2M6IE5heWFrLCBSYWplbmRyYTsgJ1BldGVyICdwMicgRGUgU2No
-cmlqdmVyJzsgbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcNClN1YmplY3Q6IFJlOiBbUEFUQ0gg
-MDAvMTFdIE9NQVAzIENQVWlkbGUgcGF0Y2hlcw0KDQpLYWxsZSBKb2tpbmllbWkgPGV4dC1rYWxs
-ZS5qb2tpbmllbWlAbm9raWEuY29tPiB3cml0ZXM6DQoNCj4gT24gcGUsIDIwMDgtMDctMDQgYXQg
-MTU6MTUgKzA1MzAsIGV4dCBSYWplbmRyYSBOYXlhayB3cm90ZToNCj4gLi4uDQo+PiA+IGV4dCBI
-w7ZnYW5kZXIgSm91bmkgPGpvdW5pLmhvZ2FuZGVyQG5va2lhLmNvbT4gd3JpdGVzOg0KPg0KPiAu
-Li4NCj4NCj4+ID4NCj4+ID4gU28gUmFqZW5kcmEgc2VudCBoaXMgdUltYWdlIGFuZCBpdCB3b3Jr
-cyBxdWl0ZSBvayB3aGF0IGNvbWVzIHRvIG9mZg0KPj4gPiBtb2RlIG9uIG15IHNkcCBib2FyZC4g
-SSBzdGlsbCBzZWUgcHJvYmxlbXMgd2l0aCBzZXJpYWwgY29uc29sZQ0KPj4gPiAoc2xvdykgYW5k
-IG9uIGJvb3QgSSBuZWVkIHRvIGdlbmVyYXRlIG1hbnVhbGx5IGludGVycnVwdHMgdG8gZ2V0IGl0
-DQo+PiA+IHRvIGJvb3QuIE90aGVyd2lzZSBib2FyZCBoYW5ncyBhdCB0aGlzIHBvaW50Og0KPj4N
-Cj4+IFllcywgSSBub3RpY2VkIHRoaXMgYXMgd2VsbC4gSXQgdGFrZXMgcXVpdGUgbG9uZyB0byBi
-b290dXAgaWYgeW91DQo+PiBkb24ndCBnZW5lcmF0ZSBVQVJUIGludGVycnVwdHMuDQo+PiBBZnRl
-ciBib290dXAgb25jZSBSRVQvT0ZGIGlzIGhpdCwgaXQgdGFrZXMgYSBmZXcgaGl0cyB0byBjb21l
-IG91dCBvZg0KPj4gaXQgYXMgSU8gd2FrZXVwIGlzIG1pc3NpbmcuDQo+DQo+IEpvdW5pIGhhZCBh
-IHRoZW9yeSB0aGF0IHRoZSBldGhlcm5ldCBkZXZpY2UgY291bGQgY2F1c2UgdGhpcyBzbG93bmVz
-cw0KPiB0cm91YmxlIGluIHRoZSBzdGFydHVwLCBzbyBJIGludmVzdGlnYXRlZCB0aGUgbWF0dGVy
-IGEgbGl0dGxlIGZ1cnRoZXIuDQo+IEJ5IGVuYWJsaW5nIHRoZSBkZWJ1ZyBwcmludHMgaW4gdGhl
-IGV0aGVybmV0IGNoaXAgZHJpdmVyLA0KPg0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9uZXQvc21j
-OTF4LmMgYi9kcml2ZXJzL25ldC9zbWM5MXguYyBpbmRleA0KPiA3NzZjODFkLi43ZDFlZWFkIDEw
-MDY0NA0KPiAtLS0gYS9kcml2ZXJzL25ldC9zbWM5MXguYw0KPiArKysgYi9kcml2ZXJzL25ldC9z
-bWM5MXguYw0KPiBAQCAtNjIsNyArNjIsNyBAQCBzdGF0aWMgY29uc3QgY2hhciB2ZXJzaW9uW10g
-PQ0KPg0KPiAgLyogRGVidWdnaW5nIGxldmVsICovDQo+ICAjaWZuZGVmIFNNQ19ERUJVRw0KPiAt
-I2RlZmluZSBTTUNfREVCVUcgICAgICAgICAgICAgIDANCj4gKyNkZWZpbmUgU01DX0RFQlVHICAg
-ICAgICAgICAgICAxDQo+ICAjZW5kaWYNCj4NCj4NCj4gSSB3YXMgYWJsZSB0byBzZWUsIHRoYXQg
-d2UgZ2V0IGxvdHMgb2YgUlggb3ZlcnJ1biBpbnRlcnJ1cHRzIHdpdGgNCj4gY3B1X2lkbGUsIG1l
-YW5pbmcgdGhhdCBpbmNvbWluZyBzdHVmZiBpcyBub3QgZ2V0dGluZyBwcm9jZXNzZWQuIEJ5DQo+
-IGdlbmVyYXRpbmcgVUFSVCBpbnRlcnJ1cHRzLCBJIHdlIHByb2JhYmx5IGNhbiBhbHNvIGNhdGNo
-IG1vcmUgbmV0d29yaw0KPiBSWCBpbnRlcnJ1cHRzIGFuZCB0aGlzIGhlbHBzIHRoZSBib290dXAg
-Z28gZmFzdGVyLiDvu79XaXRoIGNwdV9pZGxlDQo+IGRpc2FibGVkLCB0aGVyZSB3ZXJlIG5vIFJY
-IG92ZXJydW5zLg0KDQpZb3VyIGludmVzdGlnYXRpb24gc3VwcG9ydHMgdGhpcyB0aGVvcnkuIElu
-dGVycnVwdCBsaW5lIGZyb20gZXRoIGNoaXAgZG9lc24ndCB3YWtlIHVwIG1wdS4gSSBhc3N1bWUg
-aXQgaXMgZ3BpbyBsaW5lLiBUaG9zZSBhcmUgYWRkZWQgdG8gbXB1IHdha2UtdXAgZXZlbnRzIGdy
-b3VwLCBncGlvIHdha2UtdXBzIGFyZSBlbmFibGVkIGFuZCBtcHUgcGVyaXBoZXJhbHMgZ3JvdXAg
-d2FrZS11cCBldmVudCBpbnRlcnJ1cHQgaXMgZW5hYmxlZC4NCg0KSSdtIHN1c3BlY3RpbmcgdGhh
-dCB0aGlzIHByb2JsZW0gaGFwcGVucyBpZiBzdGF0ZSB3aGVyZSBtcHUgaXMgaW4gc2xlZXAgc3Rh
-dGUgYW5kIGNvcmUrcGVyIGFyZSBhd2FrZSBpcyB1c2VkLg0KDQpBbnkgY29tbWVudHMgZnJvbSBU
-SSBwZW9wbGUgd2hhdCBtaWdodCBiZSB3cm9uZz8NCg0KPg0KPiBJJ2xsIHRyeSB0byBzZWUgaWYg
-dGhpcyBjYW4gYmUgZml4ZWQgc29tZWhvdy4NCj4NCj4+DQo+PiA+DQo+PiA+IGV0aDA6IGxpbmsg
-dXANCj4+ID4gU2VuZGluZyBESENQIHJlcXVlc3RzIC4sIE9LDQo+PiA+IElQLUNvbmZpZzogR290
-IERIQ1AgYW5zd2VyIGZyb20gMC4wLjAuMCwgbXkgYWRkcmVzcyBpcw0KPj4gPiAxOTIuMTY4LjIu
-MTAxDQo+PiA+IElQLUNvbmZpZzogQ29tcGxldGU6DQo+PiA+ICAgICAgZGV2aWNlPWV0aDAsIGFk
-ZHI9MTkyLjE2OC4yLjEwMSwgbWFzaz0yNTUuMjU1LjI1NS4wLA0KPj4gPiBndz0xOTIuMTY4LjIu
-MSwNCj4+ID4gICAgICBob3N0PTE5Mi4xNjguMi4xMDEsIGRvbWFpbj1udGMubm9raWEuY29tLCBu
-aXMtZG9tYWluPShub25lKSwNCj4+ID4gICAgICBib290c2VydmVyPTAuMC4wLjAsIHJvb3RzZXJ2
-ZXI9MTcyLjIyLjE0Ni4xOTcsIHJvb3RwYXRoPQ0KPj4gPiBMb29raW5nIHVwIHBvcnQgb2YgUlBD
-IDEwMDAwMy8yIG9uIDE3Mi4yMi4xNDYuMTk3IExvb2tpbmcgdXAgcG9ydA0KPj4gPiBvZiBSUEMg
-MTAwMDA1LzEgb24gMTcyLjIyLjE0Ni4xOTcNCj4+ID4gVkZTOiBNb3VudGVkIHJvb3QgKG5mcyBm
-aWxlc3lzdGVtKS4NCj4+ID4gRnJlZWluZyBpbml0IG1lbW9yeTogMTA4Sw0KPj4gPg0KPj4gPiBS
-YWplbmRyYSwgYXJlIHlvdSBzdGlsbCB1c2luZyAuY29uZmlnIGZpbGUgeW91IHNlbnQgdG8gbWU/
-IEFyZSBhbGwNCj4+ID4gdGhlIGNoYW5nZXMgaW4geW91ciB0cmVlIGF2YWlsYWJsZSBpbiBsLW8g
-bGlzdC4NCj4+DQo+PiBZZXMsIGFsbCB0aGUgY2hhbmdlcyBhcmUgcGFydCBvZiB0aGUgMTEgcGF0
-Y2ggc2V0ICsgMSByZXdvcmsgZml4ZXMgcGF0Y2ggSSBzZW50Lg0KPj4gVG8gZGVidWcgZnVydGhl
-ciwgY2FuIHlvdSBwdXQgYSBmZXcgcHJpbnRzIGluIG9tYXAzX2VudGVyX2lkbGUgYW5kDQo+PiBv
-bWFwM19lbnRlcl9pZGxlX2JtIHRvIHNlZSB3aGF0IHN0YXRlcyBhcmUgc2VsZWN0ZWQgYnkgdGhl
-IG1lbnUgZ292Lg0KPj4gV2Ugd2lsbCB0aGVuIGtub3cgaWYgQ09SRSBSRVQvT0ZGIGlzIGF0dGVt
-cHRlZCBidXQgbm90IGFjaGlldmVkIGR1ZQ0KPj4gdG8gc29tZSByZWFzb24sIG9yIG5ldmVyIGF0
-dGVtcHRlZCBhbHRvZ2V0aGVyLg0KPg0KPiBNeSBzZXR1cCBkb2VzIG5vdCBzZWVtIHRvIGdvIGJl
-eW9uZCBDMiBzdGF0ZSwgYnR3LiBTbyBJJ2xsIG5lZWQgdG8NCj4gZGVidWcgdGhhdCBhbHNvIGEg
-Yml0LiBUaGUgYWJvdmUtbWVudGlvbmVkIHBhdGNoZXMgYXJlIGFwcGxpZWQuDQo+DQo+IEJyLCBL
-YWxsZQ0KPg0KPg0KPiAuLi4NCj4NCj4NCj4NCg0KLS0NCkpvdW5pIEjDtmdhbmRlcg0KDQotLQ0K
-VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJl
-IGxpbnV4LW9tYXAiIGluIHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5r
-ZXJuZWwub3JnIE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcv
-bWFqb3Jkb21vLWluZm8uaHRtbA0K
+On Thu, Jul 03, 2008 at 01:11:42PM +0300, Tony Lindgren wrote:
+> Please pull the omap patches for post-2.6.26 from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap2-upstream
+
+I pulled this some time back but never merged it - but I did look at it.
+
+However, I never got around to looking at your other patches on the
+mailing list I'm afraid.
+
+Looking at what's in this git tree, there's at least a number of commits
+early on which are empty.  I've not really looked much further.
+
+Since I've only just remembered about this, I think I'm going to have to
+say "no more" to further community PXA commits this side of the merge
+window to make sufficient time to look at your OMAP stuff properly.
