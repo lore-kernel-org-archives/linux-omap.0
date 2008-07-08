@@ -1,263 +1,108 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 02/09] MPU/CORE latency and Power domain latency modeling
-Date: Tue, 8 Jul 2008 17:09:23 +0530
-Message-ID: <030901c8e0ef$44ebaa80$68bf18ac@ent.ti.com>
+Subject: [PATCH 09/09] voltage scaling support
+Date: Tue, 8 Jul 2008 17:09:34 +0530
+Message-ID: <031001c8e0ef$4b2b65c0$68bf18ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:58796 "EHLO calf.ext.ti.com"
+Received: from calf.ext.ti.com ([198.47.26.144]:58806 "EHLO calf.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754653AbYGHLjb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2008 07:39:31 -0400
+	id S1754702AbYGHLjm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2008 07:39:42 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by calf.ext.ti.com (8.13.7/8.13.7) with ESMTP id m68BdO7Z001871
-	for <linux-omap@vger.kernel.org>; Tue, 8 Jul 2008 06:39:30 -0500
+	by calf.ext.ti.com (8.13.7/8.13.7) with ESMTP id m68BdZu3001886
+	for <linux-omap@vger.kernel.org>; Tue, 8 Jul 2008 06:39:40 -0500
 Received: from a0393137pc (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m68BdIxH005245
-	for <linux-omap@vger.kernel.org>; Tue, 8 Jul 2008 17:09:23 +0530 (IST)
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m68BdIxO005245
+	for <linux-omap@vger.kernel.org>; Tue, 8 Jul 2008 17:09:34 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-This patch adds the resource definitions for mpu/core latency resource
-and power domain latency resources for OMAP3
+Adds Voltage scaling support
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
 ---
- arch/arm/mach-omap2/resource34xx.h |  226 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 226 insertions(+)
+ arch/arm/mach-omap2/board-3430sdp.c |   12 ++++++++++++
+ arch/arm/mach-omap2/resource34xx.c  |   17 ++++++++++++++++-
+ arch/arm/mach-omap2/resource34xx.h  |    3 +++
+ 3 files changed, 31 insertions(+), 1 deletion(-)
 
+Index: linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/board-3430sdp.c	2008-07-08 11:33:54.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c	2008-07-08 14:10:23.944803055 +0530
+@@ -88,6 +88,18 @@ struct vdd_prcm_config iva2_rate_table[]
+ 	{S430M, VDD1_OPP5, 0},
+ };
+ 
++u8 vdd1_volts[MAX_VDD1_OPP] = {
++	/* Vsel corresponding to 0.9V (OPP1), 1.00V (OPP2),
++	 * 1.20V (OPP3), 1.27V (OPP4), 1.35 (OPP5)
++	 */
++	0x18, 0x20, 0x30, 0x36, 0x3C
++};
++
++u8 vdd2_volts[MAX_VDD2_OPP] = {
++	/* Vsel corresponding to 0.9V (OPP1), 1.00V (OPP2), 1.15 (OPP3) */
++	0x18, 0x20, 0x2C
++};
++
+ static struct resource sdp3430_smc91x_resources[] = {
+ 	[0] = {
+ 		.start	= OMAP34XX_ETHR_START,
+Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.c	2008-07-08 12:09:40.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c	2008-07-08 15:20:08.480788833 +0530
+@@ -19,6 +19,7 @@
+ #include <linux/pm_qos_params.h>
+ #include <asm/arch/powerdomain.h>
+ #include <asm/arch/clockdomain.h>
++#include "smartreflex.h"
+ #include "resource34xx.h"
+ 
+ /**
+@@ -174,10 +175,24 @@ int set_opp(struct shared_resource *resp
+ {
+ #ifdef CONFIG_MACH_OMAP_3430SDP
+ 	unsigned long mpu_freq;
++
++	if (resp->curr_level == target_level)
++		return 0;
++
+ 	if (strcmp(resp->name, "vdd1_opp") == 0) {
+ 		mpu_freq = get_freq(vdd1_rate_table + MAX_VDD1_OPP,
+ 					target_level);
+-		clk_set_rate(vdd1_clk, mpu_freq);
++		if (resp->curr_level > target_level) {
++			/* Scale Frequency and then voltage */
++			clk_set_rate(vdd1_clk, mpu_freq);
++			sr_voltagescale_vcbypass(PRCM_VDD1,
++					vdd1_volts[target_level-1]);
++		} else {
++			/* Scale Voltage and then frequency */
++			sr_voltagescale_vcbypass(PRCM_VDD1,
++					vdd1_volts[target_level-1]);
++			clk_set_rate(vdd1_clk, mpu_freq);
++		}
+ 		resp->curr_level = curr_vdd1_prcm_set->opp;
+ 	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
+ 		/* Not supported yet */
 Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h
 ===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h	2008-07-07 10:23:07.006143844 +0530
-@@ -0,0 +1,226 @@
-+/*
-+ * linux/arch/arm/mach-omap2/resource34xx.h
-+ *
-+ * OMAP3 resource definitions
-+ *
-+ * Copyright (C) 2007-2008 Texas Instruments, Inc.
-+ * Written by Rajendra Nayak <rnayak@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-+ *
-+ * History:
-+ *
-+ */
-+
-+#ifndef __ARCH_ARM_MACH_OMAP2_RESOURCE_H
-+#define __ARCH_ARM_MACH_OMAP2_RESOURCE_H
-+
-+#include <asm/arch/resource.h>
-+#include <asm/arch/powerdomain.h>
-+
-+/**
-+ * mpu_latency/core_latency are used to control the cpuidle C state.
-+ */
-+void init_latency(struct shared_resource *resp);
-+int set_latency(struct shared_resource *resp, u32 target_level);
-+
-+static u8 mpu_qos_req_added;
-+static u8 core_qos_req_added;
-+
-+static struct shared_resource_ops lat_res_ops = {
-+	.init 		= init_latency,
-+	.change_level   = set_latency,
-+};
-+
-+static struct shared_resource mpu_latency = {
-+	.name 		= "mpu_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data  = &mpu_qos_req_added,
-+	.ops 		= &lat_res_ops,
-+};
-+
-+static struct shared_resource core_latency = {
-+	.name 		= "core_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data	= &core_qos_req_added,
-+	.ops 		= &lat_res_ops,
-+};
-+
-+/**
-+ * Power domain Latencies are used to control the target Power
-+ * domain state once all clocks for the power domain
-+ * are released.
-+ */
-+void init_pd_latency(struct shared_resource *resp);
-+int set_pd_latency(struct shared_resource *resp, u32 target_level);
-+
-+/* Power Domain Latency levels */
-+#define PD_LATENCY_OFF		0x0
-+#define PD_LATENCY_RET		0x1
-+#define PD_LATENCY_INACT	0x2
-+#define PD_LATENCY_ON		0x3
-+
-+#define PD_LATENCY_MAXLEVEL 	0x4
-+
-+struct pd_latency_db {
-+	char *pwrdm_name;
-+	struct powerdomain *pd;
-+	/* Latencies for each state transition, stored in us */
-+	unsigned long latency[PD_LATENCY_MAXLEVEL];
-+};
-+
-+static struct shared_resource_ops pd_lat_res_ops = {
-+	.init		= init_pd_latency,
-+	.change_level 	= set_pd_latency,
-+};
-+
-+static struct pd_latency_db iva2_pwrdm_lat_db = {
-+	.pwrdm_name = "iva2_pwrdm",
-+	.latency[PD_LATENCY_OFF] = 1000,
-+	.latency[PD_LATENCY_RET] = 100,
-+	.latency[PD_LATENCY_INACT] = 0,
-+	.latency[PD_LATENCY_ON] = 0
-+};
-+
-+static struct shared_resource iva2_pwrdm_latency = {
-+	.name		= "iva2_pwrdm_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data	= &iva2_pwrdm_lat_db,
-+	.ops		= &pd_lat_res_ops,
-+};
-+
-+static struct pd_latency_db gfx_pwrdm_lat_db = {
-+	.pwrdm_name = "gfx_pwrdm",
-+	.latency[PD_LATENCY_OFF] = 1000,
-+	.latency[PD_LATENCY_RET] = 100,
-+	.latency[PD_LATENCY_INACT] = 0,
-+	.latency[PD_LATENCY_ON]	 = 0
-+};
-+
-+static struct shared_resource gfx_pwrdm_latency = {
-+	.name		= "gfx_pwrdm_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1),
-+	.resource_data	= &gfx_pwrdm_lat_db,
-+	.ops		= &pd_lat_res_ops,
-+};
-+
-+static struct shared_resource sgx_pwrdm_latency = {
-+	.name 		= "sgx_pwrdm_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
-+	.resource_data  = &gfx_pwrdm_lat_db,
-+	.ops		= &pd_lat_res_ops,
-+};
-+
-+static struct pd_latency_db dss_pwrdm_lat_db = {
-+	.pwrdm_name = "dss_pwrdm",
-+	.latency[PD_LATENCY_OFF] = 70,
-+	.latency[PD_LATENCY_RET] = 20,
-+	.latency[PD_LATENCY_INACT] = 0,
-+	.latency[PD_LATENCY_ON]	 = 0
-+};
-+
-+static struct shared_resource dss_pwrdm_latency = {
-+	.name		= "dss_pwrdm_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data	= &dss_pwrdm_lat_db,
-+	.ops		= &pd_lat_res_ops,
-+};
-+
-+static struct pd_latency_db cam_pwrdm_lat_db = {
-+	.pwrdm_name = "cam_pwrdm",
-+	.latency[PD_LATENCY_OFF] = 850,
-+	.latency[PD_LATENCY_RET] = 35,
-+	.latency[PD_LATENCY_INACT] = 0,
-+	.latency[PD_LATENCY_ON]	 = 0
-+};
-+
-+static struct shared_resource cam_pwrdm_latency = {
-+	.name		= "cam_pwrdm_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data	= &cam_pwrdm_lat_db,
-+	.ops		= &pd_lat_res_ops,
-+};
-+
-+static struct pd_latency_db per_pwrdm_lat_db = {
-+	.pwrdm_name = "per_pwrdm",
-+	.latency[PD_LATENCY_OFF] = 200,
-+	.latency[PD_LATENCY_RET] = 110,
-+	.latency[PD_LATENCY_INACT] = 0,
-+	.latency[PD_LATENCY_ON]	 = 0
-+};
-+
-+static struct shared_resource per_pwrdm_latency = {
-+	.name		= "per_pwrdm_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data	= &per_pwrdm_lat_db,
-+	.ops		= &pd_lat_res_ops,
-+};
-+
-+static struct pd_latency_db neon_pwrdm_lat_db = {
-+	.pwrdm_name = "neon_pwrdm",
-+	.latency[PD_LATENCY_OFF] = 1000,
-+	.latency[PD_LATENCY_RET] = 100,
-+	.latency[PD_LATENCY_INACT] = 0,
-+	.latency[PD_LATENCY_ON]	 = 0
-+};
-+
-+static struct shared_resource neon_pwrdm_latency = {
-+	.name		= "neon_pwrdm_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data	= &neon_pwrdm_lat_db,
-+	.ops		= &pd_lat_res_ops,
-+};
-+
-+static struct pd_latency_db usbhost_pwrdm_lat_db = {
-+	.pwrdm_name = "usbhost_pwrdm",
-+	.latency[PD_LATENCY_OFF] = 1000,
-+	.latency[PD_LATENCY_RET] = 100,
-+	.latency[PD_LATENCY_INACT] = 0,
-+	.latency[PD_LATENCY_ON]	 = 0
-+};
-+
-+static struct shared_resource usbhost_pwrdm_latency = {
-+	.name		= "usbhost_pwrdm_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
-+	.resource_data  = &usbhost_pwrdm_lat_db,
-+	.ops		= &pd_lat_res_ops,
-+};
-+
-+static struct pd_latency_db emu_pwrdm_lat_db = {
-+	.pwrdm_name = "emu_pwrdm",
-+	.latency[PD_LATENCY_OFF] = 1000,
-+	.latency[PD_LATENCY_RET] = 100,
-+	.latency[PD_LATENCY_INACT] = 0,
-+	.latency[PD_LATENCY_ON]  = 0
-+};
-+
-+static struct shared_resource emu_pwrdm_latency = {
-+	.name           = "emu_pwrdm",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data  = &emu_pwrdm_lat_db,
-+	.ops		= &pd_lat_res_ops,
-+};
-+
-+static struct shared_resource *resources_omap[] __initdata = {
-+	&mpu_latency,
-+	&core_latency,
-+	/* Power Domain Latency resources */
-+	&iva2_pwrdm_latency,
-+	&gfx_pwrdm_latency,
-+	&sgx_pwrdm_latency,
-+	&dss_pwrdm_latency,
-+	&cam_pwrdm_latency,
-+	&per_pwrdm_latency,
-+	&neon_pwrdm_latency,
-+	&usbhost_pwrdm_latency,
-+	&emu_pwrdm_latency,
-+	NULL
-+};
-+
-+#endif /* __ARCH_ARM_MACH_OMAP2_RESOURCE_H */
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.h	2008-07-08 12:08:12.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h	2008-07-08 14:17:35.407119891 +0530
+@@ -33,6 +33,9 @@ extern unsigned int get_opp(struct vdd_p
+ extern struct vdd_prcm_config vdd1_rate_table[];
+ extern struct vdd_prcm_config vdd2_rate_table[];
+ extern struct vdd_prcm_config iva2_rate_table[];
++extern u8 vdd1_volts[];
++extern u8 vdd2_volts[];
++extern int sr_voltagescale_vcbypass(u32 target_opp, u8 vsel);
+ /**
+  * mpu_latency/core_latency are used to control the cpuidle C state.
+  */
 
