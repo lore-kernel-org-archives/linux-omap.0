@@ -1,138 +1,74 @@
-From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: RE: [PATCH 0/9] OMAP2/3 SDRC/clock: control CORE M2 divider, clean up SDRC
-Date: Tue, 8 Jul 2008 10:07:39 +0530
-Message-ID: <02aa01c8e0b4$5c09a450$68bf18ac@ent.ti.com>
-References: <20080708025225.11646.55912.stgit@localhost.localdomain>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: [PATCH 00/11] OMAP3 CPUidle patches
+Date: Tue, 08 Jul 2008 09:15:42 +0300
+Message-ID: <8763rg3nqp.fsf@trdhcp146196.ntc.nokia.com>
+References: <003d01c8db84$fe61fde0$68bf18ac@ent.ti.com>
+	<20080702131127.GA4404@codecarver.research.nokia.com>
+	<000701c8dc48$d1ce66a0$68bf18ac@ent.ti.com>
+	<20080702154253.GC4404@codecarver.research.nokia.com>
+	<004d01c8dce8$56eec0b0$68bf18ac@ent.ti.com>
+	<87prpum7nr.fsf@trdhcp146196.ntc.nokia.com>
+	<873amqknae.fsf@trdhcp146196.ntc.nokia.com>
+	<011601c8ddba$c4031110$68bf18ac@ent.ti.com>
+	<1215423520.6048.16.camel@kj-ubuntu>
+	<87k5fy2f1r.fsf@trdhcp146196.ntc.nokia.com>
+	<B85A65D85D7EB246BE421B3FB0FBB5930111A74854@dbde02.ent.ti.com>
+	<13B9B4C6EF24D648824FF11BE8967162035BCE275B@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33946 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751076AbYGHEh5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Jul 2008 00:37:57 -0400
-In-Reply-To: <20080708025225.11646.55912.stgit@localhost.localdomain>
+Received: from smtp.nokia.com ([192.100.122.230]:50392 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750914AbYGHGQY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2008 02:16:24 -0400
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162035BCE275B@dlee02.ent.ti.com>
+	(ext Woodruff's message of "Mon, 7 Jul 2008 17:25:09 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Paul Walmsley' <paul@pwsan.com>, linux-omap@vger.kernel.org
-Cc: 'Igor Stoppa' <igor.stoppa@nokia.com>
+To: "ext Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: "Premi, Sanjeev" <premi@ti.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>, "Nayak, Rajendra" <rnayak@ti.com>, 'Peter 'p2' De Schrijver' <peter.de-schrijver@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
- 
+"ext Woodruff, Richard" <r-woodruff2@ti.com> writes:
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com] 
-> Sent: Tuesday, July 08, 2008 8:25 AM
-> To: linux-omap@vger.kernel.org
-> Cc: Rajendra Nayak; Igor Stoppa
-> Subject: [PATCH 0/9] OMAP2/3 SDRC/clock: control CORE M2 
-> divider, clean up SDRC
-> 
-> This patch series has three main objectives:
-> 
-> - connect Rajendra Nayak's existing OMAP3 SRAM code for CORE DPLL M2
->   divider reprogramming to the OMAP3 clock tree;
-> 
-> - create a sane method to pass SDRAM timing parameters from board-*.c 
->   files into the SDRC, to allow optimal timing parameters to be set
->   for a given clock rate;
-> 
-> - clean up the existing OMAP2/3 SDRC code.
-> 
-> 
-> A few notes:
-> 
-> - The M2 divider switch does not seem to work consistently on the
->   3430SDP I use to test.  In particular, the switch back to 
-> M2=1 results
->   in a hung console.
+>> I am still trying to find my way thru the codebase in GIT; but here =
+is
+>> what I can suggest based on similar problem diagnosed (still under
+>> test) on the OMAP3EVM:
+>>
+>> 1) Save/restore the GPIO_IRQENABLE1, GPIO_IRQENABLE2
+>> 2) Save/restore the GPIO_IRQSTATUS1, GPIO_IRQSTATUS2
+>
+> For sure save/restore of IRQENABLE is needed.  Our Labrador board
+> which has Ethernet on per-gpio would stop to function after an OFF
+> mode transition with out this save and restore (using CDP reference
+> code).
 
-SRAM being mapped as cacheable could be a possible reason for this.
+I think this is not related to OFF mode, because OFF state is not
+used on the boot. This problem seems to disappear when boot is
+done and C6 state is started to be used. Currently it seems to me that
+this problem exists if using states where mpu is in sleep state and
+core is active (C2, C3). This is under investigation. Is there any
+known restrictions in GPIO1 module wake-up capability when mpu is in
+sleep and core active? Any other known restrictions?
 
-> 
-> - Four SDRC rates are currently defined for the two SDRAM chip
->   registers included in this patch set.  The 165MHz and 83MHz rates
->   are unusual and are intended to match the TI OPP rates set by the
->   u-boot installation on the local 3430SDP.  133MHz and 66MHz rates
->   are also present; per CDP 12.17, apparently these are used on Beagle
->   and OMAP3EVM - not sure if these rates should also be derated
->   slightly?
-> 
-> 
-> The SDRAM timing parameter infrastructure is currently only used for
-> OMAP3, but can be also extended to OMAP2 devices once information on
-> the SDRAM parts used on those boards is available.
-> 
-> Thanks to Rajendra Nayak <rnayak@ti.com> and Igor
-> Stoppa <igor.stoppa@nokia.com> for finding some of the SDRAM
-> datasheets for this patch set.
-> 
-> Compile-tested for N800, 2430SDP, OMAP3430SDP, OMAP3EVM, OMAP3 Beagle.
-> Runtime-tested on OMAP3430SDP ES2.
-> 
-> If you have the debugfs set_rate patch, you can test the M2 divider
-> code on OMAP3430SDP via:
-> 
->    cd /debug/clock/virt_26m_ck/osc_sys_ck/sys_ck/dpll3_ck/dpll3_m2_ck
-> 
->    # Switch to M2 = 2 (assuming DPLL3 at 331MHz)
->    echo -n 165941176 > rate
-> 
->    # Switch back to M2 = 1
->    echo -n 331882352 > rate
-> 
-> 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> 
-> ---
-> 
-> size:
->    text    data     bss     dec     hex filename
-> 3404220  159104  108240 3671564  38060c vmlinux.3430sdp
-> 3403080  159200  108208 3670488  3801d8 vmlinux.3430sdp.patched
-> 
-> diffstat:
->  arch/arm/mach-omap2/Makefile                       |    6 +
->  arch/arm/mach-omap2/board-2430sdp.c                |    2 
->  arch/arm/mach-omap2/board-3430sdp.c                |    4 
->  arch/arm/mach-omap2/board-apollon.c                |    2 
->  arch/arm/mach-omap2/board-generic.c                |    2 
->  arch/arm/mach-omap2/board-h4.c                     |    2 
->  arch/arm/mach-omap2/board-ldp.c                    |    2 
->  arch/arm/mach-omap2/board-n800.c                   |    2 
->  arch/arm/mach-omap2/board-omap2evm.c               |    2 
->  arch/arm/mach-omap2/board-omap3beagle.c            |    4 
->  arch/arm/mach-omap2/board-omap3evm.c               |    4 
->  arch/arm/mach-omap2/clock.c                        |    2 
->  arch/arm/mach-omap2/clock24xx.c                    |   25 +--
->  arch/arm/mach-omap2/clock34xx.c                    |   68 +++++++-
->  arch/arm/mach-omap2/clock34xx.h                    |    9 -
->  arch/arm/mach-omap2/gpmc.c                         |    2 
->  arch/arm/mach-omap2/io.c                           |    8 -
->  arch/arm/mach-omap2/memory.c                       |  179 
-> --------------------
->  arch/arm/mach-omap2/memory.h                       |   43 -----
->  arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h  |   55 ++++++
->  .../mach-omap2/sdram-qimonda-hyb18m512160af-6.h    |   55 ++++++
->  arch/arm/mach-omap2/sdrc.c                         |   93 ++++++++++
->  arch/arm/mach-omap2/sdrc2xxx.c                     |  164 
-> ++++++++++++++++++
->  arch/arm/mach-omap2/sram34xx.S                     |   84 +++------
->  arch/arm/plat-omap/common.c                        |    2 
->  arch/arm/plat-omap/sram.c                          |   63 ++-----
->  include/asm-arm/arch-omap/common.h                 |    2 
->  include/asm-arm/arch-omap/gpmc.h                   |    1 
->  include/asm-arm/arch-omap/io.h                     |    4 
->  include/asm-arm/arch-omap/sdrc.h                   |   64 ++++++-
->  include/asm-arm/arch-omap/sram.h                   |   25 +--
->  31 files changed, 597 insertions(+), 383 deletions(-)
->  delete mode 100644 arch/arm/mach-omap2/memory.c
->  delete mode 100644 arch/arm/mach-omap2/memory.h
->  create mode 100644 arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h
->  create mode 100644 
-> arch/arm/mach-omap2/sdram-qimonda-hyb18m512160af-6.h
->  create mode 100644 arch/arm/mach-omap2/sdrc.c
->  create mode 100644 arch/arm/mach-omap2/sdrc2xxx.c
-> 
-> 
+>
+> I don't think STATUS is necessary.  It=E2=80=99s a write 1 to clear r=
+egister and should re-latch once there is data.
+>
+> As a side note I was noting that the SMC9211 etherchip actually may n=
+eed a dvfs pre-post notifier.  During DVFS spurious interrupt events ca=
+use the interface to disable interrupts on its own on some tests.
+>
+> Regards,
+> Richard W.
+>
 
+--=20
+Jouni H=C3=B6gander
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
