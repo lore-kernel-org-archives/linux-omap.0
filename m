@@ -1,74 +1,60 @@
-From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: [PATCH 00/11] OMAP3 CPUidle patches
-Date: Tue, 08 Jul 2008 09:15:42 +0300
-Message-ID: <8763rg3nqp.fsf@trdhcp146196.ntc.nokia.com>
-References: <003d01c8db84$fe61fde0$68bf18ac@ent.ti.com>
-	<20080702131127.GA4404@codecarver.research.nokia.com>
-	<000701c8dc48$d1ce66a0$68bf18ac@ent.ti.com>
-	<20080702154253.GC4404@codecarver.research.nokia.com>
-	<004d01c8dce8$56eec0b0$68bf18ac@ent.ti.com>
-	<87prpum7nr.fsf@trdhcp146196.ntc.nokia.com>
-	<873amqknae.fsf@trdhcp146196.ntc.nokia.com>
-	<011601c8ddba$c4031110$68bf18ac@ent.ti.com>
-	<1215423520.6048.16.camel@kj-ubuntu>
-	<87k5fy2f1r.fsf@trdhcp146196.ntc.nokia.com>
-	<B85A65D85D7EB246BE421B3FB0FBB5930111A74854@dbde02.ent.ti.com>
-	<13B9B4C6EF24D648824FF11BE8967162035BCE275B@dlee02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Git pull request for omap patches for post 2.6.26
+Date: Tue, 8 Jul 2008 10:40:09 +0300
+Message-ID: <20080708074005.GA17594@atomide.com>
+References: <20080703101139.GE14276@atomide.com> <20080707200537.GP29191@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:50392 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750914AbYGHGQY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2008 02:16:24 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162035BCE275B@dlee02.ent.ti.com>
-	(ext Woodruff's message of "Mon, 7 Jul 2008 17:25:09 -0500")
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56289 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752640AbYGHHkH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2008 03:40:07 -0400
+Content-Disposition: inline
+In-Reply-To: <20080707200537.GP29191@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>, "Nayak, Rajendra" <rnayak@ti.com>, 'Peter 'p2' De Schrijver' <peter.de-schrijver@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-"ext Woodruff, Richard" <r-woodruff2@ti.com> writes:
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [080707 23:06]:
+> On Thu, Jul 03, 2008 at 01:11:42PM +0300, Tony Lindgren wrote:
+> > Please pull the omap patches for post-2.6.26 from:
+> > 
+> > git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap2-upstream
+> 
+> I pulled this some time back but never merged it - but I did look at it.
+> 
+> However, I never got around to looking at your other patches on the
+> mailing list I'm afraid.
 
->> I am still trying to find my way thru the codebase in GIT; but here =
-is
->> what I can suggest based on similar problem diagnosed (still under
->> test) on the OMAP3EVM:
->>
->> 1) Save/restore the GPIO_IRQENABLE1, GPIO_IRQENABLE2
->> 2) Save/restore the GPIO_IRQSTATUS1, GPIO_IRQSTATUS2
->
-> For sure save/restore of IRQENABLE is needed.  Our Labrador board
-> which has Ethernet on per-gpio would stop to function after an OFF
-> mode transition with out this save and restore (using CDP reference
-> code).
+Yes, I think you've only commented on the patches in the first series
+so far. Let me know if you have any comments on the other patches
+and I'll fix them ASAP.
 
-I think this is not related to OFF mode, because OFF state is not
-used on the boot. This problem seems to disappear when boot is
-done and C6 state is started to be used. Currently it seems to me that
-this problem exists if using states where mpu is in sleep state and
-core is active (C2, C3). This is under investigation. Is there any
-known restrictions in GPIO1 module wake-up capability when mpu is in
-sleep and core active? Any other known restrictions?
+Basically once these patches are merged, we're a only missing board-*.c
+files under mach-omap2 to be again mostly in sync with mainline tree for
+mach-omap2. So hopefully only one more merge window of lots of patches
+after this merge window!
 
->
-> I don't think STATUS is necessary.  It=E2=80=99s a write 1 to clear r=
-egister and should re-latch once there is data.
->
-> As a side note I was noting that the SMC9211 etherchip actually may n=
-eed a dvfs pre-post notifier.  During DVFS spurious interrupt events ca=
-use the interface to disable interrupts on its own on some tests.
->
-> Regards,
-> Richard W.
->
+Currently plat-omap and mach-omap1 are pretty close in sync with
+mainline tree except for some board-*.c under mach-omap1.
 
---=20
-Jouni H=C3=B6gander
+> Looking at what's in this git tree, there's at least a number of commits
+> early on which are empty.  I've not really looked much further.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Looks like there were the two already merged fixed still there, I've
+run stg clean on the series and rebased against 2.6.26-rc9. I've also
+verified that the series applies against your current tree. The location
+to pull from is same as earlier.
+
+> Since I've only just remembered about this, I think I'm going to have to
+> say "no more" to further community PXA commits this side of the merge
+> window to make sufficient time to look at your OMAP stuff properly.
+
+It would be nice to have merging mach-* patches more distributed so
+you don't have to spend so much time looking at that stuff.
+
+Regards,
+
+Tony
