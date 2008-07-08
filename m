@@ -1,156 +1,158 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 9/9] OMAP3 clock: add omap3_core_dpll_m2_set_rate()
-Date: Mon, 07 Jul 2008 20:55:13 -0600
-Message-ID: <20080708025511.11646.13749.stgit@localhost.localdomain>
+Subject: [PATCH 5/9] OMAP2 SDRC: add timing data for Micron MT46H32M32LF-6
+Date: Mon, 07 Jul 2008 20:54:59 -0600
+Message-ID: <20080708025447.11646.48874.stgit@localhost.localdomain>
 References: <20080708025225.11646.55912.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40865 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:40860 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755921AbYGHC4i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jul 2008 22:56:38 -0400
+	with ESMTP id S1755815AbYGHC4h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jul 2008 22:56:37 -0400
 In-Reply-To: <20080708025225.11646.55912.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Rajendra Nayak <rnayak@ti.com>
 
-Add the omap3_core_dpll_m2_set_rate() function to the OMAP3 clock code,
-which calls into the SRAM function omap3_sram_configure_core_dpll() to
-change the CORE DPLL M2 divider.  (SRAM code is necessary since rate changes
-on clocks upstream from the SDRC can glitch SDRAM accesses.)
+Add timing data for the Micron MT46H32M32LF-6 SDRAM chip, used on the
+OMAP3 Beagle and EVM boards.  Original timing data is from the Micron
+datasheet PDF downloaded from:
 
-Use this function for the set_rate function pointer in the dpll3_m2_ck
-struct clk.  With this function in place, PM/OPP code should be able to
-alter SDRAM speed via code similar to:
+http://download.micron.com/pdf/datasheets/dram/mobile/1gb_ddr_mobile_sdram_t48m.pdf
 
-      clk_set_rate(&dpll3_m2_ck, target_rate).
+Thanks to Rajendra Nayak <rnayak@ti.com> for his help identifying
+the chips used on Beagle & OMAP3EVM.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
 
- arch/arm/mach-omap2/clock34xx.c |   66 ++++++++++++++++++++++++++++++++++++++-
- arch/arm/mach-omap2/clock34xx.h |    9 ++---
- 2 files changed, 69 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/board-omap3beagle.c           |    4 +-
+ arch/arm/mach-omap2/board-omap3evm.c              |    4 +-
+ arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h |   55 +++++++++++++++++++++
+ include/asm-arm/arch-omap/sdrc.h                  |    2 -
+ 4 files changed, 62 insertions(+), 3 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h
 
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index 482f05c..0caa4dd 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -15,7 +15,6 @@
-  * published by the Free Software Foundation.
-  */
- #undef DEBUG
--#define DEBUG
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 3523611..bf4b430 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -33,6 +33,8 @@
+ #include <asm/arch/hsmmc.h>
+ #include <asm/arch/common.h>
  
- #include <linux/module.h>
- #include <linux/kernel.h>
-@@ -410,6 +409,71 @@ static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
- 	return 0;
++#include "sdram-micron-mt46h32m32lf-6.h"
++
+ static struct omap_uart_config omap3_beagle_uart_config __initdata = {
+ 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+ };
+@@ -47,7 +49,7 @@ static int __init omap3_beagle_i2c_init(void)
+ 
+ static void __init omap3_beagle_init_irq(void)
+ {
+-	omap2_init_common_hw(NULL);
++	omap2_init_common_hw(mt46h32m32lf6_sdrc_params);
+ 	omap_init_irq();
+ 	omap_gpio_init();
  }
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 1ba8a45..df81706 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -37,6 +37,8 @@
+ #include <asm/arch/common.h>
+ #include <asm/arch/mcspi.h>
  
++#include "sdram-micron-mt46h32m32lf-6.h"
 +
+ static struct resource omap3evm_smc911x_resources[] = {
+ 	[0] =	{
+ 		.start  = OMAP3EVM_ETHR_START,
+@@ -188,7 +190,7 @@ static struct platform_device omap3evm_kp_device = {
+ 
+ static void __init omap3_evm_init_irq(void)
+ {
+-	omap2_init_common_hw(NULL);
++	omap2_init_common_hw(mt46h32m32lf6_sdrc_params);
+ 	omap_init_irq();
+ 	omap_gpio_init();
+ 	omap3evm_init_smc911x();
+diff --git a/arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h b/arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h
+new file mode 100644
+index 0000000..f0ec104
+--- /dev/null
++++ b/arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h
+@@ -0,0 +1,55 @@
 +/*
-+ * CORE DPLL (DPLL3) rate programming functions
++ * SDRC register values for the Micron MT46H32M32LF-6
 + *
-+ * These call into SRAM code to do the actual CM writes, since the SDRAM
-+ * is clocked from DPLL3.
++ * Copyright (C) 2008 Texas Instruments, Inc.
++ * Copyright (C) 2008 Nokia Corporation
++ *
++ * Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
 +
-+/**
-+ * omap3_core_dpll_m2_set_rate - set CORE DPLL M2 divider
-+ * @clk: struct clk * of DPLL to set
-+ * @rate: rounded target rate
-+ *
-+ * Program the DPLL M2 divider with the rounded target rate.  Returns
-+ * -EINVAL upon error, or 0 upon success.
-+ */
-+static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
-+{
-+	u32 new_div = 0;
-+	unsigned long validrate, sdrcrate;
-+	struct omap_sdrc_params *sp;
++#ifndef ARCH_ARM_MACH_OMAP2_SDRAM_MICRON_MT46H32M32LF
++#define ARCH_ARM_MACH_OMAP2_SDRAM_MICRON_MT46H32M32LF
 +
-+	if (!clk || !rate)
-+		return -EINVAL;
++#include <asm/arch/sdrc.h>
 +
-+	if (clk != &dpll3_m2_ck)
-+		return -EINVAL;
++/* Micron MT46H32M32LF-6 */
++/* XXX Using ARE = 0x1 (no autorefresh burst) -- can this be changed? */
++static struct omap_sdrc_params mt46h32m32lf_sdrc_params[] = {
++	[0] = {
++		.rate	     = 165941176,
++		.actim_ctrla = 0x9a9db4c6,
++		.actim_ctrlb = 0x00011217,
++		.rfr_ctrl    = 0x0004dc01,
++		.mr	     = 0x00000032,
++	},
++	[1] = {
++		.rate	     = 133333333,
++		.actim_ctrla = 0x7a19b485,
++		.actim_ctrlb = 0x00011213,
++		.rfr_ctrl    = 0x0003de01,
++		.mr	     = 0x00000032,
++	},
++	[2] = {
++		.rate	     = 82970588,
++		.actim_ctrla = 0x51512283,
++		.actim_ctrlb = 0x0001120c,
++		.rfr_ctrl    = 0x00025501,
++		.mr	     = 0x00000032,
++	},
++	[3] = {
++		.rate	     = 66666666,
++		.actim_ctrla = 0x410d2243,
++		.actim_ctrlb = 0x0001120a,
++		.rfr_ctrl    = 0x0001d601,
++		.mr	     = 0x00000032,
++	},
++	[4] = {
++		.rate	     = 0
++	},
++};
 +
-+	if (rate == clk->rate)
-+		return 0;
-+
-+	validrate = omap2_clksel_round_rate_div(clk, rate, &new_div);
-+	if (validrate != rate)
-+		return -EINVAL;
-+
-+	sdrcrate = sdrc_ick.rate;
-+	if (rate > clk->rate)
-+		sdrcrate <<= ((rate / clk->rate) - 1);
-+	else
-+		sdrcrate >>= ((clk->rate / rate) - 1);
-+
-+	sp = omap2_sdrc_get_params(sdrcrate);
-+	if (!sp)
-+		return -EINVAL;
-+
-+	pr_info("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
-+		validrate);
-+	pr_info("clock: SDRC timing params used: %08x %08x %08x\n",
-+		sp->rfr_ctrl, sp->actim_ctrla, sp->actim_ctrlb);
-+
-+	/* REVISIT: SRAM code doesn't support other M2 divisors yet */
-+	WARN_ON(new_div != 1 && new_div != 2);
-+
-+	/* REVISIT: Add SDRC_MR changing to this code also */
-+	local_irq_disable();
-+	omap3_configure_core_dpll(sp->rfr_ctrl, sp->actim_ctrla,
-+				  sp->actim_ctrlb, new_div);
-+	local_irq_enable();
-+
-+	omap2_clksel_recalc(clk);
-+
-+	return 0;
-+}
-+
-+
- /* DPLL autoidle read/set code */
- 
- 
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-index 161da12..74a7e98 100644
---- a/arch/arm/mach-omap2/clock34xx.h
-+++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -35,6 +35,7 @@ static u32 omap3_dpll_autoidle_read(struct clk *clk);
- static int omap3_noncore_dpll_enable(struct clk *clk);
- static void omap3_noncore_dpll_disable(struct clk *clk);
- static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate);
-+static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate);
- 
- /* Maximum DPLL multiplier, divider values for OMAP3 */
- #define OMAP3_MAX_DPLL_MULT		2048
-@@ -481,11 +482,7 @@ static const struct clksel div31_dpll3m2_clksel[] = {
- 	{ .parent = NULL }
++#endif
+diff --git a/include/asm-arm/arch-omap/sdrc.h b/include/asm-arm/arch-omap/sdrc.h
+index 00ba539..1d974a0 100644
+--- a/include/asm-arm/arch-omap/sdrc.h
++++ b/include/asm-arm/arch-omap/sdrc.h
+@@ -102,7 +102,7 @@ struct omap_sdrc_params {
+ 	u32 mr;
  };
  
--/*
-- * DPLL3 output M2
-- * REVISIT: This DPLL output divider must be changed in SRAM, so until
-- * that code is ready, this should remain a 'read-only' clksel clock.
-- */
-+/* DPLL3 output M2 - primary control point for CORE speed */
- static struct clk dpll3_m2_ck = {
- 	.name		= "dpll3_m2_ck",
- 	.parent		= &dpll3_ck,
-@@ -495,6 +492,8 @@ static struct clk dpll3_m2_ck = {
- 	.clksel		= div31_dpll3m2_clksel,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
-+	.round_rate	= &omap2_clksel_round_rate,
-+	.set_rate	= &omap3_core_dpll_m2_set_rate,
- 	.recalc		= &omap2_clksel_recalc,
- };
+-void __init omap2_sdrc_init(void);
++void __init omap2_sdrc_init(struct omap_sdrc_params *);
+ struct omap_sdrc_params *omap2_sdrc_get_params(unsigned long r);
  
+ #ifdef CONFIG_ARCH_OMAP2
 
 
