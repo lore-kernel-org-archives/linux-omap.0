@@ -1,67 +1,37 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH 00/11] OMAP3 CPUidle patches
-Date: Tue, 8 Jul 2008 08:52:26 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162035BD66B12@dlee02.ent.ti.com>
-References: <003d01c8db84$fe61fde0$68bf18ac@ent.ti.com>
-	<20080702131127.GA4404@codecarver.research.nokia.com>
-	<000701c8dc48$d1ce66a0$68bf18ac@ent.ti.com>
-	<20080702154253.GC4404@codecarver.research.nokia.com>
-	<004d01c8dce8$56eec0b0$68bf18ac@ent.ti.com>
-	<87prpum7nr.fsf@trdhcp146196.ntc.nokia.com>
-	<873amqknae.fsf@trdhcp146196.ntc.nokia.com>
-	<011601c8ddba$c4031110$68bf18ac@ent.ti.com>
-	<1215423520.6048.16.camel@kj-ubuntu>
-	<87k5fy2f1r.fsf@trdhcp146196.ntc.nokia.com>
-	<B85A65D85D7EB246BE421B3FB0FBB5930111A74854@dbde02.ent.ti.com>
-	<13B9B4C6EF24D648824FF11BE8967162035BCE275B@dlee02.ent.ti.com>
-	<8763rg3nqp.fsf@trdhcp146196.ntc.nokia.com>
-	<13B9B4C6EF24D648824FF11BE8967162035BCE28A5@dlee02.ent.ti.com>
- <87prpoxzm0.fsf@trdhcp146196.ntc.nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH 0/9] OMAP2/3 SDRC/clock: control CORE M2 divider, clean
+ up SDRC
+Date: Tue, 8 Jul 2008 16:12:56 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0807081611500.12684@utopia.booyaka.com>
+References: <20080708025225.11646.55912.stgit@localhost.localdomain> <02aa01c8e0b4$5c09a450$68bf18ac@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34470 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751388AbYGHNw4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Jul 2008 09:52:56 -0400
-In-Reply-To: <87prpoxzm0.fsf@trdhcp146196.ntc.nokia.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:54742 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753483AbYGHWM6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2008 18:12:58 -0400
+In-Reply-To: <02aa01c8e0b4$5c09a450$68bf18ac@ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?B?SMO2Z2FuZGVyIEpvdW5p?= <jouni.hogander@nokia.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>, "Nayak, Rajendra" <rnayak@ti.com>, 'Peter 'p2' De Schrijver' <peter.de-schrijver@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, 'Igor Stoppa' <igor.stoppa@nokia.com>
 
-PiA+ICAgICAgICAgW3hdIEhhcyBhbnlvbmUgZml4ZWQgdGhlIGJyb2tlbiBncGlvIHdha2V1cCBl
-bmFibGUgY29kZT8NCj4gPiAgICAgICAgIFJpZ2h0IG5vdyB0aGlzIG1pZ2h0IGV2ZW4ga2lsbCB5
-b3UgYXMgaXQgd2lsbCBjbGVhciB5b3UNCj4gPiAgICAgICAgIHdha2V1cCBlbmFibGUgcmVnaXN0
-ZXIuICBUaGlzIGNvdWxkIHN0b3AgeW91IGZyb20gd2FraW5nDQo+ID4gICAgICAgICBmcm9tIGEg
-cGFydGlhbGx5IGlkbGUvY2xvY2sgc3RvcCBjb25kaXRpb24gb24gdGhlIEwzPw0KPg0KPiBUaGUg
-cHJvYmxlbSB3YXMgYWN0dWFsbHkgcmVsYXRlZCB0byB0aGlzLiBUaGVyZSBpcyB0aG9zZQ0KPiBn
-cGlvX3ByZXBhcmVfKg0KPiBhbmQgZ3Bpb19yZXN1bWVfKiBmdW5jdGlvbnMgd2hpY2ggd2VyZSBu
-b3QgcnVuLiBGb3Igc29tZSByZWFzb24NCj4gbmV4dF9zdGF0ZSBmb3IgcG93ZXJkb21haW5zIGRv
-ZXNuJ3QgdXBkYXRlIGNvcnJlY3RseSBiZWZvcmUgaHdfc3VwDQo+IG1vZGUgaXMgZGlzYWJsZWQu
-IFRoaXMgY2F1c2VkIHByb2JsZW0gdGhhdCBjcHVpZGxlIHRoaW5rcyB0aGF0IGNvcmUgaXMNCj4g
-ZW50ZXJpbmcgT04gc3RhdGUsIHdoaWxlIGl0IHdhcyBhY3R1YWxseSBlbnRlcmluZyBzdGF0ZSB3
-cml0dGVuIGluDQo+IG9tYXAzX3BtX2luaXQuIE5vdyBhcyBjcHVpZGxlIHdhcyB0aGlua2luZyB0
-aGF0IGNvcmUgaXMgbm90IGVudGVyaW5nDQo+IGFueSBzbGVlcCBzdGF0ZSBpdCBkaWRuJ3QgcnVu
-IGdwaW9fcHJlcGFyZV8qIGFuZCBncGlvX3Jlc3VtZV8qDQo+IGZ1bmN0aW9ucy4gVGhpcyBjYXVz
-ZWQgdGhhdCBpbnRlcnJ1cHQgd2FzIG5vdCBnZW5lcmF0ZWQgZm9yIHRoYXQgZ3Bpbw0KPiB1c2Vk
-IGJ5IGV0aCBjaGlwLg0KPg0KPiBUaGlzIHdhcyBmaXhlZCBpbiBteSBwYXRjaGVzIGJ5IGRpc2Fi
-bGluZyBod19zdXAgbW9kZSBiZWZvcmUgd3JpdGluZw0KPiBuZXh0X3N0YXRlIGFuZCB0aGVuIHJl
-LWVuYWJsZSBpdC4gVGhvc2UgcGF0Y2hlcyBhcmUgYWxzbyB3cml0aW5nIG5leHQNCj4gc3RhdGUg
-aWYgQ09SRSBuZXh0IHN0YXRlIGlzIE9OLg0KDQpPay4gIEFzIEkgc2VudCBpbiBteSBtYWlsIGEg
-Y291cGxlIHdlZWtzIGJhY2suICBUaGUgY2xlYXJpbmcgb2Ygd2FrZXVwIGV2ZW50cyBhdCBHUElP
-cyB3aGVuIHRoZSBDT1JFIGhpdHMgSU5BQ1RJVkUgbWlnaHQgcmVzdWx0IGluIHdpbmRvd3Mgb2Yg
-eW91IG5vdCB3YWtpbmcgdXAsIGVzcGVjaWFsbHkgd2l0aCBkeW5hbWljIHRpY2sgaW4gdGhlIHN5
-c3RlbS4gIEkgd291bGQgZ3Vlc3MgdGhlIHdpbmRvd3Mgd291bGQgYmUgYXJvdW5kIGJvb3QgJiBz
-dXNwZW5kIHJlc3VtZS4NCg0KSXQgaXMgbm90IHNvIGNsZWFyIGlmIGdwaW8gdGhhdCBoYWNrIGlz
-IGV2ZW4gbmVlZGVkIG9uIE9NQVAzLiAgVGhlcmUgaXMgc29tZSB3YXJuaW5nIGFib3V0IHNwdXJp
-b3VzIGludGVycnVwdHMgd2hlbiBnb2luZyB0byBSRVQvT0ZGIGZvciBPTUFQMi4gSSBkb24ndCBy
-ZWNhbGwgZm9yIE9NQVAzLiAgZGlkbid0IHRob3NlIHByZXBhcmUgZnVuY3Rpb25zIGRpbmsgd2l0
-aCB3YWtlIHVwIG1hc2tzIGluIGZlYXIgb2Ygc3B1cmlvdXMgaW50ZXJydXB0cy4gIFNvLCB3YXNu
-J3QgdGhlIHJlc3VsdCBmb3IgeW91IHRoZSBvcHBvc2l0ZSwgaXQga2VwdCB5b3UgZnJvbSB3YWtp
-bmcsIGluc3RlYWQgb2Ygc3VwcHJlc3NpbmcgZXh0cmEgd2FrZXM/DQoNCkRpZCB5b3UgZml4IHRo
-ZSBPTUFQMiBHUElPIHdha2V1cCBtYXNrIGluIHVzZSBhdCBsZWFzdD8gIFRoZSBjb2RlIGhhZCBh
-IGhhcmRjb2RlZCBtYXNrIGJhc2VkIG9uIE9NQVAyIHdha2V1cCBjYXBhYmxlIGdwaW9zIHdoaWNo
-IGRvbid0IGFwcGx5IHRvIG9tYXAzLg0KDQpSZWdhcmRzLA0KUmljaGFyZCBXLg0KDQo=
+On Tue, 8 Jul 2008, Rajendra Nayak wrote:
+
+> > From: Paul Walmsley [mailto:paul@pwsan.com] 
+> >
+> > A few notes:
+> > 
+> > - The M2 divider switch does not seem to work consistently on the
+> >   3430SDP I use to test.  In particular, the switch back to 
+> > M2=1 results
+> >   in a hung console.
+> 
+> SRAM being mapped as cacheable could be a possible reason for this.
+
+Certainly possible, and that change needs to be included.  But why would 
+it only happen on the M2  2 -> 1 transition?
+
+
+- Paul
