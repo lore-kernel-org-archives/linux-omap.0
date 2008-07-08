@@ -1,529 +1,465 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 01/09] generic shared resource f/w
-Date: Tue, 8 Jul 2008 17:09:21 +0530
-Message-ID: <030801c8e0ef$43d24b40$68bf18ac@ent.ti.com>
+Subject: [PATCH 06/09] virtual clock nodes for VDD1 and VDD2
+Date: Tue, 8 Jul 2008 17:09:30 +0530
+Message-ID: <030d01c8e0ef$48b116f0$68bf18ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56888 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56895 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754746AbYGHLjq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2008 07:39:46 -0400
+	id S1754789AbYGHLjy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2008 07:39:54 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m68BdMQF000618
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m68BdUrq000746
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 8 Jul 2008 06:39:35 -0500
+	for <linux-omap@vger.kernel.org>; Tue, 8 Jul 2008 06:39:43 -0500
 Received: from a0393137pc (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m68BdIxG005245
-	for <linux-omap@vger.kernel.org>; Tue, 8 Jul 2008 17:09:21 +0530 (IST)
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m68BdIxL005245
+	for <linux-omap@vger.kernel.org>; Tue, 8 Jul 2008 17:09:30 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-This patch adds the Generic Shared Resource Framework structures and API's
+The patch defines virtual nodes for VDD1 and VDD2
+Also adds VDD1/VDD2 specific rate/OPP tables in the board file
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
 ---
- arch/arm/plat-omap/resource.c        |  389 +++++++++++++++++++++++++++++++++++
- include/asm-arm/arch-omap/resource.h |   97 ++++++++
- 2 files changed, 486 insertions(+)
+ arch/arm/mach-omap2/board-3430sdp.c       |   38 +++++
+ arch/arm/mach-omap2/clock34xx.c           |  206 +++++++++++++++++++++++++-----
+ arch/arm/mach-omap2/clock34xx.h           |   28 ++++
+ include/asm-arm/arch-omap/board-3430sdp.h |   35 +++++
+ include/asm-arm/arch-omap/clock.h         |    8 +
+ 5 files changed, 286 insertions(+), 29 deletions(-)
 
-Index: linux-omap-2.6/arch/arm/plat-omap/resource.c
+Index: linux-omap-2.6/arch/arm/mach-omap2/clock34xx.h
 ===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-omap-2.6/arch/arm/plat-omap/resource.c	2008-07-07 10:22:52.038625007 +0530
-@@ -0,0 +1,389 @@
-+/*
-+ * linux/arch/arm/plat-omap/resource.c
-+ * Shared Resource Framework API implementation
-+ *
-+ * Copyright (C) 2007-2008 Texas Instruments, Inc.
-+ * Written by Rajendra Nayak <rnayak@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-+ * History:
-+ *
-+ */
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/clock34xx.h	2008-07-08 15:21:45.039649888 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/clock34xx.h	2008-07-08 15:21:57.861233153 +0530
+@@ -35,6 +35,13 @@ static u32 omap3_dpll_autoidle_read(stru
+ static int omap3_noncore_dpll_enable(struct clk *clk);
+ static void omap3_noncore_dpll_disable(struct clk *clk);
+ static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate);
++static void omap3_table_recalc(struct clk *clk);
++static long omap3_round_to_table_rate(struct clk *clk, unsigned long rate);
++static int omap3_select_table_rate(struct clk *clk, unsigned long rate);
 +
-+#include <linux/errno.h>
++extern struct vdd_prcm_config vdd1_rate_table[];
++extern struct vdd_prcm_config vdd2_rate_table[];
++extern struct vdd_prcm_config iva2_rate_table[];
+ 
+ /* Maximum DPLL multiplier, divider values for OMAP3 */
+ #define OMAP3_MAX_DPLL_MULT		2048
+@@ -3046,6 +3053,24 @@ static struct clk wdt1_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
++static struct clk virt_vdd1_prcm_set = {
++	.name = "virt_vdd1_prcm_set",
++	.flags = CLOCK_IN_OMAP343X | VIRTUAL_CLOCK | ALWAYS_ENABLED,
++	.parent = &mpu_ck, /* Indexed by mpu speed, no parent */
++	.recalc = &omap3_table_recalc, /*sets are keyed on mpu rate */
++	.set_rate = &omap3_select_table_rate,
++	.round_rate = &omap3_round_to_table_rate,
++};
++
++static struct clk virt_vdd2_prcm_set = {
++	.name = "virt_vdd2_prcm_set",
++	.flags = CLOCK_IN_OMAP343X | VIRTUAL_CLOCK | ALWAYS_ENABLED,
++	.parent = &core_ck,
++	.recalc = &omap3_table_recalc,
++	.set_rate = &omap3_select_table_rate,
++	.round_rate = &omap3_round_to_table_rate,
++};
++
+ static struct clk *onchip_34xx_clks[] __initdata = {
+ 	&omap_32k_fck,
+ 	&virt_12m_ck,
+@@ -3258,6 +3283,9 @@ static struct clk *onchip_34xx_clks[] __
+ 	&secure_32k_fck,
+ 	&gpt12_fck,
+ 	&wdt1_fck,
++	/* virtual group clock */
++	&virt_vdd1_prcm_set,
++	&virt_vdd2_prcm_set,
+ };
+ 
+ #endif
+Index: linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/clock34xx.c	2008-07-08 15:21:45.039649888 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c	2008-07-08 15:22:27.625265807 +0530
+@@ -25,6 +25,7 @@
+ #include <linux/clk.h>
+ #include <linux/io.h>
+ #include <linux/limits.h>
 +#include <linux/err.h>
-+#include <asm/arch/resource.h>
-+#include <linux/slab.h>
+ 
+ #include <asm/arch/clock.h>
+ #include <asm/arch/sram.h>
+@@ -45,6 +46,32 @@
+ 
+ #define MAX_DPLL_WAIT_TRIES		1000000
+ 
++struct vdd_prcm_config *curr_vdd1_prcm_set;
++struct vdd_prcm_config *curr_vdd2_prcm_set;
++static struct clk *dpll1_clk, *dpll2_clk, *dpll3_clk;
 +
-+/* res_list contains all registered struct shared_resource */
-+static LIST_HEAD(res_list);
-+
-+/* res_mutex protects res_list add and del ops */
-+static DEFINE_MUTEX(res_mutex);
-+
-+/* Static Pool of users for a resource */
-+/* used till kmalloc becomes availabel */
-+struct  users_list usr_list[MAX_USERS];
-+
-+/* Private/Internal functions */
-+
-+/**
-+ * resource_lookup - loop up a resource by its name, return a pointer
-+ * @name: The name of the resource to lookup
-+ *
-+ * Looks for a registered resource by its name. Returns a pointer to
-+ * the struct shared_resource if found, else returns NULL.
-+ */
-+static struct shared_resource *resource_lookup(const char *name)
++#ifndef CONFIG_CPU_FREQ
++static unsigned long compute_lpj(unsigned long ref, u_int div, u_int mult)
 +{
-+	struct shared_resource *res, *tmp_res;
++	unsigned long new_jiffy_l, new_jiffy_h;
 +
-+	if (!name)
-+		return NULL;
++	/*
++	 * Recalculate loops_per_jiffy.  We do it this way to
++	 * avoid math overflow on 32-bit machines.  Maybe we
++	 * should make this architecture dependent?  If you have
++	 * a better way of doing this, please replace!
++	 *
++	 *    new = old * mult / div
++	 */
++	new_jiffy_h = ref / div;
++	new_jiffy_l = (ref % div) / 100;
++	new_jiffy_h *= mult;
++	new_jiffy_l = new_jiffy_l * mult / div;
 +
-+	res = NULL;
++	return new_jiffy_h + new_jiffy_l * 100;
++}
++#endif
 +
-+	srf_mutex_lock(&res_mutex);
-+	list_for_each_entry(tmp_res, &res_list, node) {
-+		if (!strcmp(name, tmp_res->name)) {
-+			res = tmp_res;
+ /**
+  * omap3_dpll_recalc - recalculate DPLL rate
+  * @clk: DPLL struct clk
+@@ -569,15 +596,6 @@ void omap2_clk_prepare_for_reboot(void)
+  */
+ static int __init omap2_clk_arch_init(void)
+ {
+-	if (!mpurate)
+-		return -EINVAL;
+-
+-	/* REVISIT: not yet ready for 343x */
+-#if 0
+-	if (omap2_select_table_rate(&virt_prcm_set, mpurate))
+-		printk(KERN_ERR "Could not find matching MPU rate\n");
+-#endif
+-
+ 	recalculate_root_clocks();
+ 
+ 	printk(KERN_INFO "Switched to new clocking rate (Crystal/DPLL3/MPU): "
+@@ -595,6 +613,9 @@ int __init omap2_clk_init(void)
+ 	struct clk **clkp;
+ 	/* u32 clkrate; */
+ 	u32 cpu_clkflg;
++	unsigned long mpu_speed, core_speed;
++	struct vdd_prcm_config *prcm_vdd;
++
+ 
+ 	/* REVISIT: Ultimately this will be used for multiboot */
+ #if 0
+@@ -637,22 +658,31 @@ int __init omap2_clk_init(void)
+ 		}
+ 	}
+ 
+-	/* REVISIT: Not yet ready for OMAP3 */
+-#if 0
+-	/* Check the MPU rate set by bootloader */
+-	clkrate = omap2_get_dpll_rate_24xx(&dpll_ck);
+-	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
+-		if (!(prcm->flags & cpu_mask))
+-			continue;
+-		if (prcm->xtal_speed != sys_ck.rate)
+-			continue;
+-		if (prcm->dpll_speed <= clkrate)
+-			 break;
++	recalculate_root_clocks();
++
++	dpll1_clk = clk_get(NULL, "dpll1_ck");
++	dpll2_clk = clk_get(NULL, "dpll2_ck");
++	dpll3_clk = clk_get(NULL, "dpll3_ck");
++
++#ifdef CONFIG_MACH_OMAP_3430SDP
++	mpu_speed = dpll1_clk->rate;
++	prcm_vdd = vdd1_rate_table + MAX_VDD1_OPP;
++	for (; prcm_vdd->speed; prcm_vdd--) {
++		if (prcm_vdd->speed <= mpu_speed) {
++			curr_vdd1_prcm_set = prcm_vdd;
++			break;
++		}
+ 	}
+-	curr_prcm_set = prcm;
+-#endif
+ 
+-	recalculate_root_clocks();
++	core_speed = dpll3_clk->rate;
++	prcm_vdd = vdd2_rate_table + MAX_VDD2_OPP;
++	for (; prcm_vdd->speed; prcm_vdd--) {
++		if (prcm_vdd->speed <= core_speed) {
++			curr_vdd2_prcm_set = prcm_vdd;
 +			break;
 +		}
 +	}
-+	srf_mutex_unlock(&res_mutex);
-+	return res;
++#endif
+ 
+ 	printk(KERN_INFO "Clocking rate (Crystal/DPLL/ARM core): "
+ 	       "%ld.%01ld/%ld/%ld MHz\n",
+@@ -665,13 +695,131 @@ int __init omap2_clk_init(void)
+ 	 */
+ 	clk_enable_init_clocks();
+ 
+-	/* Avoid sleeping during omap2_clk_prepare_for_reboot() */
+-	/* REVISIT: not yet ready for 343x */
+-#if 0
+-	vclk = clk_get(NULL, "virt_prcm_set");
+-	sclk = clk_get(NULL, "sys_ck");
+-#endif
+ 	return 0;
+ }
+ 
++inline unsigned int get_freq(struct vdd_prcm_config *opp_freq_table,
++							 unsigned long opp)
++{
++	struct vdd_prcm_config *prcm_config;
++	prcm_config = opp_freq_table;
++
++	for (; prcm_config->opp; prcm_config--)
++		if (prcm_config->opp == opp)
++			return prcm_config->speed;
++	return 0;
 +}
 +
-+/**
-+ * update_resource_level - Regenerates and updates the curr_level of the res
-+ * @resp: Pointer to the resource
-+ *
-+ * This function looks at all the users of the given resource and the levels
-+ * requested by each of them, and recomputes a target level for the resource
-+ * acceptable to all its current usres. It then calls platform specific
-+ * change_level to change the level of the resource.
-+ * Returns 0 on success, else a non-zero value returned by the platform
-+ * specific change_level function.
-+ **/
-+static int update_resource_level(struct shared_resource *resp)
++inline unsigned int get_opp(struct vdd_prcm_config *opp_freq_table,
++						 unsigned long freq)
 +{
-+	struct users_list *user;
-+	unsigned long target_level;
-+	int ret;
++	struct vdd_prcm_config *prcm_config;
++	prcm_config = opp_freq_table;
 +
-+	/* Regenerate the target_value for the resource */
-+	target_level = RES_DEFAULTLEVEL;
-+	list_for_each_entry(user, &resp->users_list, node)
-+		if (user->level > target_level)
-+			target_level = user->level;
-+
-+	pr_debug("SRF: Changing Level for resource %s to %ld\n",
-+				resp->name, target_level);
-+	ret = resp->ops->change_level(resp, target_level);
-+	if (ret) {
-+		printk(KERN_ERR "Unable to Change"
-+					"level for resource %s to %ld\n",
-+		resp->name, target_level);
-+		return ret;
++	if (prcm_config->speed <= freq)
++		return prcm_config->opp; /* Return the Highest OPP */
++	for (; prcm_config->speed; prcm_config--) {
++		if (prcm_config->speed < freq)
++			return (prcm_config+1)->opp;
++		else if (prcm_config->speed == freq)
++			return prcm_config->opp;
 +	}
-+	return ret;
++	/* Return the least OPP */
++	return (prcm_config+1)->opp;
 +}
 +
-+/**
-+ * get_user - gets a new users_list struct from static pool or dynamically
-+ *
-+ * This function initally looks for availability in the static pool and
-+ * tries to dynamcially allocate only once the static pool is empty.
-+ * We hope that during bootup by the time we hit a case of dynamic allocation
-+ * slab initialization would have happened.
-+ * Returns a pointer users_list struct on success. On dynamic allocation failure
-+ * returns a ERR_PTR(-ENOMEM).
-+ */
-+static struct users_list *get_user(void)
++#ifdef CONFIG_MACH_OMAP_3430SDP
++static void omap3_table_recalc(struct clk *clk)
 +{
-+	int ind = 0;
-+	struct users_list *user;
++	if ((clk != &virt_vdd1_prcm_set) && (clk != &virt_vdd2_prcm_set))
++		return;
 +
-+	/* See if something available in the static pool */
-+	while (ind < MAX_USERS) {
-+		if (usr_list[ind].usage == UNUSED)
++	if ((curr_vdd1_prcm_set) && (clk == &virt_vdd1_prcm_set))
++		clk->rate = curr_vdd1_prcm_set->speed;
++	else if ((curr_vdd2_prcm_set) && (clk == &virt_vdd2_prcm_set))
++		clk->rate = curr_vdd2_prcm_set->speed;
++	pr_debug("CLK RATE:%lu\n", clk->rate);
++}
++
++static long omap3_round_to_table_rate(struct clk *clk, unsigned long rate)
++{
++	struct vdd_prcm_config *ptr;
++	long highest_rate;
++
++	if ((clk != &virt_vdd1_prcm_set) && (clk != &virt_vdd2_prcm_set))
++		return -EINVAL;
++
++	highest_rate = -EINVAL;
++
++	if (clk == &virt_vdd1_prcm_set)
++		ptr = vdd1_rate_table + MAX_VDD1_OPP;
++	else
++		ptr = vdd2_rate_table + MAX_VDD2_OPP;
++
++	for (; ptr->speed; ptr--) {
++		highest_rate = ptr->speed;
++		pr_debug("Highest speed : %lu, rate: %lu\n", highest_rate,
++								rate);
++		if (ptr->speed <= rate)
 +			break;
-+		else
-+			ind++;
 +	}
-+	if (ind < MAX_USERS) {
-+		/* Pick from the static pool */
-+		user = &usr_list[ind];
-+		user->usage = STATIC_ALLOC;
++	return highest_rate;
++}
++
++static int omap3_select_table_rate(struct clk *clk, unsigned long rate)
++{
++	struct vdd_prcm_config *prcm_vdd;
++	unsigned long found_speed = 0, curr_mpu_speed;
++	int index;
++
++	if ((clk != &virt_vdd1_prcm_set) && (clk != &virt_vdd2_prcm_set))
++		return -EINVAL;
++
++	if (clk == &virt_vdd1_prcm_set) {
++		prcm_vdd = vdd1_rate_table + MAX_VDD1_OPP;
++		index = MAX_VDD1_OPP;
++	} else if (clk == &virt_vdd2_prcm_set) {
++		prcm_vdd = vdd2_rate_table + MAX_VDD2_OPP;
++		index = MAX_VDD2_OPP;
++	}
++
++	for (; prcm_vdd->speed; prcm_vdd--, index--) {
++		if (prcm_vdd->speed <= rate) {
++			found_speed = prcm_vdd->speed;
++			pr_debug("Found speed = %lu\n", found_speed);
++			break;
++		}
++	}
++
++	if (!found_speed) {
++		printk(KERN_INFO "Could not set table rate to %luMHz\n",
++		       rate / 1000000);
++		return -EINVAL;
++	}
++
++
++	if (clk == &virt_vdd1_prcm_set) {
++		curr_mpu_speed = curr_vdd1_prcm_set->speed;
++		clk_set_rate(dpll1_clk, prcm_vdd->speed);
++		clk_set_rate(dpll2_clk, iva2_rate_table[index].speed);
++		curr_vdd1_prcm_set = prcm_vdd;
++#ifndef CONFIG_CPU_FREQ
++		/*Update loops_per_jiffy if processor speed is being changed*/
++		loops_per_jiffy = compute_lpj(loops_per_jiffy,
++					curr_mpu_speed/1000, found_speed/1000);
+ #endif
 +	} else {
-+		/* By this time we hope slab is initialized */
-+		if (slab_is_available()) {
-+			user = kmalloc(sizeof(struct  users_list), GFP_KERNEL);
-+			if (!user) {
-+				printk(KERN_ERR "SRF:FATAL ERROR: kmalloc"
-+							"failed\n");
-+				return ERR_PTR(-ENOMEM);
-+			}
-+			user->usage = DYNAMIC_ALLOC;
-+		} else {
-+			/* Dynamic alloc not available yet */
-+			printk(KERN_ERR "SRF: FATAL ERROR: users_list"
-+				"initial POOL EMPTY before slab init\n");
-+			return ERR_PTR(-ENOMEM);
-+		}
++		clk_set_rate(dpll3_clk, prcm_vdd->speed);
++		curr_vdd2_prcm_set = prcm_vdd;
 +	}
-+	return user;
-+}
-+
-+/**
-+ * free_user - frees the dynamic users_list and marks the static one unused
-+ * @user: The struct users_list to be freed
-+ *
-+ * Looks at the usage flag and either frees the users_list if it was
-+ * dynamically allocated, and if its from the static pool, marks it unused.
-+ * No return value.
-+ */
-+void free_user(struct users_list *user)
-+{
-+	if (user->usage == DYNAMIC_ALLOC)
-+		kfree(user);
-+	else {
-+		user->usage = UNUSED;
-+		user->level = RES_DEFAULTLEVEL;
-+		user->dev = NULL;
-+	}
-+}
-+
-+/**
-+ * resource_init - Initializes the Shared resource framework.
-+ * @resources: List of all the resources modelled
-+ *
-+ * Loops through the list of resources and registers all that
-+ * are available for the current CPU.
-+ * No return value
-+ */
-+void resource_init(struct shared_resource **resources)
-+{
-+	struct shared_resource **resp;
-+	int ind;
-+
-+	pr_debug("Initializing Shared Resource Framework\n");
-+
-+	if (!cpu_is_omap343x()) {
-+		/* This CPU is not supported */
-+		printk(KERN_WARNING "Shared Resource Framework does not"
-+			"support this CPU type.\n");
-+		WARN_ON(1);
-+	}
-+
-+	/* Init the users_list POOL */
-+	for (ind = 0; ind < MAX_USERS; ind++) {
-+		usr_list[ind].usage = UNUSED;
-+		usr_list[ind].dev = NULL;
-+		usr_list[ind].level = RES_DEFAULTLEVEL;
-+	}
-+
-+	if (resources)
-+		for (resp = resources; *resp; resp++)
-+			resource_register(*resp);
-+}
-+
-+/**
-+ * resource_register - registers and initializes a resource
-+ * @res: struct shared_resource * to register
-+ *
-+ * Initializes the given resource and adds it to the resource list
-+ * for the current CPU.
-+ * Returns 0 on success, -EINVAL if given a NULL pointer, -EEXIST if the
-+ * resource is already registered.
-+ */
-+int resource_register(struct shared_resource *resp)
-+{
-+	if (!resp)
-+		return -EINVAL;
-+
-+	if (!omap_chip_is(resp->omap_chip))
-+		return -EINVAL;
-+
-+	/* Verify that the resource is not already registered */
-+	if (resource_lookup(resp->name))
-+		return -EEXIST;
-+
-+	INIT_LIST_HEAD(&resp->users_list);
-+	mutex_init(&resp->res_mutex);
-+
-+	srf_mutex_lock(&res_mutex);
-+	/* Add the resource to the resource list */
-+	list_add(&resp->node, &res_list);
-+	srf_mutex_unlock(&res_mutex);
-+
-+	/* Call the resource specific init*/
-+	if (resp->ops->init)
-+		resp->ops->init(resp);
-+
-+	pr_debug("resource: registered %s\n", resp->name);
-+
 +	return 0;
 +}
-+EXPORT_SYMBOL(resource_register);
++#else /* CONFIG_MACH_OMAP_3430SDP */
++static void omap3_table_recalc(struct clk *clk) {}
++static long omap3_round_to_table_rate(struct clk *clk, unsigned long rate)
++{ return 0; }
++static int omap3_select_table_rate(struct clk *clk, unsigned long rate)
++{ return 0; }
++#endif /* CONFIG_MACH_OMAP_3430SDP */
 +
-+/**
-+ * resource_unregister - unregister a resource
-+ * @res: struct shared_resource * to unregister
-+ *
-+ * Removes a resource from the resource list.
-+ * Returns 0 on success, -EINVAL if passed a NULL pointer.
-+ */
-+int resource_unregister(struct shared_resource *resp)
-+{
-+	if (!resp)
-+		return -EINVAL;
-+
-+	srf_mutex_lock(&res_mutex);
-+	/* delete the resource from the resource list */
-+	list_del(&resp->node);
-+	srf_mutex_unlock(&res_mutex);
-+
-+	pr_debug("resource: unregistered %s\n", resp->name);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(resource_unregister);
-+
-+/**
-+ * resource_request - Request for a required level of a resource
-+ * @name: The name of the resource requested
-+ * @dev: Uniquely identifes the caller
-+ * @level: The requested level for the resource
-+ *
-+ * This function recomputes the target level of the resource based on
-+ * the level requested by the user. The level of the resource is
-+ * changed to the target level, if it is not the same as the existing level
-+ * of the resource. Multiple calls to this function by the same device will
-+ * replace the previous level requested
-+ * Returns 0 on success, -EINVAL if the resource name passed in invalid.
-+ * -ENOMEM if no static pool available or dynamic allocations fails.
-+ * Else returns a non-zero error value returned by one of the failing
-+ * shared_resource_ops.
-+ */
-+int resource_request(const char *name, struct device *dev,
-+					unsigned long level)
-+{
-+	struct shared_resource *resp;
-+	struct  users_list *user;
-+	int 	found = 0, ret = 0;
-+
-+	resp = resource_lookup(name);
-+	if (!resp) {
-+		printk(KERN_ERR "resource_request: Invalid resource name\n");
-+		return -EINVAL;
-+	}
-+
-+	/* Call the resource specific validate function */
-+	if (resp->ops->validate_level)
-+		ret = resp->ops->validate_level(resp, level);
-+		if (ret)
-+			return ret;
-+
-+	srf_mutex_lock(&resp->res_mutex);
-+	list_for_each_entry(user, &(resp->users_list), node)
-+		if (user->dev == dev) {
-+			found = 1;
-+			break;
-+		}
-+	if (!found) {
-+		/* First time user */
-+		user = get_user();
-+		if (IS_ERR(user)) {
-+			srf_mutex_unlock(&resp->res_mutex);
-+			return -ENOMEM;
-+		}
-+		user->dev = dev;
-+		list_add(&user->node, &resp->users_list);
-+		resp->no_of_users++;
-+	}
-+	user->level = level;
-+	srf_mutex_unlock(&resp->res_mutex);
-+
-+	/* Recompute and set the current level for the resource */
-+	return update_resource_level(resp);
-+}
-+EXPORT_SYMBOL(resource_request);
-+
-+/**
-+ * resource_release - Release a previously requested level of a resource
-+ * @name: The name of the resource to be released
-+ * @dev: Uniquely identifes the caller
-+ *
-+ * This function recomputes the target level of the resource after removing
-+ * the level requested by the user. The level of the resource is
-+ * changed to the target level, if it is not the same as the existing level
-+ * of the resource.
-+ * Returns 0 on success, -EINVAL if the resource name or dev structure
-+ * is invalid.
-+ */
-+int resource_release(const char *name, struct device *dev)
-+{
-+	struct shared_resource *resp;
-+	struct users_list *user;
-+	int found = 0;
-+
-+	resp = resource_lookup(name);
-+	if (!resp) {
-+		printk(KERN_ERR "resource_release: Invalid resource name\n");
-+		return -EINVAL;
-+	}
-+
-+	srf_mutex_lock(&resp->res_mutex);
-+	list_for_each_entry(user, &(resp->users_list), node)
-+		if (user->dev == dev) {
-+			found = 1;
-+			break;
-+		}
-+
-+	if (!found) {
-+		srf_mutex_unlock(&resp->res_mutex);
-+		/* No such user exists */
-+		return -EINVAL;
-+	}
-+
-+	resp->no_of_users--;
-+	list_del(&user->node);
-+	free_user(user);
-+	srf_mutex_unlock(&resp->res_mutex);
-+
-+	/* Recompute and set the current level for the resource */
-+	return update_resource_level(resp);
-+}
-+EXPORT_SYMBOL(resource_release);
-+
-+/**
-+ * resource_get_level - Returns the current level of the resource
-+ * @name: Name of the resource
-+ *
-+ * Returns the current level of the resource if found, else returns
-+ * -EINVAL if the resource name is invalid.
-+ */
-+int resource_get_level(const char *name)
-+{
-+	struct shared_resource *resp;
-+	u32 ret;
-+
-+	resp = resource_lookup(name);
-+	if (!resp) {
-+		printk(KERN_ERR "resource_release: Invalid resource name\n");
-+		return -EINVAL;
-+	}
-+
-+	srf_mutex_lock(&resp->res_mutex);
-+	ret = resp->curr_level;
-+	srf_mutex_unlock(&resp->res_mutex);
-+	return ret;
-+}
-+EXPORT_SYMBOL(resource_get_level);
-Index: linux-omap-2.6/include/asm-arm/arch-omap/resource.h
++#endif /* CONFIG_ARCH_OMAP3 */
+Index: linux-omap-2.6/include/asm-arm/arch-omap/clock.h
 ===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-omap-2.6/include/asm-arm/arch-omap/resource.h	2008-07-07 10:22:52.038625007 +0530
-@@ -0,0 +1,97 @@
-+/*
-+ * linux/include/asm-arm/arch-omap/resource.h
-+ * Structure definitions for Shared resource Framework
-+ *
-+ * Copyright (C) 2007-2008 Texas Instruments, Inc.
-+ * Written by Rajendra Nayak <rnayak@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-+ *
-+ * History:
-+ *
-+ */
+--- linux-omap-2.6.orig/include/asm-arm/arch-omap/clock.h	2008-07-08 15:21:45.038649920 +0530
++++ linux-omap-2.6/include/asm-arm/arch-omap/clock.h	2008-07-08 15:21:57.862233120 +0530
+@@ -109,6 +109,14 @@ struct clk_functions {
+ #endif
+ };
+ 
++#ifdef CONFIG_ARCH_OMAP3
++struct vdd_prcm_config {
++	unsigned long speed;
++	unsigned long opp;
++	unsigned long flags;
++};
++#endif
 +
-+#ifndef __ARCH_ARM_OMAP_RESOURCE_H
-+#define __ARCH_ARM_OMAP_RESOURCE_H
-+
-+#include <linux/list.h>
-+#include <linux/mutex.h>
-+#include <linux/device.h>
-+#include <asm/arch/cpu.h>
-+
-+#define srf_mutex_lock(x)	{ \
-+				if (!(in_atomic() || irqs_disabled()))	\
-+					mutex_lock(x); \
-+				}
-+#define srf_mutex_unlock(x)	{ \
-+				if (!(in_atomic() || irqs_disabled()))  \
-+					mutex_unlock(x); \
-+				}
-+
-+#define RES_DEFAULTLEVEL	0x0
-+
-+struct shared_resource_ops; /* forward declaration */
-+
-+/* Used to model a Shared Multilevel Resource */
-+struct shared_resource {
-+	/* Resource name */
-+	const char *name;
-+	/* Used to represent the OMAP chip types containing this res */
-+	const struct omap_chip_id omap_chip;
-+	/* Total no of users at any point of this resource */
-+	u8 no_of_users;
-+	/* Current level of this resource */
-+	u32 curr_level;
-+	/* Used to store any resource specific data */
-+	void  *resource_data;
-+	/* List of all the current users for this resource */
-+	struct list_head users_list;
-+	/* Used to guard the resource */
-+	struct mutex res_mutex;
-+	/* Shared resource operations */
-+	struct shared_resource_ops *ops;
-+	struct list_head node;
+ extern unsigned int mpurate;
+ 
+ extern int clk_init(struct clk_functions *custom_clocks);
+Index: linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/board-3430sdp.c	2008-07-08 15:21:45.039649888 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c	2008-07-08 15:21:57.863233088 +0530
+@@ -40,6 +40,7 @@
+ #include <asm/arch/keypad.h>
+ #include <asm/arch/dma.h>
+ #include <asm/arch/gpmc.h>
++#include <asm/arch/clock.h>
+ 
+ #include <asm/io.h>
+ #include <asm/delay.h>
+@@ -49,6 +50,43 @@
+ #define ENABLE_VAUX3_DEDICATED	0x03
+ #define ENABLE_VAUX3_DEV_GRP	0x20
+ 
++struct vdd_prcm_config vdd1_rate_table[] = {
++	{0, 0, 0},
++	/*OPP1*/
++	{S125M, VDD1_OPP1, 0},
++	/*OPP2*/
++	{S250M, VDD1_OPP2, 0},
++	/*OPP3*/
++	{S500M, VDD1_OPP3, 0},
++	/*OPP4*/
++	{S550M, VDD1_OPP4, 0},
++	/*OPP5*/
++	{S600M, VDD1_OPP5, 0},
 +};
 +
-+struct shared_resource_ops {
-+	/* Init function for the resource */
-+	void (*init)(struct shared_resource *res);
-+	/* Function to change the level of the resource */
-+	int (*change_level)(struct shared_resource *res, u32 target_level);
-+	/* Function to validate the requested level of the resource */
-+	int (*validate_level)(struct shared_resource *res, u32 target_level);
++struct vdd_prcm_config vdd2_rate_table[] = {
++	{0, 0, 0},
++	/*OPP1*/
++	{0, VDD2_OPP1, 0},
++	/*OPP2*/
++	{S83M, VDD2_OPP2, 0},
++	/*OPP3*/
++	{S166M, VDD2_OPP3, 0},
 +};
 +
-+/* This is to statically defining the users pool */
-+/* This static pool is used till kmalloc becomes available */
-+#define MAX_USERS	10
-+#define UNUSED		0x0
-+#define	DYNAMIC_ALLOC	0x1
-+#define STATIC_ALLOC	0x2
-+
-+/* Used to represent a user of a shared resource */
-+struct users_list {
-+	/* Device pointer used to uniquely identify the user */
-+	struct device *dev;
-+	/* Current level as requested for the resource by the user */
-+	u32 level;
-+	struct list_head node;
-+	u8 usage;
++struct vdd_prcm_config iva2_rate_table[] = {
++	{0, 0, 0},
++	/*OPP1*/
++	{S90M, VDD1_OPP1, 0},
++	/*OPP2*/
++	{S180M, VDD1_OPP2, 0},
++	/*OPP3*/
++	{S360M, VDD1_OPP3, 0},
++	/*OPP4*/
++	{S400M, VDD1_OPP4, 0},
++	/*OPP5*/
++	{S430M, VDD1_OPP5, 0},
 +};
+ 
+ static struct resource sdp3430_smc91x_resources[] = {
+ 	[0] = {
+Index: linux-omap-2.6/include/asm-arm/arch-omap/board-3430sdp.h
+===================================================================
+--- linux-omap-2.6.orig/include/asm-arm/arch-omap/board-3430sdp.h	2008-07-08 15:21:45.038649920 +0530
++++ linux-omap-2.6/include/asm-arm/arch-omap/board-3430sdp.h	2008-07-08 15:21:57.863233088 +0530
+@@ -67,5 +67,40 @@ extern void sdp3430_flash_init(void);
+ #define FLASH_SIZE_SDPV1	SZ_64M
+ #define FLASH_SIZE_SDPV2	SZ_128M
+ 
++/* MPU speeds */
++#define S600M   600000000
++#define S550M   550000000
++#define S500M   500000000
++#define S250M   250000000
++#define S125M   125000000
 +
-+/* Shared resource Framework API's */
-+void resource_init(struct shared_resource **resources);
-+int resource_register(struct shared_resource *res);
-+int resource_unregister(struct shared_resource *res);
-+int resource_request(const char *name, struct device *dev,
-+						 unsigned long level);
-+int resource_release(const char *name, struct device *dev);
-+int resource_get_level(const char *name);
++/* IVA speeds */
++#define S430M   430000000
++#define S400M   400000000
++#define S360M   360000000
++#define S180M   180000000
++#define S90M    90000000
 +
-+#endif /* __ARCH_ARM_OMAP_RESOURCE_H */
++/* L3 speeds */
++#define S83M    83000000
++#define S166M   166000000
++
++/* VDD1 OPPS */
++#define VDD1_OPP1       0x1
++#define VDD1_OPP2       0x2
++#define VDD1_OPP3       0x3
++#define VDD1_OPP4       0x4
++#define VDD1_OPP5       0x5
++
++/* VDD2 OPPS */
++#define VDD2_OPP1       0x1
++#define VDD2_OPP2       0x2
++#define VDD2_OPP3       0x3
++
++#define MIN_VDD1_OPP    VDD1_OPP1
++#define MAX_VDD1_OPP    VDD1_OPP5
++#define MIN_VDD2_OPP    VDD2_OPP1
++#define MAX_VDD2_OPP    VDD2_OPP3
++
+ #endif /* __ASM_ARCH_OMAP_3430SDP_H */
+ 
 
