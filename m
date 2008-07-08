@@ -1,60 +1,73 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Git pull request for omap patches for post 2.6.26
-Date: Tue, 8 Jul 2008 10:40:09 +0300
-Message-ID: <20080708074005.GA17594@atomide.com>
-References: <20080703101139.GE14276@atomide.com> <20080707200537.GP29191@flint.arm.linux.org.uk>
+Subject: Re: [RESEND][PATCH]Separate out 3430 LCD panel support from 2430
+	file
+Date: Tue, 8 Jul 2008 10:48:15 +0300
+Message-ID: <20080708074814.GB17594@atomide.com>
+References: <1215001464-12691-1-git-send-email-iqbal@ti.com> <fb249edb0807040932k4f2977a4w380b50e7f3cce197@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56289 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63764 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752640AbYGHHkH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2008 03:40:07 -0400
+	with ESMTP id S1750717AbYGHHsU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2008 03:48:20 -0400
 Content-Disposition: inline
-In-Reply-To: <20080707200537.GP29191@flint.arm.linux.org.uk>
+In-Reply-To: <fb249edb0807040932k4f2977a4w380b50e7f3cce197@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: andrzej zaborowski <balrogg@gmail.com>
+Cc: iqbal@ti.com, linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [080707 23:06]:
-> On Thu, Jul 03, 2008 at 01:11:42PM +0300, Tony Lindgren wrote:
-> > Please pull the omap patches for post-2.6.26 from:
-> > 
-> > git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap2-upstream
+* andrzej zaborowski <balrogg@gmail.com> [080704 19:34]:
+> 2008/7/2  <iqbal@ti.com>:
+> > From: Iqbal Shareef <iqbal@ti.com>
+> >
+> > Separate out 3430 LCD panel support from 2430 SDP.
+> >
+> > Currently the support for the LCD on 3430SDP is added in the lcd_2430sdp.c
+> > file. This patch separates it out to a new file.
 > 
-> I pulled this some time back but never merged it - but I did look at it.
-> 
-> However, I never got around to looking at your other patches on the
-> mailing list I'm afraid.
+> Isn't this a bit step backwards?  Code reuse is generally a good thing
+> if it doesn't clutter the code too much, and if you do diff -pNaur
+> lcd_2430sdp.c lcd_3430sdp.c in the current tree you will see that they
+> are very similar.
 
-Yes, I think you've only commented on the patches in the first series
-so far. Let me know if you have any comments on the other patches
-and I'll fix them ASAP.
-
-Basically once these patches are merged, we're a only missing board-*.c
-files under mach-omap2 to be again mostly in sync with mainline tree for
-mach-omap2. So hopefully only one more merge window of lots of patches
-after this merge window!
-
-Currently plat-omap and mach-omap1 are pretty close in sync with
-mainline tree except for some board-*.c under mach-omap1.
-
-> Looking at what's in this git tree, there's at least a number of commits
-> early on which are empty.  I've not really looked much further.
-
-Looks like there were the two already merged fixed still there, I've
-run stg clean on the series and rebased against 2.6.26-rc9. I've also
-verified that the series applies against your current tree. The location
-to pull from is same as earlier.
-
-> Since I've only just remembered about this, I think I'm going to have to
-> say "no more" to further community PXA commits this side of the merge
-> window to make sufficient time to look at your OMAP stuff properly.
-
-It would be nice to have merging mach-* patches more distributed so
-you don't have to spend so much time looking at that stuff.
-
-Regards,
+Good point. I'll revert this patch, that should fix the compile issue
+too.
 
 Tony
+
+> Additionally this patch leaves some of the 3430SDP code in
+> lcd_2430sdp.c, you will still find this:
+> #define SDP3430_LCD_PANEL_BACKLIGHT_GPIO 	24
+> #define SDP3430_LCD_PANEL_ENABLE_GPIO 		28
+> ...
+> 	if (machine_is_omap_3430sdp()) {
+> 		enable_gpio    = SDP3430_LCD_PANEL_ENABLE_GPIO;
+> 		backlight_gpio = SDP3430_LCD_PANEL_BACKLIGHT_GPIO;
+> 	} else {
+> 		enable_gpio    = SDP2430_LCD_PANEL_ENABLE_GPIO;
+> 		backlight_gpio = SDP2430_LCD_PANEL_BACKLIGHT_GPIO;
+> 	}
+> ...
+> 	if (machine_is_omap_3430sdp()) {
+> 		ded_reg = TWL4030_VAUX3_DEDICATED;
+> 		ded_val = ENABLE_VAUX3_DEDICATED;
+> 		grp_reg = TWL4030_VAUX3_DEV_GRP;
+> 		grp_val = ENABLE_VAUX3_DEV_GRP;
+> 	} else {
+> 		ded_reg = TWL4030_VAUX2_DEDICATED;
+> 		ded_val = ENABLE_VAUX2_DEDICATED;
+> 		grp_reg = TWL4030_VAUX2_DEV_GRP;
+> 		grp_val = ENABLE_VAUX2_DEV_GRP;
+> 	}
+> 
+> Another thing that isn't explained is why the GPIO numbers for
+> backlight and enable changed from 24 and 28 to 8 and 5.
+> 
+> Regards,
+> Andrew
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
