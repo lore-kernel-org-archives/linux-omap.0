@@ -1,465 +1,336 @@
-From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 06/09] virtual clock nodes for VDD1 and VDD2
-Date: Tue, 8 Jul 2008 17:09:30 +0530
-Message-ID: <030d01c8e0ef$48b116f0$68bf18ac@ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Jouni Hogander <jouni.hogander@nokia.com>
+Subject: [RFC] OMAP3: CPUIDLE & PM: Modifications and fixes
+Date: Tue,  8 Jul 2008 14:50:38 +0300
+Message-ID: <1215517838-7001-1-git-send-email-jouni.hogander@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56895 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754789AbYGHLjy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2008 07:39:54 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m68BdUrq000746
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 8 Jul 2008 06:39:43 -0500
-Received: from a0393137pc (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m68BdIxL005245
-	for <linux-omap@vger.kernel.org>; Tue, 8 Jul 2008 17:09:30 +0530 (IST)
+Received: from smtp.nokia.com ([192.100.122.230]:17649 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751806AbYGHLwh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2008 07:52:37 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, rnayak@ti.com
 
-The patch defines virtual nodes for VDD1 and VDD2
-Also adds VDD1/VDD2 specific rate/OPP tables in the board file
+With this patch cpuidle boot problem with cpuidle doesn't exist. Also hang on wake-up seems to
+disappear (haven't seen this far).
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Main points in this patch are:
+1. Add wkdep between neon and mpu
+2. Add wkdep between per and core
+3. Deny hwsup mode before writing next pwrst state
+3. Make sure that order in idle loop is such that clocks are _really_
+   enabled before accessing registers (serial & gpio).
 
+This patch is meant to be applied on top of "OMAP3 CPUidle patches"
+patch set and "OMAP3 CPUidle patches - fixes" patch sent by Rajendra
+Nayak.
+
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
 ---
- arch/arm/mach-omap2/board-3430sdp.c       |   38 +++++
- arch/arm/mach-omap2/clock34xx.c           |  206 +++++++++++++++++++++++++-----
- arch/arm/mach-omap2/clock34xx.h           |   28 ++++
- include/asm-arm/arch-omap/board-3430sdp.h |   35 +++++
- include/asm-arm/arch-omap/clock.h         |    8 +
- 5 files changed, 286 insertions(+), 29 deletions(-)
+ arch/arm/mach-omap2/cpuidle34xx.c |   82 ++--------------------------
+ arch/arm/mach-omap2/pm34xx.c      |  109 +++++++++++++++++++++++++++++++++++--
+ 2 files changed, 108 insertions(+), 83 deletions(-)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/clock34xx.h
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/clock34xx.h	2008-07-08 15:21:45.039649888 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/clock34xx.h	2008-07-08 15:21:57.861233153 +0530
-@@ -35,6 +35,13 @@ static u32 omap3_dpll_autoidle_read(stru
- static int omap3_noncore_dpll_enable(struct clk *clk);
- static void omap3_noncore_dpll_disable(struct clk *clk);
- static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate);
-+static void omap3_table_recalc(struct clk *clk);
-+static long omap3_round_to_table_rate(struct clk *clk, unsigned long rate);
-+static int omap3_select_table_rate(struct clk *clk, unsigned long rate);
-+
-+extern struct vdd_prcm_config vdd1_rate_table[];
-+extern struct vdd_prcm_config vdd2_rate_table[];
-+extern struct vdd_prcm_config iva2_rate_table[];
- 
- /* Maximum DPLL multiplier, divider values for OMAP3 */
- #define OMAP3_MAX_DPLL_MULT		2048
-@@ -3046,6 +3053,24 @@ static struct clk wdt1_fck = {
- 	.recalc		= &followparent_recalc,
- };
- 
-+static struct clk virt_vdd1_prcm_set = {
-+	.name = "virt_vdd1_prcm_set",
-+	.flags = CLOCK_IN_OMAP343X | VIRTUAL_CLOCK | ALWAYS_ENABLED,
-+	.parent = &mpu_ck, /* Indexed by mpu speed, no parent */
-+	.recalc = &omap3_table_recalc, /*sets are keyed on mpu rate */
-+	.set_rate = &omap3_select_table_rate,
-+	.round_rate = &omap3_round_to_table_rate,
-+};
-+
-+static struct clk virt_vdd2_prcm_set = {
-+	.name = "virt_vdd2_prcm_set",
-+	.flags = CLOCK_IN_OMAP343X | VIRTUAL_CLOCK | ALWAYS_ENABLED,
-+	.parent = &core_ck,
-+	.recalc = &omap3_table_recalc,
-+	.set_rate = &omap3_select_table_rate,
-+	.round_rate = &omap3_round_to_table_rate,
-+};
-+
- static struct clk *onchip_34xx_clks[] __initdata = {
- 	&omap_32k_fck,
- 	&virt_12m_ck,
-@@ -3258,6 +3283,9 @@ static struct clk *onchip_34xx_clks[] __
- 	&secure_32k_fck,
- 	&gpt12_fck,
- 	&wdt1_fck,
-+	/* virtual group clock */
-+	&virt_vdd1_prcm_set,
-+	&virt_vdd2_prcm_set,
- };
- 
- #endif
-Index: linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/clock34xx.c	2008-07-08 15:21:45.039649888 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c	2008-07-08 15:22:27.625265807 +0530
-@@ -25,6 +25,7 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- #include <linux/limits.h>
-+#include <linux/err.h>
- 
- #include <asm/arch/clock.h>
- #include <asm/arch/sram.h>
-@@ -45,6 +46,32 @@
- 
- #define MAX_DPLL_WAIT_TRIES		1000000
- 
-+struct vdd_prcm_config *curr_vdd1_prcm_set;
-+struct vdd_prcm_config *curr_vdd2_prcm_set;
-+static struct clk *dpll1_clk, *dpll2_clk, *dpll3_clk;
-+
-+#ifndef CONFIG_CPU_FREQ
-+static unsigned long compute_lpj(unsigned long ref, u_int div, u_int mult)
-+{
-+	unsigned long new_jiffy_l, new_jiffy_h;
-+
-+	/*
-+	 * Recalculate loops_per_jiffy.  We do it this way to
-+	 * avoid math overflow on 32-bit machines.  Maybe we
-+	 * should make this architecture dependent?  If you have
-+	 * a better way of doing this, please replace!
-+	 *
-+	 *    new = old * mult / div
-+	 */
-+	new_jiffy_h = ref / div;
-+	new_jiffy_l = (ref % div) / 100;
-+	new_jiffy_h *= mult;
-+	new_jiffy_l = new_jiffy_l * mult / div;
-+
-+	return new_jiffy_h + new_jiffy_l * 100;
-+}
-+#endif
-+
- /**
-  * omap3_dpll_recalc - recalculate DPLL rate
-  * @clk: DPLL struct clk
-@@ -569,15 +596,6 @@ void omap2_clk_prepare_for_reboot(void)
-  */
- static int __init omap2_clk_arch_init(void)
- {
--	if (!mpurate)
--		return -EINVAL;
--
--	/* REVISIT: not yet ready for 343x */
--#if 0
--	if (omap2_select_table_rate(&virt_prcm_set, mpurate))
--		printk(KERN_ERR "Could not find matching MPU rate\n");
--#endif
--
- 	recalculate_root_clocks();
- 
- 	printk(KERN_INFO "Switched to new clocking rate (Crystal/DPLL3/MPU): "
-@@ -595,6 +613,9 @@ int __init omap2_clk_init(void)
- 	struct clk **clkp;
- 	/* u32 clkrate; */
- 	u32 cpu_clkflg;
-+	unsigned long mpu_speed, core_speed;
-+	struct vdd_prcm_config *prcm_vdd;
-+
- 
- 	/* REVISIT: Ultimately this will be used for multiboot */
- #if 0
-@@ -637,22 +658,31 @@ int __init omap2_clk_init(void)
- 		}
- 	}
- 
--	/* REVISIT: Not yet ready for OMAP3 */
--#if 0
--	/* Check the MPU rate set by bootloader */
--	clkrate = omap2_get_dpll_rate_24xx(&dpll_ck);
--	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
--		if (!(prcm->flags & cpu_mask))
--			continue;
--		if (prcm->xtal_speed != sys_ck.rate)
--			continue;
--		if (prcm->dpll_speed <= clkrate)
--			 break;
-+	recalculate_root_clocks();
-+
-+	dpll1_clk = clk_get(NULL, "dpll1_ck");
-+	dpll2_clk = clk_get(NULL, "dpll2_ck");
-+	dpll3_clk = clk_get(NULL, "dpll3_ck");
-+
-+#ifdef CONFIG_MACH_OMAP_3430SDP
-+	mpu_speed = dpll1_clk->rate;
-+	prcm_vdd = vdd1_rate_table + MAX_VDD1_OPP;
-+	for (; prcm_vdd->speed; prcm_vdd--) {
-+		if (prcm_vdd->speed <= mpu_speed) {
-+			curr_vdd1_prcm_set = prcm_vdd;
-+			break;
-+		}
- 	}
--	curr_prcm_set = prcm;
--#endif
- 
--	recalculate_root_clocks();
-+	core_speed = dpll3_clk->rate;
-+	prcm_vdd = vdd2_rate_table + MAX_VDD2_OPP;
-+	for (; prcm_vdd->speed; prcm_vdd--) {
-+		if (prcm_vdd->speed <= core_speed) {
-+			curr_vdd2_prcm_set = prcm_vdd;
-+			break;
-+		}
-+	}
-+#endif
- 
- 	printk(KERN_INFO "Clocking rate (Crystal/DPLL/ARM core): "
- 	       "%ld.%01ld/%ld/%ld MHz\n",
-@@ -665,13 +695,131 @@ int __init omap2_clk_init(void)
- 	 */
- 	clk_enable_init_clocks();
- 
--	/* Avoid sleeping during omap2_clk_prepare_for_reboot() */
--	/* REVISIT: not yet ready for 343x */
--#if 0
--	vclk = clk_get(NULL, "virt_prcm_set");
--	sclk = clk_get(NULL, "sys_ck");
--#endif
- 	return 0;
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 6440515..c14152f 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -404,8 +404,6 @@ void omap3_save_core_ctx(void)
+ 	omap_save_gpmc_ctx();
+ 	/* Save the system control module context, padconf already save above*/
+ 	omap_save_control_ctx();
+-	omap_save_uart_ctx(0);
+-	omap_save_uart_ctx(1);
  }
  
-+inline unsigned int get_freq(struct vdd_prcm_config *opp_freq_table,
-+							 unsigned long opp)
-+{
-+	struct vdd_prcm_config *prcm_config;
-+	prcm_config = opp_freq_table;
+ void omap3_restore_core_ctx(void)
+@@ -416,11 +414,10 @@ void omap3_restore_core_ctx(void)
+ 	omap_restore_gpmc_ctx();
+ 	/* Restore the interrupt controller context */
+ 	omap_restore_intc_ctx();
+-	omap_restore_uart_ctx(0);
+-	omap_restore_uart_ctx(1);
+ 	padconf_saved = 0;
+ }
+ 
++int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+ /* omap3_enter_idle - Programs OMAP3 to enter the specified state.
+  * returns the total time during which the system was idle.
+  */
+@@ -429,8 +426,7 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
+ {
+ 	struct omap3_processor_cx *cx = cpuidle_get_statedata(state);
+ 	struct timespec ts_preidle, ts_postidle, ts_idle;
+-	struct powerdomain *mpu_pd, *core_pd, *per_pd, *neon_pd;
+-	int per_pwrst, neon_pwrst;
++	struct powerdomain *mpu_pd, *core_pd;
+ 
+ 	current_cx_state = *cx;
+ 
+@@ -450,49 +446,9 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
+ 
+ 	mpu_pd = pwrdm_lookup("mpu_pwrdm");
+ 	core_pd = pwrdm_lookup("core_pwrdm");
+-	per_pd = pwrdm_lookup("per_pwrdm");
+-	neon_pd = pwrdm_lookup("neon_pwrdm");
+-
+-	/* Reset previous power state registers */
+-	pwrdm_clear_all_prev_pwrst(mpu_pd);
+-	pwrdm_clear_all_prev_pwrst(neon_pd);
+-	pwrdm_clear_all_prev_pwrst(core_pd);
+-	pwrdm_clear_all_prev_pwrst(per_pd);
+-
+-	per_pwrst = pwrdm_read_pwrst(per_pd);
+-	neon_pwrst = pwrdm_read_pwrst(neon_pd);
+-
+-	/* Do this before any changes to PRCM registers */
+-	if (cx->core_state == PWRDM_POWER_OFF)
+-		omap3_save_prcm_ctx();
+-
+-	/* Program MPU to target state */
+-	if (cx->mpu_state < PWRDM_POWER_ON) {
+-		pwrdm_set_next_pwrst(neon_pd, cx->mpu_state);
+-		pwrdm_set_next_pwrst(mpu_pd, cx->mpu_state);
+-	}
+ 
+-	/* Program CORE and PER to target state */
+-	if (cx->core_state < PWRDM_POWER_ON) {
+-		omap2_gpio_prepare_for_retention();
+-		if (clocks_off_while_idle) {
+-			omap3_save_per_ctx();
+-			per_gpio_clk_disable();
+-			omap_save_uart_ctx(2);
+-			omap_serial_enable_clocks(0, 2);
+-		}
+-		if (cx->core_state == PWRDM_POWER_OFF)
+-			omap3_save_core_ctx();
+-		/* Disable UART1/UART2 clocks here. Done using direct register
+-		* writes as using clock f/w calls results in a hang in prcm_
+-		* interrupt_handler trying to clear WKST for CORE
+-		*/
+-		cm_clear_mod_reg_bits(0x6000, CORE_MOD, CM_ICLKEN1);
+-		cm_clear_mod_reg_bits(0x6000, CORE_MOD, CM_FCLKEN1);
+-		pwrdm_set_next_pwrst(core_pd, cx->core_state);
+-	}
+-
+-	*(scratchpad_restore_addr) = restore_pointer_address;
++        set_pwrdm_state(mpu_pd, cx->mpu_state);
++	set_pwrdm_state(core_pd, cx->core_state);
+ 
+ 	if (omap_irq_pending())
+ 		goto return_sleep_time;
+@@ -500,34 +456,6 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
+ 	/* Execute ARM wfi */
+ 	omap_sram_idle();
+ 
+-	*(scratchpad_restore_addr) = 0x0;
+-
+-	if (cx->core_state < PWRDM_POWER_ON) {
+-		cm_set_mod_reg_bits(0x6000, CORE_MOD, CM_ICLKEN1);
+-		cm_set_mod_reg_bits(0x6000, CORE_MOD, CM_FCLKEN1);
+-		if ((cx->core_state == PWRDM_POWER_OFF)
+-		&& (pwrdm_read_prev_pwrst(core_pd) == PWRDM_POWER_OFF)) {
+-			omap3_restore_core_ctx();
+-			omap3_restore_prcm_ctx();
+-			omap3_restore_sram_ctx();
+-		}
+-		pwrdm_set_next_pwrst(core_pd, PWRDM_POWER_ON);
+-		if (clocks_off_while_idle) {
+-			omap_serial_enable_clocks(1, 2);
+-			omap_restore_uart_ctx(2);
+-			per_gpio_clk_enable();
+-			omap3_restore_per_ctx();
+-		}
+-		omap2_gpio_resume_after_retention();
+-	}
+-
+-	pr_debug("MPU prev st:%x,NEON prev st:%x\n",
+-				pwrdm_read_prev_pwrst(mpu_pd),
+-				pwrdm_read_prev_pwrst(neon_pd));
+-	pr_debug("PER prev st:%x,CORE prev st:%x\n",
+-				pwrdm_read_prev_pwrst(per_pd),
+-				pwrdm_read_prev_pwrst(core_pd));
+-
+ return_sleep_time:
+ 	getnstimeofday(&ts_postidle);
+ 	ts_idle = timespec_sub(ts_postidle, ts_preidle);
+@@ -617,7 +545,7 @@ void omap_init_power_states(void)
+ 	omap3_power_states[OMAP3_STATE_C2].mpu_state = PWRDM_POWER_RET;
+ 	omap3_power_states[OMAP3_STATE_C2].core_state = PWRDM_POWER_ON;
+ 	omap3_power_states[OMAP3_STATE_C2].flags = CPUIDLE_FLAG_TIME_VALID |
+-						CPUIDLE_FLAG_BALANCED;
++                                               CPUIDLE_FLAG_BALANCED;
+ 
+ 	/* C3 . MPU OFF + Core active */
+ 	omap3_power_states[OMAP3_STATE_C3].valid = 1;
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index dc7bb90..1f9c58a 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -65,6 +65,20 @@ void (*_omap_sram_idle)(u32 *addr, int save_state, int disable_clocks);
+ static void (*saved_idle)(void);
+ 
+ static struct powerdomain *mpu_pwrdm;
++static struct powerdomain *neon_pwrdm, * per_pwrdm;
++static struct powerdomain *core_pwrdm;
 +
-+	for (; prcm_config->opp; prcm_config--)
-+		if (prcm_config->opp == opp)
-+			return prcm_config->speed;
-+	return 0;
-+}
++void omap3_save_per_ctx(void);
++void omap3_restore_per_ctx(void);
++void omap3_save_core_ctx(void);
++void omap3_restore_core_ctx(void);
++void omap3_save_sram_ctx(void);
++void omap3_restore_sram_ctx(void);
++void omap3_save_prcm_ctx(void);
++void omap3_restore_prcm_ctx(void);
++void omap_save_uart_ctx(int unum);
++void omap_restore_uart_ctx(int unum);
++int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+ 
+ /* XXX This is for gpio fclk hack. Will be removed as gpio driver
+  * handles fcks correctly */
+@@ -224,11 +238,19 @@ void omap_sram_idle(void)
+ 	/* save_state = 1 => Only L1 and logic lost */
+ 	/* save_state = 2 => Only L2 lost */
+ 	/* save_state = 3 => L1, L2 and logic lost */
+-	int save_state = 0, mpu_next_state;
++	int save_state = 0;
++	int mpu_next_state = PWRDM_POWER_ON, core_next_state = PWRDM_POWER_ON,
++		per_next_state = PWRDM_POWER_ON;
++	int mpu_prev_state, core_prev_state, per_prev_state;
+ 
+ 	if (!_omap_sram_idle)
+ 		return;
+ 
++	pwrdm_clear_all_prev_pwrst(mpu_pwrdm);
++	pwrdm_clear_all_prev_pwrst(neon_pwrdm);
++	pwrdm_clear_all_prev_pwrst(core_pwrdm);
++	pwrdm_clear_all_prev_pwrst(per_pwrdm);
 +
-+inline unsigned int get_opp(struct vdd_prcm_config *opp_freq_table,
-+						 unsigned long freq)
-+{
-+	struct vdd_prcm_config *prcm_config;
-+	prcm_config = opp_freq_table;
+ 	mpu_next_state = pwrdm_read_next_pwrst(mpu_pwrdm);
+ 	switch (mpu_next_state) {
+ 	case PWRDM_POWER_ON:
+@@ -245,10 +267,79 @@ void omap_sram_idle(void)
+ 		return;
+ 	}
+ 
+-	_omap_sram_idle(context_mem, save_state, clocks_off_while_idle);
+-	/* Restore table entry modified during MMU restoration */
++	/* NEON control */
++	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
++		set_pwrdm_state(neon_pwrdm, mpu_next_state);
 +
-+	if (prcm_config->speed <= freq)
-+		return prcm_config->opp; /* Return the Highest OPP */
-+	for (; prcm_config->speed; prcm_config--) {
-+		if (prcm_config->speed < freq)
-+			return (prcm_config+1)->opp;
-+		else if (prcm_config->speed == freq)
-+			return prcm_config->opp;
-+	}
-+	/* Return the least OPP */
-+	return (prcm_config+1)->opp;
-+}
-+
-+#ifdef CONFIG_MACH_OMAP_3430SDP
-+static void omap3_table_recalc(struct clk *clk)
-+{
-+	if ((clk != &virt_vdd1_prcm_set) && (clk != &virt_vdd2_prcm_set))
-+		return;
-+
-+	if ((curr_vdd1_prcm_set) && (clk == &virt_vdd1_prcm_set))
-+		clk->rate = curr_vdd1_prcm_set->speed;
-+	else if ((curr_vdd2_prcm_set) && (clk == &virt_vdd2_prcm_set))
-+		clk->rate = curr_vdd2_prcm_set->speed;
-+	pr_debug("CLK RATE:%lu\n", clk->rate);
-+}
-+
-+static long omap3_round_to_table_rate(struct clk *clk, unsigned long rate)
-+{
-+	struct vdd_prcm_config *ptr;
-+	long highest_rate;
-+
-+	if ((clk != &virt_vdd1_prcm_set) && (clk != &virt_vdd2_prcm_set))
-+		return -EINVAL;
-+
-+	highest_rate = -EINVAL;
-+
-+	if (clk == &virt_vdd1_prcm_set)
-+		ptr = vdd1_rate_table + MAX_VDD1_OPP;
-+	else
-+		ptr = vdd2_rate_table + MAX_VDD2_OPP;
-+
-+	for (; ptr->speed; ptr--) {
-+		highest_rate = ptr->speed;
-+		pr_debug("Highest speed : %lu, rate: %lu\n", highest_rate,
-+								rate);
-+		if (ptr->speed <= rate)
-+			break;
-+	}
-+	return highest_rate;
-+}
-+
-+static int omap3_select_table_rate(struct clk *clk, unsigned long rate)
-+{
-+	struct vdd_prcm_config *prcm_vdd;
-+	unsigned long found_speed = 0, curr_mpu_speed;
-+	int index;
-+
-+	if ((clk != &virt_vdd1_prcm_set) && (clk != &virt_vdd2_prcm_set))
-+		return -EINVAL;
-+
-+	if (clk == &virt_vdd1_prcm_set) {
-+		prcm_vdd = vdd1_rate_table + MAX_VDD1_OPP;
-+		index = MAX_VDD1_OPP;
-+	} else if (clk == &virt_vdd2_prcm_set) {
-+		prcm_vdd = vdd2_rate_table + MAX_VDD2_OPP;
-+		index = MAX_VDD2_OPP;
-+	}
-+
-+	for (; prcm_vdd->speed; prcm_vdd--, index--) {
-+		if (prcm_vdd->speed <= rate) {
-+			found_speed = prcm_vdd->speed;
-+			pr_debug("Found speed = %lu\n", found_speed);
-+			break;
++	/* CORE & PER */
++	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
++	if (core_next_state < PWRDM_POWER_ON) {
++		omap2_gpio_prepare_for_retention();
++		/* PER changes only with core */
++		per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
++		if (per_next_state < PWRDM_POWER_ON) {
++			if (per_next_state == PWRDM_POWER_OFF) {
++				omap3_save_per_ctx();
++				omap_save_uart_ctx(2);
++			}
++			if (clocks_off_while_idle) {
++				per_gpio_clk_disable();
++				omap_serial_enable_clocks(0, 2);
++			}
 +		}
++		if (core_next_state == PWRDM_POWER_OFF) {
++			omap3_save_core_ctx();
++			omap3_save_prcm_ctx();
++			omap_save_uart_ctx(0);
++			omap_save_uart_ctx(1);
++		}
++		if (clocks_off_while_idle) {
++			omap_serial_enable_clocks(0, 0);
++			omap_serial_enable_clocks(0, 1);
++		}
++		if (core_next_state == PWRDM_POWER_OFF)
++			omap3_save_prcm_ctx();
 +	}
 +
-+	if (!found_speed) {
-+		printk(KERN_INFO "Could not set table rate to %luMHz\n",
-+		       rate / 1000000);
-+		return -EINVAL;
++	*(scratchpad_restore_addr) = restore_pointer_address;
++
++	_omap_sram_idle(context_mem, save_state, 1);
++
++	*(scratchpad_restore_addr) = 0x0;
++
+ 	if (pwrdm_read_prev_pwrst(mpu_pwrdm) == 0x0)
+ 		restore_table_entry();
++	
++	if (core_next_state < PWRDM_POWER_ON) {
++		core_prev_state = pwrdm_read_prev_pwrst(core_pwrdm);
++		if (core_prev_state == PWRDM_POWER_OFF)
++			omap3_restore_prcm_ctx();
++		if (clocks_off_while_idle) {
++			omap_serial_enable_clocks(1, 0);
++			omap_serial_enable_clocks(1, 1);
++		}
++		if (core_prev_state == PWRDM_POWER_OFF) {
++			omap3_restore_core_ctx();
++			omap3_restore_sram_ctx();
++			omap_restore_uart_ctx(0);
++			omap_restore_uart_ctx(1);
++		}
++		if (per_next_state < PWRDM_POWER_ON) {
++			if (clocks_off_while_idle) {
++				per_gpio_clk_enable();
++				/* This would be actually more effective */
++				omap_serial_enable_clocks(1, 2);
++			}
++			per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
++			if (per_prev_state == PWRDM_POWER_OFF) {
++				omap3_restore_per_ctx();
++				/* This would be actually more effective */
++				omap_restore_uart_ctx(2);
++			}
++
++		}
++		omap2_gpio_resume_after_retention();
 +	}
-+
-+
-+	if (clk == &virt_vdd1_prcm_set) {
-+		curr_mpu_speed = curr_vdd1_prcm_set->speed;
-+		clk_set_rate(dpll1_clk, prcm_vdd->speed);
-+		clk_set_rate(dpll2_clk, iva2_rate_table[index].speed);
-+		curr_vdd1_prcm_set = prcm_vdd;
-+#ifndef CONFIG_CPU_FREQ
-+		/*Update loops_per_jiffy if processor speed is being changed*/
-+		loops_per_jiffy = compute_lpj(loops_per_jiffy,
-+					curr_mpu_speed/1000, found_speed/1000);
- #endif
-+	} else {
-+		clk_set_rate(dpll3_clk, prcm_vdd->speed);
-+		curr_vdd2_prcm_set = prcm_vdd;
-+	}
-+	return 0;
-+}
-+#else /* CONFIG_MACH_OMAP_3430SDP */
-+static void omap3_table_recalc(struct clk *clk) {}
-+static long omap3_round_to_table_rate(struct clk *clk, unsigned long rate)
-+{ return 0; }
-+static int omap3_select_table_rate(struct clk *clk, unsigned long rate)
-+{ return 0; }
-+#endif /* CONFIG_MACH_OMAP_3430SDP */
-+
-+#endif /* CONFIG_ARCH_OMAP3 */
-Index: linux-omap-2.6/include/asm-arm/arch-omap/clock.h
-===================================================================
---- linux-omap-2.6.orig/include/asm-arm/arch-omap/clock.h	2008-07-08 15:21:45.038649920 +0530
-+++ linux-omap-2.6/include/asm-arm/arch-omap/clock.h	2008-07-08 15:21:57.862233120 +0530
-@@ -109,6 +109,14 @@ struct clk_functions {
- #endif
- };
+ }
  
-+#ifdef CONFIG_ARCH_OMAP3
-+struct vdd_prcm_config {
-+	unsigned long speed;
-+	unsigned long opp;
-+	unsigned long flags;
-+};
-+#endif
-+
- extern unsigned int mpurate;
+ static int omap3_fclks_active(void)
+@@ -318,7 +409,7 @@ static int _clkdm_allow_idle(struct powerdomain *pwrdm,
+ /* This sets pwrdm state (other than mpu & core. Currently only ON &
+  * RET are supported. Function is assuming that clkdm doesn't have
+  * hw_sup mode enabled. */
+-static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
++int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+ {
+ 	u32 cur_state;
+ 	int ret = 0;
+@@ -657,8 +748,8 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm)
+ 	if (!pwrst)
+ 		return -ENOMEM;
+ 	pwrst->pwrdm = pwrdm;
+-	if (!strcmp(pwrst->pwrdm->name, "core_pwrdm"))
+-		pwrst->next_state = PWRDM_POWER_RET;
++	if (!strcmp(pwrst->pwrdm->name, "core_pwrdm") || !strcmp(pwrst->pwrdm->name, "mpu_pwrdm") || !strcmp(pwrst->pwrdm->name, "mpu_pwrdm"))
++		pwrst->next_state = PWRDM_POWER_ON;
+ 	else
+ 		pwrst->next_state = PWRDM_POWER_OFF;
+ 	list_add(&pwrst->node, &pwrst_list);
+@@ -708,6 +799,9 @@ int __init omap3_pm_init(void)
+ 		printk(KERN_ERR "Failed to get mpu_pwrdm\n");
+ 		goto err2;
+ 	}
++	neon_pwrdm = pwrdm_lookup("neon_pwrdm");
++	per_pwrdm = pwrdm_lookup("per_pwrdm");
++	core_pwrdm = pwrdm_lookup("core_pwrdm");
  
- extern int clk_init(struct clk_functions *custom_clocks);
-Index: linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/board-3430sdp.c	2008-07-08 15:21:45.039649888 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c	2008-07-08 15:21:57.863233088 +0530
-@@ -40,6 +40,7 @@
- #include <asm/arch/keypad.h>
- #include <asm/arch/dma.h>
- #include <asm/arch/gpmc.h>
-+#include <asm/arch/clock.h>
+ 	omap_push_sram_idle();
+ 	suspend_set_ops(&omap_pm_ops);
+@@ -723,6 +817,9 @@ int __init omap3_pm_init(void)
+ 		gpio_fcks[i-1] = clk_get(NULL, clk_name);
+ 	}
  
- #include <asm/io.h>
- #include <asm/delay.h>
-@@ -49,6 +50,43 @@
- #define ENABLE_VAUX3_DEDICATED	0x03
- #define ENABLE_VAUX3_DEV_GRP	0x20
- 
-+struct vdd_prcm_config vdd1_rate_table[] = {
-+	{0, 0, 0},
-+	/*OPP1*/
-+	{S125M, VDD1_OPP1, 0},
-+	/*OPP2*/
-+	{S250M, VDD1_OPP2, 0},
-+	/*OPP3*/
-+	{S500M, VDD1_OPP3, 0},
-+	/*OPP4*/
-+	{S550M, VDD1_OPP4, 0},
-+	/*OPP5*/
-+	{S600M, VDD1_OPP5, 0},
-+};
++	pwrdm_add_wkdep(neon_pwrdm, mpu_pwrdm);
++	pwrdm_add_wkdep(per_pwrdm, core_pwrdm);
 +
-+struct vdd_prcm_config vdd2_rate_table[] = {
-+	{0, 0, 0},
-+	/*OPP1*/
-+	{0, VDD2_OPP1, 0},
-+	/*OPP2*/
-+	{S83M, VDD2_OPP2, 0},
-+	/*OPP3*/
-+	{S166M, VDD2_OPP3, 0},
-+};
-+
-+struct vdd_prcm_config iva2_rate_table[] = {
-+	{0, 0, 0},
-+	/*OPP1*/
-+	{S90M, VDD1_OPP1, 0},
-+	/*OPP2*/
-+	{S180M, VDD1_OPP2, 0},
-+	/*OPP3*/
-+	{S360M, VDD1_OPP3, 0},
-+	/*OPP4*/
-+	{S400M, VDD1_OPP4, 0},
-+	/*OPP5*/
-+	{S430M, VDD1_OPP5, 0},
-+};
- 
- static struct resource sdp3430_smc91x_resources[] = {
- 	[0] = {
-Index: linux-omap-2.6/include/asm-arm/arch-omap/board-3430sdp.h
-===================================================================
---- linux-omap-2.6.orig/include/asm-arm/arch-omap/board-3430sdp.h	2008-07-08 15:21:45.038649920 +0530
-+++ linux-omap-2.6/include/asm-arm/arch-omap/board-3430sdp.h	2008-07-08 15:21:57.863233088 +0530
-@@ -67,5 +67,40 @@ extern void sdp3430_flash_init(void);
- #define FLASH_SIZE_SDPV1	SZ_64M
- #define FLASH_SIZE_SDPV2	SZ_128M
- 
-+/* MPU speeds */
-+#define S600M   600000000
-+#define S550M   550000000
-+#define S500M   500000000
-+#define S250M   250000000
-+#define S125M   125000000
-+
-+/* IVA speeds */
-+#define S430M   430000000
-+#define S400M   400000000
-+#define S360M   360000000
-+#define S180M   180000000
-+#define S90M    90000000
-+
-+/* L3 speeds */
-+#define S83M    83000000
-+#define S166M   166000000
-+
-+/* VDD1 OPPS */
-+#define VDD1_OPP1       0x1
-+#define VDD1_OPP2       0x2
-+#define VDD1_OPP3       0x3
-+#define VDD1_OPP4       0x4
-+#define VDD1_OPP5       0x5
-+
-+/* VDD2 OPPS */
-+#define VDD2_OPP1       0x1
-+#define VDD2_OPP2       0x2
-+#define VDD2_OPP3       0x3
-+
-+#define MIN_VDD1_OPP    VDD1_OPP1
-+#define MAX_VDD1_OPP    VDD1_OPP5
-+#define MIN_VDD2_OPP    VDD2_OPP1
-+#define MAX_VDD2_OPP    VDD2_OPP3
-+
- #endif /* __ASM_ARCH_OMAP_3430SDP_H */
- 
+ err1:
+ 	return ret;
+ err2:
+-- 
+1.5.5
 
