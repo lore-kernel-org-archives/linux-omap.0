@@ -1,73 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND][PATCH]Separate out 3430 LCD panel support from 2430
-	file
-Date: Tue, 8 Jul 2008 10:48:15 +0300
-Message-ID: <20080708074814.GB17594@atomide.com>
-References: <1215001464-12691-1-git-send-email-iqbal@ti.com> <fb249edb0807040932k4f2977a4w380b50e7f3cce197@mail.gmail.com>
+From: "Rajendra Nayak" <rnayak@ti.com>
+Subject: [PATCH 00/09] OMAP PM interface implementation using Shared resource f/w
+Date: Tue, 8 Jul 2008 17:09:18 +0530
+Message-ID: <030701c8e0ef$42440a20$68bf18ac@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63764 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750717AbYGHHsU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2008 03:48:20 -0400
-Content-Disposition: inline
-In-Reply-To: <fb249edb0807040932k4f2977a4w380b50e7f3cce197@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49316 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754596AbYGHLj3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2008 07:39:29 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m68BdK0x021801
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 8 Jul 2008 06:39:27 -0500
+Received: from a0393137pc (localhost [127.0.0.1])
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m68BdIxF005245
+	for <linux-omap@vger.kernel.org>; Tue, 8 Jul 2008 17:09:19 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: andrzej zaborowski <balrogg@gmail.com>
-Cc: iqbal@ti.com, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* andrzej zaborowski <balrogg@gmail.com> [080704 19:34]:
-> 2008/7/2  <iqbal@ti.com>:
-> > From: Iqbal Shareef <iqbal@ti.com>
-> >
-> > Separate out 3430 LCD panel support from 2430 SDP.
-> >
-> > Currently the support for the LCD on 3430SDP is added in the lcd_2430sdp.c
-> > file. This patch separates it out to a new file.
-> 
-> Isn't this a bit step backwards?  Code reuse is generally a good thing
-> if it doesn't clutter the code too much, and if you do diff -pNaur
-> lcd_2430sdp.c lcd_3430sdp.c in the current tree you will see that they
-> are very similar.
+Hi,
 
-Good point. I'll revert this patch, that should fix the compile issue
-too.
+The patches which follow implement the API's defined by Paul Walmsley as part of the 
+OMAP PM Interface on OMAP3430sdp. 
+Shared resource f/w is used for the underlying implementation.
 
-Tony
+The following resources are modeled
+1) MPU/CORE latency resources
+2) Power Domain latency resources (One for each Power domain)
+3) OPP/Freq resources (For DVFS)
 
-> Additionally this patch leaves some of the 3430SDP code in
-> lcd_2430sdp.c, you will still find this:
-> #define SDP3430_LCD_PANEL_BACKLIGHT_GPIO 	24
-> #define SDP3430_LCD_PANEL_ENABLE_GPIO 		28
-> ...
-> 	if (machine_is_omap_3430sdp()) {
-> 		enable_gpio    = SDP3430_LCD_PANEL_ENABLE_GPIO;
-> 		backlight_gpio = SDP3430_LCD_PANEL_BACKLIGHT_GPIO;
-> 	} else {
-> 		enable_gpio    = SDP2430_LCD_PANEL_ENABLE_GPIO;
-> 		backlight_gpio = SDP2430_LCD_PANEL_BACKLIGHT_GPIO;
-> 	}
-> ...
-> 	if (machine_is_omap_3430sdp()) {
-> 		ded_reg = TWL4030_VAUX3_DEDICATED;
-> 		ded_val = ENABLE_VAUX3_DEDICATED;
-> 		grp_reg = TWL4030_VAUX3_DEV_GRP;
-> 		grp_val = ENABLE_VAUX3_DEV_GRP;
-> 	} else {
-> 		ded_reg = TWL4030_VAUX2_DEDICATED;
-> 		ded_val = ENABLE_VAUX2_DEDICATED;
-> 		grp_reg = TWL4030_VAUX2_DEV_GRP;
-> 		grp_val = ENABLE_VAUX2_DEV_GRP;
-> 	}
-> 
-> Another thing that isn't explained is why the GPIO numbers for
-> backlight and enable changed from 24 and 28 to 8 and 5.
-> 
-> Regards,
-> Andrew
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The below API from the OMAP PM interface is yet to be implemented.
+void omap_pm_set_min_bus_tput(struct device *dev, struct bus_type *bus,
+                                    unsigned long r)
+
+regards,
+Rajendra
+
