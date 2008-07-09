@@ -1,25 +1,40 @@
-From: "Ashish Bijlani" <ashish.bijlani@gmail.com>
-Subject: Re: initial frame buffer console
-Date: Wed, 9 Jul 2008 09:39:08 -0500
-Message-ID: <ec55b17e0807090739l41194d3dt9147ead04f0661e3@mail.gmail.com>
-References: <ec55b17e0807082225n6bbbcc10t2963323164821b90@mail.gmail.com>
-	 <19F8576C6E063C45BE387C64729E73940324B50892@dbde02.ent.ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: initial frame buffer console
+Date: Wed, 9 Jul 2008 21:16:11 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940324B50AD5@dbde02.ent.ti.com>
+References: <ec55b17e0807090739l41194d3dt9147ead04f0661e3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.224]:5343 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754243AbYGIOjK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2008 10:39:10 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so3582433rvb.1
-        for <linux-omap@vger.kernel.org>; Wed, 09 Jul 2008 07:39:09 -0700 (PDT)
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940324B50892@dbde02.ent.ti.com>
-Content-Disposition: inline
+Received: from soda.ext.ti.com ([198.47.26.145]:53046 "EHLO soda.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754186AbYGIPq0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2008 11:46:26 -0400
+In-Reply-To: <ec55b17e0807090739l41194d3dt9147ead04f0661e3@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Ashish Bijlani <ashish.bijlani@gmail.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+Then you should provide details information about your system/setup/usecase?
+
+Thanks,
+Vaibhav Hiremath
+Senior Software Engg.
+Platform Support Products
+Texas Instruments Inc
+Ph: +91-80-25099927
+TI IP Ph: 509-9927
+http://dbdwss01.india.ti.com/pspproducts/
+
+-----Original Message-----
+From: Ashish Bijlani [mailto:ashish.bijlani@gmail.com]
+Sent: Wednesday, July 09, 2008 8:09 PM
+To: Hiremath, Vaibhav
+Cc: linux-omap@vger.kernel.org
+Subject: Re: initial frame buffer console
 
 Hi Vaibhav,
 
