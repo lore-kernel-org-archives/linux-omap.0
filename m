@@ -1,84 +1,135 @@
 From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: [PATCH 00/11] OMAP3 CPUidle patches
-Date: Wed, 09 Jul 2008 09:48:27 +0300
-Message-ID: <87y74bwo1w.fsf@trdhcp146196.ntc.nokia.com>
-References: <003d01c8db84$fe61fde0$68bf18ac@ent.ti.com>
-	<20080702131127.GA4404@codecarver.research.nokia.com>
-	<000701c8dc48$d1ce66a0$68bf18ac@ent.ti.com>
-	<20080702154253.GC4404@codecarver.research.nokia.com>
-	<004d01c8dce8$56eec0b0$68bf18ac@ent.ti.com>
-	<87prpum7nr.fsf@trdhcp146196.ntc.nokia.com>
-	<873amqknae.fsf@trdhcp146196.ntc.nokia.com>
-	<011601c8ddba$c4031110$68bf18ac@ent.ti.com>
-	<1215423520.6048.16.camel@kj-ubuntu>
-	<87k5fy2f1r.fsf@trdhcp146196.ntc.nokia.com>
-	<B85A65D85D7EB246BE421B3FB0FBB5930111A74854@dbde02.ent.ti.com>
-	<13B9B4C6EF24D648824FF11BE8967162035BCE275B@dlee02.ent.ti.com>
-	<8763rg3nqp.fsf@trdhcp146196.ntc.nokia.com>
-	<13B9B4C6EF24D648824FF11BE8967162035BCE28A5@dlee02.ent.ti.com>
-	<87prpoxzm0.fsf@trdhcp146196.ntc.nokia.com>
-	<13B9B4C6EF24D648824FF11BE8967162035BD66B12@dlee02.ent.ti.com>
+Subject: Re: [PATCH] OMAP3: CPUIDLE & PM: check_bm fix.
+Date: Wed, 09 Jul 2008 09:58:34 +0300
+Message-ID: <87tzezwnl1.fsf@trdhcp146196.ntc.nokia.com>
+References: <1215519440-10234-1-git-send-email-jouni.hogander@nokia.com>
+	<1215584973-14982-1-git-send-email-jouni.hogander@nokia.com>
+	<000b01c8e18f$31708610$68bf18ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:40524 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751518AbYGIGtF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2008 02:49:05 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162035BD66B12@dlee02.ent.ti.com>
-	(ext Woodruff's message of "Tue, 8 Jul 2008 08:52:26 -0500")
+Received: from smtp.nokia.com ([192.100.105.134]:27680 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752428AbYGIG66 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2008 02:58:58 -0400
+In-Reply-To: <000b01c8e18f$31708610$68bf18ac@ent.ti.com> (ext Rajendra Nayak's
+	message of "Wed, 9 Jul 2008 12:14:09 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>, "Nayak, Rajendra" <rnayak@ti.com>, 'Peter 'p2' De Schrijver' <peter.de-schrijver@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-"ext Woodruff, Richard" <r-woodruff2@ti.com> writes:
+"ext Rajendra Nayak" <rnayak@ti.com> writes:
 
->> >         [x] Has anyone fixed the broken gpio wakeup enable code?
->> >         Right now this might even kill you as it will clear you
->> >         wakeup enable register.  This could stop you from waking
->> >         from a partially idle/clock stop condition on the L3?
->>
->> The problem was actually related to this. There is those
->> gpio_prepare_*
->> and gpio_resume_* functions which were not run. For some reason
->> next_state for powerdomains doesn't update correctly before hw_sup
->> mode is disabled. This caused problem that cpuidle thinks that core =
-is
->> entering ON state, while it was actually entering state written in
->> omap3_pm_init. Now as cpuidle was thinking that core is not entering
->> any sleep state it didn't run gpio_prepare_* and gpio_resume_*
->> functions. This caused that interrupt was not generated for that gpi=
-o
->> used by eth chip.
->>
->> This was fixed in my patches by disabling hw_sup mode before writing
->> next_state and then re-enable it. Those patches are also writing nex=
-t
->> state if CORE next state is ON.
+> =20
+>> -----Original Message-----
+>> From: Jouni Hogander [mailto:jouni.hogander@nokia.com]=20
+>> Sent: Wednesday, July 09, 2008 12:00 PM
+>> To: linux-omap@vger.kernel.org; rnayak@ti.com
+>> Subject: [PATCH] OMAP3: CPUIDLE & PM: check_bm fix.
+>>=20
+>> This patch fixes problems with uart usage. omap3_enter_idle_bm was
+>> select C5 and C6 states even if there was "bus activity.
 >
-> Ok.  As I sent in my mail a couple weeks back.  The clearing of wakeu=
-p events at GPIOs when the CORE hits INACTIVE might result in windows o=
-f you not waking up, especially with dynamic tick in the system.  I wou=
-ld guess the windows would be around boot & suspend resume.
->
-> It is not so clear if gpio that hack is even needed on OMAP3.  There =
-is some warning about spurious interrupts when going to RET/OFF for OMA=
-P2. I don't recall for OMAP3.  didn't those prepare functions dink with=
- wake up masks in fear of spurious interrupts.  So, wasn't the result f=
-or you the opposite, it kept you from waking, instead of suppressing ex=
-tra wakes?
->
-> Did you fix the OMAP2 GPIO wakeup mask in use at least?  The code
-> had a hardcoded mask based on OMAP2 wakeup capable gpios which don't
-> apply to omap3.
+> Am not very clear on what was the issue with the previous logic that =
+it would=20
+> attempt a C5/C6 even with bus activity.
 
-No I haven't modified that code. I have begun to use it before
-retention because it is under #if defined(CONFIG_ARCH_OMAP34XX)
-statement and used in case of omap2. Maybe we could stop using it in
-case of omap3 at least this comment in gpio.c supports this: "See
-OMAP2420 Errata item 1.101"? Seems to be just legacy code from omap2.
+If you try it you will notice the difference;) What is the meaning of
+this bm check if C5/C6 is used even when there is "acitivity". Anyway i=
+f
+you want to have bm check code in your cpuidle driver you need to
+rewrite the check code. I have seen that omap3_can_sleep partially as
+a workaround. Just to make sure PM doesn't break any driver as long as
+they are not all configured properly what comes to interconnect. Just
+like what happened here as cpuidle was trying to enter C5/C6.
+
+>
+>>=20
+>> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+>> ---
+>>  arch/arm/mach-omap2/cpuidle34xx.c |   23 +++++++----------------
+>>  arch/arm/mach-omap2/pm34xx.c      |    2 +-
+>>  2 files changed, 8 insertions(+), 17 deletions(-)
+>>=20
+>> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c=20
+>> b/arch/arm/mach-omap2/cpuidle34xx.c
+>> index c14152f..a636edb 100644
+>> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+>> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+>> @@ -473,31 +473,22 @@ static int omap3_enter_idle_bm(struct=20
+>> cpuidle_device *dev,
+>>  			       struct cpuidle_state *state)
+>>  {
+>>  	struct cpuidle_state *new_state =3D NULL;
+>> -	int i, j;
+>> -
+>> -	if ((state->flags & CPUIDLE_FLAG_CHECK_BM) &&=20
+>> omap3_idle_bm_check()) {
+>> -
+>> -		/* Find current state in list */
+>> -		for (i =3D 0; i < OMAP3_MAX_STATES; i++)
+>> -			if (state =3D=3D &dev->states[i])
+>> -				break;
+>> -		BUG_ON(i =3D=3D OMAP3_MAX_STATES);
+>> -
+>> -		/* Back up to non 'CHECK_BM' state */
+>> -		for (j =3D i - 1;  j > 0; j--) {
+>> -			struct cpuidle_state *s =3D &dev->states[j];
+>> +	int i;
+>> =20
+>> +	if (omap3_idle_bm_check()) {
+>> +		for (i =3D 0; i < OMAP3_MAX_STATES; i++) {
+>> +			struct cpuidle_state *s =3D &dev->states[i];
+>
+> So now a C0 is attempted every time there is bus activity?
+
+Yes you are right here. This code is not very effective. It should
+select deepest sleep state without CPUIDLE_FLAG_CHECK_BM.
+
+>
+>>  			if (!(s->flags & CPUIDLE_FLAG_CHECK_BM)) {
+>>  				new_state =3D s;
+>>  				break;
+>>  			}
+>>  		}
+>> -
+>> +		BUG_ON(i =3D=3D OMAP3_MAX_STATES);
+>>  		pr_debug("%s: Bus activity: Entering %s=20
+>> (instead of %s)\n",
+>> -			__FUNCTION__, new_state->name, state->name);
+>> +			 __FUNCTION__, new_state->name, state->name);
+>>  	}
+>> =20
+>> -	return omap3_enter_idle(dev, new_state ? : state);
+>> +	return omap3_enter_idle(dev, new_state ? new_state : state);
+>>  }
+>> =20
+>>  DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
+>> diff --git a/arch/arm/mach-omap2/pm34xx.c=20
+>> b/arch/arm/mach-omap2/pm34xx.c
+>> index 9f73e5c..ca0600a 100644
+>> --- a/arch/arm/mach-omap2/pm34xx.c
+>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>> @@ -734,7 +734,7 @@ static int __init pwrdms_setup(struct=20
+>> powerdomain *pwrdm)
+>>  		pwrdm_enable_hdwr_sar(pwrdm);
+>> =20
+>>  	if (!strcmp(pwrst->pwrdm->name, "core_pwrdm") ||=20
+>> !strcmp(pwrst->pwrdm->name, "mpu_pwrdm") ||
+>> -	    !strcmp(pwrst->pwrdm->name, "mpu_pwrdm"))
+>> +	    !strcmp(pwrst->pwrdm->name, "neon_pwrdm"))
+>>  		return set_pwrdm_state(pwrst->pwrdm, PWRDM_POWER_ON);
+>>  	else
+>>  		return set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
+>> --=20
+>> 1.5.5
+>>=20
+>>=20
+>
+>
+>
 
 --=20
 Jouni H=C3=B6gander
