@@ -1,114 +1,75 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH] OMAP3: CPUIDLE & PM: check_bm fix.
-Date: Wed, 9 Jul 2008 08:05:48 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162035BD675D5@dlee02.ent.ti.com>
-References: <1215519440-10234-1-git-send-email-jouni.hogander@nokia.com><1215584973-14982-1-git-send-email-jouni.hogander@nokia.com><000b01c8e18f$31708610$68bf18ac@ent.ti.com><87tzezwnl1.fsf@trdhcp146196.ntc.nokia.com><000c01c8e193$9f1f4d50$68bf18ac@ent.ti.com>
- <87tzeztpz3.fsf@trdhcp146196.ntc.nokia.com>
- <001901c8e19f$32f66f80$68bf18ac@ent.ti.com>
+From: "Ashish Bijlani" <ashish.bijlani@gmail.com>
+Subject: Re: initial frame buffer console
+Date: Wed, 9 Jul 2008 09:39:08 -0500
+Message-ID: <ec55b17e0807090739l41194d3dt9147ead04f0661e3@mail.gmail.com>
+References: <ec55b17e0807082225n6bbbcc10t2963323164821b90@mail.gmail.com>
+	 <19F8576C6E063C45BE387C64729E73940324B50892@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35944 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753036AbYGINGV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Jul 2008 09:06:21 -0400
-In-Reply-To: <001901c8e19f$32f66f80$68bf18ac@ent.ti.com>
-Content-Language: en-US
+Received: from rv-out-0506.google.com ([209.85.198.224]:5343 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754243AbYGIOjK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2008 10:39:10 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so3582433rvb.1
+        for <linux-omap@vger.kernel.org>; Wed, 09 Jul 2008 07:39:09 -0700 (PDT)
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940324B50892@dbde02.ent.ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>, =?utf-8?B?JyJIw7ZnYW5kZXIiIEpvdW5pJw==?= <jouni.hogander@nokia.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-SGksDQoNCj4gPiBJIHRoaW5rIHdlIGhhdmUgbm93IGFsbCB0aGUgcGllY2VzIGhlcmUgdG8gZ2V0
-IHN0YWJsZSBjcHVpZGxlICsNCj4gPiBwbV9pZGxlICsgc3VzcGVuZCArIG9mZiBtb2RlIHdpdGgg
-bWluaW1hbCBjb25maWd1cmF0aW9uIG9uIFNEUA0KPiA+IGJvYXJkLiBDb3VsZCB5b3UgUmFqZW5k
-cmEgbm93IGdhdGhlciB0aGVzZSB0b2dldGhlciBhbmQgcHJlcGFyZSBuZXcNCj4gPiBwYXRjaCBz
-ZXQgaW4gc2Vuc2libGUgZm9ybWF0Pw0KPg0KPiBZZXMsIEkgd2lsbCBkbyB0aGF0LiBXaWxsIHJl
-LXNlbmQgdGhlIGNvbXBsZXRlIHBhdGNoIHNldCB3aXRoIGFsbCB0aGUNCj4gZml4ZXMgaW4gcGxh
-Y2UuDQoNCkknbGwgYWRkIGEgY291cGxlIG5vdGVzIGJhc2VkIG9uIHJlY2VudCBjaGFuZ2VzIGlu
-IGludGVybmFsIGNvZGUuDQoNCkNvZGUgaGFzIG1vdmVkIHRvIHVzaW5nIHRoZSBzYWZlX2lkbGUg
-bWV0aG9kIGxpa2UgcmVmZXJlbmNlIEludGVsIGRyaXZlciBjb2RlIHVzZXMuDQogICAgICAgIC0g
-VGhpcyByZW1vdmVzIGZvciBsb29wIGJhY2tpbmcgdXAgdG8gMXN0IG5vbi1CTSBzdGF0ZSBhbmQg
-bWFrZXMgaWRsZSBwYXRoIGZhc3Rlci4NCiAgICAgICAgLSBUaGUgYmlnZ2VzdCBwb3dlci1wZXJm
-b3JtYW5jZSBnYWluIGNvbWVzIGJ5IG1ha2luZyBzdXJlIGEgSU5BQ1RJVkUgc3RhdGUgaXMgaGl0
-LiAgSWYgdGhlcmUgaXMgQk0gYWN0aXZpdHkgY2hhbmNlcyBhcmUgTVBVIHdpbGwgYmUgbmVlZGVk
-IGFueXdheSBhbmQgZ29pbmcgdG8gT0ZGIHByb2JhYmx5IGlzbid0IGEgd2luLiAgR2V0dGluZyA5
-OCUgc2F2aW5ncyBpcyBvay4NCg0KU2xvd25lc3Mgb24gc2VyaWFsIGlzIHRoZXJlIGFueXRpbWUg
-eW91IGhpdCBJTkFDVElWRSBpZiB5b3UgZG9uJ3QgaGF2ZSB0aGUgVUFSVC1OTy1JRExFLU9OLVRY
-IHdvcmthcm91bmQgaW4gdHJlZS4gIFRoaXMgaXMgbm90IGluIFRvbnkncyB0cmVlIHlldCBhbmQg
-cHJvYmFibHkgc2hvdWxkIGJlIGlmIHRoZSBVQVJUIGlzIGJvdGhlcmluZyB5b3UuICBDaG9vc2lu
-ZyBhIG5vbi1XRkkgc3RhdGUgcGVuYWx0eSBsaWtlIHlvdXIgcGF0Y2ggZGlkIGlzIHRvbyBleHBl
-bnNpdmUgZnJvbSBhIHBvd2VyIHN0YW5kcG9pbnQgZm9yIHRoZSBlZmZlY3QuDQoNCkJlbG93IHBh
-dGNoZXMgZm9yIGNvbW1lbnQuDQoNClJlZ2FyZHMsDQpSaWNoYXJkIFcuDQoNCi0tLSBhcmNoL2Fy
-bS9tYWNoLW9tYXAyL3BtX2lkbGVfMzR4eC5jQEAvTElOVVgtR0lULTIuNktfSU5UX0ZMT0FUXzQu
-MCAgIDIwMDgtMDctMDIgMTE6Mzk6NTAuMDAwMDAwMDAwIC0wNTAwDQorKysgYXJjaC9hcm0vbWFj
-aC1vbWFwMi9wbV9pZGxlXzM0eHguYyAgMjAwOC0wNy0wNCAxMTo1NDoxNS4wMDAwMDAwMDAgLTA1
-MDANCkBAIC03MDYsMzIgKzcwNiwxNSBAQCByZXR1cm5fc2xlZXBfdGltZToNCiBzdGF0aWMgaW50
-IG9tYXAzX2VudGVyX2lkbGVfYm0oc3RydWN0IGNwdWlkbGVfZGV2aWNlICpkZXYsDQogICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIHN0cnVjdCBjcHVpZGxlX3N0YXRlICpzdGF0ZSkNCiB7
-DQotICAgICAgIHN0cnVjdCBjcHVpZGxlX3N0YXRlICpuZXdfc3RhdGUgPSBOVUxMOw0KLSAgICAg
-ICBpbnQgaSwgajsNCi0NCiAgICAgICAgaWYgKChzdGF0ZS0+ZmxhZ3MgJiBDUFVJRExFX0ZMQUdf
-Q0hFQ0tfQk0pICYmIG9tYXAzX2lkbGVfYm1fY2hlY2soKSkgew0KLQ0KLSAgICAgICAgICAgICAg
-IC8qIEZpbmQgY3VycmVudCBzdGF0ZSBpbiBsaXN0ICovDQotICAgICAgICAgICAgICAgZm9yIChp
-ID0gMDsgaSA8IE9NQVAzX01BWF9TVEFURVM7IGkrKykNCi0gICAgICAgICAgICAgICAgICAgICAg
-IGlmIChzdGF0ZSA9PSAmZGV2LT5zdGF0ZXNbaV0pDQotICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIGJyZWFrOw0KLSAgICAgICAgICAgICAgIEJVR19PTihpID09IE9NQVAzX01BWF9TVEFU
-RVMpOw0KLQ0KLSAgICAgICAgICAgICAgIC8qIEJhY2sgdXAgdG8gbm9uICdDSEVDS19CTScgc3Rh
-dGUgKi8NCi0gICAgICAgICAgICAgICBmb3IgKGogPSBpIC0gMTsgIGogPiAwOyBqLS0pIHsNCi0g
-ICAgICAgICAgICAgICAgICAgICAgIHN0cnVjdCBjcHVpZGxlX3N0YXRlICpzID0gJmRldi0+c3Rh
-dGVzW2pdOw0KLQ0KLSAgICAgICAgICAgICAgICAgICAgICAgaWYgKCEocy0+ZmxhZ3MgJiBDUFVJ
-RExFX0ZMQUdfQ0hFQ0tfQk0pKSB7DQotICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIG5l
-d19zdGF0ZSA9IHM7DQotICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGJyZWFrOw0KLSAg
-ICAgICAgICAgICAgICAgICAgICAgfQ0KKyAgICAgICAgICAgICAgIGlmIChkZXYtPnNhZmVfc3Rh
-dGUpDQorICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gZGV2LT5zYWZlX3N0YXRlLT5lbnRl
-cihkZXYsIGRldi0+c2FmZV9zdGF0ZSk7DQorICAgICAgICAgICAgICAgZWxzZSB7DQorICAgICAg
-ICAgICAgICAgICAgICAgICBvbWFwX3NyYW1faWRsZSgpOw0KKyAgICAgICAgICAgICAgICAgICAg
-ICAgcmV0dXJuIDA7DQogICAgICAgICAgICAgICAgfQ0KLQ0KLSAgICAgICAgICAgICAgIHByX2Rl
-YnVnKCIlczogQnVzIGFjdGl2aXR5OiBFbnRlcmluZyAlcyAoaW5zdGVhZCBvZiAlcylcbiIsDQot
-ICAgICAgICAgICAgICAgICAgICAgICBfX0ZVTkNUSU9OX18sIG5ld19zdGF0ZS0+bmFtZSwgc3Rh
-dGUtPm5hbWUpOw0KICAgICAgICB9DQotDQotICAgICAgIHJldHVybiBvbWFwM19lbnRlcl9pZGxl
-KGRldiwgbmV3X3N0YXRlID8gOiBzdGF0ZSk7DQorICAgICAgIHJldHVybiBvbWFwM19lbnRlcl9p
-ZGxlKGRldiwgc3RhdGUpOw0KIH0NCg0KIERFRklORV9QRVJfQ1BVKHN0cnVjdCBjcHVpZGxlX2Rl
-dmljZSwgb21hcDNfaWRsZV9kZXYpOw0KQEAgLTc2Niw4ICs3NDksOCBAQCB2b2lkIG9tYXBfaW5p
-dF9wb3dlcl9zdGF0ZXModm9pZCkNCiAgICAgICAgb21hcDNfcG93ZXJfc3RhdGVzW09NQVAzX1NU
-QVRFX0MyXS5jb3JlX3N0YXRlID0gUFJDTV9DT1JFX0FDVElWRTsNCiAgICAgICAgb21hcDNfcG93
-ZXJfc3RhdGVzW09NQVAzX1NUQVRFX0MyXS5mbGFncyA9IENQVUlETEVfRkxBR19USU1FX1ZBTElE
-IHwNCiAgICAgICAgICAgICAgICAgICAgICAgIENQVUlETEVfRkxBR19CQUxBTkNFRDsNCi0gICAg
-ICAgb21hcDNfcG93ZXJfc3RhdGVzW09NQVAzX1NUQVRFX0MzXS52YWxpZCA9IDE7DQoNCisgICAg
-ICAgb21hcDNfcG93ZXJfc3RhdGVzW09NQVAzX1NUQVRFX0MzXS52YWxpZCA9IDE7DQogICAgICAg
-IG9tYXAzX3Bvd2VyX3N0YXRlc1tPTUFQM19TVEFURV9DM10udHlwZSA9IE9NQVAzX1NUQVRFX0Mz
-Ow0KICAgICAgICBvbWFwM19wb3dlcl9zdGF0ZXNbT01BUDNfU1RBVEVfQzNdLnNsZWVwX2xhdGVu
-Y3kgPSAxNTAwOw0KICAgICAgICBvbWFwM19wb3dlcl9zdGF0ZXNbT01BUDNfU1RBVEVfQzNdLndh
-a2V1cF9sYXRlbmN5ID0gMTgwMDsNCkBAIC04NDksNiArODMyLDggQEAgaW50IG9tYXAzX2lkbGVf
-aW5pdCh2b2lkKQ0KICAgICAgICAgICAgICAgIHN0YXRlLT5mbGFncyA9IGN4LT5mbGFnczsNCiAg
-ICAgICAgICAgICAgICBzdGF0ZS0+ZW50ZXIgPSAoc3RhdGUtPmZsYWdzICYgQ1BVSURMRV9GTEFH
-X0NIRUNLX0JNKSA/DQogICAgICAgICAgICAgICAgICAgICAgICBvbWFwM19lbnRlcl9pZGxlX2Jt
-IDogb21hcDNfZW50ZXJfaWRsZTsNCisgICAgICAgICAgICAgICBpZiAoY3gtPnR5cGUgPT0gT01B
-UDNfU1RBVEVfQzEpDQorICAgICAgICAgICAgICAgICAgICAgICBkZXYtPnNhZmVfc3RhdGUgPSBz
-dGF0ZTsNCiAgICAgICAgICAgICAgICBzcHJpbnRmKHN0YXRlLT5uYW1lLCAiQyVkIiwgY291bnQr
-MSk7DQogICAgICAgICAgICAgICAgY291bnQrKzsNCiAgICAgICAgfQ0KDQoNCmRpZmYgLXB1ck4g
-aW1nLzIuNl9rZXJuZWwvZHJpdmVycy9zZXJpYWwvODI1MC5jIDIuNl9rZXJuZWwvZHJpdmVycy9z
-ZXJpYWwvODI1MC5jDQotLS0gaW1nLzIuNl9rZXJuZWwvZHJpdmVycy9zZXJpYWwvODI1MC5jICAg
-ICAgICAyMDA4LTA1LTA5IDE4OjUwOjUzLjAwMDAwMDAwMCAtMDUwMA0KKysrIDIuNl9rZXJuZWwv
-ZHJpdmVycy9zZXJpYWwvODI1MC5jICAgIDIwMDgtMDYtMDMgMTk6NDQ6MjQuMDAwMDAwMDAwIC0w
-NTAwDQpAQCAtMTIyMSw2ICsxMjIxLDE0IEBAIHN0YXRpYyBpbmxpbmUgdm9pZCBfX3N0b3BfdHgo
-c3RydWN0IHVhcnQNCiAgICAgICAgICAgICAgICBwLT5pZXIgJj0gflVBUlRfSUVSX1RIUkk7DQog
-ICAgICAgICAgICAgICAgc2VyaWFsX291dChwLCBVQVJUX0lFUiwgcC0+aWVyKTsNCiAgICAgICAg
-fQ0KKyNpZmRlZiBDT05GSUdfT01BUDNfUE0NCisgICAgICAgew0KKyAgICAgICAgICAgICAgIC8q
-IEFkdmVydGlzZSBwYXJ0aWFsIGlkbGUgdG8gc2F2ZSBwb3dlci4gUlggc2lkZSBjYW4gZG8gYXN5
-bmMgd2FrZSAqLw0KKyAgICAgICAgICAgICAgIHVuc2lnbmVkIGludCB0bXA7DQorICAgICAgICAg
-ICAgICAgdG1wID0gKHNlcmlhbF9pbihwLCBVQVJUX09NQVBfU1lTQykgJiAweDcpIHwgKDIgPDwg
-Myk7DQorICAgICAgICAgICAgICAgc2VyaWFsX291dChwLCBVQVJUX09NQVBfU1lTQywgdG1wKTsg
-Lyogc21hcnQtaWRsZSAqLw0KKyAgICAgICB9DQorI2VuZGlmDQogfQ0KDQogc3RhdGljIHZvaWQg
-c2VyaWFsODI1MF9zdG9wX3R4KHN0cnVjdCB1YXJ0X3BvcnQgKnBvcnQpDQpAQCAtMTI2OCw2ICsx
-Mjc2LDE1IEBAIHN0YXRpYyB2b2lkIHNlcmlhbDgyNTBfc3RhcnRfdHgoc3RydWN0IHUNCiAgICAg
-ICAgICAgICAgICB1cC0+YWNyICY9IH5VQVJUX0FDUl9UWERJUzsNCiAgICAgICAgICAgICAgICBz
-ZXJpYWxfaWNyX3dyaXRlKHVwLCBVQVJUX0FDUiwgdXAtPmFjcik7DQogICAgICAgIH0NCisjaWZk
-ZWYgQ09ORklHX09NQVAzX1BNDQorICAgICAgIHsNCisgICAgICAgICAgICAgICAvKiBEb24ndCBh
-ZHZlcnRpc2UgcGFydGlhbCBpZGxlIGVsc2UgVFggaXJxcyB3aWxsIG5vdCBiZSBzZWVuICovDQor
-ICAgICAgICAgICAgICAgLyogQWx0ZXJuYXRpdmUgaXMgdG8gc2V0IGtlcm5lbCB0aW1lciBhdCBm
-aWZvIGRyYWluIHJhdGUgKi8NCisgICAgICAgICAgICAgICB1bnNpZ25lZCBpbnQgdG1wOw0KKyAg
-ICAgICAgICAgICAgIHRtcCA9IChzZXJpYWxfaW4odXAsIFVBUlRfT01BUF9TWVNDKSAmIDB4Nykg
-fCAoMSA8PCAzKTsNCisgICAgICAgICAgICAgICBzZXJpYWxfb3V0KHVwLCBVQVJUX09NQVBfU1lT
-QywgdG1wKTsgLyogbm8taWRsZSAqLw0KKyAgICAgICB9DQorI2VuZGlmDQogfQ0KDQoNCg0K
+Hi Vaibhav,
+
+Thanks for your response. However, I'm not using Linux. I want to add
+basic frame buffer support in the kernel for early boot msgs, so I
+want to know what could be easiest mode to support.
+
+Cheers,
+Ashish
+
+On Wed, Jul 9, 2008 at 1:11 AM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
+> Sometime back I came across such issue, please try if it works for you -
+>
+> Set your "bootargs" to some garbage value, the logs will get diverted automatically to LCD.
+>
+> Ho I have tested is -
+>
+> From u-boot prompt issue
+>
+> #setenv bootargs <copy complete boot argument again including "bootargs">
+> #boot
+>
+> Ideally you should see console diverted to LCD. Please note that you must set bootargs to some garbage value, else it will not get any logs.
+>
+> Thanks,
+> Vaibhav Hiremath
+> Senior Software Engg.
+> Platform Support Products
+> Texas Instruments Inc
+> Ph: +91-80-25099927
+> TI IP Ph: 509-9927
+> http://dbdwss01.india.ti.com/pspproducts/
+>
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Ashish Bijlani
+> Sent: Wednesday, July 09, 2008 10:56 AM
+> To: linux-omap@vger.kernel.org
+> Subject: initial frame buffer console
+>
+> Hi,
+>
+> I'm working with N810. I couldn't get serial port working and want to
+> have initial kernel boot msgs on clcd over fbcon. Can somebody guide
+> me how to have initial fbcon for kernel boot messages? I want to
+> provide minimal frame buffer support may be using internal 640k sram.
+>
+> Thanks,
+> Ashish
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
