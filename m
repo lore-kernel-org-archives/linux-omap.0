@@ -1,60 +1,83 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: initial frame buffer console
-Date: Wed, 9 Jul 2008 11:41:02 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940324B50892@dbde02.ent.ti.com>
-References: <ec55b17e0807082225n6bbbcc10t2963323164821b90@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Jouni Hogander <jouni.hogander@nokia.com>
+Subject: [PATCH] OMAP3: CPUIDLE & PM: check_bm fix.
+Date: Wed,  9 Jul 2008 09:29:33 +0300
+Message-ID: <1215584973-14982-1-git-send-email-jouni.hogander@nokia.com>
+References: <1215519440-10234-1-git-send-email-jouni.hogander@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from soda.ext.ti.com ([198.47.26.145]:56850 "EHLO soda.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751156AbYGIGLL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2008 02:11:11 -0400
-In-Reply-To: <ec55b17e0807082225n6bbbcc10t2963323164821b90@mail.gmail.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:37052 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751209AbYGIGaH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2008 02:30:07 -0400
+In-Reply-To: <1215519440-10234-1-git-send-email-jouni.hogander@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ashish Bijlani <ashish.bijlani@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, rnayak@ti.com
 
-Sometime back I came across such issue, please try if it works for you -
+This patch fixes problems with uart usage. omap3_enter_idle_bm was
+select C5 and C6 states even if there was "bus activity.
 
-Set your "bootargs" to some garbage value, the logs will get diverted automatically to LCD.
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+---
+ arch/arm/mach-omap2/cpuidle34xx.c |   23 +++++++----------------
+ arch/arm/mach-omap2/pm34xx.c      |    2 +-
+ 2 files changed, 8 insertions(+), 17 deletions(-)
 
-Ho I have tested is -
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index c14152f..a636edb 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -473,31 +473,22 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+ 			       struct cpuidle_state *state)
+ {
+ 	struct cpuidle_state *new_state = NULL;
+-	int i, j;
+-
+-	if ((state->flags & CPUIDLE_FLAG_CHECK_BM) && omap3_idle_bm_check()) {
+-
+-		/* Find current state in list */
+-		for (i = 0; i < OMAP3_MAX_STATES; i++)
+-			if (state == &dev->states[i])
+-				break;
+-		BUG_ON(i == OMAP3_MAX_STATES);
+-
+-		/* Back up to non 'CHECK_BM' state */
+-		for (j = i - 1;  j > 0; j--) {
+-			struct cpuidle_state *s = &dev->states[j];
++	int i;
+ 
++	if (omap3_idle_bm_check()) {
++		for (i = 0; i < OMAP3_MAX_STATES; i++) {
++			struct cpuidle_state *s = &dev->states[i];
+ 			if (!(s->flags & CPUIDLE_FLAG_CHECK_BM)) {
+ 				new_state = s;
+ 				break;
+ 			}
+ 		}
+-
++		BUG_ON(i == OMAP3_MAX_STATES);
+ 		pr_debug("%s: Bus activity: Entering %s (instead of %s)\n",
+-			__FUNCTION__, new_state->name, state->name);
++			 __FUNCTION__, new_state->name, state->name);
+ 	}
+ 
+-	return omap3_enter_idle(dev, new_state ? : state);
++	return omap3_enter_idle(dev, new_state ? new_state : state);
+ }
+ 
+ DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 9f73e5c..ca0600a 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -734,7 +734,7 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm)
+ 		pwrdm_enable_hdwr_sar(pwrdm);
+ 
+ 	if (!strcmp(pwrst->pwrdm->name, "core_pwrdm") || !strcmp(pwrst->pwrdm->name, "mpu_pwrdm") ||
+-	    !strcmp(pwrst->pwrdm->name, "mpu_pwrdm"))
++	    !strcmp(pwrst->pwrdm->name, "neon_pwrdm"))
+ 		return set_pwrdm_state(pwrst->pwrdm, PWRDM_POWER_ON);
+ 	else
+ 		return set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
+-- 
+1.5.5
 
->From u-boot prompt issue
-
-#setenv bootargs <copy complete boot argument again including "bootargs">
-#boot
-
-Ideally you should see console diverted to LCD. Please note that you must set bootargs to some garbage value, else it will not get any logs.
-
-Thanks,
-Vaibhav Hiremath
-Senior Software Engg.
-Platform Support Products
-Texas Instruments Inc
-Ph: +91-80-25099927
-TI IP Ph: 509-9927
-http://dbdwss01.india.ti.com/pspproducts/
-
------Original Message-----
-From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Ashish Bijlani
-Sent: Wednesday, July 09, 2008 10:56 AM
-To: linux-omap@vger.kernel.org
-Subject: initial frame buffer console
-
-Hi,
-
-I'm working with N810. I couldn't get serial port working and want to
-have initial kernel boot msgs on clcd over fbcon. Can somebody guide
-me how to have initial fbcon for kernel boot messages? I want to
-provide minimal frame buffer support may be using internal 640k sram.
-
-Thanks,
-Ashish
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
