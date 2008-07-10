@@ -1,7 +1,7 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH] OMAP3: CPUIDLE & PM: check_bm fix.
-Date: Thu, 10 Jul 2008 07:20:14 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162035BDBF028@dlee02.ent.ti.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: [PATCH] OMAP3: CPUIDLE & PM: check_bm fix.
+Date: Thu, 10 Jul 2008 15:53:49 +0300
+Message-ID: <87vdzdsxwi.fsf@trdhcp146196.ntc.nokia.com>
 References: <1215519440-10234-1-git-send-email-jouni.hogander@nokia.com>
 	<1215584973-14982-1-git-send-email-jouni.hogander@nokia.com>
 	<000b01c8e18f$31708610$68bf18ac@ent.ti.com>
@@ -10,67 +10,107 @@ References: <1215519440-10234-1-git-send-email-jouni.hogander@nokia.com>
 	<87tzeztpz3.fsf@trdhcp146196.ntc.nokia.com>
 	<001901c8e19f$32f66f80$68bf18ac@ent.ti.com>
 	<13B9B4C6EF24D648824FF11BE8967162035BD675D5@dlee02.ent.ti.com>
- <87iqves1xm.fsf@trdhcp146196.ntc.nokia.com>
+	<87iqves1xm.fsf@trdhcp146196.ntc.nokia.com>
+	<13B9B4C6EF24D648824FF11BE8967162035BDBF028@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:41038 "EHLO calf.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753579AbYGJMU2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Jul 2008 08:20:28 -0400
-In-Reply-To: <87iqves1xm.fsf@trdhcp146196.ntc.nokia.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:42135 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753827AbYGJMyf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jul 2008 08:54:35 -0400
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162035BDBF028@dlee02.ent.ti.com>
+	(ext Woodruff's message of "Thu, 10 Jul 2008 07:20:14 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?B?SMO2Z2FuZGVyIEpvdW5p?= <jouni.hogander@nokia.com>
+To: "ext Woodruff, Richard" <r-woodruff2@ti.com>
 Cc: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-SGksDQoNCj4gPiAgc3RhdGljIHZvaWQgc2VyaWFsODI1MF9zdG9wX3R4KHN0cnVjdCB1YXJ0X3Bv
-cnQgKnBvcnQpDQo+ID4gQEAgLTEyNjgsNiArMTI3NiwxNSBAQCBzdGF0aWMgdm9pZCBzZXJpYWw4
-MjUwX3N0YXJ0X3R4KHN0cnVjdCB1DQo+ID4gICAgICAgICAgICAgICAgIHVwLT5hY3IgJj0gflVB
-UlRfQUNSX1RYRElTOw0KPiA+ICAgICAgICAgICAgICAgICBzZXJpYWxfaWNyX3dyaXRlKHVwLCBV
-QVJUX0FDUiwgdXAtPmFjcik7DQo+ID4gICAgICAgICB9DQo+ID4gKyNpZmRlZiBDT05GSUdfT01B
-UDNfUE0NCj4gPiArICAgICAgIHsNCj4gPiArICAgICAgICAgICAgICAgLyogRG9uJ3QgYWR2ZXJ0
-aXNlIHBhcnRpYWwgaWRsZSBlbHNlIFRYIGlycXMgd2lsbA0KPiBub3QgYmUgc2VlbiAqLw0KPiA+
-ICsgICAgICAgICAgICAgICAvKiBBbHRlcm5hdGl2ZSBpcyB0byBzZXQga2VybmVsIHRpbWVyIGF0
-IGZpZm8gZHJhaW4NCj4gcmF0ZSAqLw0KPiA+ICsgICAgICAgICAgICAgICB1bnNpZ25lZCBpbnQg
-dG1wOw0KPiA+ICsgICAgICAgICAgICAgICB0bXAgPSAoc2VyaWFsX2luKHVwLCBVQVJUX09NQVBf
-U1lTQykgJiAweDcpIHwgKDEgPDwNCj4gMyk7DQo+ID4gKyAgICAgICAgICAgICAgIHNlcmlhbF9v
-dXQodXAsIFVBUlRfT01BUF9TWVNDLCB0bXApOyAvKiBuby1pZGxlICovDQo+ID4gKyAgICAgICB9
-DQo+ID4gKyNlbmRpZg0KPg0KPiBJIHRyaWVkIHRoaXMgcXVpY2tseS4gVGhpcyBkb2Vzbid0IHdv
-cmsgYWxvbmUuIEF0IGxlYXN0IGlmIHdlIHdhbnQNCj4gd29ya2luZyBzZXJpYWwtY29uc29sZS4g
-UHJvYmxlbSB3aXRoIHRoaXMgaXMgdGhhdCB3aGVuIGVudGVyaW5nIGNoYXINCj4gdG8gY29uc29s
-ZSB0byB3YWtlLXVwIG9tYXAuIEZpcnN0IGNoYXJhY3RlciBpcyBsb3N0IGFuZCB0aGVuIG5vICJl
-Y2hvIg0KPiBoYXBwZW5zIGFuZCBzZXJpYWw4MjUwX3N0YXJ0X3R4IGlzIG5vdCBjYWxsZWQuIEkg
-dGhpbmsgdGhpcyB3aWxsIG5lZWQNCj4gc29tZSB0aW1lb3V0IGFueXdheSB3aGljaCBpcyBzdGFy
-dGVkIHdoZW4gdWFydCByeHxpb3BhZCB3YWtldXANCj4gaGFwcGVucy4NCg0KWWVzIHRoYXQgaXMg
-dHJ1ZS4NCg0KSW4gcmVmZXJlbmNlIGNvZGUgaXQgaXMgZGVhbHQgd2l0aCBhbmQgcmF0aW9uYWxp
-emVkLiAgVGhpcyB3YXMgYW4gaXNzdWUgbGFzdCB5ZWFyIGluIHRoZSBvbGQgY29kZSBhbmQgd2ls
-bCBiZSB0aGlzIHllYXIgaW4gdGhpcyBuZXdlciBjb2RlLg0KDQoqIENEUCBjb2RlIGVtcGxveXMg
-YW4gYWN0aXZpdHkgY2hlY2sgd2hpY2ggY2FuIGdhdGUgaWRsZS4gIFRoZSBkaXNydXB0aW9uIHdh
-cyBib3RoZXJzb21lIGFuZCBnYXZlIGEgYmFkIGltcHJlc3Npb24gKGV2ZW4gaWYgaXRzIGp1c3Qg
-YSBkZWJ1ZyBwb3J0KS4gIEl0IGFsc28gaW50ZXJmZXJlZCBhdCB0aW1lcyB3aXRoIGV4aXN0aW5n
-IGZ1bmN0aW9uYWwgdGVzdHMgd2hpY2ggZGVwZW5kZWQgb24gY29uc29sZSAoZWl0aGVyIGdldHRp
-bmcgYWxsIGNoYXJhY3RlcnMgb3IgcmVhc29uYWJsZSBwZXJmb3JtYW5jZSkuDQoNClRoZSBjdXJy
-ZW50IGNoZWNrIHdpbGw6IE9uIGFjdGl2aXR5IHJhaXNlIGEgY3B1aWRsZSBidXMgbWFzdGVyIGFj
-dGl2aXR5IGZhaWx1cmUgZm9yIHNvbWUgbnVtYmVyIG9mIHNlY29uZHMuICBUaGlzIGFsbG93cyBu
-b3JtYWwgdHlwaW5nIGZvciBleHRlbmRlZCBwZXJpb2RzLiAgSXQgZG9lcyB0aGlzIGJ5IG1hcmtp
-bmcgVUFSVCBmdW5jdGlvbiBJUlFzIHdpdGggYSB0aW1lIHN0YW1wIGFuZCBpdCBjaGVja3MgaW50
-ZXJuYWwgc3RhdGUgdG8gbWFrZSBzdXJlIFJYL1RYIGVuZ2luZSBpcyBub3QgYnVzeSBvciBoYXMg
-cXVldWVkIGRhdGEgd2FpdGluZy4NCg0KVGhpcyBhY3Rpdml0eSBhc3NlcnRpb24gd2lsbCBnYXRl
-IHRoZSB1c2FnZSBvZiBDIHN0YXRlcyB3aGVyZSBpdHMgRi1DTE9DSyBpcyBjdXQuICBBdCB0aGUg
-c2FtZSB0aW1lIGl0cyBuYXR1cmFsIHdha2UgdXAgZXZlbnRzIGFyZSBlbmFibGVkIChhbG9uZyB3
-aXRoIHRoZSBhYm92ZSBoYWNrIGFzIHRoZSB0eCBldmVudHMgYXJlIG5vdCBjdXJyZW5seSBob29r
-ZWQgaW50byB0aGUgd2FrZXVwIGxvZ2ljKS4NCg0KV2hlbiBPRkYvUkVUIG1vZGUgaXMgc2VsZWN0
-ZWQgSU8gcGFkIGlzIGVuYWJsZWQgZm9yIHRoZSBwb3J0IHdha2V1cC4NCg0KKiogVGhlIGVuZCBl
-ZmZlY3QgaXMgdHlwaW5nIGFuZCBpbnB1dC9vdXRwdXQgYXJlIGdvb2QuICBIb3dldmVyLCBpZiB5
-b3Ugc3RvcCBpbnRlcmFjdGluZyBmb3IgZ3JlYXRlciB0aGFuIHRoZSB0aW1lIG91dCB5b3Ugd2ls
-bCBsb29zZSB5b3VyIDFzdCBjaGFyYWN0ZXIuICBUaGlzIGlzIHVuYXZvaWRhYmxlIGFzIHRoZSBt
-YWNoaW5lIGRvZXNuJ3QgcmUtc3RhcnQgZmFzdCBlbm91Z2ggdG8gbm90IGxvb3NlIHRoZSBzdGFy
-dCBiaXQgKHdha2V1cC9EUExMIHJlbG9jaykuDQoNCkl0IGRvZXNuJ3QgdGFrZSBtdWNoIGNvZGUg
-dG8gZG8gdGhpcyB0b2RheS4gIEJ1dCB3aXRoIG91dCBpdCB0aGUgY29uc29sZSBpcyBub3QgdmVy
-eSB1c2VhYmxlIHdoZW4gUE0gaXMgZW5hYmxlZCBfQU5EXyBiZWluZyBlZmZlY3RpdmUuICBBcyBJ
-IG1lbnRpb25lZCBpbml0aWFsbHksIGhhdmluZyB0aGUgVUFSVCBwcm9ibGVtIGluIGEgc2Vuc2Ug
-aXMgYSBnb29kIG1pbGVzdG9uZSBhcyBpdCBzaG93cyB5b3UgYXJlIHN0YXJ0aW5nIHRvIGhpdCB0
-aGUgYmlnIHBvd2VyIHN0YXRlcyB2ZXJ5IG9mdGVuLg0KDQpSZWdhcmRzLA0KUmljaGFyZCBXLg0K
+"ext Woodruff, Richard" <r-woodruff2@ti.com> writes:
+
+> Hi,
+>
+>> >  static void serial8250_stop_tx(struct uart_port *port)
+>> > @@ -1268,6 +1276,15 @@ static void serial8250_start_tx(struct u
+>> >                 up->acr &=3D ~UART_ACR_TXDIS;
+>> >                 serial_icr_write(up, UART_ACR, up->acr);
+>> >         }
+>> > +#ifdef CONFIG_OMAP3_PM
+>> > +       {
+>> > +               /* Don't advertise partial idle else TX irqs will
+>> not be seen */
+>> > +               /* Alternative is to set kernel timer at fifo drai=
+n
+>> rate */
+>> > +               unsigned int tmp;
+>> > +               tmp =3D (serial_in(up, UART_OMAP_SYSC) & 0x7) | (1=
+ <<
+>> 3);
+>> > +               serial_out(up, UART_OMAP_SYSC, tmp); /* no-idle */
+>> > +       }
+>> > +#endif
+>>
+>> I tried this quickly. This doesn't work alone. At least if we want
+>> working serial-console. Problem with this is that when entering char
+>> to console to wake-up omap. First character is lost and then no "ech=
+o"
+>> happens and serial8250_start_tx is not called. I think this will nee=
+d
+>> some timeout anyway which is started when uart rx|iopad wakeup
+>> happens.
+>
+> Yes that is true.
+>
+> In reference code it is dealt with and rationalized.  This was an iss=
+ue last year in the old code and will be this year in this newer code.
+>
+> * CDP code employs an activity check which can gate idle.  The disrup=
+tion was bothersome and gave a bad impression (even if its just a debug=
+ port).  It also interfered at times with existing functional tests whi=
+ch depended on console (either getting all characters or reasonable per=
+formance).
+>
+> The current check will: On activity raise a cpuidle bus master
+> activity failure for some number of seconds.  This allows normal
+> typing for extended periods.  It does this by marking UART function
+> IRQs with a time stamp and it checks internal state to make sure
+> RX/TX engine is not busy or has queued data waiting.
+
+Isn't this exactly what is done in "Added sleep support to UART" patch
+in workaround patch set?
+
+>
+> This activity assertion will gate the usage of C states where its F-C=
+LOCK is cut.  At the same time its natural wake up events are enabled (=
+along with the above hack as the tx events are not currenly hooked into=
+ the wakeup logic).
+>
+> When OFF/RET mode is selected IO pad is enabled for the port wakeup.
+
+I have seen this in CDP reference code. Is there some specific reason
+why this is enabled dynamically in code?
+
+>
+> ** The end effect is typing and input/output are good.  However, if y=
+ou stop interacting for greater than the time out you will loose your 1=
+st character.  This is unavoidable as the machine doesn't re-start fast=
+ enough to not loose the start bit (wakeup/DPLL relock).
+>
+> It doesn't take much code to do this today.  But with out it the cons=
+ole is not very useable when PM is enabled _AND_ being effective.  As I=
+ mentioned initially, having the UART problem in a sense is a good mile=
+stone as it shows you are starting to hit the big power states very oft=
+en.
+>
+> Regards,
+> Richard W.
+
+--=20
+Jouni H=C3=B6gander
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
