@@ -1,7 +1,7 @@
-From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: [PATCH] OMAP3: CPUIDLE & PM: check_bm fix.
-Date: Fri, 11 Jul 2008 15:48:23 +0300
-Message-ID: <87y748pox4.fsf@trdhcp146196.ntc.nokia.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH] OMAP3: CPUIDLE & PM: check_bm fix.
+Date: Fri, 11 Jul 2008 08:38:41 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162035BE1DFE8@dlee02.ent.ti.com>
 References: <1215519440-10234-1-git-send-email-jouni.hogander@nokia.com>
 	<1215584973-14982-1-git-send-email-jouni.hogander@nokia.com>
 	<000b01c8e18f$31708610$68bf18ac@ent.ti.com>
@@ -14,68 +14,53 @@ References: <1215519440-10234-1-git-send-email-jouni.hogander@nokia.com>
 	<13B9B4C6EF24D648824FF11BE8967162035BDBF028@dlee02.ent.ti.com>
 	<87vdzdsxwi.fsf@trdhcp146196.ntc.nokia.com>
 	<13B9B4C6EF24D648824FF11BE8967162035BDBF07D@dlee02.ent.ti.com>
+ <87y748pox4.fsf@trdhcp146196.ntc.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:46981 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758657AbYGKMss convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jul 2008 08:48:48 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162035BDBF07D@dlee02.ent.ti.com>
-	(ext Woodruff's message of "Thu, 10 Jul 2008 08:00:24 -0500")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38173 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753863AbYGKNlV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Jul 2008 09:41:21 -0400
+In-Reply-To: <87y748pox4.fsf@trdhcp146196.ntc.nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Woodruff, Richard" <r-woodruff2@ti.com>
+To: =?utf-8?B?SMO2Z2FuZGVyIEpvdW5p?= <jouni.hogander@nokia.com>
 Cc: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"ext Woodruff, Richard" <r-woodruff2@ti.com> writes:
-
->> > The current check will: On activity raise a cpuidle bus master
->> > activity failure for some number of seconds.  This allows normal
->> > typing for extended periods.  It does this by marking UART functio=
-n
->> > IRQs with a time stamp and it checks internal state to make sure
->> > RX/TX engine is not busy or has queued data waiting.
->>
->> Isn't this exactly what is done in "Added sleep support to UART" pat=
-ch
->> in workaround patch set?
->
-> See last mail.  It probably is.  I assumed that was derived from our =
-code which has been available for a long time before.  I didn't actuall=
-y look at it very closely with that assumption.
->
->> > This activity assertion will gate the usage of C states where its =
-=46-
->> CLOCK is cut.  At the same time its natural wake up events are enabl=
-ed
->> (along with the above hack as the tx events are not currenly hooked
->> into the wakeup logic).
->> >
->> > When OFF/RET mode is selected IO pad is enabled for the port wakeu=
-p.
->>
->> I have seen this in CDP reference code. Is there some specific reaso=
-n
->> why this is enabled dynamically in code?
->
-> Not that I am aware.
->
-> Do you think there is a need to toggle it?  Today only the global
-> IOPAD enable is toggled (which is necessary for pad state latching).
-
-No, I might have seen this global IOPAD enable. This is valuable
-information. Currently in linux-omap setting IOPAD enable bit is done
-on initialization. We haven't noticed any problems this far, but this
-feature haven't been used too much. So probably we have been just
-lucky?
-
---=20
-Jouni H=C3=B6gander
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+DQo+ID4+IFdoZW4gT0ZGL1JFVCBtb2RlIGlzIHNlbGVjdGVkIElPIHBhZCBpcyBlbmFibGVkIGZv
+ciB0aGUgcG9ydA0KPiB3YWtldXAuDQo+ID4+DQo+ID4+IEkgaGF2ZSBzZWVuIHRoaXMgaW4gQ0RQ
+IHJlZmVyZW5jZSBjb2RlLiBJcyB0aGVyZSBzb21lIHNwZWNpZmljDQo+IHJlYXNvbg0KPiA+PiB3
+aHkgdGhpcyBpcyBlbmFibGVkIGR5bmFtaWNhbGx5IGluIGNvZGU/DQo+ID4NCj4gPiBOb3QgdGhh
+dCBJIGFtIGF3YXJlLg0KPiA+DQo+ID4gRG8geW91IHRoaW5rIHRoZXJlIGlzIGEgbmVlZCB0byB0
+b2dnbGUgaXQ/ICBUb2RheSBvbmx5IHRoZSBnbG9iYWwNCj4gPiBJT1BBRCBlbmFibGUgaXMgdG9n
+Z2xlZCAod2hpY2ggaXMgbmVjZXNzYXJ5IGZvciBwYWQgc3RhdGUgbGF0Y2hpbmcpLg0KPg0KPiBO
+bywgSSBtaWdodCBoYXZlIHNlZW4gdGhpcyBnbG9iYWwgSU9QQUQgZW5hYmxlLiBUaGlzIGlzIHZh
+bHVhYmxlDQo+IGluZm9ybWF0aW9uLiBDdXJyZW50bHkgaW4gbGludXgtb21hcCBzZXR0aW5nIElP
+UEFEIGVuYWJsZSBiaXQgaXMgZG9uZQ0KPiBvbiBpbml0aWFsaXphdGlvbi4gV2UgaGF2ZW4ndCBu
+b3RpY2VkIGFueSBwcm9ibGVtcyB0aGlzIGZhciwgYnV0IHRoaXMNCj4gZmVhdHVyZSBoYXZlbid0
+IGJlZW4gdXNlZCB0b28gbXVjaC4gU28gcHJvYmFibHkgd2UgaGF2ZSBiZWVuIGp1c3QNCj4gbHVj
+a3k/DQoNClRoZSBUUk0gZG9lcyBoaWdobGlnaHQgdGhpcyBwcm9jZWR1cmUgb2Ygc2V0LWJlZm9y
+ZS13YWtlIGFuZCBjbGVhci1hZnRlci13YWtlIGluIHNldmVyYWwgc3BvdHMuICBTZWFyY2ggb24g
+UE1fV0tFTl9XS1VQLg0KDQpJIHRoaW5rIEkgbWF5IGhhdmUgbm90IHdvcmRlZCB0aGF0IGNvbXBs
+ZXRlbHkgcmlnaHQuICBUbyBjbGFyaWZ5LCBpdCB3YXMgbXkgdW5kZXJzdGFuZGluZyB0aGF0IHRo
+ZSB3YWtldXAgZXZlbnQgZ2VuZXJhdGVkIGJ5IGEgcGFkIGV2ZW50IHdvdWxkbid0IGJlIGNsZWFy
+ZWQgd2l0aCBvdXQgdGhlIHRvZ2dsZS4NCg0KQWZ0ZXIgeW91IHdha2UgdXAgeW91IGNhbiByZWFk
+IHBhZCBzdGF0dXMgdG8gZmluZCBvdXQgd2hpY2ggYmFsbCB3YXMgcmVzcG9uc2libGUgZm9yIHRo
+ZSB3YWtldXAgZXZlbnQuIEFmdGVyIHlvdXIgZG9uZSBpbnNwZWN0aW5nIHRoZW0sIHVzZSB0aGUg
+dG9nZ2xlIHRvIGNsZWFyIGl0Lg0KDQpFYWNoIHdha2V1cCBjYXBhYmxlIGJhbGwgYXQgTVVYIHJl
+Z2lzdGVyIGhhcyBhIHN0YXR1cyBiaXQgeW91IHJlYWQgdG8gc2VlIGlmIGl0IHdhcyB0aGUgb25l
+IHdoaWNoIHdva2UgeW91IHVwIChpZiB5b3UgY2FyZSkuICBVbmxpa2Ugc2F5IGFuIElSUSByZWdp
+c3RlciBzdGF0dXMgcmVnaXN0ZXIgdGhlcmUgaXMgbm8gd2F5IHRvIGNsZWFyIHRoaXMgYXQgdGhh
+dCBpbnRlcmZhY2UuICBOb3RlIHRoZXJlIGlzIG5vIHNlbGVjdGFibGUgcG9sYXJpdHkgZm9yIHRo
+YXQgcGluLCBzbyBzdGF0dXMgcmVmbGVjdHMgYSBjaGFuZ2UgZnJvbSBsYXRjaGVkIHN0YXRlIGF0
+IHNsZWVwLg0KDQpXaGF0IGlzIGNsZWFybHkgd3JpdHRlbiBzb21ld2hlcmUgaXMgdGhlIHdha2Ug
+dXAgZGFpc3kgY2hhaW4gaXMgZW5hYmxlZCBieSB0dXJuaW5nIGl0IG9uLCBhbmQgZGlzYWJsZWQg
+YW5kIF9yZXNldF8gYXQgdHVybiBvZmYgdGltZS4NCg0KVGhlIGFjdHVhbCBzdGF0ZSBsYXRjaGlu
+ZyBoYXBwZW5zIGF0IHRpbWUgb2YgdHJhbnNpdGlvbiB0byBzbGVlcC4gVGhlIGN1cnJlbnQgbGV2
+ZWwgaXMgY2FwdHVyZWQsIGN1cnJlbnQgcGFkY29uZnMgc2F2ZWQgaW50byB3YWtldXAgZG9tYWlu
+IHNjcmF0Y2ggbWVtb3J5IGFuZCwgd2FrZXVwIGFybWVkLiAgT24gZXZlbnQgaXQgYWxsIHVud2lu
+ZHMuDQoNClJlZ2FyZHMsDQpSaWNoYXJkIFcuDQoNCg0KDQoNClJlZ2FyZHMsDQpSaWNoYXJkIFcu
+DQoNCg==
