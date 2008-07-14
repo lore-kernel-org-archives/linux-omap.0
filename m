@@ -1,99 +1,63 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: Kernel hang on OMAP3 based Beagle board, RTC issue?
-Date: Mon, 14 Jul 2008 18:57:57 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB022C0F9263@dbde02.ent.ti.com>
-References: <486BDD2A.5070500@googlemail.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB022BB6621C@dbde02.ent.ti.com>
-	<AF70E37B-038B-4117-B69F-B2BCD9EFF6AA@student.utwente.nl>
-	<486F21F6.7020208@googlemail.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB022BFE73A2@dbde02.ent.ti.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB022BFE73BE@dbde02.ent.ti.com>
- <87vdzi2ln0.fsf@trdhcp146196.ntc.nokia.com>
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: Re: [PATCH 04/09] OMAP PM srf implementation
+Date: Mon, 14 Jul 2008 16:29:09 +0300
+Message-ID: <20080714132909.GA4639@codecarver.research.nokia.com>
+References: <030b01c8e0ef$46c859c0$68bf18ac@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55927 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752526AbYGNN2L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Jul 2008 09:28:11 -0400
-In-Reply-To: <87vdzi2ln0.fsf@trdhcp146196.ntc.nokia.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:20554 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753210AbYGNN3h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Jul 2008 09:29:37 -0400
+Content-Disposition: inline
+In-Reply-To: <030b01c8e0ef$46c859c0$68bf18ac@ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?B?SMO2Z2FuZGVyIEpvdW5p?= <jouni.hogander@nokia.com>
-Cc: Dirk Behme <dirk.behme@googlemail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-SGksDQoNCj4gSGksDQo+DQo+ICJleHQgR2FkaXlhciwgQW5hbmQiIDxnYWRpeWFyQHRpLmNvbT4g
-d3JpdGVzOg0KPg0KPiA+IEhpIEFsbCwNCj4gPg0KPiA+IDxzbmlwPg0KPiA+DQo+ID4+ID4gPiBU
-cmllZCB0aGF0IGFuZCBJIGdldCB0aGUgc2FtZSBoYW5nLCBzbyBJIGRvbid0IHRoaW5rIHRoZSBS
-VEMgaXMgdG8gIGJsYW1lLg0KPiA+PiA+DQo+ID4+ID4gU2hvcnQgdXBkYXRlIGp1c3QgaW4gY2Fz
-ZSBhbnlib2R5IGhhcyBhbiBpZGVhOg0KPiA+PiA+DQo+ID4+ID4gR2FkaXlhciBzcGVudCBzb21l
-IHRpbWUgd2l0aCBnaXQtYmlzZWN0ICh0aGFua3MhKToNCj4gPj4gPg0KPiA+PiA+IEl0IHNlZW1z
-IHRoYXQgdGhlIGJhZCBjb21taXQgaXMgcHJvYmFibHkgYmV0d2VlbjoNCj4gPj4gPiAjIGdvb2Q6
-IFszZmZlYzRlMTg0ODRjMzQ4MzhmYTM0MWRlMzg0ODMwNmMyOWVjZDVkXSAyNFhYOiBQTTogTW92
-ZSBwbS5jIHRvIHBtMjR4eC5jDQo+ID4+ID4gYW5kIHNsZWVwLlMgdG8gc2xlZXAyNHh4LlMNCj4g
-Pj4gPiBhbmQgIyBiYWQ6IFs0NTg3NzZjZmUzODlmZjAzYmQ2YzU2YzQ3ZTA1OWRmMDc3OGNkZmNh
-XSBPTUFQMzQzMFNEUDoNCj4gPj4gPiBFbmFibGUgY29uZmlnIG9wdGlvbnMgQ09ORklHX09NQVBf
-UkVTRVRfQ0xPQ0tTIGFuZCBDT05GSUdfU1VTUEVORA0KPiA+PiA+DQo+ID4+ID4gVGhpcyBpcyBh
-IDktcGF0Y2ggc2VyaWVzIGJ5IEpvdW5pIEhvZ2FuZGVyIHJlbGF0ZWQgdG8gc3VzcGVuZCBhbmQN
-Cj4gPj4gPiBwb3dlci1tYW5hZ2VtZW50Lg0KPiA+PiA+DQo+ID4+ID4gRGlyaw0KPiA+Pg0KPiA+
-PiBJJ20gc3RpbGwgd29ya2luZyBvbiB0aGUgZ2l0LWJpc2VjdC4gSSdtIGN1cnJlbnRseSB3YWl0
-aW5nIGZvciB0ZW4gbWludXRlcw0KPiA+PiBhZnRlciBib290IGJlZm9yZSBtYXJraW5nIGEgY29t
-bWl0IGdvb2Qgb3IgYmFkLiBJZiB0aGUgaGFuZyBoYXBwZW5zIG1vcmUNCj4gPj4gdGhhbiB0ZW4g
-bWludXRlcyBhZnRlciBib290LCBJIG1pZ2h0IG1pc3MgdGhhdCBhbmQgbWFyayB0aGUgY29tbWl0
-IGdvb2QgLSBzbw0KPiA+PiBJIHdpbGwgcmUtY2hlY2sgdGhlIGdvb2QgY29tbWl0cyBvbmUgbW9y
-ZSB0aW1lIGFuZCBjb25maXJtLg0KPiA+Pg0KPiA+PiAtIEFuYW5kDQo+ID4NCj4gPiBBcyBmYXIg
-YXMgSSBjYW4gdGVsbCwgdGhlIGJlYWdsZSBoYW5nIGlzc3VlIGFyaWVzIGFmdGVyIHRoaXMgY29t
-bWl0Og0KPiA+DQo+ID4gMzk3ZjQ5Y2RlNGU3NWNmNjYyYTIzODE0MDk3ZGIzNWYzZTZjNmI2MiBp
-cyBmaXJzdCBiYWQgY29tbWl0DQo+ID4gY29tbWl0IDM5N2Y0OWNkZTRlNzVjZjY2MmEyMzgxNDA5
-N2RiMzVmM2U2YzZiNjINCj4gPiBBdXRob3I6IEpvdW5pIEhvZ2FuZGVyIDxqb3VuaS5ob2dhbmRl
-ckBub2tpYS5jb20+DQo+ID4gRGF0ZTogICBGcmkgTWF5IDE2IDEzOjU4OjI1IDIwMDggKzAzMDAN
-Cj4gPg0KPiA+ICAgICAzNFhYOiBQTTogSW5pdGlhbCB2ZXJzaW9uIG9mIHN1c3BlbmQgYW5kIGR5
-bmFtaWMgcmV0ZW50aW9uDQo+ID4NCj4gPiAgICAgVGhpcyBpcyBpbml0aWFsIHZlcnNpb24gb2Yg
-c3VzcGVuZCBhbmQgZHluYW1pYyByZXRlbnRpb24gZm9yDQo+ID4gICAgIDM0eHguIE9tYXAgaXMg
-dHJpZWQgdG8gcHV0IHRvIGZ1bGwgcmV0ZW50aW9uIG9uIHN1c3BlbmQgYW5kIHBtX2lkbGUuDQo+
-ID4NCj4gPiAgICAgU2lnbmVkLW9mZi1ieTogSm91bmkgSG9nYW5kZXIgPGpvdW5pLmhvZ2FuZGVy
-QG5va2lhLmNvbT4NCj4gPiAgICAgU2lnbmVkLW9mZi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBh
-dG9taWRlLmNvbT4NCj4gPg0KPiA+DQo+ID4gQ291bGQgc29tZW9uZSBwbGVhc2UgdGVzdCBhbmQg
-Y29uZmlybSBpZiB0aGUgcHJldmlvdXMgY29tbWl0IHdvcmtzIHdpdGhvdXQgYSBoYW5nPw0KPiA+
-IEkgd2FpdGVkIGZvciBhcm91bmQgMjAgbWludXRlcyBhbmQgZGlkIG5vdCBvYnNlcnZlIGEgaGFu
-Zy4NCj4gPg0KPiA+IFRoZXNlIHdlcmUgdGhlIGxhc3QgdHdvIGdvb2QgY29tbWl0cyBJIGdvdCBm
-cm9tIGdpdC1iaXNlY3QuDQo+ID4gIyBnb29kOiBbMWM2NmUxMGM4NTA5NTBhODRkYTY4Y2FmYjA3
-MDIyZWFiNWU3ZWVjMF0gMzRYWDogU3VzcGVuZDogVGFrZSBzdXNwZW5kIHNyYW0gY29kZSBmcm9t
-IHRpIGNkcCBrZXJuZWwNCj4gPiBnaXQtYmlzZWN0IGdvb2QgMWM2NmUxMGM4NTA5NTBhODRkYTY4
-Y2FmYjA3MDIyZWFiNWU3ZWVjMA0KPiA+ICMgZ29vZDogWzEzMWNlMmQxZGQ1MDgxZjk3ODg1NDE5
-Njc4YThiMzIxMWM3YzJkZWVdIDM0WFg6IEFkZCBtaXNjZWxsYW5lb3VzIGRlZmluaXRpb25zIHJl
-bGF0ZWQgdG8gMzR4eA0KPg0KPiBVbmZvcnR1bmF0ZWx5IEkgaGF2ZSBvbmx5IHNkcCBib2FyZCBo
-ZXJlIGFuZCBJJ20gbm90IGFibGUgdG8gcmVwcm9kdWNlDQo+IHRoaXMgd2l0aCBpdC4gQXJlIHlv
-dSB1c2luZyBvbWFwM19iZWFnbGVfZGVmY29uZmlnIHdpdGhvdXQNCj4gbW9kaWZpY2F0aW9ucyB0
-aGVyZT8NCj4NCg0KWWVzLg0KDQoNCj4gWW91IG1lbnRpb25lZCBwcmNtIGludGVycnVwdHMgaW4g
-dGhpcyB0aHJlYWQuIEFyZSB5b3Ugbm9ybWFsbHkgc2VlaW5nDQo+IHRoZW0/IEknbSB3b25kZXJp
-bmcgdGhpcyBiZWNhdXNlIHlvdSBzaG91bGRuJ3Qgc2VlIHRoZW0gd2l0aCBjdXJyZW50DQo+IGwt
-byB0cmVlIGFuZCBkZWZhdWx0IGJlYWdsZSBjb25maWcuIEFyZSB5b3UgZW5hYmxpbmcgc2xlZXBf
-d2hpbGVfaWRsZQ0KPiAoZWNobyAxID4gL3N5cy9wb3dlci9zbGVlcF93aGlsZV9pZGxlKT8NCj4N
-Cg0KSGF2ZW4ndCB0cmllZCB0aGlzLiBBbGwgd2UgZGlkIHdhcyBib290IHRoZSBib2FyZCBmcm9t
-IE1NQyBhbmQgbGVhdmUgaXQgcnVubmluZw0KZm9yIGFyb3VuZCB0ZW4gbWludXRlcy4NCg0KDQo+
-IFlvdSBoYXZlIGVuZCB1cCB0byBjb25jbHVzaW9uIHRoYXQgIjM0WFg6IFBNOiBJbml0aWFsIHZl
-cnNpb24gb2YNCj4gc3VzcGVuZCBhbmQgZHluYW1pYyByZXRlbnRpb24iIGlzIGNhdXNpbmcgdGhp
-cz8gQ291bGQgeW91IHRyeSB0byBhcHBseQ0KPiB0aGlzIG9uIHRvcCBvZiBtZW50aW9uZWQgY29t
-bWl0IGFuZCBzZWUgaWYgeW91IHN0aWxsIGNhbiBzZWUgdGhhdA0KPiBoYW5nOg0KPg0KPiBkaWZm
-IC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9wbTM0eHguYw0KPiBiL2FyY2gvYXJtL21hY2gt
-b21hcDIvcG0zNHh4LmMNCj4gaW5kZXggMjAyYzI2OS4uMzA4ODM1YiAxMDA2NDQNCj4gLS0tIGEv
-YXJjaC9hcm0vbWFjaC1vbWFwMi9wbTM0eHguYw0KPiArKysgYi9hcmNoL2FybS9tYWNoLW9tYXAy
-L3BtMzR4eC5jDQo+IEBAIC0zODAsMTEgKzM4MCwxMSBAQCBpbnQgX19pbml0IG9tYXAzX3BtX2lu
-aXQodm9pZCkNCj4gICAgICAgICAgICAgICAgIGdvdG8gZXJyMTsNCj4gICAgICAgICB9DQo+DQo+
-IC0gICAgICAgcmV0ID0gcHdyZG1fZm9yX2VhY2gocHdyZG1zX3NldHVwKTsNCj4gLSAgICAgICBp
-ZiAocmV0KSB7DQo+IC0gICAgICAgICAgICAgICBwcmludGsoS0VSTl9FUlIgIkZhaWxlZCB0byBz
-ZXR1cCBwb3dlcmRvbWFpbnNcbiIpOw0KPiAtICAgICAgICAgICAgICAgZ290byBlcnIyOw0KPiAt
-ICAgICAgIH0NCj4gKy8qICAgICByZXQgPSBwd3JkbV9mb3JfZWFjaChwd3JkbXNfc2V0dXApOyAq
-Lw0KPiArLyogICAgIGlmIChyZXQpIHsgKi8NCj4gKy8qICAgICAgICAgICAgIHByaW50ayhLRVJO
-X0VSUiAiRmFpbGVkIHRvIHNldHVwIHBvd2VyZG9tYWluc1xuIik7ICovDQo+ICsvKiAgICAgICAg
-ICAgICBnb3RvIGVycjI7ICovDQo+ICsvKiAgICAgfSAqLw0KPg0KPiAgICAgICAgIG1wdV9wd3Jk
-bSA9IHB3cmRtX2xvb2t1cCgibXB1X3B3cmRtIik7DQo+ICAgICAgICAgaWYgKG1wdV9wd3JkbSA9
-PSBOVUxMKSB7DQoNCldpdGggdGhpcyBjaGFuZ2UsIHRoZSBoYW5nIGRvZXMgbm90IGhhcHBlbmUu
-IEFwcGxpZWQgdGhpcyBwYXRjaCBvbiB0aGUgY3VycmVudA0KbGludXgtb21hcCB0cmVlLg0KDQpU
-aGFua3MgZm9yIHRoZSBwYXRjaC4gSXQgZml4ZXMgdGhlIGhhbmcgZm9yIG5vdy4gSSdtIG5vdCBz
-dXJlIHdoeSB0aGUgaGFuZw0KaGFwcGVucywgYnV0IGNvdWxkIGl0IGJlIGJlY2F1c2UgdGhlIFNE
-UCB1c2VzIHR0eVMwIGJ5IGRlZmF1bHQgYXMgdGhlDQpjb25zb2xlIHdoaWxlIHRoZSBCZWFnbGUg
-aXMgb24gdHR5UzI/DQoNClJlZ2FyZHMsDQpBbmFuZA0K
+Hi Rajendra,
+
+> +void omap_pm_set_min_bus_tput(struct device *dev, struct bus_type *bus,
+> +				    unsigned long r)
+
+According to Paul's prototypes this should be 
+void omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, 
+			      unsigned long r)
+				
+> +{
+> +	if (!dev) {
+> +		WARN_ON(1);
+> +		return;
+> +	};
+> +
+> +	if (r == 0)
+> +		pr_debug("OMAP PM: remove min bus tput constraint: "
+> +			 "dev %p for bus %s\n", dev, bus->name);
+> +	else
+> +		pr_debug("OMAP PM: add min bus tput constraint: "
+> +			 "dev %p for bus %s: rate %ld KiB\n", dev,
+> +			 bus->name, r);
+> +
+> +	/*
+> +	 * This code should model the bus and compute the required
+> +	 * bus frequency, convert that to a VDD2 OPP ID, then set the VDD2
+> +	 * OPP appropriately.
+> +	 *
+> +	 * TI CDP code can call constraint_set here on the VDD2 OPP.
+> +	 */
+> +}
+> +
+
+omap_pm_if_early_init and omap_pm_if_init are missing. I added dummy
+functions for those.
+
+With all of these changes it seems to work.
+
+Cheers,
+
+Peter.
+
+-- 
+goa is a state of mind
