@@ -1,55 +1,76 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 0/9] OMAP2/3 SDRC/clock: control CORE M2 divider, clean
- up SDRC
-Date: Tue, 15 Jul 2008 01:58:44 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0807150152020.467@utopia.booyaka.com>
-References: <20080708025225.11646.55912.stgit@localhost.localdomain> <02aa01c8e0b4$5c09a450$68bf18ac@ent.ti.com> <alpine.DEB.1.00.0807081611500.12684@utopia.booyaka.com> <13B9B4C6EF24D648824FF11BE8967162035BD67429@dlee02.ent.ti.com>
- <alpine.DEB.1.00.0807081730590.12684@utopia.booyaka.com> <13B9B4C6EF24D648824FF11BE8967162035BD67456@dlee02.ent.ti.com> <alpine.DEB.1.00.0807081830010.12684@utopia.booyaka.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: Kernel hang on OMAP3 based Beagle board, RTC issue?
+Date: Tue, 15 Jul 2008 16:51:14 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB022C0F9641@dbde02.ent.ti.com>
+References: <486BDD2A.5070500@googlemail.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB022BB6621C@dbde02.ent.ti.com>
+ <AF70E37B-038B-4117-B69F-B2BCD9EFF6AA@student.utwente.nl>
+ <486F21F6.7020208@googlemail.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB022BFE73A2@dbde02.ent.ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB022BFE73BE@dbde02.ent.ti.com>
+ <87vdzi2ln0.fsf@trdhcp146196.ntc.nokia.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB022C0F9263@dbde02.ent.ti.com>
+ <746A464E-F4E2-467A-9D01-DFE2AB3BB02E@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38370 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752755AbYGOH6p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jul 2008 03:58:45 -0400
-In-Reply-To: <alpine.DEB.1.00.0807081830010.12684@utopia.booyaka.com>
+Received: from calf.ext.ti.com ([198.47.26.144]:57245 "EHLO calf.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752851AbYGOLVe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jul 2008 07:21:34 -0400
+In-Reply-To: <746A464E-F4E2-467A-9D01-DFE2AB3BB02E@student.utwente.nl>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, 'Igor Stoppa' <igor.stoppa@nokia.com>
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: H?gander Jouni <jouni.hogander@nokia.com>, Dirk Behme <dirk.behme@googlemail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+> >> diff --git a/arch/arm/mach-omap2/pm34xx.c
+> >> b/arch/arm/mach-omap2/pm34xx.c
+> >> index 202c269..308835b 100644
+> >> --- a/arch/arm/mach-omap2/pm34xx.c
+> >> +++ b/arch/arm/mach-omap2/pm34xx.c
+> >> @@ -380,11 +380,11 @@ int __init omap3_pm_init(void)
+> >>                goto err1;
+> >>        }
+> >>
+> >> -       ret = pwrdm_for_each(pwrdms_setup);
+> >> -       if (ret) {
+> >> -               printk(KERN_ERR "Failed to setup powerdomains\n");
+> >> -               goto err2;
+> >> -       }
+> >> +/*     ret = pwrdm_for_each(pwrdms_setup); */
+> >> +/*     if (ret) { */
+> >> +/*             printk(KERN_ERR "Failed to setup powerdomains\n"); */
+> >> +/*             goto err2; */
+> >> +/*     } */
+> >>
+> >>        mpu_pwrdm = pwrdm_lookup("mpu_pwrdm");
+> >>        if (mpu_pwrdm == NULL) {
+> >
+> > With this change, the hang does not happene. Applied this patch on
+> > the current linux-omap tree.
+> >
+> > Thanks for the patch. It fixes the hang for now. I'm not sure why the hang
+> > happens, but could it be because the SDP uses ttyS0 by default as the
+> > console while the Beagle is on ttyS2?
+>
+> With that patch I still get the same behaviour:
+>
+> serial console freezes, but responds to sysrq
+>
+> I don't know if its related, but after the serial console freezes
+> animated backgrounds in X stop animating, but will refresh if you
+> press a key on the keyboard. The same effect can be seen with running
+> 'top' on the screen.
+> I'm using the CPUidle patches posted to the list a few weeks back +
+> the timer suppression patch.
+>
+> regards,
+>
+> Koen
 
-Hello,
+Okay. Guess I should have waited longer after applying the patch.
 
-A quick update on the CORE DPLL M2 divider change patches; they seem to 
-work okay on the BeagleBoard here.  (The rate tables need minor tweaks to 
-match the Beagle DPLL clock rates set up by u-boot.)
-
-Not sure what's going on with the 3430SDP.  I suspect there are some PRCM 
-register contents that are not being properly reset during the FPGA-driven 
-warm reboots used here.
-
-
-- Paul
-
-
-root@(none):~# mount -t debugfs none /mnt
-root@(none):~# cd /mnt/clock/virt_26m_ck/osc_sys_ck/sys_ck/dpll3_ck/dpll3_m2_ck
-root@(none):/mnt/clock/virt_26m_ck/osc_sys_ck/sys_ck/dpll3_ck/dpll3_m2_ck#
-echo -n 166000000 > rate
-clock: clksel_round_rate_div: dpll3_m2_ck target_rate 166000000
-clock: new_div = 2, new_rate = 166000000
-clock: changing CORE DPLL rate from 332000000 to 166000000
-clock: current SDRC timing params: 0004dc01 aa9db4c6 00011517
-clock: new SDRC timing params: 00025501 51512283 0001120c
-clk: clk_set_rate(dpll3_m2_ck, 166000000) returns 0
-
-root@(none):/mnt/clock/virt_26m_ck/osc_sys_ck/sys_ck/dpll3_ck/dpll3_m2_ck#
-echo -n 332000000 > rate
-clock: clksel_round_rate_div: dpll3_m2_ck target_rate 332000000
-clock: new_div = 1, new_rate = 332000000
-clock: changing CORE DPLL rate from 166000000 to 332000000
-clock: current SDRC timing params: 00025501 51512283 0001120c
-clock: new SDRC timing params: 0004dc01 9a9db4c6 00011217
-clk: clk_set_rate(dpll3_m2_ck, 332000000) returns 0
-root@(none):/mnt/clock/virt_26m_ck/osc_sys_ck/sys_ck/dpll3_ck/dpll3_m2_ck#
+- Anand
