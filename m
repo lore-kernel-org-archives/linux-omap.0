@@ -1,38 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/0] Refreshed omap2 clock and powerdomain patches
-Date: Wed, 16 Jul 2008 18:22:46 +0300
-Message-ID: <20080716152243.GA8414@atomide.com>
-References: <20080716094103.GD23468@flint.arm.linux.org.uk>
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: [PATCH] PROTECT_KEY register is in the PM_MASTER module not in the
+	PM_RECEIVER module
+Date: Wed, 16 Jul 2008 19:53:25 +0300
+Message-ID: <20080716165325.GA4424@codecarver.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63907 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760432AbYGPPVT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jul 2008 11:21:19 -0400
+Received: from smtp.nokia.com ([192.100.122.230]:21770 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753172AbYGPQxo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jul 2008 12:53:44 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m6GGrY6c032595
+	for <linux-omap@vger.kernel.org>; Wed, 16 Jul 2008 19:53:42 +0300
+Received: from codecarver.research.nokia.com (esdhcp04096.research.nokia.com [172.21.40.96])
+	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m6GGrQW4003874
+	for <linux-omap@vger.kernel.org>; Wed, 16 Jul 2008 19:53:26 +0300
+Received: from p2 by codecarver.research.nokia.com with local (Exim 4.69)
+	(envelope-from <p2@codecarver.research.nokia.com>)
+	id 1KJAFp-0006vS-Le
+	for linux-omap@vger.kernel.org; Wed, 16 Jul 2008 19:53:25 +0300
 Content-Disposition: inline
-In-Reply-To: <20080716094103.GD23468@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [080716 12:41]:
-> On Wed, Jul 16, 2008 at 11:53:20AM +0300, Tony Lindgren wrote:
-> > This series contains the refreshed omap2 clock and powerdomain
-> > patches as some of the patches in this series have been already
-> > integrated.
-> 
-> I think the clock and power domain patches need much more review.
-> They're introducing a couple of new management subsystems which may
-> be of interest to other SoCs, maybe even different architectures.
+This patch fixes a write to the wrong address in the triton2 chip.
 
-Sure the power domain and clock domain code can be worked into
-something more generic once we've figured out what can be shared.
+Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+---
+ drivers/i2c/chips/twl4030-usb.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I've posted these patches to LKML and linux-pm for other arch people to
-look at too.
+diff --git a/drivers/i2c/chips/twl4030-usb.c b/drivers/i2c/chips/twl4030-usb.c
+index ab335ca..20858b5 100644
+--- a/drivers/i2c/chips/twl4030-usb.c
++++ b/drivers/i2c/chips/twl4030-usb.c
+@@ -586,7 +586,7 @@ static void twl4030_usb_ldo_init(struct twl4030_usb *twl)
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V8_TYPE);
+ 
+ 	/* disable access to power configuration registers */
+-	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, PROTECT_KEY);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0, PROTECT_KEY);
+ }
+ 
+ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+-- 
+1.5.3.4
 
-Regards,
-
-Tony
