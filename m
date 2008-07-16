@@ -1,50 +1,90 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH] PROTECT_KEY register is in the PM_MASTER module not in the
-	PM_RECEIVER module
-Date: Wed, 16 Jul 2008 19:53:25 +0300
-Message-ID: <20080716165325.GA4424@codecarver.research.nokia.com>
+From: "Yuri Jaeger Monti" <yurijm@gmail.com>
+Subject: OMAP5912 OSK AIC23 Module Problem
+Date: Wed, 16 Jul 2008 16:37:25 -0300
+Message-ID: <65e025470807161237t74dc6bd0h1b659640e52485c5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:21770 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753172AbYGPQxo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jul 2008 12:53:44 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m6GGrY6c032595
-	for <linux-omap@vger.kernel.org>; Wed, 16 Jul 2008 19:53:42 +0300
-Received: from codecarver.research.nokia.com (esdhcp04096.research.nokia.com [172.21.40.96])
-	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m6GGrQW4003874
-	for <linux-omap@vger.kernel.org>; Wed, 16 Jul 2008 19:53:26 +0300
-Received: from p2 by codecarver.research.nokia.com with local (Exim 4.69)
-	(envelope-from <p2@codecarver.research.nokia.com>)
-	id 1KJAFp-0006vS-Le
-	for linux-omap@vger.kernel.org; Wed, 16 Jul 2008 19:53:25 +0300
+Received: from qw-out-2122.google.com ([74.125.92.25]:2633 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753629AbYGPTh1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jul 2008 15:37:27 -0400
+Received: by qw-out-2122.google.com with SMTP id 3so373420qwe.37
+        for <linux-omap@vger.kernel.org>; Wed, 16 Jul 2008 12:37:26 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-This patch fixes a write to the wrong address in the triton2 chip.
+Hello
 
-Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
----
- drivers/i2c/chips/twl4030-usb.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+I'm currently working with OSK OMAP5912 platform and I'm trying to
+load the AIC23 module like this:
+  root@OSK $ modprobe snd-omap-alsa-aic23
 
-diff --git a/drivers/i2c/chips/twl4030-usb.c b/drivers/i2c/chips/twl4030-usb.c
-index ab335ca..20858b5 100644
---- a/drivers/i2c/chips/twl4030-usb.c
-+++ b/drivers/i2c/chips/twl4030-usb.c
-@@ -586,7 +586,7 @@ static void twl4030_usb_ldo_init(struct twl4030_usb *twl)
- 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V8_TYPE);
- 
- 	/* disable access to power configuration registers */
--	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, PROTECT_KEY);
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0, PROTECT_KEY);
- }
- 
- static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+But the system hangs and I can't load the module.
+lsmod gives me:
+
+Module                  Size  Used by
+snd                    53940  0
+soundcore               6724  1 snd
+
+And I'm working with 2.6.26-rc8-omap Kernel version.
+
+I'm trying to setup ALSA correctly to decode and play a MP3 file, but
+I can't get the audio system to work.
+
+When trying mpg123 I got this:
+
+root@OSK $ mpg123 01-Test.mp3
+High Performance MPEG 1.0/2.0/2.5 Audio Player for Layers 1, 2 and 3
+	version 0.66; written and copyright by Michael Hipp and others
+	free software (LGPL/GPL) without any warranty but with best wishes
+ALSA lib confmisc.c:768:(parse_card) cannot find card '0'
+ALSA lib conf.c:3510:(_snd_config_evaluate) function
+snd_func_card_driver returned error: No such device
+ALSA lib confmisc.c:392:(snd_func_concat) error evaluating strings
+ALSA lib conf.c:3510:(_snd_config_evaluate) function snd_func_concat
+returned error: No such device
+ALSA lib confmisc.c:1251:(snd_func_refer) error evaluating name
+ALSA lib conf.c:3510:(_snd_config_evaluate) function snd_func_refer
+returned error: No such device
+ALSA lib conf.c:3982:(snd_config_expand) Evaluate error: No such device
+ALSA lib pcm.c:2145:(snd_pcm_open_noupdate) Unknown PCM default
+audio_open(): cannot open device default
+audio: No such file or directory
+
+Playing MPEG stream 1 of 1: 01-test.mp3 ...
+Title:   Test Artist: None
+Comment:                                 Album: None
+Year:    None                            Genre:  None
+MPEG 1.0 layer III, 192 kbits/s, 44100 Hz stereo
+[audio.c:269] error: Unable to set up output device! Constraints:
+44100, 22050 or 11025Hz.
+
+Audio device: <none>
+Audio capabilities:
+(matrix of [S]tereo or [M]ono support for sample format and rate in Hz)
+        |  s16  |  u16  |  u8   |  s8   | ulaw  | alaw  |
+ --------------------------------------------------------
+  8000  |       |       |       |       |       |       |
+ 11025  |       |       |       |       |       |       |
+ 12000  |       |       |       |       |       |       |
+ 16000  |       |       |       |       |       |       |
+ 22050  |       |       |       |       |       |       |
+ 24000  |       |       |       |       |       |       |
+ 32000  |       |       |       |       |       |       |
+ 44100  |       |       |       |       |       |       |
+ 48000  |       |       |       |       |       |       |
+
+
+Anyone know what I could do? Or have any info about the problem?
+
+Thanks for the attention.
+
 -- 
-1.5.3.4
+Yuri Jaeger Monti
 
+The Catholic University at Porto Alegre - PUCRS
+(51) 3320.3500 Ramal #7696
