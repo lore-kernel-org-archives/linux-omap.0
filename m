@@ -1,16 +1,15 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/2] OMAP3 clock: don't wait for USBHOST IDLEST bit on
-	usbhost_120m_fclk enable
-Date: Wed, 16 Jul 2008 20:14:59 -0600
-Message-ID: <20080717021304.21489.17884.stgit@localhost.localdomain>
+Subject: [PATCH 1/2] OMAP3 clock: fix 96MHz clocks
+Date: Wed, 16 Jul 2008 20:13:04 -0600
+Message-ID: <20080717021300.21489.47622.stgit@localhost.localdomain>
 References: <20080717021112.21489.95137.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:52905 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:52902 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754708AbYGQCPn (ORCPT
+	with ESMTP id S1754410AbYGQCPn (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jul 2008 22:15:43 -0400
 In-Reply-To: <20080717021112.21489.95137.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
@@ -18,136 +17,171 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: vikram.pandita@ti.com
 
-USBHOST on 3430ES2+ has both an initiator and a target CM_IDLEST bit.
-Previously, usbhost_48m_fclk enable waited on the wrong bit -- now
-fixed.  Also, it appears that USBHOST module readiness (in terms of
-CM_IDLEST) only depends on usbhost_48m_fclk and usbhost_iclk.  So
-don't wait on usbhost_120m_fck.
+Fix some bugs in the OMAP3 clock tree pertaining to the 96MHz clocks.
+The 96MHz portion of the clock tree should now have reasonable
+fidelity to the 34xx TRM Rev I.
+
+One remaining question mark: it's not clear exactly which 96MHz source
+clock the USIM uses.  This patch sticks with the previous setting, which
+seems reasonable.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
 
- arch/arm/mach-omap2/clock.c           |   63 ++++++++++++++++++---------------
- arch/arm/mach-omap2/cm-regbits-34xx.h |    2 +
- 2 files changed, 36 insertions(+), 29 deletions(-)
+ arch/arm/mach-omap2/clock34xx.h       |   60 +++++++++++++++++++++------------
+ arch/arm/mach-omap2/cm-regbits-34xx.h |    8 +++-
+ 2 files changed, 44 insertions(+), 24 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 577be44..5174892 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -222,8 +222,8 @@ int omap2_wait_clock_ready(void __iomem *reg, u32 mask, const char *name)
-  */
- static void omap2_clk_wait_ready(struct clk *clk)
- {
--	u32 bit;
--	unsigned long reg, other_reg, st_reg, prcm_mod, prcm_regid;
-+	u32 other_bit, idlest_bit;
-+	unsigned long reg, other_reg, idlest_reg, prcm_mod, prcm_regid;
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index 161da12..962608f 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -661,6 +661,12 @@ static const struct clksel omap_96m_alwon_fck_clksel[] = {
+ 	{ .parent = NULL }
+ };
  
- 	reg = (unsigned long)clk->enable_reg;
- 	prcm_mod = reg & ~0xff;
-@@ -236,6 +236,10 @@ static void omap2_clk_wait_ready(struct clk *clk)
- 	else
- 		return;
++/*
++ * DPLL4 generates DPLL4_M2X2_CLK which is then routed into the PRM as
++ * PRM_96M_ALWON_(F)CLK.  Two clocks then emerge from the PRM:
++ * 96M_ALWON_FCLK (called "omap_96m_alwon_fck" below) and
++ * CM_96K_(F)CLK.
++ */
+ static struct clk omap_96m_alwon_fck = {
+ 	.name		= "omap_96m_alwon_fck",
+ 	.parent		= &dpll4_m2x2_ck,
+@@ -669,31 +675,41 @@ static struct clk omap_96m_alwon_fck = {
+ 	.clksel_mask	= OMAP3430_ST_PERIPH_CLK_MASK,
+ 	.clksel		= omap_96m_alwon_fck_clksel,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+-				 PARENT_CONTROLS_CLOCK,
++				PARENT_CONTROLS_CLOCK,
+ 	.recalc		= &omap2_clksel_recalc,
+ };
  
-+	/* Covers most of the cases - a few exceptions are below */
-+	other_bit = 1 << clk->enable_bit;
-+	idlest_bit = other_bit;
+-static struct clk omap_96m_fck = {
+-	.name		= "omap_96m_fck",
++static struct clk cm_96m_fck = {
++	.name		= "cm_96m_fck",
+ 	.parent		= &omap_96m_alwon_fck,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static const struct clksel cm_96m_fck_clksel[] = {
+-	{ .parent = &sys_ck,	    .rates = dpll_bypass_rates },
+-	{ .parent = &dpll4_m2x2_ck, .rates = dpll_locked_rates },
++static const struct clksel_rate omap_96m_dpll_rates[] = {
++	{ .div = 1, .val = 0, .flags = RATE_IN_343X | DEFAULT_RATE },
++	{ .div = 0 }
++};
 +
- 	/* 24xx: DSS and CAM have no idlest bits for their target agents */
- 	if (cpu_is_omap24xx() &&
- 	    (prcm_mod == OMAP2420_CM_REGADDR(CORE_MOD, 0) ||
-@@ -253,11 +257,15 @@ static void omap2_clk_wait_ready(struct clk *clk)
- 	if (cpu_is_omap34xx()) {
- 
- 		/* SSI */
--		if (is_sil_rev_equal_to(OMAP3430_REV_ES1_0) &&
--		    prcm_mod == OMAP34XX_CM_REGADDR(CORE_MOD, 0) &&
-+		if (prcm_mod == OMAP34XX_CM_REGADDR(CORE_MOD, 0) &&
- 		    (reg & 0x0f) == 0 &&
--		    clk->enable_bit == OMAP3430_EN_SSI_SHIFT)
--			return;
-+		    clk->enable_bit == OMAP3430_EN_SSI_SHIFT) {
++static const struct clksel_rate omap_96m_sys_rates[] = {
++	{ .div = 1, .val = 1, .flags = RATE_IN_343X | DEFAULT_RATE },
++	{ .div = 0 }
++};
 +
-+			if (is_sil_rev_equal_to(OMAP3430_REV_ES1_0))
-+				return;
-+
-+			idlest_bit = OMAP3430ES2_ST_SSI_IDLE;
-+		}
++static const struct clksel omap_96m_fck_clksel[] = {
++	{ .parent = &cm_96m_fck, .rates = omap_96m_dpll_rates },
++	{ .parent = &sys_ck,	 .rates = omap_96m_sys_rates },
+ 	{ .parent = NULL }
+ };
  
- 		/* DSS */
- 		if (prcm_mod == OMAP34XX_CM_REGADDR(OMAP3430_DSS_MOD, 0)) {
-@@ -272,38 +280,35 @@ static void omap2_clk_wait_ready(struct clk *clk)
- 			 */
- 			if (clk->enable_bit != OMAP3430_EN_DSS1_SHIFT)
- 				return;
-+
-+			idlest_bit = OMAP3430ES2_ST_DSS_IDLE;
- 		}
+-static struct clk cm_96m_fck = {
+-	.name		= "cm_96m_fck",
+-	.parent		= &dpll4_m2x2_ck,
++static struct clk omap_96m_fck = {
++	.name		= "omap_96m_fck",
++	.parent		= &sys_ck,
+ 	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= _OMAP34XX_CM_REGADDR(PLL_MOD, CM_IDLEST),
+-	.clksel_mask	= OMAP3430_ST_PERIPH_CLK_MASK,
+-	.clksel		= cm_96m_fck_clksel,
++	.clksel_reg	= _OMAP34XX_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
++	.clksel_mask	= OMAP3430_SOURCE_96M_MASK,
++	.clksel		= omap_96m_fck_clksel,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
+ 	.recalc		= &omap2_clksel_recalc,
+@@ -761,14 +777,14 @@ static struct clk omap_54m_fck = {
+ 	.name		= "omap_54m_fck",
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= _OMAP34XX_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
+-	.clksel_mask	= OMAP3430_SOURCE_54M,
++	.clksel_mask	= OMAP3430_SOURCE_54M_MASK,
+ 	.clksel		= omap_54m_clksel,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
+ 	.recalc		= &omap2_clksel_recalc,
+ };
  
-+		/* USBHOST */
-+		if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0) &&
-+		    prcm_mod == OMAP34XX_CM_REGADDR(OMAP3430ES2_USBHOST_MOD, 0)) {
-+
-+			/*
-+			 * The 120MHz clock apparently has nothing to do with
-+			 * USBHOST module accessibility
-+			 */
-+			if (clk->enable_bit == OMAP3430ES2_EN_USBHOST2_SHIFT)
-+				return;
-+
-+			idlest_bit = OMAP3430ES2_ST_USBHOST_IDLE;
-+
-+		}
- 	}
+-static const struct clksel_rate omap_48m_96md2_rates[] = {
++static const struct clksel_rate omap_48m_cm96m_rates[] = {
+ 	{ .div = 2, .val = 0, .flags = RATE_IN_343X | DEFAULT_RATE },
+ 	{ .div = 0 }
+ };
+@@ -779,7 +795,7 @@ static const struct clksel_rate omap_48m_alt_rates[] = {
+ };
  
- 	/* Check if both functional and interface clocks
- 	 * are running. */
--	bit = 1 << clk->enable_bit;
--	if (!(__raw_readl((void __iomem *)other_reg) & bit))
-+	if (!(__raw_readl((void __iomem *)other_reg) & other_bit))
- 		return;
+ static const struct clksel omap_48m_clksel[] = {
+-	{ .parent = &cm_96m_fck, .rates = omap_48m_96md2_rates },
++	{ .parent = &cm_96m_fck, .rates = omap_48m_cm96m_rates },
+ 	{ .parent = &sys_altclk, .rates = omap_48m_alt_rates },
+ 	{ .parent = NULL }
+ };
+@@ -788,7 +804,7 @@ static struct clk omap_48m_fck = {
+ 	.name		= "omap_48m_fck",
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= _OMAP34XX_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
+-	.clksel_mask	= OMAP3430_SOURCE_48M,
++	.clksel_mask	= OMAP3430_SOURCE_48M_MASK,
+ 	.clksel		= omap_48m_clksel,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
+@@ -976,10 +992,10 @@ static const struct clksel_rate clkout2_src_54m_rates[] = {
+ };
  
--	/*
--	 * OMAP3430ES2+ has target idlest bits at unusual offsets for
--	 * modules with both initiator and target agents
--	 */
--	if (cpu_is_omap34xx()) {
--
--		/* SSI */
--		if (prcm_mod == OMAP34XX_CM_REGADDR(CORE_MOD, 0) &&
--		    (reg & 0x0f) == 0 &&
--		    clk->enable_bit == OMAP3430_EN_SSI_SHIFT)
--			bit = OMAP3430ES2_ST_SSI_IDLE;
--
--		/* DSS */
--		if (prcm_mod == OMAP34XX_CM_REGADDR(OMAP3430_DSS_MOD, 0) &&
--		    clk->enable_bit == OMAP3430_EN_DSS1_SHIFT)
--			bit = OMAP3430ES2_ST_DSS_IDLE;
--
--	}
--
--	st_reg = ((other_reg & ~0xf0) | 0x20); /* CM_IDLEST* */
-+	idlest_reg = ((other_reg & ~0xf0) | 0x20); /* CM_IDLEST* */
+ static const struct clksel clkout2_src_clksel[] = {
+-	{ .parent = &core_ck,		  .rates = clkout2_src_core_rates },
+-	{ .parent = &sys_ck,		  .rates = clkout2_src_sys_rates },
+-	{ .parent = &omap_96m_alwon_fck,  .rates = clkout2_src_96m_rates },
+-	{ .parent = &omap_54m_fck,	  .rates = clkout2_src_54m_rates },
++	{ .parent = &core_ck,		.rates = clkout2_src_core_rates },
++	{ .parent = &sys_ck,		.rates = clkout2_src_sys_rates },
++	{ .parent = &cm_96m_fck,	.rates = clkout2_src_96m_rates },
++	{ .parent = &omap_54m_fck,	.rates = clkout2_src_54m_rates },
+ 	{ .parent = NULL }
+ };
  
--	omap2_wait_clock_ready((void __iomem *)st_reg, bit, clk->name);
-+	omap2_wait_clock_ready((void __iomem *)idlest_reg, idlest_bit,
-+			       clk->name);
- }
+@@ -2807,8 +2823,8 @@ static struct clk mcbsp4_ick = {
+ };
  
- /* Enables clock without considering parent dependencies or use count
+ static const struct clksel mcbsp_234_clksel[] = {
+-	{ .parent = &per_96m_fck, .rates = common_mcbsp_96m_rates },
+-	{ .parent = &mcbsp_clks,  .rates = common_mcbsp_mcbsp_rates },
++	{ .parent = &core_96m_fck, .rates = common_mcbsp_96m_rates },
++	{ .parent = &mcbsp_clks,   .rates = common_mcbsp_mcbsp_rates },
+ 	{ .parent = NULL }
+ };
+ 
 diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
-index 07ab180..ffb695b 100644
+index 971b9ad..07ab180 100644
 --- a/arch/arm/mach-omap2/cm-regbits-34xx.h
 +++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-@@ -690,6 +690,8 @@
- #define OMAP3430ES2_EN_USBHOST_MASK			(1 << 0)
+@@ -457,8 +457,12 @@
+ #define OMAP3430_CORE_DPLL_MULT_MASK			(0x7ff << 16)
+ #define OMAP3430_CORE_DPLL_DIV_SHIFT			8
+ #define OMAP3430_CORE_DPLL_DIV_MASK			(0x7f << 8)
+-#define OMAP3430_SOURCE_54M				(1 << 5)
+-#define OMAP3430_SOURCE_48M				(1 << 3)
++#define OMAP3430_SOURCE_96M_SHIFT			6
++#define OMAP3430_SOURCE_96M_MASK			(1 << 6)
++#define OMAP3430_SOURCE_54M_SHIFT			5
++#define OMAP3430_SOURCE_54M_MASK			(1 << 5)
++#define OMAP3430_SOURCE_48M_SHIFT			3
++#define OMAP3430_SOURCE_48M_MASK			(1 << 3)
  
- /* CM_IDLEST_USBHOST */
-+#define OMAP3430ES2_ST_USBHOST_IDLE			(1 << 1)
-+#define OMAP3430ES2_ST_USBHOST_STDBY			(1 << 0)
- 
- /* CM_AUTOIDLE_USBHOST */
- #define OMAP3430ES2_AUTO_USBHOST_SHIFT			0
+ /* CM_CLKSEL2_PLL */
+ #define OMAP3430_PERIPH_DPLL_MULT_SHIFT			8
 
 
