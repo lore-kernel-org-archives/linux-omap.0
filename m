@@ -1,79 +1,43 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 04/11] sdrc register defs
-Date: Fri, 18 Jul 2008 18:49:27 +0530
-Message-ID: <001601c8e8d8$e780b150$68bf18ac@ent.ti.com>
+Subject: [PATCH 10/11] i2c context save/restore
+Date: Fri, 18 Jul 2008 18:49:48 +0530
+Message-ID: <001c01c8e8d8$f3e39f20$68bf18ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from soda.ext.ti.com ([198.47.26.145]:40180 "EHLO soda.ext.ti.com"
+Received: from soda.ext.ti.com ([198.47.26.145]:40203 "EHLO soda.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752539AbYGRNTf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jul 2008 09:19:35 -0400
+	id S1755793AbYGRNT4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jul 2008 09:19:56 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m6IDJSsO014924
-	for <linux-omap@vger.kernel.org>; Fri, 18 Jul 2008 08:19:34 -0500
+	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m6IDJnhB015222
+	for <linux-omap@vger.kernel.org>; Fri, 18 Jul 2008 08:19:55 -0500
 Received: from a0393137pc (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m6IDJRpN007117
-	for <linux-omap@vger.kernel.org>; Fri, 18 Jul 2008 18:49:27 +0530 (IST)
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m6IDJjb0007197
+	for <linux-omap@vger.kernel.org>; Fri, 18 Jul 2008 18:49:48 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-This patch adds some missing sdrc register definitions
+This patch does i2c init/re-init for every transfer
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-
 ---
- arch/arm/mach-omap2/sram34xx.S   |    4 ++--
- include/asm-arm/arch-omap/sdrc.h |   13 +++++++++++--
- 2 files changed, 13 insertions(+), 4 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/sram34xx.S
+Index: linux-omap-2.6/drivers/i2c/busses/i2c-omap.c
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/sram34xx.S	2008-05-30 09:48:07.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/sram34xx.S	2008-05-30 10:54:10.377835914 +0530
-@@ -185,9 +185,9 @@ omap34xx_cm_iclken1_core:
- omap34xx_sdrc_rfr_ctrl:
- 	.word OMAP34XX_SDRC_REGADDR(SDRC_RFR_CTRL_0)
- omap34xx_sdrc_actim_ctrla:
--	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A)
-+	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A_0)
- omap34xx_sdrc_actim_ctrlb:
--	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B)
-+	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B_0)
- omap34xx_sdrc_dlla_status:
- 	.word OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
- omap34xx_sdrc_dlla_ctrl:
-Index: linux-omap-2.6/include/asm-arm/arch-omap/sdrc.h
-===================================================================
---- linux-omap-2.6.orig/include/asm-arm/arch-omap/sdrc.h	2008-05-30 09:48:15.000000000 +0530
-+++ linux-omap-2.6/include/asm-arm/arch-omap/sdrc.h	2008-05-30 10:54:19.223556769 +0530
-@@ -19,15 +19,24 @@
- /* SDRC register offsets - read/write with sdrc_{read,write}_reg() */
+--- linux-omap-2.6.orig/drivers/i2c/busses/i2c-omap.c	2008-06-09 10:21:40.000000000 +0530
++++ linux-omap-2.6/drivers/i2c/busses/i2c-omap.c	2008-06-09 10:57:32.871082795 +0530
+@@ -490,6 +490,8 @@ omap_i2c_xfer(struct i2c_adapter *adap, 
  
- #define SDRC_SYSCONFIG		0x010
-+#define SDRC_CS_CFG		0x040
-+#define SDRC_SHARING		0x044
-+#define SDRC_ERR_TYPE		0x04C
- #define SDRC_DLLA_CTRL		0x060
- #define SDRC_DLLA_STATUS	0x064
- #define SDRC_DLLB_CTRL		0x068
- #define SDRC_DLLB_STATUS	0x06C
- #define SDRC_POWER		0x070
-+#define SDRC_MCFG_0		0x080
- #define SDRC_MR_0		0x084
--#define SDRC_ACTIM_CTRL_A	0x09c
--#define SDRC_ACTIM_CTRL_B	0x0a0
-+#define SDRC_ACTIM_CTRL_A_0	0x09c
-+#define SDRC_ACTIM_CTRL_B_0	0x0a0
- #define SDRC_RFR_CTRL_0		0x0a4
-+#define SDRC_MCFG_1		0x0B0
-+#define SDRC_MR_1		0x0B4
-+#define SDRC_ACTIM_CTRL_A_1	0x0C4
-+#define SDRC_ACTIM_CTRL_B_1	0x0C8
-+#define SDRC_RFR_CTRL_1		0x0D4
+ 	omap_i2c_unidle(dev);
  
- /*
-  * These values represent the number of memory clock cycles between
++	omap_i2c_init(dev);
++
+ 	if ((r = omap_i2c_wait_for_bb(dev)) < 0)
+ 		goto out;
+ 
 
