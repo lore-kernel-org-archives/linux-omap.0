@@ -1,248 +1,291 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 5/9] TWL4030: read and write module ISRs to clear them at init
-Date: Thu, 17 Jul 2008 19:34:52 -0600
-Message-ID: <20080718013451.18943.18579.stgit@localhost.localdomain>
+Subject: [PATCH 7/9] TWL4030: move TWL module register defs into separate
+	include files
+Date: Thu, 17 Jul 2008 19:34:54 -0600
+Message-ID: <20080718013453.18943.69329.stgit@localhost.localdomain>
 References: <20080718013205.18943.34047.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49365 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:49367 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755063AbYGRBfZ (ORCPT
+	with ESMTP id S1756351AbYGRBfZ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jul 2008 21:35:25 -0400
 In-Reply-To: <20080718013205.18943.34047.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-TWL4030 interrupt status register bits can be cleared in one of two ways:
-either by reading from the register, or by writing a 1 to the
-appropriate bit(s) in the register.  This behavior can be altered at any
-time by the <twlmodule>_SIH_CTRL.COR register bit ("clear-on-read").
-
-twl4030-core.c does not touch these *_SIH_CTRL registers during boot,
-and the TWL4030 TRM is deeply confused as to whether COR=1 means that
-the registers are cleared on reads, or cleared on writes.
-
-So, take the cautious way out and both read from and write to the TWL4030
-module ISRs to clear them at startup.  Also, use WARN_ON() to warn if the
-read/write failed, and don't skip the rest of the initialization on failure
-either.
+twl_init_irq() accesses TWL module IMR and ISR registers.  Currently, it
+uses "magic numbers" for these register indices, but symbolic constants
+are definitely preferred.  Rather than duplicating already existing
+symbolic constants in twl4030-gpio.c and twl4030-pwrirq.c, move the
+existing constants out into include files.  This patch should not change
+kernel behavior.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
 
- drivers/i2c/chips/twl4030-core.c |  128 +++++++++++++++-----------------------
- 1 files changed, 51 insertions(+), 77 deletions(-)
+ drivers/i2c/chips/twl4030-gpio.c   |   48 -----------------------
+ drivers/i2c/chips/twl4030-pwrirq.c |   15 +++----
+ include/linux/i2c/twl4030-gpio.h   |   76 ++++++++++++++++++++++++++++++++++++
+ include/linux/i2c/twl4030-pwrirq.h |   37 ++++++++++++++++++
+ 4 files changed, 121 insertions(+), 55 deletions(-)
+ create mode 100644 include/linux/i2c/twl4030-gpio.h
+ create mode 100644 include/linux/i2c/twl4030-pwrirq.h
 
-diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
-index 9d93524..615fb84 100644
---- a/drivers/i2c/chips/twl4030-core.c
-+++ b/drivers/i2c/chips/twl4030-core.c
-@@ -712,6 +712,28 @@ static int power_companion_init(void)
- 	return e;
+diff --git a/drivers/i2c/chips/twl4030-gpio.c b/drivers/i2c/chips/twl4030-gpio.c
+index f16a48b..9d17f45 100644
+--- a/drivers/i2c/chips/twl4030-gpio.c
++++ b/drivers/i2c/chips/twl4030-gpio.c
+@@ -38,6 +38,7 @@
+ 
+ #include <linux/i2c.h>
+ #include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl4030-gpio.h>
+ #include <linux/slab.h>
+ 
+ #include <asm/arch/irqs.h>
+@@ -47,53 +48,6 @@
+ 
+ #include <linux/device.h>
+ 
+-/*
+- * GPIO Block Register definitions
+- */
+-
+-#define REG_GPIODATAIN1			0x0
+-#define REG_GPIODATAIN2			0x1
+-#define REG_GPIODATAIN3			0x2
+-#define REG_GPIODATADIR1		0x3
+-#define REG_GPIODATADIR2		0x4
+-#define REG_GPIODATADIR3		0x5
+-#define REG_GPIODATAOUT1		0x6
+-#define REG_GPIODATAOUT2		0x7
+-#define REG_GPIODATAOUT3		0x8
+-#define REG_CLEARGPIODATAOUT1		0x9
+-#define REG_CLEARGPIODATAOUT2		0xA
+-#define REG_CLEARGPIODATAOUT3		0xB
+-#define REG_SETGPIODATAOUT1		0xC
+-#define REG_SETGPIODATAOUT2		0xD
+-#define REG_SETGPIODATAOUT3		0xE
+-#define REG_GPIO_DEBEN1			0xF
+-#define REG_GPIO_DEBEN2			0x10
+-#define REG_GPIO_DEBEN3			0x11
+-#define REG_GPIO_CTRL			0x12
+-#define REG_GPIOPUPDCTR1		0x13
+-#define REG_GPIOPUPDCTR2		0x14
+-#define REG_GPIOPUPDCTR3		0x15
+-#define REG_GPIOPUPDCTR4		0x16
+-#define REG_GPIOPUPDCTR5		0x17
+-#define REG_GPIO_ISR1A			0x19
+-#define REG_GPIO_ISR2A			0x1A
+-#define REG_GPIO_ISR3A			0x1B
+-#define REG_GPIO_IMR1A			0x1C
+-#define REG_GPIO_IMR2A			0x1D
+-#define REG_GPIO_IMR3A			0x1E
+-#define REG_GPIO_ISR1B			0x1F
+-#define REG_GPIO_ISR2B			0x20
+-#define REG_GPIO_ISR3B			0x21
+-#define REG_GPIO_IMR1B			0x22
+-#define REG_GPIO_IMR2B			0x23
+-#define REG_GPIO_IMR3B			0x24
+-#define REG_GPIO_EDR1			0x28
+-#define REG_GPIO_EDR2			0x29
+-#define REG_GPIO_EDR3			0x2A
+-#define REG_GPIO_EDR4			0x2B
+-#define REG_GPIO_EDR5			0x2C
+-#define REG_GPIO_SIH_CTRL		0x2D
+-
+ /* BitField Definitions */
+ 
+ /* Data banks : 3 banks for 8 gpios each */
+diff --git a/drivers/i2c/chips/twl4030-pwrirq.c b/drivers/i2c/chips/twl4030-pwrirq.c
+index a4d2e92..1afdb65 100644
+--- a/drivers/i2c/chips/twl4030-pwrirq.c
++++ b/drivers/i2c/chips/twl4030-pwrirq.c
+@@ -27,10 +27,8 @@
+ #include <linux/random.h>
+ #include <linux/kthread.h>
+ #include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl4030-pwrirq.h>
+ 
+-#define PWR_ISR1 0
+-#define PWR_IMR1 1
+-#define PWR_SIH_CTRL 7
+ #define PWR_SIH_CTRL_COR (1<<2)
+ 
+ static u8 twl4030_pwrirq_mask;
+@@ -93,7 +91,8 @@ static void do_twl4030_pwrmodule_irq(unsigned int irq, irq_desc_t *desc)
+ 			twl4030_pwrirq_mask |= 1 << (irq - TWL4030_PWR_IRQ_BASE);
+ 			local_irq_enable();
+ 			twl4030_i2c_write_u8(TWL4030_MODULE_INT,
+-						twl4030_pwrirq_mask, PWR_IMR1);
++					     twl4030_pwrirq_mask,
++					     TWL4030_INT_PWR_IMR1);
+ 		}
+ 	}
  }
+@@ -115,7 +114,7 @@ static void do_twl4030_pwrirq(unsigned int irq, irq_desc_t *desc)
  
-+/**
-+ * twl4030_i2c_clear_isr - clear TWL4030 SIH ISR regs via read + write
-+ * @mod_no: TWL4030 module number
-+ * @reg: register index to clear
+ 		local_irq_enable();
+ 		ret = twl4030_i2c_read_u8(TWL4030_MODULE_INT, &pwr_isr,
+-						PWR_ISR1);
++					  TWL4030_INT_PWR_ISR1);
+ 		if (ret) {
+ 			printk(KERN_WARNING
+ 				"I2C error %d while reading TWL4030"
+@@ -151,7 +150,7 @@ static int twl4030_pwrirq_thread(void *data)
+ 		twl4030_pwrirq_mask &= ~local_unmask;
+ 
+ 		twl4030_i2c_write_u8(TWL4030_MODULE_INT, twl4030_pwrirq_mask,
+-					PWR_IMR1);
++				     TWL4030_INT_PWR_IMR1);
+ 
+ 		local_irq_disable();
+ 		if (!twl4030_pwrirq_pending_unmask)
+@@ -172,14 +171,14 @@ static int __init twl4030_pwrirq_init(void)
+ 	twl4030_pwrirq_pending_unmask = 0;
+ 
+ 	err = twl4030_i2c_write_u8(TWL4030_MODULE_INT, twl4030_pwrirq_mask,
+-					PWR_IMR1);
++					TWL4030_INT_PWR_IMR1);
+ 	if (err)
+ 		return err;
+ 
+ 	/* Enable clear on read */
+ 
+ 	err = twl4030_i2c_write_u8(TWL4030_MODULE_INT, PWR_SIH_CTRL_COR,
+-					PWR_SIH_CTRL);
++				   TWL4030_INT_PWR_SIH_CTRL);
+ 	if (err)
+ 		return err;
+ 
+diff --git a/include/linux/i2c/twl4030-gpio.h b/include/linux/i2c/twl4030-gpio.h
+new file mode 100644
+index 0000000..7cbf610
+--- /dev/null
++++ b/include/linux/i2c/twl4030-gpio.h
+@@ -0,0 +1,76 @@
++/*
++ * twl4030-gpio.h - header for TWL4030 GPIO module
 + *
-+ * Reads, then writes 0xff to a TWL4030 interrupt status register to ensure
-+ * that interrupts are cleared.  The read + write is necessary since we
-+ * don't know whether the COR bit is set in <module>_SIH_CTRL.  Returns
-+ * the status from the I2C read operation.
++ * Copyright (C) 2005-2006, 2008 Texas Instruments, Inc.
++ * Copyright (C) 2008 Nokia Corporation
++ *
++ * Based on tlv320aic23.c:
++ * Copyright (c) by Kai Svahn <kai.svahn@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ *
 + */
-+static int twl4030_i2c_clear_isr(u8 mod_no, u8 reg)
-+{
-+	int res;
-+	u8 tmp;
 +
-+	res = twl4030_i2c_read_u8(mod_no, &tmp, reg);
-+	if (res < 0)
-+		return res;
++#ifndef __TWL4030_GPIO_H_
++#define __TWL4030_GPIO_H_
 +
-+	return twl4030_i2c_write_u8(mod_no, 0xff, reg);
-+}
++/*
++ * GPIO Block Register definitions
++ */
 +
- static void twl_init_irq(void)
- {
- 	int	i = 0;
-@@ -719,6 +741,13 @@ static void twl_init_irq(void)
- 	char	*msg = "Unable to register interrupt subsystem";
- 	unsigned int irq_num;
- 
-+	/*
-+	 * For each TWL4030 module with ISR/IMR registers, mask all
-+	 * interrupts and then clear any existing interrupt status bits,
-+	 * since we initially do not have any TWL4030 module interrupt
-+	 * handlers present.
-+	 */
++#define REG_GPIODATAIN1			0x0
++#define REG_GPIODATAIN2			0x1
++#define REG_GPIODATAIN3			0x2
++#define REG_GPIODATADIR1		0x3
++#define REG_GPIODATADIR2		0x4
++#define REG_GPIODATADIR3		0x5
++#define REG_GPIODATAOUT1		0x6
++#define REG_GPIODATAOUT2		0x7
++#define REG_GPIODATAOUT3		0x8
++#define REG_CLEARGPIODATAOUT1		0x9
++#define REG_CLEARGPIODATAOUT2		0xA
++#define REG_CLEARGPIODATAOUT3		0xB
++#define REG_SETGPIODATAOUT1		0xC
++#define REG_SETGPIODATAOUT2		0xD
++#define REG_SETGPIODATAOUT3		0xE
++#define REG_GPIO_DEBEN1			0xF
++#define REG_GPIO_DEBEN2			0x10
++#define REG_GPIO_DEBEN3			0x11
++#define REG_GPIO_CTRL			0x12
++#define REG_GPIOPUPDCTR1		0x13
++#define REG_GPIOPUPDCTR2		0x14
++#define REG_GPIOPUPDCTR3		0x15
++#define REG_GPIOPUPDCTR4		0x16
++#define REG_GPIOPUPDCTR5		0x17
++#define REG_GPIO_ISR1A			0x19
++#define REG_GPIO_ISR2A			0x1A
++#define REG_GPIO_ISR3A			0x1B
++#define REG_GPIO_IMR1A			0x1C
++#define REG_GPIO_IMR2A			0x1D
++#define REG_GPIO_IMR3A			0x1E
++#define REG_GPIO_ISR1B			0x1F
++#define REG_GPIO_ISR2B			0x20
++#define REG_GPIO_ISR3B			0x21
++#define REG_GPIO_IMR1B			0x22
++#define REG_GPIO_IMR2B			0x23
++#define REG_GPIO_IMR3B			0x24
++#define REG_GPIO_EDR1			0x28
++#define REG_GPIO_EDR2			0x29
++#define REG_GPIO_EDR3			0x2A
++#define REG_GPIO_EDR4			0x2B
++#define REG_GPIO_EDR5			0x2C
++#define REG_GPIO_SIH_CTRL		0x2D
 +
- 	/* PWR_IMR1 */
- 	res = twl4030_i2c_write_u8(TWL4030_MODULE_INT, 0xFF, 0x1);
- 	if (res < 0) {
-@@ -735,19 +764,11 @@ static void twl_init_irq(void)
- 
- 	/* Clear off any other pending interrupts on power */
- 	/* PWR_ISR1 */
--	res = twl4030_i2c_write_u8(TWL4030_MODULE_INT, 0xFF, 0x00);
--	if (res < 0) {
--		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
--		return;
--	}
-+	WARN_ON(twl4030_i2c_clear_isr(TWL4030_MODULE_INT, 0x00) < 0);
- 
- 	/* PWR_ISR2 */
--	res = twl4030_i2c_write_u8(TWL4030_MODULE_INT, 0xFF, 0x02);
--	if (res < 0) {
--		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
--		return;
--	}
--	/* POWER HACK (END) */
-+	WARN_ON(twl4030_i2c_clear_isr(TWL4030_MODULE_INT, 0x02) < 0);
++#endif /* End of __TWL4030_GPIO_H */
+diff --git a/include/linux/i2c/twl4030-pwrirq.h b/include/linux/i2c/twl4030-pwrirq.h
+new file mode 100644
+index 0000000..7a13368
+--- /dev/null
++++ b/include/linux/i2c/twl4030-pwrirq.h
+@@ -0,0 +1,37 @@
++/*
++ * twl4030-gpio.h - header for TWL4030 GPIO module
++ *
++ * Copyright (C) 2008 Texas Instruments, Inc.
++ * Copyright (C) 2008 Nokia Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ *
++ */
 +
- 	/* Slave address 0x4A */
- 
- 	/* BCIIMR1A */
-@@ -779,32 +800,16 @@ static void twl_init_irq(void)
- 	}
- 
- 	/* BCIISR1A */
--	res = twl4030_i2c_write_u8(TWL4030_MODULE_INTERRUPTS, 0xFF, 0x0);
--	if (res < 0) {
--		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
--		return;
--	}
-+	WARN_ON(twl4030_i2c_clear_isr(TWL4030_MODULE_INTERRUPTS, 0x0) < 0);
- 
- 	/* BCIISR2A */
--	res = twl4030_i2c_write_u8(TWL4030_MODULE_INTERRUPTS, 0xFF, 0x1);
--	if (res < 0) {
--		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
--		return;
--	}
-+	WARN_ON(twl4030_i2c_clear_isr(TWL4030_MODULE_INTERRUPTS, 0x1) < 0);
- 
- 	/* BCIISR1B */
--	res = twl4030_i2c_write_u8(TWL4030_MODULE_INTERRUPTS, 0xFF, 0x4);
--	if (res < 0) {
--		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
--		return;
--	}
-+	WARN_ON(twl4030_i2c_clear_isr(TWL4030_MODULE_INTERRUPTS, 0x4) < 0);
- 
- 	/* BCIISR2B */
--	res = twl4030_i2c_write_u8(TWL4030_MODULE_INTERRUPTS, 0xFF, 0x5);
--	if (res < 0) {
--		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
--		return;
--	}
-+	WARN_ON(twl4030_i2c_clear_isr(TWL4030_MODULE_INTERRUPTS, 0x5) < 0);
- 
- 	/* MAD C */
- 	/* MADC_IMR1 */
-@@ -822,18 +827,10 @@ static void twl_init_irq(void)
- 	}
- 
- 	/* MADC_ISR1 */
--	res = twl4030_i2c_write_u8(TWL4030_MODULE_MADC, 0xFF, 0x61);
--	if (res < 0) {
--		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
--		return;
--	}
-+	WARN_ON(twl4030_i2c_clear_isr(TWL4030_MODULE_MADC, 0x61) < 0);
- 
- 	/* MADC_ISR2 */
--	res = twl4030_i2c_write_u8(TWL4030_MODULE_MADC, 0xFF, 0x63);
--	if (res < 0) {
--		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
--		return;
--	}
-+	WARN_ON(twl4030_i2c_clear_isr(TWL4030_MODULE_MADC, 0x63) < 0);
- 
- 	/* key Pad */
- 	/* KEYPAD - IMR1 */
-@@ -842,12 +839,10 @@ static void twl_init_irq(void)
- 		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
- 		return;
- 	}
--	{
--		u8 clear;
--		/* Clear ISR */
--		twl4030_i2c_read_u8(TWL4030_MODULE_KEYPAD, &clear, 0x11);
--		twl4030_i2c_read_u8(TWL4030_MODULE_KEYPAD, &clear, 0x11);
--	}
++#ifndef __TWL4030_PWRIRQ_H_
++#define __TWL4030_PWRIRQ_H_
 +
-+	/* KEYPAD - ISR1 */
-+	/* XXX does this still need to be done twice for some reason? */
-+	WARN_ON(twl4030_i2c_clear_isr(TWL4030_MODULE_KEYPAD, 0x11) < 0);
- 
- 	/* KEYPAD - IMR2 */
- 	res = twl4030_i2c_write_u8(TWL4030_MODULE_KEYPAD, 0xFF, (0x14));
-@@ -856,6 +851,9 @@ static void twl_init_irq(void)
- 		return;
- 	}
- 
-+	/* KEYPAD - ISR2 */
-+	WARN_ON(twl4030_i2c_clear_isr(TWL4030_MODULE_KEYPAD, 0x13) < 0);
++/*
++ * INT Module Register definitions
++ * (not all registers are defined below)
++ */
 +
- 	/* Slave address 0x49 */
- 	/* GPIO_IMR1A */
- 	res = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0xFF, (0x1C));
-@@ -900,46 +898,22 @@ static void twl_init_irq(void)
- 	}
- 
- 	/* GPIO_ISR1A */
--	res = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0xff, 0x19);
--	if (res < 0) {
--		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
--		return;
--	}
-+	WARN_ON(twl4030_i2c_clear_isr(TWL4030_MODULE_GPIO, 0x19) < 0);
- 
- 	/* GPIO_ISR2A */
--	res = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0xff, 0x1a);
--	if (res < 0) {
--		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
--		return;
--	}
-+	WARN_ON(twl4030_i2c_clear_isr(TWL4030_MODULE_GPIO, 0x1a) < 0);
- 
- 	/* GPIO_ISR3A */
--	res = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0xff, 0x1b);
--	if (res < 0) {
--		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
--		return;
--	}
-+	WARN_ON(twl4030_i2c_clear_isr(TWL4030_MODULE_GPIO, 0x1b) < 0);
- 
- 	/* GPIO_ISR1B */
--	res = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0xff, 0x1f);
--	if (res < 0) {
--		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
--		return;
--	}
-+	WARN_ON(twl4030_i2c_clear_isr(TWL4030_MODULE_GPIO, 0x1f) < 0);
- 
- 	/* GPIO_ISR2B */
--	res = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0xff, 0x20);
--	if (res < 0) {
--		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
--		return;
--	}
-+	WARN_ON(twl4030_i2c_clear_isr(TWL4030_MODULE_GPIO, 0x20) < 0);
- 
- 	/* GPIO_ISR3B */
--	res = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0xff, 0x21);
--	if (res < 0) {
--		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
--		return;
--	}
-+	WARN_ON(twl4030_i2c_clear_isr(TWL4030_MODULE_GPIO, 0x21) < 0);
- 
- 	/* install an irq handler for each of the PIH modules */
- 	for (i = TWL4030_IRQ_BASE; i < TWL4030_IRQ_END; i++) {
++#define TWL4030_INT_PWR_ISR1		0x0
++#define TWL4030_INT_PWR_IMR1		0x1
++#define TWL4030_INT_PWR_ISR2		0x2
++#define TWL4030_INT_PWR_IMR2		0x3
++#define TWL4030_INT_PWR_SIH_CTRL	0x7
++
++#endif /* End of __TWL4030_PWRIRQ_H */
 
 
