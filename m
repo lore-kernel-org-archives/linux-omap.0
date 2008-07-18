@@ -1,98 +1,80 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 1/4] Add prototypes for public functions or declare private
-	functions static:
-Date: Thu, 17 Jul 2008 20:52:35 -0600
-Message-ID: <20080718025233.20613.46368.stgit@localhost.localdomain>
+Subject: [PATCH 4/4] SmartReflex: fix sparse issues
+Date: Thu, 17 Jul 2008 20:52:41 -0600
+Message-ID: <20080718025239.20613.30676.stgit@localhost.localdomain>
 References: <20080718024832.20613.30050.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42272 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:42275 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751252AbYGRDNF (ORCPT
+	with ESMTP id S1751513AbYGRDNF (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jul 2008 23:13:05 -0400
 In-Reply-To: <20080718024832.20613.30050.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Fix the following sparse warnings:
-
-arch/arm/mach-omap2/pm.c:58:6: warning: symbol 'omap2_block_sleep' was not declared. Should it be static?
-arch/arm/mach-omap2/pm.c:63:6: warning: symbol 'omap2_allow_sleep' was not declared. Should it be static?
-arch/arm/mach-omap2/pm.c:71:12: warning: symbol 'omap_pm_init' was not declared. Should it be static?
-
-arch/arm/mach-omap2/pm34xx.c:49:6: warning: symbol '_omap_sram_idle' was not declared. Should it be static?
-
-arch/arm/mach-omap2/prcm.c:96:5: warning: symbol 'cm_read_mod_reg' was not declared. Should it be static?
-arch/arm/mach-omap2/prcm.c:103:6: warning: symbol 'cm_write_mod_reg' was not declared. Should it be static?
-arch/arm/mach-omap2/prcm.c:110:5: warning: symbol 'cm_rmw_mod_reg_bits' was not declared. Should it be static?
+Fix sparse issues with smartreflex.c.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
 
- arch/arm/mach-omap2/pm.c         |    2 +-
- arch/arm/mach-omap2/pm.h         |    4 ++++
- arch/arm/mach-omap2/pm34xx.c     |    2 +-
- include/asm-arm/arch-omap/prcm.h |    4 ++++
- 4 files changed, 10 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |   10 ++++++----
+ arch/arm/mach-omap2/smartreflex.h |    3 +++
+ 2 files changed, 9 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index b7434df..f699826 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -89,7 +89,7 @@ void omap2_allow_sleep(void)
- 	BUG_ON(i < 0);
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index 0f3a659..f460831 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -60,9 +60,11 @@ struct sr_custom_clk {
+ 	struct omap_sr 	*sr;
+ };
+ 
++#define SR_REGADDR(offs)     (__force void __iomem *)(sr->srbase_addr + offset)
++
+ static inline void sr_write_reg(struct omap_sr *sr, int offset, u32 value)
+ {
+-	__raw_writel(value, sr->srbase_addr + offset);
++	__raw_writel(value, SR_REGADDR(offset));
  }
  
--int __init omap_pm_init(void)
-+static int __init omap_pm_init(void)
+ static inline void sr_modify_reg(struct omap_sr *sr, int offset, u32 mask,
+@@ -70,16 +72,16 @@ static inline void sr_modify_reg(struct omap_sr *sr, int offset, u32 mask,
  {
- 	int error = -1;
+ 	u32 reg_val;
  
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 0aeb461..31712f4 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -20,6 +20,10 @@ extern unsigned short enable_dyn_sleep;
- extern unsigned short clocks_off_while_idle;
- extern atomic_t sleep_block;
+-	reg_val = __raw_readl(sr->srbase_addr + offset);
++	reg_val = __raw_readl(SR_REGADDR(offset));
+ 	reg_val &= ~mask;
+ 	reg_val |= value;
  
-+extern void omap2_block_sleep(void);
-+extern void omap2_allow_sleep(void);
-+
-+
- #ifdef CONFIG_PM_DEBUG
- extern u32 omap2_read_32k_sync_counter(void);
- extern void omap2_pm_dump(int mode, int resume, unsigned int us);
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 449e7b5..4d5f619 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -47,7 +47,7 @@ struct power_state {
+-	__raw_writel(reg_val, sr->srbase_addr + offset);
++	__raw_writel(reg_val, SR_REGADDR(offset));
+ }
  
- static LIST_HEAD(pwrst_list);
+ static inline u32 sr_read_reg(struct omap_sr *sr, int offset)
+ {
+-	return __raw_readl(sr->srbase_addr + offset);
++	return __raw_readl(SR_REGADDR(offset));
+ }
  
--void (*_omap_sram_idle)(u32 *addr, int save_state);
-+static void (*_omap_sram_idle)(u32 *addr, int save_state);
- 
- static void (*saved_idle)(void);
- 
-diff --git a/include/asm-arm/arch-omap/prcm.h b/include/asm-arm/arch-omap/prcm.h
-index b707af7..9a772a9 100644
---- a/include/asm-arm/arch-omap/prcm.h
-+++ b/include/asm-arm/arch-omap/prcm.h
-@@ -26,6 +26,10 @@
- u32 omap_prcm_get_reset_sources(void);
- void omap_prcm_arch_reset(char mode);
- 
-+void cm_write_mod_reg(u32 val, s16 module, u16 idx);
-+u32 cm_read_mod_reg(s16 module, u16 idx);
-+u32 cm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module, s16 idx);
-+
- #endif
- 
- 
+ /* Custom clock handling functions */
+diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
+index 9b9904d..be6e6b9 100644
+--- a/arch/arm/mach-omap2/smartreflex.h
++++ b/arch/arm/mach-omap2/smartreflex.h
+@@ -248,6 +248,9 @@ extern u32 current_vdd2_opp;
+ #ifdef CONFIG_OMAP_SMARTREFLEX
+ void enable_smartreflex(int srid);
+ void disable_smartreflex(int srid);
++int sr_voltagescale_vcbypass(u32 target_opp, u8 vsel);
++void sr_start_vddautocomap(int srid, u32 target_opp_no);
++int sr_stop_vddautocomap(int srid);
+ #else
+ static inline void enable_smartreflex(int srid) {}
+ static inline void disable_smartreflex(int srid) {}
 
 
