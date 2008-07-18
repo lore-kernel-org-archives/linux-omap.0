@@ -1,59 +1,87 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: TI OMAP Open Source Portal
-Date: Fri, 18 Jul 2008 01:22:29 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870198434990@dbde02.ent.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC356087019843498B@dbde02.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 2/9] TWL4030: clear TWL GPIO interrupt status registers
+Date: Thu, 17 Jul 2008 19:34:50 -0600
+Message-ID: <20080718013449.18943.78895.stgit@localhost.localdomain>
+References: <20080718013205.18943.34047.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from soda.ext.ti.com ([198.47.26.145]:59455 "EHLO soda.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753679AbYGQTwj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jul 2008 15:52:39 -0400
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m6HJqYQ0013847
-	for <linux-omap@vger.kernel.org>; Thu, 17 Jul 2008 14:52:39 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m6HJqXkx019040
-	for <linux-omap@vger.kernel.org>; Thu, 17 Jul 2008 14:52:33 -0500 (CDT)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087019843498B@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:49362 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754168AbYGRBfY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jul 2008 21:35:24 -0400
+In-Reply-To: <20080718013205.18943.34047.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Correcting the email address
+twl_init_irq() does not clear the TWL GPIO ISR registers, but the PIH
+ISR thinks that it has.  This causes any previously-latched GPIO interrupts
+to be stuck on until twl4030-gpio.c initializes, often drowning the console in
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Pandita,
-> Vikram
-> Sent: Thursday, July 17, 2008 2:34 PM
-> To: linux-omap@vger.kernel.org
-> Subject: TI OMAP Open Source Portal
->
-> Hi all
->
-> TI has launched open source based OMAP Linux portal at http://omapzoom.org/gf/
->
-> The portal hosts most up-to-date OMAP System Software for use of community.
-> The components included are Kernel, dsp-bridge, bootloader, multimedia (OMX-source and DSP firmware
-> binaries). Refer http://omapzoom.org/gf/project/ for more details.
->
-> This kernel GIT is a clone from linux-omap git and you will get more details at the project wiki
-> http://omapzoom.org/gf/project/omapkernel/wiki
->
-> The same mailing list <linux-kernel@vger.kernel.org> can be used for discussions.
+    TWL4030 module irq 368 is disabled but can't be masked!
 
-Correction on email address: linux-omap@vger.kernel.org
+messages.  This seems to be a particular problem when booting on Beagle.
 
-> I will be the point of contact for any queries, discussions or patches.
->
-> Regards
-> Vikram Pandita
-> <vikram.pandita@ti.com>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+
+ drivers/i2c/chips/twl4030-core.c |   42 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 42 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
+index ff662bc..dfc3805 100644
+--- a/drivers/i2c/chips/twl4030-core.c
++++ b/drivers/i2c/chips/twl4030-core.c
+@@ -857,6 +857,48 @@ static void twl_init_irq(void)
+ 		return;
+ 	}
+ 
++	/* GPIO_ISR1A */
++	res = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0xff, 0x19);
++	if (res < 0) {
++		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
++		return;
++	}
++
++	/* GPIO_ISR2A */
++	res = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0xff, 0x1a);
++	if (res < 0) {
++		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
++		return;
++	}
++
++	/* GPIO_ISR3A */
++	res = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0xff, 0x1b);
++	if (res < 0) {
++		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
++		return;
++	}
++
++	/* GPIO_ISR1B */
++	res = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0xff, 0x1f);
++	if (res < 0) {
++		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
++		return;
++	}
++
++	/* GPIO_ISR2B */
++	res = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0xff, 0x20);
++	if (res < 0) {
++		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
++		return;
++	}
++
++	/* GPIO_ISR3B */
++	res = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0xff, 0x21);
++	if (res < 0) {
++		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
++		return;
++	}
++
+ 	/* install an irq handler for each of the PIH modules */
+ 	for (i = TWL4030_IRQ_BASE; i < TWL4030_IRQ_END; i++) {
+ 		set_irq_chip(i, &twl4030_irq_chip);
+
+
