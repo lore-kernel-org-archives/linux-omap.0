@@ -1,100 +1,79 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 03/11] menuconfig updates for cpuidle
-Date: Fri, 18 Jul 2008 18:49:23 +0530
-Message-ID: <001501c8e8d8$e5386f00$68bf18ac@ent.ti.com>
+Subject: [PATCH 04/11] sdrc register defs
+Date: Fri, 18 Jul 2008 18:49:27 +0530
+Message-ID: <001601c8e8d8$e780b150$68bf18ac@ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from soda.ext.ti.com ([198.47.26.145]:40175 "EHLO soda.ext.ti.com"
+Received: from soda.ext.ti.com ([198.47.26.145]:40180 "EHLO soda.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751465AbYGRNTb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jul 2008 09:19:31 -0400
+	id S1752539AbYGRNTf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jul 2008 09:19:35 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m6IDJOMD014922
-	for <linux-omap@vger.kernel.org>; Fri, 18 Jul 2008 08:19:30 -0500
+	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m6IDJSsO014924
+	for <linux-omap@vger.kernel.org>; Fri, 18 Jul 2008 08:19:34 -0500
 Received: from a0393137pc (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m6IDJNFp007097
-	for <linux-omap@vger.kernel.org>; Fri, 18 Jul 2008 18:49:23 +0530 (IST)
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m6IDJRpN007117
+	for <linux-omap@vger.kernel.org>; Fri, 18 Jul 2008 18:49:27 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-This patch enables the cpuidle option in menuconfig
-and selects the menu governor
+This patch adds some missing sdrc register definitions
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
 ---
- arch/arm/Kconfig        |   10 ++++++++++
- drivers/cpuidle/Kconfig |   26 +++++++++++++++++++++-----
- 2 files changed, 31 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/sram34xx.S   |    4 ++--
+ include/asm-arm/arch-omap/sdrc.h |   13 +++++++++++--
+ 2 files changed, 13 insertions(+), 4 deletions(-)
 
-Index: linux-omap-2.6/arch/arm/Kconfig
+Index: linux-omap-2.6/arch/arm/mach-omap2/sram34xx.S
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/Kconfig	2008-07-17 18:14:40.023219896 +0530
-+++ linux-omap-2.6/arch/arm/Kconfig	2008-07-17 18:15:02.801495219 +0530
-@@ -954,6 +954,16 @@ config ATAGS_PROC
- 
- endmenu
- 
-+if (ARCH_OMAP)
-+
-+menu "CPUIdle"
-+
-+source "drivers/cpuidle/Kconfig"
-+
-+endmenu
-+
-+endif
-+
- if (ARCH_SA1100 || ARCH_INTEGRATOR || ARCH_OMAP || ARCH_IMX || ARCH_PXA)
- 
- menu "CPU Frequency scaling"
-Index: linux-omap-2.6/drivers/cpuidle/Kconfig
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/sram34xx.S	2008-05-30 09:48:07.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/sram34xx.S	2008-05-30 10:54:10.377835914 +0530
+@@ -185,9 +185,9 @@ omap34xx_cm_iclken1_core:
+ omap34xx_sdrc_rfr_ctrl:
+ 	.word OMAP34XX_SDRC_REGADDR(SDRC_RFR_CTRL_0)
+ omap34xx_sdrc_actim_ctrla:
+-	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A)
++	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A_0)
+ omap34xx_sdrc_actim_ctrlb:
+-	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B)
++	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B_0)
+ omap34xx_sdrc_dlla_status:
+ 	.word OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
+ omap34xx_sdrc_dlla_ctrl:
+Index: linux-omap-2.6/include/asm-arm/arch-omap/sdrc.h
 ===================================================================
---- linux-omap-2.6.orig/drivers/cpuidle/Kconfig	2008-07-17 18:14:40.023219896 +0530
-+++ linux-omap-2.6/drivers/cpuidle/Kconfig	2008-07-17 18:15:25.445774821 +0530
-@@ -1,20 +1,36 @@
-+menu "CPU idle PM support"
+--- linux-omap-2.6.orig/include/asm-arm/arch-omap/sdrc.h	2008-05-30 09:48:15.000000000 +0530
++++ linux-omap-2.6/include/asm-arm/arch-omap/sdrc.h	2008-05-30 10:54:19.223556769 +0530
+@@ -19,15 +19,24 @@
+ /* SDRC register offsets - read/write with sdrc_{read,write}_reg() */
  
- config CPU_IDLE
- 	bool "CPU idle PM support"
--	default ACPI
-+	default n
- 	help
- 	  CPU idle is a generic framework for supporting software-controlled
- 	  idle processor power management.  It includes modular cross-platform
- 	  governors that can be swapped during runtime.
+ #define SDRC_SYSCONFIG		0x010
++#define SDRC_CS_CFG		0x040
++#define SDRC_SHARING		0x044
++#define SDRC_ERR_TYPE		0x04C
+ #define SDRC_DLLA_CTRL		0x060
+ #define SDRC_DLLA_STATUS	0x064
+ #define SDRC_DLLB_CTRL		0x068
+ #define SDRC_DLLB_STATUS	0x06C
+ #define SDRC_POWER		0x070
++#define SDRC_MCFG_0		0x080
+ #define SDRC_MR_0		0x084
+-#define SDRC_ACTIM_CTRL_A	0x09c
+-#define SDRC_ACTIM_CTRL_B	0x0a0
++#define SDRC_ACTIM_CTRL_A_0	0x09c
++#define SDRC_ACTIM_CTRL_B_0	0x0a0
+ #define SDRC_RFR_CTRL_0		0x0a4
++#define SDRC_MCFG_1		0x0B0
++#define SDRC_MR_1		0x0B4
++#define SDRC_ACTIM_CTRL_A_1	0x0C4
++#define SDRC_ACTIM_CTRL_B_1	0x0C8
++#define SDRC_RFR_CTRL_1		0x0D4
  
--	  If you're using an ACPI-enabled platform, you should say Y here.
-+	  If you're using a mobile platform that supports CPU idle PM (e.g.
-+	  an ACPI-capable notebook), you should say Y here.
-+
-+if CPU_IDLE
-+
-+comment "Governors"
- 
- config CPU_IDLE_GOV_LADDER
--	bool
-+	bool "ladder"
- 	depends on CPU_IDLE
--	default y
-+	default n
- 
- config CPU_IDLE_GOV_MENU
--	bool
-+	bool "menu"
- 	depends on CPU_IDLE && NO_HZ
- 	default y
-+        help
-+	  This cpuidle governor evaluates all available states and chooses the
-+	  deepest state that meets all of the following constraints: BM activity,
-+	  expected time until next timer interrupt, and last break event time
-+	  delta.  It is designed to minimize power consumption.  Currently
-+	  dynticks is required.
-+
-+endif   # CPU_IDLE
-+
-+endmenu
+ /*
+  * These values represent the number of memory clock cycles between
 
