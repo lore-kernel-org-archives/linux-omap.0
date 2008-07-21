@@ -1,67 +1,28 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH] Load triton2 scripts.
-Date: Mon, 21 Jul 2008 20:32:24 +0300
-Message-ID: <20080721173222.GB4738@frodo>
-References: <1216656125-5800-1-git-send-email-peter.de-schrijver@nokia.com> <1216656125-5800-2-git-send-email-peter.de-schrijver@nokia.com> <1216656125-5800-3-git-send-email-peter.de-schrijver@nokia.com> <1216656125-5800-4-git-send-email-peter.de-schrijver@nokia.com>
-Reply-To: me@felipebalbi.com
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 0/0] Power domain and clock domain patches for omap
+Date: Mon, 21 Jul 2008 23:29:08 +0100
+Message-ID: <20080721222908.GF18909@flint.arm.linux.org.uk>
+References: <1216221555-18958-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:57723 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750733AbYGURcj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jul 2008 13:32:39 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755757AbYGUW3a@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1216656125-5800-4-git-send-email-peter.de-schrijver@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1216221555-18958-1-git-send-email-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
-To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-Cc: linux-omap@vger.kernel.org
 
-On Mon, Jul 21, 2008 at 07:02:05PM +0300, Peter 'p2' De Schrijver wrote:
-> +/*
-> +*	Power Bus Message Format
-> +*
-> +*	Broadcast Message (16 Bits)
-> +*	DEV_GRP[15:13] MT[12]  RES_GRP[11:9]  RES_TYPE2[8:7] RES_TYPE[6:4]
-> +*	RES_STATE[3:0]
-> +*
-> +*	Singular Message (16 Bits)
-> +*	DEV_GRP[15:13] MT[12]  RES_ID[11:4]  RES_STATE[3:0]
-> +*
-> +*/
+On Wed, Jul 16, 2008 at 06:19:05PM +0300, Tony Lindgren wrote:
+> I'm reposting the series to a wider audience as Russell King suspected that
+> other archs may be interested in reviewing these too, or at least some
+> parts of the code.
 
-This comment should follow the coding style:
+It would be nice to have some comment on these patches from other
+people.  My suspicions is that this infrastructure is solving a
+problem found on other SoCs in addition to OMAP, and, if this is
+useful to other people, it should become cross-SoC infrastructure.
 
-/*
- * Power Bus Message Format
- *
- * Broadcast Message (16 Bits)
- * DEV_GRP[15:13] MT[12]  RES_GRP[11:9]  RES_TYPE2[8:7] RES_TYPE[6:4]
- * RES_STATE[3:0]
- *
- * Singular Message (16 Bits)
- * DEV_GRP[15:13] MT[12]  RES_ID[11:4]  RES_STATE[3:0]
- */
-
-> +struct triton_ins {
-> +	u16 pmb_message;
-> +	u8 delay;
-> +};
-> +
-> +
-
-extra line
-
-> +#define CONFIG_DISABLE_HFCLK	1
-> +
-> +#if defined(CONFIG_MACH_OMAP_3430SDP) || defined(CONFIG_MACH_OMAP_3430LABRADOR)
-> +
-> +struct triton_ins sleep_on_seq[] __initdata = {
-> +	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_OFF), 4},
-
-could you add spaces here??
-	{ MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_OFF), 4 },
-
--- 
-balbi
+Since I don't know the answer to whether it would be useful, I'm
+trying to ensure that these patches have sufficient exposure to
+people who _may_ know the answer.
