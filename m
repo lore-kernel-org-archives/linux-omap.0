@@ -1,39 +1,42 @@
-From: "Yuri Jaeger Monti" <yurijm@gmail.com>
-Subject: Problems compiling kernel for OSK 5912
-Date: Fri, 18 Jul 2008 13:35:38 -0300
-Message-ID: <65e025470807180935n5b38881fr98f6ce1f6ceb8f4d@mail.gmail.com>
+From: "Rajendra Nayak" <rnayak@ti.com>
+Subject: RE: [PATCH 0/2] Add clock post-rate-change notifier
+Date: Mon, 21 Jul 2008 16:19:35 +0530
+Message-ID: <000001c8eb1f$787c8880$68bf18ac@ent.ti.com>
+References: <20080620231155.21640.89851.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rn-out-0910.google.com ([64.233.170.186]:3158 "EHLO
-	rn-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752681AbYGRQfl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jul 2008 12:35:41 -0400
-Received: by rn-out-0910.google.com with SMTP id k40so167205rnd.17
-        for <linux-omap@vger.kernel.org>; Fri, 18 Jul 2008 09:35:39 -0700 (PDT)
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:41151 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756300AbYGUKuX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jul 2008 06:50:23 -0400
+In-Reply-To: <20080620231155.21640.89851.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: 'Paul Walmsley' <paul@pwsan.com>, linux-omap@vger.kernel.org
 
-Dear fellows:
+Hi Paul,
 
-I'm trying to compile the latest git tree and I'm getting the following errors:
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Paul Walmsley
+> Sent: Saturday, June 21, 2008 4:44 AM
+> To: linux-omap@vger.kernel.org
+> Subject: [PATCH 0/2] Add clock post-rate-change notifier
+> 
+> 
+> This series adds a clock rate change notifier to the OMAP clock
+> framework.  Currently only post-rate-change notification is
+> implemented, although pre-rate-change notification is in the works.
 
-arch/arm/mach-omap1/built-in.o: In function `osk_tps_setup':
-leds-osk.c:(.text+0x2128): undefined reference to `tps65010_set_gpio_out_value'
-leds-osk.c:(.text+0x2164): undefined reference to `tps65010_set_led'
-leds-osk.c:(.text+0x2170): undefined reference to `tps65010_set_led'
-leds-osk.c:(.text+0x2178): undefined reference to `tps65010_set_low_pwr'
-leds-osk.c:(.text+0x2180): undefined reference to `tps65010_config_vregs1'
+Was there any patch set posted after this with pre-rate change notifications
+support?
 
-Can anyone help me with this problem?
+I am currently working on CPUFreq patches and CPUFreq requires a pre notification 
+to be able to update jiffies/BogoMips.
 
-Thanks
+regards,
+Rajendra
 
--- 
-Yuri Jaeger Monti
-
-The Catholic University at Porto Alegre - PUCRS
-(51) 3320.3500 Ramal #7696
