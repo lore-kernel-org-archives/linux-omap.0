@@ -1,56 +1,35 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH] Enable SYSOFFMODE use
-Date: Mon, 21 Jul 2008 19:17:21 +0300
-Message-ID: <1216657043-5941-3-git-send-email-peter.de-schrijver@nokia.com>
-References: <1216657043-5941-1-git-send-email-peter.de-schrijver@nokia.com>
- <1216657043-5941-2-git-send-email-peter.de-schrijver@nokia.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH] Set correct off mode polarity
+Date: Mon, 21 Jul 2008 20:22:31 +0300
+Message-ID: <20080721172229.GA4738@frodo>
+References: <1216656125-5800-1-git-send-email-peter.de-schrijver@nokia.com>
+Reply-To: me@felipebalbi.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:20984 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753805AbYGUQSK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jul 2008 12:18:10 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m6LGHSXK020801
-	for <linux-omap@vger.kernel.org>; Mon, 21 Jul 2008 19:18:07 +0300
-In-Reply-To: <1216657043-5941-2-git-send-email-peter.de-schrijver@nokia.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:58146 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750975AbYGURWu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jul 2008 13:22:50 -0400
+Content-Disposition: inline
+In-Reply-To: <1216656125-5800-1-git-send-email-peter.de-schrijver@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
+Hi,
 
-Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
----
- arch/arm/mach-omap2/smartreflex.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+style comments inlined.
 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 0f3a659..b41fe96 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -396,17 +396,17 @@ static void sr_configure_vc(void)
- 
- 	/* Setup voltctrl and other setup times */
- 	/* XXX CONFIG_SYSOFFMODE has not been implemented yet */
--#ifdef CONFIG_SYSOFFMODE
--	prm_write_mod_reg(OMAP3430_AUTO_OFF | OMAP3430_AUTO_RET,
--			OMAP3430_GR_MOD,
-+#ifdef CONFIG_OMAP_SYSOFFMODE
-+	prm_write_mod_reg(OMAP3430_AUTO_OFF | OMAP3430_AUTO_RET |
-+			OMAP3430_SEL_OFF, OMAP3430_GR_MOD,
- 			OMAP3_PRM_VOLTCTRL_OFFSET);
- 
- 	prm_write_mod_reg(OMAP3430_CLKSETUP_DURATION, OMAP3430_GR_MOD,
- 			OMAP3_PRM_CLKSETUP_OFFSET);
- 	prm_write_mod_reg((OMAP3430_VOLTSETUP_TIME2 <<
--			OMAP3430_VOLTSETUP_TIME2_OFFSET) |
-+			OMAP3430_SETUP_TIME2_SHIFT) |
- 			(OMAP3430_VOLTSETUP_TIME1 <<
--			OMAP3430_VOLTSETUP_TIME1_OFFSET),
-+			OMAP3430_SETUP_TIME1_SHIFT),
- 			OMAP3430_GR_MOD, OMAP3_PRM_VOLTSETUP1_OFFSET);
- 
- 	prm_write_mod_reg(OMAP3430_VOLTOFFSET_DURATION, OMAP3430_GR_MOD,
+On Mon, Jul 21, 2008 at 07:02:02PM +0300, Peter 'p2' De Schrijver wrote:
+> +#define OFFMODE_POL 			(1<<3)
+
+add spaces after 1 and before 3 (1 << 3)
+
+> -
+
+unnecessary change ?!?
+
 -- 
-1.5.3.4
-
+balbi
