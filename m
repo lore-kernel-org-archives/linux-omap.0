@@ -1,87 +1,81 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/9] TWL4030: clear TWL GPIO interrupt status registers
-Date: Tue, 22 Jul 2008 17:51:27 -0600
-Message-ID: <20080722235125.16719.6394.stgit@localhost.localdomain>
-References: <20080722234351.16719.89367.stgit@localhost.localdomain>
+Subject: [PATCH 0/9] TWL4030 bugfixes and cleanups: version 2
+Date: Tue, 22 Jul 2008 17:51:24 -0600
+Message-ID: <20080722234351.16719.89367.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:34589 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:34586 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752537AbYGWFLY (ORCPT
+	with ESMTP id S1752422AbYGWFLY (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jul 2008 01:11:24 -0400
-In-Reply-To: <20080722234351.16719.89367.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Peter De Schrijver <peter.de-schrijver@nokia.com>
 
-twl_init_irq() does not clear the TWL GPIO ISR registers, but the PIH
-ISR thinks that it has.  This causes any previously-latched GPIO interrupts
-to be stuck on until twl4030-gpio.c initializes, often drowning the console in
+[ This is the second version of these patches - they now check the
+SIH_CTRL.COR bit to determine whether to read or write to clear ]
+
+At boot, twl_init_irq() tries to mask off all TWL4030 secondary
+interrupts and clear them, since no secondary interrupt handlers are
+registered yet (that happens later in the boot).
+
+However, this code is flawed.  MADC, BCI, keypad, and GPIO ISRs are
+either not cleared or are incompletely cleared.  Some BCI register
+addresses are nonsensical.  And some code attempts to clear ISRs
+before masking IMRs, which is race-prone (an interrupt could occur
+after the ISR clear, but before the mask).
+
+These problems can cause large numbers of boot messages similar to
+this:
 
     TWL4030 module irq 368 is disabled but can't be masked!
 
-messages.  This seems to be a particular problem when booting on Beagle.
+and I2C transmit overflows, both observed during boot on the
+BeagleBoard here.  The actual IRQ number sometimes varied depending on
+which interrupt was unacknowledged.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
+This series fixes these issues and does some code cleanup, saving 272
+bytes.
+
+Thanks to Philip Balister <philip@balister.org>, Koen Kooi
+<k.kooi@student.utwente.nl>, M=C3=A5ns Rullg=C3=A5rd <mans@mansr.org>, =
+Steve
+Sakoman <sakoman@gmail.com> and others on #beagle for help tracing
+these problems.
+
+Thanks also to Peter De Schrijver <peter.de-schrijver@nokia.com> for
+help with this second version, allowing several unnecessary I2C
+transactions to be elided from twl_init_irq().
+
+Tested on BeagleBoard rev B4 (3530ES2.2).
+
+
+- Paul
+
 ---
 
- drivers/i2c/chips/twl4030-core.c |   42 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 42 insertions(+), 0 deletions(-)
+size:
+   text    data     bss     dec     hex filename
+3076157  142840  104248 3323245  32b56d vmlinux.beagle.orig
+3075885  142840  104248 3322973  32b45d vmlinux.beagle
 
-diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
-index ff662bc..dfc3805 100644
---- a/drivers/i2c/chips/twl4030-core.c
-+++ b/drivers/i2c/chips/twl4030-core.c
-@@ -857,6 +857,48 @@ static void twl_init_irq(void)
- 		return;
- 	}
- 
-+	/* GPIO_ISR1A */
-+	res = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0xff, 0x19);
-+	if (res < 0) {
-+		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
-+		return;
-+	}
-+
-+	/* GPIO_ISR2A */
-+	res = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0xff, 0x1a);
-+	if (res < 0) {
-+		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
-+		return;
-+	}
-+
-+	/* GPIO_ISR3A */
-+	res = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0xff, 0x1b);
-+	if (res < 0) {
-+		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
-+		return;
-+	}
-+
-+	/* GPIO_ISR1B */
-+	res = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0xff, 0x1f);
-+	if (res < 0) {
-+		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
-+		return;
-+	}
-+
-+	/* GPIO_ISR2B */
-+	res = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0xff, 0x20);
-+	if (res < 0) {
-+		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
-+		return;
-+	}
-+
-+	/* GPIO_ISR3B */
-+	res = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0xff, 0x21);
-+	if (res < 0) {
-+		pr_err("%s[%d][%d]\n", msg, res, __LINE__);
-+		return;
-+	}
-+
- 	/* install an irq handler for each of the PIH modules */
- 	for (i = TWL4030_IRQ_BASE; i < TWL4030_IRQ_END; i++) {
- 		set_irq_chip(i, &twl4030_irq_chip);
+diffstat:
 
+ drivers/i2c/chips/twl4030-core.c   |  383 ++++++++++++++++++++++------=
+--------
+ drivers/i2c/chips/twl4030-gpio.c   |   48 -----
+ drivers/i2c/chips/twl4030-pwrirq.c |   15 +
+ include/linux/i2c/twl4030-gpio.h   |   76 +++++++
+ include/linux/i2c/twl4030-pwrirq.h |   37 +++
+ 5 files changed, 359 insertions(+), 200 deletions(-)
+ create mode 100644 include/linux/i2c/twl4030-gpio.h
+ create mode 100644 include/linux/i2c/twl4030-pwrirq.h
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
