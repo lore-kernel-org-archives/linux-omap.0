@@ -1,30 +1,24 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/2] TWL4030: convert old-style function documentation
- to current kerneldoc
-Date: Mon, 21 Jul 2008 22:19:06 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0807212218370.25376@utopia.booyaka.com>
-References: <20080718021356.31884.9848.stgit@localhost.localdomain> <20080718021550.31884.69436.stgit@localhost.localdomain> <ba4b7ed08a5ba4da520421fa7273074f@felipebalbi.com>
+From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
+Subject: [PATCH 0/3]TWL4030 BCI patches
+Date: Tue, 22 Jul 2008 17:23:46 +0530 (IST)
+Message-ID: <36918.192.168.10.89.1216727626.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:32797 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750707AbYGVETH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jul 2008 00:19:07 -0400
-In-Reply-To: <ba4b7ed08a5ba4da520421fa7273074f@felipebalbi.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:49037 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754898AbYGVLyk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Jul 2008 07:54:40 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, Mikko.K.Ylinen@nokia.com
 
-On Fri, 18 Jul 2008, Felipe Balbi wrote:
+Hi Tony,
 
-> On Thu, 17 Jul 2008 20:15:51 -0600, Paul Walmsley <paul@pwsan.com> wrote:
+I am resending the BCI 3 patch series after fixing the comments provided by Mikko.
 
-> > + * Results the result of operation - 0 is success
+Regards,
+Madhu
 
-> I suppose you mean Returns here.
-
-thanks Felipe, fixed.
-
-- Paul
