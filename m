@@ -1,42 +1,41 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [i2c] N800 problems with MMC, LM8323 on current linux-omap git head
-Date: Wed, 23 Jul 2008 05:10:57 -0500
-Message-ID: <0487ae10263d239a8a891c9ed068da1c@felipebalbi.com>
-References: <20080722124743.GA5820@kos.to> <90eb4be1e5a489819f08e76ad872e920@felipebalbi.com> <20080722133742.GA7492@kos.to> <20080722134314.GC8318@fluff.org.uk> <eb09f11f1e5a25903cfd4c2157ecbba5@felipebalbi.com> <20080723093849.GA13505@kos.to>
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: Re: [PATCH] Set correct off mode polarity
+Date: Wed, 23 Jul 2008 16:26:32 +0300
+Message-ID: <20080723132632.GA4543@codecarver.research.nokia.com>
+References: <1216656125-5800-1-git-send-email-peter.de-schrijver@nokia.com> <20080721172229.GA4738@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:54706 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752965AbYGWKLE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jul 2008 06:11:04 -0400
-In-Reply-To: <20080723093849.GA13505@kos.to>
+Received: from smtp.nokia.com ([192.100.122.233]:17007 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750893AbYGWN1m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jul 2008 09:27:42 -0400
+Content-Disposition: inline
+In-Reply-To: <20080721172229.GA4738@frodo>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Riku Voipio <riku.voipio@iki.fi>
-Cc: Ben Dooks <ben-linux@fluff.org>, linux-omap@vger.kernel.org, i2c@lm-sensors.org
+To: ext Felipe Balbi <me@felipebalbi.com>
+Cc: linux-omap@vger.kernel.org
 
-
-
-On Wed, 23 Jul 2008 12:38:49 +0300, Riku Voipio <riku.voipio@iki.fi> wrote:
-> Indeed - compared to my previous version, this one makes the boardfile
-> even smaller:
+On Mon, Jul 21, 2008 at 08:22:31PM +0300, ext Felipe Balbi wrote:
+> Hi,
 > 
->    text    data     bss     dec     hex filename
->    2362    1552       4    3918     f4e
-> old/arch/arm/mach-omap2/board-n800.o
->    2354    1456       4    3814     ee6
-> new/arch/arm/mach-omap2/board-n800.o
+> style comments inlined.
+> 
+> On Mon, Jul 21, 2008 at 07:02:02PM +0300, Peter 'p2' De Schrijver wrote:
+> > +#define OFFMODE_POL 			(1<<3)
+> 
+> add spaces after 1 and before 3 (1 << 3)
+> 
+> > -
+> 
+> unnecessary change ?!?
 
-Cool :-)
+? This change is necessary, otherwise the system dies as soon as the triton2 sysoffmode scripts become active.
 
-Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+Cheers,
+
+Peter.
 
 -- 
-Best Regards,
-
-Felipe Balbi
-http://blog.felipebalbi.com
-me@felipebalbi.com
-
+goa is a state of mind
