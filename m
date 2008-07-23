@@ -1,61 +1,48 @@
-From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
-Subject: Re: [Resending - PATCH 1/3] Triton BCI driver board/device setup for OMAP3430
-Date: Wed, 23 Jul 2008 10:16:27 +0530
-Message-ID: <002301c8ec7f$1405df30$37f6180a@ent.ti.com>
-References: <38309.192.168.10.89.1216727733.squirrel@dbdmail.itg.ti.com> <1473aac0380c8c62329714e83f6ca795@felipebalbi.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH 0/2] Add clock post-rate-change notifier
+Date: Tue, 22 Jul 2008 23:09:34 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0807222307500.25059@utopia.booyaka.com>
+References: <20080620231155.21640.89851.stgit@localhost.localdomain> <000001c8eb1f$787c8880$68bf18ac@ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45747 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752463AbYGWEqt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jul 2008 00:46:49 -0400
+Received: from utopia.booyaka.com ([72.9.107.138]:59060 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752525AbYGWFJf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jul 2008 01:09:35 -0400
+In-Reply-To: <000001c8eb1f$787c8880$68bf18ac@ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Mikko.K.Ylinen@nokia.com
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Felipe,
+Hello Rajendra,
 
-> Tony, weird that we still have these prototypes in these headers.
-> Could be some merging conflict ?
-Yes. I see that these prototypes are still present in the board3430 and board2430 header files in the omap tree.
+On Mon, 21 Jul 2008, Rajendra Nayak wrote:
 
-> Anyways, please apply the attached patch. We're using
-> usb_musb_init() and usb_ehci_init() now.
-You mean I should apply the attached patch you sent for local use, right? And I guess I dont need to resend this perticular BCI patch, am I correct?
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org 
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Paul Walmsley
+> > Sent: Saturday, June 21, 2008 4:44 AM
+> > To: linux-omap@vger.kernel.org
+> > Subject: [PATCH 0/2] Add clock post-rate-change notifier
+> > 
+> > 
+> > This series adds a clock rate change notifier to the OMAP clock
+> > framework.  Currently only post-rate-change notification is
+> > implemented, although pre-rate-change notification is in the works.
+> 
+> Was there any patch set posted after this with pre-rate change notifications
+> support?
 
-Regards,
-Madhu
+No, it isn't quite ready yet.  Will try to prioritize it for your use.  
+But, see below...
 
------ Original Message ----- 
-From: "Felipe Balbi" <me@felipebalbi.com>
-To: "Tony Lindgren" <tony@atomide.com>
-Cc: "Madhusudhan Chikkature" <madhu.cr@ti.com>; <linux-omap@vger.kernel.org>; <Mikko.K.Ylinen@nokia.com>
-Sent: Tuesday, July 22, 2008 6:03 PM
-Subject: Re: [Resending - PATCH 1/3] Triton BCI driver board/device setup for OMAP3430
+> I am currently working on CPUFreq patches and CPUFreq requires a pre notification 
+> to be able to update jiffies/BogoMips.
 
+Could you explain further what you're trying to do?  For example, in the 
+interim, would it be possible to create a custom set_rate function for 
+mpu_ck that would call the existing CPUFreq pre-rate-change notifier?
 
-> Hi,
-> 
-> 
-> On Tue, 22 Jul 2008 17:25:33 +0530 (IST), "Madhusudhan Chikkature"
-> <madhu.cr@ti.com> wrote:
->>  extern void sdp3430_usb_init(void);
-> 
-> Tony, weird that we still have these prototypes in these headers.
-> Could be some merging conflict ?
-> 
-> Anyways, please apply the attached patch. We're using
-> usb_musb_init() and usb_ehci_init() now.
-> 
-> 
-> 
-> -- 
-> Best Regards,
-> 
-> Felipe Balbi
-> http://blog.felipebalbi.com
-> me@felipebalbi.com
+- Paul
