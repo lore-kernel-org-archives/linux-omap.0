@@ -1,31 +1,57 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH] Set correct off mode polarity
-Date: Wed, 23 Jul 2008 21:24:09 +0300
-Message-ID: <20080723182408.GB11123@frodo>
-References: <1216656125-5800-1-git-send-email-peter.de-schrijver@nokia.com> <20080721172229.GA4738@frodo> <20080723132632.GA4543@codecarver.research.nokia.com>
-Reply-To: me@felipebalbi.com
+From: George Jahad <george.jahad@windriver.com>
+Subject: [PATCH] Volume Down key on the Zoom MDK
+Date: Wed, 23 Jul 2008 14:30:32 -0700
+Message-ID: <18567.41720.48693.458775@gargle.gargle.HOWL>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="2ZhO+6n/zo"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:51666 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750988AbYGWSYP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jul 2008 14:24:15 -0400
-Content-Disposition: inline
-In-Reply-To: <20080723132632.GA4543@codecarver.research.nokia.com>
+Received: from elasmtp-curtail.atl.sa.earthlink.net ([209.86.89.64]:43527 "EHLO
+	elasmtp-curtail.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752759AbYGWVcq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Jul 2008 17:32:46 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-Cc: ext Felipe Balbi <me@felipebalbi.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: "George J." <George.Jahad@windriver.com>
 
-On Wed, Jul 23, 2008 at 04:26:32PM +0300, Peter 'p2' De Schrijver wrote:
-> > > -
-> > 
-> > unnecessary change ?!?
-> 
-> ? This change is necessary, otherwise the system dies as soon as the triton2 sysoffmode scripts become active.
 
-ehehe, i meant the whitespace :-)
+--2ZhO+6n/zo
+Content-Type: text/plain; charset=us-ascii
+Content-Description: message body text
+Content-Transfer-Encoding: 7bit
 
--- 
-balbi
+ 
+  Here is a patch to fix the omap-twl4030keypad.c keypad driver to support the volume down key on the Zoom MDK/Labrador.
+  
+  
+  George Jahad
+  Wind River Systems
+ 
+ 
+--2ZhO+6n/zo
+Content-Type: application/octet-stream; name="volumeDown.patch"
+Content-Disposition: attachment;
+	filename="volumeDown.patch"
+Content-Transfer-Encoding: base64
+
+LS0tIGEvZHJpdmVycy9pbnB1dC9rZXlib2FyZC9vbWFwLXR3bDQwMzBrZXlwYWQuYwkyMDA4LTA1
+LTI2IDEwOjE0OjIzLjAwMDAwMDAwMCAtMDcwMAorKysgYi9kcml2ZXJzL2lucHV0L2tleWJvYXJk
+L29tYXAtdHdsNDAzMGtleXBhZC5jCTIwMDgtMDctMTcgMjA6MjM6MTIuMDAwMDAwMDAwIC0wNzAw
+CkBAIC00Myw3ICs0MywxMiBAQAogI2RlZmluZSBPTUFQX1RXTDQwMzBLUF9MT0dfTEVWRUwJMAog
+CiAjZGVmaW5lIEtFWShjb2wsIHJvdywgdmFsKQkoKChjb2wpIDw8IDI4KSB8ICgocm93KSA8PCAy
+NCkgfCAodmFsKSkKKworI2lmZGVmIENPTkZJR19NQUNIX09NQVBfMzQzMExBQlJBRE9SCisjZGVm
+aW5lIE5VTV9ST1dTCQk2CisjZWxzZQogI2RlZmluZSBOVU1fUk9XUwkJNQorI2VuZGlmCiAjZGVm
+aW5lIE5VTV9DT0xTCQk2CiAKICNkZWZpbmUgUk9XX01BU0sJCSgoMTw8TlVNX1JPV1MpLTEpCkBA
+IC02MSw2ICs2NiwxNCBAQAogCXsiUzgiLCAiUzkiLCAiUzEwIiwgIlMxMSIsICJTMTIiLCAiUzI1
+In0sCiAJeyJTMTMiLCAiUzE0IiwgIlMxNSIsICJTMTYiLCAiUzE3IiwgIlMyNiJ9LAogCXsiUzE4
+IiwgIlMxOSIsICJTMjAiLCAiUzIxIiwgIlMyMiIsICJTMjcifSwKKyNpZmRlZiBDT05GSUdfTUFD
+SF9PTUFQXzM0MzBMQUJSQURPUgorCS8qIExhYnJhZG9yIHVzZXMgS0JSNS9LQkM1IGZvciB0aGUg
+dm9sdW1lIGRvd24gc3dpdGNoLCBzbyBJIGhhZCB0byBhZGQKKwkgICB0aGlzIGVudGlyZSByb3cg
+anVzdCBmb3IgdGhhdCBzd2l0Y2guICBOb3Qgc3VyZSBpZiBhbnkgb2YgdGhlIG90aGVyCisJICAg
+a2V5cyBvbiB0aGlzIG5ldyByb3cgYXJlIGFjdHVhbGx5IHVzZWQsIGFuZCBJIGp1c3QgZ2F2ZSB0
+aGVtCisJICAgZHVtbXkgbmFtZXMgZm9yIG5vdy4KKwkqLworCXsiU0EiLCAiU0IiLCAiU0MiLCAi
+U0QiLCAiU0UiLCAiUzIyLWQifSwKKyNlbmRpZgogfTsKIAogI2lmZGVmIENPTkZJR19NQUNIX09N
+QVBfMzQzMExBQlJBRE9SCg==
+--2ZhO+6n/zo--
