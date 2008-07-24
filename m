@@ -1,37 +1,40 @@
 From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: Re: [PATCH 0/3] Implement powerdomain off on state counters
-Date: Thu, 24 Jul 2008 16:04:25 +0300
-Message-ID: <20080724130425.GA4601@codecarver.research.nokia.com>
-References: <1216904434-7545-1-git-send-email-peter.de-schrijver@nokia.com>
+Subject: Re: OMAP3 SYS_OFF_MODE support
+Date: Thu, 24 Jul 2008 16:37:41 +0300
+Message-ID: <20080724133741.GB4601@codecarver.research.nokia.com>
+References: <20080723134235.GB4543@codecarver.research.nokia.com> <5A47E75E594F054BAF48C5E4FC4B92AB022C1F60C5@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:64556 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751190AbYGXNE4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jul 2008 09:04:56 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m6OD4bRl017874
-	for <linux-omap@vger.kernel.org>; Thu, 24 Jul 2008 16:04:54 +0300
-Received: from codecarver.research.nokia.com (esdhcp04096.research.nokia.com [172.21.40.96])
-	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m6OD4PL8001836
-	for <linux-omap@vger.kernel.org>; Thu, 24 Jul 2008 16:04:26 +0300
-Received: from p2 by codecarver.research.nokia.com with local (Exim 4.69)
-	(envelope-from <p2@codecarver.research.nokia.com>)
-	id 1KM0Ub-0001zA-L4
-	for linux-omap@vger.kernel.org; Thu, 24 Jul 2008 16:04:25 +0300
+Received: from smtp.nokia.com ([192.100.105.134]:27387 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752035AbYGXNh4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jul 2008 09:37:56 -0400
 Content-Disposition: inline
-In-Reply-To: <1216904434-7545-1-git-send-email-peter.de-schrijver@nokia.com>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB022C1F60C5@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "ext Rangasamy, Devaraj" <dev@ti.com>
+Cc: "TK, Pratheesh Gangadhar" <pratheesh@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Jul 24, 2008 at 04:00:31PM +0300, Peter 'p2' De Schrijver wrote:
-> This patchset implement counters to count the number of off to on state transitions in a powerdomain. These counters will be made available to
-> drivers in a later patchset to allow them to make a better informed decision wether to restore the hardware registers or not.
+On Thu, Jul 24, 2008 at 01:00:55PM +0530, ext Rangasamy, Devaraj wrote:
+> 
+> 
+> sr_configure_vc() configures following things, which is needed to scale VDD1/VDD2 voltages while going RET/OFF during cpuidle.
+> 
+> - Voltage controller config : i2c bus details,voltage range and cmd range.
+> - Initializing PRM_VC_CMD_VAL_0, PRM_VC_CMD_VAL_1 with ON/RET/OFF voltage levels
+> - SYSOFF mode configuration of PRM_CLKSETUP, PRM_VOLTOFFSET, PRM_VOLTSETUP2
+> 
+> Its good to have it in prcm_init(),as we might lose this if smartreflex module is removed during compilation.
+> 
 
-Thanks to Tero Kristo for providing the basis of this patch in the form
-of the PM Debug counters.
+I agree. We only have to make sure the voltage controller is configured
+before smartreflex is enabled.
+
+Cheers,
+
+Peter.
 
 -- 
 goa is a state of mind
