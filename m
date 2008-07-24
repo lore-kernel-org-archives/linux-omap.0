@@ -1,57 +1,36 @@
-From: George Jahad <george.jahad@windriver.com>
-Subject: [PATCH] Volume Down key on the Zoom MDK
-Date: Wed, 23 Jul 2008 14:30:32 -0700
-Message-ID: <18567.41720.48693.458775@gargle.gargle.HOWL>
+From: suresh@mistralsolutions.com
+Subject: JFFS2 GC Bug?
+Date: Wed, 23 Jul 2008 20:36:27 -0500
+Message-ID: <20080723203627.s3d1nsowo4ysgskc@webmail.mistralsolutions.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="2ZhO+6n/zo"
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from elasmtp-curtail.atl.sa.earthlink.net ([209.86.89.64]:43527 "EHLO
-	elasmtp-curtail.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752759AbYGWVcq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Jul 2008 17:32:46 -0400
+Received: from mx03.mailboxcop.com ([206.125.223.73]:59071 "EHLO
+	mx03.mailboxcop.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751095AbYGXBg2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jul 2008 21:36:28 -0400
+Received: from secure3.apollohosting.com (secure3.apollohosting.com [206.125.215.253])
+	by mx03.mailboxcop.com (8.13.8/8.13.8) with ESMTP id m6O1aRuB001965
+	for <linux-omap@vger.kernel.org>; Wed, 23 Jul 2008 20:36:27 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: "George J." <George.Jahad@windriver.com>
+
+Hi,
+
+Can files go missing if there is a powerfail when the garbage  
+collection is running (and doing updation to the file system) on a  
+JFFS2 filesystem.
+
+Was this a bug in older kernels? I am seeing this on OMAP5912 using  
+2.6.13-rc3.
+
+Thanks in advance,
+Suresh
 
 
---2ZhO+6n/zo
-Content-Type: text/plain; charset=us-ascii
-Content-Description: message body text
-Content-Transfer-Encoding: 7bit
-
- 
-  Here is a patch to fix the omap-twl4030keypad.c keypad driver to support the volume down key on the Zoom MDK/Labrador.
-  
-  
-  George Jahad
-  Wind River Systems
- 
- 
---2ZhO+6n/zo
-Content-Type: application/octet-stream; name="volumeDown.patch"
-Content-Disposition: attachment;
-	filename="volumeDown.patch"
-Content-Transfer-Encoding: base64
-
-LS0tIGEvZHJpdmVycy9pbnB1dC9rZXlib2FyZC9vbWFwLXR3bDQwMzBrZXlwYWQuYwkyMDA4LTA1
-LTI2IDEwOjE0OjIzLjAwMDAwMDAwMCAtMDcwMAorKysgYi9kcml2ZXJzL2lucHV0L2tleWJvYXJk
-L29tYXAtdHdsNDAzMGtleXBhZC5jCTIwMDgtMDctMTcgMjA6MjM6MTIuMDAwMDAwMDAwIC0wNzAw
-CkBAIC00Myw3ICs0MywxMiBAQAogI2RlZmluZSBPTUFQX1RXTDQwMzBLUF9MT0dfTEVWRUwJMAog
-CiAjZGVmaW5lIEtFWShjb2wsIHJvdywgdmFsKQkoKChjb2wpIDw8IDI4KSB8ICgocm93KSA8PCAy
-NCkgfCAodmFsKSkKKworI2lmZGVmIENPTkZJR19NQUNIX09NQVBfMzQzMExBQlJBRE9SCisjZGVm
-aW5lIE5VTV9ST1dTCQk2CisjZWxzZQogI2RlZmluZSBOVU1fUk9XUwkJNQorI2VuZGlmCiAjZGVm
-aW5lIE5VTV9DT0xTCQk2CiAKICNkZWZpbmUgUk9XX01BU0sJCSgoMTw8TlVNX1JPV1MpLTEpCkBA
-IC02MSw2ICs2NiwxNCBAQAogCXsiUzgiLCAiUzkiLCAiUzEwIiwgIlMxMSIsICJTMTIiLCAiUzI1
-In0sCiAJeyJTMTMiLCAiUzE0IiwgIlMxNSIsICJTMTYiLCAiUzE3IiwgIlMyNiJ9LAogCXsiUzE4
-IiwgIlMxOSIsICJTMjAiLCAiUzIxIiwgIlMyMiIsICJTMjcifSwKKyNpZmRlZiBDT05GSUdfTUFD
-SF9PTUFQXzM0MzBMQUJSQURPUgorCS8qIExhYnJhZG9yIHVzZXMgS0JSNS9LQkM1IGZvciB0aGUg
-dm9sdW1lIGRvd24gc3dpdGNoLCBzbyBJIGhhZCB0byBhZGQKKwkgICB0aGlzIGVudGlyZSByb3cg
-anVzdCBmb3IgdGhhdCBzd2l0Y2guICBOb3Qgc3VyZSBpZiBhbnkgb2YgdGhlIG90aGVyCisJICAg
-a2V5cyBvbiB0aGlzIG5ldyByb3cgYXJlIGFjdHVhbGx5IHVzZWQsIGFuZCBJIGp1c3QgZ2F2ZSB0
-aGVtCisJICAgZHVtbXkgbmFtZXMgZm9yIG5vdy4KKwkqLworCXsiU0EiLCAiU0IiLCAiU0MiLCAi
-U0QiLCAiU0UiLCAiUzIyLWQifSwKKyNlbmRpZgogfTsKIAogI2lmZGVmIENPTkZJR19NQUNIX09N
-QVBfMzQzMExBQlJBRE9SCg==
---2ZhO+6n/zo--
