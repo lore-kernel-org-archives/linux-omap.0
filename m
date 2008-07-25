@@ -1,67 +1,59 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 0/0] Power domain and clock domain patches for omap
-Date: Thu, 24 Jul 2008 17:53:56 -0700
-Message-ID: <200807241753.56893.david-b@pacbell.net>
-References: <1216221555-18958-1-git-send-email-tony@atomide.com> <20080721222908.GF18909@flint.arm.linux.org.uk>
+From: "stanley.miao" <stanley.miao@windriver.com>
+Subject: git-clone from omapzoom.org failed.
+Date: Fri, 25 Jul 2008 09:37:56 +0800
+Message-ID: <1216949876.9424.8.camel@localhost>
+Reply-To: stanley.miao@windriver.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757000AbYGYAyQ@vger.kernel.org>
-In-Reply-To: <20080721222908.GF18909@flint.arm.linux.org.uk>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.windriver.com ([147.11.1.11]:33251 "EHLO mail.wrs.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751604AbYGYBhT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Jul 2008 21:37:19 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, rnayak@ti.com
 
-On Monday 21 July 2008, Russell King - ARM Linux wrote:
-> On Wed, Jul 16, 2008 at 06:19:05PM +0300, Tony Lindgren wrote:
-> > I'm reposting the series to a wider audience as Russell King suspected that
-> > other archs may be interested in reviewing these too, or at least some
-> > parts of the code.
-> 
-> It would be nice to have some comment on these patches from other
-> people.  My suspicions is that this infrastructure is solving a
-> problem found on other SoCs in addition to OMAP,
-
-ISTR that DaVinci is similar ... but much simpler, with fewer
-power domains and more are "always on".  Not much of the DaVinci
-support is upstream yet though.
-
-I'm not sure how many non-TI parts will need similar software
-support.  It's my understanding that not many vendors put
-that much energy into support for leakage current management.
-
-(Here, a key observation is that when a section of a chip has
-gated all its clocks off, that leaves leakage current as the
-top source of power wastage.  Cooperative drivers could then
-let that section be powered down to eliminate leakage.  So the
-first level of power management is clock gating, at least in
-part with software support.  The power domain gating is a
-second level.)
-
-
-The "regulator" stuff is not unrelated ... except that this
-power domain stuff *only* needs on/off switches (like almost all
-power domains I've ever used), is tightly coupled to clocks,
-and unlike "regulators" is more oriented towards SOC-internal
-concerns than board-level ones.
-
-
-> and, if this is 
-> useful to other people, it should become cross-SoC infrastructure.
-
-My two cents:  merge the OMAP stuff first, then see what kinds
-of generalization would be needed before other chips could use it.
-
-Nobody wins by holding this back ... but everyone on OMAP2/OMAP3
-loses.
-
-- Dave
+[smiao@desktop ~]$ git clone http://git.omapzoom.org/repo/omapkernel
+Initialized empty Git repository in /folk/smiao/omapkernel/.git/
+got dd06a28f41991f2f004f388fde3f7edea01c1c5b
+walk dd06a28f41991f2f004f388fde3f7edea01c1c5b
+got 6480cf6936cf32308a113adb9af0f8602b6223f0
+walk 6480cf6936cf32308a113adb9af0f8602b6223f0
+Getting alternates list for http://git.omapzoom.org/repo/omapkernel
+Getting pack list for http://git.omapzoom.org/repo/omapkernel
+Getting index for pack 6766f8f96d6592cbccc117fdd5d91ea07ec09a60
+Getting index for pack 93a2e6816791fe92516ccae4319a9037e7f1d073
+[...]
+Getting index for pack cdf798f41c0ed5673d2c4a81cc1ef8dffa410c6f
+Getting index for pack 3651d2351b3e129d6205a06e127e6fd92899af0a
+Getting pack b80f02e70fab8ef2602f6a1f2b3caab5d6156e2b
+ which contains 273d545654e472dc60b2f5fee3f1bdac921a615e
+walk 273d545654e472dc60b2f5fee3f1bdac921a615e
+Getting pack ed451160b26a54bf420075568d28f11136b6121e
+ which contains 050684c18f2ea0b08fdd5233a0cd3c7f96e00a0e
+walk 050684c18f2ea0b08fdd5233a0cd3c7f96e00a0e
+Getting pack c7c0ee3fb425edb3e01abdd63fccf219d913cc1d
+ which contains 3ce7ba0c3c9566f50725b0108916180db86e1641
+walk 3ce7ba0c3c9566f50725b0108916180db86e1641
+Getting pack 407c38017452a9a8c0d8b5f9765bad837d4905eb
+ which contains b4525f04fdc8a321cc78c5af6c9a899989aa7f4c
+walk b4525f04fdc8a321cc78c5af6c9a899989aa7f4c
+Getting pack 74316fb8187ba65d2da192a939f0c4b55a2e1ae6
+ which contains 120dd64cacd4fb796bca0acba3665553f1d9ecaa
+walk 120dd64cacd4fb796bca0acba3665553f1d9ecaa
+Getting pack a88495de3ab49c0e59d33e2d8e9e97d6241377ed
+ which contains 324384fe715944f44406012ea4285738c17ef833
+error:
+packfile /folk/smiao/omapkernel/.git/objects/pack/pack-a88495de3ab49c0e59d33e2d8e9e97d6241377ed.pack size changed
+fatal:
+packfile /folk/smiao/omapkernel/.git/objects/pack/pack-a88495de3ab49c0e59d33e2d8e9e97d6241377ed.pack cannot be accessed
 
 
+Does anybody encounter the same problem with me ? I have tried several
+times, sometimes it hang here, sometimes it got a error here.
 
-> Since I don't know the answer to whether it would be useful, I'm
-> trying to ensure that these patches have sufficient exposure to
-> people who _may_ know the answer.
+Thanks
+Stanley.
+
