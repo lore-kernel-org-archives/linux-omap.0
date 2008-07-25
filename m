@@ -1,59 +1,72 @@
-From: "stanley.miao" <stanley.miao@windriver.com>
-Subject: git-clone from omapzoom.org failed.
-Date: Fri, 25 Jul 2008 09:37:56 +0800
-Message-ID: <1216949876.9424.8.camel@localhost>
-Reply-To: stanley.miao@windriver.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/0] Refreshed omap2 clock and powerdomain patches
+Date: Fri, 25 Jul 2008 10:06:49 +0300
+Message-ID: <20080725070648.GB21000@atomide.com>
+References: <20080716094103.GD23468@flint.arm.linux.org.uk> <20080716152243.GA8414@atomide.com> <f17812d70807231941p7aef9434g763fcc26921acc25@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:33251 "EHLO mail.wrs.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751604AbYGYBhT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Jul 2008 21:37:19 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57712 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750729AbYGYHGz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jul 2008 03:06:55 -0400
+Content-Disposition: inline
+In-Reply-To: <f17812d70807231941p7aef9434g763fcc26921acc25@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, rnayak@ti.com
+To: eric miao <eric.y.miao@gmail.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
-[smiao@desktop ~]$ git clone http://git.omapzoom.org/repo/omapkernel
-Initialized empty Git repository in /folk/smiao/omapkernel/.git/
-got dd06a28f41991f2f004f388fde3f7edea01c1c5b
-walk dd06a28f41991f2f004f388fde3f7edea01c1c5b
-got 6480cf6936cf32308a113adb9af0f8602b6223f0
-walk 6480cf6936cf32308a113adb9af0f8602b6223f0
-Getting alternates list for http://git.omapzoom.org/repo/omapkernel
-Getting pack list for http://git.omapzoom.org/repo/omapkernel
-Getting index for pack 6766f8f96d6592cbccc117fdd5d91ea07ec09a60
-Getting index for pack 93a2e6816791fe92516ccae4319a9037e7f1d073
-[...]
-Getting index for pack cdf798f41c0ed5673d2c4a81cc1ef8dffa410c6f
-Getting index for pack 3651d2351b3e129d6205a06e127e6fd92899af0a
-Getting pack b80f02e70fab8ef2602f6a1f2b3caab5d6156e2b
- which contains 273d545654e472dc60b2f5fee3f1bdac921a615e
-walk 273d545654e472dc60b2f5fee3f1bdac921a615e
-Getting pack ed451160b26a54bf420075568d28f11136b6121e
- which contains 050684c18f2ea0b08fdd5233a0cd3c7f96e00a0e
-walk 050684c18f2ea0b08fdd5233a0cd3c7f96e00a0e
-Getting pack c7c0ee3fb425edb3e01abdd63fccf219d913cc1d
- which contains 3ce7ba0c3c9566f50725b0108916180db86e1641
-walk 3ce7ba0c3c9566f50725b0108916180db86e1641
-Getting pack 407c38017452a9a8c0d8b5f9765bad837d4905eb
- which contains b4525f04fdc8a321cc78c5af6c9a899989aa7f4c
-walk b4525f04fdc8a321cc78c5af6c9a899989aa7f4c
-Getting pack 74316fb8187ba65d2da192a939f0c4b55a2e1ae6
- which contains 120dd64cacd4fb796bca0acba3665553f1d9ecaa
-walk 120dd64cacd4fb796bca0acba3665553f1d9ecaa
-Getting pack a88495de3ab49c0e59d33e2d8e9e97d6241377ed
- which contains 324384fe715944f44406012ea4285738c17ef833
-error:
-packfile /folk/smiao/omapkernel/.git/objects/pack/pack-a88495de3ab49c0e59d33e2d8e9e97d6241377ed.pack size changed
-fatal:
-packfile /folk/smiao/omapkernel/.git/objects/pack/pack-a88495de3ab49c0e59d33e2d8e9e97d6241377ed.pack cannot be accessed
+* eric miao <eric.y.miao@gmail.com> [080724 05:41]:
+> On Wed, Jul 16, 2008 at 11:22 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [080716 12:41]:
+> >> On Wed, Jul 16, 2008 at 11:53:20AM +0300, Tony Lindgren wrote:
+> >> > This series contains the refreshed omap2 clock and powerdomain
+> >> > patches as some of the patches in this series have been already
+> >> > integrated.
+> >>
+> >> I think the clock and power domain patches need much more review.
+> >> They're introducing a couple of new management subsystems which may
+> >> be of interest to other SoCs, maybe even different architectures.
+> >
+> > Sure the power domain and clock domain code can be worked into
+> > something more generic once we've figured out what can be shared.
+> >
+> 
+> This is, unfortunately, not so useful to PXA likely. Although there's
+> power domain and clock domain concepts in PXA silicon, the power
+> states of those domains are controlled in a integrated way along with
+> the power state of the whole chip, perhaps to reduce the software
+> complexity in software domain management, and mimics the ACPI
+> concepts to some extent.
 
+OK, thanks for looking through it.
 
-Does anybody encounter the same problem with me ? I have tried several
-times, sometimes it hang here, sometimes it got a error here.
+> I don't want to give an early conclusion, but I may look more into the
+> usage of these power domains and clock domains ( it's not merely
+> to setup the PRCM registers correctly, no? )
 
-Thanks
-Stanley.
+Well lots of it deals with the omap PRCM registers yeah. But maybe some
+of the domain manamgent code could be shared.
 
+Tony
+
+> 
+> > I've posted these patches to LKML and linux-pm for other arch people to
+> > look at too.
+> >
+> > Regards,
+> >
+> > Tony
+> >
+> > -------------------------------------------------------------------
+> > List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
+> > FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
+> > Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
+> >
+> 
+> 
+> 
+> -- 
+> Cheers
+> - eric
