@@ -1,40 +1,67 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: Re: OMAP3 SYS_OFF_MODE support
-Date: Thu, 24 Jul 2008 16:37:41 +0300
-Message-ID: <20080724133741.GB4601@codecarver.research.nokia.com>
-References: <20080723134235.GB4543@codecarver.research.nokia.com> <5A47E75E594F054BAF48C5E4FC4B92AB022C1F60C5@dbde02.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 0/0] Power domain and clock domain patches for omap
+Date: Thu, 24 Jul 2008 17:53:56 -0700
+Message-ID: <200807241753.56893.david-b@pacbell.net>
+References: <1216221555-18958-1-git-send-email-tony@atomide.com> <20080721222908.GF18909@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:27387 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752035AbYGXNh4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jul 2008 09:37:56 -0400
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757000AbYGYAyQ@vger.kernel.org>
+In-Reply-To: <20080721222908.GF18909@flint.arm.linux.org.uk>
 Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB022C1F60C5@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Rangasamy, Devaraj" <dev@ti.com>
-Cc: "TK, Pratheesh Gangadhar" <pratheesh@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Jul 24, 2008 at 01:00:55PM +0530, ext Rangasamy, Devaraj wrote:
+On Monday 21 July 2008, Russell King - ARM Linux wrote:
+> On Wed, Jul 16, 2008 at 06:19:05PM +0300, Tony Lindgren wrote:
+> > I'm reposting the series to a wider audience as Russell King suspected that
+> > other archs may be interested in reviewing these too, or at least some
+> > parts of the code.
 > 
-> 
-> sr_configure_vc() configures following things, which is needed to scale VDD1/VDD2 voltages while going RET/OFF during cpuidle.
-> 
-> - Voltage controller config : i2c bus details,voltage range and cmd range.
-> - Initializing PRM_VC_CMD_VAL_0, PRM_VC_CMD_VAL_1 with ON/RET/OFF voltage levels
-> - SYSOFF mode configuration of PRM_CLKSETUP, PRM_VOLTOFFSET, PRM_VOLTSETUP2
-> 
-> Its good to have it in prcm_init(),as we might lose this if smartreflex module is removed during compilation.
-> 
+> It would be nice to have some comment on these patches from other
+> people.  My suspicions is that this infrastructure is solving a
+> problem found on other SoCs in addition to OMAP,
 
-I agree. We only have to make sure the voltage controller is configured
-before smartreflex is enabled.
+ISTR that DaVinci is similar ... but much simpler, with fewer
+power domains and more are "always on".  Not much of the DaVinci
+support is upstream yet though.
 
-Cheers,
+I'm not sure how many non-TI parts will need similar software
+support.  It's my understanding that not many vendors put
+that much energy into support for leakage current management.
 
-Peter.
+(Here, a key observation is that when a section of a chip has
+gated all its clocks off, that leaves leakage current as the
+top source of power wastage.  Cooperative drivers could then
+let that section be powered down to eliminate leakage.  So the
+first level of power management is clock gating, at least in
+part with software support.  The power domain gating is a
+second level.)
 
--- 
-goa is a state of mind
+
+The "regulator" stuff is not unrelated ... except that this
+power domain stuff *only* needs on/off switches (like almost all
+power domains I've ever used), is tightly coupled to clocks,
+and unlike "regulators" is more oriented towards SOC-internal
+concerns than board-level ones.
+
+
+> and, if this is 
+> useful to other people, it should become cross-SoC infrastructure.
+
+My two cents:  merge the OMAP stuff first, then see what kinds
+of generalization would be needed before other chips could use it.
+
+Nobody wins by holding this back ... but everyone on OMAP2/OMAP3
+loses.
+
+- Dave
+
+
+
+> Since I don't know the answer to whether it would be useful, I'm
+> trying to ensure that these patches have sufficient exposure to
+> people who _may_ know the answer.
