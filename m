@@ -1,82 +1,38 @@
 From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: git-clone from omapzoom.org failed.
-Date: Tue, 29 Jul 2008 01:23:12 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608701C29872C3@dbde02.ent.ti.com>
-References: <1216949876.9424.8.camel@localhost>
+Subject: RE: [PATCH] Volume Down key on the Zoom MDK
+Date: Tue, 29 Jul 2008 03:44:40 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608701C29872CD@dbde02.ent.ti.com>
+References: <18567.41720.48693.458775@gargle.gargle.HOWL>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from soda.ext.ti.com ([198.47.26.145]:36588 "EHLO soda.ext.ti.com"
+Received: from calf.ext.ti.com ([198.47.26.144]:59889 "EHLO calf.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752107AbYG1Tyg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jul 2008 15:54:36 -0400
-In-Reply-To: <1216949876.9424.8.camel@localhost>
+	id S1751564AbYG1WUv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jul 2008 18:20:51 -0400
+In-Reply-To: <18567.41720.48693.458775@gargle.gargle.HOWL>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "stanley.miao@windriver.com" <stanley.miao@windriver.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: George Jahad <george.jahad@windriver.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-The clone is working for me.
-I used the command.
-
-Command to clone is:
-git clone http://git.omapzoom.org/repo/omapkernel
-
+Hi Jahad
+What is the code base over which you are trying to make the keypad change?
 
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
-> stanley.miao
-> Sent: Thursday, July 24, 2008 8:38 PM
-> To: linux-omap@vger.kernel.org; Nayak, Rajendra
-> Subject: git-clone from omapzoom.org failed.
->
-> [smiao@desktop ~]$ git clone http://git.omapzoom.org/repo/omapkernel
-> Initialized empty Git repository in /folk/smiao/omapkernel/.git/
-> got dd06a28f41991f2f004f388fde3f7edea01c1c5b
-> walk dd06a28f41991f2f004f388fde3f7edea01c1c5b
-> got 6480cf6936cf32308a113adb9af0f8602b6223f0
-> walk 6480cf6936cf32308a113adb9af0f8602b6223f0
-> Getting alternates list for http://git.omapzoom.org/repo/omapkernel
-> Getting pack list for http://git.omapzoom.org/repo/omapkernel
-> Getting index for pack 6766f8f96d6592cbccc117fdd5d91ea07ec09a60
-> Getting index for pack 93a2e6816791fe92516ccae4319a9037e7f1d073
-> [...]
-> Getting index for pack cdf798f41c0ed5673d2c4a81cc1ef8dffa410c6f
-> Getting index for pack 3651d2351b3e129d6205a06e127e6fd92899af0a
-> Getting pack b80f02e70fab8ef2602f6a1f2b3caab5d6156e2b
->  which contains 273d545654e472dc60b2f5fee3f1bdac921a615e
-> walk 273d545654e472dc60b2f5fee3f1bdac921a615e
-> Getting pack ed451160b26a54bf420075568d28f11136b6121e
->  which contains 050684c18f2ea0b08fdd5233a0cd3c7f96e00a0e
-> walk 050684c18f2ea0b08fdd5233a0cd3c7f96e00a0e
-> Getting pack c7c0ee3fb425edb3e01abdd63fccf219d913cc1d
->  which contains 3ce7ba0c3c9566f50725b0108916180db86e1641
-> walk 3ce7ba0c3c9566f50725b0108916180db86e1641
-> Getting pack 407c38017452a9a8c0d8b5f9765bad837d4905eb
->  which contains b4525f04fdc8a321cc78c5af6c9a899989aa7f4c
-> walk b4525f04fdc8a321cc78c5af6c9a899989aa7f4c
-> Getting pack 74316fb8187ba65d2da192a939f0c4b55a2e1ae6
->  which contains 120dd64cacd4fb796bca0acba3665553f1d9ecaa
-> walk 120dd64cacd4fb796bca0acba3665553f1d9ecaa
-> Getting pack a88495de3ab49c0e59d33e2d8e9e97d6241377ed
->  which contains 324384fe715944f44406012ea4285738c17ef833
-> error:
-> packfile /folk/smiao/omapkernel/.git/objects/pack/pack-a88495de3ab49c0e59d33e2d8e9e97d6241377ed.pack
-> size changed
-> fatal:
-> packfile /folk/smiao/omapkernel/.git/objects/pack/pack-a88495de3ab49c0e59d33e2d8e9e97d6241377ed.pack
-> cannot be accessed
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of George
+> Jahad
+> Sent: Wednesday, July 23, 2008 4:31 PM
+> To: linux-omap@vger.kernel.org
+> Cc: George J.
+> Subject: [PATCH] Volume Down key on the Zoom MDK
 >
 >
-> Does anybody encounter the same problem with me ? I have tried several
-> times, sometimes it hang here, sometimes it got a error here.
+>   Here is a patch to fix the omap-twl4030keypad.c keypad driver to support the volume down key on the
+> Zoom MDK/Labrador.
 >
-> Thanks
-> Stanley.
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   George Jahad
+>   Wind River Systems
+
