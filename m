@@ -1,131 +1,82 @@
-From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
-Subject: [PATCH 3/3] Fixes required for HSMMC driver to work as module
-Date: Fri, 25 Jul 2008 16:04:23 +0530 (IST)
-Message-ID: <40516.192.168.10.88.1216982063.squirrel@dbdmail.itg.ti.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: git-clone from omapzoom.org failed.
+Date: Tue, 29 Jul 2008 01:23:12 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608701C29872C3@dbde02.ent.ti.com>
+References: <1216949876.9424.8.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:57189 "EHLO calf.ext.ti.com"
+Received: from soda.ext.ti.com ([198.47.26.145]:36588 "EHLO soda.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752687AbYGYKe3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Jul 2008 06:34:29 -0400
+	id S1752107AbYG1Tyg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jul 2008 15:54:36 -0400
+In-Reply-To: <1216949876.9424.8.camel@localhost>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org
+To: "stanley.miao@windriver.com" <stanley.miao@windriver.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Madhusudhan Chikkature<madhu.cr@ti.com>
+The clone is working for me.
+I used the command.
 
-ARM: OMAP3: Fixes required to make HSMMC driver as module.
-
-This patch provides the necessary fixes to make the HSMMC driver work as
-loadble module.
-
-Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
-Signed-off-by: Romit Dasgupta <romit@ti.com>
----
- drivers/mmc/host/omap_hsmmc.c |   43 +++++++++++++++++++++++++++++++-----------
- 1 files changed, 32 insertions(+), 11 deletions(-)
-
-Index: linux-omap-ti.git-07142008/drivers/mmc/host/omap_hsmmc.c
-===================================================================
---- linux-omap-ti.git-07142008.orig/drivers/mmc/host/omap_hsmmc.c	2008-07-23
-16:31:56.000000000 +0530
-+++ linux-omap-ti.git-07142008/drivers/mmc/host/omap_hsmmc.c	2008-07-24
-12:07:40.000000000 +0530
-@@ -764,23 +764,27 @@ static int __init omap_mmc_probe(struct
- 	if (IS_ERR(host->iclk)) {
- 		ret = PTR_ERR(host->iclk);
- 		host->iclk = NULL;
--		goto err;
-+		goto err1;
- 	}
- 	host->fclk = clk_get(&pdev->dev, "mmchs_fck");
- 	if (IS_ERR(host->fclk)) {
- 		ret = PTR_ERR(host->fclk);
- 		host->fclk = NULL;
- 		clk_put(host->iclk);
--		goto err;
-+		goto err1;
- 	}
-
--	if (clk_enable(host->fclk) != 0)
--		goto err;
-+	if (clk_enable(host->fclk) != 0) {
-+		clk_put(host->iclk);
-+		clk_put(host->fclk);
-+		goto err1;
-+	}
-
- 	if (clk_enable(host->iclk) != 0) {
- 		clk_disable(host->fclk);
-+		clk_put(host->iclk);
- 		clk_put(host->fclk);
--		goto err;
-+		goto err1;
- 	}
-
- 	host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
-@@ -873,12 +877,6 @@ static int __init omap_mmc_probe(struct
-
- 	return 0;
-
--err:
--	dev_dbg(mmc_dev(host->mmc), "Probe Failed\n");
--	if (host)
--		mmc_free_host(mmc);
--	return ret;
--
- irq_err:
- 	dev_dbg(mmc_dev(host->mmc), "Unable to configure MMC IRQs\n");
- 	clk_disable(host->fclk);
-@@ -890,6 +888,11 @@ irq_err:
- 		clk_put(host->dbclk);
- 	}
-
-+err1:
-+	iounmap(host->base);
-+err:
-+	dev_dbg(mmc_dev(host->mmc), "Probe Failed\n");
-+	release_mem_region(res->start, res->end - res->start + 1);
- 	if (host)
- 		mmc_free_host(mmc);
- 	return ret;
-@@ -898,9 +901,26 @@ irq_err:
- static int omap_mmc_remove(struct platform_device *pdev)
- {
- 	struct mmc_omap_host *host = platform_get_drvdata(pdev);
-+	struct resource *res;
-+	u16 vdd = 0;
-+
-+	if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
-+	/*
-+	 * Set the vdd back to 3V,
-+	 * applicable for dual volt support.
-+	 */
-+		vdd = fls(host->mmc->ocr_avail) - 1;
-+		if (omap_mmc_switch_opcond(host, vdd) != 0)
-+			host->mmc->ios.vdd = vdd;
-+	}
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (res)
-+		release_mem_region(res->start, res->end - res->start + 1);
-
- 	platform_set_drvdata(pdev, NULL);
- 	if (host) {
-+		mmc_remove_host(host->mmc);
- 		host->pdata->cleanup(&pdev->dev);
- 		free_irq(host->irq, host);
- 		if (mmc_slot(host).card_detect_irq)
-@@ -917,6 +937,7 @@ static int omap_mmc_remove(struct platfo
- 		}
-
- 		mmc_free_host(host->mmc);
-+		iounmap(host->base);
- 	}
-
- 	return 0;
+Command to clone is:
+git clone http://git.omapzoom.org/repo/omapkernel
 
 
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+> stanley.miao
+> Sent: Thursday, July 24, 2008 8:38 PM
+> To: linux-omap@vger.kernel.org; Nayak, Rajendra
+> Subject: git-clone from omapzoom.org failed.
+>
+> [smiao@desktop ~]$ git clone http://git.omapzoom.org/repo/omapkernel
+> Initialized empty Git repository in /folk/smiao/omapkernel/.git/
+> got dd06a28f41991f2f004f388fde3f7edea01c1c5b
+> walk dd06a28f41991f2f004f388fde3f7edea01c1c5b
+> got 6480cf6936cf32308a113adb9af0f8602b6223f0
+> walk 6480cf6936cf32308a113adb9af0f8602b6223f0
+> Getting alternates list for http://git.omapzoom.org/repo/omapkernel
+> Getting pack list for http://git.omapzoom.org/repo/omapkernel
+> Getting index for pack 6766f8f96d6592cbccc117fdd5d91ea07ec09a60
+> Getting index for pack 93a2e6816791fe92516ccae4319a9037e7f1d073
+> [...]
+> Getting index for pack cdf798f41c0ed5673d2c4a81cc1ef8dffa410c6f
+> Getting index for pack 3651d2351b3e129d6205a06e127e6fd92899af0a
+> Getting pack b80f02e70fab8ef2602f6a1f2b3caab5d6156e2b
+>  which contains 273d545654e472dc60b2f5fee3f1bdac921a615e
+> walk 273d545654e472dc60b2f5fee3f1bdac921a615e
+> Getting pack ed451160b26a54bf420075568d28f11136b6121e
+>  which contains 050684c18f2ea0b08fdd5233a0cd3c7f96e00a0e
+> walk 050684c18f2ea0b08fdd5233a0cd3c7f96e00a0e
+> Getting pack c7c0ee3fb425edb3e01abdd63fccf219d913cc1d
+>  which contains 3ce7ba0c3c9566f50725b0108916180db86e1641
+> walk 3ce7ba0c3c9566f50725b0108916180db86e1641
+> Getting pack 407c38017452a9a8c0d8b5f9765bad837d4905eb
+>  which contains b4525f04fdc8a321cc78c5af6c9a899989aa7f4c
+> walk b4525f04fdc8a321cc78c5af6c9a899989aa7f4c
+> Getting pack 74316fb8187ba65d2da192a939f0c4b55a2e1ae6
+>  which contains 120dd64cacd4fb796bca0acba3665553f1d9ecaa
+> walk 120dd64cacd4fb796bca0acba3665553f1d9ecaa
+> Getting pack a88495de3ab49c0e59d33e2d8e9e97d6241377ed
+>  which contains 324384fe715944f44406012ea4285738c17ef833
+> error:
+> packfile /folk/smiao/omapkernel/.git/objects/pack/pack-a88495de3ab49c0e59d33e2d8e9e97d6241377ed.pack
+> size changed
+> fatal:
+> packfile /folk/smiao/omapkernel/.git/objects/pack/pack-a88495de3ab49c0e59d33e2d8e9e97d6241377ed.pack
+> cannot be accessed
+>
+>
+> Does anybody encounter the same problem with me ? I have tried several
+> times, sometimes it hang here, sometimes it got a error here.
+>
+> Thanks
+> Stanley.
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
