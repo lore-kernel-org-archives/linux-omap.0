@@ -1,38 +1,33 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH] Volume Down key on the Zoom MDK
-Date: Tue, 29 Jul 2008 03:44:40 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608701C29872CD@dbde02.ent.ti.com>
-References: <18567.41720.48693.458775@gargle.gargle.HOWL>
+From: "arun c" <arunedarath@mistralsolutions.com>
+Subject: Does DSS support 24 bits_per_pixel?
+Date: Tue, 29 Jul 2008 10:13:04 +0530
+Message-ID: <c656a4d20807282143kb3e36e4p36662d7eda4b1861@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:59889 "EHLO calf.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751564AbYG1WUv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jul 2008 18:20:51 -0400
-In-Reply-To: <18567.41720.48693.458775@gargle.gargle.HOWL>
-Content-Language: en-US
+Received: from ti-out-0910.google.com ([209.85.142.186]:12133 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751566AbYG2EnG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2008 00:43:06 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so2487169tic.23
+        for <linux-omap@vger.kernel.org>; Mon, 28 Jul 2008 21:43:05 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: George Jahad <george.jahad@windriver.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Hi Jahad
-What is the code base over which you are trying to make the keypad change?
+Hi all,
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of George
-> Jahad
-> Sent: Wednesday, July 23, 2008 4:31 PM
-> To: linux-omap@vger.kernel.org
-> Cc: George J.
-> Subject: [PATCH] Volume Down key on the Zoom MDK
->
->
->   Here is a patch to fix the omap-twl4030keypad.c keypad driver to support the volume down key on the
-> Zoom MDK/Labrador.
->
->
->   George Jahad
->   Wind River Systems
+Does omap (2&3) DSS support 24 bit output?
 
+I was trying to enable DVI support for omap2evm(data lines=24, bits
+per pixel =24), I couldn't find
+24 bit support in omapfb driver(git) and omap24xxfb(linux-2.6.14-omap2-v5).
+
+In TRM its given that it supports 24 BPP. Then why its absent in both
+the drivers?. Does the hardware
+really support 24 bit format?
+
+Regards,
+Arun C
