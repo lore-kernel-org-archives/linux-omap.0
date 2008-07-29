@@ -1,43 +1,39 @@
-From: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Subject: [PATCH 0/4] OMAP: MENELAUS: Improvements on menelaus
-Date: Tue, 29 Jul 2008 12:44:19 -0400
-Message-ID: <488F48E3.2060504@indt.org.br>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 0/4] OMAP: MENELAUS: Improvements on menelaus
+Date: Tue, 29 Jul 2008 21:37:18 +0300
+Message-ID: <20080729183717.GB7275@frodo>
+References: <488F48E3.2060504@indt.org.br>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:63002 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751851AbYG2QpY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2008 12:45:24 -0400
+Received: from ns1.siteground211.com ([209.62.36.12]:47745 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750767AbYG2Sh3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2008 14:37:29 -0400
+Content-Disposition: inline
+In-Reply-To: <488F48E3.2060504@indt.org.br>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Hi Tony and folks,
+On Tue, Jul 29, 2008 at 12:44:19PM -0400, Carlos Aguiar wrote:
+> Hi Tony and folks,
+>
+> This patch series proposes some improvements on menelaus code.
+>
+> Basically it makes menelaus to use macros instead of some magic constant  
+> numbers, making menelaus code more legible. The menelaus header was  
+> moved to include/linux/i2c and register map (including the macros  
+> created) were moved to include/linux/i2c/menelaus.h
+>
+> Tested with MMC on N800 and looks fine.
 
-This patch series proposes some improvements on menelaus code.
+They look quite ok. How about syncing l-o menelaus with mainline via
+lm-sensors mailing list and discuss all these there as well ??
 
-Basically it makes menelaus to use macros instead of some magic constant 
-numbers, making menelaus code more legible. The menelaus header was 
-moved to include/linux/i2c and register map (including the macros 
-created) were moved to include/linux/i2c/menelaus.h
-
-Tested with MMC on N800 and looks fine.
-
-BR,
-
-Carlos.
-
-PS: I would like to thanks Felipe Balbi for hints and orientation.
+It'd be only one extra patch before this one to make everything in sync.
 
 -- 
-Carlos Eduardo Aguiar
-Software Engineer
-Mobile Linux Software
-Nokia Institute of Technology - INdT
-Phone: +55 92 2126-1079
-Mobile: +55 92 8127-1797
-E-mail: carlos.aguiar@indt.org.br
-
+balbi
