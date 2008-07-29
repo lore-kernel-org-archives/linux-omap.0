@@ -1,82 +1,188 @@
-From: "Syed Mohammed, Khasim" <khasim@ti.com>
-Subject: RE: Does DSS support 24 bits_per_pixel?
-Date: Tue, 29 Jul 2008 17:25:14 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C00208A69C3B@dbde02.ent.ti.com>
-References: <c656a4d20807282143kb3e36e4p36662d7eda4b1861@mail.gmail.com>
-	 <0680EC522D0CC943BC586913CF3768C00208A69C1C@dbde02.ent.ti.com>
- <c656a4d20807290440s4c79d9f1wb56057f52a5f14cc@mail.gmail.com>
+From: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Subject: [PATCH 2/4] OMAP: MENELAUS: Move menelaus header to include/linux/i2c
+Date: Tue, 29 Jul 2008 12:44:27 -0400
+Message-ID: <488F48EB.5080407@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:40020 "EHLO calf.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755106AbYG2LzY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2008 07:55:24 -0400
-In-Reply-To: <c656a4d20807290440s4c79d9f1wb56057f52a5f14cc@mail.gmail.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:25234 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750743AbYG2Qoj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2008 12:44:39 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arun c <arun.edarath@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
+From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 
+This patch moves menelaus header from include/asm-arm/arch-omap/
+to include/linux/i2c/
 
-> -----Original Message-----
-> From: arun c [mailto:arun.edarath@gmail.com]
-> Sent: Tuesday, July 29, 2008 5:11 PM
-> To: Syed Mohammed, Khasim
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: Does DSS support 24 bits_per_pixel?
->
-> On Tue, Jul 29, 2008 at 4:37 PM, Syed Mohammed, Khasim <khasim@ti.com> wrote:
-> >
-> >> Hi all,
-> >>
-> >> Does omap (2&3) DSS support 24 bit output?
-> >>
-> >> I was trying to enable DVI support for omap2evm(data lines=24, bits
-> >> per pixel =24), I couldn't find
-> >> 24 bit support in omapfb driver(git) and omap24xxfb(linux-2.6.14-omap2-v5).
-> >>
-> >> In TRM its given that it supports 24 BPP. Then why its absent in both
-> >> the drivers?. Does the hardware
-> >> really support 24 bit format?
-> >>
-> > Hardware does support RGB 24 packed and unpacked modes.
-> >
-> > In TI code it is implemented in V4L based Video driver and also in FB driver,
-> omap2_disp_config_gfxlayer selects the bpp and configures DISPC_GFX_ATTRIBUTES register accordingly.
-> >
->
-> But in the TI code,
->
-> omap24xxfb_check_mode(const struct omap24xxfb_info *oinfo,
->                       struct fb_var_screeninfo *var)
-> {
->         u32 pixclock, clkdiv;
->         u32 display_xres, display_yres;
->         int output_dev = omap2_disp_get_output_dev(OMAP2_GRAPHICS);
->
->         omap2_disp_get_panel_size(output_dev, &display_xres, &display_yres);
->         if (oinfo->rotation_support) {
->
->                 if (var->rotate % 90 != 0)
->                         return -EINVAL;
->
->                 if (!((var->bits_per_pixel == 8) ||
->                       (var->bits_per_pixel == 16)))
->                         return -EINVAL;
->
+It also includes menelaus' headers to include/linux/i2c
 
-As this was the last update for OMAP2 platforms, I expect it to have support for 24 as well. I am downloading the code base to check for the same. In the latest code for 3530 I have
-                if (!((var->bits_per_pixel == 8) ||
-                                        (var->bits_per_pixel == 16)||
-                                        (var->bits_per_pixel == 32))) {
+Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+---
+ arch/arm/mach-omap2/board-h4-mmc.c                 |    2 +-
+ arch/arm/mach-omap2/board-h4.c                     |    2 +-
+ arch/arm/mach-omap2/board-n800-camera.c            |    2 +-
+ arch/arm/mach-omap2/board-n800-mmc.c               |    2 +-
+ arch/arm/mach-omap2/board-n800.c                   |    2 +-
+ arch/arm/plat-omap/devices.c                       |    2 +-
+ drivers/i2c/chips/menelaus.c                       |    2 +-
+ drivers/input/keyboard/omap-keypad.c               |    2 +-
+ .../{asm-arm/arch-omap => linux/i2c}/menelaus.h    |    0 
+ 9 files changed, 8 insertions(+), 8 deletions(-)
+ rename include/{asm-arm/arch-omap => linux/i2c}/menelaus.h (100%)
 
-Actually you can even refer to omap3530 code base and port this functionality to OMAP2.
-
-Regards,
-Khasim
-http://khasim.blogspot.com
+diff --git a/arch/arm/mach-omap2/board-h4-mmc.c b/arch/arm/mach-omap2/board-h4-mmc.c
+index 9cdb00f..84b3f4e 100644
+--- a/arch/arm/mach-omap2/board-h4-mmc.c
++++ b/arch/arm/mach-omap2/board-h4-mmc.c
+@@ -15,10 +15,10 @@
+  */
+ 
+ #include <asm/arch/mmc.h>
+-#include <asm/arch/menelaus.h>
+ 
+ #include <asm/mach-types.h>
+ #include <linux/delay.h>
++#include <linux/i2c/menelaus.h>
+ 
+ #ifdef CONFIG_MMC_OMAP
+ 
+diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
+index 101b455..c174467 100644
+--- a/arch/arm/mach-omap2/board-h4.c
++++ b/arch/arm/mach-omap2/board-h4.c
+@@ -22,6 +22,7 @@
+ #include <linux/err.h>
+ #include <linux/clk.h>
+ #include <linux/i2c.h>
++#include <linux/i2c/menelaus.h>
+ #include <linux/spi/spi.h>
+ #include <linux/spi/tsc210x.h>
+ 
+@@ -42,7 +43,6 @@
+ #include <asm/arch/board.h>
+ #include <asm/arch/common.h>
+ #include <asm/arch/keypad.h>
+-#include <asm/arch/menelaus.h>
+ #include <asm/arch/dma.h>
+ #include <asm/arch/gpmc.h>
+ 
+diff --git a/arch/arm/mach-omap2/board-n800-camera.c b/arch/arm/mach-omap2/board-n800-camera.c
+index aafa547..9414882 100644
+--- a/arch/arm/mach-omap2/board-n800-camera.c
++++ b/arch/arm/mach-omap2/board-n800-camera.c
+@@ -25,12 +25,12 @@
+ #include <linux/platform_device.h>
+ #include <linux/delay.h>
+ #include <linux/videodev2.h>
++#include <linux/i2c/menelaus.h>
+ 
+ #include <media/v4l2-int-device.h>
+ 
+ #include <asm/mach-types.h>
+ 
+-#include <asm/arch/menelaus.h>
+ #include <asm/arch/gpio.h>
+ #include <asm/arch/board.h>
+ 
+diff --git a/arch/arm/mach-omap2/board-n800-mmc.c b/arch/arm/mach-omap2/board-n800-mmc.c
+index 26f3709..2028710 100644
+--- a/arch/arm/mach-omap2/board-n800-mmc.c
++++ b/arch/arm/mach-omap2/board-n800-mmc.c
+@@ -10,11 +10,11 @@
+  */
+ 
+ #include <asm/arch/mmc.h>
+-#include <asm/arch/menelaus.h>
+ #include <asm/arch/gpio.h>
+ 
+ #include <asm/mach-types.h>
+ #include <linux/delay.h>
++#include <linux/i2c/menelaus.h>
+ 
+ #ifdef CONFIG_MMC_OMAP
+ 
+diff --git a/arch/arm/mach-omap2/board-n800.c b/arch/arm/mach-omap2/board-n800.c
+index ae85c2c..46a83c1 100644
+--- a/arch/arm/mach-omap2/board-n800.c
++++ b/arch/arm/mach-omap2/board-n800.c
+@@ -25,6 +25,7 @@
+ #include <linux/irq.h>
+ #include <linux/i2c.h>
+ #include <linux/i2c/lm8323.h>
++#include <linux/i2c/menelaus.h>
+ #include <asm/hardware.h>
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -34,7 +35,6 @@
+ #include <asm/arch/board.h>
+ #include <asm/arch/common.h>
+ #include <asm/arch/mcspi.h>
+-#include <asm/arch/menelaus.h>
+ #include <asm/arch/lcd_mipid.h>
+ #include <asm/arch/clock.h>
+ #include <asm/arch/gpio-switch.h>
+diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+index b83f9a6..57df724 100644
+--- a/arch/arm/plat-omap/devices.c
++++ b/arch/arm/plat-omap/devices.c
+@@ -13,6 +13,7 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
++#include <linux/i2c/menelaus.h>
+ 
+ #include <asm/hardware.h>
+ #include <asm/io.h>
+@@ -25,7 +26,6 @@
+ #include <asm/arch/mmc.h>
+ #include <asm/arch/mux.h>
+ #include <asm/arch/gpio.h>
+-#include <asm/arch/menelaus.h>
+ #include <asm/arch/dsp_common.h>
+ #include <asm/arch/mcbsp.h>
+ 
+diff --git a/drivers/i2c/chips/menelaus.c b/drivers/i2c/chips/menelaus.c
+index b7a7f01..e65245e 100644
+--- a/drivers/i2c/chips/menelaus.c
++++ b/drivers/i2c/chips/menelaus.c
+@@ -41,12 +41,12 @@
+ #include <linux/delay.h>
+ #include <linux/rtc.h>
+ #include <linux/bcd.h>
++#include <linux/i2c/menelaus.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/irq.h>
+ 
+ #include <asm/arch/gpio.h>
+-#include <asm/arch/menelaus.h>
+ 
+ #define DRIVER_NAME			"menelaus"
+ 
+diff --git a/drivers/input/keyboard/omap-keypad.c b/drivers/input/keyboard/omap-keypad.c
+index 0eba78e..90c092f 100644
+--- a/drivers/input/keyboard/omap-keypad.c
++++ b/drivers/input/keyboard/omap-keypad.c
+@@ -35,9 +35,9 @@
+ #include <linux/mutex.h>
+ #include <linux/spinlock.h>
+ #include <linux/errno.h>
++#include <linux/i2c/menelaus.h>
+ #include <asm/arch/gpio.h>
+ #include <asm/arch/keypad.h>
+-#include <asm/arch/menelaus.h>
+ #include <asm/irq.h>
+ #include <asm/hardware.h>
+ #include <asm/io.h>
+diff --git a/include/asm-arm/arch-omap/menelaus.h b/include/linux/i2c/menelaus.h
+similarity index 100%
+rename from include/asm-arm/arch-omap/menelaus.h
+rename to include/linux/i2c/menelaus.h
+-- 1.5.5.1
 
