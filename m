@@ -1,57 +1,64 @@
-From: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
-Subject: RE: USB driver issue
-Date: Wed, 30 Jul 2008 21:56:48 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02567D91E9@dbde02.ent.ti.com>
-References: <31e679430807300505o3050a75ar2f9d8ff0cd35ea1b@mail.gmail.com>
-	<317276.12528.qm@web53211.mail.re2.yahoo.com>,
-	<20080730154648.GJ6897@gandalf.research.nokia.com>,<5A47E75E594F054BAF48C5E4FC4B92AB02567D91E7@dbde02.ent.ti.com>
+From: Daniel Stone <daniel.stone@nokia.com>
+Subject: Re: USB driver issue
+Date: Wed, 30 Jul 2008 19:44:28 +0300
+Message-ID: <20080730164428.GS25065@intune.research.nokia.com>
+References: <31e679430807300505o3050a75ar2f9d8ff0cd35ea1b@mail.gmail.com> <5A47E75E594F054BAF48C5E4FC4B92AB02567D91E7@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02567D91E7-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, ext Emanoil Kotsev <deloptes-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-open-source-P3Mejjx7fphMeHKdZgrLhA@public.gmane.org" <linux-omap-open-source-P3Mejjx7fphMeHKdZgrLhA@public.gmane.org>, SUBHRANIL CHOUDHURY <subhra85-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="sCNd3Ivk/oijKKf1"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:25095 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751736AbYG3Qkr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jul 2008 12:40:47 -0400
+Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02567D91E7@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "ext Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, ext Emanoil Kotsev <deloptes@yahoo.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, SUBHRANIL CHOUDHURY <subhra85@gmail.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
 
->> On Wed, Jul 30, 2008 at 07:21:53AM -0700, ext Emanoil Kotsev wrote:
->> >
->> > Dear Felipe, I just want to tell, that while still developing kernels in the 2.6.2X
->> series a kernel 2.6.22 can not be labeled as old. Besides it comes along with few
->> distros as default kernel.
->> >
->> > A lot of people like me need some kind of a stable version that we can relay on
->>> > for more than playing at home, which is the case with 2.4.X tree.
->> >
->> > Personally, experiments with 2.6.24 brought me into a big trouble and it took
->> > many hours to migrate back to 2.6.20, so please keep in mind that if we say
->> > something like this, there is a good reason to do so.
->>
->> You can always choose any kernel version you want but if you choose such
->> an old version (2.6.22 was released in Jul 8th, 2007), please don't rely
->> in community support and instead, backport all changes in the particular
->> driver you're working with to 2.6.22.
->>
->> It's always your choice.
->
-> That's plain wrong. 2.6.22 was released in July 2007. But 2.6.22.18 was not.
-> That came much later - in February this year. And people still do use 2.6.22
-> kernels. Besides, the MUSB code hasn't really changed that much in this time.
->
-> Do you really think the problem will go away in 2.6.26? People can't always use the
-> latest kernel, you know. Embedded kernels don't get enough testing. There's always
-> a chance this is a new driver. And even if it weren't, the very act of debugging
-> a problem like this is a good learning experience.
 
-I meant new bug.
+--sCNd3Ivk/oijKKf1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
->
+On Wed, Jul 30, 2008 at 09:53:43PM +0530, ext Gadiyar, Anand wrote:
 > Grr. Saying one needs to upgrade to the latest kernel before one can expect
 > support is a bit like certain proprietary OS vendors - and even they do a better
 > job than this.
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+If you want to support people running 2.6.22, good for you.  You seem to
+be happy with a codebase that doesn't change as much, so I'm sure you'll
+have fun supporting it.
+
+I'm getting the feeling that we need a new Godwin's law: as a thread
+involving a complaint about open source grows longer, the probability of
+a comparison involving Microsoft approaches one.
+
+So yes, some people don't want to support old code on their own time.
+So what? Who are you to tell them that they can't do this? What was the
+point of the Microsoft comparison, except to reinforce stereotypes that
+free software developers are a bunch of freaks with unhealthy obsessions
+on Microsoft and LOL BILL GATES IS THE SUCK?
+
+(Bearing in mind that one of the main tenets of open source development
+ is 'release early and release often', you could say that having
+ everyone use very old code until you one day drop a huge chunk of
+ rewritten new code on them is also OMG MICROSOFT.  But that'd be
+ equally stupid.)
+
+--sCNd3Ivk/oijKKf1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkiQmmwACgkQ68xJuWtYYdVeeQCfU7xp+mcfujvj9dkwdB4wFiCm
+NUIAn3368D/xXX5Xu4tYpgSRWbNAPwNB
+=PeMj
+-----END PGP SIGNATURE-----
+
+--sCNd3Ivk/oijKKf1--
