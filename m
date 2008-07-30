@@ -1,69 +1,91 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
+From: Emanoil Kotsev <deloptes-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Subject: Re: USB driver issue
-Date: Wed, 30 Jul 2008 16:11:05 +0300
-Message-ID: <20080730131105.GH6897@gandalf.research.nokia.com>
-References: <35fa40850807300459k2558dddak8768318e87a1ab58@mail.gmail.com> <5A47E75E594F054BAF48C5E4FC4B92AB02568EAC5C@dbde02.ent.ti.com> <35fa40850807300520k221ccf7epc8727ef9a437b5d5@mail.gmail.com> <B85A65D85D7EB246BE421B3FB0FBB593013C880208@dbde02.ent.ti.com>
-Reply-To: felipe.balbi@nokia.com
+Date: Wed, 30 Jul 2008 07:21:53 -0700 (PDT)
+Message-ID: <317276.12528.qm@web53211.mail.re2.yahoo.com>
+References: <31e679430807300505o3050a75ar2f9d8ff0cd35ea1b@mail.gmail.com>
+Reply-To: deloptes-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:56020 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762104AbYG3NLF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jul 2008 09:11:05 -0400
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593013C880208@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <31e679430807300505o3050a75ar2f9d8ff0cd35ea1b-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: SUBHRANIL CHOUDHURY <subhra85-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipebalbi-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: linux-omap-open-source-P3Mejjx7fphMeHKdZgrLhA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Dasgupta, Romit" <romit@ti.com>
-Cc: SUBHRANIL CHOUDHURY <subhra85@gmail.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Jul 30, 2008 at 06:28:35PM +0530, ext Dasgupta, Romit wrote:
-> What is the application you are using and could you turn the musb driver debug options? You can try it by
-> 
-> echo "D 3"  > /proc/driver/musb_hdrc  (Check if MUSB_DEBUG is enabled).
 
-it's D3, together :-)
+Dear Felipe, I just want to tell, that while still developing kernels in the 2.6.2X series a kernel 2.6.22 can not be labeled as old. Besides it comes along with few distros as default kernel.
 
+A lot of people like me need some kind of a stable version that we can relay on for more than playing at home, which is the case with 2.4.X tree. 
+
+Personally, experiments with 2.6.24 brought me into a big trouble and it took many hours to migrate back to 2.6.20, so please keep in mind that if we say something like this, there is a good reason to do so.
+
+Appreciate your understanding.
+
+
+--- On Wed, 7/30/08, Felipe Balbi <felipebalbi-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org> wrote:
+
+> From: Felipe Balbi <felipebalbi-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+> Subject: Re: USB driver issue
+> To: "SUBHRANIL CHOUDHURY" <subhra85-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: linux-omap-open-source-P3Mejjx7fphMeHKdZgrLhA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Date: Wednesday, July 30, 2008, 2:05 PM
+> Hi,
 > 
-> This should give more helpful messages.
-> 
-> 
-> 
-> >-----Original Message-----
-> >From: linux-omap-open-source-bounces@linux.omap.com [mailto:linux-omap-open-
-> >source-bounces@linux.omap.com] On Behalf Of SUBHRANIL CHOUDHURY
-> >Sent: Wednesday, July 30, 2008 5:50 PM
-> >To: Gadiyar, Anand
-> >Cc: linux-omap-open-source@linux.omap.com
-> >Subject: Re: USB driver issue
+> On Wed, Jul 30, 2008 at 2:59 PM, SUBHRANIL CHOUDHURY
+> <subhra85-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> > Hi all,
+> > I am trying to validate the USB driver on OMAP3430
+> with the
+> > 2.6.22.18kernel. I am facing problems in the process
+> while trying to
+> > do a USB
+> > transfer with DMA enabled.
+> > The apllication is breaking in a function called
+> consistent_sync. The error
+> > message is like "Unable to handle kernel Null
+> pointer".
 > >
-> >hi,
-> >I am using Mistral OMAP3430 OSK2.1 board. It is the USB OTG port.
-> >The Philips tranciever ISP1504.
-> >I am enabling the EHCI and OHCI in the kernel menuconfig.
+> > The issue is same with both OHCI and EHCI controller.
+> And the issue is not
+> > coming if i disable DMA.
 > >
-> >This was the error print i was getting:
-> >
-> >Unable to handle kernel NULL pointer dereference at virtual address 00000000
-> >pgd = c54d8000
-> >[00000000] *pgd=81401031, *pte=00000000, *ppte=00000000
-> >Internal error: Oops: 817 [#1]
-> >Modules linked in:
-> >CPU: 0    Not tainted  (2.6.22.18-omap3 #29)
-> >PC is at consistent_sync+0x40/0xa4
-> >LR is at usb_hcd_submit_urb+0x7b0/0x8b4
-> >pc : [<c00315ac>]    lr : [<c02307e0>]    psr: 20000013
-> >sp : c1403c48  ip : c1403c58  fp : c1403c54
-> >r10: ffff8003  r9 : 00000020  r8 : 00000020
-> >r7 : c483dc20  r6 : c0569000  r5 : c23c040c  r4 : ff2d2000
-> >r3 : 00000000  r2 : 00000002  r1 : ff2dba38  r0 : ff2d2000
-> >Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  Segment user
-> >Control: 00c5387f  Table: 854d8018  DAC: 00000015
-> >
-> >Do you get some clue from this about what is happening?
+> > Has anyone tried USB packet transfer with DMA enabled?
+> Please let me know.
+> 
+> Why are you using such an old, support-less kernel ?
+> 
+> Try with current 2.6.26 out of git repository. I've
+> been using musb
+> driver on omap3
+> for months now and it's working quite ok besides a few
+> bugs hidden
+> here and there
+> (which I'm looking at).
+> 
+> ps: this list has moved to linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org and
+> musb driver
+> is now being
+> discussed in linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org mailing list, so
+> please, care
+> to Cc both lists
+> mentioned here.
+> 
+> -- 
+> Best Regards,
+> 
+> Felipe Balbi
+> felipebalbi-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> --
+> To unsubscribe from this list: send the line
+> "unsubscribe linux-usb" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at 
+> http://vger.kernel.org/majordomo-info.html
 
-there must be a backtrace right after that, can you paste it as well?
 
--- 
-balbi
+      
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
