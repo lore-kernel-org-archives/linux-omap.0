@@ -1,106 +1,64 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH 1/2] Move voltage controller configuration to pm34xx.c
-Date: Thu, 31 Jul 2008 16:37:37 +0300
-Message-ID: <1217511458-9950-2-git-send-email-peter.de-schrijver@nokia.com>
-References: <1217511458-9950-1-git-send-email-peter.de-schrijver@nokia.com>
+From: "Syed Mohammed, Khasim" <khasim@ti.com>
+Subject: RE: Kernel hang on OMAP3 based Beagle board, RTC issue?
+Date: Thu, 31 Jul 2008 19:17:44 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C00208A6A04F@dbde02.ent.ti.com>
+References: <486BDD2A.5070500@googlemail.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB022BB6621C@dbde02.ent.ti.com>
+ <AF70E37B-038B-4117-B69F-B2BCD9EFF6AA@student.utwente.nl>
+ <486F21F6.7020208@googlemail.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB022BFE73A2@dbde02.ent.ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB022BFE73BE@dbde02.ent.ti.com>
+ <87vdzi2ln0.fsf@trdhcp146196.ntc.nokia.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB022C0F9263@dbde02.ent.ti.com>
+ <746A464E-F4E2-467A-9D01-DFE2AB3BB02E@student.utwente.nl>
+ <5A47E75E594F054BAF48C5E4FC4B92AB022C0F9641@dbde02.ent.ti.com>
+ <0680EC522D0CC943BC586913CF3768C00208A6A03F@dbde02.ent.ti.com>
+ <B8C1A084-3C54-48C6-A4DE-A437C80E2C52@student.utwente.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:45108 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751616AbYGaNiu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jul 2008 09:38:50 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m6VDcjmu027760
-	for <linux-omap@vger.kernel.org>; Thu, 31 Jul 2008 16:38:47 +0300
-In-Reply-To: <1217511458-9950-1-git-send-email-peter.de-schrijver@nokia.com>
+Received: from soda.ext.ti.com ([198.47.26.145]:42263 "EHLO soda.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751633AbYGaNsB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jul 2008 09:48:01 -0400
+In-Reply-To: <B8C1A084-3C54-48C6-A4DE-A437C80E2C52@student.utwente.nl>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, H?gander Jouni <jouni.hogander@nokia.com>, Dirk Behme <dirk.behme@googlemail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Hi Koen:
 
-Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
----
- arch/arm/mach-omap2/smartreflex.c |   60 -------------------------------------
- 1 files changed, 0 insertions(+), 60 deletions(-)
+> -----Original Message-----
+> From: Koen Kooi [mailto:k.kooi@student.utwente.nl]
+> Sent: Thursday, July 31, 2008 7:03 PM
+> To: Syed Mohammed, Khasim
+> Cc: Gadiyar, Anand; H?gander Jouni; Dirk Behme; linux-omap@vger.kernel.org
+> Subject: Re: Kernel hang on OMAP3 based Beagle board, RTC issue?
+>
+<snip>
+> >>>>
+> >
+> > Hi Jouni,
+> >
+> > Commenting the lines did fix my UART 3 issue, but I am not clear as
+> > to what is happening by having it enabled. Before I dig in further
+> > can you give your thoughts as to why these lines could result in
+> > UART3 hang?
+>
+> I've had these lines commented out for some weeks now and still get
+> the hang.
+>
 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index b41fe96..7e4f9a4 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -362,64 +362,6 @@ static void sr_configure_vp(int srid)
- 	}
- }
- 
--static void sr_configure_vc(void)
--{
--	prm_write_mod_reg((R_SRI2C_SLAVE_ADDR << OMAP3430_SMPS_SA1_SHIFT) |
--			(R_SRI2C_SLAVE_ADDR << OMAP3430_SMPS_SA0_SHIFT),
--			OMAP3430_GR_MOD, OMAP3_PRM_VC_SMPS_SA_OFFSET);
--
--	prm_write_mod_reg((R_VDD2_SR_CONTROL << OMAP3430_VOLRA1_SHIFT) |
--			(R_VDD1_SR_CONTROL << OMAP3430_VOLRA0_SHIFT),
--			OMAP3430_GR_MOD, OMAP3_PRM_VC_SMPS_VOL_RA_OFFSET);
--
--	prm_write_mod_reg((OMAP3430_VC_CMD_VAL0_ON <<
--		OMAP3430_VC_CMD_ON_SHIFT) |
--		(OMAP3430_VC_CMD_VAL0_ONLP << OMAP3430_VC_CMD_ONLP_SHIFT) |
--		(OMAP3430_VC_CMD_VAL0_RET << OMAP3430_VC_CMD_RET_SHIFT) |
--		(OMAP3430_VC_CMD_VAL0_OFF << OMAP3430_VC_CMD_OFF_SHIFT),
--		OMAP3430_GR_MOD, OMAP3_PRM_VC_CMD_VAL_0_OFFSET);
--
--	prm_write_mod_reg((OMAP3430_VC_CMD_VAL1_ON <<
--		OMAP3430_VC_CMD_ON_SHIFT) |
--		(OMAP3430_VC_CMD_VAL1_ONLP << OMAP3430_VC_CMD_ONLP_SHIFT) |
--		(OMAP3430_VC_CMD_VAL1_RET << OMAP3430_VC_CMD_RET_SHIFT) |
--		(OMAP3430_VC_CMD_VAL1_OFF << OMAP3430_VC_CMD_OFF_SHIFT),
--		OMAP3430_GR_MOD, OMAP3_PRM_VC_CMD_VAL_1_OFFSET);
--
--	prm_write_mod_reg(OMAP3430_CMD1 | OMAP3430_RAV1,
--				OMAP3430_GR_MOD,
--				OMAP3_PRM_VC_CH_CONF_OFFSET);
--
--	prm_write_mod_reg(OMAP3430_MCODE_SHIFT | OMAP3430_HSEN | OMAP3430_SREN,
--				OMAP3430_GR_MOD,
--				OMAP3_PRM_VC_I2C_CFG_OFFSET);
--
--	/* Setup voltctrl and other setup times */
--	/* XXX CONFIG_SYSOFFMODE has not been implemented yet */
--#ifdef CONFIG_OMAP_SYSOFFMODE
--	prm_write_mod_reg(OMAP3430_AUTO_OFF | OMAP3430_AUTO_RET |
--			OMAP3430_SEL_OFF, OMAP3430_GR_MOD,
--			OMAP3_PRM_VOLTCTRL_OFFSET);
--
--	prm_write_mod_reg(OMAP3430_CLKSETUP_DURATION, OMAP3430_GR_MOD,
--			OMAP3_PRM_CLKSETUP_OFFSET);
--	prm_write_mod_reg((OMAP3430_VOLTSETUP_TIME2 <<
--			OMAP3430_SETUP_TIME2_SHIFT) |
--			(OMAP3430_VOLTSETUP_TIME1 <<
--			OMAP3430_SETUP_TIME1_SHIFT),
--			OMAP3430_GR_MOD, OMAP3_PRM_VOLTSETUP1_OFFSET);
--
--	prm_write_mod_reg(OMAP3430_VOLTOFFSET_DURATION, OMAP3430_GR_MOD,
--			OMAP3_PRM_VOLTOFFSET_OFFSET);
--	prm_write_mod_reg(OMAP3430_VOLTSETUP2_DURATION, OMAP3430_GR_MOD,
--			OMAP3_PRM_VOLTSETUP2_OFFSET);
--#else
--	prm_set_mod_reg_bits(OMAP3430_AUTO_RET, OMAP3430_GR_MOD,
--			OMAP3_PRM_VOLTCTRL_OFFSET);
--#endif
--
--}
--
- static void sr_configure(struct omap_sr *sr)
- {
- 	u32 sr_config;
-@@ -845,8 +787,6 @@ static int __init omap3_sr_init(void)
- 	sr_set_nvalues(&sr2);
- 	sr_configure_vp(SR2);
- 
--	sr_configure_vc();
--
- 	/* Enable SR on T2 */
- 	ret = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &RdReg,
- 					R_DCDC_GLOBAL_CFG);
--- 
-1.5.6.3
+I didn't apply any other patches to OMAP GIT, I just cloned a new version of OMAP GIT and built it for Beagle using default config, also commented the lines mentioned by Jouni.
 
+If I don't comment these lines then UART hangs immediately after 30min approx, with lines commented I am running for 10 hrs now with out a hang.
+
+Any way the issue could still exists, I would like to know what exactly this code does to help me in focusing on a specific area.
+
+May be we miss porting some lines of code to Beagle.
+
+Regards,
+Khasim
