@@ -1,50 +1,108 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: USB driver issue
-Date: Fri, 1 Aug 2008 11:36:41 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0808011133400.22178-100000@netrider.rowland.org>
-References: <20080801061541.GC8634@kroah.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP: OneNAND for OMAP3
+Date: Fri, 1 Aug 2008 10:45:58 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0808011030270.19571@utopia.booyaka.com>
+References: <4892C533.50904@nokia.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:3924 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751361AbYHAPgm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Aug 2008 11:36:42 -0400
-In-Reply-To: <20080801061541.GC8634@kroah.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:44038 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752444AbYHAQp7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Aug 2008 12:45:59 -0400
+In-Reply-To: <4892C533.50904@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Stalin Kenny <stalinlinux@gmail.com>, me@felipebalbi.com, Emanoil Kotsev <deloptes@yahoo.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
+To: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-On Thu, 31 Jul 2008, Greg KH wrote:
+Hello Adrian,
 
-> On Thu, Jul 31, 2008 at 07:47:07PM -0500, Stalin Kenny wrote:
-> > Felipe,
-> > 
-> > Sorry to say but to say that one has to migrate to latest kernel in
-> > order to get community support is not right....the statement does has
-> > a touch of arrogance. You are not the spokeperson for the community.
+On Fri, 1 Aug 2008, Adrian Hunter wrote:
+
+> Update OneNAND support for OMAP3.
+
+a few quick comments.
+
+> +		reg =
+> omap2_onenand_readw(onenand_base+ONENAND_REG_VERSION_ID);
+
+Just a minor nit - please use spaces around binary & ternary operators per 
+CodingStyle.
+
+> +			  (sync_write?GPMC_CONFIG1_WRITEMULTIPLE_SUPP:0) |
+> +			  (sync_write?GPMC_CONFIG1_WRITETYPE_SYNC:0) |
+
+as above.
+
+> diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+> index ba83900..378ee17 100644
+> --- a/drivers/mtd/onenand/omap2.c
+> +++ b/drivers/mtd/onenand/omap2.c
+> @@ -223,6 +227,155 @@ static inline int omap2_onenand_bufferram_offset(struct
+> mtd_info *mtd, int area)
+> 	return 0;
+> }
 > 
-> Um, yes he is.
-> 
-> And so is everyone else who actually contributes to the kernel.
-> 
-> If Felipe says he doesn't want to support anything but the latest
-> kernel.org kernel for free, then that is what he is going to do.  Why do
-> you not believe him?
-> 
-> Personally, that is my stance as well.  And it's the stance of _every_
-> other kernel developer who I know who contributes their time and effort
-> here.
+> +#if defined(CONFIG_ARCH_OMAP3)
+> +
+> +static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+> +					unsigned char *buffer, int offset,
+> +					size_t count)
+> +{
+> +	struct omap2_onenand *info = container_of(mtd, struct omap2_onenand,
+> mtd);
+> +	struct onenand_chip *this = mtd->priv;
+> +	dma_addr_t dma_src, dma_dst;
+> +	int bram_offset;
+> +	unsigned long timeout;
+> +	void *buf = (void *)buffer;
+> +	size_t xtra;
+> +	volatile unsigned *done;
 
-That last sentence is slightly overstated.  I am certainly willing to 
-help debug problems on kernels that aren't the most recent 
-bleeding edge, provided they aren't _so_ old as to be completely 
-irrelevant.  It's not uncommon to find that the bug in question is 
-still present in today's kernel.
+The way this volatile is used doesn't look right...
 
-Of course, if I recognize the bug as one that has already been fixed
-then there's no point in doing any more testing or debugging.
+> +	INIT_COMPLETION(info->dma_done);
+> +	omap_start_dma(info->dma_channel);
+> +
+> +	timeout = jiffies + msecs_to_jiffies(20);
+> +	done = &info->dma_done.done;
 
-Alan Stern
+So the volatile here appears to apply to the address of 'done', but this 
+address does not change, correct?  Only the value of 'done' itself 
+changes.
 
+> +	while (time_before(jiffies, timeout))
+> +		if (*done)
+> +			break;
+
+Can this be replaced with wait_for_completion_timeout() or something 
+similar?
+
+> +	dma_unmap_single(&info->pdev->dev, dma_dst, count, DMA_FROM_DEVICE);
+> +
+> +	if (!*done) {
+> +		dev_err(&info->pdev->dev, "timeout waiting for DMA\n");
+> +		goto out_copy;
+> +	}
+
+...
+
+> +static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
+> +					 const unsigned char *buffer, int
+> offset,
+> +					 size_t count)
+> +{
+> +	struct omap2_onenand *info = container_of(mtd, struct omap2_onenand,
+> mtd);
+> +	struct onenand_chip *this = mtd->priv;
+> +	dma_addr_t dma_src, dma_dst;
+> +	int bram_offset;
+> +	unsigned long timeout;
+> +	void *buf = (void *)buffer;
+> +	volatile unsigned *done;
+
+Same comments in this function per volatile.
+
+
+- Paul
