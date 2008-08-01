@@ -1,51 +1,102 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH] Volume Down key on the Zoom MDK
-Date: Fri, 1 Aug 2008 16:20:02 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608701C2BF9B34@dbde02.ent.ti.com>
-References: <18567.41720.48693.458775@gargle.gargle.HOWL>
-	 <FCCFB4CDC6E5564B9182F639FC35608701C29872CD@dbde02.ent.ti.com>
-	 <18577.63193.946879.783279@gargle.gargle.HOWL>
-	 <FCCFB4CDC6E5564B9182F639FC35608701C2BF9A14@dbde02.ent.ti.com>
- <5d5443650808010342m615d4d8eud588bd9fd0244393@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH] Added support for OMAP35x processor series
+Date: Fri,  1 Aug 2008 17:19:39 +0530
+Message-ID: <1217591379-1515-1-git-send-email-premi@ti.com>
+References: <premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51356 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58156 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754234AbYHAKuM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Aug 2008 06:50:12 -0400
-In-Reply-To: <5d5443650808010342m615d4d8eud588bd9fd0244393@mail.gmail.com>
-Content-Language: en-US
+	id S1752881AbYHALtt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Aug 2008 07:49:49 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m71BnfrZ027237
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 1 Aug 2008 06:49:48 -0500
+In-Reply-To: <premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Trilok Soni <soni.trilok@gmail.com>
-Cc: George Jahad <george.jahad@windriver.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
+This patch adds basic support for the OMAP35x Applications Processors.
+(See: http://focus.ti.com/general/docs/gencontent.tsp?contentId=46725)
 
+As you will notice, NEON SIMD coprocessor is enabled by default for
+these processors.
 
-> -----Original Message-----
-> From: Trilok Soni [mailto:soni.trilok@gmail.com]
-> Sent: Friday, August 01, 2008 4:12 PM
-> To: Pandita, Vikram
-> Cc: George Jahad; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] Volume Down key on the Zoom MDK
->
-> Hi Vikram,
->
-> >
-> > (2) A TI-GIT tree:
-> > An up-to-date 2.6.26 kernel in sync with linux-omap git
-> > This can be got by git clone -
-> > git clone http://git.omapzoom.org/repo/omapkernel
->
-> Do you guys have gitweb URL for above zoom kernel?
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ arch/arm/mach-omap2/Kconfig |   50 ++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 49 insertions(+), 1 deletions(-)
 
-Here you go -
-http://git.omapzoom.org/?p=omapkernel;a=summary
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index bb6d695..63d7cdd 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -25,6 +25,54 @@ config ARCH_OMAP3430
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+ 	select ARCH_OMAP_OTG
+ 
++config ARCH_OMAP35XX
++	bool "OMAP35x Family"
++	select ARCH_OMAP3
++	select ARCH_OMAP34XX
++	select ARCH_OMAP3430
++	select OMAP3430_ES2
++	select NEON
++	help
++	  OMAP35x family of processors based on ARM Cortex-A8
++	  in combination with IVA2.2 core and OpenGL ES2.0
++	  compatible graphics engine.
++
++	  ARM Cortex-A8 contains NEON SIMD coprocessor.
++
++choice
++	prompt "Current choice"
++	default ARCH_OMAP3503
++
++config ARCH_OMAP3503
++	bool "OMAP3503"
++	depends on ARCH_OMAP35XX
++	help
++	  Contains ARM Cortex-A8 processor.
++
++config ARCH_OMAP3515
++	bool "OMAP3515"
++	depends on ARCH_OMAP35XX
++	help
++	   Contains ARM Cortex-A8 processor and SGX530 subsystem
++	   for 2D and 3D graphics acceleration.
++
++config ARCH_OMAP3525
++	bool "OMAP3525"
++	depends on ARCH_OMAP35XX
++	help
++	  Contains ARM Cortex-A8 processor and IVA2.2 subsystem
++	  with a C64x+ DSP core.
++
++config ARCH_OMAP3530
++	bool "OMAP3530"
++	depends on ARCH_OMAP35XX
++	help
++	   Contains ARM Cortex-A8 processor, IVA2.2 subsystem
++	   with a C64x+ DSP Core and SGX530 subsystem for 2D
++	   and 3D graphics acceleration.
++
++endchoice
++
+ comment "OMAP Board Type"
+ 	depends on ARCH_OMAP2 || ARCH_OMAP3
+ 
+@@ -117,7 +165,7 @@ config MACH_OMAP_3430SDP
+ 
+ config MACH_OMAP3EVM
+ 	bool "OMAP 3530 EVM board"
+-	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	depends on ARCH_OMAP35XX
+ 
+ config MACH_OMAP3_BEAGLE
+ 	bool "OMAP3 BEAGLE board"
+-- 
+1.5.6
 
->
-> --
-> ---Trilok Soni
-> http://triloksoni.wordpress.com
-> http://www.linkedin.com/in/triloksoni
