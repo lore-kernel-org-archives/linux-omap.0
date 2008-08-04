@@ -1,44 +1,78 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH] MTD: OMAP2-NAND: Fix partition reading from board info
-Date: Mon, 4 Aug 2008 17:10:21 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE89671620361EE18FF@dlee02.ent.ti.com>
-References: <9c9fda240807011627v60428f9eh3c2bb17cdc8ce6ea@mail.gmail.com>
- <200808041302.46323.david-b@pacbell.net>
- <20080804201715.GD31974@xi.wantstofly.org>
- <200808041326.38840.david-b@pacbell.net>
- <13B9B4C6EF24D648824FF11BE89671620361EE1833@dlee02.ent.ti.com>
- <20080804213200.GH31974@xi.wantstofly.org>
- <13B9B4C6EF24D648824FF11BE89671620361EE18A2@dlee02.ent.ti.com>
- <20080804214910.GJ31974@xi.wantstofly.org>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] ARM MMU: add strongly-ordered memory type
+Date: Mon, 4 Aug 2008 17:40:57 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0808041738400.18201@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35666 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757751AbYHDWKd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Aug 2008 18:10:33 -0400
-In-Reply-To: <20080804214910.GJ31974@xi.wantstofly.org>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:55551 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754099AbYHDXk6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Aug 2008 19:40:58 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lennert Buytenhek <buytenh@wantstofly.org>
-Cc: Kyungmin Park <kmpark@infradead.org>, Tony Lindgren <tony@atomide.com>, "Kamat, Nishant" <nskamat@ti.com>, David Brownell <david-b@pacbell.net>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, r-woodruff2@ti.com
 
-> Hmmm.  So bit [7] of the system control register is ignored entirely,
-> and if you write a 1 to it, nothing at all happens and the system
-> boots as usual?  (To test, add a line "OBJS += big-endian.o" to the
-> top of arch/arm/boot/compressed/Makefile.)
->
-> Does it also mean that the ARMv6 based OMAPs have the SETEND
-> instruction behave as NOPs?
 
-Last time I explicitly tried was back on OMAP1.  I then dug into doc's it was said that the bit was hardwired at the integration point.  I don't recall signal name.
+Add the MT_MEMORY_STRONGLY_ORDERED memory type for ARM strongly ordered
+memory.
 
-Now, Peeking into OMAP2 (armv6) MPU integration docs I see that BIGENDINIT is pulled low.  This forces the behavior as I indicated.  OMAP3 (armv7) does something similar at cpu-to-bus bridge.
+This is used on OMAP3 for on-board SRAM.  On OMAP, SRAM is used for code 
+that changes the SDRAM controller's clock, temporarily blocking access to 
+SDRAM.  During this period, as code executes from SRAM, the ARM cache 
+controller can attempt to write dirty cache lines back to SDRAM to make 
+room for SRAM cache lines, causing the MPU subsystem to hang.  To avoid 
+this, we mark SRAM as strongly- ordered memory.
 
-Doing a quick desktop search in documents I see the armv6 behavior is defined as part of BIGENDINIT in ARM TRMs.  I'll guess SETEND instruction follows what ever that dictates.  I don't know as I've never tried.
+Problem noted by Richard Woodruff <r-woodruff2@ti.com>.  Fix derived
+from the TI CDP codebase.
 
-Regards,
-Richard W.
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+
+ arch/arm/mm/mmu.c          |    5 +++++
+ include/asm-arm/mach/map.h |   13 +++++++------
+ 2 files changed, 12 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
+index 2d6d682..5b56539 100644
+--- a/arch/arm/mm/mmu.c
++++ b/arch/arm/mm/mmu.c
+@@ -239,6 +239,11 @@ static struct mem_type mem_types[] = {
+ 		.prot_sect = PMD_TYPE_SECT,
+ 		.domain    = DOMAIN_KERNEL,
+ 	},
++	[MT_MEMORY_STRONGLY_ORDERED] = {
++		.prot_sect = PMD_TYPE_SECT | PMD_SECT_AP_WRITE |
++				PMD_SECT_UNCACHED,
++		.domain    = DOMAIN_KERNEL,
++	},
+ };
+ 
+ const struct mem_type *get_mem_type(unsigned int type)
+diff --git a/include/asm-arm/mach/map.h b/include/asm-arm/mach/map.h
+index 7ef3c83..8cb46b7 100644
+--- a/include/asm-arm/mach/map.h
++++ b/include/asm-arm/mach/map.h
+@@ -19,12 +19,13 @@ struct map_desc {
+ };
+ 
+ /* types 0-3 are defined in asm/io.h */
+-#define MT_CACHECLEAN		4
+-#define MT_MINICLEAN		5
+-#define MT_LOW_VECTORS		6
+-#define MT_HIGH_VECTORS		7
+-#define MT_MEMORY		8
+-#define MT_ROM			9
++#define MT_CACHECLEAN			4
++#define MT_MINICLEAN			5
++#define MT_LOW_VECTORS			6
++#define MT_HIGH_VECTORS			7
++#define MT_MEMORY			8
++#define MT_ROM				9
++#define MT_MEMORY_STRONGLY_ORDERED	10
+ 
+ #define MT_NONSHARED_DEVICE	MT_DEVICE_NONSHARED
+ #define MT_IXP2000_DEVICE	MT_DEVICE_IXP2000
 
