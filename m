@@ -1,124 +1,50 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCHv2 2/2] TWL4030: convert old-style function documentation to
-	current kerneldoc
-Date: Mon, 04 Aug 2008 14:56:48 -0600
-Message-ID: <20080804205647.22691.69552.stgit@localhost.localdomain>
-References: <20080804205134.22691.75138.stgit@localhost.localdomain>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH] MTD: OMAP2-NAND: Fix partition reading from board info
+Date: Mon, 4 Aug 2008 16:23:35 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE89671620361EE1833@dlee02.ent.ti.com>
+References: <9c9fda240807011627v60428f9eh3c2bb17cdc8ce6ea@mail.gmail.com>
+ <200808041302.46323.david-b@pacbell.net>
+ <20080804201715.GD31974@xi.wantstofly.org>
+ <200808041326.38840.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55058 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758411AbYHDVOK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Aug 2008 17:14:10 -0400
-In-Reply-To: <20080804205134.22691.75138.stgit@localhost.localdomain>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58757 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758175AbYHDVX6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Aug 2008 17:23:58 -0400
+In-Reply-To: <200808041326.38840.david-b@pacbell.net>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, felipe.balbi@nokia.com
+To: David Brownell <david-b@pacbell.net>, Lennert Buytenhek <buytenh@wantstofly.org>
+Cc: "Kamat, Nishant" <nskamat@ti.com>, Tony Lindgren <tony@atomide.com>, Kyungmin Park <kmpark@infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 
-Several functions use old-style function documentation; convert those to
-use the current kerneldoc style.
+> On Monday 04 August 2008, Lennert Buytenhek wrote:
+> > On Mon, Aug 04, 2008 at 01:02:46PM -0700, David Brownell wrote:
+> >
+> > > > Looks like this driver does not exist outside linux-omap tree,
+> > > > care to send the whole driver to MTD list?
+> > >
+> > > Unless someone created a big-endian OMAP,
+> >
+> > Don't they use standard ARM ARM cores, which can all be used in both
+> > LE and BE modes?
+>
+> And when those cores turn into silicon, the choice is usually
+> hard-wired.  Regardless, all OMAP cores I've worked with are
+> set up for LE mode ... and then there's still the point that
+> byteswapping to/from the NAND chip seems to add no value.
 
-Thanks to Felipe Balbi <felipe.balbi@nokia.com> for catching an error.
+Yes all OMAP-ARM's have been LE.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
+I've only used a couple ARMs in the past where it was run time configurable.  Most hardware hard wire it as Dave asserts.
 
- drivers/i2c/chips/twl4030-core.c |   54 ++++++++++++++++++--------------------
- 1 files changed, 26 insertions(+), 28 deletions(-)
+As trivia you might find a BE-DSP in the OMAP1 SOC and LE-ARM.  So, internal bridge chips usually allow hardware swapping.  OMAP3-DSP is LE.
 
-diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
-index 54e392b..88447f1 100644
---- a/drivers/i2c/chips/twl4030-core.c
-+++ b/drivers/i2c/chips/twl4030-core.c
-@@ -389,17 +389,18 @@ static struct irq_chip twl4030_irq_chip = {
- };
- 
- /* Global Functions */
--/*
-- * @brief twl4030_i2c_write - Writes a n bit register in TWL4030
-+
-+/**
-+ * twl4030_i2c_write - Writes a n bit register in TWL4030
-+ * @mod_no: module number
-+ * @value: an array of num_bytes+1 containing data to write
-+ * @reg: register address (just offset will do)
-+ * @num_bytes: number of bytes to transfer
-  *
-- * @param mod_no - module number
-- * @param *value - an array of num_bytes+1 containing data to write
-- * IMPORTANT - Allocate value num_bytes+1 and valid data starts at
-- *		 Offset 1.
-- * @param reg - register address (just offset will do)
-- * @param num_bytes - number of bytes to transfer
-+ * IMPORTANT: for 'value' parameter: Allocate value num_bytes+1 and
-+ * valid data starts at Offset 1.
-  *
-- * @return result of operation - 0 is success
-+ * Returns the result of operation - 0 is success
-  */
- int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, u8 num_bytes)
- {
-@@ -443,14 +444,13 @@ int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, u8 num_bytes)
- EXPORT_SYMBOL(twl4030_i2c_write);
- 
- /**
-- * @brief twl4030_i2c_read - Reads a n bit register in TWL4030
-+ * twl4030_i2c_read - Reads a n bit register in TWL4030
-+ * @mod_no: module number
-+ * @value: an array of num_bytes containing data to be read
-+ * @reg: register address (just offset will do)
-+ * @num_bytes: number of bytes to transfer
-  *
-- * @param mod_no - module number
-- * @param *value - an array of num_bytes containing data to be read
-- * @param reg - register address (just offset will do)
-- * @param num_bytes - number of bytes to transfer
-- *
-- * @return result of operation - num_bytes is success else failure.
-+ * Returns result of operation - num_bytes is success else failure.
-  */
- int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, u8 num_bytes)
- {
-@@ -497,13 +497,12 @@ int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, u8 num_bytes)
- EXPORT_SYMBOL(twl4030_i2c_read);
- 
- /**
-- * @brief twl4030_i2c_write_u8 - Writes a 8 bit register in TWL4030
-- *
-- * @param mod_no - module number
-- * @param value - the value to be written 8 bit
-- * @param reg - register address (just offset will do)
-+ * twl4030_i2c_write_u8 - Writes a 8 bit register in TWL4030
-+ * @mod_no: module number
-+ * @value: the value to be written 8 bit
-+ * @reg: register address (just offset will do)
-  *
-- * @return result of operation - 0 is success
-+ * Returns result of operation - 0 is success
-  */
- int twl4030_i2c_write_u8(u8 mod_no, u8 value, u8 reg)
- {
-@@ -517,13 +516,12 @@ int twl4030_i2c_write_u8(u8 mod_no, u8 value, u8 reg)
- EXPORT_SYMBOL(twl4030_i2c_write_u8);
- 
- /**
-- * @brief twl4030_i2c_read_u8 - Reads a 8 bit register from TWL4030
-- *
-- * @param mod_no - module number
-- * @param *value - the value read 8 bit
-- * @param reg - register address (just offset will do)
-+ * twl4030_i2c_read_u8 - Reads a 8 bit register from TWL4030
-+ * @mod_no: module number
-+ * @value: the value read 8 bit
-+ * @reg: register address (just offset will do)
-  *
-- * @return result of operation - 0 is success
-+ * Returns result of operation - 0 is success
-  */
- int twl4030_i2c_read_u8(u8 mod_no, u8 *value, u8 reg)
- {
+The most visible BE-ARM seems to be Intel's IXP network processors.  Matching network byte order apparently saves some cycles.  Earlier BE ones I recall were trying to pick up Mot-68K-BE sockets which had BE friendly peripherals.
 
+Regards,
+Richard W.
 
