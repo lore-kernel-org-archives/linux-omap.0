@@ -1,45 +1,106 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCHv2 0/2] TWL4030: mark init functions __init, fix kerneldoc
-Date: Mon, 04 Aug 2008 14:56:43 -0600
-Message-ID: <20080804205134.22691.75138.stgit@localhost.localdomain>
+Subject: [PATCHv2 1/2] TWL4030: mark init-only functions as __init
+Date: Mon, 04 Aug 2008 14:56:47 -0600
+Message-ID: <20080804205643.22691.41661.stgit@localhost.localdomain>
+References: <20080804205134.22691.75138.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55055 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:55056 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757298AbYHDVOK (ORCPT
+	with ESMTP id S1757545AbYHDVOK (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Aug 2008 17:14:10 -0400
+In-Reply-To: <20080804205134.22691.75138.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: felipe.balbi@nokia.com
+Cc: Paul Walmsley <paul@pwsan.com>
 
-This second revision incorporates a documentation fix from Felipe Balbi 
-<felipe.balbi@nokia.com>.
+Mark many functions in twl4030-core.c as __init.
 
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
 
-Mark most of the functions in twl4030-core.c as __init.  Fix the
-old-style kerneldoc in several functions.
+ drivers/i2c/chips/twl4030-core.c |   17 +++++++++--------
+ 1 files changed, 9 insertions(+), 8 deletions(-)
 
-Frees up an extra 4kB page after kernel init on 3430SDP.  Not sure why
-there is such a large kernel image size difference; no new code or
-data has been added.
+diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
+index 47d547d..54e392b 100644
+--- a/drivers/i2c/chips/twl4030-core.c
++++ b/drivers/i2c/chips/twl4030-core.c
+@@ -681,7 +681,8 @@ static void do_twl4030_irq(unsigned int irq, irq_desc_t *desc)
+ }
+ 
+ /* attach a client to the adapter */
+-static int twl4030_detect_client(struct i2c_adapter *adapter, unsigned char sid)
++static int __init twl4030_detect_client(struct i2c_adapter *adapter,
++					unsigned char sid)
+ {
+ 	int err = 0;
+ 	struct twl4030_client *twl;
+@@ -730,7 +731,7 @@ static int twl4030_detect_client(struct i2c_adapter *adapter, unsigned char sid)
+ }
+ 
+ /* adapter callback */
+-static int twl4030_attach_adapter(struct i2c_adapter *adapter)
++static int __init twl4030_attach_adapter(struct i2c_adapter *adapter)
+ {
+ 	int i;
+ 	int ret = 0;
+@@ -783,7 +784,7 @@ static int twl4030_detach_client(struct i2c_client *client)
+ 	return 0;
+ }
+ 
+-static struct task_struct *start_twl4030_irq_thread(int irq)
++static struct task_struct * __init start_twl4030_irq_thread(int irq)
+ {
+ 	struct task_struct *thread;
+ 
+@@ -801,7 +802,7 @@ static struct task_struct *start_twl4030_irq_thread(int irq)
+  * These three functions should be part of Voltage frame work
+  * added here to complete the functionality for now.
+  */
+-static int protect_pm_master(void)
++static int __init protect_pm_master(void)
+ {
+ 	int e = 0;
+ 
+@@ -810,7 +811,7 @@ static int protect_pm_master(void)
+ 	return e;
+ }
+ 
+-static int unprotect_pm_master(void)
++static int __init unprotect_pm_master(void)
+ {
+ 	int e = 0;
+ 
+@@ -821,7 +822,7 @@ static int unprotect_pm_master(void)
+ 	return e;
+ }
+ 
+-static int power_companion_init(void)
++static int __init power_companion_init(void)
+ {
+ 	struct clk *osc;
+ 	u32 rate;
+@@ -866,7 +867,7 @@ static int power_companion_init(void)
+  * don't know whether the COR bit is set in <module>_SIH_CTRL.  Returns
+  * the status from the I2C read operation.
+  */
+-static int twl4030_i2c_clear_isr(u8 mod_no, u8 reg)
++static int __init twl4030_i2c_clear_isr(u8 mod_no, u8 reg)
+ {
+ 	int res;
+ 	u8 tmp;
+@@ -878,7 +879,7 @@ static int twl4030_i2c_clear_isr(u8 mod_no, u8 reg)
+ 	return twl4030_i2c_write_u8(mod_no, 0xff, reg);
+ }
+ 
+-static void twl_init_irq(void)
++static void __init twl_init_irq(void)
+ {
+ 	int	i, j;
+ 	int	res = 0;
 
-Boot-tested on 3430SDP ES2.
-
-
-- Paul
-
----
-
-size:
-
-  text    data     bss     dec     hex filename
-3391251  157104  107136 3655491  37c743 vmlinux.3430sdp.orig
-3394259  157104  107136 3658499  37d303 vmlinux.3430sdp
-
- drivers/i2c/chips/twl4030-core.c |   71 +++++++++++++++++++-------------------
- 1 files changed, 35 insertions(+), 36 deletions(-)
 
