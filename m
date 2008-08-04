@@ -1,39 +1,35 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] MUSB: Workaround for simultaneous TX and RX usage
-Date: Mon, 4 Aug 2008 17:17:34 +0300
-Message-ID: <20080804141734.GG30539@gandalf.research.nokia.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02568EBABF@dbde02.ent.ti.com>
-Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] TWL4030: convert old-style function documentation
+	to current kerneldoc
+Date: Mon, 4 Aug 2008 17:16:50 +0300
+Message-ID: <20080804141649.GJ8885@atomide.com>
+References: <20080718021356.31884.9848.stgit@localhost.localdomain> <20080718021550.31884.69436.stgit@localhost.localdomain> <ba4b7ed08a5ba4da520421fa7273074f@felipebalbi.com> <alpine.DEB.1.00.0807212218370.25376@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49332 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753921AbYHDORG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Aug 2008 10:17:06 -0400
 Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02568EBABF-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ext Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <alpine.DEB.1.00.0807212218370.25376@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Felipe Balbi <me@felipebalbi.com>, linux-omap@vger.kernel.org
 
-On Mon, Aug 04, 2008 at 06:48:22PM +0530, ext Gadiyar, Anand wrote:
-> MUSB RTL v1.4 has a hardware issue which results in a DMA controller
-> hang when TX and RX DMA channels are simultaneously enabled. This
-> affects at least OMAP2430 and OMAP34XX.
+* Paul Walmsley <paul@pwsan.com> [080722 07:19]:
+> On Fri, 18 Jul 2008, Felipe Balbi wrote:
 > 
-> Since RX transfers are in Mode 0 and anyway result in one DMA interrupt
-> per packet, we can use System DMA to unload the RX fifos. MUSB DMA can
-> be used for all TX channels as before.
+> > On Thu, 17 Jul 2008 20:15:51 -0600, Paul Walmsley <paul@pwsan.com> wrote:
 > 
-> Tested with full-duplex TX and RX transfers using g_ether. Runs for 24
-> hours without a hang. Without this patch, the hang occurs within minutes.
+> > > + * Results the result of operation - 0 is success
+> 
+> > I suppose you mean Returns here.
+> 
+> thanks Felipe, fixed.
 
-This patch is not applying against linux-omap musb neither musb on
-greg's queue. Could you please refresh it ? It's better to use the
-version on greg's queue, if it fails for linux-omap I can prepare a
-clean patch to avoid conflicts later.
+Are you planning to repost this patch? I can't seem to find any other
+version..
 
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
