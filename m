@@ -1,46 +1,87 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH] MUSB: Workaround for simultaneous TX and RX usage
-Date: Mon, 4 Aug 2008 20:21:22 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02569B8532@dbde02.ent.ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02568EBABF@dbde02.ent.ti.com>
- <20080804141734.GG30539@gandalf.research.nokia.com>
+From: Riku Voipio <riku.voipio@iki.fi>
+Subject: Re: [PATCH 07/07][GIT 3/4+] Renaming CFG_GetC55Procs
+Date: Mon, 4 Aug 2008 18:11:05 +0300
+Message-ID: <20080804151105.GA25489@kos.to>
+References: <27F9C60D11D683428E133F85D2BB4A530804B519@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from soda.ext.ti.com ([198.47.26.145]:42738 "EHLO soda.ext.ti.com"
+Received: from naru.obs2.net ([84.20.150.76]:37591 "EHLO narury.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753297AbYHDO5y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Aug 2008 10:57:54 -0400
-In-Reply-To: <20080804141734.GG30539@gandalf.research.nokia.com>
-Content-Language: en-US
+	id S1752286AbYHDPLJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Aug 2008 11:11:09 -0400
+Content-Disposition: inline
+In-Reply-To: <27F9C60D11D683428E133F85D2BB4A530804B519@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: "Ramirez Luna, Omar" <x00omar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> On Mon, Aug 04, 2008 at 06:48:22PM +0530, ext Gadiyar, Anand wrote:
-> > MUSB RTL v1.4 has a hardware issue which results in a DMA controller
-> > hang when TX and RX DMA channels are simultaneously enabled. This
-> > affects at least OMAP2430 and OMAP34XX.
-> >
-> > Since RX transfers are in Mode 0 and anyway result in one DMA interrupt
-> > per packet, we can use System DMA to unload the RX fifos. MUSB DMA can
-> > be used for all TX channels as before.
-> >
-> > Tested with full-duplex TX and RX transfers using g_ether. Runs for 24
-> > hours without a hang. Without this patch, the hang occurs within minutes.
->
-> This patch is not applying against linux-omap musb neither musb on
-> greg's queue. Could you please refresh it ? It's better to use the
-> version on greg's queue, if it fails for linux-omap I can prepare a
-> clean patch to avoid conflicts later.
->
+On Mon, Aug 04, 2008 at 09:56:31AM -0500, Ramirez Luna, Omar wrote:
+> Renaming CFG_GetC55Procs function for a more proper name (CFG_GetDSPProcs) and removed redundant initialization statements.
+
+Why does this function need to exist in the first place? The only place
+this is ever going to be used print a trace message on how many
+dsp's there are... Just eliminate the CFG_GetC55Procs please.
+
+> ---
+> Index: omapkernel/drivers/dsp/dspbridge/mpu_driver/inc/cfg.h
+> ===================================================================
+> --- omapkernel.orig/drivers/dsp/dspbridge/mpu_driver/inc/cfg.h  2008-07-29 23:52:55.000000000 -0500
+> +++ omapkernel/drivers/dsp/dspbridge/mpu_driver/inc/cfg.h       2008-07-29 23:56:40.000000000 -0500
+> @@ -337,6 +337,6 @@
+>   */
+>         extern DSP_STATUS CFG_SetObject(IN u32 dwValue, IN u32 dwType);
+> 
+> -       extern DSP_STATUS CFG_GetC55Procs(OUT u32 *numProcs);
+> +       extern DSP_STATUS CFG_GetDSPProcs(OUT u32 *numProcs);
+> 
+>  #endif                         /* CFG_ */
+> Index: omapkernel/drivers/dsp/dspbridge/mpu_driver/src/rmgr/dspdrv.c
+> ===================================================================
+> --- omapkernel.orig/drivers/dsp/dspbridge/mpu_driver/src/rmgr/dspdrv.c  2008-07-29 23:56:26.000000000 -0500
+> +++ omapkernel/drivers/dsp/dspbridge/mpu_driver/src/rmgr/dspdrv.c       2008-07-29 23:56:40.000000000 -0500
+> @@ -156,7 +156,7 @@
+>                 goto func_cont;
+>         }               /* End DRV_Create */
+>         GT_0trace(curTrace, GT_5CLASS, "DSP_Init:DRV Created \r\n");
+> -       status = CFG_GetC55Procs(&numProcs);
+> +       status = CFG_GetDSPProcs(&numProcs);
+>         GT_1trace(curTrace, GT_5CLASS, "DSP_Init:C55 procs configured = %d\n",
+>                   numProcs);
+>         if (DSP_SUCCEEDED(status) & numProcs) {
+> Index: omapkernel/drivers/dsp/dspbridge/mpu_driver/src/services/cfg.c
+> ===================================================================
+> --- omapkernel.orig/drivers/dsp/dspbridge/mpu_driver/src/services/cfg.c 2008-07-29 23:52:26.000000000 -0500
+> +++ omapkernel/drivers/dsp/dspbridge/mpu_driver/src/services/cfg.c      2008-07-29 23:56:40.000000000 -0500
+> @@ -485,16 +485,15 @@
+>  }
+> 
+>  /*
+> - * ===========CFG_GetC55Procs ============
+> + * ===========CFG_GetDSPProcs ============
+>   * Purpose:
+>   * Get the number of configured C55 processors
+>   */
+> 
+> -DSP_STATUS CFG_GetC55Procs(OUT u32 *numProcs)
+> +DSP_STATUS CFG_GetDSPProcs(OUT u32 *numProcs)
+>  {
+>         DSP_STATUS status = DSP_SOK;
+> 
+> -       *numProcs = 0;
+>         *numProcs = 1;
+>         return status;
+>  }
+> ---
+> 
+> Regards,
+> 
+> omar
 > --
-> balbi
->
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Okay! I had prepared this Friday evening and it seemed to apply for me.
-I'll check again and re-send.
-
-- Anand
+-- 
+"rm -rf" only sounds scary if you don't have backups
