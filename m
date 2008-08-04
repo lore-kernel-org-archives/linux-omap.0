@@ -1,244 +1,300 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: musb fix
-Date: Mon, 4 Aug 2008 16:16:51 +0300
-Message-ID: <20080804131650.GD8885@atomide.com>
-References: <20080804122429.GE30539@gandalf.research.nokia.com>
+From: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] MUSB: Workaround for simultaneous TX and RX usage
+Date: Mon, 4 Aug 2008 18:48:22 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02568EBABF@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59160 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753347AbYHDNRG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Aug 2008 09:17:06 -0400
-Content-Disposition: inline
-In-Reply-To: <20080804122429.GE30539@gandalf.research.nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: linux-omap@vger.kernel.org
 
-* Felipe Balbi <felipe.balbi@nokia.com> [080804 15:23]:
-> Hi Tony,
-> 
-> Please before merging with mailine apply the attached patch so musb
-> driver won't break compilation.
-> 
-> We now have a standard WARN() macro so to avoid conflicts we change
-> musb's WARN() to WARNING.
+MUSB RTL v1.4 has a hardware issue which results in a DMA controller
+hang when TX and RX DMA channels are simultaneously enabled. This
+affects at least OMAP2430 and OMAP34XX.
 
-OK, will push today.
+Since RX transfers are in Mode 0 and anyway result in one DMA interrupt
+per packet, we can use System DMA to unload the RX fifos. MUSB DMA can
+be used for all TX channels as before.
 
-The current plan is that I'll apply all the fixes floaging on l-o list
-today and tomorrow and tag v2.6.26-omap1, then will merge with mainline
-tree on Wednesday.
+Tested with full-duplex TX and RX transfers using g_ether. Runs for 24
+hours without a hang. Without this patch, the hang occurs within minutes.
 
-Tony
+Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+---
+This issue was first reported by Jon Hunter on [1]
 
+[1] http://marc.info/?l=linux-omap&m=119634480534453&w=2
 
-> 
-> -- 
-> balbi
+ drivers/usb/musb/Kconfig     |    8 +
+ drivers/usb/musb/musbhsdma.c |  174 +++++++++++++++++++++++++++++++++++--------
+ 2 files changed, 153 insertions(+), 29 deletions(-)
 
-> From: David Brownell <david-b@pacbell.net>
-> 
-> Latest musb_hdrc code wouldn't:
->   * build ... because there's now a standard WARN() macro
->   * build without false printf format warnings ... "%zd" is for ssize_t,
->     while "%zu" is for size_t
-> 
-> Signed-off-by: David Brownell <david-b@pacbell.net>
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> ---
-> diff --git a/drivers/usb/musb/cppi_dma.c b/drivers/usb/musb/cppi_dma.c
-> index e6770d6..e03aa99 100644
-> --- a/drivers/usb/musb/cppi_dma.c
-> +++ b/drivers/usb/musb/cppi_dma.c
-> @@ -862,10 +862,10 @@ cppi_next_rx_segment(struct musb *musb, struct cppi_channel *rx, int onepacket)
->  
->  	/* we always expect at least one reusable BD! */
->  	if (!tail) {
-> -		WARN("rx dma%d -- no BDs? need %d\n", rx->index, n_bds);
-> +		WARNING("rx dma%d -- no BDs? need %d\n", rx->index, n_bds);
->  		return;
->  	} else if (i < n_bds)
-> -		WARN("rx dma%d -- only %d of %d BDs\n", rx->index, i, n_bds);
-> +		WARNING("rx dma%d -- only %d of %d BDs\n", rx->index, i, n_bds);
->  
->  	tail->next = NULL;
->  	tail->hw_next = 0;
-> @@ -963,13 +963,13 @@ static int cppi_channel_program(struct dma_channel *ch,
->  	case MUSB_DMA_STATUS_BUS_ABORT:
->  	case MUSB_DMA_STATUS_CORE_ABORT:
->  		/* fault irq handler should have handled cleanup */
-> -		WARN("%cX DMA%d not cleaned up after abort!\n",
-> +		WARNING("%cX DMA%d not cleaned up after abort!\n",
->  				cppi_ch->transmit ? 'T' : 'R',
->  				cppi_ch->index);
->  		/* WARN_ON(1); */
->  		break;
->  	case MUSB_DMA_STATUS_BUSY:
-> -		WARN("program active channel?  %cX DMA%d\n",
-> +		WARNING("program active channel?  %cX DMA%d\n",
->  				cppi_ch->transmit ? 'T' : 'R',
->  				cppi_ch->index);
->  		/* WARN_ON(1); */
-> diff --git a/drivers/usb/musb/davinci.c b/drivers/usb/musb/davinci.c
-> index acd2aa8..75baf18 100644
-> --- a/drivers/usb/musb/davinci.c
-> +++ b/drivers/usb/musb/davinci.c
-> @@ -120,7 +120,7 @@ void musb_platform_disable(struct musb *musb)
->  	musb_writel(musb->ctrl_base, DAVINCI_USB_EOI_REG, 0);
->  
->  	if (is_dma_capable() && !dma_off)
-> -		WARN("dma still active\n");
-> +		WARNING("dma still active\n");
->  }
->  
->  
-> @@ -329,7 +329,7 @@ static irqreturn_t davinci_interrupt(int irq, void *__hci)
->  			musb->int_usb &= ~MUSB_INTR_VBUSERROR;
->  			musb->xceiv.state = OTG_STATE_A_WAIT_VFALL;
->  			mod_timer(&otg_workaround, jiffies + POLL_SECONDS * HZ);
-> -			WARN("VBUS error workaround (delay coming)\n");
-> +			WARNING("VBUS error workaround (delay coming)\n");
->  		} else if (is_host_enabled(musb) && drvvbus) {
->  			musb->is_active = 1;
->  			MUSB_HST_MODE(musb);
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> index 75c3013..1404a10 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -443,7 +443,7 @@ static irqreturn_t musb_stage0_irq(struct musb *musb, u8 int_usb,
->  				MUSB_DEV_MODE(musb);
->  				break;
->  			default:
-> -				WARN("bogus %s RESUME (%s)\n",
-> +				WARNING("bogus %s RESUME (%s)\n",
->  					"host",
->  					otg_state_string(musb));
->  			}
-> @@ -477,7 +477,7 @@ static irqreturn_t musb_stage0_irq(struct musb *musb, u8 int_usb,
->  				break;
->  #endif
->  			default:
-> -				WARN("bogus %s RESUME (%s)\n",
-> +				WARNING("bogus %s RESUME (%s)\n",
->  					"peripheral",
->  					otg_state_string(musb));
->  			}
-> @@ -799,7 +799,7 @@ static irqreturn_t musb_stage2_irq(struct musb *musb, u8 int_usb,
->  			break;
->  #endif	/* GADGET */
->  		default:
-> -			WARN("unhandled DISCONNECT transition (%s)\n",
-> +			WARNING("unhandled DISCONNECT transition (%s)\n",
->  				otg_state_string(musb));
->  			break;
->  		}
-> diff --git a/drivers/usb/musb/musb_debug.h b/drivers/usb/musb/musb_debug.h
-> index 0743972..3bdb311 100644
-> --- a/drivers/usb/musb/musb_debug.h
-> +++ b/drivers/usb/musb/musb_debug.h
-> @@ -38,7 +38,7 @@
->  #define yprintk(facility, format, args...) \
->  	do { printk(facility "%s %d: " format , \
->  	__func__, __LINE__ , ## args); } while (0)
-> -#define WARN(fmt, args...) yprintk(KERN_WARNING, fmt, ## args)
-> +#define WARNING(fmt, args...) yprintk(KERN_WARNING, fmt, ## args)
->  #define INFO(fmt, args...) yprintk(KERN_INFO, fmt, ## args)
->  #define ERR(fmt, args...) yprintk(KERN_ERR, fmt, ## args)
->  
-> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-> index 303b6f6..b3773f1 100644
-> --- a/drivers/usb/musb/musb_gadget.c
-> +++ b/drivers/usb/musb/musb_gadget.c
-> @@ -466,7 +466,7 @@ void musb_g_tx(struct musb *musb, u8 epnum)
->  				csr = musb_readw(epio, MUSB_TXCSR);
->  				request->actual += musb_ep->dma->actual_len;
->  				DBG(4, "TXCSR%d %04x, dma off, "
-> -						"len %Zd, req %p\n",
-> +						"len %zu, req %p\n",
->  					epnum, csr,
->  					musb_ep->dma->actual_len,
->  					request);
-> @@ -795,7 +795,7 @@ void musb_g_rx(struct musb *musb, u8 epnum)
->  
->  		request->actual += musb_ep->dma->actual_len;
->  
-> -		DBG(4, "RXCSR%d %04x, dma off, %04x, len %Zd, req %p\n",
-> +		DBG(4, "RXCSR%d %04x, dma off, %04x, len %zu, req %p\n",
->  			epnum, csr,
->  			musb_readw(epio, MUSB_RXCSR),
->  			musb_ep->dma->actual_len, request);
-> @@ -1886,7 +1886,7 @@ void musb_g_resume(struct musb *musb)
->  		}
->  		break;
->  	default:
-> -		WARN("unhandled RESUME transition (%s)\n",
-> +		WARNING("unhandled RESUME transition (%s)\n",
->  				otg_state_string(musb));
->  	}
->  }
-> @@ -1916,7 +1916,7 @@ void musb_g_suspend(struct musb *musb)
->  		/* REVISIT if B_HOST, clear DEVCTL.HOSTREQ;
->  		 * A_PERIPHERAL may need care too
->  		 */
-> -		WARN("unhandled SUSPEND transition (%s)\n",
-> +		WARNING("unhandled SUSPEND transition (%s)\n",
->  				otg_state_string(musb));
->  	}
->  }
-> diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-> index 52ac02a..08e421f 100644
-> --- a/drivers/usb/musb/musb_host.c
-> +++ b/drivers/usb/musb/musb_host.c
-> @@ -584,7 +584,7 @@ musb_rx_reinit(struct musb *musb, struct musb_qh *qh, struct musb_hw_ep *ep)
->  	} else {
->  		csr = musb_readw(ep->regs, MUSB_RXCSR);
->  		if (csr & MUSB_RXCSR_RXPKTRDY)
-> -			WARN("rx%d, packet/%d ready?\n", ep->epnum,
-> +			WARNING("rx%d, packet/%d ready?\n", ep->epnum,
->  				musb_readw(ep->regs, MUSB_RXCOUNT));
->  
->  		musb_h_flush_rxfifo(ep, MUSB_RXCSR_CLRDATATOG);
-> @@ -1403,7 +1403,7 @@ void musb_host_rx(struct musb *musb, u8 epnum)
->  
->  	pipe = urb->pipe;
->  
-> -	DBG(5, "<== hw %d rxcsr %04x, urb actual %d (+dma %zd)\n",
-> +	DBG(5, "<== hw %d rxcsr %04x, urb actual %d (+dma %zu)\n",
->  		epnum, rx_csr, urb->actual_length,
->  		dma ? dma->actual_len : 0);
->  
-> @@ -1486,7 +1486,7 @@ void musb_host_rx(struct musb *musb, u8 epnum)
->  			done = true;
->  		}
->  
-> -		DBG(2, "RXCSR%d %04x, reqpkt, len %zd%s\n", epnum, rx_csr,
-> +		DBG(2, "RXCSR%d %04x, reqpkt, len %zu%s\n", epnum, rx_csr,
->  				xfer_len, dma ? ", dma" : "");
->  		rx_csr &= ~MUSB_RXCSR_H_REQPKT;
->  
-> @@ -2125,7 +2125,7 @@ static int musb_bus_suspend(struct usb_hcd *hcd)
->  		return 0;
->  
->  	if (is_host_active(musb) && musb->is_active) {
-> -		WARN("trying to suspend as %s is_active=%i\n",
-> +		WARNING("trying to suspend as %s is_active=%i\n",
->  			otg_state_string(musb), musb->is_active);
->  		return -EBUSY;
->  	} else
-> diff --git a/drivers/usb/musb/musb_procfs.c b/drivers/usb/musb/musb_procfs.c
-> index da683eb..6184941 100644
-> --- a/drivers/usb/musb/musb_procfs.c
-> +++ b/drivers/usb/musb/musb_procfs.c
-> @@ -680,7 +680,7 @@ static int musb_proc_write(struct file *file, const char __user *buffer,
->  			reg |= MUSB_DEVCTL_HR;
->  			musb_writeb(mbase, MUSB_DEVCTL, reg);
->  			/* MUSB_HST_MODE( ((struct musb*)data) ); */
-> -			/* WARN("Host Mode\n"); */
-> +			/* WARNING("Host Mode\n"); */
->  		}
->  		break;
->  
+Index: testing/drivers/usb/musb/musbhsdma.c
+===================================================================
+--- testing.orig/drivers/usb/musb/musbhsdma.c
++++ testing/drivers/usb/musb/musbhsdma.c
+@@ -34,6 +34,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
+ #include "musb_core.h"
++#include <asm/arch/dma.h>
 
+ #if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3430)
+ #include "omap2430.h"
+@@ -64,6 +65,9 @@
+
+ #define MUSB_HSDMA_CHANNELS            8
+
++#define MUSB_FIFO_ADDRESS(epnum)       \
++       ((unsigned long) (OMAP_HSOTG_BASE + MUSB_FIFO_OFFSET(epnum)))
++
+ struct musb_dma_controller;
+
+ struct musb_dma_channel {
+@@ -75,6 +79,10 @@ struct musb_dma_channel {
+        u8                              bIndex;
+        u8                              epnum;
+        u8                              transmit;
++
++#ifdef CONFIG_MUSB_USE_SYSTEM_DMA_RX
++       int                             sysdma_channel;
++#endif
+ };
+
+ struct musb_dma_controller {
+@@ -93,6 +101,10 @@ static int dma_controller_start(struct d
+        return 0;
+ }
+
++#ifdef CONFIG_MUSB_USE_SYSTEM_DMA_RX
++static void musb_sysdma_completion(int lch, u16 ch_status, void *data);
++#endif
++
+ static void dma_channel_release(struct dma_channel *pChannel);
+
+ static int dma_controller_stop(struct dma_controller *c)
+@@ -144,6 +156,30 @@ static struct dma_channel *dma_channel_a
+                        /* Tx => mode 1; Rx => mode 0 */
+                        pChannel->desired_mode = transmit;
+                        pChannel->actual_len = 0;
++                       pImplChannel->sysdma_channel = -1;
++
++#ifdef CONFIG_MUSB_USE_SYSTEM_DMA_RX
++                       if (!transmit) {
++                               int ret;
++                               ret = omap_request_dma(OMAP24XX_DMA_NO_DEVICE,
++                                       "MUSB SysDMA", musb_sysdma_completion,
++                                       (void *) pImplChannel,
++                                       &(pImplChannel->sysdma_channel));
++/* FIXME: Decide on the correct private data to use */
++
++                               if (ret) {
++                                       printk(KERN_ERR "request_dma failed:"
++                                                       " %d\n", ret);
++                                       controller->bmUsedChannels &=
++                                                               ~(1 << bBit);
++                                       pChannel->status =
++                                                       MUSB_DMA_STATUS_UNKNOWN;
++                                       pImplChannel->sysdma_channel = -1;
++                                       pChannel = NULL;
++                               }
++                       }
++#endif
++
+                        break;
+                }
+        }
+@@ -163,6 +199,14 @@ static void dma_channel_release(struct d
+                ~(1 << pImplChannel->bIndex);
+
+        pChannel->status = MUSB_DMA_STATUS_UNKNOWN;
++
++#ifdef CONFIG_MUSB_USE_SYSTEM_DMA_RX
++       if (pImplChannel->sysdma_channel != -1) {
++               omap_stop_dma(pImplChannel->sysdma_channel);
++               omap_free_dma(pImplChannel->sysdma_channel);
++               pImplChannel->sysdma_channel = -1;
++       }
++#endif
+ }
+
+ static void configure_channel(struct dma_channel *pChannel,
+@@ -179,43 +223,108 @@ static void configure_channel(struct dma
+        DBG(4, "%p, pkt_sz %d, addr 0x%x, len %d, mode %d\n",
+                        pChannel, packet_sz, dma_addr, len, mode);
+
+-       if (mode) {
+-               csr |= 1 << MUSB_HSDMA_MODE1_SHIFT;
+-               BUG_ON(len < packet_sz);
++#ifdef CONFIG_MUSB_USE_SYSTEM_DMA_RX
++       if (pImplChannel->sysdma_channel != -1) {
++       /* System DMA */
++       /* RX: set src = FIFO */
++
++               omap_set_dma_transfer_params(pImplChannel->sysdma_channel,
++                                       OMAP_DMA_DATA_TYPE_S8,
++                                       len, 1, /* One frame */
++                                       OMAP_DMA_SYNC_ELEMENT,
++                                       OMAP24XX_DMA_NO_DEVICE,
++                                       0); /* Src Sync */
++
++               omap_set_dma_src_params(pImplChannel->sysdma_channel, 0,
++                                       OMAP_DMA_AMODE_CONSTANT,
++                                       MUSB_FIFO_ADDRESS(pImplChannel->epnum),
++                                       0, 0);
++
++               omap_set_dma_dest_params(pImplChannel->sysdma_channel, 0,
++                                       OMAP_DMA_AMODE_POST_INC, dma_addr,
++                                       0, 0);
++
++               omap_set_dma_dest_data_pack(pImplChannel->sysdma_channel, 1);
++               omap_set_dma_dest_burst_mode(pImplChannel->sysdma_channel,
++                                       OMAP_DMA_DATA_BURST_16);
+
+-               if (packet_sz >= 64) {
+-                       csr |= MUSB_HSDMA_BURSTMODE_INCR16
++               omap_start_dma(pImplChannel->sysdma_channel);
++
++       } else
++#endif
++       { /* Mentor DMA */
++               if (mode) {
++                       csr |= 1 << MUSB_HSDMA_MODE1_SHIFT;
++                       BUG_ON(len < packet_sz);
++
++                       if (packet_sz >= 64) {
++                               csr |= MUSB_HSDMA_BURSTMODE_INCR16
+                                        << MUSB_HSDMA_BURSTMODE_SHIFT;
+-               } else if (packet_sz >= 32) {
+-                       csr |= MUSB_HSDMA_BURSTMODE_INCR8
++                       } else if (packet_sz >= 32) {
++                               csr |= MUSB_HSDMA_BURSTMODE_INCR8
+                                        << MUSB_HSDMA_BURSTMODE_SHIFT;
+-               } else if (packet_sz >= 16) {
+-                       csr |= MUSB_HSDMA_BURSTMODE_INCR4
++                       } else if (packet_sz >= 16) {
++                               csr |= MUSB_HSDMA_BURSTMODE_INCR4
+                                        << MUSB_HSDMA_BURSTMODE_SHIFT;
++                       }
+                }
+-       }
+
+-       csr |= (pImplChannel->epnum << MUSB_HSDMA_ENDPOINT_SHIFT)
+-               | (1 << MUSB_HSDMA_ENABLE_SHIFT)
+-               | (1 << MUSB_HSDMA_IRQENABLE_SHIFT)
+-               | (pImplChannel->transmit
+-                               ? (1 << MUSB_HSDMA_TRANSMIT_SHIFT)
+-                               : 0);
+-
+-       /* address/count */
+-       musb_writel(mbase,
+-               MUSB_HSDMA_CHANNEL_OFFSET(bChannel, MUSB_HSDMA_ADDRESS),
+-               dma_addr);
+-       musb_writel(mbase,
+-               MUSB_HSDMA_CHANNEL_OFFSET(bChannel, MUSB_HSDMA_COUNT),
+-               len);
+-
+-       /* control (this should start things) */
+-       musb_writew(mbase,
+-               MUSB_HSDMA_CHANNEL_OFFSET(bChannel, MUSB_HSDMA_CONTROL),
+-               csr);
++               csr |= (pImplChannel->epnum << MUSB_HSDMA_ENDPOINT_SHIFT)
++                       | (1 << MUSB_HSDMA_ENABLE_SHIFT)
++                       | (1 << MUSB_HSDMA_IRQENABLE_SHIFT)
++                       | (pImplChannel->transmit
++                                       ? (1 << MUSB_HSDMA_TRANSMIT_SHIFT)
++                                       : 0);
++
++               /* address/count */
++               musb_writel(mbase,
++                       MUSB_HSDMA_CHANNEL_OFFSET(bChannel, MUSB_HSDMA_ADDRESS),
++                       dma_addr);
++               musb_writel(mbase,
++                       MUSB_HSDMA_CHANNEL_OFFSET(bChannel, MUSB_HSDMA_COUNT),
++                       len);
++
++               /* control (this should start things) */
++               musb_writew(mbase,
++                       MUSB_HSDMA_CHANNEL_OFFSET(bChannel, MUSB_HSDMA_CONTROL),
++                       csr);
++       } /* Mentor DMA */
+ }
+
++#ifdef CONFIG_MUSB_USE_SYSTEM_DMA_RX
++static void musb_sysdma_completion(int lch, u16 ch_status, void *data)
++{
++       u32 dwAddress;
++       unsigned long flags;
++
++       struct dma_channel *pChannel;
++
++       struct musb_dma_channel *pImplChannel =
++                                       (struct musb_dma_channel *) data;
++       struct musb_dma_controller *controller = pImplChannel->controller;
++       struct musb *musb = controller->pDmaPrivate;
++       pChannel = &pImplChannel->Channel;
++
++       DBG(2, "lch = 0x%d, ch_status = 0x%x\n", lch, ch_status);
++       spin_lock_irqsave(&musb->lock, flags);
++
++       dwAddress = (u32) omap_get_dma_dst_pos(pImplChannel->sysdma_channel);
++       pChannel->actual_len = dwAddress - pImplChannel->dwStartAddress;
++
++       DBG(2, "ch %p, 0x%x -> 0x%x (%d / %d) %s\n",
++               pChannel, pImplChannel->dwStartAddress, dwAddress,
++               pChannel->actual_len, pImplChannel->len,
++               (pChannel->actual_len < pImplChannel->len) ?
++               "=> reconfig 0": "=> complete");
++
++       pChannel->status = MUSB_DMA_STATUS_FREE;
++       musb_dma_completion(musb, pImplChannel->epnum, pImplChannel->transmit);
++
++       spin_unlock_irqrestore(&musb->lock, flags);
++       return;
++}
++#endif
++
+ static int dma_channel_program(struct dma_channel *pChannel,
+                                u16 packet_sz, u8 mode,
+                                dma_addr_t dma_addr, u32 len)
+@@ -265,6 +374,13 @@ static int dma_channel_abort(struct dma_
+                                MUSB_EP_OFFSET(pImplChannel->epnum, MUSB_TXCSR),
+                                csr);
+                } else {
++#ifdef CONFIG_MUSB_USE_SYSTEM_DMA_RX
++                       if (pImplChannel->sysdma_channel != -1) {
++                               omap_stop_dma(pImplChannel->sysdma_channel);
++                               omap_free_dma(pImplChannel->sysdma_channel);
++                               pImplChannel->sysdma_channel = -1;
++                       }
++#endif
+                        csr = musb_readw(mbase,
+                                MUSB_EP_OFFSET(pImplChannel->epnum, MUSB_RXCSR));
+                        csr &= ~(MUSB_RXCSR_AUTOCLEAR |
+Index: testing/drivers/usb/musb/Kconfig
+===================================================================
+--- testing.orig/drivers/usb/musb/Kconfig
++++ testing/drivers/usb/musb/Kconfig
+@@ -150,6 +150,14 @@ config USB_INVENTRA_DMA
+        help
+          Enable DMA transfers using Mentor's engine.
+
++config MUSB_USE_SYSTEM_DMA_RX
++       bool 'Use System DMA for RX endpoints'
++       depends on USB_MUSB_HDRC && USB_INVENTRA_DMA
++       help
++         MUSB RTL version 1.4 has a hardware issue when TX and RX DMA
++         channels are simultaneously enabled. To work around this issue,
++         you can choose to use System DMA for RX channels.
++
+ config USB_TI_CPPI_DMA
+        bool
+        depends on USB_MUSB_HDRC && !MUSB_PIO_ONLY
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
