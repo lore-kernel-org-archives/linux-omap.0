@@ -1,76 +1,125 @@
-From: Emanoil Kotsev <deloptes@yahoo.com>
-Subject: Re: USB driver issue
-Date: Sun, 3 Aug 2008 02:46:20 -0700 (PDT)
-Message-ID: <464270.3859.qm@web53208.mail.re2.yahoo.com>
-References: <20080803045717.GA9526@kroah.com>
-Reply-To: deloptes@yahoo.com
+From: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Subject: Re: [PATCH] ARM: OMAP: OneNAND for OMAP3
+Date: Mon, 04 Aug 2008 09:56:50 +0300
+Message-ID: <4896A832.3080402@nokia.com>
+References: <4892C533.50904@nokia.com> <alpine.DEB.1.00.0808011030270.19571@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from web53208.mail.re2.yahoo.com ([206.190.49.78]:39230 "HELO
-	web53208.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753023AbYHCJqV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 3 Aug 2008 05:46:21 -0400
-In-Reply-To: <20080803045717.GA9526@kroah.com>
+Received: from smtp.nokia.com ([192.100.122.230]:45885 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757758AbYHDG4B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Aug 2008 02:56:01 -0400
+In-Reply-To: <alpine.DEB.1.00.0808011030270.19571@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: me@felipebalbi.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
-Hello,
-
-thanks a lot, this solved the problem I think, because there are no such messages anymore. The answer - question I couldn't understand what you mean
-
-The kernel version is 2.6.24.7.
-
-I have just blacklisted the ub driver now, so it's never auto loaded.
-
-I think it is the "Low Performance USB Block driver" is it correct?
-
-thanks and regards again
-
-
---- On Sun, 8/3/08, Greg KH <greg@kroah.com> wrote:
-
-> From: Greg KH <greg@kroah.com>
-> Subject: Re: USB driver issue
-> To: "Emanoil Kotsev" <deloptes@yahoo.com>
-> Cc: me@felipebalbi.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-omap-open-source@linux.omap.com" <linux-omap-open-source@linux.omap.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
-> Date: Sunday, August 3, 2008, 6:57 AM
-> A: No.
-> Q: Should I include quotations after my reply?
+Paul Walmsley wrote:
+> Hello Adrian,
 > 
-> On Sat, Aug 02, 2008 at 09:33:19PM -0700, Emanoil Kotsev
-> wrote:
-> > Thanks for fast response
-> > 
-> > lsmod
-> > ...
-> > usb_storage            44932  0
-> > ub                     18976  8
-> > ...
-> > 
-> > both are loaded but devices hang on ub you are right.
-> > 
-> > I think linux decided to use ub on it's own  ...
-> how do I change this
-> > (ub is new to me  -  I am a kernel time traveler :-D 
-> - I tought it's
-> > normal - some kind of new feature)
+> On Fri, 1 Aug 2008, Adrian Hunter wrote:
 > 
-> Just don't build it, or rmmod it and then plug your
-> device back in.
+>> Update OneNAND support for OMAP3.
 > 
-> > Is there any sense to install 2.6.26 in this case
-> (would it help me -
-> > I know it would please you, but I'm trying to
-> avoid work and fears)?
+> a few quick comments.
 > 
-> What kernel version is this problem happening on?
-> 
-> thanks,
-> 
-> greg k-h
 
+Thanks for looking at the code.
 
-      
+>> +		reg =
+>> omap2_onenand_readw(onenand_base+ONENAND_REG_VERSION_ID);
+> 
+> Just a minor nit - please use spaces around binary & ternary operators per 
+> CodingStyle.
+> 
+>> +			  (sync_write?GPMC_CONFIG1_WRITEMULTIPLE_SUPP:0) |
+>> +			  (sync_write?GPMC_CONFIG1_WRITETYPE_SYNC:0) |
+> 
+> as above.
+> 
+>> diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+>> index ba83900..378ee17 100644
+>> --- a/drivers/mtd/onenand/omap2.c
+>> +++ b/drivers/mtd/onenand/omap2.c
+>> @@ -223,6 +227,155 @@ static inline int omap2_onenand_bufferram_offset(struct
+>> mtd_info *mtd, int area)
+>> 	return 0;
+>> }
+>>
+>> +#if defined(CONFIG_ARCH_OMAP3)
+>> +
+>> +static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+>> +					unsigned char *buffer, int offset,
+>> +					size_t count)
+>> +{
+>> +	struct omap2_onenand *info = container_of(mtd, struct omap2_onenand,
+>> mtd);
+>> +	struct onenand_chip *this = mtd->priv;
+>> +	dma_addr_t dma_src, dma_dst;
+>> +	int bram_offset;
+>> +	unsigned long timeout;
+>> +	void *buf = (void *)buffer;
+>> +	size_t xtra;
+>> +	volatile unsigned *done;
+> 
+> The way this volatile is used doesn't look right...
+> 
+
+Well, it is correct.
+
+>> +	INIT_COMPLETION(info->dma_done);
+>> +	omap_start_dma(info->dma_channel);
+>> +
+>> +	timeout = jiffies + msecs_to_jiffies(20);
+>> +	done = &info->dma_done.done;
+> 
+> So the volatile here appears to apply to the address of 'done', but this 
+> address does not change, correct?  Only the value of 'done' itself 
+> changes.
+> 
+
+No, the volatile applies to the "unsigned" not the "*".
+
+>> +	while (time_before(jiffies, timeout))
+>> +		if (*done)
+>> +			break;
+> 
+> Can this be replaced with wait_for_completion_timeout() or something 
+> similar?
+> 
+
+No.  Performance testing showed that a context switch here is too expensive.
+It is better to spin.
+
+>> +	dma_unmap_single(&info->pdev->dev, dma_dst, count, DMA_FROM_DEVICE);
+>> +
+>> +	if (!*done) {
+>> +		dev_err(&info->pdev->dev, "timeout waiting for DMA\n");
+>> +		goto out_copy;
+>> +	}
+> 
+> ...
+> 
+>> +static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
+>> +					 const unsigned char *buffer, int
+>> offset,
+>> +					 size_t count)
+>> +{
+>> +	struct omap2_onenand *info = container_of(mtd, struct omap2_onenand,
+>> mtd);
+>> +	struct onenand_chip *this = mtd->priv;
+>> +	dma_addr_t dma_src, dma_dst;
+>> +	int bram_offset;
+>> +	unsigned long timeout;
+>> +	void *buf = (void *)buffer;
+>> +	volatile unsigned *done;
+> 
+> Same comments in this function per volatile.
+> 
+> 
+> - Paul
+> 
+
