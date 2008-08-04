@@ -1,125 +1,53 @@
-From: Adrian Hunter <ext-adrian.hunter@nokia.com>
-Subject: Re: [PATCH] ARM: OMAP: OneNAND for OMAP3
-Date: Mon, 04 Aug 2008 09:56:50 +0300
-Message-ID: <4896A832.3080402@nokia.com>
-References: <4892C533.50904@nokia.com> <alpine.DEB.1.00.0808011030270.19571@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] PROTECT_KEY register is in the PM_MASTER module not in
+	the PM_RECEIVER module
+Date: Mon, 4 Aug 2008 10:50:29 +0300
+Message-ID: <20080804075028.GA8885@atomide.com>
+References: <20080716165325.GA4424@codecarver.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:45885 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757758AbYHDG4B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Aug 2008 02:56:01 -0400
-In-Reply-To: <alpine.DEB.1.00.0808011030270.19571@utopia.booyaka.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64745 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751361AbYHDHud (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Aug 2008 03:50:33 -0400
+Content-Disposition: inline
+In-Reply-To: <20080716165325.GA4424@codecarver.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
+To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 Cc: linux-omap@vger.kernel.org
 
-Paul Walmsley wrote:
-> Hello Adrian,
-> 
-> On Fri, 1 Aug 2008, Adrian Hunter wrote:
-> 
->> Update OneNAND support for OMAP3.
-> 
-> a few quick comments.
-> 
+* Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com> [080716 19:53]:
+> This patch fixes a write to the wrong address in the triton2 chip.
 
-Thanks for looking at the code.
+Pushing today.
 
->> +		reg =
->> omap2_onenand_readw(onenand_base+ONENAND_REG_VERSION_ID);
-> 
-> Just a minor nit - please use spaces around binary & ternary operators per 
-> CodingStyle.
-> 
->> +			  (sync_write?GPMC_CONFIG1_WRITEMULTIPLE_SUPP:0) |
->> +			  (sync_write?GPMC_CONFIG1_WRITETYPE_SYNC:0) |
-> 
-> as above.
-> 
->> diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
->> index ba83900..378ee17 100644
->> --- a/drivers/mtd/onenand/omap2.c
->> +++ b/drivers/mtd/onenand/omap2.c
->> @@ -223,6 +227,155 @@ static inline int omap2_onenand_bufferram_offset(struct
->> mtd_info *mtd, int area)
->> 	return 0;
->> }
->>
->> +#if defined(CONFIG_ARCH_OMAP3)
->> +
->> +static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
->> +					unsigned char *buffer, int offset,
->> +					size_t count)
->> +{
->> +	struct omap2_onenand *info = container_of(mtd, struct omap2_onenand,
->> mtd);
->> +	struct onenand_chip *this = mtd->priv;
->> +	dma_addr_t dma_src, dma_dst;
->> +	int bram_offset;
->> +	unsigned long timeout;
->> +	void *buf = (void *)buffer;
->> +	size_t xtra;
->> +	volatile unsigned *done;
-> 
-> The way this volatile is used doesn't look right...
-> 
+Tony
 
-Well, it is correct.
 
->> +	INIT_COMPLETION(info->dma_done);
->> +	omap_start_dma(info->dma_channel);
->> +
->> +	timeout = jiffies + msecs_to_jiffies(20);
->> +	done = &info->dma_done.done;
+> Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+> ---
+>  drivers/i2c/chips/twl4030-usb.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> So the volatile here appears to apply to the address of 'done', but this 
-> address does not change, correct?  Only the value of 'done' itself 
-> changes.
+> diff --git a/drivers/i2c/chips/twl4030-usb.c b/drivers/i2c/chips/twl4030-usb.c
+> index ab335ca..20858b5 100644
+> --- a/drivers/i2c/chips/twl4030-usb.c
+> +++ b/drivers/i2c/chips/twl4030-usb.c
+> @@ -586,7 +586,7 @@ static void twl4030_usb_ldo_init(struct twl4030_usb *twl)
+>  	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V8_TYPE);
+>  
+>  	/* disable access to power configuration registers */
+> -	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, PROTECT_KEY);
+> +	twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0, PROTECT_KEY);
+>  }
+>  
+>  static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+> -- 
+> 1.5.3.4
 > 
-
-No, the volatile applies to the "unsigned" not the "*".
-
->> +	while (time_before(jiffies, timeout))
->> +		if (*done)
->> +			break;
-> 
-> Can this be replaced with wait_for_completion_timeout() or something 
-> similar?
-> 
-
-No.  Performance testing showed that a context switch here is too expensive.
-It is better to spin.
-
->> +	dma_unmap_single(&info->pdev->dev, dma_dst, count, DMA_FROM_DEVICE);
->> +
->> +	if (!*done) {
->> +		dev_err(&info->pdev->dev, "timeout waiting for DMA\n");
->> +		goto out_copy;
->> +	}
-> 
-> ...
-> 
->> +static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
->> +					 const unsigned char *buffer, int
->> offset,
->> +					 size_t count)
->> +{
->> +	struct omap2_onenand *info = container_of(mtd, struct omap2_onenand,
->> mtd);
->> +	struct onenand_chip *this = mtd->priv;
->> +	dma_addr_t dma_src, dma_dst;
->> +	int bram_offset;
->> +	unsigned long timeout;
->> +	void *buf = (void *)buffer;
->> +	volatile unsigned *done;
-> 
-> Same comments in this function per volatile.
-> 
-> 
-> - Paul
-> 
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
