@@ -1,47 +1,96 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH] Add option for DSP bridge debugging.
-Date: Mon,  4 Aug 2008 16:47:36 +0300
-Message-ID: <1217857656-31431-1-git-send-email-felipe.contreras@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] i2c-omap: close suspected race between omap_i2c_idle()
+	and omap_i2c_isr()
+Date: Mon, 4 Aug 2008 17:01:22 +0300
+Message-ID: <20080804140121.GF8885@atomide.com>
+References: <alpine.DEB.1.00.0807151259180.467@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:27097 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753245AbYHDNsy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Aug 2008 09:48:54 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62545 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752750AbYHDOB1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Aug 2008 10:01:27 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.1.00.0807151259180.467@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Felipe Contreras <felipe.contreras@gmail.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
----
- drivers/dsp/dspbridge/Kconfig               |    3 +++
- drivers/dsp/dspbridge/mpu_driver/src/Kbuild |    2 +-
- 2 files changed, 4 insertions(+), 1 deletions(-)
+* Paul Walmsley <paul@pwsan.com> [080715 22:04]:
+> 
+> omap_i2c_idle() sets an internal flag, "dev->idle", instructing its
+> ISR to decline interrupts.  It sets this flag before it actually masks
+> the interrupts on the I2C controller.  This is problematic, since an
+> I2C interrupt could arrive after dev->idle is set, but before the
+> interrupt source is masked.  When this happens, Linux disables the I2C
+> controller's IRQ, causing all future transactions on the bus to fail.
+> 
+> Symptoms, happening on about 7% of boots:
+> 
+>    irq 56: nobody cared (try booting with the "irqpoll" option)
+>    <warning traceback here>
+>    Disabling IRQ #56
+>    i2c_omap i2c_omap.1: controller timed out
+> 
+> In omap_i2c_idle(), this patch sets dev->idle only after the interrupt
+> mask write to the I2C controller has left the ARM write buffer.
+> That's probably the major offender.  For additional prophylaxis, in
+> omap_i2c_unidle(), the patch clears the dev->idle flag before
+> interrupts are enabled, rather than afterwards.
+> 
+> The patch has survived twenty-two reboots on the 3430SDP here without
+> wedging I2C1.  Not absolutely dispositive, but promising!
 
-diff --git a/drivers/dsp/dspbridge/Kconfig b/drivers/dsp/dspbridge/Kconfig
-index 5d5622d..580c148 100644
---- a/drivers/dsp/dspbridge/Kconfig
-+++ b/drivers/dsp/dspbridge/Kconfig
-@@ -29,4 +29,7 @@ config BRIDGE_PM
- 	DSP Bridge employs power management techniques to save dynamic and
- 	static power consumption of the IVA sub system.
- 
-+config BRIDGE_DEBUG
-+	bool "DSP Bridge Debug Support"
-+
- endif
-diff --git a/drivers/dsp/dspbridge/mpu_driver/src/Kbuild b/drivers/dsp/dspbridge/mpu_driver/src/Kbuild
-index b6ad62a..62ca643 100644
---- a/drivers/dsp/dspbridge/mpu_driver/src/Kbuild
-+++ b/drivers/dsp/dspbridge/mpu_driver/src/Kbuild
-@@ -33,7 +33,7 @@ ccflags-y = -DDISABLE_BRIDGE_PM
- endif
- 
- # Debug
--ifeq ($(CONFIG_DEBUG_KERNEL),y)
-+ifeq ($(CONFIG_BRIDGE_DEBUG),y)
- ccflags-y += -DGT_TRACE -DDEBUG
- endif
- 
--- 
-1.5.6.2.1.g1a51b
+Great, pushing today.
 
+Tony
+
+> 
+> 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> ---
+> 
+>  drivers/i2c/busses/i2c-omap.c |   10 ++++++++--
+>  1 files changed, 8 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 55779f5..ed7e9ad 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -209,22 +209,28 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
+>  	if (dev->iclk != NULL)
+>  		clk_enable(dev->iclk);
+>  	clk_enable(dev->fclk);
+> +	dev->idle = 0;
+>  	if (dev->iestate)
+>  		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
+> -	dev->idle = 0;
+>  }
+>  
+>  static void omap_i2c_idle(struct omap_i2c_dev *dev)
+>  {
+>  	u16 iv;
+>  
+> -	dev->idle = 1;
+>  	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+>  	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
+>  	if (dev->rev1)
+>  		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG);
+>  	else
+>  		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, dev->iestate);
+> +	/*
+> +	 * The wmb() is to ensure that the I2C interrupt mask write
+> +	 * reaches the I2C controller before the dev->idle store
+> +	 * occurs.
+> +	 */
+> +	wmb();
+> +	dev->idle = 1;
+>  	clk_disable(dev->fclk);
+>  	if (dev->iclk != NULL)
+>  		clk_disable(dev->iclk);
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
