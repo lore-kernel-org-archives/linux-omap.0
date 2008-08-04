@@ -1,461 +1,181 @@
 From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: [PATCH 1/3 v2] mtd omap2 nand driver: extend to work with omap3 boards
-Date: Mon, 4 Aug 2008 18:27:17 +0200
-Message-ID: <5FB34B8F-B32D-44A0-BD71-3F3934829271@student.utwente.nl>
-References: <4897270F.7000205@googlemail.com>
+Subject: Re: [PATCH 2/3 v2] OMAP3 Beagle: add nand support
+Date: Mon, 4 Aug 2008 18:27:33 +0200
+Message-ID: <1F0707CB-105A-4E40-820A-4867076B1502@student.utwente.nl>
+References: <4897271E.6000408@googlemail.com>
 Mime-Version: 1.0 (Apple Message framework v926)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-10--958130764"
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-11--958114576"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx3.utsp.utwente.nl ([130.89.2.14]:11148 "EHLO mx.utwente.nl"
+Received: from mx3.utsp.utwente.nl ([130.89.2.14]:11159 "EHLO mx.utwente.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754486AbYHDQ1b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Aug 2008 12:27:31 -0400
-In-Reply-To: <4897270F.7000205@googlemail.com>
+	id S1750751AbYHDQ1q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Aug 2008 12:27:46 -0400
+In-Reply-To: <4897271E.6000408@googlemail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Steve Sakoman <sakoman@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Steve Sakoman <steve@sakoman.com>
 
 This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-10--958130764
+--Apple-Mail-11--958114576
 Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
 Content-Transfer-Encoding: 7bit
 
-Acked-by: Koen Kooi <koen at openembedded dot org>
+Acked-by: Koen Kooi <koen@openembedded dot org>
 
 Op 4 aug 2008, om 17:58 heeft Dirk Behme het volgende geschreven:
 
-> From: Teerth Reddy <teerth@ti.com>, Steve Sakoman  
-> <steve@sakoman.com>, Dirk Behme <dirk.behme@gmail.com>
+> From: Steve Sakoman <steve@sakoman.com>, Dirk Behme <dirk.behme@gmail.com 
+> >
 >
-> Extend omap2 mtd nand driver to work with ARCH_OMAP3 boards
+> Add nand support to omap3beagle
 >
 > Signed-off-by: Steve Sakoman <steve@sakoman.com>
 > Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
 >
-> Index: linux-beagle/drivers/mtd/nand/Kconfig
+> Index: linux-beagle/arch/arm/mach-omap2/board-omap3beagle.c
 > ===================================================================
-> --- linux-beagle.orig/drivers/mtd/nand/Kconfig
-> +++ linux-beagle/drivers/mtd/nand/Kconfig
-> @@ -70,10 +70,10 @@ config MTD_NAND_AMS_DELTA
-> 	  Support for NAND flash on Amstrad E3 (Delta).
+> --- linux-beagle.orig/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ linux-beagle/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -20,11 +20,15 @@
+> #include <linux/clk.h>
+> #include <linux/io.h>
+> #include <linux/leds.h>
+> +#include <linux/mtd/mtd.h>
+> +#include <linux/mtd/partitions.h>
+> +#include <linux/mtd/nand.h>
 >
-> config MTD_NAND_OMAP2
-> -	tristate "NAND Flash device on OMAP 2420H4/2430SDP boards"
-> -	depends on (ARM && ARCH_OMAP2 && MTD_NAND)
-> +	tristate "NAND Flash device on OMAP2 and OMAP3"
-> +	depends on ARM && MTD_NAND && (ARCH_OMAP2 || ARCH_OMAP3)
-> 	help
-> -          Support for NAND flash on Texas Instruments 2430SDP/ 
-> 2420H4 platforms.
-> +          Support for NAND flash on Texas Instruments OMAP2 and  
-> OMAP3 platforms.
+> #include <asm/hardware.h>
+> #include <asm/mach-types.h>
+> #include <asm/mach/arch.h>
+> #include <asm/mach/map.h>
+> +#include <asm/mach/flash.h>
 >
-> config MTD_NAND_OMAP
-> 	tristate "NAND Flash device on OMAP H3/H2/P2 boards"
-> Index: linux-beagle/drivers/mtd/nand/omap2.c
-> ===================================================================
-> --- linux-beagle.orig/drivers/mtd/nand/omap2.c
-> +++ linux-beagle/drivers/mtd/nand/omap2.c
-> @@ -111,15 +111,6 @@
-> static const char *part_probes[] = { "cmdlinepart", NULL };
-> #endif
+> #include <asm/arch/gpio.h>
+> #include <asm/arch/board.h>
+> @@ -32,6 +36,64 @@
+> #include <asm/arch/usb-ehci.h>
+> #include <asm/arch/hsmmc.h>
+> #include <asm/arch/common.h>
+> +#include <asm/arch/gpmc.h>
+> +#include <asm/arch/nand.h>
+> +
+> +#define GPMC_CS0_BASE  0x60
+> +#define GPMC_CS_SIZE   0x30
+> +
+> +static struct mtd_partition omap3beagle_nand_partitions[] = {
+> +	/* All the partition sizes are listed in terms of NAND block size */
+> +	{
+> +		.name		= "X-Loader",
+> +		.offset		= 0,
+> +		.size		= 4*(64 * 2048),
+> +		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+> +	},
+> +	{
+> +		.name		= "U-Boot",
+> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
+> +		.size		= 15*(64 * 2048),
+> +		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+> +	},
+> +	{
+> +		.name		= "U-Boot Env",
+> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x260000 */
+> +		.size		= 1*(64 * 2048),
+> +	},
+> +	{
+> +		.name		= "Kernel",
+> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
+> +		.size		= 32*(64 * 2048),
+> +	},
+> +	{
+> +		.name		= "File System",
+> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x680000 */
+> +		.size		= MTDPART_SIZ_FULL,
+> +	},
+> +};
+> +
+> +static struct omap_nand_platform_data omap3beagle_nand_data = {
+> +	.parts		= omap3beagle_nand_partitions,
+> +	.nr_parts	= ARRAY_SIZE(omap3beagle_nand_partitions),
+> +	.dma_channel	= -1,		/* disable DMA in OMAP NAND driver */
+> +	.nand_setup	= NULL,
+> +	.dev_ready	= NULL,
+> +};
+> +
+> +static struct resource omap3beagle_nand_resource = {
+> +	.flags		= IORESOURCE_MEM,
+> +};
+> +
+> +static struct platform_device omap3beagle_nand_device = {
+> +	.name		= "omap2-nand",
+> +	.id		= -1,
+> +	.dev		= {
+> +		.platform_data	= &omap3beagle_nand_data,
+> +	},
+> +	.num_resources	= 1,
+> +	.resource	= &omap3beagle_nand_resource,
+> +};
 >
-> -static int hw_ecc = 1;
-> -
-> -/* new oob placement block for use with hardware ecc generation */
-> -static struct nand_ecclayout omap_hw_eccoob = {
-> -	.eccbytes = 12,
-> -	.eccpos = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13},
-> -	.oobfree = {{16, 32}, {33, 63} },
-> -};
-> -
-> struct omap_nand_info {
-> 	struct nand_hw_control		controller;
-> 	struct omap_nand_platform_data	*pdata;
-> @@ -133,6 +124,13 @@ struct omap_nand_info {
-> 	void __iomem			*gpmc_cs_baseaddr;
-> 	void __iomem			*gpmc_baseaddr;
+> static struct omap_uart_config omap3_beagle_uart_config __initdata = {
+> 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+> @@ -113,6 +175,44 @@ static struct platform_device *omap3_bea
+> 	&leds_gpio,
 > };
-> +
-> +/*
-> + * omap_nand_wp - This function enable or disable the Write Protect  
-> feature on
-> + * NAND device
-> + * @mtd: MTD device structure
-> + * @mode: WP ON/OFF
-> + */
-> static void omap_nand_wp(struct mtd_info *mtd, int mode)
-> {
-> 	struct omap_nand_info *info = container_of(mtd,
-> @@ -189,11 +187,11 @@ static void omap_hwcontrol(struct mtd_in
-> }
 >
-> /*
-> -* omap_read_buf - read data from NAND controller into buffer
-> -* @mtd: MTD device structure
-> -* @buf: buffer to store date
-> -* @len: number of bytes to read
-> -*/
-> + * omap_read_buf - read data from NAND controller into buffer
-> + * @mtd: MTD device structure
-> + * @buf: buffer to store date
-> + * @len: number of bytes to read
-> + */
-> static void omap_read_buf(struct mtd_info *mtd, u_char *buf, int len)
-> {
-> 	struct omap_nand_info *info = container_of(mtd,
-> @@ -207,11 +205,11 @@ static void omap_read_buf(struct mtd_inf
-> }
->
-> /*
-> -* omap_write_buf - write buffer to NAND controller
-> -* @mtd: MTD device structure
-> -* @buf: data buffer
-> -* @len: number of bytes to write
-> -*/
-> + * omap_write_buf - write buffer to NAND controller
-> + * @mtd: MTD device structure
-> + * @buf: data buffer
-> + * @len: number of bytes to write
-> + */
-> static void omap_write_buf(struct mtd_info *mtd, const u_char * buf,  
-> int len)
-> {
-> 	struct omap_nand_info *info = container_of(mtd,
-> @@ -250,10 +248,16 @@ static int omap_verify_buf(struct mtd_in
-> 	return 0;
-> }
->
-> +#ifdef CONFIG_MTD_NAND_OMAP_HWECC
-> +/*
-> + * omap_hwecc_init-Initialize the Hardware ECC for NAND flash in  
-> GPMC controller
-> + * @mtd: MTD device structure
-> + */
-> static void omap_hwecc_init(struct mtd_info *mtd)
-> {
-> 	struct omap_nand_info *info = container_of(mtd, struct  
-> omap_nand_info,
-> 							mtd);
-> +	register struct nand_chip *chip = mtd->priv;
-> 	unsigned long val = 0x0;
->
-> 	/* Read from ECC Control Register */
-> @@ -264,16 +268,15 @@ static void omap_hwecc_init(struct mtd_i
->
-> 	/* Read from ECC Size Config Register */
-> 	val = __raw_readl(info->gpmc_baseaddr + GPMC_ECC_SIZE_CONFIG);
-> -	/* ECCSIZE1=512 | ECCSIZE0=8bytes | Select eccResultsize[0123] */
-> -	val = ((0x000000FF<<22) | (0x00000003<<12) | (0x0000000F));
-> +	/* ECCSIZE1=512 | Select eccResultsize[0-3] */
-> +	val = ((((chip->ecc.size >> 1) - 1) << 22) | (0x0000000F));
-> 	__raw_writel(val, info->gpmc_baseaddr + GPMC_ECC_SIZE_CONFIG);
-> -
-> -
-> }
->
-> /*
-> - * This function will generate true ECC value, which can be used
-> + * gen_true_ecc - This function will generate true ECC value, which  
-> can be used
->  * when correcting data read from NAND flash memory core
-> + * @ecc_buf: buffer to store ecc code
->  */
-> static void gen_true_ecc(u8 *ecc_buf)
-> {
-> @@ -289,8 +292,12 @@ static void gen_true_ecc(u8 *ecc_buf)
-> }
->
-> /*
-> - * This function compares two ECC's and indicates if there is an  
-> error.
-> - * If the error can be corrected it will be corrected to the buffer
-> + * omap_compare_ecc - This function compares two ECC's and  
-> indicates if there
-> + * is an error. If the error can be corrected it will be corrected  
-> to the
-> + * buffer
-> + * @ecc_data1:  ecc code from nand spare area
-> + * @ecc_data2:  ecc code from hardware register obtained from  
-> hardware ecc
-> + * @page_data:  page data
->  */
-> static int omap_compare_ecc(u8 *ecc_data1,	/* read from NAND memory */
-> 			    u8 *ecc_data2,	/* read from register */
-> @@ -409,6 +416,14 @@ static int omap_compare_ecc(u8 *ecc_data
-> 	}
-> }
->
-> +/*
-> + * omap_correct_data - Compares the ecc read from nand spare area  
-> with ECC
-> + * registers values and corrects one bit error if it has occured
-> + * @mtd: MTD device structure
-> + * @dat: page data
-> + * @read_ecc: ecc read from nand flash
-> + * @calc_ecc: ecc read from ECC registers
-> + */
-> static int omap_correct_data(struct mtd_info *mtd, u_char * dat,
-> 				u_char * read_ecc, u_char * calc_ecc)
-> {
-> @@ -436,65 +451,64 @@ static int omap_correct_data(struct mtd_
-> }
->
-> /*
-> -** Generate non-inverted ECC bytes.
-> -**
-> -** Using noninverted ECC can be considered ugly since writing a blank
-> -** page ie. padding will clear the ECC bytes. This is no problem as  
-> long
-> -** nobody is trying to write data on the seemingly unused page.
-> -**
-> -** Reading an erased page will produce an ECC mismatch between
-> -** generated and read ECC bytes that has to be dealt with separately.
-> -*/
-> + * omap_calcuate_ecc - Generate non-inverted ECC bytes.
-> + * Using noninverted ECC can be considered ugly since writing a blank
-> + * page ie. padding will clear the ECC bytes. This is no problem as  
-> long
-> + * nobody is trying to write data on the seemingly unused page.  
-> Reading
-> + * an erased page will produce an ECC mismatch between generated  
-> and read
-> + * ECC bytes that has to be dealt with separately.
-> + * @mtd: MTD device structure
-> + * @dat: The pointer to data on which ecc is computed
-> + * @ecc_code: The ecc_code buffer
-> + */
-> static int omap_calculate_ecc(struct mtd_info *mtd, const u_char *dat,
-> 				u_char *ecc_code)
-> {
-> 	struct omap_nand_info *info = container_of(mtd, struct  
-> omap_nand_info,
-> 							mtd);
-> 	unsigned long val = 0x0;
-> -	unsigned long reg, n;
-> -
-> -	/* Ex NAND_ECC_HW12_2048 */
-> -	if ((info->nand.ecc.mode == NAND_ECC_HW) &&
-> -		(info->nand.ecc.size  == 2048))
-> -		n = 4;
-> -	else
-> -		n = 1;
-> +	unsigned long reg;
->
-> 	/* Start Reading from HW ECC1_Result = 0x200 */
-> 	reg = (unsigned long)(info->gpmc_baseaddr + GPMC_ECC1_RESULT);
-> -	while (n--) {
-> -		val = __raw_readl(reg);
-> -		*ecc_code++ = val;		/* P128e, ..., P1e */
-> -		*ecc_code++ = val >> 16;	/* P128o, ..., P1o */
-> -		/* P2048o, P1024o, P512o, P256o, P2048e, P1024e, P512e, P256e */
-> -		*ecc_code++ = ((val >> 8) & 0x0f) | ((val >> 20) & 0xf0);
-> -		reg += 4;
-> -	}
-> +	val = __raw_readl(reg);
-> +	*ecc_code++ = val;          /* P128e, ..., P1e */
-> +	*ecc_code++ = val >> 16;    /* P128o, ..., P1o */
-> +	/* P2048o, P1024o, P512o, P256o, P2048e, P1024e, P512e, P256e */
-> +	*ecc_code++ = ((val >> 8) & 0x0f) | ((val >> 20) & 0xf0);
-> +	reg += 4;
->
-> 	return 0;
-> -} /* omap_calculate_ecc */
-> +}
->
-> +/*
-> + * omap_enable_hwecc - This function enables the hardware ecc  
-> functionality
-> + * @mtd: MTD device structure
-> + * @mode: Read/Write mode
-> + */
-> static void omap_enable_hwecc(struct mtd_info *mtd, int mode)
-> {
-> 	struct omap_nand_info *info = container_of(mtd, struct  
-> omap_nand_info,
-> 							mtd);
-> +	register struct nand_chip *chip = mtd->priv;
-> +	unsigned int dev_width = (chip->options & NAND_BUSWIDTH_16) ? 1 : 0;
-> 	unsigned long val = __raw_readl(info->gpmc_baseaddr +  
-> GPMC_ECC_CONFIG);
->
-> 	switch (mode) {
-> 	case NAND_ECC_READ    :
-> 		__raw_writel(0x101, info->gpmc_baseaddr + GPMC_ECC_CONTROL);
-> -		/* ECC 16 bit col) | ( CS 0 )  | ECC Enable */
-> -		val = (1 << 7) | (0x0) | (0x1) ;
-> +		/* (ECC 16 or 8 bit col) | ( CS  )  | ECC Enable */
-> +		val = (dev_width << 7) | (info->gpmc_cs << 1) | (0x1);
-> 		break;
-> 	case NAND_ECC_READSYN :
-> -		__raw_writel(0x100, info->gpmc_baseaddr + GPMC_ECC_CONTROL);
-> -		/* ECC 16 bit col) | ( CS 0 )  | ECC Enable */
-> -		val = (1 << 7) | (0x0) | (0x1) ;
-> +		 __raw_writel(0x100, info->gpmc_baseaddr + GPMC_ECC_CONTROL);
-> +		/* (ECC 16 or 8 bit col) | ( CS  )  | ECC Enable */
-> +		val = (dev_width << 7) | (info->gpmc_cs << 1) | (0x1);
-> 		break;
-> 	case NAND_ECC_WRITE   :
-> 		__raw_writel(0x101, info->gpmc_baseaddr + GPMC_ECC_CONTROL);
-> -		/* ECC 16 bit col) | ( CS 0 )  | ECC Enable */
-> -		val = (1 << 7) | (0x0) | (0x1) ;
-> +		/* (ECC 16 or 8 bit col) | ( CS  )  | ECC Enable */
-> +		val = (dev_width << 7) | (info->gpmc_cs << 1) | (0x1);
-> 		break;
-> 	default:
-> 		DEBUG(MTD_DEBUG_LEVEL0, "Error: Unrecognized Mode[%d]!\n",
-> @@ -504,7 +518,38 @@ static void omap_enable_hwecc(struct mtd
->
-> 	__raw_writel(val, info->gpmc_baseaddr + GPMC_ECC_CONFIG);
-> }
-> +#endif
-> +
-> +/*
-> + * omap_wait - Wait function is called during Program and erase
-> + * operations and the way it is called from MTD layer, we should wait
-> + * till the NAND chip is ready after the programming/erase operation
-> + * has completed.
-> + * @mtd: MTD device structure
-> + * @chip: NAND Chip structure
-> + */
-> +static int omap_wait(struct mtd_info *mtd, struct nand_chip *chip)
+> +void __init omap3beagle_flash_init(void)
 > +{
-> +	register struct nand_chip *this = mtd->priv;
-> +	struct omap_nand_info *info = container_of(mtd, struct  
-> omap_nand_info,
-> +							mtd);
-> +	int status = 0;
+> +	u8 cs = 0;
+> +	u8 nandcs = GPMC_CS_NUM + 1;
 > +
-> +	this->IO_ADDR_W = (void *) info->gpmc_cs_baseaddr +
-> +						GPMC_CS_NAND_COMMAND;
-> +	this->IO_ADDR_R = (void *) info->gpmc_cs_baseaddr +  
-> GPMC_CS_NAND_DATA;
+> +	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
 > +
-> +	while (!(status & 0x40)) {
-> +		 __raw_writeb(NAND_CMD_STATUS & 0xFF, this->IO_ADDR_W);
-> +		status = __raw_readb(this->IO_ADDR_R);
+> +	/* find out the chip-select on which NAND exists */
+> +	while (cs < GPMC_CS_NUM) {
+> +		u32 ret = 0;
+> +		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+> +
+> +		if ((ret & 0xC00) == 0x800) {
+> +			printk(KERN_INFO "Found NAND on CS%d\n", cs);
+> +			if (nandcs > GPMC_CS_NUM)
+> +				nandcs = cs;
+> +		}
+> +		cs++;
 > +	}
-> +	return status;
+> +
+> +	if (nandcs > GPMC_CS_NUM) {
+> +		printk(KERN_INFO "NAND: Unable to find configuration "
+> +				 "in GPMC\n ");
+> +		return;
+> +	}
+> +
+> +	if (nandcs < GPMC_CS_NUM) {
+> +		omap3beagle_nand_data.cs = nandcs;
+> +		omap3beagle_nand_data.gpmc_cs_baseaddr = (void *)
+> +			(gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
+> +		omap3beagle_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
+> +
+> +		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
+> +		if (platform_device_register(&omap3beagle_nand_device) < 0)
+> +			printk(KERN_ERR "Unable to register NAND device\n");
+> +	}
 > +}
->
-> +/*
-> + * omap_dev_ready - calls the platform specific dev_ready function
-> + * @mtd: MTD device structure
-> + */
-> static int omap_dev_ready(struct mtd_info *mtd)
+> +
+> static void __init omap3_beagle_init(void)
 > {
-> 	struct omap_nand_info *info = container_of(mtd, struct  
-> omap_nand_info,
-> @@ -534,7 +579,7 @@ static int __devinit omap_nand_probe(str
-> 	struct omap_nand_info		*info;
-> 	struct omap_nand_platform_data	*pdata;
-> 	int				err;
-> -	unsigned long val;
-> +	unsigned long 			val;
+> 	platform_add_devices(omap3_beagle_devices,  
+> ARRAY_SIZE(omap3_beagle_devices));
+> @@ -122,6 +222,7 @@ static void __init omap3_beagle_init(voi
+> 	hsmmc_init();
+> 	usb_musb_init();
+> 	usb_ehci_init();
+> +	omap3beagle_flash_init();
+> }
 >
->
-> 	pdata = pdev->dev.platform_data;
-> @@ -568,15 +613,20 @@ static int __devinit omap_nand_probe(str
-> 	}
->
-> 	/* Enable RD PIN Monitoring Reg */
-> -	val  = gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG1);
-> -	val |= WR_RD_PIN_MONITORING;
-> -	gpmc_cs_write_reg(info->gpmc_cs, GPMC_CS_CONFIG1, val);
-> +	if (pdata->dev_ready) {
-> +		val  = gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG1);
-> +		val |= WR_RD_PIN_MONITORING;
-> +		gpmc_cs_write_reg(info->gpmc_cs, GPMC_CS_CONFIG1, val);
-> +	}
->
-> 	val  = gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG7);
-> 	val &= ~(0xf << 8);
-> 	val |=  (0xc & 0xf) << 8;
-> 	gpmc_cs_write_reg(info->gpmc_cs, GPMC_CS_CONFIG7, val);
->
-> +	/* NAND write protect off */
-> +	omap_nand_wp(&info->mtd, NAND_WP_OFF);
-> +
-> 	if (!request_mem_region(info->phys_base, NAND_IO_SIZE,
-> 				pdev->dev.driver->name)) {
-> 		err = -EBUSY;
-> @@ -597,29 +647,39 @@ static int __devinit omap_nand_probe(str
-> 	info->nand.write_buf  = omap_write_buf;
-> 	info->nand.verify_buf = omap_verify_buf;
->
-> -	info->nand.dev_ready  = omap_dev_ready;
-> -	info->nand.chip_delay = 0;
-> -
-> -	/* Options */
-> -	info->nand.options   = NAND_BUSWIDTH_16;
-> -	info->nand.options  |= NAND_SKIP_BBTSCAN;
-> -
-> -	if (hw_ecc) {
-> -		/* init HW ECC */
-> -		omap_hwecc_init(&info->mtd);
-> -
-> -		info->nand.ecc.calculate = omap_calculate_ecc;
-> -		info->nand.ecc.hwctl     = omap_enable_hwecc;
-> -		info->nand.ecc.correct   = omap_correct_data;
-> -		info->nand.ecc.mode      = NAND_ECC_HW;
-> -		info->nand.ecc.bytes     = 12;
-> -		info->nand.ecc.size      = 2048;
-> -		info->nand.ecc.layout    = &omap_hw_eccoob;
-> -
-> +	/*
-> +	* If RDY/BSY line is connected to OMAP then use the omap ready  
-> funcrtion
-> +	* and the generic nand_wait function which reads the status register
-> +	* after monitoring the RDY/BSY line.Otherwise use a standard chip  
-> delay
-> +	* which is slightly more than tR (AC Timing) of the NAND device  
-> and read
-> +	* status register until you get a failure or success
-> +	*/
-> +	if (pdata->dev_ready) {
-> +		info->nand.dev_ready = omap_dev_ready;
-> +		info->nand.chip_delay = 0;
-> 	} else {
-> -		info->nand.ecc.mode = NAND_ECC_SOFT;
-> +		info->nand.waitfunc = omap_wait;
-> +		info->nand.chip_delay = 50;
-> 	}
->
-> +	info->nand.options  |= NAND_SKIP_BBTSCAN;
-> +	if ((gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG1) & 0x3000)
-> +								== 0x1000)
-> +		info->nand.options  |= NAND_BUSWIDTH_16;
-> +
-> +#ifdef CONFIG_MTD_NAND_OMAP_HWECC
-> +	info->nand.ecc.bytes		= 3;
-> +	info->nand.ecc.size		= 512;
-> +	info->nand.ecc.calculate	= omap_calculate_ecc;
-> +	info->nand.ecc.hwctl		= omap_enable_hwecc;
-> +	info->nand.ecc.correct		= omap_correct_data;
-> +	info->nand.ecc.mode		= NAND_ECC_HW;
-> +
-> +	/* init HW ECC */
-> +	omap_hwecc_init(&info->mtd);
-> +#else
-> +	info->nand.ecc.mode = NAND_ECC_SOFT;
-> +#endif
->
-> 	/* DIP switches on some boards change between 8 and 16 bit
-> 	 * bus widths for flash.  Try the other width if the first try fails.
-> @@ -642,8 +702,6 @@ static int __devinit omap_nand_probe(str
-> #endif
-> 		add_mtd_device(&info->mtd);
->
-> -	omap_nand_wp(&info->mtd, NAND_WP_OFF);
-> -
-> 	platform_set_drvdata(pdev, &info->mtd);
->
-> 	return 0;
+> arch_initcall(omap3_beagle_i2c_init);
 
 
---Apple-Mail-10--958130764
+--Apple-Mail-11--958114576
 content-type: application/pgp-signature; x-mac-type=70674453;
 	name=PGP.sig
 content-description: This is a digitally signed message part
@@ -465,9 +185,9 @@ content-transfer-encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.5 (Darwin)
 
-iD8DBQFIly3nMkyGM64RGpERApULAJsGL5gcEj7UfZOYOEb3BH3pNpDphQCggua6
-SzYx3KtrpiSur6EEHeKsdNk=
-=nK5B
+iD8DBQFIly31MkyGM64RGpERAs5bAJ4m2mH+KO1aq7ELB6QhDzMlcNvawACgpUBZ
+yzt8zS8I+wH3bp9I8/8qxLk=
+=grlp
 -----END PGP SIGNATURE-----
 
---Apple-Mail-10--958130764--
+--Apple-Mail-11--958114576--
