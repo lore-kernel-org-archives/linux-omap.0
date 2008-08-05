@@ -1,80 +1,960 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] OMAP: MENELAUS: Improvements on menelaus
-Date: Tue, 5 Aug 2008 16:45:05 +0300
-Message-ID: <20080805134502.GK7193@atomide.com>
-References: <488F48E3.2060504@indt.org.br> <20080729183717.GB7275@frodo> <fb249edb0807291157v40f4c0e0vf0e35b1beb39cd3b@mail.gmail.com> <13B9B4C6EF24D648824FF11BE89671620361D432D8@dlee02.ent.ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB02567D91E5@dbde02.ent.ti.com> <20080805085752.GE7193@atomide.com> <20080805093544.GU30539@gandalf.research.nokia.com> <20080805094204.GM7193@atomide.com> <489857E1.1010305@indt.org.br>
+Subject: Re: [PATCH 2/2] Dynamic allocation for mcbsp devices. and related
+	changes
+Date: Tue, 5 Aug 2008 16:58:31 +0300
+Message-ID: <20080805135831.GL7193@atomide.com>
+References: <55880.192.168.10.88.1214405915.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53714 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51415 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758178AbYHENpT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 09:45:19 -0400
+	with ESMTP id S1752601AbYHEN6h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 09:58:37 -0400
 Content-Disposition: inline
-In-Reply-To: <489857E1.1010305@indt.org.br>
+In-Reply-To: <55880.192.168.10.88.1214405915.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, "Gadiyar, Anand" <gadiyar@ti.com>, andrzej zaborowski <balrogg@gmail.com>, "me@felipebalbi.com" <me@felipebalbi.com>, "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: chandra shekhar <x0044955@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-* Carlos Aguiar <carlos.aguiar@indt.org.br> [080805 16:40]:
-> ext Tony Lindgren wrote:
->> * Felipe Balbi <felipe.balbi@nokia.com> [080805 12:35]:
->>   
->>> On Tue, Aug 05, 2008 at 11:57:53AM +0300, Tony Lindgren wrote:
->>>     
->>>> Yeah, let's rename it as it's not in mainline yet. I'll apply this
->>>> series, then the next set of patches can take care of the renaming.
->>>>       
->>> It it in mainline actually, check your drivers/i2c/chips and it was
->>> added by you :-p
->>>
->>> commit 0c4a59fed41bdd4c30ce0999a87f30a812f29ee2
->>> Author: Tony Lindgren <tony@atomide.com>
->>> Date:   Tue Jul 17 04:06:09 2007 -0700
->>>
->>>     OMAP: add TI TWL92330/Menelaus Power Management chip driver
->>>         Add Texas Instruments TWL92330/Menelaus Power Management chip 
->>> driver.  This
->>>     includes voltage regulators, Dual slot memory card tranceivers and
->>>     real-time clock(RTC).
->>>         The support for RTC is integrated with this driver only; it 
->>> is not separate
->>>     module.  Passes 'rtctest' on OMAP H4 EVM, other than lack of "periodic"
->>>     (1/N second) IRQs.  System wakeup alarms (from suspend-to-RAM) work too.
->>>         The battery keeps the RTC active over power off, so once you 
->>> set clock
->>>     (rdate/ntpdate/etc, then "hwclock -w") then RTC_HCTOSYS at boot time will
->>>     behave as expected.
->>>         Cc: "Jean Delvare" <khali@linux-fr.org>
->>>     Cc: "Tony Lindgren" <tony@atomide.com>
->>>     Cc: "David Brownell" <david-b@pacbell.net>
->>>     Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
->>>     Acked-by: Alessandro Zummo <alessandro.zummo@towertech.it>
->>>     Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
->>>     Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
->>>
->>> Maybe someone sent that patch for you ?
->>>     
->>
->> Oops :) I guess I'm over a year behind current developments after my
->> vacation!
->>
->> Anyways, sounds like people want to rename it. Carlos, can you
->> send your patches to the i2c list for integration?
->>
->> Tony
->>
->>   
-> Hi Tony and folks,
->
-> So, I'm going to preparing and send a new series by today to i2c list  
-> for integration so that such series:
->
-> - Align the code from l-o tree to mainline tree.
-> - Apply the series of four patches I just sent to l-o.
-> - And than a last one to rename files to twl92230, as folks agreeded.
+* chandra shekhar <x0044955@ti.com> [080625 18:02]:
+> From: chandra shekhar x0044955@ti.com
+> 
+> This patch provides dynamic allocation for mcbsp device.
+> no. of  mcbsp for each cpu is determined at runtime and accordingly memory is
+> allocated. id check macro definition has been changed.
 
-Sounds good to me!
+Pushing today.
 
 Tony
+
+
+> Signed-off-by:  chandra shekhar x0044955@ti.com
+> ---
+>  arch/arm/mach-omap1/mcbsp.c       |   37 +--
+>  arch/arm/mach-omap2/mcbsp.c       |   21 +-
+>  arch/arm/plat-omap/devices.c      |    7
+>  arch/arm/plat-omap/mcbsp.c        |  359 +++++++++++++++++++++-----------------
+>  include/asm-arm/arch-omap/mcbsp.h |    9
+>  5 files changed, 224 insertions(+), 209 deletions(-)
+> 
+> Index: linux-omap-2.6/arch/arm/mach-omap1/mcbsp.c
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/mach-omap1/mcbsp.c	2008-06-25
+> 15:54:04.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/mach-omap1/mcbsp.c	2008-06-25 19:57:26.000000000 +0530
+> @@ -103,30 +103,6 @@
+>  { }
+>  #endif
+> 
+> -static int omap1_mcbsp_check(unsigned int id)
+> -{
+> -	/* REVISIT: Check correctly for number of registered McBSPs */
+> -	if (cpu_is_omap730()) {
+> -		if (id > OMAP_MAX_MCBSP_COUNT - 2) {
+> -		       printk(KERN_ERR "OMAP-McBSP: McBSP%d doesn't exist\n",
+> -				id + 1);
+> -		       return -ENODEV;
+> -		}
+> -		return 0;
+> -	}
+> -
+> -	if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
+> -		if (id > OMAP_MAX_MCBSP_COUNT - 1) {
+> -			printk(KERN_ERR "OMAP-McBSP: McBSP%d doesn't exist\n",
+> -				id + 1);
+> -			return -ENODEV;
+> -		}
+> -		return 0;
+> -	}
+> -
+> -	return -ENODEV;
+> -}
+> -
+>  static void omap1_mcbsp_request(unsigned int id)
+>  {
+>  	/*
+> @@ -151,7 +127,6 @@
+>  }
+> 
+>  static struct omap_mcbsp_ops omap1_mcbsp_ops = {
+> -	.check		= omap1_mcbsp_check,
+>  	.request	= omap1_mcbsp_request,
+>  	.free		= omap1_mcbsp_free,
+>  };
+> @@ -263,6 +238,18 @@
+>  	}
+> 
+>  	if (cpu_is_omap730())
+> +		omap_mcbsp_count = OMAP730_MCBSP_PDATA_SZ;
+> +	if (cpu_is_omap15xx())
+> +		omap_mcbsp_count = OMAP15XX_MCBSP_PDATA_SZ;
+> +	if (cpu_is_omap16xx())
+> +		omap_mcbsp_count = OMAP16XX_MCBSP_PDATA_SZ;
+> +
+> +	mcbsp_ptr = kzalloc(omap_mcbsp_count * sizeof(struct omap_mcbsp *),
+> +								GFP_KERNEL);
+> +	if (!mcbsp_ptr)
+> +		return -ENOMEM;
+> +
+> +	if (cpu_is_omap730())
+>  		omap_mcbsp_register_board_cfg(omap730_mcbsp_pdata,
+>  						OMAP730_MCBSP_PDATA_SZ);
+> 
+> Index: linux-omap-2.6/arch/arm/mach-omap2/mcbsp.c
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/mach-omap2/mcbsp.c	2008-06-25
+> 15:54:04.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/mach-omap2/mcbsp.c	2008-06-25 19:56:14.000000000 +0530
+> @@ -117,18 +117,8 @@
+>  		omap2_mcbsp2_mux_setup();
+>  }
+> 
+> -static int omap2_mcbsp_check(unsigned int id)
+> -{
+> -	if (id > OMAP_MAX_MCBSP_COUNT - 1) {
+> -		printk(KERN_ERR "OMAP-McBSP: McBSP%d doesn't exist\n", id + 1);
+> -		return -ENODEV;
+> -	}
+> -	return 0;
+> -}
+> -
+>  static struct omap_mcbsp_ops omap2_mcbsp_ops = {
+>  	.request	= omap2_mcbsp_request,
+> -	.check		= omap2_mcbsp_check,
+>  };
+> 
+>  #ifdef CONFIG_ARCH_OMAP24XX
+> @@ -196,9 +186,18 @@
+>  	}
+> 
+>  	if (cpu_is_omap24xx())
+> +		omap_mcbsp_count = OMAP24XX_MCBSP_PDATA_SZ;
+> +	if (cpu_is_omap34xx())
+> +		omap_mcbsp_count = OMAP34XX_MCBSP_PDATA_SZ;
+> +
+> +	mcbsp_ptr = kzalloc(omap_mcbsp_count * sizeof(struct omap_mcbsp *),
+> +								GFP_KERNEL);
+> +	if (!mcbsp_ptr)
+> +		return -ENOMEM;
+> +
+> +	if (cpu_is_omap24xx())
+>  		omap_mcbsp_register_board_cfg(omap24xx_mcbsp_pdata,
+>  						OMAP24XX_MCBSP_PDATA_SZ);
+> -
+>  	if (cpu_is_omap34xx())
+>  		omap_mcbsp_register_board_cfg(omap34xx_mcbsp_pdata,
+>  						OMAP34XX_MCBSP_PDATA_SZ);
+> Index: linux-omap-2.6/arch/arm/plat-omap/devices.c
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/plat-omap/devices.c	2008-06-25
+> 15:55:06.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/plat-omap/devices.c	2008-06-25 15:55:52.000000000
+> +0530
+> @@ -160,13 +160,6 @@
+>  {
+>  	int i;
+> 
+> -	if (size > OMAP_MAX_MCBSP_COUNT) {
+> -		printk(KERN_WARNING "Registered too many McBSPs platform_data."
+> -			" Using maximum (%d) available.\n",
+> -			OMAP_MAX_MCBSP_COUNT);
+> -		size = OMAP_MAX_MCBSP_COUNT;
+> -	}
+> -
+>  	omap_mcbsp_devices = kzalloc(size * sizeof(struct platform_device *),
+>  								GFP_KERNEL);
+>  	if (!omap_mcbsp_devices) {
+> Index: linux-omap-2.6/arch/arm/plat-omap/mcbsp.c
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/plat-omap/mcbsp.c	2008-06-25
+> 15:54:04.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/plat-omap/mcbsp.c	2008-06-25 19:24:06.000000000 +0530
+> @@ -28,43 +28,44 @@
+>  #include <asm/arch/dma.h>
+>  #include <asm/arch/mcbsp.h>
+> 
+> -static struct omap_mcbsp mcbsp[OMAP_MAX_MCBSP_COUNT];
+> +struct omap_mcbsp **mcbsp_ptr;
+> +int omap_mcbsp_count;
+> 
+> -#define omap_mcbsp_check_valid_id(id)	(mcbsp[id].pdata && \
+> -					mcbsp[id].pdata->ops && \
+> -					mcbsp[id].pdata->ops->check && \
+> -					(mcbsp[id].pdata->ops->check(id) == 0))
+> +#define omap_mcbsp_check_valid_id(id)	(id < omap_mcbsp_count)
+> +#define id_to_mcbsp_ptr(id)			mcbsp_ptr[id];
+> 
+>  static void omap_mcbsp_dump_reg(u8 id)
+>  {
+> -	dev_dbg(mcbsp[id].dev, "**** McBSP%d regs ****\n", mcbsp[id].id);
+> -	dev_dbg(mcbsp[id].dev, "DRR2:  0x%04x\n",
+> -			OMAP_MCBSP_READ(mcbsp[id].io_base, DRR2));
+> -	dev_dbg(mcbsp[id].dev, "DRR1:  0x%04x\n",
+> -			OMAP_MCBSP_READ(mcbsp[id].io_base, DRR1));
+> -	dev_dbg(mcbsp[id].dev, "DXR2:  0x%04x\n",
+> -			OMAP_MCBSP_READ(mcbsp[id].io_base, DXR2));
+> -	dev_dbg(mcbsp[id].dev, "DXR1:  0x%04x\n",
+> -			OMAP_MCBSP_READ(mcbsp[id].io_base, DXR1));
+> -	dev_dbg(mcbsp[id].dev, "SPCR2: 0x%04x\n",
+> -			OMAP_MCBSP_READ(mcbsp[id].io_base, SPCR2));
+> -	dev_dbg(mcbsp[id].dev, "SPCR1: 0x%04x\n",
+> -			OMAP_MCBSP_READ(mcbsp[id].io_base, SPCR1));
+> -	dev_dbg(mcbsp[id].dev, "RCR2:  0x%04x\n",
+> -			OMAP_MCBSP_READ(mcbsp[id].io_base, RCR2));
+> -	dev_dbg(mcbsp[id].dev, "RCR1:  0x%04x\n",
+> -			OMAP_MCBSP_READ(mcbsp[id].io_base, RCR1));
+> -	dev_dbg(mcbsp[id].dev, "XCR2:  0x%04x\n",
+> -			OMAP_MCBSP_READ(mcbsp[id].io_base, XCR2));
+> -	dev_dbg(mcbsp[id].dev, "XCR1:  0x%04x\n",
+> -			OMAP_MCBSP_READ(mcbsp[id].io_base, XCR1));
+> -	dev_dbg(mcbsp[id].dev, "SRGR2: 0x%04x\n",
+> -			OMAP_MCBSP_READ(mcbsp[id].io_base, SRGR2));
+> -	dev_dbg(mcbsp[id].dev, "SRGR1: 0x%04x\n",
+> -			OMAP_MCBSP_READ(mcbsp[id].io_base, SRGR1));
+> -	dev_dbg(mcbsp[id].dev, "PCR0:  0x%04x\n",
+> -			OMAP_MCBSP_READ(mcbsp[id].io_base, PCR0));
+> -	dev_dbg(mcbsp[id].dev, "***********************\n");
+> +	struct omap_mcbsp *mcbsp = id_to_mcbsp_ptr(id);
+> +
+> +	dev_dbg(mcbsp->dev, "**** McBSP%d regs ****\n", mcbsp->id);
+> +	dev_dbg(mcbsp->dev, "DRR2:  0x%04x\n",
+> +			OMAP_MCBSP_READ(mcbsp->io_base, DRR2));
+> +	dev_dbg(mcbsp->dev, "DRR1:  0x%04x\n",
+> +			OMAP_MCBSP_READ(mcbsp->io_base, DRR1));
+> +	dev_dbg(mcbsp->dev, "DXR2:  0x%04x\n",
+> +			OMAP_MCBSP_READ(mcbsp->io_base, DXR2));
+> +	dev_dbg(mcbsp->dev, "DXR1:  0x%04x\n",
+> +			OMAP_MCBSP_READ(mcbsp->io_base, DXR1));
+> +	dev_dbg(mcbsp->dev, "SPCR2: 0x%04x\n",
+> +			OMAP_MCBSP_READ(mcbsp->io_base, SPCR2));
+> +	dev_dbg(mcbsp->dev, "SPCR1: 0x%04x\n",
+> +			OMAP_MCBSP_READ(mcbsp->io_base, SPCR1));
+> +	dev_dbg(mcbsp->dev, "RCR2:  0x%04x\n",
+> +			OMAP_MCBSP_READ(mcbsp->io_base, RCR2));
+> +	dev_dbg(mcbsp->dev, "RCR1:  0x%04x\n",
+> +			OMAP_MCBSP_READ(mcbsp->io_base, RCR1));
+> +	dev_dbg(mcbsp->dev, "XCR2:  0x%04x\n",
+> +			OMAP_MCBSP_READ(mcbsp->io_base, XCR2));
+> +	dev_dbg(mcbsp->dev, "XCR1:  0x%04x\n",
+> +			OMAP_MCBSP_READ(mcbsp->io_base, XCR1));
+> +	dev_dbg(mcbsp->dev, "SRGR2: 0x%04x\n",
+> +			OMAP_MCBSP_READ(mcbsp->io_base, SRGR2));
+> +	dev_dbg(mcbsp->dev, "SRGR1: 0x%04x\n",
+> +			OMAP_MCBSP_READ(mcbsp->io_base, SRGR1));
+> +	dev_dbg(mcbsp->dev, "PCR0:  0x%04x\n",
+> +			OMAP_MCBSP_READ(mcbsp->io_base, PCR0));
+> +	dev_dbg(mcbsp->dev, "***********************\n");
+>  }
+> 
+>  static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *dev_id)
+> @@ -127,16 +128,18 @@
+>   */
+>  void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg *config)
+>  {
+> +	struct omap_mcbsp *mcbsp;
+>  	u32 io_base;
+> 
+>  	if (!omap_mcbsp_check_valid_id(id)) {
+>  		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+>  		return;
+>  	}
+> +	mcbsp = id_to_mcbsp_ptr(id);
+> 
+> -	io_base = mcbsp[id].io_base;
+> -	dev_dbg(mcbsp[id].dev, "Configuring McBSP%d  io_base: 0x%8x\n",
+> -			mcbsp[id].id, io_base);
+> +	io_base = mcbsp->io_base;
+> +	dev_dbg(mcbsp->dev, "Configuring McBSP%d  io_base: 0x%8x\n",
+> +			mcbsp->id, io_base);
+> 
+>  	/* We write the given config */
+>  	OMAP_MCBSP_WRITE(io_base, SPCR2, config->spcr2);
+> @@ -159,23 +162,26 @@
+>   */
+>  int omap_mcbsp_set_io_type(unsigned int id, omap_mcbsp_io_type_t io_type)
+>  {
+> +	struct omap_mcbsp *mcbsp;
+> +
+>  	if (!omap_mcbsp_check_valid_id(id)) {
+>  		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+>  		return -ENODEV;
+>  	}
+> +	mcbsp = id_to_mcbsp_ptr(id);
+> 
+> -	spin_lock(&mcbsp[id].lock);
+> +	spin_lock(&mcbsp->lock);
+> 
+> -	if (!mcbsp[id].free) {
+> -		dev_err(mcbsp[id].dev, "McBSP%d is currently in use\n",
+> -			mcbsp[id].id);
+> -		spin_unlock(&mcbsp[id].lock);
+> +	if (!mcbsp->free) {
+> +		dev_err(mcbsp->dev, "McBSP%d is currently in use\n",
+> +			mcbsp->id);
+> +		spin_unlock(&mcbsp->lock);
+>  		return -EINVAL;
+>  	}
+> 
+> -	mcbsp[id].io_type = io_type;
+> +	mcbsp->io_type = io_type;
+> 
+> -	spin_unlock(&mcbsp[id].lock);
+> +	spin_unlock(&mcbsp->lock);
+> 
+>  	return 0;
+>  }
+> @@ -183,53 +189,55 @@
+> 
+>  int omap_mcbsp_request(unsigned int id)
+>  {
+> +	struct omap_mcbsp *mcbsp;
+>  	int err;
+> 
+>  	if (!omap_mcbsp_check_valid_id(id)) {
+>  		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+>  		return -ENODEV;
+>  	}
+> +	mcbsp = id_to_mcbsp_ptr(id);
+> 
+> -	if (mcbsp[id].pdata->ops->request)
+> -		mcbsp[id].pdata->ops->request(id);
+> +	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->request)
+> +		mcbsp->pdata->ops->request(id);
+> 
+> -	clk_enable(mcbsp[id].clk);
+> +	clk_enable(mcbsp->clk);
+> 
+> -	spin_lock(&mcbsp[id].lock);
+> -	if (!mcbsp[id].free) {
+> -		dev_err(mcbsp[id].dev, "McBSP%d is currently in use\n",
+> -			mcbsp[id].id);
+> -		spin_unlock(&mcbsp[id].lock);
+> +	spin_lock(&mcbsp->lock);
+> +	if (!mcbsp->free) {
+> +		dev_err(mcbsp->dev, "McBSP%d is currently in use\n",
+> +			mcbsp->id);
+> +		spin_unlock(&mcbsp->lock);
+>  		return -1;
+>  	}
+> 
+> -	mcbsp[id].free = 0;
+> -	spin_unlock(&mcbsp[id].lock);
+> +	mcbsp->free = 0;
+> +	spin_unlock(&mcbsp->lock);
+> 
+> -	if (mcbsp[id].io_type == OMAP_MCBSP_IRQ_IO) {
+> +	if (mcbsp->io_type == OMAP_MCBSP_IRQ_IO) {
+>  		/* We need to get IRQs here */
+> -		err = request_irq(mcbsp[id].tx_irq, omap_mcbsp_tx_irq_handler,
+> -					0, "McBSP", (void *) (&mcbsp[id]));
+> +		err = request_irq(mcbsp->tx_irq, omap_mcbsp_tx_irq_handler,
+> +					0, "McBSP", (void *)mcbsp);
+>  		if (err != 0) {
+> -			dev_err(mcbsp[id].dev, "Unable to request TX IRQ %d "
+> -					"for McBSP%d\n", mcbsp[id].tx_irq,
+> -					mcbsp[id].id);
+> +			dev_err(mcbsp->dev, "Unable to request TX IRQ %d "
+> +					"for McBSP%d\n", mcbsp->tx_irq,
+> +					mcbsp->id);
+>  			return err;
+>  		}
+> 
+> -		init_completion(&(mcbsp[id].tx_irq_completion));
+> +		init_completion(&mcbsp->tx_irq_completion);
+> 
+> -		err = request_irq(mcbsp[id].rx_irq, omap_mcbsp_rx_irq_handler,
+> -					0, "McBSP", (void *) (&mcbsp[id]));
+> +		err = request_irq(mcbsp->rx_irq, omap_mcbsp_rx_irq_handler,
+> +					0, "McBSP", (void *)mcbsp);
+>  		if (err != 0) {
+> -			dev_err(mcbsp[id].dev, "Unable to request RX IRQ %d "
+> -					"for McBSP%d\n", mcbsp[id].rx_irq,
+> -					mcbsp[id].id);
+> -			free_irq(mcbsp[id].tx_irq, (void *) (&mcbsp[id]));
+> +			dev_err(mcbsp->dev, "Unable to request RX IRQ %d "
+> +					"for McBSP%d\n", mcbsp->rx_irq,
+> +					mcbsp->id);
+> +			free_irq(mcbsp->tx_irq, (void *)mcbsp);
+>  			return err;
+>  		}
+> 
+> -		init_completion(&(mcbsp[id].rx_irq_completion));
+> +		init_completion(&mcbsp->rx_irq_completion);
+>  	}
+> 
+>  	return 0;
+> @@ -238,31 +246,34 @@
+> 
+>  void omap_mcbsp_free(unsigned int id)
+>  {
+> +	struct omap_mcbsp *mcbsp;
+> +
+>  	if (!omap_mcbsp_check_valid_id(id)) {
+>  		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+>  		return;
+>  	}
+> +	mcbsp = id_to_mcbsp_ptr(id);
+> 
+> -	if (mcbsp[id].pdata->ops->free)
+> -		mcbsp[id].pdata->ops->free(id);
+> +	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
+> +		mcbsp->pdata->ops->free(id);
+> 
+> -	clk_disable(mcbsp[id].clk);
+> +	clk_disable(mcbsp->clk);
+> 
+> -	spin_lock(&mcbsp[id].lock);
+> -	if (mcbsp[id].free) {
+> -		dev_err(mcbsp[id].dev, "McBSP%d was not reserved\n",
+> -			mcbsp[id].id);
+> -		spin_unlock(&mcbsp[id].lock);
+> +	spin_lock(&mcbsp->lock);
+> +	if (mcbsp->free) {
+> +		dev_err(mcbsp->dev, "McBSP%d was not reserved\n",
+> +			mcbsp->id);
+> +		spin_unlock(&mcbsp->lock);
+>  		return;
+>  	}
+> 
+> -	mcbsp[id].free = 1;
+> -	spin_unlock(&mcbsp[id].lock);
+> +	mcbsp->free = 1;
+> +	spin_unlock(&mcbsp->lock);
+> 
+> -	if (mcbsp[id].io_type == OMAP_MCBSP_IRQ_IO) {
+> +	if (mcbsp->io_type == OMAP_MCBSP_IRQ_IO) {
+>  		/* Free IRQs */
+> -		free_irq(mcbsp[id].rx_irq, (void *) (&mcbsp[id]));
+> -		free_irq(mcbsp[id].tx_irq, (void *) (&mcbsp[id]));
+> +		free_irq(mcbsp->rx_irq, (void *)mcbsp);
+> +		free_irq(mcbsp->tx_irq, (void *)mcbsp);
+>  	}
+>  }
+>  EXPORT_SYMBOL(omap_mcbsp_free);
+> @@ -274,6 +285,7 @@
+>   */
+>  void omap_mcbsp_start(unsigned int id)
+>  {
+> +	struct omap_mcbsp *mcbsp;
+>  	u32 io_base;
+>  	u16 w;
+> 
+> @@ -281,11 +293,11 @@
+>  		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+>  		return;
+>  	}
+> +	mcbsp = id_to_mcbsp_ptr(id);
+> +	io_base = mcbsp->io_base;
+> 
+> -	io_base = mcbsp[id].io_base;
+> -
+> -	mcbsp[id].rx_word_length = (OMAP_MCBSP_READ(io_base, RCR1) >> 5) & 0x7;
+> -	mcbsp[id].tx_word_length = (OMAP_MCBSP_READ(io_base, XCR1) >> 5) & 0x7;
+> +	mcbsp->rx_word_length = (OMAP_MCBSP_READ(io_base, RCR1) >> 5) & 0x7;
+> +	mcbsp->tx_word_length = (OMAP_MCBSP_READ(io_base, XCR1) >> 5) & 0x7;
+> 
+>  	/* Start the sample generator */
+>  	w = OMAP_MCBSP_READ(io_base, SPCR2);
+> @@ -311,6 +323,7 @@
+> 
+>  void omap_mcbsp_stop(unsigned int id)
+>  {
+> +	struct omap_mcbsp *mcbsp;
+>  	u32 io_base;
+>  	u16 w;
+> 
+> @@ -319,7 +332,8 @@
+>  		return;
+>  	}
+> 
+> -	io_base = mcbsp[id].io_base;
+> +	mcbsp = id_to_mcbsp_ptr(id);
+> +	io_base = mcbsp->io_base;
+> 
+>  	/* Reset transmitter */
+>  	w = OMAP_MCBSP_READ(io_base, SPCR2);
+> @@ -338,6 +352,7 @@
+>  /* polled mcbsp i/o operations */
+>  int omap_mcbsp_pollwrite(unsigned int id, u16 buf)
+>  {
+> +	struct omap_mcbsp *mcbsp;
+>  	u32 base;
+> 
+>  	if (!omap_mcbsp_check_valid_id(id)) {
+> @@ -345,7 +360,9 @@
+>  		return -ENODEV;
+>  	}
+> 
+> -	base = mcbsp[id].io_base;
+> +	mcbsp = id_to_mcbsp_ptr(id);
+> +	base = mcbsp->io_base;
+> +
+>  	writew(buf, base + OMAP_MCBSP_REG_DXR1);
+>  	/* if frame sync error - clear the error */
+>  	if (readw(base + OMAP_MCBSP_REG_SPCR2) & XSYNC_ERR) {
+> @@ -367,8 +384,8 @@
+>  				       (XRST),
+>  				       base + OMAP_MCBSP_REG_SPCR2);
+>  				udelay(10);
+> -				dev_err(mcbsp[id].dev, "Could not write to"
+> -					" McBSP%d Register\n", mcbsp[id].id);
+> +				dev_err(mcbsp->dev, "Could not write to"
+> +					" McBSP%d Register\n", mcbsp->id);
+>  				return -2;
+>  			}
+>  		}
+> @@ -380,14 +397,16 @@
+> 
+>  int omap_mcbsp_pollread(unsigned int id, u16 *buf)
+>  {
+> +	struct omap_mcbsp *mcbsp;
+>  	u32 base;
+> 
+>  	if (!omap_mcbsp_check_valid_id(id)) {
+>  		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+>  		return -ENODEV;
+>  	}
+> +	mcbsp = id_to_mcbsp_ptr(id);
+> 
+> -	base = mcbsp[id].io_base;
+> +	base = mcbsp->io_base;
+>  	/* if frame sync error - clear the error */
+>  	if (readw(base + OMAP_MCBSP_REG_SPCR1) & RSYNC_ERR) {
+>  		/* clear error */
+> @@ -408,8 +427,8 @@
+>  				       (RRST),
+>  				       base + OMAP_MCBSP_REG_SPCR1);
+>  				udelay(10);
+> -				dev_err(mcbsp[id].dev, "Could not read from"
+> -					" McBSP%d Register\n", mcbsp[id].id);
+> +				dev_err(mcbsp->dev, "Could not read from"
+> +					" McBSP%d Register\n", mcbsp->id);
+>  				return -2;
+>  			}
+>  		}
+> @@ -425,6 +444,7 @@
+>   */
+>  void omap_mcbsp_xmit_word(unsigned int id, u32 word)
+>  {
+> +	struct omap_mcbsp *mcbsp;
+>  	u32 io_base;
+>  	omap_mcbsp_word_length word_length;
+> 
+> @@ -433,10 +453,11 @@
+>  		return;
+>  	}
+> 
+> -	io_base = mcbsp[id].io_base;
+> -	word_length = mcbsp[id].tx_word_length;
+> +	mcbsp = id_to_mcbsp_ptr(id);
+> +	io_base = mcbsp->io_base;
+> +	word_length = mcbsp->tx_word_length;
+> 
+> -	wait_for_completion(&(mcbsp[id].tx_irq_completion));
+> +	wait_for_completion(&mcbsp->tx_irq_completion);
+> 
+>  	if (word_length > OMAP_MCBSP_WORD_16)
+>  		OMAP_MCBSP_WRITE(io_base, DXR2, word >> 16);
+> @@ -446,6 +467,7 @@
+> 
+>  u32 omap_mcbsp_recv_word(unsigned int id)
+>  {
+> +	struct omap_mcbsp *mcbsp;
+>  	u32 io_base;
+>  	u16 word_lsb, word_msb = 0;
+>  	omap_mcbsp_word_length word_length;
+> @@ -454,11 +476,12 @@
+>  		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+>  		return -ENODEV;
+>  	}
+> +	mcbsp = id_to_mcbsp_ptr(id);
+> 
+> -	word_length = mcbsp[id].rx_word_length;
+> -	io_base = mcbsp[id].io_base;
+> +	word_length = mcbsp->rx_word_length;
+> +	io_base = mcbsp->io_base;
+> 
+> -	wait_for_completion(&(mcbsp[id].rx_irq_completion));
+> +	wait_for_completion(&mcbsp->rx_irq_completion);
+> 
+>  	if (word_length > OMAP_MCBSP_WORD_16)
+>  		word_msb = OMAP_MCBSP_READ(io_base, DRR2);
+> @@ -470,6 +493,7 @@
+> 
+>  int omap_mcbsp_spi_master_xmit_word_poll(unsigned int id, u32 word)
+>  {
+> +	struct omap_mcbsp *mcbsp;
+>  	u32 io_base;
+>  	omap_mcbsp_word_length tx_word_length;
+>  	omap_mcbsp_word_length rx_word_length;
+> @@ -479,10 +503,10 @@
+>  		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+>  		return -ENODEV;
+>  	}
+> -
+> -	io_base = mcbsp[id].io_base;
+> -	tx_word_length = mcbsp[id].tx_word_length;
+> -	rx_word_length = mcbsp[id].rx_word_length;
+> +	mcbsp = id_to_mcbsp_ptr(id);
+> +	io_base = mcbsp->io_base;
+> +	tx_word_length = mcbsp->tx_word_length;
+> +	rx_word_length = mcbsp->rx_word_length;
+> 
+>  	if (tx_word_length != rx_word_length)
+>  		return -EINVAL;
+> @@ -497,8 +521,8 @@
+>  			udelay(10);
+>  			OMAP_MCBSP_WRITE(io_base, SPCR2, spcr2 | XRST);
+>  			udelay(10);
+> -			dev_err(mcbsp[id].dev, "McBSP%d transmitter not "
+> -				"ready\n", mcbsp[id].id);
+> +			dev_err(mcbsp->dev, "McBSP%d transmitter not "
+> +				"ready\n", mcbsp->id);
+>  			return -EAGAIN;
+>  		}
+>  	}
+> @@ -518,8 +542,8 @@
+>  			udelay(10);
+>  			OMAP_MCBSP_WRITE(io_base, SPCR1, spcr1 | RRST);
+>  			udelay(10);
+> -			dev_err(mcbsp[id].dev, "McBSP%d receiver not "
+> -				"ready\n", mcbsp[id].id);
+> +			dev_err(mcbsp->dev, "McBSP%d receiver not "
+> +				"ready\n", mcbsp->id);
+>  			return -EAGAIN;
+>  		}
+>  	}
+> @@ -535,6 +559,7 @@
+> 
+>  int omap_mcbsp_spi_master_recv_word_poll(unsigned int id, u32 *word)
+>  {
+> +	struct omap_mcbsp *mcbsp;
+>  	u32 io_base, clock_word = 0;
+>  	omap_mcbsp_word_length tx_word_length;
+>  	omap_mcbsp_word_length rx_word_length;
+> @@ -545,9 +570,11 @@
+>  		return -ENODEV;
+>  	}
+> 
+> -	io_base = mcbsp[id].io_base;
+> -	tx_word_length = mcbsp[id].tx_word_length;
+> -	rx_word_length = mcbsp[id].rx_word_length;
+> +	mcbsp = id_to_mcbsp_ptr(id);
+> +	io_base = mcbsp->io_base;
+> +
+> +	tx_word_length = mcbsp->tx_word_length;
+> +	rx_word_length = mcbsp->rx_word_length;
+> 
+>  	if (tx_word_length != rx_word_length)
+>  		return -EINVAL;
+> @@ -562,8 +589,8 @@
+>  			udelay(10);
+>  			OMAP_MCBSP_WRITE(io_base, SPCR2, spcr2 | XRST);
+>  			udelay(10);
+> -			dev_err(mcbsp[id].dev, "McBSP%d transmitter not "
+> -				"ready\n", mcbsp[id].id);
+> +			dev_err(mcbsp->dev, "McBSP%d transmitter not "
+> +				"ready\n", mcbsp->id);
+>  			return -EAGAIN;
+>  		}
+>  	}
+> @@ -583,8 +610,8 @@
+>  			udelay(10);
+>  			OMAP_MCBSP_WRITE(io_base, SPCR1, spcr1 | RRST);
+>  			udelay(10);
+> -			dev_err(mcbsp[id].dev, "McBSP%d receiver not "
+> -				"ready\n", mcbsp[id].id);
+> +			dev_err(mcbsp->dev, "McBSP%d receiver not "
+> +				"ready\n", mcbsp->id);
+>  			return -EAGAIN;
+>  		}
+>  	}
+> @@ -610,6 +637,7 @@
+>  int omap_mcbsp_xmit_buffer(unsigned int id, dma_addr_t buffer,
+>  				unsigned int length)
+>  {
+> +	struct omap_mcbsp *mcbsp;
+>  	int dma_tx_ch;
+>  	int src_port = 0;
+>  	int dest_port = 0;
+> @@ -619,50 +647,51 @@
+>  		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+>  		return -ENODEV;
+>  	}
+> +	mcbsp = id_to_mcbsp_ptr(id);
+> 
+> -	if (omap_request_dma(mcbsp[id].dma_tx_sync, "McBSP TX",
+> +	if (omap_request_dma(mcbsp->dma_tx_sync, "McBSP TX",
+>  				omap_mcbsp_tx_dma_callback,
+> -				&mcbsp[id],
+> +				mcbsp,
+>  				&dma_tx_ch)) {
+> -		dev_err(mcbsp[id].dev, " Unable to request DMA channel for "
+> +		dev_err(mcbsp->dev, " Unable to request DMA channel for "
+>  				"McBSP%d TX. Trying IRQ based TX\n",
+> -				mcbsp[id].id);
+> +				mcbsp->id);
+>  		return -EAGAIN;
+>  	}
+> -	mcbsp[id].dma_tx_lch = dma_tx_ch;
+> +	mcbsp->dma_tx_lch = dma_tx_ch;
+> 
+> -	dev_err(mcbsp[id].dev, "McBSP%d TX DMA on channel %d\n", mcbsp[id].id,
+> +	dev_err(mcbsp->dev, "McBSP%d TX DMA on channel %d\n", mcbsp->id,
+>  		dma_tx_ch);
+> 
+> -	init_completion(&(mcbsp[id].tx_dma_completion));
+> +	init_completion(&mcbsp->tx_dma_completion);
+> 
+>  	if (cpu_class_is_omap1()) {
+>  		src_port = OMAP_DMA_PORT_TIPB;
+>  		dest_port = OMAP_DMA_PORT_EMIFF;
+>  	}
+>  	if (cpu_class_is_omap2())
+> -		sync_dev = mcbsp[id].dma_tx_sync;
+> +		sync_dev = mcbsp->dma_tx_sync;
+> 
+> -	omap_set_dma_transfer_params(mcbsp[id].dma_tx_lch,
+> +	omap_set_dma_transfer_params(mcbsp->dma_tx_lch,
+>  				     OMAP_DMA_DATA_TYPE_S16,
+>  				     length >> 1, 1,
+>  				     OMAP_DMA_SYNC_ELEMENT,
+>  	 sync_dev, 0);
+> 
+> -	omap_set_dma_dest_params(mcbsp[id].dma_tx_lch,
+> +	omap_set_dma_dest_params(mcbsp->dma_tx_lch,
+>  				 src_port,
+>  				 OMAP_DMA_AMODE_CONSTANT,
+> -				 mcbsp[id].io_base + OMAP_MCBSP_REG_DXR1,
+> +				 mcbsp->io_base + OMAP_MCBSP_REG_DXR1,
+>  				 0, 0);
+> 
+> -	omap_set_dma_src_params(mcbsp[id].dma_tx_lch,
+> +	omap_set_dma_src_params(mcbsp->dma_tx_lch,
+>  				dest_port,
+>  				OMAP_DMA_AMODE_POST_INC,
+>  				buffer,
+>  				0, 0);
+> 
+> -	omap_start_dma(mcbsp[id].dma_tx_lch);
+> -	wait_for_completion(&(mcbsp[id].tx_dma_completion));
+> +	omap_start_dma(mcbsp->dma_tx_lch);
+> +	wait_for_completion(&mcbsp->tx_dma_completion);
+> 
+>  	return 0;
+>  }
+> @@ -671,6 +700,7 @@
+>  int omap_mcbsp_recv_buffer(unsigned int id, dma_addr_t buffer,
+>  				unsigned int length)
+>  {
+> +	struct omap_mcbsp *mcbsp;
+>  	int dma_rx_ch;
+>  	int src_port = 0;
+>  	int dest_port = 0;
+> @@ -680,50 +710,51 @@
+>  		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+>  		return -ENODEV;
+>  	}
+> +	mcbsp = id_to_mcbsp_ptr(id);
+> 
+> -	if (omap_request_dma(mcbsp[id].dma_rx_sync, "McBSP RX",
+> +	if (omap_request_dma(mcbsp->dma_rx_sync, "McBSP RX",
+>  				omap_mcbsp_rx_dma_callback,
+> -				&mcbsp[id],
+> +				mcbsp,
+>  				&dma_rx_ch)) {
+> -		dev_err(mcbsp[id].dev, "Unable to request DMA channel for "
+> +		dev_err(mcbsp->dev, "Unable to request DMA channel for "
+>  				"McBSP%d RX. Trying IRQ based RX\n",
+> -				mcbsp[id].id);
+> +				mcbsp->id);
+>  		return -EAGAIN;
+>  	}
+> -	mcbsp[id].dma_rx_lch = dma_rx_ch;
+> +	mcbsp->dma_rx_lch = dma_rx_ch;
+> 
+> -	dev_err(mcbsp[id].dev, "McBSP%d RX DMA on channel %d\n", mcbsp[id].id,
+> +	dev_err(mcbsp->dev, "McBSP%d RX DMA on channel %d\n", mcbsp->id,
+>  		dma_rx_ch);
+> 
+> -	init_completion(&(mcbsp[id].rx_dma_completion));
+> +	init_completion(&mcbsp->rx_dma_completion);
+> 
+>  	if (cpu_class_is_omap1()) {
+>  		src_port = OMAP_DMA_PORT_TIPB;
+>  		dest_port = OMAP_DMA_PORT_EMIFF;
+>  	}
+>  	if (cpu_class_is_omap2())
+> -		sync_dev = mcbsp[id].dma_rx_sync;
+> +		sync_dev = mcbsp->dma_rx_sync;
+> 
+> -	omap_set_dma_transfer_params(mcbsp[id].dma_rx_lch,
+> +	omap_set_dma_transfer_params(mcbsp->dma_rx_lch,
+>  					OMAP_DMA_DATA_TYPE_S16,
+>  					length >> 1, 1,
+>  					OMAP_DMA_SYNC_ELEMENT,
+>  					sync_dev, 0);
+> 
+> -	omap_set_dma_src_params(mcbsp[id].dma_rx_lch,
+> +	omap_set_dma_src_params(mcbsp->dma_rx_lch,
+>  				src_port,
+>  				OMAP_DMA_AMODE_CONSTANT,
+> -				mcbsp[id].io_base + OMAP_MCBSP_REG_DRR1,
+> +				mcbsp->io_base + OMAP_MCBSP_REG_DRR1,
+>  				0, 0);
+> 
+> -	omap_set_dma_dest_params(mcbsp[id].dma_rx_lch,
+> +	omap_set_dma_dest_params(mcbsp->dma_rx_lch,
+>  					dest_port,
+>  					OMAP_DMA_AMODE_POST_INC,
+>  					buffer,
+>  					0, 0);
+> 
+> -	omap_start_dma(mcbsp[id].dma_rx_lch);
+> -	wait_for_completion(&(mcbsp[id].rx_dma_completion));
+> +	omap_start_dma(mcbsp->dma_rx_lch);
+> +	wait_for_completion(&mcbsp->rx_dma_completion);
+> 
+>  	return 0;
+>  }
+> @@ -738,12 +769,14 @@
+>  void omap_mcbsp_set_spi_mode(unsigned int id,
+>  				const struct omap_mcbsp_spi_cfg *spi_cfg)
+>  {
+> +	struct omap_mcbsp *mcbsp;
+>  	struct omap_mcbsp_reg_cfg mcbsp_cfg;
+> 
+>  	if (!omap_mcbsp_check_valid_id(id)) {
+>  		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+>  		return;
+>  	}
+> +	mcbsp = id_to_mcbsp_ptr(id);
+> 
+>  	memset(&mcbsp_cfg, 0, sizeof(struct omap_mcbsp_reg_cfg));
+> 
+> @@ -807,6 +840,7 @@
+>  static int __init omap_mcbsp_probe(struct platform_device *pdev)
+>  {
+>  	struct omap_mcbsp_platform_data *pdata = pdev->dev.platform_data;
+> +	struct omap_mcbsp *mcbsp;
+>  	int id = pdev->id - 1;
+>  	int ret = 0;
+> 
+> @@ -819,40 +853,47 @@
+> 
+>  	dev_dbg(&pdev->dev, "Initializing OMAP McBSP (%d).\n", pdev->id);
+> 
+> -	if (id >= OMAP_MAX_MCBSP_COUNT) {
+> +	if (id >= omap_mcbsp_count) {
+>  		dev_err(&pdev->dev, "Invalid McBSP device id (%d)\n", id);
+>  		ret = -EINVAL;
+>  		goto exit;
+>  	}
+> 
+> -	spin_lock_init(&mcbsp[id].lock);
+> -	mcbsp[id].id = id + 1;
+> -	mcbsp[id].free = 1;
+> -	mcbsp[id].dma_tx_lch = -1;
+> -	mcbsp[id].dma_rx_lch = -1;
+> +	mcbsp = kzalloc(sizeof(struct omap_mcbsp), GFP_KERNEL);
+> +	if (!mcbsp) {
+> +		ret = -ENOMEM;
+> +		goto exit;
+> +	}
+> +	mcbsp_ptr[id] = mcbsp;
+> 
+> -	mcbsp[id].io_base = pdata->virt_base;
+> +	spin_lock_init(&mcbsp->lock);
+> +	mcbsp->id = id + 1;
+> +	mcbsp->free = 1;
+> +	mcbsp->dma_tx_lch = -1;
+> +	mcbsp->dma_rx_lch = -1;
+> +
+> +	mcbsp->io_base = pdata->virt_base;
+>  	/* Default I/O is IRQ based */
+> -	mcbsp[id].io_type = OMAP_MCBSP_IRQ_IO;
+> -	mcbsp[id].tx_irq = pdata->tx_irq;
+> -	mcbsp[id].rx_irq = pdata->rx_irq;
+> -	mcbsp[id].dma_rx_sync = pdata->dma_rx_sync;
+> -	mcbsp[id].dma_tx_sync = pdata->dma_tx_sync;
+> +	mcbsp->io_type = OMAP_MCBSP_IRQ_IO;
+> +	mcbsp->tx_irq = pdata->tx_irq;
+> +	mcbsp->rx_irq = pdata->rx_irq;
+> +	mcbsp->dma_rx_sync = pdata->dma_rx_sync;
+> +	mcbsp->dma_tx_sync = pdata->dma_tx_sync;
+> 
+>  	if (pdata->clk_name)
+> -		mcbsp[id].clk = clk_get(&pdev->dev, pdata->clk_name);
+> -	if (IS_ERR(mcbsp[id].clk)) {
+> -		mcbsp[id].free = 0;
+> +		mcbsp->clk = clk_get(&pdev->dev, pdata->clk_name);
+> +	if (IS_ERR(mcbsp->clk)) {
+> +		mcbsp->free = 0;
+>  		dev_err(&pdev->dev,
+>  			"Invalid clock configuration for McBSP%d.\n",
+> -			mcbsp[id].id);
+> +			mcbsp->id);
+>  		ret = -EINVAL;
+>  		goto exit;
+>  	}
+> 
+> -	mcbsp[id].pdata = pdata;
+> -	mcbsp[id].dev = &pdev->dev;
+> -	platform_set_drvdata(pdev, &mcbsp[id]);
+> +	mcbsp->pdata = pdata;
+> +	mcbsp->dev = &pdev->dev;
+> +	platform_set_drvdata(pdev, mcbsp);
+> 
+>  exit:
+>  	return ret;
+> Index: linux-omap-2.6/include/asm-arm/arch-omap/mcbsp.h
+> ===================================================================
+> --- linux-omap-2.6.orig/include/asm-arm/arch-omap/mcbsp.h	2008-06-25
+> 15:54:04.000000000 +0530
+> +++ linux-omap-2.6/include/asm-arm/arch-omap/mcbsp.h	2008-06-25
+> 16:44:54.000000000 +0530
+> @@ -81,9 +81,6 @@
+>  #define OMAP_MCBSP_REG_XCERG	0x3A
+>  #define OMAP_MCBSP_REG_XCERH	0x3C
+> 
+> -#define OMAP_MAX_MCBSP_COUNT	3
+> -#define MAX_MCBSP_CLOCKS	3
+> -
+>  #define AUDIO_MCBSP_DATAWRITE	(OMAP1510_MCBSP1_BASE + OMAP_MCBSP_REG_DXR1)
+>  #define AUDIO_MCBSP_DATAREAD	(OMAP1510_MCBSP1_BASE + OMAP_MCBSP_REG_DRR1)
+> 
+> @@ -125,9 +122,6 @@
+>  #define OMAP_MCBSP_REG_XCERG	0x74
+>  #define OMAP_MCBSP_REG_XCERH	0x78
+> 
+> -#define OMAP_MAX_MCBSP_COUNT	2
+> -#define MAX_MCBSP_CLOCKS	2
+> -
+>  #define AUDIO_MCBSP_DATAWRITE	(OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DXR1)
+>  #define AUDIO_MCBSP_DATAREAD	(OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DRR1)
+> 
+> @@ -311,7 +305,6 @@
+>  struct omap_mcbsp_ops {
+>  	void (*request)(unsigned int);
+>  	void (*free)(unsigned int);
+> -	int (*check)(unsigned int);
+>  };
+> 
+>  struct omap_mcbsp_platform_data {
+> @@ -352,6 +345,8 @@
+>  	struct omap_mcbsp_platform_data *pdata;
+>  	struct clk *clk;
+>  };
+> +extern struct omap_mcbsp **mcbsp_ptr;
+> +extern int omap_mcbsp_count;
+> 
+>  int omap_mcbsp_init(void);
+>  void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data *config,
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
