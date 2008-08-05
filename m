@@ -1,79 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 2.6.26-omap-git] beagle LED fixes
-Date: Tue, 5 Aug 2008 11:24:09 +0300
-Message-ID: <20080805082407.GA7193@atomide.com>
-References: <200808042356.16674.david-b@pacbell.net> <EAD57A58-81F7-45A9-95CB-69FC5068885F@student.utwente.nl>
+Subject: Re: [PATCH] OMAP3 CPUidle patches - fixes
+Date: Tue, 5 Aug 2008 11:33:49 +0300
+Message-ID: <20080805083348.GB7193@atomide.com>
+References: <20080804143316.GM8885@atomide.com> <02fd01c8f6bc$fbe96280$74f6180a@wipultra1382>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51579 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58632 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754693AbYHEIYM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 04:24:12 -0400
+	with ESMTP id S1756759AbYHEIdw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 04:33:52 -0400
 Content-Disposition: inline
-In-Reply-To: <EAD57A58-81F7-45A9-95CB-69FC5068885F@student.utwente.nl>
+In-Reply-To: <02fd01c8f6bc$fbe96280$74f6180a@wipultra1382>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-* Koen Kooi <k.kooi@student.utwente.nl> [080805 11:14]:
->
-> Op 5 aug 2008, om 08:56 heeft David Brownell het volgende geschreven:
->
->> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
->>
->> Update and fix Beagle LED declarations:  gpios for USR0 and USR1
->> were swapped, and their names don't match docs or silksreen.
->
-> I just heard that from TI and wanted to fix that today :) I didn't  
-> notice it because revA board have the leds shorted together so they both 
-> light up at the same time.
+* Rajendra Nayak <rnayak@ti.com> [080805 08:35]:
+> 
+> > -----Original Message-----
+> > From: Tony Lindgren [mailto:tony@atomide.com] 
+> > Sent: Monday, August 04, 2008 8:03 PM
+> > To: Rajendra Nayak
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: Re: [PATCH] OMAP3 CPUidle patches - fixes
+> > 
+> > * Rajendra Nayak <rnayak@ti.com> [080703 14:55]:
+> > > This patch fixes few of the comments posted on the patch 
+> > set till now. 
+> > > 
+> > > One major fix is the moving of uart clock enable/disable 
+> > out of the context save path as pointed out by Jouni. 
+> > > This would leave the UART clcoks disabled in case a CORE 
+> > OFF was attempted and not achieved.
+> > 
+> > What kernel or patch series this is against? If it's for some 
+> > patch series that's not applied yet to linux-omap tree, let's 
+> > merge the fix to the original patch.
+> 
+> I sent another patch set later to the list (dated 18/07/2008) 
+> "[PATCH 00/11] OMAP3 CPUidle patches - ver 2" 
+> which is the final patch set for CPUidle which can be merged. 
+> This patch and all the previous patches on CPUidle can be ignored. 
 
-Pushing today.
+Can you please integrate all the fixes to CPUidle and repost the
+whole series one more time?
+
+Thanks,
 
 Tony
-
->
->> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
->
-> Acked-by: Koen Kooi <koen@openembedded.org>
->
->>
->> ---
->> arch/arm/mach-omap2/board-omap3beagle.c |    9 +++++----
->> 1 file changed, 5 insertions(+), 4 deletions(-)
->>
->> --- a/arch/arm/mach-omap2/board-omap3beagle.c	2008-08-04  
->> 22:08:16.000000000 -0700
->> +++ b/arch/arm/mach-omap2/board-omap3beagle.c	2008-08-04  
->> 22:08:36.000000000 -0700
->>
->> @@ -75,14 +76,14 @@ static struct omap_lcd_config omap3_beag
->>
->> struct gpio_led gpio_leds[] = {
->> 	{
->> -		.name			= "beagleboard::led0",
->> +		.name			= "beagleboard::usr0",
->> 		.default_trigger	= "none",
->> -		.gpio			= 149,
->> +		.gpio			= 150,
->> 	},
->> 	{
->> -		.name			= "beagleboard::led1",
->> +		.name			= "beagleboard::usr1",
->> 		.default_trigger	= "none",
->> -		.gpio			= 150,
->> +		.gpio			= 149,
->> 	},
->> };
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" 
->> in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
-
-
