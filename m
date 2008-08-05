@@ -1,89 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [Resending - PATCH 1/3] Triton BCI driver board/device setup
-	for OMAP3430
-Date: Tue, 5 Aug 2008 17:08:51 +0300
-Message-ID: <20080805140850.GP7193@atomide.com>
-References: <38309.192.168.10.89.1216727733.squirrel@dbdmail.itg.ti.com> <1473aac0380c8c62329714e83f6ca795@felipebalbi.com> <002301c8ec7f$1405df30$37f6180a@ent.ti.com> <3db54da6fc6e74db523cc8e6bd2cf69d@felipebalbi.com> <20080805133550.GJ7193@atomide.com> <20080805140551.GC30539@gandalf.research.nokia.com>
+From: "Kridner, Jason" <jdk@ti.com>
+Subject: Re: [PATCH] Added support for OMAP35x processor series
+Date: Tue, 5 Aug 2008 09:11:50 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E0AFDBE42@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63059 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752901AbYHEOJB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 10:09:01 -0400
-Content-Disposition: inline
-In-Reply-To: <20080805140551.GC30539@gandalf.research.nokia.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:34856 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754098AbYHEOL7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 5 Aug 2008 10:11:59 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Felipe Balbi <me@felipebalbi.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, linux-omap@vger.kernel.org, Mikko.K.Ylinen@nokia.com
+To: "'k.kooi@student.utwente.nl'" <k.kooi@student.utwente.nl>, "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>
 
-* Felipe Balbi <felipe.balbi@nokia.com> [080805 17:06]:
-> On Tue, Aug 05, 2008 at 04:35:51PM +0300, Tony Lindgren wrote:
-> > * Felipe Balbi <me@felipebalbi.com> [080723 10:32]:
-> > > 
-> > > 
-> > > On Wed, 23 Jul 2008 10:16:27 +0530, "Madhusudhan Chikkature"
-> > > <madhu.cr@ti.com> wrote:
-> > > > Hi Felipe,
-> > > > 
-> > > >> Tony, weird that we still have these prototypes in these headers.
-> > > >> Could be some merging conflict ?
-> > > > Yes. I see that these prototypes are still present in the board3430 and
-> > > > board2430 header files in the omap tree.
-> > > > 
-> > > >> Anyways, please apply the attached patch. We're using
-> > > >> usb_musb_init() and usb_ehci_init() now.
-> > > > You mean I should apply the attached patch you sent for local use, right?
-> > > > And I guess I dont need to resend this perticular BCI patch, am I
-> > > correct?
-> > > 
-> > > No :-)
-> > > 
-> > > that was to Tony. Just replied to your mail so it's easy to see why we need
-> > > that patch :-)
-> > 
-> > Pushing these today. Do you have a patch for moving the extern
-> > prototypes into the twl header?
-> 
-> I was talking about these:
-> 
-> From: Felipe Balbi <felipe.balbi@nokia.com>
-> 
-> arch: omap: get rid of usb_init() protytpes
-> 
-> we now use usb_musb_init() and usb_ehci_init() functions
-
-OK, thanks. Will push today.
-
-Tony
-
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> ---
-> 
-> diff --git a/include/asm-arm/arch-omap/board-2430sdp.h b/include/asm-arm/arch-omap/board-2430sdp.h
-> index fde6915..83d0eec 100644
-> --- a/include/asm-arm/arch-omap/board-2430sdp.h
-> +++ b/include/asm-arm/arch-omap/board-2430sdp.h
-> @@ -36,6 +36,5 @@
->  
->  /* Function prototypes */
->  extern void sdp2430_flash_init(void);
-> -extern void sdp2430_usb_init(void);
->  
->  #endif /* __ASM_ARCH_OMAP_2430SDP_H */
-> diff --git a/include/asm-arm/arch-omap/board-3430sdp.h b/include/asm-arm/arch-omap/board-3430sdp.h
-> index d583008..85f769e 100644
-> --- a/include/asm-arm/arch-omap/board-3430sdp.h
-> +++ b/include/asm-arm/arch-omap/board-3430sdp.h
-> @@ -29,7 +29,6 @@
->  #ifndef __ASM_ARCH_OMAP_3430SDP_H
->  #define __ASM_ARCH_OMAP_3430SDP_H
->  
-> -extern void sdp3430_usb_init(void);
->  extern void sdp3430_flash_init(void);
->  
->  #define DEBUG_BASE                     0x08000000  /* debug board */
-> 
-> -- 
-> balbi
+Tm8sIFJPTSBDUkMgaXMgdXNlZnVsIGZvciBkZXRlY3RpbmcgYmV0d2VlbiBzb21lIGRldmljZSBy
+ZXZpc2lvbnMsIGJ1dCBub3QgT01BcDM0MzAgdnMgT01BUDM1MzAuDQoNCi0tLS0tIE9yaWdpbmFs
+IE1lc3NhZ2UgLS0tLS0NCkZyb206IEtvZW4gS29vaSA8ay5rb29pQHN0dWRlbnQudXR3ZW50ZS5u
+bD4NClRvOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZyA8bGludXgtb21hcEB2Z2VyLmtlcm5l
+bC5vcmc+DQpDYzogS3JpZG5lciwgSmFzb24NClNlbnQ6IFR1ZSBBdWcgMDUgMDU6MTA6NDAgMjAw
+OA0KU3ViamVjdDogUmU6IFtQQVRDSF0gQWRkZWQgc3VwcG9ydCBmb3IgT01BUDM1eCBwcm9jZXNz
+b3Igc2VyaWVzDQoNCg0KT3AgNSBhdWcgMjAwOCwgb20gMTE6NTAgaGVlZnQgSWdvciBTdG9wcGEg
+aGV0IHZvbGdlbmRlIGdlc2NocmV2ZW46DQoNCj4gT24gVHVlLCAyMDA4LTA4LTA1IGF0IDE1OjA5
+ICswNTMwLCBleHQgUHJlbWksIFNhbmplZXYgd3JvdGU6DQo+PiBUaGlzIHBhdGNoIGlzIG5lZWRl
+ZCB0byBlbnN1cmUgdGhhdCB3ZSBjYW4gbWFrZSBkZWNpc2lvbnMgYmFzZWQgb24NCj4+IHRoZSBw
+cm9jZXNzb3IgY2FwYWJpbGl0aWVzLg0KPj4gRS5nLiBPTUFQMzUwMyBkb2VzIG5vdCBjb250YWlu
+IGEgRFNQLiBXZSBzaG91bGRuJ3QgYmUgdHJ5aW5nIHRvDQo+PiBkaXNhYmxlLyBtYW5hZ2UgdGhl
+IGNsb2NrcyBmb3INCj4+IERTUCBvbiB0aGlzIHByb2Nlc3Nvci4gU2FtZSBmb3IgU0dYLg0KPg0K
+PiBXaHkgY2FuJ3QgdGhlIGRldGVjdGlvbiBoYXBwZW4gYXQgcnVudGltZT8NCg0KQUlVSSB0aGUg
+SUQgYml0cyBhcmUgdGhlIHNhbWUgKGxpbnV4IG1pc2RldGVjdCB0aGUgMzUzMCBvbiBteSBiZWFn
+bGUNCmZvciBhIDM0MzApLiBJIGhlYXJkIHRoYXQgdGhlIG9ubHkgZGVmaW5pdGl2ZSB3YXkgdG8g
+ZG8gaXQgYXQgcnVudGltZQ0KaXMgdG8gQ1JDIGNoZWNrIHRoZSBST00gY29kZS4NCg0KSmFzb24s
+IGlzIHRoYXQgY29ycmVjdD8NCg0KcmVnYXJkcywNCg0KS29lbg0KDQo+PiBFbmFibGluZyBORU9O
+IGlzIHN1cHBvcnQgaWJ5IGRlZmF1bHQgaXMganVzdCBiYXNlZCBvbiB0aGUgbnVtYmVyIG9mDQo+
+PiByZXF1ZXN0cyBJIGhhdmUgYmVlbiBnZXR0aW5nDQo+PiBmcm9tIHZhcmlvdXMgdXNlcnMuDQo+
+DQo+IEh1aD8NCj4NCj4NCj4gLS0NCj4NCj4gQ2hlZXJzLCBJZ29yDQo+DQo+IC0tLQ0KPg0KPiBJ
+Z29yIFN0b3BwYQ0KPiBNYWVtbyBTb2Z0d2FyZSAtIE5va2lhIERldmljZXMgUiZEIC0gSGVsc2lu
+a2kNCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUg
+InVuc3Vic2NyaWJlIGxpbnV4LQ0KPiBvbWFwIiBpbg0KPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2Ug
+dG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBo
+dHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCj4NCg0K
