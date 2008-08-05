@@ -1,99 +1,123 @@
-From: Ben Dooks <ben-linux@fluff.org>
-Subject: Re: [PATCH] ARM MMU: add strongly-ordered memory type
-Date: Tue, 5 Aug 2008 12:49:21 +0100
-Message-ID: <20080805114920.GC27299@trinity.fluff.org>
-References: <alpine.DEB.1.00.0808041738400.18201@utopia.booyaka.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: Problems with USB Gadget on the OMAP3EVM
+Date: Tue, 5 Aug 2008 17:07:59 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593013C9AEDA9@dbde02.ent.ti.com>
+References: <ece1079f0808050417o49392d42if4b730b7d700bdab@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from trinity.fluff.org ([89.145.97.151]:56019 "EHLO
-	trinity.fluff.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755159AbYHELtZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 07:49:25 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.1.00.0808041738400.18201@utopia.booyaka.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:44932 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755159AbYHELtc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 07:49:32 -0400
+In-Reply-To: <ece1079f0808050417o49392d42if4b730b7d700bdab@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, r-woodruff2@ti.com
+To: kanagesh radhakrishnan <rkanagesh@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Aug 04, 2008 at 05:40:57PM -0600, Paul Walmsley wrote:
-> 
-> Add the MT_MEMORY_STRONGLY_ORDERED memory type for ARM strongly ordered
-> memory.
-> 
-> This is used on OMAP3 for on-board SRAM.  On OMAP, SRAM is used for code 
-> that changes the SDRAM controller's clock, temporarily blocking access to 
-> SDRAM.  During this period, as code executes from SRAM, the ARM cache 
-> controller can attempt to write dirty cache lines back to SDRAM to make 
-> room for SRAM cache lines, causing the MPU subsystem to hang.  To avoid 
-> this, we mark SRAM as strongly- ordered memory.
+Hi Kanagesh,
 
-Is the controller allowed to write dirty cache lines out at any time it
-likes? Surely a better fix is to drain the cache of the changes before
-changing the clock for the SDRAM?
- 
-> Problem noted by Richard Woodruff <r-woodruff2@ti.com>.  Fix derived
-> from the TI CDP codebase.
-> 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> ---
-> 
->  arch/arm/mm/mmu.c          |    5 +++++
->  include/asm-arm/mach/map.h |   13 +++++++------
->  2 files changed, 12 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
-> index 2d6d682..5b56539 100644
-> --- a/arch/arm/mm/mmu.c
-> +++ b/arch/arm/mm/mmu.c
-> @@ -239,6 +239,11 @@ static struct mem_type mem_types[] = {
->  		.prot_sect = PMD_TYPE_SECT,
->  		.domain    = DOMAIN_KERNEL,
->  	},
-> +	[MT_MEMORY_STRONGLY_ORDERED] = {
-> +		.prot_sect = PMD_TYPE_SECT | PMD_SECT_AP_WRITE |
-> +				PMD_SECT_UNCACHED,
-> +		.domain    = DOMAIN_KERNEL,
-> +	},
->  };
->  
->  const struct mem_type *get_mem_type(unsigned int type)
-> diff --git a/include/asm-arm/mach/map.h b/include/asm-arm/mach/map.h
-> index 7ef3c83..8cb46b7 100644
-> --- a/include/asm-arm/mach/map.h
-> +++ b/include/asm-arm/mach/map.h
-> @@ -19,12 +19,13 @@ struct map_desc {
->  };
->  
->  /* types 0-3 are defined in asm/io.h */
-> -#define MT_CACHECLEAN		4
-> -#define MT_MINICLEAN		5
-> -#define MT_LOW_VECTORS		6
-> -#define MT_HIGH_VECTORS		7
-> -#define MT_MEMORY		8
-> -#define MT_ROM			9
-> +#define MT_CACHECLEAN			4
-> +#define MT_MINICLEAN			5
-> +#define MT_LOW_VECTORS			6
-> +#define MT_HIGH_VECTORS			7
-> +#define MT_MEMORY			8
-> +#define MT_ROM				9
-> +#define MT_MEMORY_STRONGLY_ORDERED	10
->  
->  #define MT_NONSHARED_DEVICE	MT_DEVICE_NONSHARED
->  #define MT_IXP2000_DEVICE	MT_DEVICE_IXP2000
-> 
-> 
-> -------------------------------------------------------------------
-> List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
-> FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
-> Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
+This list may not be aware of the SDK_0.9.8 releases you mention.
+I will forward the request.
 
--- 
--- 
-Ben
+You can look at the section "Reporting Issues" in the release notes to get the mail-id for support on the SDK.
 
-Q:      What's a light-year?
-A:      One-third less calories than a regular year.
+~sanjeev
 
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of kanagesh radhakrishnan
+Sent: Tuesday, August 05, 2008 4:47 PM
+To: linux-omap@vger.kernel.org
+Subject: Problems with USB Gadget on the OMAP3EVM
+
+Hello,
+
+I am trying to get USB gadget (RNDIS) working with an OMAP3EVM and a Linux Host system.  I am looking for help since I have problems setting up the USB network between the target and host systems.
+
+Kernel Configuration
+-----------------------------
+The kernel I am using is Linux-2.6.22.18.  Its the release version that comes with SDK_0.9.8 for the OMAP3EVM.  The default kernel configuration (omap3evm_defconfig) does not enable USB gadget functionality so I have made changes as suggested in the SDK_0.9.8 User Guide to the kernel configuration.  A summary is as follows:
+
+# USB devices
+
+-CONFIG_SND_USB_AUDIO=y
+
+# USB Input Devices
+-CONFIG_USB_HID=y
+
+# OMAP 343x high speed USB support
+-CONFIG_USB_MUSB_HOST=y
++CONFIG_USB_MUSB_PERIPHERAL=y
+-CONFIG_USB_MUSB_HDRC_HCD=y
++CONFIG_USB_GADGET_MUSB_HDRC=y
+
+# USB Device Class drivers
+-CONFIG_USB_ACM=y
+-CONFIG_USB_STORAGE=y
+-CONFIG_USB_MON=y
+
+# USB port drivers
+-CONFIG_USB_TEST=y
+
+# USB Gadget Support
++CONFIG_USB_GADGET=y
++CONFIG_USB_GADGET_SELECTED=y
++CONFIG_USB_GADGET_DUALSPEED=y
++CONFIG_USB_ETH=y
++CONFIG_USB_ETH_RNDIS=y
+
+Running the Test
+-------------------------
+On the OMAP3EVM Target
+#######################
+On successful boot with this kernel on the target board, after plugging in the USB cable, the following messages appear on the
+console:
+
+musb_stage2_irq 863: SUSPEND (b_idle) devctl 99 power e0 musb_stage0_irq 722: BUS RESET musb_stage0_irq 722: BUS RESET musb_stage0_irq 722: BUS RESET musb_stage0_irq 722: BUS RESET musb_stage0_irq 722: BUS RESET musb_stage0_irq 722: BUS RESET musb_stage0_irq 722: BUS RESET musb_stage0_irq 722: BUS RESET
+usb0: high speed config #2: 100 mA, Ethernet Gadget, using RNDIS musb_stage0_irq 722: BUS RESET musb_stage0_irq 722: BUS RESET musb_stage2_irq 863: SUSPEND (b_peripheral) devctl 99 power f0
+
+I then setup an IP address for the usb0 interface with the following command:
+
+[root@OMAP3EVM /]# /sbin/ifconfig usb0 192.168.1.1 up netmask 255.255.255.0
+
+On the Linux Host machine
+#######################
+
+On insertion of the USB cable, 'dmesg' shows the following messages:
+
+usb 1-2: new high speed USB device using address 3 usb 1-2: configuration #1 chosen from 2 choices usb 1-2: can't set config #1, error -71
+
+The Problem
+-------------------
+On an attempt to setup an IP address for the usb0 interface, I get the following error:
+
+usb0: unknown interface: No such device
+SIOCSIFADDR: No such device
+usb0: unknown interface: No such device
+SIOCSIFNETMASK: No such device
+SIOCGIFADDR: No such device
+SIOCSIFBROADCAST: No such device
+
+The Test Setup
+----------------------
+
+Host
+####
+   Linux machine running Fedora Core 5.
+   Manually loaded the module usbnet.ko.
+
+Target
+#####
+   OMAP3EVM running OMAP35x_SDK_0.9.8 firmware: x-load, u-boot and kernel (linux-2.6.22.18)
+   Dip switches (SW4) set to boot from NAND flash (01010000)
+
+
+Although my end objective is to test the USB functionality with TWL4030 USB transceiver, I wanted to verify if USB functions as expected through ISP1504 transceiver on my board with the SDK_0.9.8.
+Has anyone tested the USB Gadget setup on the OMAP3EVM boards?
+
+Thanks in advance,
+Kanagesh.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in the body of a message to majordomo@vger.kernel.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
