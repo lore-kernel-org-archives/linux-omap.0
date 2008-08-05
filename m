@@ -1,43 +1,133 @@
-From: "Kridner, Jason" <jdk@ti.com>
-Subject: Re: [PATCH] Added support for OMAP35x processor series
-Date: Tue, 5 Aug 2008 09:11:50 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E0AFDBE42@dlee03.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP PM interface, version 3
+Date: Tue, 5 Aug 2008 17:18:20 +0300
+Message-ID: <20080805141818.GQ7193@atomide.com>
+References: <20080717015741.14287.75980.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34856 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754098AbYHEOL7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 Aug 2008 10:11:59 -0400
-Content-Language: en-US
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56376 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754553AbYHEOS3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 10:18:29 -0400
+Content-Disposition: inline
+In-Reply-To: <20080717015741.14287.75980.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "'k.kooi@student.utwente.nl'" <k.kooi@student.utwente.nl>, "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, jouni.hogander@nokia.com, rnayak@ti.com
 
-Tm8sIFJPTSBDUkMgaXMgdXNlZnVsIGZvciBkZXRlY3RpbmcgYmV0d2VlbiBzb21lIGRldmljZSBy
-ZXZpc2lvbnMsIGJ1dCBub3QgT01BcDM0MzAgdnMgT01BUDM1MzAuDQoNCi0tLS0tIE9yaWdpbmFs
-IE1lc3NhZ2UgLS0tLS0NCkZyb206IEtvZW4gS29vaSA8ay5rb29pQHN0dWRlbnQudXR3ZW50ZS5u
-bD4NClRvOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZyA8bGludXgtb21hcEB2Z2VyLmtlcm5l
-bC5vcmc+DQpDYzogS3JpZG5lciwgSmFzb24NClNlbnQ6IFR1ZSBBdWcgMDUgMDU6MTA6NDAgMjAw
-OA0KU3ViamVjdDogUmU6IFtQQVRDSF0gQWRkZWQgc3VwcG9ydCBmb3IgT01BUDM1eCBwcm9jZXNz
-b3Igc2VyaWVzDQoNCg0KT3AgNSBhdWcgMjAwOCwgb20gMTE6NTAgaGVlZnQgSWdvciBTdG9wcGEg
-aGV0IHZvbGdlbmRlIGdlc2NocmV2ZW46DQoNCj4gT24gVHVlLCAyMDA4LTA4LTA1IGF0IDE1OjA5
-ICswNTMwLCBleHQgUHJlbWksIFNhbmplZXYgd3JvdGU6DQo+PiBUaGlzIHBhdGNoIGlzIG5lZWRl
-ZCB0byBlbnN1cmUgdGhhdCB3ZSBjYW4gbWFrZSBkZWNpc2lvbnMgYmFzZWQgb24NCj4+IHRoZSBw
-cm9jZXNzb3IgY2FwYWJpbGl0aWVzLg0KPj4gRS5nLiBPTUFQMzUwMyBkb2VzIG5vdCBjb250YWlu
-IGEgRFNQLiBXZSBzaG91bGRuJ3QgYmUgdHJ5aW5nIHRvDQo+PiBkaXNhYmxlLyBtYW5hZ2UgdGhl
-IGNsb2NrcyBmb3INCj4+IERTUCBvbiB0aGlzIHByb2Nlc3Nvci4gU2FtZSBmb3IgU0dYLg0KPg0K
-PiBXaHkgY2FuJ3QgdGhlIGRldGVjdGlvbiBoYXBwZW4gYXQgcnVudGltZT8NCg0KQUlVSSB0aGUg
-SUQgYml0cyBhcmUgdGhlIHNhbWUgKGxpbnV4IG1pc2RldGVjdCB0aGUgMzUzMCBvbiBteSBiZWFn
-bGUNCmZvciBhIDM0MzApLiBJIGhlYXJkIHRoYXQgdGhlIG9ubHkgZGVmaW5pdGl2ZSB3YXkgdG8g
-ZG8gaXQgYXQgcnVudGltZQ0KaXMgdG8gQ1JDIGNoZWNrIHRoZSBST00gY29kZS4NCg0KSmFzb24s
-IGlzIHRoYXQgY29ycmVjdD8NCg0KcmVnYXJkcywNCg0KS29lbg0KDQo+PiBFbmFibGluZyBORU9O
-IGlzIHN1cHBvcnQgaWJ5IGRlZmF1bHQgaXMganVzdCBiYXNlZCBvbiB0aGUgbnVtYmVyIG9mDQo+
-PiByZXF1ZXN0cyBJIGhhdmUgYmVlbiBnZXR0aW5nDQo+PiBmcm9tIHZhcmlvdXMgdXNlcnMuDQo+
-DQo+IEh1aD8NCj4NCj4NCj4gLS0NCj4NCj4gQ2hlZXJzLCBJZ29yDQo+DQo+IC0tLQ0KPg0KPiBJ
-Z29yIFN0b3BwYQ0KPiBNYWVtbyBTb2Z0d2FyZSAtIE5va2lhIERldmljZXMgUiZEIC0gSGVsc2lu
-a2kNCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUg
-InVuc3Vic2NyaWJlIGxpbnV4LQ0KPiBvbWFwIiBpbg0KPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2Ug
-dG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBo
-dHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCj4NCg0K
+* Paul Walmsley <paul@pwsan.com> [080717 05:00]:
+>=20
+> Hello everyone,
+>=20
+> this is the third version of the OMAP PM interface patch.
+>=20
+> Major changes since the second revision:
+>=20
+> 1. set_max_mpu_wakeup_lat() has been added.  This is intended to limi=
+t
+>    the amount of time needed for the MPU to wake up and enter a devic=
+e
+>    driver's interrupt handler.
+>=20
+> 2. set_max_dma_lat() has been renamed to set_max_sdma_lat()
+>=20
+> 3. omap_pm_dsp_get_opp_table() and struct omap_opp have been added fo=
+r
+>    future DSPBridge/CPUFreq use.  omap_pm_if_init() now takes pointer=
+s
+>    to struct omap_opp arrays that are intended to be passed in from t=
+he
+>    board-*.c files.
+>=20
+> 4. Interface documentation has been moved to the=20
+>    include/asm-arm/arch-omap/omap-pm.h file.
+>=20
+> 5. Documentation updated and moved into Documentation/arm/OMAP/omap_p=
+m
+>=20
+>=20
+> Further comments welcome,
+
+I think we need to run this by LKML, linux-arm-kernel, and linux-pm
+before we integrate these. Can you repost these for comments one
+more time so we get comments from other mailing lists?
+
+Thanks,
+
+Tony
+
+
+>=20
+>=20
+> - Paul=20
+>=20
+> ---------------------------------
+>=20
+> This message proposes the third version of a power management
+> interface (the "OMAP PM interface") for the linux-omap kernel tree.
+>=20
+> It includes a general device driver PM interface, along with some
+> specialized interfaces for CPUFreq, DSPBridge, and the
+> powerdomain/clockdomain code.  This message focuses on the general
+> device driver portion, since it is most relevant to the larger
+> community of OMAP device driver developers.
+>=20
+> The interface is intended to allow drivers to take advantage of OMAP
+> power management features:
+>=20
+> - without locking drivers into a particular underlying implementation=
+;
+>=20
+> - without adding constraints that are specific to particular OMAP
+>   variants; and
+>=20
+> - without affecting other architectures.
+>=20
+> The device driver portion of the interface covers four types of PM
+> constraints:
+>=20
+> 1. Set the maximum MPU wakeup latency
+>=20
+> 2. Set the maximum device wakeup latency
+>=20
+> 3. Set the maximum system DMA transfer start latency (CORE pwrdm)
+>=20
+> 4. Set the minimum bus throughput needed by a device
+>=20
+>=20
+> These are described in more detail in the patch.
+>=20
+> This interface is intended to be temporary, to survive only until the
+> Linux PM QoS layer supports these features.
+>=20
+> This interface is a collaborative product of many people from Nokia
+> and TI: Karthik Dasu, Jouni H=F6gander, Tony Lindgren, Rajendra Nayak=
+,
+> Sakari Poussa, Veeramanikandan Raju, Anand Sawant, Igor Stoppa, Paul
+> Walmsley, and Richard Woodruff.
+>=20
+> Included in the patch is a 'no-op' implementation that documents the
+> interface and emits debug messages.  Rajendra Nayak at TI has
+> developed an initial implementation of the OMAP PM interface that
+> relies mostly on TI's Shared Resource Framework.  Also under
+> development is an implementation of the OMAP PM code that uses the
+> existing Linux PM QoS code.
+>=20
+>=20
+> Comments welcomed,
+>=20
+> - Paul
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
