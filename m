@@ -1,52 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] MUSB: Fix bug - don't mess up count number and CSR0
-	register value
-Date: Tue, 5 Aug 2008 12:02:12 +0300
-Message-ID: <20080805090211.GG7193@atomide.com>
-References: <1217907118963-git-send-email-cooloney@kernel.org> <20080805084549.GC7193@atomide.com> <5A47E75E594F054BAF48C5E4FC4B92AB02569B8800@dbde02.ent.ti.com>
+Subject: Re: [PATCH 0/3 v2] OMAP3 Beagle: Enable nand support
+Date: Tue, 5 Aug 2008 12:09:22 +0300
+Message-ID: <20080805090921.GH7193@atomide.com>
+References: <48972701.2080006@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:65132 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54704 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758842AbYHEJCX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 05:02:23 -0400
+	with ESMTP id S1757736AbYHEJJ0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 05:09:26 -0400
 Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02569B8800@dbde02.ent.ti.com>
+In-Reply-To: <48972701.2080006@googlemail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: Bryan Wu <cooloney@kernel.org>, "me@felipebalbi.com" <me@felipebalbi.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Steve Sakoman <sakoman@gmail.com>
 
-* Gadiyar, Anand <gadiyar@ti.com> [080805 11:59]:
-> > Hi,
-> >
-> > * Bryan Wu <cooloney@kernel.org> [080805 06:27]:
-> > > Signed-off-by: Bryan Wu <cooloney@kernel.org>
-> > > ---
-> > >  drivers/usb/musb/musb_gadget_ep0.c |   24 ++++++++++++------------
-> > >  1 files changed, 12 insertions(+), 12 deletions(-)
-> >
-> > I think all musb patches should be now posted to linux-usb list as the
-> > patches are queued for integration.
-> >
-> > So I'll be using plain code coming from mainline tree and
-> > won't apply any patches to musb code except temporary fixes if compile
-> > breaks.
-> >
-> > Cheers,
-> >
-> > Tony
-> 
-> Do you mind if I post the patches here as well? It could be useful to
-> someone using USB on OMAP? At least they could get a review here.
+* Dirk Behme <dirk.behme@googlemail.com> [080804 19:01]:
+> This series of patches adds NAND support to the BeagleBoard.
+>
+> The first patch in the series builds on work by Teerth Reddy  
+> <teerth@ti.com> and Steve Sakoman <sakoman@gmail.com> to extend the  
+> omap2 nand driver to work with both omap2 and omap3 architectures (as  
+> well as adding/clarifying comments).
+>
+> The second patch adds the beagle nand support, and the final patch  
+> enables the nand driver and jffs2 support in the beagle defconfig.
+>
+> The patch set was reviewed by Khasim Syed Mohammed <khasim@ti.com> prior 
+> to this submission.  It was tested on Rev A and B BeagleBoards.
+>
+> This v2 replaces http://marc.info/?l=linux-omap&m=121230229625544&w=2
+>
+> Changes in v2:
+>
+> - Apply cleanly to recent git (defconfig, drivers/mtd/nand/omap2.c)
+> - Beagle has only NAND. This results in small config. Move configuration 
+> to board-omap3beagle.c and don't create a new file  
+> board-omap3beagle-flash.c for it.
 
-Yes, it's a good idea to Cc linux-omap list so people can test them
-and keep track of the changes easier :)
-
-> I've got one set of patches coming up over the next couple of days, and
-> all of it is based on the current linux-omap tree.
-
-OK
+Pushing this series today.
 
 Tony
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
