@@ -1,55 +1,112 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Remove double MODULE_ALIAS declaration.
-Date: Tue, 5 Aug 2008 12:14:49 +0300
-Message-ID: <20080805091449.GJ7193@atomide.com>
-References: <1214489878-20272-1-git-send-email-roman.tereshonkov@nokia.com>
+Subject: Re: [PATCH] Added support for OMAP35x processor series
+Date: Tue, 5 Aug 2008 12:25:25 +0300
+Message-ID: <20080805092523.GK7193@atomide.com>
+References: <premi@ti.com> <1217591379-1515-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58869 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51878 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759453AbYHEJOw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 05:14:52 -0400
+	with ESMTP id S1754896AbYHEJZ2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 05:25:28 -0400
 Content-Disposition: inline
-In-Reply-To: <1214489878-20272-1-git-send-email-roman.tereshonkov@nokia.com>
+In-Reply-To: <1217591379-1515-1-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roman Tereshonkov <roman.tereshonkov@nokia.com>
+To: Sanjeev Premi <premi@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-* Roman Tereshonkov <roman.tereshonkov@nokia.com> [080626 17:23]:
-> Only once MODULE_ALIAS declaration is enough.
-> Columns are counted from 0 to n_cols - 1.
+* Sanjeev Premi <premi@ti.com> [080801 14:50]:
+> This patch adds basic support for the OMAP35x Applications Processors.
+> (See: http://focus.ti.com/general/docs/gencontent.tsp?contentId=46725)
+> 
+> As you will notice, NEON SIMD coprocessor is enabled by default for
+> these processors.
 
-Pushing today.
+Do we really need this? To me it seems like our CPU detection should
+figure out the processor is 34xx and specifically 35xx something.
+
+Are there Cortex A8 processors with no Neon hardware?
 
 Tony
 
-> Signed-off-by: Roman Tereshonkov <roman.tereshonkov@nokia.com>
+
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
 > ---
->  drivers/input/keyboard/omap-twl4030keypad.c |    3 +--
->  1 files changed, 1 insertions(+), 2 deletions(-)
+>  arch/arm/mach-omap2/Kconfig |   50 ++++++++++++++++++++++++++++++++++++++++++-
+>  1 files changed, 49 insertions(+), 1 deletions(-)
 > 
-> diff --git a/drivers/input/keyboard/omap-twl4030keypad.c b/drivers/input/keyboard/omap-twl4030keypad.c
-> index 20aeb3c..68c5b8e 100644
-> --- a/drivers/input/keyboard/omap-twl4030keypad.c
-> +++ b/drivers/input/keyboard/omap-twl4030keypad.c
-> @@ -158,7 +158,7 @@ static void twl4030_kp_scan(int release_all)
->  		if (!changed)
->  			continue;
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index bb6d695..63d7cdd 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -25,6 +25,54 @@ config ARCH_OMAP3430
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  	select ARCH_OMAP_OTG
 >  
-> -		for (col = 0; col < n_cols + 1; col++) {
-> +		for (col = 0; col < n_cols; col++) {
->  			int key;
+> +config ARCH_OMAP35XX
+> +	bool "OMAP35x Family"
+> +	select ARCH_OMAP3
+> +	select ARCH_OMAP34XX
+> +	select ARCH_OMAP3430
+> +	select OMAP3430_ES2
+> +	select NEON
+> +	help
+> +	  OMAP35x family of processors based on ARM Cortex-A8
+> +	  in combination with IVA2.2 core and OpenGL ES2.0
+> +	  compatible graphics engine.
+> +
+> +	  ARM Cortex-A8 contains NEON SIMD coprocessor.
+> +
+> +choice
+> +	prompt "Current choice"
+> +	default ARCH_OMAP3503
+> +
+> +config ARCH_OMAP3503
+> +	bool "OMAP3503"
+> +	depends on ARCH_OMAP35XX
+> +	help
+> +	  Contains ARM Cortex-A8 processor.
+> +
+> +config ARCH_OMAP3515
+> +	bool "OMAP3515"
+> +	depends on ARCH_OMAP35XX
+> +	help
+> +	   Contains ARM Cortex-A8 processor and SGX530 subsystem
+> +	   for 2D and 3D graphics acceleration.
+> +
+> +config ARCH_OMAP3525
+> +	bool "OMAP3525"
+> +	depends on ARCH_OMAP35XX
+> +	help
+> +	  Contains ARM Cortex-A8 processor and IVA2.2 subsystem
+> +	  with a C64x+ DSP core.
+> +
+> +config ARCH_OMAP3530
+> +	bool "OMAP3530"
+> +	depends on ARCH_OMAP35XX
+> +	help
+> +	   Contains ARM Cortex-A8 processor, IVA2.2 subsystem
+> +	   with a C64x+ DSP Core and SGX530 subsystem for 2D
+> +	   and 3D graphics acceleration.
+> +
+> +endchoice
+> +
+>  comment "OMAP Board Type"
+>  	depends on ARCH_OMAP2 || ARCH_OMAP3
 >  
->  			if (!(changed & (1 << col)))
-> @@ -373,4 +373,3 @@ MODULE_ALIAS("platform:omap_twl4030keypad");
->  MODULE_AUTHOR("Texas Instruments");
->  MODULE_DESCRIPTION("OMAP TWL4030 Keypad Driver");
->  MODULE_LICENSE("GPL");
-> -MODULE_ALIAS("platform:omap_twl4030keypad");
+> @@ -117,7 +165,7 @@ config MACH_OMAP_3430SDP
+>  
+>  config MACH_OMAP3EVM
+>  	bool "OMAP 3530 EVM board"
+> -	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> +	depends on ARCH_OMAP35XX
+>  
+>  config MACH_OMAP3_BEAGLE
+>  	bool "OMAP3 BEAGLE board"
 > -- 
-> 1.5.5.1
+> 1.5.6
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
