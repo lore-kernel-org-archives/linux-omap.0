@@ -1,50 +1,44 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.26-omap-git] beagle LED fixes
-Date: Mon, 4 Aug 2008 23:56:15 -0700
-Message-ID: <200808042356.16674.david-b@pacbell.net>
+Subject: Re: [PATCH] OMAP3:devices.c: Enabling 4-bit for SD card
+Date: Tue, 5 Aug 2008 00:10:14 -0700
+Message-ID: <200808050010.15117.david-b@pacbell.net>
+References: <200806161302.m5GD2Xg4007641@india.ti.com> <B85A65D85D7EB246BE421B3FB0FBB59301118F2774@dbde02.ent.ti.com> <B85A65D85D7EB246BE421B3FB0FBB5930111B215C5@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:34255 "HELO
-	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753245AbYHEG4S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 02:56:18 -0400
+Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:39124 "HELO
+	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1760352AbYHEHKR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 03:10:17 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB5930111B215C5@dbde02.ent.ti.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Kumar, Purushotam" <purushotam@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Purushotam Kumar <a0876542@india.ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gole, Anant" <anantgole@ti.com>
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+On Monday 14 July 2008, Kumar, Purushotam wrote:
+> > > > =A0 =A0 =A0 if (cpu_is_omap2430() || cpu_is_omap34xx()) {
+> > > > - =A0 =A0 =A0 =A0 =A0 =A0 if (mmc->enabled)
+> > > > + =A0 =A0 =A0 =A0 =A0 =A0 if (mmc->enabled) {
+> > > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc1_data.conf =3D *m=
+mc;
+> > > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (void) platform_dev=
+ice_register(&mmc_omap_device1);
+> > > > + =A0 =A0 =A0 =A0 =A0 =A0 }
 
-Update and fix Beagle LED declarations:  gpios for USR0 and USR1
-were swapped, and their names don't match docs or silksreen.
+I don't get it.  OMAP3 uses the hsmmc code, which uses
+a "struct omap_mmc_platform_data" to configure itself.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
- arch/arm/mach-omap2/board-omap3beagle.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+But this patch updates a "struct omap_mmc_conf" as used
+by the non-hsmmc code.
 
---- a/arch/arm/mach-omap2/board-omap3beagle.c	2008-08-04 22:08:16.000000000 -0700
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c	2008-08-04 22:08:36.000000000 -0700
+So ... it's a NOP, at least for OMAP3.  Right?
 
-@@ -75,14 +76,14 @@ static struct omap_lcd_config omap3_beag
- 
- struct gpio_led gpio_leds[] = {
- 	{
--		.name			= "beagleboard::led0",
-+		.name			= "beagleboard::usr0",
- 		.default_trigger	= "none",
--		.gpio			= 149,
-+		.gpio			= 150,
- 	},
- 	{
--		.name			= "beagleboard::led1",
-+		.name			= "beagleboard::usr1",
- 		.default_trigger	= "none",
--		.gpio			= 150,
-+		.gpio			= 149,
- 	},
- };
- 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
