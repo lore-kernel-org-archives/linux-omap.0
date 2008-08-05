@@ -1,40 +1,58 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] MUSB: Workaround for simultaneous TX and RX usage
-Date: Tue, 5 Aug 2008 12:32:24 +0300
-Message-ID: <20080805093224.GS30539@gandalf.research.nokia.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02568EBABF@dbde02.ent.ti.com>
-Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Enable SYSOFFMODE use
+Date: Tue, 5 Aug 2008 13:50:58 +0300
+Message-ID: <20080805105057.GQ7193@atomide.com>
+References: <1216656125-5800-1-git-send-email-peter.de-schrijver@nokia.com> <1216656125-5800-2-git-send-email-peter.de-schrijver@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49709 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753289AbYHELOA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 07:14:00 -0400
 Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02568EBABF-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ext Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1216656125-5800-2-git-send-email-peter.de-schrijver@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, Aug 04, 2008 at 06:48:22PM +0530, ext Gadiyar, Anand wrote:
-> MUSB RTL v1.4 has a hardware issue which results in a DMA controller
-> hang when TX and RX DMA channels are simultaneously enabled. This
-> affects at least OMAP2430 and OMAP34XX.
+* Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com> [080721 19:03]:
 > 
-> Since RX transfers are in Mode 0 and anyway result in one DMA interrupt
-> per packet, we can use System DMA to unload the RX fifos. MUSB DMA can
-> be used for all TX channels as before.
+> Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+> ---
+>  arch/arm/mach-omap2/smartreflex.c |   10 +++++-----
+>  1 files changed, 5 insertions(+), 5 deletions(-)
 > 
-> Tested with full-duplex TX and RX transfers using g_ether. Runs for 24
-> hours without a hang. Without this patch, the hang occurs within minutes.
+> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+> index 0f3a659..b41fe96 100644
+> --- a/arch/arm/mach-omap2/smartreflex.c
+> +++ b/arch/arm/mach-omap2/smartreflex.c
+> @@ -396,17 +396,17 @@ static void sr_configure_vc(void)
+>  
+>  	/* Setup voltctrl and other setup times */
+>  	/* XXX CONFIG_SYSOFFMODE has not been implemented yet */
+> -#ifdef CONFIG_SYSOFFMODE
+> -	prm_write_mod_reg(OMAP3430_AUTO_OFF | OMAP3430_AUTO_RET,
+> -			OMAP3430_GR_MOD,
+> +#ifdef CONFIG_OMAP_SYSOFFMODE
+> +	prm_write_mod_reg(OMAP3430_AUTO_OFF | OMAP3430_AUTO_RET |
+> +			OMAP3430_SEL_OFF, OMAP3430_GR_MOD,
+>  			OMAP3_PRM_VOLTCTRL_OFFSET);
+>  
+>  	prm_write_mod_reg(OMAP3430_CLKSETUP_DURATION, OMAP3430_GR_MOD,
+>  			OMAP3_PRM_CLKSETUP_OFFSET);
+>  	prm_write_mod_reg((OMAP3430_VOLTSETUP_TIME2 <<
+> -			OMAP3430_VOLTSETUP_TIME2_OFFSET) |
+> +			OMAP3430_SETUP_TIME2_SHIFT) |
+>  			(OMAP3430_VOLTSETUP_TIME1 <<
+> -			OMAP3430_VOLTSETUP_TIME1_OFFSET),
+> +			OMAP3430_SETUP_TIME1_SHIFT),
+>  			OMAP3430_GR_MOD, OMAP3_PRM_VOLTSETUP1_OFFSET);
+>  
+>  	prm_write_mod_reg(OMAP3430_VOLTOFFSET_DURATION, OMAP3430_GR_MOD,
 
-I just don't like that amount of ifdefs, as we were discussing out of
-the list we should use runtime checks where possible.
+Do we need the CONFIG_SYSOFFMODE option? How about just add
+/sys/power/off_while_idle and if that's set to 1 then allow off mode?
 
-Let's wait on this one since Anand will send another patch set later on
-this week.
-
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
