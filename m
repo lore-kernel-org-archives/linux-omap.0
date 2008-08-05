@@ -1,67 +1,104 @@
-From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: RE: [PATCH] OMAP3 CPUidle patches - fixes
-Date: Tue, 5 Aug 2008 14:05:47 +0530
-Message-ID: <033a01c8f6d6$452b9ee0$74f6180a@wipultra1382>
-References: <20080805083348.GB7193@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] MUSB: Fix bug - don't mess up count number and CSR0
+	register value
+Date: Tue, 5 Aug 2008 11:45:50 +0300
+Message-ID: <20080805084549.GC7193@atomide.com>
+References: <1217907118963-git-send-email-cooloney@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from soda.ext.ti.com ([198.47.26.145]:57477 "EHLO soda.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759310AbYHEIgB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 Aug 2008 04:36:01 -0400
-In-Reply-To: <20080805083348.GB7193@atomide.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51283 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753456AbYHEIp6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 04:45:58 -0400
+Content-Disposition: inline
+In-Reply-To: <1217907118963-git-send-email-cooloney@kernel.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Tony Lindgren' <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: Bryan Wu <cooloney@kernel.org>
+Cc: me@felipebalbi.com, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com] 
-> Sent: Tuesday, August 05, 2008 2:04 PM
-> To: Rajendra Nayak
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] OMAP3 CPUidle patches - fixes
-> 
-> * Rajendra Nayak <rnayak@ti.com> [080805 08:35]:
-> > 
-> > > -----Original Message-----
-> > > From: Tony Lindgren [mailto:tony@atomide.com]
-> > > Sent: Monday, August 04, 2008 8:03 PM
-> > > To: Rajendra Nayak
-> > > Cc: linux-omap@vger.kernel.org
-> > > Subject: Re: [PATCH] OMAP3 CPUidle patches - fixes
-> > > 
-> > > * Rajendra Nayak <rnayak@ti.com> [080703 14:55]:
-> > > > This patch fixes few of the comments posted on the patch
-> > > set till now. 
-> > > > 
-> > > > One major fix is the moving of uart clock enable/disable
-> > > out of the context save path as pointed out by Jouni. 
-> > > > This would leave the UART clcoks disabled in case a CORE
-> > > OFF was attempted and not achieved.
-> > > 
-> > > What kernel or patch series this is against? If it's for 
-> some patch 
-> > > series that's not applied yet to linux-omap tree, let's merge the 
-> > > fix to the original patch.
-> > 
-> > I sent another patch set later to the list (dated 
-> 18/07/2008) "[PATCH 
-> > 00/11] OMAP3 CPUidle patches - ver 2"
-> > which is the final patch set for CPUidle which can be merged. 
-> > This patch and all the previous patches on CPUidle can be ignored. 
-> 
-> Can you please integrate all the fixes to CPUidle and repost 
-> the whole series one more time?
+Hi,
 
-Ok. Will repost it today.
+* Bryan Wu <cooloney@kernel.org> [080805 06:27]:
+> Signed-off-by: Bryan Wu <cooloney@kernel.org>
+> ---
+>  drivers/usb/musb/musb_gadget_ep0.c |   24 ++++++++++++------------
+>  1 files changed, 12 insertions(+), 12 deletions(-)
 
-> 
-> Thanks,
-> 
-> Tony
-> 
+I think all musb patches should be now posted to linux-usb list as the
+patches are queued for integration.
 
+So I'll be using plain code coming from mainline tree and
+won't apply any patches to musb code except temporary fixes if compile
+breaks.
+
+Cheers,
+
+Tony
+
+> diff --git a/drivers/usb/musb/musb_gadget_ep0.c b/drivers/usb/musb/musb_gadget_ep0.c
+> index 2d2574c..e7b56df 100644
+> --- a/drivers/usb/musb/musb_gadget_ep0.c
+> +++ b/drivers/usb/musb/musb_gadget_ep0.c
+> @@ -452,7 +452,7 @@ static void ep0_rxstate(struct musb *musb)
+>  {
+>  	void __iomem		*regs = musb->control_ep->regs;
+>  	struct usb_request	*req;
+> -	u16			tmp;
+> +	u16			count, csr;
+>  
+>  	req = next_ep0_request(musb);
+>  
+> @@ -464,34 +464,34 @@ static void ep0_rxstate(struct musb *musb)
+>  		unsigned	len = req->length - req->actual;
+>  
+>  		/* read the buffer */
+> -		tmp = musb_readb(regs, MUSB_COUNT0);
+> -		if (tmp > len) {
+> +		count = musb_readb(regs, MUSB_COUNT0);
+> +		if (count > len) {
+>  			req->status = -EOVERFLOW;
+> -			tmp = len;
+> +			count = len;
+>  		}
+> -		musb_read_fifo(&musb->endpoints[0], tmp, buf);
+> -		req->actual += tmp;
+> -		tmp = MUSB_CSR0_P_SVDRXPKTRDY;
+> -		if (tmp < 64 || req->actual == req->length) {
+> +		musb_read_fifo(&musb->endpoints[0], count, buf);
+> +		req->actual += count;
+> +		csr = MUSB_CSR0_P_SVDRXPKTRDY;
+> +		if (count < 64 || req->actual == req->length) {
+>  			musb->ep0_state = MUSB_EP0_STAGE_STATUSIN;
+> -			tmp |= MUSB_CSR0_P_DATAEND;
+> +			csr |= MUSB_CSR0_P_DATAEND;
+>  		} else
+>  			req = NULL;
+>  	} else
+> -		tmp = MUSB_CSR0_P_SVDRXPKTRDY | MUSB_CSR0_P_SENDSTALL;
+> +		csr = MUSB_CSR0_P_SVDRXPKTRDY | MUSB_CSR0_P_SENDSTALL;
+>  
+>  
+>  	/* Completion handler may choose to stall, e.g. because the
+>  	 * message just received holds invalid data.
+>  	 */
+>  	if (req) {
+> -		musb->ackpend = tmp;
+> +		musb->ackpend = csr;
+>  		musb_g_ep0_giveback(musb, req);
+>  		if (!musb->ackpend)
+>  			return;
+>  		musb->ackpend = 0;
+>  	}
+> -	musb_writew(regs, MUSB_CSR0, tmp);
+> +	musb_writew(regs, MUSB_CSR0, csr);
+>  }
+>  
+>  /*
+> -- 
+> 1.5.3
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
