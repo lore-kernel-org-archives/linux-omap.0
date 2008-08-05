@@ -1,115 +1,116 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: Problems with USB Gadget on the OMAP3EVM
-Date: Tue, 5 Aug 2008 14:27:36 +0300
-Message-ID: <20080805112736.GZ30539@gandalf.research.nokia.com>
-References: <ece1079f0808050417o49392d42if4b730b7d700bdab@mail.gmail.com>
-Reply-To: felipe.balbi@nokia.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] ARM: OMAP3: Make I2C bus 2 configurable for
+	BeagleBoard
+Date: Tue, 5 Aug 2008 14:40:13 +0300
+Message-ID: <20080805114010.GV7193@atomide.com>
+References: <486DD383.1040800@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:34522 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753471AbYHEL1p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 07:27:45 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53564 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753953AbYHELkQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 07:40:16 -0400
 Content-Disposition: inline
-In-Reply-To: <ece1079f0808050417o49392d42if4b730b7d700bdab@mail.gmail.com>
+In-Reply-To: <486DD383.1040800@googlemail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext kanagesh radhakrishnan <rkanagesh@gmail.com>
+To: Dirk Behme <dirk.behme@googlemail.com>
 Cc: linux-omap@vger.kernel.org
 
-Hi,
+* Dirk Behme <dirk.behme@googlemail.com> [080704 10:39]:
+>
+> I2C2 at BeagleBoard is connected to expansion connector, i.e. unused if 
+> nothing is connected to this connector. As internal OMAP3 pull up
+> resistors are not strong enough, enabled but unused I2C2 bus results in 
+> error messages (e.g. I2C timeouts). I2C2 should be enabled only if
+> something is connected to I2C2 at board's expansion connector and this  
+> extension has additional pull up resistors for I2C2 bus.
+>
+> - Add configuration option for this
+> - Use configuration option in board-omap3beagle
+> - While being there, add OMAP3 to OMAP I2C help text
 
-On Tue, Aug 05, 2008 at 04:47:02PM +0530, ext kanagesh radhakrishnan wrote:
-> Running the Test
-> -------------------------
-> On the OMAP3EVM Target
-> #######################
-> On successful boot with this kernel on the target board, after
-> plugging in the USB cable, the following messages appear on the
-> console:
+Pushing today to linux-omap. I guess we'll have to wait on sending
+these to lm-sensors until we have board-*.c files in mainline tree.
+
+Tony
+
+
+>
+> Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
+>
+
 > 
-> musb_stage2_irq 863: SUSPEND (b_idle) devctl 99 power e0
-> musb_stage0_irq 722: BUS RESET
-> musb_stage0_irq 722: BUS RESET
-> musb_stage0_irq 722: BUS RESET
-> musb_stage0_irq 722: BUS RESET
-> musb_stage0_irq 722: BUS RESET
-> musb_stage0_irq 722: BUS RESET
-> musb_stage0_irq 722: BUS RESET
-> musb_stage0_irq 722: BUS RESET
-> usb0: high speed config #2: 100 mA, Ethernet Gadget, using RNDIS
-> musb_stage0_irq 722: BUS RESET
-> musb_stage0_irq 722: BUS RESET
-> musb_stage2_irq 863: SUSPEND (b_peripheral) devctl 99 power f0
+> Subject: ARM: OMAP3: Make I2C bus 2 configurable for BeagleBoard 
 > 
-> I then setup an IP address for the usb0 interface with the following command:
+> From: Dirk Behme <dirk.behme@gmail.com>
 > 
-> [root@OMAP3EVM /]# /sbin/ifconfig usb0 192.168.1.1 up netmask 255.255.255.0
+> I2C2 at BeagleBoard is connected to expansion connector, i.e. unused if
+> nothing is connected to this connector. As internal OMAP3 pull up resistors
+> are not strong enough, enabled but unused I2C2 bus results in error messages
+> (e.g. I2C timeouts). I2C2 should be enabled only if something is connected to
+> I2C2 at board's expansion connector and this extension has additional pull up
+> resistors for I2C2 bus.
 > 
-> On the Linux Host machine
-> #######################
+> - Add configuration option for this
+> - Use configuration option in board-omap3beagle
+> - While being there, add OMAP3 to OMAP I2C help text
 > 
-> On insertion of the USB cable, 'dmesg' shows the following messages:
+> Signed-off-by: Dirk Behme <dirk.behme@gmail.com>
 > 
-> usb 1-2: new high speed USB device using address 3
-> usb 1-2: configuration #1 chosen from 2 choices
-> usb 1-2: can't set config #1, error -71
-
-That's weird since gadget api set config 2 as your dmesg states.
-usb0: high speed config #2: 100 mA, Ethernet Gadget, using RNDIS
-
-> The Problem
-> -------------------
-> On an attempt to setup an IP address for the usb0 interface, I get the
-> following error:
+> ---
 > 
-> usb0: unknown interface: No such device
-> SIOCSIFADDR: No such device
-> usb0: unknown interface: No such device
-> SIOCSIFNETMASK: No such device
-> SIOCGIFADDR: No such device
-> SIOCSIFBROADCAST: No such device
-
-Looks like the problem is in the host side usbnet.ko. What kernel
-version is in your host machine ?
-
-> The Test Setup
-> ----------------------
+> Changes in v2: Incorporate Jarkko's comments. Pin mux is already done
+>                depending on enabled busses in omap_i2c_mux_pins(int bus).
+>                We don't have to do it manually here. Thanks!
 > 
-> Host
-> ####
->    Linux machine running Fedora Core 5.
->    Manually loaded the module usbnet.ko.
+> Index: linux-beagle/arch/arm/mach-omap2/board-omap3beagle.c
+> ===================================================================
+> --- linux-beagle.orig/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ linux-beagle/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -40,7 +40,9 @@ static struct omap_uart_config omap3_bea
+>  static int __init omap3_beagle_i2c_init(void)
+>  {
+>  	omap_register_i2c_bus(1, 2600, NULL, 0);
+> +#ifdef CONFIG_I2C2_OMAP_BEAGLE
+>  	omap_register_i2c_bus(2, 400, NULL, 0);
+> +#endif
+>  	omap_register_i2c_bus(3, 400, NULL, 0);
+>  	return 0;
+>  }
+> Index: linux-beagle/drivers/i2c/busses/Kconfig
+> ===================================================================
+> --- linux-beagle.orig/drivers/i2c/busses/Kconfig
+> +++ linux-beagle/drivers/i2c/busses/Kconfig
+> @@ -332,10 +332,27 @@ config I2C_OMAP
+>  	default y if MACH_OMAP_H3 || MACH_OMAP_OSK
+>  	help
+>  	  If you say yes to this option, support will be included for the
+> -	  I2C interface on the Texas Instruments OMAP1/2 family of processors.
+> -	  Like OMAP1510/1610/1710/5912 and OMAP242x.
+> +	  I2C interface on the Texas Instruments OMAP1/2/3 family of
+> +	  processors.
+> +	  Like OMAP1510/1610/1710/5912, OMAP242x, OMAP34x and OMAP35x.
+>  	  For details see http://www.ti.com/omap.
+>  
+> +config I2C2_OMAP_BEAGLE
+> +	bool "Enable I2C2 for OMAP3 BeagleBoard"
+> +	depends on ARCH_OMAP && MACH_OMAP3_BEAGLE
+> +	select OMAP_MUX
+> +	default n
+> +	help
+> +	  Say Y here if you want to enable I2C bus 2 at OMAP3 based
+> +	  BeagleBoard.
+> +	  I2C2 at BeagleBoard is connected to expansion connector, i.e. unused
+> +	  if nothing is connected to this connector. As internal OMAP3 pull up
+> +	  resistors are not strong enough, enabled but unused I2C2 bus results
+> +	  in error messages (e.g. I2C timeouts). Enable this only if you have
+> +	  something connected to I2C2 at board's expansion connector and this
+> +	  extension has additional pull up resistors for I2C2 bus.
+> +
+> +
+>  config I2C_PARPORT
+>  	tristate "Parallel port adapter"
+>  	depends on PARPORT
 
-Which kernel version is in this fedora core 5 ??
-
-> Target
-> #####
->    OMAP3EVM running OMAP35x_SDK_0.9.8 firmware: x-load, u-boot and
-> kernel (linux-2.6.22.18)
->    Dip switches (SW4) set to boot from NAND flash (01010000)
-> 
-> 
-> Although my end objective is to test the USB functionality with
-> TWL4030 USB transceiver, I wanted to verify if USB functions as
-> expected through ISP1504 transceiver on my board with the SDK_0.9.8.
-> Has anyone tested the USB Gadget setup on the OMAP3EVM boards?
-
-I'd strongly suggest you to try out current linux-omap code [1] and check
-if it works fine.
-
-Also increase MUSB_LOGLEVEL to 3 in your .config file and reabuild that
-2.6.22.18 kernel.
-
-When you clone linux omap with:
-
-$ git clone http://www.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
-
-You can make omap3_evm_defconfig and later make menuconfig to choose the
-gadget driver you want.
-
-[1] http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary
-
--- 
-balbi
