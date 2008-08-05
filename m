@@ -1,568 +1,503 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP2EVM: add LCD panel support
-Date: Tue, 5 Aug 2008 16:25:52 +0300
-Message-ID: <20080805132552.GF7193@atomide.com>
-References: <c656a4d20807030754ta845d4dx7bfd54fb66634a0e@mail.gmail.com>
+Subject: Re: [PATCH] OMAP2/3 clockdomains: combine pwrdm, pwrdm_name into
+	union in struct clockdomain
+Date: Tue, 5 Aug 2008 16:27:52 +0300
+Message-ID: <20080805132752.GG7193@atomide.com>
+References: <alpine.DEB.1.00.0807180221190.467@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49992 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51930 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751956AbYHENZz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 09:25:55 -0400
+	with ESMTP id S1755736AbYHEN1z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 09:27:55 -0400
 Content-Disposition: inline
-In-Reply-To: <c656a4d20807030754ta845d4dx7bfd54fb66634a0e@mail.gmail.com>
+In-Reply-To: <alpine.DEB.1.00.0807180221190.467@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arun c <arunedarath@mistralsolutions.com>
+To: Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap@vger.kernel.org
 
-* arun c <arunedarath@mistralsolutions.com> [080703 18:03]:
-> omap2evm LCD supports VGA and QVGA resolution, by default its in VGA mode.
+* Paul Walmsley <paul@pwsan.com> [080718 11:22]:
+> 
+> struct clockdomain contains a struct powerdomain *pwrdm and const char
+> *pwrdm_name.  The pwrdm_name is only used at initialization to look up
+> the appropriate pwrdm pointer.  Combining these into a union saves
+> about 100 bytes on 3430SDP.  This patch should not cause any change in
+> kernel function.
+> 
+> Boot-tested on 3430SDP ES2.
 
-Looks like this patch needs to be refreshed to apply it, can you please
-resend?
-
-Thanks,
+Pushing today.
 
 Tony
 
-> Signed-off-by: Arun C <arunedarath@mistralsolutions.com>
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> 
+> size:
+>    text    data     bss     dec     hex filename
+> 3391587  157104  107136 3655827  37c893 vmlinux.3430sdp.orig
+> 3391555  157032  107136 3655723  37c82b vmlinux.3430sdp
 > ---
->  arch/arm/mach-omap2/board-omap2evm.c |   15 +++-
->  drivers/video/omap/Makefile          |    1 +
->  drivers/video/omap/lcd_omap2evm.c    |  195 ++++++++++++++++++++++++++++++++++
->  3 files changed, 209 insertions(+), 2 deletions(-)
->  create mode 100644 drivers/video/omap/lcd_omap2evm.c
 > 
-> diff --git a/arch/arm/mach-omap2/board-omap2evm.c
-> b/arch/arm/mach-omap2/board-omap2evm.c
-> index bcdf4a6..db1c4cb 100644
-> --- a/arch/arm/mach-omap2/board-omap2evm.c
-> +++ b/arch/arm/mach-omap2/board-omap2evm.c
-> @@ -62,6 +62,15 @@ static inline void __init omap2evm_init_smc911x(void)
+>  arch/arm/mach-omap2/clockdomain.c       |   58 ++++++++++++++-----------------
+>  arch/arm/mach-omap2/clockdomains.h      |   54 +++++++++++++++--------------
+>  include/asm-arm/arch-omap/clockdomain.h |   22 +++++++-----
+>  3 files changed, 67 insertions(+), 67 deletions(-)
 > 
+> diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+> index 6e5f892..caa7992 100644
+> --- a/arch/arm/mach-omap2/clockdomain.c
+> +++ b/arch/arm/mach-omap2/clockdomain.c
+> @@ -71,14 +71,14 @@ static void _autodep_lookup(struct clkdm_pwrdm_autodep *autodep)
+>  	if (!omap_chip_is(autodep->omap_chip))
+>  		return;
+>  
+> -	pwrdm = pwrdm_lookup(autodep->pwrdm_name);
+> +	pwrdm = pwrdm_lookup(autodep->pwrdm.name);
+>  	if (!pwrdm) {
+>  		pr_debug("clockdomain: _autodep_lookup: powerdomain %s "
+> -			 "does not exist\n", autodep->pwrdm_name);
+> +			 "does not exist\n", autodep->pwrdm.name);
+>  		WARN_ON(1);
+>  		return;
+>  	}
+> -	autodep->pwrdm = pwrdm;
+> +	autodep->pwrdm.ptr = pwrdm;
+>  
+>  	return;
 >  }
-> 
-> +static struct platform_device omap2_evm_lcd_device = {
-> +	.name		= "omap2evm_lcd",
-> +	.id		= -1,
-> +};
-> +
-> +static struct omap_lcd_config omap2_evm_lcd_config __initdata = {
-> +	.ctrl_name	= "internal",
-> +};
-> +
->  static void __init omap2_evm_init_irq(void)
+> @@ -95,16 +95,13 @@ static void _clkdm_add_autodeps(struct clockdomain *clkdm)
 >  {
->  	omap2_init_common_hw();
-> @@ -75,7 +84,8 @@ static struct omap_uart_config omap2_evm_uart_config
-> __initdata = {
->  };
-> 
->  static struct omap_board_config_kernel omap2_evm_config[] __initdata = {
-> -	{OMAP_TAG_UART, &omap2_evm_uart_config},
-> +	{ OMAP_TAG_UART,	&omap2_evm_uart_config },
-> +	{ OMAP_TAG_LCD,		&omap2_evm_lcd_config },
->  };
-> 
->  static int __init omap2_evm_i2c_init(void)
-> @@ -90,7 +100,8 @@ static int __init omap2_evm_i2c_init(void)
->  }
-> 
->  static struct platform_device *omap2_evm_devices[] __initdata = {
-> -    &omap2evm_smc911x_device,
-> +	&omap2_evm_lcd_device,
-> +	&omap2evm_smc911x_device,
->  };
-> 
->  static void __init omap2_evm_init(void)
-> diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
-> index a72a2d9..e234d5f 100644
-> --- a/drivers/video/omap/Makefile
-> +++ b/drivers/video/omap/Makefile
-> @@ -30,6 +30,7 @@ objs-y$(CONFIG_MACH_SX1) += lcd_sx1.o
-> 
->  objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
->  objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd_2430sdp.o
-> +objs-y$(CONFIG_MACH_OMAP2EVM) += lcd_omap2evm.o
->  objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_3430sdp.o
->  objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
->  objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
-> diff --git a/drivers/video/omap/lcd_omap2evm.c
-> b/drivers/video/omap/lcd_omap2evm.c
-> new file mode 100644
-> index 0000000..d834640
-> --- /dev/null
-> +++ b/drivers/video/omap/lcd_omap2evm.c
-> @@ -0,0 +1,195 @@
-> +/*
-> + * LCD panel support for the MISTRAL OMAP2EVM board
-> + *
-> + * Author: Arun C <arunedarath@mistralsolutions.com>
-> + *
-> + * Derived from drivers/video/omap/lcd_omap3evm.c
-> + * Derived from drivers/video/omap/lcd-apollon.c
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License as published by the
-> + * Free Software Foundation; either version 2 of the License, or (at your
-> + * option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License along
-> + * with this program; if not, write to the Free Software Foundation, Inc.,
-> + * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/i2c/twl4030.h>
-> +
-> +#include <asm/arch/gpio.h>
-> +#include <asm/arch/mux.h>
-> +#include <asm/arch/omapfb.h>
-> +#include <asm/mach-types.h>
-> +
-> +#define LCD_PANEL_ENABLE_GPIO	154
-> +#define LCD_PANEL_LR		128
-> +#define LCD_PANEL_UD		129
-> +#define LCD_PANEL_INI		152
-> +#define LCD_PANEL_QVGA		148
-> +#define LCD_PANEL_RESB		153
-> +
-> +#define LCD_XRES		480
-> +#define LCD_YRES		640
-> +#define LCD_PIXCLOCK		20000 /* in kHz */
-> +
-> +#define TWL_LED_LEDEN		0x00
-> +#define TWL_PWMA_PWMAON		0x00
-> +#define TWL_PWMA_PWMAOFF	0x01
-> +
-> +static unsigned int bklight_level;
-> +
-> +static int omap2evm_panel_init(struct lcd_panel *panel,
-> +				struct omapfb_device *fbdev)
-> +{
-> +	omap_request_gpio(LCD_PANEL_ENABLE_GPIO);
-> +	omap_request_gpio(LCD_PANEL_LR);
-> +	omap_request_gpio(LCD_PANEL_UD);
-> +	omap_request_gpio(LCD_PANEL_INI);
-> +	omap_request_gpio(LCD_PANEL_QVGA);
-> +	omap_request_gpio(LCD_PANEL_RESB);
-> +
-> +	omap_set_gpio_direction(LCD_PANEL_ENABLE_GPIO, 0);
-> +	omap_set_gpio_direction(LCD_PANEL_LR, 0);
-> +	omap_set_gpio_direction(LCD_PANEL_UD, 0);
-> +	omap_set_gpio_direction(LCD_PANEL_INI, 0);
-> +	omap_set_gpio_direction(LCD_PANEL_QVGA, 0);
-> +	omap_set_gpio_direction(LCD_PANEL_RESB, 0);
-> +
-> +	omap_set_gpio_dataout(LCD_PANEL_RESB, 1);
-> +	omap_set_gpio_dataout(LCD_PANEL_INI, 1);
-> +	omap_set_gpio_dataout(LCD_PANEL_QVGA, 0);
-> +	omap_set_gpio_dataout(LCD_PANEL_LR, 1);
-> +	omap_set_gpio_dataout(LCD_PANEL_UD, 1);
-> +
-> +	twl4030_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_LEDEN);
-> +	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
-> +	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
-> +	bklight_level = 100;
-> +
-> +	return 0;
-> +}
-> +
-> +static void omap2evm_panel_cleanup(struct lcd_panel *panel)
-> +{
-> +}
-> +
-> +static int omap2evm_panel_enable(struct lcd_panel *panel)
-> +{
-> +	omap_set_gpio_dataout(LCD_PANEL_ENABLE_GPIO, 0);
-> +	return 0;
-> +}
-> +
-> +static void omap2evm_panel_disable(struct lcd_panel *panel)
-> +{
-> +	omap_set_gpio_dataout(LCD_PANEL_ENABLE_GPIO, 1);
-> +}
-> +
-> +static unsigned long omap2evm_panel_get_caps(struct lcd_panel *panel)
-> +{
-> +	return 0;
-> +}
-> +
-> +static int omap2evm_bklight_setlevel(struct lcd_panel *panel,
-> +						unsigned int level)
-> +{
-> +	u8 c;
-> +	if ((level >= 0) && (level <= 100)) {
-> +		c = (125 * (100 - level)) / 100 + 2;
-> +		twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_PWMA_PWMAOFF);
-> +		bklight_level = level;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static unsigned int omap2evm_bklight_getlevel(struct lcd_panel *panel)
-> +{
-> +	return bklight_level;
-> +}
-> +
-> +static unsigned int omap2evm_bklight_getmaxlevel(struct lcd_panel *panel)
-> +{
-> +	return 100;
-> +}
-> +
-> +struct lcd_panel omap2evm_panel = {
-> +	.name		= "omap2evm",
-> +	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
-> +			  OMAP_LCDC_INV_HSYNC,
-> +
-> +	.bpp		= 16,
-> +	.data_lines	= 18,
-> +	.x_res		= LCD_XRES,
-> +	.y_res		= LCD_YRES,
-> +	.hsw		= 3,
-> +	.hfp		= 0,
-> +	.hbp		= 28,
-> +	.vsw		= 2,
-> +	.vfp		= 1,
-> +	.vbp		= 0,
-> +
-> +	.pixel_clock	= LCD_PIXCLOCK,
-> +
-> +	.init		= omap2evm_panel_init,
-> +	.cleanup	= omap2evm_panel_cleanup,
-> +	.enable		= omap2evm_panel_enable,
-> +	.disable	= omap2evm_panel_disable,
-> +	.get_caps	= omap2evm_panel_get_caps,
-> +	.set_bklight_level      = omap2evm_bklight_setlevel,
-> +	.get_bklight_level      = omap2evm_bklight_getlevel,
-> +	.get_bklight_max        = omap2evm_bklight_getmaxlevel,
-> +};
-> +
-> +static int omap2evm_panel_probe(struct platform_device *pdev)
-> +{
-> +	omapfb_register_panel(&omap2evm_panel);
-> +	return 0;
-> +}
-> +
-> +static int omap2evm_panel_remove(struct platform_device *pdev)
-> +{
-> +	return 0;
-> +}
-> +
-> +static int omap2evm_panel_suspend(struct platform_device *pdev,
-> +				   pm_message_t mesg)
-> +{
-> +	return 0;
-> +}
-> +
-> +static int omap2evm_panel_resume(struct platform_device *pdev)
-> +{
-> +	return 0;
-> +}
-> +
-> +struct platform_driver omap2evm_panel_driver = {
-> +	.probe		= omap2evm_panel_probe,
-> +	.remove		= omap2evm_panel_remove,
-> +	.suspend	= omap2evm_panel_suspend,
-> +	.resume		= omap2evm_panel_resume,
-> +	.driver		= {
-> +		.name	= "omap2evm_lcd",
-> +		.owner	= THIS_MODULE,
-> +	},
-> +};
-> +
-> +static int __init omap2evm_panel_drv_init(void)
-> +{
-> +	return platform_driver_register(&omap2evm_panel_driver);
-> +}
-> +
-> +static void __exit omap2evm_panel_drv_exit(void)
-> +{
-> +	platform_driver_unregister(&omap2evm_panel_driver);
-> +}
-> +
-> +module_init(omap2evm_panel_drv_init);
-> +module_exit(omap2evm_panel_drv_exit);
-> -- 
-> 1.5.6
-
-> From f2573b3c5b14c51d077104d52752f58d60561a87 Mon Sep 17 00:00:00 2001
-> From: Arun C <arunedarath@mistralsolutions.com>
-> Date: Thu, 3 Jul 2008 19:48:58 +0530
-> Subject: [PATCH] OMAP2EVM: add LCD panel support
-> 
-> omap2evm LCD supports VGA and QVGA resolution, by default its in VGA mode.
-> 
-> Signed-off-by: Arun C <arunedarath@mistralsolutions.com>
-> ---
->  arch/arm/mach-omap2/board-omap2evm.c |   15 +++-
->  drivers/video/omap/Makefile          |    1 +
->  drivers/video/omap/lcd_omap2evm.c    |  195 ++++++++++++++++++++++++++++++++++
->  3 files changed, 209 insertions(+), 2 deletions(-)
->  create mode 100644 drivers/video/omap/lcd_omap2evm.c
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap2evm.c b/arch/arm/mach-omap2/board-omap2evm.c
-> index bcdf4a6..db1c4cb 100644
-> --- a/arch/arm/mach-omap2/board-omap2evm.c
-> +++ b/arch/arm/mach-omap2/board-omap2evm.c
-> @@ -62,6 +62,15 @@ static inline void __init omap2evm_init_smc911x(void)
+>  	struct clkdm_pwrdm_autodep *autodep;
 >  
+> -	for (autodep = autodeps; autodep->pwrdm_name; autodep++) {
+> -		if (!autodep->pwrdm)
+> -			continue;
+> -
+> +	for (autodep = autodeps; autodep->pwrdm.ptr; autodep++) {
+>  		pr_debug("clockdomain: adding %s sleepdep/wkdep for "
+> -			 "pwrdm %s\n", autodep->pwrdm_name,
+> -			 clkdm->pwrdm->name);
+> +			 "pwrdm %s\n", autodep->pwrdm.ptr->name,
+> +			 clkdm->pwrdm.ptr->name);
+>  
+> -		pwrdm_add_sleepdep(clkdm->pwrdm, autodep->pwrdm);
+> -		pwrdm_add_wkdep(clkdm->pwrdm, autodep->pwrdm);
+> +		pwrdm_add_sleepdep(clkdm->pwrdm.ptr, autodep->pwrdm.ptr);
+> +		pwrdm_add_wkdep(clkdm->pwrdm.ptr, autodep->pwrdm.ptr);
+>  	}
 >  }
 >  
-> +static struct platform_device omap2_evm_lcd_device = {
-> +	.name		= "omap2evm_lcd",
-> +	.id		= -1,
-> +};
-> +
-> +static struct omap_lcd_config omap2_evm_lcd_config __initdata = {
-> +	.ctrl_name	= "internal",
-> +};
-> +
->  static void __init omap2_evm_init_irq(void)
+> @@ -120,16 +117,13 @@ static void _clkdm_del_autodeps(struct clockdomain *clkdm)
 >  {
->  	omap2_init_common_hw();
-> @@ -75,7 +84,8 @@ static struct omap_uart_config omap2_evm_uart_config __initdata = {
->  };
+>  	struct clkdm_pwrdm_autodep *autodep;
 >  
->  static struct omap_board_config_kernel omap2_evm_config[] __initdata = {
-> -	{OMAP_TAG_UART, &omap2_evm_uart_config},
-> +	{ OMAP_TAG_UART,	&omap2_evm_uart_config },
-> +	{ OMAP_TAG_LCD,		&omap2_evm_lcd_config },
->  };
+> -	for (autodep = autodeps; autodep->pwrdm_name; autodep++) {
+> -		if (!autodep->pwrdm)
+> -			continue;
+> -
+> +	for (autodep = autodeps; autodep->pwrdm.ptr; autodep++) {
+>  		pr_debug("clockdomain: removing %s sleepdep/wkdep for "
+> -			 "pwrdm %s\n", autodep->pwrdm_name,
+> -			 clkdm->pwrdm->name);
+> +			 "pwrdm %s\n", autodep->pwrdm.ptr->name,
+> +			 clkdm->pwrdm.ptr->name);
 >  
->  static int __init omap2_evm_i2c_init(void)
-> @@ -90,7 +100,8 @@ static int __init omap2_evm_i2c_init(void)
+> -		pwrdm_del_sleepdep(clkdm->pwrdm, autodep->pwrdm);
+> -		pwrdm_del_wkdep(clkdm->pwrdm, autodep->pwrdm);
+> +		pwrdm_del_sleepdep(clkdm->pwrdm.ptr, autodep->pwrdm.ptr);
+> +		pwrdm_del_wkdep(clkdm->pwrdm.ptr, autodep->pwrdm.ptr);
+>  	}
 >  }
 >  
->  static struct platform_device *omap2_evm_devices[] __initdata = {
-> -    &omap2evm_smc911x_device,
-> +	&omap2_evm_lcd_device,
-> +	&omap2evm_smc911x_device,
+> @@ -179,7 +173,7 @@ void clkdm_init(struct clockdomain **clkdms,
+>  
+>  	autodeps = init_autodeps;
+>  	if (autodeps)
+> -		for (autodep = autodeps; autodep->pwrdm_name; autodep++)
+> +		for (autodep = autodeps; autodep->pwrdm.ptr; autodep++)
+>  			_autodep_lookup(autodep);
+>  }
+>  
+> @@ -202,13 +196,13 @@ int clkdm_register(struct clockdomain *clkdm)
+>  	if (!omap_chip_is(clkdm->omap_chip))
+>  		return -EINVAL;
+>  
+> -	pwrdm = pwrdm_lookup(clkdm->pwrdm_name);
+> +	pwrdm = pwrdm_lookup(clkdm->pwrdm.name);
+>  	if (!pwrdm) {
+>  		pr_debug("clockdomain: clkdm_register %s: powerdomain %s "
+> -			 "does not exist\n", clkdm->name, clkdm->pwrdm_name);
+> +			 "does not exist\n", clkdm->name, clkdm->pwrdm.name);
+>  		return -EINVAL;
+>  	}
+> -	clkdm->pwrdm = pwrdm;
+> +	clkdm->pwrdm.ptr = pwrdm;
+>  
+>  	mutex_lock(&clkdm_mutex);
+>  	/* Verify that the clockdomain is not already registered */
+> @@ -242,7 +236,7 @@ int clkdm_unregister(struct clockdomain *clkdm)
+>  	if (!clkdm)
+>  		return -EINVAL;
+>  
+> -	pwrdm_del_clkdm(clkdm->pwrdm, clkdm);
+> +	pwrdm_del_clkdm(clkdm->pwrdm.ptr, clkdm);
+>  
+>  	mutex_lock(&clkdm_mutex);
+>  	list_del(&clkdm->node);
+> @@ -327,7 +321,7 @@ struct powerdomain *clkdm_get_pwrdm(struct clockdomain *clkdm)
+>  	if (!clkdm)
+>  		return NULL;
+>  
+> -	return clkdm->pwrdm;
+> +	return clkdm->pwrdm.ptr;
+>  }
+>  
+>  
+> @@ -348,7 +342,7 @@ static int omap2_clkdm_clktrctrl_read(struct clockdomain *clkdm)
+>  	if (!clkdm)
+>  		return -EINVAL;
+>  
+> -	v = cm_read_mod_reg(clkdm->pwrdm->prcm_offs, CM_CLKSTCTRL);
+> +	v = cm_read_mod_reg(clkdm->pwrdm.ptr->prcm_offs, CM_CLKSTCTRL);
+>  	v &= clkdm->clktrctrl_mask;
+>  	v >>= __ffs(clkdm->clktrctrl_mask);
+>  
+> @@ -380,7 +374,7 @@ int omap2_clkdm_sleep(struct clockdomain *clkdm)
+>  	if (cpu_is_omap24xx()) {
+>  
+>  		cm_set_mod_reg_bits(OMAP24XX_FORCESTATE,
+> -				    clkdm->pwrdm->prcm_offs, PM_PWSTCTRL);
+> +				    clkdm->pwrdm.ptr->prcm_offs, PM_PWSTCTRL);
+>  
+>  	} else if (cpu_is_omap34xx()) {
+>  
+> @@ -388,7 +382,7 @@ int omap2_clkdm_sleep(struct clockdomain *clkdm)
+>  			 __ffs(clkdm->clktrctrl_mask));
+>  
+>  		cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask, v,
+> -				    clkdm->pwrdm->prcm_offs, CM_CLKSTCTRL);
+> +				    clkdm->pwrdm.ptr->prcm_offs, CM_CLKSTCTRL);
+>  
+>  	} else {
+>  		BUG();
+> @@ -422,7 +416,7 @@ int omap2_clkdm_wakeup(struct clockdomain *clkdm)
+>  	if (cpu_is_omap24xx()) {
+>  
+>  		cm_clear_mod_reg_bits(OMAP24XX_FORCESTATE,
+> -				      clkdm->pwrdm->prcm_offs, PM_PWSTCTRL);
+> +				      clkdm->pwrdm.ptr->prcm_offs, PM_PWSTCTRL);
+>  
+>  	} else if (cpu_is_omap34xx()) {
+>  
+> @@ -430,7 +424,7 @@ int omap2_clkdm_wakeup(struct clockdomain *clkdm)
+>  			 __ffs(clkdm->clktrctrl_mask));
+>  
+>  		cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask, v,
+> -				    clkdm->pwrdm->prcm_offs, CM_CLKSTCTRL);
+> +				    clkdm->pwrdm.ptr->prcm_offs, CM_CLKSTCTRL);
+>  
+>  	} else {
+>  		BUG();
+> @@ -478,7 +472,7 @@ void omap2_clkdm_allow_idle(struct clockdomain *clkdm)
+>  
+>  	cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask,
+>  			    v << __ffs(clkdm->clktrctrl_mask),
+> -			    clkdm->pwrdm->prcm_offs,
+> +			    clkdm->pwrdm.ptr->prcm_offs,
+>  			    CM_CLKSTCTRL);
+>  }
+>  
+> @@ -516,7 +510,7 @@ void omap2_clkdm_deny_idle(struct clockdomain *clkdm)
+>  
+>  	cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask,
+>  			    v << __ffs(clkdm->clktrctrl_mask),
+> -			    clkdm->pwrdm->prcm_offs, CM_CLKSTCTRL);
+> +			    clkdm->pwrdm.ptr->prcm_offs, CM_CLKSTCTRL);
+>  
+>  	if (atomic_read(&clkdm->usecount) > 0)
+>  		_clkdm_del_autodeps(clkdm);
+> diff --git a/arch/arm/mach-omap2/clockdomains.h b/arch/arm/mach-omap2/clockdomains.h
+> index b5d3244..8559080 100644
+> --- a/arch/arm/mach-omap2/clockdomains.h
+> +++ b/arch/arm/mach-omap2/clockdomains.h
+> @@ -19,7 +19,7 @@
+>  /* This is an implicit clockdomain - it is never defined as such in TRM */
+>  static struct clockdomain wkup_clkdm = {
+>  	.name		= "wkup_clkdm",
+> -	.pwrdm_name	= "wkup_pwrdm",
+> +	.pwrdm		= { .name = "wkup_pwrdm" },
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430),
 >  };
 >  
->  static void __init omap2_evm_init(void)
-> diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
-> index a72a2d9..e234d5f 100644
-> --- a/drivers/video/omap/Makefile
-> +++ b/drivers/video/omap/Makefile
-> @@ -30,6 +30,7 @@ objs-y$(CONFIG_MACH_SX1) += lcd_sx1.o
+> @@ -31,7 +31,7 @@ static struct clockdomain wkup_clkdm = {
 >  
->  objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
->  objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd_2430sdp.o
-> +objs-y$(CONFIG_MACH_OMAP2EVM) += lcd_omap2evm.o
->  objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_3430sdp.o
->  objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
->  objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
-> diff --git a/drivers/video/omap/lcd_omap2evm.c b/drivers/video/omap/lcd_omap2evm.c
-> new file mode 100644
-> index 0000000..d834640
-> --- /dev/null
-> +++ b/drivers/video/omap/lcd_omap2evm.c
-> @@ -0,0 +1,195 @@
-> +/*
-> + * LCD panel support for the MISTRAL OMAP2EVM board
-> + *
-> + * Author: Arun C <arunedarath@mistralsolutions.com>
-> + *
-> + * Derived from drivers/video/omap/lcd_omap3evm.c
-> + * Derived from drivers/video/omap/lcd-apollon.c
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License as published by the
-> + * Free Software Foundation; either version 2 of the License, or (at your
-> + * option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License along
-> + * with this program; if not, write to the Free Software Foundation, Inc.,
-> + * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/i2c/twl4030.h>
-> +
-> +#include <asm/arch/gpio.h>
-> +#include <asm/arch/mux.h>
-> +#include <asm/arch/omapfb.h>
-> +#include <asm/mach-types.h>
-> +
-> +#define LCD_PANEL_ENABLE_GPIO	154
-> +#define LCD_PANEL_LR		128
-> +#define LCD_PANEL_UD		129
-> +#define LCD_PANEL_INI		152
-> +#define LCD_PANEL_QVGA		148
-> +#define LCD_PANEL_RESB		153
-> +
-> +#define LCD_XRES		480
-> +#define LCD_YRES		640
-> +#define LCD_PIXCLOCK		20000 /* in kHz */
-> +
-> +#define TWL_LED_LEDEN		0x00
-> +#define TWL_PWMA_PWMAON		0x00
-> +#define TWL_PWMA_PWMAOFF	0x01
-> +
-> +static unsigned int bklight_level;
-> +
-> +static int omap2evm_panel_init(struct lcd_panel *panel,
-> +				struct omapfb_device *fbdev)
-> +{
-> +	omap_request_gpio(LCD_PANEL_ENABLE_GPIO);
-> +	omap_request_gpio(LCD_PANEL_LR);
-> +	omap_request_gpio(LCD_PANEL_UD);
-> +	omap_request_gpio(LCD_PANEL_INI);
-> +	omap_request_gpio(LCD_PANEL_QVGA);
-> +	omap_request_gpio(LCD_PANEL_RESB);
-> +
-> +	omap_set_gpio_direction(LCD_PANEL_ENABLE_GPIO, 0);
-> +	omap_set_gpio_direction(LCD_PANEL_LR, 0);
-> +	omap_set_gpio_direction(LCD_PANEL_UD, 0);
-> +	omap_set_gpio_direction(LCD_PANEL_INI, 0);
-> +	omap_set_gpio_direction(LCD_PANEL_QVGA, 0);
-> +	omap_set_gpio_direction(LCD_PANEL_RESB, 0);
-> +
-> +	omap_set_gpio_dataout(LCD_PANEL_RESB, 1);
-> +	omap_set_gpio_dataout(LCD_PANEL_INI, 1);
-> +	omap_set_gpio_dataout(LCD_PANEL_QVGA, 0);
-> +	omap_set_gpio_dataout(LCD_PANEL_LR, 1);
-> +	omap_set_gpio_dataout(LCD_PANEL_UD, 1);
-> +
-> +	twl4030_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_LEDEN);
-> +	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
-> +	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
-> +	bklight_level = 100;
-> +
-> +	return 0;
-> +}
-> +
-> +static void omap2evm_panel_cleanup(struct lcd_panel *panel)
-> +{
-> +}
-> +
-> +static int omap2evm_panel_enable(struct lcd_panel *panel)
-> +{
-> +	omap_set_gpio_dataout(LCD_PANEL_ENABLE_GPIO, 0);
-> +	return 0;
-> +}
-> +
-> +static void omap2evm_panel_disable(struct lcd_panel *panel)
-> +{
-> +	omap_set_gpio_dataout(LCD_PANEL_ENABLE_GPIO, 1);
-> +}
-> +
-> +static unsigned long omap2evm_panel_get_caps(struct lcd_panel *panel)
-> +{
-> +	return 0;
-> +}
-> +
-> +static int omap2evm_bklight_setlevel(struct lcd_panel *panel,
-> +						unsigned int level)
-> +{
-> +	u8 c;
-> +	if ((level >= 0) && (level <= 100)) {
-> +		c = (125 * (100 - level)) / 100 + 2;
-> +		twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_PWMA_PWMAOFF);
-> +		bklight_level = level;
+>  static struct clockdomain mpu_2420_clkdm = {
+>  	.name		= "mpu_clkdm",
+> -	.pwrdm_name	= "mpu_pwrdm",
+> +	.pwrdm		= { .name = "mpu_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP,
+>  	.clktrctrl_mask = OMAP24XX_AUTOSTATE_MPU_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+> @@ -39,7 +39,7 @@ static struct clockdomain mpu_2420_clkdm = {
+>  
+>  static struct clockdomain iva1_2420_clkdm = {
+>  	.name		= "iva1_clkdm",
+> -	.pwrdm_name	= "dsp_pwrdm",
+> +	.pwrdm		= { .name = "dsp_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+>  	.clktrctrl_mask = OMAP2420_AUTOSTATE_IVA_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+> @@ -56,7 +56,7 @@ static struct clockdomain iva1_2420_clkdm = {
+>  
+>  static struct clockdomain mpu_2430_clkdm = {
+>  	.name		= "mpu_clkdm",
+> -	.pwrdm_name	= "mpu_pwrdm",
+> +	.pwrdm		= { .name = "mpu_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+>  	.clktrctrl_mask = OMAP24XX_AUTOSTATE_MPU_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+> @@ -64,7 +64,7 @@ static struct clockdomain mpu_2430_clkdm = {
+>  
+>  static struct clockdomain mdm_clkdm = {
+>  	.name		= "mdm_clkdm",
+> -	.pwrdm_name	= "mdm_pwrdm",
+> +	.pwrdm		= { .name = "mdm_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+>  	.clktrctrl_mask = OMAP2430_AUTOSTATE_MDM_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+> @@ -81,7 +81,7 @@ static struct clockdomain mdm_clkdm = {
+>  
+>  static struct clockdomain dsp_clkdm = {
+>  	.name		= "dsp_clkdm",
+> -	.pwrdm_name	= "dsp_pwrdm",
+> +	.pwrdm		= { .name = "dsp_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+>  	.clktrctrl_mask = OMAP24XX_AUTOSTATE_DSP_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX),
+> @@ -89,7 +89,7 @@ static struct clockdomain dsp_clkdm = {
+>  
+>  static struct clockdomain gfx_24xx_clkdm = {
+>  	.name		= "gfx_clkdm",
+> -	.pwrdm_name	= "gfx_pwrdm",
+> +	.pwrdm		= { .name = "gfx_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+>  	.clktrctrl_mask = OMAP24XX_AUTOSTATE_GFX_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX),
+> @@ -97,7 +97,7 @@ static struct clockdomain gfx_24xx_clkdm = {
+>  
+>  static struct clockdomain core_l3_24xx_clkdm = {
+>  	.name		= "core_l3_clkdm",
+> -	.pwrdm_name	= "core_pwrdm",
+> +	.pwrdm		= { .name = "core_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP,
+>  	.clktrctrl_mask = OMAP24XX_AUTOSTATE_L3_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX),
+> @@ -105,7 +105,7 @@ static struct clockdomain core_l3_24xx_clkdm = {
+>  
+>  static struct clockdomain core_l4_24xx_clkdm = {
+>  	.name		= "core_l4_clkdm",
+> -	.pwrdm_name	= "core_pwrdm",
+> +	.pwrdm		= { .name = "core_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP,
+>  	.clktrctrl_mask = OMAP24XX_AUTOSTATE_L4_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX),
+> @@ -113,7 +113,7 @@ static struct clockdomain core_l4_24xx_clkdm = {
+>  
+>  static struct clockdomain dss_24xx_clkdm = {
+>  	.name		= "dss_clkdm",
+> -	.pwrdm_name	= "core_pwrdm",
+> +	.pwrdm		= { .name = "core_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP,
+>  	.clktrctrl_mask = OMAP24XX_AUTOSTATE_DSS_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX),
+> @@ -130,7 +130,7 @@ static struct clockdomain dss_24xx_clkdm = {
+>  
+>  static struct clockdomain mpu_34xx_clkdm = {
+>  	.name		= "mpu_clkdm",
+> -	.pwrdm_name	= "mpu_pwrdm",
+> +	.pwrdm		= { .name = "mpu_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP | CLKDM_CAN_FORCE_WAKEUP,
+>  	.clktrctrl_mask = OMAP3430_CLKTRCTRL_MPU_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+> @@ -138,7 +138,7 @@ static struct clockdomain mpu_34xx_clkdm = {
+>  
+>  static struct clockdomain neon_clkdm = {
+>  	.name		= "neon_clkdm",
+> -	.pwrdm_name	= "neon_pwrdm",
+> +	.pwrdm		= { .name = "neon_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+>  	.clktrctrl_mask = OMAP3430_CLKTRCTRL_NEON_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+> @@ -146,7 +146,7 @@ static struct clockdomain neon_clkdm = {
+>  
+>  static struct clockdomain iva2_clkdm = {
+>  	.name		= "iva2_clkdm",
+> -	.pwrdm_name	= "iva2_pwrdm",
+> +	.pwrdm		= { .name = "iva2_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+>  	.clktrctrl_mask = OMAP3430_CLKTRCTRL_IVA2_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+> @@ -154,7 +154,7 @@ static struct clockdomain iva2_clkdm = {
+>  
+>  static struct clockdomain gfx_3430es1_clkdm = {
+>  	.name		= "gfx_clkdm",
+> -	.pwrdm_name	= "gfx_pwrdm",
+> +	.pwrdm		= { .name = "gfx_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+>  	.clktrctrl_mask = OMAP3430ES1_CLKTRCTRL_GFX_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1),
+> @@ -162,7 +162,7 @@ static struct clockdomain gfx_3430es1_clkdm = {
+>  
+>  static struct clockdomain sgx_clkdm = {
+>  	.name		= "sgx_clkdm",
+> -	.pwrdm_name	= "sgx_pwrdm",
+> +	.pwrdm		= { .name = "sgx_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+>  	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_SGX_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
+> @@ -177,7 +177,7 @@ static struct clockdomain sgx_clkdm = {
+>   */
+>  static struct clockdomain d2d_clkdm = {
+>  	.name		= "d2d_clkdm",
+> -	.pwrdm_name	= "core_pwrdm",
+> +	.pwrdm		= { .name = "core_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP,
+>  	.clktrctrl_mask = OMAP3430ES1_CLKTRCTRL_D2D_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+> @@ -185,7 +185,7 @@ static struct clockdomain d2d_clkdm = {
+>  
+>  static struct clockdomain core_l3_34xx_clkdm = {
+>  	.name		= "core_l3_clkdm",
+> -	.pwrdm_name	= "core_pwrdm",
+> +	.pwrdm		= { .name = "core_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP,
+>  	.clktrctrl_mask = OMAP3430_CLKTRCTRL_L3_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+> @@ -193,7 +193,7 @@ static struct clockdomain core_l3_34xx_clkdm = {
+>  
+>  static struct clockdomain core_l4_34xx_clkdm = {
+>  	.name		= "core_l4_clkdm",
+> -	.pwrdm_name	= "core_pwrdm",
+> +	.pwrdm		= { .name = "core_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP,
+>  	.clktrctrl_mask = OMAP3430_CLKTRCTRL_L4_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+> @@ -201,7 +201,7 @@ static struct clockdomain core_l4_34xx_clkdm = {
+>  
+>  static struct clockdomain dss_34xx_clkdm = {
+>  	.name		= "dss_clkdm",
+> -	.pwrdm_name	= "dss_pwrdm",
+> +	.pwrdm		= { .name = "dss_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+>  	.clktrctrl_mask = OMAP3430_CLKTRCTRL_DSS_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+> @@ -209,7 +209,7 @@ static struct clockdomain dss_34xx_clkdm = {
+>  
+>  static struct clockdomain cam_clkdm = {
+>  	.name		= "cam_clkdm",
+> -	.pwrdm_name	= "cam_pwrdm",
+> +	.pwrdm		= { .name = "cam_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+>  	.clktrctrl_mask = OMAP3430_CLKTRCTRL_CAM_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+> @@ -217,7 +217,7 @@ static struct clockdomain cam_clkdm = {
+>  
+>  static struct clockdomain usbhost_clkdm = {
+>  	.name		= "usbhost_clkdm",
+> -	.pwrdm_name	= "usbhost_pwrdm",
+> +	.pwrdm		= { .name = "usbhost_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+>  	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_USBHOST_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
+> @@ -225,7 +225,7 @@ static struct clockdomain usbhost_clkdm = {
+>  
+>  static struct clockdomain per_clkdm = {
+>  	.name		= "per_clkdm",
+> -	.pwrdm_name	= "per_pwrdm",
+> +	.pwrdm		= { .name = "per_pwrdm" },
+>  	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+>  	.clktrctrl_mask = OMAP3430_CLKTRCTRL_PER_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+> @@ -233,7 +233,7 @@ static struct clockdomain per_clkdm = {
+>  
+>  static struct clockdomain emu_clkdm = {
+>  	.name		= "emu_clkdm",
+> -	.pwrdm_name	= "emu_pwrdm",
+> +	.pwrdm		= { .name = "emu_pwrdm" },
+>  	.flags		= CLKDM_CAN_ENABLE_AUTO | CLKDM_CAN_SWSUP,
+>  	.clktrctrl_mask = OMAP3430_CLKTRCTRL_EMU_MASK,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+> @@ -247,14 +247,16 @@ static struct clockdomain emu_clkdm = {
+>  
+>  static struct clkdm_pwrdm_autodep clkdm_pwrdm_autodeps[] = {
+>  	{
+> -		.pwrdm_name = "mpu_pwrdm",
+> +		.pwrdm	   = { .name = "mpu_pwrdm" },
+>  		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+>  	},
+>  	{
+> -		.pwrdm_name = "iva2_pwrdm",
+> +		.pwrdm	   = { .name = "iva2_pwrdm" },
+>  		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+>  	},
+> -	{ NULL }
+> +	{
+> +		.pwrdm	   = { .name = NULL },
 > +	}
-> +	return 0;
-> +}
+>  };
+>  
+>  /*
+> diff --git a/include/asm-arm/arch-omap/clockdomain.h b/include/asm-arm/arch-omap/clockdomain.h
+> index d2a4551..b58bb73 100644
+> --- a/include/asm-arm/arch-omap/clockdomain.h
+> +++ b/include/asm-arm/arch-omap/clockdomain.h
+> @@ -48,11 +48,13 @@
+>   */
+>  struct clkdm_pwrdm_autodep {
+>  
+> -	/* Name of the powerdomain to add a wkdep/sleepdep on */
+> -	const char *pwrdm_name;
+> +	union {
+> +		/* Name of the powerdomain to add a wkdep/sleepdep on */
+> +		const char *name;
+>  
+> -	/* Powerdomain pointer (looked up at clkdm_init() time) */
+> -	struct powerdomain *pwrdm;
+> +		/* Powerdomain pointer (looked up at clkdm_init() time) */
+> +		struct powerdomain *ptr;
+> +	} pwrdm;
+>  
+>  	/* OMAP chip types that this clockdomain dep is valid on */
+>  	const struct omap_chip_id omap_chip;
+> @@ -64,8 +66,13 @@ struct clockdomain {
+>  	/* Clockdomain name */
+>  	const char *name;
+>  
+> -	/* Powerdomain enclosing this clockdomain */
+> -	const char *pwrdm_name;
+> +	union {
+> +		/* Powerdomain enclosing this clockdomain */
+> +		const char *name;
 > +
-> +static unsigned int omap2evm_bklight_getlevel(struct lcd_panel *panel)
-> +{
-> +	return bklight_level;
-> +}
-> +
-> +static unsigned int omap2evm_bklight_getmaxlevel(struct lcd_panel *panel)
-> +{
-> +	return 100;
-> +}
-> +
-> +struct lcd_panel omap2evm_panel = {
-> +	.name		= "omap2evm",
-> +	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
-> +			  OMAP_LCDC_INV_HSYNC,
-> +
-> +	.bpp		= 16,
-> +	.data_lines	= 18,
-> +	.x_res		= LCD_XRES,
-> +	.y_res		= LCD_YRES,
-> +	.hsw		= 3,
-> +	.hfp		= 0,
-> +	.hbp		= 28,
-> +	.vsw		= 2,
-> +	.vfp		= 1,
-> +	.vbp		= 0,
-> +
-> +	.pixel_clock	= LCD_PIXCLOCK,
-> +
-> +	.init		= omap2evm_panel_init,
-> +	.cleanup	= omap2evm_panel_cleanup,
-> +	.enable		= omap2evm_panel_enable,
-> +	.disable	= omap2evm_panel_disable,
-> +	.get_caps	= omap2evm_panel_get_caps,
-> +	.set_bklight_level      = omap2evm_bklight_setlevel,
-> +	.get_bklight_level      = omap2evm_bklight_getlevel,
-> +	.get_bklight_max        = omap2evm_bklight_getmaxlevel,
-> +};
-> +
-> +static int omap2evm_panel_probe(struct platform_device *pdev)
-> +{
-> +	omapfb_register_panel(&omap2evm_panel);
-> +	return 0;
-> +}
-> +
-> +static int omap2evm_panel_remove(struct platform_device *pdev)
-> +{
-> +	return 0;
-> +}
-> +
-> +static int omap2evm_panel_suspend(struct platform_device *pdev,
-> +				   pm_message_t mesg)
-> +{
-> +	return 0;
-> +}
-> +
-> +static int omap2evm_panel_resume(struct platform_device *pdev)
-> +{
-> +	return 0;
-> +}
-> +
-> +struct platform_driver omap2evm_panel_driver = {
-> +	.probe		= omap2evm_panel_probe,
-> +	.remove		= omap2evm_panel_remove,
-> +	.suspend	= omap2evm_panel_suspend,
-> +	.resume		= omap2evm_panel_resume,
-> +	.driver		= {
-> +		.name	= "omap2evm_lcd",
-> +		.owner	= THIS_MODULE,
-> +	},
-> +};
-> +
-> +static int __init omap2evm_panel_drv_init(void)
-> +{
-> +	return platform_driver_register(&omap2evm_panel_driver);
-> +}
-> +
-> +static void __exit omap2evm_panel_drv_exit(void)
-> +{
-> +	platform_driver_unregister(&omap2evm_panel_driver);
-> +}
-> +
-> +module_init(omap2evm_panel_drv_init);
-> +module_exit(omap2evm_panel_drv_exit);
-> -- 
-> 1.5.6
-> 
-
+> +		/* Powerdomain pointer assigned at clkdm_register() */
+> +		struct powerdomain *ptr;
+> +	} pwrdm;
+>  
+>  	/* CLKTRCTRL/AUTOSTATE field mask in CM_CLKSTCTRL reg */
+>  	const u16 clktrctrl_mask;
+> @@ -79,9 +86,6 @@ struct clockdomain {
+>  	/* Usecount tracking */
+>  	atomic_t usecount;
+>  
+> -	/* Powerdomain pointer assigned at clkdm_register() */
+> -	struct powerdomain *pwrdm;
+> -
+>  	struct list_head node;
+>  
+>  };
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
