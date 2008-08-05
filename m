@@ -1,58 +1,130 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Enable SYSOFFMODE use
-Date: Tue, 5 Aug 2008 13:50:58 +0300
-Message-ID: <20080805105057.GQ7193@atomide.com>
-References: <1216656125-5800-1-git-send-email-peter.de-schrijver@nokia.com> <1216656125-5800-2-git-send-email-peter.de-schrijver@nokia.com>
+From: "kanagesh radhakrishnan" <rkanagesh@gmail.com>
+Subject: Problems with USB Gadget on the OMAP3EVM
+Date: Tue, 5 Aug 2008 16:47:02 +0530
+Message-ID: <ece1079f0808050417o49392d42if4b730b7d700bdab@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49709 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753289AbYHELOA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 07:14:00 -0400
+Received: from mail-gx0-f29.google.com ([209.85.217.29]:59850 "EHLO
+	mail-gx0-f29.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753234AbYHELRE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 07:17:04 -0400
+Received: by gxk10 with SMTP id 10so3845106gxk.13
+        for <linux-omap@vger.kernel.org>; Tue, 05 Aug 2008 04:17:02 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1216656125-5800-2-git-send-email-peter.de-schrijver@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com> [080721 19:03]:
-> 
-> Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-> ---
->  arch/arm/mach-omap2/smartreflex.c |   10 +++++-----
->  1 files changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-> index 0f3a659..b41fe96 100644
-> --- a/arch/arm/mach-omap2/smartreflex.c
-> +++ b/arch/arm/mach-omap2/smartreflex.c
-> @@ -396,17 +396,17 @@ static void sr_configure_vc(void)
->  
->  	/* Setup voltctrl and other setup times */
->  	/* XXX CONFIG_SYSOFFMODE has not been implemented yet */
-> -#ifdef CONFIG_SYSOFFMODE
-> -	prm_write_mod_reg(OMAP3430_AUTO_OFF | OMAP3430_AUTO_RET,
-> -			OMAP3430_GR_MOD,
-> +#ifdef CONFIG_OMAP_SYSOFFMODE
-> +	prm_write_mod_reg(OMAP3430_AUTO_OFF | OMAP3430_AUTO_RET |
-> +			OMAP3430_SEL_OFF, OMAP3430_GR_MOD,
->  			OMAP3_PRM_VOLTCTRL_OFFSET);
->  
->  	prm_write_mod_reg(OMAP3430_CLKSETUP_DURATION, OMAP3430_GR_MOD,
->  			OMAP3_PRM_CLKSETUP_OFFSET);
->  	prm_write_mod_reg((OMAP3430_VOLTSETUP_TIME2 <<
-> -			OMAP3430_VOLTSETUP_TIME2_OFFSET) |
-> +			OMAP3430_SETUP_TIME2_SHIFT) |
->  			(OMAP3430_VOLTSETUP_TIME1 <<
-> -			OMAP3430_VOLTSETUP_TIME1_OFFSET),
-> +			OMAP3430_SETUP_TIME1_SHIFT),
->  			OMAP3430_GR_MOD, OMAP3_PRM_VOLTSETUP1_OFFSET);
->  
->  	prm_write_mod_reg(OMAP3430_VOLTOFFSET_DURATION, OMAP3430_GR_MOD,
+Hello,
 
-Do we need the CONFIG_SYSOFFMODE option? How about just add
-/sys/power/off_while_idle and if that's set to 1 then allow off mode?
+I am trying to get USB gadget (RNDIS) working with an OMAP3EVM and a
+Linux Host system.  I am looking for help since I have problems
+setting up the USB network between the target and host systems.
 
-Tony
+Kernel Configuration
+-----------------------------
+The kernel I am using is Linux-2.6.22.18.  Its the release version
+that comes with SDK_0.9.8 for the OMAP3EVM.  The default kernel
+configuration (omap3evm_defconfig) does not enable USB gadget
+functionality so I have made changes as suggested in the SDK_0.9.8
+User Guide to the kernel configuration.  A summary is as follows:
+
+# USB devices
+
+-CONFIG_SND_USB_AUDIO=y
+
+# USB Input Devices
+-CONFIG_USB_HID=y
+
+# OMAP 343x high speed USB support
+-CONFIG_USB_MUSB_HOST=y
++CONFIG_USB_MUSB_PERIPHERAL=y
+-CONFIG_USB_MUSB_HDRC_HCD=y
++CONFIG_USB_GADGET_MUSB_HDRC=y
+
+# USB Device Class drivers
+-CONFIG_USB_ACM=y
+-CONFIG_USB_STORAGE=y
+-CONFIG_USB_MON=y
+
+# USB port drivers
+-CONFIG_USB_TEST=y
+
+# USB Gadget Support
++CONFIG_USB_GADGET=y
++CONFIG_USB_GADGET_SELECTED=y
++CONFIG_USB_GADGET_DUALSPEED=y
++CONFIG_USB_ETH=y
++CONFIG_USB_ETH_RNDIS=y
+
+Running the Test
+-------------------------
+On the OMAP3EVM Target
+#######################
+On successful boot with this kernel on the target board, after
+plugging in the USB cable, the following messages appear on the
+console:
+
+musb_stage2_irq 863: SUSPEND (b_idle) devctl 99 power e0
+musb_stage0_irq 722: BUS RESET
+musb_stage0_irq 722: BUS RESET
+musb_stage0_irq 722: BUS RESET
+musb_stage0_irq 722: BUS RESET
+musb_stage0_irq 722: BUS RESET
+musb_stage0_irq 722: BUS RESET
+musb_stage0_irq 722: BUS RESET
+musb_stage0_irq 722: BUS RESET
+usb0: high speed config #2: 100 mA, Ethernet Gadget, using RNDIS
+musb_stage0_irq 722: BUS RESET
+musb_stage0_irq 722: BUS RESET
+musb_stage2_irq 863: SUSPEND (b_peripheral) devctl 99 power f0
+
+I then setup an IP address for the usb0 interface with the following command:
+
+[root@OMAP3EVM /]# /sbin/ifconfig usb0 192.168.1.1 up netmask 255.255.255.0
+
+On the Linux Host machine
+#######################
+
+On insertion of the USB cable, 'dmesg' shows the following messages:
+
+usb 1-2: new high speed USB device using address 3
+usb 1-2: configuration #1 chosen from 2 choices
+usb 1-2: can't set config #1, error -71
+
+The Problem
+-------------------
+On an attempt to setup an IP address for the usb0 interface, I get the
+following error:
+
+usb0: unknown interface: No such device
+SIOCSIFADDR: No such device
+usb0: unknown interface: No such device
+SIOCSIFNETMASK: No such device
+SIOCGIFADDR: No such device
+SIOCSIFBROADCAST: No such device
+
+The Test Setup
+----------------------
+
+Host
+####
+   Linux machine running Fedora Core 5.
+   Manually loaded the module usbnet.ko.
+
+Target
+#####
+   OMAP3EVM running OMAP35x_SDK_0.9.8 firmware: x-load, u-boot and
+kernel (linux-2.6.22.18)
+   Dip switches (SW4) set to boot from NAND flash (01010000)
+
+
+Although my end objective is to test the USB functionality with
+TWL4030 USB transceiver, I wanted to verify if USB functions as
+expected through ISP1504 transceiver on my board with the SDK_0.9.8.
+Has anyone tested the USB Gadget setup on the OMAP3EVM boards?
+
+Thanks in advance,
+Kanagesh.
