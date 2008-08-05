@@ -1,114 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Added support for OMAP35x processor series
-Date: Tue, 5 Aug 2008 12:25:25 +0300
-Message-ID: <20080805092523.GK7193@atomide.com>
-References: <premi@ti.com> <1217591379-1515-1-git-send-email-premi@ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 0/4] OMAP: MENELAUS: Improvements on menelaus
+Date: Tue, 5 Aug 2008 12:35:44 +0300
+Message-ID: <20080805093544.GU30539@gandalf.research.nokia.com>
+References: <488F48E3.2060504@indt.org.br> <20080729183717.GB7275@frodo> <fb249edb0807291157v40f4c0e0vf0e35b1beb39cd3b@mail.gmail.com> <13B9B4C6EF24D648824FF11BE89671620361D432D8@dlee02.ent.ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB02567D91E5@dbde02.ent.ti.com> <20080805085752.GE7193@atomide.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51878 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754896AbYHEJZ2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 05:25:28 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:32258 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753234AbYHEJfB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 05:35:01 -0400
 Content-Disposition: inline
-In-Reply-To: <1217591379-1515-1-git-send-email-premi@ti.com>
+In-Reply-To: <20080805085752.GE7193@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, andrzej zaborowski <balrogg@gmail.com>, "me@felipebalbi.com" <me@felipebalbi.com>, "Woodruff, Richard" <r-woodruff2@ti.com>, Carlos Aguiar <carlos.aguiar@indt.org.br>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Sanjeev Premi <premi@ti.com> [080801 14:50]:
-> This patch adds basic support for the OMAP35x Applications Processors.
-> (See: http://focus.ti.com/general/docs/gencontent.tsp?contentId=46725)
-> 
-> As you will notice, NEON SIMD coprocessor is enabled by default for
-> these processors.
+On Tue, Aug 05, 2008 at 11:57:53AM +0300, Tony Lindgren wrote:
+> Yeah, let's rename it as it's not in mainline yet. I'll apply this
+> series, then the next set of patches can take care of the renaming.
 
-Do we really need this? To me it seems like our CPU detection should
-figure out the processor is 34xx and specifically 35xx something.
+It it in mainline actually, check your drivers/i2c/chips and it was
+added by you :-p
 
-Are there Cortex A8 processors with no Neon hardware?
+commit 0c4a59fed41bdd4c30ce0999a87f30a812f29ee2
+Author: Tony Lindgren <tony@atomide.com>
+Date:   Tue Jul 17 04:06:09 2007 -0700
 
-Tony
+    OMAP: add TI TWL92330/Menelaus Power Management chip driver
+    
+    Add Texas Instruments TWL92330/Menelaus Power Management chip driver.  This
+    includes voltage regulators, Dual slot memory card tranceivers and
+    real-time clock(RTC).
+    
+    The support for RTC is integrated with this driver only; it is not separate
+    module.  Passes 'rtctest' on OMAP H4 EVM, other than lack of "periodic"
+    (1/N second) IRQs.  System wakeup alarms (from suspend-to-RAM) work too.
+    
+    The battery keeps the RTC active over power off, so once you set clock
+    (rdate/ntpdate/etc, then "hwclock -w") then RTC_HCTOSYS at boot time will
+    behave as expected.
+    
+    Cc: "Jean Delvare" <khali@linux-fr.org>
+    Cc: "Tony Lindgren" <tony@atomide.com>
+    Cc: "David Brownell" <david-b@pacbell.net>
+    Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
+    Acked-by: Alessandro Zummo <alessandro.zummo@towertech.it>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 
+Maybe someone sent that patch for you ?
 
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
-> ---
->  arch/arm/mach-omap2/Kconfig |   50 ++++++++++++++++++++++++++++++++++++++++++-
->  1 files changed, 49 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index bb6d695..63d7cdd 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -25,6 +25,54 @@ config ARCH_OMAP3430
->  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
->  	select ARCH_OMAP_OTG
->  
-> +config ARCH_OMAP35XX
-> +	bool "OMAP35x Family"
-> +	select ARCH_OMAP3
-> +	select ARCH_OMAP34XX
-> +	select ARCH_OMAP3430
-> +	select OMAP3430_ES2
-> +	select NEON
-> +	help
-> +	  OMAP35x family of processors based on ARM Cortex-A8
-> +	  in combination with IVA2.2 core and OpenGL ES2.0
-> +	  compatible graphics engine.
-> +
-> +	  ARM Cortex-A8 contains NEON SIMD coprocessor.
-> +
-> +choice
-> +	prompt "Current choice"
-> +	default ARCH_OMAP3503
-> +
-> +config ARCH_OMAP3503
-> +	bool "OMAP3503"
-> +	depends on ARCH_OMAP35XX
-> +	help
-> +	  Contains ARM Cortex-A8 processor.
-> +
-> +config ARCH_OMAP3515
-> +	bool "OMAP3515"
-> +	depends on ARCH_OMAP35XX
-> +	help
-> +	   Contains ARM Cortex-A8 processor and SGX530 subsystem
-> +	   for 2D and 3D graphics acceleration.
-> +
-> +config ARCH_OMAP3525
-> +	bool "OMAP3525"
-> +	depends on ARCH_OMAP35XX
-> +	help
-> +	  Contains ARM Cortex-A8 processor and IVA2.2 subsystem
-> +	  with a C64x+ DSP core.
-> +
-> +config ARCH_OMAP3530
-> +	bool "OMAP3530"
-> +	depends on ARCH_OMAP35XX
-> +	help
-> +	   Contains ARM Cortex-A8 processor, IVA2.2 subsystem
-> +	   with a C64x+ DSP Core and SGX530 subsystem for 2D
-> +	   and 3D graphics acceleration.
-> +
-> +endchoice
-> +
->  comment "OMAP Board Type"
->  	depends on ARCH_OMAP2 || ARCH_OMAP3
->  
-> @@ -117,7 +165,7 @@ config MACH_OMAP_3430SDP
->  
->  config MACH_OMAP3EVM
->  	bool "OMAP 3530 EVM board"
-> -	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-> +	depends on ARCH_OMAP35XX
->  
->  config MACH_OMAP3_BEAGLE
->  	bool "OMAP3 BEAGLE board"
-> -- 
-> 1.5.6
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+balbi
