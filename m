@@ -1,130 +1,153 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/9] OMAP2/3 SDRC/clock: control CORE M2 divider, clean
-	up SDRC
-Date: Tue, 5 Aug 2008 15:13:19 +0300
-Message-ID: <20080805121318.GY7193@atomide.com>
-References: <20080708025225.11646.55912.stgit@localhost.localdomain>
+Subject: Re: [PATCH] suppress needless timer reprogramming {tick-sched.c} -
+	test/comment
+Date: Tue, 5 Aug 2008 15:14:36 +0300
+Message-ID: <20080805121435.GZ7193@atomide.com>
+References: <13B9B4C6EF24D648824FF11BE8967162035B9BE166@dlee02.ent.ti.com> <C2CB0AC6-3065-469C-AAAF-F78F3DEFFFB8@student.utwente.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63425 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64525 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759958AbYHEMNX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 08:13:23 -0400
+	with ESMTP id S1755602AbYHEMOm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2008 08:14:42 -0400
 Content-Disposition: inline
-In-Reply-To: <20080708025225.11646.55912.stgit@localhost.localdomain>
+In-Reply-To: <C2CB0AC6-3065-469C-AAAF-F78F3DEFFFB8@student.utwente.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Igor Stoppa <igor.stoppa@nokia.com>
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Paul Walmsley <paul@pwsan.com> [080708 05:56]:
-> This patch series has three main objectives:
-> 
-> - connect Rajendra Nayak's existing OMAP3 SRAM code for CORE DPLL M2
->   divider reprogramming to the OMAP3 clock tree;
-> 
-> - create a sane method to pass SDRAM timing parameters from board-*.c 
->   files into the SDRC, to allow optimal timing parameters to be set
->   for a given clock rate;
-> 
-> - clean up the existing OMAP2/3 SDRC code.
-> 
-> 
-> A few notes:
-> 
-> - The M2 divider switch does not seem to work consistently on the
->   3430SDP I use to test.  In particular, the switch back to M2=1 results
->   in a hung console.
-> 
-> - Four SDRC rates are currently defined for the two SDRAM chip
->   registers included in this patch set.  The 165MHz and 83MHz rates
->   are unusual and are intended to match the TI OPP rates set by the
->   u-boot installation on the local 3430SDP.  133MHz and 66MHz rates
->   are also present; per CDP 12.17, apparently these are used on Beagle
->   and OMAP3EVM - not sure if these rates should also be derated
->   slightly?
-> 
-> 
-> The SDRAM timing parameter infrastructure is currently only used for
-> OMAP3, but can be also extended to OMAP2 devices once information on
-> the SDRAM parts used on those boards is available.
-> 
-> Thanks to Rajendra Nayak <rnayak@ti.com> and Igor
-> Stoppa <igor.stoppa@nokia.com> for finding some of the SDRAM
-> datasheets for this patch set.
-> 
-> Compile-tested for N800, 2430SDP, OMAP3430SDP, OMAP3EVM, OMAP3 Beagle.
-> Runtime-tested on OMAP3430SDP ES2.
-> 
-> If you have the debugfs set_rate patch, you can test the M2 divider
-> code on OMAP3430SDP via:
-> 
->    cd /debug/clock/virt_26m_ck/osc_sys_ck/sys_ck/dpll3_ck/dpll3_m2_ck
-> 
->    # Switch to M2 = 2 (assuming DPLL3 at 331MHz)
->    echo -n 165941176 > rate
-> 
->    # Switch back to M2 = 1
->    echo -n 331882352 > rate
+* Koen Kooi <k.kooi@student.utwente.nl> [080805 15:11]:
+>
+> Op 19 jun 2008, om 14:54 heeft Woodruff, Richard het volgende  
+> geschreven:
+>
+>> Hi,
+>>
+>> I'll resend this to the omap list.  I had originally sent it with some 
+>> pictures but I guess they were too big for the lists.  Individual 
+>> should have got them.
+>>
+>> If anyone has the time this is a good to test with.  If you have  
+>> dynamic tick enabled it can double performance of high rate interrupt 
+>> things like MUSB.
+>
+> This patch has been working for me quite well these last few week, any  
+> chance it can to into git?
 
-Pushing this series today.
+This needs to go in via LKML, I think Thomas Gleixner is looking into it.
 
 Tony
 
 
-> 
-> 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> 
-> ---
-> 
-> size:
->    text    data     bss     dec     hex filename
-> 3404220  159104  108240 3671564  38060c vmlinux.3430sdp
-> 3403080  159200  108208 3670488  3801d8 vmlinux.3430sdp.patched
-> 
-> diffstat:
->  arch/arm/mach-omap2/Makefile                       |    6 +
->  arch/arm/mach-omap2/board-2430sdp.c                |    2 
->  arch/arm/mach-omap2/board-3430sdp.c                |    4 
->  arch/arm/mach-omap2/board-apollon.c                |    2 
->  arch/arm/mach-omap2/board-generic.c                |    2 
->  arch/arm/mach-omap2/board-h4.c                     |    2 
->  arch/arm/mach-omap2/board-ldp.c                    |    2 
->  arch/arm/mach-omap2/board-n800.c                   |    2 
->  arch/arm/mach-omap2/board-omap2evm.c               |    2 
->  arch/arm/mach-omap2/board-omap3beagle.c            |    4 
->  arch/arm/mach-omap2/board-omap3evm.c               |    4 
->  arch/arm/mach-omap2/clock.c                        |    2 
->  arch/arm/mach-omap2/clock24xx.c                    |   25 +--
->  arch/arm/mach-omap2/clock34xx.c                    |   68 +++++++-
->  arch/arm/mach-omap2/clock34xx.h                    |    9 -
->  arch/arm/mach-omap2/gpmc.c                         |    2 
->  arch/arm/mach-omap2/io.c                           |    8 -
->  arch/arm/mach-omap2/memory.c                       |  179 --------------------
->  arch/arm/mach-omap2/memory.h                       |   43 -----
->  arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h  |   55 ++++++
->  .../mach-omap2/sdram-qimonda-hyb18m512160af-6.h    |   55 ++++++
->  arch/arm/mach-omap2/sdrc.c                         |   93 ++++++++++
->  arch/arm/mach-omap2/sdrc2xxx.c                     |  164 ++++++++++++++++++
->  arch/arm/mach-omap2/sram34xx.S                     |   84 +++------
->  arch/arm/plat-omap/common.c                        |    2 
->  arch/arm/plat-omap/sram.c                          |   63 ++-----
->  include/asm-arm/arch-omap/common.h                 |    2 
->  include/asm-arm/arch-omap/gpmc.h                   |    1 
->  include/asm-arm/arch-omap/io.h                     |    4 
->  include/asm-arm/arch-omap/sdrc.h                   |   64 ++++++-
->  include/asm-arm/arch-omap/sram.h                   |   25 +--
->  31 files changed, 597 insertions(+), 383 deletions(-)
->  delete mode 100644 arch/arm/mach-omap2/memory.c
->  delete mode 100644 arch/arm/mach-omap2/memory.h
->  create mode 100644 arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h
->  create mode 100644 arch/arm/mach-omap2/sdram-qimonda-hyb18m512160af-6.h
->  create mode 100644 arch/arm/mach-omap2/sdrc.c
->  create mode 100644 arch/arm/mach-omap2/sdrc2xxx.c
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> regards,
+>
+> Koen
+>
+>
+>> If anyone wants I'll re-send larger trace pictures individually.
+>>
+>>
+>>> From: Woodruff, Richard, Monday, June 16, 2008 7:06 PM
+>>>
+>>> It simply does a check to see if the about to be reprogrammed 1 shot
+>>> already is the last event programmed in the hardware.  If it is it  
+>>> skips
+>>> calling the hardware.
+>>>
+>>> In my device I get many interrupts from a high speed USB device in a
+>>> very short period of time.  The system spends a lot of time
+>>> reprogramming the hardware timer which is in a slower timing domain  
+>>> as
+>>> compared to the CPU.  This results in the CPU spending a huge amount 
+>>> of
+>>> time waiting for the timer posting to be done.  All of this
+>>> reprogramming is useless as the wake up time has not changed.
+>>>
+>>> As measured using ETM trace this drops my reprogramming penalty from
+>>> almost 60% CPU load down to 15% during high interrupt rate.  If you  
+>>> like
+>>> I can send traces to show this.
+>>
+>> Attached are some results on OMAP-ARM from USB-OTG:
+>>
+>> As host:
+>>
+>> root@OMAP3EVM /]# mount -t vfat /dev/sda1 /mnt/
+>> [root@OMAP3EVM /]# time -p cp /mnt/OE.mtn.bz2 /dev/null
+>> real 32.51
+>> user 0.02
+>> sys 1.05
+>> [root@OMAP3EVM /]# umount /mnt/
+>> [root@OMAP3EVM /]# mount -t vfat /dev/sda1 /mnt/
+>> [root@OMAP3EVM /]# time -p cp /mnt/OE.mtn.bz2 /dev/null
+>> real 17.92
+>> user 0.05
+>> sys 1.57
+>>
+>> As Client:
+>>
+>> Attached are some visuals as of client doing gadget zero tests.   
+>> Pictures clearly show before a domination by timer reprogram and after 
+>> not.
+>>
+>> Regards,
+>> Richard W.
+>>
+>>
+>> diff --git a/kernel/time/tick-sched.c b/kernel/time/tick-sched.c
+>> index b854a89..ff6b967 100644
+>> --- a/kernel/time/tick-sched.c
+>> +++ b/kernel/time/tick-sched.c
+>> @@ -254,6 +254,17 @@ void tick_nohz_stop_sched_tick(void)
+>>        /* Schedule the tick, if we are at least one jiffie off */
+>>        if ((long)delta_jiffies >= 1) {
+>>
+>> +               /*
+>> +               * calculate the expiry time for the next timer wheel
+>> +               * timer
+>> +               */
+>> +               expires = ktime_add_ns(last_update, tick_period.tv64 *
+>> +                                  delta_jiffies);
+>> +
+>> +               /* Skip reprogram of event if its not changed */
+>> +               if(ts->tick_stopped && ktime_equal(expires, dev- 
+>> >next_event))
+>> +                       goto out2;
+>> +
+>>                if (delta_jiffies > 1)
+>>                        cpu_set(cpu, nohz_cpu_mask);
+>>                /*
+>> @@ -304,12 +315,7 @@ void tick_nohz_stop_sched_tick(void)
+>>                        goto out;
+>>                }
+>>
+>> -               /*
+>> -                * calculate the expiry time for the next timer wheel
+>> -                * timer
+>> -                */
+>> -               expires = ktime_add_ns(last_update, tick_period.tv64 *
+>> -                                      delta_jiffies);
+>> +               /* Mark expiries */
+>>                ts->idle_expires = expires;
+>>
+>>                if (ts->nohz_mode == NOHZ_MODE_HIGHRES) {
+>> @@ -328,6 +334,7 @@ void tick_nohz_stop_sched_tick(void)
+>>                tick_do_update_jiffies64(ktime_get());
+>>                cpu_clear(cpu, nohz_cpu_mask);
+>>        }
+>> +out2:
+>>        raise_softirq_irqoff(TIMER_SOFTIRQ);
+>> out:
+>>        ts->next_jiffies = next_jiffies;
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" 
+>> in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+
+
