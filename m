@@ -1,163 +1,198 @@
-From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 4/4] 34XX: PM: Workaround to enable autoidle for clocks
-Date: Wed, 6 Aug 2008 18:32:19 +0530 (IST)
-Message-ID: <59113.192.168.10.89.1218027739.squirrel@dbdmail.itg.ti.com>
+From: "TK, Pratheesh Gangadhar" <pratheesh@ti.com>
+Subject: RE: Problems with USB Gadget on the OMAP3EVM
+Date: Wed, 6 Aug 2008 18:30:36 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593013CA23902@dbde02.ent.ti.com>
+References: <ece1079f0808050417o49392d42if4b730b7d700bdab@mail.gmail.com>
+	 <20080805112736.GZ30539@gandalf.research.nokia.com>
+ <ece1079f0808052212r6f4b2830i2ace5e66263998dd@mail.gmail.com>
+ <19F8576C6E063C45BE387C64729E7394034F30ABEF@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:50648 "EHLO calf.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33372 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751365AbYHFNC2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 Aug 2008 09:02:28 -0400
+	id S1756275AbYHFNLt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Aug 2008 09:11:49 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394034F30ABEF@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: jouni.hogander@nokia.com
+To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, kanagesh radhakrishnan <rkanagesh@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This workaround enables autoidle for interface clocks and plls. Also
-automatic control of external oscillator through sys_clkreq is
-enabled.
+Kanagesh,
 
-Proper fix to this is to generalize omap3_dpll_allow_idle,
-omap3_dpll_deny_idle, omap3_dpll_autoidle_read and call it for each
-clock on init.
+You can give it a shot using a different cable - I have seen similar issues when using a faulty cable.
 
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
----
- arch/arm/mach-omap2/pm34xx.c |  118 +++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 118 insertions(+)
+Regards,
+Pratheesh
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/pm34xx.c	2008-08-06
-18:08:02.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c	2008-08-06 18:09:20.000000000
-+0530
-@@ -433,6 +433,124 @@ static void __init prcm_setup_regs(void)
- 	} else
- 		prm_write_mod_reg(0, GFX_MOD, PM_WKDEP);
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Gupta, Ajay Kumar
+Sent: Wednesday, August 06, 2008 6:12 PM
+To: kanagesh radhakrishnan
+Cc: linux-omap@vger.kernel.org
+Subject: RE: Problems with USB Gadget on the OMAP3EVM
 
-+	/* XXX Enable interface clock autoidle for all modules. This
-+	 * should be done by clockfw */
-+	cm_write_mod_reg(
-+		OMAP3430ES2_AUTO_MMC3 |
-+		OMAP3430ES2_AUTO_ICR |
-+		OMAP3430_AUTO_AES2 |
-+		OMAP3430_AUTO_SHA12 |
-+		OMAP3430_AUTO_DES2 |
-+		OMAP3430_AUTO_MMC2 |
-+		OMAP3430_AUTO_MMC1 |
-+		OMAP3430_AUTO_MSPRO |
-+		OMAP3430_AUTO_HDQ |
-+		OMAP3430_AUTO_MCSPI4 |
-+		OMAP3430_AUTO_MCSPI3 |
-+		OMAP3430_AUTO_MCSPI2 |
-+		OMAP3430_AUTO_MCSPI1 |
-+		OMAP3430_AUTO_I2C3 |
-+		OMAP3430_AUTO_I2C2 |
-+		OMAP3430_AUTO_I2C1 |
-+		OMAP3430_AUTO_UART2 |
-+		OMAP3430_AUTO_UART1 |
-+		OMAP3430_AUTO_GPT11 |
-+		OMAP3430_AUTO_GPT10 |
-+		OMAP3430_AUTO_MCBSP5 |
-+		OMAP3430_AUTO_MCBSP1 |
-+		OMAP3430ES1_AUTO_FAC | /* This is es1 only */
-+		OMAP3430_AUTO_MAILBOXES |
-+		OMAP3430_AUTO_OMAPCTRL |
-+		OMAP3430ES1_AUTO_FSHOSTUSB |
-+		OMAP3430_AUTO_HSOTGUSB |
-+		OMAP3430ES1_AUTO_D2D | /* This is es1 only */
-+		OMAP3430_AUTO_SSI,
-+		CORE_MOD, CM_AUTOIDLE1);
-+
-+	cm_write_mod_reg(
-+		OMAP3430_AUTO_PKA |
-+		OMAP3430_AUTO_AES1 |
-+		OMAP3430_AUTO_RNG |
-+		OMAP3430_AUTO_SHA11 |
-+		OMAP3430_AUTO_DES1,
-+		CORE_MOD, CM_AUTOIDLE2);
-+
-+	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0))
-+		cm_write_mod_reg(
-+			OMAP3430ES2_AUTO_USBTLL,
-+			CORE_MOD, CM_AUTOIDLE3);
-+
-+	cm_write_mod_reg(
-+		OMAP3430_AUTO_WDT2 |
-+		OMAP3430_AUTO_WDT1 |
-+		OMAP3430_AUTO_GPIO1 |
-+		OMAP3430_AUTO_32KSYNC |
-+		OMAP3430_AUTO_GPT12 |
-+		OMAP3430_AUTO_GPT1 ,
-+		WKUP_MOD, CM_AUTOIDLE);
-+
-+	cm_write_mod_reg(
-+		OMAP3430_AUTO_DSS,
-+		OMAP3430_DSS_MOD,
-+		CM_AUTOIDLE);
-+
-+	cm_write_mod_reg(
-+		OMAP3430_AUTO_CAM,
-+		OMAP3430_CAM_MOD,
-+		CM_AUTOIDLE);
-+
-+	cm_write_mod_reg(
-+		OMAP3430_AUTO_GPIO6 |
-+		OMAP3430_AUTO_GPIO5 |
-+		OMAP3430_AUTO_GPIO4 |
-+		OMAP3430_AUTO_GPIO3 |
-+		OMAP3430_AUTO_GPIO2 |
-+		OMAP3430_AUTO_WDT3 |
-+		OMAP3430_AUTO_UART3 |
-+		OMAP3430_AUTO_GPT9 |
-+		OMAP3430_AUTO_GPT8 |
-+		OMAP3430_AUTO_GPT7 |
-+		OMAP3430_AUTO_GPT6 |
-+		OMAP3430_AUTO_GPT5 |
-+		OMAP3430_AUTO_GPT4 |
-+		OMAP3430_AUTO_GPT3 |
-+		OMAP3430_AUTO_GPT2 |
-+		OMAP3430_AUTO_MCBSP4 |
-+		OMAP3430_AUTO_MCBSP3 |
-+		OMAP3430_AUTO_MCBSP2,
-+		OMAP3430_PER_MOD,
-+		CM_AUTOIDLE);
-+
-+	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0))
-+		cm_write_mod_reg(
-+			OMAP3430ES2_AUTO_USBHOST,
-+			OMAP3430ES2_USBHOST_MOD,
-+			CM_AUTOIDLE);
-+
-+	/* XXX Set all plls to autoidle. This is needed until autoidle is
-+	 * enabled by clockfw */
-+	cm_write_mod_reg(1 << OMAP3430_CLKTRCTRL_IVA2_SHIFT,
-+			 OMAP3430_IVA2_MOD,
-+			 CM_AUTOIDLE2);
-+	cm_write_mod_reg(1 << OMAP3430_AUTO_MPU_DPLL_SHIFT,
-+			 MPU_MOD,
-+			 CM_AUTOIDLE2);
-+	cm_write_mod_reg((1 << OMAP3430_AUTO_PERIPH_DPLL_SHIFT) |
-+			 (1 << OMAP3430_AUTO_CORE_DPLL_SHIFT),
-+			 PLL_MOD,
-+			 CM_AUTOIDLE);
-+	cm_write_mod_reg(1 << OMAP3430ES2_AUTO_PERIPH2_DPLL_SHIFT,
-+			 PLL_MOD,
-+			 CM_AUTOIDLE2);
-+
-+	/* XXX Enable control of expternal oscillator through
-+	 * sys_clkreq. I think clockfw should provide means to do this
-+	 */
-+	prm_rmw_mod_reg_bits(OMAP_AUTOEXTCLKMODE_MASK,
-+			     1 << OMAP_AUTOEXTCLKMODE_SHIFT,
-+			     OMAP3430_GR_MOD,
-+			     OMAP3_PRM_CLKSRC_CTRL_OFFSET);
-+
- 	/* setup wakup source */
- 	prm_write_mod_reg(OMAP3430_EN_IO | OMAP3430_EN_GPIO1 | OMAP3430_EN_GPT1,
- 			  WKUP_MOD, PM_WKEN);
+Kanagesh,
 
+I tested it with Windows XP machine and it works all fine. I had to use linux.inf file which is at
+Documetation\usb\ folder.
 
+linux.inf file should have same VID/PID as reported by gadget rndis driver to host.
+
+Regards,
+Ajay
+
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of kanagesh radhakrishnan
+Sent: Wednesday, August 06, 2008 10:43 AM
+To: felipe.balbi@nokia.com
+Cc: linux-omap@vger.kernel.org
+Subject: Re: Problems with USB Gadget on the OMAP3EVM
+
+On 8/5/08, Felipe Balbi <felipe.balbi@nokia.com> wrote:
+> Hi,
+>
+>
+>  On Tue, Aug 05, 2008 at 04:47:02PM +0530, ext kanagesh radhakrishnan wrote:
+>  > Running the Test
+>  > -------------------------
+>  > On the OMAP3EVM Target
+>  > #######################
+>  > On successful boot with this kernel on the target board, after
+>  > plugging in the USB cable, the following messages appear on the
+>  > console:
+>  >
+>  > musb_stage2_irq 863: SUSPEND (b_idle) devctl 99 power e0
+>  > musb_stage0_irq 722: BUS RESET
+>  > musb_stage0_irq 722: BUS RESET
+>  > musb_stage0_irq 722: BUS RESET
+>  > musb_stage0_irq 722: BUS RESET
+>  > musb_stage0_irq 722: BUS RESET
+>  > musb_stage0_irq 722: BUS RESET
+>  > musb_stage0_irq 722: BUS RESET
+>  > musb_stage0_irq 722: BUS RESET
+>  > usb0: high speed config #2: 100 mA, Ethernet Gadget, using RNDIS
+>  > musb_stage0_irq 722: BUS RESET
+>  > musb_stage0_irq 722: BUS RESET
+>  > musb_stage2_irq 863: SUSPEND (b_peripheral) devctl 99 power f0
+>  >
+>  > I then setup an IP address for the usb0 interface with the following command:
+>  >
+>  > [root@OMAP3EVM /]# /sbin/ifconfig usb0 192.168.1.1 up netmask 255.255.255.0
+>  >
+>  > On the Linux Host machine
+>  > #######################
+>  >
+>  > On insertion of the USB cable, 'dmesg' shows the following messages:
+>  >
+>  > usb 1-2: new high speed USB device using address 3
+>  > usb 1-2: configuration #1 chosen from 2 choices
+>  > usb 1-2: can't set config #1, error -71
+>
+>
+> That's weird since gadget api set config 2 as your dmesg states.
+>
+> usb0: high speed config #2: 100 mA, Ethernet Gadget, using RNDIS
+>
+>
+> > The Problem
+>  > -------------------
+>  > On an attempt to setup an IP address for the usb0 interface, I get the
+>  > following error:
+>  >
+>  > usb0: unknown interface: No such device
+>  > SIOCSIFADDR: No such device
+>  > usb0: unknown interface: No such device
+>  > SIOCSIFNETMASK: No such device
+>  > SIOCGIFADDR: No such device
+>  > SIOCSIFBROADCAST: No such device
+>
+>
+> Looks like the problem is in the host side usbnet.ko. What kernel
+>  version is in your host machine ?
+>
+>
+>  > The Test Setup
+>  > ----------------------
+>  >
+>  > Host
+>  > ####
+>  >    Linux machine running Fedora Core 5.
+>  >    Manually loaded the module usbnet.ko.
+>
+>
+> Which kernel version is in this fedora core 5 ??
+>
+>
+>  > Target
+>  > #####
+>  >    OMAP3EVM running OMAP35x_SDK_0.9.8 firmware: x-load, u-boot and
+>  > kernel (linux-2.6.22.18)
+>  >    Dip switches (SW4) set to boot from NAND flash (01010000)
+>  >
+>  >
+>  > Although my end objective is to test the USB functionality with
+>  > TWL4030 USB transceiver, I wanted to verify if USB functions as
+>  > expected through ISP1504 transceiver on my board with the SDK_0.9.8.
+>  > Has anyone tested the USB Gadget setup on the OMAP3EVM boards?
+>
+>
+> I'd strongly suggest you to try out current linux-omap code [1] and check
+>  if it works fine.
+>
+>  Also increase MUSB_LOGLEVEL to 3 in your .config file and reabuild that
+>  2.6.22.18 kernel.
+>
+>  When you clone linux omap with:
+>
+>  $ git clone http://www.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+>
+>  You can make omap3_evm_defconfig and later make menuconfig to choose the
+>  gadget driver you want.
+>
+>  [1] http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary
+>
+>  --
+>
+> balbi
+>
+
+Hello everyone,
+
+Thank you very much for the comments and suggestions.
+
+The version of Linux kernel on the native host Fedora Core 5 machine
+is the default 2.6.9-1.667 kernel that comes with the FC5 release.
+Keeping in mind where we are, this does sound like an ancient kernel.
+However, I have USB networking with Gadget drivers working on this
+same machine with OMAP5912 OSK, OMAP2430 SDP and another custom
+OMAP2430 based board.
+
+Nevertheless, I decided to upgrade to a more recent version of the
+Linux kernel on the host system.  I will test the setup once again and
+update the observation.
+
+Meanwhile, I tested the setup with a Windows XP host machine and these
+are the observations:
+On insertion of the USB cable to the Win XP host machine, the OMAP3EVM
+board gets detected as 'RNDIS/Ethernet' Device.  I go through the
+driver installation (driver used is file Documentation/usb/linux.inf
+from the standard Linux kernel sources).  After the installation is
+complete, I get an error from the Windows XP system saying "An error
+was encountered while installing the driver and the hardware might not
+function as intended"
+
+Thank you all,
+Regards,
+Kanagesh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
