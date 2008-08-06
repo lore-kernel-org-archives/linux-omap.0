@@ -1,581 +1,245 @@
-From: Josh Karabin <gkarabin@vocollect.com>
-Subject: Re: About to tag v2.6.26-omap1, patch queue deleted, please check
- and	repost
-Date: Wed, 06 Aug 2008 17:31:13 -0400
-Message-ID: <489A1821.6080300@vocollect.com>
-References: <20080805143519.GS7193@atomide.com> <5A47E75E594F054BAF48C5E4FC4B92AB02569B8A85@dbde02.ent.ti.com> <489897CD.6040802@googlemail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: About to tag v2.6.26-omap1, patch queue deleted, please check and repost
+Date: Wed, 6 Aug 2008 16:30:09 -0700
+Message-ID: <200808061630.09530.david-b@pacbell.net>
+References: <20080805143519.GS7193@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx4.vocollect.com ([64.212.175.114]:3076 "EHLO
-	mx4.vocollect.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763473AbYHFVbP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Aug 2008 17:31:15 -0400
-In-Reply-To: <489897CD.6040802@googlemail.com>
+Received: from smtp118.sbc.mail.sp1.yahoo.com ([69.147.64.91]:34771 "HELO
+	smtp118.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752229AbYHFXaN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Aug 2008 19:30:13 -0400
+In-Reply-To: <20080805143519.GS7193@atomide.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
+
+On Tuesday 05 August 2008, Tony Lindgren wrote:
+> Also please check that things work for your board,
+> let's try to tag v2.6.26-omap1 within next few days so we can
+> move on again.
+
+Two problems on the OSK5912:
+
+ - cpufreq oopses on boot
+ - continuous i2c overflow errors
+
+ISTR both of these bugs are in mainline too.  I'd say the
+I2C regression is higher priority.
+
+- Dave
 
 
-On an omap3evm with the defconfig, the kernel is failing to identify a=20
-jffs2 filesystem.  It's booting from NFS just fine.
-
-I had built the latest code checked into linux-omap last week - file=20
-system booting had been working, IIRC.  Loading TI reference 2.6.22=20
-kernel finds the file system just fine as well.  I'll begin looking int=
-o=20
-this next week if someone else doesn't beat me to it.
-
-
-----
-
-Texas Instruments X-Loader 1.41
-
-Detected Samsung MuxOneNAND1G Flash
-
-Starting OS Bootloader...
-
-
-
-
-
-U-Boot 1.1.4 (Jun  6 2008 - 18:25:31)
-
-
-
-OMAP3-GP rev 2, CPU-OPP2 L3-165MHz
-
-OMAP3EVM 1.0 Version + mPOP (Boot ONND)
-
-DRAM:  128 MB
-
-OneNAND Manufacturer: Samsung (0xec)
-
-Muxed OneNAND 128MB 1.8V 16-bit (0x30)
-
-OneNAND version =3D 0x0221
-
-Scanning device for bad blocks
-
-num of blocks =3D 2048
-
-In:    serial
-
-Out:   serial
-
-Err:   serial
-
-Reseting CHIP... Done
-
-LAN9x18 (0x01150002) detected.
-
-Setting mac address: 00:50:c2:7e:86:9f
-
-start Auto negotiation... (take ~2sec)
-
-Auto negotiation complete, 100BaseTX, full duplex
-
-Hit any key to stop autoboot:  0
-
-OMAP3EVM # run boot_fs
-
-Done
-
-## Booting image at 80000000 ...
-
-    Image Name:   Linux-2.6.26-omap1-04784-g040378
-
-    Image Type:   ARM Linux Kernel Image (uncompressed)
-
-    Data Size:    1515692 Bytes =3D  1.4 MB
-
-    Load Address: 80008000
-
-    Entry Point:  80008000
-
-    Verifying Checksum ... OK
-
-OK
-
-
-
-Starting kernel ...
-
-
-
-Uncompressing
-Linux.............................................................
-=2E.................................... done, booting the kernel.
-
-<5>Linux version 2.6.26-omap1-04784-g040378c-dirty
-(gkarabin@gkarabin-f9) (gcc v
-ersion 4.2.1 (CodeSourcery Sourcery G++ Lite 2007q3-51)) #3 Tue Aug 5
-14:45:54 E
-DT 2008
-
-CPU: ARMv7 Processor [411fc082] revision 2 (ARMv7), cr=3D00c5387f
-
-Machine: OMAP3 EVM
-
+================	CPUFREQ oopsing
+<5>Linux version 2.6.26-omap1 (db@blackbox) (gcc version 4.2.1 (CodeSourcery Sourcery G++ Lite 2007q3-53)) #186 PREEMPT Wed Aug 6 16:12:29 PDT 2008
+CPU: ARM926EJ-S [41069263] revision 3 (ARMv5TEJ), cr=00053177
+Machine: TI-OSK
 Memory policy: ECC disabled, Data cache writeback
-
-<7>On node 0 totalpages: 32768
-
-<7>  DMA zone: 256 pages used for memmap
-
+<7>On node 0 totalpages: 8192
+<7>  DMA zone: 64 pages used for memmap
 <7>  DMA zone: 0 pages reserved
-
-<7>  DMA zone: 32512 pages, LIFO batch:7
-
+<7>  DMA zone: 8128 pages, LIFO batch:0
 <7>  Normal zone: 0 pages used for memmap
-
 <7>  Movable zone: 0 pages used for memmap
-
-<6>OMAP3430 ES2.2
-
-<6>SRAM: Mapped pa 0x40200000 to va 0xd7000000 size: 0x100000
-
-CPU0: D VIPT write-through cache
-
-CPU0: cache: 768 bytes, associativity 1, 8 byte lines, 64 sets
-
-Built 1 zonelists in Zone order, mobility grouping on.  Total pages:
-32512
-<5>Kernel command line: mem=3D128M console=3DttyS0,115200n8 noinitrd
-root=3D/dev/mtdbl
-ock4 rw rootfstype=3Djffs2
-ip=3D10.51.0.10:10.51.0.30:10.2.8.1:255.255.252.0:omap-ev
-m0:eth0:on
-
-<6>Clocking rate (Crystal/DPLL/ARM core): 26.0/332/500 MHz
-
-<6>GPMC revision 5.0
-
-<6>IRQ: Found an INTC at 0xd8200000 (revision 4.0) with 96 interrupts
-
-<6>Total of 96 interrupts on 1 active controller
-
-<6>OMAP34xx GPIO hardware version 2.5
-
-PID hash table entries: 512 (order: 9, 2048 bytes)
-
-Console: colour dummy device 80x30
-
-<6>Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
-
-<6>Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
-
-<6>Memory: 128MB =3D 128MB total
-
-<5>Memory: 126720KB available (2776K code, 230K data, 116K init)
-
-<7>Calibrating delay loop... 498.87 BogoMIPS (lpj=3D1945600)
-
+OMAP1611b revision 2 handled as 16xx id: 26058c80eb051c15
+<6>SRAM: Mapped pa 0x20000000 to va 0xd7000000 size: 0x100000
+CPU0: D VIVT write-back cache
+CPU0: I cache: 16384 bytes, associativity 4, 32 byte lines, 128 sets
+CPU0: D cache: 8192 bytes, associativity 4, 32 byte lines, 64 sets
+Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 8128
+<5>Kernel command line: console=ttyS0,115200 mem=32M ip=dhcp root=/dev/nfs i2c_omap.clock=400
+<3>Unknown boot option `i2c_omap.clock=400': ignoring
+Clocks: ARM_SYSST: 0x1000 DPLL_CTL: 0x2833 ARM_CKCTL: 0x2000
+<6>Clocking rate (xtal/DPLL1/MPU): 12.0/192.0/192.0 MHz
+Total of 128 interrupts in 4 interrupt banks
+<6>OMAP GPIO hardware version 1.0
+<4>MUX: initialized M7_1610_GPIO62
+PID hash table entries: 128 (order: 7, 512 bytes)
+Lock dependency validator: Copyright (c) 2006 Red Hat, Inc., Ingo Molnar
+... MAX_LOCKDEP_SUBCLASSES:    8
+... MAX_LOCK_DEPTH:          48
+... MAX_LOCKDEP_KEYS:        2048
+... CLASSHASH_SIZE:           1024
+... MAX_LOCKDEP_ENTRIES:     8192
+... MAX_LOCKDEP_CHAINS:      16384
+... CHAINHASH_SIZE:          8192
+ memory used by lock dependency info: 992 kB
+ per task-struct memory footprint: 1920 bytes
+<6>Dentry cache hash table entries: 4096 (order: 2, 16384 bytes)
+<6>Inode-cache hash table entries: 2048 (order: 1, 8192 bytes)
+<6>Memory: 32MB = 32MB total
+<5>Memory: 26936KB available (2476K code, 2919K data, 104K init)
+<6>SLUB: Genslabs=12, HWalign=32, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+<7>Calibrating delay loop... 94.82 BogoMIPS (lpj=474112)
 Mount-cache hash table entries: 512
-
 <6>CPU: Testing write buffer coherency: ok
-
-<6>net_namespace: 192 bytes
-
+<6>net_namespace: 256 bytes
 <6>NET: Registered protocol family 16
+<4>MUX: initialized M19_1610_CAM_RSTZ
+<4>MUX: initialized Y15_1610_CAM_OUTCLK
+<4>MUX: initialized H19_1610_CAM_EXCLK
+<4>MUX: initialized W13_1610_CCP_CLKM
+<4>MUX: initialized Y12_1610_CCP_CLKP
+<4>MUX: initialized W14_1610_CCP_DATAP
+<4>MUX: initialized N20_1610_GPIO11
+<4>MUX: initialized P20_1610_GPIO4
+<4>MUX: initialized PWL
+<6>OMAP DMA hardware version 1
+<6>DMA capabilities: 000c0000:00000000:01ff:003f:007f
+<6>omap_dsp_init() done
+<1>Unable to handle kernel NULL pointer dereference at virtual address 00000000
+<1>pgd = c0004000
+<1>[00000000] *pgd=00000000
+Internal error: Oops: 5 [#1] PREEMPT
+Modules linked in:
+CPU: 0    Not tainted  (2.6.26-omap1 #186)
+PC is at wq_per_cpu+0xc/0x14
+LR is at queue_delayed_work_on+0x90/0x124
+pc : [<c005068c>]    lr : [<c00510f0>]    psr: 60000013
+sp : c1c21dbc  ip : c1c21dcc  fp : c1c21dc8
+r10: 00000292  r9 : 00000001  r8 : 00000000
+r7 : 00000000  r6 : c0561c20  r5 : 00000000  r4 : c0561c04
+r3 : 00000001  r2 : 00000000  r1 : 00000000  r0 : 00000000
+Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+Control: 0005317f  Table: 10004000  DAC: 00000017
+Process swapper (pid: 1, stack limit = 0xc1c20260)
+Stack: (0xc1c21dbc to 0xc1c22000)
+1da0:                                                                c1c21df0 
+1dc0: c1c21dcc c00510f0 c0050690 c0561be0 00000292 c02aa654 c0561be0 c1c38840 
+1de0: 00000000 c1c21e1c c1c21df4 c0175358 c0051070 00000000 00000000 c1c38840 
+1e00: 00000001 00000000 00000000 c001c818 c1c21e38 c1c21e20 c0172e00 c017514c 
+1e20: c1c21e5c c1c38840 00000000 c1c21e58 c1c21e3c c0173454 c0172d30 c02980f0 
+1e40: c1c38840 00000000 c0561ad0 c1c21f28 c1c21e5c c0174428 c0173348 00000001 
+1e60: 00000000 00000000 00000000 0002ee00 00005dc0 00989680 0002ee00 0002ee00 
+1e80: 0002ee00 00000000 c02aa654 00000000 c1c38874 c1c38874 c0173dd4 c0561bb0 
+1ea0: 00000000 c02704f9 00005dc0 0002ee00 00000000 00000000 00000000 00000000 
+1ec0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+1ee0: 00000001 dead4ead ffffffff ffffffff c02d1f40 00000000 c02592d4 c1c388e0 
+1f00: c1c388e0 00000000 c02aa3d0 c02a7680 c02af8c0 c02af8c8 00000000 c1c21f54 
+1f20: c1c21f2c c0137920 c0174204 c1c04098 00000000 c02af8c0 00000000 00000000 
+1f40: c0009d28 c1c20000 c1c21f68 c1c21f58 c001c228 c01378a8 c001d000 c1c21f78 
+1f60: c1c21f6c c0009d4c c001c20c c1c21ff4 c1c21f7c c0008930 c0009d38 00000000 
+1f80: 00000000 00000000 00000000 c1c21f00 c1c21f9c c003bcbc c003a888 00000000 
+1fa0: 00000000 c1c21fb0 c0022b84 c003bcac 00000000 00000000 c0008884 c00423c8 
+1fc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+1fe0: 00000000 00000000 00000000 c1c21ff8 c00423c8 c0008894 00000000 00000000 
+Backtrace: 
+[<c0050680>] (wq_per_cpu+0x0/0x14) from [<c00510f0>] (queue_delayed_work_on+0x90/0x124)
+[<c0051060>] (queue_delayed_work_on+0x0/0x124) from [<c0175358>] (cpufreq_governor_dbs+0x21c/0x30c)
+[<c017513c>] (cpufreq_governor_dbs+0x0/0x30c) from [<c0172e00>] (__cpufreq_governor+0xe0/0x124)
+[<c0172d20>] (__cpufreq_governor+0x0/0x124) from [<c0173454>] (__cpufreq_set_policy+0x11c/0x164)
+ r6:00000000 r5:c1c38840 r4:c1c21e5c
+[<c0173338>] (__cpufreq_set_policy+0x0/0x164) from [<c0174428>] (cpufreq_add_dev+0x234/0x304)
+ r7:c0561ad0 r6:00000000 r5:c1c38840 r4:c02980f0
+[<c01741f4>] (cpufreq_add_dev+0x0/0x304) from [<c0137920>] (sysdev_register+0x88/0xd0)
+ r8:00000000 r7:c02af8c8 r6:c02af8c0 r5:c02a7680 r4:c02aa3d0
+[<c0137898>] (sysdev_register+0x0/0xd0) from [<c001c228>] (register_cpu+0x2c/0x44)
+ r8:c1c20000 r7:c0009d28 r6:00000000 r5:00000000 r4:c02af8c0
+[<c001c1fc>] (register_cpu+0x0/0x44) from [<c0009d4c>] (topology_init+0x24/0x30)
+ r4:c001d000
+[<c0009d28>] (topology_init+0x0/0x30) from [<c0008930>] (kernel_init+0xac/0x250)
+[<c0008884>] (kernel_init+0x0/0x250) from [<c00423c8>] (do_exit+0x0/0x644)
+Code: c02d1bd8 e1a0c00d e92dd800 e24cb004 (e5900000) 
+<4>---[ end trace 1b75b31a2719ed1c ]---
+<0>Kernel panic - not syncing: Attempted to kill init!
 
-<4>Warning: L2 cache not enabled. Check your bootloader. L2 off results
-in perfo
-rmance loss
 
-<6>OMAP DMA hardware revision 4.0
 
-<3>USB: No board-specific platform config found
-
-<6>i2c_omap i2c_omap.1: bus 1 rev3.12 at 2600 kHz
-
-<6>i2c_omap i2c_omap.2: bus 2 rev3.12 at 400 kHz
-
-<6>i2c_omap i2c_omap.3: bus 3 rev3.12 at 400 kHz
-
-<6>TWL4030: TRY attach Slave TWL4030-ID0 on Adapter OMAP I2C adapter [1=
-]
-
-<6>TWL4030: TRY attach Slave TWL4030-ID1 on Adapter OMAP I2C adapter [1=
-]
-
-<6>TWL4030: TRY attach Slave TWL4030-ID2 on Adapter OMAP I2C adapter [1=
-]
-
-<6>TWL4030: TRY attach Slave TWL4030-ID3 on Adapter OMAP I2C adapter [1=
-]
-
-<6>Initialized TWL4030 USB module
-
-<5>SCSI subsystem initialized
-
-<6>NET: Registered protocol family 2
-
-<7>Switched to high resolution mode on CPU 0
-
-<6>IP route cache hash table entries: 1024 (order: 0, 4096 bytes)
-
-<6>TCP established hash table entries: 4096 (order: 3, 32768 bytes)
-
-<6>TCP bind hash table entries: 4096 (order: 2, 16384 bytes)
-
-<6>TCP: Hash tables configured (established 4096 bind 4096)
-
-<6>TCP reno registered
-
-<6>NET: Registered protocol family 1
-
-<4>NetWinder Floating Point Emulator V0.97 (double precision)
-
-<5>VFS: Disk quotas dquot_6.5.1
-
-Dquot-cache hash table entries: 1024 (order 0, 4096 bytes)
-
-<6>JFFS2 version 2.2. (NAND) =EF=BF=BD=C2=A9 2001-2006 Red Hat, Inc.
-
-<6>msgmni has been set to 247
-
-<6>io scheduler noop registered
-
-<6>io scheduler anticipatory registered (default)
-
-<6>io scheduler deadline registered
-
-<6>io scheduler cfq registered
-
-<6>omapfb: configured for panel omap3evm
-
-<6>omapfb: DISPC version 3.0 initialized
-
-<6>omapfb: Framebuffer initialized. Total vram 614400 planes 1
-
-<6>omapfb: Pixclock 24000 kHz hfreq 45.2 kHz vfreq 70.3 Hz
-
-<6>Serial: 8250/16550 driver $Revision: 1.90 $ 4 ports, IRQ sharing
-enabled
-<6>serial8250.0: ttyS0 at MMIO 0x4806a000 (irq =3D 72) is a ST16654
-
-<6>console [ttyS0] enabled
-
-Linux version 2.6.26-omap1-04784-g040378c-dirty (gkarabin@gkarabin-f9)
-(gcc vers
-ion 4.2.1 (CodeSourcery Sourcery G++ Lite 2007q3-51)) #3 Tue Aug 5
-14:45:54 EDT
-2008
-
-CPU: ARMv7 Processor [411fc082] revision 2 (ARMv7), cr=3D00c5387f
-
-Machine: OMAP3 EVM
-
+========================	#2 i2c overflows (after disabling cpufreq)
+<5>Linux version 2.6.26-omap1 (db@blackbox) (gcc version 4.2.1 (CodeSourcery Sourcery G++ Lite 2007q3-53)) #187 PREEMPT Wed Aug 6 16:20:02 PDT 2008
+CPU: ARM926EJ-S [41069263] revision 3 (ARMv5TEJ), cr=00053177
+Machine: TI-OSK
 Memory policy: ECC disabled, Data cache writeback
-
-OMAP3430 ES2.2
-
-SRAM: Mapped pa 0x40200000 to va 0xd7000000 size: 0x100000
-
-CPU0: D VIPT write-through cache
-
-CPU0: cache: 768 bytes, associativity 1, 8 byte lines, 64 sets
-
-Built 1 zonelists in Zone order, mobility grouping on.  Total pages:
-32512
-Kernel command line: mem=3D128M console=3DttyS0,115200n8 noinitrd
-root=3D/dev/mtdblock
-4 rw rootfstype=3Djffs2
-ip=3D10.51.0.10:10.51.0.30:10.2.8.1:255.255.252.0:omap-evm0:
-eth0:on
-
-Clocking rate (Crystal/DPLL/ARM core): 26.0/332/500 MHz
-
-GPMC revision 5.0
-
-IRQ: Found an INTC at 0xd8200000 (revision 4.0) with 96 interrupts
-
-Total of 96 interrupts on 1 active controller
-
-OMAP34xx GPIO hardware version 2.5
-
-PID hash table entries: 512 (order: 9, 2048 bytes)
-
-Console: colour dummy device 80x30
-
-Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
-
-Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
-
-Memory: 128MB =3D 128MB total
-
-Memory: 126720KB available (2776K code, 230K data, 116K init)
-
+<7>On node 0 totalpages: 8192
+<7>  DMA zone: 64 pages used for memmap
+<7>  DMA zone: 0 pages reserved
+<7>  DMA zone: 8128 pages, LIFO batch:0
+<7>  Normal zone: 0 pages used for memmap
+<7>  Movable zone: 0 pages used for memmap
+OMAP1611b revision 2 handled as 16xx id: 26058c80eb051c15
+<6>SRAM: Mapped pa 0x20000000 to va 0xd7000000 size: 0x100000
+CPU0: D VIVT write-back cache
+CPU0: I cache: 16384 bytes, associativity 4, 32 byte lines, 128 sets
+CPU0: D cache: 8192 bytes, associativity 4, 32 byte lines, 64 sets
+Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 8128
+<5>Kernel command line: console=ttyS0,115200 mem=32M ip=dhcp root=/dev/nfs i2c_omap.clock=400
+<3>Unknown boot option `i2c_omap.clock=400': ignoring
+Clocks: ARM_SYSST: 0x1000 DPLL_CTL: 0x2833 ARM_CKCTL: 0x2000
+<6>Clocking rate (xtal/DPLL1/MPU): 12.0/192.0/192.0 MHz
+Total of 128 interrupts in 4 interrupt banks
+<6>OMAP GPIO hardware version 1.0
+<4>MUX: initialized M7_1610_GPIO62
+PID hash table entries: 128 (order: 7, 512 bytes)
+Lock dependency validator: Copyright (c) 2006 Red Hat, Inc., Ingo Molnar
+... MAX_LOCKDEP_SUBCLASSES:    8
+... MAX_LOCK_DEPTH:          48
+... MAX_LOCKDEP_KEYS:        2048
+... CLASSHASH_SIZE:           1024
+... MAX_LOCKDEP_ENTRIES:     8192
+... MAX_LOCKDEP_CHAINS:      16384
+... CHAINHASH_SIZE:          8192
+ memory used by lock dependency info: 992 kB
+ per task-struct memory footprint: 1920 bytes
+<6>Dentry cache hash table entries: 4096 (order: 2, 16384 bytes)
+<6>Inode-cache hash table entries: 2048 (order: 1, 8192 bytes)
+<6>Memory: 32MB = 32MB total
+<5>Memory: 26952KB available (2460K code, 2918K data, 104K init)
+<6>SLUB: Genslabs=12, HWalign=32, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+<7>Calibrating delay loop... 95.02 BogoMIPS (lpj=475136)
 Mount-cache hash table entries: 512
-
-CPU: Testing write buffer coherency: ok
-
-net_namespace: 192 bytes
-
-NET: Registered protocol family 16
-
-Warning: L2 cache not enabled. Check your bootloader. L2 off results in
-performa
-nce loss
-
-OMAP DMA hardware revision 4.0
-
-USB: No board-specific platform config found
-
-i2c_omap i2c_omap.1: bus 1 rev3.12 at 2600 kHz
-
-i2c_omap i2c_omap.2: bus 2 rev3.12 at 400 kHz
-
-i2c_omap i2c_omap.3: bus 3 rev3.12 at 400 kHz
-
-TWL4030: TRY attach Slave TWL4030-ID0 on Adapter OMAP I2C adapter [1]
-
-TWL4030: TRY attach Slave TWL4030-ID1 on Adapter OMAP I2C adapter [1]
-
-TWL4030: TRY attach Slave TWL4030-ID2 on Adapter OMAP I2C adapter [1]
-
-TWL4030: TRY attach Slave TWL4030-ID3 on Adapter OMAP I2C adapter [1]
-
-Initialized TWL4030 USB module
-
-SCSI subsystem initialized
-
-NET: Registered protocol family 2
-
-IP route cache hash table entries: 1024 (order: 0, 4096 bytes)
-
-TCP established hash table entries: 4096 (order: 3, 32768 bytes)
-
-TCP bind hash table entries: 4096 (order: 2, 16384 bytes)
-
-TCP: Hash tables configured (established 4096 bind 4096)
-
-TCP reno registered
-
-NET: Registered protocol family 1
-
-NetWinder Floating Point Emulator V0.97 (double precision)
-
-VFS: Disk quotas dquot_6.5.1
-
-Dquot-cache hash table entries: 1024 (order 0, 4096 bytes)
-
-JFFS2 version 2.2. (NAND) =EF=BF=BD=C2=A9 2001-2006 Red Hat, Inc.
-
-msgmni has been set to 247
-
-io scheduler noop registered
-
-io scheduler anticipatory registered (default)
-
-io scheduler deadline registered
-
-io scheduler cfq registered
-
-omapfb: configured for panel omap3evm
-
-omapfb: DISPC version 3.0 initialized
-
-omapfb: Framebuffer initialized. Total vram 614400 planes 1
-
-omapfb: Pixclock 24000 kHz hfreq 45.2 kHz vfreq 70.3 Hz
-
-Serial: 8250/16550 driver $Revision: 1.90 $ 4 ports, IRQ sharing enable=
-d
-
-serial8250.0: ttyS0 at MMIO 0x4806a000 (irq =3D 72) is a ST16654
-
-console [ttyS0] enabled
-
-<6>serial8250.0: ttyS1 at MMIO 0x4806c000 (irq =3D 73) is a ST16654
-
-serial8250.0: ttyS1 at MMIO 0x4806c000 (irq =3D 73) is a ST16654
-
-<6>serial8250.0: ttyS2 at MMIO 0x49020000 (irq =3D 74) is a ST16654
-
-serial8250.0: ttyS2 at MMIO 0x49020000 (irq =3D 74) is a ST16654
-
-<6>brd: module loaded
-
-brd: module loaded
-
-<6>loop: module loaded
-
-loop: module loaded
-
-eth0: LAN9115 (rev 2) at 0xc8850000 IRQ 336eth0: LAN9115 (rev 2) at
-0xc8850000 I
-RQ 336
-
-
-
-eth0: Ethernet addr: eth0: Ethernet addr:
-00:00:50:50:c2:c2:7e:7e:86:86:9f
-9f
-
-<7>eth0: LAN911x Internal PHY
-
-<6>i2c /dev entries driver
-
-i2c /dev entries driver
-
-<6>TWL4030 GPIO Demux: IRQ Range 384 to 402, Initialization Success
-
-TWL4030 GPIO Demux: IRQ Range 384 to 402, Initialization Success
-
-<4>Driver 'sd' needs updating - please use bus_type methods
-
-Driver 'sd' needs updating - please use bus_type methods
-
-<6>OMAP2 OneNAND driver initializing
-
-OMAP2 OneNAND driver initializing
-
-<6>omap2-onenand omap2-onenand: initializing on CS0, phys base
-0x20000000, virtu
-al base c8880000
-
-omap2-onenand omap2-onenand: initializing on CS0, phys base 0x20000000,
-virtual
-base c8880000
-
-<7>OneNAND Manufacturer: Samsung (0xec)
-
-<6>Muxed OneNAND 128MB 1.8V 16-bit (0x30)
-
-Muxed OneNAND 128MB 1.8V 16-bit (0x30)
-
-<6>OneNAND version =3D 0x0221
-
-OneNAND version =3D 0x0221
-
-<7>Chip support all block unlock
-
-<6>Scanning device for bad blocks
-
-Scanning device for bad blocks
-
-<6>TCP cubic registered
-
-TCP cubic registered
-
-<6>NET: Registered protocol family 17
-
-NET: Registered protocol family 17
-
-<6>NET: Registered protocol family 15
-
-NET: Registered protocol family 15
-
-<6>RPC: Registered udp transport module.
-
-RPC: Registered udp transport module.
-
-<6>RPC: Registered tcp transport module.
-
-RPC: Registered tcp transport module.
-
-<3>Power Management for TI OMAP3.
-
-Power Management for TI OMAP3.
-
-<6>VFP support v0.3: VFP support v0.3: implementor 41 architecture 3
-part 30 var
-iant c rev 1
-
-implementor 41 architecture 3 part 30 variant c rev 1
-
-<6>eth0: link down
-
-eth0: link down
-
-<3>IP-Config: Gateway not on directly connected network.
-
-IP-Config: Gateway not on directly connected network.
-
-<5>Looking up port of RPC 100003/2 on 10.51.0.30
-
-Looking up port of RPC 100003/2 on 10.51.0.30
-
-<6>eth0: link up, 100Mbps, full-duplex, lpa 0x03E1
-
-eth0: link up, 100Mbps, full-duplex, lpa 0x03E1
-
-<5>Looking up port of RPC 100005/1 on 10.51.0.30
-
-Looking up port of RPC 100005/1 on 10.51.0.30
-
-<3>Root-NFS: Server returned error -13 while mounting
-/tftpboot/omap-evm0
-Root-NFS: Server returned error -13 while mounting /tftpboot/omap-evm0
-
-<3>VFS: Unable to mount root fs via NFS, trying floppy.
-
-VFS: Unable to mount root fs via NFS, trying floppy.
-
-List of all partitions:
-
-List of all partitions:
-
-No filesystem could mount root, tried: No filesystem could mount root,
-tried:  j
-ffs2 jffs2
-
-
-
-<0>Kernel panic - not syncing: VFS: Unable to mount root fs on
-unknown-block(2,0
-)
-
-Kernel panic - not syncing: VFS: Unable to mount root fs on
-unknown-block(2,0)
-
-
-
-Dirk Behme wrote:
->=20
-> Gadiyar, Anand wrote:
->>> Hi all,
->>>
->>> I've pushed all the patches I have in my omap inbox, except for
->>> the omap serial driver that I want to look more.
->>>
->>> I've tried to comment on the ones that did not get pushed, then
->>> erased everything from my omap inbox. Some drivers should get
->>> integrated via other mailing lists, and some debug patches can
->>> probably stay as debug patches, and some patches I probably
->>> have accidentally deleted :) And the PM patches I lost track of,
->>> so those should be reposted.
->>>
->>> So please check your patches, and repost your patches if something
->>> is left out. Also please check that things work for your board,
->>> let's try to tag v2.6.26-omap1 within next few days so we can
->>> move on again.
->>>
->>> Cheers,
->>>
->>> Tony
->>
->>
->> Boot tested on 3430SDP with the defconfig. Things work okay so far.
->=20
-> Same with BeagleBoard.
->=20
-> Dirk
->=20
-> --=20
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+<6>CPU: Testing write buffer coherency: ok
+<6>net_namespace: 256 bytes
+<6>NET: Registered protocol family 16
+<4>MUX: initialized M19_1610_CAM_RSTZ
+<4>MUX: initialized Y15_1610_CAM_OUTCLK
+<4>MUX: initialized H19_1610_CAM_EXCLK
+<4>MUX: initialized W13_1610_CCP_CLKM
+<4>MUX: initialized Y12_1610_CCP_CLKP
+<4>MUX: initialized W14_1610_CCP_DATAP
+<4>MUX: initialized N20_1610_GPIO11
+<4>MUX: initialized P20_1610_GPIO4
+<4>MUX: initialized PWL
+<6>OMAP DMA hardware version 1
+<6>DMA capabilities: 000c0000:00000000:01ff:003f:007f
+<6>omap_dsp_init() done
+<4>MUX: initialized W4_USB_PUEN
+USB: hmc 0, usb2 alt 0 wires
+<6>i2c_omap i2c_omap.1: bus 1 rev2.2 at 400 kHz
+<6>tps65010: version 2 May 2005
+<3>i2c_omap i2c_omap.1: Transmit overflow
+<3>i2c_omap i2c_omap.1: Transmit overflow
+<3>i2c_omap i2c_omap.1: Transmit overflow
+<3>i2c_omap i2c_omap.1: Transmit overflow
+<3>i2c_omap i2c_omap.1: Transmit overflow
+<3>i2c_omap i2c_omap.1: Transmit overflow
+<6>tps65010: power off button
+<3>i2c_omap i2c_omap.1: Transmit overflow
+<3>i2c_omap i2c_omap.1: Transmit overflow
+<3>i2c_omap i2c_omap.1: Transmit overflow
+<3>i2c_omap i2c_omap.1: Transmit overflow
+<3>i2c_omap i2c_omap.1: Transmit overflow
+<3>i2c_omap i2c_omap.1: Transmit overflow
+<3>i2c_omap i2c_omap.1: Transmit overflow
+<3>i2c_omap i2c_omap.1: Transmit overflow
+<3>i2c_omap i2c_omap.1: Transmit overflow
+<3>tps65010: Failed to write vdcdc1 register
+<3>i2c_omap i2c_omap.1: Transmit overflow
+<3>tps65010: Failed to write vregs1 register
+<5>SCSI subsystem initialized
+<7>Switched to high resolution mode on CPU 0
+<6>NET: Registered protocol family 2
+<6>IP route cache hash table entries: 1024 (order: 0, 4096 bytes)
+<6>TCP established hash table entries: 1024 (order: 1, 8192 bytes)
+<6>TCP bind hash table entries: 1024 (order: 3, 32768 bytes)
+<6>TCP: Hash tables configured (established 1024 bind 1024)
+<6>TCP reno registered
+<6>NET: Registered protocol family 1
+Power Management for TI OMAP.
+<4>MUX: initialized T20_1610_LOW_PWR
+
+	... etc
