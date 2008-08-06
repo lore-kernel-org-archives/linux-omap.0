@@ -1,64 +1,397 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 00/11] OMAP3 CPUidle patches - ver 2
-Date: Wed, 6 Aug 2008 18:42:23 +0530 (IST)
-Message-ID: <39938.192.168.10.89.1218028343.squirrel@dbdmail.itg.ti.com>
-References: <003d01c8db84$fe61fde0$68bf18ac@ent.ti.com>
-    <002f01c8f7c5$0790fea0$LocalHost@wipultra1382>
+Subject: [PATCH 01/11] Basic cpuidle driver
+Date: Wed, 6 Aug 2008 18:42:51 +0530 (IST)
+Message-ID: <40628.192.168.10.89.1218028371.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:51702 "EHLO calf.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33519 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752689AbYHFNMa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 Aug 2008 09:12:30 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by calf.ext.ti.com (8.13.7/8.13.7) with ESMTP id m76DCOjS016481
-	for <linux-omap@vger.kernel.org>; Wed, 6 Aug 2008 08:12:29 -0500
+	id S1752929AbYHFNM6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 Aug 2008 09:12:58 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m76DCqbe012737
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 6 Aug 2008 08:12:57 -0500
 Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id m76DCLrl021816
-	for <linux-omap@vger.kernel.org>; Wed, 6 Aug 2008 08:12:23 -0500 (CDT)
-In-Reply-To: <002f01c8f7c5$0790fea0$LocalHost@wipultra1382>
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id m76DCm2J021118
+	for <linux-omap@vger.kernel.org>; Wed, 6 Aug 2008 08:12:50 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Hi,
+OMAP3 Basic cpuidle
 
-Re-posting a refreshed version of these patches.
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
-regards
-Rajendra
+---
+ arch/arm/mach-omap2/Makefile      |    2
+ arch/arm/mach-omap2/cpuidle34xx.c |  245 ++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/cpuidle34xx.h |   56 ++++++++
+ arch/arm/mach-omap2/pm34xx.c      |    5
+ 4 files changed, 306 insertions(+), 2 deletions(-)
 
-> Hi,
->
-> I am sending an updated patch set for CPUidle which includes all
-> fixes/comments
-> posted on the previous set by Jouni/Richard W/Peter and others.
->
-> The Following are the fixes
-> 1) Uart clock enable/disable moved out of the context save/restore patch
-> 2) GPIO IRQENABLE save/restore fix from Richard
-> 3) Fixes from Jouni which do the following
-> 	1. Add wkdep between neon and mpu
-> 	2. Add wkdep between per and core
-> 	3. Deny hwsup mode before writing next pwrst state
-> 	4. Make sure that order in idle loop is such that clocks are
-> _really_
->    		enabled before accessing registers (serial & gpio).
-> 4) Safe state idle fix from Richard
-> 5) Uart smart-force fix from Richard
-> 6) Toggle IO-PAD enable/disable in idle
->
-> As earlier these patches apply on top of Jouni's workaround patch set
-> ([PATCH 0/6] 34XX: PM: Workarounds to get omap3 to retention 4th.)
->
-> The following is neccessay even with a minimal config to achieve OFF.
-> $ echo 1 > /sys/power/sleep_while_idle
-> $ echo 1 > /sys/power/clocks_off_while_idle
->
-> regards,
-> Rajendra
->
+Index: linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c	2008-08-06
+18:09:32.000000000 +0530
+@@ -0,0 +1,245 @@
++/*
++ * linux/arch/arm/mach-omap2/cpuidle34xx.c
++ *
++ * OMAP3 CPU IDLE Routines
++ *
++ * Copyright (C) 2007-2008 Texas Instruments, Inc.
++ * Rajendra Nayak <rnayak@ti.com>
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Karthik Dasu <karthik-dp@ti.com>
++ *
++ * Copyright (C) 2006 Nokia Corporation
++ * Tony Lindgren <tony@atomide.com>
++ *
++ * Copyright (C) 2005 Texas Instruments, Inc.
++ * Richard Woodruff <r-woodruff2@ti.com>
++ *
++ * Based on pm.c for omap2
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/cpuidle.h>
++#include <asm/arch/pm.h>
++#include <asm/arch/prcm.h>
++#include <asm/arch/powerdomain.h>
++#include "cpuidle34xx.h"
++
++#ifdef CONFIG_CPU_IDLE
++
++struct omap3_processor_cx omap3_power_states[OMAP3_MAX_STATES];
++struct omap3_processor_cx current_cx_state;
++
++static int omap3_idle_bm_check(void)
++{
++	return 0;
++}
++
++/* omap3_enter_idle - Programs OMAP3 to enter the specified state.
++ * returns the total time during which the system was idle.
++ */
++static int omap3_enter_idle(struct cpuidle_device *dev,
++			struct cpuidle_state *state)
++{
++	struct omap3_processor_cx *cx = cpuidle_get_statedata(state);
++	struct timespec ts_preidle, ts_postidle, ts_idle;
++	struct powerdomain *mpu_pd;
++
++	current_cx_state = *cx;
++
++	/* Used to keep track of the total time in idle */
++	getnstimeofday(&ts_preidle);
++
++
++	if (cx->type == OMAP3_STATE_C0) {
++		/* Do nothing for C0, not even a wfi */
++		return 0;
++	}
++
++	mpu_pd = pwrdm_lookup("mpu_pwrdm");
++	/* Program MPU to target state */
++	if (cx->mpu_state < PWRDM_POWER_ON)
++		pwrdm_set_next_pwrst(mpu_pd, cx->mpu_state);
++
++	/* Execute ARM wfi */
++	omap_sram_idle();
++
++	/* Program MPU to ON */
++	if (cx->mpu_state < PWRDM_POWER_ON)
++		pwrdm_set_next_pwrst(mpu_pd, PWRDM_POWER_ON);
++
++	getnstimeofday(&ts_postidle);
++	ts_idle = timespec_sub(ts_postidle, ts_preidle);
++	return timespec_to_ns(&ts_idle);
++}
++
++static int omap3_enter_idle_bm(struct cpuidle_device *dev,
++			       struct cpuidle_state *state)
++{
++	struct cpuidle_state *new_state = NULL;
++	int i, j;
++
++	if ((state->flags & CPUIDLE_FLAG_CHECK_BM) && omap3_idle_bm_check()) {
++
++		/* Find current state in list */
++		for (i = 0; i < OMAP3_MAX_STATES; i++)
++			if (state == &dev->states[i])
++				break;
++		BUG_ON(i == OMAP3_MAX_STATES);
++
++		/* Back up to non 'CHECK_BM' state */
++		for (j = i - 1;  j > 0; j--) {
++			struct cpuidle_state *s = &dev->states[j];
++
++			if (!(s->flags & CPUIDLE_FLAG_CHECK_BM)) {
++				new_state = s;
++				break;
++			}
++		}
++
++		pr_debug("%s: Bus activity: Entering %s (instead of %s)\n",
++			__func__, new_state->name, state->name);
++	}
++
++	return omap3_enter_idle(dev, new_state ? : state);
++}
++
++DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
++
++/* omap3_init_power_states - Initialises the OMAP3 specific C states.
++ * Below is the desciption of each C state.
++ *
++	C0 . System executing code
++	C1 . MPU WFI + Core active
++	C2 . MPU CSWR + Core active
++	C3 . MPU OFF + Core active
++	C4 . MPU CSWR + Core CSWR
++	C5 . MPU OFF + Core CSWR
++	C6 . MPU OFF + Core OFF
++ */
++void omap_init_power_states(void)
++{
++	/* C0 . System executing code */
++	omap3_power_states[0].valid = 1;
++	omap3_power_states[0].type = OMAP3_STATE_C0;
++	omap3_power_states[0].sleep_latency = 0;
++	omap3_power_states[0].wakeup_latency = 0;
++	omap3_power_states[0].threshold = 0;
++	omap3_power_states[0].mpu_state = PWRDM_POWER_ON;
++	omap3_power_states[0].core_state = PWRDM_POWER_ON;
++	omap3_power_states[0].flags = CPUIDLE_FLAG_TIME_VALID;
++
++	/* C1 . MPU WFI + Core active */
++	omap3_power_states[1].valid = 1;
++	omap3_power_states[1].type = OMAP3_STATE_C1;
++	omap3_power_states[1].sleep_latency = 10;
++	omap3_power_states[1].wakeup_latency = 10;
++	omap3_power_states[1].threshold = 30;
++	omap3_power_states[1].mpu_state = PWRDM_POWER_ON;
++	omap3_power_states[1].core_state = PWRDM_POWER_ON;
++	omap3_power_states[1].flags = CPUIDLE_FLAG_TIME_VALID;
++
++	/* C2 . MPU CSWR + Core active */
++	omap3_power_states[2].valid = 1;
++	omap3_power_states[2].type = OMAP3_STATE_C2;
++	omap3_power_states[2].sleep_latency = 50;
++	omap3_power_states[2].wakeup_latency = 50;
++	omap3_power_states[2].threshold = 300;
++	omap3_power_states[2].mpu_state = PWRDM_POWER_RET;
++	omap3_power_states[2].core_state = PWRDM_POWER_ON;
++	omap3_power_states[2].flags = CPUIDLE_FLAG_TIME_VALID;
++
++	/* C3 . MPU OFF + Core active */
++	omap3_power_states[3].valid = 0;
++	omap3_power_states[3].type = OMAP3_STATE_C3;
++	omap3_power_states[3].sleep_latency = 1500;
++	omap3_power_states[3].wakeup_latency = 1800;
++	omap3_power_states[3].threshold = 4000;
++	omap3_power_states[3].mpu_state = PWRDM_POWER_OFF;
++	omap3_power_states[3].core_state = PWRDM_POWER_RET;
++	omap3_power_states[3].flags = CPUIDLE_FLAG_TIME_VALID;
++
++	/* C4 . MPU CSWR + Core CSWR*/
++	omap3_power_states[4].valid = 0;
++	omap3_power_states[4].type = OMAP3_STATE_C4;
++	omap3_power_states[4].sleep_latency = 2500;
++	omap3_power_states[4].wakeup_latency = 7500;
++	omap3_power_states[4].threshold = 12000;
++	omap3_power_states[4].mpu_state = PWRDM_POWER_RET;
++	omap3_power_states[4].core_state = PWRDM_POWER_RET;
++	omap3_power_states[4].flags = CPUIDLE_FLAG_TIME_VALID;
++
++	/* C5 . MPU OFF + Core CSWR */
++	omap3_power_states[5].valid = 0;
++	omap3_power_states[5].type = OMAP3_STATE_C5;
++	omap3_power_states[5].sleep_latency = 3000;
++	omap3_power_states[5].wakeup_latency = 8500;
++	omap3_power_states[5].threshold = 15000;
++	omap3_power_states[5].mpu_state = PWRDM_POWER_OFF;
++	omap3_power_states[5].core_state = PWRDM_POWER_RET;
++	omap3_power_states[5].flags = CPUIDLE_FLAG_TIME_VALID;
++
++	/* C6 . MPU OFF + Core OFF */
++	omap3_power_states[6].valid = 0;
++	omap3_power_states[6].type = OMAP3_STATE_C6;
++	omap3_power_states[6].sleep_latency = 10000;
++	omap3_power_states[6].wakeup_latency = 30000;
++	omap3_power_states[6].threshold = 300000;
++	omap3_power_states[6].mpu_state = PWRDM_POWER_OFF;
++	omap3_power_states[6].core_state = PWRDM_POWER_OFF;
++	omap3_power_states[6].flags = CPUIDLE_FLAG_TIME_VALID;
++}
++
++struct cpuidle_driver omap3_idle_driver = {
++	.name = 	"omap3_idle",
++	.owner = 	THIS_MODULE,
++};
++/*
++ * omap3_idle_init - Init routine for OMAP3 idle. Registers the OMAP3 specific
++ * cpuidle driver with the cpuidle f/w with the valid set of states.
++ */
++int omap3_idle_init(void)
++{
++	int i, count = 0;
++	struct omap3_processor_cx *cx;
++	struct cpuidle_state *state;
++	struct cpuidle_device *dev;
++
++	omap_init_power_states();
++	cpuidle_register_driver(&omap3_idle_driver);
++
++	dev = &per_cpu(omap3_idle_dev, smp_processor_id());
++
++	for (i = 0; i < OMAP3_MAX_STATES; i++) {
++		cx = &omap3_power_states[i];
++		state = &dev->states[count];
++
++		if (!cx->valid)
++			continue;
++		cpuidle_set_statedata(state, cx);
++		state->exit_latency = cx->sleep_latency + cx->wakeup_latency;
++		state->target_residency = cx->threshold;
++		state->flags = cx->flags;
++		state->enter = (state->flags & CPUIDLE_FLAG_CHECK_BM) ?
++			omap3_enter_idle_bm : omap3_enter_idle;
++		sprintf(state->name, "C%d", count+1);
++		count++;
++	}
++
++	if (!count)
++		return -EINVAL;
++	dev->state_count = count;
++
++	if (cpuidle_register_device(dev)) {
++		printk(KERN_ERR "%s: CPUidle register device failed\n",
++		       __func__);
++		return -EIO;
++	}
++
++	return 0;
++}
++__initcall(omap3_idle_init);
++#endif /* CONFIG_CPU_IDLE */
+Index: linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.h
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.h	2008-08-06
+18:09:32.000000000 +0530
+@@ -0,0 +1,56 @@
++/*
++ * linux/arch/arm/mach-omap2/cpuidle34xx.h
++ *
++ * OMAP3 cpuidle structure definitions
++ *
++ * Copyright (C) 2007-2008 Texas Instruments, Inc.
++ * Written by Rajendra Nayak <rnayak@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ *
++ * History:
++ *
++ */
++
++#ifndef ARCH_ARM_MACH_OMAP2_CPUIDLE_34XX
++#define ARCH_ARM_MACH_OMAP2_CPUIDLE_34XX
++
++#define OMAP3_MAX_STATES 7
++#define OMAP3_STATE_C0 0 /* C0 - System executing code */
++#define OMAP3_STATE_C1 1 /* C1 - MPU WFI + Core active */
++#define OMAP3_STATE_C2 2 /* C2 - MPU CSWR + Core active */
++#define OMAP3_STATE_C3 3 /* C3 - MPU OFF + Core active */
++#define OMAP3_STATE_C4 4 /* C4 - MPU RET + Core RET */
++#define OMAP3_STATE_C5 5 /* C5 - MPU OFF + Core RET */
++#define OMAP3_STATE_C6 6 /* C6 - MPU OFF + Core OFF */
++
++/* Currently, we support only upto C2 */
++#define MAX_SUPPORTED_STATES 3
++
++extern void omap_sram_idle(void);
++extern int omap3_irq_pending(void);
++extern void per_gpio_clk_enable(void);
++extern void per_gpio_clk_disable(void);
++
++struct omap3_processor_cx {
++	u8 valid;
++	u8 type;
++	u32 sleep_latency;
++	u32 wakeup_latency;
++	u32 mpu_state;
++	u32 core_state;
++	u32 threshold;
++	u32 flags;
++};
++
++void omap_init_power_states(void);
++int omap3_idle_init(void);
++
++#endif /* ARCH_ARM_MACH_OMAP2_CPUIDLE_34XX */
++
+Index: linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/pm34xx.c	2008-08-06
+18:09:20.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c	2008-08-06 18:09:32.000000000
++0530
+@@ -176,7 +176,7 @@ static irqreturn_t prcm_interrupt_handle
+ 	return IRQ_HANDLED;
+ }
+
+-static void omap_sram_idle(void)
++void omap_sram_idle(void)
+ {
+ 	/* Variable to tell what needs to be saved and restored
+ 	 * in omap_sram_idle*/
+@@ -191,6 +191,7 @@ static void omap_sram_idle(void)
+
+ 	mpu_next_state = pwrdm_read_next_pwrst(mpu_pwrdm);
+ 	switch (mpu_next_state) {
++	case PWRDM_POWER_ON:
+ 	case PWRDM_POWER_RET:
+ 		/* No need to save context */
+ 		save_state = 0;
+@@ -621,7 +622,9 @@ int __init omap3_pm_init(void)
+
+ 	suspend_set_ops(&omap_pm_ops);
+
++#ifndef CONFIG_CPU_IDLE
+ 	pm_idle = omap3_pm_idle;
++#endif
+
+ 	/* XXX This is for gpio fclk hack. Will be removed as gpio driver
+ 	 * handles fcks correctly */
+Index: linux-omap-2.6/arch/arm/mach-omap2/Makefile
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/Makefile	2008-08-06
+18:07:31.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/Makefile	2008-08-06 18:09:32.000000000
++0530
+@@ -24,7 +24,7 @@ obj-y					+= pm.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
+ obj-$(CONFIG_ARCH_OMAP2420)		+= sleep242x.o
+ obj-$(CONFIG_ARCH_OMAP2430)		+= sleep243x.o
+-obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o
++obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o cpuidle34xx.o
+ obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+ endif
+
 
 
