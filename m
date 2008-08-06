@@ -1,21 +1,22 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
 Subject: [PATCH 06/11] mpu off state enabled
-Date: Wed, 6 Aug 2008 18:45:24 +0530 (IST)
-Message-ID: <44373.192.168.10.89.1218028524.squirrel@dbdmail.itg.ti.com>
+Date: Wed, 6 Aug 2008 18:57:53 +0530 (IST)
+Message-ID: <59406.192.168.10.89.1218029273.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from soda.ext.ti.com ([198.47.26.145]:45936 "EHLO soda.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35484 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757560AbYHFNYf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 Aug 2008 09:24:35 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m76DFPmg003514
-	for <linux-omap@vger.kernel.org>; Wed, 6 Aug 2008 08:15:30 -0500
+	id S1752464AbYHFN17 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 Aug 2008 09:27:59 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m76DRrcb021573
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 6 Aug 2008 08:27:59 -0500
 Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id m76DFLHR021997
-	for <linux-omap@vger.kernel.org>; Wed, 6 Aug 2008 08:15:23 -0500 (CDT)
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id m76DRoja003175
+	for <linux-omap@vger.kernel.org>; Wed, 6 Aug 2008 08:27:52 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
