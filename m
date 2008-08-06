@@ -1,38 +1,29 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH RFC] MUSB: Fix index register corruption seen with
 	g_ether and Windows host
-Date: Wed, 6 Aug 2008 13:47:33 +0300
-Message-ID: <20080806104733.GG30719@gandalf.research.nokia.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02569B8A84@dbde02.ent.ti.com>
-Reply-To: felipe.balbi@nokia.com
+Date: Wed, 6 Aug 2008 13:48:52 +0300
+Message-ID: <20080806104851.GH30719@gandalf.research.nokia.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02569B8A84@dbde02.ent.ti.com> <20080806104733.GG30719@gandalf.research.nokia.com>
+Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:32466 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754041AbYHFKrv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Aug 2008 06:47:51 -0400
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02569B8A84@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20080806104733.GG30719-f9ZlEuEWxVfta4EC/59zMBl4MBrZKKet0E9HWUfgJXw@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: "ext Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "ext Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
 
-On Tue, Aug 05, 2008 at 09:18:14PM +0530, ext Gadiyar, Anand wrote:
-> If Indexed Mode register accesses are enabled, the ep0_rxstate() function calls
-> musb_g_ep0_giveback() before writing to the CSR register. When control returns
-> to this ep0_rxstate, the index register contents are over-written. This causes
-> the CSR register write to fail.
-> 
-> Fixed by writing the correct value into the index register before
-> writing to the CSR.
-> 
-> This was observed only in ep0_rxstate() with g_ether loaded and the device
-> connected to a MS Windows host PC. Anticipatively fixed ep0_txstate() as well.
+On Wed, Aug 06, 2008 at 01:47:33PM +0300, Felipe Balbi wrote:
+> Hi, can you mail me (only) this patch as an attachement or put it
+> somewhere i can download ?
 
-Hi, can you mail me (only) this patch as an attachement or put it
-somewhere i can download ?
+eheh, forget it, did it by hand :-p
 
 -- 
 balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
