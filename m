@@ -1,45 +1,79 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH] ARM MMU: add strongly-ordered memory type
-Date: Wed, 06 Aug 2008 10:53:48 +0100
-Message-ID: <1218016428.25235.11.camel@pc1117.cambridge.arm.com>
-References: <alpine.DEB.1.00.0808041738400.18201@utopia.booyaka.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] Added support for OMAP35x processor series
+Date: Wed, 6 Aug 2008 15:16:10 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593013CA23771@dbde02.ent.ti.com>
+References: <8F7AF80515AF0D4D93307E594F3CB40E0AFDBE42@dlee03.ent.ti.com>
+ <20080806090708.GH19813@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([193.131.176.58]:34075 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755250AbYHFJyQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Aug 2008 05:54:16 -0400
-In-Reply-To: <alpine.DEB.1.00.0808041738400.18201@utopia.booyaka.com>
+Received: from soda.ext.ti.com ([198.47.26.145]:47600 "EHLO soda.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761539AbYHFJzp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Aug 2008 05:55:45 -0400
+In-Reply-To: <20080806090708.GH19813@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, r-woodruff2@ti.com
+To: Tony Lindgren <tony@atomide.com>, "Kridner, Jason" <jdk@ti.com>
+Cc: "'k.kooi@student.utwente.nl'" <k.kooi@student.utwente.nl>, "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>
 
-On Mon, 2008-08-04 at 17:40 -0600, Paul Walmsley wrote:
-> Add the MT_MEMORY_STRONGLY_ORDERED memory type for ARM strongly ordered
-> memory.
-> 
-> This is used on OMAP3 for on-board SRAM.  On OMAP, SRAM is used for code 
-> that changes the SDRAM controller's clock, temporarily blocking access to 
-> SDRAM.  During this period, as code executes from SRAM, the ARM cache 
-> controller can attempt to write dirty cache lines back to SDRAM to make 
-> room for SRAM cache lines, causing the MPU subsystem to hang.  To avoid 
-> this, we mark SRAM as strongly- ordered memory.
+>> Well if there's no way to detect certain omaps during runtime, please patch
+>> arch/arm/plat-omap/common.c to have something like struct omap_globals omap3503_globals.
 
-Why not use normal uncached memory? Strongly ordered is pretty
-inefficient as it cannot do any reordering or write buffer merging (it's
-like having a memory barrier before and after each instruction).
-Speculative accesses are not allowed either. Strongly ordered memory is
-not really meant for executing code from.
+There was no need to re-define these structures for the current series of the OMAP35x processors.
+Hence, it was left as it.
 
-> +	[MT_MEMORY_STRONGLY_ORDERED] = {
-> +		.prot_sect = PMD_TYPE_SECT | PMD_SECT_AP_WRITE |
-> +				PMD_SECT_UNCACHED,
+>> BTW, why can't the dsp code detect if the DSP is there or not?
 
-You can add PMD_SECT_TEX(1) for normal uncached memory.
+(Assuming you mean the code running on ARM that looks for the DSP/SGX/...)
+The detection was based on the chip ID. This happens to be same for OMAP34XX and OMAP35X.
 
--- 
-Catalin
+~sanjeev
 
+
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony Lindgren
+Sent: Wednesday, August 06, 2008 2:37 PM
+To: Kridner, Jason
+Cc: 'k.kooi@student.utwente.nl'; 'linux-omap@vger.kernel.org'
+Subject: Re: [PATCH] Added support for OMAP35x processor series
+
+* Kridner, Jason <jdk@ti.com> [080805 17:12]:
+> No, ROM CRC is useful for detecting between some device revisions, but not OMAp3430 vs OMAP3530.
+>
+> ----- Original Message -----
+> From: Koen Kooi <k.kooi@student.utwente.nl>
+> To: linux-omap@vger.kernel.org <linux-omap@vger.kernel.org>
+> Cc: Kridner, Jason
+> Sent: Tue Aug 05 05:10:40 2008
+> Subject: Re: [PATCH] Added support for OMAP35x processor series
+>
+>
+> Op 5 aug 2008, om 11:50 heeft Igor Stoppa het volgende geschreven:
+>
+> > On Tue, 2008-08-05 at 15:09 +0530, ext Premi, Sanjeev wrote:
+> >> This patch is needed to ensure that we can make decisions based on
+> >> the processor capabilities.
+> >> E.g. OMAP3503 does not contain a DSP. We shouldn't be trying to
+> >> disable/ manage the clocks for DSP on this processor. Same for SGX.
+> >
+> > Why can't the detection happen at runtime?
+>
+> AIUI the ID bits are the same (linux misdetect the 3530 on my beagle
+> for a 3430). I heard that the only definitive way to do it at runtime
+> is to CRC check the ROM code.
+>
+> Jason, is that correct?
+
+Well if there's no way to detect certain omaps during runtime, please patch arch/arm/plat-omap/common.c to have something like struct omap_globals omap3503_globals.
+
+BTW, why can't the dsp code detect if the DSP is there or not?
+
+Tony
+
+
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
