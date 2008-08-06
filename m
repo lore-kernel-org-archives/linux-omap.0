@@ -1,127 +1,171 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 08/11] serial context save/restore
-Date: Wed, 6 Aug 2008 18:46:53 +0530 (IST)
-Message-ID: <46112.192.168.10.89.1218028613.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH 09/11] gpio context save/restore
+Date: Wed, 6 Aug 2008 18:47:43 +0530 (IST)
+Message-ID: <46968.192.168.10.89.1218028663.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:52277 "EHLO calf.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34084 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752904AbYHFNRA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 Aug 2008 09:17:00 -0400
+	id S1753282AbYHFNRu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 Aug 2008 09:17:50 -0400
 Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by calf.ext.ti.com (8.13.7/8.13.7) with ESMTP id m76DGsqE019053
-	for <linux-omap@vger.kernel.org>; Wed, 6 Aug 2008 08:16:59 -0500
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m76DHjFQ015628
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 6 Aug 2008 08:17:50 -0500
 Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id m76DGpEq008899
-	for <linux-omap@vger.kernel.org>; Wed, 6 Aug 2008 08:16:53 -0500 (CDT)
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id m76DHftt009297
+	for <linux-omap@vger.kernel.org>; Wed, 6 Aug 2008 08:17:43 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-This patch adds the context save restore functions for UART
+This patch adds the context save restore functions for GPIO
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/serial.c |   62 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/serial_reg.h   |    1
- 2 files changed, 63 insertions(+)
+ arch/arm/plat-omap/gpio.c          |   94 +++++++++++++++++++++++++++++++++++++
+ include/asm-arm/arch-omap/common.h |    2
+ 2 files changed, 96 insertions(+)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/serial.c
+Index: linux-omap-2.6/arch/arm/plat-omap/gpio.c
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/serial.c	2008-08-06
-18:08:02.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/serial.c	2008-08-06 18:11:15.000000000
+--- linux-omap-2.6.orig/arch/arm/plat-omap/gpio.c	2008-08-06 18:07:31.000000000
 +0530
-@@ -83,6 +83,16 @@ static const u32 omap34xx_uart_padconf[O
- 	CONTROL_PADCONF_UART3_RX
++++ linux-omap-2.6/arch/arm/plat-omap/gpio.c	2008-08-06 18:11:21.000000000 +0530
+@@ -102,6 +102,7 @@
+ #define OMAP24XX_GPIO_IRQSTATUS2	0x0028
+ #define OMAP24XX_GPIO_IRQENABLE2	0x002c
+ #define OMAP24XX_GPIO_IRQENABLE1	0x001c
++#define OMAP24XX_GPIO_WAKE_EN		0x0020
+ #define OMAP24XX_GPIO_CTRL		0x0030
+ #define OMAP24XX_GPIO_OE		0x0034
+ #define OMAP24XX_GPIO_DATAIN		0x0038
+@@ -217,8 +218,26 @@ static struct gpio_bank gpio_bank_34xx[6
+ 	{ OMAP34XX_GPIO6_BASE, INT_34XX_GPIO_BANK6, IH_GPIO_BASE + 160,
+METHOD_GPIO_24XX },
  };
 
-+struct omap_uart_regs {
-+	u16 dll;
-+	u16 dlh;
-+	u16 ier;
-+	u16 sysc;
-+	u16 scr;
-+	u16 wer;
++struct gpio_restore_regs {
++	u32 gpio_sysconfig;
++	u32 gpio_irqenable1;
++	u32 gpio_irqenable2;
++	u32 gpio_wake_en;
++	u32 gpio_ctrl;
++	u32 gpio_oe;
++	u32 gpio_leveldetect0;
++	u32 gpio_leveldetect1;
++	u32 gpio_risingdetect;
++	u32 gpio_fallingdetect;
++	u32 gpio_dataout;
++	u32 gpio_setwkuena;
++	u32 gpio_setdataout;
 +};
-+static struct omap_uart_regs uart_ctx[OMAP_MAX_NR_PORTS];
-+
- static struct plat_serial8250_port serial_platform_data[] = {
- 	{
- 		.membase	= (__force void __iomem *)IO_ADDRESS(OMAP_UART1_BASE),
-@@ -293,6 +303,58 @@ void __init omap_serial_init(void)
- 	omap_serial_kick();
- }
++static struct gpio_restore_regs gpio_restore_banks[6];
+ #endif
 
-+void omap_save_uart_ctx(int unum)
++
++
+ static struct gpio_bank *gpio_bank;
+ static int gpio_bank_count;
+
+@@ -1705,6 +1724,81 @@ void omap2_gpio_resume_after_retention(v
+
+ #endif
+
++#ifdef CONFIG_ARCH_OMAP34XX
++/* save the registers of bank 2-6 */
++void omap_gpio_save(void)
 +{
-+	u16 lcr = 0;
-+
-+	struct plat_serial8250_port *p = serial_platform_data + unum;
-+
-+	if (uart_ick[unum] == NULL)
-+		return;
-+
-+	lcr = serial_read_reg(p, UART_LCR);
-+	serial_write_reg(p, UART_LCR, 0xBF);
-+	uart_ctx[unum].dll = serial_read_reg(p, UART_DLL);
-+	uart_ctx[unum].dlh = serial_read_reg(p, UART_DLM);
-+	serial_write_reg(p, UART_LCR, lcr);
-+	uart_ctx[unum].ier = serial_read_reg(p, UART_IER);
-+	uart_ctx[unum].sysc = serial_read_reg(p, UART_OMAP_SYSC);
-+	uart_ctx[unum].scr = serial_read_reg(p, UART_OMAP_SCR);
-+	uart_ctx[unum].wer = serial_read_reg(p, UART_OMAP_WER);
++	int i;
++	/* saving banks from 2-6 only */
++	for (i = 1; i < gpio_bank_count; i++) {
++		struct gpio_bank *bank = &gpio_bank[i];
++		gpio_restore_banks[i].gpio_sysconfig =
++			__raw_readl(bank->base + OMAP24XX_GPIO_SYSCONFIG);
++		gpio_restore_banks[i].gpio_irqenable1 =
++			__raw_readl(bank->base + OMAP24XX_GPIO_IRQENABLE1);
++		gpio_restore_banks[i].gpio_irqenable2 =
++			__raw_readl(bank->base + OMAP24XX_GPIO_IRQENABLE2);
++		gpio_restore_banks[i].gpio_wake_en =
++			__raw_readl(bank->base + OMAP24XX_GPIO_WAKE_EN);
++		gpio_restore_banks[i].gpio_ctrl =
++			__raw_readl(bank->base + OMAP24XX_GPIO_CTRL);
++		gpio_restore_banks[i].gpio_oe =
++			__raw_readl(bank->base + OMAP24XX_GPIO_OE);
++		gpio_restore_banks[i].gpio_leveldetect0 =
++			__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT0);
++		gpio_restore_banks[i].gpio_leveldetect1 =
++			__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT1);
++		gpio_restore_banks[i].gpio_risingdetect =
++			__raw_readl(bank->base + OMAP24XX_GPIO_RISINGDETECT);
++		gpio_restore_banks[i].gpio_fallingdetect =
++			__raw_readl(bank->base + OMAP24XX_GPIO_FALLINGDETECT);
++		gpio_restore_banks[i].gpio_dataout =
++			__raw_readl(bank->base + OMAP24XX_GPIO_DATAOUT);
++		gpio_restore_banks[i].gpio_setwkuena =
++			__raw_readl(bank->base + OMAP24XX_GPIO_SETWKUENA);
++		gpio_restore_banks[i].gpio_setdataout =
++			__raw_readl(bank->base + OMAP24XX_GPIO_SETDATAOUT);
++	}
 +}
-+EXPORT_SYMBOL(omap_save_uart_ctx);
++EXPORT_SYMBOL(omap_gpio_save);
 +
-+void omap_restore_uart_ctx(int unum)
++/* restore the required registers of bank 2-6 */
++void omap_gpio_restore(void)
 +{
-+	u16 efr = 0;
-+
-+	struct plat_serial8250_port *p = serial_platform_data + unum;
-+
-+	if (uart_ick[unum] == NULL)
-+		return;
-+
-+	serial_write_reg(p, UART_OMAP_MDR1, 0x7);
-+	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
-+	efr = serial_read_reg(p, UART_EFR);
-+	serial_write_reg(p, UART_EFR, UART_EFR_ECB);
-+	serial_write_reg(p, UART_LCR, 0x0); /* Operational mode */
-+	serial_write_reg(p, UART_IER, 0x0);
-+	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
-+	serial_write_reg(p, UART_DLL, uart_ctx[unum].dll);
-+	serial_write_reg(p, UART_DLM, uart_ctx[unum].dlh);
-+	serial_write_reg(p, UART_LCR, 0x0); /* Operational mode */
-+	serial_write_reg(p, UART_IER, uart_ctx[unum].ier);
-+	serial_write_reg(p, UART_FCR, 0xA1);
-+	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
-+	serial_write_reg(p, UART_EFR, efr);
-+	serial_write_reg(p, UART_LCR, UART_LCR_WLEN8);
-+	serial_write_reg(p, UART_OMAP_SCR, uart_ctx[unum].scr);
-+	serial_write_reg(p, UART_OMAP_WER, uart_ctx[unum].wer);
-+	serial_write_reg(p, UART_OMAP_SYSC, uart_ctx[unum].sysc);
-+	serial_write_reg(p, UART_OMAP_MDR1, 0x00); /* UART 16x mode */
++	int i;
++	for (i = 1; i < gpio_bank_count; i++) {
++		struct gpio_bank *bank = &gpio_bank[i];
++		__raw_writel(gpio_restore_banks[i].gpio_sysconfig,
++				bank->base + OMAP24XX_GPIO_SYSCONFIG);
++		__raw_writel(gpio_restore_banks[i].gpio_irqenable1,
++				bank->base + OMAP24XX_GPIO_IRQENABLE1);
++		__raw_writel(gpio_restore_banks[i].gpio_irqenable2,
++				bank->base + OMAP24XX_GPIO_IRQENABLE2);
++		__raw_writel(gpio_restore_banks[i].gpio_wake_en,
++				bank->base + OMAP24XX_GPIO_WAKE_EN);
++		__raw_writel(gpio_restore_banks[i].gpio_ctrl,
++				bank->base + OMAP24XX_GPIO_CTRL);
++		__raw_writel(gpio_restore_banks[i].gpio_oe,
++				bank->base + OMAP24XX_GPIO_OE);
++		__raw_writel(gpio_restore_banks[i].gpio_leveldetect0,
++				bank->base + OMAP24XX_GPIO_LEVELDETECT0);
++		__raw_writel(gpio_restore_banks[i].gpio_leveldetect1,
++				bank->base + OMAP24XX_GPIO_LEVELDETECT1);
++		__raw_writel(gpio_restore_banks[i].gpio_risingdetect,
++				bank->base + OMAP24XX_GPIO_RISINGDETECT);
++		__raw_writel(gpio_restore_banks[i].gpio_fallingdetect,
++				bank->base + OMAP24XX_GPIO_FALLINGDETECT);
++		__raw_writel(gpio_restore_banks[i].gpio_dataout,
++				bank->base + OMAP24XX_GPIO_DATAOUT);
++		__raw_writel(gpio_restore_banks[i].gpio_setwkuena,
++				bank->base + OMAP24XX_GPIO_SETWKUENA);
++		__raw_writel(gpio_restore_banks[i].gpio_setdataout,
++				bank->base + OMAP24XX_GPIO_SETDATAOUT);
++	}
 +}
-+EXPORT_SYMBOL(omap_restore_uart_ctx);
++EXPORT_SYMBOL(omap_gpio_restore);
++#endif
 +
- static struct platform_device serial_device = {
- 	.name			= "serial8250",
- 	.id			= PLAT8250_DEV_PLATFORM,
-Index: linux-omap-2.6/include/linux/serial_reg.h
+ /*
+  * This may get called early from board specific init
+  * for boards that have interrupts routed via FPGA.
+Index: linux-omap-2.6/include/asm-arm/arch-omap/common.h
 ===================================================================
---- linux-omap-2.6.orig/include/linux/serial_reg.h	2008-08-06
-18:07:31.000000000 +0530
-+++ linux-omap-2.6/include/linux/serial_reg.h	2008-08-06 18:11:15.000000000 +0530
-@@ -323,6 +323,7 @@
- #define UART_OMAP_MVER		0x14	/* Module version register */
- #define UART_OMAP_SYSC		0x15	/* System configuration register */
- #define UART_OMAP_SYSS		0x16	/* System status register */
-+#define UART_OMAP_WER           0x17    /* Wake-up enable register */
-
- #endif /* _LINUX_SERIAL_REG_H */
-
+--- linux-omap-2.6.orig/include/asm-arm/arch-omap/common.h	2008-08-06
+18:08:02.000000000 +0530
++++ linux-omap-2.6/include/asm-arm/arch-omap/common.h	2008-08-06
+18:11:21.000000000 +0530
+@@ -36,6 +36,8 @@ extern struct sys_timer omap_timer;
+ extern void omap_serial_init(void);
+ extern void omap_serial_enable_clocks(int enable);
+ extern int omap_serial_can_sleep(void);
++extern void omap_gpio_save(void);
++extern void omap_gpio_restore(void);
+ extern void omap_serial_fclk_mask(u32 *f1, u32 *f2);
+ void omap_serial_check_wakeup(void);
+ #ifdef CONFIG_I2C_OMAP
 
 
