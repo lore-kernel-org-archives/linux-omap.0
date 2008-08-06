@@ -1,86 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Added support for OMAP35x processor series
-Date: Wed, 6 Aug 2008 13:10:46 +0300
-Message-ID: <20080806101045.GL19813@atomide.com>
-References: <8F7AF80515AF0D4D93307E594F3CB40E0AFDBE42@dlee03.ent.ti.com> <20080806090708.GH19813@atomide.com> <B85A65D85D7EB246BE421B3FB0FBB593013CA23771@dbde02.ent.ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH RFC] MUSB: Fix index register corruption seen with
+	g_ether and Windows host
+Date: Wed, 6 Aug 2008 13:47:33 +0300
+Message-ID: <20080806104733.GG30719@gandalf.research.nokia.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02569B8A84@dbde02.ent.ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50662 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763689AbYHFKhW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Aug 2008 06:37:22 -0400
+Received: from smtp.nokia.com ([192.100.122.230]:32466 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754041AbYHFKrv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Aug 2008 06:47:51 -0400
 Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593013CA23771@dbde02.ent.ti.com>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02569B8A84@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "Kridner, Jason" <jdk@ti.com>, "'k.kooi@student.utwente.nl'" <k.kooi@student.utwente.nl>, "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>
+To: "ext Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
 
-* Premi, Sanjeev <premi@ti.com> [080806 12:55]:
-> >> Well if there's no way to detect certain omaps during runtime, please patch
-> >> arch/arm/plat-omap/common.c to have something like struct omap_globals omap3503_globals.
+On Tue, Aug 05, 2008 at 09:18:14PM +0530, ext Gadiyar, Anand wrote:
+> If Indexed Mode register accesses are enabled, the ep0_rxstate() function calls
+> musb_g_ep0_giveback() before writing to the CSR register. When control returns
+> to this ep0_rxstate, the index register contents are over-written. This causes
+> the CSR register write to fail.
 > 
-> There was no need to re-define these structures for the current series of the OMAP35x processors.
-> Hence, it was left as it.
+> Fixed by writing the correct value into the index register before
+> writing to the CSR.
+> 
+> This was observed only in ep0_rxstate() with g_ether loaded and the device
+> connected to a MS Windows host PC. Anticipatively fixed ep0_txstate() as well.
 
-What exactly do you need to define then for various 35xx processors
-that's different from 34xx?
+Hi, can you mail me (only) this patch as an attachement or put it
+somewhere i can download ?
 
-> >> BTW, why can't the dsp code detect if the DSP is there or not?
-> 
-> (Assuming you mean the code running on ARM that looks for the DSP/SGX/...)
-> The detection was based on the chip ID. This happens to be same for OMAP34XX and OMAP35X.
-
-How about trying to read the DSP revision register or something similar?
-
-Tony
-
-> 
-> ~sanjeev
-> 
-> 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> Sent: Wednesday, August 06, 2008 2:37 PM
-> To: Kridner, Jason
-> Cc: 'k.kooi@student.utwente.nl'; 'linux-omap@vger.kernel.org'
-> Subject: Re: [PATCH] Added support for OMAP35x processor series
-> 
-> * Kridner, Jason <jdk@ti.com> [080805 17:12]:
-> > No, ROM CRC is useful for detecting between some device revisions, but not OMAp3430 vs OMAP3530.
-> >
-> > ----- Original Message -----
-> > From: Koen Kooi <k.kooi@student.utwente.nl>
-> > To: linux-omap@vger.kernel.org <linux-omap@vger.kernel.org>
-> > Cc: Kridner, Jason
-> > Sent: Tue Aug 05 05:10:40 2008
-> > Subject: Re: [PATCH] Added support for OMAP35x processor series
-> >
-> >
-> > Op 5 aug 2008, om 11:50 heeft Igor Stoppa het volgende geschreven:
-> >
-> > > On Tue, 2008-08-05 at 15:09 +0530, ext Premi, Sanjeev wrote:
-> > >> This patch is needed to ensure that we can make decisions based on
-> > >> the processor capabilities.
-> > >> E.g. OMAP3503 does not contain a DSP. We shouldn't be trying to
-> > >> disable/ manage the clocks for DSP on this processor. Same for SGX.
-> > >
-> > > Why can't the detection happen at runtime?
-> >
-> > AIUI the ID bits are the same (linux misdetect the 3530 on my beagle
-> > for a 3430). I heard that the only definitive way to do it at runtime
-> > is to CRC check the ROM code.
-> >
-> > Jason, is that correct?
-> 
-> Well if there's no way to detect certain omaps during runtime, please patch arch/arm/plat-omap/common.c to have something like struct omap_globals omap3503_globals.
-> 
-> BTW, why can't the dsp code detect if the DSP is there or not?
-> 
-> Tony
-> 
-> 
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+balbi
