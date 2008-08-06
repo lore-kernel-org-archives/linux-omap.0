@@ -1,159 +1,292 @@
-From: "kanagesh radhakrishnan" <rkanagesh@gmail.com>
-Subject: Re: Problems with USB Gadget on the OMAP3EVM
-Date: Wed, 6 Aug 2008 10:42:40 +0530
-Message-ID: <ece1079f0808052212r6f4b2830i2ace5e66263998dd@mail.gmail.com>
-References: <ece1079f0808050417o49392d42if4b730b7d700bdab@mail.gmail.com>
-	 <20080805112736.GZ30539@gandalf.research.nokia.com>
+From: "arun c" <arun.edarath@gmail.com>
+Subject: [Resending - PATCH] OMAP2EVM: add LCD panel support
+Date: Wed, 6 Aug 2008 10:45:20 +0530
+Message-ID: <c656a4d20808052215l28997a15na4427a5932a9884b@mail.gmail.com>
+References: <c656a4d20807030754ta845d4dx7bfd54fb66634a0e@mail.gmail.com>
+	 <20080805132552.GF7193@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f29.google.com ([209.85.217.29]:54384 "EHLO
-	mail-gx0-f29.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761703AbYHFFMl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Aug 2008 01:12:41 -0400
-Received: by gxk10 with SMTP id 10so4528228gxk.13
-        for <linux-omap@vger.kernel.org>; Tue, 05 Aug 2008 22:12:40 -0700 (PDT)
-In-Reply-To: <20080805112736.GZ30539@gandalf.research.nokia.com>
+Received: from ti-out-0910.google.com ([209.85.142.185]:15818 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1763763AbYHFFPX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Aug 2008 01:15:23 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so866489tic.23
+        for <linux-omap@vger.kernel.org>; Tue, 05 Aug 2008 22:15:21 -0700 (PDT)
+In-Reply-To: <20080805132552.GF7193@atomide.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.balbi@nokia.com
-Cc: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>
 
-On 8/5/08, Felipe Balbi <felipe.balbi@nokia.com> wrote:
-> Hi,
->
->
->  On Tue, Aug 05, 2008 at 04:47:02PM +0530, ext kanagesh radhakrishnan wrote:
->  > Running the Test
->  > -------------------------
->  > On the OMAP3EVM Target
->  > #######################
->  > On successful boot with this kernel on the target board, after
->  > plugging in the USB cable, the following messages appear on the
->  > console:
->  >
->  > musb_stage2_irq 863: SUSPEND (b_idle) devctl 99 power e0
->  > musb_stage0_irq 722: BUS RESET
->  > musb_stage0_irq 722: BUS RESET
->  > musb_stage0_irq 722: BUS RESET
->  > musb_stage0_irq 722: BUS RESET
->  > musb_stage0_irq 722: BUS RESET
->  > musb_stage0_irq 722: BUS RESET
->  > musb_stage0_irq 722: BUS RESET
->  > musb_stage0_irq 722: BUS RESET
->  > usb0: high speed config #2: 100 mA, Ethernet Gadget, using RNDIS
->  > musb_stage0_irq 722: BUS RESET
->  > musb_stage0_irq 722: BUS RESET
->  > musb_stage2_irq 863: SUSPEND (b_peripheral) devctl 99 power f0
->  >
->  > I then setup an IP address for the usb0 interface with the following command:
->  >
->  > [root@OMAP3EVM /]# /sbin/ifconfig usb0 192.168.1.1 up netmask 255.255.255.0
->  >
->  > On the Linux Host machine
->  > #######################
->  >
->  > On insertion of the USB cable, 'dmesg' shows the following messages:
->  >
->  > usb 1-2: new high speed USB device using address 3
->  > usb 1-2: configuration #1 chosen from 2 choices
->  > usb 1-2: can't set config #1, error -71
->
->
-> That's weird since gadget api set config 2 as your dmesg states.
->
-> usb0: high speed config #2: 100 mA, Ethernet Gadget, using RNDIS
->
->
-> > The Problem
->  > -------------------
->  > On an attempt to setup an IP address for the usb0 interface, I get the
->  > following error:
->  >
->  > usb0: unknown interface: No such device
->  > SIOCSIFADDR: No such device
->  > usb0: unknown interface: No such device
->  > SIOCSIFNETMASK: No such device
->  > SIOCGIFADDR: No such device
->  > SIOCSIFBROADCAST: No such device
->
->
-> Looks like the problem is in the host side usbnet.ko. What kernel
->  version is in your host machine ?
->
->
->  > The Test Setup
->  > ----------------------
->  >
->  > Host
->  > ####
->  >    Linux machine running Fedora Core 5.
->  >    Manually loaded the module usbnet.ko.
->
->
-> Which kernel version is in this fedora core 5 ??
->
->
->  > Target
->  > #####
->  >    OMAP3EVM running OMAP35x_SDK_0.9.8 firmware: x-load, u-boot and
->  > kernel (linux-2.6.22.18)
->  >    Dip switches (SW4) set to boot from NAND flash (01010000)
->  >
->  >
->  > Although my end objective is to test the USB functionality with
->  > TWL4030 USB transceiver, I wanted to verify if USB functions as
->  > expected through ISP1504 transceiver on my board with the SDK_0.9.8.
->  > Has anyone tested the USB Gadget setup on the OMAP3EVM boards?
->
->
-> I'd strongly suggest you to try out current linux-omap code [1] and check
->  if it works fine.
->
->  Also increase MUSB_LOGLEVEL to 3 in your .config file and reabuild that
->  2.6.22.18 kernel.
->
->  When you clone linux omap with:
->
->  $ git clone http://www.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
->
->  You can make omap3_evm_defconfig and later make menuconfig to choose the
->  gadget driver you want.
->
->  [1] http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary
->
->  --
->
-> balbi
->
+omap2evm LCD supports VGA and QVGA resolution, by default its in VGA mode.
 
-Hello everyone,
+Signed-off-by: Arun C <arunedarath@mistralsolutions.com>
+---
+ arch/arm/mach-omap2/board-omap2evm.c |   15 +++-
+ drivers/video/omap/Makefile          |    2 +
+ drivers/video/omap/lcd_omap2evm.c    |  195 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 210 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/video/omap/lcd_omap2evm.c
 
-Thank you very much for the comments and suggestions.
+diff --git a/arch/arm/mach-omap2/board-omap2evm.c
+b/arch/arm/mach-omap2/board-omap2evm.c
+index 0baf704..13c53cc 100644
+--- a/arch/arm/mach-omap2/board-omap2evm.c
++++ b/arch/arm/mach-omap2/board-omap2evm.c
+@@ -62,6 +62,15 @@ static inline void __init omap2evm_init_smc911x(void)
 
-The version of Linux kernel on the native host Fedora Core 5 machine
-is the default 2.6.9-1.667 kernel that comes with the FC5 release.
-Keeping in mind where we are, this does sound like an ancient kernel.
-However, I have USB networking with Gadget drivers working on this
-same machine with OMAP5912 OSK, OMAP2430 SDP and another custom
-OMAP2430 based board.
+ }
 
-Nevertheless, I decided to upgrade to a more recent version of the
-Linux kernel on the host system.  I will test the setup once again and
-update the observation.
++static struct platform_device omap2_evm_lcd_device = {
++	.name		= "omap2evm_lcd",
++	.id		= -1,
++};
++
++static struct omap_lcd_config omap2_evm_lcd_config __initdata = {
++	.ctrl_name	= "internal",
++};
++
+ static void __init omap2_evm_init_irq(void)
+ {
+ 	omap2_init_common_hw(NULL);
+@@ -75,7 +84,8 @@ static struct omap_uart_config omap2_evm_uart_config
+__initdata = {
+ };
 
-Meanwhile, I tested the setup with a Windows XP host machine and these
-are the observations:
-On insertion of the USB cable to the Win XP host machine, the OMAP3EVM
-board gets detected as 'RNDIS/Ethernet' Device.  I go through the
-driver installation (driver used is file Documentation/usb/linux.inf
-from the standard Linux kernel sources).  After the installation is
-complete, I get an error from the Windows XP system saying "An error
-was encountered while installing the driver and the hardware might not
-function as intended"
+ static struct omap_board_config_kernel omap2_evm_config[] __initdata = {
+-	{OMAP_TAG_UART, &omap2_evm_uart_config},
++	{ OMAP_TAG_UART,	&omap2_evm_uart_config },
++	{ OMAP_TAG_LCD,		&omap2_evm_lcd_config },
+ };
 
-Thank you all,
-Regards,
-Kanagesh
+ static int __init omap2_evm_i2c_init(void)
+@@ -90,7 +100,8 @@ static int __init omap2_evm_i2c_init(void)
+ }
+
+ static struct platform_device *omap2_evm_devices[] __initdata = {
+-    &omap2evm_smc911x_device,
++	&omap2_evm_lcd_device,
++	&omap2evm_smc911x_device,
+ };
+
+ static void __init omap2_evm_init(void)
+diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
+index fe7ee5d..662dff9 100644
+--- a/drivers/video/omap/Makefile
++++ b/drivers/video/omap/Makefile
+@@ -31,6 +31,8 @@ objs-y$(CONFIG_MACH_SX1) += lcd_sx1.o
+ objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
+ objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd_2430sdp.o
+ objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_2430sdp.o
++objs-y$(CONFIG_MACH_OMAP2EVM) += lcd_omap2evm.o
++objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_3430sdp.o
+ objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
+ objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
+ objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
+diff --git a/drivers/video/omap/lcd_omap2evm.c
+b/drivers/video/omap/lcd_omap2evm.c
+new file mode 100644
+index 0000000..8311cac
+--- /dev/null
++++ b/drivers/video/omap/lcd_omap2evm.c
+@@ -0,0 +1,195 @@
++/*
++ * LCD panel support for the MISTRAL OMAP2EVM board
++ *
++ * Author: Arun C <arunedarath@mistralsolutions.com>
++ *
++ * Derived from drivers/video/omap/lcd_omap3evm.c
++ * Derived from drivers/video/omap/lcd-apollon.c
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/i2c/twl4030.h>
++
++#include <asm/arch/gpio.h>
++#include <asm/arch/mux.h>
++#include <asm/arch/omapfb.h>
++#include <asm/mach-types.h>
++
++#define LCD_PANEL_ENABLE_GPIO	154
++#define LCD_PANEL_LR		128
++#define LCD_PANEL_UD		129
++#define LCD_PANEL_INI		152
++#define LCD_PANEL_QVGA		148
++#define LCD_PANEL_RESB		153
++
++#define LCD_XRES		480
++#define LCD_YRES		640
++#define LCD_PIXCLOCK_MAX	20000 /* in kHz */
++
++#define TWL_LED_LEDEN		0x00
++#define TWL_PWMA_PWMAON		0x00
++#define TWL_PWMA_PWMAOFF	0x01
++
++static unsigned int bklight_level;
++
++static int omap2evm_panel_init(struct lcd_panel *panel,
++				struct omapfb_device *fbdev)
++{
++	omap_request_gpio(LCD_PANEL_ENABLE_GPIO);
++	omap_request_gpio(LCD_PANEL_LR);
++	omap_request_gpio(LCD_PANEL_UD);
++	omap_request_gpio(LCD_PANEL_INI);
++	omap_request_gpio(LCD_PANEL_QVGA);
++	omap_request_gpio(LCD_PANEL_RESB);
++
++	omap_set_gpio_direction(LCD_PANEL_ENABLE_GPIO, 0);
++	omap_set_gpio_direction(LCD_PANEL_LR, 0);
++	omap_set_gpio_direction(LCD_PANEL_UD, 0);
++	omap_set_gpio_direction(LCD_PANEL_INI, 0);
++	omap_set_gpio_direction(LCD_PANEL_QVGA, 0);
++	omap_set_gpio_direction(LCD_PANEL_RESB, 0);
++
++	omap_set_gpio_dataout(LCD_PANEL_RESB, 1);
++	omap_set_gpio_dataout(LCD_PANEL_INI, 1);
++	omap_set_gpio_dataout(LCD_PANEL_QVGA, 0);
++	omap_set_gpio_dataout(LCD_PANEL_LR, 1);
++	omap_set_gpio_dataout(LCD_PANEL_UD, 1);
++
++	twl4030_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_LEDEN);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
++	bklight_level = 100;
++
++	return 0;
++}
++
++static void omap2evm_panel_cleanup(struct lcd_panel *panel)
++{
++}
++
++static int omap2evm_panel_enable(struct lcd_panel *panel)
++{
++	omap_set_gpio_dataout(LCD_PANEL_ENABLE_GPIO, 0);
++	return 0;
++}
++
++static void omap2evm_panel_disable(struct lcd_panel *panel)
++{
++	omap_set_gpio_dataout(LCD_PANEL_ENABLE_GPIO, 1);
++}
++
++static unsigned long omap2evm_panel_get_caps(struct lcd_panel *panel)
++{
++	return 0;
++}
++
++static int omap2evm_bklight_setlevel(struct lcd_panel *panel,
++						unsigned int level)
++{
++	u8 c;
++	if ((level >= 0) && (level <= 100)) {
++		c = (125 * (100 - level)) / 100 + 2;
++		twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_PWMA_PWMAOFF);
++		bklight_level = level;
++	}
++	return 0;
++}
++
++static unsigned int omap2evm_bklight_getlevel(struct lcd_panel *panel)
++{
++	return bklight_level;
++}
++
++static unsigned int omap2evm_bklight_getmaxlevel(struct lcd_panel *panel)
++{
++	return 100;
++}
++
++struct lcd_panel omap2evm_panel = {
++	.name		= "omap2evm",
++	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
++			  OMAP_LCDC_INV_HSYNC,
++
++	.bpp		= 16,
++	.data_lines	= 18,
++	.x_res		= LCD_XRES,
++	.y_res		= LCD_YRES,
++	.hsw		= 3,
++	.hfp		= 0,
++	.hbp		= 28,
++	.vsw		= 2,
++	.vfp		= 1,
++	.vbp		= 0,
++
++	.pixel_clock	= LCD_PIXCLOCK_MAX,
++
++	.init		= omap2evm_panel_init,
++	.cleanup	= omap2evm_panel_cleanup,
++	.enable		= omap2evm_panel_enable,
++	.disable	= omap2evm_panel_disable,
++	.get_caps	= omap2evm_panel_get_caps,
++	.set_bklight_level      = omap2evm_bklight_setlevel,
++	.get_bklight_level      = omap2evm_bklight_getlevel,
++	.get_bklight_max        = omap2evm_bklight_getmaxlevel,
++};
++
++static int omap2evm_panel_probe(struct platform_device *pdev)
++{
++	omapfb_register_panel(&omap2evm_panel);
++	return 0;
++}
++
++static int omap2evm_panel_remove(struct platform_device *pdev)
++{
++	return 0;
++}
++
++static int omap2evm_panel_suspend(struct platform_device *pdev,
++				   pm_message_t mesg)
++{
++	return 0;
++}
++
++static int omap2evm_panel_resume(struct platform_device *pdev)
++{
++	return 0;
++}
++
++struct platform_driver omap2evm_panel_driver = {
++	.probe		= omap2evm_panel_probe,
++	.remove		= omap2evm_panel_remove,
++	.suspend	= omap2evm_panel_suspend,
++	.resume		= omap2evm_panel_resume,
++	.driver		= {
++		.name	= "omap2evm_lcd",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int __init omap2evm_panel_drv_init(void)
++{
++	return platform_driver_register(&omap2evm_panel_driver);
++}
++
++static void __exit omap2evm_panel_drv_exit(void)
++{
++	platform_driver_unregister(&omap2evm_panel_driver);
++}
++
++module_init(omap2evm_panel_drv_init);
++module_exit(omap2evm_panel_drv_exit);
+-- 
+1.5.6.4
