@@ -1,103 +1,84 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 03/11] menuconfig updates for cpuidle
-Date: Wed, 6 Aug 2008 18:43:48 +0530 (IST)
-Message-ID: <42082.192.168.10.89.1218028428.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH 04/11] sdrc register defs
+Date: Wed, 6 Aug 2008 18:44:32 +0530 (IST)
+Message-ID: <43340.192.168.10.89.1218028472.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33598 "EHLO arroyo.ext.ti.com"
+Received: from calf.ext.ti.com ([198.47.26.144]:51970 "EHLO calf.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753220AbYHFNNy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 Aug 2008 09:13:54 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m76DDnrk013308
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 6 Aug 2008 08:13:54 -0500
+	id S1753175AbYHFNOj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 Aug 2008 09:14:39 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by calf.ext.ti.com (8.13.7/8.13.7) with ESMTP id m76DEY1O017872
+	for <linux-omap@vger.kernel.org>; Wed, 6 Aug 2008 08:14:39 -0500
 Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id m76DDjB5022915
-	for <linux-omap@vger.kernel.org>; Wed, 6 Aug 2008 08:13:47 -0500 (CDT)
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id m76DEUa5007717
+	for <linux-omap@vger.kernel.org>; Wed, 6 Aug 2008 08:14:32 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-This patch enables the cpuidle option in menuconfig
-and selects the menu governor
+This patch adds some missing sdrc register definitions
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
 ---
- arch/arm/Kconfig        |   10 ++++++++++
- drivers/cpuidle/Kconfig |   26 +++++++++++++++++++++-----
- 2 files changed, 31 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/sram34xx.S   |    4 ++--
+ include/asm-arm/arch-omap/sdrc.h |   13 +++++++++++--
+ 2 files changed, 13 insertions(+), 4 deletions(-)
 
-Index: linux-omap-2.6/arch/arm/Kconfig
+Index: linux-omap-2.6/arch/arm/mach-omap2/sram34xx.S
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/Kconfig	2008-08-06 18:07:31.000000000 +0530
-+++ linux-omap-2.6/arch/arm/Kconfig	2008-08-06 18:09:56.000000000 +0530
-@@ -954,6 +954,16 @@ config ATAGS_PROC
-
- endmenu
-
-+if (ARCH_OMAP)
-+
-+menu "CPUIdle"
-+
-+source "drivers/cpuidle/Kconfig"
-+
-+endmenu
-+
-+endif
-+
- if (ARCH_SA1100 || ARCH_INTEGRATOR || ARCH_OMAP || ARCH_IMX || ARCH_PXA)
-
- menu "CPU Frequency scaling"
-Index: linux-omap-2.6/drivers/cpuidle/Kconfig
-===================================================================
---- linux-omap-2.6.orig/drivers/cpuidle/Kconfig	2008-08-06 18:07:31.000000000
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/sram34xx.S	2008-08-06
+18:07:31.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/sram34xx.S	2008-08-06 18:10:18.000000000
 +0530
-+++ linux-omap-2.6/drivers/cpuidle/Kconfig	2008-08-06 18:09:56.000000000 +0530
-@@ -1,20 +1,36 @@
-+menu "CPU idle PM support"
+@@ -165,9 +165,9 @@ omap3_cm_iclken1_core:
+ omap3_sdrc_rfr_ctrl:
+ 	.word OMAP34XX_SDRC_REGADDR(SDRC_RFR_CTRL_0)
+ omap3_sdrc_actim_ctrla:
+-	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A)
++	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A_0)
+ omap3_sdrc_actim_ctrlb:
+-	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B)
++	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B_0)
+ omap3_sdrc_dlla_status:
+ 	.word OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
+ omap3_sdrc_dlla_ctrl:
+Index: linux-omap-2.6/include/asm-arm/arch-omap/sdrc.h
+===================================================================
+--- linux-omap-2.6.orig/include/asm-arm/arch-omap/sdrc.h	2008-08-06
+18:07:31.000000000 +0530
++++ linux-omap-2.6/include/asm-arm/arch-omap/sdrc.h	2008-08-06
+18:10:18.000000000 +0530
+@@ -21,15 +21,24 @@
+ /* SDRC register offsets - read/write with sdrc_{read,write}_reg() */
 
- config CPU_IDLE
- 	bool "CPU idle PM support"
--	default ACPI
-+	default n
- 	help
- 	  CPU idle is a generic framework for supporting software-controlled
- 	  idle processor power management.  It includes modular cross-platform
- 	  governors that can be swapped during runtime.
+ #define SDRC_SYSCONFIG		0x010
++#define SDRC_CS_CFG		0x040
++#define SDRC_SHARING		0x044
++#define SDRC_ERR_TYPE		0x04C
+ #define SDRC_DLLA_CTRL		0x060
+ #define SDRC_DLLA_STATUS	0x064
+ #define SDRC_DLLB_CTRL		0x068
+ #define SDRC_DLLB_STATUS	0x06C
+ #define SDRC_POWER		0x070
++#define SDRC_MCFG_0		0x080
+ #define SDRC_MR_0		0x084
+-#define SDRC_ACTIM_CTRL_A	0x09c
+-#define SDRC_ACTIM_CTRL_B	0x0a0
++#define SDRC_ACTIM_CTRL_A_0	0x09c
++#define SDRC_ACTIM_CTRL_B_0	0x0a0
+ #define SDRC_RFR_CTRL_0		0x0a4
++#define SDRC_MCFG_1		0x0B0
++#define SDRC_MR_1		0x0B4
++#define SDRC_ACTIM_CTRL_A_1	0x0C4
++#define SDRC_ACTIM_CTRL_B_1	0x0C8
++#define SDRC_RFR_CTRL_1		0x0D4
 
--	  If you're using an ACPI-enabled platform, you should say Y here.
-+	  If you're using a mobile platform that supports CPU idle PM (e.g.
-+	  an ACPI-capable notebook), you should say Y here.
-+
-+if CPU_IDLE
-+
-+comment "Governors"
-
- config CPU_IDLE_GOV_LADDER
--	bool
-+	bool "ladder"
- 	depends on CPU_IDLE
--	default y
-+	default n
-
- config CPU_IDLE_GOV_MENU
--	bool
-+	bool "menu"
- 	depends on CPU_IDLE && NO_HZ
- 	default y
-+        help
-+	  This cpuidle governor evaluates all available states and chooses the
-+	  deepest state that meets all of the following constraints: BM activity,
-+	  expected time until next timer interrupt, and last break event time
-+	  delta.  It is designed to minimize power consumption.  Currently
-+	  dynticks is required.
-+
-+endif   # CPU_IDLE
-+
-+endmenu
+ /*
+  * These values represent the number of memory clock cycles between
 
 
