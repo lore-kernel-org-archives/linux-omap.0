@@ -1,63 +1,54 @@
-From: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH RFC] MUSB: Fix index register corruption seen with
- g_ether and Windows host
-Date: Wed, 6 Aug 2008 10:15:18 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02569B8B2F@dbde02.ent.ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02569B8A84@dbde02.ent.ti.com>
- <386072610808052126o85e13cdm45925abdde96f159@mail.gmail.com>
+From: "kanagesh radhakrishnan" <rkanagesh@gmail.com>
+Subject: Re: Problems with USB Gadget on the OMAP3EVM
+Date: Wed, 6 Aug 2008 10:25:54 +0530
+Message-ID: <ece1079f0808052155p28016abar13f8f8a39f469cfd@mail.gmail.com>
+References: <ece1079f0808050417o49392d42if4b730b7d700bdab@mail.gmail.com>
+	 <8DB070A0-62F7-43F4-8AF3-41CBD05AAB72@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <386072610808052126o85e13cdm45925abdde96f159-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bryan Wu <cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gx0-f29.google.com ([209.85.217.29]:51839 "EHLO
+	mail-gx0-f29.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753660AbYHFEzz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Aug 2008 00:55:55 -0400
+Received: by gxk10 with SMTP id 10so4521008gxk.13
+        for <linux-omap@vger.kernel.org>; Tue, 05 Aug 2008 21:55:54 -0700 (PDT)
+In-Reply-To: <8DB070A0-62F7-43F4-8AF3-41CBD05AAB72@student.utwente.nl>
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: linux-omap@vger.kernel.org
 
-> On Tue, Aug 5, 2008 at 11:48 PM, Gadiyar, Anand <gadiyar-l0cyMroinI0@public.gmane.org> wrote:
-> > From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+On 8/5/08, Koen Kooi <k.kooi@student.utwente.nl> wrote:
+>
+>  Op 5 aug 2008, om 13:17 heeft kanagesh radhakrishnan het volgende
+> geschreven:
+>
+>
+> > Hello,
 > >
-> > If Indexed Mode register accesses are enabled, the ep0_rxstate() function calls
-> > musb_g_ep0_giveback() before writing to the CSR register. When control returns
-> > to this ep0_rxstate, the index register contents are over-written. This causes
-> > the CSR register write to fail.
+> > I am trying to get USB gadget (RNDIS) working with an OMAP3EVM and a
+> > Linux Host system.  I am looking for help since I have problems
+> > setting up the USB network between the target and host systems.
 > >
-> > Fixed by writing the correct value into the index register before
-> > writing to the CSR.
-> >
-> > This was observed only in ep0_rxstate() with g_ether loaded and the device
-> > connected to a MS Windows host PC. Anticipatively fixed ep0_txstate() as well.
+> > Kernel Configuration
+> > -----------------------------
+> > The kernel I am using is Linux-2.6.22.18.  Its the release version
+> > that comes with SDK_0.9.8 for the OMAP3EVM.
 > >
 >
-> Actually, I'm still struggling in a bug similar with this one on Blackfin.
-> We ran following testcase 100 times, 10-20 times tastcases failed.
+>  Have you tried the 1.0.0 sdk with 2.6.24 or linux-omap git?
 >
-> ---
-> $ ./testusb -D /proc/bus/usb/005/012 -t14 -c 15000 -s 256 -v 1
-> unknown speed   /proc/bus/usb/005/012
-> /proc/bus/usb/005/012 test 14 --> 75 (Value too large for defined data type)
-> ---
+>  regards,
 >
-> I reported this bug to our hardware designer and the omap list. Felipe
-> said he did met this issue.
-> From the capture data of USB analyzer, the peripheral musb sent out
-> garbage data in the IN-STATUS stage.
-> In that stage, the DATA length should be zero. But the peripheral sent
-> out 1 byte or 2 bytes sometimes.
->
-> Thanks
-> -Bryan
+>  Koen
+Hello Koen,
 
-Hi Bryan,
+I have just received the 1.0.0 SDK but the version of the Linux kernel
+is Linux-2.6.22.18 and not Linux-2.6.24.
 
-Could you tell me if you're using Indexed Mode or Flat mode?
-
-I'll try this out on my boards and see what I get.
-
-- Anand
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thank you,
+Regards,
+Kanagesh
