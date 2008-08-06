@@ -1,68 +1,64 @@
-From: "arun c" <arunedarath@mistralsolutions.com>
-Subject: Re: About to tag v2.6.26-omap1, patch queue deleted, please check and repost
-Date: Wed, 6 Aug 2008 19:21:20 +0530
-Message-ID: <c656a4d20808060651r7a9fe904g943b1d07691e6df@mail.gmail.com>
-References: <20080805143519.GS7193@atomide.com>
-	 <5A47E75E594F054BAF48C5E4FC4B92AB02569B8A85@dbde02.ent.ti.com>
-	 <489897CD.6040802@googlemail.com>
+From: "Yuri Jaeger Monti" <yurijm@gmail.com>
+Subject: TMPFS problem
+Date: Wed, 6 Aug 2008 10:53:21 -0300
+Message-ID: <65e025470808060653k6f9a5bc1pd2cdda06226cc69d@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.186]:19708 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753231AbYHFNvW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Aug 2008 09:51:22 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so981312tic.23
-        for <linux-omap@vger.kernel.org>; Wed, 06 Aug 2008 06:51:20 -0700 (PDT)
-In-Reply-To: <489897CD.6040802@googlemail.com>
+Received: from yw-out-2324.google.com ([74.125.46.28]:12900 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754332AbYHFNxX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Aug 2008 09:53:23 -0400
+Received: by yw-out-2324.google.com with SMTP id 9so1757516ywe.1
+        for <linux-omap@vger.kernel.org>; Wed, 06 Aug 2008 06:53:22 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-On Tue, Aug 5, 2008 at 11:41 PM, Dirk Behme <dirk.behme@googlemail.com> wrote:
-> Gadiyar, Anand wrote:
->>>
->>> Hi all,
->>>
->>> I've pushed all the patches I have in my omap inbox, except for
->>> the omap serial driver that I want to look more.
->>>
->>> I've tried to comment on the ones that did not get pushed, then
->>> erased everything from my omap inbox. Some drivers should get
->>> integrated via other mailing lists, and some debug patches can
->>> probably stay as debug patches, and some patches I probably
->>> have accidentally deleted :) And the PM patches I lost track of,
->>> so those should be reposted.
->>>
->>> So please check your patches, and repost your patches if something
->>> is left out. Also please check that things work for your board,
->>> let's try to tag v2.6.26-omap1 within next few days so we can
->>> move on again.
->>>
->>> Cheers,
->>>
->>> Tony
->>
->>
->> Boot tested on 3430SDP with the defconfig. Things work okay so far.
->
-> Same with BeagleBoard.
->
-> Dirk
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Hello!
 
-Hi all,
+I can't make the system boot when compiling OMAP Kernel 2.6.26 with
+tmpfs support enabled. The system hangs after loading udev and won't
+enter any runlevel. When tmpfs is not enabled, udev won't start and
+the system boot's fine.
 
-Boot tested on omap2evm with defconfig.
-The printks from omapfb(irq errors) is stalling the console sometimes, otherwise
-everything seems to be fine.
+....
+....
+VFS: Mounted root (ext3 filesystem).
+Freeing init memory: 136K
+INIT: version 2.86 booting
+Starting the hotplug events dispatcher udevd
+Synthesizing the initial hotplug events
+Registered led device: d9
+Registered led device: d2
+Registered led device: d3
+omap_rng omap_rng: OMAP Random Number Generator ver. 20
+Remounting root file system...
+root: mount: mount point /dev/pts does not exist
+root: mount: mount point /dev/shm does not exist
+Setting up IP spoofing protection: rp_filter.
+Configuring network interfaces... eth0      no wireless extensions.
+udhcpc (v1.9.2) started
+run-parts: /etc/udhcpc.d/00avahi-autoipd exited with return code 1
+NET: Registered protocol family 17
+Sending discover...
+Sending select for 192.168.1.109...
+Lease of 192.168.1.109 obtained, lease time 86400
+run-parts: /etc/udhcpc.d/00avahi-autoipd exited with return code 1
+adding dns 192.168.0.2
+done.
+Starting portmap daemon: portmapportmap: fork: No such device.
+i2c_omap i2c_omap.1: Transmit overflow
+tps65010: power off button
+hwclock: can't open '/dev/misc/rtc': No such file or directory
+Tue Aug  5 08:18:00 UTC 2008
+hwclock: can't open '/dev/misc/rtc': No such file or directory
 
-Regards,
-Arun C
+Anyone know what am I doing wrong?
+
+Thanks!
+
+-- 
+Yuri Jaeger Monti
