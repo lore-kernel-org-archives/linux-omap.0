@@ -1,88 +1,54 @@
-From: "Ashwin Bihari" <abihari@gmail.com>
-Subject: HS USB errors on OMAP3530
-Date: Thu, 7 Aug 2008 14:39:36 -0400
-Message-ID: <1f11a5490808071139q4498df93id8571325d5d64dbd@mail.gmail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH] ARM MMU: add strongly-ordered memory type
+Date: Thu, 7 Aug 2008 13:56:40 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE89671620361FBB4FB@dlee02.ent.ti.com>
+References: <alpine.DEB.1.00.0808041738400.18201@utopia.booyaka.com>
+ <1218016428.25235.11.camel@pc1117.cambridge.arm.com>
+ <13B9B4C6EF24D648824FF11BE89671620361F4E504@dlee02.ent.ti.com>
+ <20080807073035.GA10255@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.248]:38154 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752200AbYHGSjh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Aug 2008 14:39:37 -0400
-Received: by an-out-0708.google.com with SMTP id d40so101104and.103
-        for <linux-omap@vger.kernel.org>; Thu, 07 Aug 2008 11:39:36 -0700 (PDT)
-Content-Disposition: inline
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47980 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750965AbYHGS53 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Aug 2008 14:57:29 -0400
+In-Reply-To: <20080807073035.GA10255@flint.arm.linux.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
 
-Greetings,
 
-I've got a OMAP3530 based board on which I'm having some trouble with
-HS USB transfers. I plug in a HS USB Flash drive and it is properly
-detected. I can mount the drive and write any amount of data to it
-without any problems. However, when I start reading from the drive,
-the action halts at some random point with the USB driver indicating
-that it got less data than it requested in it's transaction.
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> > Most of the weak memory attributes in newer ARMs are not exploited
+> > today in tree.  I'll guess this was more a correctness and
+> capability
+> > judgment from Russell.
+>
+> Not entirely true.  We do as much as is safe to do - which is
+> basically
+> using 'device' mappings for devices and ioremap, and 'memory' mappings
+> for the main memory, module and vmalloc mappings.
 
-Once this failure occurs, the port gets reset and the inserted Flash
-drive is "detected" again but none of the descriptors can be retrieved
-to actually configure/enumerate the device. After a few more reset
-cycles the process just halts. The console messages are the
-following..
+Is DEVICE really safe for things other than FIFOs with out the use of barriers?  Accesses are in order but they can be buffered.  The bus is free to post/buffer these writes as long as it preserves the order (and it does). I want to know the write happened before moving on in some code.  Yes some barrier can be added to the code to fix it but its not there in most drivers today.
 
---- Console Messages ---
-<7>usb-storage: waiting for device to settle before scanning
-scsi 0:0:0:0: Direct-Access              USB DISK 2.0     PMAP PQ: 0 ANSI: 0 CCS
-sd 0:0:0:0: [sda] 964608 512-byte hardware sectors (494 MB)
-sd 0:0:0:0: [sda] Write Protect is off
-sd 0:0:0:0: [sda] Assuming drive cache: write through
-sd 0:0:0:0: [sda] 964608 512-byte hardware sectors (494 MB)
-sd 0:0:0:0: [sda] Write Protect is off
-sd 0:0:0:0: [sda] Assuming drive cache: write through
-sda: sda1
-sd 0:0:0:0: [sda] Attached SCSI removable disk
-usb 1-2: reset high speed USB device using ehci-omap and address 2
-usb 1-2: device descriptor read/64, error -110
-usb 1-2: device descriptor read/64, error -110
-usb 1-2: reset high speed USB device using ehci-omap and address 2
-usb 1-2: device descriptor read/64, error -110
-usb 1-2: device descriptor read/64, error -110
-usb 1-2: reset high speed USB device using ehci-omap and address 2
-usb 1-2: device not accepting address 2, error -110
-usb 1-2: reset high speed USB device using ehci-omap and address 2
-usb 1-2: device not accepting address 2, error -110
-usb 1-2: USB disconnect, address 2
-sd 0:0:0:0: Device offlined - not ready after error recovery
-Result: hostbyte=0x01 driverbyte=0x00
-end_request: I/O error, dev sda, sector 775288
-end_request: I/O error, dev sda, sector 775288
-Result: hostbyte=0x01 driverbyte=0x00
-end_request: I/O error, dev sda, sector 775528
-end_request: I/O error, dev sda, sector 775528
-usb 1-2: new high speed USB device using ehci-omap and address 3
-usb 1-2: device descriptor read/64, error -110
-usb 1-2: device descriptor read/64, error -110
-usb 1-2: new high speed USB device using ehci-omap and address 4
-usb 1-2: device descriptor read/64, error -110
-usb 1-2: device descriptor read/64, error -110
-usb 1-2: new high speed USB device using ehci-omap and address 5
-usb 1-2: device not accepting address 5, error -110
-usb 1-2: new high speed USB device using ehci-omap and address 6
-usb 1-2: device not accepting address 6, error -110
-hub 1-0:1.0: unable to enumerate USB device on port 2
---- End Messages --
+I recall you gave an explanation on list a while back where MPCORE had to use DEVICE or it wouldn't work.  That restriction is not there for others.
 
-Why the writes succeed without any issues while the reads fail has me
-completely stumped. I'm currently using The Linux Kernel version
-2.6.24.7 from omapzoom.org with the /drivers/usb code from the latest
-2.6.26 back-ported. Attempting to jump to the newest Kernel would
-require some work to get my board-specific code all happy and I'm in
-the process of doing that..
+We do in some drivers today get spurious interrupts when DEVICE is used but don't see them when using SO.
 
-I would love to hear from ideas on what might be going on and what I
-should be looking at to get this resolved.
+Originally the IC-Architect wanted two memory windows per device, one SO for register control and one DEVICE for FIFO access.  Given that we do DMA (which doesn't care about how ARM sees the world) on the performance hungry devices not doing this was ok.
 
-Regards
-~ Ashwin
+> What we don't do is mark DMA memory ask being normal uncached memory,
+> thereby allowing that to be reordered with device accesses - we make
+> it strongly ordered.  The reason being that the kernel doesn't have
+> barriers necessary to ensure that writes to DMA memory hit physical
+> memory before the device access to enable DMA hits the DMA controller.
+
+For an experiment a couple years back we did convert the dma alloc pool addresses as NC.  All worked -except- for OHCI-USB which started failing some tests.
+
+Regards,
+Richard W.
+
