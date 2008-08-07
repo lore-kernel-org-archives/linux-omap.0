@@ -1,17 +1,15 @@
 From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-Subject: [PATCH 4/4] 34XX: PM: Workaround to enable autoidle for clocks
-Date: Thu,  7 Aug 2008 11:43:56 +0300
-Message-ID: <1218098636-4684-4-git-send-email-ext-kalle.jokiniemi@nokia.com>
+Subject: [PATCH 2/4] 34XX: PM: Workaround for taking care of gpio clocks
+Date: Thu,  7 Aug 2008 11:43:54 +0300
+Message-ID: <1218098636-4684-2-git-send-email-ext-kalle.jokiniemi@nokia.com>
 References: <>
  <1218098636-4684-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
- <1218098636-4684-2-git-send-email-ext-kalle.jokiniemi@nokia.com>
- <1218098636-4684-3-git-send-email-ext-kalle.jokiniemi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:52066 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753147AbYHGImN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Aug 2008 04:42:13 -0400
-In-Reply-To: <1218098636-4684-3-git-send-email-ext-kalle.jokiniemi@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:53615 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753070AbYHGImI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Aug 2008 04:42:08 -0400
+In-Reply-To: <1218098636-4684-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -19,148 +17,123 @@ Cc: rnayak@ti.com, jouni.hogander@nokia.com
 
 From: ext Rajendra Nayak <rnayak@ti.com>
 
-This workaround enables autoidle for interface clocks and plls. Also
-automatic control of external oscillator through sys_clkreq is
-enabled.
+In omap3 gpios 2-6 are in per domain. Functional clocks for these
+should be disabled. This patch is needed until gpio driver disables
+gpio clocks.
 
-Proper fix to this is to generalize omap3_dpll_allow_idle,
-omap3_dpll_deny_idle, omap3_dpll_autoidle_read and call it for each
-clock on init.
+GPIO modules in PER domain are not able to act as a wake up source if
+PER domain is in retention. PER domain sleep transition before MPU is
+prevented by leaving icks active. PER domain still enters retention
+together with MPU. When this happens IOPAD wake up mechanism is used
+for gpios.
 
 Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |  118 ++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 118 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |   58 +++++++++++++++++++++++++++++++++++++++--
+ 1 files changed, 55 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 63c50b4..a7b2af0 100644
+index bca1994..4b6d645 100644
 --- a/arch/arm/mach-omap2/pm34xx.c
 +++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -433,6 +433,124 @@ static void __init prcm_setup_regs(void)
- 	} else
- 		prm_write_mod_reg(0, GFX_MOD, PM_WKDEP);
+@@ -47,12 +47,42 @@ struct power_state {
  
-+	/* XXX Enable interface clock autoidle for all modules. This
-+	 * should be done by clockfw */
-+	cm_write_mod_reg(
-+		OMAP3430ES2_AUTO_MMC3 |
-+		OMAP3430ES2_AUTO_ICR |
-+		OMAP3430_AUTO_AES2 |
-+		OMAP3430_AUTO_SHA12 |
-+		OMAP3430_AUTO_DES2 |
-+		OMAP3430_AUTO_MMC2 |
-+		OMAP3430_AUTO_MMC1 |
-+		OMAP3430_AUTO_MSPRO |
-+		OMAP3430_AUTO_HDQ |
-+		OMAP3430_AUTO_MCSPI4 |
-+		OMAP3430_AUTO_MCSPI3 |
-+		OMAP3430_AUTO_MCSPI2 |
-+		OMAP3430_AUTO_MCSPI1 |
-+		OMAP3430_AUTO_I2C3 |
-+		OMAP3430_AUTO_I2C2 |
-+		OMAP3430_AUTO_I2C1 |
-+		OMAP3430_AUTO_UART2 |
-+		OMAP3430_AUTO_UART1 |
-+		OMAP3430_AUTO_GPT11 |
-+		OMAP3430_AUTO_GPT10 |
-+		OMAP3430_AUTO_MCBSP5 |
-+		OMAP3430_AUTO_MCBSP1 |
-+		OMAP3430ES1_AUTO_FAC | /* This is es1 only */
-+		OMAP3430_AUTO_MAILBOXES |
-+		OMAP3430_AUTO_OMAPCTRL |
-+		OMAP3430ES1_AUTO_FSHOSTUSB |
-+		OMAP3430_AUTO_HSOTGUSB |
-+		OMAP3430ES1_AUTO_D2D | /* This is es1 only */
-+		OMAP3430_AUTO_SSI,
-+		CORE_MOD, CM_AUTOIDLE1);
+ static LIST_HEAD(pwrst_list);
+ 
+-static void (*_omap_sram_idle)(u32 *addr, int save_state);
++void (*_omap_sram_idle)(u32 *addr, int save_state, int disable_clocks);
+ 
+ static void (*saved_idle)(void);
+ 
+ static struct powerdomain *mpu_pwrdm;
+ 
++/* XXX This is for gpio fclk hack. Will be removed as gpio driver
++ * handles fcks correctly */
++#define NUM_OF_PERGPIOS 5
++static struct clk *gpio_fcks[NUM_OF_PERGPIOS];
 +
-+	cm_write_mod_reg(
-+		OMAP3430_AUTO_PKA |
-+		OMAP3430_AUTO_AES1 |
-+		OMAP3430_AUTO_RNG |
-+		OMAP3430_AUTO_SHA11 |
-+		OMAP3430_AUTO_DES1,
-+		CORE_MOD, CM_AUTOIDLE2);
++/* XXX This is for gpio fclk hack. Will be removed as gpio driver
++ * handles fcks correctly */
++static void per_gpio_clk_enable(void)
++{
++	int i;
++	for (i = 1; i < NUM_OF_PERGPIOS + 1; i++)
++		clk_enable(gpio_fcks[i-1]);
++}
 +
-+	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0))
-+		cm_write_mod_reg(
-+			OMAP3430ES2_AUTO_USBTLL,
-+			CORE_MOD, CM_AUTOIDLE3);
++/* XXX This is for gpio fclk hack. Will be removed as gpio driver
++ * handles fcks correctly */
++static void per_gpio_clk_disable(void)
++{
++	int i;
++	for (i = 1; i < NUM_OF_PERGPIOS + 1; i++)
++		clk_disable(gpio_fcks[i-1]);
++}
 +
-+	cm_write_mod_reg(
-+		OMAP3430_AUTO_WDT2 |
-+		OMAP3430_AUTO_WDT1 |
-+		OMAP3430_AUTO_GPIO1 |
-+		OMAP3430_AUTO_32KSYNC |
-+		OMAP3430_AUTO_GPT12 |
-+		OMAP3430_AUTO_GPT1 ,
-+		WKUP_MOD, CM_AUTOIDLE);
++/* XXX This is for gpio fclk hack. Will be removed as gpio driver
++ * handles fcks correctly */
++static void gpio_fclk_mask(u32 *fclk)
++{
++	*fclk &= ~(0x1f << 13);
++}
 +
-+	cm_write_mod_reg(
-+		OMAP3430_AUTO_DSS,
-+		OMAP3430_DSS_MOD,
-+		CM_AUTOIDLE);
+ /* PRCM Interrupt Handler for wakeups */
+ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
+ {
+@@ -169,7 +199,17 @@ static void omap_sram_idle(void)
+ 
+ 	omap2_gpio_prepare_for_retention();
+ 
+-	_omap_sram_idle(NULL, save_state);
++	/* XXX This is for gpio fclk hack. Will be removed as gpio driver
++	 * handles fcks correctly */
++	if (clocks_off_while_idle)
++		per_gpio_clk_disable();
 +
-+	cm_write_mod_reg(
-+		OMAP3430_AUTO_CAM,
-+		OMAP3430_CAM_MOD,
-+		CM_AUTOIDLE);
++	_omap_sram_idle(NULL, save_state, clocks_off_while_idle);
 +
-+	cm_write_mod_reg(
-+		OMAP3430_AUTO_GPIO6 |
-+		OMAP3430_AUTO_GPIO5 |
-+		OMAP3430_AUTO_GPIO4 |
-+		OMAP3430_AUTO_GPIO3 |
-+		OMAP3430_AUTO_GPIO2 |
-+		OMAP3430_AUTO_WDT3 |
-+		OMAP3430_AUTO_UART3 |
-+		OMAP3430_AUTO_GPT9 |
-+		OMAP3430_AUTO_GPT8 |
-+		OMAP3430_AUTO_GPT7 |
-+		OMAP3430_AUTO_GPT6 |
-+		OMAP3430_AUTO_GPT5 |
-+		OMAP3430_AUTO_GPT4 |
-+		OMAP3430_AUTO_GPT3 |
-+		OMAP3430_AUTO_GPT2 |
-+		OMAP3430_AUTO_MCBSP4 |
-+		OMAP3430_AUTO_MCBSP3 |
-+		OMAP3430_AUTO_MCBSP2,
-+		OMAP3430_PER_MOD,
-+		CM_AUTOIDLE);
++	/* XXX This is for gpio fclk hack. Will be removed as gpio driver
++	 * handles fcks correctly */
++	if (clocks_off_while_idle)
++		per_gpio_clk_enable();
+ 
+ 	omap2_gpio_resume_after_retention();
+ }
+@@ -197,6 +237,10 @@ static int omap3_fclks_active(void)
+ 				  CM_FCLKEN);
+ 	fck_per = cm_read_mod_reg(OMAP3430_PER_MOD,
+ 				  CM_FCLKEN);
 +
-+	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0))
-+		cm_write_mod_reg(
-+			OMAP3430ES2_AUTO_USBHOST,
-+			OMAP3430ES2_USBHOST_MOD,
-+			CM_AUTOIDLE);
++	if (clocks_off_while_idle)
++		gpio_fclk_mask(&fck_per);
 +
-+	/* XXX Set all plls to autoidle. This is needed until autoidle is
-+	 * enabled by clockfw */
-+	cm_write_mod_reg(1 << OMAP3430_CLKTRCTRL_IVA2_SHIFT,
-+			 OMAP3430_IVA2_MOD,
-+			 CM_AUTOIDLE2);
-+	cm_write_mod_reg(1 << OMAP3430_AUTO_MPU_DPLL_SHIFT,
-+			 MPU_MOD,
-+			 CM_AUTOIDLE2);
-+	cm_write_mod_reg((1 << OMAP3430_AUTO_PERIPH_DPLL_SHIFT) |
-+			 (1 << OMAP3430_AUTO_CORE_DPLL_SHIFT),
-+			 PLL_MOD,
-+			 CM_AUTOIDLE);
-+	cm_write_mod_reg(1 << OMAP3430ES2_AUTO_PERIPH2_DPLL_SHIFT,
-+			 PLL_MOD,
-+			 CM_AUTOIDLE2);
+ 	if (fck_core1 | fck_core3 | fck_sgx | fck_dss |
+ 	    fck_cam | fck_per | fck_usbhost)
+ 		return 1;
+@@ -412,7 +456,8 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm)
+ int __init omap3_pm_init(void)
+ {
+ 	struct power_state *pwrst;
+-	int ret;
++	char clk_name[11];
++	int ret, i;
+ 
+ 	printk(KERN_ERR "Power Management for TI OMAP3.\n");
+ 
+@@ -448,6 +493,13 @@ int __init omap3_pm_init(void)
+ 
+ 	pm_idle = omap3_pm_idle;
+ 
++	/* XXX This is for gpio fclk hack. Will be removed as gpio driver
++	 * handles fcks correctly */
++	for (i = 1; i < NUM_OF_PERGPIOS + 1; i++) {
++		sprintf(clk_name, "gpio%d_fck", i + 1);
++		gpio_fcks[i-1] = clk_get(NULL, clk_name);
++	}
 +
-+	/* XXX Enable control of expternal oscillator through
-+	 * sys_clkreq. I think clockfw should provide means to do this
-+	 */
-+	prm_rmw_mod_reg_bits(OMAP_AUTOEXTCLKMODE_MASK,
-+			     1 << OMAP_AUTOEXTCLKMODE_SHIFT,
-+			     OMAP3430_GR_MOD,
-+			     OMAP3_PRM_CLKSRC_CTRL_OFFSET);
-+
- 	/* setup wakup source */
- 	prm_write_mod_reg(OMAP3430_EN_IO | OMAP3430_EN_GPIO1 | OMAP3430_EN_GPT1,
- 			  WKUP_MOD, PM_WKEN);
+ err1:
+ 	return ret;
+ err2:
 -- 
 1.5.4.3
 
