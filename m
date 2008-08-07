@@ -1,66 +1,56 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM MMU: add strongly-ordered memory type
-Date: Thu, 7 Aug 2008 20:25:31 +0100
-Message-ID: <20080807192531.GF5737@flint.arm.linux.org.uk>
-References: <alpine.DEB.1.00.0808041738400.18201@utopia.booyaka.com> <1218016428.25235.11.camel@pc1117.cambridge.arm.com> <13B9B4C6EF24D648824FF11BE89671620361F4E504@dlee02.ent.ti.com> <20080807073035.GA10255@flint.arm.linux.org.uk> <13B9B4C6EF24D648824FF11BE89671620361FBB4FB@dlee02.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: HS USB errors on OMAP3530
+Date: Thu, 7 Aug 2008 12:38:30 -0700
+Message-ID: <200808071238.30983.david-b@pacbell.net>
+References: <1f11a5490808071135i3ac8e5dfl4076c21c5296d254@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54468 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751382AbYHGT0R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Aug 2008 15:26:17 -0400
+Received: from smtp118.sbc.mail.sp1.yahoo.com ([69.147.64.91]:25401 "HELO
+	smtp118.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751476AbYHGTic (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Aug 2008 15:38:32 -0400
+In-Reply-To: <1f11a5490808071135i3ac8e5dfl4076c21c5296d254@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <13B9B4C6EF24D648824FF11BE89671620361FBB4FB@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
+To: Ashwin Bihari <abihari@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-On Thu, Aug 07, 2008 at 01:56:40PM -0500, Woodruff, Richard wrote:
-> > From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> > > Most of the weak memory attributes in newer ARMs are not exploited
-> > > today in tree.  I'll guess this was more a correctness and capability
-> > > judgment from Russell.
-> >
-> > Not entirely true.  We do as much as is safe to do - which is
-> > basically
-> > using 'device' mappings for devices and ioremap, and 'memory' mappings
-> > for the main memory, module and vmalloc mappings.
-> 
-> Is DEVICE really safe for things other than FIFOs with out the use of
-> barriers?
+On Thursday 07 August 2008, Ashwin Bihari wrote:
 
-As far as I'm aware, yes - and that comment is based solely upon the
-fact that no one has reported any problems with the kernel which have
-been tracked down to using the device memory type on ARMv6 and above...
+> sd 0:0:0:0: [sda] Attached SCSI removable disk
+> usb 1-2: reset high speed USB device using ehci-omap and address 2
+> usb 1-2: device descriptor read/64, error -110
+> usb 1-2: device descriptor read/64, error -110
+> usb 1-2: reset high speed USB device using ehci-omap and address 2
+> usb 1-2: device descriptor read/64, error -110
+> usb 1-2: device descriptor read/64, error -110
+> usb 1-2: reset high speed USB device using ehci-omap and address 2
+> usb 1-2: device not accepting address 2, error -110
+> usb 1-2: reset high speed USB device using ehci-omap and address 2
+> usb 1-2: device not accepting address 2, error -110
+> usb 1-2: USB disconnect, address 2
+> sd 0:0:0:0: Device offlined - not ready after error recovery
+> Result: hostbyte=0x01 driverbyte=0x00
+> end_request: I/O error, dev sda, sector 775288
+> end_request: I/O error, dev sda, sector 775288
+> ...
 
-> We do in some drivers today get spurious interrupts when DEVICE is
-> used but don't see them when using SO.
+I wouldn't assume this is specifically an OMAP issue -- though
+it might be in this case.  If you could throw a USB sniffer at
+the problem and report what that shows, it may be enlightening...
 
-... until now, or even that very sentence.
+Folk have been reporting these symptoms for some time, but
+nobody can quite track it down.  I think one person who was
+able to observe the problem (I've never seen it) reported that
+switching disk, USB cable, *OR* PC host made the problem go
+away ... but MS-Windows didn't see it on the same hardware.
 
-That's not unexpected if you don't have the right barriers in place
-at the end of things such as IRQ controllers ack/mask functions.
+As I recall, one person had some recent success shrinking the
+"let SET_ADDRESS settle" mdelay in drivers/usb/hub.c (near
+line 2535).  Strictly speaking, that shouldn't be needed.
 
-Can you give me more information - which OMAP platform, which IRQ
-controller, which device is easiest to provoke this behaviour, and
-I'll look at it.
-
-> Originally the IC-Architect wanted two memory windows per device, one
-> SO for register control and one DEVICE for FIFO access.  Given that we
-> do DMA (which doesn't care about how ARM sees the world) on the
-> performance hungry devices not doing this was ok.
-
-I'm not sure what point you're making there.
-
-> For an experiment a couple years back we did convert the dma alloc
-> pool addresses as NC.  All worked -except- for OHCI-USB which started
-> failing some tests.
-
-If we go down the route of marking DMA as 'normal memory non-cacheable'
-we're going to have a never ending stream of drivers which don't work
-correctly.  We're forever going to be bug hunting drivers, having to
-add barriers as required.  Arguably those barriers should be there
-already, but if drivers are developed on platforms without weak ordering,
-authors just don't think about it, and _certainly_ can't test them.
+- Dave
