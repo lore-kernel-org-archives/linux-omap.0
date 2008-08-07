@@ -1,60 +1,70 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH] ARM MMU: add strongly-ordered memory type
-Date: Thu, 7 Aug 2008 00:01:09 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0808062355060.18201@utopia.booyaka.com>
-References: <alpine.DEB.1.00.0808041738400.18201@utopia.booyaka.com>  <20080805114920.GC27299@trinity.fluff.org>  <13B9B4C6EF24D648824FF11BE89671620361EE1A9C@dlee02.ent.ti.com> <1218018018.25235.23.camel@pc1117.cambridge.arm.com>
+From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+Subject: RE: [PATCH] Enable SYSOFFMODE use
+Date: Thu, 07 Aug 2008 10:11:15 +0300
+Message-ID: <1218093075.31074.43.camel@kj-ubuntu>
+References: <1216656125-5800-1-git-send-email-peter.de-schrijver@nokia.com>
+	 <1216656125-5800-2-git-send-email-peter.de-schrijver@nokia.com>
+	 <20080805105057.GQ7193@atomide.com> <1218021337.29799.60.camel@kj-ubuntu>
+	 <13B9B4C6EF24D648824FF11BE89671620361F4E8CC@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45727 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752144AbYHGGBM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Aug 2008 02:01:12 -0400
-In-Reply-To: <1218018018.25235.23.camel@pc1117.cambridge.arm.com>
+Received: from smtp.nokia.com ([192.100.122.233]:42043 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751822AbYHGHIv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Aug 2008 03:08:51 -0400
+In-Reply-To: <13B9B4C6EF24D648824FF11BE89671620361F4E8CC@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, tony@atomide.com, Ben Dooks <ben-linux@fluff.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
+To: "ext Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: ext Tony Lindgren <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>, Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hello Catalin,
-
-On Wed, 6 Aug 2008, Catalin Marinas wrote:
-
-> On Tue, 2008-08-05 at 07:15 -0500, Woodruff, Richard wrote:
-> > > Is the controller allowed to write dirty cache lines out at any time
-> > > it
-> > > likes? Surely a better fix is to drain the cache of the changes before
-> > > changing the clock for the SDRAM?
-> > 
-> > - Previously the SRAM was marked as cached.  _Execution_ using that
-> > attribute will generate line fetches to SRAM.  This will cause
-> > displacement write-outs of resident DDR lines.  Similarly,
-> > _load/store_ sequences in that code have the same effect.  This cast
-> > outs dead lock the CPU and it can't fetch to progress.
-> [...]
-> > * Flushing the entire L1 & L2 cache frequently is very expensive and
-> > better not done if you don't have.  Also, it is not sufficient for the
-> > context-restore path which needs to NOT live in DDR.
-> > 
-> > The code need to execute in a non-cached region.
+On ke, 2008-08-06 at 12:12 -0500, ext Woodruff, Richard wrote:
+> > I would say no, we don't need the CONFIG_SYSOFFMODE option.
 > 
-> I don't think there is any guarantee that dirty cache line won't be
-> evicted to SDRAM even if your code uses uncached memory only. The CPU is
-> allowed to do speculative reads from the normal cached memory and these
-> reads may force a dirty cache line to be written back to memory. You may
-> need to do at least a cache clean operation (invalidate not necessary).
+> One point is if you try an go to 0v on something under and ES2.1 you
+> will end up with crashes after a while.  Some kind of conditional is
+> needed unless we get to drop the non-production chip versions.
 
-If we turn off speculative reads via a CP15 control register Z-bit write 
-for the duration of the SRAM code execution, and use either normal 
-non-cached memory or strongly-ordered memory for the SRAM code, will that 
-effectively prevent any cache line writeback during that time?  (assuming 
-interrupts are disabled, that is).
+OK. We can replace the macros with run-time checks. But for ES2.1
+suspending to 0V should be safe, right?
 
-Also, a somewhat-related question about strongly-ordered memory regions: 
-these are described as bracketing accesses to those regions with data 
-memory barriers.  In this case, are those barriers specific to the 
-strongly-ordered pages, or will they affect all memory transactions, even 
-to normal cached memory?
+> 
+> Before ES2.1 there is a ROM code bug which will trip up the context
+> restore.
 
+So ES2.0 is also affected, good to know.
 
-- Paul
+> 
+> Really, it would be good to schedule some time to kill ES1 support.
+> The chip is so different its really just baggage.  With cheap and
+> available OMAP3's out there they are really not viable.
+
+I've got ES2.0, so no objections from me. Anyone want to confess still
+using ES1.0? Tony, what do you think?
+
+> 
+> As to C state, I'm not sure, just yet.  If we end up with too many of
+> them there is some overhead in determining thresholds, then trying to
+> tweak a governor to choose them smartly?  It's a little while before
+> this code get to that point, but the process seem to be a bit time
+> consuming on internal.
+
+OK, so I think we go with the user selectable "sysoff_while_idle" sysfs
+interface and not mess up the C-states. I see Rajendra posted a
+refreshed set of patches, so maybe we'll have the C-states in mainline
+soon.
+
+regards,
+Kalle
+
+> 
+> Regards,
+> Richard W.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
