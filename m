@@ -1,139 +1,52 @@
-From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-Subject: [PATCH 2/4] 34XX: PM: Workaround for taking care of gpio clocks
-Date: Thu,  7 Aug 2008 11:43:54 +0300
-Message-ID: <1218098636-4684-2-git-send-email-ext-kalle.jokiniemi@nokia.com>
-References: <>
- <1218098636-4684-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
+From: "Syed Mohammed, Khasim" <khasim@ti.com>
+Subject: RE: how to use omap 2430 character led
+Date: Thu, 7 Aug 2008 15:13:20 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C00208C15A18@dbde02.ent.ti.com>
+References: <a4ecca850808060611oc0f627an2a7e1c2a2ee22fb0@mail.gmail.com>
+ <a4ecca850808060629o2a9546f4j2f8767d44a0f60@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:53615 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753070AbYHGImI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Aug 2008 04:42:08 -0400
-In-Reply-To: <1218098636-4684-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
+Received: from calf.ext.ti.com ([198.47.26.144]:41086 "EHLO calf.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758938AbYHGMgd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Aug 2008 08:36:33 -0400
+In-Reply-To: <a4ecca850808060629o2a9546f4j2f8767d44a0f60@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: rnayak@ti.com, jouni.hogander@nokia.com
+To: vishal bhoj <vishalbhoj@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: ext Rajendra Nayak <rnayak@ti.com>
 
-In omap3 gpios 2-6 are in per domain. Functional clocks for these
-should be disabled. This patch is needed until gpio driver disables
-gpio clocks.
 
-GPIO modules in PER domain are not able to act as a wake up source if
-PER domain is in retention. PER domain sleep transition before MPU is
-prevented by leaving icks active. PER domain still enters retention
-together with MPU. When this happens IOPAD wake up mechanism is used
-for gpios.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of vishal
+> bhoj
+> Sent: Wednesday, August 06, 2008 6:59 PM
+> To: linux-omap@vger.kernel.org
+> Subject: Fwd: how to use omap 2430 character led
+>
+> CAn anyone tell me howto use the character lcd display on omap 2430
+> board. i want to test it and use it at assembly level
+>
+I think you are definitely "NOT" referring to Secondary LCD.
 
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
----
- arch/arm/mach-omap2/pm34xx.c |   58 +++++++++++++++++++++++++++++++++++++++--
- 1 files changed, 55 insertions(+), 3 deletions(-)
+> i am writing it in the memory locations but im not getting any output.
+> do we have to do any initializations to run this code on the board ?
+> like mux config ? im creating a bin image and trying to run it in the
+> ram directly. do i have to initialisze the pad ? i dono much, im a
+> newbie to omaps
+>
+For Character LCD, I think you can refer to the code snippet in u-boot that displays the boot mode NAND/NOR etc on character LCD. Following the exact code base should help you in getting characters displayed on the LCD.
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index bca1994..4b6d645 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -47,12 +47,42 @@ struct power_state {
- 
- static LIST_HEAD(pwrst_list);
- 
--static void (*_omap_sram_idle)(u32 *addr, int save_state);
-+void (*_omap_sram_idle)(u32 *addr, int save_state, int disable_clocks);
- 
- static void (*saved_idle)(void);
- 
- static struct powerdomain *mpu_pwrdm;
- 
-+/* XXX This is for gpio fclk hack. Will be removed as gpio driver
-+ * handles fcks correctly */
-+#define NUM_OF_PERGPIOS 5
-+static struct clk *gpio_fcks[NUM_OF_PERGPIOS];
-+
-+/* XXX This is for gpio fclk hack. Will be removed as gpio driver
-+ * handles fcks correctly */
-+static void per_gpio_clk_enable(void)
-+{
-+	int i;
-+	for (i = 1; i < NUM_OF_PERGPIOS + 1; i++)
-+		clk_enable(gpio_fcks[i-1]);
-+}
-+
-+/* XXX This is for gpio fclk hack. Will be removed as gpio driver
-+ * handles fcks correctly */
-+static void per_gpio_clk_disable(void)
-+{
-+	int i;
-+	for (i = 1; i < NUM_OF_PERGPIOS + 1; i++)
-+		clk_disable(gpio_fcks[i-1]);
-+}
-+
-+/* XXX This is for gpio fclk hack. Will be removed as gpio driver
-+ * handles fcks correctly */
-+static void gpio_fclk_mask(u32 *fclk)
-+{
-+	*fclk &= ~(0x1f << 13);
-+}
-+
- /* PRCM Interrupt Handler for wakeups */
- static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
- {
-@@ -169,7 +199,17 @@ static void omap_sram_idle(void)
- 
- 	omap2_gpio_prepare_for_retention();
- 
--	_omap_sram_idle(NULL, save_state);
-+	/* XXX This is for gpio fclk hack. Will be removed as gpio driver
-+	 * handles fcks correctly */
-+	if (clocks_off_while_idle)
-+		per_gpio_clk_disable();
-+
-+	_omap_sram_idle(NULL, save_state, clocks_off_while_idle);
-+
-+	/* XXX This is for gpio fclk hack. Will be removed as gpio driver
-+	 * handles fcks correctly */
-+	if (clocks_off_while_idle)
-+		per_gpio_clk_enable();
- 
- 	omap2_gpio_resume_after_retention();
- }
-@@ -197,6 +237,10 @@ static int omap3_fclks_active(void)
- 				  CM_FCLKEN);
- 	fck_per = cm_read_mod_reg(OMAP3430_PER_MOD,
- 				  CM_FCLKEN);
-+
-+	if (clocks_off_while_idle)
-+		gpio_fclk_mask(&fck_per);
-+
- 	if (fck_core1 | fck_core3 | fck_sgx | fck_dss |
- 	    fck_cam | fck_per | fck_usbhost)
- 		return 1;
-@@ -412,7 +456,8 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm)
- int __init omap3_pm_init(void)
- {
- 	struct power_state *pwrst;
--	int ret;
-+	char clk_name[11];
-+	int ret, i;
- 
- 	printk(KERN_ERR "Power Management for TI OMAP3.\n");
- 
-@@ -448,6 +493,13 @@ int __init omap3_pm_init(void)
- 
- 	pm_idle = omap3_pm_idle;
- 
-+	/* XXX This is for gpio fclk hack. Will be removed as gpio driver
-+	 * handles fcks correctly */
-+	for (i = 1; i < NUM_OF_PERGPIOS + 1; i++) {
-+		sprintf(clk_name, "gpio%d_fck", i + 1);
-+		gpio_fcks[i-1] = clk_get(NULL, clk_name);
-+	}
-+
- err1:
- 	return ret;
- err2:
--- 
-1.5.4.3
+Download u-boot for 2430 SDP from here
+
+In file u-boot/board/omap2430sdp/sys_info.c
+
+Refer to function:  display_board_info(u32 btype)
+
+Regards,
+Khasim
+http://khasim.blogspot.com
 
