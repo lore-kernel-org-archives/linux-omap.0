@@ -1,50 +1,159 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: HS USB errors on OMAP3530
-Date: Thu, 7 Aug 2008 19:25:48 -0700
-Message-ID: <200808071925.48816.david-b@pacbell.net>
-References: <1f11a5490808071135i3ac8e5dfl4076c21c5296d254@mail.gmail.com> <200808071238.30983.david-b@pacbell.net> <1f11a5490808071823w49964e5l3be66767a8383228@mail.gmail.com>
+From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
+Subject: Re: [PATCH 3/3] Fixes required for HSMMC driver to work as module
+Date: Fri, 8 Aug 2008 09:40:32 +0530 (IST)
+Message-ID: <41545.192.168.10.89.1218168632.squirrel@dbdmail.itg.ti.com>
+References: <40516.192.168.10.88.1216982063.squirrel@dbdmail.itg.ti.com>
+    <20080805140430.GM7193@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:46839 "HELO
-	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755233AbYHHCZu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Aug 2008 22:25:50 -0400
-In-Reply-To: <1f11a5490808071823w49964e5l3be66767a8383228@mail.gmail.com>
-Content-Disposition: inline
+Received: from soda.ext.ti.com ([198.47.26.145]:37545 "EHLO soda.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750733AbYHHEKj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Aug 2008 00:10:39 -0400
+In-Reply-To: <20080805140430.GM7193@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ashwin Bihari <abihari@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org
 
-On Thursday 07 August 2008, Ashwin Bihari wrote:
-> I did use a Total Phase Beagle 480USB protocol analyzer when this
-> issue first manifested, but there is nothing that jumped out at me as
-> a possible error or glitch. It just looks like the transactions just
-> stopped mid-way without any rhyme or reason.
+> * Madhusudhan Chikkature <madhu.cr@ti.com> [080725 13:34]:
+>> From: Madhusudhan Chikkature<madhu.cr@ti.com>
+>>
+>> ARM: OMAP3: Fixes required to make HSMMC driver as module.
+>>
+>> This patch provides the necessary fixes to make the HSMMC driver work as
+>> loadble module.
+>
+> This one does not apply, can you take a look?
+>
+> Thanks,
+>
+> Tony
 
-Why don't you post such a log, ideally with matching Linux kernel
-log data.  Maybe something would jump out to other folk.  :)
+Hi Tony,
 
+I see that you have pushed this patch which did not apply correctly. So the
+patch seems to have applied in part. Also the title for the commit seems to
+have been wronly put as removing some usb defines.
 
-> I've noticed this issue with a couple of HS flash drives, as well as,
-> a FS CD-ROM drive.
-> 
-> Would the "let SET_ADDRESS settle" change only affect the initial
-> detection? My initial insertion of device works great,
+I will post a patch which will complete the patch that I had send for HSMMC
+driver to work as a module.
 
-Good.
+Regards,
+Madhu
 
+>
+>
+>> Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
+>> Signed-off-by: Romit Dasgupta <romit@ti.com>
+>> ---
+>>  drivers/mmc/host/omap_hsmmc.c |   43
+>> +++++++++++++++++++++++++++++++-----------
+>>  1 files changed, 32 insertions(+), 11 deletions(-)
+>>
+>> Index: linux-omap-ti.git-07142008/drivers/mmc/host/omap_hsmmc.c
+>> ===================================================================
+>> --- linux-omap-ti.git-07142008.orig/drivers/mmc/host/omap_hsmmc.c	2008-07-23
+>> 16:31:56.000000000 +0530
+>> +++ linux-omap-ti.git-07142008/drivers/mmc/host/omap_hsmmc.c	2008-07-24
+>> 12:07:40.000000000 +0530
+>> @@ -764,23 +764,27 @@ static int __init omap_mmc_probe(struct
+>>  	if (IS_ERR(host->iclk)) {
+>>  		ret = PTR_ERR(host->iclk);
+>>  		host->iclk = NULL;
+>> -		goto err;
+>> +		goto err1;
+>>  	}
+>>  	host->fclk = clk_get(&pdev->dev, "mmchs_fck");
+>>  	if (IS_ERR(host->fclk)) {
+>>  		ret = PTR_ERR(host->fclk);
+>>  		host->fclk = NULL;
+>>  		clk_put(host->iclk);
+>> -		goto err;
+>> +		goto err1;
+>>  	}
+>>
+>> -	if (clk_enable(host->fclk) != 0)
+>> -		goto err;
+>> +	if (clk_enable(host->fclk) != 0) {
+>> +		clk_put(host->iclk);
+>> +		clk_put(host->fclk);
+>> +		goto err1;
+>> +	}
+>>
+>>  	if (clk_enable(host->iclk) != 0) {
+>>  		clk_disable(host->fclk);
+>> +		clk_put(host->iclk);
+>>  		clk_put(host->fclk);
+>> -		goto err;
+>> +		goto err1;
+>>  	}
+>>
+>>  	host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
+>> @@ -873,12 +877,6 @@ static int __init omap_mmc_probe(struct
+>>
+>>  	return 0;
+>>
+>> -err:
+>> -	dev_dbg(mmc_dev(host->mmc), "Probe Failed\n");
+>> -	if (host)
+>> -		mmc_free_host(mmc);
+>> -	return ret;
+>> -
+>>  irq_err:
+>>  	dev_dbg(mmc_dev(host->mmc), "Unable to configure MMC IRQs\n");
+>>  	clk_disable(host->fclk);
+>> @@ -890,6 +888,11 @@ irq_err:
+>>  		clk_put(host->dbclk);
+>>  	}
+>>
+>> +err1:
+>> +	iounmap(host->base);
+>> +err:
+>> +	dev_dbg(mmc_dev(host->mmc), "Probe Failed\n");
+>> +	release_mem_region(res->start, res->end - res->start + 1);
+>>  	if (host)
+>>  		mmc_free_host(mmc);
+>>  	return ret;
+>> @@ -898,9 +901,26 @@ irq_err:
+>>  static int omap_mmc_remove(struct platform_device *pdev)
+>>  {
+>>  	struct mmc_omap_host *host = platform_get_drvdata(pdev);
+>> +	struct resource *res;
+>> +	u16 vdd = 0;
+>> +
+>> +	if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
+>> +	/*
+>> +	 * Set the vdd back to 3V,
+>> +	 * applicable for dual volt support.
+>> +	 */
+>> +		vdd = fls(host->mmc->ocr_avail) - 1;
+>> +		if (omap_mmc_switch_opcond(host, vdd) != 0)
+>> +			host->mmc->ios.vdd = vdd;
+>> +	}
+>> +
+>> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>> +	if (res)
+>> +		release_mem_region(res->start, res->end - res->start + 1);
+>>
+>>  	platform_set_drvdata(pdev, NULL);
+>>  	if (host) {
+>> +		mmc_remove_host(host->mmc);
+>>  		host->pdata->cleanup(&pdev->dev);
+>>  		free_irq(host->irq, host);
+>>  		if (mmc_slot(host).card_detect_irq)
+>> @@ -917,6 +937,7 @@ static int omap_mmc_remove(struct platfo
+>>  		}
+>>
+>>  		mmc_free_host(host->mmc);
+>> +		iounmap(host->base);
+>>  	}
+>>
+>>  	return 0;
+>>
+>>
+>
 
-> the errors I 
-> showed are after I do a read of a large amount of data from the Flash
-> drive and essentially wedge something in the USB stream.
-
-What I'd like to establish is whether this is a case of the flash
-drive flaking out (that does happen on low end hardware!) or else
-there's something wrong on the Linux side.
-
-- Dave
 
