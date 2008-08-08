@@ -1,43 +1,96 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM MMU: add strongly-ordered memory type
-Date: Fri, 8 Aug 2008 08:16:30 +0100
-Message-ID: <20080808071630.GA2155@flint.arm.linux.org.uk>
-References: <alpine.DEB.1.00.0808041738400.18201@utopia.booyaka.com> <1218016428.25235.11.camel@pc1117.cambridge.arm.com> <13B9B4C6EF24D648824FF11BE89671620361F4E504@dlee02.ent.ti.com> <20080807073035.GA10255@flint.arm.linux.org.uk> <13B9B4C6EF24D648824FF11BE89671620361FBB4FB@dlee02.ent.ti.com> <20080807192531.GF5737@flint.arm.linux.org.uk> <13B9B4C6EF24D648824FF11BE89671620361FBB662@dlee02.ent.ti.com> <20080807212033.GH5737@flint.arm.linux.org.uk> <13B9B4C6EF24D648824FF11BE89671620361FBB835@dlee02.ent.ti.com>
+From: "chandra shekhar" <x0044955@ti.com>
+Subject: [ Resending PATCH 2/2]  McBSP preamble patch for 34xx support
+Date: Fri, 8 Aug 2008 12:50:18 +0530 (IST)
+Message-ID: <54896.192.168.10.89.1218180018.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53814 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753239AbYHHHRM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Aug 2008 03:17:12 -0400
-Content-Disposition: inline
-In-Reply-To: <13B9B4C6EF24D648824FF11BE89671620361FBB835@dlee02.ent.ti.com>
+Received: from soda.ext.ti.com ([198.47.26.145]:58060 "EHLO soda.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751969AbYHHHUY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Aug 2008 03:20:24 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m787KJGM008870
+	for <linux-omap@vger.kernel.org>; Fri, 8 Aug 2008 02:20:24 -0500
+Received: from webmail.ti.com (localhost [127.0.0.1])
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id m787KFwp007670
+	for <linux-omap@vger.kernel.org>; Fri, 8 Aug 2008 02:20:17 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
+To: linux-omap@vger.kernel.org
 
-On Thu, Aug 07, 2008 at 06:07:50PM -0500, Woodruff, Richard wrote:
-> If I write a series of control register commands to device A, then
-> write a go operation to device  B, I would hope all of A's writes
-> had completed before B gets the go.  SO gives you this.  DEVICE may
-> not with out barriers.
+Hi,
 
-This, I think, is where the problem lies.
+Resending Patch after fixing tony's comments.
 
-Device regions of the same type *are* ordered with respect to each other.
+this patch modifies the read write function to do
+16/32 bit read write depending on CPU.
 
-So, shared device accesses occur in program order.  Unshared device
-accesses occur in program order.
+Regards,
+Chandra Shekhar
 
-However, shared device accesses may occur out of order with unshared
-device accesses or memory accesses.  Unshared device accesses may
-occur out of order with shared device accesses or memory accesses.
 
-So, if both device A and device B are mapped as shared devices, then
-accesses to both occur in program order.
+Signed-off-by: Chandra Shekhar< x0044955@ti.com>
 
-If device A is mapped as a shared device and device B as an unshared
-device, then you have to use read backs and possibly barriers to
-ensure ordering.  Remember, a barrier only affects up to the CPU.
-It doesn't affect write posting downstream of the CPU.
+---
+ arch/arm/plat-omap/mcbsp.c        |   23 ++++++++++++++++++++++-
+ include/asm-arm/arch-omap/mcbsp.h |    4 ----
+ 2 files changed, 22 insertions(+), 5 deletions(-)
+
+Index: linux-omap-2.6/arch/arm/plat-omap/mcbsp.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/mcbsp.c	2008-08-07
+16:39:51.000000000 +0530
++++ linux-omap-2.6/arch/arm/plat-omap/mcbsp.c	2008-08-08 12:37:11.000000000 +0530
+@@ -30,8 +30,29 @@
+ struct omap_mcbsp **mcbsp_ptr;
+ int omap_mcbsp_count;
+
++void omap_mcbsp_write(u32 io_base, u16 reg, u32 val)
++{
++	if (cpu_class_is_omap1() || cpu_is_omap2420())
++		__raw_writew((u16)val, io_base + reg);
++	else
++		__raw_writel(val, io_base + reg);
++}
++
++int omap_mcbsp_read(u32 io_base, u16 reg)
++{
++	if (cpu_class_is_omap1() || cpu_is_omap2420())
++		return __raw_readw(io_base + reg);
++	else
++		return __raw_readl(io_base + reg);
++}
++
++#define OMAP_MCBSP_READ(base, reg) \
++			omap_mcbsp_read(base, OMAP_MCBSP_REG_##reg)
++#define OMAP_MCBSP_WRITE(base, reg, val) \
++			omap_mcbsp_write(base, OMAP_MCBSP_REG_##reg, val)
++
+ #define omap_mcbsp_check_valid_id(id)	(id < omap_mcbsp_count)
+-#define id_to_mcbsp_ptr(id)			mcbsp_ptr[id];
++#define id_to_mcbsp_ptr(id)		mcbsp_ptr[id];
+
+ static void omap_mcbsp_dump_reg(u8 id)
+ {
+Index: linux-omap-2.6/include/asm-arm/arch-omap/mcbsp.h
+===================================================================
+--- linux-omap-2.6.orig/include/asm-arm/arch-omap/mcbsp.h	2008-08-07
+16:41:17.000000000 +0530
++++ linux-omap-2.6/include/asm-arm/arch-omap/mcbsp.h	2008-08-08
+12:02:38.000000000 +0530
+@@ -139,10 +139,6 @@
+
+ #endif
+
+-#define OMAP_MCBSP_READ(base, reg)		__raw_readw((base) + OMAP_MCBSP_REG_##reg)
+-#define OMAP_MCBSP_WRITE(base, reg, val)	__raw_writew((val), (base) +
+OMAP_MCBSP_REG_##reg)
+-
+-
+ /************************** McBSP SPCR1 bit definitions ***********************/
+ #define RRST			0x0001
+ #define RRDY			0x0002
+
+
