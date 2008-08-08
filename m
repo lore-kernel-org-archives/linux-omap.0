@@ -1,96 +1,41 @@
-From: "chandra shekhar" <x0044955@ti.com>
-Subject: [ Resending PATCH 2/2]  McBSP preamble patch for 34xx support
-Date: Fri, 8 Aug 2008 12:50:18 +0530 (IST)
-Message-ID: <54896.192.168.10.89.1218180018.squirrel@dbdmail.itg.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: testers wanted: isp1301_omap conversion to new-style i2c
+	driver
+Date: Fri, 8 Aug 2008 10:29:55 +0300
+Message-ID: <20080808072954.GH24923@atomide.com>
+References: <20080617204300.77c8e516@hyperion.delvare> <20080807183416.115c67ba@hyperion.delvare> <200808071651.43297.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from soda.ext.ti.com ([198.47.26.145]:58060 "EHLO soda.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751969AbYHHHUY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Aug 2008 03:20:24 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m787KJGM008870
-	for <linux-omap@vger.kernel.org>; Fri, 8 Aug 2008 02:20:24 -0500
-Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id m787KFwp007670
-	for <linux-omap@vger.kernel.org>; Fri, 8 Aug 2008 02:20:17 -0500 (CDT)
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56045 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753532AbYHHHaL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Aug 2008 03:30:11 -0400
+Content-Disposition: inline
+In-Reply-To: <200808071651.43297.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Jean Delvare <khali@linux-fr.org>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Deepak Saxena <dsaxena@plexity.net>
 
-Hi,
+* David Brownell <david-b@pacbell.net> [080808 02:51]:
+> On Thursday 07 August 2008, Jean Delvare wrote:
+> > Still no testers for these patches? 
+> 
+> Right now I don't seem to be able to boot OMAP1 in mainline,
+> so pulling that H2 out of its box would be futile.  :(
 
-Resending Patch after fixing tony's comments.
+Grr, looks like I can't access my H2 remotely right now as my
+remote power switch is hung, and would need to be remote rebooted..
 
-this patch modifies the read write function to do
-16/32 bit read write depending on CPU.
+So I can't access H2 for few more weeks, can somebody else test
+on H2 meanwhile?
+
+BTW, this patch should OK to apply as we've had it in the
+linux-omap tree since December, and I've occasionally boot tested
+H2, last time I think was when I removed the __REG macros few
+months ago.
 
 Regards,
-Chandra Shekhar
 
-
-Signed-off-by: Chandra Shekhar< x0044955@ti.com>
-
----
- arch/arm/plat-omap/mcbsp.c        |   23 ++++++++++++++++++++++-
- include/asm-arm/arch-omap/mcbsp.h |    4 ----
- 2 files changed, 22 insertions(+), 5 deletions(-)
-
-Index: linux-omap-2.6/arch/arm/plat-omap/mcbsp.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/plat-omap/mcbsp.c	2008-08-07
-16:39:51.000000000 +0530
-+++ linux-omap-2.6/arch/arm/plat-omap/mcbsp.c	2008-08-08 12:37:11.000000000 +0530
-@@ -30,8 +30,29 @@
- struct omap_mcbsp **mcbsp_ptr;
- int omap_mcbsp_count;
-
-+void omap_mcbsp_write(u32 io_base, u16 reg, u32 val)
-+{
-+	if (cpu_class_is_omap1() || cpu_is_omap2420())
-+		__raw_writew((u16)val, io_base + reg);
-+	else
-+		__raw_writel(val, io_base + reg);
-+}
-+
-+int omap_mcbsp_read(u32 io_base, u16 reg)
-+{
-+	if (cpu_class_is_omap1() || cpu_is_omap2420())
-+		return __raw_readw(io_base + reg);
-+	else
-+		return __raw_readl(io_base + reg);
-+}
-+
-+#define OMAP_MCBSP_READ(base, reg) \
-+			omap_mcbsp_read(base, OMAP_MCBSP_REG_##reg)
-+#define OMAP_MCBSP_WRITE(base, reg, val) \
-+			omap_mcbsp_write(base, OMAP_MCBSP_REG_##reg, val)
-+
- #define omap_mcbsp_check_valid_id(id)	(id < omap_mcbsp_count)
--#define id_to_mcbsp_ptr(id)			mcbsp_ptr[id];
-+#define id_to_mcbsp_ptr(id)		mcbsp_ptr[id];
-
- static void omap_mcbsp_dump_reg(u8 id)
- {
-Index: linux-omap-2.6/include/asm-arm/arch-omap/mcbsp.h
-===================================================================
---- linux-omap-2.6.orig/include/asm-arm/arch-omap/mcbsp.h	2008-08-07
-16:41:17.000000000 +0530
-+++ linux-omap-2.6/include/asm-arm/arch-omap/mcbsp.h	2008-08-08
-12:02:38.000000000 +0530
-@@ -139,10 +139,6 @@
-
- #endif
-
--#define OMAP_MCBSP_READ(base, reg)		__raw_readw((base) + OMAP_MCBSP_REG_##reg)
--#define OMAP_MCBSP_WRITE(base, reg, val)	__raw_writew((val), (base) +
-OMAP_MCBSP_REG_##reg)
--
--
- /************************** McBSP SPCR1 bit definitions ***********************/
- #define RRST			0x0001
- #define RRDY			0x0002
-
-
+Tony
