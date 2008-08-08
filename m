@@ -1,53 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP3 GPTIMER: fix GPTIMER12 IRQ
-Date: Fri, 8 Aug 2008 12:06:24 +0300
-Message-ID: <20080808090624.GO24923@atomide.com>
-References: <alpine.DEB.1.00.0808080256150.21853@utopia.booyaka.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: testers wanted: isp1301_omap conversion to new-style i2c
+ driver
+Date: Fri, 8 Aug 2008 11:17:51 +0200
+Message-ID: <20080808111751.494702cc@hyperion.delvare>
+References: <20080617204300.77c8e516@hyperion.delvare>
+	<20080807183416.115c67ba@hyperion.delvare>
+	<200808071651.43297.david-b@pacbell.net>
+	<20080808072954.GH24923@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63579 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752073AbYHHJG0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Aug 2008 05:06:26 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.1.00.0808080256150.21853@utopia.booyaka.com>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:18699 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752470AbYHHJSF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Aug 2008 05:18:05 -0400
+In-Reply-To: <20080808072954.GH24923@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: David Brownell <david-b@pacbell.net>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Deepak Saxena <dsaxena@plexity.net>
 
-* Paul Walmsley <paul@pwsan.com> [080808 11:57]:
-> 
-> GPTIMER12 IRQ is at IRQ 95 on OMAP3, unlike OMAP2.  (ref: OMAP34xx
-> Multimedia High Security (HS) Device Silicon Revision 3.0 Security
-> Addendum Rev. B, SWPU119B)
+Hi Tony,
 
-That probably explains why it did not work earlier :) Pushing today.
+On Fri, 8 Aug 2008 10:29:55 +0300, Tony Lindgren wrote:
+> * David Brownell <david-b@pacbell.net> [080808 02:51]:
+> > On Thursday 07 August 2008, Jean Delvare wrote:
+> > > Still no testers for these patches? 
+> > 
+> > Right now I don't seem to be able to boot OMAP1 in mainline,
+> > so pulling that H2 out of its box would be futile.  :(
+> 
+> Grr, looks like I can't access my H2 remotely right now as my
+> remote power switch is hung, and would need to be remote rebooted..
+> 
+> So I can't access H2 for few more weeks, can somebody else test
+> on H2 meanwhile?
+> 
+> BTW, this patch should OK to apply as we've had it in the
+> linux-omap tree since December, and I've occasionally boot tested
+> H2, last time I think was when I removed the __REG macros few
+> months ago.
 
-Tony
+It is possible that you have had the 1st patch in your tree for some
+time. However, the second patch I wrote 1.5 month ago or so, so I doubt
+that you can have it in your tree since December 2007 ;)
 
-> 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> ---
-> 
->  arch/arm/plat-omap/dmtimer.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-> index f22506a..fcc1a02 100644
-> --- a/arch/arm/plat-omap/dmtimer.c
-> +++ b/arch/arm/plat-omap/dmtimer.c
-> @@ -237,7 +237,7 @@ static struct omap_dm_timer omap3_dm_timers[] = {
->  	{ .phys_base = 0x49040000, .irq = INT_24XX_GPTIMER9 },
->  	{ .phys_base = 0x48086000, .irq = INT_24XX_GPTIMER10 },
->  	{ .phys_base = 0x48088000, .irq = INT_24XX_GPTIMER11 },
-> -	{ .phys_base = 0x48304000, .irq = INT_24XX_GPTIMER12 },
-> +	{ .phys_base = 0x48304000, .irq = INT_34XX_GPT12_IRQ },
->  };
->  
->  static const char *omap3_dm_source_names[] __initdata = {
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Maybe your can update the omap tree with my patches? This would give
+them the testing they are missing, and then we can push them upstream.
+Ideally that would have gone in 2.6.27, but it starts being a bit late
+for that now.
+
+Thanks,
+-- 
+Jean Delvare
