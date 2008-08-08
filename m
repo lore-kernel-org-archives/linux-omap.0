@@ -1,71 +1,41 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH] ARM MMU: add strongly-ordered memory type
-Date: Fri, 08 Aug 2008 17:40:06 +0100
-Message-ID: <1218213606.12256.74.camel@pc1117.cambridge.arm.com>
-References: <alpine.DEB.1.00.0808041738400.18201@utopia.booyaka.com>
-	 <1218016428.25235.11.camel@pc1117.cambridge.arm.com>
-	 <13B9B4C6EF24D648824FF11BE89671620361F4E504@dlee02.ent.ti.com>
-	 <20080807073035.GA10255@flint.arm.linux.org.uk>
-	 <13B9B4C6EF24D648824FF11BE89671620361FBB4FB@dlee02.ent.ti.com>
-	 <20080807192531.GF5737@flint.arm.linux.org.uk>
-	 <13B9B4C6EF24D648824FF11BE89671620361FBB662@dlee02.ent.ti.com>
-	 <20080807212033.GH5737@flint.arm.linux.org.uk>
-	 <1218195889.12256.31.camel@pc1117.cambridge.arm.com>
-	 <20080808131930.GB8643@flint.arm.linux.org.uk>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 1/1]  Patch for I2C transmit overflow error
+Date: Fri, 8 Aug 2008 01:01:53 -0700
+Message-ID: <200808080101.53446.david-b@pacbell.net>
+References: <54576.192.168.10.89.1218118251.squirrel@dbdmail.itg.ti.com> <200808071638.58130.david-b@pacbell.net> <20080808061945.GC24923@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([193.131.176.58]:55129 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758910AbYHHQk3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Aug 2008 12:40:29 -0400
-In-Reply-To: <20080808131930.GB8643@flint.arm.linux.org.uk>
+Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92]:46076 "HELO
+	smtp119.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753206AbYHHS1I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Aug 2008 14:27:08 -0400
+In-Reply-To: <20080808061945.GC24923@atomide.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
+To: Tony Lindgren <tony@atomide.com>
+Cc: chandra shekhar <x0044955@ti.com>, linux-omap@vger.kernel.org
 
-On Fri, 2008-08-08 at 14:19 +0100, Russell King - ARM Linux wrote:
-> On Fri, Aug 08, 2008 at 12:44:49PM +0100, Catalin Marinas wrote:
-> > I need to check in ARM when people come from holidays but a simple LDR
-> > might not be enough to guarantee that a CPSIE etc. happens after it. You
-> > may need to add either an LDR + CMP (or some other usage of the loaded
-> > register) or LDR + DSB. I agree that DSB alone is not enough.
+On Thursday 07 August 2008, Tony Lindgren wrote:
+> * David Brownell <david-b@pacbell.net> [080808 03:37]:
+> > On Thursday 07 August 2008, chandra shekhar wrote:
+> > > This patch is to fix I2C transmit overflow error.
+> > > I guess it should fix the OSK5912 error. I dont have the board to test it.
+> > 
+> > Yes, it makes those error reports go away.
+> > I'd say to merge this patch.
 > 
-> Okay, I give up on this issue.  Weak memory ordering seems to be a
-> very very big can of worms.  And then there's this:
-> 
-> 14:07 < rmk> so we're back to making readl() itself do something with the
->              data... which brings us back to that question about why bother
->              with weak ordering
-> 14:10 < willy> you can't have weak ordering for device control registers
-> 14:11 < rmk> yes you can, provided they're ordered wrt each other.
-> 14:11 < willy> weak ordering works great for SMP or for just covering up latency
-> 14:12 < willy> no, you can't.  see writel(); readl(); udelay(1); writel();.
->                You didn't wait for 1 microsecond before accessing the device
->                again.
-> 
-> Or, to put it another way, it seems that on Linux _all_ devices must
-> be strongly ordered or be seen to Linux as being strongly ordered
-> (iow, readl and writel and friends _must_ have a barrier.)
+> Great, pushing today.
 
-Why not put a barrier in udelay? The delay functions are mainly used for
-device access.
+Further update:
 
-> TBH, this is becoming soo much of a joke, it's untrue.
+ - I'm thinking it was either audio or USB that caused the boot
+   problem, maybe old IDE code.  Disable a bunch of drivers and it
+   booted enough for the watchdog thing to vanish.
 
-For performance in a multi-stage pipeline model, you need weaker
-ordering. I'm not a hardware engineer to comment more on this.
-
-> Let's go back to having a strongly ordered memory model.  Please.
-
-On pre-ARMv6, updates to CPSR are guaranteed to take place in program
-order with a strongly-ordered memory access. This is still true on
-ARMv6/v7 for backward compatibility but the feature is deprecated and it
-might not be true for future architecture versions. At some point
-barriers might be needed.
-
--- 
-Catalin
+ - I'm getting some i2c *underflow* errors reported, and it claimed
+   write errors for one of the tps65010 registers at startup time.
 
