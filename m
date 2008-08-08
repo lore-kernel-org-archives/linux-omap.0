@@ -1,33 +1,48 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: testers wanted: isp1301_omap conversion to new-style i2c driver
-Date: Fri, 8 Aug 2008 12:48:53 +0300
-Message-ID: <20080808094853.GW30719@gandalf.research.nokia.com>
-References: <20080617204300.77c8e516@hyperion.delvare> <20080807183416.115c67ba@hyperion.delvare> <200808071651.43297.david-b@pacbell.net> <20080808072954.GH24923@atomide.com> <20080808111751.494702cc@hyperion.delvare> <20080808094551.GP24923@atomide.com>
-Reply-To: felipe.balbi@nokia.com
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [PATCH 0/2]  McBSP preamble patch for 34xx support,
+Date: Fri, 8 Aug 2008 12:53:01 +0300
+Message-ID: <20080808125301.9b18c596.jarkko.nikula@nokia.com>
+References: <63331.192.168.10.89.1218175375.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:61519 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753403AbYHHJtK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Aug 2008 05:49:10 -0400
-Content-Disposition: inline
-In-Reply-To: <20080808094551.GP24923@atomide.com>
+Received: from smtp.nokia.com ([192.100.122.233]:62977 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753344AbYHHJxW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Aug 2008 05:53:22 -0400
+In-Reply-To: <63331.192.168.10.89.1218175375.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: Jean Delvare <khali@linux-fr.org>, David Brownell <david-b@pacbell.net>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Deepak Saxena <dsaxena@plexity.net>, carlos.aguiar@indt.org.br
+To: ext chandra shekhar <x0044955@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Aug 08, 2008 at 12:45:52PM +0300, Tony Lindgren wrote:
-> Yeah, I will add it to linux-omap for testing for sure. This should be
-> easy to test though, it either works or does not.. But we need to find
-> somebody to boot it and connect USB cable to it :)
+On Fri, 8 Aug 2008 11:32:55 +0530 (IST)
+"ext chandra shekhar" <x0044955@ti.com> wrote:
 
-Hi Carlos,
+> Hi,
+> 
+> This a preamble patch series for McBSP support on OAMP34xx. it adds
+> few register definitions and and base addresses for all the McBSP
+> instances. It also modifies read/write functions to do 16/32 ops
+> depending on CPU. It doesn't add any functionality.
+> 
+Hi
 
-could you test it for us on H2 ??
+There's line wrapping on these two patches:
 
-Do you guys still have H2 boards there ?
+Subject: [PATCH 1/2]  McBSP preamble patch for 34xx support,
+Subject:  [ Resending PATCH 2/2]  McBSP preamble patch for 34xx support
 
--- 
-balbi
+patching file arch/arm/mach-omap2/mcbsp.c
+patching file include/asm-arm/arch-omap/mcbsp.h
+patch: **** malformed patch at line 182: defined(CONFIG_ARCH_OMAP730)
+
+patching file arch/arm/plat-omap/mcbsp.c
+patching file include/asm-arm/arch-omap/mcbsp.h
+patch: **** malformed patch at line 117: OMAP_MCBSP_REG_##reg)
+
+They apply by correcting them manually and don't break ASoC on N810 :-)
+
+
+Jarkko
