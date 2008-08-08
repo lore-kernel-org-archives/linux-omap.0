@@ -1,132 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2]  McBSP preamble patch for 34xx support,
-Date: Fri, 8 Aug 2008 09:59:25 +0300
-Message-ID: <20080808065924.GF24923@atomide.com>
-References: <34251.192.168.10.89.1218175609.squirrel@dbdmail.itg.ti.com> <20080808062612.GD24923@atomide.com> <00f001c8f923$53df16c0$LocalHost@wipultra806>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] ARM MMU: add strongly-ordered memory type
+Date: Fri, 8 Aug 2008 08:16:30 +0100
+Message-ID: <20080808071630.GA2155@flint.arm.linux.org.uk>
+References: <alpine.DEB.1.00.0808041738400.18201@utopia.booyaka.com> <1218016428.25235.11.camel@pc1117.cambridge.arm.com> <13B9B4C6EF24D648824FF11BE89671620361F4E504@dlee02.ent.ti.com> <20080807073035.GA10255@flint.arm.linux.org.uk> <13B9B4C6EF24D648824FF11BE89671620361FBB4FB@dlee02.ent.ti.com> <20080807192531.GF5737@flint.arm.linux.org.uk> <13B9B4C6EF24D648824FF11BE89671620361FBB662@dlee02.ent.ti.com> <20080807212033.GH5737@flint.arm.linux.org.uk> <13B9B4C6EF24D648824FF11BE89671620361FBB835@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59530 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751658AbYHHG70 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Aug 2008 02:59:26 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53814 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753239AbYHHHRM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Aug 2008 03:17:12 -0400
 Content-Disposition: inline
-In-Reply-To: <00f001c8f923$53df16c0$LocalHost@wipultra806>
+In-Reply-To: <13B9B4C6EF24D648824FF11BE89671620361FBB835@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "shekhar, chandra" <x0044955@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
 
-* shekhar, chandra <x0044955@ti.com> [080808 09:52]:
->
->
->>> ===================================================================
->>> --- linux-omap-2.6.orig/arch/arm/plat-omap/mcbsp.c 2008-08-07
->>> 16:39:51.000000000 +0530
->>> +++ linux-omap-2.6/arch/arm/plat-omap/mcbsp.c 2008-08-07  
->>> 16:45:00.000000000 +0530
->>> @@ -29,9 +29,31 @@
->>>
->>>  struct omap_mcbsp **mcbsp_ptr;
->>>  int omap_mcbsp_count;
->>> +int mcbsp_32_bit_ops;
->>> +
->>> +void omap_mcbsp_write(u32 io_base, u16 reg, u32 val)
->>> +{
->>> + if (!mcbsp_32_bit_ops)
->>> + __raw_writew((u16)val, io_base + reg);
->>> + else
->>> + __raw_writel(val, io_base + reg);
->>> +}
->>> +
->>> +int omap_mcbsp_read(u32 io_base, u16 reg)
->>> +{
->>> + if (!mcbsp_32_bit_ops)
->>> + return __raw_readw(io_base + reg);
->>> + else
->>> + return __raw_readl(io_base + reg);
->>> +}
->>> +
->>
->> The 16 vs 32-bit test above would be better done with cpu_is_omap2420()
->> than setting mcbsp_32_bit_ops. If 2420 is not selected, the test gets
->> optimized out as cpu_is_omap2420() is defined as 0.
->>
->> Regards,
->>
->> Tony
->
-> If i put a cpu check here then i will have to put either 
-> (cpu_class_is_omap1 || cpu_is_omap2420) check , or
-> !( cpu_is_omap2430) & !(cpu_is_omap34xx)  - for 16 bit ops.
->
-> i am not sure which one will be more optimized as in the second case we 
-> will have
-> a logical operator as well as cpu check. while in the first case we have  
-> just a varable check.
->
-> Let me know if i am missing something.
+On Thu, Aug 07, 2008 at 06:07:50PM -0500, Woodruff, Richard wrote:
+> If I write a series of control register commands to device A, then
+> write a go operation to device  B, I would hope all of A's writes
+> had completed before B gets the go.  SO gives you this.  DEVICE may
+> not with out barriers.
 
-if (cpu_class_is_omap1() || cpu_is_omap2420())
+This, I think, is where the problem lies.
 
-is same as
+Device regions of the same type *are* ordered with respect to each other.
 
-if (0 || 0)
+So, shared device accesses occur in program order.  Unshared device
+accesses occur in program order.
 
-when none of the omap1 boards or 2420 are not selected. So that
-should work.
+However, shared device accesses may occur out of order with unshared
+device accesses or memory accesses.  Unshared device accesses may
+occur out of order with shared device accesses or memory accesses.
 
-Tony
+So, if both device A and device B are mapped as shared devices, then
+accesses to both occur in program order.
 
-
->
->
->>
->>
->>> +#define OMAP_MCBSP_READ(base, reg) \
->>> + omap_mcbsp_read(base, OMAP_MCBSP_REG_##reg)
->>> +#define OMAP_MCBSP_WRITE(base, reg, val) \
->>> + omap_mcbsp_write(base, OMAP_MCBSP_REG_##reg, val)
->>>
->>>  #define omap_mcbsp_check_valid_id(id) (id < omap_mcbsp_count)
->>> -#define id_to_mcbsp_ptr(id) mcbsp_ptr[id];
->>> +#define id_to_mcbsp_ptr(id) mcbsp_ptr[id];
->>>
->>>  static void omap_mcbsp_dump_reg(u8 id)
->>>  {
->>> Index: linux-omap-2.6/include/asm-arm/arch-omap/mcbsp.h
->>> ===================================================================
->>> --- linux-omap-2.6.orig/include/asm-arm/arch-omap/mcbsp.h 2008-08-07
->>> 16:41:17.000000000 +0530
->>> +++ linux-omap-2.6/include/asm-arm/arch-omap/mcbsp.h 2008-08-07
->>> 16:45:00.000000000 +0530
->>> @@ -139,10 +139,6 @@
->>>
->>>  #endif
->>>
->>> -#define OMAP_MCBSP_READ(base, reg) __raw_readw((base) +  
->>> OMAP_MCBSP_REG_##reg)
->>> -#define OMAP_MCBSP_WRITE(base, reg, val) __raw_writew((val), (base) +
->>> OMAP_MCBSP_REG_##reg)
->>> -
->>> -
->>>  /************************** McBSP SPCR1 bit definitions  
->>> ***********************/
->>>  #define RRST 0x0001
->>>  #define RRDY 0x0002
->>> @@ -369,6 +365,7 @@
->>>  };
->>>  extern struct omap_mcbsp **mcbsp_ptr;
->>>  extern int omap_mcbsp_count;
->>> +extern int mcbsp_32_bit_ops;
->>>
->>>  int omap_mcbsp_init(void);
->>>  void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data  
->>> *config,
->>>
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html 
->
+If device A is mapped as a shared device and device B as an unshared
+device, then you have to use read backs and possibly barriers to
+ensure ordering.  Remember, a barrier only affects up to the CPU.
+It doesn't affect write posting downstream of the CPU.
