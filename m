@@ -1,33 +1,41 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP3 GPTIMER: fix GPTIMER12 IRQ
-Date: Sun, 10 Aug 2008 11:05:30 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0808101104080.10219@utopia.booyaka.com>
-References: <alpine.DEB.1.00.0808080256150.21853@utopia.booyaka.com> <20080808090624.GO24923@atomide.com>
+From: Igor Stoppa <igor.stoppa@nokia.com>
+Subject: Re: omap24xx is broken in current head
+Date: Sun, 10 Aug 2008 20:22:16 +0300
+Message-ID: <1218388936.24010.138.camel@localhost>
+References: <20080810115818.GG7574@frodo> <20080810121655.GH7574@frodo>
+	 <C558C578-1F45-433E-B82F-F5667CEBAFAF@student.utwente.nl>
+Reply-To: igor.stoppa@nokia.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38016 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752897AbYHJRFc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Aug 2008 13:05:32 -0400
-In-Reply-To: <20080808090624.GO24923@atomide.com>
+Received: from smtp.nokia.com ([192.100.105.134]:38059 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752041AbYHJRiz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Aug 2008 13:38:55 -0400
+In-Reply-To: <C558C578-1F45-433E-B82F-F5667CEBAFAF@student.utwente.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: ext Koen Kooi <k.kooi@student.utwente.nl>
+Cc: me@felipebalbi.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Fri, 8 Aug 2008, Tony Lindgren wrote:
+On Sun, 2008-08-10 at 14:37 +0200, ext Koen Kooi wrote:
 
-> * Paul Walmsley <paul@pwsan.com> [080808 11:57]:
-> > 
-> > GPTIMER12 IRQ is at IRQ 95 on OMAP3, unlike OMAP2.  (ref: OMAP34xx
-> > Multimedia High Security (HS) Device Silicon Revision 3.0 Security
-> > Addendum Rev. B, SWPU119B)
-> 
-> That probably explains why it did not work earlier :) Pushing today.
+> "Broken as hell" if you want to do anything NEON related with it. 
 
-Yeah, the GPTIMER1 issue on Beagle is still present.  This patch just 
-fixes the use of GPTIMER12 as a workaround...
+yup
+Very unlucky but very true.
+> I  
+> use 2007q3 with the -Os fix for compiling omap3 kernels
 
+Felipe: that's also what we should use internally, since it's the only
+one approved by our system performance team.
 
-- Paul
+-- 
+
+Cheers, Igor
+
+---
+
+Igor Stoppa
+Maemo Software - Nokia Devices R&D - Helsinki
