@@ -1,121 +1,53 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 09/10] OMAP3 SRF: Vdd2 scaling support
-Date: Mon, 11 Aug 2008 18:39:34 +0530 (IST)
-Message-ID: <50495.192.168.10.89.1218460174.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH 10/10]  OMAP3 SRF: Prevents OFF transitions
+Date: Mon, 11 Aug 2008 18:40:29 +0530 (IST)
+Message-ID: <51348.192.168.10.89.1218460229.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48300 "EHLO arroyo.ext.ti.com"
+Received: from calf.ext.ti.com ([198.47.26.144]:49343 "EHLO calf.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751627AbYHKNJl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Aug 2008 09:09:41 -0400
+	id S1751637AbYHKNKf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Aug 2008 09:10:35 -0400
 Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7BD9Z1O021191
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 11 Aug 2008 08:09:40 -0500
+	by calf.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7BDAUa8020471
+	for <linux-omap@vger.kernel.org>; Mon, 11 Aug 2008 08:10:35 -0500
 Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id m7BD9W1R023326
-	for <linux-omap@vger.kernel.org>; Mon, 11 Aug 2008 08:09:34 -0500 (CDT)
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id m7BDAQk5023891
+	for <linux-omap@vger.kernel.org>; Mon, 11 Aug 2008 08:10:28 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Adds VDD2 scaling support
+A Temp patch needed only till OFF mode is implemented.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/resource34xx.c |   35 +++++++++++++++++++++++++++++++++--
- arch/arm/plat-omap/omap-pm-srf.c   |   15 +++++----------
- 2 files changed, 38 insertions(+), 12 deletions(-)
+ arch/arm/mach-omap2/resource34xx.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.c	2008-07-21
-12:10:22.032527379 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c	2008-07-21
-12:10:22.479513287 +0530
-@@ -174,7 +174,9 @@ void init_opp(struct shared_resource *re
- int set_opp(struct shared_resource *resp, u32 target_level)
- {
- #ifdef CONFIG_MACH_OMAP_3430SDP
--	unsigned long mpu_freq;
-+	unsigned long mpu_freq, l3_freq, tput;
-+	int ind;
-+	struct bus_throughput_db *tput_db;
-
- 	if (resp->curr_level == target_level)
- 		return 0;
-@@ -195,7 +197,36 @@ int set_opp(struct shared_resource *resp
- 		}
- 		resp->curr_level = curr_vdd1_prcm_set->opp;
- 	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
--		/* Not supported yet */
-+		tput_db = resp->resource_data;
-+		tput = target_level;
-+		/* using the throughput db map to the appropriate L3 Freq */
-+		for (ind = 1; ind < MAX_VDD2_OPP; ind++)
-+			if (tput_db->throughput[ind] > tput)
-+				target_level = ind;
-+
-+		/* Set the highest OPP possible */
-+		if (ind == MAX_VDD2_OPP)
-+			target_level = ind-1;
-+
-+		if (resp->curr_level == target_level)
-+			return 0;
-+
-+		resp->curr_level = target_level;
-+
-+		l3_freq = get_freq(vdd2_rate_table + MAX_VDD2_OPP,
-+					target_level);
-+		if (resp->curr_level > target_level) {
-+			/* Scale Frequency and then voltage */
-+			clk_set_rate(vdd2_clk, l3_freq);
-+			sr_voltagescale_vcbypass(PRCM_VDD2,
-+					vdd2_volts[target_level-1]);
-+		} else {
-+			/* Scale Voltage and then frequency */
-+			sr_voltagescale_vcbypass(PRCM_VDD2,
-+					vdd2_volts[target_level-1]);
-+			clk_set_rate(vdd1_clk, l3_freq);
-+		}
-+		resp->curr_level = curr_vdd2_prcm_set->opp;
- 	}
- #endif
- 	return 0;
-Index: linux-omap-2.6/arch/arm/plat-omap/omap-pm-srf.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/plat-omap/omap-pm-srf.c	2008-07-21
-12:10:21.626540178 +0530
-+++ linux-omap-2.6/arch/arm/plat-omap/omap-pm-srf.c	2008-07-21
-12:10:22.479513287 +0530
-@@ -95,21 +95,16 @@ void omap_pm_set_min_bus_tput(struct dev
- 		return;
- 	};
-
--	if (r == 0)
-+	if (r == 0) {
- 		pr_debug("OMAP PM: remove min bus tput constraint: "
- 			 "dev %s for agent_id %d\n", dev_name(dev), agent_id);
--	else
-+		resource_release("vdd2_opp", r);
-+	} else {
- 		pr_debug("OMAP PM: add min bus tput constraint: "
- 			 "dev %s for agent_id %d: rate %ld KiB\n",
- 			 dev_name(dev), agent_id, r);
--
--	/*
--	 * This code should model the interconnect and compute the
--	 * required clock frequency, convert that to a VDD2 OPP ID, then
--	 * set the VDD2 OPP appropriately.
--	 *
--	 * TI CDP code can call constraint_set here on the VDD2 OPP.
--	 */
-+		resource_request("vdd2_opp", dev, r);
-+	}
- }
-
- void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t)
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.c	2008-08-11
+17:39:00.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c	2008-08-11
+17:39:00.000000000 +0530
+@@ -131,13 +131,13 @@ int set_pd_latency(struct shared_resourc
+ 				omap2_clkdm_wakeup(pwrdm->pwrdm_clkdms[i]);
+ 			}
+ 			pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_ON);
+-			pwrdm_set_next_pwrst(pwrdm, pd_lat_level);
++			pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_RET);
+ 			for (i = 0; pwrdm->pwrdm_clkdms[i]; i++) {
+ 				omap2_clkdm_sleep(pwrdm->pwrdm_clkdms[i]);
+ 				omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[i]);
+ 			}
+ 		} else
+-			pwrdm_set_next_pwrst(pwrdm, pd_lat_level);
++			pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_RET);
+ 		break;
+ 	case PWRDM_POWER_ON:
+ 		pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_ON);
 
 
