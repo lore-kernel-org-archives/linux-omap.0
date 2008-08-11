@@ -1,64 +1,38 @@
-From: Paul Walmsley <paul@booyaka.com>
-Subject: Re: [RFC] OMAP3: CPUIDLE & PM: Modifications and fixes
-Date: Mon, 11 Aug 2008 11:51:52 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0808111138360.10219@utopia.booyaka.com>
-References: <1215517838-7001-1-git-send-email-jouni.hogander@nokia.com> <alpine.DEB.1.00.0808110231270.10219@utopia.booyaka.com> <87r68ver5n.fsf@trdhcp146196.ntc.nokia.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] Fix isp1301_omap compile (Re: testers wanted:
+ isp1301_omap  conversion to new-style i2c driver)
+Date: Mon, 11 Aug 2008 11:40:26 -0700
+Message-ID: <20080811184026.DF0861E1FB2@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+References: <20080617204300.77c8e516@hyperion.delvare>
+ <20080807183416.115c67ba@hyperion.delvare>
+ <200808071651.43297.david-b@pacbell.net>
+ <20080808072954.GH24923@atomide.com>
+ <20080808111751.494702cc@hyperion.delvare>
+ <20080808094551.GP24923@atomide.com>
+ <20080808094853.GW30719@gandalf.research.nokia.com>
+ <20080811152410.GN25784@atomide.com>
+ <20080811182327.465d5889@hyperion.delvare>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1286855529-1218476838=:10219"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:54379 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751201AbYHKRvx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Aug 2008 13:51:53 -0400
-In-Reply-To: <87r68ver5n.fsf@trdhcp146196.ntc.nokia.com>
-Content-ID: <alpine.DEB.1.00.0808111149361.10219@utopia.booyaka.com>
+Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:37842 "HELO
+	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751867AbYHKSfD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Aug 2008 14:35:03 -0400
+In-Reply-To: <20080811182327.465d5889@hyperion.delvare>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-15?Q?H=F6gander_Jouni?= <jouni.hogander@nokia.com>
-Cc: linux-omap@vger.kernel.org, rnayak@ti.com
+To: tony@atomide.com, khali@linux-fr.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, felipe.balbi@nokia.com, dsaxena@plexity.net, carlos.aguiar@indt.org.br
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---155748971-1286855529-1218476838=:10219
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.1.00.0808111149362.10219@utopia.booyaka.com>
-
-Hello Jouni,
-
-On Mon, 11 Aug 2008, H=F6gander Jouni wrote:
-
-> "ext Paul Walmsley" <paul@booyaka.com> writes:
+> That one isn't mine, the original code already has the problem.
+> Apparently this was broken by the following patch from David:
 >
-> > Could you explain a little further why PER would have a wakeup dependen=
-cy=20
-> > on CORE?  Is this something that we should only enable under certain=20
-> > conditions, e.g., latency requirements for a device in PER?
->=20
-> This is done to make sure we don't loose any gpio interrupts: GPIO
-> wakeup/interrupt doesn't work for GPIOs in PER domain if PER is not
-> active.
+> 	f35ae6346850f6c192269b09088b20261760f0e0
 
-I'm probably misunderstanding something, but ... wouldn't it better to=20
-just keep PER powerdomain ON all the time when PER GPIOs are enabled for=20
-interrupts?  It seems possible for PER to go to retention or OFF even with=
-=20
-the CORE wkdep in place, which would result in a period of time where the=
-=20
-interrupts would be missed, no?
+Tony, actually ... there were some issues in the omap_udc code too.
 
-> >> 3. Deny hwsup mode before writing next pwrst state
-> >
-> > I missed this part of the patch - could you point me at that
-> > section?
->=20
-> Patch changes code to use set_pwrdm_state from pm34xx.c instead of
-> pwrdm_set_next_pwrst from powerdomain code. That function contains
-> denying hwsup mode.
-
-Ah, okay.
-
-
-- Paul
---155748971-1286855529-1218476838=:10219--
+> The fix should be sent to Linus ASAP, otherwise the driver won't build
+> in 2.6.27. You have my ack.
