@@ -1,246 +1,191 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 06/10] OMAP3 SRF: OPP and Frequency resource modeling
-Date: Mon, 11 Aug 2008 18:37:57 +0530 (IST)
-Message-ID: <48256.192.168.10.89.1218460077.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH 07/10] OMAP3 SRF: omap pm srf updates
+Date: Mon, 11 Aug 2008 18:38:30 +0530 (IST)
+Message-ID: <48938.192.168.10.89.1218460110.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:49198 "EHLO calf.ext.ti.com"
+Received: from soda.ext.ti.com ([198.47.26.145]:39562 "EHLO soda.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751657AbYHKNIE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Aug 2008 09:08:04 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by calf.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7BD7wxk019024
-	for <linux-omap@vger.kernel.org>; Mon, 11 Aug 2008 08:08:03 -0500
+	id S1751548AbYHKNIg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Aug 2008 09:08:36 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7BD8VCH007403
+	for <linux-omap@vger.kernel.org>; Mon, 11 Aug 2008 08:08:36 -0500
 Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id m7BD7sSA022322
-	for <linux-omap@vger.kernel.org>; Mon, 11 Aug 2008 08:07:56 -0500 (CDT)
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id m7BD8RXk025877
+	for <linux-omap@vger.kernel.org>; Mon, 11 Aug 2008 08:08:29 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Adds OPP/Frequency resources to SRF
+Updates the omap-pm apis with calls to SRF implementation
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/resource34xx.c |  101 +++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/resource34xx.h |   74 +++++++++++++++++++++++++++
- 2 files changed, 175 insertions(+)
+ arch/arm/plat-omap/omap-pm-srf.c |   84 +++++++++------------------------------
+ 1 files changed, 20 insertions(+), 64 deletions(-)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c
+Index: linux-omap-2.6/arch/arm/plat-omap/omap-pm-srf.c
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.c	2008-08-07
-15:07:08.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c	2008-08-07
-15:09:01.000000000 +0530
-@@ -146,3 +146,104 @@ int set_pd_latency(struct shared_resourc
+--- linux-omap-2.6.orig/arch/arm/plat-omap/omap-pm-srf.c	2008-07-21
+12:10:19.824596984 +0530
++++ linux-omap-2.6/arch/arm/plat-omap/omap-pm-srf.c	2008-07-21
+12:10:21.626540178 +0530
+@@ -25,6 +25,7 @@
+ #include <linux/init.h>
+ #include <linux/cpufreq.h>
+ #include <linux/device.h>
++#include <linux/module.h>
+
+ /* Interface documentation is in asm/arch/omap-pm.h */
+ #include <asm/arch/omap-pm.h>
+@@ -121,6 +122,7 @@ void omap_pm_set_max_dev_wakeup_lat(stru
+ 		WARN_ON(1);
+ 		return;
+ 	};
++
+ 	/* Look for the devices Power Domain */
+ 	/* TODO: Put this back in once tiocp layer is available
+ 	tiocp_dev = container_of(dev, struct tiocp, dev);
+@@ -138,19 +140,6 @@ void omap_pm_set_max_dev_wakeup_lat(stru
+ 		res_name = get_lat_res_name(pwrdm_dev->name);
+ 		resource_request(res_name, dev, t);
  	}
- 	return 0;
+-
+-	/*
+-	 * For current Linux, this needs to map the device to a
+-	 * powerdomain, then go through the list of current max lat
+-	 * constraints on that powerdomain and find the smallest.  If
+-	 * the latency constraint has changed, the code should
+-	 * recompute the state to enter for the next powerdomain
+-	 * state.  Conceivably, this code should also determine
+-	 * whether to actually disable the device clocks or not,
+-	 * depending on how long it takes to re-enable the clocks.
+-	 *
+-	 * TI CDP code can call constraint_set here.
+-	 */
  }
-+
-+static struct clk *vdd1_clk;
-+static struct clk *vdd2_clk;
-+static struct device dummy_srf_dev;
-+
-+/**
-+ * init_opp - Initialize the OPP resource
-+ */
-+void init_opp(struct shared_resource *resp)
-+{
-+	resp->no_of_users = 0;
-+	/* Initialize the current level of the OPP resource
-+	* to the  opp set by u-boot.
+
+ void omap_pm_set_max_sdma_lat(struct device *dev, long t)
+@@ -169,21 +158,9 @@ void omap_pm_set_max_sdma_lat(struct dev
+ 			 "dev %s, t = %ld usec\n", dev_name(dev), t);
+ 		resource_request("core_latency", dev, t);
+ 	}
+-
+-	/*
+-	 * For current Linux PM QOS params, this code should scan the
+-	 * list of maximum CPU and DMA latencies and select the
+-	 * smallest, then set cpu_dma_latency pm_qos_param
+-	 * accordingly.
+-	 *
+-	 * For future Linux PM QOS params, with separate CPU and DMA
+-	 * latency params, this code should just set the dma_latency param.
+-	 *
+-	 * TI CDP code can call constraint_set here.
+-	 */
+-
+ }
+
++static struct device dummy_dsp_dev;
+
+ /*
+  * DSP Bridge-specific constraints
+@@ -200,6 +177,7 @@ const struct omap_opp *omap_pm_dsp_get_o
+
+ 	return NULL;
+ }
++EXPORT_SYMBOL(omap_pm_dsp_get_opp_table);
+
+ void omap_pm_dsp_set_min_opp(u8 opp_id)
+ {
+@@ -210,36 +188,21 @@ void omap_pm_dsp_set_min_opp(u8 opp_id)
+
+ 	pr_debug("OMAP PM: DSP requests minimum VDD1 OPP to be %d\n", opp_id);
+
+-	/*
+-	 *
+-	 * For l-o dev tree, our VDD1 clk is keyed on OPP ID, so we
+-	 * can just test to see which is higher, the CPU's desired OPP
+-	 * ID or the DSP's desired OPP ID, and use whichever is
+-	 * highest.
+-	 *
+-	 * In CDP12.14+, the VDD1 OPP custom clock that controls the DSP
+-	 * rate is keyed on MPU speed, not the OPP ID.  So we need to
+-	 * map the OPP ID to the MPU speed for use with clk_set_rate()
+-	 * if it is higher than the current OPP clock rate.
+-	 *
+-	 */
+-}
++	/* For now pass a dummy_dev struct for SRF to identify the caller.
++	* Maybe its good to have DSP pass this as an argument
 +	*/
-+	if (strcmp(resp->name, "vdd1_opp") == 0) {
-+		resp->curr_level = curr_vdd1_prcm_set->opp;
-+		vdd1_clk = clk_get(NULL, "virt_vdd1_prcm_set");
-+	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
-+		resp->curr_level = curr_vdd2_prcm_set->opp;
-+		vdd2_clk = clk_get(NULL, "virt_vdd2_prcm_set");
-+	}
++	resource_request("vdd1_opp", &dummy_dsp_dev, opp_id);
 +	return;
+
 +}
++EXPORT_SYMBOL(omap_pm_dsp_set_min_opp);
+
+ u8 omap_pm_dsp_get_opp(void)
+ {
+ 	pr_debug("OMAP PM: DSP requests current DSP OPP ID\n");
+-
+-	/*
+-	 * For l-o dev tree, call clk_get_rate() on VDD1 OPP clock
+-	 *
+-	 * CDP12.14+:
+-	 * Call clk_get_rate() on the OPP custom clock, map that to an
+-	 * OPP ID using the tables defined in board-*.c/chip-*.c files.
+-	 */
+-
+-	return 0;
++	return resource_get_level("vdd1_opp");
+ }
++EXPORT_SYMBOL(omap_pm_dsp_get_opp);
+
+ /*
+  * CPUFreq-originated constraint
+@@ -261,6 +224,8 @@ struct cpufreq_frequency_table **omap_pm
+ 	return NULL;
+ }
+
++static struct device dummy_cpufreq_dev;
 +
-+int set_opp(struct shared_resource *resp, u32 target_level)
-+{
-+#ifdef CONFIG_MACH_OMAP_3430SDP
-+	unsigned long mpu_freq;
-+	if (strcmp(resp->name, "vdd1_opp") == 0) {
-+		mpu_freq = get_freq(vdd1_rate_table + MAX_VDD1_OPP,
-+					target_level);
-+		clk_set_rate(vdd1_clk, mpu_freq);
-+		resp->curr_level = curr_vdd1_prcm_set->opp;
-+	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
-+		/* Not supported yet */
-+	}
-+#endif
-+	return 0;
-+}
-+
-+/**
-+ * validate_opp - Validates if valid VDD1 OPP's are passed as the
-+ * target_level.
-+ * VDD2 OPP levels are passed as L3 throughput, which are then mapped
-+ * to an appropriate OPP.
-+ */
-+int validate_opp(struct shared_resource *resp, u32 target_level)
-+{
-+	return 0;
-+}
-+
-+/**
-+ * init_freq - Initialize the frequency resource.
-+ */
-+void init_freq(struct shared_resource *resp)
-+{
-+#ifdef CONFIG_MACH_OMAP_3430SDP
-+	char *linked_res_name;
-+	resp->no_of_users = 0;
-+
-+	linked_res_name = (char *)resp->resource_data;
-+	/* Initialize the current level of the Freq resource
-+	* to the frequency set by u-boot.
-+	*/
-+	if (strcmp(resp->name, "mpu_freq") == 0)
-+		/* MPU freq in Mhz */
-+		resp->curr_level = curr_vdd1_prcm_set->speed;
-+	else if (strcmp(resp->name, "dsp_freq") == 0)
-+		/* DSP freq in Mhz */
-+		resp->curr_level = get_freq(iva2_rate_table + MAX_VDD2_OPP,
-+						curr_vdd1_prcm_set->opp);
-+#endif
+ void omap_pm_cpu_set_freq(unsigned long f)
+ {
+ 	if (f == 0) {
+@@ -271,26 +236,17 @@ void omap_pm_cpu_set_freq(unsigned long
+ 	pr_debug("OMAP PM: CPUFreq requests CPU frequency to be set to %lu\n",
+ 		 f);
+
+-	/*
+-	 * For l-o dev tree, determine whether MPU freq or DSP OPP id
+-	 * freq is higher.  Find the OPP ID corresponding to the
+-	 * higher frequency.  Call clk_round_rate() and clk_set_rate()
+-	 * on the OPP custom clock.
+-	 *
+-	 * CDP should just be able to set the VDD1 OPP clock rate here.
+-	 */
++	resource_request("mpu_freq", &dummy_cpufreq_dev, f);
 +	return;
-+}
-+
-+int set_freq(struct shared_resource *resp, u32 target_level)
-+{
-+#ifdef CONFIG_MACH_OMAP_3430SDP
-+	unsigned int vdd1_opp;
-+
-+	if (strcmp(resp->name, "mpu_freq") == 0)
-+		vdd1_opp = get_opp(vdd1_rate_table + MAX_VDD1_OPP,
-+							target_level);
-+	else if (strcmp(resp->name, "dsp_freq") == 0)
-+		vdd1_opp = get_opp(iva2_rate_table + MAX_VDD1_OPP,
-+							target_level);
-+
-+	if (vdd1_opp == MIN_VDD1_OPP)
-+		resource_release("vdd1_opp", &dummy_srf_dev);
-+	else
-+		resource_request("vdd1_opp", &dummy_srf_dev, vdd1_opp);
-+
-+	resp->curr_level = target_level;
-+#endif
-+	return 0;
-+}
-+
-+int validate_freq(struct shared_resource *resp, u32 target_level)
-+{
-+	return 0;
-+}
-Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.h	2008-08-07
-15:07:02.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h	2008-08-07
-15:31:42.000000000 +0530
-@@ -22,8 +22,17 @@
- #define __ARCH_ARM_MACH_OMAP2_RESOURCE_H
+ }
++EXPORT_SYMBOL(omap_pm_cpu_set_freq);
 
- #include <asm/arch/resource.h>
-+#include <linux/clk.h>
-+#include <asm/arch/clock.h>
- #include <asm/arch/powerdomain.h>
+ unsigned long omap_pm_cpu_get_freq(void)
+ {
+ 	pr_debug("OMAP PM: CPUFreq requests current CPU frequency\n");
+-
+-	/*
+-	 * Call clk_get_rate() on the mpu_ck.
+-	 */
+-
+-	return 0;
++	return resource_get_level("mpu_freq");
+ }
++EXPORT_SYMBOL(omap_pm_cpu_get_freq);
 
-+extern struct vdd_prcm_config *curr_vdd1_prcm_set;
-+extern struct vdd_prcm_config *curr_vdd2_prcm_set;
-+extern unsigned int get_freq(struct  vdd_prcm_config *, unsigned long);
-+extern unsigned int get_opp(struct vdd_prcm_config *, unsigned long);
-+extern struct vdd_prcm_config vdd1_rate_table[];
-+extern struct vdd_prcm_config vdd2_rate_table[];
-+extern struct vdd_prcm_config iva2_rate_table[];
- /**
-  * mpu_latency/core_latency are used to control the cpuidle C state.
-  */
-@@ -207,6 +216,66 @@ static struct shared_resource emu_pwrdm_
- 	.ops		= &pd_lat_res_ops,
- };
-
-+void init_opp(struct shared_resource *resp);
-+int set_opp(struct shared_resource *resp, u32 target_level);
-+int validate_opp(struct shared_resource *resp, u32 target_level);
-+void init_freq(struct shared_resource *resp);
-+int set_freq(struct shared_resource *resp, u32 target_level);
-+int validate_freq(struct shared_resource *resp, u32 target_level);
-+
-+struct bus_throughput_db {
-+	/* Throughput for each OPP/Freq of the bus */
-+	unsigned long throughput[3];
-+};
-+
-+static struct shared_resource_ops opp_res_ops = {
-+	.init           = init_opp,
-+	.change_level   = set_opp,
-+	.validate_level = validate_opp,
-+};
-+
-+static struct shared_resource vdd1_opp = {
-+	.name           = "vdd1_opp",
-+	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.ops            = &opp_res_ops,
-+};
-+
-+/* Throughput in KiB/s */
-+static struct bus_throughput_db l3_throughput_db = {
-+	.throughput[0] = 0,
-+	.throughput[1] = 100,
-+	.throughput[2] = 250,
-+};
-+
-+static struct shared_resource vdd2_opp = {
-+	.name           = "vdd2_opp",
-+	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data  = &l3_throughput_db,
-+	.ops            = &opp_res_ops,
-+};
-+
-+static char linked_res[] = "vdd1_opp";
-+
-+static struct shared_resource_ops freq_res_ops = {
-+	.init           = init_freq,
-+	.change_level   = set_freq,
-+	.validate_level = validate_freq,
-+};
-+
-+static struct shared_resource mpu_freq = {
-+	.name           = "mpu_freq",
-+	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data  = &linked_res,
-+	.ops            = &freq_res_ops,
-+};
-+
-+static struct shared_resource dsp_freq = {
-+	.name           = "dsp_freq",
-+	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data  = &linked_res,
-+	.ops            = &freq_res_ops,
-+};
-+
- struct shared_resource *resources_omap[] __initdata = {
- 	&mpu_latency,
- 	&core_latency,
-@@ -220,6 +289,11 @@ struct shared_resource *resources_omap[]
- 	&neon_pwrdm_latency,
- 	&usbhost_pwrdm_latency,
- 	&emu_pwrdm_latency,
-+	/* OPP/frequency resources */
-+	&vdd1_opp,
-+	&vdd2_opp,
-+	&mpu_freq,
-+	&dsp_freq,
- 	NULL
- };
+ struct device omap_pm_dev;
 
 
 
