@@ -1,114 +1,121 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 08/10] OMAP3 SRF: voltage scaling support
-Date: Mon, 11 Aug 2008 18:39:01 +0530 (IST)
-Message-ID: <49698.192.168.10.89.1218460141.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH 09/10] OMAP3 SRF: Vdd2 scaling support
+Date: Mon, 11 Aug 2008 18:39:34 +0530 (IST)
+Message-ID: <50495.192.168.10.89.1218460174.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from soda.ext.ti.com ([198.47.26.145]:39590 "EHLO soda.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48300 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751629AbYHKNJH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Aug 2008 09:09:07 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7BD92fj007695
-	for <linux-omap@vger.kernel.org>; Mon, 11 Aug 2008 08:09:07 -0500
+	id S1751627AbYHKNJl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Aug 2008 09:09:41 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7BD9Z1O021191
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 11 Aug 2008 08:09:40 -0500
 Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id m7BD8wSf026105
-	for <linux-omap@vger.kernel.org>; Mon, 11 Aug 2008 08:09:00 -0500 (CDT)
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id m7BD9W1R023326
+	for <linux-omap@vger.kernel.org>; Mon, 11 Aug 2008 08:09:34 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Adds Voltage scaling support
+Adds VDD2 scaling support
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/board-3430sdp.c |   12 ++++++++++++
- arch/arm/mach-omap2/resource34xx.c  |   17 ++++++++++++++++-
- arch/arm/mach-omap2/resource34xx.h  |    3 +++
- 3 files changed, 31 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/resource34xx.c |   35 +++++++++++++++++++++++++++++++++--
+ arch/arm/plat-omap/omap-pm-srf.c   |   15 +++++----------
+ 2 files changed, 38 insertions(+), 12 deletions(-)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/board-3430sdp.c	2008-08-11
-17:16:07.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c	2008-08-11
-17:17:58.000000000 +0530
-@@ -94,6 +94,18 @@ struct vdd_prcm_config iva2_rate_table[]
-
- #define TWL4030_MSECURE_GPIO 22
-
-+u8 vdd1_volts[MAX_VDD1_OPP] = {
-+	/* Vsel corresponding to 0.9V (OPP1), 1.00V (OPP2),
-+	 * 1.20V (OPP3), 1.27V (OPP4), 1.35 (OPP5)
-+	 */
-+	0x18, 0x20, 0x30, 0x36, 0x3C
-+};
-+
-+u8 vdd2_volts[MAX_VDD2_OPP] = {
-+	/* Vsel corresponding to 0.9V (OPP1), 1.00V (OPP2), 1.15 (OPP3) */
-+	0x18, 0x20, 0x2C
-+};
-+
- static struct resource sdp3430_smc91x_resources[] = {
- 	[0] = {
- 		.start	= OMAP34XX_ETHR_START,
 Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.c	2008-08-11
-17:17:23.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c	2008-08-11
-17:22:02.000000000 +0530
-@@ -19,6 +19,7 @@
- #include <linux/pm_qos_params.h>
- #include <asm/arch/powerdomain.h>
- #include <asm/arch/clockdomain.h>
-+#include "smartreflex.h"
- #include "resource34xx.h"
-
- /**
-@@ -174,10 +175,24 @@ int set_opp(struct shared_resource *resp
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.c	2008-07-21
+12:10:22.032527379 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c	2008-07-21
+12:10:22.479513287 +0530
+@@ -174,7 +174,9 @@ void init_opp(struct shared_resource *re
+ int set_opp(struct shared_resource *resp, u32 target_level)
  {
  #ifdef CONFIG_MACH_OMAP_3430SDP
- 	unsigned long mpu_freq;
-+
-+	if (resp->curr_level == target_level)
-+		return 0;
-+
- 	if (strcmp(resp->name, "vdd1_opp") == 0) {
- 		mpu_freq = get_freq(vdd1_rate_table + MAX_VDD1_OPP,
- 					target_level);
--		clk_set_rate(vdd1_clk, mpu_freq);
-+		if (resp->curr_level > target_level) {
-+			/* Scale Frequency and then voltage */
-+			clk_set_rate(vdd1_clk, mpu_freq);
-+			sr_voltagescale_vcbypass(PRCM_VDD1,
-+					vdd1_volts[target_level-1]);
-+		} else {
-+			/* Scale Voltage and then frequency */
-+			sr_voltagescale_vcbypass(PRCM_VDD1,
-+					vdd1_volts[target_level-1]);
-+			clk_set_rate(vdd1_clk, mpu_freq);
-+		}
+-	unsigned long mpu_freq;
++	unsigned long mpu_freq, l3_freq, tput;
++	int ind;
++	struct bus_throughput_db *tput_db;
+
+ 	if (resp->curr_level == target_level)
+ 		return 0;
+@@ -195,7 +197,36 @@ int set_opp(struct shared_resource *resp
+ 		}
  		resp->curr_level = curr_vdd1_prcm_set->opp;
  	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
- 		/* Not supported yet */
-Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h
+-		/* Not supported yet */
++		tput_db = resp->resource_data;
++		tput = target_level;
++		/* using the throughput db map to the appropriate L3 Freq */
++		for (ind = 1; ind < MAX_VDD2_OPP; ind++)
++			if (tput_db->throughput[ind] > tput)
++				target_level = ind;
++
++		/* Set the highest OPP possible */
++		if (ind == MAX_VDD2_OPP)
++			target_level = ind-1;
++
++		if (resp->curr_level == target_level)
++			return 0;
++
++		resp->curr_level = target_level;
++
++		l3_freq = get_freq(vdd2_rate_table + MAX_VDD2_OPP,
++					target_level);
++		if (resp->curr_level > target_level) {
++			/* Scale Frequency and then voltage */
++			clk_set_rate(vdd2_clk, l3_freq);
++			sr_voltagescale_vcbypass(PRCM_VDD2,
++					vdd2_volts[target_level-1]);
++		} else {
++			/* Scale Voltage and then frequency */
++			sr_voltagescale_vcbypass(PRCM_VDD2,
++					vdd2_volts[target_level-1]);
++			clk_set_rate(vdd1_clk, l3_freq);
++		}
++		resp->curr_level = curr_vdd2_prcm_set->opp;
+ 	}
+ #endif
+ 	return 0;
+Index: linux-omap-2.6/arch/arm/plat-omap/omap-pm-srf.c
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.h	2008-08-11
-17:17:23.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h	2008-08-11
-17:17:58.000000000 +0530
-@@ -33,6 +33,9 @@ extern unsigned int get_opp(struct vdd_p
- extern struct vdd_prcm_config vdd1_rate_table[];
- extern struct vdd_prcm_config vdd2_rate_table[];
- extern struct vdd_prcm_config iva2_rate_table[];
-+extern u8 vdd1_volts[];
-+extern u8 vdd2_volts[];
-+extern int sr_voltagescale_vcbypass(u32 target_opp, u8 vsel);
- /**
-  * mpu_latency/core_latency are used to control the cpuidle C state.
-  */
+--- linux-omap-2.6.orig/arch/arm/plat-omap/omap-pm-srf.c	2008-07-21
+12:10:21.626540178 +0530
++++ linux-omap-2.6/arch/arm/plat-omap/omap-pm-srf.c	2008-07-21
+12:10:22.479513287 +0530
+@@ -95,21 +95,16 @@ void omap_pm_set_min_bus_tput(struct dev
+ 		return;
+ 	};
+
+-	if (r == 0)
++	if (r == 0) {
+ 		pr_debug("OMAP PM: remove min bus tput constraint: "
+ 			 "dev %s for agent_id %d\n", dev_name(dev), agent_id);
+-	else
++		resource_release("vdd2_opp", r);
++	} else {
+ 		pr_debug("OMAP PM: add min bus tput constraint: "
+ 			 "dev %s for agent_id %d: rate %ld KiB\n",
+ 			 dev_name(dev), agent_id, r);
+-
+-	/*
+-	 * This code should model the interconnect and compute the
+-	 * required clock frequency, convert that to a VDD2 OPP ID, then
+-	 * set the VDD2 OPP appropriately.
+-	 *
+-	 * TI CDP code can call constraint_set here on the VDD2 OPP.
+-	 */
++		resource_request("vdd2_opp", dev, r);
++	}
+ }
+
+ void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t)
 
 
