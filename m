@@ -1,191 +1,114 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 07/10] OMAP3 SRF: omap pm srf updates
-Date: Mon, 11 Aug 2008 18:38:30 +0530 (IST)
-Message-ID: <48938.192.168.10.89.1218460110.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH 08/10] OMAP3 SRF: voltage scaling support
+Date: Mon, 11 Aug 2008 18:39:01 +0530 (IST)
+Message-ID: <49698.192.168.10.89.1218460141.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from soda.ext.ti.com ([198.47.26.145]:39562 "EHLO soda.ext.ti.com"
+Received: from soda.ext.ti.com ([198.47.26.145]:39590 "EHLO soda.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751548AbYHKNIg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Aug 2008 09:08:36 -0400
+	id S1751629AbYHKNJH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Aug 2008 09:09:07 -0400
 Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7BD8VCH007403
-	for <linux-omap@vger.kernel.org>; Mon, 11 Aug 2008 08:08:36 -0500
+	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7BD92fj007695
+	for <linux-omap@vger.kernel.org>; Mon, 11 Aug 2008 08:09:07 -0500
 Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id m7BD8RXk025877
-	for <linux-omap@vger.kernel.org>; Mon, 11 Aug 2008 08:08:29 -0500 (CDT)
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id m7BD8wSf026105
+	for <linux-omap@vger.kernel.org>; Mon, 11 Aug 2008 08:09:00 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Updates the omap-pm apis with calls to SRF implementation
+Adds Voltage scaling support
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/plat-omap/omap-pm-srf.c |   84 +++++++++------------------------------
- 1 files changed, 20 insertions(+), 64 deletions(-)
+ arch/arm/mach-omap2/board-3430sdp.c |   12 ++++++++++++
+ arch/arm/mach-omap2/resource34xx.c  |   17 ++++++++++++++++-
+ arch/arm/mach-omap2/resource34xx.h  |    3 +++
+ 3 files changed, 31 insertions(+), 1 deletion(-)
 
-Index: linux-omap-2.6/arch/arm/plat-omap/omap-pm-srf.c
+Index: linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/plat-omap/omap-pm-srf.c	2008-07-21
-12:10:19.824596984 +0530
-+++ linux-omap-2.6/arch/arm/plat-omap/omap-pm-srf.c	2008-07-21
-12:10:21.626540178 +0530
-@@ -25,6 +25,7 @@
- #include <linux/init.h>
- #include <linux/cpufreq.h>
- #include <linux/device.h>
-+#include <linux/module.h>
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/board-3430sdp.c	2008-08-11
+17:16:07.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c	2008-08-11
+17:17:58.000000000 +0530
+@@ -94,6 +94,18 @@ struct vdd_prcm_config iva2_rate_table[]
 
- /* Interface documentation is in asm/arch/omap-pm.h */
- #include <asm/arch/omap-pm.h>
-@@ -121,6 +122,7 @@ void omap_pm_set_max_dev_wakeup_lat(stru
- 		WARN_ON(1);
- 		return;
- 	};
+ #define TWL4030_MSECURE_GPIO 22
+
++u8 vdd1_volts[MAX_VDD1_OPP] = {
++	/* Vsel corresponding to 0.9V (OPP1), 1.00V (OPP2),
++	 * 1.20V (OPP3), 1.27V (OPP4), 1.35 (OPP5)
++	 */
++	0x18, 0x20, 0x30, 0x36, 0x3C
++};
 +
- 	/* Look for the devices Power Domain */
- 	/* TODO: Put this back in once tiocp layer is available
- 	tiocp_dev = container_of(dev, struct tiocp, dev);
-@@ -138,19 +140,6 @@ void omap_pm_set_max_dev_wakeup_lat(stru
- 		res_name = get_lat_res_name(pwrdm_dev->name);
- 		resource_request(res_name, dev, t);
- 	}
--
--	/*
--	 * For current Linux, this needs to map the device to a
--	 * powerdomain, then go through the list of current max lat
--	 * constraints on that powerdomain and find the smallest.  If
--	 * the latency constraint has changed, the code should
--	 * recompute the state to enter for the next powerdomain
--	 * state.  Conceivably, this code should also determine
--	 * whether to actually disable the device clocks or not,
--	 * depending on how long it takes to re-enable the clocks.
--	 *
--	 * TI CDP code can call constraint_set here.
--	 */
- }
-
- void omap_pm_set_max_sdma_lat(struct device *dev, long t)
-@@ -169,21 +158,9 @@ void omap_pm_set_max_sdma_lat(struct dev
- 			 "dev %s, t = %ld usec\n", dev_name(dev), t);
- 		resource_request("core_latency", dev, t);
- 	}
--
--	/*
--	 * For current Linux PM QOS params, this code should scan the
--	 * list of maximum CPU and DMA latencies and select the
--	 * smallest, then set cpu_dma_latency pm_qos_param
--	 * accordingly.
--	 *
--	 * For future Linux PM QOS params, with separate CPU and DMA
--	 * latency params, this code should just set the dma_latency param.
--	 *
--	 * TI CDP code can call constraint_set here.
--	 */
--
- }
-
-+static struct device dummy_dsp_dev;
-
- /*
-  * DSP Bridge-specific constraints
-@@ -200,6 +177,7 @@ const struct omap_opp *omap_pm_dsp_get_o
-
- 	return NULL;
- }
-+EXPORT_SYMBOL(omap_pm_dsp_get_opp_table);
-
- void omap_pm_dsp_set_min_opp(u8 opp_id)
- {
-@@ -210,36 +188,21 @@ void omap_pm_dsp_set_min_opp(u8 opp_id)
-
- 	pr_debug("OMAP PM: DSP requests minimum VDD1 OPP to be %d\n", opp_id);
-
--	/*
--	 *
--	 * For l-o dev tree, our VDD1 clk is keyed on OPP ID, so we
--	 * can just test to see which is higher, the CPU's desired OPP
--	 * ID or the DSP's desired OPP ID, and use whichever is
--	 * highest.
--	 *
--	 * In CDP12.14+, the VDD1 OPP custom clock that controls the DSP
--	 * rate is keyed on MPU speed, not the OPP ID.  So we need to
--	 * map the OPP ID to the MPU speed for use with clk_set_rate()
--	 * if it is higher than the current OPP clock rate.
--	 *
--	 */
--}
-+	/* For now pass a dummy_dev struct for SRF to identify the caller.
-+	* Maybe its good to have DSP pass this as an argument
-+	*/
-+	resource_request("vdd1_opp", &dummy_dsp_dev, opp_id);
-+	return;
-
-+}
-+EXPORT_SYMBOL(omap_pm_dsp_set_min_opp);
-
- u8 omap_pm_dsp_get_opp(void)
- {
- 	pr_debug("OMAP PM: DSP requests current DSP OPP ID\n");
--
--	/*
--	 * For l-o dev tree, call clk_get_rate() on VDD1 OPP clock
--	 *
--	 * CDP12.14+:
--	 * Call clk_get_rate() on the OPP custom clock, map that to an
--	 * OPP ID using the tables defined in board-*.c/chip-*.c files.
--	 */
--
--	return 0;
-+	return resource_get_level("vdd1_opp");
- }
-+EXPORT_SYMBOL(omap_pm_dsp_get_opp);
-
- /*
-  * CPUFreq-originated constraint
-@@ -261,6 +224,8 @@ struct cpufreq_frequency_table **omap_pm
- 	return NULL;
- }
-
-+static struct device dummy_cpufreq_dev;
++u8 vdd2_volts[MAX_VDD2_OPP] = {
++	/* Vsel corresponding to 0.9V (OPP1), 1.00V (OPP2), 1.15 (OPP3) */
++	0x18, 0x20, 0x2C
++};
 +
- void omap_pm_cpu_set_freq(unsigned long f)
+ static struct resource sdp3430_smc91x_resources[] = {
+ 	[0] = {
+ 		.start	= OMAP34XX_ETHR_START,
+Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.c	2008-08-11
+17:17:23.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c	2008-08-11
+17:22:02.000000000 +0530
+@@ -19,6 +19,7 @@
+ #include <linux/pm_qos_params.h>
+ #include <asm/arch/powerdomain.h>
+ #include <asm/arch/clockdomain.h>
++#include "smartreflex.h"
+ #include "resource34xx.h"
+
+ /**
+@@ -174,10 +175,24 @@ int set_opp(struct shared_resource *resp
  {
- 	if (f == 0) {
-@@ -271,26 +236,17 @@ void omap_pm_cpu_set_freq(unsigned long
- 	pr_debug("OMAP PM: CPUFreq requests CPU frequency to be set to %lu\n",
- 		 f);
-
--	/*
--	 * For l-o dev tree, determine whether MPU freq or DSP OPP id
--	 * freq is higher.  Find the OPP ID corresponding to the
--	 * higher frequency.  Call clk_round_rate() and clk_set_rate()
--	 * on the OPP custom clock.
--	 *
--	 * CDP should just be able to set the VDD1 OPP clock rate here.
--	 */
-+	resource_request("mpu_freq", &dummy_cpufreq_dev, f);
-+	return;
- }
-+EXPORT_SYMBOL(omap_pm_cpu_set_freq);
-
- unsigned long omap_pm_cpu_get_freq(void)
- {
- 	pr_debug("OMAP PM: CPUFreq requests current CPU frequency\n");
--
--	/*
--	 * Call clk_get_rate() on the mpu_ck.
--	 */
--
--	return 0;
-+	return resource_get_level("mpu_freq");
- }
-+EXPORT_SYMBOL(omap_pm_cpu_get_freq);
-
- struct device omap_pm_dev;
-
+ #ifdef CONFIG_MACH_OMAP_3430SDP
+ 	unsigned long mpu_freq;
++
++	if (resp->curr_level == target_level)
++		return 0;
++
+ 	if (strcmp(resp->name, "vdd1_opp") == 0) {
+ 		mpu_freq = get_freq(vdd1_rate_table + MAX_VDD1_OPP,
+ 					target_level);
+-		clk_set_rate(vdd1_clk, mpu_freq);
++		if (resp->curr_level > target_level) {
++			/* Scale Frequency and then voltage */
++			clk_set_rate(vdd1_clk, mpu_freq);
++			sr_voltagescale_vcbypass(PRCM_VDD1,
++					vdd1_volts[target_level-1]);
++		} else {
++			/* Scale Voltage and then frequency */
++			sr_voltagescale_vcbypass(PRCM_VDD1,
++					vdd1_volts[target_level-1]);
++			clk_set_rate(vdd1_clk, mpu_freq);
++		}
+ 		resp->curr_level = curr_vdd1_prcm_set->opp;
+ 	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
+ 		/* Not supported yet */
+Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.h	2008-08-11
+17:17:23.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h	2008-08-11
+17:17:58.000000000 +0530
+@@ -33,6 +33,9 @@ extern unsigned int get_opp(struct vdd_p
+ extern struct vdd_prcm_config vdd1_rate_table[];
+ extern struct vdd_prcm_config vdd2_rate_table[];
+ extern struct vdd_prcm_config iva2_rate_table[];
++extern u8 vdd1_volts[];
++extern u8 vdd2_volts[];
++extern int sr_voltagescale_vcbypass(u32 target_opp, u8 vsel);
+ /**
+  * mpu_latency/core_latency are used to control the cpuidle C state.
+  */
 
 
