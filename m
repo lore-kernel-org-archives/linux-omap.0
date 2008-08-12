@@ -1,39 +1,37 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] Fix isp1301_omap compile (Re: testers wanted:
- isp1301_omap  conversion to new-style i2c driver)
-Date: Tue, 12 Aug 2008 03:17:53 -0700
-Message-ID: <20080812101753.02CC4362AC4@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-References: <20080617204300.77c8e516@hyperion.delvare>
- <20080807183416.115c67ba@hyperion.delvare>
- <200808071651.43297.david-b@pacbell.net>
- <20080808072954.GH24923@atomide.com>
- <20080808111751.494702cc@hyperion.delvare>
- <20080808094551.GP24923@atomide.com>
- <20080808094853.GW30719@gandalf.research.nokia.com>
- <20080811152410.GN25784@atomide.com>
- <20080811182327.465d5889@hyperion.delvare>
- <20080811184026.DF0861E1FB2@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
- <20080812092918.GD29948@atomide.com>
+From: Sakari Ailus <sakari.ailus@nokia.com>
+Subject: Re: [PATCH 2/2] Build fix for n800_defconfig
+Date: Tue, 12 Aug 2008 13:18:21 +0300
+Message-ID: <48A1636D.5000300@nokia.com>
+References: <1218527360-18295-1-git-send-email-Hiroshi.DOYU@nokia.com> <1218527360-18295-2-git-send-email-Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp118.sbc.mail.sp1.yahoo.com ([69.147.64.91]:28156 "HELO
-	smtp118.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752729AbYHLKMU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 Aug 2008 06:12:20 -0400
-In-Reply-To: <20080812092918.GD29948@atomide.com>
+Received: from smtp.nokia.com ([192.100.122.230]:19501 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750737AbYHLKSl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Aug 2008 06:18:41 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m7CAI7C4023484
+	for <linux-omap@vger.kernel.org>; Tue, 12 Aug 2008 13:18:38 +0300
+In-Reply-To: <1218527360-18295-2-git-send-email-Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, khali@linux-fr.org, felipe.balbi@nokia.com, dsaxena@plexity.net, carlos.aguiar@indt.org.br
+To: ext Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-> > > 	f35ae6346850f6c192269b09088b20261760f0e0
-> > 
-> > Tony, actually ... there were some issues in the omap_udc code too.
->
-> Yeah, blame it on me, looks like I missed that one somehow with the
-> __REG removal.
+ext Hiroshi DOYU wrote:
+> Just updated from the latest header file.
+> 
+> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> ---
+>  drivers/media/video/omap24xxcam.c |   67 +++++++++++++++++++-----------------
+>  1 files changed, 35 insertions(+), 32 deletions(-)
 
-So did a lot of other folk!
+Looks good to me. Thanks.
+
+Regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@nokia.com
