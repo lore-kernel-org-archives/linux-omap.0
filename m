@@ -1,57 +1,38 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/2] OMAP2/3 clockdomains: autodeps should respect platform
-	flags
-Date: Tue, 12 Aug 2008 15:31:45 -0600
-Message-ID: <20080812213144.24628.72502.stgit@localhost.localdomain>
-References: <20080812212919.24628.82229.stgit@localhost.localdomain>
+Subject: Re: [PATCH 5/9] OMAP2 SDRC: add timing data for Micron
+ MT46H32M32LF-6
+Date: Tue, 12 Aug 2008 15:42:27 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0808121535180.10219@utopia.booyaka.com>
+References: <20080708025225.11646.55912.stgit@localhost.localdomain>  <20080708025447.11646.48874.stgit@localhost.localdomain> <5e088bd90808121007w3f1587dehf6b827658a9e3d6b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49196 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:56093 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751357AbYHLVdv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Aug 2008 17:33:51 -0400
-In-Reply-To: <20080812212919.24628.82229.stgit@localhost.localdomain>
+	with ESMTP id S1751248AbYHLVm2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Aug 2008 17:42:28 -0400
+In-Reply-To: <5e088bd90808121007w3f1587dehf6b827658a9e3d6b@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>
+To: Steve Sakoman <sakoman@gmail.com>
+Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>
 
-Fix the clockdomain autodep code to respect omap_chip platform flags.
+Hello Steve,
 
-Resolves "Unable to handle kernel paging request at virtual address
-5f75706d" panic during power management initialization on OMAP2.
+On Tue, 12 Aug 2008, Steve Sakoman wrote:
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
+> Many early EVMs used Samsung memory (mine for example).  Are these
+> timings compatible or is a separate Samsung header required?
 
- arch/arm/mach-omap2/clockdomain.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+Probably they will need fixing.  Presumably we'll have to use least common 
+denominator values between the two, unless there is some way to 
+discriminate in software between the chips.
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index caa7992..49741e8 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -96,6 +96,9 @@ static void _clkdm_add_autodeps(struct clockdomain *clkdm)
- 	struct clkdm_pwrdm_autodep *autodep;
- 
- 	for (autodep = autodeps; autodep->pwrdm.ptr; autodep++) {
-+		if (!omap_chip_is(autodep->omap_chip))
-+			continue;
-+
- 		pr_debug("clockdomain: adding %s sleepdep/wkdep for "
- 			 "pwrdm %s\n", autodep->pwrdm.ptr->name,
- 			 clkdm->pwrdm.ptr->name);
-@@ -118,6 +121,9 @@ static void _clkdm_del_autodeps(struct clockdomain *clkdm)
- 	struct clkdm_pwrdm_autodep *autodep;
- 
- 	for (autodep = autodeps; autodep->pwrdm.ptr; autodep++) {
-+		if (!omap_chip_is(autodep->omap_chip))
-+			continue;
-+
- 		pr_debug("clockdomain: removing %s sleepdep/wkdep for "
- 			 "pwrdm %s\n", autodep->pwrdm.ptr->name,
- 			 clkdm->pwrdm.ptr->name);
+BTW, if anyone would like to calculate their own timings/rates, I have a 
+small utility here for doing so.  The plan is to clean it up and post it 
+for inclusion eventually, but I would be happy to send it to anyone who 
+would like a copy in the interim, in the event that they are using some 
+other type of RAM or different DPLL3 timings on their OMAP3 board.
 
 
+- Paul
