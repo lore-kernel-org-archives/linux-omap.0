@@ -1,76 +1,55 @@
-From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
 Subject: RE: off mode and smartreflex
-Date: Tue, 12 Aug 2008 15:57:50 +0300
-Message-ID: <1218545870.8751.31.camel@kj-ubuntu>
+Date: Tue, 12 Aug 2008 08:10:57 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE89671620362037029@dlee02.ent.ti.com>
 References: <20080801100024.GB8857@codecarver.research.nokia.com>
 	 <13B9B4C6EF24D648824FF11BE89671620361E3890B@dlee02.ent.ti.com>
+ <1218545870.8751.31.camel@kj-ubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:48398 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752318AbYHLMzO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Aug 2008 08:55:14 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE89671620361E3890B@dlee02.ent.ti.com>
+Received: from soda.ext.ti.com ([198.47.26.145]:51440 "EHLO soda.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754507AbYHLNLH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Aug 2008 09:11:07 -0400
+In-Reply-To: <1218545870.8751.31.camel@kj-ubuntu>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Woodruff, Richard" <r-woodruff2@ti.com>
+To: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
 Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Richard,
+> I thought I'd fix this issue for both pm-idle and the up-coming cpu-idle
+> by moving the smartreflex disable/enable calls to omap_sram_idle. But I
+> could not do it, because this way the device hangs on both suspend and
+> dynamic idle. I wonder why this is?
+>
+> The CDP code seems to disable smartreflex in the early stages of the
+> function calling omap_sram_idle. In the suspend path the disable call is
+> made just before local_fiq_disable. In pm-idle path the call seems to be
+> before checking if some interrupt has occurred. So I gathered this might
+> have something to do with interrupts.
+>
+> The thing that puzzles me is that with linux-omap, the suspend path does
+> not have any local_fiq_disable calls. Nevertheless, if the smartreflex
+> disable call is in omap_sram_idle, the suspend hangs. But, if it is in
+> start of the preceding omap3_pm_suspend call, as it is now, suspending
+> works fine. So this makes me think there could be some delay from when
+> smartreflex is disabled to when the actual I2C commands stop to the
+> voltage controller.
 
-On pe, 2008-08-01 at 09:49 -0500, ext Woodruff, Richard wrote:
-> Hi Peter,
-> 
-> > Using Rajendra's cpuidle and offmode patches + the patches I posted
-> to
-> > configure triton2 and set the correct off mode polarity, I noticed
-> the
-> > system does not go to off mode when smartreflex is enabled. At least
-> > sysoffmode is not deasserted and the VDD1 and VDD2 voltages do not
-> > drop
-> > to 0V. Should smartreflex be disabled by sw before the wfi is
-> issued ?
-> > Any other idea on why this would happen ?
-> 
-> SR does need to be disabled before an OPP change and re-enabled after
-> the change when using the bypass method.
-> 
-> Yes, I do think you also need to disable SR before idle.  Also, this
-> is in CDP code and functionally validated.
+Have you enabled SR really to do something?
 
-I thought I'd fix this issue for both pm-idle and the up-coming cpu-idle
-by moving the smartreflex disable/enable calls to omap_sram_idle. But I
-could not do it, because this way the device hangs on both suspend and
-dynamic idle. I wonder why this is? 
+With out proper efuse values its job is to do OPP changes.  Once you have proper efuses it can do safe auto-adjustment.  Most early non-production devices won't have useable efuse values.
 
-The CDP code seems to disable smartreflex in the early stages of the
-function calling omap_sram_idle. In the suspend path the disable call is
-made just before local_fiq_disable. In pm-idle path the call seems to be
-before checking if some interrupt has occurred. So I gathered this might
-have something to do with interrupts.
+I agree hardware I2C messages when it is in use might be a point of worry when investigating issues.
 
-The thing that puzzles me is that with linux-omap, the suspend path does
-not have any local_fiq_disable calls. Nevertheless, if the smartreflex
-disable call is in omap_sram_idle, the suspend hangs. But, if it is in
-start of the preceding omap3_pm_suspend call, as it is now, suspending
-works fine. So this makes me think there could be some delay from when
-smartreflex is disabled to when the actual I2C commands stop to the
-voltage controller.
+> Do you know why the smartreflex disable calls are positioned as they are
+> in the CDP code?
 
-Do you know why the smartreflex disable calls are positioned as they are
-in the CDP code?
+I don't recall there being a placement.  I can ask others if there aware.
 
-regards,
-Kalle
+Regards,
+Richard W.
 
-> 
-> Regards,
-> Richard W.
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
