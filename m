@@ -1,102 +1,86 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: Git tree updated to v2.6.27-rc2, help needed
-Date: Tue, 12 Aug 2008 10:13:32 +0300
-Message-ID: <20080812101332.a321e783.jarkko.nikula@nokia.com>
-References: <20080811152620.GO25784@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 1/2] Build fix for n800_defconfig
+Date: Tue, 12 Aug 2008 10:49:19 +0300
+Message-ID: <1218527360-18295-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:46956 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751535AbYHLHNv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Aug 2008 03:13:51 -0400
-In-Reply-To: <20080811152620.GO25784@atomide.com>
+Received: from smtp.nokia.com ([192.100.122.230]:39143 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751651AbYHLHuA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Aug 2008 03:50:00 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m7C7niYU017630
+	for <linux-omap@vger.kernel.org>; Tue, 12 Aug 2008 10:49:58 +0300
+Received: from oreo.research.nokia.com (esdhcp04066.research.nokia.com [172.21.40.66])
+	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m7C7nK8H003423
+	for <linux-omap@vger.kernel.org>; Tue, 12 Aug 2008 10:49:20 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Sakari Ailus <sakari.ailus@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Eduardo Valentin <edubezval@gmail.com>
+To: linux-omap@vger.kernel.org
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-On Mon, 11 Aug 2008 18:26:21 +0300
-"ext Tony Lindgren" <tony@atomide.com> wrote:
+Just updated from the latest header file.
 
-> Hi all,
-> 
-> I've updated our git tree to v2.6.27-rc2, and looks like we still
-> have a bunch of issues to solve:
-> 
-> - Booting fails early on 3430sdp for some reason
-> 
-> - Alignment error on omap2/3. This seems to happen also with
->   718fc6cd4db902aa2242a736cc3feb8744a4c71a reverted?
-> 
-- N800 boots up to UI with "gcc version 3.4.4 (release) (CodeSourcery
-  ARM 2005q3-2" and with DEBUG_LL=y. Without DEBUG_LL it hangs somewhere
-  before serial is initialized
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+ drivers/media/radio/radio-tea5761.c |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
 
-- With "gcc version 4.2.1 (CodeSourcery Sourcery G++ Lite 2007q3-53)"
-  there is alignment exception in early booting independently of
-  718fc6cd4db902aa2242a736cc3feb8744a4c71a
+diff --git a/drivers/media/radio/radio-tea5761.c b/drivers/media/radio/radio-tea5761.c
+index e8ccf29..1c6d8ab 100644
+--- a/drivers/media/radio/radio-tea5761.c
++++ b/drivers/media/radio/radio-tea5761.c
+@@ -1,7 +1,7 @@
+ /*
+  * drivers/media/radio/radio-tea5761.c
+  *
+- * Copyright (C) 2005 Nokia Corporation
++ * Copyright (C) 2005-2008 Nokia Corporation
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -23,6 +23,7 @@
+ #include <linux/i2c.h>
+ #include <linux/delay.h>
+ #include <media/v4l2-common.h>
++#include <media/v4l2-ioctl.h>
+ 
+ #define DRIVER_NAME "tea5761"
+ 
+@@ -255,11 +256,12 @@ static int tea5761_do_ioctl(struct inode *inode, struct file *file,
+ 	case VIDIOC_QUERYCAP:
+ 		dev_dbg(&client->dev, "VIDIOC_QUERYCAP\n");
+ 		memset(&u->c, 0, sizeof(u->c));
+-		strlcpy(u->c.driver, dev->dev->driver->name,
++		strlcpy(u->c.driver,
++			dev->parent->driver->name,
+ 			sizeof(u->c.driver));
+ 		strlcpy(u->c.card, dev->name, sizeof(u->c.card));
+ 		snprintf(u->c.bus_info, sizeof(u->c.bus_info), "I2C:%s",
+-			 dev->dev->bus_id);
++			 dev->parent->bus_id);
+ 		u->c.version = TEA5761_VERSION;
+ 		u->c.capabilities = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
+ 		break;
+@@ -406,9 +408,8 @@ static struct file_operations tea5761_fops = {
+ };
+ 
+ static struct video_device tea5761_video_device = {
+-	.owner         = THIS_MODULE,
+ 	.name          = "TEA5761 FM-Radio",
+-	.type          = VID_TYPE_TUNER,
++	.vfl_type      = VID_TYPE_TUNER,
+ 	.fops          = &tea5761_fops,
+ 	.release       = video_device_release
+ };
+@@ -434,7 +435,7 @@ static int tea5761_i2c_driver_probe(struct i2c_client *client,
+ 	tea->video_dev = video_dev;
+ 
+ 	*video_dev = tea5761_video_device;
+-	video_dev->dev = &client->dev;
++	video_dev->parent = &client->dev;
+ 	i2c_set_clientdata(client, video_dev);
+ 
+ 	/* initialize and power off the chip */
+-- 
+1.5.5.1.357.g1af8b
 
-<5>Kernel command line: root=1f03 rootfstype=jffs2
-<6>Clocking rate (Crystal/DPLL/MPU): 19.2/658/329 MHz
-<1>Unhandled fault: alignment exception (0x001) at 0xc02bf695
-Internal error: : 1 [#1]
-Modules linked in:
-CPU: 0    Not tainted  (2.6.27-rc2-omap1 #9)
-PC is at omap2_clkdm_clk_enable+0x2c/0x74
-LR is at omap2_clk_enable+0x54/0x9c
-pc : [<c0034ed8>]    lr : [<c0033738>]    psr: a00001d3
-sp : c0303e90  ip : c0303ea8  fp : c0303ea4
-r10: 800252c0  r9 : 4107b362  r8 : 00000013
-r7 : c03261ac  r6 : 00000002  r5 : 00000000  r4 : c02bf689
-r3 : c02bf695  r2 : 00000000  r1 : c03072c8  r0 : c02bf689
-Flags: NzCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
-Control: 00c5387f  Table: 80004000  DAC: 00000017
-Process swapper (pid: 0, stack limit = 0xc0302260)
-Stack: (0xc0303e90 to 0xc0304000)
-3e80:                                     c03072c8 c0306d24 c0303ebc
-c0303ea8 3ea0: c0033738 c0034eb8 c0306d7c c0306d24 c0303ed4 c0303ec0
-c003371c c00336f0 3ec0: c03071f4 c0306d24 c0303eec c0303ed8 c003371c
-c00336f0 c03073f0 c0306d24 3ee0: c0303f04 c0303ef0 c003371c c00336f0
-c0307d90 c0306d24 c0303f1c c0303f08 3f00: c003371c c00336f0 c03099c0
-c0306d24 c0303f34 c0303f20 c003371c c00336f0 3f20: 800001d3 c0306d24
-c0303f4c c0303f38 c00432e4 c00336f0 c03099c0 c0306d24 3f40: c0303f64
-c0303f50 c00433c4 c00432b0 00000292 c0306d24 c0303f94 c0303f68 3f60:
-c001144c c00433a4 00000149 c0305cb8 c0303f94 00000000 c03255c0 c0026f0c
-3f80: c0305cb8 800252f4 c0303fac c0303f98 c0010818 c0011288 c0026f10
-c03255c0 3fa0: c0303fbc c0303fb0 c0011aec c00107fc c0303fcc c0303fc0
-c000e438 c0011ae4 3fc0: c0303ff4 c0303fd0 c0008c14 c000e40c c00086bc
-00000000 00000000 c0026f10 3fe0: 00c5387d c0325f4c 00000000 c0303ff8
-80008034 c0008ad0 00000000 00000000 Backtrace: [<c0034eac>]
-(omap2_clkdm_clk_enable+0x0/0x74) from [<c0033738>] (omap2_clk_enable
-+0x54/0x9c) r5:c0306d24 r4:c03072c8 [<c00336e4>] (omap2_clk_enable
-+0x0/0x9c) from [<c003371c>] (omap2_clk_enable+0x38/0x9c) r5:c0306d24
-r4:c0306d7c [<c00336e4>] (omap2_clk_enable+0x0/0x9c) from [<c003371c>]
-(omap2_clk_enable+0x38/0x9c) r5:c0306d24 r4:c03071f4
-[<c00336e4>] (omap2_clk_enable+0x0/0x9c) from [<c003371c>]
-(omap2_clk_enable+0x38/0x9c) r5:c0306d24 r4:c03073f0
-[<c00336e4>] (omap2_clk_enable+0x0/0x9c) from [<c003371c>]
-(omap2_clk_enable+0x38/0x9c) r5:c0306d24 r4:c0307d90
-[<c00336e4>] (omap2_clk_enable+0x0/0x9c) from [<c003371c>]
-(omap2_clk_enable+0x38/0x9c) r5:c0306d24 r4:c03099c0
-[<c00336e4>] (omap2_clk_enable+0x0/0x9c) from [<c00432e4>] (clk_enable
-+0x40/0x54) r5:c0306d24 r4:800001d3
-[<c00432a4>] (clk_enable+0x0/0x54) from [<c00433c4>]
-(clk_enable_init_clocks+0x2c/0x4c) r5:c0306d24 r4:c03099c0
-[<c0043398>] (clk_enable_init_clocks+0x0/0x4c) from [<c001144c>]
-(omap2_clk_init+0x1d0/0x23c) r5:c0306d24 r4:00000292
-[<c001127c>] (omap2_clk_init+0x0/0x23c) from [<c0010818>]
-(omap2_init_common_hw+0x28/0x40) r8:800252f4 r7:c0305cb8 r6:c0026f0c
-r5:c03255c0 r4:00000000 [<c00107f0>] (omap2_init_common_hw+0x0/0x40)
-from [<c0011aec>] (nokia_n800_init_irq+0x14/0x5c) r5:c03255c0
-r4:c0026f10 [<c0011ad8>] (nokia_n800_init_irq+0x0/0x5c) from
-[<c000e438>] (init_IRQ+0x38/0x48) [<c000e400>] (init_IRQ+0x0/0x48) from
-[<c0008c14>] (start_kernel+0x150/0x2b8) [<c0008ac4>] (start_kernel
-+0x0/0x2b8) from [<80008034>] (0x80008034) r5:c0325f4c r4:00c5387d
-Code: 03a05001 03e00015 089da830 e284300c (e1931f9f) 
-<4>---[ end trace 1b75b31a2719ed1c ]---
-<0>Kernel panic - not syncing: Attempted to kill the idle task!
-
-
-Jarkko
