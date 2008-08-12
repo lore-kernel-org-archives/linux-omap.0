@@ -1,56 +1,42 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 1/2] OMAP2 clock: associate clocks with clockdomains at startup
-Date: Tue, 12 Aug 2008 15:31:44 -0600
-Message-ID: <20080812213141.24628.45988.stgit@localhost.localdomain>
-References: <20080812212919.24628.82229.stgit@localhost.localdomain>
+Subject: [PATCH 0/2] OMAP2/3: fix clock/clockdomain bugs
+Date: Tue, 12 Aug 2008 15:31:41 -0600
+Message-ID: <20080812212919.24628.82229.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49195 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:49194 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751306AbYHLVdv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Aug 2008 17:33:51 -0400
-In-Reply-To: <20080812212919.24628.82229.stgit@localhost.localdomain>
+	with ESMTP id S1751155AbYHLVdu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Aug 2008 17:33:50 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, felipe.balbi@nokia.com
 
-The OMAP2 clock code was missing code to associate clocks with clockdomains
-at registration time; fix this.
+This series fixes two bugs that cause N800 to panic on boot:
 
-Resolves "Unhandled fault: alignment exception (0x001) at 0xc02c1b4e" (address
-may vary) panic during clock framework init on OMAP2.  The alignment error
-was caused by an attempt to dereference a pointer to a string (1-byte aligned)
-as if it were a pointer to a structure.
+- a OMAP2xxx clock code bug, which caused an "Unhandled fault:
+  alignment exception (0x001) at 0xc02....." panic; and
 
-Thanks to Felipe Balbi <felipe.balbi@nokia.com> for originally reporting this
-bug.
+- an OMAP2/3 clockdomain bug, which caused an "Unable to handle kernel
+  paging request at virtual address 5f75706d" panic.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
+These bugs were exposed by 0e5194e1a84c219bebbb78f305b7a8eabc4a3656 and
+718fc6cd4db902aa2242a736cc3feb8744a4c71a.
 
- arch/arm/mach-omap2/clock24xx.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+With the following patches applied on git head, N800 boots fine, but
+only if CONFIG_DEBUG_LL is enabled.  If it is disabled, it hangs at
+some point in early boot.  Don't know why.
 
-diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-index 370f4f0..0d9d91f 100644
---- a/arch/arm/mach-omap2/clock24xx.c
-+++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -567,11 +567,13 @@ int __init omap2_clk_init(void)
- 
- 		if ((*clkp)->flags & CLOCK_IN_OMAP242X && cpu_is_omap2420()) {
- 			clk_register(*clkp);
-+			omap2_init_clk_clkdm(*clkp);
- 			continue;
- 		}
- 
- 		if ((*clkp)->flags & CLOCK_IN_OMAP243X && cpu_is_omap2430()) {
- 			clk_register(*clkp);
-+			omap2_init_clk_clkdm(*clkp);
- 			continue;
- 		}
- 	}
+These patches also boot-tested cleanly on 2430SDP and 3430SDP, both
+with and without CONFIG_DEBUG_LL.
 
+   text    data     bss     dec     hex filename
+3217805  149808   85008 3452621  34aecd vmlinux.n800.orig
+3217837  149808   85008 3452653  34aeed vmlinux.n800
+
+ arch/arm/mach-omap2/clock24xx.c   |    2 ++
+ arch/arm/mach-omap2/clockdomain.c |    6 ++++++
+ 2 files changed, 8 insertions(+), 0 deletions(-)
 
