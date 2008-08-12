@@ -1,43 +1,40 @@
-From: "arun c" <arunedarath@mistralsolutions.com>
-Subject: [PATCH 2/2] OMAP2EVM: twl4030 keypad Kconfig dependency fix
-Date: Tue, 12 Aug 2008 14:30:28 +0530
-Message-ID: <c656a4d20808120200y105ca331g7cfa82c5d5c1740b@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Fix isp1301_omap compile (Re: testers wanted:
+	isp1301_omap  conversion to new-style i2c driver)
+Date: Tue, 12 Aug 2008 12:29:18 +0300
+Message-ID: <20080812092918.GD29948@atomide.com>
+References: <20080617204300.77c8e516@hyperion.delvare> <20080807183416.115c67ba@hyperion.delvare> <200808071651.43297.david-b@pacbell.net> <20080808072954.GH24923@atomide.com> <20080808111751.494702cc@hyperion.delvare> <20080808094551.GP24923@atomide.com> <20080808094853.GW30719@gandalf.research.nokia.com> <20080811152410.GN25784@atomide.com> <20080811182327.465d5889@hyperion.delvare> <20080811184026.DF0861E1FB2@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.188]:34923 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751892AbYHLJAa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Aug 2008 05:00:30 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so1249415tic.23
-        for <linux-omap@vger.kernel.org>; Tue, 12 Aug 2008 02:00:28 -0700 (PDT)
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64830 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751516AbYHLJ12 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Aug 2008 05:27:28 -0400
 Content-Disposition: inline
+In-Reply-To: <20080811184026.DF0861E1FB2@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: khali@linux-fr.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, felipe.balbi@nokia.com, dsaxena@plexity.net, carlos.aguiar@indt.org.br
 
-OMAP2EVM keypad is controlled by twl4030
+* David Brownell <david-b@pacbell.net> [080811 21:35]:
+> > That one isn't mine, the original code already has the problem.
+> > Apparently this was broken by the following patch from David:
+> >
+> > 	f35ae6346850f6c192269b09088b20261760f0e0
+> 
+> Tony, actually ... there were some issues in the omap_udc code too.
 
-Signed-off-by: Arun C <arunedarath@mistralsolutions.com>
----
- drivers/input/keyboard/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Yeah, blame it on me, looks like I missed that one somehow with the
+__REG removal.
 
-diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
-index cf86a7b..e4d0436 100644
---- a/drivers/input/keyboard/Kconfig
-+++ b/drivers/input/keyboard/Kconfig
-@@ -261,7 +261,7 @@ config KEYBOARD_OMAP
+> > The fix should be sent to Linus ASAP, otherwise the driver won't build
+> > in 2.6.27. You have my ack.
 
- config KEYBOARD_TWL4030
- 	tristate "TI TWL4030 keypad support"
--	depends on TWL4030_CORE && (MACH_OMAP_2430SDP || MACH_OMAP_3430SDP
-|| MACH_OMAP3EVM)
-+	depends on TWL4030_CORE && (MACH_OMAP_2430SDP || MACH_OMAP2EVM ||
-MACH_OMAP_3430SDP || MACH_OMAP3EVM)
- 	help
- 	  Say Y here if you want to use the OMAP TWL4030 keypad.
+Can you send it via your I2C? Let me know if your want me to send it
+via arm-omap fixes.
 
--- 
-1.5.3.4
+Regards,
+
+Tony
