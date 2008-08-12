@@ -1,44 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] Build fix for n800_defconfig
-Date: Tue, 12 Aug 2008 14:05:43 +0300
-Message-ID: <20080812110543.GE6705@atomide.com>
-References: <1218527360-18295-1-git-send-email-Hiroshi.DOYU@nokia.com> <1218527360-18295-2-git-send-email-Hiroshi.DOYU@nokia.com> <48A1636D.5000300@nokia.com>
+From: "Syed Mohammed, Khasim" <khasim@ti.com>
+Subject: RE: USB-webcam support
+Date: Tue, 12 Aug 2008 16:45:27 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C00208C15FD8@dbde02.ent.ti.com>
+References: <c656a4d20808120332v224c5053r7225c086acd8c2cd@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55369 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751959AbYHLLDc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Aug 2008 07:03:32 -0400
-Content-Disposition: inline
-In-Reply-To: <48A1636D.5000300@nokia.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:49132 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751817AbYHLLPl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Aug 2008 07:15:41 -0400
+In-Reply-To: <c656a4d20808120332v224c5053r7225c086acd8c2cd@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@nokia.com>
-Cc: ext Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org
+To: arun c <arunedarath@mistralsolutions.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Sakari Ailus <sakari.ailus@nokia.com> [080812 13:19]:
-> ext Hiroshi DOYU wrote:
->> Just updated from the latest header file.
->>
->> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
->> ---
->>  drivers/media/video/omap24xxcam.c |   67 +++++++++++++++++++-----------------
->>  1 files changed, 35 insertions(+), 32 deletions(-)
->
-> Looks good to me. Thanks.
+Hi Arun,
 
-Pushing today.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of arun c
+> Sent: Tuesday, August 12, 2008 4:02 PM
+> To: linux-omap@vger.kernel.org
+> Subject: USB-webcam support
+> 
+> Hi All,
+> 
+> If I have a USB camera with good Linux support, can I connect it
+> to omap3evm(or any omap2) and make it functional?
+> 
+Yes you can, I have tried Logitech LZ708BC on Beagle board and it works good at 160x120 resolution.
 
-Tony
+You just need UVC driver, which I think is part of latest kernel.
 
->
-> Regards,
->
-> -- 
-> Sakari Ailus
-> sakari.ailus@nokia.com
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Khasim
+http://khasim.blogspot.com
+
