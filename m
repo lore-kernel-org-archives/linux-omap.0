@@ -1,51 +1,65 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH] MUSB: Workaround for simultaneous TX and RX usage
-Date: Wed, 13 Aug 2008 11:53:21 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0256A369D9@dbde02.ent.ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02568EBABF@dbde02.ent.ti.com>
- <20080805093224.GS30539@gandalf.research.nokia.com>
+From: "shekhar, chandra" <x0044955@ti.com>
+Subject: Re: OMAP AIC23
+Date: Wed, 13 Aug 2008 12:07:57 +0530
+Message-ID: <001001c8fd0f$20620290$LocalHost@wipultra806>
+References: <65e025470808111221w43dad825jf237ce6c0e89bdde@mail.gmail.com> <01ae01c8fc3c$fe070790$LocalHost@wipultra806> <7B4574D56E4ADF438756313E9A172A870D5F0E4D@dlee01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:48007 "EHLO calf.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47895 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750956AbYHMGXf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Aug 2008 02:23:35 -0400
-In-Reply-To: <20080805093224.GS30539@gandalf.research.nokia.com>
-Content-Language: en-US
+	id S1751182AbYHMGiR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Aug 2008 02:38:17 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: "Hunter, Jon" <jon-hunter@ti.com>, Yuri Jaeger Monti <yurijm@gmail.com>, linux-omap@vger.kernel.org
 
-> On Mon, Aug 04, 2008 at 06:48:22PM +0530, ext Gadiyar, Anand wrote:
-> > MUSB RTL v1.4 has a hardware issue which results in a DMA controller
-> > hang when TX and RX DMA channels are simultaneously enabled. This
-> > affects at least OMAP2430 and OMAP34XX.
-> >
-> > Since RX transfers are in Mode 0 and anyway result in one DMA interrupt
-> > per packet, we can use System DMA to unload the RX fifos. MUSB DMA can
-> > be used for all TX channels as before.
-> >
-> > Tested with full-duplex TX and RX transfers using g_ether. Runs for 24
-> > hours without a hang. Without this patch, the hang occurs within minutes.
-> 
-> I just don't like that amount of ifdefs, as we were discussing out of
-> the list we should use runtime checks where possible.
-> 
-> Let's wait on this one since Anand will send another patch set later on
-> this week.
 
-Updated patch coming up. Run-time checks are still not implemented. It would
-be nice to have, but I fail to see on what basis I can have the runtime check.
-Suggestions are welcome.
+----- Original Message ----- 
+From: "Hunter, Jon" <jon-hunter@ti.com>
+To: "Shekhar, Chandra" <x0044955@ti.com>; "Yuri Jaeger Monti" 
+<yurijm@gmail.com>; <linux-omap@vger.kernel.org>
+Sent: Wednesday, August 13, 2008 8:20 AM
+Subject: RE: OMAP AIC23
 
-I've left in only two #ifdefs - one for the dma callback function, and the other
-for the call to omap_request_dma(). The other ifdefs are now gone - replaced with
-runtime checks based on whether a system DMA channel has been acquired.
 
-Also fixed a small bug which would make this patch not compile.
+Hi Chandra,
 
-- Anand
+> i have a question, why a client is modifying mcbsp registers. There is a
+> mcbsp
+> config function (omap_mcbsp_config) exported which you can use to
+> configure mcbsp registers.
+> if its an absolute necessity you can use omap_mcbsp_read and
+> omap_mcbsp_write
+> function. which are defined in arch/arm/plat-omap/mcbsp.c.
+> but you need to pass full register name, like OMAP_MCBSP_REG_SPCR1 instead
+> of
+> just SPCR1 ( 'SPCR1' undeclared  error).
+
+
+>Looking at the source file "drivers/i2c/chips/tlv320aic23.c" the function 
+>"omap_mcbsp3_aic23_clock_init()" is enabling the McBSP sample rate generator in 
+>order >to generate the 12MHz system clock to the aic23. I believe that this 
+>needs to be done in order to configure the aic23.
+
+>The good news is that there appears to be a simple fix. All we need to do is 
+>move the definitions of the macros OMAP_MCBSP_READ and >OMAP_MCBSP_WRITE from 
+>mcbsp.c to the header "include/asm-arm/arch-omap/mcbsp.h"
+
+Look like this should be doable.
+but we will have two read/write defs in header. one will be Macro and other will 
+be function, both mapping to same code.
+
+
+
+Doing this and making a couple other minor changes I am now able to build the 
+alsa driver successfully for the omap5912 osk. I will submit a patch to the 
+list. Let me know what you think.
+
+Cheers
+Jon 
 
