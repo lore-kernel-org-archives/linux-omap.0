@@ -1,50 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Git tree updated to v2.6.27-rc2, help needed
-Date: Wed, 13 Aug 2008 10:48:42 +0300
-Message-ID: <20080813074841.GD14224@atomide.com>
-References: <20080811152620.GO25784@atomide.com> <20080812101332.a321e783.jarkko.nikula@nokia.com> <20080812114446.GG6705@atomide.com> <20080812143119.GL6705@atomide.com> <20080813104237.6b704dd4.jarkko.nikula@nokia.com>
+From: "Syed Mohammed, Khasim" <khasim@ti.com>
+Subject: RE: USB-webcam support
+Date: Wed, 13 Aug 2008 13:20:05 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C00208C161E6@dbde02.ent.ti.com>
+References: <c656a4d20808120332v224c5053r7225c086acd8c2cd@mail.gmail.com>
+	 <0680EC522D0CC943BC586913CF3768C00208C15FD8@dbde02.ent.ti.com>
+ <814dfab70808130010u62033f97i4bf15e5c03c47df7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52966 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752183AbYHMHqa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Aug 2008 03:46:30 -0400
-Content-Disposition: inline
-In-Reply-To: <20080813104237.6b704dd4.jarkko.nikula@nokia.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50777 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752472AbYHMHuQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Aug 2008 03:50:16 -0400
+In-Reply-To: <814dfab70808130010u62033f97i4bf15e5c03c47df7@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: linux-omap@vger.kernel.org, Sakari Ailus <sakari.ailus@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Eduardo Valentin <edubezval@gmail.com>
+To: Remith Ravi <remith@mistralsolutions.com>
+Cc: arun c <arunedarath@mistralsolutions.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Jarkko Nikula <jarkko.nikula@nokia.com> [080813 10:44]:
-> On Tue, 12 Aug 2008 17:31:20 +0300
-> "ext Tony Lindgren" <tony@atomide.com> wrote:
+
+
+> -----Original Message-----
+> From: remithmailinglist@gmail.com [mailto:remithmailinglist@gmail.com] On Behalf Of Remith Ravi
+> Sent: Wednesday, August 13, 2008 12:40 PM
+> To: Syed Mohammed, Khasim
+> Cc: arun c; linux-omap@vger.kernel.org
+> Subject: Re: USB-webcam support
 > 
-> > > > > - Alignment error on omap2/3. This seems to happen also with
-> > > > >   718fc6cd4db902aa2242a736cc3feb8744a4c71a reverted?
-> > > > > 
-> > > > - N800 boots up to UI with "gcc version 3.4.4 (release)
-> > > > (CodeSourcery ARM 2005q3-2" and with DEBUG_LL=y. Without DEBUG_LL
-> > > > it hangs somewhere before serial is initialized
-> > > > 
-> > > > - With "gcc version 4.2.1 (CodeSourcery Sourcery G++ Lite
-> > > > 2007q3-53)" there is alignment exception in early booting
-> > > > independently of 718fc6cd4db902aa2242a736cc3feb8744a4c71a
-> > > 
-> > > Weird that this alignment exception only happens on 24xx, not on
-> > > 34xx.
-> > 
-> > For me reverting 0e5194e1a84c219bebbb78f305b7a8eabc4a3656 fixes this.
-> > Reverting 718fc6cd4db902aa2242a736cc3feb8744a4c71a like Felipe
-> > mentioned does not help for me with gcc version 4.2.3 (Sourcery G++
-> > Lite 2008q1-126).
-> > 
-> I reverted the 0e5194e1a84c219bebbb78f305b7a8eabc4a3656 and now it
-> boots with gcc 4.2.1 but only if DEBUG_LL=y. With gcc 3.4.4 there is no
-> difference. Looks like that alignment is one issue and DEBUG_LL is
-> another?
+> On Tue, Aug 12, 2008 at 4:45 PM, Syed Mohammed, Khasim <khasim@ti.com> wrote:
+> > Hi Arun,
+> >
+> >> -----Original Message-----
+> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of arun
+> c
+> >> Sent: Tuesday, August 12, 2008 4:02 PM
+> >> To: linux-omap@vger.kernel.org
+> >> Subject: USB-webcam support
+> >>
+> >> Hi All,
+> >>
+> >> If I have a USB camera with good Linux support, can I connect it
+> >> to omap3evm(or any omap2) and make it functional?
+> >>
+> > Yes you can, I have tried Logitech LZ708BC on Beagle board and it works good at 160x120 resolution.
+> >
+> > You just need UVC driver, which I think is part of latest kernel.
+> 
+> 
+> Is it using USB Isochronous transfer? I checked the web. There is no
+> information regarding the given camera model.
+> 
+It is Logitech V-UAX16, I think the previous one I mentioned was a PID and not the model number.
 
-Does it behave the same way with Paul's patches?
-
-Tony
+Regards,
+Khasim
