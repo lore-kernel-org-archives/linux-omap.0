@@ -1,58 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] OMAP2/3: fix clock/clockdomain bugs
-Date: Wed, 13 Aug 2008 10:43:59 +0300
-Message-ID: <20080813074358.GC14224@atomide.com>
-References: <20080812212919.24628.82229.stgit@localhost.localdomain>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: Git tree updated to v2.6.27-rc2, help needed
+Date: Wed, 13 Aug 2008 10:42:37 +0300
+Message-ID: <20080813104237.6b704dd4.jarkko.nikula@nokia.com>
+References: <20080811152620.GO25784@atomide.com>
+	<20080812101332.a321e783.jarkko.nikula@nokia.com>
+	<20080812114446.GG6705@atomide.com>
+	<20080812143119.GL6705@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49717 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751928AbYHMHlr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Aug 2008 03:41:47 -0400
-Content-Disposition: inline
-In-Reply-To: <20080812212919.24628.82229.stgit@localhost.localdomain>
+Received: from smtp.nokia.com ([192.100.122.230]:24887 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752157AbYHMHoB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Aug 2008 03:44:01 -0400
+In-Reply-To: <20080812143119.GL6705@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Sakari Ailus <sakari.ailus@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Eduardo Valentin <edubezval@gmail.com>
 
-* Paul Walmsley <paul@pwsan.com> [080813 00:34]:
-> This series fixes two bugs that cause N800 to panic on boot:
+On Tue, 12 Aug 2008 17:31:20 +0300
+"ext Tony Lindgren" <tony@atomide.com> wrote:
+
+> > > > - Alignment error on omap2/3. This seems to happen also with
+> > > >   718fc6cd4db902aa2242a736cc3feb8744a4c71a reverted?
+> > > > 
+> > > - N800 boots up to UI with "gcc version 3.4.4 (release)
+> > > (CodeSourcery ARM 2005q3-2" and with DEBUG_LL=y. Without DEBUG_LL
+> > > it hangs somewhere before serial is initialized
+> > > 
+> > > - With "gcc version 4.2.1 (CodeSourcery Sourcery G++ Lite
+> > > 2007q3-53)" there is alignment exception in early booting
+> > > independently of 718fc6cd4db902aa2242a736cc3feb8744a4c71a
+> > 
+> > Weird that this alignment exception only happens on 24xx, not on
+> > 34xx.
 > 
-> - a OMAP2xxx clock code bug, which caused an "Unhandled fault:
->   alignment exception (0x001) at 0xc02....." panic; and
+> For me reverting 0e5194e1a84c219bebbb78f305b7a8eabc4a3656 fixes this.
+> Reverting 718fc6cd4db902aa2242a736cc3feb8744a4c71a like Felipe
+> mentioned does not help for me with gcc version 4.2.3 (Sourcery G++
+> Lite 2008q1-126).
 > 
-> - an OMAP2/3 clockdomain bug, which caused an "Unable to handle kernel
->   paging request at virtual address 5f75706d" panic.
-> 
-> These bugs were exposed by 0e5194e1a84c219bebbb78f305b7a8eabc4a3656 and
-> 718fc6cd4db902aa2242a736cc3feb8744a4c71a.
+I reverted the 0e5194e1a84c219bebbb78f305b7a8eabc4a3656 and now it
+boots with gcc 4.2.1 but only if DEBUG_LL=y. With gcc 3.4.4 there is no
+difference. Looks like that alignment is one issue and DEBUG_LL is
+another?
 
-Great, thanks! Pushing today.
 
-> With the following patches applied on git head, N800 boots fine, but
-> only if CONFIG_DEBUG_LL is enabled.  If it is disabled, it hangs at
-> some point in early boot.  Don't know why.
-
-Maybe it needs flasher --enable-rd-mode --set-rd-flags=serial-console?
-
-> These patches also boot-tested cleanly on 2430SDP and 3430SDP, both
-> with and without CONFIG_DEBUG_LL.
-
-Good
-
-Tony
-
->    text    data     bss     dec     hex filename
-> 3217805  149808   85008 3452621  34aecd vmlinux.n800.orig
-> 3217837  149808   85008 3452653  34aeed vmlinux.n800
-> 
->  arch/arm/mach-omap2/clock24xx.c   |    2 ++
->  arch/arm/mach-omap2/clockdomain.c |    6 ++++++
->  2 files changed, 8 insertions(+), 0 deletions(-)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jarkko
