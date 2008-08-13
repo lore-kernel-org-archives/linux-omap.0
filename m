@@ -1,265 +1,298 @@
-From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: [PATCH 00/11] OMAP3 CPUidle patches - ver 2
-Date: Wed, 13 Aug 2008 09:55:22 +0300
-Message-ID: <87k5el5rqd.fsf@trdhcp146196.ntc.nokia.com>
-References: <00ad01c8fd09$6bcdc6c0$LocalHost@wipultra1382>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: [PATCH v2] MUSB: Workaround for simultaneous TX and RX usage
+Date: Wed, 13 Aug 2008 12:35:29 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0256ABCEE5@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:33705 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752527AbYHMGz6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Aug 2008 02:55:58 -0400
-In-Reply-To: <00ad01c8fd09$6bcdc6c0$LocalHost@wipultra1382> (ext Rajendra
-	Nayak's message of "Wed, 13 Aug 2008 11:27:05 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48958 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751468AbYHMHFp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Aug 2008 03:05:45 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, "Gadiyar, Anand" <gadiyar@ti.com>
 
-"ext Rajendra Nayak" <rnayak@ti.com> writes:
+MUSB: Workaround for simultaneous TX and RX usage
 
->>=20
->> Check wether serial can sleep is missing from=20
->> omap3_enter_idle and it should be removed from omap3_can_sleep:
->>=20
->> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c=20
->> b/arch/arm/mach-omap2/cpuidle34xx.c
->> index a02da6d..16ff30b 100644
->> --- a/arch/arm/mach-omap2/cpuidle34xx.c
->> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
->> @@ -431,7 +431,7 @@ static int omap3_enter_idle(struct=20
->> cpuidle_device *dev,
->> =20
->>         current_cx_state =3D *cx;
->> =20
->> -       if (cx->type =3D=3D OMAP3_STATE_C0) {
->> +       if (cx->type =3D=3D OMAP3_STATE_C0 || !omap_serial_can_sleep=
-()) {
->>                 /* Do nothing for C0, not even a wfi */
->>                 return 0;
->>         }
->>=20
->> diff --git a/arch/arm/mach-omap2/pm34xx.c=20
->> b/arch/arm/mach-omap2/pm34xx.c index f68fa0a..f9b3676 100644=20
->> @@ -391,8 +391,6 @@ int omap3_can_sleep(void)
->>                 return 0;
->>         if (atomic_read(&sleep_block) > 0)
->>                 return 0;
->> -       if (!omap_serial_can_sleep())
->> -               return 0;
->>         return 1;
->>  }
->>=20
->> Doing this would make serial console to work faster.
->
-> Yes, I removed these in my patches and put in the changes suggested b=
-y Richard
-> in 8250.c
+MUSB RTL V1.4 has a hardware issue which results in a DMA controller
+hang when TX and RX DMA channels are simultaneously enabled. This
+affects at least OMAP2430 and OMAP34XX.
 
-I doubt that your changes to 8250.c will be applied. I have understood
-that omap specific changes are not accepted to generic 8250
-driver. Anyway these changes doesn't help too much. Serial console is
-annoyingly slow if sleep while idle is enabled.
+Since RX transfers are in Mode 0 and anyway result in one DMA interrupt
+per packet, we can use System DMA to unload the RX fifos. MUSB DMA can
+be used for all TX channels as before.
 
->
-> I thought the final conclusion of the discussion was that it was too =
-expensive to the keep the=20
-> system in C0 all the time while UART inactivity runs, or did I miss
-> something?
+Tested with full-duplex TX and RX transfers using g_ether. Runs for 24
+hours without a hang. Without this patch, the hang occurs within minutes.
 
-This was misunderstanding. C0 is selected only for 5 seconds after
-last activity on serial console rx line. After this 5 second sleep
-prevention, cpuidle continues state selection normally. I don't see
-this too expensive, what do you think?
+This issue was first reported by Jon Hunter on [1]
 
->
->>=20
->> _omap_sram_idle should be non-static:
->>=20
->> diff --git a/arch/arm/mach-omap2/pm34xx.c=20
->> b/arch/arm/mach-omap2/pm34xx.c index f68fa0a..133a666 100644
->> --- a/arch/arm/mach-omap2/pm34xx.c
->> +++ b/arch/arm/mach-omap2/pm34xx.c
->> @@ -60,7 +60,7 @@ u32 restore_pointer_address;
->> =20
->>  static LIST_HEAD(pwrst_list);
->> =20
->> -static void (*_omap_sram_idle)(u32 *addr, int save_state);
->> +void (*_omap_sram_idle)(u32 *addr, int save_state);
->> =20
->>  static void (*saved_idle)(void);
->
-> I thought this is already part of the patches. It is now non-static.
+[1] http://marc.info/?l=linux-omap&m=119634480534453&w=2
 
-Ok, I might have done something wrong with your patches.
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+---
+Patch based on the linux-omap tree. I believe the tabs-to-spaces issue
+has been resolved now, but this is the first patch I'm sending out to the
+list after that.
 
->
->> =20
->> Serial and gpio clock disabling and gpio_prepare/resume can=20
->> be removed from omap3_pm_idle because they are already done=20
->> in omap_sram_idle. And if omap_serial_can_sleep is removed=20
->> from omap3_can_sleep it should be added to omap3_pm_idle.=20
->> Omap3_pm_idle can be also put behind #ifndef CONFIG_CPU_IDLE:
->>=20
->> +#ifndef CONFIG_CPU_IDLE
->>  static void omap3_pm_idle(void)
->>  {
->>         local_irq_disable();
->> @@ -454,33 +455,16 @@ static void omap3_pm_idle(void)
->>         if (omap_irq_pending())
->>                 goto out;
->> =20
->> -       omap2_gpio_prepare_for_retention();
->> -
->> -       if (clocks_off_while_idle) {
->> -               omap_serial_enable_clocks(0, 0);
->> -               omap_serial_enable_clocks(0, 1);
->> -               omap_serial_enable_clocks(0, 2);
->> -               /* XXX This is for gpio fclk hack. Will be removed a=
-s
->> -                * gpio driver * handles fcks correctly */
->> -               per_gpio_clk_disable();
->> -       }
->> +       if (!omap_serial_can_sleep())
->> +               goto out;
->> =20
->>         omap_sram_idle();
->> =20
->> -       if (clocks_off_while_idle) {
->> -               omap_serial_enable_clocks(1, 0);
->> -               omap_serial_enable_clocks(1, 1);
->> -               omap_serial_enable_clocks(1, 2);
->> -               /* XXX This is for gpio fclk hack. Will be removed a=
-s
->> -                * gpio driver * handles fcks correctly */
->> -               per_gpio_clk_enable();
->> -       }
->> -
->> -       omap2_gpio_resume_after_retention();
->>  out:
->>         local_fiq_enable();
->>         local_irq_enable();
->>  }
->> +#endif /* CONFIG_CPU_IDLE */
->
-> These are also done as part of the last patch in the series.
+Suggestions welcome for removing the 2 #ifdefs below. One suggestion was to
+use a module parameter to decide whether to use system dma or mentor dma.
 
-I already noticed your second reply.
+Patch updated with a few ifdefs removed and one compilation break resolved.
 
->
->>=20
->> I would like to see also some reformatting. E.g. patch 11=20
->> contains lots of code which is not related to "CORE context=20
->> save/restore". It might be also good idea to enable only=20
->> non-off mode C states and have a pwrdms_setup function which=20
->> is something like this:
->>=20
->> static int __init pwrdms_setup(struct powerdomain *pwrdm) {
->> 	struct power_state *pwrst;
->>=20
->> 	if (!pwrdm->pwrsts)
->> 		return 0;
->>=20
->> 	pwrst =3D kmalloc(sizeof(struct power_state), GFP_KERNEL);
->> 	if (!pwrst)
->> 		return -ENOMEM;
->> 	pwrst->pwrdm =3D pwrdm;
->> 	pwrst->next_state =3D PWRDM_POWER_RET;
->> 	list_add(&pwrst->node, &pwrst_list);
->>=20
->> 	if (pwrdm_has_hdwr_sar(pwrdm))
->> 		pwrdm_enable_hdwr_sar(pwrdm);
->>=20
->> #ifdef CONFIG_CPU_IDLE
->> 	/* Let cpuidle do selection here */
->> 	if (!strcmp(pwrst->pwrdm->name, "core_pwrdm") ||=20
->> !strcmp(pwrst->pwrdm->name, "mpu_pwrdm") ||
->> 	    !strcmp(pwrst->pwrdm->name, "neon_pwrdm"))
->> 		return set_pwrdm_state(pwrst->pwrdm, PWRDM_POWER_ON);
->> 	else
->> #endif
->> 		return set_pwrdm_state(pwrst->pwrdm,=20
->> pwrst->next_state); }
->>=20
->> This way cpuidle code would be in a state that it could be=20
->> applied on linux-omap tree and it wouldn't break anything.=20
->> Then have e.g. separate patch for testing off state. This=20
->> patch could modify code to set next states to off and mark=20
->> off mode C states as a valid.
->
-> Yes, will do that. Maybe the couple of comments above are also due to=
-=20
-> the last patch doing a lot more than it actually should.
+ drivers/usb/musb/Kconfig     |    8 ++
+ drivers/usb/musb/musbhsdma.c |  163 +++++++++++++++++++++++++++++++++++--------
+ 2 files changed, 142 insertions(+), 29 deletions(-)
 
-Ok, great.
-
->
->>=20
->> >
->> >> Hi,
->> >>
->> >> I am sending an updated patch set for CPUidle which includes all=20
->> >> fixes/comments posted on the previous set by Jouni/Richard W/Pete=
-r=20
->> >> and others.
->> >>
->> >> The Following are the fixes
->> >> 1) Uart clock enable/disable moved out of the context save/restor=
-e=20
->> >> patch
->> >> 2) GPIO IRQENABLE save/restore fix from Richard
->> >> 3) Fixes from Jouni which do the following
->> >> 	1. Add wkdep between neon and mpu
->> >> 	2. Add wkdep between per and core
->> >> 	3. Deny hwsup mode before writing next pwrst state
->> >> 	4. Make sure that order in idle loop is such that clocks are=20
->> >> _really_
->> >>    		enabled before accessing registers=20
->> (serial & gpio).
->> >> 4) Safe state idle fix from Richard
->> >> 5) Uart smart-force fix from Richard
->> >> 6) Toggle IO-PAD enable/disable in idle
->> >>
->> >> As earlier these patches apply on top of Jouni's=20
->> workaround patch set=20
->> >> ([PATCH 0/6] 34XX: PM: Workarounds to get omap3 to retention 4th.=
-)
->> >>
->> >> The following is neccessay even with a minimal config to=20
->> achieve OFF.
->> >> $ echo 1 > /sys/power/sleep_while_idle $ echo 1 >=20
->> >> /sys/power/clocks_off_while_idle
->> >>
->> >> regards,
->> >> Rajendra
->> >>
->> >
->> >
->> > --
->> > To unsubscribe from this list: send the line "unsubscribe=20
->> linux-omap"=20
->> > in the body of a message to majordomo@vger.kernel.org More=20
->> majordomo=20
->> > info at  http://vger.kernel.org/majordomo-info.html
->> >
->> >
->>=20
->> --
->> Jouni H=C3=B6gander
->>=20
->>=20
->>=20
->
->
->
-
---=20
-Jouni H=C3=B6gander
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Index: linux-omap-2.6/drivers/usb/musb/musbhsdma.c
+===================================================================
+--- linux-omap-2.6.orig/drivers/usb/musb/musbhsdma.c	2008-07-28 10:54:37.000000000 +0530
++++ linux-omap-2.6/drivers/usb/musb/musbhsdma.c	2008-08-13 11:58:26.272902373 +0530
+@@ -34,6 +34,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
+ #include "musb_core.h"
++#include <asm/arch/dma.h>
+ 
+ #if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3430)
+ #include "omap2430.h"
+@@ -64,6 +65,9 @@
+ 
+ #define MUSB_HSDMA_CHANNELS		8
+ 
++#define MUSB_FIFO_ADDRESS(epnum)	\
++	((unsigned long) (OMAP_HSOTG_BASE + MUSB_FIFO_OFFSET(epnum)))
++
+ struct musb_dma_controller;
+ 
+ struct musb_dma_channel {
+@@ -75,6 +79,8 @@ struct musb_dma_channel {
+ 	u8				bIndex;
+ 	u8				epnum;
+ 	u8				transmit;
++
++	int				sysdma_channel;
+ };
+ 
+ struct musb_dma_controller {
+@@ -93,6 +99,42 @@ static int dma_controller_start(struct d
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_MUSB_USE_SYSTEM_DMA_RX
++static void musb_sysdma_completion(int lch, u16 ch_status, void *data)
++{
++	u32 dwAddress;
++	unsigned long flags;
++
++	struct dma_channel *pChannel;
++
++	struct musb_dma_channel *pImplChannel =
++					(struct musb_dma_channel *) data;
++	struct musb_dma_controller *controller = pImplChannel->controller;
++	struct musb *musb = controller->pDmaPrivate;
++	pChannel = &pImplChannel->Channel;
++
++	DBG(2, "lch = 0x%d, ch_status = 0x%x\n", lch, ch_status);
++	spin_lock_irqsave(&musb->lock, flags);
++
++	dwAddress = (u32) omap_get_dma_dst_pos(pImplChannel->sysdma_channel);
++	pChannel->actual_len = dwAddress - pImplChannel->dwStartAddress;
++
++	DBG(2, "ch %p, 0x%x -> 0x%x (%d / %d) %s\n",
++		pChannel, pImplChannel->dwStartAddress, dwAddress,
++		pChannel->actual_len, pImplChannel->len,
++		(pChannel->actual_len < pImplChannel->len) ?
++		"=> reconfig 0": "=> complete");
++
++	pChannel->status = MUSB_DMA_STATUS_FREE;
++	musb_dma_completion(musb, pImplChannel->epnum, pImplChannel->transmit);
++
++	spin_unlock_irqrestore(&musb->lock, flags);
++	return;
++}
++#else
++#define musb_sysdma_completion NULL
++#endif
++
+ static void dma_channel_release(struct dma_channel *pChannel);
+ 
+ static int dma_controller_stop(struct dma_controller *c)
+@@ -144,6 +186,29 @@ static struct dma_channel *dma_channel_a
+ 			/* Tx => mode 1; Rx => mode 0 */
+ 			pChannel->desired_mode = transmit;
+ 			pChannel->actual_len = 0;
++			pImplChannel->sysdma_channel = -1;
++
++#ifdef CONFIG_MUSB_USE_SYSTEM_DMA_RX
++			if (!transmit) {
++				int ret;
++				ret = omap_request_dma(OMAP24XX_DMA_NO_DEVICE,
++					"MUSB SysDMA", musb_sysdma_completion,
++					(void *) pImplChannel,
++					&(pImplChannel->sysdma_channel));
++
++				if (ret) {
++					printk(KERN_ERR "request_dma failed:"
++							" %d\n", ret);
++					controller->bmUsedChannels &=
++								~(1 << bBit);
++					pChannel->status =
++							MUSB_DMA_STATUS_UNKNOWN;
++					pImplChannel->sysdma_channel = -1;
++					pChannel = NULL;
++				}
++			}
++#endif
++
+ 			break;
+ 		}
+ 	}
+@@ -163,6 +228,12 @@ static void dma_channel_release(struct d
+ 		~(1 << pImplChannel->bIndex);
+ 
+ 	pChannel->status = MUSB_DMA_STATUS_UNKNOWN;
++
++	if (pImplChannel->sysdma_channel != -1) {
++		omap_stop_dma(pImplChannel->sysdma_channel);
++		omap_free_dma(pImplChannel->sysdma_channel);
++		pImplChannel->sysdma_channel = -1;
++	}
+ }
+ 
+ static void configure_channel(struct dma_channel *pChannel,
+@@ -179,41 +250,69 @@ static void configure_channel(struct dma
+ 	DBG(4, "%p, pkt_sz %d, addr 0x%x, len %d, mode %d\n",
+ 			pChannel, packet_sz, dma_addr, len, mode);
+ 
+-	if (mode) {
+-		csr |= 1 << MUSB_HSDMA_MODE1_SHIFT;
+-		BUG_ON(len < packet_sz);
++	if (pImplChannel->sysdma_channel != -1) {
++	/* System DMA */
++	/* RX: set src = FIFO */
++
++		omap_set_dma_transfer_params(pImplChannel->sysdma_channel,
++					OMAP_DMA_DATA_TYPE_S8,
++					len, 1, /* One frame */
++					OMAP_DMA_SYNC_ELEMENT,
++					OMAP24XX_DMA_NO_DEVICE,
++					0); /* Src Sync */
++
++		omap_set_dma_src_params(pImplChannel->sysdma_channel, 0,
++					OMAP_DMA_AMODE_CONSTANT,
++					MUSB_FIFO_ADDRESS(pImplChannel->epnum),
++					0, 0);
++
++		omap_set_dma_dest_params(pImplChannel->sysdma_channel, 0,
++					OMAP_DMA_AMODE_POST_INC, dma_addr,
++					0, 0);
++
++		omap_set_dma_dest_data_pack(pImplChannel->sysdma_channel, 1);
++		omap_set_dma_dest_burst_mode(pImplChannel->sysdma_channel,
++					OMAP_DMA_DATA_BURST_16);
++
++		omap_start_dma(pImplChannel->sysdma_channel);
++
++	} else { /* Mentor DMA */
++		if (mode) {
++			csr |= 1 << MUSB_HSDMA_MODE1_SHIFT;
++			BUG_ON(len < packet_sz);
+ 
+-		if (packet_sz >= 64) {
+-			csr |= MUSB_HSDMA_BURSTMODE_INCR16
++			if (packet_sz >= 64) {
++				csr |= MUSB_HSDMA_BURSTMODE_INCR16
+ 					<< MUSB_HSDMA_BURSTMODE_SHIFT;
+-		} else if (packet_sz >= 32) {
+-			csr |= MUSB_HSDMA_BURSTMODE_INCR8
++			} else if (packet_sz >= 32) {
++				csr |= MUSB_HSDMA_BURSTMODE_INCR8
+ 					<< MUSB_HSDMA_BURSTMODE_SHIFT;
+-		} else if (packet_sz >= 16) {
+-			csr |= MUSB_HSDMA_BURSTMODE_INCR4
++			} else if (packet_sz >= 16) {
++				csr |= MUSB_HSDMA_BURSTMODE_INCR4
+ 					<< MUSB_HSDMA_BURSTMODE_SHIFT;
++			}
+ 		}
+-	}
+ 
+-	csr |= (pImplChannel->epnum << MUSB_HSDMA_ENDPOINT_SHIFT)
+-		| (1 << MUSB_HSDMA_ENABLE_SHIFT)
+-		| (1 << MUSB_HSDMA_IRQENABLE_SHIFT)
+-		| (pImplChannel->transmit
+-				? (1 << MUSB_HSDMA_TRANSMIT_SHIFT)
+-				: 0);
+-
+-	/* address/count */
+-	musb_writel(mbase,
+-		MUSB_HSDMA_CHANNEL_OFFSET(bChannel, MUSB_HSDMA_ADDRESS),
+-		dma_addr);
+-	musb_writel(mbase,
+-		MUSB_HSDMA_CHANNEL_OFFSET(bChannel, MUSB_HSDMA_COUNT),
+-		len);
+-
+-	/* control (this should start things) */
+-	musb_writew(mbase,
+-		MUSB_HSDMA_CHANNEL_OFFSET(bChannel, MUSB_HSDMA_CONTROL),
+-		csr);
++		csr |= (pImplChannel->epnum << MUSB_HSDMA_ENDPOINT_SHIFT)
++			| (1 << MUSB_HSDMA_ENABLE_SHIFT)
++			| (1 << MUSB_HSDMA_IRQENABLE_SHIFT)
++			| (pImplChannel->transmit
++					? (1 << MUSB_HSDMA_TRANSMIT_SHIFT)
++					: 0);
++
++		/* address/count */
++		musb_writel(mbase,
++			MUSB_HSDMA_CHANNEL_OFFSET(bChannel, MUSB_HSDMA_ADDRESS),
++			dma_addr);
++		musb_writel(mbase,
++			MUSB_HSDMA_CHANNEL_OFFSET(bChannel, MUSB_HSDMA_COUNT),
++			len);
++
++		/* control (this should start things) */
++		musb_writew(mbase,
++			MUSB_HSDMA_CHANNEL_OFFSET(bChannel, MUSB_HSDMA_CONTROL),
++			csr);
++	} /* Mentor DMA */
+ }
+ 
+ static int dma_channel_program(struct dma_channel *pChannel,
+@@ -265,6 +364,12 @@ static int dma_channel_abort(struct dma_
+ 				MUSB_EP_OFFSET(pImplChannel->epnum, MUSB_TXCSR),
+ 				csr);
+ 		} else {
++			if (pImplChannel->sysdma_channel != -1) {
++				omap_stop_dma(pImplChannel->sysdma_channel);
++				omap_free_dma(pImplChannel->sysdma_channel);
++				pImplChannel->sysdma_channel = -1;
++			}
++
+ 			csr = musb_readw(mbase,
+ 				MUSB_EP_OFFSET(pImplChannel->epnum, MUSB_RXCSR));
+ 			csr &= ~(MUSB_RXCSR_AUTOCLEAR |
+Index: linux-omap-2.6/drivers/usb/musb/Kconfig
+===================================================================
+--- linux-omap-2.6.orig/drivers/usb/musb/Kconfig	2008-07-28 10:54:37.000000000 +0530
++++ linux-omap-2.6/drivers/usb/musb/Kconfig	2008-08-12 13:18:34.000000000 +0530
+@@ -150,6 +150,14 @@ config USB_INVENTRA_DMA
+ 	help
+ 	  Enable DMA transfers using Mentor's engine.
+ 
++config MUSB_USE_SYSTEM_DMA_RX
++	bool 'Use System DMA for RX endpoints'
++	depends on USB_MUSB_HDRC && USB_INVENTRA_DMA
++	help
++	  MUSB RTL version 1.4 has a hardware issue when TX and RX DMA
++	  channels are simultaneously enabled. To work around this issue,
++	  you can choose to use System DMA for RX channels.
++
+ config USB_TI_CPPI_DMA
+ 	bool
+ 	depends on USB_MUSB_HDRC && !MUSB_PIO_ONLY
