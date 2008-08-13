@@ -1,36 +1,42 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: USB-webcam support
-Date: Tue, 12 Aug 2008 15:49:43 -0700
-Message-ID: <20080812224943.5C56D3631A4@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-References: <c656a4d20808120332v224c5053r7225c086acd8c2cd@mail.gmail.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0256A366A2@dbde02.ent.ti.com>
- <E78C46F1-DB17-4BE0-A310-D1F5072B26B8@student.utwente.nl>
- <20080812223844.48AB1362B0F@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+From: "Hunter, Jon" <jon-hunter@ti.com>
+Subject: RE: OMAP AIC23
+Date: Tue, 12 Aug 2008 21:50:21 -0500
+Message-ID: <7B4574D56E4ADF438756313E9A172A870D5F0E4D@dlee01.ent.ti.com>
+References: <65e025470808111221w43dad825jf237ce6c0e89bdde@mail.gmail.com>
+ <01ae01c8fc3c$fe070790$LocalHost@wipultra806>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:24627 "HELO
-	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751928AbYHLWoE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 Aug 2008 18:44:04 -0400
-In-Reply-To: <20080812223844.48AB1362B0F@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+Received: from soda.ext.ti.com ([198.47.26.145]:60237 "EHLO soda.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751728AbYHMCue convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Aug 2008 22:50:34 -0400
+In-Reply-To: <01ae01c8fc3c$fe070790$LocalHost@wipultra806>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: k.kooi@student.utwente.nl, gadiyar@ti.com, arunedarath@mistralsolutions.com
-Cc: linux-omap@vger.kernel.org
+To: "Shekhar, Chandra" <x0044955@ti.com>, Yuri Jaeger Monti <yurijm@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> > >> If I have a USB camera with good Linux support, can I connect it
-> > >> to omap3evm(or any omap2) and make it functional?
->
-> I'm told some folk have used ISO transfer support, but when I last did
-> much work with the musb code, none of it was tested.
+Hi Chandra,
 
-Oh, one more point:  it should work pretty well with EHCI.  There
-are some glitches with the periodic scheduling (it's really messy
-even before you start thinking about how to code it), but folk have
-successfully used it with a variety of hardware.
+> i have a question, why a client is modifying mcbsp registers. There is a
+> mcbsp
+> config function (omap_mcbsp_config) exported which you can use to
+> configure mcbsp registers.
+> if its an absolute necessity you can use omap_mcbsp_read and
+> omap_mcbsp_write
+> function. which are defined in arch/arm/plat-omap/mcbsp.c.
+> but you need to pass full register name, like OMAP_MCBSP_REG_SPCR1 instead
+> of
+> just SPCR1 ( 'SPCR1' undeclared  error).
 
-So if you can use EHCI on your EVM, that should be solvable.
 
+Looking at the source file "drivers/i2c/chips/tlv320aic23.c" the function "omap_mcbsp3_aic23_clock_init()" is enabling the McBSP sample rate generator in order to generate the 12MHz system clock to the aic23. I believe that this needs to be done in order to configure the aic23.
+
+The good news is that there appears to be a simple fix. All we need to do is move the definitions of the macros OMAP_MCBSP_READ and OMAP_MCBSP_WRITE from mcbsp.c to the header "include/asm-arm/arch-omap/mcbsp.h"
+
+Doing this and making a couple other minor changes I am now able to build the alsa driver successfully for the omap5912 osk. I will submit a patch to the list. Let me know what you think.
+
+Cheers
+Jon
