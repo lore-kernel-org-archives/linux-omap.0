@@ -1,37 +1,42 @@
-From: "Ramirez Luna, Omar" <x00omar@ti.com>
-Subject: [PATCH 00/13][GIT 3/4+] Dspbridge latest patches
-Date: Tue, 12 Aug 2008 22:46:11 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A530825DC4B@dlee03.ent.ti.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: git omapzoom suggestions
+Date: Wed, 13 Aug 2008 10:22:14 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608701C2CF0577@dbde02.ent.ti.com>
+References: <94a0d4530808070737p24f40c23t7381fb902f9d59a7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:42909 "EHLO calf.ext.ti.com"
+Received: from soda.ext.ti.com ([198.47.26.145]:35968 "EHLO soda.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753713AbYHMDqS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Aug 2008 23:46:18 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by calf.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7D3kDDQ005994
-	for <linux-omap@vger.kernel.org>; Tue, 12 Aug 2008 22:46:18 -0500
-Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id m7D3kCBC013741
-	for <linux-omap@vger.kernel.org>; Tue, 12 Aug 2008 22:46:12 -0500 (CDT)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id m7D3kCbx008890
-	for <linux-omap@vger.kernel.org>; Tue, 12 Aug 2008 22:46:12 -0500 (CDT)
+	id S1751286AbYHMEw0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Aug 2008 00:52:26 -0400
+In-Reply-To: <94a0d4530808070737p24f40c23t7381fb902f9d59a7@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
-
-I would like to announce that the latest patches for dspbridge code are now uploaded, you can find them in Gforge OmapZoom site at:
-
-http://omapzoom.org/gf/project/omapbridge/frs/?action=FrsReleaseView&release_id=119
-
-Also, update your API and samples code when using the latest patches or when pulling from OmapZoom GIT, since the previous one will not longer work due to bool type changes in bridge sources, you can find these tarballs at:
-
-http://omapzoom.org/gf/project/omapbridge/frs/?action=FrsReleaseView&release_id=117
-
--omar
+SGkgRmVsaXBlIENvbnRyZXJhcw0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZy
+b206IGxpbnV4LW9tYXAtb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtb21hcC1v
+d25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBGZWxpcGUNCj4gQ29udHJlcmFzDQo+
+IFNlbnQ6IFRodXJzZGF5LCBBdWd1c3QgMDcsIDIwMDggODowNyBQTQ0KPiBUbzogbGludXgtb21h
+cEB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogZ2l0IG9tYXB6b29tIHN1Z2dlc3Rpb25zDQo+
+IA0KPiBIaSwNCj4gDQo+IEknbSB0cnlpbmcgdG8gcHVsbCBmcm9tIGdpdC5vbWFwem9vbSBhbmQg
+bm90aGluZyBoYXBwZW5zLCBpdCBzZWVtcyB5b3UNCj4gYXJlIG5vdCBydW5uaW5nIGdpdC11cGRh
+dGUtc2VydmVyLWluZm8gKGluZm8vcmVmcyBpcyBvdXRkYXRlZFsxXSkuIFlvdQ0KPiBuZWVkIHRv
+IGNobW9kICt4IC5naXQvaG9va3MvcG9zdC11cGRhdGUuDQpUaGlzIGlzIHVwZGF0ZWQgbm93LiBU
+aGFua3MgZm9yIHBvaW50aW5nIG91dCB0aGUgbWlzcy4gDQpUaGUgY2xvbmUgaXMgd29ya2luZyBm
+aW5lIG5vdy4NCg0KPiANCj4gQWxzbywgeW91IGRvbid0IGhhdmUgYSAuZ2l0L2Nsb25ldXJsIGZp
+bGUsIHNvIHRoZSBVUkwgaXMgbm90IGRpc3BsYXllZA0KDQpJIHdpbGwgYmUgZG9pbmcgdGhpcyBz
+b29uLg0KDQo+IGJ5IGdpdHdlYi4gSXQgd291bGQgYWxzbyBiZSBnb29kIHRvIHN1cHBvcnQgbmF0
+aXZlIGdpdCBpbnN0ZWFkIG9mIGh0dHANCj4gKG11Y2ggbW9yZSBlZmZpY2llbnQpLg0KDQpXZSBh
+cmUgYWN0aXZlbHkgd29ya2luZyBvbiBnZXR0aW5nIHRoZSBuYXRpdmUgZ2l0IHN1cHBvcnQgdXAu
+IA0KVGlsbCB0aGVuIHdlIHdpbGwgaGF2ZSB0byBsaXZlIHdpdGggaHR0cC4NCg0KVGhhbmtzIGZv
+ciB0aGUgZmVlZGJhY2suDQoNCj4gDQo+IEJlc3QgcmVnYXJkcy4NCj4gDQo+IFsxXSBodHRwOi8v
+Z2l0Lm9tYXB6b29tLm9yZy9yZXBvL29tYXBrZXJuZWwvaW5mby9yZWZzDQo+IA0KPiAtLQ0KPiBG
+ZWxpcGUgQ29udHJlcmFzDQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBz
+ZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1vbWFwIiBpbg0KPiB0aGUgYm9keSBvZiBh
+IG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3JlIG1ham9yZG9tbyBp
+bmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCg==
