@@ -1,59 +1,98 @@
-From: "Remith Ravi" <remith@mistralsolutions.com>
-Subject: Re: USB-webcam support
-Date: Wed, 13 Aug 2008 12:40:14 +0530
-Message-ID: <814dfab70808130010u62033f97i4bf15e5c03c47df7@mail.gmail.com>
-References: <c656a4d20808120332v224c5053r7225c086acd8c2cd@mail.gmail.com>
-	 <0680EC522D0CC943BC586913CF3768C00208C15FD8@dbde02.ent.ti.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: [PATCH 04/10] OMAP3 SRF: OMAP PM srf implementation
+Date: Wed, 13 Aug 2008 10:16:38 +0300
+Message-ID: <87bpzx5qqx.fsf@trdhcp146196.ntc.nokia.com>
+References: <47171.192.168.10.89.1218460024.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f29.google.com ([209.85.217.29]:52299 "EHLO
-	mail-gx0-f29.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751600AbYHMHKQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Aug 2008 03:10:16 -0400
-Received: by gxk10 with SMTP id 10so840847gxk.13
-        for <linux-omap@vger.kernel.org>; Wed, 13 Aug 2008 00:10:16 -0700 (PDT)
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C00208C15FD8@dbde02.ent.ti.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.105.134]:21288 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751436AbYHMHRX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Aug 2008 03:17:23 -0400
+In-Reply-To: <47171.192.168.10.89.1218460024.squirrel@dbdmail.itg.ti.com> (ext
+	Rajendra Nayak's message of "Mon, 11 Aug 2008 18:37:04 +0530 (IST)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Syed Mohammed, Khasim" <khasim@ti.com>
-Cc: arun c <arunedarath@mistralsolutions.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, Aug 12, 2008 at 4:45 PM, Syed Mohammed, Khasim <khasim@ti.com> wrote:
-> Hi Arun,
->
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of arun c
->> Sent: Tuesday, August 12, 2008 4:02 PM
->> To: linux-omap@vger.kernel.org
->> Subject: USB-webcam support
->>
->> Hi All,
->>
->> If I have a USB camera with good Linux support, can I connect it
->> to omap3evm(or any omap2) and make it functional?
->>
-> Yes you can, I have tried Logitech LZ708BC on Beagle board and it works good at 160x120 resolution.
->
-> You just need UVC driver, which I think is part of latest kernel.
+Hello Rajendra,
 
+"ext Rajendra Nayak" <rnayak@ti.com> writes:
 
-Is it using USB Isochronous transfer? I checked the web. There is no
-information regarding the given camera model.
+> +/*
+> + * Powerdomain usecounting hooks
+> + */
+> +
+> +void omap_pm_pwrdm_active(struct powerdomain *pwrdm)
+> +{
+> +	char *res_name;
+> +
+> +	if (!pwrdm) {
+> +		WARN_ON(1);
+> +		return;
+> +	};
+> +
+> +	if (!strcmp(pwrdm->name, "wkup_pwrdm") ||
+> +			 !strcmp(pwrdm->name, "core_pwrdm"))
+> +		return;
+> +
+> +	pr_debug("OMAP PM: powerdomain %s is becoming active\n", pwrdm->nam=
+e);
+> +
+> +	res_name =3D get_lat_res_name(pwrdm->name);
+> +	/* Request for a zero latency which puts the Power Domain in ON sta=
+te*/
+> +	resource_request(res_name, &omap_pm_dev, 0);
+> +	return;
+> +}
+> +
+> +void omap_pm_pwrdm_inactive(struct powerdomain *pwrdm)
+> +{
+> +	char *res_name;
+> +
+> +	if (!pwrdm) {
+> +		WARN_ON(1);
+> +		return;
+> +	};
+> +
+> +	if (!strcmp(pwrdm->name, "wkup_pwrdm") ||
+> +			!strcmp(pwrdm->name, "core_pwrdm"))
+> +		return;
+> +
+> +	pr_debug("OMAP PM: powerdomain %s is becoming inactive\n",
+> +		 pwrdm->name);
+> +
+> +	res_name =3D get_lat_res_name(pwrdm->name);
+> +	/* Release the latency requested */
+> +	resource_release(res_name, &omap_pm_dev);
+> +	return;
+> +}
 
-Regards,
-Remith
+=46or what these two functions are? Why they are requesting/releasing r=
+esource?
+=20
+> +
+> +/*
+> + * Should be called before clk framework since clk fw will call
+> + * omap_pm_pwrdm_{in,}active()
+> + */
+> +int __init omap_pm_if_early_init(void)
+> +{
+> +	return 0;
+> +}
 
+Why clock framework (omap2_clkdm_clk_enable/disable) is calling
+omap_pm_pwrdm_{in,}active()? Is it for keeping track of OFF
+transitions?
 
->
-> Regards,
-> Khasim
-> http://khasim.blogspot.com
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+--=20
+Jouni H=C3=B6gander
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
