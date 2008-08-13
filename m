@@ -1,98 +1,58 @@
-From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: [PATCH 04/10] OMAP3 SRF: OMAP PM srf implementation
-Date: Wed, 13 Aug 2008 10:16:38 +0300
-Message-ID: <87bpzx5qqx.fsf@trdhcp146196.ntc.nokia.com>
-References: <47171.192.168.10.89.1218460024.squirrel@dbdmail.itg.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] OMAP2/3: fix clock/clockdomain bugs
+Date: Wed, 13 Aug 2008 10:43:59 +0300
+Message-ID: <20080813074358.GC14224@atomide.com>
+References: <20080812212919.24628.82229.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:21288 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751436AbYHMHRX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Aug 2008 03:17:23 -0400
-In-Reply-To: <47171.192.168.10.89.1218460024.squirrel@dbdmail.itg.ti.com> (ext
-	Rajendra Nayak's message of "Mon, 11 Aug 2008 18:37:04 +0530 (IST)")
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49717 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751928AbYHMHlr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Aug 2008 03:41:47 -0400
+Content-Disposition: inline
+In-Reply-To: <20080812212919.24628.82229.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Rajendra Nayak <rnayak@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap@vger.kernel.org
 
-Hello Rajendra,
+* Paul Walmsley <paul@pwsan.com> [080813 00:34]:
+> This series fixes two bugs that cause N800 to panic on boot:
+> 
+> - a OMAP2xxx clock code bug, which caused an "Unhandled fault:
+>   alignment exception (0x001) at 0xc02....." panic; and
+> 
+> - an OMAP2/3 clockdomain bug, which caused an "Unable to handle kernel
+>   paging request at virtual address 5f75706d" panic.
+> 
+> These bugs were exposed by 0e5194e1a84c219bebbb78f305b7a8eabc4a3656 and
+> 718fc6cd4db902aa2242a736cc3feb8744a4c71a.
 
-"ext Rajendra Nayak" <rnayak@ti.com> writes:
+Great, thanks! Pushing today.
 
-> +/*
-> + * Powerdomain usecounting hooks
-> + */
-> +
-> +void omap_pm_pwrdm_active(struct powerdomain *pwrdm)
-> +{
-> +	char *res_name;
-> +
-> +	if (!pwrdm) {
-> +		WARN_ON(1);
-> +		return;
-> +	};
-> +
-> +	if (!strcmp(pwrdm->name, "wkup_pwrdm") ||
-> +			 !strcmp(pwrdm->name, "core_pwrdm"))
-> +		return;
-> +
-> +	pr_debug("OMAP PM: powerdomain %s is becoming active\n", pwrdm->nam=
-e);
-> +
-> +	res_name =3D get_lat_res_name(pwrdm->name);
-> +	/* Request for a zero latency which puts the Power Domain in ON sta=
-te*/
-> +	resource_request(res_name, &omap_pm_dev, 0);
-> +	return;
-> +}
-> +
-> +void omap_pm_pwrdm_inactive(struct powerdomain *pwrdm)
-> +{
-> +	char *res_name;
-> +
-> +	if (!pwrdm) {
-> +		WARN_ON(1);
-> +		return;
-> +	};
-> +
-> +	if (!strcmp(pwrdm->name, "wkup_pwrdm") ||
-> +			!strcmp(pwrdm->name, "core_pwrdm"))
-> +		return;
-> +
-> +	pr_debug("OMAP PM: powerdomain %s is becoming inactive\n",
-> +		 pwrdm->name);
-> +
-> +	res_name =3D get_lat_res_name(pwrdm->name);
-> +	/* Release the latency requested */
-> +	resource_release(res_name, &omap_pm_dev);
-> +	return;
-> +}
+> With the following patches applied on git head, N800 boots fine, but
+> only if CONFIG_DEBUG_LL is enabled.  If it is disabled, it hangs at
+> some point in early boot.  Don't know why.
 
-=46or what these two functions are? Why they are requesting/releasing r=
-esource?
-=20
-> +
-> +/*
-> + * Should be called before clk framework since clk fw will call
-> + * omap_pm_pwrdm_{in,}active()
-> + */
-> +int __init omap_pm_if_early_init(void)
-> +{
-> +	return 0;
-> +}
+Maybe it needs flasher --enable-rd-mode --set-rd-flags=serial-console?
 
-Why clock framework (omap2_clkdm_clk_enable/disable) is calling
-omap_pm_pwrdm_{in,}active()? Is it for keeping track of OFF
-transitions?
+> These patches also boot-tested cleanly on 2430SDP and 3430SDP, both
+> with and without CONFIG_DEBUG_LL.
 
---=20
-Jouni H=C3=B6gander
+Good
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
+
+>    text    data     bss     dec     hex filename
+> 3217805  149808   85008 3452621  34aecd vmlinux.n800.orig
+> 3217837  149808   85008 3452653  34aeed vmlinux.n800
+> 
+>  arch/arm/mach-omap2/clock24xx.c   |    2 ++
+>  arch/arm/mach-omap2/clockdomain.c |    6 ++++++
+>  2 files changed, 8 insertions(+), 0 deletions(-)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
