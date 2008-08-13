@@ -1,78 +1,57 @@
-From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: RE: [PATCH 00/11] OMAP3 CPUidle patches - ver 2
-Date: Wed, 13 Aug 2008 11:36:07 +0530
-Message-ID: <00ae01c8fd0a$ad278dd0$LocalHost@wipultra1382>
-References: <00ad01c8fd09$6bcdc6c0$LocalHost@wipultra1382>
+From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
+Subject: [PATCH]Enable 4-bit in HSMMC1 and HSMMC2 platform data
+Date: Wed, 13 Aug 2008 11:43:30 +0530 (IST)
+Message-ID: <62710.192.168.10.89.1218608010.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calf.ext.ti.com ([198.47.26.144]:47441 "EHLO calf.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:42014 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752403AbYHMGGT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Aug 2008 02:06:19 -0400
-In-Reply-To: <00ad01c8fd09$6bcdc6c0$LocalHost@wipultra1382>
+	id S1751861AbYHMGNh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Aug 2008 02:13:37 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?Q?'=22H=C3=B6gander=22_Jouni'?= <jouni.hogander@nokia.com>
+To: tony@atomide.com
 Cc: linux-omap@vger.kernel.org
 
-> 
-> >  
-> > Serial and gpio clock disabling and gpio_prepare/resume can 
-> be removed 
-> > from omap3_pm_idle because they are already done in omap_sram_idle. 
-> > And if omap_serial_can_sleep is removed from 
-> omap3_can_sleep it should 
-> > be added to omap3_pm_idle.
-> > Omap3_pm_idle can be also put behind #ifndef CONFIG_CPU_IDLE:
-> > 
-> > +#ifndef CONFIG_CPU_IDLE
-> >  static void omap3_pm_idle(void)
-> >  {
-> >         local_irq_disable();
-> > @@ -454,33 +455,16 @@ static void omap3_pm_idle(void)
-> >         if (omap_irq_pending())
-> >                 goto out;
-> >  
-> > -       omap2_gpio_prepare_for_retention();
-> > -
-> > -       if (clocks_off_while_idle) {
-> > -               omap_serial_enable_clocks(0, 0);
-> > -               omap_serial_enable_clocks(0, 1);
-> > -               omap_serial_enable_clocks(0, 2);
-> > -               /* XXX This is for gpio fclk hack. Will be 
-> removed as
-> > -                * gpio driver * handles fcks correctly */
-> > -               per_gpio_clk_disable();
-> > -       }
-> > +       if (!omap_serial_can_sleep())
-> > +               goto out;
-> >  
-> >         omap_sram_idle();
-> >  
-> > -       if (clocks_off_while_idle) {
-> > -               omap_serial_enable_clocks(1, 0);
-> > -               omap_serial_enable_clocks(1, 1);
-> > -               omap_serial_enable_clocks(1, 2);
-> > -               /* XXX This is for gpio fclk hack. Will be 
-> removed as
-> > -                * gpio driver * handles fcks correctly */
-> > -               per_gpio_clk_enable();
-> > -       }
-> > -
-> > -       omap2_gpio_resume_after_retention();
-> >  out:
-> >         local_fiq_enable();
-> >         local_irq_enable();
-> >  }
-> > +#endif /* CONFIG_CPU_IDLE */
-> 
-> These are also done as part of the last patch in the series.
-> 
+From: Madhusudhan Chikkature<madhu.cr@ti.com>
 
-Ok.. so I misunderstood your comment initially, I confused omap3_pm_idle with the 
-omap3_enter_idle and thought this was already done.
-Yes, these can be now removed.
+ARM: OMAP3: Enable 4-bit support for HSMMC.
+
+This patch provides the fix to enable 4-bit support for HSMMC.
+
+Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
+Signed-off-by: purushotam<purushotam@ti.com>
+---
+ arch/arm/plat-omap/devices.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
+
+Index: linux-omap-2.6/arch/arm/plat-omap/devices.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/devices.c	2008-08-07
+15:56:52.000000000 +0530
++++ linux-omap-2.6/arch/arm/plat-omap/devices.c	2008-08-11 10:57:37.000000000
++0530
+@@ -289,13 +289,17 @@ static void __init omap_init_mmc(void)
+ 	mmc = &mmc_conf->mmc[0];
+
+ 	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
+-		if (mmc->enabled)
++		if (mmc->enabled) {
++			mmc1_data.conf = *mmc;
+ 			(void) platform_device_register(&mmc_omap_device1);
++		}
+
+ #if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX)
+ 		mmc = &mmc_conf->mmc[1];
+-		if (mmc->enabled)
++		if (mmc->enabled) {
++			mmc2_data.conf = *mmc;
+ 			(void) platform_device_register(&mmc_omap_device2);
++		}
+ #endif
+
+ 		return;
+
 
