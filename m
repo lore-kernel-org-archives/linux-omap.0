@@ -1,49 +1,63 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] OMAP3 timer: switch Beagle clockevents source to
-	GPTIMER12
-Date: Wed, 13 Aug 2008 16:36:14 +0300
-Message-ID: <20080813133612.GA27446@atomide.com>
-References: <20080811233109.3046.54050.stgit@localhost.localdomain>
+Subject: Re: Git tree updated to v2.6.27-rc2, help needed
+Date: Wed, 13 Aug 2008 16:38:50 +0300
+Message-ID: <20080813133850.GB27446@atomide.com>
+References: <20080811152620.GO25784@atomide.com> <20080812101332.a321e783.jarkko.nikula@nokia.com> <20080812114446.GG6705@atomide.com> <20080812143119.GL6705@atomide.com> <20080813104237.6b704dd4.jarkko.nikula@nokia.com> <20080813074841.GD14224@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56070 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58660 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750956AbYHMNeP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Aug 2008 09:34:15 -0400
+	with ESMTP id S1752788AbYHMNgw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Aug 2008 09:36:52 -0400
 Content-Disposition: inline
-In-Reply-To: <20080811233109.3046.54050.stgit@localhost.localdomain>
+In-Reply-To: <20080813074841.GD14224@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: linux-omap@vger.kernel.org, Sakari Ailus <sakari.ailus@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Eduardo Valentin <edubezval@gmail.com>
 
-* Paul Walmsley <paul@pwsan.com> [080812 02:38]:
-> This patch series allows the clockevents source GPTIMER to be selectable via
-> Kconfig, and changes the Beagle Kbuild config to use GPTIMER12 instead of
-> GPTIMER1.  The theory here is that GPTIMER12 has its own internal 32kHz 
-> secure oscillator, and does not depend on the external 32kHz clock source,
-> which we suspect may be noisy.
+* Tony Lindgren <tony@atomide.com> [080813 10:46]:
+> * Jarkko Nikula <jarkko.nikula@nokia.com> [080813 10:44]:
+> > On Tue, 12 Aug 2008 17:31:20 +0300
+> > "ext Tony Lindgren" <tony@atomide.com> wrote:
+> > 
+> > > > > > - Alignment error on omap2/3. This seems to happen also with
+> > > > > >   718fc6cd4db902aa2242a736cc3feb8744a4c71a reverted?
+> > > > > > 
+> > > > > - N800 boots up to UI with "gcc version 3.4.4 (release)
+> > > > > (CodeSourcery ARM 2005q3-2" and with DEBUG_LL=y. Without DEBUG_LL
+> > > > > it hangs somewhere before serial is initialized
+> > > > > 
+> > > > > - With "gcc version 4.2.1 (CodeSourcery Sourcery G++ Lite
+> > > > > 2007q3-53)" there is alignment exception in early booting
+> > > > > independently of 718fc6cd4db902aa2242a736cc3feb8744a4c71a
+> > > > 
+> > > > Weird that this alignment exception only happens on 24xx, not on
+> > > > 34xx.
+> > > 
+> > > For me reverting 0e5194e1a84c219bebbb78f305b7a8eabc4a3656 fixes this.
+> > > Reverting 718fc6cd4db902aa2242a736cc3feb8744a4c71a like Felipe
+> > > mentioned does not help for me with gcc version 4.2.3 (Sourcery G++
+> > > Lite 2008q1-126).
+> > > 
+> > I reverted the 0e5194e1a84c219bebbb78f305b7a8eabc4a3656 and now it
+> > boots with gcc 4.2.1 but only if DEBUG_LL=y. With gcc 3.4.4 there is no
+> > difference. Looks like that alignment is one issue and DEBUG_LL is
+> > another?
+> 
+> Does it behave the same way with Paul's patches?
 
-Pushing these today.
+Well at least following combination boots my n810 withtout LL_DEBUG:
+
+v2.6.26-omap1
+[PATCH 1/2] OMAP2 clock: associate clocks with clockdomains at startup
+[PATCH 2/2] OMAP2/3 clockdomains: autodeps should respect platform flags
+
+It does not boot without Paul's two patches. Also, v2.6.27-omap1 does
+not boot even with Paul's two patches.
+
+Anyways, I've created a new branch v2.6.26-omap2 with above patches
+and Beagle timer fixes applied.
 
 Tony
-
-> 
-> 
-> ---
-> 
-> size:
->   text    data     bss     dec     hex filename
-> 3265520  145472  105480 3516472  35a838 vmlinux.beagle.orig
-> 3265568  145472  105480 3516520  35a868 vmlinux.beagle
-> 
->  arch/arm/configs/omap3_beagle_defconfig |    5 +++--
->  arch/arm/mach-omap2/Kconfig             |   16 ++++++++++++++++
->  arch/arm/mach-omap2/timer-gp.c          |    5 ++++-
->  3 files changed, 23 insertions(+), 3 deletions(-)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
