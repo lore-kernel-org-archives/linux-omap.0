@@ -1,48 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Git tree updated to v2.6.27-rc3, all header files moved
-Date: Thu, 14 Aug 2008 13:14:41 +0300
-Message-ID: <20080814101440.GB9226@atomide.com>
-References: <20080814101329.GA9226@atomide.com>
+From: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Subject: [PATCH] [MTD] OneNAND OMAP3: add delay for GPIO
+Date: Thu, 14 Aug 2008 14:00:12 +0300
+Message-ID: <48A4103C.9090603@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57583 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755806AbYHNKM1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Aug 2008 06:12:27 -0400
-Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
-	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1KTZog-000LJf-CN
-	for linux-omap@vger.kernel.org; Thu, 14 Aug 2008 10:12:26 +0000
-Content-Disposition: inline
-In-Reply-To: <20080814101329.GA9226@atomide.com>
+Received: from smtp.nokia.com ([192.100.122.230]:39189 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752450AbYHNK6F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Aug 2008 06:58:05 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
+Cc: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [080814 13:11]:
-> Hi all,
-> 
-> I've just pushed an update to v2.6.27-rc3, which moves all machine
-> specific headers to arch/arm/plat-omap/include/mach/.
-> 
-> I've boot tested it on 2430sdp, 3430sdp, n810 and n770. Compile
-> tested also on OSK and H2. Please check your boards still work,
-> and patch as needed.
-> 
-> Please also refresh and resend your patches as needed, in most
-> cases something like this should be enough:
-> 
-> sed -i -e s/asm\\/arch\\//mach\\//g your.files
-> 
-> Also, looks like the n8x0 not booting without LL_DEBUG seems to
-> have disappeared between rc2 and rc3, did not track it down
-> any further.
+On OMAP3, the driver was occasionally not seeing the GPIO
+interrupt.  Adding a small delay of one register read
+eliminates the problem.
 
-Of course I had a typo in the subject, it should say v2.6.27, not
-v2.6.26.
+Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
+---
+ drivers/mtd/onenand/omap2.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-> Cheers,
-> 
-> Tony
+diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+index 2bd8746..bf6bba5 100644
+--- a/drivers/mtd/onenand/omap2.c
++++ b/drivers/mtd/onenand/omap2.c
+@@ -141,8 +141,13 @@ static int omap2_onenand_wait(struct mtd_info *mtd, int state)
+ 
+ 		/* Turn interrupts on */
+ 		syscfg = read_reg(c, ONENAND_REG_SYS_CFG1);
+-		syscfg |= ONENAND_SYS_CFG1_IOBE;
+-		write_reg(c, syscfg, ONENAND_REG_SYS_CFG1);
++		if (!(syscfg & ONENAND_SYS_CFG1_IOBE)) {
++			syscfg |= ONENAND_SYS_CFG1_IOBE;
++			write_reg(c, syscfg, ONENAND_REG_SYS_CFG1);
++			if (cpu_is_omap34xx())
++				/* Add a delay to let GPIO settle */
++				syscfg = read_reg(c, ONENAND_REG_SYS_CFG1);
++		}
+ 
+ 		INIT_COMPLETION(c->irq_done);
+ 		if (c->gpio_irq) {
+-- 
+1.5.4.3
