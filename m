@@ -1,836 +1,539 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Git tree updated to v2.6.26-rc3, all header files moved
-Date: Thu, 14 Aug 2008 16:35:41 +0300
-Message-ID: <20080814133540.GE9226@atomide.com>
-References: <20080814101329.GA9226@atomide.com> <20080814114710.GB16231@frodo>
+Subject: Re: [PATCH 1/1] Updates to omap3_evm_defconfig.
+Date: Thu, 14 Aug 2008 16:37:28 +0300
+Message-ID: <20080814133727.GF9226@atomide.com>
+References: <premi@ti.com> <1218646333-18689-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54687 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56946 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754661AbYHNNda (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Aug 2008 09:33:30 -0400
+	with ESMTP id S1752357AbYHNNfw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Aug 2008 09:35:52 -0400
 Content-Disposition: inline
-In-Reply-To: <20080814114710.GB16231@frodo>
+In-Reply-To: <1218646333-18689-1-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
+To: Sanjeev Premi <premi@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-* Felipe Balbi <me@felipebalbi.com> [080814 14:47]:
-> On Thu, Aug 14, 2008 at 01:13:30PM +0300, Tony Lindgren wrote:
-> > Hi all,
-> > 
-> > I've just pushed an update to v2.6.27-rc3, which moves all machine
-> > specific headers to arch/arm/plat-omap/include/mach/.
-> > 
-> > I've boot tested it on 2430sdp, 3430sdp, n810 and n770. Compile
-> > tested also on OSK and H2. Please check your boards still work,
-> > and patch as needed.
-> > 
-> > Please also refresh and resend your patches as needed, in most
-> > cases something like this should be enough:
-> > 
-> > sed -i -e s/asm\\/arch\\//mach\\//g your.files
-> > 
-> > Also, looks like the n8x0 not booting without LL_DEBUG seems to
-> > have disappeared between rc2 and rc3, did not track it down
-> > any further.
+* Sanjeev Premi <premi@ti.com> [080813 19:52]:
+> This patch updates the defconfig to 2.6.27-rc2 tag.
+> The updates are based on omap_3430sdp_defconfig.
 > 
-> Attached is my musb patch updated with you tree. The other version
-> without the board files is already going to mailine -rc3 merge via
-> Greg's queue.
+> Fixes the build issue reported earlier:
 > 
-> See http://marc.info/?l=linux-usb&m=121867604204244&w=2
+>       LD      init/built-in.o
+>       LD      .tmp_vmlinux1
+>     arm-none-linux-gnueabi-ld: no machine record defined
+>     arm-none-linux-gnueabi-ld: no machine record defined
+>     make: *** [.tmp_vmlinux1] Error 1
 
-Thanks, pushing to l-o. Your twl patch also needs to be updated
-for the include path.
+Pushing today.
 
 Tony
 
-
-> -- 
-> balbi
-
-> From 36f142f092683d64b4e025a836c32290bc641d57 Mon Sep 17 00:00:00 2001
-> From: Felipe Balbi <felipe.balbi@nokia.com>
-> Date: Thu, 14 Aug 2008 14:41:26 +0300
-> Subject: [PATCH] usb: musb: pass configuration specifics via pdata
 > 
-> Use platform_data to pass musb configuration-specific
-> details to musb driver.
-> 
-> This patch will prevent that other platforms selecting
-> HAVE_CLK and enabling musb won't break tree building.
-> 
-> The other parts of it will come when linux-omap merge
-> up more omap2/3 board-files.
-> 
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> Acked-by: Paul Mundt <lethal@linux-sh.org>
-> Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
 > ---
->  arch/arm/mach-omap2/board-n800-usb.c       |   46 +++++++-
->  arch/arm/mach-omap2/usb-musb.c             |   51 ++++++++-
->  arch/arm/mach-omap2/usb-tusb6010.c         |    1 -
->  arch/arm/plat-omap/include/mach/hdrc_cnf.h |  177 ----------------------------
->  drivers/usb/musb/musb_core.c               |   37 +++----
->  drivers/usb/musb/musb_core.h               |   14 +--
->  drivers/usb/musb/tusb6010.h                |  169 --------------------------
->  include/linux/usb/musb.h                   |   38 +++++-
->  8 files changed, 144 insertions(+), 389 deletions(-)
->  delete mode 100644 arch/arm/plat-omap/include/mach/hdrc_cnf.h
+>  arch/arm/configs/omap3_evm_defconfig |  282 ++++++++++++++++++++++++++++++----
+>  1 files changed, 254 insertions(+), 28 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/board-n800-usb.c b/arch/arm/mach-omap2/board-n800-usb.c
-> index 66dcd0f..f8df19e 100644
-> --- a/arch/arm/mach-omap2/board-n800-usb.c
-> +++ b/arch/arm/mach-omap2/board-n800-usb.c
-> @@ -35,14 +35,58 @@ static int tusb_set_clock(struct clk *osc_ck, int state);
->  #	define BOARD_MODE	MUSB_HOST
->  #endif
+> diff --git a/arch/arm/configs/omap3_evm_defconfig b/arch/arm/configs/omap3_evm_defconfig
+> index 718c914..ebeaef3 100644
+> --- a/arch/arm/configs/omap3_evm_defconfig
+> +++ b/arch/arm/configs/omap3_evm_defconfig
+> @@ -1,7 +1,7 @@
+>  #
+>  # Automatically generated make config: don't edit
+> -# Linux kernel version: 2.6.26-rc1-omap1
+> -# Thu May  8 08:18:45 2008
+> +# Linux kernel version: 2.6.26-rc7-omap1
+> +# Tue Aug 12 20:28:50 2008
+>  #
+>  CONFIG_ARM=y
+>  CONFIG_SYS_SUPPORTS_APM_EMULATION=y
+> @@ -170,15 +170,18 @@ CONFIG_ARCH_OMAP3=y
+>  #
+>  # OMAP Feature Selections
+>  #
+> -CONFIG_OMAP_DEBUG_SRAM_PATCH=y
+>  # CONFIG_OMAP_DEBUG_POWERDOMAIN is not set
+>  # CONFIG_OMAP_DEBUG_CLOCKDOMAIN is not set
+> -# CONFIG_OMAP_RESET_CLOCKS is not set
+> +CONFIG_OMAP_SMARTREFLEX=y
+> +# CONFIG_OMAP_SMARTREFLEX_TESTING is not set
+> +CONFIG_OMAP_RESET_CLOCKS=y
+>  CONFIG_OMAP_BOOT_TAG=y
+>  CONFIG_OMAP_BOOT_REASON=y
+>  # CONFIG_OMAP_COMPONENT_VERSION is not set
+>  # CONFIG_OMAP_GPIO_SWITCH is not set
+> -# CONFIG_OMAP_MUX is not set
+> +CONFIG_OMAP_MUX=y
+> +# CONFIG_OMAP_MUX_DEBUG is not set
+> +CONFIG_OMAP_MUX_WARNINGS=y
+>  # CONFIG_OMAP_MCBSP is not set
+>  # CONFIG_OMAP_MMU_FWK is not set
+>  # CONFIG_OMAP_MBOX_FWK is not set
+> @@ -189,12 +192,14 @@ CONFIG_OMAP_DM_TIMER=y
+>  CONFIG_OMAP_LL_DEBUG_UART1=y
+>  # CONFIG_OMAP_LL_DEBUG_UART2 is not set
+>  # CONFIG_OMAP_LL_DEBUG_UART3 is not set
+> +CONFIG_OMAP_SERIAL_WAKE=y
+>  CONFIG_ARCH_OMAP34XX=y
+>  CONFIG_ARCH_OMAP3430=y
 >  
-> +static struct musb_hdrc_eps_bits musb_eps[] = {
-> +	{	"ep1_tx", 5,	},
-> +	{	"ep1_rx", 5,	},
-> +	{	"ep2_tx", 5,	},
-> +	{	"ep2_rx", 5,	},
-> +	{	"ep3_tx", 3,	},
-> +	{	"ep3_rx", 3,	},
-> +	{	"ep4_tx", 3,	},
-> +	{	"ep4_rx", 3,	},
-> +	{	"ep5_tx", 2,	},
-> +	{	"ep5_rx", 2,	},
-> +	{	"ep6_tx", 2,	},
-> +	{	"ep6_rx", 2,	},
-> +	{	"ep7_tx", 2,	},
-> +	{	"ep7_rx", 2,	},
-> +	{	"ep8_tx", 2,	},
-> +	{	"ep8_rx", 2,	},
-> +	{	"ep9_tx", 2,	},
-> +	{	"ep9_rx", 2,	},
-> +	{	"ep10_tx", 2,	},
-> +	{	"ep10_rx", 2,	},
-> +	{	"ep11_tx", 2,	},
-> +	{	"ep11_rx", 2,	},
-> +	{	"ep12_tx", 2,	},
-> +	{	"ep12_rx", 2,	},
-> +	{	"ep13_tx", 2,	},
-> +	{	"ep13_rx", 2,	},
-> +	{	"ep14_tx", 2,	},
-> +	{	"ep14_rx", 2,	},
-> +	{	"ep15_tx", 2,	},
-> +	{	"ep15_rx", 2,	},
-> +};
+>  #
+>  # OMAP Board Type
+>  #
+> +# CONFIG_MACH_OMAP_LDP is not set
+>  # CONFIG_MACH_OMAP_3430SDP is not set
+>  CONFIG_MACH_OMAP3EVM=y
+>  # CONFIG_MACH_OMAP3_BEAGLE is not set
+> @@ -297,7 +302,7 @@ CONFIG_FPE_NWFPE=y
+>  # CONFIG_FPE_FASTFPE is not set
+>  CONFIG_VFP=y
+>  CONFIG_VFPv3=y
+> -# CONFIG_NEON is not set
+> +CONFIG_NEON=y
+>  
+>  #
+>  # Userspace binary formats
+> @@ -311,7 +316,9 @@ CONFIG_BINFMT_MISC=y
+>  #
+>  CONFIG_PM=y
+>  # CONFIG_PM_DEBUG is not set
+> -# CONFIG_SUSPEND is not set
+> +CONFIG_PM_SLEEP=y
+> +CONFIG_SUSPEND=y
+> +CONFIG_SUSPEND_FREEZER=y
+>  # CONFIG_APM_EMULATION is not set
+>  CONFIG_ARCH_SUSPEND_POSSIBLE=y
+>  
+> @@ -416,16 +423,19 @@ CONFIG_PREVENT_FIRMWARE_BUILD=y
+>  # CONFIG_CONNECTOR is not set
+>  CONFIG_MTD=y
+>  # CONFIG_MTD_DEBUG is not set
+> -# CONFIG_MTD_CONCAT is not set
+> -# CONFIG_MTD_PARTITIONS is not set
+> +CONFIG_MTD_CONCAT=y
+> +CONFIG_MTD_PARTITIONS=y
+> +# CONFIG_MTD_REDBOOT_PARTS is not set
+> +CONFIG_MTD_CMDLINE_PARTS=y
+> +# CONFIG_MTD_AFS_PARTS is not set
+> +# CONFIG_MTD_AR7_PARTS is not set
+>  
+>  #
+>  # User Modules And Translation Layers
+>  #
+> -# CONFIG_MTD_CHAR is not set
+> -# CONFIG_MTD_BLKDEVS is not set
+> -# CONFIG_MTD_BLOCK is not set
+> -# CONFIG_MTD_BLOCK_RO is not set
+> +CONFIG_MTD_CHAR=y
+> +CONFIG_MTD_BLKDEVS=y
+> +CONFIG_MTD_BLOCK=y
+>  # CONFIG_FTL is not set
+>  # CONFIG_NFTL is not set
+>  # CONFIG_INFTL is not set
+> @@ -436,8 +446,10 @@ CONFIG_MTD=y
+>  #
+>  # RAM/ROM/Flash chip drivers
+>  #
+> -# CONFIG_MTD_CFI is not set
+> +CONFIG_MTD_CFI=y
+>  # CONFIG_MTD_JEDECPROBE is not set
+> +CONFIG_MTD_GEN_PROBE=y
+> +# CONFIG_MTD_CFI_ADV_OPTIONS is not set
+>  CONFIG_MTD_MAP_BANK_WIDTH_1=y
+>  CONFIG_MTD_MAP_BANK_WIDTH_2=y
+>  CONFIG_MTD_MAP_BANK_WIDTH_4=y
+> @@ -448,6 +460,10 @@ CONFIG_MTD_CFI_I1=y
+>  CONFIG_MTD_CFI_I2=y
+>  # CONFIG_MTD_CFI_I4 is not set
+>  # CONFIG_MTD_CFI_I8 is not set
+> +CONFIG_MTD_CFI_INTELEXT=y
+> +# CONFIG_MTD_CFI_AMDSTD is not set
+> +# CONFIG_MTD_CFI_STAA is not set
+> +CONFIG_MTD_CFI_UTIL=y
+>  # CONFIG_MTD_RAM is not set
+>  # CONFIG_MTD_ROM is not set
+>  # CONFIG_MTD_ABSENT is not set
+> @@ -456,6 +472,9 @@ CONFIG_MTD_CFI_I2=y
+>  # Mapping drivers for chip access
+>  #
+>  # CONFIG_MTD_COMPLEX_MAPPINGS is not set
+> +# CONFIG_MTD_PHYSMAP is not set
+> +# CONFIG_MTD_ARM_INTEGRATOR is not set
+> +# CONFIG_MTD_OMAP_NOR is not set
+>  # CONFIG_MTD_PLATRAM is not set
+>  
+>  #
+> @@ -481,6 +500,7 @@ CONFIG_MTD_ONENAND_VERIFY_WRITE=y
+>  CONFIG_MTD_ONENAND_OMAP2=y
+>  # CONFIG_MTD_ONENAND_OTP is not set
+>  # CONFIG_MTD_ONENAND_2X_PROGRAM is not set
+> +# CONFIG_MTD_ONENAND_SIM is not set
+>  
+>  #
+>  # UBI - Unsorted block images
+> @@ -492,6 +512,7 @@ CONFIG_BLK_DEV=y
+>  CONFIG_BLK_DEV_LOOP=y
+>  # CONFIG_BLK_DEV_CRYPTOLOOP is not set
+>  # CONFIG_BLK_DEV_NBD is not set
+> +# CONFIG_BLK_DEV_UB is not set
+>  CONFIG_BLK_DEV_RAM=y
+>  CONFIG_BLK_DEV_RAM_COUNT=16
+>  CONFIG_BLK_DEV_RAM_SIZE=16384
+> @@ -499,6 +520,9 @@ CONFIG_BLK_DEV_RAM_SIZE=16384
+>  # CONFIG_CDROM_PKTCDVD is not set
+>  # CONFIG_ATA_OVER_ETH is not set
+>  # CONFIG_MISC_DEVICES is not set
+> +# CONFIG_EEPROM_93CX6 is not set
+> +# CONFIG_OMAP_STI is not set
+> +# CONFIG_ENCLOSURE_SERVICES is not set
+>  CONFIG_HAVE_IDE=y
+>  # CONFIG_IDE is not set
+>  
+> @@ -573,8 +597,16 @@ CONFIG_SMC911X=y
+>  #
+>  # CONFIG_WLAN_PRE80211 is not set
+>  # CONFIG_WLAN_80211 is not set
+> -# CONFIG_IWLWIFI is not set
+>  # CONFIG_IWLWIFI_LEDS is not set
 > +
-> +static struct musb_hdrc_config musb_config = {
-> +	.multipoint	= 1,
-> +	.dyn_fifo	= 1,
-> +	.soft_con	= 1,
-> +	.dma		= 1,
-> +	.num_eps	= 32,
-> +	.dma_channels	= 7,
-> +	.ram_bits	= 12,
-> +	.eps_bits	= musb_eps,
-> +};
+> +#
+> +# USB Network Adapters
+> +#
+> +# CONFIG_USB_CATC is not set
+> +# CONFIG_USB_KAWETH is not set
+> +# CONFIG_USB_PEGASUS is not set
+> +# CONFIG_USB_RTL8150 is not set
+> +# CONFIG_USB_USBNET is not set
+>  # CONFIG_WAN is not set
+>  # CONFIG_PPP is not set
+>  # CONFIG_SLIP is not set
+> @@ -595,7 +627,7 @@ CONFIG_INPUT=y
+>  #
+>  # CONFIG_INPUT_MOUSEDEV is not set
+>  # CONFIG_INPUT_JOYDEV is not set
+> -# CONFIG_INPUT_EVDEV is not set
+> +CONFIG_INPUT_EVDEV=y
+>  # CONFIG_INPUT_EVBUG is not set
+>  
+>  #
+> @@ -608,9 +640,9 @@ CONFIG_INPUT_KEYBOARD=y
+>  # CONFIG_KEYBOARD_XTKBD is not set
+>  # CONFIG_KEYBOARD_NEWTON is not set
+>  # CONFIG_KEYBOARD_STOWAWAY is not set
+> -CONFIG_KEYBOARD_TWL4030=m
+> +CONFIG_KEYBOARD_TWL4030=y
+>  # CONFIG_KEYBOARD_LM8323 is not set
+> -# CONFIG_KEYBOARD_GPIO is not set 
+> +# CONFIG_KEYBOARD_GPIO is not set
+>  # CONFIG_INPUT_MOUSE is not set
+>  # CONFIG_INPUT_JOYSTICK is not set
+>  # CONFIG_INPUT_TABLET is not set
+> @@ -628,6 +660,7 @@ CONFIG_TOUCHSCREEN_ADS7846=y
+>  # CONFIG_TOUCHSCREEN_TSC2102 is not set
+>  # CONFIG_TOUCHSCREEN_TSC210X is not set
+>  # CONFIG_TOUCHSCREEN_UCB1400 is not set
+> +# CONFIG_TOUCHSCREEN_USB_COMPOSITE is not set
+>  # CONFIG_INPUT_MISC is not set
+>  
+>  #
+> @@ -686,6 +719,7 @@ CONFIG_I2C_OMAP=y
+>  # CONFIG_I2C_SIMTEC is not set
+>  # CONFIG_I2C_TAOS_EVM is not set
+>  # CONFIG_I2C_STUB is not set
+> +# CONFIG_I2C_TINY_USB is not set
+>  # CONFIG_I2C_PCA_PLATFORM is not set
+>  
+>  #
+> @@ -721,7 +755,7 @@ CONFIG_SPI_MASTER=y
+>  # SPI Master Controller Drivers
+>  #
+>  # CONFIG_SPI_BITBANG is not set
+> -CONFIG_SPI_OMAP24XX=m
+> +CONFIG_SPI_OMAP24XX=y
+>  
+>  #
+>  # SPI Protocol Masters
+> @@ -753,7 +787,19 @@ CONFIG_HAVE_GPIO_LIB=y
+>  # CONFIG_W1 is not set
+>  # CONFIG_POWER_SUPPLY is not set
+>  # CONFIG_HWMON is not set
+> -# CONFIG_WATCHDOG is not set
+> +CONFIG_WATCHDOG=y
+> +CONFIG_WATCHDOG_NOWAYOUT=y
 > +
->  static struct musb_hdrc_platform_data tusb_data = {
->  	.mode		= BOARD_MODE,
-> -	.multipoint	= 1,
->  	.set_power	= tusb_set_power,
->  	.set_clock	= tusb_set_clock,
->  	.min_power	= 25,	/* x2 = 50 mA drawn from VBUS as peripheral */
->  	.power		= 100,	/* Max 100 mA VBUS for host mode */
->  	.clock		= "osc_ck",
-> +	.config		= &musb_config,
->  };
->  
->  /*
-> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-> index 2a3593e..71ddf55 100644
-> --- a/arch/arm/mach-omap2/usb-musb.c
-> +++ b/arch/arm/mach-omap2/usb-musb.c
-> @@ -37,7 +37,7 @@ static struct resource musb_resources[] = {
->  			: OMAP243X_HS_BASE,
->  		.end	= cpu_is_omap34xx()
->  			? OMAP34XX_HSUSB_OTG_BASE + SZ_8K - 1
-> -			: OMAP243X_HS_BASE + SZ_8K -1,
-> +			: OMAP243X_HS_BASE + SZ_8K - 1,
->  		.flags	= IORESOURCE_MEM,
->  	},
->  	[1] = {	/* general IRQ */
-> @@ -73,6 +73,51 @@ static int musb_set_clock(struct clk *clk, int state)
->  	return 0;
->  }
->  
-> +static struct musb_hdrc_eps_bits musb_eps[] = {
-> +	{	"ep1_tx", 10,	},
-> +	{	"ep1_rx", 10,	},
-> +	{	"ep2_tx", 9,	},
-> +	{	"ep2_rx", 9,	},
-> +	{	"ep3_tx", 3,	},
-> +	{	"ep3_rx", 3,	},
-> +	{	"ep4_tx", 3,	},
-> +	{	"ep4_rx", 3,	},
-> +	{	"ep5_tx", 3,	},
-> +	{	"ep5_rx", 3,	},
-> +	{	"ep6_tx", 3,	},
-> +	{	"ep6_rx", 3,	},
-> +	{	"ep7_tx", 3,	},
-> +	{	"ep7_rx", 3,	},
-> +	{	"ep8_tx", 2,	},
-> +	{	"ep8_rx", 2,	},
-> +	{	"ep9_tx", 2,	},
-> +	{	"ep9_rx", 2,	},
-> +	{	"ep10_tx", 2,	},
-> +	{	"ep10_rx", 2,	},
-> +	{	"ep11_tx", 2,	},
-> +	{	"ep11_rx", 2,	},
-> +	{	"ep12_tx", 2,	},
-> +	{	"ep12_rx", 2,	},
-> +	{	"ep13_tx", 2,	},
-> +	{	"ep13_rx", 2,	},
-> +	{	"ep14_tx", 2,	},
-> +	{	"ep14_rx", 2,	},
-> +	{	"ep15_tx", 2,	},
-> +	{	"ep15_rx", 2,	},
-> +};
+> +#
+> +# Watchdog Device Drivers
+> +#
+> +# CONFIG_SOFT_WATCHDOG is not set
+> +CONFIG_OMAP_WATCHDOG=y
 > +
-> +static struct musb_hdrc_config musb_config = {
-> +	.multipoint	= 1,
-> +	.dyn_fifo	= 1,
-> +	.soft_con	= 1,
-> +	.dma		= 1,
-> +	.num_eps	= 32,
-> +	.dma_channels	= 7,
-> +	.dma_req_chan	= (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3),
-> +	.ram_bits	= 12,
-> +	.eps_bits	= musb_eps,
-> +};
+> +#
+> +# USB-based Watchdog Cards
+> +#
+> +# CONFIG_USBPCWATCHDOG is not set
+>  
+>  #
+>  # Sonics Silicon Backplane
+> @@ -778,17 +824,19 @@ CONFIG_SSB_POSSIBLE=y
+>  #
+>  # CONFIG_VIDEO_DEV is not set
+>  # CONFIG_DVB_CORE is not set
+> +# CONFIG_VIDEO_MEDIA is not set
+>  
+>  #
+>  # Multimedia drivers
+>  #
+>  CONFIG_DAB=y
+> +# CONFIG_USB_DABUSB is not set
+>  
+>  #
+>  # Graphics support
+>  #
+>  # CONFIG_VGASTATE is not set
+> -# CONFIG_VIDEO_OUTPUT_CONTROL is not set
+> +CONFIG_VIDEO_OUTPUT_CONTROL=m
+>  CONFIG_FB=y
+>  # CONFIG_FIRMWARE_EDID is not set
+>  # CONFIG_FB_DDC is not set
+> @@ -801,7 +849,6 @@ CONFIG_FB_CFB_IMAGEBLIT=y
+>  # CONFIG_FB_SYS_IMAGEBLIT is not set
+>  # CONFIG_FB_FOREIGN_ENDIAN is not set
+>  # CONFIG_FB_SYS_FOPS is not set
+> -CONFIG_FB_DEFERRED_IO=y
+>  # CONFIG_FB_SVGALIB is not set
+>  # CONFIG_FB_MACMODES is not set
+>  # CONFIG_FB_BACKLIGHT is not set
+> @@ -830,15 +877,190 @@ CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
+>  # CONFIG_VGA_CONSOLE is not set
+>  CONFIG_DUMMY_CONSOLE=y
+>  # CONFIG_FRAMEBUFFER_CONSOLE is not set
+> -# CONFIG_LOGO is not set
+> +# CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY is not set
+> +# CONFIG_FRAMEBUFFER_CONSOLE_ROTATION is not set
+> +# CONFIG_FONTS is not set
+> +CONFIG_FONT_8x8=y
+> +CONFIG_FONT_8x16=y
+> +CONFIG_LOGO=y
+> +CONFIG_LOGO_LINUX_MONO=y
+> +CONFIG_LOGO_LINUX_VGA16=y
+> +CONFIG_LOGO_LINUX_CLUT224=y
+>  
+>  #
+>  # Sound
+>  #
+>  # CONFIG_SOUND is not set
+> -# CONFIG_HID_SUPPORT is not set
+> -# CONFIG_USB_SUPPORT is not set
+> -# CONFIG_MMC is not set
+> +CONFIG_HID_SUPPORT=y
+> +CONFIG_HID=y
+> +# CONFIG_HID_DEBUG is not set
+> +# CONFIG_HIDRAW is not set
 > +
->  static struct musb_hdrc_platform_data musb_plat = {
->  #ifdef CONFIG_USB_MUSB_OTG
->  	.mode		= MUSB_OTG,
-> @@ -81,18 +126,18 @@ static struct musb_hdrc_platform_data musb_plat = {
->  #elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
->  	.mode		= MUSB_PERIPHERAL,
->  #endif
-> -	.multipoint	= 1,
->  	.clock		= cpu_is_omap34xx()
->  			? "hsotgusb_ick"
->  			: "usbhs_ick",
->  	.set_clock	= musb_set_clock,
-> +	.config		= &musb_config,
->  };
->  
->  static u64 musb_dmamask = ~(u32)0;
->  
->  static struct platform_device musb_device = {
->  	.name		= "musb_hdrc",
-> -	.id		= 0,
-> +	.id		= -1,
->  	.dev = {
->  		.dma_mask		= &musb_dmamask,
->  		.coherent_dma_mask	= 0xffffffff,
-> diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb-tusb6010.c
-> index 424e2ac..2c88207 100644
-> --- a/arch/arm/mach-omap2/usb-tusb6010.c
-> +++ b/arch/arm/mach-omap2/usb-tusb6010.c
-> @@ -315,7 +315,6 @@ tusb6010_setup_interface(struct musb_hdrc_platform_data *data,
->  		printk(error, 6, status);
->  		return -ENODEV;
->  	}
-> -	data->multipoint = 1;
->  	tusb_device.dev.platform_data = data;
->  
->  	/* REVISIT let the driver know what DMA channels work */
-> diff --git a/arch/arm/plat-omap/include/mach/hdrc_cnf.h b/arch/arm/plat-omap/include/mach/hdrc_cnf.h
-> deleted file mode 100644
-> index 74c8432..0000000
-> --- a/arch/arm/plat-omap/include/mach/hdrc_cnf.h
-> +++ /dev/null
-> @@ -1,177 +0,0 @@
-> -/*
-> - * Copyright 2005 Mentor Graphics Corporation
-> - * USB High-Speed Multi-Point Dual-Role Controller Configuration
-> - *
-> - * Copyright Mentor Graphics Corporation and Licensors 2004
-> - * Copyright (C) 2005 by Texas Instruments
-> - *
-> - * This file contains configuration constants for the (m)hdrc
-> - * silicon as integrated into DaVinci CPUs.
-> - */
-> -
-> -#ifndef	__ARCH_MUSB_HDRC_CNF
-> -#define	__ARCH_MUSB_HDRC_CNF
-> -
-> -/* ** Number of Tx endpoints ** */
-> -/* Legal values are 1 - 16 (this value includes EP0) */
-> -#define MUSB_C_NUM_EPT 8
-> -
-> -/* ** Number of Rx endpoints ** */
-> -/* Legal values are 1 - 16 (this value includes EP0) */
-> -#define MUSB_C_NUM_EPR 8
-> -
-> -/* ** Endpoint 1 to 15 direction types ** */
-> -/* C_EP1_DEF is defined if either Tx endpoint 1 or Rx endpoint 1 are used */
-> -#define MUSB_C_EP1_DEF
-> -
-> -/* C_EP1_TX_DEF is defined if Tx endpoint 1 is used */
-> -#define MUSB_C_EP1_TX_DEF
-> -
-> -/* C_EP1_RX_DEF is defined if Rx endpoint 1 is used */
-> -#define MUSB_C_EP1_RX_DEF
-> -
-> -/* C_EP1_TOR_DEF is defined if Tx endpoint 1 and Rx endpoint 1 share a FIFO */
-> -/*`define C_EP1_TOR_DEF */
-> -
-> -/* C_EP1_TAR_DEF is defined if both Tx endpoint 1 and Rx endpoint 1 are used */
-> -/* and do not share a FIFO */
-> -#define MUSB_C_EP1_TAR_DEF
-> -
-> -/* Similarly for all other used endpoints */
-> -#define MUSB_C_EP2_DEF
-> -#define MUSB_C_EP2_TX_DEF
-> -#define MUSB_C_EP2_RX_DEF
-> -#define MUSB_C_EP2_TAR_DEF
-> -#define MUSB_C_EP3_DEF
-> -#define MUSB_C_EP3_TX_DEF
-> -#define MUSB_C_EP3_RX_DEF
-> -#define MUSB_C_EP3_TAR_DEF
-> -#define MUSB_C_EP4_DEF
-> -#define MUSB_C_EP4_TX_DEF
-> -#define MUSB_C_EP4_RX_DEF
-> -#define MUSB_C_EP4_TAR_DEF
-> -#define MUSB_C_EP5_DEF
-> -#define MUSB_C_EP5_TX_DEF
-> -#define MUSB_C_EP5_RX_DEF
-> -#define MUSB_C_EP5_TAR_DEF
-> -#define MUSB_C_EP6_DEF
-> -#define MUSB_C_EP6_TX_DEF
-> -#define MUSB_C_EP6_RX_DEF
-> -#define MUSB_C_EP6_TAR_DEF
-> -#define MUSB_C_EP7_DEF
-> -#define MUSB_C_EP7_TX_DEF
-> -#define MUSB_C_EP7_RX_DEF
-> -#define MUSB_C_EP7_TAR_DEF
-> -
-> -/* ** Endpoint 1 to 15 FIFO address bits ** */
-> -/* Legal values are 3 to 13 - corresponding to FIFO sizes of 8 to 8192 bytes. */
-> -/* If an Tx endpoint shares a FIFO with an Rx endpoint then the Rx FIFO size */
-> -/* must be the same as the Tx FIFO size. */
-> -/* All endpoints 1 to 15 must be defined, unused endpoints should be set to 2. */
-> -#define MUSB_C_EP1T_BITS 10
-> -#define MUSB_C_EP1R_BITS 10
-> -#define MUSB_C_EP2T_BITS 9
-> -#define MUSB_C_EP2R_BITS 9
-> -#define MUSB_C_EP3T_BITS 3
-> -#define MUSB_C_EP3R_BITS 3
-> -#define MUSB_C_EP4T_BITS 3
-> -#define MUSB_C_EP4R_BITS 3
-> -#define MUSB_C_EP5T_BITS 3
-> -#define MUSB_C_EP5R_BITS 3
-> -#define MUSB_C_EP6T_BITS 3
-> -#define MUSB_C_EP6R_BITS 3
-> -#define MUSB_C_EP7T_BITS 3
-> -#define MUSB_C_EP7R_BITS 3
-> -#define MUSB_C_EP8T_BITS 2
-> -#define MUSB_C_EP8R_BITS 2
-> -#define MUSB_C_EP9T_BITS 2
-> -#define MUSB_C_EP9R_BITS 2
-> -#define MUSB_C_EP10T_BITS 2
-> -#define MUSB_C_EP10R_BITS 2
-> -#define MUSB_C_EP11T_BITS 2
-> -#define MUSB_C_EP11R_BITS 2
-> -#define MUSB_C_EP12T_BITS 2
-> -#define MUSB_C_EP12R_BITS 2
-> -#define MUSB_C_EP13T_BITS 2
-> -#define MUSB_C_EP13R_BITS 2
-> -#define MUSB_C_EP14T_BITS 2
-> -#define MUSB_C_EP14R_BITS 2
-> -#define MUSB_C_EP15T_BITS 2
-> -#define MUSB_C_EP15R_BITS 2
-> -
-> -/* Define the following constant if the USB2.0 Transceiver Macrocell data width is 16-bits. */
-> -/* `define C_UTM_16 */
-> -
-> -/* Define this constant if the CPU uses big-endian byte ordering. */
-> -/*`define C_BIGEND */
-> -
-> -/* Define the following constant if any Tx endpoint is required to support multiple bulk packets. */
-> -/* `define C_MP_TX */
-> -
-> -/* Define the following constant if any Rx endpoint is required to support multiple bulk packets. */
-> -/* `define C_MP_RX */
-> -
-> -/* Define the following constant if any Tx endpoint is required to support high bandwidth ISO. */
-> -/* `define C_HB_TX */
-> -
-> -/* Define the following constant if any Rx endpoint is required to support high bandwidth ISO. */
-> -/* `define C_HB_RX */
-> -
-> -/* Define the following constant if software connect/disconnect control is required. */
-> -#define MUSB_C_SOFT_CON
-> -
-> -/* Define the following constant if Vendor Control Registers are required. */
-> -/* `define C_VEND_REG */
-> -
-> -/* Vendor control register widths. */
-> -#define MUSB_C_VCTL_BITS 4
-> -#define MUSB_C_VSTAT_BITS 8
-> -
-> -
-> -/* Define the following constant to include a DMA controller. */
-> -#define MUSB_C_DMA
-> -
-> -/* Define the following constant if 2 or more DMA channels are required. */
-> -#define MUSB_C_DMA2
-> -
-> -/* Define the following constant if 3 or more DMA channels are required. */
-> -#define MUSB_C_DMA3
-> -
-> -/* Define the following constant if 4 or more DMA channels are required. */
-> -#define MUSB_C_DMA4
-> -
-> -/* Define the following constant if 5 or more DMA channels are required. */
-> -/*`define C_DMA5 */
-> -
-> -/* Define the following constant if 6 or more DMA channels are required. */
-> -/*`define C_DMA6 */
-> -
-> -/* Define the following constant if 7 or more DMA channels are required. */
-> -/*`define C_DMA7 */
-> -
-> -/* Define the following constant if 8 or more DMA channels are required. */
-> -/*`define C_DMA8 */
-> -
-> -
-> -/* ** Enable Dynamic FIFO Sizing ** */
-> -#define MUSB_C_DYNFIFO_DEF
-> -
-> -/* ** Derived constants ** */
-> -/* The following constants are derived from the previous configuration constants */
-> -
-> -/* Total number of endpoints
-> - * Legal values are 2 - 16
-> - * This must be equal to the larger of C_NUM_EPT, C_NUM_EPR
-> - */
-> -#define MUSB_C_NUM_EPS 8
-> -
-> -/* C_EPMAX_BITS is equal to the largest endpoint FIFO word address bits */
-> -#define MUSB_C_EPMAX_BITS 12
-> -
-> -/* C_RAM_BITS is the number of address bits required to address the RAM (32-bit
-> - * addresses).  It is defined as log2 of the sum of 2** of all the endpoint FIFO
-> - * dword address bits (rounded up).
-> - */
-> -#define MUSB_C_RAM_BITS 12
-> -
-> -#endif	/* __ARCH_MUSB_HDRC_CNF */
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> index bcc92e6..b398776 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -990,12 +990,6 @@ static void musb_shutdown(struct platform_device *pdev)
->   * We don't currently use dynamic fifo setup capability to do anything
->   * more than selecting one of a bunch of predefined configurations.
->   */
-> -#ifdef MUSB_C_DYNFIFO_DEF
-> -#define	can_dynfifo()	1
-> -#else
-> -#define	can_dynfifo()	0
-> -#endif
-> -
->  #if defined(CONFIG_USB_TUSB6010) || \
->  	defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX)
->  static ushort __initdata fifo_mode = 4;
-> @@ -1008,8 +1002,6 @@ module_param(fifo_mode, ushort, 0);
->  MODULE_PARM_DESC(fifo_mode, "initial endpoint configuration");
->  
->  
-> -#define DYN_FIFO_SIZE (1<<(MUSB_C_RAM_BITS+2))
-> -
->  enum fifo_style { FIFO_RXTX, FIFO_TX, FIFO_RX } __attribute__ ((packed));
->  enum buf_mode { BUF_SINGLE, BUF_DOUBLE } __attribute__ ((packed));
->  
-> @@ -1119,11 +1111,12 @@ fifo_setup(struct musb *musb, struct musb_hw_ep  *hw_ep,
->  
->  	c_size = size - 3;
->  	if (cfg->mode == BUF_DOUBLE) {
-> -		if ((offset + (maxpacket << 1)) > DYN_FIFO_SIZE)
-> +		if ((offset + (maxpacket << 1)) >
-> +				(1 << (musb->config->ram_bits + 2)))
->  			return -EMSGSIZE;
->  		c_size |= MUSB_FIFOSZ_DPB;
->  	} else {
-> -		if ((offset + maxpacket) > DYN_FIFO_SIZE)
-> +		if ((offset + maxpacket) > (1 << (musb->config->ram_bits + 2)))
->  			return -EMSGSIZE;
->  	}
->  
-> @@ -1219,13 +1212,13 @@ static int __init ep_config_from_table(struct musb *musb)
->  	/* assert(offset > 0) */
->  
->  	/* NOTE:  for RTL versions >= 1.400 EPINFO and RAMINFO would
-> -	 * be better than static MUSB_C_NUM_EPS and DYN_FIFO_SIZE...
-> +	 * be better than static musb->config->num_eps and DYN_FIFO_SIZE...
->  	 */
->  
->  	for (i = 0; i < n; i++) {
->  		u8	epn = cfg->hw_ep_num;
->  
-> -		if (epn >= MUSB_C_NUM_EPS) {
-> +		if (epn >= musb->config->num_eps) {
->  			pr_debug("%s: invalid ep %d\n",
->  					musb_driver_name, epn);
->  			continue;
-> @@ -1242,8 +1235,8 @@ static int __init ep_config_from_table(struct musb *musb)
->  
->  	printk(KERN_DEBUG "%s: %d/%d max ep, %d/%d memory\n",
->  			musb_driver_name,
-> -			n + 1, MUSB_C_NUM_EPS * 2 - 1,
-> -			offset, DYN_FIFO_SIZE);
-> +			n + 1, musb->config->num_eps * 2 - 1,
-> +			offset, (1 << (musb->config->ram_bits + 2)));
->  
->  #ifdef CONFIG_USB_MUSB_HDRC_HCD
->  	if (!musb->bulk_ep) {
-> @@ -1270,7 +1263,7 @@ static int __init ep_config_from_hw(struct musb *musb)
->  
->  	/* FIXME pick up ep0 maxpacket size */
->  
-> -	for (epnum = 1; epnum < MUSB_C_NUM_EPS; epnum++) {
-> +	for (epnum = 1; epnum < musb->config->num_eps; epnum++) {
->  		musb_ep_select(mbase, epnum);
->  		hw_ep = musb->endpoints + epnum;
->  
-> @@ -1424,14 +1417,14 @@ static int __init musb_core_init(u16 musb_type, struct musb *musb)
->  	musb->epmask = 1;
->  
->  	if (reg & MUSB_CONFIGDATA_DYNFIFO) {
-> -		if (can_dynfifo())
-> +		if (musb->config->dyn_fifo)
->  			status = ep_config_from_table(musb);
->  		else {
->  			ERR("reconfigure software for Dynamic FIFOs\n");
->  			status = -ENODEV;
->  		}
->  	} else {
-> -		if (!can_dynfifo())
-> +		if (!musb->config->dyn_fifo)
->  			status = ep_config_from_hw(musb);
->  		else {
->  			ERR("reconfigure software for static FIFOs\n");
-> @@ -1788,7 +1781,8 @@ static void musb_irq_work(struct work_struct *data)
->   */
->  
->  static struct musb *__init
-> -allocate_instance(struct device *dev, void __iomem *mbase)
-> +allocate_instance(struct device *dev,
-> +		struct musb_hdrc_config *config, void __iomem *mbase)
->  {
->  	struct musb		*musb;
->  	struct musb_hw_ep	*ep;
-> @@ -1820,8 +1814,9 @@ allocate_instance(struct device *dev, void __iomem *mbase)
->  	musb->mregs = mbase;
->  	musb->ctrl_base = mbase;
->  	musb->nIrq = -ENODEV;
-> +	musb->config = config;
->  	for (epnum = 0, ep = musb->endpoints;
-> -			epnum < MUSB_C_NUM_EPS;
-> +			epnum < musb->config->num_eps;
->  			epnum++, ep++) {
->  
->  		ep->musb = musb;
-> @@ -1932,7 +1927,7 @@ bad_config:
->  	}
->  
->  	/* allocate */
-> -	musb = allocate_instance(dev, ctrl);
-> +	musb = allocate_instance(dev, plat->config, ctrl);
->  	if (!musb)
->  		return -ENOMEM;
->  
-> @@ -1990,7 +1985,7 @@ bad_config:
->  	musb_generic_disable(musb);
->  
->  	/* setup musb parts of the core (especially endpoints) */
-> -	status = musb_core_init(plat->multipoint
-> +	status = musb_core_init(plat->config->multipoint
->  			? MUSB_CONTROLLER_MHDRC
->  			: MUSB_CONTROLLER_HDRC, musb);
->  	if (status < 0)
-> diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-> index 2e42dc2..2096469 100644
-> --- a/drivers/usb/musb/musb_core.h
-> +++ b/drivers/usb/musb/musb_core.h
-> @@ -56,18 +56,6 @@ struct musb_ep;
->  #include "musb_debug.h"
->  #include "musb_dma.h"
->  
-> -#ifdef CONFIG_USB_MUSB_SOC
-> -/*
-> - * Get core configuration from a header converted (by cfg_conv)
-> - * from the Verilog config file generated by the core config utility
-> - *
-> - * For now we assume that header is provided along with other
-> - * arch-specific files.  Discrete chips will need a build tweak.
-> - * So will using AHB IDs from silicon that provides them.
-> - */
-> -#include <mach/hdrc_cnf.h>
-> -#endif
-> -
->  #include "musb_io.h"
->  #include "musb_regs.h"
->  
-> @@ -439,6 +427,8 @@ struct musb {
->  	struct usb_gadget_driver *gadget_driver;	/* its driver */
->  #endif
->  
-> +	struct musb_hdrc_config *config;
+> +#
+> +# USB Input Devices
+> +#
+> +CONFIG_USB_HID=y
+> +# CONFIG_USB_HIDINPUT_POWERBOOK is not set
+> +# CONFIG_HID_FF is not set
+> +# CONFIG_USB_HIDDEV is not set
+> +CONFIG_USB_SUPPORT=y
+> +CONFIG_USB_ARCH_HAS_HCD=y
+> +CONFIG_USB_ARCH_HAS_OHCI=y
+> +CONFIG_USB_ARCH_HAS_EHCI=y
+> +CONFIG_USB=y
+> +# CONFIG_USB_DEBUG is not set
+> +CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
 > +
->  #ifdef MUSB_CONFIG_PROC_FS
->  	struct proc_dir_entry *proc_entry;
->  #endif
-> diff --git a/drivers/usb/musb/tusb6010.h b/drivers/usb/musb/tusb6010.h
-> index db6dad0..ab8c962 100644
-> --- a/drivers/usb/musb/tusb6010.h
-> +++ b/drivers/usb/musb/tusb6010.h
-> @@ -230,173 +230,4 @@ extern u8 tusb_get_revision(struct musb *musb);
->  #define TUSB_REV_30	0x30
->  #define TUSB_REV_31	0x31
->  
-> -/*----------------------------------------------------------------------------*/
-> -
-> -#ifdef CONFIG_USB_TUSB6010
-> -
-> -/* configuration parameters specific to this silicon */
-> -
-> -/* Number of Tx endpoints. Legal values are 1 - 16 (this value includes EP0) */
-> -#define MUSB_C_NUM_EPT 16
-> -
-> -/* Number of Rx endpoints. Legal values are 1 - 16 (this value includes EP0) */
-> -#define MUSB_C_NUM_EPR 16
-> -
-> -/* Endpoint 1 to 15 direction types. C_EP1_DEF is defined if either Tx endpoint
-> - * 1 or Rx endpoint 1 are used.
-> - */
-> -#define MUSB_C_EP1_DEF
-> -
-> -/* C_EP1_TX_DEF is defined if Tx endpoint 1 is used */
-> -#define MUSB_C_EP1_TX_DEF
-> -
-> -/* C_EP1_RX_DEF is defined if Rx endpoint 1 is used */
-> -#define MUSB_C_EP1_RX_DEF
-> -
-> -/* C_EP1_TOR_DEF is defined if Tx endpoint 1 and Rx endpoint 1 share a FIFO */
-> -/* #define C_EP1_TOR_DEF */
-> -
-> -/* C_EP1_TAR_DEF is defined if both Tx endpoint 1 and Rx endpoint 1 are used
-> - * and do not share a FIFO.
-> - */
-> -#define MUSB_C_EP1_TAR_DEF
-> -
-> -/* Similarly for all other used endpoints */
-> -#define MUSB_C_EP2_DEF
-> -#define MUSB_C_EP2_TX_DEF
-> -#define MUSB_C_EP2_RX_DEF
-> -#define MUSB_C_EP2_TAR_DEF
-> -#define MUSB_C_EP3_DEF
-> -#define MUSB_C_EP3_TX_DEF
-> -#define MUSB_C_EP3_RX_DEF
-> -#define MUSB_C_EP3_TAR_DEF
-> -#define MUSB_C_EP4_DEF
-> -#define MUSB_C_EP4_TX_DEF
-> -#define MUSB_C_EP4_RX_DEF
-> -#define MUSB_C_EP4_TAR_DEF
-> -
-> -/* Endpoint 1 to 15 FIFO address bits. Legal values are 3 to 13 - corresponding
-> - * to FIFO sizes of 8 to 8192 bytes. If an Tx endpoint shares a FIFO with an Rx
-> - * endpoint then the Rx FIFO size must be the same as the Tx FIFO size. All
-> - * endpoints 1 to 15 must be defined, unused endpoints should be set to 2.
-> - */
-> -#define MUSB_C_EP1T_BITS 5
-> -#define MUSB_C_EP1R_BITS 5
-> -#define MUSB_C_EP2T_BITS 5
-> -#define MUSB_C_EP2R_BITS 5
-> -#define MUSB_C_EP3T_BITS 3
-> -#define MUSB_C_EP3R_BITS 3
-> -#define MUSB_C_EP4T_BITS 3
-> -#define MUSB_C_EP4R_BITS 3
-> -
-> -#define MUSB_C_EP5T_BITS 2
-> -#define MUSB_C_EP5R_BITS 2
-> -#define MUSB_C_EP6T_BITS 2
-> -#define MUSB_C_EP6R_BITS 2
-> -#define MUSB_C_EP7T_BITS 2
-> -#define MUSB_C_EP7R_BITS 2
-> -#define MUSB_C_EP8T_BITS 2
-> -#define MUSB_C_EP8R_BITS 2
-> -#define MUSB_C_EP9T_BITS 2
-> -#define MUSB_C_EP9R_BITS 2
-> -#define MUSB_C_EP10T_BITS 2
-> -#define MUSB_C_EP10R_BITS 2
-> -#define MUSB_C_EP11T_BITS 2
-> -#define MUSB_C_EP11R_BITS 2
-> -#define MUSB_C_EP12T_BITS 2
-> -#define MUSB_C_EP12R_BITS 2
-> -#define MUSB_C_EP13T_BITS 2
-> -#define MUSB_C_EP13R_BITS 2
-> -#define MUSB_C_EP14T_BITS 2
-> -#define MUSB_C_EP14R_BITS 2
-> -#define MUSB_C_EP15T_BITS 2
-> -#define MUSB_C_EP15R_BITS 2
-> -
-> -/* Define the following constant if the USB2.0 Transceiver Macrocell data width
-> - * is 16-bits.
-> - */
-> -/* #define C_UTM_16 */
-> -
-> -/* Define this constant if the CPU uses big-endian byte ordering. */
-> -/* #define C_BIGEND */
-> -
-> -/* Define the following constant if any Tx endpoint is required to support
-> - * multiple bulk packets.
-> - */
-> -/* #define C_MP_TX */
-> -
-> -/* Define the following constant if any Rx endpoint is required to support
-> - * multiple bulk packets.
-> - */
-> -/* #define C_MP_RX */
-> -
-> -/* Define the following constant if any Tx endpoint is required to support high
-> - * bandwidth ISO.
-> - */
-> -/* #define C_HB_TX */
-> -
-> -/* Define the following constant if any Rx endpoint is required to support high
-> - * bandwidth ISO.
-> - */
-> -/* #define C_HB_RX */
-> -
-> -/* Define the following constant if software connect/disconnect control is
-> - * required.
-> - */
-> -#define MUSB_C_SOFT_CON
-> -
-> -/* Define the following constant if Vendor Control Registers are required. */
-> -/* #define C_VEND_REG */
-> -
-> -/* Vendor control register widths. */
-> -#define MUSB_C_VCTL_BITS 4
-> -#define MUSB_C_VSTAT_BITS 8
-> -
-> -/* Define the following constant to include a DMA controller. */
-> -/* #define C_DMA */
-> -
-> -/* Define the following constant if 2 or more DMA channels are required. */
-> -/* #define C_DMA2 */
-> -
-> -/* Define the following constant if 3 or more DMA channels are required. */
-> -/* #define C_DMA3 */
-> -
-> -/* Define the following constant if 4 or more DMA channels are required. */
-> -/* #define C_DMA4 */
-> -
-> -/* Define the following constant if 5 or more DMA channels are required. */
-> -/* #define C_DMA5 */
-> -
-> -/* Define the following constant if 6 or more DMA channels are required. */
-> -/* #define C_DMA6 */
-> -
-> -/* Define the following constant if 7 or more DMA channels are required. */
-> -/* #define C_DMA7 */
-> -
-> -/* Define the following constant if 8 or more DMA channels are required. */
-> -/* #define C_DMA8 */
-> -
-> -/* Enable Dynamic FIFO Sizing */
-> -#define MUSB_C_DYNFIFO_DEF
-> -
-> -/* Derived constants. The following constants are derived from the previous
-> - * configuration constants
-> - */
-> -
-> -/* Total number of endpoints. Legal values are 2 - 16. This must be equal to
-> - * the larger of C_NUM_EPT, C_NUM_EPR
-> - */
-> -/* #define MUSB_C_NUM_EPS 5 */
-> -
-> -/* C_EPMAX_BITS is equal to the largest endpoint FIFO word address bits */
-> -#define MUSB_C_EPMAX_BITS 11
-> -
-> -/* C_RAM_BITS is the number of address bits required to address the RAM (32-bit
-> - * addresses).  It is defined as log2 of the sum of 2** of all the endpoint FIFO
-> - * dword address bits (rounded up).
-> - */
-> -#define MUSB_C_RAM_BITS 12
-> -
-> -#endif /* CONFIG_USB_TUSB6010 */
-> -
->  #endif /* __TUSB6010_H__ */
-> diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
-> index d325a0d..630962c 100644
-> --- a/include/linux/usb/musb.h
-> +++ b/include/linux/usb/musb.h
-> @@ -19,6 +19,36 @@ enum musb_mode {
->  
->  struct clk;
->  
-> +struct musb_hdrc_eps_bits {
-> +	const char	name[16];
-> +	u8		bits;
-> +};
+> +#
+> +# Miscellaneous USB options
+> +#
+> +CONFIG_USB_DEVICEFS=y
+> +# CONFIG_USB_DEVICE_CLASS is not set
+> +# CONFIG_USB_DYNAMIC_MINORS is not set
+> +CONFIG_USB_SUSPEND=y
+> +CONFIG_USB_OTG=y
+> +# CONFIG_USB_OTG_WHITELIST is not set
+> +# CONFIG_USB_OTG_BLACKLIST_HUB is not set
 > +
-> +struct musb_hdrc_config {
-> +	/* MUSB configuration-specific details */
-> +	unsigned	multipoint:1;	/* multipoint device */
-> +	unsigned	dyn_fifo:1;	/* supports dynamic fifo sizing */
-> +	unsigned	soft_con:1;	/* soft connect required */
-> +	unsigned	utm_16:1;	/* utm data witdh is 16 bits */
-> +	unsigned	big_endian:1;	/* true if CPU uses big-endian */
-> +	unsigned	mult_bulk_tx:1;	/* Tx ep required for multbulk pkts */
-> +	unsigned	mult_bulk_rx:1;	/* Rx ep required for multbulk pkts */
-> +	unsigned	high_iso_tx:1;	/* Tx ep required for HB iso */
-> +	unsigned	high_iso_rx:1;	/* Rx ep required for HD iso */
-> +	unsigned	dma:1;		/* supports DMA */
-> +	unsigned	vendor_req:1;	/* vendor registers required */
+> +#
+> +# USB Host Controller Drivers
+> +#
+> +# CONFIG_USB_C67X00_HCD is not set
+> +CONFIG_USB_EHCI_HCD=m
+> +CONFIG_OMAP_EHCI_PHY_MODE=y
+> +# CONFIG_OMAP_EHCI_TLL_MODE is not set
+> +# CONFIG_USB_EHCI_ROOT_HUB_TT is not set
+> +# CONFIG_USB_EHCI_TT_NEWSCHED is not set
+> +# CONFIG_USB_ISP116X_HCD is not set
+> +# CONFIG_USB_ISP1760_HCD is not set
+> +# CONFIG_USB_OHCI_HCD is not set
+> +# CONFIG_USB_SL811_HCD is not set
+> +# CONFIG_USB_R8A66597_HCD is not set
+> +CONFIG_USB_MUSB_HDRC=y
+> +CONFIG_USB_MUSB_SOC=y
 > +
-> +	u8		num_eps;	/* number of endpoints _with_ ep0 */
-> +	u8		dma_channels;	/* number of dma channels */
-> +	u8		dyn_fifo_size;	/* dynamic size in bytes */
-> +	u8		vendor_ctrl;	/* vendor control reg width */
-> +	u8		vendor_stat;	/* vendor status reg witdh */
-> +	u8		dma_req_chan;	/* bitmask for required dma channels */
-> +	u8		ram_bits;	/* ram address size */
+> +#
+> +# OMAP 343x high speed USB support
+> +#
+> +# CONFIG_USB_MUSB_HOST is not set
+> +# CONFIG_USB_MUSB_PERIPHERAL is not set
+> +CONFIG_USB_MUSB_OTG=y
+> +CONFIG_USB_GADGET_MUSB_HDRC=y
+> +CONFIG_USB_MUSB_HDRC_HCD=y
+> +# CONFIG_MUSB_PIO_ONLY is not set
+> +CONFIG_USB_INVENTRA_DMA=y
+> +# CONFIG_USB_TI_CPPI_DMA is not set
+> +CONFIG_USB_MUSB_LOGLEVEL=1
 > +
-> +	struct musb_hdrc_eps_bits *eps_bits;
-> +};
+> +#
+> +# USB Device Class drivers
+> +#
+> +# CONFIG_USB_ACM is not set
+> +# CONFIG_USB_PRINTER is not set
+> +# CONFIG_USB_WDM is not set
 > +
->  struct musb_hdrc_platform_data {
->  	/* MUSB_HOST, MUSB_PERIPHERAL, or MUSB_OTG */
->  	u8		mode;
-> @@ -38,16 +68,14 @@ struct musb_hdrc_platform_data {
->  	/* (HOST or OTG) msec/2 after VBUS on till power good */
->  	u8		potpgt;
->  
-> -	/* TBD:  chip defaults should probably go someplace else,
-> -	 * e.g. number of tx/rx endpoints, etc
-> -	 */
-> -	unsigned	multipoint:1;
-> -
->  	/* Power the device on or off */
->  	int		(*set_power)(int state);
->  
->  	/* Turn device clock on or off */
->  	int		(*set_clock)(struct clk *clock, int is_on);
+> +#
+> +# NOTE: USB_STORAGE enables SCSI, and 'SCSI disk support'
+> +#
 > +
-> +	/* MUSB configuration-specific details */
-> +	struct musb_hdrc_config	*config;
->  };
->  
->  
+> +#
+> +# may also be needed; see USB_STORAGE Help for more information
+> +#
+> +CONFIG_USB_STORAGE=y
+> +# CONFIG_USB_STORAGE_DEBUG is not set
+> +# CONFIG_USB_STORAGE_DATAFAB is not set
+> +# CONFIG_USB_STORAGE_FREECOM is not set
+> +# CONFIG_USB_STORAGE_ISD200 is not set
+> +# CONFIG_USB_STORAGE_DPCM is not set
+> +# CONFIG_USB_STORAGE_USBAT is not set
+> +# CONFIG_USB_STORAGE_SDDR09 is not set
+> +# CONFIG_USB_STORAGE_SDDR55 is not set
+> +# CONFIG_USB_STORAGE_JUMPSHOT is not set
+> +# CONFIG_USB_STORAGE_ALAUDA is not set
+> +# CONFIG_USB_STORAGE_ONETOUCH is not set
+> +# CONFIG_USB_STORAGE_KARMA is not set
+> +# CONFIG_USB_STORAGE_CYPRESS_ATACB is not set
+> +# CONFIG_USB_LIBUSUAL is not set
+> +
+> +#
+> +# USB Imaging devices
+> +#
+> +# CONFIG_USB_MDC800 is not set
+> +# CONFIG_USB_MICROTEK is not set
+> +CONFIG_USB_MON=y
+> +
+> +#
+> +# USB port drivers
+> +#
+> +# CONFIG_USB_SERIAL is not set
+> +
+> +#
+> +# USB Miscellaneous drivers
+> +#
+> +# CONFIG_USB_EMI62 is not set
+> +# CONFIG_USB_EMI26 is not set
+> +# CONFIG_USB_ADUTUX is not set
+> +# CONFIG_USB_AUERSWALD is not set
+> +# CONFIG_USB_RIO500 is not set
+> +# CONFIG_USB_LEGOTOWER is not set
+> +# CONFIG_USB_LCD is not set
+> +# CONFIG_USB_BERRY_CHARGE is not set
+> +# CONFIG_USB_LED is not set
+> +# CONFIG_USB_CYPRESS_CY7C63 is not set
+> +# CONFIG_USB_CYTHERM is not set
+> +# CONFIG_USB_PHIDGET is not set
+> +# CONFIG_USB_IDMOUSE is not set
+> +# CONFIG_USB_FTDI_ELAN is not set
+> +# CONFIG_USB_APPLEDISPLAY is not set
+> +# CONFIG_USB_SISUSBVGA is not set
+> +# CONFIG_USB_LD is not set
+> +# CONFIG_USB_TRANCEVIBRATOR is not set
+> +# CONFIG_USB_IOWARRIOR is not set
+> +CONFIG_USB_TEST=y
+> +# CONFIG_USB_ISIGHTFW is not set
+> +CONFIG_USB_GADGET=y
+> +# CONFIG_USB_GADGET_DEBUG is not set
+> +# CONFIG_USB_GADGET_DEBUG_FILES is not set
+> +CONFIG_USB_GADGET_SELECTED=y
+> +# CONFIG_USB_GADGET_AMD5536UDC is not set
+> +# CONFIG_USB_GADGET_ATMEL_USBA is not set
+> +# CONFIG_USB_GADGET_FSL_USB2 is not set
+> +# CONFIG_USB_GADGET_NET2280 is not set
+> +# CONFIG_USB_GADGET_PXA2XX is not set
+> +# CONFIG_USB_GADGET_M66592 is not set
+> +# CONFIG_USB_GADGET_PXA27X is not set
+> +# CONFIG_USB_GADGET_GOKU is not set
+> +# CONFIG_USB_GADGET_LH7A40X is not set
+> +# CONFIG_USB_GADGET_OMAP is not set
+> +# CONFIG_USB_GADGET_S3C2410 is not set
+> +# CONFIG_USB_GADGET_AT91 is not set
+> +# CONFIG_USB_GADGET_DUMMY_HCD is not set
+> +CONFIG_USB_GADGET_DUALSPEED=y
+> +CONFIG_USB_ZERO=y
+> +# CONFIG_USB_ZERO_HNPTEST is not set
+> +# CONFIG_USB_ETH is not set
+> +# CONFIG_USB_GADGETFS is not set
+> +# CONFIG_USB_FILE_STORAGE is not set
+> +# CONFIG_USB_G_SERIAL is not set
+> +# CONFIG_USB_MIDI_GADGET is not set
+> +# CONFIG_USB_G_PRINTER is not set
+> +CONFIG_MMC=y
+> +# CONFIG_MMC_DEBUG is not set
+> +# CONFIG_MMC_UNSAFE_RESUME is not set
+> +
+> +#
+> +# MMC/SD Card Drivers
+> +#
+> +CONFIG_MMC_BLOCK=y
+> +CONFIG_MMC_BLOCK_BOUNCE=y
+> +# CONFIG_SDIO_UART is not set
+> +# CONFIG_MMC_TEST is not set
+> +
+> +#
+> +# MMC/SD Host Controller Drivers
+> +#
+> +CONFIG_MMC_OMAP_HS=m
+> +# CONFIG_MMC_SPI is not set
+>  # CONFIG_NEW_LEDS is not set
+>  CONFIG_RTC_LIB=y
+>  # CONFIG_RTC_CLASS is not set
+> @@ -920,11 +1142,15 @@ CONFIG_JFFS2_FS_WRITEBUFFER=y
+>  # CONFIG_JFFS2_FS_WBUF_VERIFY is not set
+>  # CONFIG_JFFS2_SUMMARY is not set
+>  # CONFIG_JFFS2_FS_XATTR is not set
+> -# CONFIG_JFFS2_COMPRESSION_OPTIONS is not set
+> +CONFIG_JFFS2_COMPRESSION_OPTIONS=y
+>  CONFIG_JFFS2_ZLIB=y
+>  # CONFIG_JFFS2_LZO is not set
+>  CONFIG_JFFS2_RTIME=y
+>  # CONFIG_JFFS2_RUBIN is not set
+> +# CONFIG_JFFS2_CMODE_NONE is not set
+> +CONFIG_JFFS2_CMODE_PRIORITY=y
+> +# CONFIG_JFFS2_CMODE_SIZE is not set
+> +# CONFIG_JFFS2_CMODE_FAVOURLZO is not set
+>  # CONFIG_CRAMFS is not set
+>  # CONFIG_VXFS_FS is not set
+>  # CONFIG_MINIX_FS is not set
+> @@ -1031,7 +1257,7 @@ CONFIG_MAGIC_SYSRQ=y
+>  CONFIG_DEBUG_KERNEL=y
+>  # CONFIG_DEBUG_SHIRQ is not set
+>  CONFIG_DETECT_SOFTLOCKUP=y
+> -CONFIG_SCHED_DEBUG=y
+> +# CONFIG_SCHED_DEBUG is not set
+>  # CONFIG_SCHEDSTATS is not set
+>  # CONFIG_TIMER_STATS is not set
+>  # CONFIG_DEBUG_OBJECTS is not set
 > -- 
-> 1.6.0.rc3.6.ga0653
+> 1.5.6
 > 
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
