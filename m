@@ -1,49 +1,42 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: [PATCH] OMAP5912: Fix omap5912 osk alsa driver [1/2]
-Date: Thu, 14 Aug 2008 09:13:29 +0300
-Message-ID: <20080814091329.bcb2755e.jarkko.nikula@nokia.com>
-References: <7B4574D56E4ADF438756313E9A172A870D5F0E58@dlee01.ent.ti.com>
-	<20080813135721.GC27446@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Git tree updated to v2.6.26-rc3, all header files moved
+Date: Thu, 14 Aug 2008 13:13:30 +0300
+Message-ID: <20080814101329.GA9226@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:35800 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751331AbYHNGOQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Aug 2008 02:14:16 -0400
-In-Reply-To: <20080813135721.GC27446@atomide.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56690 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752450AbYHNKLQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Aug 2008 06:11:16 -0400
+Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
+	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1KTZnX-000KhS-Iy
+	for linux-omap@vger.kernel.org; Thu, 14 Aug 2008 10:11:16 +0000
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-On Wed, 13 Aug 2008 16:57:25 +0300
-"ext Tony Lindgren" <tony@atomide.com> wrote:
+Hi all,
 
-> * Hunter, Jon <jon-hunter@ti.com> [080813 06:08]:
-> > Move OMAP_MCBSP_READ and OMAP_MCBSP_WRITE macro definitions from
-> > arch/arm/plat-omap/mcbsp.c to include/asm-arm/arch-omap/mcbsp.h.
-> 
-> Let's rather get rid of the direct mcbsp register tinkering from
-> drivers and use following instead:
-> 
-Workaround for omap_mcbsp3_aic23_clock_init not adding new McBSP API
-would be to put those registers into "struct omap_mcbsp_reg_cfg" and
-call omap_mcbsp_config.
+I've just pushed an update to v2.6.27-rc3, which moves all machine
+specific headers to arch/arm/plat-omap/include/mach/.
 
-> And, really the best solution would be to add support to
-> sound/soc/omap/ for various codecs rather than try to keep
-> the old drivers working.
-> 
-I propose this as well. Luckily it seems that someone is already
-developing ASoC driver for TLV320AIC23B. Then native ALSA SoC support
-for OSK require only to develope new machine driver in sound/soc/omap/.
+I've boot tested it on 2430sdp, 3430sdp, n810 and n770. Compile
+tested also on OSK and H2. Please check your boards still work,
+and patch as needed.
 
-http://mailman.alsa-project.org/pipermail/alsa-devel/2008-August/009826.html
+Please also refresh and resend your patches as needed, in most
+cases something like this should be enough:
 
-I'm also curious to know how well my OMAP ASoC drivers work on
-OMAP1's :-)
+sed -i -e s/asm\\/arch\\//mach\\//g your.files
 
+Also, looks like the n8x0 not booting without LL_DEBUG seems to
+have disappeared between rc2 and rc3, did not track it down
+any further.
 
-Jarkko
+Cheers,
+
+Tony
