@@ -1,44 +1,53 @@
-From: Igor Stoppa <igor.stoppa@nokia.com>
-Subject: RE: getnstimeofday() and suspend
-Date: Fri, 15 Aug 2008 09:33:13 +0000
-Message-ID: <1218792793.28834.33.camel@localhost>
-References: <B71CE868F2BC2847B3F23C5A8EE394305AB785@vaebe110.NOE.Nokia.com>
-	 <20080813140016.GE27446@atomide.com>
-	 <B71CE868F2BC2847B3F23C5A8EE394305AB858@vaebe110.NOE.Nokia.com>
-	 <B71CE868F2BC2847B3F23C5A8EE394305E574F@vaebe110.NOE.Nokia.com>
-Reply-To: igor.stoppa@nokia.com
+From: "Felipe Contreras" <felipe.contreras@gmail.com>
+Subject: Re: [RFC] Port TI DSP BRIDGE for a new dedicated branch in linux-omap
+Date: Fri, 15 Aug 2008 12:47:39 +0300
+Message-ID: <94a0d4530808150247g52c1e258v5b922e01fb5154bc@mail.gmail.com>
+References: <1218782824-12596-1-git-send-email-Hiroshi.DOYU@nokia.com>
+	 <5d5443650808150052l29bf0830u60ff256b51d53066@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:49987 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750920AbYHOJgr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Aug 2008 05:36:47 -0400
-In-Reply-To: <B71CE868F2BC2847B3F23C5A8EE394305E574F@vaebe110.NOE.Nokia.com>
+Received: from rv-out-0506.google.com ([209.85.198.231]:25885 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751272AbYHOJrk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Aug 2008 05:47:40 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so864432rvb.1
+        for <linux-omap@vger.kernel.org>; Fri, 15 Aug 2008 02:47:39 -0700 (PDT)
+In-Reply-To: <5d5443650808150052l29bf0830u60ff256b51d53066@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Tero.Kristo@nokia.com" <Tero.Kristo@nokia.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org
+To: Trilok Soni <soni.trilok@gmail.com>
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org, h-kanigeri2@ti.com, x00omar@ti.com, x0023949@ti.com, felipe.contreras@nokia.com
 
-On Fri, 2008-08-15 at 12:32 +0300, ext Tero.Kristo@nokia.com wrote:
+On Fri, Aug 15, 2008 at 10:52 AM, Trilok Soni <soni.trilok@gmail.com> wrote:
+> Hi Doyu-San,
+>
+> On Fri, Aug 15, 2008 at 12:16 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
+>> Hello all,
+>>
+>> I have ported the latest TI DSP BRIDGE from "omapzoom" to linux
+>> omap. The purpose of this port is to get this code kept in a new
+>> dedicated branch(ex: "dspbridge") in l-o, not intended to be merged
+>> into master or some other existing branches for now, but to provide
+>> an efficient development space to collaborate.
+>
+> Thanks for starting this discussion and cleanup. I vote for this
+> approach. It is better to have branch in linux-omap-git tree instead
+> of separate GIT tree for better collaboration between TI and
+> linux-omap-dsp community.
+>
+> Let's wait for Tony to put some inputs here, because someone has to
+> maintain this branch and needs write access or else Tony has to do all
+> the work of pushing/rebasing the patches in to ti-dspbridge branch :)
 
-> This behavior of the getnstimeofday() is breaking pm-debug and the
-> serial console wakeup hack if we use suspend. Enabling RTC module seems
-> to fix some of the issues in some cases, but we are going to lose timer
-> accuracy (RTC accuracy is only 1 second.)
+I also agree.
 
-What about using the RTC for getting the base time and the 32kHz for the
-extended granularity?
+This code needs to be cleaned up first, and a separate official branch
+will help the collaboration efforts.
 
-So one would use the RTC as ususal and then calculate the (less than 1s)
-offset.
+Best regards.
 
 -- 
-
-Cheers, Igor
-
----
-
-Igor Stoppa
-Maemo Software - Nokia Devices R&D - Helsinki
+Felipe Contreras
