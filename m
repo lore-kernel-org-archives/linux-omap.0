@@ -1,40 +1,69 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 0/4][GIT 3/4+] Dspbridge cleanup patches
-Date: Fri, 15 Aug 2008 13:16:14 +0300 (EEST)
-Message-ID: <20080815.131614.223171521.Hiroshi.DOYU@nokia.com>
-References: <27F9C60D11D683428E133F85D2BB4A530825E140@dlee03.ent.ti.com>
-	<94a0d4530808150253l179cf1e4s584f7c8bb6ac21ea@mail.gmail.com>
+Subject: Re: [RFC] Port TI DSP BRIDGE for a new dedicated branch in
+ linux-omap
+Date: Fri, 15 Aug 2008 13:34:09 +0300 (EEST)
+Message-ID: <20080815.133409.81509340.Hiroshi.DOYU@nokia.com>
+References: <1218782824-12596-1-git-send-email-Hiroshi.DOYU@nokia.com>
+	<5d5443650808150052l29bf0830u60ff256b51d53066@mail.gmail.com>
+	<94a0d4530808150247g52c1e258v5b922e01fb5154bc@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:53256 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752941AbYHOKQx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Aug 2008 06:16:53 -0400
-In-Reply-To: <94a0d4530808150253l179cf1e4s584f7c8bb6ac21ea@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:37946 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752716AbYHOKet (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Aug 2008 06:34:49 -0400
+In-Reply-To: <94a0d4530808150247g52c1e258v5b922e01fb5154bc@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.contreras@gmail.com
-Cc: x00omar@ti.com, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: soni.trilok@gmail.com, h-kanigeri2@ti.com, x00omar@ti.com, x0023949@ti.com, felipe.contreras@nokia.com, felipe.contreras@gmail.com, tony@atomide.com
 
-From: "ext Felipe Contreras" <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 0/4][GIT 3/4+] Dspbridge cleanup patches
-Date: Fri, 15 Aug 2008 12:53:09 +0300
+Thank you guys for your comments,
 
-> On Fri, Aug 15, 2008 at 10:21 AM, Ramirez Luna, Omar <x00omar@ti.com> wrote:
-> > Hi,
-> >
-> > I updated Gforge site with some more patches they are now a total of 17 uploaded, the ones that were added are applied on top of the previous ones, you can find them at:
-> >
-> > http://omapzoom.org/gf/project/omapbridge/frs/?action=FrsReleaseView&release_id=119
-> >
-> > I remind you to update your API and samples code when using the latest patches or when pulling from OmapZoom GIT, since the previous one will not longer work due to bool type changes in bridge sources, you can find these tarballs at:
-> >
-> > http://omapzoom.org/gf/project/omapbridge/frs/?action=FrsReleaseView&release_id=117
-> 
-> Would it be possible to have the libbridge in a git repository?
+It seems that some of the patches couldn't be sent to ML because of
+the size limitation of vger.kernel.org ML. Now Tony is finding the
+place to put the rest up on somewhere for review. I don't know if
+reviwing these base code makes so much sense at this momenent,
+though..which doesn't mean "no probelm";p
 
-This would be quite nice to follow the updates....
+I hope that everyone could work together on this branch without any
+problems eventually.
 
      Hiroshi DOYU
+
+From: "ext Felipe Contreras" <felipe.contreras@gmail.com>
+Subject: Re: [RFC] Port TI DSP BRIDGE for a new dedicated branch in linux-omap
+Date: Fri, 15 Aug 2008 12:47:39 +0300
+
+> On Fri, Aug 15, 2008 at 10:52 AM, Trilok Soni <soni.trilok@gmail.com> wrote:
+> > Hi Doyu-San,
+> >
+> > On Fri, Aug 15, 2008 at 12:16 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
+> >> Hello all,
+> >>
+> >> I have ported the latest TI DSP BRIDGE from "omapzoom" to linux
+> >> omap. The purpose of this port is to get this code kept in a new
+> >> dedicated branch(ex: "dspbridge") in l-o, not intended to be merged
+> >> into master or some other existing branches for now, but to provide
+> >> an efficient development space to collaborate.
+> >
+> > Thanks for starting this discussion and cleanup. I vote for this
+> > approach. It is better to have branch in linux-omap-git tree instead
+> > of separate GIT tree for better collaboration between TI and
+> > linux-omap-dsp community.
+> >
+> > Let's wait for Tony to put some inputs here, because someone has to
+> > maintain this branch and needs write access or else Tony has to do all
+> > the work of pushing/rebasing the patches in to ti-dspbridge branch :)
+> 
+> I also agree.
+> 
+> This code needs to be cleaned up first, and a separate official branch
+> will help the collaboration efforts.
+> 
+> Best regards.
+> 
+> -- 
+> Felipe Contreras
