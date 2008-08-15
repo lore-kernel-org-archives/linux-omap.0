@@ -1,49 +1,50 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [RFC] Port TI DSP BRIDGE for a new dedicated branch in
- linux-omap
-Date: Fri, 15 Aug 2008 15:22:34 +0300 (EEST)
-Message-ID: <20080815.152234.24340949.Hiroshi.DOYU@nokia.com>
-References: <94a0d4530808150247g52c1e258v5b922e01fb5154bc@mail.gmail.com>
-	<20080815.133409.81509340.Hiroshi.DOYU@nokia.com>
-	<20080815112112.GB16840@atomide.com>
+From: "Syed Mohammed, Khasim" <khasim@ti.com>
+Subject: OMAP3530 EVM latest sources uploaded on linux.omap.com
+Date: Fri, 15 Aug 2008 18:57:45 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C00208C16525@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:64437 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750891AbYHOMXR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Aug 2008 08:23:17 -0400
-In-Reply-To: <20080815112112.GB16840@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:56736 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755737AbYHON15 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Aug 2008 09:27:57 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7FDRmQb025415
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 15 Aug 2008 08:27:55 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m7FDRlBN013424
+	for <linux-omap@vger.kernel.org>; Fri, 15 Aug 2008 18:57:47 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, soni.trilok@gmail.com, h-kanigeri2@ti.com, x00omar@ti.com, x0023949@ti.com, felipe.contreras@nokia.com, felipe.contreras@gmail.com
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: "ext Tony Lindgren" <tony@atomide.com>
-Subject: Re: [RFC] Port TI DSP BRIDGE for a new dedicated branch in linux-omap
-Date: Fri, 15 Aug 2008 14:21:13 +0300
+Hi all,
 
-> * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [080815 13:34]:
-> > Thank you guys for your comments,
-> > 
-> > It seems that some of the patches couldn't be sent to ML because of
-> > the size limitation of vger.kernel.org ML. Now Tony is finding the
-> > place to put the rest up on somewhere for review. I don't know if
-> > reviwing these base code makes so much sense at this momenent,
-> > though..which doesn't mean "no probelm";p
-> 
-> I've copied your patches to:
-> 
-> http://www.muru.com/linux/tidspbridge/
-> 
-> > I hope that everyone could work together on this branch without any
-> > problems eventually.
-> 
-> We need to also figure out who's going to maintain the dspbridge
-> branch. Ideally somebody with experience with dsp and linux..
+I have uploaded latest version of kernel, u-boot and x-loader for OMAP3530 EVM on linux.omap.com,
 
-I can take care of it, at least, for the meanwhile. If someone
-appropriate comes, I'll step down;p
+http://linux.omap.com/pub/kernel/3530evm/2.6_kernel-v2.tar.gz
+http://linux.omap.com/pub/bootloader/3530evm/u-boot-v2.tar.gz
+http://linux.omap.com/pub/xloader/3530evm/x-load-v2.tar.gz
 
-	Hiroshi DOYU
+The kernel source should contain support for following drivers:
+
+- Audio
+- OneNAND Driver
+- NAND Driver
+- USB Driver
+- Display Driver with DVI support
+- Resizer Driver
+- Capture Driver
+- Ethernet Driver
+- MMC/SD Driver
+- Touch Screen Driver
+- Keypad driver
+- Power Management
+
+Regards,
+Khasim
+http://khasim.blogspot.com
