@@ -1,109 +1,83 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [RFC] Port TI DSP BRIDGE for a new dedicated branch in
- linux-omap
-Date: Fri, 15 Aug 2008 23:48:33 +0300 (EEST)
-Message-ID: <20080815.234833.245337318.Hiroshi.DOYU@nokia.com>
-References: <20080815.133409.81509340.Hiroshi.DOYU@nokia.com>
-	<20080815112112.GB16840@atomide.com>
-	<13B9B4C6EF24D648824FF11BE8967162036210E182@dlee02.ent.ti.com>
+From: "Felipe Contreras" <felipe.contreras@gmail.com>
+Subject: Re: [RFC] Port TI DSP BRIDGE for a new dedicated branch in linux-omap
+Date: Sat, 16 Aug 2008 00:09:37 +0300
+Message-ID: <94a0d4530808151409p309cf9e2sf1ab3274baac32fb@mail.gmail.com>
+References: <1218782824-12596-1-git-send-email-Hiroshi.DOYU@nokia.com>
+	 <5d5443650808150052l29bf0830u60ff256b51d53066@mail.gmail.com>
+	 <94a0d4530808150247g52c1e258v5b922e01fb5154bc@mail.gmail.com>
+	 <20080815.133409.81509340.Hiroshi.DOYU@nokia.com>
+	 <20080815112112.GB16840@atomide.com>
+	 <13B9B4C6EF24D648824FF11BE8967162036210E182@dlee02.ent.ti.com>
+	 <94a0d4530808151220v75f45a09hdbca8cdf69b93b59@mail.gmail.com>
+	 <94a0d4530808151228s136e112die4718ca8ed90c22e@mail.gmail.com>
+	 <13B9B4C6EF24D648824FF11BE8967162036210E46B@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:45356 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751885AbYHOUtA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Aug 2008 16:49:00 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162036210E182@dlee02.ent.ti.com>
+Received: from rv-out-0506.google.com ([209.85.198.227]:19608 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751751AbYHOVJi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Aug 2008 17:09:38 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so1129131rvb.1
+        for <linux-omap@vger.kernel.org>; Fri, 15 Aug 2008 14:09:37 -0700 (PDT)
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162036210E46B@dlee02.ent.ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: r-woodruff2@ti.com
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, soni.trilok@gmail.com, h-kanigeri2@ti.com, x00omar@ti.com, grgupta@ti.com, felipe.contreras@nokia.com, felipe.contreras@gmail.com, vpasam@ti.com
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "soni.trilok@gmail.com" <soni.trilok@gmail.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Ramirez Luna, Omar" <x00omar@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "Pasam, Vijay" <vpasam@ti.com>
 
-Hi Richard,
+On Fri, Aug 15, 2008 at 11:16 PM, Woodruff, Richard <r-woodruff2@ti.com> wrote:
+> Hi Felipe,
+>
+>> owner@vger.kernel.org] On Behalf Of Felipe Contreras
+>
+> <snip>
+>
+>> >> As part of contributing this code there has been a lot of reworking
+>> of the code. Last I had heard checkpatch and sparse warnings had been
+>> killed. There was also a lot of work in making sure there would be no
+>> legal impact to the kernel to clear its ability to be contributed.
+>> >
+>> > Not true: 13 errors, 246 warnings.
+>
+> Today another set of warning changes is in queue. Will have to check what the current number has become. It will be low. The start number a while back was defiantly very high.
+>
+> Checkpatch.pl is just a guide.  Completely changing code for the tool isn't probably a good idea. It might even get you severally flamed on LKML :)  The recent threads are informative (ok to read, bad to be in).
+>
+> Incidentally, when I asked the person working these changes, they had reported 0 functional errors had been fixed by the checkpatch changes.  A lot of the noise was typedef reduction.
 
-It sounds to me that you meant that "omapzoom" should be the center of
-the bridge development because of TI's internal expertise of this
-area. I don't have any explicit objections at all and, at least, I
-will pay some respects on omapzoom since originally TI has published
-this bridge as GPLv2.
+I'm not familiar with checkpatch, but I guess the purpose is not to
+highlight functional issues.
 
-But, in any case, we need the place to work together efficiently
-now in the community. I think that "linux-omap" should have this
-bridge code in itself. In that case, one could easily participate in
-this bridge development without bridge porting from
-"omapzoom". Otherwise, everyone who mainly uses "linux-omap" has to
-port the bridge from "omapzoom" to "linux-omap" whenever one tries to
-use the bridge. And also "linux-omap" is the most active development
-place for omap kernel in public. It would be really nice if TI experts
-participate.
+However, there are functional issues, but it makes sense to cleanup
+the code first: there's no point in analyzing code that is never used.
 
-As for the roadmap issue, I think that it's a matter of trade-off. The
-more open it is, the more benefit it gets from the community;).
+> <snip>
+>
+>> Err, I got confused about the CE/Link, I meant the xdctools... or
+>> whatever is needed to compile DSP nodes. AFAIK the DSP compiler is not
+>> enough.
+>
+> You are correct that the internal DSP architecture is not opened up only the ARM side and the peripherals.  DSP internals is another topic.  You should be able to compile the ARM side.
 
-     Hiroshi DOYU
+Indeed, if I put myself the open source cap I can create ARM side
+applications, but then I need something running on the DSP in order to
+test them. If I put my corporate cap I can do that, and see that
+effectively, my ARM application works. But how are maintainers
+supposed to test this?
 
-From: "ext Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [RFC] Port TI DSP BRIDGE for a new dedicated branch in linux-omap
-Date: Fri, 15 Aug 2008 11:01:31 -0500
+At the very least I would expect a base image binary, and a dummy dsp
+node that simply copies the buffers received so that anyone can get
+their hands dirty with the dsp bridge. Otherwise it's just some code
+that nobody can test (hard to merge that way).
 
-> Hi,
-> 
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> > * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [080815 13:34]:
-> > > Thank you guys for your comments,
-> > >
-> > > It seems that some of the patches couldn't be sent to ML because of
-> > > the size limitation of vger.kernel.org ML. Now Tony is finding the
-> > > place to put the rest up on somewhere for review. I don't know if
-> > > reviwing these base code makes so much sense at this momenent,
-> > > though..which doesn't mean "no probelm";p
-> >
-> > I've copied your patches to:
-> >
-> > http://www.muru.com/linux/tidspbridge/
-> >
-> > > I hope that everyone could work together on this branch without any
-> > > problems eventually.
-> >
-> > We need to also figure out who's going to maintain the dspbridge
-> > branch. Ideally somebody with experience with dsp and linux..
-> 
-> Really all the design, maintenance and test experience of that code
-> is inside of TI.  This has lived for years and derivates have
-> shipped in products.  Who ever watches over it needs to be able to
-> provide a creditable multi-year commitment.
-> 
-> As part of contributing this code there has been a lot of reworking
-> of the code. Last I had heard checkpatch and sparse warnings had
-> been killed. There was also a lot of work in making sure there would
-> be no legal impact to the kernel to clear its ability to be
-> contributed.
-> 
-> If people really need it to work and not re-wait for a year, some
-> sane strategy needs to be employed. Most people in the mainline
-> kernel just won't care about a niche driver like this. As such the
-> only real gate for its inclusion is mainly _here_.
-> 
-> As there are many users/customers putting a solid and functional 1.0
-> in place would benefit everyone who needs it and would allow
-> cooperative development to ensure it would indeed work starting
-> _today_ and continuing into the future.  TI users _today_ use and
-> need this bridge.
-> 
-> Major interface and functional partitioning changes will happen as
-> such a piece of code evolves. This kind of thing seems more like 2.0
-> goals.  The point is that is something to be planned in a ToDo list.
-> Are their missing functions in what it provides today?
-> 
-> For this kind of piece to be successful it needs support from many
-> sides.
-> 
-> TI is willing to support this and has the necessary critical
-> technical context, incentive and attention span. Agreement is needed
-> on roadmap aspects of the code. If that doesn't happen what will
-> result is a lot of local patches on everyone's development tree.
-> 
-> We have been talking about hosting it on zoom as all the originators
-> and current experts of that code have direct access.
+> A few years back I had heard about some people even successfully running Linux on the C6x DSP.  I think it ran well, but kind of neat all the same.  DSPBIOS or other tiny OSes work much better there.
+
+Interesting, another platform to conquer for Linux ;)
+
+Best regards.
+
+-- 
+Felipe Contreras
