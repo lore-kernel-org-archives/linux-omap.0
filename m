@@ -1,67 +1,81 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 04/10] OMAP3 SRF: OMAP PM srf implementation
-Date: Fri, 15 Aug 2008 01:46:15 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0808150102390.6619@utopia.booyaka.com>
-References: <00d701c8fd1e$1716b730$LocalHost@wipultra1382> <87y73147qb.fsf@trdhcp146196.ntc.nokia.com>
-Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-630960037-1218783858=:6619"
+From: Jouni Hogander <jouni.hogander@nokia.com>
+Subject: [PATCH 1/4] 34XX: PM: Workaround to check wether any fck is active before entering sleep
+Date: Fri, 15 Aug 2008 10:47:18 +0300
+Message-ID: <1218786438-28049-1-git-send-email-jouni.hogander@nokia.com>
+References: <87iqu2rac0.fsf@trdhcp146196.ntc.nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:43733 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752167AbYHOHqQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Aug 2008 03:46:16 -0400
-In-Reply-To: <87y73147qb.fsf@trdhcp146196.ntc.nokia.com>
-Content-ID: <alpine.DEB.1.00.0808150104320.6619@utopia.booyaka.com>
+Received: from smtp.nokia.com ([192.100.122.230]:63436 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752183AbYHOHrS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Aug 2008 03:47:18 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m7F7l8rh010390
+	for <linux-omap@vger.kernel.org>; Fri, 15 Aug 2008 10:47:16 +0300
+In-Reply-To: <87iqu2rac0.fsf@trdhcp146196.ntc.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-15?Q?H=F6gander_Jouni?= <jouni.hogander@nokia.com>
-Cc: ext Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+This workaround shouldn't be needed when all drivers are configuring
+their sysconfig registers properly and using their clocks properly.
 
---155748971-630960037-1218783858=:6619
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.1.00.0808150104321.6619@utopia.booyaka.com>
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+---
+ arch/arm/mach-omap2/pm34xx.c |   37 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 37 insertions(+), 0 deletions(-)
 
-Hello Jouni, Rajendra,
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index a57cf41..f30fa9e 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -174,10 +174,47 @@ static void omap_sram_idle(void)
+ 	omap2_gpio_resume_after_retention();
+ }
+ 
++/* XXX This workaround shouldn't be needed when all drivers are configuring
++ * their sysconfig registers properly and using their clocks
++ * properly. */
++static int omap3_fclks_active(void)
++{
++	u32 fck_core1 = 0, fck_core3 = 0, fck_sgx = 0, fck_dss = 0,
++		fck_cam = 0, fck_per = 0, fck_usbhost = 0;
++
++	fck_core1 = cm_read_mod_reg(CORE_MOD,
++				    CM_FCLKEN1);
++	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
++		fck_core3 = cm_read_mod_reg(CORE_MOD,
++					    OMAP3430ES2_CM_FCLKEN3);
++		fck_sgx = cm_read_mod_reg(OMAP3430ES2_SGX_MOD,
++					  CM_FCLKEN);
++		fck_usbhost = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
++					      CM_FCLKEN);
++	} else
++		fck_sgx = cm_read_mod_reg(GFX_MOD,
++					  OMAP3430ES2_CM_FCLKEN3);
++	fck_dss = cm_read_mod_reg(OMAP3430_DSS_MOD,
++				  CM_FCLKEN);
++	fck_cam = cm_read_mod_reg(OMAP3430_CAM_MOD,
++				  CM_FCLKEN);
++	fck_per = cm_read_mod_reg(OMAP3430_PER_MOD,
++				  CM_FCLKEN);
++	if (fck_core1 | fck_core3 | fck_sgx | fck_dss |
++	    fck_cam | fck_per | fck_usbhost)
++		return 1;
++	return 0;
++}
++
+ static int omap3_can_sleep(void)
+ {
+ 	if (!enable_dyn_sleep)
+ 		return 0;
++	/* XXX This workaround shouldn't be needed when all drivers are
++	 * configuring their sysconfig registers properly and using their
++	 * clocks properly. */
++	if (omap3_fclks_active())
++		return 0;
+ 	if (atomic_read(&sleep_block) > 0)
+ 		return 0;
+ 	return 1;
+-- 
+1.5.5
 
-On Wed, 13 Aug 2008, H=F6gander Jouni wrote:
-
-> "ext Rajendra Nayak" <rnayak@ti.com> writes:
-> > Its needed so that a power domain is turned ON while the first clock no=
-de in it is=20
-> > requested, and turned OFF while the last clock node is disabled.
->=20
-> Isn't this already taken care by clock framework? If not I think it
-> should be. I mean directly requesting domain to wakeup rather than
-> requesting resource which causes it to wakeup.
->=20
-> Paul, Any comment on this?
-
-On the clock enable path, the clock code will wake up the clockdomain (or=
-=20
-add a wakeup dependency from MPU), which should cause the powerdomain to=20
-automatically wake up if it is currently in retention or off.
-
-Similarly, on the clock disable path, the clock code puts the clockdomain=
-=20
-to sleep (removes the MPU/IVA2 wakeup dependencies), which should cause=20
-the powerdomain to enter whatever state was previously configured in=20
-PM_PWSTCTRL_x.POWERSTATE.  POWERSTATE would have been set earlier by=20
-device drivers calling into the OMAP PM code ("set_max_wakeup_lat" etc.)
-
-If all of that is correct, then as you wrote, Jouni, there shouldn't be a=
-=20
-need for omap_pm_pwrdm_{in,}active() in Rajendra's current patch set.  In=
-=20
-fact the current code might actually prevent the powerdomain from dropping=
-=20
-below ON state.
-
-Rajendra, can you confirm this?  Or am I missing something in the above?
-
-
-- Paul
---155748971-630960037-1218783858=:6619--
