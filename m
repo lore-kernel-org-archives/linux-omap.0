@@ -1,39 +1,58 @@
-From: "Felipe Contreras" <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 0/4][GIT 3/4+] Dspbridge cleanup patches
-Date: Fri, 15 Aug 2008 12:53:09 +0300
-Message-ID: <94a0d4530808150253l179cf1e4s584f7c8bb6ac21ea@mail.gmail.com>
-References: <27F9C60D11D683428E133F85D2BB4A530825E140@dlee03.ent.ti.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: getnstimeofday() and suspend
+Date: Fri, 15 Aug 2008 12:55:13 +0300
+Message-ID: <878wuyob5q.fsf@trdhcp146196.ntc.nokia.com>
+References: <B71CE868F2BC2847B3F23C5A8EE394305AB785@vaebe110.NOE.Nokia.com>
+	<20080813140016.GE27446@atomide.com>
+	<B71CE868F2BC2847B3F23C5A8EE394305AB858@vaebe110.NOE.Nokia.com>
+	<B71CE868F2BC2847B3F23C5A8EE394305E574F@vaebe110.NOE.Nokia.com>
+	<1218792793.28834.33.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.225]:27035 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752243AbYHOJxJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Aug 2008 05:53:09 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so866141rvb.1
-        for <linux-omap@vger.kernel.org>; Fri, 15 Aug 2008 02:53:09 -0700 (PDT)
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A530825E140@dlee03.ent.ti.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:32806 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752264AbYHOJz2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Aug 2008 05:55:28 -0400
+In-Reply-To: <1218792793.28834.33.camel@localhost> (ext Igor Stoppa's message
+	of "Fri, 15 Aug 2008 09:33:13 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <x00omar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: igor.stoppa@nokia.com
+Cc: "ext Tero.Kristo@nokia.com" <Tero.Kristo@nokia.com>, tony@atomide.com, linux-omap@vger.kernel.org
 
-On Fri, Aug 15, 2008 at 10:21 AM, Ramirez Luna, Omar <x00omar@ti.com> wrote:
-> Hi,
->
-> I updated Gforge site with some more patches they are now a total of 17 uploaded, the ones that were added are applied on top of the previous ones, you can find them at:
->
-> http://omapzoom.org/gf/project/omapbridge/frs/?action=FrsReleaseView&release_id=119
->
-> I remind you to update your API and samples code when using the latest patches or when pulling from OmapZoom GIT, since the previous one will not longer work due to bool type changes in bridge sources, you can find these tarballs at:
->
-> http://omapzoom.org/gf/project/omapbridge/frs/?action=FrsReleaseView&release_id=117
+"ext Igor Stoppa" <igor.stoppa@nokia.com> writes:
 
-Would it be possible to have the libbridge in a git repository?
+> On Fri, 2008-08-15 at 12:32 +0300, ext Tero.Kristo@nokia.com wrote:
+>
+>> This behavior of the getnstimeofday() is breaking pm-debug and the
+>> serial console wakeup hack if we use suspend. Enabling RTC module se=
+ems
+>> to fix some of the issues in some cases, but we are going to lose ti=
+mer
+>> accuracy (RTC accuracy is only 1 second.)
+>
+> What about using the RTC for getting the base time and the 32kHz for =
+the
+> extended granularity?
+>
+> So one would use the RTC as ususal and then calculate the (less than =
+1s)
+> offset.
 
-Best regards.
+Are you talking about rtc resume generally here? If you are talking
+about pm debug and serial console hack here, using 32kHz timer only,
+would work as a solution even when there is no rtc driver loaded.
 
--- 
-Felipe Contreras
+Using them both would also generate more complexity. What would be the
+benefit in using them both?
+
+--=20
+Jouni H=C3=B6gander
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
