@@ -1,63 +1,34 @@
-From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: [PATCH 0/4] Refreshed PM workaround patches
-Date: Fri, 15 Aug 2008 10:04:18 +0300
-Message-ID: <87zlnerc7h.fsf@trdhcp146196.ntc.nokia.com>
-References: <877iaiu7np.fsf@trdhcp146196.ntc.nokia.com>
+From: "Ramirez Luna, Omar" <x00omar@ti.com>
+Subject: [PATCH 0/4][GIT 3/4+] Dspbridge cleanup patches
+Date: Fri, 15 Aug 2008 02:21:39 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A530825E140@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:40528 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751640AbYHOHEy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Aug 2008 03:04:54 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m7F74ELs019639
-	for <linux-omap@vger.kernel.org>; Fri, 15 Aug 2008 10:04:51 +0300
-In-Reply-To: <877iaiu7np.fsf@trdhcp146196.ntc.nokia.com> (ext =?utf-8?Q?H?=
- =?utf-8?Q?=C3=B6gander?= Jouni's
-	message of "Fri, 15 Aug 2008 09:14:18 +0300")
+Received: from soda.ext.ti.com ([198.47.26.145]:39005 "EHLO soda.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751849AbYHOHVq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Aug 2008 03:21:46 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7F7LfLP013893
+	for <linux-omap@vger.kernel.org>; Fri, 15 Aug 2008 02:21:46 -0500
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id m7F7LeiR023741
+	for <linux-omap@vger.kernel.org>; Fri, 15 Aug 2008 02:21:40 -0500 (CDT)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-ext H=C3=B6gander Jouni <jouni.hogander@nokia.com> writes:
+Hi,
 
-> Hi,
->
-> One more refreshed PM workaround set. Here are instructions, how to t=
-est
-> them:
->
-> To get Omap into retention, this patch set still depends on:
-> 1. ARCH: OMAP: MUSB: Do not block sleep (Felipe Balbi)
->
-> Test:
-> 1. Apply dependency patch and workaround set on top of them
->
-> 2. Enable disabling/enabling of gpio2-6 and uart clocks on idle:
->    $ echo 1 > /sys/power/clocks_off_while_idle
->
-> 3. Try out static suspend:
->    $ echo mem > /sys/power/state
->    Wake up from suspend by entering character to serial console. This
->    should print out:
->    "Successfully put all powerdomains to target state"
->
-> 4. Try out dynamic sleep:
->    $ echo 1 > /sys/power/sleep_while_idle
->    On Omap3430 SDP board VCORE_EN led can be used as an indicator. If
->    it starts to blink after a while then Omap enters retention on
->    idle. To make this work also display needs to be blanked.
+I updated Gforge site with some more patches they are now a total of 17 uploaded, the ones that were added are applied on top of the previous ones, you can find them at:
 
-Please ignore this set. It break 24xx build and patches contains
-error. Sorry for this. I will send them again soon.
+http://omapzoom.org/gf/project/omapbridge/frs/?action=FrsReleaseView&release_id=119
 
---=20
-Jouni H=C3=B6gander
+I remind you to update your API and samples code when using the latest patches or when pulling from OmapZoom GIT, since the previous one will not longer work due to bool type changes in bridge sources, you can find these tarballs at:
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://omapzoom.org/gf/project/omapbridge/frs/?action=FrsReleaseView&release_id=117
+
+-omar
