@@ -1,34 +1,51 @@
-From: "Ramirez Luna, Omar" <x00omar@ti.com>
-Subject: [PATCH 0/4][GIT 3/4+] Dspbridge cleanup patches
-Date: Fri, 15 Aug 2008 02:21:39 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A530825E140@dlee03.ent.ti.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: [PATCH 0/4] Refreshed PM workaround patches 2.
+Date: Fri, 15 Aug 2008 10:44:47 +0300
+Message-ID: <87iqu2rac0.fsf@trdhcp146196.ntc.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from soda.ext.ti.com ([198.47.26.145]:39005 "EHLO soda.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751849AbYHOHVq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Aug 2008 03:21:46 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7F7LfLP013893
-	for <linux-omap@vger.kernel.org>; Fri, 15 Aug 2008 02:21:46 -0500
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id m7F7LeiR023741
-	for <linux-omap@vger.kernel.org>; Fri, 15 Aug 2008 02:21:40 -0500 (CDT)
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:44072 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751970AbYHOHow convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Aug 2008 03:44:52 -0400
+Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m7F7iVnG025019
+	for <linux-omap@vger.kernel.org>; Fri, 15 Aug 2008 10:44:50 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Hi,
+Refreshed PM workaround set without coding style errors and 24xx build
+fixed. Here are instructions how to test them:
 
-I updated Gforge site with some more patches they are now a total of 17 uploaded, the ones that were added are applied on top of the previous ones, you can find them at:
+To get Omap into retention, this patch set still depends on:
+1. ARCH: OMAP: MUSB: Do not block sleep (Felipe Balbi)
 
-http://omapzoom.org/gf/project/omapbridge/frs/?action=FrsReleaseView&release_id=119
+Test:
+1. Apply dependency patch and workaround set on top of them
 
-I remind you to update your API and samples code when using the latest patches or when pulling from OmapZoom GIT, since the previous one will not longer work due to bool type changes in bridge sources, you can find these tarballs at:
+2. Enable disabling/enabling of gpio2-6 and uart clocks on idle:
+   $ echo 1 > /sys/power/clocks_off_while_idle
 
-http://omapzoom.org/gf/project/omapbridge/frs/?action=FrsReleaseView&release_id=117
+3. Try out static suspend:
+   $ echo mem > /sys/power/state
+   Wake up from suspend by entering character to serial console. This
+   should print out:
+   "Successfully put all powerdomains to target state"
 
--omar
+4. Try out dynamic sleep:
+   $ echo 1 > /sys/power/sleep_while_idle
+   On Omap3430 SDP board VCORE_EN led can be used as an indicator. If
+   it starts to blink after a while then Omap enters retention on
+   idle. To make this work also display needs to be blanked.
+
+--=20
+Jouni H=C3=B6gander
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
