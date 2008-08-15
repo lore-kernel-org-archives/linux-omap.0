@@ -1,449 +1,1252 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [RFC] Port TI DSP BRIDGE for a new dedicated branch in linux-omap
-Date: Fri, 15 Aug 2008 09:46:54 +0300
-Message-ID: <1218782824-12596-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 04/10] TI DSP BRIDGE: Generic Utilities
+Date: Fri, 15 Aug 2008 09:46:58 +0300
+Message-ID: <1218782824-12596-5-git-send-email-Hiroshi.DOYU@nokia.com>
+References: <1218782824-12596-1-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1218782824-12596-2-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1218782824-12596-3-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1218782824-12596-4-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:31743 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751607AbYHOGr0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Aug 2008 02:47:26 -0400
+Received: from smtp.nokia.com ([192.100.122.230]:54796 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751605AbYHOGr1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Aug 2008 02:47:27 -0400
+In-Reply-To: <1218782824-12596-4-git-send-email-Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: h-kanigeri2@ti.com, x00omar@ti.com, x0023949@ti.com, soni.trilok@gmail.com, felipe.contreras@nokia.com
+Cc: h-kanigeri2@ti.com, x00omar@ti.com, x0023949@ti.com, soni.trilok@gmail.com, felipe.contreras@nokia.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-Hello all,
+Initial port from omapzoom
+	http://omapzoom.org/gf/project/omapbridge
 
-I have ported the latest TI DSP BRIDGE from "omapzoom" to linux
-omap. The purpose of this port is to get this code kept in a new
-dedicated branch(ex: "dspbridge") in l-o, not intended to be merged
-into master or some other existing branches for now, but to provide
-an efficient development space to collaborate.
+For details,
+http://omapzoom.org/gf/project/omapbridge/docman/?subdir=3
 
-Presently there's no code base for TI BRIDGE in l-o at all but there
-are some dspbridge related discussions and patches have been sent in
-this ML since the interface with DSP is necessary from the system
-point of view in practice. I don't think that it's efficient to
-work/discuss without this code in l-o but, at the same time, it seems
-to be too early to get this code merged in because the code quality of
-this S/W still hasn't been linux kernel compatible to be merged in as
-"checkpatch.pl" still complains lots of warnings. This S/W component
-isn't so small and lots of effort will be needed before this code is
-merged, and also some restructuring may be necessary, like eliminating
-API abstraction layer and so on.
-
-So I propose that, keeping this code in one dedicated branch in l-o
-just for the development space would improve the situation, providing
-the place for opensource developers to work together efficiently
-through the public linux omap repository(on a dedicated branch) and
-this linux omap ML. All patches related to bridge will be maintained
-in this dedicated branch until the code will get enough cleaned up.
-
-Any comment on this proposal would be appreciated.
-
-    Hiroshi DOYU
-
-* I have ported all patched from:
-http://omapzoom.org/gf/project/omapbridge/frs/?action=FrsReleaseView&release_id=119
-
-
- Documentation/tidspbridge/README                   |   70 +
- arch/arm/Kconfig                                   |    1 +
- arch/arm/plat-omap/include/bridge/_chnl_sm.h       |  221 ++
- arch/arm/plat-omap/include/bridge/_dcd.h           |  187 ++
- arch/arm/plat-omap/include/bridge/brddefs.h        |   54 +
- arch/arm/plat-omap/include/bridge/cfg.h            |  339 ++
- arch/arm/plat-omap/include/bridge/cfgdefs.h        |  127 +
- arch/arm/plat-omap/include/bridge/chnl.h           |  537 ++++
- arch/arm/plat-omap/include/bridge/chnl_sm.h        |  210 ++
- arch/arm/plat-omap/include/bridge/chnldefs.h       |   92 +
- arch/arm/plat-omap/include/bridge/chnlpriv.h       |  136 +
- arch/arm/plat-omap/include/bridge/clk.h            |  155 +
- arch/arm/plat-omap/include/bridge/cmm.h            |  420 +++
- arch/arm/plat-omap/include/bridge/cmmdefs.h        |  135 +
- arch/arm/plat-omap/include/bridge/cod.h            |  494 +++
- arch/arm/plat-omap/include/bridge/csl.h            |  269 ++
- arch/arm/plat-omap/include/bridge/dbapi.h          |   48 +
- arch/arm/plat-omap/include/bridge/dbc.h            |   66 +
- arch/arm/plat-omap/include/bridge/dbdcd.h          |  388 +++
- arch/arm/plat-omap/include/bridge/dbdcddef.h       |   94 +
- arch/arm/plat-omap/include/bridge/dbdefs.h         |  564 ++++
- arch/arm/plat-omap/include/bridge/dbg.h            |  110 +
- arch/arm/plat-omap/include/bridge/dbl.h            |  354 ++
- arch/arm/plat-omap/include/bridge/dbldefs.h        |  519 +++
- arch/arm/plat-omap/include/bridge/dbll.h           |   70 +
- arch/arm/plat-omap/include/bridge/dblldefs.h       |  513 +++
- arch/arm/plat-omap/include/bridge/dbof.h           |  117 +
- arch/arm/plat-omap/include/bridge/dbreg.h          |  113 +
- arch/arm/plat-omap/include/bridge/dbtype.h         |  105 +
- arch/arm/plat-omap/include/bridge/ddma_sh.h        |   95 +
- arch/arm/plat-omap/include/bridge/ddmatypes.h      |   36 +
- arch/arm/plat-omap/include/bridge/dehdefs.h        |   42 +
- arch/arm/plat-omap/include/bridge/dev.h            |  804 +++++
- arch/arm/plat-omap/include/bridge/devdefs.h        |   35 +
- arch/arm/plat-omap/include/bridge/disp.h           |  236 ++
- arch/arm/plat-omap/include/bridge/dispdefs.h       |   45 +
- arch/arm/plat-omap/include/bridge/dldr.h           |   75 +
- arch/arm/plat-omap/include/bridge/dldrdefs.h       |  315 ++
- arch/arm/plat-omap/include/bridge/dmm.h            |   85 +
- arch/arm/plat-omap/include/bridge/dpc.h            |  167 +
- arch/arm/plat-omap/include/bridge/drv.h            |  434 +++
- arch/arm/plat-omap/include/bridge/drvdefs.h        |   34 +
- arch/arm/plat-omap/include/bridge/dspapi.h         |   50 +
- arch/arm/plat-omap/include/bridge/dspdrv.h         |  106 +
- arch/arm/plat-omap/include/bridge/dynamic_loader.h |  505 +++
- arch/arm/plat-omap/include/bridge/errbase.h        |  509 +++
- arch/arm/plat-omap/include/bridge/gb.h             |   85 +
- arch/arm/plat-omap/include/bridge/getsection.h     |  121 +
- arch/arm/plat-omap/include/bridge/gh.h             |   37 +
- arch/arm/plat-omap/include/bridge/gp.h             |   33 +
- arch/arm/plat-omap/include/bridge/gs.h             |   64 +
- arch/arm/plat-omap/include/bridge/gt.h             |  317 ++
- arch/arm/plat-omap/include/bridge/host_os.h        |   80 +
- arch/arm/plat-omap/include/bridge/io.h             |  132 +
- arch/arm/plat-omap/include/bridge/io_sm.h          |  330 ++
- arch/arm/plat-omap/include/bridge/iodefs.h         |   45 +
- arch/arm/plat-omap/include/bridge/isr.h            |  219 ++
- arch/arm/plat-omap/include/bridge/kfile.h          |  216 ++
- arch/arm/plat-omap/include/bridge/ldr.h            |   51 +
- arch/arm/plat-omap/include/bridge/list.h           |  296 ++
- arch/arm/plat-omap/include/bridge/mbx_sh.h         |  213 ++
- arch/arm/plat-omap/include/bridge/mem.h            |  340 ++
- arch/arm/plat-omap/include/bridge/memdefs.h        |   52 +
- arch/arm/plat-omap/include/bridge/memry.h          |   96 +
- arch/arm/plat-omap/include/bridge/mgr.h            |  234 ++
- arch/arm/plat-omap/include/bridge/mgrpriv.h        |   55 +
- arch/arm/plat-omap/include/bridge/msg.h            |  106 +
- arch/arm/plat-omap/include/bridge/msgdefs.h        |   43 +
- arch/arm/plat-omap/include/bridge/nldr.h           |   81 +
- arch/arm/plat-omap/include/bridge/nldrdefs.h       |  307 ++
- arch/arm/plat-omap/include/bridge/node.h           |  619 ++++
- arch/arm/plat-omap/include/bridge/nodedefs.h       |   40 +
- arch/arm/plat-omap/include/bridge/nodepriv.h       |  237 ++
- arch/arm/plat-omap/include/bridge/ntfy.h           |  146 +
- arch/arm/plat-omap/include/bridge/prcs.h           |  101 +
- arch/arm/plat-omap/include/bridge/proc.h           |  648 ++++
- arch/arm/plat-omap/include/bridge/procpriv.h       |   35 +
- arch/arm/plat-omap/include/bridge/pwr.h            |  129 +
- arch/arm/plat-omap/include/bridge/pwr_sh.h         |   41 +
- arch/arm/plat-omap/include/bridge/reg.h            |  257 ++
- .../arm/plat-omap/include/bridge/resourcecleanup.h |   89 +
- arch/arm/plat-omap/include/bridge/rmm.h            |  199 ++
- arch/arm/plat-omap/include/bridge/rms_sh.h         |  125 +
- arch/arm/plat-omap/include/bridge/rmstypes.h       |   41 +
- arch/arm/plat-omap/include/bridge/services.h       |   63 +
- arch/arm/plat-omap/include/bridge/std.h            |  143 +
- arch/arm/plat-omap/include/bridge/strm.h           |  441 +++
- arch/arm/plat-omap/include/bridge/strmdefs.h       |   57 +
- arch/arm/plat-omap/include/bridge/sync.h           |  339 ++
- arch/arm/plat-omap/include/bridge/util.h           |  173 +
- arch/arm/plat-omap/include/bridge/utildefs.h       |   51 +
- arch/arm/plat-omap/include/bridge/uuidutil.h       |   74 +
- arch/arm/plat-omap/include/bridge/wcd.h            |   61 +
- arch/arm/plat-omap/include/bridge/wcdioctl.h       |  518 +++
- arch/arm/plat-omap/include/bridge/wmd.h            | 1193 +++++++
- arch/arm/plat-omap/include/bridge/wmdchnl.h        |   90 +
- arch/arm/plat-omap/include/bridge/wmddeh.h         |   64 +
- arch/arm/plat-omap/include/bridge/wmdio.h          |   53 +
- arch/arm/plat-omap/include/bridge/wmdioctl.h       |   91 +
- arch/arm/plat-omap/include/bridge/wmdmsg.h         |   70 +
- drivers/Makefile                                   |    1 +
- drivers/dsp/bridge/dynload/cload.c                 | 1856 +++++++++++
- drivers/dsp/bridge/dynload/dlclasses_hdr.h         |   41 +
- drivers/dsp/bridge/dynload/dload_internal.h        |  237 ++
- drivers/dsp/bridge/dynload/doff.h                  |  347 ++
- drivers/dsp/bridge/dynload/getsection.c            |  412 +++
- drivers/dsp/bridge/dynload/header.h                |   59 +
- drivers/dsp/bridge/dynload/module_list.h           |  161 +
- drivers/dsp/bridge/dynload/params.h                |  231 ++
- drivers/dsp/bridge/dynload/reloc.c                 |  425 +++
- drivers/dsp/bridge/dynload/reloc_table.h           |  102 +
- drivers/dsp/bridge/dynload/reloc_table_c6000.c     |  258 ++
- drivers/dsp/bridge/gen/_gt_para.c                  |  107 +
- drivers/dsp/bridge/gen/gb.c                        |  182 ++
- drivers/dsp/bridge/gen/gh.c                        |  191 ++
- drivers/dsp/bridge/gen/gs.c                        |  108 +
- drivers/dsp/bridge/gen/gt.c                        |  346 ++
- drivers/dsp/bridge/gen/uuidutil.c                  |  238 ++
- drivers/dsp/bridge/hw/EasiBase.h                   |  179 ++
- drivers/dsp/bridge/hw/EasiGlobal.h                 |   42 +
- drivers/dsp/bridge/hw/GlobalTypes.h                |  328 ++
- drivers/dsp/bridge/hw/IPIAccInt.h                  |   41 +
- drivers/dsp/bridge/hw/IVA2RegAcM.h                 |   28 +
- drivers/dsp/bridge/hw/MLBAccInt.h                  |  132 +
- drivers/dsp/bridge/hw/MLBRegAcM.h                  |  200 ++
- drivers/dsp/bridge/hw/MMUAccInt.h                  |   79 +
- drivers/dsp/bridge/hw/MMURegAcM.h                  |  267 ++
- drivers/dsp/bridge/hw/PRCMAccInt.h                 |  300 ++
- drivers/dsp/bridge/hw/PRCMRegAcM.h                 |  669 ++++
- drivers/dsp/bridge/hw/hw_defs.h                    |   73 +
- drivers/dsp/bridge/hw/hw_dspssC64P.c               |   55 +
- drivers/dsp/bridge/hw/hw_dspssC64P.h               |   48 +
- drivers/dsp/bridge/hw/hw_mbox.c                    |  255 ++
- drivers/dsp/bridge/hw/hw_mbox.h                    |  358 +++
- drivers/dsp/bridge/hw/hw_mmu.c                     |  607 ++++
- drivers/dsp/bridge/hw/hw_mmu.h                     |  178 +
- drivers/dsp/bridge/hw/hw_prcm.c                    |  167 +
- drivers/dsp/bridge/hw/hw_prcm.h                    |  168 +
- drivers/dsp/bridge/pmgr/chnl.c                     |  517 +++
- drivers/dsp/bridge/pmgr/chnlobj.h                  |   71 +
- drivers/dsp/bridge/pmgr/cmm.c                      | 1290 ++++++++
- drivers/dsp/bridge/pmgr/cod.c                      |  683 ++++
- drivers/dsp/bridge/pmgr/dbl.c                      | 1385 ++++++++
- drivers/dsp/bridge/pmgr/dbll.c                     | 1565 +++++++++
- drivers/dsp/bridge/pmgr/dev.c                      | 1475 +++++++++
- drivers/dsp/bridge/pmgr/dmm.c                      |  646 ++++
- drivers/dsp/bridge/pmgr/io.c                       |  204 ++
- drivers/dsp/bridge/pmgr/ioobj.h                    |   52 +
- drivers/dsp/bridge/pmgr/msg.c                      |  173 +
- drivers/dsp/bridge/pmgr/msgobj.h                   |   52 +
- drivers/dsp/bridge/pmgr/wcd.c                      | 1641 ++++++++++
- drivers/dsp/bridge/rmgr/dbdcd.c                    | 1599 ++++++++++
- drivers/dsp/bridge/rmgr/disp.c                     |  915 ++++++
- drivers/dsp/bridge/rmgr/drv.c                      | 1883 +++++++++++
- drivers/dsp/bridge/rmgr/drv_interface.c            |  780 +++++
- drivers/dsp/bridge/rmgr/drv_interface.h            |   40 +
- drivers/dsp/bridge/rmgr/dspdrv.c                   |  276 ++
- drivers/dsp/bridge/rmgr/mgr.c                      |  491 +++
- drivers/dsp/bridge/rmgr/nldr.c                     | 1966 ++++++++++++
- drivers/dsp/bridge/rmgr/node.c                     | 3365 ++++++++++++++++++++
- drivers/dsp/bridge/rmgr/proc.c                     | 1958 ++++++++++++
- drivers/dsp/bridge/rmgr/pwr.c                      |  184 ++
- drivers/dsp/bridge/rmgr/rmm.c                      |  604 ++++
- drivers/dsp/bridge/rmgr/strm.c                     | 1053 ++++++
- drivers/dsp/bridge/services/cfg.c                  |  484 +++
- drivers/dsp/bridge/services/clk.c                  |  376 +++
- drivers/dsp/bridge/services/csl.c                  |  274 ++
- drivers/dsp/bridge/services/dbg.c                  |  119 +
- drivers/dsp/bridge/services/dpc.c                  |  275 ++
- drivers/dsp/bridge/services/isr.c                  |  261 ++
- drivers/dsp/bridge/services/kfile.c                |  336 ++
- drivers/dsp/bridge/services/list.c                 |  285 ++
- drivers/dsp/bridge/services/mem.c                  |  594 ++++
- drivers/dsp/bridge/services/ntfy.c                 |  329 ++
- drivers/dsp/bridge/services/prcs.c                 |  119 +
- drivers/dsp/bridge/services/reg.c                  |  196 ++
- drivers/dsp/bridge/services/regsup.c               |  367 +++
- drivers/dsp/bridge/services/regsup.h               |   58 +
- drivers/dsp/bridge/services/services.c             |  205 ++
- drivers/dsp/bridge/services/sync.c                 |  610 ++++
- drivers/dsp/bridge/wmd/_cmm.h                      |   59 +
- drivers/dsp/bridge/wmd/_deh.h                      |   48 +
- drivers/dsp/bridge/wmd/_msg_sm.h                   |  158 +
- drivers/dsp/bridge/wmd/_tiomap.h                   |  400 +++
- drivers/dsp/bridge/wmd/_tiomap_api.h               |  182 ++
- drivers/dsp/bridge/wmd/_tiomap_clk.h               |  123 +
- drivers/dsp/bridge/wmd/_tiomap_mmu.h               |   53 +
- drivers/dsp/bridge/wmd/_tiomap_pwr.h               |   82 +
- drivers/dsp/bridge/wmd/_tiomap_util.h              |   47 +
- drivers/dsp/bridge/wmd/chnl_sm.c                   | 1101 +++++++
- drivers/dsp/bridge/wmd/io_sm.c                     | 1843 +++++++++++
- drivers/dsp/bridge/wmd/mmu_fault.c                 |  171 +
- drivers/dsp/bridge/wmd/mmu_fault.h                 |   52 +
- drivers/dsp/bridge/wmd/msg_sm.c                    |  599 ++++
- drivers/dsp/bridge/wmd/tiomap3430.c                | 2171 +++++++++++++
- drivers/dsp/bridge/wmd/tiomap3430_pwr.c            |  568 ++++
- drivers/dsp/bridge/wmd/tiomap_io.c                 |  430 +++
- drivers/dsp/bridge/wmd/tiomap_io.h                 |  112 +
- drivers/dsp/bridge/wmd/tiomap_sm.c                 |  305 ++
- drivers/dsp/bridge/wmd/ue_deh.c                    |  502 +++
- 200 files changed, 68060 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/tidspbridge/README
- create mode 100644 arch/arm/plat-omap/include/bridge/_chnl_sm.h
- create mode 100644 arch/arm/plat-omap/include/bridge/_dcd.h
- create mode 100644 arch/arm/plat-omap/include/bridge/brddefs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/cfg.h
- create mode 100644 arch/arm/plat-omap/include/bridge/cfgdefs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/chnl.h
- create mode 100644 arch/arm/plat-omap/include/bridge/chnl_sm.h
- create mode 100644 arch/arm/plat-omap/include/bridge/chnldefs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/chnlpriv.h
- create mode 100644 arch/arm/plat-omap/include/bridge/clk.h
- create mode 100644 arch/arm/plat-omap/include/bridge/cmm.h
- create mode 100644 arch/arm/plat-omap/include/bridge/cmmdefs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/cod.h
- create mode 100644 arch/arm/plat-omap/include/bridge/csl.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dbapi.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dbc.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dbdcd.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dbdcddef.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dbdefs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dbg.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dbl.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dbldefs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dbll.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dblldefs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dbof.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dbreg.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dbtype.h
- create mode 100644 arch/arm/plat-omap/include/bridge/ddma_sh.h
- create mode 100644 arch/arm/plat-omap/include/bridge/ddmatypes.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dehdefs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dev.h
- create mode 100644 arch/arm/plat-omap/include/bridge/devdefs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/disp.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dispdefs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dldr.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dldrdefs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dmm.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dpc.h
- create mode 100644 arch/arm/plat-omap/include/bridge/drv.h
- create mode 100644 arch/arm/plat-omap/include/bridge/drvdefs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dspapi.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dspdrv.h
- create mode 100644 arch/arm/plat-omap/include/bridge/dynamic_loader.h
- create mode 100644 arch/arm/plat-omap/include/bridge/errbase.h
- create mode 100644 arch/arm/plat-omap/include/bridge/gb.h
- create mode 100644 arch/arm/plat-omap/include/bridge/getsection.h
- create mode 100644 arch/arm/plat-omap/include/bridge/gh.h
- create mode 100644 arch/arm/plat-omap/include/bridge/gp.h
- create mode 100644 arch/arm/plat-omap/include/bridge/gs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/gt.h
- create mode 100644 arch/arm/plat-omap/include/bridge/host_os.h
- create mode 100644 arch/arm/plat-omap/include/bridge/io.h
- create mode 100644 arch/arm/plat-omap/include/bridge/io_sm.h
- create mode 100644 arch/arm/plat-omap/include/bridge/iodefs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/isr.h
- create mode 100644 arch/arm/plat-omap/include/bridge/kfile.h
- create mode 100644 arch/arm/plat-omap/include/bridge/ldr.h
- create mode 100644 arch/arm/plat-omap/include/bridge/list.h
- create mode 100644 arch/arm/plat-omap/include/bridge/mbx_sh.h
- create mode 100644 arch/arm/plat-omap/include/bridge/mem.h
- create mode 100644 arch/arm/plat-omap/include/bridge/memdefs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/memry.h
- create mode 100644 arch/arm/plat-omap/include/bridge/mgr.h
- create mode 100644 arch/arm/plat-omap/include/bridge/mgrpriv.h
- create mode 100644 arch/arm/plat-omap/include/bridge/msg.h
- create mode 100644 arch/arm/plat-omap/include/bridge/msgdefs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/nldr.h
- create mode 100644 arch/arm/plat-omap/include/bridge/nldrdefs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/node.h
- create mode 100644 arch/arm/plat-omap/include/bridge/nodedefs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/nodepriv.h
- create mode 100644 arch/arm/plat-omap/include/bridge/ntfy.h
- create mode 100644 arch/arm/plat-omap/include/bridge/prcs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/proc.h
- create mode 100644 arch/arm/plat-omap/include/bridge/procpriv.h
- create mode 100644 arch/arm/plat-omap/include/bridge/pwr.h
- create mode 100644 arch/arm/plat-omap/include/bridge/pwr_sh.h
- create mode 100644 arch/arm/plat-omap/include/bridge/reg.h
- create mode 100644 arch/arm/plat-omap/include/bridge/resourcecleanup.h
- create mode 100644 arch/arm/plat-omap/include/bridge/rmm.h
- create mode 100644 arch/arm/plat-omap/include/bridge/rms_sh.h
- create mode 100644 arch/arm/plat-omap/include/bridge/rmstypes.h
- create mode 100644 arch/arm/plat-omap/include/bridge/services.h
- create mode 100644 arch/arm/plat-omap/include/bridge/std.h
- create mode 100644 arch/arm/plat-omap/include/bridge/strm.h
- create mode 100644 arch/arm/plat-omap/include/bridge/strmdefs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/sync.h
- create mode 100644 arch/arm/plat-omap/include/bridge/util.h
- create mode 100644 arch/arm/plat-omap/include/bridge/utildefs.h
- create mode 100644 arch/arm/plat-omap/include/bridge/uuidutil.h
- create mode 100644 arch/arm/plat-omap/include/bridge/wcd.h
- create mode 100644 arch/arm/plat-omap/include/bridge/wcdioctl.h
- create mode 100644 arch/arm/plat-omap/include/bridge/wmd.h
- create mode 100644 arch/arm/plat-omap/include/bridge/wmdchnl.h
- create mode 100644 arch/arm/plat-omap/include/bridge/wmddeh.h
- create mode 100644 arch/arm/plat-omap/include/bridge/wmdio.h
- create mode 100644 arch/arm/plat-omap/include/bridge/wmdioctl.h
- create mode 100644 arch/arm/plat-omap/include/bridge/wmdmsg.h
- create mode 100644 drivers/dsp/bridge/dynload/cload.c
- create mode 100644 drivers/dsp/bridge/dynload/dlclasses_hdr.h
- create mode 100644 drivers/dsp/bridge/dynload/dload_internal.h
- create mode 100644 drivers/dsp/bridge/dynload/doff.h
- create mode 100644 drivers/dsp/bridge/dynload/getsection.c
- create mode 100644 drivers/dsp/bridge/dynload/header.h
- create mode 100644 drivers/dsp/bridge/dynload/module_list.h
- create mode 100644 drivers/dsp/bridge/dynload/params.h
- create mode 100644 drivers/dsp/bridge/dynload/reloc.c
- create mode 100644 drivers/dsp/bridge/dynload/reloc_table.h
- create mode 100644 drivers/dsp/bridge/dynload/reloc_table_c6000.c
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+ drivers/dsp/bridge/gen/_gt_para.c |  107 ++++++++++++
+ drivers/dsp/bridge/gen/gb.c       |  182 +++++++++++++++++++
+ drivers/dsp/bridge/gen/gh.c       |  191 ++++++++++++++++++++
+ drivers/dsp/bridge/gen/gs.c       |  108 ++++++++++++
+ drivers/dsp/bridge/gen/gt.c       |  346 +++++++++++++++++++++++++++++++++++++
+ drivers/dsp/bridge/gen/uuidutil.c |  238 +++++++++++++++++++++++++
+ 6 files changed, 1172 insertions(+), 0 deletions(-)
  create mode 100644 drivers/dsp/bridge/gen/_gt_para.c
  create mode 100644 drivers/dsp/bridge/gen/gb.c
  create mode 100644 drivers/dsp/bridge/gen/gh.c
  create mode 100644 drivers/dsp/bridge/gen/gs.c
  create mode 100644 drivers/dsp/bridge/gen/gt.c
  create mode 100644 drivers/dsp/bridge/gen/uuidutil.c
- create mode 100644 drivers/dsp/bridge/hw/EasiBase.h
- create mode 100644 drivers/dsp/bridge/hw/EasiGlobal.h
- create mode 100644 drivers/dsp/bridge/hw/GlobalTypes.h
- create mode 100644 drivers/dsp/bridge/hw/IPIAccInt.h
- create mode 100644 drivers/dsp/bridge/hw/IVA2RegAcM.h
- create mode 100644 drivers/dsp/bridge/hw/MLBAccInt.h
- create mode 100644 drivers/dsp/bridge/hw/MLBRegAcM.h
- create mode 100644 drivers/dsp/bridge/hw/MMUAccInt.h
- create mode 100644 drivers/dsp/bridge/hw/MMURegAcM.h
- create mode 100644 drivers/dsp/bridge/hw/PRCMAccInt.h
- create mode 100644 drivers/dsp/bridge/hw/PRCMRegAcM.h
- create mode 100644 drivers/dsp/bridge/hw/hw_defs.h
- create mode 100644 drivers/dsp/bridge/hw/hw_dspssC64P.c
- create mode 100644 drivers/dsp/bridge/hw/hw_dspssC64P.h
- create mode 100644 drivers/dsp/bridge/hw/hw_mbox.c
- create mode 100644 drivers/dsp/bridge/hw/hw_mbox.h
- create mode 100644 drivers/dsp/bridge/hw/hw_mmu.c
- create mode 100644 drivers/dsp/bridge/hw/hw_mmu.h
- create mode 100644 drivers/dsp/bridge/hw/hw_prcm.c
- create mode 100644 drivers/dsp/bridge/hw/hw_prcm.h
- create mode 100644 drivers/dsp/bridge/pmgr/chnl.c
- create mode 100644 drivers/dsp/bridge/pmgr/chnlobj.h
- create mode 100644 drivers/dsp/bridge/pmgr/cmm.c
- create mode 100644 drivers/dsp/bridge/pmgr/cod.c
- create mode 100644 drivers/dsp/bridge/pmgr/dbl.c
- create mode 100644 drivers/dsp/bridge/pmgr/dbll.c
- create mode 100644 drivers/dsp/bridge/pmgr/dev.c
- create mode 100644 drivers/dsp/bridge/pmgr/dmm.c
- create mode 100644 drivers/dsp/bridge/pmgr/io.c
- create mode 100644 drivers/dsp/bridge/pmgr/ioobj.h
- create mode 100644 drivers/dsp/bridge/pmgr/msg.c
- create mode 100644 drivers/dsp/bridge/pmgr/msgobj.h
- create mode 100644 drivers/dsp/bridge/pmgr/wcd.c
- create mode 100644 drivers/dsp/bridge/rmgr/dbdcd.c
- create mode 100644 drivers/dsp/bridge/rmgr/disp.c
- create mode 100644 drivers/dsp/bridge/rmgr/drv.c
- create mode 100644 drivers/dsp/bridge/rmgr/drv_interface.c
- create mode 100644 drivers/dsp/bridge/rmgr/drv_interface.h
- create mode 100644 drivers/dsp/bridge/rmgr/dspdrv.c
- create mode 100644 drivers/dsp/bridge/rmgr/mgr.c
- create mode 100644 drivers/dsp/bridge/rmgr/nldr.c
- create mode 100644 drivers/dsp/bridge/rmgr/node.c
- create mode 100644 drivers/dsp/bridge/rmgr/proc.c
- create mode 100644 drivers/dsp/bridge/rmgr/pwr.c
- create mode 100644 drivers/dsp/bridge/rmgr/rmm.c
- create mode 100644 drivers/dsp/bridge/rmgr/strm.c
- create mode 100644 drivers/dsp/bridge/services/cfg.c
- create mode 100644 drivers/dsp/bridge/services/clk.c
- create mode 100644 drivers/dsp/bridge/services/csl.c
- create mode 100644 drivers/dsp/bridge/services/dbg.c
- create mode 100644 drivers/dsp/bridge/services/dpc.c
- create mode 100644 drivers/dsp/bridge/services/isr.c
- create mode 100644 drivers/dsp/bridge/services/kfile.c
- create mode 100644 drivers/dsp/bridge/services/list.c
- create mode 100644 drivers/dsp/bridge/services/mem.c
- create mode 100644 drivers/dsp/bridge/services/ntfy.c
- create mode 100644 drivers/dsp/bridge/services/prcs.c
- create mode 100644 drivers/dsp/bridge/services/reg.c
- create mode 100644 drivers/dsp/bridge/services/regsup.c
- create mode 100644 drivers/dsp/bridge/services/regsup.h
- create mode 100644 drivers/dsp/bridge/services/services.c
- create mode 100644 drivers/dsp/bridge/services/sync.c
- create mode 100644 drivers/dsp/bridge/wmd/_cmm.h
- create mode 100644 drivers/dsp/bridge/wmd/_deh.h
- create mode 100644 drivers/dsp/bridge/wmd/_msg_sm.h
- create mode 100644 drivers/dsp/bridge/wmd/_tiomap.h
- create mode 100644 drivers/dsp/bridge/wmd/_tiomap_api.h
- create mode 100644 drivers/dsp/bridge/wmd/_tiomap_clk.h
- create mode 100644 drivers/dsp/bridge/wmd/_tiomap_mmu.h
- create mode 100644 drivers/dsp/bridge/wmd/_tiomap_pwr.h
- create mode 100644 drivers/dsp/bridge/wmd/_tiomap_util.h
- create mode 100644 drivers/dsp/bridge/wmd/chnl_sm.c
- create mode 100644 drivers/dsp/bridge/wmd/io_sm.c
- create mode 100644 drivers/dsp/bridge/wmd/mmu_fault.c
- create mode 100644 drivers/dsp/bridge/wmd/mmu_fault.h
- create mode 100644 drivers/dsp/bridge/wmd/msg_sm.c
- create mode 100644 drivers/dsp/bridge/wmd/tiomap3430.c
- create mode 100644 drivers/dsp/bridge/wmd/tiomap3430_pwr.c
- create mode 100644 drivers/dsp/bridge/wmd/tiomap_io.c
- create mode 100644 drivers/dsp/bridge/wmd/tiomap_io.h
- create mode 100644 drivers/dsp/bridge/wmd/tiomap_sm.c
- create mode 100644 drivers/dsp/bridge/wmd/ue_deh.c
+
+diff --git a/drivers/dsp/bridge/gen/_gt_para.c b/drivers/dsp/bridge/gen/_gt_para.c
+new file mode 100644
+index 0000000..1685b3a
+--- /dev/null
++++ b/drivers/dsp/bridge/gen/_gt_para.c
+@@ -0,0 +1,107 @@
++/*
++ * linux/drivers/dsp/bridge/gen/linux/_gt_para.c
++ *
++ * DSP-BIOS Bridge driver support functions for TI OMAP processors.
++ *
++ * Copyright (C) 2005-2006 Texas Instruments, Inc.
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++
++/*
++ *  ======== _gt_para.c ========
++ *  Description:
++ *      Configuration parameters for GT.  This file is separated from
++ *      gt.c so that GT_assert() can reference the error function without
++ *      forcing the linker to include all the code for GT_set(), GT_init(),
++ *      etc. into a fully bound image.  Thus, GT_assert() can be retained in
++ *      a program for which GT_?trace() has been compiled out.
++ *
++ *! Revision History:
++ *! ================
++ *! 24-Feb-2003 vp: Code Review Updates.
++ *! 18-Oct-2002 sb: Ported to Linux platform.
++ *! 03-Jul-2001 rr: Removed kfuncs.h because of build errors.
++ *! 07-Dec-1999 ag: Fxn error now causes a WinCE DebugBreak;
++ *! 30-Aug-1999 ag: Now uses GP_printf for printf and error.
++ *!
++ */
++
++/*  ----------------------------------- Host OS */
++#include <host_os.h>
++
++/*  ----------------------------------- DSP/BIOS Bridge */
++#include <std.h>
++
++/*  ----------------------------------- Trace & Debug */
++#include <gt.h>
++
++/*  ----------------------------------- Function Prototypes */
++static void error(char *msg, ...);
++static s32 GT_nop(void);
++
++/*  ----------------------------------- Defines, Data Structures, Typedefs */
++
++struct GT_Config _GT_params = {
++	(Fxn) printk,		/* printf */
++	(Fxn) NULL,		/* procid */
++	(Fxn) GT_nop,		/* taskid */
++	(Fxn) error,		/* error */
++};
++
++/*  ----------------------------------- Globals */
++struct GT_Config *GT = &_GT_params;
++
++/*
++ *  ======== GT_nop ========
++ */
++static s32 GT_nop(void)
++{
++	return 0;
++}
++
++/*
++ * ======== error ========
++ *  purpose:
++ *      Prints error onto the standard output.
++ */
++static void error(char *fmt, ...)
++{
++	s32 arg1, arg2, arg3, arg4, arg5, arg6;
++
++	va_list va;
++
++	va_start(va, fmt);
++
++	arg1 = va_arg(va, s32);
++	arg2 = va_arg(va, s32);
++	arg3 = va_arg(va, s32);
++	arg4 = va_arg(va, s32);
++	arg5 = va_arg(va, s32);
++	arg6 = va_arg(va, s32);
++
++	va_end(va);
++
++	(*GT->PRINTFXN) ("ERROR: ");
++	(*GT->PRINTFXN) (fmt, arg1, arg2, arg3, arg4, arg5, arg6);
++
++#if (defined DEBUG) || (defined DDSP_DEBUG_PRODUCT)
++	if (in_interrupt()) {
++		printk(KERN_INFO "Not stopping after error since ISR/DPC "
++			"are disabled\n");
++	} else {
++		set_current_state(TASK_INTERRUPTIBLE);
++		flush_signals(current);
++		schedule();
++		flush_signals(current);
++		printk(KERN_INFO "Signaled in error function\n");
++	}
++#endif
++}
+diff --git a/drivers/dsp/bridge/gen/gb.c b/drivers/dsp/bridge/gen/gb.c
+new file mode 100644
+index 0000000..15cec69
+--- /dev/null
++++ b/drivers/dsp/bridge/gen/gb.c
+@@ -0,0 +1,182 @@
++/*
++ * linux/drivers/dsp/bridge/gen/gb.c
++ *
++ * DSP-BIOS Bridge driver support functions for TI OMAP processors.
++ *
++ * Copyright (C) 2005-2006 Texas Instruments, Inc.
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++
++/*
++ *  ======== gb.c ========
++ *  Description: Generic bitmap operations.
++ *
++ *! Revision History
++ *! ================
++ *! 24-Feb-2003 vp  Code review updates.
++ *! 17-Dec-2002 map Fixed GB_minset(), GB_empty(), and GB_full(),
++ *!                 to ensure only 'len' bits are considered in the map
++ *! 18-Oct-2002 sb  Ported to Linux platform.
++ *! 06-Dec-2001 jeh Fixed bug in GB_minclear().
++ *!
++ */
++
++/*  ----------------------------------- DSP/BIOS Bridge */
++#include <std.h>
++#include <linux/types.h>
++/*  ----------------------------------- This */
++#include <gs.h>
++#include <gb.h>
++
++typedef GB_BitNum GB_WordNum;
++
++struct GB_TMap {
++	GB_BitNum len;
++	GB_WordNum wcnt;
++	u32 *words;
++};
++
++/*
++ *  ======== GB_clear ========
++ *  purpose:
++ *      Clears a bit in the bit map.
++ */
++
++void GB_clear(struct GB_TMap *map, GB_BitNum bitn)
++{
++	u32 mask;
++
++	mask = 1L << (bitn % BITS_PER_LONG);
++	map->words[bitn / BITS_PER_LONG] &= ~mask;
++}
++
++/*
++ *  ======== GB_create ========
++ *  purpose:
++ *      Creates a bit map.
++ */
++
++struct GB_TMap *GB_create(GB_BitNum len)
++{
++	struct GB_TMap *map;
++	GB_WordNum i;
++	map = (struct GB_TMap *)GS_alloc(sizeof(struct GB_TMap));
++	if (map != NULL) {
++		map->len = len;
++		map->wcnt = len / BITS_PER_LONG + 1;
++		map->words = (u32 *)GS_alloc(map->wcnt * sizeof(u32));
++		if (map->words != NULL) {
++			for (i = 0; i < map->wcnt; i++)
++				map->words[i] = 0L;
++
++		} else {
++			GS_frees(map, sizeof(struct GB_TMap));
++			map = NULL;
++		}
++	}
++
++	return map;
++}
++
++/*
++ *  ======== GB_delete ========
++ *  purpose:
++ *      Frees a bit map.
++ */
++
++void GB_delete(struct GB_TMap *map)
++{
++	GS_frees(map->words, map->wcnt * sizeof(u32));
++	GS_frees(map, sizeof(struct GB_TMap));
++}
++
++/*
++ *  ======== GB_findandset ========
++ *  purpose:
++ *      Finds a free bit and sets it.
++ */
++GB_BitNum GB_findandset(struct GB_TMap *map)
++{
++	GB_BitNum bitn;
++
++	bitn = GB_minclear(map);
++
++	if (bitn != GB_NOBITS)
++		GB_set(map, bitn);
++
++	return bitn;
++}
++
++/*
++ *  ======== GB_minclear ========
++ *  purpose:
++ *      returns the location of the first unset bit in the bit map.
++ */
++GB_BitNum GB_minclear(struct GB_TMap *map)
++{
++	GB_BitNum bit_location = 0;
++	GB_BitNum bitAcc = 0;
++	GB_WordNum i;
++	GB_BitNum bit;
++	u32 *word;
++
++	for (word = map->words, i = 0; i < map->wcnt; word++, i++) {
++		if (~*word) {
++			for (bit = 0; bit < BITS_PER_LONG; bit++, bitAcc++) {
++				if (bitAcc == map->len)
++					return GB_NOBITS;
++
++				if (~*word & (1L << bit)) {
++					bit_location = i * BITS_PER_LONG + bit;
++					return bit_location;
++				}
++
++			}
++		} else {
++			bitAcc += BITS_PER_LONG;
++		}
++	}
++
++	return GB_NOBITS;
++}
++
++/*
++ *  ======== GB_set ========
++ *  purpose:
++ *      Sets a bit in the bit map.
++ */
++
++void GB_set(struct GB_TMap *map, GB_BitNum bitn)
++{
++	u32 mask;
++
++	mask = 1L << (bitn % BITS_PER_LONG);
++	map->words[bitn / BITS_PER_LONG] |= mask;
++}
++
++/*
++ *  ======== GB_test ========
++ *  purpose:
++ *      Returns true if the bit is set in the specified location.
++ */
++
++bool GB_test(struct GB_TMap *map, GB_BitNum bitn)
++{
++	bool state;
++	u32 mask;
++	u32 word;
++
++	mask = 1L << (bitn % BITS_PER_LONG);
++	word = map->words[bitn / BITS_PER_LONG];
++	state = word & mask ? TRUE : FALSE;
++
++	return state;
++}
+diff --git a/drivers/dsp/bridge/gen/gh.c b/drivers/dsp/bridge/gen/gh.c
+new file mode 100644
+index 0000000..c267b16
+--- /dev/null
++++ b/drivers/dsp/bridge/gen/gh.c
+@@ -0,0 +1,191 @@
++/*
++ * linux/drivers/dsp/bridge/gen/gh.c
++ *
++ * DSP-BIOS Bridge driver support functions for TI OMAP processors.
++ *
++ * Copyright (C) 2005-2006 Texas Instruments, Inc.
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++
++/*
++ *  ======== gh.c ========
++ */
++
++#include <std.h>
++
++#include <host_os.h>
++
++#include <gs.h>
++
++#include <gh.h>
++
++struct Elem {
++	struct Elem *next;
++	u8 data[1];
++};
++
++struct GH_THashTab {
++	u16 maxBucket;
++	u16 valSize;
++	struct Elem **buckets;
++	 u16(*hash) (void *, u16);
++	 bool(*match) (void *, void *);
++	 void(*delete) (void *);
++};
++
++static void Nop(void *p);
++static s32 curInit;
++static void myfree(void *ptr, s32 size);
++
++/*
++ *  ======== GH_create ========
++ */
++
++struct GH_THashTab *GH_create(u16 maxBucket, u16 valSize,
++		u16(*hash)(void *, u16), bool(*match)(void *, void *),
++		void(*delete)(void *))
++{
++	struct GH_THashTab *hashTab;
++	u16 i;
++	hashTab = (struct GH_THashTab *)GS_alloc(sizeof(struct GH_THashTab));
++	if (hashTab == NULL)
++		return NULL;
++	hashTab->maxBucket = maxBucket;
++	hashTab->valSize = valSize;
++	hashTab->hash = hash;
++	hashTab->match = match;
++	hashTab->delete = delete == NULL ? Nop : delete;
++
++	hashTab->buckets = (struct Elem **)
++			   GS_alloc(sizeof(struct Elem *) * maxBucket);
++	if (hashTab->buckets == NULL) {
++		GH_delete(hashTab);
++		return NULL;
++	}
++
++	for (i = 0; i < maxBucket; i++)
++		hashTab->buckets[i] = NULL;
++
++	return hashTab;
++}
++
++/*
++ *  ======== GH_delete ========
++ */
++void GH_delete(struct GH_THashTab *hashTab)
++{
++	struct Elem *elem, *next;
++	u16 i;
++
++	if (hashTab != NULL) {
++		if (hashTab->buckets != NULL) {
++			for (i = 0; i < hashTab->maxBucket; i++) {
++				for (elem = hashTab->buckets[i]; elem != NULL;
++				    elem = next) {
++					next = elem->next;
++					(*hashTab->delete) (elem->data);
++					myfree(elem, sizeof(struct Elem) - 1 +
++					      hashTab->valSize);
++				}
++			}
++
++			myfree(hashTab->buckets, sizeof(struct Elem *)
++			      * hashTab->maxBucket);
++		}
++
++		myfree(hashTab, sizeof(struct GH_THashTab));
++	}
++}
++
++/*
++ *  ======== GH_exit ========
++ */
++
++void GH_exit(void)
++{
++	if (curInit-- == 1)
++		GS_exit();
++
++}
++
++/*
++ *  ======== GH_find ========
++ */
++
++void *GH_find(struct GH_THashTab *hashTab, void *key)
++{
++	struct Elem *elem;
++
++	elem = hashTab->buckets[(*hashTab->hash)(key, hashTab->maxBucket)];
++
++	for (; elem; elem = elem->next) {
++		if ((*hashTab->match)(key, elem->data))
++			return elem->data;
++	}
++
++	return NULL;
++}
++
++/*
++ *  ======== GH_init ========
++ */
++
++void GH_init(void)
++{
++	if (curInit++ == 0)
++		GS_init();
++}
++
++/*
++ *  ======== GH_insert ========
++ */
++
++void *GH_insert(struct GH_THashTab *hashTab, void *key, void *value)
++{
++	struct Elem *elem;
++	u16 i;
++	char *src, *dst;
++
++	elem = (struct Elem *)GS_alloc(sizeof(struct Elem) - 1 +
++		hashTab->valSize);
++	if (elem != NULL) {
++
++		dst = (char *)elem->data;
++		src = (char *)value;
++		for (i = 0; i < hashTab->valSize; i++)
++			*dst++ = *src++;
++
++		i = (*hashTab->hash)(key, hashTab->maxBucket);
++		elem->next = hashTab->buckets[i];
++		hashTab->buckets[i] = elem;
++
++		return elem->data;
++	}
++
++	return NULL;
++}
++
++/*
++ *  ======== Nop ========
++ */
++/* ARGSUSED */
++static void Nop(void *p)
++{
++	p = p;			/* stifle compiler warning */
++}
++
++/*
++ *  ======== myfree ========
++ */
++static void myfree(void *ptr, s32 size)
++{
++	GS_free(ptr);
++}
+diff --git a/drivers/dsp/bridge/gen/gs.c b/drivers/dsp/bridge/gen/gs.c
+new file mode 100644
+index 0000000..8aa3955
+--- /dev/null
++++ b/drivers/dsp/bridge/gen/gs.c
+@@ -0,0 +1,108 @@
++/*
++ * linux/drivers/dsp/bridge/gen/gs.c
++ *
++ * DSP-BIOS Bridge driver support functions for TI OMAP processors.
++ *
++ * Copyright (C) 2005-2006 Texas Instruments, Inc.
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++
++/*
++ *  ======== gs.c ========
++ *  Description:
++ *      General storage memory allocator services.
++ *
++ *! Revision History
++ *! ================
++ *! 29-Sep-1999 ag:  Un-commented MEM_Init in GS_init().
++ *! 14-May-1997 mg:  Modified to use new GS API for GS_free() and GS_frees().
++ *! 06-Nov-1996 gp:  Re-commented MEM_Init in GS_init(). GS needs GS_Exit().
++ *! 21-Oct-1996 db:  Un-commented MEM_Init in GS_init().
++ *! 21-May-1996 mg:  Created from original stdlib implementation.
++ */
++
++/*  ----------------------------------- DSP/BIOS Bridge */
++#include <std.h>
++#include <dbdefs.h>
++#include <linux/types.h>
++/*  ----------------------------------- OS Adaptation Layer */
++#include <mem.h>
++
++/*  ----------------------------------- This */
++#include <gs.h>
++
++/*  ----------------------------------- Globals */
++static u32 cumsize;
++
++/*
++ *  ======== GS_alloc ========
++ *  purpose:
++ *      Allocates memory of the specified size.
++ */
++void *GS_alloc(u32 size)
++{
++	void *p;
++
++	p = MEM_Calloc(size, MEM_PAGED);
++	if (p == NULL)
++		return NULL;
++	cumsize += size;
++	return p;
++}
++
++/*
++ *  ======== GS_exit ========
++ *  purpose:
++ *      Discontinue the usage of the GS module.
++ */
++void GS_exit(void)
++{
++	MEM_Exit();
++}
++
++/*
++ *  ======== GS_free ========
++ *  purpose:
++ *      Frees the memory.
++ */
++void GS_free(void *ptr)
++{
++	MEM_Free(ptr);
++	/* ack! no size info */
++	/* cumsize -= size; */
++}
++
++/*
++ *  ======== GS_frees ========
++ *  purpose:
++ *      Frees the memory.
++ */
++void GS_frees(void *ptr, u32 size)
++{
++	MEM_Free(ptr);
++	cumsize -= size;
++}
++
++/*
++ *  ======== GS_init ========
++ *  purpose:
++ *      Initializes the GS module.
++ */
++void GS_init(void)
++{
++	static bool curInit = false;
++
++	if (curInit == false) {
++		curInit = true;
++
++		MEM_Init();
++	}
++}
+diff --git a/drivers/dsp/bridge/gen/gt.c b/drivers/dsp/bridge/gen/gt.c
+new file mode 100644
+index 0000000..dfee97e
+--- /dev/null
++++ b/drivers/dsp/bridge/gen/gt.c
+@@ -0,0 +1,346 @@
++/*
++ * linux/drivers/dsp/bridge/gen/gt.c
++ *
++ * DSP-BIOS Bridge driver support functions for TI OMAP processors.
++ *
++ * Copyright (C) 2005-2006 Texas Instruments, Inc.
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++
++/*
++ * ======== gt.c ========
++ * Description: This module implements the trace mechanism for bridge.
++ *
++ *! Revision History
++ *! ================
++ *! 16-May-1997 dr	Changed GT_Config member names to conform to coding
++ *!			standards.
++ *! 23-Apr-1997 ge	Check for GT->TIDFXN for NULL before calling it.
++ *! 03-Jan-1997	ge	Changed GT_Config structure member names to eliminate
++ *!			preprocessor confusion with other macros.
++ */
++
++/*  ----------------------------------- DSP/BIOS Bridge */
++#include <std.h>
++
++/*  ----------------------------------- This */
++#include <gt.h>
++
++#define GT_WILD	'*'
++
++#define GT_CLEAR	'='
++#define GT_ON		'+'
++#define GT_OFF		'-'
++
++enum GT_State {
++	GT_SEP,
++	GT_FIRST,
++	GT_SECOND,
++	GT_OP,
++	GT_DIGITS
++} ;
++
++static char *GT_1format = "%s - %d: ";
++static char *GT_2format = "%s - %d(%d): ";
++
++unsigned char *GT_tMask[GT_BOUND];
++
++static bool curInit = false;
++static char *separator;
++static unsigned char tabMem[GT_BOUND][sizeof(unsigned char) * GT_BOUND];
++
++static void error(char *string);
++static void setMask(s16 index1, s16 index2, char op, unsigned char mask);
++
++/*
++ *  ======== _GT_create ========
++ *  purpose:
++ *      Creates GT mask.
++ */
++void _GT_create(struct GT_Mask *mask, char *modName)
++{
++	mask->modName = modName;
++	mask->flags = &(GT_tMask[modName[0] - 'A'][modName[1] - 'A']);
++}
++
++/*
++ *  ======== GT_init ========
++ *  purpose:
++ *      Initializes GT module.
++ */
++#ifdef GT_init
++#undef GT_init
++#endif
++void GT_init(void)
++{
++	register unsigned char index1;
++	register unsigned char index2;
++
++	if (!curInit) {
++		curInit = true;
++
++		separator = " ,;/";
++
++		for (index1 = 0; index1 < GT_BOUND; index1++) {
++			GT_tMask[index1] = tabMem[index1];
++			for (index2 = 0; index2 < GT_BOUND; index2++) {
++				/* no tracing */
++				GT_tMask[index1][index2] = 0x00;
++			}
++		}
++	}
++}
++
++/*
++ *  ======== _GT_set ========
++ *  purpose:
++ *      Sets the trace string format.
++ */
++
++void _GT_set(char *str)
++{
++	enum GT_State state;
++	char *sep;
++	s16 index1 = GT_BOUND;	/* indicates all values */
++	s16 index2 = GT_BOUND;	/* indicates all values */
++	char op = GT_CLEAR;
++	bool maskValid;
++	s16 digit;
++	register unsigned char mask = 0x0;	/* no tracing */
++
++	if (str == NULL)
++		return;
++
++	maskValid = false;
++	state = GT_SEP;
++	while (*str != '\0') {
++		switch ((s32) state) {
++		case (s32) GT_SEP:
++			maskValid = false;
++			sep = separator;
++			while (*sep != '\0') {
++				if (*str == *sep) {
++					str++;
++					break;
++				} else {
++					sep++;
++				}
++			}
++			if (*sep == '\0')
++				state = GT_FIRST;
++
++			break;
++		case (s32) GT_FIRST:
++			if (*str == GT_WILD) {
++				/* indicates all values */
++				index1 = GT_BOUND;
++				/* indicates all values */
++				index2 = GT_BOUND;
++				state = GT_OP;
++			} else {
++				if (*str >= 'a')
++					index1 = (s16) (*str - 'a');
++				else
++					index1 = (s16) (*str - 'A');
++				if ((index1 >= 0) && (index1 < GT_BOUND))
++					state = GT_SECOND;
++				else
++					state = GT_SEP;
++			}
++			str++;
++			break;
++		case (s32) GT_SECOND:
++			if (*str == GT_WILD) {
++				index2 = GT_BOUND;   /* indicates all values */
++				state = GT_OP;
++				str++;
++			} else {
++				if (*str >= 'a')
++					index2 = (s16) (*str - 'a');
++				else
++					index2 = (s16) (*str - 'A');
++				if ((index2 >= 0) && (index2 < GT_BOUND)) {
++					state = GT_OP;
++					str++;
++				} else {
++					state = GT_SEP;
++				}
++			}
++			break;
++		case (s32) GT_OP:
++			op = *str;
++			mask = 0x0;	/* no tracing */
++			switch (op) {
++			case (s32) GT_CLEAR:
++				maskValid = true;
++			case (s32) GT_ON:
++			case (s32) GT_OFF:
++				state = GT_DIGITS;
++				str++;
++				break;
++			default:
++				state = GT_SEP;
++				break;
++			}
++			break;
++		case (s32) GT_DIGITS:
++			digit = (s16) (*str - '0');
++			if ((digit >= 0) && (digit <= 7)) {
++				mask |= (0x01 << digit);
++				maskValid = true;
++				str++;
++			} else {
++				if (maskValid == true) {
++					setMask(index1, index2, op, mask);
++					maskValid = false;
++				}
++				state = GT_SEP;
++			}
++			break;
++		default:
++			error("illegal trace mask");
++			break;
++		}
++	}
++
++	if (maskValid)
++		setMask(index1, index2, op, mask);
++}
++
++/*
++ *  ======== _GT_trace ========
++ *  purpose:
++ *      Prints the input string onto standard output
++ */
++
++s32 _GT_trace(struct GT_Mask *mask, char *format, ...)
++{
++	s32 arg1, arg2, arg3, arg4, arg5, arg6;
++	va_list va;
++
++	va_start(va, format);
++
++	arg1 = va_arg(va, s32);
++	arg2 = va_arg(va, s32);
++	arg3 = va_arg(va, s32);
++	arg4 = va_arg(va, s32);
++	arg5 = va_arg(va, s32);
++	arg6 = va_arg(va, s32);
++
++	va_end(va);
++#ifdef DEBUG
++	if (GT->PIDFXN == NULL) {
++		(*GT->PRINTFXN)(GT_1format, mask->modName, GT->TIDFXN ?
++		(*GT->TIDFXN)() : 0);
++	} else {
++		(*GT->PRINTFXN)(GT_2format, mask->modName, (*GT->PIDFXN)(),
++		GT->TIDFXN ? (*GT->TIDFXN)() : 0);
++	}
++#endif
++	(*GT->PRINTFXN)(format, arg1, arg2, arg3, arg4, arg5, arg6);
++
++	return 0;
++}
++
++/*
++ *  ======== error ========
++ *  purpose:
++ *      Prints errors onto the standard output.
++ */
++static void error(char *string)
++{
++	(*GT->PRINTFXN)("GT: %s", string);
++}
++
++/*
++ *  ======== setmask ========
++ *  purpose:
++ *      Sets mask for the GT module.
++ */
++
++static void setMask(s16 index1, s16 index2, char op, u8 mask)
++{
++	register s16 index;
++
++	if (index1 < GT_BOUND) {
++		if (index2 < GT_BOUND) {
++			switch (op) {
++			case (s32) GT_CLEAR:
++				GT_tMask[index1][index2] = mask;
++				break;
++			case (s32) GT_ON:
++				GT_tMask[index1][index2] |= mask;
++				break;
++			case (s32) GT_OFF:
++				GT_tMask[index1][index2] &= ~mask;
++				break;
++			default:
++				error("illegal trace mask");
++				break;
++			}
++		} else {
++			for (index2--; index2 >= 0; index2--) {
++				switch (op) {
++				case (s32) GT_CLEAR:
++					GT_tMask[index1][index2] = mask;
++					break;
++				case (s32) GT_ON:
++					GT_tMask[index1][index2] |= mask;
++					break;
++				case (s32) GT_OFF:
++					GT_tMask[index1][index2] &= ~mask;
++					break;
++				default:
++					error("illegal trace mask");
++					break;
++				}
++			}
++		}
++	} else {
++		for (index1--; index1 >= 0; index1--) {
++			if (index2 < GT_BOUND) {
++				switch (op) {
++				case (s32) GT_CLEAR:
++					GT_tMask[index1][index2] = mask;
++					break;
++				case (s32) GT_ON:
++					GT_tMask[index1][index2] |= mask;
++					break;
++				case (s32) GT_OFF:
++					GT_tMask[index1][index2] &= ~mask;
++					break;
++				default:
++					error("illegal trace mask");
++					break;
++				}
++			} else {
++				index = GT_BOUND;
++				for (index--; index >= 0; index--) {
++					switch (op) {
++					case (s32) GT_CLEAR:
++						GT_tMask[index1][index] = mask;
++						break;
++					case (s32) GT_ON:
++						GT_tMask[index1][index] |= mask;
++						break;
++					case (s32) GT_OFF:
++						GT_tMask[index1][index] &=
++						    ~mask;
++						break;
++					default:
++						error("illegal trace mask");
++						break;
++					}
++				}
++			}
++		}
++	}
++}
+diff --git a/drivers/dsp/bridge/gen/uuidutil.c b/drivers/dsp/bridge/gen/uuidutil.c
+new file mode 100644
+index 0000000..ac3a017
+--- /dev/null
++++ b/drivers/dsp/bridge/gen/uuidutil.c
+@@ -0,0 +1,238 @@
++/*
++ * linux/drivers/dsp/bridge/gen/linux/uuidutil.c
++ *
++ * DSP-BIOS Bridge driver support functions for TI OMAP processors.
++ *
++ * Copyright (C) 2005-2006 Texas Instruments, Inc.
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++
++/*
++ *  ======== uuidutil.c ========
++ *  Description:
++ *  This file contains the implementation of UUID helper functions.
++ *
++ *! Revision History
++ *! ================
++ *! 23-Feb-2003 vp: Code review updates.
++ *! 18-Oct-2003 vp: Ported to Linux platform.
++ *! 31-Aug-2000 rr: UUID_UuidFromString bug fixed.
++ *! 29-Aug-2000 rr: Modified UUID_UuidFromString.
++ *! 09-Nov-2000 kc: Modified UUID_UuidFromString to simplify implementation.
++ *! 30-Oct-2000 kc: Modified UUID utility module function prefix.
++ *! 10-Aug-2000 kc: Created.
++ *!
++ */
++
++/*  ----------------------------------- Host OS  */
++#include <host_os.h>
++
++/*  ----------------------------------- DSP/BIOS Bridge */
++#include <std.h>
++#include <dbdefs.h>
++
++/*  ----------------------------------- Trace & Debug */
++#include <dbc.h>
++
++/*  ----------------------------------- This */
++#include <uuidutil.h>
++
++/*
++ *  ======== UUID_UuidToString ========
++ *  Purpose:
++ *      Converts a struct DSP_UUID to a string.
++ *      Note: snprintf format specifier is:
++ *      %[flags] [width] [.precision] [{h | l | I64 | L}]type
++ */
++void UUID_UuidToString(IN struct DSP_UUID *pUuid, OUT char *pszUuid,
++		       IN s32 size)
++{
++	s32 i;			/* return result from snprintf. */
++
++	DBC_Require(pUuid && pszUuid);
++
++	i = snprintf(pszUuid, size,
++		     "%.8X_%.4X_%.4X_%.2X%.2X_%.2X%.2X%.2X%.2X%.2X%.2X",
++		     pUuid->ulData1, pUuid->usData2, pUuid->usData3,
++		     pUuid->ucData4, pUuid->ucData5, pUuid->ucData6[0],
++		     pUuid->ucData6[1], pUuid->ucData6[2], pUuid->ucData6[3],
++		     pUuid->ucData6[4], pUuid->ucData6[5]);
++
++	DBC_Ensure(i != -1);
++}
++
++/*
++ *  ======== htoi ========
++ *  Purpose:
++ *      Converts a hex value to a decimal integer.
++ */
++
++static int htoi(char c)
++{
++	switch (c) {
++	case '0':
++		return 0;
++	case '1':
++		return 1;
++	case '2':
++		return 2;
++	case '3':
++		return 3;
++	case '4':
++		return 4;
++	case '5':
++		return 5;
++	case '6':
++		return 6;
++	case '7':
++		return 7;
++	case '8':
++		return 8;
++	case '9':
++		return 9;
++	case 'A':
++		return 10;
++	case 'B':
++		return 11;
++	case 'C':
++		return 12;
++	case 'D':
++		return 13;
++	case 'E':
++		return 14;
++	case 'F':
++		return 15;
++	case 'a':
++		return 10;
++	case 'b':
++		return 11;
++	case 'c':
++		return 12;
++	case 'd':
++		return 13;
++	case 'e':
++		return 14;
++	case 'f':
++		return 15;
++	}
++	return 0;
++}
++
++/*
++ *  ======== UUID_UuidFromString ========
++ *  Purpose:
++ *      Converts a string to a struct DSP_UUID.
++ */
++void UUID_UuidFromString(IN char *pszUuid, OUT struct DSP_UUID *pUuid)
++{
++	char c;
++	s32 i, j;
++	s32 result;
++	char *temp = pszUuid;
++
++	result = 0;
++	for (i = 0; i < 8; i++) {
++		/* Get first character in string */
++		c = *temp;
++
++		/* Increase the results by new value */
++		result *= 16;
++		result += htoi(c);
++
++		/* Go to next character in string */
++		temp++;
++	}
++	pUuid->ulData1 = result;
++
++	/* Step over underscore */
++	temp++;
++
++	result = 0;
++	for (i = 0; i < 4; i++) {
++		/* Get first character in string */
++		c = *temp;
++
++		/* Increase the results by new value */
++		result *= 16;
++		result += htoi(c);
++
++		/* Go to next character in string */
++		temp++;
++	}
++	pUuid->usData2 = (u16)result;
++
++	/* Step over underscore */
++	temp++;
++
++	result = 0;
++	for (i = 0; i < 4; i++) {
++		/* Get first character in string */
++		c = *temp;
++
++		/* Increase the results by new value */
++		result *= 16;
++		result += htoi(c);
++
++		/* Go to next character in string */
++		temp++;
++	}
++	pUuid->usData3 = (u16)result;
++
++	/* Step over underscore */
++	temp++;
++
++	result = 0;
++	for (i = 0; i < 2; i++) {
++		/* Get first character in string */
++		c = *temp;
++
++		/* Increase the results by new value */
++		result *= 16;
++		result += htoi(c);
++
++		/* Go to next character in string */
++		temp++;
++	}
++	pUuid->ucData4 = (u8)result;
++
++	result = 0;
++	for (i = 0; i < 2; i++) {
++		/* Get first character in string */
++		c = *temp;
++
++		/* Increase the results by new value */
++		result *= 16;
++		result += htoi(c);
++
++		/* Go to next character in string */
++		temp++;
++	}
++	pUuid->ucData5 = (u8)result;
++
++	/* Step over underscore */
++	temp++;
++
++	for (j = 0; j < 6; j++) {
++		result = 0;
++		for (i = 0; i < 2; i++) {
++			/* Get first character in string */
++			c = *temp;
++
++			/* Increase the results by new value */
++			result *= 16;
++			result += htoi(c);
++
++			/* Go to next character in string */
++			temp++;
++		}
++		pUuid->ucData6[j] = (u8)result;
++	}
++}
+-- 
+1.5.5.1.357.g1af8b
 
