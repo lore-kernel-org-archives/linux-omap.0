@@ -1,81 +1,66 @@
-From: "Ramirez Luna, Omar" <x00omar@ti.com>
-Subject: [RESEND][PATCH 2/2][GIT 3/4+] Adding description to bridge debug
- option
-Date: Fri, 15 Aug 2008 17:24:37 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A530825E2FF@dlee03.ent.ti.com>
+From: "Felipe Contreras" <felipe.contreras@gmail.com>
+Subject: Re: [RFC] Port TI DSP BRIDGE for a new dedicated branch in linux-omap
+Date: Sat, 16 Aug 2008 12:26:08 +0300
+Message-ID: <94a0d4530808160226g4d90715fl5cbcdacc5a337252@mail.gmail.com>
+References: <1218782824-12596-1-git-send-email-Hiroshi.DOYU@nokia.com>
+	 <5d5443650808150052l29bf0830u60ff256b51d53066@mail.gmail.com>
+	 <94a0d4530808150247g52c1e258v5b922e01fb5154bc@mail.gmail.com>
+	 <20080815.133409.81509340.Hiroshi.DOYU@nokia.com>
+	 <20080815112112.GB16840@atomide.com>
+	 <13B9B4C6EF24D648824FF11BE8967162036210E182@dlee02.ent.ti.com>
+	 <94a0d4530808151220v75f45a09hdbca8cdf69b93b59@mail.gmail.com>
+	 <94a0d4530808151228s136e112die4718ca8ed90c22e@mail.gmail.com>
+	 <7B4574D56E4ADF438756313E9A172A870D6E0060@dlee01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51055 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752461AbYHOWYp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Aug 2008 18:24:45 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7FMOdjt007143
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 15 Aug 2008 17:24:44 -0500
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id m7FMOcxM023258
-	for <linux-omap@vger.kernel.org>; Fri, 15 Aug 2008 17:24:39 -0500 (CDT)
-Content-Language: en-US
+Received: from rv-out-0506.google.com ([209.85.198.239]:3605 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751887AbYHPJ0L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Aug 2008 05:26:11 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so1305497rvb.1
+        for <linux-omap@vger.kernel.org>; Sat, 16 Aug 2008 02:26:08 -0700 (PDT)
+In-Reply-To: <7B4574D56E4ADF438756313E9A172A870D6E0060@dlee01.ent.ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "soni.trilok@gmail.com" <soni.trilok@gmail.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Ramirez Luna, Omar" <x00omar@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "Pasam, Vijay" <vpasam@ti.com>
 
-Please ignore the previous patch.
+Hi Jon,
 
+On Sat, Aug 16, 2008 at 12:32 AM, Hunter, Jon <jon-hunter@ti.com> wrote:
+> Hi Felipe,
+>
+>
+>> > What TI has offered so far is code, and the comments have been on this
+>> > code. You seem to want maintainers to understand that this is code
+>> > that works "today", but I don't think the code can be tested right now
+>> > since the tools (CE/Link) are not available out in the open.
+>>
+>> Err, I got confused about the CE/Link, I meant the xdctools... or
+>> whatever is needed to compile DSP nodes. AFAIK the DSP compiler is not
+>> enough.
+>
+>
+> Yes, today certain components (such as codec-engine, dspbios) do require the xdctools. There are a couple components that don't (such as DSPLink) but these will probably use xdctools in the future too.
+>
+> Anyway, just in case you have not seen there is a TI DSP Wiki page now for all things DSP and a lot of the tools/software are available through here. However, not all is source. See below:
+>
+> TI DSP Wiki
+> http://tiexpressdsp.com/
+>
+> With regard to the xdctools, TI has kicked off an open-source project to for these. Details can be found here:
+>
+> http://wiki.eclipse.org/DSDP/RTSC
+>
+> It may seem a bit messy right now (with bridge, link, etc), but hopefully all of this will get straighten out as we progress.
 
-Adding description to bridge debug option and indenting Kconfig lines
+That great! I didn't know about it. I tried it and and looks ok. I
+would prefer a CLI installer (more unix like), but good anyway.
 
-Signed-off-by: Omar Ramirez Luna <x00omar@ti.com>
-Acked-by: Hari Kanigeri <h-kanigeri2@ti.com>
----
+Best regards.
 
-Index: omapkernel/drivers/dsp/bridge/Kconfig
-===================================================================
---- omapkernel.orig/drivers/dsp/bridge/Kconfig	2008-08-13 22:52:00.000000000 -0500
-+++ omapkernel/drivers/dsp/bridge/Kconfig	2008-08-15 17:25:34.000000000 -0500
-@@ -6,28 +6,31 @@
- 	tristate "DSP Bridge driver"
- 	default n
- 	help
--	DSP/BIOS Bridge is designed for platforms that contain a GPP and one or
--	more attached DSPs.  The GPP is considered the master or "host" processor,
--	and the attached DSPs are processing resources that can be utilized by
--	applications and drivers running on the GPP.
-+	  DSP/BIOS Bridge is designed for platforms that contain a GPP and
-+	  one or more attached DSPs.  The GPP is considered the master or
-+	  "host" processor, and the attached DSPs are processing resources
-+	  that can be utilized by applications and drivers running on the GPP.
- 
- config DISABLE_BRIDGE_DVFS
- 	bool "Disable Bridge Dynamic Voltage and Frequency Scaling (DVFS)"
- 	depends on MPU_BRIDGE
- 	default y
- 	help
--	DVFS allows DSP Bridge to initiate the operating point change to scale
--	the chip voltage and frequency in order to match the performance and
--	power consumption to the current processing requirements.
-+	  DVFS allows DSP Bridge to initiate the operating point change to
-+	  scale the chip voltage and frequency in order to match the
-+	  performance and power consumption to the current processing
-+	  requirements.
- 
- config DISABLE_BRIDGE_PM
- 	bool "Disable Bridge Power Management"
- 	depends on MPU_BRIDGE && PM
- 	default y
- 	help
--	DSP Bridge employs power management techniques to save dynamic and
--	static power consumption of the IVA sub system.
-+	  DSP Bridge employs power management techniques to save dynamic and
-+	  static power consumption of the IVA sub system.
- 
- config BRIDGE_DEBUG
--       bool "DSP Bridge Debug Support"
--       depends on MPU_BRIDGE
-+	bool "DSP Bridge Debug Support"
-+	depends on MPU_BRIDGE
-+	help
-+	  Say Y to enable Bridge debugging capabilities
+-- 
+Felipe Contreras
