@@ -1,86 +1,90 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [RFC] Port TI DSP BRIDGE for a new dedicated branch in
- linux-omap
-Date: Mon, 18 Aug 2008 13:43:35 +0300 (EEST)
-Message-ID: <20080818.134335.188405437.Hiroshi.DOYU@nokia.com>
-References: <EBA93F3E4CB46947A4C5275F6308CF3E03434E08@dlee15.ent.ti.com>
-	<94a0d4530808160257r77341fafn5f2b8404a8510203@mail.gmail.com>
-	<20080818075624.GB12243@atomide.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [RFC][DRAFT] TODO list for TI DSP BRIDGE
+Date: Mon, 18 Aug 2008 14:28:56 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E0B38DC7B@dlee03.ent.ti.com>
+References: <20080818.163519.194678809.Hiroshi.DOYU@nokia.com>
+	 <EBA93F3E4CB46947A4C5275F6308CF3E03434FF2@dlee15.ent.ti.com>
+	 <8F7AF80515AF0D4D93307E594F3CB40E0B3121EE@dlee03.ent.ti.com>
+ <5d5443650808181017w1ad90b9vcc6cc4d8abc6a963@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:20776 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762058AbYHRTA2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Aug 2008 15:00:28 -0400
-In-Reply-To: <20080818075624.GB12243@atomide.com>
+Received: from calf.ext.ti.com ([198.47.26.144]:56200 "EHLO calf.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757642AbYHRT3T convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Aug 2008 15:29:19 -0400
+In-Reply-To: <5d5443650808181017w1ad90b9vcc6cc4d8abc6a963@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: felipe.contreras@gmail.com, vpasam@ti.com, r-woodruff2@ti.com, linux-omap@vger.kernel.org, soni.trilok@gmail.com, h-kanigeri2@ti.com, x00omar@ti.com, grgupta@ti.com, felipe.contreras@nokia.com, siarhei.siamashka@nokia.com
+To: Trilok Soni <soni.trilok@gmail.com>
+Cc: "Pasam, Vijay" <vpasam@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Woodruff, Richard" <r-woodruff2@ti.com>, "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>, "siarhei.siamashka@nokia.com" <siarhei.siamashka@nokia.com>, "Ramirez Luna, Omar" <x00omar@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-Hi,
+> If you mean there is separate clock infrastructure for DSPBridge other
+> than clock framework we have for OMAP, then DSPBridge should convert
+> to the one we have for OMAP. As recent work by Paul for clock
+> framework on OMAP3 and Power domains we need centralized code for clk
+> and power domains not separate clock infrastructure for DSPBridge.
+>
+--- Bridge is not implementing separate clock infrastructure. It is just centralizing the calls to clk_enable in one location as this is called from multiple files in Bridge code. This helps because one can then turn on the traces only for clock module to check if the clocks that were expected to be enabled are enabled or not. As I mentioned before, this helps in debugging.
 
-"mmu" and "mailbox" still have some dependency on dspgateway. They
-also should be cleaned up as being independent on specific
-implementation, ideally to be shared by any bridge implementations.
+Thank you,
+Best regards,
+Hari
 
-	       Hiroshi DOYU
-
-From: "ext Tony Lindgren" <tony@atomide.com>
-Subject: Re: [RFC] Port TI DSP BRIDGE for a new dedicated branch in linux-omap
-Date: Mon, 18 Aug 2008 10:56:24 +0300
-
-> Hi,
+> -----Original Message-----
+> From: Trilok Soni [mailto:soni.trilok@gmail.com]
+> Sent: Monday, August 18, 2008 12:17 PM
+> To: Kanigeri, Hari
+> Cc: Pasam, Vijay; Hiroshi DOYU; linux-omap@vger.kernel.org; Woodruff,
+> Richard; felipe.contreras@gmail.com; siarhei.siamashka@nokia.com; Ramirez
+> Luna, Omar; Gupta, Ramesh; tony@atomide.com
+> Subject: Re: [RFC][DRAFT] TODO list for TI DSP BRIDGE
 > 
-> * Felipe Contreras <felipe.contreras@gmail.com> [080816 12:58]:
-> > Hi Vijay,
-> > 
-> > On Sat, Aug 16, 2008 at 12:59 AM, Pasam, Vijay <vpasam@ti.com> wrote:
-> > >> I'm not familiar with checkpatch, but I guess the purpose is
-> > >> not to highlight functional issues.
-> > >>
-> > >> However, there are functional issues, but it makes sense to
-> > >> cleanup the code first: there's no point in analyzing code
-> > >> that is never used.
-> > >
-> > > There are about 9 errors with the latest set of patches. These are all
-> > > false positives - not really errors. Majority of warnings also fall
-> > > under this category.
-> > 
-> > I'm not talking about issues returned by checkpatch, but issues
-> > visible to the human observer.
+> Hi Hari,
 > 
-> And the two pieces of code that need to be fixed for Linux ASAP
-> for DSP are:
+> On Mon, Aug 18, 2008 at 9:57 PM, Kanigeri, Hari <h-kanigeri2@ti.com>
+> wrote:
+> > Hi,
+> >
+> >> Some of the above items are being looked at like replacing CSL, isr
+> etc..
+> >> But there are no equivalent API's or functionality available in kernel
+> for
+> >> many of them. We should replace the API's with the avaolable kernel
+> API's
+> >> and the remaining need to be looked at from long term.
+> >>
+> >
+> > -- I agree with Vijay. We can remove the simple wrapper functions like
+> the ones in CSL and ISR, but some of the other modules in the services
+> provide more functionality than just being the wrappers. We don't want to
+> compromise on any current debugging features that are provided by these
+> modules at the expense of replacing the services functions with direct
+> kernel calls. This would require careful analysis.
+> >
+> > If any one has done any analysis on the services functions that can be
+> removed without compromising the functionality and debugging feature,
+> please share it on the mailing list.
+> >
+> > On the comment to remove clk.c, I don't agree with it. I think it
+> provides an advantage of having a clk module in the DSP Bridge as all the
+> calls to clock module are centralized in one location, which would aid in
+> Bridge debugging.
+> >
 > 
-> - External device MMU hardware
-> - Mailbox handling
+> If you mean there is separate clock infrastructure for DSPBridge other
+> than clock framework we have for OMAP, then DSPBridge should convert
+> to the one we have for OMAP. As recent work by Paul for clock
+> framework on OMAP3 and Power domains we need centralized code for clk
+> and power domains not separate clock infrastructure for DSPBridge.
 > 
-> This code needs to be shared for dsp[bios|bridge|gateway|link].
-> And it can be also used for any other devices and coprocessors
-> needing MMU handling.
+> Richard and Paul can probably explain more about OMAP clock framework
+> and why it has to be used by DSPBridge too.
 > 
-> So far the sanest solution seems to be in:
-> 
-> arch/arm/*omap*/mmu.[ch]
-> arch/arm/*omap*/mailbox.[ch]
-> 
-> Is there any reason why this code cannot be used for dspbridge?
-> 
-> BTW, the MMU code needs to be fixed so that the code
-> shared with ioremap() is moved to ioremap(). Basically we
-> need to enhance ioremap() in a way where it can support external
-> MMU hardware. Otherwise the maintenance will be a nightmare.
-> 
-> This was pointed out by Russell King a while back when we tried
-> to get the MMU code integrated to the mainline kernel.
-> 
-> Regards,
-> 
-> Tony
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---Trilok Soni
+> http://triloksoni.wordpress.com
+> http://www.linkedin.com/in/triloksoni
+
