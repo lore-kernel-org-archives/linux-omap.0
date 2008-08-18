@@ -1,67 +1,45 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
+From: Riku Voipio <riku.voipio@iki.fi>
 Subject: Re: [RFC] Port TI DSP BRIDGE for a new dedicated branch in linux-omap
-Date: Mon, 18 Aug 2008 13:56:59 +0530
-Message-ID: <5d5443650808180126n2dbadac6ma9fa63fc380e5d97@mail.gmail.com>
-References: <94a0d4530808151409p309cf9e2sf1ab3274baac32fb@mail.gmail.com>
-	 <EBA93F3E4CB46947A4C5275F6308CF3E03434E08@dlee15.ent.ti.com>
-	 <94a0d4530808160257r77341fafn5f2b8404a8510203@mail.gmail.com>
-	 <20080818075624.GB12243@atomide.com>
+Date: Mon, 18 Aug 2008 12:13:05 +0300
+Message-ID: <20080818091305.GA23078@kos.to>
+References: <1218782824-12596-1-git-send-email-Hiroshi.DOYU@nokia.com> <5d5443650808150052l29bf0830u60ff256b51d53066@mail.gmail.com> <94a0d4530808150247g52c1e258v5b922e01fb5154bc@mail.gmail.com> <20080815.133409.81509340.Hiroshi.DOYU@nokia.com> <20080815112112.GB16840@atomide.com> <13B9B4C6EF24D648824FF11BE8967162036210E182@dlee02.ent.ti.com> <94a0d4530808151220v75f45a09hdbca8cdf69b93b59@mail.gmail.com> <94a0d4530808151228s136e112die4718ca8ed90c22e@mail.gmail.com> <13B9B4C6EF24D648824FF11BE8967162036210E46B@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.29]:24499 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751157AbYHRI1A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Aug 2008 04:27:00 -0400
-Received: by yx-out-2324.google.com with SMTP id 8so1231659yxm.1
-        for <linux-omap@vger.kernel.org>; Mon, 18 Aug 2008 01:26:59 -0700 (PDT)
-In-Reply-To: <20080818075624.GB12243@atomide.com>
+Received: from naru.obs2.net ([84.20.150.76]:34705 "EHLO narury.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751378AbYHRJNI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Aug 2008 05:13:08 -0400
 Content-Disposition: inline
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162036210E46B@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, "Pasam, Vijay" <vpasam@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Ramirez Luna, Omar" <x00omar@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, felipe.contreras@nokia.com
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "soni.trilok@gmail.com" <soni.trilok@gmail.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Ramirez Luna, Omar" <x00omar@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "Pasam, Vijay" <vpasam@ti.com>
 
-Hi Tony,
+On Fri, Aug 15, 2008 at 03:16:29PM -0500, Woodruff, Richard wrote:
+> Checkpatch.pl is just a guide.  Completely changing code for the tool isn't probably a good idea. It might even get you severally flamed on LKML :)  The recent threads are informative (ok to read, bad to be in).
 
-On Mon, Aug 18, 2008 at 1:26 PM, Tony Lindgren <tony@atomide.com> wrote:
-> Hi,
->
-> * Felipe Contreras <felipe.contreras@gmail.com> [080816 12:58]:
->> Hi Vijay,
->>
->> On Sat, Aug 16, 2008 at 12:59 AM, Pasam, Vijay <vpasam@ti.com> wrote:
->> >> I'm not familiar with checkpatch, but I guess the purpose is
->> >> not to highlight functional issues.
->> >>
->> >> However, there are functional issues, but it makes sense to
->> >> cleanup the code first: there's no point in analyzing code
->> >> that is never used.
->> >
->> > There are about 9 errors with the latest set of patches. These are all
->> > false positives - not really errors. Majority of warnings also fall
->> > under this category.
->>
->> I'm not talking about issues returned by checkpatch, but issues
->> visible to the human observer.
->
-> And the two pieces of code that need to be fixed for Linux ASAP
-> for DSP are:
->
-> - External device MMU hardware
-> - Mailbox handling
->
-> This code needs to be shared for dsp[bios|bridge|gateway|link].
-> And it can be also used for any other devices and coprocessors
-> needing MMU handling.
->
+> Incidentally, when I asked the person working these changes, they had reported 0 functional errors had been fixed by the checkpatch changes.  A lot of the noise was typedef reduction.
 
-This task was pointed out on todo checklist created offline by
-Doyu-San during early discussion.
+I don't think completly fair complaint.
+
+checkpatch.pl is only meant to check that patches comply to the kernel
+Coding style. For a huge project such as Linux kernel, all code must
+be written in uniform style. DSP bridge has probably been written
+following TI's internal codingstyle documents, and as a first step
+it needs to be converted to follow the Linux codingstyle.
+
+checkpatch not a static analysing tool, which would be
+neccessary for uncovering functional errors. For that we have sparse,
+and mainline kernel gets regularry checked with the coverity scanner.
+
+Focusing on checkpatch errors is a bit deceptive. It is
+perfectly possible to be "checkpatch clean" yet the code
+has lots of issues left. For example checkpatch cannot tell
+that CSL_Strlen() can be replaced with strlen() from kernel.
+
 
 
 -- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+"rm -rf" only sounds scary if you don't have backups
