@@ -1,31 +1,41 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 0/0] Power domain and clock domain patches for omap
-Date: Mon, 18 Aug 2008 17:34:29 +0100
-Message-ID: <20080818163429.GF16455@flint.arm.linux.org.uk>
-References: <1216221555-18958-1-git-send-email-tony@atomide.com>
+From: "Pasam, Vijay" <vpasam@ti.com>
+Subject: RE: [RFC][DRAFT] TODO list for TI DSP BRIDGE
+Date: Mon, 18 Aug 2008 12:12:24 -0500
+Message-ID: <EBA93F3E4CB46947A4C5275F6308CF3E03435165@dlee15.ent.ti.com>
+References: <20080818.180829.145776296.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:40370 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752608AbYHRQel (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Aug 2008 12:34:41 -0400
-Content-Disposition: inline
-In-Reply-To: <1216221555-18958-1-git-send-email-tony@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:47664 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752417AbYHRRMh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Aug 2008 13:12:37 -0400
+Content-class: urn:content-classes:message
+In-reply-to: <20080818.180829.145776296.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap@vger.kernel.org, "Woodruff, Richard" <r-woodruff2@ti.com>, felipe.contreras@gmail.com, siarhei.siamashka@nokia.com, "Ramirez Luna, Omar" <x00omar@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, tony@atomide.com, soni.trilok@gmail.com
 
-On Wed, Jul 16, 2008 at 06:19:05PM +0300, Tony Lindgren wrote:
-> This patch series contains power domain and clock domain specific patches
-> for omap posted to linux-arm-kernel list during 2.6.25-rc5.
-> 
-> I'm reposting the series to a wider audience as Russell King suspected that
-> other archs may be interested in reviewing these too, or at least some
-> parts of the code.
+Hi Hiroshi,
 
-Okay, I'll merge this set of 10 patches now.  Could you update them for
-the new include layout please, and send me a pull request for them.
+> Yes, "dspgateway" won't support OMAP3 but if I remember 
+> correctly that TWL is already in OMAP2? and also does Camera 
+> use the same mechanism of this MMU? This may be benefit or a 
+> must, I guess..
 
-Thanks.
+I agree. If we are certain that camera driver or some other driver uses
+MMU the same way bridge does and the MMU architecture is the same, it
+makes sense to make this generic code. My point is that if DSPGateway
+doesn't use TWL, it will not benefit from using the Bridge MMU code
+which has TWL enabled. 
+
+On the other hand, we have a usecase for mailbox driver being used by
+multiple IPC stacks. Hence it makes sense to make this code generic.
+
+Best Regards
+Vijay
+ 
+
