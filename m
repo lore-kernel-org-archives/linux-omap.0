@@ -1,43 +1,37 @@
-From: "Felipe Contreras" <felipe.contreras@gmail.com>
-Subject: Re: [RFC][DRAFT] TODO list for TI DSP BRIDGE
-Date: Mon, 18 Aug 2008 23:08:43 +0300
-Message-ID: <94a0d4530808181308i53a9b11fyb20af0b21785c0d9@mail.gmail.com>
-References: <20080818.163519.194678809.Hiroshi.DOYU@nokia.com>
-	 <EBA93F3E4CB46947A4C5275F6308CF3E03434FF2@dlee15.ent.ti.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E0B3121EE@dlee03.ent.ti.com>
-	 <5d5443650808181017w1ad90b9vcc6cc4d8abc6a963@mail.gmail.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E0B38DC7B@dlee03.ent.ti.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: HSMMC pending fixes
+Date: Mon, 18 Aug 2008 16:07:50 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162036217F3A9@dlee02.ent.ti.com>
+References: <1219072400-7814-1-git-send-email-jarkko.lavinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.234]:27874 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751500AbYHRUIp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Aug 2008 16:08:45 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so2134865rvb.1
-        for <linux-omap@vger.kernel.org>; Mon, 18 Aug 2008 13:08:44 -0700 (PDT)
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E0B38DC7B@dlee03.ent.ti.com>
-Content-Disposition: inline
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47409 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752292AbYHRVIF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Aug 2008 17:08:05 -0400
+In-Reply-To: <1219072400-7814-1-git-send-email-jarkko.lavinen@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Cc: Trilok Soni <soni.trilok@gmail.com>, "Pasam, Vijay" <vpasam@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Woodruff, Richard" <r-woodruff2@ti.com>, "siarhei.siamashka@nokia.com" <siarhei.siamashka@nokia.com>, "Ramirez Luna, Omar" <x00omar@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "tony@atomide.com" <tony@atomide.com>
+To: Jarkko Lavinen <jarkko.lavinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Aug 18, 2008 at 10:28 PM, Kanigeri, Hari <h-kanigeri2@ti.com> wrote:
->> If you mean there is separate clock infrastructure for DSPBridge other
->> than clock framework we have for OMAP, then DSPBridge should convert
->> to the one we have for OMAP. As recent work by Paul for clock
->> framework on OMAP3 and Power domains we need centralized code for clk
->> and power domains not separate clock infrastructure for DSPBridge.
->>
-> --- Bridge is not implementing separate clock infrastructure. It is just centralizing the calls to clk_enable in one location as this is called from multiple files in Bridge code. This helps because one can then turn on the traces only for clock module to check if the clocks that were expected to be enabled are enabled or not. As I mentioned before, this helps in debugging.
-
-That only makes the code harder to understand.
-
-#define clk_enable(...) my_debug_function(__VA_ARGS__)
-
-Achieves the same thing.
-
--- 
-Felipe Contreras
+SGksDQoNCj4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgSmFya2tvIExhdmlu
+ZW4NCg0KDQo+IDI6IERpc2FibGUgc21hcnRpZGxlIG1vZGUgd2hpbGUgc3VzcGVuZGluZyAod29y
+a2Fyb3VuZCkNCg0KVGhpcyB3YXMgdGhlIHdvcmsgYXJvdW5kIHdlIGhhZCBpbiBpbnRlcm5hbCB0
+cmVlcyBmb3IgYSBsb25nIHRpbWUuDQoNCkhvd2V2ZXIgTWFkaHUgQy4gcmVjZW50bHkgdXBkYXRl
+ZCB0aGlzIGJhc2VkIG9uIGFuIGludGVybmFsIGludmVzdGlnYXRpb24uICBJdCBpcyByZXF1aXJl
+ZCB0byByZXNldCB0aGUgY29tbWFuZCBwaW4gdG8gY2xlYXIgdGhlIHN5c3RlbSBmb3Igc2xlZXAu
+ICBUaGlzIGFsbG93cyByZXRlbnRpb24gdG8gd29yay4NCg0KVGhlIG5vbi1pZGxlIHdvcmsgYXJv
+dW5kIHdoZW4gcHJvZmlsZWQgc2hvd2VkIGl0IHdhcyB0YWtpbmcgYSBodWdlIGFtb3VudCBvZiB0
+aW1lIGZvciB0aGUgY2xvY2sgcmUtZW5hYmxlIHRvIHdvcmsuICBUaGlzIGFjdHVhbGx5IHdvdWxk
+IG5vdGljZWFibHkgcmVkdWNlIE1NQyB0aHJvdWdocHV0IHdoZW4gZG9pbmcgYWdncmVzc2l2ZSBj
+bG9jayBjdXR0aW5nIGluIHRoZSBkcml2ZXIgYW5kIGluY3JlYXNlIHBvd2VyIHVzYWdlLg0KDQor
+ICAgICAgIH0gZWxzZSB7DQorICAgICAgICAgICAgICAgT01BUF9IU01NQ19XUklURShob3N0LT5i
+YXNlLCBTWVNDVEwsDQorICAgICAgICAgICAgICAgICAgICAgICBPTUFQX0hTTU1DX1JFQUQoaG9z
+dC0+YmFzZSwgU1lTQ1RMKSB8IFNSRCk7DQorICAgICAgICAgICAgICAgd2hpbGUgKE9NQVBfSFNN
+TUNfUkVBRChob3N0LT5iYXNlLCBTWVNDVEwpICYgU1JEKSA7DQoNCklmIHlvdSB1c2UgYSByZWFs
+bHkgbG9uZyB0aW1lIG91dCB0aGVuIHBlcmhhcHMgaXQgZG9lc24ndCBtYXR0ZXIuICBCdXQgaWYg
+eW91IHRyeSBhbmQgYmUgYWdncmVzc2l2ZSBpdCB3aWxsIGh1cnQgeW91Lg0KDQpSZWdhcmRzLA0K
+UmljaGFyZCBXLg0KDQoNCg0K
