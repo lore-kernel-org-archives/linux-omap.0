@@ -1,57 +1,40 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 00/16] Omap2 patches for post 2.6.26
-Date: Tue, 19 Aug 2008 22:23:00 +0100
-Message-ID: <20080819212300.GF17034@flint.arm.linux.org.uk>
+From: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Subject: Re: [PATCH 0/0] Power domain and clock domain patches for omap
+Date: Tue, 19 Aug 2008 21:46:00 +0000 (UTC)
+Message-ID: <g8feuo$i9$1@ger.gmane.org>
+References: <1216221555-18958-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41942 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755795AbYHSVXM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Aug 2008 17:23:12 -0400
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758868AbYHSVqW@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-On Fri, Jun 06, 2008 at 06:47:41PM -0700, Tony Lindgren wrote:
-> This patch series contains various omap2 patchs from linux-omap tree.
-> Big chunk of the patches still improve the clock code. Also more
-> clean-up to allow compiling omap2 and omap3 support into the same
-> kernel. The patch also adds core omap3430 support, but no board
-> files or PM at at this point.
+Tony Lindgren wrote:
 
-Apart from the comments I've made, the rest seem "fine" as far as I can
-tell.
+> Hi all,
+> 
+> This patch series contains power domain and clock domain specific
+> patches for omap posted to linux-arm-kernel list during 2.6.25-rc5.
+> 
+> I'm reposting the series to a wider audience as Russell King suspected
+> that other archs may be interested in reviewing these too, or at least
+> some parts of the code.
+> 
+> Please take a look and comment the code. Also please point out the
+> pieces of code that may be suitable for your arch too!
 
-There's a _lot_ of churn in there, some of which is caused there not
-being sufficient review of the OMAP code before it was merged into
-mainline.  Such things as:
+There is one major flaw IMO in this code. Please correct me if I'm wrong:
+Driver A: powerdomain_register()
+Driver B: powerdomain_get()
+Driver A: powerdomain_unregister()
 
-	if (unlikely((u32)clk->parent))
+Then Driver B has a reference to unregistered domain. And as powerdomains
+lack any type of refcounting this can lead to any type of memory access
+bugs if Driver A is unloaded from the kernel.
 
-stick out like a sore thumb.  And that's a direct result of me getting
-to the point of "tonnes more omap churn, sod it, I'm just going to
-apply this."
-
-If the (considerable) upstream workload is going to be reduced to an
-acceptable level, people further downstream need to take on board that
-they have a certain element of responsibility with their patches to
-ensure that they are acceptable _before_ they hit any of these git
-trees.
-
-That also means sometimes combining two or more patches before it goes
-upstream - in other words, what's visible to mainline is the "finished
-product" of development of a new feature _without_ all the historical
-baggage associated with it.
-
-That said, I'll probably guess that you are completely overloaded by
-the amount of work coming out of the OMAP trees themselves and can't
-keep up with it either, so you're probably doing the best you can.  I
-can well believe that now that I have visibility of how the various
-OMAP trees are structured.
-
-Eg, I don't think you have any way to apply any pressure to downstream
-people to encourage them to only submit tested patches - because the
-"downstream people" is just another tree ?
+-- 
+With best wishes
+Dmitry
