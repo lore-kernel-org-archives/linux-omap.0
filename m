@@ -1,63 +1,107 @@
-From: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
-Subject: RE: [PATCH] TWL4030-RTC: Remove obsolete comment
-Date: Tue, 19 Aug 2008 20:29:11 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB020F89F02A@dbde02.ent.ti.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB020F89F003@dbde02.ent.ti.com>
- <20080819144218.GE23346@gandalf.research.nokia.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 01/16] ARM: OMAP2 Provide function to enable/disable uart clocks
+Date: Tue, 19 Aug 2008 17:40:13 +0100
+Message-ID: <20080819164013.GA17034@flint.arm.linux.org.uk>
+References: <1212803277-18007-1-git-send-email-tony@atomide.com> <1212803277-18007-2-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45970 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751146AbYHSO72 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Aug 2008 10:59:28 -0400
-In-Reply-To: <20080819144218.GE23346@gandalf.research.nokia.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36631 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753373AbYHSQk2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Aug 2008 12:40:28 -0400
+Content-Disposition: inline
+In-Reply-To: <1212803277-18007-2-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Jouni Hogander <jouni.hogander@nokia.com>
 
-> -----Original Message-----
-> From: Felipe Balbi [mailto:felipe.balbi@nokia.com]
-> Sent: Tuesday, August 19, 2008 8:12 PM
-> To: Pakaravoor, Jagadeesh
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] TWL4030-RTC: Remove obsolete comment
-> 
-> On Tue, Aug 19, 2008 at 07:50:26PM +0530, ext Pakaravoor, Jagadeesh wrote:
-> > From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
-> >
-> > TWL4030-RTC: Remove obsolete comment.
-> >
-> > Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
-> > Index: my-local-git-dir/drivers/rtc/rtc-twl4030.c
-> > ===================================================================
-> > --- my-local-git-dir.orig/drivers/rtc/rtc-twl4030.c	2008-08-19 19:20:24.000000000 +0530
-> > +++ my-local-git-dir/drivers/rtc/rtc-twl4030.c	2008-08-19 19:28:43.037746119 +0530
-> > @@ -446,12 +446,6 @@ static irqreturn_t twl4030_rtc_interrupt
-> >  				   REG_RTC_STATUS_REG);
-> >  	if (res)
-> >  		goto out;
-> > -	/*
-> > -	 * Workaround for strange behaviour with T2. Need to write into ISR
-> > -	 * register one more time to clear the interrupt. Otherwise, the same
-> > -	 * RTC event generates 2 interrupts in a row.
-> > -	 * (no errata document available)
-> > -	 */
-> >  	res = twl4030_i2c_write_u8(TWL4030_MODULE_INT,
-> >  			PWR_RTC_INT_CLR, REG_PWR_ISR1);
-> >  	if (res)
-> 
-> Why is this obsolete? Seems quite a good comment to me. Removing it
-> might turn into someone removing that line and make t2's rtc misbehave.
-> 
-> Maybe you wanna remove only the "no errata" line if there is any errata
-> available but the comment itself is quite valuable.
-> 
+On Fri, Jun 06, 2008 at 06:47:42PM -0700, Tony Lindgren wrote:
+> This patch adds common function to enable/disable omap2/3 uart
+> clocks. Enabled uarts are passed by bootloader in atags and clocks for
+> these enabled uarts are touched.
 
-Currently there is only one write to the ISR (REG_PWR_ISR1), where as previously there used to be two writes. So the comment is no more valid.
+In some ways, this patch is a good thing, in others it's outrageous.
 
---
-Jagadeesh
+> -static struct clk * uart1_ick = NULL;
+> -static struct clk * uart1_fck = NULL;
+> -static struct clk * uart2_ick = NULL;
+> -static struct clk * uart2_fck = NULL;
+> -static struct clk * uart3_ick = NULL;
+> -static struct clk * uart3_fck = NULL;
+> +static struct clk *uart_ick[OMAP_MAX_NR_PORTS];
+> +static struct clk *uart_fck[OMAP_MAX_NR_PORTS];
+>  
+>  static struct plat_serial8250_port serial_platform_data[] = {
+>  	{
+> -		.membase	= (char *)IO_ADDRESS(OMAP_UART1_BASE),
+> +		.membase	= (__force void __iomem *)IO_ADDRESS(OMAP_UART1_BASE),
+
+__force in drivers is a big no no, immediate patch rejection.  Drivers
+do not use __force.
+
+The reason for adding __iomem is to pick up where people are doing
+stupid things with pointers, and __force is added in _private_ code
+(eg, functions supporting IO, mapping functions, etc) to provide a
+way of saying "this is part of the infrastructure and its permitted
+to do this conversion."
+
+The correct place for that cast, in its entirety, is inside the
+IO_ADDRESS macro.
+
+> @@ -71,7 +67,7 @@ static inline void serial_write_reg(struct plat_serial8250_port *p, int offset,
+>  				    int value)
+>  {
+>  	offset <<= p->regshift;
+> -	__raw_writeb(value, (unsigned long)(p->membase + offset));
+> +	__raw_writeb(value, p->membase + offset);
+
+Good.
+
+> @@ -87,10 +83,27 @@ static inline void __init omap_serial_reset(struct plat_serial8250_port *p)
+>  	serial_write_reg(p, UART_OMAP_SYSC, (0x02 << 3) | (1 << 2) | (1 << 0));
+>  }
+>  
+> -void __init omap_serial_init()
+> +void omap_serial_enable_clocks(int enable)
+> +{
+> +	int i;
+> +	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
+> +		if (uart_ick[i] && uart_fck[i]) {
+> +			if (enable) {
+> +				clk_enable(uart_ick[i]);
+> +				clk_enable(uart_fck[i]);
+> +			} else {
+> +				clk_disable(uart_ick[i]);
+> +				clk_disable(uart_fck[i]);
+> +			}
+> +		}
+> +	}
+> +}
+
+Urgh.  Why enable all clocks?  I thought OMAP was about being as lean
+and mean as possible as far as power management goes, so why enable
+everything and disable everything?
+
+Looking at the omapzoom tree, this function isn't even referenced by
+another part of the kernel, so maybe this function is just cruft?
+
+> +		sprintf(name, "uart%d_ick", i+1);
+> +		uart_ick[i] = clk_get(NULL, name);
+> +		if (IS_ERR(uart_ick[i])) {
+> +			printk(KERN_ERR "Could not get uart%d_ick\n", i+1);
+> +			uart_ick[i] = NULL;
+> +		} else
+> +			clk_enable(uart_ick[i]);
+> +
+> +		sprintf(name, "uart%d_fck", i+1);
+> +		uart_fck[i] = clk_get(NULL, name);
+> +		if (IS_ERR(uart_fck[i])) {
+> +			printk(KERN_ERR "Could not get uart%d_fck\n", i+1);
+> +			uart_fck[i] = NULL;
+> +		} else
+> +			clk_enable(uart_fck[i]);
+
+Definitely an improvement, but still some way to go yet... but not a
+reason not to get this in (once the above issues have been resolved.)
