@@ -1,67 +1,54 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 04/16] ARM: OMAP: Fix sparse, checkpatch warnings in OMAP2/3 PRCM/PM code
-Date: Tue, 19 Aug 2008 18:21:38 +0100
-Message-ID: <20080819172138.GC17034@flint.arm.linux.org.uk>
-References: <1212804762-18413-1-git-send-email-tony@atomide.com> <1212804762-18413-2-git-send-email-tony@atomide.com> <1212804762-18413-3-git-send-email-tony@atomide.com>
+Subject: Re: [PATCH 07/16] ARM: OMAP2: Add clkdm_get_pwrdm()
+Date: Tue, 19 Aug 2008 18:29:54 +0100
+Message-ID: <20080819172953.GD17034@flint.arm.linux.org.uk>
+References: <1212804762-18413-1-git-send-email-tony@atomide.com> <1212804762-18413-2-git-send-email-tony@atomide.com> <1212804762-18413-3-git-send-email-tony@atomide.com> <1212804762-18413-4-git-send-email-tony@atomide.com> <1212804762-18413-5-git-send-email-tony@atomide.com> <1212804762-18413-6-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37635 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41667 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751819AbYHSRVt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Aug 2008 13:21:49 -0400
+	with ESMTP id S1753206AbYHSRaF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Aug 2008 13:30:05 -0400
 Content-Disposition: inline
-In-Reply-To: <1212804762-18413-3-git-send-email-tony@atomide.com>
+In-Reply-To: <1212804762-18413-6-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-On Fri, Jun 06, 2008 at 07:12:30PM -0700, Tony Lindgren wrote:
->  static void omap2_clk_wait_ready(struct clk *clk)
->  {
-> -	void __iomem *reg, *other_reg, *st_reg;
-> -	u32 bit;
-> -
-> -	/*
-> -	 * REVISIT: This code is pretty ugly.  It would be nice to generalize
-> -	 * it and pull it into struct clk itself somehow.
-> -	 */
-> -	reg = clk->enable_reg;
-> -	if ((((u32)reg & 0xff) >= CM_FCLKEN1) &&
-> -	    (((u32)reg & 0xff) <= OMAP24XX_CM_FCLKEN2))
-> -		other_reg = (void __iomem *)(((u32)reg & ~0xf0) | 0x10); /* CM_ICLKEN* */
-> -	else if ((((u32)reg & 0xff) >= CM_ICLKEN1) &&
-> -		 (((u32)reg & 0xff) <= OMAP24XX_CM_ICLKEN4))
-> -		other_reg = (void __iomem *)(((u32)reg & ~0xf0) | 0x00); /* CM_FCLKEN* */
-> +	u32 bit, reg, other_reg, st_reg;
-> +
-> +	reg = (__force u32)clk->enable_reg;
-> +	if (((reg & 0xff) >= CM_FCLKEN1) &&
-> +	    ((reg & 0xff) <= OMAP24XX_CM_FCLKEN2))
-> +		other_reg = ((reg & ~0xf0) | 0x10); /* CM_ICLKEN* */
-> +	else if (((reg & 0xff) >= CM_ICLKEN1) &&
-> +		 ((reg & 0xff) <= OMAP24XX_CM_ICLKEN4))
-> +		other_reg = ((reg & ~0xf0) | 0x00); /* CM_FCLKEN* */
+On Fri, Jun 06, 2008 at 07:12:33PM -0700, Tony Lindgren wrote:
+> From: Paul Walmsley <paul@pwsan.com>
+> 
+> Add clkdm_get_pwrdm() to the clockdomain code.  It will return a
+> pointer to the powerdomain struct that the clockdomain is contained
+> within.  Used by the PM code.
+> 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-	unsigned long reg = (unsigned long)clk->enable_reg;
+This patch should have been merged into the patch creating clockdomain.c
+before it was sent upstream.  It's clearly a function which was missed
+out of Paul's original patch.
 
-IIRC is a permitted cast, doesn't require __force.  And you can convert
-back to void __iomem * without using __force either.
+There's no requirement to ensure that every bit of microscopic history
+behind the development of a feature is preserved into the mainline
+kernel tree - it's actually preferred that it isn't.
 
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index aad781d..598f2d2 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -24,9 +24,9 @@
->  #include <linux/module.h>
->  #include <linux/delay.h>
->  #include <linux/clk.h>
-> +#include <linux/io.h>
-> +#include <linux/irq.h>
+Another reason for doing so is to cut down on the amount of reviewing
+that has to be done upstream.  Given the amount of churn in OMAP land,
+reducing compressing changes _sanely_ should be a priority.
+
+> diff --git a/include/asm-arm/arch-omap/clockdomain.h b/include/asm-arm/arch-omap/clockdomain.h
+> index d2a4551..e71fee4 100644
+> --- a/include/asm-arm/arch-omap/clockdomain.h
+> +++ b/include/asm-arm/arch-omap/clockdomain.h
+> @@ -94,6 +94,9 @@ struct clockdomain *clkdm_lookup(const char *name);
+>  int clkdm_for_each(int (*fn)(struct clockdomain *clkdm));
+>  struct powerdomain *clkdm_get_pwrdm(struct clockdomain *clkdm);
 >  
-> -#include <asm/io.h>
-> -#include <asm/irq.h>
+> +int clkdm_for_each(int (*fn)(struct clockdomain *clkdm));
+> +struct powerdomain *clkdm_get_pwrdm(struct clockdomain *clkdm);
+> +
 
-As I keep saying to people, not every warning that checkpatch spits
-out is valid.  asm/irq.h -> linux/irq.h is not a valid warning.
+These prototypes are already there, so this isn't required.
