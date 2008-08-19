@@ -1,59 +1,57 @@
-From: "Yuri Jaeger Monti" <yurijm@gmail.com>
-Subject: Re: [PATCH] OMAP5912: Fix omap5912 osk alsa driver [1/2]
-Date: Tue, 19 Aug 2008 18:11:45 -0300
-Message-ID: <65e025470808191411j92ed0cbhc47ea4f2e707671c@mail.gmail.com>
-References: <7B4574D56E4ADF438756313E9A172A870D5F0E58@dlee01.ent.ti.com>
-	 <20080813135721.GC27446@atomide.com>
-	 <20080814091329.bcb2755e.jarkko.nikula@nokia.com>
-	 <7B4574D56E4ADF438756313E9A172A870D6651CF@dlee01.ent.ti.com>
-	 <20080815111216.5dcf2a0d.jarkko.nikula@nokia.com>
-	 <7B4574D56E4ADF438756313E9A172A870D6E0641@dlee01.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 00/16] Omap2 patches for post 2.6.26
+Date: Tue, 19 Aug 2008 22:23:00 +0100
+Message-ID: <20080819212300.GF17034@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rn-out-0910.google.com ([64.233.170.184]:37077 "EHLO
-	rn-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751545AbYHSVLr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Aug 2008 17:11:47 -0400
-Received: by rn-out-0910.google.com with SMTP id k40so115596rnd.17
-        for <linux-omap@vger.kernel.org>; Tue, 19 Aug 2008 14:11:46 -0700 (PDT)
-In-Reply-To: <7B4574D56E4ADF438756313E9A172A870D6E0641@dlee01.ent.ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41942 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755795AbYHSVXM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Aug 2008 17:23:12 -0400
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, ext Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-Hi Jon,
+On Fri, Jun 06, 2008 at 06:47:41PM -0700, Tony Lindgren wrote:
+> This patch series contains various omap2 patchs from linux-omap tree.
+> Big chunk of the patches still improve the clock code. Also more
+> clean-up to allow compiling omap2 and omap3 support into the same
+> kernel. The patch also adds core omap3430 support, but no board
+> files or PM at at this point.
 
-I applied both yours and Jarkko's patch here and can confirm that it's
-working on the OSK5912. Compiled and running with no problems. Thanks
-guys!
+Apart from the comments I've made, the rest seem "fine" as far as I can
+tell.
 
-The AIC23 is detected fine, but I'm still having some issues with
-underruns though, when trying to play an audio file. Don't know what
-could be the problem. Always getting a choppy sound output.
+There's a _lot_ of churn in there, some of which is caused there not
+being sufficient review of the OMAP code before it was merged into
+mainline.  Such things as:
 
-root@DEA /opt/audios # aplay -Ll
-default:CARD=AIC23
-    OSK AIC23, omap alsa pcm
-    Default Audio Device
-null
-    Discard all samples (playback) or generate zero samples (capture)
-**** List of PLAYBACK Hardware Devices ****
-card 0: AIC23 [OSK AIC23], device 0: OMAP PCM [omap alsa pcm]
-  Subdevices: 1/1
-  Subdevice #0: subdevice #0
+	if (unlikely((u32)clk->parent))
 
-root@OSK5912 /opt/audios # aplay Front_Center.wav
-Playing WAVE 'Front_Center.wav' : Signed 16 bit Little Endian, Rate
-48000 Hz, Mono
-underrun!!! (at least 0.366 ms long)
+stick out like a sore thumb.  And that's a direct result of me getting
+to the point of "tonnes more omap churn, sod it, I'm just going to
+apply this."
 
-I'll test some more by tomorrow and inform you of any progress.
+If the (considerable) upstream workload is going to be reduced to an
+acceptable level, people further downstream need to take on board that
+they have a certain element of responsibility with their patches to
+ensure that they are acceptable _before_ they hit any of these git
+trees.
 
-Cheers
+That also means sometimes combining two or more patches before it goes
+upstream - in other words, what's visible to mainline is the "finished
+product" of development of a new feature _without_ all the historical
+baggage associated with it.
 
----
-Yuri Jaeger Monti
+That said, I'll probably guess that you are completely overloaded by
+the amount of work coming out of the OMAP trees themselves and can't
+keep up with it either, so you're probably doing the best you can.  I
+can well believe that now that I have visibility of how the various
+OMAP trees are structured.
+
+Eg, I don't think you have any way to apply any pressure to downstream
+people to encourage them to only submit tested patches - because the
+"downstream people" is just another tree ?
