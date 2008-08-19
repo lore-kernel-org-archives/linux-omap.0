@@ -1,47 +1,55 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC][DRAFT] TODO list for TI DSP BRIDGE
-Date: Tue, 19 Aug 2008 09:24:23 +0300
-Message-ID: <20080819062422.GD17276@atomide.com>
-References: <20080818.163519.194678809.Hiroshi.DOYU@nokia.com> <EBA93F3E4CB46947A4C5275F6308CF3E03434FF2@dlee15.ent.ti.com> <8F7AF80515AF0D4D93307E594F3CB40E0B3121EE@dlee03.ent.ti.com> <5d5443650808181017w1ad90b9vcc6cc4d8abc6a963@mail.gmail.com> <8F7AF80515AF0D4D93307E594F3CB40E0B38DC7B@dlee03.ent.ti.com> <94a0d4530808181308i53a9b11fyb20af0b21785c0d9@mail.gmail.com>
+Subject: Re: twl3040-gpio: fix task softlockup warning
+Date: Tue, 19 Aug 2008 09:26:43 +0300
+Message-ID: <20080819062641.GE17276@atomide.com>
+References: <20080818155457.1371.38168.sendpatchset@localhost.localdomain> <20080819091935.9dee82d8.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57422 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59325 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750804AbYHSGY2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Aug 2008 02:24:28 -0400
+	with ESMTP id S1750804AbYHSG0q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Aug 2008 02:26:46 -0400
 Content-Disposition: inline
-In-Reply-To: <94a0d4530808181308i53a9b11fyb20af0b21785c0d9@mail.gmail.com>
+In-Reply-To: <20080819091935.9dee82d8.jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, Trilok Soni <soni.trilok@gmail.com>, "Pasam, Vijay" <vpasam@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Woodruff, Richard" <r-woodruff2@ti.com>, "siarhei.siamashka@nokia.com" <siarhei.siamashka@nokia.com>, "Ramirez Luna, Omar" <x00omar@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: ext Artem Bityutskiy <Artem.Bityutskiy@nokia.com>, linux-omap@vger.kernel.org
 
-* Felipe Contreras <felipe.contreras@gmail.com> [080818 23:09]:
-> On Mon, Aug 18, 2008 at 10:28 PM, Kanigeri, Hari <h-kanigeri2@ti.com> wrote:
-> >> If you mean there is separate clock infrastructure for DSPBridge other
-> >> than clock framework we have for OMAP, then DSPBridge should convert
-> >> to the one we have for OMAP. As recent work by Paul for clock
-> >> framework on OMAP3 and Power domains we need centralized code for clk
-> >> and power domains not separate clock infrastructure for DSPBridge.
-> >>
-> > --- Bridge is not implementing separate clock infrastructure. It is just centralizing the calls to clk_enable in one location as this is called from multiple files in Bridge code. This helps because one can then turn on the traces only for clock module to check if the clocks that were expected to be enabled are enabled or not. As I mentioned before, this helps in debugging.
+* Jarkko Nikula <jarkko.nikula@nokia.com> [080819 09:22]:
+> On Mon, 18 Aug 2008 18:54:57 +0300
+> "ext Artem Bityutskiy" <Artem.Bityutskiy@nokia.com> wrote:
 > 
-> That only makes the code harder to understand.
-> 
-> #define clk_enable(...) my_debug_function(__VA_ARGS__)
-> 
-> Achieves the same thing.
+> > This patch fixes the following annoying warning:
+> > 
+> > INFO: task twl4030 gpio:283 blocked for more than 120 seconds.
+> > "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this
+> > message. twl4030 gpio  D c027e9dc     0   283      2
+> > [<c027e744>] (schedule+0x0/0x314) from [<c00640f0>] (kthread
+> > +0x3c/0x80) [<c00640b4>] (kthread+0x0/0x80) from [<c0052678>] (do_exit
+> > +0x0/0x664) r5:00000000 r4:00000000
+> > 
+> > Which is printed every 120 seconds by the softlockup code (see
+> > 'check_hung_task()' function, introduced by on Jan 2008 by commit
+> > 82a1fcb90287052aabfa235e7ffc693ea003fe69).
+> > 
+> > The reason is that the "twl4030 gpio" kthread is created but is not
+> > started immediatelly. And in fact it may never start, because TWL3040
+> > interrupts may never happen and hence, the
+> > 'twl4030_gpio_unmask_irqchip()' function is never run. This makes the
+> > softlockup detection code unhappy.
+> > 
+> > Fix this by running the "twl4030 gpio" kernel thread in at the end of
+> > the 'gpio_twl4030_init()' initialization function. Since the
+> > 'gpio_pending_unmask' global variable is 0 at that time, the tread
+> > ('twl4030_gpio_unmask_thread()') will effectively do nothing and go
+> > sleep. This makes the softlocup detection code happy.
+> > 
+> This is good. It fixes also second issue where system load average is
+> always above 1 since task is in uninterruptible state before this first
+> wake-up.
 
-We must use clk_enable() and clk_disable() in the drivers. That's the
-Linux clock interface. Anything else won't get merged upstream.
-
-If you need to combine multiple clocks into a single virtual dsp
-clock, please register a new custom clock using clk_register().
-
-That allows you to do debugging in the custom clock functions too
-if necessary.
-
-Regards,
+Great, thanks Artem, will push your patch today.
 
 Tony
