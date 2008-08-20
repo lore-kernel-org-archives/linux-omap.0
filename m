@@ -1,52 +1,73 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCH 3/4] Added sleep support to UART
-Date: Wed, 20 Aug 2008 15:26:14 +0300
-Message-ID: <B71CE868F2BC2847B3F23C5A8EE39430626EBB@vaebe110.NOE.Nokia.com>
-References: <87iqu2rac0.fsf@trdhcp146196.ntc.nokia.com> <1218786440-28089-1-git-send-email-jouni.hogander@nokia.com> <20080820114021.GD29374@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] TWL4030-RTC: Remove obsolete comment
+Date: Wed, 20 Aug 2008 15:29:51 +0300
+Message-ID: <20080820122950.GJ29374@atomide.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB020F89F003@dbde02.ent.ti.com> <20080819144218.GE23346@gandalf.research.nokia.com> <EAF47CD23C76F840A9E7FCE10091EFAB020F89F02A@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:41232 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753797AbYHTM0r convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 08:26:47 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <20080820114021.GD29374@atomide.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63216 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753850AbYHTMaI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 08:30:08 -0400
+Content-Disposition: inline
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB020F89F02A@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, jouni.hogander@nokia.com
-Cc: linux-omap@vger.kernel.org
+To: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
+Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
- 
+* Pakaravoor, Jagadeesh <j-pakaravoor@ti.com> [080819 18:09]:
+> > -----Original Message-----
+> > From: Felipe Balbi [mailto:felipe.balbi@nokia.com]
+> > Sent: Tuesday, August 19, 2008 8:12 PM
+> > To: Pakaravoor, Jagadeesh
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: Re: [PATCH] TWL4030-RTC: Remove obsolete comment
+> > 
+> > On Tue, Aug 19, 2008 at 07:50:26PM +0530, ext Pakaravoor, Jagadeesh wrote:
+> > > From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
+> > >
+> > > TWL4030-RTC: Remove obsolete comment.
+> > >
+> > > Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
+> > > Index: my-local-git-dir/drivers/rtc/rtc-twl4030.c
+> > > ===================================================================
+> > > --- my-local-git-dir.orig/drivers/rtc/rtc-twl4030.c	2008-08-19 19:20:24.000000000 +0530
+> > > +++ my-local-git-dir/drivers/rtc/rtc-twl4030.c	2008-08-19 19:28:43.037746119 +0530
+> > > @@ -446,12 +446,6 @@ static irqreturn_t twl4030_rtc_interrupt
+> > >  				   REG_RTC_STATUS_REG);
+> > >  	if (res)
+> > >  		goto out;
+> > > -	/*
+> > > -	 * Workaround for strange behaviour with T2. Need to write into ISR
+> > > -	 * register one more time to clear the interrupt. Otherwise, the same
+> > > -	 * RTC event generates 2 interrupts in a row.
+> > > -	 * (no errata document available)
+> > > -	 */
+> > >  	res = twl4030_i2c_write_u8(TWL4030_MODULE_INT,
+> > >  			PWR_RTC_INT_CLR, REG_PWR_ISR1);
+> > >  	if (res)
+> > 
+> > Why is this obsolete? Seems quite a good comment to me. Removing it
+> > might turn into someone removing that line and make t2's rtc misbehave.
+> > 
+> > Maybe you wanna remove only the "no errata" line if there is any errata
+> > available but the comment itself is quite valuable.
+> > 
+> 
+> Currently there is only one write to the ISR (REG_PWR_ISR1), where as previously there used to be two writes. So the comment is no more valid.
 
->-----Original Message-----
->From: ext Tony Lindgren [mailto:tony@atomide.com] 
->Sent: 20 August, 2008 14:40
->To: Hogander Jouni (Nokia-D/Tampere)
->Cc: linux-omap@vger.kernel.org; Kristo Tero (Nokia-D/Tampere)
->Subject: Re: [PATCH 3/4] Added sleep support to UART
->
->* Jouni Hogander <jouni.hogander@nokia.com> [080815 10:48]:
->> From: Tero Kristo <tero.kristo@nokia.com>
->> 
->> UART usage (e.g. serial console) now denies sleep for 5 
->seconds. This 
->> makes it possible to use serial console when dynamic idle is 
->enabled. 
->> Write 1 to /sys/power/clocks_off_while_sleep to enable uart clock 
->> disable on idle. Without this omap won't enter retention.
->> 
->> Also moved code from pm-debug.c to serial.c, and made pm24xx.c use 
->> this new implementation.
->
->This looks OK and safe to apply now. I guess it depends on the 
->GPIO patch above though?
+Sounds like a valid patch then. Pushing today.
 
-Yes, checks for the sleep conditions and dynamic clock disable / enable
-mechanism are introduced in the GPIO patch. I think it would be possible
-to change the order of dependency if needed though, but this would
-require changes to both patches.
+Tony
 
--Tero
+
+
+> 
+> --
+> Jagadeesh
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
