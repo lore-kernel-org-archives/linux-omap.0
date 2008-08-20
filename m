@@ -1,62 +1,88 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Fix compile-time warning
-Date: Wed, 20 Aug 2008 15:30:48 +0300
-Message-ID: <20080820123047.GK29374@atomide.com>
-References: <premi@ti.com> <1219170601-23337-1-git-send-email-premi@ti.com>
+Subject: Re: [PATCH 04/11] sdrc register defs
+Date: Wed, 20 Aug 2008 15:50:23 +0300
+Message-ID: <20080820125021.GL29374@atomide.com>
+References: <43340.192.168.10.89.1218028472.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63946 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:65439 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751636AbYHTMbC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 08:31:02 -0400
+	with ESMTP id S1753619AbYHTMur (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 08:50:47 -0400
 Content-Disposition: inline
-In-Reply-To: <1219170601-23337-1-git-send-email-premi@ti.com>
+In-Reply-To: <43340.192.168.10.89.1218028472.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
+To: Rajendra Nayak <rnayak@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-* Sanjeev Premi <premi@ti.com> [080819 21:32]:
-> Fixes this warning:
->   CC      arch/arm/mach-omap2/board-omap3evm-flash.o
-> arch/arm/mach-omap2/board-omap3evm-flash.c:61: warning: initialization from incompatible pointer type
+* Rajendra Nayak <rnayak@ti.com> [080806 16:16]:
+> This patch adds some missing sdrc register definitions
 
-Pushing today.
+Pushing this today (after header path rewriting).
 
 Tony
 
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
-> ---
->  arch/arm/mach-omap2/board-omap3evm-flash.c |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 > 
-> diff --git a/arch/arm/mach-omap2/board-omap3evm-flash.c b/arch/arm/mach-omap2/board-omap3evm-flash.c
-> index 0aa8ef2..5f3663d 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm-flash.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm-flash.c
-> @@ -23,7 +23,7 @@
->  #include <mach/gpmc.h>
->  #include <mach/nand.h>
->  
-> -static int omap3evm_onenand_setup(void __iomem *);
-> +static int omap3evm_onenand_setup(void __iomem *, int freq);
->  
->  static struct mtd_partition omap3evm_onenand_partitions[] = {
->  	{
-> @@ -76,8 +76,8 @@ static struct platform_device omap3evm_onenand_device = {
->   *
->   */
->  
-> -static int omap3evm_onenand_setup(void __iomem *onenand_base)
-> -	{
-> +static int omap3evm_onenand_setup(void __iomem *onenand_base, int freq)
-> +{
->  	/* nothing is required to be setup for onenand as of now */
->  	return 0;
->  }
-> -- 
-> 1.5.6
+> ---
+>  arch/arm/mach-omap2/sram34xx.S   |    4 ++--
+>  include/asm-arm/arch-omap/sdrc.h |   13 +++++++++++--
+>  2 files changed, 13 insertions(+), 4 deletions(-)
+> 
+> Index: linux-omap-2.6/arch/arm/mach-omap2/sram34xx.S
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/mach-omap2/sram34xx.S	2008-08-06
+> 18:07:31.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/mach-omap2/sram34xx.S	2008-08-06 18:10:18.000000000
+> +0530
+> @@ -165,9 +165,9 @@ omap3_cm_iclken1_core:
+>  omap3_sdrc_rfr_ctrl:
+>  	.word OMAP34XX_SDRC_REGADDR(SDRC_RFR_CTRL_0)
+>  omap3_sdrc_actim_ctrla:
+> -	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A)
+> +	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A_0)
+>  omap3_sdrc_actim_ctrlb:
+> -	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B)
+> +	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B_0)
+>  omap3_sdrc_dlla_status:
+>  	.word OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
+>  omap3_sdrc_dlla_ctrl:
+> Index: linux-omap-2.6/include/asm-arm/arch-omap/sdrc.h
+> ===================================================================
+> --- linux-omap-2.6.orig/include/asm-arm/arch-omap/sdrc.h	2008-08-06
+> 18:07:31.000000000 +0530
+> +++ linux-omap-2.6/include/asm-arm/arch-omap/sdrc.h	2008-08-06
+> 18:10:18.000000000 +0530
+> @@ -21,15 +21,24 @@
+>  /* SDRC register offsets - read/write with sdrc_{read,write}_reg() */
+> 
+>  #define SDRC_SYSCONFIG		0x010
+> +#define SDRC_CS_CFG		0x040
+> +#define SDRC_SHARING		0x044
+> +#define SDRC_ERR_TYPE		0x04C
+>  #define SDRC_DLLA_CTRL		0x060
+>  #define SDRC_DLLA_STATUS	0x064
+>  #define SDRC_DLLB_CTRL		0x068
+>  #define SDRC_DLLB_STATUS	0x06C
+>  #define SDRC_POWER		0x070
+> +#define SDRC_MCFG_0		0x080
+>  #define SDRC_MR_0		0x084
+> -#define SDRC_ACTIM_CTRL_A	0x09c
+> -#define SDRC_ACTIM_CTRL_B	0x0a0
+> +#define SDRC_ACTIM_CTRL_A_0	0x09c
+> +#define SDRC_ACTIM_CTRL_B_0	0x0a0
+>  #define SDRC_RFR_CTRL_0		0x0a4
+> +#define SDRC_MCFG_1		0x0B0
+> +#define SDRC_MR_1		0x0B4
+> +#define SDRC_ACTIM_CTRL_A_1	0x0C4
+> +#define SDRC_ACTIM_CTRL_B_1	0x0C8
+> +#define SDRC_RFR_CTRL_1		0x0D4
+> 
+>  /*
+>   * These values represent the number of memory clock cycles between
+> 
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
