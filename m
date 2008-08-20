@@ -1,61 +1,74 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 07/16] ARM: OMAP2: Add clkdm_get_pwrdm()
-Date: Wed, 20 Aug 2008 10:37:32 +0300
-Message-ID: <20080820073731.GD28862@atomide.com>
-References: <1212804762-18413-1-git-send-email-tony@atomide.com> <1212804762-18413-2-git-send-email-tony@atomide.com> <1212804762-18413-3-git-send-email-tony@atomide.com> <1212804762-18413-4-git-send-email-tony@atomide.com> <1212804762-18413-5-git-send-email-tony@atomide.com> <1212804762-18413-6-git-send-email-tony@atomide.com> <20080819172953.GD17034@flint.arm.linux.org.uk>
+Subject: Re: [PATCH 14/16] ARM: OMAP2: Misc updates from linux-omap tree
+Date: Wed, 20 Aug 2008 10:42:44 +0300
+Message-ID: <20080820074242.GE28862@atomide.com>
+References: <1212804762-18413-5-git-send-email-tony@atomide.com> <1212804762-18413-6-git-send-email-tony@atomide.com> <1212804762-18413-7-git-send-email-tony@atomide.com> <1212804762-18413-8-git-send-email-tony@atomide.com> <1212804762-18413-9-git-send-email-tony@atomide.com> <1212804762-18413-10-git-send-email-tony@atomide.com> <1212804762-18413-11-git-send-email-tony@atomide.com> <1212804762-18413-12-git-send-email-tony@atomide.com> <1212804762-18413-13-git-send-email-tony@atomide.com> <20080819210807.GE17034@flint.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49792 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53747 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751923AbYHTHhi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 03:37:38 -0400
+	with ESMTP id S1751435AbYHTHmu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 03:42:50 -0400
 Content-Disposition: inline
-In-Reply-To: <20080819172953.GD17034@flint.arm.linux.org.uk>
+In-Reply-To: <20080819210807.GE17034@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [080819 20:30]:
-> On Fri, Jun 06, 2008 at 07:12:33PM -0700, Tony Lindgren wrote:
-> > From: Paul Walmsley <paul@pwsan.com>
-> > 
-> > Add clkdm_get_pwrdm() to the clockdomain code.  It will return a
-> > pointer to the powerdomain struct that the clockdomain is contained
-> > within.  Used by the PM code.
-> > 
-> > Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> This patch should have been merged into the patch creating clockdomain.c
-> before it was sent upstream.  It's clearly a function which was missed
-> out of Paul's original patch.
-> 
-> There's no requirement to ensure that every bit of microscopic history
-> behind the development of a feature is preserved into the mainline
-> kernel tree - it's actually preferred that it isn't.
-> 
-> Another reason for doing so is to cut down on the amount of reviewing
-> that has to be done upstream.  Given the amount of churn in OMAP land,
-> reducing compressing changes _sanely_ should be a priority.
-
-Yeah I agree.
-
-> > diff --git a/include/asm-arm/arch-omap/clockdomain.h b/include/asm-arm/arch-omap/clockdomain.h
-> > index d2a4551..e71fee4 100644
-> > --- a/include/asm-arm/arch-omap/clockdomain.h
-> > +++ b/include/asm-arm/arch-omap/clockdomain.h
-> > @@ -94,6 +94,9 @@ struct clockdomain *clkdm_lookup(const char *name);
-> >  int clkdm_for_each(int (*fn)(struct clockdomain *clkdm));
-> >  struct powerdomain *clkdm_get_pwrdm(struct clockdomain *clkdm);
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [080820 00:08]:
+> On Fri, Jun 06, 2008 at 07:12:40PM -0700, Tony Lindgren wrote:
+> > @@ -208,10 +365,12 @@ static int __init omap2_init_devices(void)
+> >  	/* please keep these calls, and their implementations above,
+> >  	 * in alphabetical order so they're easier to sort through.
+> >  	 */
+> > -	omap_init_i2c();
+> > +	omap_init_camera();
+> >  	omap_init_mbox();
+> >  	omap_init_mcspi();
+> > +	omap_hdq_init();
+> >  	omap_init_sti();
+> > +	omap_init_sha1_md5();
 > >  
-> > +int clkdm_for_each(int (*fn)(struct clockdomain *clkdm));
-> > +struct powerdomain *clkdm_get_pwrdm(struct clockdomain *clkdm);
-> > +
+> >  	return 0;
+> >  }
 > 
-> These prototypes are already there, so this isn't required.
+> Hmm, looking through this file, looking at:
+> 1. the conditionals on the machine type
+> 2. the CONFIG_ dependencies for CPU driver versions
+> 
+> and then considering... what if a platform only supports one mcspi,
+> should we be registering all mcspi's...
+> 
+> Wouldn't it be better to let the platforms themselves decide which
+> devices should be registered, just like AT91 does and now PXA?
 
-Will fix.
+Yes, the struct omap2_mcspi_device_config is already coming from
+board-*.c files. But the mach-omap2/board-*.c files will be coming
+after the core code has been merged.
 
-Tony
+> > +#ifndef __ASM_ARCH_CONTROL_H
+> > +#define __ASM_ARCH_CONTROL_H
+> > +
+> >  #include <asm/arch/io.h>
+> >  
+> > +#ifndef __ASSEMBLY__
+> >  #define OMAP242X_CTRL_REGADDR(reg)					\
+> > -	(void __iomem *)IO_ADDRESS(OMAP242X_CTRL_BASE + (reg))
+> > +	(__force void __iomem *)IO_ADDRESS(OMAP242X_CTRL_BASE + (reg))
+> >  #define OMAP243X_CTRL_REGADDR(reg)					\
+> > -	(void __iomem *)IO_ADDRESS(OMAP243X_CTRL_BASE + (reg))
+> > +	(__force void __iomem *)IO_ADDRESS(OMAP243X_CTRL_BASE + (reg))
+> >  #define OMAP343X_CTRL_REGADDR(reg)					\
+> > -	(void __iomem *)IO_ADDRESS(OMAP343X_CTRL_BASE + (reg))
+> > +	(__force void __iomem *)IO_ADDRESS(OMAP343X_CTRL_BASE + (reg))
+> 
+> There's those big warning casts again.  If you moved that inside
+> IO_ADDRESS() then you wouldn't need all these #ifndef __ASSEMBLY__
+> stuff whereever you use that macro.
+
+Will remove these. I have some mach/io.h clean up patches coming up for
+the next merge window that should take care of this.
+
+Ton
