@@ -1,65 +1,74 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [RFC][DRAFT] TODO list for TI DSP BRIDGE
-Date: Wed, 20 Aug 2008 09:32:32 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE896716203621E71D9@dlee02.ent.ti.com>
-References: <8F7AF80515AF0D4D93307E594F3CB40E0B38DC7B@dlee03.ent.ti.com>
-	<94a0d4530808181308i53a9b11fyb20af0b21785c0d9@mail.gmail.com>
-	<20080819062422.GD17276@atomide.com>
- <20080820.131042.200608197.Hiroshi.DOYU@nokia.com>
+From: Sakari Ailus <sakari.ailus@nokia.com>
+Subject: Re: [RFC][DRAFT] TODO list for TI DSP BRIDGE
+Date: Wed, 20 Aug 2008 19:08:15 +0300
+Message-ID: <48AC416F.2050808@nokia.com>
+References: <20080818.180829.145776296.Hiroshi.DOYU@nokia.com> <EBA93F3E4CB46947A4C5275F6308CF3E03435165@dlee15.ent.ti.com> <5d5443650808181020l19e9bce2g9ccb59979f626a93@mail.gmail.com> <20080819062020.GC17276@atomide.com> <13B9B4C6EF24D648824FF11BE8967162036217F694@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from soda.ext.ti.com ([198.47.26.145]:38248 "EHLO soda.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752003AbYHTOdJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 10:33:09 -0400
-In-Reply-To: <20080820.131042.200608197.Hiroshi.DOYU@nokia.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:18220 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752727AbYHTQHg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 12:07:36 -0400
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162036217F694@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "tony@atomide.com" <tony@atomide.com>
-Cc: "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "soni.trilok@gmail.com" <soni.trilok@gmail.com>, "Pasam, Vijay" <vpasam@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "siarhei.siamashka@nokia.com" <siarhei.siamashka@nokia.com>, "Ramirez Luna, Omar" <x00omar@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>
+To: "ext Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Trilok Soni <soni.trilok@gmail.com>, "Pasam, Vijay" <vpasam@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>, "siarhei.siamashka@nokia.com" <siarhei.siamashka@nokia.com>, "Ramirez Luna, Omar" <x00omar@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Jalori, Mohit" <mjalori@ti.com>
 
-Hi Hiroshi,
+Hi,
 
-> I sent some patches based on the above suggestion.
->
->   http://marc.info/?l=linux-omap&m=121922597019873&w=2
->   http://marc.info/?l=linux-omap&m=121922593919766&w=2
->
-> I think that this virtual clock may allow any arbitrary combination of
-> clocks and it may be possible to have multiple hierarchy of virtual
-> clocks like:
->
->    dsp_clocks
->    |
->    |-- peripheral_clocks
->    |     |
->    |     |-- gpt5
->    |     |    |- gpt5_ick
->    |     |    `- gpt5_fck
->    |
->    |-- ....
->    ..
->
-> Any comments would be appreciated.
+ext Woodruff, Richard wrote:
+>>> I think recently some one from TI posted OMAP3 camera driver at 
+>>> linux-v4l2 mailing list and which I think was using camera MMU,
+>>> but not the common MMU framework it seems from the description.
+>>> They should first start converting to the common MMU
+>>> infrastructure then.
+>>> 
+>>> http://lists-archives.org/video4linux/23215-omap3-camera-driver.html
+>>> 
+>> We must make the MMU framework generic for the coprocessors,
+>> otherwise maintenance will be a nightmare and the code will never
+>> get merged upstream.
 
-A few quick comments:
+I agree with Tony.
 
-- First off, I do like the idea of virtual clocks for grouping.  I did do this for OMAP2 for completely internal and dependent root clocks.  I also thought it might be nice to extend clock frame work to allow external clock registration (say for a codec chip).  In our local tree I did even add it.  One main issue was the internal clock structure is supposed to be opaque and you need to set internals to add a clock node.
+Many implementations are more likely have more bugs than one, too.
 
-- I worry a bit about grouping of internal resources which may be allocated differently per implementation.  Perhaps a board specific resource can handle it, but you've not included that in the patch.
+> Main issues are at outer interfaces which deal with OS memory system
+> interaction.  The other aspects of the code have been self contained.
+> 
+> 
+> The local MMU usages are not maintenance intensive like linux PTE
+> structures as Linux more strongly couples with the hardware table
+> representations.
+> 
+> Seems some of the subsystems like v4l2 do provide local abstractions
+> but there isn't always global ones (vmalloc to sg list for example).
 
-- Where is the board specific side of this call?  I see clock calls added to clock.c but not resources added to mach-omap2/xyz-board.c.
+The V4L2 provides functions for mapping the video buffers to kernel 
+memory, but that's not the point. The OMAP 3 ISP driver for example 
+would benefit from common MMU framework directly as it just wants to map 
+the video buffers continuously to some address and sometimes flush them.
 
-- You're not preserving the enable error path back to the virtual clock.  A recovery from a failure would be messy.
+Creating page tables for the mappings is necessary in practice.
 
-- Will these clocks always be handled as a group?  If I were to try and optimize I might shut down a gpt5 clock individually to allow a PER domain to power off.  The DSP should aggressively be letting go of resource when it doesn't need them to allow power to work.  1 virtual resource with all related clocks would not be right.
+This sounds very much like something that would be useful for a number 
+of drivers for OMAP 3 in addition to the ISP driver.
 
-If you wanted grouping their might be like DSP-CORE, DSP-Streaming-Audio, Dsp-...  You will want better granularity.  So the enable/disables are effective for power savings.  This is especially true if your not even using say a McBSP and are doing something like JPEG decode.
+If there was a generic way for asking the MMU to map the buffer it
+would be simple for the ISP driver to use that.
 
+(Besides, it'd be easy to add MMU support for the OMAP 2 camera driver 
+as well if there was a generic framework. Aren't the MMUs similar or 
+even the same?? :))
+
+(I'm adding Mohit Jalori to Cc:.)
 
 Regards,
-Richard W.
+
+-- 
+Sakari Ailus
+sakari.ailus@nokia.com
 
