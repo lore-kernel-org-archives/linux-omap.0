@@ -1,59 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP2EVM TWL4030 keypad update
-Date: Wed, 20 Aug 2008 15:24:09 +0300
-Message-ID: <20080820122408.GI29374@atomide.com>
-References: <dfeb90390808190200m200eb292q194b648236ba0f0e@mail.gmail.com>
+From: <Tero.Kristo@nokia.com>
+Subject: RE: [PATCH 3/4] Added sleep support to UART
+Date: Wed, 20 Aug 2008 15:26:14 +0300
+Message-ID: <B71CE868F2BC2847B3F23C5A8EE39430626EBB@vaebe110.NOE.Nokia.com>
+References: <87iqu2rac0.fsf@trdhcp146196.ntc.nokia.com> <1218786440-28089-1-git-send-email-jouni.hogander@nokia.com> <20080820114021.GD29374@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58461 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753012AbYHTMYl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 08:24:41 -0400
-Content-Disposition: inline
-In-Reply-To: <dfeb90390808190200m200eb292q194b648236ba0f0e@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:41232 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753797AbYHTM0r convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 08:26:47 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <20080820114021.GD29374@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arun KS <getarunks@gmail.com>
+To: tony@atomide.com, jouni.hogander@nokia.com
 Cc: linux-omap@vger.kernel.org
 
-* Arun KS <getarunks@gmail.com> [080819 12:01]:
-> Now we are passing irq number via platform_data
+ 
 
-Pushing today.
+>-----Original Message-----
+>From: ext Tony Lindgren [mailto:tony@atomide.com] 
+>Sent: 20 August, 2008 14:40
+>To: Hogander Jouni (Nokia-D/Tampere)
+>Cc: linux-omap@vger.kernel.org; Kristo Tero (Nokia-D/Tampere)
+>Subject: Re: [PATCH 3/4] Added sleep support to UART
+>
+>* Jouni Hogander <jouni.hogander@nokia.com> [080815 10:48]:
+>> From: Tero Kristo <tero.kristo@nokia.com>
+>> 
+>> UART usage (e.g. serial console) now denies sleep for 5 
+>seconds. This 
+>> makes it possible to use serial console when dynamic idle is 
+>enabled. 
+>> Write 1 to /sys/power/clocks_off_while_sleep to enable uart clock 
+>> disable on idle. Without this omap won't enter retention.
+>> 
+>> Also moved code from pm-debug.c to serial.c, and made pm24xx.c use 
+>> this new implementation.
+>
+>This looks OK and safe to apply now. I guess it depends on the 
+>GPIO patch above though?
 
-Tony
+Yes, checks for the sleep conditions and dynamic clock disable / enable
+mechanism are introduced in the GPIO patch. I think it would be possible
+to change the order of dependency if needed though, but this would
+require changes to both patches.
 
-
-> Signed-off-by: Arun KS <arunks@mistralsolutions.com>
-> ---
->  arch/arm/mach-omap2/board-omap2evm.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap2evm.c
-> b/arch/arm/mach-omap2/board-omap2evm.c
-> index 9bb8fba..4188222 100644
-> --- a/arch/arm/mach-omap2/board-omap2evm.c
-> +++ b/arch/arm/mach-omap2/board-omap2evm.c
-> @@ -18,6 +18,7 @@
->  #include <linux/clk.h>
->  #include <linux/io.h>
->  #include <linux/input.h>
-> +#include <linux/i2c/twl4030.h>
-> 
->  #include <mach/hardware.h>
->  #include <asm/mach-types.h>
-> @@ -99,6 +100,7 @@ static struct omap_kp_platform_data omap2evm_kp_data = {
->  	.keymap 	= omap2evm_keymap,
->  	.keymapsize	= ARRAY_SIZE(omap2evm_keymap),
->  	.rep		= 1,
-> +	.irq		= TWL4030_MODIRQ_KEYPAD,
->  };
-> 
->  static struct platform_device omap2evm_kp_device = {
-> -- 
-> 1.5.3.4
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Tero
