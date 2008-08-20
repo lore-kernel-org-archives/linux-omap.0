@@ -1,74 +1,158 @@
-From: Sakari Ailus <sakari.ailus@nokia.com>
-Subject: Re: [RFC][DRAFT] TODO list for TI DSP BRIDGE
-Date: Wed, 20 Aug 2008 19:08:15 +0300
-Message-ID: <48AC416F.2050808@nokia.com>
-References: <20080818.180829.145776296.Hiroshi.DOYU@nokia.com> <EBA93F3E4CB46947A4C5275F6308CF3E03435165@dlee15.ent.ti.com> <5d5443650808181020l19e9bce2g9ccb59979f626a93@mail.gmail.com> <20080819062020.GC17276@atomide.com> <13B9B4C6EF24D648824FF11BE8967162036217F694@dlee02.ent.ti.com>
+From: "Arun KS" <arunks@mistralsolutions.com>
+Subject: [PATCH] OMAP2EVM: Adding NAND support
+Date: Wed, 20 Aug 2008 21:46:15 +0530
+Message-ID: <dfeb90390808200916t30756a73sf283f0e7dd9bf15@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:18220 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752727AbYHTQHg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 12:07:36 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162036217F694@dlee02.ent.ti.com>
+Received: from ti-out-0910.google.com ([209.85.142.184]:28849 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755371AbYHTQQS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 12:16:18 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so313279tic.23
+        for <linux-omap@vger.kernel.org>; Wed, 20 Aug 2008 09:16:16 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Trilok Soni <soni.trilok@gmail.com>, "Pasam, Vijay" <vpasam@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>, "siarhei.siamashka@nokia.com" <siarhei.siamashka@nokia.com>, "Ramirez Luna, Omar" <x00omar@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Jalori, Mohit" <mjalori@ti.com>
+To: linux-omap@vger.kernel.org
 
-Hi,
+This patch enables the nand support for omap2evm board
 
-ext Woodruff, Richard wrote:
->>> I think recently some one from TI posted OMAP3 camera driver at 
->>> linux-v4l2 mailing list and which I think was using camera MMU,
->>> but not the common MMU framework it seems from the description.
->>> They should first start converting to the common MMU
->>> infrastructure then.
->>> 
->>> http://lists-archives.org/video4linux/23215-omap3-camera-driver.html
->>> 
->> We must make the MMU framework generic for the coprocessors,
->> otherwise maintenance will be a nightmare and the code will never
->> get merged upstream.
+Signed-off-by: Arun KS <arunks@mistralsolutions.com>
+---
+ arch/arm/mach-omap2/board-omap2evm.c |   96 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 96 insertions(+), 0 deletions(-)
 
-I agree with Tony.
+diff --git a/arch/arm/mach-omap2/board-omap2evm.c
+b/arch/arm/mach-omap2/board-omap2evm.c
+index 4188222..0dc3205 100644
+--- a/arch/arm/mach-omap2/board-omap2evm.c
++++ b/arch/arm/mach-omap2/board-omap2evm.c
+@@ -19,6 +19,9 @@
+ #include <linux/io.h>
+ #include <linux/input.h>
+ #include <linux/i2c/twl4030.h>
++#include <linux/mtd/mtd.h>
++#include <linux/mtd/partitions.h>
++#include <linux/mtd/nand.h>
 
-Many implementations are more likely have more bugs than one, too.
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -30,6 +33,62 @@
+ #include <mach/common.h>
+ #include <mach/hsmmc.h>
+ #include <mach/keypad.h>
++#include <mach/gpmc.h>
++#include <mach/nand.h>
++
++#define GPMC_CS0_BASE  0x60
++#define GPMC_CS_SIZE   0x30
++
++static struct mtd_partition nand_partitions[] = {
++	{
++		.name           = "X-Loader",
++		.offset         = 0,
++		.size           = 4*(64*2048),  /* 0-3 blks reserved.
++						Mandated by ROM code */
++		.mask_flags     = MTD_WRITEABLE /* force read-only */
++	},
++	{
++		.name           = "U-Boot",
++		.offset         = MTDPART_OFS_APPEND,
++		.size           =  4*(64*2048),
++		.mask_flags     = MTD_WRITEABLE /* force read-only */
++	},
++	{
++		.name           = "U-Boot Environment",
++		.offset         = MTDPART_OFS_APPEND,
++		.size           = 2*(64*2048),
++	},
++	{
++		.name           = "Kernel",
++		.offset         = MTDPART_OFS_APPEND,
++		.size           = 32*(64*2048),         /* 4*1M */
++	},
++	{
++		.name           = "File System",
++		.offset         = MTDPART_OFS_APPEND,
++		.size           = MTDPART_SIZ_FULL,
++	},
++};
++
++static struct omap_nand_platform_data omap2evm_nand_data = {
++	.parts          = nand_partitions,
++	.nr_parts       = ARRAY_SIZE(nand_partitions),
++	.dma_channel    = -1,   /* disable DMA in OMAP OneNAND driver */
++};
++
++static struct resource omap2evm_nand_resource = {
++	.flags          = IORESOURCE_MEM,
++};
++
++static struct platform_device omap2evm_nand_device = {
++	.name           = "omap2-nand",
++	.id             = -1,
++	.dev = {
++		.platform_data = &omap2evm_nand_data,
++	},
++	.num_resources  = 1,
++	.resource       = &omap2evm_nand_resource,
++};
 
-> Main issues are at outer interfaces which deal with OS memory system
-> interaction.  The other aspects of the code have been self contained.
-> 
-> 
-> The local MMU usages are not maintenance intensive like linux PTE
-> structures as Linux more strongly couples with the hardware table
-> representations.
-> 
-> Seems some of the subsystems like v4l2 do provide local abstractions
-> but there isn't always global ones (vmalloc to sg list for example).
+ static struct resource omap2evm_smc911x_resources[] = {
+ 	[0] =   {
+@@ -152,6 +211,42 @@ static struct platform_device
+*omap2_evm_devices[] __initdata = {
+ 	&omap2evm_smc911x_device,
+ 	&omap2evm_kp_device,
+ };
++void __init omap2evm_flash_init(void)
++{
++	u8 cs = 0;
++	u8 nandcs = GPMC_CS_NUM + 1;
++
++	u32 gpmc_base_add =  OMAP243X_GPMC_VIRT;
++
++	/* find out the chip-select on which NAND exists */
++	while (cs < GPMC_CS_NUM) {
++		u32 ret = 0;
++		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
++
++		if ((ret & 0xC00) == 0x800) {
++			printk(KERN_INFO "Found NAND on CS%d\n", cs);
++			if (nandcs > GPMC_CS_NUM)
++				nandcs = cs;
++		}
++		cs++;
++	}
++
++	if (nandcs > GPMC_CS_NUM) {
++		printk(KERN_INFO "NAND: Unable to find configuration "
++				 "in GPMC\n ");
++		return;
++	}
++	if (nandcs < GPMC_CS_NUM) {
++		omap2evm_nand_data.cs = nandcs;
++		omap2evm_nand_data.gpmc_cs_baseaddr = (void *)
++			(gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
++		omap2evm_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
++
++		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
++		if (platform_device_register(&omap2evm_nand_device) < 0)
++			printk(KERN_ERR "Unable to register NAND device\n");
++	}
++}
 
-The V4L2 provides functions for mapping the video buffers to kernel 
-memory, but that's not the point. The OMAP 3 ISP driver for example 
-would benefit from common MMU framework directly as it just wants to map 
-the video buffers continuously to some address and sometimes flush them.
+ static void __init omap2_evm_init(void)
+ {
+@@ -160,6 +255,7 @@ static void __init omap2_evm_init(void)
+ 	omap_board_config_size = ARRAY_SIZE(omap2_evm_config);
+ 	omap_serial_init();
+ 	hsmmc_init();
++	omap2evm_flash_init();
+ }
 
-Creating page tables for the mappings is necessary in practice.
-
-This sounds very much like something that would be useful for a number 
-of drivers for OMAP 3 in addition to the ISP driver.
-
-If there was a generic way for asking the MMU to map the buffer it
-would be simple for the ISP driver to use that.
-
-(Besides, it'd be easy to add MMU support for the OMAP 2 camera driver 
-as well if there was a generic framework. Aren't the MMUs similar or 
-even the same?? :))
-
-(I'm adding Mohit Jalori to Cc:.)
-
-Regards,
-
+ static void __init omap2_evm_map_io(void)
 -- 
-Sakari Ailus
-sakari.ailus@nokia.com
-
+1.5.3.4
