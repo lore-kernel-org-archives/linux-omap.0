@@ -1,27 +1,58 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 14/16] ARM: OMAP2: Misc updates from linux-omap tree
-Date: Wed, 20 Aug 2008 08:46:53 +0100
-Message-ID: <20080820074653.GB22709@flint.arm.linux.org.uk>
-References: <1212804762-18413-6-git-send-email-tony@atomide.com> <1212804762-18413-7-git-send-email-tony@atomide.com> <1212804762-18413-8-git-send-email-tony@atomide.com> <1212804762-18413-9-git-send-email-tony@atomide.com> <1212804762-18413-10-git-send-email-tony@atomide.com> <1212804762-18413-11-git-send-email-tony@atomide.com> <1212804762-18413-12-git-send-email-tony@atomide.com> <1212804762-18413-13-git-send-email-tony@atomide.com> <20080819210807.GE17034@flint.arm.linux.org.uk> <20080820074242.GE28862@atomide.com>
+From: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Subject: Re: [PATCH 0/0] Power domain and clock domain patches for omap
+Date: Wed, 20 Aug 2008 08:20:55 +0000 (UTC)
+Message-ID: <g8gk57$2ff$1@ger.gmane.org>
+References: <1216221555-18958-1-git-send-email-tony@atomide.com>
+	<g8feuo$i9$1@ger.gmane.org>
+	<alpine.DEB.1.00.0808200034010.26647@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:40422 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752213AbYHTHrF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 03:47:05 -0400
-Content-Disposition: inline
-In-Reply-To: <20080820074242.GE28862@atomide.com>
+Received: from main.gmane.org ([80.91.229.2]:39779 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751464AbYHTIVJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Aug 2008 04:21:09 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1KViwC-0007J6-4A
+	for linux-omap@vger.kernel.org; Wed, 20 Aug 2008 08:21:04 +0000
+Received: from ppp89-110-23-172.pppoe.avangarddsl.ru ([89.110.23.172])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Wed, 20 Aug 2008 08:21:04 +0000
+Received: from dbaryshkov by ppp89-110-23-172.pppoe.avangarddsl.ru with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Wed, 20 Aug 2008 08:21:04 +0000
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
-On Wed, Aug 20, 2008 at 10:42:44AM +0300, Tony Lindgren wrote:
-> Will remove these. I have some mach/io.h clean up patches coming up for
-> the next merge window that should take care of this.
+Paul Walmsley wrote:
 
-If you can sort out about 10 patches and post them to the list, wait
-for them to be reviewed and merged before sending the next set, it
-may be easier to make progress.  What I don't want to see is a sudden
-deluge of 30 or so patches (which I find a real problem...)
+> Hello Dmitry,
+> 
+> On Tue, 19 Aug 2008, Dmitry Baryshkov wrote:
+> 
+>> There is one major flaw IMO in this code. Please correct me if I'm
+>> wrong: Driver A: powerdomain_register()
+>> Driver B: powerdomain_get()
+>> Driver A: powerdomain_unregister()
+>> 
+>> Then Driver B has a reference to unregistered domain. And as
+>> powerdomains lack any type of refcounting this can lead to any type of
+>> memory access bugs if Driver A is unloaded from the kernel.
+> 
+> At this point, only OMAP kernel init code registers powerdomains in
+> arch/arm/mach-omap2/io.c.  It's not intended that driver code will
+> manipulate or even know about these.
+
+Anyway, this type of powerdomain_unregister() is asking for problems. Either
+unregistering should be disallowed, or proper reference counting should be
+implemented IMO.
+
+-- 
+With best wishes
+Dmitry
+
+
