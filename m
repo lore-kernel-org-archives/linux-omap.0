@@ -1,109 +1,144 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] 34XX: PM: Workaround to check wether any fck is
-	active before entering sleep
-Date: Wed, 20 Aug 2008 14:35:11 +0300
-Message-ID: <20080820113508.GB29374@atomide.com>
-References: <87iqu2rac0.fsf@trdhcp146196.ntc.nokia.com> <1218786438-28049-1-git-send-email-jouni.hogander@nokia.com>
+Subject: Re: [PATCH 2/4] PM: Workaround for taking care of gpio clocks
+Date: Wed, 20 Aug 2008 14:37:16 +0300
+Message-ID: <20080820113715.GC29374@atomide.com>
+References: <87iqu2rac0.fsf@trdhcp146196.ntc.nokia.com> <1218786439-28070-1-git-send-email-jouni.hogander@nokia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="bp/iNruPH9dso1Pn"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50484 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52079 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752277AbYHTLfW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 07:35:22 -0400
+	with ESMTP id S1752544AbYHTLhl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 07:37:41 -0400
 Content-Disposition: inline
-In-Reply-To: <1218786438-28049-1-git-send-email-jouni.hogander@nokia.com>
+In-Reply-To: <1218786439-28070-1-git-send-email-jouni.hogander@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jouni Hogander <jouni.hogander@nokia.com>
 Cc: linux-omap@vger.kernel.org
 
-
---bp/iNruPH9dso1Pn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
 * Jouni Hogander <jouni.hogander@nokia.com> [080815 10:47]:
-> This workaround shouldn't be needed when all drivers are configuring
-> their sysconfig registers properly and using their clocks properly.
+> In omap3 gpios 2-6 are in per domain. Functional clocks for these
+> should be disabled. This patch is needed until gpio driver disables
+> gpio clocks.
+> 
+> GPIO modules in PER domain are not able to act as a wake up source if
+> PER domain is in retention. PER domain sleep transition before MPU is
+> prevented by leaving icks active. PER domain still enters retention
+> together with MPU. When this happens IOPAD wake up mechanism is used
+> for gpios.
 
-How about the cosmetically prettified version below? This could
-still be kept around as CONFIG_PM_DEBUG functionality even after
-the drivers are fixed.
+As we talked offline.. Should we pass the GPIO wake-up configuration
+from board-*.c files? Or can we always automatically do this safely
+on 34xx?
 
 Tony
 
 
---bp/iNruPH9dso1Pn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline; filename=pm-34xx-fclk-check
-
->From e37e8acd7685df9cb39f2fbc7887ba36639d5820 Mon Sep 17 00:00:00 2001
-From: Jouni Hogander <jouni.hogander@nokia.com>
-Date: Wed, 20 Aug 2008 14:32:46 +0300
-Subject: [PATCH] ARM: OMAP: 34xx specific check wether any fck is active before entering sleep
-
-We cannot enter sleep_while_idle if some functional clocks are
-active. Add a check for enabled functional clocks for 34xx.
-
-Note that this workaround could be behind CONFIG_PM_DEBUG
-option when all drivers are configuring their sysconfig
-registers properly and using their clocks properly.
-
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index a57cf41..a145f80 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -174,10 +174,47 @@ static void omap_sram_idle(void)
- 	omap2_gpio_resume_after_retention();
- }
- 
-+/*
-+ * Check if functional clocks are enabled before entering
-+ * sleep. This function could be behind CONFIG_PM_DEBUG
-+ * when all drivers are configuring their sysconfig registers
-+ * properly and using their clocks properly.
-+ */
-+static int omap3_fclks_active(void)
-+{
-+	u32 fck_core1 = 0, fck_core3 = 0, fck_sgx = 0, fck_dss = 0,
-+		fck_cam = 0, fck_per = 0, fck_usbhost = 0;
-+
-+	fck_core1 = cm_read_mod_reg(CORE_MOD,
-+				    CM_FCLKEN1);
-+	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
-+		fck_core3 = cm_read_mod_reg(CORE_MOD,
-+					    OMAP3430ES2_CM_FCLKEN3);
-+		fck_sgx = cm_read_mod_reg(OMAP3430ES2_SGX_MOD,
-+					  CM_FCLKEN);
-+		fck_usbhost = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
-+					      CM_FCLKEN);
-+	} else
-+		fck_sgx = cm_read_mod_reg(GFX_MOD,
-+					  OMAP3430ES2_CM_FCLKEN3);
-+	fck_dss = cm_read_mod_reg(OMAP3430_DSS_MOD,
-+				  CM_FCLKEN);
-+	fck_cam = cm_read_mod_reg(OMAP3430_CAM_MOD,
-+				  CM_FCLKEN);
-+	fck_per = cm_read_mod_reg(OMAP3430_PER_MOD,
-+				  CM_FCLKEN);
-+	if (fck_core1 | fck_core3 | fck_sgx | fck_dss |
-+	    fck_cam | fck_per | fck_usbhost)
-+		return 1;
-+	return 0;
-+}
-+
- static int omap3_can_sleep(void)
- {
- 	if (!enable_dyn_sleep)
- 		return 0;
-+	if (omap3_fclks_active())
-+		return 0;
- 	if (atomic_read(&sleep_block) > 0)
- 		return 0;
- 	return 1;
-
---bp/iNruPH9dso1Pn--
+> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |   54 +++++++++++++++++++++++++++++++++++++++++-
+>  1 files changed, 53 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index f30fa9e..7d5d461 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -53,6 +53,36 @@ static void (*saved_idle)(void);
+>  
+>  static struct powerdomain *mpu_pwrdm;
+>  
+> +/* XXX This is for gpio fclk hack. Will be removed as gpio driver
+> + * handles fcks correctly */
+> +#define NUM_OF_PERGPIOS 5
+> +static struct clk *gpio_fcks[NUM_OF_PERGPIOS];
+> +
+> +/* XXX This is for gpio fclk hack. Will be removed as gpio driver
+> + * handles fcks correctly */
+> +static void per_gpio_clk_enable(void)
+> +{
+> +	int i;
+> +	for (i = 1; i < NUM_OF_PERGPIOS + 1; i++)
+> +		clk_enable(gpio_fcks[i-1]);
+> +}
+> +
+> +/* XXX This is for gpio fclk hack. Will be removed as gpio driver
+> + * handles fcks correctly */
+> +static void per_gpio_clk_disable(void)
+> +{
+> +	int i;
+> +	for (i = 1; i < NUM_OF_PERGPIOS + 1; i++)
+> +		clk_disable(gpio_fcks[i-1]);
+> +}
+> +
+> +/* XXX This is for gpio fclk hack. Will be removed as gpio driver
+> + * handles fcks correctly */
+> +static void gpio_fclk_mask(u32 *fclk)
+> +{
+> +	*fclk &= ~(0x1f << 13);
+> +}
+> +
+>  /* PRCM Interrupt Handler for wakeups */
+>  static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
+>  {
+> @@ -169,8 +199,18 @@ static void omap_sram_idle(void)
+>  
+>  	omap2_gpio_prepare_for_retention();
+>  
+> +	/* XXX This is for gpio fclk hack. Will be removed as gpio driver
+> +	 * handles fcks correctly */
+> +	if (clocks_off_while_idle)
+> +		per_gpio_clk_disable();
+> +
+>  	_omap_sram_idle(NULL, save_state);
+>  
+> +	/* XXX This is for gpio fclk hack. Will be removed as gpio driver
+> +	 * handles fcks correctly */
+> +	if (clocks_off_while_idle)
+> +		per_gpio_clk_enable();
+> +
+>  	omap2_gpio_resume_after_retention();
+>  }
+>  
+> @@ -200,6 +240,10 @@ static int omap3_fclks_active(void)
+>  				  CM_FCLKEN);
+>  	fck_per = cm_read_mod_reg(OMAP3430_PER_MOD,
+>  				  CM_FCLKEN);
+> +
+> +	if (clocks_off_while_idle)
+> +		gpio_fclk_mask(&fck_per);
+> +
+>  	if (fck_core1 | fck_core3 | fck_sgx | fck_dss |
+>  	    fck_cam | fck_per | fck_usbhost)
+>  		return 1;
+> @@ -418,7 +462,8 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm)
+>  int __init omap3_pm_init(void)
+>  {
+>  	struct power_state *pwrst;
+> -	int ret;
+> +	char clk_name[11];
+> +	int ret, i;
+>  
+>  	printk(KERN_ERR "Power Management for TI OMAP3.\n");
+>  
+> @@ -454,6 +499,13 @@ int __init omap3_pm_init(void)
+>  
+>  	pm_idle = omap3_pm_idle;
+>  
+> +	/* XXX This is for gpio fclk hack. Will be removed as gpio driver
+> +	 * handles fcks correctly */
+> +	for (i = 1; i < NUM_OF_PERGPIOS + 1; i++) {
+> +		sprintf(clk_name, "gpio%d_fck", i + 1);
+> +		gpio_fcks[i-1] = clk_get(NULL, clk_name);
+> +	}
+> +
+>  err1:
+>  	return ret;
+>  err2:
+> -- 
+> 1.5.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
