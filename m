@@ -1,151 +1,59 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 1/2] CLK: Introduce virtual clock registration
-Date: Wed, 20 Aug 2008 15:04:38 +0300
-Message-ID: <1219233879-28701-1-git-send-email-Hiroshi.DOYU@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP2EVM TWL4030 keypad update
+Date: Wed, 20 Aug 2008 15:24:09 +0300
+Message-ID: <20080820122408.GI29374@atomide.com>
+References: <dfeb90390808190200m200eb292q194b648236ba0f0e@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:37477 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755945AbYHTMFN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 08:05:13 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58461 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753012AbYHTMYl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 08:24:41 -0400
+Content-Disposition: inline
+In-Reply-To: <dfeb90390808190200m200eb292q194b648236ba0f0e@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com, eduardo.valentin@indt.org.br, felipe.balbi@nokia.com, tony@atomide.com, daniel.stone@nokia.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: Arun KS <getarunks@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-This patch provides the interface to register and unregister a virtual
-clock which groups multiple clocks in it in order to handle this group
-of clocks at once. Presently just clk_enable and clk_disable is
-overwritten and other operation can be done as well.
+* Arun KS <getarunks@gmail.com> [080819 12:01]:
+> Now we are passing irq number via platform_data
 
-This is just a refactor of MCBSP clock registration.
+Pushing today.
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
----
- arch/arm/plat-omap/clock.c              |   80 +++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/clock.h |   19 +++++++
- 2 files changed, 99 insertions(+), 0 deletions(-)
+Tony
 
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index 23a0705..c35b968 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -374,6 +374,86 @@ EXPORT_SYMBOL(clk_init_cpufreq_table);
- #endif
- 
- /*-------------------------------------------------------------------------*/
-+/*
-+ *	Virtual clock/Clock aggregation
-+ */
-+static int vclk_enable(struct clk *clk)
-+{
-+	int i, err;
-+	struct vclk *vc = container_of(clk, struct vclk, clk);
-+
-+	for (i = 0; i < vc->n_child; i++) {
-+		err = clk_enable(vc->child[i]);
-+		if (err)
-+			goto err_out;
-+	}
-+	return 0;
-+err_out:
-+	while (--i >= 0)
-+		clk_disable(vc->child[i]);
-+	return err;
-+}
-+
-+static void vclk_disable(struct clk *clk)
-+{
-+	int i;
-+	struct vclk *vc = container_of(clk, struct vclk, clk);
-+
-+	for (i = 0; i < vc->n_child; i++)
-+		clk_disable(vc->child[i]);
-+}
-+
-+int vclk_register(struct vclk *vc, struct vclk_cci *cci, int num_child)
-+{
-+	int i, err;
-+
-+	vc->n_child = num_child;
-+	vc->child = kzalloc(num_child * sizeof(struct clk *), GFP_KERNEL);
-+	if (!vc->child)
-+		return -ENOMEM;
-+
-+	vc->clk.enable = vclk_enable;
-+	vc->clk.disable = vclk_disable;
-+
-+	for (i = 0; i < num_child; i++, cci++) {
-+		struct clk *c;
-+		/* fake a platform device to get correct device ID */
-+		struct platform_device pdev;
-+
-+		c = vc->child[i];
-+		pdev.dev.bus = &platform_bus_type;
-+		pdev.id = cci->id;
-+		c = clk_get(&pdev.dev, cci->name);
-+		if (IS_ERR(c)) {
-+			pr_err("Could not get clock %s (%d).\n",
-+			       cci->name, cci->id);
-+			err = PTR_ERR(c);
-+			goto err_out;
-+		}
-+		vc->child[i] = c;
-+	}
-+	err = clk_register(&vc->clk);
-+	if (err)
-+		goto err_out;
-+	return 0;
-+err_out:
-+	while (--i >= 0)
-+		clk_put(vc->child[i]);
-+	kfree(vc->child);
-+	return err;
-+}
-+EXPORT_SYMBOL(vclk_register);
-+
-+void vclk_unregister(struct vclk *vc)
-+{
-+	int i = vc->n_child;
-+
-+	clk_unregister(&vc->clk);
-+	while (--i >= 0)
-+		clk_put(vc->child[i]);
-+	kfree(vc->child);
-+}
-+EXPORT_SYMBOL(vclk_unregister);
- 
- #ifdef CONFIG_OMAP_RESET_CLOCKS
- /*
-diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
-index c6762e9..5483027 100644
---- a/arch/arm/plat-omap/include/mach/clock.h
-+++ b/arch/arm/plat-omap/include/mach/clock.h
-@@ -94,6 +94,25 @@ struct clk {
- #endif
- };
- 
-+/*
-+ * Virtual Clock which holds multiple clocks in it and does some
-+ * operations (enable/disable) against these child clocks at once
-+ */
-+struct vclk {
-+	struct clk clk;
-+	struct clk **child;
-+	int n_child;
-+};
-+
-+/* Child Clock Info for virtual clock registration */
-+struct vclk_cci {
-+	const char *name;
-+	int id;
-+};
-+
-+extern int vclk_register(struct vclk *vclk, struct vclk_cci *cci, int n_child);
-+extern void vclk_unregister(struct vclk *vclk);
-+
- struct cpufreq_frequency_table;
- 
- struct clk_functions {
--- 
-1.5.5.1.357.g1af8b
 
+> Signed-off-by: Arun KS <arunks@mistralsolutions.com>
+> ---
+>  arch/arm/mach-omap2/board-omap2evm.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap2evm.c
+> b/arch/arm/mach-omap2/board-omap2evm.c
+> index 9bb8fba..4188222 100644
+> --- a/arch/arm/mach-omap2/board-omap2evm.c
+> +++ b/arch/arm/mach-omap2/board-omap2evm.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/io.h>
+>  #include <linux/input.h>
+> +#include <linux/i2c/twl4030.h>
+> 
+>  #include <mach/hardware.h>
+>  #include <asm/mach-types.h>
+> @@ -99,6 +100,7 @@ static struct omap_kp_platform_data omap2evm_kp_data = {
+>  	.keymap 	= omap2evm_keymap,
+>  	.keymapsize	= ARRAY_SIZE(omap2evm_keymap),
+>  	.rep		= 1,
+> +	.irq		= TWL4030_MODIRQ_KEYPAD,
+>  };
+> 
+>  static struct platform_device omap2evm_kp_device = {
+> -- 
+> 1.5.3.4
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
