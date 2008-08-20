@@ -1,93 +1,141 @@
-From: "Felipe Contreras" <felipe.contreras@gmail.com>
-Subject: Re: [RFC][DRAFT] TODO list for TI DSP BRIDGE
-Date: Wed, 20 Aug 2008 02:45:53 +0300
-Message-ID: <94a0d4530808191645xad82696v2af9980bd6fed741@mail.gmail.com>
-References: <20080818.163519.194678809.Hiroshi.DOYU@nokia.com>
-	 <EBA93F3E4CB46947A4C5275F6308CF3E03434FF2@dlee15.ent.ti.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E0B3121EE@dlee03.ent.ti.com>
-	 <5d5443650808181017w1ad90b9vcc6cc4d8abc6a963@mail.gmail.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E0B38DC7B@dlee03.ent.ti.com>
-	 <94a0d4530808181308i53a9b11fyb20af0b21785c0d9@mail.gmail.com>
-	 <20080819062422.GD17276@atomide.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E129DEDAB@dlee03.ent.ti.com>
-	 <94a0d4530808191210q59b7ed5ao7601efa553b60f3f@mail.gmail.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E129DF01B@dlee03.ent.ti.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: [PATCH 01/16] ARM: OMAP2 Provide function to enable/disable uart clocks
+Date: Wed, 20 Aug 2008 08:49:37 +0300
+Message-ID: <87r68k6xse.fsf@trdhcp146196.ntc.nokia.com>
+References: <1212803277-18007-1-git-send-email-tony@atomide.com>
+	<1212803277-18007-2-git-send-email-tony@atomide.com>
+	<20080819164013.GA17034@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.239]:20817 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752758AbYHSXpy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Aug 2008 19:45:54 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so203027rvb.1
-        for <linux-omap@vger.kernel.org>; Tue, 19 Aug 2008 16:45:53 -0700 (PDT)
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E129DF01B@dlee03.ent.ti.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:17560 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750925AbYHTFtp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 01:49:45 -0400
+In-Reply-To: <20080819164013.GA17034@flint.arm.linux.org.uk> (ext Russell
+	King's message of "Tue, 19 Aug 2008 17:40:13 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Trilok Soni <soni.trilok@gmail.com>, "Pasam, Vijay" <vpasam@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Woodruff, Richard" <r-woodruff2@ti.com>, "siarhei.siamashka@nokia.com" <siarhei.siamashka@nokia.com>, "Ramirez Luna, Omar" <x00omar@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>
+To: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-Hi Hari,
+"ext Russell King - ARM Linux" <linux@arm.linux.org.uk> writes:
 
-On Tue, Aug 19, 2008 at 11:46 PM, Kanigeri, Hari <h-kanigeri2@ti.com> wrote:
-> Felipe,
+> On Fri, Jun 06, 2008 at 06:47:42PM -0700, Tony Lindgren wrote:
+>> This patch adds common function to enable/disable omap2/3 uart
+>> clocks. Enabled uarts are passed by bootloader in atags and clocks f=
+or
+>> these enabled uarts are touched.
 >
-> Thanks for your comments.
+> In some ways, this patch is a good thing, in others it's outrageous.
 >
->> DSPPeripheralClkCtrl is already mapping some clock ids to some other
->> clock ids (SERVICES_ClkId) before calling the functions in clk.c. This
->> clk_enable/disable can be called there.
+>> -static struct clk * uart1_ick =3D NULL;
+>> -static struct clk * uart1_fck =3D NULL;
+>> -static struct clk * uart2_ick =3D NULL;
+>> -static struct clk * uart2_fck =3D NULL;
+>> -static struct clk * uart3_ick =3D NULL;
+>> -static struct clk * uart3_fck =3D NULL;
+>> +static struct clk *uart_ick[OMAP_MAX_NR_PORTS];
+>> +static struct clk *uart_fck[OMAP_MAX_NR_PORTS];
+>> =20
+>>  static struct plat_serial8250_port serial_platform_data[] =3D {
+>>  	{
+>> -		.membase	=3D (char *)IO_ADDRESS(OMAP_UART1_BASE),
+>> +		.membase	=3D (__force void __iomem *)IO_ADDRESS(OMAP_UART1_BASE),
 >
-> - DSPPeripheralClkCtrl is used for managing the peripheral clock requests that come from DSP. You cannot use this function to enable IVA2 and mailbox clocks.
+> __force in drivers is a big no no, immediate patch rejection.  Driver=
+s
+> do not use __force.
+>
+> The reason for adding __iomem is to pick up where people are doing
+> stupid things with pointers, and __force is added in _private_ code
+> (eg, functions supporting IO, mapping functions, etc) to provide a
+> way of saying "this is part of the infrastructure and its permitted
+> to do this conversion."
+>
+> The correct place for that cast, in its entirety, is inside the
+> IO_ADDRESS macro.
+>
+>> @@ -71,7 +67,7 @@ static inline void serial_write_reg(struct plat_se=
+rial8250_port *p, int offset,
+>>  				    int value)
+>>  {
+>>  	offset <<=3D p->regshift;
+>> -	__raw_writeb(value, (unsigned long)(p->membase + offset));
+>> +	__raw_writeb(value, p->membase + offset);
+>
+> Good.
+>
+>> @@ -87,10 +83,27 @@ static inline void __init omap_serial_reset(stru=
+ct plat_serial8250_port *p)
+>>  	serial_write_reg(p, UART_OMAP_SYSC, (0x02 << 3) | (1 << 2) | (1 <<=
+ 0));
+>>  }
+>> =20
+>> -void __init omap_serial_init()
+>> +void omap_serial_enable_clocks(int enable)
+>> +{
+>> +	int i;
+>> +	for (i =3D 0; i < OMAP_MAX_NR_PORTS; i++) {
+>> +		if (uart_ick[i] && uart_fck[i]) {
+>> +			if (enable) {
+>> +				clk_enable(uart_ick[i]);
+>> +				clk_enable(uart_fck[i]);
+>> +			} else {
+>> +				clk_disable(uart_ick[i]);
+>> +				clk_disable(uart_fck[i]);
+>> +			}
+>> +		}
+>> +	}
+>> +}
+>
+> Urgh.  Why enable all clocks?  I thought OMAP was about being as lean
+> and mean as possible as far as power management goes, so why enable
+> everything and disable everything?
 
-That's right, you call clk_enable directly for iva2 and mailbox
-clocks. You already know the clock, no need to translate.
+Not everything, just those that are marked as a enabled by a
+bootloader. This mean basically serial-console uart. If all three omap
+uarts are used as a serial console, then this function will
+disable/enable clocks for all of them.
 
-> Felipe, I see your point of removing the clock module, but please don't view this just as a wrapper; it provides more functionality than just being the direct wrapper. It does hide the implementation to translate the clock id to kernel clock structure, the clock init does the job of obtaining the references to the clock ids in its initialization, and more importantly isolates the tracing to one module.
+> Looking at the omapzoom tree, this function isn't even referenced by
+> another part of the kernel, so maybe this function is just cruft?
 
-We are trying to understand why this is not just a wrapper.
+This function is added for dynamic PM to have a mean to enable/disable
+serial console clocks. My intention is to be able to have PM when
+serial console is used without need to reboot the device and changing
+atags from the bootloader. There are patches on linux-omap list which a=
+re
+using this. They are not pushed yet.
 
-a) It does hide the implementation to translate the clock id to kernel
-clock structure
+>
+>> +		sprintf(name, "uart%d_ick", i+1);
+>> +		uart_ick[i] =3D clk_get(NULL, name);
+>> +		if (IS_ERR(uart_ick[i])) {
+>> +			printk(KERN_ERR "Could not get uart%d_ick\n", i+1);
+>> +			uart_ick[i] =3D NULL;
+>> +		} else
+>> +			clk_enable(uart_ick[i]);
+>> +
+>> +		sprintf(name, "uart%d_fck", i+1);
+>> +		uart_fck[i] =3D clk_get(NULL, name);
+>> +		if (IS_ERR(uart_fck[i])) {
+>> +			printk(KERN_ERR "Could not get uart%d_fck\n", i+1);
+>> +			uart_fck[i] =3D NULL;
+>> +		} else
+>> +			clk_enable(uart_fck[i]);
+>
+> Definitely an improvement, but still some way to go yet... but not a
+> reason not to get this in (once the above issues have been resolved.)
+>
+>
 
-I already mentioned that DSPPeripheralClkCtrl is doing that translation.
+--=20
+Jouni H=C3=B6gander
 
-{(u32) BPWR_GPTimer5, SERVICESCLK_gpt5_fck, SERVICESCLK_gpt5_ick},
-
-Those SERVICESCLK_* are used to find the clk handle, but if you
-already have BPWR_GPTimer5 you know which clk handles you need, why
-not store them in some place where DSPPeripheralClkCtrl can find them?
-
-if (BPWR_GPTimer5) { clk_enable(gpt5_fck_handle); clk_enable(gpt5_ick_handle); }
-
-Or if you store the clk handle directly into the BPWR_Clk_t structure:
-
-clk_enable(BPWR_Clks[clkIdIndex].intClk);
-clk_enable(BPWR_Clks[clkIdIndex].funClk);
-
-b) the clock init does the job of obtaining the references to the
-clock ids in its initialization
-
-Those could be initialized in some other place as well.
-
-c) and more importantly isolates the tracing to one module.
-
-I already mentioned how to enable debugging while using clk_enable,
-just enable a macro with the same name.
-
-> There are multiple ways to implement, and yes we can remove the clock module in Bridge and move the code in these functions to other places, but in the end we will have the new code that has lesser code readability and debugging ability :).
-
-How exactly is "clk_enable(BPWR_Clks[clkIdIndex].intClk)" less
-readable than "CLK_Enable(BPWR_Clks[clkIdIndex].intClk)" ?
-
->> Didn't Tony just explained how to do that without a wrapper?
-> -- I was under the impression that Tony is thinking that the DSP Bridge is not calling kernel's clk_enable function. My above explanation holds here about the wrappers.
-
-I'm not sure, but in any case I also explained an alternative.
-
-Best regards.
-
--- 
-Felipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
