@@ -1,72 +1,63 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] TWL4030-RTC: Remove obsolete comment
-Date: Wed, 20 Aug 2008 15:29:51 +0300
-Message-ID: <20080820122950.GJ29374@atomide.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB020F89F003@dbde02.ent.ti.com> <20080819144218.GE23346@gandalf.research.nokia.com> <EAF47CD23C76F840A9E7FCE10091EFAB020F89F02A@dbde02.ent.ti.com>
+Subject: Re: [PATCH] Fix compile-time warning
+Date: Wed, 20 Aug 2008 15:30:48 +0300
+Message-ID: <20080820123047.GK29374@atomide.com>
+References: <premi@ti.com> <1219170601-23337-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63216 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63946 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753850AbYHTMaI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 08:30:08 -0400
+	with ESMTP id S1751636AbYHTMbC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Aug 2008 08:31:02 -0400
 Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB020F89F02A@dbde02.ent.ti.com>
+In-Reply-To: <1219170601-23337-1-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
-Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-* Pakaravoor, Jagadeesh <j-pakaravoor@ti.com> [080819 18:09]:
-> > -----Original Message-----
-> > From: Felipe Balbi [mailto:felipe.balbi@nokia.com]
-> > Sent: Tuesday, August 19, 2008 8:12 PM
-> > To: Pakaravoor, Jagadeesh
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH] TWL4030-RTC: Remove obsolete comment
-> > 
-> > On Tue, Aug 19, 2008 at 07:50:26PM +0530, ext Pakaravoor, Jagadeesh wrote:
-> > > From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
-> > >
-> > > TWL4030-RTC: Remove obsolete comment.
-> > >
-> > > Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
-> > > Index: my-local-git-dir/drivers/rtc/rtc-twl4030.c
-> > > ===================================================================
-> > > --- my-local-git-dir.orig/drivers/rtc/rtc-twl4030.c	2008-08-19 19:20:24.000000000 +0530
-> > > +++ my-local-git-dir/drivers/rtc/rtc-twl4030.c	2008-08-19 19:28:43.037746119 +0530
-> > > @@ -446,12 +446,6 @@ static irqreturn_t twl4030_rtc_interrupt
-> > >  				   REG_RTC_STATUS_REG);
-> > >  	if (res)
-> > >  		goto out;
-> > > -	/*
-> > > -	 * Workaround for strange behaviour with T2. Need to write into ISR
-> > > -	 * register one more time to clear the interrupt. Otherwise, the same
-> > > -	 * RTC event generates 2 interrupts in a row.
-> > > -	 * (no errata document available)
-> > > -	 */
-> > >  	res = twl4030_i2c_write_u8(TWL4030_MODULE_INT,
-> > >  			PWR_RTC_INT_CLR, REG_PWR_ISR1);
-> > >  	if (res)
-> > 
-> > Why is this obsolete? Seems quite a good comment to me. Removing it
-> > might turn into someone removing that line and make t2's rtc misbehave.
-> > 
-> > Maybe you wanna remove only the "no errata" line if there is any errata
-> > available but the comment itself is quite valuable.
-> > 
-> 
-> Currently there is only one write to the ISR (REG_PWR_ISR1), where as previously there used to be two writes. So the comment is no more valid.
+* Sanjeev Premi <premi@ti.com> [080819 21:32]:
+> Fixes this warning:
+>   CC      arch/arm/mach-omap2/board-omap3evm-flash.o
+> arch/arm/mach-omap2/board-omap3evm-flash.c:61: warning: initialization from incompatible pointer type
 
-Sounds like a valid patch then. Pushing today.
+Pushing today.
 
 Tony
 
-
-
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-omap3evm-flash.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
 > 
-> --
-> Jagadeesh
+> diff --git a/arch/arm/mach-omap2/board-omap3evm-flash.c b/arch/arm/mach-omap2/board-omap3evm-flash.c
+> index 0aa8ef2..5f3663d 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm-flash.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm-flash.c
+> @@ -23,7 +23,7 @@
+>  #include <mach/gpmc.h>
+>  #include <mach/nand.h>
+>  
+> -static int omap3evm_onenand_setup(void __iomem *);
+> +static int omap3evm_onenand_setup(void __iomem *, int freq);
+>  
+>  static struct mtd_partition omap3evm_onenand_partitions[] = {
+>  	{
+> @@ -76,8 +76,8 @@ static struct platform_device omap3evm_onenand_device = {
+>   *
+>   */
+>  
+> -static int omap3evm_onenand_setup(void __iomem *onenand_base)
+> -	{
+> +static int omap3evm_onenand_setup(void __iomem *onenand_base, int freq)
+> +{
+>  	/* nothing is required to be setup for onenand as of now */
+>  	return 0;
+>  }
+> -- 
+> 1.5.6
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
