@@ -1,66 +1,180 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCH 2/4] PM: Workaround for taking care of gpio clocks
-Date: Thu, 21 Aug 2008 14:07:57 +0300
-Message-ID: <B71CE868F2BC2847B3F23C5A8EE394306273A5@vaebe110.NOE.Nokia.com>
-References: <87iqu2rac0.fsf@trdhcp146196.ntc.nokia.com> <1218786439-28070-1-git-send-email-jouni.hogander@nokia.com> <20080820113715.GC29374@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 8BIT
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: [RFC] ASoC: OMAP: Add support for OMAP2430 and OMAP34xx in McBSP DAI driver
+Date: Thu, 21 Aug 2008 14:55:18 +0300
+Message-ID: <1219319718-1750-3-git-send-email-jarkko.nikula@nokia.com>
+References: <1219319718-1750-1-git-send-email-jarkko.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:49254 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:54870 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755033AbYHULIl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Aug 2008 07:08:41 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <20080820113715.GC29374@atomide.com>
+	with ESMTP id S1751758AbYHUL4O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Aug 2008 07:56:14 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m7LBuB7g018727
+	for <linux-omap@vger.kernel.org>; Thu, 21 Aug 2008 14:56:12 +0300
+In-Reply-To: <1219319718-1750-1-git-send-email-jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, jouni.hogander@nokia.com
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
 
+Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+---
+ sound/soc/omap/omap-mcbsp.c |   95 ++++++++++++++++++++++++++++++++++--------
+ 1 files changed, 77 insertions(+), 18 deletions(-)
+
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index 35310e1..a217cf2 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -84,11 +84,22 @@ static const unsigned long omap1_mcbsp_port[][2] = {
+ static const int omap1_dma_reqs[][2] = {};
+ static const unsigned long omap1_mcbsp_port[][2] = {};
+ #endif
+-#if defined(CONFIG_ARCH_OMAP2420)
+-static const int omap2420_dma_reqs[][2] = {
++
++#if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
++static const int omap24xx_dma_reqs[][2] = {
+ 	{ OMAP24XX_DMA_MCBSP1_TX, OMAP24XX_DMA_MCBSP1_RX },
+ 	{ OMAP24XX_DMA_MCBSP2_TX, OMAP24XX_DMA_MCBSP2_RX },
++#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX)
++	{ OMAP24XX_DMA_MCBSP3_TX, OMAP24XX_DMA_MCBSP3_RX },
++	{ OMAP24XX_DMA_MCBSP4_TX, OMAP24XX_DMA_MCBSP4_RX },
++	{ OMAP24XX_DMA_MCBSP5_TX, OMAP24XX_DMA_MCBSP5_RX },
++#endif
+ };
++#else
++static const int omap2420_dma_reqs[][2] = {};
++#endif
++
++#if defined(CONFIG_ARCH_OMAP2420)
+ static const unsigned long omap2420_mcbsp_port[][2] = {
+ 	{ OMAP24XX_MCBSP1_BASE + OMAP_MCBSP_REG_DXR1,
+ 	  OMAP24XX_MCBSP1_BASE + OMAP_MCBSP_REG_DRR1 },
+@@ -96,10 +107,43 @@ static const unsigned long omap2420_mcbsp_port[][2] = {
+ 	  OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DRR1 },
+ };
+ #else
+-static const int omap2420_dma_reqs[][2] = {};
+ static const unsigned long omap2420_mcbsp_port[][2] = {};
+ #endif
  
++#if defined(CONFIG_ARCH_OMAP2430)
++static const unsigned long omap2430_mcbsp_port[][2] = {
++	{ OMAP24XX_MCBSP1_BASE + OMAP_MCBSP_REG_DXR,
++	  OMAP24XX_MCBSP1_BASE + OMAP_MCBSP_REG_DRR },
++	{ OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DXR,
++	  OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DRR },
++	{ OMAP2430_MCBSP3_BASE + OMAP_MCBSP_REG_DXR,
++	  OMAP2430_MCBSP3_BASE + OMAP_MCBSP_REG_DRR },
++	{ OMAP2430_MCBSP4_BASE + OMAP_MCBSP_REG_DXR,
++	  OMAP2430_MCBSP4_BASE + OMAP_MCBSP_REG_DRR },
++	{ OMAP2430_MCBSP5_BASE + OMAP_MCBSP_REG_DXR,
++	  OMAP2430_MCBSP5_BASE + OMAP_MCBSP_REG_DRR },
++};
++#else
++static const unsigned long omap2430_mcbsp_port[][2] = {};
++#endif
++
++#if defined(CONFIG_ARCH_OMAP34XX)
++static const unsigned long omap34xx_mcbsp_port[][2] = {
++	{ OMAP34XX_MCBSP1_BASE + OMAP_MCBSP_REG_DXR,
++	  OMAP34XX_MCBSP1_BASE + OMAP_MCBSP_REG_DRR },
++	{ OMAP34XX_MCBSP2_BASE + OMAP_MCBSP_REG_DXR,
++	  OMAP34XX_MCBSP2_BASE + OMAP_MCBSP_REG_DRR },
++	{ OMAP34XX_MCBSP3_BASE + OMAP_MCBSP_REG_DXR,
++	  OMAP34XX_MCBSP3_BASE + OMAP_MCBSP_REG_DRR },
++	{ OMAP34XX_MCBSP4_BASE + OMAP_MCBSP_REG_DXR,
++	  OMAP34XX_MCBSP4_BASE + OMAP_MCBSP_REG_DRR },
++	{ OMAP34XX_MCBSP5_BASE + OMAP_MCBSP_REG_DXR,
++	  OMAP34XX_MCBSP5_BASE + OMAP_MCBSP_REG_DRR },
++};
++#else
++static const unsigned long omap34xx_mcbsp_port[][2] = {};
++#endif
++
+ static int omap_mcbsp_dai_startup(struct snd_pcm_substream *substream)
+ {
+ 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+@@ -167,12 +211,15 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 		dma = omap1_dma_reqs[bus_id][substream->stream];
+ 		port = omap1_mcbsp_port[bus_id][substream->stream];
+ 	} else if (cpu_is_omap2420()) {
+-		dma = omap2420_dma_reqs[bus_id][substream->stream];
++		dma = omap24xx_dma_reqs[bus_id][substream->stream];
+ 		port = omap2420_mcbsp_port[bus_id][substream->stream];
++	} else if (cpu_is_omap2430()) {
++		dma = omap24xx_dma_reqs[bus_id][substream->stream];
++		port = omap2430_mcbsp_port[bus_id][substream->stream];
++	} else if (cpu_is_omap343x()) {
++		dma = omap24xx_dma_reqs[bus_id][substream->stream];
++		port = omap34xx_mcbsp_port[bus_id][substream->stream];
+ 	} else {
+-		/*
+-		 * TODO: Add support for 2430 and 3430
+-		 */
+ 		return -ENODEV;
+ 	}
+ 	omap_mcbsp_dai_dma_params[id][substream->stream].dma_req = dma;
+@@ -310,7 +357,7 @@ static int omap_mcbsp_dai_set_clks_src(struct omap_mcbsp_data *mcbsp_data,
+ 				       int clk_id)
+ {
+ 	int sel_bit;
+-	u16 reg;
++	u16 reg, reg_devconf1 = OMAP243X_CONTROL_DEVCONF1;
+ 
+ 	if (cpu_class_is_omap1()) {
+ 		/* OMAP1's can use only external source clock */
+@@ -320,6 +367,12 @@ static int omap_mcbsp_dai_set_clks_src(struct omap_mcbsp_data *mcbsp_data,
+ 			return 0;
+ 	}
+ 
++	if (cpu_is_omap2420() && mcbsp_data->bus_id > 1)
++		return -EINVAL;
++
++	if (cpu_is_omap343x())
++		reg_devconf1 = OMAP343X_CONTROL_DEVCONF1;
++
+ 	switch (mcbsp_data->bus_id) {
+ 	case 0:
+ 		reg = OMAP2_CONTROL_DEVCONF0;
+@@ -329,20 +382,26 @@ static int omap_mcbsp_dai_set_clks_src(struct omap_mcbsp_data *mcbsp_data,
+ 		reg = OMAP2_CONTROL_DEVCONF0;
+ 		sel_bit = 6;
+ 		break;
+-	/* TODO: Support for ports 3 - 5 in OMAP2430 and OMAP34xx */
++	case 2:
++		reg = reg_devconf1;
++		sel_bit = 0;
++		break;
++	case 3:
++		reg = reg_devconf1;
++		sel_bit = 2;
++		break;
++	case 4:
++		reg = reg_devconf1;
++		sel_bit = 4;
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+ 
+-	if (cpu_class_is_omap2()) {
+-		if (clk_id == OMAP_MCBSP_SYSCLK_CLKS_FCLK) {
+-			omap_ctrl_writel(omap_ctrl_readl(reg) &
+-					 ~(1 << sel_bit), reg);
+-		} else {
+-			omap_ctrl_writel(omap_ctrl_readl(reg) |
+-					 (1 << sel_bit), reg);
+-		}
+-	}
++	if (clk_id == OMAP_MCBSP_SYSCLK_CLKS_FCLK)
++		omap_ctrl_writel(omap_ctrl_readl(reg) & ~(1 << sel_bit), reg);
++	else
++		omap_ctrl_writel(omap_ctrl_readl(reg) | (1 << sel_bit), reg);
+ 
+ 	return 0;
+ }
+-- 
+1.5.6.3
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org 
->[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of ext 
->Tony Lindgren
->Sent: 20 August, 2008 14:37
->To: Hogander Jouni (Nokia-D/Tampere)
->Cc: linux-omap@vger.kernel.org
->Subject: Re: [PATCH 2/4] PM: Workaround for taking care of gpio clocks
->
->* Jouni Hogander <jouni.hogander@nokia.com> [080815 10:47]:
->> In omap3 gpios 2-6 are in per domain. Functional clocks for these 
->> should be disabled. This patch is needed until gpio driver disables 
->> gpio clocks.
->> 
->> GPIO modules in PER domain are not able to act as a wake up 
->source if 
->> PER domain is in retention. PER domain sleep transition 
->before MPU is 
->> prevented by leaving icks active. PER domain still enters retention 
->> together with MPU. When this happens IOPAD wake up mechanism is used 
->> for gpios.
->
->As we talked offline.. Should we pass the GPIO wake-up 
->configuration from board-*.c files? Or can we always 
->automatically do this safely on 34xx?
-
-After some investigation it seems that we can configure wake-up events
-for almost every GPIO from the padconfigs. There are only 2 pins that do
-not seem to have this functionality, however I am not sure if this is a
-documentation bug or what because it is strange that only 2 pins lack
-this capability. GPIOs 32 and 187 are missing wake-up capability from
-padconfig.
-
-Because of this, our proposal would be to make GPIO clock switching
-global, but this would be enabled from a sysfs entry pretty much like
-how it is in the patches now. However, this would be separated from UART
-clock switching. So, we would introduce two new sysfs files:
-uart_clocks_off_while_idle and gpio_clocks_off_while_idle. This would
-avoid introducing new complexity in to the idle loop.
-
-How does this sound like?
-
--Tero
