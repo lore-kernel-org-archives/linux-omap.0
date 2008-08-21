@@ -1,47 +1,85 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: [PATCH] Fix TWL4030 BCI compilation break
-Date: Thu, 21 Aug 2008 21:19:53 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870229E813AB@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55088 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752331AbYHUPuG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Aug 2008 11:50:06 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7LFnv2d014753
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 21 Aug 2008 10:50:05 -0500
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: <gregkh-l3A5Bk7waGM@public.gmane.org>
+Subject: patch musb-fix-index-register-corruption-seen-with-g_ether-and-windows-host.patch added to gregkh-2.6 tree
+Date: Thu, 21 Aug 2008 09:05:18 -0700
+Message-ID: <12193347183045@kroah.org>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02C3E31565@dbde02.ent.ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02C3E31565-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gadiyar-l0cyMroinI0@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org, greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
 
-From: Vikram Pandita <vikram.pandita@ti.com>
 
-Fix following compilation error when enabling CONFIG_TWL4030_BCI_BATTERY
+This is a note to let you know that I've just added the patch titled
 
-drivers/power/twl4030_bci_battery.c: In function 'twl4030_bci_battery_probe':
-drivers/power/twl4030_bci_battery.c:911: error: dereferencing pointer to incomplete type
+    Subject: MUSB: Fix index register corruption seen with g_ether and Windows host
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+to my gregkh-2.6 tree.  Its filename is
+
+    musb-fix-index-register-corruption-seen-with-g_ether-and-windows-host.patch
+
+This tree can be found at 
+    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
+
+
+>From gadiyar-l0cyMroinI0@public.gmane.org  Thu Aug 21 08:40:33 2008
+From: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Date: Thu, 21 Aug 2008 20:21:00 +0530
+Subject: MUSB: Fix index register corruption seen with g_ether and Windows host
+To: "greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org" <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02C3E31565-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+
+
+From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+
+If Indexed Mode register accesses are enabled, the ep0_rxstate()
+function calls musb_g_ep0_giveback() before writing to the CSR
+register. When control returns to this ep0_rxstate, the index
+register contents are over-written. This causes the CSR register
+write to fail.
+
+Fixed by writing the correct value into the index register before
+writing to the CSR.
+
+This was observed only in ep0_rxstate() with g_ether loaded and
+the device connected to a MS Windows host PC. Anticipatively fixed
+ep0_txstate() as well.
+
+Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+Acked-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
+
 ---
- drivers/power/twl4030_bci_battery.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/musb/musb_gadget_ep0.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-Index: base-tony/drivers/power/twl4030_bci_battery.c
-===================================================================
---- base-tony.orig/drivers/power/twl4030_bci_battery.c	2008-08-21 15:06:47.000000000 +0530
-+++ base-tony/drivers/power/twl4030_bci_battery.c	2008-08-21 20:37:18.000000000 +0530
-@@ -23,7 +23,7 @@
- #include <linux/platform_device.h>
- #include <linux/i2c/twl4030.h>
- #include <linux/power_supply.h>
--#include <asm/arch/bci.h>
-+#include <mach/bci.h>
- #include <linux/i2c/twl4030-madc.h>
+--- a/drivers/usb/musb/musb_gadget_ep0.c
++++ b/drivers/usb/musb/musb_gadget_ep0.c
+@@ -476,6 +476,7 @@ static void ep0_rxstate(struct musb *mus
+ 			return;
+ 		musb->ackpend = 0;
+ 	}
++	musb_ep_select(musb->mregs, 0);
+ 	musb_writew(regs, MUSB_CSR0, tmp);
+ }
  
- #define T2_BATTERY_VOLT		0x04
+@@ -528,6 +529,7 @@ static void ep0_txstate(struct musb *mus
+ 	}
+ 
+ 	/* send it out, triggering a "txpktrdy cleared" irq */
++	musb_ep_select(musb->mregs, 0);
+ 	musb_writew(regs, MUSB_CSR0, csr);
+ }
+ 
+
+
+Patches currently in gregkh-2.6 which might be from gadiyar-l0cyMroinI0@public.gmane.org are
+
+usb.current/usb-musb-get-rid-of-musb_loglevel-and-use-parameter.patch
+usb.current/usb-musb-get-rid-of-procfs-entry.patch
+usb.current/musb-fix-index-register-corruption-seen-with-g_ether-and-windows-host.patch
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
