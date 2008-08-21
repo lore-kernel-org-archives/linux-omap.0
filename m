@@ -1,98 +1,83 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+From: "Felipe Contreras" <felipe.contreras@gmail.com>
 Subject: Re: [RFC][DRAFT] TODO list for TI DSP BRIDGE
-Date: Thu, 21 Aug 2008 10:41:49 +0300 (EEST)
-Message-ID: <20080821.104149.169747270.Hiroshi.DOYU@nokia.com>
-References: <20080819062422.GD17276@atomide.com>
-	<20080820.131042.200608197.Hiroshi.DOYU@nokia.com>
-	<13B9B4C6EF24D648824FF11BE896716203621E71D9@dlee02.ent.ti.com>
+Date: Thu, 21 Aug 2008 11:10:18 +0300
+Message-ID: <94a0d4530808210110t38fb6e42x8760707b3a21e33@mail.gmail.com>
+References: <20080818.163519.194678809.Hiroshi.DOYU@nokia.com>
+	 <5d5443650808181017w1ad90b9vcc6cc4d8abc6a963@mail.gmail.com>
+	 <8F7AF80515AF0D4D93307E594F3CB40E0B38DC7B@dlee03.ent.ti.com>
+	 <94a0d4530808181308i53a9b11fyb20af0b21785c0d9@mail.gmail.com>
+	 <20080819062422.GD17276@atomide.com>
+	 <8F7AF80515AF0D4D93307E594F3CB40E129DEDAB@dlee03.ent.ti.com>
+	 <94a0d4530808191210q59b7ed5ao7601efa553b60f3f@mail.gmail.com>
+	 <8F7AF80515AF0D4D93307E594F3CB40E129DF01B@dlee03.ent.ti.com>
+	 <94a0d4530808191645xad82696v2af9980bd6fed741@mail.gmail.com>
+	 <8F7AF80515AF0D4D93307E594F3CB40E12EC5718@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:58672 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751827AbYHUHmR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Aug 2008 03:42:17 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE896716203621E71D9@dlee02.ent.ti.com>
+Received: from rv-out-0506.google.com ([209.85.198.228]:33377 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755026AbYHUIKT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Aug 2008 04:10:19 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so838935rvb.1
+        for <linux-omap@vger.kernel.org>; Thu, 21 Aug 2008 01:10:18 -0700 (PDT)
+In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E12EC5718@dlee03.ent.ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: r-woodruff2@ti.com
-Cc: tony@atomide.com, felipe.contreras@gmail.com, h-kanigeri2@ti.com, soni.trilok@gmail.com, vpasam@ti.com, linux-omap@vger.kernel.org, siarhei.siamashka@nokia.com, x00omar@ti.com, grgupta@ti.com
+To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Trilok Soni <soni.trilok@gmail.com>, "Pasam, Vijay" <vpasam@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Woodruff, Richard" <r-woodruff2@ti.com>, "siarhei.siamashka@nokia.com" <siarhei.siamashka@nokia.com>, "Ramirez Luna, Omar" <x00omar@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>
 
-From: "ext Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [RFC][DRAFT] TODO list for TI DSP BRIDGE
-Date: Wed, 20 Aug 2008 09:32:32 -0500
+On Thu, Aug 21, 2008 at 1:34 AM, Kanigeri, Hari <h-kanigeri2@ti.com> wrote:
+> Felipe,
+>
+>> We are trying to understand why this is not just a wrapper.
+>
+> -- Thank you :)
+>
+>> b) the clock init does the job of obtaining the references to the
+>> clock ids in its initialization
+>>
+>> Those could be initialized in some other place as well.
+>>
+> -- Why can't this some other place be the init function in the current clock module in Bridge ?
 
-> Hi Hiroshi,
-> 
-> > I sent some patches based on the above suggestion.
-> >
-> >   http://marc.info/?l=linux-omap&m=121922597019873&w=2
-> >   http://marc.info/?l=linux-omap&m=121922593919766&w=2
-> >
-> > I think that this virtual clock may allow any arbitrary combination of
-> > clocks and it may be possible to have multiple hierarchy of virtual
-> > clocks like:
-> >
-> >    dsp_clocks
-> >    |
-> >    |-- peripheral_clocks
-> >    |     |
-> >    |     |-- gpt5
-> >    |     |    |- gpt5_ick
-> >    |     |    `- gpt5_fck
-> >    |
-> >    |-- ....
-> >    ..
-> >
-> > Any comments would be appreciated.
-> 
-> A few quick comments:
-> 
-> - First off, I do like the idea of virtual clocks for grouping.  I
-> did do this for OMAP2 for completely internal and dependent root
-> clocks.  I also thought it might be nice to extend clock frame work
-> to allow external clock registration (say for a codec chip).  In our
-> local tree I did even add it.  One main issue was the internal clock
-> structure is supposed to be opaque and you need to set internals to
-> add a clock node.
+That depends on what is left of clk.c after reorganization.
 
-Can I find your OMAP2 implementation in omapzoom for virtual clock?
+>> How exactly is "clk_enable(BPWR_Clks[clkIdIndex].intClk)" less
+>> readable than "CLK_Enable(BPWR_Clks[clkIdIndex].intClk)" ?
+>
+> -- Did you check the argument of CLK_Enable function ? The argument is not the same as you mentioned above?  One more reason to say that this is not a direct wrapper ;).
 
-> - I worry a bit about grouping of internal resources which may be
-> allocated differently per implementation.  Perhaps a board specific
-> resource can handle it, but you've not included that in the patch.
-> 
-> - Where is the board specific side of this call?  I see clock calls
-> added to clock.c but not resources added to mach-omap2/xyz-board.c.
+Did you read what I wrote?
 
-One example is "arch/arm/mach-omap2/mcbsp.c" in the second patch and I
-think that board specific grouping is also expected.
+>> Or if you store the clk handle directly into the BPWR_Clk_t structure:
+>>
+>> clk_enable(BPWR_Clks[clkIdIndex].intClk);
+>> clk_enable(BPWR_Clks[clkIdIndex].funClk);
 
-> - You're not preserving the enable error path back to the virtual
-> clock.  A recovery from a failure would be messy.
+So .intClk wouldn't be "enum SERVICES_ClkId", but "struct clk".
 
-Right, this is updated in the latest patch.
+> But that's not my point when I mentioned about readability. By removing the code from clk.c and scattering it around will make it difficult to follow and manage the code. I think we can even move the DSPPeripheralClkCtrl function in tiomap_pwr.c to clk.c so that all the clock interfaces from DSP Bridge are in one file, and we can rename this file to bridge_clk_mgr to avoid the impression that clk module in Bridge is implementing its own clock framework or the functions are just acting as wrappers. I think this approach is clean and easy to manage. I see a placeholder for dspbridge clock module considering the number of clocks it has to manage.
 
-> - Will these clocks always be handled as a group?  If I were to try
-> and optimize I might shut down a gpt5 clock individually to allow a
-> PER domain to power off.  The DSP should aggressively be letting go
-> of resource when it doesn't need them to allow power to work.  1
-> virtual resource with all related clocks would not be right.
+If you see clk_enable there's nothing more to follow, so it's not hard
+to follow. Others explained why virtual clocks make sense, which would
+make the code even easier to follow.
 
-If this is the case, vclk wouldn't work so nicely.
+The only two places where clock functions are used are tiomap3430.c
+and tiomap3430_pwr.c. In tiomap3430.c, clk_enable functions can be
+used directly, there's no translation needed, and I already explained
+before, you can add debugging quite easily, so no need of clk.c for
+that. In tiomap3430_pwr.c the translation can happen in
+DSPPeripheralClkCtrl already, so again, no need of clk.c.
 
-> If you wanted grouping their might be like DSP-CORE,
-> DSP-Streaming-Audio, Dsp-...  You will want better granularity.  So
-> the enable/disables are effective for power savings.  This is
-> especially true if your not even using say a McBSP and are doing
-> something like JPEG decode.
+If you reorganize the code this way the only thing left in clk.c would
+be clock initialization. I don't think it makes sense to keep one file
+for one small function which would be even smaller with virtual
+clocks.
 
-The above grouping proposal sounds quite promissing to me. In any
-case, how to group up dsp clocks is tightly coupled with dsp system
-operating policy. It's bit hard to guess it just from the bridge code
-now.
+Best regards.
 
-Thank you for your comments.
-
-      Hiroshi DOYU
+-- 
+Felipe Contreras
