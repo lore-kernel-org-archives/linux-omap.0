@@ -1,83 +1,114 @@
-From: "Felipe Contreras" <felipe.contreras@gmail.com>
-Subject: Re: [RFC][DRAFT] TODO list for TI DSP BRIDGE
-Date: Thu, 21 Aug 2008 11:10:18 +0300
-Message-ID: <94a0d4530808210110t38fb6e42x8760707b3a21e33@mail.gmail.com>
-References: <20080818.163519.194678809.Hiroshi.DOYU@nokia.com>
-	 <5d5443650808181017w1ad90b9vcc6cc4d8abc6a963@mail.gmail.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E0B38DC7B@dlee03.ent.ti.com>
-	 <94a0d4530808181308i53a9b11fyb20af0b21785c0d9@mail.gmail.com>
-	 <20080819062422.GD17276@atomide.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E129DEDAB@dlee03.ent.ti.com>
-	 <94a0d4530808191210q59b7ed5ao7601efa553b60f3f@mail.gmail.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E129DF01B@dlee03.ent.ti.com>
-	 <94a0d4530808191645xad82696v2af9980bd6fed741@mail.gmail.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E12EC5718@dlee03.ent.ti.com>
+From: "Rajendra Nayak" <rnayak@ti.com>
+Subject: RE: [PATCH 1/4] 34XX: PM: Workaround to check wether any fck is active before entering sleep
+Date: Thu, 21 Aug 2008 13:47:10 +0530
+Message-ID: <00cb01c90366$50605d90$LocalHost@wipultra1382>
+References: <1218786438-28049-1-git-send-email-jouni.hogander@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.228]:33377 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755026AbYHUIKT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Aug 2008 04:10:19 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so838935rvb.1
-        for <linux-omap@vger.kernel.org>; Thu, 21 Aug 2008 01:10:18 -0700 (PDT)
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E12EC5718@dlee03.ent.ti.com>
-Content-Disposition: inline
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53626 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754516AbYHUIR0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Aug 2008 04:17:26 -0400
+In-Reply-To: <1218786438-28049-1-git-send-email-jouni.hogander@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Trilok Soni <soni.trilok@gmail.com>, "Pasam, Vijay" <vpasam@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Woodruff, Richard" <r-woodruff2@ti.com>, "siarhei.siamashka@nokia.com" <siarhei.siamashka@nokia.com>, "Ramirez Luna, Omar" <x00omar@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>
+To: 'Jouni Hogander' <jouni.hogander@nokia.com>, linux-omap@vger.kernel.org
 
-On Thu, Aug 21, 2008 at 1:34 AM, Kanigeri, Hari <h-kanigeri2@ti.com> wrote:
-> Felipe,
->
->> We are trying to understand why this is not just a wrapper.
->
-> -- Thank you :)
->
->> b) the clock init does the job of obtaining the references to the
->> clock ids in its initialization
->>
->> Those could be initialized in some other place as well.
->>
-> -- Why can't this some other place be the init function in the current clock module in Bridge ?
+Jouni,
 
-That depends on what is left of clk.c after reorganization.
+I am having some issues applying these patches. Any idea whats wrong?
 
->> How exactly is "clk_enable(BPWR_Clks[clkIdIndex].intClk)" less
->> readable than "CLK_Enable(BPWR_Clks[clkIdIndex].intClk)" ?
->
-> -- Did you check the argument of CLK_Enable function ? The argument is not the same as you mentioned above?  One more reason to say that this is not a direct wrapper ;).
+(Stripping trailing CRs from patch.)
+patching file arch/arm/mach-omap2/pm34xx.c
+patch: **** malformed patch at line 66:         return 1;
 
-Did you read what I wrote?
+regards,
+Rajendra
+ 
 
->> Or if you store the clk handle directly into the BPWR_Clk_t structure:
->>
->> clk_enable(BPWR_Clks[clkIdIndex].intClk);
->> clk_enable(BPWR_Clks[clkIdIndex].funClk);
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Jouni Hogander
+> Sent: Friday, August 15, 2008 1:17 PM
+> To: linux-omap@vger.kernel.org
+> Subject: [PATCH 1/4] 34XX: PM: Workaround to check wether any 
+> fck is active before entering sleep
+> 
+> This workaround shouldn't be needed when all drivers are 
+> configuring their sysconfig registers properly and using 
+> their clocks properly.
+> 
+> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |   37 
+> +++++++++++++++++++++++++++++++++++++
+>  1 files changed, 37 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/pm34xx.c 
+> b/arch/arm/mach-omap2/pm34xx.c index a57cf41..f30fa9e 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -174,10 +174,47 @@ static void omap_sram_idle(void)
+>  	omap2_gpio_resume_after_retention();
+>  }
+>  
+> +/* XXX This workaround shouldn't be needed when all drivers are 
+> +configuring
+> + * their sysconfig registers properly and using their clocks
+> + * properly. */
+> +static int omap3_fclks_active(void)
+> +{
+> +	u32 fck_core1 = 0, fck_core3 = 0, fck_sgx = 0, fck_dss = 0,
+> +		fck_cam = 0, fck_per = 0, fck_usbhost = 0;
+> +
+> +	fck_core1 = cm_read_mod_reg(CORE_MOD,
+> +				    CM_FCLKEN1);
+> +	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
+> +		fck_core3 = cm_read_mod_reg(CORE_MOD,
+> +					    OMAP3430ES2_CM_FCLKEN3);
+> +		fck_sgx = cm_read_mod_reg(OMAP3430ES2_SGX_MOD,
+> +					  CM_FCLKEN);
+> +		fck_usbhost = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
+> +					      CM_FCLKEN);
+> +	} else
+> +		fck_sgx = cm_read_mod_reg(GFX_MOD,
+> +					  OMAP3430ES2_CM_FCLKEN3);
+> +	fck_dss = cm_read_mod_reg(OMAP3430_DSS_MOD,
+> +				  CM_FCLKEN);
+> +	fck_cam = cm_read_mod_reg(OMAP3430_CAM_MOD,
+> +				  CM_FCLKEN);
+> +	fck_per = cm_read_mod_reg(OMAP3430_PER_MOD,
+> +				  CM_FCLKEN);
+> +	if (fck_core1 | fck_core3 | fck_sgx | fck_dss |
+> +	    fck_cam | fck_per | fck_usbhost)
+> +		return 1;
+> +	return 0;
+> +}
+> +
+>  static int omap3_can_sleep(void)
+>  {
+>  	if (!enable_dyn_sleep)
+>  		return 0;
+> +	/* XXX This workaround shouldn't be needed when all drivers are
+> +	 * configuring their sysconfig registers properly and 
+> using their
+> +	 * clocks properly. */
+> +	if (omap3_fclks_active())
+> +		return 0;
+>  	if (atomic_read(&sleep_block) > 0)
+>  		return 0;
+>  	return 1;
+> --
+> 1.5.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in the body of a message to 
+> majordomo@vger.kernel.org More majordomo info at  
+> http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
-So .intClk wouldn't be "enum SERVICES_ClkId", but "struct clk".
-
-> But that's not my point when I mentioned about readability. By removing the code from clk.c and scattering it around will make it difficult to follow and manage the code. I think we can even move the DSPPeripheralClkCtrl function in tiomap_pwr.c to clk.c so that all the clock interfaces from DSP Bridge are in one file, and we can rename this file to bridge_clk_mgr to avoid the impression that clk module in Bridge is implementing its own clock framework or the functions are just acting as wrappers. I think this approach is clean and easy to manage. I see a placeholder for dspbridge clock module considering the number of clocks it has to manage.
-
-If you see clk_enable there's nothing more to follow, so it's not hard
-to follow. Others explained why virtual clocks make sense, which would
-make the code even easier to follow.
-
-The only two places where clock functions are used are tiomap3430.c
-and tiomap3430_pwr.c. In tiomap3430.c, clk_enable functions can be
-used directly, there's no translation needed, and I already explained
-before, you can add debugging quite easily, so no need of clk.c for
-that. In tiomap3430_pwr.c the translation can happen in
-DSPPeripheralClkCtrl already, so again, no need of clk.c.
-
-If you reorganize the code this way the only thing left in clk.c would
-be clock initialization. I don't think it makes sense to keep one file
-for one small function which would be even smaller with virtual
-clocks.
-
-Best regards.
-
--- 
-Felipe Contreras
