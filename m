@@ -1,117 +1,93 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [RFC][DRAFT] TODO list for TI DSP BRIDGE
-Date: Thu, 21 Aug 2008 19:11:37 +0300 (EEST)
-Message-ID: <20080821.191137.256717219.Hiroshi.DOYU@nokia.com>
-References: <13B9B4C6EF24D648824FF11BE896716203621E71D9@dlee02.ent.ti.com>
-	<20080821.104149.169747270.Hiroshi.DOYU@nokia.com>
-	<13B9B4C6EF24D648824FF11BE89671620364E2B470@dlee02.ent.ti.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: [PATCH] Enable TWL4030 BCI for LDP platform
+Date: Thu, 21 Aug 2008 21:45:02 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870229E813B9@dbde02.ent.ti.com>
+References: <FCCFB4CDC6E5564B9182F639FC3560870229E813AB@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:29439 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752534AbYHUQLx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Aug 2008 12:11:53 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE89671620364E2B470@dlee02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:35577 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751270AbYHUQUe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Aug 2008 12:20:34 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7LGF804030242
+	for <linux-omap@vger.kernel.org>; Thu, 21 Aug 2008 11:15:14 -0500
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870229E813AB@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: r-woodruff2@ti.com
-Cc: tony@atomide.com, felipe.contreras@gmail.com, h-kanigeri2@ti.com, soni.trilok@gmail.com, vpasam@ti.com, linux-omap@vger.kernel.org, siarhei.siamashka@nokia.com, x00omar@ti.com, grgupta@ti.com
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
 
-Hi Richard,
+From: Vikram Pandita <vikram.pandita@ti.com>
 
-From: "ext Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [RFC][DRAFT] TODO list for TI DSP BRIDGE
-Date: Thu, 21 Aug 2008 07:34:56 -0500
+Add TWL4030 BCI Battery for 3430 LDP platform
 
-> 
-> > From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
-> ...
-> > > A few quick comments:
-> > >
-> > > - First off, I do like the idea of virtual clocks for grouping.  I
-> > > did do this for OMAP2 for completely internal and dependent root
-> > > clocks.  I also thought it might be nice to extend clock frame work
-> > > to allow external clock registration (say for a codec chip).  In our
-> > > local tree I did even add it.  One main issue was the internal clock
-> > > structure is supposed to be opaque and you need to set internals to
-> > > add a clock node.
-> >
-> > Can I find your OMAP2 implementation in omapzoom for virtual clock?
-> 
-> Guess not.  The flag for OMAP2 is still there in linux-omap clock.h
-> for virt_prcm_set but the implementation of it evolved to just using
-> custom recalc/rate/round functions.  Today the flag just would tell
-> a user something is funny about the clock but no rules are enforced.
-> 
-> Actually in looking at this does bring up another very relevant
-> question.
-> 
-> For a combined clock especially like the IVA-system, how do you do
-> set_rate/round_rate/get_rate/set_parent so it is meaningful?
->
-> For virt_prcm_set the MPU clock rate is used as in index.  For OMAP2
-> for most cases there are very strict rules about speed ratio's. As
-> such if you know the speed for 1 clock you can set the group.
-> mpu_rate isn't perfect but it is good enough.
-> 
-> You need operations for more than enable/disable.
-> 
-> How do you set parent to your timer in your example?  How do you
-> query individual other clocks rate?
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+---
+ arch/arm/mach-omap2/Makefile                |    1 +
+ arch/arm/mach-omap2/board-ldp.c             |    2 ++
+ arch/arm/plat-omap/include/mach/board-ldp.h |    2 ++
+ drivers/power/Kconfig                       |    2 +-
+ 4 files changed, 6 insertions(+), 1 deletion(-)
 
-I think that, in this virtual clock, frequency changing will be done
-in the totally different path(just in a normal clock tree). This
-virtual clock resides in an independent clock tree and supposed to be
-used aggressively just to turn on/off clocks(enable/disable), which
-drivers use, for saving power consumption. So the relationship between
-"clk" and "vclk" may be similar to "struct device" and "struct class"
-in the linux driver-model, which means that, the former is based on
-H/W connection and the latter is based on functionality. Of course
-there is a possibility that other clk methods can be overwritten, but
-it's has to be used for different purpose than a normal clock does,
-not to break the H/W clock tree consistency.
-
-Also, making a connection among virtual clocks(parenting) can be done
-by overwriting "set_parent" for vclk, which is original set NULL, if
-necessary.
-
-A virtual clock is composed of clocks which are called "child", but
-they are not children actually, from the clock framework point of
-view. These clocks reside in a H/W clock tree and a virtual clock just
-provide operation to handle them at once, from completely independent
-(virtual)clock (tree), for device driver.
-
-In the previous example,
-
->    dsp_clocks(v)
->    |
->    |-- peripheral_clocks(v)
->    |     |
->    |     |-- gpt5(v)
->    |     |    |- gpt5_ick(r)
->    |     |    `- gpt5_fck(r)
->    |
->    |-- ....
->    ..
-
-Virtually we can make the connection between "dsp_clocks",
-"peripheral_clocks" and "gpt5", if we overwrite set_parent for
-vclk. but there's no connection between gpt5(virt) and gpt5_*(real)
-from the clock framework point of view.
-
-(v) -> (v) OK
-(r) -> (r) OK
-(v) -> (r) NG : cause inconsistency on h/w clock tree.
-
-v: virtual clock
-r: real clock
-some flags can be used to prevent the above inconsistency.
-
-Probably original "virt_prcm_set" might have a wider solution,
-though....
-
-      Hiroshi DOYU
-
-
+Index: base-tony/arch/arm/mach-omap2/Makefile
+===================================================================
+--- base-tony.orig/arch/arm/mach-omap2/Makefile	2008-08-21 15:06:23.000000000 +0530
++++ base-tony/arch/arm/mach-omap2/Makefile	2008-08-21 21:22:15.000000000 +0530
+@@ -66,6 +66,7 @@ obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= boar
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
+ 					   hsmmc.o \
++					   bci.o \
+ 					   usb-musb.o
+ obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
+ 					   board-apollon-mmc.o	\
+Index: base-tony/arch/arm/mach-omap2/board-ldp.c
+===================================================================
+--- base-tony.orig/arch/arm/mach-omap2/board-ldp.c	2008-08-21 21:08:31.000000000 +0530
++++ base-tony/arch/arm/mach-omap2/board-ldp.c	2008-08-21 21:20:37.000000000 +0530
+@@ -29,6 +29,7 @@
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+ 
++#include <mach/board-ldp.h>
+ #include <mach/mcspi.h>
+ #include <mach/gpio.h>
+ #include <mach/board.h>
+@@ -230,6 +231,7 @@ static void __init omap_ldp_init(void)
+ 	spi_register_board_info(ldp_spi_board_info,
+ 				ARRAY_SIZE(ldp_spi_board_info));
+ 	ads7846_dev_init();
++	twl4030_bci_battery_init();
+ 	omap_serial_init();
+ 	usb_musb_init();
+ 	hsmmc_init();
+Index: base-tony/arch/arm/plat-omap/include/mach/board-ldp.h
+===================================================================
+--- base-tony.orig/arch/arm/plat-omap/include/mach/board-ldp.h	2008-08-21 15:06:24.000000000 +0530
++++ base-tony/arch/arm/plat-omap/include/mach/board-ldp.h	2008-08-21 21:12:52.000000000 +0530
+@@ -29,6 +29,8 @@
+ #ifndef __ASM_ARCH_OMAP_LDP_H
+ #define __ASM_ARCH_OMAP_LDP_H
+ 
++extern void twl4030_bci_battery_init(void);
++
+ #define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
+ 
+ #endif /* __ASM_ARCH_OMAP_LDP_H */
+Index: base-tony/drivers/power/Kconfig
+===================================================================
+--- base-tony.orig/drivers/power/Kconfig	2008-08-21 21:08:31.000000000 +0530
++++ base-tony/drivers/power/Kconfig	2008-08-21 21:09:17.000000000 +0530
+@@ -72,7 +72,7 @@ config BATTERY_BQ27200
+ 
+ config TWL4030_BCI_BATTERY
+ 	tristate "OMAP TWL4030 BCI Battery driver"
+-	depends on (MACH_OMAP_2430SDP || MACH_OMAP_3430SDP) && TWL4030_MADC
++	depends on (MACH_OMAP_2430SDP || MACH_OMAP_3430SDP || MACH_OMAP_LDP) && TWL4030_MADC
+ 	default y
+ 	help
+ 	  Support for OMAP TWL4030 BCI Battery driver.
