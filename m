@@ -1,66 +1,52 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: Patch [2/2] DaVinci CPPI TX DMA tasklet
-Date: Thu, 21 Aug 2008 17:25:46 +0300
-Message-ID: <20080821142546.GZ23346@gandalf.research.nokia.com>
-References: <1219327122-28334-1-git-send-email-swami.iyer@ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: "Kumar, Purushotam" <purushotam@ti.com>
+Subject: RE: HSMMC block transfer (CMD53) doesn't complete
+Date: Thu, 21 Aug 2008 20:12:48 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593019FE3BA55@dbde02.ent.ti.com>
+References: <CDADC90344D4F540AE43CFF18CCEA01C087264E4@ex01.vocollect.int>
+ <48AC22EF.9010102@vocollect.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:53667 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753965AbYHUOYu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Aug 2008 10:24:50 -0400
-Content-Disposition: inline
-In-Reply-To: <1219327122-28334-1-git-send-email-swami.iyer@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:50883 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760014AbYHUOnA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Aug 2008 10:43:00 -0400
+In-Reply-To: <48AC22EF.9010102@vocollect.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Swaminathan S <swami.iyer@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, felipe.balbi@nokia.com
+To: Josh Karabin <gkarabin@vocollect.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Aug 21, 2008 at 07:28:42PM +0530, ext Swaminathan S wrote:
+
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Josh
+> Karabin
+> Sent: Wednesday, August 20, 2008 7:28 PM
+> To: linux-omap@vger.kernel.org
+> Subject: Re: HSMMC block transfer (CMD53) doesn't complete
 > 
->     Signed-off-by: Swaminathan S <swami.iyer@ti.com>
->     
->     This patch implements a tasklet to poll for TX Endpoint FIFO
->     empty status before completing a transfer.  This is required
->     in the context of DaVinci CPPI DMA Tx transfers.  CPPI
->     DMA engine generates completion interrupt before the data
->     actually moves out of TX FIFO and the driver needs to save the
->     Data toggle after ensuring that the FIFO is empty.
+> 
+> Romantic, William wrote:
+> > I'm using the OMAP35x evm, the Libertas driver, and a Marvel sd8686 WiFi
+> > radio.  I currently have everything running with some workarounds and
+> > I'm looking to properly resolve the issues.
+> 
+> Is anyone else working on fixing up HSMMC SDIO, or are there any partial
+> patches waiting in the wings?  Bill's work is going to generate patches
+> for the list's review over the next couple of weeks.  It would be a
+> shame to duplicate effort unnecessarily, or at least not to collaborate
+> if duplication helps us get something out faster.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-same comments from before.
+Hi,
 
-> diff --git a/drivers/usb/musb/davinci.c b/drivers/usb/musb/davinci.c
-> index d443a61..9dd24c3 100644
-> --- a/drivers/usb/musb/davinci.c
-> +++ b/drivers/usb/musb/davinci.c
-> @@ -421,6 +421,12 @@ int __init musb_platform_init(struct musb *musb)
->  		musb_readb(tibase, DAVINCI_USB_CTRL_REG));
->  
->  	musb->isr = davinci_interrupt;
-> +#ifdef CONFIG_USB_MUSB_HDRC_HCD
+We working on SDIO solution on OMAP35x EVM for Marvel sd 8686 (Libertas driver). We will plan to push SDIO support in near future.
 
-use if (is_host_capable()) instead.
-
-> +		if (hw_ep->fifo_flush_check) {
-> +			csr = musb_readw(hw_ep->regs, MUSB_TXCSR);
-> +			if (((csr & MUSB_TXCSR_FIFONOTEMPTY) ||
-> +				(csr & MUSB_TXCSR_TXPKTRDY)))
-> +				sch_tsklt = 1;
-> +			else {
-
-put {} on both branches.
-
-> +
-
-this new line is unnecessary
-
-this was just a primary overview. I wanna test more this patch since it
-changes a bit musb_ep_program() which would affect all archs using musb.
-
-I'll leave my n810 testing during this weekend and get back to you later
-on.
-
--- 
-balbi
+Regards,
+Purushotam
