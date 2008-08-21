@@ -1,170 +1,98 @@
-From: "Arun KS" <arunks@mistralsolutions.com>
-Subject: Re: [PATCH] OMAP2EVM: Adding NAND support
-Date: Thu, 21 Aug 2008 10:48:07 +0530
-Message-ID: <dfeb90390808202218q35ffa680td927191f5a27727d@mail.gmail.com>
-References: <dfeb90390808200916t30756a73sf283f0e7dd9bf15@mail.gmail.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [RFC][DRAFT] TODO list for TI DSP BRIDGE
+Date: Thu, 21 Aug 2008 10:41:49 +0300 (EEST)
+Message-ID: <20080821.104149.169747270.Hiroshi.DOYU@nokia.com>
+References: <20080819062422.GD17276@atomide.com>
+	<20080820.131042.200608197.Hiroshi.DOYU@nokia.com>
+	<13B9B4C6EF24D648824FF11BE896716203621E71D9@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.188]:62936 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755226AbYHUFSJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Aug 2008 01:18:09 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so453359tic.23
-        for <linux-omap@vger.kernel.org>; Wed, 20 Aug 2008 22:18:07 -0700 (PDT)
-In-Reply-To: <dfeb90390808200916t30756a73sf283f0e7dd9bf15@mail.gmail.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:58672 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751827AbYHUHmR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Aug 2008 03:42:17 -0400
+In-Reply-To: <13B9B4C6EF24D648824FF11BE896716203621E71D9@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: r-woodruff2@ti.com
+Cc: tony@atomide.com, felipe.contreras@gmail.com, h-kanigeri2@ti.com, soni.trilok@gmail.com, vpasam@ti.com, linux-omap@vger.kernel.org, siarhei.siamashka@nokia.com, x00omar@ti.com, grgupta@ti.com
 
-Hi Tony,
+From: "ext Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [RFC][DRAFT] TODO list for TI DSP BRIDGE
+Date: Wed, 20 Aug 2008 09:32:32 -0500
 
-This patch has some issues regarding the partitioning.
-Please ignore this. I will resend it again.
+> Hi Hiroshi,
+> 
+> > I sent some patches based on the above suggestion.
+> >
+> >   http://marc.info/?l=linux-omap&m=121922597019873&w=2
+> >   http://marc.info/?l=linux-omap&m=121922593919766&w=2
+> >
+> > I think that this virtual clock may allow any arbitrary combination of
+> > clocks and it may be possible to have multiple hierarchy of virtual
+> > clocks like:
+> >
+> >    dsp_clocks
+> >    |
+> >    |-- peripheral_clocks
+> >    |     |
+> >    |     |-- gpt5
+> >    |     |    |- gpt5_ick
+> >    |     |    `- gpt5_fck
+> >    |
+> >    |-- ....
+> >    ..
+> >
+> > Any comments would be appreciated.
+> 
+> A few quick comments:
+> 
+> - First off, I do like the idea of virtual clocks for grouping.  I
+> did do this for OMAP2 for completely internal and dependent root
+> clocks.  I also thought it might be nice to extend clock frame work
+> to allow external clock registration (say for a codec chip).  In our
+> local tree I did even add it.  One main issue was the internal clock
+> structure is supposed to be opaque and you need to set internals to
+> add a clock node.
 
-Best Regards,
-Arun KS
+Can I find your OMAP2 implementation in omapzoom for virtual clock?
 
-On Wed, Aug 20, 2008 at 9:46 PM, Arun KS <arunks@mistralsolutions.com> wrote:
-> This patch enables the nand support for omap2evm board
->
-> Signed-off-by: Arun KS <arunks@mistralsolutions.com>
-> ---
->  arch/arm/mach-omap2/board-omap2evm.c |   96 ++++++++++++++++++++++++++++++++++
->  1 files changed, 96 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-omap2evm.c
-> b/arch/arm/mach-omap2/board-omap2evm.c
-> index 4188222..0dc3205 100644
-> --- a/arch/arm/mach-omap2/board-omap2evm.c
-> +++ b/arch/arm/mach-omap2/board-omap2evm.c
-> @@ -19,6 +19,9 @@
->  #include <linux/io.h>
->  #include <linux/input.h>
->  #include <linux/i2c/twl4030.h>
-> +#include <linux/mtd/mtd.h>
-> +#include <linux/mtd/partitions.h>
-> +#include <linux/mtd/nand.h>
->
->  #include <mach/hardware.h>
->  #include <asm/mach-types.h>
-> @@ -30,6 +33,62 @@
->  #include <mach/common.h>
->  #include <mach/hsmmc.h>
->  #include <mach/keypad.h>
-> +#include <mach/gpmc.h>
-> +#include <mach/nand.h>
-> +
-> +#define GPMC_CS0_BASE  0x60
-> +#define GPMC_CS_SIZE   0x30
-> +
-> +static struct mtd_partition nand_partitions[] = {
-> +       {
-> +               .name           = "X-Loader",
-> +               .offset         = 0,
-> +               .size           = 4*(64*2048),  /* 0-3 blks reserved.
-> +                                               Mandated by ROM code */
-> +               .mask_flags     = MTD_WRITEABLE /* force read-only */
-> +       },
-> +       {
-> +               .name           = "U-Boot",
-> +               .offset         = MTDPART_OFS_APPEND,
-> +               .size           =  4*(64*2048),
-> +               .mask_flags     = MTD_WRITEABLE /* force read-only */
-> +       },
-> +       {
-> +               .name           = "U-Boot Environment",
-> +               .offset         = MTDPART_OFS_APPEND,
-> +               .size           = 2*(64*2048),
-> +       },
-> +       {
-> +               .name           = "Kernel",
-> +               .offset         = MTDPART_OFS_APPEND,
-> +               .size           = 32*(64*2048),         /* 4*1M */
-> +       },
-> +       {
-> +               .name           = "File System",
-> +               .offset         = MTDPART_OFS_APPEND,
-> +               .size           = MTDPART_SIZ_FULL,
-> +       },
-> +};
-> +
-> +static struct omap_nand_platform_data omap2evm_nand_data = {
-> +       .parts          = nand_partitions,
-> +       .nr_parts       = ARRAY_SIZE(nand_partitions),
-> +       .dma_channel    = -1,   /* disable DMA in OMAP OneNAND driver */
-> +};
-> +
-> +static struct resource omap2evm_nand_resource = {
-> +       .flags          = IORESOURCE_MEM,
-> +};
-> +
-> +static struct platform_device omap2evm_nand_device = {
-> +       .name           = "omap2-nand",
-> +       .id             = -1,
-> +       .dev = {
-> +               .platform_data = &omap2evm_nand_data,
-> +       },
-> +       .num_resources  = 1,
-> +       .resource       = &omap2evm_nand_resource,
-> +};
->
->  static struct resource omap2evm_smc911x_resources[] = {
->        [0] =   {
-> @@ -152,6 +211,42 @@ static struct platform_device
-> *omap2_evm_devices[] __initdata = {
->        &omap2evm_smc911x_device,
->        &omap2evm_kp_device,
->  };
-> +void __init omap2evm_flash_init(void)
-> +{
-> +       u8 cs = 0;
-> +       u8 nandcs = GPMC_CS_NUM + 1;
-> +
-> +       u32 gpmc_base_add =  OMAP243X_GPMC_VIRT;
-> +
-> +       /* find out the chip-select on which NAND exists */
-> +       while (cs < GPMC_CS_NUM) {
-> +               u32 ret = 0;
-> +               ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
-> +
-> +               if ((ret & 0xC00) == 0x800) {
-> +                       printk(KERN_INFO "Found NAND on CS%d\n", cs);
-> +                       if (nandcs > GPMC_CS_NUM)
-> +                               nandcs = cs;
-> +               }
-> +               cs++;
-> +       }
-> +
-> +       if (nandcs > GPMC_CS_NUM) {
-> +               printk(KERN_INFO "NAND: Unable to find configuration "
-> +                                "in GPMC\n ");
-> +               return;
-> +       }
-> +       if (nandcs < GPMC_CS_NUM) {
-> +               omap2evm_nand_data.cs = nandcs;
-> +               omap2evm_nand_data.gpmc_cs_baseaddr = (void *)
-> +                       (gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
-> +               omap2evm_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
-> +
-> +               printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
-> +               if (platform_device_register(&omap2evm_nand_device) < 0)
-> +                       printk(KERN_ERR "Unable to register NAND device\n");
-> +       }
-> +}
->
->  static void __init omap2_evm_init(void)
->  {
-> @@ -160,6 +255,7 @@ static void __init omap2_evm_init(void)
->        omap_board_config_size = ARRAY_SIZE(omap2_evm_config);
->        omap_serial_init();
->        hsmmc_init();
-> +       omap2evm_flash_init();
->  }
->
->  static void __init omap2_evm_map_io(void)
-> --
-> 1.5.3.4
->
+> - I worry a bit about grouping of internal resources which may be
+> allocated differently per implementation.  Perhaps a board specific
+> resource can handle it, but you've not included that in the patch.
+> 
+> - Where is the board specific side of this call?  I see clock calls
+> added to clock.c but not resources added to mach-omap2/xyz-board.c.
+
+One example is "arch/arm/mach-omap2/mcbsp.c" in the second patch and I
+think that board specific grouping is also expected.
+
+> - You're not preserving the enable error path back to the virtual
+> clock.  A recovery from a failure would be messy.
+
+Right, this is updated in the latest patch.
+
+> - Will these clocks always be handled as a group?  If I were to try
+> and optimize I might shut down a gpt5 clock individually to allow a
+> PER domain to power off.  The DSP should aggressively be letting go
+> of resource when it doesn't need them to allow power to work.  1
+> virtual resource with all related clocks would not be right.
+
+If this is the case, vclk wouldn't work so nicely.
+
+> If you wanted grouping their might be like DSP-CORE,
+> DSP-Streaming-Audio, Dsp-...  You will want better granularity.  So
+> the enable/disables are effective for power savings.  This is
+> especially true if your not even using say a McBSP and are doing
+> something like JPEG decode.
+
+The above grouping proposal sounds quite promissing to me. In any
+case, how to group up dsp clocks is tightly coupled with dsp system
+operating policy. It's bit hard to guess it just from the bridge code
+now.
+
+Thank you for your comments.
+
+      Hiroshi DOYU
