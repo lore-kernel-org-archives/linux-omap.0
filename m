@@ -1,114 +1,50 @@
-From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: RE: [PATCH 1/4] 34XX: PM: Workaround to check wether any fck is active before entering sleep
-Date: Thu, 21 Aug 2008 13:47:10 +0530
-Message-ID: <00cb01c90366$50605d90$LocalHost@wipultra1382>
-References: <1218786438-28049-1-git-send-email-jouni.hogander@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: [PATCH] ARM: OMAP2: Fix SPI driver failure on 2420 when running multi-omap config
+Date: Thu, 21 Aug 2008 11:20:09 +0300
+Message-ID: <1219306810-12232-2-git-send-email-jarkko.nikula@nokia.com>
+References: <1219306810-12232-1-git-send-email-jarkko.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53626 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754516AbYHUIR0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Aug 2008 04:17:26 -0400
-In-Reply-To: <1218786438-28049-1-git-send-email-jouni.hogander@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:28925 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753799AbYHUIUq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Aug 2008 04:20:46 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m7L8KX2i031779
+	for <linux-omap@vger.kernel.org>; Thu, 21 Aug 2008 11:20:43 +0300
+In-Reply-To: <1219306810-12232-1-git-send-email-jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Jouni Hogander' <jouni.hogander@nokia.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
 
-Jouni,
+SPI driver will do unhandled fault on OMAP2420 if trying to probe
+non-existing SPI busses. Register those additional busses runtime only
+for cpus having them.
 
-I am having some issues applying these patches. Any idea whats wrong?
+Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+---
+ arch/arm/mach-omap2/devices.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-(Stripping trailing CRs from patch.)
-patching file arch/arm/mach-omap2/pm34xx.c
-patch: **** malformed patch at line 66:         return 1;
-
-regards,
-Rajendra
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index cc5c294..bd49a0f 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -255,10 +255,12 @@ static void omap_init_mcspi(void)
+ 	platform_device_register(&omap2_mcspi1);
+ 	platform_device_register(&omap2_mcspi2);
+ #if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
+-	platform_device_register(&omap2_mcspi3);
++	if (cpu_is_omap2430() || cpu_is_omap343x())
++		platform_device_register(&omap2_mcspi3);
+ #endif
+ #ifdef CONFIG_ARCH_OMAP3
+-	platform_device_register(&omap2_mcspi4);
++	if (cpu_is_omap343x())
++		platform_device_register(&omap2_mcspi4);
+ #endif
+ }
  
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Jouni Hogander
-> Sent: Friday, August 15, 2008 1:17 PM
-> To: linux-omap@vger.kernel.org
-> Subject: [PATCH 1/4] 34XX: PM: Workaround to check wether any 
-> fck is active before entering sleep
-> 
-> This workaround shouldn't be needed when all drivers are 
-> configuring their sysconfig registers properly and using 
-> their clocks properly.
-> 
-> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
-> ---
->  arch/arm/mach-omap2/pm34xx.c |   37 
-> +++++++++++++++++++++++++++++++++++++
->  1 files changed, 37 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/pm34xx.c 
-> b/arch/arm/mach-omap2/pm34xx.c index a57cf41..f30fa9e 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -174,10 +174,47 @@ static void omap_sram_idle(void)
->  	omap2_gpio_resume_after_retention();
->  }
->  
-> +/* XXX This workaround shouldn't be needed when all drivers are 
-> +configuring
-> + * their sysconfig registers properly and using their clocks
-> + * properly. */
-> +static int omap3_fclks_active(void)
-> +{
-> +	u32 fck_core1 = 0, fck_core3 = 0, fck_sgx = 0, fck_dss = 0,
-> +		fck_cam = 0, fck_per = 0, fck_usbhost = 0;
-> +
-> +	fck_core1 = cm_read_mod_reg(CORE_MOD,
-> +				    CM_FCLKEN1);
-> +	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
-> +		fck_core3 = cm_read_mod_reg(CORE_MOD,
-> +					    OMAP3430ES2_CM_FCLKEN3);
-> +		fck_sgx = cm_read_mod_reg(OMAP3430ES2_SGX_MOD,
-> +					  CM_FCLKEN);
-> +		fck_usbhost = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
-> +					      CM_FCLKEN);
-> +	} else
-> +		fck_sgx = cm_read_mod_reg(GFX_MOD,
-> +					  OMAP3430ES2_CM_FCLKEN3);
-> +	fck_dss = cm_read_mod_reg(OMAP3430_DSS_MOD,
-> +				  CM_FCLKEN);
-> +	fck_cam = cm_read_mod_reg(OMAP3430_CAM_MOD,
-> +				  CM_FCLKEN);
-> +	fck_per = cm_read_mod_reg(OMAP3430_PER_MOD,
-> +				  CM_FCLKEN);
-> +	if (fck_core1 | fck_core3 | fck_sgx | fck_dss |
-> +	    fck_cam | fck_per | fck_usbhost)
-> +		return 1;
-> +	return 0;
-> +}
-> +
->  static int omap3_can_sleep(void)
->  {
->  	if (!enable_dyn_sleep)
->  		return 0;
-> +	/* XXX This workaround shouldn't be needed when all drivers are
-> +	 * configuring their sysconfig registers properly and 
-> using their
-> +	 * clocks properly. */
-> +	if (omap3_fclks_active())
-> +		return 0;
->  	if (atomic_read(&sleep_block) > 0)
->  		return 0;
->  	return 1;
-> --
-> 1.5.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in the body of a message to 
-> majordomo@vger.kernel.org More majordomo info at  
-> http://vger.kernel.org/majordomo-info.html
-> 
-> 
+-- 
+1.5.6.3
 
