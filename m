@@ -1,92 +1,136 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: [PATCH] ARM: OMAP: Fix omap_wdt driver failure on 2420 when
- running multi-omap config
-Date: Thu, 21 Aug 2008 12:32:38 +0300
-Message-ID: <20080821123238.0d205e16.jarkko.nikula@nokia.com>
-References: <1219306810-12232-1-git-send-email-jarkko.nikula@nokia.com>
-	<1219306810-12232-3-git-send-email-jarkko.nikula@nokia.com>
+From: "Rajendra Nayak" <rnayak@ti.com>
+Subject: RE: [PATCH 1/4] 34XX: PM: Workaround to check wether any fck is active before entering sleep
+Date: Thu, 21 Aug 2008 15:11:12 +0530
+Message-ID: <00f101c90372$0d1a43f0$LocalHost@wipultra1382>
+References: <00cb01c90366$50605d90$LocalHost@wipultra1382>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:24718 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751380AbYHUJdL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Aug 2008 05:33:11 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m7L9WKq5028089
-	for <linux-omap@vger.kernel.org>; Thu, 21 Aug 2008 04:33:08 -0500
-Received: from kikka3 (esdhcp04165.research.nokia.com [172.21.41.65])
-	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with SMTP id m7L9WgJ7024110
-	for <linux-omap@vger.kernel.org>; Thu, 21 Aug 2008 12:32:43 +0300
-In-Reply-To: <1219306810-12232-3-git-send-email-jarkko.nikula@nokia.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57090 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751618AbYHUJl1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Aug 2008 05:41:27 -0400
+In-Reply-To: <00cb01c90366$50605d90$LocalHost@wipultra1382>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: 'Jouni Hogander' <jouni.hogander@nokia.com>, linux-omap@vger.kernel.org
 
-Signed-off line was missing...
-
------------------------------>
-
-omap_wdt driver will do unhandled fault on 2420 if support for 2430 is
-compiled in since wrong base address is defined in that case. Assign
-omap_wdt base address runtime depending on cpu type.
-
-Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
----
- arch/arm/plat-omap/devices.c |   30 +++++++++++++-----------------
- 1 files changed, 13 insertions(+), 17 deletions(-)
-
-diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-index f22ccbb..3bd1da2 100644
---- a/arch/arm/plat-omap/devices.c
-+++ b/arch/arm/plat-omap/devices.c
-@@ -454,25 +454,8 @@ static inline void omap_init_uwire(void) {}
  
- #if	defined(CONFIG_OMAP_WATCHDOG) || defined(CONFIG_OMAP_WATCHDOG_MODULE)
- 
--#if defined(CONFIG_ARCH_OMAP34XX)
--#define	OMAP_WDT_BASE		0x48314000
--#elif defined(CONFIG_ARCH_OMAP24XX)
--
--#ifdef CONFIG_ARCH_OMAP2430
--/* WDT2 */
--#define	OMAP_WDT_BASE		0x49016000
--#else
--#define	OMAP_WDT_BASE		0x48022000
--#endif
--
--#else
--#define	OMAP_WDT_BASE		0xfffeb000
--#endif
--
- static struct resource wdt_resources[] = {
- 	{
--		.start		= OMAP_WDT_BASE,
--		.end		= OMAP_WDT_BASE + 0x4f,
- 		.flags		= IORESOURCE_MEM,
- 	},
- };
-@@ -486,6 +469,19 @@ static struct platform_device omap_wdt_device = {
- 
- static void omap_init_wdt(void)
- {
-+	if (cpu_is_omap16xx())
-+		wdt_resources[0].start = 0xfffeb000;
-+	else if (cpu_is_omap2420())
-+		wdt_resources[0].start = 0x48022000; /* WDT2 */
-+	else if (cpu_is_omap2430())
-+		wdt_resources[0].start = 0x49016000; /* WDT2 */
-+	else if (cpu_is_omap343x())
-+		wdt_resources[0].start = 0x48314000; /* WDT2 */
-+	else
-+		return;
-+
-+	wdt_resources[0].end = wdt_resources[0].start + 0x4f;
-+
- 	(void) platform_device_register(&omap_wdt_device);
- }
- #else
--- 
-1.5.6.3
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Rajendra Nayak
+> Sent: Thursday, August 21, 2008 1:47 PM
+> To: 'Jouni Hogander'; linux-omap@vger.kernel.org
+> Subject: RE: [PATCH 1/4] 34XX: PM: Workaround to check wether 
+> any fck is active before entering sleep
+> 
+> Jouni,
+> 
+> I am having some issues applying these patches. Any idea whats wrong?
+
+Ok.. so I figured this out. It was some mail client issue at my end.. 
+sorry for the trouble.
+
+> 
+> (Stripping trailing CRs from patch.)
+> patching file arch/arm/mach-omap2/pm34xx.c
+> patch: **** malformed patch at line 66:         return 1;
+> 
+> regards,
+> Rajendra
+>  
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org 
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
+> Jouni Hogander
+> > Sent: Friday, August 15, 2008 1:17 PM
+> > To: linux-omap@vger.kernel.org
+> > Subject: [PATCH 1/4] 34XX: PM: Workaround to check wether any 
+> > fck is active before entering sleep
+> > 
+> > This workaround shouldn't be needed when all drivers are 
+> > configuring their sysconfig registers properly and using 
+> > their clocks properly.
+> > 
+> > Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+> > ---
+> >  arch/arm/mach-omap2/pm34xx.c |   37 
+> > +++++++++++++++++++++++++++++++++++++
+> >  1 files changed, 37 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/pm34xx.c 
+> > b/arch/arm/mach-omap2/pm34xx.c index a57cf41..f30fa9e 100644
+> > --- a/arch/arm/mach-omap2/pm34xx.c
+> > +++ b/arch/arm/mach-omap2/pm34xx.c
+> > @@ -174,10 +174,47 @@ static void omap_sram_idle(void)
+> >  	omap2_gpio_resume_after_retention();
+> >  }
+> >  
+> > +/* XXX This workaround shouldn't be needed when all drivers are 
+> > +configuring
+> > + * their sysconfig registers properly and using their clocks
+> > + * properly. */
+> > +static int omap3_fclks_active(void)
+> > +{
+> > +	u32 fck_core1 = 0, fck_core3 = 0, fck_sgx = 0, fck_dss = 0,
+> > +		fck_cam = 0, fck_per = 0, fck_usbhost = 0;
+> > +
+> > +	fck_core1 = cm_read_mod_reg(CORE_MOD,
+> > +				    CM_FCLKEN1);
+> > +	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
+> > +		fck_core3 = cm_read_mod_reg(CORE_MOD,
+> > +					    OMAP3430ES2_CM_FCLKEN3);
+> > +		fck_sgx = cm_read_mod_reg(OMAP3430ES2_SGX_MOD,
+> > +					  CM_FCLKEN);
+> > +		fck_usbhost = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
+> > +					      CM_FCLKEN);
+> > +	} else
+> > +		fck_sgx = cm_read_mod_reg(GFX_MOD,
+> > +					  OMAP3430ES2_CM_FCLKEN3);
+> > +	fck_dss = cm_read_mod_reg(OMAP3430_DSS_MOD,
+> > +				  CM_FCLKEN);
+> > +	fck_cam = cm_read_mod_reg(OMAP3430_CAM_MOD,
+> > +				  CM_FCLKEN);
+> > +	fck_per = cm_read_mod_reg(OMAP3430_PER_MOD,
+> > +				  CM_FCLKEN);
+> > +	if (fck_core1 | fck_core3 | fck_sgx | fck_dss |
+> > +	    fck_cam | fck_per | fck_usbhost)
+> > +		return 1;
+> > +	return 0;
+> > +}
+> > +
+> >  static int omap3_can_sleep(void)
+> >  {
+> >  	if (!enable_dyn_sleep)
+> >  		return 0;
+> > +	/* XXX This workaround shouldn't be needed when all drivers are
+> > +	 * configuring their sysconfig registers properly and 
+> > using their
+> > +	 * clocks properly. */
+> > +	if (omap3_fclks_active())
+> > +		return 0;
+> >  	if (atomic_read(&sleep_block) > 0)
+> >  		return 0;
+> >  	return 1;
+> > --
+> > 1.5.5
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> > linux-omap" in the body of a message to 
+> > majordomo@vger.kernel.org More majordomo info at  
+> > http://vger.kernel.org/majordomo-info.html
+> > 
+> > 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
