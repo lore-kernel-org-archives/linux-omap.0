@@ -1,117 +1,43 @@
-From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: [PATCH 1/4] 34XX: PM: Workaround to check wether any fck is active before entering sleep
-Date: Fri, 22 Aug 2008 08:45:24 +0300
-Message-ID: <87pro1sivf.fsf@trdhcp146196.ntc.nokia.com>
-References: <87iqu2rac0.fsf@trdhcp146196.ntc.nokia.com>
-	<1218786438-28049-1-git-send-email-jouni.hogander@nokia.com>
-	<20080820113508.GB29374@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:21299 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752253AbYHVFpf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2008 01:45:35 -0400
-In-Reply-To: <20080820113508.GB29374@atomide.com> (ext Tony Lindgren's message
-	of "Wed, 20 Aug 2008 14:35:11 +0300")
-Sender: linux-omap-owner@vger.kernel.org
+From: ajay.gupta-l0cyMroinI0@public.gmane.org
+Subject: [PATCH] OMAP:MUSB: Fixes the TT programming.
+Date: Fri, 22 Aug 2008 11:43:33 +0530
+Message-ID: <1219385613-20108-1-git-send-email-ajay.gupta@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
 
-"ext Tony Lindgren" <tony@atomide.com> writes:
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
-> * Jouni Hogander <jouni.hogander@nokia.com> [080815 10:47]:
->> This workaround shouldn't be needed when all drivers are configuring
->> their sysconfig registers properly and using their clocks properly.
->
-> How about the cosmetically prettified version below? This could
-> still be kept around as CONFIG_PM_DEBUG functionality even after
-> the drivers are fixed.
+Fixes enumeration failures when a USB device attached to a LS hub is connected to OMAP EVM via HS hub. This is fixed by correctly programming hub address register in enqueue path.
 
-Sounds ok to me. I don't get how PM_DEBUG option is related to this,
-but anyway ok to me.
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+---
+ drivers/usb/musb/musb_host.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
->
-> Tony
->
->>From e37e8acd7685df9cb39f2fbc7887ba36639d5820 Mon Sep 17 00:00:00 200=
-1
-> From: Jouni Hogander <jouni.hogander@nokia.com>
-> Date: Wed, 20 Aug 2008 14:32:46 +0300
-> Subject: [PATCH] ARM: OMAP: 34xx specific check wether any fck is act=
-ive before entering sleep
->
-> We cannot enter sleep_while_idle if some functional clocks are
-> active. Add a check for enabled functional clocks for 34xx.
->
-> Note that this workaround could be behind CONFIG_PM_DEBUG
-> option when all drivers are configuring their sysconfig
-> registers properly and using their clocks properly.
->
-> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
->
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34x=
-x.c
-> index a57cf41..a145f80 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -174,10 +174,47 @@ static void omap_sram_idle(void)
->  	omap2_gpio_resume_after_retention();
->  }
-> =20
-> +/*
-> + * Check if functional clocks are enabled before entering
-> + * sleep. This function could be behind CONFIG_PM_DEBUG
-> + * when all drivers are configuring their sysconfig registers
-> + * properly and using their clocks properly.
-> + */
-> +static int omap3_fclks_active(void)
-> +{
-> +	u32 fck_core1 =3D 0, fck_core3 =3D 0, fck_sgx =3D 0, fck_dss =3D 0,
-> +		fck_cam =3D 0, fck_per =3D 0, fck_usbhost =3D 0;
-> +
-> +	fck_core1 =3D cm_read_mod_reg(CORE_MOD,
-> +				    CM_FCLKEN1);
-> +	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
-> +		fck_core3 =3D cm_read_mod_reg(CORE_MOD,
-> +					    OMAP3430ES2_CM_FCLKEN3);
-> +		fck_sgx =3D cm_read_mod_reg(OMAP3430ES2_SGX_MOD,
-> +					  CM_FCLKEN);
-> +		fck_usbhost =3D cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
-> +					      CM_FCLKEN);
-> +	} else
-> +		fck_sgx =3D cm_read_mod_reg(GFX_MOD,
-> +					  OMAP3430ES2_CM_FCLKEN3);
-> +	fck_dss =3D cm_read_mod_reg(OMAP3430_DSS_MOD,
-> +				  CM_FCLKEN);
-> +	fck_cam =3D cm_read_mod_reg(OMAP3430_CAM_MOD,
-> +				  CM_FCLKEN);
-> +	fck_per =3D cm_read_mod_reg(OMAP3430_PER_MOD,
-> +				  CM_FCLKEN);
-> +	if (fck_core1 | fck_core3 | fck_sgx | fck_dss |
-> +	    fck_cam | fck_per | fck_usbhost)
-> +		return 1;
-> +	return 0;
-> +}
-> +
->  static int omap3_can_sleep(void)
->  {
->  	if (!enable_dyn_sleep)
->  		return 0;
-> +	if (omap3_fclks_active())
-> +		return 0;
->  	if (atomic_read(&sleep_block) > 0)
->  		return 0;
->  	return 1;
-
---=20
-Jouni H=C3=B6gander
+diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+index 52ac02a..90d3733 100644
+--- a/drivers/usb/musb/musb_host.c
++++ b/drivers/usb/musb/musb_host.c
+@@ -1869,7 +1869,11 @@ static int musb_urb_enqueue(
+ 			/* set up tt info if needed */
+ 			if (urb->dev->tt) {
+ 				qh->h_port_reg = (u8) urb->dev->ttport;
+-				qh->h_addr_reg |= 0x80;
++				if (urb->dev->tt->hub)
++					qh->h_addr_reg =
++						(u8) urb->dev->tt->hub->devnum;
++				if (urb->dev->tt->multi)
++					qh->h_addr_reg |= 0x80;
+ 			}
+ 		}
+ 	}
+-- 
+1.5.6
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
