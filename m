@@ -1,47 +1,49 @@
-From: ajay.gupta@ti.com
-Subject: [PATCH] OMAP:MUSB: Corrects urb unlink function path
-Date: Fri, 22 Aug 2008 12:00:56 +0530
-Message-ID: <1219386656-31072-1-git-send-email-ajay.gupta@ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: Patch [2/2] DaVinci CPPI TX DMA tasklet
+Date: Fri, 22 Aug 2008 10:21:26 +0300
+Message-ID: <20080822072126.GA9474@gandalf.research.nokia.com>
+References: <1219327122-28334-1-git-send-email-swami.iyer@ti.com> <200808211215.37760.david-b@pacbell.net> <FCCFB4CDC6E5564B9182F639FC3560870229F52486@dbde02.ent.ti.com> <200808212024.11659.david-b@pacbell.net>
+Reply-To: felipe.balbi@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48262 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752502AbYHVGbM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Aug 2008 02:31:12 -0400
+Received: from smtp.nokia.com ([192.100.122.230]:23886 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751103AbYHVHUj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2008 03:20:39 -0400
+Content-Disposition: inline
+In-Reply-To: <200808212024.11659.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-usb@vger.kernel.org, felipe.balbi@nokia.com, ajaykuee@gmail.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
+To: ext David Brownell <david-b@pacbell.net>
+Cc: "Subbrathnam, Swaminathan" <swami.iyer@ti.com>, Dmitry Krivoschekov <dmitry.krivoschekov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+On Thu, Aug 21, 2008 at 08:24:11PM -0700, David Brownell wrote:
+> They'll need to be in nicely reviewable chunks ... I remember seeing
+> some DaVinci patches in late 2006 which broke on TUSB6010 silicon,
+> for example.
+> 
+> DMA in particular could really stand some cleanup.  Having four
+> different chunks of DMA code -- RX/TX vs Host/Peripheral -- with
+> ifdeffery for multiple DMA engines is ... chaotic.
 
-Fixes kernel panic while ISO IN transfer is aborted.Replaced usb_hcd_unlink_urb_from_ep() from musb_giveback() to __musb_giveback() to make sure urb is unlinked before giveback when __musb_giveback() is called from musb_urb_dequeue().
+Yeah, after the debugfs changes I plan to clean up those. Might take a
+while due to internal tasks
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
----
- drivers/usb/musb/musb_host.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+> > I discussed with Kevin on the DaVinci Git tree and Filipe here and they recommended that
+> > I take the changes to linux-usb, linux-omap tree (w.r.t musb changes) to get a wider 
+> > audience for review and acceptance.
+> > 
+> > Kevin would then pull in the changes as part of his regular synch ups.
+> 
+> I think the plan should be to have various SOC-specific trees (DaVinci,
+> OMAP, Blackfin, etc) stop hosting MUSB-specific patches.  They should
+> be pushed up to mainline ASAP ... the linux-omap tree should stop being
+> the place where the latest MUSB code sits.
 
-diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-index 93b0678..a889ac4 100644
---- a/drivers/usb/musb/musb_host.c
-+++ b/drivers/usb/musb/musb_host.c
-@@ -292,6 +292,7 @@ __acquires(musb->lock)
- 			);
- 
- 	spin_unlock(&musb->lock);
-+	usb_hcd_unlink_urb_from_ep(musb_to_hcd(musb), urb);
- 	usb_hcd_giveback_urb(musb_to_hcd(musb), urb, status);
- 	spin_lock(&musb->lock);
- }
-@@ -353,8 +354,6 @@ musb_giveback(struct musb_qh *qh, struct urb *urb, int status)
- 		break;
- 	}
- 
--	usb_hcd_unlink_urb_from_ep(musb_to_hcd(musb), urb);
--
- 	qh->is_ready = 0;
- 	__musb_giveback(musb, urb, status);
- 	qh->is_ready = ready;
+It's not anymore, we Cc that list so interested people might also take a
+look on the patches, since we pushed musb code via Greg's queue,
+linux-usb is the place for musb discussion.
+
 -- 
-1.5.6
-
+balbi
