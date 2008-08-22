@@ -1,30 +1,35 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
 Subject: RE: [PATCH] OMAP:MUSB: Corrects urb unlink function path
-Date: Fri, 22 Aug 2008 20:44:17 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403CD5D4D6F@dbde02.ent.ti.com>
-References: <1219386656-31072-1-git-send-email-ajay.gupta@ti.com>,<Pine.LNX.4.44L0.0808221038330.30309-100000@netrider.rowland.org>
+Date: Fri, 22 Aug 2008 21:03:08 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403CD5D4D70@dbde02.ent.ti.com>
+References: <1219386656-31072-1-git-send-email-ajay.gupta@ti.com>,<Pine.LNX.4.44L0.0808221038330.30309-100000@netrider.rowland.org>,<19F8576C6E063C45BE387C64729E739403CD5D4D6F@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46685 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751109AbYHVPTN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2008 11:19:13 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0808221038330.30309-100000@netrider.rowland.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403CD5D4D6F-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "ajaykuee@gmail.com" <ajaykuee@gmail.com>
 
-On Fri, 22 Aug 2008 ajay.gupta@ti.com wrote:
 
-> From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+
+________________________________________
+From: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Gupta, Ajay Kumar [ajay.gupta-l0cyMroinI0@public.gmane.org]
+Sent: Friday, August 22, 2008 8:44 PM
+To: Alan Stern
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org; ajaykuee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Subject: RE: [PATCH] OMAP:MUSB: Corrects urb unlink function path
+
+On Fri, 22 Aug 2008 ajay.gupta-l0cyMroinI0@public.gmane.org wrote:
+
+> From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 >
 > Fixes kernel panic while ISO IN transfer is aborted.Replaced usb_hcd_unlink_urb_from_ep() from musb_giveback() to __musb_giveback() to make sure urb is unlinked before giveback when __musb_giveback() is called from musb_urb_dequeue().
 >
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 > ---
 >  drivers/usb/musb/musb_host.c |    3 +--
 >  1 files changed, 1 insertions(+), 2 deletions(-)
@@ -41,17 +46,26 @@ On Fri, 22 Aug 2008 ajay.gupta@ti.com wrote:
 >       usb_hcd_giveback_urb(musb_to_hcd(musb), urb, status);
 >       spin_lock(&musb->lock);
 
-This is wrong.  You must call usb_hcd_unlink_urb_from_ep() while
-holding musb->lock.
+>This is wrong.  You must call usb_hcd_unlink_urb_from_ep() while
+>holding musb->lock.
+>
+>You are correct. the unlink function should be moved above spin_unlock().  as,
+>
+>+       usb_hcd_unlink_urb_from_ep(musb_to_hcd(musb), urb);
+>         spin_unlock(&musb->lock);
+>         usb_hcd_giveback_urb(musb_to_hcd(musb), urb, status);
+>         spin_lock(&musb->lock);
 
-You are correct. the unlink function should be moved above spin_unlock().  as,
+>Simiar locking issue is also in enqueue path where unlink is being done
+>without holding musb->lock.
+I will resend the patch with other lock fixes.
 
-+       usb_hcd_unlink_urb_from_ep(musb_to_hcd(musb), urb);
-         spin_unlock(&musb->lock);
-         usb_hcd_giveback_urb(musb_to_hcd(musb), urb, status);
-         spin_lock(&musb->lock);
+Ajay
 
-Simiar locking issue is also in enqueue path where unlink is being done 
-without holding musb->lock.
-
-Alan Stern
+>Alan Stern--
+>To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+>the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
