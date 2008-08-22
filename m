@@ -1,62 +1,89 @@
-From: "Subbrathnam, Swaminathan" <swami.iyer-l0cyMroinI0@public.gmane.org>
-Subject: RE: Patch [2/2] DaVinci CPPI TX DMA tasklet
-Date: Fri, 22 Aug 2008 14:42:31 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870229E8162A@dbde02.ent.ti.com>
-References: <48AD8526.8080206@gmail.com>
- <FCCFB4CDC6E5564B9182F639FC3560870229F52485@dbde02.ent.ti.com>
- <20080822072308.GB9474@gandalf.research.nokia.com>
+From: "Girish. S. G." <girishsg@ti.com>
+Subject: Re: [RFC][PATCH 1/1] serial: OMAP driver
+Date: Fri, 22 Aug 2008 18:12:21 +0530 (IST)
+Message-ID: <38077.192.168.10.89.1219408941.squirrel@dbdmail.itg.ti.com>
+References: <45510.192.168.10.88.1217503495.squirrel@dbdmail.itg.ti.com>
+    <20080806100552.GK19813@atomide.com>
+Reply-To: girishsg@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20080822072308.GB9474-f9ZlEuEWxVfta4EC/59zMBl4MBrZKKet0E9HWUfgJXw@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: Dmitry Krivoschekov <dmitry.krivoschekov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:35714 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751130AbYHVMxl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2008 08:53:41 -0400
+In-Reply-To: <20080806100552.GK19813@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Felipe,
-< afaict, endpoint interrupt is generated case we get a short packet. Then
-< dma engine won't send that last short packet and an enpoint interrupt
-< will be generated, from that point you decide if you wanna use PIO or
-< reprogram the dma for mode 0.
-	
-DaVinci CPPI TX DMA requires operating in Mode 1 and only DMA interrupts are raised and endpoint interrupts are not raised (excepting under error conditions).
+Tony,
 
+> Hi,
+>
+> Some comments below.
+>
+> * Girish. S. G. <girishsg@ti.com> [080731 14:26]:
+>> Serial driver for OMAP Uart controllers
+>>
+>> Signed-off-by: Girish S G <girishsg@ti.com>
+>> ---
+>>  arch/arm/configs/omap_3430sdp_defconfig |   12
+>>  arch/arm/mach-omap2/serial.c            |  166 ++---
+>>  drivers/serial/Kconfig                  |   23
+>>  drivers/serial/Makefile                 |    1
+>>  drivers/serial/omap-serial.c            |  887
+>> ++++++++++++++++++++++++++++++++
+>>  include/linux/serial_core.h             |    3
+>>  6 files changed, 974 insertions(+), 118 deletions(-)
+>>
+>> Index: linux-omap-2.6/arch/arm/configs/omap_3430sdp_defconfig
 
-Regards
+>>  	}
+>> -}
+>> -
+>> -static struct platform_device serial_device = {
+>> -	.name			= "serial8250",
+>> -	.id			= PLAT8250_DEV_PLATFORM,
+>> -	.dev			= {
+>> -		.platform_data	= serial_platform_data,
+>> -	},
+>> -};
+>
+> What about powering UART on/off? I suggest you provide set_power()
+> function in platform_data. That way the UART power function can be
+> generic on later omaps, or external like the FPGA on omap1510.
 
-Swami
+There isn't any specific power on/off for UART as such(or any on omap1510?).
+But yes we can have all the clk and pm related functions to be grouped under
+uart_ops->pm().
 
-(Type "pspproducts" in you web browser for PSP info)
+>> +static struct console serial_omap_console = {
+>> +	.name		= "ttyS",
+>> +	.write		= serial_omap_console_write,
+>> +	.device		= uart_console_device,
+>> +	.setup		= serial_omap_console_setup,
+>> +	.flags		= CON_PRINTBUFFER,
+>> +	.index		= -1,
+>> +	.data		= &serial_omap_reg,
+>> +};
+>> +
+>
+> AFAIK using ttyS name will break hot-plug 8250 ports, such as CF ports.
+> How about using ttyO or something similar? I guess the minor number also
+> needs to be different then.
+>
+> In general, will this driver also work on DaVinci? Maybe use name like
+> serial_ti or similar?
 
-http://dbdwss01.india.ti.com/pspproducts/
+I don't think the name would conflict as only our uart instance would be up and
+working. Right now this driver is supported and tested only on OMAP2/OMAP3. But
+yes, once it's in it can be easily ported on other TI platforms.
 
-PSP downloads at : http://software.ti.com/swcoe/intranet/reports/pds/PSP_releases.php
+I will resend the patch with only OMAP2/OMAP3 support as of now.
 
-Office : +91-80-25048629
+Regards,
+Girish
 
------Original Message-----
-From: Felipe Balbi [mailto:felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org] 
-Sent: Friday, August 22, 2008 12:53 PM
-To: Subbrathnam, Swaminathan
-Cc: Dmitry Krivoschekov; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
-Subject: Re: Patch [2/2] DaVinci CPPI TX DMA tasklet
-
-On Fri, Aug 22, 2008 at 07:01:26AM +0530, ext Subbrathnam, Swaminathan wrote:
-> <Swami> When in DMA mode (mode 1) Endpoint interrupt does not get
-> generated (only DMA completion interrupt) and hence cannot rely on that.
-
-afaict, endpoint interrupt is generated case we get a short packet. Then
-dma engine won't send that last short packet and an enpoint interrupt
-will be generated, from that point you decide if you wanna use PIO or
-reprogram the dma for mode 0.
-
--- 
-balbi
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
