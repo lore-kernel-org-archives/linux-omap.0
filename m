@@ -1,126 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] 34XX: PM: Workaround to check wether any fck is
-	active before entering sleep
-Date: Fri, 22 Aug 2008 21:07:50 +0300
-Message-ID: <20080822180750.GF8233@atomide.com>
-References: <87iqu2rac0.fsf@trdhcp146196.ntc.nokia.com> <1218786438-28049-1-git-send-email-jouni.hogander@nokia.com> <20080820113508.GB29374@atomide.com> <87pro1sivf.fsf@trdhcp146196.ntc.nokia.com>
+From: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
+Subject: Re: [PATCH v2] OMAP:MUSB: Corrects urb unlink function path
+Date: Fri, 22 Aug 2008 21:54:40 +0300
+Message-ID: <20080822185439.GB7542@frodo>
+References: <1219425190-13540-1-git-send-email-ajay.gupta@ti.com> <Pine.LNX.4.44L0.0808221330310.2230-100000@iolanthe.rowland.org>
+Reply-To: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58370 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751764AbYHVSIC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2008 14:08:02 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Yylu36WmvOXNoKYn"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <87pro1sivf.fsf@trdhcp146196.ntc.nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.44L0.0808221330310.2230-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?H=F6gander?= Jouni <jouni.hogander@nokia.com>
-Cc: linux-omap@vger.kernel.org
 
-* H=F6gander Jouni <jouni.hogander@nokia.com> [080822 08:45]:
-> "ext Tony Lindgren" <tony@atomide.com> writes:
->=20
-> > * Jouni Hogander <jouni.hogander@nokia.com> [080815 10:47]:
-> >> This workaround shouldn't be needed when all drivers are configuri=
-ng
-> >> their sysconfig registers properly and using their clocks properly=
-=2E
-> >
-> > How about the cosmetically prettified version below? This could
-> > still be kept around as CONFIG_PM_DEBUG functionality even after
-> > the drivers are fixed.
->=20
-> Sounds ok to me. I don't get how PM_DEBUG option is related to this,
-> but anyway ok to me.
 
-OK will push then. PM_DEBUG option comment was just to be able to
-maybe warn about debug broken drivers if idle fails or something
-like that.
+--Yylu36WmvOXNoKYn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Tony
+On Fri, Aug 22, 2008 at 01:32:12PM -0400, Alan Stern wrote:
+> On Fri, 22 Aug 2008 ajay.gupta-l0cyMroinI0@public.gmane.org wrote:
+>=20
+> > @@ -1785,9 +1784,11 @@ static int musb_urb_enqueue(
+> >  	 * REVISIT consider a dedicated qh kmem_cache, so it's harder
+> >  	 * for bugs in other kernel code to break this driver...
+> >  	 */
+>=20
+> This doesn't look right.  After calling spin_lock_irqsave you are in an=
+=20
+> atomic context, so you can't pass mem_flags to kzalloc.
+>=20
+> Either move the spin_lock_irqsave after the call to kzalloc or else=20
+> change mem_flags to GFP_ATOMIC.
 
-> >
-> > Tony
-> >
-> >>From e37e8acd7685df9cb39f2fbc7887ba36639d5820 Mon Sep 17 00:00:00 2=
-001
-> > From: Jouni Hogander <jouni.hogander@nokia.com>
-> > Date: Wed, 20 Aug 2008 14:32:46 +0300
-> > Subject: [PATCH] ARM: OMAP: 34xx specific check wether any fck is a=
-ctive before entering sleep
-> >
-> > We cannot enter sleep_while_idle if some functional clocks are
-> > active. Add a check for enabled functional clocks for 34xx.
-> >
-> > Note that this workaround could be behind CONFIG_PM_DEBUG
-> > option when all drivers are configuring their sysconfig
-> > registers properly and using their clocks properly.
-> >
-> > Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> >
-> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm3=
-4xx.c
-> > index a57cf41..a145f80 100644
-> > --- a/arch/arm/mach-omap2/pm34xx.c
-> > +++ b/arch/arm/mach-omap2/pm34xx.c
-> > @@ -174,10 +174,47 @@ static void omap_sram_idle(void)
-> >  	omap2_gpio_resume_after_retention();
-> >  }
-> > =20
-> > +/*
-> > + * Check if functional clocks are enabled before entering
-> > + * sleep. This function could be behind CONFIG_PM_DEBUG
-> > + * when all drivers are configuring their sysconfig registers
-> > + * properly and using their clocks properly.
-> > + */
-> > +static int omap3_fclks_active(void)
-> > +{
-> > +	u32 fck_core1 =3D 0, fck_core3 =3D 0, fck_sgx =3D 0, fck_dss =3D =
-0,
-> > +		fck_cam =3D 0, fck_per =3D 0, fck_usbhost =3D 0;
-> > +
-> > +	fck_core1 =3D cm_read_mod_reg(CORE_MOD,
-> > +				    CM_FCLKEN1);
-> > +	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
-> > +		fck_core3 =3D cm_read_mod_reg(CORE_MOD,
-> > +					    OMAP3430ES2_CM_FCLKEN3);
-> > +		fck_sgx =3D cm_read_mod_reg(OMAP3430ES2_SGX_MOD,
-> > +					  CM_FCLKEN);
-> > +		fck_usbhost =3D cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
-> > +					      CM_FCLKEN);
-> > +	} else
-> > +		fck_sgx =3D cm_read_mod_reg(GFX_MOD,
-> > +					  OMAP3430ES2_CM_FCLKEN3);
-> > +	fck_dss =3D cm_read_mod_reg(OMAP3430_DSS_MOD,
-> > +				  CM_FCLKEN);
-> > +	fck_cam =3D cm_read_mod_reg(OMAP3430_CAM_MOD,
-> > +				  CM_FCLKEN);
-> > +	fck_per =3D cm_read_mod_reg(OMAP3430_PER_MOD,
-> > +				  CM_FCLKEN);
-> > +	if (fck_core1 | fck_core3 | fck_sgx | fck_dss |
-> > +	    fck_cam | fck_per | fck_usbhost)
-> > +		return 1;
-> > +	return 0;
-> > +}
-> > +
-> >  static int omap3_can_sleep(void)
-> >  {
-> >  	if (!enable_dyn_sleep)
-> >  		return 0;
-> > +	if (omap3_fclks_active())
-> > +		return 0;
-> >  	if (atomic_read(&sleep_block) > 0)
-> >  		return 0;
-> >  	return 1;
->=20
-> --=20
-> Jouni H=F6gander
->=20
+first one, please.
+
+should be like:
+
+ 	qh =3D kzalloc(sizeof *qh, mem_flags);
+ 	if (!qh) {
++		spin_lock_irqsave(&musb->lock, flags);
+ 		usb_hcd_unlink_urb_from_ep(hcd, urb);
++		spin_unlock_irqrestore(&musb->lock, flags);
+ 		return -ENOMEM;
+ 	}
+
+--=20
+balbi
+
+--Yylu36WmvOXNoKYn
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFIrwtvQBywH/bNoN4RAvgvAJ9bSVmsp8d33FRW3LwtR8/0Lpd+cwCfUxeT
+zg/ditvrnFn+dbcYg6rL1c8=
+=N2MO
+-----END PGP SIGNATURE-----
+
+--Yylu36WmvOXNoKYn--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
