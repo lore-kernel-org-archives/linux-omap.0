@@ -1,71 +1,87 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH] OMAP:MUSB: Corrects urb unlink function path
-Date: Fri, 22 Aug 2008 21:03:08 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403CD5D4D70@dbde02.ent.ti.com>
-References: <1219386656-31072-1-git-send-email-ajay.gupta@ti.com>,<Pine.LNX.4.44L0.0808221038330.30309-100000@netrider.rowland.org>,<19F8576C6E063C45BE387C64729E739403CD5D4D6F@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403CD5D4D6F-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+From: ajay.gupta@ti.com
+Subject: [PATCH v2] OMAP:MUSB: Corrects urb unlink function path
+Date: Fri, 22 Aug 2008 22:43:10 +0530
+Message-ID: <1219425190-13540-1-git-send-email-ajay.gupta@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52376 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751682AbYHVRN1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 Aug 2008 13:13:27 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-usb@vger.kernel.org, felipe.balbi@nokia.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 
+Fixes kernel panic while ISO IN transfer is aborted.Replaced
+usb_hcd_unlink_urb_from_ep() from musb_giveback() to __musb_giveback()
+to make sure urb is unlinked before giveback when __musb_giveback() is
+called from musb_urb_dequeue().
 
-________________________________________
-From: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Gupta, Ajay Kumar [ajay.gupta-l0cyMroinI0@public.gmane.org]
-Sent: Friday, August 22, 2008 8:44 PM
-To: Alan Stern
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org; ajaykuee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Subject: RE: [PATCH] OMAP:MUSB: Corrects urb unlink function path
+Moved usb_hcd_unlink_urb_from_ep() within musb->lock() in enqueue path.
 
-On Fri, 22 Aug 2008 ajay.gupta-l0cyMroinI0@public.gmane.org wrote:
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+---
+ drivers/usb/musb/musb_host.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-> From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
->
-> Fixes kernel panic while ISO IN transfer is aborted.Replaced usb_hcd_unlink_urb_from_ep() from musb_giveback() to __musb_giveback() to make sure urb is unlinked before giveback when __musb_giveback() is called from musb_urb_dequeue().
->
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/usb/musb/musb_host.c |    3 +--
->  1 files changed, 1 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-> index 93b0678..a889ac4 100644
-> --- a/drivers/usb/musb/musb_host.c
-> +++ b/drivers/usb/musb/musb_host.c
-> @@ -292,6 +292,7 @@ __acquires(musb->lock)
->                       );
->
->       spin_unlock(&musb->lock);
-> +     usb_hcd_unlink_urb_from_ep(musb_to_hcd(musb), urb);
->       usb_hcd_giveback_urb(musb_to_hcd(musb), urb, status);
->       spin_lock(&musb->lock);
+diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+index 08e421f..2bdedf2 100644
+--- a/drivers/usb/musb/musb_host.c
++++ b/drivers/usb/musb/musb_host.c
+@@ -291,6 +291,7 @@ __acquires(musb->lock)
+ 			urb->actual_length, urb->transfer_buffer_length
+ 			);
+ 
++	usb_hcd_unlink_urb_from_ep(musb_to_hcd(musb), urb);
+ 	spin_unlock(&musb->lock);
+ 	usb_hcd_giveback_urb(musb_to_hcd(musb), urb, status);
+ 	spin_lock(&musb->lock);
+@@ -353,8 +354,6 @@ musb_giveback(struct musb_qh *qh, struct urb *urb, int status)
+ 		break;
+ 	}
+ 
+-	usb_hcd_unlink_urb_from_ep(musb_to_hcd(musb), urb);
+-
+ 	qh->is_ready = 0;
+ 	__musb_giveback(musb, urb, status);
+ 	qh->is_ready = ready;
+@@ -1785,9 +1784,11 @@ static int musb_urb_enqueue(
+ 	 * REVISIT consider a dedicated qh kmem_cache, so it's harder
+ 	 * for bugs in other kernel code to break this driver...
+ 	 */
++	spin_lock_irqsave(&musb->lock, flags);
+ 	qh = kzalloc(sizeof *qh, mem_flags);
+ 	if (!qh) {
+ 		usb_hcd_unlink_urb_from_ep(hcd, urb);
++		spin_unlock_irqrestore(&musb->lock, flags);
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -1878,7 +1879,6 @@ static int musb_urb_enqueue(
+ 	 * until we get real dma queues (with an entry for each urb/buffer),
+ 	 * we only have work to do in the former case.
+ 	 */
+-	spin_lock_irqsave(&musb->lock, flags);
+ 	if (hep->hcpriv) {
+ 		/* some concurrent activity submitted another urb to hep...
+ 		 * odd, rare, error prone, but legal.
+@@ -1895,13 +1895,13 @@ static int musb_urb_enqueue(
+ 		 * musb_start_urb(), but otherwise only konicawc cares ...
+ 		 */
+ 	}
+-	spin_unlock_irqrestore(&musb->lock, flags);
+ 
+ done:
+ 	if (ret != 0) {
+ 		usb_hcd_unlink_urb_from_ep(hcd, urb);
+ 		kfree(qh);
+ 	}
++	spin_unlock_irqrestore(&musb->lock, flags);
+ 	return ret;
+ }
+ 
+-- 
+1.5.6
 
->This is wrong.  You must call usb_hcd_unlink_urb_from_ep() while
->holding musb->lock.
->
->You are correct. the unlink function should be moved above spin_unlock().  as,
->
->+       usb_hcd_unlink_urb_from_ep(musb_to_hcd(musb), urb);
->         spin_unlock(&musb->lock);
->         usb_hcd_giveback_urb(musb_to_hcd(musb), urb, status);
->         spin_lock(&musb->lock);
-
->Simiar locking issue is also in enqueue path where unlink is being done
->without holding musb->lock.
-I will resend the patch with other lock fixes.
-
-Ajay
-
->Alan Stern--
->To unsubscribe from this list: send the line "unsubscribe linux-usb" in
->the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html--
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
