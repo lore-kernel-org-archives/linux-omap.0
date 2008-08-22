@@ -1,70 +1,126 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/4] PM: Workaround for taking care of gpio clocks
-Date: Fri, 22 Aug 2008 21:06:49 +0300
-Message-ID: <20080822180648.GE8233@atomide.com>
-References: <87iqu2rac0.fsf@trdhcp146196.ntc.nokia.com> <1218786439-28070-1-git-send-email-jouni.hogander@nokia.com> <20080820113715.GC29374@atomide.com> <B71CE868F2BC2847B3F23C5A8EE394306273A5@vaebe110.NOE.Nokia.com>
+Subject: Re: [PATCH 1/4] 34XX: PM: Workaround to check wether any fck is
+	active before entering sleep
+Date: Fri, 22 Aug 2008 21:07:50 +0300
+Message-ID: <20080822180750.GF8233@atomide.com>
+References: <87iqu2rac0.fsf@trdhcp146196.ntc.nokia.com> <1218786438-28049-1-git-send-email-jouni.hogander@nokia.com> <20080820113508.GB29374@atomide.com> <87pro1sivf.fsf@trdhcp146196.ntc.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57407 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58370 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751055AbYHVSHA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2008 14:07:00 -0400
+	with ESMTP id S1751764AbYHVSIC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2008 14:08:02 -0400
 Content-Disposition: inline
-In-Reply-To: <B71CE868F2BC2847B3F23C5A8EE394306273A5@vaebe110.NOE.Nokia.com>
+In-Reply-To: <87pro1sivf.fsf@trdhcp146196.ntc.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero.Kristo@nokia.com
-Cc: jouni.hogander@nokia.com, linux-omap@vger.kernel.org
+To: =?iso-8859-1?Q?H=F6gander?= Jouni <jouni.hogander@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-* Tero.Kristo@nokia.com <Tero.Kristo@nokia.com> [080821 14:08]:
->  
-> 
-> >-----Original Message-----
-> >From: linux-omap-owner@vger.kernel.org 
-> >[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of ext 
-> >Tony Lindgren
-> >Sent: 20 August, 2008 14:37
-> >To: Hogander Jouni (Nokia-D/Tampere)
-> >Cc: linux-omap@vger.kernel.org
-> >Subject: Re: [PATCH 2/4] PM: Workaround for taking care of gpio clocks
+* H=F6gander Jouni <jouni.hogander@nokia.com> [080822 08:45]:
+> "ext Tony Lindgren" <tony@atomide.com> writes:
+>=20
+> > * Jouni Hogander <jouni.hogander@nokia.com> [080815 10:47]:
+> >> This workaround shouldn't be needed when all drivers are configuri=
+ng
+> >> their sysconfig registers properly and using their clocks properly=
+=2E
 > >
-> >* Jouni Hogander <jouni.hogander@nokia.com> [080815 10:47]:
-> >> In omap3 gpios 2-6 are in per domain. Functional clocks for these 
-> >> should be disabled. This patch is needed until gpio driver disables 
-> >> gpio clocks.
-> >> 
-> >> GPIO modules in PER domain are not able to act as a wake up 
-> >source if 
-> >> PER domain is in retention. PER domain sleep transition 
-> >before MPU is 
-> >> prevented by leaving icks active. PER domain still enters retention 
-> >> together with MPU. When this happens IOPAD wake up mechanism is used 
-> >> for gpios.
-> >
-> >As we talked offline.. Should we pass the GPIO wake-up 
-> >configuration from board-*.c files? Or can we always 
-> >automatically do this safely on 34xx?
-> 
-> After some investigation it seems that we can configure wake-up events
-> for almost every GPIO from the padconfigs. There are only 2 pins that do
-> not seem to have this functionality, however I am not sure if this is a
-> documentation bug or what because it is strange that only 2 pins lack
-> this capability. GPIOs 32 and 187 are missing wake-up capability from
-> padconfig.
-> 
-> Because of this, our proposal would be to make GPIO clock switching
-> global, but this would be enabled from a sysfs entry pretty much like
-> how it is in the patches now. However, this would be separated from UART
-> clock switching. So, we would introduce two new sysfs files:
-> uart_clocks_off_while_idle and gpio_clocks_off_while_idle. This would
-> avoid introducing new complexity in to the idle loop.
-> 
-> How does this sound like?
+> > How about the cosmetically prettified version below? This could
+> > still be kept around as CONFIG_PM_DEBUG functionality even after
+> > the drivers are fixed.
+>=20
+> Sounds ok to me. I don't get how PM_DEBUG option is related to this,
+> but anyway ok to me.
 
-Sounds good to me. Then we may be able to remove both sysfs files
-eventually.
-
-Regards,
+OK will push then. PM_DEBUG option comment was just to be able to
+maybe warn about debug broken drivers if idle fails or something
+like that.
 
 Tony
+
+> >
+> > Tony
+> >
+> >>From e37e8acd7685df9cb39f2fbc7887ba36639d5820 Mon Sep 17 00:00:00 2=
+001
+> > From: Jouni Hogander <jouni.hogander@nokia.com>
+> > Date: Wed, 20 Aug 2008 14:32:46 +0300
+> > Subject: [PATCH] ARM: OMAP: 34xx specific check wether any fck is a=
+ctive before entering sleep
+> >
+> > We cannot enter sleep_while_idle if some functional clocks are
+> > active. Add a check for enabled functional clocks for 34xx.
+> >
+> > Note that this workaround could be behind CONFIG_PM_DEBUG
+> > option when all drivers are configuring their sysconfig
+> > registers properly and using their clocks properly.
+> >
+> > Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> >
+> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm3=
+4xx.c
+> > index a57cf41..a145f80 100644
+> > --- a/arch/arm/mach-omap2/pm34xx.c
+> > +++ b/arch/arm/mach-omap2/pm34xx.c
+> > @@ -174,10 +174,47 @@ static void omap_sram_idle(void)
+> >  	omap2_gpio_resume_after_retention();
+> >  }
+> > =20
+> > +/*
+> > + * Check if functional clocks are enabled before entering
+> > + * sleep. This function could be behind CONFIG_PM_DEBUG
+> > + * when all drivers are configuring their sysconfig registers
+> > + * properly and using their clocks properly.
+> > + */
+> > +static int omap3_fclks_active(void)
+> > +{
+> > +	u32 fck_core1 =3D 0, fck_core3 =3D 0, fck_sgx =3D 0, fck_dss =3D =
+0,
+> > +		fck_cam =3D 0, fck_per =3D 0, fck_usbhost =3D 0;
+> > +
+> > +	fck_core1 =3D cm_read_mod_reg(CORE_MOD,
+> > +				    CM_FCLKEN1);
+> > +	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
+> > +		fck_core3 =3D cm_read_mod_reg(CORE_MOD,
+> > +					    OMAP3430ES2_CM_FCLKEN3);
+> > +		fck_sgx =3D cm_read_mod_reg(OMAP3430ES2_SGX_MOD,
+> > +					  CM_FCLKEN);
+> > +		fck_usbhost =3D cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
+> > +					      CM_FCLKEN);
+> > +	} else
+> > +		fck_sgx =3D cm_read_mod_reg(GFX_MOD,
+> > +					  OMAP3430ES2_CM_FCLKEN3);
+> > +	fck_dss =3D cm_read_mod_reg(OMAP3430_DSS_MOD,
+> > +				  CM_FCLKEN);
+> > +	fck_cam =3D cm_read_mod_reg(OMAP3430_CAM_MOD,
+> > +				  CM_FCLKEN);
+> > +	fck_per =3D cm_read_mod_reg(OMAP3430_PER_MOD,
+> > +				  CM_FCLKEN);
+> > +	if (fck_core1 | fck_core3 | fck_sgx | fck_dss |
+> > +	    fck_cam | fck_per | fck_usbhost)
+> > +		return 1;
+> > +	return 0;
+> > +}
+> > +
+> >  static int omap3_can_sleep(void)
+> >  {
+> >  	if (!enable_dyn_sleep)
+> >  		return 0;
+> > +	if (omap3_fclks_active())
+> > +		return 0;
+> >  	if (atomic_read(&sleep_block) > 0)
+> >  		return 0;
+> >  	return 1;
+>=20
+> --=20
+> Jouni H=F6gander
+>=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
