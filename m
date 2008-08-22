@@ -1,69 +1,47 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] OMAP:MUSB: Fixes the TT programming.
-Date: Thu, 21 Aug 2008 23:30:06 -0700
-Message-ID: <200808212330.06650.david-b@pacbell.net>
-References: <1219385613-20108-1-git-send-email-ajay.gupta@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: ajay.gupta@ti.com
+Subject: [PATCH] OMAP:MUSB: Corrects urb unlink function path
+Date: Fri, 22 Aug 2008 12:00:56 +0530
+Message-ID: <1219386656-31072-1-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:47614 "HELO
-	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752688AbYHVGaN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Aug 2008 02:30:13 -0400
-In-Reply-To: <1219385613-20108-1-git-send-email-ajay.gupta@ti.com>
-Content-Disposition: inline
+Received: from comal.ext.ti.com ([198.47.26.152]:48262 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752502AbYHVGbM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 Aug 2008 02:31:12 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ajay.gupta@ti.com
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, felipe.balbi@nokia.com
+To: linux-omap@vger.kernel.org
+Cc: linux-usb@vger.kernel.org, felipe.balbi@nokia.com, ajaykuee@gmail.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-On Thursday 21 August 2008, ajay.gupta@ti.com wrote:
-> From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> 
-> Fixes enumeration failures when a USB device attached to a LS hub
-> is connected to OMAP EVM via HS hub. This is fixed by correctly
-> programming hub address register in enqueue path.  
-> 
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Looks right to me, other than the lack of line wrapping in that
-summary (corrected above).  Moreover, there ought to be some way
-to make all high speed hosts share TT scheduling code ... ;)
+Fixes kernel panic while ISO IN transfer is aborted.Replaced usb_hcd_unlink_urb_from_ep() from musb_giveback() to __musb_giveback() to make sure urb is unlinked before giveback when __musb_giveback() is called from musb_urb_dequeue().
 
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+---
+ drivers/usb/musb/musb_host.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-
-> ---
->  drivers/usb/musb/musb_host.c |    6 +++++-
->  1 files changed, 5 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-> index 52ac02a..90d3733 100644
-> --- a/drivers/usb/musb/musb_host.c
-> +++ b/drivers/usb/musb/musb_host.c
-> @@ -1869,7 +1869,11 @@ static int musb_urb_enqueue(
->  			/* set up tt info if needed */
->  			if (urb->dev->tt) {
->  				qh->h_port_reg = (u8) urb->dev->ttport;
-> -				qh->h_addr_reg |= 0x80;
-> +				if (urb->dev->tt->hub)
-> +					qh->h_addr_reg =
-> +						(u8) urb->dev->tt->hub->devnum;
-> +				if (urb->dev->tt->multi)
-> +					qh->h_addr_reg |= 0x80;
->  			}
->  		}
->  	}
-> -- 
-> 1.5.6
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+index 93b0678..a889ac4 100644
+--- a/drivers/usb/musb/musb_host.c
++++ b/drivers/usb/musb/musb_host.c
+@@ -292,6 +292,7 @@ __acquires(musb->lock)
+ 			);
+ 
+ 	spin_unlock(&musb->lock);
++	usb_hcd_unlink_urb_from_ep(musb_to_hcd(musb), urb);
+ 	usb_hcd_giveback_urb(musb_to_hcd(musb), urb, status);
+ 	spin_lock(&musb->lock);
+ }
+@@ -353,8 +354,6 @@ musb_giveback(struct musb_qh *qh, struct urb *urb, int status)
+ 		break;
+ 	}
+ 
+-	usb_hcd_unlink_urb_from_ep(musb_to_hcd(musb), urb);
+-
+ 	qh->is_ready = 0;
+ 	__musb_giveback(musb, urb, status);
+ 	qh->is_ready = ready;
+-- 
+1.5.6
 
