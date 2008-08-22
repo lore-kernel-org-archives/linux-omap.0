@@ -1,46 +1,28 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH] OMAP:MUSB: Corrects urb unlink function path
-Date: Fri, 22 Aug 2008 10:39:35 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0808221038330.30309-100000@netrider.rowland.org>
-References: <1219386656-31072-1-git-send-email-ajay.gupta@ti.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: cool gadget
+Date: Fri, 22 Aug 2008 09:48:49 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE89671620364E2C01B@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1219386656-31072-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, ajaykuee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45129 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753132AbYHVOtA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2008 10:49:00 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7MEmsBD027774
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 22 Aug 2008 09:48:59 -0500
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id m7MEmbEI011576
+	for <linux-omap@vger.kernel.org>; Fri, 22 Aug 2008 09:48:54 -0500 (CDT)
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, 22 Aug 2008 ajay.gupta-l0cyMroinI0@public.gmane.org wrote:
 
-> From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-> 
-> Fixes kernel panic while ISO IN transfer is aborted.Replaced usb_hcd_unlink_urb_from_ep() from musb_giveback() to __musb_giveback() to make sure urb is unlinked before giveback when __musb_giveback() is called from musb_urb_dequeue().
-> 
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/usb/musb/musb_host.c |    3 +--
->  1 files changed, 1 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-> index 93b0678..a889ac4 100644
-> --- a/drivers/usb/musb/musb_host.c
-> +++ b/drivers/usb/musb/musb_host.c
-> @@ -292,6 +292,7 @@ __acquires(musb->lock)
->  			);
->  
->  	spin_unlock(&musb->lock);
-> +	usb_hcd_unlink_urb_from_ep(musb_to_hcd(musb), urb);
->  	usb_hcd_giveback_urb(musb_to_hcd(musb), urb, status);
->  	spin_lock(&musb->lock);
+http://www.linuxdevices.com/news/NS8246055816.html
 
-This is wrong.  You must call usb_hcd_unlink_urb_from_ep() while 
-holding musb->lock.
 
-Alan Stern
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
