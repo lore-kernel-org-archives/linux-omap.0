@@ -1,40 +1,70 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH v2] OMAP:MUSB: Corrects urb unlink function path
-Date: Fri, 22 Aug 2008 13:32:12 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0808221330310.2230-100000@iolanthe.rowland.org>
-References: <1219425190-13540-1-git-send-email-ajay.gupta@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/4] PM: Workaround for taking care of gpio clocks
+Date: Fri, 22 Aug 2008 21:06:49 +0300
+Message-ID: <20080822180648.GE8233@atomide.com>
+References: <87iqu2rac0.fsf@trdhcp146196.ntc.nokia.com> <1218786439-28070-1-git-send-email-jouni.hogander@nokia.com> <20080820113715.GC29374@atomide.com> <B71CE868F2BC2847B3F23C5A8EE394306273A5@vaebe110.NOE.Nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:35927 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752871AbYHVRcN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2008 13:32:13 -0400
-In-Reply-To: <1219425190-13540-1-git-send-email-ajay.gupta@ti.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57407 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751055AbYHVSHA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2008 14:07:00 -0400
+Content-Disposition: inline
+In-Reply-To: <B71CE868F2BC2847B3F23C5A8EE394306273A5@vaebe110.NOE.Nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, felipe.balbi@nokia.com
+To: Tero.Kristo@nokia.com
+Cc: jouni.hogander@nokia.com, linux-omap@vger.kernel.org
 
-On Fri, 22 Aug 2008 ajay.gupta@ti.com wrote:
+* Tero.Kristo@nokia.com <Tero.Kristo@nokia.com> [080821 14:08]:
+>  
+> 
+> >-----Original Message-----
+> >From: linux-omap-owner@vger.kernel.org 
+> >[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of ext 
+> >Tony Lindgren
+> >Sent: 20 August, 2008 14:37
+> >To: Hogander Jouni (Nokia-D/Tampere)
+> >Cc: linux-omap@vger.kernel.org
+> >Subject: Re: [PATCH 2/4] PM: Workaround for taking care of gpio clocks
+> >
+> >* Jouni Hogander <jouni.hogander@nokia.com> [080815 10:47]:
+> >> In omap3 gpios 2-6 are in per domain. Functional clocks for these 
+> >> should be disabled. This patch is needed until gpio driver disables 
+> >> gpio clocks.
+> >> 
+> >> GPIO modules in PER domain are not able to act as a wake up 
+> >source if 
+> >> PER domain is in retention. PER domain sleep transition 
+> >before MPU is 
+> >> prevented by leaving icks active. PER domain still enters retention 
+> >> together with MPU. When this happens IOPAD wake up mechanism is used 
+> >> for gpios.
+> >
+> >As we talked offline.. Should we pass the GPIO wake-up 
+> >configuration from board-*.c files? Or can we always 
+> >automatically do this safely on 34xx?
+> 
+> After some investigation it seems that we can configure wake-up events
+> for almost every GPIO from the padconfigs. There are only 2 pins that do
+> not seem to have this functionality, however I am not sure if this is a
+> documentation bug or what because it is strange that only 2 pins lack
+> this capability. GPIOs 32 and 187 are missing wake-up capability from
+> padconfig.
+> 
+> Because of this, our proposal would be to make GPIO clock switching
+> global, but this would be enabled from a sysfs entry pretty much like
+> how it is in the patches now. However, this would be separated from UART
+> clock switching. So, we would introduce two new sysfs files:
+> uart_clocks_off_while_idle and gpio_clocks_off_while_idle. This would
+> avoid introducing new complexity in to the idle loop.
+> 
+> How does this sound like?
 
-> @@ -1785,9 +1784,11 @@ static int musb_urb_enqueue(
->  	 * REVISIT consider a dedicated qh kmem_cache, so it's harder
->  	 * for bugs in other kernel code to break this driver...
->  	 */
-> +	spin_lock_irqsave(&musb->lock, flags);
->  	qh = kzalloc(sizeof *qh, mem_flags);
->  	if (!qh) {
->  		usb_hcd_unlink_urb_from_ep(hcd, urb);
-> +		spin_unlock_irqrestore(&musb->lock, flags);
->  		return -ENOMEM;
->  	}
+Sounds good to me. Then we may be able to remove both sysfs files
+eventually.
 
-This doesn't look right.  After calling spin_lock_irqsave you are in an 
-atomic context, so you can't pass mem_flags to kzalloc.
+Regards,
 
-Either move the spin_lock_irqsave after the call to kzalloc or else 
-change mem_flags to GFP_ATOMIC.
-
-Alan Stern
-
+Tony
