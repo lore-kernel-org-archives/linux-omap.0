@@ -1,139 +1,142 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: USB EHCI: Support final revision of USB board
-Date: Sat, 23 Aug 2008 16:22:39 -0700
-Message-ID: <20080823232238.GL4713@atomide.com>
-References: <FCCFB4CDC6E5564B9182F639FC35608701982C85CE@dbde02.ent.ti.com> <20080805104643.GP7193@atomide.com> <5A47E75E594F054BAF48C5E4FC4B92AB02C3E314F6@dbde02.ent.ti.com>
+Subject: git-pull-request for omap2-upstream branch for next merge window
+	(Was: [PATCH 00/16] Omap2 patches for post 2.6.26)
+Date: Sat, 23 Aug 2008 16:37:12 -0700
+Message-ID: <20080823233711.GM4713@atomide.com>
+References: <20080819212300.GF17034@flint.arm.linux.org.uk> <20080820072310.GA28862@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59040 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51535 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752562AbYHWXWl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Aug 2008 19:22:41 -0400
+	with ESMTP id S1752684AbYHWXhX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Aug 2008 19:37:23 -0400
 Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02C3E314F6@dbde02.ent.ti.com>
+In-Reply-To: <20080820072310.GA28862@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-* Gadiyar, Anand <gadiyar@ti.com> [080821 05:49]:
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org On Behalf Of Tony Lindgren
-> > * Pandita, Vikram <vikram.pandita@ti.com> [080630 17:03]:
-> > >
-> > >
-> > >    Code changes for final rev of EHCI/OHCI USB expansion board 750-2099-001(C)
-> > >    with h/w bug fixes to support ISP1504 PHY in input clocking mode
-> > >
-> > >    The board has 12-pin ULPI Port1 and Port2 EHCI pins connected to ISP1504's.
-> > >    Port3 is connected to ISP1301 for connection to OHCI.
-> > >
-> > >  - This is the final USB expansion board that will be released and
-> > >    so the bug fixes are critical
-> > >
-> > >  - Changes tested on SDP3430
-> > 
-> > These should be sent via linux-usb list, please also Cc 
-> > linux-omap list.
-> > 
-> > Thanks,
-> > 
-> > Tony
+* Tony Lindgren <tony@atomide.com> [080820 00:23]:
+> Hi,
 > 
-> 
-> Er Tony, the bus glue for OMAP is not present upstream. This patch fixes
-> something in that bus glue code, which currently exists only in your tree.
-> Care to push this to your tree for now?
-> 
-> I'll get the ehci-omap code in better shape and submit separately to the
-> linux-usb list.
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [080820 00:23]:
+> > On Fri, Jun 06, 2008 at 06:47:41PM -0700, Tony Lindgren wrote:
+> > > This patch series contains various omap2 patchs from linux-omap tree.
+> > > Big chunk of the patches still improve the clock code. Also more
+> > > clean-up to allow compiling omap2 and omap3 support into the same
+> > > kernel. The patch also adds core omap3430 support, but no board
+> > > files or PM at at this point.
+> > 
+> > Apart from the comments I've made, the rest seem "fine" as far as I can
+> > tell.
 
-Well we should really sync all usb code with mainline now that musb is
-merged. Can you repost patches against mainline for linux-usb? I can
-then reset drivers/usb to be in sync with mainline and we can move
-all USB related discussion to linux-usb.
+<snip>
+
+Here's the pull request for you assuming your don't have other comments.
+
+I'll be out of town next week, so if there are other comments I won't
+be able to refresh the patches until I get back.
+
+Regards,
 
 Tony
 
-> 
-> 
-> - Anand
-> 
-> 
-> > 
-> > 
-> > > Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> > > ---
-> > >  drivers/usb/host/ehci-omap.c |   37 ++++++-------------------------------
-> > >  1 file changed, 6 insertions(+), 31 deletions(-)
-> > >
-> > > Index: linux-omap-2.6/drivers/usb/host/ehci-omap.c
-> > > ===================================================================
-> > > --- linux-omap-2.6.orig/drivers/usb/host/ehci-omap.c    2008-05-02 14:11:56.000000000 +0530
-> > > +++ linux-omap-2.6/drivers/usb/host/ehci-omap.c 2008-05-02 15:05:40.000000000 +0530
-> > > @@ -35,7 +35,7 @@
-> > >  #ifdef CONFIG_OMAP_EHCI_PHY_MODE
-> > >  /* EHCI connected to External PHY */
-> > >
-> > > -/* External USB connectivity board: 750-2083-001
-> > > +/* External USB connectivity board: 750-2099-001(C)
-> > >   * Connected to OMAP3430 SDP
-> > >   * The board has Port1 and Port2 connected to ISP1504 in 12-pin ULPI mode
-> > >   */
-> > > @@ -50,14 +50,7 @@
-> > >  #define EXTERNAL_PHY_RESET
-> > >  #define        EXT_PHY_RESET_GPIO_PORT1        (57)
-> > >  #define        EXT_PHY_RESET_GPIO_PORT2        (61)
-> > > -#define        EXT_PHY_RESET_DELAY             (10)
-> > > -
-> > > -/* ISSUE2:
-> > > - * USBHOST supports External charge pump PHYs only
-> > > - * Use the VBUS from Port1 to power VBUS of Port2 externally
-> > > - * So use Port2 as the working ULPI port
-> > > - */
-> > > -#define VBUS_INTERNAL_CHARGEPUMP_HACK
-> > > +#define        EXT_PHY_RESET_DELAY             (500)
-> > >
-> > >  #endif /* CONFIG_OMAP_EHCI_PHY_MODE */
-> > >
-> > > @@ -228,8 +221,8 @@ static int omap_start_ehc(struct platfor
-> > >         omap_set_gpio_direction(EXT_PHY_RESET_GPIO_PORT1, 0);
-> > >         omap_request_gpio(EXT_PHY_RESET_GPIO_PORT2);
-> > >         omap_set_gpio_direction(EXT_PHY_RESET_GPIO_PORT2, 0);
-> > > -       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT1, 0);
-> > > -       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT2, 0);
-> > > +       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT1, 1);
-> > > +       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT2, 1);
-> > >         /* Hold the PHY in RESET for enough time till DIR is high */
-> > >         udelay(EXT_PHY_RESET_DELAY);
-> > >  #endif
-> > > @@ -305,26 +298,8 @@ static int omap_start_ehc(struct platfor
-> > >          * Hold the PHY in RESET for enough time till PHY is settled and ready
-> > >          */
-> > >         udelay(EXT_PHY_RESET_DELAY);
-> > > -       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT1, 1);
-> > > -       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT2, 1);
-> > > -#endif
-> > > -
-> > > -#ifdef VBUS_INTERNAL_CHARGEPUMP_HACK
-> > > -       /* Refer ISSUE2: LINK assumes external charge pump */
-> > > -
-> > > -       /* use Port1 VBUS to charge externally Port2:
-> > > -        *      So for PHY mode operation use Port2 only
-> > > -        */
-> > > -       omap_writel((0xA << EHCI_INSNREG05_ULPI_REGADD_SHIFT) |/* OTG ctrl reg*/
-> > > -                       (2 << EHCI_INSNREG05_ULPI_OPSEL_SHIFT) |/*   Write */
-> > > -                       (1 << EHCI_INSNREG05_ULPI_PORTSEL_SHIFT) |/* Port1 */
-> > > -                       (1 << EHCI_INSNREG05_ULPI_CONTROL_SHIFT) |/* Start */
-> > > -                       (0x26),
-> > > -                       EHCI_INSNREG05_ULPI);
-> > > -
-> > > -       while (!(omap_readl(EHCI_INSNREG05_ULPI) &
-> > > -               (1<<EHCI_INSNREG05_ULPI_CONTROL_SHIFT)));
-> > > -
-> > > +       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT1, 0);
-> > > +       omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT2, 0);
-> > >  #endif
-> > >
-> > >         return 0;
+
+The following changes since commit dcac5512382d8df4476ce2e9c13e9540b3801d32:
+  Russell King (1):
+        Merge branch 'omap2-clock' of git://git.kernel.org/.../tmlind/linux-omap-2.6.git
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap2-upstream
+
+Jouni Hogander (1):
+      ARM: OMAP2 Provide function to enable/disable uart clocks
+
+Kevin Hilman (1):
+      ARM: OMAP2: Implement CPUfreq frequency table based on PRCM table
+
+Paul Walmsley (6):
+      ARM: OMAP2: Add non-CORE DPLL rate set code and M,N programming
+      ARM: OMAP: Fix sparse, checkpatch warnings in OMAP2/3 PRCM/PM code
+      ARM: OMAP2: Move sys_clkout2 clk to core_clkdm
+      ARM: OMAP2: Add missing SSI L4 interface clock
+      ARM: OMAP2: Fix sparse, checkpatch warnings fro GPMC code
+      ARM: OMAP2: Fix sparse, checkpatch warnings in OMAP2/3 IRQ code
+
+Syed Mohammed Khasim (1):
+      ARM: OMAP2: Add minimal omap3430 support
+
+Tony Lindgren (5):
+      ARM: OMAP2: Move sleep.S into sleep24xx.S
+      ARM: OMAP2: Remove OMAP_PRM_REGADDR
+      ARM: OMAP2: Remove OMAP_CM_REGADDR
+      ARM: OMAP2: Use omap_globals for CPU detection for multi-omap
+      ARM: OMAP2: Misc updates from linux-omap tree
+
+Vikram Pandita (1):
+      ARM: OMAP2: Add pinmux support for omap34xx
+
+ arch/arm/mach-omap1/devices.c                   |    2 +-
+ arch/arm/mach-omap2/Kconfig                     |   12 +-
+ arch/arm/mach-omap2/Makefile                    |    6 +-
+ arch/arm/mach-omap2/clock.c                     |  124 ++++----
+ arch/arm/mach-omap2/clock.h                     |    3 +-
+ arch/arm/mach-omap2/clock24xx.c                 |  148 ++++++--
+ arch/arm/mach-omap2/clock24xx.h                 |  335 ++++++++++--------
+ arch/arm/mach-omap2/clock34xx.c                 |  141 ++++++++-
+ arch/arm/mach-omap2/clock34xx.h                 |  431 ++++++++++++-----------
+ arch/arm/mach-omap2/cm-regbits-34xx.h           |    7 +
+ arch/arm/mach-omap2/cm.h                        |   17 +-
+ arch/arm/mach-omap2/devices.c                   |  229 ++++++++++--
+ arch/arm/mach-omap2/gpmc.c                      |   70 +++--
+ arch/arm/mach-omap2/id.c                        |   67 +++-
+ arch/arm/mach-omap2/io.c                        |  147 ++++++--
+ arch/arm/mach-omap2/irq.c                       |   66 ++--
+ arch/arm/mach-omap2/memory.c                    |    3 +-
+ arch/arm/mach-omap2/memory.h                    |    7 +
+ arch/arm/mach-omap2/mux.c                       |  186 ++++++++++-
+ arch/arm/mach-omap2/pm.c                        |    4 +-
+ arch/arm/mach-omap2/prm-regbits-34xx.h          |    9 +
+ arch/arm/mach-omap2/prm.h                       |  166 ++++-----
+ arch/arm/mach-omap2/serial.c                    |  112 +++----
+ arch/arm/mach-omap2/{sleep.S => sleep24xx.S}    |   32 +-
+ arch/arm/mach-omap2/sram242x.S                  |    5 +
+ arch/arm/mach-omap2/sram243x.S                  |    5 +
+ arch/arm/plat-omap/Kconfig                      |    9 +-
+ arch/arm/plat-omap/common.c                     |    5 +
+ arch/arm/plat-omap/cpu-omap.c                   |   57 +++-
+ arch/arm/plat-omap/devices.c                    |  116 +++++--
+ arch/arm/plat-omap/include/mach/board-2430sdp.h |    6 +-
+ arch/arm/plat-omap/include/mach/board-apollon.h |    6 +
+ arch/arm/plat-omap/include/mach/board-h4.h      |    5 +-
+ arch/arm/plat-omap/include/mach/board.h         |    2 +
+ arch/arm/plat-omap/include/mach/clock.h         |   11 +-
+ arch/arm/plat-omap/include/mach/common.h        |    8 +
+ arch/arm/plat-omap/include/mach/control.h       |   17 +-
+ arch/arm/plat-omap/include/mach/cpu.h           |    5 +
+ arch/arm/plat-omap/include/mach/debug-macro.S   |   12 +
+ arch/arm/plat-omap/include/mach/entry-macro.S   |   12 +-
+ arch/arm/plat-omap/include/mach/gpio.h          |    2 +
+ arch/arm/plat-omap/include/mach/gpmc.h          |    7 +
+ arch/arm/plat-omap/include/mach/hardware.h      |    2 +-
+ arch/arm/plat-omap/include/mach/io.h            |   57 +++
+ arch/arm/plat-omap/include/mach/irqs.h          |   71 ++++
+ arch/arm/plat-omap/include/mach/mcbsp.h         |    2 +-
+ arch/arm/plat-omap/include/mach/memory.h        |    2 +-
+ arch/arm/plat-omap/include/mach/mmc.h           |    4 +
+ arch/arm/plat-omap/include/mach/mux.h           |  147 +++++++-
+ arch/arm/plat-omap/include/mach/omap1510.h      |    2 +
+ arch/arm/plat-omap/include/mach/omap16xx.h      |    7 +-
+ arch/arm/plat-omap/include/mach/omap24xx.h      |    2 +-
+ arch/arm/plat-omap/include/mach/omapfb.h        |    3 +
+ arch/arm/plat-omap/include/mach/pm.h            |    3 +-
+ arch/arm/plat-omap/include/mach/powerdomain.h   |    1 +
+ arch/arm/plat-omap/include/mach/prcm.h          |    5 +-
+ arch/arm/plat-omap/include/mach/sdrc.h          |    2 +
+ arch/arm/plat-omap/include/mach/serial.h        |    6 +
+ arch/arm/plat-omap/include/mach/system.h        |    6 +-
+ 59 files changed, 2071 insertions(+), 865 deletions(-)
+ rename arch/arm/mach-omap2/{sleep.S => sleep24xx.S} (85%)
