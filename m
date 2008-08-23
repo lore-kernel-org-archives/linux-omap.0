@@ -1,57 +1,60 @@
-From: "Ramirez Luna, Omar" <x00omar@ti.com>
-Subject: RE: [omapzoom] Dspbridge binaries
-Date: Fri, 22 Aug 2008 21:42:20 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53445FC118@dlee03.ent.ti.com>
-References: <8cef9d540808221930k2f88d9eeib8a6923a346c6ae2@mail.gmail.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: [PATCH v2] OMAP:MUSB: Corrects urb unlink function path
+Date: Sat, 23 Aug 2008 09:03:51 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403CD5D4D71@dbde02.ent.ti.com>
+References: <1219425190-13540-1-git-send-email-ajay.gupta@ti.com>
+ <Pine.LNX.4.44L0.0808221330310.2230-100000@iolanthe.rowland.org>,<20080822185439.GB7542@frodo>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54633 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55574 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752165AbYHWCm3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2008 22:42:29 -0400
-In-Reply-To: <8cef9d540808221930k2f88d9eeib8a6923a346c6ae2@mail.gmail.com>
+	id S1751978AbYHWDeg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2008 23:34:36 -0400
+In-Reply-To: <20080822185439.GB7542@frodo>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stalin Kenny <stalinlinux@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "me@felipebalbi.com" <me@felipebalbi.com>, Alan Stern <stern@rowland.harvard.edu>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
 
-Hi Omar,
+On Fri, Aug 22, 2008 at 01:32:12PM -0400, Alan Stern wrote:
+> On Fri, 22 Aug 2008 ajay.gupta@ti.com wrote:
+>
+> > @@ -1785,9 +1784,11 @@ static int musb_urb_enqueue(
+> >      * REVISIT consider a dedicated qh kmem_cache, so it's harder
+> >      * for bugs in other kernel code to break this driver...
+> >      */
+>
+> This doesn't look right.  After calling spin_lock_irqsave you are in an
+> atomic context, so you can't pass mem_flags to kzalloc.
+>
+> Either move the spin_lock_irqsave after the call to kzalloc or else
+> change mem_flags to GFP_ATOMIC.
 
-> You can find dspbridge binaries uploaded into omapzoom site:
->
-> http://omapzoom.org/gf/project/omapbridge/frs/?action=FrsReleaseView&release_id=132
->
-Thanks. Are these binaries compatible with the Bridge driver on 3/4+ tree ?
+first one, please.
 
-- Yes, they're
+should be like:
 
-> Base images (.dof64P) are statically linked DSP executables loaded on the DSP when system boots up, dynamic libraries (.dll64P) are DSP object files that can be loaded into virtually any address on the DSPloading examples. For more information please refer to the Readme file (in the previous link) or db_linux_rguide.pdf found at:
->
-I think you mean db_linux_pguide.pdf and not db_linux_rguide.pdf
+        qh = kzalloc(sizeof *qh, mem_flags);
+        if (!qh) {
++               spin_lock_irqsave(&musb->lock, flags);
+                usb_hcd_unlink_urb_from_ep(hcd, urb);
++               spin_unlock_irqrestore(&musb->lock, flags);
+                return -ENOMEM;
+        }
 
-- Tricked you to download the other one :), yes I mean db_linux_pguide.pdf
+Similarly at the end of enqueue(),
+         if (ret != 0) {
++               spin_lock_irqsave(&musb->lock, flags);
+                 usb_hcd_unlink_urb_from_ep(hcd, urb);
++               spin_unlock_irqrestore(&musb->lock, flags);
+                 kfree(qh);
+         }
+So hold the musb->lock at the two places in enqueue path and no 
+other change. If this is fine then I will resubmit with this modification.
 
-BR,
-Stalin
-
-On Fri, Aug 22, 2008 at 8:51 PM, Ramirez Luna, Omar <x00omar@ti.com> wrote:
-> Hi,
->
-> You can find dspbridge binaries uploaded into omapzoom site:
->
-> http://omapzoom.org/gf/project/omapbridge/frs/?action=FrsReleaseView&release_id=132
->
-> Base images (.dof64P) are statically linked DSP executables loaded on the DSP when system boots up, dynamic libraries (.dll64P) are DSP object files that can be loaded into virtually any address on the DSPloading examples. For more information please refer to the Readme file (in the previous link) or db_linux_rguide.pdf found at:
->
-> http://omapzoom.org/gf/project/omapbridge/docman/?subdir=3
->
-> - omar
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
+--Ajay
+--
+balbi
