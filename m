@@ -1,60 +1,165 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH v2] OMAP:MUSB: Corrects urb unlink function path
-Date: Sat, 23 Aug 2008 09:03:51 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403CD5D4D71@dbde02.ent.ti.com>
-References: <1219425190-13540-1-git-send-email-ajay.gupta@ti.com>
- <Pine.LNX.4.44L0.0808221330310.2230-100000@iolanthe.rowland.org>,<20080822185439.GB7542@frodo>
+From: "Arun KS" <arunks@mistralsolutions.com>
+Subject: [PATCH] OMAP2EVM : Add nand support
+Date: Sat, 23 Aug 2008 14:48:10 +0530
+Message-ID: <dfeb90390808230218r6d1cd9d0ied2bc8817e65881e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55574 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751978AbYHWDeg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2008 23:34:36 -0400
-In-Reply-To: <20080822185439.GB7542@frodo>
-Content-Language: en-US
+Received: from ti-out-0910.google.com ([209.85.142.186]:18850 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752155AbYHWJSM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Aug 2008 05:18:12 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so487725tic.23
+        for <linux-omap@vger.kernel.org>; Sat, 23 Aug 2008 02:18:10 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "me@felipebalbi.com" <me@felipebalbi.com>, Alan Stern <stern@rowland.harvard.edu>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+To: linux-omap@vger.kernel.org
 
-On Fri, Aug 22, 2008 at 01:32:12PM -0400, Alan Stern wrote:
-> On Fri, 22 Aug 2008 ajay.gupta@ti.com wrote:
->
-> > @@ -1785,9 +1784,11 @@ static int musb_urb_enqueue(
-> >      * REVISIT consider a dedicated qh kmem_cache, so it's harder
-> >      * for bugs in other kernel code to break this driver...
-> >      */
->
-> This doesn't look right.  After calling spin_lock_irqsave you are in an
-> atomic context, so you can't pass mem_flags to kzalloc.
->
-> Either move the spin_lock_irqsave after the call to kzalloc or else
-> change mem_flags to GFP_ATOMIC.
+This patch adds nand support to omap2evm board
 
-first one, please.
+Signed-off-by: Arun KS <arunks@mistralsolutions.com>
+---
+ arch/arm/mach-omap2/board-omap2evm.c |  107 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 107 insertions(+), 0 deletions(-)
 
-should be like:
+diff --git a/arch/arm/mach-omap2/board-omap2evm.c
+b/arch/arm/mach-omap2/board-omap2evm.c
+index 4188222..138e80c 100644
+--- a/arch/arm/mach-omap2/board-omap2evm.c
++++ b/arch/arm/mach-omap2/board-omap2evm.c
+@@ -19,17 +19,123 @@
+ #include <linux/io.h>
+ #include <linux/input.h>
+ #include <linux/i2c/twl4030.h>
++#include <linux/mtd/mtd.h>
++#include <linux/mtd/partitions.h>
++#include <linux/mtd/nand.h>
 
-        qh = kzalloc(sizeof *qh, mem_flags);
-        if (!qh) {
-+               spin_lock_irqsave(&musb->lock, flags);
-                usb_hcd_unlink_urb_from_ep(hcd, urb);
-+               spin_unlock_irqrestore(&musb->lock, flags);
-                return -ENOMEM;
-        }
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
++#include <asm/mach/flash.h>
 
-Similarly at the end of enqueue(),
-         if (ret != 0) {
-+               spin_lock_irqsave(&musb->lock, flags);
-                 usb_hcd_unlink_urb_from_ep(hcd, urb);
-+               spin_unlock_irqrestore(&musb->lock, flags);
-                 kfree(qh);
-         }
-So hold the musb->lock at the two places in enqueue path and no 
-other change. If this is fine then I will resubmit with this modification.
+ #include <mach/gpio.h>
+ #include <mach/board.h>
+ #include <mach/common.h>
+ #include <mach/hsmmc.h>
+ #include <mach/keypad.h>
++#include <mach/gpmc.h>
++#include <mach/nand.h>
++
++#define GPMC_OFF_CONFIG1_0 0x60
++
++static struct mtd_partition omap2evm_nand_partitions[] = {
++	{
++		.name		= "X-Loader",
++		.offset		= 0,
++		.size		= 1 * (64 * 2048),
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "U-Boot",
++		.offset		= MTDPART_OFS_APPEND,
++		.size		= 3 * (64 * 2048),
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "U-Boot Environment",
++		.offset		= MTDPART_OFS_APPEND,
++		.size		= 1 * (64 * 2048),
++	 },
++	{
++		.name		= "Kernel",
++		.offset		= MTDPART_OFS_APPEND,
++		.size		= 16 * (64 * 2048),	/* 2MB */
++	},
++	{
++		.name		= "Ramdisk",
++		.offset		= MTDPART_OFS_APPEND,
++		.size		= 32 * (64 * 2048),	/* 4MB */
++	},
++	{
++		.name		= "Filesystem",
++		.offset		= MTDPART_OFS_APPEND,
++		.size		= MTDPART_SIZ_FULL,
++	}
++};
++
++static struct omap_nand_platform_data omap2evm_nand_data = {
++	.parts		= omap2evm_nand_partitions,
++	.nr_parts	= ARRAY_SIZE(omap2evm_nand_partitions),
++	.dma_channel	= -1,	/* disable DMA in OMAP NAND driver */
++};
++
++static struct resource omap2evm_nand_resource = {
++	.flags		= IORESOURCE_MEM,
++};
++
++static struct platform_device omap2evm_nand_device = {
++	.name		= "omap2-nand",
++	.id		= -1,
++	.dev		= {
++		.platform_data	= &omap2evm_nand_data,
++	},
++	.num_resources	= 1,
++	.resource	= &omap2evm_nand_resource,
++};
++
++void __init omap2evm_flash_init(void)
++{
++	void __iomem *gpmc_base_add, *gpmc_cs_base_add;
++	unsigned char cs = 0;
++
++	gpmc_base_add = (__force void __iomem *)OMAP243X_GPMC_VIRT;
++	while (cs < GPMC_CS_NUM) {
++		int ret = 0;
++
++		/* Each GPMC set for a single CS is at offset 0x30 */
++		gpmc_cs_base_add = (gpmc_base_add + GPMC_OFF_CONFIG1_0 +
++				    (cs * 0x30));
++
++		/* xloader/Uboot would have programmed the NAND
++		 * base address for us This is a ugly hack. The proper
++		 * way of doing this is to pass the setup of u-boot up
++		 * to kernel using kernel params - something on the
++		 * lines of machineID. Check if Nand is
++		 * configured */
++		ret = __raw_readl(gpmc_cs_base_add + GPMC_CS_CONFIG1);
++		if ((ret & 0xC00) == (0x800)) {
++			/* Found it!! */
++			printk(KERN_INFO "NAND: Found NAND on CS %d \n", cs);
++			break;
++		}
++		cs++;
++	}
++	if (cs >= GPMC_CS_NUM) {
++		printk(KERN_INFO "MTD: Unable to find MTD configuration in "
++				 "GPMC   - not registering.\n");
++		return;
++	}
++
++	omap2evm_nand_data.cs			= cs;
++	omap2evm_nand_data.gpmc_cs_baseaddr	= gpmc_cs_base_add;
++	omap2evm_nand_data.gpmc_baseaddr	= gpmc_base_add;
++
++	if (platform_device_register(&omap2evm_nand_device) < 0) {
++		printk(KERN_ERR "Unable to register NAND device\n");
++		return;
++	}
++}
 
---Ajay
---
-balbi
+ static struct resource omap2evm_smc911x_resources[] = {
+ 	[0] =   {
+@@ -160,6 +266,7 @@ static void __init omap2_evm_init(void)
+ 	omap_board_config_size = ARRAY_SIZE(omap2_evm_config);
+ 	omap_serial_init();
+ 	hsmmc_init();
++	omap2evm_flash_init();
+ }
+
+ static void __init omap2_evm_map_io(void)
+-- 
+1.5.3.4
