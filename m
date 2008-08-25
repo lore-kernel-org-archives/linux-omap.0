@@ -1,36 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Out of town next week
-Date: Sat, 23 Aug 2008 16:40:06 -0700
-Message-ID: <20080823234006.GN4713@atomide.com>
+From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] OMAP:MUSB: Fixes the TT programming.
+Date: Sun, 24 Aug 2008 20:53:22 -0700
+Message-ID: <20080825035322.GC3128@kroah.com>
+References: <1219385613-20108-1-git-send-email-ajay.gupta@ti.com> <200808212330.06650.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53118 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754301AbYHWXkI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Aug 2008 19:40:08 -0400
-Received: from c-69-181-40-92.hsd1.ca.comcast.net ([69.181.40.92] helo=localhost.localdomain)
-	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1KX2iF-0001Ie-8c
-	for linux-omap@vger.kernel.org; Sat, 23 Aug 2008 23:40:07 +0000
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <200808212330.06650.david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Cc: ajay.gupta-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Hi all,
+On Thu, Aug 21, 2008 at 11:30:06PM -0700, David Brownell wrote:
+> On Thursday 21 August 2008, ajay.gupta-l0cyMroinI0@public.gmane.org wrote:
+> > From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> > 
+> > Fixes enumeration failures when a USB device attached to a LS hub
+> > is connected to OMAP EVM via HS hub. This is fixed by correctly
+> > programming hub address register in enqueue path.  
+> > 
+> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> 
+> Looks right to me, other than the lack of line wrapping in that
+> summary (corrected above).  Moreover, there ought to be some way
+> to make all high speed hosts share TT scheduling code ... ;)
+> 
+> Acked-by: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 
-Just FYI, I'll be out of town next week. I've pushed some fixes, but
-there are again some pending patches that I'll continue looking when
-I get back.
+Ok, for all MUSB patches, I'm going to wait until Felipe tells me to
+accept them, as he's the subsystem/driver maintainer.
 
-Also, our git tree is still at rc3, I'll update it when I get back.
+Felipe, is this ok?  Can you just bundle up what you feel is good and
+send them to me when they are ready (usually as soon as possible)?
 
-Meanwhile, let's people please take your driver patches and submit
-them to mainline on the appropriate mailing lists where possible!
-Otherwise we'll never get in sync with mainline tree.
+thanks,
 
-Cheers,
-
-Tony
+greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
