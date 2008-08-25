@@ -1,44 +1,50 @@
-From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] OMAP:MUSB: Fixes the TT programming.
-Date: Sun, 24 Aug 2008 20:53:22 -0700
-Message-ID: <20080825035322.GC3128@kroah.com>
-References: <1219385613-20108-1-git-send-email-ajay.gupta@ti.com> <200808212330.06650.david-b@pacbell.net>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH] OMAP: USB EHCI: Support final revision of USB board
+Date: Mon, 25 Aug 2008 10:10:06 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02C3E31AD6@dbde02.ent.ti.com>
+References: <FCCFB4CDC6E5564B9182F639FC35608701982C85CE@dbde02.ent.ti.com>
+ <20080805104643.GP7193@atomide.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB02C3E314F6@dbde02.ent.ti.com>
+ <20080823232238.GL4713@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200808212330.06650.david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-Cc: ajay.gupta-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:33378 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750734AbYHYErE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Aug 2008 00:47:04 -0400
+In-Reply-To: <20080823232238.GL4713@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Aug 21, 2008 at 11:30:06PM -0700, David Brownell wrote:
-> On Thursday 21 August 2008, ajay.gupta-l0cyMroinI0@public.gmane.org wrote:
-> > From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+<snip>
+> > > 
+> > > These should be sent via linux-usb list, please also Cc 
+> > > linux-omap list.
+> > > 
+> > > Thanks,
+> > > 
+> > > Tony
 > > 
-> > Fixes enumeration failures when a USB device attached to a LS hub
-> > is connected to OMAP EVM via HS hub. This is fixed by correctly
-> > programming hub address register in enqueue path.  
 > > 
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> > Er Tony, the bus glue for OMAP is not present upstream. This patch fixes
+> > something in that bus glue code, which currently exists only in your tree.
+> > Care to push this to your tree for now?
+> > 
+> > I'll get the ehci-omap code in better shape and submit separately to the
+> > linux-usb list.
 > 
-> Looks right to me, other than the lack of line wrapping in that
-> summary (corrected above).  Moreover, there ought to be some way
-> to make all high speed hosts share TT scheduling code ... ;)
+> Well we should really sync all usb code with mainline now that musb is
+> merged. Can you repost patches against mainline for linux-usb? I can
+> then reset drivers/usb to be in sync with mainline and we can move
+> all USB related discussion to linux-usb.
 > 
-> Acked-by: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+> Tony
 
-Ok, for all MUSB patches, I'm going to wait until Felipe tells me to
-accept them, as he's the subsystem/driver maintainer.
+Okay. I'll add that to my to-do queue.
 
-Felipe, is this ok?  Can you just bundle up what you feel is good and
-send them to me when they are ready (usually as soon as possible)?
-
-thanks,
-
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Anand
