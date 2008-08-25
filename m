@@ -1,90 +1,50 @@
-From: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
-Subject: [PATCH resend v2] TWL4030-RTC: Fix the broken functionality
-Date: Mon, 25 Aug 2008 15:21:51 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB027DC93D5A@dbde02.ent.ti.com>
+From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+Subject: Re: RFC: OMAP3 SYS_OFF_MODE support
+Date: Mon, 25 Aug 2008 13:27:46 +0300
+Message-ID: <1219660066.1876.81.camel@kj-ubuntu>
+References: <1216657043-5941-1-git-send-email-peter.de-schrijver@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53371 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752935AbYHYJv4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Aug 2008 05:51:56 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7P9plk2031267
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 25 Aug 2008 04:51:55 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m7P9pkTv028962
-	for <linux-omap@vger.kernel.org>; Mon, 25 Aug 2008 15:21:47 +0530 (IST)
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:60895 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753694AbYHYKYx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Aug 2008 06:24:53 -0400
+In-Reply-To: <1216657043-5941-1-git-send-email-peter.de-schrijver@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, ext Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
+On ma, 2008-07-21 at 19:17 +0300, ext Peter 'p2' De Schrijver wrote:
+> The following patch set introduces support for the OMAP3 SYS_OFF_MODE
+> signal. This will cause a properly programmed triton2 to shutdown the
+> VDD1 and VDD2 regulators when both core and MPU powerdomain are in off
+> state. The patches includes programming triton2 with the appropriate
+> scripts for the SDP3430 board.
 
-rtc_irq_set_freq() function takes only powers of 2 as a valid
-argument. This stipulates that an ioctl call on /dev/rtc0
-can accept values of 1,2,4 and 8 only. But the function 
-twl4030_rtc_irq_set_freq() takes only values 0-3. RTC_INTERRUPTS_REG
-of TWL4030 also requires value in the range 0-3 for the interrupt
-period. Hence it is required to map the argument from the powers of 2,
-to the corresponding numbers 0-3, via a call to ilog2.
+Re-sending the patch that loads the scripts to triton2. It is a enabler
+patch for future off-mode implementation.
 
-Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
----
-Fixing a bug in the last patch: argument to set_rtc_irq_bit()
-function should have been "value" instead of "freq".
-Index: my-local-git-dir/drivers/rtc/rtc-twl4030.c
-===================================================================
---- my-local-git-dir.orig/drivers/rtc/rtc-twl4030.c	2008-08-22 17:37:33.000000000 +0530
-+++ my-local-git-dir/drivers/rtc/rtc-twl4030.c	2008-08-22 19:25:41.616786397 +0530
-@@ -38,6 +38,7 @@
- #include <linux/i2c/twl4030-rtc.h>
- #include <linux/io.h>
- #include <linux/irq.h>
-+#include <linux/log2.h>
- 
- #include <asm/mach/time.h>
- #include <asm/system.h>
-@@ -363,14 +364,26 @@ out:
- static int twl4030_rtc_irq_set_freq(struct device *dev, int freq)
- {
- 	struct rtc_device *rtc = dev_get_drvdata(dev);
-+	u8 value;
- 
--	if (freq < 0 || freq > 3)
-+	/* RTC_INTERRUPTS_REG takes the value of 0 for interrupts every
-+	 * second, 1 for every minute, 2 every hour and 3 every day.
-+	 * But freq is in 2^N format, which needs to be converted back.
-+	 */
-+	value = ilog2(freq);
-+	if (value < 0 || value > 3)
- 		return -EINVAL;
- 
--	rtc->irq_freq = freq;
-+	rtc->irq_freq = value;
-+
-+	/* Clear the current periodicity of irq*/
-+	mask_rtc_irq_bit(0x3);
- 
--	/* set rtc irq freq to user defined value */
--	set_rtc_irq_bit(freq);
-+	/* If the new value is non-zero, set the new periodicity */
-+	if (value) {
-+		/* set rtc irq freq to user defined value */
-+		set_rtc_irq_bit(value);
-+	}
- 
- 	return 0;
- }
 
---
-With Regards,
-Jagadeesh Bhaskar P
- 
-----------------------------
-Some men see things as they are and say why - I dream things that never were and say why not.
-- George Bernard Shaw
--------------------
+> By default the OMAP3 polarity of the SYS_OFF_MODE signal is inverted
+> compared to what triton2 expects. This means the polarity needs to be
+> changed before the triton2 scripts are activated, otherwise the system
+> will crash. At the moment this is done in omap2_clk_init as this
+> function is called before triton2 is initialized. Better suggestions are
+> welcome.
+
+The polarity fix has been pushed already, so pushing the script loading
+patch is safe now.
+
+
+regards,
+Kalle
+
+> Thanks to Kalle Jokiniemi for doing the initial patch and test work.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
