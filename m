@@ -1,48 +1,36 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: Out of town next week
-Date: Mon, 25 Aug 2008 19:13:40 +0300
-Message-ID: <20080825161339.GA7192@frodo>
-References: <20080823234006.GN4713@atomide.com> <20080825113032.GD20450@gandalf.research.nokia.com> <20080825114427.GF20450@gandalf.research.nokia.com>
-Reply-To: me@felipebalbi.com
+From: "Yuri Jaeger Monti" <yurijm@gmail.com>
+Subject: OMAP5912 AIC23
+Date: Mon, 25 Aug 2008 14:11:21 -0300
+Message-ID: <65e025470808251011j42564e2g7a445558f9e82559@mail.gmail.com>
+References: <65e025470808251004w109cece7t9caeaa81b422554b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:33423 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751526AbYHYQNs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Aug 2008 12:13:48 -0400
+Received: from mail-gx0-f16.google.com ([209.85.217.16]:39344 "EHLO
+	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753449AbYHYRLX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Aug 2008 13:11:23 -0400
+Received: by gxk9 with SMTP id 9so2397225gxk.13
+        for <linux-omap@vger.kernel.org>; Mon, 25 Aug 2008 10:11:22 -0700 (PDT)
+In-Reply-To: <65e025470808251004w109cece7t9caeaa81b422554b@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <20080825114427.GF20450@gandalf.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: ext Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Aug 25, 2008 at 02:44:27PM +0300, Felipe Balbi wrote:
-> On Mon, Aug 25, 2008 at 02:30:32PM +0300, Felipe Balbi wrote:
-> > Cool, so we could get this week to merge drivers upstream. Attached is
-> > (huge) series of missing omap drivers upstream. Anyone interested (that
-> > have been working on the following drivers) should take them and
-> > maintain them. After it gets merged, we should avoid applying patches
-> > for those drivers to linux-omap and go through the proper mailing list.
-> > This will take part of that job from tony and let driver writers take
-> > care of them.
-> > 
-> > The only problem is that drivers will take a bit longer to get
-> > up-to-date since Tony will get patches when merging back linus's tree to
-> > l-o. On the other hand, the diff against mainline will decrease a lot
-> > and Tony can focus on basic omap support.
-> 
-> Tony, if you're still there, I'd like to hear from you. Any comments ?
-> 
-> > Some drivers are needs some help:
-> 
-> typo, "some drivers that need some help"
+Hi fellows,
 
-I think the tarball didn't make it.
+I tried everything I could to solve the buffer underrun error's while
+playing some audio in the OSK5912 with the AIC23, and I don't know
+what should I do anymore.
+I'm trying to simply output and audio file via the ARM, I think this
+should be ok but the audio is always choppy.
+Am I doing something wrong? Or perhaps should I use only the DSP
+processor to play the audio? (didn't tried this yet because I need the
+DSP to do other tasks).
 
-It's in http://felipebalbi.com/omap-drivers.tar.gz
+Cheers
 
--- 
-balbi
+---
+Yuri Jaeger Monti
