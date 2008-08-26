@@ -1,29 +1,73 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: Support for 35x
-Date: Tue, 26 Aug 2008 09:39:07 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02C40F51AE@dbde02.ent.ti.com>
-References: <11734695.20021219709035005.JavaMail.root@zimbra>
- <11936038.20061219709096732.JavaMail.root@zimbra>
+From: Krishna Kishore <krishna.kishore@sasken.com>
+Subject: RE: linux on OMAP 2420 in Nokia N95?
+Date: Tue, 26 Aug 2008 09:59:51 +0530
+Message-ID: <F9F1042FDECC134ABFBF4EC5EBEC88DA7C8016@EXGZ02.sasken.com>
+References: <20080826004351.GB10795@benny.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43168 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750815AbYHZEJX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Aug 2008 00:09:23 -0400
-In-Reply-To: <11936038.20061219709096732.JavaMail.root@zimbra>
-Content-Language: en-US
+Received: from mta-blr2.sasken.com ([164.164.56.19]:16234 "EHLO
+	mta-blr2.sasken.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750785AbYHZEkD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Aug 2008 00:40:03 -0400
+Content-Class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sumit Yadav <syadav@2-sight.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Benjamin Hagemann <benny@benny.de>, linux-omap@vger.kernel.org
 
-PiBIaSwNCj4gSSB3YXMgd29uZGVyaW5nIGlmIGFueSBzdXBwb3J0IGhhcyBiZWVuIGFkZGVkIGZv
-ciB0aGUgT01BUCANCj4gMzV4IHByb2Nlc3NvcnM/IA0KPiANCj4gQ2FuIEkgYXQgYSBtaW5pbXVt
-IHJ1biBhIGxpbnV4IGtlcm5lbCB3aXRoIHRoZSBjb25zb2xlIA0KPiB3b3JraW5nPyBJIGhhdmUg
-YSBUSSBab29tIE9NQVAzNXggRGV2ZWxvcG1lbnQgYm9hcmQgYW5kIA0KPiB3YW50ZWQgdG8gZ2V0
-IHRoZSBnaXQgbGludXggcnVubmluZyBvbiBpdC4NCg0KWWVzIHlvdSBjYW4uIFVzZSB0aGUgb21h
-cF9sZHBfZGVmY29uZmlnIHRvIGdldCBhIGRlZmF1bHQgLmNvbmZpZw0KYW5kIHRoZW4gYnVpbGQg
-dGhlIGtlcm5lbC4NCg0KDQotIEFuYW5kDQoNCj4gDQo+IElmIHRoaXMgaXMgbm90IHRoZSByaWdo
-dCBmb3J1bSBmb3IgdGhpcyBwbGVhc2UgbGV0IG1lIGtub3cuDQo+IA0KPiBUaGFua3MhDQo+IFN1
-bWl0DQo+IA0KPiBQUzogSSBhbSBhbiBlbWJlZGRlZCBsaW51eCBuZXdiaWUNCg0K
+Hello,
+
+   I was very much interested to know that N95 has linux and on
+OMAP2420.
+
+   But, according to http://smartphonedb.com/index.php?m=specs&id=967
+specs,
+   the OS is Symbian (It is on OMAP2420).
+
+   Can you please confirm? 
+
+
+Regards,
+Kishore. 
+
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org
+[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Benjamin Hagemann
+Sent: Tuesday, August 26, 2008 6:14 AM
+To: linux-omap@vger.kernel.org
+Subject: linux on OMAP 2420 in Nokia N95?
+
+Hello,
+
+I read that in my Nokia N95 runs a TI OMAP 2420 [1]. So I searched for
+OMAP2420 and linux and found this project and mailinglist. 
+I found a platin layout [2], too.
+Are people here who evaluate linux on OMAP 2420 in N95?
+Thank you.
+
+[1] http://nokiaport.de/index.php?mid=2&pid=processor,
+http://www.nokiaport.de/n95info/?id=processor
+[2] http://www.nokiaport.de/n95info/?id=pcb
+
+--
+Kind regards,
+
+	Benjamin Hagemann
+
+instant messaging : jabber  benny@benny.de
+crypto-public-key : gpg     0xFC505AB0    (new)
+internettelephonie: sip     benny@benny.de
+SASKEN BUSINESS DISCLAIMER
+-------------------------
+This message may contain confidential, proprietary or legally privileged information. In 
+case you are not the original intended Recipient of the message, you must not, directly or 
+indirectly, use, Disclose, distribute, print, or copy any part of this message and you are 
+requested to delete it and inform the sender. Any views expressed in this message are 
+those of the individual sender unless otherwise stated. Nothing contained in this message 
+shall be construed as an offer or acceptance of any offer by Sasken Communication 
+Technologies Limited ("Sasken") unless sent with that express intent and with due 
+authority of Sasken. Sasken has taken enough precautions to prevent the spread of 
+viruses. However the company accepts no liability for any damage caused by any virus 
+transmitted by this email
+
