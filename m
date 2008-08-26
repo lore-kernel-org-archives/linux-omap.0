@@ -1,55 +1,67 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: git-pull-request for omap2-upstream branch for next merge window (Was: [PATCH 00/16] Omap2 patches for post 2.6.26)
-Date: Tue, 26 Aug 2008 17:26:30 +0100
-Message-ID: <20080826162630.GA17304@flint.arm.linux.org.uk>
-References: <20080819212300.GF17034@flint.arm.linux.org.uk> <20080820072310.GA28862@atomide.com> <20080823233711.GM4713@atomide.com> <20080826080616.GC24147@flint.arm.linux.org.uk> <alpine.LFD.1.10.0808261154200.1624@xanadu.home>
+From: Sumit Yadav <syadav@2-sight.com>
+Subject: Re: Support for 35x
+Date: Tue, 26 Aug 2008 10:03:13 -0700 (PDT)
+Message-ID: <14985020.27361219770193578.JavaMail.root@zimbra>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301A01EB37B@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:40972 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754013AbYHZQ0q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Aug 2008 12:26:46 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.1.10.0808261154200.1624@xanadu.home>
+Received: from mail.2-sight.com ([208.49.149.90]:36910 "EHLO linux.2-sight.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750755AbYHZRDP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Aug 2008 13:03:15 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301A01EB37B@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nico@cam.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, Aug 26, 2008 at 12:01:33PM -0400, Nicolas Pitre wrote:
-> On Tue, 26 Aug 2008, Russell King - ARM Linux wrote:
-> 
-> > The devel branch is _constantly_ remerged.  Basing your tree on it will
-> > mean I can't merge it.  Please don't.  Base it either on something in
-> > Linus' tree _or_ something you've already asked me to pull.
-> > 
-> > If this continues, I'll go back to only publishing my git tree in diff
-> > and mbox form.
-> 
-> What's the advantage of screwing everybody only because few individuals 
-> don't get it right?
-> 
-> It is easy enough to back out a bad pull with git.  If you're tired of 
-> flaming people, simply ask that any git pull request message also 
-> contains the information about the commit it is based on so that you can 
-> ignore bad pulls up front.
+Thanks Sanjeev. I will be looking forward to it.
 
-Like I just have done.
+Question: Anand mentioned the 'omap_ldp_defconfig'.config file, how does it relate to your patches?
 
-The point is that my git usage does _not_ match with the requirements
-brought on by publishing the git tree, and therefore it should _not_
-be published in the first place.  The only reason it is published is
-because people like you vocally demand it to be so.  It's not my
-choice.
+Will the omap_ldp_defconfig work on a 35x and your patches provide additional functionality?
 
-That requirement is that once a commit has been published, it becomes
-immutable.  That requirement is there so that people _can_ work off
-your published tree.  If you're not sure of the work you have in your
-git tree, you shouldn't be publishing those commits.
+Thanks,
+Sumit
 
-However, that's just not true of the way I manage my tree.
+----- Original Message -----
+From: "Sanjeev Premi" <premi@ti.com>
+To: "Sumit Yadav" <syadav@2-sight.com>, linux-omap@vger.kernel.org
+Sent: Tuesday, August 26, 2008 4:03:57 AM GMT -08:00 US/Canada Pacific
+Subject: RE: Support for 35x
 
-It's only going to be a matter of time before there's another chorus of
-people demanding that I yet again change the way I work, demanding that
-I conform...
+Hi Sumit,
+
+I had earlier submit a patch. But it needs to be refreshed based on comments from Tony.
+
+Do expect an updated patch from me in a couple of days.
+
+Best regards,
+Sanjeev 
+
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Sumit Yadav
+Sent: Tuesday, August 26, 2008 5:35 AM
+To: linux-omap@vger.kernel.org
+Subject: Support for 35x
+
+Hi,
+I was wondering if any support has been added for the OMAP 35x processors? 
+
+Can I at a minimum run a linux kernel with the console working? I have a TI Zoom OMAP35x Development board and wanted to get the git linux running on it.
+
+If this is not the right forum for this please let me know.
+
+Thanks!
+Sumit
+
+PS: I am an embedded linux newbie
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in the body of a message to majordomo@vger.kernel.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
