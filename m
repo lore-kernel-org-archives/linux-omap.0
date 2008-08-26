@@ -1,40 +1,224 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: [RFC 0/2] McBSP and ASoC OMAP update patches for 2430 and 34xx
-Date: Tue, 26 Aug 2008 16:19:37 +0300
-Message-ID: <20080826161938.4fc7e990.jarkko.nikula@nokia.com>
-References: <1219319718-1750-1-git-send-email-jarkko.nikula@nokia.com>
-	<5e088bd90808211451y2ebc4522mb511a9cda7dcdd68@mail.gmail.com>
-	<20080822105757.1c2d0c5c.jarkko.nikula@nokia.com>
-	<5e088bd90808251219t4e0f6562x5837afe727de126@mail.gmail.com>
+From: "Yuri Jaeger Monti" <yurijm@gmail.com>
+Subject: Re: OMAP5912 AIC23
+Date: Tue, 26 Aug 2008 11:22:43 -0300
+Message-ID: <65e025470808260722m59ff5207n43f7c4feac8a5e30@mail.gmail.com>
+References: <65e025470808251004w109cece7t9caeaa81b422554b@mail.gmail.com>
+	 <65e025470808251011j42564e2g7a445558f9e82559@mail.gmail.com>
+	 <48B362BD.10009@css-design.us>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:62211 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754165AbYHZNxV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Aug 2008 09:53:21 -0400
-In-Reply-To: <5e088bd90808251219t4e0f6562x5837afe727de126@mail.gmail.com>
+Received: from wx-out-0506.google.com ([66.249.82.227]:31221 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754283AbYHZOWo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Aug 2008 10:22:44 -0400
+Received: by wx-out-0506.google.com with SMTP id h29so1168905wxd.4
+        for <linux-omap@vger.kernel.org>; Tue, 26 Aug 2008 07:22:43 -0700 (PDT)
+In-Reply-To: <48B362BD.10009@css-design.us>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Steve Sakoman <sakoman@gmail.com>
+To: Steve Poulsen <spoulsen@css-design.us>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 25 Aug 2008 12:19:16 -0700
-"ext Steve Sakoman" <sakoman@gmail.com> wrote:
+Thanks for your reply Steve!
 
-> If I run 'mplayer -ao alsa song.mp3' immediately after booting I get a
-> crash due to a null substream pointer (output below).
-> 
-> However if I run 'mplayer song.mp3' *before* 'mplayer -ao alsa
-> song.mp3' then the latter command works!
-> 
-Sounds indeed strange. Can you track is the pcm_file->substream getting
-zeroed somewhere after it is set in snd_pcm_open_file? Like printing
-both address of pcm_file and pcm_file->substream.
+I'm using the AIC23 driver bundled in the OMAP kernel, I tried playing
+through OSS directly to /dev/dsp (which gives me the best results,
+choppy sound though) and through ALSA which is similar. Doing cat
+test.wav > /dev/dsp or /dev/audio just gives me noise output. And I
+still can't record anything.
 
-I don't know, can we still have some instabilities with OMAP3 and
-latest 2.6.27-rcx?
+I've tried every player possible. Here is the output of aplay:
+
+root@DEA /opt/audios/wav # aplay -lL
+default:CARD=AIC23
+    OSK AIC23, omap alsa pcm
+    Default Audio Device
+null
+    Discard all samples (playback) or generate zero samples (capture)
+**** List of PLAYBACK Hardware Devices ****
+card 0: AIC23 [OSK AIC23], device 0: OMAP PCM [omap alsa pcm]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+
+root@DEA /opt/audios # aplay audio_44100_16PCM.au -vv
+Playing Sparc Audio 'audio_44100_16PCM.au' : Signed 16 bit Big Endian,
+Rate 44100 Hz, Stereo
+Plug PCM: Linear conversion PCM (S16_LE)
+Its setup is:
+  stream       : PLAYBACK
+  access       : RW_INTERLEAVED
+  format       : S16_BE
+  subformat    : STD
+  channels     : 2
+  rate         : 44100
+  exact rate   : 44100 (44100/1)
+  msbits       : 16
+  buffer_size  : 32768
+  period_size  : 2048
+  period_time  : 46439
+  tick_time    : 0
+  tstamp_mode  : NONE
+  period_step  : 1
+  sleep_min    : 0
+  avail_min    : 2048
+  xfer_align   : 2048
+  start_threshold  : 32768
+  stop_threshold   : 32768
+  silence_threshold: 0
+  silence_size : 0
+  boundary     : 1073741824
+Slave: Hardware PCM card 0 'OSK AIC23' device 0 subdevice 0
+Its setup is:
+  stream       : PLAYBACK
+  access       : MMAP_INTERLEAVED
+  format       : S16_LE
+  subformat    : STD
+  channels     : 2
+  rate         : 44100
+  exact rate   : 44100 (44100/1)
+  msbits       : 16
+  buffer_size  : 32768
+  period_size  : 2048
+  period_time  : 46439
+  tick_time    : 0
+  tstamp_mode  : NONE
+  period_step  : 1
+  sleep_min    : 0
+  avail_min    : 2048
+  xfer_align   : 2048
+  start_threshold  : 32768
+  stop_threshold   : 32768
+  silence_threshold: 0
+  silence_size : 0
+  boundary     : 1073741824
+###############                                   +| 99%underrun!!!
+(at least 0.366 ms long)
+Status:
+  state       : XRUN
+  trigger_time: 1217931313.815063477
+  tstamp      : 1217931313.815307617
+  delay       : 0
+  avail       : 32768
+  avail_max   : 32768
+##############                                    +| 99%underrun!!!
+(at least 0.152 ms long)
+Status:
+  state       : XRUN
+  trigger_time: 1217931314.353729248
+  tstamp      : 1217931314.353851319
+  delay       : 0
+  avail       : 32768
+  avail_max   : 32768
+##################################################+| 99%underrun!!!
+(at least 0.153 ms long)
+Status:
+  state       : XRUN
+  trigger_time: 1217931314.892425537
+  tstamp      : 1217931314.892547608
+  delay       : 0
+  avail       : 32768
+  avail_max   : 32768
+##################################################+| 99%underrun!!!
+(at least 0.092 ms long)
+Status:
+  state       : XRUN
+  trigger_time: 1217931315.467193604
+  tstamp      : 1217931315.467254639
+  delay       : 0
+  avail       : 32768
+  avail_max   : 32768
+###############################                   +| 99%underrun!!!
+(at least 0.092 ms long)
+Status:
+  state       : XRUN
+  trigger_time: 1217931316.107543946
+  tstamp      : 1217931316.107635498
+  delay       : 0
+  avail       : 34816
+  avail_max   : 34816
+##################################################+| 99%underrun!!!
+(at least 0.091 ms long)
+Status:
+  state       : XRUN
+  trigger_time: 1217931316.747711182
+  tstamp      : 1217931316.747802735
+  delay       : 0
+  avail       : 34816
+  avail_max   : 34816
+##################################################+| 99%underrun!!!
+(at least 0.122 ms long)
+Status:
+  state       : XRUN
+  trigger_time: 1217931317.326873780
+  tstamp      : 1217931317.326965332
+  delay       : 0
+  avail       : 32768
+  avail_max   : 32768
+##DMA timeout with device 8#######################+| 99%
+{sound_dma_irq_handler}-ERROR: DCSR_ERROR!
+##################################################+| 99%
+
+root@DEA /opt/audios/wav # aplay test.wav
+Playing WAVE 'test.wav' : Unsigned 8 bit, Rate 24000 Hz, Mono
+underrun!!! (at least 0.396 ms long)
 
 
-Jarkko
+When playing a long audio file, there is a lot of underruns (XRUN).
+I've tried playing ogg files with ogg123, mp3 files with madplay and
+also tested with a lot of different sample rates and bitrates, always
+choppy sound (good quality but the audio looks like it's splitted into
+chunks, and sometimes it loops in the end).
+
+Do you have any hint?
+
+Thanks
+
+
+---
+Yuri Jaeger Monti
+
+
+
+On Mon, Aug 25, 2008 at 10:56 PM, Steve Poulsen <spoulsen@css-design.us> wrote:
+> Yuri,
+>
+> We have had good luck with ARM audio under this setup.  We did write our own
+> AIC23 drivers which we used directly from our application.  We used a device
+> entry (/dev/aic23) that hooked in our driver.  We were able to open those in
+> any application and play/record or both.  The only possible problem was if
+> we tried to do things like "cat file.pcm > /dev/aic23".  Although this would
+> work, some cases would not work due to those applications buffering schemes.
+>  For example, this was bad:  "cat /dev/aic23 > /dev/aic23".   It would work,
+> but would be choppy.
+> How are you playing audio?
+>
+> Steve
+>
+> Yuri Jaeger Monti wrote:
+>>
+>> Hi fellows,
+>>
+>> I tried everything I could to solve the buffer underrun error's while
+>> playing some audio in the OSK5912 with the AIC23, and I don't know
+>> what should I do anymore.
+>> I'm trying to simply output and audio file via the ARM, I think this
+>> should be ok but the audio is always choppy.
+>> Am I doing something wrong? Or perhaps should I use only the DSP
+>> processor to play the audio? (didn't tried this yet because I need the
+>> DSP to do other tasks).
+>>
+>> Cheers
+>>
+>> ---
+>> Yuri Jaeger Monti
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>
+>
