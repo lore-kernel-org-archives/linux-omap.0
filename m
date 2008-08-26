@@ -1,70 +1,58 @@
-From: Benjamin Hagemann <benny@benny.de>
-Subject: linux on OMAP 2420 in Nokia N95?
-Date: Tue, 26 Aug 2008 02:43:52 +0200
-Message-ID: <20080826004351.GB10795@benny.de>
+From: Steve Poulsen <spoulsen@css-design.us>
+Subject: Re: OMAP5912 AIC23
+Date: Mon, 25 Aug 2008 20:56:13 -0500
+Message-ID: <48B362BD.10009@css-design.us>
+References: <65e025470808251004w109cece7t9caeaa81b422554b@mail.gmail.com> <65e025470808251011j42564e2g7a445558f9e82559@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="A6N2fC+uXW/VQSAv"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.dinoex.de ([80.237.237.4]:57236 "EHLO smtp.dinoex.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752812AbYHZBTS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Aug 2008 21:19:18 -0400
-Received: from k1.dinoex.de (uucp@k1.dinoex.de [80.237.153.113])
-	by k1.dinoex.de (8.14.2/8.14.1) with ESMTP id m7Q0j7LE054617
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 26 Aug 2008 02:45:09 +0200 (CEST)
-	(envelope-from benny@benny.de)
-Received: from quelle.benny.de (uucp@localhost)
-	by k1.dinoex.de (8.14.2/8.14.1/Submit) with BSMTP id m7Q0j6GV054614
-	for <linux-omap@vger.kernel.org>; Tue, 26 Aug 2008 02:45:06 +0200 (CEST)
-	(envelope-from benny@benny.de)
-Received: from benny by quelle.benny.de with local (Exim 4.69 #1 (Debian))
-	id 1KXmf2-0003ER-2S
-	for <linux-omap@vger.kernel.org>; Tue, 26 Aug 2008 02:43:52 +0200
-Content-Disposition: inline
+Received: from elasmtp-mealy.atl.sa.earthlink.net ([209.86.89.69]:42958 "EHLO
+	elasmtp-mealy.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757053AbYHZB4P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Aug 2008 21:56:15 -0400
+In-Reply-To: <65e025470808251011j42564e2g7a445558f9e82559@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Yuri Jaeger Monti <yurijm@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Yuri,
 
---A6N2fC+uXW/VQSAv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+We have had good luck with ARM audio under this setup.  We did write our 
+own AIC23 drivers which we used directly from our application.  We used 
+a device entry (/dev/aic23) that hooked in our driver.  We were able to 
+open those in any application and play/record or both.  The only 
+possible problem was if we tried to do things like "cat file.pcm > 
+/dev/aic23".  Although this would work, some cases would not work due to 
+those applications buffering schemes.  For example, this was bad:  "cat 
+/dev/aic23 > /dev/aic23".   It would work, but would be choppy. 
 
-Hello,
+How are you playing audio?
 
-I read that in my Nokia N95 runs a TI OMAP 2420 [1]. So I searched for
-OMAP2420 and linux and found this project and mailinglist.=20
-I found a platin layout [2], too.
-Are people here who evaluate linux on OMAP 2420 in N95?
-Thank you.
+Steve
 
-[1] http://nokiaport.de/index.php?mid=3D2&pid=3Dprocessor,
-http://www.nokiaport.de/n95info/?id=3Dprocessor
-[2] http://www.nokiaport.de/n95info/?id=3Dpcb
+Yuri Jaeger Monti wrote:
+> Hi fellows,
+>
+> I tried everything I could to solve the buffer underrun error's while
+> playing some audio in the OSK5912 with the AIC23, and I don't know
+> what should I do anymore.
+> I'm trying to simply output and audio file via the ARM, I think this
+> should be ok but the audio is always choppy.
+> Am I doing something wrong? Or perhaps should I use only the DSP
+> processor to play the audio? (didn't tried this yet because I need the
+> DSP to do other tasks).
+>
+> Cheers
+>
+> ---
+> Yuri Jaeger Monti
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>   
 
---=20
-Kind regards,
-
-	Benjamin Hagemann
-
-instant messaging : jabber  benny@benny.de
-crypto-public-key : gpg     0xFC505AB0    (new)
-internettelephonie: sip     benny@benny.de
-
---A6N2fC+uXW/VQSAv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iD8DBQFIs1HHE5zIZvxQWrARAiO0AJ0TuNomcWaDjZusHRN4TWhvVmk2mACgtonT
-mddcWXWapECwIVZ9c8Fhl5U=
-=O53E
------END PGP SIGNATURE-----
-
---A6N2fC+uXW/VQSAv--
