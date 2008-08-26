@@ -1,48 +1,45 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: [RFC 0/2] McBSP and ASoC OMAP update patches for 2430 and 34xx
-Date: Tue, 26 Aug 2008 07:23:41 -0700
-Message-ID: <5e088bd90808260723l43bb410v2d38df33c148c901@mail.gmail.com>
-References: <1219319718-1750-1-git-send-email-jarkko.nikula@nokia.com>
-	 <5e088bd90808211451y2ebc4522mb511a9cda7dcdd68@mail.gmail.com>
-	 <20080822105757.1c2d0c5c.jarkko.nikula@nokia.com>
-	 <5e088bd90808251219t4e0f6562x5837afe727de126@mail.gmail.com>
-	 <20080826161938.4fc7e990.jarkko.nikula@nokia.com>
+From: Nicolas Pitre <nico@cam.org>
+Subject: Re: git-pull-request for omap2-upstream branch for next merge window
+ (Was: [PATCH 00/16] Omap2 patches for post 2.6.26)
+Date: Tue, 26 Aug 2008 12:01:33 -0400 (EDT)
+Message-ID: <alpine.LFD.1.10.0808261154200.1624@xanadu.home>
+References: <20080819212300.GF17034@flint.arm.linux.org.uk>
+ <20080820072310.GA28862@atomide.com> <20080823233711.GM4713@atomide.com>
+ <20080826080616.GC24147@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.179]:62709 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754507AbYHZOXm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Aug 2008 10:23:42 -0400
-Received: by wa-out-1112.google.com with SMTP id j37so907018waf.23
-        for <linux-omap@vger.kernel.org>; Tue, 26 Aug 2008 07:23:41 -0700 (PDT)
-In-Reply-To: <20080826161938.4fc7e990.jarkko.nikula@nokia.com>
-Content-Disposition: inline
+Received: from relais.videotron.ca ([24.201.245.36]:24383 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755044AbYHZQCH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Aug 2008 12:02:07 -0400
+Received: from xanadu.home ([66.131.194.97]) by VL-MH-MR001.ip.videotron.ca
+ (Sun Java(tm) System Messaging Server 6.3-4.01 (built Aug  3 2007; 32bit))
+ with ESMTP id <0K6700ARTTULXJ33@VL-MH-MR001.ip.videotron.ca> for
+ linux-omap@vger.kernel.org; Tue, 26 Aug 2008 12:01:34 -0400 (EDT)
+In-reply-to: <20080826080616.GC24147@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
-> Sounds indeed strange. Can you track is the pcm_file->substream getting
-> zeroed somewhere after it is set in snd_pcm_open_file? Like printing
-> both address of pcm_file and pcm_file->substream.
->
-> I don't know, can we still have some instabilities with OMAP3 and
-> latest 2.6.27-rcx?
+On Tue, 26 Aug 2008, Russell King - ARM Linux wrote:
 
-That is my suspicion also.
+> The devel branch is _constantly_ remerged.  Basing your tree on it will
+> mean I can't merge it.  Please don't.  Base it either on something in
+> Linus' tree _or_ something you've already asked me to pull.
+> 
+> If this continues, I'll go back to only publishing my git tree in diff
+> and mbox form.
 
-I have tracked things through the exit of snd_pcm_open_file and found
-the substream pointer to be valid to that point.
+What's the advantage of screwing everybody only because few individuals 
+don't get it right?
 
-The null substream pointer seems to be coming in to a
-snd_pcm_playback_ioctl call that occurs after the file open (I suspect
-from a
-call to snd_pcm_hw_info in alsa-lib)
+It is easy enough to back out a bad pull with git.  If you're tired of 
+flaming people, simply ask that any git pull request message also 
+contains the information about the commit it is based on so that you can 
+ignore bad pulls up front.
 
-Looks like I need to start adding debug printf's in alsa-lib too.  I'm
-working on this as a background task while bringing up some new hw so
-progress is a bit slow :-(
 
-Steve
+Nicolas
