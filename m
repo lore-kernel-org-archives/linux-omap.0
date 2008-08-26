@@ -1,53 +1,37 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 06/06] Enable CPUidle on OMAP architectures
-Date: Tue, 26 Aug 2008 18:36:15 +0530 (IST)
-Message-ID: <34978.192.168.10.89.1219755975.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH 00/06] OMAP3 CPUidle patches - supports C0-C5
+Date: Tue, 26 Aug 2008 18:33:02 +0530 (IST)
+Message-ID: <63857.192.168.10.89.1219755782.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41316 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753699AbYHZNGV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Aug 2008 09:06:21 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7QD6FdQ006622
-	for <linux-omap@vger.kernel.org>; Tue, 26 Aug 2008 08:06:20 -0500
-Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id m7QD6Dam022524
-	for <linux-omap@vger.kernel.org>; Tue, 26 Aug 2008 08:06:14 -0500 (CDT)
+Received: from comal.ext.ti.com ([198.47.26.152]:38652 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756010AbYHZNJE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Aug 2008 09:09:04 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: paul@pwsan.com
 
-Enable support for CPUidle on OMAP architectures.
+Hi,
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+This is an updated set of CPUidle patches for OMAP3 with a few more comment
+fixes, cleanup, 2.6.27-rc3 migration.
+Thanks to Paul Walmsley for the detailed review of these patches.
 
----
- arch/arm/Kconfig |   10 ++++++++++
- 1 files changed, 10 insertions(+)
+This patch set supports only C0-C5 cpuidle states.
+I would post another set with support for context save/restore and enabling
+state C6 optionally using a Kconfig option as discussed earlier.
 
-Index: linux-omap-2.6/arch/arm/Kconfig
-===================================================================
---- linux-omap-2.6.orig/arch/arm/Kconfig	2008-08-26 12:25:24.000000000 +0530
-+++ linux-omap-2.6/arch/arm/Kconfig	2008-08-26 14:32:35.000000000 +0530
-@@ -1000,6 +1000,16 @@ config ATAGS_PROC
+As always, these apply/work on top of Jouni's latest Workaround set and with
+the following sysfs enables.
+$ echo 1 > /sys/power/sleep_while_idle
+$ echo 1 > /sys/power/clocks_off_while_idle
 
- endmenu
+regards,
+Rajendra
 
-+if (ARCH_OMAP)
-+
-+menu "CPUIdle"
-+
-+source "drivers/cpuidle/Kconfig"
-+
-+endmenu
-+
-+endif
-+
- if (ARCH_SA1100 || ARCH_INTEGRATOR || ARCH_OMAP || ARCH_IMX || ARCH_PXA)
-
- menu "CPU Frequency scaling"
 
 
