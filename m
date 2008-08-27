@@ -1,63 +1,44 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: Enabling MUSB support
-Date: Wed, 27 Aug 2008 16:38:25 +0300
-Message-ID: <20080827133825.GC7354@gandalf.research.nokia.com>
-References: <1f11a5490808270626t5b4aa599i18b730d12a6c4667@mail.gmail.com>
-Reply-To: felipe.balbi@nokia.com
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: [RFC 0/2] McBSP and ASoC OMAP update patches for 2430 and 34xx
+Date: Wed, 27 Aug 2008 06:39:06 -0700
+Message-ID: <5e088bd90808270639o1d0ba027r4d6ed9683d68fea2@mail.gmail.com>
+References: <1219319718-1750-1-git-send-email-jarkko.nikula@nokia.com>
+	 <5e088bd90808211451y2ebc4522mb511a9cda7dcdd68@mail.gmail.com>
+	 <20080822105757.1c2d0c5c.jarkko.nikula@nokia.com>
+	 <5e088bd90808251219t4e0f6562x5837afe727de126@mail.gmail.com>
+	 <20080826161938.4fc7e990.jarkko.nikula@nokia.com>
+	 <5e088bd90808261018h1e04cbd4o20e88669031eda4d@mail.gmail.com>
+	 <20080827093849.c047b6eb.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:19067 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754663AbYH0Nim (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Aug 2008 09:38:42 -0400
+Received: from yx-out-2324.google.com ([74.125.44.30]:48746 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754970AbYH0NjI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Aug 2008 09:39:08 -0400
+Received: by yx-out-2324.google.com with SMTP id 8so1338979yxm.1
+        for <linux-omap@vger.kernel.org>; Wed, 27 Aug 2008 06:39:07 -0700 (PDT)
+In-Reply-To: <20080827093849.c047b6eb.jarkko.nikula@nokia.com>
 Content-Disposition: inline
-In-Reply-To: <1f11a5490808270626t5b4aa599i18b730d12a6c4667@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Ashwin Bihari <abihari@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: Felipe Balbi <me@felipebalbi.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Aug 27, 2008 at 09:26:34AM -0400, ext Ashwin Bihari wrote:
-> Greetings,
-> 
-> I'm trying to test out the MUSB support on my OMAP-3530 based device
-> with the TWL4030 Phy. I'm using 2.6.22.18 and have tried to enable all
+> One thing came to my mind that does your kernel and user space (E)ABI
+> match? I rememeber that there were some strange IOCTL related errors
+> with ALSA mixers if the kernel was compiled with CONFIG_EABI and
+> CONFIG_OABI_COMPAT but Debian was using legacy ABI.
 
-I'll probably start the same discussion again, that's a rather old
-kernel. It would be nice to try out current git tree from [1] and report
-again if it works or not.
+Both kernel and user space are EABI.
 
-I tried musb on omap2420 (with tusb), omap3430 and omap3530 (beagle
-board) and all of them are working.
+I received some new hw to bring up yesterday, so I wasn't able to get
+much further on debugging this.  But I did verify that running
+'mplayer song.mp3' first before using  'mplayer -ao alsa song.mp3'
+resulted in an ioctl trace where substream did *not* go NULL after the
+START ioctl.  Very strange!
 
-> different settings related to MUSB and nothing seems to happen. The
-> TWL4030_USB driver builds and loads and claims that a cable is plugged
-> in even when nothing is plugged in.
+Hope to get back to it later today if I can finish bringing up the new hw.
 
-Sounds like a bug in twl4030-usb.c
-
-> The "musb_hdrc" driver loads up and registers with IRQs 92 and 93. The
-> TWL4030_USB driver registers with IRQ 373. As I plug-in and remove the
-> cable from the USB port, no interrupts are generated and the driver is
-> completely oblivious to what's happening..
-
-Do you have id pin grounded ?
-
-> I'm trying to configure the MUSB driver as a Host-only to start with,
-> I've also tried to set it as OTG with no change.
-
-Use it as otg and put a gadget driver as well, it's better.
-
-> My current ".config" is as follows, could someone point me to any
-> configuration option or anything that I'm missing..
-
-I'd just suggest you to use as otg and put a gadget driver.
-
-Which board are you using ? Is it some development board or a custom
-board ?
-
-Development boards have a defconfig that might help you.
-
--- 
-balbi
+Steve
