@@ -1,120 +1,83 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: Enabling MUSB support
-Date: Wed, 27 Aug 2008 19:40:34 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02C40F598F@dbde02.ent.ti.com>
-References: <1f11a5490808270626t5b4aa599i18b730d12a6c4667@mail.gmail.com>
-	 <20080827133825.GC7354@gandalf.research.nokia.com>
- <1f11a5490808270651o549d5868i189367f3a099a12d@mail.gmail.com>
+From: "Dasgupta, Romit" <romit@ti.com>
+Subject: RE: [PATCH 00/01] CPUFreq: OMAP3 cpufreq driver
+Date: Wed, 27 Aug 2008 19:47:07 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301A01EBC4E@dbde02.ent.ti.com>
+References: <52895.192.168.10.89.1218460298.squirrel@dbdmail.itg.ti.com>
+ <200808271409.m7RE9SgN017140@dbdp31.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56434 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56778 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759865AbYH0OLE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Aug 2008 10:11:04 -0400
-In-Reply-To: <1f11a5490808270651o549d5868i189367f3a099a12d@mail.gmail.com>
+	id S1752104AbYH0ORS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Aug 2008 10:17:18 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7REH9sx002221
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 27 Aug 2008 09:17:17 -0500
+In-Reply-To: <200808271409.m7RE9SgN017140@dbdp31.itg.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ashwin Bihari <abihari@gmail.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Gupta, Ramesh" <grgupta@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> On Wed, Aug 27, 2008 at 9:38 AM, Felipe Balbi 
-> <felipe.balbi@nokia.com> wrote:
-> > On Wed, Aug 27, 2008 at 09:26:34AM -0400, ext Ashwin Bihari wrote:
-> >> Greetings,
-> >>
-> >> I'm trying to test out the MUSB support on my OMAP-3530 based device
-> >> with the TWL4030 Phy. I'm using 2.6.22.18 and have tried to enable all
-> >
-> > I'll probably start the same discussion again, that's a rather old
-> > kernel. It would be nice to try out current git tree from [1] and report
-> > again if it works or not.
-> >
-> > I tried musb on omap2420 (with tusb), omap3430 and omap3530 (beagle
-> > board) and all of them are working.
-> 
-> I'm working on a custom board namely the LogicPD Zoom OMAP3530 LV SOM
-> and we have support for our devkit in the 2.6.22.18 Kernel. Bringing
-> all of our changes to the latest tree would take me a bit of time and
-> I just want to validate the hardware to ensure that things are working
-> in their current state.
+Ramesh,
+                 For scaling from userspace, you can move to the userspace governor. Kindly look into this article:
 
 
-You don't need ALL your changes. You only need to add a proper board file
-and enable the bare minimum set of drivers. You can re-use the beagle or
-SDP defconfigs and disable things. This much should not be hard to do.
+>-----Original Message-----
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>owner@vger.kernel.org] On Behalf Of Gupta, Ramesh
+>Sent: Wednesday, August 27, 2008 7:39 PM
+>To: Nayak, Rajendra; linux-omap@vger.kernel.org
+>Subject: RE: [PATCH 00/01] CPUFreq: OMAP3 cpufreq driver
+>
+>Hi,
+>
+>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Rajendra Nayak
+>> Sent: Monday, August 11, 2008 6:42 PM
+>> To: linux-omap@vger.kernel.org
+>> Subject: [PATCH 00/01] CPUFreq: OMAP3 cpufreq driver
+>>
+>> Hi,
+>>
+>> The patch which follows implements the CPUFreq driver for
+>> OMAP3, tested on 3430sdp.
+>> The driver uses API's defined as part of the OMAP-PM layer.
+>>
+>> Performance Governor is selected by default in the defconfig.
+>> After bootup, to switch to ondemand or any other governor use
+>> the following sysfs interface
+>> /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+>
+>With the ondemand Governor  I am some seeing issues for DSP Bridge.
+>clk_notifier_register call for iva2_ck is successful but I am seeing below messages
+>on opp change request from IVA.
+>
+><3>clock: Could not find fieldval 0 for clock iva2_ck parent dpll2_m2_ck
+>clock: Could not find fieldval 0 for clock iva2_ck parent dpll2_m2_ck
+><3>clock: Could not find fieldval 0 for clock iva2_ck parent dpll2_m2_ck
+>clock: Could not find fieldval 0 for clock iva2_ck parent dpll2_m2_ck
+>
+>Looks like access to memory stalls while opp is changing ( some times I observed
+>MMU Fault messages from IVA while opp is changing). Also some times I observed
+>that after the opp change IVA Power state registers are not accessible( I am getting
+>BUG# soft lock up while accessing IVA Power state registers).
+>
+>Can you please provide your inputs on these issues?
+>
+>Is there any way to manually switch opp using sysfs?( useful for debugging)
+>
+>regards
+>Ramesh Gupta G
+>
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-I think it'll be easier to forward port than to back-port, but it's your call.
-
-For starters, pull the latest linux-omap kernel and take a diff. The MUSB driver
-works fine on this as Felipe pointed out. Your first port of call would be the
-drivers/i2c/chips/twl4030-usb.c file. Find out why you don't get any interrupts
-from this.
-
-
-> 
-> I suppose, like I did previously for the EHCI USB controller, I could
-> back-port the changes specific to the MUSB back from the latest Kernel
-> to my version.
-> 
-> Could you send me your configuration for the beagle board? My hardware
-> configuration resembles that particular board.
-> 
-> >
-> >> different settings related to MUSB and nothing seems to happen. The
-> >> TWL4030_USB driver builds and loads and claims that a cable is plugged
-> >> in even when nothing is plugged in.
-> >
-> > Sounds like a bug in twl4030-usb.c
-> 
-> I agree..
-> 
-> >
-> >> The "musb_hdrc" driver loads up and registers with IRQs 92 and 93. The
-> >> TWL4030_USB driver registers with IRQ 373. As I plug-in and remove the
-> >> cable from the USB port, no interrupts are generated and the driver is
-> >> completely oblivious to what's happening..
-> >
-> > Do you have id pin grounded ?
-
-Good point by Felipe. Check this.
-
-> >
-> >> I'm trying to configure the MUSB driver as a Host-only to start with,
-> >> I've also tried to set it as OTG with no change.
-
-I wouldn't suggest host mode unless you have the right connector (or manually
-ground the ID pin). It's easier to use peripheral-only and a standard cable.
-Note that in OTG mode, you'll need to load a gadget driver (g_ether, or g_zero
-or g_file_storage). Then connect a cable and see if twl4030 reports an interrupt.
-
-
-> >
-> > Use it as otg and put a gadget driver as well, it's better.
-> >
-> >> My current ".config" is as follows, could someone point me to any
-> >> configuration option or anything that I'm missing..
-> >
-> > I'd just suggest you to use as otg and put a gadget driver.
-
-I'd suggest you put it in peripheral mode instead of host mode. OTG also is fine,
-but peripheral mode would be easier. 
-
-> 
-> Would use OTG Host not make things significantly easy as far as
-> software goes without having to determine the roles based on which end
-> of the USB cable is plugged in?
-> 
-> >
-> > Which board are you using ? Is it some development board or a custom
-> > board ?
-> >
-> > Development boards have a defconfig that might help you.
-> 
-> Unfortuatenly, this is a custom board for which we are creating the
-> defconfig..so isn't easy to jump to the latest Kernel and use another
-> defconfig..
-> 
-> ~ Ashwin
