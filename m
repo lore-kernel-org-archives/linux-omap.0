@@ -1,49 +1,39 @@
-From: "mohammed shareef" <mdshareef@gmail.com>
-Subject: Re: GUI for OMAP3EVM
-Date: Thu, 28 Aug 2008 14:26:18 +0530
-Message-ID: <a1d91fa0808280156w741e062ayd30547ecca044327@mail.gmail.com>
-References: <c656a4d20808280151u74b3f6d6xbda61097ebe3fb1e@mail.gmail.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: Enabling MUSB support
+Date: Thu, 28 Aug 2008 12:07:19 +0300
+Message-ID: <20080828090719.GG7354@gandalf.research.nokia.com>
+References: <1f11a5490808270626t5b4aa599i18b730d12a6c4667@mail.gmail.com> <20080827133825.GC7354@gandalf.research.nokia.com> <200808272354.28531.david-b@pacbell.net>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.187]:18173 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750709AbYH1I4T (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Aug 2008 04:56:19 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so176901tic.23
-        for <linux-omap@vger.kernel.org>; Thu, 28 Aug 2008 01:56:18 -0700 (PDT)
-In-Reply-To: <c656a4d20808280151u74b3f6d6xbda61097ebe3fb1e@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:46534 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751068AbYH1JHe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Aug 2008 05:07:34 -0400
 Content-Disposition: inline
+In-Reply-To: <200808272354.28531.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arun c <arun.edarath@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext David Brownell <david-b@pacbell.net>
+Cc: felipe.balbi@nokia.com, ext Ashwin Bihari <abihari@gmail.com>, linux-omap@vger.kernel.org
 
-Hi,
+On Wed, Aug 27, 2008 at 11:54:28PM -0700, David Brownell wrote:
+> On Wednesday 27 August 2008, Felipe Balbi wrote:
+> > I tried musb on omap2420 (with tusb), omap3430 and omap3530
+> > (beagle board) and all of them are working.
+> 
+> I tried it on Beagle and found that OTG mode wanted to oops
+> while binding the gadget driver ... static config.  That's
+> with current GIT.  Peripheral-only had the same issue ISTR.
+> 
+> Host mode seemed to come up partially.  There seem to be
+> issues with control-OUT transfers, which caused problems
+> trying to use the Ethernet adapter I was hooking up.
 
-I would recommend Qt-Embedded. Its simple to compile and install.
-Moreover writing a GUI using Qt-E is also not a tough task.
+that's new to me, I'm using musb on omap3-based boards on daily basis
+and I never had a problem, I'll check what I can do with my beagle today
+and see if I can reproduce it.
 
-Regards,
-Mohammed shareef
-
-On Thu, Aug 28, 2008 at 2:21 PM, arun c <arun.edarath@gmail.com> wrote:
-> Hi All,
->
-> I want to have a GUI on OMAP3EVM.
-> Basically I am looking for a GUI stack that can work on top of linux framebuffer
-> device(Eg: DirectFb).
->
-> X window based GUI is not suitable for embedded
-> devices, am I right?
->
-> Does any body tried this?
->
-> Regards,
-> Arun C
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+-- 
+balbi
