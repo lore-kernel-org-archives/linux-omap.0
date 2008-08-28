@@ -1,84 +1,41 @@
-From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-Subject: [PATCH 1/3] OMAP3: Remove CONFIG_OMAP_SYSOFFMODE flag
-Date: Thu, 28 Aug 2008 16:25:57 +0300
-Message-ID: <1219929959-6611-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: GUI for OMAP3EVM
+Date: Thu, 28 Aug 2008 07:58:43 -0700
+Message-ID: <5e088bd90808280758x5d030539wd1dba8cd09fcb5e8@mail.gmail.com>
+References: <c656a4d20808280151u74b3f6d6xbda61097ebe3fb1e@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:23022 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752301AbYH1NXI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Aug 2008 09:23:08 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m7SDMhso016517
-	for <linux-omap@vger.kernel.org>; Thu, 28 Aug 2008 16:23:04 +0300
-In-Reply-To: <>
-References: <>
+Received: from py-out-1112.google.com ([64.233.166.183]:55596 "EHLO
+	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752942AbYH1O6o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Aug 2008 10:58:44 -0400
+Received: by py-out-1112.google.com with SMTP id p76so253208pyb.10
+        for <linux-omap@vger.kernel.org>; Thu, 28 Aug 2008 07:58:43 -0700 (PDT)
+In-Reply-To: <c656a4d20808280151u74b3f6d6xbda61097ebe3fb1e@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+To: arun c <arun.edarath@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Remove CONFIG_OMAP_SYSOFFMODE flag and do the full initialization of voltage
-controller . Enabling automatic sending of OFF command and selecting wether
-SYS_OFF_MODE signal is used should be determined dynamically. Hence they are
-now not set in the initialization.
+> X window based GUI is not suitable for embedded
+> devices, am I right?
+>
+> Does any body tried this?
 
-Changed the OFF mode sleep voltages to 1,2V (VDD1) and 1,15V (VDD2), since
-the old 0,9V for both caused device to hang.
+Yes, I have some X based images you can play with on your EVM.  They
+are located at:
 
-Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
----
- arch/arm/mach-omap2/pm34xx.c           |   10 +---------
- arch/arm/mach-omap2/prm-regbits-34xx.h |    4 ++--
- 2 files changed, 3 insertions(+), 11 deletions(-)
+http://www.sakoman.net/feeds/omap3/glibc/images/omap3evm/
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index a16eb33..5633753 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -623,10 +623,7 @@ static void __init configure_vc(void)
- 				OMAP3_PRM_VC_I2C_CFG_OFFSET);
- 
- 	/* Setup voltctrl and other setup times */
--
--#ifdef CONFIG_OMAP_SYSOFFMODE
--	prm_write_mod_reg(OMAP3430_AUTO_OFF | OMAP3430_AUTO_RET |
--			OMAP3430_SEL_OFF, OMAP3430_GR_MOD,
-+	prm_write_mod_reg(OMAP3430_AUTO_RET, OMAP3430_GR_MOD,
- 			OMAP3_PRM_VOLTCTRL_OFFSET);
- 
- 	prm_write_mod_reg(OMAP3430_CLKSETUP_DURATION, OMAP3430_GR_MOD,
-@@ -641,11 +638,6 @@ static void __init configure_vc(void)
- 			OMAP3_PRM_VOLTOFFSET_OFFSET);
- 	prm_write_mod_reg(OMAP3430_VOLTSETUP2_DURATION, OMAP3430_GR_MOD,
- 			OMAP3_PRM_VOLTSETUP2_OFFSET);
--#else
--	prm_set_mod_reg_bits(OMAP3430_AUTO_RET, OMAP3430_GR_MOD,
--			OMAP3_PRM_VOLTCTRL_OFFSET);
--#endif
--
- }
- 
- static int __init omap3_pm_early_init(void)
-diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
-index f82b5a7..d73eee8 100644
---- a/arch/arm/mach-omap2/prm-regbits-34xx.h
-+++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
-@@ -466,13 +466,13 @@
- #define OMAP3430_VC_CMD_VAL0_ON				(0x3 << 4)
- #define OMAP3430_VC_CMD_VAL0_ONLP			(0x3 << 3)
- #define OMAP3430_VC_CMD_VAL0_RET			(0x3 << 3)
--#define OMAP3430_VC_CMD_VAL0_OFF			(0x3 << 3)
-+#define OMAP3430_VC_CMD_VAL0_OFF			(0x3 << 4)
- 
- /* PRM_VC_CMD_VAL_1 specific bits */
- #define OMAP3430_VC_CMD_VAL1_ON				(0xB << 2)
- #define OMAP3430_VC_CMD_VAL1_ONLP			(0x3 << 3)
- #define OMAP3430_VC_CMD_VAL1_RET			(0x3 << 3)
--#define OMAP3430_VC_CMD_VAL1_OFF			(0x3 << 3)
-+#define OMAP3430_VC_CMD_VAL1_OFF			(0xB << 2)
- 
- /* PRM_VC_CH_CONF */
- #define OMAP3430_CMD1					(1 << 20)
--- 
-1.5.4.3
+I suggest that you grab uImage-omap3evm.bin for the kernel and
+omap3evm-demo-image-omap3evm.jffs2 for the rootfs.
 
+The image includes touchscreen support, some PIM apps, and the Midori
+web browser.
+
+Re-flash in the usual way.
+
+Steve
