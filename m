@@ -1,52 +1,80 @@
-From: "Jason Marini" <jason.marini@gmail.com>
-Subject: [PATCH] ARM: OMAP: Fix occasional i2c driver hang
-Date: Thu, 28 Aug 2008 15:30:58 -0400
-Message-ID: <423644ca0808281230g1f8c20ceta4a6822098d4e431@mail.gmail.com>
+From: "Ramesh Gupta Guntha" <x0023949@ti.com>
+Subject: RE: [PATCH 00/01] CPUFreq: OMAP3 cpufreq driver
+Date: Thu, 28 Aug 2008 10:50:34 +0530
+Message-ID: <200808280520.m7S5KcIH022518@dbdp31.itg.ti.com>
+References: <02d601c908c3$ed10dcc0$LocalHost@wipultra1382>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f16.google.com ([209.85.217.16]:36419 "EHLO
-	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753478AbYH1TbA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Aug 2008 15:31:00 -0400
-Received: by gxk9 with SMTP id 9so4958331gxk.13
-        for <linux-omap@vger.kernel.org>; Thu, 28 Aug 2008 12:30:59 -0700 (PDT)
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:47795 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750797AbYH1FUt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Aug 2008 01:20:49 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7S5KeqS008646
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 28 Aug 2008 00:20:48 -0500
+In-Reply-To: <02d601c908c3$ed10dcc0$LocalHost@wipultra1382>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: 'Rajendra Nayak' <rnayak@ti.com>, linux-omap@vger.kernel.org
 
-The i2c driver contains a while loop that has no timeout.  If i2c is in a
-funky state and OMAP_I2C_CON_STT remains asserted, the kernel hangs.  Insert
-the standard i2c timeout into the loop.
+Hi Rajendra,
+ 
 
-Signed-off-by: Jason P Marini <jason.marini@gmail.com>
----
- drivers/i2c/busses/i2c-omap.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletions(-)
+> > > Performance Governor is selected by default in the defconfig.
+> > > After bootup, to switch to ondemand or any other governor use the 
+> > > following sysfs interface 
+> > > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+> > 
+> > With the ondemand Governor  I am some seeing issues for DSP Bridge. 
+> > clk_notifier_register call for iva2_ck is successful but I 
+> am seeing 
+> > below messages on opp change request from IVA.
+> 
+> For bridge do you need a pre notification or post notification?
+> Besides do you do anything in the notification that could sleep?
+> The clock notifcation is called with interrupts disabled.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 3c4e581..3a7b6ef 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -440,9 +440,16 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, w);
+For Bridge we need post notification. We are not doing anything to cause sleep.
+We update shared memory with opp information and send interrupt to DSP.
 
- 	if (dev->b_hw && stop) {
-+		unsigned long delay = jiffies + OMAP_I2C_TIMEOUT;
-+
- 		/* H/w behavior: dont write stt and stp together.. */
- 		while (omap_i2c_read_reg(dev, OMAP_I2C_CON_REG) & OMAP_I2C_CON_STT) {
--			/* Dont do anything - this will come in a couple of loops at max*/
-+			/* Let the user know if i2c is in a bad state */
-+			if (time_after (jiffies, delay)) {
-+				dev_err(dev->dev, "controller timed out "
-+				"waiting for start condition to finish\n");
-+				return -ETIMEDOUT;
-+			}
- 		}
- 		w |= OMAP_I2C_CON_STP;
- 		w &= ~OMAP_I2C_CON_STT;
--- 
-1.5.5.1
+
+> 
+> > 
+> > <3>clock: Could not find fieldval 0 for clock iva2_ck parent 
+> > dpll2_m2_ck
+> > clock: Could not find fieldval 0 for clock iva2_ck parent 
+> dpll2_m2_ck
+> > <3>clock: Could not find fieldval 0 for clock iva2_ck parent 
+> > dpll2_m2_ck
+> > clock: Could not find fieldval 0 for clock iva2_ck parent 
+> dpll2_m2_ck
+> > 
+> > Looks like access to memory stalls while opp is changing ( 
+> some times 
+> > I observed MMU Fault messages from IVA while opp is changing). Also 
+> > some times I observed that after the opp change IVA Power state 
+> > registers are not accessible( I am getting  BUG# soft lock up while 
+> > accessing IVA Power state registers).
+> > 
+> > Can you please provide your inputs on these issues?
+> > 
+> > Is there any way to manually switch opp using sysfs?( useful for 
+> > debugging)
+> 
+> I am in the process of sending an updated SRF/CPUFreq 
+> patches. Meanwhile if you want to manually switch OPP's I 
+> remember Paul posting a patch to actually do that.
+> Also Paul had initally reported a few stability issues with 
+> M2 divider change for CORE dpll on the SDP?
+
+Thank you,
+I am using the userspace governor to  set the cpu frequency manually, thanks to Romit and Anand.
+I will try finding the Paul patch.
+
+Thanks
+Ramesh Gupta G
+
