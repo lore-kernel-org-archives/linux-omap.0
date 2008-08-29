@@ -1,21 +1,22 @@
 From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [PATCH 12/15] OMAP3 camera driver: Add Sensor and Lens Driver.
-Date: Fri, 29 Aug 2008 18:33:01 -0500
-Message-ID: <A24693684029E5489D1D202277BE89441191E332@dlee02.ent.ti.com>
+Subject: [PATCH 13/15] OMAP3 camera driver: Add main driver.
+Date: Fri, 29 Aug 2008 18:33:40 -0500
+Message-ID: <A24693684029E5489D1D202277BE89441191E333@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59658 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752574AbYH2XdJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Aug 2008 19:33:09 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44063 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751422AbYH2Xdr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Aug 2008 19:33:47 -0400
 Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7TNX3Ap018970
-	for <linux-omap@vger.kernel.org>; Fri, 29 Aug 2008 18:33:08 -0500
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m7TNX3um018998
-	for <linux-omap@vger.kernel.org>; Fri, 29 Aug 2008 18:33:03 -0500 (CDT)
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7TNXfCn003656
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 29 Aug 2008 18:33:47 -0500
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m7TNXfCC019207
+	for <linux-omap@vger.kernel.org>; Fri, 29 Aug 2008 18:33:41 -0500 (CDT)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -23,2802 +24,2105 @@ To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 From: Sergio Aguirre <saaguirre@ti.com>
 
-OMAP: CAM: Add Sensor and Lens Driver
+OMAP: CAM: Add main driver
 
-This adds the following sensor drivers:
-* Micron MT9P012 sensor
-* DW9710 Lens driver
+This adds the main OMAP34xx camera driver to the kernel.
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- drivers/media/video/Kconfig   |   16
- drivers/media/video/Makefile  |    2
- drivers/media/video/Kconfig   |   16
- drivers/media/video/Makefile  |    2
- drivers/media/video/dw9710.c  |  583 +++++++++++++
- drivers/media/video/dw9710.h  |   61 +
- drivers/media/video/mt9p012.c | 1782 ++++++++++++++++++++++++++++++++++++++++++
- drivers/media/video/mt9p012.h |  295 ++++++
- 6 files changed, 2739 insertions(+)
+ drivers/media/video/Kconfig       |   10
+ drivers/media/video/Makefile      |    2
+ drivers/media/video/Kconfig       |   10
+ drivers/media/video/Makefile      |    2
+ drivers/media/video/omap34xxcam.c | 1852 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/video/omap34xxcam.h |  192 +++
+ 4 files changed, 2056 insertions(+)
 
 Index: linux-omap-2.6/drivers/media/video/Kconfig
 ===================================================================
---- linux-omap-2.6.orig/drivers/media/video/Kconfig     2008-08-28 19:47:42.000000000 -0500
-+++ linux-omap-2.6/drivers/media/video/Kconfig  2008-08-28 19:52:24.000000000 -0500
-@@ -303,6 +303,22 @@
-          OV9640 camera.  It is currently working with the TI OMAP2
-          camera controller.
+--- linux-omap-2.6.orig/drivers/media/video/Kconfig     2008-08-29 17:35:23.000000000 -0500
++++ linux-omap-2.6/drivers/media/video/Kconfig  2008-08-29 17:35:28.000000000 -0500
+@@ -810,6 +810,16 @@
+          CMOS camera controller.  This is the controller found on first-
+          generation OLPC systems.
 
-+config VIDEO_MT9P012
-+       tristate "Micron MT9P012 raw sensor driver (5MP)"
-+       depends on I2C && VIDEO_V4L2
++config VIDEO_OMAP3
++        tristate "OMAP 3 Camera support"
++       select VIDEOBUF_GEN
++       select VIDEOBUF_DMA_SG
++       depends on VIDEO_V4L2 && ARCH_OMAP34XX
 +       ---help---
-+         This is a Video4Linux2 sensor-level driver for the Micron
-+         MT9P012 camera.  It is currently working with the TI OMAP3
-+         camera controller.
++         Driver for an OMAP 3 camera controller.
 +
-+config VIDEO_DW9710
-+       tristate "Lens driver for DW9710"
-+       depends on I2C && VIDEO_V4L2
-+       ---help---
-+         This is a Video4Linux2 lens driver for the Dongwoon
-+         DW9710 coil.  It is currently working with the TI OMAP3
-+         camera controller and micron MT9P012 sensor.
++source "drivers/media/video/isp/Kconfig"
 +
- config VIDEO_SAA7110
-        tristate "Philips SAA7110 video decoder"
-        depends on VIDEO_V4L1 && I2C
+ config VIDEO_OMAP2
+        tristate "OMAP 2 Camera support (EXPERIMENTAL)"
+        select VIDEOBUF_GEN
 Index: linux-omap-2.6/drivers/media/video/Makefile
 ===================================================================
---- linux-omap-2.6.orig/drivers/media/video/Makefile    2008-08-28 19:47:42.000000000 -0500
-+++ linux-omap-2.6/drivers/media/video/Makefile 2008-08-28 19:52:24.000000000 -0500
-@@ -109,6 +109,8 @@
+--- linux-omap-2.6.orig/drivers/media/video/Makefile    2008-08-29 17:35:23.000000000 -0500
++++ linux-omap-2.6/drivers/media/video/Makefile 2008-08-29 17:35:28.000000000 -0500
+@@ -107,6 +107,8 @@
+ obj-$(CONFIG_VIDEO_OV7670)     += ov7670.o
+
  obj-$(CONFIG_VIDEO_OMAP2) += omap24xxcam.o omap24xxcam-dma.o
++obj-$(CONFIG_VIDEO_OMAP3) += omap34xxcam.o isp/
++
  obj-$(CONFIG_VIDEO_TCM825X) += tcm825x.o
  obj-$(CONFIG_VIDEO_OV9640)     += ov9640.o
-+obj-$(CONFIG_VIDEO_MT9P012)    += mt9p012.o
-+obj-$(CONFIG_VIDEO_DW9710) += dw9710.o
-
- obj-$(CONFIG_USB_DABUSB)        += dabusb.o
- obj-$(CONFIG_USB_OV511)         += ov511.o
-Index: linux-omap-2.6/drivers/media/video/dw9710.c
+ obj-$(CONFIG_VIDEO_MT9P012)    += mt9p012.o
+Index: linux-omap-2.6/drivers/media/video/omap34xxcam.c
 ===================================================================
 --- /dev/null   1970-01-01 00:00:00.000000000 +0000
-+++ linux-omap-2.6/drivers/media/video/dw9710.c 2008-08-28 19:52:24.000000000 -0500
-@@ -0,0 +1,583 @@
++++ linux-omap-2.6/drivers/media/video/omap34xxcam.c    2008-08-29 17:35:43.000000000 -0500
+@@ -0,0 +1,1852 @@
 +/*
-+ * drivers/media/video/dw9710.c
++ * drivers/media/video/omap34xxcam.c
 + *
-+ * DW9710 Coil Motor (LENS) driver
++ * Video-for-Linux (Version 2) Camera capture driver for OMAP34xx ISP.
 + *
 + * Copyright (C) 2008 Texas Instruments.
-+ *
-+ * Contributors:
-+ *     Troy Laramy <t-laramy@ti.com>
-+ *     Mohit Jalori <mjalori@ti.com>
-+ *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2. This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ *
-+ */
-+
-+#include <linux/mutex.h>
-+#include <linux/i2c.h>
-+#include <linux/delay.h>
-+#include <media/v4l2-int-device.h>
-+#include <mach/gpio.h>
-+#include <linux/platform_device.h>
-+#include <linux/cdev.h>
-+#include <linux/device.h>
-+
-+#include "dw9710.h"
-+
-+#define DRIVER_NAME  "dw9710"
-+
-+static int
-+dw9710_probe(struct i2c_client *client, const struct i2c_device_id *id);
-+static int __exit dw9710_remove(struct i2c_client *client);
-+
-+struct dw9710_device {
-+       const struct dw9710_platform_data *pdata;
-+       struct v4l2_int_device *v4l2_int_device;
-+       struct i2c_client *i2c_client;
-+       int opened;
-+       u16 current_lens_posn;
-+       u16 saved_lens_posn;
-+       int state;
-+};
-+
-+static const struct i2c_device_id dw9710_id[] = {
-+       { DW9710_NAME, 0 },
-+       { }
-+};
-+MODULE_DEVICE_TABLE(i2c, dw9710_id);
-+
-+static struct i2c_driver dw9710_i2c_driver = {
-+       .driver = {
-+               .name = DW9710_NAME,
-+               .owner = THIS_MODULE,
-+       },
-+       .probe = dw9710_probe,
-+       .remove = __exit_p(dw9710_remove),
-+       .id_table = dw9710_id,
-+};
-+
-+static struct dw9710_device dw9710 = {
-+       .state = LENS_NOT_DETECTED,
-+};
-+
-+static struct vcontrol {
-+       struct v4l2_queryctrl qc;
-+       int current_value;
-+} video_control[] = {
-+       {
-+               {
-+                       .id = V4L2_CID_FOCUS_ABSOLUTE,
-+                       .type = V4L2_CTRL_TYPE_INTEGER,
-+                       .name = "Lens Position",
-+                       .minimum = 0,
-+                       .maximum = MAX_FOCUS_POS,
-+                       .step = LENS_POSN_STEP,
-+                       .default_value = DEF_LENS_POSN,
-+               },
-+               .current_value = DEF_LENS_POSN,
-+       }
-+};
-+
-+static struct i2c_driver dw9710_i2c_driver;
-+static int camera_enabled;
-+
-+/**
-+ * find_vctrl - Finds the requested ID in the video control structure array
-+ * @id: ID of control to search the video control array for
-+ *
-+ * Returns the index of the requested ID from the control structure array
-+ */
-+static int
-+find_vctrl(int id)
-+{
-+       int i;
-+
-+       if (id < V4L2_CID_BASE)
-+               return -EDOM;
-+
-+       for (i = (ARRAY_SIZE(video_control) - 1); i >= 0; i--)
-+               if (video_control[i].qc.id == id)
-+                       break;
-+       if (i < 0)
-+               i = -EINVAL;
-+       return i;
-+}
-+
-+/**
-+ * camaf_reg_read - Reads a value from a register in DW9710 Coil driver device.
-+ * @client: Pointer to structure of I2C client.
-+ * @value: Pointer to u16 for returning value of register to read.
-+ *
-+ * Returns zero if successful, or non-zero otherwise.
-+ **/
-+static int camaf_reg_read(struct i2c_client *client, u16 *value)
-+{
-+       int err;
-+       struct i2c_msg msg[1];
-+       unsigned char data[2];
-+
-+       if (!client->adapter)
-+               return -ENODEV;
-+
-+       msg->addr = client->addr;
-+       msg->flags = I2C_M_RD;
-+       msg->len = 2;
-+       msg->buf = data;
-+
-+       data[0] = 0;
-+       data[1] = 0;
-+
-+       err = i2c_transfer(client->adapter, msg, 1);
-+
-+       if (err >= 0) {
-+               *value = err = ((data[0] & 0xFF) << 8) | (data[1]);
-+               return 0;
-+       }
-+       return err;
-+}
-+
-+/**
-+ * camaf_reg_write - Writes a value to a register in DW9710 Coil driver device.
-+ * @client: Pointer to structure of I2C client.
-+ * @value: Value of register to write.
-+ *
-+ * Returns zero if successful, or non-zero otherwise.
-+ **/
-+static int camaf_reg_write(struct i2c_client *client, u16 value)
-+{
-+       int err;
-+       struct i2c_msg msg[1];
-+       unsigned char data[2];
-+       int retry = 0;
-+
-+       if (!client->adapter)
-+               return -ENODEV;
-+
-+again:
-+       msg->addr = client->addr;
-+       msg->flags = 0;
-+       msg->len = 2;
-+       msg->buf = data;
-+
-+       data[0] = (u8)(value >> 8);
-+       data[1] = (u8)(value & 0xFF);
-+
-+       err = i2c_transfer(client->adapter, msg, 1);
-+
-+       if (err >= 0)
-+               return 0;
-+
-+       if (retry <= DW9710_I2C_RETRY_COUNT) {
-+               dev_dbg(&client->dev, "retry ... %d", retry);
-+               retry++;
-+               set_current_state(TASK_UNINTERRUPTIBLE);
-+               schedule_timeout(msecs_to_jiffies(20));
-+               goto again;
-+       }
-+       return err;
-+}
-+
-+/**
-+ * dw9710_enable - Sets flag to confirm if camera is turned on.
-+ * @power: Status of camera power. 1 - On, 2 - Off.
-+ **/
-+void dw9710_enable(int power)
-+{
-+       camera_enabled = power;
-+}
-+EXPORT_SYMBOL(dw9710_enable);
-+
-+/**
-+ * dw9710_detect - Detects DW9710 Coil driver device.
-+ * @client: Pointer to structure of I2C client.
-+ *
-+ * Returns 0 if successful, -1 if camera is off or if test register value
-+ * wasn't stored properly, or returned errors from either camaf_reg_write or
-+ * camaf_reg_read functions.
-+ **/
-+static int dw9710_detect(struct i2c_client *client)
-+{
-+       int err = 0;
-+       u16 wposn = 0, rposn = 0;
-+       u16 posn = 0x05;
-+
-+       if (!camera_enabled)
-+               return -1;
-+       wposn = (CAMAF_DW9710_POWERDN(CAMAF_DW9710_ENABLE) |
-+                                               CAMAF_DW9710_DATA(posn));
-+
-+       err = camaf_reg_write(client, wposn);
-+       if (err) {
-+               printk(KERN_ERR "Unable to write DW9710 \n");
-+               return err;
-+       }
-+
-+       err = camaf_reg_read(client, &rposn);
-+       if (err) {
-+               printk(KERN_ERR "Unable to read DW9710 \n");
-+               return err;
-+       }
-+
-+       if (wposn != rposn) {
-+               printk(KERN_ERR "W/R MISMATCH!\n");
-+               return -1;
-+       }
-+       posn = 0;
-+       wposn = (CAMAF_DW9710_POWERDN(CAMAF_DW9710_ENABLE) |
-+                                               CAMAF_DW9710_DATA(posn));
-+       err = camaf_reg_write(client, wposn);
-+
-+       return err;
-+}
-+
-+/**
-+ * dw9710_af_setfocus - Sets the desired focus.
-+ * @posn: Desired focus position, 0 (far) - 100 (close).
-+ *
-+ * Returns 0 on success, -EINVAL if camera is off or focus value is out of
-+ * bounds, or returned errors from either camaf_reg_write or camaf_reg_read
-+ * functions.
-+ **/
-+int dw9710_af_setfocus(u16 posn)
-+{
-+       struct dw9710_device *af_dev = &dw9710;
-+       struct i2c_client *client = af_dev->i2c_client;
-+       u16 cur_focus_value = 0;
-+       int ret = -EINVAL;
-+
-+       if (!camera_enabled)
-+               return ret;
-+
-+       if (posn > MAX_FOCUS_POS) {
-+               printk(KERN_ERR "Bad posn params 0x%x \n", posn);
-+               return ret;
-+       }
-+
-+       ret = camaf_reg_read(client, &cur_focus_value);
-+
-+       if (ret) {
-+               printk(KERN_ERR "Read of current Lens position failed\n");
-+               return ret;
-+       }
-+
-+       if (CAMAF_DW9710_DATA_R(cur_focus_value) == posn) {
-+               printk(KERN_DEBUG "Device already in requested focal point");
-+               return ret;
-+       }
-+
-+       ret = camaf_reg_write(client,
-+                               CAMAF_DW9710_POWERDN(CAMAF_DW9710_ENABLE) |
-+                               CAMAF_DW9710_DATA(posn));
-+
-+       if (ret)
-+               printk(KERN_ERR "Setfocus register write failed\n");
-+       dw9710.current_lens_posn = posn;
-+       return ret;
-+}
-+EXPORT_SYMBOL(dw9710_af_setfocus);
-+
-+/**
-+ * dw9710_af_getfocus - Gets the focus value from device.
-+ * @value: Pointer to u16 variable which will contain the focus value.
-+ *
-+ * Returns 0 if successful, -EINVAL if camera is off, or return value of
-+ * camaf_reg_read if fails.
-+ **/
-+int dw9710_af_getfocus(u16 *value)
-+{
-+       int ret = -EINVAL;
-+       u16 posn = 0;
-+
-+       struct dw9710_device *af_dev = &dw9710;
-+       struct i2c_client *client = af_dev->i2c_client;
-+
-+       if (!camera_enabled)
-+               return ret;
-+
-+       ret = camaf_reg_read(client, &posn);
-+
-+       if (ret) {
-+               printk(KERN_ERR "Read of current Lens position failed\n");
-+               return ret;
-+       }
-+       *value = CAMAF_DW9710_DATA_R(posn);
-+       dw9710.current_lens_posn = CAMAF_DW9710_DATA_R(posn);
-+       return ret;
-+}
-+EXPORT_SYMBOL(dw9710_af_getfocus);
-+
-+/**
-+ * dw9710_af_getfocus_cached - Gets the focus value from internal variable.
-+ * @value: Pointer to u16 variable which will contain the focus value.
-+ *
-+ * Returns 0 if successful, or -EINVAL if camera is off.
-+ **/
-+int dw9710_af_getfocus_cached(u16 *value)
-+{
-+       if (!camera_enabled)
-+               return -EINVAL;
-+       *value = dw9710.current_lens_posn;
-+       return 0;
-+}
-+EXPORT_SYMBOL(dw9710_af_getfocus_cached);
-+
-+/**
-+ * ioctl_queryctrl - V4L2 lens interface handler for VIDIOC_QUERYCTRL ioctl
-+ * @s: pointer to standard V4L2 device structure
-+ * @qc: standard V4L2 VIDIOC_QUERYCTRL ioctl structure
-+ *
-+ * If the requested control is supported, returns the control information
-+ * from the video_control[] array.  Otherwise, returns -EINVAL if the
-+ * control is not supported.
-+ */
-+static int ioctl_queryctrl(struct v4l2_int_device *s,
-+                               struct v4l2_queryctrl *qc)
-+{
-+       int i;
-+
-+       i = find_vctrl(qc->id);
-+       if (i == -EINVAL)
-+               qc->flags = V4L2_CTRL_FLAG_DISABLED;
-+
-+       if (i < 0)
-+               return -EINVAL;
-+
-+       *qc = video_control[i].qc;
-+       return 0;
-+}
-+
-+/**
-+ * ioctl_g_ctrl - V4L2 DW9710 lens interface handler for VIDIOC_G_CTRL ioctl
-+ * @s: pointer to standard V4L2 device structure
-+ * @vc: standard V4L2 VIDIOC_G_CTRL ioctl structure
-+ *
-+ * If the requested control is supported, returns the control's current
-+ * value from the video_control[] array.  Otherwise, returns -EINVAL
-+ * if the control is not supported.
-+ */
-+static int ioctl_g_ctrl(struct v4l2_int_device *s,
-+                            struct v4l2_control *vc)
-+{
-+       struct vcontrol *lvc;
-+       int i;
-+       u16 curr_posn;
-+
-+       i = find_vctrl(vc->id);
-+       if (i < 0)
-+               return -EINVAL;
-+       lvc = &video_control[i];
-+
-+       switch (vc->id) {
-+       case  V4L2_CID_FOCUS_ABSOLUTE:
-+               if (dw9710_af_getfocus(&curr_posn))
-+                       return -EFAULT;
-+               vc->value = curr_posn;
-+               lvc->current_value = curr_posn;
-+               break;
-+       }
-+
-+       return 0;
-+}
-+
-+/**
-+ * ioctl_s_ctrl - V4L2 DW9710 lens interface handler for VIDIOC_S_CTRL ioctl
-+ * @s: pointer to standard V4L2 device structure
-+ * @vc: standard V4L2 VIDIOC_S_CTRL ioctl structure
-+ *
-+ * If the requested control is supported, sets the control's current
-+ * value in HW (and updates the video_control[] array).  Otherwise,
-+ * returns -EINVAL if the control is not supported.
-+ */
-+static int ioctl_s_ctrl(struct v4l2_int_device *s,
-+                            struct v4l2_control *vc)
-+{
-+       int retval = -EINVAL;
-+       int i;
-+       struct vcontrol *lvc;
-+
-+       i = find_vctrl(vc->id);
-+       if (i < 0)
-+               return -EINVAL;
-+       lvc = &video_control[i];
-+
-+       switch (vc->id) {
-+       case V4L2_CID_FOCUS_ABSOLUTE:
-+               retval = dw9710_af_setfocus(vc->value);
-+               if (!retval)
-+                       lvc->current_value = vc->value;
-+               break;
-+       }
-+
-+       return retval;
-+}
-+
-+/**
-+ * ioctl_g_priv - V4L2 sensor interface handler for vidioc_int_g_priv_num
-+ * @s: pointer to standard V4L2 device structure
-+ * @p: void pointer to hold sensor's private data address
-+ *
-+ * Returns device's (sensor's) private data area address in p parameter
-+ */
-+static int ioctl_g_priv(struct v4l2_int_device *s, void *p)
-+{
-+       struct dw9710_device *lens = s->priv;
-+
-+       return lens->pdata->priv_data_set(p);
-+
-+}
-+
-+/**
-+ * ioctl_s_power - V4L2 sensor interface handler for vidioc_int_s_power_num
-+ * @s: pointer to standard V4L2 device structure
-+ * @on: power state to which device is to be set
-+ *
-+ * Sets devices power state to requrested state, if possible.
-+ */
-+static int ioctl_s_power(struct v4l2_int_device *s, enum v4l2_power on)
-+{
-+       struct dw9710_device *lens = s->priv;
-+       struct i2c_client *c = lens->i2c_client;
-+       int rval;
-+
-+       rval = lens->pdata->power_set(on);
-+       camera_enabled = on;
-+
-+       if ((on == V4L2_POWER_ON) && (lens->state == LENS_NOT_DETECTED)) {
-+               rval = dw9710_detect(c);
-+               if (rval < 0) {
-+                       dev_err(&c->dev, "Unable to detect "
-+                               DRIVER_NAME " lens HW\n");
-+                       printk(KERN_ERR "Unable to detect "
-+                               DRIVER_NAME " lens HW\n");
-+                       lens->state = LENS_NOT_DETECTED;
-+                       return rval;
-+               }
-+               lens->state = LENS_DETECTED;
-+               pr_info(DRIVER_NAME " lens HW detected\n");
-+       }
-+       return 0;
-+}
-+
-+static struct v4l2_int_ioctl_desc dw9710_ioctl_desc[] = {
-+       { .num = vidioc_int_s_power_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_s_power },
-+       { .num = vidioc_int_g_priv_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_g_priv },
-+       { .num = vidioc_int_queryctrl_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_queryctrl },
-+       { .num = vidioc_int_g_ctrl_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_g_ctrl },
-+       { .num = vidioc_int_s_ctrl_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_s_ctrl },
-+};
-+
-+static struct v4l2_int_slave dw9710_slave = {
-+       .ioctls = dw9710_ioctl_desc,
-+       .num_ioctls = ARRAY_SIZE(dw9710_ioctl_desc),
-+};
-+
-+static struct v4l2_int_device dw9710_int_device = {
-+       .module = THIS_MODULE,
-+       .name = DRIVER_NAME,
-+       .priv = &dw9710,
-+       .type = v4l2_int_type_slave,
-+       .u = {
-+               .slave = &dw9710_slave,
-+       },
-+};
-+
-+/**
-+ * dw9710_probe - Probes the driver for valid I2C attachment.
-+ * @client: Pointer to structure of I2C client.
-+ *
-+ * Returns 0 if successful, or -EBUSY if unable to get client attached data.
-+ **/
-+static int
-+dw9710_probe(struct i2c_client *client, const struct i2c_device_id *id)
-+{
-+       struct dw9710_device *lens = &dw9710;
-+       int err;
-+
-+       dev_info(&client->dev, "dw9710 probe called....\n");
-+
-+       if (i2c_get_clientdata(client)) {
-+               printk(KERN_ERR " DTA BUSY %s\n", client->name);
-+               return -EBUSY;
-+       }
-+
-+       lens->pdata = client->dev.platform_data;
-+
-+       if (!lens->pdata) {
-+               dev_err(&client->dev, "no platform data?\n");
-+               return -ENODEV;
-+       }
-+
-+       lens->v4l2_int_device = &dw9710_int_device;
-+
-+       lens->i2c_client = client;
-+       i2c_set_clientdata(client, lens);
-+
-+       err = v4l2_int_device_register(lens->v4l2_int_device);
-+       if (err) {
-+               printk(KERN_ERR "Failed to Register "
-+                       DRIVER_NAME " as V4L2 device.\n");
-+               i2c_set_clientdata(client, NULL);
-+       } else {
-+               printk(KERN_ERR "Registered "
-+                       DRIVER_NAME " as V4L2 device.\n");
-+       }
-+
-+       return 0;
-+}
-+
-+/**
-+ * dw9710_remove - Routine when device its unregistered from I2C
-+ * @client: Pointer to structure of I2C client.
-+ *
-+ * Returns 0 if successful, or -ENODEV if the client isn't attached.
-+ **/
-+static int __exit dw9710_remove(struct i2c_client *client)
-+{
-+       if (!client->adapter)
-+               return -ENODEV;
-+
-+       i2c_set_clientdata(client, NULL);
-+       return 0;
-+}
-+
-+/**
-+ * dw9710_init - Module initialisation.
-+ *
-+ * Returns 0 if successful, or -EINVAL if device couldn't be initialized, or
-+ * added as a character device.
-+ **/
-+static int __init dw9710_init(void)
-+{
-+       int err = -EINVAL;
-+
-+       camera_enabled = 0;
-+
-+       err = i2c_add_driver(&dw9710_i2c_driver);
-+       if (err)
-+               goto fail;
-+       return err;
-+fail:
-+       printk(KERN_ERR "Failed to register " DRIVER_NAME ".\n");
-+       return err;
-+}
-+late_initcall(dw9710_init);
-+
-+/**
-+ * dw9710_cleanup - Module cleanup.
-+ **/
-+static void __exit dw9710_cleanup(void)
-+{
-+       i2c_del_driver(&dw9710_i2c_driver);
-+}
-+module_exit(dw9710_cleanup);
-+
-+MODULE_AUTHOR("Texas Instruments");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("DW9710 LENS driver");
-Index: linux-omap-2.6/drivers/media/video/dw9710.h
-===================================================================
---- /dev/null   1970-01-01 00:00:00.000000000 +0000
-+++ linux-omap-2.6/drivers/media/video/dw9710.h 2008-08-28 19:52:24.000000000 -0500
-@@ -0,0 +1,61 @@
-+/*
-+ * drivers/media/video/dw9710.h
-+ *
-+ * Register defines for Auto Focus device
-+ *
-+ * Copyright (C) 2008 Texas Instruments.
-+ *
-+ * Contributors:
-+ *     Troy Laramy <t-laramy@ti.com>
-+ *     Mohit Jalori <mjalori@ti.com>
-+ *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2. This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ *
-+ */
-+
-+#ifndef CAMAF_DW9710_H
-+#define CAMAF_DW9710_H
-+
-+#define DW9710_AF_I2C_ADDR     0x0C
-+#define DW9710_NAME            "DW9710"
-+#define DW9710_I2C_RETRY_COUNT 5
-+#define MAX_FOCUS_POS  0xFF
-+
-+#define CAMAF_DW9710_DISABLE           0x1
-+#define CAMAF_DW9710_ENABLE            0x0
-+#define CAMAF_DW9710_POWERDN(ARG)      (((ARG) & 0x1) << 15)
-+#define CAMAF_DW9710_POWERDN_R(ARG)    (((ARG) >> 15) & 0x1)
-+
-+#define CAMAF_DW9710_DATA(ARG)         (((ARG) & 0xFF) << 6)
-+#define CAMAF_DW9710_DATA_R(ARG)       (((ARG) >> 6) & 0xFF)
-+#define CAMAF_FREQUENCY_EQ1(mclk)      ((u16)(mclk/16000))
-+
-+/* State of lens */
-+#define LENS_DETECTED          1
-+#define LENS_NOT_DETECTED      0
-+
-+/* Focus control values */
-+#define DEF_LENS_POSN          0x7F
-+#define LENS_POSN_STEP         1
-+
-+
-+/**
-+ * struct dw9710_platform_data - platform data values and access functions
-+ * @power_set: Power state access function, zero is off, non-zero is on.
-+ * @priv_data_set: device private data (pointer) access function
-+ */
-+struct dw9710_platform_data {
-+       int (*power_set)(enum v4l2_power power);
-+       int (*priv_data_set)(void *);
-+};
-+
-+void dw9710_enable(int power);
-+/*
-+ * Sets the specified focus value [0(far) - 100(near)]
-+ */
-+int dw9710_af_setfocus(u16 posn);
-+int dw9710_af_getfocus(u16 *value);
-+int dw9710_af_getfocus_cached(u16 *value);
-+#endif /* End of of CAMAF_DW9710_H */
-Index: linux-omap-2.6/drivers/media/video/mt9p012.c
-===================================================================
---- /dev/null   1970-01-01 00:00:00.000000000 +0000
-+++ linux-omap-2.6/drivers/media/video/mt9p012.c        2008-08-28 19:53:38.000000000 -0500
-@@ -0,0 +1,1782 @@
-+/*
-+ * drivers/media/video/mt9p012.c
-+ *
-+ * mt9p012 sensor driver
-+ *
-+ * Copyright (C) 2008 Texas Instruments.
++ * Copyright (C) 2008 Nokia.
 + *
 + * Contributors:
 + *     Sameer Venkatraman <sameerv@ti.com>
-+ *     Martinez Leonides
++ *     Mohit Jalori <mjalori@ti.com>
++ *     Sakari Ailus <sakari.ailus@nokia.com>
++ *     Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
 + *
-+ * Leverage OV9640.c
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2. This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ *
 + */
 +
-+#include <linux/i2c.h>
++#include <linux/io.h>
++#include <linux/clk.h>
++#include <linux/pci.h>         /* needed for videobufs */
 +#include <linux/delay.h>
-+#include <media/v4l2-int-device.h>
++#include <linux/kernel.h>
++#include <linux/interrupt.h>
++#include <linux/videodev2.h>
++#include <linux/version.h>
++#include <linux/platform_device.h>
++#include <media/v4l2-common.h>
++#include <media/v4l2-ioctl.h>
 +
-+#include "mt9p012.h"
-+#include "isp/isp.h"
++#include "omap34xxcam.h"
++#include "isp/isph3a.h"
++#include "isp/isp_af.h"
 +
-+#define DRIVER_NAME  "mt9p012"
-+#define MOD_NAME "MT9P012: "
++#define OMAP34XXCAM_VERSION KERNEL_VERSION(0, 0, 0)
 +
-+/**
-+ * struct mt9p012_sensor - main structure for storage of sensor information
-+ * @pdata: access functions and data for platform level information
-+ * @v4l2_int_device: V4L2 device structure structure
-+ * @i2c_client: iic client device structure
-+ * @pix: V4L2 pixel format information structure
-+ * @timeperframe: time per frame expressed as V4L fraction
-+ * @scaler:
-+ * @ver: mt9p012 chip version
-+ * @fps: frames per second value
-+ */
-+struct mt9p012_sensor {
-+       const struct mt9p012_platform_data *pdata;
-+       struct v4l2_int_device *v4l2_int_device;
-+       struct i2c_client *i2c_client;
-+       struct v4l2_pix_format pix;
-+       struct v4l2_fract timeperframe;
-+       int scaler;
-+       int ver;
-+       int fps;
-+       int state;
-+};
++/* global variables */
++static struct omap34xxcam_device *omap34xxcam;
 +
-+static struct mt9p012_sensor mt9p012;
-+static struct i2c_driver mt9p012sensor_i2c_driver;
-+static unsigned long xclk_current = MT9P012_XCLK_NOM_1;
-+
-+/* list of image formats supported by mt9p012 sensor */
-+const static struct v4l2_fmtdesc mt9p012_formats[] = {
-+       {
-+               .description    = "Bayer10 (GrR/BGb)",
-+               .pixelformat    = V4L2_PIX_FMT_SGRBG10,
-+       }
-+};
-+
-+#define NUM_CAPTURE_FORMATS ARRAY_SIZE(mt9p012_formats)
-+
-+/* Enters soft standby, all settings are maintained */
-+const static struct mt9p012_reg stream_off_list[] = {
-+       {.length = MT9P012_8BIT, .reg = REG_MODE_SELECT, .val = 0x00},
-+       {.length = MT9P012_TOK_TERM, .reg = 0, .val = 0}
-+};
-+
-+/* Exits soft standby */
-+const static struct mt9p012_reg stream_on_list[] = {
-+       {.length = MT9P012_8BIT, .reg = REG_MODE_SELECT, .val = 0x01},
-+       /* Sensor datasheet says we need 1 ms to allow PLL lock */
-+       {.length = MT9P012_TOK_DELAY, .reg = 0x00, .val = 1},
-+       {.length = MT9P012_TOK_TERM, .reg = 0, .val = 0}
-+};
-+
-+/* Structure which will set the exposure time */
-+static struct mt9p012_reg set_exposure_time[] = {
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x01},
-+       /* less than frame_lines-1 */
-+       {.length = MT9P012_16BIT, .reg = REG_COARSE_INT_TIME, .val = 500},
-+        /* updating */
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x00},
-+       {.length = MT9P012_TOK_TERM, .reg = 0, .val = 0}
-+};
-+
-+/* Structure to set analog gain */
-+static struct mt9p012_reg set_analog_gain[] = {
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x01},
-+       {.length = MT9P012_16BIT, .reg = REG_ANALOG_GAIN_GLOBAL,
-+               .val = MIN_GAIN},
-+        /* updating */
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x00},
-+       {.length = MT9P012_TOK_TERM, .reg = 0, .val = 0},
-+};
++/* module parameters */
++static int omap34xxcam_device_register(struct v4l2_int_device *s);
++static void omap34xxcam_device_unregister(struct v4l2_int_device *s);
++static int omap34xxcam_remove(struct platform_device *pdev);
++struct omap34xxcam_fh *camfh_saved;
 +
 +/*
-+ * Common MT9P012 register initialization for all image sizes, pixel formats,
-+ * and frame rates
-+ */
-+const static struct mt9p012_reg mt9p012_common[] = {
-+       {MT9P012_8BIT, REG_SOFTWARE_RESET, 0x01},
-+       {MT9P012_TOK_DELAY, 0x00, 5}, /* Delay = 5ms, min 2400 xcks */
-+       {MT9P012_16BIT, REG_RESET_REGISTER, 0x10C8},
-+       {MT9P012_8BIT, REG_GROUPED_PAR_HOLD, 0x01}, /* hold */
-+       {MT9P012_16BIT, REG_ANALOG_GAIN_GREENR, 0x0020},
-+       {MT9P012_16BIT, REG_ANALOG_GAIN_RED, 0x0020},
-+       {MT9P012_16BIT, REG_ANALOG_GAIN_BLUE, 0x0020},
-+       {MT9P012_16BIT, REG_ANALOG_GAIN_GREENB, 0x0020},
-+       {MT9P012_16BIT, REG_DIGITAL_GAIN_GREENR, 0x0100},
-+       {MT9P012_16BIT, REG_DIGITAL_GAIN_RED, 0x0100},
-+       {MT9P012_16BIT, REG_DIGITAL_GAIN_BLUE, 0x0100},
-+       {MT9P012_16BIT, REG_DIGITAL_GAIN_GREENB, 0x0100},
-+       /* Recommended values for image quality, sensor Rev 1 */
-+       {MT9P012_16BIT, 0x3088, 0x6FFB},
-+       {MT9P012_16BIT, 0x308E, 0x2020},
-+       {MT9P012_16BIT, 0x309E, 0x4400},
-+       {MT9P012_16BIT, 0x30D4, 0x9080},
-+       {MT9P012_16BIT, 0x3126, 0x00FF},
-+       {MT9P012_16BIT, 0x3154, 0x1482},
-+       {MT9P012_16BIT, 0x3158, 0x97C7},
-+       {MT9P012_16BIT, 0x315A, 0x97C6},
-+       {MT9P012_16BIT, 0x3162, 0x074C},
-+       {MT9P012_16BIT, 0x3164, 0x0756},
-+       {MT9P012_16BIT, 0x3166, 0x0760},
-+       {MT9P012_16BIT, 0x316E, 0x8488},
-+       {MT9P012_16BIT, 0x3172, 0x0003},
-+       {MT9P012_16BIT, 0x30EA, 0x3F06},
-+       {MT9P012_8BIT, REG_GROUPED_PAR_HOLD, 0x00}, /* update all at once */
-+       {MT9P012_TOK_TERM, 0, 0}
-+
-+};
-+
-+/*
-+ * mt9p012 register configuration for all combinations of pixel format and
-+ * image size
-+ */
-+       /* 4X BINNING+SCALING */
-+const static struct mt9p012_reg enter_video_216_15fps[] = {
-+       /* stream off */
-+       {.length = MT9P012_8BIT, .reg = REG_MODE_SELECT, .val = 0x00},
-+       {.length = MT9P012_TOK_DELAY, .reg = 0x00, .val = 100},
-+        /* hold */
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x01},
-+       {.length = MT9P012_16BIT, .reg = REG_VT_PIX_CLK_DIV, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_VT_SYS_CLK_DIV, .val = 2},
-+       {.length = MT9P012_16BIT, .reg = REG_PRE_PLL_CLK_DIV, .val = 2},
-+       {.length = MT9P012_16BIT, .reg = REG_PLL_MULTIPLIER, .val = 126},
-+       {.length = MT9P012_16BIT, .reg = REG_OP_PIX_CLK_DIV, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_OP_SYS_CLK_DIV, .val = 2},
-+       {.length = MT9P012_16BIT, .reg = REG_RESERVED_MFR_3064,
-+               .val = 0x0805},
-+       {.length = MT9P012_16BIT, .reg = REG_X_OUTPUT_SIZE,
-+               .val = VIDEO_WIDTH_4X_BINN_SCALED},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_OUTPUT_SIZE,
-+               .val = VIDEO_HEIGHT_4X_BINN_SCALED},
-+       {.length = MT9P012_16BIT, .reg = REG_X_ADDR_START, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_ADDR_START, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_X_ADDR_END, .val = 2593},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_ADDR_END, .val = 1945},
-+       {.length = MT9P012_16BIT, .reg = REG_READ_MODE, .val = 0x04FC},
-+       {.length = MT9P012_16BIT, .reg = REG_FINE_INT_TIME, .val = 1794},
-+       {.length = MT9P012_16BIT, .reg = REG_FRAME_LEN_LINES, .val = 574},
-+       {.length = MT9P012_16BIT, .reg = REG_LINE_LEN_PCK, .val = 2712},
-+        /* 0x10/0x30 = 0.3333 */
-+       {.length = MT9P012_16BIT, .reg = REG_SCALE_M, .val = 0x0030},
-+       /* enable scaler */
-+       {.length = MT9P012_16BIT, .reg = REG_SCALING_MODE, .val = 0x0002},
-+       {.length = MT9P012_16BIT, .reg = REG_COARSE_INT_TIME,
-+               .val = COARSE_INT_TIME_216},
-+       /* update */
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x00},
-+       {.length = MT9P012_TOK_TERM, .reg = 0, .val = 0}
-+       };
-+
-+       /* Video mode, 4x binning + scaling, range 16 - 30 fps */
-+const static struct mt9p012_reg enter_video_216_30fps[] = {
-+       /* stream off */
-+       {.length = MT9P012_8BIT, .reg = REG_MODE_SELECT, .val = 0x00},
-+       {.length = MT9P012_TOK_DELAY, .reg = 0x00, .val = 100},
-+       /* hold */
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x01},
-+       {.length = MT9P012_16BIT, .reg = REG_VT_PIX_CLK_DIV, .val = 5},
-+       {.length = MT9P012_16BIT, .reg = REG_VT_SYS_CLK_DIV, .val = 2},
-+       {.length = MT9P012_16BIT, .reg = REG_PRE_PLL_CLK_DIV, .val = 3},
-+       {.length = MT9P012_16BIT, .reg = REG_PLL_MULTIPLIER, .val = 192},
-+       {.length = MT9P012_16BIT, .reg = REG_OP_PIX_CLK_DIV, .val = 10},
-+       {.length = MT9P012_16BIT, .reg = REG_OP_SYS_CLK_DIV, .val = 2},
-+       {.length = MT9P012_16BIT, .reg = REG_RESERVED_MFR_3064, .val = 0x0805},
-+       {.length = MT9P012_16BIT, .reg = REG_X_OUTPUT_SIZE,
-+               .val = VIDEO_WIDTH_4X_BINN},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_OUTPUT_SIZE,
-+               .val = VIDEO_HEIGHT_4X_BINN},
-+       {.length = MT9P012_16BIT, .reg = REG_X_ADDR_START, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_ADDR_START, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_X_ADDR_END, .val = 2593},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_ADDR_END, .val = 1945},
-+       {.length = MT9P012_16BIT, .reg = REG_READ_MODE, .val = 0x04FC},
-+       {.length = MT9P012_16BIT, .reg = REG_FINE_INT_TIME, .val = 1794},
-+       {.length = MT9P012_16BIT, .reg = REG_FRAME_LEN_LINES, .val = 1374},
-+       {.length = MT9P012_16BIT, .reg = REG_LINE_LEN_PCK, .val = 3712},
-+       /* 0x10/0x30 = 0.3333 */
-+       {.length = MT9P012_16BIT, .reg = REG_SCALE_M, .val = 0x0030},
-+       /* enable scaler */
-+       {.length = MT9P012_16BIT, .reg = REG_SCALING_MODE, .val = 0x0002},
-+       {.length = MT9P012_16BIT, .reg = REG_COARSE_INT_TIME,
-+               .val = COARSE_INT_TIME_216_30FPS},
-+       /* update */
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x00},
-+       {.length = MT9P012_TOK_TERM, .reg = 0, .val = 0}
-+       };
-+
-+
-+       /*Video mode, 4x binning: 648 x 486, range 8 - 15 fps*/
-+const static struct mt9p012_reg enter_video_648_15fps[] = {
-+       /* stream off */
-+       {.length = MT9P012_8BIT, .reg = REG_MODE_SELECT, .val = 0x00},
-+       {.length = MT9P012_TOK_DELAY, .reg = 0x00, .val = 100},
-+       /* hold */
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x01},
-+       {.length = MT9P012_16BIT, .reg = REG_VT_PIX_CLK_DIV, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_VT_SYS_CLK_DIV, .val = 2},
-+       {.length = MT9P012_16BIT, .reg = REG_PRE_PLL_CLK_DIV, .val = 2},
-+       {.length = MT9P012_16BIT, .reg = REG_PLL_MULTIPLIER, .val = 126},
-+       {.length = MT9P012_16BIT, .reg = REG_OP_PIX_CLK_DIV, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_OP_SYS_CLK_DIV, .val = 2},
-+       {.length = MT9P012_16BIT, .reg = REG_RESERVED_MFR_3064, .val = 0x0805},
-+       {.length = MT9P012_16BIT, .reg = REG_X_OUTPUT_SIZE,
-+               .val = VIDEO_WIDTH_4X_BINN},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_OUTPUT_SIZE,
-+               .val = VIDEO_HEIGHT_4X_BINN},
-+       {.length = MT9P012_16BIT, .reg = REG_X_ADDR_START, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_ADDR_START, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_X_ADDR_END, .val = 2593},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_ADDR_END, .val = 1945},
-+       {.length = MT9P012_16BIT, .reg = REG_READ_MODE, .val = 0x04FC},
-+       {.length = MT9P012_16BIT, .reg = REG_FINE_INT_TIME, .val = 1794},
-+       {.length = MT9P012_16BIT, .reg = REG_FRAME_LEN_LINES, .val = 574},
-+       {.length = MT9P012_16BIT, .reg = REG_LINE_LEN_PCK, .val = 2712},
-+       {.length = MT9P012_16BIT, .reg = REG_SCALING_MODE, .val = 0x0000},
-+       {.length = MT9P012_16BIT, .reg = REG_COARSE_INT_TIME,
-+               .val = COARSE_INT_TIME_648},
-+       /* update */
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x00},
-+       {.length = MT9P012_TOK_TERM, .reg = 0, .val = 0}
-+};
-+
-+       /* Video mode, 4x binning: 648 x 486, range 16 - 30 fps */
-+const static struct mt9p012_reg enter_video_648_30fps[] = {
-+       /* stream off */
-+       {.length = MT9P012_8BIT, .reg = REG_MODE_SELECT, .val = 0x00},
-+       {.length = MT9P012_TOK_DELAY, .reg = 0x00, .val = 100},
-+       /* hold */
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x01},
-+       {.length = MT9P012_16BIT, .reg = REG_VT_PIX_CLK_DIV, .val = 5},
-+       {.length = MT9P012_16BIT, .reg = REG_VT_SYS_CLK_DIV, .val = 2},
-+       {.length = MT9P012_16BIT, .reg = REG_PRE_PLL_CLK_DIV, .val = 3},
-+       {.length = MT9P012_16BIT, .reg = REG_PLL_MULTIPLIER, .val = 192},
-+       {.length = MT9P012_16BIT, .reg = REG_OP_PIX_CLK_DIV, .val = 10},
-+       {.length = MT9P012_16BIT, .reg = REG_OP_SYS_CLK_DIV, .val = 2},
-+       {.length = MT9P012_16BIT, .reg = REG_RESERVED_MFR_3064, .val = 0x0805},
-+       {.length = MT9P012_16BIT, .reg = REG_X_OUTPUT_SIZE,
-+               .val = VIDEO_WIDTH_4X_BINN},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_OUTPUT_SIZE,
-+               .val = VIDEO_HEIGHT_4X_BINN},
-+       {.length = MT9P012_16BIT, .reg = REG_X_ADDR_START, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_ADDR_START, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_X_ADDR_END, .val = 2593},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_ADDR_END, .val = 1945},
-+       {.length = MT9P012_16BIT, .reg = REG_READ_MODE, .val = 0x04FC},
-+       {.length = MT9P012_16BIT, .reg = REG_FINE_INT_TIME, .val = 1794},
-+       {.length = MT9P012_16BIT, .reg = REG_FRAME_LEN_LINES, .val = 1374},
-+       {.length = MT9P012_16BIT, .reg = REG_LINE_LEN_PCK, .val = 3712},
-+       {.length = MT9P012_16BIT, .reg = REG_SCALING_MODE, .val = 0x0000},
-+       {.length = MT9P012_16BIT, .reg = REG_COARSE_INT_TIME,
-+               .val = COARSE_INT_TIME_648_30FPS},
-+       /* update */
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x00},
-+       {.length = MT9P012_TOK_TERM, .reg = 0, .val = 0}
-+};
-+
-+       /* Video mode, scaler off: 1296 x 972, range  11 - 21 fps*/
-+const static struct mt9p012_reg enter_video_1296_15fps[] = {
-+       /* stream off */
-+       {.length = MT9P012_8BIT, .reg = REG_MODE_SELECT, .val = 0x00},
-+       {.length = MT9P012_TOK_DELAY, .reg = 0x00, .val = 100},
-+       /* hold */
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x01},
-+       {.length = MT9P012_16BIT, .reg = REG_VT_PIX_CLK_DIV, .val = 5},
-+       {.length = MT9P012_16BIT, .reg = REG_VT_SYS_CLK_DIV, .val = 2},
-+       {.length = MT9P012_16BIT, .reg = REG_PRE_PLL_CLK_DIV, .val = 3},
-+       {.length = MT9P012_16BIT, .reg = REG_PLL_MULTIPLIER, .val = 134},
-+       {.length = MT9P012_16BIT, .reg = REG_OP_PIX_CLK_DIV, .val = 10},
-+       {.length = MT9P012_16BIT, .reg = REG_OP_SYS_CLK_DIV, .val = 1},
-+       {.length = MT9P012_16BIT, .reg = REG_RESERVED_MFR_3064, .val = 0x0805},
-+       {.length = MT9P012_16BIT, .reg = REG_X_OUTPUT_SIZE,
-+               .val = VIDEO_WIDTH_2X_BINN},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_OUTPUT_SIZE,
-+               .val = VIDEO_HEIGHT_2X_BINN},
-+       {.length = MT9P012_16BIT, .reg = REG_X_ADDR_START, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_ADDR_START, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_X_ADDR_END, .val = 2597},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_ADDR_END, .val = 1949},
-+       {.length = MT9P012_16BIT, .reg = REG_READ_MODE, .val = 0x046C},
-+       {.length = MT9P012_16BIT, .reg = REG_FINE_INT_TIME, .val = 1794},
-+       {.length = MT9P012_16BIT, .reg = REG_FRAME_LEN_LINES, .val = 1061},
-+       {.length = MT9P012_16BIT, .reg = REG_LINE_LEN_PCK, .val = 3360},
-+       {.length = MT9P012_16BIT, .reg = REG_SCALING_MODE, .val = 0x0000},
-+       {.length = MT9P012_16BIT, .reg = REG_COARSE_INT_TIME,
-+               .val = COARSE_INT_TIME_1296},
-+       /* update */
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x00},
-+       {.length = MT9P012_TOK_TERM, .reg = 0, .val = 0}
-+};
-+
-+       /* YUV (YCbCr) VGA */
-+const static struct mt9p012_reg enter_video_1296_30fps[] = {
-+       /* stream off */
-+       {.length = MT9P012_8BIT, .reg = REG_MODE_SELECT, .val = 0x00},
-+       {.length = MT9P012_TOK_DELAY, .reg = 0x00, .val = 100},
-+       /* hold */
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x01},
-+       {.length = MT9P012_16BIT, .reg = REG_VT_PIX_CLK_DIV, .val = 5},
-+       {.length = MT9P012_16BIT, .reg = REG_VT_SYS_CLK_DIV, .val = 1},
-+       {.length = MT9P012_16BIT, .reg = REG_PRE_PLL_CLK_DIV, .val = 3},
-+       {.length = MT9P012_16BIT, .reg = REG_PLL_MULTIPLIER, .val = 134},
-+       {.length = MT9P012_16BIT, .reg = REG_OP_PIX_CLK_DIV, .val = 10},
-+       {.length = MT9P012_16BIT, .reg = REG_OP_SYS_CLK_DIV, .val = 1},
-+       {.length = MT9P012_16BIT, .reg = REG_RESERVED_MFR_3064, .val = 0x0805},
-+       {.length = MT9P012_16BIT, .reg = REG_X_OUTPUT_SIZE,
-+               .val = VIDEO_WIDTH_2X_BINN},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_OUTPUT_SIZE,
-+               .val = VIDEO_HEIGHT_2X_BINN},
-+       {.length = MT9P012_16BIT, .reg = REG_X_ADDR_START, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_ADDR_START, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_X_ADDR_END, .val = 2597},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_ADDR_END, .val = 1949},
-+       {.length = MT9P012_16BIT, .reg = REG_READ_MODE, .val = 0x046C},
-+       {.length = MT9P012_16BIT, .reg = REG_FINE_INT_TIME, .val = 1794},
-+       {.length = MT9P012_16BIT, .reg = REG_FRAME_LEN_LINES, .val = 1061},
-+       {.length = MT9P012_16BIT, .reg = REG_LINE_LEN_PCK, .val = 3360},
-+       {.length = MT9P012_16BIT, .reg = REG_SCALING_MODE, .val = 0x0000},
-+       {.length = MT9P012_16BIT, .reg = REG_COARSE_INT_TIME,
-+               .val = COARSE_INT_TIME_1296},
-+        /* update */
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x00},
-+       {.length = MT9P012_TOK_TERM, .reg = 0, .val = 0}
-+};
-+
-+const static struct mt9p012_reg enter_image_mode_3MP_10fps[] = {
-+       /* stream off */
-+       {.length = MT9P012_8BIT, .reg = REG_MODE_SELECT, .val = 0x00},
-+       {.length = MT9P012_TOK_DELAY, .reg = 0x00, .val = 100},
-+       /* hold */
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x01},
-+       {.length = MT9P012_16BIT, .reg = REG_VT_PIX_CLK_DIV, .val = 4},
-+       {.length = MT9P012_16BIT, .reg = REG_VT_SYS_CLK_DIV, .val = 1},
-+       {.length = MT9P012_16BIT, .reg = REG_PRE_PLL_CLK_DIV, .val = 5},
-+       /* 10 fps */
-+       {.length = MT9P012_16BIT, .reg = REG_PLL_MULTIPLIER, .val = 184},
-+       {.length = MT9P012_16BIT, .reg = REG_OP_PIX_CLK_DIV, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_OP_SYS_CLK_DIV, .val = 1},
-+       {.length = MT9P012_16BIT, .reg = REG_RESERVED_MFR_3064, .val = 0x0805},
-+       {.length = MT9P012_16BIT, .reg = REG_X_OUTPUT_SIZE,
-+               .val = IMAGE_WIDTH_MIN},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_OUTPUT_SIZE,
-+               .val = IMAGE_HEIGHT_MIN},
-+       {.length = MT9P012_16BIT, .reg = REG_X_ADDR_START, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_ADDR_START, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_X_ADDR_END, .val = 2599},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_ADDR_END, .val = 1951},
-+       {.length = MT9P012_16BIT, .reg = REG_READ_MODE, .val = 0x0024},
-+       {.length = MT9P012_16BIT, .reg = REG_FINE_INT_TIME, .val = 882},
-+       {.length = MT9P012_16BIT, .reg = REG_FRAME_LEN_LINES, .val = 2056},
-+       {.length = MT9P012_16BIT, .reg = REG_LINE_LEN_PCK, .val = 5372},
-+       /* 0x10/0x14 = 0.80 */
-+       {.length = MT9P012_16BIT, .reg = REG_SCALE_M, .val = 0x0014},
-+       /* enable scaler */
-+       {.length = MT9P012_16BIT, .reg = REG_SCALING_MODE, .val = 0x0002},
-+       {.length = MT9P012_16BIT, .reg = REG_TEST_PATTERN, .val = TST_PAT},
-+       {.length = MT9P012_16BIT, .reg = REG_COARSE_INT_TIME,
-+               .val = COARSE_INT_TIME_3MP},
-+       /* update */
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x00},
-+       {.length = MT9P012_TOK_TERM, .reg = 0, .val = 0}
-+};
-+
-+/* Image mode, 5 MP @ 10 fps */
-+const static struct mt9p012_reg enter_image_mode_5MP_10fps[] = {
-+       /* stream off */
-+       {.length = MT9P012_8BIT, .reg = REG_MODE_SELECT, .val = 0x00},
-+       {.length = MT9P012_TOK_DELAY, .reg = 0x00, .val = 100},
-+       /* hold */
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x01},
-+       {.length = MT9P012_16BIT, .reg = REG_VT_PIX_CLK_DIV, .val = 4},
-+       {.length = MT9P012_16BIT, .reg = REG_VT_SYS_CLK_DIV, .val = 1},
-+       {.length = MT9P012_16BIT, .reg = REG_PRE_PLL_CLK_DIV, .val = 5},
-+       /* 10 fps */
-+       {.length = MT9P012_16BIT, .reg = REG_PLL_MULTIPLIER, .val = 184},
-+       {.length = MT9P012_16BIT, .reg = REG_OP_PIX_CLK_DIV, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_OP_SYS_CLK_DIV, .val = 1},
-+       {.length = MT9P012_16BIT, .reg = REG_RESERVED_MFR_3064, .val = 0x0805},
-+       {.length = MT9P012_16BIT, .reg = REG_X_OUTPUT_SIZE,
-+               .val = IMAGE_WIDTH_MAX},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_OUTPUT_SIZE,
-+               .val = IMAGE_HEIGHT_MAX},
-+       {.length = MT9P012_16BIT, .reg = REG_X_ADDR_START, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_ADDR_START, .val = 8},
-+       {.length = MT9P012_16BIT, .reg = REG_X_ADDR_END, .val = 2599},
-+       {.length = MT9P012_16BIT, .reg = REG_Y_ADDR_END, .val = 1951},
-+       {.length = MT9P012_16BIT, .reg = REG_READ_MODE, .val = 0x0024},
-+       {.length = MT9P012_16BIT, .reg = REG_FINE_INT_TIME, .val = 882},
-+       {.length = MT9P012_16BIT, .reg = REG_FRAME_LEN_LINES, .val = 2056},
-+       {.length = MT9P012_16BIT, .reg = REG_LINE_LEN_PCK, .val = 5372},
-+       {.length = MT9P012_16BIT, .reg = REG_SCALE_M, .val = 0x0000},
-+       /* disable scaler */
-+       {.length = MT9P012_16BIT, .reg = REG_SCALING_MODE, .val = 0x0000},
-+       {.length = MT9P012_16BIT, .reg = REG_COARSE_INT_TIME,
-+               .val = COARSE_INT_TIME_5MP},
-+       /* update */
-+       {.length = MT9P012_8BIT, .reg = REG_GROUPED_PAR_HOLD, .val = 0x00},
-+       {.length = MT9P012_TOK_TERM, .reg = 0, .val = 0}
-+};
-+
-+static u32 min_exposure_time;
-+static u32 max_exposure_time;
-+static u32 pix_clk_freq;
-+
-+/* Structure to set frame rate */
-+static struct mt9p012_reg set_fps[2];
-+
-+/**
-+ * struct mt9p012_pll_settings - struct for storage of sensor pll values
-+ * @vt_pix_clk_div: vertical pixel clock divider
-+ * @vt_sys_clk_div: veritcal system clock divider
-+ * @pre_pll_div: pre pll divider
-+ * @fine_int_tm: fine resolution interval time
-+ * @frame_lines: number of lines in frame
-+ * @line_len: number of pixels in line
-+ * @min_pll: minimum pll multiplier
-+ * @max_pll: maximum pll multiplier
-+ */
-+static struct mt9p012_pll_settings all_pll_settings[] = {
-+       /* PLL_5MP */
-+       {.vt_pix_clk_div = 4, .vt_sys_clk_div = 1, .pre_pll_div = 5,
-+       .fine_int_tm = 882, .frame_lines = 2056, .line_len = 5372,
-+       .min_pll = 160, .max_pll = 200},
-+       /* PLL_3MP */
-+       {.vt_pix_clk_div = 4, .vt_sys_clk_div = 1, .pre_pll_div = 5,
-+       .fine_int_tm = 882, .frame_lines = 2056, .line_len = 5372,
-+       .min_pll = 160, .max_pll = 200},
-+       /* PLL_1296_15FPS */
-+       {.vt_pix_clk_div = 5, .vt_sys_clk_div = 2, .pre_pll_div = 3,
-+       .fine_int_tm = 1794, .frame_lines = 1061, .line_len = 3360,
-+       .min_pll = 96, .max_pll = 190},
-+       /* PLL_1296_30FPS */
-+       {.vt_pix_clk_div = 5, .vt_sys_clk_div = 1, .pre_pll_div = 3,
-+       .fine_int_tm = 1794, .frame_lines = 1061, .line_len = 3360,
-+       .min_pll = 96, .max_pll = 150},
-+       /* PLL_648_15FPS */
-+       {.vt_pix_clk_div = 8, .vt_sys_clk_div = 2, .pre_pll_div = 2,
-+       .fine_int_tm = 1794, .frame_lines = 574, .line_len = 2712,
-+       .min_pll = 92, .max_pll = 128},
-+       /* PLL_648_30FPS */
-+       {.vt_pix_clk_div = 5, .vt_sys_clk_div = 2, .pre_pll_div = 3,
-+       .fine_int_tm = 1794, .frame_lines = 1374, .line_len = 3712,
-+       .min_pll = 96, .max_pll = 192},
-+       /* PLL_216_15FPS */
-+       {.vt_pix_clk_div = 8, .vt_sys_clk_div = 2, .pre_pll_div = 2,
-+       .fine_int_tm = 1794,  .frame_lines = 574, .line_len = 2712,
-+       .min_pll = 92, .max_pll = 126},
-+       /* PLL_216_30FPS */
-+       {.vt_pix_clk_div = 5, .vt_sys_clk_div = 2, .pre_pll_div = 3,
-+       .fine_int_tm = 1794,  .frame_lines = 1374, .line_len = 3712,
-+       .min_pll = 96, .max_pll = 192}
-+};
-+
-+static enum mt9p012_pll_type current_pll_video;
-+
-+const static struct mt9p012_reg *
-+       mt9p012_reg_init[NUM_FPS][NUM_IMAGE_SIZES] =
-+{
-+       {
-+               enter_video_216_15fps,
-+               enter_video_648_15fps,
-+               enter_video_1296_15fps,
-+               enter_image_mode_3MP_10fps,
-+               enter_image_mode_5MP_10fps
-+       },
-+       {
-+               enter_video_216_30fps,
-+               enter_video_648_30fps,
-+               enter_video_1296_30fps,
-+               enter_image_mode_3MP_10fps,
-+               enter_image_mode_5MP_10fps
-+       },
-+};
-+
-+/**
-+ * struct vcontrol - Video controls
-+ * @v4l2_queryctrl: V4L2 VIDIOC_QUERYCTRL ioctl structure
-+ * @current_value: current value of this control
-+ */
-+static struct vcontrol {
-+       struct v4l2_queryctrl qc;
-+       int current_value;
-+} video_control[] = {
-+       {
-+               {
-+                       .id = V4L2_CID_EXPOSURE,
-+                       .type = V4L2_CTRL_TYPE_INTEGER,
-+                       .name = "Exposure",
-+                       .minimum = DEF_MIN_EXPOSURE,
-+                       .maximum = DEF_MAX_EXPOSURE,
-+                       .step = EXPOSURE_STEP,
-+                       .default_value = DEF_EXPOSURE,
-+               },
-+               .current_value = DEF_EXPOSURE,
-+       },
-+       {
-+               {
-+                       .id = V4L2_CID_GAIN,
-+                       .type = V4L2_CTRL_TYPE_INTEGER,
-+                       .name = "Analog Gain",
-+                       .minimum = MIN_GAIN,
-+                       .maximum = MAX_GAIN,
-+                       .step = GAIN_STEP,
-+                       .default_value = DEF_GAIN,
-+               },
-+               .current_value = DEF_GAIN,
-+       }
-+};
-+
-+/**
-+ * find_vctrl - Finds the requested ID in the video control structure array
-+ * @id: ID of control to search the video control array for
 + *
-+ * Returns the index of the requested ID from the control structure array
++ * Sensor handling.
++ *
 + */
-+static int
-+find_vctrl(int id)
-+{
-+       int i;
-+
-+       if (id < V4L2_CID_BASE)
-+               return -EDOM;
-+
-+       for (i = (ARRAY_SIZE(video_control) - 1); i >= 0; i--)
-+               if (video_control[i].qc.id == id)
-+                       break;
-+       if (i < 0)
-+               i = -EINVAL;
-+       return i;
-+}
 +
 +/**
-+ * mt9p012_read_reg - Read a value from a register in an mt9p012 sensor device
-+ * @client: i2c driver client structure
-+ * @data_length: length of data to be read
-+ * @reg: register address / offset
-+ * @val: stores the value that gets read
++ * omap34xxcam_slave_enable - Enable all slaves on device
++ * @vdev: per-video device data structure
 + *
-+ * Read a value from a register in an mt9p012 sensor device.
-+ * The value is returned in 'val'.
-+ * Returns zero if successful, or non-zero otherwise.
++ * Power-up and configure camera sensor and sensor interface. On
++ * successful return (0), it's ready for capturing now.
 + */
-+static int
-+mt9p012_read_reg(struct i2c_client *client, u16 data_length, u16 reg, u32 *val)
++static int omap34xxcam_slave_power_set(struct omap34xxcam_videodev *vdev,
++                                      enum v4l2_power power)
 +{
-+       int err;
-+       struct i2c_msg msg[1];
-+       unsigned char data[4];
++       int rval = 0, i = OMAP34XXCAM_SLAVE_FLASH + 1;
 +
-+       if (!client->adapter)
-+               return -ENODEV;
-+       if (data_length != MT9P012_8BIT && data_length != MT9P012_16BIT
-+                                       && data_length != MT9P012_32BIT)
-+               return -EINVAL;
++       if (power == V4L2_POWER_OFF)
++               goto out;
 +
-+       msg->addr = client->addr;
-+       msg->flags = 0;
-+       msg->len = 2;
-+       msg->buf = data;
-+
-+       /* high byte goes out first */
-+       data[0] = (u8) (reg >> 8);;
-+       data[1] = (u8) (reg & 0xff);
-+       err = i2c_transfer(client->adapter, msg, 1);
-+       if (err >= 0) {
-+               msg->len = data_length;
-+               msg->flags = I2C_M_RD;
-+               err = i2c_transfer(client->adapter, msg, 1);
-+       }
-+       if (err >= 0) {
-+               *val = 0;
-+               /* high byte comes first */
-+               if (data_length == MT9P012_8BIT)
-+                       *val = data[0];
-+               else if (data_length == MT9P012_16BIT)
-+                       *val = data[1] + (data[0] << 8);
-+               else
-+                       *val = data[3] + (data[2] << 8) +
-+                               (data[1] << 16) + (data[0] << 24);
-+               return 0;
-+       }
-+       dev_err(&client->dev, "read from offset 0x%x error %d", reg, err);
-+       return err;
-+}
-+/**
-+ * mt9p012_write_reg - Write a value to a register in an mt9p012 sensor device
-+ * @client: i2c driver client structure
-+ * @data_length: length of data to be read
-+ * @reg: register address / offset
-+ * @val: value to be written to specified register
-+ *
-+ * Write a value to a register in an mt9p012 sensor device.
-+ * Returns zero if successful, or non-zero otherwise.
-+ */
-+static int
-+mt9p012_write_reg(struct i2c_client *client, u16 data_length, u16 reg, u32 val)
-+{
-+       int err;
-+       struct i2c_msg msg[1];
-+       unsigned char data[6];
-+       int retry = 0;
-+
-+       if (!client->adapter)
-+               return -ENODEV;
-+
-+       if (data_length != MT9P012_8BIT && data_length != MT9P012_16BIT
-+                                       && data_length != MT9P012_32BIT)
-+               return -EINVAL;
-+
-+again:
-+       msg->addr = client->addr;
-+       msg->flags = 0;
-+       msg->len = 2 + data_length;
-+       msg->buf = data;
-+
-+       /* high byte goes out first */
-+       data[0] = (u8) (reg >> 8);;
-+       data[1] = (u8) (reg & 0xff);
-+
-+       if (data_length == MT9P012_8BIT)
-+               data[2] = (u8) (val & 0xff);
-+       else if (data_length == MT9P012_16BIT) {
-+               data[2] = (u8) (val >> 8);
-+               data[3] = (u8) (val & 0xff);
-+       } else {
-+               data[2] = (u8) (val >> 24);
-+               data[3] = (u8) (val >> 16);
-+               data[4] = (u8) (val >> 8);
-+               data[5] = (u8) (val & 0xff);
-+       }
-+
-+       err = i2c_transfer(client->adapter, msg, 1);
-+       if (err >= 0)
-+               return 0;
-+
-+       dev_err(&client->dev, "wrote 0x%x to offset 0x%x error %d", val, reg,
-+                                                                       err);
-+       if (retry <= I2C_RETRY_COUNT) {
-+               dev_dbg(&client->dev, "retry ... %d", retry);
-+               retry++;
-+               set_current_state(TASK_UNINTERRUPTIBLE);
-+               schedule_timeout(msecs_to_jiffies(20));
-+               goto again;
-+       }
-+       return err;
-+}
-+
-+/**
-+ * mt9p012_write_regs - Initializes a list of MT9P012 registers
-+ * @client: i2c driver client structure
-+ * @reglist: list of registers to be written
-+ *
-+ * Initializes a list of MT9P012 registers. The list of registers is
-+ * terminated by MT9P012_TOK_TERM.
-+ */
-+static int
-+mt9p012_write_regs(struct i2c_client *client,
-+                       const struct mt9p012_reg reglist[])
-+{
-+       int err;
-+       const struct mt9p012_reg *next = reglist;
-+
-+       for (; next->length != MT9P012_TOK_TERM; next++) {
-+               if (next->length == MT9P012_TOK_DELAY) {
-+                       set_current_state(TASK_UNINTERRUPTIBLE);
-+                       schedule_timeout(msecs_to_jiffies(next->val));
++       for (i = 0; i <= OMAP34XXCAM_SLAVE_FLASH; i++) {
++               if (!vdev->slave[i])
 +                       continue;
-+               }
 +
-+               err = mt9p012_write_reg(client, next->length,
-+                                               next->reg, next->val);
-+               if (err)
-+                       return err;
-+       }
-+       return 0;
-+}
++               rval = vidioc_int_s_power(vdev->slave[i], power);
 +
-+/**
-+ * mt9p012_calc_pll - Calculate PLL settings based on input image size
-+ * @isize: enum value corresponding to image size
-+ * @xclk: xclk value (calculate by mt9p012sensor_calc_xclk())
-+ * @sensor: pointer to sensor device information structure
-+ *
-+ * Calculates sensor PLL related settings (scaler, fps, pll_multiplier,
-+ * pix_clk_freq, min_exposure_time, max_exposure_time) based on input
-+ * image size.  It then applies the fps register settings based on
-+ * these calculations.
-+ */
-+static int
-+mt9p012_calc_pll(enum image_size isize,
-+               unsigned long xclk,
-+               struct mt9p012_sensor *sensor)
-+{
-+       int err = 0, row = 1, i = 0;
-+       unsigned int vt_pix_clk;
-+       unsigned int pll_multiplier;
-+       unsigned int exposure_factor, pix_clk_scaled;
-+       struct i2c_client *client = sensor->i2c_client;
-+       struct vcontrol *lvc;
-+
-+       /* Greater than 1296x972
-+       1. Scaler is 0
-+       2. fps is 10
-+       3. Apply image mode settings
-+       4. Turn Streaming ON.
-+       5. Exit
-+       */
-+       if (isize > BIN2X) {
-+               /* Burst Mode */
-+               sensor->scaler = 0;
-+               sensor->fps = 10;
-+               current_pll_video = PLL_5MP;
-+               return 0;
-+       }
-+
-+       /* Greater than 648X486 case
-+       1. Scaler is 0
-+       2. If fps>21 then choose PLL for 30
-+       3. If fps<21 then choose PLL for 15
-+
-+       Greater than 216X162 case
-+       1. Scaler is 1
-+       2. If fps>15 then choose PLL for 30
-+       3. If fps<15 then choose PLL for 15
-+
-+       Greater than 0 to 216x162
-+       1. Scaler is 2.
-+       2. If fps>15 then choose PLL for 30
-+       3. If fps<15 then choose PLL for 15
-+       */
-+
-+       if (isize > BIN4X) {
-+               sensor->scaler = 0;
-+               if (sensor->fps > 21)
-+                       current_pll_video = PLL_1296_30FPS;
-+               else
-+                       current_pll_video = PLL_1296_15FPS;
-+       } else if (isize > BIN4XSCALE) {
-+               sensor->scaler = 1;
-+               if (sensor->fps > 15)
-+                       current_pll_video = PLL_648_30FPS;
-+               else
-+                       current_pll_video = PLL_648_15FPS;
-+       } else {
-+               sensor->scaler = 2;
-+               if (sensor->fps > 15)
-+                       current_pll_video = PLL_216_30FPS;
-+               else
-+                       current_pll_video = PLL_216_15FPS;
-+       }
-+
-+       /* Row adjustment */
-+       if (sensor->scaler && (sensor->fps < 16))
-+               row = 2; /* Adjustment when using 4x binning and 12 MHz clk */
-+
-+       /* Calculate the PLL, set fps register */
-+       vt_pix_clk = sensor->fps *
-+               all_pll_settings[current_pll_video].frame_lines *
-+               all_pll_settings[current_pll_video].line_len;
-+
-+       pll_multiplier =
-+               (((vt_pix_clk
-+                  * all_pll_settings[current_pll_video].vt_pix_clk_div
-+                  * all_pll_settings[current_pll_video].vt_sys_clk_div
-+                  * row) / xclk)
-+                  * all_pll_settings[current_pll_video].pre_pll_div) + 1;
-+
-+       if (pll_multiplier < all_pll_settings[current_pll_video].min_pll)
-+               pll_multiplier = all_pll_settings[current_pll_video].min_pll;
-+       else if (pll_multiplier > all_pll_settings[current_pll_video].max_pll)
-+               pll_multiplier = all_pll_settings[current_pll_video].max_pll;
-+
-+       pix_clk_freq = (xclk /
-+                       (all_pll_settings[current_pll_video].pre_pll_div
-+                        * all_pll_settings[current_pll_video].vt_pix_clk_div
-+                        * all_pll_settings[current_pll_video].vt_sys_clk_div
-+                        * row)) * pll_multiplier;
-+       min_exposure_time = (all_pll_settings[current_pll_video].fine_int_tm
-+                            * 1000000 / pix_clk_freq) + 1;
-+       exposure_factor = (all_pll_settings[current_pll_video].frame_lines - 1)
-+                               * all_pll_settings[current_pll_video].line_len;
-+       exposure_factor += all_pll_settings[current_pll_video].fine_int_tm;
-+       exposure_factor *= 100;
-+       pix_clk_scaled = pix_clk_freq / 100;
-+       max_exposure_time = (exposure_factor / pix_clk_scaled) * 100;
-+
-+       /* Apply the fps settings */
-+       set_fps[0].length = MT9P012_16BIT;
-+       set_fps[0].reg = REG_PLL_MULTIPLIER;
-+       set_fps[0].val = pll_multiplier;
-+       set_fps[1].length = MT9P012_TOK_TERM;
-+       set_fps[1].reg = 0;
-+       set_fps[1].val = 0;
-+
-+       /* Update min/max for query control */
-+       i = find_vctrl(V4L2_CID_EXPOSURE);
-+       if (i >= 0) {
-+               lvc = &video_control[i];
-+               lvc->qc.minimum = min_exposure_time;
-+               lvc->qc.maximum = max_exposure_time;
-+       }
-+
-+       err = mt9p012_write_regs(client, set_fps);
-+       return err;
-+}
-+
-+/**
-+ * mt9p012_calc_size - Find the best match for a requested image capture size
-+ * @width: requested image width in pixels
-+ * @height: requested image height in pixels
-+ *
-+ * Find the best match for a requested image capture size.  The best match
-+ * is chosen as the nearest match that has the same number or fewer pixels
-+ * as the requested size, or the smallest image size if the requested size
-+ * has fewer pixels than the smallest image.
-+ */
-+static enum image_size mt9p012_calc_size(unsigned int width,
-+                                                       unsigned int height)
-+{
-+       enum image_size isize;
-+       unsigned long pixels = width * height;
-+
-+       for (isize = BIN4XSCALE; isize <= FIVE_MP; isize++) {
-+               if (mt9p012_sizes[isize].height *
-+                                       mt9p012_sizes[isize].width >= pixels) {
-+                       /* To improve image quality in VGA */
-+                       if ((pixels > CIF_PIXELS) && (isize == BIN4X)) {
-+                               isize = BIN2X;
-+                       } else if ((pixels > QQVGA_PIXELS) &&
-+                                                       (isize == BIN4XSCALE)) {
-+                               isize = BIN4X;
-+                       }
-+                       return isize;
++               if (rval) {
++                       power = V4L2_POWER_OFF;
++                       goto out;
 +               }
 +       }
 +
-+       return FIVE_MP;
-+}
-+
-+/**
-+ * mt9p012_find_isize - Find the best match for a requested image capture size
-+ * @width: requested image width in pixels
-+ * @height: requested image height in pixels
-+ *
-+ * Find the best match for a requested image capture size.  The best match
-+ * is chosen as the nearest match that has the same number or fewer pixels
-+ * as the requested size, or the smallest image size if the requested size
-+ * has fewer pixels than the smallest image.
-+ */
-+static enum image_size mt9p012_find_isize(unsigned int width)
-+{
-+       enum image_size isize;
-+
-+       for (isize = BIN4XSCALE; isize <= FIVE_MP; isize++) {
-+               if (mt9p012_sizes[isize].width >= width)
-+                       break;
-+       }
-+
-+       return isize;
-+}
-+/**
-+ * mt9p012_find_fps_index - Find the best fps range match for a
-+ *  requested frame rate
-+ * @fps: desired frame rate
-+ * @isize: enum value corresponding to image size
-+ *
-+ * Find the best match for a requested frame rate.  The best match
-+ * is chosen between two fps ranges (11 - 15 and 16 - 30 fps) depending on
-+ * the image size. For image sizes larger than BIN2X, frame rate is fixed
-+ * at 10 fps.
-+ */
-+static unsigned int mt9p012_find_fps_index(unsigned int fps,
-+                                                       enum image_size isize)
-+{
-+       unsigned int index = FPS_LOW_RANGE;
-+
-+       if (isize > BIN4X) {
-+               if (fps > 21)
-+                       index = FPS_HIGH_RANGE;
-+       } else {
-+               if (fps > 15)
-+                       index = FPS_HIGH_RANGE;
-+       }
-+
-+       return index;
-+}
-+
-+/**
-+ * mt9p012sensor_calc_xclk - Calculate the required xclk frequency
-+ * @c: i2c client driver structure
-+ *
-+ * Given the image capture format in pix, the nominal frame period in
-+ * timeperframe, calculate and return the required xclk frequency
-+ */
-+static unsigned long mt9p012sensor_calc_xclk(struct i2c_client *c)
-+{
-+       struct mt9p012_sensor *sensor = i2c_get_clientdata(c);
-+       struct v4l2_fract *timeperframe = &sensor->timeperframe;
-+       struct v4l2_pix_format *pix = &sensor->pix;
-+
-+       if ((timeperframe->numerator == 0)
-+       || (timeperframe->denominator == 0)) {
-+               /* supply a default nominal_timeperframe */
-+               timeperframe->numerator = 1;
-+               timeperframe->denominator = MT9P012_DEF_FPS;
-+       }
-+
-+       sensor->fps = timeperframe->denominator/timeperframe->numerator;
-+       if (sensor->fps < MT9P012_MIN_FPS)
-+               sensor->fps = MT9P012_MIN_FPS;
-+       else if (sensor->fps > MT9P012_MAX_FPS)
-+               sensor->fps = MT9P012_MAX_FPS;
-+
-+       timeperframe->numerator = 1;
-+       timeperframe->denominator = sensor->fps;
-+
-+       if ((pix->width <= VIDEO_WIDTH_4X_BINN) && (sensor->fps > 15))
-+               xclk_current = MT9P012_XCLK_NOM_2;
-+       else
-+               xclk_current = MT9P012_XCLK_NOM_1;
-+
-+       return xclk_current;
-+}
-+
-+/**
-+ * mt9p012_configure - Configure the mt9p012 for the specified image mode
-+ * @s: pointer to standard V4L2 device structure
-+ *
-+ * Configure the mt9p012 for a specified image size, pixel format, and frame
-+ * period.  xclk is the frequency (in Hz) of the xclk input to the mt9p012.
-+ * fper is the frame period (in seconds) expressed as a fraction.
-+ * Returns zero if successful, or non-zero otherwise.
-+ * The actual frame period is returned in fper.
-+ */
-+static int mt9p012_configure(struct v4l2_int_device *s)
-+{
-+       struct mt9p012_sensor *sensor = s->priv;
-+       struct v4l2_pix_format *pix = &sensor->pix;
-+       struct i2c_client *client = sensor->i2c_client;
-+       enum image_size isize;
-+       unsigned int fps_index;
-+       int err;
-+
-+       isize = mt9p012_find_isize(pix->width);
-+
-+       /* common register initialization */
-+       err = mt9p012_write_regs(client, mt9p012_common);
-+       if (err)
-+               return err;
-+
-+       fps_index = mt9p012_find_fps_index(sensor->fps, isize);
-+
-+       /* configure image size and pixel format */
-+       err = mt9p012_write_regs(client, mt9p012_reg_init[fps_index][isize]);
-+       if (err)
-+               return err;
-+
-+       /* configure frame rate */
-+       err = mt9p012_calc_pll(isize, xclk_current, sensor);
-+       if (err)
-+               return err;
-+
-+       /* configure streaming ON */
-+       err = mt9p012_write_regs(client, stream_on_list);
-+
-+       return err;
-+}
-+
-+/**
-+ * mt9p012_detect - Detect if an mt9p012 is present, and if so which revision
-+ * @client: pointer to the i2c client driver structure
-+ *
-+ * Detect if an mt9p012 is present, and if so which revision.
-+ * A device is considered to be detected if the manufacturer ID (MIDH and MIDL)
-+ * and the product ID (PID) registers match the expected values.
-+ * Any value of the version ID (VER) register is accepted.
-+ * Here are the version numbers we know about:
-+ *     0x48 --> mt9p012 Revision 1 or mt9p012 Revision 2
-+ *     0x49 --> mt9p012 Revision 3
-+ * Returns a negative error number if no device is detected, or the
-+ * non-negative value of the version ID register if a device is detected.
-+ */
-+static int
-+mt9p012_detect(struct i2c_client *client)
-+{
-+       u32 model_id, mfr_id, rev;
-+
-+       if (!client)
-+               return -ENODEV;
-+
-+       if (mt9p012_read_reg(client, MT9P012_16BIT, REG_MODEL_ID, &model_id))
-+               return -ENODEV;
-+       if (mt9p012_read_reg(client, MT9P012_8BIT, REG_MANUFACTURER_ID,
-+                               &mfr_id))
-+               return -ENODEV;
-+       if (mt9p012_read_reg(client, MT9P012_8BIT, REG_REVISION_NUMBER, &rev))
-+               return -ENODEV;
-+
-+       dev_info(&client->dev, "model id detected 0x%x mfr 0x%x\n", model_id,
-+                                                               mfr_id);
-+       if ((model_id != MT9P012_MOD_ID) || (mfr_id != MT9P012_MFR_ID)) {
-+               /* We didn't read the values we expected, so
-+                * this must not be an MT9P012.
-+                */
-+               dev_warn(&client->dev, "model id mismatch 0x%x mfr 0x%x\n",
-+                       model_id, mfr_id);
-+
-+               return -ENODEV;
-+       }
 +       return 0;
 +
-+}
++out:
++       for (i--; i >= 0; i--) {
++               if (!vdev->slave[i])
++                       continue;
 +
-+/**
-+ * mt9p012sensor_set_exposure_time - sets exposure time per input value
-+ * @exp_time: exposure time to be set on device
-+ * @s: pointer to standard V4L2 device structure
-+ * @lvc: pointer to V4L2 exposure entry in video_controls array
-+ *
-+ * If the requested exposure time is within the allowed limits, the HW
-+ * is configured to use the new exposure time, and the video_controls
-+ * array is updated with the new current value.
-+ * The function returns 0 upon success.  Otherwise an error code is
-+ * returned.
-+ */
-+int
-+mt9p012sensor_set_exposure_time(u32 exp_time, struct v4l2_int_device *s,
-+                                               struct vcontrol *lvc)
-+{
-+       int err;
-+       struct mt9p012_sensor *sensor = s->priv;
-+       struct i2c_client *client = sensor->i2c_client;
-+       u32 coarse_int_time = 0;
-+
-+       if ((exp_time < min_exposure_time) ||
-+                       (exp_time > max_exposure_time)) {
-+               dev_err(&client->dev, "Exposure time not within the "
-+                       "legal range.\n");
-+               dev_err(&client->dev, "Min time %d us Max time %d us",
-+                       min_exposure_time, max_exposure_time);
-+               return -EINVAL;
++               vidioc_int_s_power(vdev->slave[i], power);
 +       }
-+       coarse_int_time =
-+               ((((exp_time / 10) * (pix_clk_freq / 1000)) / 1000)
-+                  - (all_pll_settings[current_pll_video].fine_int_tm
-+                     / 10))
-+                  / (all_pll_settings[current_pll_video].line_len
-+                     / 10);
-+
-+       dev_dbg(&client->dev, "coarse_int_time calculated = %d\n",
-+                                               coarse_int_time);
-+
-+       set_exposure_time[COARSE_INT_TIME_INDEX].val = coarse_int_time;
-+       err = mt9p012_write_regs(client, set_exposure_time);
-+
-+       if (err)
-+               dev_err(&client->dev, "Error setting exposure time %d\n",
-+                                                                       err);
-+       else
-+               lvc->current_value = exp_time;
-+
-+       return err;
-+}
-+
-+/**
-+ * mt9p012sensor_set_gain - sets sensor analog gain per input value
-+ * @gain: analog gain value to be set on device
-+ * @s: pointer to standard V4L2 device structure
-+ * @lvc: pointer to V4L2 analog gain entry in video_controls array
-+ *
-+ * If the requested analog gain is within the allowed limits, the HW
-+ * is configured to use the new gain value, and the video_controls
-+ * array is updated with the new current value.
-+ * The function returns 0 upon success.  Otherwise an error code is
-+ * returned.
-+ */
-+int
-+mt9p012sensor_set_gain(u16 gain, struct v4l2_int_device *s,
-+                                       struct vcontrol *lvc)
-+{
-+       int err;
-+       struct mt9p012_sensor *sensor = s->priv;
-+       struct i2c_client *client = sensor->i2c_client;
-+
-+       if ((gain < MIN_GAIN) || (gain > MAX_GAIN)) {
-+               dev_err(&client->dev, "Gain not within the legal range");
-+               return -EINVAL;
-+       }
-+       set_analog_gain[GAIN_INDEX].val = gain;
-+       err = mt9p012_write_regs(client, set_analog_gain);
-+       if (err) {
-+               dev_err(&client->dev, "Error setting gain.%d", err);
-+               return err;
-+       } else
-+               lvc->current_value = gain;
-+
-+       return err;
-+}
-+
-+/**
-+ * ioctl_queryctrl - V4L2 sensor interface handler for VIDIOC_QUERYCTRL ioctl
-+ * @s: pointer to standard V4L2 device structure
-+ * @qc: standard V4L2 VIDIOC_QUERYCTRL ioctl structure
-+ *
-+ * If the requested control is supported, returns the control information
-+ * from the video_control[] array.  Otherwise, returns -EINVAL if the
-+ * control is not supported.
-+ */
-+static int ioctl_queryctrl(struct v4l2_int_device *s,
-+                               struct v4l2_queryctrl *qc)
-+{
-+       int i;
-+
-+       i = find_vctrl(qc->id);
-+       if (i == -EINVAL)
-+               qc->flags = V4L2_CTRL_FLAG_DISABLED;
-+
-+       if (i < 0)
-+               return -EINVAL;
-+
-+       *qc = video_control[i].qc;
-+       return 0;
-+}
-+
-+/**
-+ * ioctl_g_ctrl - V4L2 sensor interface handler for VIDIOC_G_CTRL ioctl
-+ * @s: pointer to standard V4L2 device structure
-+ * @vc: standard V4L2 VIDIOC_G_CTRL ioctl structure
-+ *
-+ * If the requested control is supported, returns the control's current
-+ * value from the video_control[] array.  Otherwise, returns -EINVAL
-+ * if the control is not supported.
-+ */
-+static int ioctl_g_ctrl(struct v4l2_int_device *s,
-+                            struct v4l2_control *vc)
-+{
-+       struct vcontrol *lvc;
-+       int i;
-+
-+       i = find_vctrl(vc->id);
-+       if (i < 0)
-+               return -EINVAL;
-+       lvc = &video_control[i];
-+
-+       switch (vc->id) {
-+       case  V4L2_CID_EXPOSURE:
-+               vc->value = lvc->current_value;
-+               break;
-+       case V4L2_CID_GAIN:
-+               vc->value = lvc->current_value;
-+               break;
-+       }
-+
-+       return 0;
-+}
-+
-+/**
-+ * ioctl_s_ctrl - V4L2 sensor interface handler for VIDIOC_S_CTRL ioctl
-+ * @s: pointer to standard V4L2 device structure
-+ * @vc: standard V4L2 VIDIOC_S_CTRL ioctl structure
-+ *
-+ * If the requested control is supported, sets the control's current
-+ * value in HW (and updates the video_control[] array).  Otherwise,
-+ * returns -EINVAL if the control is not supported.
-+ */
-+static int ioctl_s_ctrl(struct v4l2_int_device *s,
-+                            struct v4l2_control *vc)
-+{
-+       int retval = -EINVAL;
-+       int i;
-+       struct vcontrol *lvc;
-+
-+       i = find_vctrl(vc->id);
-+       if (i < 0)
-+               return -EINVAL;
-+       lvc = &video_control[i];
-+
-+       switch (vc->id) {
-+       case V4L2_CID_EXPOSURE:
-+               retval = mt9p012sensor_set_exposure_time(vc->value, s, lvc);
-+               break;
-+       case V4L2_CID_GAIN:
-+               retval = mt9p012sensor_set_gain(vc->value, s, lvc);
-+               break;
-+       }
-+
-+       return retval;
-+}
-+
-+
-+/**
-+ * ioctl_enum_fmt_cap - Implement the CAPTURE buffer VIDIOC_ENUM_FMT ioctl
-+ * @s: pointer to standard V4L2 device structure
-+ * @fmt: standard V4L2 VIDIOC_ENUM_FMT ioctl structure
-+ *
-+ * Implement the VIDIOC_ENUM_FMT ioctl for the CAPTURE buffer type.
-+ */
-+static int ioctl_enum_fmt_cap(struct v4l2_int_device *s,
-+                                  struct v4l2_fmtdesc *fmt)
-+{
-+       int index = fmt->index;
-+       enum v4l2_buf_type type = fmt->type;
-+
-+       memset(fmt, 0, sizeof(*fmt));
-+       fmt->index = index;
-+       fmt->type = type;
-+
-+       switch (fmt->type) {
-+       case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-+               if (index >= NUM_CAPTURE_FORMATS)
-+                       return -EINVAL;
-+       break;
-+       default:
-+               return -EINVAL;
-+       }
-+
-+       fmt->flags = mt9p012_formats[index].flags;
-+       strlcpy(fmt->description, mt9p012_formats[index].description,
-+                                       sizeof(fmt->description));
-+       fmt->pixelformat = mt9p012_formats[index].pixelformat;
-+
-+       return 0;
-+}
-+
-+/**
-+ * ioctl_try_fmt_cap - Implement the CAPTURE buffer VIDIOC_TRY_FMT ioctl
-+ * @s: pointer to standard V4L2 device structure
-+ * @f: pointer to standard V4L2 VIDIOC_TRY_FMT ioctl structure
-+ *
-+ * Implement the VIDIOC_TRY_FMT ioctl for the CAPTURE buffer type.  This
-+ * ioctl is used to negotiate the image capture size and pixel format
-+ * without actually making it take effect.
-+ */
-+static int ioctl_try_fmt_cap(struct v4l2_int_device *s,
-+                            struct v4l2_format *f)
-+{
-+       enum image_size isize;
-+       int ifmt;
-+       struct v4l2_pix_format *pix = &f->fmt.pix;
-+       struct mt9p012_sensor *sensor = s->priv;
-+       struct v4l2_pix_format *pix2 = &sensor->pix;
-+
-+       isize = mt9p012_calc_size(pix->width, pix->height);
-+
-+       pix->width = mt9p012_sizes[isize].width;
-+       pix->height = mt9p012_sizes[isize].height;
-+       for (ifmt = 0; ifmt < NUM_CAPTURE_FORMATS; ifmt++) {
-+               if (pix->pixelformat == mt9p012_formats[ifmt].pixelformat)
-+                       break;
-+       }
-+       if (ifmt == NUM_CAPTURE_FORMATS)
-+               ifmt = 0;
-+       pix->pixelformat = mt9p012_formats[ifmt].pixelformat;
-+       pix->field = V4L2_FIELD_NONE;
-+       pix->bytesperline = pix->width * 2;
-+       pix->sizeimage = pix->bytesperline * pix->height;
-+       pix->priv = 0;
-+       switch (pix->pixelformat) {
-+       case V4L2_PIX_FMT_YUYV:
-+       case V4L2_PIX_FMT_UYVY:
-+               pix->colorspace = V4L2_COLORSPACE_JPEG;
-+               break;
-+       case V4L2_PIX_FMT_RGB565:
-+       case V4L2_PIX_FMT_RGB565X:
-+       case V4L2_PIX_FMT_RGB555:
-+       case V4L2_PIX_FMT_SGRBG10:
-+       case V4L2_PIX_FMT_RGB555X:
-+       default:
-+               pix->colorspace = V4L2_COLORSPACE_SRGB;
-+               break;
-+       }
-+       *pix2 = *pix;
-+       return 0;
-+}
-+
-+/**
-+ * ioctl_s_fmt_cap - V4L2 sensor interface handler for VIDIOC_S_FMT ioctl
-+ * @s: pointer to standard V4L2 device structure
-+ * @f: pointer to standard V4L2 VIDIOC_S_FMT ioctl structure
-+ *
-+ * If the requested format is supported, configures the HW to use that
-+ * format, returns error code if format not supported or HW can't be
-+ * correctly configured.
-+ */
-+static int ioctl_s_fmt_cap(struct v4l2_int_device *s,
-+                               struct v4l2_format *f)
-+{
-+       struct mt9p012_sensor *sensor = s->priv;
-+       struct v4l2_pix_format *pix = &f->fmt.pix;
-+       int rval;
-+
-+       rval = ioctl_try_fmt_cap(s, f);
-+       if (rval)
-+               return rval;
-+       else
-+               sensor->pix = *pix;
 +
 +       return rval;
 +}
 +
 +/**
-+ * ioctl_g_fmt_cap - V4L2 sensor interface handler for ioctl_g_fmt_cap
-+ * @s: pointer to standard V4L2 device structure
-+ * @f: pointer to standard V4L2 v4l2_format structure
++ * omap34xxcam_update_vbq - Updates VBQ with completed input buffer
++ * @vb: ptr. to standard V4L2 video buffer structure
 + *
-+ * Returns the sensor's current pixel format in the v4l2_format
-+ * parameter.
++ * Updates video buffer queue with completed buffer passed as
++ * input parameter.  Also updates ISP H3A timestamp and field count
++ * statistics.
 + */
-+static int ioctl_g_fmt_cap(struct v4l2_int_device *s,
-+                               struct v4l2_format *f)
++int omap34xxcam_update_vbq(struct videobuf_buffer *vb)
 +{
-+       struct mt9p012_sensor *sensor = s->priv;
-+       f->fmt.pix = sensor->pix;
++       struct omap34xxcam_fh *fh = camfh_saved;
++       struct omap34xxcam_videodev *vdev = fh->vdev;
++       struct isph3a_aewb_xtrastats xtrastats;
++       int rval = 0;
++
++       do_gettimeofday(&vb->ts);
++       vb->field_count = atomic_add_return(2, &fh->field_count);
++       vb->state = VIDEOBUF_DONE;
++
++       xtrastats.ts = vb->ts;
++       xtrastats.field_count = vb->field_count;
++
++       if (vdev->streaming)
++               rval = 1;
++
++       wake_up(&vb->done);
++       isph3a_aewb_setxtrastats(&xtrastats);
++
++       return rval;
++}
++
++/**
++ * omap34xxcam_vbq_setup - Calcs size and num of buffs allowed in queue
++ * @vbq: ptr. to standard V4L2 video buffer queue structure
++ * @cnt: ptr to location to hold the count of buffers to be in the queue
++ * @size: ptr to location to hold the size of a frame
++ *
++ * Calculates the number of buffers of current image size that can be
++ * supported by the available capture memory.
++ */
++static int omap34xxcam_vbq_setup(struct videobuf_queue *vbq, unsigned int *cnt,
++                                unsigned int *size)
++{
++       struct omap34xxcam_fh *fh = vbq->priv_data;
++
++       if (*cnt <= 0)
++               *cnt = VIDEO_MAX_FRAME; /* supply a default number of buffers */
++
++       if (*cnt > VIDEO_MAX_FRAME)
++               *cnt = VIDEO_MAX_FRAME;
++
++       *size = fh->pix.sizeimage;
++
++       while (*size * *cnt > fh->vdev->vdev_sensor_config.capture_mem)
++               (*cnt)--;
 +
 +       return 0;
 +}
 +
 +/**
-+ * ioctl_g_parm - V4L2 sensor interface handler for VIDIOC_G_PARM ioctl
-+ * @s: pointer to standard V4L2 device structure
-+ * @a: pointer to standard V4L2 VIDIOC_G_PARM ioctl structure
++ * omap34xxcam_vbq_release - Free resources for input VBQ and VB
++ * @vbq: ptr. to standard V4L2 video buffer queue structure
++ * @vb: ptr to standard V4L2 video buffer structure
 + *
-+ * Returns the sensor's video CAPTURE parameters.
++ * Unmap and free all memory associated with input VBQ and VB, also
++ * unmap the address in ISP MMU.  Reset the VB state.
 + */
-+static int ioctl_g_parm(struct v4l2_int_device *s,
-+                            struct v4l2_streamparm *a)
++static void omap34xxcam_vbq_release(struct videobuf_queue *vbq,
++                                   struct videobuf_buffer *vb)
 +{
-+       struct mt9p012_sensor *sensor = s->priv;
-+       struct v4l2_captureparm *cparm = &a->parm.capture;
++       if (!vbq->streaming) {
++               isp_vbq_release(vbq, vb);
++               videobuf_dma_unmap(vbq, videobuf_to_dma(vb));
++               videobuf_dma_free(videobuf_to_dma(vb));
++               vb->state = VIDEOBUF_NEEDS_INIT;
++       }
++       return;
++}
++
++/**
++ * omap34xxcam_vbq_prepare - V4L2 video ops buf_prepare handler
++ * @vbq: ptr. to standard V4L2 video buffer queue structure
++ * @vb: ptr to standard V4L2 video buffer structure
++ * @field: standard V4L2 field enum
++ *
++ * Verifies there is sufficient locked memory for the requested
++ * buffer, or if there is not, allocates, locks and initializes
++ * it.
++ */
++static int omap34xxcam_vbq_prepare(struct videobuf_queue *vbq,
++                                  struct videobuf_buffer *vb,
++                                  enum v4l2_field field)
++{
++       struct omap34xxcam_fh *fh = vbq->priv_data;
++       int err = 0;
++
++       /*
++        * Accessing pix here is okay since it's constant while
++        * streaming is on (and we only get called then).
++        */
++       if (vb->baddr) {
++               /* This is a userspace buffer. */
++               if (fh->pix.sizeimage > vb->bsize)
++                       /* The buffer isn't big enough. */
++                       return -EINVAL;
++       } else {
++               if (vb->state != VIDEOBUF_NEEDS_INIT
++                   && fh->pix.sizeimage > vb->bsize)
++                       /*
++                        * We have a kernel bounce buffer that has
++                        * already been allocated.
++                        */
++                       omap34xxcam_vbq_release(vbq, vb);
++       }
++
++       vb->size = fh->pix.bytesperline * fh->pix.height;
++       vb->width = fh->pix.width;
++       vb->height = fh->pix.height;
++       vb->field = field;
++
++       if (vb->state == VIDEOBUF_NEEDS_INIT) {
++               err = videobuf_iolock(vbq, vb, NULL);
++               if (!err) {
++                       /* isp_addr will be stored locally inside isp code */
++                       err = isp_vbq_prepare(vbq, vb, field);
++               }
++       }
++
++       if (!err)
++               vb->state = VIDEOBUF_PREPARED;
++       else
++               omap34xxcam_vbq_release(vbq, vb);
++
++       return err;
++
++}
++
++/**
++ * omap34xxcam_vbq_queue - V4L2 video ops buf_queue handler
++ * @vbq: ptr. to standard V4L2 video buffer queue structure
++ * @vb: ptr to standard V4L2 video buffer structure
++ *
++ * Maps the video buffer to sgdma and through the isp, sets
++ * the isp buffer done callback and sets the video buffer state
++ * to active.
++ */
++static void omap34xxcam_vbq_queue(struct videobuf_queue *vbq,
++                                 struct videobuf_buffer *vb)
++{
++       struct omap34xxcam_fh *fh = vbq->priv_data;
++       struct omap34xxcam_videodev *vdev = fh->vdev;
++       enum videobuf_state state = vb->state;
++       isp_vbq_callback_ptr func_ptr;
++       int err = 0;
++
++       camfh_saved = fh;
++
++       func_ptr = omap34xxcam_update_vbq;
++       vb->state = VIDEOBUF_ACTIVE;
++
++       err = isp_sgdma_queue(videobuf_to_dma(vb),
++                               vb, 0, &vdev->cam->dma_notify, func_ptr);
++       if (err) {
++               dev_dbg(vdev->cam->dev, "vbq queue failed\n");
++               vb->state = state;
++       }
++
++}
++
++static struct videobuf_queue_ops omap34xxcam_vbq_ops = {
++       .buf_setup = omap34xxcam_vbq_setup,
++       .buf_prepare = omap34xxcam_vbq_prepare,
++       .buf_queue = omap34xxcam_vbq_queue,
++       .buf_release = omap34xxcam_vbq_release,
++};
++
++/*
++ *
++ * IOCTL interface.
++ *
++ */
++
++/**
++ * vidioc_querycap - V4L2 query capabilities IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @cap: ptr to standard V4L2 capability structure
++ *
++ * Fill in the V4L2 capabliity structure for the camera device
++ */
++static int vidioc_querycap(struct file *file, void *fh,
++                          struct v4l2_capability *cap)
++{
++       struct omap34xxcam_fh *ofh = fh;
++       struct omap34xxcam_videodev *vdev = ofh->vdev;
++
++       strlcpy(cap->driver, CAM_NAME, sizeof(cap->driver));
++       strlcpy(cap->card, vdev->vfd->name, sizeof(cap->card));
++       cap->version = OMAP34XXCAM_VERSION;
++       cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++
++       return 0;
++}
++
++/**
++ * vidioc_enum_fmt_cap - V4L2 enumerate format capabilities IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @f: ptr to standard V4L2 format description structure
++ *
++ * Fills in enumerate format capabilities information for sensor (if SOC
++ * sensor attached) or ISP (if raw sensor attached).
++ */
++static int vidioc_enum_fmt_cap(struct file *file, void *fh,
++                              struct v4l2_fmtdesc *f)
++{
++       struct omap34xxcam_fh *ofh = fh;
++       struct omap34xxcam_videodev *vdev = ofh->vdev;
++       int rval;
++
++       if (vdev->vdev_sensor_config.sensor_isp)
++               rval = vidioc_int_enum_fmt_cap(vdev->vdev_sensor, f);
++       else
++               rval = isp_enum_fmt_cap(f);
++
++       return rval;
++}
++
++/**
++ * vidioc_g_fmt_cap - V4L2 get format capabilities IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @f: ptr to standard V4L2 format structure
++ *
++ * Fills in format capabilities for sensor (if SOC sensor attached) or ISP
++ * (if raw sensor attached).
++ */
++static int vidioc_g_fmt_cap(struct file *file, void *fh, struct v4l2_format *f)
++{
++       struct omap34xxcam_fh *ofh = fh;
++       struct omap34xxcam_videodev *vdev = ofh->vdev;
++
++       mutex_lock(&vdev->mutex);
++       f->fmt.pix = ofh->pix;
++       mutex_unlock(&vdev->mutex);
++
++       return 0;
++}
++
++static int try_pix_parm(struct omap34xxcam_videodev *vdev,
++                       struct v4l2_pix_format *best_pix_in,
++                       struct v4l2_pix_format *wanted_pix_out,
++                       struct v4l2_fract *best_ival)
++{
++       int fps;
++       int rval;
++       int size_index;
++       struct v4l2_pix_format best_pix_out;
++
++       if (best_ival->numerator == 0
++           || best_ival->denominator == 0)
++               best_ival->denominator = 30, best_ival->numerator = 1;
++
++       fps = best_ival->denominator / best_ival->numerator;
++
++       best_ival->denominator = 0;
++       best_pix_in->width = 0;
++       /* FIXME: this isn't good... */
++       best_pix_in->pixelformat = V4L2_PIX_FMT_SGRBG10;
++
++       best_pix_out.height = INT_MAX >> 1;
++       best_pix_out.width = best_pix_out.height;
++
++       /*
++        * Get supported resolutions.
++        */
++       for (size_index = 0; ; size_index++) {
++               struct v4l2_frmsizeenum frms;
++               struct v4l2_pix_format pix_tmp_in, pix_tmp_out;
++               int ival_index;
++
++               frms.index = size_index;
++               frms.pixel_format = best_pix_in->pixelformat;
++
++               rval = vidioc_int_enum_framesizes(vdev->vdev_sensor, &frms);
++               if (rval) {
++                       rval = 0;
++                       break;
++               }
++
++               pix_tmp_in.pixelformat = frms.pixel_format;
++               pix_tmp_in.width = frms.discrete.width;
++               pix_tmp_in.height = frms.discrete.height;
++               pix_tmp_out = *wanted_pix_out;
++               rval = isp_try_fmt_cap(&pix_tmp_in, &pix_tmp_out);
++               if (rval)
++                       return rval;
++
++#define IS_SMALLER_OR_EQUAL(pix1, pix2)                        \
++               ((pix1)->width + (pix1)->height         \
++                < (pix2)->width + (pix2)->height)
++#define SIZE_DIFF(pix1, pix2)                                  \
++               (abs((pix1)->width - (pix2)->width)             \
++                + abs((pix1)->height - (pix2)->height))
++
++               /*
++                * Don't use modes that are farther from wanted size
++                * that what we already got.
++                */
++               if (SIZE_DIFF(&pix_tmp_out, wanted_pix_out)
++                   > SIZE_DIFF(&best_pix_out, wanted_pix_out))
++                       continue;
++
++               /*
++                * There's an input mode that can provide output
++                * closer to wanted.
++                */
++               if (SIZE_DIFF(&pix_tmp_out, wanted_pix_out)
++                   < SIZE_DIFF(&best_pix_out, wanted_pix_out))
++                       /* Force renegotation of fps etc. */
++                       best_ival->denominator = 0;
++
++               for (ival_index = 0; ; ival_index++) {
++                       struct v4l2_frmivalenum frmi;
++
++                       frmi.index = ival_index;
++                       frmi.pixel_format = frms.pixel_format;
++                       frmi.width = frms.discrete.width;
++                       frmi.height = frms.discrete.height;
++                       /* FIXME: try to fix standard... */
++                       frmi.reserved[0] = 0xdeafbeef;
++
++                       rval = vidioc_int_enum_frameintervals(vdev->vdev_sensor,
++                                                             &frmi);
++                       if (rval) {
++                               rval = 0;
++                               break;
++                       }
++
++                       if (best_ival->denominator == 0)
++                               goto do_it_now;
++
++                       /*
++                        * We aim to use maximum resolution from the
++                        * sensor, provided that the fps is at least
++                        * as close as on the current mode.
++                        */
++#define FPS_ABS_DIFF(fps, ival) abs(fps - (ival).denominator / (ival).numerator)
++
++                       /* Select mode with closest fps. */
++                       if (FPS_ABS_DIFF(fps, frmi.discrete)
++                           < FPS_ABS_DIFF(fps, *best_ival))
++                               goto do_it_now;
++
++                       /*
++                        * Select bigger resolution if it's available
++                        * at same fps.
++                        */
++                       if (frmi.width > best_pix_in->width
++                           && FPS_ABS_DIFF(fps, frmi.discrete)
++                           <= FPS_ABS_DIFF(fps, *best_ival))
++                               goto do_it_now;
++
++                       continue;
++
++do_it_now:
++                       *best_ival = frmi.discrete;
++                       best_pix_out = pix_tmp_out;
++                       best_pix_in->width = frmi.width;
++                       best_pix_in->height = frmi.height;
++                       best_pix_in->pixelformat = frmi.pixel_format;
++               }
++       }
++
++       if (best_pix_in->width == 0)
++               return -EINVAL;
++
++       dev_info(vdev->cam->dev, "w %d, h %d -> w %d, h %d\n",
++                best_pix_in->width, best_pix_in->height,
++                best_pix_out.width, best_pix_out.height);
++
++       return isp_try_fmt_cap(best_pix_in, wanted_pix_out); }
++
++static int s_pix_parm(struct omap34xxcam_videodev *vdev,
++                     struct v4l2_pix_format *best_pix,
++                     struct v4l2_pix_format *pix,
++                     struct v4l2_fract *best_ival)
++{
++       struct v4l2_streamparm a;
++       struct v4l2_format fmt;
++       int rval;
++
++       rval = try_pix_parm(vdev, best_pix, pix, best_ival);
++       if (rval)
++               return rval;
++
++       rval = isp_s_fmt_cap(best_pix, pix);
++       if (rval)
++               return rval;
++
++       fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++       fmt.fmt.pix = *best_pix;
++       rval = vidioc_int_s_fmt_cap(vdev->vdev_sensor, &fmt);
++       if (rval)
++               return rval;
++
++       a.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++       a.parm.capture.timeperframe = *best_ival;
++       rval = vidioc_int_s_parm(vdev->vdev_sensor, &a);
++
++       return rval;
++}
++
++/**
++ * vidioc_s_fmt_cap - V4L2 set format capabilities IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @f: ptr to standard V4L2 format structure
++ *
++ * Attempts to set input format with the sensor driver (first) and then the
++ * ISP.  Returns the return code from vidioc_g_fmt_cap().
++ */
++static int vidioc_s_fmt_cap(struct file *file, void *fh, struct v4l2_format *f)
++{
++       struct omap34xxcam_fh *ofh = fh;
++       struct omap34xxcam_videodev *vdev = ofh->vdev;
++       struct v4l2_pix_format pix_tmp;
++       struct v4l2_fract timeperframe;
++       int rval;
++
++       mutex_lock(&vdev->mutex);
++       if (vdev->streaming) {
++               rval = -EBUSY;
++               goto out;
++       }
++
++       vdev->want_pix = f->fmt.pix;
++
++       timeperframe = vdev->want_timeperframe;
++
++       rval = s_pix_parm(vdev, &pix_tmp, &f->fmt.pix, &timeperframe);
++       pix_tmp = f->fmt.pix;
++
++out:
++       mutex_unlock(&vdev->mutex);
++
++       if (!rval) {
++               mutex_lock(&ofh->vbq.vb_lock);
++               ofh->pix = pix_tmp;
++               mutex_unlock(&ofh->vbq.vb_lock);
++       }
++
++       return rval;
++}
++
++/**
++ * vidioc_try_fmt_cap - V4L2 try format capabilities IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @f: ptr to standard V4L2 format structure
++ *
++ * Checks if the given format is supported by the sensor driver and
++ * by the ISP.
++ */
++static int vidioc_try_fmt_cap(struct file *file, void *fh,
++                             struct v4l2_format *f)
++{
++       struct omap34xxcam_fh *ofh = fh;
++       struct omap34xxcam_videodev *vdev = ofh->vdev;
++       struct v4l2_pix_format pix_tmp;
++       struct v4l2_fract timeperframe;
++       int rval;
++
++       mutex_lock(&vdev->mutex);
++
++       timeperframe = vdev->want_timeperframe;
++
++       rval = try_pix_parm(vdev, &pix_tmp, &f->fmt.pix, &timeperframe);
++
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
++}
++
++/**
++ * vidioc_reqbufs - V4L2 request buffers IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @b: ptr to standard V4L2 request buffers structure
++ *
++ * Attempts to get a buffer from the buffer queue associated with the
++ * fh through the video buffer library API.
++ */
++static int vidioc_reqbufs(struct file *file, void *fh,
++                         struct v4l2_requestbuffers *b)
++{
++       struct omap34xxcam_fh *ofh = fh;
++       struct omap34xxcam_videodev *vdev = ofh->vdev;
++       int rval;
++
++       mutex_lock(&vdev->mutex);
++       if (vdev->streaming) {
++               mutex_unlock(&vdev->mutex);
++               return -EBUSY;
++       }
++
++       mutex_unlock(&vdev->mutex);
++
++       rval = videobuf_reqbufs(&ofh->vbq, b);
++
++       /*
++        * Either videobuf_reqbufs failed or the buffers are not
++        * memory-mapped (which would need special attention).
++        */
++       if (rval < 0 || b->memory != V4L2_MEMORY_MMAP)
++               goto out;
++
++out:
++       return rval;
++}
++
++/**
++ * vidioc_querybuf - V4L2 query buffer IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @b: ptr to standard V4L2 buffer structure
++ *
++ * Attempts to fill in the v4l2_buffer structure for the buffer queue
++ * associated with the fh through the video buffer library API.
++ */
++static int vidioc_querybuf(struct file *file, void *fh, struct v4l2_buffer *b)
++{
++       struct omap34xxcam_fh *ofh = fh;
++
++       return videobuf_querybuf(&ofh->vbq, b);
++}
++
++/**
++ * vidioc_qbuf - V4L2 queue buffer IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @b: ptr to standard V4L2 buffer structure
++ *
++ * Attempts to queue the v4l2_buffer on the buffer queue
++ * associated with the fh through the video buffer library API.
++ */
++static int vidioc_qbuf(struct file *file, void *fh, struct v4l2_buffer *b)
++{
++       struct omap34xxcam_fh *ofh = fh;
++
++       return videobuf_qbuf(&ofh->vbq, b);
++}
++
++/**
++ * vidioc_dqbuf - V4L2 dequeue buffer IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @b: ptr to standard V4L2 buffer structure
++ *
++ * Attempts to dequeue the v4l2_buffer from the buffer queue
++ * associated with the fh through the video buffer library API.  If the
++ * buffer is a user space buffer, then this function will also requeue it,
++ * as user does not expect to do this.
++ */
++static int vidioc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
++{
++       struct omap34xxcam_fh *ofh = fh;
++
++       return videobuf_dqbuf(&ofh->vbq, b, file->f_flags & O_NONBLOCK);
++}
++
++/**
++ * vidioc_streamon - V4L2 streamon IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @i: V4L2 buffer type
++ *
++ * Attempts to start streaming by enabling the sensor interface and turning
++ * on video buffer streaming through the video buffer library API.  Upon
++ * success the function returns 0, otherwise an error code is returned.
++ */
++static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
++{
++       struct omap34xxcam_fh *ofh = fh;
++       struct omap34xxcam_videodev *vdev = ofh->vdev;
++       struct omap34xxcam_device *cam = vdev->cam;
++       int rval;
++
++       mutex_lock(&vdev->mutex);
++       if (vdev->streaming) {
++               rval = -EBUSY;
++               goto out;
++       }
++
++       cam->dma_notify = 1;
++       isp_sgdma_init();
++       rval = videobuf_streamon(&ofh->vbq);
++       if (rval) {
++               dev_dbg(vdev->cam->dev, "omap34xxcam_slave_power_set failed\n");
++               goto out;
++       }
++
++
++       rval = omap34xxcam_slave_power_set(vdev, V4L2_POWER_RESUME);
++       if (!rval)
++               vdev->streaming = file;
++       else
++               videobuf_streamoff(&ofh->vbq);
++
++out:
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
++}
++
++/**
++ * vidioc_streamoff - V4L2 streamoff IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @i: V4L2 buffer type
++ *
++ * Attempts to stop streaming by flushing all scheduled work, waiting on
++ * any queued buffers to complete and then stopping the ISP and turning
++ * off video buffer streaming through the video buffer library API.  Upon
++ * success the function returns 0, otherwise an error code is returned.
++ */
++static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_type i)
++{
++       struct omap34xxcam_fh *ofh = fh;
++       struct omap34xxcam_videodev *vdev = ofh->vdev;
++       struct videobuf_queue *q = &ofh->vbq;
++       int rval;
++
++       mutex_lock(&vdev->mutex);
++
++       if (vdev->streaming == file)
++               isp_stop();
++
++       rval = videobuf_streamoff(q);
++       if (!rval)
++               vdev->streaming = NULL;
++
++       omap34xxcam_slave_power_set(vdev, V4L2_POWER_STANDBY);
++
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
++}
++
++/**
++ * vidioc_enum_input - V4L2 enumerate input IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @inp: V4L2 input type information structure
++ *
++ * Fills in v4l2_input structure.  Returns 0.
++ */
++static int vidioc_enum_input(struct file *file, void *fh,
++                            struct v4l2_input *inp)
++{
++       if (inp->index > 0)
++               return -EINVAL;
++
++       strlcpy(inp->name, "camera", sizeof(inp->name));
++       inp->type = V4L2_INPUT_TYPE_CAMERA;
++
++       return 0;
++}
++
++/**
++ * vidioc_g_input - V4L2 get input IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @i: address to hold index of input supported
++ *
++ * Sets index to 0.
++ */
++static int vidioc_g_input(struct file *file, void *fh, unsigned int *i)
++{
++       *i = 0;
++
++       return 0;
++}
++
++/**
++ * vidioc_s_input - V4L2 set input IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @i: index of input selected
++ *
++ * 0 is only index supported.
++ */
++static int vidioc_s_input(struct file *file, void *fh, unsigned int i)
++{
++       if (i > 0)
++               return -EINVAL;
++
++       return 0;
++}
++
++/**
++ * vidioc_queryctrl - V4L2 query control IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @a: standard V4L2 query control ioctl structure
++ *
++ * If the requested control is supported, returns the control information
++ * in the v4l2_queryctrl structure.  Otherwise, returns -EINVAL if the
++ * control is not supported.  If the sensor being used is a "smart sensor",
++ * this request is passed to the sensor driver, otherwise the ISP is
++ * queried and if it does not support the requested control, the request
++ * is forwarded to the "raw" sensor driver to see if it supports it.
++ */
++static int vidioc_queryctrl(struct file *file, void *fh,
++                           struct v4l2_queryctrl *a)
++{
++       struct omap34xxcam_fh *ofh = fh;
++       struct omap34xxcam_videodev *vdev = ofh->vdev;
++       int rval;
++
++       mutex_lock(&vdev->mutex);
++       if (vdev->vdev_sensor_config.sensor_isp) {
++               rval = vidioc_int_queryctrl(vdev->vdev_sensor, a);
++       } else {
++               rval = isp_queryctrl(a);
++               if (rval) {
++                       /* ISP does not support, check sensor */
++                       rval = vidioc_int_queryctrl(vdev->vdev_sensor, a);
++               }
++       }
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
++}
++
++/**
++ * vidioc_g_ctrl - V4L2 get control IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @a: standard V4L2 control structure
++ *
++ * If the sensor being used is a "smart sensor",
++ * this request is passed to the sensor driver, otherwise the ISP is
++ * queried and if it does not support the requested control, the request
++ * is forwarded to the "raw" sensor driver to see if it supports it.
++ * If one of these supports the control, the current value of the control
++ * is returned in the v4l2_control structure.  Otherwise, -EINVAL is
++ * returned if the control is not supported.
++ */
++static int vidioc_g_ctrl(struct file *file, void *fh, struct v4l2_control *a)
++{
++       struct omap34xxcam_fh *ofh = fh;
++       struct omap34xxcam_videodev *vdev = ofh->vdev;
++       int rval;
++
++       mutex_lock(&vdev->mutex);
++       if (vdev->vdev_sensor_config.sensor_isp) {
++               rval = vidioc_int_g_ctrl(vdev->vdev_sensor, a);
++       } else {
++               rval = isp_g_ctrl(a);
++               /* If control not supported on ISP, try sensor */
++               if (rval)
++                       rval = vidioc_int_g_ctrl(vdev->vdev_sensor, a);
++               /* If control not supported on sensor, try lens */
++               if (vdev->vdev_lens && rval)
++                       rval = vidioc_int_g_ctrl(vdev->vdev_lens, a);
++       }
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
++}
++
++/**
++ * vidioc_s_ctrl - V4L2 set control IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @a: standard V4L2 control structure
++ *
++ * If the sensor being used is a "smart sensor", this request is passed to
++ * the sensor driver.  Otherwise, the ISP is queried and if it does not
++ * support the requested control, the request is forwarded to the "raw"
++ * sensor driver to see if it supports it.
++ * If one of these supports the control, the current value of the control
++ * is returned in the v4l2_control structure.  Otherwise, -EINVAL is
++ * returned if the control is not supported.
++ */
++static int vidioc_s_ctrl(struct file *file, void *fh, struct v4l2_control *a)
++{
++       struct omap34xxcam_fh *ofh = fh;
++       struct omap34xxcam_videodev *vdev = ofh->vdev;
++       int rval;
++
++       mutex_lock(&vdev->mutex);
++       if (vdev->vdev_sensor_config.sensor_isp) {
++               rval = vidioc_int_s_ctrl(vdev->vdev_sensor, a);
++       } else {
++               rval = isp_s_ctrl(a);
++               /* If control not supported on ISP, try sensor */
++               if (rval)
++                       rval = vidioc_int_s_ctrl(vdev->vdev_sensor, a);
++               /* If control not supported on sensor, try lens */
++               if (vdev->vdev_lens && rval)
++                       rval = vidioc_int_s_ctrl(vdev->vdev_lens, a);
++       }
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
++}
++
++/**
++ * vidioc_g_parm - V4L2 get parameters IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @a: standard V4L2 stream parameters structure
++ *
++ * If request is for video capture buffer type, handles request by
++ * forwarding to sensor driver.
++ */
++static int vidioc_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
++{
++       struct omap34xxcam_fh *ofh = fh;
++       struct omap34xxcam_videodev *vdev = ofh->vdev;
++       int rval;
 +
 +       if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
 +               return -EINVAL;
 +
-+       memset(a, 0, sizeof(*a));
-+       a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++       mutex_lock(&vdev->mutex);
++       rval = vidioc_int_g_parm(vdev->vdev_sensor, a);
++       mutex_unlock(&vdev->mutex);
 +
-+       cparm->capability = V4L2_CAP_TIMEPERFRAME;
-+       cparm->timeperframe = sensor->timeperframe;
-+
-+       return 0;
++       return rval;
 +}
 +
 +/**
-+ * ioctl_s_parm - V4L2 sensor interface handler for VIDIOC_S_PARM ioctl
-+ * @s: pointer to standard V4L2 device structure
-+ * @a: pointer to standard V4L2 VIDIOC_S_PARM ioctl structure
++ * vidioc_s_parm - V4L2 set parameters IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @a: standard V4L2 stream parameters structure
 + *
-+ * Configures the sensor to use the input parameters, if possible.  If
-+ * not possible, reverts to the old parameters and returns the
-+ * appropriate error code.
++ * If request is for video capture buffer type, handles request by
++ * first getting current stream parameters from sensor, then forwarding
++ * request to set new parameters to sensor driver.  It then attempts to
++ * enable the sensor interface with the new parameters.  If this fails, it
++ * reverts back to the previous parameters.
 + */
-+static int ioctl_s_parm(struct v4l2_int_device *s,
-+                            struct v4l2_streamparm *a)
++static int vidioc_s_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
 +{
-+       struct mt9p012_sensor *sensor = s->priv;
-+       struct i2c_client *client = sensor->i2c_client;
-+       struct v4l2_fract *timeperframe = &a->parm.capture.timeperframe;
-+
-+       sensor->timeperframe = *timeperframe;
-+       mt9p012sensor_calc_xclk(client);
-+       *timeperframe = sensor->timeperframe;
-+
-+       return 0;
-+}
-+
-+/**
-+ * ioctl_g_ifparm - V4L2 sensor interface handler for vidioc_int_g_ifparm_num
-+ * @s: pointer to standard V4L2 device structure
-+ * @p: pointer to standard V4L2 vidioc_int_g_ifparm_num ioctl structure
-+ *
-+ * Gets slave interface parameters.
-+ * Calculates the required xclk value to support the requested
-+ * clock parameters in p.  This value is returned in the p
-+ * parameter.
-+ */
-+static int ioctl_g_ifparm(struct v4l2_int_device *s, struct v4l2_ifparm *p)
-+{
-+       struct mt9p012_sensor *sensor = s->priv;
++       struct omap34xxcam_fh *ofh = fh;
++       struct omap34xxcam_videodev *vdev = ofh->vdev;
++       struct v4l2_pix_format pix_tmp_sensor, pix_tmp;
 +       int rval;
 +
-+       rval = sensor->pdata->ifparm(p);
-+       if (rval)
-+               return rval;
++       if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++               return -EINVAL;
 +
-+       p->u.bt656.clock_curr = xclk_current;
++       mutex_lock(&vdev->mutex);
++       if (vdev->streaming) {
++               rval = -EBUSY;
++               goto out;
++       }
 +
-+       return 0;
++       vdev->want_timeperframe = a->parm.capture.timeperframe;
++
++       pix_tmp = vdev->want_pix;
++
++       rval = s_pix_parm(vdev, &pix_tmp_sensor, &pix_tmp,
++                         &a->parm.capture.timeperframe);
++
++out:
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
 +}
 +
 +/**
-+ * ioctl_g_priv - V4L2 sensor interface handler for vidioc_int_g_priv_num
-+ * @s: pointer to standard V4L2 device structure
-+ * @p: void pointer to hold sensor's private data address
++ * vidioc_cropcap - V4L2 crop capture IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @a: standard V4L2 crop capture structure
 + *
-+ * Returns device's (sensor's) private data area address in p parameter
++ * If using a "smart" sensor, just forwards request to the sensor driver,
++ * otherwise fills in the v4l2_cropcap values locally.
 + */
-+static int ioctl_g_priv(struct v4l2_int_device *s, void *p)
++static int vidioc_cropcap(struct file *file, void *fh, struct v4l2_cropcap *a)
 +{
-+       struct mt9p012_sensor *sensor = s->priv;
-+
-+       return sensor->pdata->priv_data_set(p);
-+
-+}
-+
-+/**
-+ * ioctl_s_power - V4L2 sensor interface handler for vidioc_int_s_power_num
-+ * @s: pointer to standard V4L2 device structure
-+ * @on: power state to which device is to be set
-+ *
-+ * Sets devices power state to requrested state, if possible.
-+ */
-+static int ioctl_s_power(struct v4l2_int_device *s, enum v4l2_power on)
-+{
-+       struct mt9p012_sensor *sensor = s->priv;
-+       struct i2c_client *c = sensor->i2c_client;
-+       struct v4l2_ifparm p;
++       struct omap34xxcam_fh *ofh = fh;
++       struct omap34xxcam_videodev *vdev = ofh->vdev;
++       struct v4l2_cropcap *cropcap = a;
 +       int rval;
 +
-+       rval = ioctl_g_ifparm(s, &p);
-+       if (rval) {
-+               dev_err(&c->dev, "Unable to get if params\n");
-+               return rval;
-+       }
++       mutex_lock(&vdev->mutex);
 +
-+       if (((on == V4L2_POWER_OFF) || (on == V4L2_POWER_STANDBY))
-+               && (sensor->state == SENSOR_DETECTED))
-+               mt9p012_write_regs(c, stream_off_list);
-+
-+
-+       if ((on != V4L2_POWER_ON) && (on != V4L2_POWER_RESUME))
-+               isp_set_xclk(0, MT9P012_USE_XCLKA);
-+       else
-+               isp_set_xclk(p.u.bt656.clock_curr, MT9P012_USE_XCLKA);
-+
-+
-+       rval = sensor->pdata->power_set(on);
-+       if (rval < 0) {
-+               dev_err(&c->dev, "Unable to set the power state: " DRIVER_NAME
-+                                                               " sensor\n");
-+               isp_set_xclk(0, MT9P012_USE_XCLKA);
-+               return rval;
-+       }
-+
-+       if ((on == V4L2_POWER_RESUME) && (sensor->state == SENSOR_DETECTED))
-+               mt9p012_configure(s);
-+
-+       if ((on == V4L2_POWER_ON) && (sensor->state == SENSOR_NOT_DETECTED)) {
-+               rval = mt9p012_detect(c);
-+               if (rval < 0) {
-+                       dev_err(&c->dev, "Unable to detect " DRIVER_NAME
-+                                                               " sensor\n");
-+                       sensor->state = SENSOR_NOT_DETECTED;
-+                       return rval;
-+               }
-+               sensor->state = SENSOR_DETECTED;
-+               sensor->ver = rval;
-+               pr_info(DRIVER_NAME " chip version 0x%02x detected\n",
-+                                                               sensor->ver);
-+       }
-+
-+       return 0;
-+}
-+
-+/**
-+ * ioctl_init - V4L2 sensor interface handler for VIDIOC_INT_INIT
-+ * @s: pointer to standard V4L2 device structure
-+ *
-+ * Initialize the sensor device (call mt9p012_configure())
-+ */
-+static int ioctl_init(struct v4l2_int_device *s)
-+{
-+       return 0;
-+}
-+
-+/**
-+ * ioctl_dev_exit - V4L2 sensor interface handler for vidioc_int_dev_exit_num
-+ * @s: pointer to standard V4L2 device structure
-+ *
-+ * Delinitialise the dev. at slave detach.  The complement of ioctl_dev_init.
-+ */
-+static int ioctl_dev_exit(struct v4l2_int_device *s)
-+{
-+       return 0;
-+}
-+
-+/**
-+ * ioctl_dev_init - V4L2 sensor interface handler for vidioc_int_dev_init_num
-+ * @s: pointer to standard V4L2 device structure
-+ *
-+ * Initialise the device when slave attaches to the master.  Returns 0 if
-+ * mt9p012 device could be found, otherwise returns appropriate error.
-+ */
-+static int ioctl_dev_init(struct v4l2_int_device *s)
-+{
-+       struct mt9p012_sensor *sensor = s->priv;
-+       struct i2c_client *c = sensor->i2c_client;
-+       int err;
-+
-+       err = mt9p012_detect(c);
-+       if (err < 0) {
-+               dev_err(&c->dev, "Unable to detect " DRIVER_NAME " sensor\n");
-+               return err;
-+       }
-+
-+       sensor->ver = err;
-+       pr_info(DRIVER_NAME " chip version 0x%02x detected\n", sensor->ver);
-+
-+       return 0;
-+}
-+/**
-+ * ioctl_enum_framesizes - V4L2 sensor if handler for vidioc_int_enum_framesizes
-+ * @s: pointer to standard V4L2 device structure
-+ * @frms: pointer to standard V4L2 framesizes enumeration structure
-+ *
-+ * Returns possible framesizes depending on choosen pixel format
-+ **/
-+static int ioctl_enum_framesizes(struct v4l2_int_device *s,
-+                                       struct v4l2_frmsizeenum *frms)
-+{
-+       int ifmt;
-+
-+       for (ifmt = 0; ifmt < NUM_CAPTURE_FORMATS; ifmt++) {
-+               if (frms->pixel_format == mt9p012_formats[ifmt].pixelformat)
-+                       break;
-+       }
-+       /* Is requested pixelformat not found on sensor? */
-+       if (ifmt == NUM_CAPTURE_FORMATS)
-+               return -EINVAL;
-+
-+       /* Do we already reached all discrete framesizes? */
-+       if (frms->index >= 5)
-+               return -EINVAL;
-+
-+       frms->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+       frms->discrete.width = mt9p012_sizes[frms->index].width;
-+       frms->discrete.height = mt9p012_sizes[frms->index].height;
-+
-+       return 0;
-+}
-+
-+const struct v4l2_fract mt9p012_frameintervals[] = {
-+       {  .numerator = 1, .denominator = 11 },
-+       {  .numerator = 1, .denominator = 15 },
-+       {  .numerator = 1, .denominator = 20 },
-+       {  .numerator = 1, .denominator = 25 },
-+       {  .numerator = 1, .denominator = 30 },
-+};
-+
-+static int ioctl_enum_frameintervals(struct v4l2_int_device *s,
-+                                       struct v4l2_frmivalenum *frmi)
-+{
-+       int ifmt;
-+
-+       for (ifmt = 0; ifmt < NUM_CAPTURE_FORMATS; ifmt++) {
-+               if (frmi->pixel_format == mt9p012_formats[ifmt].pixelformat)
-+                       break;
-+       }
-+       /* Is requested pixelformat not found on sensor? */
-+       if (ifmt == NUM_CAPTURE_FORMATS)
-+               return -EINVAL;
-+
-+       /* Do we already reached all discrete framesizes? */
-+
-+       if ((frmi->width == mt9p012_sizes[4].width) &&
-+                               (frmi->height == mt9p012_sizes[4].height)) {
-+               /* FIXME: The only frameinterval supported by 5MP capture is
-+                * 1/11 fps
-+                */
-+               if (frmi->index != 0)
-+                       return -EINVAL;
++       if (vdev->vdev_sensor_config.sensor_isp) {
++               rval = vidioc_int_cropcap(vdev->vdev_sensor, a);
 +       } else {
-+               if (frmi->index >= 5)
-+                       return -EINVAL;
++               cropcap->bounds.top = 0;
++               cropcap->bounds.left = 0;
++               cropcap->bounds.width = ofh->pix.width;
++               cropcap->bounds.height = ofh->pix.height;
++               cropcap->defrect = cropcap->bounds;
++               cropcap->pixelaspect.numerator = 1;
++               cropcap->pixelaspect.denominator = 1;
++               rval = 0;
 +       }
 +
-+       frmi->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+       frmi->discrete.numerator =
-+                               mt9p012_frameintervals[frmi->index].numerator;
-+       frmi->discrete.denominator =
-+                               mt9p012_frameintervals[frmi->index].denominator;
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
++}
++
++/**
++ * vidioc_g_crop - V4L2 get capture crop IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @a: standard V4L2 crop structure
++ *
++ * If using a "smart" sensor, just forwards request to the sensor driver,
++ * otherwise calls the isp functions to fill in current crop values.
++ */
++static int vidioc_g_crop(struct file *file, void *fh, struct v4l2_crop *a)
++{
++       struct omap34xxcam_fh *ofh = fh;
++       struct omap34xxcam_videodev *vdev = ofh->vdev;
++       int rval = 0;
++
++       mutex_lock(&vdev->mutex);
++
++       if (vdev->vdev_sensor_config.sensor_isp)
++               rval = vidioc_int_g_crop(vdev->vdev_sensor, a);
++       else
++               rval = isp_g_crop(a);
++
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
++}
++
++/**
++ * vidioc_s_crop - V4L2 set capture crop IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @a: standard V4L2 crop structure
++ *
++ * If using a "smart" sensor, just forwards request to the sensor driver,
++ * otherwise calls the isp functions to set the current crop values.
++ */
++static int vidioc_s_crop(struct file *file, void *fh, struct v4l2_crop *a)
++{
++       struct omap34xxcam_fh *ofh = fh;
++       struct omap34xxcam_videodev *vdev = ofh->vdev;
++       struct v4l2_pix_format *pix = &ofh->pix;
++       int rval = 0;
++
++       mutex_lock(&vdev->mutex);
++
++       if (vdev->vdev_sensor_config.sensor_isp)
++               rval = vidioc_int_s_crop(vdev->vdev_sensor, a);
++       else
++               rval = isp_s_crop(a, pix);
++
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
++}
++
++static int vidioc_enum_framesizes(struct file *file, void *fh,
++                                 struct v4l2_frmsizeenum *frms)
++{
++       struct omap34xxcam_fh *ofh = fh;
++       struct omap34xxcam_videodev *vdev = ofh->vdev;
++       u32 pixel_format;
++       int rval;
++
++       pixel_format = frms->pixel_format;
++       frms->pixel_format = V4L2_PIX_FMT_SGRBG10; /* We can accept any. */
++
++       mutex_lock(&vdev->mutex);
++       rval = vidioc_int_enum_framesizes(vdev->vdev_sensor, frms);
++       mutex_unlock(&vdev->mutex);
++
++       frms->pixel_format = pixel_format;
++
++       return rval;
++}
++
++static int vidioc_enum_frameintervals(struct file *file, void *fh,
++                                     struct v4l2_frmivalenum *frmi) {
++       struct omap34xxcam_fh *ofh = fh;
++       struct omap34xxcam_videodev *vdev = ofh->vdev;
++       u32 pixel_format;
++       int rval;
++
++       pixel_format = frmi->pixel_format;
++       frmi->pixel_format = V4L2_PIX_FMT_SGRBG10; /* We can accept any. */
++
++       mutex_lock(&vdev->mutex);
++       rval = vidioc_int_enum_frameintervals(vdev->vdev_sensor, frmi);
++       mutex_unlock(&vdev->mutex);
++
++       frmi->pixel_format = pixel_format;
++
++       return rval;
++}
++
++/**
++ * vidioc_default - private IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
++ * @cmd: ioctl cmd value
++ * @arg: ioctl arg value
++ *
++ * If the sensor being used is a "smart sensor", this request is returned to
++ * caller with -EINVAL err code.  Otherwise if the control id is the private
++ * VIDIOC_PRIVATE_ISP_AEWB_REQ to update the analog gain or exposure,
++ * then this request is forwared directly to the sensor to incorporate the
++ * feedback. The request is then passed on to the ISP private IOCTL handler,
++ * isp_handle_private()
++ */
++static int vidioc_default(struct file *file, void *fh, int cmd, void *arg)
++{
++       struct omap34xxcam_fh *ofh = file->private_data;
++       struct omap34xxcam_videodev *vdev = ofh->vdev;
++       int rval;
++
++       if (vdev->vdev_sensor_config.sensor_isp) {
++               rval = -EINVAL;
++       } else {
++               switch (cmd) {
++               case VIDIOC_ENUM_FRAMESIZES:
++                       rval = vidioc_enum_framesizes(file, fh, arg);
++                       goto out;
++               case VIDIOC_ENUM_FRAMEINTERVALS:
++                       rval = vidioc_enum_frameintervals(file, fh, arg);
++                       goto out;
++               case VIDIOC_PRIVATE_ISP_AEWB_REQ:
++               {
++                       /* Need to update sensor first */
++                       struct isph3a_aewb_data *data;
++                       struct v4l2_control vc;
++
++                       data = (struct isph3a_aewb_data *) arg;
++                       if (data->update & SET_EXPOSURE) {
++                               vc.id = V4L2_CID_EXPOSURE;
++                               vc.value = data->shutter;
++                               mutex_lock(&vdev->mutex);
++                               rval = vidioc_int_s_ctrl(vdev->vdev_sensor,
++                                                        &vc);
++                               mutex_unlock(&vdev->mutex);
++                               if (rval)
++                                       goto out;
++                       }
++                       if (data->update & SET_ANALOG_GAIN) {
++                               vc.id = V4L2_CID_GAIN;
++                               vc.value = data->gain;
++                               mutex_lock(&vdev->mutex);
++                               rval = vidioc_int_s_ctrl(vdev->vdev_sensor,
++                                                        &vc);
++                               mutex_unlock(&vdev->mutex);
++                               if (rval)
++                                       goto out;
++                       }
++               }
++               break;
++               case VIDIOC_PRIVATE_ISP_AF_CFG: {
++                       /* Need to update lens first */
++                       struct isp_af_data *data;
++                       struct v4l2_control vc;
++
++                       if (!vdev->vdev_lens) {
++                               rval = -EINVAL;
++                               goto out;
++                       }
++                       data = (struct isp_af_data *) arg;
++                       if (data->update & LENS_DESIRED_POSITION) {
++                               vc.id = V4L2_CID_FOCUS_ABSOLUTE;
++                               vc.value = data->desired_lens_direction;
++                               mutex_lock(&vdev->mutex);
++                               rval = vidioc_int_s_ctrl(vdev->vdev_lens, &vc);
++                               mutex_unlock(&vdev->mutex);
++                               if (rval)
++                                       goto out;
++                       }
++                       if (data->update & REQUEST_STATISTICS) {
++                               vc.id = V4L2_CID_FOCUS_ABSOLUTE;
++                               mutex_lock(&vdev->mutex);
++                               rval = vidioc_int_g_ctrl(vdev->vdev_lens, &vc);
++                               mutex_unlock(&vdev->mutex);
++                               if (rval)
++                                       goto out;
++                               data->xtrastats.lens_position = vc.value;
++                       }
++               }
++               break;
++               case VIDIOC_G_PRIV_MEM:
++                       rval = vidioc_int_g_priv_mem(vdev->vdev_sensor,
++                                               (struct v4l2_priv_mem *)arg);
++                       goto out;
++               }
++
++               rval = isp_handle_private(cmd, arg);
++       }
++out:
++       mutex_unlock(&vdev->mutex);
++       return rval;
++}
++
++/*
++ *
++ * File operations.
++ *
++ */
++
++static long omap34xxcam_unlocked_ioctl(struct file *file, unsigned int cmd,
++                                      unsigned long arg)
++{
++       return (long)video_ioctl2(file->f_dentry->d_inode, file, cmd, arg);
++}
++
++/**
++ * omap34xxcam_poll - file operations poll handler
++ * @file: ptr. to system file structure
++ * @wait: system poll table structure
++ *
++ */
++static unsigned int omap34xxcam_poll(struct file *file,
++                                    struct poll_table_struct *wait)
++{
++       struct omap34xxcam_fh *fh = file->private_data;
++       struct omap34xxcam_videodev *vdev = fh->vdev;
++       struct videobuf_buffer *vb;
++
++       mutex_lock(&vdev->mutex);
++       if (vdev->streaming != file) {
++               mutex_unlock(&vdev->mutex);
++               return POLLERR;
++       }
++       mutex_unlock(&vdev->mutex);
++
++       mutex_lock(&fh->vbq.vb_lock);
++       if (list_empty(&fh->vbq.stream)) {
++               mutex_unlock(&fh->vbq.vb_lock);
++               return POLLERR;
++       }
++       vb = list_entry(fh->vbq.stream.next, struct videobuf_buffer, stream);
++       mutex_unlock(&fh->vbq.vb_lock);
++
++       poll_wait(file, &vb->done, wait);
++
++       if (vb->state == VIDEOBUF_DONE || vb->state == VIDEOBUF_ERROR)
++               return POLLIN | POLLRDNORM;
 +
 +       return 0;
 +}
 +
-+static struct v4l2_int_ioctl_desc mt9p012_ioctl_desc[] = {
-+       { .num = vidioc_int_enum_framesizes_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_enum_framesizes },
-+       { .num = vidioc_int_enum_frameintervals_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_enum_frameintervals },
-+       { .num = vidioc_int_dev_init_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_dev_init },
-+       { .num = vidioc_int_dev_exit_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_dev_exit },
-+       { .num = vidioc_int_s_power_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_s_power },
-+       { .num = vidioc_int_g_priv_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_g_priv },
-+       { .num = vidioc_int_g_ifparm_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_g_ifparm },
-+       { .num = vidioc_int_init_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_init },
-+       { .num = vidioc_int_enum_fmt_cap_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_enum_fmt_cap },
-+       { .num = vidioc_int_try_fmt_cap_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_try_fmt_cap },
-+       { .num = vidioc_int_g_fmt_cap_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_g_fmt_cap },
-+       { .num = vidioc_int_s_fmt_cap_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_s_fmt_cap },
-+       { .num = vidioc_int_g_parm_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_g_parm },
-+       { .num = vidioc_int_s_parm_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_s_parm },
-+       { .num = vidioc_int_queryctrl_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_queryctrl },
-+       { .num = vidioc_int_g_ctrl_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_g_ctrl },
-+       { .num = vidioc_int_s_ctrl_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_s_ctrl },
-+};
++/**
++ * omap34xxcam_mmap - file operations mmap handler
++ * @file: ptr. to system file structure
++ * @vma: system virt. mem. area structure
++ *
++ * Maps a virtual memory area via the video buffer API
++ */
++static int omap34xxcam_mmap(struct file *file, struct vm_area_struct *vma)
++{
++       struct omap34xxcam_fh *fh = file->private_data;
 +
-+static struct v4l2_int_slave mt9p012_slave = {
-+       .ioctls = mt9p012_ioctl_desc,
-+       .num_ioctls = ARRAY_SIZE(mt9p012_ioctl_desc),
-+};
-+
-+static struct v4l2_int_device mt9p012_int_device = {
-+       .module = THIS_MODULE,
-+       .name = DRIVER_NAME,
-+       .priv = &mt9p012,
-+       .type = v4l2_int_type_slave,
-+       .u = {
-+               .slave = &mt9p012_slave,
-+       },
-+};
++       return videobuf_mmap_mapper(&fh->vbq, vma);
++}
 +
 +/**
-+ * mt9p012_probe - sensor driver i2c probe handler
-+ * @client: i2c driver client device structure
++ * omap34xxcam_open - file operations open handler
++ * @inode: ptr. to system inode structure
++ * @file: ptr. to system file structure
 + *
-+ * Register sensor as an i2c client device and V4L2
-+ * device.
++ * Allocates and initializes the per-filehandle data (omap34xxcam_fh),
++ * enables the sensor, opens/initializes the ISP interface and the
++ * video buffer queue.  Note that this function will allow multiple
++ * file handles to be open simultaneously, however only the first
++ * handle opened will initialize the ISP.  It is the application
++ * responsibility to only use one handle for streaming and the others
++ * for control only.
++ * This function returns 0 upon success and -ENODEV upon error.
 + */
-+static int
-+mt9p012_probe(struct i2c_client *client, const struct i2c_device_id *id)
++static int omap34xxcam_open(struct inode *inode, struct file *file)
 +{
-+       struct mt9p012_sensor *sensor = &mt9p012;
-+       int err;
++       struct omap34xxcam_videodev *vdev = NULL;
++       struct omap34xxcam_device *cam = omap34xxcam;
++       struct omap34xxcam_fh *fh;
++       struct v4l2_format format;
++       int i;
 +
-+       if (i2c_get_clientdata(client))
++       for (i = 0; i < OMAP34XXCAM_VIDEODEVS; i++) {
++               if (cam->vdevs[i].vfd
++                   && cam->vdevs[i].vfd->minor == iminor(inode)) {
++                       vdev = &cam->vdevs[i];
++                       break;
++               }
++       }
++
++       if (!vdev || !vdev->vfd)
++               return -ENODEV;
++
++       fh = kzalloc(sizeof(*fh), GFP_KERNEL);
++       if (fh == NULL)
++               return -ENOMEM;
++
++       mutex_lock(&vdev->mutex);
++       for (i = 0; i <= OMAP34XXCAM_SLAVE_FLASH; i++) {
++               if (vdev->slave[i]
++                   && !try_module_get(vdev->slave[i]->module)) {
++                       mutex_unlock(&vdev->mutex);
++                       goto out_try_module_get;
++               }
++       }
++
++       if (atomic_inc_return(&vdev->users) == 1) {
++               isp_get();
++               isp_open();
++               if (omap34xxcam_slave_power_set(vdev, V4L2_POWER_ON))
++                       goto out_slave_power_set_standby;
++               if (omap34xxcam_slave_power_set(vdev, V4L2_POWER_STANDBY))
++                       goto out_slave_power_set_standby;
++       }
++
++       fh->vdev = vdev;
++
++       /* FIXME: Check that we have sensor now... */
++       if (vdev->vdev_sensor_config.sensor_isp)
++               vidioc_int_g_fmt_cap(vdev->vdev_sensor, &format);
++       else
++               isp_g_fmt_cap(&format.fmt.pix);
++
++       mutex_unlock(&vdev->mutex);
++       /* FIXME: how about fh->pix when there are more users? */
++       fh->pix = format.fmt.pix;
++
++       file->private_data = fh;
++
++       spin_lock_init(&fh->vbq_lock);
++
++       videobuf_queue_sg_init(&fh->vbq, &omap34xxcam_vbq_ops, NULL,
++                               &fh->vbq_lock, V4L2_BUF_TYPE_VIDEO_CAPTURE,
++                               V4L2_FIELD_NONE,
++                               sizeof(struct videobuf_buffer), fh);
++
++       return 0;
++
++out_slave_power_set_standby:
++       omap34xxcam_slave_power_set(vdev, V4L2_POWER_OFF);
++       isp_close();
++       isp_put();
++       atomic_dec(&vdev->users);
++       mutex_unlock(&vdev->mutex);
++
++out_try_module_get:
++       for (i--; i >= 0; i--)
++               if (vdev->slave[i])
++                       module_put(vdev->slave[i]->module);
++
++       kfree(fh);
++
++       return -ENODEV;
++}
++
++/**
++ * omap34xxcam_release - file operations release handler
++ * @inode: ptr. to system inode structure
++ * @file: ptr. to system file structure
++ *
++ * Complement of omap34xxcam_open.  This function will flush any scheduled
++ * work, disable the sensor, close the ISP interface, stop the
++ * video buffer queue from streaming and free the per-filehandle data
++ * (omap34xxcam_fh).  Note that because multiple open file handles
++ * are allowed, this function will only close the ISP and disable the
++ * sensor when the last open file handle (by count) is closed.
++ * This function returns 0.
++ */
++static int omap34xxcam_release(struct inode *inode, struct file *file)
++{
++       struct omap34xxcam_fh *fh = file->private_data;
++       struct omap34xxcam_videodev *vdev = fh->vdev;
++       int i;
++
++       mutex_lock(&vdev->mutex);
++       if (vdev->streaming == file) {
++               isp_stop();
++               videobuf_streamoff(&fh->vbq);
++               omap34xxcam_slave_power_set(vdev, V4L2_POWER_STANDBY);
++               vdev->streaming = NULL;
++       }
++
++       if (atomic_dec_return(&vdev->users) == 0) {
++               omap34xxcam_slave_power_set(vdev, V4L2_POWER_OFF);
++               isp_close();
++               isp_put();
++       }
++       mutex_unlock(&vdev->mutex);
++
++       file->private_data = NULL;
++
++       for (i = 0; i <= OMAP34XXCAM_SLAVE_FLASH; i++)
++               if (vdev->slave[i])
++                       module_put(vdev->slave[i]->module);
++
++       kfree(fh);
++
++       return 0;
++}
++
++static struct file_operations omap34xxcam_fops = {
++       .owner = THIS_MODULE,
++       .llseek = no_llseek,
++       .unlocked_ioctl = omap34xxcam_unlocked_ioctl,
++       .poll = omap34xxcam_poll,
++       .mmap = omap34xxcam_mmap,
++       .open = omap34xxcam_open,
++       .release = omap34xxcam_release,
++};
++
++static const struct v4l2_ioctl_ops omap34xxcam_ioctl_ops = {
++       .vidioc_querycap         = vidioc_querycap,
++       .vidioc_enum_fmt_vid_cap         = vidioc_enum_fmt_cap,
++       .vidioc_g_fmt_vid_cap    = vidioc_g_fmt_cap,
++       .vidioc_s_fmt_vid_cap    = vidioc_s_fmt_cap,
++       .vidioc_try_fmt_vid_cap  = vidioc_try_fmt_cap,
++       .vidioc_reqbufs          = vidioc_reqbufs,
++       .vidioc_querybuf         = vidioc_querybuf,
++       .vidioc_qbuf             = vidioc_qbuf,
++       .vidioc_dqbuf            = vidioc_dqbuf,
++       .vidioc_streamon         = vidioc_streamon,
++       .vidioc_streamoff        = vidioc_streamoff,
++       .vidioc_enum_input       = vidioc_enum_input,
++       .vidioc_g_input          = vidioc_g_input,
++       .vidioc_s_input          = vidioc_s_input,
++       .vidioc_queryctrl        = vidioc_queryctrl,
++       .vidioc_g_ctrl           = vidioc_g_ctrl,
++       .vidioc_s_ctrl           = vidioc_s_ctrl,
++       .vidioc_g_parm           = vidioc_g_parm,
++       .vidioc_s_parm           = vidioc_s_parm,
++       .vidioc_cropcap          = vidioc_cropcap,
++       .vidioc_g_crop           = vidioc_g_crop,
++       .vidioc_s_crop           = vidioc_s_crop,
++       .vidioc_default          = vidioc_default,
++};
++/**
++ * omap34xxcam_device_unregister - V4L2 detach handler
++ * @s: ptr. to standard V4L2 device information structure
++ *
++ * Detach sensor and unregister and release the video device.
++ */
++static void omap34xxcam_device_unregister(struct v4l2_int_device *s)
++{
++       struct omap34xxcam_videodev *vdev = s->u.slave->master->priv;
++       struct omap34xxcam_hw_config hwc;
++
++       BUG_ON(vidioc_int_g_priv(s, &hwc) < 0);
++
++       if (vdev->slave[hwc.dev_type]) {
++               vdev->slave[hwc.dev_type] = NULL;
++               vdev->slaves--;
++       }
++
++       if (vdev->slaves == 0 && vdev->vfd) {
++               if (vdev->vfd->minor == -1) {
++                       /*
++                        * The device was never registered, so release the
++                        * video_device struct directly.
++                        */
++                       video_device_release(vdev->vfd);
++               } else {
++                       /*
++                        * The unregister function will release the
++                        * video_device struct as well as
++                        * unregistering it.
++                        */
++                       video_unregister_device(vdev->vfd);
++               }
++               vdev->vfd = NULL;
++       }
++
++}
++
++/**
++ * omap34xxcam_device_register - V4L2 attach handler
++ * @s: ptr. to standard V4L2 device information structure
++ *
++ * Allocates and initializes the V4L2 video_device structure, initializes
++ * the sensor, and finally registers the device with V4L2 based on the
++ * video_device structure.
++ *
++ * Returns 0 on success, otherwise an appropriate error code on
++ * failure.
++ */
++static int omap34xxcam_device_register(struct v4l2_int_device *s)
++{
++       struct omap34xxcam_videodev *vdev = s->u.slave->master->priv;
++       struct omap34xxcam_device *cam = vdev->cam;
++       struct omap34xxcam_hw_config hwc;
++       struct video_device *vfd;
++       int rval, i;
++
++       /* We need to check rval just once. The place is here. */
++       if (vidioc_int_g_priv(s, &hwc))
++               return -ENODEV;
++
++       if (vdev->index != hwc.dev_index)
++               return -ENODEV;
++
++       if (hwc.dev_type < 0 || hwc.dev_type > OMAP34XXCAM_SLAVE_FLASH)
++               return -EINVAL;
++
++       if (vdev->slave[hwc.dev_type])
 +               return -EBUSY;
 +
-+       sensor->pdata = client->dev.platform_data;
-+
-+       if (!sensor->pdata) {
-+               dev_err(&client->dev, "no platform data?\n");
-+               return -ENODEV;
++       mutex_lock(&vdev->mutex);
++       if (atomic_read(&vdev->users)) {
++               dev_err(cam->dev, "we're open (%d), can't register\n",
++                       atomic_read(&vdev->users));
++               mutex_unlock(&vdev->mutex);
++               return -EBUSY;
 +       }
 +
-+       sensor->v4l2_int_device = &mt9p012_int_device;
-+       sensor->i2c_client = client;
++       /* Are we the first slave? */
++       if (vdev->slaves == 0) {
 +
-+       i2c_set_clientdata(client, sensor);
++               /* initialize the video_device struct */
++               vdev->vfd = video_device_alloc();
++               vfd = vdev->vfd;
++               if (!vfd) {
++                       dev_err(cam->dev,
++                               "could not allocate video device struct\n");
++                       return -ENOMEM;
++               }
++               vfd->release = video_device_release;
 +
-+       /* Make the default capture format QCIF V4L2_PIX_FMT_SGRBG10 */
-+       sensor->pix.width = VIDEO_WIDTH_4X_BINN_SCALED;
-+       sensor->pix.height = VIDEO_WIDTH_4X_BINN_SCALED;
-+       sensor->pix.pixelformat = V4L2_PIX_FMT_SGRBG10;
++               vfd->parent = cam->dev;
 +
-+       err = v4l2_int_device_register(sensor->v4l2_int_device);
-+       if (err)
-+               i2c_set_clientdata(client, NULL);
++               vfd->fops                = &omap34xxcam_fops;
++               vfd->priv                = vdev;
 +
-+       return err;
++               vfd->ioctl_ops           = &omap34xxcam_ioctl_ops;
++
++               if (video_register_device(vfd, VFL_TYPE_GRABBER,
++                                         hwc.dev_minor) < 0) {
++                       dev_err(cam->dev,
++                               "could not register V4L device\n");
++                       vfd->minor = -1;
++                       rval = -EBUSY;
++                       goto err;
++               }
++       } else {
++               vfd = vdev->vfd;
++       }
++
++       vdev->slaves++;
++       vdev->slave[hwc.dev_type] = s;
++       vdev->slave_config[hwc.dev_type] = hwc;
++
++       isp_get();
++       isp_open();
++       rval = omap34xxcam_slave_power_set(vdev, V4L2_POWER_ON);
++       if (!rval && hwc.dev_type == OMAP34XXCAM_SLAVE_SENSOR) {
++               struct v4l2_format format;
++               struct v4l2_streamparm a;
++
++               format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++               rval |= vidioc_int_g_fmt_cap(vdev->vdev_sensor, &format);
++
++               a.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++               rval |= vidioc_int_g_parm(vdev->vdev_sensor, &a);
++               if (rval)
++                       rval = -EBUSY;
++
++               vdev->want_pix = format.fmt.pix;
++               vdev->want_timeperframe = a.parm.capture.timeperframe;
++       }
++       omap34xxcam_slave_power_set(vdev, V4L2_POWER_OFF);
++       isp_close();
++       isp_put();
++
++       if (rval)
++               goto err;
++       strlcpy(vfd->name, CAM_NAME, sizeof(vfd->name));
++       for (i = 0; i <= OMAP34XXCAM_SLAVE_FLASH; i++) {
++               strlcat(vfd->name, "/", sizeof(vfd->name));
++               if (!vdev->slave[i])
++                       continue;
++               strlcat(vfd->name, vdev->slave[i]->name, sizeof(vfd->name));
++       }
++
++       mutex_unlock(&vdev->mutex);
++
++       dev_info(cam->dev, "video%d is now %s\n", vfd->minor, vfd->name);
++       return 0;
++
++err:
++       if (s == vdev->slave[hwc.dev_type]) {
++               vdev->slave[hwc.dev_type] = NULL;
++               vdev->slaves--;
++       }
++
++       mutex_unlock(&vdev->mutex);
++       omap34xxcam_device_unregister(s);
++
++       return rval;
 +}
 +
-+/**
-+ * mt9p012_remove - sensor driver i2c remove handler
-+ * @client: i2c driver client device structure
++static struct v4l2_int_master omap34xxcam_master = {
++       .attach = omap34xxcam_device_register,
++       .detach = omap34xxcam_device_unregister,
++};
++
++/*
 + *
-+ * Unregister sensor as an i2c client device and V4L2
-+ * device.  Complement of mt9p012_probe().
++ * Driver Suspend/Resume
++ *
 + */
-+static int __exit
-+mt9p012_remove(struct i2c_client *client)
++
++#ifdef CONFIG_PM
++/**
++ * omap34xxcam_suspend - platform driver PM suspend handler
++ * @pdev: ptr. to platform level device information structure
++ * @state: power state
++ *
++ * If applicable, stop capture and disable sensor.
++ *
++ * Returns 0 always
++ */
++static int omap34xxcam_suspend(struct platform_device *pdev, pm_message_t state)
 +{
-+       struct mt9p012_sensor *sensor = i2c_get_clientdata(client);
++       struct omap34xxcam_videodev *vdev = platform_get_drvdata(pdev);
 +
-+       if (!client->adapter)
-+               return -ENODEV; /* our client isn't attached */
++       if (atomic_read(&vdev->users) == 0)
++               return 0;
 +
-+       v4l2_int_device_unregister(sensor->v4l2_int_device);
-+       i2c_set_clientdata(client, NULL);
++       if (vdev->streaming) {
++               isp_stop();
++               omap34xxcam_slave_power_set(vdev, V4L2_POWER_OFF);
++       }
 +
 +       return 0;
 +}
 +
-+static const struct i2c_device_id mt9p012_id[] = {
-+       { DRIVER_NAME, 0 },
-+       { },
-+};
-+MODULE_DEVICE_TABLE(i2c, mt9p012_id);
++/**
++ * omap34xxcam_resume - platform driver PM resume handler
++ * @pdev: ptr. to platform level device information structure
++ *
++ * If applicable, resume capture and enable sensor.
++ *
++ * Returns 0 always
++ */
++static int omap34xxcam_resume(struct platform_device *pdev)
++{
++       struct omap34xxcam_videodev *vdev = platform_get_drvdata(pdev);
 +
-+static struct i2c_driver mt9p012sensor_i2c_driver = {
++       if (atomic_read(&vdev->users) == 0)
++               return 0;
++
++       if (vdev->streaming) {
++               omap34xxcam_slave_power_set(vdev, V4L2_POWER_ON);
++               isp_start();
++       }
++
++       return 0;
++}
++#endif
++
++/*
++ *
++ * Driver initialisation and deinitialisation.
++ *
++ */
++
++/**
++ * omap34xxcam_probe - platform driver probe handler
++ * @pdev: ptr. to platform level device information structure
++ *
++ * Allocates and initializes camera device information structure
++ * (omap34xxcam_device), maps the device registers and gets the
++ * device IRQ.  Registers the device as a V4L2 client.
++ *
++ * Returns 0 on success or -ENODEV on failure.
++ */
++static int omap34xxcam_probe(struct platform_device *pdev)
++{
++       struct omap34xxcam_device *cam;
++       struct resource *mem;
++       struct isp_sysc isp_sysconfig;
++       int irq;
++       int i;
++
++       cam = kzalloc(sizeof(*cam), GFP_KERNEL);
++       if (!cam) {
++               dev_err(&pdev->dev, "could not allocate memory\n");
++               goto err;
++       }
++
++       platform_set_drvdata(pdev, cam);
++
++       cam->dev = &pdev->dev;
++
++       /* request the mem region for the camera registers */
++       mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++       if (!mem) {
++               dev_err(cam->dev, "no mem resource?\n");
++               goto err;
++       }
++
++       if (!request_mem_region(mem->start, (mem->end - mem->start) + 1,
++                               pdev->name)) {
++               dev_err(cam->dev,
++                       "cannot reserve camera register I/O region\n");
++               goto err;
++
++       }
++       cam->mmio_base_phys = mem->start;
++       cam->mmio_size = (mem->end - mem->start) + 1;
++
++       /* map the region */
++       cam->mmio_base = (unsigned long)
++                       ioremap_nocache(cam->mmio_base_phys, cam->mmio_size);
++       if (!cam->mmio_base) {
++               dev_err(cam->dev, "cannot map camera register I/O region\n");
++               goto err;
++       }
++
++       irq = platform_get_irq(pdev, 0);
++       if (irq <= 0) {
++               dev_err(cam->dev, "no irq for camera?\n");
++               goto err;
++       }
++
++       isp_get();
++       isp_sysconfig.reset = 0;
++       isp_sysconfig.idle_mode = 1;
++       isp_power_settings(isp_sysconfig);
++       isp_put();
++
++       for (i = 0; i < OMAP34XXCAM_VIDEODEVS; i++) {
++               struct omap34xxcam_videodev *vdev = &cam->vdevs[i];
++               struct v4l2_int_device *m = &vdev->master;
++
++               m->module       = THIS_MODULE;
++               strlcpy(m->name, CAM_NAME, sizeof(m->name));
++               m->type         = v4l2_int_type_master;
++               m->u.master     = &omap34xxcam_master;
++               m->priv         = vdev;
++
++               mutex_init(&vdev->mutex);
++               vdev->index             = i;
++               vdev->cam               = cam;
++
++               if (v4l2_int_device_register(m))
++                       goto err;
++       }
++
++       omap34xxcam = cam;
++
++       return 0;
++
++err:
++       omap34xxcam_remove(pdev);
++       return -ENODEV;
++}
++
++/**
++ * omap34xxcam_remove - platform driver remove handler
++ * @pdev: ptr. to platform level device information structure
++ *
++ * Unregister device with V4L2, unmap camera registers, and
++ * free camera device information structure (omap34xxcam_device).
++ *
++ * Returns 0 always.
++ */
++static int omap34xxcam_remove(struct platform_device *pdev)
++{
++       struct omap34xxcam_device *cam = platform_get_drvdata(pdev);
++       int i;
++
++       if (!cam)
++               return 0;
++
++       omap34xxcam = NULL;
++
++       for (i = 0; i < OMAP34XXCAM_VIDEODEVS; i++) {
++               if (cam->vdevs[i].cam == NULL)
++                       continue;
++
++               v4l2_int_device_unregister(&cam->vdevs[i].master);
++               cam->vdevs[i].cam = NULL;
++       }
++
++       if (cam->mmio_base) {
++               iounmap((void *)cam->mmio_base);
++               cam->mmio_base = 0;
++       }
++
++       if (cam->mmio_base_phys) {
++               release_mem_region(cam->mmio_base_phys, cam->mmio_size);
++               cam->mmio_base_phys = 0;
++       }
++
++       kfree(cam);
++
++       return 0;
++}
++
++static struct platform_driver omap34xxcam_driver = {
++       .probe = omap34xxcam_probe,
++       .remove = omap34xxcam_remove,
++#ifdef CONFIG_PM
++       .suspend = omap34xxcam_suspend,
++       .resume = omap34xxcam_resume,
++#endif
 +       .driver = {
-+               .name = DRIVER_NAME,
-+               .owner = THIS_MODULE,
-+       },
-+       .probe = mt9p012_probe,
-+       .remove = __exit_p(mt9p012_remove),
-+       .id_table = mt9p012_id,
++                  .name = CAM_NAME,
++                  },
 +};
 +
-+static struct mt9p012_sensor mt9p012 = {
-+       .timeperframe = {
-+               .numerator = 1,
-+               .denominator = 15,
-+       },
-+       .state = SENSOR_NOT_DETECTED,
-+};
++/*
++ *
++ * Module initialisation and deinitialisation
++ *
++ */
 +
 +/**
-+ * mt9p012sensor_init - sensor driver module_init handler
++ * omap34xxcam_init - module_init function
 + *
-+ * Registers driver as an i2c client driver.  Returns 0 on success,
-+ * error code otherwise.
++ * Calls platfrom driver to register probe, remove,
++ * suspend and resume functions.
++ *
 + */
-+static int __init mt9p012sensor_init(void)
++static int __init omap34xxcam_init(void)
 +{
-+       int err;
-+
-+       err = i2c_add_driver(&mt9p012sensor_i2c_driver);
-+       if (err) {
-+               printk(KERN_ERR "Failed to register" DRIVER_NAME ".\n");
-+               return err;
-+       }
-+
-+       return 0;
++       return platform_driver_register(&omap34xxcam_driver);
 +}
-+late_initcall(mt9p012sensor_init);
 +
 +/**
-+ * mt9p012sensor_cleanup - sensor driver module_exit handler
++ * omap34xxcam_cleanup - module_exit function
 + *
-+ * Unregisters/deletes driver as an i2c client driver.
-+ * Complement of mt9p012sensor_init.
++ * Calls platfrom driver to unregister probe, remove,
++ * suspend and resume functions.
++ *
 + */
-+static void __exit mt9p012sensor_cleanup(void)
++static void __exit omap34xxcam_cleanup(void)
 +{
-+       i2c_del_driver(&mt9p012sensor_i2c_driver);
++       platform_driver_unregister(&omap34xxcam_driver);
 +}
-+module_exit(mt9p012sensor_cleanup);
 +
++MODULE_AUTHOR("Texas Instruments");
++MODULE_DESCRIPTION("OMAP34xx Video for Linux camera driver");
 +MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("mt9p012 camera sensor driver");
-Index: linux-omap-2.6/drivers/media/video/mt9p012.h
++
++late_initcall(omap34xxcam_init);
++module_exit(omap34xxcam_cleanup);
+Index: linux-omap-2.6/drivers/media/video/omap34xxcam.h
 ===================================================================
 --- /dev/null   1970-01-01 00:00:00.000000000 +0000
-+++ linux-omap-2.6/drivers/media/video/mt9p012.h        2008-08-28 19:52:24.000000000 -0500
-@@ -0,0 +1,295 @@
++++ linux-omap-2.6/drivers/media/video/omap34xxcam.h    2008-08-29 17:35:28.000000000 -0500
+@@ -0,0 +1,192 @@
 +/*
-+ * drivers/media/video/mt9p012.h
++ * drivers/media/video/omap34xxcam.h
 + *
-+ * Register definitions for the MT9P012 camera sensor.
-+ *
-+ * Author:
-+ *     Sameer Venkatraman <sameerv@ti.com>
-+ *     Martinez Leonides
-+ *
++ * Video-for-Linux (Version 2) Camera capture driver for OMAP34xx ISP.
 + *
 + * Copyright (C) 2008 Texas Instruments.
++ * Copyright (C) 2008 Nokia.
 + *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2. This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ */
-+
-+#ifndef MT9P012_H
-+#define MT9P012_H
-+
-+
-+#define MT9P012_I2C_ADDR               0x10
-+
-+/* The ID values we are looking for */
-+#define MT9P012_MOD_ID                 0x2800
-+#define MT9P012_MFR_ID                 0x0006
-+
-+/* MT9P012 has 8/16/32 registers */
-+#define MT9P012_8BIT                   1
-+#define MT9P012_16BIT                  2
-+#define MT9P012_32BIT                  4
-+
-+/* terminating token for reg list */
-+#define MT9P012_TOK_TERM               0xFF
-+
-+/* delay token for reg list */
-+#define MT9P012_TOK_DELAY              100
-+
-+/* Sensor specific GPIO signals */
-+#define MT9P012_RESET_GPIO     98
-+#define MT9P012_STANDBY_GPIO   58
-+
-+#define VAUX_2_8_V             0x09
-+#define VAUX_DEV_GRP_P1                0x20
-+#define VAUX_DEV_GRP_NONE      0x00
-+
-+#define DEBUG_BASE             0x08000000
-+#define REG_SDP3430_FPGA_GPIO_2 (0x50)
-+#define FPGA_SPR_GPIO1_3v3     (0x1 << 14)
-+#define FPGA_GPIO6_DIR_CTRL    (0x1 << 6)
-+
-+/* terminating list entry for reg */
-+#define MT9P012_REG_TERM               0xFF
-+/* terminating list entry for val */
-+#define MT9P012_VAL_TERM               0xFF
-+
-+#define MT9P012_CLKRC                  0x11
-+
-+/* Used registers */
-+#define REG_MODEL_ID                   0x0000
-+#define REG_REVISION_NUMBER            0x0002
-+#define REG_MANUFACTURER_ID            0x0003
-+
-+#define REG_MODE_SELECT                        0x0100
-+#define REG_IMAGE_ORIENTATION          0x0101
-+#define REG_SOFTWARE_RESET             0x0103
-+#define REG_GROUPED_PAR_HOLD           0x0104
-+
-+#define REG_FINE_INT_TIME              0x0200
-+#define REG_COARSE_INT_TIME            0x0202
-+
-+#define REG_ANALOG_GAIN_GLOBAL         0x0204
-+#define REG_ANALOG_GAIN_GREENR         0x0206
-+#define REG_ANALOG_GAIN_RED            0x0208
-+#define REG_ANALOG_GAIN_BLUE           0x020A
-+#define REG_ANALOG_GAIN_GREENB         0x020C
-+#define REG_DIGITAL_GAIN_GREENR                0x020E
-+#define REG_DIGITAL_GAIN_RED           0x0210
-+#define REG_DIGITAL_GAIN_BLUE          0x0212
-+#define REG_DIGITAL_GAIN_GREENB                0x0214
-+
-+#define REG_VT_PIX_CLK_DIV             0x0300
-+#define REG_VT_SYS_CLK_DIV             0x0302
-+#define REG_PRE_PLL_CLK_DIV            0x0304
-+#define REG_PLL_MULTIPLIER             0x0306
-+#define REG_OP_PIX_CLK_DIV             0x0308
-+#define REG_OP_SYS_CLK_DIV             0x030A
-+
-+#define REG_FRAME_LEN_LINES            0x0340
-+#define REG_LINE_LEN_PCK               0x0342
-+
-+#define REG_X_ADDR_START               0x0344
-+#define REG_Y_ADDR_START               0x0346
-+#define REG_X_ADDR_END                 0x0348
-+#define REG_Y_ADDR_END                 0x034A
-+#define REG_X_OUTPUT_SIZE              0x034C
-+#define REG_Y_OUTPUT_SIZE              0x034E
-+#define REG_X_ODD_INC                  0x0382
-+#define REG_Y_ODD_INC                  0x0386
-+
-+#define REG_SCALING_MODE               0x0400
-+#define REG_SCALE_M                    0x0404
-+#define REG_SCALE_N                    0x0406
-+
-+#define REG_ROW_SPEED                  0x3016
-+#define REG_RESET_REGISTER             0x301A
-+#define REG_PIXEL_ORDER                        0x3024
-+#define REG_READ_MODE                  0x3040
-+
-+#define REG_DATAPATH_STATUS            0x306A
-+#define REG_DATAPATH_SELECT            0x306E
-+
-+#define REG_RESERVED_MFR_3064          0x3064
-+#define REG_TEST_PATTERN               0x3070
-+
-+
-+#define MT9P012_GAIN                   0x00
-+
-+/*
-+ * The nominal xclk input frequency of the MT9P012 is 12MHz, maximum
-+ * frequency is 64MHz, and minimum frequency is 2MHz.
-+ */
-+#define MT9P012_XCLK_MIN   2000000
-+#define MT9P012_XCLK_MAX   64000000
-+#define MT9P012_XCLK_NOM_1 12000000
-+#define MT9P012_XCLK_NOM_2 24000000
-+
-+#define MT9P012_USE_XCLKA      0
-+#define MT9P012_USE_XCLKB      1
-+
-+
-+/* FPS Capabilities */
-+#define MT9P012_MIN_FPS                11
-+#define MT9P012_DEF_FPS                15
-+#define MT9P012_MAX_FPS                30
-+
-+#define MT9P012_I2C_DELAY      3
-+#define I2C_RETRY_COUNT                5
-+
-+/* Still capture 5 MP */
-+#define IMAGE_WIDTH_MAX                2592
-+#define IMAGE_HEIGHT_MAX       1944
-+/* Still capture 3 MP and down to VGA, using ISP resizer */
-+#define IMAGE_WIDTH_MIN                2048
-+#define IMAGE_HEIGHT_MIN       1536
-+
-+
-+/* Video mode, for D1 NTSC, D1 PAL */
-+#define VIDEO_WIDTH_2X_BINN    1296
-+#define VIDEO_HEIGHT_2X_BINN   972
-+
-+/* Sensor Video mode size for VGA, CIF, QVGA in 4x binning mode */
-+#define VIDEO_WIDTH_4X_BINN    648
-+#define VIDEO_HEIGHT_4X_BINN   486
-+/* To improve image quality in VGA */
-+#define CIF_PIXELS             (352 * 288)
-+#define QQVGA_PIXELS           (160 * 120)
-+
-+/* Video mode, for QCIF, SQCIF */
-+#define VIDEO_WIDTH_4X_BINN_SCALED      216
-+#define VIDEO_HEIGHT_4X_BINN_SCALED     162
-+
-+/* Default coarse integration times to get a good exposure */
-+#define COARSE_INT_TIME_216             550
-+#define COARSE_INT_TIME_648             550
-+#define COARSE_INT_TIME_216_30FPS      1350
-+#define COARSE_INT_TIME_648_30FPS      1350
-+#define COARSE_INT_TIME_1296           1000
-+#define COARSE_INT_TIME_3MP            1700
-+#define COARSE_INT_TIME_5MP            1700
-+#define COARSE_INT_TIME_INDEX          1
-+#define TST_PAT                        0x0
-+
-+/* Analog gain values */
-+#define MIN_GAIN       0x08
-+#define MAX_GAIN       0x7F
-+#define DEF_GAIN       0x43
-+#define GAIN_STEP      0x1
-+
-+#define GAIN_INDEX     1
-+
-+/* Exposure time values */
-+#define DEF_MIN_EXPOSURE       0x08
-+#define DEF_MAX_EXPOSURE       0x7F
-+#define DEF_EXPOSURE           0x43
-+#define EXPOSURE_STEP          1
-+
-+#define SENSOR_DETECTED                1
-+#define SENSOR_NOT_DETECTED    0
-+
-+/**
-+ * struct mt9p012_reg - mt9p012 register format
-+ * @length: length of the register
-+ * @reg: 16-bit offset to register
-+ * @val: 8/16/32-bit register value
++ * Contributors:
++ *     Sameer Venkatraman <sameerv@ti.com>
++ *     Mohit Jalori <mjalori@ti.com>
++ *     Sakari Ailus <sakari.ailus@nokia.com>
++ *     Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
 + *
-+ * Define a structure for MT9P012 register initialization values
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ *
 + */
-+struct mt9p012_reg {
-+       u16     length;
-+       u16     reg;
-+       u32     val;
++
++#ifndef OMAP34XXCAM_H
++#define OMAP34XXCAM_H
++
++#include <media/v4l2-int-device.h>
++#include "isp/isp.h"
++
++#define CAM_NAME "omap34xxcam"
++
++#define OMAP_ISP_AF            (1 << 4)
++#define OMAP_ISP_HIST          (1 << 5)
++#define OMAP34XXCAM_XCLK_NONE  -1
++#define OMAP34XXCAM_XCLK_A     0
++#define OMAP34XXCAM_XCLK_B     1
++
++#define OMAP34XXCAM_SLAVE_SENSOR       0
++#define OMAP34XXCAM_SLAVE_LENS         1
++#define OMAP34XXCAM_SLAVE_FLASH                2 /* This is the last slave! */
++
++#define OMAP34XXCAM_VIDEODEVS          4
++
++struct omap34xxcam_device;
++struct omap34xxcam_videodev;
++
++struct omap34xxcam_sensor_config {
++       int xclk;
++       int sensor_isp;
++       u32 capture_mem;
 +};
 +
-+enum image_size {
-+       BIN4XSCALE,
-+       BIN4X,
-+       BIN2X,
-+       THREE_MP,
-+       FIVE_MP
++struct omap34xxcam_lens_config {
 +};
 +
-+enum pixel_format {
-+       RAWBAYER10
-+};
-+
-+#define NUM_IMAGE_SIZES                5
-+#define NUM_PIXEL_FORMATS      1
-+#define NUM_FPS                        2       /* 2 ranges */
-+#define FPS_LOW_RANGE          0
-+#define FPS_HIGH_RANGE         1
-+
-+/**
-+ * struct capture_size - image capture size information
-+ * @width: image width in pixels
-+ * @height: image height in pixels
-+ */
-+struct capture_size {
-+       unsigned long width;
-+       unsigned long height;
-+};
-+
-+/**
-+ * struct mt9p012_platform_data - platform data values and access functions
-+ * @power_set: Power state access function, zero is off, non-zero is on.
-+ * @default_regs: Default registers written after power-on or reset.
-+ * @ifparm: Interface parameters access function
-+ * @priv_data_set: device private data (pointer) access function
-+ */
-+struct mt9p012_platform_data {
-+       int (*power_set)(enum v4l2_power power);
-+       const struct mt9p012_reg *default_regs;
-+       int (*ifparm)(struct v4l2_ifparm *p);
-+       int (*priv_data_set)(void *);
++struct omap34xxcam_flash_config {
 +};
 +
 +/**
-+ * struct mt9p012_pll_settings - struct for storage of sensor pll values
-+ * @vt_pix_clk_div: vertical pixel clock divider
-+ * @vt_sys_clk_div: veritcal system clock divider
-+ * @pre_pll_div: pre pll divider
-+ * @fine_int_tm: fine resolution interval time
-+ * @frame_lines: number of lines in frame
-+ * @line_len: number of pixels in line
-+ * @min_pll: minimum pll multiplier
-+ * @max_pll: maximum pll multiplier
++ * struct omap34xxcam_hw_config - struct for vidioc_int_g_priv ioctl
++ * @xclk: OMAP34XXCAM_XCLK_A or OMAP34XXCAM_XCLK_B
++ * @sensor_isp: Is sensor smart/SOC or raw
++ * @s_pix_sparm: Access function to set pix and sparm.
++ * Pix will override sparm
 + */
-+struct mt9p012_pll_settings {
-+       u16     vt_pix_clk_div;
-+       u16     vt_sys_clk_div;
-+       u16     pre_pll_div;
-+
-+       u16     fine_int_tm;
-+       u16     frame_lines;
-+       u16     line_len;
-+
-+       u16     min_pll;
-+       u16     max_pll;
++struct omap34xxcam_hw_config {
++       int dev_index; /* Index in omap34xxcam_sensors */
++       int dev_minor; /* Video device minor number */
++       int dev_type; /* OMAP34XXCAM_SLAVE_* */
++       union {
++               struct omap34xxcam_sensor_config sensor;
++               struct omap34xxcam_lens_config lens;
++               struct omap34xxcam_flash_config flash;
++       } u;
 +};
 +
-+/*
-+ * Array of image sizes supported by MT9P012.  These must be ordered from
-+ * smallest image size to largest.
++/**
++ * struct omap34xxcam_videodev - per /dev/video* structure
++ * @mutex: serialises access to this structure
++ * @cam: pointer to cam hw structure
++ * @master: we are v4l2_int_device master
++ * @sensor: sensor device
++ * @lens: lens device
++ * @flash: flash device
++ * @slaves: how many slaves we have at the moment
++ * @vfd: our video device
++ * @capture_mem: maximum kernel-allocated capture memory
++ * @if_u: sensor interface stuff
++ * @index: index of this structure in cam->vdevs
++ * @users: how many users we have
++ * @sensor_config: ISP-speicific sensor configuration
++ * @lens_config: ISP-speicific lens configuration
++ * @flash_config: ISP-speicific flash configuration
++ * @streaming: streaming file handle, if streaming is enabled
 + */
-+const static struct capture_size mt9p012_sizes[] = {
-+       {  216, 162 },  /* 4X BINNING+SCALING */
-+       {  648, 486 },  /* 4X BINNING */
-+       { 1296, 972 },  /* 2X BINNING */
-+       { 2048, 1536},  /* 3 MP */
-+       { 2592, 1944},  /* 5 MP */
++struct omap34xxcam_videodev {
++       struct mutex mutex; /* For serializing access to this structure */
++
++       struct omap34xxcam_device *cam;
++       struct v4l2_int_device master;
++
++#define vdev_sensor slave[OMAP34XXCAM_SLAVE_SENSOR]
++#define vdev_lens slave[OMAP34XXCAM_SLAVE_LENS]
++#define vdev_flash slave[OMAP34XXCAM_SLAVE_FLASH]
++       struct v4l2_int_device *slave[OMAP34XXCAM_SLAVE_FLASH + 1];
++
++       /* number of slaves attached */
++       int slaves;
++
++       /*** video device parameters ***/
++       struct video_device *vfd;
++       int capture_mem;
++
++       /*** general driver state information ***/
++       /*
++        * Sensor interface parameters: interface type, CC_CTRL
++        * register value and interface specific data.
++        */
++       u32 xclk;
++       /* index to omap34xxcam_videodevs of this structure */
++       int index;
++       atomic_t users;
++
++#define vdev_sensor_config slave_config[OMAP34XXCAM_SLAVE_SENSOR].u.sensor
++#define vdev_lens_config slave_config[OMAP34XXCAM_SLAVE_LENS].u.lens
++#define vdev_flash_config slave_config[OMAP34XXCAM_SLAVE_FLASH].u.flash
++       struct omap34xxcam_hw_config slave_config[OMAP34XXCAM_SLAVE_FLASH + 1];
++
++       /*** capture data ***/
++       struct v4l2_fract want_timeperframe;
++       struct v4l2_pix_format want_pix;
++       /* file handle, if streaming is on */
++       struct file *streaming;
 +};
 +
-+/* PLL settings for MT9P012 */
-+enum mt9p012_pll_type {
-+  PLL_5MP = 0,
-+  PLL_3MP,
-+  PLL_1296_15FPS,
-+  PLL_1296_30FPS,
-+  PLL_648_15FPS,
-+  PLL_648_30FPS,
-+  PLL_216_15FPS,
-+  PLL_216_30FPS
++/**
++ * struct omap34xxcam_device - per-device data structure
++ * @mutex: mutex serialises access to this structure
++ * @sgdma_in_queue: Number or sgdma requests in scatter-gather queue,
++ * protected by the lock above.
++ * @sgdma: ISP sgdma subsystem information structure
++ * @dma_notify: DMA notify flag
++ * @irq: irq number platform HW resource
++ * @mmio_base: register map memory base (platform HW resource)
++ * @mmio_base_phys: register map memory base physical address
++ * @mmio_size: register map memory size
++ * @dev: device structure
++ * @vdevs: /dev/video specific structures
++ * @fck: camera module fck clock information
++ * @ick: camera module ick clock information
++ */
++struct omap34xxcam_device {
++       struct mutex mutex; /* For serializing access to this structure */
++       int sgdma_in_queue;
++       struct isp_sgdma sgdma;
++       int dma_notify;
++
++       /*** platform HW resource ***/
++       unsigned int irq;
++       unsigned long mmio_base;
++       unsigned long mmio_base_phys;
++       unsigned long mmio_size;
++
++       /*** interfaces and device ***/
++       struct device *dev;
++       struct omap34xxcam_videodev vdevs[OMAP34XXCAM_VIDEODEVS];
++
++       /*** camera module clocks ***/
++       struct clk *fck;
++       struct clk *ick;
++       bool sensor_if_enabled;
 +};
 +
-+#endif /* ifndef MT9P012_H */
++/**
++ * struct omap34xxcam_fh - per-filehandle data structure
++ * @vbq_lock: spinlock for the videobuf queue
++ * @vbq: V4L2 video buffer queue structure
++ * @pix: V4L2 pixel format structure (serialise pix by vbq->lock)
++ * @field_count: field counter for videobuf_buffer
++ * @vdev: our /dev/video specific structure
++ */
++struct omap34xxcam_fh {
++       spinlock_t vbq_lock; /* For the videobuf queue */
++       struct videobuf_queue vbq;
++       struct v4l2_pix_format pix;
++       atomic_t field_count;
++       /* accessing cam here doesn't need serialisation: it's constant */
++       struct omap34xxcam_videodev *vdev;
++};
++
++#endif /* ifndef OMAP34XXCAM_H */
