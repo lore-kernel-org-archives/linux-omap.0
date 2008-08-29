@@ -1,29 +1,49 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: <Solved !!!> RE: OMAP35xx MUSB kernel crash with Linux 2.6.26
-Date: Fri, 29 Aug 2008 11:35:51 +0300
-Message-ID: <20080829083551.GT7354@gandalf.research.nokia.com>
-References: <19F8576C6E063C45BE387C64729E7394034F30B16D@dbde02.ent.ti.com> <19F8576C6E063C45BE387C64729E739403CD61A341@dbde02.ent.ti.com>
-Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: Enabling MUSB support
+Date: Fri, 29 Aug 2008 14:06:45 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02C418C358@dbde02.ent.ti.com>
+References: <1f11a5490808270626t5b4aa599i18b730d12a6c4667@mail.gmail.com>
+ <20080827133825.GC7354@gandalf.research.nokia.com>
+ <200808272354.28531.david-b@pacbell.net>
+ <20080828090719.GG7354@gandalf.research.nokia.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB02C40F5CAF@dbde02.ent.ti.com>
+ <20080828102842.GK7354@gandalf.research.nokia.com>
+ <20080828112032.GL7354@gandalf.research.nokia.com>
+ <19F8576C6E063C45BE387C64729E739403CD61A212@dbde02.ent.ti.com>
+ <20080829074908.GR7354@gandalf.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403CD61A341-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ext Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60059 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755860AbYH2IhD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Aug 2008 04:37:03 -0400
+In-Reply-To: <20080829074908.GR7354@gandalf.research.nokia.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: ext David Brownell <david-b@pacbell.net>, ext Ashwin Bihari <abihari@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Aug 29, 2008 at 02:01:27PM +0530, ext Gupta, Ajay Kumar wrote:
-> Back porting drivers/usb/storage from v2.6.27rc4 to v2.6.26-omap1 solved this kernel panic.
+> On Fri, Aug 29, 2008 at 10:11:00AM +0530, ext Gupta, Ajay Kumar wrote:
+> > 
+> > I tested MUSB controller on OMAP35xx EVM 
+> (omap3_evm_defconfig) for g_ether gadget and it works fine 
+> with Windows XP. I am using v2.6.26-omap2 tag.
+> 
+> ehehe, cool. So looks like the problem is either on tusb6010 or in
+> g_ether itself.
+> 
+> I'll bisect since I know 2.6.24-omap1 was working.
+> 
+> -- 
+> balbi
 
-Cool it wasn't a bug in musb :-)
+Er... I didn't get this.
 
-Thanks for notifying us about it.
+Q1. Why tusb6010?
+Q2. Given v2.6.26-omap2 is working, isn't 2.6.24-omap1 older
+and by default working?
 
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Anand
