@@ -1,99 +1,63 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.27-rc3-omap1] omap3 beagle: nand (mostly) cleanups
-Date: Fri, 29 Aug 2008 10:12:47 -0700
-Message-ID: <200808291012.47332.david-b@pacbell.net>
+From: Igor Stoppa <igor.stoppa@nokia.com>
+Subject: Re: Pin mux utility?
+Date: Fri, 29 Aug 2008 20:21:09 +0300
+Message-ID: <1220030469.19671.7.camel@localhost>
+References: <5e088bd90808290756k7c91d2dbu8e6593788d6a5d07@mail.gmail.com>
+	 <200808291017.40151.david-b@pacbell.net>
+Reply-To: igor.stoppa@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:35760 "HELO
-	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1758085AbYH2RT2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Aug 2008 13:19:28 -0400
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.105.134]:65147 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751469AbYH2RdJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Aug 2008 13:33:09 -0400
+In-Reply-To: <200808291017.40151.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: ext David Brownell <david-b@pacbell.net>
+Cc: Steve Sakoman <sakoman@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+Hi,
+On Fri, 2008-08-29 at 10:17 -0700, ext David Brownell wrote:
+> On Friday 29 August 2008, Steve Sakoman wrote:
+> > Is anyone aware of a utility to report the state of pin mux settings?
+> > 
+> > I'd like to verify that u-boot is setting things up properly.
+> 
+> CONFIG_OMAP_MUX_WARNINGS helps for some definitions of "properly":
+> when Linux needs one setting, but the boot loader leaves a different
+> one, you get a warning.  That's usually interpreted as u-boot doing
+> it wrong, except on devboards where the boot loader can't actually
+> know about all external hardware that might be hooked up (and how)
 
-Clean up the Beagle NAND config a bit:  use SZ_128K instead of
-an arithmetic expression for the NAND block size.  Set the
-NAND_BUSWIDTH_16 flag.  Make its init routine static.
+I'm probably a bit off topic, but since Tony started promoting the
+concept of multi-arch binary, well, i see it as a huge limitation the
+fact that the bootloader is expected to the right thing.
 
-(Unrelated:  make omap3_beagle_i2c_init be part of beagle_init.
-It shouldn't be called on non-beagle hardware; and beagle_init
-already runs with other arch_initcall code.)
+When thinking about our Nokia HW vs the TI SDP, even the bootloader is
+different (yes, we should move to uboot and i couldn't be happier, but
+it's not gonna happen at the moment).
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+In the multi arch case (but even single-arch, if we would like to
+support multiple boards with one single kernel binary) i see as a much
+more reasonable solution the case where the bootloader passes the board
+id to the kernel and the kernel loads the board-specific configuration
+in the form of a module.
+
+DVFS for example defeats the idea that the bootloader would be enough to
+setup properly the clock tree (of course it will do it, but only for 1
+OP and the setting can get lost the first time another OP is selected).
+
+Imho the bootloader should just do what the name suggests: load the
+kernel and boot it. In as minimal configuration as possible.
+
+-- 
+
+Cheers, Igor
+
 ---
- arch/arm/mach-omap2/board-omap3beagle.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- beagle.orig/arch/arm/mach-omap2/board-omap3beagle.c	2008-08-27 21:19:12.000000000 -0700
-+++ beagle/arch/arm/mach-omap2/board-omap3beagle.c	2008-08-27 21:21:18.000000000 -0700
-@@ -50,24 +50,24 @@ static struct mtd_partition omap3beagle_
- 	{
- 		.name		= "X-Loader",
- 		.offset		= 0,
--		.size		= 4*(64 * 2048),
-+		.size		= 4 * SZ_128K,
- 		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
- 	},
- 	{
- 		.name		= "U-Boot",
- 		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
--		.size		= 15*(64 * 2048),
-+		.size		= 15 * SZ_128K,
- 		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
- 	},
- 	{
- 		.name		= "U-Boot Env",
- 		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x260000 */
--		.size		= 1*(64 * 2048),
-+		.size		= 1 * SZ_128K,
- 	},
- 	{
- 		.name		= "Kernel",
- 		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
--		.size		= 32*(64 * 2048),
-+		.size		= 32 * SZ_128K,
- 	},
- 	{
- 		.name		= "File System",
-@@ -77,6 +77,7 @@ static struct mtd_partition omap3beagle_
- };
- 
- static struct omap_nand_platform_data omap3beagle_nand_data = {
-+	.options	= NAND_BUSWIDTH_16,
- 	.parts		= omap3beagle_nand_partitions,
- 	.nr_parts	= ARRAY_SIZE(omap3beagle_nand_partitions),
- 	.dma_channel	= -1,		/* disable DMA in OMAP NAND driver */
-@@ -205,7 +206,7 @@ static struct platform_device *omap3_bea
- 	&keys_gpio,
- };
- 
--void __init omap3beagle_flash_init(void)
-+static void __init omap3beagle_flash_init(void)
- {
- 	u8 cs = 0;
- 	u8 nandcs = GPMC_CS_NUM + 1;
-@@ -245,6 +246,7 @@ void __init omap3beagle_flash_init(void)
- 
- static void __init omap3_beagle_init(void)
- {
-+	omap3_beagle_i2c_init();
- 	platform_add_devices(omap3_beagle_devices, ARRAY_SIZE(omap3_beagle_devices));
- 	omap_board_config = omap3_beagle_config;
- 	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
-@@ -255,8 +257,6 @@ static void __init omap3_beagle_init(voi
- 	omap3beagle_flash_init();
- }
- 
--arch_initcall(omap3_beagle_i2c_init);
--
- static void __init omap3_beagle_map_io(void)
- {
- 	omap2_set_globals_343x();
+Igor Stoppa
+Maemo Software - Nokia Devices R&D - Helsinki
