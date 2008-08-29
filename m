@@ -1,51 +1,66 @@
-From: Adrian Bunk <bunk@kernel.org>
-Subject: [RFC: 2.6 patch] fix arch/arm/plat-omap/gpio.c compilation
-Date: Fri, 29 Aug 2008 12:23:21 +0300
-Message-ID: <20080829092321.GG16462@cs181140183.pp.htv.fi>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: Enabling MUSB support
+Date: Fri, 29 Aug 2008 12:25:06 +0300
+Message-ID: <20080829092506.GA7041@gandalf.research.nokia.com>
+References: <200808272354.28531.david-b@pacbell.net> <20080828090719.GG7354@gandalf.research.nokia.com> <5A47E75E594F054BAF48C5E4FC4B92AB02C40F5CAF@dbde02.ent.ti.com> <20080828102842.GK7354@gandalf.research.nokia.com> <20080828112032.GL7354@gandalf.research.nokia.com> <19F8576C6E063C45BE387C64729E739403CD61A212@dbde02.ent.ti.com> <20080829074908.GR7354@gandalf.research.nokia.com> <5A47E75E594F054BAF48C5E4FC4B92AB02C418C358@dbde02.ent.ti.com> <20080829091812.GW7354@gandalf.research.nokia.com> <5A47E75E594F054BAF48C5E4FC4B92AB02C418C399@dbde02.ent.ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4.pp.htv.fi ([213.243.153.38]:43035 "EHLO smtp4.pp.htv.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752118AbYH2JYX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Aug 2008 05:24:23 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:18623 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752361AbYH2JZQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Aug 2008 05:25:16 -0400
 Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02C418C399@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: "ext Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, ext David Brownell <david-b@pacbell.net>, ext Ashwin Bihari <abihari@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This patch fixes the following compile error:
+On Fri, Aug 29, 2008 at 02:53:03PM +0530, ext Gadiyar, Anand wrote:
+> > -----Original Message-----
+> > From: Felipe Balbi [mailto:felipe.balbi@nokia.com] 
+> > On Fri, Aug 29, 2008 at 02:06:45PM +0530, ext Gadiyar, Anand wrote:
+> > > > On Fri, Aug 29, 2008 at 10:11:00AM +0530, ext Gupta, Ajay Kumar wrote:
+> > > > > 
+> > > > > I tested MUSB controller on OMAP35xx EVM 
+> > > > (omap3_evm_defconfig) for g_ether gadget and it works fine 
+> > > > with Windows XP. I am using v2.6.26-omap2 tag.
+> > > > 
+> > > > ehehe, cool. So looks like the problem is either on tusb6010 or in
+> > > > g_ether itself.
+> > > > 
+> > > > I'll bisect since I know 2.6.24-omap1 was working.
+> > > > 
+> > > > -- 
+> > > > balbi
+> > > 
+> > > Er... I didn't get this.
+> > > 
+> > > Q1. Why tusb6010?
+> > > Q2. Given v2.6.26-omap2 is working, isn't 2.6.24-omap1 older
+> > > and by default working?
+> > 
+> > Hmm... you got it working with v2.6.26... I'll bisect between that and
+> > HEAD so.
+> > 
+> 
+> I'm guessing you didn't see my previous mail [1].
+> 
+> Last known good commit is 509f205d6. That'll save you an iteration at least.
+> You can go from there, but there's nothing that's changed in the musb folder.
+> Strongly suggest you look in drivers/usb/gadget/*. Lots of changes there.
 
-<--  snip  -->
+Thanks.
 
-...
-  CC      arch/arm/plat-omap/gpio.o
-...
-arch/arm/plat-omap/gpio.c: In function '_omap_gpio_init':
-arch/arm/plat-omap/gpio.c:1492: error: 'omap_mpuio_device' undeclared (first use in this function)
-arch/arm/plat-omap/gpio.c:1492: error: (Each undeclared identifier is reported only once
-arch/arm/plat-omap/gpio.c:1492: error: for each function it appears in.)
-make[2]: *** [arch/arm/plat-omap/gpio.o] Error 1
+> And you may not be able to bisect unless you have hardware that's in mainline
+> or you take the changes manually each time - the usb/gadget/* stuff came in
+> from that way.
 
-<--  snip  -->
+When you find a commit that doesn't build, you reset to the previous
+buildable commit and try it out, git bisect will notice that and act
+accordingly
 
-Reported-by: Adrian Bunk <bunk@kernel.org>
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-
----
-
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 3e76ee2..9e1341e 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -1488,7 +1488,7 @@ static int __init _omap_gpio_init(void)
- 		bank->chip.set = gpio_set;
- 		if (bank_is_mpuio(bank)) {
- 			bank->chip.label = "mpuio";
--#ifdef CONFIG_ARCH_OMAP1
-+#ifdef CONFIG_ARCH_OMAP16XX
- 			bank->chip.dev = &omap_mpuio_device.dev;
- #endif
- 			bank->chip.base = OMAP_MPUIO(0);
-
+-- 
+balbi
