@@ -1,812 +1,1410 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 06/33] add tsl2563 driver
-Date: Sat, 30 Aug 2008 20:16:06 +0300
-Message-ID: <1220116593-862-7-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 08/33] add innovator ps2 keypad driver
+Date: Sat, 30 Aug 2008 20:16:08 +0300
+Message-ID: <1220116593-862-9-git-send-email-me@felipebalbi.com>
 References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-2-git-send-email-me@felipebalbi.com>
  <1220116593-862-3-git-send-email-me@felipebalbi.com>
  <1220116593-862-4-git-send-email-me@felipebalbi.com>
  <1220116593-862-5-git-send-email-me@felipebalbi.com>
  <1220116593-862-6-git-send-email-me@felipebalbi.com>
+ <1220116593-862-7-git-send-email-me@felipebalbi.com>
+ <1220116593-862-8-git-send-email-me@felipebalbi.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:43868 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:43937 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752746AbYH3RRs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:17:48 -0400
-In-Reply-To: <1220116593-862-6-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1752773AbYH3RSW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:18:22 -0400
+In-Reply-To: <1220116593-862-8-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-From: Felipe Balbi <felipe.balbi@nokia.com>
+=46rom: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/i2c/chips/Kconfig   |   10 +
- drivers/i2c/chips/Makefile  |    1 +
- drivers/i2c/chips/tsl2563.c |  739 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 750 insertions(+), 0 deletions(-)
- create mode 100644 drivers/i2c/chips/tsl2563.c
+ drivers/input/keyboard/Kconfig         |   10 +
+ drivers/input/keyboard/Makefile        |    1 +
+ drivers/input/keyboard/innovator_ps2.c | 1280 ++++++++++++++++++++++++=
+++++++++
+ 3 files changed, 1291 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/input/keyboard/innovator_ps2.c
 
-diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
-index 75d8a26..bd2a3a5 100644
---- a/drivers/i2c/chips/Kconfig
-+++ b/drivers/i2c/chips/Kconfig
-@@ -176,6 +176,16 @@ config SENSORS_TSL2550
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called tsl2550.
- 
-+config SENSORS_TSL2563
-+       tristate "Taos TSL2563 ambient light sensor"
-+       depends on I2C && HWMON
-+       help
-+         If you say yes here you get support for the Taos TSL2563
-+         ambient light sensor.
+diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kc=
+onfig
+index efd70a9..01d6421 100644
+--- a/drivers/input/keyboard/Kconfig
++++ b/drivers/input/keyboard/Kconfig
+@@ -259,6 +259,16 @@ config KEYBOARD_OMAP
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called omap-keypad.
+=20
++config OMAP_PS2
++	tristate "TI OMAP Innovator 1510 PS/2 keyboard & mouse support"
++	depends on ARCH_OMAP15XX && MACH_OMAP_INNOVATOR
++	help
++	  Say Y here if you want to use the OMAP Innovator 1510 PS/2
++	  keyboard and mouse.
 +
-+         This driver can also be built as a module.  If so, the module
-+         will be called tsl2563.
++	  To compile this driver as a module, choose M here: the
++	  module will be called innovator_ps2.
 +
- config LP5521
- 	tristate "LP5521 LED driver chip"
- 	depends on I2C
-diff --git a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
-index 32096cb..97e9acf 100644
---- a/drivers/i2c/chips/Makefile
-+++ b/drivers/i2c/chips/Makefile
-@@ -23,6 +23,7 @@ obj-$(CONFIG_SENSORS_TLV320AIC23) += tlv320aic23.o
- obj-$(CONFIG_GPIOEXPANDER_OMAP)	+= gpio_expander_omap.o
- obj-$(CONFIG_MENELAUS)		+= menelaus.o
- obj-$(CONFIG_SENSORS_TSL2550)	+= tsl2550.o
-+obj-$(CONFIG_SENSORS_TSL2563)	+= tsl2563.o
- obj-$(CONFIG_LP5521)		+= lp5521.o
- 
- ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
-diff --git a/drivers/i2c/chips/tsl2563.c b/drivers/i2c/chips/tsl2563.c
+ config KEYBOARD_PXA27x
+ 	tristate "PXA27x/PXA3xx keypad support"
+ 	depends on PXA27x || PXA3xx
+diff --git a/drivers/input/keyboard/Makefile b/drivers/input/keyboard/M=
+akefile
+index 0edc8f2..a48205b 100644
+--- a/drivers/input/keyboard/Makefile
++++ b/drivers/input/keyboard/Makefile
+@@ -19,6 +19,7 @@ obj-$(CONFIG_KEYBOARD_TOSA)		+=3D tosakbd.o
+ obj-$(CONFIG_KEYBOARD_HIL)		+=3D hil_kbd.o
+ obj-$(CONFIG_KEYBOARD_HIL_OLD)		+=3D hilkbd.o
+ obj-$(CONFIG_KEYBOARD_OMAP)		+=3D omap-keypad.o
++obj-$(CONFIG_OMAP_PS2)			+=3D innovator_ps2.o
+ obj-$(CONFIG_KEYBOARD_PXA27x)		+=3D pxa27x_keypad.o
+ obj-$(CONFIG_KEYBOARD_AAED2000)		+=3D aaed2000_kbd.o
+ obj-$(CONFIG_KEYBOARD_GPIO)		+=3D gpio_keys.o
+diff --git a/drivers/input/keyboard/innovator_ps2.c b/drivers/input/key=
+board/innovator_ps2.c
 new file mode 100644
-index 0000000..e05b880
+index 0000000..b3c4a06
 --- /dev/null
-+++ b/drivers/i2c/chips/tsl2563.c
-@@ -0,0 +1,739 @@
++++ b/drivers/input/keyboard/innovator_ps2.c
+@@ -0,0 +1,1280 @@
 +/*
-+ * drivers/i2c/chips/tsl2563.c
++ * drivers/char/innovator_ps2.c
 + *
-+ * Copyright (C) 2008 Nokia Corporation
++ * Basic PS/2 keyboard/mouse driver for the Juno=AE USAR HID controlle=
+r
++ * present on the TI Innovator/OMAP1510 Break-out-board.
 + *
-+ * Written by Timo O. Karjalainen <timo.o.karjalainen@nokia.com>
-+ * Contact: Mathias Nyman <mathias.nyman@nokia.com>
 + *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
++ * Author: MontaVista Software, Inc.
++ *         <gdavis@mvista.com> or <source@mvista.com>
 + *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
 + *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
++ * 2003 (c) MontaVista Software, Inc. This file is licensed under
++ * the terms of the GNU General Public License version 2. This program
++ * is licensed "as is" without any warranty of any kind, whether expre=
+ss
++ * or implied.
++ *
++ *
++ * REFERENCES:
++ *
++ * 1.	Technical Reference Manual
++ *	Juno=AE 01
++ *	Multi-function ICs family
++ *	UR8HC007-001 HID & Power management controller
++ *	Document Number: DOC8-007-001-TR-075
++ *	Date: February 2002
++ *	Copyright =A91998-2002 Semtech Corporation
++ *	http://www.semtech.com/pdf/doc8-007-001-tr.pdf
++ *
++ * 2.	Juno=AE 01 UR8HC007-001 Data Sheet
++ *	Extremely Low-power Input Device and Power Management IC
++ *	Copyright =A91998-2002 Semtech Corporation
++ *	DOC8-007-001-DS-112
++ *	http://www.semtech.com/pdf/doc8-007-001-ds.pdf
++ *
++ *
++ * HISTORY:
++ *
++ * 20030626: George G. Davis <gdavis@mvista.com>
++ *      Initially based on the following RidgeRun DSPlinux Version 1.6=
+ files:
++ *		linux-2.4.15-rmk1-dsplinux/arch/arm/dsplinux/hid/omap1510_hid.c
++ *		linux-2.4.15-rmk1-dsplinux/arch/arm/dsplinux/hid/omap1510_hid.h
++ *		linux-2.4.15-rmk1-dsplinux/arch/arm/dsplinux/hid/omap1510_ps2.c
++ *		linux-2.4.15-rmk1-dsplinux/arch/arm/dsplinux/hid/omap1510_spi.c
++ *	All original files above are
++ *		Copyright (C) 2001 RidgeRun, Inc.
++ *		Author: Alex McMains <aam@ridgerun.com>
++ *
++ * 20040812: Thiago Radicchi <trr@dcc.ufmg.br>
++ *      Cleanup of old code from 2.4 driver and some debug code.
++ *      Minor changes in interrupt handling code.
++ *
++ * NOTES:
++ *
++ * 1. This driver does not provide support for setting keyboard/mouse
++ *    configuration parameters. Both devices are managed directly by
++ *    the Juno UR8HC007-001 on behalf of the host. This minimises the
++ *    amount of host processing required to manage HID events and stat=
+e
++ *    changes, e.g. both keyboard and mouse devices are hot pluggable
++ *    with no host intervention required. However, we cannot customise
++ *    keyboard/mouse settings in this case. So we live with the defaul=
+ts
++ *    as setup by the Juno UR8HC007-001 whatever they may be.
++ * 2. Keyboard auto repeat does not work. See 1 above. : )
++ *
++ *
++ * TODO:
++ *
++ * 1. Complete DPM/LDM stubs and test.
++ * 2. Add SPI error handling support, i.e. resend, etc.,.
++ * 3. Determine why innovator_hid_interrupt() is called for every
++ *    invocation of Innovator FPGA IRQ demux. It appears that the
++ *    missed Innovator ethernet workaround may be to blame. However,
++ *    it does not adversely affect operation of this driver since we
++ *    check for assertion of ATN prior to servicing the interrupt. If
++ *    ATN is negated, we bug out right away.
++ *
 + */
 +
++#include <linux/version.h>
++#include <linux/stddef.h>
 +#include <linux/module.h>
-+#include <linux/i2c.h>
-+#include <linux/interrupt.h>
-+#include <linux/sched.h>
-+#include <linux/mutex.h>
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/types.h>
 +#include <linux/delay.h>
++#include <linux/types.h>
++#include <linux/ptrace.h>
++#include <linux/sched.h>
++#include <linux/interrupt.h>
++#include <linux/input.h>
++#include <linux/slab.h>
++#include <linux/fs.h>
++#include <linux/miscdevice.h>
++#include <linux/poll.h>
++#include <linux/string.h>
++#include <linux/ioport.h>
 +#include <linux/platform_device.h>
-+#include <linux/pm.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
-+#include <mach/board.h>
 +
-+#define DRIVER_NAME  "tsl2563"
++#include <asm/io.h>
++#include <asm/hardware.h>
++#include <asm/irq.h>
++#include <asm/uaccess.h>
++#include <asm/arch/fpga.h>
 +
-+/* Use this many bits for fraction part. */
-+#define ADC_FRAC_BITS		(14)
++#undef	INNOVATOR_KEYB_DEBUG
++#ifdef	INNOVATOR_KEYB_DEBUG
++#define	dbg(format, arg...) printk(KERN_DEBUG "%s:%d: " format , \
++				   __FUNCTION__ , __LINE__ , ## arg)
++#define	entry()	printk(KERN_DEBUG "%s:%d: Entry\n" , __FUNCTION__ , __=
+LINE__)
++#define	exit()	printk(KERN_DEBUG "%s:%d: Exit\n" , __FUNCTION__ , __LI=
+NE__)
++#define dump_packet(p, n)					\
++	{							\
++		int i;						\
++		printk(KERN_DEBUG "%s:%d: %08x:" ,		\
++		       __FUNCTION__ , __LINE__ , (int) p);	\
++		for (i =3D 0; i < n; i +=3D 1) {			\
++			printk(" %02x", (int) p[i]);		\
++		}						\
++		printk("\n");					\
++	}
++#else
++#define	dbg(format, arg...) do {} while (0)
++#define	entry()	do {} while (0)
++#define	exit()	do {} while (0)
++#define dump_packet(p, n) do {} while (0)
++#endif
 +
-+/* Given number of 1/10000's in ADC_FRAC_BITS precision. */
-+#define FRAC10K(f)		(((f) * (1L << (ADC_FRAC_BITS))) / (10000))
 +
-+/* Bits used for fraction in calibration coefficients.*/
-+#define CALIB_FRAC_BITS		(10)
-+/* 0.5 in CALIB_FRAC_BITS precision */
-+#define CALIB_FRAC_HALF		(1 << (CALIB_FRAC_BITS - 1))
-+/* Make a fraction from a number n that was multiplied with b. */
-+#define CALIB_FRAC(n, b)	(((n) << CALIB_FRAC_BITS) / (b))
-+/* Decimal 10^(digits in sysfs presentation) */
-+#define CALIB_BASE_SYSFS	(1000)
++#define	PFX	"innovator_ps2"
++#define err(format, arg...)	printk(KERN_ERR PFX ": " format , ## arg)
++#define info(format, arg...)	printk(KERN_INFO PFX ": " format , ## arg=
+)
++#define warn(format, arg...)	printk(KERN_WARNING PFX ": " format , ## =
+arg)
 +
-+#define TSL2563_CMD		(0x80)
-+#define TSL2563_CLEARINT	(0x40)
 +
-+#define TSL2563_REG_CTRL	(0x00)
-+#define TSL2563_REG_TIMING	(0x01)
-+#define TSL2563_REG_LOWLOW	(0x02) /* data0 low threshold, 2 bytes */
-+#define TSL2563_REG_LOWHIGH	(0x03)
-+#define TSL2563_REG_HIGHLOW	(0x04) /* data0 high threshold, 2 bytes */
-+#define TSL2563_REG_HIGHHIGH	(0x05)
-+#define TSL2563_REG_INT		(0x06)
-+#define TSL2563_REG_ID		(0x0a)
-+#define TSL2563_REG_DATA0LOW	(0x0c) /* broadband sensor value, 2 bytes */
-+#define TSL2563_REG_DATA0HIGH	(0x0d)
-+#define TSL2563_REG_DATA1LOW	(0x0e) /* infrared sensor value, 2 bytes */
-+#define TSL2563_REG_DATA1HIGH	(0x0f)
-+
-+#define TSL2563_CMD_POWER_ON	(0x03)
-+#define TSL2563_CMD_POWER_OFF	(0x00)
-+#define TSL2563_CTRL_POWER_MASK	(0x03)
-+
-+#define TSL2563_TIMING_13MS	(0x00)
-+#define TSL2563_TIMING_100MS	(0x01)
-+#define TSL2563_TIMING_400MS	(0x02)
-+#define TSL2563_TIMING_MASK	(0x03)
-+#define TSL2563_TIMING_GAIN16	(0x10)
-+#define TSL2563_TIMING_GAIN1	(0x00)
-+
-+#define TSL2563_INT_DISBLED	(0x00)
-+#define TSL2563_INT_LEVEL	(0x10)
-+#define TSL2563_INT_PERSIST(n)	((n) & 0x0F)
-+
-+struct tsl2563_gainlevel_coeff {
-+	u8 gaintime;
-+	u16 min;
-+	u16 max;
-+};
-+
-+static struct tsl2563_gainlevel_coeff tsl2563_gainlevel_table[] = {
-+	{
-+		.gaintime	= TSL2563_TIMING_400MS | TSL2563_TIMING_GAIN16,
-+		.min		= 0,
-+		.max		= 65534,
-+	}, {
-+		.gaintime	= TSL2563_TIMING_400MS | TSL2563_TIMING_GAIN1,
-+		.min		= 2048,
-+		.max		= 65534,
-+	}, {
-+		.gaintime	= TSL2563_TIMING_100MS | TSL2563_TIMING_GAIN1,
-+		.min		= 4095,
-+		.max		= 37177,
-+	}, {
-+		.gaintime	= TSL2563_TIMING_13MS | TSL2563_TIMING_GAIN1,
-+		.min		= 3000,
-+		.max		= 65535,
-+	},
-+};
-+
-+struct tsl2563_chip {
-+	struct mutex		lock;
-+	struct i2c_client	*client;
-+	struct device		*hwmon_dev;
-+
-+	/* Remember state for suspend and resume functions */
-+	pm_message_t		state;
-+
-+	struct tsl2563_gainlevel_coeff *gainlevel;
-+
-+	/* Thresholds are in lux */
-+	u16			low_thres;
-+	u16			high_thres;
-+	u8			intr;
-+
-+	/* Calibration coefficients */
-+	u32			calib0;
-+	u32			calib1;
-+
-+	/* Cache current values, to be returned while suspended */
-+	u32			data0;
-+	u32			data1;
-+};
-+
-+static int tsl2563_write(struct i2c_client *client, u8 reg, u8 value)
-+{
-+	int ret;
-+	u8 buf[2];
-+
-+	buf[0] = TSL2563_CMD | reg;
-+	buf[1] = value;
-+
-+	ret = i2c_master_send(client, buf, sizeof(buf));
-+	return (ret == sizeof(buf)) ? 0 : ret;
-+}
-+
-+static int tsl2563_read(struct i2c_client *client, u8 reg, void *buf, int len)
-+{
-+	int ret;
-+	u8 cmd = TSL2563_CMD | reg;
-+
-+	ret = i2c_master_send(client, &cmd, sizeof(cmd));
-+	if (ret != sizeof(cmd))
-+		return ret;
-+
-+	return i2c_master_recv(client, buf, len);
-+}
-+
-+static int tsl2563_set_power(struct tsl2563_chip *chip, int on)
-+{
-+	struct i2c_client *client = chip->client;
-+	u8 cmd;
-+
-+	cmd = on ? TSL2563_CMD_POWER_ON : TSL2563_CMD_POWER_OFF;
-+	return tsl2563_write(client, TSL2563_REG_CTRL, cmd);
-+}
++/*********************************************************************=
+*******/
 +
 +/*
-+ * Return value is 0 for off, 1 for on, or a negative error
-+ * code if reading failed.
++ * Synchronous communications timing parameters (Reference [1] pg 7-7)
 + */
-+static int tsl2563_get_power(struct tsl2563_chip *chip)
++
++#define tMSA	5000	/* -/5ms	_SS to _ATN (master transfer) */
++#define tMAC	100	/* 100us/5ms	_ATN to first clock pulse (master
++					transfer) */
++#define tMIB	150	/* 150us/5ms	Beginning of byte transfer to beginning
++					of next byte transfer */
++#define tSIB	150	/* 150us/5ms	Beginning of byte transfer to beginning
++					of next byte transfer */
++#define tMSP	100	/* -/100us	Last clock pulse of packet to _SS
++					de-assertion */
++#define tMNSA	100	/* -/100us	_SS de-assertion to _ATN de-assertion */
++#define tMNEXT	120	/* 120uS/-	_ATN release to _SS re-assertion
++					(master transfer) */
++#define	tSAS	5000	/* -/5ms	_ATN to _SS (slave transfer) */
++#define tSSC	100	/* 100us/5ms	_SS to first clock pulse (slave
++					transfer) */
++#define tSNA	100	/* -/100us	Last clock pulse of packet to _ATN
++					de-assertion */
++#define tSNAS	100	/* -/100us	_ATN release to _SS de-assertion */
++#define tSNEXT	120	/* 120us/-	_SS release to _ATN re-assertion
++					(slave transfer) */
++#define tSCK	4	/* 4us/-	Clock period */
++#define tSLOW	2	/* 2us/-	Clock LOW period */
++#define tHOLD	200	/* 200ns/-	Master data hold time */
++#define tSETUP	100	/* 100ns/-	Master data setup Time */
++#define tSSETUP	500	/* -/500ns	Slave data setup time from clock
++					falling edge */
++
++
++/*
++ * Protocol Headers (Reference [1], pg. 5-1):
++ */
++
++
++/* Protocols used in commands issued by the host: */
++#define SIMPLE			0x80	/* Simple commands
++					 * Common for both host and controller
++					 * protocol headers.
++					 */
++#define WRITE_REGISTER_BIT	0x81	/* Write register bit */
++#define READ_REGISTER_BIT	0x82	/* Read register bit */
++#define WRITE_REGISTER		0x83	/* Write register */
++#define READ_REGISTER		0x84	/* Read register */
++#define WRITE_BLOCK		0x85	/* Write block */
++#define READ_BLOCK		0x86	/* Read block */
++
++
++/* Protocols used in responses, reports and alerts issued by the contr=
+oller: */
++#define REPORT_REGISTER_BIT	0x81	/* Report register bit & event alerts=
+ */
++#define REPORT_REGISTER		0x83	/* Report register */
++#define REPORT_BLOCK		0x85	/* Report block */
++#define POINTING_REPORT		0x87	/* Pointing device data report */
++#define KEYBOARD_REPORT		0x88	/* Keyboard device data report */
++
++
++/* Simple Commands (Reference [1], pg 5-3): */
++#define INITIALIZE		0x00	/* Forces the recipient to enter the
++					 * known default power-on state.
++					 */
++#define INITIALIZATION_COMPLETE	0x01	/* Issued as a hand-shake respons=
+e only
++					 * to the "Initialize" command.
++					 */
++#define RESEND_REQUEST		0x05	/* Issued upon error in the reception
++					 * of a package. The recipient resends
++					 * the last transmitted packet.
++					 */
++
++/* Register offsets (Reference [1], pg 6-1 thru 6-9): */
++
++#define REG_PM_COMM		0
++#define REG_PM_STATUS		1
++#define REG_PAGENO		255
++
++/* Power management bits ((Reference [1], pg 6-10): */
++
++#define SUS_STATE		0x2	/* in REG_PM_COMM */
++
++/* Miscellaneous constants: */
++
++#define X_MSB_SHIFT	(8-4)
++#define X_MSB_MASK	(3<<4)
++#define Y_MSB_SHIFT	(8-6)
++#define Y_MSB_MASK	(3<<6)
++
++
++#define JUNO_BLOCK_SIZE     32
++#define JUNO_BUFFER_SIZE    256
++
++
++/*
++ * Errors:
++ */
++
++#define E_BAD_HEADER	1
++#define E_BAD_LRC	2
++#define E_ZERO_BYTES	3
++#define E_BAD_VALUE	4
++#define E_BAD_MODE	5
++#define E_REPORT_MODE	6
++#define E_BAD_ACK	7
++#define E_BAD_DEVICE_ID	8
++#define E_PKT_SZ	9
++
++
++/*
++ * Host/Controller Command/Response Formats:
++ */
++
++typedef struct _simple_t {
++	u8 header;
++	u8 cmd_code;
++	u8 LRC;
++} __attribute__ ((packed)) simple_t;
++
++typedef struct _write_bit_t {
++	u8 header;
++	u8 offset;
++	u8 value_bit;
++	u8 LRC;
++} __attribute__ ((packed)) write_bit_t;
++
++typedef struct _read_bit_t {
++	u8 header;
++	u8 offset;
++	u8 bit;
++	u8 LRC;
++} __attribute__ ((packed)) read_bit_t;
++
++typedef struct _write_reg_t {
++	u8 header;
++	u8 offset;
++	u8 value;
++	u8 LRC;
++} __attribute__ ((packed)) write_reg_t;
++
++typedef struct _read_reg_t {
++	u8 header;
++	u8 offset;
++	u8 LRC;
++} __attribute__ ((packed)) read_reg_t;
++
++typedef struct _write_block_t {
++	u8 header;
++	u8 offset;
++	u8 length;
++	u8 block[JUNO_BLOCK_SIZE + 1]; /* Hack: LRC is last element of block[=
+] */
++} __attribute__ ((packed)) write_block_t;
++
++typedef struct _read_block_t {
++	u8 header;
++	u8 offset;
++	u8 length;
++	u8 LRC;
++} __attribute__ ((packed)) read_block_t;
++
++typedef struct _report_bit_t {
++	u8 header;
++	u8 offset;
++	u8 value_bit;
++	u8 LRC;
++} __attribute__ ((packed)) report_bit_t;
++
++typedef struct _report_reg_t {
++	u8 header;
++	u8 offset;
++	u8 value;
++	u8 LRC;
++} __attribute__ ((packed)) report_reg_t;
++
++typedef struct _report_block_t {
++	u8 header;
++	u8 offset;
++	u8 length;
++	u8 block[32];
++	u8 LRC;
++} __attribute__ ((packed)) report_block_t;
++
++typedef struct _mse_report_t {
++	u8 header;
++	u8 buttons;
++	u8 Xdisplacement;
++	u8 Ydisplacement;
++	u8 Zdisplacement;
++	u8 LRC;
++} __attribute__ ((packed)) mse_report_t;
++
++typedef struct _kdb_report_t {
++	u8 header;
++	u8 keynum;		/* up > 0x80, down < 0x7E, all keys up 0x00 */
++	u8 LRC;
++} __attribute__ ((packed)) kdb_report_t;
++
++
++static u8 buffer[JUNO_BUFFER_SIZE];
++
++static void do_hid_tasklet(unsigned long);
++DECLARE_TASKLET(hid_tasklet, do_hid_tasklet, 0);
++static struct innovator_hid_dev *hid;
++
++struct innovator_hid_dev {
++	struct input_dev *mouse, *keyboard;
++	int open;
++	int irq_enabled;
++};
++
++/*********************************************************************=
+*******/
++
++/*
++ * Low-level TI Innovator/OMAP1510 FPGA HID SPI interface helper funct=
+ions:
++ */
++
++static u8
++innovator_fpga_hid_rd(void)
 +{
-+	struct i2c_client *client = chip->client;
-+	int ret;
-+	u8 val;
-+
-+	ret = tsl2563_read(client, TSL2563_REG_CTRL, &val, sizeof(val));
-+	if (ret != sizeof(val))
-+		return ret;
-+
-+	return (val & TSL2563_CTRL_POWER_MASK) == TSL2563_CMD_POWER_ON;
++	u8 val =3D inb(INNOVATOR_FPGA_HID_SPI);
++	return val;
 +}
 +
-+static int tsl2563_configure(struct tsl2563_chip *chip)
++static void
++innovator_fpga_hid_wr(u8 val)
 +{
-+	struct i2c_client *client = chip->client;
-+	int ret;
++	outb(val, INNOVATOR_FPGA_HID_SPI);
++}
 +
-+	ret = tsl2563_write(client, TSL2563_REG_TIMING,
-+			chip->gainlevel->gaintime);
-+	if (ret)
-+		goto out;
++static void
++innovator_fpga_hid_frob(u8 mask, u8 val)
++{
++	unsigned long flags;
++	local_irq_save(flags);
++	innovator_fpga_hid_wr((innovator_fpga_hid_rd() & ~mask) | val);
++	local_irq_restore(flags);
++}
 +
-+	ret = tsl2563_write(client, TSL2563_REG_INT, chip->intr);
++static void
++innovator_fpga_hid_set_bits(u8 x)
++{
++	innovator_fpga_hid_frob(x, x);
++}
 +
-+out:
++static void
++SS(int value)
++{
++	innovator_fpga_hid_frob(OMAP1510_FPGA_HID_nSS, value ? OMAP1510_FPGA_=
+HID_nSS : 0);
++}
++
++static void
++SCLK(int value)
++{
++	innovator_fpga_hid_frob(OMAP1510_FPGA_HID_SCLK, value ? OMAP1510_FPGA=
+_HID_SCLK : 0);
++}
++
++static void
++MOSI(int value)
++{
++	innovator_fpga_hid_frob(OMAP1510_FPGA_HID_MOSI, value ? OMAP1510_FPGA=
+_HID_MOSI : 0);
++}
++
++static u8
++MISO(void)
++{
++	return ((innovator_fpga_hid_rd() & OMAP1510_FPGA_HID_MISO) ? 1 : 0);
++}
++
++static u8=20
++ATN(void)
++{
++	return ((innovator_fpga_hid_rd() & OMAP1510_FPGA_HID_ATN) ? 1 : 0);
++}
++
++static int
++wait_for_ATN(int assert, int timeout)
++{
++	do {
++		if (ATN() =3D=3D assert)
++			return 0;
++		udelay(1);
++	} while (timeout -=3D 1);
++	return -1;
++}
++
++static u8
++innovator_fpga_hid_xfer_byte(u8 xbyte)
++{
++	int i;
++	u8 rbyte;
++
++	for (rbyte =3D 0, i =3D 7; i >=3D 0; i -=3D 1) {
++		SCLK(0);
++		MOSI((xbyte >> i) & 1);
++		udelay(tSLOW);
++		SCLK(1);
++		rbyte =3D (rbyte << 1) | MISO();
++		udelay(tSLOW);
++	}
++
++	return rbyte;
++}
++
++static void
++innovator_fpga_hid_reset(void)
++{
++	innovator_fpga_hid_wr(OMAP1510_FPGA_HID_SCLK | OMAP1510_FPGA_HID_MOSI=
+);
++	mdelay(1);
++	innovator_fpga_hid_set_bits(OMAP1510_FPGA_HID_RESETn);
++}
++
++
++/*********************************************************************=
+********
++
++  Refer to Reference [1], Chapter 7 / Low-level communications, Serial
++  Peripheral Interface (SPI) implementation Host (master) packet
++  transmission timing, pg. 7-3, for timing and implementation details
++  for spi_xmt().
++
++ *********************************************************************=
+********/
++
++int
++spi_xmt(u8 * p, u8 n)
++{
++	unsigned long flags;
++
++	dump_packet(p, n);
++	local_irq_save(flags);
++	disable_irq(OMAP1510_INT_FPGA_ATN);
++
++	if (ATN()) {
++		/* Oops, we have a collision. */
++		enable_irq(OMAP1510_INT_FPGA_ATN);
++		local_irq_restore(flags);
++		dbg("Protocol error: ATN is asserted\n");
++		return -EAGAIN;
++	}
++
++	SS(1);
++
++	if (wait_for_ATN(1, tMSA) < 0) {
++		SS(0);
++		enable_irq(OMAP1510_INT_FPGA_ATN);
++		local_irq_restore(flags);
++		dbg("timeout waiting for ATN assertion\n");
++		return -EREMOTEIO;
++	}
++
++	udelay(tMAC);
++
++	while (n--) {
++		innovator_fpga_hid_xfer_byte(*p++);
++		if (n) {
++			udelay(tMIB - 8 * tSCK);
++		}
++	}
++
++	MOSI(1);	/* Set MOSI to idle high. */
++
++	/* NOTE: The data sheet does not specify a minimum delay
++	 * here. But innovator_fpga_hid_xfer_byte() gives us a half-clock
++	 * delay (tSLOW) after the last bit is sent. So I'm happy with
++	 * that.
++	 */
++
++	SS(0);
++
++	if (wait_for_ATN(0, tMNSA) < 0) {
++		enable_irq(OMAP1510_INT_FPGA_ATN);
++		local_irq_restore(flags);
++		dbg("timeout waiting for ATN negation\n");
++		return -EREMOTEIO;
++	}
++
++	udelay(tMNEXT);
++	enable_irq(OMAP1510_INT_FPGA_ATN);
++	local_irq_restore(flags);
++	return 0;
++}
++
++
++/*********************************************************************=
+********
++
++  Refer to Reference [1],  Chapter 7 / Low-level communications, Seria=
+l
++  Peripheral Interface (SPI) implementation, Slave packet transmission
++  timing, pg. 7-5, for timing and implementation details for spi_rcv()=
+=2E
++
++ *********************************************************************=
+********/
++
++int
++spi_rcv(u8 * p, int len)
++{
++	unsigned long flags;
++	int ret =3D 0;
++
++	if (len > 256) {
++		/* Limit packet size to something reasonable */
++		return -1;
++	}
++
++	local_irq_save(flags);
++
++	if (wait_for_ATN(1, tMSA) < 0) {
++		local_irq_restore(flags);
++		dbg("Protocol error: ATN is not asserted\n");
++		return -EREMOTEIO;
++	}
++
++	SS(1);
++
++	udelay(tSSC);
++
++	while (ATN()) {
++		if (ret >=3D len) {
++			err("over run error\n");
++			ret =3D -1;
++			break;
++		}
++		p[ret++] =3D innovator_fpga_hid_xfer_byte(0xff);
++		udelay(tSNA);	/* Wait long enough to detect negation of ATN
++				 * after last clock pulse of packet.
++				 *
++				 * NOTE: Normally, we need a minimum delay of
++				 *	 tSIB between the start of one byte
++				 *	 and the start of the next. However,
++				 *	 we also need to wait long enough
++				 *	 for the USAR to negate ATN before
++				 *	 starting the next byte. So we use
++				 *	 max(tSIB - 8 * tSCK, tSNA) here to
++				 *	 satisfy both constraints.
++				 */
++	}
++
++	SS(0);	/* NOTE: The data sheet does not specify a minimum delay
++		 * here. But innovator_fpga_hid_xfer_byte() gives us a
++		 * half-clock delay (tSLOW) after the last bit is sent. So
++		 * I'm happy with that (rather than no delay at all : ).
++		 */
++
++
++	udelay(tSNEXT);	/* This isn't quite right. Assertion of ATN after
++			 * negation of SS is an USAR timing constraint.
++			 * What we need here is a spec for the minimum
++			 * delay from SS negation to SS assertion. But
++			 * for now, just use this brain dead delay.
++			 */
++
++	local_irq_restore(flags);
++
++	if (ret > 0) {
++		dump_packet(p, ret);
++	}
++
 +	return ret;
 +}
 +
-+static int tsl2563_detect(struct tsl2563_chip *chip)
++
++/*********************************************************************=
+********
++  Calculate Host/Controller Command/Response Longitudinal Redundancy C=
+heck (LRC)
++
++  The algorithm implemented in calculate_LRC() below is taken directly=
+ from
++  the reference [1], Chapter 7 / Low-level communications, LRC (Longit=
+udinal
++  Redundancy Check), pg 5-10.
++
++ *********************************************************************=
+********/
++
++static u8
++calculate_LRC(u8 * p, int n)
 +{
-+	int ret;
++	u8 LRC;
++	int i;
 +
-+	ret = tsl2563_set_power(chip, 1);
-+	if (ret)
-+		return ret;
++	/*
++	 * Init the LRC using the first two message bytes.
++	 */
++	LRC =3D p[0] ^ p[1];
 +
-+	ret = tsl2563_get_power(chip);
-+	if (ret < 0)
-+		return ret;
++	/*
++	 * Update the LRC using the remainder of the p.
++	 */
++	for (i =3D 2; i < n; i++)
++		LRC ^=3D p[i];
 +
-+	return ret ? 0 : -ENODEV;
++	/*
++	 * If the MSB is set then clear the MSB and change the next
++	 * most significant bit
++	 */
++	if (LRC & 0x80)
++		LRC ^=3D 0xC0;
++
++	return LRC;
 +}
 +
-+static int tsl2563_read_id(struct tsl2563_chip *chip, u8 *id)
++
++/*
++ * Controller response helper functions:
++ */
++
++static inline int
++report_mouse(mse_report_t * p, int n)
 +{
-+	struct i2c_client *client = chip->client;
++	if (p->header !=3D POINTING_REPORT)
++		return -E_BAD_HEADER;
++
++	if (n !=3D sizeof(mse_report_t))
++		return -E_PKT_SZ;
++
++	return (p->LRC !=3D calculate_LRC((u8 *) p, sizeof(mse_report_t) - 1)=
+) ?
++		-E_BAD_LRC : POINTING_REPORT;
++}
++
++static inline int
++report_keyboard(kdb_report_t * p, int n)
++{
++	if (p->header !=3D KEYBOARD_REPORT)
++		return -E_BAD_HEADER;
++
++	if (n !=3D sizeof(kdb_report_t))
++		return -E_PKT_SZ;
++
++	return (p->LRC !=3D calculate_LRC((u8 *) p, sizeof(kdb_report_t) - 1)=
+) ?
++		-E_BAD_LRC : KEYBOARD_REPORT;
++}
++
++
++/*
++ * Miscellaneous helper functions:
++ */
++
++static inline int
++report_type(u8 * type)
++{
++	/* check the header to find out what kind of report it is */
++	if ((*type) =3D=3D KEYBOARD_REPORT)
++		return KEYBOARD_REPORT;
++	else if ((*type) =3D=3D POINTING_REPORT)
++		return POINTING_REPORT;
++	else
++		return -E_BAD_HEADER;
++}
++
++static inline int
++report_async(void * p, int n)
++{
 +	int ret;
 +
-+	ret = tsl2563_read(client, TSL2563_REG_ID, id, sizeof(*id));
-+	if (ret != sizeof(*id))
++	if ((ret =3D spi_rcv((u8 *) p, n)) < 0)
 +		return ret;
++
++	if (report_type((u8 *) p) =3D=3D POINTING_REPORT)
++		ret =3D report_mouse((mse_report_t *) p, ret);
++	else if (report_type((u8 *) p) =3D=3D KEYBOARD_REPORT)
++		ret =3D report_keyboard((kdb_report_t *) p, ret);
++
++	return ret;
++}
++
++/*
++ * Host command helper functions:
++ */
++
++#if	0
++/* REVISIT/TODO: Wrapper for command/response with resend handing. */
++static int
++spi_xfer(u8 * optr, u8 osz, u8 * iptr, u8 isz)
++{
++	static u8 buf[256];
++	int ret;
++	int xretries =3D 3;
++
++	do {
++		if (optr !=3D NULL && osz) {
++			do {
++				ret =3D spi_xmt((u8 *) optr, osz);
++			} while (ret < 0);
++		}
++
++		ret =3D spi_rcv((u8 *) buf, 256);
++
++		if (ret =3D=3D -EREMOTEIO) {
++			if (iptr =3D=3D NULL) {
++				break;
++			}
++		}
++	} while (xretries--);
++
++	return ret;
++}
++#endif
++
++/* REVISIT: Enable these when/if additional Juno features are required=
+=2E */
++static inline int
++simple(u8 cmd)
++{
++	static simple_t p;
++	int ret;
++
++	p.header =3D SIMPLE;
++	p.cmd_code =3D cmd;
++	p.LRC =3D calculate_LRC((u8 *) & p, sizeof(p) - 1);
++
++	if ((ret =3D spi_xmt((u8 *) & p, sizeof(p))) < 0)
++		return ret;
++
++	if ((ret =3D spi_rcv((u8 *) & p, sizeof(p))) < 0)
++		return ret;
++
++	if (ret =3D=3D 0)
++		return -E_ZERO_BYTES;
++
++	if (ret !=3D sizeof(p))
++		return -E_PKT_SZ;
++
++	if (p.header !=3D SIMPLE)
++		return -E_BAD_HEADER;
++
++	if (p.LRC !=3D calculate_LRC((u8 *) & p, sizeof(p) - 1))
++		return -E_BAD_LRC;
++
++	/* REVISIT: Need to check or return response code here? */
++}
++
++static inline int
++write_bit(u8 offset, u8 bit, u8 value)
++{
++	static write_bit_t p;
++
++	p.header =3D WRITE_REGISTER_BIT;
++	p.offset =3D offset;
++	p.value_bit =3D (bit << 1) | (value & 1);
++	p.LRC =3D calculate_LRC((u8 *) & p, sizeof(p) - 1);
++
++	return spi_xmt((u8 *) & p, sizeof(p));
++}
++
++static inline int
++read_bit(u8 offset, u8 bit, u8 * data)
++{
++	static read_bit_t p;
++	static report_bit_t q;
++	int ret;
++
++	p.header =3D READ_REGISTER_BIT;
++	p.offset =3D offset;
++	p.bit =3D bit;
++	p.LRC =3D calculate_LRC((u8 *) & p, sizeof(p) - 1);
++
++	if ((ret =3D spi_xmt((u8 *) & p, sizeof(p))) < 0)
++		return ret;
++
++	if ((ret =3D spi_rcv((u8 *) & q, sizeof(q))) < 0)
++		return ret;
++
++	if (ret =3D=3D 0)
++		return -E_ZERO_BYTES;
++
++	if (ret !=3D sizeof(q))
++		return -E_PKT_SZ;
++
++	if (q.header !=3D REPORT_REGISTER_BIT)
++		return -E_BAD_HEADER;
++
++	if (q.LRC !=3D calculate_LRC((u8 *) & q, sizeof(q) - 1))
++		return -E_BAD_LRC;
++
++	*data =3D q.value_bit;
 +
 +	return 0;
 +}
 +
++static inline int
++write_reg(u8 offset, u8 value)
++{
++	static write_reg_t p;
++
++	p.header =3D WRITE_REGISTER;
++	p.offset =3D offset;
++	p.value =3D value;
++	p.LRC =3D calculate_LRC((u8 *) & p, sizeof(p) - 1);
++
++	return spi_xmt((u8 *) & p, sizeof(p));
++}
++
++static inline int
++read_reg(u8 offset, u8 * data)
++{
++	static read_reg_t p;
++	static report_reg_t q;
++	int ret;
++
++	p.header =3D READ_REGISTER;
++	p.offset =3D offset;
++	p.LRC =3D calculate_LRC((u8 *) & p, sizeof(p) - 1);
++
++	if ((ret =3D spi_xmt((u8 *) & p, sizeof(p))) < 0)
++		return ret;
++
++	if ((ret =3D spi_rcv((u8 *) & q, sizeof(q))) < 0)
++		return ret;
++
++	if (ret =3D=3D 0)
++		return -E_ZERO_BYTES;
++
++	if (ret !=3D sizeof(q))
++		return -E_PKT_SZ;
++
++	if (q.header !=3D REPORT_REGISTER)
++		return -E_BAD_HEADER;
++
++	if (q.LRC !=3D calculate_LRC((u8 *) & q, sizeof(q) - 1))
++		return -E_BAD_LRC;
++
++	*data =3D q.value;
++
++	return 0;
++}
++
++static inline int
++write_block(u8 offset, u8 length, u8 * block)
++{
++	static write_block_t p;
++
++	p.header =3D WRITE_BLOCK;
++	p.offset =3D offset;
++	p.length =3D length;
++	memcpy(&p.block, block, length);
++	p.block[length] =3D calculate_LRC((u8 *) & p, 3 + length);
++
++	return spi_xmt((u8 *) & p, 4 + length);
++}
++
++static inline int
++read_block(u8 offset, u8 length, u8 * buf)
++{
++	static read_block_t p;
++	static report_block_t q;
++	int ret;
++
++	p.header =3D READ_BLOCK;
++	p.offset =3D offset;
++	p.length =3D length;
++	p.LRC =3D calculate_LRC((u8 *) & p, sizeof(p) - 1);
++
++	if ((ret =3D spi_xmt((u8 *) & p, sizeof(p))) < 0)
++		return ret;
++
++	if ((ret =3D spi_rcv((u8 *) & q, sizeof(q))) < 0)
++		return ret;
++
++	if (ret =3D=3D 0)
++		return -E_ZERO_BYTES;
++
++	if (ret !=3D sizeof(4 + q.length))
++		return -E_PKT_SZ;
++
++	if (q.header !=3D REPORT_BLOCK)
++		return -E_BAD_HEADER;
++
++	if (q.block[q.length] !=3D calculate_LRC((u8 *) & q, 3 + q.length))
++		return -E_BAD_LRC;
++
++	if (length !=3D q.length)
++		return -E_PKT_SZ;
++
++	memcpy(buf, &q.block, length);
++
++	return 0;
++}
++
++#ifdef	INNOVATOR_KEYB_DEBUG
++static void
++ctrl_dump_regs(void)
++{
++	int i;
++	int n;
++
++	for (i =3D 0; i < 256; i +=3D 8) {
++		read_block(i, 16, buffer);
++		mdelay(1);
++	}
++}
++#endif
++
++/*********************************************************************=
+********/
++
++static void
++process_pointing_report(struct innovator_hid_dev *hid, u8 * buffer)
++{
++	static int prev_x, prev_y, prev_btn;
++	int x, y, btn;
++	hid->keyboard =3D input_allocate_device();
++	hid->mouse =3D input_allocate_device();
++
++	if (buffer[1] & (1 << 3)) {
++		/* relative pointing device report */
++		x =3D buffer[2];
++		y =3D buffer[3];
++
++		/* check the sign and convert from 2's complement if negative */
++		if (buffer[1] & (1<<4))
++			x =3D ~(-x) - 255;
++
++		/* input driver wants -y */
++		if (buffer[1] & (1<<5))
++			y =3D -(~(-y) - 255);
++		else
++			y =3D -y;
++
++		input_report_key(hid->mouse,
++				 BTN_LEFT, buffer[1] & (1<<0));
++		input_report_key(hid->mouse,
++				 BTN_RIGHT, buffer[1] & (1<<1));
++		input_report_key(hid->mouse,
++				 BTN_MIDDLE, buffer[1] & (1<<2));
++		input_report_rel(hid->mouse, REL_X, x);
++		input_report_rel(hid->mouse, REL_Y, y);
++	} else {
++		/* REVISIT: Does this work? */
++		/* absolute pointing device report */
++		x =3D buffer[2] + ((buffer[1] & X_MSB_MASK) << X_MSB_SHIFT);
++		y =3D buffer[3] + ((buffer[1] & Y_MSB_MASK) << Y_MSB_SHIFT);
++		btn =3D buffer[1] & (1<<0);
++
++		if ((prev_x =3D=3D x) && (prev_y =3D=3D y)
++		    && (prev_btn =3D=3D btn))
++			return;
++
++		input_report_key(hid->mouse, BTN_LEFT, btn);
++		input_report_abs(hid->mouse, ABS_X, x);
++		input_report_abs(hid->mouse, ABS_Y, y);
++		prev_x =3D x;
++		prev_y =3D y;
++		prev_btn =3D btn;
++	}
++	input_sync(hid->mouse);
++	dbg("HID X: %d Y: %d Functions: %x\n", x, y, buffer[1]);
++}
++
 +/*
-+ * "Normalized" ADC value is one obtained with 400ms of integration time and
-+ * 16x gain. This function returns the number of bits of shift needed to
-+ * convert between normalized values and HW values obtained using given
-+ * timing and gain settings.
-+ */
-+static int adc_shiftbits(u8 timing)
-+{
-+	int shift = 0;
-+
-+	switch (timing & TSL2563_TIMING_MASK) {
-+	case TSL2563_TIMING_13MS:
-+		shift += 5;
-+		break;
-+	case TSL2563_TIMING_100MS:
-+		shift += 2;
-+		break;
-+	case TSL2563_TIMING_400MS:
-+		/* no-op */
-+		break;
-+	}
-+
-+	if (!(timing & TSL2563_TIMING_GAIN16))
-+		shift += 4;
-+
-+	return shift;
-+}
-+
-+/* Convert a HW ADC value to normalized scale. */
-+static u32 normalize_adc(u16 adc, u8 timing)
-+{
-+	return adc << adc_shiftbits(timing);
-+}
-+
-+static void tsl2563_wait_adc(struct tsl2563_chip *chip)
-+{
-+	unsigned int delay;
-+
-+	switch (chip->gainlevel->gaintime & TSL2563_TIMING_MASK) {
-+	case TSL2563_TIMING_13MS:
-+		delay = 14;
-+		break;
-+	case TSL2563_TIMING_100MS:
-+		delay = 101;
-+		break;
-+	default:
-+		delay = 402;
-+	}
-+	/*
-+	 * TODO: Make sure that we wait at least required delay but why we
-+	 * have to extend it one tick more?
-+	 */
-+	schedule_timeout_interruptible(msecs_to_jiffies(delay) + 2);
-+}
-+
-+static int tsl2563_adjust_gainlevel(struct tsl2563_chip *chip, u16 adc)
-+{
-+	struct i2c_client *client = chip->client;
-+
-+	if (adc > chip->gainlevel->max || adc < chip->gainlevel->min) {
-+
-+		(adc > chip->gainlevel->max) ?
-+			chip->gainlevel++ : chip->gainlevel--;
-+
-+		tsl2563_write(client, TSL2563_REG_TIMING,
-+			      chip->gainlevel->gaintime);
-+
-+		tsl2563_wait_adc(chip);
-+		tsl2563_wait_adc(chip);
-+
-+		return 1;
-+	} else
-+		return 0;
-+}
-+
-+static int tsl2563_get_adc(struct tsl2563_chip *chip)
-+{
-+	struct i2c_client *client = chip->client;
-+	u8 buf0[2], buf1[2];
-+	u16 adc0, adc1;
-+	int retry = 1;
-+	int ret = 0;
-+
-+	if (chip->state.event != PM_EVENT_ON)
-+		goto out;
-+
-+	while (retry) {
-+		ret = tsl2563_read(client,
-+				   TSL2563_REG_DATA0LOW | TSL2563_CLEARINT,
-+				   buf0, sizeof(buf0));
-+		if (ret != sizeof(buf0))
-+			goto out;
-+
-+		ret = tsl2563_read(client, TSL2563_REG_DATA1LOW,
-+				   buf1, sizeof(buf1));
-+		if (ret != sizeof(buf1))
-+			goto out;
-+
-+		adc0 = (buf0[1] << 8) + buf0[0];
-+		adc1 = (buf1[1] << 8) + buf1[0];
-+
-+		retry = tsl2563_adjust_gainlevel(chip, adc0);
-+	}
-+
-+	chip->data0 = normalize_adc(adc0, chip->gainlevel->gaintime);
-+	chip->data1 = normalize_adc(adc1, chip->gainlevel->gaintime);
-+
-+	ret = 0;
-+out:
-+	return ret;
-+}
-+
-+static inline int calib_to_sysfs(u32 calib)
-+{
-+	return (int) (((calib * CALIB_BASE_SYSFS) +
-+		       CALIB_FRAC_HALF) >> CALIB_FRAC_BITS);
-+}
-+
-+static inline u32 calib_from_sysfs(int value)
-+{
-+	return (((u32) value) << CALIB_FRAC_BITS) / CALIB_BASE_SYSFS;
-+}
-+
-+/*
-+ * Conversions between lux and ADC values.
++ * Reference [1], Appendix A, Semtech standard PS/2 key number definit=
+ions,
++ * pgs. A-1 through A-3. The following table lists standard PS/2 key n=
+umbers
++ * used by the Juno=AE 01 keyboard manager.
 + *
-+ * The basic formula is lux = c0 * adc0 - c1 * adc1, where c0 and c1 are
-+ * appropriate constants. Different constants are needed for different
-+ * kinds of light, determined by the ratio adc1/adc0 (basically the ratio
-+ * of the intensities in infrared and visible wavelengths). lux_table below
-+ * lists the upper threshold of the adc1/adc0 ratio and the corresponding
-+ * constants.
++ * NOTES:
++ * 1. The following table indices are E0 codes which require special h=
+andling:
++ *	53..62, 77..78, 94, 96, 100, 102..104, 108..110
++ * 2. The following table indices are E1 codes which require special h=
+andling:
++ *	101
 + */
 +
-+struct tsl2563_lux_coeff {
-+	unsigned long ch_ratio;
-+	unsigned long ch0_coeff;
-+	unsigned long ch1_coeff;
-+};
-+
-+static const struct tsl2563_lux_coeff lux_table[] = {
-+	{
-+		.ch_ratio	= FRAC10K(1300),
-+		.ch0_coeff	= FRAC10K(315),
-+		.ch1_coeff	= FRAC10K(262),
-+	}, {
-+		.ch_ratio	= FRAC10K(2600),
-+		.ch0_coeff	= FRAC10K(337),
-+		.ch1_coeff	= FRAC10K(430),
-+	}, {
-+		.ch_ratio	= FRAC10K(3900),
-+		.ch0_coeff	= FRAC10K(363),
-+		.ch1_coeff	= FRAC10K(529),
-+	}, {
-+		.ch_ratio	= FRAC10K(5200),
-+		.ch0_coeff	= FRAC10K(392),
-+		.ch1_coeff	= FRAC10K(605),
-+	}, {
-+		.ch_ratio	= FRAC10K(6500),
-+		.ch0_coeff	= FRAC10K(229),
-+		.ch1_coeff	= FRAC10K(291),
-+	}, {
-+		.ch_ratio	= FRAC10K(8000),
-+		.ch0_coeff	= FRAC10K(157),
-+		.ch1_coeff	= FRAC10K(180),
-+	}, {
-+		.ch_ratio	= FRAC10K(13000),
-+		.ch0_coeff	= FRAC10K(34),
-+		.ch1_coeff	= FRAC10K(26),
-+	}, {
-+		.ch_ratio	= ULONG_MAX,
-+		.ch0_coeff	= 0,
-+		.ch1_coeff	= 0,
-+	},
++static unsigned char usar2scancode[128] =3D {
++	0x00, 0x29, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
++	0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
++	0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
++	0x18, 0x19, 0x1a, 0x1b, 0x2b, 0x1e, 0x1f, 0x20,
++	0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28,
++	0x1c, 0x2c, 0x2d, 0x2e, 0x2f, 0x30, 0x31, 0x32,
++	0x33, 0x34, 0x35, 0x39, 0x01, 0x52, 0x53, 0x4b,
++	0x47, 0x4f, 0x48, 0x50, 0x49, 0x51, 0x4d, 0x37,
++	0x4e, 0x4f, 0x50, 0x51, 0x4b, 0x4c, 0x4d, 0x47,
++	0x48, 0x49, 0x52, 0x53, 0x4a, 0x1c, 0x35, 0x3b,
++	0x3c, 0x3d, 0x3e, 0x3f, 0x40, 0x41, 0x42, 0x43,
++	0x44, 0x57, 0x58, 0x2a, 0x36, 0x38, 0x38, 0x1d,
++	0x1d, 0x3a, 0x45, 0x46, 0x2a, 0x1d, 0x5b, 0x5c,
++	0x5d, 0xff, 0x00, 0x00, 0x5e, 0x5f, 0x63, 0x70,
++	0x7b, 0x79, 0x7d, 0x73, 0x5b, 0x5c, 0x5d, 0x63,
++	0x65, 0x66, 0x68, 0x69, 0x6b, 0x56, 0x54, 0x00
 +};
 +
 +/*
-+ * Convert normalized, scaled ADC values to lux.
++ * The following are bit masks used to encode E0 scan codes which
++ * require special handling. However, scan codes 100 and 101 are
++ * excludable here since they each require unique multi-byte scan
++ * code translations and are therefore dealt with individually via
++ * handle_print_scr() and handle_pause() respectively below.
 + */
-+static unsigned int adc_to_lux(u32 adc0, u32 adc1)
++
++static unsigned long int e0_codes1 =3D 0x030003ff; /* scan codes 53..8=
+4 */
++static unsigned long int e0_codes2 =3D 0x038e0a00; /* scan codes 85..1=
+16 */
++
++static void
++handle_print_scr(int up)
 +{
-+	const struct tsl2563_lux_coeff *lp = lux_table;
-+	unsigned long ratio, lux, ch0 = adc0, ch1 = adc1;
-+
-+	ratio = ch0 ? ((ch1 << ADC_FRAC_BITS) / ch0) : ULONG_MAX;
-+
-+	while (lp->ch_ratio < ratio)
-+		lp++;
-+
-+	lux = ch0 * lp->ch0_coeff - ch1 * lp->ch1_coeff;
-+
-+	return (unsigned int) (lux >> ADC_FRAC_BITS);
++	if (up) {
++		input_report_key(hid->keyboard, 0xe0, 1);
++		input_report_key(hid->keyboard, 0xb7, 1);
++		input_report_key(hid->keyboard, 0xe0, 1);
++		input_report_key(hid->keyboard, 0xaa, 1);
++	} else {
++		input_report_key(hid->keyboard, 0xe0, 0);
++		input_report_key(hid->keyboard, 0x2a, 0);
++		input_report_key(hid->keyboard, 0xe0, 0);
++		input_report_key(hid->keyboard, 0x37, 0);
++	}
 +}
 +
-+/*--------------------------------------------------------------*/
-+/*                      Sysfs interface                         */
-+/*--------------------------------------------------------------*/
-+
-+static ssize_t tsl2563_adc0_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
++static void
++handle_pause(void)
 +{
-+	struct tsl2563_chip *chip = dev_get_drvdata(dev);
++	input_report_key(hid->keyboard, 0xe1, 0);
++	input_report_key(hid->keyboard, 0x1d, 0);
++	input_report_key(hid->keyboard, 0x45, 0);
++	input_report_key(hid->keyboard, 0xe1, 0);
++	input_report_key(hid->keyboard, 0x9d, 0);
++	input_report_key(hid->keyboard, 0xc5, 0);
++}
++
++static void
++process_keyboard_report(struct innovator_hid_dev *hid, u8 * buffer)
++{
++	unsigned char ch =3D buffer[1] & 0x7f;
++	int up =3D buffer[1] & 0x80 ? 1 : 0;
++	int is_e0 =3D 0;
++	hid->keyboard =3D input_allocate_device();
++	hid->mouse =3D input_allocate_device();
++
++	if ((ch =3D=3D 106) || (ch =3D=3D 107))
++		return;		/* no code */
++
++	if (ch =3D=3D 100) {
++		handle_print_scr(up);
++		return;
++	}
++
++	if (ch =3D=3D 101) {
++		handle_pause();
++		return;
++	}
++
++	if ((ch >=3D 53) && (ch <=3D 84)) {
++		/* first block of e0 codes */
++		is_e0 =3D e0_codes1 & (1 << (ch - 53));
++	} else if ((ch >=3D 85) && (ch <=3D 116)) {
++		/* second block of e0 codes */
++		is_e0 =3D e0_codes2 & (1 << (ch - 85));
++	}
++
++	if (is_e0) {
++		input_report_key(hid->keyboard, 0xe0, !up);
++	}
++	input_report_key(hid->keyboard, usar2scancode[ch], !up);
++	input_sync(hid->keyboard);
++}
++
++static irqreturn_t
++innovator_hid_interrupt(int irq, void *dev_id, struct pt_regs *regs)
++{
++	if (ATN()) {
++		disable_irq(OMAP1510_INT_FPGA_ATN);
++		tasklet_schedule(&hid_tasklet);
++	}
++	return IRQ_HANDLED;
++}
++
++static void
++do_hid_tasklet(unsigned long unused)
++{
 +	int ret;
-+
-+	mutex_lock(&chip->lock);
-+
-+	ret = tsl2563_get_adc(chip);
-+	if (ret)
-+		return ret;
-+
-+	ret = snprintf(buf, PAGE_SIZE, "%d\n", chip->data0);
-+	mutex_unlock(&chip->lock);
-+
-+	return ret;
++	if ((ret =3D report_async(buffer, 256)) =3D=3D -1) {
++		dbg("Error: Bad Juno return value: %d\n", ret);
++	} else if (ret =3D=3D KEYBOARD_REPORT) {
++		process_keyboard_report(hid, buffer);
++	} else if (ret =3D=3D POINTING_REPORT) {
++		process_pointing_report(hid, buffer);
++	} else {
++		dbg("ERROR: bad report\n");
++	}
++	enable_irq(OMAP1510_INT_FPGA_ATN);
 +}
 +
-+static ssize_t tsl2563_adc1_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
++static int
++innovator_hid_open(struct input_dev *dev)
 +{
-+	struct tsl2563_chip *chip = dev_get_drvdata(dev);
-+	int ret;
++	if (hid->open++)
++		return 0;
 +
-+	mutex_lock(&chip->lock);
-+
-+	ret = tsl2563_get_adc(chip);
-+	if (ret)
-+		return ret;
-+
-+	ret = snprintf(buf, PAGE_SIZE, "%d\n", chip->data1);
-+	mutex_unlock(&chip->lock);
-+
-+	return ret;
-+}
-+
-+/* Apply calibration coefficient to ADC count. */
-+static u32 calib_adc(u32 adc, u32 calib)
-+{
-+	unsigned long scaled = adc;
-+
-+	scaled *= calib;
-+	scaled >>= CALIB_FRAC_BITS;
-+
-+	return (u32) scaled;
-+}
-+
-+static ssize_t tsl2563_lux_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct tsl2563_chip *chip = dev_get_drvdata(dev);
-+	u32 calib0, calib1;
-+	int ret;
-+
-+	mutex_lock(&chip->lock);
-+
-+	ret = tsl2563_get_adc(chip);
-+	if (ret)
-+		goto out;
-+
-+	calib0 = calib_adc(chip->data0, chip->calib0);
-+	calib1 = calib_adc(chip->data1, chip->calib1);
-+
-+	ret = snprintf(buf, PAGE_SIZE, "%d\n", adc_to_lux(calib0, calib1));
-+
-+out:
-+	mutex_unlock(&chip->lock);
-+	return ret;
-+}
-+
-+static ssize_t format_calib(char *buf, int len, u32 calib)
-+{
-+	return snprintf(buf, PAGE_SIZE, "%d\n", calib_to_sysfs(calib));
-+}
-+
-+static ssize_t tsl2563_calib0_show(struct device *dev,
-+				   struct device_attribute *attr, char *buf)
-+{
-+	struct tsl2563_chip *chip = dev_get_drvdata(dev);
-+	int ret;
-+
-+	mutex_lock(&chip->lock);
-+	ret = format_calib(buf, PAGE_SIZE, chip->calib0);
-+	mutex_unlock(&chip->lock);
-+	return ret;
-+}
-+
-+static ssize_t tsl2563_calib1_show(struct device *dev,
-+				   struct device_attribute *attr, char *buf)
-+{
-+	struct tsl2563_chip *chip = dev_get_drvdata(dev);
-+	int ret;
-+
-+	mutex_lock(&chip->lock);
-+	ret = format_calib(buf, PAGE_SIZE, chip->calib1);
-+	mutex_unlock(&chip->lock);
-+	return ret;
-+}
-+
-+static int do_calib_store(struct device *dev, const char *buf, size_t len,
-+			  int ch)
-+{
-+	struct tsl2563_chip *chip = dev_get_drvdata(dev);
-+	int value;
-+	u32 calib;
-+
-+	if (1 != sscanf(buf, "%d", &value))
++	if (request_irq(OMAP1510_INT_FPGA_ATN, (void *) innovator_hid_interru=
+pt,
++			IRQF_DISABLED, PFX, hid) < 0)
 +		return -EINVAL;
 +
-+	calib = calib_from_sysfs(value);
-+
-+	if (ch)
-+		chip->calib1 = calib;
-+	else
-+		chip->calib0 = calib;
-+
-+	return len;
-+}
-+
-+static ssize_t tsl2563_calib0_store(struct device *dev,
-+				    struct device_attribute *attr,
-+				    const char *buf, size_t len)
-+{
-+	return do_calib_store(dev, buf, len, 0);
-+}
-+
-+static ssize_t tsl2563_calib1_store(struct device *dev,
-+				    struct device_attribute *attr,
-+				    const char *buf, size_t len)
-+{
-+	return do_calib_store(dev, buf, len, 1);
-+}
-+
-+static DEVICE_ATTR(adc0, S_IRUGO, tsl2563_adc0_show, NULL);
-+static DEVICE_ATTR(adc1, S_IRUGO, tsl2563_adc1_show, NULL);
-+static DEVICE_ATTR(lux, S_IRUGO, tsl2563_lux_show, NULL);
-+static DEVICE_ATTR(calib0, S_IRUGO | S_IWUSR,
-+		   tsl2563_calib0_show, tsl2563_calib0_store);
-+static DEVICE_ATTR(calib1, S_IRUGO | S_IWUSR,
-+		   tsl2563_calib1_show, tsl2563_calib1_store);
-+
-+static struct attribute *tsl2563_attributes[] = {
-+	&dev_attr_adc0.attr,
-+	&dev_attr_adc1.attr,
-+	&dev_attr_lux.attr,
-+	&dev_attr_calib0.attr,
-+	&dev_attr_calib1.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group tsl2563_group = {
-+	.attrs = tsl2563_attributes,
-+};
-+
-+static int tsl2563_register_sysfs(struct i2c_client *client)
-+{
-+	struct device *dev = &client->dev;
-+
-+	return sysfs_create_group(&dev->kobj, &tsl2563_group);
-+}
-+
-+static void tsl2563_unregister_sysfs(struct i2c_client *client)
-+{
-+	struct device *dev = &client->dev;
-+
-+	sysfs_remove_group(&dev->kobj, &tsl2563_group);
-+}
-+
-+/*--------------------------------------------------------------*/
-+/*                      Probe, Attach, Remove                   */
-+/*--------------------------------------------------------------*/
-+static struct i2c_driver tsl2563_i2c_driver;
-+
-+static int tsl2563_probe(struct i2c_client *client,
-+		const struct i2c_device_id *device_id)
-+{
-+	struct tsl2563_chip *chip;
-+	int err = 0;
-+	u8 id;
-+
-+	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
-+	if (!chip)
-+		return -ENOMEM;
-+
-+	i2c_set_clientdata(client, chip);
-+	chip->client = client;
-+
-+	err = tsl2563_detect(chip);
-+	if (err) {
-+		dev_err(&client->dev, "device not found, error %d \n", -err);
-+		goto fail1;
-+	}
-+
-+	err = tsl2563_read_id(chip, &id);
-+	if (err)
-+		goto fail1;
-+
-+	mutex_init(&chip->lock);
-+
-+	/* Default values used until userspace says otherwise */
-+	chip->low_thres = 0x0;
-+	chip->high_thres = 0xffff;
-+	chip->gainlevel = tsl2563_gainlevel_table;
-+	chip->intr = TSL2563_INT_PERSIST(4);
-+	chip->calib0 = calib_from_sysfs(CALIB_BASE_SYSFS);
-+	chip->calib1 = calib_from_sysfs(CALIB_BASE_SYSFS);
-+
-+	dev_info(&client->dev, "model %d, rev. %d\n", id >> 4, id & 0x0f);
-+
-+	err = tsl2563_configure(chip);
-+	if (err)
-+		goto fail1;
-+
-+	chip->hwmon_dev = hwmon_device_register(&client->dev);
-+	if (IS_ERR(chip->hwmon_dev))
-+		goto fail1;
-+
-+	err = tsl2563_register_sysfs(client);
-+	if (err) {
-+		dev_err(&client->dev, "sysfs registration failed, %d\n", err);
-+		goto fail2;
-+	}
-+
-+	return 0;
-+fail2:
-+	hwmon_device_unregister(chip->hwmon_dev);
-+fail1:
-+	kfree(chip);
-+	return err;
-+}
-+
-+static int tsl2563_remove(struct i2c_client *client)
-+{
-+	struct tsl2563_chip *chip = i2c_get_clientdata(client);
-+
-+	tsl2563_unregister_sysfs(client);
-+	hwmon_device_unregister(chip->hwmon_dev);
-+
-+	kfree(chip);
 +	return 0;
 +}
 +
-+static int tsl2563_suspend(struct i2c_client *client, pm_message_t state)
++static void
++innovator_hid_close(struct input_dev *dev)
 +{
-+	struct tsl2563_chip *chip = i2c_get_clientdata(client);
-+	int ret;
++	if (!--hid->open)
++		return;
 +
-+	mutex_lock(&chip->lock);
++	if (hid =3D=3D NULL)
++		return;
 +
-+	ret = tsl2563_set_power(chip, 0);
-+	if (ret)
-+		goto out;
-+
-+	chip->state = state;
-+
-+out:
-+	mutex_unlock(&chip->lock);
-+	return ret;
++	kfree(hid);
 +}
 +
-+static int tsl2563_resume(struct i2c_client *client)
++static int innovator_ps2_remove(struct device *dev)
 +{
-+	struct tsl2563_chip *chip = i2c_get_clientdata(client);
-+	int ret;
-+
-+	mutex_lock(&chip->lock);
-+
-+	ret = tsl2563_set_power(chip, 1);
-+	if (ret)
-+		goto out;
-+
-+	ret = tsl2563_configure(chip);
-+	if (ret)
-+		goto out;
-+
-+	chip->state.event = PM_EVENT_ON;
-+
-+out:
-+	mutex_unlock(&chip->lock);
-+	return ret;
++	return 0;
 +}
 +
-+static const struct i2c_device_id tsl2563_id[] = {
-+	{ DRIVER_NAME, 0 },
-+	{ },
++static void innovator_ps2_device_release(struct device *dev)
++{
++	/* Nothing */
++}
++
++static int innovator_ps2_suspend(struct device *dev, pm_message_t stat=
+e)
++{
++	u8 pmcomm =3D 0;
++
++	/*
++	 * Set SUS_STATE in REG_PM_COMM (Page 0 R0).  This will cause
++	 * PM_MOD bits of REG_PM_STATUS to show suspended state,
++	 * but the SUS_STAT bit of REG_PM_STATUS will continue to
++	 * reflect the state of the _HSUS pin.
++	 */
++
++	if (write_reg(REG_PAGENO, 0) < 0)
++		printk("ps2 suspend: write_reg REG_PAGENO error\n");
++
++	if (read_reg(REG_PM_COMM, &pmcomm) < 0)
++		printk("ps2 suspend: read_reg REG_PM_COMM error\n");
++	=09
++	if (write_reg(REG_PM_COMM, pmcomm | SUS_STATE) < 0)
++		printk("ps2 suspend: write_reg REG_PM_COMM error\n");
++
++	return 0;
++}
++
++static int innovator_ps2_resume(struct device *dev)
++{
++	u8 pmcomm =3D 0;
++
++	/*
++	 * Clear SUS_STATE from REG_PM_COMM (Page 0 R0).
++	 */
++
++	if (write_reg(REG_PAGENO, 0) < 0)
++		printk("ps2 resume: write_reg REG_PAGENO error\n");
++
++	if (read_reg(REG_PM_COMM, &pmcomm) < 0)
++		printk("ps2 resume: read_reg REG_PM_COMM error\n");
++
++	if (write_reg(REG_PM_COMM, pmcomm & ~SUS_STATE) < 0)
++		printk("ps2 resume: write_reg REG_PM_COMM error\n");
++
++	return 0;
++}
++
++static struct device_driver innovator_ps2_driver =3D {
++	.name		=3D "innovator_ps2",
++	.bus		=3D &platform_bus_type,
++	.remove		=3D innovator_ps2_remove,
++	.suspend	=3D innovator_ps2_suspend,
++	.resume		=3D innovator_ps2_resume,
 +};
-+MODULE_DEVICE_TABLE(i2c, tsl2563_id);
 +
-+static struct i2c_driver tsl2563_i2c_driver = {
-+	.driver = {
-+		.name	 = DRIVER_NAME,
++static struct platform_device innovator_ps2_device =3D {
++	.name		=3D "ps2",
++	.id		=3D -1,
++	.dev =3D {
++		.driver		=3D &innovator_ps2_driver,
++		.release	=3D innovator_ps2_device_release,
 +	},
-+	.suspend	= tsl2563_suspend,
-+	.resume		= tsl2563_resume,
-+	.probe		= tsl2563_probe,
-+	.remove		= __devexit_p(tsl2563_remove),
-+	.id_table	= tsl2563_id,
 +};
 +
-+static int __init tsl2563_init(void)
++static int __init
++innovator_kbd_init(void)
 +{
-+	return i2c_add_driver(&tsl2563_i2c_driver);
++	int i;
++	info("Innovator PS/2 keyboard/mouse driver v1.0\n");
++
++	innovator_fpga_hid_reset();
++
++	if ((hid =3D kmalloc(sizeof(struct innovator_hid_dev),
++	     GFP_KERNEL)) =3D=3D NULL) {
++		warn("unable to allocate space for HID device\n");
++		return -ENOMEM;
++	}
++
++	/* setup the mouse */
++	memset(hid, 0, sizeof(struct innovator_hid_dev));
++	hid->mouse =3D input_allocate_device();
++	hid->mouse->evbit[0] =3D BIT(EV_KEY) | BIT(EV_REL);
++	hid->mouse->keybit[BIT_WORD(BTN_MOUSE)] =3D
++	    BIT(BTN_LEFT) | BIT(BTN_RIGHT) |
++	    BIT(BTN_MIDDLE) | BIT(BTN_TOUCH);
++	hid->mouse->relbit[0] =3D BIT(REL_X) | BIT(REL_Y);
++	hid->mouse->private =3D hid;
++	hid->mouse->open =3D innovator_hid_open;
++	hid->mouse->close =3D innovator_hid_close;
++	hid->mouse->name =3D "innovator_mouse";
++	hid->mouse->id.bustype =3D 0;
++	hid->mouse->id.vendor =3D 0;
++	hid->mouse->id.product =3D 0;
++	hid->mouse->id.version =3D 0;
++       hid->keyboard =3D input_allocate_device();
++	hid->keyboard->evbit[0] =3D BIT(EV_KEY) | BIT(EV_REP);
++       hid->keyboard->keycodesize =3D sizeof(unsigned char);
++       hid->keyboard->keycodemax =3D ARRAY_SIZE(usar2scancode);
++	for(i =3D 0; i < 128; i++)
++		set_bit(usar2scancode[i], hid->keyboard->keybit);
++	hid->keyboard->private =3D hid;
++	hid->keyboard->open =3D innovator_hid_open;
++	hid->keyboard->close =3D innovator_hid_close;
++	hid->keyboard->name =3D "innovator_keyboard";
++	hid->keyboard->id.bustype =3D 0;
++	hid->keyboard->id.vendor =3D 0;
++	hid->keyboard->id.product =3D 0;
++	hid->keyboard->id.version =3D 0;
++	input_register_device(hid->mouse);
++	input_register_device(hid->keyboard);
++	innovator_hid_open(hid->mouse);
++	innovator_hid_open(hid->keyboard);
++
++	if (driver_register(&innovator_ps2_driver) !=3D 0)
++		printk(KERN_ERR "Driver register failed for innovator_ps2\n");
++
++	if (platform_device_register(&innovator_ps2_device) !=3D 0) {
++		printk(KERN_ERR "Device register failed for ps2\n");
++		driver_unregister(&innovator_ps2_driver);
++	}
++
++#ifdef	INNOVATOR_KEYB_DEBUG
++	ctrl_dump_regs();
++#endif
++	return 0;
 +}
 +
-+static void __exit tsl2563_exit(void)
++static void __exit
++innovator_kbd_exit(void)
 +{
-+	i2c_del_driver(&tsl2563_i2c_driver);
++	input_unregister_device(hid->mouse);
++	input_unregister_device(hid->keyboard);
++	free_irq(OMAP1510_INT_FPGA_ATN, hid);
++	if (hid !=3D NULL)
++		kfree(hid);
++	driver_unregister(&innovator_ps2_driver);
++	platform_device_unregister(&innovator_ps2_device);
++	return;
 +}
 +
-+MODULE_AUTHOR("Nokia Corporation");
-+MODULE_DESCRIPTION("tsl2563 light sensor driver");
++module_init(innovator_kbd_init);
++module_exit(innovator_kbd_exit);
++
++MODULE_AUTHOR("George G. Davis <gdavis@mvista.com>");
++MODULE_DESCRIPTION("Innovator PS/2 Driver");
 +MODULE_LICENSE("GPL");
-+
-+module_init(tsl2563_init);
-+module_exit(tsl2563_exit);
--- 
+--=20
 1.6.0.1.141.g445ca
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
