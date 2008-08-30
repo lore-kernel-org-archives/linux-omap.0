@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 15/33] add tsc2301 touchscreen driver
-Date: Sat, 30 Aug 2008 20:16:15 +0300
-Message-ID: <1220116593-862-16-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 16/33] add omap led drivers
+Date: Sat, 30 Aug 2008 20:16:16 +0300
+Message-ID: <1220116593-862-17-git-send-email-me@felipebalbi.com>
 References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-2-git-send-email-me@felipebalbi.com>
  <1220116593-862-3-git-send-email-me@felipebalbi.com>
@@ -17,12 +17,13 @@ References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-13-git-send-email-me@felipebalbi.com>
  <1220116593-862-14-git-send-email-me@felipebalbi.com>
  <1220116593-862-15-git-send-email-me@felipebalbi.com>
+ <1220116593-862-16-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:36330 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:36354 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752923AbYH3RUD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:20:03 -0400
-In-Reply-To: <1220116593-862-15-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1752928AbYH3RUJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:20:09 -0400
+In-Reply-To: <1220116593-862-16-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -32,722 +33,581 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/input/touchscreen/Kconfig      |    6 +
- drivers/input/touchscreen/Makefile     |    1 +
- drivers/input/touchscreen/tsc2301_ts.c |  676 ++++++++++++++++++++++++++++++++
- 3 files changed, 683 insertions(+), 0 deletions(-)
- create mode 100644 drivers/input/touchscreen/tsc2301_ts.c
+ drivers/leds/Kconfig         |   21 +++
+ drivers/leds/Makefile        |    2 +
+ drivers/leds/leds-omap-pwm.c |  376 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/leds/leds-omap.c     |  135 +++++++++++++++
+ 4 files changed, 534 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/leds/leds-omap-pwm.c
+ create mode 100644 drivers/leds/leds-omap.c
 
-diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
-index f45cdac..1bab54a 100644
---- a/drivers/input/touchscreen/Kconfig
-+++ b/drivers/input/touchscreen/Kconfig
-@@ -236,6 +236,12 @@ config TOUCHSCREEN_TSC210X
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called tsc210x_ts.
+diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
+index 9556262..6a2f441 100644
+--- a/drivers/leds/Kconfig
++++ b/drivers/leds/Kconfig
+@@ -77,6 +77,27 @@ config LEDS_WRAP
+ 	help
+ 	  This option enables support for the PCEngines WRAP programmable LEDs.
  
-+config TOUCHSCREEN_TSC2301
-+	tristate "TSC2301 touchscreen support"
-+	depends on SPI_TSC2301
++config LEDS_OMAP_DEBUG
++	boolean "LED Support for OMAP debug board LEDs"
++	depends on LEDS_CLASS=y && ARCH_OMAP
 +	help
-+	  Say Y here for if you are using the touchscreen features of TSC2301.
++	  Enables support for the LEDs on the debug board used with OMAP
++	  reference boards like H2/H3/H4 and Perseus2.  Up to six of these
++	  may be claimed by the original ARM debug LED API.
 +
- config TOUCHSCREEN_UCB1400
- 	tristate "Philips UCB1400 touchscreen"
- 	select AC97_BUS
-diff --git a/drivers/input/touchscreen/Makefile b/drivers/input/touchscreen/Makefile
-index 411c44a..d14ed30 100644
---- a/drivers/input/touchscreen/Makefile
-+++ b/drivers/input/touchscreen/Makefile
-@@ -29,6 +29,7 @@ obj-$(CONFIG_TOUCHSCREEN_UCB1400)	+= ucb1400_ts.o
- obj-$(CONFIG_TOUCHSCREEN_TSC2005)	+= tsc2005.o
- obj-$(CONFIG_TOUCHSCREEN_OMAP)	+= omap/
- obj-$(CONFIG_TOUCHSCREEN_TSC210X)	+= tsc210x_ts.o
-+obj-$(CONFIG_TOUCHSCREEN_TSC2301)	+= tsc2301_ts.o
- obj-$(CONFIG_TOUCHSCREEN_WM97XX)	+= wm97xx-ts.o
- wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9705)	+= wm9705.o
- wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9712)	+= wm9712.o
-diff --git a/drivers/input/touchscreen/tsc2301_ts.c b/drivers/input/touchscreen/tsc2301_ts.c
++config LEDS_OMAP
++	tristate "LED Support for OMAP GPIO LEDs"
++	depends on LEDS_CLASS && ARCH_OMAP
++	help
++	  This option enables support for the LEDs on OMAP processors.
++
++config LEDS_OMAP_PWM
++	tristate "LED Support for OMAP PWM-controlled LEDs"
++	depends on LEDS_CLASS && ARCH_OMAP && OMAP_DM_TIMER
++	help
++	  This options enables support for LEDs connected to GPIO lines
++	  controlled by a PWM timer on OMAP CPUs.
++
+ config LEDS_H1940
+ 	tristate "LED Support for iPAQ H1940 device"
+ 	depends on LEDS_CLASS && ARCH_H1940
+diff --git a/drivers/leds/Makefile b/drivers/leds/Makefile
+index ff7982b..fd6316e 100644
+--- a/drivers/leds/Makefile
++++ b/drivers/leds/Makefile
+@@ -13,6 +13,8 @@ obj-$(CONFIG_LEDS_S3C24XX)		+= leds-s3c24xx.o
+ obj-$(CONFIG_LEDS_AMS_DELTA)		+= leds-ams-delta.o
+ obj-$(CONFIG_LEDS_NET48XX)		+= leds-net48xx.o
+ obj-$(CONFIG_LEDS_WRAP)			+= leds-wrap.o
++obj-$(CONFIG_LEDS_OMAP)			+= leds-omap.o
++obj-$(CONFIG_LEDS_OMAP_PWM)		+= leds-omap-pwm.o
+ obj-$(CONFIG_LEDS_H1940)		+= leds-h1940.o
+ obj-$(CONFIG_LEDS_COBALT_QUBE)		+= leds-cobalt-qube.o
+ obj-$(CONFIG_LEDS_COBALT_RAQ)		+= leds-cobalt-raq.o
+diff --git a/drivers/leds/leds-omap-pwm.c b/drivers/leds/leds-omap-pwm.c
 new file mode 100644
-index 0000000..6462cc2
+index 0000000..57eb383
 --- /dev/null
-+++ b/drivers/input/touchscreen/tsc2301_ts.c
-@@ -0,0 +1,676 @@
-+/*
-+ * TSC2301 touchscreen driver
++++ b/drivers/leds/leds-omap-pwm.c
+@@ -0,0 +1,376 @@
++/* drivers/leds/leds-omap_pwm.c
 + *
-+ * Copyright (C) 2005-2008 Nokia Corporation
++ * Driver to blink LEDs using OMAP PWM timers
 + *
-+ * Written by Jarkko Oikarinen, Imre Deak and Juha Yrjola
++ * Copyright (C) 2006 Nokia Corporation
++ * Author: Timo Teras
 + *
 + * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ *
-+ */
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++*/
 +
 +#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/input.h>
-+#include <linux/interrupt.h>
-+#include <linux/delay.h>
-+#include <linux/spi/spi.h>
++#include <linux/init.h>
++#include <linux/err.h>
++#include <linux/platform_device.h>
++#include <linux/leds.h>
++#include <linux/ctype.h>
++#include <linux/sched.h>
++#include <asm/delay.h>
++#include <mach/board.h>
++#include <mach/dmtimer.h>
 +
-+#include <linux/spi/tsc2301.h>
-+
-+/**
-+ * The touchscreen interface operates as follows:
-+ *
-+ * Initialize:
-+ *    Request access to GPIO103 (DAV)
-+ *    tsc2301_ts_irq_handler will trigger when DAV line goes down
-+ *
-+ *  1) Pen is pressed against touchscreeen
-+ *  2) TSC2301 performs AD conversion
-+ *  3) After the conversion is done TSC2301 drives DAV line down
-+ *  4) GPIO IRQ is received and tsc2301_ts_irq_handler is called
-+ *  5) tsc2301_ts_irq_handler queues up an spi transfer to fetch
-+ *     the x, y, z1, z2 values
-+ *  6) SPI framework calls tsc2301_ts_rx after the coordinates are read
-+ *  7) When the penup_timer expires, there have not been DAV interrupts
-+ *     during the last 20ms which means the pen has been lifted.
-+ */
-+
-+
-+#define TSC2301_TOUCHSCREEN_PRODUCT_ID      		0x0052
-+#define TSC2301_TOUCHSCREEN_PRODUCT_VERSION 		0x0001
-+
-+#define TSC2301_TS_PENUP_TIME		     		20
-+
-+#define TSC2301_ADCREG_CONVERSION_CTRL_BY_TSC2301	0x8000
-+#define TSC2301_ADCREG_CONVERSION_CTRL_BY_HOST		0x0000
-+
-+#define TSC2301_ADCREG_FUNCTION_NONE			0x0000
-+#define TSC2301_ADCREG_FUNCTION_XY			0x0400
-+#define TSC2301_ADCREG_FUNCTION_XYZ			0x0800
-+#define TSC2301_ADCREG_FUNCTION_X			0x0C00
-+#define TSC2301_ADCREG_FUNCTION_Y			0x1000
-+#define TSC2301_ADCREG_FUNCTION_Z			0x1400
-+#define TSC2301_ADCREG_FUNCTION_DAT1			0x1800
-+#define TSC2301_ADCREG_FUNCTION_DAT2			0x1C00
-+#define TSC2301_ADCREG_FUNCTION_AUX1			0x2000
-+#define TSC2301_ADCREG_FUNCTION_AUX2			0x2400
-+#define TSC2301_ADCREG_FUNCTION_TEMP			0x2800
-+
-+#define TSC2301_ADCREG_RESOLUTION_8BIT			0x0100
-+#define TSC2301_ADCREG_RESOLUTION_10BIT			0x0200
-+#define TSC2301_ADCREG_RESOLUTION_12BIT			0x0300
-+
-+#define TSC2301_ADCREG_AVERAGING_NONE			0x0000
-+#define TSC2301_ADCREG_AVERAGING_4AVG			0x0040
-+#define TSC2301_ADCREG_AVERAGING_8AVG			0x0080
-+#define TSC2301_ADCREG_AVERAGING_16AVG			0x00C0
-+
-+#define TSC2301_ADCREG_CLOCK_8MHZ			0x0000
-+#define TSC2301_ADCREG_CLOCK_4MHZ			0x0010
-+#define TSC2301_ADCREG_CLOCK_2MHZ			0x0020
-+#define TSC2301_ADCREG_CLOCK_1MHZ			0x0030
-+
-+#define TSC2301_ADCREG_VOLTAGE_STAB_0US			0x0000
-+#define TSC2301_ADCREG_VOLTAGE_STAB_100US		0x0002
-+#define TSC2301_ADCREG_VOLTAGE_STAB_500US		0x0004
-+#define TSC2301_ADCREG_VOLTAGE_STAB_1MS			0x0006
-+#define TSC2301_ADCREG_VOLTAGE_STAB_5MS			0x0008
-+#define TSC2301_ADCREG_VOLTAGE_STAB_10MS		0x000A
-+#define TSC2301_ADCREG_VOLTAGE_STAB_50MS		0x000C
-+#define TSC2301_ADCREG_VOLTAGE_STAB_100MS		0x000E
-+
-+#define TSC2301_ADCREG_STOP_CONVERSION			0x4000
-+
-+#define MAX_12BIT					((1 << 12) - 1)
-+
-+#define TS_RECT_SIZE					8
-+#define TSF_MIN_Z1					100
-+#define TSF_MAX_Z2					4000
-+
-+#define TSF_SAMPLES					4
-+
-+struct ts_filter {
-+	int			sample_cnt;
-+
-+	int 			avg_x;
-+	int 			avg_y;
-+	int 			avg_z1;
-+	int 			avg_z2;
++struct omap_pwm_led {
++	struct led_classdev cdev;
++	struct work_struct work;
++	struct omap_pwm_led_platform_data *pdata;
++	struct omap_dm_timer *intensity_timer;
++	struct omap_dm_timer *blink_timer;
++	int powered;
++	unsigned int on_period, off_period;
++	enum led_brightness brightness;
 +};
 +
-+struct ts_coords {
-+	u16 			x;
-+	u16 			y;
-+	u16 			z1;
-+	u16 			z2;
-+};
-+
-+struct tsc2301_ts {
-+	struct input_dev	*idev;
-+	char			phys[32];
-+	struct timer_list	penup_timer;
-+	struct mutex		mutex;
-+
-+	struct spi_transfer	read_xfer[2];
-+	struct spi_message	read_msg;
-+	struct ts_coords	*coords;
-+
-+	struct ts_filter	filter;
-+
-+	int			hw_avg_max;
-+	u16			x;
-+	u16			y;
-+	u16			p;
-+
-+	u16			x_plate_ohm;
-+	int			stab_time;
-+	int			max_pressure;
-+	int			touch_pressure;
-+
-+	u8			event_sent;
-+	u8			pen_down;
-+	u8			disabled;
-+	u8			disable_depth;
-+
-+	int			hw_flags;
-+	int			irq;
-+};
-+
-+
-+static const u16 tsc2301_ts_read_data = 0x8000 | TSC2301_REG_X;
-+
-+static int tsc2301_ts_check_config(struct tsc2301_ts *ts, int *hw_flags)
++static inline struct omap_pwm_led *pdev_to_omap_pwm_led(struct platform_device *pdev)
 +{
-+	int flags;
-+
-+	flags = 0;
-+	switch (ts->hw_avg_max) {
-+	case 0:
-+		flags |= TSC2301_ADCREG_AVERAGING_NONE;
-+		break;
-+	case 4:
-+		flags |= TSC2301_ADCREG_AVERAGING_4AVG;
-+		break;
-+	case 8:
-+		flags |= TSC2301_ADCREG_AVERAGING_8AVG;
-+		break;
-+	case 16:
-+		flags |= TSC2301_ADCREG_AVERAGING_16AVG;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	switch (ts->stab_time) {
-+	case 0:
-+		flags |= TSC2301_ADCREG_VOLTAGE_STAB_0US;
-+		break;
-+	case 100:
-+		flags |= TSC2301_ADCREG_VOLTAGE_STAB_100US;
-+		break;
-+	case 500:
-+		flags |= TSC2301_ADCREG_VOLTAGE_STAB_500US;
-+		break;
-+	case 1000:
-+		flags |= TSC2301_ADCREG_VOLTAGE_STAB_1MS;
-+		break;
-+	case 5000:
-+		flags |= TSC2301_ADCREG_VOLTAGE_STAB_5MS;
-+		break;
-+	case 10000:
-+		flags |= TSC2301_ADCREG_VOLTAGE_STAB_10MS;
-+		break;
-+	case 50000:
-+		flags |= TSC2301_ADCREG_VOLTAGE_STAB_50MS;
-+		break;
-+	case 100000:
-+		flags |= TSC2301_ADCREG_VOLTAGE_STAB_100MS;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	*hw_flags = flags;
-+	return 0;
++	return platform_get_drvdata(pdev);
 +}
 +
-+/*
-+ * This odd three-time initialization is to work around a bug in TSC2301.
-+ * See TSC2301 errata for details.
-+ */
-+static int tsc2301_ts_configure(struct tsc2301 *tsc, int flags)
++static inline struct omap_pwm_led *cdev_to_omap_pwm_led(struct led_classdev *led_cdev)
 +{
-+	struct spi_transfer xfer[5];
-+	struct spi_transfer *x;
-+	struct spi_message m;
-+	int i;
-+	u16 val1, val2, val3;
-+	u16 data[10];
-+
-+	val1 = TSC2301_ADCREG_CONVERSION_CTRL_BY_HOST |
-+		TSC2301_ADCREG_STOP_CONVERSION |
-+		TSC2301_ADCREG_FUNCTION_NONE |
-+		TSC2301_ADCREG_RESOLUTION_12BIT |
-+		TSC2301_ADCREG_AVERAGING_NONE |
-+		TSC2301_ADCREG_CLOCK_2MHZ |
-+		TSC2301_ADCREG_VOLTAGE_STAB_100MS;
-+
-+	val2 = TSC2301_ADCREG_CONVERSION_CTRL_BY_HOST |
-+		TSC2301_ADCREG_FUNCTION_XYZ |
-+		TSC2301_ADCREG_RESOLUTION_12BIT |
-+		TSC2301_ADCREG_AVERAGING_16AVG |
-+		TSC2301_ADCREG_CLOCK_1MHZ |
-+		TSC2301_ADCREG_VOLTAGE_STAB_100MS;
-+
-+	/* Averaging and voltage stabilization settings in flags */
-+	val3 = TSC2301_ADCREG_CONVERSION_CTRL_BY_TSC2301 |
-+		TSC2301_ADCREG_FUNCTION_XYZ |
-+		TSC2301_ADCREG_RESOLUTION_12BIT |
-+		TSC2301_ADCREG_CLOCK_2MHZ |
-+		flags;
-+
-+	/* Now we prepare the command for transferring */
-+	data[0] = TSC2301_REG_ADC;
-+	data[1] = val1;
-+	data[2] = TSC2301_REG_ADC;
-+	data[3] = val2;
-+	data[4] = TSC2301_REG_ADC;
-+	data[5] = val3;
-+	data[6] = TSC2301_REG_REF;
-+	data[7] = 1 << 4 | 1 << 2 | 1; /* intref, 100uS settl, 2.5V ref */
-+	data[8] = TSC2301_REG_CONFIG;
-+	data[9] = 3 << 3 | 2 << 0; /* 340uS pre-chrg, 544us delay */
-+
-+	spi_message_init(&m);
-+	m.spi = tsc->spi;
-+
-+	memset(xfer, 0, sizeof(xfer));
-+	x = &xfer[0];
-+
-+	for (i = 0; i < 10; i += 2) {
-+		x->tx_buf = &data[i];
-+		x->len = 4;
-+		if (i != 8)
-+			x->cs_change = 1;
-+		spi_message_add_tail(x, &m);
-+		x++;
-+	}
-+	spi_sync(m.spi, &m);
-+
-+	return 0;
++	return container_of(led_cdev, struct omap_pwm_led, cdev);
 +}
 +
-+static void tsc2301_ts_start_scan(struct tsc2301 *tsc)
++static inline struct omap_pwm_led *work_to_omap_pwm_led(struct work_struct *work)
 +{
-+	tsc2301_ts_configure(tsc, tsc->ts->hw_flags);
-+	tsc2301_kp_restart(tsc);
++	return container_of(work, struct omap_pwm_led, work);
 +}
 +
-+static void tsc2301_ts_stop_scan(struct tsc2301 *tsc)
++static void omap_pwm_led_set_blink(struct omap_pwm_led *led)
 +{
-+	tsc2301_write_reg(tsc, TSC2301_REG_ADC, TSC2301_ADCREG_STOP_CONVERSION);
-+	tsc2301_kp_restart(tsc);
-+}
++	if (!led->powered)
++		return;
 +
-+static void update_pen_state(struct tsc2301_ts *ts, int x, int y, int pressure)
-+{
-+	if (pressure) {
-+		input_report_abs(ts->idev, ABS_X, x);
-+		input_report_abs(ts->idev, ABS_Y, y);
-+		input_report_abs(ts->idev, ABS_PRESSURE, pressure);
-+		if (!ts->pen_down)
-+			input_report_key(ts->idev, BTN_TOUCH, 1);
-+		ts->pen_down = 1;
++	if (led->on_period != 0 && led->off_period != 0) {
++		unsigned long load_reg, cmp_reg;
++
++		load_reg = 32768 * (led->on_period + led->off_period) / 1000;
++		cmp_reg = 32768 * led->on_period / 1000;
++
++		omap_dm_timer_stop(led->blink_timer);
++		omap_dm_timer_set_load(led->blink_timer, 1, -load_reg);
++		omap_dm_timer_set_match(led->blink_timer, 1, -cmp_reg);
++		omap_dm_timer_set_pwm(led->blink_timer, 1, 1,
++				      OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE);
++		omap_dm_timer_write_counter(led->blink_timer, -2);
++		omap_dm_timer_start(led->blink_timer);
 +	} else {
-+		input_report_abs(ts->idev, ABS_PRESSURE, 0);
-+		if (ts->pen_down)
-+			input_report_key(ts->idev, BTN_TOUCH, 0);
-+		ts->pen_down = 0;
++		omap_dm_timer_set_pwm(led->blink_timer, 1, 1,
++				      OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE);
++		omap_dm_timer_stop(led->blink_timer);
 +	}
-+
-+	input_sync(ts->idev);
-+
-+#ifdef VERBOSE
-+	dev_dbg(&tsc->spi->dev, "x %4d y %4d p %4d\n", x, y, pressure);
-+#endif
 +}
 +
-+static int filter(struct tsc2301_ts *ts, int x, int y, int z1, int z2)
++static void omap_pwm_led_power_on(struct omap_pwm_led *led)
 +{
-+	int inside_rect, pressure_limit, Rt;
-+	struct ts_filter *tsf = &ts->filter;
++	if (led->powered)
++		return;
++	led->powered = 1;
 +
-+	/* validate pressure and position */
-+	if (x > MAX_12BIT || y > MAX_12BIT)
-+		return 0;
++	/* Select clock */
++	omap_dm_timer_enable(led->intensity_timer);
++	omap_dm_timer_set_source(led->intensity_timer, OMAP_TIMER_SRC_32_KHZ);
 +
-+	/* skip coords if the pressure-components are out of range */
-+	if (z1 < TSF_MIN_Z1 || z2 > TSF_MAX_Z2)
-+		return 0;
++	/* Turn voltage on */
++	if (led->pdata->set_power != NULL)
++		led->pdata->set_power(led->pdata, 1);
 +
-+	/* Use the x,y,z1,z2 directly on the first "pen down" event */
-+	if (ts->event_sent) {
-+		tsf->avg_x  += x;
-+		tsf->avg_y  += y;
-+		tsf->avg_z1 += z1;
-+		tsf->avg_z2 += z2;
-+
-+		if (++tsf->sample_cnt < TSF_SAMPLES)
-+			return 0;
-+		x = tsf->avg_x / TSF_SAMPLES;
-+		y = tsf->avg_y / TSF_SAMPLES;
-+		z1 = tsf->avg_z1 / TSF_SAMPLES;
-+		z2 = tsf->avg_z2 / TSF_SAMPLES;
++	/* Enable PWM timers */
++	if (led->blink_timer != NULL) {
++		omap_dm_timer_enable(led->blink_timer);
++		omap_dm_timer_set_source(led->blink_timer,
++					 OMAP_TIMER_SRC_32_KHZ);
++		omap_pwm_led_set_blink(led);
 +	}
-+	tsf->sample_cnt = 0;
-+	tsf->avg_x  = 0;
-+	tsf->avg_y  = 0;
-+	tsf->avg_z1 = 0;
-+	tsf->avg_z2 = 0;
 +
-+	pressure_limit = ts->event_sent? ts->max_pressure: ts->touch_pressure;
++	omap_dm_timer_set_load(led->intensity_timer, 1, 0xffffff00);
++}
 +
-+	/* z1 is always at least 100: */
-+	Rt = x * (z2 - z1) / z1;
-+	Rt = Rt * ts->x_plate_ohm / 4096;
-+	if (Rt > pressure_limit)
-+		return 0;
++static void omap_pwm_led_power_off(struct omap_pwm_led *led)
++{
++	if (!led->powered)
++		return;
++	led->powered = 0;
 +
-+	/* discard the event if it still is within the previous rect - unless
-+	 * if the pressure is harder, but then use previous x,y position */
-+	inside_rect = (
-+	    x > (int)ts->x - TS_RECT_SIZE && x < (int)ts->x + TS_RECT_SIZE &&
-+	    y > (int)ts->y - TS_RECT_SIZE && y < (int)ts->y + TS_RECT_SIZE);
++	/* Everything off */
++	omap_dm_timer_stop(led->intensity_timer);
++	omap_dm_timer_disable(led->intensity_timer);
 +
-+	if (!ts->event_sent || !inside_rect) {
-+		ts->x = x;
-+		ts->y = y;
-+		ts->p = Rt;
-+		return 1;
-+	} else if (Rt < ts->p) {
-+		ts->p = Rt;
-+		return 1;
++	if (led->blink_timer != NULL) {
++		omap_dm_timer_stop(led->blink_timer);
++		omap_dm_timer_disable(led->blink_timer);
 +	}
++
++	if (led->pdata->set_power != NULL)
++		led->pdata->set_power(led->pdata, 0);
++}
++
++static void omap_pwm_led_set_pwm_cycle(struct omap_pwm_led *led, int cycle)
++{
++	int n;
++
++	if (cycle == 0)
++		n = 0xff;
++	else	n = cycle - 1;
++
++	if (cycle == LED_FULL) {
++		omap_dm_timer_set_pwm(led->intensity_timer, 1, 1,
++				      OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE);
++		omap_dm_timer_stop(led->intensity_timer);
++	} else {
++		omap_dm_timer_set_pwm(led->intensity_timer, 0, 1,
++				      OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE);
++		omap_dm_timer_set_match(led->intensity_timer, 1,
++					(0xffffff00) | cycle);
++		omap_dm_timer_start(led->intensity_timer);
++	}
++}
++
++static void omap_pwm_led_set(struct led_classdev *led_cdev,
++			     enum led_brightness value)
++{
++	struct omap_pwm_led *led = cdev_to_omap_pwm_led(led_cdev);
++
++	led->brightness = value;
++	schedule_work(&led->work);
++}
++
++static void omap_pwm_led_work(struct work_struct *work)
++{
++	struct omap_pwm_led *led = work_to_omap_pwm_led(work);
++
++	if (led->brightness != LED_OFF) {
++		omap_pwm_led_power_on(led);
++		omap_pwm_led_set_pwm_cycle(led, led->brightness);
++	} else {
++		omap_pwm_led_power_off(led);
++	}
++}
++
++static ssize_t omap_pwm_led_on_period_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct omap_pwm_led *led = cdev_to_omap_pwm_led(led_cdev);
++
++	return sprintf(buf, "%u\n", led->on_period) + 1;
++}
++
++static ssize_t omap_pwm_led_on_period_store(struct device *dev,
++				struct device_attribute *attr,
++				const char *buf, size_t size)
++{
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct omap_pwm_led *led = cdev_to_omap_pwm_led(led_cdev);
++	int ret = -EINVAL;
++	unsigned long val;
++	char *after;
++	size_t count;
++
++	val = simple_strtoul(buf, &after, 10);
++	count = after - buf;
++	if (*after && isspace(*after))
++		count++;
++
++	if (count == size) {
++		led->on_period = val;
++		omap_pwm_led_set_blink(led);
++		ret = count;
++	}
++
++	return ret;
++}
++
++static ssize_t omap_pwm_led_off_period_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct omap_pwm_led *led = cdev_to_omap_pwm_led(led_cdev);
++
++	return sprintf(buf, "%u\n", led->off_period) + 1;
++}
++
++static ssize_t omap_pwm_led_off_period_store(struct device *dev,
++					struct device_attribute *attr,
++					const char *buf, size_t size)
++{
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct omap_pwm_led *led = cdev_to_omap_pwm_led(led_cdev);
++	int ret = -EINVAL;
++	unsigned long val;
++	char *after;
++	size_t count;
++
++	val = simple_strtoul(buf, &after, 10);
++	count = after - buf;
++	if (*after && isspace(*after))
++		count++;
++
++	if (count == size) {
++		led->off_period = val;
++		omap_pwm_led_set_blink(led);
++		ret = count;
++	}
++
++	return ret;
++}
++
++static DEVICE_ATTR(on_period, 0644, omap_pwm_led_on_period_show,
++				omap_pwm_led_on_period_store);
++static DEVICE_ATTR(off_period, 0644, omap_pwm_led_off_period_show,
++				omap_pwm_led_off_period_store);
++
++static int omap_pwm_led_probe(struct platform_device *pdev)
++{
++	struct omap_pwm_led_platform_data *pdata = pdev->dev.platform_data;
++	struct omap_pwm_led *led;
++	int ret;
++
++	led = kzalloc(sizeof(struct omap_pwm_led), GFP_KERNEL);
++	if (led == NULL) {
++		dev_err(&pdev->dev, "No memory for device\n");
++		return -ENOMEM;
++	}
++
++	platform_set_drvdata(pdev, led);
++	led->cdev.brightness_set = omap_pwm_led_set;
++	led->cdev.default_trigger = NULL;
++	led->cdev.name = pdata->name;
++	led->pdata = pdata;
++	led->brightness = LED_OFF;
++	INIT_WORK(&led->work, omap_pwm_led_work);
++
++	dev_info(&pdev->dev, "OMAP PWM LED (%s) at GP timer %d/%d\n",
++		 pdata->name, pdata->intensity_timer, pdata->blink_timer);
++
++	/* register our new led device */
++	ret = led_classdev_register(&pdev->dev, &led->cdev);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "led_classdev_register failed\n");
++		goto error_classdev;
++	}
++
++	/* get related dm timers */
++	led->intensity_timer = omap_dm_timer_request_specific(pdata->intensity_timer);
++	if (led->intensity_timer == NULL) {
++		dev_err(&pdev->dev, "failed to request intensity pwm timer\n");
++		ret = -ENODEV;
++		goto error_intensity;
++	}
++	omap_dm_timer_disable(led->intensity_timer);
++
++	if (pdata->blink_timer != 0) {
++		led->blink_timer = omap_dm_timer_request_specific(pdata->blink_timer);
++		if (led->blink_timer == NULL) {
++			dev_err(&pdev->dev, "failed to request blinking pwm timer\n");
++			ret = -ENODEV;
++			goto error_blink1;
++		}
++		omap_dm_timer_disable(led->blink_timer);
++
++		ret = device_create_file(led->cdev.dev,
++					       &dev_attr_on_period);
++		if(ret)
++			goto error_blink2;
++
++		ret = device_create_file(led->cdev.dev,
++					&dev_attr_off_period);
++		if(ret)
++			goto error_blink3;
++
++	}
++
 +	return 0;
++
++error_blink3:
++	device_remove_file(led->cdev.dev,
++				 &dev_attr_on_period);
++error_blink2:
++	dev_err(&pdev->dev, "failed to create device file(s)\n");
++error_blink1:
++	omap_dm_timer_free(led->intensity_timer);
++error_intensity:
++	led_classdev_unregister(&led->cdev);
++error_classdev:
++	kfree(led);
++	return ret;
 +}
 +
-+/*
-+ * This procedure is called by the SPI framework after the coordinates
-+ * have been read from TSC2301
-+ */
-+static void tsc2301_ts_rx(void *arg)
++static int omap_pwm_led_remove(struct platform_device *pdev)
 +{
-+	struct tsc2301 *tsc = arg;
-+	struct tsc2301_ts *ts = tsc->ts;
-+	int send_event;
-+	int x, y, z1, z2;
++	struct omap_pwm_led *led = pdev_to_omap_pwm_led(pdev);
 +
-+	x  = ts->coords->x;
-+	y  = ts->coords->y;
-+	z1 = ts->coords->z1;
-+	z2 = ts->coords->z2;
++	device_remove_file(led->cdev.dev,
++				 &dev_attr_on_period);
++	device_remove_file(led->cdev.dev,
++				 &dev_attr_off_period);
++	led_classdev_unregister(&led->cdev);
 +
-+	send_event = filter(ts, x, y, z1, z2);
-+	if (send_event) {
-+		update_pen_state(ts, ts->x, ts->y, ts->p);
-+		ts->event_sent = 1;
-+	}
++	omap_pwm_led_set(&led->cdev, LED_OFF);
++	if (led->blink_timer != NULL)
++		omap_dm_timer_free(led->blink_timer);
++	omap_dm_timer_free(led->intensity_timer);
++	kfree(led);
 +
-+	mod_timer(&ts->penup_timer,
-+		  jiffies + msecs_to_jiffies(TSC2301_TS_PENUP_TIME));
-+}
-+
-+/*
-+ * Timer is called TSC2301_TS_PENUP_TIME after pen is up
-+ */
-+static void tsc2301_ts_timer_handler(unsigned long data)
-+{
-+	struct tsc2301 *tsc = (struct tsc2301 *)data;
-+	struct tsc2301_ts *ts = tsc->ts;
-+
-+	if (ts->event_sent) {
-+		ts->event_sent = 0;
-+		update_pen_state(ts, 0, 0, 0);
-+	}
-+}
-+
-+/*
-+ * This interrupt is called when pen is down and coordinates are
-+ * available. That is indicated by a falling edge on DEV line.
-+ */
-+static irqreturn_t tsc2301_ts_irq_handler(int irq, void *dev_id)
-+{
-+	struct tsc2301 *tsc = dev_id;
-+	struct tsc2301_ts *ts = tsc->ts;
-+	int r;
-+
-+	r = spi_async(tsc->spi, &ts->read_msg);
-+	if (r)
-+		dev_err(&tsc->spi->dev, "ts: spi_async() failed");
-+
-+	mod_timer(&ts->penup_timer,
-+		  jiffies + msecs_to_jiffies(TSC2301_TS_PENUP_TIME));
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static void tsc2301_ts_disable(struct tsc2301 *tsc)
-+{
-+	struct tsc2301_ts *ts = tsc->ts;
-+
-+	if (ts->disable_depth++ != 0)
-+		return;
-+
-+	disable_irq(ts->irq);
-+
-+	/* wait until penup timer expire normally */
-+	do {
-+		msleep(1);
-+	} while (ts->event_sent);
-+
-+	tsc2301_ts_stop_scan(tsc);
-+}
-+
-+static void tsc2301_ts_enable(struct tsc2301 *tsc)
-+{
-+	struct tsc2301_ts *ts = tsc->ts;
-+
-+	if (--ts->disable_depth != 0)
-+		return;
-+
-+	enable_irq(ts->irq);
-+
-+	tsc2301_ts_start_scan(tsc);
++	return 0;
 +}
 +
 +#ifdef CONFIG_PM
-+int tsc2301_ts_suspend(struct tsc2301 *tsc)
++static int omap_pwm_led_suspend(struct platform_device *pdev, pm_message_t state)
 +{
-+	struct tsc2301_ts *ts = tsc->ts;
++	struct omap_pwm_led *led = pdev_to_omap_pwm_led(pdev);
 +
-+	mutex_lock(&ts->mutex);
-+	tsc2301_ts_disable(tsc);
-+	mutex_unlock(&ts->mutex);
-+
++	led_classdev_suspend(&led->cdev);
 +	return 0;
 +}
 +
-+void tsc2301_ts_resume(struct tsc2301 *tsc)
++static int omap_pwm_led_resume(struct platform_device *pdev)
 +{
-+	struct tsc2301_ts *ts = tsc->ts;
++	struct omap_pwm_led *led = pdev_to_omap_pwm_led(pdev);
 +
-+	mutex_lock(&ts->mutex);
-+	tsc2301_ts_enable(tsc);
-+	mutex_unlock(&ts->mutex);
++	led_classdev_resume(&led->cdev);
++	return 0;
 +}
++#else
++#define omap_pwm_led_suspend NULL
++#define omap_pwm_led_resume NULL
 +#endif
 +
-+static void tsc2301_ts_setup_spi_xfer(struct tsc2301 *tsc)
++static struct platform_driver omap_pwm_led_driver = {
++	.probe		= omap_pwm_led_probe,
++	.remove		= omap_pwm_led_remove,
++	.suspend	= omap_pwm_led_suspend,
++	.resume		= omap_pwm_led_resume,
++	.driver		= {
++		.name		= "omap_pwm_led",
++		.owner		= THIS_MODULE,
++	},
++};
++
++static int __init omap_pwm_led_init(void)
 +{
-+	struct tsc2301_ts *ts = tsc->ts;
-+	struct spi_message *m = &ts->read_msg;
-+	struct spi_transfer *x = &ts->read_xfer[0];
-+
-+	spi_message_init(m);
-+
-+	x->tx_buf = &tsc2301_ts_read_data;
-+	x->len = 2;
-+	spi_message_add_tail(x, m);
-+
-+	x++;
-+	x->rx_buf = ts->coords;
-+	x->len = 8;
-+	spi_message_add_tail(x, m);
-+
-+	m->complete = tsc2301_ts_rx;
-+	m->context = tsc;
++	return platform_driver_register(&omap_pwm_led_driver);
 +}
 +
-+static ssize_t tsc2301_ts_pen_down_show(struct device *dev,
-+					struct device_attribute *attr,
-+					char *buf)
++static void __exit omap_pwm_led_exit(void)
 +{
-+	struct tsc2301 *tsc = dev_get_drvdata(dev);
-+
-+	return sprintf(buf, "%u\n", tsc->ts->pen_down);
++	platform_driver_unregister(&omap_pwm_led_driver);
 +}
 +
-+static DEVICE_ATTR(pen_down, S_IRUGO, tsc2301_ts_pen_down_show, NULL);
++module_init(omap_pwm_led_init);
++module_exit(omap_pwm_led_exit);
 +
-+static ssize_t tsc2301_ts_disable_show(struct device *dev,
-+				       struct device_attribute *attr, char *buf)
++MODULE_AUTHOR("Timo Teras");
++MODULE_DESCRIPTION("OMAP PWM LED driver");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/leds/leds-omap.c b/drivers/leds/leds-omap.c
+new file mode 100644
+index 0000000..5c14c4b
+--- /dev/null
++++ b/drivers/leds/leds-omap.c
+@@ -0,0 +1,135 @@
++/* drivers/leds/leds-omap.c
++ *
++ * (C) 2006 Samsung Electronics
++ * Kyungmin Park <kyungmin.park@samsung.com>
++ *
++ * OMAP - LEDs GPIO driver
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++*/
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/leds.h>
++
++#include <mach/gpio.h>
++#include <mach/hardware.h>
++#include <mach/led.h>
++
++/* our context */
++
++static void omap_set_led_gpio(struct led_classdev *led_cdev,
++			    enum led_brightness value)
 +{
-+	struct tsc2301		*tsc = dev_get_drvdata(dev);
-+	struct tsc2301_ts	*ts = tsc->ts;
++	struct omap_led_config *led_dev;
 +
-+	return sprintf(buf, "%u\n", ts->disabled);
++	led_dev = container_of(led_cdev, struct omap_led_config, cdev);
++
++	if (value)
++		omap_set_gpio_dataout(led_dev->gpio, 1);
++	else
++		omap_set_gpio_dataout(led_dev->gpio, 0);
 +}
 +
-+static ssize_t tsc2301_ts_disable_store(struct device *dev,
-+					struct device_attribute *attr,
-+					const char *buf, size_t count)
++static void omap_configure_led_gpio(int gpio)
 +{
-+	struct tsc2301		*tsc = dev_get_drvdata(dev);
-+	struct tsc2301_ts	*ts = tsc->ts;
-+	char *endp;
++	if (omap_request_gpio(gpio) < 0) {
++		printk(KERN_ERR "Failed to request GPIO%d for LEDs\n", gpio);
++		return;
++	}
++	omap_set_gpio_direction(gpio, 0);	/* OUT */
++}
++
++static int omap_led_probe(struct platform_device *dev)
++{
++	struct omap_led_platform_data *pdata = dev->dev.platform_data;
++	struct omap_led_config *leds = pdata->leds;
++	int i, ret = 0;
++
++	for (i = 0; ret >= 0 && i < pdata->nr_leds; i++) {
++		omap_configure_led_gpio(leds[i].gpio);
++		if (!leds[i].cdev.brightness_set)
++			leds[i].cdev.brightness_set = omap_set_led_gpio;
++
++		ret = led_classdev_register(&dev->dev, &leds[i].cdev);
++	}
++
++	if (ret < 0 && i > 1) {
++		for (i = i - 2; i >= 0; i--)
++			led_classdev_unregister(&leds[i].cdev);
++	}
++
++	return ret;
++}
++
++static int omap_led_remove(struct platform_device *dev)
++{
++	struct omap_led_platform_data *pdata = dev->dev.platform_data;
++	struct omap_led_config *leds = pdata->leds;
 +	int i;
 +
-+	i = simple_strtoul(buf, &endp, 10);
-+	i = i ? 1 : 0;
-+	mutex_lock(&ts->mutex);
-+	if (i == ts->disabled) goto out;
-+	ts->disabled = i;
-+
-+	if (i)
-+		tsc2301_ts_disable(tsc);
-+	else
-+		tsc2301_ts_enable(tsc);
-+out:
-+	mutex_unlock(&ts->mutex);
-+	return count;
-+}
-+
-+static DEVICE_ATTR(disable_ts, 0664, tsc2301_ts_disable_show,
-+		   tsc2301_ts_disable_store);
-+
-+int __devinit tsc2301_ts_init(struct tsc2301 *tsc,
-+			      struct tsc2301_platform_data *pdata)
-+{
-+	struct tsc2301_ts *ts;
-+	struct input_dev *idev;
-+	int r;
-+	int x_max, y_max;
-+	int x_fudge, y_fudge, p_fudge;
-+
-+	if (pdata->dav_int <= 0) {
-+		dev_err(&tsc->spi->dev, "need DAV IRQ");
-+		return -EINVAL;
-+	}
-+
-+	ts = kzalloc(sizeof(*ts), GFP_KERNEL);
-+	if (ts == NULL)
-+		return -ENOMEM;
-+	tsc->ts = ts;
-+
-+	ts->coords = kzalloc(sizeof(*ts->coords), GFP_KERNEL);
-+	if (ts->coords == NULL) {
-+		kfree(ts);
-+		return -ENOMEM;
-+	}
-+
-+	ts->irq = pdata->dav_int;
-+
-+	init_timer(&ts->penup_timer);
-+	setup_timer(&ts->penup_timer, tsc2301_ts_timer_handler,
-+			(unsigned long)tsc);
-+
-+	mutex_init(&ts->mutex);
-+
-+	ts->x_plate_ohm	= pdata->ts_x_plate_ohm ? : 280;
-+	ts->hw_avg_max	= pdata->ts_hw_avg;
-+	ts->max_pressure = pdata->ts_max_pressure ? : MAX_12BIT;
-+	ts->touch_pressure = pdata->ts_touch_pressure ? : ts->max_pressure;
-+	ts->stab_time	= pdata->ts_stab_time;
-+
-+	x_max		= pdata->ts_x_max ? : 4096;
-+	y_max		= pdata->ts_y_max ? : 4096;
-+	x_fudge		= pdata->ts_x_fudge ? : 4;
-+	y_fudge		= pdata->ts_y_fudge ? : 8;
-+	p_fudge		= pdata->ts_pressure_fudge ? : 2;
-+
-+	if ((r = tsc2301_ts_check_config(ts, &ts->hw_flags))) {
-+		dev_err(&tsc->spi->dev, "invalid configuration\n");
-+		goto err2;
-+	}
-+
-+	idev = input_allocate_device();
-+	if (idev == NULL) {
-+		r = -ENOMEM;
-+		goto err2;
-+	}
-+	idev->name = "TSC2301 touchscreen";
-+	snprintf(ts->phys, sizeof(ts->phys),
-+		 "%s/input-ts", tsc->spi->dev.bus_id);
-+	idev->phys = ts->phys;
-+	idev->dev.parent = &tsc->spi->dev;
-+
-+	idev->evbit[0] = BIT(EV_ABS) | BIT(EV_KEY);
-+	idev->absbit[0] = BIT(ABS_X) | BIT(ABS_Y) | BIT(ABS_PRESSURE);
-+	ts->idev = idev;
-+
-+	tsc2301_ts_setup_spi_xfer(tsc);
-+
-+	/* These parameters should perhaps be configurable? */
-+	input_set_abs_params(idev, ABS_X, 0, x_max, x_fudge, 0);
-+	input_set_abs_params(idev, ABS_Y, 0, y_max, y_fudge, 0);
-+	input_set_abs_params(idev, ABS_PRESSURE, 0, ts->max_pressure,
-+			     p_fudge, 0);
-+
-+	tsc2301_ts_start_scan(tsc);
-+
-+	r = request_irq(ts->irq, tsc2301_ts_irq_handler,
-+			IRQF_SAMPLE_RANDOM | IRQF_TRIGGER_FALLING,
-+			"tsc2301-ts", tsc);
-+	if (r < 0) {
-+		dev_err(&tsc->spi->dev, "unable to get DAV IRQ");
-+		goto err3;
-+	}
-+	set_irq_wake(ts->irq, 1);
-+
-+	if (device_create_file(&tsc->spi->dev, &dev_attr_pen_down) < 0)
-+		goto err4;
-+	if (device_create_file(&tsc->spi->dev, &dev_attr_disable_ts) < 0)
-+		goto err5;
-+
-+	r = input_register_device(idev);
-+	if (r < 0) {
-+		dev_err(&tsc->spi->dev, "can't register touchscreen device\n");
-+		goto err6;
-+	}
++	for (i = 0; i < pdata->nr_leds; i++)
++		led_classdev_unregister(&leds[i].cdev);
 +
 +	return 0;
-+err6:
-+	device_remove_file(&tsc->spi->dev, &dev_attr_disable_ts);
-+err5:
-+	device_remove_file(&tsc->spi->dev, &dev_attr_pen_down);
-+err4:
-+	free_irq(ts->irq, tsc);
-+err3:
-+	tsc2301_ts_stop_scan(tsc);
-+	input_free_device(idev);
-+err2:
-+	kfree(ts->coords);
-+	kfree(ts);
-+	return r;
 +}
 +
-+void __devexit tsc2301_ts_exit(struct tsc2301 *tsc)
++#ifdef CONFIG_PM
++static int omap_led_suspend(struct platform_device *dev, pm_message_t state)
 +{
-+	struct tsc2301_ts *ts = tsc->ts;
++	struct omap_led_platform_data *pdata = dev->dev.platform_data;
++	struct omap_led_config *leds = pdata->leds;
++	int i;
 +
-+	tsc2301_ts_disable(tsc);
++	for (i = 0; i < pdata->nr_leds; i++)
++		led_classdev_suspend(&leds[i].cdev);
 +
-+	device_remove_file(&tsc->spi->dev, &dev_attr_disable_ts);
-+	device_remove_file(&tsc->spi->dev, &dev_attr_pen_down);
-+
-+	free_irq(ts->irq, tsc);
-+	input_unregister_device(ts->idev);
-+
-+	kfree(ts->coords);
-+	kfree(ts);
++	return 0;
 +}
-+MODULE_AUTHOR("Jarkko Oikarinen <jarkko.oikarinen@nokia.com>");
++
++static int omap_led_resume(struct platform_device *dev)
++{
++	struct omap_led_platform_data *pdata = dev->dev.platform_data;
++	struct omap_led_config *leds = pdata->leds;
++	int i;
++
++	for (i = 0; i < pdata->nr_leds; i++)
++		led_classdev_resume(&leds[i].cdev);
++
++	return 0;
++}
++#else
++#define omap_led_suspend	NULL
++#define omap_led_resume		NULL
++#endif
++
++static struct platform_driver omap_led_driver = {
++	.probe		= omap_led_probe,
++	.remove		= omap_led_remove,
++	.suspend	= omap_led_suspend,
++	.resume		= omap_led_resume,
++	.driver		= {
++		.name		= "omap-led",
++		.owner		= THIS_MODULE,
++	},
++};
++
++static int __init omap_led_init(void)
++{
++	return platform_driver_register(&omap_led_driver);
++}
++
++static void __exit omap_led_exit(void)
++{
++ 	platform_driver_unregister(&omap_led_driver);
++}
++
++module_init(omap_led_init);
++module_exit(omap_led_exit);
++
++MODULE_AUTHOR("Kyungmin Park<kyungmin.park@samsung.com>");
++MODULE_DESCRIPTION("OMAP LED driver");
 +MODULE_LICENSE("GPL");
 -- 
 1.6.0.1.141.g445ca
