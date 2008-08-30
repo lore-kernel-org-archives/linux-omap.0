@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 08/33] add innovator ps2 keypad driver
-Date: Sat, 30 Aug 2008 20:16:08 +0300
-Message-ID: <1220116593-862-9-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 09/33] add lm8323 keypad driver
+Date: Sat, 30 Aug 2008 20:16:09 +0300
+Message-ID: <1220116593-862-10-git-send-email-me@felipebalbi.com>
 References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-2-git-send-email-me@felipebalbi.com>
  <1220116593-862-3-git-send-email-me@felipebalbi.com>
@@ -10,1401 +10,1034 @@ References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-6-git-send-email-me@felipebalbi.com>
  <1220116593-862-7-git-send-email-me@felipebalbi.com>
  <1220116593-862-8-git-send-email-me@felipebalbi.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+ <1220116593-862-9-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:43937 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:43958 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752773AbYH3RSW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:18:22 -0400
-In-Reply-To: <1220116593-862-8-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1752834AbYH3RS3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:18:29 -0400
+In-Reply-To: <1220116593-862-9-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-=46rom: Felipe Balbi <felipe.balbi@nokia.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/input/keyboard/Kconfig         |   10 +
- drivers/input/keyboard/Makefile        |    1 +
- drivers/input/keyboard/innovator_ps2.c | 1280 ++++++++++++++++++++++++=
-++++++++
- 3 files changed, 1291 insertions(+), 0 deletions(-)
- create mode 100644 drivers/input/keyboard/innovator_ps2.c
+ drivers/input/keyboard/Kconfig  |    7 +
+ drivers/input/keyboard/Makefile |    1 +
+ drivers/input/keyboard/lm8323.c |  925 +++++++++++++++++++++++++++++++++++++++
+ include/linux/i2c/lm8323.h      |   37 ++
+ 4 files changed, 970 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/input/keyboard/lm8323.c
+ create mode 100644 include/linux/i2c/lm8323.h
 
-diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kc=
-onfig
-index efd70a9..01d6421 100644
+diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
+index 01d6421..53239cb 100644
 --- a/drivers/input/keyboard/Kconfig
 +++ b/drivers/input/keyboard/Kconfig
-@@ -259,6 +259,16 @@ config KEYBOARD_OMAP
+@@ -269,6 +269,13 @@ config OMAP_PS2
  	  To compile this driver as a module, choose M here: the
- 	  module will be called omap-keypad.
-=20
-+config OMAP_PS2
-+	tristate "TI OMAP Innovator 1510 PS/2 keyboard & mouse support"
-+	depends on ARCH_OMAP15XX && MACH_OMAP_INNOVATOR
+ 	  module will be called innovator_ps2.
+ 
++config KEYBOARD_LM8323
++	tristate "LM8323 keypad chip"
++	depends on I2C
 +	help
-+	  Say Y here if you want to use the OMAP Innovator 1510 PS/2
-+	  keyboard and mouse.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called innovator_ps2.
++	  If you say yes here you get support for the National Semiconductor
++	  LM8323 keypad controller.
 +
  config KEYBOARD_PXA27x
  	tristate "PXA27x/PXA3xx keypad support"
  	depends on PXA27x || PXA3xx
-diff --git a/drivers/input/keyboard/Makefile b/drivers/input/keyboard/M=
-akefile
-index 0edc8f2..a48205b 100644
+diff --git a/drivers/input/keyboard/Makefile b/drivers/input/keyboard/Makefile
+index a48205b..52e9b70 100644
 --- a/drivers/input/keyboard/Makefile
 +++ b/drivers/input/keyboard/Makefile
-@@ -19,6 +19,7 @@ obj-$(CONFIG_KEYBOARD_TOSA)		+=3D tosakbd.o
- obj-$(CONFIG_KEYBOARD_HIL)		+=3D hil_kbd.o
- obj-$(CONFIG_KEYBOARD_HIL_OLD)		+=3D hilkbd.o
- obj-$(CONFIG_KEYBOARD_OMAP)		+=3D omap-keypad.o
-+obj-$(CONFIG_OMAP_PS2)			+=3D innovator_ps2.o
- obj-$(CONFIG_KEYBOARD_PXA27x)		+=3D pxa27x_keypad.o
- obj-$(CONFIG_KEYBOARD_AAED2000)		+=3D aaed2000_kbd.o
- obj-$(CONFIG_KEYBOARD_GPIO)		+=3D gpio_keys.o
-diff --git a/drivers/input/keyboard/innovator_ps2.c b/drivers/input/key=
-board/innovator_ps2.c
+@@ -20,6 +20,7 @@ obj-$(CONFIG_KEYBOARD_HIL)		+= hil_kbd.o
+ obj-$(CONFIG_KEYBOARD_HIL_OLD)		+= hilkbd.o
+ obj-$(CONFIG_KEYBOARD_OMAP)		+= omap-keypad.o
+ obj-$(CONFIG_OMAP_PS2)			+= innovator_ps2.o
++obj-$(CONFIG_KEYBOARD_LM8323)		+= lm8323.o
+ obj-$(CONFIG_KEYBOARD_PXA27x)		+= pxa27x_keypad.o
+ obj-$(CONFIG_KEYBOARD_AAED2000)		+= aaed2000_kbd.o
+ obj-$(CONFIG_KEYBOARD_GPIO)		+= gpio_keys.o
+diff --git a/drivers/input/keyboard/lm8323.c b/drivers/input/keyboard/lm8323.c
 new file mode 100644
-index 0000000..b3c4a06
+index 0000000..72bb587
 --- /dev/null
-+++ b/drivers/input/keyboard/innovator_ps2.c
-@@ -0,0 +1,1280 @@
++++ b/drivers/input/keyboard/lm8323.c
+@@ -0,0 +1,925 @@
 +/*
-+ * drivers/char/innovator_ps2.c
++ * drivers/i2c/chips/lm8323.c
 + *
-+ * Basic PS/2 keyboard/mouse driver for the Juno=AE USAR HID controlle=
-r
-+ * present on the TI Innovator/OMAP1510 Break-out-board.
++ * Copyright (C) 2007 Nokia Corporation
 + *
++ * Written by Daniel Stone <daniel.stone@nokia.com>
++ *            Timo O. Karjalainen <timo.o.karjalainen@nokia.com>
 + *
-+ * Author: MontaVista Software, Inc.
-+ *         <gdavis@mvista.com> or <source@mvista.com>
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation (version 2 of the License only).
 + *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
 + *
-+ * 2003 (c) MontaVista Software, Inc. This file is licensed under
-+ * the terms of the GNU General Public License version 2. This program
-+ * is licensed "as is" without any warranty of any kind, whether expre=
-ss
-+ * or implied.
-+ *
-+ *
-+ * REFERENCES:
-+ *
-+ * 1.	Technical Reference Manual
-+ *	Juno=AE 01
-+ *	Multi-function ICs family
-+ *	UR8HC007-001 HID & Power management controller
-+ *	Document Number: DOC8-007-001-TR-075
-+ *	Date: February 2002
-+ *	Copyright =A91998-2002 Semtech Corporation
-+ *	http://www.semtech.com/pdf/doc8-007-001-tr.pdf
-+ *
-+ * 2.	Juno=AE 01 UR8HC007-001 Data Sheet
-+ *	Extremely Low-power Input Device and Power Management IC
-+ *	Copyright =A91998-2002 Semtech Corporation
-+ *	DOC8-007-001-DS-112
-+ *	http://www.semtech.com/pdf/doc8-007-001-ds.pdf
-+ *
-+ *
-+ * HISTORY:
-+ *
-+ * 20030626: George G. Davis <gdavis@mvista.com>
-+ *      Initially based on the following RidgeRun DSPlinux Version 1.6=
- files:
-+ *		linux-2.4.15-rmk1-dsplinux/arch/arm/dsplinux/hid/omap1510_hid.c
-+ *		linux-2.4.15-rmk1-dsplinux/arch/arm/dsplinux/hid/omap1510_hid.h
-+ *		linux-2.4.15-rmk1-dsplinux/arch/arm/dsplinux/hid/omap1510_ps2.c
-+ *		linux-2.4.15-rmk1-dsplinux/arch/arm/dsplinux/hid/omap1510_spi.c
-+ *	All original files above are
-+ *		Copyright (C) 2001 RidgeRun, Inc.
-+ *		Author: Alex McMains <aam@ridgerun.com>
-+ *
-+ * 20040812: Thiago Radicchi <trr@dcc.ufmg.br>
-+ *      Cleanup of old code from 2.4 driver and some debug code.
-+ *      Minor changes in interrupt handling code.
-+ *
-+ * NOTES:
-+ *
-+ * 1. This driver does not provide support for setting keyboard/mouse
-+ *    configuration parameters. Both devices are managed directly by
-+ *    the Juno UR8HC007-001 on behalf of the host. This minimises the
-+ *    amount of host processing required to manage HID events and stat=
-e
-+ *    changes, e.g. both keyboard and mouse devices are hot pluggable
-+ *    with no host intervention required. However, we cannot customise
-+ *    keyboard/mouse settings in this case. So we live with the defaul=
-ts
-+ *    as setup by the Juno UR8HC007-001 whatever they may be.
-+ * 2. Keyboard auto repeat does not work. See 1 above. : )
-+ *
-+ *
-+ * TODO:
-+ *
-+ * 1. Complete DPM/LDM stubs and test.
-+ * 2. Add SPI error handling support, i.e. resend, etc.,.
-+ * 3. Determine why innovator_hid_interrupt() is called for every
-+ *    invocation of Innovator FPGA IRQ demux. It appears that the
-+ *    missed Innovator ethernet workaround may be to blame. However,
-+ *    it does not adversely affect operation of this driver since we
-+ *    check for assertion of ATN prior to servicing the interrupt. If
-+ *    ATN is negated, we bug out right away.
-+ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 + */
 +
-+#include <linux/version.h>
-+#include <linux/stddef.h>
 +#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/types.h>
-+#include <linux/delay.h>
-+#include <linux/types.h>
-+#include <linux/ptrace.h>
-+#include <linux/sched.h>
++#include <linux/i2c.h>
 +#include <linux/interrupt.h>
++#include <linux/sched.h>
++#include <linux/mutex.h>
++#include <linux/delay.h>
 +#include <linux/input.h>
-+#include <linux/slab.h>
-+#include <linux/fs.h>
-+#include <linux/miscdevice.h>
-+#include <linux/poll.h>
-+#include <linux/string.h>
-+#include <linux/ioport.h>
-+#include <linux/platform_device.h>
++#include <linux/leds.h>
++#include <linux/i2c/lm8323.h>
 +
-+#include <asm/io.h>
-+#include <asm/hardware.h>
-+#include <asm/irq.h>
-+#include <asm/uaccess.h>
-+#include <asm/arch/fpga.h>
++#include <asm/mach-types.h>
++#include <asm/mach/irq.h>
 +
-+#undef	INNOVATOR_KEYB_DEBUG
-+#ifdef	INNOVATOR_KEYB_DEBUG
-+#define	dbg(format, arg...) printk(KERN_DEBUG "%s:%d: " format , \
-+				   __FUNCTION__ , __LINE__ , ## arg)
-+#define	entry()	printk(KERN_DEBUG "%s:%d: Entry\n" , __FUNCTION__ , __=
-LINE__)
-+#define	exit()	printk(KERN_DEBUG "%s:%d: Exit\n" , __FUNCTION__ , __LI=
-NE__)
-+#define dump_packet(p, n)					\
-+	{							\
-+		int i;						\
-+		printk(KERN_DEBUG "%s:%d: %08x:" ,		\
-+		       __FUNCTION__ , __LINE__ , (int) p);	\
-+		for (i =3D 0; i < n; i +=3D 1) {			\
-+			printk(" %02x", (int) p[i]);		\
-+		}						\
-+		printk("\n");					\
-+	}
++#ifdef VERBOSE
++#define debug dev_dbg
 +#else
-+#define	dbg(format, arg...) do {} while (0)
-+#define	entry()	do {} while (0)
-+#define	exit()	do {} while (0)
-+#define dump_packet(p, n) do {} while (0)
++#define debug(...)
 +#endif
 +
++/* Commands to send to the chip. */
++#define LM8323_CMD_READ_ID		0x80 /* Read chip ID. */
++#define LM8323_CMD_WRITE_CFG		0x81 /* Set configuration item. */
++#define LM8323_CMD_READ_INT		0x82 /* Get interrupt status. */
++#define LM8323_CMD_RESET		0x83 /* Reset, same as external one */
++#define LM8323_CMD_WRITE_PORT_SEL	0x85 /* Set GPIO in/out. */
++#define LM8323_CMD_WRITE_PORT_STATE	0x86 /* Set GPIO pullup. */
++#define LM8323_CMD_READ_PORT_SEL	0x87 /* Get GPIO in/out. */
++#define LM8323_CMD_READ_PORT_STATE	0x88 /* Get GPIO pullup. */
++#define LM8323_CMD_READ_FIFO		0x89 /* Read byte from FIFO. */
++#define LM8323_CMD_RPT_READ_FIFO	0x8a /* Read FIFO (no increment). */
++#define LM8323_CMD_SET_ACTIVE		0x8b /* Set active time. */
++#define LM8323_CMD_READ_ERR		0x8c /* Get error status. */
++#define LM8323_CMD_READ_ROTATOR		0x8e /* Read rotator status. */
++#define LM8323_CMD_SET_DEBOUNCE		0x8f /* Set debouncing time. */
++#define LM8323_CMD_SET_KEY_SIZE		0x90 /* Set keypad size. */
++#define LM8323_CMD_READ_KEY_SIZE	0x91 /* Get keypad size. */
++#define LM8323_CMD_READ_CFG		0x92 /* Get configuration item. */
++#define LM8323_CMD_WRITE_CLOCK		0x93 /* Set clock config. */
++#define LM8323_CMD_READ_CLOCK		0x94 /* Get clock config. */
++#define LM8323_CMD_PWM_WRITE		0x95 /* Write PWM script. */
++#define LM8323_CMD_START_PWM		0x96 /* Start PWM engine. */
++#define LM8323_CMD_STOP_PWM		0x97 /* Stop PWM engine. */
 +
-+#define	PFX	"innovator_ps2"
-+#define err(format, arg...)	printk(KERN_ERR PFX ": " format , ## arg)
-+#define info(format, arg...)	printk(KERN_INFO PFX ": " format , ## arg=
-)
-+#define warn(format, arg...)	printk(KERN_WARNING PFX ": " format , ## =
-arg)
++/* Interrupt status. */
++#define INT_KEYPAD			0x01 /* Key event. */
++#define INT_ROTATOR			0x02 /* Rotator event. */
++#define INT_ERROR			0x08 /* Error: use CMD_READ_ERR. */
++#define INT_NOINIT			0x10 /* Lost configuration. */
++#define INT_PWM1			0x20 /* PWM1 stopped. */
++#define INT_PWM2			0x40 /* PWM2 stopped. */
++#define INT_PWM3			0x80 /* PWM3 stopped. */
 +
++/* Errors (signalled by INT_ERROR, read with CMD_READ_ERR). */
++#define ERR_BADPAR			0x01 /* Bad parameter. */
++#define ERR_CMDUNK			0x02 /* Unknown command. */
++#define ERR_KEYOVR			0x04 /* Too many keys pressed. */
++#define ERR_FIFOOVER			0x40 /* FIFO overflow. */
 +
-+/*********************************************************************=
-*******/
++/* Configuration keys (CMD_{WRITE,READ}_CFG). */
++#define CFG_MUX1SEL			0x01 /* Select MUX1_OUT input. */
++#define CFG_MUX1EN			0x02 /* Enable MUX1_OUT. */
++#define CFG_MUX2SEL			0x04 /* Select MUX2_OUT input. */
++#define CFG_MUX2EN			0x08 /* Enable MUX2_OUT. */
++#define CFG_PSIZE			0x20 /* Package size (must be 0). */
++#define CFG_ROTEN			0x40 /* Enable rotator. */
 +
++/* Clock settings (CMD_{WRITE,READ}_CLOCK). */
++#define CLK_RCPWM_INTERNAL		0x00
++#define CLK_RCPWM_EXTERNAL		0x03
++#define CLK_SLOWCLKEN			0x08 /* Enable 32.768kHz clock. */
++#define CLK_SLOWCLKOUT			0x40 /* Enable slow pulse output. */
++
++/* The possible addresses corresponding to CONFIG1 and CONFIG2 pin wirings. */
++#define LM8323_I2C_ADDR00		(0x84 >> 1)	/* 1000 010x */
++#define LM8323_I2C_ADDR01		(0x86 >> 1)	/* 1000 011x */
++#define LM8323_I2C_ADDR10		(0x88 >> 1)	/* 1000 100x */
++#define LM8323_I2C_ADDR11		(0x8A >> 1)	/* 1000 101x */
++
++/* Key event fifo length */
++#define LM8323_FIFO_LEN			15
++
++/* Commands for PWM engine; feed in with PWM_WRITE. */
++/* Load ramp counter from duty cycle field (range 0 - 0xff). */
++#define PWM_SET(v)			(0x4000 | ((v) & 0xff))
++/* Go to start of script. */
++#define PWM_GOTOSTART			0x0000
 +/*
-+ * Synchronous communications timing parameters (Reference [1] pg 7-7)
++ * Stop engine (generates interrupt).  If reset is 1, clear the program
++ * counter, else leave it.
 + */
-+
-+#define tMSA	5000	/* -/5ms	_SS to _ATN (master transfer) */
-+#define tMAC	100	/* 100us/5ms	_ATN to first clock pulse (master
-+					transfer) */
-+#define tMIB	150	/* 150us/5ms	Beginning of byte transfer to beginning
-+					of next byte transfer */
-+#define tSIB	150	/* 150us/5ms	Beginning of byte transfer to beginning
-+					of next byte transfer */
-+#define tMSP	100	/* -/100us	Last clock pulse of packet to _SS
-+					de-assertion */
-+#define tMNSA	100	/* -/100us	_SS de-assertion to _ATN de-assertion */
-+#define tMNEXT	120	/* 120uS/-	_ATN release to _SS re-assertion
-+					(master transfer) */
-+#define	tSAS	5000	/* -/5ms	_ATN to _SS (slave transfer) */
-+#define tSSC	100	/* 100us/5ms	_SS to first clock pulse (slave
-+					transfer) */
-+#define tSNA	100	/* -/100us	Last clock pulse of packet to _ATN
-+					de-assertion */
-+#define tSNAS	100	/* -/100us	_ATN release to _SS de-assertion */
-+#define tSNEXT	120	/* 120us/-	_SS release to _ATN re-assertion
-+					(slave transfer) */
-+#define tSCK	4	/* 4us/-	Clock period */
-+#define tSLOW	2	/* 2us/-	Clock LOW period */
-+#define tHOLD	200	/* 200ns/-	Master data hold time */
-+#define tSETUP	100	/* 100ns/-	Master data setup Time */
-+#define tSSETUP	500	/* -/500ns	Slave data setup time from clock
-+					falling edge */
-+
-+
++#define PWM_END(reset)			(0xc000 | (!!(reset) << 11))
 +/*
-+ * Protocol Headers (Reference [1], pg. 5-1):
++ * Ramp.  If s is 1, divide clock by 512, else divide clock by 16.
++ * Take t clock scales (up to 63) per step, for n steps (up to 126).
++ * If u is set, ramp up, else ramp down.
 + */
-+
-+
-+/* Protocols used in commands issued by the host: */
-+#define SIMPLE			0x80	/* Simple commands
-+					 * Common for both host and controller
-+					 * protocol headers.
-+					 */
-+#define WRITE_REGISTER_BIT	0x81	/* Write register bit */
-+#define READ_REGISTER_BIT	0x82	/* Read register bit */
-+#define WRITE_REGISTER		0x83	/* Write register */
-+#define READ_REGISTER		0x84	/* Read register */
-+#define WRITE_BLOCK		0x85	/* Write block */
-+#define READ_BLOCK		0x86	/* Read block */
-+
-+
-+/* Protocols used in responses, reports and alerts issued by the contr=
-oller: */
-+#define REPORT_REGISTER_BIT	0x81	/* Report register bit & event alerts=
- */
-+#define REPORT_REGISTER		0x83	/* Report register */
-+#define REPORT_BLOCK		0x85	/* Report block */
-+#define POINTING_REPORT		0x87	/* Pointing device data report */
-+#define KEYBOARD_REPORT		0x88	/* Keyboard device data report */
-+
-+
-+/* Simple Commands (Reference [1], pg 5-3): */
-+#define INITIALIZE		0x00	/* Forces the recipient to enter the
-+					 * known default power-on state.
-+					 */
-+#define INITIALIZATION_COMPLETE	0x01	/* Issued as a hand-shake respons=
-e only
-+					 * to the "Initialize" command.
-+					 */
-+#define RESEND_REQUEST		0x05	/* Issued upon error in the reception
-+					 * of a package. The recipient resends
-+					 * the last transmitted packet.
-+					 */
-+
-+/* Register offsets (Reference [1], pg 6-1 thru 6-9): */
-+
-+#define REG_PM_COMM		0
-+#define REG_PM_STATUS		1
-+#define REG_PAGENO		255
-+
-+/* Power management bits ((Reference [1], pg 6-10): */
-+
-+#define SUS_STATE		0x2	/* in REG_PM_COMM */
-+
-+/* Miscellaneous constants: */
-+
-+#define X_MSB_SHIFT	(8-4)
-+#define X_MSB_MASK	(3<<4)
-+#define Y_MSB_SHIFT	(8-6)
-+#define Y_MSB_MASK	(3<<6)
-+
-+
-+#define JUNO_BLOCK_SIZE     32
-+#define JUNO_BUFFER_SIZE    256
-+
-+
++#define PWM_RAMP(s, t, n, u)		((!!(s) << 14) | ((t) & 0x3f) << 8 | \
++					 ((n) & 0x7f) | ((u) ? 0 : 0x80))
 +/*
-+ * Errors:
++ * Loop (i.e. jump back to pos) for a given number of iterations (up to 63).
++ * If cnt is zero, execute until PWM_END is encountered.
 + */
-+
-+#define E_BAD_HEADER	1
-+#define E_BAD_LRC	2
-+#define E_ZERO_BYTES	3
-+#define E_BAD_VALUE	4
-+#define E_BAD_MODE	5
-+#define E_REPORT_MODE	6
-+#define E_BAD_ACK	7
-+#define E_BAD_DEVICE_ID	8
-+#define E_PKT_SZ	9
-+
-+
++#define PWM_LOOP(cnt, pos)		(0xa000 | (((cnt) & 0x3f) << 7) | \
++					 ((pos) & 0x3f))
 +/*
-+ * Host/Controller Command/Response Formats:
++ * Wait for trigger.  Argument is a mask of channels, shifted by the channel
++ * number, e.g. 0xa for channels 3 and 1.  Note that channels are numbered
++ * from 1, not 0.
 + */
++#define PWM_WAIT_TRIG(chans)		(0xe000 | (((chans) & 0x7) << 6))
++/* Send trigger.  Argument is same as PWM_WAIT_TRIG. */
++#define PWM_SEND_TRIG(chans)		(0xe000 | ((chans) & 0x7))
 +
-+typedef struct _simple_t {
-+	u8 header;
-+	u8 cmd_code;
-+	u8 LRC;
-+} __attribute__ ((packed)) simple_t;
++#define DRIVER_NAME  "lm8323"
 +
-+typedef struct _write_bit_t {
-+	u8 header;
-+	u8 offset;
-+	u8 value_bit;
-+	u8 LRC;
-+} __attribute__ ((packed)) write_bit_t;
-+
-+typedef struct _read_bit_t {
-+	u8 header;
-+	u8 offset;
-+	u8 bit;
-+	u8 LRC;
-+} __attribute__ ((packed)) read_bit_t;
-+
-+typedef struct _write_reg_t {
-+	u8 header;
-+	u8 offset;
-+	u8 value;
-+	u8 LRC;
-+} __attribute__ ((packed)) write_reg_t;
-+
-+typedef struct _read_reg_t {
-+	u8 header;
-+	u8 offset;
-+	u8 LRC;
-+} __attribute__ ((packed)) read_reg_t;
-+
-+typedef struct _write_block_t {
-+	u8 header;
-+	u8 offset;
-+	u8 length;
-+	u8 block[JUNO_BLOCK_SIZE + 1]; /* Hack: LRC is last element of block[=
-] */
-+} __attribute__ ((packed)) write_block_t;
-+
-+typedef struct _read_block_t {
-+	u8 header;
-+	u8 offset;
-+	u8 length;
-+	u8 LRC;
-+} __attribute__ ((packed)) read_block_t;
-+
-+typedef struct _report_bit_t {
-+	u8 header;
-+	u8 offset;
-+	u8 value_bit;
-+	u8 LRC;
-+} __attribute__ ((packed)) report_bit_t;
-+
-+typedef struct _report_reg_t {
-+	u8 header;
-+	u8 offset;
-+	u8 value;
-+	u8 LRC;
-+} __attribute__ ((packed)) report_reg_t;
-+
-+typedef struct _report_block_t {
-+	u8 header;
-+	u8 offset;
-+	u8 length;
-+	u8 block[32];
-+	u8 LRC;
-+} __attribute__ ((packed)) report_block_t;
-+
-+typedef struct _mse_report_t {
-+	u8 header;
-+	u8 buttons;
-+	u8 Xdisplacement;
-+	u8 Ydisplacement;
-+	u8 Zdisplacement;
-+	u8 LRC;
-+} __attribute__ ((packed)) mse_report_t;
-+
-+typedef struct _kdb_report_t {
-+	u8 header;
-+	u8 keynum;		/* up > 0x80, down < 0x7E, all keys up 0x00 */
-+	u8 LRC;
-+} __attribute__ ((packed)) kdb_report_t;
-+
-+
-+static u8 buffer[JUNO_BUFFER_SIZE];
-+
-+static void do_hid_tasklet(unsigned long);
-+DECLARE_TASKLET(hid_tasklet, do_hid_tasklet, 0);
-+static struct innovator_hid_dev *hid;
-+
-+struct innovator_hid_dev {
-+	struct input_dev *mouse, *keyboard;
-+	int open;
-+	int irq_enabled;
++struct lm8323_pwm {
++	int			id;
++	int			enabled;
++	int			fade_time;
++	int			brightness;
++	int			desired_brightness;
++	struct work_struct	work;
++	struct led_classdev	cdev;
 +};
 +
-+/*********************************************************************=
-*******/
++struct lm8323_chip {
++	struct mutex		lock;
++	struct i2c_client	*client;
++	struct work_struct	work;
++	struct input_dev	*idev;
++	unsigned		kp_enabled : 1;
++	unsigned		pm_suspend : 1;
++	unsigned		keys_down;
++	char			phys[32];
++	s16			keymap[LM8323_KEYMAP_SIZE];
++	int			size_x;
++	int			size_y;
++	int			debounce_time;
++	int			active_time;
++	struct lm8323_pwm	pwm1;
++	struct lm8323_pwm	pwm2;
++	struct lm8323_pwm	pwm3;
++};
++
++#define client_to_lm8323(c)	container_of(c, struct lm8323_chip, client)
++#define dev_to_lm8323(d)	container_of(d, struct lm8323_chip, client->dev)
++#define work_to_lm8323(w)	container_of(w, struct lm8323_chip, work)
++#define cdev_to_pwm(c)		container_of(c, struct lm8323_pwm, cdev)
++#define work_to_pwm(w)		container_of(w, struct lm8323_pwm, work)
++
++static struct lm8323_chip *pwm_to_lm8323(struct lm8323_pwm *pwm)
++{
++	switch (pwm->id) {
++	case 1:
++		return container_of(pwm, struct lm8323_chip, pwm1);
++	case 2:
++		return container_of(pwm, struct lm8323_chip, pwm2);
++	case 3:
++		return container_of(pwm, struct lm8323_chip, pwm3);
++	default:
++		return NULL;
++	}
++}
++
++static struct lm8323_platform_data *lm8323_pdata;
++
++
++#define LM8323_MAX_DATA 8
 +
 +/*
-+ * Low-level TI Innovator/OMAP1510 FPGA HID SPI interface helper funct=
-ions:
++ * To write, we just access the chip's address in write mode, and dump the
++ * command and data out on the bus.  The command byte and data are taken as
++ * sequential u8s out of varargs, to a maximum of LM8323_MAX_DATA.
 + */
-+
-+static u8
-+innovator_fpga_hid_rd(void)
++static int lm8323_write(struct lm8323_chip *lm, int len, ...)
 +{
-+	u8 val =3D inb(INNOVATOR_FPGA_HID_SPI);
-+	return val;
-+}
++	int ret, i;
++	va_list ap;
++	u8 data[LM8323_MAX_DATA];
 +
-+static void
-+innovator_fpga_hid_wr(u8 val)
-+{
-+	outb(val, INNOVATOR_FPGA_HID_SPI);
-+}
++	va_start(ap, len);
 +
-+static void
-+innovator_fpga_hid_frob(u8 mask, u8 val)
-+{
-+	unsigned long flags;
-+	local_irq_save(flags);
-+	innovator_fpga_hid_wr((innovator_fpga_hid_rd() & ~mask) | val);
-+	local_irq_restore(flags);
-+}
-+
-+static void
-+innovator_fpga_hid_set_bits(u8 x)
-+{
-+	innovator_fpga_hid_frob(x, x);
-+}
-+
-+static void
-+SS(int value)
-+{
-+	innovator_fpga_hid_frob(OMAP1510_FPGA_HID_nSS, value ? OMAP1510_FPGA_=
-HID_nSS : 0);
-+}
-+
-+static void
-+SCLK(int value)
-+{
-+	innovator_fpga_hid_frob(OMAP1510_FPGA_HID_SCLK, value ? OMAP1510_FPGA=
-_HID_SCLK : 0);
-+}
-+
-+static void
-+MOSI(int value)
-+{
-+	innovator_fpga_hid_frob(OMAP1510_FPGA_HID_MOSI, value ? OMAP1510_FPGA=
-_HID_MOSI : 0);
-+}
-+
-+static u8
-+MISO(void)
-+{
-+	return ((innovator_fpga_hid_rd() & OMAP1510_FPGA_HID_MISO) ? 1 : 0);
-+}
-+
-+static u8=20
-+ATN(void)
-+{
-+	return ((innovator_fpga_hid_rd() & OMAP1510_FPGA_HID_ATN) ? 1 : 0);
-+}
-+
-+static int
-+wait_for_ATN(int assert, int timeout)
-+{
-+	do {
-+		if (ATN() =3D=3D assert)
-+			return 0;
-+		udelay(1);
-+	} while (timeout -=3D 1);
-+	return -1;
-+}
-+
-+static u8
-+innovator_fpga_hid_xfer_byte(u8 xbyte)
-+{
-+	int i;
-+	u8 rbyte;
-+
-+	for (rbyte =3D 0, i =3D 7; i >=3D 0; i -=3D 1) {
-+		SCLK(0);
-+		MOSI((xbyte >> i) & 1);
-+		udelay(tSLOW);
-+		SCLK(1);
-+		rbyte =3D (rbyte << 1) | MISO();
-+		udelay(tSLOW);
++	if (unlikely(len > LM8323_MAX_DATA)) {
++		dev_err(&lm->client->dev, "tried to send %d bytes\n", len);
++		va_end(ap);
++		return 0;
 +	}
 +
-+	return rbyte;
-+}
++	for (i = 0; i < len; i++)
++		data[i] = va_arg(ap, int);
 +
-+static void
-+innovator_fpga_hid_reset(void)
-+{
-+	innovator_fpga_hid_wr(OMAP1510_FPGA_HID_SCLK | OMAP1510_FPGA_HID_MOSI=
-);
-+	mdelay(1);
-+	innovator_fpga_hid_set_bits(OMAP1510_FPGA_HID_RESETn);
-+}
-+
-+
-+/*********************************************************************=
-********
-+
-+  Refer to Reference [1], Chapter 7 / Low-level communications, Serial
-+  Peripheral Interface (SPI) implementation Host (master) packet
-+  transmission timing, pg. 7-3, for timing and implementation details
-+  for spi_xmt().
-+
-+ *********************************************************************=
-********/
-+
-+int
-+spi_xmt(u8 * p, u8 n)
-+{
-+	unsigned long flags;
-+
-+	dump_packet(p, n);
-+	local_irq_save(flags);
-+	disable_irq(OMAP1510_INT_FPGA_ATN);
-+
-+	if (ATN()) {
-+		/* Oops, we have a collision. */
-+		enable_irq(OMAP1510_INT_FPGA_ATN);
-+		local_irq_restore(flags);
-+		dbg("Protocol error: ATN is asserted\n");
-+		return -EAGAIN;
-+	}
-+
-+	SS(1);
-+
-+	if (wait_for_ATN(1, tMSA) < 0) {
-+		SS(0);
-+		enable_irq(OMAP1510_INT_FPGA_ATN);
-+		local_irq_restore(flags);
-+		dbg("timeout waiting for ATN assertion\n");
-+		return -EREMOTEIO;
-+	}
-+
-+	udelay(tMAC);
-+
-+	while (n--) {
-+		innovator_fpga_hid_xfer_byte(*p++);
-+		if (n) {
-+			udelay(tMIB - 8 * tSCK);
-+		}
-+	}
-+
-+	MOSI(1);	/* Set MOSI to idle high. */
-+
-+	/* NOTE: The data sheet does not specify a minimum delay
-+	 * here. But innovator_fpga_hid_xfer_byte() gives us a half-clock
-+	 * delay (tSLOW) after the last bit is sent. So I'm happy with
-+	 * that.
-+	 */
-+
-+	SS(0);
-+
-+	if (wait_for_ATN(0, tMNSA) < 0) {
-+		enable_irq(OMAP1510_INT_FPGA_ATN);
-+		local_irq_restore(flags);
-+		dbg("timeout waiting for ATN negation\n");
-+		return -EREMOTEIO;
-+	}
-+
-+	udelay(tMNEXT);
-+	enable_irq(OMAP1510_INT_FPGA_ATN);
-+	local_irq_restore(flags);
-+	return 0;
-+}
-+
-+
-+/*********************************************************************=
-********
-+
-+  Refer to Reference [1],  Chapter 7 / Low-level communications, Seria=
-l
-+  Peripheral Interface (SPI) implementation, Slave packet transmission
-+  timing, pg. 7-5, for timing and implementation details for spi_rcv()=
-=2E
-+
-+ *********************************************************************=
-********/
-+
-+int
-+spi_rcv(u8 * p, int len)
-+{
-+	unsigned long flags;
-+	int ret =3D 0;
-+
-+	if (len > 256) {
-+		/* Limit packet size to something reasonable */
-+		return -1;
-+	}
-+
-+	local_irq_save(flags);
-+
-+	if (wait_for_ATN(1, tMSA) < 0) {
-+		local_irq_restore(flags);
-+		dbg("Protocol error: ATN is not asserted\n");
-+		return -EREMOTEIO;
-+	}
-+
-+	SS(1);
-+
-+	udelay(tSSC);
-+
-+	while (ATN()) {
-+		if (ret >=3D len) {
-+			err("over run error\n");
-+			ret =3D -1;
-+			break;
-+		}
-+		p[ret++] =3D innovator_fpga_hid_xfer_byte(0xff);
-+		udelay(tSNA);	/* Wait long enough to detect negation of ATN
-+				 * after last clock pulse of packet.
-+				 *
-+				 * NOTE: Normally, we need a minimum delay of
-+				 *	 tSIB between the start of one byte
-+				 *	 and the start of the next. However,
-+				 *	 we also need to wait long enough
-+				 *	 for the USAR to negate ATN before
-+				 *	 starting the next byte. So we use
-+				 *	 max(tSIB - 8 * tSCK, tSNA) here to
-+				 *	 satisfy both constraints.
-+				 */
-+	}
-+
-+	SS(0);	/* NOTE: The data sheet does not specify a minimum delay
-+		 * here. But innovator_fpga_hid_xfer_byte() gives us a
-+		 * half-clock delay (tSLOW) after the last bit is sent. So
-+		 * I'm happy with that (rather than no delay at all : ).
-+		 */
-+
-+
-+	udelay(tSNEXT);	/* This isn't quite right. Assertion of ATN after
-+			 * negation of SS is an USAR timing constraint.
-+			 * What we need here is a spec for the minimum
-+			 * delay from SS negation to SS assertion. But
-+			 * for now, just use this brain dead delay.
-+			 */
-+
-+	local_irq_restore(flags);
-+
-+	if (ret > 0) {
-+		dump_packet(p, ret);
-+	}
-+
-+	return ret;
-+}
-+
-+
-+/*********************************************************************=
-********
-+  Calculate Host/Controller Command/Response Longitudinal Redundancy C=
-heck (LRC)
-+
-+  The algorithm implemented in calculate_LRC() below is taken directly=
- from
-+  the reference [1], Chapter 7 / Low-level communications, LRC (Longit=
-udinal
-+  Redundancy Check), pg 5-10.
-+
-+ *********************************************************************=
-********/
-+
-+static u8
-+calculate_LRC(u8 * p, int n)
-+{
-+	u8 LRC;
-+	int i;
++	va_end(ap);
 +
 +	/*
-+	 * Init the LRC using the first two message bytes.
++	 * If the host is asleep while we send the data, we can get a NACK
++	 * back while it wakes up, so try again, once.
 +	 */
-+	LRC =3D p[0] ^ p[1];
-+
-+	/*
-+	 * Update the LRC using the remainder of the p.
-+	 */
-+	for (i =3D 2; i < n; i++)
-+		LRC ^=3D p[i];
-+
-+	/*
-+	 * If the MSB is set then clear the MSB and change the next
-+	 * most significant bit
-+	 */
-+	if (LRC & 0x80)
-+		LRC ^=3D 0xC0;
-+
-+	return LRC;
-+}
-+
-+
-+/*
-+ * Controller response helper functions:
-+ */
-+
-+static inline int
-+report_mouse(mse_report_t * p, int n)
-+{
-+	if (p->header !=3D POINTING_REPORT)
-+		return -E_BAD_HEADER;
-+
-+	if (n !=3D sizeof(mse_report_t))
-+		return -E_PKT_SZ;
-+
-+	return (p->LRC !=3D calculate_LRC((u8 *) p, sizeof(mse_report_t) - 1)=
-) ?
-+		-E_BAD_LRC : POINTING_REPORT;
-+}
-+
-+static inline int
-+report_keyboard(kdb_report_t * p, int n)
-+{
-+	if (p->header !=3D KEYBOARD_REPORT)
-+		return -E_BAD_HEADER;
-+
-+	if (n !=3D sizeof(kdb_report_t))
-+		return -E_PKT_SZ;
-+
-+	return (p->LRC !=3D calculate_LRC((u8 *) p, sizeof(kdb_report_t) - 1)=
-) ?
-+		-E_BAD_LRC : KEYBOARD_REPORT;
-+}
-+
-+
-+/*
-+ * Miscellaneous helper functions:
-+ */
-+
-+static inline int
-+report_type(u8 * type)
-+{
-+	/* check the header to find out what kind of report it is */
-+	if ((*type) =3D=3D KEYBOARD_REPORT)
-+		return KEYBOARD_REPORT;
-+	else if ((*type) =3D=3D POINTING_REPORT)
-+		return POINTING_REPORT;
-+	else
-+		return -E_BAD_HEADER;
-+}
-+
-+static inline int
-+report_async(void * p, int n)
-+{
-+	int ret;
-+
-+	if ((ret =3D spi_rcv((u8 *) p, n)) < 0)
-+		return ret;
-+
-+	if (report_type((u8 *) p) =3D=3D POINTING_REPORT)
-+		ret =3D report_mouse((mse_report_t *) p, ret);
-+	else if (report_type((u8 *) p) =3D=3D KEYBOARD_REPORT)
-+		ret =3D report_keyboard((kdb_report_t *) p, ret);
++	ret = i2c_master_send(lm->client, data, len);
++	if (unlikely(ret == -EREMOTEIO))
++		ret = i2c_master_send(lm->client, data, len);
++	if (unlikely(ret != len))
++		dev_err(&lm->client->dev, "sent %d bytes of %d total\n",
++			len, ret);
 +
 +	return ret;
 +}
 +
 +/*
-+ * Host command helper functions:
++ * To read, we first send the command byte to the chip and end the transaction,
++ * then access the chip in read mode, at which point it will send the data.
 + */
-+
-+#if	0
-+/* REVISIT/TODO: Wrapper for command/response with resend handing. */
-+static int
-+spi_xfer(u8 * optr, u8 osz, u8 * iptr, u8 isz)
++static int lm8323_read(struct lm8323_chip *lm, u8 cmd, u8 *buf, int len)
 +{
-+	static u8 buf[256];
 +	int ret;
-+	int xretries =3D 3;
 +
-+	do {
-+		if (optr !=3D NULL && osz) {
-+			do {
-+				ret =3D spi_xmt((u8 *) optr, osz);
-+			} while (ret < 0);
-+		}
++	/*
++	 * If the host is asleep while we send the byte, we can get a NACK
++	 * back while it wakes up, so try again, once.
++	 */
++	ret = i2c_master_send(lm->client, &cmd, 1);
++	if (unlikely(ret == -EREMOTEIO))
++		ret = i2c_master_send(lm->client, &cmd, 1);
++	if (unlikely(ret != 1)) {
++		dev_err(&lm->client->dev, "sending read cmd 0x%02x failed\n",
++			cmd);
++		return 0;
++	}
 +
-+		ret =3D spi_rcv((u8 *) buf, 256);
++	ret = i2c_master_recv(lm->client, buf, len);
++	if (unlikely(ret != len))
++		dev_err(&lm->client->dev, "wanted %d bytes, got %d\n",
++			len, ret);
 +
-+		if (ret =3D=3D -EREMOTEIO) {
-+			if (iptr =3D=3D NULL) {
-+				break;
++	return ret;
++}
++
++/*
++ * Set the chip active time (idle time before it enters halt).
++ */
++static void lm8323_set_active_time(struct lm8323_chip *lm, int time)
++{
++	lm8323_write(lm, 2, LM8323_CMD_SET_ACTIVE, time >> 2);
++}
++
++/*
++ * The signals are AT-style: the low 7 bits are the keycode, and the top
++ * bit indicates the state (1 for down, 0 for up).
++ */
++static inline u8 lm8323_whichkey(u8 event)
++{
++	return event & 0x7f;
++}
++
++static inline int lm8323_ispress(u8 event)
++{
++	return (event & 0x80) ? 1 : 0;
++}
++
++static void process_keys(struct lm8323_chip *lm)
++{
++	u8 event;
++	u8 key_fifo[LM8323_FIFO_LEN + 1];
++	int old_keys_down = lm->keys_down;
++	int ret;
++	int i = 0;
++
++	/*
++	 * Read all key events from the FIFO at once. Next READ_FIFO clears the
++	 * FIFO even if we didn't read all events previously.
++	 */
++	ret = lm8323_read(lm, LM8323_CMD_READ_FIFO, key_fifo, LM8323_FIFO_LEN);
++
++	if (ret < 0) {
++		dev_err(&lm->client->dev, "Failed reading fifo \n");
++		return;
++	}
++	key_fifo[ret] = 0;
++
++	while ((event = key_fifo[i])) {
++		u8 key = lm8323_whichkey(event);
++		int isdown = lm8323_ispress(event);
++		s16 keycode = lm->keymap[key];
++
++		if (likely(keycode > 0)) {
++			debug(&lm->client->dev, "key 0x%02x %s\n", key,
++			      isdown ? "down" : "up");
++			if (likely(lm->kp_enabled)) {
++				input_report_key(lm->idev, keycode, isdown);
++				input_sync(lm->idev);
 +			}
++			if (isdown)
++				lm->keys_down++;
++			else
++				lm->keys_down--;
++		} else {
++			dev_err(&lm->client->dev, "keycode 0x%02x not mapped "
++				"to any key\n", key);
 +		}
-+	} while (xretries--);
++		i++;
++	}
 +
-+	return ret;
-+}
-+#endif
-+
-+/* REVISIT: Enable these when/if additional Juno features are required=
-=2E */
-+static inline int
-+simple(u8 cmd)
-+{
-+	static simple_t p;
-+	int ret;
-+
-+	p.header =3D SIMPLE;
-+	p.cmd_code =3D cmd;
-+	p.LRC =3D calculate_LRC((u8 *) & p, sizeof(p) - 1);
-+
-+	if ((ret =3D spi_xmt((u8 *) & p, sizeof(p))) < 0)
-+		return ret;
-+
-+	if ((ret =3D spi_rcv((u8 *) & p, sizeof(p))) < 0)
-+		return ret;
-+
-+	if (ret =3D=3D 0)
-+		return -E_ZERO_BYTES;
-+
-+	if (ret !=3D sizeof(p))
-+		return -E_PKT_SZ;
-+
-+	if (p.header !=3D SIMPLE)
-+		return -E_BAD_HEADER;
-+
-+	if (p.LRC !=3D calculate_LRC((u8 *) & p, sizeof(p) - 1))
-+		return -E_BAD_LRC;
-+
-+	/* REVISIT: Need to check or return response code here? */
++	/*
++	 * Errata: We need to ensure that the chip never enters halt mode
++	 * during a keypress, so set active time to 0.  When it's released,
++	 * we can enter halt again, so set the active time back to normal.
++	 */
++	if (!old_keys_down && lm->keys_down)
++		lm8323_set_active_time(lm, 0);
++	if (old_keys_down && !lm->keys_down)
++		lm8323_set_active_time(lm, lm->active_time);
 +}
 +
-+static inline int
-+write_bit(u8 offset, u8 bit, u8 value)
++static void lm8323_process_error(struct lm8323_chip *lm)
 +{
-+	static write_bit_t p;
++	u8 error;
 +
-+	p.header =3D WRITE_REGISTER_BIT;
-+	p.offset =3D offset;
-+	p.value_bit =3D (bit << 1) | (value & 1);
-+	p.LRC =3D calculate_LRC((u8 *) & p, sizeof(p) - 1);
-+
-+	return spi_xmt((u8 *) & p, sizeof(p));
-+}
-+
-+static inline int
-+read_bit(u8 offset, u8 bit, u8 * data)
-+{
-+	static read_bit_t p;
-+	static report_bit_t q;
-+	int ret;
-+
-+	p.header =3D READ_REGISTER_BIT;
-+	p.offset =3D offset;
-+	p.bit =3D bit;
-+	p.LRC =3D calculate_LRC((u8 *) & p, sizeof(p) - 1);
-+
-+	if ((ret =3D spi_xmt((u8 *) & p, sizeof(p))) < 0)
-+		return ret;
-+
-+	if ((ret =3D spi_rcv((u8 *) & q, sizeof(q))) < 0)
-+		return ret;
-+
-+	if (ret =3D=3D 0)
-+		return -E_ZERO_BYTES;
-+
-+	if (ret !=3D sizeof(q))
-+		return -E_PKT_SZ;
-+
-+	if (q.header !=3D REPORT_REGISTER_BIT)
-+		return -E_BAD_HEADER;
-+
-+	if (q.LRC !=3D calculate_LRC((u8 *) & q, sizeof(q) - 1))
-+		return -E_BAD_LRC;
-+
-+	*data =3D q.value_bit;
-+
-+	return 0;
-+}
-+
-+static inline int
-+write_reg(u8 offset, u8 value)
-+{
-+	static write_reg_t p;
-+
-+	p.header =3D WRITE_REGISTER;
-+	p.offset =3D offset;
-+	p.value =3D value;
-+	p.LRC =3D calculate_LRC((u8 *) & p, sizeof(p) - 1);
-+
-+	return spi_xmt((u8 *) & p, sizeof(p));
-+}
-+
-+static inline int
-+read_reg(u8 offset, u8 * data)
-+{
-+	static read_reg_t p;
-+	static report_reg_t q;
-+	int ret;
-+
-+	p.header =3D READ_REGISTER;
-+	p.offset =3D offset;
-+	p.LRC =3D calculate_LRC((u8 *) & p, sizeof(p) - 1);
-+
-+	if ((ret =3D spi_xmt((u8 *) & p, sizeof(p))) < 0)
-+		return ret;
-+
-+	if ((ret =3D spi_rcv((u8 *) & q, sizeof(q))) < 0)
-+		return ret;
-+
-+	if (ret =3D=3D 0)
-+		return -E_ZERO_BYTES;
-+
-+	if (ret !=3D sizeof(q))
-+		return -E_PKT_SZ;
-+
-+	if (q.header !=3D REPORT_REGISTER)
-+		return -E_BAD_HEADER;
-+
-+	if (q.LRC !=3D calculate_LRC((u8 *) & q, sizeof(q) - 1))
-+		return -E_BAD_LRC;
-+
-+	*data =3D q.value;
-+
-+	return 0;
-+}
-+
-+static inline int
-+write_block(u8 offset, u8 length, u8 * block)
-+{
-+	static write_block_t p;
-+
-+	p.header =3D WRITE_BLOCK;
-+	p.offset =3D offset;
-+	p.length =3D length;
-+	memcpy(&p.block, block, length);
-+	p.block[length] =3D calculate_LRC((u8 *) & p, 3 + length);
-+
-+	return spi_xmt((u8 *) & p, 4 + length);
-+}
-+
-+static inline int
-+read_block(u8 offset, u8 length, u8 * buf)
-+{
-+	static read_block_t p;
-+	static report_block_t q;
-+	int ret;
-+
-+	p.header =3D READ_BLOCK;
-+	p.offset =3D offset;
-+	p.length =3D length;
-+	p.LRC =3D calculate_LRC((u8 *) & p, sizeof(p) - 1);
-+
-+	if ((ret =3D spi_xmt((u8 *) & p, sizeof(p))) < 0)
-+		return ret;
-+
-+	if ((ret =3D spi_rcv((u8 *) & q, sizeof(q))) < 0)
-+		return ret;
-+
-+	if (ret =3D=3D 0)
-+		return -E_ZERO_BYTES;
-+
-+	if (ret !=3D sizeof(4 + q.length))
-+		return -E_PKT_SZ;
-+
-+	if (q.header !=3D REPORT_BLOCK)
-+		return -E_BAD_HEADER;
-+
-+	if (q.block[q.length] !=3D calculate_LRC((u8 *) & q, 3 + q.length))
-+		return -E_BAD_LRC;
-+
-+	if (length !=3D q.length)
-+		return -E_PKT_SZ;
-+
-+	memcpy(buf, &q.block, length);
-+
-+	return 0;
-+}
-+
-+#ifdef	INNOVATOR_KEYB_DEBUG
-+static void
-+ctrl_dump_regs(void)
-+{
-+	int i;
-+	int n;
-+
-+	for (i =3D 0; i < 256; i +=3D 8) {
-+		read_block(i, 16, buffer);
-+		mdelay(1);
++	if (lm8323_read(lm, LM8323_CMD_READ_ERR, &error, 1) == 1) {
++		if (error & ERR_FIFOOVER)
++			debug(&lm->client->dev, "fifo overflow!\n");
++		if (error & ERR_KEYOVR)
++			debug(&lm->client->dev, "more than two keys pressed\n");
++		if (error & ERR_CMDUNK)
++			debug(&lm->client->dev, "unknown command submitted\n");
++		if (error & ERR_BADPAR)
++			debug(&lm->client->dev, "bad command parameter\n");
 +	}
 +}
-+#endif
 +
-+/*********************************************************************=
-********/
-+
-+static void
-+process_pointing_report(struct innovator_hid_dev *hid, u8 * buffer)
++static void lm8323_reset(struct lm8323_chip *lm)
 +{
-+	static int prev_x, prev_y, prev_btn;
-+	int x, y, btn;
-+	hid->keyboard =3D input_allocate_device();
-+	hid->mouse =3D input_allocate_device();
++	/* The docs say we must pass 0xAA as the data byte. */
++	lm8323_write(lm, 2, LM8323_CMD_RESET, 0xAA);
++}
 +
-+	if (buffer[1] & (1 << 3)) {
-+		/* relative pointing device report */
-+		x =3D buffer[2];
-+		y =3D buffer[3];
++static int lm8323_configure(struct lm8323_chip *lm)
++{
++	int keysize = (lm->size_x << 4) | lm->size_y;
++	int clock = (CLK_SLOWCLKEN | CLK_RCPWM_EXTERNAL);
++	int debounce = lm->debounce_time >> 2;
++	int active = lm->active_time >> 2;
 +
-+		/* check the sign and convert from 2's complement if negative */
-+		if (buffer[1] & (1<<4))
-+			x =3D ~(-x) - 255;
++	/*
++	 * Active time must be greater than the debounce time: if it's
++	 * a close-run thing, give ourselves a 12ms buffer.
++	 */
++	if (debounce >= active)
++		active = debounce + 3;
 +
-+		/* input driver wants -y */
-+		if (buffer[1] & (1<<5))
-+			y =3D -(~(-y) - 255);
-+		else
-+			y =3D -y;
++	lm8323_write(lm, 2, LM8323_CMD_WRITE_CFG, 0);
++	lm8323_write(lm, 2, LM8323_CMD_WRITE_CLOCK, clock);
++	lm8323_write(lm, 2, LM8323_CMD_SET_KEY_SIZE, keysize);
++	lm8323_set_active_time(lm, lm->active_time);
++	lm8323_write(lm, 2, LM8323_CMD_SET_DEBOUNCE, debounce);
++	lm8323_write(lm, 3, LM8323_CMD_WRITE_PORT_STATE, 0xff, 0xff);
++	lm8323_write(lm, 3, LM8323_CMD_WRITE_PORT_SEL, 0, 0);
 +
-+		input_report_key(hid->mouse,
-+				 BTN_LEFT, buffer[1] & (1<<0));
-+		input_report_key(hid->mouse,
-+				 BTN_RIGHT, buffer[1] & (1<<1));
-+		input_report_key(hid->mouse,
-+				 BTN_MIDDLE, buffer[1] & (1<<2));
-+		input_report_rel(hid->mouse, REL_X, x);
-+		input_report_rel(hid->mouse, REL_Y, y);
-+	} else {
-+		/* REVISIT: Does this work? */
-+		/* absolute pointing device report */
-+		x =3D buffer[2] + ((buffer[1] & X_MSB_MASK) << X_MSB_SHIFT);
-+		y =3D buffer[3] + ((buffer[1] & Y_MSB_MASK) << Y_MSB_SHIFT);
-+		btn =3D buffer[1] & (1<<0);
++	/*
++	 * Not much we can do about errors at this point, so just hope
++	 * for the best.
++	 */
 +
-+		if ((prev_x =3D=3D x) && (prev_y =3D=3D y)
-+		    && (prev_btn =3D=3D btn))
-+			return;
-+
-+		input_report_key(hid->mouse, BTN_LEFT, btn);
-+		input_report_abs(hid->mouse, ABS_X, x);
-+		input_report_abs(hid->mouse, ABS_Y, y);
-+		prev_x =3D x;
-+		prev_y =3D y;
-+		prev_btn =3D btn;
-+	}
-+	input_sync(hid->mouse);
-+	dbg("HID X: %d Y: %d Functions: %x\n", x, y, buffer[1]);
++	return 0;
 +}
 +
 +/*
-+ * Reference [1], Appendix A, Semtech standard PS/2 key number definit=
-ions,
-+ * pgs. A-1 through A-3. The following table lists standard PS/2 key n=
-umbers
-+ * used by the Juno=AE 01 keyboard manager.
-+ *
-+ * NOTES:
-+ * 1. The following table indices are E0 codes which require special h=
-andling:
-+ *	53..62, 77..78, 94, 96, 100, 102..104, 108..110
-+ * 2. The following table indices are E1 codes which require special h=
-andling:
-+ *	101
++ * Bottom half: handle the interrupt by posting key events, or dealing with
++ * errors appropriately.
 + */
++static void lm8323_work(struct work_struct *work)
++{
++	struct lm8323_chip *lm = work_to_lm8323(work);
++	u8 ints;
 +
-+static unsigned char usar2scancode[128] =3D {
-+	0x00, 0x29, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-+	0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-+	0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
-+	0x18, 0x19, 0x1a, 0x1b, 0x2b, 0x1e, 0x1f, 0x20,
-+	0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28,
-+	0x1c, 0x2c, 0x2d, 0x2e, 0x2f, 0x30, 0x31, 0x32,
-+	0x33, 0x34, 0x35, 0x39, 0x01, 0x52, 0x53, 0x4b,
-+	0x47, 0x4f, 0x48, 0x50, 0x49, 0x51, 0x4d, 0x37,
-+	0x4e, 0x4f, 0x50, 0x51, 0x4b, 0x4c, 0x4d, 0x47,
-+	0x48, 0x49, 0x52, 0x53, 0x4a, 0x1c, 0x35, 0x3b,
-+	0x3c, 0x3d, 0x3e, 0x3f, 0x40, 0x41, 0x42, 0x43,
-+	0x44, 0x57, 0x58, 0x2a, 0x36, 0x38, 0x38, 0x1d,
-+	0x1d, 0x3a, 0x45, 0x46, 0x2a, 0x1d, 0x5b, 0x5c,
-+	0x5d, 0xff, 0x00, 0x00, 0x5e, 0x5f, 0x63, 0x70,
-+	0x7b, 0x79, 0x7d, 0x73, 0x5b, 0x5c, 0x5d, 0x63,
-+	0x65, 0x66, 0x68, 0x69, 0x6b, 0x56, 0x54, 0x00
-+};
++	mutex_lock(&lm->lock);
++
++	while ((lm8323_read(lm, LM8323_CMD_READ_INT, &ints, 1) == 1) && ints) {
++		if (likely(ints & INT_KEYPAD))
++			process_keys(lm);
++		if (ints & INT_ROTATOR) {
++			/* We don't currently support the rotator. */
++			debug(&lm->client->dev, "rotator fired\n");
++		}
++		if (ints & INT_ERROR) {
++			debug(&lm->client->dev, "error!\n");
++			lm8323_process_error(lm);
++		}
++		if (ints & INT_NOINIT) {
++			dev_err(&lm->client->dev, "chip lost config; "
++						  "reinitialising\n");
++			lm8323_configure(lm);
++		}
++		if (ints & INT_PWM1)
++			debug(&lm->client->dev, "pwm1 engine completed\n");
++		if (ints & INT_PWM2)
++			debug(&lm->client->dev, "pwm2 engine completed\n");
++		if (ints & INT_PWM3)
++			debug(&lm->client->dev, "pwm3 engine completed\n");
++	}
++
++	mutex_unlock(&lm->lock);
++}
 +
 +/*
-+ * The following are bit masks used to encode E0 scan codes which
-+ * require special handling. However, scan codes 100 and 101 are
-+ * excludable here since they each require unique multi-byte scan
-+ * code translations and are therefore dealt with individually via
-+ * handle_print_scr() and handle_pause() respectively below.
++ * We cannot use I2C in interrupt context, so we just schedule work.
 + */
-+
-+static unsigned long int e0_codes1 =3D 0x030003ff; /* scan codes 53..8=
-4 */
-+static unsigned long int e0_codes2 =3D 0x038e0a00; /* scan codes 85..1=
-16 */
-+
-+static void
-+handle_print_scr(int up)
++static irqreturn_t lm8323_irq(int irq, void *data)
 +{
-+	if (up) {
-+		input_report_key(hid->keyboard, 0xe0, 1);
-+		input_report_key(hid->keyboard, 0xb7, 1);
-+		input_report_key(hid->keyboard, 0xe0, 1);
-+		input_report_key(hid->keyboard, 0xaa, 1);
-+	} else {
-+		input_report_key(hid->keyboard, 0xe0, 0);
-+		input_report_key(hid->keyboard, 0x2a, 0);
-+		input_report_key(hid->keyboard, 0xe0, 0);
-+		input_report_key(hid->keyboard, 0x37, 0);
-+	}
-+}
++	struct lm8323_chip *lm = data;
 +
-+static void
-+handle_pause(void)
-+{
-+	input_report_key(hid->keyboard, 0xe1, 0);
-+	input_report_key(hid->keyboard, 0x1d, 0);
-+	input_report_key(hid->keyboard, 0x45, 0);
-+	input_report_key(hid->keyboard, 0xe1, 0);
-+	input_report_key(hid->keyboard, 0x9d, 0);
-+	input_report_key(hid->keyboard, 0xc5, 0);
-+}
++	schedule_work(&lm->work);
 +
-+static void
-+process_keyboard_report(struct innovator_hid_dev *hid, u8 * buffer)
-+{
-+	unsigned char ch =3D buffer[1] & 0x7f;
-+	int up =3D buffer[1] & 0x80 ? 1 : 0;
-+	int is_e0 =3D 0;
-+	hid->keyboard =3D input_allocate_device();
-+	hid->mouse =3D input_allocate_device();
-+
-+	if ((ch =3D=3D 106) || (ch =3D=3D 107))
-+		return;		/* no code */
-+
-+	if (ch =3D=3D 100) {
-+		handle_print_scr(up);
-+		return;
-+	}
-+
-+	if (ch =3D=3D 101) {
-+		handle_pause();
-+		return;
-+	}
-+
-+	if ((ch >=3D 53) && (ch <=3D 84)) {
-+		/* first block of e0 codes */
-+		is_e0 =3D e0_codes1 & (1 << (ch - 53));
-+	} else if ((ch >=3D 85) && (ch <=3D 116)) {
-+		/* second block of e0 codes */
-+		is_e0 =3D e0_codes2 & (1 << (ch - 85));
-+	}
-+
-+	if (is_e0) {
-+		input_report_key(hid->keyboard, 0xe0, !up);
-+	}
-+	input_report_key(hid->keyboard, usar2scancode[ch], !up);
-+	input_sync(hid->keyboard);
-+}
-+
-+static irqreturn_t
-+innovator_hid_interrupt(int irq, void *dev_id, struct pt_regs *regs)
-+{
-+	if (ATN()) {
-+		disable_irq(OMAP1510_INT_FPGA_ATN);
-+		tasklet_schedule(&hid_tasklet);
-+	}
 +	return IRQ_HANDLED;
 +}
 +
-+static void
-+do_hid_tasklet(unsigned long unused)
++/*
++ * Read the chip ID.
++ */
++static int lm8323_read_id(struct lm8323_chip *lm, u8 *buf)
 +{
-+	int ret;
-+	if ((ret =3D report_async(buffer, 256)) =3D=3D -1) {
-+		dbg("Error: Bad Juno return value: %d\n", ret);
-+	} else if (ret =3D=3D KEYBOARD_REPORT) {
-+		process_keyboard_report(hid, buffer);
-+	} else if (ret =3D=3D POINTING_REPORT) {
-+		process_pointing_report(hid, buffer);
-+	} else {
-+		dbg("ERROR: bad report\n");
-+	}
-+	enable_irq(OMAP1510_INT_FPGA_ATN);
++	int bytes;
++
++	bytes = lm8323_read(lm, LM8323_CMD_READ_ID, buf, 2);
++	if (unlikely(bytes != 2))
++		return -EIO;
++
++	return 0;
 +}
 +
-+static int
-+innovator_hid_open(struct input_dev *dev)
++static void lm8323_write_pwm_one(struct lm8323_pwm *pwm, int pos, u16 cmd)
 +{
-+	if (hid->open++)
-+		return 0;
++	struct lm8323_chip *lm = pwm_to_lm8323(pwm);
 +
-+	if (request_irq(OMAP1510_INT_FPGA_ATN, (void *) innovator_hid_interru=
-pt,
-+			IRQF_DISABLED, PFX, hid) < 0)
++	lm8323_write(lm, 4, LM8323_CMD_PWM_WRITE, (pos << 2) | pwm->id,
++		     (cmd & 0xff00) >> 8, cmd & 0x00ff);
++}
++
++/*
++ * Write a script into a given PWM engine, concluding with PWM_END.
++ * If 'keepalive' is specified, the engine will be kept running
++ * indefinitely.
++ */
++static void lm8323_write_pwm(struct lm8323_pwm *pwm, int keepalive,
++			     int len, ...)
++{
++	struct lm8323_chip *lm = pwm_to_lm8323(pwm);
++	int i, cmd;
++	va_list ap;
++
++	/*
++	 * If there are any scripts running at the moment, terminate them
++	 * and make sure the duty cycle is as if it finished.
++	 */
++	lm8323_write(lm, 2, LM8323_CMD_STOP_PWM, pwm->id);
++
++	va_start(ap, len);
++	for (i = 0; i < len; i++) {
++		cmd = va_arg(ap, int);
++		lm8323_write_pwm_one(pwm, i, cmd);
++	}
++	va_end(ap);
++
++	/* Wait for a trigger from any channel. This keeps the engine alive. */
++	if (keepalive)
++		lm8323_write_pwm_one(pwm, i++, PWM_WAIT_TRIG(0xe));
++	else
++		lm8323_write_pwm_one(pwm, i++, PWM_END(1));
++
++	lm8323_write(lm, 2, LM8323_CMD_START_PWM, pwm->id);
++}
++
++static void lm8323_pwm_work(struct work_struct *work)
++{
++	struct lm8323_pwm *pwm = work_to_pwm(work);
++	int div, perstep, steps, hz, direction, keepalive;
++
++	/* Do nothing if we're already at the requested level. */
++	if (pwm->desired_brightness == pwm->brightness)
++		return;
++
++	keepalive = (pwm->desired_brightness > 0);
++	direction = (pwm->desired_brightness > pwm->brightness);
++	steps = abs(pwm->desired_brightness - pwm->brightness);
++
++	/*
++	 * Convert time (in ms) into a divisor (512 or 16 on a refclk of
++	 * 32768Hz), and number of ticks per step.
++	 */
++	if ((pwm->fade_time / steps) > (32768 / 512))
++		div = 512;
++	else
++		div = 16;
++
++	hz = 32768 / div;
++	if (pwm->fade_time < ((steps * 1000) / hz))
++		perstep = 1;
++	else
++		perstep = (hz * pwm->fade_time) / (steps * 1000);
++
++	if (perstep == 0)
++		perstep = 1;
++	else if (perstep > 63)
++		perstep = 63;
++
++	if (steps > 252) {
++		lm8323_write_pwm(pwm, keepalive, 3,
++				 PWM_RAMP((div == 512), perstep, 126,
++					  direction),
++				 PWM_RAMP((div == 512), perstep, 126,
++					  direction),
++				 PWM_RAMP((div == 512), perstep, steps - 252,
++					  direction));
++	} else if (steps > 126) {
++		lm8323_write_pwm(pwm, keepalive, 2,
++				 PWM_RAMP((div == 512), perstep, 126,
++					  direction),
++				 PWM_RAMP((div == 512), perstep, steps - 126,
++					  direction));
++	} else {
++		lm8323_write_pwm(pwm, keepalive, 1,
++				 PWM_RAMP((div == 512), perstep, steps,
++					  direction));
++	}
++
++	pwm->brightness = pwm->desired_brightness;
++}
++
++static void lm8323_pwm_set_brightness(struct led_classdev *led_cdev,
++				      enum led_brightness brightness)
++{
++	struct lm8323_pwm *pwm = cdev_to_pwm(led_cdev);
++	struct lm8323_chip *lm = pwm_to_lm8323(pwm);
++
++	pwm->desired_brightness = brightness;
++
++	if (in_interrupt()) {
++		schedule_work(&pwm->work);
++	} else {
++		/*
++		 * Schedule PWM work as usual unless we are going into suspend
++		 */
++		mutex_lock(&lm->lock);
++		if (likely(!lm->pm_suspend))
++			schedule_work(&pwm->work);
++		else
++			lm8323_pwm_work(&pwm->work);
++		mutex_unlock(&lm->lock);
++	}
++}
++
++static ssize_t lm8323_pwm_show_time(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct lm8323_pwm *pwm = cdev_to_pwm(led_cdev);
++
++	return sprintf(buf, "%d\n", pwm->fade_time);
++}
++
++static ssize_t lm8323_pwm_store_time(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t len)
++{
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct lm8323_pwm *pwm = cdev_to_pwm(led_cdev);
++	int ret;
++	int time;
++
++	ret = sscanf(buf, "%d", &time);
++	/* Numbers only, please. */
++	if (ret)
 +		return -EINVAL;
 +
-+	return 0;
++	pwm->fade_time = time;
++
++	return strlen(buf);
 +}
++static DEVICE_ATTR(time, 0644, lm8323_pwm_show_time, lm8323_pwm_store_time);
 +
-+static void
-+innovator_hid_close(struct input_dev *dev)
++static int init_pwm(struct lm8323_chip *lm, int id, struct device *dev,
++		    const char *name)
 +{
-+	if (!--hid->open)
-+		return;
++	struct lm8323_pwm *pwm = NULL;
 +
-+	if (hid =3D=3D NULL)
-+		return;
++	BUG_ON(id > 3);
 +
-+	kfree(hid);
-+}
++	switch (id) {
++	case 1:
++		pwm = &lm->pwm1;
++		break;
++	case 2:
++		pwm = &lm->pwm2;
++		break;
++	case 3:
++		pwm = &lm->pwm3;
++		break;
++	}
 +
-+static int innovator_ps2_remove(struct device *dev)
-+{
-+	return 0;
-+}
-+
-+static void innovator_ps2_device_release(struct device *dev)
-+{
-+	/* Nothing */
-+}
-+
-+static int innovator_ps2_suspend(struct device *dev, pm_message_t stat=
-e)
-+{
-+	u8 pmcomm =3D 0;
-+
-+	/*
-+	 * Set SUS_STATE in REG_PM_COMM (Page 0 R0).  This will cause
-+	 * PM_MOD bits of REG_PM_STATUS to show suspended state,
-+	 * but the SUS_STAT bit of REG_PM_STATUS will continue to
-+	 * reflect the state of the _HSUS pin.
-+	 */
-+
-+	if (write_reg(REG_PAGENO, 0) < 0)
-+		printk("ps2 suspend: write_reg REG_PAGENO error\n");
-+
-+	if (read_reg(REG_PM_COMM, &pmcomm) < 0)
-+		printk("ps2 suspend: read_reg REG_PM_COMM error\n");
-+	=09
-+	if (write_reg(REG_PM_COMM, pmcomm | SUS_STATE) < 0)
-+		printk("ps2 suspend: write_reg REG_PM_COMM error\n");
-+
-+	return 0;
-+}
-+
-+static int innovator_ps2_resume(struct device *dev)
-+{
-+	u8 pmcomm =3D 0;
-+
-+	/*
-+	 * Clear SUS_STATE from REG_PM_COMM (Page 0 R0).
-+	 */
-+
-+	if (write_reg(REG_PAGENO, 0) < 0)
-+		printk("ps2 resume: write_reg REG_PAGENO error\n");
-+
-+	if (read_reg(REG_PM_COMM, &pmcomm) < 0)
-+		printk("ps2 resume: read_reg REG_PM_COMM error\n");
-+
-+	if (write_reg(REG_PM_COMM, pmcomm & ~SUS_STATE) < 0)
-+		printk("ps2 resume: write_reg REG_PM_COMM error\n");
++	pwm->id = id;
++	pwm->fade_time = 0;
++	pwm->brightness = 0;
++	pwm->desired_brightness = 0;
++	if (name) {
++		pwm->cdev.name = name;
++		pwm->cdev.brightness_set = lm8323_pwm_set_brightness;
++		if (led_classdev_register(dev, &pwm->cdev) < 0) {
++			dev_err(dev, "couldn't register PWM %d\n", id);
++			return -1;
++		}
++		if (device_create_file(pwm->cdev.dev,
++					     &dev_attr_time) < 0) {
++			dev_err(dev, "couldn't register time attribute\n");
++			led_classdev_unregister(&pwm->cdev);
++			return -1;
++		}
++		INIT_WORK(&pwm->work, lm8323_pwm_work);
++		pwm->enabled = 1;
++	} else {
++		pwm->enabled = 0;
++	}
 +
 +	return 0;
 +}
 +
-+static struct device_driver innovator_ps2_driver =3D {
-+	.name		=3D "innovator_ps2",
-+	.bus		=3D &platform_bus_type,
-+	.remove		=3D innovator_ps2_remove,
-+	.suspend	=3D innovator_ps2_suspend,
-+	.resume		=3D innovator_ps2_resume,
-+};
++static struct i2c_driver lm8323_i2c_driver;
 +
-+static struct platform_device innovator_ps2_device =3D {
-+	.name		=3D "ps2",
-+	.id		=3D -1,
-+	.dev =3D {
-+		.driver		=3D &innovator_ps2_driver,
-+		.release	=3D innovator_ps2_device_release,
-+	},
-+};
-+
-+static int __init
-+innovator_kbd_init(void)
++static ssize_t lm8323_show_disable(struct device *dev,
++				   struct device_attribute *attr, char *buf)
 +{
++	struct lm8323_chip *lm = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%u\n", !lm->kp_enabled);
++}
++
++static ssize_t lm8323_set_disable(struct device *dev,
++				  struct device_attribute *attr,
++				  const char *buf, size_t count)
++{
++	struct lm8323_chip *lm = dev_get_drvdata(dev);
++	int ret;
 +	int i;
-+	info("Innovator PS/2 keyboard/mouse driver v1.0\n");
 +
-+	innovator_fpga_hid_reset();
++	i = sscanf(buf, "%d", &ret);
 +
-+	if ((hid =3D kmalloc(sizeof(struct innovator_hid_dev),
-+	     GFP_KERNEL)) =3D=3D NULL) {
-+		warn("unable to allocate space for HID device\n");
++	mutex_lock(&lm->lock);
++	lm->kp_enabled = !i;
++	mutex_unlock(&lm->lock);
++
++	return count;
++}
++static DEVICE_ATTR(disable_kp, 0644, lm8323_show_disable, lm8323_set_disable);
++
++static int lm8323_probe(struct i2c_client *client,
++					const struct i2c_device_id *id)
++{
++	struct input_dev *idev;
++	struct lm8323_chip *lm;
++	int i, err = 0;
++	unsigned long tmo;
++	u8 data[2];
++
++	lm = kzalloc(sizeof *lm, GFP_KERNEL);
++	if (!lm)
 +		return -ENOMEM;
++
++	i2c_set_clientdata(client, lm);
++	lm->client = client;
++	lm8323_pdata = client->dev.platform_data;
++	if (!lm8323_pdata)
++		return -EINVAL; /* ? */
++
++	lm->size_x = lm8323_pdata->size_x;
++	if (lm->size_x == 0) {
++		lm->size_x = 8;
++	} else if (lm->size_x > 8) {
++		dev_err(&client->dev, "invalid x size %d specified\n",
++				lm->size_x);
++		lm->size_x = 8;
 +	}
 +
-+	/* setup the mouse */
-+	memset(hid, 0, sizeof(struct innovator_hid_dev));
-+	hid->mouse =3D input_allocate_device();
-+	hid->mouse->evbit[0] =3D BIT(EV_KEY) | BIT(EV_REL);
-+	hid->mouse->keybit[BIT_WORD(BTN_MOUSE)] =3D
-+	    BIT(BTN_LEFT) | BIT(BTN_RIGHT) |
-+	    BIT(BTN_MIDDLE) | BIT(BTN_TOUCH);
-+	hid->mouse->relbit[0] =3D BIT(REL_X) | BIT(REL_Y);
-+	hid->mouse->private =3D hid;
-+	hid->mouse->open =3D innovator_hid_open;
-+	hid->mouse->close =3D innovator_hid_close;
-+	hid->mouse->name =3D "innovator_mouse";
-+	hid->mouse->id.bustype =3D 0;
-+	hid->mouse->id.vendor =3D 0;
-+	hid->mouse->id.product =3D 0;
-+	hid->mouse->id.version =3D 0;
-+       hid->keyboard =3D input_allocate_device();
-+	hid->keyboard->evbit[0] =3D BIT(EV_KEY) | BIT(EV_REP);
-+       hid->keyboard->keycodesize =3D sizeof(unsigned char);
-+       hid->keyboard->keycodemax =3D ARRAY_SIZE(usar2scancode);
-+	for(i =3D 0; i < 128; i++)
-+		set_bit(usar2scancode[i], hid->keyboard->keybit);
-+	hid->keyboard->private =3D hid;
-+	hid->keyboard->open =3D innovator_hid_open;
-+	hid->keyboard->close =3D innovator_hid_close;
-+	hid->keyboard->name =3D "innovator_keyboard";
-+	hid->keyboard->id.bustype =3D 0;
-+	hid->keyboard->id.vendor =3D 0;
-+	hid->keyboard->id.product =3D 0;
-+	hid->keyboard->id.version =3D 0;
-+	input_register_device(hid->mouse);
-+	input_register_device(hid->keyboard);
-+	innovator_hid_open(hid->mouse);
-+	innovator_hid_open(hid->keyboard);
-+
-+	if (driver_register(&innovator_ps2_driver) !=3D 0)
-+		printk(KERN_ERR "Driver register failed for innovator_ps2\n");
-+
-+	if (platform_device_register(&innovator_ps2_device) !=3D 0) {
-+		printk(KERN_ERR "Device register failed for ps2\n");
-+		driver_unregister(&innovator_ps2_driver);
++	lm->size_y = lm8323_pdata->size_y;
++	if (lm->size_y == 0) {
++		lm->size_y = 12;
++	} else if (lm->size_y > 12) {
++		dev_err(&client->dev, "invalid y size %d specified\n",
++				lm->size_y);
++		lm->size_x = 12;
 +	}
 +
-+#ifdef	INNOVATOR_KEYB_DEBUG
-+	ctrl_dump_regs();
-+#endif
++	debug(&c->dev, "Keypad size: %d x %d\n", lm->size_x, lm->size_y);
++
++	lm->debounce_time = lm8323_pdata->debounce_time;
++	if (lm->debounce_time == 0) /* Default. */
++		lm->debounce_time = 12;
++	else if (lm->debounce_time == -1) /* Disable debounce. */
++		lm->debounce_time = 0;
++
++	lm->active_time = lm8323_pdata->active_time;
++	if (lm->active_time == 0) /* Default. */
++		lm->active_time = 500;
++	else if (lm->active_time == -1) /* Disable sleep. */
++		lm->active_time = 0;
++
++	lm8323_reset(lm);
++
++	/* Nothing's set up to service the IRQ yet, so just spin for max.
++	 * 100ms until we can configure. */
++	tmo = jiffies + msecs_to_jiffies(100);
++	while (lm8323_read(lm, LM8323_CMD_READ_INT, data, 1) == 1) {
++		if (data[0] & INT_NOINIT)
++			break;
++
++		if (time_after(jiffies, tmo)) {
++			dev_err(&client->dev,
++					"timeout waiting for initialisation\n");
++			break;
++		}
++
++		msleep(1);
++	}
++	lm8323_configure(lm);
++
++	/* If a true probe check the device */
++	if (lm8323_read_id(lm, data) != 0) {
++		dev_err(&client->dev, "device not found\n");
++		err = -ENODEV;
++		goto fail2;
++	}
++
++	if (init_pwm(lm, 1, &client->dev, lm8323_pdata->pwm1_name) < 0)
++		goto fail3;
++	if (init_pwm(lm, 2, &client->dev, lm8323_pdata->pwm2_name) < 0)
++		goto fail4;
++	if (init_pwm(lm, 3, &client->dev, lm8323_pdata->pwm3_name) < 0)
++		goto fail5;
++
++	mutex_init(&lm->lock);
++	INIT_WORK(&lm->work, lm8323_work);
++
++	err = request_irq(client->irq, lm8323_irq,
++			  IRQF_TRIGGER_FALLING | IRQF_DISABLED |
++			  IRQF_SAMPLE_RANDOM, DRIVER_NAME, lm);
++	if (err) {
++		dev_err(&client->dev, "could not get IRQ %d\n", client->irq);
++		goto fail6;
++	}
++
++	set_irq_wake(client->irq, 1);
++
++	lm->kp_enabled = 1;
++	err = device_create_file(&client->dev, &dev_attr_disable_kp);
++	if (err < 0)
++		goto fail7;
++
++	idev = input_allocate_device();
++	if (idev == NULL) {
++		err = -ENOMEM;
++		goto fail8;
++	}
++
++	if (lm8323_pdata->name)
++		idev->name = lm8323_pdata->name;
++	else
++		idev->name = "LM8323 keypad";
++	snprintf(lm->phys, sizeof(lm->phys), "%s/input-kp", client->dev.bus_id);
++	idev->phys = lm->phys;
++
++	lm->keys_down = 0;
++	idev->evbit[0] = BIT(EV_KEY);
++	for (i = 0; i < LM8323_KEYMAP_SIZE; i++) {
++		if (lm8323_pdata->keymap[i] > 0)
++			set_bit(lm8323_pdata->keymap[i], idev->keybit);
++
++		lm->keymap[i] = lm8323_pdata->keymap[i];
++	}
++
++	if (lm8323_pdata->repeat)
++		set_bit(EV_REP, idev->evbit);
++
++	lm->idev = idev;
++	err = input_register_device(idev);
++	if (err) {
++		dev_dbg(&client->dev, "error registering input device\n");
++		goto fail8;
++	}
++
++	return 0;
++
++fail8:
++	device_remove_file(&client->dev, &dev_attr_disable_kp);
++fail7:
++	free_irq(client->irq, lm);
++fail6:
++	if (lm->pwm3.enabled)
++		led_classdev_unregister(&lm->pwm3.cdev);
++fail5:
++	if (lm->pwm2.enabled)
++		led_classdev_unregister(&lm->pwm2.cdev);
++fail4:
++	if (lm->pwm1.enabled)
++		led_classdev_unregister(&lm->pwm1.cdev);
++fail3:
++fail2:
++	kfree(lm);
++	return err;
++}
++
++static int lm8323_remove(struct i2c_client *client)
++{
++	struct lm8323_chip *lm = i2c_get_clientdata(client);
++
++	free_irq(client->irq, lm);
++	cancel_work_sync(&lm->work);
++	input_unregister_device(lm->idev);
++	device_remove_file(&lm->client->dev, &dev_attr_disable_kp);
++	if (lm->pwm3.enabled)
++		led_classdev_unregister(&lm->pwm3.cdev);
++	if (lm->pwm2.enabled)
++		led_classdev_unregister(&lm->pwm2.cdev);
++	if (lm->pwm1.enabled)
++		led_classdev_unregister(&lm->pwm1.cdev);
++	kfree(lm);
++
 +	return 0;
 +}
 +
-+static void __exit
-+innovator_kbd_exit(void)
++/*
++ * We don't need to explicitly suspend the chip, as it already switches off
++ * when there's no activity.
++ */
++static int lm8323_suspend(struct i2c_client *client, pm_message_t mesg)
 +{
-+	input_unregister_device(hid->mouse);
-+	input_unregister_device(hid->keyboard);
-+	free_irq(OMAP1510_INT_FPGA_ATN, hid);
-+	if (hid !=3D NULL)
-+		kfree(hid);
-+	driver_unregister(&innovator_ps2_driver);
-+	platform_device_unregister(&innovator_ps2_device);
-+	return;
++	struct lm8323_chip *lm = i2c_get_clientdata(client);
++
++	set_irq_wake(client->irq, 0);
++	disable_irq(client->irq);
++
++	mutex_lock(&lm->lock);
++	lm->pm_suspend = 1;
++	mutex_unlock(&lm->lock);
++
++	if (lm->pwm1.enabled)
++		led_classdev_suspend(&lm->pwm1.cdev);
++	if (lm->pwm2.enabled)
++		led_classdev_suspend(&lm->pwm2.cdev);
++	if (lm->pwm3.enabled)
++		led_classdev_suspend(&lm->pwm3.cdev);
++
++	return 0;
 +}
 +
-+module_init(innovator_kbd_init);
-+module_exit(innovator_kbd_exit);
++static int lm8323_resume(struct i2c_client *client)
++{
++	struct lm8323_chip *lm = i2c_get_clientdata(client);
 +
-+MODULE_AUTHOR("George G. Davis <gdavis@mvista.com>");
-+MODULE_DESCRIPTION("Innovator PS/2 Driver");
++	mutex_lock(&lm->lock);
++	lm->pm_suspend = 0;
++	mutex_unlock(&lm->lock);
++
++	if (lm->pwm1.enabled)
++		led_classdev_resume(&lm->pwm1.cdev);
++	if (lm->pwm2.enabled)
++		led_classdev_resume(&lm->pwm2.cdev);
++	if (lm->pwm3.enabled)
++		led_classdev_resume(&lm->pwm3.cdev);
++
++	enable_irq(client->irq);
++	set_irq_wake(client->irq, 1);
++
++	return 0;
++}
++
++static const struct i2c_device_id lm8323_id[] = {
++	{ DRIVER_NAME, 0 },
++	{ }
++};
++
++static struct i2c_driver lm8323_i2c_driver = {
++	.driver = {
++		.name	 = DRIVER_NAME,
++	},
++	.probe		= lm8323_probe,
++	.remove		= __devexit_p(lm8323_remove),
++	.suspend	= lm8323_suspend,
++	.resume		= lm8323_resume,
++	.id_table	= lm8323_id,
++};
++MODULE_DEVICE_TABLE(i2c, lm8323_id);
++
++static int __init lm8323_init(void)
++{
++	return i2c_add_driver(&lm8323_i2c_driver);
++}
++
++static void __exit lm8323_exit(void)
++{
++	i2c_del_driver(&lm8323_i2c_driver);
++}
++
++MODULE_AUTHOR("Daniel Stone");
++MODULE_DESCRIPTION("LM8323 keypad driver");
 +MODULE_LICENSE("GPL");
---=20
++
++module_init(lm8323_init);
++module_exit(lm8323_exit);
+diff --git a/include/linux/i2c/lm8323.h b/include/linux/i2c/lm8323.h
+new file mode 100644
+index 0000000..17d6b33
+--- /dev/null
++++ b/include/linux/i2c/lm8323.h
+@@ -0,0 +1,37 @@
++/*
++ * include/lm8323.h
++ *
++ * Configuration for LM8323 keypad driver.
++ */
++
++#ifndef __LINUX_LM8323_H
++#define __LINUX_LM8323_H
++
++#include <linux/types.h>
++
++/*
++ * Largest keycode that the chip can send, plus one,
++ * so keys can be mapped directly at the index of the
++ * LM8323 keycode instead of subtracting one.
++ */
++#define LM8323_KEYMAP_SIZE (0x7f + 1)
++
++struct lm8323_platform_data {
++	int debounce_time; /* Time to watch for key bouncing, in ms. */
++	int active_time; /* Idle time until sleep, in ms. */
++
++	int size_x;
++	int size_y;
++	int repeat : 1;
++	const s16 *keymap;
++
++	char *pwm1_name; /* Device name for PWM1. */
++	char *pwm2_name; /* Device name for PWM2. */
++	char *pwm3_name; /* Device name for PWM3. */
++
++	char *name; /* Device name. */
++};
++
++void __init lm8323_set_platform_data(struct lm8323_platform_data *pdata);
++
++#endif /* __LINUX_LM8323_H */
+-- 
 1.6.0.1.141.g445ca
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
