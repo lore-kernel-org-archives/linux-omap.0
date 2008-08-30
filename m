@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 09/33] add lm8323 keypad driver
-Date: Sat, 30 Aug 2008 20:16:09 +0300
-Message-ID: <1220116593-862-10-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 14/33] add tsc210x touchscreen driver
+Date: Sat, 30 Aug 2008 20:16:14 +0300
+Message-ID: <1220116593-862-15-git-send-email-me@felipebalbi.com>
 References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-2-git-send-email-me@felipebalbi.com>
  <1220116593-862-3-git-send-email-me@felipebalbi.com>
@@ -11,12 +11,17 @@ References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-7-git-send-email-me@felipebalbi.com>
  <1220116593-862-8-git-send-email-me@felipebalbi.com>
  <1220116593-862-9-git-send-email-me@felipebalbi.com>
+ <1220116593-862-10-git-send-email-me@felipebalbi.com>
+ <1220116593-862-11-git-send-email-me@felipebalbi.com>
+ <1220116593-862-12-git-send-email-me@felipebalbi.com>
+ <1220116593-862-13-git-send-email-me@felipebalbi.com>
+ <1220116593-862-14-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:43958 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:36321 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752834AbYH3RS3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:18:29 -0400
-In-Reply-To: <1220116593-862-9-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1752917AbYH3RT5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:19:57 -0400
+In-Reply-To: <1220116593-862-14-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -26,1018 +31,454 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/input/keyboard/Kconfig  |    7 +
- drivers/input/keyboard/Makefile |    1 +
- drivers/input/keyboard/lm8323.c |  925 +++++++++++++++++++++++++++++++++++++++
- include/linux/i2c/lm8323.h      |   37 ++
- 4 files changed, 970 insertions(+), 0 deletions(-)
- create mode 100644 drivers/input/keyboard/lm8323.c
- create mode 100644 include/linux/i2c/lm8323.h
+ drivers/input/touchscreen/Kconfig      |   14 ++
+ drivers/input/touchscreen/Makefile     |    1 +
+ drivers/input/touchscreen/tsc210x_ts.c |  160 ++++++++++++++++++++++
+ include/linux/spi/tsc210x.h            |  231 ++++++++++++++++++++++++++++++++
+ 4 files changed, 406 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/input/touchscreen/tsc210x_ts.c
+ create mode 100644 include/linux/spi/tsc210x.h
 
-diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
-index 01d6421..53239cb 100644
---- a/drivers/input/keyboard/Kconfig
-+++ b/drivers/input/keyboard/Kconfig
-@@ -269,6 +269,13 @@ config OMAP_PS2
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called innovator_ps2.
+diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
+index a115f38..f45cdac 100644
+--- a/drivers/input/touchscreen/Kconfig
++++ b/drivers/input/touchscreen/Kconfig
+@@ -222,6 +222,20 @@ config TOUCHSCREEN_TSC2005
+ 	help
+ 	  Say Y here for if you are using the touchscreen features of TSC2301.
  
-+config KEYBOARD_LM8323
-+	tristate "LM8323 keypad chip"
-+	depends on I2C
++config TOUCHSCREEN_TSC210X
++	tristate "TI TSC210x based touchscreens"
++	depends on SPI_MASTER
++	select SPI_TSC210X
 +	help
-+	  If you say yes here you get support for the National Semiconductor
-+	  LM8323 keypad controller.
++	  Say Y here if you have a touchscreen interface using a
++	  TI TSC210x controller, and your board-specific initialisation
++	  code includes that in its table of SPI devices.
 +
- config KEYBOARD_PXA27x
- 	tristate "PXA27x/PXA3xx keypad support"
- 	depends on PXA27x || PXA3xx
-diff --git a/drivers/input/keyboard/Makefile b/drivers/input/keyboard/Makefile
-index a48205b..52e9b70 100644
---- a/drivers/input/keyboard/Makefile
-+++ b/drivers/input/keyboard/Makefile
-@@ -20,6 +20,7 @@ obj-$(CONFIG_KEYBOARD_HIL)		+= hil_kbd.o
- obj-$(CONFIG_KEYBOARD_HIL_OLD)		+= hilkbd.o
- obj-$(CONFIG_KEYBOARD_OMAP)		+= omap-keypad.o
- obj-$(CONFIG_OMAP_PS2)			+= innovator_ps2.o
-+obj-$(CONFIG_KEYBOARD_LM8323)		+= lm8323.o
- obj-$(CONFIG_KEYBOARD_PXA27x)		+= pxa27x_keypad.o
- obj-$(CONFIG_KEYBOARD_AAED2000)		+= aaed2000_kbd.o
- obj-$(CONFIG_KEYBOARD_GPIO)		+= gpio_keys.o
-diff --git a/drivers/input/keyboard/lm8323.c b/drivers/input/keyboard/lm8323.c
++	  If unsure, say N (but it's safe to say "Y").
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called tsc210x_ts.
++
+ config TOUCHSCREEN_UCB1400
+ 	tristate "Philips UCB1400 touchscreen"
+ 	select AC97_BUS
+diff --git a/drivers/input/touchscreen/Makefile b/drivers/input/touchscreen/Makefile
+index e0bc8fb..411c44a 100644
+--- a/drivers/input/touchscreen/Makefile
++++ b/drivers/input/touchscreen/Makefile
+@@ -28,6 +28,7 @@ obj-$(CONFIG_TOUCHSCREEN_TOUCHWIN)	+= touchwin.o
+ obj-$(CONFIG_TOUCHSCREEN_UCB1400)	+= ucb1400_ts.o
+ obj-$(CONFIG_TOUCHSCREEN_TSC2005)	+= tsc2005.o
+ obj-$(CONFIG_TOUCHSCREEN_OMAP)	+= omap/
++obj-$(CONFIG_TOUCHSCREEN_TSC210X)	+= tsc210x_ts.o
+ obj-$(CONFIG_TOUCHSCREEN_WM97XX)	+= wm97xx-ts.o
+ wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9705)	+= wm9705.o
+ wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9712)	+= wm9712.o
+diff --git a/drivers/input/touchscreen/tsc210x_ts.c b/drivers/input/touchscreen/tsc210x_ts.c
 new file mode 100644
-index 0000000..72bb587
+index 0000000..5828b6d
 --- /dev/null
-+++ b/drivers/input/keyboard/lm8323.c
-@@ -0,0 +1,925 @@
++++ b/drivers/input/touchscreen/tsc210x_ts.c
+@@ -0,0 +1,160 @@
 +/*
-+ * drivers/i2c/chips/lm8323.c
++ * tsc210x_ts.c - touchscreen input device for TI TSC210x chips
 + *
-+ * Copyright (C) 2007 Nokia Corporation
++ * Copyright (c) 2006-2007 Andrzej Zaborowski  <balrog@zabor.org>
 + *
-+ * Written by Daniel Stone <daniel.stone@nokia.com>
-+ *            Timo O. Karjalainen <timo.o.karjalainen@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
++ * This package is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation (version 2 of the License only).
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + *
-+ * This program is distributed in the hope that it will be useful,
++ * This package is distributed in the hope that it will be useful,
 + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 + * GNU General Public License for more details.
 + *
 + * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ * along with this package; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 + */
 +
++#include <linux/errno.h>
++#include <linux/kernel.h>
 +#include <linux/module.h>
-+#include <linux/i2c.h>
-+#include <linux/interrupt.h>
-+#include <linux/sched.h>
-+#include <linux/mutex.h>
-+#include <linux/delay.h>
 +#include <linux/input.h>
-+#include <linux/leds.h>
-+#include <linux/i2c/lm8323.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
 +
-+#include <asm/mach-types.h>
-+#include <asm/mach/irq.h>
++#include <linux/spi/tsc210x.h>
 +
-+#ifdef VERBOSE
-+#define debug dev_dbg
-+#else
-+#define debug(...)
-+#endif
 +
-+/* Commands to send to the chip. */
-+#define LM8323_CMD_READ_ID		0x80 /* Read chip ID. */
-+#define LM8323_CMD_WRITE_CFG		0x81 /* Set configuration item. */
-+#define LM8323_CMD_READ_INT		0x82 /* Get interrupt status. */
-+#define LM8323_CMD_RESET		0x83 /* Reset, same as external one */
-+#define LM8323_CMD_WRITE_PORT_SEL	0x85 /* Set GPIO in/out. */
-+#define LM8323_CMD_WRITE_PORT_STATE	0x86 /* Set GPIO pullup. */
-+#define LM8323_CMD_READ_PORT_SEL	0x87 /* Get GPIO in/out. */
-+#define LM8323_CMD_READ_PORT_STATE	0x88 /* Get GPIO pullup. */
-+#define LM8323_CMD_READ_FIFO		0x89 /* Read byte from FIFO. */
-+#define LM8323_CMD_RPT_READ_FIFO	0x8a /* Read FIFO (no increment). */
-+#define LM8323_CMD_SET_ACTIVE		0x8b /* Set active time. */
-+#define LM8323_CMD_READ_ERR		0x8c /* Get error status. */
-+#define LM8323_CMD_READ_ROTATOR		0x8e /* Read rotator status. */
-+#define LM8323_CMD_SET_DEBOUNCE		0x8f /* Set debouncing time. */
-+#define LM8323_CMD_SET_KEY_SIZE		0x90 /* Set keypad size. */
-+#define LM8323_CMD_READ_KEY_SIZE	0x91 /* Get keypad size. */
-+#define LM8323_CMD_READ_CFG		0x92 /* Get configuration item. */
-+#define LM8323_CMD_WRITE_CLOCK		0x93 /* Set clock config. */
-+#define LM8323_CMD_READ_CLOCK		0x94 /* Get clock config. */
-+#define LM8323_CMD_PWM_WRITE		0x95 /* Write PWM script. */
-+#define LM8323_CMD_START_PWM		0x96 /* Start PWM engine. */
-+#define LM8323_CMD_STOP_PWM		0x97 /* Stop PWM engine. */
-+
-+/* Interrupt status. */
-+#define INT_KEYPAD			0x01 /* Key event. */
-+#define INT_ROTATOR			0x02 /* Rotator event. */
-+#define INT_ERROR			0x08 /* Error: use CMD_READ_ERR. */
-+#define INT_NOINIT			0x10 /* Lost configuration. */
-+#define INT_PWM1			0x20 /* PWM1 stopped. */
-+#define INT_PWM2			0x40 /* PWM2 stopped. */
-+#define INT_PWM3			0x80 /* PWM3 stopped. */
-+
-+/* Errors (signalled by INT_ERROR, read with CMD_READ_ERR). */
-+#define ERR_BADPAR			0x01 /* Bad parameter. */
-+#define ERR_CMDUNK			0x02 /* Unknown command. */
-+#define ERR_KEYOVR			0x04 /* Too many keys pressed. */
-+#define ERR_FIFOOVER			0x40 /* FIFO overflow. */
-+
-+/* Configuration keys (CMD_{WRITE,READ}_CFG). */
-+#define CFG_MUX1SEL			0x01 /* Select MUX1_OUT input. */
-+#define CFG_MUX1EN			0x02 /* Enable MUX1_OUT. */
-+#define CFG_MUX2SEL			0x04 /* Select MUX2_OUT input. */
-+#define CFG_MUX2EN			0x08 /* Enable MUX2_OUT. */
-+#define CFG_PSIZE			0x20 /* Package size (must be 0). */
-+#define CFG_ROTEN			0x40 /* Enable rotator. */
-+
-+/* Clock settings (CMD_{WRITE,READ}_CLOCK). */
-+#define CLK_RCPWM_INTERNAL		0x00
-+#define CLK_RCPWM_EXTERNAL		0x03
-+#define CLK_SLOWCLKEN			0x08 /* Enable 32.768kHz clock. */
-+#define CLK_SLOWCLKOUT			0x40 /* Enable slow pulse output. */
-+
-+/* The possible addresses corresponding to CONFIG1 and CONFIG2 pin wirings. */
-+#define LM8323_I2C_ADDR00		(0x84 >> 1)	/* 1000 010x */
-+#define LM8323_I2C_ADDR01		(0x86 >> 1)	/* 1000 011x */
-+#define LM8323_I2C_ADDR10		(0x88 >> 1)	/* 1000 100x */
-+#define LM8323_I2C_ADDR11		(0x8A >> 1)	/* 1000 101x */
-+
-+/* Key event fifo length */
-+#define LM8323_FIFO_LEN			15
-+
-+/* Commands for PWM engine; feed in with PWM_WRITE. */
-+/* Load ramp counter from duty cycle field (range 0 - 0xff). */
-+#define PWM_SET(v)			(0x4000 | ((v) & 0xff))
-+/* Go to start of script. */
-+#define PWM_GOTOSTART			0x0000
 +/*
-+ * Stop engine (generates interrupt).  If reset is 1, clear the program
-+ * counter, else leave it.
++ * The sensor ADC on tsc210x chips is most often used with the smart
++ * touchscreen controller.   Those controllers can be made to improve
++ * sample quality directly by multi-sampling and by taking the mean or
++ * median of various numbers of samples.  They also take X, Y, and
++ * pressure measurements automatically, so this driver has relatively
++ * little to do.
++ *
++ * There are a few chips in this family that don't have quite the same
++ * touchscreen interface, e.g. no "median" mode.
 + */
-+#define PWM_END(reset)			(0xc000 | (!!(reset) << 11))
-+/*
-+ * Ramp.  If s is 1, divide clock by 512, else divide clock by 16.
-+ * Take t clock scales (up to 63) per step, for n steps (up to 126).
-+ * If u is set, ramp up, else ramp down.
-+ */
-+#define PWM_RAMP(s, t, n, u)		((!!(s) << 14) | ((t) & 0x3f) << 8 | \
-+					 ((n) & 0x7f) | ((u) ? 0 : 0x80))
-+/*
-+ * Loop (i.e. jump back to pos) for a given number of iterations (up to 63).
-+ * If cnt is zero, execute until PWM_END is encountered.
-+ */
-+#define PWM_LOOP(cnt, pos)		(0xa000 | (((cnt) & 0x3f) << 7) | \
-+					 ((pos) & 0x3f))
-+/*
-+ * Wait for trigger.  Argument is a mask of channels, shifted by the channel
-+ * number, e.g. 0xa for channels 3 and 1.  Note that channels are numbered
-+ * from 1, not 0.
-+ */
-+#define PWM_WAIT_TRIG(chans)		(0xe000 | (((chans) & 0x7) << 6))
-+/* Send trigger.  Argument is same as PWM_WAIT_TRIG. */
-+#define PWM_SEND_TRIG(chans)		(0xe000 | ((chans) & 0x7))
 +
-+#define DRIVER_NAME  "lm8323"
-+
-+struct lm8323_pwm {
-+	int			id;
-+	int			enabled;
-+	int			fade_time;
-+	int			brightness;
-+	int			desired_brightness;
-+	struct work_struct	work;
-+	struct led_classdev	cdev;
-+};
-+
-+struct lm8323_chip {
-+	struct mutex		lock;
-+	struct i2c_client	*client;
-+	struct work_struct	work;
-+	struct input_dev	*idev;
-+	unsigned		kp_enabled : 1;
-+	unsigned		pm_suspend : 1;
-+	unsigned		keys_down;
-+	char			phys[32];
-+	s16			keymap[LM8323_KEYMAP_SIZE];
-+	int			size_x;
-+	int			size_y;
-+	int			debounce_time;
-+	int			active_time;
-+	struct lm8323_pwm	pwm1;
-+	struct lm8323_pwm	pwm2;
-+	struct lm8323_pwm	pwm3;
-+};
-+
-+#define client_to_lm8323(c)	container_of(c, struct lm8323_chip, client)
-+#define dev_to_lm8323(d)	container_of(d, struct lm8323_chip, client->dev)
-+#define work_to_lm8323(w)	container_of(w, struct lm8323_chip, work)
-+#define cdev_to_pwm(c)		container_of(c, struct lm8323_pwm, cdev)
-+#define work_to_pwm(w)		container_of(w, struct lm8323_pwm, work)
-+
-+static struct lm8323_chip *pwm_to_lm8323(struct lm8323_pwm *pwm)
++static void tsc210x_touch(void *context, int touching)
 +{
-+	switch (pwm->id) {
-+	case 1:
-+		return container_of(pwm, struct lm8323_chip, pwm1);
-+	case 2:
-+		return container_of(pwm, struct lm8323_chip, pwm2);
-+	case 3:
-+		return container_of(pwm, struct lm8323_chip, pwm3);
-+	default:
-+		return NULL;
-+	}
-+}
++	struct input_dev *dev = context;
 +
-+static struct lm8323_platform_data *lm8323_pdata;
-+
-+
-+#define LM8323_MAX_DATA 8
-+
-+/*
-+ * To write, we just access the chip's address in write mode, and dump the
-+ * command and data out on the bus.  The command byte and data are taken as
-+ * sequential u8s out of varargs, to a maximum of LM8323_MAX_DATA.
-+ */
-+static int lm8323_write(struct lm8323_chip *lm, int len, ...)
-+{
-+	int ret, i;
-+	va_list ap;
-+	u8 data[LM8323_MAX_DATA];
-+
-+	va_start(ap, len);
-+
-+	if (unlikely(len > LM8323_MAX_DATA)) {
-+		dev_err(&lm->client->dev, "tried to send %d bytes\n", len);
-+		va_end(ap);
-+		return 0;
++	if (!touching) {
++		input_report_abs(dev, ABS_X, 0);
++		input_report_abs(dev, ABS_Y, 0);
++		input_report_abs(dev, ABS_PRESSURE, 0);
++		input_sync(dev);
 +	}
 +
-+	for (i = 0; i < len; i++)
-+		data[i] = va_arg(ap, int);
-+
-+	va_end(ap);
-+
-+	/*
-+	 * If the host is asleep while we send the data, we can get a NACK
-+	 * back while it wakes up, so try again, once.
-+	 */
-+	ret = i2c_master_send(lm->client, data, len);
-+	if (unlikely(ret == -EREMOTEIO))
-+		ret = i2c_master_send(lm->client, data, len);
-+	if (unlikely(ret != len))
-+		dev_err(&lm->client->dev, "sent %d bytes of %d total\n",
-+			len, ret);
-+
-+	return ret;
++	input_report_key(dev, BTN_TOUCH, touching);
 +}
 +
-+/*
-+ * To read, we first send the command byte to the chip and end the transaction,
-+ * then access the chip in read mode, at which point it will send the data.
-+ */
-+static int lm8323_read(struct lm8323_chip *lm, u8 cmd, u8 *buf, int len)
++static void tsc210x_coords(void *context, int x, int y, int z1, int z2)
 +{
-+	int ret;
++	struct input_dev *dev = context;
++	int p;
 +
-+	/*
-+	 * If the host is asleep while we send the byte, we can get a NACK
-+	 * back while it wakes up, so try again, once.
-+	 */
-+	ret = i2c_master_send(lm->client, &cmd, 1);
-+	if (unlikely(ret == -EREMOTEIO))
-+		ret = i2c_master_send(lm->client, &cmd, 1);
-+	if (unlikely(ret != 1)) {
-+		dev_err(&lm->client->dev, "sending read cmd 0x%02x failed\n",
-+			cmd);
-+		return 0;
-+	}
-+
-+	ret = i2c_master_recv(lm->client, buf, len);
-+	if (unlikely(ret != len))
-+		dev_err(&lm->client->dev, "wanted %d bytes, got %d\n",
-+			len, ret);
-+
-+	return ret;
-+}
-+
-+/*
-+ * Set the chip active time (idle time before it enters halt).
-+ */
-+static void lm8323_set_active_time(struct lm8323_chip *lm, int time)
-+{
-+	lm8323_write(lm, 2, LM8323_CMD_SET_ACTIVE, time >> 2);
-+}
-+
-+/*
-+ * The signals are AT-style: the low 7 bits are the keycode, and the top
-+ * bit indicates the state (1 for down, 0 for up).
-+ */
-+static inline u8 lm8323_whichkey(u8 event)
-+{
-+	return event & 0x7f;
-+}
-+
-+static inline int lm8323_ispress(u8 event)
-+{
-+	return (event & 0x80) ? 1 : 0;
-+}
-+
-+static void process_keys(struct lm8323_chip *lm)
-+{
-+	u8 event;
-+	u8 key_fifo[LM8323_FIFO_LEN + 1];
-+	int old_keys_down = lm->keys_down;
-+	int ret;
-+	int i = 0;
-+
-+	/*
-+	 * Read all key events from the FIFO at once. Next READ_FIFO clears the
-+	 * FIFO even if we didn't read all events previously.
-+	 */
-+	ret = lm8323_read(lm, LM8323_CMD_READ_FIFO, key_fifo, LM8323_FIFO_LEN);
-+
-+	if (ret < 0) {
-+		dev_err(&lm->client->dev, "Failed reading fifo \n");
-+		return;
-+	}
-+	key_fifo[ret] = 0;
-+
-+	while ((event = key_fifo[i])) {
-+		u8 key = lm8323_whichkey(event);
-+		int isdown = lm8323_ispress(event);
-+		s16 keycode = lm->keymap[key];
-+
-+		if (likely(keycode > 0)) {
-+			debug(&lm->client->dev, "key 0x%02x %s\n", key,
-+			      isdown ? "down" : "up");
-+			if (likely(lm->kp_enabled)) {
-+				input_report_key(lm->idev, keycode, isdown);
-+				input_sync(lm->idev);
-+			}
-+			if (isdown)
-+				lm->keys_down++;
-+			else
-+				lm->keys_down--;
-+		} else {
-+			dev_err(&lm->client->dev, "keycode 0x%02x not mapped "
-+				"to any key\n", key);
-+		}
-+		i++;
-+	}
-+
-+	/*
-+	 * Errata: We need to ensure that the chip never enters halt mode
-+	 * during a keypress, so set active time to 0.  When it's released,
-+	 * we can enter halt again, so set the active time back to normal.
-+	 */
-+	if (!old_keys_down && lm->keys_down)
-+		lm8323_set_active_time(lm, 0);
-+	if (old_keys_down && !lm->keys_down)
-+		lm8323_set_active_time(lm, lm->active_time);
-+}
-+
-+static void lm8323_process_error(struct lm8323_chip *lm)
-+{
-+	u8 error;
-+
-+	if (lm8323_read(lm, LM8323_CMD_READ_ERR, &error, 1) == 1) {
-+		if (error & ERR_FIFOOVER)
-+			debug(&lm->client->dev, "fifo overflow!\n");
-+		if (error & ERR_KEYOVR)
-+			debug(&lm->client->dev, "more than two keys pressed\n");
-+		if (error & ERR_CMDUNK)
-+			debug(&lm->client->dev, "unknown command submitted\n");
-+		if (error & ERR_BADPAR)
-+			debug(&lm->client->dev, "bad command parameter\n");
-+	}
-+}
-+
-+static void lm8323_reset(struct lm8323_chip *lm)
-+{
-+	/* The docs say we must pass 0xAA as the data byte. */
-+	lm8323_write(lm, 2, LM8323_CMD_RESET, 0xAA);
-+}
-+
-+static int lm8323_configure(struct lm8323_chip *lm)
-+{
-+	int keysize = (lm->size_x << 4) | lm->size_y;
-+	int clock = (CLK_SLOWCLKEN | CLK_RCPWM_EXTERNAL);
-+	int debounce = lm->debounce_time >> 2;
-+	int active = lm->active_time >> 2;
-+
-+	/*
-+	 * Active time must be greater than the debounce time: if it's
-+	 * a close-run thing, give ourselves a 12ms buffer.
-+	 */
-+	if (debounce >= active)
-+		active = debounce + 3;
-+
-+	lm8323_write(lm, 2, LM8323_CMD_WRITE_CFG, 0);
-+	lm8323_write(lm, 2, LM8323_CMD_WRITE_CLOCK, clock);
-+	lm8323_write(lm, 2, LM8323_CMD_SET_KEY_SIZE, keysize);
-+	lm8323_set_active_time(lm, lm->active_time);
-+	lm8323_write(lm, 2, LM8323_CMD_SET_DEBOUNCE, debounce);
-+	lm8323_write(lm, 3, LM8323_CMD_WRITE_PORT_STATE, 0xff, 0xff);
-+	lm8323_write(lm, 3, LM8323_CMD_WRITE_PORT_SEL, 0, 0);
-+
-+	/*
-+	 * Not much we can do about errors at this point, so just hope
-+	 * for the best.
-+	 */
-+
-+	return 0;
-+}
-+
-+/*
-+ * Bottom half: handle the interrupt by posting key events, or dealing with
-+ * errors appropriately.
-+ */
-+static void lm8323_work(struct work_struct *work)
-+{
-+	struct lm8323_chip *lm = work_to_lm8323(work);
-+	u8 ints;
-+
-+	mutex_lock(&lm->lock);
-+
-+	while ((lm8323_read(lm, LM8323_CMD_READ_INT, &ints, 1) == 1) && ints) {
-+		if (likely(ints & INT_KEYPAD))
-+			process_keys(lm);
-+		if (ints & INT_ROTATOR) {
-+			/* We don't currently support the rotator. */
-+			debug(&lm->client->dev, "rotator fired\n");
-+		}
-+		if (ints & INT_ERROR) {
-+			debug(&lm->client->dev, "error!\n");
-+			lm8323_process_error(lm);
-+		}
-+		if (ints & INT_NOINIT) {
-+			dev_err(&lm->client->dev, "chip lost config; "
-+						  "reinitialising\n");
-+			lm8323_configure(lm);
-+		}
-+		if (ints & INT_PWM1)
-+			debug(&lm->client->dev, "pwm1 engine completed\n");
-+		if (ints & INT_PWM2)
-+			debug(&lm->client->dev, "pwm2 engine completed\n");
-+		if (ints & INT_PWM3)
-+			debug(&lm->client->dev, "pwm3 engine completed\n");
-+	}
-+
-+	mutex_unlock(&lm->lock);
-+}
-+
-+/*
-+ * We cannot use I2C in interrupt context, so we just schedule work.
-+ */
-+static irqreturn_t lm8323_irq(int irq, void *data)
-+{
-+	struct lm8323_chip *lm = data;
-+
-+	schedule_work(&lm->work);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/*
-+ * Read the chip ID.
-+ */
-+static int lm8323_read_id(struct lm8323_chip *lm, u8 *buf)
-+{
-+	int bytes;
-+
-+	bytes = lm8323_read(lm, LM8323_CMD_READ_ID, buf, 2);
-+	if (unlikely(bytes != 2))
-+		return -EIO;
-+
-+	return 0;
-+}
-+
-+static void lm8323_write_pwm_one(struct lm8323_pwm *pwm, int pos, u16 cmd)
-+{
-+	struct lm8323_chip *lm = pwm_to_lm8323(pwm);
-+
-+	lm8323_write(lm, 4, LM8323_CMD_PWM_WRITE, (pos << 2) | pwm->id,
-+		     (cmd & 0xff00) >> 8, cmd & 0x00ff);
-+}
-+
-+/*
-+ * Write a script into a given PWM engine, concluding with PWM_END.
-+ * If 'keepalive' is specified, the engine will be kept running
-+ * indefinitely.
-+ */
-+static void lm8323_write_pwm(struct lm8323_pwm *pwm, int keepalive,
-+			     int len, ...)
-+{
-+	struct lm8323_chip *lm = pwm_to_lm8323(pwm);
-+	int i, cmd;
-+	va_list ap;
-+
-+	/*
-+	 * If there are any scripts running at the moment, terminate them
-+	 * and make sure the duty cycle is as if it finished.
-+	 */
-+	lm8323_write(lm, 2, LM8323_CMD_STOP_PWM, pwm->id);
-+
-+	va_start(ap, len);
-+	for (i = 0; i < len; i++) {
-+		cmd = va_arg(ap, int);
-+		lm8323_write_pwm_one(pwm, i, cmd);
-+	}
-+	va_end(ap);
-+
-+	/* Wait for a trigger from any channel. This keeps the engine alive. */
-+	if (keepalive)
-+		lm8323_write_pwm_one(pwm, i++, PWM_WAIT_TRIG(0xe));
++	/* Calculate the touch resistance a la equation #1 */
++	if (z1 != 0)
++		p = x * (z2 - z1) / (z1 << 4);
 +	else
-+		lm8323_write_pwm_one(pwm, i++, PWM_END(1));
++		p = 1;
 +
-+	lm8323_write(lm, 2, LM8323_CMD_START_PWM, pwm->id);
++	input_report_abs(dev, ABS_X, x);
++	input_report_abs(dev, ABS_Y, y);
++	input_report_abs(dev, ABS_PRESSURE, p);
++	input_sync(dev);
 +}
 +
-+static void lm8323_pwm_work(struct work_struct *work)
++static int tsc210x_ts_probe(struct platform_device *pdev)
 +{
-+	struct lm8323_pwm *pwm = work_to_pwm(work);
-+	int div, perstep, steps, hz, direction, keepalive;
++	int status;
++	struct input_dev *dev;
 +
-+	/* Do nothing if we're already at the requested level. */
-+	if (pwm->desired_brightness == pwm->brightness)
-+		return;
-+
-+	keepalive = (pwm->desired_brightness > 0);
-+	direction = (pwm->desired_brightness > pwm->brightness);
-+	steps = abs(pwm->desired_brightness - pwm->brightness);
-+
-+	/*
-+	 * Convert time (in ms) into a divisor (512 or 16 on a refclk of
-+	 * 32768Hz), and number of ticks per step.
-+	 */
-+	if ((pwm->fade_time / steps) > (32768 / 512))
-+		div = 512;
-+	else
-+		div = 16;
-+
-+	hz = 32768 / div;
-+	if (pwm->fade_time < ((steps * 1000) / hz))
-+		perstep = 1;
-+	else
-+		perstep = (hz * pwm->fade_time) / (steps * 1000);
-+
-+	if (perstep == 0)
-+		perstep = 1;
-+	else if (perstep > 63)
-+		perstep = 63;
-+
-+	if (steps > 252) {
-+		lm8323_write_pwm(pwm, keepalive, 3,
-+				 PWM_RAMP((div == 512), perstep, 126,
-+					  direction),
-+				 PWM_RAMP((div == 512), perstep, 126,
-+					  direction),
-+				 PWM_RAMP((div == 512), perstep, steps - 252,
-+					  direction));
-+	} else if (steps > 126) {
-+		lm8323_write_pwm(pwm, keepalive, 2,
-+				 PWM_RAMP((div == 512), perstep, 126,
-+					  direction),
-+				 PWM_RAMP((div == 512), perstep, steps - 126,
-+					  direction));
-+	} else {
-+		lm8323_write_pwm(pwm, keepalive, 1,
-+				 PWM_RAMP((div == 512), perstep, steps,
-+					  direction));
-+	}
-+
-+	pwm->brightness = pwm->desired_brightness;
-+}
-+
-+static void lm8323_pwm_set_brightness(struct led_classdev *led_cdev,
-+				      enum led_brightness brightness)
-+{
-+	struct lm8323_pwm *pwm = cdev_to_pwm(led_cdev);
-+	struct lm8323_chip *lm = pwm_to_lm8323(pwm);
-+
-+	pwm->desired_brightness = brightness;
-+
-+	if (in_interrupt()) {
-+		schedule_work(&pwm->work);
-+	} else {
-+		/*
-+		 * Schedule PWM work as usual unless we are going into suspend
-+		 */
-+		mutex_lock(&lm->lock);
-+		if (likely(!lm->pm_suspend))
-+			schedule_work(&pwm->work);
-+		else
-+			lm8323_pwm_work(&pwm->work);
-+		mutex_unlock(&lm->lock);
-+	}
-+}
-+
-+static ssize_t lm8323_pwm_show_time(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-+	struct lm8323_pwm *pwm = cdev_to_pwm(led_cdev);
-+
-+	return sprintf(buf, "%d\n", pwm->fade_time);
-+}
-+
-+static ssize_t lm8323_pwm_store_time(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t len)
-+{
-+	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-+	struct lm8323_pwm *pwm = cdev_to_pwm(led_cdev);
-+	int ret;
-+	int time;
-+
-+	ret = sscanf(buf, "%d", &time);
-+	/* Numbers only, please. */
-+	if (ret)
-+		return -EINVAL;
-+
-+	pwm->fade_time = time;
-+
-+	return strlen(buf);
-+}
-+static DEVICE_ATTR(time, 0644, lm8323_pwm_show_time, lm8323_pwm_store_time);
-+
-+static int init_pwm(struct lm8323_chip *lm, int id, struct device *dev,
-+		    const char *name)
-+{
-+	struct lm8323_pwm *pwm = NULL;
-+
-+	BUG_ON(id > 3);
-+
-+	switch (id) {
-+	case 1:
-+		pwm = &lm->pwm1;
-+		break;
-+	case 2:
-+		pwm = &lm->pwm2;
-+		break;
-+	case 3:
-+		pwm = &lm->pwm3;
-+		break;
-+	}
-+
-+	pwm->id = id;
-+	pwm->fade_time = 0;
-+	pwm->brightness = 0;
-+	pwm->desired_brightness = 0;
-+	if (name) {
-+		pwm->cdev.name = name;
-+		pwm->cdev.brightness_set = lm8323_pwm_set_brightness;
-+		if (led_classdev_register(dev, &pwm->cdev) < 0) {
-+			dev_err(dev, "couldn't register PWM %d\n", id);
-+			return -1;
-+		}
-+		if (device_create_file(pwm->cdev.dev,
-+					     &dev_attr_time) < 0) {
-+			dev_err(dev, "couldn't register time attribute\n");
-+			led_classdev_unregister(&pwm->cdev);
-+			return -1;
-+		}
-+		INIT_WORK(&pwm->work, lm8323_pwm_work);
-+		pwm->enabled = 1;
-+	} else {
-+		pwm->enabled = 0;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct i2c_driver lm8323_i2c_driver;
-+
-+static ssize_t lm8323_show_disable(struct device *dev,
-+				   struct device_attribute *attr, char *buf)
-+{
-+	struct lm8323_chip *lm = dev_get_drvdata(dev);
-+
-+	return sprintf(buf, "%u\n", !lm->kp_enabled);
-+}
-+
-+static ssize_t lm8323_set_disable(struct device *dev,
-+				  struct device_attribute *attr,
-+				  const char *buf, size_t count)
-+{
-+	struct lm8323_chip *lm = dev_get_drvdata(dev);
-+	int ret;
-+	int i;
-+
-+	i = sscanf(buf, "%d", &ret);
-+
-+	mutex_lock(&lm->lock);
-+	lm->kp_enabled = !i;
-+	mutex_unlock(&lm->lock);
-+
-+	return count;
-+}
-+static DEVICE_ATTR(disable_kp, 0644, lm8323_show_disable, lm8323_set_disable);
-+
-+static int lm8323_probe(struct i2c_client *client,
-+					const struct i2c_device_id *id)
-+{
-+	struct input_dev *idev;
-+	struct lm8323_chip *lm;
-+	int i, err = 0;
-+	unsigned long tmo;
-+	u8 data[2];
-+
-+	lm = kzalloc(sizeof *lm, GFP_KERNEL);
-+	if (!lm)
++	dev = input_allocate_device();
++	if (!dev)
 +		return -ENOMEM;
 +
-+	i2c_set_clientdata(client, lm);
-+	lm->client = client;
-+	lm8323_pdata = client->dev.platform_data;
-+	if (!lm8323_pdata)
-+		return -EINVAL; /* ? */
-+
-+	lm->size_x = lm8323_pdata->size_x;
-+	if (lm->size_x == 0) {
-+		lm->size_x = 8;
-+	} else if (lm->size_x > 8) {
-+		dev_err(&client->dev, "invalid x size %d specified\n",
-+				lm->size_x);
-+		lm->size_x = 8;
++	status = tsc210x_touch_cb(pdev->dev.parent, tsc210x_touch, dev);
++	if (status) {
++		input_free_device(dev);
++		return status;
 +	}
 +
-+	lm->size_y = lm8323_pdata->size_y;
-+	if (lm->size_y == 0) {
-+		lm->size_y = 12;
-+	} else if (lm->size_y > 12) {
-+		dev_err(&client->dev, "invalid y size %d specified\n",
-+				lm->size_y);
-+		lm->size_x = 12;
++	status = tsc210x_coords_cb(pdev->dev.parent, tsc210x_coords, dev);
++	if (status) {
++		tsc210x_touch_cb(pdev->dev.parent, NULL, NULL);
++		input_free_device(dev);
++		return status;
 +	}
 +
-+	debug(&c->dev, "Keypad size: %d x %d\n", lm->size_x, lm->size_y);
++	dev->name = "TSC210x Touchscreen";
++	dev->dev.parent = &pdev->dev;
++	dev->evbit[0] = BIT(EV_KEY) | BIT(EV_ABS);
++	dev->keybit[BIT_WORD(BTN_TOUCH)] |= BIT_MASK(BTN_TOUCH);
++	dev->absbit[0] = BIT(ABS_X) | BIT(ABS_Y) | BIT(ABS_PRESSURE);
++	dev->phys = "tsc210x/input0";
++	dev->id.bustype = BUS_HOST;
++	dev->id.vendor = 0x0001;
++	dev->id.product = 0x2100;
++	dev->id.version = 0x0001;
 +
-+	lm->debounce_time = lm8323_pdata->debounce_time;
-+	if (lm->debounce_time == 0) /* Default. */
-+		lm->debounce_time = 12;
-+	else if (lm->debounce_time == -1) /* Disable debounce. */
-+		lm->debounce_time = 0;
-+
-+	lm->active_time = lm8323_pdata->active_time;
-+	if (lm->active_time == 0) /* Default. */
-+		lm->active_time = 500;
-+	else if (lm->active_time == -1) /* Disable sleep. */
-+		lm->active_time = 0;
-+
-+	lm8323_reset(lm);
-+
-+	/* Nothing's set up to service the IRQ yet, so just spin for max.
-+	 * 100ms until we can configure. */
-+	tmo = jiffies + msecs_to_jiffies(100);
-+	while (lm8323_read(lm, LM8323_CMD_READ_INT, data, 1) == 1) {
-+		if (data[0] & INT_NOINIT)
-+			break;
-+
-+		if (time_after(jiffies, tmo)) {
-+			dev_err(&client->dev,
-+					"timeout waiting for initialisation\n");
-+			break;
-+		}
-+
-+		msleep(1);
-+	}
-+	lm8323_configure(lm);
-+
-+	/* If a true probe check the device */
-+	if (lm8323_read_id(lm, data) != 0) {
-+		dev_err(&client->dev, "device not found\n");
-+		err = -ENODEV;
-+		goto fail2;
++	status = input_register_device(dev);
++	if (status) {
++		tsc210x_coords_cb(pdev->dev.parent, NULL, NULL);
++		tsc210x_touch_cb(pdev->dev.parent, NULL, NULL);
++		input_free_device(dev);
++		return status;
 +	}
 +
-+	if (init_pwm(lm, 1, &client->dev, lm8323_pdata->pwm1_name) < 0)
-+		goto fail3;
-+	if (init_pwm(lm, 2, &client->dev, lm8323_pdata->pwm2_name) < 0)
-+		goto fail4;
-+	if (init_pwm(lm, 3, &client->dev, lm8323_pdata->pwm3_name) < 0)
-+		goto fail5;
-+
-+	mutex_init(&lm->lock);
-+	INIT_WORK(&lm->work, lm8323_work);
-+
-+	err = request_irq(client->irq, lm8323_irq,
-+			  IRQF_TRIGGER_FALLING | IRQF_DISABLED |
-+			  IRQF_SAMPLE_RANDOM, DRIVER_NAME, lm);
-+	if (err) {
-+		dev_err(&client->dev, "could not get IRQ %d\n", client->irq);
-+		goto fail6;
-+	}
-+
-+	set_irq_wake(client->irq, 1);
-+
-+	lm->kp_enabled = 1;
-+	err = device_create_file(&client->dev, &dev_attr_disable_kp);
-+	if (err < 0)
-+		goto fail7;
-+
-+	idev = input_allocate_device();
-+	if (idev == NULL) {
-+		err = -ENOMEM;
-+		goto fail8;
-+	}
-+
-+	if (lm8323_pdata->name)
-+		idev->name = lm8323_pdata->name;
-+	else
-+		idev->name = "LM8323 keypad";
-+	snprintf(lm->phys, sizeof(lm->phys), "%s/input-kp", client->dev.bus_id);
-+	idev->phys = lm->phys;
-+
-+	lm->keys_down = 0;
-+	idev->evbit[0] = BIT(EV_KEY);
-+	for (i = 0; i < LM8323_KEYMAP_SIZE; i++) {
-+		if (lm8323_pdata->keymap[i] > 0)
-+			set_bit(lm8323_pdata->keymap[i], idev->keybit);
-+
-+		lm->keymap[i] = lm8323_pdata->keymap[i];
-+	}
-+
-+	if (lm8323_pdata->repeat)
-+		set_bit(EV_REP, idev->evbit);
-+
-+	lm->idev = idev;
-+	err = input_register_device(idev);
-+	if (err) {
-+		dev_dbg(&client->dev, "error registering input device\n");
-+		goto fail8;
-+	}
-+
++	platform_set_drvdata(pdev, dev);
++	printk(KERN_INFO "TSC210x touchscreen initialised\n");
 +	return 0;
-+
-+fail8:
-+	device_remove_file(&client->dev, &dev_attr_disable_kp);
-+fail7:
-+	free_irq(client->irq, lm);
-+fail6:
-+	if (lm->pwm3.enabled)
-+		led_classdev_unregister(&lm->pwm3.cdev);
-+fail5:
-+	if (lm->pwm2.enabled)
-+		led_classdev_unregister(&lm->pwm2.cdev);
-+fail4:
-+	if (lm->pwm1.enabled)
-+		led_classdev_unregister(&lm->pwm1.cdev);
-+fail3:
-+fail2:
-+	kfree(lm);
-+	return err;
 +}
 +
-+static int lm8323_remove(struct i2c_client *client)
++static int __exit tsc210x_ts_remove(struct platform_device *pdev)
 +{
-+	struct lm8323_chip *lm = i2c_get_clientdata(client);
++	struct input_dev *dev = platform_get_drvdata(pdev);
 +
-+	free_irq(client->irq, lm);
-+	cancel_work_sync(&lm->work);
-+	input_unregister_device(lm->idev);
-+	device_remove_file(&lm->client->dev, &dev_attr_disable_kp);
-+	if (lm->pwm3.enabled)
-+		led_classdev_unregister(&lm->pwm3.cdev);
-+	if (lm->pwm2.enabled)
-+		led_classdev_unregister(&lm->pwm2.cdev);
-+	if (lm->pwm1.enabled)
-+		led_classdev_unregister(&lm->pwm1.cdev);
-+	kfree(lm);
++	tsc210x_touch_cb(pdev->dev.parent, NULL, NULL);
++	tsc210x_coords_cb(pdev->dev.parent, NULL, NULL);
++	platform_set_drvdata(pdev, NULL);
++	input_unregister_device(dev);
++	input_free_device(dev);
 +
 +	return 0;
 +}
 +
-+/*
-+ * We don't need to explicitly suspend the chip, as it already switches off
-+ * when there's no activity.
-+ */
-+static int lm8323_suspend(struct i2c_client *client, pm_message_t mesg)
-+{
-+	struct lm8323_chip *lm = i2c_get_clientdata(client);
-+
-+	set_irq_wake(client->irq, 0);
-+	disable_irq(client->irq);
-+
-+	mutex_lock(&lm->lock);
-+	lm->pm_suspend = 1;
-+	mutex_unlock(&lm->lock);
-+
-+	if (lm->pwm1.enabled)
-+		led_classdev_suspend(&lm->pwm1.cdev);
-+	if (lm->pwm2.enabled)
-+		led_classdev_suspend(&lm->pwm2.cdev);
-+	if (lm->pwm3.enabled)
-+		led_classdev_suspend(&lm->pwm3.cdev);
-+
-+	return 0;
-+}
-+
-+static int lm8323_resume(struct i2c_client *client)
-+{
-+	struct lm8323_chip *lm = i2c_get_clientdata(client);
-+
-+	mutex_lock(&lm->lock);
-+	lm->pm_suspend = 0;
-+	mutex_unlock(&lm->lock);
-+
-+	if (lm->pwm1.enabled)
-+		led_classdev_resume(&lm->pwm1.cdev);
-+	if (lm->pwm2.enabled)
-+		led_classdev_resume(&lm->pwm2.cdev);
-+	if (lm->pwm3.enabled)
-+		led_classdev_resume(&lm->pwm3.cdev);
-+
-+	enable_irq(client->irq);
-+	set_irq_wake(client->irq, 1);
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id lm8323_id[] = {
-+	{ DRIVER_NAME, 0 },
-+	{ }
-+};
-+
-+static struct i2c_driver lm8323_i2c_driver = {
-+	.driver = {
-+		.name	 = DRIVER_NAME,
++static struct platform_driver tsc210x_ts_driver = {
++	.probe		= tsc210x_ts_probe,
++	.remove		= __exit_p(tsc210x_ts_remove),
++	/* Nothing to do on suspend/resume */
++	.driver		= {
++		.name	= "tsc210x-ts",
++		.owner	= THIS_MODULE,
 +	},
-+	.probe		= lm8323_probe,
-+	.remove		= __devexit_p(lm8323_remove),
-+	.suspend	= lm8323_suspend,
-+	.resume		= lm8323_resume,
-+	.id_table	= lm8323_id,
 +};
-+MODULE_DEVICE_TABLE(i2c, lm8323_id);
 +
-+static int __init lm8323_init(void)
++static int __init tsc210x_ts_init(void)
 +{
-+	return i2c_add_driver(&lm8323_i2c_driver);
++	/* can't use driver_probe() here since the parent device
++	 * gets registered "late"
++	 */
++	return platform_driver_register(&tsc210x_ts_driver);
 +}
++module_init(tsc210x_ts_init);
 +
-+static void __exit lm8323_exit(void)
++static void __exit tsc210x_ts_exit(void)
 +{
-+	i2c_del_driver(&lm8323_i2c_driver);
++	platform_driver_unregister(&tsc210x_ts_driver);
 +}
++module_exit(tsc210x_ts_exit);
 +
-+MODULE_AUTHOR("Daniel Stone");
-+MODULE_DESCRIPTION("LM8323 keypad driver");
++MODULE_AUTHOR("Andrzej Zaborowski");
++MODULE_DESCRIPTION("Touchscreen input driver for TI TSC2101/2102.");
 +MODULE_LICENSE("GPL");
-+
-+module_init(lm8323_init);
-+module_exit(lm8323_exit);
-diff --git a/include/linux/i2c/lm8323.h b/include/linux/i2c/lm8323.h
+diff --git a/include/linux/spi/tsc210x.h b/include/linux/spi/tsc210x.h
 new file mode 100644
-index 0000000..17d6b33
+index 0000000..b1a9ae6
 --- /dev/null
-+++ b/include/linux/i2c/lm8323.h
-@@ -0,0 +1,37 @@
++++ b/include/linux/spi/tsc210x.h
+@@ -0,0 +1,231 @@
 +/*
-+ * include/lm8323.h
++ * include/linux/spi/tsc2102.h
 + *
-+ * Configuration for LM8323 keypad driver.
++ * TI TSC2101/2102 control register definitions.
++ *
++ * Copyright (c) 2005-2007 Andrzej Zaborowski  <balrog@zabor.org>
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This package is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this package; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 + */
 +
-+#ifndef __LINUX_LM8323_H
-+#define __LINUX_LM8323_H
++#ifndef __LINUX_SPI_TSC210X_H
++#define __LINUX_SPI_TSC210X_H
 +
-+#include <linux/types.h>
++struct apm_power_info;
 +
-+/*
-+ * Largest keycode that the chip can send, plus one,
-+ * so keys can be mapped directly at the index of the
-+ * LM8323 keycode instead of subtracting one.
-+ */
-+#define LM8323_KEYMAP_SIZE (0x7f + 1)
-+
-+struct lm8323_platform_data {
-+	int debounce_time; /* Time to watch for key bouncing, in ms. */
-+	int active_time; /* Idle time until sleep, in ms. */
-+
-+	int size_x;
-+	int size_y;
-+	int repeat : 1;
-+	const s16 *keymap;
-+
-+	char *pwm1_name; /* Device name for PWM1. */
-+	char *pwm2_name; /* Device name for PWM2. */
-+	char *pwm3_name; /* Device name for PWM3. */
-+
-+	char *name; /* Device name. */
++struct tsc210x_config {
++	int use_internal;	/* Use internal reference voltage */
++	u32 monitor;		/* What inputs are wired on this board */
++	int temp_at25c[2];	/* Thermometer calibration data */
++	void (*apm_report)(struct apm_power_info *info, int battery[]);
++				/* Report status to APM based on battery[] */
++	void *alsa_config;	/* .platform_data for the ALSA device */
++	const char *mclk;	/* Optional: mclk name */
++	const char *bclk;	/* Optional: bclk name */
 +};
 +
-+void __init lm8323_set_platform_data(struct lm8323_platform_data *pdata);
++#define TSC_BAT1	(1 << 0)
++#define TSC_BAT2	(1 << 1)
++#define TSC_AUX1	(1 << 2)
++#define TSC_AUX2	(1 << 3)
++#define TSC_TEMP	(1 << 4)
 +
-+#endif /* __LINUX_LM8323_H */
++#define TSC_AUX		TSC_AUX1
++#define TSC_VBAT	TSC_BAT1
++
++struct tsc210x_dev;
++
++/* Drivers for tsc210x components like touchscreen, sensor, and audio
++ * are packaged as platform drivers which can issue synchronous register
++ * acceses, and may also register a callback to process their particular
++ * type of data when that data is automatically sampled.  The platform
++ * device is a child of the TSC spi device.
++ */
++
++extern int tsc210x_read_sync(struct tsc210x_dev *dev, int page, u8 address);
++extern int tsc210x_reads_sync(struct tsc210x_dev *dev, int page,
++		u8 startaddress, u16 *data, int numregs);
++extern int tsc210x_write_sync(struct tsc210x_dev *dev, int page,
++		u8 address, u16 data);
++
++typedef void (*tsc210x_touch_t)(void *context, int touching);
++typedef void (*tsc210x_coords_t)(void *context, int x, int y, int z1, int z2);
++typedef void (*tsc210x_ports_t)(void *context, int bat[], int aux[]);
++typedef void (*tsc210x_temp_t)(void *context, int temp);
++
++extern int tsc210x_touch_cb(struct device *dev,
++		tsc210x_touch_t handler, void *context);
++extern int tsc210x_coords_cb(struct device *dev,
++		tsc210x_coords_t handler, void *context);
++extern int tsc210x_ports_cb(struct device *dev,
++		tsc210x_ports_t handler, void *context);
++extern int tsc210x_temp1_cb(struct device *dev,
++		tsc210x_temp_t handler, void *context);
++extern int tsc210x_temp2_cb(struct device *dev,
++		tsc210x_temp_t handler, void *context);
++
++#if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
++extern void tsc210x_set_dac_volume(struct device *dev, u8 left, u8 right);
++extern void tsc210x_set_dac_mute(struct device *dev, int left, int right);
++extern void tsc210x_get_dac_mute(struct device *dev, int *left, int *right);
++extern void tsc210x_dac_power(struct device *dev, int on);
++extern int tsc210x_set_rate(struct device *dev, int rate);
++extern void tsc210x_set_i2s_master(struct device *dev, int state);
++extern void tsc210x_set_deemphasis(struct device *dev, int enable);
++extern void tsc2102_set_bassboost(struct device *dev, int enable);
++#endif
++
++/*
++ * Emit a short keyclick typically in order to give feedback to
++ * user on specific events.
++ *
++ * amplitude must be between 0 (lowest) and 2 (highest).
++ * freq must be between 0 (corresponds to 62.5 Hz) and 7 (8 kHz).
++ * length should be between 2 and 32 periods.
++ *
++ * This function sleeps but for a period unrelated to the length of
++ * the sound, i.e. returning doesn't indicate that the sound has
++ * finished.
++ */
++extern void tsc210x_keyclick(struct tsc210x_dev *dev,
++		int amplitude, int freq, int length);
++
++/* Page 0, Touch Screen & Keypad Data registers */
++#define TSC210X_TS_X			0, 0x00
++#define TSC210X_TS_Y			0, 0x01
++#define TSC210X_TS_Z1			0, 0x02
++#define TSC210X_TS_Z2			0, 0x03
++#define TSC210X_TS_BAT1			0, 0x05
++#define TSC2102_TS_BAT2			0, 0x06
++#define TSC210X_TS_AUX1			0, 0x07
++#define TSC2101_TS_AUX2			0, 0x08
++#define TSC210X_TS_TEMP1		0, 0x09
++#define TSC210X_TS_TEMP2		0, 0x0a
++
++/* Page 1, Touch Screen & Keypad Control registers */
++#define TSC210X_TS_ADC_CTRL		1, 0x00
++#define TSC210X_TS_STATUS_CTRL		1, 0x01
++#define TSC2101_TS_BUFFER_CTRL		1, 0x02
++#define TSC210X_TS_REF_CTRL		1, 0x03
++#define TSC210X_TS_RESET_CTRL		1, 0x04
++#define TSC210X_TS_CONFIG_CTRL		1, 0x05
++#define TSC2101_TS_TEMPMAX_CTRL		1, 0x06
++#define TSC2101_TS_TEMPMIN_CTRL		1, 0x07
++#define TSC2101_TS_AUX1MAX_CTRL		1, 0x08
++#define TSC2101_TS_AUX1MIN_CTRL		1, 0x09
++#define TSC2101_TS_AUX2MAX_CTRL		1, 0x0a
++#define TSC2101_TS_AUX2MIN_CTRL		1, 0x0b
++#define TSC2101_TS_MCONFIG_CTRL		1, 0x0c
++#define TSC2101_TS_DELAY_CTRL		1, 0x0d
++
++/* Page 2, Audio Control registers */
++#define TSC210X_AUDIO1_CTRL		2, 0x00
++#define TSC2101_HEADSET_GAIN_CTRL	2, 0x01
++#define TSC210X_DAC_GAIN_CTRL		2, 0x02
++#define TSC2101_MIXER_GAIN_CTRL		2, 0x03
++#define TSC210X_AUDIO2_CTRL		2, 0x04
++#define TSC210X_POWER_CTRL		2, 0x05
++#define TSC210X_AUDIO3_CTRL		2, 0x06
++#define TSC210X_LCH_BASS_BOOST_N0	2, 0x07
++#define TSC210X_LCH_BASS_BOOST_N1	2, 0x08
++#define TSC210X_LCH_BASS_BOOST_N2	2, 0x09
++#define TSC210X_LCH_BASS_BOOST_N3	2, 0x0a
++#define TSC210X_LCH_BASS_BOOST_N4	2, 0x0b
++#define TSC210X_LCH_BASS_BOOST_N5	2, 0x0c
++#define TSC210X_LCH_BASS_BOOST_D1	2, 0x0d
++#define TSC210X_LCH_BASS_BOOST_D2	2, 0x0e
++#define TSC210X_LCH_BASS_BOOST_D4	2, 0x0f
++#define TSC210X_LCH_BASS_BOOST_D5	2, 0x10
++#define TSC210X_RCH_BASS_BOOST_N0	2, 0x11
++#define TSC210X_RCH_BASS_BOOST_N1	2, 0x12
++#define TSC210X_RCH_BASS_BOOST_N2	2, 0x13
++#define TSC210X_RCH_BASS_BOOST_N3	2, 0x14
++#define TSC210X_RCH_BASS_BOOST_N4	2, 0x15
++#define TSC210X_RCH_BASS_BOOST_N5	2, 0x16
++#define TSC210X_RCH_BASS_BOOST_D1	2, 0x17
++#define TSC210X_RCH_BASS_BOOST_D2	2, 0x18
++#define TSC210X_RCH_BASS_BOOST_D4	2, 0x19
++#define TSC210X_RCH_BASS_BOOST_D5	2, 0x1a
++#define TSC210X_PLL1_CTRL		2, 0x1b
++#define TSC210X_PLL2_CTRL		2, 0x1c
++#define TSC210X_AUDIO4_CTRL		2, 0x1d
++#define TSC2101_HANDSET_GAIN_CTRL	2, 0x1e
++#define TSC2101_CELL_GAIN_CTRL		2, 0x1f
++#define TSC2101_AUIDO5_CTRL		2, 0x20
++#define TSC2101_AUDIO6_CTRL		2, 0x21
++#define TSC2101_AUDIO7_CTRL		2, 0x22
++#define TSC2101_GPIO_CTRL		2, 0x23
++#define TSC2101_IN_AGC_CTRL		2, 0x24
++#define TSC2101_POWER_STATUS		2, 0x25
++#define TSC2101_MIX_AGC_CTRL		2, 0x26
++#define TSC2101_CELL_AGC_CTRL		2, 0x27
++
++/* Field masks for Audio Control 1 */
++#define AC1_WLEN(ARG)			(((ARG) & 0x03) << 10)
++#define AC1_DATFM(ARG)			(((ARG) & 0x03) << 8)
++#define AC1_DACFS(ARG)			((ARG) & 0x3f)
++
++/* Field masks for TSC2102_DAC_GAIN_CTRL */
++#define DGC_DALMU			(1 << 15)
++#define DGC_DALVL(ARG)			(((ARG) & 0x7f) << 8)
++#define DGC_DARMU			(1 << 7)
++#define DGC_DARVL(ARG)			(((ARG) & 0x7f))
++
++/* Field formats for TSC210X_AUDIO2_CTRL */
++#define AC2_KCLEN			(1 << 15)
++#define AC2_KCLAC(ARG)			(((ARG) & 0x07) << 12)
++#define AC2_KCLFRQ(ARG)			(((ARG) & 0x07) << 8)
++#define AC2_KCLLN(ARG)			(((ARG) & 0x0f) << 4)
++#define AC2_DLGAF			(1 << 3)
++#define AC2_DRGAF			(1 << 2)
++#define AC2_DASTC			(1 << 1)
++
++/* Field masks for TSC210X_DAC_POWER_CTRL */
++#define CPC_PWDNC			(1 << 15)
++#define CPC_DAODRC			(1 << 12)
++#define CPC_DAPWDN			(1 << 10)
++#define CPC_VGPWDN			(1 << 8)
++#define CPC_DAPWDF			(1 << 6)
++#define CPC_BASSBC			(1 << 1)
++#define CPC_DEEMPF			(0x01)
++
++/* Field masks for TSC210X_AUDIO3_CTRL */
++#define AC3_DMSVOL(ARG)			(((ARG) & 0x03) << 14)
++#define AC3_REFFS			(1 << 13)
++#define AC3_DAXFM			(1 << 12)
++#define AC3_SLVMS			(1 << 11)
++#define AC3_DALOVF			(1 << 7)
++#define AC3_DAROVF			(1 << 6)
++#define AC3_REVID(ARG)			(((ARG) & 0x07))
++
++/* Field masks for TSC210X_PLL1_CTRL */
++#define PLL1_PLLEN			(1 << 15)
++#define PLL1_Q_VAL(ARG)			(((ARG) & 0x0f) << 11)
++#define PLL1_P_VAL(ARG)			(((ARG) & 0x07) << 8)
++#define PLL1_I_VAL(ARG)			(((ARG) & 0x3f) << 2)
++
++/* Field masks for TSC210X_PLL2_CTRL */
++#define PLL2_D_VAL(ARG)			(((ARG) & 0x3fff) << 2)
++
++/* Field masks for TSC210X_AUDIO4_CTRL */
++#define AC4_DASTPD			(1 << 14)
++
++struct tsc210x_rate_info_s {
++	u16 sample_rate;
++	u8 divisor;
++	u8 fs_44k;	/* 44.1 kHz Fsref if 1, 48 kHz if 0 */
++};
++
++#endif	/* __LINUX_SPI_TSC210X_H */
 -- 
 1.6.0.1.141.g445ca
 
