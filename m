@@ -1,45 +1,57 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch 2.6.27-rc3-omap1] omap3 beagle: nand (mostly) cleanups
-Date: Fri, 29 Aug 2008 21:23:15 -0700
-Message-ID: <200808292123.15916.david-b@pacbell.net>
-References: <200808291012.47332.david-b@pacbell.net> <13B9B4C6EF24D648824FF11BE896716203653CA11D@dlee02.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 2/2] BRIDGE checkpatch cleanup
+Date: Sat, 30 Aug 2008 09:05:29 +0100
+Message-ID: <20080830080529.GA20242@flint.arm.linux.org.uk>
+References: <27F9C60D11D683428E133F85D2BB4A53448FFBBE@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:37000 "HELO
-	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750730AbYH3EXS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 30 Aug 2008 00:23:18 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE896716203653CA11D@dlee02.ent.ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47232 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751180AbYH3IFu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 04:05:50 -0400
 Content-Disposition: inline
+In-Reply-To: <27F9C60D11D683428E133F85D2BB4A53448FFBBE@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Ramirez Luna, Omar" <x00omar@ti.com>
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pasam, Vijay" <vpasam@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>
 
-On Friday 29 August 2008, Woodruff, Richard wrote:
-> > Clean up the Beagle NAND config a bit: =A0use SZ_128K instead of
-> > an arithmetic expression for the NAND block size. =A0Set the
-> > NAND_BUSWIDTH_16 flag. =A0Make its init routine static.
->=20
->=20
-> Actually, this was talked about before a bit and the SZ_xyz flags wer=
-e left out.
->=20
-> The point of telling the geometry in the addition was to be explicit
-> about the number of sectors being used.=20
+On Fri, Aug 29, 2008 at 10:09:29PM -0500, Ramirez Luna, Omar wrote:
+> From: Omar Ramirez Luna <x00omar@ti.com>
+> Date: Fri, 29 Aug 2008 21:20:39 -0500
+> Subject: [PATCH] Bridge Checkpatch Cleanup
+> 
+> Deleted unused function typedefs and structures associated with them
 
-So #define NAND_BLOCK_SIZE SZ_128K and use that symbol instead?
+This says delete.
 
-=46rankly N*(64 * 2048) isn't very meaningful.  The comment at the
-top already says everything is in units of blocks, but one is  left
-to guess that "block" is "(64 * 2048)"...
+> diff --git a/arch/arm/plat-omap/include/mach/bridge/_chnl_sm.h b/arch/arm/plat-omap/include/mach/bridge/_chnl_sm.h
+> index f6a6c69..4bc2633 100644
+> --- a/arch/arm/plat-omap/include/mach/bridge/_chnl_sm.h
+> +++ b/arch/arm/plat-omap/include/mach/bridge/_chnl_sm.h
+> @@ -110,6 +110,8 @@ struct loadMonStruct {
+> 
+>  #endif
+> 
+> +       typedef u32 SMWORD;
+> +
 
+This looks like adding to me.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +       typedef bool(CDECL *COD_ALLOCFXN) (void *pPrivRef, u32 space,
+> +                                           u32 ulNumBytes, u32 ulAlign,
+> +                                           u32 *ulDspAddr, bool fReserved);
+> +
+> +       typedef bool(CDECL *COD_FREEFXN) (void *pPrivReg, u32 ulDspAddr,
+> +                                          u32 space, u32 ulNumBytes,
+> +                                          bool fReserved);
+
+More typedef adding.
+
+> +#ifndef _SIZE_T                        /* Linux sets _SIZE_T on defining size_t */
+> +typedef unsigned int size_t;
+> +#define _SIZE_T
+> +#endif
+
+More adding...
