@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 16/33] add omap led drivers
-Date: Sat, 30 Aug 2008 20:16:16 +0300
-Message-ID: <1220116593-862-17-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 12/33] Add tsc2005 touchscreen driver
+Date: Sat, 30 Aug 2008 20:16:12 +0300
+Message-ID: <1220116593-862-13-git-send-email-me@felipebalbi.com>
 References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-2-git-send-email-me@felipebalbi.com>
  <1220116593-862-3-git-send-email-me@felipebalbi.com>
@@ -14,16 +14,12 @@ References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-10-git-send-email-me@felipebalbi.com>
  <1220116593-862-11-git-send-email-me@felipebalbi.com>
  <1220116593-862-12-git-send-email-me@felipebalbi.com>
- <1220116593-862-13-git-send-email-me@felipebalbi.com>
- <1220116593-862-14-git-send-email-me@felipebalbi.com>
- <1220116593-862-15-git-send-email-me@felipebalbi.com>
- <1220116593-862-16-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:36354 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:36434 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752928AbYH3RUJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:20:09 -0400
-In-Reply-To: <1220116593-862-16-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1752887AbYH3RUq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:20:46 -0400
+In-Reply-To: <1220116593-862-12-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -33,582 +29,819 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/leds/Kconfig         |   21 +++
- drivers/leds/Makefile        |    2 +
- drivers/leds/leds-omap-pwm.c |  376 ++++++++++++++++++++++++++++++++++++++++++
- drivers/leds/leds-omap.c     |  135 +++++++++++++++
- 4 files changed, 534 insertions(+), 0 deletions(-)
- create mode 100644 drivers/leds/leds-omap-pwm.c
- create mode 100644 drivers/leds/leds-omap.c
+ drivers/input/touchscreen/Kconfig   |    5 +
+ drivers/input/touchscreen/Makefile  |    1 +
+ drivers/input/touchscreen/tsc2005.c |  736 +++++++++++++++++++++++++++++++++++
+ include/linux/spi/tsc2005.h         |   29 ++
+ 4 files changed, 771 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/input/touchscreen/tsc2005.c
+ create mode 100644 include/linux/spi/tsc2005.h
 
-diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
-index 9556262..6a2f441 100644
---- a/drivers/leds/Kconfig
-+++ b/drivers/leds/Kconfig
-@@ -77,6 +77,27 @@ config LEDS_WRAP
- 	help
- 	  This option enables support for the PCEngines WRAP programmable LEDs.
+diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
+index 25287e8..a115f38 100644
+--- a/drivers/input/touchscreen/Kconfig
++++ b/drivers/input/touchscreen/Kconfig
+@@ -217,6 +217,11 @@ config TOUCHSCREEN_ATMEL_TSADCC
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called atmel_tsadcc.
  
-+config LEDS_OMAP_DEBUG
-+	boolean "LED Support for OMAP debug board LEDs"
-+	depends on LEDS_CLASS=y && ARCH_OMAP
++config TOUCHSCREEN_TSC2005
++	tristate "TSC2005 touchscreen support"
 +	help
-+	  Enables support for the LEDs on the debug board used with OMAP
-+	  reference boards like H2/H3/H4 and Perseus2.  Up to six of these
-+	  may be claimed by the original ARM debug LED API.
++	  Say Y here for if you are using the touchscreen features of TSC2301.
 +
-+config LEDS_OMAP
-+	tristate "LED Support for OMAP GPIO LEDs"
-+	depends on LEDS_CLASS && ARCH_OMAP
-+	help
-+	  This option enables support for the LEDs on OMAP processors.
-+
-+config LEDS_OMAP_PWM
-+	tristate "LED Support for OMAP PWM-controlled LEDs"
-+	depends on LEDS_CLASS && ARCH_OMAP && OMAP_DM_TIMER
-+	help
-+	  This options enables support for LEDs connected to GPIO lines
-+	  controlled by a PWM timer on OMAP CPUs.
-+
- config LEDS_H1940
- 	tristate "LED Support for iPAQ H1940 device"
- 	depends on LEDS_CLASS && ARCH_H1940
-diff --git a/drivers/leds/Makefile b/drivers/leds/Makefile
-index ff7982b..fd6316e 100644
---- a/drivers/leds/Makefile
-+++ b/drivers/leds/Makefile
-@@ -13,6 +13,8 @@ obj-$(CONFIG_LEDS_S3C24XX)		+= leds-s3c24xx.o
- obj-$(CONFIG_LEDS_AMS_DELTA)		+= leds-ams-delta.o
- obj-$(CONFIG_LEDS_NET48XX)		+= leds-net48xx.o
- obj-$(CONFIG_LEDS_WRAP)			+= leds-wrap.o
-+obj-$(CONFIG_LEDS_OMAP)			+= leds-omap.o
-+obj-$(CONFIG_LEDS_OMAP_PWM)		+= leds-omap-pwm.o
- obj-$(CONFIG_LEDS_H1940)		+= leds-h1940.o
- obj-$(CONFIG_LEDS_COBALT_QUBE)		+= leds-cobalt-qube.o
- obj-$(CONFIG_LEDS_COBALT_RAQ)		+= leds-cobalt-raq.o
-diff --git a/drivers/leds/leds-omap-pwm.c b/drivers/leds/leds-omap-pwm.c
+ config TOUCHSCREEN_UCB1400
+ 	tristate "Philips UCB1400 touchscreen"
+ 	select AC97_BUS
+diff --git a/drivers/input/touchscreen/Makefile b/drivers/input/touchscreen/Makefile
+index 15cf290..0342389 100644
+--- a/drivers/input/touchscreen/Makefile
++++ b/drivers/input/touchscreen/Makefile
+@@ -26,6 +26,7 @@ obj-$(CONFIG_TOUCHSCREEN_TOUCHIT213)	+= touchit213.o
+ obj-$(CONFIG_TOUCHSCREEN_TOUCHRIGHT)	+= touchright.o
+ obj-$(CONFIG_TOUCHSCREEN_TOUCHWIN)	+= touchwin.o
+ obj-$(CONFIG_TOUCHSCREEN_UCB1400)	+= ucb1400_ts.o
++obj-$(CONFIG_TOUCHSCREEN_TSC2005)	+= tsc2005.o
+ obj-$(CONFIG_TOUCHSCREEN_WM97XX)	+= wm97xx-ts.o
+ wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9705)	+= wm9705.o
+ wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9712)	+= wm9712.o
+diff --git a/drivers/input/touchscreen/tsc2005.c b/drivers/input/touchscreen/tsc2005.c
 new file mode 100644
-index 0000000..57eb383
+index 0000000..7fb107e
 --- /dev/null
-+++ b/drivers/leds/leds-omap-pwm.c
-@@ -0,0 +1,376 @@
-+/* drivers/leds/leds-omap_pwm.c
++++ b/drivers/input/touchscreen/tsc2005.c
+@@ -0,0 +1,736 @@
++/*
++ * TSC2005 touchscreen driver
 + *
-+ * Driver to blink LEDs using OMAP PWM timers
++ * Copyright (C) 2006-2008 Nokia Corporation
 + *
-+ * Copyright (C) 2006 Nokia Corporation
-+ * Author: Timo Teras
++ * Author: Lauri Leukkunen <lauri.leukkunen@nokia.com>
++ * based on TSC2301 driver by Klaus K. Pedersen <klaus.k.pedersen@nokia.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+*/
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ *
++ */
 +
 +#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/err.h>
-+#include <linux/platform_device.h>
-+#include <linux/leds.h>
-+#include <linux/ctype.h>
-+#include <linux/sched.h>
-+#include <asm/delay.h>
-+#include <mach/board.h>
-+#include <mach/dmtimer.h>
-+
-+struct omap_pwm_led {
-+	struct led_classdev cdev;
-+	struct work_struct work;
-+	struct omap_pwm_led_platform_data *pdata;
-+	struct omap_dm_timer *intensity_timer;
-+	struct omap_dm_timer *blink_timer;
-+	int powered;
-+	unsigned int on_period, off_period;
-+	enum led_brightness brightness;
-+};
-+
-+static inline struct omap_pwm_led *pdev_to_omap_pwm_led(struct platform_device *pdev)
-+{
-+	return platform_get_drvdata(pdev);
-+}
-+
-+static inline struct omap_pwm_led *cdev_to_omap_pwm_led(struct led_classdev *led_cdev)
-+{
-+	return container_of(led_cdev, struct omap_pwm_led, cdev);
-+}
-+
-+static inline struct omap_pwm_led *work_to_omap_pwm_led(struct work_struct *work)
-+{
-+	return container_of(work, struct omap_pwm_led, work);
-+}
-+
-+static void omap_pwm_led_set_blink(struct omap_pwm_led *led)
-+{
-+	if (!led->powered)
-+		return;
-+
-+	if (led->on_period != 0 && led->off_period != 0) {
-+		unsigned long load_reg, cmp_reg;
-+
-+		load_reg = 32768 * (led->on_period + led->off_period) / 1000;
-+		cmp_reg = 32768 * led->on_period / 1000;
-+
-+		omap_dm_timer_stop(led->blink_timer);
-+		omap_dm_timer_set_load(led->blink_timer, 1, -load_reg);
-+		omap_dm_timer_set_match(led->blink_timer, 1, -cmp_reg);
-+		omap_dm_timer_set_pwm(led->blink_timer, 1, 1,
-+				      OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE);
-+		omap_dm_timer_write_counter(led->blink_timer, -2);
-+		omap_dm_timer_start(led->blink_timer);
-+	} else {
-+		omap_dm_timer_set_pwm(led->blink_timer, 1, 1,
-+				      OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE);
-+		omap_dm_timer_stop(led->blink_timer);
-+	}
-+}
-+
-+static void omap_pwm_led_power_on(struct omap_pwm_led *led)
-+{
-+	if (led->powered)
-+		return;
-+	led->powered = 1;
-+
-+	/* Select clock */
-+	omap_dm_timer_enable(led->intensity_timer);
-+	omap_dm_timer_set_source(led->intensity_timer, OMAP_TIMER_SRC_32_KHZ);
-+
-+	/* Turn voltage on */
-+	if (led->pdata->set_power != NULL)
-+		led->pdata->set_power(led->pdata, 1);
-+
-+	/* Enable PWM timers */
-+	if (led->blink_timer != NULL) {
-+		omap_dm_timer_enable(led->blink_timer);
-+		omap_dm_timer_set_source(led->blink_timer,
-+					 OMAP_TIMER_SRC_32_KHZ);
-+		omap_pwm_led_set_blink(led);
-+	}
-+
-+	omap_dm_timer_set_load(led->intensity_timer, 1, 0xffffff00);
-+}
-+
-+static void omap_pwm_led_power_off(struct omap_pwm_led *led)
-+{
-+	if (!led->powered)
-+		return;
-+	led->powered = 0;
-+
-+	/* Everything off */
-+	omap_dm_timer_stop(led->intensity_timer);
-+	omap_dm_timer_disable(led->intensity_timer);
-+
-+	if (led->blink_timer != NULL) {
-+		omap_dm_timer_stop(led->blink_timer);
-+		omap_dm_timer_disable(led->blink_timer);
-+	}
-+
-+	if (led->pdata->set_power != NULL)
-+		led->pdata->set_power(led->pdata, 0);
-+}
-+
-+static void omap_pwm_led_set_pwm_cycle(struct omap_pwm_led *led, int cycle)
-+{
-+	int n;
-+
-+	if (cycle == 0)
-+		n = 0xff;
-+	else	n = cycle - 1;
-+
-+	if (cycle == LED_FULL) {
-+		omap_dm_timer_set_pwm(led->intensity_timer, 1, 1,
-+				      OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE);
-+		omap_dm_timer_stop(led->intensity_timer);
-+	} else {
-+		omap_dm_timer_set_pwm(led->intensity_timer, 0, 1,
-+				      OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE);
-+		omap_dm_timer_set_match(led->intensity_timer, 1,
-+					(0xffffff00) | cycle);
-+		omap_dm_timer_start(led->intensity_timer);
-+	}
-+}
-+
-+static void omap_pwm_led_set(struct led_classdev *led_cdev,
-+			     enum led_brightness value)
-+{
-+	struct omap_pwm_led *led = cdev_to_omap_pwm_led(led_cdev);
-+
-+	led->brightness = value;
-+	schedule_work(&led->work);
-+}
-+
-+static void omap_pwm_led_work(struct work_struct *work)
-+{
-+	struct omap_pwm_led *led = work_to_omap_pwm_led(work);
-+
-+	if (led->brightness != LED_OFF) {
-+		omap_pwm_led_power_on(led);
-+		omap_pwm_led_set_pwm_cycle(led, led->brightness);
-+	} else {
-+		omap_pwm_led_power_off(led);
-+	}
-+}
-+
-+static ssize_t omap_pwm_led_on_period_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-+	struct omap_pwm_led *led = cdev_to_omap_pwm_led(led_cdev);
-+
-+	return sprintf(buf, "%u\n", led->on_period) + 1;
-+}
-+
-+static ssize_t omap_pwm_led_on_period_store(struct device *dev,
-+				struct device_attribute *attr,
-+				const char *buf, size_t size)
-+{
-+	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-+	struct omap_pwm_led *led = cdev_to_omap_pwm_led(led_cdev);
-+	int ret = -EINVAL;
-+	unsigned long val;
-+	char *after;
-+	size_t count;
-+
-+	val = simple_strtoul(buf, &after, 10);
-+	count = after - buf;
-+	if (*after && isspace(*after))
-+		count++;
-+
-+	if (count == size) {
-+		led->on_period = val;
-+		omap_pwm_led_set_blink(led);
-+		ret = count;
-+	}
-+
-+	return ret;
-+}
-+
-+static ssize_t omap_pwm_led_off_period_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-+	struct omap_pwm_led *led = cdev_to_omap_pwm_led(led_cdev);
-+
-+	return sprintf(buf, "%u\n", led->off_period) + 1;
-+}
-+
-+static ssize_t omap_pwm_led_off_period_store(struct device *dev,
-+					struct device_attribute *attr,
-+					const char *buf, size_t size)
-+{
-+	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-+	struct omap_pwm_led *led = cdev_to_omap_pwm_led(led_cdev);
-+	int ret = -EINVAL;
-+	unsigned long val;
-+	char *after;
-+	size_t count;
-+
-+	val = simple_strtoul(buf, &after, 10);
-+	count = after - buf;
-+	if (*after && isspace(*after))
-+		count++;
-+
-+	if (count == size) {
-+		led->off_period = val;
-+		omap_pwm_led_set_blink(led);
-+		ret = count;
-+	}
-+
-+	return ret;
-+}
-+
-+static DEVICE_ATTR(on_period, 0644, omap_pwm_led_on_period_show,
-+				omap_pwm_led_on_period_store);
-+static DEVICE_ATTR(off_period, 0644, omap_pwm_led_off_period_show,
-+				omap_pwm_led_off_period_store);
-+
-+static int omap_pwm_led_probe(struct platform_device *pdev)
-+{
-+	struct omap_pwm_led_platform_data *pdata = pdev->dev.platform_data;
-+	struct omap_pwm_led *led;
-+	int ret;
-+
-+	led = kzalloc(sizeof(struct omap_pwm_led), GFP_KERNEL);
-+	if (led == NULL) {
-+		dev_err(&pdev->dev, "No memory for device\n");
-+		return -ENOMEM;
-+	}
-+
-+	platform_set_drvdata(pdev, led);
-+	led->cdev.brightness_set = omap_pwm_led_set;
-+	led->cdev.default_trigger = NULL;
-+	led->cdev.name = pdata->name;
-+	led->pdata = pdata;
-+	led->brightness = LED_OFF;
-+	INIT_WORK(&led->work, omap_pwm_led_work);
-+
-+	dev_info(&pdev->dev, "OMAP PWM LED (%s) at GP timer %d/%d\n",
-+		 pdata->name, pdata->intensity_timer, pdata->blink_timer);
-+
-+	/* register our new led device */
-+	ret = led_classdev_register(&pdev->dev, &led->cdev);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "led_classdev_register failed\n");
-+		goto error_classdev;
-+	}
-+
-+	/* get related dm timers */
-+	led->intensity_timer = omap_dm_timer_request_specific(pdata->intensity_timer);
-+	if (led->intensity_timer == NULL) {
-+		dev_err(&pdev->dev, "failed to request intensity pwm timer\n");
-+		ret = -ENODEV;
-+		goto error_intensity;
-+	}
-+	omap_dm_timer_disable(led->intensity_timer);
-+
-+	if (pdata->blink_timer != 0) {
-+		led->blink_timer = omap_dm_timer_request_specific(pdata->blink_timer);
-+		if (led->blink_timer == NULL) {
-+			dev_err(&pdev->dev, "failed to request blinking pwm timer\n");
-+			ret = -ENODEV;
-+			goto error_blink1;
-+		}
-+		omap_dm_timer_disable(led->blink_timer);
-+
-+		ret = device_create_file(led->cdev.dev,
-+					       &dev_attr_on_period);
-+		if(ret)
-+			goto error_blink2;
-+
-+		ret = device_create_file(led->cdev.dev,
-+					&dev_attr_off_period);
-+		if(ret)
-+			goto error_blink3;
-+
-+	}
-+
-+	return 0;
-+
-+error_blink3:
-+	device_remove_file(led->cdev.dev,
-+				 &dev_attr_on_period);
-+error_blink2:
-+	dev_err(&pdev->dev, "failed to create device file(s)\n");
-+error_blink1:
-+	omap_dm_timer_free(led->intensity_timer);
-+error_intensity:
-+	led_classdev_unregister(&led->cdev);
-+error_classdev:
-+	kfree(led);
-+	return ret;
-+}
-+
-+static int omap_pwm_led_remove(struct platform_device *pdev)
-+{
-+	struct omap_pwm_led *led = pdev_to_omap_pwm_led(pdev);
-+
-+	device_remove_file(led->cdev.dev,
-+				 &dev_attr_on_period);
-+	device_remove_file(led->cdev.dev,
-+				 &dev_attr_off_period);
-+	led_classdev_unregister(&led->cdev);
-+
-+	omap_pwm_led_set(&led->cdev, LED_OFF);
-+	if (led->blink_timer != NULL)
-+		omap_dm_timer_free(led->blink_timer);
-+	omap_dm_timer_free(led->intensity_timer);
-+	kfree(led);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+static int omap_pwm_led_suspend(struct platform_device *pdev, pm_message_t state)
-+{
-+	struct omap_pwm_led *led = pdev_to_omap_pwm_led(pdev);
-+
-+	led_classdev_suspend(&led->cdev);
-+	return 0;
-+}
-+
-+static int omap_pwm_led_resume(struct platform_device *pdev)
-+{
-+	struct omap_pwm_led *led = pdev_to_omap_pwm_led(pdev);
-+
-+	led_classdev_resume(&led->cdev);
-+	return 0;
-+}
-+#else
-+#define omap_pwm_led_suspend NULL
-+#define omap_pwm_led_resume NULL
-+#endif
-+
-+static struct platform_driver omap_pwm_led_driver = {
-+	.probe		= omap_pwm_led_probe,
-+	.remove		= omap_pwm_led_remove,
-+	.suspend	= omap_pwm_led_suspend,
-+	.resume		= omap_pwm_led_resume,
-+	.driver		= {
-+		.name		= "omap_pwm_led",
-+		.owner		= THIS_MODULE,
-+	},
-+};
-+
-+static int __init omap_pwm_led_init(void)
-+{
-+	return platform_driver_register(&omap_pwm_led_driver);
-+}
-+
-+static void __exit omap_pwm_led_exit(void)
-+{
-+	platform_driver_unregister(&omap_pwm_led_driver);
-+}
-+
-+module_init(omap_pwm_led_init);
-+module_exit(omap_pwm_led_exit);
-+
-+MODULE_AUTHOR("Timo Teras");
-+MODULE_DESCRIPTION("OMAP PWM LED driver");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/leds/leds-omap.c b/drivers/leds/leds-omap.c
-new file mode 100644
-index 0000000..5c14c4b
---- /dev/null
-+++ b/drivers/leds/leds-omap.c
-@@ -0,0 +1,135 @@
-+/* drivers/leds/leds-omap.c
-+ *
-+ * (C) 2006 Samsung Electronics
-+ * Kyungmin Park <kyungmin.park@samsung.com>
-+ *
-+ * OMAP - LEDs GPIO driver
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+*/
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/leds.h>
-+
++#include <linux/module.h>
++#include <linux/input.h>
++#include <linux/interrupt.h>
++#include <linux/delay.h>
++#include <linux/spi/spi.h>
++
++#ifdef CONFIG_ARCH_OMAP
 +#include <mach/gpio.h>
-+#include <mach/hardware.h>
-+#include <mach/led.h>
++#endif
 +
-+/* our context */
++#include <linux/spi/tsc2005.h>
 +
-+static void omap_set_led_gpio(struct led_classdev *led_cdev,
-+			    enum led_brightness value)
++/**
++ * The touchscreen interface operates as follows:
++ *
++ * Initialize:
++ *    Request access to GPIO103 (DAV)
++ *    tsc2005_dav_irq_handler will trigger when DAV line goes down
++ *
++ *  1) Pen is pressed against touchscreeen
++ *  2) TSC2005 performs AD conversion
++ *  3) After the conversion is done TSC2005 drives DAV line down
++ *  4) GPIO IRQ is received and tsc2005_dav_irq_handler is called
++ *  5) tsc2005_ts_irq_handler queues up an spi transfer to fetch
++ *     the x, y, z1, z2 values
++ *  6) tsc2005_ts_rx() reports coordinates to input layer and
++ *     sets up tsc2005_ts_timer() to be called after TSC2005_TS_SCAN_TIME
++ *  7)  When the penup_timer expires, there have not been DAV interrupts
++ *     during the last 20ms which means the pen has been lifted.
++ */
++
++#define TSC2005_VDD_LOWER_27
++
++#ifdef TSC2005_VDD_LOWER_27
++#define TSC2005_HZ     (10000000)
++#else
++#define TSC2005_HZ     (25000000)
++#endif
++
++#define TSC2005_CMD	(0x80)
++#define TSC2005_REG	(0x00)
++
++#define TSC2005_CMD_STOP	(1)
++#define TSC2005_CMD_10BIT	(0 << 2)
++#define TSC2005_CMD_12BIT	(1 << 2)
++
++#define TSC2005_CMD_SCAN_XYZZ	(0 << 3)
++#define TSC2005_CMD_SCAN_XY	(1 << 3)
++#define TSC2005_CMD_SCAN_X	(2 << 3)
++#define TSC2005_CMD_SCAN_Y	(3 << 3)
++#define TSC2005_CMD_SCAN_ZZ	(4 << 3)
++#define TSC2005_CMD_AUX_SINGLE	(5 << 3)
++#define TSC2005_CMD_TEMP1	(6 << 3)
++#define TSC2005_CMD_TEMP2	(7 << 3)
++#define TSC2005_CMD_AUX_CONT	(8 << 3)
++#define TSC2005_CMD_TEST_X_CONN	(9 << 3)
++#define TSC2005_CMD_TEST_Y_CONN	(10 << 3)
++/* command 11 reserved */
++#define TSC2005_CMD_TEST_SHORT	(12 << 3)
++#define TSC2005_CMD_DRIVE_XX	(13 << 3)
++#define TSC2005_CMD_DRIVE_YY	(14 << 3)
++#define TSC2005_CMD_DRIVE_YX	(15 << 3)
++
++#define TSC2005_REG_X		(0 << 3)
++#define TSC2005_REG_Y		(1 << 3)
++#define TSC2005_REG_Z1		(2 << 3)
++#define TSC2005_REG_Z2		(3 << 3)
++#define TSC2005_REG_AUX		(4 << 3)
++#define TSC2005_REG_TEMP1	(5 << 3)
++#define TSC2005_REG_TEMP2	(6 << 3)
++#define TSC2005_REG_STATUS	(7 << 3)
++#define TSC2005_REG_AUX_HIGH	(8 << 3)
++#define TSC2005_REG_AUX_LOW	(9 << 3)
++#define TSC2005_REG_TEMP_HIGH	(10 << 3)
++#define TSC2005_REG_TEMP_LOW	(11 << 3)
++#define TSC2005_REG_CFR0	(12 << 3)
++#define TSC2005_REG_CFR1	(13 << 3)
++#define TSC2005_REG_CFR2	(14 << 3)
++#define TSC2005_REG_FUNCTION	(15 << 3)
++
++#define TSC2005_REG_PND0	(1 << 1)
++#define TSC2005_REG_READ	(0x01)
++#define TSC2005_REG_WRITE	(0x00)
++
++
++#define TSC2005_CFR0_LONGSAMPLING	(1)
++#define TSC2005_CFR0_DETECTINWAIT	(1 << 1)
++#define TSC2005_CFR0_SENSETIME_32US	(0)
++#define TSC2005_CFR0_SENSETIME_96US	(1 << 2)
++#define TSC2005_CFR0_SENSETIME_544US	(1 << 3)
++#define TSC2005_CFR0_SENSETIME_2080US	(1 << 4)
++#define TSC2005_CFR0_SENSETIME_2656US	(0x001C)
++#define TSC2005_CFR0_PRECHARGE_20US	(0x0000)
++#define TSC2005_CFR0_PRECHARGE_84US	(0x0020)
++#define TSC2005_CFR0_PRECHARGE_276US	(0x0040)
++#define TSC2005_CFR0_PRECHARGE_1044US	(0x0080)
++#define TSC2005_CFR0_PRECHARGE_1364US	(0x00E0)
++#define TSC2005_CFR0_STABTIME_0US	(0x0000)
++#define TSC2005_CFR0_STABTIME_100US	(0x0100)
++#define TSC2005_CFR0_STABTIME_500US	(0x0200)
++#define TSC2005_CFR0_STABTIME_1MS	(0x0300)
++#define TSC2005_CFR0_STABTIME_5MS	(0x0400)
++#define TSC2005_CFR0_STABTIME_100MS	(0x0700)
++#define TSC2005_CFR0_CLOCK_4MHZ		(0x0000)
++#define TSC2005_CFR0_CLOCK_2MHZ		(0x0800)
++#define TSC2005_CFR0_CLOCK_1MHZ		(0x1000)
++#define TSC2005_CFR0_RESOLUTION12	(0x2000)
++#define TSC2005_CFR0_STATUS		(0x4000)
++#define TSC2005_CFR0_PENMODE		(0x8000)
++
++#define TSC2005_CFR0_INITVALUE	(TSC2005_CFR0_STABTIME_1MS  |	\
++				 TSC2005_CFR0_CLOCK_1MHZ    |	\
++				 TSC2005_CFR0_RESOLUTION12  |	\
++				 TSC2005_CFR0_PRECHARGE_276US | \
++				 TSC2005_CFR0_PENMODE)
++
++#define TSC2005_CFR1_BATCHDELAY_0MS	(0x0000)
++#define TSC2005_CFR1_BATCHDELAY_1MS	(0x0001)
++#define TSC2005_CFR1_BATCHDELAY_2MS	(0x0002)
++#define TSC2005_CFR1_BATCHDELAY_4MS	(0x0003)
++#define TSC2005_CFR1_BATCHDELAY_10MS	(0x0004)
++#define TSC2005_CFR1_BATCHDELAY_20MS	(0x0005)
++#define TSC2005_CFR1_BATCHDELAY_40MS	(0x0006)
++#define TSC2005_CFR1_BATCHDELAY_100MS	(0x0007)
++
++#define TSC2005_CFR1_INITVALUE	(TSC2005_CFR1_BATCHDELAY_2MS)
++
++#define TSC2005_CFR2_MAVE_TEMP	(0x0001)
++#define TSC2005_CFR2_MAVE_AUX	(0x0002)
++#define TSC2005_CFR2_MAVE_Z	(0x0004)
++#define TSC2005_CFR2_MAVE_Y	(0x0008)
++#define TSC2005_CFR2_MAVE_X	(0x0010)
++#define TSC2005_CFR2_AVG_1	(0x0000)
++#define TSC2005_CFR2_AVG_3	(0x0400)
++#define TSC2005_CFR2_AVG_7	(0x0800)
++#define TSC2005_CFR2_MEDIUM_1	(0x0000)
++#define TSC2005_CFR2_MEDIUM_3	(0x1000)
++#define TSC2005_CFR2_MEDIUM_7	(0x2000)
++#define TSC2005_CFR2_MEDIUM_15	(0x3000)
++
++#define TSC2005_CFR2_IRQ_DAV	(0x4000)
++#define TSC2005_CFR2_IRQ_PEN	(0x8000)
++#define TSC2005_CFR2_IRQ_PENDAV	(0x0000)
++
++#define TSC2005_CFR2_INITVALUE	(TSC2005_CFR2_IRQ_DAV   |	\
++				 TSC2005_CFR2_MAVE_X    |	\
++				 TSC2005_CFR2_MAVE_Y    |	\
++				 TSC2005_CFR2_MAVE_Z    |	\
++				 TSC2005_CFR2_MEDIUM_15 |	\
++				 TSC2005_CFR2_AVG_7)
++
++#define MAX_12BIT					((1 << 12) - 1)
++#define TS_SAMPLES					4
++#define TS_RECT_SIZE					8
++#define TSC2005_TS_PENUP_TIME				20
++
++static const u32 tsc2005_read_reg[] = {
++	(TSC2005_REG | TSC2005_REG_X | TSC2005_REG_READ) << 16,
++	(TSC2005_REG | TSC2005_REG_Y | TSC2005_REG_READ) << 16,
++	(TSC2005_REG | TSC2005_REG_Z1 | TSC2005_REG_READ) << 16,
++	(TSC2005_REG | TSC2005_REG_Z2 | TSC2005_REG_READ) << 16,
++};
++#define NUM_READ_REGS	(sizeof(tsc2005_read_reg)/sizeof(tsc2005_read_reg[0]))
++
++struct tsc2005 {
++	struct spi_device	*spi;
++
++	struct input_dev	*idev;
++	char			phys[32];
++	struct timer_list	penup_timer;
++	spinlock_t		lock;
++	struct mutex		mutex;
++
++	struct spi_message	read_msg;
++	struct spi_transfer	read_xfer[NUM_READ_REGS];
++	u32                     data[NUM_READ_REGS];
++
++	/* previous x,y,z */
++	int			x;
++	int			y;
++	int			p;
++	/* average accumulators for each component */
++	int			sample_cnt;
++	int			avg_x;
++	int			avg_y;
++	int			avg_z1;
++	int			avg_z2;
++	/* configuration */
++	int			x_plate_ohm;
++	int			hw_avg_max;
++	int			stab_time;
++	int			p_max;
++	int			touch_pressure;
++	int			irq;
++	s16			dav_gpio;
++	/* status */
++	u8			sample_sent;
++	u8			pen_down;
++	u8			disabled;
++	u8			disable_depth;
++	u8			spi_active;
++};
++
++static void tsc2005_cmd(struct tsc2005 *ts, u8 cmd)
 +{
-+	struct omap_led_config *led_dev;
++	u16 data = TSC2005_CMD | TSC2005_CMD_12BIT | cmd;
++	struct spi_message msg;
++	struct spi_transfer xfer = { 0 };
 +
-+	led_dev = container_of(led_cdev, struct omap_led_config, cdev);
++	xfer.tx_buf = &data;
++	xfer.rx_buf = NULL;
++	xfer.len = 1;
++	xfer.bits_per_word = 8;
 +
-+	if (value)
-+		omap_set_gpio_dataout(led_dev->gpio, 1);
-+	else
-+		omap_set_gpio_dataout(led_dev->gpio, 0);
++	spi_message_init(&msg);
++	spi_message_add_tail(&xfer, &msg);
++	spi_sync(ts->spi, &msg);
 +}
 +
-+static void omap_configure_led_gpio(int gpio)
++static void tsc2005_write(struct tsc2005 *ts, u8 reg, u16 value)
 +{
-+	if (omap_request_gpio(gpio) < 0) {
-+		printk(KERN_ERR "Failed to request GPIO%d for LEDs\n", gpio);
-+		return;
-+	}
-+	omap_set_gpio_direction(gpio, 0);	/* OUT */
++	u32 tx;
++	struct spi_message msg;
++	struct spi_transfer xfer = { 0 };
++
++	tx = (TSC2005_REG | reg | TSC2005_REG_PND0 |
++	       TSC2005_REG_WRITE) << 16;
++	tx |= value;
++
++	xfer.tx_buf = &tx;
++	xfer.rx_buf = NULL;
++	xfer.len = 4;
++	xfer.bits_per_word = 24;
++
++	spi_message_init(&msg);
++	spi_message_add_tail(&xfer, &msg);
++	spi_sync(ts->spi, &msg);
 +}
 +
-+static int omap_led_probe(struct platform_device *dev)
++static void tsc2005_ts_update_pen_state(struct tsc2005 *ts,
++					int x, int y, int pressure)
 +{
-+	struct omap_led_platform_data *pdata = dev->dev.platform_data;
-+	struct omap_led_config *leds = pdata->leds;
-+	int i, ret = 0;
-+
-+	for (i = 0; ret >= 0 && i < pdata->nr_leds; i++) {
-+		omap_configure_led_gpio(leds[i].gpio);
-+		if (!leds[i].cdev.brightness_set)
-+			leds[i].cdev.brightness_set = omap_set_led_gpio;
-+
-+		ret = led_classdev_register(&dev->dev, &leds[i].cdev);
++	if (pressure) {
++		input_report_abs(ts->idev, ABS_X, x);
++		input_report_abs(ts->idev, ABS_Y, y);
++		input_report_abs(ts->idev, ABS_PRESSURE, pressure);
++		if (!ts->pen_down) {
++			input_report_key(ts->idev, BTN_TOUCH, 1);
++			ts->pen_down = 1;
++		}
++	} else {
++		input_report_abs(ts->idev, ABS_PRESSURE, 0);
++		if (ts->pen_down) {
++			input_report_key(ts->idev, BTN_TOUCH, 0);
++			ts->pen_down = 0;
++		}
 +	}
 +
-+	if (ret < 0 && i > 1) {
-+		for (i = i - 2; i >= 0; i--)
-+			led_classdev_unregister(&leds[i].cdev);
-+	}
-+
-+	return ret;
++	input_sync(ts->idev);
 +}
 +
-+static int omap_led_remove(struct platform_device *dev)
++/*
++ * This function is called by the SPI framework after the coordinates
++ * have been read from TSC2005
++ */
++static void tsc2005_ts_rx(void *arg)
 +{
-+	struct omap_led_platform_data *pdata = dev->dev.platform_data;
-+	struct omap_led_config *leds = pdata->leds;
++	struct tsc2005 *ts = arg;
++	unsigned long flags;
++	int inside_rect, pressure_limit;
++	int x, y, z1, z2, pressure;
++
++	spin_lock_irqsave(&ts->lock, flags);
++
++	x = ts->data[0];
++	y = ts->data[1];
++	z1 = ts->data[2];
++	z2 = ts->data[3];
++
++	/* validate pressure and position */
++	if (x > MAX_12BIT || y > MAX_12BIT)
++		goto out;
++
++	/* skip coords if the pressure-components are out of range */
++	if (z1 < 100 || z2 > 4000)
++		goto out;
++
++	/* don't run average on the "pen down" event */
++	if (ts->sample_sent) {
++		ts->avg_x += x;
++		ts->avg_y += y;
++		ts->avg_z1 += z1;
++		ts->avg_z2 += z2;
++
++		if (++ts->sample_cnt < TS_SAMPLES)
++			goto out;
++
++		x = ts->avg_x / TS_SAMPLES;
++		y = ts->avg_y / TS_SAMPLES;
++		z1 = ts->avg_z1 / TS_SAMPLES;
++		z2 = ts->avg_z2 / TS_SAMPLES;
++	}
++
++	ts->sample_cnt = 0;
++	ts->avg_x = 0;
++	ts->avg_y = 0;
++	ts->avg_z1 = 0;
++	ts->avg_z2 = 0;
++
++	if (z1) {
++		pressure = x * (z2 - z1) / z1;
++		pressure = pressure * ts->x_plate_ohm / 4096;
++	} else
++		goto out;
++
++	pressure_limit = ts->sample_sent? ts->p_max: ts->touch_pressure;
++	if (pressure > pressure_limit)
++		goto out;
++
++	/* discard the event if it still is within the previous rect - unless
++	 * if the pressure is harder, but then use previous x,y position */
++	inside_rect = (ts->sample_sent &&
++		x > (int)ts->x - TS_RECT_SIZE &&
++		x < (int)ts->x + TS_RECT_SIZE &&
++		y > (int)ts->y - TS_RECT_SIZE &&
++		y < (int)ts->y + TS_RECT_SIZE);
++	if (inside_rect)
++		x = ts->x, y = ts->y;
++
++	if (!inside_rect || pressure < ts->p) {
++		tsc2005_ts_update_pen_state(ts, x, y, pressure);
++		ts->sample_sent = 1;
++		ts->x = x;
++		ts->y = y;
++		ts->p = pressure;
++	}
++out:
++	ts->spi_active = 0;
++	spin_unlock_irqrestore(&ts->lock, flags);
++
++	/* kick pen up timer - to make sure it expires again(!) */
++	if (ts->sample_sent)
++		mod_timer(&ts->penup_timer,
++			  jiffies + msecs_to_jiffies(TSC2005_TS_PENUP_TIME));
++}
++
++static void tsc2005_ts_penup_timer_handler(unsigned long data)
++{
++	struct tsc2005 *ts = (struct tsc2005 *)data;
++
++	if (ts->sample_sent) {
++		tsc2005_ts_update_pen_state(ts, 0, 0, 0);
++		ts->sample_sent = 0;
++	}
++}
++
++/*
++ * This interrupt is called when pen is down and coordinates are
++ * available. That is indicated by a falling edge on DAV line.
++ */
++static irqreturn_t tsc2005_ts_irq_handler(int irq, void *dev_id)
++{
++	struct tsc2005 *ts = dev_id;
++	int r;
++
++	if (ts->spi_active)
++		return IRQ_HANDLED;
++
++	ts->spi_active = 1;
++	r = spi_async(ts->spi, &ts->read_msg);
++	if (r)
++		dev_err(&ts->spi->dev, "ts: spi_async() failed");
++
++	/* kick pen up timer */
++	mod_timer(&ts->penup_timer,
++		  jiffies + msecs_to_jiffies(TSC2005_TS_PENUP_TIME));
++
++	return IRQ_HANDLED;
++}
++
++static void tsc2005_ts_setup_spi_xfer(struct tsc2005 *ts)
++{
++	struct spi_message *m = &ts->read_msg;
++	struct spi_transfer *x = &ts->read_xfer[0];
 +	int i;
 +
-+	for (i = 0; i < pdata->nr_leds; i++)
-+		led_classdev_unregister(&leds[i].cdev);
++	spi_message_init(m);
++
++	for (i = 0; i < NUM_READ_REGS; i++, x++) {
++		x->tx_buf = &tsc2005_read_reg[i];
++		x->rx_buf = &ts->data[i];
++		x->len = 4;
++		x->bits_per_word = 24;
++		x->cs_change = i < (NUM_READ_REGS - 1);
++		spi_message_add_tail(x, m);
++	}
++
++	m->complete = tsc2005_ts_rx;
++	m->context = ts;
++}
++
++static ssize_t tsc2005_ts_pen_down_show(struct device *dev,
++					struct device_attribute *attr,
++					char *buf)
++{
++	struct tsc2005 *tsc = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%u\n", tsc->pen_down);
++}
++
++static DEVICE_ATTR(pen_down, S_IRUGO, tsc2005_ts_pen_down_show, NULL);
++
++static int tsc2005_configure(struct tsc2005 *tsc, int flags)
++{
++	tsc2005_write(tsc, TSC2005_REG_CFR0, TSC2005_CFR0_INITVALUE);
++	tsc2005_write(tsc, TSC2005_REG_CFR1, TSC2005_CFR1_INITVALUE);
++	tsc2005_write(tsc, TSC2005_REG_CFR2, TSC2005_CFR2_INITVALUE);
++	tsc2005_cmd(tsc, flags);
++
++	return 0;
++}
++
++static void tsc2005_start_scan(struct tsc2005 *tsc)
++{
++	tsc2005_configure(tsc, TSC2005_CMD_SCAN_XYZZ);
++}
++
++static void tsc2005_stop_scan(struct tsc2005 *tsc)
++{
++	tsc2005_cmd(tsc, TSC2005_CMD_STOP);
++}
++
++/* Must be called with mutex held */
++static void tsc2005_disable(struct tsc2005 *ts)
++{
++	if (ts->disable_depth++ != 0)
++		return;
++
++	disable_irq(ts->irq);
++
++	/* wait until penup timer expire normally */
++	do {
++		msleep(4);
++	} while (ts->sample_sent);
++
++	tsc2005_stop_scan(ts);
++}
++
++static void tsc2005_enable(struct tsc2005 *ts)
++{
++	if (--ts->disable_depth != 0)
++		return;
++
++	enable_irq(ts->irq);
++
++	tsc2005_start_scan(ts);
++}
++
++static ssize_t tsc2005_disable_show(struct device *dev,
++				    struct device_attribute *attr, char *buf)
++{
++	struct tsc2005 *ts = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%u\n", ts->disabled);
++}
++
++static ssize_t tsc2005_disable_store(struct device *dev,
++				     struct device_attribute *attr,
++				     const char *buf, size_t count)
++{
++	struct tsc2005		*tsc = dev_get_drvdata(dev);
++	unsigned long res;
++	int i;
++
++	i = strict_strtoul(buf, 10, &res);
++	i = i ? 1 : 0;
++
++	mutex_lock(&tsc->mutex);
++	if (i == tsc->disabled)
++		goto out;
++	tsc->disabled = i;
++
++	if (i)
++		tsc2005_disable(tsc);
++	else
++		tsc2005_enable(tsc);
++out:
++	mutex_unlock(&tsc->mutex);
++	return count;
++}
++
++static DEVICE_ATTR(disable_ts, 0664, tsc2005_disable_show,
++		   tsc2005_disable_store);
++
++
++static int __devinit tsc2005_ts_init(struct tsc2005 *ts,
++				     struct tsc2005_platform_data *pdata)
++{
++	struct input_dev *idev;
++	int dav_gpio, r;
++	int x_max, y_max;
++	int x_fudge, y_fudge, p_fudge;
++
++	if (pdata->dav_gpio < 0) {
++		dev_err(&ts->spi->dev, "need DAV GPIO");
++		return -EINVAL;
++	}
++	dav_gpio = pdata->dav_gpio;
++	ts->dav_gpio = dav_gpio;
++	dev_dbg(&ts->spi->dev, "TSC2005: DAV GPIO = %d\n", dav_gpio);
++
++#ifdef CONFIG_ARCH_OMAP
++	r = omap_request_gpio(dav_gpio);
++	if (r < 0) {
++		dev_err(&ts->spi->dev, "unable to get DAV GPIO");
++		goto err1;
++	}
++	omap_set_gpio_direction(dav_gpio, 1);
++	ts->irq = OMAP_GPIO_IRQ(dav_gpio);
++	dev_dbg(&ts->spi->dev, "TSC2005: DAV IRQ = %d\n", ts->irq);
++#endif
++	init_timer(&ts->penup_timer);
++	setup_timer(&ts->penup_timer, tsc2005_ts_penup_timer_handler,
++			(unsigned long)ts);
++
++	spin_lock_init(&ts->lock);
++	mutex_init(&ts->mutex);
++
++	ts->x_plate_ohm		= pdata->ts_x_plate_ohm ? : 280;
++	ts->hw_avg_max		= pdata->ts_hw_avg;
++	ts->stab_time		= pdata->ts_stab_time;
++	x_max			= pdata->ts_x_max ? : 4096;
++	x_fudge			= pdata->ts_x_fudge ? : 4;
++	y_max			= pdata->ts_y_max ? : 4096;
++	y_fudge			= pdata->ts_y_fudge ? : 8;
++	ts->p_max		= pdata->ts_pressure_max ? : MAX_12BIT;
++	ts->touch_pressure	= pdata->ts_touch_pressure ? : ts->p_max;
++	p_fudge			= pdata->ts_pressure_fudge ? : 2;
++
++	idev = input_allocate_device();
++	if (idev == NULL) {
++		r = -ENOMEM;
++		goto err2;
++	}
++
++	idev->name = "TSC2005 touchscreen";
++	snprintf(ts->phys, sizeof(ts->phys), "%s/input-ts",
++		 ts->spi->dev.bus_id);
++	idev->phys = ts->phys;
++
++	idev->evbit[0] = BIT(EV_ABS) | BIT(EV_KEY);
++	idev->absbit[0] = BIT(ABS_X) | BIT(ABS_Y) | BIT(ABS_PRESSURE);
++	ts->idev = idev;
++
++	tsc2005_ts_setup_spi_xfer(ts);
++
++	input_set_abs_params(idev, ABS_X, 0, x_max, x_fudge, 0);
++	input_set_abs_params(idev, ABS_Y, 0, y_max, y_fudge, 0);
++	input_set_abs_params(idev, ABS_PRESSURE, 0, ts->p_max, p_fudge, 0);
++
++	tsc2005_start_scan(ts);
++
++	r = request_irq(ts->irq, tsc2005_ts_irq_handler,
++			IRQF_TRIGGER_FALLING | IRQF_DISABLED |
++			IRQF_SAMPLE_RANDOM, "tsc2005", ts);
++	if (r < 0) {
++		dev_err(&ts->spi->dev, "unable to get DAV IRQ");
++		goto err3;
++	}
++
++	set_irq_wake(ts->irq, 1);
++
++	r = input_register_device(idev);
++	if (r < 0) {
++		dev_err(&ts->spi->dev, "can't register touchscreen device\n");
++		goto err4;
++	}
++
++	/* We can tolerate these failing */
++	if (device_create_file(&ts->spi->dev, &dev_attr_pen_down));
++	if (device_create_file(&ts->spi->dev, &dev_attr_disable_ts));
++
++	return 0;
++err4:
++	free_irq(ts->irq, ts);
++err3:
++	tsc2005_stop_scan(ts);
++	input_free_device(idev);
++err2:
++#ifdef CONFIG_ARCH_OMAP
++	omap_free_gpio(dav_gpio);
++#endif
++err1:
++	return r;
++}
++
++static int __devinit tsc2005_probe(struct spi_device *spi)
++{
++	struct tsc2005			*tsc;
++	struct tsc2005_platform_data	*pdata = spi->dev.platform_data;
++	int r;
++
++	if (!pdata) {
++		dev_dbg(&spi->dev, "no platform data?\n");
++		return -ENODEV;
++	}
++
++	tsc = kzalloc(sizeof(*tsc), GFP_KERNEL);
++	if (tsc == NULL)
++		return -ENOMEM;
++
++	dev_set_drvdata(&spi->dev, tsc);
++	tsc->spi = spi;
++	spi->dev.power.power_state = PMSG_ON;
++
++	spi->mode = SPI_MODE_0;
++	spi->bits_per_word = 8;
++	/* The max speed might've been defined by the board-specific
++	 * struct */
++	if (!spi->max_speed_hz)
++		spi->max_speed_hz = TSC2005_HZ;
++
++	spi_setup(spi);
++
++	r = tsc2005_ts_init(tsc, pdata);
++	if (r)
++		goto err1;
++
++	return 0;
++
++err1:
++	kfree(tsc);
++	return r;
++}
++
++static int __devexit tsc2005_remove(struct spi_device *spi)
++{
++	struct tsc2005 *ts = dev_get_drvdata(&spi->dev);
++
++	mutex_lock(&ts->mutex);
++	tsc2005_disable(ts);
++	mutex_unlock(&ts->mutex);
++
++	device_remove_file(&ts->spi->dev, &dev_attr_disable_ts);
++	device_remove_file(&ts->spi->dev, &dev_attr_pen_down);
++
++	free_irq(ts->irq, ts);
++	input_unregister_device(ts->idev);
++
++#ifdef CONFIG_ARCH_OMAP
++	omap_free_gpio(ts->dav_gpio);
++#endif
++	kfree(ts);
 +
 +	return 0;
 +}
 +
 +#ifdef CONFIG_PM
-+static int omap_led_suspend(struct platform_device *dev, pm_message_t state)
++static int tsc2005_suspend(struct spi_device *spi, pm_message_t mesg)
 +{
-+	struct omap_led_platform_data *pdata = dev->dev.platform_data;
-+	struct omap_led_config *leds = pdata->leds;
-+	int i;
++	struct tsc2005 *ts = dev_get_drvdata(&spi->dev);
 +
-+	for (i = 0; i < pdata->nr_leds; i++)
-+		led_classdev_suspend(&leds[i].cdev);
++	mutex_lock(&ts->mutex);
++	tsc2005_disable(ts);
++	mutex_unlock(&ts->mutex);
 +
 +	return 0;
 +}
 +
-+static int omap_led_resume(struct platform_device *dev)
++static int tsc2005_resume(struct spi_device *spi)
 +{
-+	struct omap_led_platform_data *pdata = dev->dev.platform_data;
-+	struct omap_led_config *leds = pdata->leds;
-+	int i;
++	struct tsc2005 *ts = dev_get_drvdata(&spi->dev);
 +
-+	for (i = 0; i < pdata->nr_leds; i++)
-+		led_classdev_resume(&leds[i].cdev);
++	mutex_lock(&ts->mutex);
++	tsc2005_enable(ts);
++	mutex_unlock(&ts->mutex);
 +
 +	return 0;
 +}
-+#else
-+#define omap_led_suspend	NULL
-+#define omap_led_resume		NULL
 +#endif
 +
-+static struct platform_driver omap_led_driver = {
-+	.probe		= omap_led_probe,
-+	.remove		= omap_led_remove,
-+	.suspend	= omap_led_suspend,
-+	.resume		= omap_led_resume,
-+	.driver		= {
-+		.name		= "omap-led",
-+		.owner		= THIS_MODULE,
++static struct spi_driver tsc2005_driver = {
++	.driver = {
++		.name = "tsc2005",
++		.owner = THIS_MODULE,
 +	},
++#ifdef CONFIG_PM
++	.suspend = tsc2005_suspend,
++	.resume = tsc2005_resume,
++#endif
++	.probe = tsc2005_probe,
++	.remove = __devexit_p(tsc2005_remove),
 +};
 +
-+static int __init omap_led_init(void)
++static int __init tsc2005_init(void)
 +{
-+	return platform_driver_register(&omap_led_driver);
-+}
++	printk(KERN_INFO "TSC2005 driver initializing\n");
 +
-+static void __exit omap_led_exit(void)
++	return spi_register_driver(&tsc2005_driver);
++}
++module_init(tsc2005_init);
++
++static void __exit tsc2005_exit(void)
 +{
-+ 	platform_driver_unregister(&omap_led_driver);
++	spi_unregister_driver(&tsc2005_driver);
 +}
++module_exit(tsc2005_exit);
 +
-+module_init(omap_led_init);
-+module_exit(omap_led_exit);
-+
-+MODULE_AUTHOR("Kyungmin Park<kyungmin.park@samsung.com>");
-+MODULE_DESCRIPTION("OMAP LED driver");
++MODULE_AUTHOR("Lauri Leukkunen <lauri.leukkunen@nokia.com>");
 +MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:tsc2005");
+diff --git a/include/linux/spi/tsc2005.h b/include/linux/spi/tsc2005.h
+new file mode 100644
+index 0000000..dbc01f7
+--- /dev/null
++++ b/include/linux/spi/tsc2005.h
+@@ -0,0 +1,29 @@
++#ifndef _LINUX_SPI_TSC2005_H
++#define _LINUX_SPI_TSC2005_H
++
++#include <linux/types.h>
++
++struct tsc2005_platform_data {
++	s16	reset_gpio;
++	s16	dav_gpio;
++	s16	pen_int_gpio;
++	u16	ts_x_plate_ohm;
++	u32	ts_stab_time;	/* voltage settling time */
++	u8	ts_hw_avg;	/* HW assiseted averaging. Can be
++				   0, 4, 8, 16 samples per reading */
++	u32	ts_touch_pressure;	/* Pressure limit until we report a
++					   touch event. After that we switch
++					   to ts_max_pressure. */
++	u32	ts_pressure_max;/* Samples with bigger pressure value will
++				   be ignored, since the corresponding X, Y
++				   values are unreliable */
++	u32	ts_pressure_fudge;
++	u32	ts_x_max;
++	u32	ts_x_fudge;
++	u32	ts_y_max;
++	u32	ts_y_fudge;
++
++	unsigned ts_ignore_last : 1;
++};
++
++#endif
 -- 
 1.6.0.1.141.g445ca
 
