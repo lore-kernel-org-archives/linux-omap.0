@@ -1,18 +1,19 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 05/33] add tlv320aic23 driver
-Date: Sat, 30 Aug 2008 20:16:05 +0300
-Message-ID: <1220116593-862-6-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 06/33] add tsl2563 driver
+Date: Sat, 30 Aug 2008 20:16:06 +0300
+Message-ID: <1220116593-862-7-git-send-email-me@felipebalbi.com>
 References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-2-git-send-email-me@felipebalbi.com>
  <1220116593-862-3-git-send-email-me@felipebalbi.com>
  <1220116593-862-4-git-send-email-me@felipebalbi.com>
  <1220116593-862-5-git-send-email-me@felipebalbi.com>
+ <1220116593-862-6-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:43838 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:43868 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752834AbYH3RRg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:17:36 -0400
-In-Reply-To: <1220116593-862-5-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1752746AbYH3RRs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:17:48 -0400
+In-Reply-To: <1220116593-862-6-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -22,723 +23,790 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/i2c/chips/Kconfig       |    7 +
- drivers/i2c/chips/Makefile      |    1 +
- drivers/i2c/chips/tlv320aic23.c |  675 +++++++++++++++++++++++++++++++++++++++
- 3 files changed, 683 insertions(+), 0 deletions(-)
- create mode 100644 drivers/i2c/chips/tlv320aic23.c
+ drivers/i2c/chips/Kconfig   |   10 +
+ drivers/i2c/chips/Makefile  |    1 +
+ drivers/i2c/chips/tsl2563.c |  739 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 750 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/i2c/chips/tsl2563.c
 
 diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
-index a6269c0..75d8a26 100644
+index 75d8a26..bd2a3a5 100644
 --- a/drivers/i2c/chips/Kconfig
 +++ b/drivers/i2c/chips/Kconfig
-@@ -137,6 +137,13 @@ config TPS65010
+@@ -176,6 +176,16 @@ config SENSORS_TSL2550
  	  This driver can also be built as a module.  If so, the module
- 	  will be called tps65010.
+ 	  will be called tsl2550.
  
-+config SENSORS_TLV320AIC23
-+	tristate "Texas Instruments TLV320AIC23 Codec"
-+	depends on I2C && I2C_OMAP
-+	help
-+	  If you say yes here you get support for the I2C control
-+	  interface for Texas Instruments TLV320AIC23 audio codec.
++config SENSORS_TSL2563
++       tristate "Taos TSL2563 ambient light sensor"
++       depends on I2C && HWMON
++       help
++         If you say yes here you get support for the Taos TSL2563
++         ambient light sensor.
 +
- config GPIOEXPANDER_OMAP
- 	bool "GPIO Expander PCF8574PWR for OMAP"
- 	depends on I2C && (ARCH_OMAP16XX || ARCH_OMAP24XX)
++         This driver can also be built as a module.  If so, the module
++         will be called tsl2563.
++
+ config LP5521
+ 	tristate "LP5521 LED driver chip"
+ 	depends on I2C
 diff --git a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
-index 616b3f9..32096cb 100644
+index 32096cb..97e9acf 100644
 --- a/drivers/i2c/chips/Makefile
 +++ b/drivers/i2c/chips/Makefile
-@@ -19,6 +19,7 @@ obj-$(CONFIG_PCF8575)		+= pcf8575.o
- obj-$(CONFIG_SENSORS_PCF8591)	+= pcf8591.o
- obj-$(CONFIG_ISP1301_OMAP)	+= isp1301_omap.o
- obj-$(CONFIG_TPS65010)		+= tps65010.o
-+obj-$(CONFIG_SENSORS_TLV320AIC23) += tlv320aic23.o
+@@ -23,6 +23,7 @@ obj-$(CONFIG_SENSORS_TLV320AIC23) += tlv320aic23.o
  obj-$(CONFIG_GPIOEXPANDER_OMAP)	+= gpio_expander_omap.o
  obj-$(CONFIG_MENELAUS)		+= menelaus.o
  obj-$(CONFIG_SENSORS_TSL2550)	+= tsl2550.o
-diff --git a/drivers/i2c/chips/tlv320aic23.c b/drivers/i2c/chips/tlv320aic23.c
++obj-$(CONFIG_SENSORS_TSL2563)	+= tsl2563.o
+ obj-$(CONFIG_LP5521)		+= lp5521.o
+ 
+ ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
+diff --git a/drivers/i2c/chips/tsl2563.c b/drivers/i2c/chips/tsl2563.c
 new file mode 100644
-index 0000000..10671e8
+index 0000000..e05b880
 --- /dev/null
-+++ b/drivers/i2c/chips/tlv320aic23.c
-@@ -0,0 +1,675 @@
++++ b/drivers/i2c/chips/tsl2563.c
+@@ -0,0 +1,739 @@
 +/*
-+ *   Texas Instrumens TLV320AIC23 audio codec's i2c interface.
++ * drivers/i2c/chips/tsl2563.c
 + *
-+ *   Copyright (c) by Kai Svahn <kai.svahn@nokia.com>
-+ *   Copyright (c) by Jussi Laako <jussi.laako@nokia.com>
++ * Copyright (C) 2008 Nokia Corporation
 + *
-+ *   This program is free software; you can redistribute it and/or modify
-+ *   it under the terms of the GNU General Public License as published by
-+ *   the Free Software Foundation; either version 2 of the License, or
-+ *   (at your option) any later version.
++ * Written by Timo O. Karjalainen <timo.o.karjalainen@nokia.com>
++ * Contact: Mathias Nyman <mathias.nyman@nokia.com>
 + *
-+ *   This program is distributed in the hope that it will be useful,
-+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *   GNU General Public License for more details.
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
 + *
-+ *   You should have received a copy of the GNU General Public License
-+ *   along with this program; if not, write to the Free Software
-+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
 + *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
 + */
 +
 +#include <linux/module.h>
-+#include <linux/init.h>
 +#include <linux/i2c.h>
-+#include <linux/slab.h>
-+#include <linux/device.h>
++#include <linux/interrupt.h>
++#include <linux/sched.h>
++#include <linux/mutex.h>
++#include <linux/delay.h>
 +#include <linux/platform_device.h>
-+#include <asm/io.h>
-+#include <mach/aic23.h>
-+#include <mach/mcbsp.h>
++#include <linux/pm.h>
++#include <linux/hwmon.h>
++#include <linux/err.h>
++#include <mach/board.h>
 +
-+#define TLV320AIC23_VERSION	"1.8"
-+#define TLV320AIC23_DATE	"10-Feb-2006"
-+#define MAX_VOL			100
-+#define MIN_VOL			0
-+#define MAX_GAIN		100
-+#define MIN_GAIN		0
-+#define OUTPUT_VOLUME_MIN       LHV_MIN
-+#define OUTPUT_VOLUME_MAX       LHV_MAX
-+#define OUTPUT_VOLUME_RANGE     (OUTPUT_VOLUME_MAX - OUTPUT_VOLUME_MIN)
-+#define INPUT_VOLUME_MIN 	LIV_MIN
-+#define INPUT_VOLUME_MAX 	LIV_MAX
-+#define INPUT_VOLUME_RANGE 	(INPUT_VOLUME_MAX - INPUT_VOLUME_MIN)
++#define DRIVER_NAME  "tsl2563"
 +
-+/* I2C Addresses to scan */
-+static unsigned short normal_i2c[] = { TLV320AIC23ID1, TLV320AIC23ID2, \
-+				       I2C_CLIENT_END };
-+/*static unsigned short normal_i2c_range[] = { I2C_CLIENT_END };*/
++/* Use this many bits for fraction part. */
++#define ADC_FRAC_BITS		(14)
 +
-+/* This makes all addr_data:s */
-+I2C_CLIENT_INSMOD;
++/* Given number of 1/10000's in ADC_FRAC_BITS precision. */
++#define FRAC10K(f)		(((f) * (1L << (ADC_FRAC_BITS))) / (10000))
 +
-+static struct i2c_driver aic23_driver;
-+static struct i2c_client *new_client;
-+static int selftest;
-+static struct platform_device audio_i2c_device;
++/* Bits used for fraction in calibration coefficients.*/
++#define CALIB_FRAC_BITS		(10)
++/* 0.5 in CALIB_FRAC_BITS precision */
++#define CALIB_FRAC_HALF		(1 << (CALIB_FRAC_BITS - 1))
++/* Make a fraction from a number n that was multiplied with b. */
++#define CALIB_FRAC(n, b)	(((n) << CALIB_FRAC_BITS) / (b))
++/* Decimal 10^(digits in sysfs presentation) */
++#define CALIB_BASE_SYSFS	(1000)
 +
-+static struct aic23_info {
-+	u16 volume_reg_left;
-+	u16 volume_reg_right;
-+	u16 input_gain_reg_left;
-+	u16 input_gain_reg_right;
-+	u16 power;			/* For POWER_DOWN_CONTROL_ADDR */
-+	u16 mask;			/* For ANALOG_AUDIO_CONTROL_ADDR */
-+	int mic_loopback;
-+	int mic_enable;
-+	int sta;
-+	int power_down;
-+	int initialized;
-+} aic23_info_l;
++#define TSL2563_CMD		(0x80)
++#define TSL2563_CLEARINT	(0x40)
 +
-+static int _aic23_write_value(struct i2c_client *client, u8 reg, u16 value)
++#define TSL2563_REG_CTRL	(0x00)
++#define TSL2563_REG_TIMING	(0x01)
++#define TSL2563_REG_LOWLOW	(0x02) /* data0 low threshold, 2 bytes */
++#define TSL2563_REG_LOWHIGH	(0x03)
++#define TSL2563_REG_HIGHLOW	(0x04) /* data0 high threshold, 2 bytes */
++#define TSL2563_REG_HIGHHIGH	(0x05)
++#define TSL2563_REG_INT		(0x06)
++#define TSL2563_REG_ID		(0x0a)
++#define TSL2563_REG_DATA0LOW	(0x0c) /* broadband sensor value, 2 bytes */
++#define TSL2563_REG_DATA0HIGH	(0x0d)
++#define TSL2563_REG_DATA1LOW	(0x0e) /* infrared sensor value, 2 bytes */
++#define TSL2563_REG_DATA1HIGH	(0x0f)
++
++#define TSL2563_CMD_POWER_ON	(0x03)
++#define TSL2563_CMD_POWER_OFF	(0x00)
++#define TSL2563_CTRL_POWER_MASK	(0x03)
++
++#define TSL2563_TIMING_13MS	(0x00)
++#define TSL2563_TIMING_100MS	(0x01)
++#define TSL2563_TIMING_400MS	(0x02)
++#define TSL2563_TIMING_MASK	(0x03)
++#define TSL2563_TIMING_GAIN16	(0x10)
++#define TSL2563_TIMING_GAIN1	(0x00)
++
++#define TSL2563_INT_DISBLED	(0x00)
++#define TSL2563_INT_LEVEL	(0x10)
++#define TSL2563_INT_PERSIST(n)	((n) & 0x0F)
++
++struct tsl2563_gainlevel_coeff {
++	u8 gaintime;
++	u16 min;
++	u16 max;
++};
++
++static struct tsl2563_gainlevel_coeff tsl2563_gainlevel_table[] = {
++	{
++		.gaintime	= TSL2563_TIMING_400MS | TSL2563_TIMING_GAIN16,
++		.min		= 0,
++		.max		= 65534,
++	}, {
++		.gaintime	= TSL2563_TIMING_400MS | TSL2563_TIMING_GAIN1,
++		.min		= 2048,
++		.max		= 65534,
++	}, {
++		.gaintime	= TSL2563_TIMING_100MS | TSL2563_TIMING_GAIN1,
++		.min		= 4095,
++		.max		= 37177,
++	}, {
++		.gaintime	= TSL2563_TIMING_13MS | TSL2563_TIMING_GAIN1,
++		.min		= 3000,
++		.max		= 65535,
++	},
++};
++
++struct tsl2563_chip {
++	struct mutex		lock;
++	struct i2c_client	*client;
++	struct device		*hwmon_dev;
++
++	/* Remember state for suspend and resume functions */
++	pm_message_t		state;
++
++	struct tsl2563_gainlevel_coeff *gainlevel;
++
++	/* Thresholds are in lux */
++	u16			low_thres;
++	u16			high_thres;
++	u8			intr;
++
++	/* Calibration coefficients */
++	u32			calib0;
++	u32			calib1;
++
++	/* Cache current values, to be returned while suspended */
++	u32			data0;
++	u32			data1;
++};
++
++static int tsl2563_write(struct i2c_client *client, u8 reg, u8 value)
 +{
-+	u8 val, wreg;
++	int ret;
++	u8 buf[2];
 +
-+	/* TLV320AIC23 has 7 bit address and 9 bits of data
-+	 * so we need to switch one data bit into reg and rest
-+	 * of data into val
-+	 */
++	buf[0] = TSL2563_CMD | reg;
++	buf[1] = value;
 +
-+	wreg = (reg << 1);
-+	val = (0x01 & (value >> 8));
-+	wreg = (wreg | val);
-+	val = (0x00ff & value);
-+
-+	return i2c_smbus_write_byte_data(client, wreg, val);
++	ret = i2c_master_send(client, buf, sizeof(buf));
++	return (ret == sizeof(buf)) ? 0 : ret;
 +}
 +
-+int aic23_write_value(u8 reg, u16 value)
++static int tsl2563_read(struct i2c_client *client, u8 reg, void *buf, int len)
 +{
-+	static struct i2c_client *client;
-+	client = new_client;
-+	_aic23_write_value(client, reg, value);
++	int ret;
++	u8 cmd = TSL2563_CMD | reg;
++
++	ret = i2c_master_send(client, &cmd, sizeof(cmd));
++	if (ret != sizeof(cmd))
++		return ret;
++
++	return i2c_master_recv(client, buf, len);
++}
++
++static int tsl2563_set_power(struct tsl2563_chip *chip, int on)
++{
++	struct i2c_client *client = chip->client;
++	u8 cmd;
++
++	cmd = on ? TSL2563_CMD_POWER_ON : TSL2563_CMD_POWER_OFF;
++	return tsl2563_write(client, TSL2563_REG_CTRL, cmd);
++}
++
++/*
++ * Return value is 0 for off, 1 for on, or a negative error
++ * code if reading failed.
++ */
++static int tsl2563_get_power(struct tsl2563_chip *chip)
++{
++	struct i2c_client *client = chip->client;
++	int ret;
++	u8 val;
++
++	ret = tsl2563_read(client, TSL2563_REG_CTRL, &val, sizeof(val));
++	if (ret != sizeof(val))
++		return ret;
++
++	return (val & TSL2563_CTRL_POWER_MASK) == TSL2563_CMD_POWER_ON;
++}
++
++static int tsl2563_configure(struct tsl2563_chip *chip)
++{
++	struct i2c_client *client = chip->client;
++	int ret;
++
++	ret = tsl2563_write(client, TSL2563_REG_TIMING,
++			chip->gainlevel->gaintime);
++	if (ret)
++		goto out;
++
++	ret = tsl2563_write(client, TSL2563_REG_INT, chip->intr);
++
++out:
++	return ret;
++}
++
++static int tsl2563_detect(struct tsl2563_chip *chip)
++{
++	int ret;
++
++	ret = tsl2563_set_power(chip, 1);
++	if (ret)
++		return ret;
++
++	ret = tsl2563_get_power(chip);
++	if (ret < 0)
++		return ret;
++
++	return ret ? 0 : -ENODEV;
++}
++
++static int tsl2563_read_id(struct tsl2563_chip *chip, u8 *id)
++{
++	struct i2c_client *client = chip->client;
++	int ret;
++
++	ret = tsl2563_read(client, TSL2563_REG_ID, id, sizeof(*id));
++	if (ret != sizeof(*id))
++		return ret;
 +
 +	return 0;
 +}
 +
 +/*
-+ * Configures the McBSP3 which is used to send clock to the AIC23 codec.
-+ * The input clock rate from DSP is 12MHz.
-+ * The DSP clock must be on before this is called.
++ * "Normalized" ADC value is one obtained with 400ms of integration time and
++ * 16x gain. This function returns the number of bits of shift needed to
++ * convert between normalized values and HW values obtained using given
++ * timing and gain settings.
 + */
-+static int omap_mcbsp3_aic23_clock_init(void)
++static int adc_shiftbits(u8 timing)
 +{
-+	u16 w;
++	int shift = 0;
 +
-+	/* enable 12MHz clock to mcbsp 1 & 3 */
-+	__raw_writew(__raw_readw(DSP_IDLECT2) | (1<<1), DSP_IDLECT2);
-+	__raw_writew(__raw_readw(DSP_RSTCT2) | 1 | 1<<1, DSP_RSTCT2);
++	switch (timing & TSL2563_TIMING_MASK) {
++	case TSL2563_TIMING_13MS:
++		shift += 5;
++		break;
++	case TSL2563_TIMING_100MS:
++		shift += 2;
++		break;
++	case TSL2563_TIMING_400MS:
++		/* no-op */
++		break;
++	}
 +
-+	/* disable sample rate generator */
-+	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR1, 0x0000);
-+	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR2, 0x0000);
++	if (!(timing & TSL2563_TIMING_GAIN16))
++		shift += 4;
 +
-+	/* pin control register */
-+	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, PCR0,(CLKXM | CLKXP | CLKRP));
-+
-+	/* configure srg to send 12MHz pulse from dsp peripheral clock */
-+	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SRGR1, 0x0000);
-+	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SRGR2, CLKSM);
-+
-+	/* enable sample rate generator */
-+	w = OMAP_MCBSP_READ(OMAP1610_MCBSP3_BASE, SPCR2);
-+	OMAP_MCBSP_WRITE(OMAP1610_MCBSP3_BASE, SPCR2, (w | FREE | GRST));
-+	printk("Clock enabled to MCBSP1 & 3 \n");
-+
-+	return 0;
++	return shift;
 +}
 +
-+static int aic23_detect_client(struct i2c_adapter *adapter, int address,
-+				     int kind)
++/* Convert a HW ADC value to normalized scale. */
++static u32 normalize_adc(u16 adc, u8 timing)
 +{
-+	int err = 0;
-+	const char *client_name = "TLV320AIC23 Audio Codec";
-+
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA |
-+				     I2C_FUNC_SMBUS_WRITE_BYTE)) {
-+		printk(KERN_WARNING "%s functionality check failed\n",
-+		       client_name);
-+		return err;
-+	}
-+
-+	if (!(new_client = kmalloc(sizeof(struct i2c_client),
-+				   GFP_KERNEL))) {
-+		err = -ENOMEM;
-+		printk(KERN_WARNING "Couldn't allocate memory for %s\n",
-+		       client_name);
-+		return err;
-+	}
-+
-+	memset(new_client, 0x00, sizeof(struct i2c_client));
-+	new_client->addr = address;
-+	new_client->adapter = adapter;
-+	new_client->driver = &aic23_driver;
-+	new_client->flags = 0;
-+	strlcpy(new_client->name, client_name, I2C_NAME_SIZE);
-+
-+	if ((err = i2c_attach_client(new_client))) {
-+		printk(KERN_WARNING "Couldn't attach %s\n", client_name);
-+		kfree(new_client);
-+		return err;
-+	}
-+
-+	if (platform_device_register(&audio_i2c_device)) {
-+		printk(KERN_WARNING "Failed to register audio i2c device\n");
-+		selftest = -ENODEV;
-+		return selftest;
-+	}
-+	/* FIXME: Do in board-specific file */
-+	omap_mcbsp3_aic23_clock_init();
-+
-+	if (!aic23_info_l.power_down)
-+		aic23_power_up();
-+	aic23_info_l.initialized = 1;
-+
-+	return 0;
++	return adc << adc_shiftbits(timing);
 +}
 +
-+static int aic23_detach_client(struct i2c_client *client)
++static void tsl2563_wait_adc(struct tsl2563_chip *chip)
 +{
-+	int err;
++	unsigned int delay;
 +
-+	platform_device_unregister(&audio_i2c_device);
-+
-+	if ((err = i2c_detach_client(client))) {
-+		printk("aic23.o: Client deregistration failed, \
-+		       client not detached.\n");
-+		return err;
++	switch (chip->gainlevel->gaintime & TSL2563_TIMING_MASK) {
++	case TSL2563_TIMING_13MS:
++		delay = 14;
++		break;
++	case TSL2563_TIMING_100MS:
++		delay = 101;
++		break;
++	default:
++		delay = 402;
 +	}
-+	kfree(client);
-+	return 0;
++	/*
++	 * TODO: Make sure that we wait at least required delay but why we
++	 * have to extend it one tick more?
++	 */
++	schedule_timeout_interruptible(msecs_to_jiffies(delay) + 2);
 +}
 +
-+static int aic23_attach_adapter(struct i2c_adapter *adapter)
++static int tsl2563_adjust_gainlevel(struct tsl2563_chip *chip, u16 adc)
 +{
-+	int res;
++	struct i2c_client *client = chip->client;
 +
-+	res = i2c_probe(adapter, &addr_data, &aic23_detect_client);
-+	return res;
++	if (adc > chip->gainlevel->max || adc < chip->gainlevel->min) {
++
++		(adc > chip->gainlevel->max) ?
++			chip->gainlevel++ : chip->gainlevel--;
++
++		tsl2563_write(client, TSL2563_REG_TIMING,
++			      chip->gainlevel->gaintime);
++
++		tsl2563_wait_adc(chip);
++		tsl2563_wait_adc(chip);
++
++		return 1;
++	} else
++		return 0;
 +}
 +
-+static struct i2c_driver aic23_driver = {
-+	.driver = {
-+		.name	= "OMAP+TLV320AIC23 codec",
-+		/*.flags	= I2C_DF_NOTIFY,*/
-+	},
-+	.id		= I2C_DRIVERID_MISC, /* Experimental ID */
-+	.attach_adapter	= aic23_attach_adapter,
-+	.detach_client	= aic23_detach_client,
++static int tsl2563_get_adc(struct tsl2563_chip *chip)
++{
++	struct i2c_client *client = chip->client;
++	u8 buf0[2], buf1[2];
++	u16 adc0, adc1;
++	int retry = 1;
++	int ret = 0;
++
++	if (chip->state.event != PM_EVENT_ON)
++		goto out;
++
++	while (retry) {
++		ret = tsl2563_read(client,
++				   TSL2563_REG_DATA0LOW | TSL2563_CLEARINT,
++				   buf0, sizeof(buf0));
++		if (ret != sizeof(buf0))
++			goto out;
++
++		ret = tsl2563_read(client, TSL2563_REG_DATA1LOW,
++				   buf1, sizeof(buf1));
++		if (ret != sizeof(buf1))
++			goto out;
++
++		adc0 = (buf0[1] << 8) + buf0[0];
++		adc1 = (buf1[1] << 8) + buf1[0];
++
++		retry = tsl2563_adjust_gainlevel(chip, adc0);
++	}
++
++	chip->data0 = normalize_adc(adc0, chip->gainlevel->gaintime);
++	chip->data1 = normalize_adc(adc1, chip->gainlevel->gaintime);
++
++	ret = 0;
++out:
++	return ret;
++}
++
++static inline int calib_to_sysfs(u32 calib)
++{
++	return (int) (((calib * CALIB_BASE_SYSFS) +
++		       CALIB_FRAC_HALF) >> CALIB_FRAC_BITS);
++}
++
++static inline u32 calib_from_sysfs(int value)
++{
++	return (((u32) value) << CALIB_FRAC_BITS) / CALIB_BASE_SYSFS;
++}
++
++/*
++ * Conversions between lux and ADC values.
++ *
++ * The basic formula is lux = c0 * adc0 - c1 * adc1, where c0 and c1 are
++ * appropriate constants. Different constants are needed for different
++ * kinds of light, determined by the ratio adc1/adc0 (basically the ratio
++ * of the intensities in infrared and visible wavelengths). lux_table below
++ * lists the upper threshold of the adc1/adc0 ratio and the corresponding
++ * constants.
++ */
++
++struct tsl2563_lux_coeff {
++	unsigned long ch_ratio;
++	unsigned long ch0_coeff;
++	unsigned long ch1_coeff;
 +};
 +
-+static void update_volume_left(int volume)
++static const struct tsl2563_lux_coeff lux_table[] = {
++	{
++		.ch_ratio	= FRAC10K(1300),
++		.ch0_coeff	= FRAC10K(315),
++		.ch1_coeff	= FRAC10K(262),
++	}, {
++		.ch_ratio	= FRAC10K(2600),
++		.ch0_coeff	= FRAC10K(337),
++		.ch1_coeff	= FRAC10K(430),
++	}, {
++		.ch_ratio	= FRAC10K(3900),
++		.ch0_coeff	= FRAC10K(363),
++		.ch1_coeff	= FRAC10K(529),
++	}, {
++		.ch_ratio	= FRAC10K(5200),
++		.ch0_coeff	= FRAC10K(392),
++		.ch1_coeff	= FRAC10K(605),
++	}, {
++		.ch_ratio	= FRAC10K(6500),
++		.ch0_coeff	= FRAC10K(229),
++		.ch1_coeff	= FRAC10K(291),
++	}, {
++		.ch_ratio	= FRAC10K(8000),
++		.ch0_coeff	= FRAC10K(157),
++		.ch1_coeff	= FRAC10K(180),
++	}, {
++		.ch_ratio	= FRAC10K(13000),
++		.ch0_coeff	= FRAC10K(34),
++		.ch1_coeff	= FRAC10K(26),
++	}, {
++		.ch_ratio	= ULONG_MAX,
++		.ch0_coeff	= 0,
++		.ch1_coeff	= 0,
++	},
++};
++
++/*
++ * Convert normalized, scaled ADC values to lux.
++ */
++static unsigned int adc_to_lux(u32 adc0, u32 adc1)
 +{
-+	u16 val = 0;
-+	val = ((volume * OUTPUT_VOLUME_RANGE) / 100) + OUTPUT_VOLUME_MIN;
-+	aic23_write_value(LEFT_CHANNEL_VOLUME_ADDR, val);
-+	aic23_info_l.volume_reg_left = volume;
++	const struct tsl2563_lux_coeff *lp = lux_table;
++	unsigned long ratio, lux, ch0 = adc0, ch1 = adc1;
++
++	ratio = ch0 ? ((ch1 << ADC_FRAC_BITS) / ch0) : ULONG_MAX;
++
++	while (lp->ch_ratio < ratio)
++		lp++;
++
++	lux = ch0 * lp->ch0_coeff - ch1 * lp->ch1_coeff;
++
++	return (unsigned int) (lux >> ADC_FRAC_BITS);
 +}
 +
-+static void update_volume_right(int volume)
-+{
-+	u16 val = 0;
-+	val = ((volume * OUTPUT_VOLUME_RANGE) / 100) + OUTPUT_VOLUME_MIN;
-+	aic23_write_value(RIGHT_CHANNEL_VOLUME_ADDR, val);
-+	aic23_info_l.volume_reg_right = volume;
-+}
++/*--------------------------------------------------------------*/
++/*                      Sysfs interface                         */
++/*--------------------------------------------------------------*/
 +
-+static void set_mic(int mic_en)
-+{
-+	u16 dg_ctrl;
-+
-+	if (mic_en) {
-+		aic23_info_l.power = OSC_OFF | LINE_OFF;
-+		dg_ctrl = ADCHP_ON;
-+		aic23_info_l.mask &= ~MICM_MUTED;
-+		aic23_info_l.mask |= MICB_20DB; /* STE_ENABLED */
-+	} else {
-+		aic23_info_l.power =
-+			OSC_OFF | ADC_OFF | MIC_OFF | LINE_OFF;
-+		dg_ctrl = 0x00;
-+		aic23_info_l.mask =
-+			DAC_SELECTED | INSEL_MIC | MICM_MUTED;
-+	}
-+	aic23_write_value(POWER_DOWN_CONTROL_ADDR,
-+				aic23_info_l.power);
-+	aic23_write_value(DIGITAL_AUDIO_CONTROL_ADDR, dg_ctrl);
-+	aic23_write_value(ANALOG_AUDIO_CONTROL_ADDR,
-+				aic23_info_l.mask);
-+	aic23_info_l.mic_enable = mic_en;
-+
-+	printk(KERN_INFO "aic23 mic state: %i\n", mic_en);
-+}
-+
-+static void aic23_init_power(void)
-+{
-+	aic23_write_value(RESET_CONTROL_ADDR, 0x00);
-+
-+	if (aic23_info_l.initialized == 0) {
-+		aic23_write_value(LEFT_CHANNEL_VOLUME_ADDR, LHV_MIN);
-+		aic23_write_value(RIGHT_CHANNEL_VOLUME_ADDR, LHV_MIN);
-+	}
-+	else {
-+		update_volume_left(aic23_info_l.volume_reg_left);
-+		update_volume_right(aic23_info_l.volume_reg_right);
-+	}
-+
-+	aic23_info_l.mask = DAC_SELECTED | INSEL_MIC | MICM_MUTED;
-+	aic23_write_value(ANALOG_AUDIO_CONTROL_ADDR,
-+			        aic23_info_l.mask);
-+	aic23_write_value(DIGITAL_AUDIO_CONTROL_ADDR, 0x00);
-+	aic23_write_value(DIGITAL_AUDIO_FORMAT_ADDR, LRP_ON | FOR_DSP);
-+	aic23_write_value(SAMPLE_RATE_CONTROL_ADDR, USB_CLK_ON);
-+	aic23_write_value(DIGITAL_INTERFACE_ACT_ADDR, ACT_ON);
-+	aic23_info_l.power = OSC_OFF | ADC_OFF | MIC_OFF | LINE_OFF;
-+	aic23_write_value(POWER_DOWN_CONTROL_ADDR,
-+			        aic23_info_l.power);
-+
-+	/* enable mic input */
-+	if (aic23_info_l.mic_enable)
-+		set_mic(aic23_info_l.mic_enable);
-+
-+	printk(KERN_INFO "aic23_init_power() done\n");
-+}
-+
-+void aic23_power_down(void)
-+{
-+	if (aic23_info_l.initialized) {
-+		printk("aic23 powering down\n");
-+		aic23_write_value(POWER_DOWN_CONTROL_ADDR, 0xff);
-+	}
-+	aic23_info_l.power_down = 1;
-+}
-+
-+void aic23_power_up(void)
-+{
-+	if (aic23_info_l.initialized) {
-+		printk("aic23 powering up\n");
-+		aic23_init_power();
-+	}
-+	aic23_info_l.power_down = 0;
-+}
-+
-+/*----------------------------------------------------------------------*/
-+/*			sysfs initializations				*/
-+/*----------------------------------------------------------------------*/
-+
-+static ssize_t store_volume_left(struct device *dev,
-+				 struct device_attribute *attr,
-+				 const char *buf, size_t count)
-+{
-+	signed volume;
-+
-+	sscanf(buf, "%i", &volume);
-+
-+	if (volume < MIN_VOL) {
-+		aic23_power_down();
-+		return count;
-+	} else if (volume > MIN_VOL && aic23_info_l.power_down) {
-+		aic23_info_l.volume_reg_left = volume;
-+		aic23_power_up();
-+		return count;
-+	}
-+	if (volume > MAX_VOL)
-+		volume = MAX_VOL;
-+
-+	update_volume_left(volume);
-+	return count;
-+}
-+
-+static ssize_t show_volume_left(struct device *dev,
++static ssize_t tsl2563_adc0_show(struct device *dev,
 +				struct device_attribute *attr, char *buf)
 +{
-+	return sprintf(buf, "%u\n", aic23_info_l.volume_reg_left);
++	struct tsl2563_chip *chip = dev_get_drvdata(dev);
++	int ret;
++
++	mutex_lock(&chip->lock);
++
++	ret = tsl2563_get_adc(chip);
++	if (ret)
++		return ret;
++
++	ret = snprintf(buf, PAGE_SIZE, "%d\n", chip->data0);
++	mutex_unlock(&chip->lock);
++
++	return ret;
 +}
 +
-+static DEVICE_ATTR(volume_left, S_IRUGO | S_IWUGO,
-+		   show_volume_left, store_volume_left);
-+
-+static ssize_t store_volume_right(struct device *dev,
-+				  struct device_attribute *attr,
-+				  const char *buf, size_t count)
++static ssize_t tsl2563_adc1_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
 +{
-+	signed volume;
++	struct tsl2563_chip *chip = dev_get_drvdata(dev);
++	int ret;
 +
-+	sscanf(buf, "%i", &volume);
-+	if (volume < MIN_VOL) {
-+		aic23_power_down();
-+		return count;
-+	} else if (volume > MIN_VOL && aic23_info_l.power_down) {
-+		aic23_info_l.volume_reg_right = volume;
-+		aic23_power_up();
-+		return count;
-+	}
-+	if (volume > MAX_VOL)
-+		volume = MAX_VOL;
++	mutex_lock(&chip->lock);
 +
-+	update_volume_right(volume);
-+	return count;
++	ret = tsl2563_get_adc(chip);
++	if (ret)
++		return ret;
++
++	ret = snprintf(buf, PAGE_SIZE, "%d\n", chip->data1);
++	mutex_unlock(&chip->lock);
++
++	return ret;
 +}
 +
-+static ssize_t show_volume_right(struct device *dev,
-+				 struct device_attribute *attr, char *buf)
++/* Apply calibration coefficient to ADC count. */
++static u32 calib_adc(u32 adc, u32 calib)
 +{
-+	return sprintf(buf, "%u\n", aic23_info_l.volume_reg_right);
++	unsigned long scaled = adc;
++
++	scaled *= calib;
++	scaled >>= CALIB_FRAC_BITS;
++
++	return (u32) scaled;
 +}
 +
-+static DEVICE_ATTR(volume_right, S_IRUGO | S_IWUGO,
-+		   show_volume_right, store_volume_right);
-+
-+static ssize_t store_gain_left(struct device *dev,
-+			       struct device_attribute *attr,
-+			       const char *buf, size_t count)
++static ssize_t tsl2563_lux_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
 +{
-+	u16 val = 0;
-+	unsigned gain;
++	struct tsl2563_chip *chip = dev_get_drvdata(dev);
++	u32 calib0, calib1;
++	int ret;
 +
-+	sscanf(buf, "%u", &gain);
-+	if (gain > MAX_VOL)
-+		gain = MAX_VOL;
++	mutex_lock(&chip->lock);
 +
-+	val = ((gain * INPUT_VOLUME_RANGE) / 100) + INPUT_VOLUME_MIN;
-+	aic23_write_value(LEFT_LINE_VOLUME_ADDR, val);
-+	aic23_info_l.input_gain_reg_left = gain;
++	ret = tsl2563_get_adc(chip);
++	if (ret)
++		goto out;
 +
-+	return count;
++	calib0 = calib_adc(chip->data0, chip->calib0);
++	calib1 = calib_adc(chip->data1, chip->calib1);
++
++	ret = snprintf(buf, PAGE_SIZE, "%d\n", adc_to_lux(calib0, calib1));
++
++out:
++	mutex_unlock(&chip->lock);
++	return ret;
 +}
 +
-+static ssize_t show_gain_left(struct device *dev,
-+			      struct device_attribute *attr, char *buf)
++static ssize_t format_calib(char *buf, int len, u32 calib)
 +{
-+	return sprintf(buf, "%u\n", aic23_info_l.input_gain_reg_left);
++	return snprintf(buf, PAGE_SIZE, "%d\n", calib_to_sysfs(calib));
 +}
 +
-+static DEVICE_ATTR(gain_left, S_IRUGO | S_IWUSR, show_gain_left,
-+		   store_gain_left);
-+
-+static ssize_t store_gain_right(struct device *dev,
-+				struct device_attribute *attr,
-+				const char *buf, size_t count)
-+{
-+	u16 val = 0;
-+	unsigned gain;
-+
-+	sscanf(buf, "%u", &gain);
-+	if (gain > MAX_VOL)
-+		gain = MAX_VOL;
-+
-+	val = ((gain * INPUT_VOLUME_RANGE) / 100) + INPUT_VOLUME_MIN;
-+	aic23_write_value(RIGHT_LINE_VOLUME_ADDR, val);
-+	aic23_info_l.input_gain_reg_right = gain;
-+
-+	return count;
-+}
-+
-+static ssize_t show_gain_right(struct device *dev,
-+			       struct device_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%u\n", aic23_info_l.input_gain_reg_right);
-+}
-+
-+static DEVICE_ATTR(gain_right, S_IRUGO | S_IWUSR, show_gain_right,
-+		   store_gain_right);
-+
-+static ssize_t store_mic_loopback(struct device *dev,
-+				  struct device_attribute *attr,
-+				  const char *buf, size_t count)
-+{
-+	int mic;
-+
-+	sscanf(buf, "%i", &mic);
-+	if (mic > 0) {
-+		aic23_write_value(POWER_DOWN_CONTROL_ADDR, \
-+					OSC_OFF | ADC_OFF | LINE_OFF);
-+		aic23_info_l.mask = STE_ENABLED | DAC_SELECTED \
-+					  | INSEL_MIC | MICB_20DB;
-+		aic23_write_value(ANALOG_AUDIO_CONTROL_ADDR,
-+					aic23_info_l.mask);
-+		mic = 1;
-+	}
-+	else {
-+		aic23_write_value(POWER_DOWN_CONTROL_ADDR, \
-+					OSC_OFF | ADC_OFF | MIC_OFF | LINE_OFF);
-+		mic = 0;
-+	}
-+	aic23_info_l.mic_loopback = mic;
-+
-+	return count;
-+}
-+
-+static ssize_t show_mic_loopback(struct device *dev,
-+				 struct device_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%i\n", aic23_info_l.mic_loopback);
-+}
-+
-+static DEVICE_ATTR(mic_loopback, S_IRUGO | S_IWUSR,
-+		   show_mic_loopback, store_mic_loopback);
-+
-+static ssize_t store_st_attenuation(struct device *dev,
-+				    struct device_attribute *attr,
-+				    const char *buf, size_t count)
-+{
-+	unsigned sta;
-+	u16 tmp;
-+
-+	sscanf(buf, "%u", &sta);
-+	if (sta > 3)
-+		sta = 3;
-+
-+	tmp = aic23_info_l.mask;
-+	tmp &= 0x3f;
-+
-+	aic23_info_l.mask =  tmp | STA_REG(sta);
-+	aic23_write_value(ANALOG_AUDIO_CONTROL_ADDR,
-+				aic23_info_l.mask);
-+	aic23_info_l.sta = sta;
-+
-+	return count;
-+}
-+
-+static ssize_t show_st_attenuation(struct device *dev,
++static ssize_t tsl2563_calib0_show(struct device *dev,
 +				   struct device_attribute *attr, char *buf)
 +{
-+	return sprintf(buf, "%i\n", aic23_info_l.sta);
++	struct tsl2563_chip *chip = dev_get_drvdata(dev);
++	int ret;
++
++	mutex_lock(&chip->lock);
++	ret = format_calib(buf, PAGE_SIZE, chip->calib0);
++	mutex_unlock(&chip->lock);
++	return ret;
 +}
 +
-+static DEVICE_ATTR(st_attenuation, S_IRUGO | S_IWUSR,
-+		   show_st_attenuation, store_st_attenuation);
-+
-+static ssize_t store_mic_enable(struct device *dev,
-+				struct device_attribute *attr,
-+				const char *buf, size_t count)
-+{
-+	int mic;
-+
-+	sscanf(buf, "%i", &mic);
-+	set_mic(mic);
-+
-+	return count;
-+}
-+
-+static ssize_t show_mic_enable(struct device *dev,
-+			       struct device_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%i\n", aic23_info_l.mic_enable);
-+}
-+
-+static DEVICE_ATTR(mic_enable, S_IRUGO | S_IWUSR,
-+	show_mic_enable, store_mic_enable);
-+
-+static ssize_t show_audio_selftest(struct device *dev,
++static ssize_t tsl2563_calib1_show(struct device *dev,
 +				   struct device_attribute *attr, char *buf)
 +{
-+	return sprintf(buf, "%i\n", selftest);
++	struct tsl2563_chip *chip = dev_get_drvdata(dev);
++	int ret;
++
++	mutex_lock(&chip->lock);
++	ret = format_calib(buf, PAGE_SIZE, chip->calib1);
++	mutex_unlock(&chip->lock);
++	return ret;
 +}
 +
-+static DEVICE_ATTR(audio_selftest, S_IRUGO | S_IWUSR,
-+		show_audio_selftest, NULL);
-+
-+static int audio_i2c_probe(struct platform_device *dev)
++static int do_calib_store(struct device *dev, const char *buf, size_t len,
++			  int ch)
 +{
-+	int r;
++	struct tsl2563_chip *chip = dev_get_drvdata(dev);
++	int value;
++	u32 calib;
 +
-+	if ((r = device_create_file(&dev->dev, &dev_attr_volume_left)) != 0)
-+		return r;
-+	else if ((r = device_create_file(&dev->dev,
-+		&dev_attr_volume_right)) != 0)
-+		goto err_volume_left;
-+	else if ((r = device_create_file(&dev->dev,
-+		&dev_attr_gain_right)) != 0)
-+		goto err_volume_right;
-+	else if ((r = device_create_file(&dev->dev,
-+		&dev_attr_gain_left)) != 0)
-+		goto err_gain_right;
-+	else if ((r = device_create_file(&dev->dev,
-+		&dev_attr_mic_loopback)) != 0)
-+		goto err_gain_left;
-+	else if ((r = device_create_file(&dev->dev,
-+		&dev_attr_mic_enable)) != 0)
-+		goto err_mic_loopback;
-+	else if ((r = device_create_file(&dev->dev,
-+		&dev_attr_st_attenuation)) != 0)
-+		goto err_mic_enable;
-+	else if ((r = device_create_file(&dev->dev,
-+		&dev_attr_audio_selftest)) != 0)
-+		goto err_st_attenuation;
++	if (1 != sscanf(buf, "%d", &value))
++		return -EINVAL;
++
++	calib = calib_from_sysfs(value);
++
++	if (ch)
++		chip->calib1 = calib;
 +	else
-+		return r;
++		chip->calib0 = calib;
 +
-+err_st_attenuation:
-+	device_remove_file(&dev->dev, &dev_attr_st_attenuation);
-+err_mic_enable:
-+	device_remove_file(&dev->dev, &dev_attr_mic_enable);
-+err_mic_loopback:
-+	device_remove_file(&dev->dev, &dev_attr_mic_loopback);
-+err_gain_left:
-+	device_remove_file(&dev->dev, &dev_attr_gain_left);
-+err_gain_right:
-+	device_remove_file(&dev->dev, &dev_attr_gain_right);
-+err_volume_right:
-+	device_remove_file(&dev->dev, &dev_attr_volume_right);
-+err_volume_left:
-+	device_remove_file(&dev->dev, &dev_attr_volume_left);
-+
-+	return r;
++	return len;
 +}
 +
-+static int audio_i2c_remove(struct platform_device *dev)
++static ssize_t tsl2563_calib0_store(struct device *dev,
++				    struct device_attribute *attr,
++				    const char *buf, size_t len)
 +{
-+	device_remove_file(&dev->dev, &dev_attr_st_attenuation);
-+	device_remove_file(&dev->dev, &dev_attr_mic_enable);
-+	device_remove_file(&dev->dev, &dev_attr_mic_loopback);
-+	device_remove_file(&dev->dev, &dev_attr_gain_left);
-+	device_remove_file(&dev->dev, &dev_attr_gain_right);
-+	device_remove_file(&dev->dev, &dev_attr_volume_right);
-+	device_remove_file(&dev->dev, &dev_attr_volume_left);
++	return do_calib_store(dev, buf, len, 0);
++}
 +
++static ssize_t tsl2563_calib1_store(struct device *dev,
++				    struct device_attribute *attr,
++				    const char *buf, size_t len)
++{
++	return do_calib_store(dev, buf, len, 1);
++}
++
++static DEVICE_ATTR(adc0, S_IRUGO, tsl2563_adc0_show, NULL);
++static DEVICE_ATTR(adc1, S_IRUGO, tsl2563_adc1_show, NULL);
++static DEVICE_ATTR(lux, S_IRUGO, tsl2563_lux_show, NULL);
++static DEVICE_ATTR(calib0, S_IRUGO | S_IWUSR,
++		   tsl2563_calib0_show, tsl2563_calib0_store);
++static DEVICE_ATTR(calib1, S_IRUGO | S_IWUSR,
++		   tsl2563_calib1_show, tsl2563_calib1_store);
++
++static struct attribute *tsl2563_attributes[] = {
++	&dev_attr_adc0.attr,
++	&dev_attr_adc1.attr,
++	&dev_attr_lux.attr,
++	&dev_attr_calib0.attr,
++	&dev_attr_calib1.attr,
++	NULL
++};
++
++static const struct attribute_group tsl2563_group = {
++	.attrs = tsl2563_attributes,
++};
++
++static int tsl2563_register_sysfs(struct i2c_client *client)
++{
++	struct device *dev = &client->dev;
++
++	return sysfs_create_group(&dev->kobj, &tsl2563_group);
++}
++
++static void tsl2563_unregister_sysfs(struct i2c_client *client)
++{
++	struct device *dev = &client->dev;
++
++	sysfs_remove_group(&dev->kobj, &tsl2563_group);
++}
++
++/*--------------------------------------------------------------*/
++/*                      Probe, Attach, Remove                   */
++/*--------------------------------------------------------------*/
++static struct i2c_driver tsl2563_i2c_driver;
++
++static int tsl2563_probe(struct i2c_client *client,
++		const struct i2c_device_id *device_id)
++{
++	struct tsl2563_chip *chip;
++	int err = 0;
++	u8 id;
++
++	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
++	if (!chip)
++		return -ENOMEM;
++
++	i2c_set_clientdata(client, chip);
++	chip->client = client;
++
++	err = tsl2563_detect(chip);
++	if (err) {
++		dev_err(&client->dev, "device not found, error %d \n", -err);
++		goto fail1;
++	}
++
++	err = tsl2563_read_id(chip, &id);
++	if (err)
++		goto fail1;
++
++	mutex_init(&chip->lock);
++
++	/* Default values used until userspace says otherwise */
++	chip->low_thres = 0x0;
++	chip->high_thres = 0xffff;
++	chip->gainlevel = tsl2563_gainlevel_table;
++	chip->intr = TSL2563_INT_PERSIST(4);
++	chip->calib0 = calib_from_sysfs(CALIB_BASE_SYSFS);
++	chip->calib1 = calib_from_sysfs(CALIB_BASE_SYSFS);
++
++	dev_info(&client->dev, "model %d, rev. %d\n", id >> 4, id & 0x0f);
++
++	err = tsl2563_configure(chip);
++	if (err)
++		goto fail1;
++
++	chip->hwmon_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(chip->hwmon_dev))
++		goto fail1;
++
++	err = tsl2563_register_sysfs(client);
++	if (err) {
++		dev_err(&client->dev, "sysfs registration failed, %d\n", err);
++		goto fail2;
++	}
++
++	return 0;
++fail2:
++	hwmon_device_unregister(chip->hwmon_dev);
++fail1:
++	kfree(chip);
++	return err;
++}
++
++static int tsl2563_remove(struct i2c_client *client)
++{
++	struct tsl2563_chip *chip = i2c_get_clientdata(client);
++
++	tsl2563_unregister_sysfs(client);
++	hwmon_device_unregister(chip->hwmon_dev);
++
++	kfree(chip);
 +	return 0;
 +}
 +
-+/*----------------------------------------------------------------*/
-+/*			PM functions				  */
-+/*----------------------------------------------------------------*/
-+
-+static void audio_i2c_shutdown(struct platform_device *dev)
++static int tsl2563_suspend(struct i2c_client *client, pm_message_t state)
 +{
-+	/* Let's mute the codec before powering off to prevent
-+	* glitch in the sound
-+	*/
-+	aic23_write_value(LEFT_CHANNEL_VOLUME_ADDR, LHV_MIN);
-+	aic23_write_value(RIGHT_CHANNEL_VOLUME_ADDR, LHV_MIN);
-+	aic23_power_down();
++	struct tsl2563_chip *chip = i2c_get_clientdata(client);
++	int ret;
++
++	mutex_lock(&chip->lock);
++
++	ret = tsl2563_set_power(chip, 0);
++	if (ret)
++		goto out;
++
++	chip->state = state;
++
++out:
++	mutex_unlock(&chip->lock);
++	return ret;
 +}
 +
-+static int audio_i2c_suspend(struct platform_device *dev, pm_message_t state)
++static int tsl2563_resume(struct i2c_client *client)
 +{
-+	/* Let's mute the codec before powering off to prevent
-+	 * glitch in the sound
-+	 */
-+	aic23_write_value(LEFT_CHANNEL_VOLUME_ADDR, LHV_MIN);
-+	aic23_write_value(RIGHT_CHANNEL_VOLUME_ADDR, LHV_MIN);
-+	aic23_power_down();
++	struct tsl2563_chip *chip = i2c_get_clientdata(client);
++	int ret;
 +
-+	return 0;
++	mutex_lock(&chip->lock);
++
++	ret = tsl2563_set_power(chip, 1);
++	if (ret)
++		goto out;
++
++	ret = tsl2563_configure(chip);
++	if (ret)
++		goto out;
++
++	chip->state.event = PM_EVENT_ON;
++
++out:
++	mutex_unlock(&chip->lock);
++	return ret;
 +}
 +
-+static int audio_i2c_resume(struct platform_device *dev)
-+{
-+	aic23_power_up();
++static const struct i2c_device_id tsl2563_id[] = {
++	{ DRIVER_NAME, 0 },
++	{ },
++};
++MODULE_DEVICE_TABLE(i2c, tsl2563_id);
 +
-+	return 0;
-+}
-+
-+static struct platform_driver audio_i2c_driver = {
++static struct i2c_driver tsl2563_i2c_driver = {
 +	.driver = {
-+		.owner	= THIS_MODULE,
-+		.name	= "audio-i2c",
++		.name	 = DRIVER_NAME,
 +	},
-+	.shutdown	= audio_i2c_shutdown,
-+	.probe		= audio_i2c_probe,
-+	.remove		= audio_i2c_remove,
-+	.suspend	= audio_i2c_suspend,
-+	.resume		= audio_i2c_resume,
++	.suspend	= tsl2563_suspend,
++	.resume		= tsl2563_resume,
++	.probe		= tsl2563_probe,
++	.remove		= __devexit_p(tsl2563_remove),
++	.id_table	= tsl2563_id,
 +};
 +
-+static struct platform_device audio_i2c_device = {
-+	.name		= "audio-i2c",
-+	.id		= -1,
-+};
-+
-+/*----------------------------------------------------------------*/
-+
-+static int __init aic23_init(void)
++static int __init tsl2563_init(void)
 +{
-+	selftest =  0;
-+	aic23_info_l.initialized = 0;
-+
-+	if (i2c_add_driver(&aic23_driver)) {
-+		printk("aic23 i2c: Driver registration failed, \
-+		      module not inserted.\n");
-+		selftest = -ENODEV;
-+		return selftest;
-+	}
-+
-+	if (platform_driver_register(&audio_i2c_driver)) {
-+		printk(KERN_WARNING "Failed to register audio i2c driver\n");
-+		selftest = -ENODEV;
-+		return selftest;
-+	}
-+
-+	printk("TLV320AIC23 I2C version %s (%s)\n",
-+	       TLV320AIC23_VERSION, TLV320AIC23_DATE);
-+
-+	return selftest;
++	return i2c_add_driver(&tsl2563_i2c_driver);
 +}
 +
-+static void __exit aic23_exit(void)
++static void __exit tsl2563_exit(void)
 +{
-+	aic23_power_down();
-+	i2c_del_driver(&aic23_driver);
-+
-+	platform_driver_unregister(&audio_i2c_driver);
++	i2c_del_driver(&tsl2563_i2c_driver);
 +}
 +
-+MODULE_AUTHOR("Kai Svahn <kai.svahn@nokia.com>");
-+MODULE_DESCRIPTION("I2C interface for TLV320AIC23 codec.");
++MODULE_AUTHOR("Nokia Corporation");
++MODULE_DESCRIPTION("tsl2563 light sensor driver");
 +MODULE_LICENSE("GPL");
 +
-+module_init(aic23_init)
-+module_exit(aic23_exit)
-+
-+EXPORT_SYMBOL(aic23_write_value);
-+EXPORT_SYMBOL(aic23_power_up);
-+EXPORT_SYMBOL(aic23_power_down);
++module_init(tsl2563_init);
++module_exit(tsl2563_exit);
 -- 
 1.6.0.1.141.g445ca
 
