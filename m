@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 10/33] Add twl4030 keypad driver
-Date: Sat, 30 Aug 2008 20:16:10 +0300
-Message-ID: <1220116593-862-11-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 18/33] add ov9640 sensor driver
+Date: Sat, 30 Aug 2008 20:16:18 +0300
+Message-ID: <1220116593-862-19-git-send-email-me@felipebalbi.com>
 References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-2-git-send-email-me@felipebalbi.com>
  <1220116593-862-3-git-send-email-me@felipebalbi.com>
@@ -12,12 +12,20 @@ References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-8-git-send-email-me@felipebalbi.com>
  <1220116593-862-9-git-send-email-me@felipebalbi.com>
  <1220116593-862-10-git-send-email-me@felipebalbi.com>
+ <1220116593-862-11-git-send-email-me@felipebalbi.com>
+ <1220116593-862-12-git-send-email-me@felipebalbi.com>
+ <1220116593-862-13-git-send-email-me@felipebalbi.com>
+ <1220116593-862-14-git-send-email-me@felipebalbi.com>
+ <1220116593-862-15-git-send-email-me@felipebalbi.com>
+ <1220116593-862-16-git-send-email-me@felipebalbi.com>
+ <1220116593-862-17-git-send-email-me@felipebalbi.com>
+ <1220116593-862-18-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:36417 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:36423 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751494AbYH3RUi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:20:38 -0400
-In-Reply-To: <1220116593-862-10-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1752552AbYH3RUk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:20:40 -0400
+In-Reply-To: <1220116593-862-18-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -27,656 +35,1530 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- arch/arm/mach-omap2/board-2430sdp.c         |   59 ++++
- arch/arm/plat-omap/include/mach/keypad.h    |    1 +
- drivers/input/keyboard/Kconfig              |   10 +
- drivers/input/keyboard/Makefile             |    1 +
- drivers/input/keyboard/omap-twl4030keypad.c |  415 +++++++++++++++++++++++++++
- drivers/input/keyboard/twl4030-keypad.h     |   82 ++++++
- 6 files changed, 568 insertions(+), 0 deletions(-)
- create mode 100644 drivers/input/keyboard/omap-twl4030keypad.c
- create mode 100644 drivers/input/keyboard/twl4030-keypad.h
+ drivers/media/video/Kconfig  |    8 +
+ drivers/media/video/Makefile |    1 +
+ drivers/media/video/ov9640.c | 1279 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/video/ov9640.h |  194 +++++++
+ 4 files changed, 1482 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/ov9640.c
+ create mode 100644 drivers/media/video/ov9640.h
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index b72ca13..975318d 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -19,6 +19,8 @@
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
- #include <linux/delay.h>
-+#include <linux/input.h>
-+#include <linux/i2c/twl4030.h>
- #include <linux/err.h>
- #include <linux/clk.h>
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index ecbfa1b..ec976f6 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -295,6 +295,14 @@ config VIDEO_TCM825X
+ 	  This is a driver for the Toshiba TCM825x VGA camera sensor.
+ 	  It is used for example in Nokia N800.
  
-@@ -32,6 +34,7 @@
- #include <mach/mux.h>
- #include <mach/board.h>
- #include <mach/common.h>
-+#include <mach/keypad.h>
- #include <mach/gpmc.h>
++config VIDEO_OV9640
++	tristate "OmniVision OV9640 sensor support"
++	depends on I2C && VIDEO_V4L2
++	---help---
++	  This is a Video4Linux2 sensor-level driver for the OmniVision
++	  OV9640 camera.  It is currently working with the TI OMAP2
++	  camera controller.
++
+ config VIDEO_SAA7110
+ 	tristate "Philips SAA7110 video decoder"
+ 	depends on VIDEO_V4L1 && I2C
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index bbc6f8b..0b529dd 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -106,6 +106,7 @@ obj-$(CONFIG_VIDEO_CAFE_CCIC) += cafe_ccic.o
+ obj-$(CONFIG_VIDEO_OV7670) 	+= ov7670.o
  
- #include <asm/io.h>
-@@ -114,8 +117,64 @@ static struct platform_device sdp2430_smc91x_device = {
- 	.resource	= sdp2430_smc91x_resources,
- };
+ obj-$(CONFIG_VIDEO_TCM825X) += tcm825x.o
++obj-$(CONFIG_VIDEO_OV9640)	+= ov9640.o
  
+ obj-$(CONFIG_USB_DABUSB)        += dabusb.o
+ obj-$(CONFIG_USB_OV511)         += ov511.o
+diff --git a/drivers/media/video/ov9640.c b/drivers/media/video/ov9640.c
+new file mode 100644
+index 0000000..a0f7406
+--- /dev/null
++++ b/drivers/media/video/ov9640.c
+@@ -0,0 +1,1279 @@
 +/*
-+ * Key mapping for 2430 SDP board
++ * drivers/media/video/ov9640.c
++ *
++ * OV9640 sensor driver
++ *
++ * Author: Andy Lowe (source@mvista.com)
++ * Contact: Trilok Soni <soni.trilok@gmail.com>
++ *
++ * Copyright (C) 2004 MontaVista Software, Inc.
++ * Copyright (C) 2004 Texas Instruments.
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2. This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
 + */
 +
-+static int sdp2430_keymap[] = {
-+	KEY(0, 0, KEY_LEFT),
-+	KEY(0, 1, KEY_RIGHT),
-+	KEY(0, 2, KEY_A),
-+	KEY(0, 3, KEY_B),
-+	KEY(0, 4, KEY_C),
-+	KEY(1, 0, KEY_DOWN),
-+	KEY(1, 1, KEY_UP),
-+	KEY(1, 2, KEY_E),
-+	KEY(1, 3, KEY_F),
-+	KEY(1, 4, KEY_G),
-+	KEY(2, 0, KEY_ENTER),
-+	KEY(2, 1, KEY_I),
-+	KEY(2, 2, KEY_J),
-+	KEY(2, 3, KEY_K),
-+	KEY(2, 4, KEY_3),
-+	KEY(3, 0, KEY_M),
-+	KEY(3, 1, KEY_N),
-+	KEY(3, 2, KEY_O),
-+	KEY(3, 3, KEY_P),
-+	KEY(3, 4, KEY_Q),
-+	KEY(4, 0, KEY_R),
-+	KEY(4, 1, KEY_4),
-+	KEY(4, 2, KEY_T),
-+	KEY(4, 3, KEY_U),
-+	KEY(4, 4, KEY_D),
-+	KEY(5, 0, KEY_V),
-+	KEY(5, 1, KEY_W),
-+	KEY(5, 2, KEY_L),
-+	KEY(5, 3, KEY_S),
-+	KEY(5, 4, KEY_H),
-+	0
++#include <linux/i2c.h>
++#include <linux/delay.h>
++#include <media/v4l2-int-device.h>
++
++#include "ov9640.h"
++
++#define DRIVER_NAME  "ov9640"
++
++struct ov9640_sensor {
++	const struct ov9640_platform_data *pdata;
++	struct v4l2_int_device *v4l2_int_device;
++	struct i2c_client *i2c_client;
++	struct v4l2_pix_format pix;
++	struct v4l2_fract timeperframe;
++	int ver;				/*ov9640 chip version*/
 +};
 +
-+static struct omap_kp_platform_data sdp2430_kp_data = {
-+	.rows		= 5,
-+	.cols		= 6,
-+	.keymap		= sdp2430_keymap,
-+	.keymapsize	= ARRAY_SIZE(sdp2430_keymap),
-+	.rep		= 1,
-+	.irq		= TWL4030_MODIRQ_KEYPAD,
-+};
++static struct ov9640_sensor ov9640;
++static struct i2c_driver ov9640sensor_i2c_driver;
 +
-+static struct platform_device sdp2430_kp_device = {
-+	.name		= "omap_twl4030keypad",
-+	.id		= -1,
-+	.dev		= {
-+		.platform_data	= &sdp2430_kp_data,
++/* list of image formats supported by OV9640 sensor */
++const static struct v4l2_fmtdesc ov9640_formats[] = {
++	{
++		/* Note:  V4L2 defines RGB565 as:
++		 *
++		 *	Byte 0			  Byte 1
++		 *	g2 g1 g0 r4 r3 r2 r1 r0	  b4 b3 b2 b1 b0 g5 g4 g3
++		 *
++		 * We interpret RGB565 as:
++		 *
++		 *	Byte 0			  Byte 1
++		 *	g2 g1 g0 b4 b3 b2 b1 b0	  r4 r3 r2 r1 r0 g5 g4 g3
++		 */
++		.description	= "RGB565, le",
++		.pixelformat	= V4L2_PIX_FMT_RGB565,
++	},
++	{
++		/* Note:  V4L2 defines RGB565X as:
++		 *
++		 *	Byte 0			  Byte 1
++		 *	b4 b3 b2 b1 b0 g5 g4 g3	  g2 g1 g0 r4 r3 r2 r1 r0
++		 *
++		 * We interpret RGB565X as:
++		 *
++		 *	Byte 0			  Byte 1
++		 *	r4 r3 r2 r1 r0 g5 g4 g3	  g2 g1 g0 b4 b3 b2 b1 b0
++		 */
++		.description	= "RGB565, be",
++		.pixelformat	= V4L2_PIX_FMT_RGB565X,
++	},
++	{
++		.description	= "YUYV (YUV 4:2:2), packed",
++		.pixelformat	= V4L2_PIX_FMT_YUYV,
++	},
++	{
++		.description	= "UYVY, packed",
++		.pixelformat	= V4L2_PIX_FMT_UYVY,
++	},
++	{
++		/* Note:  V4L2 defines RGB555 as:
++		 *
++		 *	Byte 0			  Byte 1
++		 *	g2 g1 g0 r4 r3 r2 r1 r0	  x  b4 b3 b2 b1 b0 g4 g3
++		 *
++		 * We interpret RGB555 as:
++		 *
++		 *	Byte 0			  Byte 1
++		 *	g2 g1 g0 b4 b3 b2 b1 b0	  x  r4 r3 r2 r1 r0 g4 g3
++		 */
++		.description	= "RGB555, le",
++		.pixelformat	= V4L2_PIX_FMT_RGB555,
++	},
++	{
++		/* Note:  V4L2 defines RGB555X as:
++		 *
++		 *	Byte 0			  Byte 1
++		 *	x  b4 b3 b2 b1 b0 g4 g3	  g2 g1 g0 r4 r3 r2 r1 r0
++		 *
++		 * We interpret RGB555X as:
++		 *
++		 *	Byte 0			  Byte 1
++		 *	x  r4 r3 r2 r1 r0 g4 g3	  g2 g1 g0 b4 b3 b2 b1 b0
++		 */
++		.description	= "RGB555, be",
++		.pixelformat	= V4L2_PIX_FMT_RGB555X,
 +	},
 +};
 +
- static struct platform_device *sdp2430_devices[] __initdata = {
- 	&sdp2430_smc91x_device,
-+	&sdp2430_kp_device,
- 	&sdp2430_flash_device,
- };
- 
-diff --git a/arch/arm/plat-omap/include/mach/keypad.h b/arch/arm/plat-omap/include/mach/keypad.h
-index 232923a..ba1c95c 100644
---- a/arch/arm/plat-omap/include/mach/keypad.h
-+++ b/arch/arm/plat-omap/include/mach/keypad.h
-@@ -14,6 +14,7 @@ struct omap_kp_platform_data {
- 	int rows;
- 	int cols;
- 	int *keymap;
-+	int irq;
- 	unsigned int keymapsize;
- 	unsigned int rep:1;
- 	unsigned long delay;
-diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
-index 53239cb..04e6c77 100644
---- a/drivers/input/keyboard/Kconfig
-+++ b/drivers/input/keyboard/Kconfig
-@@ -259,6 +259,16 @@ config KEYBOARD_OMAP
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called omap-keypad.
- 
-+config KEYBOARD_TWL4030
-+	tristate "TI TWL4030 keypad support"
-+	depends on TWL4030_CORE && (MACH_OMAP_2430SDP || MACH_OMAP2EVM || MACH_OMAP_3430SDP || MACH_OMAP3EVM)
-+	help
-+	  Say Y here if you want to use the OMAP TWL4030 keypad.
++#define NUM_CAPTURE_FORMATS ARRAY_SIZE(ov9640_formats)
 +
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called omap-twl4030keypad. This driver depends on
-+	  TWL4030 Core and TWL4030 GPIO I2C client driver
-+
- config OMAP_PS2
- 	tristate "TI OMAP Innovator 1510 PS/2 keyboard & mouse support"
- 	depends on ARCH_OMAP15XX && MACH_OMAP_INNOVATOR
-diff --git a/drivers/input/keyboard/Makefile b/drivers/input/keyboard/Makefile
-index 52e9b70..a19e04b 100644
---- a/drivers/input/keyboard/Makefile
-+++ b/drivers/input/keyboard/Makefile
-@@ -21,6 +21,7 @@ obj-$(CONFIG_KEYBOARD_HIL_OLD)		+= hilkbd.o
- obj-$(CONFIG_KEYBOARD_OMAP)		+= omap-keypad.o
- obj-$(CONFIG_OMAP_PS2)			+= innovator_ps2.o
- obj-$(CONFIG_KEYBOARD_LM8323)		+= lm8323.o
-+obj-$(CONFIG_KEYBOARD_TWL4030)		+= omap-twl4030keypad.o
- obj-$(CONFIG_KEYBOARD_PXA27x)		+= pxa27x_keypad.o
- obj-$(CONFIG_KEYBOARD_AAED2000)		+= aaed2000_kbd.o
- obj-$(CONFIG_KEYBOARD_GPIO)		+= gpio_keys.o
-diff --git a/drivers/input/keyboard/omap-twl4030keypad.c b/drivers/input/keyboard/omap-twl4030keypad.c
-new file mode 100644
-index 0000000..3893d63
---- /dev/null
-+++ b/drivers/input/keyboard/omap-twl4030keypad.c
-@@ -0,0 +1,415 @@
 +/*
-+ * drivers/input/keyboard/omap-twl4030keypad.c
-+ *
-+ * Copyright (C) 2007 Texas Instruments, Inc.
-+ * Copyright (C) 2008 Nokia Corporation
-+ *
-+ * Code re-written for 2430SDP by:
-+ * Syed Mohammed Khasim <x0khasim@ti.com>
-+ *
-+ * Initial Code:
-+ * Manjunatha G K <manjugk@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ * OV9640 register configuration for all combinations of pixel format and
++ * image size
 + */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/types.h>
-+#include <linux/input.h>
-+#include <linux/kernel.h>
-+#include <linux/mutex.h>
-+#include <linux/delay.h>
-+#include <linux/bitops.h>
-+#include <linux/platform_device.h>
-+#include <linux/i2c.h>
-+#include <linux/i2c/twl4030.h>
-+#include <linux/irq.h>
-+#include <mach/keypad.h>
-+#include "twl4030-keypad.h"
-+
-+#define PTV_PRESCALER		4
-+
-+#define MAX_ROWS		8 /* TWL4030 hardlimit */
-+#define ROWCOL_MASK		0xFF000000
-+#define KEYNUM_MASK		0x00FFFFFF
-+
-+/* Global variables */
-+
-+struct omap_keypad {
-+	int		*keymap;
-+	unsigned int	keymapsize;
-+	u16		kp_state[MAX_ROWS];
-+	int		n_rows;
-+	int		n_cols;
-+	int		irq;
-+
-+	struct device	*dbg_dev;
-+	struct input_dev *omap_twl4030kp;
-+
-+	/* sync read/write */
-+	struct mutex	mutex;
++	/* YUV (YCbCr) QQCIF */
++const static struct ov9640_reg qqcif_yuv[] = {
++	{ 0x12, 0x08 }, { 0x3C, 0x46 }, { 0x40, 0xC0 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x24 }, { 0x0C, 0x00 }, { 0x0D, 0x40 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x50 }, { 0x50, 0x43 }, { 0x51, 0x0D },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x19 }, { 0x53, 0x4C }, { 0x54, 0x65 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x40 }, { 0x56, 0x40 }, { 0x57, 0x40 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x0F },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* YUV (YCbCr) QQVGA */
++const static struct ov9640_reg qqvga_yuv[] = {
++	{ 0x12, 0x10 }, { 0x3C, 0x46 }, { 0x40, 0xC0 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x24 }, { 0x0C, 0x04 }, { 0x0D, 0xC0 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x50 }, { 0x50, 0x43 }, { 0x51, 0x0D },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x19 }, { 0x53, 0x4C }, { 0x54, 0x65 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x40 }, { 0x56, 0x40 }, { 0x57, 0x40 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x0F },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* YUV (YCbCr) QCIF */
++const static struct ov9640_reg qcif_yuv[] = {
++	{ 0x12, 0x08 }, { 0x3C, 0x46 }, { 0x40, 0xC0 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x00 }, { 0x0C, 0x04 }, { 0x0D, 0xC0 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x50 }, { 0x50, 0x43 }, { 0x51, 0x0D },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x19 }, { 0x53, 0x4C }, { 0x54, 0x65 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x40 }, { 0x56, 0x40 }, { 0x57, 0x40 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x0F },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* YUV (YCbCr) QVGA */
++const static struct ov9640_reg qvga_yuv[] = {
++	{ 0x12, 0x10 }, { 0x3C, 0x46 }, { 0x40, 0xC0 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x00 }, { 0x0C, 0x04 }, { 0x0D, 0xC0 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x50 }, { 0x50, 0x43 }, { 0x51, 0x0D },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x19 }, { 0x53, 0x4C }, { 0x54, 0x65 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x40 }, { 0x56, 0x40 }, { 0x57, 0x40 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x0F },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* YUV (YCbCr) CIF */
++const static struct ov9640_reg cif_yuv[] = {
++	{ 0x12, 0x20 }, { 0x3C, 0x46 }, { 0x40, 0xC0 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x00 }, { 0x0C, 0x04 }, { 0x0D, 0xC0 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x50 }, { 0x50, 0x43 }, { 0x51, 0x0D },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x19 }, { 0x53, 0x4C }, { 0x54, 0x65 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x40 }, { 0x56, 0x40 }, { 0x57, 0x40 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x0F },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* YUV (YCbCr) VGA */
++const static struct ov9640_reg vga_yuv[] = {
++	{ 0x12, 0x40 }, { 0x3C, 0x46 }, { 0x40, 0xC0 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x00 }, { 0x0C, 0x04 }, { 0x0D, 0xC0 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x50 }, { 0x50, 0x43 }, { 0x51, 0x0D },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x19 }, { 0x53, 0x4C }, { 0x54, 0x65 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x40 }, { 0x56, 0x40 }, { 0x57, 0x40 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x0F },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* YUV (YCbCr) SXGA */
++const static struct ov9640_reg sxga_yuv[] = {
++	{ 0x12, 0x00 }, { 0x3C, 0x46 }, { 0x40, 0xC0 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x00 }, { 0x0C, 0x00 }, { 0x0D, 0x40 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x50 }, { 0x50, 0x43 }, { 0x51, 0x0D },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x19 }, { 0x53, 0x4C }, { 0x54, 0x65 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x40 }, { 0x56, 0x40 }, { 0x57, 0x40 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x0F },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* RGB565 QQCIF */
++const static struct ov9640_reg qqcif_565[] = {
++	{ 0x12, 0x0C }, { 0x3C, 0x40 }, { 0x40, 0x10 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x24 }, { 0x0C, 0x00 }, { 0x0D, 0x40 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x71 }, { 0x50, 0x3E }, { 0x51, 0x0C },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x33 }, { 0x53, 0x72 }, { 0x54, 0x00 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x2B }, { 0x56, 0x66 }, { 0x57, 0xD2 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x65 },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* RGB565 QQVGA */
++const static struct ov9640_reg qqvga_565[] = {
++	{ 0x12, 0x14 }, { 0x3C, 0x40 }, { 0x40, 0x10 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x24 }, { 0x0C, 0x04 }, { 0x0D, 0xC0 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x71 }, { 0x50, 0x3E }, { 0x51, 0x0C },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x33 }, { 0x53, 0x72 }, { 0x54, 0x00 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x2B }, { 0x56, 0x66 }, { 0x57, 0xD2 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x65 },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* RGB565 QCIF */
++const static struct ov9640_reg qcif_565[] = {
++	{ 0x12, 0x0C }, { 0x3C, 0x40 }, { 0x40, 0x10 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x00 }, { 0x0C, 0x04 }, { 0x0D, 0xC0 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x71 }, { 0x50, 0x3E }, { 0x51, 0x0C },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x33 }, { 0x53, 0x72 }, { 0x54, 0x00 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x2B }, { 0x56, 0x66 }, { 0x57, 0xD2 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x65 },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* RGB565 QVGA */
++const static struct ov9640_reg qvga_565[] = {
++	{ 0x12, 0x14 }, { 0x3C, 0x40 }, { 0x40, 0x10 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x00 }, { 0x0C, 0x04 }, { 0x0D, 0xC0 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x71 }, { 0x50, 0x3E }, { 0x51, 0x0C },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x33 }, { 0x53, 0x72 }, { 0x54, 0x00 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x2B }, { 0x56, 0x66 }, { 0x57, 0xD2 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x65 },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* RGB565 CIF */
++const static struct ov9640_reg cif_565[] = {
++	{ 0x12, 0x24 }, { 0x3C, 0x40 }, { 0x40, 0x10 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x00 }, { 0x0C, 0x04 }, { 0x0D, 0xC0 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x71 }, { 0x50, 0x3E }, { 0x51, 0x0C },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x33 }, { 0x53, 0x72 }, { 0x54, 0x00 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x2B }, { 0x56, 0x66 }, { 0x57, 0xD2 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x65 },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* RGB565 VGA */
++const static struct ov9640_reg vga_565[] = {
++	{ 0x12, 0x44 }, { 0x3C, 0x40 }, { 0x40, 0x10 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x00 }, { 0x0C, 0x04 }, { 0x0D, 0xC0 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x71 }, { 0x50, 0x3E }, { 0x51, 0x0C },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x33 }, { 0x53, 0x72 }, { 0x54, 0x00 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x2B }, { 0x56, 0x66 }, { 0x57, 0xD2 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x65 },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* RGB565 SXGA */
++const static struct ov9640_reg sxga_565[] = {
++	{ 0x12, 0x04 }, { 0x3C, 0x40 }, { 0x40, 0x10 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x00 }, { 0x0C, 0x00 }, { 0x0D, 0x40 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x71 }, { 0x50, 0x3E }, { 0x51, 0x0C },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x33 }, { 0x53, 0x72 }, { 0x54, 0x00 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x2B }, { 0x56, 0x66 }, { 0x57, 0xD2 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x65 },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* RGB555 QQCIF */
++const static struct ov9640_reg qqcif_555[] = {
++	{ 0x12, 0x0C }, { 0x3C, 0x40 }, { 0x40, 0x30 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x24 }, { 0x0C, 0x00 }, { 0x0D, 0x40 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x71 }, { 0x50, 0x3E }, { 0x51, 0x0C },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x33 }, { 0x53, 0x72 }, { 0x54, 0x00 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x2B }, { 0x56, 0x66 }, { 0x57, 0xD2 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x65 },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* RGB555 QQVGA */
++const static struct ov9640_reg qqvga_555[] = {
++	{ 0x12, 0x14 }, { 0x3C, 0x40 }, { 0x40, 0x30 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x24 }, { 0x0C, 0x04 }, { 0x0D, 0xC0 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x71 }, { 0x50, 0x3E }, { 0x51, 0x0C },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x33 }, { 0x53, 0x72 }, { 0x54, 0x00 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x2B }, { 0x56, 0x66 }, { 0x57, 0xD2 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x65 },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* RGB555 QCIF */
++const static struct ov9640_reg qcif_555[] = {
++	{ 0x12, 0x0C }, { 0x3C, 0x40 }, { 0x40, 0x30 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x00 }, { 0x0C, 0x04 }, { 0x0D, 0xC0 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x71 }, { 0x50, 0x3E }, { 0x51, 0x0C },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x33 }, { 0x53, 0x72 }, { 0x54, 0x00 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x2B }, { 0x56, 0x66 }, { 0x57, 0xD2 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x65 },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* RGB555 QVGA */
++const static struct ov9640_reg qvga_555[] = {
++	{ 0x12, 0x14 }, { 0x3C, 0x40 }, { 0x40, 0x30 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x00 }, { 0x0C, 0x04 }, { 0x0D, 0xC0 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x71 }, { 0x50, 0x3E }, { 0x51, 0x0C },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x33 }, { 0x53, 0x72 }, { 0x54, 0x00 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x2B }, { 0x56, 0x66 }, { 0x57, 0xD2 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x65 },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* RGB555 CIF */
++const static struct ov9640_reg cif_555[] = {
++	{ 0x12, 0x24 }, { 0x3C, 0x40 }, { 0x40, 0x30 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x00 }, { 0x0C, 0x04 }, { 0x0D, 0xC0 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x71 }, { 0x50, 0x3E }, { 0x51, 0x0C },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x33 }, { 0x53, 0x72 }, { 0x54, 0x00 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x2B }, { 0x56, 0x66 }, { 0x57, 0xD2 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x65 },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* RGB555 VGA */
++const static struct ov9640_reg vga_555[] = {
++	{ 0x12, 0x44 }, { 0x3C, 0x40 }, { 0x40, 0x30 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x00 }, { 0x0C, 0x04 }, { 0x0D, 0xC0 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x71 }, { 0x50, 0x3E }, { 0x51, 0x0C },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x33 }, { 0x53, 0x72 }, { 0x54, 0x00 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x2B }, { 0x56, 0x66 }, { 0x57, 0xD2 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x65 },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
++};
++	/* RGB555 SXGA */
++const static struct ov9640_reg sxga_555[] = {
++	{ 0x12, 0x04 }, { 0x3C, 0x40 }, { 0x40, 0x30 },	/* COM7, COM12, COM15 */
++	{ 0x04, 0x00 }, { 0x0C, 0x00 }, { 0x0D, 0x40 },	/* COM1, COM3, COM4 */
++	{ 0x4F, 0x71 }, { 0x50, 0x3E }, { 0x51, 0x0C },	/* MTX1, MTX2, MTX3 */
++	{ 0x52, 0x33 }, { 0x53, 0x72 }, { 0x54, 0x00 },	/* MTX4, MTX5, MTX6 */
++	{ 0x55, 0x2B }, { 0x56, 0x66 }, { 0x57, 0xD2 },	/* MTX7, MTX8, MTX9 */
++	{ 0x58, 0x65 },					/* MTXS */
++	{ OV9640_REG_TERM, OV9640_VAL_TERM }
 +};
 +
-+static int twl4030_kpread(struct omap_keypad *kp,
-+		u32 module, u8 *data, u32 reg, u8 num_bytes)
-+{
-+	int ret;
 +
-+	ret = twl4030_i2c_read(module, data, reg, num_bytes);
-+	if (ret < 0) {
-+		dev_warn(kp->dbg_dev,
-+			"Couldn't read TWL4030: %X - ret %d[%x]\n",
-+			 reg, ret, ret);
-+		return ret;
++#define DEF_GAIN         31
++#define DEF_AUTOGAIN      1
++#define DEF_EXPOSURE    154
++#define DEF_AEC           1
++#define DEF_FREEZE_AGCAEC 0
++#define DEF_BLUE        153
++#define DEF_RED         (255 - DEF_BLUE)
++#define DEF_AWB           1
++#define DEF_HFLIP         0
++#define DEF_VFLIP         0
++
++/* Our own specific controls */
++#define V4L2_CID_FREEZE_AGCAEC		V4L2_CID_PRIVATE_BASE
++#define V4L2_CID_AUTOEXPOSURE		V4L2_CID_PRIVATE_BASE + 1
++#define V4L2_CID_LAST_PRIV		V4L2_CID_AUTOEXPOSURE
++
++/*  Video controls  */
++static struct vcontrol {
++	struct v4l2_queryctrl qc;
++	int current_value;
++	u8 reg;
++	u8 mask;
++	u8 start_bit;
++} video_control[] = {
++	{
++		{
++			.id = V4L2_CID_GAIN,
++			.type = V4L2_CTRL_TYPE_INTEGER,
++			.name = "Gain",
++			.minimum = 0,
++			.maximum = 63,
++			.step = 1,
++			.default_value = DEF_GAIN,
++		},
++		.current_value	= 0,
++		.reg		= OV9640_GAIN,
++		.mask		= 0x3f,
++		.start_bit	= 0,
++	},
++	{
++		{
++			.id = V4L2_CID_AUTOGAIN,
++			.type = V4L2_CTRL_TYPE_BOOLEAN,
++			.name = "Auto Gain",
++			.minimum = 0,
++			.maximum = 1,
++			.step = 0,
++			.default_value = DEF_AUTOGAIN,
++		},
++		.current_value	= 0,
++		.reg		= OV9640_COM8,
++		.mask		= 0x04,
++		.start_bit	= 2,
++	},
++	{
++		{
++			.id = V4L2_CID_EXPOSURE,
++			.type = V4L2_CTRL_TYPE_INTEGER,
++			.name = "Exposure",
++			.minimum = 0,
++			.maximum = 255,
++			.step = 1,
++			.default_value = DEF_EXPOSURE,
++		},
++		.current_value	= 0,
++		.reg		= OV9640_AECH,
++		.mask		= 0xff,
++		.start_bit	= 0,
++	},
++	{
++		{
++			.id = V4L2_CID_AUTOEXPOSURE,
++			.type = V4L2_CTRL_TYPE_BOOLEAN,
++			.name = "Auto Exposure",
++			.minimum = 0,
++			.maximum = 1,
++			.step = 0,
++			.default_value = DEF_AEC,
++		},
++		.current_value	= 0,
++		.reg		= OV9640_COM8,
++		.mask		= 0x01,
++		.start_bit	= 0,
++	},
++	{
++		{
++			.id = V4L2_CID_FREEZE_AGCAEC,
++			.type = V4L2_CTRL_TYPE_BOOLEAN,
++			.name = "Freeze AGC/AEC",
++			.minimum = 0,
++			.maximum = 1,
++			.step = 0,
++			.default_value = DEF_FREEZE_AGCAEC,
++		},
++		.current_value	= 0,
++		.reg		= OV9640_COM9,
++		.mask		= 0x01,
++		.start_bit	= 0,
++	},
++	{
++		{
++			.id = V4L2_CID_RED_BALANCE,
++			.type = V4L2_CTRL_TYPE_INTEGER,
++			.name = "Red Balance",
++			.minimum = 0,
++			.maximum = 255,
++			.step = 1,
++			.default_value = DEF_RED,
++		},
++		.current_value	= 0,
++		.reg		= OV9640_RED,
++		.mask		= 0xff,
++		.start_bit	= 0,
++	},
++	{
++		{
++			.id = V4L2_CID_BLUE_BALANCE,
++			.type = V4L2_CTRL_TYPE_INTEGER,
++			.name = "Blue Balance",
++			.minimum = 0,
++			.maximum = 255,
++			.step = 1,
++			.default_value = DEF_BLUE,
++		},
++		.current_value	= 0,
++		.reg		= OV9640_BLUE,
++		.mask		= 0xff,
++		.start_bit	= 0,
++	},
++	{
++		{
++			.id = V4L2_CID_AUTO_WHITE_BALANCE,
++			.type = V4L2_CTRL_TYPE_BOOLEAN,
++			.name = "Auto White Balance",
++			.minimum = 0,
++			.maximum = 1,
++			.step = 0,
++			.default_value = DEF_AWB,
++		},
++		.current_value	= 0,
++		.reg		= OV9640_COM8,
++		.mask		= 0x02,
++		.start_bit	= 1,
++	},
++	{
++		{
++			.id = V4L2_CID_HFLIP,
++			.type = V4L2_CTRL_TYPE_BOOLEAN,
++			.name = "Mirror Image",
++			.minimum = 0,
++			.maximum = 1,
++			.step = 0,
++			.default_value = DEF_HFLIP,
++		},
++		.current_value	= 0,
++		.reg		= OV9640_MVFP,
++		.mask		= 0x20,
++		.start_bit	= 5,
++	},
++	{
++		{
++			.id = V4L2_CID_VFLIP,
++			.type = V4L2_CTRL_TYPE_BOOLEAN,
++			.name = "Vertical Flip",
++			.minimum = 0,
++			.maximum = 1,
++			.step = 0,
++			.default_value = DEF_VFLIP,
++		},
++		.current_value	= 0,
++		.reg		= OV9640_MVFP,
++		.mask		= 0x10,
++		.start_bit	= 4,
++	},
++};
++
++const static struct ov9640_reg *
++	ov9640_reg_init[NUM_PIXEL_FORMATS][NUM_IMAGE_SIZES] =
++{
++ { qqcif_yuv, qqvga_yuv, qcif_yuv, qvga_yuv, cif_yuv, vga_yuv, sxga_yuv },
++ { qqcif_565, qqvga_565, qcif_565, qvga_565, cif_565, vga_565, sxga_565 },
++ { qqcif_555, qqvga_555, qcif_555, qvga_555, cif_555, vga_555, sxga_555 },
++};
++
++
++/*
++ * Read a value from a register in an OV9640 sensor device.
++ * The value is returned in 'val'.
++ * Returns zero if successful, or non-zero otherwise.
++ */
++static int
++ov9640_read_reg(struct i2c_client *client, u8 reg, u8 *val)
++{
++	int err;
++	struct i2c_msg msg[1];
++	unsigned char data[1];
++
++	if (!client->adapter)
++		return -ENODEV;
++
++	msg->addr = client->addr;
++	msg->flags = 0;
++	msg->len = 1;
++	msg->buf = data;
++	*data = reg;
++	err = i2c_transfer(client->adapter, msg, 1);
++	if (err >= 0) {
++		msg->flags = I2C_M_RD;
++		err = i2c_transfer(client->adapter, msg, 1);
 +	}
-+	return ret;
-+}
-+
-+static int twl4030_kpwrite_u8(struct omap_keypad *kp,
-+		u32 module, u8 data, u32 reg)
-+{
-+	int ret;
-+
-+	ret = twl4030_i2c_write_u8(module, data, reg);
-+	if (ret < 0) {
-+		dev_warn(kp->dbg_dev,
-+			"Could not write TWL4030: %X - ret %d[%x]\n",
-+			 reg, ret, ret);
-+		return ret;
++	if (err >= 0) {
++		*val = *data;
++		return 0;
 +	}
-+	return ret;
++	return err;
 +}
 +
-+static int omap_kp_find_key(struct omap_keypad *kp, int col, int row)
++/*
++ * Write a value to a register in an OV9640 sensor device.
++ * Returns zero if successful, or non-zero otherwise.
++ */
++static int
++ov9640_write_reg(struct i2c_client *client, u8 reg, u8 val)
 +{
-+	int i, rc;
++	int err;
++	struct i2c_msg msg[1];
++	unsigned char data[2];
 +
-+	rc = KEY(col, row, 0);
-+	for (i = 0; i < kp->keymapsize; i++)
-+		if ((kp->keymap[i] & ROWCOL_MASK) == rc)
-+			return kp->keymap[i] & KEYNUM_MASK;
++	if (!client->adapter)
++		return -ENODEV;
 +
-+	return -EINVAL;
++	msg->addr = client->addr;
++	msg->flags = 0;
++	msg->len = 2;
++	msg->buf = data;
++	data[0] = reg;
++	data[1] = val;
++	err = i2c_transfer(client->adapter, msg, 1);
++	if (err >= 0)
++		return 0;
++	return err;
 +}
 +
-+static inline u16 omap_kp_col_xlate(struct omap_keypad *kp, u8 col)
++static int
++ov9640_write_reg_mask(struct i2c_client *client, u8 reg, u8 *val, u8 mask)
 +{
-+	/* If all bits in a row are active for all coloumns then
-+	 * we have that row line connected to gnd. Mark this
-+	 * key on as if it was on matrix position n_cols (ie
-+	 * one higher than the size of the matrix).
-+	 */
-+	if (col == 0xFF)
-+		return 1 << kp->n_cols;
-+	else
-+		return col & ((1 << kp->n_cols) - 1);
-+}
++	u8 oldval, newval;
++	int rc;
 +
-+static int omap_kp_read_kp_matrix_state(struct omap_keypad *kp, u16 *state)
-+{
-+	u8 new_state[MAX_ROWS];
-+	int row;
-+	int ret = twl4030_kpread(kp, TWL4030_MODULE_KEYPAD,
-+				 new_state, KEYP_FULL_CODE_7_0, kp->n_rows);
-+	if (ret >= 0) {
-+		for (row = 0; row < kp->n_rows; row++)
-+			state[row] = omap_kp_col_xlate(kp, new_state[row]);
++	if (mask == 0xff)
++		newval = *val;
++	else {
++		/* need to do read - modify - write */
++		rc = ov9640_read_reg(client, reg, &oldval);
++		if (rc)
++			return rc;
++		oldval &= (~mask);              /* Clear the masked bits */
++		*val &= mask;                  /* Enforce mask on value */
++		newval = oldval | *val;        /* Set the desired bits */
 +	}
-+	return ret;
++
++	/* write the new value to the register */
++	rc = ov9640_write_reg(client, reg, newval);
++	if (rc)
++		return rc;
++
++	rc = ov9640_read_reg(client, reg, &newval);
++	if (rc)
++		return rc;
++
++	*val = newval & mask;
++	return 0;
 +}
 +
-+static int omap_kp_is_in_ghost_state(struct omap_keypad *kp, u16 *key_state)
++static int
++ov9640_read_reg_mask(struct i2c_client *client, u8 reg, u8 *val, u8 mask)
 +{
-+	int i;
-+	u16 check = 0;
++	int rc;
 +
-+	for (i = 0; i < kp->n_rows; i++) {
-+		u16 col = key_state[i];
-+
-+		if ((col & check) && hweight16(col) > 1)
-+			return 1;
-+		check |= col;
-+	}
++	rc = ov9640_read_reg(client, reg, val);
++	if (rc)
++		return rc;
++	(*val) &= mask;
 +
 +	return 0;
 +}
 +
-+static void twl4030_kp_scan(struct omap_keypad *kp, int release_all)
++/*
++ * Initialize a list of OV9640 registers.
++ * The list of registers is terminated by the pair of values
++ * { OV9640_REG_TERM, OV9640_VAL_TERM }.
++ * Returns zero if successful, or non-zero otherwise.
++ */
++static int
++ov9640_write_regs(struct i2c_client *client, const struct ov9640_reg reglist[])
 +{
-+	u16 new_state[MAX_ROWS];
-+	int col, row;
++	int err;
++	const struct ov9640_reg *next = reglist;
 +
-+	if (release_all)
-+		memset(new_state, 0, sizeof(new_state));
-+	else {
-+		/* check for any changes */
-+		int ret = omap_kp_read_kp_matrix_state(kp, new_state);
-+		if (ret < 0)	/* panic ... */
-+			return;
-+
-+		if (omap_kp_is_in_ghost_state(kp, new_state))
-+			return;
++	while (!((next->reg == OV9640_REG_TERM)
++		&& (next->val == OV9640_VAL_TERM))) {
++		err = ov9640_write_reg(client, next->reg, next->val);
++		udelay(100);
++		if (err)
++			return err;
++		next++;
 +	}
-+
-+	mutex_lock(&kp->mutex);
-+
-+	/* check for changes and print those */
-+	for (row = 0; row < kp->n_rows; row++) {
-+		int changed = new_state[row] ^ kp->kp_state[row];
-+
-+		if (!changed)
-+			continue;
-+
-+		for (col = 0; col < kp->n_cols + 1; col++) {
-+			int key;
-+
-+			if (!(changed & (1 << col)))
-+				continue;
-+
-+			dev_dbg(kp->dbg_dev, "key [%d:%d] %s\n", row, col,
-+				(new_state[row] & (1 << col)) ?
-+				"press" : "release");
-+
-+			key = omap_kp_find_key(kp, col, row);
-+			if (key < 0)
-+				dev_warn(kp->dbg_dev,
-+					"Spurious key event %d-%d\n",
-+					 col, row);
-+			else
-+				input_report_key(kp->omap_twl4030kp, key,
-+						 new_state[row] & (1 << col));
-+		}
-+		kp->kp_state[row] = new_state[row];
-+	}
-+
-+	mutex_unlock(&kp->mutex);
++	return 0;
 +}
 +
-+/*
-+ * Keypad interrupt handler
-+ */
-+static irqreturn_t do_kp_irq(int irq, void *_kp)
++/* Returns the index of the requested ID from the control structure array */
++static int
++find_vctrl(int id)
 +{
-+	struct omap_keypad *kp = _kp;
-+	u8 reg;
-+	int ret;
-+
-+	/* Read & Clear TWL4030 pending interrupt */
-+	ret = twl4030_kpread(kp, TWL4030_MODULE_KEYPAD, &reg, KEYP_ISR1, 1);
-+
-+	/* Release all keys if I2C has gone bad or
-+	 * the KEYP has gone to idle state */
-+	if ((ret >= 0) && (reg & KEYP_IMR1_KP))
-+		twl4030_kp_scan(kp, 0);
-+	else
-+		twl4030_kp_scan(kp, 1);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/*
-+ * Registers keypad device with input sub system
-+ * and configures TWL4030 keypad registers
-+ */
-+static int __init omap_kp_probe(struct platform_device *pdev)
-+{
-+	u8 reg;
 +	int i;
-+	int ret = 0;
-+	struct omap_keypad *kp;
-+	struct omap_kp_platform_data *pdata = pdev->dev.platform_data;
 +
-+	kp = kzalloc(sizeof(*kp), GFP_KERNEL);
-+	if (!kp)
-+		return -ENOMEM;
++	if (id < V4L2_CID_BASE)
++		return -EDOM;
 +
-+	if (!pdata->rows || !pdata->cols || !pdata->keymap) {
-+		dev_err(kp->dbg_dev, "No rows, cols or keymap from pdata\n");
-+		kfree(kp);
++	for (i = (ARRAY_SIZE(video_control) - 1); i >= 0; i--)
++		if (video_control[i].qc.id == id)
++			break;
++	if (i < 0)
++		i = -EINVAL;
++	return i;
++}
++
++/*
++ * Calculate the internal clock divisor (value of the CLKRC register) of the
++ * OV9640 given the image size, the frequency (in Hz) of its XCLK input and a
++ * desired frame period (in seconds).  The frame period 'fper' is expressed as
++ * a fraction.  The frame period is an input/output parameter.
++ * Returns the value of the OV9640 CLKRC register that will yield the frame
++ * period returned in 'fper' at the specified xclk frequency.  The
++ * returned period will be as close to the requested period as possible.
++ */
++static unsigned char
++ov9640_clkrc(enum image_size isize, unsigned long xclk, struct v4l2_fract *fper)
++{
++	unsigned long fpm, fpm_max;	/* frames per minute */
++	unsigned long divisor;
++	const unsigned long divisor_max = 64;
++	/* FIXME
++	 * clks_per_frame should come from platform data
++	 */
++#ifdef CONFIG_ARCH_OMAP24XX
++	const static unsigned long clks_per_frame[] =
++		{ 200000, 400000, 200000, 400000, 400000, 800000, 3200000 };
++      /*         QQCIF   QQVGA    QCIF    QVGA  CIF     VGA	SXGA
++       *         199680,400000, 199680, 400000, 399360, 800000, 3200000
++       */
++#else
++	const static unsigned long clks_per_frame[] =
++		{ 200000, 200000, 200000, 200000, 400000, 800000, 3200000 };
++#endif
++
++	if (fper->numerator > 0)
++		fpm = (fper->denominator*60)/fper->numerator;
++	else
++		fpm = 0xffffffff;
++	fpm_max = (xclk*60)/clks_per_frame[isize];
++	if (fpm_max == 0)
++		fpm_max = 1;
++	if (fpm > fpm_max)
++		fpm = fpm_max;
++	if (fpm == 0)
++		fpm = 1;
++	divisor = fpm_max/fpm;
++	if (divisor > divisor_max)
++		divisor = divisor_max;
++	fper->numerator = divisor*60;
++	fper->denominator = fpm_max;
++
++	/* try to reduce the fraction */
++	while (!(fper->denominator % 5) && !(fper->numerator % 5)) {
++		fper->numerator /= 5;
++		fper->denominator /= 5;
++	}
++	while (!(fper->denominator % 3) && !(fper->numerator % 3)) {
++		fper->numerator /= 3;
++		fper->denominator /= 3;
++	}
++	while (!(fper->denominator % 2) && !(fper->numerator % 2)) {
++		fper->numerator /= 2;
++		fper->denominator /= 2;
++	}
++	if (fper->numerator < fper->denominator) {
++		if (!(fper->denominator % fper->numerator)) {
++			fper->denominator /= fper->numerator;
++			fper->numerator = 1;
++		}
++	} else {
++		if (!(fper->numerator % fper->denominator)) {
++			fper->numerator /= fper->denominator;
++			fper->denominator = 1;
++		}
++	}
++
++	/* we set bit 7 in CLKRC to enable the digital PLL */
++	return (0x80 | (divisor - 1));
++}
++
++/*
++ * Find the best match for a requested image capture size.  The best match
++ * is chosen as the nearest match that has the same number or fewer pixels
++ * as the requested size, or the smallest image size if the requested size
++ * has fewer pixels than the smallest image.
++ */
++static enum image_size
++ov9640_find_size(unsigned int width, unsigned int height)
++{
++	enum image_size isize;
++	unsigned long pixels = width*height;
++
++	for (isize = QQCIF; isize < SXGA; isize++) {
++		if (ov9640_sizes[isize + 1].height *
++			ov9640_sizes[isize + 1].width > pixels)
++			return isize;
++	}
++	return SXGA;
++}
++
++/*
++ * Given the image capture format in pix, the nominal frame period in
++ * timeperframe, calculate the required xclk frequency
++ */
++static unsigned long
++ov9640sensor_calc_xclk(struct i2c_client *c)
++{
++	struct ov9640_sensor *sensor = i2c_get_clientdata(c);
++	struct v4l2_fract *timeperframe = &sensor->timeperframe;
++	struct v4l2_pix_format *pix = &sensor->pix;
++
++	unsigned long tgt_xclk;			/* target xclk */
++	unsigned long tgt_fpm;			/* target frames per minute */
++	enum image_size isize;
++
++	/*
++	 * We use arbitrary rules to select the xclk frequency.  If the
++	 * capture size is VGA and the frame rate is greater than 900
++	 * frames per minute, or if the capture size is SXGA and the
++	 * frame rate is greater than 450 frames per minutes, then the
++	 * xclk frequency will be set to 48MHz.  Otherwise, the xclk
++	 * frequency will be set to 24MHz.  If the mclk frequency is such that
++	 * the target xclk frequency is not achievable, then xclk will be set
++	 * as close as to the target as possible.
++	 */
++	tgt_fpm = (timeperframe->denominator*60)
++		/ timeperframe->numerator;
++	tgt_xclk = OV9640_XCLK_NOM;
++	isize = ov9640_find_size(pix->width, pix->height);
++	switch (isize) {
++	case SXGA:
++		if (tgt_fpm > 450)
++			tgt_xclk = OV9640_XCLK_MAX;
++		break;
++	case VGA:
++		if (tgt_fpm > 900)
++			tgt_xclk = OV9640_XCLK_MAX;
++		break;
++	default:
++		break;
++	}
++	return tgt_xclk;
++}
++
++/*
++ * Configure the OV9640 for a specified image size, pixel format, and frame
++ * period.  xclk is the frequency (in Hz) of the xclk input to the OV9640.
++ * fper is the frame period (in seconds) expressed as a fraction.
++ * Returns zero if successful, or non-zero otherwise.
++ * The actual frame period is returned in fper.
++ */
++static int ov9640_configure(struct v4l2_int_device *s)
++{
++	struct ov9640_sensor *sensor = s->priv;
++	struct v4l2_pix_format *pix = &sensor->pix;
++	struct v4l2_fract *fper = &sensor->timeperframe;
++	struct i2c_client *client = sensor->i2c_client;
++	enum image_size isize;
++	unsigned long xclk;
++
++	int err;
++	unsigned char clkrc;
++	enum pixel_format pfmt = YUV;
++
++	switch (pix->pixelformat) {
++	case V4L2_PIX_FMT_RGB565:
++	case V4L2_PIX_FMT_RGB565X:
++		pfmt = RGB565;
++		break;
++	case V4L2_PIX_FMT_RGB555:
++	case V4L2_PIX_FMT_RGB555X:
++		pfmt = RGB555;
++		break;
++	case V4L2_PIX_FMT_YUYV:
++	case V4L2_PIX_FMT_UYVY:
++	default:
++		pfmt = YUV;
++	}
++
++	xclk = ov9640sensor_calc_xclk(client);
++
++	isize = ov9640_find_size(pix->width, pix->height);
++
++	/* common register initialization */
++	err = ov9640_write_regs(client, sensor->pdata->default_regs);
++	if (err)
++		return err;
++
++	/* configure image size and pixel format */
++	err = ov9640_write_regs(client, ov9640_reg_init[pfmt][isize]);
++	if (err)
++		return err;
++
++	/* configure frame rate */
++	clkrc = ov9640_clkrc(isize, xclk, fper);
++	err = ov9640_write_reg(client, OV9640_CLKRC, clkrc);
++	if (err)
++		return err;
++
++	return 0;
++}
++
++/*
++ * Detect if an OV9640 is present, and if so which revision.
++ * A device is considered to be detected if the manufacturer ID (MIDH and MIDL)
++ * and the product ID (PID) registers match the expected values.
++ * Any value of the version ID (VER) register is accepted.
++ * Here are the version numbers we know about:
++ *	0x48 --> OV9640 Revision 1 or OV9640 Revision 2
++ *	0x49 --> OV9640 Revision 3
++ * Returns a negative error number if no device is detected, or the
++ * non-negative value of the version ID register if a device is detected.
++ */
++static int
++ov9640_detect(struct i2c_client *client)
++{
++	u8 midh, midl, pid, ver;
++
++	if (!client)
++		return -ENODEV;
++
++	if (ov9640_read_reg(client, OV9640_MIDH, &midh))
++		return -ENODEV;
++	if (ov9640_read_reg(client, OV9640_MIDL, &midl))
++		return -ENODEV;
++	if (ov9640_read_reg(client, OV9640_PID, &pid))
++		return -ENODEV;
++	if (ov9640_read_reg(client, OV9640_VER, &ver))
++		return -ENODEV;
++
++	if ((midh != OV9640_MIDH_MAGIC)
++		|| (midl != OV9640_MIDL_MAGIC)
++		|| (pid != OV9640_PID_MAGIC))
++		/*
++		 * We didn't read the values we expected, so
++		 * this must not be an OV9640.
++		 */
++		return -ENODEV;
++
++	return ver;
++}
++
++/*
++ * following are sensor interface functions implemented by
++ * OV9640 sensor driver.
++ */
++static int ioctl_queryctrl(struct v4l2_int_device *s,
++				struct v4l2_queryctrl *qc)
++{
++	int i;
++
++	i = find_vctrl(qc->id);
++	if (i == -EINVAL) {
++		qc->flags = V4L2_CTRL_FLAG_DISABLED;
++		return 0;
++	}
++	if (i < 0)
++		return -EINVAL;
++
++	*qc = video_control[i].qc;
++	return 0;
++}
++
++static int ioctl_g_ctrl(struct v4l2_int_device *s,
++			     struct v4l2_control *vc)
++{
++	struct ov9640_sensor *sensor = s->priv;
++	struct i2c_client *client = sensor->i2c_client;
++	int i, val;
++	struct vcontrol *lvc;
++
++	i = find_vctrl(vc->id);
++	if (i < 0)
++		return -EINVAL;
++
++	lvc = &video_control[i];
++	if (ov9640_read_reg_mask(client, lvc->reg, (u8 *)&val, lvc->mask))
++		return -EIO;
++
++	val = val >> lvc->start_bit;
++	if (val >= 0) {
++		vc->value = lvc->current_value = val;
++		return 0;
++	} else
++		return val;
++}
++
++static int ioctl_s_ctrl(struct v4l2_int_device *s,
++			     struct v4l2_control *vc)
++{
++	struct ov9640_sensor *sensor = s->priv;
++	struct i2c_client *client = sensor->i2c_client;
++	struct vcontrol *lvc;
++	int val = vc->value;
++	int i;
++
++	i = find_vctrl(vc->id);
++	if (i < 0)
++		return -EINVAL;
++
++	lvc = &video_control[i];
++	val = val << lvc->start_bit;
++	if (ov9640_write_reg_mask(client, lvc->reg, (u8 *)&val, (u8)lvc->mask))
++		return -EIO;
++
++	val = val >> lvc->start_bit;
++	if (val >= 0) {
++		lvc->current_value = val;
++		return 0;
++	} else
++		return val;
++}
++
++/*
++ * Implement the VIDIOC_ENUM_FMT ioctl for the CAPTURE buffer type.
++ */
++static int ioctl_enum_fmt_cap(struct v4l2_int_device *s,
++				   struct v4l2_fmtdesc *fmt)
++{
++	int index = fmt->index;
++	enum v4l2_buf_type type = fmt->type;
++
++	memset(fmt, 0, sizeof(*fmt));
++	fmt->index = index;
++	fmt->type = type;
++
++	switch (fmt->type) {
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++		if (index >= NUM_CAPTURE_FORMATS)
++			return -EINVAL;
++	break;
++	default:
 +		return -EINVAL;
 +	}
 +
-+	dev_set_drvdata(&pdev->dev, kp);
-+
-+	/* Get the debug Device */
-+	kp->dbg_dev = &pdev->dev;
-+
-+	kp->omap_twl4030kp = input_allocate_device();
-+	if (!kp->omap_twl4030kp) {
-+		kfree(kp);
-+		return -ENOMEM;
-+	}
-+
-+	mutex_init(&kp->mutex);
-+
-+	kp->keymap = pdata->keymap;
-+	kp->keymapsize = pdata->keymapsize;
-+	kp->n_rows = pdata->rows;
-+	kp->n_cols = pdata->cols;
-+	kp->irq = pdata->irq;
-+
-+	/* setup input device */
-+	set_bit(EV_KEY, kp->omap_twl4030kp->evbit);
-+
-+	/* Enable auto repeat feature of Linux input subsystem */
-+	if (pdata->rep)
-+		set_bit(EV_REP, kp->omap_twl4030kp->evbit);
-+
-+	for (i = 0; i < kp->keymapsize; i++)
-+		set_bit(kp->keymap[i] & KEYNUM_MASK,
-+				kp->omap_twl4030kp->keybit);
-+
-+	kp->omap_twl4030kp->name	= "omap_twl4030keypad";
-+	kp->omap_twl4030kp->phys	= "omap_twl4030keypad/input0";
-+	kp->omap_twl4030kp->dev.parent	= &pdev->dev;
-+
-+	kp->omap_twl4030kp->id.bustype	= BUS_HOST;
-+	kp->omap_twl4030kp->id.vendor	= 0x0001;
-+	kp->omap_twl4030kp->id.product	= 0x0001;
-+	kp->omap_twl4030kp->id.version	= 0x0003;
-+
-+	kp->omap_twl4030kp->keycode	= kp->keymap;
-+	kp->omap_twl4030kp->keycodesize	= sizeof(unsigned int);
-+	kp->omap_twl4030kp->keycodemax	= kp->keymapsize;
-+
-+	ret = input_register_device(kp->omap_twl4030kp);
-+	if (ret < 0) {
-+		dev_err(kp->dbg_dev,
-+			"Unable to register twl4030 keypad device\n");
-+		goto err2;
-+	}
-+
-+	/* Disable auto-repeat */
-+	reg = KEYP_CTRL_NOAUTORPT;
-+	ret = twl4030_kpwrite_u8(kp, TWL4030_MODULE_KEYPAD, reg, KEYP_CTRL);
-+	if (ret < 0)
-+		goto err3;
-+
-+	/* Enable TO rising and KP rising and falling edge detection */
-+	reg = KEYP_EDR_KP_BOTH | KEYP_EDR_TO_RISING;
-+	ret = twl4030_kpwrite_u8(kp, TWL4030_MODULE_KEYPAD, reg, KEYP_EDR);
-+	if (ret < 0)
-+		goto err3;
-+
-+	/* Set PTV prescaler Field */
-+	reg = (PTV_PRESCALER << KEYP_LK_PTV_PTV_SHIFT);
-+	ret = twl4030_kpwrite_u8(kp, TWL4030_MODULE_KEYPAD, reg, KEYP_LK_PTV);
-+	if (ret < 0)
-+		goto err3;
-+
-+	/* Set key debounce time to 20 ms */
-+	i = KEYP_PERIOD_US(20000, PTV_PRESCALER);
-+	ret = twl4030_kpwrite_u8(kp, TWL4030_MODULE_KEYPAD, i, KEYP_DEB);
-+	if (ret < 0)
-+		goto err3;
-+
-+	/* Set timeout period to 100 ms */
-+	i = KEYP_PERIOD_US(200000, PTV_PRESCALER);
-+	ret = twl4030_kpwrite_u8(kp, TWL4030_MODULE_KEYPAD,
-+				 (i & 0xFF), KEYP_TIMEOUT_L);
-+	if (ret < 0)
-+		goto err3;
-+
-+	ret = twl4030_kpwrite_u8(kp, TWL4030_MODULE_KEYPAD,
-+				 (i >> 8), KEYP_TIMEOUT_H);
-+	if (ret < 0)
-+		goto err3;
-+
-+	/* Enable Clear-on-Read */
-+	reg = KEYP_SIH_CTRL_COR | KEYP_SIH_CTRL_PEND_DIS;
-+	ret = twl4030_kpwrite_u8(kp, TWL4030_MODULE_KEYPAD,
-+				 reg, KEYP_SIH_CTRL);
-+	if (ret < 0)
-+		goto err3;
-+
-+	/*
-+	 * This ISR will always execute in kernel thread context because of
-+	 * the need to access the TWL4030 over the I2C bus.
-+	 */
-+	ret = request_irq(kp->irq, do_kp_irq, IRQF_DISABLED,
-+			"TWL4030 Keypad", kp);
-+	if (ret < 0) {
-+		dev_info(kp->dbg_dev, "request_irq failed for irq no=%d\n",
-+			kp->irq);
-+		goto err3;
-+	} else {
-+		/* Enable KP and TO interrupts now. */
-+		reg = ~(KEYP_IMR1_KP | KEYP_IMR1_TO);
-+		ret = twl4030_kpwrite_u8(kp, TWL4030_MODULE_KEYPAD,
-+					 reg, KEYP_IMR1);
-+		if (ret < 0)
-+			goto err5;
-+	}
-+
-+	ret = omap_kp_read_kp_matrix_state(kp, kp->kp_state);
-+	if (ret < 0)
-+		goto err4;
-+
-+	return ret;
-+err5:
-+	/* mask all events - we don't care about the result */
-+	(void) twl4030_kpwrite_u8(kp, TWL4030_MODULE_KEYPAD, 0xff, KEYP_IMR1);
-+err4:
-+	free_irq(kp->irq, NULL);
-+err3:
-+	input_unregister_device(kp->omap_twl4030kp);
-+err2:
-+	input_free_device(kp->omap_twl4030kp);
-+
-+	return -ENODEV;
-+}
-+
-+static int omap_kp_remove(struct platform_device *pdev)
-+{
-+	struct omap_keypad *kp = dev_get_drvdata(&pdev->dev);
-+
-+	free_irq(kp->irq, kp);
-+	input_unregister_device(kp->omap_twl4030kp);
-+	kfree(kp);
++	fmt->flags = ov9640_formats[index].flags;
++	strlcpy(fmt->description, ov9640_formats[index].description,
++					sizeof(fmt->description));
++	fmt->pixelformat = ov9640_formats[index].pixelformat;
 +
 +	return 0;
 +}
 +
++/*
++ * Implement the VIDIOC_TRY_FMT ioctl for the CAPTURE buffer type.  This
++ * ioctl is used to negotiate the image capture size and pixel format
++ * without actually making it take effect.
++ */
++static int ioctl_try_fmt_cap(struct v4l2_int_device *s,
++			     struct v4l2_format *f)
++{
++	enum image_size isize;
++	int ifmt;
++	struct v4l2_pix_format *pix = &f->fmt.pix;
 +
-+static struct platform_driver omap_kp_driver = {
-+	.probe		= omap_kp_probe,
-+	.remove		= __devexit_p(omap_kp_remove),
-+	.driver		= {
-+		.name	= "omap_twl4030keypad",
-+		.owner	= THIS_MODULE,
++	isize = ov9640_find_size(pix->width, pix->height);
++	pix->width = ov9640_sizes[isize].width;
++	pix->height = ov9640_sizes[isize].height;
++	for (ifmt = 0; ifmt < NUM_CAPTURE_FORMATS; ifmt++) {
++		if (pix->pixelformat == ov9640_formats[ifmt].pixelformat)
++			break;
++	}
++	if (ifmt == NUM_CAPTURE_FORMATS)
++		ifmt = 0;
++	pix->pixelformat = ov9640_formats[ifmt].pixelformat;
++	pix->field = V4L2_FIELD_NONE;
++	pix->bytesperline = pix->width*2;
++	pix->sizeimage = pix->bytesperline*pix->height;
++	pix->priv = 0;
++	switch (pix->pixelformat) {
++	case V4L2_PIX_FMT_YUYV:
++	case V4L2_PIX_FMT_UYVY:
++	default:
++		pix->colorspace = V4L2_COLORSPACE_JPEG;
++		break;
++	case V4L2_PIX_FMT_RGB565:
++	case V4L2_PIX_FMT_RGB565X:
++	case V4L2_PIX_FMT_RGB555:
++	case V4L2_PIX_FMT_RGB555X:
++		pix->colorspace = V4L2_COLORSPACE_SRGB;
++		break;
++	}
++	return 0;
++}
++
++static int ioctl_s_fmt_cap(struct v4l2_int_device *s,
++				struct v4l2_format *f)
++{
++	struct ov9640_sensor *sensor = s->priv;
++	struct v4l2_pix_format *pix = &f->fmt.pix;
++	int rval;
++
++	rval = ioctl_try_fmt_cap(s, f);
++	if (rval)
++		return rval;
++
++	rval = ov9640_configure(s);
++
++	if (!rval)
++		sensor->pix = *pix;
++
++	return rval;
++}
++
++static int ioctl_g_fmt_cap(struct v4l2_int_device *s,
++				struct v4l2_format *f)
++{
++	struct ov9640_sensor *sensor = s->priv;
++
++	f->fmt.pix = sensor->pix;
++
++	return 0;
++}
++
++static int ioctl_g_parm(struct v4l2_int_device *s,
++			     struct v4l2_streamparm *a)
++{
++	struct ov9640_sensor *sensor = s->priv;
++	struct v4l2_captureparm *cparm = &a->parm.capture;
++
++	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	memset(a, 0, sizeof(*a));
++	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++
++	cparm->capability = V4L2_CAP_TIMEPERFRAME;
++	cparm->timeperframe = sensor->timeperframe;
++
++	return 0;
++}
++
++static int ioctl_s_parm(struct v4l2_int_device *s,
++			     struct v4l2_streamparm *a)
++{
++	struct ov9640_sensor *sensor = s->priv;
++	struct v4l2_fract *timeperframe = &a->parm.capture.timeperframe;
++	struct v4l2_fract timeperframe_old;
++	int rval;
++
++	timeperframe_old = sensor->timeperframe;
++	sensor->timeperframe = *timeperframe;
++
++	rval = ov9640_configure(s);
++
++	if (rval)
++		sensor->timeperframe = timeperframe_old;
++	else
++		*timeperframe = sensor->timeperframe;
++
++	return rval;
++}
++
++static int ioctl_g_ifparm(struct v4l2_int_device *s, struct v4l2_ifparm *p)
++{
++	struct ov9640_sensor *sensor = s->priv;
++	struct i2c_client *client = sensor->i2c_client;
++	u32 xclk;	/* target xclk */
++	int rval;
++
++	rval = sensor->pdata->ifparm(p);
++	if (rval)
++		return rval;
++
++	xclk = ov9640sensor_calc_xclk(client);
++
++	p->u.bt656.clock_curr = xclk;
++
++	return 0;
++}
++
++static int ioctl_s_power(struct v4l2_int_device *s, int on)
++{
++	struct ov9640_sensor *sensor = s->priv;
++
++	return sensor->pdata->power_set(on);
++}
++
++static int ioctl_init(struct v4l2_int_device *s)
++{
++	return ov9640_configure(s);
++}
++
++static int ioctl_dev_exit(struct v4l2_int_device *s)
++{
++	return 0;
++}
++
++static int ioctl_dev_init(struct v4l2_int_device *s)
++{
++	struct ov9640_sensor *sensor = s->priv;
++	struct i2c_client *c = sensor->i2c_client;
++	int err;
++
++	err = ov9640_detect(c);
++	if (err < 0) {
++		dev_err(&c->dev, "Unable to detect " DRIVER_NAME " sensor\n");
++		return err;
++	}
++
++	sensor->ver = err;
++	pr_info(DRIVER_NAME " chip version 0x%02x detected\n", sensor->ver);
++
++	return 0;
++}
++
++static struct v4l2_int_ioctl_desc ov9640_ioctl_desc[] = {
++	{ vidioc_int_dev_init_num,
++	  (v4l2_int_ioctl_func *)ioctl_dev_init },
++	{ vidioc_int_dev_exit_num,
++	  (v4l2_int_ioctl_func *)ioctl_dev_exit },
++	{ vidioc_int_s_power_num,
++	  (v4l2_int_ioctl_func *)ioctl_s_power },
++	{ vidioc_int_g_ifparm_num,
++	  (v4l2_int_ioctl_func *)ioctl_g_ifparm },
++	{ vidioc_int_init_num,
++	  (v4l2_int_ioctl_func *)ioctl_init },
++	{ vidioc_int_enum_fmt_cap_num,
++	  (v4l2_int_ioctl_func *)ioctl_enum_fmt_cap },
++	{ vidioc_int_try_fmt_cap_num,
++	  (v4l2_int_ioctl_func *)ioctl_try_fmt_cap },
++	{ vidioc_int_g_fmt_cap_num,
++	  (v4l2_int_ioctl_func *)ioctl_g_fmt_cap },
++	{ vidioc_int_s_fmt_cap_num,
++	  (v4l2_int_ioctl_func *)ioctl_s_fmt_cap },
++	{ vidioc_int_g_parm_num,
++	  (v4l2_int_ioctl_func *)ioctl_g_parm },
++	{ vidioc_int_s_parm_num,
++	  (v4l2_int_ioctl_func *)ioctl_s_parm },
++	{ vidioc_int_queryctrl_num,
++	  (v4l2_int_ioctl_func *)ioctl_queryctrl },
++	{ vidioc_int_g_ctrl_num,
++	  (v4l2_int_ioctl_func *)ioctl_g_ctrl },
++	{ vidioc_int_s_ctrl_num,
++	  (v4l2_int_ioctl_func *)ioctl_s_ctrl },
++};
++
++static struct v4l2_int_slave ov9640_slave = {
++	.ioctls		= ov9640_ioctl_desc,
++	.num_ioctls	= ARRAY_SIZE(ov9640_ioctl_desc),
++};
++
++static struct v4l2_int_device ov9640_int_device = {
++	.module	= THIS_MODULE,
++	.name	= DRIVER_NAME,
++	.priv	= &ov9640,
++	.type	= v4l2_int_type_slave,
++	.u	= {
++		.slave = &ov9640_slave,
 +	},
 +};
 +
-+/*
-+ * OMAP TWL4030 Keypad init
-+ */
-+static int __devinit omap_kp_init(void)
++static int __init
++ov9640_probe(struct i2c_client *client)
 +{
-+	return platform_driver_register(&omap_kp_driver);
++	struct ov9640_sensor *sensor = &ov9640;
++	int err;
++
++	if (i2c_get_clientdata(client))
++		return -EBUSY;
++
++	sensor->pdata = client->dev.platform_data;
++
++	if (!sensor->pdata || !sensor->pdata->default_regs) {
++		dev_err(&client->dev, "no platform data?\n");
++		return -ENODEV;
++	}
++
++	sensor->v4l2_int_device = &ov9640_int_device;
++	sensor->i2c_client = client;
++
++	i2c_set_clientdata(client, sensor);
++
++	/* Make the default capture format QCIF RGB565 */
++	sensor->pix.width = ov9640_sizes[QCIF].width;
++	sensor->pix.height = ov9640_sizes[QCIF].height;
++	sensor->pix.pixelformat = V4L2_PIX_FMT_RGB565;
++
++	err = v4l2_int_device_register(sensor->v4l2_int_device);
++	if (err)
++		i2c_set_clientdata(client, NULL);
++
++	return 0;
 +}
 +
-+static void __exit omap_kp_exit(void)
++static int __exit
++ov9640_remove(struct i2c_client *client)
 +{
-+	platform_driver_unregister(&omap_kp_driver);
++	struct ov9640_sensor *sensor = i2c_get_clientdata(client);
++
++	if (!client->adapter)
++		return -ENODEV;	/* our client isn't attached */
++
++	v4l2_int_device_unregister(sensor->v4l2_int_device);
++	i2c_set_clientdata(client, NULL);
++
++	return 0;
 +}
 +
-+module_init(omap_kp_init);
-+module_exit(omap_kp_exit);
-+MODULE_ALIAS("platform:omap_twl4030keypad");
-+MODULE_AUTHOR("Texas Instruments");
-+MODULE_DESCRIPTION("OMAP TWL4030 Keypad Driver");
++static struct i2c_driver ov9640sensor_i2c_driver = {
++	.driver = {
++		.name	= DRIVER_NAME,
++	},
++	.probe	= ov9640_probe,
++	.remove	= __exit_p(ov9640_remove),
++};
++
++static struct ov9640_sensor ov9640 = {
++	.timeperframe = {
++		.numerator = 1,
++		.denominator = 15,
++	},
++};
++
++static int ov9640sensor_init(void)
++{
++	int err;
++
++	err = i2c_add_driver(&ov9640sensor_i2c_driver);
++	if (err) {
++		printk(KERN_ERR "Failed to register" DRIVER_NAME ".\n");
++		return err;
++	}
++	return 0;
++}
++module_init(ov9640sensor_init);
++
++static void __exit ov9640sensor_cleanup(void)
++{
++	i2c_del_driver(&ov9640sensor_i2c_driver);
++}
++module_exit(ov9640sensor_cleanup);
++
 +MODULE_LICENSE("GPL");
-diff --git a/drivers/input/keyboard/twl4030-keypad.h b/drivers/input/keyboard/twl4030-keypad.h
++MODULE_DESCRIPTION("OV9640 camera sensor driver");
+diff --git a/drivers/media/video/ov9640.h b/drivers/media/video/ov9640.h
 new file mode 100644
-index 0000000..b903a77
+index 0000000..a13fba9
 --- /dev/null
-+++ b/drivers/input/keyboard/twl4030-keypad.h
-@@ -0,0 +1,82 @@
++++ b/drivers/media/video/ov9640.h
+@@ -0,0 +1,194 @@
 +/*
-+ * drivers/input/keyboard/twl4030-keypad.h
++ * drivers/media/video/ov9640.h
 + *
-+ * Copyright (C) 2006-2007 Texas Instruments, Inc.
++ * Register definitions for the OmniVision OV9640 CameraChip.
 + *
-+ * Intial Code:
-+ *	Syed Mohammed Khasim <x0khasim@ti.com>
++ * Author: Andy Lowe (source@mvista.com)
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ * Copyright (C) 2004 MontaVista Software, Inc.
++ * Copyright (C) 2004 Texas Instruments.
 + *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2. This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
 + */
-+#ifndef __TWL4030_KEYPAD_H__
-+#define __TWL4030_KEYPAD_H__
 +
-+/* Register Definitions */
-+#define KEYP_CTRL				0x00
-+#define KEYP_DEB				0x01
-+#define KEYP_LONG_KEY				0x02
-+#define KEYP_LK_PTV				0x03
-+#define KEYP_TIMEOUT_L				0x04
-+#define KEYP_TIMEOUT_H				0x05
-+#define KEYP_FULL_CODE_7_0			0x09
-+#define KEYP_ISR1				0x11
-+#define KEYP_IMR1				0x12
-+#define KEYP_EDR				0x16
-+#define KEYP_SIH_CTRL				0x17
++#ifndef OV9640_H
++#define OV9640_H
 +
-+/* KEYP_CTRL_REG Fields */
-+#define KEYP_CTRL_SOFT_NRST			0x01
-+#define KEYP_CTRL_SOFTMODEN			0x02
-+#define KEYP_CTRL_LK_EN				0x04
-+#define KEYP_CTRL_TOE_EN			0x08
-+#define KEYP_CTRL_TOLE_EN			0x10
-+#define KEYP_CTRL_RP_EN				0x20
-+#define KEYP_CTRL_KBD_ON			0x40
++#define OV9640_I2C_ADDR		0x30
 +
++/* define register offsets for the OV9640 sensor chip */
++#define OV9640_GAIN		0x00
++#define OV9640_BLUE		0x01
++#define OV9640_RED		0x02
++#define OV9640_VREF		0x03
++#define OV9640_COM1		0x04
++#define OV9640_BAVE		0x05
++#define OV9640_GEAVE		0x06
++#define OV9640_RAVE		0x08
++#define OV9640_COM2		0x09
++#define OV9640_PID		0x0A
++#define OV9640_VER		0x0B
++#define OV9640_COM3		0x0C
++#define OV9640_COM4		0x0D
++#define OV9640_COM5		0x0E
++#define OV9640_COM6		0x0F
++#define OV9640_AECH		0x10
++#define OV9640_CLKRC		0x11
++#define OV9640_COM7		0x12
++#define OV9640_COM8		0x13
++#define OV9640_COM9		0x14
++#define OV9640_COM10		0x15
++#define OV9640_HSTRT		0x17
++#define OV9640_HSTOP		0x18
++#define OV9640_VSTRT		0x19
++#define OV9640_VSTOP		0x1A
++#define OV9640_PSHFT		0x1B
++#define OV9640_MIDH		0x1C
++#define OV9640_MIDL		0x1D
++#define OV9640_MVFP		0x1E
++#define OV9640_LAEC		0x1F
++#define OV9640_BOS		0x20
++#define OV9640_GBOS		0x21
++#define OV9640_GROS		0x22
++#define OV9640_ROS		0x23
++#define OV9640_AEW		0x24
++#define OV9640_AEB		0x25
++#define OV9640_VPT		0x26
++#define OV9640_BBIAS		0x27
++#define OV9640_GBBIAS		0x28
++#define OV9640_EXHCH		0x2A
++#define OV9640_EXHCL		0x2B
++#define OV9640_RBIAS		0x2C
++#define OV9640_ADVFL		0x2D
++#define OV9640_ADVFH		0x2E
++#define OV9640_YAVE		0x2F
++#define OV9640_HSYST		0x30
++#define OV9640_HSYEN		0x31
++#define OV9640_HREF		0x32
++#define OV9640_CHLF		0x33
++#define OV9640_ARBLM		0x34
++#define OV9640_ADC		0x37
++#define OV9640_ACOM		0x38
++#define OV9640_OFON		0x39
++#define OV9640_TSLB		0x3A
++#define OV9640_COM11		0x3B
++#define OV9640_COM12		0x3C
++#define OV9640_COM13		0x3D
++#define OV9640_COM14		0x3E
++#define OV9640_EDGE		0x3F
++#define OV9640_COM15		0x40
++#define OV9640_COM16		0x41
++#define OV9640_COM17		0x42
++#define OV9640_MTX1		0x4F
++#define OV9640_MTX2		0x50
++#define OV9640_MTX3		0x51
++#define OV9640_MTX4		0x52
++#define OV9640_MTX5		0x53
++#define OV9640_MTX6		0x54
++#define OV9640_MTX7		0x55
++#define OV9640_MTX8		0x56
++#define OV9640_MTX9		0x57
++#define OV9640_MTXS		0x58
++#define OV9640_LCC1		0x62
++#define OV9640_LCC2		0x63
++#define OV9640_LCC3		0x64
++#define OV9640_LCC4		0x65
++#define OV9640_LCC5		0x66
++#define OV9640_MANU		0x67
++#define OV9640_MANV		0x68
++#define OV9640_HV		0x69
++#define OV9640_MBD		0x6A
++#define OV9640_DBLV		0x6B
++#define OV9640_GSP1		0x6C
++#define OV9640_GSP2		0x6D
++#define OV9640_GSP3		0x6E
++#define OV9640_GSP4		0x6F
++#define OV9640_GSP5		0x70
++#define OV9640_GSP6		0x71
++#define OV9640_GSP7		0x72
++#define OV9640_GSP8		0x73
++#define OV9640_GSP9		0x74
++#define OV9640_GSP10		0x75
++#define OV9640_GSP11		0x76
++#define OV9640_GSP12		0x77
++#define OV9640_GSP13		0x78
++#define OV9640_GSP14		0x79
++#define OV9640_GSP15		0x7A
++#define OV9640_GSP16		0x7B
++#define OV9640_GST1		0x7C
++#define OV9640_GST2		0x7D
++#define OV9640_GST3		0x7E
++#define OV9640_GST4		0x7F
++#define OV9640_GST5		0x80
++#define OV9640_GST6		0x81
++#define OV9640_GST7		0x82
++#define OV9640_GST8		0x83
++#define OV9640_GST9		0x84
++#define OV9640_GST10		0x85
++#define OV9640_GST11		0x86
++#define OV9640_GST12		0x87
++#define OV9640_GST13		0x88
++#define OV9640_GST14		0x89
++#define OV9640_GST15		0x8A
 +
-+#define KEYP_CTRL_NOAUTORPT			(KEYP_CTRL_SOFT_NRST |	\
-+						 KEYP_CTRL_SOFTMODEN |	\
-+						 KEYP_CTRL_TOE_EN |	\
-+						 KEYP_CTRL_KBD_ON)
++#define OV9640_NUM_REGS		(OV9640_GST15 + 1)
 +
-+/* KEYP_DEB, KEYP_LONG_KEY, KEYP_TIMEOUT_x*/
-+#define KEYP_PERIOD_US(T, prescale)		(T / (31 << (prescale + 1)) - 1)
++#define OV9640_PID_MAGIC	0x96	/* high byte of product ID number */
++#define OV9640_VER_REV2		0x48	/* low byte of product ID number */
++#define OV9640_VER_REV3		0x49	/* low byte of product ID number */
++#define OV9640_MIDH_MAGIC	0x7F	/* high byte of mfg ID */
++#define OV9640_MIDL_MAGIC	0xA2	/* low byte of mfg ID */
 +
-+/* KEYP_LK_PTV_REG Fields */
-+#define KEYP_LK_PTV_PTV_SHIFT			5
++#define OV9640_REG_TERM 0xFF	/* terminating list entry for reg */
++#define OV9640_VAL_TERM 0xFF	/* terminating list entry for val */
 +
-+/* KEYP_IMR1 Fields */
-+#define KEYP_IMR1_MIS				0x08
-+#define KEYP_IMR1_TO				0x04
-+#define KEYP_IMR1_LK				0x02
-+#define KEYP_IMR1_KP				0x01
++/*
++ * The nominal xclk input frequency of the OV9640 is 24MHz, maximum
++ * frequency is 48MHz, and minimum frequency is 10MHz.
++ */
++#define OV9640_XCLK_MIN 10000000
++#define OV9640_XCLK_MAX 48000000
++#define OV9640_XCLK_NOM 24000000
 +
-+/* KEYP_EDR Fields */
-+#define KEYP_EDR_KP_FALLING			0x01
-+#define KEYP_EDR_KP_RISING			0x02
-+#define KEYP_EDR_KP_BOTH			0x03
-+#define KEYP_EDR_LK_FALLING			0x04
-+#define KEYP_EDR_LK_RISING			0x08
-+#define KEYP_EDR_TO_FALLING			0x10
-+#define KEYP_EDR_TO_RISING			0x20
-+#define KEYP_EDR_MIS_FALLING			0x40
-+#define KEYP_EDR_MIS_RISING			0x80
++/* define a structure for ov9640 register initialization values */
++struct ov9640_reg {
++	unsigned char reg;
++	unsigned char val;
++};
 +
-+/* KEYP_SIH_CTRL Fields */
-+#define KEYP_SIH_CTRL_COR			0x04
-+#define KEYP_SIH_CTRL_PEND_DIS			0x02
-+#define KEYP_SIH_CTRL_EXCL_EN			0x01
++enum image_size { QQCIF, QQVGA, QCIF, QVGA, CIF, VGA, SXGA };
++enum pixel_format { YUV, RGB565, RGB555 };
 +
-+#endif	/* End of __TWL4030-KEYPAD_H__ */
++#define NUM_IMAGE_SIZES 7
++#define NUM_PIXEL_FORMATS 3
++
++struct capture_size {
++	unsigned long width;
++	unsigned long height;
++};
++
++struct ov9640_platform_data {
++	/* Set power state, zero is off, non-zero is on. */
++	int (*power_set)(int power);
++	/* Default registers written after power-on or reset. */
++	const struct ov9640_reg *default_regs;
++	int (*ifparm)(struct v4l2_ifparm *p);
++};
++
++/*
++ * Array of image sizes supported by OV9640.  These must be ordered from
++ * smallest image size to largest.
++ */
++const static struct capture_size ov9640_sizes[] = {
++	{   88,  72 },	/* QQCIF */
++	{  160, 120 },	/* QQVGA */
++	{  176, 144 },	/* QCIF */
++	{  320, 240 },	/* QVGA */
++	{  352, 288 },	/* CIF */
++	{  640, 480 },	/* VGA */
++	{ 1280, 960 },	/* SXGA */
++};
++
++#endif /* ifndef OV9640_H */
 -- 
 1.6.0.1.141.g445ca
 
