@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 27/33] add tsc210x driver
-Date: Sat, 30 Aug 2008 20:16:27 +0300
-Message-ID: <1220116593-862-28-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 29/33] add omap ehci bus glue
+Date: Sat, 30 Aug 2008 20:16:29 +0300
+Message-ID: <1220116593-862-30-git-send-email-me@felipebalbi.com>
 References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-2-git-send-email-me@felipebalbi.com>
  <1220116593-862-3-git-send-email-me@felipebalbi.com>
@@ -29,12 +29,14 @@ References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-25-git-send-email-me@felipebalbi.com>
  <1220116593-862-26-git-send-email-me@felipebalbi.com>
  <1220116593-862-27-git-send-email-me@felipebalbi.com>
+ <1220116593-862-28-git-send-email-me@felipebalbi.com>
+ <1220116593-862-29-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:36673 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:36919 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752898AbYH3RW3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:22:29 -0400
-In-Reply-To: <1220116593-862-27-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1753223AbYH3RYG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:24:06 -0400
+In-Reply-To: <1220116593-862-29-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -44,1322 +46,759 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/spi/Kconfig   |   19 +
- drivers/spi/Makefile  |    1 +
- drivers/spi/tsc210x.c | 1262 +++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 1282 insertions(+), 0 deletions(-)
- create mode 100644 drivers/spi/tsc210x.c
+ drivers/usb/host/Kconfig     |   19 ++
+ drivers/usb/host/ehci-hcd.c  |    5 +
+ drivers/usb/host/ehci-omap.c |  562 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/usb/host/ehci-omap.h |  125 ++++++++++
+ 4 files changed, 711 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/usb/host/ehci-omap.c
+ create mode 100644 drivers/usb/host/ehci-omap.h
 
-diff --git a/drivers/spi/Kconfig b/drivers/spi/Kconfig
-index b9d0efb..2a200ff 100644
---- a/drivers/spi/Kconfig
-+++ b/drivers/spi/Kconfig
-@@ -225,6 +225,25 @@ config SPI_AT25
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called at25.
+diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
+index 228797e..9807d13 100644
+--- a/drivers/usb/host/Kconfig
++++ b/drivers/usb/host/Kconfig
+@@ -41,6 +41,25 @@ config USB_EHCI_HCD
  
-+config SPI_TSC210X
-+	depends on SPI_MASTER && EXPERIMENTAL
-+	tristate "TI TSC210x (TSC2101/TSC2102) support"
-+	help
-+	  Say Y here if you want support for the TSC210x chips.  Some
-+	  boards use these for touchscreen and audio support.
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called ehci-hcd.
++choice
++	prompt "PHY/TLL mode"
++	depends on USB_EHCI_HCD && EXPERIMENTAL && ARCH_OMAP34XX
++	---help---
++	Choose PHY or TLL mode of operation
 +
-+	  These are members of a family of highly integrated PDA analog
-+	  interface circuit.  They include a 12-bit ADC used for battery,
-+	  temperature, touchscreen, and other sensors.  They also have
-+	  an audio DAC and amplifier, and in some models an audio ADC.
-+	  The audio support is highly chip-specific, but most of the
-+	  sensor support works the same.
++config OMAP_EHCI_PHY_MODE
++	bool "PHY mode: ISP1504 on Port1/2 (NEW 3430ES2.0)"
++	depends on USB_EHCI_HCD && EXPERIMENTAL && ARCH_OMAP34XX
++	---help---
++	  EHCI PHY mode. Port1 and Port2 are connected to ISP1504 transcievers
 +
-+	  Note that the device has to be present in the board's SPI
-+	  devices table for this driver to load.  This driver doesn't
-+	  automatically enable touchscreen, sensors or audio
-+	  functionality - enable these in their respective menus.
-+
- config SPI_SPIDEV
- 	tristate "User mode SPI device driver support"
- 	depends on EXPERIMENTAL
-diff --git a/drivers/spi/Makefile b/drivers/spi/Makefile
-index ccf18de..bf12723 100644
---- a/drivers/spi/Makefile
-+++ b/drivers/spi/Makefile
-@@ -35,6 +35,7 @@ obj-$(CONFIG_SPI_SH_SCI)		+= spi_sh_sci.o
- obj-$(CONFIG_SPI_AT25)		+= at25.o
- obj-$(CONFIG_SPI_SPIDEV)	+= spidev.o
- obj-$(CONFIG_SPI_TLE62X0)	+= tle62x0.o
-+obj-$(CONFIG_SPI_TSC210X)	+= tsc210x.o
- # 	... add above this line ...
++config OMAP_EHCI_TLL_MODE
++	bool "TLL mode: (EXPERIMENTAL)"
++	depends on USB_EHCI_HCD && EXPERIMENTAL && ARCH_OMAP34XX
++	---help---
++	OMAP EHCI controller has TLL mode of operation for all 3 ports.
++	Use this mode when no transciever is present
++endchoice
  
- # SPI slave controller drivers (upstream link)
-diff --git a/drivers/spi/tsc210x.c b/drivers/spi/tsc210x.c
+ config USB_EHCI_ROOT_HUB_TT
+ 	bool "Root Hub Transaction Translators"
+diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
+index d9d53f2..b0a5d10 100644
+--- a/drivers/usb/host/ehci-hcd.c
++++ b/drivers/usb/host/ehci-hcd.c
+@@ -1009,6 +1009,11 @@ MODULE_LICENSE ("GPL");
+ #define	PLATFORM_DRIVER		ehci_hcd_au1xxx_driver
+ #endif
+ 
++#ifdef CONFIG_ARCH_OMAP34XX
++#include "ehci-omap.c"
++#define	PLATFORM_DRIVER		ehci_hcd_omap_driver
++#endif
++
+ #ifdef CONFIG_PPC_PS3
+ #include "ehci-ps3.c"
+ #define	PS3_SYSTEM_BUS_DRIVER	ps3_ehci_driver
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
 new file mode 100644
-index 0000000..1d2ac94
+index 0000000..8f122e5
 --- /dev/null
-+++ b/drivers/spi/tsc210x.c
-@@ -0,0 +1,1262 @@
++++ b/drivers/usb/host/ehci-omap.c
+@@ -0,0 +1,562 @@
 +/*
-+ * tsc210x.c - TSC2101/2102/... driver core
++ * ehci-omap.c - driver for USBHOST on OMAP 34xx processor
 + *
-+ * Copyright (c) 2005-2007 Andrzej Zaborowski  <balrog@zabor.org>
++ * Bus Glue for OMAP34xx USBHOST 3 port EHCI controller
++ * Tested on OMAP3430 ES2.0 SDP
 + *
-+ * This package is free software; you can redistribute it and/or modify
++ * Copyright (C) 2007-2008 Texas Instruments, Inc.
++ * 	Author: Vikram Pandita <vikram.pandita@ti.com>
++ *
++ * Based on "ehci-fsl.c" and "ehci-au1xxx.c" ehci glue layers
++ *
++ * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License as published by
 + * the Free Software Foundation; either version 2 of the License, or
 + * (at your option) any later version.
 + *
-+ * This package is distributed in the hope that it will be useful,
++ * This program is distributed in the hope that it will be useful,
 + * but WITHOUT ANY WARRANTY; without even the implied warranty of
 + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 + * GNU General Public License for more details.
 + *
 + * You should have received a copy of the GNU General Public License
-+ * along with this package; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ *
 + */
 +
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/errno.h>
 +#include <linux/platform_device.h>
-+#include <linux/suspend.h>
-+#include <linux/interrupt.h>
 +#include <linux/clk.h>
-+#include <linux/err.h>
-+#include <linux/mutex.h>
-+#include <linux/workqueue.h>
-+#include <linux/completion.h>
-+#include <linux/autoconf.h>
-+#include <linux/spi/spi.h>
-+#include <linux/spi/tsc210x.h>
++#include <mach/gpio.h>
++
++#include "ehci-omap.h"
 +
 +
-+/* NOTE:  It should be straightforward to make this driver framework handle
-+ * tsc2100 and tsc2111 chips, and maybe others too.  The main differences
-+ * are in the audio codec capabilities, but there are also some differences
-+ * in how the various sensors (including touchscreen) are handled.
++#ifdef CONFIG_OMAP_EHCI_PHY_MODE
++/* EHCI connected to External PHY */
++
++/* External USB connectivity board: 750-2083-001
++ * Connected to OMAP3430 SDP
++ * The board has Port1 and Port2 connected to ISP1504 in 12-pin ULPI mode
 + */
 +
-+/* Bit field definitions for chip registers */
-+
-+/* Scan X, Y, Z1, Z2, chip controlled, 12-bit, 16 samples, 500 usec */
-+#define TSC210X_ADC_TS_CONTROL		0x8bf4
-+/* Scan BAT1, BAT2, AUX1, AUX2, 12-bit, 16 samples, 500 usec */
-+#define TSC210X_ADC_SCAN_CONTROL	0x2ff4
-+/* Scan TEMP1, 12-bit, 16 samples, 500 usec */
-+#define TSC210X_ADC_T1_CONTROL		0x2bf4
-+/* Scan TEMP2, 12-bit, 16 samples, 500 usec */
-+#define TSC210X_ADC_T2_CONTROL		0x33f4
-+/* PINT/DAV acts as DAV */
-+#define TSC210X_ADC_DAV			0x4000
-+/* Internal reference, 100 usec delay, 1.25 V reference */
-+#define TSC210X_ADC_INT_REF		0x0016
-+/* External reference, 100 usec delay, 1.25 V reference */
-+#define TSC210X_ADC_EXT_REF		0x0002
-+/* 84 usec precharge time, 32 usec sense time */
-+#define TSC210X_CONFIG_TIMES		0x0008
-+/* The reset sequence */
-+#define TSC210X_RESET			0xbb00
-+/* Pen Status bit */
-+#define TSC210X_ADC_PSTCM		(1 << 15)
-+/* A/D Status bit */
-+#define TSC210X_ADC_ADST		(1 << 14)
-+/* (At least) One of X, Y, Z1, Z2 contains data */
-+#define TSC210X_TS_DAV			0x0780
-+/* (At least) One of BAT1, BAT2, AUX1, AUX2 contains data */
-+#define TSC210X_PS_DAV			0x0078
-+/* TEMP1 contains data */
-+#define TSC210X_T1_DAV			0x0004
-+/* TEMP2 contains data */
-+#define TSC210X_T2_DAV			0x0002
-+#define TSC2101_DAC_ON			0x0000
-+#define TSC2101_DAC_OFF			0xe7fc
-+#define TSC2102_DAC_ON			0x3ba0
-+#define TSC2102_DAC_OFF			0xafa0
-+#define TSC210X_FS44K			(1 << 13)
-+#define TSC210X_PLL1_OFF		0x0000
-+#define TSC210X_PLL1_44K		0x811c
-+#define TSC210X_PLL1_48K		0x8120
-+#define TSC210X_PLL2_44K		(5462 << 2)
-+#define TSC210X_PLL2_48K		(1920 << 2)
-+#define TSC210X_SLVMS			(1 << 11)
-+#define TSC210X_DEEMPF			(1 << 0)
-+#define TSC2102_BASSBC			(1 << 1)
-+#define TSC210X_KEYCLICK_OFF		0x0000
-+
-+#define CS_CHANGE(val)			0
-+
-+struct tsc210x_spi_req {
-+	struct spi_device *dev;
-+	u16 command;
-+	u16 data;
-+	struct spi_message message;
-+};
-+
-+struct tsc210x_dev {
-+	enum tsc_type {
-+		tsc2101,
-+		tsc2102,
-+	} kind;
-+	struct tsc210x_config *pdata;
-+	struct clk *bclk_ck;
-+
-+	struct workqueue_struct *queue;
-+	struct delayed_work ts_worker;		/* Poll-wait for PEN UP */
-+	struct delayed_work sensor_worker;	/* Scan the ADC inputs */
-+	struct mutex queue_lock;
-+	struct completion data_avail;
-+
-+	tsc210x_touch_t touch_cb;
-+	void *touch_cb_ctx;
-+
-+	tsc210x_coords_t coords_cb;
-+	void *coords_cb_ctx;
-+
-+	tsc210x_ports_t ports_cb;
-+	void *ports_cb_ctx;
-+
-+	tsc210x_temp_t temp1_cb;
-+	void *temp2_cb_ctx;
-+
-+	tsc210x_temp_t temp2_cb;
-+	void *temp1_cb_ctx;
-+
-+	struct spi_device *spi;
-+	struct spi_transfer *transfers;
-+	struct tsc210x_spi_req req_adc;
-+	struct tsc210x_spi_req req_status;
-+	struct tsc210x_spi_req req_mode;
-+	struct tsc210x_spi_req req_stop;
-+
-+	int pendown;
-+	int flushing;			/* Queue flush in progress */
-+	u16 status;
-+	u16 adc_data[4];
-+	int bat[2], aux[2], temp[2];
-+};
-+
-+static struct {
-+	unsigned int ts_msecs;		/* Interval for .ts_timer */
-+	unsigned int mode_msecs;	/* Interval for .mode_timer */
-+} settings;
-+
-+module_param_named(touch_check_msecs, settings.ts_msecs, uint, 0);
-+MODULE_PARM_DESC(touch_check_msecs, "Pen-up polling interval in msecs");
-+
-+module_param_named(sensor_scan_msecs, settings.mode_msecs, uint, 0);
-+MODULE_PARM_DESC(sensor_scan_msecs, "Temperature & battery scan interval");
-+
-+int tsc210x_write_sync(struct tsc210x_dev *dev,
-+		int page, u8 address, u16 data)
-+{
-+	static struct tsc210x_spi_req req;
-+	static struct spi_transfer transfer[2];
-+	int ret;
-+
-+	spi_message_init(&req.message);
-+
-+	/* Address */
-+	req.command = (page << 11) | (address << 5);
-+	transfer[0].tx_buf = &req.command;
-+	transfer[0].rx_buf = NULL;
-+	transfer[0].len = 2;
-+	spi_message_add_tail(&transfer[0], &req.message);
-+
-+	/* Data */
-+	transfer[1].tx_buf = &data;
-+	transfer[1].rx_buf = NULL;
-+	transfer[1].len = 2;
-+	transfer[1].cs_change = CS_CHANGE(1);
-+	spi_message_add_tail(&transfer[1], &req.message);
-+
-+	ret = spi_sync(dev->spi, &req.message);
-+	if (!ret && req.message.status)
-+		ret = req.message.status;
-+	if (ret)
-+		dev_dbg(&dev->spi->dev, "write_sync --> %d\n", ret);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(tsc210x_write_sync);
-+
-+int tsc210x_reads_sync(struct tsc210x_dev *dev,
-+		int page, u8 startaddress, u16 *data, int numregs)
-+{
-+	static struct tsc210x_spi_req req;
-+	static struct spi_transfer transfer[6];
-+	int ret, i, j;
-+
-+	if (numregs + 1 > ARRAY_SIZE(transfer))
-+		return -EINVAL;
-+
-+	spi_message_init(&req.message);
-+	i = 0;
-+	j = 0;
-+
-+	/* Address */
-+	req.command = 0x8000 | (page << 11) | (startaddress << 5);
-+	transfer[i].tx_buf = &req.command;
-+	transfer[i].rx_buf = NULL;
-+	transfer[i].len = 2;
-+	spi_message_add_tail(&transfer[i ++], &req.message);
-+
-+	/* Data */
-+	while (j < numregs) {
-+		transfer[i].tx_buf = NULL;
-+		transfer[i].rx_buf = &data[j ++];
-+		transfer[i].len = 2;
-+		transfer[i].cs_change = CS_CHANGE(j == numregs);
-+		spi_message_add_tail(&transfer[i ++], &req.message);
-+	}
-+
-+	ret = spi_sync(dev->spi, &req.message);
-+	if (!ret && req.message.status)
-+		ret = req.message.status;
-+	if (ret)
-+		dev_dbg(&dev->spi->dev, "reads_sync --> %d\n", ret);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(tsc210x_reads_sync);
-+
-+int tsc210x_read_sync(struct tsc210x_dev *dev, int page, u8 address)
-+{
-+	u16 ret;
-+	int status;
-+
-+	status = tsc210x_reads_sync(dev, page, address, &ret, 1);
-+	return status ? : ret;
-+}
-+EXPORT_SYMBOL(tsc210x_read_sync);
-+
-+
-+static void tsc210x_submit_async(struct tsc210x_spi_req *spi)
-+{
-+	int ret;
-+
-+	ret = spi_async(spi->dev, &spi->message);
-+	if (ret)
-+		dev_dbg(&spi->dev->dev, "%s: error %i in SPI request\n",
-+				__FUNCTION__, ret);
-+}
-+
-+static void tsc210x_request_alloc(struct tsc210x_dev *dev,
-+		struct tsc210x_spi_req *spi, int direction,
-+		int page, u8 startaddress, int numregs, u16 *data,
-+		void (*complete)(struct tsc210x_dev *context),
-+		struct spi_transfer **transfer)
-+{
-+	spi->dev = dev->spi;
-+
-+	if (direction == 1)	/* Write */
-+		numregs = 2;
-+	else			/* Read */
-+		numregs += 1;
-+
-+	spi_message_init(&spi->message);
-+	spi->message.complete = (void (*)(void *)) complete;
-+	spi->message.context = dev;
-+
-+	/* Address */
-+	spi->command = (page << 11) | (startaddress << 5);
-+	if (direction != 1)
-+		spi->command |= 1 << 15;
-+
-+	(*transfer)->tx_buf = &spi->command;
-+	(*transfer)->rx_buf = NULL;
-+	(*transfer)->len = 2;
-+	spi_message_add_tail((*transfer) ++, &spi->message);
-+
-+	/* Data */
-+	while (-- numregs) {
-+		if (direction == 1)
-+			(*transfer)->tx_buf = &spi->data;
-+		else
-+			(*transfer)->rx_buf = data++;
-+		(*transfer)->len = 2;
-+		(*transfer)->cs_change = CS_CHANGE(numregs != 1);
-+		spi_message_add_tail((*transfer) ++, &spi->message);
-+	}
-+}
-+
-+#define tsc210x_cb_register_func(cb, cb_t)	\
-+int tsc210x_ ## cb(struct device *dev, cb_t handler, void *context)	\
-+{	\
-+	struct tsc210x_dev *tsc = dev_get_drvdata(dev);	\
-+	\
-+	/* Lock the module */	\
-+	if (handler && !tsc->cb)	\
-+		if (!try_module_get(THIS_MODULE)) {	\
-+			dev_err(dev, "Failed to get TSC module\n");	\
-+		}	\
-+	if (!handler && tsc->cb)	\
-+		module_put(THIS_MODULE);	\
-+	\
-+	tsc->cb = handler;	\
-+	tsc->cb ## _ctx = context;	\
-+	return 0;	\
-+} \
-+EXPORT_SYMBOL(tsc210x_ ## cb);
-+
-+tsc210x_cb_register_func(touch_cb, tsc210x_touch_t)
-+tsc210x_cb_register_func(coords_cb, tsc210x_coords_t)
-+tsc210x_cb_register_func(ports_cb, tsc210x_ports_t)
-+tsc210x_cb_register_func(temp1_cb, tsc210x_temp_t)
-+tsc210x_cb_register_func(temp2_cb, tsc210x_temp_t)
-+
-+#ifdef DEBUG
-+static void tsc210x_print_dav(struct tsc210x_dev *dev)
-+{
-+	int status = tsc210x_read_sync(dev, TSC210X_TS_STATUS_CTRL);
-+
-+	if (status < 0) {
-+		dev_dbg(&dev->spi->dev, "status %d\n", status);
-+		return;
-+	}
-+
-+	if (!(status & 0x0fff))
-+		return;
-+
-+	dev_dbg(&dev->spi->dev, "data in %s%s%s%s%s%s%s%s%s%s%s\n",
-+		(status & 0x0400) ? " X" : "",
-+		(status & 0x0200) ? " Y" : "",
-+		(status & 0x0100) ? " Z1" : "",
-+		(status & 0x0080) ? " Z2" : "",
-+		(status & 0x0040) ? " BAT1" : "",
-+		(status & 0x0020) ? " BAT2" : "",
-+		(status & 0x0010) ? " AUX1" : "",
-+		(status & 0x0008) ? " AUX2" : "",
-+		(status & 0x0004) ? " TEMP1" : "",
-+		(status & 0x0002) ? " TEMP2" : "",
-+		(status & 0x0001) ? " KP" : "");
-+}
-+#endif
-+
-+static void tsc210x_complete_dummy(struct tsc210x_dev *dev)
-+{
-+}
-+
-+static inline void tsc210x_touchscreen_mode(struct tsc210x_dev *dev)
-+{
-+	/* Scan X, Y, Z1, Z2, chip controlled, 12-bit, 16 samples, 500 usec */
-+	dev->req_mode.data = TSC210X_ADC_TS_CONTROL;
-+	tsc210x_submit_async(&dev->req_mode);
-+}
-+
-+static inline void tsc210x_portscan_mode(struct tsc210x_dev *dev)
-+{
-+	/* Scan BAT1, BAT2, AUX1, AUX2, 12-bit, 16 samples, 500 usec */
-+	dev->req_mode.data = TSC210X_ADC_SCAN_CONTROL;
-+	tsc210x_submit_async(&dev->req_mode);
-+}
-+
-+static inline void tsc210x_temp1_mode(struct tsc210x_dev *dev)
-+{
-+	/* Scan TEMP1, 12-bit, 16 samples, 500 usec */
-+	dev->req_mode.data = TSC210X_ADC_T1_CONTROL;
-+	tsc210x_submit_async(&dev->req_mode);
-+}
-+
-+static inline void tsc210x_temp2_mode(struct tsc210x_dev *dev)
-+{
-+	/* Scan TEMP2, 12-bit, 16 samples, 500 usec */
-+	dev->req_mode.data = TSC210X_ADC_T2_CONTROL;
-+	tsc210x_submit_async(&dev->req_mode);
-+}
-+
-+/* Abort current conversion if any */
-+static void tsc210x_new_mode(struct tsc210x_dev *dev)
-+{
-+	dev->req_stop.data = TSC210X_ADC_ADST;
-+	tsc210x_submit_async(&dev->req_stop);
-+}
-+
-+static void tsc210x_queue_scan(struct tsc210x_dev *dev)
-+{
-+	if (dev->pdata->monitor)
-+		if (!queue_delayed_work(dev->queue,
-+				&dev->sensor_worker,
-+				msecs_to_jiffies(settings.mode_msecs)))
-+			dev_err(&dev->spi->dev,
-+					"%s: can't queue measurements\n",
-+					__FUNCTION__);
-+}
-+
-+static void tsc210x_queue_penup(struct tsc210x_dev *dev)
-+{
-+	if (!queue_delayed_work(dev->queue,
-+			&dev->ts_worker,
-+			msecs_to_jiffies(settings.ts_msecs)))
-+		dev_err(&dev->spi->dev,
-+				"%s: can't queue pen-up poll\n",
-+				__FUNCTION__);
-+}
-+
-+static void tsc210x_status_report(struct tsc210x_dev *dev)
-+{
-+	/*
-+	 * Read all converted data from corresponding registers
-+	 * so that the ADC can move on to a new conversion.
-+	 */
-+	if (dev->status & TSC210X_TS_DAV) {
-+		if (!dev->pendown && !dev->flushing) {
-+			dev->pendown = 1;
-+			if (dev->touch_cb)
-+				dev->touch_cb(dev->touch_cb_ctx, 1);
-+
-+			tsc210x_queue_penup(dev);
-+		}
-+
-+		tsc210x_submit_async(&dev->req_adc);
-+	}
-+
-+	if (dev->status & (TSC210X_PS_DAV | TSC210X_T1_DAV | TSC210X_T2_DAV))
-+		complete(&dev->data_avail);
-+}
-+
-+static void tsc210x_data_report(struct tsc210x_dev *dev)
-+{
-+	u16 adc_data[4];
-+
-+	if (dev->status & TSC210X_PS_DAV) {
-+		tsc210x_reads_sync(dev, TSC210X_TS_BAT1, adc_data, 4);
-+		/* NOTE: reads_sync() could fail */
-+
-+		dev->bat[0] = adc_data[0];
-+		dev->bat[1] = adc_data[1];
-+		dev->aux[0] = adc_data[2];
-+		dev->aux[1] = adc_data[3];
-+		if (dev->ports_cb)
-+			dev->ports_cb(dev->ports_cb_ctx, dev->bat, dev->aux);
-+	}
-+
-+	if (dev->status & TSC210X_T1_DAV) {
-+		dev->temp[0] = tsc210x_read_sync(dev, TSC210X_TS_TEMP1);
-+
-+		if (dev->temp[0] >= 0 && dev->temp1_cb)
-+			dev->temp1_cb(dev->temp1_cb_ctx, dev->temp[0]);
-+	}
-+
-+	if (dev->status & TSC210X_T2_DAV) {
-+		dev->temp[1] = tsc210x_read_sync(dev, TSC210X_TS_TEMP2);
-+
-+		if (dev->temp[1] >= 0 && dev->temp2_cb)
-+			dev->temp2_cb(dev->temp2_cb_ctx, dev->temp[1]);
-+	}
-+}
-+
-+static void tsc210x_coords_report(struct tsc210x_dev *dev)
-+{
-+	if (dev->coords_cb)
-+		dev->coords_cb(dev->coords_cb_ctx,
-+				dev->adc_data[0], dev->adc_data[1],
-+				dev->adc_data[2], dev->adc_data[3]);
-+}
-+
-+/*
-+ * There are at least three ways to check for pen-up:
-+ *	- the PINT/DAV pin state,
-+ *	- reading PSTCM bit in ADC Control register (D15, offset 0x00),
-+ *	- reading ADST bit in ADC Control register (D14, offset 0x00),
-+ *		ADC idle would indicate no screen touch.
-+ * Unfortunately none of them seems to be 100% accurate and you will
-+ * find they are totally inconsistent, i.e. you get to see any arbitrary
-+ * combination of values in these three bits.  So we will busy-wait
-+ * for a moment when the latter two indicate a pen-up, using a queue,
-+ * before we report a pen-up.
++/* ISSUE1:
++ *      ISP1504 for input clocking mode needs special reset handling
++ * 	Hold the PHY in reset by asserting RESET_N signal
++ * 	Then start the 60Mhz clock input to PHY
++ * 	Release the reset after a delay -
++ * 		to get the PHY state machine in working state
 + */
-+static void tsc210x_pressure(struct work_struct *work)
-+{
-+	struct tsc210x_dev *dev =
-+		container_of(work, struct tsc210x_dev, ts_worker.work);
-+	int adc_status;
++#define EXTERNAL_PHY_RESET
++#define	EXT_PHY_RESET_GPIO_PORT1	(57)
++#define	EXT_PHY_RESET_GPIO_PORT2	(61)
++#define	EXT_PHY_RESET_DELAY		(10)
 +
-+	WARN_ON(!dev->pendown);
-+
-+	adc_status = tsc210x_read_sync(dev, TSC210X_TS_ADC_CTRL);
-+	if (adc_status < 0) {
-+		dev_dbg(&dev->spi->dev, "pressure, err %d\n", adc_status);
-+		return;
-+	}
-+
-+	if ((adc_status & TSC210X_ADC_PSTCM) != 0
-+			|| !(adc_status & TSC210X_ADC_ADST))
-+		tsc210x_queue_penup(dev);
-+	else {
-+		dev->pendown = 0;
-+		if (dev->touch_cb)
-+			dev->touch_cb(dev->touch_cb_ctx, 0);
-+	}
-+}
-+
-+static void tsc210x_wait_data(struct tsc210x_dev *dev)
-+{
-+	wait_for_completion(&dev->data_avail);
-+
-+	tsc210x_data_report(dev);
-+}
-+
-+static void tsc210x_input_scan(struct work_struct *work)
-+{
-+	struct tsc210x_dev *dev = (struct tsc210x_dev *)
-+		container_of(work, struct tsc210x_dev, sensor_worker.work);
-+
-+	tsc210x_new_mode(dev);
-+
-+	if (dev->pdata->monitor &
-+			(TSC_BAT1 | TSC_BAT2 | TSC_AUX1 | TSC_AUX2)) {
-+		tsc210x_portscan_mode(dev);
-+		tsc210x_wait_data(dev);
-+	}
-+
-+	if (dev->pdata->monitor & TSC_TEMP) {
-+		tsc210x_temp1_mode(dev);
-+		tsc210x_wait_data(dev);
-+
-+		tsc210x_temp2_mode(dev);
-+		tsc210x_wait_data(dev);
-+	}
-+
-+	tsc210x_touchscreen_mode(dev);
-+
-+	mutex_lock(&dev->queue_lock);
-+	if (!dev->flushing)
-+		tsc210x_queue_scan(dev);
-+	mutex_unlock(&dev->queue_lock);
-+}
-+
-+/* ADC has finished a new conversion for us.  */
-+static irqreturn_t tsc210x_handler(int irq, void *dev_id)
-+{
-+	struct tsc210x_dev *dev = (struct tsc210x_dev *) dev_id;
-+
-+	/* See what data became available.  */
-+	tsc210x_submit_async(&dev->req_status);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+#if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
-+
-+/*
-+ * FIXME the audio support shouldn't be included in upstream patches
-+ * until it's ready.  They might be better as utility functions linked
-+ * with a chip-specific tsc21xx audio module ... e.g. chips with input
-+ * channels need more, as will ones with multiple output channels and
-+ * so on.  Each of these functions should probably return a fault code,
-+ * and will need to be exported so the sound drier can be modular.
++/* ISSUE2:
++ * USBHOST supports External charge pump PHYs only
++ * Use the VBUS from Port1 to power VBUS of Port2 externally
++ * So use Port2 as the working ULPI port
 + */
++#define VBUS_INTERNAL_CHARGEPUMP_HACK
 +
-+/*
-+ * Volume level values should be in the range [0, 127].
-+ * Higher values mean lower volume.
-+ */
-+void tsc210x_set_dac_volume(struct device *dev, u8 left_ch, u8 right_ch)
-+{
-+	struct tsc210x_dev *tsc = dev_get_drvdata(dev);
-+	int val;
++#endif /* CONFIG_OMAP_EHCI_PHY_MODE */
 +
-+	if (tsc->kind == tsc2102) {
-+		/* All 0's or all 1's */
-+		if (left_ch == 0x00 || left_ch == 0x7f)
-+			left_ch ^= 0x7f;
-+		if (right_ch == 0x00 || right_ch == 0x7f)
-+			right_ch ^= 0x7f;
-+	}
++/*-------------------------------------------------------------------------*/
 +
-+	val = tsc210x_read_sync(tsc, TSC210X_DAC_GAIN_CTRL);
-+	if (val < 0) {
-+		dev_dbg(dev, "%s, err %d\n", __FUNCTION__, val);
-+		return;
-+	}
-+
-+	val &= 0x8080;	/* Preserve mute-bits */
-+	val |= (left_ch << 8) | right_ch;
-+
-+	tsc210x_write_sync(tsc, TSC210X_DAC_GAIN_CTRL, val);
-+	/* NOTE: write_sync() could fail */
-+}
-+
-+void tsc210x_set_dac_mute(struct device *dev, int left_ch, int right_ch)
-+{
-+	struct tsc210x_dev *tsc = dev_get_drvdata(dev);
-+	int val;
-+
-+	val = tsc210x_read_sync(tsc, TSC210X_DAC_GAIN_CTRL);
-+	if (val < 0) {
-+		dev_dbg(dev, "%s, err %d\n", __FUNCTION__, val);
-+		return;
-+	}
-+
-+	val &= 0x7f7f;	/* Preserve volume settings */
-+	val |= (left_ch << 15) | (right_ch << 7);
-+
-+	tsc210x_write_sync(tsc, TSC210X_DAC_GAIN_CTRL, val);
-+	/* NOTE: write_sync() could fail */
-+}
-+
-+void tsc210x_get_dac_mute(struct device *dev, int *left_ch, int *right_ch)
-+{
-+	struct tsc210x_dev *tsc = dev_get_drvdata(dev);
-+	int val;
-+
-+	val = tsc210x_read_sync(tsc, TSC210X_DAC_GAIN_CTRL);
-+	if (val < 0) {
-+		dev_dbg(dev, "%s, err %d\n", __FUNCTION__, val);
-+		return;
-+	}
-+
-+	*left_ch = !!(val & (1 << 15));
-+	*right_ch = !!(val & (1 << 7));
-+}
-+
-+void tsc210x_set_deemphasis(struct device *dev, int enable)
-+{
-+	struct tsc210x_dev *tsc = dev_get_drvdata(dev);
-+	int val;
-+
-+	val = tsc210x_read_sync(tsc, TSC210X_POWER_CTRL);
-+	if (val < 0) {
-+		dev_dbg(dev, "%s, err %d\n", __FUNCTION__, val);
-+		return;
-+	}
-+
-+	if (enable)
-+		val &= ~TSC210X_DEEMPF;
-+	else
-+		val |= TSC210X_DEEMPF;
-+
-+	tsc210x_write_sync(tsc, TSC210X_POWER_CTRL, val);
-+	/* NOTE: write_sync() could fail */
-+}
-+
-+void tsc2102_set_bassboost(struct device *dev, int enable)
-+{
-+	struct tsc210x_dev *tsc = dev_get_drvdata(dev);
-+	int val;
-+
-+	val = tsc210x_read_sync(tsc, TSC210X_POWER_CTRL);
-+	if (val < 0) {
-+		dev_dbg(dev, "%s, err %d\n", __FUNCTION__, val);
-+		return;
-+	}
-+
-+	if (enable)
-+		val &= ~TSC2102_BASSBC;
-+	else
-+		val |= TSC2102_BASSBC;
-+
-+	tsc210x_write_sync(tsc, TSC210X_POWER_CTRL, val);
-+	/* NOTE: write_sync() could fail */
-+}
-+
-+/*	{rate, dsor, fsref}	*/
-+static const struct tsc210x_rate_info_s tsc2101_rates[] = {
-+	/* Fsref / 6.0 */
-+	{7350,	7,	1},
-+	{8000,	7,	0},
-+	/* Fsref / 5.5 */
-+	{8018,	6,	1},
-+	{8727,	6,	0},
-+	/* Fsref / 5.0 */
-+	{8820,	5,	1},
-+	{9600,	5,	0},
-+	/* Fsref / 4.0 */
-+	{11025,	4,	1},
-+	{12000,	4,	0},
-+	/* Fsref / 3.0 */
-+	{14700,	3,	1},
-+	{16000,	3,	0},
-+	/* Fsref / 2.0 */
-+	{22050,	2,	1},
-+	{24000,	2,	0},
-+	/* Fsref / 1.5 */
-+	{29400,	1,	1},
-+	{32000,	1,	0},
-+	/* Fsref */
-+	{44100,	0,	1},
-+	{48000,	0,	0},
-+
-+	{0,	0,	0},
++/* Define USBHOST clocks for clock management */
++struct ehci_omap_clock_defs {
++	struct clk	*usbhost_ick_clk;
++	struct clk	*usbhost2_120m_fck_clk;
++	struct clk	*usbhost1_48m_fck_clk;
++	struct clk	*usbtll_fck_clk;
++	struct clk	*usbtll_ick_clk;
 +};
 +
-+/*	{rate, dsor, fsref}	*/
-+static const struct tsc210x_rate_info_s tsc2102_rates[] = {
-+	/* Fsref / 6.0 */
-+	{7350,	63,	1},
-+	{8000,	63,	0},
-+	/* Fsref / 6.0 */
-+	{7350,	54,	1},
-+	{8000,	54,	0},
-+	/* Fsref / 5.0 */
-+	{8820,	45,	1},
-+	{9600,	45,	0},
-+	/* Fsref / 4.0 */
-+	{11025,	36,	1},
-+	{12000,	36,	0},
-+	/* Fsref / 3.0 */
-+	{14700,	27,	1},
-+	{16000,	27,	0},
-+	/* Fsref / 2.0 */
-+	{22050,	18,	1},
-+	{24000,	18,	0},
-+	/* Fsref / 1.5 */
-+	{29400,	9,	1},
-+	{32000,	9,	0},
-+	/* Fsref */
-+	{44100,	0,	1},
-+	{48000,	0,	0},
++/* Clock names as per clock framework: May change so keep as #defs */
++#define USBHOST_ICKL		"usbhost_ick"
++#define USBHOST_120M_FCLK	"usbhost_120m_fck"
++#define USBHOST_48M_FCLK	"usbhost_48m_fck"
++#define USBHOST_TLL_ICKL	"usbtll_ick"
++#define USBHOST_TLL_FCLK	"usbtll_fck"
++/*-------------------------------------------------------------------------*/
 +
-+	{0,	0,	0},
-+};
 +
-+int tsc210x_set_rate(struct device *dev, int rate)
++#ifndef CONFIG_OMAP_EHCI_PHY_MODE
++
++static void omap_usb_utmi_init(struct usb_hcd *hcd, u8 tll_channel_mask)
 +{
-+	struct tsc210x_dev *tsc = dev_get_drvdata(dev);
 +	int i;
-+	int val;
-+	const struct tsc210x_rate_info_s *rates;
 +
-+	if (tsc->kind == tsc2101)
-+		rates = tsc2101_rates;
-+	else
-+		rates = tsc2102_rates;
++	/* Use UTMI Ports of TLL */
++	omap_writel((1 << OMAP_UHH_HOSTCONFIG_ULPI_BYPASS_SHIFT)|
++			(1<<OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN_SHIFT)|
++			(1<<OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN_SHIFT)|
++			(1<<OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN_SHIFT)|
++			(0<<OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN_SHIFT),
++						OMAP_UHH_HOSTCONFIG);
++	/* Enusre bit is set */
++	while (!(omap_readl(OMAP_UHH_HOSTCONFIG) &
++		(1 << OMAP_UHH_HOSTCONFIG_ULPI_BYPASS_SHIFT)));
 +
-+	for (i = 0; rates[i].sample_rate; i ++)
-+		if (rates[i].sample_rate == rate)
-+			break;
-+	if (rates[i].sample_rate == 0) {
-+		dev_err(dev, "Unknown sampling rate %i.0 Hz\n", rate);
-+		return -EINVAL;
++	dev_dbg(hcd->self.controller, "\nEntered UTMI MODE: success\n");
++
++	/* Program the 3 TLL channels upfront */
++
++	for (i = 0; i < OMAP_TLL_CHANNEL_COUNT; i++) {
++
++		/* Disable AutoIdle */
++		omap_writel(omap_readl(OMAP_TLL_CHANNEL_CONF(i)) &
++			    ~(1<<OMAP_TLL_CHANNEL_CONF_UTMIAUTOIDLE_SHIFT),
++			    OMAP_TLL_CHANNEL_CONF(i));
++		/* Disable BitStuffing */
++		omap_writel(omap_readl(OMAP_TLL_CHANNEL_CONF(i)) &
++			    ~(1<<OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF_SHIFT),
++			    OMAP_TLL_CHANNEL_CONF(i));
++		/* SDR Mode */
++		omap_writel(omap_readl(OMAP_TLL_CHANNEL_CONF(i)) &
++			    ~(1<<OMAP_TLL_CHANNEL_CONF_ULPIDDRMODE_SHIFT),
++			    OMAP_TLL_CHANNEL_CONF(i));
++
 +	}
 +
-+	if (tsc->kind == tsc2101) {
-+		val = tsc210x_read_sync(tsc, TSC210X_AUDIO1_CTRL);
-+		if (val < 0) {
-+			dev_dbg(dev, "%s, err %d\n", __FUNCTION__, val);
-+			return val;
-+		}
-+		val &= ~((7 << 3) | (7 << 0));
-+		val |= rates[i].divisor << 3;
-+		val |= rates[i].divisor << 0;
-+	} else
-+		val = rates[i].divisor;
++	/* Program Common TLL register */
++	omap_writel((1 << OMAP_TLL_SHARED_CONF_FCLK_IS_ON_SHIFT) |
++			(1 << OMAP_TLL_SHARED_CONF_USB_DIVRATION_SHIFT) |
++			(0 << OMAP_TLL_SHARED_CONF_USB_180D_SDR_EN_SHIFT) |
++			(0 << OMAP_TLL_SHARED_CONF_USB_90D_DDR_EN_SHFT),
++				OMAP_TLL_SHARED_CONF);
 +
-+	tsc210x_write_sync(tsc, TSC210X_AUDIO1_CTRL, val);
-+	/* NOTE: write_sync() could fail */
++	/* Enable channels now */
++	for (i = 0; i < OMAP_TLL_CHANNEL_COUNT; i++) {
 +
-+	val = tsc210x_read_sync(tsc, TSC210X_AUDIO3_CTRL);
-+	if (val < 0) {
-+		dev_dbg(dev, "%s, err %d\n", __FUNCTION__, val);
-+		return val;
++		/* Enable only the channel that is needed */
++		if (!(tll_channel_mask & 1<<i))
++			continue;
++
++		omap_writel(omap_readl(OMAP_TLL_CHANNEL_CONF(i)) |
++			    (1<<OMAP_TLL_CHANNEL_CONF_CHANEN_SHIFT),
++			    OMAP_TLL_CHANNEL_CONF(i));
++
++		omap_writeb(0xBE, OMAP_TLL_ULPI_SCRATCH_REGISTER(i));
++		dev_dbg(hcd->self.controller, "\nULPI_SCRATCH_REG[ch=%d]"
++			"= 0x%02x\n",
++			i+1, omap_readb(OMAP_TLL_ULPI_SCRATCH_REGISTER(i)));
 +	}
-+
-+	if (tsc2102_rates[i].fs_44k) {
-+		tsc210x_write_sync(tsc,
-+				TSC210X_AUDIO3_CTRL, val | TSC210X_FS44K);
-+		/* Enable Phase-locked-loop, set up clock dividers */
-+		tsc210x_write_sync(tsc, TSC210X_PLL1_CTRL, TSC210X_PLL1_44K);
-+		tsc210x_write_sync(tsc, TSC210X_PLL2_CTRL, TSC210X_PLL2_44K);
-+	} else {
-+		tsc210x_write_sync(tsc,
-+				TSC210X_AUDIO3_CTRL, val & ~TSC210X_FS44K);
-+		/* Enable Phase-locked-loop, set up clock dividers */
-+		tsc210x_write_sync(tsc, TSC210X_PLL1_CTRL, TSC210X_PLL1_48K);
-+		tsc210x_write_sync(tsc, TSC210X_PLL2_CTRL, TSC210X_PLL2_48K);
-+	}
-+
-+	return 0;
 +}
 +
-+/*
-+ * Perform basic set-up with default values and power the DAC/ADC on.
-+ */
-+void tsc210x_dac_power(struct device *dev, int on)
-+{
-+	struct tsc210x_dev *tsc = dev_get_drvdata(dev);
-+
-+	/* NOTE: write_sync() could fail */
-+	if (on) {
-+		/* 16-bit words, DSP mode, sample at Fsref */
-+		tsc210x_write_sync(tsc,
-+				TSC210X_AUDIO1_CTRL, 0x0100);
-+		/* Keyclicks off, soft-stepping at normal rate */
-+		tsc210x_write_sync(tsc,
-+				TSC210X_AUDIO2_CTRL, TSC210X_KEYCLICK_OFF);
-+		/* 44.1 kHz Fsref, continuous transfer mode, master DAC */
-+		tsc210x_write_sync(tsc,
-+				TSC210X_AUDIO3_CTRL, 0x2000);
-+		/* Soft-stepping enabled, 1 dB MIX AGC hysteresis */
-+		tsc210x_write_sync(tsc,
-+				TSC210X_AUDIO4_CTRL, 0x0000);
-+
-+		/* PLL generates 44.1 kHz */
-+		tsc210x_write_sync(tsc,
-+				TSC210X_PLL1_CTRL, TSC210X_PLL1_44K);
-+		tsc210x_write_sync(tsc,
-+				TSC210X_PLL2_CTRL, TSC210X_PLL2_44K);
-+
-+		/* Codec & DAC power up, virtual ground disabled */
-+		tsc210x_write_sync(tsc,
-+				TSC210X_POWER_CTRL, (tsc->kind == tsc2101) ?
-+				TSC2101_DAC_ON : TSC2102_DAC_ON);
-+	} else {
-+		/* All off */
-+		tsc210x_write_sync(tsc,
-+				TSC210X_AUDIO2_CTRL, TSC210X_KEYCLICK_OFF);
-+		tsc210x_write_sync(tsc,
-+				TSC210X_PLL1_CTRL, TSC210X_PLL1_OFF);
-+#if 0
-+		tsc210x_write_sync(tsc,
-+				TSC210X_POWER_CTRL, (tsc->kind == tsc2101) ?
-+				TSC2102_DAC_OFF : TSC2102_DAC_OFF);
++#else
++# define omap_usb_utmi_init(x, y)	0
 +#endif
-+	}
-+}
 +
-+void tsc210x_set_i2s_master(struct device *dev, int state)
++
++/* omap_start_ehc
++ * 	- Start the TI USBHOST controller
++ */
++static int omap_start_ehc(struct platform_device *dev, struct usb_hcd *hcd)
 +{
-+	struct tsc210x_dev *tsc = dev_get_drvdata(dev);
-+	int val;
++	struct ehci_omap_clock_defs *ehci_clocks;
 +
-+	val = tsc210x_read_sync(tsc, TSC210X_AUDIO3_CTRL);
-+	if (val < 0) {
-+		dev_dbg(dev, "%s, err %d\n", __FUNCTION__, val);
-+		return;
-+	}
++	dev_dbg(hcd->self.controller, ": starting TI EHCI USB Controller\n");
 +
-+	/* NOTE: write_sync() could fail */
-+	if (state)
-+		tsc210x_write_sync(tsc, TSC210X_AUDIO3_CTRL,
-+				val | TSC210X_SLVMS);
-+	else
-+		tsc210x_write_sync(tsc, TSC210X_AUDIO3_CTRL,
-+				val & ~TSC210X_SLVMS);
-+}
-+#endif	/* CONFIG_SOUND */
++	ehci_clocks = (struct ehci_omap_clock_defs *)(
++				((char *)hcd_to_ehci(hcd)) +
++					sizeof(struct ehci_hcd));
 +
-+static int tsc210x_configure(struct tsc210x_dev *dev)
-+{
-+	/* NOTE: write_sync() could fail */
++	/* Start DPLL5 Programming:
++	 * Clock Framework is not doing this now:
++	 * This will be done in clock framework later
++	 */
++	/* Enable DPLL 5 : Based on Input of 13Mhz*/
++	cm_write_mod_reg((12 << OMAP3430ES2_PERIPH2_DPLL_DIV_SHIFT)|
++			(120 << OMAP3430ES2_PERIPH2_DPLL_MULT_SHIFT),
++			PLL_MOD, OMAP3430ES2_CM_CLKSEL4);
 +
-+	/* Reset the chip */
-+	tsc210x_write_sync(dev, TSC210X_TS_RESET_CTRL, TSC210X_RESET);
++	cm_write_mod_reg(1 << OMAP3430ES2_DIV_120M_SHIFT,
++			PLL_MOD, OMAP3430ES2_CM_CLKSEL5);
 +
-+	/* Reference mode */
-+	if (dev->pdata->use_internal)
-+		tsc210x_write_sync(dev,
-+				TSC210X_TS_REF_CTRL, TSC210X_ADC_INT_REF);
-+	else
-+		tsc210x_write_sync(dev,
-+				TSC210X_TS_REF_CTRL, TSC210X_ADC_EXT_REF);
++	cm_write_mod_reg((7 << OMAP3430ES2_PERIPH2_DPLL_FREQSEL_SHIFT) |
++			(7 << OMAP3430ES2_EN_PERIPH2_DPLL_SHIFT),
++			PLL_MOD, OMAP3430ES2_CM_CLKEN2);
 +
-+	/* Precharge and sense delays, pen touch detection on */
-+	tsc210x_write_sync(dev, TSC210X_TS_CONFIG_CTRL, TSC210X_CONFIG_TIMES);
++	while (!(cm_read_mod_reg(PLL_MOD, CM_IDLEST2) &
++				OMAP3430ES2_ST_PERIPH2_CLK_MASK))
++		dev_dbg(hcd->self.controller,
++			"idlest2 = 0x%x\n",
++			cm_read_mod_reg(PLL_MOD, CM_IDLEST2));
++	/* End DPLL5 programming */
 +
-+	/* PINT/DAV acts as DAV */
-+	tsc210x_write_sync(dev, TSC210X_TS_STATUS_CTRL, TSC210X_ADC_DAV);
 +
-+	tsc210x_queue_scan(dev);
++	/* PRCM settings for USBHOST:
++	 * Interface clk un-related to domain transition
++	 */
++	cm_write_mod_reg(0 << OMAP3430ES2_AUTO_USBHOST_SHIFT,
++				OMAP3430ES2_USBHOST_MOD, CM_AUTOIDLE);
++
++	/* Disable sleep dependency with MPU and IVA */
++	cm_write_mod_reg((0 << OMAP3430ES2_EN_MPU_SHIFT) |
++				(0 << OMAP3430ES2_EN_IVA2_SHIFT),
++				OMAP3430ES2_USBHOST_MOD, OMAP3430_CM_SLEEPDEP);
++
++	/* Disable Automatic transition of clock */
++	cm_write_mod_reg(0 << OMAP3430ES2_CLKTRCTRL_USBHOST_SHIFT,
++				OMAP3430ES2_USBHOST_MOD, CM_CLKSTCTRL);
++
++	/* Enable Clocks for USBHOST */
++	ehci_clocks->usbhost_ick_clk = clk_get(&dev->dev,
++						USBHOST_ICKL);
++	if (IS_ERR(ehci_clocks->usbhost_ick_clk))
++		return PTR_ERR(ehci_clocks->usbhost_ick_clk);
++	clk_enable(ehci_clocks->usbhost_ick_clk);
++
++
++	ehci_clocks->usbhost2_120m_fck_clk = clk_get(&dev->dev,
++							USBHOST_120M_FCLK);
++	if (IS_ERR(ehci_clocks->usbhost2_120m_fck_clk))
++		return PTR_ERR(ehci_clocks->usbhost2_120m_fck_clk);
++	clk_enable(ehci_clocks->usbhost2_120m_fck_clk);
++
++	ehci_clocks->usbhost1_48m_fck_clk = clk_get(&dev->dev,
++						USBHOST_48M_FCLK);
++	if (IS_ERR(ehci_clocks->usbhost1_48m_fck_clk))
++		return PTR_ERR(ehci_clocks->usbhost1_48m_fck_clk);
++	clk_enable(ehci_clocks->usbhost1_48m_fck_clk);
++
++
++#ifdef EXTERNAL_PHY_RESET
++	/* Refer: ISSUE1 */
++	omap_request_gpio(EXT_PHY_RESET_GPIO_PORT1);
++	omap_set_gpio_direction(EXT_PHY_RESET_GPIO_PORT1, 0);
++	omap_request_gpio(EXT_PHY_RESET_GPIO_PORT2);
++	omap_set_gpio_direction(EXT_PHY_RESET_GPIO_PORT2, 0);
++	omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT1, 0);
++	omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT2, 0);
++	/* Hold the PHY in RESET for enough time till DIR is high */
++	udelay(EXT_PHY_RESET_DELAY);
++#endif
++
++	/* Configure TLL for 60Mhz clk for ULPI */
++	ehci_clocks->usbtll_fck_clk = clk_get(&dev->dev, USBHOST_TLL_FCLK);
++	if (IS_ERR(ehci_clocks->usbtll_fck_clk))
++		return PTR_ERR(ehci_clocks->usbtll_fck_clk);
++	clk_enable(ehci_clocks->usbtll_fck_clk);
++
++	ehci_clocks->usbtll_ick_clk = clk_get(&dev->dev, USBHOST_TLL_ICKL);
++	if (IS_ERR(ehci_clocks->usbtll_ick_clk))
++		return PTR_ERR(ehci_clocks->usbtll_ick_clk);
++	clk_enable(ehci_clocks->usbtll_ick_clk);
++
++	/* Disable Auto Idle of USBTLL */
++	cm_write_mod_reg((0 << OMAP3430ES2_AUTO_USBTLL_SHIFT),
++				CORE_MOD, CM_AUTOIDLE3);
++
++	/* Wait for TLL to be Active */
++	while ((cm_read_mod_reg(CORE_MOD, OMAP2430_CM_IDLEST3) &
++		(1 << OMAP3430ES2_ST_USBTLL_SHIFT)));
++
++	/* perform TLL soft reset, and wait until reset is complete */
++	omap_writel(1 << OMAP_USBTLL_SYSCONFIG_SOFTRESET_SHIFT,
++			OMAP_USBTLL_SYSCONFIG);
++	/* Wait for TLL reset to complete */
++	while (!(omap_readl(OMAP_USBTLL_SYSSTATUS) &
++		(1 << OMAP_USBTLL_SYSSTATUS_RESETDONE_SHIFT)));
++
++	dev_dbg(hcd->self.controller, "\n TLL RESET DONE\n");
++
++	/* (1<<3) = no idle mode only for initial debugging */
++	omap_writel((1 << OMAP_USBTLL_SYSCONFIG_ENAWAKEUP_SHIFT) |
++			(1 << OMAP_USBTLL_SYSCONFIG_SIDLEMODE_SHIFT) |
++			(1 << OMAP_USBTLL_SYSCONFIG_CACTIVITY_SHIFT),
++			OMAP_USBTLL_SYSCONFIG);
++
++
++	/* Put UHH in NoIdle/NoStandby mode */
++	omap_writel((0 << OMAP_UHH_SYSCONFIG_AUTOIDLE_SHIFT) |
++			(1 << OMAP_UHH_SYSCONFIG_ENAWAKEUP_SHIFT) |
++			(1 << OMAP_UHH_SYSCONFIG_SIDLEMODE_SHIFT) |
++			(1 << OMAP_UHH_SYSCONFIG_CACTIVITY_SHIFT) |
++			(1 << OMAP_UHH_SYSCONFIG_MIDLEMODE_SHIFT),
++			OMAP_UHH_SYSCONFIG);
++
++#ifdef CONFIG_OMAP_EHCI_PHY_MODE
++	/* Bypass the TLL module for PHY mode operation */
++	omap_writel((0 << OMAP_UHH_HOSTCONFIG_ULPI_BYPASS_SHIFT)|
++			(1<<OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN_SHIFT)|
++			(1<<OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN_SHIFT)|
++			(1<<OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN_SHIFT)|
++			(0<<OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN_SHIFT),
++						OMAP_UHH_HOSTCONFIG);
++	/* Ensure that BYPASS is set */
++	while (omap_readl(OMAP_UHH_HOSTCONFIG) &
++		(1 << OMAP_UHH_HOSTCONFIG_ULPI_BYPASS_SHIFT));
++
++	dev_dbg(hcd->self.controller, "Entered ULPI PHY MODE: success");
++
++#else
++	/* Enable UTMI mode for all 3 TLL channels */
++	omap_usb_utmi_init(hcd,
++		OMAP_TLL_CHANNEL_1_EN_MASK |
++		OMAP_TLL_CHANNEL_2_EN_MASK |
++		OMAP_TLL_CHANNEL_3_EN_MASK
++		);
++#endif
++
++#ifdef EXTERNAL_PHY_RESET
++	/* Refer ISSUE1:
++	 * Hold the PHY in RESET for enough time till PHY is settled and ready
++	 */
++	udelay(EXT_PHY_RESET_DELAY);
++	omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT1, 1);
++	omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT2, 1);
++#endif
++
++#ifdef VBUS_INTERNAL_CHARGEPUMP_HACK
++	/* Refer ISSUE2: LINK assumes external charge pump */
++
++	/* use Port1 VBUS to charge externally Port2:
++	 * 	So for PHY mode operation use Port2 only
++	 */
++	omap_writel((0xA << EHCI_INSNREG05_ULPI_REGADD_SHIFT) |/* OTG ctrl reg*/
++			(2 << EHCI_INSNREG05_ULPI_OPSEL_SHIFT) |/*   Write */
++			(1 << EHCI_INSNREG05_ULPI_PORTSEL_SHIFT) |/* Port1 */
++			(1 << EHCI_INSNREG05_ULPI_CONTROL_SHIFT) |/* Start */
++			(0x26),
++			EHCI_INSNREG05_ULPI);
++
++	while (!(omap_readl(EHCI_INSNREG05_ULPI) &
++		(1<<EHCI_INSNREG05_ULPI_CONTROL_SHIFT)));
++
++#endif
++
 +	return 0;
 +}
 +
-+void tsc210x_keyclick(struct tsc210x_dev *dev,
-+		int amplitude, int freq, int length)
++/*-------------------------------------------------------------------------*/
++
++static void omap_stop_ehc(struct platform_device *dev, struct usb_hcd *hcd)
 +{
-+	int val;
++	struct ehci_omap_clock_defs *ehci_clocks;
 +
-+	val = tsc210x_read_sync(dev, TSC210X_AUDIO2_CTRL);
-+	if (val < 0) {
-+		dev_dbg(&dev->spi->dev, "%s, err %d\n",
-+				__FUNCTION__, val);
-+		return;
-+	}
-+	val &= 0x800f;
++	ehci_clocks = (struct ehci_omap_clock_defs *)
++			(((char *)hcd_to_ehci(hcd)) + sizeof(struct ehci_hcd));
 +
-+	/* Set amplitude */
-+	switch (amplitude) {
-+	case 1:
-+		val |= 4 << 12;
-+		break;
-+	case 2:
-+		val |= 7 << 12;
-+		break;
-+	default:
-+		break;
-+	}
++	dev_dbg(hcd->self.controller, ": stopping TI EHCI USB Controller\n");
 +
-+	/* Frequency */
-+	val |= (freq & 0x7) << 8;
++	/* Reset OMAP modules for insmod/rmmod to work */
++	omap_writel((1<<1), OMAP_UHH_SYSCONFIG);
++	while (!(omap_readl(OMAP_UHH_SYSSTATUS) & (1<<0)));
++	while (!(omap_readl(OMAP_UHH_SYSSTATUS) & (1<<1)));
++	while (!(omap_readl(OMAP_UHH_SYSSTATUS) & (1<<2)));
++	dev_dbg(hcd->self.controller,
++		"UHH RESET DONE OMAP_UHH_SYSSTATUS %x !!\n",
++			omap_readl(OMAP_UHH_SYSSTATUS));
 +
-+	/* Round to nearest supported length */
-+	if (dev->kind == tsc2101)
-+		val = (min(length - 1, 31) >> 1) << 4;
-+	else {
-+		if (length > 20)
-+			val |= 4 << 4;
-+		else if (length > 6)
-+			val |= 3 << 4;
-+		else if (length > 4)
-+			val |= 2 << 4;
-+		else if (length > 2)
-+			val |= 1 << 4;
++	omap_writel((1<<1), OMAP_USBTLL_SYSCONFIG);
++	while (!(omap_readl(OMAP_USBTLL_SYSSTATUS) & (1<<0)));
++	dev_dbg(hcd->self.controller, ":TLL RESEET DONE");
++
++	if (ehci_clocks->usbtll_fck_clk != NULL) {
++		clk_disable(ehci_clocks->usbtll_fck_clk);
++		clk_put(ehci_clocks->usbtll_fck_clk);
++		ehci_clocks->usbtll_fck_clk = NULL;
 +	}
 +
-+	/* Enable keyclick */
-+	val |= 0x8000;
++	if (ehci_clocks->usbhost_ick_clk != NULL) {
++		clk_disable(ehci_clocks->usbhost_ick_clk);
++		clk_put(ehci_clocks->usbhost_ick_clk);
++		ehci_clocks->usbhost_ick_clk = NULL;
++	}
 +
-+	/* NOTE: write_sync() could fail */
-+	tsc210x_write_sync(dev, TSC210X_AUDIO2_CTRL, val);
++	if (ehci_clocks->usbhost1_48m_fck_clk != NULL) {
++		clk_disable(ehci_clocks->usbhost1_48m_fck_clk);
++		clk_put(ehci_clocks->usbhost1_48m_fck_clk);
++		ehci_clocks->usbhost1_48m_fck_clk = NULL;
++	}
++
++	if (ehci_clocks->usbhost2_120m_fck_clk != NULL) {
++		clk_disable(ehci_clocks->usbhost2_120m_fck_clk);
++		clk_put(ehci_clocks->usbhost2_120m_fck_clk);
++		ehci_clocks->usbhost2_120m_fck_clk = NULL;
++	}
++
++	if (ehci_clocks->usbtll_ick_clk != NULL) {
++		clk_disable(ehci_clocks->usbtll_ick_clk);
++		clk_put(ehci_clocks->usbtll_ick_clk);
++		ehci_clocks->usbtll_ick_clk = NULL;
++	}
++
++
++#ifdef EXTERNAL_PHY_RESET
++	omap_free_gpio(EXT_PHY_RESET_GPIO_PORT1);
++	omap_free_gpio(EXT_PHY_RESET_GPIO_PORT2);
++#endif
++
++	dev_dbg(hcd->self.controller,
++		": Clock to USB host has been disabled\n");
 +}
-+EXPORT_SYMBOL(tsc210x_keyclick);
 +
-+#ifdef CONFIG_PM
-+/*
-+ * Suspend the chip.
++static const struct hc_driver ehci_omap_hc_driver;
++
++/*-------------------------------------------------------------------------*/
++/* configure so an HC device and id are always provided */
++/* always called with process context; sleeping is OK */
++
++/**
++ * ehci_hcd_omap_drv_probe - initialize TI-based HCDs
++ * Context: !in_interrupt()
++ *
++ * Allocates basic resources for this USB host controller, and
++ * then invokes the start() method for the HCD associated with it
++ * through the hotplug entry's driver_data.
++ *
 + */
-+static int
-+tsc210x_suspend(struct spi_device *spi, pm_message_t state)
++static int ehci_hcd_omap_drv_probe(struct platform_device *dev)
 +{
-+	struct tsc210x_dev *dev = dev_get_drvdata(&spi->dev);
++	int retval = 0;
++	struct usb_hcd *hcd;
++	struct ehci_hcd *ehci;
 +
-+	if (!dev)
++	dev_dbg(&dev->dev, "ehci_hcd_omap_drv_probe()");
++
++	if (usb_disabled())
 +		return -ENODEV;
 +
-+	/* Stop the inputs scan loop */
-+	mutex_lock(&dev->queue_lock);
-+	dev->flushing = 1;
-+	cancel_delayed_work(&dev->sensor_worker);
-+	mutex_unlock(&dev->queue_lock);
-+	flush_workqueue(dev->queue);
++	if (dev->resource[1].flags != IORESOURCE_IRQ) {
++		dev_dbg(&dev->dev, "resource[1] is not IORESOURCE_IRQ");
++		retval = -ENOMEM;
++	}
 +
-+	/* Wait until pen-up happens */
-+	while (dev->pendown)
-+		flush_workqueue(dev->queue);
++	hcd = usb_create_hcd(&ehci_omap_hc_driver, &dev->dev, dev->dev.bus_id);
++	if (!hcd)
++		return -ENOMEM;
 +
-+	/* Abort current conversion and power down the ADC */
-+	tsc210x_write_sync(dev, TSC210X_TS_ADC_CTRL, TSC210X_ADC_ADST);
-+	/* NOTE: write_sync() could fail */
++	retval = omap_start_ehc(dev, hcd);
++	if (retval)
++		return retval;
++
++	hcd->rsrc_start = 0;
++	hcd->rsrc_len = 0;
++	hcd->rsrc_start = dev->resource[0].start;
++	hcd->rsrc_len = dev->resource[0].end - dev->resource[0].start + 1;
++
++	hcd->regs = (void __iomem *) (int) IO_ADDRESS(hcd->rsrc_start);
++
++	ehci = hcd_to_ehci(hcd);
++	ehci->caps = hcd->regs;
++
++	ehci->regs = hcd->regs + HC_LENGTH(readl(&ehci->caps->hc_capbase));
++	/* cache this readonly data; minimize chip reads */
++	ehci->hcs_params = readl(&ehci->caps->hcs_params);
++
++	/* SET 1 micro-frame Interrupt interval */
++	writel(readl(&ehci->regs->command) | (1<<16), &ehci->regs->command);
++
++	retval = usb_add_hcd(hcd, dev->resource[1].start,
++				IRQF_DISABLED | IRQF_SHARED);
++	if (retval == 0)
++		return retval;
++
++	dev_dbg(hcd->self.controller, "ERR: add_hcd");
++	omap_stop_ehc(dev, hcd);
++
++	usb_put_hcd(hcd);
++	return retval;
++}
++
++/*-------------------------------------------------------------------------*/
++
++/* may be called without controller electrically present */
++/* may be called with controller, bus, and devices active */
++
++/**
++ * ehci_hcd_omap_drv_remove - shutdown processing for EHCI HCDs
++ * @dev: USB Host Controller being removed
++ * Context: !in_interrupt()
++ *
++ * Reverses the effect of usb_ehci_hcd_omap_probe(), first invoking
++ * the HCD's stop() method.  It is always called from a thread
++ * context, normally "rmmod", "apmd", or something similar.
++ *
++ */
++static int ehci_hcd_omap_drv_remove(struct platform_device *dev)
++{
++	struct usb_hcd *hcd = platform_get_drvdata(dev);
++
++	dev_dbg(&dev->dev, "ehci_hcd_omap_drv_remove()");
++
++	usb_remove_hcd(hcd);
++	usb_put_hcd(hcd);
++	omap_stop_ehc(dev, hcd);
 +
 +	return 0;
 +}
++
++/*-------------------------------------------------------------------------*/
++#ifdef CONFIG_PM
++static int omap_ehci_bus_suspend(struct usb_hcd *hcd)
++{
++	return ehci_bus_suspend(hcd);
++}
++
++static int omap_ehci_bus_resume(struct usb_hcd *hcd)
++{
++	return ehci_bus_resume(hcd);
++}
++#endif
++/*-------------------------------------------------------------------------*/
++
++static const struct hc_driver ehci_omap_hc_driver = {
++	.description = hcd_name,
++	.product_desc = "OMAP-EHCI Host Controller",
++	.hcd_priv_size = sizeof(struct ehci_hcd)
++				+ sizeof(struct ehci_omap_clock_defs),
++
++	/*
++	 * generic hardware linkage
++	 */
++	.irq = ehci_irq,
++	.flags = HCD_MEMORY | HCD_USB2,
++
++	/*
++	 * basic lifecycle operations
++	 */
++	.reset = ehci_init,
++	.start = ehci_run,
++	.stop = ehci_stop,
++	.shutdown = ehci_shutdown,
++
++	/*
++	 * managing i/o requests and associated device resources
++	 */
++	.urb_enqueue = ehci_urb_enqueue,
++	.urb_dequeue = ehci_urb_dequeue,
++	.endpoint_disable = ehci_endpoint_disable,
++
++	/*
++	 * scheduling support
++	 */
++	.get_frame_number = ehci_get_frame,
++
++	/*
++	 * root hub support
++	 */
++	.hub_status_data = ehci_hub_status_data,
++	.hub_control = ehci_hub_control,
++#ifdef	CONFIG_PM
++	.bus_suspend = omap_ehci_bus_suspend,
++	.bus_resume = omap_ehci_bus_resume,
++#endif
++};
++
++/*-------------------------------------------------------------------------*/
++MODULE_ALIAS("omap-ehci");
++static struct platform_driver ehci_hcd_omap_driver = {
++	.probe = ehci_hcd_omap_drv_probe,
++	.remove = ehci_hcd_omap_drv_remove,
++	.shutdown = usb_hcd_platform_shutdown,
++	/*.suspend      = ehci_hcd_omap_drv_suspend, */
++	/*.resume       = ehci_hcd_omap_drv_resume, */
++	.driver = {
++		.name = "ehci-omap",
++		.bus = &platform_bus_type
++	}
++};
+diff --git a/drivers/usb/host/ehci-omap.h b/drivers/usb/host/ehci-omap.h
+new file mode 100644
+index 0000000..9e4378f
+--- /dev/null
++++ b/drivers/usb/host/ehci-omap.h
+@@ -0,0 +1,125 @@
++/*
++ * ehci-omap.h - register definitions for USBHOST in OMAP 34xx
++ *
++ * Copyright (C) 2007-2008 Texas Instruments, Inc.
++ * 	Author: Vikram Pandita <vikram.pandita@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ *
++ */
++
++#ifndef __EHCI_OMAP_H
++#define __EHCI_OMAP_H
++
++#include <mach/hardware.h>
++#include "../../../arch/arm/mach-omap2/cm.h"
++#include "../../../arch/arm/mach-omap2/cm-regbits-34xx.h"
 +
 +/*
-+ * Resume chip operation.
++ * OMAP USBHOST Register addresses: PHYSICAL ADDRESSES
++ * 	Use omap_readl()/omap_writel() functions
 + */
-+static int tsc210x_resume(struct spi_device *spi)
-+{
-+	struct tsc210x_dev *dev = dev_get_drvdata(&spi->dev);
-+	int err;
 +
-+	if (!dev)
-+		return 0;
++/* USBHOST: TLL, UUH, OHCI, EHCI */
++#define	OMAP_USBHOST_BASE	(L4_34XX_BASE + 0x60000)
 +
-+	mutex_lock(&dev->queue_lock);
-+	err = tsc210x_configure(dev);
++/* TLL Register Set */
++#define	OMAP_USBHOST_TLL_BASE	(OMAP_USBHOST_BASE + 0x2000)
++#define	OMAP_USBTLL_REVISION	(OMAP_USBHOST_TLL_BASE + 0x00)
++#define	OMAP_USBTLL_SYSCONFIG	(OMAP_USBHOST_TLL_BASE + 0x10)
++	#define	OMAP_USBTLL_SYSCONFIG_CACTIVITY_SHIFT	8
++	#define	OMAP_USBTLL_SYSCONFIG_SIDLEMODE_SHIFT	3
++	#define	OMAP_USBTLL_SYSCONFIG_ENAWAKEUP_SHIFT	2
++	#define	OMAP_USBTLL_SYSCONFIG_SOFTRESET_SHIFT	1
++	#define	OMAP_USBTLL_SYSCONFIG_AUTOIDLE_SHIFT	0
++#define	OMAP_USBTLL_SYSSTATUS	(OMAP_USBHOST_TLL_BASE + 0x14)
++	#define	OMAP_USBTLL_SYSSTATUS_RESETDONE_SHIFT	0
++#define	OMAP_USBTLL_IRQSTATUS	(OMAP_USBHOST_TLL_BASE + 0x18)
++#define	OMAP_USBTLL_IRQENABLE	(OMAP_USBHOST_TLL_BASE + 0x1C)
 +
-+	dev->flushing = 0;
-+	mutex_unlock(&dev->queue_lock);
++#define	OMAP_TLL_SHARED_CONF	(OMAP_USBHOST_TLL_BASE + 0x30)
++	#define	OMAP_TLL_SHARED_CONF_USB_90D_DDR_EN_SHFT	6
++	#define	OMAP_TLL_SHARED_CONF_USB_180D_SDR_EN_SHIFT	5
++	#define	OMAP_TLL_SHARED_CONF_USB_DIVRATION_SHIFT	2
++	#define	OMAP_TLL_SHARED_CONF_FCLK_REQ_SHIFT		1
++	#define	OMAP_TLL_SHARED_CONF_FCLK_IS_ON_SHIFT		0
 +
-+	return err;
-+}
-+#else
-+#define tsc210x_suspend	NULL
-+#define tsc210x_resume	NULL
-+#endif
++#define	OMAP_TLL_CHANNEL_CONF(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x040 + 0x004 * num))
++	#define	OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF_SHIFT	11
++	#define	OMAP_TLL_CHANNEL_CONF_ULPI_ULPIAUTOIDLE_SHIFT	10
++	#define	OMAP_TLL_CHANNEL_CONF_UTMIAUTOIDLE_SHIFT	9
++	#define	OMAP_TLL_CHANNEL_CONF_ULPIDDRMODE_SHIFT		8
++	#define	OMAP_TLL_CHANNEL_CONF_CHANEN_SHIFT		0
 +
-+/* REVISIT don't make these static */
-+static struct platform_device tsc210x_ts_device = {
-+	.name		= "tsc210x-ts",
-+	.id		= -1,
-+};
++#define	OMAP_TLL_ULPI_FUNCTION_CTRL(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x804 + 0x100 * num))
++#define	OMAP_TLL_ULPI_INTERFACE_CTRL(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x807 + 0x100 * num))
++#define	OMAP_TLL_ULPI_OTG_CTRL(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x80A + 0x100 * num))
++#define	OMAP_TLL_ULPI_INT_EN_RISE(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x80D + 0x100 * num))
++#define	OMAP_TLL_ULPI_INT_EN_FALL(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x810 + 0x100 * num))
++#define	OMAP_TLL_ULPI_INT_STATUS(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x813 + 0x100 * num))
++#define	OMAP_TLL_ULPI_INT_LATCH(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x814 + 0x100 * num))
++#define	OMAP_TLL_ULPI_DEBUG(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x815 + 0x100 * num))
++#define	OMAP_TLL_ULPI_SCRATCH_REGISTER(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x816 + 0x100 * num))
 +
-+static struct platform_device tsc210x_hwmon_device = {
-+	.name		= "tsc210x-hwmon",
-+	.id		= -1,
-+};
++#define OMAP_TLL_CHANNEL_COUNT		3
++	#define OMAP_TLL_CHANNEL_1_EN_MASK	1
++	#define OMAP_TLL_CHANNEL_2_EN_MASK	2
++	#define OMAP_TLL_CHANNEL_3_EN_MASK	4
 +
-+static struct platform_device tsc210x_alsa_device = {
-+	.name		= "tsc210x-alsa",
-+	.id		= -1,
-+};
++/* UHH Register Set */
++#define	OMAP_USBHOST_UHH_BASE	(OMAP_USBHOST_BASE + 0x4000)
++#define	OMAP_UHH_REVISION	(OMAP_USBHOST_UHH_BASE + 0x00)
++#define	OMAP_UHH_SYSCONFIG	(OMAP_USBHOST_UHH_BASE + 0x10)
++	#define	OMAP_UHH_SYSCONFIG_MIDLEMODE_SHIFT	12
++	#define	OMAP_UHH_SYSCONFIG_CACTIVITY_SHIFT	8
++	#define	OMAP_UHH_SYSCONFIG_SIDLEMODE_SHIFT	3
++	#define	OMAP_UHH_SYSCONFIG_ENAWAKEUP_SHIFT	2
++	#define	OMAP_UHH_SYSCONFIG_SOFTRESET_SHIFT	1
++	#define	OMAP_UHH_SYSCONFIG_AUTOIDLE_SHIFT	0
 +
-+static int tsc210x_probe(struct spi_device *spi, enum tsc_type type)
-+{
-+	struct tsc210x_config *pdata = spi->dev.platform_data;
-+	struct spi_transfer *spi_buffer;
-+	struct tsc210x_dev *dev;
-+	int reg;
-+	int err = 0;
++#define	OMAP_UHH_SYSSTATUS	(OMAP_USBHOST_UHH_BASE + 0x14)
++#define	OMAP_UHH_HOSTCONFIG	(OMAP_USBHOST_UHH_BASE + 0x40)
++	#define	OMAP_UHH_HOSTCONFIG_ULPI_BYPASS_SHIFT	0
++	#define OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN_SHIFT	2
++	#define OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN_SHIFT	3
++	#define OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN_SHIFT	4
++	#define OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN_SHIFT	5
 +
-+	if (!pdata) {
-+		dev_dbg(&spi->dev, "Platform data not supplied\n");
-+		return -ENOENT;
-+	}
++#define	OMAP_UHH_DEBUG_CSR	(OMAP_USBHOST_UHH_BASE + 0x44)
 +
-+	if (!spi->irq) {
-+		dev_dbg(&spi->dev, "Invalid irq value\n");
-+		return -EINVAL;
-+	}
++/* EHCI Register Set */
++#define	OMAP_USBHOST_EHCI_BASE	(OMAP_USBHOST_BASE + 0x4800)
++#define	EHCI_INSNREG05_ULPI		(OMAP_USBHOST_EHCI_BASE + 0xA4)
++	#define	EHCI_INSNREG05_ULPI_CONTROL_SHIFT	31
++	#define	EHCI_INSNREG05_ULPI_PORTSEL_SHIFT	24
++	#define	EHCI_INSNREG05_ULPI_OPSEL_SHIFT		22
++	#define	EHCI_INSNREG05_ULPI_REGADD_SHIFT	16
++	#define	EHCI_INSNREG05_ULPI_EXTREGADD_SHIFT	8
++	#define	EHCI_INSNREG05_ULPI_WRDATA_SHIFT	0
 +
-+	dev = (struct tsc210x_dev *)
-+		kzalloc(sizeof(struct tsc210x_dev), GFP_KERNEL);
-+	if (!dev) {
-+		dev_dbg(&spi->dev, "No memory\n");
-+		return -ENOMEM;
-+	}
++/* OHCI Register Set */
++#define	OMAP_USBHOST_OHCI_BASE	(OMAP_USBHOST_BASE + 0x4400)
 +
-+	dev->pdata = pdata;
-+	dev->pendown = 0;
-+	dev->spi = spi;
-+	dev->kind = type;
-+	dev->queue = create_singlethread_workqueue(spi->dev.driver->name);
-+	if (!dev->queue) {
-+		dev_dbg(&spi->dev, "Can't make a workqueue\n");
-+		err = -ENOMEM;
-+		goto err_queue;
-+	}
-+
-+	mutex_init(&dev->queue_lock);
-+	init_completion(&dev->data_avail);
-+
-+	/* Allocate enough struct spi_transfer's for all requests */
-+	spi_buffer = kzalloc(sizeof(struct spi_transfer) * 16, GFP_KERNEL);
-+	if (!spi_buffer) {
-+		dev_dbg(&spi->dev, "No memory for SPI buffers\n");
-+		err = -ENOMEM;
-+		goto err_buffers;
-+	}
-+
-+	dev->transfers = spi_buffer;
-+	tsc210x_request_alloc(dev, &dev->req_adc, 0,
-+			TSC210X_TS_X, 4, dev->adc_data,
-+			tsc210x_coords_report, &spi_buffer);
-+	tsc210x_request_alloc(dev, &dev->req_status, 0,
-+			TSC210X_TS_STATUS_CTRL, 1, &dev->status,
-+			tsc210x_status_report, &spi_buffer);
-+	tsc210x_request_alloc(dev, &dev->req_mode, 1,
-+			TSC210X_TS_ADC_CTRL, 1, NULL,
-+			tsc210x_complete_dummy, &spi_buffer);
-+	tsc210x_request_alloc(dev, &dev->req_stop, 1,
-+			TSC210X_TS_ADC_CTRL, 1, NULL,
-+			tsc210x_complete_dummy, &spi_buffer);
-+
-+	if (pdata->bclk) {
-+		/* Get the BCLK */
-+		dev->bclk_ck = clk_get(&spi->dev, pdata->bclk);
-+		if (IS_ERR(dev->bclk_ck)) {
-+			err = PTR_ERR(dev->bclk_ck);
-+			dev_dbg(&spi->dev, "Unable to get '%s': %i\n",
-+					pdata->bclk, err);
-+			goto err_clk;
-+		}
-+
-+		clk_enable(dev->bclk_ck);
-+	}
-+
-+	INIT_DELAYED_WORK(&dev->ts_worker, tsc210x_pressure);
-+	INIT_DELAYED_WORK(&dev->sensor_worker, tsc210x_input_scan);
-+
-+	/* Setup the communication bus */
-+	dev_set_drvdata(&spi->dev, dev);
-+	spi->mode = SPI_MODE_1;
-+	spi->bits_per_word = 16;
-+	err = spi_setup(spi);
-+	if (err)
-+		goto err_spi;
-+
-+	/* Now try to detect the chip, make first contact.  These chips
-+	 * don't self-identify, but we can expect that the status register
-+	 * reports the ADC is idle and use that as a sanity check.  (It'd
-+	 * be even better if we did a soft reset first...)
-+	 */
-+	reg = tsc210x_read_sync(dev, TSC210X_TS_ADC_CTRL);
-+	if (reg < 0) {
-+		err = reg;
-+		dev_dbg(&dev->spi->dev, "adc_ctrl, err %d\n", err);
-+		goto err_spi;
-+	}
-+	if (!(reg & (1 << 14))) {
-+		err = -EIO;
-+		dev_dbg(&dev->spi->dev, "adc_ctrl, busy? - %04x\n", reg);
-+		goto err_spi;
-+	}
-+
-+	reg = tsc210x_read_sync(dev, TSC210X_AUDIO3_CTRL);
-+	if (reg < 0) {
-+		err = reg;
-+		dev_dbg(&dev->spi->dev, "revision, err %d\n", err);
-+		goto err_spi;
-+	}
-+	if (reg == 0xffff) {
-+		err = -ENODEV;
-+		dev_dbg(&dev->spi->dev, "no device, err %d\n", err);
-+		goto err_spi;
-+	}
-+	dev_info(&spi->dev, "rev %d, irq %d\n", reg & 0x0007, spi->irq);
-+
-+	err = tsc210x_configure(dev);
-+	if (err)
-+		goto err_spi;
-+
-+	/* We want no interrupts before configuration succeeds.  */
-+	mutex_lock(&dev->queue_lock);
-+	dev->flushing = 1;
-+
-+	if (request_irq(spi->irq, tsc210x_handler, IRQF_SAMPLE_RANDOM |
-+				IRQF_TRIGGER_FALLING, spi->dev.driver->name,
-+				dev)) {
-+		dev_dbg(&spi->dev, "Could not allocate touchscreen IRQ!\n");
-+		err = -EINVAL;
-+		goto err_irq;
-+	}
-+
-+	/* Register subdevices controlled by the TSC 2101/2102 */
-+	tsc210x_ts_device.dev.platform_data = dev;
-+	tsc210x_ts_device.dev.parent = &spi->dev;
-+	err = platform_device_register(&tsc210x_ts_device);
-+	if (err)
-+		goto err_irq;
-+
-+	tsc210x_hwmon_device.dev.platform_data = pdata;
-+	tsc210x_hwmon_device.dev.parent = &spi->dev;
-+	err = platform_device_register(&tsc210x_hwmon_device);
-+	if (err)
-+		goto err_hwmon;
-+
-+	tsc210x_alsa_device.dev.platform_data = pdata->alsa_config;
-+	tsc210x_alsa_device.dev.parent = &spi->dev;
-+	err = platform_device_register(&tsc210x_alsa_device);
-+	if (err)
-+		goto err_alsa;
-+
-+	dev->flushing = 0;
-+	mutex_unlock(&dev->queue_lock);
-+	return 0;
-+
-+err_alsa:
-+	platform_device_unregister(&tsc210x_hwmon_device);
-+err_hwmon:
-+	platform_device_unregister(&tsc210x_ts_device);
-+err_irq:
-+	mutex_unlock(&dev->queue_lock);
-+err_spi:
-+	dev_set_drvdata(&spi->dev, NULL);
-+	clk_disable(dev->bclk_ck);
-+	clk_put(dev->bclk_ck);
-+err_clk:
-+	kfree(dev->transfers);
-+err_buffers:
-+	destroy_workqueue(dev->queue);
-+err_queue:
-+	kfree(dev);
-+	return err;
-+}
-+
-+static int tsc2101_probe(struct spi_device *spi)
-+{
-+	return tsc210x_probe(spi, tsc2101);
-+}
-+
-+static int tsc2102_probe(struct spi_device *spi)
-+{
-+	return tsc210x_probe(spi, tsc2102);
-+}
-+
-+static int tsc210x_remove(struct spi_device *spi)
-+{
-+	struct tsc210x_dev *dev = dev_get_drvdata(&spi->dev);
-+
-+	/* Stop the inputs scan loop */
-+	mutex_lock(&dev->queue_lock);
-+	dev->flushing = 1;
-+	cancel_delayed_work(&dev->sensor_worker);
-+	mutex_unlock(&dev->queue_lock);
-+	flush_workqueue(dev->queue);
-+
-+	/* Wait for pen-up */
-+	while (dev->pendown)
-+		flush_workqueue(dev->queue);
-+
-+	/* Abort current conversion and power down the ADC */
-+	tsc210x_write_sync(dev, TSC210X_TS_ADC_CTRL, TSC210X_ADC_ADST);
-+	/* NOTE: write_sync() could fail */
-+
-+	destroy_workqueue(dev->queue);
-+
-+	platform_device_unregister(&tsc210x_ts_device);
-+	platform_device_unregister(&tsc210x_hwmon_device);
-+	platform_device_unregister(&tsc210x_alsa_device);
-+
-+	dev_set_drvdata(&spi->dev, NULL);
-+
-+	/* Release the BCLK */
-+	clk_disable(dev->bclk_ck);
-+	clk_put(dev->bclk_ck);
-+
-+	kfree(dev->transfers);
-+	kfree(dev);
-+
-+	return 0;
-+}
-+
-+static struct spi_driver tsc2101_driver = {
-+	.probe		= tsc2101_probe,
-+	.remove		= tsc210x_remove,
-+	.suspend	= tsc210x_suspend,
-+	.resume		= tsc210x_resume,
-+	.driver		= {
-+		.name	= "tsc2101",
-+		.owner	= THIS_MODULE,
-+		.bus	= &spi_bus_type,
-+	},
-+};
-+
-+static struct spi_driver tsc2102_driver = {
-+	.probe		= tsc2102_probe,
-+	.remove		= tsc210x_remove,
-+	.suspend	= tsc210x_suspend,
-+	.resume		= tsc210x_resume,
-+	.driver		= {
-+		.name	= "tsc2102",
-+		.owner	= THIS_MODULE,
-+		.bus	= &spi_bus_type,
-+	},
-+};
-+
-+static char __initdata banner[] = KERN_INFO "TI TSC210x driver initializing\n";
-+
-+static int __init tsc210x_init(void)
-+{
-+	int err;
-+	printk(banner);
-+
-+	settings.ts_msecs = 20;
-+	settings.mode_msecs = 1000;
-+
-+	err = spi_register_driver(&tsc2101_driver);
-+	if (err != 0)
-+		return err;
-+
-+	err = spi_register_driver(&tsc2102_driver);
-+	if (err != 0)
-+		spi_unregister_driver(&tsc2101_driver);
-+
-+	return err;
-+}
-+module_init(tsc210x_init);
-+
-+static void __exit tsc210x_exit(void)
-+{
-+	spi_unregister_driver(&tsc2101_driver);
-+	spi_unregister_driver(&tsc2102_driver);
-+}
-+module_exit(tsc210x_exit);
-+
-+MODULE_AUTHOR("Andrzej Zaborowski");
-+MODULE_DESCRIPTION("Interface driver for TI TSC210x chips.");
-+MODULE_LICENSE("GPL");
++#endif/* __EHCI_OMAP_H*/
 -- 
 1.6.0.1.141.g445ca
 
