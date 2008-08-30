@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 26/33] add TWL4030 RealTime Clock driver
-Date: Sat, 30 Aug 2008 20:16:26 +0300
-Message-ID: <1220116593-862-27-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 24/33] add bq27x00 battery driver
+Date: Sat, 30 Aug 2008 20:16:24 +0300
+Message-ID: <1220116593-862-25-git-send-email-me@felipebalbi.com>
 References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-2-git-send-email-me@felipebalbi.com>
  <1220116593-862-3-git-send-email-me@felipebalbi.com>
@@ -26,14 +26,12 @@ References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-22-git-send-email-me@felipebalbi.com>
  <1220116593-862-23-git-send-email-me@felipebalbi.com>
  <1220116593-862-24-git-send-email-me@felipebalbi.com>
- <1220116593-862-25-git-send-email-me@felipebalbi.com>
- <1220116593-862-26-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:36619 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:36639 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751816AbYH3RWL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:22:11 -0400
-In-Reply-To: <1220116593-862-26-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1753043AbYH3RWS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:22:18 -0400
+In-Reply-To: <1220116593-862-24-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -43,938 +41,625 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/rtc/Kconfig             |   10 +
- drivers/rtc/Makefile            |    1 +
- drivers/rtc/rtc-twl4030.c       |  649 +++++++++++++++++++++++++++++++++++++++
- include/linux/i2c/twl4030-rtc.h |  230 ++++++++++++++
- 4 files changed, 890 insertions(+), 0 deletions(-)
- create mode 100644 drivers/rtc/rtc-twl4030.c
- create mode 100644 include/linux/i2c/twl4030-rtc.h
+ drivers/power/Kconfig           |   21 ++
+ drivers/power/Makefile          |    1 +
+ drivers/power/bq27x00_battery.c |  564 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 586 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/power/bq27x00_battery.c
 
-diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
-index 9a9755c..9f597ac 100644
---- a/drivers/rtc/Kconfig
-+++ b/drivers/rtc/Kconfig
-@@ -246,6 +246,16 @@ config RTC_DRV_TWL92330
- 	  platforms.  The support is integrated with the rest of
- 	  the Menelaus driver; it's not separate module.
+diff --git a/drivers/power/Kconfig b/drivers/power/Kconfig
+index 9ce5585..18b70fa 100644
+--- a/drivers/power/Kconfig
++++ b/drivers/power/Kconfig
+@@ -49,6 +49,27 @@ config BATTERY_OLPC
+ 	help
+ 	  Say Y to enable support for the battery on the OLPC laptop.
  
-+config RTC_DRV_TWL4030
-+	tristate "OMAP TWL4030 Real Time Clock"
-+	depends on RTC_CLASS && TWL4030_CORE
++config BATTERY_BQ27x00
++	tristate "BQ27x00 battery driver"
 +	help
-+	  If you say yes here you get support for internal Real-Time
-+	  Clock of TWL4030 chip.
++	  Say Y here to enable support for batteries with BQ27000 or BQ27200 chip.
 +
-+	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-twl4030.
++config BATTERY_BQ27000
++	bool "BQ27000 battery driver"
++	depends on BATTERY_BQ27x00
++	select W1
++	select W1_SLAVE_BQ27000
++	help
++	  Say Y here to enable support for batteries with BQ27000(HDQ) chip.
 +
- config RTC_DRV_S35390A
- 	tristate "Seiko Instruments S-35390A"
- 	select BITREVERSE
-diff --git a/drivers/rtc/Makefile b/drivers/rtc/Makefile
-index 18622ef..3ef1dfc 100644
---- a/drivers/rtc/Makefile
-+++ b/drivers/rtc/Makefile
-@@ -56,6 +56,7 @@ obj-$(CONFIG_RTC_DRV_SA1100)	+= rtc-sa1100.o
- obj-$(CONFIG_RTC_DRV_SH)	+= rtc-sh.o
- obj-$(CONFIG_RTC_DRV_STK17TA8)	+= rtc-stk17ta8.o
- obj-$(CONFIG_RTC_DRV_TEST)	+= rtc-test.o
-+obj-$(CONFIG_RTC_DRV_TWL4030)	+= rtc-twl4030.o
- obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020.o
- obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
- obj-$(CONFIG_RTC_DRV_X1205)	+= rtc-x1205.o
-diff --git a/drivers/rtc/rtc-twl4030.c b/drivers/rtc/rtc-twl4030.c
++config BATTERY_BQ27200
++	bool "BQ27200 battery driver"
++	depends on BATTERY_BQ27x00
++	select I2C
++	select I2C_OMAP
++	help
++	  Say Y here to enable support for batteries with BQ27200(I2C) chip.
++
+ config BATTERY_TOSA
+ 	tristate "Sharp SL-6000 (tosa) battery"
+ 	depends on MACH_TOSA && MFD_TC6393XB
+diff --git a/drivers/power/Makefile b/drivers/power/Makefile
+index 4706bf8..dc6cfa3 100644
+--- a/drivers/power/Makefile
++++ b/drivers/power/Makefile
+@@ -20,5 +20,6 @@ obj-$(CONFIG_APM_POWER)		+= apm_power.o
+ obj-$(CONFIG_BATTERY_DS2760)	+= ds2760_battery.o
+ obj-$(CONFIG_BATTERY_PMU)	+= pmu_battery.o
+ obj-$(CONFIG_BATTERY_OLPC)	+= olpc_battery.o
++obj-$(CONFIG_BATTERY_BQ27x00)   += bq27x00_battery.o
+ obj-$(CONFIG_BATTERY_TOSA)	+= tosa_battery.o
+ obj-$(CONFIG_BATTERY_PALMTX)	+= palmtx_battery.o
+diff --git a/drivers/power/bq27x00_battery.c b/drivers/power/bq27x00_battery.c
 new file mode 100644
-index 0000000..e4a3658
+index 0000000..8b439e8
 --- /dev/null
-+++ b/drivers/rtc/rtc-twl4030.c
-@@ -0,0 +1,649 @@
++++ b/drivers/power/bq27x00_battery.c
+@@ -0,0 +1,564 @@
 +/*
-+ * drivers/rtc/rtc-twl4030.c
++ * linux/drivers/power/bq27x00_battery.c
 + *
-+ * TWL4030 Real Time Clock interface
++ * BQ27000/BQ27200 battery driver
 + *
-+ * Copyright (C) 2007 MontaVista Software, Inc
-+ * Author: Alexandre Rusev <source@mvista.com>
++ * Copyright (C) 2008 Texas Instruments, Inc.
 + *
-+ * Based on original TI driver twl4030-rtc.c
-+ *   Copyright (C) 2006 Texas Instruments, Inc.
++ * Author: Texas Instruments
 + *
-+ * Based on rtc-omap.c
-+ *   Copyright (C) 2003 MontaVista Software, Inc.
-+ *   Author: George G. Davis <gdavis@mvista.com> or <source@mvista.com>
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + *
-+ *   Copyright (C) 2006 David Brownell
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the License, or (at your option) any later version.
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 + *
 + */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
 +#include <linux/module.h>
-+#include <linux/ioport.h>
++#include <linux/param.h>
++#include <linux/jiffies.h>
++#include <linux/workqueue.h>
 +#include <linux/delay.h>
-+#include <linux/types.h>
-+#include <linux/rtc.h>
-+#include <linux/bcd.h>
 +#include <linux/platform_device.h>
-+#include <linux/spinlock.h>
-+#include <linux/interrupt.h>
-+#include <linux/device.h>
-+#include <linux/i2c/twl4030.h>
-+#include <linux/i2c/twl4030-rtc.h>
-+#include <linux/io.h>
-+#include <linux/irq.h>
++#include <linux/power_supply.h>
 +
-+#include <asm/mach/time.h>
-+#include <asm/system.h>
-+#include <mach/hardware.h>
-+
-+#define ALL_TIME_REGS		6
-+
-+/*
-+ * If this driver ever becomes modularised, it will be really nice
-+ * to make the epoch retain its value across module reload...
-+ */
-+static int epoch = 1900;	/* year corresponding to 0x00   */
-+
-+/*
-+ * Supports 1 byte read from TWL4030 RTC register.
-+ */
-+static int twl4030_rtc_read_u8(u8 *data, u8 reg)
-+{
-+	int ret;
-+
-+	ret = twl4030_i2c_read_u8(TWL4030_MODULE_RTC, data, reg);
-+	if (ret < 0) {
-+		printk(KERN_WARNING "twl4030_rtc: Could not read TWL4030"
-+		       "register %X - returned %d[%x]\n", reg, ret, ret);
-+	}
-+	return ret;
-+}
-+
-+/*
-+ * Supports 1 byte write to TWL4030 RTC registers.
-+ */
-+static int twl4030_rtc_write_u8(u8 data, u8 reg)
-+{
-+	int ret;
-+
-+	ret = twl4030_i2c_write_u8(TWL4030_MODULE_RTC, data, reg);
-+	if (ret < 0) {
-+		printk(KERN_WARNING "twl4030_rtc: Could not write TWL4030"
-+		       "register %X - returned %d[%x]\n", reg, ret, ret);
-+	}
-+	return ret;
-+}
-+
-+/*
-+ * Enables timer or alarm interrupts.
-+ */
-+static int set_rtc_irq_bit(unsigned char bit)
-+{
-+	unsigned char val;
-+	int ret;
-+
-+	ret = twl4030_rtc_read_u8(&val, REG_RTC_INTERRUPTS_REG);
-+	if (ret < 0)
-+		goto set_irq_out;
-+
-+	val |= bit;
-+	ret = twl4030_rtc_write_u8(val, REG_RTC_INTERRUPTS_REG);
-+
-+set_irq_out:
-+	return ret;
-+}
-+
-+#ifdef CONFIG_PM
-+/*
-+ * Read timer or alarm interrupts register.
-+ */
-+static int get_rtc_irq_bit(unsigned char *val)
-+{
-+	int ret;
-+
-+	ret = twl4030_rtc_read_u8(val, REG_RTC_INTERRUPTS_REG);
-+	return ret;
-+}
++#ifdef CONFIG_BATTERY_BQ27000
++#include "../w1/w1.h"
 +#endif
-+/*
-+ * Disables timer or alarm interrupts.
-+ */
-+static int mask_rtc_irq_bit(unsigned char bit)
-+{
-+	unsigned char val;
-+	int ret;
-+
-+	ret = twl4030_rtc_read_u8(&val, REG_RTC_INTERRUPTS_REG);
-+	if (ret < 0)
-+		goto mask_irq_out;
-+
-+	val &= ~bit;
-+	ret = twl4030_rtc_write_u8(val, REG_RTC_INTERRUPTS_REG);
-+
-+mask_irq_out:
-+	return ret;
-+}
-+
-+static int twl4030_rtc_alarm_irq_set_state(struct device *dev, int enabled)
-+{
-+	int ret;
-+
-+	/* Allow ints for RTC ALARM updates.  */
-+	if (enabled)
-+		ret = set_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
-+	else
-+		ret = mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
-+
-+	return ret;
-+}
-+
-+/*
-+ * Gets current TWL4030 RTC time and date parameters.
-+ */
-+static int get_rtc_time(struct rtc_time *rtc_tm)
-+{
-+	unsigned char rtc_data[ALL_TIME_REGS + 1];
-+	int ret;
-+	u8 save_control;
-+
-+	ret = twl4030_rtc_read_u8(&save_control, REG_RTC_CTRL_REG);
-+	if (ret < 0)
-+		return ret;
-+
-+	save_control |= BIT_RTC_CTRL_REG_GET_TIME_M;
-+
-+	ret = twl4030_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = twl4030_i2c_read(TWL4030_MODULE_RTC, rtc_data,
-+			       REG_SECONDS_REG, ALL_TIME_REGS);
-+
-+	if (ret < 0) {
-+		printk(KERN_ERR "twl4030_rtc: twl4030_i2c_read error.\n");
-+		return ret;
-+	}
-+
-+	rtc_tm->tm_sec = BCD2BIN(rtc_data[0]);
-+	rtc_tm->tm_min = BCD2BIN(rtc_data[1]);
-+	rtc_tm->tm_hour = BCD2BIN(rtc_data[2]);
-+	rtc_tm->tm_mday = BCD2BIN(rtc_data[3]);
-+	rtc_tm->tm_mon = BCD2BIN(rtc_data[4]);
-+	rtc_tm->tm_year = BCD2BIN(rtc_data[5]);
-+
-+	/*
-+	 * Account for differences between how the RTC uses the values
-+	 * and how they are defined in a struct rtc_time;
-+	 */
-+	rtc_tm->tm_year += (epoch - 1900);
-+	if (rtc_tm->tm_year <= 69)
-+		rtc_tm->tm_year += 100;
-+
-+	rtc_tm->tm_mon--;
-+
-+	return ret;
-+}
-+
-+static int twl4030_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	unsigned char save_control;
-+	unsigned char rtc_data[ALL_TIME_REGS + 1];
-+	int ret;
-+
-+	/* Month range is 01..12 */
-+	tm->tm_mon++;
-+
-+	rtc_data[1] = BIN2BCD(tm->tm_sec);
-+	rtc_data[2] = BIN2BCD(tm->tm_min);
-+	rtc_data[3] = BIN2BCD(tm->tm_hour);
-+	rtc_data[4] = BIN2BCD(tm->tm_mday);
-+	rtc_data[5] = BIN2BCD(tm->tm_mon);
-+	rtc_data[6] = BIN2BCD(tm->tm_year);
-+
-+	/* Stop RTC while updating the TC registers */
-+	ret = twl4030_rtc_read_u8(&save_control, REG_RTC_CTRL_REG);
-+	if (ret < 0)
-+		goto out;
-+
-+	save_control &= ~BIT_RTC_CTRL_REG_STOP_RTC_M;
-+	twl4030_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
-+	if (ret < 0)
-+		goto out;
-+
-+	/* update all the alarm registers in one shot */
-+	ret = twl4030_i2c_write(TWL4030_MODULE_RTC, rtc_data,
-+			REG_SECONDS_REG, ALL_TIME_REGS);
-+	if (ret < 0) {
-+		printk(KERN_ERR "twl4030: twl4030_i2c_write error.\n");
-+		goto out;
-+	}
-+
-+	/* Start back RTC */
-+	save_control |= BIT_RTC_CTRL_REG_STOP_RTC_M;
-+	ret = twl4030_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
-+
-+out:
-+	return ret;
-+}
-+
-+/*
-+ * Gets current TWL4030 RTC alarm time.
-+ */
-+static int get_rtc_alm_time(struct rtc_time *alm_tm)
-+{
-+	unsigned char rtc_data[ALL_TIME_REGS + 1];
-+	int ret;
-+
-+	ret = twl4030_i2c_read(TWL4030_MODULE_RTC, rtc_data,
-+			       REG_ALARM_SECONDS_REG, ALL_TIME_REGS);
-+	if (ret < 0) {
-+		printk(KERN_ERR "twl4030_rtc: twl4030_i2c_read error.\n");
-+		return ret;
-+	}
-+
-+	alm_tm->tm_sec = BCD2BIN(rtc_data[0]);
-+	alm_tm->tm_min = BCD2BIN(rtc_data[1]);
-+	alm_tm->tm_hour = BCD2BIN(rtc_data[2]);
-+	alm_tm->tm_mday = BCD2BIN(rtc_data[3]);
-+	alm_tm->tm_mon = BCD2BIN(rtc_data[4]);
-+	alm_tm->tm_year = BCD2BIN(rtc_data[5]);
-+
-+	/*
-+	 * Account for differences between how the RTC uses the values
-+	 * and how they are defined in a struct rtc_time;
-+	 */
-+	alm_tm->tm_year += (epoch - 1900);
-+	if (alm_tm->tm_year <= 69)
-+		alm_tm->tm_year += 100;
-+
-+	alm_tm->tm_mon--;
-+
-+	return ret;
-+}
-+
-+static int twl4030_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	int ret;
-+
-+	memset(tm, 0, sizeof(struct rtc_time));
-+	ret = get_rtc_time(tm);
-+
-+	return ret;
-+}
-+
-+/*
-+ * Gets current TWL4030 RTC alarm time.
-+ */
-+static int twl4030_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
-+{
-+	int ret;
-+	u8 rtc_interrupts_reg = 0;
-+
-+	/*
-+	 * This returns a struct rtc_time. Reading >= 0xc0
-+	 * means "don't care" or "match all". Only the tm_hour,
-+	 * tm_min, and tm_sec values are filled in.
-+	 */
-+	memset(&alm->time, 0, sizeof(struct rtc_time));
-+	ret = get_rtc_alm_time(&alm->time);
-+
-+	if (ret)
-+		goto out;
-+
-+	/* Check alarm enabled flag state */
-+	ret =
-+	    ret | twl4030_i2c_read_u8(TWL4030_MODULE_RTC, &rtc_interrupts_reg,
-+				      REG_RTC_INTERRUPTS_REG);
-+
-+	if (ret)
-+		goto out;
-+
-+	if ((rtc_interrupts_reg & BIT_RTC_INTERRUPTS_REG_IT_ALARM_M) != 0)
-+		alm->enabled = 1;
-+	else
-+		alm->enabled = 0;
-+
-+out:
-+	return ret;
-+}
-+
-+static int twl4030_rtc_irq_set_state(struct device *dev, int enabled)
-+{
-+	int ret;
-+
-+	/* Allow ints for RTC updates.  */
-+	if (enabled)
-+		ret = set_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_TIMER_M);
-+	else
-+		ret = mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_TIMER_M);
-+
-+	return ret;
-+}
-+
-+static int twl4030_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
-+{
-+	unsigned char alarm_data[ALL_TIME_REGS + 1];
-+	int ret;
-+
-+	/* Month range is 01..12 */
-+	alm->time.tm_mon++;
-+
-+	alarm_data[1] = BIN2BCD(alm->time.tm_sec);
-+	alarm_data[2] = BIN2BCD(alm->time.tm_min);
-+	alarm_data[3] = BIN2BCD(alm->time.tm_hour);
-+	alarm_data[4] = BIN2BCD(alm->time.tm_mday);
-+	alarm_data[5] = BIN2BCD(alm->time.tm_mon);
-+	alarm_data[6] = BIN2BCD(alm->time.tm_year);
-+
-+	/* update all the alarm registers in one shot */
-+	ret = twl4030_i2c_write(TWL4030_MODULE_RTC, alarm_data,
-+			REG_ALARM_SECONDS_REG, ALL_TIME_REGS);
-+	if (ret) {
-+		printk(KERN_ERR "twl4030: twl4030_i2c_write error.\n");
-+		goto out;
-+	}
-+
-+	ret = twl4030_rtc_alarm_irq_set_state(dev, alm->enabled);
-+out:
-+	return ret;
-+}
-+
-+/*
-+ * We will just handle setting the frequency and make use the framework for
-+ * reading the periodic interupts.
-+ * @freq: Current periodic IRQ freq
-+ */
-+static int twl4030_rtc_irq_set_freq(struct device *dev, int freq)
-+{
-+	struct rtc_device *rtc = dev_get_drvdata(dev);
-+
-+	if (freq < 0 || freq > 3)
-+		return -EINVAL;
-+
-+	rtc->irq_freq = freq;
-+
-+	/* set rtc irq freq to user defined value */
-+	set_rtc_irq_bit(freq);
-+
-+	return 0;
-+}
-+
-+#ifdef	CONFIG_RTC_INTF_DEV
-+
-+static int twl4030_rtc_ioctl(struct device *dev, unsigned int cmd,
-+			     unsigned long arg)
-+{
-+
-+	switch (cmd) {
-+	case RTC_AIE_OFF:
-+		return twl4030_rtc_alarm_irq_set_state(dev, 0);
-+	case RTC_AIE_ON:
-+		return twl4030_rtc_alarm_irq_set_state(dev, 1);
-+
-+	case RTC_UIE_OFF:
-+		/* Fall Through */
-+	case RTC_PIE_OFF:
-+		/* Mask ints from RTC updates.	*/
-+		return twl4030_rtc_irq_set_state(dev, 0);
-+	case RTC_UIE_ON:
-+		/* Fall Through */
-+	case RTC_PIE_ON:
-+		/* Allow ints for RTC updates.	*/
-+		return twl4030_rtc_irq_set_state(dev, 1);
-+
-+	case RTC_EPOCH_READ:
-+		return put_user(epoch, (unsigned long *)arg);
-+	case RTC_EPOCH_SET:
-+		/*
-+		 * There were no RTC clocks before 1900.
-+		 */
-+		if (arg < 1900)
-+			return -EINVAL;
-+
-+		if (!capable(CAP_SYS_TIME))
-+			return -EACCES;
-+
-+		epoch = arg;
-+		return 0;
-+	default:
-+		return -ENOIOCTLCMD;
-+	}
-+}
-+
-+#else
-+#define	omap_rtc_ioctl	NULL
++#ifdef CONFIG_BATTERY_BQ27200
++#include <linux/i2c.h>
 +#endif
 +
-+static irqreturn_t twl4030_rtc_interrupt(int irq, void *rtc)
-+{
-+	unsigned long events = 0;
-+	int ret = IRQ_NONE;
-+	int res;
-+	u8 rd_reg;
++#define BQ27x00_REG_TEMP		0x06
++#define BQ27x00_REG_VOLT		0x08
++#define BQ27x00_REG_RSOC		0x0B /* Relative State-of-Charge */
++#define BQ27x00_REG_AI			0x14
++#define BQ27x00_REG_FLAGS		0x0A
++#define HIGH_BYTE(A)			((A) << 8)
 +
-+	res = twl4030_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
-+	if (res)
-+		goto out;
-+	/*
-+	 * Figure out source of interrupt: ALARM or TIMER in RTC_STATUS_REG.
-+	 * only one (ALARM or RTC) interrupt source may be enabled
-+	 * at time, we also could check our results
-+	 * by reading RTS_INTERRUPTS_REGISTER[IT_TIMER,IT_ALARM]
-+	 */
-+	if (rd_reg & BIT_RTC_STATUS_REG_ALARM_M)
-+		events |= RTC_IRQF | RTC_AF;
-+	else
-+		events |= RTC_IRQF | RTC_UF;
++#ifdef CONFIG_BATTERY_BQ27000
++extern int w1_bq27000_read(struct device *dev, u8 reg);
++#endif
 +
-+	res = twl4030_rtc_write_u8(rd_reg | BIT_RTC_STATUS_REG_ALARM_M,
-+				   REG_RTC_STATUS_REG);
-+	if (res)
-+		goto out;
-+	res = twl4030_i2c_write_u8(TWL4030_MODULE_INT,
-+			PWR_RTC_INT_CLR, REG_PWR_ISR1);
-+	if (res)
-+		goto out;
-+
-+	/* Notify RTC core on event */
-+	rtc_update_irq(rtc, 1, events);
-+
-+	ret = IRQ_HANDLED;
-+out:
-+	return ret;
-+}
-+
-+static struct rtc_class_ops twl4030_rtc_ops = {
-+	.ioctl		= twl4030_rtc_ioctl,
-+	.read_time	= twl4030_rtc_read_time,
-+	.set_time	= twl4030_rtc_set_time,
-+	.read_alarm	= twl4030_rtc_read_alarm,
-+	.set_alarm	= twl4030_rtc_set_alarm,
-+	.irq_set_freq	= twl4030_rtc_irq_set_freq,
++struct bq27x00_device_info;
++struct bq27x00_access_methods {
++	int (*read)(u8 reg, int *rt_value, int b_single,
++		struct bq27x00_device_info *di);
 +};
 +
-+static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
-+{
-+	struct twl4030rtc_platform_data *pdata = pdev->dev.platform_data;
-+	struct rtc_device *rtc;
-+	int ret = 0;
-+	u8 rd_reg;
-+
-+	if (pdata != NULL && pdata->init != NULL) {
-+		ret = pdata->init();
-+		if (ret < 0)
-+			goto out;
-+	}
-+
-+	rtc = rtc_device_register(pdev->name,
-+				  &pdev->dev, &twl4030_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc)) {
-+		ret = -EINVAL;
-+		dev_err(&pdev->dev, "can't register RTC device, err %ld\n",
-+			PTR_ERR(rtc));
-+		goto out0;
-+
-+	}
-+
-+	/* Set the irq freq to every second */
-+	rtc->irq_freq = 0;
-+
-+	platform_set_drvdata(pdev, rtc);
-+
-+	ret = twl4030_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
-+
-+	if (ret < 0)
-+		goto out1;
-+
-+	if (rd_reg & BIT_RTC_STATUS_REG_POWER_UP_M)
-+		dev_warn(&pdev->dev, "Power up reset detected.\n");
-+
-+	if (rd_reg & BIT_RTC_STATUS_REG_ALARM_M)
-+		dev_warn(&pdev->dev, "Pending Alarm interrupt detected.\n");
-+
-+	/* Clear RTC Power up reset and pending alarm interrupts */
-+	ret = twl4030_rtc_write_u8(rd_reg, REG_RTC_STATUS_REG);
-+	if (ret < 0)
-+		goto out1;
-+
-+	ret = request_irq(TWL4030_PWRIRQ_RTC, twl4030_rtc_interrupt,
-+				0, rtc->dev.bus_id, rtc);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "IRQ is not free.\n");
-+		goto out1;
-+	}
-+
-+	/* Check RTC module status, Enable if it is off */
-+	ret = twl4030_rtc_read_u8(&rd_reg, REG_RTC_CTRL_REG);
-+	if (ret < 0)
-+		goto out2;
-+
-+	if (!(rd_reg & BIT_RTC_CTRL_REG_STOP_RTC_M)) {
-+		dev_info(&pdev->dev, "Enabling TWL4030-RTC.\n");
-+		rd_reg = BIT_RTC_CTRL_REG_STOP_RTC_M;
-+		ret = twl4030_rtc_write_u8(rd_reg, REG_RTC_CTRL_REG);
-+		if (ret < 0)
-+			goto out2;
-+	}
-+
-+	ret = twl4030_i2c_read_u8(TWL4030_MODULE_INT, &rd_reg, REG_PWR_IMR1);
-+	if (ret < 0)
-+		goto out2;
-+
-+	rd_reg &= PWR_RTC_IT_UNMASK;
-+	/* MASK PWR - we will need this */
-+	ret = twl4030_i2c_write_u8(TWL4030_MODULE_INT, rd_reg, REG_PWR_IMR1);
-+	if (ret < 0)
-+		goto out2;
-+
-+	ret = twl4030_i2c_read_u8(TWL4030_MODULE_INT, &rd_reg, REG_PWR_EDR1);
-+	if (ret < 0)
-+		goto out2;
-+
-+	/* Rising edge detection enabled, needed for RTC alarm */
-+	rd_reg |= 0x80;
-+	ret = twl4030_i2c_write_u8(TWL4030_MODULE_INT, rd_reg, REG_PWR_EDR1);
-+	if (ret < 0)
-+		goto out2;
-+
-+	return ret;
-+
-+
-+out2:
-+	free_irq(TWL4030_MODIRQ_PWR, rtc);
-+out1:
-+	rtc_device_unregister(rtc);
-+out0:
-+	if (pdata != NULL && pdata->exit != NULL)
-+		pdata->exit();
-+out:
-+	return ret;
-+}
-+
-+/*
-+ * Disable all TWL4030 RTC module interrupts.
-+ * Sets status flag to free.
-+ */
-+static int __devexit twl4030_rtc_remove(struct platform_device *pdev)
-+{
-+	/* leave rtc running, but disable irqs */
-+	struct twl4030rtc_platform_data *pdata = pdev->dev.platform_data;
-+	struct rtc_device *rtc = platform_get_drvdata(pdev);
-+
-+	mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
-+	mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_TIMER_M);
-+
-+	free_irq(TWL4030_MODIRQ_PWR, rtc);
-+
-+	if (pdata != NULL && pdata->exit != NULL)
-+		pdata->exit();
-+
-+	rtc_device_unregister(rtc);
-+	platform_set_drvdata(pdev, NULL);
-+	return 0;
-+}
-+
-+static void twl4030_rtc_shutdown(struct platform_device *pdev)
-+{
-+	twl4030_rtc_alarm_irq_set_state(&pdev->dev, 0);
-+	twl4030_rtc_irq_set_state(&pdev->dev, 0);
-+}
-+
-+#ifdef CONFIG_PM
-+
-+static unsigned char irqstat;
-+
-+static int twl4030_rtc_suspend(struct platform_device *pdev, pm_message_t state)
-+{
-+	get_rtc_irq_bit(&irqstat);
-+
-+	mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_TIMER_M |
-+			 BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
-+	return 0;
-+}
-+
-+static int twl4030_rtc_resume(struct platform_device *pdev)
-+{
-+	set_rtc_irq_bit(irqstat);
-+	return 0;
-+}
-+#else
-+#define twl4030_rtc_suspend NULL
-+#define twl4030_rtc_resume  NULL
++struct bq27x00_device_info {
++	struct device 		*dev;
++#ifdef CONFIG_BATTERY_BQ27000
++	struct device		*w1_dev;
 +#endif
++#ifdef CONFIG_BATTERY_BQ27200
++	struct i2c_client *client;
++#endif
++	unsigned long		update_time;
++	int			voltage_uV;
++	int			current_uA;
++	int			temp_C;
++	int			charge_rsoc;
++	struct bq27x00_access_methods	*bus;
++	struct power_supply	bat;
++	struct delayed_work	monitor_work;
++};
 +
-+MODULE_ALIAS("platform:twl4030_rtc");
-+static struct platform_driver twl4030rtc_driver = {
-+	.probe 		= twl4030_rtc_probe,
-+	.remove 	= __devexit_p(twl4030_rtc_remove),
-+	.shutdown 	= twl4030_rtc_shutdown,
-+	.suspend 	= twl4030_rtc_suspend,
-+	.resume 	= twl4030_rtc_resume,
-+	.driver 	= {
-+		.owner	= THIS_MODULE,
-+		.name	= "twl4030_rtc",
++static unsigned int cache_time = 60000;
++module_param(cache_time, uint, 0644);
++MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
++
++static enum power_supply_property bq27x00_battery_props[] = {
++	POWER_SUPPLY_PROP_PRESENT,
++	POWER_SUPPLY_PROP_VOLTAGE_NOW,
++	POWER_SUPPLY_PROP_CURRENT_NOW,
++	POWER_SUPPLY_PROP_CHARGE_NOW,
++	POWER_SUPPLY_PROP_CAPACITY,
++	POWER_SUPPLY_PROP_TEMP,
++};
++
++static int bq27x00_read(u8 reg, int *rt_value, int b_single,
++	struct bq27x00_device_info *di);
++
++#ifdef CONFIG_BATTERY_BQ27000
++static int bq27000_battery_probe(struct platform_device *dev);
++static int bq27000_battery_remove(struct platform_device *dev);
++#ifdef CONFIG_PM
++static int bq27000_battery_suspend(struct platform_device *dev,
++	pm_message_t state);
++static int bq27000_battery_resume(struct platform_device *dev);
++#endif /* CONFIG_PM */
++
++static struct platform_driver bq27000_battery_driver = {
++	.probe = bq27000_battery_probe,
++	.remove = bq27000_battery_remove,
++#ifdef CONFIG_PM
++	.suspend = bq27000_battery_suspend,
++	.resume = bq27000_battery_resume,
++#endif /* CONFIG_PM */
++	.driver = {
++		.name = "bq27000-battery",
 +	},
 +};
++#endif /* CONFIG_BATTERY_BQ27000 */
 +
-+static int __init twl4030_rtc_init(void)
-+{
-+	return platform_driver_register(&twl4030rtc_driver);
-+}
-+
-+static void __exit twl4030_rtc_exit(void)
-+{
-+	platform_driver_unregister(&twl4030rtc_driver);
-+}
-+
-+MODULE_ALIAS("platform:twl4030_rtc");
-+MODULE_AUTHOR("Texas Instruments, MontaVista Software");
-+MODULE_LICENSE("GPL");;
-+
-+module_init(twl4030_rtc_init);
-+module_exit(twl4030_rtc_exit);
-diff --git a/include/linux/i2c/twl4030-rtc.h b/include/linux/i2c/twl4030-rtc.h
-new file mode 100644
-index 0000000..fa74613
---- /dev/null
-+++ b/include/linux/i2c/twl4030-rtc.h
-@@ -0,0 +1,230 @@
-+/*
-+ * include/asm-arm/arch-omap/twl4030-rtc.h
-+ *
-+ * Copyright (C) 2006 Texas Instruments, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+#ifndef __TWL4030_RTC_H__
-+#define __TWL4030_RTC_H__
-+
-+#define REG_SECONDS_REG                          (0x0)
-+#define REG_MINUTES_REG                          (0x1)
-+#define REG_HOURS_REG                            (0x2)
-+#define REG_DAYS_REG                             (0x3)
-+#define REG_MONTHS_REG                           (0x4)
-+#define REG_YEARS_REG                            (0x5)
-+#define REG_WEEKS_REG                            (0x6)
-+#define REG_ALARM_SECONDS_REG                    (0x7)
-+#define REG_ALARM_MINUTES_REG                    (0x8)
-+#define REG_ALARM_HOURS_REG                      (0x9)
-+#define REG_ALARM_DAYS_REG                       (0xA)
-+#define REG_ALARM_MONTHS_REG                     (0xB)
-+#define REG_ALARM_YEARS_REG                      (0xC)
-+#define REG_RTC_CTRL_REG                         (0xD)
-+#define REG_RTC_STATUS_REG                       (0xE)
-+#define REG_RTC_INTERRUPTS_REG                   (0xF)
-+#define REG_RTC_COMP_LSB_REG                     (0x10)
-+#define REG_RTC_COMP_MSB_REG                     (0x11)
-+
-+/* REVISIT: these TWL4030 power registers are only used
-+ * by rtc-twl4030 driver, move to an appropriate header
-+ * if other drivers need the registers
-+ */
-+/* Power registers */
-+#define REG_PWR_ISR1		0x00
-+#define REG_PWR_IMR1		0x01
-+#define REG_PWR_EDR1		0x05
-+
-+#define PWR_RTC_IT_UNMASK	 ~(0x08)
-+#define PWR_RTC_INT_CLR          0x08
-+
-+/**** BitField Definitions */
-+/* SECONDS_REG Fields */
-+#define BIT_SECONDS_REG_SEC0                     (0x000)
-+#define BIT_SECONDS_REG_SEC0_M                   (0x0000000F)
-+#define BIT_SECONDS_REG_SEC1                     (0x004)
-+#define BIT_SECONDS_REG_SEC1_M                   (0x00000070)
-+/* MINUTES_REG Fields */
-+#define BIT_MINUTES_REG_MIN0                     (0x000)
-+#define BIT_MINUTES_REG_MIN0_M                   (0x0000000F)
-+#define BIT_MINUTES_REG_MIN1                     (0x004)
-+#define BIT_MINUTES_REG_MIN1_M                   (0x00000070)
-+/* HOURS_REG Fields */
-+#define BIT_HOURS_REG_HOUR0                      (0x000)
-+#define BIT_HOURS_REG_HOUR0_M                    (0x0000000F)
-+#define BIT_HOURS_REG_HOUR1                      (0x004)
-+#define BIT_HOURS_REG_HOUR1_M                    (0x00000030)
-+#define BIT_HOURS_REG_PM_NAM                     (0x007)
-+#define BIT_HOURS_REG_PM_NAM_M                   (0x00000080)
-+/* DAYS_REG Fields */
-+#define BIT_DAYS_REG_DAY0                        (0x000)
-+#define BIT_DAYS_REG_DAY0_M                      (0x0000000F)
-+#define BIT_DAYS_REG_DAY1                        (0x004)
-+#define BIT_DAYS_REG_DAY1_M                      (0x00000030)
-+/* MONTHS_REG Fields */
-+#define BIT_MONTHS_REG_MONTH0                    (0x000)
-+#define BIT_MONTHS_REG_MONTH0_M                  (0x0000000F)
-+#define BIT_MONTHS_REG_MONTH1                    (0x004)
-+#define BIT_MONTHS_REG_MONTH1_M                  (0x00000010)
-+/* YEARS_REG Fields */
-+#define BIT_YEARS_REG_YEAR0                      (0x000)
-+#define BIT_YEARS_REG_YEAR0_M                    (0x0000000F)
-+#define BIT_YEARS_REG_YEAR1                      (0x004)
-+#define BIT_YEARS_REG_YEAR1_M                    (0x000000F0)
-+/* WEEKS_REG Fields */
-+#define BIT_WEEKS_REG_WEEK                       (0x000)
-+#define BIT_WEEKS_REG_WEEK_M                     (0x00000007)
-+/* ALARM_SECONDS_REG Fields */
-+#define BIT_ALARM_SECONDS_REG_ALARM_SEC0         (0x000)
-+#define BIT_ALARM_SECONDS_REG_ALARM_SEC0_M       (0x0000000F)
-+#define BIT_ALARM_SECONDS_REG_ALARM_SEC1         (0x004)
-+#define BIT_ALARM_SECONDS_REG_ALARM_SEC1_M       (0x00000070)
-+/* ALARM_MINUTES_REG Fields */
-+#define BIT_ALARM_MINUTES_REG_ALARM_MIN0         (0x000)
-+#define BIT_ALARM_MINUTES_REG_ALARM_MIN0_M       (0x0000000F)
-+#define BIT_ALARM_MINUTES_REG_ALARM_MIN1         (0x004)
-+#define BIT_ALARM_MINUTES_REG_ALARM_MIN1_M       (0x00000070)
-+/* ALARM_HOURS_REG Fields */
-+#define BIT_ALARM_HOURS_REG_ALARM_HOUR0          (0x000)
-+#define BIT_ALARM_HOURS_REG_ALARM_HOUR0_M        (0x0000000F)
-+#define BIT_ALARM_HOURS_REG_ALARM_HOUR1          (0x004)
-+#define BIT_ALARM_HOURS_REG_ALARM_HOUR1_M        (0x00000030)
-+#define BIT_ALARM_HOURS_REG_ALARM_PM_NAM         (0x007)
-+#define BIT_ALARM_HOURS_REG_ALARM_PM_NAM_M       (0x00000080)
-+/* ALARM_DAYS_REG Fields */
-+#define BIT_ALARM_DAYS_REG_ALARM_DAY0            (0x000)
-+#define BIT_ALARM_DAYS_REG_ALARM_DAY0_M          (0x0000000F)
-+#define BIT_ALARM_DAYS_REG_ALARM_DAY1            (0x004)
-+#define BIT_ALARM_DAYS_REG_ALARM_DAY1_M          (0x00000030)
-+/* ALARM_MONTHS_REG Fields */
-+#define BIT_ALARM_MONTHS_REG_ALARM_MONTH0        (0x000)
-+#define BIT_ALARM_MONTHS_REG_ALARM_MONTH0_M      (0x0000000F)
-+#define BIT_ALARM_MONTHS_REG_ALARM_MONTH1        (0x004)
-+#define BIT_ALARM_MONTHS_REG_ALARM_MONTH1_M      (0x00000010)
-+/* ALARM_YEARS_REG Fields */
-+#define BIT_ALARM_YEARS_REG_ALARM_YEAR0          (0x000)
-+#define BIT_ALARM_YEARS_REG_ALARM_YEAR0_M        (0x0000000F)
-+#define BIT_ALARM_YEARS_REG_ALARM_YEAR1          (0x004)
-+#define BIT_ALARM_YEARS_REG_ALARM_YEAR1_M        (0x000000F0)
-+/* RTC_CTRL_REG Fields */
-+#define BIT_RTC_CTRL_REG_STOP_RTC                (0x000)
-+#define BIT_RTC_CTRL_REG_STOP_RTC_M              (0x00000001)
-+#define BIT_RTC_CTRL_REG_ROUND_30S               (0x001)
-+#define BIT_RTC_CTRL_REG_ROUND_30S_M             (0x00000002)
-+#define BIT_RTC_CTRL_REG_AUTO_COMP               (0x002)
-+#define BIT_RTC_CTRL_REG_AUTO_COMP_M             (0x00000004)
-+#define BIT_RTC_CTRL_REG_MODE_12_24              (0x003)
-+#define BIT_RTC_CTRL_REG_MODE_12_24_M            (0x00000008)
-+#define BIT_RTC_CTRL_REG_TEST_MODE               (0x004)
-+#define BIT_RTC_CTRL_REG_TEST_MODE_M             (0x00000010)
-+#define BIT_RTC_CTRL_REG_SET_32_COUNTER          (0x005)
-+#define BIT_RTC_CTRL_REG_SET_32_COUNTER_M        (0x00000020)
-+#define BIT_RTC_CTRL_REG_GET_TIME                (0x006)
-+#define BIT_RTC_CTRL_REG_GET_TIME_M              (0x00000040)
-+/* RTC_STATUS_REG Fields */
-+#define BIT_RTC_STATUS_REG_RUN                   (0x001)
-+#define BIT_RTC_STATUS_REG_RUN_M                 (0x00000002)
-+#define BIT_RTC_STATUS_REG_1S_EVENT              (0x002)
-+#define BIT_RTC_STATUS_REG_1S_EVENT_M            (0x00000004)
-+#define BIT_RTC_STATUS_REG_1M_EVENT              (0x003)
-+#define BIT_RTC_STATUS_REG_1M_EVENT_M            (0x00000008)
-+#define BIT_RTC_STATUS_REG_1H_EVENT              (0x004)
-+#define BIT_RTC_STATUS_REG_1H_EVENT_M            (0x00000010)
-+#define BIT_RTC_STATUS_REG_1D_EVENT              (0x005)
-+#define BIT_RTC_STATUS_REG_1D_EVENT_M            (0x00000020)
-+#define BIT_RTC_STATUS_REG_ALARM                 (0x006)
-+#define BIT_RTC_STATUS_REG_ALARM_M               (0x00000040)
-+#define BIT_RTC_STATUS_REG_POWER_UP              (0x007)
-+#define BIT_RTC_STATUS_REG_POWER_UP_M            (0x00000080)
-+
-+/* RTC_INTERRUPTS_REG Fields */
-+#define BIT_RTC_INTERRUPTS_REG_EVERY             (0x000)
-+#define BIT_RTC_INTERRUPTS_REG_EVERY_M           (0x00000003)
-+#define BIT_RTC_INTERRUPTS_REG_IT_TIMER          (0x002)
-+#define BIT_RTC_INTERRUPTS_REG_IT_TIMER_M        (0x00000004)
-+#define BIT_RTC_INTERRUPTS_REG_IT_ALARM          (0x003)
-+#define BIT_RTC_INTERRUPTS_REG_IT_ALARM_M        (0x00000008)
-+/* RTC_COMP_LSB_REG Fields */
-+#define BIT_RTC_COMP_LSB_REG_RTC_COMP_LSB        (0x000)
-+#define BIT_RTC_COMP_LSB_REG_RTC_COMP_LSB_M      (0x000000FF)
-+/* RTC_COMP_MSB_REG Fields */
-+#define BIT_RTC_COMP_MSB_REG_RTC_COMP_MSB        (0x000)
-+#define BIT_RTC_COMP_MSB_REG_RTC_COMP_MSB_M      (0x000000FF)
-+
-+/* ALARM_DAYS_REG Fields */
-+#define BIT_ALARM_DAYS_REG_ALARM_DAY1            (0x004)
-+#define BIT_ALARM_DAYS_REG_ALARM_DAY1_M          (0x00000030)
-+/* ALARM_MONTHS_REG Fields */
-+#define BIT_ALARM_MONTHS_REG_ALARM_MONTH0        (0x000)
-+#define BIT_ALARM_MONTHS_REG_ALARM_MONTH0_M      (0x0000000F)
-+#define BIT_ALARM_MONTHS_REG_ALARM_MONTH1        (0x004)
-+#define BIT_ALARM_MONTHS_REG_ALARM_MONTH1_M      (0x00000010)
-+/* ALARM_YEARS_REG Fields */
-+#define BIT_ALARM_YEARS_REG_ALARM_YEAR0          (0x000)
-+#define BIT_ALARM_YEARS_REG_ALARM_YEAR0_M        (0x0000000F)
-+#define BIT_ALARM_YEARS_REG_ALARM_YEAR1          (0x004)
-+#define BIT_ALARM_YEARS_REG_ALARM_YEAR1_M        (0x000000F0)
-+/* RTC_CTRL_REG Fields */
-+#define BIT_RTC_CTRL_REG_STOP_RTC                (0x000)
-+#define BIT_RTC_CTRL_REG_STOP_RTC_M              (0x00000001)
-+#define BIT_RTC_CTRL_REG_ROUND_30S               (0x001)
-+#define BIT_RTC_CTRL_REG_ROUND_30S_M             (0x00000002)
-+#define BIT_RTC_CTRL_REG_AUTO_COMP               (0x002)
-+#define BIT_RTC_CTRL_REG_AUTO_COMP_M             (0x00000004)
-+#define BIT_RTC_CTRL_REG_MODE_12_24              (0x003)
-+#define BIT_RTC_CTRL_REG_MODE_12_24_M            (0x00000008)
-+#define BIT_RTC_CTRL_REG_TEST_MODE               (0x004)
-+#define BIT_RTC_CTRL_REG_TEST_MODE_M             (0x00000010)
-+#define BIT_RTC_CTRL_REG_SET_32_COUNTER          (0x005)
-+#define BIT_RTC_CTRL_REG_SET_32_COUNTER_M        (0x00000020)
-+#define BIT_RTC_CTRL_REG_GET_TIME                (0x006)
-+#define BIT_RTC_CTRL_REG_GET_TIME_M              (0x00000040)
-+/* RTC_STATUS_REG Fields */
-+#define BIT_RTC_STATUS_REG_RUN                   (0x001)
-+#define BIT_RTC_STATUS_REG_RUN_M                 (0x00000002)
-+#define BIT_RTC_STATUS_REG_1S_EVENT              (0x002)
-+#define BIT_RTC_STATUS_REG_1S_EVENT_M            (0x00000004)
-+#define BIT_RTC_STATUS_REG_1M_EVENT              (0x003)
-+#define BIT_RTC_STATUS_REG_1M_EVENT_M            (0x00000008)
-+#define BIT_RTC_STATUS_REG_1H_EVENT              (0x004)
-+#define BIT_RTC_STATUS_REG_1H_EVENT_M            (0x00000010)
-+#define BIT_RTC_STATUS_REG_1D_EVENT              (0x005)
-+#define BIT_RTC_STATUS_REG_1D_EVENT_M            (0x00000020)
-+#define BIT_RTC_STATUS_REG_ALARM                 (0x006)
-+#define BIT_RTC_STATUS_REG_ALARM_M               (0x00000040)
-+#define BIT_RTC_STATUS_REG_POWER_UP              (0x007)
-+#define BIT_RTC_STATUS_REG_POWER_UP_M            (0x00000080)
-+/* RTC_INTERRUPTS_REG Fields */
-+#define BIT_RTC_INTERRUPTS_REG_EVERY             (0x000)
-+#define BIT_RTC_INTERRUPTS_REG_EVERY_M           (0x00000003)
-+#define BIT_RTC_INTERRUPTS_REG_IT_TIMER          (0x002)
-+#define BIT_RTC_INTERRUPTS_REG_IT_TIMER_M        (0x00000004)
-+#define BIT_RTC_INTERRUPTS_REG_IT_ALARM          (0x003)
-+#define BIT_RTC_INTERRUPTS_REG_IT_ALARM_M        (0x00000008)
-+/* RTC_COMP_LSB_REG Fields */
-+#define BIT_RTC_COMP_LSB_REG_RTC_COMP_LSB        (0x000)
-+#define BIT_RTC_COMP_LSB_REG_RTC_COMP_LSB_M      (0x000000FF)
-+/* RTC_COMP_MSB_REG Fields */
-+#define BIT_RTC_COMP_MSB_REG_RTC_COMP_MSB        (0x000)
-+#define BIT_RTC_COMP_MSB_REG_RTC_COMP_MSB_M      (0x000000FF)
-+
-+
-+struct twl4030rtc_platform_data {
-+	int (*init)(void);
-+	void (*exit)(void);
++#ifdef CONFIG_BATTERY_BQ27200
++static int bq27200_battery_probe(struct i2c_client *client);
++static int bq27200_battery_remove(struct i2c_client *client);
++#ifdef CONFIG_PM
++static int bq27200_battery_suspend(struct i2c_client *client,
++		pm_message_t mesg);
++static int bq27200_battery_resume(struct i2c_client *client);
++#endif /* CONFIG_PM */
++static struct i2c_driver bq27200_battery_driver = {
++	.driver = {
++		.name   = "bq27200-bat",
++	},
++	.probe  = bq27200_battery_probe,
++	.remove = bq27200_battery_remove,
++#ifdef CONFIG_PM
++	.suspend = bq27200_battery_suspend,
++	.resume = bq27200_battery_resume,
++#endif /* CONFIG_PM */
 +};
++#endif /* CONFIG_BATTERY_BQ27200 */
 +
-+#endif				/* End of __TWL4030_RTC_H__ */
++/*
++ * Return the battery temperature in Celcius degrees
++ * Or < 0 if something fails.
++ */
++static int bq27x00_battery_temperature(struct bq27x00_device_info *di)
++{
++	int ret, temp = 0;
++
++	ret = bq27x00_read(BQ27x00_REG_TEMP, &temp, 0, di);
++	if (ret) {
++		pr_err("BQ27x00 battery driver:"
++			"Error reading temperature from the battery\n");
++		return ret;
++	}
++
++	return (temp >> 2) - 273;
++}
++
++/*
++ * Return the battery Voltage in milivolts
++ * Or < 0 if something fails.
++ */
++static int bq27x00_battery_voltage(struct bq27x00_device_info *di)
++{
++	int ret, volt = 0;
++
++	ret = bq27x00_read(BQ27x00_REG_VOLT, &volt, 0, di);
++	if (ret) {
++		pr_err("BQ27x00 battery driver:"
++			"Error reading battery voltage from the battery\n");
++		return ret;
++	}
++
++	return volt;
++}
++
++/*
++ * Return the battery average current
++ * Note that current can be negative signed as well
++ * Or 0 if something fails.
++ */
++static int bq27x00_battery_current(struct bq27x00_device_info *di)
++{
++	int ret, curr = 0, flags = 0;
++
++	ret = bq27x00_read(BQ27x00_REG_AI, &curr, 0, di);
++	if (ret) {
++		pr_err("BQ27x00 battery driver:"
++			"Error reading current from the battery\n");
++		return 0;
++	}
++	ret = bq27x00_read(BQ27x00_REG_FLAGS, &flags, 0, di);
++	if (ret < 0) {
++		pr_err("BQ27x00 battery driver:"
++			"Error reading battery flags\n");
++		return 0;
++	}
++	if ((flags & (1 << 7)) != 0) {
++		pr_debug("Negative current\n");
++		return -curr;
++	} else {
++		return curr;
++	}
++}
++
++/*
++ * Return the battery Relative State-of-Charge
++ * Or < 0 if something fails.
++ */
++static int bq27x00_battery_rsoc(struct bq27x00_device_info *di)
++{
++	int ret, rsoc = 0;
++
++	ret = bq27x00_read(BQ27x00_REG_RSOC, &rsoc, 1, di);
++	if (ret) {
++		pr_err("BQ27x00 battery driver:"
++			"Error reading battery Relative"
++			"State-of-Charge\n");
++		return ret;
++	}
++	return rsoc;
++}
++
++#ifdef CONFIG_BATTERY_BQ27000
++static inline int bq27000_read(u8 reg, int *rt_value, int b_single,
++	struct bq27x00_device_info *di)
++{
++	u8 val;
++
++	val = w1_bq27000_read(di->w1_dev, reg);
++	*rt_value = val;
++
++	if (!b_single) {
++		val = 0;
++		val = w1_bq27000_read(di->w1_dev, reg + 1);
++		*rt_value +=  HIGH_BYTE((int) val);
++	}
++
++	return 0;
++}
++#else
++static inline int bq27000_read(u8 reg, int *rt_value, int b_single,
++	struct bq27x00_device_info *di)
++{
++	return 0;
++}
++#endif
++
++#ifdef CONFIG_BATTERY_BQ27200
++static inline int bq27200_read(u8 reg, int *rt_value, int b_single,
++	struct bq27x00_device_info *di)
++{
++	struct i2c_client *client = di->client;
++	struct i2c_msg msg[1];
++	unsigned char data[2];
++	int err;
++
++	if (!client->adapter)
++		return -ENODEV;
++
++	msg->addr = client->addr;
++	msg->flags = 0;
++	msg->len = 1;
++	msg->buf = data;
++
++	data[0] = reg;
++	err = i2c_transfer(client->adapter, msg, 1);
++
++	if (err >= 0) {
++		if (!b_single)
++			msg->len = 2;
++		else
++			msg->len = 1;
++
++		msg->flags = I2C_M_RD;
++		err = i2c_transfer(client->adapter, msg, 1);
++		if (err >= 0) {
++			if (!b_single)
++				*rt_value = data[1] | HIGH_BYTE(data[0]);
++			else
++				*rt_value = data[0];
++
++			return 0;
++		} else {
++			pr_err("BQ27200 I2C read failed\n");
++			return err;
++		}
++	} else {
++		pr_err("BQ27200 I2C write failed\n");
++		return err;
++	}
++}
++#else
++static inline int bq27200_read(u8 reg, int *rt_value, int b_single,
++	struct bq27x00_device_info *di)
++{
++	return 0;
++}
++#endif
++
++static int bq27x00_read(u8 reg, int *rt_value, int b_single,
++	struct bq27x00_device_info *di)
++{
++	int ret;
++
++	ret = di->bus->read(reg, rt_value, b_single, di);
++	return ret;
++}
++
++/*
++ * Read the battery temp, voltage, current and relative state of charge.
++ */
++static void bq27x00_battery_read_status(struct bq27x00_device_info *di)
++{
++	if (di->update_time && time_before(jiffies, di->update_time +
++					msecs_to_jiffies(cache_time)))
++		return;
++
++	di->temp_C = bq27x00_battery_temperature(di);
++	di->voltage_uV = bq27x00_battery_voltage(di);
++	di->current_uA = bq27x00_battery_current(di);
++	di->charge_rsoc = bq27x00_battery_rsoc(di);
++
++	di->update_time = jiffies;
++
++	return;
++}
++
++static void bq27x00_battery_work(struct delayed_work *work)
++{
++	struct bq27x00_device_info *di = container_of(work,
++		struct bq27x00_device_info, monitor_work);
++
++	bq27x00_battery_read_status(di);
++	schedule_delayed_work(&di->monitor_work, 100);
++	return;
++}
++
++#define to_bq27x00_device_info(x) container_of((x), \
++				struct bq27x00_device_info, bat);
++
++static int bq27x00_battery_get_property(struct power_supply *psy,
++					enum power_supply_property psp,
++					union power_supply_propval *val)
++{
++	struct bq27x00_device_info *di = to_bq27x00_device_info(psy);
++
++	switch (psp) {
++	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
++		val->intval = di->voltage_uV;
++		break;
++	case POWER_SUPPLY_PROP_CURRENT_NOW:
++		val->intval = di->current_uA;
++		break;
++	case POWER_SUPPLY_PROP_CHARGE_NOW:
++		val->intval = di->charge_rsoc;
++		break;
++	case POWER_SUPPLY_PROP_TEMP:
++		val->intval = di->temp_C;
++		break;
++	case POWER_SUPPLY_PROP_CAPACITY:
++		val->intval = di->charge_rsoc;
++		break;
++	case POWER_SUPPLY_PROP_PRESENT:
++		if (di->voltage_uV == 0)
++			val->intval = 0;
++		else
++			val->intval = 1;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static void bq27x00_powersupply_init(struct bq27x00_device_info *di)
++{
++	di->bat.type = POWER_SUPPLY_TYPE_BATTERY;
++	di->bat.properties = bq27x00_battery_props;
++	di->bat.num_properties = ARRAY_SIZE(bq27x00_battery_props);
++	di->bat.get_property = bq27x00_battery_get_property;
++	di->bat.external_power_changed = NULL;
++	return;
++}
++
++#ifdef CONFIG_BATTERY_BQ27200
++static int bq27200_battery_probe(struct i2c_client *client)
++{
++	struct bq27x00_device_info *di;
++	struct bq27x00_access_methods *bus;
++	int retval = 0;
++
++	di = kzalloc(sizeof(*di), GFP_KERNEL);
++	if (!di) {
++		pr_err("BQ27000 battery driver:"
++			"Failed to allocate device info structure\n");
++		return -ENOMEM;
++	}
++
++	bus = kzalloc(sizeof(*bus), GFP_KERNEL);
++	if (!bus) {
++		pr_err("BQ27000 battery driver:"
++			"Failed to allocate access method structure\n");
++		kfree(di);
++		return -ENOMEM;
++	}
++
++	i2c_set_clientdata(client, di);
++	di->dev = &client->dev;
++	di->bat.name = "bq27200";
++	bus->read = &bq27200_read;
++	di->bus = bus;
++	di->client = client;
++
++	bq27x00_powersupply_init(di);
++
++	retval = power_supply_register(&client->dev, &di->bat);
++	if (retval) {
++		pr_err("BQ27200 battery driver: Failed to register battery\n");
++		goto batt_failed;
++	}
++
++	INIT_DELAYED_WORK(&di->monitor_work, bq27x00_battery_work);
++	schedule_delayed_work(&di->monitor_work, 100);
++
++	return 0;
++
++batt_failed:
++	kfree(bus);
++	kfree(di);
++	return retval;
++}
++
++static int bq27200_battery_remove(struct i2c_client *client)
++{
++	struct bq27x00_device_info *di  = i2c_get_clientdata(client);
++
++	flush_scheduled_work();
++	power_supply_unregister(&di->bat);
++	kfree(di);
++
++	return 0;
++}
++
++#ifdef CONFIG_PM
++static int bq27200_battery_suspend(struct i2c_client *client, pm_message_t mesg)
++{
++	struct bq27x00_device_info *di  = i2c_get_clientdata(client);
++
++	cancel_delayed_work(&di->monitor_work);
++	return 0;
++}
++
++static int bq27200_battery_resume(struct i2c_client *client)
++{
++	struct bq27x00_device_info *di  = i2c_get_clientdata(client);
++
++	schedule_delayed_work(&di->monitor_work, 0);
++	return 0;
++}
++#endif /* CONFIG_PM */
++#endif /* CONFIG_BATTERY_BQ27200 */
++
++#ifdef CONFIG_BATTERY_BQ27000
++static int bq27000_battery_probe(struct  platform_device *pdev)
++{
++	struct bq27x00_device_info *di;
++	struct bq27x00_access_methods *bus;
++	int retval = 0;
++
++	di = kzalloc(sizeof(*di), GFP_KERNEL);
++	if (!di) {
++		pr_err("BQ27000 battery driver:"
++			"Failed to allocate device info structure\n");
++		return -ENOMEM;
++	}
++
++	bus = kzalloc(sizeof(*bus), GFP_KERNEL);
++	if (!bus) {
++		pr_err("BQ27000 battery driver:"
++			"Failed to allocate access method structure\n");
++		kfree(di);
++		return -ENOMEM;
++	}
++
++	platform_set_drvdata(pdev, di);
++
++	di->dev = &pdev->dev;
++	di->w1_dev = pdev->dev.parent;
++	di->bat.name = "bq27000";
++	bus->read = &bq27000_read;
++	di->bus = bus;
++
++	bq27x00_powersupply_init(di);
++
++	retval = power_supply_register(&pdev->dev, &di->bat);
++	if (retval) {
++		pr_err("BQ27000 battery driver: Failed to register battery\n");
++		goto batt_failed;
++	}
++
++	INIT_DELAYED_WORK(&di->monitor_work, bq27x00_battery_work);
++	schedule_delayed_work(&di->monitor_work, 50);
++
++	return 0;
++
++batt_failed:
++	kfree(bus);
++	kfree(di);
++	return retval;
++}
++
++static int bq27000_battery_remove(struct  platform_device *pdev)
++{
++	struct bq27x00_device_info *di = platform_get_drvdata(pdev);
++
++	flush_scheduled_work();
++	power_supply_unregister(&di->bat);
++	platform_set_drvdata(pdev, NULL);
++	kfree(di);
++
++	return 0;
++}
++
++#ifdef CONFIG_PM
++static int bq27000_battery_suspend(struct platform_device *pdev,
++	pm_message_t state)
++{
++	struct bq27x00_device_info *di = platform_get_drvdata(pdev);
++
++	cancel_delayed_work(&di->monitor_work);
++	return 0;
++}
++
++static int bq27000_battery_resume(struct platform_device *pdev)
++{
++	struct bq27x00_device_info *di = platform_get_drvdata(pdev);
++
++	schedule_delayed_work(&di->monitor_work, 0);
++	return 0;
++}
++#endif /* CONFIG_PM */
++#endif /* CONFIG_BATTERY_BQ27000 */
++
++static int __init bq27x00_battery_init(void)
++{
++	int status = 0;
++
++#ifdef CONFIG_BATTERY_BQ27000
++	status = platform_driver_register(&bq27000_battery_driver);
++	if (status)
++		printk(KERN_ERR "Unable to register BQ27000 driver\n");
++#endif
++#ifdef CONFIG_BATTERY_BQ27200
++	status = i2c_add_driver(&bq27200_battery_driver);
++		printk(KERN_ERR "Unable to register BQ27200 driver\n");
++#endif
++	return status;
++}
++
++static void __exit bq27x00_battery_exit(void)
++{
++#ifdef CONFIG_BATTERY_BQ27000
++	platform_driver_unregister(&bq27000_battery_driver);
++#endif
++#ifdef CONFIG_BATTERY_BQ27200
++	i2c_del_driver(&bq27200_battery_driver);
++#endif
++}
++
++module_init(bq27x00_battery_init);
++module_exit(bq27x00_battery_exit);
++
++MODULE_AUTHOR("Texas Instruments");
++MODULE_DESCRIPTION("BQ27x00 battery moniter driver");
++MODULE_LICENSE("GPL");
 -- 
 1.6.0.1.141.g445ca
 
