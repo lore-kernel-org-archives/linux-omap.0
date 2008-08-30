@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 17/33] add tea5761 radio driver
-Date: Sat, 30 Aug 2008 20:16:17 +0300
-Message-ID: <1220116593-862-18-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 10/33] Add twl4030 keypad driver
+Date: Sat, 30 Aug 2008 20:16:10 +0300
+Message-ID: <1220116593-862-11-git-send-email-me@felipebalbi.com>
 References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-2-git-send-email-me@felipebalbi.com>
  <1220116593-862-3-git-send-email-me@felipebalbi.com>
@@ -12,91 +12,599 @@ References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-8-git-send-email-me@felipebalbi.com>
  <1220116593-862-9-git-send-email-me@felipebalbi.com>
  <1220116593-862-10-git-send-email-me@felipebalbi.com>
- <1220116593-862-11-git-send-email-me@felipebalbi.com>
- <1220116593-862-12-git-send-email-me@felipebalbi.com>
- <1220116593-862-13-git-send-email-me@felipebalbi.com>
- <1220116593-862-14-git-send-email-me@felipebalbi.com>
- <1220116593-862-15-git-send-email-me@felipebalbi.com>
- <1220116593-862-16-git-send-email-me@felipebalbi.com>
- <1220116593-862-17-git-send-email-me@felipebalbi.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:36443 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:36417 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752552AbYH3RUs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:20:48 -0400
-In-Reply-To: <1220116593-862-17-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1751494AbYH3RUi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:20:38 -0400
+In-Reply-To: <1220116593-862-10-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-=46rom: Felipe Balbi <felipe.balbi@nokia.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/media/radio/Kconfig         |   13 +
- drivers/media/radio/Makefile        |    1 +
- drivers/media/radio/radio-tea5761.c |  517 +++++++++++++++++++++++++++=
-++++++++
- 3 files changed, 531 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/radio/radio-tea5761.c
+ arch/arm/mach-omap2/board-2430sdp.c         |   59 ++++
+ arch/arm/plat-omap/include/mach/keypad.h    |    1 +
+ drivers/input/keyboard/Kconfig              |   10 +
+ drivers/input/keyboard/Makefile             |    1 +
+ drivers/input/keyboard/omap-twl4030keypad.c |  415 +++++++++++++++++++++++++++
+ drivers/input/keyboard/twl4030-keypad.h     |   82 ++++++
+ 6 files changed, 568 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/input/keyboard/omap-twl4030keypad.c
+ create mode 100644 drivers/input/keyboard/twl4030-keypad.h
 
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index 1b41b3f..de6ca27 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -339,6 +339,19 @@ config RADIO_ZOLTRIX_PORT
- 	help
- 	  Enter the I/O port of your Zoltrix radio card.
-=20
-+config RADIO_TEA5761
-+	tristate "Philips Semiconductors TEA5761 I2C FM Radio"
-+	help
-+	  Choose Y here if you have one of these AM/FM radio cards.
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+index b72ca13..975318d 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -19,6 +19,8 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+ #include <linux/delay.h>
++#include <linux/input.h>
++#include <linux/i2c/twl4030.h>
+ #include <linux/err.h>
+ #include <linux/clk.h>
+ 
+@@ -32,6 +34,7 @@
+ #include <mach/mux.h>
+ #include <mach/board.h>
+ #include <mach/common.h>
++#include <mach/keypad.h>
+ #include <mach/gpmc.h>
+ 
+ #include <asm/io.h>
+@@ -114,8 +117,64 @@ static struct platform_device sdp2430_smc91x_device = {
+ 	.resource	= sdp2430_smc91x_resources,
+ };
+ 
++/*
++ * Key mapping for 2430 SDP board
++ */
 +
-+	  In order to control your radio card, you will need to use programs
-+	  that are compatible with the Video For Linux 2 API.  Information on
-+	  this API and pointers to "v4l" programs may be found at
-+	  <file:Documentation/video4linux/API.html>.
++static int sdp2430_keymap[] = {
++	KEY(0, 0, KEY_LEFT),
++	KEY(0, 1, KEY_RIGHT),
++	KEY(0, 2, KEY_A),
++	KEY(0, 3, KEY_B),
++	KEY(0, 4, KEY_C),
++	KEY(1, 0, KEY_DOWN),
++	KEY(1, 1, KEY_UP),
++	KEY(1, 2, KEY_E),
++	KEY(1, 3, KEY_F),
++	KEY(1, 4, KEY_G),
++	KEY(2, 0, KEY_ENTER),
++	KEY(2, 1, KEY_I),
++	KEY(2, 2, KEY_J),
++	KEY(2, 3, KEY_K),
++	KEY(2, 4, KEY_3),
++	KEY(3, 0, KEY_M),
++	KEY(3, 1, KEY_N),
++	KEY(3, 2, KEY_O),
++	KEY(3, 3, KEY_P),
++	KEY(3, 4, KEY_Q),
++	KEY(4, 0, KEY_R),
++	KEY(4, 1, KEY_4),
++	KEY(4, 2, KEY_T),
++	KEY(4, 3, KEY_U),
++	KEY(4, 4, KEY_D),
++	KEY(5, 0, KEY_V),
++	KEY(5, 1, KEY_W),
++	KEY(5, 2, KEY_L),
++	KEY(5, 3, KEY_S),
++	KEY(5, 4, KEY_H),
++	0
++};
++
++static struct omap_kp_platform_data sdp2430_kp_data = {
++	.rows		= 5,
++	.cols		= 6,
++	.keymap		= sdp2430_keymap,
++	.keymapsize	= ARRAY_SIZE(sdp2430_keymap),
++	.rep		= 1,
++	.irq		= TWL4030_MODIRQ_KEYPAD,
++};
++
++static struct platform_device sdp2430_kp_device = {
++	.name		= "omap_twl4030keypad",
++	.id		= -1,
++	.dev		= {
++		.platform_data	= &sdp2430_kp_data,
++	},
++};
++
+ static struct platform_device *sdp2430_devices[] __initdata = {
+ 	&sdp2430_smc91x_device,
++	&sdp2430_kp_device,
+ 	&sdp2430_flash_device,
+ };
+ 
+diff --git a/arch/arm/plat-omap/include/mach/keypad.h b/arch/arm/plat-omap/include/mach/keypad.h
+index 232923a..ba1c95c 100644
+--- a/arch/arm/plat-omap/include/mach/keypad.h
++++ b/arch/arm/plat-omap/include/mach/keypad.h
+@@ -14,6 +14,7 @@ struct omap_kp_platform_data {
+ 	int rows;
+ 	int cols;
+ 	int *keymap;
++	int irq;
+ 	unsigned int keymapsize;
+ 	unsigned int rep:1;
+ 	unsigned long delay;
+diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
+index 53239cb..04e6c77 100644
+--- a/drivers/input/keyboard/Kconfig
++++ b/drivers/input/keyboard/Kconfig
+@@ -259,6 +259,16 @@ config KEYBOARD_OMAP
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called omap-keypad.
+ 
++config KEYBOARD_TWL4030
++	tristate "TI TWL4030 keypad support"
++	depends on TWL4030_CORE && (MACH_OMAP_2430SDP || MACH_OMAP2EVM || MACH_OMAP_3430SDP || MACH_OMAP3EVM)
++	help
++	  Say Y here if you want to use the OMAP TWL4030 keypad.
 +
 +	  To compile this driver as a module, choose M here: the
-+	  module will be called radio-tea5761.
++	  module will be called omap-twl4030keypad. This driver depends on
++	  TWL4030 Core and TWL4030 GPIO I2C client driver
 +
- config USB_DSBR
- 	tristate "D-Link/GemTek USB FM radio support"
- 	depends on USB && VIDEO_V4L2
-diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefil=
-e
-index a30159f..f5bffcc 100644
---- a/drivers/media/radio/Makefile
-+++ b/drivers/media/radio/Makefile
-@@ -20,6 +20,7 @@ obj-$(CONFIG_RADIO_GEMTEK) +=3D radio-gemtek.o
- obj-$(CONFIG_RADIO_GEMTEK_PCI) +=3D radio-gemtek-pci.o
- obj-$(CONFIG_RADIO_TRUST) +=3D radio-trust.o
- obj-$(CONFIG_RADIO_MAESTRO) +=3D radio-maestro.o
-+obj-$(CONFIG_RADIO_TEA5761) +=3D radio-tea5761.o
- obj-$(CONFIG_USB_DSBR) +=3D dsbr100.o
- obj-$(CONFIG_USB_SI470X) +=3D radio-si470x.o
-=20
-diff --git a/drivers/media/radio/radio-tea5761.c b/drivers/media/radio/=
-radio-tea5761.c
+ config OMAP_PS2
+ 	tristate "TI OMAP Innovator 1510 PS/2 keyboard & mouse support"
+ 	depends on ARCH_OMAP15XX && MACH_OMAP_INNOVATOR
+diff --git a/drivers/input/keyboard/Makefile b/drivers/input/keyboard/Makefile
+index 52e9b70..a19e04b 100644
+--- a/drivers/input/keyboard/Makefile
++++ b/drivers/input/keyboard/Makefile
+@@ -21,6 +21,7 @@ obj-$(CONFIG_KEYBOARD_HIL_OLD)		+= hilkbd.o
+ obj-$(CONFIG_KEYBOARD_OMAP)		+= omap-keypad.o
+ obj-$(CONFIG_OMAP_PS2)			+= innovator_ps2.o
+ obj-$(CONFIG_KEYBOARD_LM8323)		+= lm8323.o
++obj-$(CONFIG_KEYBOARD_TWL4030)		+= omap-twl4030keypad.o
+ obj-$(CONFIG_KEYBOARD_PXA27x)		+= pxa27x_keypad.o
+ obj-$(CONFIG_KEYBOARD_AAED2000)		+= aaed2000_kbd.o
+ obj-$(CONFIG_KEYBOARD_GPIO)		+= gpio_keys.o
+diff --git a/drivers/input/keyboard/omap-twl4030keypad.c b/drivers/input/keyboard/omap-twl4030keypad.c
 new file mode 100644
-index 0000000..1c6d8ab
+index 0000000..3893d63
 --- /dev/null
-+++ b/drivers/media/radio/radio-tea5761.c
-@@ -0,0 +1,517 @@
++++ b/drivers/input/keyboard/omap-twl4030keypad.c
+@@ -0,0 +1,415 @@
 +/*
-+ * drivers/media/radio/radio-tea5761.c
++ * drivers/input/keyboard/omap-twl4030keypad.c
 + *
-+ * Copyright (C) 2005-2008 Nokia Corporation
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Copyright (C) 2008 Nokia Corporation
 + *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License as published b=
-y
++ * Code re-written for 2430SDP by:
++ * Syed Mohammed Khasim <x0khasim@ti.com>
++ *
++ * Initial Code:
++ * Manjunatha G K <manjugk@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/types.h>
++#include <linux/input.h>
++#include <linux/kernel.h>
++#include <linux/mutex.h>
++#include <linux/delay.h>
++#include <linux/bitops.h>
++#include <linux/platform_device.h>
++#include <linux/i2c.h>
++#include <linux/i2c/twl4030.h>
++#include <linux/irq.h>
++#include <mach/keypad.h>
++#include "twl4030-keypad.h"
++
++#define PTV_PRESCALER		4
++
++#define MAX_ROWS		8 /* TWL4030 hardlimit */
++#define ROWCOL_MASK		0xFF000000
++#define KEYNUM_MASK		0x00FFFFFF
++
++/* Global variables */
++
++struct omap_keypad {
++	int		*keymap;
++	unsigned int	keymapsize;
++	u16		kp_state[MAX_ROWS];
++	int		n_rows;
++	int		n_cols;
++	int		irq;
++
++	struct device	*dbg_dev;
++	struct input_dev *omap_twl4030kp;
++
++	/* sync read/write */
++	struct mutex	mutex;
++};
++
++static int twl4030_kpread(struct omap_keypad *kp,
++		u32 module, u8 *data, u32 reg, u8 num_bytes)
++{
++	int ret;
++
++	ret = twl4030_i2c_read(module, data, reg, num_bytes);
++	if (ret < 0) {
++		dev_warn(kp->dbg_dev,
++			"Couldn't read TWL4030: %X - ret %d[%x]\n",
++			 reg, ret, ret);
++		return ret;
++	}
++	return ret;
++}
++
++static int twl4030_kpwrite_u8(struct omap_keypad *kp,
++		u32 module, u8 data, u32 reg)
++{
++	int ret;
++
++	ret = twl4030_i2c_write_u8(module, data, reg);
++	if (ret < 0) {
++		dev_warn(kp->dbg_dev,
++			"Could not write TWL4030: %X - ret %d[%x]\n",
++			 reg, ret, ret);
++		return ret;
++	}
++	return ret;
++}
++
++static int omap_kp_find_key(struct omap_keypad *kp, int col, int row)
++{
++	int i, rc;
++
++	rc = KEY(col, row, 0);
++	for (i = 0; i < kp->keymapsize; i++)
++		if ((kp->keymap[i] & ROWCOL_MASK) == rc)
++			return kp->keymap[i] & KEYNUM_MASK;
++
++	return -EINVAL;
++}
++
++static inline u16 omap_kp_col_xlate(struct omap_keypad *kp, u8 col)
++{
++	/* If all bits in a row are active for all coloumns then
++	 * we have that row line connected to gnd. Mark this
++	 * key on as if it was on matrix position n_cols (ie
++	 * one higher than the size of the matrix).
++	 */
++	if (col == 0xFF)
++		return 1 << kp->n_cols;
++	else
++		return col & ((1 << kp->n_cols) - 1);
++}
++
++static int omap_kp_read_kp_matrix_state(struct omap_keypad *kp, u16 *state)
++{
++	u8 new_state[MAX_ROWS];
++	int row;
++	int ret = twl4030_kpread(kp, TWL4030_MODULE_KEYPAD,
++				 new_state, KEYP_FULL_CODE_7_0, kp->n_rows);
++	if (ret >= 0) {
++		for (row = 0; row < kp->n_rows; row++)
++			state[row] = omap_kp_col_xlate(kp, new_state[row]);
++	}
++	return ret;
++}
++
++static int omap_kp_is_in_ghost_state(struct omap_keypad *kp, u16 *key_state)
++{
++	int i;
++	u16 check = 0;
++
++	for (i = 0; i < kp->n_rows; i++) {
++		u16 col = key_state[i];
++
++		if ((col & check) && hweight16(col) > 1)
++			return 1;
++		check |= col;
++	}
++
++	return 0;
++}
++
++static void twl4030_kp_scan(struct omap_keypad *kp, int release_all)
++{
++	u16 new_state[MAX_ROWS];
++	int col, row;
++
++	if (release_all)
++		memset(new_state, 0, sizeof(new_state));
++	else {
++		/* check for any changes */
++		int ret = omap_kp_read_kp_matrix_state(kp, new_state);
++		if (ret < 0)	/* panic ... */
++			return;
++
++		if (omap_kp_is_in_ghost_state(kp, new_state))
++			return;
++	}
++
++	mutex_lock(&kp->mutex);
++
++	/* check for changes and print those */
++	for (row = 0; row < kp->n_rows; row++) {
++		int changed = new_state[row] ^ kp->kp_state[row];
++
++		if (!changed)
++			continue;
++
++		for (col = 0; col < kp->n_cols + 1; col++) {
++			int key;
++
++			if (!(changed & (1 << col)))
++				continue;
++
++			dev_dbg(kp->dbg_dev, "key [%d:%d] %s\n", row, col,
++				(new_state[row] & (1 << col)) ?
++				"press" : "release");
++
++			key = omap_kp_find_key(kp, col, row);
++			if (key < 0)
++				dev_warn(kp->dbg_dev,
++					"Spurious key event %d-%d\n",
++					 col, row);
++			else
++				input_report_key(kp->omap_twl4030kp, key,
++						 new_state[row] & (1 << col));
++		}
++		kp->kp_state[row] = new_state[row];
++	}
++
++	mutex_unlock(&kp->mutex);
++}
++
++/*
++ * Keypad interrupt handler
++ */
++static irqreturn_t do_kp_irq(int irq, void *_kp)
++{
++	struct omap_keypad *kp = _kp;
++	u8 reg;
++	int ret;
++
++	/* Read & Clear TWL4030 pending interrupt */
++	ret = twl4030_kpread(kp, TWL4030_MODULE_KEYPAD, &reg, KEYP_ISR1, 1);
++
++	/* Release all keys if I2C has gone bad or
++	 * the KEYP has gone to idle state */
++	if ((ret >= 0) && (reg & KEYP_IMR1_KP))
++		twl4030_kp_scan(kp, 0);
++	else
++		twl4030_kp_scan(kp, 1);
++
++	return IRQ_HANDLED;
++}
++
++/*
++ * Registers keypad device with input sub system
++ * and configures TWL4030 keypad registers
++ */
++static int __init omap_kp_probe(struct platform_device *pdev)
++{
++	u8 reg;
++	int i;
++	int ret = 0;
++	struct omap_keypad *kp;
++	struct omap_kp_platform_data *pdata = pdev->dev.platform_data;
++
++	kp = kzalloc(sizeof(*kp), GFP_KERNEL);
++	if (!kp)
++		return -ENOMEM;
++
++	if (!pdata->rows || !pdata->cols || !pdata->keymap) {
++		dev_err(kp->dbg_dev, "No rows, cols or keymap from pdata\n");
++		kfree(kp);
++		return -EINVAL;
++	}
++
++	dev_set_drvdata(&pdev->dev, kp);
++
++	/* Get the debug Device */
++	kp->dbg_dev = &pdev->dev;
++
++	kp->omap_twl4030kp = input_allocate_device();
++	if (!kp->omap_twl4030kp) {
++		kfree(kp);
++		return -ENOMEM;
++	}
++
++	mutex_init(&kp->mutex);
++
++	kp->keymap = pdata->keymap;
++	kp->keymapsize = pdata->keymapsize;
++	kp->n_rows = pdata->rows;
++	kp->n_cols = pdata->cols;
++	kp->irq = pdata->irq;
++
++	/* setup input device */
++	set_bit(EV_KEY, kp->omap_twl4030kp->evbit);
++
++	/* Enable auto repeat feature of Linux input subsystem */
++	if (pdata->rep)
++		set_bit(EV_REP, kp->omap_twl4030kp->evbit);
++
++	for (i = 0; i < kp->keymapsize; i++)
++		set_bit(kp->keymap[i] & KEYNUM_MASK,
++				kp->omap_twl4030kp->keybit);
++
++	kp->omap_twl4030kp->name	= "omap_twl4030keypad";
++	kp->omap_twl4030kp->phys	= "omap_twl4030keypad/input0";
++	kp->omap_twl4030kp->dev.parent	= &pdev->dev;
++
++	kp->omap_twl4030kp->id.bustype	= BUS_HOST;
++	kp->omap_twl4030kp->id.vendor	= 0x0001;
++	kp->omap_twl4030kp->id.product	= 0x0001;
++	kp->omap_twl4030kp->id.version	= 0x0003;
++
++	kp->omap_twl4030kp->keycode	= kp->keymap;
++	kp->omap_twl4030kp->keycodesize	= sizeof(unsigned int);
++	kp->omap_twl4030kp->keycodemax	= kp->keymapsize;
++
++	ret = input_register_device(kp->omap_twl4030kp);
++	if (ret < 0) {
++		dev_err(kp->dbg_dev,
++			"Unable to register twl4030 keypad device\n");
++		goto err2;
++	}
++
++	/* Disable auto-repeat */
++	reg = KEYP_CTRL_NOAUTORPT;
++	ret = twl4030_kpwrite_u8(kp, TWL4030_MODULE_KEYPAD, reg, KEYP_CTRL);
++	if (ret < 0)
++		goto err3;
++
++	/* Enable TO rising and KP rising and falling edge detection */
++	reg = KEYP_EDR_KP_BOTH | KEYP_EDR_TO_RISING;
++	ret = twl4030_kpwrite_u8(kp, TWL4030_MODULE_KEYPAD, reg, KEYP_EDR);
++	if (ret < 0)
++		goto err3;
++
++	/* Set PTV prescaler Field */
++	reg = (PTV_PRESCALER << KEYP_LK_PTV_PTV_SHIFT);
++	ret = twl4030_kpwrite_u8(kp, TWL4030_MODULE_KEYPAD, reg, KEYP_LK_PTV);
++	if (ret < 0)
++		goto err3;
++
++	/* Set key debounce time to 20 ms */
++	i = KEYP_PERIOD_US(20000, PTV_PRESCALER);
++	ret = twl4030_kpwrite_u8(kp, TWL4030_MODULE_KEYPAD, i, KEYP_DEB);
++	if (ret < 0)
++		goto err3;
++
++	/* Set timeout period to 100 ms */
++	i = KEYP_PERIOD_US(200000, PTV_PRESCALER);
++	ret = twl4030_kpwrite_u8(kp, TWL4030_MODULE_KEYPAD,
++				 (i & 0xFF), KEYP_TIMEOUT_L);
++	if (ret < 0)
++		goto err3;
++
++	ret = twl4030_kpwrite_u8(kp, TWL4030_MODULE_KEYPAD,
++				 (i >> 8), KEYP_TIMEOUT_H);
++	if (ret < 0)
++		goto err3;
++
++	/* Enable Clear-on-Read */
++	reg = KEYP_SIH_CTRL_COR | KEYP_SIH_CTRL_PEND_DIS;
++	ret = twl4030_kpwrite_u8(kp, TWL4030_MODULE_KEYPAD,
++				 reg, KEYP_SIH_CTRL);
++	if (ret < 0)
++		goto err3;
++
++	/*
++	 * This ISR will always execute in kernel thread context because of
++	 * the need to access the TWL4030 over the I2C bus.
++	 */
++	ret = request_irq(kp->irq, do_kp_irq, IRQF_DISABLED,
++			"TWL4030 Keypad", kp);
++	if (ret < 0) {
++		dev_info(kp->dbg_dev, "request_irq failed for irq no=%d\n",
++			kp->irq);
++		goto err3;
++	} else {
++		/* Enable KP and TO interrupts now. */
++		reg = ~(KEYP_IMR1_KP | KEYP_IMR1_TO);
++		ret = twl4030_kpwrite_u8(kp, TWL4030_MODULE_KEYPAD,
++					 reg, KEYP_IMR1);
++		if (ret < 0)
++			goto err5;
++	}
++
++	ret = omap_kp_read_kp_matrix_state(kp, kp->kp_state);
++	if (ret < 0)
++		goto err4;
++
++	return ret;
++err5:
++	/* mask all events - we don't care about the result */
++	(void) twl4030_kpwrite_u8(kp, TWL4030_MODULE_KEYPAD, 0xff, KEYP_IMR1);
++err4:
++	free_irq(kp->irq, NULL);
++err3:
++	input_unregister_device(kp->omap_twl4030kp);
++err2:
++	input_free_device(kp->omap_twl4030kp);
++
++	return -ENODEV;
++}
++
++static int omap_kp_remove(struct platform_device *pdev)
++{
++	struct omap_keypad *kp = dev_get_drvdata(&pdev->dev);
++
++	free_irq(kp->irq, kp);
++	input_unregister_device(kp->omap_twl4030kp);
++	kfree(kp);
++
++	return 0;
++}
++
++
++static struct platform_driver omap_kp_driver = {
++	.probe		= omap_kp_probe,
++	.remove		= __devexit_p(omap_kp_remove),
++	.driver		= {
++		.name	= "omap_twl4030keypad",
++		.owner	= THIS_MODULE,
++	},
++};
++
++/*
++ * OMAP TWL4030 Keypad init
++ */
++static int __devinit omap_kp_init(void)
++{
++	return platform_driver_register(&omap_kp_driver);
++}
++
++static void __exit omap_kp_exit(void)
++{
++	platform_driver_unregister(&omap_kp_driver);
++}
++
++module_init(omap_kp_init);
++module_exit(omap_kp_exit);
++MODULE_ALIAS("platform:omap_twl4030keypad");
++MODULE_AUTHOR("Texas Instruments");
++MODULE_DESCRIPTION("OMAP TWL4030 Keypad Driver");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/input/keyboard/twl4030-keypad.h b/drivers/input/keyboard/twl4030-keypad.h
+new file mode 100644
+index 0000000..b903a77
+--- /dev/null
++++ b/drivers/input/keyboard/twl4030-keypad.h
+@@ -0,0 +1,82 @@
++/*
++ * drivers/input/keyboard/twl4030-keypad.h
++ *
++ * Copyright (C) 2006-2007 Texas Instruments, Inc.
++ *
++ * Intial Code:
++ *	Syed Mohammed Khasim <x0khasim@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
 + * the Free Software Foundation; either version 2 of the License, or
 + * (at your option) any later version.
 + *
@@ -107,514 +615,68 @@ y
 + *
 + * You should have received a copy of the GNU General Public License
 + * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-130=
-7 USA
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 + */
-+#include <linux/module.h>
-+#include <linux/version.h>
-+#include <linux/init.h>
-+#include <linux/i2c.h>
-+#include <linux/delay.h>
-+#include <media/v4l2-common.h>
-+#include <media/v4l2-ioctl.h>
-+
-+#define DRIVER_NAME "tea5761"
-+
-+#define TEA5761_VERSION		KERNEL_VERSION(0, 0, 1)
-+
-+#define TEA5761_I2C_ADDR	0x10
-+
-+#define TEA5761_MANID		0x002b
-+#define TEA5761_CHIPID		0x5761
-+
-+#define TEA5761_INTREG_BLMSK	0x0001
-+#define TEA5761_INTREG_FRRMSK	0x0002
-+#define TEA5761_INTREG_LEVMSK	0x0008
-+#define TEA5761_INTREG_IFMSK	0x0010
-+#define TEA5761_INTREG_BLMFLAG	0x0100
-+#define TEA5761_INTREG_FRRFLAG	0x0200
-+#define TEA5761_INTREG_LEVFLAG	0x0800
-+#define TEA5761_INTREG_IFFLAG	0x1000
-+
-+#define TEA5761_FRQSET_SUD	0x8000
-+#define TEA5761_FRQSET_SM	0x4000
-+
-+#define TEA5761_TNCTRL_PUPD0	0x4000
-+#define TEA5761_TNCTRL_BLIM	0x2000
-+#define TEA5761_TNCTRL_SWPM	0x1000
-+#define TEA5761_TNCTRL_IFCTC	0x0800
-+#define TEA5761_TNCTRL_AFM	0x0400
-+#define TEA5761_TNCTRL_SMUTE	0x0200
-+#define TEA5761_TNCTRL_SNC	0x0100
-+#define TEA5761_TNCTRL_MU	0x0080
-+#define TEA5761_TNCTRL_SSL1	0x0040
-+#define TEA5761_TNCTRL_SSL0	0x0020
-+#define TEA5761_TNCTRL_HLSI	0x0010
-+#define TEA5761_TNCTRL_MST	0x0008
-+#define TEA5761_TNCTRL_SWP	0x0004
-+#define TEA5761_TNCTRL_DTC	0x0002
-+#define TEA5761_TNCTRL_AHLSI	0x0001
-+
-+#define TEA5761_TUNCHK_LEVEL(x)	(((x) & 0x00F0) >> 4)
-+#define TEA5761_TUNCHK_IFCNT(x) (((x) & 0xFE00) >> 9)
-+#define TEA5761_TUNCHK_TUNTO	0x0100
-+#define TEA5761_TUNCHK_LD	0x0008
-+#define TEA5761_TUNCHK_STEREO	0x0004
-+
-+#define TEA5761_TESTREG_TRIGFR	0x0800
-+
-+#define TEA5761_FREQ_LOW	87500
-+#define TEA5761_FREQ_HIGH	108000
-+
-+struct tea5761_regs {
-+	u16 intreg;
-+	u16 frqset;
-+	u16 tnctrl;
-+	u16 frqchk;
-+	u16 tunchk;
-+	u16 testreg;
-+	u16 manid;
-+	u16 chipid;
-+} __attribute__ ((packed));
-+
-+struct tea5761_write_regs {
-+	u8 intreg;
-+	u16 frqset;
-+	u16 tnctrl;
-+	u16 testreg;
-+} __attribute__ ((packed));
-+
-+struct tea5761_device {
-+	struct video_device	*video_dev;
-+	struct i2c_client	*i2c_dev;
-+	struct tea5761_regs	regs;
-+	struct mutex		mutex;
-+	int			users;
-+};
-+
-+static struct tea5761_device tea5761;
-+
-+static struct i2c_driver	tea5761_driver;
-+static int radio_nr =3D -1;
-+
-+static int tea5761_read_regs(struct tea5761_device *tea)
-+{
-+	int rc, i;
-+	u16 *p =3D (u16 *) &tea->regs;
-+	struct i2c_client *client =3D tea->i2c_dev;
-+
-+	rc =3D i2c_master_recv(client, (void*) &tea->regs, sizeof(tea->regs))=
-;
-+	for (i =3D 0; i < 8; i++) {
-+		p[i] =3D __be16_to_cpu(p[i]);
-+	}
-+
-+	dev_dbg(&client->dev,
-+		"chip state: %04x %04x %04x %04x %04x %04x %04x %04x\n",
-+		p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
-+
-+	if (rc < 0)
-+		dev_err(&client->dev, "read\n");
-+
-+	return rc;
-+}
-+
-+static void tea5761_write_regs(struct tea5761_device *tea)
-+{
-+	struct tea5761_write_regs wr;
-+	struct tea5761_regs *r =3D &tea->regs;
-+	struct i2c_client *client =3D tea->i2c_dev;
-+	u8 *p =3D (u8 *) r;
-+
-+	wr.intreg =3D r->intreg & 0xff;
-+	wr.frqset =3D __cpu_to_be16(r->frqset);
-+	wr.tnctrl =3D __cpu_to_be16(r->tnctrl);
-+	wr.testreg =3D __cpu_to_be16(r->testreg);
-+
-+	dev_dbg(&client->dev,
-+		"writing state: %02x %02x %02x %02x %02x %02x %02x\n",
-+		p[0], p[1], p[2], p[3], p[4], p[5], p[6]);
-+	if (i2c_master_send(client, (void *) &wr, sizeof(wr)) < 0)
-+		dev_err(&client->dev, "write\n");
-+}
-+
-+static void tea5761_power_up(struct tea5761_device *tea)
-+{
-+	struct tea5761_regs *r =3D &tea->regs;
-+
-+	if (!(r->tnctrl & TEA5761_TNCTRL_PUPD0)) {
-+		r->tnctrl &=3D ~(TEA5761_TNCTRL_AFM | TEA5761_TNCTRL_MU |
-+			       TEA5761_TNCTRL_HLSI);
-+		r->testreg |=3D TEA5761_TESTREG_TRIGFR;
-+		r->tnctrl |=3D TEA5761_TNCTRL_PUPD0;
-+		return tea5761_write_regs(tea);
-+	}
-+}
-+
-+static void tea5761_power_down(struct tea5761_device *tea)
-+{
-+	struct tea5761_regs *r =3D &tea->regs;
-+
-+	if (r->tnctrl & TEA5761_TNCTRL_PUPD0) {
-+		r->tnctrl &=3D ~TEA5761_TNCTRL_PUPD0;
-+		return tea5761_write_regs(tea);
-+	}
-+}
-+
-+static void tea5761_set_freq(struct tea5761_device *tea, int freq)
-+{
-+	struct tea5761_regs *r =3D &tea->regs;
-+
-+	if (r->tnctrl & TEA5761_TNCTRL_HLSI)
-+		r->frqset =3D (freq + 225000) / 8192;
-+	else
-+		r->frqset =3D (freq - 225000) / 8192;
-+}
-+
-+static int tea5761_get_freq(struct tea5761_device *tea)
-+{
-+	struct tea5761_regs *r =3D &tea->regs;
-+
-+	if (r->tnctrl & TEA5761_TNCTRL_HLSI)
-+		return (r->frqchk * 8192) - 225000;
-+	else
-+		return (r->frqchk * 8192) + 225000;
-+}
-+
-+static void tea5761_tune(struct tea5761_device *tea, int freq)
-+{
-+	tea5761_set_freq(tea, freq);
-+	tea5761_write_regs(tea);
-+}
-+
-+static void tea5761_set_audout_mode(struct tea5761_device *tea, int au=
-dmode)
-+{
-+	struct tea5761_regs *r =3D &tea->regs;
-+	int tnctrl =3D r->tnctrl;
-+
-+	if (audmode =3D=3D V4L2_TUNER_MODE_MONO)
-+		r->tnctrl |=3D TEA5761_TNCTRL_MST;
-+	else
-+		r->tnctrl &=3D ~TEA5761_TNCTRL_MST;
-+	if (tnctrl !=3D r->tnctrl)
-+		tea5761_write_regs(tea);
-+}
-+
-+static int tea5761_get_audout_mode(struct tea5761_device *tea)
-+{
-+	struct tea5761_regs *r =3D &tea->regs;
-+
-+	if (r->tnctrl & TEA5761_TNCTRL_MST)
-+		return V4L2_TUNER_MODE_MONO;
-+	else
-+		return V4L2_TUNER_MODE_STEREO;
-+}
-+
-+static void tea5761_mute(struct tea5761_device *tea, int on)
-+{
-+	struct tea5761_regs *r =3D &tea->regs;
-+	int tnctrl =3D r->tnctrl;
-+
-+	if (on)
-+		r->tnctrl |=3D TEA5761_TNCTRL_MU;
-+	else
-+		r->tnctrl &=3D ~TEA5761_TNCTRL_MU;
-+	if (tnctrl !=3D r->tnctrl)
-+		tea5761_write_regs(tea);
-+}
-+
-+static int tea5761_is_muted(struct tea5761_device *tea)
-+{
-+	return tea->regs.tnctrl & TEA5761_TNCTRL_MU;
-+}
-+
-+static int tea5761_do_ioctl(struct inode *inode, struct file *file,
-+			    unsigned int cmd, void *arg)
-+{
-+	struct tea5761_device *tea =3D file->private_data;
-+	struct video_device *dev =3D tea->video_dev;
-+	struct i2c_client *client =3D tea->i2c_dev;
-+	struct tea5761_regs *r =3D &tea->regs;
-+
-+	union {
-+		struct v4l2_capability c;
-+		struct v4l2_tuner t;
-+		struct v4l2_frequency f;
-+		struct v4l2_queryctrl qc;
-+		struct v4l2_control ct;
-+	} *u =3D arg;
-+
-+	tea5761_read_regs(tea);
-+
-+	switch (cmd) {
-+	case VIDIOC_QUERYCAP:
-+		dev_dbg(&client->dev, "VIDIOC_QUERYCAP\n");
-+		memset(&u->c, 0, sizeof(u->c));
-+		strlcpy(u->c.driver,
-+			dev->parent->driver->name,
-+			sizeof(u->c.driver));
-+		strlcpy(u->c.card, dev->name, sizeof(u->c.card));
-+		snprintf(u->c.bus_info, sizeof(u->c.bus_info), "I2C:%s",
-+			 dev->parent->bus_id);
-+		u->c.version =3D TEA5761_VERSION;
-+		u->c.capabilities =3D V4L2_CAP_TUNER | V4L2_CAP_RADIO;
-+		break;
-+
-+	case VIDIOC_G_TUNER:
-+		/* Only one tuner chip */
-+		dev_dbg(&client->dev, "VIDIOC_G_TUNER\n");
-+		if (u->t.index !=3D 0)
-+			return -EINVAL;
-+
-+		memset(&u->t, 0, sizeof(u->t));
-+		u->t.type =3D V4L2_TUNER_RADIO;
-+		strlcpy(u->t.name, "FM", sizeof(u->t.name));
-+		/* Freq in 62.5Hz units */
-+		u->t.rangelow =3D TEA5761_FREQ_LOW * 16;
-+		u->t.rangehigh =3D TEA5761_FREQ_HIGH * 16;
-+		u->t.capability =3D V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
-+		if (r->tunchk & TEA5761_TUNCHK_STEREO)
-+			u->t.rxsubchans =3D V4L2_TUNER_SUB_STEREO;
-+		u->t.audmode =3D tea5761_get_audout_mode(tea);
-+		u->t.signal =3D TEA5761_TUNCHK_LEVEL(r->tunchk) * 0xffff / 0xf;
-+		u->t.afc =3D TEA5761_TUNCHK_IFCNT(r->tunchk);
-+		break;
-+
-+	case VIDIOC_S_TUNER:
-+		/* Only tuner nro 0 can be selected. */
-+		dev_dbg(&client->dev, "VIDIOC_S_TUNER\n");
-+		if (u->t.index !=3D 0)
-+			return -EINVAL;
-+		tea5761_set_audout_mode(tea, u->t.audmode);
-+		break;
-+
-+	case VIDIOC_G_FREQUENCY:
-+		dev_dbg(&client->dev, "VIDIOC_G_FREQUENCY\n");
-+		memset(&u->f, 0, sizeof(u->f));
-+		u->f.type =3D V4L2_TUNER_RADIO;
-+		if (r->tnctrl & TEA5761_TNCTRL_PUPD0)
-+			u->f.frequency =3D (tea5761_get_freq(tea) * 2) / 125;
-+		else
-+			u->f.frequency =3D 0;
-+		break;
-+
-+	case VIDIOC_S_FREQUENCY:
-+		dev_dbg(&client->dev, "VIDIOC_S_FREQUENCY %u\n",
-+			u->f.frequency);
-+		if (u->f.tuner !=3D 0)
-+			return -EINVAL;
-+		if (u->f.frequency =3D=3D 0) {
-+			/* We special case this as a power down
-+			 * control. */
-+			tea5761_power_down(tea);
-+			break;
-+		}
-+		if (u->f.frequency < 16 * TEA5761_FREQ_LOW)
-+			return -EINVAL;
-+		if (u->f.frequency > 16 * TEA5761_FREQ_HIGH)
-+			return -EINVAL;
-+
-+		tea5761_power_up(tea);
-+		tea5761_tune(tea, (u->f.frequency * 125) / 2);
-+		break;
-+
-+	case VIDIOC_QUERYCTRL:
-+		dev_dbg(&client->dev, "VIDIOC_QUERYCTRL %d\n", u->qc.id);
-+		if (u->qc.id !=3D V4L2_CID_AUDIO_MUTE)
-+			return -EINVAL;
-+		strlcpy(u->qc.name, "Mute", sizeof(u->qc.name));
-+		u->qc.minimum =3D 0;
-+		u->qc.maximum =3D 1;
-+		u->qc.step =3D 1;
-+		u->qc.default_value =3D 0;
-+		u->qc.type =3D V4L2_CTRL_TYPE_BOOLEAN;
-+		break;
-+
-+	case VIDIOC_G_CTRL:
-+		dev_dbg(&client->dev, "VIDIOC_G_CTRL %d\n", u->ct.id);
-+		if (u->ct.id !=3D V4L2_CID_AUDIO_MUTE)
-+			return -EINVAL;
-+		if (r->tnctrl & TEA5761_TNCTRL_PUPD0)
-+			u->ct.value =3D tea5761_is_muted(tea) ? 1 : 0;
-+		else
-+			u->ct.value =3D 0;
-+		break;
-+
-+	case VIDIOC_S_CTRL:
-+		dev_dbg(&client->dev, "VIDIOC_S_CTRL %d\n", u->ct.id);
-+		if (u->ct.id !=3D V4L2_CID_AUDIO_MUTE)
-+			return -EINVAL;
-+		tea5761_mute(tea, u->ct.value);
-+		break;
-+
-+	default:
-+		return -ENOIOCTLCMD;
-+	}
-+
-+	return 0;
-+}
-+
-+static int tea5761_ioctl(struct inode *inode, struct file *file,
-+			 unsigned int cmd, unsigned long arg)
-+{
-+	return video_usercopy(inode, file, cmd, arg, tea5761_do_ioctl);
-+}
-+
-+static int tea5761_open(struct inode *inode, struct file *file)
-+{
-+	int minor =3D iminor(file->f_dentry->d_inode);
-+	/* Currently we support only one device */
-+	struct tea5761_device *tea =3D &tea5761;
-+
-+	if (tea->video_dev->minor !=3D minor)
-+		return -ENODEV;
-+
-+	mutex_lock(&tea->mutex);
-+	/* Only exclusive access */
-+	if (tea->users) {
-+		mutex_unlock(&tea->mutex);
-+		return -EBUSY;
-+	}
-+	tea->users++;
-+	mutex_unlock(&tea->mutex);
-+
-+	file->private_data =3D tea;
-+	return 0;
-+}
-+
-+static int tea5761_release(struct inode *inode, struct file *file)
-+{
-+	struct tea5761_device *tea =3D file->private_data;
-+
-+	mutex_lock(&tea->mutex);
-+	tea->users--;
-+	mutex_unlock(&tea->mutex);
-+
-+	return 0;
-+}
-+
-+static struct file_operations tea5761_fops =3D {
-+	.owner		=3D THIS_MODULE,
-+	.open           =3D tea5761_open,
-+	.release	=3D tea5761_release,
-+	.ioctl		=3D tea5761_ioctl,
-+	.llseek         =3D no_llseek,
-+};
-+
-+static struct video_device tea5761_video_device =3D {
-+	.name          =3D "TEA5761 FM-Radio",
-+	.vfl_type      =3D VID_TYPE_TUNER,
-+	.fops          =3D &tea5761_fops,
-+	.release       =3D video_device_release
-+};
-+
-+static int tea5761_i2c_driver_probe(struct i2c_client *client,
-+		const struct i2c_device_id *id)
-+{
-+	struct video_device *video_dev;
-+	int err =3D 0;
-+	struct tea5761_device *tea =3D &tea5761;
-+
-+	mutex_init(&tea->mutex);
-+
-+	tea->i2c_dev =3D client;
-+
-+	/* V4L initialization */
-+	video_dev =3D video_device_alloc();
-+	if (video_dev =3D=3D NULL) {
-+		dev_err(&client->dev, "couldn't allocate memory\n");
-+		err =3D -ENOMEM;
-+		goto exit;
-+	}
-+	tea->video_dev =3D video_dev;
-+
-+	*video_dev =3D tea5761_video_device;
-+	video_dev->parent =3D &client->dev;
-+	i2c_set_clientdata(client, video_dev);
-+
-+	/* initialize and power off the chip */
-+	tea5761_read_regs(tea);
-+	tea5761_set_audout_mode(tea, V4L2_TUNER_MODE_STEREO);
-+	tea5761_mute(tea, 0);
-+	tea5761_power_down(tea);
-+
-+	tea5761.video_dev =3D video_dev;
-+	tea5761.i2c_dev =3D client;
-+
-+	err =3D video_register_device(video_dev, VFL_TYPE_RADIO, radio_nr);
-+	if (err) {
-+		dev_err(&client->dev, "couldn't register video device\n");
-+		goto err_video_alloc;
-+	}
-+
-+	dev_info(&client->dev, "tea5761 (version %d) detected\n",
-+		(tea->regs.manid >> 12) & 0xf);
-+
-+	return 0;
-+
-+err_video_alloc:
-+	video_device_release(video_dev);
-+exit:
-+	kfree(client);
-+	return err;
-+}
-+
-+static int tea5761_i2c_driver_remove(struct i2c_client *client)
-+{
-+	struct video_device *vd =3D i2c_get_clientdata(client);
-+
-+	video_unregister_device(vd);
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id tea5761_id[] =3D {
-+	{ DRIVER_NAME, 0 },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(i2c, tea5761_id);
-+
-+static struct i2c_driver tea5761_driver =3D {
-+	.driver =3D {
-+		.name	=3D DRIVER_NAME,
-+	},
-+	.probe	=3D tea5761_i2c_driver_probe,
-+	.remove =3D __devexit_p(tea5761_i2c_driver_remove),
-+	.id_table =3D tea5761_id,
-+};
-+
-+static int __init tea5761_init(void)
-+{
-+	int res;
-+
-+	if ((res =3D i2c_add_driver(&tea5761_driver))) {
-+		printk(KERN_ERR DRIVER_NAME ": driver registration failed\n");
-+		return res;
-+	}
-+
-+	return 0;
-+}
-+
-+static void __exit tea5761_exit(void)
-+{
-+	i2c_del_driver(&tea5761_driver);
-+}
-+
-+MODULE_AUTHOR("Timo Ter=E4s");
-+MODULE_DESCRIPTION("I2C interface for TEA5761.");
-+MODULE_LICENSE("GPL");
-+
-+module_param(radio_nr, int, 0);
-+MODULE_PARM_DESC(nr_radio, "video4linux device number to use");
-+
-+module_init(tea5761_init)
-+module_exit(tea5761_exit)
---=20
++#ifndef __TWL4030_KEYPAD_H__
++#define __TWL4030_KEYPAD_H__
++
++/* Register Definitions */
++#define KEYP_CTRL				0x00
++#define KEYP_DEB				0x01
++#define KEYP_LONG_KEY				0x02
++#define KEYP_LK_PTV				0x03
++#define KEYP_TIMEOUT_L				0x04
++#define KEYP_TIMEOUT_H				0x05
++#define KEYP_FULL_CODE_7_0			0x09
++#define KEYP_ISR1				0x11
++#define KEYP_IMR1				0x12
++#define KEYP_EDR				0x16
++#define KEYP_SIH_CTRL				0x17
++
++/* KEYP_CTRL_REG Fields */
++#define KEYP_CTRL_SOFT_NRST			0x01
++#define KEYP_CTRL_SOFTMODEN			0x02
++#define KEYP_CTRL_LK_EN				0x04
++#define KEYP_CTRL_TOE_EN			0x08
++#define KEYP_CTRL_TOLE_EN			0x10
++#define KEYP_CTRL_RP_EN				0x20
++#define KEYP_CTRL_KBD_ON			0x40
++
++
++#define KEYP_CTRL_NOAUTORPT			(KEYP_CTRL_SOFT_NRST |	\
++						 KEYP_CTRL_SOFTMODEN |	\
++						 KEYP_CTRL_TOE_EN |	\
++						 KEYP_CTRL_KBD_ON)
++
++/* KEYP_DEB, KEYP_LONG_KEY, KEYP_TIMEOUT_x*/
++#define KEYP_PERIOD_US(T, prescale)		(T / (31 << (prescale + 1)) - 1)
++
++/* KEYP_LK_PTV_REG Fields */
++#define KEYP_LK_PTV_PTV_SHIFT			5
++
++/* KEYP_IMR1 Fields */
++#define KEYP_IMR1_MIS				0x08
++#define KEYP_IMR1_TO				0x04
++#define KEYP_IMR1_LK				0x02
++#define KEYP_IMR1_KP				0x01
++
++/* KEYP_EDR Fields */
++#define KEYP_EDR_KP_FALLING			0x01
++#define KEYP_EDR_KP_RISING			0x02
++#define KEYP_EDR_KP_BOTH			0x03
++#define KEYP_EDR_LK_FALLING			0x04
++#define KEYP_EDR_LK_RISING			0x08
++#define KEYP_EDR_TO_FALLING			0x10
++#define KEYP_EDR_TO_RISING			0x20
++#define KEYP_EDR_MIS_FALLING			0x40
++#define KEYP_EDR_MIS_RISING			0x80
++
++/* KEYP_SIH_CTRL Fields */
++#define KEYP_SIH_CTRL_COR			0x04
++#define KEYP_SIH_CTRL_PEND_DIS			0x02
++#define KEYP_SIH_CTRL_EXCL_EN			0x01
++
++#endif	/* End of __TWL4030-KEYPAD_H__ */
+-- 
 1.6.0.1.141.g445ca
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
