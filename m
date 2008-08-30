@@ -1,14 +1,16 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 01/33] add lp5521 driver
-Date: Sat, 30 Aug 2008 20:16:01 +0300
-Message-ID: <1220116593-862-2-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 03/33] add omap-sha1 driver
+Date: Sat, 30 Aug 2008 20:16:03 +0300
+Message-ID: <1220116593-862-4-git-send-email-me@felipebalbi.com>
 References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
+ <1220116593-862-2-git-send-email-me@felipebalbi.com>
+ <1220116593-862-3-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:43718 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:43783 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752746AbYH3RRD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:17:03 -0400
-In-Reply-To: <1220116593-862-1-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1754610AbYH3RRZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:17:25 -0400
+In-Reply-To: <1220116593-862-3-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -18,635 +20,623 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/i2c/chips/Kconfig  |    7 +
- drivers/i2c/chips/Makefile |    2 +-
- drivers/i2c/chips/lp5521.c |  585 ++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 593 insertions(+), 1 deletions(-)
- create mode 100644 drivers/i2c/chips/lp5521.c
+ drivers/crypto/Kconfig         |    7 +
+ drivers/crypto/Makefile        |    1 +
+ drivers/crypto/omap-sha1-md5.c |  575 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 583 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/crypto/omap-sha1-md5.c
 
-diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
-index a95cb94..193c3ae 100644
---- a/drivers/i2c/chips/Kconfig
-+++ b/drivers/i2c/chips/Kconfig
-@@ -162,6 +162,13 @@ config SENSORS_TSL2550
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called tsl2550.
+diff --git a/drivers/crypto/Kconfig b/drivers/crypto/Kconfig
+index e522144..7fb9494 100644
+--- a/drivers/crypto/Kconfig
++++ b/drivers/crypto/Kconfig
+@@ -83,6 +83,13 @@ config ZCRYPT_MONOLITHIC
+ 	  that contains all parts of the crypto device driver (ap bus,
+ 	  request router and all the card drivers).
  
-+config LP5521
-+	tristate "LP5521 LED driver chip"
-+	depends on I2C
++config OMAP_SHA1_MD5
++	tristate "Support for OMAP SHA1/MD5 hw engine"
++	depends on ARCH_OMAP24XX && CRYPTO_SHA1 && CRYPTO_MD5
 +	help
-+	  If you say yes here you get support for the National Semiconductor
-+	  LP5521 LED driver.
++	  OMAP processors have SHA1/MD5 module accelerator. Select this if you
++	  want to use the OMAP module for SHA1/MD5 algorithms.
 +
- config MENELAUS
- 	bool "TWL92330/Menelaus PM chip"
- 	depends on I2C=y && ARCH_OMAP24XX
-diff --git a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
-index 39e3e69..987f600 100644
---- a/drivers/i2c/chips/Makefile
-+++ b/drivers/i2c/chips/Makefile
-@@ -21,8 +21,8 @@ obj-$(CONFIG_ISP1301_OMAP)	+= isp1301_omap.o
- obj-$(CONFIG_TPS65010)		+= tps65010.o
- obj-$(CONFIG_MENELAUS)		+= menelaus.o
- obj-$(CONFIG_SENSORS_TSL2550)	+= tsl2550.o
-+obj-$(CONFIG_LP5521)		+= lp5521.o
- 
- ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
- EXTRA_CFLAGS += -DDEBUG
- endif
--
-diff --git a/drivers/i2c/chips/lp5521.c b/drivers/i2c/chips/lp5521.c
+ config CRYPTO_SHA1_S390
+ 	tristate "SHA1 digest algorithm"
+ 	depends on S390
+diff --git a/drivers/crypto/Makefile b/drivers/crypto/Makefile
+index 73557b2..5da41a1 100644
+--- a/drivers/crypto/Makefile
++++ b/drivers/crypto/Makefile
+@@ -1,6 +1,7 @@
+ obj-$(CONFIG_CRYPTO_DEV_PADLOCK_AES) += padlock-aes.o
+ obj-$(CONFIG_CRYPTO_DEV_PADLOCK_SHA) += padlock-sha.o
+ obj-$(CONFIG_CRYPTO_DEV_GEODE) += geode-aes.o
++obj-$(CONFIG_OMAP_SHA1_MD5) += omap-sha1-md5.o
+ obj-$(CONFIG_CRYPTO_DEV_HIFN_795X) += hifn_795x.o
+ obj-$(CONFIG_CRYPTO_DEV_TALITOS) += talitos.o
+ obj-$(CONFIG_CRYPTO_DEV_IXP4XX) += ixp4xx_crypto.o
+diff --git a/drivers/crypto/omap-sha1-md5.c b/drivers/crypto/omap-sha1-md5.c
 new file mode 100644
-index 0000000..c0862d9
+index 0000000..6d77703
 --- /dev/null
-+++ b/drivers/i2c/chips/lp5521.c
-@@ -0,0 +1,585 @@
++++ b/drivers/crypto/omap-sha1-md5.c
+@@ -0,0 +1,575 @@
 +/*
-+ * drivers/i2c/chips/lp5521.c
++ * Cryptographic API.
 + *
-+ * Copyright (C) 2007 Nokia Corporation
++ * Support for OMAP SHA1/MD5 HW acceleration.
 + *
-+ * Written by Mathias Nyman <mathias.nyman@nokia.com>
++ * Copyright (c) 2007 Instituto Nokia de Tecnologia - INdT
++ * Author: David Cohen <david.cohen@indt.org.br>
 + *
 + * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ * it under the terms of the GNU General Public License version 2 as published
++ * by the Free Software Foundation.
 + *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ * This driver is based on padlock-sha.c driver.
 + */
 +
++#include <asm/arch-omap/irqs.h>
++#include <crypto/algapi.h>
++#include <crypto/sha.h>
++#include <linux/err.h>
++#include <linux/device.h>
 +#include <linux/module.h>
 +#include <linux/init.h>
-+#include <linux/i2c.h>
-+#include <linux/mutex.h>
-+#include <mach/gpio.h>
++#include <linux/errno.h>
++#include <linux/cryptohash.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/clk.h>
++#include <linux/irq.h>
++#include <linux/platform_device.h>
++#include <linux/scatterlist.h>
 +
-+#define LP5521_DRIVER_NAME		"lp5521"
++#define SHA_REG_DIGEST(x)		(0x00 + ((x) * 0x04))
++#define SHA_REG_DIN(x)			(0x1C + ((x) * 0x04))
 +
-+#ifdef LED_CONNECTED_WRONG
-+#define LP5521_REG_R_PWM		0x04
-+#define LP5521_REG_B_PWM		0x02
-+#else
-+#define LP5521_REG_R_PWM		0x02
-+#define LP5521_REG_B_PWM		0x04
-+#endif
-+#define LP5521_REG_ENABLE		0x00
-+#define LP5521_REG_OP_MODE		0x01
-+#define LP5521_REG_G_PWM		0x03
-+#define LP5521_REG_R_CNTRL		0x05
-+#define LP5521_REG_G_CNTRL		0x06
-+#define LP5521_REG_B_CNTRL		0x07
-+#define LP5521_REG_MISC			0x08
-+#define LP5521_REG_R_CHANNEL_PC		0x09
-+#define LP5521_REG_G_CHANNEL_PC		0x0a
-+#define LP5521_REG_B_CHANNEL_PC		0x0b
-+#define LP5521_REG_STATUS		0x0c
-+#define LP5521_REG_RESET		0x0d
-+#define LP5521_REG_GPO			0x0e
-+#define LP5521_REG_R_PROG_MEM		0x10
-+#define LP5521_REG_G_PROG_MEM		0x30
-+#define LP5521_REG_B_PROG_MEM		0x50
++#define SHA1_MD5_BLOCK_SIZE		SHA1_BLOCK_SIZE
++#define MD5_DIGEST_SIZE			16
 +
-+#define LP5521_MODE_LOAD		"load"
-+#define LP5521_MODE_RUN			"run"
-+#define LP5521_MODE_DIRECT_CONTROL	"direct"
++#define SHA_REG_DIGCNT			0x14
 +
-+#define LP5521_CURRENT_1m5		0x0f
-+#define LP5521_CURRENT_3m1		0x1f
-+#define LP5521_CURRENT_4m7		0x2f
-+#define LP5521_CURRENT_6m3		0x3f
-+#define LP5521_CURRENT_7m9		0x4f
-+#define LP5521_CURRENT_9m5		0x5f
-+#define LP5521_CURRENT_11m1		0x6f
-+#define LP5521_CURRENT_12m7		0x7f
-+#define LP5521_CURRENT_14m3		0x8f
-+#define LP5521_CURRENT_15m9		0x9f
-+#define LP5521_CURRENT_17m5		0xaf
-+#define LP5521_CURRENT_19m1		0xbf
-+#define LP5521_CURRENT_20m7		0xcf
-+#define LP5521_CURRENT_22m3		0xdf
-+#define LP5521_CURRENT_23m9		0xef
-+#define LP5521_CURRENT_25m5		0xff
++#define SHA_REG_CTRL			0x18
++#define SHA_REG_CTRL_LENGTH		(0xFFFFFFFF << 5)
++#define SHA_REG_CTRL_CLOSE_HASH		(1 << 4)
++#define SHA_REG_CTRL_ALGO_CONST		(1 << 3)
++#define SHA_REG_CTRL_ALGO		(1 << 2)
++#define SHA_REG_CTRL_INPUT_READY	(1 << 1)
++#define SHA_REG_CTRL_OUTPUT_READY	(1 << 0)
 +
-+#define LP5521_PROGRAM_LENGTH		32	/* in bytes */
++#define SHA_REG_REV			0x5C
++#define SHA_REG_REV_MAJOR		0xF0
++#define SHA_REG_REV_MINOR		0x0F
 +
-+struct lp5521_chip {
-+	struct mutex		lock;
-+	struct i2c_client	*client;
-+	char			*mode;
-+	int			red;
-+	int			green;
-+	int			blue;
++#define SHA_REG_MASK			0x60
++#define SHA_REG_MASK_DMA_EN		(1 << 3)
++#define SHA_REG_MASK_IT_EN		(1 << 2)
++#define SHA_REG_MASK_SOFTRESET		(1 << 1)
++#define SHA_REG_AUTOIDLE		(1 << 0)
++
++#define SHA_REG_SYSSTATUS		0x64
++#define SHA_REG_SYSSTATUS_RESETDONE	(1 << 0)
++
++#define DRIVER_NAME			"OMAP SHA1/MD5"
++
++struct omap_sha1_md5_ctx {
++	unsigned int		type_algo;
++	unsigned int		bufcnt;
++	unsigned int		digcnt;
++	int			algo_const;
++	int			bypass;
++	int			digsize;
++	u8			hash[SHA1_DIGEST_SIZE];
++	u8			buffer[SHA1_BLOCK_SIZE];
++	struct			hash_desc fallback;
 +};
 +
-+static int lp5521_set_mode(struct lp5521_chip *chip, char *mode);
++struct omap_sha1_md5_dev {
++	unsigned long		base_address;
++	int			irq;
++	int			digready;
++	struct clk		*sha1_ick;
++	struct omap_sha1_md5_ctx
++				*hw_ctx;
++	struct device		*dev;
++	wait_queue_head_t	wq;
++};
 +
-+static int lp5521_write(struct i2c_client *client, u8 reg, u8 value)
++static struct omap_sha1_md5_dev *sha1_md5_data;
++
++#define SHA_REG_IOADDR(d, x) (void *)IO_ADDRESS((d)->base_address + (x))
++
++static u32 omap_sha1_md5_read(struct omap_sha1_md5_dev *data, u32 offset)
 +{
-+	return i2c_smbus_write_byte_data(client, reg, value);
++	return __raw_readl(SHA_REG_IOADDR(data, offset));
 +}
 +
-+static int lp5521_read(struct i2c_client *client, u8 reg, u8 *buf)
++static void omap_sha1_md5_write(struct omap_sha1_md5_dev *data,
++					u32 value, u32 offset)
 +{
-+	s32 ret = i2c_smbus_read_byte_data(client, reg);
-+
-+	if (ret < 0)
-+		return -EIO;
-+
-+	*buf = ret;
-+	return 0;
++	__raw_writel(value, SHA_REG_IOADDR(data, offset));
 +}
 +
-+static int lp5521_configure(struct i2c_client *client)
++static void omap_sha1_md5_write_mask(struct omap_sha1_md5_dev *data,
++					u32 value, u32 mask, u32 address)
 +{
-+	int ret = 0;
++	u32 val;
 +
-+	/* Enable chip and set light to logarithmic mode*/
-+	ret |= lp5521_write(client, LP5521_REG_ENABLE, 0xc0);
-+
-+	/* setting all color pwms to direct control mode */
-+	ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x3f);
-+
-+	/* setting current to 4.7 mA for all channels */
-+	ret |= lp5521_write(client, LP5521_REG_R_CNTRL, LP5521_CURRENT_4m7);
-+	ret |= lp5521_write(client, LP5521_REG_G_CNTRL, LP5521_CURRENT_4m7);
-+	ret |= lp5521_write(client, LP5521_REG_B_CNTRL, LP5521_CURRENT_4m7);
-+
-+	/* Enable auto-powersave, set charge pump to auto, red to battery */
-+	ret |= lp5521_write(client, LP5521_REG_MISC, 0x3c);
-+
-+	/* initialize all channels pwm to zero */
-+	ret |= lp5521_write(client, LP5521_REG_R_PWM, 0);
-+	ret |= lp5521_write(client, LP5521_REG_G_PWM, 0);
-+	ret |= lp5521_write(client, LP5521_REG_B_PWM, 0);
-+
-+	/* Not much can be done about errors at this point */
-+	return ret;
++	val = omap_sha1_md5_read(data, address);
++	val &= ~mask;
++	val |= value;
++	omap_sha1_md5_write(data, val, address);
 +}
 +
-+static int lp5521_load_program(struct lp5521_chip *chip, u8 *pattern)
++static inline void omap_sha1_md5_enable_clk(struct crypto_tfm *tfm)
 +{
-+	struct i2c_client *client = chip->client;
-+	int ret = 0;
++	struct omap_sha1_md5_dev *data = sha1_md5_data;
 +
-+	/* Enter load program mode for all led channels */
-+	ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x15); /* 0001 0101 */
-+	if (ret)
-+		return ret;
-+
-+	if (chip->red)
-+		ret |= i2c_smbus_write_i2c_block_data(client,
-+						      LP5521_REG_R_PROG_MEM,
-+						      LP5521_PROGRAM_LENGTH,
-+						      pattern);
-+	if (chip->green)
-+		ret |= i2c_smbus_write_i2c_block_data(client,
-+						      LP5521_REG_G_PROG_MEM,
-+						      LP5521_PROGRAM_LENGTH,
-+						      pattern);
-+	if (chip->blue)
-+		ret |= i2c_smbus_write_i2c_block_data(client,
-+						      LP5521_REG_B_PROG_MEM,
-+						      LP5521_PROGRAM_LENGTH,
-+						      pattern);
-+
-+	return ret;
++	clk_enable(data->sha1_ick);
 +}
 +
-+static int lp5521_run_program(struct lp5521_chip *chip)
++static inline void omap_sha1_md5_disable_clk(struct crypto_tfm *tfm)
 +{
-+	struct i2c_client *client = chip->client;
-+	int ret;
-+	u8 mask = 0xc0;
-+	u8 exec_state = 0;
-+	u8 enable_reg;
++	struct omap_sha1_md5_dev *data = sha1_md5_data;
 +
-+	ret = lp5521_read(client, LP5521_REG_ENABLE, &enable_reg);
-+	if (ret)
-+		goto fail;
-+
-+	enable_reg &= mask;
-+
-+	/* set all active channels exec state to countinous run*/
-+	exec_state |= (chip->red   << 5);
-+	exec_state |= (chip->green << 3);
-+	exec_state |= (chip->blue  << 1);
-+
-+	enable_reg |= exec_state;
-+
-+	ret |= lp5521_write(client, LP5521_REG_ENABLE, enable_reg);
-+
-+	/* set op-mode to run for active channels, disabled for others */
-+	ret |= lp5521_write(client, LP5521_REG_OP_MODE, exec_state);
-+
-+fail:
-+	return ret;
++	clk_disable(data->sha1_ick);
 +}
 +
-+/*--------------------------------------------------------------*/
-+/*			Sysfs interface				*/
-+/*--------------------------------------------------------------*/
-+
-+static ssize_t show_active_channels(struct device *dev,
-+			    struct device_attribute *attr,
-+			    char *buf)
++static void omap_sha1_md5_copy_hash(struct crypto_tfm *tfm)
 +{
-+	struct lp5521_chip *chip = dev_get_drvdata(dev);
-+	char channels[4];
-+	int pos = 0;
++	struct omap_sha1_md5_ctx *ctx = crypto_tfm_ctx(tfm);
++	struct omap_sha1_md5_dev *data = sha1_md5_data;
 +
-+#ifdef LED_CONNECTED_WRONG
-+	if (chip->blue)
-+		pos += sprintf(channels + pos, "r");
-+	if (chip->green)
-+		pos += sprintf(channels + pos, "g");
-+	if (chip->red)
-+		pos += sprintf(channels + pos, "b");
++	u32 *hash = (u32 *)ctx->hash;
 +
-+#else
-+	if (chip->red)
-+		pos += sprintf(channels + pos, "r");
-+	if (chip->green)
-+		pos += sprintf(channels + pos, "g");
-+	if (chip->blue)
-+		pos += sprintf(channels + pos, "b");
-+#endif
-+
-+	channels[pos] = '\0';
-+
-+	return sprintf(buf, "%s\n", channels);
++	if (ctx->type_algo) {
++		/* SHA1 results are in big endian */
++		hash[0] = be32_to_cpu(
++				omap_sha1_md5_read(data, SHA_REG_DIGEST(0)));
++		hash[1] = be32_to_cpu(
++				omap_sha1_md5_read(data, SHA_REG_DIGEST(1)));
++		hash[2] = be32_to_cpu(
++				omap_sha1_md5_read(data, SHA_REG_DIGEST(2)));
++		hash[3] = be32_to_cpu(
++				omap_sha1_md5_read(data, SHA_REG_DIGEST(3)));
++		hash[4] = be32_to_cpu(
++				omap_sha1_md5_read(data, SHA_REG_DIGEST(4)));
++	} else {
++		/* MD5 results are in little endian */
++		hash[0] = le32_to_cpu(
++				omap_sha1_md5_read(data, SHA_REG_DIGEST(0)));
++		hash[1] = le32_to_cpu(
++				omap_sha1_md5_read(data, SHA_REG_DIGEST(1)));
++		hash[2] = le32_to_cpu(
++				omap_sha1_md5_read(data, SHA_REG_DIGEST(2)));
++		hash[3] = le32_to_cpu(
++				omap_sha1_md5_read(data, SHA_REG_DIGEST(3)));
++	}
 +}
 +
-+static ssize_t store_active_channels(struct device *dev,
-+			     struct device_attribute *attr,
-+			     const char *buf, size_t len)
++static void omap_sha1_md5_bypass(struct crypto_tfm *tfm,
++				u8 *data, unsigned int length)
 +{
-+	struct lp5521_chip *chip = dev_get_drvdata(dev);
++	struct omap_sha1_md5_ctx *ctx = crypto_tfm_ctx(tfm);
 +
-+	chip->red = 0;
-+	chip->green = 0;
-+	chip->blue = 0;
++	if (unlikely(!ctx->bypass))
++		return;
 +
-+#ifdef LED_CONNECTED_WRONG
-+	if (strchr(buf, 'r') != NULL)
-+		chip->blue = 1;
-+	if (strchr(buf, 'b') != NULL)
-+		chip->red = 1;
-+#else
-+	if (strchr(buf, 'r') != NULL)
-+		chip->red = 1;
-+	if (strchr(buf, 'b') != NULL)
-+		chip->blue = 1;
-+#endif
-+	if (strchr(buf, 'g') != NULL)
-+		chip->green = 1;
-+
-+	return len;
-+}
-+
-+static ssize_t show_color(struct device *dev,
-+			    struct device_attribute *attr,
-+			    char *buf)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	int ret = 0;
-+	u8 r, g, b;
-+
-+	ret |= lp5521_read(client, LP5521_REG_R_PWM, &r);
-+	ret |= lp5521_read(client, LP5521_REG_G_PWM, &g);
-+	ret |= lp5521_read(client, LP5521_REG_B_PWM, &b);
-+
-+	if (ret)
-+		return ret;
-+
-+	return sprintf(buf, "%.2x:%.2x:%.2x\n", r, g, b);
-+}
-+
-+static ssize_t store_color(struct device *dev,
-+			     struct device_attribute *attr,
-+			     const char *buf, size_t len)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct lp5521_chip *chip = i2c_get_clientdata(client);
-+	int ret;
-+	unsigned r, g, b;
-+
-+
-+	ret = sscanf(buf, "%2x:%2x:%2x", &r, &g, &b);
-+	if (ret != 3)
-+		return  -EINVAL;
-+
-+	mutex_lock(&chip->lock);
-+
-+	ret = lp5521_write(client, LP5521_REG_R_PWM, (u8)r);
-+	ret = lp5521_write(client, LP5521_REG_G_PWM, (u8)g);
-+	ret = lp5521_write(client, LP5521_REG_B_PWM, (u8)b);
-+
-+	mutex_unlock(&chip->lock);
-+
-+	return len;
-+}
-+
-+static ssize_t store_load(struct device *dev,
-+			     struct device_attribute *attr,
-+			     const char *buf, size_t len)
-+{
-+	struct lp5521_chip *chip = dev_get_drvdata(dev);
-+	int  ret, nrchars, offset = 0, i = 0;
-+	char c[3];
-+	unsigned cmd;
-+	u8 pattern[LP5521_PROGRAM_LENGTH] = {0};
-+
-+	while ((offset < len - 1) && (i < LP5521_PROGRAM_LENGTH)) {
-+
-+		/* separate sscanfs because length is working only for %s */
-+		ret = sscanf(buf + offset, "%2s%n ", c, &nrchars);
-+		ret = sscanf(c, "%2x", &cmd);
-+		if (ret != 1)
-+			goto fail;
-+		pattern[i] = (u8)cmd;
-+
-+		offset += nrchars;
-+		i++;
++	if (ctx->bypass == 1) {
++		crypto_hash_init(&ctx->fallback);
++		ctx->bypass++;
 +	}
 +
-+	/* pattern commands are always two bytes long */
-+	if (i % 2)
-+		goto fail;
++	if (length) {
++		struct scatterlist sg;
 +
-+	mutex_lock(&chip->lock);
++		sg_set_buf(&sg, data, length);
++		crypto_hash_update(&ctx->fallback, &sg, sg.length);
++	}
++}
 +
-+	ret = lp5521_load_program(chip, pattern);
-+	mutex_unlock(&chip->lock);
++static void omap_sha1_md5_digest_buffer(struct crypto_tfm *tfm,
++				u8 *buf, unsigned int len, int close_hash)
++{
++	struct omap_sha1_md5_ctx *ctx = crypto_tfm_ctx(tfm);
++	struct omap_sha1_md5_dev *data = sha1_md5_data;
++	unsigned int algo_const = 0;
++	int c;
++	u32 *buffer = (u32 *)buf;
 +
-+	if (ret) {
-+		dev_err(dev, "lp5521 failed loading pattern\n");
-+		return ret;
++	if (unlikely(ctx->bypass)) {
++		omap_sha1_md5_bypass(tfm, buf, len);
++		return;
 +	}
 +
-+	return len;
-+fail:
-+	dev_err(dev, "lp5521 wrong pattern format\n");
-+	return -EINVAL;
-+}
++	if (unlikely(ctx->algo_const)) {
++		algo_const = SHA_REG_CTRL_ALGO_CONST;
++		ctx->algo_const = 0;
++	} else
++		omap_sha1_md5_write(data, ctx->digcnt, SHA_REG_DIGCNT);
 +
-+static ssize_t show_mode(struct device *dev,
-+			 struct device_attribute *attr,
-+			 char *buf)
-+{
-+	struct lp5521_chip *chip = dev_get_drvdata(dev);
++	if (unlikely(close_hash))
++		close_hash = SHA_REG_CTRL_CLOSE_HASH;
 +
-+	return sprintf(buf, "%s\n", chip->mode);
-+}
++	/* Setting ALGO_CONST only for the first iteration
++	 * and CLOSE_HASH only for the last one. */
++	omap_sha1_md5_write_mask(data,
++			ctx->type_algo | algo_const | close_hash | (len << 5),
++			SHA_REG_CTRL_ALGO_CONST | SHA_REG_CTRL_CLOSE_HASH |
++			SHA_REG_CTRL_ALGO | SHA_REG_CTRL_LENGTH,
++			SHA_REG_CTRL);
 +
-+static ssize_t store_mode(struct device *dev,
-+			  struct device_attribute *attr,
-+			  const char *buf, size_t len)
-+{
-+	struct lp5521_chip *chip = dev_get_drvdata(dev);
++	ctx->digcnt += len;
++	while (!(omap_sha1_md5_read(data, SHA_REG_CTRL)
++		& SHA_REG_CTRL_INPUT_READY));
 +
-+	mutex_lock(&chip->lock);
-+
-+	if (!strncmp(buf, "run", 3))
-+		lp5521_set_mode(chip, LP5521_MODE_RUN);
-+	else if (!strncmp(buf, "load", 4))
-+		lp5521_set_mode(chip, LP5521_MODE_LOAD);
-+	else if (!strncmp(buf, "direct", 6))
-+		lp5521_set_mode(chip, LP5521_MODE_DIRECT_CONTROL);
-+
-+	mutex_unlock(&chip->lock);
-+
-+	return len;
-+}
-+
-+static ssize_t show_current(struct device *dev,
-+			    struct device_attribute *attr,
-+			    char *buf)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	int ret = 0;
-+	u8 r_curr, g_curr, b_curr;
-+
-+	ret |= lp5521_read(client, LP5521_REG_R_CNTRL, &r_curr);
-+	ret |= lp5521_read(client, LP5521_REG_G_CNTRL, &g_curr);
-+	ret |= lp5521_read(client, LP5521_REG_B_CNTRL, &b_curr);
-+
-+	if (ret)
-+		return ret;
-+
-+	r_curr = r_curr >> 4;
-+	g_curr = g_curr >> 4;
-+	b_curr = b_curr >> 4;
-+
-+	if (r_curr == g_curr && g_curr == b_curr)
-+		return sprintf(buf, "%x\n", r_curr);
++	if (len % 4)
++		len = (len/4) + 1;
 +	else
-+		return sprintf(buf, "%x %x %x\n", r_curr, g_curr, b_curr);
++		len /= 4;
++	for (c = 0; c < len; c++)
++		omap_sha1_md5_write(data, buffer[c], SHA_REG_DIN(c));
 +}
 +
-+static ssize_t store_current(struct device *dev,
-+			     struct device_attribute *attr,
-+			     const char *buf, size_t len)
++static void omap_sha1_md5_append_buffer(struct crypto_tfm *tfm,
++				const uint8_t *data, unsigned int length)
 +{
-+	struct lp5521_chip *chip = dev_get_drvdata(dev);
-+	struct i2c_client *client = chip->client;
-+	int ret;
-+	unsigned curr;
++	struct omap_sha1_md5_ctx *ctx = crypto_tfm_ctx(tfm);
 +
-+	ret = sscanf(buf, "%1x", &curr);
-+	if (ret != 1)
-+		return  -EINVAL;
++	BUG_ON((ctx->bufcnt + length) > SHA1_MD5_BLOCK_SIZE);
 +
-+	/* current level is determined by the 4 upper bits, rest is ones */
-+	curr = (curr << 4) | 0x0f;
-+
-+	mutex_lock(&chip->lock);
-+
-+	ret |= lp5521_write(client, LP5521_REG_R_CNTRL, (u8)curr);
-+	ret |= lp5521_write(client, LP5521_REG_G_CNTRL, (u8)curr);
-+	ret |= lp5521_write(client, LP5521_REG_B_CNTRL, (u8)curr);
-+
-+	mutex_unlock(&chip->lock);
-+
-+	return len;
++	memcpy(&ctx->buffer[ctx->bufcnt], data, length);
++	ctx->bufcnt += length;
 +}
 +
-+static DEVICE_ATTR(color, S_IRUGO | S_IWUGO, show_color, store_color);
-+static DEVICE_ATTR(load, S_IWUGO, NULL, store_load);
-+static DEVICE_ATTR(mode, S_IRUGO | S_IWUGO, show_mode, store_mode);
-+static DEVICE_ATTR(active_channels, S_IRUGO | S_IWUGO,
-+		   show_active_channels, store_active_channels);
-+static DEVICE_ATTR(led_current, S_IRUGO | S_IWUGO, show_current, store_current);
-+
-+static int lp5521_register_sysfs(struct i2c_client *client)
++static void omap_sha1_md5_dia_update(struct crypto_tfm *tfm,
++				const uint8_t *data, unsigned int length)
 +{
-+	struct device *dev = &client->dev;
-+	int ret;
++	struct omap_sha1_md5_ctx *ctx = crypto_tfm_ctx(tfm);
 +
-+	ret = device_create_file(dev, &dev_attr_color);
-+	if (ret)
-+		goto fail1;
-+	ret = device_create_file(dev, &dev_attr_load);
-+	if (ret)
-+		goto fail2;
-+	ret = device_create_file(dev, &dev_attr_active_channels);
-+	if (ret)
-+		goto fail3;
-+	ret = device_create_file(dev, &dev_attr_mode);
-+	if (ret)
-+		goto fail4;
-+	ret = device_create_file(dev, &dev_attr_led_current);
-+	if (ret)
-+		goto fail5;
-+	return 0;
++	/* We need to save the last buffer <= 64 to digest it with
++	 * CLOSE_HASH = 1 */
++	if (ctx->bufcnt && ((ctx->bufcnt + length) > SHA1_MD5_BLOCK_SIZE)) {
++		unsigned int c = SHA1_MD5_BLOCK_SIZE - ctx->bufcnt;
 +
-+fail5:
-+	device_remove_file(dev, &dev_attr_mode);
-+fail4:
-+	device_remove_file(dev, &dev_attr_active_channels);
-+fail3:
-+	device_remove_file(dev, &dev_attr_load);
-+fail2:
-+	device_remove_file(dev, &dev_attr_color);
-+fail1:
-+	return ret;
-+}
-+
-+static void lp5521_unregister_sysfs(struct i2c_client *client)
-+{
-+	struct lp5521_chip *chip = i2c_get_clientdata(client);
-+	struct device *dev = &client->dev;
-+
-+	device_remove_file(dev, &dev_attr_led_current);
-+	device_remove_file(dev, &dev_attr_mode);
-+	device_remove_file(dev, &dev_attr_active_channels);
-+	device_remove_file(dev, &dev_attr_color);
-+
-+	if (!strcmp(chip->mode, LP5521_MODE_LOAD))
-+		device_remove_file(dev, &dev_attr_load);
-+}
-+
-+/*--------------------------------------------------------------*/
-+/*			Set chip operating mode			*/
-+/*--------------------------------------------------------------*/
-+
-+static int lp5521_set_mode(struct lp5521_chip *chip, char *mode)
-+{
-+	struct i2c_client *client = chip->client ;
-+	int ret = 0;
-+
-+	/* if in that mode already do nothing, except for run */
-+	if (!strcmp(mode, chip->mode) && strcmp(mode, LP5521_MODE_RUN))
-+		return 0;
-+
-+	if (!strcmp(mode, LP5521_MODE_RUN))
-+		ret = lp5521_run_program(chip);
-+
-+	if (!strcmp(mode, LP5521_MODE_LOAD))
-+		ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x15);
-+
-+	if (!strcmp(mode, LP5521_MODE_DIRECT_CONTROL))
-+		ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x3F);
-+
-+	chip->mode = mode;
-+
-+	return ret;
-+}
-+
-+/*--------------------------------------------------------------*/
-+/*			Probe, Attach, Remove			*/
-+/*--------------------------------------------------------------*/
-+static struct i2c_driver lp5521_driver;
-+
-+static int lp5521_probe(struct i2c_client *client,
-+		const struct i2c_device_id *id)
-+{
-+	struct lp5521_chip *chip;
-+	int ret = 0;
-+
-+	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
-+	if (!chip)
-+		return -ENOMEM;
-+
-+	chip->client	= client;
-+	strncpy(client->name, LP5521_DRIVER_NAME, I2C_NAME_SIZE);
-+	i2c_set_clientdata(client, chip);
-+
-+	mutex_init(&chip->lock);
-+
-+	ret = lp5521_configure(client);
-+	if (ret < 0) {
-+		dev_err(&client->dev, "lp5521 error configuring chip \n");
-+		goto fail1;
++		omap_sha1_md5_append_buffer(tfm, data, c);
++		data += c;
++		length -= c;
++		if (length) {
++			ctx->bufcnt = 0;
++			omap_sha1_md5_digest_buffer(tfm, ctx->buffer,
++					SHA1_MD5_BLOCK_SIZE, 0);
++		}
 +	}
 +
-+	/* Set default values */
-+	chip->mode	= LP5521_MODE_DIRECT_CONTROL;
-+	chip->red	= 1;
-+	chip->green	= 1;
-+	chip->blue	= 1;
++	while (length > SHA1_MD5_BLOCK_SIZE) {
++		/* Revisit: use DMA here */
++		omap_sha1_md5_digest_buffer(tfm, (u8 *)data,
++				SHA1_MD5_BLOCK_SIZE, 0);
++		length -= SHA1_MD5_BLOCK_SIZE;
++		data += SHA1_MD5_BLOCK_SIZE;
++	}
 +
-+	ret = lp5521_register_sysfs(client);
-+	if (ret)
-+		dev_err(&client->dev, "lp5521 registering sysfs failed \n");
-+
-+	return ret;
-+
-+fail1:
-+	kfree(chip);
-+	return ret;
++	if (length)
++		omap_sha1_md5_append_buffer(tfm, data, length);
 +}
 +
-+static int lp5521_remove(struct i2c_client *client)
++static void omap_sha1_md5_start_reset(struct crypto_tfm *tfm)
 +{
-+	struct lp5521_chip *chip = i2c_get_clientdata(client);
++	struct omap_sha1_md5_dev *data = sha1_md5_data;
 +
-+	lp5521_unregister_sysfs(client);
-+	kfree(chip);
++	omap_sha1_md5_write_mask(data, SHA_REG_MASK_SOFTRESET,
++			SHA_REG_MASK_SOFTRESET, SHA_REG_MASK);
++}
++
++static void omap_sha1_md5_wait_reset(struct crypto_tfm *tfm)
++{
++	struct omap_sha1_md5_dev *data = sha1_md5_data;
++
++	while (!(omap_sha1_md5_read(data, SHA_REG_SYSSTATUS)
++			& SHA_REG_SYSSTATUS_RESETDONE));
++}
++
++static void omap_sha1_md5_dia_init(struct crypto_tfm *tfm)
++{
++	struct omap_sha1_md5_dev *data = sha1_md5_data;
++	struct omap_sha1_md5_ctx *ctx = crypto_tfm_ctx(tfm);
++
++	if (unlikely(data->hw_ctx))
++		ctx->bypass = 1;
++	else {
++		data->hw_ctx = ctx;
++		ctx->bypass = 0;
++		omap_sha1_md5_enable_clk(tfm);
++		omap_sha1_md5_start_reset(tfm);
++		data->digready = 0;
++	}
++
++	if (ctx->bypass) {
++		omap_sha1_md5_bypass(tfm, NULL, 0);
++		return;
++	}
++
++	ctx->algo_const = 1;
++	ctx->bufcnt = 0;
++	ctx->digcnt = 0;
++
++	omap_sha1_md5_wait_reset(tfm);
++	omap_sha1_md5_write_mask(data, SHA_REG_MASK_IT_EN,
++		SHA_REG_MASK_DMA_EN | SHA_REG_MASK_IT_EN, SHA_REG_MASK);
++}
++
++static void omap_sha1_md5_dia_final(struct crypto_tfm *tfm, uint8_t *out)
++{
++	struct omap_sha1_md5_ctx *ctx = crypto_tfm_ctx(tfm);
++	struct omap_sha1_md5_dev *data = sha1_md5_data;
++	int digsize = ctx->digsize;
++
++	/* The buffer should be >= 9 */
++	if (((ctx->digcnt + ctx->bufcnt) < 9) && !ctx->bypass)
++		ctx->bypass = 1;
++
++	omap_sha1_md5_digest_buffer(tfm, ctx->buffer, ctx->bufcnt, 1);
++
++	if (unlikely(ctx->bypass)) {
++		crypto_hash_final(&ctx->fallback, out);
++		ctx->bypass = 0;
++		goto bypass;
++	} else
++		data->digready = 1;
++
++	wait_event_interruptible(data->wq, (data->digready == 2));
++	omap_sha1_md5_copy_hash(tfm);
++
++	memcpy(out, ctx->hash, digsize);
++
++bypass:
++	if (data->hw_ctx == ctx) {
++		omap_sha1_md5_disable_clk(tfm);
++		data->hw_ctx = NULL;
++	}
++}
++
++static irqreturn_t omap_sha1_md5_irq(int irq, void *dev_id)
++{
++	struct omap_sha1_md5_dev *data = dev_id;
++
++	omap_sha1_md5_write_mask(data, SHA_REG_CTRL_OUTPUT_READY,
++			SHA_REG_CTRL_OUTPUT_READY, SHA_REG_CTRL);
++
++	if (likely(!data->digready))
++		return IRQ_HANDLED;
++
++	if (data->hw_ctx == NULL) {
++		dev_err(data->dev, "unknown interrupt.\n");
++		return IRQ_HANDLED;
++	}
++
++	data->digready = 2;
++	wake_up_interruptible(&data->wq);
++
++	return IRQ_HANDLED;
++}
++
++static int omap_sha1_md5_cra_init(struct crypto_tfm *tfm)
++{
++	struct omap_sha1_md5_ctx *ctx = crypto_tfm_ctx(tfm);
++	struct omap_sha1_md5_dev *data = sha1_md5_data;
++	const char *fallback_driver_name = tfm->__crt_alg->cra_name;
++	struct crypto_hash *fallback_tfm;
++
++	/* Allocate a fallback and abort if it failed. */
++	fallback_tfm = crypto_alloc_hash(fallback_driver_name, 0,
++					 CRYPTO_ALG_ASYNC |
++					 CRYPTO_ALG_NEED_FALLBACK);
++	if (IS_ERR(fallback_tfm)) {
++		dev_err(data->dev, "fallback driver '%s' could not be"
++				"loaded.\n", fallback_driver_name);
++		return PTR_ERR(fallback_tfm);
++	}
++
++	ctx->fallback.tfm = fallback_tfm;
 +
 +	return 0;
 +}
 +
-+static const struct i2c_device_id lp5521_id[] = {
-+	{ LP5521_DRIVER_NAME, 0},
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(i2c, lp5521_id);
++static int omap_sha1_cra_init(struct crypto_tfm *tfm)
++{
++	struct omap_sha1_md5_ctx *ctx = crypto_tfm_ctx(tfm);
 +
-+static struct i2c_driver lp5521_driver = {
-+	.driver = {
-+		.name	= LP5521_DRIVER_NAME,
++	ctx->type_algo = SHA_REG_CTRL_ALGO;
++	ctx->digsize = SHA1_DIGEST_SIZE;
++
++	return omap_sha1_md5_cra_init(tfm);
++}
++
++static int omap_md5_cra_init(struct crypto_tfm *tfm)
++{
++	struct omap_sha1_md5_ctx *ctx = crypto_tfm_ctx(tfm);
++
++	ctx->type_algo = 0;
++	ctx->digsize = MD5_DIGEST_SIZE;
++
++	return omap_sha1_md5_cra_init(tfm);
++}
++
++static void omap_sha1_md5_cra_exit(struct crypto_tfm *tfm)
++{
++	struct omap_sha1_md5_ctx *ctx = crypto_tfm_ctx(tfm);
++
++	crypto_free_hash(ctx->fallback.tfm);
++	ctx->fallback.tfm = NULL;
++}
++
++static struct crypto_alg omap_sha1_alg = {
++	.cra_name		=	"sha1",
++	.cra_driver_name	=	"omap-sha1",
++	.cra_flags		=	CRYPTO_ALG_TYPE_DIGEST |
++					CRYPTO_ALG_NEED_FALLBACK,
++	.cra_blocksize		=	SHA1_MD5_BLOCK_SIZE,
++	.cra_ctxsize		=	sizeof(struct omap_sha1_md5_ctx),
++	.cra_module		=	THIS_MODULE,
++	.cra_list		=	LIST_HEAD_INIT(omap_sha1_alg.cra_list),
++	.cra_init		=	omap_sha1_cra_init,
++	.cra_exit		=	omap_sha1_md5_cra_exit,
++	.cra_u			=	{
++		.digest = {
++			.dia_digestsize	=	SHA1_DIGEST_SIZE,
++			.dia_init	=	omap_sha1_md5_dia_init,
++			.dia_update	=	omap_sha1_md5_dia_update,
++			.dia_final	=	omap_sha1_md5_dia_final,
++		}
++	}
++};
++
++static struct crypto_alg omap_md5_alg = {
++	.cra_name		=	"md5",
++	.cra_driver_name	=	"omap-md5",
++	.cra_flags		=	CRYPTO_ALG_TYPE_DIGEST |
++					CRYPTO_ALG_NEED_FALLBACK,
++	.cra_blocksize		=	SHA1_MD5_BLOCK_SIZE,
++	.cra_ctxsize		=	sizeof(struct omap_sha1_md5_ctx),
++	.cra_module		=	THIS_MODULE,
++	.cra_list		=	LIST_HEAD_INIT(omap_md5_alg.cra_list),
++	.cra_init		=	omap_md5_cra_init,
++	.cra_exit		=	omap_sha1_md5_cra_exit,
++	.cra_u			=	{
++		.digest = {
++			.dia_digestsize	=	MD5_DIGEST_SIZE,
++			.dia_init	=	omap_sha1_md5_dia_init,
++			.dia_update	=	omap_sha1_md5_dia_update,
++			.dia_final	=	omap_sha1_md5_dia_final,
++		}
++	}
++};
++
++static int omap_sha1_md5_probe(struct platform_device *pdev)
++{
++	struct omap_sha1_md5_dev *data;
++	struct device *dev = &pdev->dev;
++	struct resource *res;
++	int rc;
++
++	rc = crypto_register_alg(&omap_sha1_alg);
++	if (rc)
++		goto sha1_err;
++	rc = crypto_register_alg(&omap_md5_alg);
++	if (rc)
++		goto md5_err;
++
++	data = kzalloc(sizeof(struct omap_sha1_md5_dev), GFP_KERNEL);
++	if (data == NULL) {
++		dev_err(dev, "unable to alloc data struct.\n");
++		goto data_err;
++	}
++	platform_set_drvdata(pdev, data);
++	data->dev = dev;
++
++	/* Get the base address */
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res) {
++		dev_err(dev, "invalid resource type\n");
++		rc = -ENODEV;
++		goto res_err;
++	}
++	data->base_address = res->start;
++
++	/* Set the private data */
++	sha1_md5_data = data;
++
++	/* Get the IRQ */
++	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
++	if (!res) {
++		dev_err(dev, "invalid resource type\n");
++		rc = -ENODEV;
++		goto res_err;
++	}
++	data->irq = res->start;
++
++	rc = request_irq(res->start, omap_sha1_md5_irq,
++			IRQF_TRIGGER_LOW, DRIVER_NAME, data);
++	if (rc) {
++		dev_err(dev, "unable to request irq.\n");
++		goto res_err;
++	}
++
++	/* Initializing the clock */
++	data->sha1_ick = clk_get(0, "sha_ick");
++	if (!data->sha1_ick) {
++		dev_err(dev, "clock intialization failed.\n");
++		rc = -ENODEV;
++		goto clk_err;
++	}
++
++	init_waitqueue_head(&data->wq);
++
++	dev_info(dev, "hw accel on OMAP rev %u.%u\n",
++		(omap_sha1_md5_read(data, SHA_REG_REV) & SHA_REG_REV_MAJOR)>>4,
++		omap_sha1_md5_read(data, SHA_REG_REV) & SHA_REG_REV_MINOR);
++
++	return 0;
++
++clk_err:
++	free_irq(data->irq, data);
++res_err:
++	kfree(data);
++data_err:
++	crypto_unregister_alg(&omap_md5_alg);
++md5_err:
++	crypto_unregister_alg(&omap_sha1_alg);
++sha1_err:
++	dev_err(dev, "initialization failed.\n");
++	return rc;
++}
++
++static int omap_sha1_md5_remove(struct platform_device *pdev)
++{
++	struct omap_sha1_md5_dev *data = platform_get_drvdata(pdev);
++
++	free_irq(data->irq, data);
++	kfree(data);
++	crypto_unregister_alg(&omap_sha1_alg);
++	crypto_unregister_alg(&omap_md5_alg);
++
++	return 0;
++}
++
++static struct platform_driver omap_sha1_md5_driver = {
++	.probe	= omap_sha1_md5_probe,
++	.remove	= omap_sha1_md5_remove,
++	.driver	= {
++		.name	= DRIVER_NAME,
++		.owner	= THIS_MODULE,
 +	},
-+	.probe		= lp5521_probe,
-+	.remove		= __devexit_p(lp5521_remove),
-+	.id_table	= lp5521_id,
 +};
 +
-+static int __init lp5521_init(void)
++static int __init omap_sha1_md5_init(void)
 +{
-+	return i2c_add_driver(&lp5521_driver);
++	int ret;
++
++	ret = platform_driver_register(&omap_sha1_md5_driver);
++	if (ret)
++		return ret;
++
++	return 0;
 +}
 +
-+static void __exit lp5521_exit(void)
++static void __exit omap_sha1_md5_exit(void)
 +{
-+	i2c_del_driver(&lp5521_driver);
++	platform_driver_unregister(&omap_sha1_md5_driver);
 +}
 +
-+MODULE_AUTHOR("Mathias Nyman <mathias.nyman@nokia.com>");
-+MODULE_DESCRIPTION("lp5521 LED driver");
++module_init(omap_sha1_md5_init);
++module_exit(omap_sha1_md5_exit);
++
++MODULE_DESCRIPTION("OMAP SHA1/MD5 hw acceleration support.");
 +MODULE_LICENSE("GPL");
-+
-+module_init(lp5521_init);
-+module_exit(lp5521_exit);
++MODULE_AUTHOR("David Cohen");
 -- 
 1.6.0.1.141.g445ca
 
