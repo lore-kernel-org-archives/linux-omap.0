@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 14/33] add tsc210x touchscreen driver
-Date: Sat, 30 Aug 2008 20:16:14 +0300
-Message-ID: <1220116593-862-15-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 11/33] add tsc2301 keypad driver
+Date: Sat, 30 Aug 2008 20:16:11 +0300
+Message-ID: <1220116593-862-12-git-send-email-me@felipebalbi.com>
 References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-2-git-send-email-me@felipebalbi.com>
  <1220116593-862-3-git-send-email-me@felipebalbi.com>
@@ -13,15 +13,12 @@ References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-9-git-send-email-me@felipebalbi.com>
  <1220116593-862-10-git-send-email-me@felipebalbi.com>
  <1220116593-862-11-git-send-email-me@felipebalbi.com>
- <1220116593-862-12-git-send-email-me@felipebalbi.com>
- <1220116593-862-13-git-send-email-me@felipebalbi.com>
- <1220116593-862-14-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:36321 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:36351 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752917AbYH3RT5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:19:57 -0400
-In-Reply-To: <1220116593-862-14-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1752992AbYH3RUG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:20:06 -0400
+In-Reply-To: <1220116593-862-11-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -31,454 +28,522 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/input/touchscreen/Kconfig      |   14 ++
- drivers/input/touchscreen/Makefile     |    1 +
- drivers/input/touchscreen/tsc210x_ts.c |  160 ++++++++++++++++++++++
- include/linux/spi/tsc210x.h            |  231 ++++++++++++++++++++++++++++++++
- 4 files changed, 406 insertions(+), 0 deletions(-)
- create mode 100644 drivers/input/touchscreen/tsc210x_ts.c
- create mode 100644 include/linux/spi/tsc210x.h
+ drivers/input/keyboard/Kconfig      |    6 +
+ drivers/input/keyboard/Makefile     |    1 +
+ drivers/input/keyboard/tsc2301_kp.c |  475 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 482 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/input/keyboard/tsc2301_kp.c
 
-diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
-index a115f38..f45cdac 100644
---- a/drivers/input/touchscreen/Kconfig
-+++ b/drivers/input/touchscreen/Kconfig
-@@ -222,6 +222,20 @@ config TOUCHSCREEN_TSC2005
- 	help
- 	  Say Y here for if you are using the touchscreen features of TSC2301.
+diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
+index 04e6c77..e4d0436 100644
+--- a/drivers/input/keyboard/Kconfig
++++ b/drivers/input/keyboard/Kconfig
+@@ -279,6 +279,12 @@ config OMAP_PS2
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called innovator_ps2.
  
-+config TOUCHSCREEN_TSC210X
-+	tristate "TI TSC210x based touchscreens"
-+	depends on SPI_MASTER
-+	select SPI_TSC210X
++config KEYBOARD_TSC2301
++	tristate "TSC2301 keypad support"
++	depends on SPI_TSC2301
 +	help
-+	  Say Y here if you have a touchscreen interface using a
-+	  TI TSC210x controller, and your board-specific initialisation
-+	  code includes that in its table of SPI devices.
++	  Say Y here for if you are using the keypad features of TSC2301.
 +
-+	  If unsure, say N (but it's safe to say "Y").
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called tsc210x_ts.
-+
- config TOUCHSCREEN_UCB1400
- 	tristate "Philips UCB1400 touchscreen"
- 	select AC97_BUS
-diff --git a/drivers/input/touchscreen/Makefile b/drivers/input/touchscreen/Makefile
-index e0bc8fb..411c44a 100644
---- a/drivers/input/touchscreen/Makefile
-+++ b/drivers/input/touchscreen/Makefile
-@@ -28,6 +28,7 @@ obj-$(CONFIG_TOUCHSCREEN_TOUCHWIN)	+= touchwin.o
- obj-$(CONFIG_TOUCHSCREEN_UCB1400)	+= ucb1400_ts.o
- obj-$(CONFIG_TOUCHSCREEN_TSC2005)	+= tsc2005.o
- obj-$(CONFIG_TOUCHSCREEN_OMAP)	+= omap/
-+obj-$(CONFIG_TOUCHSCREEN_TSC210X)	+= tsc210x_ts.o
- obj-$(CONFIG_TOUCHSCREEN_WM97XX)	+= wm97xx-ts.o
- wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9705)	+= wm9705.o
- wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9712)	+= wm9712.o
-diff --git a/drivers/input/touchscreen/tsc210x_ts.c b/drivers/input/touchscreen/tsc210x_ts.c
+ config KEYBOARD_LM8323
+ 	tristate "LM8323 keypad chip"
+ 	depends on I2C
+diff --git a/drivers/input/keyboard/Makefile b/drivers/input/keyboard/Makefile
+index a19e04b..ae47fff 100644
+--- a/drivers/input/keyboard/Makefile
++++ b/drivers/input/keyboard/Makefile
+@@ -20,6 +20,7 @@ obj-$(CONFIG_KEYBOARD_HIL)		+= hil_kbd.o
+ obj-$(CONFIG_KEYBOARD_HIL_OLD)		+= hilkbd.o
+ obj-$(CONFIG_KEYBOARD_OMAP)		+= omap-keypad.o
+ obj-$(CONFIG_OMAP_PS2)			+= innovator_ps2.o
++obj-$(CONFIG_KEYBOARD_TSC2301)		+= tsc2301_kp.o
+ obj-$(CONFIG_KEYBOARD_LM8323)		+= lm8323.o
+ obj-$(CONFIG_KEYBOARD_TWL4030)		+= omap-twl4030keypad.o
+ obj-$(CONFIG_KEYBOARD_PXA27x)		+= pxa27x_keypad.o
+diff --git a/drivers/input/keyboard/tsc2301_kp.c b/drivers/input/keyboard/tsc2301_kp.c
 new file mode 100644
-index 0000000..5828b6d
+index 0000000..a974a5f
 --- /dev/null
-+++ b/drivers/input/touchscreen/tsc210x_ts.c
-@@ -0,0 +1,160 @@
++++ b/drivers/input/keyboard/tsc2301_kp.c
+@@ -0,0 +1,475 @@
 +/*
-+ * tsc210x_ts.c - touchscreen input device for TI TSC210x chips
++ * TSC2301 keypad driver
 + *
-+ * Copyright (c) 2006-2007 Andrzej Zaborowski  <balrog@zabor.org>
++ * Copyright (C) 2005-2006 Nokia Corporation
 + *
-+ * This package is free software; you can redistribute it and/or modify
++ * Written by Jarkko Oikarinen
++ * Rewritten by Juha Yrjola <juha.yrjola@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License as published by
 + * the Free Software Foundation; either version 2 of the License, or
 + * (at your option) any later version.
 + *
-+ * This package is distributed in the hope that it will be useful,
++ * This program is distributed in the hope that it will be useful,
 + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 + * GNU General Public License for more details.
 + *
 + * You should have received a copy of the GNU General Public License
-+ * along with this package; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ *
 + */
 +
-+#include <linux/errno.h>
 +#include <linux/kernel.h>
 +#include <linux/module.h>
 +#include <linux/input.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
++#include <linux/interrupt.h>
++#include <linux/irq.h>
++#include <linux/delay.h>
++#include <linux/spi/spi.h>
 +
-+#include <linux/spi/tsc210x.h>
++#include <linux/spi/tsc2301.h>
 +
++#define TSC2301_KEYBOARD_PRODUCT_ID      0x0051
++#define TSC2301_KEYBOARD_PRODUCT_VERSION 0x0001
++#define TSC2301_DEBOUNCE_TIME_2MS        0x0000
++#define TSC2301_DEBOUNCE_TIME_10MS       0x0800
++#define TSC2301_DEBOUNCE_TIME_20MS       0x1000
++#define TSC2301_DEBOUNCE_TIME_50MS       0x1800
++#define TSC2301_DEBOUNCE_TIME_60MS       0x2000
++#define TSC2301_DEBOUNCE_TIME_80MS       0x2800
++#define TSC2301_DEBOUNCE_TIME_100MS      0x3000
++#define TSC2301_DEBOUNCE_TIME_120MS      0x3800
 +
-+/*
-+ * The sensor ADC on tsc210x chips is most often used with the smart
-+ * touchscreen controller.   Those controllers can be made to improve
-+ * sample quality directly by multi-sampling and by taking the mean or
-+ * median of various numbers of samples.  They also take X, Y, and
-+ * pressure measurements automatically, so this driver has relatively
-+ * little to do.
-+ *
-+ * There are a few chips in this family that don't have quite the same
-+ * touchscreen interface, e.g. no "median" mode.
-+ */
++#define TSC2301_DEBOUNCE_TIME		TSC2301_DEBOUNCE_TIME_20MS
 +
-+static void tsc210x_touch(void *context, int touching)
++#define TSC2301_RELEASE_TIMEOUT		50
++
++struct tsc2301_kp {
++	struct input_dev	*idev;
++	char			phys[32];
++	spinlock_t		lock;
++	struct mutex		mutex;
++	struct timer_list	timer;
++	u16			keys_pressed;
++	unsigned		pending:1;
++	unsigned		user_disabled:1;
++	unsigned		disable_depth;
++
++	struct spi_transfer	read_xfer[4];
++	struct spi_message	read_msg;
++
++	u16			data;
++	u16			mask;
++
++	int			irq;
++	s16			keymap[16];
++};
++
++static inline int tsc2301_kp_disabled(struct tsc2301 *tsc)
 +{
-+	struct input_dev *dev = context;
-+
-+	if (!touching) {
-+		input_report_abs(dev, ABS_X, 0);
-+		input_report_abs(dev, ABS_Y, 0);
-+		input_report_abs(dev, ABS_PRESSURE, 0);
-+		input_sync(dev);
-+	}
-+
-+	input_report_key(dev, BTN_TOUCH, touching);
++	return tsc->kp->disable_depth != 0;
 +}
 +
-+static void tsc210x_coords(void *context, int x, int y, int z1, int z2)
++static void tsc2301_kp_send_key_events(struct tsc2301 *tsc,
++				       u16 prev_state,
++				       u16 new_state)
 +{
-+	struct input_dev *dev = context;
-+	int p;
++	struct tsc2301_kp *kp = tsc->kp;
++	u16 common, released, pressed;
++	int i;
 +
-+	/* Calculate the touch resistance a la equation #1 */
-+	if (z1 != 0)
-+		p = x * (z2 - z1) / (z1 << 4);
++	common = prev_state & new_state;
++	released = common ^ prev_state;
++	pressed = common ^ new_state;
++	if (!released && !pressed)
++		return;
++	for (i = 0; i < 16 && (released || pressed); i++) {
++		if (released & 1) {
++			dev_dbg(&tsc->spi->dev, "key %d released\n", i);
++			input_report_key(kp->idev, kp->keymap[i], 0);
++		}
++		released >>= 1;
++		if (pressed & 1) {
++			dev_dbg(&tsc->spi->dev, "key %d pressed\n", i);
++			input_report_key(kp->idev, kp->keymap[i], 1);
++		}
++		pressed >>= 1;
++	}
++	input_sync(kp->idev);
++}
++
++static inline void _filter_out(struct tsc2301 *tsc, u16 prev_state,
++			       u16 *new_state, int row1, int row2, u8 rect_pat)
++{
++	u16 mask;
++
++	mask = (rect_pat << (row1 * 4)) | (rect_pat << (row2 * 4));
++	mask &= ~prev_state;
++	*new_state &= ~mask;
++	dev_dbg(&tsc->spi->dev, "filtering ghost keys %02x\n", mask);
++}
++
++static void tsc2301_filter_ghost_keys(struct tsc2301 *tsc, u16 prev_state,
++				      u16 *new_state)
++{
++	int row1, row2;
++	u16 key_map;
++	u16 row1_map;
++	static const u8 rect_pat[] = {
++		0x3, 0x5, 0x9, 0x6, 0xa, 0xc, 0,
++	};
++
++	key_map = *new_state;
++	for (row1 = 0; row1 < 4; row1++) {
++		row1_map = (key_map >> (row1 * 4)) & 0xf;
++		if (!row1_map)
++			continue;
++		for (row2 = row1 + 1; row2 < 4; row2++) {
++			u16 rect_map = (key_map >> (row2 * 4)) & 0xf;
++			const u8 *rp;
++
++			rect_map &= row1_map;
++			if (!rect_map)
++				continue;
++			for (rp = rect_pat; *rp; rp++)
++				if ((rect_map & *rp) == *rp)
++					_filter_out(tsc, prev_state, new_state,
++						    row1, row2, *rp);
++		}
++	}
++}
++
++static void tsc2301_kp_timer(unsigned long arg)
++{
++	struct tsc2301 *tsc = (void *) arg;
++	struct tsc2301_kp *kp = tsc->kp;
++	unsigned long flags;
++
++	tsc2301_kp_send_key_events(tsc, kp->keys_pressed, 0);
++	spin_lock_irqsave(&kp->lock, flags);
++	kp->keys_pressed = 0;
++	spin_unlock_irqrestore(&kp->lock, flags);
++}
++
++static void tsc2301_kp_rx(void *arg)
++{
++	struct tsc2301 *tsc = arg;
++	struct tsc2301_kp *kp = tsc->kp;
++	unsigned long flags;
++	u16 kp_data;
++
++	kp_data = kp->data;
++	dev_dbg(&tsc->spi->dev, "KP data %04x\n", kp_data);
++
++	tsc2301_filter_ghost_keys(tsc, kp->keys_pressed, &kp_data);
++	tsc2301_kp_send_key_events(tsc, kp->keys_pressed, kp_data);
++	spin_lock_irqsave(&kp->lock, flags);
++	kp->keys_pressed = kp_data;
++	kp->pending = 0;
++	spin_unlock_irqrestore(&kp->lock, flags);
++}
++
++static irqreturn_t tsc2301_kp_irq_handler(int irq, void *dev_id)
++{
++	struct tsc2301 *tsc = dev_id;
++	struct tsc2301_kp *kp = tsc->kp;
++	unsigned long flags;
++	int r;
++
++	spin_lock_irqsave(&kp->lock, flags);
++	if (tsc2301_kp_disabled(tsc)) {
++		spin_unlock_irqrestore(&kp->lock, flags);
++		return IRQ_HANDLED;
++	}
++	kp->pending = 1;
++	spin_unlock_irqrestore(&kp->lock, flags);
++	mod_timer(&kp->timer,
++		 jiffies + msecs_to_jiffies(TSC2301_RELEASE_TIMEOUT));
++	r = spi_async(tsc->spi, &tsc->kp->read_msg);
++	if (r)
++		dev_err(&tsc->spi->dev, "kp: spi_async() failed");
++	return IRQ_HANDLED;
++}
++
++static void tsc2301_kp_start_scan(struct tsc2301 *tsc)
++{
++	tsc2301_write_reg(tsc, TSC2301_REG_KPMASK, tsc->kp->mask);
++	tsc2301_write_reg(tsc, TSC2301_REG_KEY, TSC2301_DEBOUNCE_TIME);
++}
++
++static void tsc2301_kp_stop_scan(struct tsc2301 *tsc)
++{
++	tsc2301_write_reg(tsc, TSC2301_REG_KEY, 1 << 14);
++}
++
++/* Must be called with the mutex held */
++static void tsc2301_kp_enable(struct tsc2301 *tsc)
++{
++	struct tsc2301_kp *kp = tsc->kp;
++	unsigned long flags;
++
++	spin_lock_irqsave(&kp->lock, flags);
++	BUG_ON(!tsc2301_kp_disabled(tsc));
++	if (--kp->disable_depth != 0) {
++		spin_unlock_irqrestore(&kp->lock, flags);
++		return;
++	}
++	spin_unlock_irqrestore(&kp->lock, flags);
++
++	set_irq_type(kp->irq, IRQ_TYPE_EDGE_FALLING);
++	tsc2301_kp_start_scan(tsc);
++	enable_irq(kp->irq);
++}
++
++/* Must be called with the mutex held */
++static int tsc2301_kp_disable(struct tsc2301 *tsc, int release_keys)
++{
++	struct tsc2301_kp *kp = tsc->kp;
++	unsigned long flags;
++
++	spin_lock_irqsave(&kp->lock, flags);
++	if (kp->disable_depth++ != 0) {
++		spin_unlock_irqrestore(&kp->lock, flags);
++		goto out;
++	}
++	disable_irq_nosync(kp->irq);
++	set_irq_type(kp->irq, IRQ_TYPE_NONE);
++	spin_unlock_irqrestore(&kp->lock, flags);
++
++	while (kp->pending) {
++		msleep(1);
++	}
++
++	tsc2301_kp_stop_scan(tsc);
++out:
++	if (!release_keys)
++		del_timer(&kp->timer); /* let timeout release keys */
++
++	return 0;
++}
++
++/* The following workaround is needed for a HW bug triggered by the
++ * following:
++ * 1. keep any key pressed
++ * 2. disable keypad
++ * 3. release all keys
++ * 4. reenable keypad
++ * 5. disable touch screen controller
++ *
++ * After this the keypad scanner will get stuck in busy state and won't
++ * report any interrupts for further keypresses. One way to recover is to
++ * restart the keypad scanner whenever we enable / disable the
++ * touchscreen controller.
++ */
++void tsc2301_kp_restart(struct tsc2301 *tsc)
++{
++	if (!tsc2301_kp_disabled(tsc)) {
++		tsc2301_kp_start_scan(tsc);
++	}
++}
++
++static ssize_t tsc2301_kp_disable_show(struct device *dev,
++				       struct device_attribute *attr, char *buf)
++{
++	struct tsc2301		*tsc = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%u\n", tsc2301_kp_disabled(tsc) ? 1 : 0);
++}
++
++static ssize_t tsc2301_kp_disable_store(struct device *dev,
++					struct device_attribute *attr,
++					const char *buf, size_t count)
++{
++	struct tsc2301		*tsc = dev_get_drvdata(dev);
++	struct tsc2301_kp	*kp = tsc->kp;
++	char *endp;
++	int i;
++
++	i = simple_strtoul(buf, &endp, 10);
++	i = i ? 1 : 0;
++
++	mutex_lock(&kp->mutex);
++	if (i == kp->user_disabled) {
++		mutex_unlock(&kp->mutex);
++		return count;
++	}
++	kp->user_disabled = i;
++
++	if (i)
++		tsc2301_kp_disable(tsc, 1);
 +	else
-+		p = 1;
++		tsc2301_kp_enable(tsc);
++	mutex_unlock(&kp->mutex);
 +
-+	input_report_abs(dev, ABS_X, x);
-+	input_report_abs(dev, ABS_Y, y);
-+	input_report_abs(dev, ABS_PRESSURE, p);
-+	input_sync(dev);
++	return count;
 +}
 +
-+static int tsc210x_ts_probe(struct platform_device *pdev)
++static DEVICE_ATTR(disable_kp, 0664, tsc2301_kp_disable_show,
++		   tsc2301_kp_disable_store);
++
++static const u16 tsc2301_kp_read_data = 0x8000 | TSC2301_REG_KPDATA;
++
++static void tsc2301_kp_setup_spi_xfer(struct tsc2301 *tsc)
 +{
-+	int status;
-+	struct input_dev *dev;
++	struct tsc2301_kp *kp = tsc->kp;
++	struct spi_message *m = &kp->read_msg;
++	struct spi_transfer *x = &kp->read_xfer[0];
 +
-+	dev = input_allocate_device();
-+	if (!dev)
-+		return -ENOMEM;
++	spi_message_init(&kp->read_msg);
 +
-+	status = tsc210x_touch_cb(pdev->dev.parent, tsc210x_touch, dev);
-+	if (status) {
-+		input_free_device(dev);
-+		return status;
-+	}
++	x->tx_buf = &tsc2301_kp_read_data;
++	x->len = 2;
++	spi_message_add_tail(x, m);
++	x++;
 +
-+	status = tsc210x_coords_cb(pdev->dev.parent, tsc210x_coords, dev);
-+	if (status) {
-+		tsc210x_touch_cb(pdev->dev.parent, NULL, NULL);
-+		input_free_device(dev);
-+		return status;
-+	}
++	x->rx_buf = &kp->data;
++	x->len = 2;
++	spi_message_add_tail(x, m);
 +
-+	dev->name = "TSC210x Touchscreen";
-+	dev->dev.parent = &pdev->dev;
-+	dev->evbit[0] = BIT(EV_KEY) | BIT(EV_ABS);
-+	dev->keybit[BIT_WORD(BTN_TOUCH)] |= BIT_MASK(BTN_TOUCH);
-+	dev->absbit[0] = BIT(ABS_X) | BIT(ABS_Y) | BIT(ABS_PRESSURE);
-+	dev->phys = "tsc210x/input0";
-+	dev->id.bustype = BUS_HOST;
-+	dev->id.vendor = 0x0001;
-+	dev->id.product = 0x2100;
-+	dev->id.version = 0x0001;
++	m->complete = tsc2301_kp_rx;
++	m->context = tsc;
++}
 +
-+	status = input_register_device(dev);
-+	if (status) {
-+		tsc210x_coords_cb(pdev->dev.parent, NULL, NULL);
-+		tsc210x_touch_cb(pdev->dev.parent, NULL, NULL);
-+		input_free_device(dev);
-+		return status;
-+	}
++#ifdef CONFIG_PM
++int tsc2301_kp_suspend(struct tsc2301 *tsc)
++{
++	struct tsc2301_kp *kp = tsc->kp;
 +
-+	platform_set_drvdata(pdev, dev);
-+	printk(KERN_INFO "TSC210x touchscreen initialised\n");
++	mutex_lock(&kp->mutex);
++	tsc2301_kp_disable(tsc, 1);
++	mutex_unlock(&kp->mutex);
 +	return 0;
 +}
 +
-+static int __exit tsc210x_ts_remove(struct platform_device *pdev)
++void tsc2301_kp_resume(struct tsc2301 *tsc)
 +{
-+	struct input_dev *dev = platform_get_drvdata(pdev);
++	struct tsc2301_kp *kp = tsc->kp;
 +
-+	tsc210x_touch_cb(pdev->dev.parent, NULL, NULL);
-+	tsc210x_coords_cb(pdev->dev.parent, NULL, NULL);
-+	platform_set_drvdata(pdev, NULL);
-+	input_unregister_device(dev);
-+	input_free_device(dev);
-+
-+	return 0;
++	mutex_lock(&kp->mutex);
++	tsc2301_kp_enable(tsc);
++	mutex_unlock(&kp->mutex);
 +}
-+
-+static struct platform_driver tsc210x_ts_driver = {
-+	.probe		= tsc210x_ts_probe,
-+	.remove		= __exit_p(tsc210x_ts_remove),
-+	/* Nothing to do on suspend/resume */
-+	.driver		= {
-+		.name	= "tsc210x-ts",
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
-+static int __init tsc210x_ts_init(void)
-+{
-+	/* can't use driver_probe() here since the parent device
-+	 * gets registered "late"
-+	 */
-+	return platform_driver_register(&tsc210x_ts_driver);
-+}
-+module_init(tsc210x_ts_init);
-+
-+static void __exit tsc210x_ts_exit(void)
-+{
-+	platform_driver_unregister(&tsc210x_ts_driver);
-+}
-+module_exit(tsc210x_ts_exit);
-+
-+MODULE_AUTHOR("Andrzej Zaborowski");
-+MODULE_DESCRIPTION("Touchscreen input driver for TI TSC2101/2102.");
-+MODULE_LICENSE("GPL");
-diff --git a/include/linux/spi/tsc210x.h b/include/linux/spi/tsc210x.h
-new file mode 100644
-index 0000000..b1a9ae6
---- /dev/null
-+++ b/include/linux/spi/tsc210x.h
-@@ -0,0 +1,231 @@
-+/*
-+ * include/linux/spi/tsc2102.h
-+ *
-+ * TI TSC2101/2102 control register definitions.
-+ *
-+ * Copyright (c) 2005-2007 Andrzej Zaborowski  <balrog@zabor.org>
-+ *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This package is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this package; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+ */
-+
-+#ifndef __LINUX_SPI_TSC210X_H
-+#define __LINUX_SPI_TSC210X_H
-+
-+struct apm_power_info;
-+
-+struct tsc210x_config {
-+	int use_internal;	/* Use internal reference voltage */
-+	u32 monitor;		/* What inputs are wired on this board */
-+	int temp_at25c[2];	/* Thermometer calibration data */
-+	void (*apm_report)(struct apm_power_info *info, int battery[]);
-+				/* Report status to APM based on battery[] */
-+	void *alsa_config;	/* .platform_data for the ALSA device */
-+	const char *mclk;	/* Optional: mclk name */
-+	const char *bclk;	/* Optional: bclk name */
-+};
-+
-+#define TSC_BAT1	(1 << 0)
-+#define TSC_BAT2	(1 << 1)
-+#define TSC_AUX1	(1 << 2)
-+#define TSC_AUX2	(1 << 3)
-+#define TSC_TEMP	(1 << 4)
-+
-+#define TSC_AUX		TSC_AUX1
-+#define TSC_VBAT	TSC_BAT1
-+
-+struct tsc210x_dev;
-+
-+/* Drivers for tsc210x components like touchscreen, sensor, and audio
-+ * are packaged as platform drivers which can issue synchronous register
-+ * acceses, and may also register a callback to process their particular
-+ * type of data when that data is automatically sampled.  The platform
-+ * device is a child of the TSC spi device.
-+ */
-+
-+extern int tsc210x_read_sync(struct tsc210x_dev *dev, int page, u8 address);
-+extern int tsc210x_reads_sync(struct tsc210x_dev *dev, int page,
-+		u8 startaddress, u16 *data, int numregs);
-+extern int tsc210x_write_sync(struct tsc210x_dev *dev, int page,
-+		u8 address, u16 data);
-+
-+typedef void (*tsc210x_touch_t)(void *context, int touching);
-+typedef void (*tsc210x_coords_t)(void *context, int x, int y, int z1, int z2);
-+typedef void (*tsc210x_ports_t)(void *context, int bat[], int aux[]);
-+typedef void (*tsc210x_temp_t)(void *context, int temp);
-+
-+extern int tsc210x_touch_cb(struct device *dev,
-+		tsc210x_touch_t handler, void *context);
-+extern int tsc210x_coords_cb(struct device *dev,
-+		tsc210x_coords_t handler, void *context);
-+extern int tsc210x_ports_cb(struct device *dev,
-+		tsc210x_ports_t handler, void *context);
-+extern int tsc210x_temp1_cb(struct device *dev,
-+		tsc210x_temp_t handler, void *context);
-+extern int tsc210x_temp2_cb(struct device *dev,
-+		tsc210x_temp_t handler, void *context);
-+
-+#if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
-+extern void tsc210x_set_dac_volume(struct device *dev, u8 left, u8 right);
-+extern void tsc210x_set_dac_mute(struct device *dev, int left, int right);
-+extern void tsc210x_get_dac_mute(struct device *dev, int *left, int *right);
-+extern void tsc210x_dac_power(struct device *dev, int on);
-+extern int tsc210x_set_rate(struct device *dev, int rate);
-+extern void tsc210x_set_i2s_master(struct device *dev, int state);
-+extern void tsc210x_set_deemphasis(struct device *dev, int enable);
-+extern void tsc2102_set_bassboost(struct device *dev, int enable);
 +#endif
 +
-+/*
-+ * Emit a short keyclick typically in order to give feedback to
-+ * user on specific events.
-+ *
-+ * amplitude must be between 0 (lowest) and 2 (highest).
-+ * freq must be between 0 (corresponds to 62.5 Hz) and 7 (8 kHz).
-+ * length should be between 2 and 32 periods.
-+ *
-+ * This function sleeps but for a period unrelated to the length of
-+ * the sound, i.e. returning doesn't indicate that the sound has
-+ * finished.
-+ */
-+extern void tsc210x_keyclick(struct tsc210x_dev *dev,
-+		int amplitude, int freq, int length);
++int __devinit tsc2301_kp_init(struct tsc2301 *tsc,
++			      struct tsc2301_platform_data *pdata)
++{
++	struct input_dev *idev;
++	struct tsc2301_kp *kp;
++	int r, i;
++	u16 mask;
 +
-+/* Page 0, Touch Screen & Keypad Data registers */
-+#define TSC210X_TS_X			0, 0x00
-+#define TSC210X_TS_Y			0, 0x01
-+#define TSC210X_TS_Z1			0, 0x02
-+#define TSC210X_TS_Z2			0, 0x03
-+#define TSC210X_TS_BAT1			0, 0x05
-+#define TSC2102_TS_BAT2			0, 0x06
-+#define TSC210X_TS_AUX1			0, 0x07
-+#define TSC2101_TS_AUX2			0, 0x08
-+#define TSC210X_TS_TEMP1		0, 0x09
-+#define TSC210X_TS_TEMP2		0, 0x0a
++	if (pdata->keyb_int < 0) {
++		dev_err(&tsc->spi->dev, "need kbirq");
++		return -EINVAL;
++	}
 +
-+/* Page 1, Touch Screen & Keypad Control registers */
-+#define TSC210X_TS_ADC_CTRL		1, 0x00
-+#define TSC210X_TS_STATUS_CTRL		1, 0x01
-+#define TSC2101_TS_BUFFER_CTRL		1, 0x02
-+#define TSC210X_TS_REF_CTRL		1, 0x03
-+#define TSC210X_TS_RESET_CTRL		1, 0x04
-+#define TSC210X_TS_CONFIG_CTRL		1, 0x05
-+#define TSC2101_TS_TEMPMAX_CTRL		1, 0x06
-+#define TSC2101_TS_TEMPMIN_CTRL		1, 0x07
-+#define TSC2101_TS_AUX1MAX_CTRL		1, 0x08
-+#define TSC2101_TS_AUX1MIN_CTRL		1, 0x09
-+#define TSC2101_TS_AUX2MAX_CTRL		1, 0x0a
-+#define TSC2101_TS_AUX2MIN_CTRL		1, 0x0b
-+#define TSC2101_TS_MCONFIG_CTRL		1, 0x0c
-+#define TSC2101_TS_DELAY_CTRL		1, 0x0d
++	kp = kzalloc(sizeof(*kp), GFP_KERNEL);
++	if (kp == NULL)
++		return -ENOMEM;
++	tsc->kp = kp;
 +
-+/* Page 2, Audio Control registers */
-+#define TSC210X_AUDIO1_CTRL		2, 0x00
-+#define TSC2101_HEADSET_GAIN_CTRL	2, 0x01
-+#define TSC210X_DAC_GAIN_CTRL		2, 0x02
-+#define TSC2101_MIXER_GAIN_CTRL		2, 0x03
-+#define TSC210X_AUDIO2_CTRL		2, 0x04
-+#define TSC210X_POWER_CTRL		2, 0x05
-+#define TSC210X_AUDIO3_CTRL		2, 0x06
-+#define TSC210X_LCH_BASS_BOOST_N0	2, 0x07
-+#define TSC210X_LCH_BASS_BOOST_N1	2, 0x08
-+#define TSC210X_LCH_BASS_BOOST_N2	2, 0x09
-+#define TSC210X_LCH_BASS_BOOST_N3	2, 0x0a
-+#define TSC210X_LCH_BASS_BOOST_N4	2, 0x0b
-+#define TSC210X_LCH_BASS_BOOST_N5	2, 0x0c
-+#define TSC210X_LCH_BASS_BOOST_D1	2, 0x0d
-+#define TSC210X_LCH_BASS_BOOST_D2	2, 0x0e
-+#define TSC210X_LCH_BASS_BOOST_D4	2, 0x0f
-+#define TSC210X_LCH_BASS_BOOST_D5	2, 0x10
-+#define TSC210X_RCH_BASS_BOOST_N0	2, 0x11
-+#define TSC210X_RCH_BASS_BOOST_N1	2, 0x12
-+#define TSC210X_RCH_BASS_BOOST_N2	2, 0x13
-+#define TSC210X_RCH_BASS_BOOST_N3	2, 0x14
-+#define TSC210X_RCH_BASS_BOOST_N4	2, 0x15
-+#define TSC210X_RCH_BASS_BOOST_N5	2, 0x16
-+#define TSC210X_RCH_BASS_BOOST_D1	2, 0x17
-+#define TSC210X_RCH_BASS_BOOST_D2	2, 0x18
-+#define TSC210X_RCH_BASS_BOOST_D4	2, 0x19
-+#define TSC210X_RCH_BASS_BOOST_D5	2, 0x1a
-+#define TSC210X_PLL1_CTRL		2, 0x1b
-+#define TSC210X_PLL2_CTRL		2, 0x1c
-+#define TSC210X_AUDIO4_CTRL		2, 0x1d
-+#define TSC2101_HANDSET_GAIN_CTRL	2, 0x1e
-+#define TSC2101_CELL_GAIN_CTRL		2, 0x1f
-+#define TSC2101_AUIDO5_CTRL		2, 0x20
-+#define TSC2101_AUDIO6_CTRL		2, 0x21
-+#define TSC2101_AUDIO7_CTRL		2, 0x22
-+#define TSC2101_GPIO_CTRL		2, 0x23
-+#define TSC2101_IN_AGC_CTRL		2, 0x24
-+#define TSC2101_POWER_STATUS		2, 0x25
-+#define TSC2101_MIX_AGC_CTRL		2, 0x26
-+#define TSC2101_CELL_AGC_CTRL		2, 0x27
++	kp->irq = pdata->keyb_int;
++	spin_lock_init(&kp->lock);
++	mutex_init(&kp->mutex);
 +
-+/* Field masks for Audio Control 1 */
-+#define AC1_WLEN(ARG)			(((ARG) & 0x03) << 10)
-+#define AC1_DATFM(ARG)			(((ARG) & 0x03) << 8)
-+#define AC1_DACFS(ARG)			((ARG) & 0x3f)
++	init_timer(&kp->timer);
++	kp->timer.data = (unsigned long) tsc;
++	kp->timer.function = tsc2301_kp_timer;
 +
-+/* Field masks for TSC2102_DAC_GAIN_CTRL */
-+#define DGC_DALMU			(1 << 15)
-+#define DGC_DALVL(ARG)			(((ARG) & 0x7f) << 8)
-+#define DGC_DARMU			(1 << 7)
-+#define DGC_DARVL(ARG)			(((ARG) & 0x7f))
++	idev = input_allocate_device();
++	if (idev == NULL) {
++		r = -ENOMEM;
++		goto err1;
++	}
++	if (pdata->keyb_name)
++		idev->name = pdata->keyb_name;
++	else
++		idev->name = "TSC2301 keypad";
++	snprintf(kp->phys, sizeof(kp->phys), "%s/input-kp", tsc->spi->dev.bus_id);
++	idev->phys = kp->phys;
 +
-+/* Field formats for TSC210X_AUDIO2_CTRL */
-+#define AC2_KCLEN			(1 << 15)
-+#define AC2_KCLAC(ARG)			(((ARG) & 0x07) << 12)
-+#define AC2_KCLFRQ(ARG)			(((ARG) & 0x07) << 8)
-+#define AC2_KCLLN(ARG)			(((ARG) & 0x0f) << 4)
-+#define AC2_DLGAF			(1 << 3)
-+#define AC2_DRGAF			(1 << 2)
-+#define AC2_DASTC			(1 << 1)
++	mask = 0;
++	idev->evbit[0] = BIT(EV_KEY);
++	for (i = 0; i < 16; i++) {
++		if (pdata->keymap[i] > 0) {
++			set_bit(pdata->keymap[i], idev->keybit);
++			kp->keymap[i] = pdata->keymap[i];
++		} else {
++			kp->keymap[i] = -1;
++			mask |= 1 << i;
++		}
++	}
 +
-+/* Field masks for TSC210X_DAC_POWER_CTRL */
-+#define CPC_PWDNC			(1 << 15)
-+#define CPC_DAODRC			(1 << 12)
-+#define CPC_DAPWDN			(1 << 10)
-+#define CPC_VGPWDN			(1 << 8)
-+#define CPC_DAPWDF			(1 << 6)
-+#define CPC_BASSBC			(1 << 1)
-+#define CPC_DEEMPF			(0x01)
++	if (pdata->kp_rep)
++		set_bit(EV_REP, idev->evbit);
 +
-+/* Field masks for TSC210X_AUDIO3_CTRL */
-+#define AC3_DMSVOL(ARG)			(((ARG) & 0x03) << 14)
-+#define AC3_REFFS			(1 << 13)
-+#define AC3_DAXFM			(1 << 12)
-+#define AC3_SLVMS			(1 << 11)
-+#define AC3_DALOVF			(1 << 7)
-+#define AC3_DAROVF			(1 << 6)
-+#define AC3_REVID(ARG)			(((ARG) & 0x07))
++	kp->idev = idev;
 +
-+/* Field masks for TSC210X_PLL1_CTRL */
-+#define PLL1_PLLEN			(1 << 15)
-+#define PLL1_Q_VAL(ARG)			(((ARG) & 0x0f) << 11)
-+#define PLL1_P_VAL(ARG)			(((ARG) & 0x07) << 8)
-+#define PLL1_I_VAL(ARG)			(((ARG) & 0x3f) << 2)
++	tsc2301_kp_setup_spi_xfer(tsc);
 +
-+/* Field masks for TSC210X_PLL2_CTRL */
-+#define PLL2_D_VAL(ARG)			(((ARG) & 0x3fff) << 2)
++	r = device_create_file(&tsc->spi->dev, &dev_attr_disable_kp);
++	if (r < 0)
++		goto err2;
 +
-+/* Field masks for TSC210X_AUDIO4_CTRL */
-+#define AC4_DASTPD			(1 << 14)
++	tsc2301_kp_start_scan(tsc);
 +
-+struct tsc210x_rate_info_s {
-+	u16 sample_rate;
-+	u8 divisor;
-+	u8 fs_44k;	/* 44.1 kHz Fsref if 1, 48 kHz if 0 */
-+};
++	/* IRQ mode 0 is faulty, it can cause the KBIRQ to get stuck.
++	 * Mode 2 deasserts the IRQ at:
++	 * - HW or SW reset
++	 * - Setting SCS flag in REG_KEY register
++	 * - Releasing all keys
++	 * - Reading the REG_KPDATA
++	 */
++	tsc2301_write_kbc(tsc, 2);
 +
-+#endif	/* __LINUX_SPI_TSC210X_H */
++	tsc2301_write_reg(tsc, TSC2301_REG_KPMASK, mask);
++	kp->mask = mask;
++
++	set_irq_type(kp->irq, IRQ_TYPE_EDGE_FALLING);
++
++	r = request_irq(kp->irq, tsc2301_kp_irq_handler, IRQF_SAMPLE_RANDOM,
++			"tsc2301-kp", tsc);
++	if (r < 0) {
++		dev_err(&tsc->spi->dev, "unable to get kbirq IRQ");
++		goto err3;
++	}
++	set_irq_wake(kp->irq, 1);
++
++	/* We need to read the register once..? */
++	tsc2301_read_reg(tsc, TSC2301_REG_KPDATA);
++
++	r = input_register_device(idev);
++	if (r < 0) {
++		dev_err(&tsc->spi->dev, "can't register keypad device\n");
++		goto err4;
++	}
++
++	return 0;
++
++err4:
++	free_irq(kp->irq, tsc);
++err3:
++	tsc2301_kp_stop_scan(tsc);
++	device_remove_file(&tsc->spi->dev, &dev_attr_disable_kp);
++err2:
++	input_free_device(kp->idev);
++err1:
++	kfree(kp);
++	return r;
++}
++
++void __devexit tsc2301_kp_exit(struct tsc2301 *tsc)
++{
++	struct tsc2301_kp *kp = tsc->kp;
++
++	tsc2301_kp_disable(tsc, 1);
++	input_unregister_device(kp->idev);
++	free_irq(kp->irq, tsc);
++	device_remove_file(&tsc->spi->dev, &dev_attr_disable_kp);
++
++	kfree(kp);
++}
 -- 
 1.6.0.1.141.g445ca
 
