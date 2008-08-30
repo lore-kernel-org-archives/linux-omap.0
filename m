@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 12/33] Add tsc2005 touchscreen driver
-Date: Sat, 30 Aug 2008 20:16:12 +0300
-Message-ID: <1220116593-862-13-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 17/33] add tea5761 radio driver
+Date: Sat, 30 Aug 2008 20:16:17 +0300
+Message-ID: <1220116593-862-18-git-send-email-me@felipebalbi.com>
 References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-2-git-send-email-me@felipebalbi.com>
  <1220116593-862-3-git-send-email-me@felipebalbi.com>
@@ -14,834 +14,607 @@ References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-10-git-send-email-me@felipebalbi.com>
  <1220116593-862-11-git-send-email-me@felipebalbi.com>
  <1220116593-862-12-git-send-email-me@felipebalbi.com>
+ <1220116593-862-13-git-send-email-me@felipebalbi.com>
+ <1220116593-862-14-git-send-email-me@felipebalbi.com>
+ <1220116593-862-15-git-send-email-me@felipebalbi.com>
+ <1220116593-862-16-git-send-email-me@felipebalbi.com>
+ <1220116593-862-17-git-send-email-me@felipebalbi.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:36434 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:36443 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752887AbYH3RUq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:20:46 -0400
-In-Reply-To: <1220116593-862-12-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1752552AbYH3RUs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:20:48 -0400
+In-Reply-To: <1220116593-862-17-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-From: Felipe Balbi <felipe.balbi@nokia.com>
+=46rom: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/input/touchscreen/Kconfig   |    5 +
- drivers/input/touchscreen/Makefile  |    1 +
- drivers/input/touchscreen/tsc2005.c |  736 +++++++++++++++++++++++++++++++++++
- include/linux/spi/tsc2005.h         |   29 ++
- 4 files changed, 771 insertions(+), 0 deletions(-)
- create mode 100644 drivers/input/touchscreen/tsc2005.c
- create mode 100644 include/linux/spi/tsc2005.h
+ drivers/media/radio/Kconfig         |   13 +
+ drivers/media/radio/Makefile        |    1 +
+ drivers/media/radio/radio-tea5761.c |  517 +++++++++++++++++++++++++++=
+++++++++
+ 3 files changed, 531 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/radio/radio-tea5761.c
 
-diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
-index 25287e8..a115f38 100644
---- a/drivers/input/touchscreen/Kconfig
-+++ b/drivers/input/touchscreen/Kconfig
-@@ -217,6 +217,11 @@ config TOUCHSCREEN_ATMEL_TSADCC
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called atmel_tsadcc.
- 
-+config TOUCHSCREEN_TSC2005
-+	tristate "TSC2005 touchscreen support"
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index 1b41b3f..de6ca27 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -339,6 +339,19 @@ config RADIO_ZOLTRIX_PORT
+ 	help
+ 	  Enter the I/O port of your Zoltrix radio card.
+=20
++config RADIO_TEA5761
++	tristate "Philips Semiconductors TEA5761 I2C FM Radio"
 +	help
-+	  Say Y here for if you are using the touchscreen features of TSC2301.
++	  Choose Y here if you have one of these AM/FM radio cards.
 +
- config TOUCHSCREEN_UCB1400
- 	tristate "Philips UCB1400 touchscreen"
- 	select AC97_BUS
-diff --git a/drivers/input/touchscreen/Makefile b/drivers/input/touchscreen/Makefile
-index 15cf290..0342389 100644
---- a/drivers/input/touchscreen/Makefile
-+++ b/drivers/input/touchscreen/Makefile
-@@ -26,6 +26,7 @@ obj-$(CONFIG_TOUCHSCREEN_TOUCHIT213)	+= touchit213.o
- obj-$(CONFIG_TOUCHSCREEN_TOUCHRIGHT)	+= touchright.o
- obj-$(CONFIG_TOUCHSCREEN_TOUCHWIN)	+= touchwin.o
- obj-$(CONFIG_TOUCHSCREEN_UCB1400)	+= ucb1400_ts.o
-+obj-$(CONFIG_TOUCHSCREEN_TSC2005)	+= tsc2005.o
- obj-$(CONFIG_TOUCHSCREEN_WM97XX)	+= wm97xx-ts.o
- wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9705)	+= wm9705.o
- wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9712)	+= wm9712.o
-diff --git a/drivers/input/touchscreen/tsc2005.c b/drivers/input/touchscreen/tsc2005.c
++	  In order to control your radio card, you will need to use programs
++	  that are compatible with the Video For Linux 2 API.  Information on
++	  this API and pointers to "v4l" programs may be found at
++	  <file:Documentation/video4linux/API.html>.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called radio-tea5761.
++
+ config USB_DSBR
+ 	tristate "D-Link/GemTek USB FM radio support"
+ 	depends on USB && VIDEO_V4L2
+diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefil=
+e
+index a30159f..f5bffcc 100644
+--- a/drivers/media/radio/Makefile
++++ b/drivers/media/radio/Makefile
+@@ -20,6 +20,7 @@ obj-$(CONFIG_RADIO_GEMTEK) +=3D radio-gemtek.o
+ obj-$(CONFIG_RADIO_GEMTEK_PCI) +=3D radio-gemtek-pci.o
+ obj-$(CONFIG_RADIO_TRUST) +=3D radio-trust.o
+ obj-$(CONFIG_RADIO_MAESTRO) +=3D radio-maestro.o
++obj-$(CONFIG_RADIO_TEA5761) +=3D radio-tea5761.o
+ obj-$(CONFIG_USB_DSBR) +=3D dsbr100.o
+ obj-$(CONFIG_USB_SI470X) +=3D radio-si470x.o
+=20
+diff --git a/drivers/media/radio/radio-tea5761.c b/drivers/media/radio/=
+radio-tea5761.c
 new file mode 100644
-index 0000000..7fb107e
+index 0000000..1c6d8ab
 --- /dev/null
-+++ b/drivers/input/touchscreen/tsc2005.c
-@@ -0,0 +1,736 @@
++++ b/drivers/media/radio/radio-tea5761.c
+@@ -0,0 +1,517 @@
 +/*
-+ * TSC2005 touchscreen driver
++ * drivers/media/radio/radio-tea5761.c
 + *
-+ * Copyright (C) 2006-2008 Nokia Corporation
++ * Copyright (C) 2005-2008 Nokia Corporation
 + *
-+ * Author: Lauri Leukkunen <lauri.leukkunen@nokia.com>
-+ * based on TSC2301 driver by Klaus K. Pedersen <klaus.k.pedersen@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
++ * This program is free software; you can redistribute it and/or modif=
+y
++ * it under the terms of the GNU General Public License as published b=
+y
 + * the Free Software Foundation; either version 2 of the License, or
 + * (at your option) any later version.
 + *
 + * This program is distributed in the hope that it will be useful,
 + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 + * GNU General Public License for more details.
 + *
 + * You should have received a copy of the GNU General Public License
 + * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ *
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-130=
+7 USA
 + */
-+
-+#include <linux/kernel.h>
 +#include <linux/module.h>
-+#include <linux/input.h>
-+#include <linux/interrupt.h>
++#include <linux/version.h>
++#include <linux/init.h>
++#include <linux/i2c.h>
 +#include <linux/delay.h>
-+#include <linux/spi/spi.h>
++#include <media/v4l2-common.h>
++#include <media/v4l2-ioctl.h>
 +
-+#ifdef CONFIG_ARCH_OMAP
-+#include <mach/gpio.h>
-+#endif
++#define DRIVER_NAME "tea5761"
 +
-+#include <linux/spi/tsc2005.h>
++#define TEA5761_VERSION		KERNEL_VERSION(0, 0, 1)
 +
-+/**
-+ * The touchscreen interface operates as follows:
-+ *
-+ * Initialize:
-+ *    Request access to GPIO103 (DAV)
-+ *    tsc2005_dav_irq_handler will trigger when DAV line goes down
-+ *
-+ *  1) Pen is pressed against touchscreeen
-+ *  2) TSC2005 performs AD conversion
-+ *  3) After the conversion is done TSC2005 drives DAV line down
-+ *  4) GPIO IRQ is received and tsc2005_dav_irq_handler is called
-+ *  5) tsc2005_ts_irq_handler queues up an spi transfer to fetch
-+ *     the x, y, z1, z2 values
-+ *  6) tsc2005_ts_rx() reports coordinates to input layer and
-+ *     sets up tsc2005_ts_timer() to be called after TSC2005_TS_SCAN_TIME
-+ *  7)  When the penup_timer expires, there have not been DAV interrupts
-+ *     during the last 20ms which means the pen has been lifted.
-+ */
++#define TEA5761_I2C_ADDR	0x10
 +
-+#define TSC2005_VDD_LOWER_27
++#define TEA5761_MANID		0x002b
++#define TEA5761_CHIPID		0x5761
 +
-+#ifdef TSC2005_VDD_LOWER_27
-+#define TSC2005_HZ     (10000000)
-+#else
-+#define TSC2005_HZ     (25000000)
-+#endif
++#define TEA5761_INTREG_BLMSK	0x0001
++#define TEA5761_INTREG_FRRMSK	0x0002
++#define TEA5761_INTREG_LEVMSK	0x0008
++#define TEA5761_INTREG_IFMSK	0x0010
++#define TEA5761_INTREG_BLMFLAG	0x0100
++#define TEA5761_INTREG_FRRFLAG	0x0200
++#define TEA5761_INTREG_LEVFLAG	0x0800
++#define TEA5761_INTREG_IFFLAG	0x1000
 +
-+#define TSC2005_CMD	(0x80)
-+#define TSC2005_REG	(0x00)
++#define TEA5761_FRQSET_SUD	0x8000
++#define TEA5761_FRQSET_SM	0x4000
 +
-+#define TSC2005_CMD_STOP	(1)
-+#define TSC2005_CMD_10BIT	(0 << 2)
-+#define TSC2005_CMD_12BIT	(1 << 2)
++#define TEA5761_TNCTRL_PUPD0	0x4000
++#define TEA5761_TNCTRL_BLIM	0x2000
++#define TEA5761_TNCTRL_SWPM	0x1000
++#define TEA5761_TNCTRL_IFCTC	0x0800
++#define TEA5761_TNCTRL_AFM	0x0400
++#define TEA5761_TNCTRL_SMUTE	0x0200
++#define TEA5761_TNCTRL_SNC	0x0100
++#define TEA5761_TNCTRL_MU	0x0080
++#define TEA5761_TNCTRL_SSL1	0x0040
++#define TEA5761_TNCTRL_SSL0	0x0020
++#define TEA5761_TNCTRL_HLSI	0x0010
++#define TEA5761_TNCTRL_MST	0x0008
++#define TEA5761_TNCTRL_SWP	0x0004
++#define TEA5761_TNCTRL_DTC	0x0002
++#define TEA5761_TNCTRL_AHLSI	0x0001
 +
-+#define TSC2005_CMD_SCAN_XYZZ	(0 << 3)
-+#define TSC2005_CMD_SCAN_XY	(1 << 3)
-+#define TSC2005_CMD_SCAN_X	(2 << 3)
-+#define TSC2005_CMD_SCAN_Y	(3 << 3)
-+#define TSC2005_CMD_SCAN_ZZ	(4 << 3)
-+#define TSC2005_CMD_AUX_SINGLE	(5 << 3)
-+#define TSC2005_CMD_TEMP1	(6 << 3)
-+#define TSC2005_CMD_TEMP2	(7 << 3)
-+#define TSC2005_CMD_AUX_CONT	(8 << 3)
-+#define TSC2005_CMD_TEST_X_CONN	(9 << 3)
-+#define TSC2005_CMD_TEST_Y_CONN	(10 << 3)
-+/* command 11 reserved */
-+#define TSC2005_CMD_TEST_SHORT	(12 << 3)
-+#define TSC2005_CMD_DRIVE_XX	(13 << 3)
-+#define TSC2005_CMD_DRIVE_YY	(14 << 3)
-+#define TSC2005_CMD_DRIVE_YX	(15 << 3)
++#define TEA5761_TUNCHK_LEVEL(x)	(((x) & 0x00F0) >> 4)
++#define TEA5761_TUNCHK_IFCNT(x) (((x) & 0xFE00) >> 9)
++#define TEA5761_TUNCHK_TUNTO	0x0100
++#define TEA5761_TUNCHK_LD	0x0008
++#define TEA5761_TUNCHK_STEREO	0x0004
 +
-+#define TSC2005_REG_X		(0 << 3)
-+#define TSC2005_REG_Y		(1 << 3)
-+#define TSC2005_REG_Z1		(2 << 3)
-+#define TSC2005_REG_Z2		(3 << 3)
-+#define TSC2005_REG_AUX		(4 << 3)
-+#define TSC2005_REG_TEMP1	(5 << 3)
-+#define TSC2005_REG_TEMP2	(6 << 3)
-+#define TSC2005_REG_STATUS	(7 << 3)
-+#define TSC2005_REG_AUX_HIGH	(8 << 3)
-+#define TSC2005_REG_AUX_LOW	(9 << 3)
-+#define TSC2005_REG_TEMP_HIGH	(10 << 3)
-+#define TSC2005_REG_TEMP_LOW	(11 << 3)
-+#define TSC2005_REG_CFR0	(12 << 3)
-+#define TSC2005_REG_CFR1	(13 << 3)
-+#define TSC2005_REG_CFR2	(14 << 3)
-+#define TSC2005_REG_FUNCTION	(15 << 3)
++#define TEA5761_TESTREG_TRIGFR	0x0800
 +
-+#define TSC2005_REG_PND0	(1 << 1)
-+#define TSC2005_REG_READ	(0x01)
-+#define TSC2005_REG_WRITE	(0x00)
++#define TEA5761_FREQ_LOW	87500
++#define TEA5761_FREQ_HIGH	108000
 +
++struct tea5761_regs {
++	u16 intreg;
++	u16 frqset;
++	u16 tnctrl;
++	u16 frqchk;
++	u16 tunchk;
++	u16 testreg;
++	u16 manid;
++	u16 chipid;
++} __attribute__ ((packed));
 +
-+#define TSC2005_CFR0_LONGSAMPLING	(1)
-+#define TSC2005_CFR0_DETECTINWAIT	(1 << 1)
-+#define TSC2005_CFR0_SENSETIME_32US	(0)
-+#define TSC2005_CFR0_SENSETIME_96US	(1 << 2)
-+#define TSC2005_CFR0_SENSETIME_544US	(1 << 3)
-+#define TSC2005_CFR0_SENSETIME_2080US	(1 << 4)
-+#define TSC2005_CFR0_SENSETIME_2656US	(0x001C)
-+#define TSC2005_CFR0_PRECHARGE_20US	(0x0000)
-+#define TSC2005_CFR0_PRECHARGE_84US	(0x0020)
-+#define TSC2005_CFR0_PRECHARGE_276US	(0x0040)
-+#define TSC2005_CFR0_PRECHARGE_1044US	(0x0080)
-+#define TSC2005_CFR0_PRECHARGE_1364US	(0x00E0)
-+#define TSC2005_CFR0_STABTIME_0US	(0x0000)
-+#define TSC2005_CFR0_STABTIME_100US	(0x0100)
-+#define TSC2005_CFR0_STABTIME_500US	(0x0200)
-+#define TSC2005_CFR0_STABTIME_1MS	(0x0300)
-+#define TSC2005_CFR0_STABTIME_5MS	(0x0400)
-+#define TSC2005_CFR0_STABTIME_100MS	(0x0700)
-+#define TSC2005_CFR0_CLOCK_4MHZ		(0x0000)
-+#define TSC2005_CFR0_CLOCK_2MHZ		(0x0800)
-+#define TSC2005_CFR0_CLOCK_1MHZ		(0x1000)
-+#define TSC2005_CFR0_RESOLUTION12	(0x2000)
-+#define TSC2005_CFR0_STATUS		(0x4000)
-+#define TSC2005_CFR0_PENMODE		(0x8000)
++struct tea5761_write_regs {
++	u8 intreg;
++	u16 frqset;
++	u16 tnctrl;
++	u16 testreg;
++} __attribute__ ((packed));
 +
-+#define TSC2005_CFR0_INITVALUE	(TSC2005_CFR0_STABTIME_1MS  |	\
-+				 TSC2005_CFR0_CLOCK_1MHZ    |	\
-+				 TSC2005_CFR0_RESOLUTION12  |	\
-+				 TSC2005_CFR0_PRECHARGE_276US | \
-+				 TSC2005_CFR0_PENMODE)
-+
-+#define TSC2005_CFR1_BATCHDELAY_0MS	(0x0000)
-+#define TSC2005_CFR1_BATCHDELAY_1MS	(0x0001)
-+#define TSC2005_CFR1_BATCHDELAY_2MS	(0x0002)
-+#define TSC2005_CFR1_BATCHDELAY_4MS	(0x0003)
-+#define TSC2005_CFR1_BATCHDELAY_10MS	(0x0004)
-+#define TSC2005_CFR1_BATCHDELAY_20MS	(0x0005)
-+#define TSC2005_CFR1_BATCHDELAY_40MS	(0x0006)
-+#define TSC2005_CFR1_BATCHDELAY_100MS	(0x0007)
-+
-+#define TSC2005_CFR1_INITVALUE	(TSC2005_CFR1_BATCHDELAY_2MS)
-+
-+#define TSC2005_CFR2_MAVE_TEMP	(0x0001)
-+#define TSC2005_CFR2_MAVE_AUX	(0x0002)
-+#define TSC2005_CFR2_MAVE_Z	(0x0004)
-+#define TSC2005_CFR2_MAVE_Y	(0x0008)
-+#define TSC2005_CFR2_MAVE_X	(0x0010)
-+#define TSC2005_CFR2_AVG_1	(0x0000)
-+#define TSC2005_CFR2_AVG_3	(0x0400)
-+#define TSC2005_CFR2_AVG_7	(0x0800)
-+#define TSC2005_CFR2_MEDIUM_1	(0x0000)
-+#define TSC2005_CFR2_MEDIUM_3	(0x1000)
-+#define TSC2005_CFR2_MEDIUM_7	(0x2000)
-+#define TSC2005_CFR2_MEDIUM_15	(0x3000)
-+
-+#define TSC2005_CFR2_IRQ_DAV	(0x4000)
-+#define TSC2005_CFR2_IRQ_PEN	(0x8000)
-+#define TSC2005_CFR2_IRQ_PENDAV	(0x0000)
-+
-+#define TSC2005_CFR2_INITVALUE	(TSC2005_CFR2_IRQ_DAV   |	\
-+				 TSC2005_CFR2_MAVE_X    |	\
-+				 TSC2005_CFR2_MAVE_Y    |	\
-+				 TSC2005_CFR2_MAVE_Z    |	\
-+				 TSC2005_CFR2_MEDIUM_15 |	\
-+				 TSC2005_CFR2_AVG_7)
-+
-+#define MAX_12BIT					((1 << 12) - 1)
-+#define TS_SAMPLES					4
-+#define TS_RECT_SIZE					8
-+#define TSC2005_TS_PENUP_TIME				20
-+
-+static const u32 tsc2005_read_reg[] = {
-+	(TSC2005_REG | TSC2005_REG_X | TSC2005_REG_READ) << 16,
-+	(TSC2005_REG | TSC2005_REG_Y | TSC2005_REG_READ) << 16,
-+	(TSC2005_REG | TSC2005_REG_Z1 | TSC2005_REG_READ) << 16,
-+	(TSC2005_REG | TSC2005_REG_Z2 | TSC2005_REG_READ) << 16,
-+};
-+#define NUM_READ_REGS	(sizeof(tsc2005_read_reg)/sizeof(tsc2005_read_reg[0]))
-+
-+struct tsc2005 {
-+	struct spi_device	*spi;
-+
-+	struct input_dev	*idev;
-+	char			phys[32];
-+	struct timer_list	penup_timer;
-+	spinlock_t		lock;
++struct tea5761_device {
++	struct video_device	*video_dev;
++	struct i2c_client	*i2c_dev;
++	struct tea5761_regs	regs;
 +	struct mutex		mutex;
-+
-+	struct spi_message	read_msg;
-+	struct spi_transfer	read_xfer[NUM_READ_REGS];
-+	u32                     data[NUM_READ_REGS];
-+
-+	/* previous x,y,z */
-+	int			x;
-+	int			y;
-+	int			p;
-+	/* average accumulators for each component */
-+	int			sample_cnt;
-+	int			avg_x;
-+	int			avg_y;
-+	int			avg_z1;
-+	int			avg_z2;
-+	/* configuration */
-+	int			x_plate_ohm;
-+	int			hw_avg_max;
-+	int			stab_time;
-+	int			p_max;
-+	int			touch_pressure;
-+	int			irq;
-+	s16			dav_gpio;
-+	/* status */
-+	u8			sample_sent;
-+	u8			pen_down;
-+	u8			disabled;
-+	u8			disable_depth;
-+	u8			spi_active;
++	int			users;
 +};
 +
-+static void tsc2005_cmd(struct tsc2005 *ts, u8 cmd)
++static struct tea5761_device tea5761;
++
++static struct i2c_driver	tea5761_driver;
++static int radio_nr =3D -1;
++
++static int tea5761_read_regs(struct tea5761_device *tea)
 +{
-+	u16 data = TSC2005_CMD | TSC2005_CMD_12BIT | cmd;
-+	struct spi_message msg;
-+	struct spi_transfer xfer = { 0 };
++	int rc, i;
++	u16 *p =3D (u16 *) &tea->regs;
++	struct i2c_client *client =3D tea->i2c_dev;
 +
-+	xfer.tx_buf = &data;
-+	xfer.rx_buf = NULL;
-+	xfer.len = 1;
-+	xfer.bits_per_word = 8;
-+
-+	spi_message_init(&msg);
-+	spi_message_add_tail(&xfer, &msg);
-+	spi_sync(ts->spi, &msg);
-+}
-+
-+static void tsc2005_write(struct tsc2005 *ts, u8 reg, u16 value)
-+{
-+	u32 tx;
-+	struct spi_message msg;
-+	struct spi_transfer xfer = { 0 };
-+
-+	tx = (TSC2005_REG | reg | TSC2005_REG_PND0 |
-+	       TSC2005_REG_WRITE) << 16;
-+	tx |= value;
-+
-+	xfer.tx_buf = &tx;
-+	xfer.rx_buf = NULL;
-+	xfer.len = 4;
-+	xfer.bits_per_word = 24;
-+
-+	spi_message_init(&msg);
-+	spi_message_add_tail(&xfer, &msg);
-+	spi_sync(ts->spi, &msg);
-+}
-+
-+static void tsc2005_ts_update_pen_state(struct tsc2005 *ts,
-+					int x, int y, int pressure)
-+{
-+	if (pressure) {
-+		input_report_abs(ts->idev, ABS_X, x);
-+		input_report_abs(ts->idev, ABS_Y, y);
-+		input_report_abs(ts->idev, ABS_PRESSURE, pressure);
-+		if (!ts->pen_down) {
-+			input_report_key(ts->idev, BTN_TOUCH, 1);
-+			ts->pen_down = 1;
-+		}
-+	} else {
-+		input_report_abs(ts->idev, ABS_PRESSURE, 0);
-+		if (ts->pen_down) {
-+			input_report_key(ts->idev, BTN_TOUCH, 0);
-+			ts->pen_down = 0;
-+		}
++	rc =3D i2c_master_recv(client, (void*) &tea->regs, sizeof(tea->regs))=
+;
++	for (i =3D 0; i < 8; i++) {
++		p[i] =3D __be16_to_cpu(p[i]);
 +	}
 +
-+	input_sync(ts->idev);
++	dev_dbg(&client->dev,
++		"chip state: %04x %04x %04x %04x %04x %04x %04x %04x\n",
++		p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
++
++	if (rc < 0)
++		dev_err(&client->dev, "read\n");
++
++	return rc;
 +}
 +
-+/*
-+ * This function is called by the SPI framework after the coordinates
-+ * have been read from TSC2005
-+ */
-+static void tsc2005_ts_rx(void *arg)
++static void tea5761_write_regs(struct tea5761_device *tea)
 +{
-+	struct tsc2005 *ts = arg;
-+	unsigned long flags;
-+	int inside_rect, pressure_limit;
-+	int x, y, z1, z2, pressure;
++	struct tea5761_write_regs wr;
++	struct tea5761_regs *r =3D &tea->regs;
++	struct i2c_client *client =3D tea->i2c_dev;
++	u8 *p =3D (u8 *) r;
 +
-+	spin_lock_irqsave(&ts->lock, flags);
++	wr.intreg =3D r->intreg & 0xff;
++	wr.frqset =3D __cpu_to_be16(r->frqset);
++	wr.tnctrl =3D __cpu_to_be16(r->tnctrl);
++	wr.testreg =3D __cpu_to_be16(r->testreg);
 +
-+	x = ts->data[0];
-+	y = ts->data[1];
-+	z1 = ts->data[2];
-+	z2 = ts->data[3];
-+
-+	/* validate pressure and position */
-+	if (x > MAX_12BIT || y > MAX_12BIT)
-+		goto out;
-+
-+	/* skip coords if the pressure-components are out of range */
-+	if (z1 < 100 || z2 > 4000)
-+		goto out;
-+
-+	/* don't run average on the "pen down" event */
-+	if (ts->sample_sent) {
-+		ts->avg_x += x;
-+		ts->avg_y += y;
-+		ts->avg_z1 += z1;
-+		ts->avg_z2 += z2;
-+
-+		if (++ts->sample_cnt < TS_SAMPLES)
-+			goto out;
-+
-+		x = ts->avg_x / TS_SAMPLES;
-+		y = ts->avg_y / TS_SAMPLES;
-+		z1 = ts->avg_z1 / TS_SAMPLES;
-+		z2 = ts->avg_z2 / TS_SAMPLES;
-+	}
-+
-+	ts->sample_cnt = 0;
-+	ts->avg_x = 0;
-+	ts->avg_y = 0;
-+	ts->avg_z1 = 0;
-+	ts->avg_z2 = 0;
-+
-+	if (z1) {
-+		pressure = x * (z2 - z1) / z1;
-+		pressure = pressure * ts->x_plate_ohm / 4096;
-+	} else
-+		goto out;
-+
-+	pressure_limit = ts->sample_sent? ts->p_max: ts->touch_pressure;
-+	if (pressure > pressure_limit)
-+		goto out;
-+
-+	/* discard the event if it still is within the previous rect - unless
-+	 * if the pressure is harder, but then use previous x,y position */
-+	inside_rect = (ts->sample_sent &&
-+		x > (int)ts->x - TS_RECT_SIZE &&
-+		x < (int)ts->x + TS_RECT_SIZE &&
-+		y > (int)ts->y - TS_RECT_SIZE &&
-+		y < (int)ts->y + TS_RECT_SIZE);
-+	if (inside_rect)
-+		x = ts->x, y = ts->y;
-+
-+	if (!inside_rect || pressure < ts->p) {
-+		tsc2005_ts_update_pen_state(ts, x, y, pressure);
-+		ts->sample_sent = 1;
-+		ts->x = x;
-+		ts->y = y;
-+		ts->p = pressure;
-+	}
-+out:
-+	ts->spi_active = 0;
-+	spin_unlock_irqrestore(&ts->lock, flags);
-+
-+	/* kick pen up timer - to make sure it expires again(!) */
-+	if (ts->sample_sent)
-+		mod_timer(&ts->penup_timer,
-+			  jiffies + msecs_to_jiffies(TSC2005_TS_PENUP_TIME));
++	dev_dbg(&client->dev,
++		"writing state: %02x %02x %02x %02x %02x %02x %02x\n",
++		p[0], p[1], p[2], p[3], p[4], p[5], p[6]);
++	if (i2c_master_send(client, (void *) &wr, sizeof(wr)) < 0)
++		dev_err(&client->dev, "write\n");
 +}
 +
-+static void tsc2005_ts_penup_timer_handler(unsigned long data)
++static void tea5761_power_up(struct tea5761_device *tea)
 +{
-+	struct tsc2005 *ts = (struct tsc2005 *)data;
++	struct tea5761_regs *r =3D &tea->regs;
 +
-+	if (ts->sample_sent) {
-+		tsc2005_ts_update_pen_state(ts, 0, 0, 0);
-+		ts->sample_sent = 0;
++	if (!(r->tnctrl & TEA5761_TNCTRL_PUPD0)) {
++		r->tnctrl &=3D ~(TEA5761_TNCTRL_AFM | TEA5761_TNCTRL_MU |
++			       TEA5761_TNCTRL_HLSI);
++		r->testreg |=3D TEA5761_TESTREG_TRIGFR;
++		r->tnctrl |=3D TEA5761_TNCTRL_PUPD0;
++		return tea5761_write_regs(tea);
 +	}
 +}
 +
-+/*
-+ * This interrupt is called when pen is down and coordinates are
-+ * available. That is indicated by a falling edge on DAV line.
-+ */
-+static irqreturn_t tsc2005_ts_irq_handler(int irq, void *dev_id)
++static void tea5761_power_down(struct tea5761_device *tea)
 +{
-+	struct tsc2005 *ts = dev_id;
-+	int r;
++	struct tea5761_regs *r =3D &tea->regs;
 +
-+	if (ts->spi_active)
-+		return IRQ_HANDLED;
-+
-+	ts->spi_active = 1;
-+	r = spi_async(ts->spi, &ts->read_msg);
-+	if (r)
-+		dev_err(&ts->spi->dev, "ts: spi_async() failed");
-+
-+	/* kick pen up timer */
-+	mod_timer(&ts->penup_timer,
-+		  jiffies + msecs_to_jiffies(TSC2005_TS_PENUP_TIME));
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static void tsc2005_ts_setup_spi_xfer(struct tsc2005 *ts)
-+{
-+	struct spi_message *m = &ts->read_msg;
-+	struct spi_transfer *x = &ts->read_xfer[0];
-+	int i;
-+
-+	spi_message_init(m);
-+
-+	for (i = 0; i < NUM_READ_REGS; i++, x++) {
-+		x->tx_buf = &tsc2005_read_reg[i];
-+		x->rx_buf = &ts->data[i];
-+		x->len = 4;
-+		x->bits_per_word = 24;
-+		x->cs_change = i < (NUM_READ_REGS - 1);
-+		spi_message_add_tail(x, m);
++	if (r->tnctrl & TEA5761_TNCTRL_PUPD0) {
++		r->tnctrl &=3D ~TEA5761_TNCTRL_PUPD0;
++		return tea5761_write_regs(tea);
 +	}
-+
-+	m->complete = tsc2005_ts_rx;
-+	m->context = ts;
 +}
 +
-+static ssize_t tsc2005_ts_pen_down_show(struct device *dev,
-+					struct device_attribute *attr,
-+					char *buf)
++static void tea5761_set_freq(struct tea5761_device *tea, int freq)
 +{
-+	struct tsc2005 *tsc = dev_get_drvdata(dev);
++	struct tea5761_regs *r =3D &tea->regs;
 +
-+	return sprintf(buf, "%u\n", tsc->pen_down);
-+}
-+
-+static DEVICE_ATTR(pen_down, S_IRUGO, tsc2005_ts_pen_down_show, NULL);
-+
-+static int tsc2005_configure(struct tsc2005 *tsc, int flags)
-+{
-+	tsc2005_write(tsc, TSC2005_REG_CFR0, TSC2005_CFR0_INITVALUE);
-+	tsc2005_write(tsc, TSC2005_REG_CFR1, TSC2005_CFR1_INITVALUE);
-+	tsc2005_write(tsc, TSC2005_REG_CFR2, TSC2005_CFR2_INITVALUE);
-+	tsc2005_cmd(tsc, flags);
-+
-+	return 0;
-+}
-+
-+static void tsc2005_start_scan(struct tsc2005 *tsc)
-+{
-+	tsc2005_configure(tsc, TSC2005_CMD_SCAN_XYZZ);
-+}
-+
-+static void tsc2005_stop_scan(struct tsc2005 *tsc)
-+{
-+	tsc2005_cmd(tsc, TSC2005_CMD_STOP);
-+}
-+
-+/* Must be called with mutex held */
-+static void tsc2005_disable(struct tsc2005 *ts)
-+{
-+	if (ts->disable_depth++ != 0)
-+		return;
-+
-+	disable_irq(ts->irq);
-+
-+	/* wait until penup timer expire normally */
-+	do {
-+		msleep(4);
-+	} while (ts->sample_sent);
-+
-+	tsc2005_stop_scan(ts);
-+}
-+
-+static void tsc2005_enable(struct tsc2005 *ts)
-+{
-+	if (--ts->disable_depth != 0)
-+		return;
-+
-+	enable_irq(ts->irq);
-+
-+	tsc2005_start_scan(ts);
-+}
-+
-+static ssize_t tsc2005_disable_show(struct device *dev,
-+				    struct device_attribute *attr, char *buf)
-+{
-+	struct tsc2005 *ts = dev_get_drvdata(dev);
-+
-+	return sprintf(buf, "%u\n", ts->disabled);
-+}
-+
-+static ssize_t tsc2005_disable_store(struct device *dev,
-+				     struct device_attribute *attr,
-+				     const char *buf, size_t count)
-+{
-+	struct tsc2005		*tsc = dev_get_drvdata(dev);
-+	unsigned long res;
-+	int i;
-+
-+	i = strict_strtoul(buf, 10, &res);
-+	i = i ? 1 : 0;
-+
-+	mutex_lock(&tsc->mutex);
-+	if (i == tsc->disabled)
-+		goto out;
-+	tsc->disabled = i;
-+
-+	if (i)
-+		tsc2005_disable(tsc);
++	if (r->tnctrl & TEA5761_TNCTRL_HLSI)
++		r->frqset =3D (freq + 225000) / 8192;
 +	else
-+		tsc2005_enable(tsc);
-+out:
-+	mutex_unlock(&tsc->mutex);
-+	return count;
++		r->frqset =3D (freq - 225000) / 8192;
 +}
 +
-+static DEVICE_ATTR(disable_ts, 0664, tsc2005_disable_show,
-+		   tsc2005_disable_store);
-+
-+
-+static int __devinit tsc2005_ts_init(struct tsc2005 *ts,
-+				     struct tsc2005_platform_data *pdata)
++static int tea5761_get_freq(struct tea5761_device *tea)
 +{
-+	struct input_dev *idev;
-+	int dav_gpio, r;
-+	int x_max, y_max;
-+	int x_fudge, y_fudge, p_fudge;
++	struct tea5761_regs *r =3D &tea->regs;
 +
-+	if (pdata->dav_gpio < 0) {
-+		dev_err(&ts->spi->dev, "need DAV GPIO");
-+		return -EINVAL;
++	if (r->tnctrl & TEA5761_TNCTRL_HLSI)
++		return (r->frqchk * 8192) - 225000;
++	else
++		return (r->frqchk * 8192) + 225000;
++}
++
++static void tea5761_tune(struct tea5761_device *tea, int freq)
++{
++	tea5761_set_freq(tea, freq);
++	tea5761_write_regs(tea);
++}
++
++static void tea5761_set_audout_mode(struct tea5761_device *tea, int au=
+dmode)
++{
++	struct tea5761_regs *r =3D &tea->regs;
++	int tnctrl =3D r->tnctrl;
++
++	if (audmode =3D=3D V4L2_TUNER_MODE_MONO)
++		r->tnctrl |=3D TEA5761_TNCTRL_MST;
++	else
++		r->tnctrl &=3D ~TEA5761_TNCTRL_MST;
++	if (tnctrl !=3D r->tnctrl)
++		tea5761_write_regs(tea);
++}
++
++static int tea5761_get_audout_mode(struct tea5761_device *tea)
++{
++	struct tea5761_regs *r =3D &tea->regs;
++
++	if (r->tnctrl & TEA5761_TNCTRL_MST)
++		return V4L2_TUNER_MODE_MONO;
++	else
++		return V4L2_TUNER_MODE_STEREO;
++}
++
++static void tea5761_mute(struct tea5761_device *tea, int on)
++{
++	struct tea5761_regs *r =3D &tea->regs;
++	int tnctrl =3D r->tnctrl;
++
++	if (on)
++		r->tnctrl |=3D TEA5761_TNCTRL_MU;
++	else
++		r->tnctrl &=3D ~TEA5761_TNCTRL_MU;
++	if (tnctrl !=3D r->tnctrl)
++		tea5761_write_regs(tea);
++}
++
++static int tea5761_is_muted(struct tea5761_device *tea)
++{
++	return tea->regs.tnctrl & TEA5761_TNCTRL_MU;
++}
++
++static int tea5761_do_ioctl(struct inode *inode, struct file *file,
++			    unsigned int cmd, void *arg)
++{
++	struct tea5761_device *tea =3D file->private_data;
++	struct video_device *dev =3D tea->video_dev;
++	struct i2c_client *client =3D tea->i2c_dev;
++	struct tea5761_regs *r =3D &tea->regs;
++
++	union {
++		struct v4l2_capability c;
++		struct v4l2_tuner t;
++		struct v4l2_frequency f;
++		struct v4l2_queryctrl qc;
++		struct v4l2_control ct;
++	} *u =3D arg;
++
++	tea5761_read_regs(tea);
++
++	switch (cmd) {
++	case VIDIOC_QUERYCAP:
++		dev_dbg(&client->dev, "VIDIOC_QUERYCAP\n");
++		memset(&u->c, 0, sizeof(u->c));
++		strlcpy(u->c.driver,
++			dev->parent->driver->name,
++			sizeof(u->c.driver));
++		strlcpy(u->c.card, dev->name, sizeof(u->c.card));
++		snprintf(u->c.bus_info, sizeof(u->c.bus_info), "I2C:%s",
++			 dev->parent->bus_id);
++		u->c.version =3D TEA5761_VERSION;
++		u->c.capabilities =3D V4L2_CAP_TUNER | V4L2_CAP_RADIO;
++		break;
++
++	case VIDIOC_G_TUNER:
++		/* Only one tuner chip */
++		dev_dbg(&client->dev, "VIDIOC_G_TUNER\n");
++		if (u->t.index !=3D 0)
++			return -EINVAL;
++
++		memset(&u->t, 0, sizeof(u->t));
++		u->t.type =3D V4L2_TUNER_RADIO;
++		strlcpy(u->t.name, "FM", sizeof(u->t.name));
++		/* Freq in 62.5Hz units */
++		u->t.rangelow =3D TEA5761_FREQ_LOW * 16;
++		u->t.rangehigh =3D TEA5761_FREQ_HIGH * 16;
++		u->t.capability =3D V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
++		if (r->tunchk & TEA5761_TUNCHK_STEREO)
++			u->t.rxsubchans =3D V4L2_TUNER_SUB_STEREO;
++		u->t.audmode =3D tea5761_get_audout_mode(tea);
++		u->t.signal =3D TEA5761_TUNCHK_LEVEL(r->tunchk) * 0xffff / 0xf;
++		u->t.afc =3D TEA5761_TUNCHK_IFCNT(r->tunchk);
++		break;
++
++	case VIDIOC_S_TUNER:
++		/* Only tuner nro 0 can be selected. */
++		dev_dbg(&client->dev, "VIDIOC_S_TUNER\n");
++		if (u->t.index !=3D 0)
++			return -EINVAL;
++		tea5761_set_audout_mode(tea, u->t.audmode);
++		break;
++
++	case VIDIOC_G_FREQUENCY:
++		dev_dbg(&client->dev, "VIDIOC_G_FREQUENCY\n");
++		memset(&u->f, 0, sizeof(u->f));
++		u->f.type =3D V4L2_TUNER_RADIO;
++		if (r->tnctrl & TEA5761_TNCTRL_PUPD0)
++			u->f.frequency =3D (tea5761_get_freq(tea) * 2) / 125;
++		else
++			u->f.frequency =3D 0;
++		break;
++
++	case VIDIOC_S_FREQUENCY:
++		dev_dbg(&client->dev, "VIDIOC_S_FREQUENCY %u\n",
++			u->f.frequency);
++		if (u->f.tuner !=3D 0)
++			return -EINVAL;
++		if (u->f.frequency =3D=3D 0) {
++			/* We special case this as a power down
++			 * control. */
++			tea5761_power_down(tea);
++			break;
++		}
++		if (u->f.frequency < 16 * TEA5761_FREQ_LOW)
++			return -EINVAL;
++		if (u->f.frequency > 16 * TEA5761_FREQ_HIGH)
++			return -EINVAL;
++
++		tea5761_power_up(tea);
++		tea5761_tune(tea, (u->f.frequency * 125) / 2);
++		break;
++
++	case VIDIOC_QUERYCTRL:
++		dev_dbg(&client->dev, "VIDIOC_QUERYCTRL %d\n", u->qc.id);
++		if (u->qc.id !=3D V4L2_CID_AUDIO_MUTE)
++			return -EINVAL;
++		strlcpy(u->qc.name, "Mute", sizeof(u->qc.name));
++		u->qc.minimum =3D 0;
++		u->qc.maximum =3D 1;
++		u->qc.step =3D 1;
++		u->qc.default_value =3D 0;
++		u->qc.type =3D V4L2_CTRL_TYPE_BOOLEAN;
++		break;
++
++	case VIDIOC_G_CTRL:
++		dev_dbg(&client->dev, "VIDIOC_G_CTRL %d\n", u->ct.id);
++		if (u->ct.id !=3D V4L2_CID_AUDIO_MUTE)
++			return -EINVAL;
++		if (r->tnctrl & TEA5761_TNCTRL_PUPD0)
++			u->ct.value =3D tea5761_is_muted(tea) ? 1 : 0;
++		else
++			u->ct.value =3D 0;
++		break;
++
++	case VIDIOC_S_CTRL:
++		dev_dbg(&client->dev, "VIDIOC_S_CTRL %d\n", u->ct.id);
++		if (u->ct.id !=3D V4L2_CID_AUDIO_MUTE)
++			return -EINVAL;
++		tea5761_mute(tea, u->ct.value);
++		break;
++
++	default:
++		return -ENOIOCTLCMD;
 +	}
-+	dav_gpio = pdata->dav_gpio;
-+	ts->dav_gpio = dav_gpio;
-+	dev_dbg(&ts->spi->dev, "TSC2005: DAV GPIO = %d\n", dav_gpio);
-+
-+#ifdef CONFIG_ARCH_OMAP
-+	r = omap_request_gpio(dav_gpio);
-+	if (r < 0) {
-+		dev_err(&ts->spi->dev, "unable to get DAV GPIO");
-+		goto err1;
-+	}
-+	omap_set_gpio_direction(dav_gpio, 1);
-+	ts->irq = OMAP_GPIO_IRQ(dav_gpio);
-+	dev_dbg(&ts->spi->dev, "TSC2005: DAV IRQ = %d\n", ts->irq);
-+#endif
-+	init_timer(&ts->penup_timer);
-+	setup_timer(&ts->penup_timer, tsc2005_ts_penup_timer_handler,
-+			(unsigned long)ts);
-+
-+	spin_lock_init(&ts->lock);
-+	mutex_init(&ts->mutex);
-+
-+	ts->x_plate_ohm		= pdata->ts_x_plate_ohm ? : 280;
-+	ts->hw_avg_max		= pdata->ts_hw_avg;
-+	ts->stab_time		= pdata->ts_stab_time;
-+	x_max			= pdata->ts_x_max ? : 4096;
-+	x_fudge			= pdata->ts_x_fudge ? : 4;
-+	y_max			= pdata->ts_y_max ? : 4096;
-+	y_fudge			= pdata->ts_y_fudge ? : 8;
-+	ts->p_max		= pdata->ts_pressure_max ? : MAX_12BIT;
-+	ts->touch_pressure	= pdata->ts_touch_pressure ? : ts->p_max;
-+	p_fudge			= pdata->ts_pressure_fudge ? : 2;
-+
-+	idev = input_allocate_device();
-+	if (idev == NULL) {
-+		r = -ENOMEM;
-+		goto err2;
-+	}
-+
-+	idev->name = "TSC2005 touchscreen";
-+	snprintf(ts->phys, sizeof(ts->phys), "%s/input-ts",
-+		 ts->spi->dev.bus_id);
-+	idev->phys = ts->phys;
-+
-+	idev->evbit[0] = BIT(EV_ABS) | BIT(EV_KEY);
-+	idev->absbit[0] = BIT(ABS_X) | BIT(ABS_Y) | BIT(ABS_PRESSURE);
-+	ts->idev = idev;
-+
-+	tsc2005_ts_setup_spi_xfer(ts);
-+
-+	input_set_abs_params(idev, ABS_X, 0, x_max, x_fudge, 0);
-+	input_set_abs_params(idev, ABS_Y, 0, y_max, y_fudge, 0);
-+	input_set_abs_params(idev, ABS_PRESSURE, 0, ts->p_max, p_fudge, 0);
-+
-+	tsc2005_start_scan(ts);
-+
-+	r = request_irq(ts->irq, tsc2005_ts_irq_handler,
-+			IRQF_TRIGGER_FALLING | IRQF_DISABLED |
-+			IRQF_SAMPLE_RANDOM, "tsc2005", ts);
-+	if (r < 0) {
-+		dev_err(&ts->spi->dev, "unable to get DAV IRQ");
-+		goto err3;
-+	}
-+
-+	set_irq_wake(ts->irq, 1);
-+
-+	r = input_register_device(idev);
-+	if (r < 0) {
-+		dev_err(&ts->spi->dev, "can't register touchscreen device\n");
-+		goto err4;
-+	}
-+
-+	/* We can tolerate these failing */
-+	if (device_create_file(&ts->spi->dev, &dev_attr_pen_down));
-+	if (device_create_file(&ts->spi->dev, &dev_attr_disable_ts));
 +
 +	return 0;
-+err4:
-+	free_irq(ts->irq, ts);
-+err3:
-+	tsc2005_stop_scan(ts);
-+	input_free_device(idev);
-+err2:
-+#ifdef CONFIG_ARCH_OMAP
-+	omap_free_gpio(dav_gpio);
-+#endif
-+err1:
-+	return r;
 +}
 +
-+static int __devinit tsc2005_probe(struct spi_device *spi)
++static int tea5761_ioctl(struct inode *inode, struct file *file,
++			 unsigned int cmd, unsigned long arg)
 +{
-+	struct tsc2005			*tsc;
-+	struct tsc2005_platform_data	*pdata = spi->dev.platform_data;
-+	int r;
++	return video_usercopy(inode, file, cmd, arg, tea5761_do_ioctl);
++}
 +
-+	if (!pdata) {
-+		dev_dbg(&spi->dev, "no platform data?\n");
++static int tea5761_open(struct inode *inode, struct file *file)
++{
++	int minor =3D iminor(file->f_dentry->d_inode);
++	/* Currently we support only one device */
++	struct tea5761_device *tea =3D &tea5761;
++
++	if (tea->video_dev->minor !=3D minor)
 +		return -ENODEV;
++
++	mutex_lock(&tea->mutex);
++	/* Only exclusive access */
++	if (tea->users) {
++		mutex_unlock(&tea->mutex);
++		return -EBUSY;
++	}
++	tea->users++;
++	mutex_unlock(&tea->mutex);
++
++	file->private_data =3D tea;
++	return 0;
++}
++
++static int tea5761_release(struct inode *inode, struct file *file)
++{
++	struct tea5761_device *tea =3D file->private_data;
++
++	mutex_lock(&tea->mutex);
++	tea->users--;
++	mutex_unlock(&tea->mutex);
++
++	return 0;
++}
++
++static struct file_operations tea5761_fops =3D {
++	.owner		=3D THIS_MODULE,
++	.open           =3D tea5761_open,
++	.release	=3D tea5761_release,
++	.ioctl		=3D tea5761_ioctl,
++	.llseek         =3D no_llseek,
++};
++
++static struct video_device tea5761_video_device =3D {
++	.name          =3D "TEA5761 FM-Radio",
++	.vfl_type      =3D VID_TYPE_TUNER,
++	.fops          =3D &tea5761_fops,
++	.release       =3D video_device_release
++};
++
++static int tea5761_i2c_driver_probe(struct i2c_client *client,
++		const struct i2c_device_id *id)
++{
++	struct video_device *video_dev;
++	int err =3D 0;
++	struct tea5761_device *tea =3D &tea5761;
++
++	mutex_init(&tea->mutex);
++
++	tea->i2c_dev =3D client;
++
++	/* V4L initialization */
++	video_dev =3D video_device_alloc();
++	if (video_dev =3D=3D NULL) {
++		dev_err(&client->dev, "couldn't allocate memory\n");
++		err =3D -ENOMEM;
++		goto exit;
++	}
++	tea->video_dev =3D video_dev;
++
++	*video_dev =3D tea5761_video_device;
++	video_dev->parent =3D &client->dev;
++	i2c_set_clientdata(client, video_dev);
++
++	/* initialize and power off the chip */
++	tea5761_read_regs(tea);
++	tea5761_set_audout_mode(tea, V4L2_TUNER_MODE_STEREO);
++	tea5761_mute(tea, 0);
++	tea5761_power_down(tea);
++
++	tea5761.video_dev =3D video_dev;
++	tea5761.i2c_dev =3D client;
++
++	err =3D video_register_device(video_dev, VFL_TYPE_RADIO, radio_nr);
++	if (err) {
++		dev_err(&client->dev, "couldn't register video device\n");
++		goto err_video_alloc;
 +	}
 +
-+	tsc = kzalloc(sizeof(*tsc), GFP_KERNEL);
-+	if (tsc == NULL)
-+		return -ENOMEM;
-+
-+	dev_set_drvdata(&spi->dev, tsc);
-+	tsc->spi = spi;
-+	spi->dev.power.power_state = PMSG_ON;
-+
-+	spi->mode = SPI_MODE_0;
-+	spi->bits_per_word = 8;
-+	/* The max speed might've been defined by the board-specific
-+	 * struct */
-+	if (!spi->max_speed_hz)
-+		spi->max_speed_hz = TSC2005_HZ;
-+
-+	spi_setup(spi);
-+
-+	r = tsc2005_ts_init(tsc, pdata);
-+	if (r)
-+		goto err1;
++	dev_info(&client->dev, "tea5761 (version %d) detected\n",
++		(tea->regs.manid >> 12) & 0xf);
 +
 +	return 0;
 +
-+err1:
-+	kfree(tsc);
-+	return r;
++err_video_alloc:
++	video_device_release(video_dev);
++exit:
++	kfree(client);
++	return err;
 +}
 +
-+static int __devexit tsc2005_remove(struct spi_device *spi)
++static int tea5761_i2c_driver_remove(struct i2c_client *client)
 +{
-+	struct tsc2005 *ts = dev_get_drvdata(&spi->dev);
++	struct video_device *vd =3D i2c_get_clientdata(client);
 +
-+	mutex_lock(&ts->mutex);
-+	tsc2005_disable(ts);
-+	mutex_unlock(&ts->mutex);
-+
-+	device_remove_file(&ts->spi->dev, &dev_attr_disable_ts);
-+	device_remove_file(&ts->spi->dev, &dev_attr_pen_down);
-+
-+	free_irq(ts->irq, ts);
-+	input_unregister_device(ts->idev);
-+
-+#ifdef CONFIG_ARCH_OMAP
-+	omap_free_gpio(ts->dav_gpio);
-+#endif
-+	kfree(ts);
++	video_unregister_device(vd);
 +
 +	return 0;
 +}
 +
-+#ifdef CONFIG_PM
-+static int tsc2005_suspend(struct spi_device *spi, pm_message_t mesg)
-+{
-+	struct tsc2005 *ts = dev_get_drvdata(&spi->dev);
++static const struct i2c_device_id tea5761_id[] =3D {
++	{ DRIVER_NAME, 0 },
++	{ },
++};
++MODULE_DEVICE_TABLE(i2c, tea5761_id);
 +
-+	mutex_lock(&ts->mutex);
-+	tsc2005_disable(ts);
-+	mutex_unlock(&ts->mutex);
-+
-+	return 0;
-+}
-+
-+static int tsc2005_resume(struct spi_device *spi)
-+{
-+	struct tsc2005 *ts = dev_get_drvdata(&spi->dev);
-+
-+	mutex_lock(&ts->mutex);
-+	tsc2005_enable(ts);
-+	mutex_unlock(&ts->mutex);
-+
-+	return 0;
-+}
-+#endif
-+
-+static struct spi_driver tsc2005_driver = {
-+	.driver = {
-+		.name = "tsc2005",
-+		.owner = THIS_MODULE,
++static struct i2c_driver tea5761_driver =3D {
++	.driver =3D {
++		.name	=3D DRIVER_NAME,
 +	},
-+#ifdef CONFIG_PM
-+	.suspend = tsc2005_suspend,
-+	.resume = tsc2005_resume,
-+#endif
-+	.probe = tsc2005_probe,
-+	.remove = __devexit_p(tsc2005_remove),
++	.probe	=3D tea5761_i2c_driver_probe,
++	.remove =3D __devexit_p(tea5761_i2c_driver_remove),
++	.id_table =3D tea5761_id,
 +};
 +
-+static int __init tsc2005_init(void)
++static int __init tea5761_init(void)
 +{
-+	printk(KERN_INFO "TSC2005 driver initializing\n");
++	int res;
 +
-+	return spi_register_driver(&tsc2005_driver);
++	if ((res =3D i2c_add_driver(&tea5761_driver))) {
++		printk(KERN_ERR DRIVER_NAME ": driver registration failed\n");
++		return res;
++	}
++
++	return 0;
 +}
-+module_init(tsc2005_init);
 +
-+static void __exit tsc2005_exit(void)
++static void __exit tea5761_exit(void)
 +{
-+	spi_unregister_driver(&tsc2005_driver);
++	i2c_del_driver(&tea5761_driver);
 +}
-+module_exit(tsc2005_exit);
 +
-+MODULE_AUTHOR("Lauri Leukkunen <lauri.leukkunen@nokia.com>");
++MODULE_AUTHOR("Timo Ter=E4s");
++MODULE_DESCRIPTION("I2C interface for TEA5761.");
 +MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:tsc2005");
-diff --git a/include/linux/spi/tsc2005.h b/include/linux/spi/tsc2005.h
-new file mode 100644
-index 0000000..dbc01f7
---- /dev/null
-+++ b/include/linux/spi/tsc2005.h
-@@ -0,0 +1,29 @@
-+#ifndef _LINUX_SPI_TSC2005_H
-+#define _LINUX_SPI_TSC2005_H
 +
-+#include <linux/types.h>
++module_param(radio_nr, int, 0);
++MODULE_PARM_DESC(nr_radio, "video4linux device number to use");
 +
-+struct tsc2005_platform_data {
-+	s16	reset_gpio;
-+	s16	dav_gpio;
-+	s16	pen_int_gpio;
-+	u16	ts_x_plate_ohm;
-+	u32	ts_stab_time;	/* voltage settling time */
-+	u8	ts_hw_avg;	/* HW assiseted averaging. Can be
-+				   0, 4, 8, 16 samples per reading */
-+	u32	ts_touch_pressure;	/* Pressure limit until we report a
-+					   touch event. After that we switch
-+					   to ts_max_pressure. */
-+	u32	ts_pressure_max;/* Samples with bigger pressure value will
-+				   be ignored, since the corresponding X, Y
-+				   values are unreliable */
-+	u32	ts_pressure_fudge;
-+	u32	ts_x_max;
-+	u32	ts_x_fudge;
-+	u32	ts_y_max;
-+	u32	ts_y_fudge;
-+
-+	unsigned ts_ignore_last : 1;
-+};
-+
-+#endif
--- 
++module_init(tea5761_init)
++module_exit(tea5761_exit)
+--=20
 1.6.0.1.141.g445ca
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
