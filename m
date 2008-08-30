@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 23/33] add omap irda driver
-Date: Sat, 30 Aug 2008 20:16:23 +0300
-Message-ID: <1220116593-862-24-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 27/33] add tsc210x driver
+Date: Sat, 30 Aug 2008 20:16:27 +0300
+Message-ID: <1220116593-862-28-git-send-email-me@felipebalbi.com>
 References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-2-git-send-email-me@felipebalbi.com>
  <1220116593-862-3-git-send-email-me@felipebalbi.com>
@@ -25,12 +25,16 @@ References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-21-git-send-email-me@felipebalbi.com>
  <1220116593-862-22-git-send-email-me@felipebalbi.com>
  <1220116593-862-23-git-send-email-me@felipebalbi.com>
+ <1220116593-862-24-git-send-email-me@felipebalbi.com>
+ <1220116593-862-25-git-send-email-me@felipebalbi.com>
+ <1220116593-862-26-git-send-email-me@felipebalbi.com>
+ <1220116593-862-27-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:36688 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:36673 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753077AbYH3RWe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:22:34 -0400
-In-Reply-To: <1220116593-862-23-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1752898AbYH3RW3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:22:29 -0400
+In-Reply-To: <1220116593-862-27-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -40,951 +44,1322 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/net/irda/Kconfig   |   10 +
- drivers/net/irda/Makefile  |    1 +
- drivers/net/irda/omap-ir.c |  901 ++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 912 insertions(+), 0 deletions(-)
- create mode 100644 drivers/net/irda/omap-ir.c
+ drivers/spi/Kconfig   |   19 +
+ drivers/spi/Makefile  |    1 +
+ drivers/spi/tsc210x.c | 1262 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 1282 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/spi/tsc210x.c
 
-diff --git a/drivers/net/irda/Kconfig b/drivers/net/irda/Kconfig
-index e631755..b83e25b 100644
---- a/drivers/net/irda/Kconfig
-+++ b/drivers/net/irda/Kconfig
-@@ -342,5 +342,15 @@ config MCS_FIR
- 	  To compile it as a module, choose M here: the module will be called
- 	  mcs7780.
+diff --git a/drivers/spi/Kconfig b/drivers/spi/Kconfig
+index b9d0efb..2a200ff 100644
+--- a/drivers/spi/Kconfig
++++ b/drivers/spi/Kconfig
+@@ -225,6 +225,25 @@ config SPI_AT25
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called at25.
  
-+config OMAP_IR
-+	tristate "OMAP IrDA(SIR/MIR/FIR)"
-+	depends on IRDA && ARCH_OMAP
-+	select GPIOEXPANDER_OMAP if (MACH_OMAP_H3 || MACH_OMAP_H4)
-+        help
-+	  Say Y here if you want to build support for the Texas Instruments
-+	  OMAP IrDA device driver, which supports SIR/MIR/FIR. This driver
-+	  relies on platform specific helper routines so available capabilities
-+	  may vary from one OMAP target to another.
++config SPI_TSC210X
++	depends on SPI_MASTER && EXPERIMENTAL
++	tristate "TI TSC210x (TSC2101/TSC2102) support"
++	help
++	  Say Y here if you want support for the TSC210x chips.  Some
++	  boards use these for touchscreen and audio support.
 +
- endmenu
++	  These are members of a family of highly integrated PDA analog
++	  interface circuit.  They include a 12-bit ADC used for battery,
++	  temperature, touchscreen, and other sensors.  They also have
++	  an audio DAC and amplifier, and in some models an audio ADC.
++	  The audio support is highly chip-specific, but most of the
++	  sensor support works the same.
++
++	  Note that the device has to be present in the board's SPI
++	  devices table for this driver to load.  This driver doesn't
++	  automatically enable touchscreen, sensors or audio
++	  functionality - enable these in their respective menus.
++
+ config SPI_SPIDEV
+ 	tristate "User mode SPI device driver support"
+ 	depends on EXPERIMENTAL
+diff --git a/drivers/spi/Makefile b/drivers/spi/Makefile
+index ccf18de..bf12723 100644
+--- a/drivers/spi/Makefile
++++ b/drivers/spi/Makefile
+@@ -35,6 +35,7 @@ obj-$(CONFIG_SPI_SH_SCI)		+= spi_sh_sci.o
+ obj-$(CONFIG_SPI_AT25)		+= at25.o
+ obj-$(CONFIG_SPI_SPIDEV)	+= spidev.o
+ obj-$(CONFIG_SPI_TLE62X0)	+= tle62x0.o
++obj-$(CONFIG_SPI_TSC210X)	+= tsc210x.o
+ # 	... add above this line ...
  
-diff --git a/drivers/net/irda/Makefile b/drivers/net/irda/Makefile
-index 5d20fde..49e6f06 100644
---- a/drivers/net/irda/Makefile
-+++ b/drivers/net/irda/Makefile
-@@ -18,6 +18,7 @@ obj-$(CONFIG_VLSI_FIR)		+= vlsi_ir.o
- obj-$(CONFIG_VIA_FIR)		+= via-ircc.o
- obj-$(CONFIG_PXA_FICP)	        += pxaficp_ir.o
- obj-$(CONFIG_MCS_FIR)	        += mcs7780.o
-+obj-$(CONFIG_OMAP_IR)		+= omap-ir.o
- obj-$(CONFIG_AU1000_FIR)	+= au1k_ir.o
- # SIR drivers
- obj-$(CONFIG_IRTTY_SIR)		+= irtty-sir.o	sir-dev.o
-diff --git a/drivers/net/irda/omap-ir.c b/drivers/net/irda/omap-ir.c
+ # SPI slave controller drivers (upstream link)
+diff --git a/drivers/spi/tsc210x.c b/drivers/spi/tsc210x.c
 new file mode 100644
-index 0000000..b706253
+index 0000000..1d2ac94
 --- /dev/null
-+++ b/drivers/net/irda/omap-ir.c
-@@ -0,0 +1,901 @@
++++ b/drivers/spi/tsc210x.c
+@@ -0,0 +1,1262 @@
 +/*
-+ * BRIEF MODULE DESCRIPTION
++ * tsc210x.c - TSC2101/2102/... driver core
 + *
-+ *	Infra-red driver for the OMAP1610-H2 and OMAP1710-H3 and H4 Platforms
-+ *	  (SIR/MIR/FIR modes)
-+ *	  (based on omap-sir.c)
++ * Copyright (c) 2005-2007 Andrzej Zaborowski  <balrog@zabor.org>
 + *
-+ * Copyright 2003 MontaVista Software Inc.
-+ * Author: MontaVista Software, Inc.
-+ *	   source@mvista.com
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + *
-+ * Copyright 2004 Texas Instruments.
++ * This package is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
 + *
-+ *  This program is free software; you can redistribute	 it and/or modify it
-+ *  under  the terms of	 the GNU General  Public License as published by the
-+ *  Free Software Foundation;  either version 2 of the	License, or (at your
-+ *  option) any later version.
-+ *
-+ *  THIS  SOFTWARE  IS PROVIDED	  ``AS	IS'' AND   ANY	EXPRESS OR IMPLIED
-+ *  WARRANTIES,	  INCLUDING, BUT NOT  LIMITED  TO, THE IMPLIED WARRANTIES OF
-+ *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN
-+ *  NO	EVENT  SHALL   THE AUTHOR  BE	 LIABLE FOR ANY	  DIRECT, INDIRECT,
-+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ *  NOT LIMITED	  TO, PROCUREMENT OF  SUBSTITUTE GOODS	OR SERVICES; LOSS OF
-+ *  USE, DATA,	OR PROFITS; OR	BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ *  ANY THEORY OF LIABILITY, WHETHER IN	 CONTRACT, STRICT LIABILITY, OR TORT
-+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ *  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ *  You should have received a copy of the  GNU General Public License along
-+ *  with this program; if not, write  to the Free Software Foundation, Inc.,
-+ *  675 Mass Ave, Cambridge, MA 02139, USA.
-+ *
-+ Modifications:
-+ Feb 2004, Texas Instruments
-+ - Ported to 2.6 kernel (Feb 2004).
-+ *
-+ Apr 2004, Texas Instruments
-+ - Added support for H3 (Apr 2004).
-+ Nov 2004, Texas Instruments
-+ - Added support for Power Management.
++ * You should have received a copy of the GNU General Public License
++ * along with this package; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 + */
 +
 +#include <linux/module.h>
-+#include <linux/types.h>
 +#include <linux/init.h>
 +#include <linux/errno.h>
-+#include <linux/netdevice.h>
-+#include <linux/slab.h>
-+#include <linux/rtnetlink.h>
-+#include <linux/interrupt.h>
-+#include <linux/delay.h>
-+#include <linux/ioport.h>
-+#include <linux/dma-mapping.h>
 +#include <linux/platform_device.h>
-+#include <linux/i2c.h>
++#include <linux/suspend.h>
++#include <linux/interrupt.h>
++#include <linux/clk.h>
++#include <linux/err.h>
++#include <linux/mutex.h>
 +#include <linux/workqueue.h>
++#include <linux/completion.h>
++#include <linux/autoconf.h>
++#include <linux/spi/spi.h>
++#include <linux/spi/tsc210x.h>
 +
-+#include <net/irda/irda.h>
-+#include <net/irda/irmod.h>
-+#include <net/irda/wrapper.h>
-+#include <net/irda/irda_device.h>
 +
-+#include <asm/irq.h>
-+#include <asm/io.h>
-+#include <mach/hardware.h>
-+#include <asm/serial.h>
-+#include <asm/mach-types.h>
-+#include <asm/dma.h>
-+#include <mach/mux.h>
-+#include <mach/gpio.h>
-+#include <mach/irda.h>
++/* NOTE:  It should be straightforward to make this driver framework handle
++ * tsc2100 and tsc2111 chips, and maybe others too.  The main differences
++ * are in the audio codec capabilities, but there are also some differences
++ * in how the various sensors (including touchscreen) are handled.
++ */
 +
-+#define UART3_EFR_EN			(1 << 4)
-+#define UART3_MCR_EN_TCR_TLR		(1 << 6)
++/* Bit field definitions for chip registers */
 +
-+#define UART3_LCR_WL_8			(3 << 0)
-+#define UART3_LCR_SP2			(1 << 2)
-+#define UART3_LCR_DIVEN			(1 << 7)
++/* Scan X, Y, Z1, Z2, chip controlled, 12-bit, 16 samples, 500 usec */
++#define TSC210X_ADC_TS_CONTROL		0x8bf4
++/* Scan BAT1, BAT2, AUX1, AUX2, 12-bit, 16 samples, 500 usec */
++#define TSC210X_ADC_SCAN_CONTROL	0x2ff4
++/* Scan TEMP1, 12-bit, 16 samples, 500 usec */
++#define TSC210X_ADC_T1_CONTROL		0x2bf4
++/* Scan TEMP2, 12-bit, 16 samples, 500 usec */
++#define TSC210X_ADC_T2_CONTROL		0x33f4
++/* PINT/DAV acts as DAV */
++#define TSC210X_ADC_DAV			0x4000
++/* Internal reference, 100 usec delay, 1.25 V reference */
++#define TSC210X_ADC_INT_REF		0x0016
++/* External reference, 100 usec delay, 1.25 V reference */
++#define TSC210X_ADC_EXT_REF		0x0002
++/* 84 usec precharge time, 32 usec sense time */
++#define TSC210X_CONFIG_TIMES		0x0008
++/* The reset sequence */
++#define TSC210X_RESET			0xbb00
++/* Pen Status bit */
++#define TSC210X_ADC_PSTCM		(1 << 15)
++/* A/D Status bit */
++#define TSC210X_ADC_ADST		(1 << 14)
++/* (At least) One of X, Y, Z1, Z2 contains data */
++#define TSC210X_TS_DAV			0x0780
++/* (At least) One of BAT1, BAT2, AUX1, AUX2 contains data */
++#define TSC210X_PS_DAV			0x0078
++/* TEMP1 contains data */
++#define TSC210X_T1_DAV			0x0004
++/* TEMP2 contains data */
++#define TSC210X_T2_DAV			0x0002
++#define TSC2101_DAC_ON			0x0000
++#define TSC2101_DAC_OFF			0xe7fc
++#define TSC2102_DAC_ON			0x3ba0
++#define TSC2102_DAC_OFF			0xafa0
++#define TSC210X_FS44K			(1 << 13)
++#define TSC210X_PLL1_OFF		0x0000
++#define TSC210X_PLL1_44K		0x811c
++#define TSC210X_PLL1_48K		0x8120
++#define TSC210X_PLL2_44K		(5462 << 2)
++#define TSC210X_PLL2_48K		(1920 << 2)
++#define TSC210X_SLVMS			(1 << 11)
++#define TSC210X_DEEMPF			(1 << 0)
++#define TSC2102_BASSBC			(1 << 1)
++#define TSC210X_KEYCLICK_OFF		0x0000
 +
-+#define UART3_FCR_FIFO_EN		(1 << 0)
-+#define UART3_FCR_FIFO_RX		(1 << 1)
-+#define UART3_FCR_FIFO_TX		(1 << 2)
-+#define UART3_FCR_FIFO_DMA1		(1 << 3)
-+#define UART3_FCR_FIFO_TX_TRIG16	(1 << 4)
-+#define UART3_FCR_FIFO_RX_TRIG16	(1 << 6)
-+#define UART3_FCR_CONFIG	(\
-+		UART3_FCR_FIFO_EN | UART3_FCR_FIFO_RX	|\
-+		UART3_FCR_FIFO_TX | UART3_FCR_FIFO_DMA1 |\
-+		UART3_FCR_FIFO_TX_TRIG16		|\
-+		UART3_FCR_FIFO_RX_TRIG16)
++#define CS_CHANGE(val)			0
 +
-+#define UART3_SCR_TX_TRIG1		(1 << 6)
-+#define UART3_SCR_RX_TRIG1		(1 << 7)
-+
-+#define UART3_MDR1_RESET		(0x07)
-+#define UART3_MDR1_SIR			(1 << 0)
-+#define UART3_MDR1_MIR			(4 << 0)
-+#define UART3_MDR1_FIR			(5 << 0)
-+#define UART3_MDR1_SIP_AUTO		(1 << 6)
-+
-+#define UART3_MDR2_TRIG1		(0 << 1)
-+#define UART3_MDR2_IRTX_UNDERRUN	(1 << 0)
-+
-+#define UART3_ACERG_TX_UNDERRUN_DIS	(1 << 4)
-+#define UART3_ACERG_SD_MODE_LOW		(1 << 6)
-+#define UART3_ACERG_DIS_IR_RX		(1 << 5)
-+
-+#define UART3_IER_EOF			(1 << 5)
-+#define UART3_IER_CTS			(1 << 7)
-+
-+#define UART3_IIR_TX_STATUS		(1 << 5)
-+#define UART3_IIR_EOF			(0x80)
-+
-+#define IS_FIR(omap_ir)		((omap_ir)->speed >= 4000000)
-+
-+struct omap_irda {
-+	unsigned char open;
-+	int speed;		/* Current IrDA speed */
-+	int newspeed;
-+
-+	struct net_device_stats stats;
-+	struct irlap_cb *irlap;
-+	struct qos_info qos;
-+
-+	int rx_dma_channel;
-+	int tx_dma_channel;
-+
-+	dma_addr_t rx_buf_dma_phys;	/* Physical address of RX DMA buffer */
-+	dma_addr_t tx_buf_dma_phys;	/* Physical address of TX DMA buffer */
-+
-+	void *rx_buf_dma_virt;		/* Virtual address of RX DMA buffer */
-+	void *tx_buf_dma_virt;		/* Virtual address of TX DMA buffer */
-+
-+	struct device *dev;
-+	struct omap_irda_config *pdata;
++struct tsc210x_spi_req {
++	struct spi_device *dev;
++	u16 command;
++	u16 data;
++	struct spi_message message;
 +};
 +
-+static void inline uart_reg_out(int idx, u8 val)
++struct tsc210x_dev {
++	enum tsc_type {
++		tsc2101,
++		tsc2102,
++	} kind;
++	struct tsc210x_config *pdata;
++	struct clk *bclk_ck;
++
++	struct workqueue_struct *queue;
++	struct delayed_work ts_worker;		/* Poll-wait for PEN UP */
++	struct delayed_work sensor_worker;	/* Scan the ADC inputs */
++	struct mutex queue_lock;
++	struct completion data_avail;
++
++	tsc210x_touch_t touch_cb;
++	void *touch_cb_ctx;
++
++	tsc210x_coords_t coords_cb;
++	void *coords_cb_ctx;
++
++	tsc210x_ports_t ports_cb;
++	void *ports_cb_ctx;
++
++	tsc210x_temp_t temp1_cb;
++	void *temp2_cb_ctx;
++
++	tsc210x_temp_t temp2_cb;
++	void *temp1_cb_ctx;
++
++	struct spi_device *spi;
++	struct spi_transfer *transfers;
++	struct tsc210x_spi_req req_adc;
++	struct tsc210x_spi_req req_status;
++	struct tsc210x_spi_req req_mode;
++	struct tsc210x_spi_req req_stop;
++
++	int pendown;
++	int flushing;			/* Queue flush in progress */
++	u16 status;
++	u16 adc_data[4];
++	int bat[2], aux[2], temp[2];
++};
++
++static struct {
++	unsigned int ts_msecs;		/* Interval for .ts_timer */
++	unsigned int mode_msecs;	/* Interval for .mode_timer */
++} settings;
++
++module_param_named(touch_check_msecs, settings.ts_msecs, uint, 0);
++MODULE_PARM_DESC(touch_check_msecs, "Pen-up polling interval in msecs");
++
++module_param_named(sensor_scan_msecs, settings.mode_msecs, uint, 0);
++MODULE_PARM_DESC(sensor_scan_msecs, "Temperature & battery scan interval");
++
++int tsc210x_write_sync(struct tsc210x_dev *dev,
++		int page, u8 address, u16 data)
 +{
-+	omap_writeb(val, idx);
++	static struct tsc210x_spi_req req;
++	static struct spi_transfer transfer[2];
++	int ret;
++
++	spi_message_init(&req.message);
++
++	/* Address */
++	req.command = (page << 11) | (address << 5);
++	transfer[0].tx_buf = &req.command;
++	transfer[0].rx_buf = NULL;
++	transfer[0].len = 2;
++	spi_message_add_tail(&transfer[0], &req.message);
++
++	/* Data */
++	transfer[1].tx_buf = &data;
++	transfer[1].rx_buf = NULL;
++	transfer[1].len = 2;
++	transfer[1].cs_change = CS_CHANGE(1);
++	spi_message_add_tail(&transfer[1], &req.message);
++
++	ret = spi_sync(dev->spi, &req.message);
++	if (!ret && req.message.status)
++		ret = req.message.status;
++	if (ret)
++		dev_dbg(&dev->spi->dev, "write_sync --> %d\n", ret);
++
++	return ret;
++}
++EXPORT_SYMBOL(tsc210x_write_sync);
++
++int tsc210x_reads_sync(struct tsc210x_dev *dev,
++		int page, u8 startaddress, u16 *data, int numregs)
++{
++	static struct tsc210x_spi_req req;
++	static struct spi_transfer transfer[6];
++	int ret, i, j;
++
++	if (numregs + 1 > ARRAY_SIZE(transfer))
++		return -EINVAL;
++
++	spi_message_init(&req.message);
++	i = 0;
++	j = 0;
++
++	/* Address */
++	req.command = 0x8000 | (page << 11) | (startaddress << 5);
++	transfer[i].tx_buf = &req.command;
++	transfer[i].rx_buf = NULL;
++	transfer[i].len = 2;
++	spi_message_add_tail(&transfer[i ++], &req.message);
++
++	/* Data */
++	while (j < numregs) {
++		transfer[i].tx_buf = NULL;
++		transfer[i].rx_buf = &data[j ++];
++		transfer[i].len = 2;
++		transfer[i].cs_change = CS_CHANGE(j == numregs);
++		spi_message_add_tail(&transfer[i ++], &req.message);
++	}
++
++	ret = spi_sync(dev->spi, &req.message);
++	if (!ret && req.message.status)
++		ret = req.message.status;
++	if (ret)
++		dev_dbg(&dev->spi->dev, "reads_sync --> %d\n", ret);
++
++	return ret;
++}
++EXPORT_SYMBOL(tsc210x_reads_sync);
++
++int tsc210x_read_sync(struct tsc210x_dev *dev, int page, u8 address)
++{
++	u16 ret;
++	int status;
++
++	status = tsc210x_reads_sync(dev, page, address, &ret, 1);
++	return status ? : ret;
++}
++EXPORT_SYMBOL(tsc210x_read_sync);
++
++
++static void tsc210x_submit_async(struct tsc210x_spi_req *spi)
++{
++	int ret;
++
++	ret = spi_async(spi->dev, &spi->message);
++	if (ret)
++		dev_dbg(&spi->dev->dev, "%s: error %i in SPI request\n",
++				__FUNCTION__, ret);
 +}
 +
-+static u8 inline uart_reg_in(int idx)
++static void tsc210x_request_alloc(struct tsc210x_dev *dev,
++		struct tsc210x_spi_req *spi, int direction,
++		int page, u8 startaddress, int numregs, u16 *data,
++		void (*complete)(struct tsc210x_dev *context),
++		struct spi_transfer **transfer)
 +{
-+	u8 b = omap_readb(idx);
-+	return b;
++	spi->dev = dev->spi;
++
++	if (direction == 1)	/* Write */
++		numregs = 2;
++	else			/* Read */
++		numregs += 1;
++
++	spi_message_init(&spi->message);
++	spi->message.complete = (void (*)(void *)) complete;
++	spi->message.context = dev;
++
++	/* Address */
++	spi->command = (page << 11) | (startaddress << 5);
++	if (direction != 1)
++		spi->command |= 1 << 15;
++
++	(*transfer)->tx_buf = &spi->command;
++	(*transfer)->rx_buf = NULL;
++	(*transfer)->len = 2;
++	spi_message_add_tail((*transfer) ++, &spi->message);
++
++	/* Data */
++	while (-- numregs) {
++		if (direction == 1)
++			(*transfer)->tx_buf = &spi->data;
++		else
++			(*transfer)->rx_buf = data++;
++		(*transfer)->len = 2;
++		(*transfer)->cs_change = CS_CHANGE(numregs != 1);
++		spi_message_add_tail((*transfer) ++, &spi->message);
++	}
 +}
 +
-+/* forward declarations */
-+extern void omap_stop_dma(int lch);
-+static int omap_irda_set_speed(struct net_device *dev, int speed);
++#define tsc210x_cb_register_func(cb, cb_t)	\
++int tsc210x_ ## cb(struct device *dev, cb_t handler, void *context)	\
++{	\
++	struct tsc210x_dev *tsc = dev_get_drvdata(dev);	\
++	\
++	/* Lock the module */	\
++	if (handler && !tsc->cb)	\
++		if (!try_module_get(THIS_MODULE)) {	\
++			dev_err(dev, "Failed to get TSC module\n");	\
++		}	\
++	if (!handler && tsc->cb)	\
++		module_put(THIS_MODULE);	\
++	\
++	tsc->cb = handler;	\
++	tsc->cb ## _ctx = context;	\
++	return 0;	\
++} \
++EXPORT_SYMBOL(tsc210x_ ## cb);
 +
-+static void omap_irda_start_rx_dma(struct omap_irda *omap_ir)
++tsc210x_cb_register_func(touch_cb, tsc210x_touch_t)
++tsc210x_cb_register_func(coords_cb, tsc210x_coords_t)
++tsc210x_cb_register_func(ports_cb, tsc210x_ports_t)
++tsc210x_cb_register_func(temp1_cb, tsc210x_temp_t)
++tsc210x_cb_register_func(temp2_cb, tsc210x_temp_t)
++
++#ifdef DEBUG
++static void tsc210x_print_dav(struct tsc210x_dev *dev)
 +{
-+	/* Configure DMA */
-+	omap_set_dma_src_params(omap_ir->rx_dma_channel, 0x3, 0x0,
-+				omap_ir->pdata->src_start,
-+				0, 0);
++	int status = tsc210x_read_sync(dev, TSC210X_TS_STATUS_CTRL);
 +
-+	omap_enable_dma_irq(omap_ir->rx_dma_channel, 0x01);
++	if (status < 0) {
++		dev_dbg(&dev->spi->dev, "status %d\n", status);
++		return;
++	}
 +
-+	omap_set_dma_dest_params(omap_ir->rx_dma_channel, 0x0, 0x1,
-+				omap_ir->rx_buf_dma_phys,
-+				0, 0);
++	if (!(status & 0x0fff))
++		return;
 +
-+	omap_set_dma_transfer_params(omap_ir->rx_dma_channel, 0x0,
-+				IRDA_SKB_MAX_MTU, 0x1,
-+				0x0, omap_ir->pdata->rx_trigger, 0);
++	dev_dbg(&dev->spi->dev, "data in %s%s%s%s%s%s%s%s%s%s%s\n",
++		(status & 0x0400) ? " X" : "",
++		(status & 0x0200) ? " Y" : "",
++		(status & 0x0100) ? " Z1" : "",
++		(status & 0x0080) ? " Z2" : "",
++		(status & 0x0040) ? " BAT1" : "",
++		(status & 0x0020) ? " BAT2" : "",
++		(status & 0x0010) ? " AUX1" : "",
++		(status & 0x0008) ? " AUX2" : "",
++		(status & 0x0004) ? " TEMP1" : "",
++		(status & 0x0002) ? " TEMP2" : "",
++		(status & 0x0001) ? " KP" : "");
++}
++#endif
 +
-+	omap_start_dma(omap_ir->rx_dma_channel);
++static void tsc210x_complete_dummy(struct tsc210x_dev *dev)
++{
 +}
 +
-+static void omap_start_tx_dma(struct omap_irda *omap_ir, int size)
++static inline void tsc210x_touchscreen_mode(struct tsc210x_dev *dev)
 +{
-+	/* Configure DMA */
-+	omap_set_dma_dest_params(omap_ir->tx_dma_channel, 0x03, 0x0,
-+				omap_ir->pdata->dest_start, 0, 0);
-+
-+	omap_enable_dma_irq(omap_ir->tx_dma_channel, 0x01);
-+
-+	omap_set_dma_src_params(omap_ir->tx_dma_channel, 0x0, 0x1,
-+				omap_ir->tx_buf_dma_phys,
-+				0, 0);
-+
-+	omap_set_dma_transfer_params(omap_ir->tx_dma_channel, 0x0, size, 0x1,
-+				0x0, omap_ir->pdata->tx_trigger, 0);
-+
-+	/* Start DMA */
-+	omap_start_dma(omap_ir->tx_dma_channel);
++	/* Scan X, Y, Z1, Z2, chip controlled, 12-bit, 16 samples, 500 usec */
++	dev->req_mode.data = TSC210X_ADC_TS_CONTROL;
++	tsc210x_submit_async(&dev->req_mode);
 +}
 +
-+/* DMA RX callback - normally, we should not go here,
-+ * it calls only if something is going wrong
-+ */
-+static void omap_irda_rx_dma_callback(int lch, u16 ch_status, void *data)
++static inline void tsc210x_portscan_mode(struct tsc210x_dev *dev)
 +{
-+	struct net_device *dev = data;
-+	struct omap_irda *omap_ir = netdev_priv(dev);
-+
-+	printk(KERN_ERR "RX Transfer error or very big frame\n");
-+
-+	/* Clear interrupts */
-+	uart_reg_in(UART3_IIR);
-+
-+	omap_ir->stats.rx_frame_errors++;
-+
-+	uart_reg_in(UART3_RESUME);
-+
-+	/* Re-init RX DMA */
-+	omap_irda_start_rx_dma(omap_ir);
++	/* Scan BAT1, BAT2, AUX1, AUX2, 12-bit, 16 samples, 500 usec */
++	dev->req_mode.data = TSC210X_ADC_SCAN_CONTROL;
++	tsc210x_submit_async(&dev->req_mode);
 +}
 +
-+/* DMA TX callback - calling when frame transfer has been finished */
-+static void omap_irda_tx_dma_callback(int lch, u16 ch_status, void *data)
++static inline void tsc210x_temp1_mode(struct tsc210x_dev *dev)
 +{
-+	struct net_device *dev = data;
-+	struct omap_irda *omap_ir = netdev_priv(dev);
++	/* Scan TEMP1, 12-bit, 16 samples, 500 usec */
++	dev->req_mode.data = TSC210X_ADC_T1_CONTROL;
++	tsc210x_submit_async(&dev->req_mode);
++}
 +
-+	/*Stop DMA controller */
-+	omap_stop_dma(omap_ir->tx_dma_channel);
++static inline void tsc210x_temp2_mode(struct tsc210x_dev *dev)
++{
++	/* Scan TEMP2, 12-bit, 16 samples, 500 usec */
++	dev->req_mode.data = TSC210X_ADC_T2_CONTROL;
++	tsc210x_submit_async(&dev->req_mode);
++}
++
++/* Abort current conversion if any */
++static void tsc210x_new_mode(struct tsc210x_dev *dev)
++{
++	dev->req_stop.data = TSC210X_ADC_ADST;
++	tsc210x_submit_async(&dev->req_stop);
++}
++
++static void tsc210x_queue_scan(struct tsc210x_dev *dev)
++{
++	if (dev->pdata->monitor)
++		if (!queue_delayed_work(dev->queue,
++				&dev->sensor_worker,
++				msecs_to_jiffies(settings.mode_msecs)))
++			dev_err(&dev->spi->dev,
++					"%s: can't queue measurements\n",
++					__FUNCTION__);
++}
++
++static void tsc210x_queue_penup(struct tsc210x_dev *dev)
++{
++	if (!queue_delayed_work(dev->queue,
++			&dev->ts_worker,
++			msecs_to_jiffies(settings.ts_msecs)))
++		dev_err(&dev->spi->dev,
++				"%s: can't queue pen-up poll\n",
++				__FUNCTION__);
++}
++
++static void tsc210x_status_report(struct tsc210x_dev *dev)
++{
++	/*
++	 * Read all converted data from corresponding registers
++	 * so that the ADC can move on to a new conversion.
++	 */
++	if (dev->status & TSC210X_TS_DAV) {
++		if (!dev->pendown && !dev->flushing) {
++			dev->pendown = 1;
++			if (dev->touch_cb)
++				dev->touch_cb(dev->touch_cb_ctx, 1);
++
++			tsc210x_queue_penup(dev);
++		}
++
++		tsc210x_submit_async(&dev->req_adc);
++	}
++
++	if (dev->status & (TSC210X_PS_DAV | TSC210X_T1_DAV | TSC210X_T2_DAV))
++		complete(&dev->data_avail);
++}
++
++static void tsc210x_data_report(struct tsc210x_dev *dev)
++{
++	u16 adc_data[4];
++
++	if (dev->status & TSC210X_PS_DAV) {
++		tsc210x_reads_sync(dev, TSC210X_TS_BAT1, adc_data, 4);
++		/* NOTE: reads_sync() could fail */
++
++		dev->bat[0] = adc_data[0];
++		dev->bat[1] = adc_data[1];
++		dev->aux[0] = adc_data[2];
++		dev->aux[1] = adc_data[3];
++		if (dev->ports_cb)
++			dev->ports_cb(dev->ports_cb_ctx, dev->bat, dev->aux);
++	}
++
++	if (dev->status & TSC210X_T1_DAV) {
++		dev->temp[0] = tsc210x_read_sync(dev, TSC210X_TS_TEMP1);
++
++		if (dev->temp[0] >= 0 && dev->temp1_cb)
++			dev->temp1_cb(dev->temp1_cb_ctx, dev->temp[0]);
++	}
++
++	if (dev->status & TSC210X_T2_DAV) {
++		dev->temp[1] = tsc210x_read_sync(dev, TSC210X_TS_TEMP2);
++
++		if (dev->temp[1] >= 0 && dev->temp2_cb)
++			dev->temp2_cb(dev->temp2_cb_ctx, dev->temp[1]);
++	}
++}
++
++static void tsc210x_coords_report(struct tsc210x_dev *dev)
++{
++	if (dev->coords_cb)
++		dev->coords_cb(dev->coords_cb_ctx,
++				dev->adc_data[0], dev->adc_data[1],
++				dev->adc_data[2], dev->adc_data[3]);
 +}
 +
 +/*
-+ * Set the IrDA communications speed.
-+ * Interrupt have to be disabled here.
++ * There are at least three ways to check for pen-up:
++ *	- the PINT/DAV pin state,
++ *	- reading PSTCM bit in ADC Control register (D15, offset 0x00),
++ *	- reading ADST bit in ADC Control register (D14, offset 0x00),
++ *		ADC idle would indicate no screen touch.
++ * Unfortunately none of them seems to be 100% accurate and you will
++ * find they are totally inconsistent, i.e. you get to see any arbitrary
++ * combination of values in these three bits.  So we will busy-wait
++ * for a moment when the latter two indicate a pen-up, using a queue,
++ * before we report a pen-up.
 + */
-+static int omap_irda_startup(struct net_device *dev)
++static void tsc210x_pressure(struct work_struct *work)
 +{
-+	struct omap_irda *omap_ir = netdev_priv(dev);
++	struct tsc210x_dev *dev =
++		container_of(work, struct tsc210x_dev, ts_worker.work);
++	int adc_status;
 +
-+	/* FIXME: use clk_* apis for UART3 clock*/
-+	/* Enable UART3 clock and set UART3 to IrDA mode */
-+	if (machine_is_omap_h2() || machine_is_omap_h3())
-+		omap_writel(omap_readl(MOD_CONF_CTRL_0) | (1 << 31) | (1 << 15),
-+				MOD_CONF_CTRL_0);
++	WARN_ON(!dev->pendown);
 +
-+	/* Only for H2?
-+	 */
-+	if (omap_ir->pdata->transceiver_mode && machine_is_omap_h2()) {
-+		/* Is it select_irda on H2 ? */
-+		omap_writel(omap_readl(FUNC_MUX_CTRL_A) | 7,
-+					FUNC_MUX_CTRL_A);
-+		omap_ir->pdata->transceiver_mode(omap_ir->dev, IR_SIRMODE);
++	adc_status = tsc210x_read_sync(dev, TSC210X_TS_ADC_CTRL);
++	if (adc_status < 0) {
++		dev_dbg(&dev->spi->dev, "pressure, err %d\n", adc_status);
++		return;
 +	}
 +
-+	uart_reg_out(UART3_MDR1, UART3_MDR1_RESET);	/* Reset mode */
-+
-+	/* Clear DLH and DLL */
-+	uart_reg_out(UART3_LCR, UART3_LCR_DIVEN);
-+
-+	uart_reg_out(UART3_DLL, 0);
-+	uart_reg_out(UART3_DLH, 0);
-+	uart_reg_out(UART3_LCR, 0xbf);	/* FIXME: Add #define */
-+
-+	uart_reg_out(UART3_EFR, UART3_EFR_EN);
-+	uart_reg_out(UART3_LCR, UART3_LCR_DIVEN);
-+
-+	/* Enable access to UART3_TLR and UART3_TCR registers */
-+	uart_reg_out(UART3_MCR, UART3_MCR_EN_TCR_TLR);
-+
-+	uart_reg_out(UART3_SCR, 0);
-+	/* Set Rx trigger to 1 and Tx trigger to 1 */
-+	uart_reg_out(UART3_TLR, 0);
-+
-+	/* Set LCR to 8 bits and 1 stop bit */
-+	uart_reg_out(UART3_LCR, 0x03);
-+
-+	/* Clear RX and TX FIFO and enable FIFO */
-+	/* Use DMA Req for transfers */
-+	uart_reg_out(UART3_FCR, UART3_FCR_CONFIG);
-+
-+	uart_reg_out(UART3_MCR, 0);
-+
-+	uart_reg_out(UART3_SCR, UART3_SCR_TX_TRIG1 |
-+			UART3_SCR_RX_TRIG1);
-+
-+	/* Enable UART3 SIR Mode,(Frame-length method to end frames) */
-+	uart_reg_out(UART3_MDR1, UART3_MDR1_SIR);
-+
-+	/* Set Status FIFO trig to 1 */
-+	uart_reg_out(UART3_MDR2, 0);
-+
-+	/* Enables RXIR input */
-+	/* and disable TX underrun */
-+	/* SEND_SIP pulse */
-+	uart_reg_out(UART3_ACREG, UART3_ACERG_SD_MODE_LOW |
-+			UART3_ACERG_TX_UNDERRUN_DIS);
-+
-+	/* Enable EOF Interrupt only */
-+	uart_reg_out(UART3_IER, UART3_IER_CTS | UART3_IER_EOF);
-+
-+	/* Set Maximum Received Frame size to 2048 bytes */
-+	uart_reg_out(UART3_RXFLL, 0x00);
-+	uart_reg_out(UART3_RXFLH, 0x08);
-+
-+	uart_reg_in(UART3_RESUME);
-+
-+	return 0;
++	if ((adc_status & TSC210X_ADC_PSTCM) != 0
++			|| !(adc_status & TSC210X_ADC_ADST))
++		tsc210x_queue_penup(dev);
++	else {
++		dev->pendown = 0;
++		if (dev->touch_cb)
++			dev->touch_cb(dev->touch_cb_ctx, 0);
++	}
 +}
 +
-+static int omap_irda_shutdown(struct omap_irda *omap_ir)
++static void tsc210x_wait_data(struct tsc210x_dev *dev)
 +{
-+	unsigned long flags;
++	wait_for_completion(&dev->data_avail);
 +
-+	local_irq_save(flags);
-+
-+	/* Disable all UART3 Interrupts */
-+	uart_reg_out(UART3_IER, 0);
-+
-+	/* Disable UART3 and disable baud rate generator */
-+	uart_reg_out(UART3_MDR1, UART3_MDR1_RESET);
-+
-+	/* set SD_MODE pin to high and Disable RX IR */
-+	uart_reg_out(UART3_ACREG, (UART3_ACERG_DIS_IR_RX |
-+			~(UART3_ACERG_SD_MODE_LOW)));
-+
-+	/* Clear DLH and DLL */
-+	uart_reg_out(UART3_LCR, UART3_LCR_DIVEN);
-+	uart_reg_out(UART3_DLL, 0);
-+	uart_reg_out(UART3_DLH, 0);
-+
-+	local_irq_restore(flags);
-+
-+	return 0;
++	tsc210x_data_report(dev);
 +}
 +
-+static irqreturn_t
-+omap_irda_irq(int irq, void *dev_id)
++static void tsc210x_input_scan(struct work_struct *work)
 +{
-+	struct net_device *dev = dev_id;
-+	struct omap_irda *omap_ir = netdev_priv(dev);
-+	struct sk_buff *skb;
++	struct tsc210x_dev *dev = (struct tsc210x_dev *)
++		container_of(work, struct tsc210x_dev, sensor_worker.work);
 +
-+	u8 status;
-+	int w = 0;
++	tsc210x_new_mode(dev);
 +
-+	/* Clear EOF interrupt */
-+	status = uart_reg_in(UART3_IIR);
-+
-+	if (status & UART3_IIR_TX_STATUS) {
-+		u8 mdr2 = uart_reg_in(UART3_MDR2);
-+		if (mdr2 & UART3_MDR2_IRTX_UNDERRUN)
-+			printk(KERN_ERR "IrDA Buffer underrun error\n");
-+
-+		omap_ir->stats.tx_packets++;
-+
-+		if (omap_ir->newspeed) {
-+			omap_irda_set_speed(dev, omap_ir->newspeed);
-+			omap_ir->newspeed = 0;
-+		}
-+
-+		netif_wake_queue(dev);
-+		if (!(status & UART3_IIR_EOF))
-+			return IRQ_HANDLED;
++	if (dev->pdata->monitor &
++			(TSC_BAT1 | TSC_BAT2 | TSC_AUX1 | TSC_AUX2)) {
++		tsc210x_portscan_mode(dev);
++		tsc210x_wait_data(dev);
 +	}
 +
-+	/* Stop DMA and if there are no errors, send frame to upper layer */
-+	omap_stop_dma(omap_ir->rx_dma_channel);
++	if (dev->pdata->monitor & TSC_TEMP) {
++		tsc210x_temp1_mode(dev);
++		tsc210x_wait_data(dev);
 +
-+	status = uart_reg_in(UART3_SFLSR);	/* Take a frame status */
-+
-+	if (status != 0) {	/* Bad frame? */
-+		omap_ir->stats.rx_frame_errors++;
-+		uart_reg_in(UART3_RESUME);
-+	} else {
-+		/* We got a frame! */
-+		skb = dev_alloc_skb(IRDA_SKB_MAX_MTU);
-+
-+		if (!skb) {
-+			printk(KERN_ERR "omap_sir: out of memory for RX SKB\n");
-+			return IRQ_HANDLED;
-+		}
-+		/*
-+		 * Align any IP headers that may be contained
-+		 * within the frame.
-+		 */
-+
-+		skb_reserve(skb, 1);
-+
-+		w = omap_get_dma_dst_pos(omap_ir->rx_dma_channel) -
-+						omap_ir->rx_buf_dma_phys;
-+
-+		if (!IS_FIR(omap_ir))
-+			/* Copy DMA buffer to skb */
-+			memcpy(skb_put(skb, w - 2), omap_ir->rx_buf_dma_virt,
-+					w - 2);
-+		else
-+			/* Copy DMA buffer to skb */
-+			memcpy(skb_put(skb, w - 4), omap_ir->rx_buf_dma_virt,
-+					w - 4);
-+
-+		skb->dev = dev;
-+		skb_reset_mac_header(skb);
-+		skb->protocol = htons(ETH_P_IRDA);
-+		omap_ir->stats.rx_packets++;
-+		omap_ir->stats.rx_bytes += skb->len;
-+		netif_receive_skb(skb);	/* Send data to upper level */
++		tsc210x_temp2_mode(dev);
++		tsc210x_wait_data(dev);
 +	}
 +
-+	/* Re-init RX DMA */
-+	omap_irda_start_rx_dma(omap_ir);
++	tsc210x_touchscreen_mode(dev);
 +
-+	dev->last_rx = jiffies;
++	mutex_lock(&dev->queue_lock);
++	if (!dev->flushing)
++		tsc210x_queue_scan(dev);
++	mutex_unlock(&dev->queue_lock);
++}
++
++/* ADC has finished a new conversion for us.  */
++static irqreturn_t tsc210x_handler(int irq, void *dev_id)
++{
++	struct tsc210x_dev *dev = (struct tsc210x_dev *) dev_id;
++
++	/* See what data became available.  */
++	tsc210x_submit_async(&dev->req_status);
 +
 +	return IRQ_HANDLED;
 +}
 +
-+static int omap_irda_hard_xmit(struct sk_buff *skb, struct net_device *dev)
++#if defined(CONFIG_SOUND) || defined(CONFIG_SOUND_MODULE)
++
++/*
++ * FIXME the audio support shouldn't be included in upstream patches
++ * until it's ready.  They might be better as utility functions linked
++ * with a chip-specific tsc21xx audio module ... e.g. chips with input
++ * channels need more, as will ones with multiple output channels and
++ * so on.  Each of these functions should probably return a fault code,
++ * and will need to be exported so the sound drier can be modular.
++ */
++
++/*
++ * Volume level values should be in the range [0, 127].
++ * Higher values mean lower volume.
++ */
++void tsc210x_set_dac_volume(struct device *dev, u8 left_ch, u8 right_ch)
 +{
-+	struct omap_irda *omap_ir = netdev_priv(dev);
-+	int speed = irda_get_next_speed(skb);
-+	int mtt = irda_get_mtt(skb);
-+	int xbofs = irda_get_next_xbofs(skb);
++	struct tsc210x_dev *tsc = dev_get_drvdata(dev);
++	int val;
 +
-+
-+	/*
-+	 * Does this packet contain a request to change the interface
-+	 * speed?  If so, remember it until we complete the transmission
-+	 * of this frame.
-+	 */
-+	if (speed != omap_ir->speed && speed != -1)
-+		omap_ir->newspeed = speed;
-+
-+	if (xbofs) /* Set number of addtional BOFS */
-+		uart_reg_out(UART3_EBLR, xbofs + 1);
-+
-+	/*
-+	 * If this is an empty frame, we can bypass a lot.
-+	 */
-+	if (skb->len == 0) {
-+		if (omap_ir->newspeed) {
-+			omap_ir->newspeed = 0;
-+			omap_irda_set_speed(dev, speed);
-+		}
-+		dev_kfree_skb(skb);
-+		return 0;
++	if (tsc->kind == tsc2102) {
++		/* All 0's or all 1's */
++		if (left_ch == 0x00 || left_ch == 0x7f)
++			left_ch ^= 0x7f;
++		if (right_ch == 0x00 || right_ch == 0x7f)
++			right_ch ^= 0x7f;
 +	}
 +
-+	netif_stop_queue(dev);
++	val = tsc210x_read_sync(tsc, TSC210X_DAC_GAIN_CTRL);
++	if (val < 0) {
++		dev_dbg(dev, "%s, err %d\n", __FUNCTION__, val);
++		return;
++	}
 +
-+	/* Copy skb data to DMA buffer */
-+	skb_copy_from_linear_data(skb, omap_ir->tx_buf_dma_virt, skb->len);
++	val &= 0x8080;	/* Preserve mute-bits */
++	val |= (left_ch << 8) | right_ch;
 +
-+	/* Copy skb data to DMA buffer */
-+	omap_ir->stats.tx_bytes += skb->len;
++	tsc210x_write_sync(tsc, TSC210X_DAC_GAIN_CTRL, val);
++	/* NOTE: write_sync() could fail */
++}
 +
-+	/* Set frame length */
-+	uart_reg_out(UART3_TXFLL, (skb->len & 0xff));
-+	uart_reg_out(UART3_TXFLH, (skb->len >> 8));
++void tsc210x_set_dac_mute(struct device *dev, int left_ch, int right_ch)
++{
++	struct tsc210x_dev *tsc = dev_get_drvdata(dev);
++	int val;
 +
-+	if (mtt > 1000)
-+		mdelay(mtt / 1000);
++	val = tsc210x_read_sync(tsc, TSC210X_DAC_GAIN_CTRL);
++	if (val < 0) {
++		dev_dbg(dev, "%s, err %d\n", __FUNCTION__, val);
++		return;
++	}
++
++	val &= 0x7f7f;	/* Preserve volume settings */
++	val |= (left_ch << 15) | (right_ch << 7);
++
++	tsc210x_write_sync(tsc, TSC210X_DAC_GAIN_CTRL, val);
++	/* NOTE: write_sync() could fail */
++}
++
++void tsc210x_get_dac_mute(struct device *dev, int *left_ch, int *right_ch)
++{
++	struct tsc210x_dev *tsc = dev_get_drvdata(dev);
++	int val;
++
++	val = tsc210x_read_sync(tsc, TSC210X_DAC_GAIN_CTRL);
++	if (val < 0) {
++		dev_dbg(dev, "%s, err %d\n", __FUNCTION__, val);
++		return;
++	}
++
++	*left_ch = !!(val & (1 << 15));
++	*right_ch = !!(val & (1 << 7));
++}
++
++void tsc210x_set_deemphasis(struct device *dev, int enable)
++{
++	struct tsc210x_dev *tsc = dev_get_drvdata(dev);
++	int val;
++
++	val = tsc210x_read_sync(tsc, TSC210X_POWER_CTRL);
++	if (val < 0) {
++		dev_dbg(dev, "%s, err %d\n", __FUNCTION__, val);
++		return;
++	}
++
++	if (enable)
++		val &= ~TSC210X_DEEMPF;
 +	else
-+		udelay(mtt);
++		val |= TSC210X_DEEMPF;
 +
-+	/* Start TX DMA transfer */
-+	omap_start_tx_dma(omap_ir, skb->len);
++	tsc210x_write_sync(tsc, TSC210X_POWER_CTRL, val);
++	/* NOTE: write_sync() could fail */
++}
 +
-+	/* We can free skb now because it's already in DMA buffer */
-+	dev_kfree_skb(skb);
++void tsc2102_set_bassboost(struct device *dev, int enable)
++{
++	struct tsc210x_dev *tsc = dev_get_drvdata(dev);
++	int val;
 +
-+	dev->trans_start = jiffies;
++	val = tsc210x_read_sync(tsc, TSC210X_POWER_CTRL);
++	if (val < 0) {
++		dev_dbg(dev, "%s, err %d\n", __FUNCTION__, val);
++		return;
++	}
++
++	if (enable)
++		val &= ~TSC2102_BASSBC;
++	else
++		val |= TSC2102_BASSBC;
++
++	tsc210x_write_sync(tsc, TSC210X_POWER_CTRL, val);
++	/* NOTE: write_sync() could fail */
++}
++
++/*	{rate, dsor, fsref}	*/
++static const struct tsc210x_rate_info_s tsc2101_rates[] = {
++	/* Fsref / 6.0 */
++	{7350,	7,	1},
++	{8000,	7,	0},
++	/* Fsref / 5.5 */
++	{8018,	6,	1},
++	{8727,	6,	0},
++	/* Fsref / 5.0 */
++	{8820,	5,	1},
++	{9600,	5,	0},
++	/* Fsref / 4.0 */
++	{11025,	4,	1},
++	{12000,	4,	0},
++	/* Fsref / 3.0 */
++	{14700,	3,	1},
++	{16000,	3,	0},
++	/* Fsref / 2.0 */
++	{22050,	2,	1},
++	{24000,	2,	0},
++	/* Fsref / 1.5 */
++	{29400,	1,	1},
++	{32000,	1,	0},
++	/* Fsref */
++	{44100,	0,	1},
++	{48000,	0,	0},
++
++	{0,	0,	0},
++};
++
++/*	{rate, dsor, fsref}	*/
++static const struct tsc210x_rate_info_s tsc2102_rates[] = {
++	/* Fsref / 6.0 */
++	{7350,	63,	1},
++	{8000,	63,	0},
++	/* Fsref / 6.0 */
++	{7350,	54,	1},
++	{8000,	54,	0},
++	/* Fsref / 5.0 */
++	{8820,	45,	1},
++	{9600,	45,	0},
++	/* Fsref / 4.0 */
++	{11025,	36,	1},
++	{12000,	36,	0},
++	/* Fsref / 3.0 */
++	{14700,	27,	1},
++	{16000,	27,	0},
++	/* Fsref / 2.0 */
++	{22050,	18,	1},
++	{24000,	18,	0},
++	/* Fsref / 1.5 */
++	{29400,	9,	1},
++	{32000,	9,	0},
++	/* Fsref */
++	{44100,	0,	1},
++	{48000,	0,	0},
++
++	{0,	0,	0},
++};
++
++int tsc210x_set_rate(struct device *dev, int rate)
++{
++	struct tsc210x_dev *tsc = dev_get_drvdata(dev);
++	int i;
++	int val;
++	const struct tsc210x_rate_info_s *rates;
++
++	if (tsc->kind == tsc2101)
++		rates = tsc2101_rates;
++	else
++		rates = tsc2102_rates;
++
++	for (i = 0; rates[i].sample_rate; i ++)
++		if (rates[i].sample_rate == rate)
++			break;
++	if (rates[i].sample_rate == 0) {
++		dev_err(dev, "Unknown sampling rate %i.0 Hz\n", rate);
++		return -EINVAL;
++	}
++
++	if (tsc->kind == tsc2101) {
++		val = tsc210x_read_sync(tsc, TSC210X_AUDIO1_CTRL);
++		if (val < 0) {
++			dev_dbg(dev, "%s, err %d\n", __FUNCTION__, val);
++			return val;
++		}
++		val &= ~((7 << 3) | (7 << 0));
++		val |= rates[i].divisor << 3;
++		val |= rates[i].divisor << 0;
++	} else
++		val = rates[i].divisor;
++
++	tsc210x_write_sync(tsc, TSC210X_AUDIO1_CTRL, val);
++	/* NOTE: write_sync() could fail */
++
++	val = tsc210x_read_sync(tsc, TSC210X_AUDIO3_CTRL);
++	if (val < 0) {
++		dev_dbg(dev, "%s, err %d\n", __FUNCTION__, val);
++		return val;
++	}
++
++	if (tsc2102_rates[i].fs_44k) {
++		tsc210x_write_sync(tsc,
++				TSC210X_AUDIO3_CTRL, val | TSC210X_FS44K);
++		/* Enable Phase-locked-loop, set up clock dividers */
++		tsc210x_write_sync(tsc, TSC210X_PLL1_CTRL, TSC210X_PLL1_44K);
++		tsc210x_write_sync(tsc, TSC210X_PLL2_CTRL, TSC210X_PLL2_44K);
++	} else {
++		tsc210x_write_sync(tsc,
++				TSC210X_AUDIO3_CTRL, val & ~TSC210X_FS44K);
++		/* Enable Phase-locked-loop, set up clock dividers */
++		tsc210x_write_sync(tsc, TSC210X_PLL1_CTRL, TSC210X_PLL1_48K);
++		tsc210x_write_sync(tsc, TSC210X_PLL2_CTRL, TSC210X_PLL2_48K);
++	}
 +
 +	return 0;
 +}
 +
-+static int
-+omap_irda_ioctl(struct net_device *dev, struct ifreq *ifreq, int cmd)
++/*
++ * Perform basic set-up with default values and power the DAC/ADC on.
++ */
++void tsc210x_dac_power(struct device *dev, int on)
 +{
-+	struct if_irda_req *rq = (struct if_irda_req *)ifreq;
-+	struct omap_irda *omap_ir = netdev_priv(dev);
-+	int ret = -EOPNOTSUPP;
++	struct tsc210x_dev *tsc = dev_get_drvdata(dev);
 +
++	/* NOTE: write_sync() could fail */
++	if (on) {
++		/* 16-bit words, DSP mode, sample at Fsref */
++		tsc210x_write_sync(tsc,
++				TSC210X_AUDIO1_CTRL, 0x0100);
++		/* Keyclicks off, soft-stepping at normal rate */
++		tsc210x_write_sync(tsc,
++				TSC210X_AUDIO2_CTRL, TSC210X_KEYCLICK_OFF);
++		/* 44.1 kHz Fsref, continuous transfer mode, master DAC */
++		tsc210x_write_sync(tsc,
++				TSC210X_AUDIO3_CTRL, 0x2000);
++		/* Soft-stepping enabled, 1 dB MIX AGC hysteresis */
++		tsc210x_write_sync(tsc,
++				TSC210X_AUDIO4_CTRL, 0x0000);
 +
-+	switch (cmd) {
-+	case SIOCSBANDWIDTH:
-+		if (capable(CAP_NET_ADMIN)) {
-+			/*
-+			 * We are unable to set the speed if the
-+			 * device is not running.
-+			 */
-+			if (omap_ir->open)
-+				ret = omap_irda_set_speed(dev,
-+						rq->ifr_baudrate);
-+			else {
-+				printk(KERN_ERR "omap_ir: SIOCSBANDWIDTH:"
-+						" !netif_running\n");
-+				ret = 0;
-+			}
-+		}
++		/* PLL generates 44.1 kHz */
++		tsc210x_write_sync(tsc,
++				TSC210X_PLL1_CTRL, TSC210X_PLL1_44K);
++		tsc210x_write_sync(tsc,
++				TSC210X_PLL2_CTRL, TSC210X_PLL2_44K);
++
++		/* Codec & DAC power up, virtual ground disabled */
++		tsc210x_write_sync(tsc,
++				TSC210X_POWER_CTRL, (tsc->kind == tsc2101) ?
++				TSC2101_DAC_ON : TSC2102_DAC_ON);
++	} else {
++		/* All off */
++		tsc210x_write_sync(tsc,
++				TSC210X_AUDIO2_CTRL, TSC210X_KEYCLICK_OFF);
++		tsc210x_write_sync(tsc,
++				TSC210X_PLL1_CTRL, TSC210X_PLL1_OFF);
++#if 0
++		tsc210x_write_sync(tsc,
++				TSC210X_POWER_CTRL, (tsc->kind == tsc2101) ?
++				TSC2102_DAC_OFF : TSC2102_DAC_OFF);
++#endif
++	}
++}
++
++void tsc210x_set_i2s_master(struct device *dev, int state)
++{
++	struct tsc210x_dev *tsc = dev_get_drvdata(dev);
++	int val;
++
++	val = tsc210x_read_sync(tsc, TSC210X_AUDIO3_CTRL);
++	if (val < 0) {
++		dev_dbg(dev, "%s, err %d\n", __FUNCTION__, val);
++		return;
++	}
++
++	/* NOTE: write_sync() could fail */
++	if (state)
++		tsc210x_write_sync(tsc, TSC210X_AUDIO3_CTRL,
++				val | TSC210X_SLVMS);
++	else
++		tsc210x_write_sync(tsc, TSC210X_AUDIO3_CTRL,
++				val & ~TSC210X_SLVMS);
++}
++#endif	/* CONFIG_SOUND */
++
++static int tsc210x_configure(struct tsc210x_dev *dev)
++{
++	/* NOTE: write_sync() could fail */
++
++	/* Reset the chip */
++	tsc210x_write_sync(dev, TSC210X_TS_RESET_CTRL, TSC210X_RESET);
++
++	/* Reference mode */
++	if (dev->pdata->use_internal)
++		tsc210x_write_sync(dev,
++				TSC210X_TS_REF_CTRL, TSC210X_ADC_INT_REF);
++	else
++		tsc210x_write_sync(dev,
++				TSC210X_TS_REF_CTRL, TSC210X_ADC_EXT_REF);
++
++	/* Precharge and sense delays, pen touch detection on */
++	tsc210x_write_sync(dev, TSC210X_TS_CONFIG_CTRL, TSC210X_CONFIG_TIMES);
++
++	/* PINT/DAV acts as DAV */
++	tsc210x_write_sync(dev, TSC210X_TS_STATUS_CTRL, TSC210X_ADC_DAV);
++
++	tsc210x_queue_scan(dev);
++	return 0;
++}
++
++void tsc210x_keyclick(struct tsc210x_dev *dev,
++		int amplitude, int freq, int length)
++{
++	int val;
++
++	val = tsc210x_read_sync(dev, TSC210X_AUDIO2_CTRL);
++	if (val < 0) {
++		dev_dbg(&dev->spi->dev, "%s, err %d\n",
++				__FUNCTION__, val);
++		return;
++	}
++	val &= 0x800f;
++
++	/* Set amplitude */
++	switch (amplitude) {
++	case 1:
++		val |= 4 << 12;
 +		break;
-+
-+	case SIOCSMEDIABUSY:
-+		ret = -EPERM;
-+		if (capable(CAP_NET_ADMIN)) {
-+			irda_device_set_media_busy(dev, TRUE);
-+			ret = 0;
-+		}
++	case 2:
++		val |= 7 << 12;
 +		break;
-+
-+	case SIOCGRECEIVING:
-+		rq->ifr_receiving = 0;
-+		break;
-+
 +	default:
 +		break;
 +	}
 +
-+	return ret;
++	/* Frequency */
++	val |= (freq & 0x7) << 8;
++
++	/* Round to nearest supported length */
++	if (dev->kind == tsc2101)
++		val = (min(length - 1, 31) >> 1) << 4;
++	else {
++		if (length > 20)
++			val |= 4 << 4;
++		else if (length > 6)
++			val |= 3 << 4;
++		else if (length > 4)
++			val |= 2 << 4;
++		else if (length > 2)
++			val |= 1 << 4;
++	}
++
++	/* Enable keyclick */
++	val |= 0x8000;
++
++	/* NOTE: write_sync() could fail */
++	tsc210x_write_sync(dev, TSC210X_AUDIO2_CTRL, val);
 +}
-+
-+static struct net_device_stats *omap_irda_stats(struct net_device *dev)
-+{
-+	struct omap_irda *omap_ir = netdev_priv(dev);
-+	return &omap_ir->stats;
-+}
-+
-+static int omap_irda_start(struct net_device *dev)
-+{
-+	struct omap_irda *omap_ir = netdev_priv(dev);
-+	int err;
-+
-+	omap_ir->speed = 9600;
-+
-+	err = request_irq(dev->irq, omap_irda_irq, 0, dev->name, dev);
-+	if (err)
-+		goto err_irq;
-+
-+	/*
-+	 * The interrupt must remain disabled for now.
-+	 */
-+	disable_irq(dev->irq);
-+
-+	/*  Request DMA channels for IrDA hardware */
-+	if (omap_request_dma(omap_ir->pdata->rx_channel, "IrDA Rx DMA",
-+			(void *)omap_irda_rx_dma_callback,
-+			dev, &(omap_ir->rx_dma_channel))) {
-+		printk(KERN_ERR "Failed to request IrDA Rx DMA\n");
-+		goto err_irq;
-+	}
-+
-+	if (omap_request_dma(omap_ir->pdata->tx_channel, "IrDA Tx DMA",
-+			(void *)omap_irda_tx_dma_callback,
-+			dev, &(omap_ir->tx_dma_channel))) {
-+		printk(KERN_ERR "Failed to request IrDA Tx DMA\n");
-+		goto err_irq;
-+	}
-+
-+	/* Allocate TX and RX buffers for DMA channels */
-+	omap_ir->rx_buf_dma_virt =
-+		dma_alloc_coherent(NULL, IRDA_SKB_MAX_MTU,
-+				&(omap_ir->rx_buf_dma_phys),
-+				GFP_KERNEL);
-+
-+	if (!omap_ir->rx_buf_dma_virt) {
-+		printk(KERN_ERR "Unable to allocate memory for rx_buf_dma\n");
-+		goto err_irq;
-+	}
-+
-+	omap_ir->tx_buf_dma_virt =
-+		dma_alloc_coherent(NULL, IRDA_SIR_MAX_FRAME,
-+				&(omap_ir->tx_buf_dma_phys),
-+				GFP_KERNEL);
-+
-+	if (!omap_ir->tx_buf_dma_virt) {
-+		printk(KERN_ERR "Unable to allocate memory for tx_buf_dma\n");
-+		goto err_mem1;
-+	}
-+
-+	/*
-+	 * Setup the serial port for the specified config.
-+	 */
-+	if (omap_ir->pdata->select_irda)
-+		omap_ir->pdata->select_irda(omap_ir->dev, IR_SEL);
-+
-+	err = omap_irda_startup(dev);
-+
-+	if (err)
-+		goto err_startup;
-+
-+	omap_irda_set_speed(dev, omap_ir->speed = 9600);
-+
-+	/*
-+	 * Open a new IrLAP layer instance.
-+	 */
-+	omap_ir->irlap = irlap_open(dev, &omap_ir->qos, "omap_sir");
-+
-+	err = -ENOMEM;
-+	if (!omap_ir->irlap)
-+		goto err_irlap;
-+
-+	/* Now enable the interrupt and start the queue */
-+	omap_ir->open = 1;
-+
-+	/* Start RX DMA */
-+	omap_irda_start_rx_dma(omap_ir);
-+
-+	enable_irq(dev->irq);
-+	netif_start_queue(dev);
-+
-+	return 0;
-+
-+err_irlap:
-+	omap_ir->open = 0;
-+	omap_irda_shutdown(omap_ir);
-+err_startup:
-+	dma_free_coherent(NULL, IRDA_SIR_MAX_FRAME,
-+			omap_ir->tx_buf_dma_virt, omap_ir->tx_buf_dma_phys);
-+err_mem1:
-+	dma_free_coherent(NULL, IRDA_SKB_MAX_MTU,
-+			omap_ir->rx_buf_dma_virt, omap_ir->rx_buf_dma_phys);
-+err_irq:
-+	free_irq(dev->irq, dev);
-+	return err;
-+}
-+
-+static int omap_irda_stop(struct net_device *dev)
-+{
-+	struct omap_irda *omap_ir = netdev_priv(dev);
-+
-+	disable_irq(dev->irq);
-+
-+	netif_stop_queue(dev);
-+
-+	omap_free_dma(omap_ir->rx_dma_channel);
-+	omap_free_dma(omap_ir->tx_dma_channel);
-+
-+	if (omap_ir->rx_buf_dma_virt)
-+		dma_free_coherent(NULL, IRDA_SKB_MAX_MTU,
-+				omap_ir->rx_buf_dma_virt,
-+				omap_ir->rx_buf_dma_phys);
-+	if (omap_ir->tx_buf_dma_virt)
-+		dma_free_coherent(NULL, IRDA_SIR_MAX_FRAME,
-+				omap_ir->tx_buf_dma_virt,
-+				omap_ir->tx_buf_dma_phys);
-+
-+	omap_irda_shutdown(omap_ir);
-+
-+	/* Stop IrLAP */
-+	if (omap_ir->irlap) {
-+		irlap_close(omap_ir->irlap);
-+		omap_ir->irlap = NULL;
-+	}
-+
-+	omap_ir->open = 0;
-+
-+	/*
-+	 * Free resources
-+	 */
-+	free_irq(dev->irq, dev);
-+
-+	return 0;
-+}
-+
-+static int omap_irda_set_speed(struct net_device *dev, int speed)
-+{
-+	struct omap_irda *omap_ir = netdev_priv(dev);
-+	int divisor;
-+	unsigned long flags;
-+
-+	/* Set IrDA speed */
-+	if (speed <= 115200) {
-+
-+		local_irq_save(flags);
-+
-+		/* SIR mode */
-+		if (omap_ir->pdata->transceiver_mode)
-+			omap_ir->pdata->transceiver_mode(omap_ir->dev,
-+							IR_SIRMODE);
-+
-+		/* Set SIR mode */
-+		uart_reg_out(UART3_MDR1, 1);
-+		uart_reg_out(UART3_EBLR, 1);
-+
-+		divisor = 48000000 / (16 * speed);	/* Base clock 48 MHz */
-+
-+		uart_reg_out(UART3_LCR, UART3_LCR_DIVEN);
-+		uart_reg_out(UART3_DLL, (divisor & 0xff));
-+		uart_reg_out(UART3_DLH, (divisor >> 8));
-+		uart_reg_out(UART3_LCR, 0x03);
-+
-+		uart_reg_out(UART3_MCR, 0);
-+
-+		local_irq_restore(flags);
-+	} else if (speed <= 1152000) {
-+
-+		local_irq_save(flags);
-+
-+		/* Set MIR mode, auto SIP */
-+		uart_reg_out(UART3_MDR1, UART3_MDR1_MIR |
-+				UART3_MDR1_SIP_AUTO);
-+
-+		uart_reg_out(UART3_EBLR, 2);
-+
-+		divisor = 48000000 / (41 * speed);	/* Base clock 48 MHz */
-+
-+		uart_reg_out(UART3_LCR, UART3_LCR_DIVEN);
-+		uart_reg_out(UART3_DLL, (divisor & 0xff));
-+		uart_reg_out(UART3_DLH, (divisor >> 8));
-+		uart_reg_out(UART3_LCR, 0x03);
-+
-+		if (omap_ir->pdata->transceiver_mode)
-+			omap_ir->pdata->transceiver_mode(omap_ir->dev,
-+							IR_MIRMODE);
-+
-+		local_irq_restore(flags);
-+	} else {
-+		local_irq_save(flags);
-+
-+		/* FIR mode */
-+		uart_reg_out(UART3_MDR1, UART3_MDR1_FIR |
-+				UART3_MDR1_SIP_AUTO);
-+
-+		if (omap_ir->pdata->transceiver_mode)
-+			omap_ir->pdata->transceiver_mode(omap_ir->dev,
-+							IR_FIRMODE);
-+
-+		local_irq_restore(flags);
-+	}
-+
-+	omap_ir->speed = speed;
-+
-+	return 0;
-+}
++EXPORT_SYMBOL(tsc210x_keyclick);
 +
 +#ifdef CONFIG_PM
 +/*
-+ * Suspend the IrDA interface.
++ * Suspend the chip.
 + */
-+static int omap_irda_suspend(struct platform_device *pdev, pm_message_t state)
++static int
++tsc210x_suspend(struct spi_device *spi, pm_message_t state)
 +{
-+	struct net_device *dev = platform_get_drvdata(pdev);
-+	struct omap_irda *omap_ir = netdev_priv(dev);
++	struct tsc210x_dev *dev = dev_get_drvdata(&spi->dev);
 +
 +	if (!dev)
-+		return 0;
++		return -ENODEV;
 +
-+	if (omap_ir->open) {
-+		/*
-+		 * Stop the transmit queue
-+		 */
-+		netif_device_detach(dev);
-+		disable_irq(dev->irq);
-+		omap_irda_shutdown(omap_ir);
-+	}
++	/* Stop the inputs scan loop */
++	mutex_lock(&dev->queue_lock);
++	dev->flushing = 1;
++	cancel_delayed_work(&dev->sensor_worker);
++	mutex_unlock(&dev->queue_lock);
++	flush_workqueue(dev->queue);
++
++	/* Wait until pen-up happens */
++	while (dev->pendown)
++		flush_workqueue(dev->queue);
++
++	/* Abort current conversion and power down the ADC */
++	tsc210x_write_sync(dev, TSC210X_TS_ADC_CTRL, TSC210X_ADC_ADST);
++	/* NOTE: write_sync() could fail */
++
 +	return 0;
 +}
 +
 +/*
-+ * Resume the IrDA interface.
++ * Resume chip operation.
 + */
-+static int omap_irda_resume(struct platform_device *pdev)
++static int tsc210x_resume(struct spi_device *spi)
 +{
-+	struct net_device *dev = platform_get_drvdata(pdev);
-+	struct omap_irda *omap_ir= netdev_priv(dev);
++	struct tsc210x_dev *dev = dev_get_drvdata(&spi->dev);
++	int err;
 +
 +	if (!dev)
 +		return 0;
 +
-+	if (omap_ir->open) {
-+		/*
-+		 * If we missed a speed change, initialise at the new speed
-+		 * directly.  It is debatable whether this is actually
-+		 * required, but in the interests of continuing from where
-+		 * we left off it is desireable.  The converse argument is
-+		 * that we should re-negotiate at 9600 baud again.
-+		 */
-+		if (omap_ir->newspeed) {
-+			omap_ir->speed = omap_ir->newspeed;
-+			omap_ir->newspeed = 0;
-+		}
++	mutex_lock(&dev->queue_lock);
++	err = tsc210x_configure(dev);
 +
-+		omap_irda_startup(dev);
-+		omap_irda_set_speed(dev, omap_ir->speed);
-+		enable_irq(dev->irq);
++	dev->flushing = 0;
++	mutex_unlock(&dev->queue_lock);
 +
-+		/*
-+		 * This automatically wakes up the queue
-+		 */
-+		netif_device_attach(dev);
-+	}
-+
-+	return 0;
++	return err;
 +}
 +#else
-+#define omap_irda_suspend	NULL
-+#define omap_irda_resume	NULL
++#define tsc210x_suspend	NULL
++#define tsc210x_resume	NULL
 +#endif
 +
-+static int omap_irda_probe(struct platform_device *pdev)
++/* REVISIT don't make these static */
++static struct platform_device tsc210x_ts_device = {
++	.name		= "tsc210x-ts",
++	.id		= -1,
++};
++
++static struct platform_device tsc210x_hwmon_device = {
++	.name		= "tsc210x-hwmon",
++	.id		= -1,
++};
++
++static struct platform_device tsc210x_alsa_device = {
++	.name		= "tsc210x-alsa",
++	.id		= -1,
++};
++
++static int tsc210x_probe(struct spi_device *spi, enum tsc_type type)
 +{
-+	struct net_device *dev;
-+	struct omap_irda *omap_ir;
-+	struct omap_irda_config *pdata = pdev->dev.platform_data;
-+	unsigned int baudrate_mask;
++	struct tsc210x_config *pdata = spi->dev.platform_data;
++	struct spi_transfer *spi_buffer;
++	struct tsc210x_dev *dev;
++	int reg;
 +	int err = 0;
-+	int irq = NO_IRQ;
 +
 +	if (!pdata) {
-+		printk(KERN_ERR "IrDA Platform data not supplied\n");
++		dev_dbg(&spi->dev, "Platform data not supplied\n");
 +		return -ENOENT;
 +	}
 +
-+	if (!pdata->rx_channel || !pdata->tx_channel) {
-+		printk(KERN_ERR "IrDA invalid rx/tx channel value\n");
-+		return -ENOENT;
++	if (!spi->irq) {
++		dev_dbg(&spi->dev, "Invalid irq value\n");
++		return -EINVAL;
 +	}
 +
-+	irq = platform_get_irq(pdev, 0);
-+	if (irq <= 0) {
-+		printk(KERN_WARNING "no irq for IrDA\n");
-+		return -ENOENT;
++	dev = (struct tsc210x_dev *)
++		kzalloc(sizeof(struct tsc210x_dev), GFP_KERNEL);
++	if (!dev) {
++		dev_dbg(&spi->dev, "No memory\n");
++		return -ENOMEM;
 +	}
 +
-+	dev = alloc_irdadev(sizeof(struct omap_irda));
-+	if (!dev)
-+		goto err_mem_1;
++	dev->pdata = pdata;
++	dev->pendown = 0;
++	dev->spi = spi;
++	dev->kind = type;
++	dev->queue = create_singlethread_workqueue(spi->dev.driver->name);
++	if (!dev->queue) {
++		dev_dbg(&spi->dev, "Can't make a workqueue\n");
++		err = -ENOMEM;
++		goto err_queue;
++	}
 +
++	mutex_init(&dev->queue_lock);
++	init_completion(&dev->data_avail);
 +
-+	omap_ir = netdev_priv(dev);
-+	omap_ir->dev = &pdev->dev;
-+	omap_ir->pdata = pdata;
++	/* Allocate enough struct spi_transfer's for all requests */
++	spi_buffer = kzalloc(sizeof(struct spi_transfer) * 16, GFP_KERNEL);
++	if (!spi_buffer) {
++		dev_dbg(&spi->dev, "No memory for SPI buffers\n");
++		err = -ENOMEM;
++		goto err_buffers;
++	}
 +
-+	dev->hard_start_xmit	= omap_irda_hard_xmit;
-+	dev->open		= omap_irda_start;
-+	dev->stop		= omap_irda_stop;
-+	dev->do_ioctl		= omap_irda_ioctl;
-+	dev->get_stats		= omap_irda_stats;
-+	dev->irq		= irq;
++	dev->transfers = spi_buffer;
++	tsc210x_request_alloc(dev, &dev->req_adc, 0,
++			TSC210X_TS_X, 4, dev->adc_data,
++			tsc210x_coords_report, &spi_buffer);
++	tsc210x_request_alloc(dev, &dev->req_status, 0,
++			TSC210X_TS_STATUS_CTRL, 1, &dev->status,
++			tsc210x_status_report, &spi_buffer);
++	tsc210x_request_alloc(dev, &dev->req_mode, 1,
++			TSC210X_TS_ADC_CTRL, 1, NULL,
++			tsc210x_complete_dummy, &spi_buffer);
++	tsc210x_request_alloc(dev, &dev->req_stop, 1,
++			TSC210X_TS_ADC_CTRL, 1, NULL,
++			tsc210x_complete_dummy, &spi_buffer);
 +
-+	irda_init_max_qos_capabilies(&omap_ir->qos);
++	if (pdata->bclk) {
++		/* Get the BCLK */
++		dev->bclk_ck = clk_get(&spi->dev, pdata->bclk);
++		if (IS_ERR(dev->bclk_ck)) {
++			err = PTR_ERR(dev->bclk_ck);
++			dev_dbg(&spi->dev, "Unable to get '%s': %i\n",
++					pdata->bclk, err);
++			goto err_clk;
++		}
 +
-+	baudrate_mask = 0;
-+	if (omap_ir->pdata->transceiver_cap & IR_SIRMODE)
-+		baudrate_mask |= IR_9600|IR_19200|IR_38400|IR_57600|IR_115200;
-+	if (omap_ir->pdata->transceiver_cap & IR_MIRMODE)
-+		baudrate_mask |= IR_57600 | IR_1152000;
-+	if (omap_ir->pdata->transceiver_cap & IR_FIRMODE)
-+		baudrate_mask |= IR_4000000 << 8;
++		clk_enable(dev->bclk_ck);
++	}
 +
-+	omap_ir->qos.baud_rate.bits &= baudrate_mask;
-+	omap_ir->qos.min_turn_time.bits = 7;
++	INIT_DELAYED_WORK(&dev->ts_worker, tsc210x_pressure);
++	INIT_DELAYED_WORK(&dev->sensor_worker, tsc210x_input_scan);
 +
-+	irda_qos_bits_to_value(&omap_ir->qos);
++	/* Setup the communication bus */
++	dev_set_drvdata(&spi->dev, dev);
++	spi->mode = SPI_MODE_1;
++	spi->bits_per_word = 16;
++	err = spi_setup(spi);
++	if (err)
++		goto err_spi;
 +
-+	/* Any better way to avoid this? No. */
-+	if (machine_is_omap_h3() || machine_is_omap_h4())
-+		INIT_DELAYED_WORK(&omap_ir->pdata->gpio_expa, NULL);
++	/* Now try to detect the chip, make first contact.  These chips
++	 * don't self-identify, but we can expect that the status register
++	 * reports the ADC is idle and use that as a sanity check.  (It'd
++	 * be even better if we did a soft reset first...)
++	 */
++	reg = tsc210x_read_sync(dev, TSC210X_TS_ADC_CTRL);
++	if (reg < 0) {
++		err = reg;
++		dev_dbg(&dev->spi->dev, "adc_ctrl, err %d\n", err);
++		goto err_spi;
++	}
++	if (!(reg & (1 << 14))) {
++		err = -EIO;
++		dev_dbg(&dev->spi->dev, "adc_ctrl, busy? - %04x\n", reg);
++		goto err_spi;
++	}
 +
-+	err = register_netdev(dev);
-+	if (!err)
-+		platform_set_drvdata(pdev, dev);
-+	else
-+		free_netdev(dev);
++	reg = tsc210x_read_sync(dev, TSC210X_AUDIO3_CTRL);
++	if (reg < 0) {
++		err = reg;
++		dev_dbg(&dev->spi->dev, "revision, err %d\n", err);
++		goto err_spi;
++	}
++	if (reg == 0xffff) {
++		err = -ENODEV;
++		dev_dbg(&dev->spi->dev, "no device, err %d\n", err);
++		goto err_spi;
++	}
++	dev_info(&spi->dev, "rev %d, irq %d\n", reg & 0x0007, spi->irq);
 +
-+err_mem_1:
++	err = tsc210x_configure(dev);
++	if (err)
++		goto err_spi;
++
++	/* We want no interrupts before configuration succeeds.  */
++	mutex_lock(&dev->queue_lock);
++	dev->flushing = 1;
++
++	if (request_irq(spi->irq, tsc210x_handler, IRQF_SAMPLE_RANDOM |
++				IRQF_TRIGGER_FALLING, spi->dev.driver->name,
++				dev)) {
++		dev_dbg(&spi->dev, "Could not allocate touchscreen IRQ!\n");
++		err = -EINVAL;
++		goto err_irq;
++	}
++
++	/* Register subdevices controlled by the TSC 2101/2102 */
++	tsc210x_ts_device.dev.platform_data = dev;
++	tsc210x_ts_device.dev.parent = &spi->dev;
++	err = platform_device_register(&tsc210x_ts_device);
++	if (err)
++		goto err_irq;
++
++	tsc210x_hwmon_device.dev.platform_data = pdata;
++	tsc210x_hwmon_device.dev.parent = &spi->dev;
++	err = platform_device_register(&tsc210x_hwmon_device);
++	if (err)
++		goto err_hwmon;
++
++	tsc210x_alsa_device.dev.platform_data = pdata->alsa_config;
++	tsc210x_alsa_device.dev.parent = &spi->dev;
++	err = platform_device_register(&tsc210x_alsa_device);
++	if (err)
++		goto err_alsa;
++
++	dev->flushing = 0;
++	mutex_unlock(&dev->queue_lock);
++	return 0;
++
++err_alsa:
++	platform_device_unregister(&tsc210x_hwmon_device);
++err_hwmon:
++	platform_device_unregister(&tsc210x_ts_device);
++err_irq:
++	mutex_unlock(&dev->queue_lock);
++err_spi:
++	dev_set_drvdata(&spi->dev, NULL);
++	clk_disable(dev->bclk_ck);
++	clk_put(dev->bclk_ck);
++err_clk:
++	kfree(dev->transfers);
++err_buffers:
++	destroy_workqueue(dev->queue);
++err_queue:
++	kfree(dev);
 +	return err;
 +}
 +
-+static int omap_irda_remove(struct platform_device *pdev)
++static int tsc2101_probe(struct spi_device *spi)
 +{
-+	struct net_device *dev = platform_get_drvdata(pdev);
++	return tsc210x_probe(spi, tsc2101);
++}
 +
-+	if (pdev) {
-+		unregister_netdev(dev);
-+		free_netdev(dev);
-+	}
++static int tsc2102_probe(struct spi_device *spi)
++{
++	return tsc210x_probe(spi, tsc2102);
++}
++
++static int tsc210x_remove(struct spi_device *spi)
++{
++	struct tsc210x_dev *dev = dev_get_drvdata(&spi->dev);
++
++	/* Stop the inputs scan loop */
++	mutex_lock(&dev->queue_lock);
++	dev->flushing = 1;
++	cancel_delayed_work(&dev->sensor_worker);
++	mutex_unlock(&dev->queue_lock);
++	flush_workqueue(dev->queue);
++
++	/* Wait for pen-up */
++	while (dev->pendown)
++		flush_workqueue(dev->queue);
++
++	/* Abort current conversion and power down the ADC */
++	tsc210x_write_sync(dev, TSC210X_TS_ADC_CTRL, TSC210X_ADC_ADST);
++	/* NOTE: write_sync() could fail */
++
++	destroy_workqueue(dev->queue);
++
++	platform_device_unregister(&tsc210x_ts_device);
++	platform_device_unregister(&tsc210x_hwmon_device);
++	platform_device_unregister(&tsc210x_alsa_device);
++
++	dev_set_drvdata(&spi->dev, NULL);
++
++	/* Release the BCLK */
++	clk_disable(dev->bclk_ck);
++	clk_put(dev->bclk_ck);
++
++	kfree(dev->transfers);
++	kfree(dev);
++
 +	return 0;
 +}
 +
-+static struct platform_driver omapir_driver = {
-+	.probe		= omap_irda_probe,
-+	.remove		= omap_irda_remove,
-+	.suspend	= omap_irda_suspend,
-+	.resume		= omap_irda_resume,
++static struct spi_driver tsc2101_driver = {
++	.probe		= tsc2101_probe,
++	.remove		= tsc210x_remove,
++	.suspend	= tsc210x_suspend,
++	.resume		= tsc210x_resume,
 +	.driver		= {
-+		.name	= "omapirda",
++		.name	= "tsc2101",
++		.owner	= THIS_MODULE,
++		.bus	= &spi_bus_type,
 +	},
 +};
 +
-+static char __initdata banner[] = KERN_INFO "OMAP IrDA driver initializing\n";
++static struct spi_driver tsc2102_driver = {
++	.probe		= tsc2102_probe,
++	.remove		= tsc210x_remove,
++	.suspend	= tsc210x_suspend,
++	.resume		= tsc210x_resume,
++	.driver		= {
++		.name	= "tsc2102",
++		.owner	= THIS_MODULE,
++		.bus	= &spi_bus_type,
++	},
++};
 +
-+static int __init omap_irda_init(void)
++static char __initdata banner[] = KERN_INFO "TI TSC210x driver initializing\n";
++
++static int __init tsc210x_init(void)
 +{
++	int err;
 +	printk(banner);
-+	return platform_driver_register(&omapir_driver);
-+}
 +
-+static void __exit omap_irda_exit(void)
++	settings.ts_msecs = 20;
++	settings.mode_msecs = 1000;
++
++	err = spi_register_driver(&tsc2101_driver);
++	if (err != 0)
++		return err;
++
++	err = spi_register_driver(&tsc2102_driver);
++	if (err != 0)
++		spi_unregister_driver(&tsc2101_driver);
++
++	return err;
++}
++module_init(tsc210x_init);
++
++static void __exit tsc210x_exit(void)
 +{
-+	platform_driver_unregister(&omapir_driver);
++	spi_unregister_driver(&tsc2101_driver);
++	spi_unregister_driver(&tsc2102_driver);
 +}
++module_exit(tsc210x_exit);
 +
-+module_init(omap_irda_init);
-+module_exit(omap_irda_exit);
-+
-+MODULE_AUTHOR("MontaVista");
-+MODULE_DESCRIPTION("OMAP IrDA Driver");
++MODULE_AUTHOR("Andrzej Zaborowski");
++MODULE_DESCRIPTION("Interface driver for TI TSC210x chips.");
 +MODULE_LICENSE("GPL");
-+
 -- 
 1.6.0.1.141.g445ca
 
