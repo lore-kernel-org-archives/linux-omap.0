@@ -1,38 +1,43 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [patch 2.6.27-rc3-omap1] omap3 beagle: nand (mostly) cleanups
-Date: Fri, 29 Aug 2008 18:56:58 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE896716203653CA11D@dlee02.ent.ti.com>
-References: <200808291012.47332.david-b@pacbell.net>
+From: "Ramirez Luna, Omar" <x00omar@ti.com>
+Subject: [PATCH 0/2] OMAP BRIDGE Power Management implementation
+Date: Fri, 29 Aug 2008 22:09:04 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53448FFBBC@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44806 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34721 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750722AbYH2X5I convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Aug 2008 19:57:08 -0400
-In-Reply-To: <200808291012.47332.david-b@pacbell.net>
+	id S1753880AbYH3DJN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Aug 2008 23:09:13 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Pasam, Vijay" <vpasam@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>
 
-> From: David Brownell <dbrownell@users.sourceforge.net>
->
-> Clean up the Beagle NAND config a bit:  use SZ_128K instead of
-> an arithmetic expression for the NAND block size.  Set the
-> NAND_BUSWIDTH_16 flag.  Make its init routine static.
+Hi,
 
+I'm submitting Power Management implementation for DSP-BRIDGE code, apply these patches on top of the latest set, also you will need PM patches from Paul Walmsley and Rajendra Nayak to get this working.
 
-Actually, this was talked about before a bit and the SZ_xyz flags were left out.
+You can find the complete dspbridge set at:
+https://omapzoom.org/gf/project/omapbridge/frs/?action=FrsReleaseView&release_id=133
 
-The point of telling the geometry in the addition was to be explicit about the number of sectors being used.
+Tests performed on Open Source PM:
+1. Run samples with performance governor. No issues found.
 
-For x-loader you should use 4.  The size doesn't matter so much.  The ROM code will search for the 1 non-bad block sector in the first four sectors.
+Known Issues:
+1. Observed below messages on opp change request.
+<3>clock: Could not find fieldval 0 for clock iva2_ck parent  dpll2_m2_ck
+ clock: Could not find fieldval 0 for clock iva2_ck parent dpll2_m2_ck
+<3>clock: Could not find fieldval 0 for clock iva2_ck parent dpll2_m2_ck
 
-A porter of some of these things might try and use size thinking that was the requirement when that is not the whole story.  The geometry does matter here.
+2. Some times after opp changes IVA status registers are not accessible. 
 
-Regards,
-Richard W.
+3. Also MMU Faults were observed.
 
+Currently investigating these issues.
 
+Along with this patch we submit a checkpatch cleanup for function typedefs that were not used, also deleted code related to these typedefs.
+
+- omar
