@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 25/33] add TWL4030 Battery Charger Interface driver
-Date: Sat, 30 Aug 2008 20:16:25 +0300
-Message-ID: <1220116593-862-26-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 23/33] add omap irda driver
+Date: Sat, 30 Aug 2008 20:16:23 +0300
+Message-ID: <1220116593-862-24-git-send-email-me@felipebalbi.com>
 References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-2-git-send-email-me@felipebalbi.com>
  <1220116593-862-3-git-send-email-me@felipebalbi.com>
@@ -25,14 +25,12 @@ References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-21-git-send-email-me@felipebalbi.com>
  <1220116593-862-22-git-send-email-me@felipebalbi.com>
  <1220116593-862-23-git-send-email-me@felipebalbi.com>
- <1220116593-862-24-git-send-email-me@felipebalbi.com>
- <1220116593-862-25-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:36658 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:36688 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752898AbYH3RWZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:22:25 -0400
-In-Reply-To: <1220116593-862-25-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1753077AbYH3RWe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:22:34 -0400
+In-Reply-To: <1220116593-862-23-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -42,1128 +40,951 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/power/Kconfig               |    8 +
- drivers/power/Makefile              |    1 +
- drivers/power/twl4030_bci_battery.c | 1080 +++++++++++++++++++++++++++++++++++
- 3 files changed, 1089 insertions(+), 0 deletions(-)
- create mode 100644 drivers/power/twl4030_bci_battery.c
+ drivers/net/irda/Kconfig   |   10 +
+ drivers/net/irda/Makefile  |    1 +
+ drivers/net/irda/omap-ir.c |  901 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 912 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/net/irda/omap-ir.c
 
-diff --git a/drivers/power/Kconfig b/drivers/power/Kconfig
-index 18b70fa..7bd8c2b 100644
---- a/drivers/power/Kconfig
-+++ b/drivers/power/Kconfig
-@@ -70,6 +70,14 @@ config BATTERY_BQ27200
- 	help
- 	  Say Y here to enable support for batteries with BQ27200(I2C) chip.
+diff --git a/drivers/net/irda/Kconfig b/drivers/net/irda/Kconfig
+index e631755..b83e25b 100644
+--- a/drivers/net/irda/Kconfig
++++ b/drivers/net/irda/Kconfig
+@@ -342,5 +342,15 @@ config MCS_FIR
+ 	  To compile it as a module, choose M here: the module will be called
+ 	  mcs7780.
  
-+config TWL4030_BCI_BATTERY
-+	tristate "OMAP TWL4030 BCI Battery driver"
-+	depends on (MACH_OMAP_2430SDP || MACH_OMAP_3430SDP) && TWL4030_MADC
-+	default y
-+	help
-+	  Support for OMAP TWL4030 BCI Battery driver.
-+	  This driver can give support for TWL4030 Battery Charge Interface.
++config OMAP_IR
++	tristate "OMAP IrDA(SIR/MIR/FIR)"
++	depends on IRDA && ARCH_OMAP
++	select GPIOEXPANDER_OMAP if (MACH_OMAP_H3 || MACH_OMAP_H4)
++        help
++	  Say Y here if you want to build support for the Texas Instruments
++	  OMAP IrDA device driver, which supports SIR/MIR/FIR. This driver
++	  relies on platform specific helper routines so available capabilities
++	  may vary from one OMAP target to another.
 +
- config BATTERY_TOSA
- 	tristate "Sharp SL-6000 (tosa) battery"
- 	depends on MACH_TOSA && MFD_TC6393XB
-diff --git a/drivers/power/Makefile b/drivers/power/Makefile
-index dc6cfa3..8da941a 100644
---- a/drivers/power/Makefile
-+++ b/drivers/power/Makefile
-@@ -21,5 +21,6 @@ obj-$(CONFIG_BATTERY_DS2760)	+= ds2760_battery.o
- obj-$(CONFIG_BATTERY_PMU)	+= pmu_battery.o
- obj-$(CONFIG_BATTERY_OLPC)	+= olpc_battery.o
- obj-$(CONFIG_BATTERY_BQ27x00)   += bq27x00_battery.o
-+obj-$(CONFIG_TWL4030_BCI_BATTERY)	+= twl4030_bci_battery.o
- obj-$(CONFIG_BATTERY_TOSA)	+= tosa_battery.o
- obj-$(CONFIG_BATTERY_PALMTX)	+= palmtx_battery.o
-diff --git a/drivers/power/twl4030_bci_battery.c b/drivers/power/twl4030_bci_battery.c
+ endmenu
+ 
+diff --git a/drivers/net/irda/Makefile b/drivers/net/irda/Makefile
+index 5d20fde..49e6f06 100644
+--- a/drivers/net/irda/Makefile
++++ b/drivers/net/irda/Makefile
+@@ -18,6 +18,7 @@ obj-$(CONFIG_VLSI_FIR)		+= vlsi_ir.o
+ obj-$(CONFIG_VIA_FIR)		+= via-ircc.o
+ obj-$(CONFIG_PXA_FICP)	        += pxaficp_ir.o
+ obj-$(CONFIG_MCS_FIR)	        += mcs7780.o
++obj-$(CONFIG_OMAP_IR)		+= omap-ir.o
+ obj-$(CONFIG_AU1000_FIR)	+= au1k_ir.o
+ # SIR drivers
+ obj-$(CONFIG_IRTTY_SIR)		+= irtty-sir.o	sir-dev.o
+diff --git a/drivers/net/irda/omap-ir.c b/drivers/net/irda/omap-ir.c
 new file mode 100644
-index 0000000..d30a0e4
+index 0000000..b706253
 --- /dev/null
-+++ b/drivers/power/twl4030_bci_battery.c
-@@ -0,0 +1,1080 @@
++++ b/drivers/net/irda/omap-ir.c
+@@ -0,0 +1,901 @@
 +/*
-+ * linux/drivers/power/twl4030_bci_battery.c
++ * BRIEF MODULE DESCRIPTION
 + *
-+ * OMAP2430/3430 BCI battery driver for Linux
++ *	Infra-red driver for the OMAP1610-H2 and OMAP1710-H3 and H4 Platforms
++ *	  (SIR/MIR/FIR modes)
++ *	  (based on omap-sir.c)
 + *
-+ * Copyright (C) 2008 Texas Instruments, Inc.
-+ * Author: Texas Instruments, Inc.
++ * Copyright 2003 MontaVista Software Inc.
++ * Author: MontaVista Software, Inc.
++ *	   source@mvista.com
 + *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * Copyright 2004 Texas Instruments.
 + *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ *  This program is free software; you can redistribute	 it and/or modify it
++ *  under  the terms of	 the GNU General  Public License as published by the
++ *  Free Software Foundation;  either version 2 of the	License, or (at your
++ *  option) any later version.
++ *
++ *  THIS  SOFTWARE  IS PROVIDED	  ``AS	IS'' AND   ANY	EXPRESS OR IMPLIED
++ *  WARRANTIES,	  INCLUDING, BUT NOT  LIMITED  TO, THE IMPLIED WARRANTIES OF
++ *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN
++ *  NO	EVENT  SHALL   THE AUTHOR  BE	 LIABLE FOR ANY	  DIRECT, INDIRECT,
++ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ *  NOT LIMITED	  TO, PROCUREMENT OF  SUBSTITUTE GOODS	OR SERVICES; LOSS OF
++ *  USE, DATA,	OR PROFITS; OR	BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ *  ANY THEORY OF LIABILITY, WHETHER IN	 CONTRACT, STRICT LIABILITY, OR TORT
++ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ *  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ *  You should have received a copy of the  GNU General Public License along
++ *  with this program; if not, write  to the Free Software Foundation, Inc.,
++ *  675 Mass Ave, Cambridge, MA 02139, USA.
++ *
++ Modifications:
++ Feb 2004, Texas Instruments
++ - Ported to 2.6 kernel (Feb 2004).
++ *
++ Apr 2004, Texas Instruments
++ - Added support for H3 (Apr 2004).
++ Nov 2004, Texas Instruments
++ - Added support for Power Management.
 + */
 +
-+#include <linux/init.h>
 +#include <linux/module.h>
-+#include <linux/device.h>
++#include <linux/types.h>
++#include <linux/init.h>
++#include <linux/errno.h>
++#include <linux/netdevice.h>
++#include <linux/slab.h>
++#include <linux/rtnetlink.h>
 +#include <linux/interrupt.h>
 +#include <linux/delay.h>
++#include <linux/ioport.h>
++#include <linux/dma-mapping.h>
 +#include <linux/platform_device.h>
-+#include <linux/i2c/twl4030.h>
-+#include <linux/power_supply.h>
-+#include <asm/arch/bci.h>
-+#include <linux/i2c/twl4030-madc.h>
++#include <linux/i2c.h>
++#include <linux/workqueue.h>
 +
-+#define T2_BATTERY_VOLT		0x04
-+#define T2_BATTERY_TEMP		0x06
-+#define T2_BATTERY_CUR		0x08
++#include <net/irda/irda.h>
++#include <net/irda/irmod.h>
++#include <net/irda/wrapper.h>
++#include <net/irda/irda_device.h>
 +
-+/* charger constants */
-+#define NO_PW_CONN		0
-+#define AC_PW_CONN		0x01
-+#define USB_PW_CONN		0x02
++#include <asm/irq.h>
++#include <asm/io.h>
++#include <mach/hardware.h>
++#include <asm/serial.h>
++#include <asm/mach-types.h>
++#include <asm/dma.h>
++#include <mach/mux.h>
++#include <mach/gpio.h>
++#include <mach/irda.h>
 +
-+/* TWL4030_MODULE_USB */
-+#define REG_POWER_CTRL		0x0AC
-+#define OTG_EN			0x020
-+#define REG_PHY_CLK_CTRL	0x0FE
-+#define REG_PHY_CLK_CTRL_STS	0x0FF
-+#define PHY_DPLL_CLK		0x01
++#define UART3_EFR_EN			(1 << 4)
++#define UART3_MCR_EN_TCR_TLR		(1 << 6)
 +
-+#define REG_BCICTL1 		0x023
-+#define REG_BCICTL2 		0x024
-+#define CGAIN			0x020
-+#define ITHEN			0x010
-+#define ITHSENS			0x007
++#define UART3_LCR_WL_8			(3 << 0)
++#define UART3_LCR_SP2			(1 << 2)
++#define UART3_LCR_DIVEN			(1 << 7)
 +
-+/* Boot BCI flag bits */
-+#define BCIAUTOWEN		0x020
-+#define CONFIG_DONE		0x010
-+#define BCIAUTOUSB		0x002
-+#define BCIAUTOAC		0x001
-+#define BCIMSTAT_MASK		0x03F
++#define UART3_FCR_FIFO_EN		(1 << 0)
++#define UART3_FCR_FIFO_RX		(1 << 1)
++#define UART3_FCR_FIFO_TX		(1 << 2)
++#define UART3_FCR_FIFO_DMA1		(1 << 3)
++#define UART3_FCR_FIFO_TX_TRIG16	(1 << 4)
++#define UART3_FCR_FIFO_RX_TRIG16	(1 << 6)
++#define UART3_FCR_CONFIG	(\
++		UART3_FCR_FIFO_EN | UART3_FCR_FIFO_RX	|\
++		UART3_FCR_FIFO_TX | UART3_FCR_FIFO_DMA1 |\
++		UART3_FCR_FIFO_TX_TRIG16		|\
++		UART3_FCR_FIFO_RX_TRIG16)
 +
-+/* Boot BCI register */
-+#define REG_BOOT_BCI		0x007
-+#define REG_CTRL1		0x00
-+#define REG_SW1SELECT_MSB	0x07
-+#define SW1_CH9_SEL		0x02
-+#define REG_CTRL_SW1		0x012
-+#define SW1_TRIGGER		0x020
-+#define EOC_SW1			0x002
-+#define REG_GPCH9		0x049
-+#define REG_STS_HW_CONDITIONS	0x0F
-+#define STS_VBUS		0x080
-+#define STS_CHG			0x02
-+#define REG_BCIMSTATEC		0x02
-+#define REG_BCIMFSTS4		0x010
-+#define REG_BCIMFSTS2		0x00E
-+#define REG_BCIMFSTS3 		0x00F
-+#define REG_BCIMFSTS1		0x001
-+#define USBFASTMCHG		0x004
-+#define BATSTSPCHG		0x004
-+#define BATSTSMCHG		0x040
-+#define VBATOV4			0x020
-+#define VBATOV3			0x010
-+#define VBATOV2			0x008
-+#define VBATOV1			0x004
-+#define REG_BB_CFG		0x012
-+#define BBCHEN			0x010
++#define UART3_SCR_TX_TRIG1		(1 << 6)
++#define UART3_SCR_RX_TRIG1		(1 << 7)
 +
-+/* Power supply charge interrupt */
-+#define REG_PWR_ISR1		0x00
-+#define REG_PWR_IMR1		0x01
-+#define REG_PWR_EDR1		0x05
-+#define REG_PWR_SIH_CTRL	0x007
++#define UART3_MDR1_RESET		(0x07)
++#define UART3_MDR1_SIR			(1 << 0)
++#define UART3_MDR1_MIR			(4 << 0)
++#define UART3_MDR1_FIR			(5 << 0)
++#define UART3_MDR1_SIP_AUTO		(1 << 6)
 +
-+#define USB_PRES		0x004
-+#define CHG_PRES		0x002
++#define UART3_MDR2_TRIG1		(0 << 1)
++#define UART3_MDR2_IRTX_UNDERRUN	(1 << 0)
 +
-+#define USB_PRES_RISING		0x020
-+#define USB_PRES_FALLING	0x010
-+#define CHG_PRES_RISING		0x008
-+#define CHG_PRES_FALLING	0x004
-+#define AC_STATEC		0x20
-+#define COR			0x004
++#define UART3_ACERG_TX_UNDERRUN_DIS	(1 << 4)
++#define UART3_ACERG_SD_MODE_LOW		(1 << 6)
++#define UART3_ACERG_DIS_IR_RX		(1 << 5)
 +
-+/* interrupt status registers */
-+#define REG_BCIISR1A 		0x0
-+#define REG_BCIISR2A 		0x01
++#define UART3_IER_EOF			(1 << 5)
++#define UART3_IER_CTS			(1 << 7)
 +
-+/* Interrupt flags bits BCIISR1 */
-+#define BATSTS_ISR1		0x080
-+#define VBATLVL_ISR1		0x001
++#define UART3_IIR_TX_STATUS		(1 << 5)
++#define UART3_IIR_EOF			(0x80)
 +
-+/* Interrupt mask registers for int1*/
-+#define REG_BCIIMR1A		0x002
-+#define REG_BCIIMR2A		0x003
++#define IS_FIR(omap_ir)		((omap_ir)->speed >= 4000000)
 +
-+ /* Interrupt masks for BCIIMR1 */
-+#define BATSTS_IMR1		0x080
-+#define VBATLVL_IMR1		0x001
++struct omap_irda {
++	unsigned char open;
++	int speed;		/* Current IrDA speed */
++	int newspeed;
 +
-+/* Interrupt edge detection register */
-+#define REG_BCIEDR1		0x00A
-+#define REG_BCIEDR2		0x00B
-+#define REG_BCIEDR3		0x00C
++	struct net_device_stats stats;
++	struct irlap_cb *irlap;
++	struct qos_info qos;
 +
-+/* BCIEDR2 */
-+#define	BATSTS_EDRRISIN		0x080
-+#define BATSTS_EDRFALLING	0x040
++	int rx_dma_channel;
++	int tx_dma_channel;
 +
-+/* BCIEDR3 */
-+#define	VBATLVL_EDRRISIN	0x02
++	dma_addr_t rx_buf_dma_phys;	/* Physical address of RX DMA buffer */
++	dma_addr_t tx_buf_dma_phys;	/* Physical address of TX DMA buffer */
 +
-+/* Step size and prescaler ratio */
-+#define TEMP_STEP_SIZE		147
-+#define TEMP_PSR_R		100
++	void *rx_buf_dma_virt;		/* Virtual address of RX DMA buffer */
++	void *tx_buf_dma_virt;		/* Virtual address of TX DMA buffer */
 +
-+#define VOLT_STEP_SIZE		588
-+#define VOLT_PSR_R		100
-+
-+#define CURR_STEP_SIZE		147
-+#define CURR_PSR_R1		44
-+#define CURR_PSR_R2		80
-+
-+#define BK_VOLT_STEP_SIZE	441
-+#define BK_VOLT_PSR_R		100
-+
-+#define ENABLE		1
-+#define DISABLE		1
-+
-+/* Ptr to thermistor table */
-+int *therm_tbl;
-+
-+static int twl4030_bci_battery_probe(struct platform_device *dev);
-+static int twl4030_bci_battery_remove(struct platform_device *dev);
-+#ifdef CONFIG_PM
-+static int twl4030_bci_battery_suspend(struct platform_device *dev,
-+					pm_message_t state);
-+static int twl4030_bci_battery_resume(struct platform_device *dev);
-+#endif
-+
-+struct twl4030_bci_device_info {
-+	struct device		*dev;
-+
-+	unsigned long		update_time;
-+	int			voltage_uV;
-+	int			bk_voltage_uV;
-+	int			current_uA;
-+	int			temp_C;
-+	int			charge_rsoc;
-+	int			charge_status;
-+
-+	struct power_supply	bat;
-+	struct power_supply	bk_bat;
-+	struct delayed_work	twl4030_bci_monitor_work;
-+	struct delayed_work	twl4030_bk_bci_monitor_work;
++	struct device *dev;
++	struct omap_irda_config *pdata;
 +};
 +
-+static struct platform_driver twl4030_bci_battery_driver = {
-+	.probe =	twl4030_bci_battery_probe,
-+	.remove =	twl4030_bci_battery_remove,
++static void inline uart_reg_out(int idx, u8 val)
++{
++	omap_writeb(val, idx);
++}
++
++static u8 inline uart_reg_in(int idx)
++{
++	u8 b = omap_readb(idx);
++	return b;
++}
++
++/* forward declarations */
++extern void omap_stop_dma(int lch);
++static int omap_irda_set_speed(struct net_device *dev, int speed);
++
++static void omap_irda_start_rx_dma(struct omap_irda *omap_ir)
++{
++	/* Configure DMA */
++	omap_set_dma_src_params(omap_ir->rx_dma_channel, 0x3, 0x0,
++				omap_ir->pdata->src_start,
++				0, 0);
++
++	omap_enable_dma_irq(omap_ir->rx_dma_channel, 0x01);
++
++	omap_set_dma_dest_params(omap_ir->rx_dma_channel, 0x0, 0x1,
++				omap_ir->rx_buf_dma_phys,
++				0, 0);
++
++	omap_set_dma_transfer_params(omap_ir->rx_dma_channel, 0x0,
++				IRDA_SKB_MAX_MTU, 0x1,
++				0x0, omap_ir->pdata->rx_trigger, 0);
++
++	omap_start_dma(omap_ir->rx_dma_channel);
++}
++
++static void omap_start_tx_dma(struct omap_irda *omap_ir, int size)
++{
++	/* Configure DMA */
++	omap_set_dma_dest_params(omap_ir->tx_dma_channel, 0x03, 0x0,
++				omap_ir->pdata->dest_start, 0, 0);
++
++	omap_enable_dma_irq(omap_ir->tx_dma_channel, 0x01);
++
++	omap_set_dma_src_params(omap_ir->tx_dma_channel, 0x0, 0x1,
++				omap_ir->tx_buf_dma_phys,
++				0, 0);
++
++	omap_set_dma_transfer_params(omap_ir->tx_dma_channel, 0x0, size, 0x1,
++				0x0, omap_ir->pdata->tx_trigger, 0);
++
++	/* Start DMA */
++	omap_start_dma(omap_ir->tx_dma_channel);
++}
++
++/* DMA RX callback - normally, we should not go here,
++ * it calls only if something is going wrong
++ */
++static void omap_irda_rx_dma_callback(int lch, u16 ch_status, void *data)
++{
++	struct net_device *dev = data;
++	struct omap_irda *omap_ir = netdev_priv(dev);
++
++	printk(KERN_ERR "RX Transfer error or very big frame\n");
++
++	/* Clear interrupts */
++	uart_reg_in(UART3_IIR);
++
++	omap_ir->stats.rx_frame_errors++;
++
++	uart_reg_in(UART3_RESUME);
++
++	/* Re-init RX DMA */
++	omap_irda_start_rx_dma(omap_ir);
++}
++
++/* DMA TX callback - calling when frame transfer has been finished */
++static void omap_irda_tx_dma_callback(int lch, u16 ch_status, void *data)
++{
++	struct net_device *dev = data;
++	struct omap_irda *omap_ir = netdev_priv(dev);
++
++	/*Stop DMA controller */
++	omap_stop_dma(omap_ir->tx_dma_channel);
++}
++
++/*
++ * Set the IrDA communications speed.
++ * Interrupt have to be disabled here.
++ */
++static int omap_irda_startup(struct net_device *dev)
++{
++	struct omap_irda *omap_ir = netdev_priv(dev);
++
++	/* FIXME: use clk_* apis for UART3 clock*/
++	/* Enable UART3 clock and set UART3 to IrDA mode */
++	if (machine_is_omap_h2() || machine_is_omap_h3())
++		omap_writel(omap_readl(MOD_CONF_CTRL_0) | (1 << 31) | (1 << 15),
++				MOD_CONF_CTRL_0);
++
++	/* Only for H2?
++	 */
++	if (omap_ir->pdata->transceiver_mode && machine_is_omap_h2()) {
++		/* Is it select_irda on H2 ? */
++		omap_writel(omap_readl(FUNC_MUX_CTRL_A) | 7,
++					FUNC_MUX_CTRL_A);
++		omap_ir->pdata->transceiver_mode(omap_ir->dev, IR_SIRMODE);
++	}
++
++	uart_reg_out(UART3_MDR1, UART3_MDR1_RESET);	/* Reset mode */
++
++	/* Clear DLH and DLL */
++	uart_reg_out(UART3_LCR, UART3_LCR_DIVEN);
++
++	uart_reg_out(UART3_DLL, 0);
++	uart_reg_out(UART3_DLH, 0);
++	uart_reg_out(UART3_LCR, 0xbf);	/* FIXME: Add #define */
++
++	uart_reg_out(UART3_EFR, UART3_EFR_EN);
++	uart_reg_out(UART3_LCR, UART3_LCR_DIVEN);
++
++	/* Enable access to UART3_TLR and UART3_TCR registers */
++	uart_reg_out(UART3_MCR, UART3_MCR_EN_TCR_TLR);
++
++	uart_reg_out(UART3_SCR, 0);
++	/* Set Rx trigger to 1 and Tx trigger to 1 */
++	uart_reg_out(UART3_TLR, 0);
++
++	/* Set LCR to 8 bits and 1 stop bit */
++	uart_reg_out(UART3_LCR, 0x03);
++
++	/* Clear RX and TX FIFO and enable FIFO */
++	/* Use DMA Req for transfers */
++	uart_reg_out(UART3_FCR, UART3_FCR_CONFIG);
++
++	uart_reg_out(UART3_MCR, 0);
++
++	uart_reg_out(UART3_SCR, UART3_SCR_TX_TRIG1 |
++			UART3_SCR_RX_TRIG1);
++
++	/* Enable UART3 SIR Mode,(Frame-length method to end frames) */
++	uart_reg_out(UART3_MDR1, UART3_MDR1_SIR);
++
++	/* Set Status FIFO trig to 1 */
++	uart_reg_out(UART3_MDR2, 0);
++
++	/* Enables RXIR input */
++	/* and disable TX underrun */
++	/* SEND_SIP pulse */
++	uart_reg_out(UART3_ACREG, UART3_ACERG_SD_MODE_LOW |
++			UART3_ACERG_TX_UNDERRUN_DIS);
++
++	/* Enable EOF Interrupt only */
++	uart_reg_out(UART3_IER, UART3_IER_CTS | UART3_IER_EOF);
++
++	/* Set Maximum Received Frame size to 2048 bytes */
++	uart_reg_out(UART3_RXFLL, 0x00);
++	uart_reg_out(UART3_RXFLH, 0x08);
++
++	uart_reg_in(UART3_RESUME);
++
++	return 0;
++}
++
++static int omap_irda_shutdown(struct omap_irda *omap_ir)
++{
++	unsigned long flags;
++
++	local_irq_save(flags);
++
++	/* Disable all UART3 Interrupts */
++	uart_reg_out(UART3_IER, 0);
++
++	/* Disable UART3 and disable baud rate generator */
++	uart_reg_out(UART3_MDR1, UART3_MDR1_RESET);
++
++	/* set SD_MODE pin to high and Disable RX IR */
++	uart_reg_out(UART3_ACREG, (UART3_ACERG_DIS_IR_RX |
++			~(UART3_ACERG_SD_MODE_LOW)));
++
++	/* Clear DLH and DLL */
++	uart_reg_out(UART3_LCR, UART3_LCR_DIVEN);
++	uart_reg_out(UART3_DLL, 0);
++	uart_reg_out(UART3_DLH, 0);
++
++	local_irq_restore(flags);
++
++	return 0;
++}
++
++static irqreturn_t
++omap_irda_irq(int irq, void *dev_id)
++{
++	struct net_device *dev = dev_id;
++	struct omap_irda *omap_ir = netdev_priv(dev);
++	struct sk_buff *skb;
++
++	u8 status;
++	int w = 0;
++
++	/* Clear EOF interrupt */
++	status = uart_reg_in(UART3_IIR);
++
++	if (status & UART3_IIR_TX_STATUS) {
++		u8 mdr2 = uart_reg_in(UART3_MDR2);
++		if (mdr2 & UART3_MDR2_IRTX_UNDERRUN)
++			printk(KERN_ERR "IrDA Buffer underrun error\n");
++
++		omap_ir->stats.tx_packets++;
++
++		if (omap_ir->newspeed) {
++			omap_irda_set_speed(dev, omap_ir->newspeed);
++			omap_ir->newspeed = 0;
++		}
++
++		netif_wake_queue(dev);
++		if (!(status & UART3_IIR_EOF))
++			return IRQ_HANDLED;
++	}
++
++	/* Stop DMA and if there are no errors, send frame to upper layer */
++	omap_stop_dma(omap_ir->rx_dma_channel);
++
++	status = uart_reg_in(UART3_SFLSR);	/* Take a frame status */
++
++	if (status != 0) {	/* Bad frame? */
++		omap_ir->stats.rx_frame_errors++;
++		uart_reg_in(UART3_RESUME);
++	} else {
++		/* We got a frame! */
++		skb = dev_alloc_skb(IRDA_SKB_MAX_MTU);
++
++		if (!skb) {
++			printk(KERN_ERR "omap_sir: out of memory for RX SKB\n");
++			return IRQ_HANDLED;
++		}
++		/*
++		 * Align any IP headers that may be contained
++		 * within the frame.
++		 */
++
++		skb_reserve(skb, 1);
++
++		w = omap_get_dma_dst_pos(omap_ir->rx_dma_channel) -
++						omap_ir->rx_buf_dma_phys;
++
++		if (!IS_FIR(omap_ir))
++			/* Copy DMA buffer to skb */
++			memcpy(skb_put(skb, w - 2), omap_ir->rx_buf_dma_virt,
++					w - 2);
++		else
++			/* Copy DMA buffer to skb */
++			memcpy(skb_put(skb, w - 4), omap_ir->rx_buf_dma_virt,
++					w - 4);
++
++		skb->dev = dev;
++		skb_reset_mac_header(skb);
++		skb->protocol = htons(ETH_P_IRDA);
++		omap_ir->stats.rx_packets++;
++		omap_ir->stats.rx_bytes += skb->len;
++		netif_receive_skb(skb);	/* Send data to upper level */
++	}
++
++	/* Re-init RX DMA */
++	omap_irda_start_rx_dma(omap_ir);
++
++	dev->last_rx = jiffies;
++
++	return IRQ_HANDLED;
++}
++
++static int omap_irda_hard_xmit(struct sk_buff *skb, struct net_device *dev)
++{
++	struct omap_irda *omap_ir = netdev_priv(dev);
++	int speed = irda_get_next_speed(skb);
++	int mtt = irda_get_mtt(skb);
++	int xbofs = irda_get_next_xbofs(skb);
++
++
++	/*
++	 * Does this packet contain a request to change the interface
++	 * speed?  If so, remember it until we complete the transmission
++	 * of this frame.
++	 */
++	if (speed != omap_ir->speed && speed != -1)
++		omap_ir->newspeed = speed;
++
++	if (xbofs) /* Set number of addtional BOFS */
++		uart_reg_out(UART3_EBLR, xbofs + 1);
++
++	/*
++	 * If this is an empty frame, we can bypass a lot.
++	 */
++	if (skb->len == 0) {
++		if (omap_ir->newspeed) {
++			omap_ir->newspeed = 0;
++			omap_irda_set_speed(dev, speed);
++		}
++		dev_kfree_skb(skb);
++		return 0;
++	}
++
++	netif_stop_queue(dev);
++
++	/* Copy skb data to DMA buffer */
++	skb_copy_from_linear_data(skb, omap_ir->tx_buf_dma_virt, skb->len);
++
++	/* Copy skb data to DMA buffer */
++	omap_ir->stats.tx_bytes += skb->len;
++
++	/* Set frame length */
++	uart_reg_out(UART3_TXFLL, (skb->len & 0xff));
++	uart_reg_out(UART3_TXFLH, (skb->len >> 8));
++
++	if (mtt > 1000)
++		mdelay(mtt / 1000);
++	else
++		udelay(mtt);
++
++	/* Start TX DMA transfer */
++	omap_start_tx_dma(omap_ir, skb->len);
++
++	/* We can free skb now because it's already in DMA buffer */
++	dev_kfree_skb(skb);
++
++	dev->trans_start = jiffies;
++
++	return 0;
++}
++
++static int
++omap_irda_ioctl(struct net_device *dev, struct ifreq *ifreq, int cmd)
++{
++	struct if_irda_req *rq = (struct if_irda_req *)ifreq;
++	struct omap_irda *omap_ir = netdev_priv(dev);
++	int ret = -EOPNOTSUPP;
++
++
++	switch (cmd) {
++	case SIOCSBANDWIDTH:
++		if (capable(CAP_NET_ADMIN)) {
++			/*
++			 * We are unable to set the speed if the
++			 * device is not running.
++			 */
++			if (omap_ir->open)
++				ret = omap_irda_set_speed(dev,
++						rq->ifr_baudrate);
++			else {
++				printk(KERN_ERR "omap_ir: SIOCSBANDWIDTH:"
++						" !netif_running\n");
++				ret = 0;
++			}
++		}
++		break;
++
++	case SIOCSMEDIABUSY:
++		ret = -EPERM;
++		if (capable(CAP_NET_ADMIN)) {
++			irda_device_set_media_busy(dev, TRUE);
++			ret = 0;
++		}
++		break;
++
++	case SIOCGRECEIVING:
++		rq->ifr_receiving = 0;
++		break;
++
++	default:
++		break;
++	}
++
++	return ret;
++}
++
++static struct net_device_stats *omap_irda_stats(struct net_device *dev)
++{
++	struct omap_irda *omap_ir = netdev_priv(dev);
++	return &omap_ir->stats;
++}
++
++static int omap_irda_start(struct net_device *dev)
++{
++	struct omap_irda *omap_ir = netdev_priv(dev);
++	int err;
++
++	omap_ir->speed = 9600;
++
++	err = request_irq(dev->irq, omap_irda_irq, 0, dev->name, dev);
++	if (err)
++		goto err_irq;
++
++	/*
++	 * The interrupt must remain disabled for now.
++	 */
++	disable_irq(dev->irq);
++
++	/*  Request DMA channels for IrDA hardware */
++	if (omap_request_dma(omap_ir->pdata->rx_channel, "IrDA Rx DMA",
++			(void *)omap_irda_rx_dma_callback,
++			dev, &(omap_ir->rx_dma_channel))) {
++		printk(KERN_ERR "Failed to request IrDA Rx DMA\n");
++		goto err_irq;
++	}
++
++	if (omap_request_dma(omap_ir->pdata->tx_channel, "IrDA Tx DMA",
++			(void *)omap_irda_tx_dma_callback,
++			dev, &(omap_ir->tx_dma_channel))) {
++		printk(KERN_ERR "Failed to request IrDA Tx DMA\n");
++		goto err_irq;
++	}
++
++	/* Allocate TX and RX buffers for DMA channels */
++	omap_ir->rx_buf_dma_virt =
++		dma_alloc_coherent(NULL, IRDA_SKB_MAX_MTU,
++				&(omap_ir->rx_buf_dma_phys),
++				GFP_KERNEL);
++
++	if (!omap_ir->rx_buf_dma_virt) {
++		printk(KERN_ERR "Unable to allocate memory for rx_buf_dma\n");
++		goto err_irq;
++	}
++
++	omap_ir->tx_buf_dma_virt =
++		dma_alloc_coherent(NULL, IRDA_SIR_MAX_FRAME,
++				&(omap_ir->tx_buf_dma_phys),
++				GFP_KERNEL);
++
++	if (!omap_ir->tx_buf_dma_virt) {
++		printk(KERN_ERR "Unable to allocate memory for tx_buf_dma\n");
++		goto err_mem1;
++	}
++
++	/*
++	 * Setup the serial port for the specified config.
++	 */
++	if (omap_ir->pdata->select_irda)
++		omap_ir->pdata->select_irda(omap_ir->dev, IR_SEL);
++
++	err = omap_irda_startup(dev);
++
++	if (err)
++		goto err_startup;
++
++	omap_irda_set_speed(dev, omap_ir->speed = 9600);
++
++	/*
++	 * Open a new IrLAP layer instance.
++	 */
++	omap_ir->irlap = irlap_open(dev, &omap_ir->qos, "omap_sir");
++
++	err = -ENOMEM;
++	if (!omap_ir->irlap)
++		goto err_irlap;
++
++	/* Now enable the interrupt and start the queue */
++	omap_ir->open = 1;
++
++	/* Start RX DMA */
++	omap_irda_start_rx_dma(omap_ir);
++
++	enable_irq(dev->irq);
++	netif_start_queue(dev);
++
++	return 0;
++
++err_irlap:
++	omap_ir->open = 0;
++	omap_irda_shutdown(omap_ir);
++err_startup:
++	dma_free_coherent(NULL, IRDA_SIR_MAX_FRAME,
++			omap_ir->tx_buf_dma_virt, omap_ir->tx_buf_dma_phys);
++err_mem1:
++	dma_free_coherent(NULL, IRDA_SKB_MAX_MTU,
++			omap_ir->rx_buf_dma_virt, omap_ir->rx_buf_dma_phys);
++err_irq:
++	free_irq(dev->irq, dev);
++	return err;
++}
++
++static int omap_irda_stop(struct net_device *dev)
++{
++	struct omap_irda *omap_ir = netdev_priv(dev);
++
++	disable_irq(dev->irq);
++
++	netif_stop_queue(dev);
++
++	omap_free_dma(omap_ir->rx_dma_channel);
++	omap_free_dma(omap_ir->tx_dma_channel);
++
++	if (omap_ir->rx_buf_dma_virt)
++		dma_free_coherent(NULL, IRDA_SKB_MAX_MTU,
++				omap_ir->rx_buf_dma_virt,
++				omap_ir->rx_buf_dma_phys);
++	if (omap_ir->tx_buf_dma_virt)
++		dma_free_coherent(NULL, IRDA_SIR_MAX_FRAME,
++				omap_ir->tx_buf_dma_virt,
++				omap_ir->tx_buf_dma_phys);
++
++	omap_irda_shutdown(omap_ir);
++
++	/* Stop IrLAP */
++	if (omap_ir->irlap) {
++		irlap_close(omap_ir->irlap);
++		omap_ir->irlap = NULL;
++	}
++
++	omap_ir->open = 0;
++
++	/*
++	 * Free resources
++	 */
++	free_irq(dev->irq, dev);
++
++	return 0;
++}
++
++static int omap_irda_set_speed(struct net_device *dev, int speed)
++{
++	struct omap_irda *omap_ir = netdev_priv(dev);
++	int divisor;
++	unsigned long flags;
++
++	/* Set IrDA speed */
++	if (speed <= 115200) {
++
++		local_irq_save(flags);
++
++		/* SIR mode */
++		if (omap_ir->pdata->transceiver_mode)
++			omap_ir->pdata->transceiver_mode(omap_ir->dev,
++							IR_SIRMODE);
++
++		/* Set SIR mode */
++		uart_reg_out(UART3_MDR1, 1);
++		uart_reg_out(UART3_EBLR, 1);
++
++		divisor = 48000000 / (16 * speed);	/* Base clock 48 MHz */
++
++		uart_reg_out(UART3_LCR, UART3_LCR_DIVEN);
++		uart_reg_out(UART3_DLL, (divisor & 0xff));
++		uart_reg_out(UART3_DLH, (divisor >> 8));
++		uart_reg_out(UART3_LCR, 0x03);
++
++		uart_reg_out(UART3_MCR, 0);
++
++		local_irq_restore(flags);
++	} else if (speed <= 1152000) {
++
++		local_irq_save(flags);
++
++		/* Set MIR mode, auto SIP */
++		uart_reg_out(UART3_MDR1, UART3_MDR1_MIR |
++				UART3_MDR1_SIP_AUTO);
++
++		uart_reg_out(UART3_EBLR, 2);
++
++		divisor = 48000000 / (41 * speed);	/* Base clock 48 MHz */
++
++		uart_reg_out(UART3_LCR, UART3_LCR_DIVEN);
++		uart_reg_out(UART3_DLL, (divisor & 0xff));
++		uart_reg_out(UART3_DLH, (divisor >> 8));
++		uart_reg_out(UART3_LCR, 0x03);
++
++		if (omap_ir->pdata->transceiver_mode)
++			omap_ir->pdata->transceiver_mode(omap_ir->dev,
++							IR_MIRMODE);
++
++		local_irq_restore(flags);
++	} else {
++		local_irq_save(flags);
++
++		/* FIR mode */
++		uart_reg_out(UART3_MDR1, UART3_MDR1_FIR |
++				UART3_MDR1_SIP_AUTO);
++
++		if (omap_ir->pdata->transceiver_mode)
++			omap_ir->pdata->transceiver_mode(omap_ir->dev,
++							IR_FIRMODE);
++
++		local_irq_restore(flags);
++	}
++
++	omap_ir->speed = speed;
++
++	return 0;
++}
++
 +#ifdef CONFIG_PM
-+	.suspend =	twl4030_bci_battery_suspend,
-+	.resume =	twl4030_bci_battery_resume,
++/*
++ * Suspend the IrDA interface.
++ */
++static int omap_irda_suspend(struct platform_device *pdev, pm_message_t state)
++{
++	struct net_device *dev = platform_get_drvdata(pdev);
++	struct omap_irda *omap_ir = netdev_priv(dev);
++
++	if (!dev)
++		return 0;
++
++	if (omap_ir->open) {
++		/*
++		 * Stop the transmit queue
++		 */
++		netif_device_detach(dev);
++		disable_irq(dev->irq);
++		omap_irda_shutdown(omap_ir);
++	}
++	return 0;
++}
++
++/*
++ * Resume the IrDA interface.
++ */
++static int omap_irda_resume(struct platform_device *pdev)
++{
++	struct net_device *dev = platform_get_drvdata(pdev);
++	struct omap_irda *omap_ir= netdev_priv(dev);
++
++	if (!dev)
++		return 0;
++
++	if (omap_ir->open) {
++		/*
++		 * If we missed a speed change, initialise at the new speed
++		 * directly.  It is debatable whether this is actually
++		 * required, but in the interests of continuing from where
++		 * we left off it is desireable.  The converse argument is
++		 * that we should re-negotiate at 9600 baud again.
++		 */
++		if (omap_ir->newspeed) {
++			omap_ir->speed = omap_ir->newspeed;
++			omap_ir->newspeed = 0;
++		}
++
++		omap_irda_startup(dev);
++		omap_irda_set_speed(dev, omap_ir->speed);
++		enable_irq(dev->irq);
++
++		/*
++		 * This automatically wakes up the queue
++		 */
++		netif_device_attach(dev);
++	}
++
++	return 0;
++}
++#else
++#define omap_irda_suspend	NULL
++#define omap_irda_resume	NULL
 +#endif
-+	.driver = {
-+		.name = "twl4030-bci-battery",
++
++static int omap_irda_probe(struct platform_device *pdev)
++{
++	struct net_device *dev;
++	struct omap_irda *omap_ir;
++	struct omap_irda_config *pdata = pdev->dev.platform_data;
++	unsigned int baudrate_mask;
++	int err = 0;
++	int irq = NO_IRQ;
++
++	if (!pdata) {
++		printk(KERN_ERR "IrDA Platform data not supplied\n");
++		return -ENOENT;
++	}
++
++	if (!pdata->rx_channel || !pdata->tx_channel) {
++		printk(KERN_ERR "IrDA invalid rx/tx channel value\n");
++		return -ENOENT;
++	}
++
++	irq = platform_get_irq(pdev, 0);
++	if (irq <= 0) {
++		printk(KERN_WARNING "no irq for IrDA\n");
++		return -ENOENT;
++	}
++
++	dev = alloc_irdadev(sizeof(struct omap_irda));
++	if (!dev)
++		goto err_mem_1;
++
++
++	omap_ir = netdev_priv(dev);
++	omap_ir->dev = &pdev->dev;
++	omap_ir->pdata = pdata;
++
++	dev->hard_start_xmit	= omap_irda_hard_xmit;
++	dev->open		= omap_irda_start;
++	dev->stop		= omap_irda_stop;
++	dev->do_ioctl		= omap_irda_ioctl;
++	dev->get_stats		= omap_irda_stats;
++	dev->irq		= irq;
++
++	irda_init_max_qos_capabilies(&omap_ir->qos);
++
++	baudrate_mask = 0;
++	if (omap_ir->pdata->transceiver_cap & IR_SIRMODE)
++		baudrate_mask |= IR_9600|IR_19200|IR_38400|IR_57600|IR_115200;
++	if (omap_ir->pdata->transceiver_cap & IR_MIRMODE)
++		baudrate_mask |= IR_57600 | IR_1152000;
++	if (omap_ir->pdata->transceiver_cap & IR_FIRMODE)
++		baudrate_mask |= IR_4000000 << 8;
++
++	omap_ir->qos.baud_rate.bits &= baudrate_mask;
++	omap_ir->qos.min_turn_time.bits = 7;
++
++	irda_qos_bits_to_value(&omap_ir->qos);
++
++	/* Any better way to avoid this? No. */
++	if (machine_is_omap_h3() || machine_is_omap_h4())
++		INIT_DELAYED_WORK(&omap_ir->pdata->gpio_expa, NULL);
++
++	err = register_netdev(dev);
++	if (!err)
++		platform_set_drvdata(pdev, dev);
++	else
++		free_netdev(dev);
++
++err_mem_1:
++	return err;
++}
++
++static int omap_irda_remove(struct platform_device *pdev)
++{
++	struct net_device *dev = platform_get_drvdata(pdev);
++
++	if (pdev) {
++		unregister_netdev(dev);
++		free_netdev(dev);
++	}
++	return 0;
++}
++
++static struct platform_driver omapir_driver = {
++	.probe		= omap_irda_probe,
++	.remove		= omap_irda_remove,
++	.suspend	= omap_irda_suspend,
++	.resume		= omap_irda_resume,
++	.driver		= {
++		.name	= "omapirda",
 +	},
 +};
 +
-+static int usb_charger_flag;
-+static int LVL_1, LVL_2, LVL_3, LVL_4;
++static char __initdata banner[] = KERN_INFO "OMAP IrDA driver initializing\n";
 +
-+static int read_bci_val(u8 reg_1);
-+static inline int clear_n_set(u8 mod_no, u8 clear, u8 set, u8 reg);
-+static int twl4030charger_presence(void);
-+
-+/*
-+ * Report and clear the charger presence event.
-+ */
-+static inline int twl4030charger_presence_evt(void)
++static int __init omap_irda_init(void)
 +{
-+	int ret;
-+	u8 chg_sts, set = 0, clear = 0;
-+
-+	/* read charger power supply status */
-+	ret = twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &chg_sts,
-+		REG_STS_HW_CONDITIONS);
-+	if (ret)
-+		return IRQ_NONE;
-+
-+	/* If the AC charger have been connected */
-+	if (chg_sts & STS_CHG) {
-+		/* configuring falling edge detection for CHG_PRES */
-+		set = CHG_PRES_FALLING;
-+		clear = CHG_PRES_RISING;
-+	}
-+	/* If the AC charger have been disconnected */
-+	else {
-+		/* configuring rising edge detection for CHG_PRES */
-+		set = CHG_PRES_RISING;
-+		clear = CHG_PRES_FALLING;
-+	}
-+
-+	/* Update the interrupt edge detection register */
-+	clear_n_set(TWL4030_MODULE_INT, clear, set, REG_PWR_EDR1);
-+
-+	return 0;
++	printk(banner);
++	return platform_driver_register(&omapir_driver);
 +}
 +
-+/*
-+ * Interrupt service routine
-+ *
-+ * Attends to TWL 4030 power module interruptions events, specifically
-+ * USB_PRES (USB charger presence) CHG_PRES (AC charger presence) events
-+ *
-+ */
-+static irqreturn_t twl4030charger_interrupt(int irq, void *dev_id)
++static void __exit omap_irda_exit(void)
 +{
-+	struct twl4030_bci_device_info *di = dev_id;
-+
-+	twl4030charger_presence_evt();
-+	power_supply_changed(&di->bat);
-+
-+	return IRQ_HANDLED;
++	platform_driver_unregister(&omapir_driver);
 +}
 +
-+/*
-+ * This function handles the twl4030 battery presence interrupt
-+ */
-+static int twl4030battery_presence_evt(void)
-+{
-+	int ret;
-+	u8 batstsmchg, batstspchg;
-+
-+	/* check for the battery presence in main charge*/
-+	ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE,
-+			&batstsmchg, REG_BCIMFSTS3);
-+	if (ret)
-+		return ret;
-+
-+	/* check for the battery presence in precharge */
-+	ret = twl4030_i2c_read_u8(TWL4030_MODULE_PRECHARGE,
-+			&batstspchg, REG_BCIMFSTS1);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * REVISIT: Physically inserting/removing the batt
-+	 * does not seem to generate an int on 3430ES2 SDP.
-+	 */
-+
-+	/* In case of the battery insertion event */
-+	if ((batstspchg & BATSTSPCHG) || (batstsmchg & BATSTSMCHG)) {
-+		ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, BATSTS_EDRRISIN,
-+			BATSTS_EDRFALLING, REG_BCIEDR2);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	/* In case of the battery removal event */
-+	else {
-+		ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, BATSTS_EDRFALLING,
-+			BATSTS_EDRRISIN, REG_BCIEDR2);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * This function handles the twl4030 battery voltage level interrupt.
-+ */
-+static int twl4030battery_level_evt(void)
-+{
-+	int ret;
-+	u8 mfst;
-+
-+	/* checking for threshold event */
-+	ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE,
-+			&mfst, REG_BCIMFSTS2);
-+	if (ret)
-+		return ret;
-+
-+	if (mfst & VBATOV4) {
-+		LVL_4 = 1;
-+		LVL_3 = LVL_2 = LVL_1 = 0;
-+	} else if (mfst & VBATOV3) {
-+		LVL_3 = 1;
-+		LVL_4 = LVL_2 = LVL_1 = 0;
-+	} else if (mfst & VBATOV2) {
-+		LVL_2 = 1;
-+		LVL_4 = LVL_3 = LVL_1 = 0;
-+	} else {
-+		LVL_1 = 1;
-+		LVL_4 = LVL_3 = LVL_2 = 0;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * Interrupt service routine
-+ *
-+ * Attends to BCI interruptions events,
-+ * specifically BATSTS (battery connection and removal)
-+ * VBATOV (main battery voltage threshold) events
-+ *
-+ */
-+static irqreturn_t twl4030battery_interrupt(int irq, void *dev_id)
-+{
-+	int ret;
-+	u8 isr1a_val, isr2a_val, clear_2a, clear_1a;
-+
-+	ret = twl4030_i2c_read_u8(TWL4030_MODULE_INTERRUPTS, &isr1a_val,
-+				REG_BCIISR1A);
-+	if (ret)
-+		return IRQ_NONE;
-+
-+	ret = twl4030_i2c_read_u8(TWL4030_MODULE_INTERRUPTS, &isr2a_val,
-+				REG_BCIISR2A);
-+	if (ret)
-+		return IRQ_NONE;
-+
-+	clear_2a = (isr2a_val & VBATLVL_ISR1)? (VBATLVL_ISR1): 0;
-+	clear_1a = (isr1a_val & BATSTS_ISR1)? (BATSTS_ISR1): 0;
-+
-+	/* cleaning BCI interrupt status flags */
-+	ret = twl4030_i2c_write_u8(TWL4030_MODULE_INTERRUPTS,
-+			clear_1a , REG_BCIISR1A);
-+	if (ret)
-+		return IRQ_NONE;
-+
-+	ret = twl4030_i2c_write_u8(TWL4030_MODULE_INTERRUPTS,
-+			clear_2a , REG_BCIISR2A);
-+	if (ret)
-+		return IRQ_NONE;
-+
-+	/* battery connetion or removal event */
-+	if (isr1a_val & BATSTS_ISR1)
-+		twl4030battery_presence_evt();
-+	/* battery voltage threshold event*/
-+	else if (isr2a_val & VBATLVL_ISR1)
-+		twl4030battery_level_evt();
-+	else
-+		return IRQ_NONE;
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/*
-+ * Enable/Disable hardware battery level event notifications.
-+ */
-+static int twl4030battery_hw_level_en(int enable)
-+{
-+	int ret;
-+
-+	if (enable) {
-+		/* unmask VBATOV interrupt for INT1 */
-+		ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, VBATLVL_IMR1,
-+			0, REG_BCIIMR2A);
-+		if (ret)
-+			return ret;
-+
-+		/* configuring interrupt edge detection for VBATOv */
-+		ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, 0,
-+			VBATLVL_EDRRISIN, REG_BCIEDR3);
-+		if (ret)
-+			return ret;
-+	} else {
-+		/* mask VBATOV interrupt for INT1 */
-+		ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, 0,
-+			VBATLVL_IMR1, REG_BCIIMR2A);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * Enable/disable hardware battery presence event notifications.
-+ */
-+static int twl4030battery_hw_presence_en(int enable)
-+{
-+	int ret;
-+
-+	if (enable) {
-+		/* unmask BATSTS interrupt for INT1 */
-+		ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, BATSTS_IMR1,
-+			0, REG_BCIIMR1A);
-+		if (ret)
-+			return ret;
-+
-+		/* configuring interrupt edge for BATSTS */
-+		ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, 0,
-+			BATSTS_EDRRISIN | BATSTS_EDRFALLING, REG_BCIEDR2);
-+		if (ret)
-+			return ret;
-+	} else {
-+		/* mask BATSTS interrupt for INT1 */
-+		ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, 0,
-+			BATSTS_IMR1, REG_BCIIMR1A);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * Enable/Disable AC Charge funtionality.
-+ */
-+static int twl4030charger_ac_en(int enable)
-+{
-+	int ret;
-+
-+	if (enable) {
-+		/* forcing the field BCIAUTOAC (BOOT_BCI[0) to 1 */
-+		ret = clear_n_set(TWL4030_MODULE_PM_MASTER, 0,
-+			(CONFIG_DONE | BCIAUTOWEN | BCIAUTOAC),
-+			REG_BOOT_BCI);
-+		if (ret)
-+			return ret;
-+	} else {
-+		/* forcing the field BCIAUTOAC (BOOT_BCI[0) to 0*/
-+		ret = clear_n_set(TWL4030_MODULE_PM_MASTER, BCIAUTOAC,
-+			(CONFIG_DONE | BCIAUTOWEN),
-+			REG_BOOT_BCI);
-+		if (ret)
-+			return ret;
-+	}
-+	return 0;
-+}
-+
-+/*
-+ * Enable/Disable USB Charge funtionality.
-+ */
-+int twl4030charger_usb_en(int enable)
-+{
-+	u8 value;
-+	int ret;
-+	unsigned long timeout;
-+
-+	if (enable) {
-+		/* Check for USB charger conneted */
-+		ret = twl4030charger_presence();
-+		if (ret < 0)
-+			return ret;
-+
-+		if (!(ret & USB_PW_CONN))
-+			return -ENXIO;
-+
-+		/* forcing the field BCIAUTOUSB (BOOT_BCI[1]) to 1 */
-+		ret = clear_n_set(TWL4030_MODULE_PM_MASTER, 0,
-+			(CONFIG_DONE | BCIAUTOWEN | BCIAUTOUSB),
-+			REG_BOOT_BCI);
-+		if (ret)
-+			return ret;
-+
-+		ret = clear_n_set(TWL4030_MODULE_USB, 0, PHY_DPLL_CLK,
-+			REG_PHY_CLK_CTRL);
-+		if (ret)
-+			return ret;
-+
-+		value = 0;
-+		timeout = jiffies + msecs_to_jiffies(50);
-+
-+		while ((!(value & PHY_DPLL_CLK)) &&
-+			time_before(jiffies, timeout)) {
-+			udelay(10);
-+			ret = twl4030_i2c_read_u8(TWL4030_MODULE_USB, &value,
-+				REG_PHY_CLK_CTRL_STS);
-+			if (ret)
-+				return ret;
-+		}
-+
-+		/* OTG_EN (POWER_CTRL[5]) to 1 */
-+		ret = clear_n_set(TWL4030_MODULE_USB, 0, OTG_EN,
-+			REG_POWER_CTRL);
-+		if (ret)
-+			return ret;
-+
-+		mdelay(50);
-+
-+		/* forcing USBFASTMCHG(BCIMFSTS4[2]) to 1 */
-+		ret = clear_n_set(TWL4030_MODULE_MAIN_CHARGE, 0,
-+			USBFASTMCHG, REG_BCIMFSTS4);
-+		if (ret)
-+			return ret;
-+	} else {
-+		twl4030charger_presence();
-+		ret = clear_n_set(TWL4030_MODULE_PM_MASTER, BCIAUTOUSB,
-+			(CONFIG_DONE | BCIAUTOWEN), REG_BOOT_BCI);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * Return battery temperature
-+ * Or < 0 on failure.
-+ */
-+static int twl4030battery_temperature(void)
-+{
-+	u8 val;
-+	int temp, curr, volt, res, ret;
-+
-+	/* Getting and calculating the thermistor voltage */
-+	ret = read_bci_val(T2_BATTERY_TEMP);
-+	if (ret < 0)
-+		return ret;
-+
-+	volt = (ret * TEMP_STEP_SIZE) / TEMP_PSR_R;
-+
-+	/* Getting and calculating the supply current in micro ampers */
-+	ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE, &val,
-+		 REG_BCICTL2);
-+	if (ret)
-+		return 0;
-+
-+	curr = ((val & ITHSENS) + 1) * 10;
-+
-+	/* Getting and calculating the thermistor resistance in ohms*/
-+	res = volt * 1000 / curr;
-+
-+	/*calculating temperature*/
-+	for (temp = 58; temp >= 0; temp--) {
-+		int actual = therm_tbl [temp];
-+		if ((actual - res) >= 0)
-+			break;
-+	}
-+
-+	/* Negative temperature */
-+	if (temp < 3) {
-+		if (temp == 2)
-+			temp = -1;
-+		else if (temp == 1)
-+			temp = -2;
-+		else
-+			temp = -3;
-+	}
-+
-+	return temp + 1;
-+}
-+
-+/*
-+ * Return battery voltage
-+ * Or < 0 on failure.
-+ */
-+static int twl4030battery_voltage(void)
-+{
-+	int volt = read_bci_val(T2_BATTERY_VOLT);
-+
-+	return (volt * VOLT_STEP_SIZE) / VOLT_PSR_R;
-+}
-+
-+/*
-+ * Return the battery current
-+ * Or < 0 on failure.
-+ */
-+static int twl4030battery_current(void)
-+{
-+	int ret, curr = read_bci_val(T2_BATTERY_CUR);
-+	u8 val;
-+
-+	ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE, &val,
-+		REG_BCICTL1);
-+	if (ret)
-+		return ret;
-+
-+	if (val & CGAIN) /* slope of 0.44 mV/mA */
-+		return (curr * CURR_STEP_SIZE) / CURR_PSR_R1;
-+	else /* slope of 0.88 mV/mA */
-+		return (curr * CURR_STEP_SIZE) / CURR_PSR_R2;
-+}
-+
-+/*
-+ * Return the battery backup voltage
-+ * Or < 0 on failure.
-+ */
-+static int twl4030backupbatt_voltage(void)
-+{
-+	int ret, temp;
-+	u8 volt;
-+	struct twl4030_madc_request req;
-+
-+	req.channels = (1 << 9);
-+	req.method = TWL4030_MADC_SW1;
-+	twl4030_madc_conversion(&req);
-+	temp = (u16)req.rbuf[9];
-+
-+	return  (temp * BK_VOLT_STEP_SIZE) / BK_VOLT_PSR_R;
-+}
-+
-+/*
-+ * Returns an integer value, that means,
-+ * NO_PW_CONN  no power supply is connected
-+ * AC_PW_CONN  if the AC power supply is connected
-+ * USB_PW_CONN  if the USB power supply is connected
-+ * AC_PW_CONN + USB_PW_CONN if USB and AC power supplies are both connected
-+ *
-+ * Or < 0 on failure.
-+ */
-+static int twl4030charger_presence(void)
-+{
-+	int ret;
-+	u8 hwsts;
-+
-+	ret = twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &hwsts,
-+		REG_STS_HW_CONDITIONS);
-+	if (ret) {
-+		pr_err("BATTERY DRIVER: error reading STS_HW_CONDITIONS \n");
-+		return ret;
-+	}
-+
-+	ret = (hwsts & STS_CHG)? AC_PW_CONN: NO_PW_CONN;
-+	ret += (hwsts & STS_VBUS)? USB_PW_CONN: NO_PW_CONN;
-+
-+	if (ret & USB_PW_CONN)
-+		usb_charger_flag = 1;
-+	else
-+		usb_charger_flag = 0;
-+
-+	return ret;
-+
-+}
-+
-+/*
-+ * Returns the main charge FSM status
-+ * Or < 0 on failure.
-+ */
-+static int twl4030bci_status(void)
-+{
-+	int ret;
-+	u8 status;
-+
-+	ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE,
-+		&status, REG_BCIMSTATEC);
-+	if (ret) {
-+		pr_err("BATTERY DRIVER: error reading BCIMSTATEC \n");
-+		return ret;
-+	}
-+
-+	return (int) (status & BCIMSTAT_MASK);
-+}
-+
-+static int read_bci_val(u8 reg)
-+{
-+	int ret, temp;
-+	u8 val;
-+
-+	/* reading MSB */
-+	ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE, &val,
-+		reg + 1);
-+	if (ret)
-+		return ret;
-+
-+	temp = ((int)(val & 0x03)) << 8;
-+
-+	/* reading LSB */
-+	ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE, &val,
-+		reg);
-+	if (ret)
-+		return ret;
-+
-+	return temp | val;
-+}
-+
-+/*
-+ * Settup the twl4030 BCI module to enable backup
-+ * battery charging.
-+ */
-+static int twl4030backupbatt_voltage_setup(void)
-+{
-+	int ret;
-+
-+	/* Starting backup batery charge */
-+	ret = clear_n_set(TWL4030_MODULE_PM_RECEIVER, 0, BBCHEN,
-+		REG_BB_CFG);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+/*
-+ * Settup the twl4030 BCI module to measure battery
-+ * temperature
-+ */
-+static int twl4030battery_temp_setup(void)
-+{
-+	int ret;
-+
-+	/* Enabling thermistor current */
-+	ret = clear_n_set(TWL4030_MODULE_MAIN_CHARGE, 0, ITHEN,
-+		REG_BCICTL1);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+/*
-+ * Sets and clears bits on an given register on a given module
-+ */
-+static inline int clear_n_set(u8 mod_no, u8 clear, u8 set, u8 reg)
-+{
-+	int ret;
-+	u8 val = 0;
-+
-+	/* Gets the initial register value */
-+	ret = twl4030_i2c_read_u8(mod_no, &val, reg);
-+	if (ret)
-+		return ret;
-+
-+	/* Clearing all those bits to clear */
-+	val &= ~(clear);
-+
-+	/* Setting all those bits to set */
-+	val |= set;
-+
-+	/* Update the register */
-+	ret = twl4030_i2c_write_u8(mod_no, val, reg);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+static enum power_supply_property twl4030_bci_battery_props[] = {
-+	POWER_SUPPLY_PROP_STATUS,
-+	POWER_SUPPLY_PROP_ONLINE,
-+	POWER_SUPPLY_PROP_VOLTAGE_NOW,
-+	POWER_SUPPLY_PROP_CURRENT_NOW,
-+	POWER_SUPPLY_PROP_CAPACITY,
-+	POWER_SUPPLY_PROP_TEMP,
-+};
-+
-+static enum power_supply_property twl4030_bk_bci_battery_props[] = {
-+	POWER_SUPPLY_PROP_VOLTAGE_NOW,
-+};
-+
-+static void
-+twl4030_bk_bci_battery_read_status(struct twl4030_bci_device_info *di)
-+{
-+	di->bk_voltage_uV = twl4030backupbatt_voltage();
-+}
-+
-+static void twl4030_bk_bci_battery_work(struct work_struct *work)
-+{
-+	struct twl4030_bci_device_info *di = container_of(work,
-+		struct twl4030_bci_device_info,
-+		twl4030_bk_bci_monitor_work.work);
-+
-+	twl4030_bk_bci_battery_read_status(di);
-+	schedule_delayed_work(&di->twl4030_bk_bci_monitor_work, 500);
-+}
-+
-+static void twl4030_bci_battery_read_status(struct twl4030_bci_device_info *di)
-+{
-+	di->temp_C = twl4030battery_temperature();
-+	di->voltage_uV = twl4030battery_voltage();
-+	di->current_uA = twl4030battery_current();
-+}
-+
-+static void
-+twl4030_bci_battery_update_status(struct twl4030_bci_device_info *di)
-+{
-+	twl4030_bci_battery_read_status(di);
-+	di->charge_status = POWER_SUPPLY_STATUS_UNKNOWN;
-+
-+	if (power_supply_am_i_supplied(&di->bat))
-+		di->charge_status = POWER_SUPPLY_STATUS_CHARGING;
-+	else
-+		di->charge_status = POWER_SUPPLY_STATUS_DISCHARGING;
-+}
-+
-+static void twl4030_bci_battery_work(struct work_struct *work)
-+{
-+	struct twl4030_bci_device_info *di = container_of(work,
-+		struct twl4030_bci_device_info, twl4030_bci_monitor_work.work);
-+
-+	twl4030_bci_battery_update_status(di);
-+	schedule_delayed_work(&di->twl4030_bci_monitor_work, 100);
-+}
-+
-+
-+#define to_twl4030_bci_device_info(x) container_of((x), \
-+			struct twl4030_bci_device_info, bat);
-+
-+static void twl4030_bci_battery_external_power_changed(struct power_supply *psy)
-+{
-+	struct twl4030_bci_device_info *di = to_twl4030_bci_device_info(psy);
-+
-+	cancel_delayed_work(&di->twl4030_bci_monitor_work);
-+	schedule_delayed_work(&di->twl4030_bci_monitor_work, 0);
-+}
-+
-+#define to_twl4030_bk_bci_device_info(x) container_of((x), \
-+		struct twl4030_bci_device_info, bk_bat);
-+
-+static int twl4030_bk_bci_battery_get_property(struct power_supply *psy,
-+					enum power_supply_property psp,
-+					union power_supply_propval *val)
-+{
-+	struct twl4030_bci_device_info *di = to_twl4030_bk_bci_device_info(psy);
-+
-+	switch (psp) {
-+	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-+		val->intval = di->bk_voltage_uV;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int twl4030_bci_battery_get_property(struct power_supply *psy,
-+					enum power_supply_property psp,
-+					union power_supply_propval *val)
-+{
-+	struct twl4030_bci_device_info *di = to_twl4030_bci_device_info(psy);
-+	int status = 0;
-+
-+	switch (psp) {
-+	case POWER_SUPPLY_PROP_STATUS:
-+		val->intval = di->charge_status;
-+		return 0;
-+	default:
-+		break;
-+	}
-+
-+	switch (psp) {
-+	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-+		val->intval = di->voltage_uV;
-+		break;
-+	case POWER_SUPPLY_PROP_CURRENT_NOW:
-+		val->intval = di->current_uA;
-+		break;
-+	case POWER_SUPPLY_PROP_TEMP:
-+		val->intval = di->temp_C;
-+		break;
-+	case POWER_SUPPLY_PROP_ONLINE:
-+		status = twl4030bci_status();
-+		if ((status & AC_STATEC) == AC_STATEC)
-+			val->intval = POWER_SUPPLY_TYPE_MAINS;
-+		else if (usb_charger_flag)
-+			val->intval = POWER_SUPPLY_TYPE_USB;
-+		else
-+			val->intval = 0;
-+		break;
-+	case POWER_SUPPLY_PROP_CAPACITY:
-+		/*
-+		 * need to get the correct percentage value per the
-+		 * battery characteristics. Approx values for now.
-+		 */
-+		if (di->voltage_uV < 2894 || LVL_1) {
-+			val->intval = 5;
-+			LVL_1 = 0;
-+		} else if ((di->voltage_uV < 3451 && di->voltage_uV > 2894)
-+			|| LVL_2) {
-+			val->intval = 20;
-+			LVL_2 = 0;
-+		} else if ((di->voltage_uV < 3902 && di->voltage_uV > 3451)
-+			|| LVL_3) {
-+			val->intval = 50;
-+			LVL_3 = 0;
-+		} else if ((di->voltage_uV < 3949 && di->voltage_uV > 3902)
-+			|| LVL_4) {
-+			val->intval = 75;
-+			LVL_4 = 0;
-+		} else if (di->voltage_uV > 3949)
-+			val->intval = 90;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static char *twl4030_bci_supplied_to[] = {
-+	"twl4030_bci_battery",
-+};
-+
-+static int twl4030_bci_battery_probe(struct  platform_device *dev)
-+{
-+	struct twl4030_bci_device_info *di;
-+	int ret;
-+	struct twl4030_bci_platform_data *pdata = dev->dev.platform_data;
-+
-+	therm_tbl = pdata->battery_tmp_tbl;
-+
-+	di = kzalloc(sizeof(*di), GFP_KERNEL);
-+	if (!di)
-+		return -ENOMEM;
-+
-+	platform_set_drvdata(dev, di);
-+
-+	di->dev = &dev->dev;
-+	di->bat.name = "twl4030_bci_battery";
-+	di->bat.supplied_to = twl4030_bci_supplied_to;
-+	di->bat.num_supplicants = ARRAY_SIZE(twl4030_bci_supplied_to);
-+	di->bat.type = POWER_SUPPLY_TYPE_BATTERY;
-+	di->bat.properties = twl4030_bci_battery_props;
-+	di->bat.num_properties = ARRAY_SIZE(twl4030_bci_battery_props);
-+	di->bat.get_property = twl4030_bci_battery_get_property;
-+	di->bat.external_power_changed =
-+			twl4030_bci_battery_external_power_changed;
-+
-+	di->charge_status = POWER_SUPPLY_STATUS_UNKNOWN;
-+
-+	di->bk_bat.name = "twl4030_bci_bk_battery";
-+	di->bk_bat.type = POWER_SUPPLY_TYPE_BATTERY;
-+	di->bk_bat.properties = twl4030_bk_bci_battery_props;
-+	di->bk_bat.num_properties = ARRAY_SIZE(twl4030_bk_bci_battery_props);
-+	di->bk_bat.get_property = twl4030_bk_bci_battery_get_property;
-+	di->bk_bat.external_power_changed = NULL;
-+
-+	twl4030charger_ac_en(ENABLE);
-+	twl4030charger_usb_en(ENABLE);
-+	twl4030battery_hw_level_en(ENABLE);
-+	twl4030battery_hw_presence_en(ENABLE);
-+
-+	/* settings for temperature sensing */
-+	ret = twl4030battery_temp_setup();
-+	if (ret)
-+		goto temp_setup_fail;
-+
-+	/* enabling GPCH09 for read back battery voltage */
-+	ret = twl4030backupbatt_voltage_setup();
-+	if (ret)
-+		goto voltage_setup_fail;
-+
-+	/* request BCI interruption */
-+	ret = request_irq(TWL4030_MODIRQ_BCI, twl4030battery_interrupt,
-+		IRQF_DISABLED, dev->name, NULL);
-+	if (ret) {
-+		pr_err("BATTERY DRIVER: (BCI) IRQ%d is not free.\n",
-+			TWL4030_MODIRQ_PWR);
-+		goto batt_irq_fail;
-+	}
-+
-+	/* request Power interruption */
-+	ret = request_irq(TWL4030_PWRIRQ_CHG_PRES, twl4030charger_interrupt,
-+		0, dev->name, di);
-+
-+	if (ret) {
-+		pr_err("BATTERY DRIVER: (POWER) IRQ%d is not free.\n",
-+			TWL4030_MODIRQ_PWR);
-+		goto chg_irq_fail;
-+	}
-+
-+	ret = power_supply_register(&dev->dev, &di->bat);
-+	if (ret) {
-+		pr_err("BATTERY DRIVER: failed to register main battery\n");
-+		goto batt_failed;
-+	}
-+
-+	INIT_DELAYED_WORK_DEFERRABLE(&di->twl4030_bci_monitor_work,
-+				twl4030_bci_battery_work);
-+	schedule_delayed_work(&di->twl4030_bci_monitor_work, 0);
-+
-+	ret = power_supply_register(&dev->dev, &di->bk_bat);
-+	if (ret) {
-+		pr_err("BATTERY DRIVER: failed to register backup battery\n");
-+		goto bk_batt_failed;
-+	}
-+
-+	INIT_DELAYED_WORK_DEFERRABLE(&di->twl4030_bk_bci_monitor_work,
-+				twl4030_bk_bci_battery_work);
-+	schedule_delayed_work(&di->twl4030_bk_bci_monitor_work, 500);
-+
-+	return 0;
-+
-+bk_batt_failed:
-+	power_supply_unregister(&di->bat);
-+batt_failed:
-+	free_irq(TWL4030_MODIRQ_PWR, di);
-+chg_irq_fail:
-+prev_setup_err:
-+	free_irq(TWL4030_MODIRQ_BCI, NULL);
-+batt_irq_fail:
-+voltage_setup_fail:
-+temp_setup_fail:
-+	twl4030charger_ac_en(DISABLE);
-+	twl4030charger_usb_en(DISABLE);
-+	twl4030battery_hw_level_en(DISABLE);
-+	twl4030battery_hw_presence_en(DISABLE);
-+	kfree(di);
-+
-+	return ret;
-+}
-+
-+static int twl4030_bci_battery_remove(struct  platform_device *dev)
-+{
-+	struct twl4030_bci_device_info *di = platform_get_drvdata(dev);
-+
-+	twl4030charger_ac_en(DISABLE);
-+	twl4030charger_usb_en(DISABLE);
-+	twl4030battery_hw_level_en(DISABLE);
-+	twl4030battery_hw_presence_en(DISABLE);
-+
-+	free_irq(TWL4030_MODIRQ_BCI, NULL);
-+	free_irq(TWL4030_MODIRQ_PWR, di);
-+
-+	flush_scheduled_work();
-+	power_supply_unregister(&di->bat);
-+	power_supply_unregister(&di->bk_bat);
-+	platform_set_drvdata(dev, NULL);
-+	kfree(di);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+static int twl4030_bci_battery_suspend(struct platform_device *dev,
-+	pm_message_t state)
-+{
-+	struct twl4030_bci_device_info *di = platform_get_drvdata(dev);
-+
-+	di->charge_status = POWER_SUPPLY_STATUS_UNKNOWN;
-+	cancel_delayed_work(&di->twl4030_bci_monitor_work);
-+	cancel_delayed_work(&di->twl4030_bk_bci_monitor_work);
-+	return 0;
-+}
-+
-+static int twl4030_bci_battery_resume(struct platform_device *dev)
-+{
-+	struct twl4030_bci_device_info *di = platform_get_drvdata(dev);
-+
-+	schedule_delayed_work(&di->twl4030_bci_monitor_work, 0);
-+	schedule_delayed_work(&di->twl4030_bk_bci_monitor_work, 50);
-+	return 0;
-+}
-+#endif /* CONFIG_PM */
-+
-+/*
-+ * Battery driver module initializer function
-+ * registers battery driver structure
-+ */
-+static int __init twl4030_battery_init(void)
-+{
-+	return platform_driver_register(&twl4030_bci_battery_driver);
-+
-+}
-+
-+/*
-+ * Battery driver module exit function
-+ * unregister battery driver structure
-+ */
-+static void __exit twl4030_battery_exit(void)
-+{
-+	platform_driver_unregister(&twl4030_bci_battery_driver);
-+}
-+
-+module_init(twl4030_battery_init);
-+module_exit(twl4030_battery_exit);
++module_init(omap_irda_init);
++module_exit(omap_irda_exit);
++
++MODULE_AUTHOR("MontaVista");
++MODULE_DESCRIPTION("OMAP IrDA Driver");
 +MODULE_LICENSE("GPL");
-+MODULE_ALIAS("twl4030_bci_battery");
-+MODULE_AUTHOR("Texas Instruments Inc");
++
 -- 
 1.6.0.1.141.g445ca
 
