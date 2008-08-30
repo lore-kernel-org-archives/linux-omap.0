@@ -1,43 +1,601 @@
 From: "Ramirez Luna, Omar" <x00omar@ti.com>
-Subject: [PATCH 0/2] OMAP BRIDGE Power Management implementation
-Date: Fri, 29 Aug 2008 22:09:04 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53448FFBBC@dlee03.ent.ti.com>
+Subject: [PATCH 1/2] BRIDGE Power management changes
+Date: Fri, 29 Aug 2008 22:09:20 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53448FFBBD@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34721 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34728 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753880AbYH3DJN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Aug 2008 23:09:13 -0400
+	id S1754728AbYH3DJ3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Aug 2008 23:09:29 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 Cc: "Pasam, Vijay" <vpasam@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>
 
-Hi,
+On behalf of Ramesh Gupta, no credit for me.
 
-I'm submitting Power Management implementation for DSP-BRIDGE code, apply these patches on top of the latest set, also you will need PM patches from Paul Walmsley and Rajendra Nayak to get this working.
+From: Ramesh Gupta <grgupta@ti.com>
+Date: Fri, 29 Aug 2008 18:14:58 -0500
+Subject: [PATCH] BRIDGE Power management changes
 
-You can find the complete dspbridge set at:
-https://omapzoom.org/gf/project/omapbridge/frs/?action=FrsReleaseView&release_id=133
+BRIDGE Power management changes
 
-Tests performed on Open Source PM:
-1. Run samples with performance governor. No issues found.
+Signed-off-by: Ramesh Gupta <grgupta@ti.com>
+---
+ drivers/dsp/bridge/rmgr/drv_interface.c |  116 ++++++++++++++++++++++++++-----
+ drivers/dsp/bridge/rmgr/node.c          |   29 +++++++--
+ drivers/dsp/bridge/rmgr/proc.c          |   17 ++++-
+ drivers/dsp/bridge/wmd/io_sm.c          |   16 +++-
+ drivers/dsp/bridge/wmd/tiomap3430_pwr.c |   38 +++++++++--
+ drivers/dsp/bridge/wmd/tiomap_sm.c      |   17 +++++
+ 6 files changed, 199 insertions(+), 34 deletions(-)
 
-Known Issues:
-1. Observed below messages on opp change request.
-<3>clock: Could not find fieldval 0 for clock iva2_ck parent  dpll2_m2_ck
- clock: Could not find fieldval 0 for clock iva2_ck parent dpll2_m2_ck
-<3>clock: Could not find fieldval 0 for clock iva2_ck parent dpll2_m2_ck
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index 2369756..3bd831b 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -60,10 +60,14 @@
+ #include <linux/cdev.h>
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
++#ifndef CONFIG_OMAP3_PM
++#include <mach/omap-pm.h>
++#else
+ #include <mach/resource.h>
+ #include <mach/prcm_34xx.h>
+ #endif
+ #endif
++#endif
 
-2. Some times after opp changes IVA status registers are not accessible. 
+ /*  ----------------------------------- DSP/BIOS Bridge */
+ #include <std.h>
+@@ -105,6 +109,16 @@
+ #include <dbreg.h>
+ #endif
 
-3. Also MMU Faults were observed.
++#ifndef DISABLE_BRIDGE_PM
++#ifndef DISABLE_BRIDGE_DVFS
++#ifndef CONFIG_OMAP3_PM
++#define PRCM_VDD1 1
++struct clk *clk_handle;
++#endif
++#endif
++#endif
++
++
+ #define BRIDGE_NAME "C6410"
+ /*  ----------------------------------- Globals */
+ #define DRIVER_NAME  "DspBridge"
+@@ -243,38 +257,60 @@ static struct platform_device omap_dspbridge_dev = {
 
-Currently investigating these issues.
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
+-/* The number of OPPs supported in the system */
+-s32 dsp_max_opps = CO_VDD1_OPP5-2;
+-u32 vdd1_dsp_freq[6][4] = {
+-
+-        {0, 0, 0, 0},
+-
+-        {0, 90000, 0, 86000},
++#ifndef CONFIG_OMAP3_PM
++/* Maximum Opps that can be requested by IVA*/
++s32 dsp_max_opps = VDD1_OPP3;
++/*vdd1 rate table*/
++const struct vdd_prcm_config vdd1_rate_table[] = {
++       {0, 0, 0},
++       /*OPP1*/
++       {S125M, VDD1_OPP1, 0},
++       /*OPP2*/
++       {S250M, VDD1_OPP2, 0},
++       /*OPP3*/
++       {S500M, VDD1_OPP3, 0},
++       /*OPP4*/
++       {S550M, VDD1_OPP4, 0},
++       /*OPP5*/
++       {S600M, VDD1_OPP5, 0},
++};
++#else
++/* Maximum Opps that can be requested by IVA*/
++s32 dsp_max_opps = CO_VDD1_OPP3;
++#endif
 
-Along with this patch we submit a checkpatch cleanup for function typedefs that were not used, also deleted code related to these typedefs.
++u32 vdd1_dsp_freq[6][4] = {
++       {0, 0, 0, 0},
++       /*OPP1*/
++       {0, 90000, 0, 86000},
++       /*OPP2*/
+        {0, 180000, 80000, 170000},
+-
++       /*OPP3*/
+        {0, 360000, 160000, 340000},
+-
++       /*OPP4*/
+        {0, 396000, 325000, 376000},
+-
++       /*OPP5*/
+        {0, 430000, 355000, 430000},
+ };
 
-- omar
+-/* The handle for setting constraints */
+-struct constraint_handle *dsp_constraint_handle;
+-struct constraint_handle *mpu_constraint_handle;
+
+ static int dspbridge_post_scale(struct notifier_block *op, unsigned long level,
+                                void *ptr)
+ {
+-#ifndef CONFIG_DISABLE_BRIDGE_PM
+-#ifndef CONFIG_DISABLE_BRIDGE_DVFS
+        PWR_PM_PostScale(PRCM_VDD1, level);
+-#endif
+-#endif
+        return 0;
+ }
+
++#ifndef CONFIG_OMAP3_PM
++static struct notifier_block iva_clk_notifier = {
++       .notifier_call = dspbridge_post_scale,
++       NULL,
++};
++
++#else
++/* The handle for setting constraints */
++struct constraint_handle *dsp_constraint_handle;
++struct constraint_handle *mpu_constraint_handle;
+
+ static struct notifier_block omap34xxbridge_post_scale = {
+        .notifier_call = dspbridge_post_scale,
+@@ -286,6 +322,7 @@ static struct constraint_id cnstr_id_vdd1 = {
+ };
+ #endif
+ #endif
++#endif
+
+ static struct platform_driver bridge_driver_ldm = {
+       .driver = {
+@@ -318,6 +355,9 @@ static int __init bridge_init(void)
+        u32 temp;
+        dev_t   dev = 0 ;
+        int     result;
++#ifndef CONFIG_OMAP3_PM
++       u32 retvalue = 0;
++#endif
+
+        /* use 2.6 device model */
+        if (driver_major) {
+@@ -460,8 +500,27 @@ static int __init bridge_init(void)
+                        GT_0trace(driverTrace, GT_5CLASS,
+                                        "DSP/BIOS Bridge driver loaded\n");
+                }
+- #ifndef CONFIG_DISABLE_BRIDGE_PM
+- #ifndef CONFIG_DISABLE_BRIDGE_DVFS
++#ifndef CONFIG_DISABLE_BRIDGE_PM
++#ifndef CONFIG_DISABLE_BRIDGE_DVFS
++#ifndef CONFIG_OMAP3_PM
++               clk_handle = clk_get(NULL, "iva2_ck");
++               if (!clk_handle) {
++                       GT_0trace(driverTrace, GT_7CLASS,
++                       "clk_get failed to get iva2_ck \n");
++               } else {
++                       GT_0trace(driverTrace, GT_7CLASS,
++                       "clk_get PASS to get iva2_ck \n");
++               }
++               retvalue = clk_notifier_register(clk_handle, &iva_clk_notifier);
++               if (!retvalue) {
++                       GT_0trace(driverTrace, GT_7CLASS,
++                       "clk_notifier_register PASS for iva2_ck \n");
++               } else {
++                       GT_0trace(driverTrace, GT_7CLASS,
++                       "clk_notifier_register FAIL for iva2_ck \n");
++               }
++
++#else
+                /* Register for the constraints */
+                dsp_constraint_handle = constraint_get("dspbridge",
+                                                      &cnstr_id_vdd1);
+@@ -475,6 +534,7 @@ static int __init bridge_init(void)
+                                                 CO_VDD1_OPP5 + 1);
+ #endif
+ #endif
++#endif
+        }
+
+        DBC_Assert(status == 0);
+@@ -489,11 +549,28 @@ static void __exit bridge_exit(void)
+ {
+        dev_t devno;
+        bool ret;
++#ifndef CONFIG_OMAP3_PM
++       u32 retvalue = 0;
++#endif
+        GT_0trace(driverTrace, GT_ENTER, "-> driver_exit\n");
+
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
+        /* remove the constraints */
++#ifndef CONFIG_OMAP3_PM
++       retvalue = clk_notifier_unregister(clk_handle, &iva_clk_notifier);
++       if (!retvalue) {
++               GT_0trace(driverTrace, GT_7CLASS,
++               "clk_notifier_unregister PASS for iva2_ck \n");
++       } else {
++               GT_0trace(driverTrace, GT_7CLASS,
++               "clk_notifier_unregister PASS for iva2_ck \n");
++       }
++
++       clk_put(clk_handle);
++       clk_handle = NULL;
++
++#else
+        if (dsp_constraint_handle != NULL) {
+                GT_0trace(driverTrace, GT_7CLASS,
+                         "bridge_exit: remove constraints\n");
+@@ -522,6 +599,7 @@ static void __exit bridge_exit(void)
+                         "mpu_constraint_handle is NULL\n");
+
+        }
++#endif /*#ifndef CONFIG_OMAP3_PM*/
+ #endif /*#ifndef CONFIG_DISABLE_BRIDGE_DVFS*/
+ #endif /*#ifndef CONFIG_DISABLE_BRIDGE_PM*/
+        /* unregister bridge driver */
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index 65d2cdb..f760c0f 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -155,9 +155,14 @@
+
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
++#ifndef CONFIG_OMAP3_PM
++#include <mach/omap-pm.h>
++#include <mach/board-3430sdp.h>
++#else
+ #include <mach/resource.h>
+ #endif
+ #endif
++#endif
+
+ #define NODE_SIGNATURE      0x45444f4e /* "EDON" */
+ #define NODEMGR_SIGNATURE   0x52474d4e /* "RGMN" */
+@@ -373,9 +378,9 @@ static struct NLDR_FXNS nldrFxns = {
+
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
++#ifdef CONFIG_OMAP3_PM
+ extern struct constraint_handle *mpu_constraint_handle;
+-/*The maximum number of OPPs that DSP bridge can request */
+-extern s32 dsp_max_opps;
++#endif
+ #endif
+ #endif
+
+@@ -1360,14 +1365,21 @@ DSP_STATUS NODE_Create(struct NODE_OBJECT *hNode)
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
+                /* Boost the OPP level to max level that DSP can be requested */
++#ifndef CONFIG_OMAP3_PM
++               omap_pm_cpu_set_freq(vdd1_rate_table[VDD1_OPP3].speed);
++               GT_1trace(NODE_debugMask, GT_4CLASS, "opp level"
++               "after setting to VDD1_OPP3 is %d\n",
++               omap_pm_dsp_get_opp());
++#else
+                if (constraint_set(mpu_constraint_handle,
+-                  dsp_max_opps) != 0)
++                  CO_VDD1_OPP3) != 0)
+                        GT_1trace(NODE_debugMask, GT_4CLASS, "NODE_Create:"
+-                       "Constraint set of %d failed\n", dsp_max_opps);
++                       "Constraint set of %d failed\n", CO_VDD1_OPP3);
+                else
+                        GT_1trace(NODE_debugMask, GT_4CLASS, "NODE_Create:"
+                                 "Constraint set of %d passed\n",
+-                                dsp_max_opps);
++                                CO_VDD1_OPP3);
++#endif
+ #endif
+ #endif
+                status = hNodeMgr->nldrFxns.pfnLoad(hNode->hNldrNode,
+@@ -1387,6 +1399,12 @@ DSP_STATUS NODE_Create(struct NODE_OBJECT *hNode)
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
+                /* Request the lowest OPP level*/
++#ifndef CONFIG_OMAP3_PM
++               omap_pm_cpu_set_freq(vdd1_rate_table[VDD1_OPP1].speed);
++               GT_1trace(NODE_debugMask, GT_4CLASS, "opp level"
++               "after setting to VDD1_OPP1 is %d\n",
++               omap_pm_dsp_get_opp());
++#else
+                if (constraint_set(mpu_constraint_handle,
+                   (CO_VDD1_OPP1)) != 0) {
+                        GT_1trace(NODE_debugMask, GT_4CLASS,
+@@ -1398,6 +1416,7 @@ DSP_STATUS NODE_Create(struct NODE_OBJECT *hNode)
+                }
+ #endif
+ #endif
++#endif
+                /* Get address of iAlg functions, if socket node */
+                if (DSP_SUCCEEDED(status)) {
+                        if (nodeType == NODE_DAISSOCKET) {
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index 11c2e37..86a2c05 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -140,20 +140,25 @@
+ #include <dbdcd.h>
+ #include <dbreg.h>
+ #include <msg.h>
+-#include <pwr.h>
+ #include <wmdioctl.h>
+
+ /*  ----------------------------------- This */
+ #include <proc.h>
++#include <pwr.h>
+
+ #ifndef RES_CLEANUP_DISABLE
+ #include <resourcecleanup.h>
+ #endif
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
++#ifndef CONFIG_OMAP3_PM
++#include <mach/omap-pm.h>
++#include <mach/board-3430sdp.h>
++#else
+ #include <mach/resource.h>
+ #endif
+ #endif
++#endif
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ #define PROC_SIGNATURE    0x434F5250   /* "PROC" (in reverse). */
+ #define MAXCMDLINELEN       255
+@@ -195,9 +200,11 @@ static u32 cRefs;
+
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
++#ifdef CONFIG_OMAP3_PM
+ extern struct constraint_handle *mpu_constraint_handle;
+ #endif
+ #endif
++#endif
+
+ /*  ----------------------------------- Function Prototypes */
+ static DSP_STATUS PROC_Monitor(struct PROC_OBJECT *hProcessor);
+@@ -1198,6 +1205,9 @@ DSP_STATUS PROC_Load(DSP_HPROCESSOR hProcessor, IN CONST s32 iArgc,
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
+        /* Boost the OPP level to Maximum level supported by baseport*/
++#ifndef CONFIG_OMAP3_PM
++       omap_pm_cpu_set_freq(vdd1_rate_table[VDD1_OPP5].speed);
++#else
+        if (constraint_set(mpu_constraint_handle, CO_VDD1_OPP5) != 0)
+                GT_1trace(PROC_DebugMask, GT_4CLASS, "PROC_Load:"
+                          "Constraint set of %d failed\n", CO_VDD1_OPP5);
+@@ -1206,6 +1216,7 @@ DSP_STATUS PROC_Load(DSP_HPROCESSOR hProcessor, IN CONST s32 iArgc,
+                         "Constraint set of %d passed\n", CO_VDD1_OPP5);
+ #endif
+ #endif
++#endif
+                status = COD_LoadBase(hCodMgr, iArgc, (char **)aArgv,
+                                     DEV_BrdWriteFxn,
+                                     pProcObject->hDevObject, NULL);
+@@ -1226,6 +1237,9 @@ DSP_STATUS PROC_Load(DSP_HPROCESSOR hProcessor, IN CONST s32 iArgc,
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
+        /* Requesting the lowest opp supported by baseport*/
++#ifndef CONFIG_OMAP3_PM
++               omap_pm_cpu_set_freq(vdd1_rate_table[VDD1_OPP1].speed);
++#else
+                if (constraint_set(mpu_constraint_handle, CO_VDD1_OPP1) != 0)
+                        GT_1trace(PROC_DebugMask, GT_4CLASS, "PROC_Load:"
+                                 "Constraint setting of %d failed\n",
+@@ -1236,6 +1250,7 @@ DSP_STATUS PROC_Load(DSP_HPROCESSOR hProcessor, IN CONST s32 iArgc,
+                                 CO_VDD1_OPP1);
+ #endif
+ #endif
++#endif
+
+        }
+        if (DSP_SUCCEEDED(status)) {
+diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+index d21d450..d08421c 100644
+--- a/drivers/dsp/bridge/wmd/io_sm.c
++++ b/drivers/dsp/bridge/wmd/io_sm.c
+@@ -113,9 +113,13 @@
+ #include <host_os.h>
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
++#ifndef CONFIG_OMAP3_PM
++#include <mach/omap-pm.h>
++#else
+ #include <mach/resource.h>
+ #endif
+ #endif
++#endif
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+ #include <std.h>
+@@ -247,6 +251,7 @@ extern u32 DRV_GetFirstDevExtension();
+
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
++#ifdef CONFIG_OMAP3_PM
+ /* The maximum number of OPPs that are supported by Baseport */
+ extern s32 dsp_max_opps;
+ /* The Vdd1 opp table information */
+@@ -255,6 +260,7 @@ extern u32 vdd1_dsp_freq[6][4] ;
+ extern struct constraint_handle *dsp_constraint_handle;
+ #endif
+ #endif
++#endif
+ /*
+  *  ======== WMD_IO_Create ========
+  *      Create an IO manager object.
+@@ -368,9 +374,8 @@ DSP_STATUS WMD_IO_Destroy(struct IO_MGR *hIOMgr)
+                if (hIOMgr->hIRQ) {
+                        /* Disable interrupts from the board:  */
+                        if (DSP_SUCCEEDED(DEV_GetWMDContext(hIOMgr->hDevObject,
+-                          &hWmdContext))) {
++                          &hWmdContext)))
+                                DBC_Assert(hWmdContext);
+-                       }
+                        (void)CHNLSM_DisableInterrupt(hWmdContext);
+                        (void)ISR_Uninstall(hIOMgr->hIRQ);
+                        (void)DPC_Destroy(hIOMgr->hDPC);
+@@ -620,9 +625,8 @@ func_cont1:
+                         numBytes);
+                for (i = 0; i < 4; i++) {
+                        if (!(numBytes >= pgSize[i]) ||
+-                          !((allBits & (pgSize[i]-1)) == 0)) {
++                          !((allBits & (pgSize[i]-1)) == 0))
+                                continue;
+-                       }
+                        if (ndx < MAX_LOCK_TLB_ENTRIES) {
+                                /* This is the physical address written to
+                                 * DSP MMU */
+@@ -1748,7 +1752,11 @@ DSP_STATUS IO_SHMsetting(IN struct IO_MGR *hIOMgr, IN enum SHM_DESCTYPE desc,
+                DBG_Trace(DBG_LEVEL5, "OPP shared memory - max OPP number: "
+                         "%d\n", hIOMgr->pSharedMem->oppTableStruct.numOppPts);
+                /* Update the current OPP number */
++#ifndef CONFIG_OMAP3_PM
++               i = omap_pm_dsp_get_opp();
++#else
+                i = constraint_get_level(dsp_constraint_handle);
++#endif
+                hIOMgr->pSharedMem->oppTableStruct.currOppPt = i;
+                DBG_Trace(DBG_LEVEL7, "OPP value programmed to shared memory: "
+                         "%d\n", i);
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+index 4cc6a01..751884b 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+@@ -63,13 +63,23 @@
+ #include "_tiomap_util.h"
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
++#ifndef CONFIG_OMAP3_PM
++#include <mach/omap-pm.h>
++#include <mach/board-3430sdp.h>
++#else
+ #include <mach/resource.h>
+ #endif
+ #endif
++#endif
+ extern s32 dsp_test_sleepstate;
++
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
++#ifndef CONFIG_DISABLE_BRIDGE_DVFS
++#ifdef CONFIG_OMAP3_PM
+ extern struct constraint_handle *dsp_constraint_handle;
+ #endif
++#endif
++#endif
+ extern struct MAILBOX_CONTEXT mboxsetting;
+
+ extern void GetHWRegs(u32 prm_base, u32 cm_base);
+@@ -95,6 +105,10 @@ DSP_STATUS handle_constraints_set(struct WMD_DEV_CONTEXT *pDevContext,
+                                                  (u32)*(pConstraintVal+1));
+
+        /* Set the new constraint in resource framework */
++#ifndef CONFIG_OMAP3_PM
++       omap_pm_dsp_set_min_opp((u32)*(pConstraintVal+1));
++       return DSP_SOK;
++#else
+        if (constraint_set(dsp_constraint_handle,
+                           (u32)*(pConstraintVal+1)) == 0)
+                return DSP_SOK;
+@@ -103,6 +117,7 @@ DSP_STATUS handle_constraints_set(struct WMD_DEV_CONTEXT *pDevContext,
+                         "handle_constraints_set: Constraint set failed\n");
+                return DSP_EFAIL;
+        }
++#endif /*#ifndef CONFIG_OMAP3_PM*/
+ #endif /*#ifndef CONFIG_DISABLE_BRIDGE_DVFS*/
+ #endif /*#ifndef CONFIG_DISABLE_BRIDGE_PM*/
+        return DSP_SOK;
+@@ -162,12 +177,24 @@ DSP_STATUS handle_hibernation_fromDSP(struct WMD_DEV_CONTEXT *pDevContext)
+                                return status;
+                        IO_SHMsetting(hIOMgr, SHM_GETOPP, &opplevel);
+                        /* Set the OPP to low level before moving to OFF mode */
++#ifndef CONFIG_OMAP3_PM
++                       if (opplevel != VDD1_OPP1) {
++                               DBG_Trace(DBG_LEVEL5,
++                                       "Tiomap_pwr.c - DSP requested"
++                                       " OPP = %d, MPU requesting low"
++                                       " OPP %d instead\n", opplevel,
++                                       VDD1_OPP1);
++                               omap_pm_dsp_set_min_opp(VDD1_OPP1);
++                               status = DSP_SOK;
++                       }
++
++#else
+                        if (opplevel != CO_VDD1_OPP1) {
+-                                       DBG_Trace(DBG_LEVEL5,
+-                                               "Tiomap_pwr.c - DSP requested"
+-                                               " OPP = %d, MPU requesting low"
+-                                               " OPP %d instead\n", opplevel,
+-                                               CO_VDD1_OPP1);
++                               DBG_Trace(DBG_LEVEL5,
++                                       "Tiomap_pwr.c - DSP requested"
++                                       " OPP = %d, MPU requesting low"
++                                       " OPP %d instead\n", opplevel,
++                                       CO_VDD1_OPP1);
+                                if (constraint_set(dsp_constraint_handle,
+                                                  CO_VDD1_OPP1) != 0) {
+                                        DBG_Trace(DBG_LEVEL7,
+@@ -177,6 +204,7 @@ DSP_STATUS handle_hibernation_fromDSP(struct WMD_DEV_CONTEXT *pDevContext)
+                                }
+                        }
+ #endif
++#endif
+                } else {
+                        DBG_Trace(DBG_LEVEL7,
+                                 "handle_hibernation_fromDSP- FAILED\n");
+diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c b/drivers/dsp/bridge/wmd/tiomap_sm.c
+index 3143ad6..35f6a77 100644
+--- a/drivers/dsp/bridge/wmd/tiomap_sm.c
++++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
+@@ -69,10 +69,14 @@
+
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
++#ifndef CONFIG_OMAP3_PM
++#include <mach/omap-pm.h>
++#else
+ #include <mach/resource.h>
+ extern struct constraint_handle *dsp_constraint_handle;
+ #endif
+ #endif
++#endif
+
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ #ifndef DEBUG
+@@ -189,6 +193,18 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT *hDevContext)
+                pDevContext->dwBrdState = BRD_RUNNING;
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
++#ifndef CONFIG_OMAP3_PM
++               opplevel = omap_pm_dsp_get_opp();
++               /* If OPP is at minimum level, increase it before waking up
++               * the DSP */
++               if (opplevel == 1) {
++                       omap_pm_dsp_set_min_opp(opplevel+1);
++                       DBG_Trace(DBG_LEVEL7, "CHNLSM_InterruptDSP:Setting "
++                       "the vdd1 constraint level to %d before "
++                       "waking DSP \n", (opplevel + 1));
++               }
++
++#else
+                opplevel = constraint_get_level(dsp_constraint_handle);
+                /* If OPP is at minimum level, increase it before waking up
+                 * the DSP */
+@@ -206,6 +222,7 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT *hDevContext)
+
+ #endif
+ #endif
++#endif
+                /* Read MMU register to invoke short wakeup of DSP */
+                temp = (u32) *((REG_UWORD32 *) ((u32)
+                       (resources.dwDmmuBase) + 0x10));
+--
+1.5.6.4
+
