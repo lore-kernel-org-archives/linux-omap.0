@@ -1,601 +1,1221 @@
 From: "Ramirez Luna, Omar" <x00omar@ti.com>
-Subject: [PATCH 1/2] BRIDGE Power management changes
-Date: Fri, 29 Aug 2008 22:09:20 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53448FFBBD@dlee03.ent.ti.com>
+Subject: [PATCH 2/2] BRIDGE checkpatch cleanup
+Date: Fri, 29 Aug 2008 22:09:29 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53448FFBBE@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34728 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55897 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754728AbYH3DJ3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Aug 2008 23:09:29 -0400
+	id S1754948AbYH3DJj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Aug 2008 23:09:39 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 Cc: "Pasam, Vijay" <vpasam@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>
 
-On behalf of Ramesh Gupta, no credit for me.
+From: Omar Ramirez Luna <x00omar@ti.com>
+Date: Fri, 29 Aug 2008 21:20:39 -0500
+Subject: [PATCH] Bridge Checkpatch Cleanup
 
-From: Ramesh Gupta <grgupta@ti.com>
-Date: Fri, 29 Aug 2008 18:14:58 -0500
-Subject: [PATCH] BRIDGE Power management changes
+Deleted unused function typedefs and structures associated with them
 
-BRIDGE Power management changes
-
-Signed-off-by: Ramesh Gupta <grgupta@ti.com>
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+Signed-off-by: Omar Ramirez Luna <x00omar@ti.com>
 ---
- drivers/dsp/bridge/rmgr/drv_interface.c |  116 ++++++++++++++++++++++++++-----
- drivers/dsp/bridge/rmgr/node.c          |   29 +++++++--
- drivers/dsp/bridge/rmgr/proc.c          |   17 ++++-
- drivers/dsp/bridge/wmd/io_sm.c          |   16 +++-
- drivers/dsp/bridge/wmd/tiomap3430_pwr.c |   38 +++++++++--
- drivers/dsp/bridge/wmd/tiomap_sm.c      |   17 +++++
- 6 files changed, 199 insertions(+), 34 deletions(-)
+ arch/arm/plat-omap/include/mach/bridge/_chnl_sm.h  |    2 +
+ arch/arm/plat-omap/include/mach/bridge/cod.h       |   63 ++++-
+ arch/arm/plat-omap/include/mach/bridge/dbldefs.h   |  366 +++++++++++++++++++-
+ arch/arm/plat-omap/include/mach/bridge/dblldefs.h  |    4 +
+ arch/arm/plat-omap/include/mach/bridge/dev.h       |   21 +-
+ arch/arm/plat-omap/include/mach/bridge/dldr.h      |   75 ----
+ arch/arm/plat-omap/include/mach/bridge/dldrdefs.h  |  315 -----------------
+ .../arm/plat-omap/include/mach/bridge/getsection.h |    5 +-
+ arch/arm/plat-omap/include/mach/bridge/isr.h       |   65 ++++
+ arch/arm/plat-omap/include/mach/bridge/prcs.h      |   17 +-
+ arch/arm/plat-omap/include/mach/bridge/rmstypes.h  |    1 +
+ drivers/dsp/bridge/hw/GlobalTypes.h                |    7 +-
+ drivers/dsp/bridge/wmd/_msg_sm.h                   |    8 +-
+ 13 files changed, 548 insertions(+), 401 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/mach/bridge/dldr.h
+ delete mode 100644 arch/arm/plat-omap/include/mach/bridge/dldrdefs.h
 
-diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index 2369756..3bd831b 100644
---- a/drivers/dsp/bridge/rmgr/drv_interface.c
-+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -60,10 +60,14 @@
- #include <linux/cdev.h>
- #ifndef CONFIG_DISABLE_BRIDGE_PM
- #ifndef CONFIG_DISABLE_BRIDGE_DVFS
-+#ifndef CONFIG_OMAP3_PM
-+#include <mach/omap-pm.h>
-+#else
- #include <mach/resource.h>
- #include <mach/prcm_34xx.h>
- #endif
- #endif
-+#endif
+diff --git a/arch/arm/plat-omap/include/mach/bridge/_chnl_sm.h b/arch/arm/plat-omap/include/mach/bridge/_chnl_sm.h
+index f6a6c69..4bc2633 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/_chnl_sm.h
++++ b/arch/arm/plat-omap/include/mach/bridge/_chnl_sm.h
+@@ -110,6 +110,8 @@ struct loadMonStruct {
 
- /*  ----------------------------------- DSP/BIOS Bridge */
- #include <std.h>
-@@ -105,6 +109,16 @@
- #include <dbreg.h>
  #endif
 
-+#ifndef DISABLE_BRIDGE_PM
-+#ifndef DISABLE_BRIDGE_DVFS
-+#ifndef CONFIG_OMAP3_PM
-+#define PRCM_VDD1 1
-+struct clk *clk_handle;
-+#endif
-+#endif
-+#endif
++       typedef u32 SMWORD;
 +
+        enum SHM_DESCTYPE {
+                SHM_CURROPP = 0,
+                SHM_OPPINFO = 1,
+diff --git a/arch/arm/plat-omap/include/mach/bridge/cod.h b/arch/arm/plat-omap/include/mach/bridge/cod.h
+index 6a37da7..700efb6 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/cod.h
++++ b/arch/arm/plat-omap/include/mach/bridge/cod.h
+@@ -105,6 +105,27 @@
+                                             void *pBuf, u32 ulNumBytes,
+                                             u32 nMemSpace);
+
++       typedef bool(CDECL *COD_ALLOCFXN) (void *pPrivRef, u32 space,
++                                           u32 ulNumBytes, u32 ulAlign,
++                                           u32 *ulDspAddr, bool fReserved);
 +
- #define BRIDGE_NAME "C6410"
- /*  ----------------------------------- Globals */
- #define DRIVER_NAME  "DspBridge"
-@@ -243,38 +257,60 @@ static struct platform_device omap_dspbridge_dev = {
-
- #ifndef CONFIG_DISABLE_BRIDGE_PM
- #ifndef CONFIG_DISABLE_BRIDGE_DVFS
--/* The number of OPPs supported in the system */
--s32 dsp_max_opps = CO_VDD1_OPP5-2;
--u32 vdd1_dsp_freq[6][4] = {
--
--        {0, 0, 0, 0},
--
--        {0, 90000, 0, 86000},
-+#ifndef CONFIG_OMAP3_PM
-+/* Maximum Opps that can be requested by IVA*/
-+s32 dsp_max_opps = VDD1_OPP3;
-+/*vdd1 rate table*/
-+const struct vdd_prcm_config vdd1_rate_table[] = {
-+       {0, 0, 0},
-+       /*OPP1*/
-+       {S125M, VDD1_OPP1, 0},
-+       /*OPP2*/
-+       {S250M, VDD1_OPP2, 0},
-+       /*OPP3*/
-+       {S500M, VDD1_OPP3, 0},
-+       /*OPP4*/
-+       {S550M, VDD1_OPP4, 0},
-+       /*OPP5*/
-+       {S600M, VDD1_OPP5, 0},
-+};
-+#else
-+/* Maximum Opps that can be requested by IVA*/
-+s32 dsp_max_opps = CO_VDD1_OPP3;
-+#endif
-
-+u32 vdd1_dsp_freq[6][4] = {
-+       {0, 0, 0, 0},
-+       /*OPP1*/
-+       {0, 90000, 0, 86000},
-+       /*OPP2*/
-        {0, 180000, 80000, 170000},
--
-+       /*OPP3*/
-        {0, 360000, 160000, 340000},
--
-+       /*OPP4*/
-        {0, 396000, 325000, 376000},
--
-+       /*OPP5*/
-        {0, 430000, 355000, 430000},
- };
-
--/* The handle for setting constraints */
--struct constraint_handle *dsp_constraint_handle;
--struct constraint_handle *mpu_constraint_handle;
-
- static int dspbridge_post_scale(struct notifier_block *op, unsigned long level,
-                                void *ptr)
- {
--#ifndef CONFIG_DISABLE_BRIDGE_PM
--#ifndef CONFIG_DISABLE_BRIDGE_DVFS
-        PWR_PM_PostScale(PRCM_VDD1, level);
--#endif
--#endif
-        return 0;
- }
-
-+#ifndef CONFIG_OMAP3_PM
-+static struct notifier_block iva_clk_notifier = {
-+       .notifier_call = dspbridge_post_scale,
-+       NULL,
-+};
++       typedef bool(CDECL *COD_FREEFXN) (void *pPrivReg, u32 ulDspAddr,
++                                          u32 space, u32 ulNumBytes,
++                                          bool fReserved);
 +
-+#else
-+/* The handle for setting constraints */
-+struct constraint_handle *dsp_constraint_handle;
-+struct constraint_handle *mpu_constraint_handle;
++/*
++ *  ======== COD_LOADATTRS ========
++ *
++ *  Attributes that specify alloc, free, and write functions when loading
++ *  or unloading a section.
++ */
++        struct COD_LOADATTRS {
++               void *pWHandle; /* Handle to pass to write fxn */
++               void *pAHandle; /* Handle to pass to alloc/free fxns */
++               COD_WRITEFXN pfnWrite;
++               COD_ALLOCFXN pfnAlloc;
++               COD_FREEFXN pfnFree;
++       } ;
 
- static struct notifier_block omap34xxbridge_post_scale = {
-        .notifier_call = dspbridge_post_scale,
-@@ -286,6 +322,7 @@ static struct constraint_id cnstr_id_vdd1 = {
- };
- #endif
- #endif
-+#endif
-
- static struct platform_driver bridge_driver_ldm = {
-       .driver = {
-@@ -318,6 +355,9 @@ static int __init bridge_init(void)
-        u32 temp;
-        dev_t   dev = 0 ;
-        int     result;
-+#ifndef CONFIG_OMAP3_PM
-+       u32 retvalue = 0;
-+#endif
-
-        /* use 2.6 device model */
-        if (driver_major) {
-@@ -460,8 +500,27 @@ static int __init bridge_init(void)
-                        GT_0trace(driverTrace, GT_5CLASS,
-                                        "DSP/BIOS Bridge driver loaded\n");
-                }
-- #ifndef CONFIG_DISABLE_BRIDGE_PM
-- #ifndef CONFIG_DISABLE_BRIDGE_DVFS
-+#ifndef CONFIG_DISABLE_BRIDGE_PM
-+#ifndef CONFIG_DISABLE_BRIDGE_DVFS
-+#ifndef CONFIG_OMAP3_PM
-+               clk_handle = clk_get(NULL, "iva2_ck");
-+               if (!clk_handle) {
-+                       GT_0trace(driverTrace, GT_7CLASS,
-+                       "clk_get failed to get iva2_ck \n");
-+               } else {
-+                       GT_0trace(driverTrace, GT_7CLASS,
-+                       "clk_get PASS to get iva2_ck \n");
-+               }
-+               retvalue = clk_notifier_register(clk_handle, &iva_clk_notifier);
-+               if (!retvalue) {
-+                       GT_0trace(driverTrace, GT_7CLASS,
-+                       "clk_notifier_register PASS for iva2_ck \n");
-+               } else {
-+                       GT_0trace(driverTrace, GT_7CLASS,
-+                       "clk_notifier_register FAIL for iva2_ck \n");
-+               }
-+
-+#else
-                /* Register for the constraints */
-                dsp_constraint_handle = constraint_get("dspbridge",
-                                                      &cnstr_id_vdd1);
-@@ -475,6 +534,7 @@ static int __init bridge_init(void)
-                                                 CO_VDD1_OPP5 + 1);
- #endif
- #endif
-+#endif
-        }
-
-        DBC_Assert(status == 0);
-@@ -489,11 +549,28 @@ static void __exit bridge_exit(void)
- {
-        dev_t devno;
-        bool ret;
-+#ifndef CONFIG_OMAP3_PM
-+       u32 retvalue = 0;
-+#endif
-        GT_0trace(driverTrace, GT_ENTER, "-> driver_exit\n");
-
- #ifndef CONFIG_DISABLE_BRIDGE_PM
- #ifndef CONFIG_DISABLE_BRIDGE_DVFS
-        /* remove the constraints */
-+#ifndef CONFIG_OMAP3_PM
-+       retvalue = clk_notifier_unregister(clk_handle, &iva_clk_notifier);
-+       if (!retvalue) {
-+               GT_0trace(driverTrace, GT_7CLASS,
-+               "clk_notifier_unregister PASS for iva2_ck \n");
-+       } else {
-+               GT_0trace(driverTrace, GT_7CLASS,
-+               "clk_notifier_unregister PASS for iva2_ck \n");
-+       }
-+
-+       clk_put(clk_handle);
-+       clk_handle = NULL;
-+
-+#else
-        if (dsp_constraint_handle != NULL) {
-                GT_0trace(driverTrace, GT_7CLASS,
-                         "bridge_exit: remove constraints\n");
-@@ -522,6 +599,7 @@ static void __exit bridge_exit(void)
-                         "mpu_constraint_handle is NULL\n");
-
-        }
-+#endif /*#ifndef CONFIG_OMAP3_PM*/
- #endif /*#ifndef CONFIG_DISABLE_BRIDGE_DVFS*/
- #endif /*#ifndef CONFIG_DISABLE_BRIDGE_PM*/
-        /* unregister bridge driver */
-diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
-index 65d2cdb..f760c0f 100644
---- a/drivers/dsp/bridge/rmgr/node.c
-+++ b/drivers/dsp/bridge/rmgr/node.c
-@@ -155,9 +155,14 @@
-
- #ifndef CONFIG_DISABLE_BRIDGE_PM
- #ifndef CONFIG_DISABLE_BRIDGE_DVFS
-+#ifndef CONFIG_OMAP3_PM
-+#include <mach/omap-pm.h>
-+#include <mach/board-3430sdp.h>
-+#else
- #include <mach/resource.h>
- #endif
- #endif
-+#endif
-
- #define NODE_SIGNATURE      0x45444f4e /* "EDON" */
- #define NODEMGR_SIGNATURE   0x52474d4e /* "RGMN" */
-@@ -373,9 +378,9 @@ static struct NLDR_FXNS nldrFxns = {
-
- #ifndef CONFIG_DISABLE_BRIDGE_PM
- #ifndef CONFIG_DISABLE_BRIDGE_DVFS
-+#ifdef CONFIG_OMAP3_PM
- extern struct constraint_handle *mpu_constraint_handle;
--/*The maximum number of OPPs that DSP bridge can request */
--extern s32 dsp_max_opps;
-+#endif
- #endif
- #endif
-
-@@ -1360,14 +1365,21 @@ DSP_STATUS NODE_Create(struct NODE_OBJECT *hNode)
- #ifndef CONFIG_DISABLE_BRIDGE_PM
- #ifndef CONFIG_DISABLE_BRIDGE_DVFS
-                /* Boost the OPP level to max level that DSP can be requested */
-+#ifndef CONFIG_OMAP3_PM
-+               omap_pm_cpu_set_freq(vdd1_rate_table[VDD1_OPP3].speed);
-+               GT_1trace(NODE_debugMask, GT_4CLASS, "opp level"
-+               "after setting to VDD1_OPP3 is %d\n",
-+               omap_pm_dsp_get_opp());
-+#else
-                if (constraint_set(mpu_constraint_handle,
--                  dsp_max_opps) != 0)
-+                  CO_VDD1_OPP3) != 0)
-                        GT_1trace(NODE_debugMask, GT_4CLASS, "NODE_Create:"
--                       "Constraint set of %d failed\n", dsp_max_opps);
-+                       "Constraint set of %d failed\n", CO_VDD1_OPP3);
-                else
-                        GT_1trace(NODE_debugMask, GT_4CLASS, "NODE_Create:"
-                                 "Constraint set of %d passed\n",
--                                dsp_max_opps);
-+                                CO_VDD1_OPP3);
-+#endif
- #endif
- #endif
-                status = hNodeMgr->nldrFxns.pfnLoad(hNode->hNldrNode,
-@@ -1387,6 +1399,12 @@ DSP_STATUS NODE_Create(struct NODE_OBJECT *hNode)
- #ifndef CONFIG_DISABLE_BRIDGE_PM
- #ifndef CONFIG_DISABLE_BRIDGE_DVFS
-                /* Request the lowest OPP level*/
-+#ifndef CONFIG_OMAP3_PM
-+               omap_pm_cpu_set_freq(vdd1_rate_table[VDD1_OPP1].speed);
-+               GT_1trace(NODE_debugMask, GT_4CLASS, "opp level"
-+               "after setting to VDD1_OPP1 is %d\n",
-+               omap_pm_dsp_get_opp());
-+#else
-                if (constraint_set(mpu_constraint_handle,
-                   (CO_VDD1_OPP1)) != 0) {
-                        GT_1trace(NODE_debugMask, GT_4CLASS,
-@@ -1398,6 +1416,7 @@ DSP_STATUS NODE_Create(struct NODE_OBJECT *hNode)
-                }
- #endif
- #endif
-+#endif
-                /* Get address of iAlg functions, if socket node */
-                if (DSP_SUCCEEDED(status)) {
-                        if (nodeType == NODE_DAISSOCKET) {
-diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-index 11c2e37..86a2c05 100644
---- a/drivers/dsp/bridge/rmgr/proc.c
-+++ b/drivers/dsp/bridge/rmgr/proc.c
-@@ -140,20 +140,25 @@
- #include <dbdcd.h>
- #include <dbreg.h>
- #include <msg.h>
--#include <pwr.h>
- #include <wmdioctl.h>
-
- /*  ----------------------------------- This */
- #include <proc.h>
-+#include <pwr.h>
-
- #ifndef RES_CLEANUP_DISABLE
- #include <resourcecleanup.h>
- #endif
- #ifndef CONFIG_DISABLE_BRIDGE_PM
- #ifndef CONFIG_DISABLE_BRIDGE_DVFS
-+#ifndef CONFIG_OMAP3_PM
-+#include <mach/omap-pm.h>
-+#include <mach/board-3430sdp.h>
-+#else
- #include <mach/resource.h>
- #endif
- #endif
-+#endif
- /*  ----------------------------------- Defines, Data Structures, Typedefs */
- #define PROC_SIGNATURE    0x434F5250   /* "PROC" (in reverse). */
- #define MAXCMDLINELEN       255
-@@ -195,9 +200,11 @@ static u32 cRefs;
-
- #ifndef CONFIG_DISABLE_BRIDGE_PM
- #ifndef CONFIG_DISABLE_BRIDGE_DVFS
-+#ifdef CONFIG_OMAP3_PM
- extern struct constraint_handle *mpu_constraint_handle;
- #endif
- #endif
-+#endif
-
- /*  ----------------------------------- Function Prototypes */
- static DSP_STATUS PROC_Monitor(struct PROC_OBJECT *hProcessor);
-@@ -1198,6 +1205,9 @@ DSP_STATUS PROC_Load(DSP_HPROCESSOR hProcessor, IN CONST s32 iArgc,
- #ifndef CONFIG_DISABLE_BRIDGE_PM
- #ifndef CONFIG_DISABLE_BRIDGE_DVFS
-        /* Boost the OPP level to Maximum level supported by baseport*/
-+#ifndef CONFIG_OMAP3_PM
-+       omap_pm_cpu_set_freq(vdd1_rate_table[VDD1_OPP5].speed);
-+#else
-        if (constraint_set(mpu_constraint_handle, CO_VDD1_OPP5) != 0)
-                GT_1trace(PROC_DebugMask, GT_4CLASS, "PROC_Load:"
-                          "Constraint set of %d failed\n", CO_VDD1_OPP5);
-@@ -1206,6 +1216,7 @@ DSP_STATUS PROC_Load(DSP_HPROCESSOR hProcessor, IN CONST s32 iArgc,
-                         "Constraint set of %d passed\n", CO_VDD1_OPP5);
- #endif
- #endif
-+#endif
-                status = COD_LoadBase(hCodMgr, iArgc, (char **)aArgv,
-                                     DEV_BrdWriteFxn,
-                                     pProcObject->hDevObject, NULL);
-@@ -1226,6 +1237,9 @@ DSP_STATUS PROC_Load(DSP_HPROCESSOR hProcessor, IN CONST s32 iArgc,
- #ifndef CONFIG_DISABLE_BRIDGE_PM
- #ifndef CONFIG_DISABLE_BRIDGE_DVFS
-        /* Requesting the lowest opp supported by baseport*/
-+#ifndef CONFIG_OMAP3_PM
-+               omap_pm_cpu_set_freq(vdd1_rate_table[VDD1_OPP1].speed);
-+#else
-                if (constraint_set(mpu_constraint_handle, CO_VDD1_OPP1) != 0)
-                        GT_1trace(PROC_DebugMask, GT_4CLASS, "PROC_Load:"
-                                 "Constraint setting of %d failed\n",
-@@ -1236,6 +1250,7 @@ DSP_STATUS PROC_Load(DSP_HPROCESSOR hProcessor, IN CONST s32 iArgc,
-                                 CO_VDD1_OPP1);
- #endif
- #endif
-+#endif
-
-        }
-        if (DSP_SUCCEEDED(status)) {
-diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-index d21d450..d08421c 100644
---- a/drivers/dsp/bridge/wmd/io_sm.c
-+++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -113,9 +113,13 @@
- #include <host_os.h>
- #ifndef CONFIG_DISABLE_BRIDGE_PM
- #ifndef CONFIG_DISABLE_BRIDGE_DVFS
-+#ifndef CONFIG_OMAP3_PM
-+#include <mach/omap-pm.h>
-+#else
- #include <mach/resource.h>
- #endif
- #endif
-+#endif
-
- /*  ----------------------------------- DSP/BIOS Bridge */
- #include <std.h>
-@@ -247,6 +251,7 @@ extern u32 DRV_GetFirstDevExtension();
-
- #ifndef CONFIG_DISABLE_BRIDGE_PM
- #ifndef CONFIG_DISABLE_BRIDGE_DVFS
-+#ifdef CONFIG_OMAP3_PM
- /* The maximum number of OPPs that are supported by Baseport */
- extern s32 dsp_max_opps;
- /* The Vdd1 opp table information */
-@@ -255,6 +260,7 @@ extern u32 vdd1_dsp_freq[6][4] ;
- extern struct constraint_handle *dsp_constraint_handle;
- #endif
- #endif
-+#endif
  /*
-  *  ======== WMD_IO_Create ========
-  *      Create an IO manager object.
-@@ -368,9 +374,8 @@ DSP_STATUS WMD_IO_Destroy(struct IO_MGR *hIOMgr)
-                if (hIOMgr->hIRQ) {
-                        /* Disable interrupts from the board:  */
-                        if (DSP_SUCCEEDED(DEV_GetWMDContext(hIOMgr->hDevObject,
--                          &hWmdContext))) {
-+                          &hWmdContext)))
-                                DBC_Assert(hWmdContext);
--                       }
-                        (void)CHNLSM_DisableInterrupt(hWmdContext);
-                        (void)ISR_Uninstall(hIOMgr->hIRQ);
-                        (void)DPC_Destroy(hIOMgr->hDPC);
-@@ -620,9 +625,8 @@ func_cont1:
-                         numBytes);
-                for (i = 0; i < 4; i++) {
-                        if (!(numBytes >= pgSize[i]) ||
--                          !((allBits & (pgSize[i]-1)) == 0)) {
-+                          !((allBits & (pgSize[i]-1)) == 0))
-                                continue;
--                       }
-                        if (ndx < MAX_LOCK_TLB_ENTRIES) {
-                                /* This is the physical address written to
-                                 * DSP MMU */
-@@ -1748,7 +1752,11 @@ DSP_STATUS IO_SHMsetting(IN struct IO_MGR *hIOMgr, IN enum SHM_DESCTYPE desc,
-                DBG_Trace(DBG_LEVEL5, "OPP shared memory - max OPP number: "
-                         "%d\n", hIOMgr->pSharedMem->oppTableStruct.numOppPts);
-                /* Update the current OPP number */
-+#ifndef CONFIG_OMAP3_PM
-+               i = omap_pm_dsp_get_opp();
-+#else
-                i = constraint_get_level(dsp_constraint_handle);
+  *  ======== COD_Close ========
+@@ -356,6 +377,27 @@
+                                             COD_WRITEFXN pfnWrite, void *pArb,
+                                             char *envp[]);
+
++/*
++ *  ======== COD_LoadSection ========
++ *  Purpose:
++ *      Load a named section in the COFF file. (For overlay support).
++ *  Parameters:
++ *      hManager:       COD manager.
++ *      pstrSect:       Name of the section, with or without leading "."
++ *      pAttrs:         Specifies alloc, free, and write function.
++ *  Returns:
++ *      DSP_SOK:        Success
++ *      DSP_EFWRITE:    Failed to write section to target.
++ *  Requires:
++ *      COD module initialized.
++ *      valid hManager.
++ *      pstrSect != NULL;
++ *  Ensures:
++ *
++ */
++       extern DSP_STATUS CDECL COD_LoadSection(struct COD_MANAGER *hManager,
++                                             IN char *pstrSect,
++                                             IN struct COD_LOADATTRS *pAttrs);
+
+ /*
+  *  ======== COD_Open ========
+@@ -428,6 +470,25 @@ extern DSP_STATUS COD_OpenBase(struct COD_MANAGER *hMgr, IN char *pszCoffPath,
+                                                OUT char *pstrContent,
+                                                IN u32 cContentSize);
+
+-
++/*
++ *  ======== COD_UnloadSection ========
++ *  Purpose:
++ *      Unload a named section in the COFF file. (For overlay support).
++ *  Parameters:
++ *      hManager:   COD manager.
++ *      pstrSect:   name of the section, with or without leading "."
++ *      pAttrs:     Specifies free function.
++ *  Returns:
++ *      DSP_SOK:    Success.
++ *  Requires:
++ *      COD module initialized.
++ *      valid hManager.
++ *      pstrSect != NULL;
++ *  Ensures:
++ *
++ */
++       extern DSP_STATUS CDECL COD_UnloadSection(struct COD_MANAGER *hManager,
++                                             IN char *pstrSect,
++                                             IN struct COD_LOADATTRS *pAttrs);
+
+ #endif                         /* COD_ */
+diff --git a/arch/arm/plat-omap/include/mach/bridge/dbldefs.h b/arch/arm/plat-omap/include/mach/bridge/dbldefs.h
+index b25fd1c..645c796 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/dbldefs.h
++++ b/arch/arm/plat-omap/include/mach/bridge/dbldefs.h
+@@ -39,7 +39,10 @@
+
+ #define DBL_MAXPATHLENGTH       255
+
+-
++#ifndef _SIZE_T                        /* Linux sets _SIZE_T on defining size_t */
++typedef unsigned int size_t;
++#define _SIZE_T
 +#endif
-                hIOMgr->pSharedMem->oppTableStruct.currOppPt = i;
-                DBG_Trace(DBG_LEVEL7, "OPP value programmed to shared memory: "
-                         "%d\n", i);
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-index 4cc6a01..751884b 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-@@ -63,13 +63,23 @@
- #include "_tiomap_util.h"
- #ifndef CONFIG_DISABLE_BRIDGE_PM
- #ifndef CONFIG_DISABLE_BRIDGE_DVFS
-+#ifndef CONFIG_OMAP3_PM
-+#include <mach/omap-pm.h>
-+#include <mach/board-3430sdp.h>
-+#else
- #include <mach/resource.h>
- #endif
- #endif
-+#endif
- extern s32 dsp_test_sleepstate;
+
+ /*
+  *  ======== DBL_Flags ========
+@@ -77,7 +80,31 @@ struct DBL_Symbol {
+ typedef s32(*DBL_AllocFxn) (void *hdl, s32 space, u32 size, u32 align,
+                        u32 *dspAddr, s32 segId, s32 req, bool reserved);
+
++/*
++ *  ======== DBL_CinitFxn ========
++ *  Process .cinit records.
++ *  Parameters:
++ *      hdl             - Opaque handle
++ *      dspAddress      - DSP address of .cinit section
++ *      buf             - Buffer containing .cinit section
++ *      nBytes          - Size of .cinit section (host bytes)
++ *      mtype           - Page? (does not need to be used)
++ *
++ *  Returns:
++ *      nBytes          - Success
++ *      < nBytes        - Failure
++ *
++ *  Note: Cinit processing can either be done by the DSP, in which case
++ *  the .cinit section must have already been written, or on the host,
++ *  in which case we need to use the data in buf.
++ */
++typedef s32(*DBL_CinitFxn) (void *hdl, u32 dspAddr, void *buf,
++                           u32 nBytes, s32 mtype);
+
++/*
++ *  ======== DBL_CloseFxn ========
++ */
++typedef s32(*DBL_FCloseFxn) (void *);
+
+ /*
+  *  ======== DBL_FreeFxn ========
+@@ -88,6 +115,11 @@ typedef bool(*DBL_FreeFxn) (void *hdl, u32 addr, s32 space, u32 size,
+                            bool reserved);
+
+ /*
++ *  ======== DBL_FOpenFxn ========
++ */
++typedef void *(*DBL_FOpenFxn) (const char *, const char *);
 +
- #ifndef CONFIG_DISABLE_BRIDGE_PM
-+#ifndef CONFIG_DISABLE_BRIDGE_DVFS
-+#ifdef CONFIG_OMAP3_PM
- extern struct constraint_handle *dsp_constraint_handle;
- #endif
-+#endif
-+#endif
- extern struct MAILBOX_CONTEXT mboxsetting;
++/*
+  *  ======== DBL_LogWriteFxn ========
+  *  Function to call when writing data from a section, to log the info.
+  *  Can be NULL if no logging is required.
+@@ -95,6 +127,15 @@ typedef bool(*DBL_FreeFxn) (void *hdl, u32 addr, s32 space, u32 size,
+ typedef DSP_STATUS(*DBL_LogWriteFxn) (void *handle, struct DBL_SectInfo *sect,
+                                      u32 addr, u32 nBytes);
 
- extern void GetHWRegs(u32 prm_base, u32 cm_base);
-@@ -95,6 +105,10 @@ DSP_STATUS handle_constraints_set(struct WMD_DEV_CONTEXT *pDevContext,
-                                                  (u32)*(pConstraintVal+1));
-
-        /* Set the new constraint in resource framework */
-+#ifndef CONFIG_OMAP3_PM
-+       omap_pm_dsp_set_min_opp((u32)*(pConstraintVal+1));
-+       return DSP_SOK;
-+#else
-        if (constraint_set(dsp_constraint_handle,
-                           (u32)*(pConstraintVal+1)) == 0)
-                return DSP_SOK;
-@@ -103,6 +117,7 @@ DSP_STATUS handle_constraints_set(struct WMD_DEV_CONTEXT *pDevContext,
-                         "handle_constraints_set: Constraint set failed\n");
-                return DSP_EFAIL;
-        }
-+#endif /*#ifndef CONFIG_OMAP3_PM*/
- #endif /*#ifndef CONFIG_DISABLE_BRIDGE_DVFS*/
- #endif /*#ifndef CONFIG_DISABLE_BRIDGE_PM*/
-        return DSP_SOK;
-@@ -162,12 +177,24 @@ DSP_STATUS handle_hibernation_fromDSP(struct WMD_DEV_CONTEXT *pDevContext)
-                                return status;
-                        IO_SHMsetting(hIOMgr, SHM_GETOPP, &opplevel);
-                        /* Set the OPP to low level before moving to OFF mode */
-+#ifndef CONFIG_OMAP3_PM
-+                       if (opplevel != VDD1_OPP1) {
-+                               DBG_Trace(DBG_LEVEL5,
-+                                       "Tiomap_pwr.c - DSP requested"
-+                                       " OPP = %d, MPU requesting low"
-+                                       " OPP %d instead\n", opplevel,
-+                                       VDD1_OPP1);
-+                               omap_pm_dsp_set_min_opp(VDD1_OPP1);
-+                               status = DSP_SOK;
-+                       }
++/*
++ *  ======== DBL_ReadFxn ========
++ */
++typedef s32(*DBL_ReadFxn) (void *, size_t, size_t, void *);
 +
-+#else
-                        if (opplevel != CO_VDD1_OPP1) {
--                                       DBG_Trace(DBG_LEVEL5,
--                                               "Tiomap_pwr.c - DSP requested"
--                                               " OPP = %d, MPU requesting low"
--                                               " OPP %d instead\n", opplevel,
--                                               CO_VDD1_OPP1);
-+                               DBG_Trace(DBG_LEVEL5,
-+                                       "Tiomap_pwr.c - DSP requested"
-+                                       " OPP = %d, MPU requesting low"
-+                                       " OPP %d instead\n", opplevel,
-+                                       CO_VDD1_OPP1);
-                                if (constraint_set(dsp_constraint_handle,
-                                                  CO_VDD1_OPP1) != 0) {
-                                        DBG_Trace(DBG_LEVEL7,
-@@ -177,6 +204,7 @@ DSP_STATUS handle_hibernation_fromDSP(struct WMD_DEV_CONTEXT *pDevContext)
-                                }
-                        }
- #endif
-+#endif
-                } else {
-                        DBG_Trace(DBG_LEVEL7,
-                                 "handle_hibernation_fromDSP- FAILED\n");
-diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c b/drivers/dsp/bridge/wmd/tiomap_sm.c
-index 3143ad6..35f6a77 100644
---- a/drivers/dsp/bridge/wmd/tiomap_sm.c
-+++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
-@@ -69,10 +69,14 @@
++/*
++ *  ======== DBL_SeekFxn ========
++ */
++typedef s32(*DBL_SeekFxn) (void *, long, int);
 
- #ifndef CONFIG_DISABLE_BRIDGE_PM
- #ifndef CONFIG_DISABLE_BRIDGE_DVFS
-+#ifndef CONFIG_OMAP3_PM
-+#include <mach/omap-pm.h>
-+#else
- #include <mach/resource.h>
- extern struct constraint_handle *dsp_constraint_handle;
- #endif
- #endif
-+#endif
+ /*
+  *  ======== DBL_SymLookup ========
+@@ -113,6 +154,10 @@ typedef DSP_STATUS(*DBL_LogWriteFxn) (void *handle, struct DBL_SectInfo *sect,
+ typedef bool(*DBL_SymLookup) (void *handle, void *pArg, void *rmmHandle,
+                              const char *name, struct DBL_Symbol **sym);
 
- /*  ----------------------------------- Defines, Data Structures, Typedefs */
- #ifndef DEBUG
-@@ -189,6 +193,18 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT *hDevContext)
-                pDevContext->dwBrdState = BRD_RUNNING;
- #ifndef CONFIG_DISABLE_BRIDGE_PM
- #ifndef CONFIG_DISABLE_BRIDGE_DVFS
-+#ifndef CONFIG_OMAP3_PM
-+               opplevel = omap_pm_dsp_get_opp();
-+               /* If OPP is at minimum level, increase it before waking up
-+               * the DSP */
-+               if (opplevel == 1) {
-+                       omap_pm_dsp_set_min_opp(opplevel+1);
-+                       DBG_Trace(DBG_LEVEL7, "CHNLSM_InterruptDSP:Setting "
-+                       "the vdd1 constraint level to %d before "
-+                       "waking DSP \n", (opplevel + 1));
-+               }
++/*
++ *  ======== DBL_TellFxn ========
++ */
++typedef s32(*DBL_TellFxn) (void *);
+
+ /*
+  *  ======== DBL_WriteFxn ========
+@@ -152,4 +197,323 @@ struct DBL_Attrs {
+        void *(*fopen) (const char *, const char *);
+ } ;
+
++/*
++ *  ======== DBL_close ========
++ *  Close library opened with DBL_open.
++ *  Parameters:
++ *      lib             - Handle returned from DBL_open().
++ *  Returns:
++ *  Requires:
++ *      DBL initialized.
++ *      Valid lib.
++ *  Ensures:
++ */
++typedef void(*DBL_CloseFxn) (struct DBL_LibraryObj *library);
 +
-+#else
-                opplevel = constraint_get_level(dsp_constraint_handle);
-                /* If OPP is at minimum level, increase it before waking up
-                 * the DSP */
-@@ -206,6 +222,7 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT *hDevContext)
++/*
++ *  ======== DBL_create ========
++ *  Create a target object, specifying the alloc, free, and write functions.
++ *  Parameters:
++ *      pTarget         - Location to store target handle on output.
++ *      pAttrs          - Attributes.
++ *  Returns:
++ *      DSP_SOK:        Success.
++ *      DSP_EMEMORY:    Memory allocation failed.
++ *  Requires:
++ *      DBL initialized.
++ *      pAttrs != NULL.
++ *      pTarget != NULL;
++ *  Ensures:
++ *      Success:        *pTarget != NULL.
++ *      Failure:        *pTarget == NULL.
++ */
++typedef DSP_STATUS(*DBL_CreateFxn) (struct DBL_TargetObj **pTarget,
++                                   struct DBL_Attrs *attrs);
++
++/*
++ *  ======== DBL_delete ========
++ *  Delete target object and free resources for any loaded libraries.
++ *  Parameters:
++ *      target          - Handle returned from DBL_Create().
++ *  Returns:
++ *  Requires:
++ *      DBL initialized.
++ *      Valid target.
++ *  Ensures:
++ */
++typedef void(*DBL_DeleteFxn) (struct DBL_TargetObj *target);
++
++/*
++ *  ======== DBL_exit ========
++ *  Discontinue use of DBL module.
++ *  Parameters:
++ *  Returns:
++ *  Requires:
++ *      cRefs > 0.
++ *  Ensures:
++ *      cRefs >= 0.
++ */
++typedef void(*DBL_ExitFxn) (void);
++
++/*
++ *  ======== DBL_getAddr ========
++ *  Get address of name in the specified library.
++ *  Parameters:
++ *      lib             - Handle returned from DBL_open().
++ *      name            - Name of symbol
++ *      ppSym           - Location to store symbol address on output.
++ *  Returns:
++ *      TRUE:           Success.
++ *      FALSE:          Symbol not found.
++ *  Requires:
++ *      DBL initialized.
++ *      Valid library.
++ *      name != NULL.
++ *      ppSym != NULL.
++ *  Ensures:
++ */
++typedef bool(*DBL_GetAddrFxn) (struct DBL_LibraryObj *lib, char *name,
++                              struct DBL_Symbol **ppSym);
++
++/*
++ *  ======== DBL_getAttrs ========
++ *  Retrieve the attributes of the target.
++ *  Parameters:
++ *      target          - Handle returned from DBL_Create().
++ *      pAttrs          - Location to store attributes on output.
++ *  Returns:
++ *  Requires:
++ *      DBL initialized.
++ *      Valid target.
++ *      pAttrs != NULL.
++ *  Ensures:
++ */
++typedef void(*DBL_GetAttrsFxn) (struct DBL_TargetObj *target,
++                               struct DBL_Attrs *attrs);
++
++/*
++ *  ======== DBL_getCAddr ========
++ *  Get address of "C" name on the specified library.
++ *  Parameters:
++ *      lib             - Handle returned from DBL_open().
++ *      name            - Name of symbol
++ *      ppSym           - Location to store symbol address on output.
++ *  Returns:
++ *      TRUE:           Success.
++ *      FALSE:          Symbol not found.
++ *  Requires:
++ *      DBL initialized.
++ *      Valid target.
++ *      name != NULL.
++ *      ppSym != NULL.
++ *  Ensures:
++ */
++typedef bool(*DBL_GetCAddrFxn) (struct DBL_LibraryObj *lib, char *name,
++                               struct DBL_Symbol **ppSym);
++
++/*
++ *  ======== DBL_getSect ========
++ *  Get address and size of a named section.
++ *  Parameters:
++ *      lib             - Library handle returned from DBL_open().
++ *      name            - Name of section.
++ *      pAddr           - Location to store section address on output.
++ *      pSize           - Location to store section size on output.
++ *  Returns:
++ *      DSP_SOK:        Success.
++ *      DSP_ENOSECT:    Section not found.
++ *  Requires:
++ *      DBL initialized.
++ *      Valid lib.
++ *      name != NULL.
++ *      pAddr != NULL;
++ *      pSize != NULL.
++ *  Ensures:
++ */
++typedef DSP_STATUS(*DBL_GetSectFxn) (struct DBL_LibraryObj *lib, char *name,
++                                    u32 *addr, u32 *size);
++
++/*
++ *  ======== DBL_init ========
++ *  Initialize DBL module.
++ *  Parameters:
++ *  Returns:
++ *      TRUE:           Success.
++ *      FALSE:          Failure.
++ *  Requires:
++ *      cRefs >= 0.
++ *  Ensures:
++ *      Success:        cRefs > 0.
++ *      Failure:        cRefs >= 0.
++ */
++typedef bool(*DBL_InitFxn) (void);
++
++/*
++ *  ======== DBL_load ========
++ *  Load library onto the target.
++ *
++ *  Parameters:
++ *      lib             - Library handle returned from DBL_open().
++ *      flags           - Load code, data and/or symbols.
++ *      attrs           - May contain alloc, free, and write function.
++ *      pulEntry        - Location to store program entry on output.
++ *  Returns:
++ *      DSP_SOK:        Success.
++ *      DSP_EFREAD:     File read failed.
++ *      DSP_EFWRITE:    Write to target failed.
++ *      DSP_EDYNLOAD:   Failure in dynamic loader library.
++ *  Requires:
++ *      DBL initialized.
++ *      Valid lib.
++ *      pEntry != NULL.
++ *  Ensures:
++ */
++typedef DSP_STATUS(*DBL_LoadFxn) (struct DBL_LibraryObj *lib, DBL_Flags flags,
++                                 struct DBL_Attrs *attrs, u32 *entry);
++
++/*
++ *  ======== DBL_loadSect ========
++ *  Load a named section from an library (for overlay support).
++ *  Parameters:
++ *      lib             - Handle returned from DBL_open().
++ *      sectName        - Name of section to load.
++ *      attrs           - Contains write function and handle to pass to it.
++ *  Returns:
++ *      DSP_SOK:        Success.
++ *      DSP_ENOSECT:    Section not found.
++ *      DSP_EFWRITE:    Write function failed.
++ *      DSP_ENOTIMPL:   Function not implemented.
++ *  Requires:
++ *      Valid lib.
++ *      sectName != NULL.
++ *      attrs != NULL.
++ *      attrs->write != NULL.
++ *  Ensures:
++ */
++typedef DSP_STATUS(*DBL_LoadSectFxn) (struct DBL_LibraryObj *lib,
++                                     char *pszSectName,
++                                     struct DBL_Attrs *attrs);
++
++/*
++ *  ======== DBL_open ========
++ *  DBL_open() returns a library handle that can be used to load/unload
++ *  the symbols/code/data via DBL_load()/DBL_unload().
++ *  Parameters:
++ *      target          - Handle returned from DBL_create().
++ *      file            - Name of file to open.
++ *      flags           - If flags & DBL_SYMB, load symbols.
++ *      pLib            - Location to store library handle on output.
++ *  Returns:
++ *      DSP_SOK:            Success.
++ *      DSP_EMEMORY:        Memory allocation failure.
++ *      DSP_EFOPEN:         File open failure.
++ *      DSP_EFREAD:         File read failure.
++ *      DSP_ECORRUPTFILE:   Unable to determine target type.
++ *  Requires:
++ *      DBL initialized.
++ *      Valid target.
++ *      file != NULL.
++ *      pLib != NULL.
++ *      DBL_Attrs fopen function non-NULL.
++ *  Ensures:
++ *      Success:        Valid *pLib.
++ *      Failure:        *pLib == NULL.
++ */
++typedef DSP_STATUS(*DBL_OpenFxn) (struct DBL_TargetObj *target, char *file,
++                                 DBL_Flags flags,
++                                 struct DBL_LibraryObj **pLib);
++
++/*
++ *  ======== DBL_readSect ========
++ *  Read COFF section into a character buffer.
++ *  Parameters:
++ *      lib             - Library handle returned from DBL_open().
++ *      name            - Name of section.
++ *      pBuf            - Buffer to write section contents into.
++ *      size            - Buffer size
++ *  Returns:
++ *      DSP_SOK:        Success.
++ *      DSP_ENOSECT:    Named section does not exists.
++ *  Requires:
++ *      DBL initialized.
++ *      Valid lib.
++ *      name != NULL.
++ *      pBuf != NULL.
++ *      size != 0.
++ *  Ensures:
++ */
++typedef DSP_STATUS(*DBL_ReadSectFxn) (struct DBL_LibraryObj *lib, char *name,
++                                     char *content, u32 uContentSize);
++
++/*
++ *  ======== DBL_setAttrs ========
++ *  Set the attributes of the target.
++ *  Parameters:
++ *      target          - Handle returned from DBL_create().
++ *      pAttrs          - New attributes.
++ *  Returns:
++ *  Requires:
++ *      DBL initialized.
++ *      Valid target.
++ *      pAttrs != NULL.
++ *  Ensures:
++ */
++typedef void(*DBL_SetAttrsFxn) (struct DBL_TargetObj *target,
++                               struct DBL_Attrs *attrs);
++
++/*
++ *  ======== DBL_unload ========
++ *  Unload library loaded with DBL_load().
++ *  Parameters:
++ *      lib             - Handle returned from DBL_open().
++ *      attrs           - Contains free() function and handle to pass to it.
++ *  Returns:
++ *  Requires:
++ *      DBL initialized.
++ *      Valid lib.
++ *  Ensures:
++ */
++typedef void(*DBL_UnloadFxn) (struct DBL_LibraryObj *library,
++                             struct DBL_Attrs *attrs);
++
++/*
++ *  ======== DBL_unloadSect ========
++ *  Unload a named section from an library (for overlay support).
++ *  Parameters:
++ *      lib             - Handle returned from DBL_open().
++ *      sectName        - Name of section to load.
++ *      attrs           - Contains free() function and handle to pass to it.
++ *  Returns:
++ *      DSP_SOK:        Success.
++ *      DSP_ENOSECT:    Named section not found.
++ *      DSP_ENOTIMPL
++ *  Requires:
++ *      DBL initialized.
++ *      Valid lib.
++ *      sectName != NULL.
++ *  Ensures:
++ */
++typedef DSP_STATUS(*DBL_UnloadSectFxn) (struct DBL_LibraryObj *lib,
++                                       char *pszSectName,
++                                       struct DBL_Attrs *attrs);
++
++struct DBL_Fxns {
++       DBL_CloseFxn closeFxn;
++       DBL_CreateFxn createFxn;
++       DBL_DeleteFxn deleteFxn;
++       DBL_ExitFxn exitFxn;
++       DBL_GetAttrsFxn getAttrsFxn;
++       DBL_GetAddrFxn getAddrFxn;
++       DBL_GetCAddrFxn getCAddrFxn;
++       DBL_GetSectFxn getSectFxn;
++       DBL_InitFxn initFxn;
++       DBL_LoadFxn loadFxn;
++       DBL_LoadSectFxn loadSectFxn;
++       DBL_OpenFxn openFxn;
++       DBL_ReadSectFxn readSectFxn;
++       DBL_SetAttrsFxn setAttrsFxn;
++       DBL_UnloadFxn unloadFxn;
++       DBL_UnloadSectFxn unloadSectFxn;
++};
++
+ #endif                         /* DBLDEFS_ */
+diff --git a/arch/arm/plat-omap/include/mach/bridge/dblldefs.h b/arch/arm/plat-omap/include/mach/bridge/dblldefs.h
+index 8d392f8..97b7baa 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/dblldefs.h
++++ b/arch/arm/plat-omap/include/mach/bridge/dblldefs.h
+@@ -40,6 +40,10 @@
 
- #endif
- #endif
+ #define DBLL_MAXPATHLENGTH       255
+
++#ifndef _SIZE_T
++typedef unsigned int size_t;
++#define _SIZE_T
 +#endif
-                /* Read MMU register to invoke short wakeup of DSP */
-                temp = (u32) *((REG_UWORD32 *) ((u32)
-                       (resources.dwDmmuBase) + 0x10));
+
+ /*
+  *  ======== DBLL_Target ========
+diff --git a/arch/arm/plat-omap/include/mach/bridge/dev.h b/arch/arm/plat-omap/include/mach/bridge/dev.h
+index a045209..fae1b2c 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/dev.h
++++ b/arch/arm/plat-omap/include/mach/bridge/dev.h
+@@ -93,6 +93,8 @@
+ /*  ----------------------------------- This */
+ #include <devdefs.h>
+
++/* Notification callback for DEV clients BRD and CHNL */
++       typedef void(CDECL *DEV_CALLBACK) (void *pArb, u32 ulStatus);
+
+ /*
+  *  ======== DEV_BrdWriteFxn ========
+@@ -715,7 +717,24 @@
+        extern DSP_STATUS CDECL DEV_NotifyClients(struct DEV_OBJECT *hDevObject,
+                                                  u32 ulStatus);
+
+-
++/*
++ *  ======== DEV_RegisterNotify ========
++ *  Purpose:
++ *      Register a callback function and callback argument for DEV to call
++ *      when a change in device status occurs.
++ *  Parameters:
++ *      hDevObject:  Handle to device object created with DEV_CreateDevice().
++ *  Returns:
++ *      DSP_SOK:       Success.
++ *      DSP_EHANDLE:   Invalid Dev Object handle.
++ *  Requires:
++ *      DEV Initialized.
++ *  Ensures:
++ */
++       extern DSP_STATUS CDECL DEV_RegisterNotify(struct DEV_OBJECT
++                                                  *hDevObject,
++                                                  void *pArb,
++                                                  DEV_CALLBACK lpCallback);
+
+ /*
+  *  ======== DEV_RemoveDevice ========
+diff --git a/arch/arm/plat-omap/include/mach/bridge/dldr.h b/arch/arm/plat-omap/include/mach/bridge/dldr.h
+deleted file mode 100644
+index 6a21b6f..0000000
+--- a/arch/arm/plat-omap/include/mach/bridge/dldr.h
++++ /dev/null
+@@ -1,75 +0,0 @@
+-/*
+- * bridge/inc/dldr.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-
+-/*
+- *  ======== dldr.h ========
+- *
+- *  Description:
+- *      DSP/BIOS Bridge dynamic loader interface. See the file dldrdefs.h
+- *  for a description of these functions.
+- *
+- *  Public Functions:
+- *      DLDR_Allocate
+- *      DLDR_Create
+- *      DLDR_Delete
+- *      DLDR_Exit
+- *      DLDR_Free
+- *      DLDR_GetFxnAddr
+- *      DLDR_Init
+- *      DLDR_Load
+- *      DLDR_Unload
+- *
+- *  Notes:
+- *
+- *! Revision History
+- *! ================
+- *! 31-Jul-2002 jeh     Removed function header comments.
+- *! 17-Apr-2002 jeh     Created.
+- */
+-
+-#include <dbdefs.h>
+-#include <dbdcddef.h>
+-#include <dldrdefs.h>
+-
+-#ifndef DLDR_
+-#define DLDR_
+-
+-       extern DSP_STATUS DLDR_Allocate(struct DLDR_OBJECT *hDldr,
+-                                       void *pPrivRef,
+-                                       IN CONST struct DCD_NODEPROPS
+-                                       *pNodeProps,
+-                                       OUT struct DLDR_NODEOBJECT
+-                                       **phDldrNode);
+-
+-       extern DSP_STATUS DLDR_Create(OUT struct DLDR_OBJECT **phDldr,
+-                                     struct DEV_OBJECT *hDevObject,
+-                                     IN CONST struct DLDR_ATTRS *pAttrs);
+-
+-       extern void DLDR_Delete(struct DLDR_OBJECT *hDldr);
+-       extern void DLDR_Exit();
+-       extern void DLDR_Free(struct DLDR_NODEOBJECT *hDldrNode);
+-
+-       extern DSP_STATUS DLDR_GetFxnAddr(struct DLDR_NODEOBJECT *hDldrNode,
+-                                         char *pstrFxn, u32 *pulAddr);
+-
+-       extern bool DLDR_Init();
+-       extern DSP_STATUS DLDR_Load(struct DLDR_NODEOBJECT *hDldrNode,
+-                                   enum DLDR_PHASE phase);
+-       extern DSP_STATUS DLDR_Unload(struct DLDR_NODEOBJECT *hDldrNode,
+-                                   enum DLDR_PHASE phase);
+-
+-#endif                         /* DLDR_ */
+diff --git a/arch/arm/plat-omap/include/mach/bridge/dldrdefs.h b/arch/arm/plat-omap/include/mach/bridge/dldrdefs.h
+deleted file mode 100644
+index cf20c14..0000000
+--- a/arch/arm/plat-omap/include/mach/bridge/dldrdefs.h
++++ /dev/null
+@@ -1,315 +0,0 @@
+-/*
+- * bridge/inc/dldrdefs.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-
+-/*
+- *  ======== dldrdefs.h ========
+- *
+- *  Description:
+- *      DSP/BIOS Bridge loader interface. This is the interface shared by
+- *  all loaders (eg, static loader and dynamic loader). This interface will
+- *  be used by NODE.
+- *
+- *! Revision History
+- *! ================
+- *! 16-Sep-2002 map Updated with code review changes
+- *! 24-Apr-2002 jeh     Added DLDR_WRITEFXN.
+- *! 05-Nov-2001 jeh     Changed some function error return codes.
+- *! 17-Sep-2001 jeh     Added function typedefs.
+- *! 22-Aug-2001 jeh     Created.
+- */
+-
+-#ifndef DLDRDEFS_
+-#define DLDRDEFS_
+-
+-#include <dbdcddef.h>
+-#include <dev.h>
+-
+-#define DLDR_MAXPATHLENGTH       255
+-
+-/* DLDR Objects: */
+-       struct DLDR_OBJECT;
+-       struct DLDR_NODEOBJECT;
+-
+-/*
+- *  ======== DLDR_LOADTYPE ========
+- *  Load types for a node. Must match values in node.h55.
+- */
+-       enum DLDR_LOADTYPE {
+-               DLDR_STATICLOAD,        /* Linked in base image, not overlay */
+-               DLDR_DYNAMICLOAD,       /* Dynamically loaded node */
+-               DLDR_OVLYLOAD   /* Linked in base image, overlay node */
+-       } ;
+-
+-/*
+- *  ======== DLDR_OVLYFXN ========
+- *  Causes code or data to be copied from load address to run address. This
+- *  is the "COD_WRITEFXN" that gets passed to the DBL_Library and is used as
+- *  the ZL write function.
+- *
+- *  Parameters:
+- *      pPrivRef:       Handle to identify the node.
+- *      ulDspRunAddr:   Run address of code or data.
+- *      ulDspLoadAddr:  Load address of code or data.
+- *      ulNumBytes:     Number of (GPP) bytes to copy.
+- *      nMemSpace:      RMS_CODE or RMS_DATA.
+- *  Returns:
+- *      ulNumBytes:     Success.
+- *      0:              Failure.
+- *  Requires:
+- *  Ensures:
+- */
+-       typedef u32(CDECL *DLDR_OVLYFXN) (void *pPrivRef, u32 ulDspRunAddr,
+-                                            u32 ulDspLoadAddr,
+-                                            u32 ulNumBytes, u32 nMemSpace);
+-
+-/*
+- *  ======== DLDR_WRITEFXN ========
+- *  Write memory function. Used for dynamic load writes.
+- *  Parameters:
+- *      pPrivRef:       Handle to identify the node.
+- *      ulDspAddr:      Address of code or data.
+- *      pBuf:           Code or data to be written
+- *      ulNumBytes:     Number of (GPP) bytes to write.
+- *      nMemSpace:      DBL_DATA or DBL_CODE.
+- *  Returns:
+- *      ulNumBytes:     Success.
+- *      0:              Failure.
+- *  Requires:
+- *  Ensures:
+- */
+-       typedef u32(CDECL *DLDR_WRITEFXN) (void *pPrivRef,
+-                                             u32 ulDspAddr,
+-                                             void *pBuf,
+-                                             u32 ulNumBytes, u32 nMemSpace);
+-
+-/*
+- *  ======== DLDR_ATTRS ========
+- *  Attributes passed to DLDR_Create function.
+- */
+-       struct DLDR_ATTRS {
+-               DLDR_OVLYFXN pfnOvly;
+-               DLDR_WRITEFXN pfnWrite;
+-               u16 usDSPWordSize;
+-               u16 usDSPMauSize;
+-       } ;
+-
+-/*
+- *  ======== DLDR_PHASE ========
+- *  Indicates node create, delete, or execute phase function.
+- */
+-       enum DLDR_PHASE {
+-               DLDR_CREATE,
+-               DLDR_DELETE,
+-               DLDR_EXECUTE,
+-               DLDR_NOPHASE
+-       } ;
+-
+-/*
+- *  Typedefs of loader functions imported from a DLL, or defined in a
+- *  function table.
+- */
+-
+-/*
+- *  ======== DLDR_Allocate ========
+- *  Allocate resources to manage the loading of a node on the DSP.
+- *
+- *  Parameters:
+- *      hDldr:          Handle of loader that will load the node.
+- *      pPrivRef:       Handle to identify the node.
+- *      pNodeProps:     Pointer to a DCD_NODEPROPS for the node.
+- *      phDldrNode:     Location to store node handle on output. This handle
+- *                      will be passed to DLDR_Load/DLDR_Unload.
+- *      pfPhaseSplit:   pointer to boolean variable referenced in node.c
+- *  Returns:
+- *      DSP_SOK:        Success.
+- *      DSP_EMEMORY:    Insufficient memory on GPP.
+- *  Requires:
+- *      DLDR_Init() called.
+- *      Valid hDldr.
+- *      pNodeProps != NULL.
+- *      phDldrNode != NULL.
+- *  Ensures:
+- *      DSP_SOK:        IsValidNode(*phDldrNode).
+- *      error:          *phDldrNode == NULL.
+- */
+-       typedef DSP_STATUS(*DLDR_ALLOCATEFXN) (struct DLDR_OBJECT *hDldr,
+-                                              void *pPrivRef,
+-                                              IN CONST struct DCD_NODEPROPS *
+-                                              pNodeProps,
+-                                              OUT struct DLDR_NODEOBJECT
+-                                              **phDldrNode,
+-                                              OUT bool *pfPhaseSplit);
+-
+-/*
+- *  ======== DLDR_Create ========
+- *  Create a loader object. This object handles the loading and unloading of
+- *  create, delete, and execute phase functions of nodes on the DSP target.
+- *
+- *  Parameters:
+- *      phDldr:         Location to store loader handle on output.
+- *      hDevObject:     Device for this processor.
+- *      pAttrs:         Loader attributes.
+- *  Returns:
+- *      DSP_SOK:                Success;
+- *      DSP_EMEMORY:            Insufficient memory for requested resources.
+- *  Requires:
+- *      DLDR_Init() called.
+- *      phDldr != NULL.
+- *      hDevObject != NULL.
+- *  pAttrs != NULL.
+- *  Ensures:
+- *      DSP_SOK:        Valid *phDldr.
+- *      error:          *phDldr == NULL.
+- */
+-       typedef DSP_STATUS(*DLDR_CREATEFXN) (OUT struct DLDR_OBJECT **phDldr,
+-                                            struct DEV_OBJECT *hDevObject,
+-                                            IN CONST struct DLDR_ATTRS
+-                                            *pAttrs);
+-
+-/*
+- *  ======== DLDR_Delete ========
+- *  Delete the DLDR loader.
+- *
+- *  Parameters:
+- *      hDldr:          Node manager object.
+- *  Returns:
+- *  Requires:
+- *      DLDR_Init() called.
+- *      Valid hDldr.
+- *  Ensures:
+- *  hDldr invalid
+- */
+-       typedef void(*DLDR_DELETEFXN) (struct DLDR_OBJECT *hDldr);
+-
+-/*
+- *  ======== DLDR_Exit ========
+- *  Discontinue usage of DLDR module.
+- *
+- *  Parameters:
+- *  Returns:
+- *  Requires:
+- *      DLDR_Init() successfully called before.
+- *  Ensures:
+- *      Any resources acquired in DLDR_Init() will be freed when last DLDR
+- *      client calls DLDR_Exit().
+- */
+-       typedef void(*DLDR_EXITFXN) ();
+-
+-/*
+- *  ======== DLDR_Free ========
+- *  Free resources allocated in DLDR_Allocate.
+- *
+- *  Parameters:
+- *      hDldrNode:      Handle returned from DLDR_Allocate().
+- *  Returns:
+- *  Requires:
+- *      DLDR_Init() called.
+- *      Valid hDldrNode.
+- *  Ensures:
+- */
+-       typedef void(*DLDR_FREEFXN) (struct DLDR_NODEOBJECT *hDldrNode);
+-
+-/*
+- *  ======== DLDR_GetFxnAddr ========
+- *  Get address of create, delete, or execute phase function of a node on
+- *  the DSP.
+- *
+- *  Parameters:
+- *      hDldrNode:      Handle returned from DLDR_Allocate().
+- *      pstrFxn:        Name of function.
+- *      pulAddr:        Location to store function address.
+- *  Returns:
+- *      DSP_SOK:        Success.
+- *      DSP_ESYMBOL:    Address of function not found.
+- *  Requires:
+- *      DLDR_Init() called.
+- *      Valid hDldrNode.
+- *      pulAddr != NULL;
+- *      pstrFxn != NULL;
+- *  Ensures:
+- */
+-       typedef DSP_STATUS(*DLDR_GETFXNADDRFXN) (struct DLDR_NODEOBJECT
+-                                                *hDldrNode,
+-                                                char *pstrFxn, u32 *pulAddr);
+-
+-/*
+- *  ======== DLDR_Init ========
+- *  Initialize the DLDR module.
+- *
+- *  Parameters:
+- *  Returns:
+- *      TRUE if initialization succeeded, FALSE otherwise.
+- *  Ensures:
+- */
+-       typedef bool(*DLDR_INITFXN) ();
+-
+-/*
+- *  ======== DLDR_Load ========
+- *  Load create, delete, or execute phase function of a node on the DSP.
+- *
+- *  Parameters:
+- *      hDldrNode:      Handle returned from DLDR_Allocate().
+- *      phase:          Type of function to load (create, delete, or execute).
+- *  Returns:
+- *      DSP_SOK:                Success.
+- *      DSP_EMEMORY:            Insufficient memory on GPP.
+- *      DSP_EOVERLAYMEMORY:     Can't overlay phase because overlay memory
+- *                              is already in use.
+- *      DSP_EDYNLOAD:           Failure in dynamic loader library.
+- *      DSP_EFWRITE:            Failed to write phase's code or date to target.
+- *  Requires:
+- *      DLDR_Init() called.
+- *      Valid hDldrNode.
+- *  Ensures:
+- */
+-       typedef DSP_STATUS(*DLDR_LOADFXN) (struct DLDR_NODEOBJECT *hDldrNode,
+-                                          enum DLDR_PHASE phase);
+-
+-/*
+- *  ======== DLDR_Unload ========
+- *  Unload create, delete, or execute phase function of a node on the DSP.
+- *
+- *  Parameters:
+- *      hDldrNode:      Handle returned from DLDR_Allocate().
+- *      phase:          Node function to unload (create, delete, or execute).
+- *  Returns:
+- *      DSP_SOK:        Success.
+- *      DSP_EMEMORY:    Insufficient memory on GPP.
+- *  Requires:
+- *      DLDR_Init() called.
+- *      Valid hDldrNode.
+- *  Ensures:
+- */
+-       typedef DSP_STATUS(*DLDR_UNLOADFXN) (struct DLDR_NODEOBJECT *hDldrNode,
+-                                            enum DLDR_PHASE phase);
+-
+-/*
+- *  ======== DLDR_FXNS ========
+- */
+-       struct DLDR_FXNS {
+-               DLDR_ALLOCATEFXN pfnAllocate;
+-               DLDR_CREATEFXN pfnCreate;
+-               DLDR_DELETEFXN pfnDelete;
+-               DLDR_EXITFXN pfnExit;
+-               DLDR_FREEFXN pfnFree;
+-               DLDR_GETFXNADDRFXN pfnGetFxnAddr;
+-               DLDR_INITFXN pfnInit;
+-               DLDR_LOADFXN pfnLoad;
+-               DLDR_UNLOADFXN pfnUnload;
+-       } ;
+-
+-#endif                         /* DLDRDEFS_ */
+diff --git a/arch/arm/plat-omap/include/mach/bridge/getsection.h b/arch/arm/plat-omap/include/mach/bridge/getsection.h
+index d2eeb52..dd6f8a0 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/getsection.h
++++ b/arch/arm/plat-omap/include/mach/bridge/getsection.h
+@@ -18,7 +18,10 @@
+ #ifndef _GETSECTION_H_
+ #define _GETSECTION_H_
+
+-
++#ifndef _SIZE_T                        /* Linux sets _SIZE_T on defining size_t */
++typedef unsigned int size_t;
++#define _SIZE_T
++#endif
+ #include "dynamic_loader.h"
+
+ /*
+diff --git a/arch/arm/plat-omap/include/mach/bridge/isr.h b/arch/arm/plat-omap/include/mach/bridge/isr.h
+index fb397bb..3aceb09 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/isr.h
++++ b/arch/arm/plat-omap/include/mach/bridge/isr.h
+@@ -21,9 +21,13 @@
+  *      Interrupt services.
+  *
+  *  Public Functions:
++ *      ISR_Disable
+  *      ISR_Exit
++ *      ISR_GetStatus
+  *      ISR_Init
+  *      ISR_Install
++ *      ISR_Restore
++ *      ISR_SimulateInt
+  *      ISR_Uninstall
+  *
+  *  Notes:
+@@ -76,6 +80,19 @@
+        typedef bool (CDECL *ISR_PROC) (void *pRefData);
+
+ /*
++ *  ======== ISR_Disable ========
++ *  Purpose:
++ *      Turns off interrupts to begin a critical section of code.
++ *      Not implemented in CE
++ *  Parameters:
++ *      pFlags: Location to store flags.
++ *  Returns:
++ *  Requires:
++ *  Ensures:
++ */
++       extern void CDECL ISR_Disable(OUT u32 *pFlags);
++
++/*
+  *  ======== ISR_Exit ========
+  *  Purpose:
+  *      Discontinue usage of the ISR module.
+@@ -89,6 +106,25 @@
+        extern void CDECL ISR_Exit();
+
+ /*
++ *  ======== ISR_GetStatus ========
++ *  Purpose:
++ *      Return platform specific status flags containing information about
++ *      a virtualized IRQ.  Used by clients for debugging only.
++ *      Not implemented.
++ *  Parameters:
++ *      hIRQ:       Interrupt object handle as returned by ISR_Install().
++ *      pdwFlags:   Location to store status flags on output.
++ *  Returns:
++ *      DSP_SOK:        Success;
++ *      DSP_ENOTIMPL:   Not implemented
++ *  Requires:
++ *      pdwFlags != NULL.
++ *  Ensures:
++ */
++       extern DSP_STATUS CDECL ISR_GetStatus(IN struct ISR_IRQ *hIRQ,
++                                             OUT u32 *pdwFlags);
++
++/*
+  *  ======== ISR_Init ========
+  *  Purpose:
+  *      Initialize the ISR module's private state.
+@@ -134,7 +170,36 @@
+                                            IN u32 dwIntrType,
+                                            IN void *pRefData);
+
++/*
++ *  ======== ISR_Restore ========
++ *  Purpose:
++ *      In CE, the client should use ISR_Install to restore the interrupt.
++ *  Parameters:
++ *      saveFlags: To save or not to save.
++ *  Returns:
++ *  Requires:
++ *  Ensures:
++ */
++       extern void CDECL ISR_Restore(IN u32 saveFlags);
+
++/*
++ *  ======== ISR_SimulateInt ========
++ *  Purpose:
++ *      Simulate a hardware interrupt.
++ *  Parameters:
++ *      hIRQ:       Interrupt object handle as returned by ISR_Install().
++ *  Returns:
++ *      DSP_SOK:        Success;
++ *      DSP_ENOTIMPL:   Not yet implemented.
++ *      DSP_EHANDLE:    Invalid hIRQ.
++ *  Requires:
++ *      DSP_SOK:    An interrupt handler must have been previously installed
++ *                  with ISR_Install().
++ *  Ensures:
++ *      DSP_SOK:    The ISR installed by ISR_Install() will be called, before
++ *                  or after this function returns.
++ */
++       extern DSP_STATUS CDECL ISR_SimulateInt(IN struct ISR_IRQ *hIRQ);
+
+ /*
+  *  ======== ISR_Uninstall ========
+diff --git a/arch/arm/plat-omap/include/mach/bridge/prcs.h b/arch/arm/plat-omap/include/mach/bridge/prcs.h
+index 5240449..b660600 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/prcs.h
++++ b/arch/arm/plat-omap/include/mach/bridge/prcs.h
+@@ -23,6 +23,7 @@
+  *  Public Functions:
+  *      PRCS_Exit
+  *      PRCS_GetCurrentHandle
++ *      PRCS_GetCurThreadHandle
+  *      PRCS_Init
+  *
+  *! Revision History:
+@@ -68,7 +69,21 @@
+  */
+        extern DSP_STATUS PRCS_GetCurrentHandle(OUT HANDLE *phProcess);
+
+-
++/*
++ *  ======== PRCS_GetCurThreadHandle ========
++ *  Purpose:
++ *      Retrieve the current thread handle
++ *  Parameters:
++ *      phThread:       Location to store the current thread handle.
++ *  Returns:
++ *      DSP_SOK:        Success.
++ *      DSP_EPOINTER:   Invalid argument.
++ *  Requires:
++ *      PRCS initialized.
++ *  Ensures:
++ *      If returned DSP_SOK, phThread is a valid pseudo thread handle.
++ */
++       extern DSP_STATUS PRCS_GetCurThreadHandle(OUT HANDLE *phThread);
+
+ /*
+  *  ======== PRCS_Init ========
+diff --git a/arch/arm/plat-omap/include/mach/bridge/rmstypes.h b/arch/arm/plat-omap/include/mach/bridge/rmstypes.h
+index 6f5888c..05ad525 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/rmstypes.h
++++ b/arch/arm/plat-omap/include/mach/bridge/rmstypes.h
+@@ -36,5 +36,6 @@
+ #include <std.h>
+ typedef u32 RMS_WORD;
+ typedef char RMS_CHAR;
++typedef u32 RMS_STATUS;
+
+ #endif                         /* RMSTYPES_ */
+diff --git a/drivers/dsp/bridge/hw/GlobalTypes.h b/drivers/dsp/bridge/hw/GlobalTypes.h
+index 0223e0c..ac410f5 100644
+--- a/drivers/dsp/bridge/hw/GlobalTypes.h
++++ b/drivers/dsp/bridge/hw/GlobalTypes.h
+@@ -208,7 +208,8 @@
+ #define READ_UPPER_8BITS_OF_16(value16bits)\
+     (((u8)((u32)(value16bits) >> UPPER_8BIT_SHIFT)) & LOWER_8BIT_MASK)
+
+-
++/* 8 bit tpyes */
++typedef signed   char  WORD8;
+
+ /* UWORD16:  16 bit tpyes */
+
+@@ -231,7 +232,9 @@ typedef volatile unsigned long  REG_UWORD32;
+  * Type to be used for floating point calculation. Note that floating point
+  * calculation is very CPU expensive, and you should only  use if you
+  * absolutely need this. */
+-
++#ifndef OMAPBRIDGE_TYPES
++typedef float  FLOAT;
++#endif
+
+ /* boolean_t:  Boolean Type True, False */
+ /* ReturnCode_t:  Return codes to be returned by all library functions */
+diff --git a/drivers/dsp/bridge/wmd/_msg_sm.h b/drivers/dsp/bridge/wmd/_msg_sm.h
+index d7e796c..fefcdc5 100644
+--- a/drivers/dsp/bridge/wmd/_msg_sm.h
++++ b/drivers/dsp/bridge/wmd/_msg_sm.h
+@@ -81,10 +81,10 @@
+  *  size -          Number of messages to be read by the GPP.
+  */
+ struct MSG {
+-       u32 bufEmpty;   /* to/from DSP buffer is empty */
+-       u32 postSWI;    /* Set to "1" to post MSG SWI */
+-       u32 size;       /* Number of messages to/from the DSP */
+-       u32 resvd;
++       SMWORD bufEmpty;        /* to/from DSP buffer is empty */
++       SMWORD postSWI; /* Set to "1" to post MSG SWI */
++       SMWORD size;    /* Number of messages to/from the DSP */
++       SMWORD resvd;
+ } ;
+
+ /*
 --
 1.5.6.4
 
