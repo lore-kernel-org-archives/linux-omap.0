@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 29/33] add omap ehci bus glue
-Date: Sat, 30 Aug 2008 20:16:29 +0300
-Message-ID: <1220116593-862-30-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 32/33] add omap 1-wire interface driver
+Date: Sat, 30 Aug 2008 20:16:32 +0300
+Message-ID: <1220116593-862-33-git-send-email-me@felipebalbi.com>
 References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-2-git-send-email-me@felipebalbi.com>
  <1220116593-862-3-git-send-email-me@felipebalbi.com>
@@ -31,12 +31,15 @@ References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-27-git-send-email-me@felipebalbi.com>
  <1220116593-862-28-git-send-email-me@felipebalbi.com>
  <1220116593-862-29-git-send-email-me@felipebalbi.com>
+ <1220116593-862-30-git-send-email-me@felipebalbi.com>
+ <1220116593-862-31-git-send-email-me@felipebalbi.com>
+ <1220116593-862-32-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:36919 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:36938 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753223AbYH3RYG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:24:06 -0400
-In-Reply-To: <1220116593-862-29-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1753349AbYH3RYP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:24:15 -0400
+In-Reply-To: <1220116593-862-32-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -46,759 +49,764 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/usb/host/Kconfig     |   19 ++
- drivers/usb/host/ehci-hcd.c  |    5 +
- drivers/usb/host/ehci-omap.c |  562 ++++++++++++++++++++++++++++++++++++++++++
- drivers/usb/host/ehci-omap.h |  125 ++++++++++
- 4 files changed, 711 insertions(+), 0 deletions(-)
- create mode 100644 drivers/usb/host/ehci-omap.c
- create mode 100644 drivers/usb/host/ehci-omap.h
+ arch/arm/plat-omap/include/mach/irqs.h |    2 +
+ drivers/w1/masters/Kconfig             |    7 +
+ drivers/w1/masters/Makefile            |    1 +
+ drivers/w1/masters/omap_hdq.c          |  704 ++++++++++++++++++++++++++++++++
+ 4 files changed, 714 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/w1/masters/omap_hdq.c
 
-diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
-index 228797e..9807d13 100644
---- a/drivers/usb/host/Kconfig
-+++ b/drivers/usb/host/Kconfig
-@@ -41,6 +41,25 @@ config USB_EHCI_HCD
+diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-omap/include/mach/irqs.h
+index 17248bb..c9e95a6 100644
+--- a/arch/arm/plat-omap/include/mach/irqs.h
++++ b/arch/arm/plat-omap/include/mach/irqs.h
+@@ -54,6 +54,8 @@
+ #define INT_TIMER2		30
+ #define INT_LCD_CTRL		31
  
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ehci-hcd.
-+choice
-+	prompt "PHY/TLL mode"
-+	depends on USB_EHCI_HCD && EXPERIMENTAL && ARCH_OMAP34XX
-+	---help---
-+	Choose PHY or TLL mode of operation
++#define INT_24XX_HDQ_IRQ	58 /* Temporarily here for driver to build */
 +
-+config OMAP_EHCI_PHY_MODE
-+	bool "PHY mode: ISP1504 on Port1/2 (NEW 3430ES2.0)"
-+	depends on USB_EHCI_HCD && EXPERIMENTAL && ARCH_OMAP34XX
-+	---help---
-+	  EHCI PHY mode. Port1 and Port2 are connected to ISP1504 transcievers
-+
-+config OMAP_EHCI_TLL_MODE
-+	bool "TLL mode: (EXPERIMENTAL)"
-+	depends on USB_EHCI_HCD && EXPERIMENTAL && ARCH_OMAP34XX
-+	---help---
-+	OMAP EHCI controller has TLL mode of operation for all 3 ports.
-+	Use this mode when no transciever is present
-+endchoice
+ /*
+  * OMAP-1510 specific IRQ numbers for interrupt handler 1
+  */
+diff --git a/drivers/w1/masters/Kconfig b/drivers/w1/masters/Kconfig
+index c449309..636d4f7 100644
+--- a/drivers/w1/masters/Kconfig
++++ b/drivers/w1/masters/Kconfig
+@@ -42,6 +42,13 @@ config W1_MASTER_DS1WM
+ 	  in HP iPAQ devices like h5xxx, h2200, and ASIC3-based like
+ 	  hx4700.
  
- config USB_EHCI_ROOT_HUB_TT
- 	bool "Root Hub Transaction Translators"
-diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
-index d9d53f2..b0a5d10 100644
---- a/drivers/usb/host/ehci-hcd.c
-+++ b/drivers/usb/host/ehci-hcd.c
-@@ -1009,6 +1009,11 @@ MODULE_LICENSE ("GPL");
- #define	PLATFORM_DRIVER		ehci_hcd_au1xxx_driver
- #endif
- 
-+#ifdef CONFIG_ARCH_OMAP34XX
-+#include "ehci-omap.c"
-+#define	PLATFORM_DRIVER		ehci_hcd_omap_driver
-+#endif
++config HDQ_MASTER_OMAP
++	tristate "OMAP HDQ driver"
++	depends on ARCH_OMAP2430 || ARCH_OMAP34XX
++	help
++	  Say Y here if you want support for the 1-wire or HDQ Interface
++	  on an OMAP processor.
 +
- #ifdef CONFIG_PPC_PS3
- #include "ehci-ps3.c"
- #define	PS3_SYSTEM_BUS_DRIVER	ps3_ehci_driver
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+ config W1_MASTER_GPIO
+ 	tristate "GPIO 1-wire busmaster"
+ 	depends on GENERIC_GPIO
+diff --git a/drivers/w1/masters/Makefile b/drivers/w1/masters/Makefile
+index 1420b5b..1daeb6e 100644
+--- a/drivers/w1/masters/Makefile
++++ b/drivers/w1/masters/Makefile
+@@ -6,4 +6,5 @@ obj-$(CONFIG_W1_MASTER_MATROX)		+= matrox_w1.o
+ obj-$(CONFIG_W1_MASTER_DS2490)		+= ds2490.o
+ obj-$(CONFIG_W1_MASTER_DS2482)		+= ds2482.o
+ obj-$(CONFIG_W1_MASTER_DS1WM)		+= ds1wm.o
++obj-$(CONFIG_HDQ_MASTER_OMAP)		+= omap_hdq.o
+ obj-$(CONFIG_W1_MASTER_GPIO)		+= w1-gpio.o
+diff --git a/drivers/w1/masters/omap_hdq.c b/drivers/w1/masters/omap_hdq.c
 new file mode 100644
-index 0000000..8f122e5
+index 0000000..880e282
 --- /dev/null
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -0,0 +1,562 @@
++++ b/drivers/w1/masters/omap_hdq.c
+@@ -0,0 +1,704 @@
 +/*
-+ * ehci-omap.c - driver for USBHOST on OMAP 34xx processor
++ * drivers/w1/masters/omap_hdq.c
 + *
-+ * Bus Glue for OMAP34xx USBHOST 3 port EHCI controller
-+ * Tested on OMAP3430 ES2.0 SDP
++ * Copyright (C) 2007 Texas Instruments, Inc.
 + *
-+ * Copyright (C) 2007-2008 Texas Instruments, Inc.
-+ * 	Author: Vikram Pandita <vikram.pandita@ti.com>
-+ *
-+ * Based on "ehci-fsl.c" and "ehci-au1xxx.c" ehci glue layers
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2. This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
 + *
 + */
-+
++#include <linux/kernel.h>
++#include <linux/module.h>
 +#include <linux/platform_device.h>
++#include <linux/interrupt.h>
++#include <linux/err.h>
 +#include <linux/clk.h>
-+#include <mach/gpio.h>
++#include <linux/io.h>
++#include <asm/irq.h>
++#include <mach/hardware.h>
 +
-+#include "ehci-omap.h"
++#include "../w1.h"
++#include "../w1_int.h"
 +
++#define	MOD_NAME	"OMAP_HDQ:"
 +
-+#ifdef CONFIG_OMAP_EHCI_PHY_MODE
-+/* EHCI connected to External PHY */
++#define OMAP_HDQ_REVISION			0x00
++#define OMAP_HDQ_TX_DATA			0x04
++#define OMAP_HDQ_RX_DATA			0x08
++#define OMAP_HDQ_CTRL_STATUS			0x0c
++#define OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK	(1<<6)
++#define OMAP_HDQ_CTRL_STATUS_CLOCKENABLE	(1<<5)
++#define OMAP_HDQ_CTRL_STATUS_GO			(1<<4)
++#define OMAP_HDQ_CTRL_STATUS_INITIALIZATION	(1<<2)
++#define OMAP_HDQ_CTRL_STATUS_DIR		(1<<1)
++#define OMAP_HDQ_CTRL_STATUS_MODE		(1<<0)
++#define OMAP_HDQ_INT_STATUS			0x10
++#define OMAP_HDQ_INT_STATUS_TXCOMPLETE		(1<<2)
++#define OMAP_HDQ_INT_STATUS_RXCOMPLETE		(1<<1)
++#define OMAP_HDQ_INT_STATUS_TIMEOUT		(1<<0)
++#define OMAP_HDQ_SYSCONFIG			0x14
++#define OMAP_HDQ_SYSCONFIG_SOFTRESET		(1<<1)
++#define OMAP_HDQ_SYSCONFIG_AUTOIDLE		(1<<0)
++#define OMAP_HDQ_SYSSTATUS			0x18
++#define OMAP_HDQ_SYSSTATUS_RESETDONE		(1<<0)
 +
-+/* External USB connectivity board: 750-2083-001
-+ * Connected to OMAP3430 SDP
-+ * The board has Port1 and Port2 connected to ISP1504 in 12-pin ULPI mode
-+ */
++#define OMAP_HDQ_FLAG_CLEAR			0
++#define OMAP_HDQ_FLAG_SET			1
++#define OMAP_HDQ_TIMEOUT			(HZ/5)
 +
-+/* ISSUE1:
-+ *      ISP1504 for input clocking mode needs special reset handling
-+ * 	Hold the PHY in reset by asserting RESET_N signal
-+ * 	Then start the 60Mhz clock input to PHY
-+ * 	Release the reset after a delay -
-+ * 		to get the PHY state machine in working state
-+ */
-+#define EXTERNAL_PHY_RESET
-+#define	EXT_PHY_RESET_GPIO_PORT1	(57)
-+#define	EXT_PHY_RESET_GPIO_PORT2	(61)
-+#define	EXT_PHY_RESET_DELAY		(10)
++#define OMAP_HDQ_MAX_USER			4
 +
-+/* ISSUE2:
-+ * USBHOST supports External charge pump PHYs only
-+ * Use the VBUS from Port1 to power VBUS of Port2 externally
-+ * So use Port2 as the working ULPI port
-+ */
-+#define VBUS_INTERNAL_CHARGEPUMP_HACK
++DECLARE_WAIT_QUEUE_HEAD(hdq_wait_queue);
++int W1_ID;
 +
-+#endif /* CONFIG_OMAP_EHCI_PHY_MODE */
-+
-+/*-------------------------------------------------------------------------*/
-+
-+/* Define USBHOST clocks for clock management */
-+struct ehci_omap_clock_defs {
-+	struct clk	*usbhost_ick_clk;
-+	struct clk	*usbhost2_120m_fck_clk;
-+	struct clk	*usbhost1_48m_fck_clk;
-+	struct clk	*usbtll_fck_clk;
-+	struct clk	*usbtll_ick_clk;
++struct hdq_data {
++	resource_size_t		hdq_base;
++	struct	semaphore	hdq_semlock;
++	int			hdq_usecount;
++	struct	clk		*hdq_ick;
++	struct	clk		*hdq_fck;
++	u8			hdq_irqstatus;
++	spinlock_t		hdq_spinlock;
 +};
 +
-+/* Clock names as per clock framework: May change so keep as #defs */
-+#define USBHOST_ICKL		"usbhost_ick"
-+#define USBHOST_120M_FCLK	"usbhost_120m_fck"
-+#define USBHOST_48M_FCLK	"usbhost_48m_fck"
-+#define USBHOST_TLL_ICKL	"usbtll_ick"
-+#define USBHOST_TLL_FCLK	"usbtll_fck"
-+/*-------------------------------------------------------------------------*/
++static struct hdq_data *hdq_data;
 +
++static int omap_hdq_get(void);
++static int omap_hdq_put(void);
++static int omap_hdq_break(void);
 +
-+#ifndef CONFIG_OMAP_EHCI_PHY_MODE
++static int __init omap_hdq_probe(struct platform_device *pdev);
++static int omap_hdq_remove(struct platform_device *pdev);
 +
-+static void omap_usb_utmi_init(struct usb_hcd *hcd, u8 tll_channel_mask)
++static struct platform_driver omap_hdq_driver = {
++	.probe = omap_hdq_probe,
++	.remove = omap_hdq_remove,
++	.suspend = NULL,
++	.resume = NULL,
++	.driver = {
++		.name = "omap_hdq",
++	},
++};
++
++static u8 omap_w1_read_byte(void *data);
++static void omap_w1_write_byte(void *data, u8 byte);
++static u8 omap_w1_reset_bus(void *data);
++static void omap_w1_search_bus(void *data, u8 search_type,
++	w1_slave_found_callback slave_found);
++
++static struct w1_bus_master omap_w1_master = {
++	.read_byte	= omap_w1_read_byte,
++	.write_byte	= omap_w1_write_byte,
++	.reset_bus	= omap_w1_reset_bus,
++	.search		= omap_w1_search_bus,
++};
++
++/*
++ * HDQ register I/O routines
++ */
++static inline u8
++hdq_reg_in(u32 offset)
 +{
-+	int i;
-+
-+	/* Use UTMI Ports of TLL */
-+	omap_writel((1 << OMAP_UHH_HOSTCONFIG_ULPI_BYPASS_SHIFT)|
-+			(1<<OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN_SHIFT)|
-+			(1<<OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN_SHIFT)|
-+			(1<<OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN_SHIFT)|
-+			(0<<OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN_SHIFT),
-+						OMAP_UHH_HOSTCONFIG);
-+	/* Enusre bit is set */
-+	while (!(omap_readl(OMAP_UHH_HOSTCONFIG) &
-+		(1 << OMAP_UHH_HOSTCONFIG_ULPI_BYPASS_SHIFT)));
-+
-+	dev_dbg(hcd->self.controller, "\nEntered UTMI MODE: success\n");
-+
-+	/* Program the 3 TLL channels upfront */
-+
-+	for (i = 0; i < OMAP_TLL_CHANNEL_COUNT; i++) {
-+
-+		/* Disable AutoIdle */
-+		omap_writel(omap_readl(OMAP_TLL_CHANNEL_CONF(i)) &
-+			    ~(1<<OMAP_TLL_CHANNEL_CONF_UTMIAUTOIDLE_SHIFT),
-+			    OMAP_TLL_CHANNEL_CONF(i));
-+		/* Disable BitStuffing */
-+		omap_writel(omap_readl(OMAP_TLL_CHANNEL_CONF(i)) &
-+			    ~(1<<OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF_SHIFT),
-+			    OMAP_TLL_CHANNEL_CONF(i));
-+		/* SDR Mode */
-+		omap_writel(omap_readl(OMAP_TLL_CHANNEL_CONF(i)) &
-+			    ~(1<<OMAP_TLL_CHANNEL_CONF_ULPIDDRMODE_SHIFT),
-+			    OMAP_TLL_CHANNEL_CONF(i));
-+
-+	}
-+
-+	/* Program Common TLL register */
-+	omap_writel((1 << OMAP_TLL_SHARED_CONF_FCLK_IS_ON_SHIFT) |
-+			(1 << OMAP_TLL_SHARED_CONF_USB_DIVRATION_SHIFT) |
-+			(0 << OMAP_TLL_SHARED_CONF_USB_180D_SDR_EN_SHIFT) |
-+			(0 << OMAP_TLL_SHARED_CONF_USB_90D_DDR_EN_SHFT),
-+				OMAP_TLL_SHARED_CONF);
-+
-+	/* Enable channels now */
-+	for (i = 0; i < OMAP_TLL_CHANNEL_COUNT; i++) {
-+
-+		/* Enable only the channel that is needed */
-+		if (!(tll_channel_mask & 1<<i))
-+			continue;
-+
-+		omap_writel(omap_readl(OMAP_TLL_CHANNEL_CONF(i)) |
-+			    (1<<OMAP_TLL_CHANNEL_CONF_CHANEN_SHIFT),
-+			    OMAP_TLL_CHANNEL_CONF(i));
-+
-+		omap_writeb(0xBE, OMAP_TLL_ULPI_SCRATCH_REGISTER(i));
-+		dev_dbg(hcd->self.controller, "\nULPI_SCRATCH_REG[ch=%d]"
-+			"= 0x%02x\n",
-+			i+1, omap_readb(OMAP_TLL_ULPI_SCRATCH_REGISTER(i)));
-+	}
++	return omap_readb(hdq_data->hdq_base + offset);
 +}
 +
-+#else
-+# define omap_usb_utmi_init(x, y)	0
-+#endif
-+
-+
-+/* omap_start_ehc
-+ * 	- Start the TI USBHOST controller
-+ */
-+static int omap_start_ehc(struct platform_device *dev, struct usb_hcd *hcd)
++static inline u8
++hdq_reg_out(u32 offset, u8 val)
 +{
-+	struct ehci_omap_clock_defs *ehci_clocks;
++	omap_writeb(val, hdq_data->hdq_base + offset);
++	return val;
++}
 +
-+	dev_dbg(hcd->self.controller, ": starting TI EHCI USB Controller\n");
++static inline u8
++hdq_reg_merge(u32 offset, u8 val, u8 mask)
++{
++	u8 new_val = (omap_readb(hdq_data->hdq_base + offset) & ~mask)
++			| (val & mask);
++	omap_writeb(new_val, hdq_data->hdq_base + offset);
++	return new_val;
++}
 +
-+	ehci_clocks = (struct ehci_omap_clock_defs *)(
-+				((char *)hcd_to_ehci(hcd)) +
-+					sizeof(struct ehci_hcd));
++/*
++ * Wait for one or more bits in flag change.
++ * HDQ_FLAG_SET: wait until any bit in the flag is set.
++ * HDQ_FLAG_CLEAR: wait until all bits in the flag are cleared.
++ * return 0 on success and -ETIMEDOUT in the case of timeout.
++ */
++static int
++hdq_wait_for_flag(u32 offset, u8 flag, u8 flag_set, u8 *status)
++{
++	int ret = 0;
++	unsigned long timeout = jiffies + OMAP_HDQ_TIMEOUT;
 +
-+	/* Start DPLL5 Programming:
-+	 * Clock Framework is not doing this now:
-+	 * This will be done in clock framework later
-+	 */
-+	/* Enable DPLL 5 : Based on Input of 13Mhz*/
-+	cm_write_mod_reg((12 << OMAP3430ES2_PERIPH2_DPLL_DIV_SHIFT)|
-+			(120 << OMAP3430ES2_PERIPH2_DPLL_MULT_SHIFT),
-+			PLL_MOD, OMAP3430ES2_CM_CLKSEL4);
++	if (flag_set == OMAP_HDQ_FLAG_CLEAR) {
++		/* wait for the flag clear */
++		while (((*status = hdq_reg_in(offset)) & flag)
++			&& time_before(jiffies, timeout)) {
++			set_current_state(TASK_UNINTERRUPTIBLE);
++			schedule_timeout(1);
++		}
++		if (unlikely(*status & flag))
++			ret = -ETIMEDOUT;
++	} else if (flag_set == OMAP_HDQ_FLAG_SET) {
++		/* wait for the flag set */
++		while (!((*status = hdq_reg_in(offset)) & flag)
++			&& time_before(jiffies, timeout)) {
++			set_current_state(TASK_UNINTERRUPTIBLE);
++			schedule_timeout(1);
++		}
++		if (unlikely(!(*status & flag)))
++			ret = -ETIMEDOUT;
++	} else
++		return -EINVAL;
 +
-+	cm_write_mod_reg(1 << OMAP3430ES2_DIV_120M_SHIFT,
-+			PLL_MOD, OMAP3430ES2_CM_CLKSEL5);
++	return ret;
++}
 +
-+	cm_write_mod_reg((7 << OMAP3430ES2_PERIPH2_DPLL_FREQSEL_SHIFT) |
-+			(7 << OMAP3430ES2_EN_PERIPH2_DPLL_SHIFT),
-+			PLL_MOD, OMAP3430ES2_CM_CLKEN2);
++/*
++ * write out a byte and fill *status with HDQ_INT_STATUS
++ */
++static int
++hdq_write_byte(u8 val, u8 *status)
++{
++	int ret;
++	u8 tmp_status;
++	unsigned long irqflags;
 +
-+	while (!(cm_read_mod_reg(PLL_MOD, CM_IDLEST2) &
-+				OMAP3430ES2_ST_PERIPH2_CLK_MASK))
-+		dev_dbg(hcd->self.controller,
-+			"idlest2 = 0x%x\n",
-+			cm_read_mod_reg(PLL_MOD, CM_IDLEST2));
-+	/* End DPLL5 programming */
++	*status = 0;
 +
++	spin_lock_irqsave(&hdq_data->hdq_spinlock, irqflags);
++	/* clear interrupt flags via a dummy read */
++	hdq_reg_in(OMAP_HDQ_INT_STATUS);
++	/* ISR loads it with new INT_STATUS */
++	hdq_data->hdq_irqstatus = 0;
++	spin_unlock_irqrestore(&hdq_data->hdq_spinlock, irqflags);
 +
-+	/* PRCM settings for USBHOST:
-+	 * Interface clk un-related to domain transition
-+	 */
-+	cm_write_mod_reg(0 << OMAP3430ES2_AUTO_USBHOST_SHIFT,
-+				OMAP3430ES2_USBHOST_MOD, CM_AUTOIDLE);
++	hdq_reg_out(OMAP_HDQ_TX_DATA, val);
 +
-+	/* Disable sleep dependency with MPU and IVA */
-+	cm_write_mod_reg((0 << OMAP3430ES2_EN_MPU_SHIFT) |
-+				(0 << OMAP3430ES2_EN_IVA2_SHIFT),
-+				OMAP3430ES2_USBHOST_MOD, OMAP3430_CM_SLEEPDEP);
++	/* set the GO bit */
++	hdq_reg_merge(OMAP_HDQ_CTRL_STATUS, OMAP_HDQ_CTRL_STATUS_GO,
++		OMAP_HDQ_CTRL_STATUS_DIR | OMAP_HDQ_CTRL_STATUS_GO);
++	/* wait for the TXCOMPLETE bit */
++	ret = wait_event_interruptible_timeout(hdq_wait_queue,
++		hdq_data->hdq_irqstatus, OMAP_HDQ_TIMEOUT);
++	if (unlikely(ret < 0)) {
++		pr_debug("wait interrupted");
++		return -EINTR;
++	}
 +
-+	/* Disable Automatic transition of clock */
-+	cm_write_mod_reg(0 << OMAP3430ES2_CLKTRCTRL_USBHOST_SHIFT,
-+				OMAP3430ES2_USBHOST_MOD, CM_CLKSTCTRL);
++	spin_lock_irqsave(&hdq_data->hdq_spinlock, irqflags);
++	*status = hdq_data->hdq_irqstatus;
++	spin_unlock_irqrestore(&hdq_data->hdq_spinlock, irqflags);
++	/* check irqstatus */
++	if (!(*status & OMAP_HDQ_INT_STATUS_TXCOMPLETE)) {
++		pr_debug("timeout waiting for TXCOMPLETE/RXCOMPLETE, %x",
++			*status);
++		return -ETIMEDOUT;
++	}
 +
-+	/* Enable Clocks for USBHOST */
-+	ehci_clocks->usbhost_ick_clk = clk_get(&dev->dev,
-+						USBHOST_ICKL);
-+	if (IS_ERR(ehci_clocks->usbhost_ick_clk))
-+		return PTR_ERR(ehci_clocks->usbhost_ick_clk);
-+	clk_enable(ehci_clocks->usbhost_ick_clk);
++	/* wait for the GO bit return to zero */
++	ret = hdq_wait_for_flag(OMAP_HDQ_CTRL_STATUS, OMAP_HDQ_CTRL_STATUS_GO,
++		OMAP_HDQ_FLAG_CLEAR, &tmp_status);
++	if (ret) {
++		pr_debug("timeout waiting GO bit return to zero, %x",
++			tmp_status);
++		return ret;
++	}
 +
++	return ret;
++}
 +
-+	ehci_clocks->usbhost2_120m_fck_clk = clk_get(&dev->dev,
-+							USBHOST_120M_FCLK);
-+	if (IS_ERR(ehci_clocks->usbhost2_120m_fck_clk))
-+		return PTR_ERR(ehci_clocks->usbhost2_120m_fck_clk);
-+	clk_enable(ehci_clocks->usbhost2_120m_fck_clk);
++/*
++ * HDQ Interrupt service routine.
++ */
++static irqreturn_t
++hdq_isr(int irq, void *arg)
++{
++	unsigned long irqflags;
 +
-+	ehci_clocks->usbhost1_48m_fck_clk = clk_get(&dev->dev,
-+						USBHOST_48M_FCLK);
-+	if (IS_ERR(ehci_clocks->usbhost1_48m_fck_clk))
-+		return PTR_ERR(ehci_clocks->usbhost1_48m_fck_clk);
-+	clk_enable(ehci_clocks->usbhost1_48m_fck_clk);
++	spin_lock_irqsave(&hdq_data->hdq_spinlock, irqflags);
++	hdq_data->hdq_irqstatus = hdq_reg_in(OMAP_HDQ_INT_STATUS);
++	spin_unlock_irqrestore(&hdq_data->hdq_spinlock, irqflags);
++	pr_debug("hdq_isr: %x", hdq_data->hdq_irqstatus);
 +
++	if (hdq_data->hdq_irqstatus &
++		(OMAP_HDQ_INT_STATUS_TXCOMPLETE | OMAP_HDQ_INT_STATUS_RXCOMPLETE
++		| OMAP_HDQ_INT_STATUS_TIMEOUT)) {
++		/* wake up sleeping process */
++		wake_up_interruptible(&hdq_wait_queue);
++	}
 +
-+#ifdef EXTERNAL_PHY_RESET
-+	/* Refer: ISSUE1 */
-+	omap_request_gpio(EXT_PHY_RESET_GPIO_PORT1);
-+	omap_set_gpio_direction(EXT_PHY_RESET_GPIO_PORT1, 0);
-+	omap_request_gpio(EXT_PHY_RESET_GPIO_PORT2);
-+	omap_set_gpio_direction(EXT_PHY_RESET_GPIO_PORT2, 0);
-+	omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT1, 0);
-+	omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT2, 0);
-+	/* Hold the PHY in RESET for enough time till DIR is high */
-+	udelay(EXT_PHY_RESET_DELAY);
-+#endif
++	return IRQ_HANDLED;
++}
 +
-+	/* Configure TLL for 60Mhz clk for ULPI */
-+	ehci_clocks->usbtll_fck_clk = clk_get(&dev->dev, USBHOST_TLL_FCLK);
-+	if (IS_ERR(ehci_clocks->usbtll_fck_clk))
-+		return PTR_ERR(ehci_clocks->usbtll_fck_clk);
-+	clk_enable(ehci_clocks->usbtll_fck_clk);
-+
-+	ehci_clocks->usbtll_ick_clk = clk_get(&dev->dev, USBHOST_TLL_ICKL);
-+	if (IS_ERR(ehci_clocks->usbtll_ick_clk))
-+		return PTR_ERR(ehci_clocks->usbtll_ick_clk);
-+	clk_enable(ehci_clocks->usbtll_ick_clk);
-+
-+	/* Disable Auto Idle of USBTLL */
-+	cm_write_mod_reg((0 << OMAP3430ES2_AUTO_USBTLL_SHIFT),
-+				CORE_MOD, CM_AUTOIDLE3);
-+
-+	/* Wait for TLL to be Active */
-+	while ((cm_read_mod_reg(CORE_MOD, OMAP2430_CM_IDLEST3) &
-+		(1 << OMAP3430ES2_ST_USBTLL_SHIFT)));
-+
-+	/* perform TLL soft reset, and wait until reset is complete */
-+	omap_writel(1 << OMAP_USBTLL_SYSCONFIG_SOFTRESET_SHIFT,
-+			OMAP_USBTLL_SYSCONFIG);
-+	/* Wait for TLL reset to complete */
-+	while (!(omap_readl(OMAP_USBTLL_SYSSTATUS) &
-+		(1 << OMAP_USBTLL_SYSSTATUS_RESETDONE_SHIFT)));
-+
-+	dev_dbg(hcd->self.controller, "\n TLL RESET DONE\n");
-+
-+	/* (1<<3) = no idle mode only for initial debugging */
-+	omap_writel((1 << OMAP_USBTLL_SYSCONFIG_ENAWAKEUP_SHIFT) |
-+			(1 << OMAP_USBTLL_SYSCONFIG_SIDLEMODE_SHIFT) |
-+			(1 << OMAP_USBTLL_SYSCONFIG_CACTIVITY_SHIFT),
-+			OMAP_USBTLL_SYSCONFIG);
-+
-+
-+	/* Put UHH in NoIdle/NoStandby mode */
-+	omap_writel((0 << OMAP_UHH_SYSCONFIG_AUTOIDLE_SHIFT) |
-+			(1 << OMAP_UHH_SYSCONFIG_ENAWAKEUP_SHIFT) |
-+			(1 << OMAP_UHH_SYSCONFIG_SIDLEMODE_SHIFT) |
-+			(1 << OMAP_UHH_SYSCONFIG_CACTIVITY_SHIFT) |
-+			(1 << OMAP_UHH_SYSCONFIG_MIDLEMODE_SHIFT),
-+			OMAP_UHH_SYSCONFIG);
-+
-+#ifdef CONFIG_OMAP_EHCI_PHY_MODE
-+	/* Bypass the TLL module for PHY mode operation */
-+	omap_writel((0 << OMAP_UHH_HOSTCONFIG_ULPI_BYPASS_SHIFT)|
-+			(1<<OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN_SHIFT)|
-+			(1<<OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN_SHIFT)|
-+			(1<<OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN_SHIFT)|
-+			(0<<OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN_SHIFT),
-+						OMAP_UHH_HOSTCONFIG);
-+	/* Ensure that BYPASS is set */
-+	while (omap_readl(OMAP_UHH_HOSTCONFIG) &
-+		(1 << OMAP_UHH_HOSTCONFIG_ULPI_BYPASS_SHIFT));
-+
-+	dev_dbg(hcd->self.controller, "Entered ULPI PHY MODE: success");
-+
-+#else
-+	/* Enable UTMI mode for all 3 TLL channels */
-+	omap_usb_utmi_init(hcd,
-+		OMAP_TLL_CHANNEL_1_EN_MASK |
-+		OMAP_TLL_CHANNEL_2_EN_MASK |
-+		OMAP_TLL_CHANNEL_3_EN_MASK
-+		);
-+#endif
-+
-+#ifdef EXTERNAL_PHY_RESET
-+	/* Refer ISSUE1:
-+	 * Hold the PHY in RESET for enough time till PHY is settled and ready
-+	 */
-+	udelay(EXT_PHY_RESET_DELAY);
-+	omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT1, 1);
-+	omap_set_gpio_dataout(EXT_PHY_RESET_GPIO_PORT2, 1);
-+#endif
-+
-+#ifdef VBUS_INTERNAL_CHARGEPUMP_HACK
-+	/* Refer ISSUE2: LINK assumes external charge pump */
-+
-+	/* use Port1 VBUS to charge externally Port2:
-+	 * 	So for PHY mode operation use Port2 only
-+	 */
-+	omap_writel((0xA << EHCI_INSNREG05_ULPI_REGADD_SHIFT) |/* OTG ctrl reg*/
-+			(2 << EHCI_INSNREG05_ULPI_OPSEL_SHIFT) |/*   Write */
-+			(1 << EHCI_INSNREG05_ULPI_PORTSEL_SHIFT) |/* Port1 */
-+			(1 << EHCI_INSNREG05_ULPI_CONTROL_SHIFT) |/* Start */
-+			(0x26),
-+			EHCI_INSNREG05_ULPI);
-+
-+	while (!(omap_readl(EHCI_INSNREG05_ULPI) &
-+		(1<<EHCI_INSNREG05_ULPI_CONTROL_SHIFT)));
-+
-+#endif
-+
++/*
++ * HDQ Mode: always return success.
++ */
++static u8 omap_w1_reset_bus(void *data)
++{
 +	return 0;
 +}
 +
-+/*-------------------------------------------------------------------------*/
-+
-+static void omap_stop_ehc(struct platform_device *dev, struct usb_hcd *hcd)
++/*
++ * W1 search callback function.
++ */
++static void omap_w1_search_bus(void *data, u8 search_type,
++	w1_slave_found_callback slave_found)
 +{
-+	struct ehci_omap_clock_defs *ehci_clocks;
++	u64 module_id, rn_le, cs, id;
 +
-+	ehci_clocks = (struct ehci_omap_clock_defs *)
-+			(((char *)hcd_to_ehci(hcd)) + sizeof(struct ehci_hcd));
++	if (W1_ID)
++		module_id = W1_ID;
++	else
++		module_id = 0x1;
 +
-+	dev_dbg(hcd->self.controller, ": stopping TI EHCI USB Controller\n");
++	rn_le = cpu_to_le64(module_id);
++	/*
++	 * HDQ might not obey truly the 1-wire spec.
++	 * So calculate CRC based on module parameter.
++	 */
++	cs = w1_calc_crc8((u8 *)&rn_le, 7);
++	id = (cs << 56) | module_id;
 +
-+	/* Reset OMAP modules for insmod/rmmod to work */
-+	omap_writel((1<<1), OMAP_UHH_SYSCONFIG);
-+	while (!(omap_readl(OMAP_UHH_SYSSTATUS) & (1<<0)));
-+	while (!(omap_readl(OMAP_UHH_SYSSTATUS) & (1<<1)));
-+	while (!(omap_readl(OMAP_UHH_SYSSTATUS) & (1<<2)));
-+	dev_dbg(hcd->self.controller,
-+		"UHH RESET DONE OMAP_UHH_SYSSTATUS %x !!\n",
-+			omap_readl(OMAP_UHH_SYSSTATUS));
-+
-+	omap_writel((1<<1), OMAP_USBTLL_SYSCONFIG);
-+	while (!(omap_readl(OMAP_USBTLL_SYSSTATUS) & (1<<0)));
-+	dev_dbg(hcd->self.controller, ":TLL RESEET DONE");
-+
-+	if (ehci_clocks->usbtll_fck_clk != NULL) {
-+		clk_disable(ehci_clocks->usbtll_fck_clk);
-+		clk_put(ehci_clocks->usbtll_fck_clk);
-+		ehci_clocks->usbtll_fck_clk = NULL;
-+	}
-+
-+	if (ehci_clocks->usbhost_ick_clk != NULL) {
-+		clk_disable(ehci_clocks->usbhost_ick_clk);
-+		clk_put(ehci_clocks->usbhost_ick_clk);
-+		ehci_clocks->usbhost_ick_clk = NULL;
-+	}
-+
-+	if (ehci_clocks->usbhost1_48m_fck_clk != NULL) {
-+		clk_disable(ehci_clocks->usbhost1_48m_fck_clk);
-+		clk_put(ehci_clocks->usbhost1_48m_fck_clk);
-+		ehci_clocks->usbhost1_48m_fck_clk = NULL;
-+	}
-+
-+	if (ehci_clocks->usbhost2_120m_fck_clk != NULL) {
-+		clk_disable(ehci_clocks->usbhost2_120m_fck_clk);
-+		clk_put(ehci_clocks->usbhost2_120m_fck_clk);
-+		ehci_clocks->usbhost2_120m_fck_clk = NULL;
-+	}
-+
-+	if (ehci_clocks->usbtll_ick_clk != NULL) {
-+		clk_disable(ehci_clocks->usbtll_ick_clk);
-+		clk_put(ehci_clocks->usbtll_ick_clk);
-+		ehci_clocks->usbtll_ick_clk = NULL;
-+	}
-+
-+
-+#ifdef EXTERNAL_PHY_RESET
-+	omap_free_gpio(EXT_PHY_RESET_GPIO_PORT1);
-+	omap_free_gpio(EXT_PHY_RESET_GPIO_PORT2);
-+#endif
-+
-+	dev_dbg(hcd->self.controller,
-+		": Clock to USB host has been disabled\n");
++	slave_found(data, id);
 +}
 +
-+static const struct hc_driver ehci_omap_hc_driver;
-+
-+/*-------------------------------------------------------------------------*/
-+/* configure so an HC device and id are always provided */
-+/* always called with process context; sleeping is OK */
-+
-+/**
-+ * ehci_hcd_omap_drv_probe - initialize TI-based HCDs
-+ * Context: !in_interrupt()
-+ *
-+ * Allocates basic resources for this USB host controller, and
-+ * then invokes the start() method for the HCD associated with it
-+ * through the hotplug entry's driver_data.
-+ *
-+ */
-+static int ehci_hcd_omap_drv_probe(struct platform_device *dev)
++static int
++_omap_hdq_reset(void)
 +{
-+	int retval = 0;
-+	struct usb_hcd *hcd;
-+	struct ehci_hcd *ehci;
++	int ret;
++	u8 tmp_status;
 +
-+	dev_dbg(&dev->dev, "ehci_hcd_omap_drv_probe()");
++	hdq_reg_out(OMAP_HDQ_SYSCONFIG, OMAP_HDQ_SYSCONFIG_SOFTRESET);
++	/*
++	 * Select HDQ mode & enable clocks.
++	 * It is observed that INT flags can't be cleared via a read and GO/INIT
++	 * won't return to zero if interrupt is disabled. So we always enable
++	 * interrupt.
++	 */
++	hdq_reg_out(OMAP_HDQ_CTRL_STATUS,
++		OMAP_HDQ_CTRL_STATUS_CLOCKENABLE |
++		OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK);
 +
-+	if (usb_disabled())
++	/* wait for reset to complete */
++	ret = hdq_wait_for_flag(OMAP_HDQ_SYSSTATUS,
++		OMAP_HDQ_SYSSTATUS_RESETDONE, OMAP_HDQ_FLAG_SET, &tmp_status);
++	if (ret)
++		pr_debug("timeout waiting HDQ reset, %x", tmp_status);
++	else {
++		hdq_reg_out(OMAP_HDQ_CTRL_STATUS,
++			OMAP_HDQ_CTRL_STATUS_CLOCKENABLE |
++			OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK);
++		hdq_reg_out(OMAP_HDQ_SYSCONFIG, OMAP_HDQ_SYSCONFIG_AUTOIDLE);
++	}
++
++	return ret;
++}
++
++/*
++ * Issue break pulse to the device.
++ */
++static int
++omap_hdq_break()
++{
++	int ret;
++	u8 tmp_status;
++	unsigned long irqflags;
++
++	ret = down_interruptible(&hdq_data->hdq_semlock);
++	if (ret < 0)
++		return -EINTR;
++
++	if (!hdq_data->hdq_usecount) {
++		up(&hdq_data->hdq_semlock);
++		return -EINVAL;
++	}
++
++	spin_lock_irqsave(&hdq_data->hdq_spinlock, irqflags);
++	/* clear interrupt flags via a dummy read */
++	hdq_reg_in(OMAP_HDQ_INT_STATUS);
++	/* ISR loads it with new INT_STATUS */
++	hdq_data->hdq_irqstatus = 0;
++	spin_unlock_irqrestore(&hdq_data->hdq_spinlock, irqflags);
++
++	/* set the INIT and GO bit */
++	hdq_reg_merge(OMAP_HDQ_CTRL_STATUS,
++		OMAP_HDQ_CTRL_STATUS_INITIALIZATION | OMAP_HDQ_CTRL_STATUS_GO,
++		OMAP_HDQ_CTRL_STATUS_DIR | OMAP_HDQ_CTRL_STATUS_INITIALIZATION |
++		OMAP_HDQ_CTRL_STATUS_GO);
++
++	/* wait for the TIMEOUT bit */
++	ret = wait_event_interruptible_timeout(hdq_wait_queue,
++		hdq_data->hdq_irqstatus, OMAP_HDQ_TIMEOUT);
++	if (unlikely(ret < 0)) {
++		pr_debug("wait interrupted");
++		up(&hdq_data->hdq_semlock);
++		return -EINTR;
++	}
++
++	spin_lock_irqsave(&hdq_data->hdq_spinlock, irqflags);
++	tmp_status = hdq_data->hdq_irqstatus;
++	spin_unlock_irqrestore(&hdq_data->hdq_spinlock, irqflags);
++	/* check irqstatus */
++	if (!(tmp_status & OMAP_HDQ_INT_STATUS_TIMEOUT)) {
++		pr_debug("timeout waiting for TIMEOUT, %x", tmp_status);
++		up(&hdq_data->hdq_semlock);
++		return -ETIMEDOUT;
++	}
++	/*
++	 * wait for both INIT and GO bits rerurn to zero.
++	 * zero wait time expected for interrupt mode.
++	 */
++	ret = hdq_wait_for_flag(OMAP_HDQ_CTRL_STATUS,
++			OMAP_HDQ_CTRL_STATUS_INITIALIZATION |
++			OMAP_HDQ_CTRL_STATUS_GO, OMAP_HDQ_FLAG_CLEAR,
++			&tmp_status);
++	if (ret)
++		pr_debug("timeout waiting INIT&GO bits return to zero, %x",
++			tmp_status);
++
++	up(&hdq_data->hdq_semlock);
++	return ret;
++}
++
++static int hdq_read_byte(u8 *val)
++{
++	int ret;
++	u8 status;
++	unsigned long irqflags;
++
++	ret = down_interruptible(&hdq_data->hdq_semlock);
++	if (ret < 0)
++		return -EINTR;
++
++	if (!hdq_data->hdq_usecount) {
++		up(&hdq_data->hdq_semlock);
++		return -EINVAL;
++	}
++
++	if (!(hdq_data->hdq_irqstatus & OMAP_HDQ_INT_STATUS_RXCOMPLETE)) {
++		hdq_reg_merge(OMAP_HDQ_CTRL_STATUS,
++			OMAP_HDQ_CTRL_STATUS_DIR | OMAP_HDQ_CTRL_STATUS_GO,
++			OMAP_HDQ_CTRL_STATUS_DIR | OMAP_HDQ_CTRL_STATUS_GO);
++		/*
++		 * The RX comes immediately after TX. It
++		 * triggers another interrupt before we
++		 * sleep. So we have to wait for RXCOMPLETE bit.
++		 */
++		{
++			unsigned long timeout = jiffies + OMAP_HDQ_TIMEOUT;
++			while (!(hdq_data->hdq_irqstatus
++				& OMAP_HDQ_INT_STATUS_RXCOMPLETE)
++				&& time_before(jiffies, timeout)) {
++				set_current_state(TASK_UNINTERRUPTIBLE);
++				schedule_timeout(1);
++			}
++		}
++		hdq_reg_merge(OMAP_HDQ_CTRL_STATUS, 0,
++			OMAP_HDQ_CTRL_STATUS_DIR);
++		spin_lock_irqsave(&hdq_data->hdq_spinlock, irqflags);
++		status = hdq_data->hdq_irqstatus;
++		spin_unlock_irqrestore(&hdq_data->hdq_spinlock, irqflags);
++		/* check irqstatus */
++		if (!(status & OMAP_HDQ_INT_STATUS_RXCOMPLETE)) {
++			pr_debug("timeout waiting for RXCOMPLETE, %x", status);
++			up(&hdq_data->hdq_semlock);
++			return -ETIMEDOUT;
++		}
++	}
++	/* the data is ready. Read it in! */
++	*val = hdq_reg_in(OMAP_HDQ_RX_DATA);
++	up(&hdq_data->hdq_semlock);
++
++	return 0;
++
++}
++
++/*
++ * Enable clocks and set the controller to HDQ mode.
++ */
++static int
++omap_hdq_get()
++{
++	int ret = 0;
++
++	ret = down_interruptible(&hdq_data->hdq_semlock);
++	if (ret < 0)
++		return -EINTR;
++
++	if (OMAP_HDQ_MAX_USER == hdq_data->hdq_usecount) {
++		pr_debug("attempt to exceed the max use count");
++		up(&hdq_data->hdq_semlock);
++		ret = -EINVAL;
++	} else {
++		hdq_data->hdq_usecount++;
++		try_module_get(THIS_MODULE);
++		if (1 == hdq_data->hdq_usecount) {
++			if (clk_enable(hdq_data->hdq_ick)) {
++				pr_debug("Can not enable ick\n");
++				clk_put(hdq_data->hdq_ick);
++				clk_put(hdq_data->hdq_fck);
++				up(&hdq_data->hdq_semlock);
++				return -ENODEV;
++			}
++			if (clk_enable(hdq_data->hdq_fck)) {
++				pr_debug("Can not enable fck\n");
++				clk_put(hdq_data->hdq_ick);
++				clk_put(hdq_data->hdq_fck);
++				up(&hdq_data->hdq_semlock);
++				return -ENODEV;
++			}
++
++			/* make sure HDQ is out of reset */
++			if (!(hdq_reg_in(OMAP_HDQ_SYSSTATUS) &
++				OMAP_HDQ_SYSSTATUS_RESETDONE)) {
++				ret = _omap_hdq_reset();
++				if (ret)
++					/* back up the count */
++					hdq_data->hdq_usecount--;
++			} else {
++				/* select HDQ mode & enable clocks */
++				hdq_reg_out(OMAP_HDQ_CTRL_STATUS,
++					OMAP_HDQ_CTRL_STATUS_CLOCKENABLE |
++					OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK);
++				hdq_reg_out(OMAP_HDQ_SYSCONFIG,
++					OMAP_HDQ_SYSCONFIG_AUTOIDLE);
++				hdq_reg_in(OMAP_HDQ_INT_STATUS);
++			}
++		}
++	}
++	up(&hdq_data->hdq_semlock);
++	return ret;
++}
++
++/*
++ * Disable clocks to the module.
++ */
++static int
++omap_hdq_put()
++{
++	int ret = 0;
++
++	ret = down_interruptible(&hdq_data->hdq_semlock);
++	if (ret < 0)
++		return -EINTR;
++
++	if (0 == hdq_data->hdq_usecount) {
++		pr_debug("attempt to decrement use count when it is zero");
++		ret = -EINVAL;
++	} else {
++		hdq_data->hdq_usecount--;
++		module_put(THIS_MODULE);
++		if (0 == hdq_data->hdq_usecount) {
++			clk_disable(hdq_data->hdq_ick);
++			clk_disable(hdq_data->hdq_fck);
++		}
++	}
++	up(&hdq_data->hdq_semlock);
++	return ret;
++}
++
++/*
++ * Used to control the call to omap_hdq_get and omap_hdq_put.
++ * HDQ Protocol: Write the CMD|REG_address first, followed by
++ * the data wrire or read.
++ */
++static int init_trans;
++
++/*
++ * Read a byte of data from the device.
++ */
++static u8 omap_w1_read_byte(void *data)
++{
++	u8 val;
++	int ret;
++
++	ret = hdq_read_byte(&val);
++	if (ret) {
++		init_trans = 0;
++		omap_hdq_put();
++		return -1;
++	}
++
++	/* Write followed by a read, release the module */
++	if (init_trans) {
++		init_trans = 0;
++		omap_hdq_put();
++	}
++
++	return val;
++}
++
++/*
++ * Write a byte of data to the device.
++ */
++static void omap_w1_write_byte(void *data, u8 byte)
++{
++	u8 status;
++
++	/* First write to initialize the transfer */
++	if (init_trans == 0)
++		omap_hdq_get();
++
++	init_trans++;
++
++	hdq_write_byte(byte, &status);
++	pr_debug("Ctrl status %x\n", status);
++
++	/* Second write, data transfered. Release the module */
++	if (init_trans > 1) {
++		omap_hdq_put();
++		init_trans = 0;
++	}
++
++	return;
++}
++
++static int __init omap_hdq_probe(struct platform_device *pdev)
++{
++	struct resource *res;
++	int ret, irq;
++	u8 rev;
++
++	if (!pdev)
 +		return -ENODEV;
 +
-+	if (dev->resource[1].flags != IORESOURCE_IRQ) {
-+		dev_dbg(&dev->dev, "resource[1] is not IORESOURCE_IRQ");
-+		retval = -ENOMEM;
++	hdq_data = kmalloc(sizeof(*hdq_data), GFP_KERNEL);
++	if (!hdq_data)
++		return -ENODEV;
++
++	platform_set_drvdata(pdev, hdq_data);
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (res == NULL) {
++		platform_set_drvdata(pdev, NULL);
++		kfree(hdq_data);
++		return -ENXIO;
 +	}
 +
-+	hcd = usb_create_hcd(&ehci_omap_hc_driver, &dev->dev, dev->dev.bus_id);
-+	if (!hcd)
-+		return -ENOMEM;
++	hdq_data->hdq_base = res->start;
 +
-+	retval = omap_start_ehc(dev, hcd);
-+	if (retval)
-+		return retval;
++	/* get interface & functional clock objects */
++	hdq_data->hdq_ick = clk_get(&pdev->dev, "hdq_ick");
++	hdq_data->hdq_fck = clk_get(&pdev->dev, "hdq_fck");
 +
-+	hcd->rsrc_start = 0;
-+	hcd->rsrc_len = 0;
-+	hcd->rsrc_start = dev->resource[0].start;
-+	hcd->rsrc_len = dev->resource[0].end - dev->resource[0].start + 1;
++	if (IS_ERR(hdq_data->hdq_ick) || IS_ERR(hdq_data->hdq_fck)) {
++		pr_debug("Can't get HDQ clock objects\n");
++		if (IS_ERR(hdq_data->hdq_ick)) {
++			ret = PTR_ERR(hdq_data->hdq_ick);
++			platform_set_drvdata(pdev, NULL);
++			kfree(hdq_data);
++			return ret;
++		}
++		if (IS_ERR(hdq_data->hdq_fck)) {
++			ret = PTR_ERR(hdq_data->hdq_fck);
++			platform_set_drvdata(pdev, NULL);
++			kfree(hdq_data);
++			return ret;
++		}
++	}
 +
-+	hcd->regs = (void __iomem *) (int) IO_ADDRESS(hcd->rsrc_start);
++	hdq_data->hdq_usecount = 0;
++	sema_init(&hdq_data->hdq_semlock, 1);
 +
-+	ehci = hcd_to_ehci(hcd);
-+	ehci->caps = hcd->regs;
++	if (clk_enable(hdq_data->hdq_ick)) {
++		pr_debug("Can not enable ick\n");
++		clk_put(hdq_data->hdq_ick);
++		clk_put(hdq_data->hdq_fck);
++		platform_set_drvdata(pdev, NULL);
++		kfree(hdq_data);
++		return -ENODEV;
++	}
 +
-+	ehci->regs = hcd->regs + HC_LENGTH(readl(&ehci->caps->hc_capbase));
-+	/* cache this readonly data; minimize chip reads */
-+	ehci->hcs_params = readl(&ehci->caps->hcs_params);
++	if (clk_enable(hdq_data->hdq_fck)) {
++		pr_debug("Can not enable fck\n");
++		clk_disable(hdq_data->hdq_ick);
++		clk_put(hdq_data->hdq_ick);
++		clk_put(hdq_data->hdq_fck);
++		platform_set_drvdata(pdev, NULL);
++		kfree(hdq_data);
++		return -ENODEV;
++	}
 +
-+	/* SET 1 micro-frame Interrupt interval */
-+	writel(readl(&ehci->regs->command) | (1<<16), &ehci->regs->command);
++	rev = hdq_reg_in(OMAP_HDQ_REVISION);
++	pr_info("OMAP HDQ Hardware Revision %c.%c. Driver in %s mode.\n",
++		(rev >> 4) + '0', (rev & 0x0f) + '0', "Interrupt");
 +
-+	retval = usb_add_hcd(hcd, dev->resource[1].start,
-+				IRQF_DISABLED | IRQF_SHARED);
-+	if (retval == 0)
-+		return retval;
++	spin_lock_init(&hdq_data->hdq_spinlock);
++	omap_hdq_break();
 +
-+	dev_dbg(hcd->self.controller, "ERR: add_hcd");
-+	omap_stop_ehc(dev, hcd);
++	irq = platform_get_irq(pdev, 0);
++	if (irq	< 0) {
++		platform_set_drvdata(pdev, NULL);
++		kfree(hdq_data);
++		return -ENXIO;
++	}
 +
-+	usb_put_hcd(hcd);
-+	return retval;
-+}
++	if (request_irq(irq, hdq_isr, IRQF_DISABLED, "OMAP HDQ",
++		&hdq_data->hdq_semlock)) {
++		pr_debug("request_irq failed\n");
++		clk_disable(hdq_data->hdq_ick);
++		clk_put(hdq_data->hdq_ick);
++		clk_put(hdq_data->hdq_fck);
++		platform_set_drvdata(pdev, NULL);
++		kfree(hdq_data);
++		return -ENODEV;
++	}
 +
-+/*-------------------------------------------------------------------------*/
++	/* don't clock the HDQ until it is needed */
++	clk_disable(hdq_data->hdq_ick);
++	clk_disable(hdq_data->hdq_fck);
 +
-+/* may be called without controller electrically present */
-+/* may be called with controller, bus, and devices active */
-+
-+/**
-+ * ehci_hcd_omap_drv_remove - shutdown processing for EHCI HCDs
-+ * @dev: USB Host Controller being removed
-+ * Context: !in_interrupt()
-+ *
-+ * Reverses the effect of usb_ehci_hcd_omap_probe(), first invoking
-+ * the HCD's stop() method.  It is always called from a thread
-+ * context, normally "rmmod", "apmd", or something similar.
-+ *
-+ */
-+static int ehci_hcd_omap_drv_remove(struct platform_device *dev)
-+{
-+	struct usb_hcd *hcd = platform_get_drvdata(dev);
-+
-+	dev_dbg(&dev->dev, "ehci_hcd_omap_drv_remove()");
-+
-+	usb_remove_hcd(hcd);
-+	usb_put_hcd(hcd);
-+	omap_stop_ehc(dev, hcd);
++	ret = w1_add_master_device(&omap_w1_master);
++	if (ret) {
++		pr_debug("Failure in registering w1 master\n");
++		clk_put(hdq_data->hdq_ick);
++		clk_put(hdq_data->hdq_fck);
++		platform_set_drvdata(pdev, NULL);
++		kfree(hdq_data);
++		return ret;
++	}
 +
 +	return 0;
 +}
 +
-+/*-------------------------------------------------------------------------*/
-+#ifdef CONFIG_PM
-+static int omap_ehci_bus_suspend(struct usb_hcd *hcd)
++static int omap_hdq_remove(struct platform_device *pdev)
 +{
-+	return ehci_bus_suspend(hcd);
-+}
-+
-+static int omap_ehci_bus_resume(struct usb_hcd *hcd)
-+{
-+	return ehci_bus_resume(hcd);
-+}
-+#endif
-+/*-------------------------------------------------------------------------*/
-+
-+static const struct hc_driver ehci_omap_hc_driver = {
-+	.description = hcd_name,
-+	.product_desc = "OMAP-EHCI Host Controller",
-+	.hcd_priv_size = sizeof(struct ehci_hcd)
-+				+ sizeof(struct ehci_omap_clock_defs),
-+
-+	/*
-+	 * generic hardware linkage
-+	 */
-+	.irq = ehci_irq,
-+	.flags = HCD_MEMORY | HCD_USB2,
-+
-+	/*
-+	 * basic lifecycle operations
-+	 */
-+	.reset = ehci_init,
-+	.start = ehci_run,
-+	.stop = ehci_stop,
-+	.shutdown = ehci_shutdown,
-+
-+	/*
-+	 * managing i/o requests and associated device resources
-+	 */
-+	.urb_enqueue = ehci_urb_enqueue,
-+	.urb_dequeue = ehci_urb_dequeue,
-+	.endpoint_disable = ehci_endpoint_disable,
-+
-+	/*
-+	 * scheduling support
-+	 */
-+	.get_frame_number = ehci_get_frame,
-+
-+	/*
-+	 * root hub support
-+	 */
-+	.hub_status_data = ehci_hub_status_data,
-+	.hub_control = ehci_hub_control,
-+#ifdef	CONFIG_PM
-+	.bus_suspend = omap_ehci_bus_suspend,
-+	.bus_resume = omap_ehci_bus_resume,
-+#endif
-+};
-+
-+/*-------------------------------------------------------------------------*/
-+MODULE_ALIAS("omap-ehci");
-+static struct platform_driver ehci_hcd_omap_driver = {
-+	.probe = ehci_hcd_omap_drv_probe,
-+	.remove = ehci_hcd_omap_drv_remove,
-+	.shutdown = usb_hcd_platform_shutdown,
-+	/*.suspend      = ehci_hcd_omap_drv_suspend, */
-+	/*.resume       = ehci_hcd_omap_drv_resume, */
-+	.driver = {
-+		.name = "ehci-omap",
-+		.bus = &platform_bus_type
++	down_interruptible(&hdq_data->hdq_semlock);
++	if (0 != hdq_data->hdq_usecount) {
++		pr_debug("removed when use count is not zero\n");
++		return -EBUSY;
 +	}
-+};
-diff --git a/drivers/usb/host/ehci-omap.h b/drivers/usb/host/ehci-omap.h
-new file mode 100644
-index 0000000..9e4378f
---- /dev/null
-+++ b/drivers/usb/host/ehci-omap.h
-@@ -0,0 +1,125 @@
-+/*
-+ * ehci-omap.h - register definitions for USBHOST in OMAP 34xx
-+ *
-+ * Copyright (C) 2007-2008 Texas Instruments, Inc.
-+ * 	Author: Vikram Pandita <vikram.pandita@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-+ *
-+ */
++	up(&hdq_data->hdq_semlock);
 +
-+#ifndef __EHCI_OMAP_H
-+#define __EHCI_OMAP_H
++	/* remove module dependency */
++	clk_put(hdq_data->hdq_ick);
++	clk_put(hdq_data->hdq_fck);
++	free_irq(INT_24XX_HDQ_IRQ, &hdq_data->hdq_semlock);
++	platform_set_drvdata(pdev, NULL);
++	kfree(hdq_data);
 +
-+#include <mach/hardware.h>
-+#include "../../../arch/arm/mach-omap2/cm.h"
-+#include "../../../arch/arm/mach-omap2/cm-regbits-34xx.h"
++	return 0;
++}
 +
-+/*
-+ * OMAP USBHOST Register addresses: PHYSICAL ADDRESSES
-+ * 	Use omap_readl()/omap_writel() functions
-+ */
++static int __init
++omap_hdq_init(void)
++{
++	return platform_driver_register(&omap_hdq_driver);
++}
 +
-+/* USBHOST: TLL, UUH, OHCI, EHCI */
-+#define	OMAP_USBHOST_BASE	(L4_34XX_BASE + 0x60000)
++static void __exit
++omap_hdq_exit(void)
++{
++	platform_driver_unregister(&omap_hdq_driver);
++}
 +
-+/* TLL Register Set */
-+#define	OMAP_USBHOST_TLL_BASE	(OMAP_USBHOST_BASE + 0x2000)
-+#define	OMAP_USBTLL_REVISION	(OMAP_USBHOST_TLL_BASE + 0x00)
-+#define	OMAP_USBTLL_SYSCONFIG	(OMAP_USBHOST_TLL_BASE + 0x10)
-+	#define	OMAP_USBTLL_SYSCONFIG_CACTIVITY_SHIFT	8
-+	#define	OMAP_USBTLL_SYSCONFIG_SIDLEMODE_SHIFT	3
-+	#define	OMAP_USBTLL_SYSCONFIG_ENAWAKEUP_SHIFT	2
-+	#define	OMAP_USBTLL_SYSCONFIG_SOFTRESET_SHIFT	1
-+	#define	OMAP_USBTLL_SYSCONFIG_AUTOIDLE_SHIFT	0
-+#define	OMAP_USBTLL_SYSSTATUS	(OMAP_USBHOST_TLL_BASE + 0x14)
-+	#define	OMAP_USBTLL_SYSSTATUS_RESETDONE_SHIFT	0
-+#define	OMAP_USBTLL_IRQSTATUS	(OMAP_USBHOST_TLL_BASE + 0x18)
-+#define	OMAP_USBTLL_IRQENABLE	(OMAP_USBHOST_TLL_BASE + 0x1C)
++module_init(omap_hdq_init);
++module_exit(omap_hdq_exit);
 +
-+#define	OMAP_TLL_SHARED_CONF	(OMAP_USBHOST_TLL_BASE + 0x30)
-+	#define	OMAP_TLL_SHARED_CONF_USB_90D_DDR_EN_SHFT	6
-+	#define	OMAP_TLL_SHARED_CONF_USB_180D_SDR_EN_SHIFT	5
-+	#define	OMAP_TLL_SHARED_CONF_USB_DIVRATION_SHIFT	2
-+	#define	OMAP_TLL_SHARED_CONF_FCLK_REQ_SHIFT		1
-+	#define	OMAP_TLL_SHARED_CONF_FCLK_IS_ON_SHIFT		0
++module_param(W1_ID, int, S_IRUSR);
 +
-+#define	OMAP_TLL_CHANNEL_CONF(num)\
-+			(OMAP_USBHOST_TLL_BASE + (0x040 + 0x004 * num))
-+	#define	OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF_SHIFT	11
-+	#define	OMAP_TLL_CHANNEL_CONF_ULPI_ULPIAUTOIDLE_SHIFT	10
-+	#define	OMAP_TLL_CHANNEL_CONF_UTMIAUTOIDLE_SHIFT	9
-+	#define	OMAP_TLL_CHANNEL_CONF_ULPIDDRMODE_SHIFT		8
-+	#define	OMAP_TLL_CHANNEL_CONF_CHANEN_SHIFT		0
-+
-+#define	OMAP_TLL_ULPI_FUNCTION_CTRL(num)\
-+			(OMAP_USBHOST_TLL_BASE + (0x804 + 0x100 * num))
-+#define	OMAP_TLL_ULPI_INTERFACE_CTRL(num)\
-+			(OMAP_USBHOST_TLL_BASE + (0x807 + 0x100 * num))
-+#define	OMAP_TLL_ULPI_OTG_CTRL(num)\
-+			(OMAP_USBHOST_TLL_BASE + (0x80A + 0x100 * num))
-+#define	OMAP_TLL_ULPI_INT_EN_RISE(num)\
-+			(OMAP_USBHOST_TLL_BASE + (0x80D + 0x100 * num))
-+#define	OMAP_TLL_ULPI_INT_EN_FALL(num)\
-+			(OMAP_USBHOST_TLL_BASE + (0x810 + 0x100 * num))
-+#define	OMAP_TLL_ULPI_INT_STATUS(num)\
-+			(OMAP_USBHOST_TLL_BASE + (0x813 + 0x100 * num))
-+#define	OMAP_TLL_ULPI_INT_LATCH(num)\
-+			(OMAP_USBHOST_TLL_BASE + (0x814 + 0x100 * num))
-+#define	OMAP_TLL_ULPI_DEBUG(num)\
-+			(OMAP_USBHOST_TLL_BASE + (0x815 + 0x100 * num))
-+#define	OMAP_TLL_ULPI_SCRATCH_REGISTER(num)\
-+			(OMAP_USBHOST_TLL_BASE + (0x816 + 0x100 * num))
-+
-+#define OMAP_TLL_CHANNEL_COUNT		3
-+	#define OMAP_TLL_CHANNEL_1_EN_MASK	1
-+	#define OMAP_TLL_CHANNEL_2_EN_MASK	2
-+	#define OMAP_TLL_CHANNEL_3_EN_MASK	4
-+
-+/* UHH Register Set */
-+#define	OMAP_USBHOST_UHH_BASE	(OMAP_USBHOST_BASE + 0x4000)
-+#define	OMAP_UHH_REVISION	(OMAP_USBHOST_UHH_BASE + 0x00)
-+#define	OMAP_UHH_SYSCONFIG	(OMAP_USBHOST_UHH_BASE + 0x10)
-+	#define	OMAP_UHH_SYSCONFIG_MIDLEMODE_SHIFT	12
-+	#define	OMAP_UHH_SYSCONFIG_CACTIVITY_SHIFT	8
-+	#define	OMAP_UHH_SYSCONFIG_SIDLEMODE_SHIFT	3
-+	#define	OMAP_UHH_SYSCONFIG_ENAWAKEUP_SHIFT	2
-+	#define	OMAP_UHH_SYSCONFIG_SOFTRESET_SHIFT	1
-+	#define	OMAP_UHH_SYSCONFIG_AUTOIDLE_SHIFT	0
-+
-+#define	OMAP_UHH_SYSSTATUS	(OMAP_USBHOST_UHH_BASE + 0x14)
-+#define	OMAP_UHH_HOSTCONFIG	(OMAP_USBHOST_UHH_BASE + 0x40)
-+	#define	OMAP_UHH_HOSTCONFIG_ULPI_BYPASS_SHIFT	0
-+	#define OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN_SHIFT	2
-+	#define OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN_SHIFT	3
-+	#define OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN_SHIFT	4
-+	#define OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN_SHIFT	5
-+
-+#define	OMAP_UHH_DEBUG_CSR	(OMAP_USBHOST_UHH_BASE + 0x44)
-+
-+/* EHCI Register Set */
-+#define	OMAP_USBHOST_EHCI_BASE	(OMAP_USBHOST_BASE + 0x4800)
-+#define	EHCI_INSNREG05_ULPI		(OMAP_USBHOST_EHCI_BASE + 0xA4)
-+	#define	EHCI_INSNREG05_ULPI_CONTROL_SHIFT	31
-+	#define	EHCI_INSNREG05_ULPI_PORTSEL_SHIFT	24
-+	#define	EHCI_INSNREG05_ULPI_OPSEL_SHIFT		22
-+	#define	EHCI_INSNREG05_ULPI_REGADD_SHIFT	16
-+	#define	EHCI_INSNREG05_ULPI_EXTREGADD_SHIFT	8
-+	#define	EHCI_INSNREG05_ULPI_WRDATA_SHIFT	0
-+
-+/* OHCI Register Set */
-+#define	OMAP_USBHOST_OHCI_BASE	(OMAP_USBHOST_BASE + 0x4400)
-+
-+#endif/* __EHCI_OMAP_H*/
++MODULE_AUTHOR("Texas Instruments");
++MODULE_DESCRIPTION("HDQ driver Library");
++MODULE_LICENSE("GPL");
 -- 
 1.6.0.1.141.g445ca
 
