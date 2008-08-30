@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 22/33] add omap nand drivers
-Date: Sat, 30 Aug 2008 20:16:22 +0300
-Message-ID: <1220116593-862-23-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 21/33] add OMAP HighSpeed mmc controller driver
+Date: Sat, 30 Aug 2008 20:16:21 +0300
+Message-ID: <1220116593-862-22-git-send-email-me@felipebalbi.com>
 References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-2-git-send-email-me@felipebalbi.com>
  <1220116593-862-3-git-send-email-me@felipebalbi.com>
@@ -23,1990 +23,1145 @@ References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-19-git-send-email-me@felipebalbi.com>
  <1220116593-862-20-git-send-email-me@felipebalbi.com>
  <1220116593-862-21-git-send-email-me@felipebalbi.com>
- <1220116593-862-22-git-send-email-me@felipebalbi.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:36607 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:36644 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753031AbYH3RWG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:22:06 -0400
-In-Reply-To: <1220116593-862-22-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1753043AbYH3RWV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:22:21 -0400
+In-Reply-To: <1220116593-862-21-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-=46rom: Felipe Balbi <felipe.balbi@nokia.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/mtd/nand/Kconfig           |   19 +
- drivers/mtd/nand/Makefile          |    3 +
- drivers/mtd/nand/omap-hw.c         |  860 ++++++++++++++++++++++++++++=
-++++++++
- drivers/mtd/nand/omap-nand-flash.c |  186 ++++++++
- drivers/mtd/nand/omap2.c           |  757 ++++++++++++++++++++++++++++=
-+++
- 5 files changed, 1825 insertions(+), 0 deletions(-)
- create mode 100644 drivers/mtd/nand/omap-hw.c
- create mode 100644 drivers/mtd/nand/omap-nand-flash.c
- create mode 100644 drivers/mtd/nand/omap2.c
+ drivers/mmc/host/Kconfig      |   13 +-
+ drivers/mmc/host/Makefile     |    1 +
+ drivers/mmc/host/omap_hsmmc.c | 1069 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 1082 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/mmc/host/omap_hsmmc.c
 
-diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
-index 41f361c..ed1a331 100644
---- a/drivers/mtd/nand/Kconfig
-+++ b/drivers/mtd/nand/Kconfig
-@@ -68,6 +68,25 @@ config MTD_NAND_AMS_DELTA
+diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
+index ea8d7a3..08e57ae 100644
+--- a/drivers/mmc/host/Kconfig
++++ b/drivers/mmc/host/Kconfig
+@@ -67,7 +67,7 @@ config MMC_RICOH_MMC
+ 
+ config MMC_OMAP
+ 	tristate "TI OMAP Multimedia Card Interface support"
+-	depends on ARCH_OMAP
++	depends on ARCH_OMAP1 || (ARCH_OMAP2 && ARCH_OMAP2420)
+ 	select TPS65010 if MACH_OMAP_H2
  	help
- 	  Support for NAND flash on Amstrad E3 (Delta).
-=20
-+config MTD_NAND_OMAP2
-+	tristate "NAND Flash device on OMAP2 and OMAP3"
-+	depends on ARM && MTD_NAND && (ARCH_OMAP2 || ARCH_OMAP3)
+ 	  This selects the TI OMAP Multimedia card Interface.
+@@ -76,6 +76,17 @@ config MMC_OMAP
+ 
+ 	  If unsure, say N.
+ 
++config MMC_OMAP_HS
++	tristate "TI OMAP High Speed Multimedia Card Interface support"
++	depends on (ARCH_OMAP2 && ARCH_OMAP2430) || ARCH_OMAP3
++	select TWL4030_CORE if MACH_OMAP_2430SDP || MACH_OMAP_3430SDP
 +	help
-+          Support for NAND flash on Texas Instruments OMAP2 and OMAP3 =
-platforms.
++	  This selects the TI OMAP High Speed Multimedia card Interface.
++	  If you have an OMAP2(2430) or OMAP3 board with a Multimedia Card slot,
++	  say Y or M here.
 +
-+config MTD_NAND_OMAP
-+	tristate "NAND Flash device on OMAP H3/H2/P2 boards"
-+	depends on ARM && ARCH_OMAP1 && MTD_NAND && (MACH_OMAP_H2 || MACH_OMA=
-P_H3 || MACH_OMAP_PERSEUS2)
-+	help
-+	  Support for NAND flash on Texas Instruments H3/H2/P2 platforms.
++	  If unsure, say N.
 +
-+config MTD_NAND_OMAP_HW
-+	bool "OMAP HW NAND Flash controller support"
-+        depends on ARM && ARCH_OMAP16XX && MTD_NAND
-+
-+	help
-+	  Driver for TI OMAP16xx hardware NAND flash controller.
-+
- config MTD_NAND_TOTO
- 	tristate "NAND Flash device on TOTO board"
- 	depends on ARCH_OMAP && BROKEN
-diff --git a/drivers/mtd/nand/Makefile b/drivers/mtd/nand/Makefile
-index b786c5d..ba42584 100644
---- a/drivers/mtd/nand/Makefile
-+++ b/drivers/mtd/nand/Makefile
-@@ -24,6 +24,9 @@ obj-$(CONFIG_MTD_NAND_NANDSIM)		+=3D nandsim.o
- obj-$(CONFIG_MTD_NAND_CS553X)		+=3D cs553x_nand.o
- obj-$(CONFIG_MTD_NAND_NDFC)		+=3D ndfc.o
- obj-$(CONFIG_MTD_NAND_ATMEL)		+=3D atmel_nand.o
-+obj-$(CONFIG_MTD_NAND_OMAP) 		+=3D omap-nand-flash.o
-+obj-$(CONFIG_MTD_NAND_OMAP2) 		+=3D omap2.o
-+obj-$(CONFIG_MTD_NAND_OMAP_HW)		+=3D omap-hw.o
- obj-$(CONFIG_MTD_NAND_CM_X270)		+=3D cmx270_nand.o
- obj-$(CONFIG_MTD_NAND_BASLER_EXCITE)	+=3D excite_nandflash.o
- obj-$(CONFIG_MTD_NAND_PXA3xx)		+=3D pxa3xx_nand.o
-diff --git a/drivers/mtd/nand/omap-hw.c b/drivers/mtd/nand/omap-hw.c
+ config MMC_WBSD
+ 	tristate "Winbond W83L51xD SD/MMC Card Interface support"
+ 	depends on ISA_DMA_API
+diff --git a/drivers/mmc/host/Makefile b/drivers/mmc/host/Makefile
+index c794cc5..ba477bc 100644
+--- a/drivers/mmc/host/Makefile
++++ b/drivers/mmc/host/Makefile
+@@ -15,6 +15,7 @@ obj-$(CONFIG_MMC_RICOH_MMC)	+= ricoh_mmc.o
+ obj-$(CONFIG_MMC_WBSD)		+= wbsd.o
+ obj-$(CONFIG_MMC_AU1X)		+= au1xmmc.o
+ obj-$(CONFIG_MMC_OMAP)		+= omap.o
++obj-$(CONFIG_MMC_OMAP_HS)	+= omap_hsmmc.o
+ obj-$(CONFIG_MMC_AT91)		+= at91_mci.o
+ obj-$(CONFIG_MMC_ATMELMCI)	+= atmel-mci.o
+ obj-$(CONFIG_MMC_TIFM_SD)	+= tifm_sd.o
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
 new file mode 100644
-index 0000000..c598d9d
+index 0000000..af34871
 --- /dev/null
-+++ b/drivers/mtd/nand/omap-hw.c
-@@ -0,0 +1,860 @@
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -0,0 +1,1069 @@
 +/*
-+ *  drivers/mtd/nand/omap-hw.c
++ * drivers/mmc/host/omap_hsmmc.c
 + *
-+ *  This is the MTD driver for OMAP1710 internal HW NAND controller.
++ * Driver for OMAP2430/3430 MMC controller.
 + *
-+ *  Copyright (C) 2004-2006 Nokia Corporation
++ * Copyright (C) 2007 Texas Instruments.
 + *
-+ *  Author: Jarkko Lavinen <jarkko.lavinen@nokia.com> and
-+ *          Juha Yrj=F6l=E4 <juha.yrjola@nokia.com>
++ * Authors:
++ *	Syed Mohammed Khasim	<x0khasim@ti.com>
++ *	Madhusudhan		<madhu.cr@ti.com>
++ *	Mohit Jalori		<mjalori@ti.com>
 + *
-+ * This program is free software; you can redistribute it and/or modif=
-y it
-+ * under the terms of the GNU General Public License version 2 as publ=
-ished by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but=
- WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY =
-or
-+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public Licens=
-e for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License a=
-long with
-+ * this program; see the file COPYING. If not, write to the Free Softw=
-are
-+ * Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA=
-=2E
-+ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2. This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
 + */
 +
-+#include <linux/slab.h>
-+#include <linux/init.h>
 +#include <linux/module.h>
-+#include <linux/delay.h>
-+#include <linux/delay.h>
-+#include <linux/errno.h>
-+#include <linux/sched.h>
-+#include <linux/types.h>
-+#include <linux/wait.h>
-+#include <linux/spinlock.h>
++#include <linux/init.h>
 +#include <linux/interrupt.h>
-+#include <linux/mtd/mtd.h>
-+#include <linux/mtd/nand.h>
-+#include <linux/mtd/partitions.h>
-+#include <linux/mtd/nand_ecc.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/clk.h>
-+
-+#include <asm/io.h>
-+
-+#include <mach/board.h>
-+#include <mach/dma.h>
-+
-+#define NAND_BASE		0xfffbcc00
-+#define NND_REVISION		0x00
-+#define NND_ACCESS		0x04
-+#define NND_ADDR_SRC		0x08
-+#define NND_CTRL		0x10
-+#define NND_MASK		0x14
-+#define NND_STATUS		0x18
-+#define NND_READY		0x1c
-+#define NND_COMMAND		0x20
-+#define NND_COMMAND_SEC		0x24
-+#define NND_ECC_SELECT		0x28
-+#define NND_ECC_START		0x2c
-+#define NND_ECC_9		0x4c
-+#define NND_RESET		0x50
-+#define NND_FIFO		0x54
-+#define NND_FIFOCTRL		0x58
-+#define NND_PSC_CLK		0x5c
-+#define NND_SYSTEST		0x60
-+#define NND_SYSCFG		0x64
-+#define NND_SYSSTATUS		0x68
-+#define NND_FIFOTEST1		0x6c
-+#define NND_FIFOTEST2		0x70
-+#define NND_FIFOTEST3		0x74
-+#define NND_FIFOTEST4		0x78
-+#define NND_PSC1_CLK		0x8c
-+#define NND_PSC2_CLK		0x90
-+
-+
-+#define NND_CMD_READ1_LOWER	0x00
-+#define NND_CMD_WRITE1_LOWER	0x00
-+#define NND_CMD_READ1_UPPER	0x01
-+#define NND_CMD_WRITE1_UPPER	0x01
-+#define NND_CMD_PROGRAM_END	0x10
-+#define NND_CMD_READ2_SPARE	0x50
-+#define NND_CMD_WRITE2_SPARE	0x50
-+#define NND_CMD_ERASE		0x60
-+#define NND_CMD_STATUS		0x70
-+#define NND_CMD_PROGRAM		0x80
-+#define NND_CMD_READ_ID		0x90
-+#define NND_CMD_ERASE_END	0xD0
-+#define NND_CMD_RESET		0xFF
-+
-+
-+#define NAND_Ecc_P1e		(1 << 0)
-+#define NAND_Ecc_P2e		(1 << 1)
-+#define NAND_Ecc_P4e		(1 << 2)
-+#define NAND_Ecc_P8e		(1 << 3)
-+#define NAND_Ecc_P16e		(1 << 4)
-+#define NAND_Ecc_P32e		(1 << 5)
-+#define NAND_Ecc_P64e		(1 << 6)
-+#define NAND_Ecc_P128e		(1 << 7)
-+#define NAND_Ecc_P256e		(1 << 8)
-+#define NAND_Ecc_P512e		(1 << 9)
-+#define NAND_Ecc_P1024e		(1 << 10)
-+#define NAND_Ecc_P2048e		(1 << 11)
-+
-+#define NAND_Ecc_P1o		(1 << 16)
-+#define NAND_Ecc_P2o		(1 << 17)
-+#define NAND_Ecc_P4o		(1 << 18)
-+#define NAND_Ecc_P8o		(1 << 19)
-+#define NAND_Ecc_P16o		(1 << 20)
-+#define NAND_Ecc_P32o		(1 << 21)
-+#define NAND_Ecc_P64o		(1 << 22)
-+#define NAND_Ecc_P128o		(1 << 23)
-+#define NAND_Ecc_P256o		(1 << 24)
-+#define NAND_Ecc_P512o		(1 << 25)
-+#define NAND_Ecc_P1024o		(1 << 26)
-+#define NAND_Ecc_P2048o		(1 << 27)
-+
-+#define TF(value)	(value ? 1 : 0)
-+
-+#define P2048e(a)	(TF(a & NAND_Ecc_P2048e)	<< 0 )
-+#define P2048o(a)	(TF(a & NAND_Ecc_P2048o)	<< 1 )
-+#define P1e(a)		(TF(a & NAND_Ecc_P1e)		<< 2 )
-+#define P1o(a)		(TF(a & NAND_Ecc_P1o)		<< 3 )
-+#define P2e(a)		(TF(a & NAND_Ecc_P2e)		<< 4 )
-+#define P2o(a)		(TF(a & NAND_Ecc_P2o)		<< 5 )
-+#define P4e(a)		(TF(a & NAND_Ecc_P4e)		<< 6 )
-+#define P4o(a)		(TF(a & NAND_Ecc_P4o)		<< 7 )
-+
-+#define P8e(a)		(TF(a & NAND_Ecc_P8e)		<< 0 )
-+#define P8o(a)		(TF(a & NAND_Ecc_P8o)		<< 1 )
-+#define P16e(a)		(TF(a & NAND_Ecc_P16e)		<< 2 )
-+#define P16o(a)		(TF(a & NAND_Ecc_P16o)		<< 3 )
-+#define P32e(a)		(TF(a & NAND_Ecc_P32e)		<< 4 )
-+#define P32o(a)		(TF(a & NAND_Ecc_P32o)		<< 5 )
-+#define P64e(a)		(TF(a & NAND_Ecc_P64e)		<< 6 )
-+#define P64o(a)		(TF(a & NAND_Ecc_P64o)		<< 7 )
-+
-+#define P128e(a)	(TF(a & NAND_Ecc_P128e)		<< 0 )
-+#define P128o(a)	(TF(a & NAND_Ecc_P128o)		<< 1 )
-+#define P256e(a)	(TF(a & NAND_Ecc_P256e)		<< 2 )
-+#define P256o(a)	(TF(a & NAND_Ecc_P256o)		<< 3 )
-+#define P512e(a)	(TF(a & NAND_Ecc_P512e)		<< 4 )
-+#define P512o(a)	(TF(a & NAND_Ecc_P512o)		<< 5 )
-+#define P1024e(a)	(TF(a & NAND_Ecc_P1024e)	<< 6 )
-+#define P1024o(a)	(TF(a & NAND_Ecc_P1024o)	<< 7 )
-+
-+#define P8e_s(a)	(TF(a & NAND_Ecc_P8e)		<< 0 )
-+#define P8o_s(a)	(TF(a & NAND_Ecc_P8o)		<< 1 )
-+#define P16e_s(a)	(TF(a & NAND_Ecc_P16e)		<< 2 )
-+#define P16o_s(a)	(TF(a & NAND_Ecc_P16o)		<< 3 )
-+#define P1e_s(a)	(TF(a & NAND_Ecc_P1e)		<< 4 )
-+#define P1o_s(a)	(TF(a & NAND_Ecc_P1o)		<< 5 )
-+#define P2e_s(a)	(TF(a & NAND_Ecc_P2e)		<< 6 )
-+#define P2o_s(a)	(TF(a & NAND_Ecc_P2o)		<< 7 )
-+
-+#define P4e_s(a)	(TF(a & NAND_Ecc_P4e)		<< 0 )
-+#define P4o_s(a)	(TF(a & NAND_Ecc_P4o)		<< 1 )
-+
-+extern struct nand_oobinfo jffs2_oobinfo;
-+
-+/*
-+ * MTD structure for OMAP board
-+ */
-+static struct mtd_info *omap_mtd;
-+static struct clk *omap_nand_clk;
-+static int omap_nand_dma_ch;
-+static struct completion omap_nand_dma_comp;
-+static unsigned long omap_nand_base =3D io_p2v(NAND_BASE);
-+
-+static inline u32 nand_read_reg(int idx)
-+{
-+	return __raw_readl(omap_nand_base + idx);
-+}
-+
-+static inline void nand_write_reg(int idx, u32 val)
-+{
-+	__raw_writel(val, omap_nand_base + idx);
-+}
-+
-+static inline u8 nand_read_reg8(int idx)
-+{
-+	return __raw_readb(omap_nand_base + idx);
-+}
-+
-+static inline void nand_write_reg8(int idx, u8 val)
-+{
-+	__raw_writeb(val, omap_nand_base + idx);
-+}
-+
-+static void omap_nand_select_chip(struct mtd_info *mtd, int chip)
-+{
-+	u32 l;
-+
-+	switch(chip) {
-+	case -1:
-+		l =3D nand_read_reg(NND_CTRL);
-+		l |=3D (1 << 8) | (1 << 10) | (1 << 12) | (1 << 14);
-+		nand_write_reg(NND_CTRL, l);
-+		break;
-+	case 0:
-+		/* Also CS1, CS2, CS4 would be available */
-+		l =3D nand_read_reg(NND_CTRL);
-+		l &=3D ~(1 << 8);
-+		nand_write_reg(NND_CTRL, l);
-+		break;
-+	default:
-+		BUG();
-+	}
-+}
-+
-+static void nand_dma_cb(int lch, u16 ch_status, void *data)
-+{
-+	complete((struct completion *) data);
-+}
-+
-+static void omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
-+                                         unsigned int u32_count, int i=
-s_write)
-+{
-+	const int block_size =3D 16;
-+	unsigned int block_count, len;
-+	int dma_ch;
-+	unsigned long fifo_reg, timeout, jiffies_before, jiffies_spent;
-+	static unsigned long max_jiffies =3D 0;
-+
-+	dma_ch =3D omap_nand_dma_ch;
-+	block_count =3D u32_count * 4 / block_size;
-+	nand_write_reg(NND_STATUS, 0x0f);
-+	nand_write_reg(NND_FIFOCTRL, (block_size << 24) | block_count);
-+	fifo_reg =3D NAND_BASE + NND_FIFO;
-+	if (is_write) {
-+		omap_set_dma_dest_params(dma_ch, OMAP_DMA_PORT_TIPB,
-+					 OMAP_DMA_AMODE_CONSTANT, fifo_reg,
-+					 0, 0);
-+		omap_set_dma_src_params(dma_ch, OMAP_DMA_PORT_EMIFF,
-+					OMAP_DMA_AMODE_POST_INC,
-+					virt_to_phys(addr),
-+					0, 0);
-+//		omap_set_dma_src_burst_mode(dma_ch, OMAP_DMA_DATA_BURST_4);
-+		/* Set POSTWRITE bit */
-+		nand_write_reg(NND_CTRL, nand_read_reg(NND_CTRL) | (1 << 16));
-+	} else {
-+		omap_set_dma_src_params(dma_ch, OMAP_DMA_PORT_TIPB,
-+					OMAP_DMA_AMODE_CONSTANT, fifo_reg,
-+					0, 0);
-+		omap_set_dma_dest_params(dma_ch, OMAP_DMA_PORT_EMIFF,
-+					 OMAP_DMA_AMODE_POST_INC,
-+					 virt_to_phys(addr),
-+					 0, 0);
-+//		omap_set_dma_dest_burst_mode(dma_ch, OMAP_DMA_DATA_BURST_8);
-+		/* Set PREFETCH bit */
-+		nand_write_reg(NND_CTRL, nand_read_reg(NND_CTRL) | (1 << 17));
-+	}
-+	omap_set_dma_transfer_params(dma_ch, OMAP_DMA_DATA_TYPE_S32, block_si=
-ze / 4,
-+				     block_count, OMAP_DMA_SYNC_FRAME,
-+				     0, 0);
-+	init_completion(&omap_nand_dma_comp);
-+
-+	len =3D u32_count << 2;
-+	dma_cache_maint(addr, len, DMA_TO_DEVICE);
-+	omap_start_dma(dma_ch);
-+	jiffies_before =3D jiffies;
-+	timeout =3D wait_for_completion_timeout(&omap_nand_dma_comp,
-+					      msecs_to_jiffies(1000));
-+	jiffies_spent =3D (unsigned long)((long)jiffies - (long)jiffies_befor=
-e);
-+	if (jiffies_spent > max_jiffies)
-+		max_jiffies =3D jiffies_spent;
-+
-+	if (timeout =3D=3D 0) {
-+		printk(KERN_WARNING "omap-hw-nand: DMA timeout after %u ms, max. see=
-n latency %u ms\n",
-+		       jiffies_to_msecs(jiffies_spent),
-+		       jiffies_to_msecs(max_jiffies));
-+	}
-+	if (!is_write)
-+		dma_cache_maint(addr, len, DMA_FROM_DEVICE);
-+
-+	nand_write_reg(NND_CTRL, nand_read_reg(NND_CTRL) & ~((1 << 16) | (1 <=
-< 17)));
-+}
-+
-+static void fifo_read(u32 *out, unsigned int len)
-+{
-+	const int block_size =3D 16;
-+	unsigned long status_reg, fifo_reg;
-+	int c;
-+
-+	status_reg =3D omap_nand_base + NND_STATUS;
-+	fifo_reg =3D omap_nand_base + NND_FIFO;
-+	len =3D len * 4 / block_size;
-+	nand_write_reg(NND_FIFOCTRL, (block_size << 24) | len);
-+	nand_write_reg(NND_STATUS, 0x0f);
-+	nand_write_reg(NND_CTRL, nand_read_reg(NND_CTRL) | (1 << 17));
-+	c =3D block_size / 4;
-+	while (len--) {
-+		int i;
-+
-+		while ((__raw_readl(status_reg) & (1 << 2)) =3D=3D 0);
-+		__raw_writel(0x0f, status_reg);
-+		for (i =3D 0; i < c; i++) {
-+			u32 l =3D __raw_readl(fifo_reg);
-+			*out++ =3D l;
-+		}
-+	}
-+	nand_write_reg(NND_CTRL, nand_read_reg(NND_CTRL) & ~(1 << 17));
-+	nand_write_reg(NND_STATUS, 0x0f);
-+}
-+
-+static void omap_nand_read_buf(struct mtd_info *mtd, u_char *buf, int =
-len)
-+{
-+	unsigned long access_reg;
-+
-+	if (likely(((unsigned long) buf & 3) =3D=3D 0 && (len & 3) =3D=3D 0))=
- {
-+		int u32_count =3D len >> 2;
-+		u32 *dest =3D (u32 *) buf;
-+		/* If the transfer is big enough and the length divisible by
-+		 * 16, we try to use DMA transfer, or FIFO copy in case of
-+		 * DMA failure (e.g. all channels busy) */
-+		if (u32_count > 64 && (u32_count & 3) =3D=3D 0) {
-+			if (omap_nand_dma_ch >=3D 0) {
-+				omap_nand_dma_transfer(mtd, buf, u32_count, 0);
-+				return;
-+			}
-+			/* In case of an error, fallback to FIFO copy */
-+			fifo_read((u32 *) buf, u32_count);
-+			return;
-+		}
-+		access_reg =3D omap_nand_base + NND_ACCESS;
-+		/* Small buffers we just read directly */
-+		while (u32_count--)
-+			*dest++ =3D __raw_readl(access_reg);
-+	} else {
-+		/* If we're not word-aligned, we use byte copy */
-+		access_reg =3D omap_nand_base + NND_ACCESS;
-+		while (len--)
-+			*buf++ =3D __raw_readb(access_reg);
-+	}
-+}
-+
-+static void omap_nand_write_buf(struct mtd_info *mtd, const u_char *bu=
-f, int len)
-+{
-+	if (likely(((unsigned long) buf & 3) =3D=3D 0 && (len & 3) =3D=3D 0))=
- {
-+		const u32 *src =3D (const u32 *) buf;
-+
-+		len >>=3D 2;
-+#if 0
-+		/* If the transfer is big enough and length divisible by 16,
-+		 * we try to use DMA transfer. */
-+		if (len > 256 / 4 && (len & 3) =3D=3D 0) {
-+			if (omap_nand_dma_transfer(mtd, (void *) buf, len, 1) =3D=3D 0)
-+				return;
-+			/* In case of an error, fallback to CPU copy */
-+		}
-+#endif
-+		while (len--)
-+			nand_write_reg(NND_ACCESS, *src++);
-+	} else {
-+		while (len--)
-+			nand_write_reg8(NND_ACCESS, *buf++);
-+	}
-+}
-+
-+static int omap_nand_verify_buf(struct mtd_info *mtd, const u_char *bu=
-f, int len)
-+{
-+	if (likely(((unsigned long) buf & 3) =3D=3D 0 && (len & 3) =3D=3D 0))=
- {
-+		const u32 *dest =3D (const u32 *) buf;
-+		len >>=3D 2;
-+		while (len--)
-+			if (*dest++ !=3D nand_read_reg(NND_ACCESS))
-+				return -EFAULT;
-+	} else {
-+		while (len--)
-+			if (*buf++ !=3D nand_read_reg8(NND_ACCESS))
-+				return -EFAULT;
-+	}
-+	return 0;
-+}
-+
-+static u_char omap_nand_read_byte(struct mtd_info *mtd)
-+{
-+	return nand_read_reg8(NND_ACCESS);
-+}
-+
-+static int omap_nand_dev_ready(struct mtd_info *mtd)
-+{
-+	u32 l;
-+
-+	l =3D nand_read_reg(NND_READY);
-+	return l & 0x01;
-+}
-+
-+static int nand_write_command(u8 cmd, u32 addr, int addr_valid)
-+{
-+	if (addr_valid) {
-+		nand_write_reg(NND_ADDR_SRC, addr);
-+		nand_write_reg8(NND_COMMAND, cmd);
-+	} else {
-+		nand_write_reg(NND_ADDR_SRC, 0);
-+		nand_write_reg8(NND_COMMAND_SEC, cmd);
-+	}
-+	while (!omap_nand_dev_ready(NULL));
-+	return 0;
-+}
-+
-+/*
-+ * Send command to NAND device
-+ */
-+static void omap_nand_command(struct mtd_info *mtd, unsigned command, =
-int column, int page_addr)
-+{
-+	struct nand_chip *this =3D mtd->priv;
-+
-+	/*
-+	 * Write out the command to the device.
-+	 */
-+	if (command =3D=3D NAND_CMD_SEQIN) {
-+		int readcmd;
-+
-+		if (column >=3D mtd->writesize) {
-+			/* OOB area */
-+			column -=3D mtd->writesize;
-+			readcmd =3D NAND_CMD_READOOB;
-+		} else if (column < 256) {
-+			/* First 256 bytes --> READ0 */
-+			readcmd =3D NAND_CMD_READ0;
-+		} else {
-+			column -=3D 256;
-+			readcmd =3D NAND_CMD_READ1;
-+		}
-+		nand_write_command(readcmd, 0, 0);
-+	}
-+	switch (command) {
-+	case NAND_CMD_RESET:
-+	case NAND_CMD_PAGEPROG:
-+	case NAND_CMD_STATUS:
-+	case NAND_CMD_ERASE2:
-+		nand_write_command(command, 0, 0);
-+		break;
-+	case NAND_CMD_ERASE1:
-+		nand_write_command(command, ((page_addr & 0xFFFFFF00) << 1) | (page_=
-addr & 0XFF), 1);
-+		break;
-+	default:
-+		nand_write_command(command, (page_addr << this->page_shift) | column=
-, 1);
-+	}
-+}
-+
-+static void omap_nand_command_lp(struct mtd_info *mtd, unsigned comman=
-d, int column, int page_addr)
-+{
-+	struct nand_chip *this =3D mtd->priv;
-+
-+	if (command =3D=3D NAND_CMD_READOOB) {
-+		column +=3D mtd->writesize;
-+		command =3D NAND_CMD_READ0;
-+	}
-+	switch (command) {
-+	case NAND_CMD_RESET:
-+	case NAND_CMD_PAGEPROG:
-+	case NAND_CMD_STATUS:
-+	case NAND_CMD_ERASE2:	=09
-+		nand_write_command(command, 0, 0);
-+		break;
-+	case NAND_CMD_ERASE1:
-+		nand_write_command(command, page_addr << this->page_shift >> 11, 1);
-+		break;
-+	default:
-+		nand_write_command(command, (page_addr << 16) | column, 1);
-+	}
-+	if (command =3D=3D NAND_CMD_READ0)
-+		nand_write_command(NAND_CMD_READSTART, 0, 0);
-+}
-+
-+/*
-+ * Generate non-inverted ECC bytes.
-+ *
-+ * Using noninverted ECC can be considered ugly since writing a blank
-+ * page ie. padding will clear the ECC bytes. This is no problem as lo=
-ng
-+ * nobody is trying to write data on the seemingly unused page.
-+ *
-+ * Reading an erased page will produce an ECC mismatch between
-+ * generated and read ECC bytes that has to be dealt with separately.
-+ */
-+static int omap_nand_calculate_ecc(struct mtd_info *mtd, const u_char =
-*dat, u_char *ecc_code)
-+{
-+	u32 l;
-+	int reg;
-+	int n;
-+	struct nand_chip *this =3D mtd->priv;
-+
-+	/* Ex NAND_ECC_HW12_2048 */
-+	if ((this->ecc.mode =3D=3D NAND_ECC_HW) && (this->ecc.size  =3D=3D 20=
-48))
-+		n =3D 4;
-+	else
-+		n =3D 1;
-+	reg =3D NND_ECC_START;
-+	while (n--) {
-+		l =3D nand_read_reg(reg);
-+		*ecc_code++ =3D l;          // P128e, ..., P1e
-+		*ecc_code++ =3D l >> 16;    // P128o, ..., P1o
-+		// P2048o, P1024o, P512o, P256o, P2048e, P1024e, P512e, P256e
-+		*ecc_code++ =3D ((l >> 8) & 0x0f) | ((l >> 20) & 0xf0);
-+		reg +=3D 4;
-+	}
-+	return 0;
-+}
-+
-+/*
-+ * This function will generate true ECC value, which can be used
-+ * when correcting data read from NAND flash memory core
-+ */
-+static void gen_true_ecc(u8 *ecc_buf)
-+{
-+	u32 tmp =3D ecc_buf[0] | (ecc_buf[1] << 16) | ((ecc_buf[2] & 0xF0) <<=
- 20) | ((ecc_buf[2] & 0x0F) << 8);
-+
-+	ecc_buf[0] =3D ~(P64o(tmp) | P64e(tmp) | P32o(tmp) | P32e(tmp) | P16o=
-(tmp) | P16e(tmp) | P8o(tmp) | P8e(tmp) );
-+	ecc_buf[1] =3D ~(P1024o(tmp) | P1024e(tmp) | P512o(tmp) | P512e(tmp) =
-| P256o(tmp) | P256e(tmp) | P128o(tmp) | P128e(tmp));
-+	ecc_buf[2] =3D ~( P4o(tmp) | P4e(tmp) | P2o(tmp) | P2e(tmp) | P1o(tmp=
-) | P1e(tmp) | P2048o(tmp) | P2048e(tmp));
-+}
-+
-+/*
-+ * This function compares two ECC's and indicates if there is an error=
-=2E
-+ * If the error can be corrected it will be corrected to the buffer
-+ */
-+static int omap_nand_compare_ecc(u8 *ecc_data1,   /* read from NAND me=
-mory */
-+				 u8 *ecc_data2,   /* read from register */
-+				 u8 *page_data)
-+{
-+	uint   i;
-+	u8     tmp0_bit[8], tmp1_bit[8], tmp2_bit[8];
-+	u8     comp0_bit[8], comp1_bit[8], comp2_bit[8];
-+	u8     ecc_bit[24];
-+	u8     ecc_sum =3D 0;
-+	u8     find_bit =3D 0;
-+	uint   find_byte =3D 0;
-+	int    isEccFF;
-+
-+	isEccFF =3D ((*(u32 *)ecc_data1 & 0xFFFFFF) =3D=3D 0xFFFFFF);
-+
-+	gen_true_ecc(ecc_data1);
-+	gen_true_ecc(ecc_data2);
-+
-+	for (i =3D 0; i <=3D 2; i++) {
-+		*(ecc_data1 + i) =3D ~(*(ecc_data1 + i));
-+		*(ecc_data2 + i) =3D ~(*(ecc_data2 + i));
-+	}
-+
-+	for (i =3D 0; i < 8; i++) {
-+		tmp0_bit[i]      =3D *ecc_data1 % 2;
-+		*ecc_data1       =3D *ecc_data1 / 2;
-+	}
-+
-+	for (i =3D 0; i < 8; i++) {
-+		tmp1_bit[i]      =3D *(ecc_data1 + 1) % 2;
-+		*(ecc_data1 + 1) =3D *(ecc_data1 + 1) / 2;
-+	}
-+
-+	for (i =3D 0; i < 8; i++) {
-+		tmp2_bit[i]      =3D *(ecc_data1 + 2) % 2;
-+		*(ecc_data1 + 2) =3D *(ecc_data1 + 2) / 2;
-+	}
-+
-+	for (i =3D 0; i < 8; i++) {
-+		comp0_bit[i]     =3D *ecc_data2 % 2;
-+		*ecc_data2       =3D *ecc_data2 / 2;
-+	}
-+
-+	for (i =3D 0; i < 8; i++) {
-+		comp1_bit[i]     =3D *(ecc_data2 + 1) % 2;
-+		*(ecc_data2 + 1) =3D *(ecc_data2 + 1) / 2;
-+	}
-+
-+	for (i =3D 0; i < 8; i++) {
-+		comp2_bit[i]     =3D *(ecc_data2 + 2) % 2;
-+		*(ecc_data2 + 2) =3D *(ecc_data2 + 2) / 2;
-+	}
-+
-+	for (i =3D 0; i< 6; i++ )
-+		ecc_bit[i] =3D tmp2_bit[i + 2] ^ comp2_bit[i + 2];
-+
-+	for (i =3D 0; i < 8; i++)
-+		ecc_bit[i + 6] =3D tmp0_bit[i] ^ comp0_bit[i];
-+
-+	for (i =3D 0; i < 8; i++)
-+		ecc_bit[i + 14] =3D tmp1_bit[i] ^ comp1_bit[i];
-+
-+	ecc_bit[22] =3D tmp2_bit[0] ^ comp2_bit[0];
-+	ecc_bit[23] =3D tmp2_bit[1] ^ comp2_bit[1];
-+
-+	for (i =3D 0; i < 24; i++)
-+		ecc_sum +=3D ecc_bit[i];
-+
-+	switch (ecc_sum) {
-+	case 0:
-+		/* Not reached because this function is not called if
-+		   ECC values are equal */
-+		return 0;
-+
-+	case 1:
-+		/* Uncorrectable error */
-+		DEBUG (MTD_DEBUG_LEVEL0, "ECC UNCORRECTED_ERROR 1\n");
-+		return -1;
-+
-+	case 12:
-+		/* Correctable error */
-+		find_byte =3D (ecc_bit[23] << 8) +=20
-+			    (ecc_bit[21] << 7) +=20
-+			    (ecc_bit[19] << 6) +
-+			    (ecc_bit[17] << 5) +
-+			    (ecc_bit[15] << 4) +
-+			    (ecc_bit[13] << 3) +
-+			    (ecc_bit[11] << 2) +
-+			    (ecc_bit[9]  << 1) +
-+			    ecc_bit[7];
-+
-+		find_bit =3D (ecc_bit[5] << 2) + (ecc_bit[3] << 1) + ecc_bit[1];
-+
-+		DEBUG (MTD_DEBUG_LEVEL0, "Correcting single bit ECC error at offset:=
- %d, bit: %d\n", find_byte, find_bit);
-+
-+		page_data[find_byte] ^=3D (1 << find_bit);
-+
-+		return 0;
-+	default:
-+		if (isEccFF) {
-+			if (ecc_data2[0] =3D=3D 0 && ecc_data2[1] =3D=3D 0 && ecc_data2[2] =
-=3D=3D 0)
-+				return 0;
-+		}=20
-+		DEBUG (MTD_DEBUG_LEVEL0, "UNCORRECTED_ERROR default\n");
-+		return -1;
-+	}
-+}
-+
-+static int omap_nand_correct_data(struct mtd_info *mtd, u_char *dat, u=
-_char *read_ecc, u_char *calc_ecc)
-+{
-+	struct nand_chip *this;
-+	int block_count =3D 0, i, r;
-+
-+	this =3D mtd->priv;
-+	/* Ex NAND_ECC_HW12_2048 */
-+	if ((this->ecc.mode =3D=3D NAND_ECC_HW) && (this->ecc.size  =3D=3D 20=
-48))
-+		block_count =3D 4;
-+	else
-+		block_count =3D 1;
-+	for (i =3D 0; i < block_count; i++) {
-+		if (memcmp(read_ecc, calc_ecc, 3) !=3D 0) {
-+			r =3D omap_nand_compare_ecc(read_ecc, calc_ecc, dat);
-+			if (r < 0)
-+				return r;
-+		}
-+		read_ecc +=3D 3;
-+		calc_ecc +=3D 3;
-+		dat +=3D 512;
-+	}
-+	return 0;
-+}
-+
-+static void omap_nand_enable_hwecc(struct mtd_info *mtd, int mode)
-+{
-+	nand_write_reg(NND_RESET, 0x01);
-+}
-+
-+#ifdef CONFIG_MTD_CMDLINE_PARTS
-+
-+extern int mtdpart_setup(char *);
-+
-+static int __init add_dynamic_parts(struct mtd_info *mtd)
-+{
-+	static const char *part_parsers[] =3D { "cmdlinepart", NULL };
-+	struct mtd_partition *parts;
-+	const struct omap_flash_part_str_config *cfg;
-+	char *part_str =3D NULL;
-+	size_t part_str_len;
-+	int c;
-+
-+	cfg =3D omap_get_var_config(OMAP_TAG_FLASH_PART_STR, &part_str_len);
-+	if (cfg !=3D NULL) {
-+		part_str =3D kmalloc(part_str_len + 1, GFP_KERNEL);
-+		if (part_str =3D=3D NULL)
-+			return -ENOMEM;
-+		memcpy(part_str, cfg->part_table, part_str_len);
-+		part_str[part_str_len] =3D '\0';
-+		mtdpart_setup(part_str);
-+	}
-+	c =3D parse_mtd_partitions(omap_mtd, part_parsers, &parts, 0);
-+	if (part_str !=3D NULL) {
-+		mtdpart_setup(NULL);
-+		kfree(part_str);
-+	}
-+	if (c <=3D 0)
-+		return -1;
-+
-+	add_mtd_partitions(mtd, parts, c);
-+
-+	return 0;
-+}
-+
-+#else
-+
-+static inline int add_dynamic_parts(struct mtd_info *mtd)
-+{
-+	return -1;
-+}
-+
-+#endif
-+
-+static inline int calc_psc(int ns, int cycle_ps)
-+{
-+	return (ns * 1000 + (cycle_ps - 1)) / cycle_ps;
-+}
-+
-+static void set_psc_regs(int psc_ns, int psc1_ns, int psc2_ns)
-+{
-+	int psc[3], i;
-+	unsigned long rate, ps;
-+
-+	rate =3D clk_get_rate(omap_nand_clk);
-+	ps =3D 1000000000 / (rate / 1000);
-+	psc[0] =3D calc_psc(psc_ns, ps);
-+	psc[1] =3D calc_psc(psc1_ns, ps);
-+	psc[2] =3D calc_psc(psc2_ns, ps);
-+	for (i =3D 0; i < 3; i++) {
-+		if (psc[i] < 2)
-+			psc[i] =3D 2;
-+		else if (psc[i] > 256)
-+			psc[i] =3D 256;
-+	}
-+	nand_write_reg(NND_PSC_CLK, psc[0] - 1);
-+	nand_write_reg(NND_PSC1_CLK, psc[1] - 1);
-+	nand_write_reg(NND_PSC2_CLK, psc[2] - 1);
-+	printk(KERN_INFO "omap-hw-nand: using PSC values %d, %d, %d\n", psc[0=
-], psc[1], psc[2]);
-+}
-+
-+/*
-+ * Main initialization routine
-+ */
-+static int __init omap_nand_init(void)
-+{
-+	struct nand_chip *this;
-+	int err =3D 0;
-+	u32 l;
-+
-+	omap_nand_clk =3D clk_get(NULL, "armper_ck");
-+	BUG_ON(omap_nand_clk =3D=3D NULL);
-+	clk_enable(omap_nand_clk);
-+
-+	l =3D nand_read_reg(NND_REVISION);=09
-+	printk(KERN_INFO "omap-hw-nand: OMAP NAND Controller rev. %d.%d\n", l=
->>4, l & 0xf);
-+
-+	/* Reset the NAND Controller */
-+	nand_write_reg(NND_SYSCFG, 0x02);
-+	while ((nand_read_reg(NND_SYSSTATUS) & 0x01) =3D=3D 0);
-+
-+	/* No Prefetch, no postwrite, write prot & enable pairs disabled,
-+	   addres counter set to send 4 byte addresses to flash,
-+	   A8 is set not to be sent to flash (erase addre needs formatting),
-+	   choose little endian, enable 512 byte ECC logic,	  =20
-+	 */
-+	nand_write_reg(NND_CTRL, 0xFF01);
-+
-+	/* Allocate memory for MTD device structure and private data */
-+	omap_mtd =3D kmalloc(sizeof(struct mtd_info) + sizeof(struct nand_chi=
-p), GFP_KERNEL);
-+	if (!omap_mtd) {
-+		printk(KERN_WARNING "omap-hw-nand: Unable to allocate OMAP NAND MTD =
-device structure.\n");
-+		err =3D -ENOMEM;
-+		goto free_clock;
-+	}
-+#if 1
-+	err =3D omap_request_dma(OMAP_DMA_NAND, "NAND", nand_dma_cb,
-+			       &omap_nand_dma_comp, &omap_nand_dma_ch);
-+	if (err < 0) {
-+		printk(KERN_WARNING "omap-hw-nand: Unable to reserve DMA channel\n")=
-;
-+		omap_nand_dma_ch =3D -1;
-+	}
-+#else
-+	omap_nand_dma_ch =3D -1;
-+#endif
-+	/* Get pointer to private data */
-+	this =3D (struct nand_chip *) (&omap_mtd[1]);
-+
-+	/* Initialize structures */
-+	memset((char *) omap_mtd, 0, sizeof(struct mtd_info));
-+	memset((char *) this, 0, sizeof(struct nand_chip));
-+
-+	/* Link the private data with the MTD structure */
-+	omap_mtd->priv =3D this;
-+	omap_mtd->name =3D "omap-nand";
-+
-+	this->options =3D NAND_SKIP_BBTSCAN;
-+
-+	/* Used from chip select and nand_command() */
-+	this->read_byte =3D omap_nand_read_byte;
-+
-+	this->select_chip   =3D omap_nand_select_chip;
-+	this->dev_ready     =3D omap_nand_dev_ready;
-+	this->chip_delay    =3D 0;
-+	this->ecc.mode      =3D NAND_ECC_HW;
-+	this->ecc.bytes     =3D 3;
-+	this->ecc.size      =3D 512;
-+	this->cmdfunc       =3D omap_nand_command;
-+	this->write_buf     =3D omap_nand_write_buf;
-+	this->read_buf      =3D omap_nand_read_buf;
-+	this->verify_buf    =3D omap_nand_verify_buf;
-+	this->ecc.calculate =3D omap_nand_calculate_ecc;
-+	this->ecc.correct   =3D omap_nand_correct_data;
-+	this->ecc.hwctl     =3D omap_nand_enable_hwecc;
-+
-+	nand_write_reg(NND_SYSCFG, 0x1); /* Enable auto idle */
-+	nand_write_reg(NND_PSC_CLK, 10);
-+	/* Scan to find existance of the device */
-+	if (nand_scan(omap_mtd, 1)) {
-+		err =3D -ENXIO;
-+		goto out_mtd;
-+	}
-+
-+	set_psc_regs(25, 15, 35);
-+	if (this->page_shift =3D=3D 11) {
-+		this->cmdfunc =3D omap_nand_command_lp;
-+		l =3D nand_read_reg(NND_CTRL);
-+		l |=3D 1 << 4; /* Set the A8 bit in CTRL reg */
-+		nand_write_reg(NND_CTRL, l);
-+		this->ecc.mode =3D NAND_ECC_HW;
-+		this->ecc.steps =3D 1;
-+		this->ecc.size =3D 2048;
-+		this->ecc.bytes =3D 12;
-+		nand_write_reg(NND_ECC_SELECT, 6);
-+	}
-+
-+	/* We have to do bbt scanning ourselves */
-+	if (this->scan_bbt (omap_mtd)) {
-+		err =3D -ENXIO;
-+		goto out_mtd;
-+	}
-+
-+	err =3D add_dynamic_parts(omap_mtd);
-+	if (err < 0) {
-+		printk(KERN_ERR "omap-hw-nand: no partitions defined\n");
-+		err =3D -ENODEV;
-+		nand_release(omap_mtd);
-+		goto out_mtd;
-+	}
-+	/* init completed */
-+	return 0;
-+out_mtd:
-+	if (omap_nand_dma_ch >=3D 0)
-+		omap_free_dma(omap_nand_dma_ch);
-+	kfree(omap_mtd);
-+free_clock:
-+	clk_put(omap_nand_clk);
-+	return err;
-+}
-+
-+module_init(omap_nand_init);
-+
-+/*
-+ * Clean up routine
-+ */
-+static void __exit omap_nand_cleanup (void)
-+{
-+	clk_disable(omap_nand_clk);
-+	clk_put(omap_nand_clk);
-+	nand_release(omap_mtd);
-+	kfree(omap_mtd);
-+}
-+
-+module_exit(omap_nand_cleanup);
-+
-diff --git a/drivers/mtd/nand/omap-nand-flash.c b/drivers/mtd/nand/omap=
--nand-flash.c
-new file mode 100644
-index 0000000..63a7968
---- /dev/null
-+++ b/drivers/mtd/nand/omap-nand-flash.c
-@@ -0,0 +1,186 @@
-+/*
-+ * drivers/mtd/nand/omap-nand-flash.c
-+ *
-+ * Copyright (c) 2004 Texas Instruments, Jian Zhang <jzhang@ti.com>
-+ * Copyright (c) 2004 David Brownell
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/ioport.h>
 +#include <linux/delay.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
++#include <linux/dma-mapping.h>
 +#include <linux/platform_device.h>
-+#include <linux/types.h>
-+#include <linux/mtd/mtd.h>
-+#include <linux/mtd/nand.h>
-+#include <linux/mtd/partitions.h>
-+
-+#include <asm/io.h>
++#include <linux/workqueue.h>
++#include <linux/timer.h>
++#include <linux/clk.h>
++#include <linux/mmc/host.h>
++#include <linux/io.h>
++#include <linux/semaphore.h>
++#include <asm/dma.h>
 +#include <mach/hardware.h>
-+#include <asm/mach-types.h>
-+#include <asm/mach/flash.h>
-+#include <mach/tc.h>
++#include <mach/board.h>
++#include <mach/mmc.h>
++#include <mach/cpu.h>
 +
-+#include <asm/io.h>
-+#include <mach/hardware.h>
-+#include <mach/nand.h>
++/* OMAP HSMMC Host Controller Registers */
++#define OMAP_HSMMC_SYSCONFIG	0x0010
++#define OMAP_HSMMC_CON		0x002C
++#define OMAP_HSMMC_BLK		0x0104
++#define OMAP_HSMMC_ARG		0x0108
++#define OMAP_HSMMC_CMD		0x010C
++#define OMAP_HSMMC_RSP10	0x0110
++#define OMAP_HSMMC_RSP32	0x0114
++#define OMAP_HSMMC_RSP54	0x0118
++#define OMAP_HSMMC_RSP76	0x011C
++#define OMAP_HSMMC_DATA		0x0120
++#define OMAP_HSMMC_HCTL		0x0128
++#define OMAP_HSMMC_SYSCTL	0x012C
++#define OMAP_HSMMC_STAT		0x0130
++#define OMAP_HSMMC_IE		0x0134
++#define OMAP_HSMMC_ISE		0x0138
++#define OMAP_HSMMC_CAPA		0x0140
 +
-+#define	DRIVER_NAME	"omapnand"
++#define VS18			(1<<26)
++#define VS30			(1<<25)
++#define SDVS18			(0x5<<9)
++#define SDVS30			(0x6<<9)
++#define SDVSCLR			0xFFFFF1FF
++#define SDVSDET			0x00000400
++#define AUTOIDLE		0x1
++#define SDBP			(1<<8)
++#define DTO			0xe
++#define ICE			0x1
++#define ICS			0x2
++#define CEN			(1<<2)
++#define CLKD_MASK		0x0000FFC0
++#define INT_EN_MASK		0x307F0033
++#define INIT_STREAM		(1<<1)
++#define DP_SELECT		(1<<21)
++#define DDIR			(1<<4)
++#define DMA_EN			0x1
++#define MSBS			1<<5
++#define BCE			1<<1
++#define FOUR_BIT		1 << 1
++#define CC			0x1
++#define TC			0x02
++#define OD			0x1
++#define ERR			(1 << 15)
++#define CMD_TIMEOUT		(1 << 16)
++#define DATA_TIMEOUT		(1 << 20)
++#define CMD_CRC			(1 << 17)
++#define DATA_CRC		(1 << 21)
++#define CARD_ERR		(1 << 28)
++#define STAT_CLEAR		0xFFFFFFFF
++#define INIT_STREAM_CMD		0x00000000
++#define DUAL_VOLT_OCR_BIT	7
++#define SRC			(1 << 25)
++#define SRD			(1 << 26)
 +
-+#ifdef CONFIG_MTD_PARTITIONS
-+static const char *part_probes[] =3D { "cmdlinepart", NULL };
-+#endif
++#define OMAP_MMC1_DEVID		1
++#define OMAP_MMC2_DEVID		2
++#define OMAP_MMC_DATADIR_NONE	0
++#define OMAP_MMC_DATADIR_READ	1
++#define OMAP_MMC_DATADIR_WRITE	2
++#define MMC_TIMEOUT_MS		20
++#define OMAP_MMC_MASTER_CLOCK	96000000
++#define DRIVER_NAME		"mmci-omap"
++/*
++ * slot_id is device id - 1, device id is a static value
++ * of 1 to represent device 1 etc..
++ */
++#define mmc_slot(host)		(host->pdata->slots[host->slot_id])
 +
-+struct omap_nand_info {
-+	struct omap_nand_platform_data *pdata;
-+	struct mtd_partition	*parts;
-+	struct mtd_info		mtd;
-+	struct nand_chip	nand;
++/*
++ * MMC Host controller read/write API's
++ */
++#define OMAP_HSMMC_READ(base, reg)	\
++	__raw_readl((base) + OMAP_HSMMC_##reg)
++
++#define OMAP_HSMMC_WRITE(base, reg, val) \
++	__raw_writel((val), (base) + OMAP_HSMMC_##reg)
++
++struct mmc_omap_host {
++	struct	device		*dev;
++	struct	mmc_host	*mmc;
++	struct	mmc_request	*mrq;
++	struct	mmc_command	*cmd;
++	struct	mmc_data	*data;
++	struct	clk		*fclk;
++	struct	clk		*iclk;
++	struct	clk		*dbclk;
++	struct	semaphore	sem;
++	struct	work_struct	mmc_carddetect_work;
++	void	__iomem		*base;
++	resource_size_t		mapbase;
++	unsigned int		id;
++	unsigned int		dma_len;
++	unsigned int		dma_dir;
++	unsigned char		bus_mode;
++	unsigned char		datadir;
++	u32			*buffer;
++	u32			bytesleft;
++	int			suspended;
++	int			irq;
++	int			carddetect;
++	int			use_dma, dma_ch;
++	int			initstr;
++	int			slot_id;
++	int			dbclk_enabled;
++	struct	omap_mmc_platform_data	*pdata;
 +};
 +
 +/*
-+ *	hardware specific access to control-lines
-+ *	NOTE:  boards may use different bits for these!!
-+ *
-+ *	ctrl:
-+ *	NAND_NCE: bit 0 - don't care
-+ *	NAND_CLE: bit 1 -> bit 1  (0x0002)
-+ *	NAND_ALE: bit 2 -> bit 2  (0x0004)
++ * Stop clock to the card
 + */
-+
-+static void omap_nand_hwcontrol(struct mtd_info *mtd, int cmd, unsigne=
-d int ctrl)
++static void omap_mmc_stop_clock(struct mmc_omap_host *host)
 +{
-+	struct nand_chip *chip =3D mtd->priv;
-+	unsigned long mask;
++	OMAP_HSMMC_WRITE(host->base, SYSCTL,
++		OMAP_HSMMC_READ(host->base, SYSCTL) & ~CEN);
++	if ((OMAP_HSMMC_READ(host->base, SYSCTL) & CEN) != 0x0)
++		dev_dbg(mmc_dev(host->mmc), "MMC Clock is not stoped\n");
++}
 +
-+	if (cmd =3D=3D NAND_CMD_NONE)
++/*
++ * Send init stream sequence to card
++ * before sending IDLE command
++ */
++static void send_init_stream(struct mmc_omap_host *host)
++{
++	int reg = 0;
++	unsigned long timeout;
++
++	disable_irq(host->irq);
++	OMAP_HSMMC_WRITE(host->base, CON,
++		OMAP_HSMMC_READ(host->base, CON) | INIT_STREAM);
++	OMAP_HSMMC_WRITE(host->base, CMD, INIT_STREAM_CMD);
++
++	timeout = jiffies + msecs_to_jiffies(MMC_TIMEOUT_MS);
++	while ((reg != CC) && time_before(jiffies, timeout))
++		reg = OMAP_HSMMC_READ(host->base, STAT) & CC;
++
++	OMAP_HSMMC_WRITE(host->base, CON,
++		OMAP_HSMMC_READ(host->base, CON) & ~INIT_STREAM);
++	enable_irq(host->irq);
++}
++
++/*
++ * Configure the response type and send the cmd.
++ */
++static void
++mmc_omap_start_command(struct mmc_omap_host *host, struct mmc_command *cmd,
++	struct mmc_data *data)
++{
++	int cmdreg = 0, resptype = 0, cmdtype = 0;
++
++	dev_dbg(mmc_dev(host->mmc), "%s: CMD%d, argument 0x%08x\n",
++		mmc_hostname(host->mmc), cmd->opcode, cmd->arg);
++	host->cmd = cmd;
++
++	/*
++	 * Clear status bits and enable interrupts
++	 */
++	OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
++	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
++	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
++
++	if (cmd->flags & MMC_RSP_PRESENT) {
++		if (cmd->flags & MMC_RSP_136)
++			resptype = 1;
++		else
++			resptype = 2;
++	}
++
++	/*
++	 * Unlike OMAP1 controller, the cmdtype does not seem to be based on
++	 * ac, bc, adtc, bcr. Only CMD12 needs a val of 0x3, rest 0x0.
++	 */
++	if (cmd->opcode == 12)
++		cmdtype = 0x3;
++
++	cmdreg = (cmd->opcode << 24) | (resptype << 16) | (cmdtype << 22);
++
++	if (data) {
++		cmdreg |= DP_SELECT | MSBS | BCE;
++		if (data->flags & MMC_DATA_READ)
++			cmdreg |= DDIR;
++		else
++			cmdreg &= ~(DDIR);
++	}
++
++	if (host->use_dma)
++		cmdreg |= DMA_EN;
++
++	OMAP_HSMMC_WRITE(host->base, ARG, cmd->arg);
++	OMAP_HSMMC_WRITE(host->base, CMD, cmdreg);
++}
++
++/*
++ * Notify the transfer complete to MMC core
++ */
++static void
++mmc_omap_xfer_done(struct mmc_omap_host *host, struct mmc_data *data)
++{
++	host->data = NULL;
++
++	if (host->use_dma && host->dma_ch != -1)
++		dma_unmap_sg(mmc_dev(host->mmc), data->sg, host->dma_len,
++			host->dma_dir);
++
++	host->datadir = OMAP_MMC_DATADIR_NONE;
++
++	if (!data->error)
++		data->bytes_xfered += data->blocks * (data->blksz);
++	else
++		data->bytes_xfered = 0;
++
++	if (!data->stop) {
++		host->mrq = NULL;
++		mmc_request_done(host->mmc, data->mrq);
++		return;
++	}
++	mmc_omap_start_command(host, data->stop, NULL);
++}
++
++/*
++ * Notify the core about command completion
++ */
++static void
++mmc_omap_cmd_done(struct mmc_omap_host *host, struct mmc_command *cmd)
++{
++	host->cmd = NULL;
++
++	if (cmd->flags & MMC_RSP_PRESENT) {
++		if (cmd->flags & MMC_RSP_136) {
++			/* response type 2 */
++			cmd->resp[3] = OMAP_HSMMC_READ(host->base, RSP10);
++			cmd->resp[2] = OMAP_HSMMC_READ(host->base, RSP32);
++			cmd->resp[1] = OMAP_HSMMC_READ(host->base, RSP54);
++			cmd->resp[0] = OMAP_HSMMC_READ(host->base, RSP76);
++		} else {
++			/* response types 1, 1b, 3, 4, 5, 6 */
++			cmd->resp[0] = OMAP_HSMMC_READ(host->base, RSP10);
++		}
++	}
++	if (host->data == NULL || cmd->error) {
++		host->mrq = NULL;
++		mmc_request_done(host->mmc, cmd->mrq);
++	}
++}
++
++/*
++ * DMA clean up for command errors
++ */
++static void mmc_dma_cleanup(struct mmc_omap_host *host)
++{
++	host->data->error = -ETIMEDOUT;
++
++	if (host->use_dma && host->dma_ch != -1) {
++		dma_unmap_sg(mmc_dev(host->mmc), host->data->sg, host->dma_len,
++			host->dma_dir);
++		omap_free_dma(host->dma_ch);
++		host->dma_ch = -1;
++		up(&host->sem);
++	}
++	host->data = NULL;
++	host->datadir = OMAP_MMC_DATADIR_NONE;
++}
++
++/*
++ * MMC controller IRQ handler
++ */
++static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
++{
++	struct mmc_omap_host *host = dev_id;
++	struct mmc_data *data;
++	int end_cmd = 0, end_trans = 0, status;
++
++	if (host->cmd == NULL && host->data == NULL) {
++		OMAP_HSMMC_WRITE(host->base, STAT,
++			OMAP_HSMMC_READ(host->base, STAT));
++		return IRQ_HANDLED;
++	}
++
++	data = host->data;
++	status = OMAP_HSMMC_READ(host->base, STAT);
++	dev_dbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
++
++	if (status & ERR) {
++		if ((status & CMD_TIMEOUT) ||
++			(status & CMD_CRC)) {
++			if (host->cmd) {
++				if (status & CMD_TIMEOUT) {
++					OMAP_HSMMC_WRITE(host->base, SYSCTL,
++						OMAP_HSMMC_READ(host->base,
++								SYSCTL) | SRC);
++					while (OMAP_HSMMC_READ(host->base,
++								SYSCTL) & SRC) ;
++					host->cmd->error = -ETIMEDOUT;
++				} else {
++					host->cmd->error = -EILSEQ;
++				}
++				end_cmd = 1;
++			}
++			if (host->data)
++				mmc_dma_cleanup(host);
++		}
++		if ((status & DATA_TIMEOUT) ||
++			(status & DATA_CRC)) {
++			if (host->data) {
++				if (status & DATA_TIMEOUT)
++					mmc_dma_cleanup(host);
++				else
++					host->data->error = -EILSEQ;
++				end_trans = 1;
++			}
++		}
++		if (status & CARD_ERR) {
++			dev_dbg(mmc_dev(host->mmc),
++				"Ignoring card err CMD%d\n", host->cmd->opcode);
++			if (host->cmd)
++				end_cmd = 1;
++			if (host->data)
++				end_trans = 1;
++		}
++	}
++
++	OMAP_HSMMC_WRITE(host->base, STAT, status);
++
++	if (end_cmd || (status & CC))
++		mmc_omap_cmd_done(host, host->cmd);
++	if (end_trans || (status & TC))
++		mmc_omap_xfer_done(host, data);
++
++	return IRQ_HANDLED;
++}
++
++/*
++ * Switch MMC operating voltage
++ */
++static int omap_mmc_switch_opcond(struct mmc_omap_host *host, int vdd)
++{
++	u32 reg_val = 0;
++	int ret;
++
++	/* Disable the clocks */
++	clk_disable(host->fclk);
++	clk_disable(host->iclk);
++	clk_disable(host->dbclk);
++
++	/* Turn the power off */
++	ret = mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
++	if (ret != 0)
++		goto err;
++
++	/* Turn the power ON with given VDD 1.8 or 3.0v */
++	ret = mmc_slot(host).set_power(host->dev, host->slot_id, 1, vdd);
++	if (ret != 0)
++		goto err;
++
++	clk_enable(host->fclk);
++	clk_enable(host->iclk);
++	clk_enable(host->dbclk);
++
++	OMAP_HSMMC_WRITE(host->base, HCTL,
++		OMAP_HSMMC_READ(host->base, HCTL) & SDVSCLR);
++	reg_val = OMAP_HSMMC_READ(host->base, HCTL);
++	/*
++	 * If a MMC dual voltage card is detected, the set_ios fn calls
++	 * this fn with VDD bit set for 1.8V. Upon card removal from the
++	 * slot, mmc_omap_detect fn sets the VDD back to 3V.
++	 *
++	 * Only MMC1 supports 3.0V.  MMC2 will not function if SDVS30 is
++	 * set in HCTL.
++	 */
++	if (host->id == OMAP_MMC1_DEVID && (((1 << vdd) == MMC_VDD_32_33) ||
++				((1 << vdd) == MMC_VDD_33_34)))
++		reg_val |= SDVS30;
++	if ((1 << vdd) == MMC_VDD_165_195)
++		reg_val |= SDVS18;
++
++	OMAP_HSMMC_WRITE(host->base, HCTL, reg_val);
++
++	OMAP_HSMMC_WRITE(host->base, HCTL,
++		OMAP_HSMMC_READ(host->base, HCTL) | SDBP);
++
++	return 0;
++err:
++	dev_dbg(mmc_dev(host->mmc), "Unable to switch operating voltage\n");
++	return ret;
++}
++
++/*
++ * Work Item to notify the core about card insertion/removal
++ */
++static void mmc_omap_detect(struct work_struct *work)
++{
++	u16 vdd = 0;
++	struct mmc_omap_host *host = container_of(work, struct mmc_omap_host,
++						mmc_carddetect_work);
++
++	if (host->carddetect) {
++		if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
++			/*
++			 * Set the VDD back to 3V when the card is removed
++			 * before the set_ios fn turns off the power.
++			 */
++			vdd = fls(host->mmc->ocr_avail) - 1;
++			if (omap_mmc_switch_opcond(host, vdd) != 0)
++				host->mmc->ios.vdd = vdd;
++		}
++		mmc_detect_change(host->mmc, (HZ * 200) / 1000);
++	} else {
++		OMAP_HSMMC_WRITE(host->base, SYSCTL,
++			OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
++		while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD) ;
++		mmc_detect_change(host->mmc, (HZ * 50) / 1000);
++	}
++}
++
++/*
++ * ISR for handling card insertion and removal
++ */
++static irqreturn_t omap_mmc_cd_handler(int irq, void *dev_id)
++{
++	struct mmc_omap_host *host = (struct mmc_omap_host *)dev_id;
++
++	host->carddetect = mmc_slot(host).card_detect(irq);
++	schedule_work(&host->mmc_carddetect_work);
++
++	return IRQ_HANDLED;
++}
++
++/*
++ * DMA call back function
++ */
++static void mmc_omap_dma_cb(int lch, u16 ch_status, void *data)
++{
++	struct mmc_omap_host *host = data;
++
++	if (ch_status & OMAP2_DMA_MISALIGNED_ERR_IRQ)
++		dev_dbg(mmc_dev(host->mmc), "MISALIGNED_ADRS_ERR\n");
++
++	if (host->dma_ch < 0)
 +		return;
 +
-+	mask =3D (ctrl & NAND_CLE) ? 0x02 : 0;
-+	if (ctrl & NAND_ALE)
-+		mask |=3D 0x04;
-+	writeb(cmd, (unsigned long)chip->IO_ADDR_W | mask);
-+}
-+
-+static int omap_nand_dev_ready(struct mtd_info *mtd)
-+{
-+	struct omap_nand_info *info =3D container_of(mtd, struct omap_nand_in=
-fo, mtd);
-+
-+	return info->pdata->dev_ready(info->pdata);
-+}
-+
-+static int __devinit omap_nand_probe(struct platform_device *pdev)
-+{
-+	struct omap_nand_info		*info;
-+	struct omap_nand_platform_data	*pdata =3D pdev->dev.platform_data;
-+	struct resource			*res =3D pdev->resource;
-+	unsigned long			size =3D res->end - res->start + 1;
-+	int				err;
-+
-+	info =3D kzalloc(sizeof(struct omap_nand_info), GFP_KERNEL);
-+	if (!info)
-+		return -ENOMEM;
-+
-+	if (!request_mem_region(res->start, size, pdev->dev.driver->name)) {
-+		err =3D -EBUSY;
-+		goto out_free_info;
-+	}
-+
-+	info->nand.IO_ADDR_R =3D ioremap(res->start, size);
-+	if (!info->nand.IO_ADDR_R) {
-+		err =3D -ENOMEM;
-+		goto out_release_mem_region;
-+	}
-+	info->nand.IO_ADDR_W =3D info->nand.IO_ADDR_R;
-+	info->nand.cmd_ctrl =3D omap_nand_hwcontrol;
-+	info->nand.ecc.mode =3D NAND_ECC_SOFT;
-+	info->nand.options =3D pdata->options;
-+	if (pdata->dev_ready)
-+		info->nand.dev_ready =3D omap_nand_dev_ready;
-+	else
-+		info->nand.chip_delay =3D 20;
-+
-+	info->mtd.name =3D pdev->dev.bus_id;
-+	info->mtd.priv =3D &info->nand;
-+
-+	info->pdata =3D pdata;
-+
-+	/* DIP switches on H2 and some other boards change between 8 and 16 b=
-it
-+	 * bus widths for flash.  Try the other width if the first try fails.
++	omap_free_dma(host->dma_ch);
++	host->dma_ch = -1;
++	/*
++	 * DMA Callback: run in interrupt context.
++	 * mutex_unlock will through a kernel warning if used.
 +	 */
-+	if (nand_scan(&info->mtd, 1)) {
-+		info->nand.options ^=3D NAND_BUSWIDTH_16;
-+		if (nand_scan(&info->mtd, 1)) {
-+			err =3D -ENXIO;
-+			goto out_iounmap;
-+		}
-+	}
-+	info->mtd.owner =3D THIS_MODULE;
-+
-+#ifdef CONFIG_MTD_PARTITIONS
-+	err =3D parse_mtd_partitions(&info->mtd, part_probes, &info->parts, 0=
-);
-+	if (err > 0)
-+		add_mtd_partitions(&info->mtd, info->parts, err);
-+	else if (err < 0 && pdata->parts)
-+		add_mtd_partitions(&info->mtd, pdata->parts, pdata->nr_parts);
-+	else
-+#endif
-+		add_mtd_device(&info->mtd);
-+
-+	platform_set_drvdata(pdev, info);
-+
-+	return 0;
-+
-+out_iounmap:
-+	iounmap(info->nand.IO_ADDR_R);
-+out_release_mem_region:
-+	release_mem_region(res->start, size);
-+out_free_info:
-+	kfree(info);
-+
-+	return err;
-+}
-+
-+static int omap_nand_remove(struct platform_device *pdev)
-+{
-+	struct omap_nand_info *info =3D platform_get_drvdata(pdev);
-+
-+	platform_set_drvdata(pdev, NULL);
-+	/* Release NAND device, its internal structures and partitions */
-+	nand_release(&info->mtd);
-+	iounmap(info->nand.IO_ADDR_R);
-+	kfree(info);
-+	return 0;
-+}
-+
-+static struct platform_driver omap_nand_driver =3D {
-+	.probe		=3D omap_nand_probe,
-+	.remove		=3D omap_nand_remove,
-+	.driver		=3D {
-+		.name	=3D DRIVER_NAME,
-+	},
-+};
-+MODULE_ALIAS(DRIVER_NAME);
-+
-+static int __init omap_nand_init(void)
-+{
-+	return platform_driver_register(&omap_nand_driver);
-+}
-+
-+static void __exit omap_nand_exit(void)
-+{
-+	platform_driver_unregister(&omap_nand_driver);
-+}
-+
-+module_init(omap_nand_init);
-+module_exit(omap_nand_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Jian Zhang <jzhang@ti.com> (and others)");
-+MODULE_DESCRIPTION("Glue layer for NAND flash on TI OMAP boards");
-+
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-new file mode 100644
-index 0000000..a33944c
---- /dev/null
-+++ b/drivers/mtd/nand/omap2.c
-@@ -0,0 +1,757 @@
-+/*
-+ * drivers/mtd/nand/omap2.c
-+ *
-+ * Copyright (c) 2004 Texas Instruments, Jian Zhang <jzhang@ti.com>
-+ * Copyright (c) 2004 Micron Technology Inc.
-+ * Copyright (c) 2004 David Brownell
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/platform_device.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/delay.h>
-+#include <linux/mtd/mtd.h>
-+#include <linux/mtd/nand.h>
-+#include <linux/mtd/partitions.h>
-+#include <linux/io.h>
-+
-+#include <asm/dma.h>
-+
-+#include <mach/gpmc.h>
-+#include <mach/nand.h>
-+
-+#define GPMC_IRQ_STATUS		0x18
-+#define GPMC_ECC_CONFIG		0x1F4
-+#define GPMC_ECC_CONTROL	0x1F8
-+#define GPMC_ECC_SIZE_CONFIG	0x1FC
-+#define GPMC_ECC1_RESULT	0x200
-+
-+#define	DRIVER_NAME	"omap2-nand"
-+#define	NAND_IO_SIZE	SZ_4K
-+
-+#define	NAND_WP_ON	1
-+#define	NAND_WP_OFF	0
-+#define NAND_WP_BIT	0x00000010
-+#define WR_RD_PIN_MONITORING	0x00600000
-+
-+#define	GPMC_BUF_FULL	0x00000001
-+#define	GPMC_BUF_EMPTY	0x00000000
-+
-+#define NAND_Ecc_P1e		(1 << 0)
-+#define NAND_Ecc_P2e		(1 << 1)
-+#define NAND_Ecc_P4e		(1 << 2)
-+#define NAND_Ecc_P8e		(1 << 3)
-+#define NAND_Ecc_P16e		(1 << 4)
-+#define NAND_Ecc_P32e		(1 << 5)
-+#define NAND_Ecc_P64e		(1 << 6)
-+#define NAND_Ecc_P128e		(1 << 7)
-+#define NAND_Ecc_P256e		(1 << 8)
-+#define NAND_Ecc_P512e		(1 << 9)
-+#define NAND_Ecc_P1024e		(1 << 10)
-+#define NAND_Ecc_P2048e		(1 << 11)
-+
-+#define NAND_Ecc_P1o		(1 << 16)
-+#define NAND_Ecc_P2o		(1 << 17)
-+#define NAND_Ecc_P4o		(1 << 18)
-+#define NAND_Ecc_P8o		(1 << 19)
-+#define NAND_Ecc_P16o		(1 << 20)
-+#define NAND_Ecc_P32o		(1 << 21)
-+#define NAND_Ecc_P64o		(1 << 22)
-+#define NAND_Ecc_P128o		(1 << 23)
-+#define NAND_Ecc_P256o		(1 << 24)
-+#define NAND_Ecc_P512o		(1 << 25)
-+#define NAND_Ecc_P1024o		(1 << 26)
-+#define NAND_Ecc_P2048o		(1 << 27)
-+
-+#define TF(value)	(value ? 1 : 0)
-+
-+#define P2048e(a)	(TF(a & NAND_Ecc_P2048e)	<< 0)
-+#define P2048o(a)	(TF(a & NAND_Ecc_P2048o)	<< 1)
-+#define P1e(a)		(TF(a & NAND_Ecc_P1e)		<< 2)
-+#define P1o(a)		(TF(a & NAND_Ecc_P1o)		<< 3)
-+#define P2e(a)		(TF(a & NAND_Ecc_P2e)		<< 4)
-+#define P2o(a)		(TF(a & NAND_Ecc_P2o)		<< 5)
-+#define P4e(a)		(TF(a & NAND_Ecc_P4e)		<< 6)
-+#define P4o(a)		(TF(a & NAND_Ecc_P4o)		<< 7)
-+
-+#define P8e(a)		(TF(a & NAND_Ecc_P8e)		<< 0)
-+#define P8o(a)		(TF(a & NAND_Ecc_P8o)		<< 1)
-+#define P16e(a)		(TF(a & NAND_Ecc_P16e)		<< 2)
-+#define P16o(a)		(TF(a & NAND_Ecc_P16o)		<< 3)
-+#define P32e(a)		(TF(a & NAND_Ecc_P32e)		<< 4)
-+#define P32o(a)		(TF(a & NAND_Ecc_P32o)		<< 5)
-+#define P64e(a)		(TF(a & NAND_Ecc_P64e)		<< 6)
-+#define P64o(a)		(TF(a & NAND_Ecc_P64o)		<< 7)
-+
-+#define P128e(a)	(TF(a & NAND_Ecc_P128e)		<< 0)
-+#define P128o(a)	(TF(a & NAND_Ecc_P128o)		<< 1)
-+#define P256e(a)	(TF(a & NAND_Ecc_P256e)		<< 2)
-+#define P256o(a)	(TF(a & NAND_Ecc_P256o)		<< 3)
-+#define P512e(a)	(TF(a & NAND_Ecc_P512e)		<< 4)
-+#define P512o(a)	(TF(a & NAND_Ecc_P512o)		<< 5)
-+#define P1024e(a)	(TF(a & NAND_Ecc_P1024e)	<< 6)
-+#define P1024o(a)	(TF(a & NAND_Ecc_P1024o)	<< 7)
-+
-+#define P8e_s(a)	(TF(a & NAND_Ecc_P8e)		<< 0)
-+#define P8o_s(a)	(TF(a & NAND_Ecc_P8o)		<< 1)
-+#define P16e_s(a)	(TF(a & NAND_Ecc_P16e)		<< 2)
-+#define P16o_s(a)	(TF(a & NAND_Ecc_P16o)		<< 3)
-+#define P1e_s(a)	(TF(a & NAND_Ecc_P1e)		<< 4)
-+#define P1o_s(a)	(TF(a & NAND_Ecc_P1o)		<< 5)
-+#define P2e_s(a)	(TF(a & NAND_Ecc_P2e)		<< 6)
-+#define P2o_s(a)	(TF(a & NAND_Ecc_P2o)		<< 7)
-+
-+#define P4e_s(a)	(TF(a & NAND_Ecc_P4e)		<< 0)
-+#define P4o_s(a)	(TF(a & NAND_Ecc_P4o)		<< 1)
-+
-+#ifdef CONFIG_MTD_PARTITIONS
-+static const char *part_probes[] =3D { "cmdlinepart", NULL };
-+#endif
-+
-+struct omap_nand_info {
-+	struct nand_hw_control		controller;
-+	struct omap_nand_platform_data	*pdata;
-+	struct mtd_info			mtd;
-+	struct mtd_partition		*parts;
-+	struct nand_chip		nand;
-+	struct platform_device		*pdev;
-+
-+	int				gpmc_cs;
-+	unsigned long			phys_base;
-+	void __iomem			*gpmc_cs_baseaddr;
-+	void __iomem			*gpmc_baseaddr;
-+};
-+
-+/*
-+ * omap_nand_wp - This function enable or disable the Write Protect fe=
-ature on
-+ * NAND device
-+ * @mtd: MTD device structure
-+ * @mode: WP ON/OFF
-+ */
-+static void omap_nand_wp(struct mtd_info *mtd, int mode)
-+{
-+	struct omap_nand_info *info =3D container_of(mtd,
-+						struct omap_nand_info, mtd);
-+
-+	unsigned long config =3D __raw_readl(info->gpmc_baseaddr + GPMC_CONFI=
-G);
-+
-+	if (mode)
-+		config &=3D ~(NAND_WP_BIT);	/* WP is ON */
-+	else
-+		config |=3D (NAND_WP_BIT);	/* WP is OFF */
-+
-+	__raw_writel(config, (info->gpmc_baseaddr + GPMC_CONFIG));
++	up(&host->sem);
 +}
 +
 +/*
-+ * hardware specific access to control-lines
-+ * NOTE: boards may use different bits for these!!
-+ *
-+ * ctrl:
-+ * NAND_NCE: bit 0 - don't care
-+ * NAND_CLE: bit 1 -> Command Latch
-+ * NAND_ALE: bit 2 -> Address Latch
++ * Configure dma src and destination parameters
 + */
-+static void omap_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int=
- ctrl)
++static int mmc_omap_config_dma_param(int sync_dir, struct mmc_omap_host *host,
++				struct mmc_data *data)
 +{
-+	struct omap_nand_info *info =3D container_of(mtd,
-+					struct omap_nand_info, mtd);
-+	switch (ctrl) {
-+	case NAND_CTRL_CHANGE | NAND_CTRL_CLE:
-+		info->nand.IO_ADDR_W =3D info->gpmc_cs_baseaddr +
-+						GPMC_CS_NAND_COMMAND;
-+		info->nand.IO_ADDR_R =3D info->gpmc_cs_baseaddr +
-+						GPMC_CS_NAND_DATA;
-+		break;
-+
-+	case NAND_CTRL_CHANGE | NAND_CTRL_ALE:
-+		info->nand.IO_ADDR_W =3D info->gpmc_cs_baseaddr +
-+						GPMC_CS_NAND_ADDRESS;
-+		info->nand.IO_ADDR_R =3D info->gpmc_cs_baseaddr +
-+						GPMC_CS_NAND_DATA;
-+		break;
-+
-+	case NAND_CTRL_CHANGE | NAND_NCE:
-+		info->nand.IO_ADDR_W =3D info->gpmc_cs_baseaddr +
-+						GPMC_CS_NAND_DATA;
-+		info->nand.IO_ADDR_R =3D info->gpmc_cs_baseaddr +
-+						GPMC_CS_NAND_DATA;
-+		break;
-+	}
-+
-+	if (cmd !=3D NAND_CMD_NONE)
-+		__raw_writeb(cmd, info->nand.IO_ADDR_W);
-+}
-+
-+/*
-+ * omap_read_buf - read data from NAND controller into buffer
-+ * @mtd: MTD device structure
-+ * @buf: buffer to store date
-+ * @len: number of bytes to read
-+ */
-+static void omap_read_buf(struct mtd_info *mtd, u_char *buf, int len)
-+{
-+	struct omap_nand_info *info =3D container_of(mtd,
-+					struct omap_nand_info, mtd);
-+	u16 *p =3D (u16 *) buf;
-+
-+	len >>=3D 1;
-+
-+	while (len--)
-+		*p++ =3D cpu_to_le16(readw(info->nand.IO_ADDR_R));
-+}
-+
-+/*
-+ * omap_write_buf - write buffer to NAND controller
-+ * @mtd: MTD device structure
-+ * @buf: data buffer
-+ * @len: number of bytes to write
-+ */
-+static void omap_write_buf(struct mtd_info *mtd, const u_char * buf, i=
-nt len)
-+{
-+	struct omap_nand_info *info =3D container_of(mtd,
-+						struct omap_nand_info, mtd);
-+	u16 *p =3D (u16 *) buf;
-+
-+	len >>=3D 1;
-+
-+	while (len--) {
-+		writew(cpu_to_le16(*p++), info->nand.IO_ADDR_W);
-+
-+		while (GPMC_BUF_EMPTY =3D=3D (readl(info->gpmc_baseaddr +
-+						GPMC_STATUS) & GPMC_BUF_FULL));
-+	}
-+}
-+/*
-+ * omap_verify_buf - Verify chip data against buffer
-+ * @mtd: MTD device structure
-+ * @buf: buffer containing the data to compare
-+ * @len: number of bytes to compare
-+ */
-+static int omap_verify_buf(struct mtd_info *mtd, const u_char * buf, i=
-nt len)
-+{
-+	struct omap_nand_info *info =3D container_of(mtd, struct omap_nand_in=
-fo,
-+							mtd);
-+	u16 *p =3D (u16 *) buf;
-+
-+	len >>=3D 1;
-+
-+	while (len--) {
-+
-+		if (*p++ !=3D cpu_to_le16(readw(info->nand.IO_ADDR_R)))
-+			return -EFAULT;
-+	}
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_MTD_NAND_OMAP_HWECC
-+/*
-+ * omap_hwecc_init-Initialize the Hardware ECC for NAND flash in GPMC =
-controller
-+ * @mtd: MTD device structure
-+ */
-+static void omap_hwecc_init(struct mtd_info *mtd)
-+{
-+	struct omap_nand_info *info =3D container_of(mtd, struct omap_nand_in=
-fo,
-+							mtd);
-+	register struct nand_chip *chip =3D mtd->priv;
-+	unsigned long val =3D 0x0;
-+
-+	/* Read from ECC Control Register */
-+	val =3D __raw_readl(info->gpmc_baseaddr + GPMC_ECC_CONTROL);
-+	/* Clear all ECC | Enable Reg1 */
-+	val =3D ((0x00000001<<8) | 0x00000001);
-+	__raw_writel(val, info->gpmc_baseaddr + GPMC_ECC_CONTROL);
-+
-+	/* Read from ECC Size Config Register */
-+	val =3D __raw_readl(info->gpmc_baseaddr + GPMC_ECC_SIZE_CONFIG);
-+	/* ECCSIZE1=3D512 | Select eccResultsize[0-3] */
-+	val =3D ((((chip->ecc.size >> 1) - 1) << 22) | (0x0000000F));
-+	__raw_writel(val, info->gpmc_baseaddr + GPMC_ECC_SIZE_CONFIG);
-+}
-+
-+/*
-+ * gen_true_ecc - This function will generate true ECC value, which ca=
-n be used
-+ * when correcting data read from NAND flash memory core
-+ * @ecc_buf: buffer to store ecc code
-+ */
-+static void gen_true_ecc(u8 *ecc_buf)
-+{
-+	u32 tmp =3D ecc_buf[0] | (ecc_buf[1] << 16) |
-+		((ecc_buf[2] & 0xF0) << 20) | ((ecc_buf[2] & 0x0F) << 8);
-+
-+	ecc_buf[0] =3D ~(P64o(tmp) | P64e(tmp) | P32o(tmp) | P32e(tmp) |
-+			P16o(tmp) | P16e(tmp) | P8o(tmp) | P8e(tmp));
-+	ecc_buf[1] =3D ~(P1024o(tmp) | P1024e(tmp) | P512o(tmp) | P512e(tmp) =
-|
-+			P256o(tmp) | P256e(tmp) | P128o(tmp) | P128e(tmp));
-+	ecc_buf[2] =3D ~(P4o(tmp) | P4e(tmp) | P2o(tmp) | P2e(tmp) | P1o(tmp)=
- |
-+			P1e(tmp) | P2048o(tmp) | P2048e(tmp));
-+}
-+
-+/*
-+ * omap_compare_ecc - This function compares two ECC's and indicates i=
-f there
-+ * is an error. If the error can be corrected it will be corrected to =
-the
-+ * buffer
-+ * @ecc_data1:  ecc code from nand spare area
-+ * @ecc_data2:  ecc code from hardware register obtained from hardware=
- ecc
-+ * @page_data:  page data
-+ */
-+static int omap_compare_ecc(u8 *ecc_data1,	/* read from NAND memory */
-+			    u8 *ecc_data2,	/* read from register */
-+			    u8 *page_data)
-+{
-+	uint	i;
-+	u8	tmp0_bit[8], tmp1_bit[8], tmp2_bit[8];
-+	u8	comp0_bit[8], comp1_bit[8], comp2_bit[8];
-+	u8	ecc_bit[24];
-+	u8	ecc_sum =3D 0;
-+	u8	find_bit =3D 0;
-+	uint	find_byte =3D 0;
-+	int	isEccFF;
-+
-+	isEccFF =3D ((*(u32 *)ecc_data1 & 0xFFFFFF) =3D=3D 0xFFFFFF);
-+
-+	gen_true_ecc(ecc_data1);
-+	gen_true_ecc(ecc_data2);
-+
-+	for (i =3D 0; i <=3D 2; i++) {
-+		*(ecc_data1 + i) =3D ~(*(ecc_data1 + i));
-+		*(ecc_data2 + i) =3D ~(*(ecc_data2 + i));
-+	}
-+
-+	for (i =3D 0; i < 8; i++) {
-+		tmp0_bit[i]     =3D *ecc_data1 % 2;
-+		*ecc_data1	=3D *ecc_data1 / 2;
-+	}
-+
-+	for (i =3D 0; i < 8; i++) {
-+		tmp1_bit[i]	 =3D *(ecc_data1 + 1) % 2;
-+		*(ecc_data1 + 1) =3D *(ecc_data1 + 1) / 2;
-+	}
-+
-+	for (i =3D 0; i < 8; i++) {
-+		tmp2_bit[i]	 =3D *(ecc_data1 + 2) % 2;
-+		*(ecc_data1 + 2) =3D *(ecc_data1 + 2) / 2;
-+	}
-+
-+	for (i =3D 0; i < 8; i++) {
-+		comp0_bit[i]     =3D *ecc_data2 % 2;
-+		*ecc_data2       =3D *ecc_data2 / 2;
-+	}
-+
-+	for (i =3D 0; i < 8; i++) {
-+		comp1_bit[i]     =3D *(ecc_data2 + 1) % 2;
-+		*(ecc_data2 + 1) =3D *(ecc_data2 + 1) / 2;
-+	}
-+
-+	for (i =3D 0; i < 8; i++) {
-+		comp2_bit[i]     =3D *(ecc_data2 + 2) % 2;
-+		*(ecc_data2 + 2) =3D *(ecc_data2 + 2) / 2;
-+	}
-+
-+	for (i =3D 0; i < 6; i++)
-+		ecc_bit[i] =3D tmp2_bit[i + 2] ^ comp2_bit[i + 2];
-+
-+	for (i =3D 0; i < 8; i++)
-+		ecc_bit[i + 6] =3D tmp0_bit[i] ^ comp0_bit[i];
-+
-+	for (i =3D 0; i < 8; i++)
-+		ecc_bit[i + 14] =3D tmp1_bit[i] ^ comp1_bit[i];
-+
-+	ecc_bit[22] =3D tmp2_bit[0] ^ comp2_bit[0];
-+	ecc_bit[23] =3D tmp2_bit[1] ^ comp2_bit[1];
-+
-+	for (i =3D 0; i < 24; i++)
-+		ecc_sum +=3D ecc_bit[i];
-+
-+	switch (ecc_sum) {
-+	case 0:
-+		/* Not reached because this function is not called if
-+		 *  ECC values are equal
-+		 */
-+		return 0;
-+
-+	case 1:
-+		/* Uncorrectable error */
-+		DEBUG(MTD_DEBUG_LEVEL0, "ECC UNCORRECTED_ERROR 1\n");
-+		return -1;
-+
-+	case 11:
-+		/* UN-Correctable error */
-+		DEBUG(MTD_DEBUG_LEVEL0, "ECC UNCORRECTED_ERROR B\n");
-+		return -1;
-+
-+	case 12:
-+		/* Correctable error */
-+		find_byte =3D (ecc_bit[23] << 8) +
-+			    (ecc_bit[21] << 7) +
-+			    (ecc_bit[19] << 6) +
-+			    (ecc_bit[17] << 5) +
-+			    (ecc_bit[15] << 4) +
-+			    (ecc_bit[13] << 3) +
-+			    (ecc_bit[11] << 2) +
-+			    (ecc_bit[9]  << 1) +
-+			    ecc_bit[7];
-+
-+		find_bit =3D (ecc_bit[5] << 2) + (ecc_bit[3] << 1) + ecc_bit[1];
-+
-+		DEBUG(MTD_DEBUG_LEVEL0, "Correcting single bit ECC error at "
-+				"offset: %d, bit: %d\n", find_byte, find_bit);
-+
-+		page_data[find_byte] ^=3D (1 << find_bit);
-+
-+		return 0;
-+	default:
-+		if (isEccFF) {
-+			if (ecc_data2[0] =3D=3D 0 &&
-+			    ecc_data2[1] =3D=3D 0 &&
-+			    ecc_data2[2] =3D=3D 0)
-+				return 0;
-+		}
-+		DEBUG(MTD_DEBUG_LEVEL0, "UNCORRECTED_ERROR default\n");
-+		return -1;
-+	}
-+}
-+
-+/*
-+ * omap_correct_data - Compares the ecc read from nand spare area with=
- ECC
-+ * registers values and corrects one bit error if it has occured
-+ * @mtd: MTD device structure
-+ * @dat: page data
-+ * @read_ecc: ecc read from nand flash
-+ * @calc_ecc: ecc read from ECC registers
-+ */
-+static int omap_correct_data(struct mtd_info *mtd, u_char * dat,
-+				u_char * read_ecc, u_char * calc_ecc)
-+{
-+	struct omap_nand_info *info =3D container_of(mtd, struct omap_nand_in=
-fo,
-+							mtd);
-+	int blockCnt =3D 0, i =3D 0, ret =3D 0;
-+
-+	/* Ex NAND_ECC_HW12_2048 */
-+	if ((info->nand.ecc.mode =3D=3D NAND_ECC_HW) &&
-+			(info->nand.ecc.size  =3D=3D 2048))
-+		blockCnt =3D 4;
-+	else
-+		blockCnt =3D 1;
-+
-+	for (i =3D 0; i < blockCnt; i++) {
-+		if (memcmp(read_ecc, calc_ecc, 3) !=3D 0) {
-+			ret =3D omap_compare_ecc(read_ecc, calc_ecc, dat);
-+			if (ret < 0) return ret;
-+		}
-+		read_ecc +=3D 3;
-+		calc_ecc +=3D 3;
-+		dat      +=3D 512;
-+	}
-+	return 0;
-+}
-+
-+/*
-+ * omap_calcuate_ecc - Generate non-inverted ECC bytes.
-+ * Using noninverted ECC can be considered ugly since writing a blank
-+ * page ie. padding will clear the ECC bytes. This is no problem as lo=
-ng
-+ * nobody is trying to write data on the seemingly unused page. Readin=
-g
-+ * an erased page will produce an ECC mismatch between generated and r=
-ead
-+ * ECC bytes that has to be dealt with separately.
-+ * @mtd: MTD device structure
-+ * @dat: The pointer to data on which ecc is computed
-+ * @ecc_code: The ecc_code buffer
-+ */
-+static int omap_calculate_ecc(struct mtd_info *mtd, const u_char *dat,
-+				u_char *ecc_code)
-+{
-+	struct omap_nand_info *info =3D container_of(mtd, struct omap_nand_in=
-fo,
-+							mtd);
-+	unsigned long val =3D 0x0;
-+	unsigned long reg;
-+
-+	/* Start Reading from HW ECC1_Result =3D 0x200 */
-+	reg =3D (unsigned long)(info->gpmc_baseaddr + GPMC_ECC1_RESULT);
-+	val =3D __raw_readl(reg);
-+	*ecc_code++ =3D val;          /* P128e, ..., P1e */
-+	*ecc_code++ =3D val >> 16;    /* P128o, ..., P1o */
-+	/* P2048o, P1024o, P512o, P256o, P2048e, P1024e, P512e, P256e */
-+	*ecc_code++ =3D ((val >> 8) & 0x0f) | ((val >> 20) & 0xf0);
-+	reg +=3D 4;
-+
-+	return 0;
-+}
-+
-+/*
-+ * omap_enable_hwecc - This function enables the hardware ecc function=
-ality
-+ * @mtd: MTD device structure
-+ * @mode: Read/Write mode
-+ */
-+static void omap_enable_hwecc(struct mtd_info *mtd, int mode)
-+{
-+	struct omap_nand_info *info =3D container_of(mtd, struct omap_nand_in=
-fo,
-+							mtd);
-+	register struct nand_chip *chip =3D mtd->priv;
-+	unsigned int dev_width =3D (chip->options & NAND_BUSWIDTH_16) ? 1 : 0=
-;
-+	unsigned long val =3D __raw_readl(info->gpmc_baseaddr + GPMC_ECC_CONF=
-IG);
-+
-+	switch (mode) {
-+	case NAND_ECC_READ    :
-+		__raw_writel(0x101, info->gpmc_baseaddr + GPMC_ECC_CONTROL);
-+		/* (ECC 16 or 8 bit col) | ( CS  )  | ECC Enable */
-+		val =3D (dev_width << 7) | (info->gpmc_cs << 1) | (0x1);
-+		break;
-+	case NAND_ECC_READSYN :
-+		 __raw_writel(0x100, info->gpmc_baseaddr + GPMC_ECC_CONTROL);
-+		/* (ECC 16 or 8 bit col) | ( CS  )  | ECC Enable */
-+		val =3D (dev_width << 7) | (info->gpmc_cs << 1) | (0x1);
-+		break;
-+	case NAND_ECC_WRITE   :
-+		__raw_writel(0x101, info->gpmc_baseaddr + GPMC_ECC_CONTROL);
-+		/* (ECC 16 or 8 bit col) | ( CS  )  | ECC Enable */
-+		val =3D (dev_width << 7) | (info->gpmc_cs << 1) | (0x1);
-+		break;
-+	default:
-+		DEBUG(MTD_DEBUG_LEVEL0, "Error: Unrecognized Mode[%d]!\n",
-+					mode);
-+		break;
-+	}
-+
-+	__raw_writel(val, info->gpmc_baseaddr + GPMC_ECC_CONFIG);
-+}
-+#endif
-+
-+/*
-+ * omap_wait - Wait function is called during Program and erase
-+ * operations and the way it is called from MTD layer, we should wait
-+ * till the NAND chip is ready after the programming/erase operation
-+ * has completed.
-+ * @mtd: MTD device structure
-+ * @chip: NAND Chip structure
-+ */
-+static int omap_wait(struct mtd_info *mtd, struct nand_chip *chip)
-+{
-+	register struct nand_chip *this =3D mtd->priv;
-+	struct omap_nand_info *info =3D container_of(mtd, struct omap_nand_in=
-fo,
-+							mtd);
-+	int status =3D 0;
-+
-+	this->IO_ADDR_W =3D (void *) info->gpmc_cs_baseaddr +
-+						GPMC_CS_NAND_COMMAND;
-+	this->IO_ADDR_R =3D (void *) info->gpmc_cs_baseaddr + GPMC_CS_NAND_DA=
-TA;
-+
-+	while (!(status & 0x40)) {
-+		 __raw_writeb(NAND_CMD_STATUS & 0xFF, this->IO_ADDR_W);
-+		status =3D __raw_readb(this->IO_ADDR_R);
-+	}
-+	return status;
-+}
-+
-+/*
-+ * omap_dev_ready - calls the platform specific dev_ready function
-+ * @mtd: MTD device structure
-+ */
-+static int omap_dev_ready(struct mtd_info *mtd)
-+{
-+	struct omap_nand_info *info =3D container_of(mtd, struct omap_nand_in=
-fo,
-+							mtd);
-+	unsigned int val =3D __raw_readl(info->gpmc_baseaddr + GPMC_IRQ_STATU=
-S);
-+
-+	if ((val & 0x100) =3D=3D 0x100) {
-+		/* Clear IRQ Interrupt */
-+		val |=3D 0x100;
-+		val &=3D ~(0x0);
-+		__raw_writel(val, info->gpmc_baseaddr + GPMC_IRQ_STATUS);
++	if (sync_dir == 0) {
++		omap_set_dma_dest_params(host->dma_ch, 0,
++			OMAP_DMA_AMODE_CONSTANT,
++			(host->mapbase + OMAP_HSMMC_DATA), 0, 0);
++		omap_set_dma_src_params(host->dma_ch, 0,
++			OMAP_DMA_AMODE_POST_INC,
++			sg_dma_address(&data->sg[0]), 0, 0);
 +	} else {
-+		unsigned int cnt =3D 0;
-+		while (cnt++ < 0x1FF) {
-+			if  ((val & 0x100) =3D=3D 0x100)
-+				return 0;
-+			val =3D __raw_readl(info->gpmc_baseaddr +
-+							GPMC_IRQ_STATUS);
-+		}
++		omap_set_dma_src_params(host->dma_ch, 0,
++			OMAP_DMA_AMODE_CONSTANT,
++			(host->mapbase + OMAP_HSMMC_DATA), 0, 0);
++		omap_set_dma_dest_params(host->dma_ch, 0,
++			OMAP_DMA_AMODE_POST_INC,
++			sg_dma_address(&data->sg[0]), 0, 0);
 +	}
-+
-+	return 1;
++	return 0;
 +}
-+
-+static int __devinit omap_nand_probe(struct platform_device *pdev)
++/*
++ * Routine to configure and start DMA for the MMC card
++ */
++static int
++mmc_omap_start_dma_transfer(struct mmc_omap_host *host, struct mmc_request *req)
 +{
-+	struct omap_nand_info		*info;
-+	struct omap_nand_platform_data	*pdata;
-+	int				err;
-+	unsigned long 			val;
-+
-+
-+	pdata =3D pdev->dev.platform_data;
-+	if (pdata =3D=3D NULL) {
-+		dev_err(&pdev->dev, "platform data missing\n");
-+		return -ENODEV;
-+	}
-+
-+	info =3D kzalloc(sizeof(struct omap_nand_info), GFP_KERNEL);
-+	if (!info) return -ENOMEM;
-+
-+	platform_set_drvdata(pdev, info);
-+
-+	spin_lock_init(&info->controller.lock);
-+	init_waitqueue_head(&info->controller.wq);
-+
-+	info->pdev =3D pdev;
-+
-+	info->gpmc_cs		=3D pdata->cs;
-+	info->gpmc_baseaddr	=3D pdata->gpmc_baseaddr;
-+	info->gpmc_cs_baseaddr	=3D pdata->gpmc_cs_baseaddr;
-+
-+	info->mtd.priv		=3D &info->nand;
-+	info->mtd.name		=3D pdev->dev.bus_id;
-+	info->mtd.owner		=3D THIS_MODULE;
-+
-+	err =3D gpmc_cs_request(info->gpmc_cs, NAND_IO_SIZE, &info->phys_base=
-);
-+	if (err < 0) {
-+		dev_err(&pdev->dev, "Cannot request GPMC CS\n");
-+		goto out_free_info;
-+	}
-+
-+	/* Enable RD PIN Monitoring Reg */
-+	if (pdata->dev_ready) {
-+		val  =3D gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG1);
-+		val |=3D WR_RD_PIN_MONITORING;
-+		gpmc_cs_write_reg(info->gpmc_cs, GPMC_CS_CONFIG1, val);
-+	}
-+
-+	val  =3D gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG7);
-+	val &=3D ~(0xf << 8);
-+	val |=3D  (0xc & 0xf) << 8;
-+	gpmc_cs_write_reg(info->gpmc_cs, GPMC_CS_CONFIG7, val);
-+
-+	/* NAND write protect off */
-+	omap_nand_wp(&info->mtd, NAND_WP_OFF);
-+
-+	if (!request_mem_region(info->phys_base, NAND_IO_SIZE,
-+				pdev->dev.driver->name)) {
-+		err =3D -EBUSY;
-+		goto out_free_cs;
-+	}
-+
-+	info->nand.IO_ADDR_R =3D ioremap(info->phys_base, NAND_IO_SIZE);
-+	if (!info->nand.IO_ADDR_R) {
-+		err =3D -ENOMEM;
-+		goto out_release_mem_region;
-+	}
-+	info->nand.controller =3D &info->controller;
-+
-+	info->nand.IO_ADDR_W =3D info->nand.IO_ADDR_R;
-+	info->nand.cmd_ctrl  =3D omap_hwcontrol;
-+
-+	info->nand.read_buf   =3D omap_read_buf;
-+	info->nand.write_buf  =3D omap_write_buf;
-+	info->nand.verify_buf =3D omap_verify_buf;
++	int sync_dev, sync_dir = 0;
++	int dma_ch = 0, ret = 0, err = 1;
++	struct mmc_data *data = req->data;
 +
 +	/*
-+	* If RDY/BSY line is connected to OMAP then use the omap ready funcrt=
-ion
-+	* and the generic nand_wait function which reads the status register
-+	* after monitoring the RDY/BSY line.Otherwise use a standard chip del=
-ay
-+	* which is slightly more than tR (AC Timing) of the NAND device and r=
-ead
-+	* status register until you get a failure or success
-+	*/
-+	if (pdata->dev_ready) {
-+		info->nand.dev_ready =3D omap_dev_ready;
-+		info->nand.chip_delay =3D 0;
++	 * If for some reason the DMA transfer is still active,
++	 * we wait for timeout period and free the dma
++	 */
++	if (host->dma_ch != -1) {
++		set_current_state(TASK_UNINTERRUPTIBLE);
++		schedule_timeout(100);
++		if (down_trylock(&host->sem)) {
++			omap_free_dma(host->dma_ch);
++			host->dma_ch = -1;
++			up(&host->sem);
++			return err;
++		}
 +	} else {
-+		info->nand.waitfunc =3D omap_wait;
-+		info->nand.chip_delay =3D 50;
++		if (down_trylock(&host->sem))
++			return err;
 +	}
 +
-+	info->nand.options  |=3D NAND_SKIP_BBTSCAN;
-+	if ((gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG1) & 0x3000)
-+								=3D=3D 0x1000)
-+		info->nand.options  |=3D NAND_BUSWIDTH_16;
++	if (!(data->flags & MMC_DATA_WRITE)) {
++		host->dma_dir = DMA_FROM_DEVICE;
++		if (host->id == OMAP_MMC1_DEVID)
++			sync_dev = OMAP24XX_DMA_MMC1_RX;
++		else
++			sync_dev = OMAP24XX_DMA_MMC2_RX;
++	} else {
++		host->dma_dir = DMA_TO_DEVICE;
++		if (host->id == OMAP_MMC1_DEVID)
++			sync_dev = OMAP24XX_DMA_MMC1_TX;
++		else
++			sync_dev = OMAP24XX_DMA_MMC2_TX;
++	}
 +
-+#ifdef CONFIG_MTD_NAND_OMAP_HWECC
-+	info->nand.ecc.bytes		=3D 3;
-+	info->nand.ecc.size		=3D 512;
-+	info->nand.ecc.calculate	=3D omap_calculate_ecc;
-+	info->nand.ecc.hwctl		=3D omap_enable_hwecc;
-+	info->nand.ecc.correct		=3D omap_correct_data;
-+	info->nand.ecc.mode		=3D NAND_ECC_HW;
++	ret = omap_request_dma(sync_dev, "MMC/SD", mmc_omap_dma_cb,
++			host, &dma_ch);
++	if (ret != 0) {
++		dev_dbg(mmc_dev(host->mmc),
++			"%s: omap_request_dma() failed with %d\n",
++			mmc_hostname(host->mmc), ret);
++		return ret;
++	}
 +
-+	/* init HW ECC */
-+	omap_hwecc_init(&info->mtd);
-+#else
-+	info->nand.ecc.mode =3D NAND_ECC_SOFT;
-+#endif
++	host->dma_len = dma_map_sg(mmc_dev(host->mmc), data->sg,
++			data->sg_len, host->dma_dir);
++	host->dma_ch = dma_ch;
 +
-+	/* DIP switches on some boards change between 8 and 16 bit
-+	 * bus widths for flash.  Try the other width if the first try fails.
-+	 */
-+	if (nand_scan(&info->mtd, 1)) {
-+		info->nand.options ^=3D NAND_BUSWIDTH_16;
-+		if (nand_scan(&info->mtd, 1)) {
-+			err =3D -ENXIO;
-+			goto out_release_mem_region;
++	if (!(data->flags & MMC_DATA_WRITE))
++		mmc_omap_config_dma_param(1, host, data);
++	else
++		mmc_omap_config_dma_param(0, host, data);
++
++	if ((data->blksz % 4) == 0)
++		omap_set_dma_transfer_params(dma_ch, OMAP_DMA_DATA_TYPE_S32,
++			(data->blksz / 4), data->blocks, OMAP_DMA_SYNC_FRAME,
++			sync_dev, sync_dir);
++	else
++		/* REVISIT: The MMC buffer increments only when MSB is written.
++		 * Return error for blksz which is non multiple of four.
++		 */
++		return -EINVAL;
++
++	omap_start_dma(dma_ch);
++	return 0;
++}
++
++/*
++ * Configure block length for MMC/SD cards and initiate the transfer.
++ */
++static int
++mmc_omap_prepare_data(struct mmc_omap_host *host, struct mmc_request *req)
++{
++	int ret;
++	host->data = req->data;
++
++	if (req->data == NULL) {
++		host->datadir = OMAP_MMC_DATADIR_NONE;
++		OMAP_HSMMC_WRITE(host->base, BLK, 0);
++		return 0;
++	}
++
++	OMAP_HSMMC_WRITE(host->base, BLK, (req->data->blksz)
++					| (req->data->blocks << 16));
++
++	host->datadir = (req->data->flags & MMC_DATA_WRITE) ?
++			OMAP_MMC_DATADIR_WRITE : OMAP_MMC_DATADIR_READ;
++
++	if (host->use_dma) {
++		ret = mmc_omap_start_dma_transfer(host, req);
++		if (ret != 0) {
++			dev_dbg(mmc_dev(host->mmc), "MMC start dma failure\n");
++			return ret;
++		}
++	}
++	return 0;
++}
++
++/*
++ * Request function. for read/write operation
++ */
++static void omap_mmc_request(struct mmc_host *mmc, struct mmc_request *req)
++{
++	struct mmc_omap_host *host = mmc_priv(mmc);
++
++	WARN_ON(host->mrq != NULL);
++	host->mrq = req;
++	mmc_omap_prepare_data(host, req);
++	mmc_omap_start_command(host, req->cmd, req->data);
++}
++
++
++/* Routine to configure clock values. Exposed API to core */
++static void omap_mmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
++{
++	struct mmc_omap_host *host = mmc_priv(mmc);
++	u16 dsor = 0;
++	unsigned long regval;
++	unsigned long timeout;
++
++	switch (ios->power_mode) {
++	case MMC_POWER_OFF:
++		mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
++		break;
++	case MMC_POWER_UP:
++		mmc_slot(host).set_power(host->dev, host->slot_id, 1, ios->vdd);
++		break;
++	}
++
++	switch (mmc->ios.bus_width) {
++	case MMC_BUS_WIDTH_4:
++		OMAP_HSMMC_WRITE(host->base, HCTL,
++			OMAP_HSMMC_READ(host->base, HCTL) | FOUR_BIT);
++		break;
++	case MMC_BUS_WIDTH_1:
++		OMAP_HSMMC_WRITE(host->base, HCTL,
++			OMAP_HSMMC_READ(host->base, HCTL) & ~FOUR_BIT);
++		break;
++	}
++
++	if (host->id == OMAP_MMC1_DEVID) {
++		/* Only MMC1 can operate at 3V/1.8V */
++		if ((OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET) &&
++			(ios->vdd == DUAL_VOLT_OCR_BIT)) {
++				/*
++				 * The mmc_select_voltage fn of the core does
++				 * not seem to set the power_mode to
++				 * MMC_POWER_UP upon recalculating the voltage.
++				 * vdd 1.8v.
++				 */
++				if (omap_mmc_switch_opcond(host, ios->vdd) != 0)
++					dev_dbg(mmc_dev(host->mmc),
++						"Switch operation failed\n");
 +		}
 +	}
 +
-+#ifdef CONFIG_MTD_PARTITIONS
-+	err =3D parse_mtd_partitions(&info->mtd, part_probes, &info->parts, 0=
-);
-+	if (err > 0)
-+		add_mtd_partitions(&info->mtd, info->parts, err);
-+	else if (pdata->parts)
-+		add_mtd_partitions(&info->mtd, pdata->parts, pdata->nr_parts);
-+	else
-+#endif
-+		add_mtd_device(&info->mtd);
++	if (ios->clock) {
++		dsor = OMAP_MMC_MASTER_CLOCK / ios->clock;
++		if (dsor < 1)
++			dsor = 1;
 +
-+	platform_set_drvdata(pdev, &info->mtd);
++		if (OMAP_MMC_MASTER_CLOCK / dsor > ios->clock)
++			dsor++;
++
++		if (dsor > 250)
++			dsor = 250;
++	}
++	omap_mmc_stop_clock(host);
++	regval = OMAP_HSMMC_READ(host->base, SYSCTL);
++	regval = regval & ~(CLKD_MASK);
++	regval = regval | (dsor << 6) | (DTO << 16);
++	OMAP_HSMMC_WRITE(host->base, SYSCTL, regval);
++	OMAP_HSMMC_WRITE(host->base, SYSCTL,
++		OMAP_HSMMC_READ(host->base, SYSCTL) | ICE);
++
++	/* Wait till the ICS bit is set */
++	timeout = jiffies + msecs_to_jiffies(MMC_TIMEOUT_MS);
++	while ((OMAP_HSMMC_READ(host->base, SYSCTL) & ICS) != 0x2
++		&& time_before(jiffies, timeout))
++		msleep(1);
++
++	OMAP_HSMMC_WRITE(host->base, SYSCTL,
++		OMAP_HSMMC_READ(host->base, SYSCTL) | CEN);
++
++	if (ios->power_mode == MMC_POWER_ON)
++		send_init_stream(host);
++
++	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN)
++		OMAP_HSMMC_WRITE(host->base, CON,
++				OMAP_HSMMC_READ(host->base, CON) | OD);
++}
++/* NOTE: Read only switch not supported yet */
++static struct mmc_host_ops mmc_omap_ops = {
++	.request = omap_mmc_request,
++	.set_ios = omap_mmc_set_ios,
++};
++
++static int __init omap_mmc_probe(struct platform_device *pdev)
++{
++	struct omap_mmc_platform_data *pdata = pdev->dev.platform_data;
++	struct mmc_host *mmc;
++	struct mmc_omap_host *host = NULL;
++	struct resource *res;
++	int ret = 0, irq;
++	u32 hctl, capa;
++
++	if (pdata == NULL) {
++		dev_err(&pdev->dev, "Platform Data is missing\n");
++		return -ENXIO;
++	}
++
++	if (pdata->nr_slots == 0) {
++		dev_err(&pdev->dev, "No Slots\n");
++		return -ENXIO;
++	}
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	irq = platform_get_irq(pdev, 0);
++	if (res == NULL || irq < 0)
++		return -ENXIO;
++
++	res = request_mem_region(res->start, res->end - res->start + 1,
++							pdev->name);
++	if (res == NULL)
++		return -EBUSY;
++
++	mmc = mmc_alloc_host(sizeof(struct mmc_omap_host), &pdev->dev);
++	if (!mmc) {
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	host		= mmc_priv(mmc);
++	host->mmc	= mmc;
++	host->pdata	= pdata;
++	host->use_dma	= 1;
++	host->dma_ch	= -1;
++	host->irq	= irq;
++	host->id	= pdev->id;
++	host->slot_id	= 0;
++	host->mapbase	= res->start;
++	host->base	= ioremap(host->mapbase, SZ_4K);
++	mmc->ops	= &mmc_omap_ops;
++	mmc->f_min	= 400000;
++	mmc->f_max	= 52000000;
++
++	sema_init(&host->sem, 1);
++
++	host->iclk = clk_get(&pdev->dev, "mmchs_ick");
++	if (IS_ERR(host->iclk)) {
++		ret = PTR_ERR(host->iclk);
++		host->iclk = NULL;
++		goto err1;
++	}
++	host->fclk = clk_get(&pdev->dev, "mmchs_fck");
++	if (IS_ERR(host->fclk)) {
++		ret = PTR_ERR(host->fclk);
++		host->fclk = NULL;
++		clk_put(host->iclk);
++		goto err1;
++	}
++
++	if (clk_enable(host->fclk) != 0) {
++		clk_put(host->iclk);
++		clk_put(host->fclk);
++		goto err1;
++	}
++
++	if (clk_enable(host->iclk) != 0) {
++		clk_disable(host->fclk);
++		clk_put(host->iclk);
++		clk_put(host->fclk);
++		goto err1;
++	}
++
++	host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
++	/*
++	 * MMC can still work without debounce clock.
++	 */
++	if (IS_ERR(host->dbclk))
++		dev_dbg(mmc_dev(host->mmc), "Failed to get debounce clock\n");
++	else
++		if (clk_enable(host->dbclk) != 0)
++			dev_dbg(mmc_dev(host->mmc), "Enabling debounce"
++							" clk failed\n");
++		else
++			host->dbclk_enabled = 1;
++
++#ifdef CONFIG_MMC_BLOCK_BOUNCE
++	mmc->max_phys_segs = 1;
++	mmc->max_hw_segs = 1;
++#endif
++	mmc->max_blk_size = 512;       /* Block Length at max can be 1024 */
++	mmc->max_blk_count = 0xFFFF;    /* No. of Blocks is 16 bits */
++	mmc->max_req_size = mmc->max_blk_size * mmc->max_blk_count;
++	mmc->max_seg_size = mmc->max_req_size;
++
++	mmc->ocr_avail = mmc_slot(host).ocr_mask;
++	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED;
++
++	if (pdata->conf.wire4)
++		mmc->caps |= MMC_CAP_4_BIT_DATA;
++
++	/* Only MMC1 supports 3.0V */
++	if (host->id == OMAP_MMC1_DEVID) {
++		hctl = SDVS30;
++		capa = VS30 | VS18;
++	} else {
++		hctl = SDVS18;
++		capa = VS18;
++	}
++
++	OMAP_HSMMC_WRITE(host->base, HCTL,
++			OMAP_HSMMC_READ(host->base, HCTL) | hctl);
++
++	OMAP_HSMMC_WRITE(host->base, CAPA,
++			OMAP_HSMMC_READ(host->base, CAPA) | capa);
++
++	/* Set the controller to AUTO IDLE mode */
++	OMAP_HSMMC_WRITE(host->base, SYSCONFIG,
++			OMAP_HSMMC_READ(host->base, SYSCONFIG) | AUTOIDLE);
++
++	/* Set SD bus power bit */
++	OMAP_HSMMC_WRITE(host->base, HCTL,
++			OMAP_HSMMC_READ(host->base, HCTL) | SDBP);
++
++	/* Request IRQ for MMC operations */
++	ret = request_irq(host->irq, mmc_omap_irq, IRQF_DISABLED, pdev->name,
++			 host);
++	if (ret) {
++		dev_dbg(mmc_dev(host->mmc), "Unable to grab HSMMC IRQ\n");
++		goto irq_err;
++	}
++
++	/* Request IRQ for card detect */
++	if ((mmc_slot(host).card_detect_irq) && (mmc_slot(host).card_detect)) {
++		ret = request_irq(mmc_slot(host).card_detect_irq,
++				  omap_mmc_cd_handler, IRQF_DISABLED, "MMC CD",
++				  host);
++		if (ret) {
++			dev_dbg(mmc_dev(host->mmc),
++				"Unable to grab MMC CD IRQ");
++			free_irq(host->irq, host);
++			goto irq_err;
++		}
++	}
++
++	INIT_WORK(&host->mmc_carddetect_work, mmc_omap_detect);
++	if (pdata->init != NULL) {
++		if (pdata->init(&pdev->dev) != 0) {
++			free_irq(mmc_slot(host).card_detect_irq, host);
++			free_irq(host->irq, host);
++			goto irq_err;
++		}
++	}
++
++	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
++	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
++
++	platform_set_drvdata(pdev, host);
++	mmc_add_host(mmc);
 +
 +	return 0;
 +
-+out_release_mem_region:
-+	release_mem_region(info->phys_base, NAND_IO_SIZE);
-+out_free_cs:
-+	gpmc_cs_free(info->gpmc_cs);
-+out_free_info:
-+	kfree(info);
++irq_err:
++	dev_dbg(mmc_dev(host->mmc), "Unable to configure MMC IRQs\n");
++	clk_disable(host->fclk);
++	clk_disable(host->iclk);
++	clk_put(host->fclk);
++	clk_put(host->iclk);
++	if (host->dbclk_enabled) {
++		clk_disable(host->dbclk);
++		clk_put(host->dbclk);
++	}
 +
-+	return err;
++err1:
++	iounmap(host->base);
++err:
++	dev_dbg(mmc_dev(host->mmc), "Probe Failed\n");
++	release_mem_region(res->start, res->end - res->start + 1);
++	if (host)
++		mmc_free_host(mmc);
++	return ret;
 +}
 +
-+static int omap_nand_remove(struct platform_device *pdev)
++static int omap_mmc_remove(struct platform_device *pdev)
 +{
-+	struct mtd_info *mtd =3D platform_get_drvdata(pdev);
-+	struct omap_nand_info *info =3D mtd->priv;
++	struct mmc_omap_host *host = platform_get_drvdata(pdev);
++	struct resource *res;
++	u16 vdd = 0;
++
++	if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
++	/*
++	 * Set the vdd back to 3V,
++	 * applicable for dual volt support.
++	 */
++		vdd = fls(host->mmc->ocr_avail) - 1;
++		if (omap_mmc_switch_opcond(host, vdd) != 0)
++			host->mmc->ios.vdd = vdd;
++	}
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (res)
++		release_mem_region(res->start, res->end - res->start + 1);
 +
 +	platform_set_drvdata(pdev, NULL);
-+	/* Release NAND device, its internal structures and partitions */
-+	nand_release(&info->mtd);
-+	iounmap(info->nand.IO_ADDR_R);
-+	kfree(&info->mtd);
++	if (host) {
++		mmc_remove_host(host->mmc);
++		if (host->pdata->cleanup)
++			host->pdata->cleanup(&pdev->dev);
++		free_irq(host->irq, host);
++		if (mmc_slot(host).card_detect_irq)
++			free_irq(mmc_slot(host).card_detect_irq, host);
++		flush_scheduled_work();
++
++		clk_disable(host->fclk);
++		clk_disable(host->iclk);
++		clk_put(host->fclk);
++		clk_put(host->iclk);
++		if (host->dbclk_enabled) {
++			clk_disable(host->dbclk);
++			clk_put(host->dbclk);
++		}
++
++		mmc_free_host(host->mmc);
++		iounmap(host->base);
++	}
++
 +	return 0;
 +}
 +
-+static struct platform_driver omap_nand_driver =3D {
-+	.probe		=3D omap_nand_probe,
-+	.remove		=3D omap_nand_remove,
-+	.driver		=3D {
-+		.name	=3D DRIVER_NAME,
-+		.owner	=3D THIS_MODULE,
++#ifdef CONFIG_PM
++static int omap_mmc_suspend(struct platform_device *pdev, pm_message_t state)
++{
++	int ret = 0;
++	struct mmc_omap_host *host = platform_get_drvdata(pdev);
++
++	if (host && host->suspended)
++		return 0;
++
++	if (host) {
++		ret = mmc_suspend_host(host->mmc, state);
++		if (ret == 0) {
++			host->suspended = 1;
++
++			OMAP_HSMMC_WRITE(host->base, ISE, 0);
++			OMAP_HSMMC_WRITE(host->base, IE, 0);
++
++			ret = host->pdata->suspend(&pdev->dev, host->slot_id);
++			if (ret)
++				dev_dbg(mmc_dev(host->mmc),
++					"Unable to handle MMC board"
++					" level suspend\n");
++
++			if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
++				OMAP_HSMMC_WRITE(host->base, HCTL,
++					OMAP_HSMMC_READ(host->base, HCTL)
++					& SDVSCLR);
++				OMAP_HSMMC_WRITE(host->base, HCTL,
++					OMAP_HSMMC_READ(host->base, HCTL)
++					| SDVS30);
++				OMAP_HSMMC_WRITE(host->base, HCTL,
++					OMAP_HSMMC_READ(host->base, HCTL)
++					| SDBP);
++			}
++
++			clk_disable(host->fclk);
++			clk_disable(host->iclk);
++			clk_disable(host->dbclk);
++		}
++
++	}
++	return ret;
++}
++
++/* Routine to resume the MMC device */
++static int omap_mmc_resume(struct platform_device *pdev)
++{
++	int ret = 0;
++	struct mmc_omap_host *host = platform_get_drvdata(pdev);
++
++	if (host && !host->suspended)
++		return 0;
++
++	if (host) {
++
++		ret = clk_enable(host->fclk);
++		if (ret)
++			goto clk_en_err;
++
++		ret = clk_enable(host->iclk);
++		if (ret) {
++			clk_disable(host->fclk);
++			clk_put(host->fclk);
++			goto clk_en_err;
++		}
++
++		if (clk_enable(host->dbclk) != 0)
++			dev_dbg(mmc_dev(host->mmc),
++					"Enabling debounce clk failed\n");
++
++		ret = host->pdata->resume(&pdev->dev, host->slot_id);
++		if (ret)
++			dev_dbg(mmc_dev(host->mmc),
++					"Unmask interrupt failed\n");
++
++		/* Notify the core to resume the host */
++		ret = mmc_resume_host(host->mmc);
++		if (ret == 0)
++			host->suspended = 0;
++	}
++
++	return ret;
++
++clk_en_err:
++	dev_dbg(mmc_dev(host->mmc),
++		"Failed to enable MMC clocks during resume\n");
++	return ret;
++}
++
++#else
++#define omap_mmc_suspend	NULL
++#define omap_mmc_resume		NULL
++#endif
++
++static struct platform_driver omap_mmc_driver = {
++	.probe		= omap_mmc_probe,
++	.remove		= omap_mmc_remove,
++	.suspend	= omap_mmc_suspend,
++	.resume		= omap_mmc_resume,
++	.driver		= {
++		.name = DRIVER_NAME,
++		.owner = THIS_MODULE,
 +	},
 +};
-+MODULE_ALIAS(DRIVER_NAME);
 +
-+static int __init omap_nand_init(void)
++static int __init omap_mmc_init(void)
 +{
-+	printk(KERN_INFO "%s driver initializing\n", DRIVER_NAME);
-+	return platform_driver_register(&omap_nand_driver);
++	/* Register the MMC driver */
++	return platform_driver_register(&omap_mmc_driver);
 +}
 +
-+static void __exit omap_nand_exit(void)
++static void __exit omap_mmc_cleanup(void)
 +{
-+	platform_driver_unregister(&omap_nand_driver);
++	/* Unregister MMC driver */
++	platform_driver_unregister(&omap_mmc_driver);
 +}
 +
-+module_init(omap_nand_init);
-+module_exit(omap_nand_exit);
++module_init(omap_mmc_init);
++module_exit(omap_mmc_cleanup);
 +
++MODULE_DESCRIPTION("OMAP High Speed Multimedia Card driver");
 +MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Glue layer for NAND flash on TI OMAP boards");
---=20
++MODULE_ALIAS("platform:" DRIVER_NAME);
++MODULE_AUTHOR("Texas Instruments Inc");
+-- 
 1.6.0.1.141.g445ca
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
