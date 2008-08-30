@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 21/33] add OMAP HighSpeed mmc controller driver
-Date: Sat, 30 Aug 2008 20:16:21 +0300
-Message-ID: <1220116593-862-22-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 25/33] add TWL4030 Battery Charger Interface driver
+Date: Sat, 30 Aug 2008 20:16:25 +0300
+Message-ID: <1220116593-862-26-git-send-email-me@felipebalbi.com>
 References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-2-git-send-email-me@felipebalbi.com>
  <1220116593-862-3-git-send-email-me@felipebalbi.com>
@@ -23,12 +23,16 @@ References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
  <1220116593-862-19-git-send-email-me@felipebalbi.com>
  <1220116593-862-20-git-send-email-me@felipebalbi.com>
  <1220116593-862-21-git-send-email-me@felipebalbi.com>
+ <1220116593-862-22-git-send-email-me@felipebalbi.com>
+ <1220116593-862-23-git-send-email-me@felipebalbi.com>
+ <1220116593-862-24-git-send-email-me@felipebalbi.com>
+ <1220116593-862-25-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:36644 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:36658 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753043AbYH3RWV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:22:21 -0400
-In-Reply-To: <1220116593-862-21-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1752898AbYH3RWZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Aug 2008 13:22:25 -0400
+In-Reply-To: <1220116593-862-25-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -38,1129 +42,1127 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/mmc/host/Kconfig      |   13 +-
- drivers/mmc/host/Makefile     |    1 +
- drivers/mmc/host/omap_hsmmc.c | 1069 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 1082 insertions(+), 1 deletions(-)
- create mode 100644 drivers/mmc/host/omap_hsmmc.c
+ drivers/power/Kconfig               |    8 +
+ drivers/power/Makefile              |    1 +
+ drivers/power/twl4030_bci_battery.c | 1080 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 1089 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/power/twl4030_bci_battery.c
 
-diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
-index ea8d7a3..08e57ae 100644
---- a/drivers/mmc/host/Kconfig
-+++ b/drivers/mmc/host/Kconfig
-@@ -67,7 +67,7 @@ config MMC_RICOH_MMC
- 
- config MMC_OMAP
- 	tristate "TI OMAP Multimedia Card Interface support"
--	depends on ARCH_OMAP
-+	depends on ARCH_OMAP1 || (ARCH_OMAP2 && ARCH_OMAP2420)
- 	select TPS65010 if MACH_OMAP_H2
+diff --git a/drivers/power/Kconfig b/drivers/power/Kconfig
+index 18b70fa..7bd8c2b 100644
+--- a/drivers/power/Kconfig
++++ b/drivers/power/Kconfig
+@@ -70,6 +70,14 @@ config BATTERY_BQ27200
  	help
- 	  This selects the TI OMAP Multimedia card Interface.
-@@ -76,6 +76,17 @@ config MMC_OMAP
+ 	  Say Y here to enable support for batteries with BQ27200(I2C) chip.
  
- 	  If unsure, say N.
- 
-+config MMC_OMAP_HS
-+	tristate "TI OMAP High Speed Multimedia Card Interface support"
-+	depends on (ARCH_OMAP2 && ARCH_OMAP2430) || ARCH_OMAP3
-+	select TWL4030_CORE if MACH_OMAP_2430SDP || MACH_OMAP_3430SDP
++config TWL4030_BCI_BATTERY
++	tristate "OMAP TWL4030 BCI Battery driver"
++	depends on (MACH_OMAP_2430SDP || MACH_OMAP_3430SDP) && TWL4030_MADC
++	default y
 +	help
-+	  This selects the TI OMAP High Speed Multimedia card Interface.
-+	  If you have an OMAP2(2430) or OMAP3 board with a Multimedia Card slot,
-+	  say Y or M here.
++	  Support for OMAP TWL4030 BCI Battery driver.
++	  This driver can give support for TWL4030 Battery Charge Interface.
 +
-+	  If unsure, say N.
-+
- config MMC_WBSD
- 	tristate "Winbond W83L51xD SD/MMC Card Interface support"
- 	depends on ISA_DMA_API
-diff --git a/drivers/mmc/host/Makefile b/drivers/mmc/host/Makefile
-index c794cc5..ba477bc 100644
---- a/drivers/mmc/host/Makefile
-+++ b/drivers/mmc/host/Makefile
-@@ -15,6 +15,7 @@ obj-$(CONFIG_MMC_RICOH_MMC)	+= ricoh_mmc.o
- obj-$(CONFIG_MMC_WBSD)		+= wbsd.o
- obj-$(CONFIG_MMC_AU1X)		+= au1xmmc.o
- obj-$(CONFIG_MMC_OMAP)		+= omap.o
-+obj-$(CONFIG_MMC_OMAP_HS)	+= omap_hsmmc.o
- obj-$(CONFIG_MMC_AT91)		+= at91_mci.o
- obj-$(CONFIG_MMC_ATMELMCI)	+= atmel-mci.o
- obj-$(CONFIG_MMC_TIFM_SD)	+= tifm_sd.o
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+ config BATTERY_TOSA
+ 	tristate "Sharp SL-6000 (tosa) battery"
+ 	depends on MACH_TOSA && MFD_TC6393XB
+diff --git a/drivers/power/Makefile b/drivers/power/Makefile
+index dc6cfa3..8da941a 100644
+--- a/drivers/power/Makefile
++++ b/drivers/power/Makefile
+@@ -21,5 +21,6 @@ obj-$(CONFIG_BATTERY_DS2760)	+= ds2760_battery.o
+ obj-$(CONFIG_BATTERY_PMU)	+= pmu_battery.o
+ obj-$(CONFIG_BATTERY_OLPC)	+= olpc_battery.o
+ obj-$(CONFIG_BATTERY_BQ27x00)   += bq27x00_battery.o
++obj-$(CONFIG_TWL4030_BCI_BATTERY)	+= twl4030_bci_battery.o
+ obj-$(CONFIG_BATTERY_TOSA)	+= tosa_battery.o
+ obj-$(CONFIG_BATTERY_PALMTX)	+= palmtx_battery.o
+diff --git a/drivers/power/twl4030_bci_battery.c b/drivers/power/twl4030_bci_battery.c
 new file mode 100644
-index 0000000..af34871
+index 0000000..d30a0e4
 --- /dev/null
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -0,0 +1,1069 @@
++++ b/drivers/power/twl4030_bci_battery.c
+@@ -0,0 +1,1080 @@
 +/*
-+ * drivers/mmc/host/omap_hsmmc.c
++ * linux/drivers/power/twl4030_bci_battery.c
 + *
-+ * Driver for OMAP2430/3430 MMC controller.
++ * OMAP2430/3430 BCI battery driver for Linux
 + *
-+ * Copyright (C) 2007 Texas Instruments.
++ * Copyright (C) 2008 Texas Instruments, Inc.
++ * Author: Texas Instruments, Inc.
 + *
-+ * Authors:
-+ *	Syed Mohammed Khasim	<x0khasim@ti.com>
-+ *	Madhusudhan		<madhu.cr@ti.com>
-+ *	Mohit Jalori		<mjalori@ti.com>
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2. This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 + */
 +
-+#include <linux/module.h>
 +#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/device.h>
 +#include <linux/interrupt.h>
 +#include <linux/delay.h>
-+#include <linux/dma-mapping.h>
 +#include <linux/platform_device.h>
-+#include <linux/workqueue.h>
-+#include <linux/timer.h>
-+#include <linux/clk.h>
-+#include <linux/mmc/host.h>
-+#include <linux/io.h>
-+#include <linux/semaphore.h>
-+#include <asm/dma.h>
-+#include <mach/hardware.h>
-+#include <mach/board.h>
-+#include <mach/mmc.h>
-+#include <mach/cpu.h>
++#include <linux/i2c/twl4030.h>
++#include <linux/power_supply.h>
++#include <asm/arch/bci.h>
++#include <linux/i2c/twl4030-madc.h>
 +
-+/* OMAP HSMMC Host Controller Registers */
-+#define OMAP_HSMMC_SYSCONFIG	0x0010
-+#define OMAP_HSMMC_CON		0x002C
-+#define OMAP_HSMMC_BLK		0x0104
-+#define OMAP_HSMMC_ARG		0x0108
-+#define OMAP_HSMMC_CMD		0x010C
-+#define OMAP_HSMMC_RSP10	0x0110
-+#define OMAP_HSMMC_RSP32	0x0114
-+#define OMAP_HSMMC_RSP54	0x0118
-+#define OMAP_HSMMC_RSP76	0x011C
-+#define OMAP_HSMMC_DATA		0x0120
-+#define OMAP_HSMMC_HCTL		0x0128
-+#define OMAP_HSMMC_SYSCTL	0x012C
-+#define OMAP_HSMMC_STAT		0x0130
-+#define OMAP_HSMMC_IE		0x0134
-+#define OMAP_HSMMC_ISE		0x0138
-+#define OMAP_HSMMC_CAPA		0x0140
++#define T2_BATTERY_VOLT		0x04
++#define T2_BATTERY_TEMP		0x06
++#define T2_BATTERY_CUR		0x08
 +
-+#define VS18			(1<<26)
-+#define VS30			(1<<25)
-+#define SDVS18			(0x5<<9)
-+#define SDVS30			(0x6<<9)
-+#define SDVSCLR			0xFFFFF1FF
-+#define SDVSDET			0x00000400
-+#define AUTOIDLE		0x1
-+#define SDBP			(1<<8)
-+#define DTO			0xe
-+#define ICE			0x1
-+#define ICS			0x2
-+#define CEN			(1<<2)
-+#define CLKD_MASK		0x0000FFC0
-+#define INT_EN_MASK		0x307F0033
-+#define INIT_STREAM		(1<<1)
-+#define DP_SELECT		(1<<21)
-+#define DDIR			(1<<4)
-+#define DMA_EN			0x1
-+#define MSBS			1<<5
-+#define BCE			1<<1
-+#define FOUR_BIT		1 << 1
-+#define CC			0x1
-+#define TC			0x02
-+#define OD			0x1
-+#define ERR			(1 << 15)
-+#define CMD_TIMEOUT		(1 << 16)
-+#define DATA_TIMEOUT		(1 << 20)
-+#define CMD_CRC			(1 << 17)
-+#define DATA_CRC		(1 << 21)
-+#define CARD_ERR		(1 << 28)
-+#define STAT_CLEAR		0xFFFFFFFF
-+#define INIT_STREAM_CMD		0x00000000
-+#define DUAL_VOLT_OCR_BIT	7
-+#define SRC			(1 << 25)
-+#define SRD			(1 << 26)
++/* charger constants */
++#define NO_PW_CONN		0
++#define AC_PW_CONN		0x01
++#define USB_PW_CONN		0x02
 +
-+#define OMAP_MMC1_DEVID		1
-+#define OMAP_MMC2_DEVID		2
-+#define OMAP_MMC_DATADIR_NONE	0
-+#define OMAP_MMC_DATADIR_READ	1
-+#define OMAP_MMC_DATADIR_WRITE	2
-+#define MMC_TIMEOUT_MS		20
-+#define OMAP_MMC_MASTER_CLOCK	96000000
-+#define DRIVER_NAME		"mmci-omap"
-+/*
-+ * slot_id is device id - 1, device id is a static value
-+ * of 1 to represent device 1 etc..
-+ */
-+#define mmc_slot(host)		(host->pdata->slots[host->slot_id])
++/* TWL4030_MODULE_USB */
++#define REG_POWER_CTRL		0x0AC
++#define OTG_EN			0x020
++#define REG_PHY_CLK_CTRL	0x0FE
++#define REG_PHY_CLK_CTRL_STS	0x0FF
++#define PHY_DPLL_CLK		0x01
 +
-+/*
-+ * MMC Host controller read/write API's
-+ */
-+#define OMAP_HSMMC_READ(base, reg)	\
-+	__raw_readl((base) + OMAP_HSMMC_##reg)
++#define REG_BCICTL1 		0x023
++#define REG_BCICTL2 		0x024
++#define CGAIN			0x020
++#define ITHEN			0x010
++#define ITHSENS			0x007
 +
-+#define OMAP_HSMMC_WRITE(base, reg, val) \
-+	__raw_writel((val), (base) + OMAP_HSMMC_##reg)
++/* Boot BCI flag bits */
++#define BCIAUTOWEN		0x020
++#define CONFIG_DONE		0x010
++#define BCIAUTOUSB		0x002
++#define BCIAUTOAC		0x001
++#define BCIMSTAT_MASK		0x03F
 +
-+struct mmc_omap_host {
-+	struct	device		*dev;
-+	struct	mmc_host	*mmc;
-+	struct	mmc_request	*mrq;
-+	struct	mmc_command	*cmd;
-+	struct	mmc_data	*data;
-+	struct	clk		*fclk;
-+	struct	clk		*iclk;
-+	struct	clk		*dbclk;
-+	struct	semaphore	sem;
-+	struct	work_struct	mmc_carddetect_work;
-+	void	__iomem		*base;
-+	resource_size_t		mapbase;
-+	unsigned int		id;
-+	unsigned int		dma_len;
-+	unsigned int		dma_dir;
-+	unsigned char		bus_mode;
-+	unsigned char		datadir;
-+	u32			*buffer;
-+	u32			bytesleft;
-+	int			suspended;
-+	int			irq;
-+	int			carddetect;
-+	int			use_dma, dma_ch;
-+	int			initstr;
-+	int			slot_id;
-+	int			dbclk_enabled;
-+	struct	omap_mmc_platform_data	*pdata;
++/* Boot BCI register */
++#define REG_BOOT_BCI		0x007
++#define REG_CTRL1		0x00
++#define REG_SW1SELECT_MSB	0x07
++#define SW1_CH9_SEL		0x02
++#define REG_CTRL_SW1		0x012
++#define SW1_TRIGGER		0x020
++#define EOC_SW1			0x002
++#define REG_GPCH9		0x049
++#define REG_STS_HW_CONDITIONS	0x0F
++#define STS_VBUS		0x080
++#define STS_CHG			0x02
++#define REG_BCIMSTATEC		0x02
++#define REG_BCIMFSTS4		0x010
++#define REG_BCIMFSTS2		0x00E
++#define REG_BCIMFSTS3 		0x00F
++#define REG_BCIMFSTS1		0x001
++#define USBFASTMCHG		0x004
++#define BATSTSPCHG		0x004
++#define BATSTSMCHG		0x040
++#define VBATOV4			0x020
++#define VBATOV3			0x010
++#define VBATOV2			0x008
++#define VBATOV1			0x004
++#define REG_BB_CFG		0x012
++#define BBCHEN			0x010
++
++/* Power supply charge interrupt */
++#define REG_PWR_ISR1		0x00
++#define REG_PWR_IMR1		0x01
++#define REG_PWR_EDR1		0x05
++#define REG_PWR_SIH_CTRL	0x007
++
++#define USB_PRES		0x004
++#define CHG_PRES		0x002
++
++#define USB_PRES_RISING		0x020
++#define USB_PRES_FALLING	0x010
++#define CHG_PRES_RISING		0x008
++#define CHG_PRES_FALLING	0x004
++#define AC_STATEC		0x20
++#define COR			0x004
++
++/* interrupt status registers */
++#define REG_BCIISR1A 		0x0
++#define REG_BCIISR2A 		0x01
++
++/* Interrupt flags bits BCIISR1 */
++#define BATSTS_ISR1		0x080
++#define VBATLVL_ISR1		0x001
++
++/* Interrupt mask registers for int1*/
++#define REG_BCIIMR1A		0x002
++#define REG_BCIIMR2A		0x003
++
++ /* Interrupt masks for BCIIMR1 */
++#define BATSTS_IMR1		0x080
++#define VBATLVL_IMR1		0x001
++
++/* Interrupt edge detection register */
++#define REG_BCIEDR1		0x00A
++#define REG_BCIEDR2		0x00B
++#define REG_BCIEDR3		0x00C
++
++/* BCIEDR2 */
++#define	BATSTS_EDRRISIN		0x080
++#define BATSTS_EDRFALLING	0x040
++
++/* BCIEDR3 */
++#define	VBATLVL_EDRRISIN	0x02
++
++/* Step size and prescaler ratio */
++#define TEMP_STEP_SIZE		147
++#define TEMP_PSR_R		100
++
++#define VOLT_STEP_SIZE		588
++#define VOLT_PSR_R		100
++
++#define CURR_STEP_SIZE		147
++#define CURR_PSR_R1		44
++#define CURR_PSR_R2		80
++
++#define BK_VOLT_STEP_SIZE	441
++#define BK_VOLT_PSR_R		100
++
++#define ENABLE		1
++#define DISABLE		1
++
++/* Ptr to thermistor table */
++int *therm_tbl;
++
++static int twl4030_bci_battery_probe(struct platform_device *dev);
++static int twl4030_bci_battery_remove(struct platform_device *dev);
++#ifdef CONFIG_PM
++static int twl4030_bci_battery_suspend(struct platform_device *dev,
++					pm_message_t state);
++static int twl4030_bci_battery_resume(struct platform_device *dev);
++#endif
++
++struct twl4030_bci_device_info {
++	struct device		*dev;
++
++	unsigned long		update_time;
++	int			voltage_uV;
++	int			bk_voltage_uV;
++	int			current_uA;
++	int			temp_C;
++	int			charge_rsoc;
++	int			charge_status;
++
++	struct power_supply	bat;
++	struct power_supply	bk_bat;
++	struct delayed_work	twl4030_bci_monitor_work;
++	struct delayed_work	twl4030_bk_bci_monitor_work;
 +};
 +
++static struct platform_driver twl4030_bci_battery_driver = {
++	.probe =	twl4030_bci_battery_probe,
++	.remove =	twl4030_bci_battery_remove,
++#ifdef CONFIG_PM
++	.suspend =	twl4030_bci_battery_suspend,
++	.resume =	twl4030_bci_battery_resume,
++#endif
++	.driver = {
++		.name = "twl4030-bci-battery",
++	},
++};
++
++static int usb_charger_flag;
++static int LVL_1, LVL_2, LVL_3, LVL_4;
++
++static int read_bci_val(u8 reg_1);
++static inline int clear_n_set(u8 mod_no, u8 clear, u8 set, u8 reg);
++static int twl4030charger_presence(void);
++
 +/*
-+ * Stop clock to the card
++ * Report and clear the charger presence event.
 + */
-+static void omap_mmc_stop_clock(struct mmc_omap_host *host)
++static inline int twl4030charger_presence_evt(void)
 +{
-+	OMAP_HSMMC_WRITE(host->base, SYSCTL,
-+		OMAP_HSMMC_READ(host->base, SYSCTL) & ~CEN);
-+	if ((OMAP_HSMMC_READ(host->base, SYSCTL) & CEN) != 0x0)
-+		dev_dbg(mmc_dev(host->mmc), "MMC Clock is not stoped\n");
++	int ret;
++	u8 chg_sts, set = 0, clear = 0;
++
++	/* read charger power supply status */
++	ret = twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &chg_sts,
++		REG_STS_HW_CONDITIONS);
++	if (ret)
++		return IRQ_NONE;
++
++	/* If the AC charger have been connected */
++	if (chg_sts & STS_CHG) {
++		/* configuring falling edge detection for CHG_PRES */
++		set = CHG_PRES_FALLING;
++		clear = CHG_PRES_RISING;
++	}
++	/* If the AC charger have been disconnected */
++	else {
++		/* configuring rising edge detection for CHG_PRES */
++		set = CHG_PRES_RISING;
++		clear = CHG_PRES_FALLING;
++	}
++
++	/* Update the interrupt edge detection register */
++	clear_n_set(TWL4030_MODULE_INT, clear, set, REG_PWR_EDR1);
++
++	return 0;
 +}
 +
 +/*
-+ * Send init stream sequence to card
-+ * before sending IDLE command
++ * Interrupt service routine
++ *
++ * Attends to TWL 4030 power module interruptions events, specifically
++ * USB_PRES (USB charger presence) CHG_PRES (AC charger presence) events
++ *
 + */
-+static void send_init_stream(struct mmc_omap_host *host)
++static irqreturn_t twl4030charger_interrupt(int irq, void *dev_id)
 +{
-+	int reg = 0;
-+	unsigned long timeout;
++	struct twl4030_bci_device_info *di = dev_id;
 +
-+	disable_irq(host->irq);
-+	OMAP_HSMMC_WRITE(host->base, CON,
-+		OMAP_HSMMC_READ(host->base, CON) | INIT_STREAM);
-+	OMAP_HSMMC_WRITE(host->base, CMD, INIT_STREAM_CMD);
-+
-+	timeout = jiffies + msecs_to_jiffies(MMC_TIMEOUT_MS);
-+	while ((reg != CC) && time_before(jiffies, timeout))
-+		reg = OMAP_HSMMC_READ(host->base, STAT) & CC;
-+
-+	OMAP_HSMMC_WRITE(host->base, CON,
-+		OMAP_HSMMC_READ(host->base, CON) & ~INIT_STREAM);
-+	enable_irq(host->irq);
-+}
-+
-+/*
-+ * Configure the response type and send the cmd.
-+ */
-+static void
-+mmc_omap_start_command(struct mmc_omap_host *host, struct mmc_command *cmd,
-+	struct mmc_data *data)
-+{
-+	int cmdreg = 0, resptype = 0, cmdtype = 0;
-+
-+	dev_dbg(mmc_dev(host->mmc), "%s: CMD%d, argument 0x%08x\n",
-+		mmc_hostname(host->mmc), cmd->opcode, cmd->arg);
-+	host->cmd = cmd;
-+
-+	/*
-+	 * Clear status bits and enable interrupts
-+	 */
-+	OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
-+	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
-+	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
-+
-+	if (cmd->flags & MMC_RSP_PRESENT) {
-+		if (cmd->flags & MMC_RSP_136)
-+			resptype = 1;
-+		else
-+			resptype = 2;
-+	}
-+
-+	/*
-+	 * Unlike OMAP1 controller, the cmdtype does not seem to be based on
-+	 * ac, bc, adtc, bcr. Only CMD12 needs a val of 0x3, rest 0x0.
-+	 */
-+	if (cmd->opcode == 12)
-+		cmdtype = 0x3;
-+
-+	cmdreg = (cmd->opcode << 24) | (resptype << 16) | (cmdtype << 22);
-+
-+	if (data) {
-+		cmdreg |= DP_SELECT | MSBS | BCE;
-+		if (data->flags & MMC_DATA_READ)
-+			cmdreg |= DDIR;
-+		else
-+			cmdreg &= ~(DDIR);
-+	}
-+
-+	if (host->use_dma)
-+		cmdreg |= DMA_EN;
-+
-+	OMAP_HSMMC_WRITE(host->base, ARG, cmd->arg);
-+	OMAP_HSMMC_WRITE(host->base, CMD, cmdreg);
-+}
-+
-+/*
-+ * Notify the transfer complete to MMC core
-+ */
-+static void
-+mmc_omap_xfer_done(struct mmc_omap_host *host, struct mmc_data *data)
-+{
-+	host->data = NULL;
-+
-+	if (host->use_dma && host->dma_ch != -1)
-+		dma_unmap_sg(mmc_dev(host->mmc), data->sg, host->dma_len,
-+			host->dma_dir);
-+
-+	host->datadir = OMAP_MMC_DATADIR_NONE;
-+
-+	if (!data->error)
-+		data->bytes_xfered += data->blocks * (data->blksz);
-+	else
-+		data->bytes_xfered = 0;
-+
-+	if (!data->stop) {
-+		host->mrq = NULL;
-+		mmc_request_done(host->mmc, data->mrq);
-+		return;
-+	}
-+	mmc_omap_start_command(host, data->stop, NULL);
-+}
-+
-+/*
-+ * Notify the core about command completion
-+ */
-+static void
-+mmc_omap_cmd_done(struct mmc_omap_host *host, struct mmc_command *cmd)
-+{
-+	host->cmd = NULL;
-+
-+	if (cmd->flags & MMC_RSP_PRESENT) {
-+		if (cmd->flags & MMC_RSP_136) {
-+			/* response type 2 */
-+			cmd->resp[3] = OMAP_HSMMC_READ(host->base, RSP10);
-+			cmd->resp[2] = OMAP_HSMMC_READ(host->base, RSP32);
-+			cmd->resp[1] = OMAP_HSMMC_READ(host->base, RSP54);
-+			cmd->resp[0] = OMAP_HSMMC_READ(host->base, RSP76);
-+		} else {
-+			/* response types 1, 1b, 3, 4, 5, 6 */
-+			cmd->resp[0] = OMAP_HSMMC_READ(host->base, RSP10);
-+		}
-+	}
-+	if (host->data == NULL || cmd->error) {
-+		host->mrq = NULL;
-+		mmc_request_done(host->mmc, cmd->mrq);
-+	}
-+}
-+
-+/*
-+ * DMA clean up for command errors
-+ */
-+static void mmc_dma_cleanup(struct mmc_omap_host *host)
-+{
-+	host->data->error = -ETIMEDOUT;
-+
-+	if (host->use_dma && host->dma_ch != -1) {
-+		dma_unmap_sg(mmc_dev(host->mmc), host->data->sg, host->dma_len,
-+			host->dma_dir);
-+		omap_free_dma(host->dma_ch);
-+		host->dma_ch = -1;
-+		up(&host->sem);
-+	}
-+	host->data = NULL;
-+	host->datadir = OMAP_MMC_DATADIR_NONE;
-+}
-+
-+/*
-+ * MMC controller IRQ handler
-+ */
-+static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
-+{
-+	struct mmc_omap_host *host = dev_id;
-+	struct mmc_data *data;
-+	int end_cmd = 0, end_trans = 0, status;
-+
-+	if (host->cmd == NULL && host->data == NULL) {
-+		OMAP_HSMMC_WRITE(host->base, STAT,
-+			OMAP_HSMMC_READ(host->base, STAT));
-+		return IRQ_HANDLED;
-+	}
-+
-+	data = host->data;
-+	status = OMAP_HSMMC_READ(host->base, STAT);
-+	dev_dbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
-+
-+	if (status & ERR) {
-+		if ((status & CMD_TIMEOUT) ||
-+			(status & CMD_CRC)) {
-+			if (host->cmd) {
-+				if (status & CMD_TIMEOUT) {
-+					OMAP_HSMMC_WRITE(host->base, SYSCTL,
-+						OMAP_HSMMC_READ(host->base,
-+								SYSCTL) | SRC);
-+					while (OMAP_HSMMC_READ(host->base,
-+								SYSCTL) & SRC) ;
-+					host->cmd->error = -ETIMEDOUT;
-+				} else {
-+					host->cmd->error = -EILSEQ;
-+				}
-+				end_cmd = 1;
-+			}
-+			if (host->data)
-+				mmc_dma_cleanup(host);
-+		}
-+		if ((status & DATA_TIMEOUT) ||
-+			(status & DATA_CRC)) {
-+			if (host->data) {
-+				if (status & DATA_TIMEOUT)
-+					mmc_dma_cleanup(host);
-+				else
-+					host->data->error = -EILSEQ;
-+				end_trans = 1;
-+			}
-+		}
-+		if (status & CARD_ERR) {
-+			dev_dbg(mmc_dev(host->mmc),
-+				"Ignoring card err CMD%d\n", host->cmd->opcode);
-+			if (host->cmd)
-+				end_cmd = 1;
-+			if (host->data)
-+				end_trans = 1;
-+		}
-+	}
-+
-+	OMAP_HSMMC_WRITE(host->base, STAT, status);
-+
-+	if (end_cmd || (status & CC))
-+		mmc_omap_cmd_done(host, host->cmd);
-+	if (end_trans || (status & TC))
-+		mmc_omap_xfer_done(host, data);
++	twl4030charger_presence_evt();
++	power_supply_changed(&di->bat);
 +
 +	return IRQ_HANDLED;
 +}
 +
 +/*
-+ * Switch MMC operating voltage
++ * This function handles the twl4030 battery presence interrupt
 + */
-+static int omap_mmc_switch_opcond(struct mmc_omap_host *host, int vdd)
++static int twl4030battery_presence_evt(void)
 +{
-+	u32 reg_val = 0;
++	int ret;
++	u8 batstsmchg, batstspchg;
++
++	/* check for the battery presence in main charge*/
++	ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE,
++			&batstsmchg, REG_BCIMFSTS3);
++	if (ret)
++		return ret;
++
++	/* check for the battery presence in precharge */
++	ret = twl4030_i2c_read_u8(TWL4030_MODULE_PRECHARGE,
++			&batstspchg, REG_BCIMFSTS1);
++	if (ret)
++		return ret;
++
++	/*
++	 * REVISIT: Physically inserting/removing the batt
++	 * does not seem to generate an int on 3430ES2 SDP.
++	 */
++
++	/* In case of the battery insertion event */
++	if ((batstspchg & BATSTSPCHG) || (batstsmchg & BATSTSMCHG)) {
++		ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, BATSTS_EDRRISIN,
++			BATSTS_EDRFALLING, REG_BCIEDR2);
++		if (ret)
++			return ret;
++	}
++
++	/* In case of the battery removal event */
++	else {
++		ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, BATSTS_EDRFALLING,
++			BATSTS_EDRRISIN, REG_BCIEDR2);
++		if (ret)
++			return ret;
++	}
++
++	return 0;
++}
++
++/*
++ * This function handles the twl4030 battery voltage level interrupt.
++ */
++static int twl4030battery_level_evt(void)
++{
++	int ret;
++	u8 mfst;
++
++	/* checking for threshold event */
++	ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE,
++			&mfst, REG_BCIMFSTS2);
++	if (ret)
++		return ret;
++
++	if (mfst & VBATOV4) {
++		LVL_4 = 1;
++		LVL_3 = LVL_2 = LVL_1 = 0;
++	} else if (mfst & VBATOV3) {
++		LVL_3 = 1;
++		LVL_4 = LVL_2 = LVL_1 = 0;
++	} else if (mfst & VBATOV2) {
++		LVL_2 = 1;
++		LVL_4 = LVL_3 = LVL_1 = 0;
++	} else {
++		LVL_1 = 1;
++		LVL_4 = LVL_3 = LVL_2 = 0;
++	}
++
++	return 0;
++}
++
++/*
++ * Interrupt service routine
++ *
++ * Attends to BCI interruptions events,
++ * specifically BATSTS (battery connection and removal)
++ * VBATOV (main battery voltage threshold) events
++ *
++ */
++static irqreturn_t twl4030battery_interrupt(int irq, void *dev_id)
++{
++	int ret;
++	u8 isr1a_val, isr2a_val, clear_2a, clear_1a;
++
++	ret = twl4030_i2c_read_u8(TWL4030_MODULE_INTERRUPTS, &isr1a_val,
++				REG_BCIISR1A);
++	if (ret)
++		return IRQ_NONE;
++
++	ret = twl4030_i2c_read_u8(TWL4030_MODULE_INTERRUPTS, &isr2a_val,
++				REG_BCIISR2A);
++	if (ret)
++		return IRQ_NONE;
++
++	clear_2a = (isr2a_val & VBATLVL_ISR1)? (VBATLVL_ISR1): 0;
++	clear_1a = (isr1a_val & BATSTS_ISR1)? (BATSTS_ISR1): 0;
++
++	/* cleaning BCI interrupt status flags */
++	ret = twl4030_i2c_write_u8(TWL4030_MODULE_INTERRUPTS,
++			clear_1a , REG_BCIISR1A);
++	if (ret)
++		return IRQ_NONE;
++
++	ret = twl4030_i2c_write_u8(TWL4030_MODULE_INTERRUPTS,
++			clear_2a , REG_BCIISR2A);
++	if (ret)
++		return IRQ_NONE;
++
++	/* battery connetion or removal event */
++	if (isr1a_val & BATSTS_ISR1)
++		twl4030battery_presence_evt();
++	/* battery voltage threshold event*/
++	else if (isr2a_val & VBATLVL_ISR1)
++		twl4030battery_level_evt();
++	else
++		return IRQ_NONE;
++
++	return IRQ_HANDLED;
++}
++
++/*
++ * Enable/Disable hardware battery level event notifications.
++ */
++static int twl4030battery_hw_level_en(int enable)
++{
 +	int ret;
 +
-+	/* Disable the clocks */
-+	clk_disable(host->fclk);
-+	clk_disable(host->iclk);
-+	clk_disable(host->dbclk);
++	if (enable) {
++		/* unmask VBATOV interrupt for INT1 */
++		ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, VBATLVL_IMR1,
++			0, REG_BCIIMR2A);
++		if (ret)
++			return ret;
 +
-+	/* Turn the power off */
-+	ret = mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
-+	if (ret != 0)
-+		goto err;
-+
-+	/* Turn the power ON with given VDD 1.8 or 3.0v */
-+	ret = mmc_slot(host).set_power(host->dev, host->slot_id, 1, vdd);
-+	if (ret != 0)
-+		goto err;
-+
-+	clk_enable(host->fclk);
-+	clk_enable(host->iclk);
-+	clk_enable(host->dbclk);
-+
-+	OMAP_HSMMC_WRITE(host->base, HCTL,
-+		OMAP_HSMMC_READ(host->base, HCTL) & SDVSCLR);
-+	reg_val = OMAP_HSMMC_READ(host->base, HCTL);
-+	/*
-+	 * If a MMC dual voltage card is detected, the set_ios fn calls
-+	 * this fn with VDD bit set for 1.8V. Upon card removal from the
-+	 * slot, mmc_omap_detect fn sets the VDD back to 3V.
-+	 *
-+	 * Only MMC1 supports 3.0V.  MMC2 will not function if SDVS30 is
-+	 * set in HCTL.
-+	 */
-+	if (host->id == OMAP_MMC1_DEVID && (((1 << vdd) == MMC_VDD_32_33) ||
-+				((1 << vdd) == MMC_VDD_33_34)))
-+		reg_val |= SDVS30;
-+	if ((1 << vdd) == MMC_VDD_165_195)
-+		reg_val |= SDVS18;
-+
-+	OMAP_HSMMC_WRITE(host->base, HCTL, reg_val);
-+
-+	OMAP_HSMMC_WRITE(host->base, HCTL,
-+		OMAP_HSMMC_READ(host->base, HCTL) | SDBP);
++		/* configuring interrupt edge detection for VBATOv */
++		ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, 0,
++			VBATLVL_EDRRISIN, REG_BCIEDR3);
++		if (ret)
++			return ret;
++	} else {
++		/* mask VBATOV interrupt for INT1 */
++		ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, 0,
++			VBATLVL_IMR1, REG_BCIIMR2A);
++		if (ret)
++			return ret;
++	}
 +
 +	return 0;
-+err:
-+	dev_dbg(mmc_dev(host->mmc), "Unable to switch operating voltage\n");
-+	return ret;
 +}
 +
 +/*
-+ * Work Item to notify the core about card insertion/removal
++ * Enable/disable hardware battery presence event notifications.
 + */
-+static void mmc_omap_detect(struct work_struct *work)
++static int twl4030battery_hw_presence_en(int enable)
 +{
-+	u16 vdd = 0;
-+	struct mmc_omap_host *host = container_of(work, struct mmc_omap_host,
-+						mmc_carddetect_work);
++	int ret;
 +
-+	if (host->carddetect) {
-+		if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
-+			/*
-+			 * Set the VDD back to 3V when the card is removed
-+			 * before the set_ios fn turns off the power.
-+			 */
-+			vdd = fls(host->mmc->ocr_avail) - 1;
-+			if (omap_mmc_switch_opcond(host, vdd) != 0)
-+				host->mmc->ios.vdd = vdd;
-+		}
-+		mmc_detect_change(host->mmc, (HZ * 200) / 1000);
++	if (enable) {
++		/* unmask BATSTS interrupt for INT1 */
++		ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, BATSTS_IMR1,
++			0, REG_BCIIMR1A);
++		if (ret)
++			return ret;
++
++		/* configuring interrupt edge for BATSTS */
++		ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, 0,
++			BATSTS_EDRRISIN | BATSTS_EDRFALLING, REG_BCIEDR2);
++		if (ret)
++			return ret;
 +	} else {
-+		OMAP_HSMMC_WRITE(host->base, SYSCTL,
-+			OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
-+		while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD) ;
-+		mmc_detect_change(host->mmc, (HZ * 50) / 1000);
++		/* mask BATSTS interrupt for INT1 */
++		ret = clear_n_set(TWL4030_MODULE_INTERRUPTS, 0,
++			BATSTS_IMR1, REG_BCIIMR1A);
++		if (ret)
++			return ret;
 +	}
++
++	return 0;
 +}
 +
 +/*
-+ * ISR for handling card insertion and removal
++ * Enable/Disable AC Charge funtionality.
 + */
-+static irqreturn_t omap_mmc_cd_handler(int irq, void *dev_id)
++static int twl4030charger_ac_en(int enable)
 +{
-+	struct mmc_omap_host *host = (struct mmc_omap_host *)dev_id;
++	int ret;
 +
-+	host->carddetect = mmc_slot(host).card_detect(irq);
-+	schedule_work(&host->mmc_carddetect_work);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/*
-+ * DMA call back function
-+ */
-+static void mmc_omap_dma_cb(int lch, u16 ch_status, void *data)
-+{
-+	struct mmc_omap_host *host = data;
-+
-+	if (ch_status & OMAP2_DMA_MISALIGNED_ERR_IRQ)
-+		dev_dbg(mmc_dev(host->mmc), "MISALIGNED_ADRS_ERR\n");
-+
-+	if (host->dma_ch < 0)
-+		return;
-+
-+	omap_free_dma(host->dma_ch);
-+	host->dma_ch = -1;
-+	/*
-+	 * DMA Callback: run in interrupt context.
-+	 * mutex_unlock will through a kernel warning if used.
-+	 */
-+	up(&host->sem);
-+}
-+
-+/*
-+ * Configure dma src and destination parameters
-+ */
-+static int mmc_omap_config_dma_param(int sync_dir, struct mmc_omap_host *host,
-+				struct mmc_data *data)
-+{
-+	if (sync_dir == 0) {
-+		omap_set_dma_dest_params(host->dma_ch, 0,
-+			OMAP_DMA_AMODE_CONSTANT,
-+			(host->mapbase + OMAP_HSMMC_DATA), 0, 0);
-+		omap_set_dma_src_params(host->dma_ch, 0,
-+			OMAP_DMA_AMODE_POST_INC,
-+			sg_dma_address(&data->sg[0]), 0, 0);
++	if (enable) {
++		/* forcing the field BCIAUTOAC (BOOT_BCI[0) to 1 */
++		ret = clear_n_set(TWL4030_MODULE_PM_MASTER, 0,
++			(CONFIG_DONE | BCIAUTOWEN | BCIAUTOAC),
++			REG_BOOT_BCI);
++		if (ret)
++			return ret;
 +	} else {
-+		omap_set_dma_src_params(host->dma_ch, 0,
-+			OMAP_DMA_AMODE_CONSTANT,
-+			(host->mapbase + OMAP_HSMMC_DATA), 0, 0);
-+		omap_set_dma_dest_params(host->dma_ch, 0,
-+			OMAP_DMA_AMODE_POST_INC,
-+			sg_dma_address(&data->sg[0]), 0, 0);
++		/* forcing the field BCIAUTOAC (BOOT_BCI[0) to 0*/
++		ret = clear_n_set(TWL4030_MODULE_PM_MASTER, BCIAUTOAC,
++			(CONFIG_DONE | BCIAUTOWEN),
++			REG_BOOT_BCI);
++		if (ret)
++			return ret;
 +	}
 +	return 0;
 +}
++
 +/*
-+ * Routine to configure and start DMA for the MMC card
++ * Enable/Disable USB Charge funtionality.
 + */
-+static int
-+mmc_omap_start_dma_transfer(struct mmc_omap_host *host, struct mmc_request *req)
++int twl4030charger_usb_en(int enable)
 +{
-+	int sync_dev, sync_dir = 0;
-+	int dma_ch = 0, ret = 0, err = 1;
-+	struct mmc_data *data = req->data;
++	u8 value;
++	int ret;
++	unsigned long timeout;
 +
-+	/*
-+	 * If for some reason the DMA transfer is still active,
-+	 * we wait for timeout period and free the dma
-+	 */
-+	if (host->dma_ch != -1) {
-+		set_current_state(TASK_UNINTERRUPTIBLE);
-+		schedule_timeout(100);
-+		if (down_trylock(&host->sem)) {
-+			omap_free_dma(host->dma_ch);
-+			host->dma_ch = -1;
-+			up(&host->sem);
-+			return err;
++	if (enable) {
++		/* Check for USB charger conneted */
++		ret = twl4030charger_presence();
++		if (ret < 0)
++			return ret;
++
++		if (!(ret & USB_PW_CONN))
++			return -ENXIO;
++
++		/* forcing the field BCIAUTOUSB (BOOT_BCI[1]) to 1 */
++		ret = clear_n_set(TWL4030_MODULE_PM_MASTER, 0,
++			(CONFIG_DONE | BCIAUTOWEN | BCIAUTOUSB),
++			REG_BOOT_BCI);
++		if (ret)
++			return ret;
++
++		ret = clear_n_set(TWL4030_MODULE_USB, 0, PHY_DPLL_CLK,
++			REG_PHY_CLK_CTRL);
++		if (ret)
++			return ret;
++
++		value = 0;
++		timeout = jiffies + msecs_to_jiffies(50);
++
++		while ((!(value & PHY_DPLL_CLK)) &&
++			time_before(jiffies, timeout)) {
++			udelay(10);
++			ret = twl4030_i2c_read_u8(TWL4030_MODULE_USB, &value,
++				REG_PHY_CLK_CTRL_STS);
++			if (ret)
++				return ret;
 +		}
++
++		/* OTG_EN (POWER_CTRL[5]) to 1 */
++		ret = clear_n_set(TWL4030_MODULE_USB, 0, OTG_EN,
++			REG_POWER_CTRL);
++		if (ret)
++			return ret;
++
++		mdelay(50);
++
++		/* forcing USBFASTMCHG(BCIMFSTS4[2]) to 1 */
++		ret = clear_n_set(TWL4030_MODULE_MAIN_CHARGE, 0,
++			USBFASTMCHG, REG_BCIMFSTS4);
++		if (ret)
++			return ret;
 +	} else {
-+		if (down_trylock(&host->sem))
-+			return err;
++		twl4030charger_presence();
++		ret = clear_n_set(TWL4030_MODULE_PM_MASTER, BCIAUTOUSB,
++			(CONFIG_DONE | BCIAUTOWEN), REG_BOOT_BCI);
++		if (ret)
++			return ret;
 +	}
 +
-+	if (!(data->flags & MMC_DATA_WRITE)) {
-+		host->dma_dir = DMA_FROM_DEVICE;
-+		if (host->id == OMAP_MMC1_DEVID)
-+			sync_dev = OMAP24XX_DMA_MMC1_RX;
-+		else
-+			sync_dev = OMAP24XX_DMA_MMC2_RX;
-+	} else {
-+		host->dma_dir = DMA_TO_DEVICE;
-+		if (host->id == OMAP_MMC1_DEVID)
-+			sync_dev = OMAP24XX_DMA_MMC1_TX;
-+		else
-+			sync_dev = OMAP24XX_DMA_MMC2_TX;
++	return 0;
++}
++
++/*
++ * Return battery temperature
++ * Or < 0 on failure.
++ */
++static int twl4030battery_temperature(void)
++{
++	u8 val;
++	int temp, curr, volt, res, ret;
++
++	/* Getting and calculating the thermistor voltage */
++	ret = read_bci_val(T2_BATTERY_TEMP);
++	if (ret < 0)
++		return ret;
++
++	volt = (ret * TEMP_STEP_SIZE) / TEMP_PSR_R;
++
++	/* Getting and calculating the supply current in micro ampers */
++	ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE, &val,
++		 REG_BCICTL2);
++	if (ret)
++		return 0;
++
++	curr = ((val & ITHSENS) + 1) * 10;
++
++	/* Getting and calculating the thermistor resistance in ohms*/
++	res = volt * 1000 / curr;
++
++	/*calculating temperature*/
++	for (temp = 58; temp >= 0; temp--) {
++		int actual = therm_tbl [temp];
++		if ((actual - res) >= 0)
++			break;
 +	}
 +
-+	ret = omap_request_dma(sync_dev, "MMC/SD", mmc_omap_dma_cb,
-+			host, &dma_ch);
-+	if (ret != 0) {
-+		dev_dbg(mmc_dev(host->mmc),
-+			"%s: omap_request_dma() failed with %d\n",
-+			mmc_hostname(host->mmc), ret);
++	/* Negative temperature */
++	if (temp < 3) {
++		if (temp == 2)
++			temp = -1;
++		else if (temp == 1)
++			temp = -2;
++		else
++			temp = -3;
++	}
++
++	return temp + 1;
++}
++
++/*
++ * Return battery voltage
++ * Or < 0 on failure.
++ */
++static int twl4030battery_voltage(void)
++{
++	int volt = read_bci_val(T2_BATTERY_VOLT);
++
++	return (volt * VOLT_STEP_SIZE) / VOLT_PSR_R;
++}
++
++/*
++ * Return the battery current
++ * Or < 0 on failure.
++ */
++static int twl4030battery_current(void)
++{
++	int ret, curr = read_bci_val(T2_BATTERY_CUR);
++	u8 val;
++
++	ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE, &val,
++		REG_BCICTL1);
++	if (ret)
++		return ret;
++
++	if (val & CGAIN) /* slope of 0.44 mV/mA */
++		return (curr * CURR_STEP_SIZE) / CURR_PSR_R1;
++	else /* slope of 0.88 mV/mA */
++		return (curr * CURR_STEP_SIZE) / CURR_PSR_R2;
++}
++
++/*
++ * Return the battery backup voltage
++ * Or < 0 on failure.
++ */
++static int twl4030backupbatt_voltage(void)
++{
++	int ret, temp;
++	u8 volt;
++	struct twl4030_madc_request req;
++
++	req.channels = (1 << 9);
++	req.method = TWL4030_MADC_SW1;
++	twl4030_madc_conversion(&req);
++	temp = (u16)req.rbuf[9];
++
++	return  (temp * BK_VOLT_STEP_SIZE) / BK_VOLT_PSR_R;
++}
++
++/*
++ * Returns an integer value, that means,
++ * NO_PW_CONN  no power supply is connected
++ * AC_PW_CONN  if the AC power supply is connected
++ * USB_PW_CONN  if the USB power supply is connected
++ * AC_PW_CONN + USB_PW_CONN if USB and AC power supplies are both connected
++ *
++ * Or < 0 on failure.
++ */
++static int twl4030charger_presence(void)
++{
++	int ret;
++	u8 hwsts;
++
++	ret = twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &hwsts,
++		REG_STS_HW_CONDITIONS);
++	if (ret) {
++		pr_err("BATTERY DRIVER: error reading STS_HW_CONDITIONS \n");
 +		return ret;
 +	}
 +
-+	host->dma_len = dma_map_sg(mmc_dev(host->mmc), data->sg,
-+			data->sg_len, host->dma_dir);
-+	host->dma_ch = dma_ch;
++	ret = (hwsts & STS_CHG)? AC_PW_CONN: NO_PW_CONN;
++	ret += (hwsts & STS_VBUS)? USB_PW_CONN: NO_PW_CONN;
 +
-+	if (!(data->flags & MMC_DATA_WRITE))
-+		mmc_omap_config_dma_param(1, host, data);
++	if (ret & USB_PW_CONN)
++		usb_charger_flag = 1;
 +	else
-+		mmc_omap_config_dma_param(0, host, data);
++		usb_charger_flag = 0;
 +
-+	if ((data->blksz % 4) == 0)
-+		omap_set_dma_transfer_params(dma_ch, OMAP_DMA_DATA_TYPE_S32,
-+			(data->blksz / 4), data->blocks, OMAP_DMA_SYNC_FRAME,
-+			sync_dev, sync_dir);
-+	else
-+		/* REVISIT: The MMC buffer increments only when MSB is written.
-+		 * Return error for blksz which is non multiple of four.
-+		 */
-+		return -EINVAL;
++	return ret;
 +
-+	omap_start_dma(dma_ch);
-+	return 0;
 +}
 +
 +/*
-+ * Configure block length for MMC/SD cards and initiate the transfer.
++ * Returns the main charge FSM status
++ * Or < 0 on failure.
 + */
-+static int
-+mmc_omap_prepare_data(struct mmc_omap_host *host, struct mmc_request *req)
++static int twl4030bci_status(void)
 +{
 +	int ret;
-+	host->data = req->data;
++	u8 status;
 +
-+	if (req->data == NULL) {
-+		host->datadir = OMAP_MMC_DATADIR_NONE;
-+		OMAP_HSMMC_WRITE(host->base, BLK, 0);
-+		return 0;
++	ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE,
++		&status, REG_BCIMSTATEC);
++	if (ret) {
++		pr_err("BATTERY DRIVER: error reading BCIMSTATEC \n");
++		return ret;
 +	}
 +
-+	OMAP_HSMMC_WRITE(host->base, BLK, (req->data->blksz)
-+					| (req->data->blocks << 16));
++	return (int) (status & BCIMSTAT_MASK);
++}
 +
-+	host->datadir = (req->data->flags & MMC_DATA_WRITE) ?
-+			OMAP_MMC_DATADIR_WRITE : OMAP_MMC_DATADIR_READ;
++static int read_bci_val(u8 reg)
++{
++	int ret, temp;
++	u8 val;
 +
-+	if (host->use_dma) {
-+		ret = mmc_omap_start_dma_transfer(host, req);
-+		if (ret != 0) {
-+			dev_dbg(mmc_dev(host->mmc), "MMC start dma failure\n");
-+			return ret;
-+		}
-+	}
++	/* reading MSB */
++	ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE, &val,
++		reg + 1);
++	if (ret)
++		return ret;
++
++	temp = ((int)(val & 0x03)) << 8;
++
++	/* reading LSB */
++	ret = twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE, &val,
++		reg);
++	if (ret)
++		return ret;
++
++	return temp | val;
++}
++
++/*
++ * Settup the twl4030 BCI module to enable backup
++ * battery charging.
++ */
++static int twl4030backupbatt_voltage_setup(void)
++{
++	int ret;
++
++	/* Starting backup batery charge */
++	ret = clear_n_set(TWL4030_MODULE_PM_RECEIVER, 0, BBCHEN,
++		REG_BB_CFG);
++	if (ret)
++		return ret;
++
 +	return 0;
 +}
 +
 +/*
-+ * Request function. for read/write operation
++ * Settup the twl4030 BCI module to measure battery
++ * temperature
 + */
-+static void omap_mmc_request(struct mmc_host *mmc, struct mmc_request *req)
++static int twl4030battery_temp_setup(void)
 +{
-+	struct mmc_omap_host *host = mmc_priv(mmc);
++	int ret;
 +
-+	WARN_ON(host->mrq != NULL);
-+	host->mrq = req;
-+	mmc_omap_prepare_data(host, req);
-+	mmc_omap_start_command(host, req->cmd, req->data);
++	/* Enabling thermistor current */
++	ret = clear_n_set(TWL4030_MODULE_MAIN_CHARGE, 0, ITHEN,
++		REG_BCICTL1);
++	if (ret)
++		return ret;
++
++	return 0;
 +}
 +
-+
-+/* Routine to configure clock values. Exposed API to core */
-+static void omap_mmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
++/*
++ * Sets and clears bits on an given register on a given module
++ */
++static inline int clear_n_set(u8 mod_no, u8 clear, u8 set, u8 reg)
 +{
-+	struct mmc_omap_host *host = mmc_priv(mmc);
-+	u16 dsor = 0;
-+	unsigned long regval;
-+	unsigned long timeout;
++	int ret;
++	u8 val = 0;
 +
-+	switch (ios->power_mode) {
-+	case MMC_POWER_OFF:
-+		mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
-+		break;
-+	case MMC_POWER_UP:
-+		mmc_slot(host).set_power(host->dev, host->slot_id, 1, ios->vdd);
-+		break;
-+	}
++	/* Gets the initial register value */
++	ret = twl4030_i2c_read_u8(mod_no, &val, reg);
++	if (ret)
++		return ret;
 +
-+	switch (mmc->ios.bus_width) {
-+	case MMC_BUS_WIDTH_4:
-+		OMAP_HSMMC_WRITE(host->base, HCTL,
-+			OMAP_HSMMC_READ(host->base, HCTL) | FOUR_BIT);
-+		break;
-+	case MMC_BUS_WIDTH_1:
-+		OMAP_HSMMC_WRITE(host->base, HCTL,
-+			OMAP_HSMMC_READ(host->base, HCTL) & ~FOUR_BIT);
-+		break;
-+	}
++	/* Clearing all those bits to clear */
++	val &= ~(clear);
 +
-+	if (host->id == OMAP_MMC1_DEVID) {
-+		/* Only MMC1 can operate at 3V/1.8V */
-+		if ((OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET) &&
-+			(ios->vdd == DUAL_VOLT_OCR_BIT)) {
-+				/*
-+				 * The mmc_select_voltage fn of the core does
-+				 * not seem to set the power_mode to
-+				 * MMC_POWER_UP upon recalculating the voltage.
-+				 * vdd 1.8v.
-+				 */
-+				if (omap_mmc_switch_opcond(host, ios->vdd) != 0)
-+					dev_dbg(mmc_dev(host->mmc),
-+						"Switch operation failed\n");
-+		}
-+	}
++	/* Setting all those bits to set */
++	val |= set;
 +
-+	if (ios->clock) {
-+		dsor = OMAP_MMC_MASTER_CLOCK / ios->clock;
-+		if (dsor < 1)
-+			dsor = 1;
++	/* Update the register */
++	ret = twl4030_i2c_write_u8(mod_no, val, reg);
++	if (ret)
++		return ret;
 +
-+		if (OMAP_MMC_MASTER_CLOCK / dsor > ios->clock)
-+			dsor++;
-+
-+		if (dsor > 250)
-+			dsor = 250;
-+	}
-+	omap_mmc_stop_clock(host);
-+	regval = OMAP_HSMMC_READ(host->base, SYSCTL);
-+	regval = regval & ~(CLKD_MASK);
-+	regval = regval | (dsor << 6) | (DTO << 16);
-+	OMAP_HSMMC_WRITE(host->base, SYSCTL, regval);
-+	OMAP_HSMMC_WRITE(host->base, SYSCTL,
-+		OMAP_HSMMC_READ(host->base, SYSCTL) | ICE);
-+
-+	/* Wait till the ICS bit is set */
-+	timeout = jiffies + msecs_to_jiffies(MMC_TIMEOUT_MS);
-+	while ((OMAP_HSMMC_READ(host->base, SYSCTL) & ICS) != 0x2
-+		&& time_before(jiffies, timeout))
-+		msleep(1);
-+
-+	OMAP_HSMMC_WRITE(host->base, SYSCTL,
-+		OMAP_HSMMC_READ(host->base, SYSCTL) | CEN);
-+
-+	if (ios->power_mode == MMC_POWER_ON)
-+		send_init_stream(host);
-+
-+	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN)
-+		OMAP_HSMMC_WRITE(host->base, CON,
-+				OMAP_HSMMC_READ(host->base, CON) | OD);
++	return 0;
 +}
-+/* NOTE: Read only switch not supported yet */
-+static struct mmc_host_ops mmc_omap_ops = {
-+	.request = omap_mmc_request,
-+	.set_ios = omap_mmc_set_ios,
++
++static enum power_supply_property twl4030_bci_battery_props[] = {
++	POWER_SUPPLY_PROP_STATUS,
++	POWER_SUPPLY_PROP_ONLINE,
++	POWER_SUPPLY_PROP_VOLTAGE_NOW,
++	POWER_SUPPLY_PROP_CURRENT_NOW,
++	POWER_SUPPLY_PROP_CAPACITY,
++	POWER_SUPPLY_PROP_TEMP,
 +};
 +
-+static int __init omap_mmc_probe(struct platform_device *pdev)
++static enum power_supply_property twl4030_bk_bci_battery_props[] = {
++	POWER_SUPPLY_PROP_VOLTAGE_NOW,
++};
++
++static void
++twl4030_bk_bci_battery_read_status(struct twl4030_bci_device_info *di)
 +{
-+	struct omap_mmc_platform_data *pdata = pdev->dev.platform_data;
-+	struct mmc_host *mmc;
-+	struct mmc_omap_host *host = NULL;
-+	struct resource *res;
-+	int ret = 0, irq;
-+	u32 hctl, capa;
++	di->bk_voltage_uV = twl4030backupbatt_voltage();
++}
 +
-+	if (pdata == NULL) {
-+		dev_err(&pdev->dev, "Platform Data is missing\n");
-+		return -ENXIO;
-+	}
++static void twl4030_bk_bci_battery_work(struct work_struct *work)
++{
++	struct twl4030_bci_device_info *di = container_of(work,
++		struct twl4030_bci_device_info,
++		twl4030_bk_bci_monitor_work.work);
 +
-+	if (pdata->nr_slots == 0) {
-+		dev_err(&pdev->dev, "No Slots\n");
-+		return -ENXIO;
-+	}
++	twl4030_bk_bci_battery_read_status(di);
++	schedule_delayed_work(&di->twl4030_bk_bci_monitor_work, 500);
++}
 +
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	irq = platform_get_irq(pdev, 0);
-+	if (res == NULL || irq < 0)
-+		return -ENXIO;
++static void twl4030_bci_battery_read_status(struct twl4030_bci_device_info *di)
++{
++	di->temp_C = twl4030battery_temperature();
++	di->voltage_uV = twl4030battery_voltage();
++	di->current_uA = twl4030battery_current();
++}
 +
-+	res = request_mem_region(res->start, res->end - res->start + 1,
-+							pdev->name);
-+	if (res == NULL)
-+		return -EBUSY;
++static void
++twl4030_bci_battery_update_status(struct twl4030_bci_device_info *di)
++{
++	twl4030_bci_battery_read_status(di);
++	di->charge_status = POWER_SUPPLY_STATUS_UNKNOWN;
 +
-+	mmc = mmc_alloc_host(sizeof(struct mmc_omap_host), &pdev->dev);
-+	if (!mmc) {
-+		ret = -ENOMEM;
-+		goto err;
-+	}
-+
-+	host		= mmc_priv(mmc);
-+	host->mmc	= mmc;
-+	host->pdata	= pdata;
-+	host->use_dma	= 1;
-+	host->dma_ch	= -1;
-+	host->irq	= irq;
-+	host->id	= pdev->id;
-+	host->slot_id	= 0;
-+	host->mapbase	= res->start;
-+	host->base	= ioremap(host->mapbase, SZ_4K);
-+	mmc->ops	= &mmc_omap_ops;
-+	mmc->f_min	= 400000;
-+	mmc->f_max	= 52000000;
-+
-+	sema_init(&host->sem, 1);
-+
-+	host->iclk = clk_get(&pdev->dev, "mmchs_ick");
-+	if (IS_ERR(host->iclk)) {
-+		ret = PTR_ERR(host->iclk);
-+		host->iclk = NULL;
-+		goto err1;
-+	}
-+	host->fclk = clk_get(&pdev->dev, "mmchs_fck");
-+	if (IS_ERR(host->fclk)) {
-+		ret = PTR_ERR(host->fclk);
-+		host->fclk = NULL;
-+		clk_put(host->iclk);
-+		goto err1;
-+	}
-+
-+	if (clk_enable(host->fclk) != 0) {
-+		clk_put(host->iclk);
-+		clk_put(host->fclk);
-+		goto err1;
-+	}
-+
-+	if (clk_enable(host->iclk) != 0) {
-+		clk_disable(host->fclk);
-+		clk_put(host->iclk);
-+		clk_put(host->fclk);
-+		goto err1;
-+	}
-+
-+	host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
-+	/*
-+	 * MMC can still work without debounce clock.
-+	 */
-+	if (IS_ERR(host->dbclk))
-+		dev_dbg(mmc_dev(host->mmc), "Failed to get debounce clock\n");
++	if (power_supply_am_i_supplied(&di->bat))
++		di->charge_status = POWER_SUPPLY_STATUS_CHARGING;
 +	else
-+		if (clk_enable(host->dbclk) != 0)
-+			dev_dbg(mmc_dev(host->mmc), "Enabling debounce"
-+							" clk failed\n");
++		di->charge_status = POWER_SUPPLY_STATUS_DISCHARGING;
++}
++
++static void twl4030_bci_battery_work(struct work_struct *work)
++{
++	struct twl4030_bci_device_info *di = container_of(work,
++		struct twl4030_bci_device_info, twl4030_bci_monitor_work.work);
++
++	twl4030_bci_battery_update_status(di);
++	schedule_delayed_work(&di->twl4030_bci_monitor_work, 100);
++}
++
++
++#define to_twl4030_bci_device_info(x) container_of((x), \
++			struct twl4030_bci_device_info, bat);
++
++static void twl4030_bci_battery_external_power_changed(struct power_supply *psy)
++{
++	struct twl4030_bci_device_info *di = to_twl4030_bci_device_info(psy);
++
++	cancel_delayed_work(&di->twl4030_bci_monitor_work);
++	schedule_delayed_work(&di->twl4030_bci_monitor_work, 0);
++}
++
++#define to_twl4030_bk_bci_device_info(x) container_of((x), \
++		struct twl4030_bci_device_info, bk_bat);
++
++static int twl4030_bk_bci_battery_get_property(struct power_supply *psy,
++					enum power_supply_property psp,
++					union power_supply_propval *val)
++{
++	struct twl4030_bci_device_info *di = to_twl4030_bk_bci_device_info(psy);
++
++	switch (psp) {
++	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
++		val->intval = di->bk_voltage_uV;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static int twl4030_bci_battery_get_property(struct power_supply *psy,
++					enum power_supply_property psp,
++					union power_supply_propval *val)
++{
++	struct twl4030_bci_device_info *di = to_twl4030_bci_device_info(psy);
++	int status = 0;
++
++	switch (psp) {
++	case POWER_SUPPLY_PROP_STATUS:
++		val->intval = di->charge_status;
++		return 0;
++	default:
++		break;
++	}
++
++	switch (psp) {
++	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
++		val->intval = di->voltage_uV;
++		break;
++	case POWER_SUPPLY_PROP_CURRENT_NOW:
++		val->intval = di->current_uA;
++		break;
++	case POWER_SUPPLY_PROP_TEMP:
++		val->intval = di->temp_C;
++		break;
++	case POWER_SUPPLY_PROP_ONLINE:
++		status = twl4030bci_status();
++		if ((status & AC_STATEC) == AC_STATEC)
++			val->intval = POWER_SUPPLY_TYPE_MAINS;
++		else if (usb_charger_flag)
++			val->intval = POWER_SUPPLY_TYPE_USB;
 +		else
-+			host->dbclk_enabled = 1;
-+
-+#ifdef CONFIG_MMC_BLOCK_BOUNCE
-+	mmc->max_phys_segs = 1;
-+	mmc->max_hw_segs = 1;
-+#endif
-+	mmc->max_blk_size = 512;       /* Block Length at max can be 1024 */
-+	mmc->max_blk_count = 0xFFFF;    /* No. of Blocks is 16 bits */
-+	mmc->max_req_size = mmc->max_blk_size * mmc->max_blk_count;
-+	mmc->max_seg_size = mmc->max_req_size;
-+
-+	mmc->ocr_avail = mmc_slot(host).ocr_mask;
-+	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED;
-+
-+	if (pdata->conf.wire4)
-+		mmc->caps |= MMC_CAP_4_BIT_DATA;
-+
-+	/* Only MMC1 supports 3.0V */
-+	if (host->id == OMAP_MMC1_DEVID) {
-+		hctl = SDVS30;
-+		capa = VS30 | VS18;
-+	} else {
-+		hctl = SDVS18;
-+		capa = VS18;
++			val->intval = 0;
++		break;
++	case POWER_SUPPLY_PROP_CAPACITY:
++		/*
++		 * need to get the correct percentage value per the
++		 * battery characteristics. Approx values for now.
++		 */
++		if (di->voltage_uV < 2894 || LVL_1) {
++			val->intval = 5;
++			LVL_1 = 0;
++		} else if ((di->voltage_uV < 3451 && di->voltage_uV > 2894)
++			|| LVL_2) {
++			val->intval = 20;
++			LVL_2 = 0;
++		} else if ((di->voltage_uV < 3902 && di->voltage_uV > 3451)
++			|| LVL_3) {
++			val->intval = 50;
++			LVL_3 = 0;
++		} else if ((di->voltage_uV < 3949 && di->voltage_uV > 3902)
++			|| LVL_4) {
++			val->intval = 75;
++			LVL_4 = 0;
++		} else if (di->voltage_uV > 3949)
++			val->intval = 90;
++		break;
++	default:
++		return -EINVAL;
 +	}
++	return 0;
++}
 +
-+	OMAP_HSMMC_WRITE(host->base, HCTL,
-+			OMAP_HSMMC_READ(host->base, HCTL) | hctl);
++static char *twl4030_bci_supplied_to[] = {
++	"twl4030_bci_battery",
++};
 +
-+	OMAP_HSMMC_WRITE(host->base, CAPA,
-+			OMAP_HSMMC_READ(host->base, CAPA) | capa);
++static int twl4030_bci_battery_probe(struct  platform_device *dev)
++{
++	struct twl4030_bci_device_info *di;
++	int ret;
++	struct twl4030_bci_platform_data *pdata = dev->dev.platform_data;
 +
-+	/* Set the controller to AUTO IDLE mode */
-+	OMAP_HSMMC_WRITE(host->base, SYSCONFIG,
-+			OMAP_HSMMC_READ(host->base, SYSCONFIG) | AUTOIDLE);
++	therm_tbl = pdata->battery_tmp_tbl;
 +
-+	/* Set SD bus power bit */
-+	OMAP_HSMMC_WRITE(host->base, HCTL,
-+			OMAP_HSMMC_READ(host->base, HCTL) | SDBP);
++	di = kzalloc(sizeof(*di), GFP_KERNEL);
++	if (!di)
++		return -ENOMEM;
 +
-+	/* Request IRQ for MMC operations */
-+	ret = request_irq(host->irq, mmc_omap_irq, IRQF_DISABLED, pdev->name,
-+			 host);
++	platform_set_drvdata(dev, di);
++
++	di->dev = &dev->dev;
++	di->bat.name = "twl4030_bci_battery";
++	di->bat.supplied_to = twl4030_bci_supplied_to;
++	di->bat.num_supplicants = ARRAY_SIZE(twl4030_bci_supplied_to);
++	di->bat.type = POWER_SUPPLY_TYPE_BATTERY;
++	di->bat.properties = twl4030_bci_battery_props;
++	di->bat.num_properties = ARRAY_SIZE(twl4030_bci_battery_props);
++	di->bat.get_property = twl4030_bci_battery_get_property;
++	di->bat.external_power_changed =
++			twl4030_bci_battery_external_power_changed;
++
++	di->charge_status = POWER_SUPPLY_STATUS_UNKNOWN;
++
++	di->bk_bat.name = "twl4030_bci_bk_battery";
++	di->bk_bat.type = POWER_SUPPLY_TYPE_BATTERY;
++	di->bk_bat.properties = twl4030_bk_bci_battery_props;
++	di->bk_bat.num_properties = ARRAY_SIZE(twl4030_bk_bci_battery_props);
++	di->bk_bat.get_property = twl4030_bk_bci_battery_get_property;
++	di->bk_bat.external_power_changed = NULL;
++
++	twl4030charger_ac_en(ENABLE);
++	twl4030charger_usb_en(ENABLE);
++	twl4030battery_hw_level_en(ENABLE);
++	twl4030battery_hw_presence_en(ENABLE);
++
++	/* settings for temperature sensing */
++	ret = twl4030battery_temp_setup();
++	if (ret)
++		goto temp_setup_fail;
++
++	/* enabling GPCH09 for read back battery voltage */
++	ret = twl4030backupbatt_voltage_setup();
++	if (ret)
++		goto voltage_setup_fail;
++
++	/* request BCI interruption */
++	ret = request_irq(TWL4030_MODIRQ_BCI, twl4030battery_interrupt,
++		IRQF_DISABLED, dev->name, NULL);
 +	if (ret) {
-+		dev_dbg(mmc_dev(host->mmc), "Unable to grab HSMMC IRQ\n");
-+		goto irq_err;
++		pr_err("BATTERY DRIVER: (BCI) IRQ%d is not free.\n",
++			TWL4030_MODIRQ_PWR);
++		goto batt_irq_fail;
 +	}
 +
-+	/* Request IRQ for card detect */
-+	if ((mmc_slot(host).card_detect_irq) && (mmc_slot(host).card_detect)) {
-+		ret = request_irq(mmc_slot(host).card_detect_irq,
-+				  omap_mmc_cd_handler, IRQF_DISABLED, "MMC CD",
-+				  host);
-+		if (ret) {
-+			dev_dbg(mmc_dev(host->mmc),
-+				"Unable to grab MMC CD IRQ");
-+			free_irq(host->irq, host);
-+			goto irq_err;
-+		}
++	/* request Power interruption */
++	ret = request_irq(TWL4030_PWRIRQ_CHG_PRES, twl4030charger_interrupt,
++		0, dev->name, di);
++
++	if (ret) {
++		pr_err("BATTERY DRIVER: (POWER) IRQ%d is not free.\n",
++			TWL4030_MODIRQ_PWR);
++		goto chg_irq_fail;
 +	}
 +
-+	INIT_WORK(&host->mmc_carddetect_work, mmc_omap_detect);
-+	if (pdata->init != NULL) {
-+		if (pdata->init(&pdev->dev) != 0) {
-+			free_irq(mmc_slot(host).card_detect_irq, host);
-+			free_irq(host->irq, host);
-+			goto irq_err;
-+		}
++	ret = power_supply_register(&dev->dev, &di->bat);
++	if (ret) {
++		pr_err("BATTERY DRIVER: failed to register main battery\n");
++		goto batt_failed;
 +	}
 +
-+	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
-+	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
++	INIT_DELAYED_WORK_DEFERRABLE(&di->twl4030_bci_monitor_work,
++				twl4030_bci_battery_work);
++	schedule_delayed_work(&di->twl4030_bci_monitor_work, 0);
 +
-+	platform_set_drvdata(pdev, host);
-+	mmc_add_host(mmc);
++	ret = power_supply_register(&dev->dev, &di->bk_bat);
++	if (ret) {
++		pr_err("BATTERY DRIVER: failed to register backup battery\n");
++		goto bk_batt_failed;
++	}
++
++	INIT_DELAYED_WORK_DEFERRABLE(&di->twl4030_bk_bci_monitor_work,
++				twl4030_bk_bci_battery_work);
++	schedule_delayed_work(&di->twl4030_bk_bci_monitor_work, 500);
 +
 +	return 0;
 +
-+irq_err:
-+	dev_dbg(mmc_dev(host->mmc), "Unable to configure MMC IRQs\n");
-+	clk_disable(host->fclk);
-+	clk_disable(host->iclk);
-+	clk_put(host->fclk);
-+	clk_put(host->iclk);
-+	if (host->dbclk_enabled) {
-+		clk_disable(host->dbclk);
-+		clk_put(host->dbclk);
-+	}
++bk_batt_failed:
++	power_supply_unregister(&di->bat);
++batt_failed:
++	free_irq(TWL4030_MODIRQ_PWR, di);
++chg_irq_fail:
++prev_setup_err:
++	free_irq(TWL4030_MODIRQ_BCI, NULL);
++batt_irq_fail:
++voltage_setup_fail:
++temp_setup_fail:
++	twl4030charger_ac_en(DISABLE);
++	twl4030charger_usb_en(DISABLE);
++	twl4030battery_hw_level_en(DISABLE);
++	twl4030battery_hw_presence_en(DISABLE);
++	kfree(di);
 +
-+err1:
-+	iounmap(host->base);
-+err:
-+	dev_dbg(mmc_dev(host->mmc), "Probe Failed\n");
-+	release_mem_region(res->start, res->end - res->start + 1);
-+	if (host)
-+		mmc_free_host(mmc);
 +	return ret;
 +}
 +
-+static int omap_mmc_remove(struct platform_device *pdev)
++static int twl4030_bci_battery_remove(struct  platform_device *dev)
 +{
-+	struct mmc_omap_host *host = platform_get_drvdata(pdev);
-+	struct resource *res;
-+	u16 vdd = 0;
++	struct twl4030_bci_device_info *di = platform_get_drvdata(dev);
 +
-+	if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
-+	/*
-+	 * Set the vdd back to 3V,
-+	 * applicable for dual volt support.
-+	 */
-+		vdd = fls(host->mmc->ocr_avail) - 1;
-+		if (omap_mmc_switch_opcond(host, vdd) != 0)
-+			host->mmc->ios.vdd = vdd;
-+	}
++	twl4030charger_ac_en(DISABLE);
++	twl4030charger_usb_en(DISABLE);
++	twl4030battery_hw_level_en(DISABLE);
++	twl4030battery_hw_presence_en(DISABLE);
 +
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (res)
-+		release_mem_region(res->start, res->end - res->start + 1);
++	free_irq(TWL4030_MODIRQ_BCI, NULL);
++	free_irq(TWL4030_MODIRQ_PWR, di);
 +
-+	platform_set_drvdata(pdev, NULL);
-+	if (host) {
-+		mmc_remove_host(host->mmc);
-+		if (host->pdata->cleanup)
-+			host->pdata->cleanup(&pdev->dev);
-+		free_irq(host->irq, host);
-+		if (mmc_slot(host).card_detect_irq)
-+			free_irq(mmc_slot(host).card_detect_irq, host);
-+		flush_scheduled_work();
-+
-+		clk_disable(host->fclk);
-+		clk_disable(host->iclk);
-+		clk_put(host->fclk);
-+		clk_put(host->iclk);
-+		if (host->dbclk_enabled) {
-+			clk_disable(host->dbclk);
-+			clk_put(host->dbclk);
-+		}
-+
-+		mmc_free_host(host->mmc);
-+		iounmap(host->base);
-+	}
++	flush_scheduled_work();
++	power_supply_unregister(&di->bat);
++	power_supply_unregister(&di->bk_bat);
++	platform_set_drvdata(dev, NULL);
++	kfree(di);
 +
 +	return 0;
 +}
 +
 +#ifdef CONFIG_PM
-+static int omap_mmc_suspend(struct platform_device *pdev, pm_message_t state)
++static int twl4030_bci_battery_suspend(struct platform_device *dev,
++	pm_message_t state)
 +{
-+	int ret = 0;
-+	struct mmc_omap_host *host = platform_get_drvdata(pdev);
++	struct twl4030_bci_device_info *di = platform_get_drvdata(dev);
 +
-+	if (host && host->suspended)
-+		return 0;
-+
-+	if (host) {
-+		ret = mmc_suspend_host(host->mmc, state);
-+		if (ret == 0) {
-+			host->suspended = 1;
-+
-+			OMAP_HSMMC_WRITE(host->base, ISE, 0);
-+			OMAP_HSMMC_WRITE(host->base, IE, 0);
-+
-+			ret = host->pdata->suspend(&pdev->dev, host->slot_id);
-+			if (ret)
-+				dev_dbg(mmc_dev(host->mmc),
-+					"Unable to handle MMC board"
-+					" level suspend\n");
-+
-+			if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
-+				OMAP_HSMMC_WRITE(host->base, HCTL,
-+					OMAP_HSMMC_READ(host->base, HCTL)
-+					& SDVSCLR);
-+				OMAP_HSMMC_WRITE(host->base, HCTL,
-+					OMAP_HSMMC_READ(host->base, HCTL)
-+					| SDVS30);
-+				OMAP_HSMMC_WRITE(host->base, HCTL,
-+					OMAP_HSMMC_READ(host->base, HCTL)
-+					| SDBP);
-+			}
-+
-+			clk_disable(host->fclk);
-+			clk_disable(host->iclk);
-+			clk_disable(host->dbclk);
-+		}
-+
-+	}
-+	return ret;
++	di->charge_status = POWER_SUPPLY_STATUS_UNKNOWN;
++	cancel_delayed_work(&di->twl4030_bci_monitor_work);
++	cancel_delayed_work(&di->twl4030_bk_bci_monitor_work);
++	return 0;
 +}
 +
-+/* Routine to resume the MMC device */
-+static int omap_mmc_resume(struct platform_device *pdev)
++static int twl4030_bci_battery_resume(struct platform_device *dev)
 +{
-+	int ret = 0;
-+	struct mmc_omap_host *host = platform_get_drvdata(pdev);
++	struct twl4030_bci_device_info *di = platform_get_drvdata(dev);
 +
-+	if (host && !host->suspended)
-+		return 0;
++	schedule_delayed_work(&di->twl4030_bci_monitor_work, 0);
++	schedule_delayed_work(&di->twl4030_bk_bci_monitor_work, 50);
++	return 0;
++}
++#endif /* CONFIG_PM */
 +
-+	if (host) {
++/*
++ * Battery driver module initializer function
++ * registers battery driver structure
++ */
++static int __init twl4030_battery_init(void)
++{
++	return platform_driver_register(&twl4030_bci_battery_driver);
 +
-+		ret = clk_enable(host->fclk);
-+		if (ret)
-+			goto clk_en_err;
-+
-+		ret = clk_enable(host->iclk);
-+		if (ret) {
-+			clk_disable(host->fclk);
-+			clk_put(host->fclk);
-+			goto clk_en_err;
-+		}
-+
-+		if (clk_enable(host->dbclk) != 0)
-+			dev_dbg(mmc_dev(host->mmc),
-+					"Enabling debounce clk failed\n");
-+
-+		ret = host->pdata->resume(&pdev->dev, host->slot_id);
-+		if (ret)
-+			dev_dbg(mmc_dev(host->mmc),
-+					"Unmask interrupt failed\n");
-+
-+		/* Notify the core to resume the host */
-+		ret = mmc_resume_host(host->mmc);
-+		if (ret == 0)
-+			host->suspended = 0;
-+	}
-+
-+	return ret;
-+
-+clk_en_err:
-+	dev_dbg(mmc_dev(host->mmc),
-+		"Failed to enable MMC clocks during resume\n");
-+	return ret;
 +}
 +
-+#else
-+#define omap_mmc_suspend	NULL
-+#define omap_mmc_resume		NULL
-+#endif
-+
-+static struct platform_driver omap_mmc_driver = {
-+	.probe		= omap_mmc_probe,
-+	.remove		= omap_mmc_remove,
-+	.suspend	= omap_mmc_suspend,
-+	.resume		= omap_mmc_resume,
-+	.driver		= {
-+		.name = DRIVER_NAME,
-+		.owner = THIS_MODULE,
-+	},
-+};
-+
-+static int __init omap_mmc_init(void)
++/*
++ * Battery driver module exit function
++ * unregister battery driver structure
++ */
++static void __exit twl4030_battery_exit(void)
 +{
-+	/* Register the MMC driver */
-+	return platform_driver_register(&omap_mmc_driver);
++	platform_driver_unregister(&twl4030_bci_battery_driver);
 +}
 +
-+static void __exit omap_mmc_cleanup(void)
-+{
-+	/* Unregister MMC driver */
-+	platform_driver_unregister(&omap_mmc_driver);
-+}
-+
-+module_init(omap_mmc_init);
-+module_exit(omap_mmc_cleanup);
-+
-+MODULE_DESCRIPTION("OMAP High Speed Multimedia Card driver");
++module_init(twl4030_battery_init);
++module_exit(twl4030_battery_exit);
 +MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:" DRIVER_NAME);
++MODULE_ALIAS("twl4030_bci_battery");
 +MODULE_AUTHOR("Texas Instruments Inc");
 -- 
 1.6.0.1.141.g445ca
