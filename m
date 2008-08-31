@@ -1,48 +1,80 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 21/33] add OMAP HighSpeed mmc controller driver
-Date: Mon, 1 Sep 2008 01:02:31 +0300
-Message-ID: <20080831220229.GN9887@frodo>
-References: <1220116593-862-1-git-send-email-me@felipebalbi.com> <200808311406.14234.david-b@pacbell.net> <20080831213105.GG9887@frodo> <200808311451.18565.david-b@pacbell.net>
+Subject: Re: [PATCH 00/34] omap drivers going upstream
+Date: Mon, 1 Sep 2008 01:37:37 +0300
+Message-ID: <20080831223721.GO9887@frodo>
+References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
 Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:48863 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:52497 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752333AbYHaWCz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 Aug 2008 18:02:55 -0400
+	with ESMTP id S1754432AbYHaWiH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 Aug 2008 18:38:07 -0400
 Content-Disposition: inline
-In-Reply-To: <200808311451.18565.david-b@pacbell.net>
+In-Reply-To: <1220116593-862-1-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: me@felipebalbi.com, linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>
 
-On Sun, Aug 31, 2008 at 02:51:18PM -0700, David Brownell wrote:
-> Fixable, I'd expect.  :)
-
-I'm sure it is :-)
-
-> > so even if we 
-> > have all the drivers there. Mainline has support up to omap2430, if i'm
-> > not wrong. So looks like beagleboard users will have to wait a bit
-> > longer.
+On Sat, Aug 30, 2008 at 08:16:00PM +0300, Felipe Balbi wrote:
+> From: Felipe Balbi <felipe.balbi@nokia.com>
 > 
-> Well, it's not a 2.6.27 goal.  But I'd think it should be very
-> possible for 2.6.28 merging.
+> The following drivers are going upstream for integration.
+> They have been sitting on linux-omap for quite a while just
+> increasing the diff against mainline and probability of
+> merge conflicts.
 
-Should be possible, but Tony can say for sure.
+Just one comment to this. I had to left bluetooth driver out of the
+series because it's using omap2_block/allow_sleep in the driver code.
+That should be fixed and the set_clock function should come via
+platform_data to the driver.
 
-> However, I'll re-emphasize that doing that means submitting the
-> patches for real, not to the OMAP list.  And since mainline is
-> now at RC5, there's not a lot of time yet to get this new code
-> reviewed and entered into the MMC queue...
+  53 static void hci_h4p_set_clk(struct hci_h4p_info *info, int *clock, int enable)
+  54 {
+  55         unsigned long flags;
+  56 
+  57         spin_lock_irqsave(&info->clocks_lock, flags);
+  58         if (enable && !*clock) {
+  59                 NBT_DBG_POWER("Enabling %p\n", clock);
+  60                 clk_enable(info->uart_fclk);
+  61 #ifdef CONFIG_ARCH_OMAP2
+  62                 if (cpu_is_omap24xx()) {
+  63                         clk_enable(info->uart_iclk);
+  64                         omap2_block_sleep();
+  65                 }
+  66 #endif
+  67         }
+  68         if (!enable && *clock) {
+  69                 NBT_DBG_POWER("Disabling %p\n", clock);
+  70                 clk_disable(info->uart_fclk);
+  71 #ifdef CONFIG_ARCH_OMAP2
+  72                 if (cpu_is_omap24xx()) {
+  73                         clk_disable(info->uart_iclk);
+  74                         omap2_allow_sleep();
+  75                 }
+  76 #endif
+  77         }
+  78 
+  79         *clock = enable;
+  80         spin_unlock_irqrestore(&info->clocks_lock, flags);
+  81 }
 
-I think it's not a must to merge it for 2.6.27 time, but 2.6.28 would be
-good enough. As long as we merge them upstream and avoid merge conflicts
-on l-o, I'd be happy. Besides the fact that drivers should be discussed
-on the proper mainling list for facts that you already said in another
-comment, right ? :-)
+That driver is full of arch specific code and should be cleaned up ASAP.
+
+A few things I could get by briefly looking at the driver (actualy only
+drivers/bluetooth/hci_h4p/core.c):
+
+* set_clock should come via platform_data
+* gpio handling should use gpiolib instead of omap-specific ones
+* irq should come via platform_data to avoid 'if (cpu_is_xxx())'
+* unnecessary casts should be removed
+* one line ifs do not need {}
+* there's a memory leak on probe if no platform_data is found
+* use of io_p2v() should be avoided on drivers, refer to Russel King's
+  patch
+* OMAP_GPIO_IRQ() should not be used on the driver.
 
 -- 
 balbi
