@@ -1,56 +1,48 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: omap: update omap README
-Date: Sun, 31 Aug 2008 18:19:28 +0300
-Message-ID: <20080831151925.GC9887@frodo>
-References: <20080830193330.GA9887@frodo> <20080831135249.GA29378@flint.arm.linux.org.uk>
-Reply-To: me@felipebalbi.com
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: omapzoom isn't working again
+Date: Sun, 31 Aug 2008 21:16:49 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087022A166BE9@dbde02.ent.ti.com>
+References: <20080830114046.GD14130@frodo>
+	 <FCCFB4CDC6E5564B9182F639FC356087022A166BD4@dbde02.ent.ti.com>
+ <94a0d4530808310632i42144b58v70e905e640bdca62@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:58837 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751180AbYHaPUY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 Aug 2008 11:20:24 -0400
-Content-Disposition: inline
-In-Reply-To: <20080831135249.GA29378@flint.arm.linux.org.uk>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37641 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752689AbYHaPrH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 31 Aug 2008 11:47:07 -0400
+In-Reply-To: <94a0d4530808310632i42144b58v70e905e640bdca62@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Felipe Balbi <me@felipebalbi.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "me@felipebalbi.com" <me@felipebalbi.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sun, Aug 31, 2008 at 02:52:49PM +0100, Russell King - ARM Linux wrote:
-> On Sat, Aug 30, 2008 at 10:33:35PM +0300, Felipe Balbi wrote:
-> >  4. General guidelines to write clean and OMAP Linux compatible code
-> >  -------------------------------------------------------------------
-> >  
-> > +- For register access use the __raw_{read,write}[bwl]() functions. At the
-> > +moment, see first example in arch/arm/plat-omap/include/mach/hardware.h.
-> 
-> (looking at mainline) which example?
-> 
-> > +#define OMAP_ID_REG  0xfffed400
-> > +#define DPLL_CTL_REG 0xfffecf00
-> 
-> This is unclear; it looks to me like it's trying to suggest that:
-> 
-> 	__raw_readl(OMAP_ID_REG)
-> 
-> is somehow valid.  It isn't; you're passing a physical address to a
-> function which takes a virtual address - I'm cooking a patch which will
-> make __raw_readl() and friends only accept void __iomem pointers.
-> 
-> The correct way is to do something like:
-> 
-> 	__raw_readl(IO_ADDRESS(OMAP_ID_REG))
-> 
-> where IO_ADDRESS is some function which translates the physical address
-> to a virtual address _and_ casts to a void __iomem pointer.
-> 
-> See my recent patch which fixes most of the virtual vs physical address
-> confusion that's present in the omap kernel (which was sent for comment
-> but got completely ignored.)
-
-Cool, thanks for the review. I'll update the patch and repost soon.
-
--- 
-balbi
+DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IE9uIFN1biwgQXVnIDMxLCAyMDA4IGF0
+IDI6NTMgUE0sIFBhbmRpdGEsIFZpa3JhbSA8dmlrcmFtLnBhbmRpdGFAdGkuY29tPiB3cm90ZToN
+Cj4gPg0KPiA+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+PiBGcm9tOiBsaW51eC1v
+bWFwLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LW9tYXAtb3duZXJAdmdlci5r
+ZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YNCj4gRmVsaXBlDQo+ID4+IEJhbGJpDQo+ID4+IFNlbnQ6
+IFNhdHVyZGF5LCBBdWd1c3QgMzAsIDIwMDggNToxMSBQTQ0KPiA+PiBUbzogbGludXgtb21hcEB2
+Z2VyLmtlcm5lbC5vcmcNCj4gPj4gU3ViamVjdDogb21hcHpvb20gaXNuJ3Qgd29ya2luZyBhZ2Fp
+bg0KPiA+Pg0KPiA+PiBUcmllZCBjbG9uaW5nIHJpZ2h0IGFuZCBpdCdzIG5vdCB3b3JraW5nIGFn
+YWluLg0KPiA+DQo+ID4gSSBoYXZlIGJlZW4gYWJsZSB0byBjbG9uZSB0aGUgdHJlZSBpbW1lZGlh
+dGVseSBhZnRlciB0aGUgbGFzdCB1cGRhdGUuDQo+ID4NCj4gPj4NCj4gPj4gc29tZW9uZSBoYXMg
+dG8gcnVuIGdpdCB1cGRhdGUtc2VydmVyLWluZm8uDQo+ID4NCj4gPiBUaGlzIHdhcyBhbHJlYWR5
+IGRvbmUgb24gbGFzdCB1cGRhdGUuDQo+ID4NCj4gPj4gY2htb2QgK3ggLmdpdC9ob29rcy9wb3N0
+LXVwZGF0ZSB3b3VsZCBiZSBjb29sZXIgdGhvdWdoLg0KPiA+DQo+ID4gRG9uZSB0aGlzIG5vdy4g
+WW91IGNhbiBjaGVjay4gTWF5YmUgdGhpcyBzdGVwIGlzIGFsc28gbmVlZGVkLg0KPiANCj4gWW91
+IG5lZWQgdG8gZG8gdXBkYXRlLXNlcnZlci1pbmZvIGVhY2ggdGltZSB0aGVyZSdzIGEgY2hhbmdl
+IGF0IHRoZQ0KPiByZXBvc2l0b3J5LCB0aGF0J3Mgd2h5IHRoZSBwb3N0LXVwZGF0ZSBob29rIHdh
+cyByZWNvbW1lbmRlZC4NCj4gDQo+IE5vdyB5b3UgaGF2ZSB0aGUgaG9vaywgYnV0IG5vdGhpbmcg
+d2lsbCBjaGFuZ2UgdW50aWwgdGhlIG5leHQgdXBkYXRlLA0KPiBzbyBkbyBhIHVwZGF0ZS1zZXJ2
+ZXItaW5mbyBtYW51YWxseSBvbmNlIHRvIGdldCB0aGUgbWlzc2luZyBjaGFuZ2VzDQo+IGltbWVk
+aWF0ZWx5Lg0KDQpIYXZlIGFkZGVkIGFzIHBhcnQgb2YgbXkgc2NyaXB0LiBUaGlzIHNob3VsZCBo
+YXBwZW4gbm93IGFsd2F5cy4NClRoYW5rcyBmb3IgcG9pbnRpbmcgb3V0IDJuZCB0aW1lIDotKSAN
+Cg0KPiANCj4gQmVzdCByZWdhcmRzLg0KPiANCj4gLS0NCj4gRmVsaXBlIENvbnRyZXJhcw0KPiAt
+LQ0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJz
+Y3JpYmUgbGludXgtb21hcCIgaW4NCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9t
+b0B2Z2VyLmtlcm5lbC5vcmcNCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIu
+a2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQoNCg==
