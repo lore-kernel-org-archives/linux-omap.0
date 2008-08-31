@@ -1,39 +1,48 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 2/2] input: touchscreen: Fix typo on Kconfig
-Date: Mon,  1 Sep 2008 00:56:57 +0300
-Message-ID: <1220219817-22651-2-git-send-email-me@felipebalbi.com>
-References: <1220219817-22651-1-git-send-email-me@felipebalbi.com>
+Subject: Re: [PATCH 21/33] add OMAP HighSpeed mmc controller driver
+Date: Mon, 1 Sep 2008 01:02:31 +0300
+Message-ID: <20080831220229.GN9887@frodo>
+References: <1220116593-862-1-git-send-email-me@felipebalbi.com> <200808311406.14234.david-b@pacbell.net> <20080831213105.GG9887@frodo> <200808311451.18565.david-b@pacbell.net>
+Reply-To: me@felipebalbi.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:43738 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:48863 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754235AbYHaV5Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 Aug 2008 17:57:25 -0400
-In-Reply-To: <1220219817-22651-1-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1752333AbYHaWCz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 Aug 2008 18:02:55 -0400
+Content-Disposition: inline
+In-Reply-To: <200808311451.18565.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: me@felipebalbi.com, linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>
 
-From: Felipe Balbi <felipe.balbi@nokia.com>
+On Sun, Aug 31, 2008 at 02:51:18PM -0700, David Brownell wrote:
+> Fixable, I'd expect.  :)
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/input/touchscreen/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+I'm sure it is :-)
 
-diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
-index f32361f..98e37fc 100644
---- a/drivers/input/touchscreen/Kconfig
-+++ b/drivers/input/touchscreen/Kconfig
-@@ -220,7 +220,7 @@ config TOUCHSCREEN_ATMEL_TSADCC
- config TOUCHSCREEN_TSC2005
- 	tristate "TSC2005 touchscreen support"
- 	help
--	  Say Y here for if you are using the touchscreen features of TSC2301.
-+	  Say Y here for if you are using the touchscreen features of TSC2005.
- 
- config TOUCHSCREEN_TSC2102
- 	tristate "TSC 2102 based touchscreens"
+> > so even if we 
+> > have all the drivers there. Mainline has support up to omap2430, if i'm
+> > not wrong. So looks like beagleboard users will have to wait a bit
+> > longer.
+> 
+> Well, it's not a 2.6.27 goal.  But I'd think it should be very
+> possible for 2.6.28 merging.
+
+Should be possible, but Tony can say for sure.
+
+> However, I'll re-emphasize that doing that means submitting the
+> patches for real, not to the OMAP list.  And since mainline is
+> now at RC5, there's not a lot of time yet to get this new code
+> reviewed and entered into the MMC queue...
+
+I think it's not a must to merge it for 2.6.27 time, but 2.6.28 would be
+good enough. As long as we merge them upstream and avoid merge conflicts
+on l-o, I'd be happy. Besides the fact that drivers should be discussed
+on the proper mainling list for facts that you already said in another
+comment, right ? :-)
+
 -- 
-1.6.0.1.157.g7df43
-
+balbi
