@@ -1,48 +1,64 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: omapzoom isn't working again
-Date: Sun, 31 Aug 2008 21:16:49 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087022A166BE9@dbde02.ent.ti.com>
-References: <20080830114046.GD14130@frodo>
-	 <FCCFB4CDC6E5564B9182F639FC356087022A166BD4@dbde02.ent.ti.com>
- <94a0d4530808310632i42144b58v70e905e640bdca62@mail.gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 22/33] add omap nand drivers
+Date: Sun, 31 Aug 2008 14:08:18 -0700
+Message-ID: <200808311408.18492.david-b@pacbell.net>
+References: <1220116593-862-1-git-send-email-me@felipebalbi.com> <1220116593-862-22-git-send-email-me@felipebalbi.com> <1220116593-862-23-git-send-email-me@felipebalbi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37641 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752689AbYHaPrH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 31 Aug 2008 11:47:07 -0400
-In-Reply-To: <94a0d4530808310632i42144b58v70e905e640bdca62@mail.gmail.com>
-Content-Language: en-US
+Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:27533 "HELO
+	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1758112AbYHaVTN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 31 Aug 2008 17:19:13 -0400
+In-Reply-To: <1220116593-862-23-git-send-email-me@felipebalbi.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "me@felipebalbi.com" <me@felipebalbi.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>
 
-DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IE9uIFN1biwgQXVnIDMxLCAyMDA4IGF0
-IDI6NTMgUE0sIFBhbmRpdGEsIFZpa3JhbSA8dmlrcmFtLnBhbmRpdGFAdGkuY29tPiB3cm90ZToN
-Cj4gPg0KPiA+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+PiBGcm9tOiBsaW51eC1v
-bWFwLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LW9tYXAtb3duZXJAdmdlci5r
-ZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YNCj4gRmVsaXBlDQo+ID4+IEJhbGJpDQo+ID4+IFNlbnQ6
-IFNhdHVyZGF5LCBBdWd1c3QgMzAsIDIwMDggNToxMSBQTQ0KPiA+PiBUbzogbGludXgtb21hcEB2
-Z2VyLmtlcm5lbC5vcmcNCj4gPj4gU3ViamVjdDogb21hcHpvb20gaXNuJ3Qgd29ya2luZyBhZ2Fp
-bg0KPiA+Pg0KPiA+PiBUcmllZCBjbG9uaW5nIHJpZ2h0IGFuZCBpdCdzIG5vdCB3b3JraW5nIGFn
-YWluLg0KPiA+DQo+ID4gSSBoYXZlIGJlZW4gYWJsZSB0byBjbG9uZSB0aGUgdHJlZSBpbW1lZGlh
-dGVseSBhZnRlciB0aGUgbGFzdCB1cGRhdGUuDQo+ID4NCj4gPj4NCj4gPj4gc29tZW9uZSBoYXMg
-dG8gcnVuIGdpdCB1cGRhdGUtc2VydmVyLWluZm8uDQo+ID4NCj4gPiBUaGlzIHdhcyBhbHJlYWR5
-IGRvbmUgb24gbGFzdCB1cGRhdGUuDQo+ID4NCj4gPj4gY2htb2QgK3ggLmdpdC9ob29rcy9wb3N0
-LXVwZGF0ZSB3b3VsZCBiZSBjb29sZXIgdGhvdWdoLg0KPiA+DQo+ID4gRG9uZSB0aGlzIG5vdy4g
-WW91IGNhbiBjaGVjay4gTWF5YmUgdGhpcyBzdGVwIGlzIGFsc28gbmVlZGVkLg0KPiANCj4gWW91
-IG5lZWQgdG8gZG8gdXBkYXRlLXNlcnZlci1pbmZvIGVhY2ggdGltZSB0aGVyZSdzIGEgY2hhbmdl
-IGF0IHRoZQ0KPiByZXBvc2l0b3J5LCB0aGF0J3Mgd2h5IHRoZSBwb3N0LXVwZGF0ZSBob29rIHdh
-cyByZWNvbW1lbmRlZC4NCj4gDQo+IE5vdyB5b3UgaGF2ZSB0aGUgaG9vaywgYnV0IG5vdGhpbmcg
-d2lsbCBjaGFuZ2UgdW50aWwgdGhlIG5leHQgdXBkYXRlLA0KPiBzbyBkbyBhIHVwZGF0ZS1zZXJ2
-ZXItaW5mbyBtYW51YWxseSBvbmNlIHRvIGdldCB0aGUgbWlzc2luZyBjaGFuZ2VzDQo+IGltbWVk
-aWF0ZWx5Lg0KDQpIYXZlIGFkZGVkIGFzIHBhcnQgb2YgbXkgc2NyaXB0LiBUaGlzIHNob3VsZCBo
-YXBwZW4gbm93IGFsd2F5cy4NClRoYW5rcyBmb3IgcG9pbnRpbmcgb3V0IDJuZCB0aW1lIDotKSAN
-Cg0KPiANCj4gQmVzdCByZWdhcmRzLg0KPiANCj4gLS0NCj4gRmVsaXBlIENvbnRyZXJhcw0KPiAt
-LQ0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJz
-Y3JpYmUgbGludXgtb21hcCIgaW4NCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9t
-b0B2Z2VyLmtlcm5lbC5vcmcNCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIu
-a2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQoNCg==
+Hmm, this seems like three distinct drivers to me.
+Which should mean three separate patches ... going
+go the MTD list!
+
+
+On Saturday 30 August 2008, Felipe Balbi wrote:
+>=20
+> +config MTD_NAND_OMAP2
+> +=A0=A0=A0=A0=A0=A0=A0tristate "NAND Flash device on OMAP2 and OMAP3"
+> +=A0=A0=A0=A0=A0=A0=A0depends on ARM && MTD_NAND && (ARCH_OMAP2 || AR=
+CH_OMAP3)
+> +=A0=A0=A0=A0=A0=A0=A0help
+> + =A0 =A0 =A0 =A0 =A0Support for NAND flash on Texas Instruments OMAP=
+2 and OMAP3 platforms.
+
+I've got a small patch for this one which I'll post.
+
+
+> +config MTD_NAND_OMAP
+> +=A0=A0=A0=A0=A0=A0=A0tristate "NAND Flash device on OMAP H3/H2/P2 bo=
+ards"
+> +=A0=A0=A0=A0=A0=A0=A0depends on ARM && ARCH_OMAP1 && MTD_NAND && (MA=
+CH_OMAP_H2 || MACH_OMAP_H3 || MACH_OMAP_PERSEUS2)
+> +=A0=A0=A0=A0=A0=A0=A0help
+> +=A0=A0=A0=A0=A0=A0=A0 =A0Support for NAND flash on Texas Instruments=
+ H3/H2/P2 platforms.
+> +
+> +config MTD_NAND_OMAP_HW
+> +=A0=A0=A0=A0=A0=A0=A0bool "OMAP HW NAND Flash controller support"
+> + =A0 =A0 =A0 =A0depends on ARM && ARCH_OMAP16XX && MTD_NAND
+> +
+> +=A0=A0=A0=A0=A0=A0=A0help
+> +=A0=A0=A0=A0=A0=A0=A0 =A0Driver for TI OMAP16xx hardware NAND flash =
+controller.
+
+This one raises the question:  why are there *TWO* drivers for
+the same hardware?  Which one is the failed experiment?
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
