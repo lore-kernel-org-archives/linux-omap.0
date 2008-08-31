@@ -1,52 +1,70 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 30/33] add omap backlight support
-Date: Mon, 1 Sep 2008 00:44:17 +0300
-Message-ID: <20080831214415.GL9887@frodo>
-References: <1220116593-862-1-git-send-email-me@felipebalbi.com> <1220116593-862-30-git-send-email-me@felipebalbi.com> <1220116593-862-31-git-send-email-me@felipebalbi.com> <200808311412.47568.david-b@pacbell.net> <20080831212317.GD9887@frodo>
-Reply-To: me@felipebalbi.com
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: FOR COMMENT: void __iomem * and similar casts are Bad News
+Date: Sun, 31 Aug 2008 14:47:20 -0700
+Message-ID: <200808311447.20312.david-b@pacbell.net>
+References: <20080827220821.GE7227@flint.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:36281 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753506AbYHaVow (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 Aug 2008 17:44:52 -0400
+Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:25295 "HELO
+	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753506AbYHaVrW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 31 Aug 2008 17:47:22 -0400
+In-Reply-To: <20080827220821.GE7227@flint.arm.linux.org.uk>
 Content-Disposition: inline
-In-Reply-To: <20080831212317.GD9887@frodo>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>
+To: Russell King <rmk@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, Sep 01, 2008 at 12:23:20AM +0300, Felipe Balbi wrote:
-> On Sun, Aug 31, 2008 at 02:12:47PM -0700, David Brownell wrote:
-> > On Saturday 30 August 2008, Felipe Balbi wrote:
-> > > ---
-> > > =A0drivers/video/backlight/Kconfig =A0 | =A0 =A09 ++
-> > > =A0drivers/video/backlight/Makefile =A0| =A0 =A01 +
-> > > =A0drivers/video/backlight/omap_bl.c | =A0218 +++++++++++++++++++=
-++++++++++++++++++
-> > > =A03 files changed, 228 insertions(+), 0 deletions(-)
-> > > =A0create mode 100644 drivers/video/backlight/omap_bl.c
-> >=20
-> > How is this different from drivers/video/backlight/omap1_bl.c
-> > which is already upstream?
-> >=20
-> > Looks to me like this is an old version of the same code, and
-> > this driver should have been removed ... double check to make
-> > sure no bugfixes are missing upstream.
+On Wednesday 27 August 2008, Russell King wrote:
+> I sent a similar patch to the one below against mainline to Tony toda=
+y.
+
+And I'm glad to see those updates.  I used to constantly trip over
+code doing strange stuff in those areas, and it would be nice to
+see "sparse" approve a lot more driver code...
+
+
+> I've marked some changes with certain tags:
 >=20
-> Weird that git marked this one as new file :-s
+> - FIXME: where I think the code is just plain wrong -
+> =A0 - such as putting a physical address through a macro which conver=
+ts
+> =A0 =A0 virtual to physical addresses (1510 and 1610 mcbsp).
+> =A0 - or passing virtual addresses to DMA functions (mcbsp).
+> =A0 - or passing physical addresses when what's required is a virtual=
+ address
+> =A0 =A0 (omap_udc).
+
+Yeah, the omap_udc one looks like the __REG() conversion patch
+just did the wrong thing.  Fix looks trivial, and once I verify
+it then I'll send it through mainline.
+
+
+> - CHECKME: where I've changed something to make it build but I don't
+> =A0 know if this is right.
 >=20
-> I'm dropping from the series.
+> - WBNI: more a preference to see something changed than a bug.
+>=20
+> Comments on the FIXMEs are what I'm really interested in, and prefera=
+bly
+> having them actually fixed would be a good idea.
 
-The problem is on linux-omap. It has a file without Makefile and Kconfi=
-g
-entries. I'm sending a patch soonish.
+I verified that the OMAP tree boots on my OMAP5912 OSK, at least
+once things like cpufreq, PM, and MTD are disabled.  The MTD thing
+is a known/solved issue in mainline.  (Block queue changes broke
+MTD...)  The oopses in cpufreq and pm_idle are more cryptic.
 
---=20
-balbi
+So I can try my patch for the omap_udc thing ... even though for
+OSK the mainline kernel ** DOES NOT BOOT ** and dies even before
+the kernel "hello, I'm RC5!" banner prints.  Someone with a JTAG
+to throw at this might be able to fix that regression quickly.
+
+- Dave
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
