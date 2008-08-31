@@ -1,48 +1,56 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: omapzoom isn't working again
-Date: Sun, 31 Aug 2008 17:23:16 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087022A166BD4@dbde02.ent.ti.com>
+From: "Felipe Contreras" <felipe.contreras@gmail.com>
+Subject: Re: omapzoom isn't working again
+Date: Sun, 31 Aug 2008 16:32:01 +0300
+Message-ID: <94a0d4530808310632i42144b58v70e905e640bdca62@mail.gmail.com>
 References: <20080830114046.GD14130@frodo>
+	 <FCCFB4CDC6E5564B9182F639FC356087022A166BD4@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33388 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757544AbYHaLxd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 Aug 2008 07:53:33 -0400
-In-Reply-To: <20080830114046.GD14130@frodo>
-Content-Language: en-US
+Received: from rv-out-0506.google.com ([209.85.198.230]:46947 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758221AbYHaNcB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 Aug 2008 09:32:01 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so1471399rvb.1
+        for <linux-omap@vger.kernel.org>; Sun, 31 Aug 2008 06:32:01 -0700 (PDT)
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087022A166BD4@dbde02.ent.ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "me@felipebalbi.com" <me@felipebalbi.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: "me@felipebalbi.com" <me@felipebalbi.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+On Sun, Aug 31, 2008 at 2:53 PM, Pandita, Vikram <vikram.pandita@ti.com> wrote:
+>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Felipe
+>> Balbi
+>> Sent: Saturday, August 30, 2008 5:11 PM
+>> To: linux-omap@vger.kernel.org
+>> Subject: omapzoom isn't working again
+>>
+>> Tried cloning right and it's not working again.
+>
+> I have been able to clone the tree immediately after the last update.
+>
+>>
+>> someone has to run git update-server-info.
+>
+> This was already done on last update.
+>
+>> chmod +x .git/hooks/post-update would be cooler though.
+>
+> Done this now. You can check. Maybe this step is also needed.
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Felipe
-> Balbi
-> Sent: Saturday, August 30, 2008 5:11 PM
-> To: linux-omap@vger.kernel.org
-> Subject: omapzoom isn't working again
-> 
-> Tried cloning right and it's not working again.
+You need to do update-server-info each time there's a change at the
+repository, that's why the post-update hook was recommended.
 
-I have been able to clone the tree immediately after the last update.
+Now you have the hook, but nothing will change until the next update,
+so do a update-server-info manually once to get the missing changes
+immediately.
 
-> 
-> someone has to run git update-server-info.
+Best regards.
 
-This was already done on last update.
-
-> chmod +x .git/hooks/post-update would be cooler though.
-
-Done this now. You can check. Maybe this step is also needed. 
-
-> 
-> --
-> balbi
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+-- 
+Felipe Contreras
