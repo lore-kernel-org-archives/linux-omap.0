@@ -1,43 +1,87 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: [PATCH0/3] Add support for OMAP35x processors
-Date: Tue, 2 Sep 2008 01:26:25 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301A031B576@dbde02.ent.ti.com>
-References: <8F7AF80515AF0D4D93307E594F3CB40E0AFDBE42@dlee03.ent.ti.com>
- <20080806090708.GH19813@atomide.com>
- <B85A65D85D7EB246BE421B3FB0FBB593013CA23771@dbde02.ent.ti.com>
- <20080806101045.GL19813@atomide.com>
- <B85A65D85D7EB246BE421B3FB0FBB593013CA23868@dbde02.ent.ti.com>
- <20080808073956.GI24923@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH 3/3] Updates to OMAP3EVM defconfig
+Date: Tue,  2 Sep 2008 01:27:47 +0530
+Message-ID: <1220299067-17307-3-git-send-email-premi@ti.com>
+References: <1220299067-17307-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35486 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44902 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750839AbYIAT4l convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Sep 2008 15:56:41 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id m81JuXZb023203
-	for <linux-omap@vger.kernel.org>; Mon, 1 Sep 2008 14:56:39 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m81JuW4M019495
-	for <linux-omap@vger.kernel.org>; Tue, 2 Sep 2008 01:26:33 +0530 (IST)
-In-Reply-To: <20080808073956.GI24923@atomide.com>
-Content-Language: en-US
+	id S1751207AbYIAT56 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Sep 2008 15:57:58 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m81JvoRi005142
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 1 Sep 2008 14:57:57 -0500
+In-Reply-To: <1220299067-17307-1-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-Hi,
+---
+ arch/arm/configs/omap3_evm_defconfig |   15 ++++++++++++---
+ 1 files changed, 12 insertions(+), 3 deletions(-)
 
-These patches provide support for the OMAP35x processors.
+diff --git a/arch/arm/configs/omap3_evm_defconfig b/arch/arm/configs/omap3_evm_defconfig
+index 718c914..cdf74e9 100644
+--- a/arch/arm/configs/omap3_evm_defconfig
++++ b/arch/arm/configs/omap3_evm_defconfig
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+-# Linux kernel version: 2.6.26-rc1-omap1
+-# Thu May  8 08:18:45 2008
++# Linux kernel version: 2.6.26-omap1
++# Thu Sep  1 22:10:43 2008
+ #
+ CONFIG_ARM=y
+ CONFIG_SYS_SUPPORTS_APM_EMULATION=y
+@@ -173,6 +173,7 @@ CONFIG_ARCH_OMAP3=y
+ CONFIG_OMAP_DEBUG_SRAM_PATCH=y
+ # CONFIG_OMAP_DEBUG_POWERDOMAIN is not set
+ # CONFIG_OMAP_DEBUG_CLOCKDOMAIN is not set
++# CONFIG_OMAP_SMARTREFLEX is not set
+ # CONFIG_OMAP_RESET_CLOCKS is not set
+ CONFIG_OMAP_BOOT_TAG=y
+ CONFIG_OMAP_BOOT_REASON=y
+@@ -191,6 +192,11 @@ CONFIG_OMAP_LL_DEBUG_UART1=y
+ # CONFIG_OMAP_LL_DEBUG_UART3 is not set
+ CONFIG_ARCH_OMAP34XX=y
+ CONFIG_ARCH_OMAP3430=y
++CONFIG_ARCH_OMAP35XX=y
++CONFIG_ARCH_OMAP3503=y
++# CONFIG_ARCH_OMAP3515 is not set
++# CONFIG_ARCH_OMAP3525 is not set
++# CONFIG_ARCH_OMAP3530 is not set
+ 
+ #
+ # OMAP Board Type
+@@ -198,6 +204,8 @@ CONFIG_ARCH_OMAP3430=y
+ # CONFIG_MACH_OMAP_3430SDP is not set
+ CONFIG_MACH_OMAP3EVM=y
+ # CONFIG_MACH_OMAP3_BEAGLE is not set
++# CONFIG_MACH_OMAP_LDP is not set
++CONFIG_OMAP_TICK_GPTIMER=1
+ 
+ #
+ # Boot options
+@@ -297,7 +305,7 @@ CONFIG_FPE_NWFPE=y
+ # CONFIG_FPE_FASTFPE is not set
+ CONFIG_VFP=y
+ CONFIG_VFPv3=y
+-# CONFIG_NEON is not set
++CONFIG_NEON=y
+ 
+ #
+ # Userspace binary formats
+@@ -778,6 +786,7 @@ CONFIG_SSB_POSSIBLE=y
+ #
+ # CONFIG_VIDEO_DEV is not set
+ # CONFIG_DVB_CORE is not set
++# CONFIG_VIDEO_MEDIA is not set
+ 
+ #
+ # Multimedia drivers
+-- 
+1.5.6
 
-This is essentially a re-submit after series of discusions
-earliers in the list. Based on the comments received, this
-patch includes following:
-  1) Updates to Kconfig
-  2) Runtime check for OMAP35x
-  3) Updates to omap3_evm_defconfig
-
-Best regards,
-Sanjeev
