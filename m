@@ -1,72 +1,110 @@
-From: "halli manjunatha" <hallimanju@gmail.com>
-Subject: MMC Driver - Kernel crashing at function "omap_mmc_set_ios"
-Date: Mon, 1 Sep 2008 14:42:06 +0530
-Message-ID: <ca6476860809010212hfc58859nfa745af59f103e54@mail.gmail.com>
+From: Zou Tao <zoutao51@gmail.com>
+Subject: omap zoom lpd board clk init problem when booting "Clock cam_ick
+ didn't enable in 100000 tries"
+Date: Mon, 01 Sep 2008 17:13:28 +0800
+Message-ID: <48BBB238.9070804@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.29]:54040 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751968AbYIAJMI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Sep 2008 05:12:08 -0400
-Received: by yx-out-2324.google.com with SMTP id 8so1079508yxm.1
-        for <linux-omap@vger.kernel.org>; Mon, 01 Sep 2008 02:12:06 -0700 (PDT)
-Content-Disposition: inline
+Received: from fk-out-0910.google.com ([209.85.128.185]:23117 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752029AbYIAJNg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Sep 2008 05:13:36 -0400
+Received: by fk-out-0910.google.com with SMTP id 18so1334607fkq.5
+        for <linux-omap@vger.kernel.org>; Mon, 01 Sep 2008 02:13:34 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Hello,
-       I am working on omap3430 with 2.6.24 kernel, while booting the
-kernel is crashing ,
-the kernel message is shown below.
+Hi:
+When board reboot, driver tried to reset camera, there is error:
+kernel version is v2.6.26-ti-07252008. Does anyone see it before?
+> console [ttyS2] enabled
+> brd: module loaded
+> loop: module loaded
+> eth0: LAN9211 (rev 0) at 0xc8908000 IRQ 312
+> eth0: Ethernet addr: 00:08:ee:02:53:22
+> eth0: LAN911x Internal PHY
+> Linux video capture interface: v2.00
+> omap24xxvout: registered device video1 [v4l2]
+> omap24xxvout: registered device video2 [v4l2]
+> Clock cam_ick didn't enable in 100000 tries
+> Clock cam_mclk didn't enable in 100000 tries
+> isp_af_init
+I have tried to open /dev/video/0, but there is no such device.
+and I add some debug info in isp_get call, and found that content of
+register cm_fclken_cam is 03, and content of cm_icklen_cam is 0,but
+cm_idlest_cam is 0x1, so clk init failed. For the kernel option I have=20
+choiced:
+>           [*]   Enable advanced debug=20
+> functionality                                                       =E2=
+=94=82 =E2=94=82
+>   =E2=94=82 =E2=94=82                          [*]   Autoselect perti=
+nent=20
+> encoders/decoders and other helper chips                             =
+=E2=94=82 =E2=94=82
+>   =E2=94=82 =E2=94=82                          < >   Virtual Video=20
+> Driver                                                               =
+      =20
+> =E2=94=82 =E2=94=82
+>   =E2=94=82 =E2=94=82                          < >   SAA5246A, SAA528=
+1 Teletext=20
+> processor                                                      =E2=94=
+=82 =E2=94=82
+>   =E2=94=82 =E2=94=82                          < >   SAA5249 Teletext=
+=20
+> processor                                                            =
+   =20
+> =E2=94=82 =E2=94=82
+>   =E2=94=82 =E2=94=82                                OMAP2/OMAP3 V4L2=
+ drivers =20
+> --->                                                            =E2=94=
+=82 =E2=94=82
+>   =E2=94=82 =E2=94=82                          <*>   OMAP 3 Camera=20
+> support                                                              =
+      =20
+> =E2=94=82 =E2=94=82
+>   =E2=94=82 =E2=94=82                          <*>   OMAP ISP=20
+> Driver                                                               =
+           =20
+> =E2=94=82 =E2=94=82
+>   =E2=94=82 =E2=94=82                          <*>     omap isp=20
+> previewer                                                            =
+         =20
+> =E2=94=82 =E2=94=82
+>   =E2=94=82 =E2=94=82                          <*>     omap isp=20
+> resizer                                                              =
+         =20
+> =E2=94=82 =E2=94=82
+>   =E2=94=82 =E2=94=82                          < >   OMAP 2 Camera su=
+pport=20
+> (EXPERIMENTAL)                                                      =E2=
+=94=82 =E2=94=82
+>   =E2=94=82 =E2=94=82                          [ ]   V4L USB devices =
+=20
+> --->                                                                 =
+   =20
+> =E2=94=82 =E2=94=82
+>   =E2=94=82 =E2=94=82                          < >   SoC camera suppo=
+rt     =20
 
-*************************************************************************************************
-Unhandled fault: external abort on non-linefetch (0x1008) at 0xc885802c
-Internal error: : 1008 [#1]
-Modules linked in:
-CPU: 0    Not tainted  (2.6.24.7-omap1-arm2-g0d138099-dirty #6)
-PC is at omap_mmc_set_ios+0xac/0x2c8
-LR is at schedule_timeout+0x98/0xb8
-pc : [<c0233450>]    lr : [<c02e6090>]    psr: 60000013
-sp : c7c6bf38  ip : c7c6bec8  fp : c7c6bf54
-r10: 00000000  r9 : 00000000  r8 : 00000000
-r7 : c77d0540  r6 : c77d05a0  r5 : c7c6bf6c  r4 : c77d0400
-r3 : 00000f07  r2 : c8858000  r1 : 00000002  r0 : 00000000
-Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-Control: 00c5387f  Table: 80004018  DAC: 00000017
-Process kmmcd (pid: 109, stack limit = 0xc7c6a2e8)
-Stack: (0xc7c6bf38 to 0xc7c6c000)
-bf20:                                                       c77d0400 c7c6bf6c
-bf40: c022c3e0 c7c96a60 c7c6bf64 c7c6bf58 c022ba98 c02333b0 c7c6bf84 c7c6bf68
-bf60: c022c508 c022ba54 00000000 00000000 c7c96a60 c7c6a000 c7c6bfa4 c7c6bf88
-bf80: c0095ed0 c022c3ec c7c96a68 c7c6bfb8 c7cb9700 c7c96a60 c7c6bfdc c7c6bfa8
-bfa0: c0096900 c0095e40 c7c6bfdc 00000000 c7cb9700 c009a124 c7c6bfb8 c7c6bfb8
-bfc0: c7c96a60 c0096854 00000000 00000000 c7c6bff4 c7c6bfe0 c0099c70 c0096860
-bfe0: 00000000 00000000 00000000 c7c6bff8 c0089ad0 c0099c28 00000000 00000000
-Backtrace:
-[<c02333a4>] (omap_mmc_set_ios+0x0/0x2c8) from [<c022ba98>]
-(mmc_power_off+0x50/0x54)
- r7:c7c96a60 r6:c022c3e0 r5:c7c6bf6c r4:c77d0400
-[<c022ba48>] (mmc_power_off+0x0/0x54) from [<c022c508>] (mmc_rescan+0x128/0x188)
-[<c022c3e0>] (mmc_rescan+0x0/0x188) from [<c0095ed0>] (run_workqueue+0x9c/0x118)
- r5:c7c6a000 r4:c7c96a60
-[<c0095e34>] (run_workqueue+0x0/0x118) from [<c0096900>]
-(worker_thread+0xac/0xc0)
- r7:c7c96a60 r6:c7cb9700 r5:c7c6bfb8 r4:c7c96a68
-[<c0096854>] (worker_thread+0x0/0xc0) from [<c0099c70>] (kthread+0x54/0x80)
- r7:00000000 r6:00000000 r5:c0096854 r4:c7c96a60
-[<c0099c1c>] (kthread+0x0/0x80) from [<c0089ad0>] (do_exit+0x0/0x6d4)
- r5:00000000 r4:00000000
-Code: e5923128 e3833002 ea000006 e5962044 (e592302c)
----[ end trace db388d58efbe09b5 ]---
 
-********************************************************************************************************
 
-But if i disable the backlight driver while compiling, then kernel
-booting goes smoothly.
-where the backlight driver is no  more related to MMC driver.
--- 
-Regards
-Manjunatha H
+even there is some clk error report, but isp_get return successfully.
+1. why there  is no such device?
+2. do you know the sensor name of sensor module? and datasheet?
+3. what's the interface used by ldp board to connect sensor? serial or=20
+parallel port?
+
+Any suggestion will be appreciated.
+
+B.R
+Tao
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
