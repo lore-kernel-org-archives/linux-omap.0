@@ -1,224 +1,236 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 09/12] CORE OFF support in omap_sram_idle
-Date: Mon, 1 Sep 2008 19:11:48 +0530 (IST)
-Message-ID: <62493.192.168.10.89.1220276508.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH 10/12] Adds support for CPUIdle safe state
+Date: Mon, 1 Sep 2008 19:12:09 +0530 (IST)
+Message-ID: <62933.192.168.10.89.1220276529.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59463 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47087 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751305AbYIANlz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Sep 2008 09:41:55 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m81DfnEU027968
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 1 Sep 2008 08:41:54 -0500
+	id S1751316AbYIANmQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Sep 2008 09:42:16 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id m81DgAfe000475
+	for <linux-omap@vger.kernel.org>; Mon, 1 Sep 2008 08:42:15 -0500
 Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id m81Dfl3f021974
-	for <linux-omap@vger.kernel.org>; Mon, 1 Sep 2008 08:41:48 -0500 (CDT)
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id m81Dg8Ql019712
+	for <linux-omap@vger.kernel.org>; Mon, 1 Sep 2008 08:42:09 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-This patch updates omap_sram_idle with CORE OFF support
+This patch adds the support to move to a safe-state on bm activity
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |   37 ++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/pm.h          |    2 +
- arch/arm/mach-omap2/pm34xx.c      |   43 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 82 insertions(+)
+ arch/arm/mach-omap2/cpuidle34xx.c |  152 +++++++++++++++++++-------------------
+ 1 files changed, 79 insertions(+), 73 deletions(-)
 
 Index: linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c
 ===================================================================
 --- linux-omap-2.6.orig/arch/arm/mach-omap2/cpuidle34xx.c	2008-09-01
-18:12:35.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c	2008-09-01
 18:25:25.000000000 +0530
-@@ -26,11 +26,48 @@
- #include <mach/pm.h>
- #include <mach/prcm.h>
- #include <mach/powerdomain.h>
-+#include <mach/gpmc.h>
- #include <mach/control.h>
-+#include <mach/irqs.h>
- #include <linux/sched.h>
++++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c	2008-09-01
+18:27:10.000000000 +0530
+@@ -139,25 +139,28 @@ static int omap3_enter_idle_bm(struct cp
+ 	int i, j;
 
- #include "cpuidle34xx.h"
-
-+static int padconf_saved;
-+void omap3_save_core_ctx(void)
-+{
-+	u32 control_padconf_off;
-+	if (!padconf_saved) {
-+	       /* Save the padconf registers */
-+	       control_padconf_off =
-+			omap_ctrl_readl(OMAP343X_CONTROL_PADCONF_OFF);
-+	       control_padconf_off |= START_PADCONF_SAVE;
-+	       omap_ctrl_writel(control_padconf_off,
-+			OMAP343X_CONTROL_PADCONF_OFF);
-+	       /* wait for the save to complete */
-+	       while (!omap_ctrl_readl(OMAP343X_CONTROL_GENERAL_PURPOSE_STATUS)
-+			& PADCONF_SAVE_DONE);
-+	       padconf_saved = 1;
-+	}
-+	/* Save the Interrupt controller context */
-+	omap3_save_intc_ctx();
-+	/* Save the GPMC context */
-+	omap3_save_gpmc_ctx();
-+	/* Save the system control module context, padconf already save above*/
-+	omap3_save_control_ctx();
-+}
+ 	if ((state->flags & CPUIDLE_FLAG_CHECK_BM) && omap3_idle_bm_check()) {
+-
+-		/* Find current state in list */
+-		for (i = 0; i < OMAP3_MAX_STATES; i++)
+-			if (state == &dev->states[i])
+-				break;
+-		BUG_ON(i == OMAP3_MAX_STATES);
+-
+-		/* Back up to non 'CHECK_BM' state */
+-		for (j = i - 1;  j > 0; j--) {
+-			struct cpuidle_state *s = &dev->states[j];
+-
+-			if (!(s->flags & CPUIDLE_FLAG_CHECK_BM)) {
+-				new_state = s;
+-				break;
++		if (dev->safe_state) {
++			return dev->safe_state->enter(dev, dev->safe_state);
++		} else {
++			/* Find current state in list */
++			for (i = 0; i < OMAP3_MAX_STATES; i++)
++				if (state == &dev->states[i])
++					break;
++			BUG_ON(i == OMAP3_MAX_STATES);
 +
-+void omap3_restore_core_ctx(void)
-+{
-+	/* Restore the control module context, padconf restored by h/w */
-+	omap3_restore_control_ctx();
-+	/* Restore the GPMC context */
-+	omap3_restore_gpmc_ctx();
-+	/* Restore the interrupt controller context */
-+	omap3_restore_intc_ctx();
-+	padconf_saved = 0;
-+}
++			/* Back up to non 'CHECK_BM' state */
++			for (j = i - 1;  j >= 0; j--) {
++				struct cpuidle_state *s = &dev->states[j];
 +
- #ifdef CONFIG_CPU_IDLE
++				if (!(s->flags & CPUIDLE_FLAG_CHECK_BM)) {
++					new_state = s;
++					break;
++				}
+ 			}
++			pr_debug("%s: Bus activity: Entering %s\
++				(instead of %s)\n", __func__,
++				 new_state->name, state->name);
+ 		}
+-
+-		pr_debug("%s: Bus activity: Entering %s (instead of %s)\n",
+-			__func__, new_state->name, state->name);
+ 	}
 
- struct omap3_processor_cx omap3_power_states[OMAP3_MAX_STATES];
-Index: linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/pm34xx.c	2008-09-01
-18:23:19.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c	2008-09-01 18:24:02.000000000
-+0530
-@@ -27,10 +27,13 @@
- #include <mach/gpio.h>
- #include <mach/sram.h>
- #include <mach/pm.h>
-+#include <mach/prcm.h>
- #include <mach/clockdomain.h>
- #include <mach/powerdomain.h>
- #include <mach/common.h>
- #include <mach/control.h>
-+#include <mach/serial.h>
-+#include <mach/gpio.h>
- #include <asm/tlbflush.h>
+ 	return omap3_enter_idle(dev, new_state ? : state);
+@@ -179,79 +182,79 @@ DEFINE_PER_CPU(struct cpuidle_device, om
+ void omap_init_power_states(void)
+ {
+ 	/* C0 . System executing code */
+-	omap3_power_states[0].valid = 1;
+-	omap3_power_states[0].type = OMAP3_STATE_C0;
+-	omap3_power_states[0].sleep_latency = 0;
+-	omap3_power_states[0].wakeup_latency = 0;
+-	omap3_power_states[0].threshold = 0;
+-	omap3_power_states[0].mpu_state = PWRDM_POWER_ON;
+-	omap3_power_states[0].core_state = PWRDM_POWER_ON;
+-	omap3_power_states[0].flags = CPUIDLE_FLAG_SHALLOW;
++	omap3_power_states[OMAP3_STATE_C0].valid = 1;
++	omap3_power_states[OMAP3_STATE_C0].type = OMAP3_STATE_C0;
++	omap3_power_states[OMAP3_STATE_C0].sleep_latency = 0;
++	omap3_power_states[OMAP3_STATE_C0].wakeup_latency = 0;
++	omap3_power_states[OMAP3_STATE_C0].threshold = 0;
++	omap3_power_states[OMAP3_STATE_C0].mpu_state = PWRDM_POWER_ON;
++	omap3_power_states[OMAP3_STATE_C0].core_state = PWRDM_POWER_ON;
++	omap3_power_states[OMAP3_STATE_C0].flags = CPUIDLE_FLAG_SHALLOW;
 
- #include "cm.h"
-@@ -58,6 +61,7 @@ static struct powerdomain *mpu_pwrdm, *n
- static struct powerdomain *core_pwrdm, *per_pwrdm;
+ 	/* C1 . MPU WFI + Core active */
+-	omap3_power_states[1].valid = 1;
+-	omap3_power_states[1].type = OMAP3_STATE_C1;
+-	omap3_power_states[1].sleep_latency = 10;
+-	omap3_power_states[1].wakeup_latency = 10;
+-	omap3_power_states[1].threshold = 30;
+-	omap3_power_states[1].mpu_state = PWRDM_POWER_ON;
+-	omap3_power_states[1].core_state = PWRDM_POWER_ON;
+-	omap3_power_states[1].flags = CPUIDLE_FLAG_TIME_VALID |
++	omap3_power_states[OMAP3_STATE_C1].valid = 1;
++	omap3_power_states[OMAP3_STATE_C1].type = OMAP3_STATE_C1;
++	omap3_power_states[OMAP3_STATE_C1].sleep_latency = 10;
++	omap3_power_states[OMAP3_STATE_C1].wakeup_latency = 10;
++	omap3_power_states[OMAP3_STATE_C1].threshold = 30;
++	omap3_power_states[OMAP3_STATE_C1].mpu_state = PWRDM_POWER_ON;
++	omap3_power_states[OMAP3_STATE_C1].core_state = PWRDM_POWER_ON;
++	omap3_power_states[OMAP3_STATE_C1].flags = CPUIDLE_FLAG_TIME_VALID |
+ 						CPUIDLE_FLAG_SHALLOW;
 
- int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
-+void omap3_restore_sram_ctx(void);
+ 	/* C2 . MPU CSWR + Core active */
+-	omap3_power_states[2].valid = 1;
+-	omap3_power_states[2].type = OMAP3_STATE_C2;
+-	omap3_power_states[2].sleep_latency = 50;
+-	omap3_power_states[2].wakeup_latency = 50;
+-	omap3_power_states[2].threshold = 300;
+-	omap3_power_states[2].mpu_state = PWRDM_POWER_RET;
+-	omap3_power_states[2].core_state = PWRDM_POWER_ON;
+-	omap3_power_states[2].flags = CPUIDLE_FLAG_TIME_VALID |
++	omap3_power_states[OMAP3_STATE_C2].valid = 1;
++	omap3_power_states[OMAP3_STATE_C2].type = OMAP3_STATE_C2;
++	omap3_power_states[OMAP3_STATE_C2].sleep_latency = 50;
++	omap3_power_states[OMAP3_STATE_C2].wakeup_latency = 50;
++	omap3_power_states[OMAP3_STATE_C2].threshold = 300;
++	omap3_power_states[OMAP3_STATE_C2].mpu_state = PWRDM_POWER_RET;
++	omap3_power_states[OMAP3_STATE_C2].core_state = PWRDM_POWER_ON;
++	omap3_power_states[OMAP3_STATE_C2].flags = CPUIDLE_FLAG_TIME_VALID |
+ 						CPUIDLE_FLAG_BALANCED;
 
- u32 context_mem[128];
+ 	/* C3 . MPU OFF + Core active */
+-	omap3_power_states[3].valid = 1;
+-	omap3_power_states[3].type = OMAP3_STATE_C3;
+-	omap3_power_states[3].sleep_latency = 1500;
+-	omap3_power_states[3].wakeup_latency = 1800;
+-	omap3_power_states[3].threshold = 4000;
+-	omap3_power_states[3].mpu_state = PWRDM_POWER_OFF;
+-	omap3_power_states[3].core_state = PWRDM_POWER_ON;
+-	omap3_power_states[3].flags = CPUIDLE_FLAG_TIME_VALID |
++	omap3_power_states[OMAP3_STATE_C3].valid = 1;
++	omap3_power_states[OMAP3_STATE_C3].type = OMAP3_STATE_C3;
++	omap3_power_states[OMAP3_STATE_C3].sleep_latency = 1500;
++	omap3_power_states[OMAP3_STATE_C3].wakeup_latency = 1800;
++	omap3_power_states[OMAP3_STATE_C3].threshold = 4000;
++	omap3_power_states[OMAP3_STATE_C3].mpu_state = PWRDM_POWER_OFF;
++	omap3_power_states[OMAP3_STATE_C3].core_state = PWRDM_POWER_ON;
++	omap3_power_states[OMAP3_STATE_C3].flags = CPUIDLE_FLAG_TIME_VALID |
+ 			CPUIDLE_FLAG_BALANCED;
 
-@@ -91,6 +95,16 @@ static void gpio_fclk_mask(u32 *fclk)
- 	*fclk &= ~(0x1f << 13);
+ 	/* C4 . MPU CSWR + Core CSWR*/
+-	omap3_power_states[4].valid = 1;
+-	omap3_power_states[4].type = OMAP3_STATE_C4;
+-	omap3_power_states[4].sleep_latency = 2500;
+-	omap3_power_states[4].wakeup_latency = 7500;
+-	omap3_power_states[4].threshold = 12000;
+-	omap3_power_states[4].mpu_state = PWRDM_POWER_RET;
+-	omap3_power_states[4].core_state = PWRDM_POWER_RET;
+-	omap3_power_states[4].flags = CPUIDLE_FLAG_TIME_VALID |
++	omap3_power_states[OMAP3_STATE_C4].valid = 1;
++	omap3_power_states[OMAP3_STATE_C4].type = OMAP3_STATE_C4;
++	omap3_power_states[OMAP3_STATE_C4].sleep_latency = 2500;
++	omap3_power_states[OMAP3_STATE_C4].wakeup_latency = 7500;
++	omap3_power_states[OMAP3_STATE_C4].threshold = 12000;
++	omap3_power_states[OMAP3_STATE_C4].mpu_state = PWRDM_POWER_RET;
++	omap3_power_states[OMAP3_STATE_C4].core_state = PWRDM_POWER_RET;
++	omap3_power_states[OMAP3_STATE_C4].flags = CPUIDLE_FLAG_TIME_VALID |
+ 			CPUIDLE_FLAG_BALANCED | CPUIDLE_FLAG_CHECK_BM;
+
+ 	/* C5 . MPU OFF + Core CSWR */
+-	omap3_power_states[5].valid = 1;
+-	omap3_power_states[5].type = OMAP3_STATE_C5;
+-	omap3_power_states[5].sleep_latency = 3000;
+-	omap3_power_states[5].wakeup_latency = 8500;
+-	omap3_power_states[5].threshold = 15000;
+-	omap3_power_states[5].mpu_state = PWRDM_POWER_OFF;
+-	omap3_power_states[5].core_state = PWRDM_POWER_RET;
+-	omap3_power_states[5].flags = CPUIDLE_FLAG_TIME_VALID |
++	omap3_power_states[OMAP3_STATE_C5].valid = 1;
++	omap3_power_states[OMAP3_STATE_C5].type = OMAP3_STATE_C5;
++	omap3_power_states[OMAP3_STATE_C5].sleep_latency = 3000;
++	omap3_power_states[OMAP3_STATE_C5].wakeup_latency = 8500;
++	omap3_power_states[OMAP3_STATE_C5].threshold = 15000;
++	omap3_power_states[OMAP3_STATE_C5].mpu_state = PWRDM_POWER_OFF;
++	omap3_power_states[OMAP3_STATE_C5].core_state = PWRDM_POWER_RET;
++	omap3_power_states[OMAP3_STATE_C5].flags = CPUIDLE_FLAG_TIME_VALID |
+ 			CPUIDLE_FLAG_BALANCED | CPUIDLE_FLAG_CHECK_BM;
+
+ 	/* C6 . MPU OFF + Core OFF */
+-	omap3_power_states[6].valid = 0;
+-	omap3_power_states[6].type = OMAP3_STATE_C6;
+-	omap3_power_states[6].sleep_latency = 10000;
+-	omap3_power_states[6].wakeup_latency = 30000;
+-	omap3_power_states[6].threshold = 300000;
+-	omap3_power_states[6].mpu_state = PWRDM_POWER_OFF;
+-	omap3_power_states[6].core_state = PWRDM_POWER_OFF;
+-	omap3_power_states[6].flags = CPUIDLE_FLAG_TIME_VALID |
++	omap3_power_states[OMAP3_STATE_C6].valid = 0;
++	omap3_power_states[OMAP3_STATE_C6].type = OMAP3_STATE_C6;
++	omap3_power_states[OMAP3_STATE_C6].sleep_latency = 10000;
++	omap3_power_states[OMAP3_STATE_C6].wakeup_latency = 30000;
++	omap3_power_states[OMAP3_STATE_C6].threshold = 300000;
++	omap3_power_states[OMAP3_STATE_C6].mpu_state = PWRDM_POWER_OFF;
++	omap3_power_states[OMAP3_STATE_C6].core_state = PWRDM_POWER_OFF;
++	omap3_power_states[OMAP3_STATE_C6].flags = CPUIDLE_FLAG_TIME_VALID |
+ 			CPUIDLE_FLAG_DEEP | CPUIDLE_FLAG_CHECK_BM;
  }
 
-+void omap3_save_per_ctx(void)
-+{
-+	omap3_gpio_save();
-+}
-+
-+void omap3_restore_per_ctx(void)
-+{
-+	omap3_gpio_restore();
-+}
-+
- /* PRCM Interrupt Handler for wakeups */
- static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
- {
-@@ -225,6 +239,7 @@ void omap_sram_idle(void)
- 	int mpu_next_state = PWRDM_POWER_ON;
- 	int per_next_state = PWRDM_POWER_ON;
- 	int core_next_state = PWRDM_POWER_ON;
-+	int core_prev_state, per_prev_state;
+@@ -269,6 +272,7 @@ int omap3_idle_init(void)
+ 	struct omap3_processor_cx *cx;
+ 	struct cpuidle_state *state;
+ 	struct cpuidle_device *dev;
++	char clk_name[11];
 
- 	if (!_omap_sram_idle)
- 		return;
-@@ -261,15 +276,27 @@ void omap_sram_idle(void)
- 		/* PER changes only with core */
- 		per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
- 		if (per_next_state < PWRDM_POWER_ON) {
-+			if (per_next_state == PWRDM_POWER_OFF) {
-+				omap3_save_per_ctx();
-+				omap3_save_uart_ctx(2);
-+			}
- 			if (clocks_off_while_idle) {
- 				per_gpio_clk_disable();
- 				omap_serial_enable_clocks(0, 2);
- 			}
- 		}
-+		if (core_next_state == PWRDM_POWER_OFF) {
-+			omap3_save_core_ctx();
-+			omap3_save_prcm_ctx();
-+			omap3_save_uart_ctx(0);
-+			omap3_save_uart_ctx(1);
-+		}
- 		if (clocks_off_while_idle) {
- 			omap_serial_enable_clocks(0, 0);
- 			omap_serial_enable_clocks(0, 1);
- 		}
-+		if (core_next_state == PWRDM_POWER_OFF)
-+			omap3_save_prcm_ctx();
- 		/* Enable IO-PAD wakeup */
- 		prm_set_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
+ 	omap3_clear_scratchpad_contents();
+ 	omap3_save_scratchpad_contents();
+@@ -290,6 +294,8 @@ int omap3_idle_init(void)
+ 		state->flags = cx->flags;
+ 		state->enter = (state->flags & CPUIDLE_FLAG_CHECK_BM) ?
+ 			omap3_enter_idle_bm : omap3_enter_idle;
++		if (cx->type == OMAP3_STATE_C1)
++			dev->safe_state = state;
+ 		sprintf(state->name, "C%d", count+1);
+ 		count++;
  	}
-@@ -284,16 +311,31 @@ void omap_sram_idle(void)
- 	if (core_next_state < PWRDM_POWER_ON) {
- 		/* Disable IO-PAD wakeup */
- 		prm_clear_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
-+		core_prev_state = pwrdm_read_prev_pwrst(core_pwrdm);
-+		if (core_prev_state == PWRDM_POWER_OFF)
-+			omap3_restore_prcm_ctx();
- 		if (clocks_off_while_idle) {
- 			omap_serial_enable_clocks(1, 0);
- 			omap_serial_enable_clocks(1, 1);
- 		}
-+		if (core_prev_state == PWRDM_POWER_OFF) {
-+			omap3_restore_core_ctx();
-+			omap3_restore_sram_ctx();
-+			omap3_restore_uart_ctx(0);
-+			omap3_restore_uart_ctx(1);
-+		}
- 		if (per_next_state < PWRDM_POWER_ON) {
- 			if (clocks_off_while_idle) {
- 				per_gpio_clk_enable();
- 				/* This would be actually more effective */
- 				omap_serial_enable_clocks(1, 2);
- 			}
-+			per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
-+			if (per_prev_state == PWRDM_POWER_OFF) {
-+				omap3_restore_per_ctx();
-+				/* This would be actually more effective */
-+				omap3_restore_uart_ctx(2);
-+			}
- 		}
- 		omap2_gpio_resume_after_retention();
- 	}
-@@ -815,6 +857,7 @@ int __init omap3_pm_init(void)
- 	/* XXX prcm_setup_regs needs to be before enabling hw
- 	 * supervised mode for powerdomains */
- 	prcm_setup_regs();
-+	omap3_save_scratchpad_contents();
-
- 	ret = request_irq(INT_34XX_PRCM_MPU_IRQ,
- 			  (irq_handler_t)prcm_interrupt_handler,
-Index: linux-omap-2.6/arch/arm/mach-omap2/pm.h
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/pm.h	2008-09-01 18:12:35.000000000
-+0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/pm.h	2008-09-01 18:24:02.000000000 +0530
-@@ -22,6 +22,8 @@ extern atomic_t sleep_block;
-
- extern void omap2_block_sleep(void);
- extern void omap2_allow_sleep(void);
-+extern void omap3_save_core_ctx(void);
-+extern void omap3_restore_core_ctx(void);
-
- #define OMAP343X_TABLE_ADDRESS_OFFSET	0x31
- #define OMAP343X_TABLE_VALUE_OFFSET	0x30
 
 
