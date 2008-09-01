@@ -1,120 +1,224 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 08/12] update sram restore function
-Date: Mon, 1 Sep 2008 19:11:28 +0530 (IST)
-Message-ID: <62087.192.168.10.89.1220276488.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH 09/12] CORE OFF support in omap_sram_idle
+Date: Mon, 1 Sep 2008 19:11:48 +0530 (IST)
+Message-ID: <62493.192.168.10.89.1220276508.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49359 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751108AbYIANle (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Sep 2008 09:41:34 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59463 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751305AbYIANlz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Sep 2008 09:41:55 -0400
 Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m81DfSZu007207
-	for <linux-omap@vger.kernel.org>; Mon, 1 Sep 2008 08:41:33 -0500
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m81DfnEU027968
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 1 Sep 2008 08:41:54 -0500
 Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id m81DfQRH021915
-	for <linux-omap@vger.kernel.org>; Mon, 1 Sep 2008 08:41:27 -0500 (CDT)
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id m81Dfl3f021974
+	for <linux-omap@vger.kernel.org>; Mon, 1 Sep 2008 08:41:48 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-This patch updates the context restore function for sram
+This patch updates omap_sram_idle with CORE OFF support
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |   12 ++++++++----
- arch/arm/plat-omap/sram.c    |   10 +++++++---
- 2 files changed, 15 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/cpuidle34xx.c |   37 ++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h          |    2 +
+ arch/arm/mach-omap2/pm34xx.c      |   43 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 82 insertions(+)
 
+Index: linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/cpuidle34xx.c	2008-09-01
+18:12:35.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c	2008-09-01
+18:25:25.000000000 +0530
+@@ -26,11 +26,48 @@
+ #include <mach/pm.h>
+ #include <mach/prcm.h>
+ #include <mach/powerdomain.h>
++#include <mach/gpmc.h>
+ #include <mach/control.h>
++#include <mach/irqs.h>
+ #include <linux/sched.h>
+
+ #include "cpuidle34xx.h"
+
++static int padconf_saved;
++void omap3_save_core_ctx(void)
++{
++	u32 control_padconf_off;
++	if (!padconf_saved) {
++	       /* Save the padconf registers */
++	       control_padconf_off =
++			omap_ctrl_readl(OMAP343X_CONTROL_PADCONF_OFF);
++	       control_padconf_off |= START_PADCONF_SAVE;
++	       omap_ctrl_writel(control_padconf_off,
++			OMAP343X_CONTROL_PADCONF_OFF);
++	       /* wait for the save to complete */
++	       while (!omap_ctrl_readl(OMAP343X_CONTROL_GENERAL_PURPOSE_STATUS)
++			& PADCONF_SAVE_DONE);
++	       padconf_saved = 1;
++	}
++	/* Save the Interrupt controller context */
++	omap3_save_intc_ctx();
++	/* Save the GPMC context */
++	omap3_save_gpmc_ctx();
++	/* Save the system control module context, padconf already save above*/
++	omap3_save_control_ctx();
++}
++
++void omap3_restore_core_ctx(void)
++{
++	/* Restore the control module context, padconf restored by h/w */
++	omap3_restore_control_ctx();
++	/* Restore the GPMC context */
++	omap3_restore_gpmc_ctx();
++	/* Restore the interrupt controller context */
++	omap3_restore_intc_ctx();
++	padconf_saved = 0;
++}
++
+ #ifdef CONFIG_CPU_IDLE
+
+ struct omap3_processor_cx omap3_power_states[OMAP3_MAX_STATES];
 Index: linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c
 ===================================================================
 --- linux-omap-2.6.orig/arch/arm/mach-omap2/pm34xx.c	2008-09-01
-18:11:35.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c	2008-09-01 18:11:54.000000000
+18:23:19.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c	2008-09-01 18:24:02.000000000
 +0530
-@@ -50,7 +50,7 @@ struct power_state {
+@@ -27,10 +27,13 @@
+ #include <mach/gpio.h>
+ #include <mach/sram.h>
+ #include <mach/pm.h>
++#include <mach/prcm.h>
+ #include <mach/clockdomain.h>
+ #include <mach/powerdomain.h>
+ #include <mach/common.h>
+ #include <mach/control.h>
++#include <mach/serial.h>
++#include <mach/gpio.h>
+ #include <asm/tlbflush.h>
 
- static LIST_HEAD(pwrst_list);
+ #include "cm.h"
+@@ -58,6 +61,7 @@ static struct powerdomain *mpu_pwrdm, *n
+ static struct powerdomain *core_pwrdm, *per_pwrdm;
 
--static void (*_omap_sram_idle)(u32 *addr, int save_state);
-+void (*_omap_sram_idle)(u32 *addr, int save_state);
+ int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
++void omap3_restore_sram_ctx(void);
 
- static void (*saved_idle)(void);
+ u32 context_mem[128];
 
-@@ -798,6 +798,12 @@ static int __init pwrdms_setup(struct po
- 	return set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
+@@ -91,6 +95,16 @@ static void gpio_fclk_mask(u32 *fclk)
+ 	*fclk &= ~(0x1f << 13);
  }
 
-+void omap_push_sram_idle()
++void omap3_save_per_ctx(void)
 +{
-+	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
-+					omap34xx_cpu_suspend_sz);
++	omap3_gpio_save();
 +}
 +
- int __init omap3_pm_init(void)
++void omap3_restore_per_ctx(void)
++{
++	omap3_gpio_restore();
++}
++
+ /* PRCM Interrupt Handler for wakeups */
+ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
  {
- 	struct power_state *pwrst;
-@@ -835,9 +841,7 @@ int __init omap3_pm_init(void)
- 	per_pwrdm = pwrdm_lookup("per_pwrdm");
- 	core_pwrdm = pwrdm_lookup("core_pwrdm");
+@@ -225,6 +239,7 @@ void omap_sram_idle(void)
+ 	int mpu_next_state = PWRDM_POWER_ON;
+ 	int per_next_state = PWRDM_POWER_ON;
+ 	int core_next_state = PWRDM_POWER_ON;
++	int core_prev_state, per_prev_state;
 
--	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
--					omap34xx_cpu_suspend_sz);
--
-+	omap_push_sram_idle();
- 	suspend_set_ops(&omap_pm_ops);
+ 	if (!_omap_sram_idle)
+ 		return;
+@@ -261,15 +276,27 @@ void omap_sram_idle(void)
+ 		/* PER changes only with core */
+ 		per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
+ 		if (per_next_state < PWRDM_POWER_ON) {
++			if (per_next_state == PWRDM_POWER_OFF) {
++				omap3_save_per_ctx();
++				omap3_save_uart_ctx(2);
++			}
+ 			if (clocks_off_while_idle) {
+ 				per_gpio_clk_disable();
+ 				omap_serial_enable_clocks(0, 2);
+ 			}
+ 		}
++		if (core_next_state == PWRDM_POWER_OFF) {
++			omap3_save_core_ctx();
++			omap3_save_prcm_ctx();
++			omap3_save_uart_ctx(0);
++			omap3_save_uart_ctx(1);
++		}
+ 		if (clocks_off_while_idle) {
+ 			omap_serial_enable_clocks(0, 0);
+ 			omap_serial_enable_clocks(0, 1);
+ 		}
++		if (core_next_state == PWRDM_POWER_OFF)
++			omap3_save_prcm_ctx();
+ 		/* Enable IO-PAD wakeup */
+ 		prm_set_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
+ 	}
+@@ -284,16 +311,31 @@ void omap_sram_idle(void)
+ 	if (core_next_state < PWRDM_POWER_ON) {
+ 		/* Disable IO-PAD wakeup */
+ 		prm_clear_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
++		core_prev_state = pwrdm_read_prev_pwrst(core_pwrdm);
++		if (core_prev_state == PWRDM_POWER_OFF)
++			omap3_restore_prcm_ctx();
+ 		if (clocks_off_while_idle) {
+ 			omap_serial_enable_clocks(1, 0);
+ 			omap_serial_enable_clocks(1, 1);
+ 		}
++		if (core_prev_state == PWRDM_POWER_OFF) {
++			omap3_restore_core_ctx();
++			omap3_restore_sram_ctx();
++			omap3_restore_uart_ctx(0);
++			omap3_restore_uart_ctx(1);
++		}
+ 		if (per_next_state < PWRDM_POWER_ON) {
+ 			if (clocks_off_while_idle) {
+ 				per_gpio_clk_enable();
+ 				/* This would be actually more effective */
+ 				omap_serial_enable_clocks(1, 2);
+ 			}
++			per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
++			if (per_prev_state == PWRDM_POWER_OFF) {
++				omap3_restore_per_ctx();
++				/* This would be actually more effective */
++				omap3_restore_uart_ctx(2);
++			}
+ 		}
+ 		omap2_gpio_resume_after_retention();
+ 	}
+@@ -815,6 +857,7 @@ int __init omap3_pm_init(void)
+ 	/* XXX prcm_setup_regs needs to be before enabling hw
+ 	 * supervised mode for powerdomains */
+ 	prcm_setup_regs();
++	omap3_save_scratchpad_contents();
 
- #ifndef CONFIG_CPU_IDLE
-Index: linux-omap-2.6/arch/arm/plat-omap/sram.c
+ 	ret = request_irq(INT_34XX_PRCM_MPU_IRQ,
+ 			  (irq_handler_t)prcm_interrupt_handler,
+Index: linux-omap-2.6/arch/arm/mach-omap2/pm.h
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/plat-omap/sram.c	2008-09-01 18:11:28.000000000
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/pm.h	2008-09-01 18:12:35.000000000
 +0530
-+++ linux-omap-2.6/arch/arm/plat-omap/sram.c	2008-09-01 18:11:54.000000000 +0530
-@@ -26,6 +26,7 @@
- #include <mach/board.h>
++++ linux-omap-2.6/arch/arm/mach-omap2/pm.h	2008-09-01 18:24:02.000000000 +0530
+@@ -22,6 +22,8 @@ extern atomic_t sleep_block;
 
- #include <mach/control.h>
-+#include <mach/pm.h>
+ extern void omap2_block_sleep(void);
+ extern void omap2_allow_sleep(void);
++extern void omap3_save_core_ctx(void);
++extern void omap3_restore_core_ctx(void);
 
- #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
- # include "../mach-omap2/prm.h"
-@@ -75,6 +76,8 @@ extern unsigned long omapfb_reserve_sram
- 					 unsigned long sram_size,
- 					 unsigned long pstart_avail,
- 					 unsigned long size_avail);
-+extern void (*_omap_sram_idle)(u32 *addr, int save_state);
-+extern void omap_push_sram_idle();
-
- /*
-  * Depending on the target RAMFS firewall setup, the public usable amount of
-@@ -367,14 +370,14 @@ u32 omap3_configure_core_dpll(u32 sdrc_r
- 					       sdrc_actim_ctrlb, m2);
-  }
-
--/* REVISIT: Should this be same as omap34xx_sram_init() after off-idle? */
--void restore_sram_functions(void)
-+void omap3_restore_sram_ctx(void)
- {
- 	omap_sram_ceil = omap_sram_base + omap_sram_size;
-
- 	_omap3_sram_configure_core_dpll =
- 		omap_sram_push(omap3_sram_configure_core_dpll,
- 			       omap3_sram_configure_core_dpll_sz);
-+	omap_push_sram_idle();
- }
-
- int __init omap3_sram_init(void)
-@@ -382,7 +385,8 @@ int __init omap3_sram_init(void)
- 	_omap3_sram_configure_core_dpll =
- 		omap_sram_push(omap3_sram_configure_core_dpll,
- 			       omap3_sram_configure_core_dpll_sz);
--
-+	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
-+				omap34xx_cpu_suspend_sz);
- 	return 0;
- }
- #else
+ #define OMAP343X_TABLE_ADDRESS_OFFSET	0x31
+ #define OMAP343X_TABLE_VALUE_OFFSET	0x30
 
 
