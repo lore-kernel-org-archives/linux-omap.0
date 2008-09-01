@@ -1,447 +1,110 @@
 From: "andrzej zaborowski" <balrogg@gmail.com>
-Subject: Re: [PATCH 12/33] Add tsc2005 touchscreen driver
-Date: Mon, 1 Sep 2008 03:01:43 +0200
-Message-ID: <fb249edb0808311801n45a798dbkbfb37927335d00ab@mail.gmail.com>
+Subject: Re: [PATCH 00/34] omap drivers going upstream
+Date: Mon, 1 Sep 2008 03:22:23 +0200
+Message-ID: <fb249edb0808311822wa97279ale0e11bfcafc609dc@mail.gmail.com>
 References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
-	 <1220116593-862-5-git-send-email-me@felipebalbi.com>
-	 <1220116593-862-6-git-send-email-me@felipebalbi.com>
-	 <1220116593-862-7-git-send-email-me@felipebalbi.com>
-	 <1220116593-862-8-git-send-email-me@felipebalbi.com>
-	 <1220116593-862-9-git-send-email-me@felipebalbi.com>
-	 <1220116593-862-10-git-send-email-me@felipebalbi.com>
-	 <1220116593-862-11-git-send-email-me@felipebalbi.com>
-	 <1220116593-862-12-git-send-email-me@felipebalbi.com>
-	 <1220116593-862-13-git-send-email-me@felipebalbi.com>
+	 <20080831223721.GO9887@frodo>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.224]:29633 "EHLO
+Received: from rv-out-0506.google.com ([209.85.198.228]:31984 "EHLO
 	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752377AbYIABBo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 Aug 2008 21:01:44 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so1596012rvb.1
-        for <linux-omap@vger.kernel.org>; Sun, 31 Aug 2008 18:01:43 -0700 (PDT)
-In-Reply-To: <1220116593-862-13-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1753044AbYIABWY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 Aug 2008 21:22:24 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so1600030rvb.1
+        for <linux-omap@vger.kernel.org>; Sun, 31 Aug 2008 18:22:24 -0700 (PDT)
+In-Reply-To: <20080831223721.GO9887@frodo>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
+To: me@felipebalbi.com
 Cc: linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>
 
-2008/8/30 Felipe Balbi <me@felipebalbi.com>:
-> From: Felipe Balbi <felipe.balbi@nokia.com>
+2008/9/1 Felipe Balbi <me@felipebalbi.com>:
+> On Sat, Aug 30, 2008 at 08:16:00PM +0300, Felipe Balbi wrote:
+>> From: Felipe Balbi <felipe.balbi@nokia.com>
+>>
+>> The following drivers are going upstream for integration.
+>> They have been sitting on linux-omap for quite a while just
+>> increasing the diff against mainline and probability of
+>> merge conflicts.
 >
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> ---
->  drivers/input/touchscreen/Kconfig   |    5 +
->  drivers/input/touchscreen/Makefile  |    1 +
->  drivers/input/touchscreen/tsc2005.c |  736 +++++++++++++++++++++++++++++++++++
->  include/linux/spi/tsc2005.h         |   29 ++
->  4 files changed, 771 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/input/touchscreen/tsc2005.c
->  create mode 100644 include/linux/spi/tsc2005.h
+> Just one comment to this. I had to left bluetooth driver out of the
+> series because it's using omap2_block/allow_sleep in the driver code.
+> That should be fixed and the set_clock function should come via
+> platform_data to the driver.
 >
-> diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
-> index 25287e8..a115f38 100644
-> --- a/drivers/input/touchscreen/Kconfig
-> +++ b/drivers/input/touchscreen/Kconfig
-> @@ -217,6 +217,11 @@ config TOUCHSCREEN_ATMEL_TSADCC
->          To compile this driver as a module, choose M here: the
->          module will be called atmel_tsadcc.
+>  53 static void hci_h4p_set_clk(struct hci_h4p_info *info, int *clock, int enable)
+>  54 {
+>  55         unsigned long flags;
+>  56
+>  57         spin_lock_irqsave(&info->clocks_lock, flags);
+>  58         if (enable && !*clock) {
+>  59                 NBT_DBG_POWER("Enabling %p\n", clock);
+>  60                 clk_enable(info->uart_fclk);
+>  61 #ifdef CONFIG_ARCH_OMAP2
+>  62                 if (cpu_is_omap24xx()) {
+>  63                         clk_enable(info->uart_iclk);
+>  64                         omap2_block_sleep();
+>  65                 }
+>  66 #endif
+>  67         }
+>  68         if (!enable && *clock) {
+>  69                 NBT_DBG_POWER("Disabling %p\n", clock);
+>  70                 clk_disable(info->uart_fclk);
+>  71 #ifdef CONFIG_ARCH_OMAP2
+>  72                 if (cpu_is_omap24xx()) {
+>  73                         clk_disable(info->uart_iclk);
+>  74                         omap2_allow_sleep();
+>  75                 }
+>  76 #endif
+>  77         }
+>  78
+>  79         *clock = enable;
+>  80         spin_unlock_irqrestore(&info->clocks_lock, flags);
+>  81 }
 >
-> +config TOUCHSCREEN_TSC2005
-> +       tristate "TSC2005 touchscreen support"
-> +       help
-> +         Say Y here for if you are using the touchscreen features of TSC2301.
-> +
->  config TOUCHSCREEN_UCB1400
->        tristate "Philips UCB1400 touchscreen"
->        select AC97_BUS
-> diff --git a/drivers/input/touchscreen/Makefile b/drivers/input/touchscreen/Makefile
-> index 15cf290..0342389 100644
-> --- a/drivers/input/touchscreen/Makefile
-> +++ b/drivers/input/touchscreen/Makefile
-> @@ -26,6 +26,7 @@ obj-$(CONFIG_TOUCHSCREEN_TOUCHIT213)  += touchit213.o
->  obj-$(CONFIG_TOUCHSCREEN_TOUCHRIGHT)   += touchright.o
->  obj-$(CONFIG_TOUCHSCREEN_TOUCHWIN)     += touchwin.o
->  obj-$(CONFIG_TOUCHSCREEN_UCB1400)      += ucb1400_ts.o
-> +obj-$(CONFIG_TOUCHSCREEN_TSC2005)      += tsc2005.o
->  obj-$(CONFIG_TOUCHSCREEN_WM97XX)       += wm97xx-ts.o
->  wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9705) += wm9705.o
->  wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9712) += wm9712.o
-> diff --git a/drivers/input/touchscreen/tsc2005.c b/drivers/input/touchscreen/tsc2005.c
-> new file mode 100644
-> index 0000000..7fb107e
-> --- /dev/null
-> +++ b/drivers/input/touchscreen/tsc2005.c
-> @@ -0,0 +1,736 @@
-> +/*
-> + * TSC2005 touchscreen driver
-> + *
-> + * Copyright (C) 2006-2008 Nokia Corporation
-> + *
-> + * Author: Lauri Leukkunen <lauri.leukkunen@nokia.com>
-> + * based on TSC2301 driver by Klaus K. Pedersen <klaus.k.pedersen@nokia.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-> + *
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/input.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/delay.h>
-> +#include <linux/spi/spi.h>
-> +
-> +#ifdef CONFIG_ARCH_OMAP
-> +#include <mach/gpio.h>
-> +#endif
-> +
-> +#include <linux/spi/tsc2005.h>
-> +
-> +/**
-> + * The touchscreen interface operates as follows:
-> + *
-> + * Initialize:
-> + *    Request access to GPIO103 (DAV)
-> + *    tsc2005_dav_irq_handler will trigger when DAV line goes down
-> + *
-> + *  1) Pen is pressed against touchscreeen
-> + *  2) TSC2005 performs AD conversion
-> + *  3) After the conversion is done TSC2005 drives DAV line down
-> + *  4) GPIO IRQ is received and tsc2005_dav_irq_handler is called
-> + *  5) tsc2005_ts_irq_handler queues up an spi transfer to fetch
-> + *     the x, y, z1, z2 values
-> + *  6) tsc2005_ts_rx() reports coordinates to input layer and
-> + *     sets up tsc2005_ts_timer() to be called after TSC2005_TS_SCAN_TIME
-> + *  7)  When the penup_timer expires, there have not been DAV interrupts
-> + *     during the last 20ms which means the pen has been lifted.
-> + */
-> +
-> +#define TSC2005_VDD_LOWER_27
-> +
-> +#ifdef TSC2005_VDD_LOWER_27
-> +#define TSC2005_HZ     (10000000)
-> +#else
-> +#define TSC2005_HZ     (25000000)
-> +#endif
-> +
-> +#define TSC2005_CMD    (0x80)
-> +#define TSC2005_REG    (0x00)
-> +
-> +#define TSC2005_CMD_STOP       (1)
-> +#define TSC2005_CMD_10BIT      (0 << 2)
-> +#define TSC2005_CMD_12BIT      (1 << 2)
-> +
-> +#define TSC2005_CMD_SCAN_XYZZ  (0 << 3)
-> +#define TSC2005_CMD_SCAN_XY    (1 << 3)
-> +#define TSC2005_CMD_SCAN_X     (2 << 3)
-> +#define TSC2005_CMD_SCAN_Y     (3 << 3)
-> +#define TSC2005_CMD_SCAN_ZZ    (4 << 3)
-> +#define TSC2005_CMD_AUX_SINGLE (5 << 3)
-> +#define TSC2005_CMD_TEMP1      (6 << 3)
-> +#define TSC2005_CMD_TEMP2      (7 << 3)
-> +#define TSC2005_CMD_AUX_CONT   (8 << 3)
-> +#define TSC2005_CMD_TEST_X_CONN        (9 << 3)
-> +#define TSC2005_CMD_TEST_Y_CONN        (10 << 3)
-> +/* command 11 reserved */
-> +#define TSC2005_CMD_TEST_SHORT (12 << 3)
-> +#define TSC2005_CMD_DRIVE_XX   (13 << 3)
-> +#define TSC2005_CMD_DRIVE_YY   (14 << 3)
-> +#define TSC2005_CMD_DRIVE_YX   (15 << 3)
-> +
-> +#define TSC2005_REG_X          (0 << 3)
-> +#define TSC2005_REG_Y          (1 << 3)
-> +#define TSC2005_REG_Z1         (2 << 3)
-> +#define TSC2005_REG_Z2         (3 << 3)
-> +#define TSC2005_REG_AUX                (4 << 3)
-> +#define TSC2005_REG_TEMP1      (5 << 3)
-> +#define TSC2005_REG_TEMP2      (6 << 3)
-> +#define TSC2005_REG_STATUS     (7 << 3)
-> +#define TSC2005_REG_AUX_HIGH   (8 << 3)
-> +#define TSC2005_REG_AUX_LOW    (9 << 3)
-> +#define TSC2005_REG_TEMP_HIGH  (10 << 3)
-> +#define TSC2005_REG_TEMP_LOW   (11 << 3)
-> +#define TSC2005_REG_CFR0       (12 << 3)
-> +#define TSC2005_REG_CFR1       (13 << 3)
-> +#define TSC2005_REG_CFR2       (14 << 3)
-> +#define TSC2005_REG_FUNCTION   (15 << 3)
-> +
-> +#define TSC2005_REG_PND0       (1 << 1)
-> +#define TSC2005_REG_READ       (0x01)
-> +#define TSC2005_REG_WRITE      (0x00)
-> +
-> +
-> +#define TSC2005_CFR0_LONGSAMPLING      (1)
-> +#define TSC2005_CFR0_DETECTINWAIT      (1 << 1)
-> +#define TSC2005_CFR0_SENSETIME_32US    (0)
-> +#define TSC2005_CFR0_SENSETIME_96US    (1 << 2)
-> +#define TSC2005_CFR0_SENSETIME_544US   (1 << 3)
-> +#define TSC2005_CFR0_SENSETIME_2080US  (1 << 4)
-> +#define TSC2005_CFR0_SENSETIME_2656US  (0x001C)
-> +#define TSC2005_CFR0_PRECHARGE_20US    (0x0000)
-> +#define TSC2005_CFR0_PRECHARGE_84US    (0x0020)
-> +#define TSC2005_CFR0_PRECHARGE_276US   (0x0040)
-> +#define TSC2005_CFR0_PRECHARGE_1044US  (0x0080)
-> +#define TSC2005_CFR0_PRECHARGE_1364US  (0x00E0)
-> +#define TSC2005_CFR0_STABTIME_0US      (0x0000)
-> +#define TSC2005_CFR0_STABTIME_100US    (0x0100)
-> +#define TSC2005_CFR0_STABTIME_500US    (0x0200)
-> +#define TSC2005_CFR0_STABTIME_1MS      (0x0300)
-> +#define TSC2005_CFR0_STABTIME_5MS      (0x0400)
-> +#define TSC2005_CFR0_STABTIME_100MS    (0x0700)
-> +#define TSC2005_CFR0_CLOCK_4MHZ                (0x0000)
-> +#define TSC2005_CFR0_CLOCK_2MHZ                (0x0800)
-> +#define TSC2005_CFR0_CLOCK_1MHZ                (0x1000)
-> +#define TSC2005_CFR0_RESOLUTION12      (0x2000)
-> +#define TSC2005_CFR0_STATUS            (0x4000)
-> +#define TSC2005_CFR0_PENMODE           (0x8000)
-> +
-> +#define TSC2005_CFR0_INITVALUE (TSC2005_CFR0_STABTIME_1MS  |   \
-> +                                TSC2005_CFR0_CLOCK_1MHZ    |   \
-> +                                TSC2005_CFR0_RESOLUTION12  |   \
-> +                                TSC2005_CFR0_PRECHARGE_276US | \
-> +                                TSC2005_CFR0_PENMODE)
-> +
-> +#define TSC2005_CFR1_BATCHDELAY_0MS    (0x0000)
-> +#define TSC2005_CFR1_BATCHDELAY_1MS    (0x0001)
-> +#define TSC2005_CFR1_BATCHDELAY_2MS    (0x0002)
-> +#define TSC2005_CFR1_BATCHDELAY_4MS    (0x0003)
-> +#define TSC2005_CFR1_BATCHDELAY_10MS   (0x0004)
-> +#define TSC2005_CFR1_BATCHDELAY_20MS   (0x0005)
-> +#define TSC2005_CFR1_BATCHDELAY_40MS   (0x0006)
-> +#define TSC2005_CFR1_BATCHDELAY_100MS  (0x0007)
-> +
-> +#define TSC2005_CFR1_INITVALUE (TSC2005_CFR1_BATCHDELAY_2MS)
-> +
-> +#define TSC2005_CFR2_MAVE_TEMP (0x0001)
-> +#define TSC2005_CFR2_MAVE_AUX  (0x0002)
-> +#define TSC2005_CFR2_MAVE_Z    (0x0004)
-> +#define TSC2005_CFR2_MAVE_Y    (0x0008)
-> +#define TSC2005_CFR2_MAVE_X    (0x0010)
-> +#define TSC2005_CFR2_AVG_1     (0x0000)
-> +#define TSC2005_CFR2_AVG_3     (0x0400)
-> +#define TSC2005_CFR2_AVG_7     (0x0800)
-> +#define TSC2005_CFR2_MEDIUM_1  (0x0000)
-> +#define TSC2005_CFR2_MEDIUM_3  (0x1000)
-> +#define TSC2005_CFR2_MEDIUM_7  (0x2000)
-> +#define TSC2005_CFR2_MEDIUM_15 (0x3000)
-> +
-> +#define TSC2005_CFR2_IRQ_DAV   (0x4000)
-> +#define TSC2005_CFR2_IRQ_PEN   (0x8000)
-> +#define TSC2005_CFR2_IRQ_PENDAV        (0x0000)
-> +
-> +#define TSC2005_CFR2_INITVALUE (TSC2005_CFR2_IRQ_DAV   |       \
-> +                                TSC2005_CFR2_MAVE_X    |       \
-> +                                TSC2005_CFR2_MAVE_Y    |       \
-> +                                TSC2005_CFR2_MAVE_Z    |       \
-> +                                TSC2005_CFR2_MEDIUM_15 |       \
-> +                                TSC2005_CFR2_AVG_7)
-> +
-> +#define MAX_12BIT                                      ((1 << 12) - 1)
-> +#define TS_SAMPLES                                     4
-> +#define TS_RECT_SIZE                                   8
-> +#define TSC2005_TS_PENUP_TIME                          20
-> +
-> +static const u32 tsc2005_read_reg[] = {
-> +       (TSC2005_REG | TSC2005_REG_X | TSC2005_REG_READ) << 16,
-> +       (TSC2005_REG | TSC2005_REG_Y | TSC2005_REG_READ) << 16,
-> +       (TSC2005_REG | TSC2005_REG_Z1 | TSC2005_REG_READ) << 16,
-> +       (TSC2005_REG | TSC2005_REG_Z2 | TSC2005_REG_READ) << 16,
-> +};
-> +#define NUM_READ_REGS  (sizeof(tsc2005_read_reg)/sizeof(tsc2005_read_reg[0]))
-> +
-> +struct tsc2005 {
-> +       struct spi_device       *spi;
-> +
-> +       struct input_dev        *idev;
-> +       char                    phys[32];
-> +       struct timer_list       penup_timer;
-> +       spinlock_t              lock;
-> +       struct mutex            mutex;
-> +
-> +       struct spi_message      read_msg;
-> +       struct spi_transfer     read_xfer[NUM_READ_REGS];
-> +       u32                     data[NUM_READ_REGS];
-> +
-> +       /* previous x,y,z */
-> +       int                     x;
-> +       int                     y;
-> +       int                     p;
-> +       /* average accumulators for each component */
-> +       int                     sample_cnt;
-> +       int                     avg_x;
-> +       int                     avg_y;
-> +       int                     avg_z1;
-> +       int                     avg_z2;
-> +       /* configuration */
-> +       int                     x_plate_ohm;
-> +       int                     hw_avg_max;
-> +       int                     stab_time;
-> +       int                     p_max;
-> +       int                     touch_pressure;
-> +       int                     irq;
-> +       s16                     dav_gpio;
-> +       /* status */
-> +       u8                      sample_sent;
-> +       u8                      pen_down;
-> +       u8                      disabled;
-> +       u8                      disable_depth;
-> +       u8                      spi_active;
-> +};
-> +
-> +static void tsc2005_cmd(struct tsc2005 *ts, u8 cmd)
-> +{
-> +       u16 data = TSC2005_CMD | TSC2005_CMD_12BIT | cmd;
-> +       struct spi_message msg;
-> +       struct spi_transfer xfer = { 0 };
-> +
-> +       xfer.tx_buf = &data;
-> +       xfer.rx_buf = NULL;
-> +       xfer.len = 1;
-> +       xfer.bits_per_word = 8;
-> +
-> +       spi_message_init(&msg);
-> +       spi_message_add_tail(&xfer, &msg);
-> +       spi_sync(ts->spi, &msg);
-> +}
-> +
-> +static void tsc2005_write(struct tsc2005 *ts, u8 reg, u16 value)
-> +{
-> +       u32 tx;
-> +       struct spi_message msg;
-> +       struct spi_transfer xfer = { 0 };
-> +
-> +       tx = (TSC2005_REG | reg | TSC2005_REG_PND0 |
-> +              TSC2005_REG_WRITE) << 16;
-> +       tx |= value;
-> +
-> +       xfer.tx_buf = &tx;
-> +       xfer.rx_buf = NULL;
-> +       xfer.len = 4;
-> +       xfer.bits_per_word = 24;
-> +
-> +       spi_message_init(&msg);
-> +       spi_message_add_tail(&xfer, &msg);
-> +       spi_sync(ts->spi, &msg);
-> +}
-> +
-> +static void tsc2005_ts_update_pen_state(struct tsc2005 *ts,
-> +                                       int x, int y, int pressure)
-> +{
-> +       if (pressure) {
-> +               input_report_abs(ts->idev, ABS_X, x);
-> +               input_report_abs(ts->idev, ABS_Y, y);
-> +               input_report_abs(ts->idev, ABS_PRESSURE, pressure);
-> +               if (!ts->pen_down) {
-> +                       input_report_key(ts->idev, BTN_TOUCH, 1);
-> +                       ts->pen_down = 1;
-> +               }
-> +       } else {
-> +               input_report_abs(ts->idev, ABS_PRESSURE, 0);
-> +               if (ts->pen_down) {
-> +                       input_report_key(ts->idev, BTN_TOUCH, 0);
-> +                       ts->pen_down = 0;
-> +               }
-> +       }
-> +
-> +       input_sync(ts->idev);
-> +}
-> +
-> +/*
-> + * This function is called by the SPI framework after the coordinates
-> + * have been read from TSC2005
-> + */
-> +static void tsc2005_ts_rx(void *arg)
-> +{
-> +       struct tsc2005 *ts = arg;
-> +       unsigned long flags;
-> +       int inside_rect, pressure_limit;
-> +       int x, y, z1, z2, pressure;
-> +
-> +       spin_lock_irqsave(&ts->lock, flags);
-> +
-> +       x = ts->data[0];
-> +       y = ts->data[1];
-> +       z1 = ts->data[2];
-> +       z2 = ts->data[3];
-> +
-> +       /* validate pressure and position */
-> +       if (x > MAX_12BIT || y > MAX_12BIT)
-> +               goto out;
-> +
-> +       /* skip coords if the pressure-components are out of range */
-> +       if (z1 < 100 || z2 > 4000)
-> +               goto out;
-> +
-> +       /* don't run average on the "pen down" event */
-> +       if (ts->sample_sent) {
-> +               ts->avg_x += x;
-> +               ts->avg_y += y;
-> +               ts->avg_z1 += z1;
-> +               ts->avg_z2 += z2;
-> +
-> +               if (++ts->sample_cnt < TS_SAMPLES)
-> +                       goto out;
-> +
-> +               x = ts->avg_x / TS_SAMPLES;
-> +               y = ts->avg_y / TS_SAMPLES;
-> +               z1 = ts->avg_z1 / TS_SAMPLES;
-> +               z2 = ts->avg_z2 / TS_SAMPLES;
-> +       }
-> +
-> +       ts->sample_cnt = 0;
-> +       ts->avg_x = 0;
-> +       ts->avg_y = 0;
-> +       ts->avg_z1 = 0;
-> +       ts->avg_z2 = 0;
-> +
-> +       if (z1) {
-> +               pressure = x * (z2 - z1) / z1;
-> +               pressure = pressure * ts->x_plate_ohm / 4096;
-> +       } else
-> +               goto out;
-> +
-> +       pressure_limit = ts->sample_sent? ts->p_max: ts->touch_pressure;
-> +       if (pressure > pressure_limit)
-> +               goto out;
-> +
-> +       /* discard the event if it still is within the previous rect - unless
-> +        * if the pressure is harder, but then use previous x,y position */
-> +       inside_rect = (ts->sample_sent &&
-> +               x > (int)ts->x - TS_RECT_SIZE &&
-> +               x < (int)ts->x + TS_RECT_SIZE &&
-> +               y > (int)ts->y - TS_RECT_SIZE &&
-> +               y < (int)ts->y + TS_RECT_SIZE);
-> +       if (inside_rect)
-> +               x = ts->x, y = ts->y;
-> +
-> +       if (!inside_rect || pressure < ts->p) {
-> +               tsc2005_ts_update_pen_state(ts, x, y, pressure);
-> +               ts->sample_sent = 1;
-> +               ts->x = x;
-> +               ts->y = y;
-> +               ts->p = pressure;
-> +       }
+> That driver is full of arch specific code and should be cleaned up ASAP.
+>
+> A few things I could get by briefly looking at the driver (actualy only
+> drivers/bluetooth/hci_h4p/core.c):
 
-Minor nit: will this not break ts_calibrate from tslib? ts_calibrate
-tries to read 5 samples for every touch, so the user will need to be
-moving the pen. I hit this in emulators where noise needs to be added
-artifically because userspace (tslib) relies on it.
-Also curious why report if pressure becomes harder but not when softer.
+There's also a curious issue in hci_h4p_interrupt I hit recently but
+after looking at the rest of the driver thought it was beating a dead
+horse..., but just in case it isn't:
+the driver assumes the OMAP UART, but then it uses UART_IIR_ID which
+is only valid for standard UARTs, causing OMAP-specific Rx errors to
+be ignored silently.  Turns out that on my N810 there are actually Rx
+errors reported during firmware upload, but I didn't find a better way
+to handle them than to ignore them:
 
-Regards
+--- a/drivers/bluetooth/hci_h4p/core.c
++++ b/drivers/bluetooth/hci_h4p/core.c
+@@ -482,7 +491,14 @@ static irqreturn_t hci_h4p_interrupt(int irq, void *data)
+
+        NBT_DBG("In interrupt handler iir 0x%.2x\n", iir);
+
+-       iir &= UART_IIR_ID;
++       iir &= 0x1e; /* OMAP UART has wider INT than UART_IIR_ID */
++
++       /*
++        * Often Rx errors are reported but reading the receive buffer
++        * gives the correct data, so treat it as an Rx interrupt.
++        */
++       if (iir == 0xc)
++               iir = 0x4;
+
+        if (iir == UART_IIR_MSI) {
+                msr = hci_h4p_inb(info, UART_MSR);
+
+The tsc210x drivers should be upstreamable with the exception of ALSA
+code which needs to be converted to ASoC.  Maruk Vasut found a leak in
+one error path, but I can't charge the device that has the tsc2102
+that I used for testing.
+
+I have some improvements to drivers/net/irda/omap-ir.c (clean-up and
+removing OMAP16xx specific bits to support OMAP1) but again, have no
+charger for the device.
+
+Thanks
