@@ -1,90 +1,105 @@
-From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
-Subject: Re: MMC Driver - Kernel crashing at function "omap_mmc_set_ios"
-Date: Mon, 1 Sep 2008 15:56:51 +0530
-Message-ID: <03dd01c90c1d$403b9000$LocalHost@wipultra1303>
-References: <ca6476860809010212hfc58859nfa745af59f103e54@mail.gmail.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [PATCH] ASoC: Convert tlv320aic3x to a new-style
+ i2c driver
+Date: Mon, 1 Sep 2008 15:20:38 +0300
+Message-ID: <20080901152038.5987df8d.jarkko.nikula@nokia.com>
+References: <20080901112131.08cdbb59@hyperion.delvare>
+	<20080901143114.e98543a1.jarkko.nikula@nokia.com>
+	<20080901113508.GC2722@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60141 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751016AbYIAK1D convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Sep 2008 06:27:03 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20080901113508.GC2722@sirena.org.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: ext Mark Brown <broonie@sirena.org.uk>
+Cc: ext Jean Delvare <khali@linux-fr.org>, alsa-devel@alsa-project.org, Vladimir Barinov <vbarinov@ru.mvista.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: halli manjunatha <hallimanju@gmail.com>, linux-omap@vger.kernel.org
 
-Hi,
+On Mon, 1 Sep 2008 12:35:09 +0100
+"ext Mark Brown" <broonie@sirena.org.uk> wrote:
 
-I did not see any such crash. Why 2.6.24 kernel version? The linux omap kernel is 2.6.27.
-Looking at the error it seems like an access to the mmc registers when the clocks are not on.
-
-Regards,
-Madhu
------ Original Message ----- 
-From: "halli manjunatha" <hallimanju@gmail.com>
-To: <linux-omap@vger.kernel.org>
-Sent: Monday, September 01, 2008 2:42 PM
-Subject: MMC Driver - Kernel crashing at function "omap_mmc_set_ios"
-
-
-> Hello,
->       I am working on omap3430 with 2.6.24 kernel, while booting the
-> kernel is crashing ,
-> the kernel message is shown below.
+> On Mon, Sep 01, 2008 at 02:31:14PM +0300, Jarkko Nikula wrote:
+> > "ext Jean Delvare" <khali@linux-fr.org> wrote:
 > 
-> *************************************************************************************************
-> Unhandled fault: external abort on non-linefetch (0x1008) at 0xc885802c
-> Internal error: : 1008 [#1]
-> Modules linked in:
-> CPU: 0    Not tainted  (2.6.24.7-omap1-arm2-g0d138099-dirty #6)
-> PC is at omap_mmc_set_ios+0xac/0x2c8
-> LR is at schedule_timeout+0x98/0xb8
-> pc : [<c0233450>]    lr : [<c02e6090>]    psr: 60000013
-> sp : c7c6bf38  ip : c7c6bec8  fp : c7c6bf54
-> r10: 00000000  r9 : 00000000  r8 : 00000000
-> r7 : c77d0540  r6 : c77d05a0  r5 : c7c6bf6c  r4 : c77d0400
-> r3 : 00000f07  r2 : c8858000  r1 : 00000002  r0 : 00000000
-> Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-> Control: 00c5387f  Table: 80004018  DAC: 00000017
-> Process kmmcd (pid: 109, stack limit = 0xc7c6a2e8)
-> Stack: (0xc7c6bf38 to 0xc7c6c000)
-> bf20:                                                       c77d0400 c7c6bf6c
-> bf40: c022c3e0 c7c96a60 c7c6bf64 c7c6bf58 c022ba98 c02333b0 c7c6bf84 c7c6bf68
-> bf60: c022c508 c022ba54 00000000 00000000 c7c96a60 c7c6a000 c7c6bfa4 c7c6bf88
-> bf80: c0095ed0 c022c3ec c7c96a68 c7c6bfb8 c7cb9700 c7c96a60 c7c6bfdc c7c6bfa8
-> bfa0: c0096900 c0095e40 c7c6bfdc 00000000 c7cb9700 c009a124 c7c6bfb8 c7c6bfb8
-> bfc0: c7c96a60 c0096854 00000000 00000000 c7c6bff4 c7c6bfe0 c0099c70 c0096860
-> bfe0: 00000000 00000000 00000000 c7c6bff8 c0089ad0 c0099c28 00000000 00000000
-> Backtrace:
-> [<c02333a4>] (omap_mmc_set_ios+0x0/0x2c8) from [<c022ba98>]
-> (mmc_power_off+0x50/0x54)
-> r7:c7c96a60 r6:c022c3e0 r5:c7c6bf6c r4:c77d0400
-> [<c022ba48>] (mmc_power_off+0x0/0x54) from [<c022c508>] (mmc_rescan+0x128/0x188)
-> [<c022c3e0>] (mmc_rescan+0x0/0x188) from [<c0095ed0>] (run_workqueue+0x9c/0x118)
-> r5:c7c6a000 r4:c7c96a60
-> [<c0095e34>] (run_workqueue+0x0/0x118) from [<c0096900>]
-> (worker_thread+0xac/0xc0)
-> r7:c7c96a60 r6:c7cb9700 r5:c7c6bfb8 r4:c7c96a68
-> [<c0096854>] (worker_thread+0x0/0xc0) from [<c0099c70>] (kthread+0x54/0x80)
-> r7:00000000 r6:00000000 r5:c0096854 r4:c7c96a60
-> [<c0099c1c>] (kthread+0x0/0x80) from [<c0089ad0>] (do_exit+0x0/0x6d4)
-> r5:00000000 r4:00000000
-> Code: e5923128 e3833002 ea000006 e5962044 (e592302c)
-> ---[ end trace db388d58efbe09b5 ]---
+> > Thanks. In N810 it's connected into second i2c bus so this makes it
+> > working
 > 
-> ********************************************************************************************************
+> >  +	.i2c_bus = 2,
 > 
-> But if i disable the backlight driver while compiling, then kernel
-> booting goes smoothly.
-> where the backlight driver is no  more related to MMC driver.
-> -- 
-> Regards
-> Manjunatha H
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> Should that be 1?  Normally the buses are numbered from zero...
 >
+Good question. By some historical reason we are registering busses
+starting from number one in OMAP and short hack below (in linux-omap
+tree) trying to register them starting from zero didn't work out.
+
+But yeah, that's another issue in linux-omap and Jean's patch is
+working on N810 if changing this i2c_bus to 2.
+
+
+Jarkko
+
+--- a/arch/arm/mach-omap2/board-n800.c
++++ b/arch/arm/mach-omap2/board-n800.c
+@@ -691,15 +691,15 @@ void __init nokia_n800_common_init(void)
+ 				ARRAY_SIZE(n810_spi_board_info));
+ 	}
+ 	omap_serial_init();
+-	omap_register_i2c_bus(1, 400, n800_i2c_board_info_1,
++	omap_register_i2c_bus(0, 400, n800_i2c_board_info_1,
+ 			      ARRAY_SIZE(n800_i2c_board_info_1));
+-	omap_register_i2c_bus(2, 400, n8x0_i2c_board_info_2,
++	omap_register_i2c_bus(1, 400, n8x0_i2c_board_info_2,
+ 			      ARRAY_SIZE(n800_i2c_board_info_2));
+ 	if (machine_is_nokia_n800())
+-		i2c_register_board_info(2, n800_i2c_board_info_2,
++		i2c_register_board_info(1, n800_i2c_board_info_2,
+ 			ARRAY_SIZE(n800_i2c_board_info_2));
+ 	if (machine_is_nokia_n810())
+-		i2c_register_board_info(2, n810_i2c_board_info_2,
++		i2c_register_board_info(1, n810_i2c_board_info_2,
+ 			ARRAY_SIZE(n810_i2c_board_info_2));
+ 		
+ 	mipid_dev_init();
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index 89a6ab0..83ef7cf 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -134,7 +134,7 @@ int __init omap_register_i2c_bus(int bus_id, u32
+clkrate, else if (cpu_is_omap34xx())
+ 		ports = 3;
+ 
+-	BUG_ON(bus_id < 1 || bus_id > ports);
++//	BUG_ON(bus_id < 1 || bus_id > ports);
+ 
+ 	if (info) {
+ 		err = i2c_register_board_info(bus_id, info, len);
+@@ -142,10 +142,10 @@ int __init omap_register_i2c_bus(int bus_id, u32
+clkrate, return err;
+ 	}
+ 
+-	pdev = &omap_i2c_devices[bus_id - 1];
++	pdev = &omap_i2c_devices[bus_id /*- 1*/];
+ 	*(u32 *)pdev->dev.platform_data = clkrate;
+ 
+-	if (bus_id == 1) {
++	if (bus_id == /*1*/0) {
+ 		res = pdev->resource;
+ 		if (cpu_class_is_omap1()) {
+ 			base = OMAP1_I2C_BASE;
+@@ -159,6 +159,6 @@ int __init omap_register_i2c_bus(int bus_id, u32
+clkrate, res[1].start = irq;
+ 	}
+ 
+-	omap_i2c_mux_pins(bus_id - 1);
++	omap_i2c_mux_pins(bus_id /*- 1*/);
+ 	return platform_device_register(pdev);
+ }
