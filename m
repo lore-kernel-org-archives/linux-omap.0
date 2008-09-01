@@ -1,49 +1,48 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 02/12] serial context save/restore
-Date: Mon, 1 Sep 2008 21:06:33 +0100
-Message-ID: <20080901200633.GD28999@flint.arm.linux.org.uk>
-References: <59386.192.168.10.89.1220276247.squirrel@dbdmail.itg.ti.com>
+Subject: Re: [PATCH 2/3] Runtime check for OMAP35x
+Date: Mon, 1 Sep 2008 21:10:58 +0100
+Message-ID: <20080901201058.GE28999@flint.arm.linux.org.uk>
+References: <1220299067-17307-1-git-send-email-premi@ti.com> <1220299067-17307-2-git-send-email-premi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46180 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49478 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750839AbYIAUGq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Sep 2008 16:06:46 -0400
+	with ESMTP id S1751351AbYIAULJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Sep 2008 16:11:09 -0400
 Content-Disposition: inline
-In-Reply-To: <59386.192.168.10.89.1220276247.squirrel@dbdmail.itg.ti.com>
+In-Reply-To: <1220299067-17307-2-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
+To: Sanjeev Premi <premi@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-On Mon, Sep 01, 2008 at 07:07:27PM +0530, Rajendra Nayak wrote:
-> This patch adds the context save restore functions for UART
-> --- linux-omap-2.6.orig/include/linux/serial_reg.h	2008-09-01
-> 18:11:29.000000000 +0530
-> +++ linux-omap-2.6/include/linux/serial_reg.h	2008-09-01 18:11:50.000000000 +0530
-> @@ -323,6 +323,7 @@
->  #define UART_OMAP_MVER		0x14	/* Module version register */
->  #define UART_OMAP_SYSC		0x15	/* System configuration register */
->  #define UART_OMAP_SYSS		0x16	/* System status register */
-> +#define UART_OMAP_WER           0x17    /* Wake-up enable register */
-
-Please match the indentation style.
+On Tue, Sep 02, 2008 at 01:27:46AM +0530, Sanjeev Premi wrote:
+> Based on earlier review comments, added runtime
+> check of the OMAP35x via omap2_set_globasl_3503() etc.
+> ---
+>  arch/arm/plat-omap/common.c        |   76 ++++++++++++++++++++++++++++++++++
+>  include/asm-arm/arch-omap/common.h |    4 ++
+>  include/asm-arm/arch-omap/cpu.h    |   79 ++++++++++++++++++++++++++++++++++++
+>  3 files changed, 159 insertions(+), 0 deletions(-)
 > 
->  #endif /* _LINUX_SERIAL_REG_H */
-> 
-> Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/serial.h
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/serial.h	2008-09-01
-> 18:11:29.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/plat-omap/include/mach/serial.h	2008-09-01
-> 18:11:50.000000000 +0530
-> @@ -39,5 +39,16 @@
->  				__ret = 1;			\
->  			__ret;					\
->  			})
-> -
-> +#ifndef __ASSEMBLY__
+> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+> index 3a5f05e..f8b04cc 100644
+> --- a/arch/arm/plat-omap/common.c
+> +++ b/arch/arm/plat-omap/common.c
+> @@ -334,3 +334,79 @@ void __init omap2_set_globals_343x(void)
+>  }
+>  #endif
+>  
+> +#if defined(CONFIG_ARCH_OMAP3503)
+> +
+> +static struct omap_globals omap3503_globals = {
+> +	.class	= OMAP35XX_CLASS,
+> +	.tap	= (__force void __iomem *)OMAP2_IO_ADDRESS(0x4830A000),
 
-There should be a blank line between the previous macro and this
-ifndef.
+See my comments elsewhere about why this is Really Bad.  Any casts
+outside of a few header files using __force are basically a bug.
+
+In this case, you're being forced to use them because OMAP2_IO_ADDRESS
+doesn't return the proper pointer values.  (I produced a patch for
+comment on this list last week over this issue.)
