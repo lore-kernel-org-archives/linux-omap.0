@@ -1,102 +1,173 @@
-From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 12/12] CORE OFF macro added, disabled by default
-Date: Mon, 1 Sep 2008 19:12:50 +0530 (IST)
-Message-ID: <63425.192.168.10.89.1220276570.squirrel@dbdmail.itg.ti.com>
+From: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Subject: Re: [PATCH 01/12] GPMC context save/restore
+Date: Mon, 01 Sep 2008 17:14:56 +0300
+Message-ID: <48BBF8E0.9050200@nokia.com>
+References: <58545.192.168.10.89.1220276182.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47102 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751343AbYIANm4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Sep 2008 09:42:56 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id m81Dgpth000768
-	for <linux-omap@vger.kernel.org>; Mon, 1 Sep 2008 08:42:56 -0500
-Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id m81DgmB2022197
-	for <linux-omap@vger.kernel.org>; Mon, 1 Sep 2008 08:42:49 -0500 (CDT)
+Received: from smtp.nokia.com ([192.100.122.233]:53384 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751305AbYIAOMA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Sep 2008 10:12:00 -0400
+In-Reply-To: <58545.192.168.10.89.1220276182.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-This patch adds a macro to enable/disbale CORE OFF support
-in CPUIdle. It is kept disabled by default.
+Rajendra Nayak wrote:
+> This patch adds the context save restore functions for GPMC
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  arch/arm/mach-omap2/gpmc.c             |   66 +++++++++++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/mach/gpmc.h |   29 ++++++++++++++
+>  2 files changed, 95 insertions(+)
+> 
+> Index: linux-omap-2.6/arch/arm/mach-omap2/gpmc.c
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/mach-omap2/gpmc.c	2008-09-01
+> 18:11:29.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/mach-omap2/gpmc.c	2008-09-01 18:11:36.000000000 +0530
+> @@ -58,6 +58,7 @@ static struct resource	gpmc_mem_root;
+>  static struct resource	gpmc_cs_mem[GPMC_CS_NUM];
+>  static DEFINE_SPINLOCK(gpmc_mem_lock);
+>  static unsigned		gpmc_cs_map;
+> +static struct omap3_gpmc_regs gpmc_ctx;
+> 
+>  static u32 gpmc_base;
+> 
+> @@ -437,3 +438,68 @@ void __init gpmc_init(void)
+> 
+>  	gpmc_mem_init();
+>  }
+> +
+> +#ifdef CONFIG_ARCH_OMAP3
+> +void omap3_save_gpmc_ctx()
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/configs/omap_3430sdp_defconfig |    6 ++++++
- arch/arm/mach-omap2/cpuidle34xx.c       |    4 ++++
- arch/arm/plat-omap/Kconfig              |   12 ++++++++++++
- 3 files changed, 22 insertions(+)
+Is there a "void" missing i.e. void omap3_save_gpmc_ctx(void)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/cpuidle34xx.c	2008-09-01
-18:27:27.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c	2008-09-01
-18:29:53.000000000 +0530
-@@ -248,7 +248,11 @@ void omap_init_power_states(void)
- 			CPUIDLE_FLAG_BALANCED | CPUIDLE_FLAG_CHECK_BM;
+> +{
+> +	int i;
+> +	gpmc_ctx.sysconfig = gpmc_read_reg(GPMC_SYSCONFIG);
+> +	gpmc_ctx.irqenable = gpmc_read_reg(GPMC_IRQENABLE);
+> +	gpmc_ctx.timeout_ctrl = gpmc_read_reg(GPMC_TIMEOUT_CONTROL);
+> +	gpmc_ctx.config = gpmc_read_reg(GPMC_CONFIG);
+> +	gpmc_ctx.prefetch_config1 = gpmc_read_reg(GPMC_PREFETCH_CONFIG1);
+> +	gpmc_ctx.prefetch_config2 = gpmc_read_reg(GPMC_PREFETCH_CONFIG2);
+> +	gpmc_ctx.prefetch_control = gpmc_read_reg(GPMC_PREFETCH_CONTROL);
+> +	for (i = 0; i < GPMC_CS_NUM; i++) {
+> +		gpmc_ctx.cs_context[i].is_valid =
+> +				(gpmc_cs_read_reg(i, GPMC_CS_CONFIG7))
+> +								& (1 << 6);
+> +		if (gpmc_ctx.cs_context[i].is_valid) {
+> +			gpmc_ctx.cs_context[i].gpmc_config1 =
+> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG1);
+> +			gpmc_ctx.cs_context[i].gpmc_config2 =
+> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG2);
+> +			gpmc_ctx.cs_context[i].gpmc_config3 =
+> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG3);
+> +			gpmc_ctx.cs_context[i].gpmc_config4 =
+> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG4);
+> +			gpmc_ctx.cs_context[i].gpmc_config5 =
+> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG5);
+> +			gpmc_ctx.cs_context[i].gpmc_config6 =
+> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG6);
+> +			gpmc_ctx.cs_context[i].gpmc_config7 =
+> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG7);
+> +		}
+> +	}
+> +}
+> +
+> +void omap3_restore_gpmc_ctx()
 
- 	/* C6 . MPU OFF + Core OFF */
-+#ifdef CONFIG_OMAP_CPUIDLE_CORE_OFF
-+	omap3_power_states[OMAP3_STATE_C6].valid = 1;
-+#else
- 	omap3_power_states[OMAP3_STATE_C6].valid = 0;
-+#endif
- 	omap3_power_states[OMAP3_STATE_C6].type = OMAP3_STATE_C6;
- 	omap3_power_states[OMAP3_STATE_C6].sleep_latency = 10000;
- 	omap3_power_states[OMAP3_STATE_C6].wakeup_latency = 30000;
-Index: linux-omap-2.6/arch/arm/plat-omap/Kconfig
-===================================================================
---- linux-omap-2.6.orig/arch/arm/plat-omap/Kconfig	2008-09-01
-18:12:34.000000000 +0530
-+++ linux-omap-2.6/arch/arm/plat-omap/Kconfig	2008-09-01 18:29:53.000000000 +0530
-@@ -87,6 +87,18 @@ config OMAP_SMARTREFLEX_TESTING
+Ditto
 
- 	  WARNING: Enabling this option may cause your device to hang!
-
-+config OMAP_CPUIDLE_CORE_OFF
-+	bool "CORE OFF support in CPUIdle"
-+	depends on ARCH_OMAP34XX
-+	default n
-+	help
-+	  Say Y if you want to enable CORE OFF support in CPUIdle
-+
-+	  Currently some drivers don't work well with OFF support
-+	  enabled in CPUIlde. Once all device drivers are adapted
-+	  to work with OFF mode in CPUIdle, this MACRO will be
-+	  removed.
-+
- config OMAP_RESET_CLOCKS
- 	bool "Reset unused clocks during boot"
- 	depends on ARCH_OMAP
-Index: linux-omap-2.6/arch/arm/configs/omap_3430sdp_defconfig
-===================================================================
---- linux-omap-2.6.orig/arch/arm/configs/omap_3430sdp_defconfig	2008-09-01
-18:12:34.000000000 +0530
-+++ linux-omap-2.6/arch/arm/configs/omap_3430sdp_defconfig	2008-09-01
-18:32:33.000000000 +0530
-@@ -174,6 +174,7 @@ CONFIG_ARCH_OMAP3=y
- # CONFIG_OMAP_DEBUG_CLOCKDOMAIN is not set
- CONFIG_OMAP_SMARTREFLEX=y
- # CONFIG_OMAP_SMARTREFLEX_TESTING is not set
-+# CONFIG_OMAP_CPUIDLE_CORE_OFF is not set
- CONFIG_OMAP_RESET_CLOCKS=y
- CONFIG_OMAP_BOOT_TAG=y
- CONFIG_OMAP_BOOT_REASON=y
-@@ -286,6 +287,11 @@ CONFIG_CMDLINE="root=/dev/nfs nfsroot=19
- # CONFIG_KEXEC is not set
-
- #
-+# CPUIdle
-+#
-+# CONFIG_CPU_IDLE is not set
-+
-+#
- # CPU Frequency scaling
- #
- # CONFIG_CPU_FREQ is not set
-
+> +{
+> +	int i;
+> +	gpmc_write_reg(GPMC_SYSCONFIG, gpmc_ctx.sysconfig);
+> +	gpmc_write_reg(GPMC_IRQENABLE, gpmc_ctx.irqenable);
+> +	gpmc_write_reg(GPMC_TIMEOUT_CONTROL, gpmc_ctx.timeout_ctrl);
+> +	gpmc_write_reg(GPMC_CONFIG, gpmc_ctx.config);
+> +	gpmc_write_reg(GPMC_PREFETCH_CONFIG1, gpmc_ctx.prefetch_config1);
+> +	gpmc_write_reg(GPMC_PREFETCH_CONFIG2, gpmc_ctx.prefetch_config2);
+> +	gpmc_write_reg(GPMC_PREFETCH_CONTROL, gpmc_ctx.prefetch_control);
+> +	for (i = 0; i < GPMC_CS_NUM; i++) {
+> +		if (gpmc_ctx.cs_context[i].is_valid) {
+> +			gpmc_cs_write_reg(i, GPMC_CS_CONFIG1,
+> +					gpmc_ctx.cs_context[i].gpmc_config1);
+> +			gpmc_cs_write_reg(i, GPMC_CS_CONFIG2,
+> +					gpmc_ctx.cs_context[i].gpmc_config2);
+> +			gpmc_cs_write_reg(i, GPMC_CS_CONFIG3,
+> +					gpmc_ctx.cs_context[i].gpmc_config3);
+> +			gpmc_cs_write_reg(i, GPMC_CS_CONFIG4,
+> +					gpmc_ctx.cs_context[i].gpmc_config4);
+> +			gpmc_cs_write_reg(i, GPMC_CS_CONFIG5,
+> +					gpmc_ctx.cs_context[i].gpmc_config5);
+> +			gpmc_cs_write_reg(i, GPMC_CS_CONFIG6,
+> +					gpmc_ctx.cs_context[i].gpmc_config6);
+> +			gpmc_cs_write_reg(i, GPMC_CS_CONFIG7,
+> +					gpmc_ctx.cs_context[i].gpmc_config7);
+> +		}
+> +	}
+> +}
+> +#endif /* CONFIG_ARCH_OMAP3 */
+> Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/gpmc.h
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/gpmc.h	2008-09-01
+> 18:11:29.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/plat-omap/include/mach/gpmc.h	2008-09-01
+> 18:11:36.000000000 +0530
+> @@ -90,6 +90,33 @@ struct gpmc_timings {
+>  	u16 wr_data_mux_bus;	/* WRDATAONADMUXBUS */
+>  };
+> 
+> +/* Structure to save gpmc cs context */
+> +struct gpmc_cs_config {
+> +	u32 gpmc_config1;
+> +	u32 gpmc_config2;
+> +	u32 gpmc_config3;
+> +	u32 gpmc_config4;
+> +	u32 gpmc_config5;
+> +	u32 gpmc_config6;
+> +	u32 gpmc_config7;
+> +	int is_valid;
+> +};
+> +
+> +/*
+> + * Structure to save/restore gpmc context
+> + * to support core off on OMAP3
+> + */
+> +struct omap3_gpmc_regs {
+> +	u32 sysconfig;
+> +	u32 irqenable;
+> +	u32 timeout_ctrl;
+> +	u32 config;
+> +	u32 prefetch_config1;
+> +	u32 prefetch_config2;
+> +	u32 prefetch_control;
+> +	struct gpmc_cs_config cs_context[GPMC_CS_NUM];
+> +};
+> +
+>  extern unsigned int gpmc_ns_to_ticks(unsigned int time_ns);
+>  extern unsigned int gpmc_ticks_to_ns(unsigned int ticks);
+>  extern unsigned int gpmc_round_ns_to_ticks(unsigned int time_ns);
+> @@ -103,6 +130,8 @@ extern int gpmc_cs_request(int cs, unsig
+>  extern void gpmc_cs_free(int cs);
+>  extern int gpmc_cs_set_reserved(int cs, int reserved);
+>  extern int gpmc_cs_reserved(int cs);
+> +extern void omap3_save_gpmc_ctx(void);
+> +extern void omap3_restore_gpmc_ctx(void);
+>  extern void __init gpmc_init(void);
+> 
+>  #endif
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
