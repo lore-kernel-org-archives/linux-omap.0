@@ -1,49 +1,44 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 1/1] SDP2430 Fix dependency in include file
-Date: Mon, 1 Sep 2008 11:07:00 +0300
-Message-ID: <20080901080700.GX9887@frodo>
-References: <cb8016980808311857y693787daq8c641c785732058c@mail.gmail.com>
-Reply-To: me@felipebalbi.com
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [PATCH 28/33] add tsc2301 driver
+Date: Mon, 1 Sep 2008 11:11:07 +0300
+Message-ID: <20080901111107.541c3471.jarkko.nikula@nokia.com>
+References: <1220116593-862-21-git-send-email-me@felipebalbi.com>
+	<1220116593-862-22-git-send-email-me@felipebalbi.com>
+	<1220116593-862-23-git-send-email-me@felipebalbi.com>
+	<1220116593-862-24-git-send-email-me@felipebalbi.com>
+	<1220116593-862-25-git-send-email-me@felipebalbi.com>
+	<1220116593-862-26-git-send-email-me@felipebalbi.com>
+	<1220116593-862-27-git-send-email-me@felipebalbi.com>
+	<1220116593-862-28-git-send-email-me@felipebalbi.com>
+	<1220116593-862-29-git-send-email-me@felipebalbi.com>
+	<20080901103512.bc42d187.jarkko.nikula@nokia.com>
+	<20080901075806.GT9887@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:40926 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751808AbYIAIJE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Sep 2008 04:09:04 -0400
-Content-Disposition: inline
-In-Reply-To: <cb8016980808311857y693787daq8c641c785732058c@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.105.134]:53953 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751694AbYIAIMS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Sep 2008 04:12:18 -0400
+In-Reply-To: <20080901075806.GT9887@frodo>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Abraham Arce <abraham.arce.moreno@gmail.com>
-Cc: omap <linux-omap@vger.kernel.org>
+To: me@felipebalbi.com
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>
 
-On Sun, Aug 31, 2008 at 08:57:44PM -0500, Abraham Arce wrote:
-> TWL4030_MODIRQ_KEYPAD was undeclared, adding the required file.
+On Mon, 1 Sep 2008 10:58:08 +0300
+"ext Felipe Balbi" <me@felipebalbi.com> wrote:
+
+> > Mixer driver here is also obsolete and used by N800 only. I think
+> > TSC2003 driver is easier to handle by trying to push only core,
+> > keyboard and ts part first. There is no place for mixer driver until
+> > it's ported to ASoC codec driver.
 > 
-> Signed-off-by: Abraham Arce <abraham.arce.moreno@gmail.com>
-> ---
->  arch/arm/mach-omap2/board-2430sdp.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
+> Cool, I'll drop this one as well. Will you take care of moving it to
+> ASoC ?
 > 
-> diff --git a/arch/arm/mach-omap2/board-2430sdp.c
-> b/arch/arm/mach-omap2/board-2430sdp.c
-> index 64e76e8..195d53c 100644
-> --- a/arch/arm/mach-omap2/board-2430sdp.c
-> +++ b/arch/arm/mach-omap2/board-2430sdp.c
-> @@ -24,6 +24,7 @@
->  #include <linux/clk.h>
->  #include <linux/spi/spi.h>
->  #include <linux/spi/ads7846.h>
-> +#include <linux/i2c/twl4030.h>
+Unfortunately I have very low priority for it :-(
 
-and what's wrong with:
 
-http://marc.info/?l=linux-omap&m=122011272912755&w=2
-
->  #include <linux/i2c/twl4030-rtc.h>
-> 
->  #include <mach/hardware.h>
-
--- 
-balbi
+Jarkko
