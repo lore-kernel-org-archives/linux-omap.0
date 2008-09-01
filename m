@@ -1,40 +1,40 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: [PATCH 05/33] add tlv320aic23 driver
-Date: Mon, 1 Sep 2008 11:13:12 +0300
-Message-ID: <20080901111312.176e3a4c.jarkko.nikula@nokia.com>
-References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
-	<1220116593-862-2-git-send-email-me@felipebalbi.com>
-	<1220116593-862-3-git-send-email-me@felipebalbi.com>
-	<1220116593-862-4-git-send-email-me@felipebalbi.com>
-	<1220116593-862-5-git-send-email-me@felipebalbi.com>
-	<1220116593-862-6-git-send-email-me@felipebalbi.com>
-	<20080901102228.02db1230.jarkko.nikula@nokia.com>
-	<20080901080158.GV9887@frodo>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH 29/33] add omap ehci bus glue
+Date: Mon, 1 Sep 2008 13:59:06 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02C418C7D1@dbde02.ent.ti.com>
+References: <1220116593-862-22-git-send-email-me@felipebalbi.com>
+ <1220116593-862-23-git-send-email-me@felipebalbi.com>
+ <1220116593-862-24-git-send-email-me@felipebalbi.com>
+ <1220116593-862-25-git-send-email-me@felipebalbi.com>
+ <1220116593-862-26-git-send-email-me@felipebalbi.com>
+ <1220116593-862-27-git-send-email-me@felipebalbi.com>
+ <1220116593-862-28-git-send-email-me@felipebalbi.com>
+ <1220116593-862-29-git-send-email-me@felipebalbi.com>
+ <1220116593-862-30-git-send-email-me@felipebalbi.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB02C418C6F5@dbde02.ent.ti.com>
+ <20080901075622.GS9887@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:61834 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751161AbYIAIOJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Sep 2008 04:14:09 -0400
-In-Reply-To: <20080901080158.GV9887@frodo>
+Received: from bear.ext.ti.com ([192.94.94.41]:53655 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752064AbYIAI3V convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Sep 2008 04:29:21 -0400
+In-Reply-To: <20080901075622.GS9887@frodo>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>
+To: "me@felipebalbi.com" <me@felipebalbi.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>
 
-On Mon, 1 Sep 2008 11:01:58 +0300
-"ext Felipe Balbi" <me@felipebalbi.com> wrote:
-
-> > Right path is to have ASoC codec driver for aic23 and develope ASoC
-> > machine driver for affected boards like Nokia 770 and OSK.
+> > Hold off on this one. I'll send a better version to linux-usb
+> > with a CC to linux-omap.
 > 
-> Do we still have anything using on l-o ? Could you send a patch
-> getting rid of it ?
+> Great. It's dropped. Care to update the MAINTAINERS file as well :-)
 > 
-At least OSK is still using. I sent some time ago a patch removing 770
-related hacks from the driver since they didn't compile anymore.
 
+Will do. I need to fold in one more patch sent by Vikram and clean up
+stuff a little. Then I'll send it across.
 
-Jarkko
+- Anand
