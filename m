@@ -1,57 +1,41 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: [PATCH 28/33] add tsc2301 driver
-Date: Mon, 1 Sep 2008 10:35:12 +0300
-Message-ID: <20080901103512.bc42d187.jarkko.nikula@nokia.com>
-References: <1220116593-862-1-git-send-email-me@felipebalbi.com>
-	<1220116593-862-14-git-send-email-me@felipebalbi.com>
-	<1220116593-862-15-git-send-email-me@felipebalbi.com>
-	<1220116593-862-16-git-send-email-me@felipebalbi.com>
-	<1220116593-862-17-git-send-email-me@felipebalbi.com>
-	<1220116593-862-18-git-send-email-me@felipebalbi.com>
-	<1220116593-862-19-git-send-email-me@felipebalbi.com>
-	<1220116593-862-20-git-send-email-me@felipebalbi.com>
-	<1220116593-862-21-git-send-email-me@felipebalbi.com>
-	<1220116593-862-22-git-send-email-me@felipebalbi.com>
-	<1220116593-862-23-git-send-email-me@felipebalbi.com>
-	<1220116593-862-24-git-send-email-me@felipebalbi.com>
-	<1220116593-862-25-git-send-email-me@felipebalbi.com>
-	<1220116593-862-26-git-send-email-me@felipebalbi.com>
-	<1220116593-862-27-git-send-email-me@felipebalbi.com>
-	<1220116593-862-28-git-send-email-me@felipebalbi.com>
-	<1220116593-862-29-git-send-email-me@felipebalbi.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 29/33] add omap ehci bus glue
+Date: Mon, 1 Sep 2008 10:56:29 +0300
+Message-ID: <20080901075622.GS9887@frodo>
+References: <1220116593-862-22-git-send-email-me@felipebalbi.com> <1220116593-862-23-git-send-email-me@felipebalbi.com> <1220116593-862-24-git-send-email-me@felipebalbi.com> <1220116593-862-25-git-send-email-me@felipebalbi.com> <1220116593-862-26-git-send-email-me@felipebalbi.com> <1220116593-862-27-git-send-email-me@felipebalbi.com> <1220116593-862-28-git-send-email-me@felipebalbi.com> <1220116593-862-29-git-send-email-me@felipebalbi.com> <1220116593-862-30-git-send-email-me@felipebalbi.com> <5A47E75E594F054BAF48C5E4FC4B92AB02C418C6F5@dbde02.ent.ti.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:56952 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751011AbYIAHhY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Sep 2008 03:37:24 -0400
-In-Reply-To: <1220116593-862-29-git-send-email-me@felipebalbi.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:38179 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751419AbYIAH4v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Sep 2008 03:56:51 -0400
+Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02C418C6F5@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Felipe Balbi <me@felipebalbi.com>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: Felipe Balbi <me@felipebalbi.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>
 
-On Sat, 30 Aug 2008 20:16:28 +0300
-"ext Felipe Balbi" <me@felipebalbi.com> wrote:
-
-> From: Felipe Balbi <felipe.balbi@nokia.com>
+On Mon, Sep 01, 2008 at 11:25:12AM +0530, Gadiyar, Anand wrote:
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Felipe Balbi
+> > Sent: Saturday, August 30, 2008 10:46 PM
+> > To: linux-omap@vger.kernel.org
+> > Cc: Felipe Balbi
+> > Subject: [PATCH 29/33] add omap ehci bus glue
+> >
+> > From: Felipe Balbi <felipe.balbi@nokia.com>
+> >
+> > Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 > 
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> ---
->  drivers/spi/Kconfig         |   22 +
->  drivers/spi/Makefile        |    3 +
->  drivers/spi/tsc2301-core.c  |  301 +++++++++++++
->  drivers/spi/tsc2301-mixer.c | 1004 ++++++++++++++++++++++++++++++++++
-> +++++++++ 4 files changed, 1330 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/spi/tsc2301-core.c
->  create mode 100644 drivers/spi/tsc2301-mixer.c
 > 
-Mixer driver here is also obsolete and used by N800 only. I think
-TSC2003 driver is easier to handle by trying to push only core,
-keyboard and ts part first. There is no place for mixer driver until
-it's ported to ASoC codec driver.
+> Hold off on this one. I'll send a better version to linux-usb
+> with a CC to linux-omap.
 
+Great. It's dropped. Care to update the MAINTAINERS file as well :-)
 
-Jarkko
+-- 
+balbi
