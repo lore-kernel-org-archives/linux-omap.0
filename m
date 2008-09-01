@@ -1,41 +1,164 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 00/12] OMAP3 CPUidle context save/restore patches -
-     supports C6
-Date: Mon, 1 Sep 2008 19:06:00 +0530 (IST)
-Message-ID: <58337.192.168.10.89.1220276160.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH 01/12] GPMC context save/restore
+Date: Mon, 1 Sep 2008 19:06:22 +0530 (IST)
+Message-ID: <58545.192.168.10.89.1220276182.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49104 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750800AbYIANgI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Sep 2008 09:36:08 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m81Da1MM000859
-	for <linux-omap@vger.kernel.org>; Mon, 1 Sep 2008 08:36:06 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59219 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750961AbYIANg2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Sep 2008 09:36:28 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m81DaNBN024853
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 1 Sep 2008 08:36:28 -0500
 Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id m81DZxRD018370
-	for <linux-omap@vger.kernel.org>; Mon, 1 Sep 2008 08:36:00 -0500 (CDT)
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id m81DaKoP002750
+	for <linux-omap@vger.kernel.org>; Mon, 1 Sep 2008 08:36:22 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Hi,
+This patch adds the context save restore functions for GPMC
 
-This patch set is the next in the series of CPUIdle patches. This has
-context save/restore support implemented for the following modules
-GPMC, UART, GPIO, I2C, PRCM, INTC, SCM, SRAM.
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/gpmc.c             |   66 +++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/gpmc.h |   29 ++++++++++++++
+ 2 files changed, 95 insertions(+)
 
-This also adds support for CPUIdle state C6, and adds a CONFIG option
-to enable/disbale CORE OFF support in CPUIdle. This option is disabled
-by default for now as not all device drivers are adapted to CORE OFF.
+Index: linux-omap-2.6/arch/arm/mach-omap2/gpmc.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/gpmc.c	2008-09-01
+18:11:29.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/gpmc.c	2008-09-01 18:11:36.000000000 +0530
+@@ -58,6 +58,7 @@ static struct resource	gpmc_mem_root;
+ static struct resource	gpmc_cs_mem[GPMC_CS_NUM];
+ static DEFINE_SPINLOCK(gpmc_mem_lock);
+ static unsigned		gpmc_cs_map;
++static struct omap3_gpmc_regs gpmc_ctx;
 
-The config option can be found here
-System Type->TI OMAP Implementations->CORE OFF support in CPUIdle.
+ static u32 gpmc_base;
 
-regards,
-Rajendra
+@@ -437,3 +438,68 @@ void __init gpmc_init(void)
 
+ 	gpmc_mem_init();
+ }
++
++#ifdef CONFIG_ARCH_OMAP3
++void omap3_save_gpmc_ctx()
++{
++	int i;
++	gpmc_ctx.sysconfig = gpmc_read_reg(GPMC_SYSCONFIG);
++	gpmc_ctx.irqenable = gpmc_read_reg(GPMC_IRQENABLE);
++	gpmc_ctx.timeout_ctrl = gpmc_read_reg(GPMC_TIMEOUT_CONTROL);
++	gpmc_ctx.config = gpmc_read_reg(GPMC_CONFIG);
++	gpmc_ctx.prefetch_config1 = gpmc_read_reg(GPMC_PREFETCH_CONFIG1);
++	gpmc_ctx.prefetch_config2 = gpmc_read_reg(GPMC_PREFETCH_CONFIG2);
++	gpmc_ctx.prefetch_control = gpmc_read_reg(GPMC_PREFETCH_CONTROL);
++	for (i = 0; i < GPMC_CS_NUM; i++) {
++		gpmc_ctx.cs_context[i].is_valid =
++				(gpmc_cs_read_reg(i, GPMC_CS_CONFIG7))
++								& (1 << 6);
++		if (gpmc_ctx.cs_context[i].is_valid) {
++			gpmc_ctx.cs_context[i].gpmc_config1 =
++				gpmc_cs_read_reg(i, GPMC_CS_CONFIG1);
++			gpmc_ctx.cs_context[i].gpmc_config2 =
++				gpmc_cs_read_reg(i, GPMC_CS_CONFIG2);
++			gpmc_ctx.cs_context[i].gpmc_config3 =
++				gpmc_cs_read_reg(i, GPMC_CS_CONFIG3);
++			gpmc_ctx.cs_context[i].gpmc_config4 =
++				gpmc_cs_read_reg(i, GPMC_CS_CONFIG4);
++			gpmc_ctx.cs_context[i].gpmc_config5 =
++				gpmc_cs_read_reg(i, GPMC_CS_CONFIG5);
++			gpmc_ctx.cs_context[i].gpmc_config6 =
++				gpmc_cs_read_reg(i, GPMC_CS_CONFIG6);
++			gpmc_ctx.cs_context[i].gpmc_config7 =
++				gpmc_cs_read_reg(i, GPMC_CS_CONFIG7);
++		}
++	}
++}
++
++void omap3_restore_gpmc_ctx()
++{
++	int i;
++	gpmc_write_reg(GPMC_SYSCONFIG, gpmc_ctx.sysconfig);
++	gpmc_write_reg(GPMC_IRQENABLE, gpmc_ctx.irqenable);
++	gpmc_write_reg(GPMC_TIMEOUT_CONTROL, gpmc_ctx.timeout_ctrl);
++	gpmc_write_reg(GPMC_CONFIG, gpmc_ctx.config);
++	gpmc_write_reg(GPMC_PREFETCH_CONFIG1, gpmc_ctx.prefetch_config1);
++	gpmc_write_reg(GPMC_PREFETCH_CONFIG2, gpmc_ctx.prefetch_config2);
++	gpmc_write_reg(GPMC_PREFETCH_CONTROL, gpmc_ctx.prefetch_control);
++	for (i = 0; i < GPMC_CS_NUM; i++) {
++		if (gpmc_ctx.cs_context[i].is_valid) {
++			gpmc_cs_write_reg(i, GPMC_CS_CONFIG1,
++					gpmc_ctx.cs_context[i].gpmc_config1);
++			gpmc_cs_write_reg(i, GPMC_CS_CONFIG2,
++					gpmc_ctx.cs_context[i].gpmc_config2);
++			gpmc_cs_write_reg(i, GPMC_CS_CONFIG3,
++					gpmc_ctx.cs_context[i].gpmc_config3);
++			gpmc_cs_write_reg(i, GPMC_CS_CONFIG4,
++					gpmc_ctx.cs_context[i].gpmc_config4);
++			gpmc_cs_write_reg(i, GPMC_CS_CONFIG5,
++					gpmc_ctx.cs_context[i].gpmc_config5);
++			gpmc_cs_write_reg(i, GPMC_CS_CONFIG6,
++					gpmc_ctx.cs_context[i].gpmc_config6);
++			gpmc_cs_write_reg(i, GPMC_CS_CONFIG7,
++					gpmc_ctx.cs_context[i].gpmc_config7);
++		}
++	}
++}
++#endif /* CONFIG_ARCH_OMAP3 */
+Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/gpmc.h
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/gpmc.h	2008-09-01
+18:11:29.000000000 +0530
++++ linux-omap-2.6/arch/arm/plat-omap/include/mach/gpmc.h	2008-09-01
+18:11:36.000000000 +0530
+@@ -90,6 +90,33 @@ struct gpmc_timings {
+ 	u16 wr_data_mux_bus;	/* WRDATAONADMUXBUS */
+ };
+
++/* Structure to save gpmc cs context */
++struct gpmc_cs_config {
++	u32 gpmc_config1;
++	u32 gpmc_config2;
++	u32 gpmc_config3;
++	u32 gpmc_config4;
++	u32 gpmc_config5;
++	u32 gpmc_config6;
++	u32 gpmc_config7;
++	int is_valid;
++};
++
++/*
++ * Structure to save/restore gpmc context
++ * to support core off on OMAP3
++ */
++struct omap3_gpmc_regs {
++	u32 sysconfig;
++	u32 irqenable;
++	u32 timeout_ctrl;
++	u32 config;
++	u32 prefetch_config1;
++	u32 prefetch_config2;
++	u32 prefetch_control;
++	struct gpmc_cs_config cs_context[GPMC_CS_NUM];
++};
++
+ extern unsigned int gpmc_ns_to_ticks(unsigned int time_ns);
+ extern unsigned int gpmc_ticks_to_ns(unsigned int ticks);
+ extern unsigned int gpmc_round_ns_to_ticks(unsigned int time_ns);
+@@ -103,6 +130,8 @@ extern int gpmc_cs_request(int cs, unsig
+ extern void gpmc_cs_free(int cs);
+ extern int gpmc_cs_set_reserved(int cs, int reserved);
+ extern int gpmc_cs_reserved(int cs);
++extern void omap3_save_gpmc_ctx(void);
++extern void omap3_restore_gpmc_ctx(void);
+ extern void __init gpmc_init(void);
+
+ #endif
 
 
