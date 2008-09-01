@@ -1,75 +1,43 @@
-From: Riku Voipio <riku.voipio@iki.fi>
-Subject: Re: [PATCH] ARM: OMAP2: Fix Nokia N8x0 second I2C bus device registration
-Date: Mon, 1 Sep 2008 22:11:30 +0300
-Message-ID: <20080901191130.GA8837@kos.to>
-References: <1220274304-23744-1-git-send-email-jarkko.nikula@nokia.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: [PATCH0/3] Add support for OMAP35x processors
+Date: Tue, 2 Sep 2008 01:26:25 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301A031B576@dbde02.ent.ti.com>
+References: <8F7AF80515AF0D4D93307E594F3CB40E0AFDBE42@dlee03.ent.ti.com>
+ <20080806090708.GH19813@atomide.com>
+ <B85A65D85D7EB246BE421B3FB0FBB593013CA23771@dbde02.ent.ti.com>
+ <20080806101045.GL19813@atomide.com>
+ <B85A65D85D7EB246BE421B3FB0FBB593013CA23868@dbde02.ent.ti.com>
+ <20080808073956.GI24923@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from naru.obs2.net ([84.20.150.76]:49968 "EHLO narury.org"
+Received: from comal.ext.ti.com ([198.47.26.152]:35486 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751530AbYIATLd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Sep 2008 15:11:33 -0400
-Content-Disposition: inline
-In-Reply-To: <1220274304-23744-1-git-send-email-jarkko.nikula@nokia.com>
+	id S1750839AbYIAT4l convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Sep 2008 15:56:41 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id m81JuXZb023203
+	for <linux-omap@vger.kernel.org>; Mon, 1 Sep 2008 14:56:39 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m81JuW4M019495
+	for <linux-omap@vger.kernel.org>; Tue, 2 Sep 2008 01:26:33 +0530 (IST)
+In-Reply-To: <20080808073956.GI24923@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Sep 01, 2008 at 04:05:04PM +0300, Jarkko Nikula wrote:
-> - TSL2563 and LP5521 are found only in N810
-> - Fix one typo
+Hi,
 
-> Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+These patches provide support for the OMAP35x processors.
 
-Acked-by: Riku voipio <riku.voipio@iki.fi>
+This is essentially a re-submit after series of discusions
+earliers in the list. Based on the comments received, this
+patch includes following:
+  1) Updates to Kconfig
+  2) Runtime check for OMAP35x
+  3) Updates to omap3_evm_defconfig
 
-> ---
->  arch/arm/mach-omap2/board-n800.c |   14 +++++++-------
->  1 files changed, 7 insertions(+), 7 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-n800.c b/arch/arm/mach-omap2/board-n800.c
-> index 95cc84a..1df9f3d 100644
-> --- a/arch/arm/mach-omap2/board-n800.c
-> +++ b/arch/arm/mach-omap2/board-n800.c
-> @@ -649,12 +649,6 @@ static struct i2c_board_info __initdata_or_module n8x0_i2c_board_info_2[] = {
->  		.platform_data = &n800_tcm825x_platform_data,
->  #endif
->  	},
-> -	{
-> -		I2C_BOARD_INFO("tsl2563", 0x29),
-> -	},
-> -	{
-> -		I2C_BOARD_INFO("lp5521", 0x32),
-> -	},
->  };
->  
->  
-> @@ -670,6 +664,12 @@ static struct i2c_board_info __initdata_or_module n810_i2c_board_info_2[] = {
->  		.irq		= OMAP_GPIO_IRQ(109),
->  		.platform_data	= &lm8323_pdata,
->  	},
-> +	{
-> +		I2C_BOARD_INFO("tsl2563", 0x29),
-> +	},
-> +	{
-> +		I2C_BOARD_INFO("lp5521", 0x32),
-> +	},
->  };
->  
->  void __init nokia_n800_common_init(void)
-> @@ -694,7 +694,7 @@ void __init nokia_n800_common_init(void)
->  	omap_register_i2c_bus(1, 400, n800_i2c_board_info_1,
->  			      ARRAY_SIZE(n800_i2c_board_info_1));
->  	omap_register_i2c_bus(2, 400, n8x0_i2c_board_info_2,
-> -			      ARRAY_SIZE(n800_i2c_board_info_2));
-> +			      ARRAY_SIZE(n8x0_i2c_board_info_2));
->  	if (machine_is_nokia_n800())
->  		i2c_register_board_info(2, n800_i2c_board_info_2,
->  			ARRAY_SIZE(n800_i2c_board_info_2));
-> -- 
-> 1.5.6.3
-
--- 
-"rm -rf" only sounds scary if you don't have backups
+Best regards,
+Sanjeev
