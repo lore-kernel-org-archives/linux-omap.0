@@ -1,282 +1,78 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 1/4] ARM: OMAP2: Add support for the Gumstix Overo board
-Date: Tue, 2 Sep 2008 03:46:13 +0300
-Message-ID: <20080902004605.GA6928@frodo>
-References: <1220306279-27977-1-git-send-email-sakoman@gmail.com> <1220306279-27977-2-git-send-email-sakoman@gmail.com>
-Reply-To: me@felipebalbi.com
+From: "stanley.miao" <stanley.miao@windriver.com>
+Subject: [PATCH] ARM: OMAP3: Fix omapfb's problem on OMAP3430sdp
+Date: Mon, 01 Sep 2008 21:37:08 +0800
+Message-ID: <1220276228.2680.9.camel@localhost>
+Reply-To: stanley.miao@windriver.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:36138 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751933AbYIBAqv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Sep 2008 20:46:51 -0400
-Content-Disposition: inline
-In-Reply-To: <1220306279-27977-2-git-send-email-sakoman@gmail.com>
+Received: from mail.windriver.com ([147.11.1.11]:44467 "EHLO mail.wrs.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752342AbYIBBtH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Sep 2008 21:49:07 -0400
+Received: from ALA-MAIL03.corp.ad.wrs.com (ala-mail03 [147.11.57.144])
+	by mail.wrs.com (8.13.6/8.13.6) with ESMTP id m821n5Rm011363
+	for <linux-omap@vger.kernel.org>; Mon, 1 Sep 2008 18:49:05 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: sakoman@gmail.com
-Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Steve Sakoman <steve@sakoman.com>
+To: linux-omap@vger.kernel.org
 
-On Mon, Sep 01, 2008 at 02:57:56PM -0700, sakoman@gmail.com wrote:
-> +	if ((gpio_request(W2W_NRESET, "W2W_NRESET") == 0) &&
-> +	    (gpio_direction_output(W2W_NRESET, 1) == 0)) {
-> +		gpio_export(W2W_NRESET, 0);
-> +		gpio_direction_output(W2W_NRESET, 0);
-> +		udelay(10);
-> +		gpio_direction_output(W2W_NRESET, 1);
-> +	} else
-> +		printk(KERN_ERR "could not obtain gpio for W2W_NRESET\n");
+In RGB565 mode, red and blue color are filtered, so the picture on LCD
+looks green and dark.
 
-	you should put {} on the else as well. The basic rule is that if
-one "arm" of the conditional needs {}, you put on both. Ditto below.
+Fix omapfb's problem on OMAP3430sdp.
 
-> diff --git a/drivers/video/omap/Kconfig b/drivers/video/omap/Kconfig
-> index bdeb8fb..5ebd591 100644
-> --- a/drivers/video/omap/Kconfig
-> +++ b/drivers/video/omap/Kconfig
-> @@ -7,6 +7,27 @@ config FB_OMAP
->  	help
->            Frame buffer driver for OMAP based boards.
->  
-> +choice
-> +	depends on FB_OMAP && MACH_OVERO
-> +	prompt "Screen resolution"
-> +	default FB_OMAP_079M3R
-> +	help
-> +	  Selected desired screen resolution
-> +
-> +config FB_OMAP_031M3R
-> +	boolean "640 x 480 @ 60 Hz Reduced blanking"
-> +
-> +config FB_OMAP_048M3R
-> +	boolean "800 x 600 @ 60 Hz Reduced blanking"
-> +
-> +config FB_OMAP_079M3R
-> +	boolean "1024 x 768 @ 60 Hz Reduced blanking"
-> +
-> +config FB_OMAP_092M9R
-> +	boolean "1280 x 720 @ 60 Hz Reduced blanking"
-> +
-> +endchoice
-> +
+Signed-off-by: Stanley Miao <stanley.miao@windriver.com>
 
-This part should come in a separate patch.
-
-> diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
-> index f9b5cd4..291c46e 100644
-> --- a/drivers/video/omap/Makefile
-> +++ b/drivers/video/omap/Makefile
-> @@ -35,6 +35,7 @@ objs-y$(CONFIG_MACH_OMAP2EVM) += lcd_omap2evm.o
->  objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
->  objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
->  objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
-> +objs-y$(CONFIG_MACH_OVERO) += lcd_overo.o
->  
->  omapfb-objs := $(objs-yy)
-
-Also this.
-
-> diff --git a/drivers/video/omap/lcd_overo.c b/drivers/video/omap/lcd_overo.c
-> new file mode 100644
-> index 0000000..831936d
-> --- /dev/null
-> +++ b/drivers/video/omap/lcd_overo.c
-> @@ -0,0 +1,189 @@
-> +/*
-> + * LCD panel support for the Gumstix Overo
-> + *
-> + * Author: Steve Sakoman <steve@sakoman.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License as published by the
-> + * Free Software Foundation; either version 2 of the License, or (at your
-> + * option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License along
-> + * with this program; if not, write to the Free Software Foundation, Inc.,
-> + * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/i2c/twl4030.h>
-> +
-> +#include <mach/gpio.h>
-> +#include <mach/mux.h>
-> +#include <mach/omapfb.h>
-> +#include <asm/mach-types.h>
-> +
-> +#define LCD_ENABLE       144
-> +
-> +static int overo_panel_init(struct lcd_panel *panel,
-> +				struct omapfb_device *fbdev)
-> +{
-> +	if ((gpio_request(LCD_ENABLE, "LCD_ENABLE") == 0) &&
-> +	    (gpio_direction_output(LCD_ENABLE, 1) == 0))
-> +		gpio_export(LCD_ENABLE, 0);
-> +	else
-> +		printk(KERN_ERR "could not obtain gpio for LCD_ENABLE\n");
-> +
-> +	return 0;
-> +}
-> +
-> +static void overo_panel_cleanup(struct lcd_panel *panel)
-> +{
-> +}
-> +
-> +static int overo_panel_enable(struct lcd_panel *panel)
-> +{
-> +	gpio_direction_output(LCD_ENABLE, 1);
-> +	return 0;
-> +}
-> +
-> +static void overo_panel_disable(struct lcd_panel *panel)
-> +{
-> +	gpio_direction_output(LCD_ENABLE, 0);
-> +}
-> +
-> +static unsigned long overo_panel_get_caps(struct lcd_panel *panel)
-> +{
-> +	return 0;
-> +}
-> +
-> +struct lcd_panel overo_panel = {
-> +	.name		= "overo",
-> +	.config		= OMAP_LCDC_PANEL_TFT,
-> +	.bpp		= 16,
-> +	.data_lines	= 24,
-> +
-> +#if defined CONFIG_FB_OMAP_031M3R
-> +
-> +	/* 640 x 480 @ 60 Hz  Reduced blanking VESA CVT 0.31M3-R */
-> +	.x_res		= 640,
-> +	.y_res		= 480,
-> +	.hfp		= 48,
-> +	.hsw		= 32,
-> +	.hbp		= 80,
-> +	.vfp		= 3,
-> +	.vsw		= 4,
-> +	.vbp		= 7,
-> +	.pixel_clock	= 23500,
-> +
-> +#elif defined CONFIG_FB_OMAP_048M3R
-> +
-> +	/* 800 x 600 @ 60 Hz  Reduced blanking VESA CVT 0.48M3-R */
-> +	.x_res		= 800,
-> +	.y_res		= 600,
-> +	.hfp		= 48,
-> +	.hsw		= 32,
-> +	.hbp		= 80,
-> +	.vfp		= 3,
-> +	.vsw		= 4,
-> +	.vbp		= 11,
-> +	.pixel_clock	= 35500,
-> +
-> +#elif defined CONFIG_FB_OMAP_079M3R
-> +
-> +	/* 1024 x 768 @ 60 Hz  Reduced blanking VESA CVT 0.79M3-R */
-> +	.x_res		= 1024,
-> +	.y_res		= 768,
-> +	.hfp		= 48,
-> +	.hsw		= 32,
-> +	.hbp		= 80,
-> +	.vfp		= 3,
-> +	.vsw		= 4,
-> +	.vbp		= 15,
-> +	.pixel_clock	= 56000,
-> +
-> +#elif defined CONFIG_FB_OMAP_092M9R
-> +
-> +	/* 1280 x 720 @ 60 Hz  Reduced blanking VESA CVT 0.92M9-R */
-> +	.x_res		= 1280,
-> +	.y_res		= 720,
-> +	.hfp		= 48,
-> +	.hsw		= 32,
-> +	.hbp		= 80,
-> +	.vfp		= 3,
-> +	.vsw		= 5,
-> +	.vbp		= 13,
-> +	.pixel_clock	= 64000,
-> +
-> +#else
-> +
-> +	/* use 640 x 480 if no config option */
-> +	/* 640 x 480 @ 60 Hz  Reduced blanking VESA CVT 0.31M3-R */
-> +	.x_res		= 640,
-> +	.y_res		= 480,
-> +	.hfp		= 48,
-> +	.hsw		= 32,
-> +	.hbp		= 80,
-> +	.vfp		= 3,
-> +	.vsw		= 4,
-> +	.vbp		= 7,
-> +	.pixel_clock	= 23500,
-> +
-> +#endif
-> +
-> +	.init		= overo_panel_init,
-> +	.cleanup	= overo_panel_cleanup,
-> +	.enable		= overo_panel_enable,
-> +	.disable	= overo_panel_disable,
-> +	.get_caps	= overo_panel_get_caps,
-> +};
-> +
-> +static int overo_panel_probe(struct platform_device *pdev)
-> +{
-> +	omapfb_register_panel(&overo_panel);
-> +	return 0;
-> +}
-> +
-> +static int overo_panel_remove(struct platform_device *pdev)
-> +{
-> +	return 0;
-> +}
-> +
-> +static int overo_panel_suspend(struct platform_device *pdev,
-> +				   pm_message_t mesg)
-> +{
-> +	return 0;
-> +}
-> +
-> +static int overo_panel_resume(struct platform_device *pdev)
-> +{
-> +	return 0;
-> +}
-> +
-> +struct platform_driver overo_panel_driver = {
-> +	.probe		= overo_panel_probe,
-> +	.remove		= overo_panel_remove,
-> +	.suspend	= overo_panel_suspend,
-> +	.resume		= overo_panel_resume,
-> +	.driver		= {
-> +		.name	= "overo_lcd",
-> +		.owner	= THIS_MODULE,
-> +	},
-> +};
-> +
-> +static int __init overo_panel_drv_init(void)
-> +{
-> +	return platform_driver_register(&overo_panel_driver);
-> +}
-> +
-> +static void __exit overo_panel_drv_exit(void)
-> +{
-> +	platform_driver_unregister(&overo_panel_driver);
-> +}
-> +
-> +module_init(overo_panel_drv_init);
-> +module_exit(overo_panel_drv_exit);
-
-And this driver.
-
-You should put the lcd stuff in a separate patch, then it's easier to
-follow the changes in a logical way.
-
--- 
-balbi
+---
+diff --git a/drivers/video/omap/lcd_2430sdp.c
+b/drivers/video/omap/lcd_2430sdp.c
+index 9af6cd0..896a236 100644
+--- a/drivers/video/omap/lcd_2430sdp.c
++++ b/drivers/video/omap/lcd_2430sdp.c
+@@ -23,6 +23,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
++#include <linux/delay.h>
+ #include <linux/i2c/twl4030.h>
+ 
+ #include <mach/gpio.h>
+@@ -45,6 +46,10 @@ static unsigned enable_gpio;
+ #define ENABLE_VAUX3_DEDICATED	0x03
+ #define ENABLE_VAUX3_DEV_GRP	0x20
+ 
++#define ENABLE_VPLL2_DEDICATED          0x05
++#define ENABLE_VPLL2_DEV_GRP            0xE0
++#define TWL4030_VPLL2_DEV_GRP           0x33
++#define TWL4030_VPLL2_DEDICATED         0x36
+ 
+ #define t2_out(c, r, v) twl4030_i2c_write_u8(c, r, v)
+ 
+@@ -76,6 +81,11 @@ static int sdp2430_panel_enable(struct lcd_panel
+*panel)
+ {
+ 	u8 ded_val, ded_reg;
+ 	u8 grp_val, grp_reg;
++	
++	if(!is_sil_rev_less_than(OMAP3430_REV_ES2_0)) {
++		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEDICATED,TWL4030_VPLL2_DEDICATED);
++		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEV_GRP,TWL4030_VPLL2_DEV_GRP);
++	}
+ 
+ 	if (machine_is_omap_3430sdp()) {
+ 		ded_reg = TWL4030_VAUX3_DEDICATED;
+@@ -104,6 +114,11 @@ static void sdp2430_panel_disable(struct lcd_panel
+*panel)
+ {
+ 	omap_set_gpio_dataout(enable_gpio, 0);
+ 	omap_set_gpio_dataout(backlight_gpio, 0);
++	if(!is_sil_rev_less_than(OMAP3430_REV_ES2_0)) {
++		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEDICATED);
++		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEV_GRP);
++		mdelay(4);
++	}
+ }
+ 
+ static unsigned long sdp2430_panel_get_caps(struct lcd_panel *panel)
