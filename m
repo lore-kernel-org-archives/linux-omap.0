@@ -1,46 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/15] OMAP3 camera driver: V4L2: Adding IOCTL command
-	to get slave private data.
-Date: Tue, 2 Sep 2008 15:53:36 -0700
-Message-ID: <20080902225336.GM23085@atomide.com>
-References: <A24693684029E5489D1D202277BE89441191E320@dlee02.ent.ti.com> <200808311435.47689.david-b@pacbell.net>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: RE: [RESEND][Review Request] Adding csi2_fck declaration to
+	clock34xx.h
+Date: Tue, 2 Sep 2008 18:03:26 -0500
+Message-ID: <A24693684029E5489D1D202277BE894411A07841@dlee02.ent.ti.com>
+References: <20080902223749.GH6814@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61124 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753158AbYIBWxl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 18:53:41 -0400
-Content-Disposition: inline
-In-Reply-To: <200808311435.47689.david-b@pacbell.net>
+Received: from comal.ext.ti.com ([198.47.26.152]:41701 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752220AbYIBXDh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 19:03:37 -0400
+In-Reply-To: <20080902223749.GH6814@frodo>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "me@felipebalbi.com" <me@felipebalbi.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* David Brownell <david-b@pacbell.net> [080831 14:36]:
-> On Friday 29 August 2008, Aguirre Rodriguez, Sergio Alberto wrote:
-> > From: Sakari Ailus <sakari.ailus@nokia.com>
-> > Date: Tue, 15 Apr 2008 10:35:15 +0300
-> > Subject: [PATCH] Adding IOCTL command to get slave private data.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
-> > ---
-> >  include/media/v4l2-int-device.h |    6 ++++++
-> >  1 files changed, 6 insertions(+), 0 deletions(-)
-> 
-> Seeing that series of patches from Felipe makes me wonder why
-> these patches shouldn't go *first* to the V4L list ... to help
-> avoid letting code sit for a long time in the OMAP tree without
-> going upstream.
-> 
-> This particular patch for example is not OMAP-specific.
-> 
-> And in general, the relevant review team for a V4L driver
-> (the rest of this series) is the V4L team not the OMAP team.
-> And if this driver passes their review, why not just merge
-> to mainline right away?
+Felipe,
 
-Yeah, this series should go via V4L list.
+I corrected the indentation as well as the initialization of clkdm, I'll resend the new patch.
 
-Tony
+About the OMAP3430_EN_CSI2 and OMAP3430_EN_CSI2_SHIFT defines, they look aligned in the final file, although in the patch looks unaligned. That space in the beginning of the patch line seems to be critical to look aligned... :/
+
+Thanks for your time.
+
+Regards,
+Sergio
+
+-----Original Message-----
+From: Felipe Balbi [mailto:me@felipebalbi.com] 
+Sent: Tuesday, September 02, 2008 5:38 PM
+To: Aguirre Rodriguez, Sergio Alberto
+Cc: Paul Walmsley; linux-omap@vger.kernel.org
+Subject: Re: [RESEND][Review Request] Adding csi2_fck declaration to clock34xx.h
+
+On Tue, Sep 02, 2008 at 05:33:55PM -0500, Aguirre Rodriguez, Sergio Alberto wrote:
+> +static struct clk csi2_96m_fck = {
+> +        .name           = "csi2_96m_fck",
+> +        .parent         = &core_96m_fck,
+> +        .init           = &omap2_init_clk_clkdm,
+> +        .enable_reg     = _OMAP34XX_CM_REGADDR(OMAP3430_CAM_MOD, CM_FCLKEN),
+> +        .enable_bit     = OMAP3430_EN_CSI2_SHIFT,
+> +        .flags          = CLOCK_IN_OMAP343X,
+> +	.clkdm		= { .name = "cam_clkdm" },
+> +        .recalc         = &followparent_recalc,
+> +};
+
+do not use spaces for identation, I think it's a mailer problem. Try to
+use git send-email. Also, clkdm should be initialized as:
+
+	.clkdm		= {
+		.name	= "cam_clkdm",
+	},
+
+>  /* CM_FCLKEN_CAM specific bits */
+> +#define OMAP3430_EN_CSI2				(1 << 1)
+> +#define OMAP3430_EN_CSI2_SHIFT				1
+
+align these with the rest of the file
+
+-- 
+balbi
+
