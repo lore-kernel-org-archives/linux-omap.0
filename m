@@ -1,79 +1,57 @@
-From: "stanley.miao" <stanley.miao@windriver.com>
-Subject: Re: [PATCH] ARM: OMAP3: Fix omapfb's problem on OMAP3430sdp
-Date: Tue, 02 Sep 2008 14:13:27 +0800
-Message-ID: <1220336007.19839.6.camel@localhost>
-References: <1220276228.2680.9.camel@localhost>
-	 <c656a4d20809012249p43213688pce54884c24541fcd@mail.gmail.com>
-Reply-To: stanley.miao@windriver.com
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH 2/3] Runtime check for OMAP35x
+Date: Tue, 2 Sep 2008 11:59:35 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301A031B784@dbde02.ent.ti.com>
+References: <1220299067-17307-1-git-send-email-premi@ti.com>
+ <1220299067-17307-2-git-send-email-premi@ti.com>
+ <20080901201058.GE28999@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:36013 "EHLO mail.wrs.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60790 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752237AbYIBGLu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Sep 2008 02:11:50 -0400
-In-Reply-To: <c656a4d20809012249p43213688pce54884c24541fcd@mail.gmail.com>
+	id S1752169AbYIBG3u convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 02:29:50 -0400
+In-Reply-To: <20080901201058.GE28999@flint.arm.linux.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arun c <arun.edarath@gmail.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Thanks for correcting me.
 
-Re-send this patch.
+-----Original Message-----
+From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] 
+Sent: Tuesday, September 02, 2008 1:41 AM
+To: Premi, Sanjeev
+Cc: linux-omap@vger.kernel.org
+Subject: Re: [PATCH 2/3] Runtime check for OMAP35x
 
-Fix omapfb's problem on OMAP3430sdp.
+On Tue, Sep 02, 2008 at 01:27:46AM +0530, Sanjeev Premi wrote:
+> Based on earlier review comments, added runtime check of the OMAP35x 
+> via omap2_set_globasl_3503() etc.
+> ---
+>  arch/arm/plat-omap/common.c        |   76 ++++++++++++++++++++++++++++++++++
+>  include/asm-arm/arch-omap/common.h |    4 ++
+>  include/asm-arm/arch-omap/cpu.h    |   79 ++++++++++++++++++++++++++++++++++++
+>  3 files changed, 159 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c 
+> index 3a5f05e..f8b04cc 100644
+> --- a/arch/arm/plat-omap/common.c
+> +++ b/arch/arm/plat-omap/common.c
+> @@ -334,3 +334,79 @@ void __init omap2_set_globals_343x(void)  }  
+> #endif
+>  
+> +#if defined(CONFIG_ARCH_OMAP3503)
+> +
+> +static struct omap_globals omap3503_globals = {
+> +	.class	= OMAP35XX_CLASS,
+> +	.tap	= (__force void __iomem *)OMAP2_IO_ADDRESS(0x4830A000),
 
-Signed-off-by: Stanley Miao <stanley.miao@windriver.com>
----
-diff --git a/drivers/video/omap/lcd_2430sdp.c
-b/drivers/video/omap/lcd_2430sdp.c
-index 9af6cd0..e4213b3 100644
---- a/drivers/video/omap/lcd_2430sdp.c
-+++ b/drivers/video/omap/lcd_2430sdp.c
-@@ -23,6 +23,7 @@
- 
- #include <linux/module.h>
- #include <linux/platform_device.h>
-+#include <linux/delay.h>
- #include <linux/i2c/twl4030.h>
- 
- #include <mach/gpio.h>
-@@ -45,6 +46,10 @@ static unsigned enable_gpio;
- #define ENABLE_VAUX3_DEDICATED	0x03
- #define ENABLE_VAUX3_DEV_GRP	0x20
- 
-+#define ENABLE_VPLL2_DEDICATED          0x05
-+#define ENABLE_VPLL2_DEV_GRP            0xE0
-+#define TWL4030_VPLL2_DEV_GRP           0x33
-+#define TWL4030_VPLL2_DEDICATED         0x36
- 
- #define t2_out(c, r, v) twl4030_i2c_write_u8(c, r, v)
- 
-@@ -76,6 +81,11 @@ static int sdp2430_panel_enable(struct lcd_panel
-*panel)
- {
- 	u8 ded_val, ded_reg;
- 	u8 grp_val, grp_reg;
-+	
-+	if(is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
-+		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEDICATED,TWL4030_VPLL2_DEDICATED);
-+		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEV_GRP,TWL4030_VPLL2_DEV_GRP);
-+	}
- 
- 	if (machine_is_omap_3430sdp()) {
- 		ded_reg = TWL4030_VAUX3_DEDICATED;
-@@ -104,6 +114,11 @@ static void sdp2430_panel_disable(struct lcd_panel
-*panel)
- {
- 	omap_set_gpio_dataout(enable_gpio, 0);
- 	omap_set_gpio_dataout(backlight_gpio, 0);
-+	if(is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
-+		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEDICATED);
-+		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEV_GRP);
-+		mdelay(4);
-+	}
- }
- 
- static unsigned long sdp2430_panel_get_caps(struct lcd_panel *panel)
+See my comments elsewhere about why this is Really Bad.  Any casts outside of a few header files using __force are basically a bug.
+
+In this case, you're being forced to use them because OMAP2_IO_ADDRESS doesn't return the proper pointer values.  (I produced a patch for comment on this list last week over this issue.)
+
+[sp] I was trying to be consistent/similar with current code in the file. Will make appropriate changes as you suggest.
