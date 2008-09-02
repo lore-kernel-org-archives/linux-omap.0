@@ -1,97 +1,89 @@
-From: Felipe Balbi <me@felipebalbi.com>
+From: David Brownell <david-b@pacbell.net>
 Subject: Re: [PATCH 0/2] twl4030-usb patches
-Date: Tue, 2 Sep 2008 22:49:34 +0300
-Message-ID: <20080902194917.GF6814@frodo>
-References: <1220358712-25737-1-git-send-email-felipe.balbi@nokia.com> <200809020839.28372.david-b@pacbell.net> <20080902185804.GD6814@frodo> <200809021237.56825.david-b@pacbell.net>
-Reply-To: me@felipebalbi.com
+Date: Tue, 2 Sep 2008 12:52:18 -0700
+Message-ID: <200809021252.18537.david-b@pacbell.net>
+References: <1220358712-25737-1-git-send-email-felipe.balbi@nokia.com> <200809020843.56874.david-b@pacbell.net> <20080902184830.GC6814@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:57879 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752556AbYIBTuH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 15:50:07 -0400
+Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:29967 "HELO
+	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755011AbYIBTwV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 15:52:21 -0400
+In-Reply-To: <20080902184830.GC6814@frodo>
 Content-Disposition: inline
-In-Reply-To: <200809021237.56825.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: me@felipebalbi.com, Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
+To: me@felipebalbi.com
+Cc: felipe.balbi@nokia.com, linux-omap@vger.kernel.org
 
-On Tue, Sep 02, 2008 at 12:37:56PM -0700, David Brownell wrote:
-> Same way it does now ...
+On Tuesday 02 September 2008, Felipe Balbi wrote:
+> On Tue, Sep 02, 2008 at 08:43:56AM -0700, David Brownell wrote:
+> > Snapshot of what's in my tree ... 
 > 
-> What's BROKEN with the current scheme is that the driver
-> model tree looks something like
+> Great, a few comments below.
 > 
-> 	/sys/devices/platform/omap_i2c.X/X-00{N0,N1,N2,N3}
-> 	/sys/devices/platform/{twl-gpio,twl-rtc,twl-foo,...}
+> > # should have the base GPIO set up better; minimally
+> > # in a system header, ideally platform data ...
 > 
-> That is, these devices are in the wrong place.  Now, I don't
-> really care much if they're all parented by the N0 node;
-> that's basically just a strange artifact of that chip.  All
-> that I suggested was making sure those platform devices
-> are properly parented:  by N0/N1/whatever.
+> Could you describe this a bit more ? What do you mean by "base GPIO" ?
+> If you mean the first gpio number for passing to struct gpio_chip we
+> could use a platform_data if we make this one also a platform_driver,
+> right ?
 
-Agreed... it sure looks odd.
+Right.  See for example <linux/i2c/pca953x.h> which holds just
+such data.  Note the setup()/teardown() stuff, which various OMAP
+boards would be using to pass GPIO numbers to the HSMMC code ...
+ensuring that the HSMMC driver isn't set up before its card detect
+and writeprotect logic can work.
 
-> Pass it through twl4030 platform data.  It's all board-specific,
-> and if you don't pass platform data for e.g. vibrator or LEDs
-> then you'd know this board doesn't have that hardware ... so
-> don't create those platform devices (even if the driver does
-> happen to be configured into this multi-board kernel).
+(Once the HSMMC board-specific init starts to look sane that is...)
 
-got it.
 
-> static int twl4030_probe(struct i2c_client *c, const struct i2c_device_id *id)
-> {
-> 	struct twl4030_core_platform_data *pdata = c->platform_data;
-> 	struct platform_device *pdev;
-> 	int status;
+ 
+> > # the whole twl driver should be "new style".
 > 
-> 	...
-> 	if (have_twl_rtc_driver() && pdata->rtc_data) {
-> 		pdev = platform_device_alloc("twl4030_rtc", -1);
-> 		... nullcheck ...
-> 		status = platform_add_data(pdev, pdata->rtc_data,
-> 				sizeof(*pdata->rtc_data));
-> 		... status check ...
-> 		status = platform_device_add_resources(pdev, ... the irq ... );
-> 		... status_check ...
-> 		pdev->dev.parent = &c->dev;
-> 		status = platform_device_add(pdev);
-> 		... status check ...
-> 	}
-> 	... etc
-> }
+> maybe only twl4030-core.c should hold the whole i2c new style thingy,
+> all the other drivers (usb, vibrators, keypad, rtc, etc) should/could
+> be a platform_driver.
+
+That's "whole"!  :)
+
+Thing is, this is a Multi-Function Device (MFD) and whoever did
+this code decided to factor it as drivers around a core.  I'm
+not proposing that be changed ... just that the parts should be
+glued together properly.  Where "properly" includes not just
+getting the driver model tree correct, but also passing in the
+board-specific data from the board-*.c files instead of hard
+wiring everything to mach the first available hardware.  (Today,
+it's all hard-wired.)
+
+ 
+> >  static struct irq_chip twl4030_gpio_irq_chip = {
+> > -	.name	= "twl4030-gpio",
+> > +	.name	= "twl4030",
 > 
-> Or I suppose you could statically allocate the device data; not
-> particularly encouraged where pdev->dev.parent is non-null though.
+> twl4030-core.c already uses this name. Wouldn't it be odd when cat
+> /proc/interrupts ? I'd like to see which are gpio interrupts and which
+> aren't
 
-hmm... that looks good. Gotta dig more into the platform_driver stuff.
-Thanks for the point.
+They're all from the TWL4030 though.  :)
 
-> > One thing we might say, Jean Delvare won't accept twl4030 the way it is
-> > now. Old style i2c drivers will be dropped soon. We have to get twl4030
-> > properly done otherwise it'll be a pain later.
+/proc/interrupts is misformatted with the long name though...
+
+ 
+> >  	down(&gpio_sem);
+> >  	if (gpio_usage_count & (0x1 << gpio))
+> >  		ret = -EBUSY;
 > 
-> He's also not keen on growing drivers/i2c/chips ...
-> So this driver should probably move to drivers/mfd too.
+> how about also putting the brackets for the if(), maybe in a cleanup
+> patch before this one ?
+> 
+> >  	if ((gpio_usage_count & (0x1 << gpio)) == 0)
+> >  		ret = -EPERM;
+> 
+> missing brackets.
 
-Sure... it should really be there since it really is a multifunction
-device. In that case it would be merged through Samuel Ortiz, right ?
-Most likely Cc:ing i2c@lm-sensors.org so i2c people could comment on the
-code as well.
-
-> (When it starts moving upstream, I suspect some folk will
-> ask why it doesn't support the drivers/regulator calls;
-> that's still new, I'd not worry much.)
-
-Well, but if we have proper APIs for doing stuff, we should really start
-using them, don't you think ?
-
-I'll postpone my twl4030-usb patch and try to work on twl4030-core.c.
-It'll be a huge task moving all of that to new style i2c driver.
-
--- 
-balbi
+Fixed. 
