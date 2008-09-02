@@ -1,57 +1,142 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH 2/3] Runtime check for OMAP35x
-Date: Tue, 2 Sep 2008 11:59:35 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301A031B784@dbde02.ent.ti.com>
-References: <1220299067-17307-1-git-send-email-premi@ti.com>
- <1220299067-17307-2-git-send-email-premi@ti.com>
- <20080901201058.GE28999@flint.arm.linux.org.uk>
+From: "Rajendra Nayak" <rnayak@ti.com>
+Subject: [PATCH 02/12] serial context save/restore
+Date: Tue, 2 Sep 2008 13:22:20 +0530 (IST)
+Message-ID: <46654.192.168.10.89.1220341940.squirrel@dbdmail.itg.ti.com>
+References: <59386.192.168.10.89.1220276248.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60790 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752169AbYIBG3u convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 02:29:50 -0400
-In-Reply-To: <20080901201058.GE28999@flint.arm.linux.org.uk>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:39433 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751505AbYIBHw0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 03:52:26 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m827qLQT020325
+	for <linux-omap@vger.kernel.org>; Tue, 2 Sep 2008 02:52:26 -0500
+Received: from webmail.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id m827qIFE027676
+	for <linux-omap@vger.kernel.org>; Tue, 2 Sep 2008 02:52:19 -0500 (CDT)
+In-Reply-To: <59386.192.168.10.89.1220276248.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+
+Resending this patch after fixing Russell's comments.
 
 
------Original Message-----
-From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] 
-Sent: Tuesday, September 02, 2008 1:41 AM
-To: Premi, Sanjeev
-Cc: linux-omap@vger.kernel.org
-Subject: Re: [PATCH 2/3] Runtime check for OMAP35x
+This patch adds the context save restore functions for UART
 
-On Tue, Sep 02, 2008 at 01:27:46AM +0530, Sanjeev Premi wrote:
-> Based on earlier review comments, added runtime check of the OMAP35x 
-> via omap2_set_globasl_3503() etc.
-> ---
->  arch/arm/plat-omap/common.c        |   76 ++++++++++++++++++++++++++++++++++
->  include/asm-arm/arch-omap/common.h |    4 ++
->  include/asm-arm/arch-omap/cpu.h    |   79 ++++++++++++++++++++++++++++++++++++
->  3 files changed, 159 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c 
-> index 3a5f05e..f8b04cc 100644
-> --- a/arch/arm/plat-omap/common.c
-> +++ b/arch/arm/plat-omap/common.c
-> @@ -334,3 +334,79 @@ void __init omap2_set_globals_343x(void)  }  
-> #endif
->  
-> +#if defined(CONFIG_ARCH_OMAP3503)
-> +
-> +static struct omap_globals omap3503_globals = {
-> +	.class	= OMAP35XX_CLASS,
-> +	.tap	= (__force void __iomem *)OMAP2_IO_ADDRESS(0x4830A000),
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/serial.c             |   55 +++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/serial.h |   12 ++++++
+ include/linux/serial_reg.h               |    1
+ 3 files changed, 68 insertions(+)
 
-See my comments elsewhere about why this is Really Bad.  Any casts outside of a few header files using __force are basically a bug.
+Index: linux-omap-2.6/arch/arm/mach-omap2/serial.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/serial.c	2008-09-02
+13:06:15.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/serial.c	2008-09-02 13:06:20.000000000
++0530
+@@ -290,6 +290,61 @@ void __init omap_serial_init(void)
+ 	omap_serial_kick();
+ }
 
-In this case, you're being forced to use them because OMAP2_IO_ADDRESS doesn't return the proper pointer values.  (I produced a patch for comment on this list last week over this issue.)
++#ifdef CONFIG_ARCH_OMAP3
++static struct omap3_uart_regs uart_ctx[OMAP_MAX_NR_PORTS];
++void omap3_save_uart_ctx(int unum)
++{
++	u16 lcr = 0;
++
++	struct plat_serial8250_port *p = serial_platform_data + unum;
++
++	if (uart_ick[unum] == NULL)
++		return;
++
++	lcr = serial_read_reg(p, UART_LCR);
++	serial_write_reg(p, UART_LCR, 0xBF);
++	uart_ctx[unum].dll = serial_read_reg(p, UART_DLL);
++	uart_ctx[unum].dlh = serial_read_reg(p, UART_DLM);
++	serial_write_reg(p, UART_LCR, lcr);
++	uart_ctx[unum].ier = serial_read_reg(p, UART_IER);
++	uart_ctx[unum].sysc = serial_read_reg(p, UART_OMAP_SYSC);
++	uart_ctx[unum].scr = serial_read_reg(p, UART_OMAP_SCR);
++	uart_ctx[unum].wer = serial_read_reg(p, UART_OMAP_WER);
++}
++EXPORT_SYMBOL(omap3_save_uart_ctx);
++
++void omap3_restore_uart_ctx(int unum)
++{
++	u16 efr = 0;
++
++	struct plat_serial8250_port *p = serial_platform_data + unum;
++
++	if (uart_ick[unum] == NULL)
++		return;
++
++	serial_write_reg(p, UART_OMAP_MDR1, 0x7);
++	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
++	efr = serial_read_reg(p, UART_EFR);
++	serial_write_reg(p, UART_EFR, UART_EFR_ECB);
++	serial_write_reg(p, UART_LCR, 0x0); /* Operational mode */
++	serial_write_reg(p, UART_IER, 0x0);
++	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
++	serial_write_reg(p, UART_DLL, uart_ctx[unum].dll);
++	serial_write_reg(p, UART_DLM, uart_ctx[unum].dlh);
++	serial_write_reg(p, UART_LCR, 0x0); /* Operational mode */
++	serial_write_reg(p, UART_IER, uart_ctx[unum].ier);
++	serial_write_reg(p, UART_FCR, 0xA1);
++	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
++	serial_write_reg(p, UART_EFR, efr);
++	serial_write_reg(p, UART_LCR, UART_LCR_WLEN8);
++	serial_write_reg(p, UART_OMAP_SCR, uart_ctx[unum].scr);
++	serial_write_reg(p, UART_OMAP_WER, uart_ctx[unum].wer);
++	serial_write_reg(p, UART_OMAP_SYSC, uart_ctx[unum].sysc);
++	serial_write_reg(p, UART_OMAP_MDR1, 0x00); /* UART 16x mode */
++}
++EXPORT_SYMBOL(omap3_restore_uart_ctx);
++#endif /* CONFIG_ARCH_OMAP3 */
++
+ static struct platform_device serial_device = {
+ 	.name			= "serial8250",
+ 	.id			= PLAT8250_DEV_PLATFORM,
+Index: linux-omap-2.6/include/linux/serial_reg.h
+===================================================================
+--- linux-omap-2.6.orig/include/linux/serial_reg.h	2008-09-02
+13:06:10.000000000 +0530
++++ linux-omap-2.6/include/linux/serial_reg.h	2008-09-02 13:16:00.000000000 +0530
+@@ -323,6 +323,7 @@
+ #define UART_OMAP_MVER		0x14	/* Module version register */
+ #define UART_OMAP_SYSC		0x15	/* System configuration register */
+ #define UART_OMAP_SYSS		0x16	/* System status register */
++#define UART_OMAP_WER		0x17	/* Wake-up enable register */
 
-[sp] I was trying to be consistent/similar with current code in the file. Will make appropriate changes as you suggest.
+ #endif /* _LINUX_SERIAL_REG_H */
+
+Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/serial.h
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/serial.h	2008-09-02
+13:06:10.000000000 +0530
++++ linux-omap-2.6/arch/arm/plat-omap/include/mach/serial.h	2008-09-02
+13:08:24.000000000 +0530
+@@ -40,4 +40,16 @@
+ 			__ret;					\
+ 			})
+
++#ifndef __ASSEMBLY__
++struct omap3_uart_regs {
++	u16 dll;
++	u16 dlh;
++	u16 ier;
++	u16 sysc;
++	u16 scr;
++	u16 wer;
++};
++extern void omap3_save_uart_ctx(int unum);
++extern void omap3_restore_uart_ctx(int unum);
++#endif /* __ASSEMBLY__ */
+ #endif
+
+
