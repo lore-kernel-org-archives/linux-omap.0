@@ -1,32 +1,62 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: [patch 2.6.27-rc3-omap1] omap3 beagle: nand (mostly) cleanups
-Date: Tue, 2 Sep 2008 11:46:31 -0700
-Message-ID: <5e088bd90809021146n6fbc7b50l924f757cbf6f4e08@mail.gmail.com>
-References: <200808291012.47332.david-b@pacbell.net>
-	 <13B9B4C6EF24D648824FF11BE896716203653CA11D@dlee02.ent.ti.com>
-	 <200809021023.55493.david-b@pacbell.net>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 0/2] twl4030-usb patches
+Date: Tue, 2 Sep 2008 21:48:33 +0300
+Message-ID: <20080902184830.GC6814@frodo>
+References: <1220358712-25737-1-git-send-email-felipe.balbi@nokia.com> <20080902123446.GC7089@gandalf.research.nokia.com> <200809020843.56874.david-b@pacbell.net>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gv-out-0910.google.com ([216.239.58.185]:12837 "EHLO
-	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751439AbYIBSqd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 14:46:33 -0400
-Received: by gv-out-0910.google.com with SMTP id e6so68730gvc.37
-        for <linux-omap@vger.kernel.org>; Tue, 02 Sep 2008 11:46:32 -0700 (PDT)
-In-Reply-To: <200809021023.55493.david-b@pacbell.net>
+Received: from ns1.siteground211.com ([209.62.36.12]:51767 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751422AbYIBStB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 14:49:01 -0400
 Content-Disposition: inline
+In-Reply-To: <200809020843.56874.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: felipe.balbi@nokia.com, linux-omap@vger.kernel.org
 
-On Tue, Sep 2, 2008 at 10:23 AM, David Brownell <david-b@pacbell.net> wrote:
+On Tue, Sep 02, 2008 at 08:43:56AM -0700, David Brownell wrote:
+> Snapshot of what's in my tree ... 
 
-> (Unrelated:  make omap3_beagle_i2c_init be part of beagle_init.
-> It shouldn't be called on non-beagle hardware; and beagle_init
-> already runs with other arch_initcall code.)
+Great, a few comments below.
 
-Good catch, I will do the same on the Overo board file.
+> # should have the base GPIO set up better; minimally
+> # in a system header, ideally platform data ...
 
-Steve
+Could you describe this a bit more ? What do you mean by "base GPIO" ?
+If you mean the first gpio number for passing to struct gpio_chip we
+could use a platform_data if we make this one also a platform_driver,
+right ?
+
+> 
+> # the whole twl driver should be "new style".
+
+maybe only twl4030-core.c should hold the whole i2c new style thingy,
+all the other drivers (usb, vibrators, keypad, rtc, etc) should/could
+be a platform_driver.
+
+>  static struct irq_chip twl4030_gpio_irq_chip = {
+> -	.name	= "twl4030-gpio",
+> +	.name	= "twl4030",
+
+twl4030-core.c already uses this name. Wouldn't it be odd when cat
+/proc/interrupts ? I'd like to see which are gpio interrupts and which
+aren't
+
+>  	down(&gpio_sem);
+>  	if (gpio_usage_count & (0x1 << gpio))
+>  		ret = -EBUSY;
+
+how about also putting the brackets for the if(), maybe in a cleanup
+patch before this one ?
+
+>  	if ((gpio_usage_count & (0x1 << gpio)) == 0)
+>  		ret = -EPERM;
+
+missing brackets.
+
+-- 
+balbi
