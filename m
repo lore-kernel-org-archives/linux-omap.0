@@ -1,44 +1,161 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [PATCH 3/4] SOUND: SOC: OMAP: Add support for
-	Gumstix Overo
-Date: Tue, 2 Sep 2008 12:29:37 +0100
-Message-ID: <20080902112936.GC25176@sirena.org.uk>
-References: <1220306279-27977-1-git-send-email-sakoman@gmail.com>
-	<1220306279-27977-2-git-send-email-sakoman@gmail.com>
-	<1220306279-27977-3-git-send-email-sakoman@gmail.com>
-	<1220306279-27977-4-git-send-email-sakoman@gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 02/12] serial context save/restore
+Date: Tue, 02 Sep 2008 14:30:42 +0300
+Message-ID: <87fxoirdi5.fsf@deeprootsystems.com>
+References: <59386.192.168.10.89.1220276248.squirrel@dbdmail.itg.ti.com>
+	<46654.192.168.10.89.1220341940.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <1220306279-27977-4-git-send-email-sakoman@gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: sakoman@gmail.com
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Steve Sakoman <steve@sakoman.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from wf-out-1314.google.com ([209.85.200.171]:27519 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750740AbYIBLav (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 07:30:51 -0400
+Received: by wf-out-1314.google.com with SMTP id 27so2288856wfd.4
+        for <linux-omap@vger.kernel.org>; Tue, 02 Sep 2008 04:30:50 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, Sep 01, 2008 at 02:57:58PM -0700, sakoman@gmail.com wrote:
+Hi Rajendra,
 
-> Signed-off-by: Steve Sakoman <steve@sakoman.com>
+"Rajendra Nayak" <rnayak@ti.com> writes:
 
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> Resending this patch after fixing Russell's comments.
+>
+>
+> This patch adds the context save restore functions for UART
+>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  arch/arm/mach-omap2/serial.c             |   55 +++++++++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/mach/serial.h |   12 ++++++
+>  include/linux/serial_reg.h               |    1
+>  3 files changed, 68 insertions(+)
+>
+> Index: linux-omap-2.6/arch/arm/mach-omap2/serial.c
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/mach-omap2/serial.c	2008-09-02
+> 13:06:15.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/mach-omap2/serial.c	2008-09-02 13:06:20.000000000
+> +0530
 
-though obviously it depends on the codec driver going in and there's one
-nit that should be fixed:
+This patch (and all the others) still have line-wrapping problems.  In
+particualar see the diff hunk headers above.
 
->  # OMAP Machine Support
->  snd-soc-n810-objs := n810.o
-> +snd-soc-omap3evm-objs := omap3evm.o
-> +snd-soc-omap3beagle-objs := omap3beagle.o
-> +snd-soc-overo-objs := overo.o
+The result is that while 'patch' seems to apply them, the git tools
+(like git-apply, git-am) fail with "patch fragment without header."
 
-Looks like some extra stuff crept in here...
+Could you regenerate the patches without wrapping?  I recommend using
+'git format-patch -n'.
+
+Thanks,
+
+Kevin
+
+
+> @@ -290,6 +290,61 @@ void __init omap_serial_init(void)
+>  	omap_serial_kick();
+>  }
+>
+> +#ifdef CONFIG_ARCH_OMAP3
+> +static struct omap3_uart_regs uart_ctx[OMAP_MAX_NR_PORTS];
+> +void omap3_save_uart_ctx(int unum)
+> +{
+> +	u16 lcr = 0;
+> +
+> +	struct plat_serial8250_port *p = serial_platform_data + unum;
+> +
+> +	if (uart_ick[unum] == NULL)
+> +		return;
+> +
+> +	lcr = serial_read_reg(p, UART_LCR);
+> +	serial_write_reg(p, UART_LCR, 0xBF);
+> +	uart_ctx[unum].dll = serial_read_reg(p, UART_DLL);
+> +	uart_ctx[unum].dlh = serial_read_reg(p, UART_DLM);
+> +	serial_write_reg(p, UART_LCR, lcr);
+> +	uart_ctx[unum].ier = serial_read_reg(p, UART_IER);
+> +	uart_ctx[unum].sysc = serial_read_reg(p, UART_OMAP_SYSC);
+> +	uart_ctx[unum].scr = serial_read_reg(p, UART_OMAP_SCR);
+> +	uart_ctx[unum].wer = serial_read_reg(p, UART_OMAP_WER);
+> +}
+> +EXPORT_SYMBOL(omap3_save_uart_ctx);
+> +
+> +void omap3_restore_uart_ctx(int unum)
+> +{
+> +	u16 efr = 0;
+> +
+> +	struct plat_serial8250_port *p = serial_platform_data + unum;
+> +
+> +	if (uart_ick[unum] == NULL)
+> +		return;
+> +
+> +	serial_write_reg(p, UART_OMAP_MDR1, 0x7);
+> +	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
+> +	efr = serial_read_reg(p, UART_EFR);
+> +	serial_write_reg(p, UART_EFR, UART_EFR_ECB);
+> +	serial_write_reg(p, UART_LCR, 0x0); /* Operational mode */
+> +	serial_write_reg(p, UART_IER, 0x0);
+> +	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
+> +	serial_write_reg(p, UART_DLL, uart_ctx[unum].dll);
+> +	serial_write_reg(p, UART_DLM, uart_ctx[unum].dlh);
+> +	serial_write_reg(p, UART_LCR, 0x0); /* Operational mode */
+> +	serial_write_reg(p, UART_IER, uart_ctx[unum].ier);
+> +	serial_write_reg(p, UART_FCR, 0xA1);
+> +	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
+> +	serial_write_reg(p, UART_EFR, efr);
+> +	serial_write_reg(p, UART_LCR, UART_LCR_WLEN8);
+> +	serial_write_reg(p, UART_OMAP_SCR, uart_ctx[unum].scr);
+> +	serial_write_reg(p, UART_OMAP_WER, uart_ctx[unum].wer);
+> +	serial_write_reg(p, UART_OMAP_SYSC, uart_ctx[unum].sysc);
+> +	serial_write_reg(p, UART_OMAP_MDR1, 0x00); /* UART 16x mode */
+> +}
+> +EXPORT_SYMBOL(omap3_restore_uart_ctx);
+> +#endif /* CONFIG_ARCH_OMAP3 */
+> +
+>  static struct platform_device serial_device = {
+>  	.name			= "serial8250",
+>  	.id			= PLAT8250_DEV_PLATFORM,
+> Index: linux-omap-2.6/include/linux/serial_reg.h
+> ===================================================================
+> --- linux-omap-2.6.orig/include/linux/serial_reg.h	2008-09-02
+> 13:06:10.000000000 +0530
+> +++ linux-omap-2.6/include/linux/serial_reg.h	2008-09-02 13:16:00.000000000 +0530
+> @@ -323,6 +323,7 @@
+>  #define UART_OMAP_MVER		0x14	/* Module version register */
+>  #define UART_OMAP_SYSC		0x15	/* System configuration register */
+>  #define UART_OMAP_SYSS		0x16	/* System status register */
+> +#define UART_OMAP_WER		0x17	/* Wake-up enable register */
+>
+>  #endif /* _LINUX_SERIAL_REG_H */
+>
+> Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/serial.h
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/serial.h	2008-09-02
+> 13:06:10.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/plat-omap/include/mach/serial.h	2008-09-02
+> 13:08:24.000000000 +0530
+> @@ -40,4 +40,16 @@
+>  			__ret;					\
+>  			})
+>
+> +#ifndef __ASSEMBLY__
+> +struct omap3_uart_regs {
+> +	u16 dll;
+> +	u16 dlh;
+> +	u16 ier;
+> +	u16 sysc;
+> +	u16 scr;
+> +	u16 wer;
+> +};
+> +extern void omap3_save_uart_ctx(int unum);
+> +extern void omap3_restore_uart_ctx(int unum);
+> +#endif /* __ASSEMBLY__ */
+>  #endif
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
