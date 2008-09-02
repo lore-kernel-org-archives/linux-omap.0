@@ -1,73 +1,43 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [RESEND][Review Request] Adding csi2_fck declaration to clock34xx.h
-Date: Tue, 2 Sep 2008 17:33:55 -0500
-Message-ID: <A24693684029E5489D1D202277BE894411A0781F@dlee02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Enabling MUSB support
+Date: Tue, 2 Sep 2008 15:36:42 -0700
+Message-ID: <20080902223641.GH23085@atomide.com>
+References: <1f11a5490808270626t5b4aa599i18b730d12a6c4667@mail.gmail.com> <20080827133825.GC7354@gandalf.research.nokia.com> <200808272354.28531.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36891 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751518AbYIBWeF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 18:34:05 -0400
-Content-Language: en-US
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61345 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751439AbYIBWgt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 18:36:49 -0400
+Content-Disposition: inline
+In-Reply-To: <200808272354.28531.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: felipe.balbi@nokia.com, ext Ashwin Bihari <abihari@gmail.com>, linux-omap@vger.kernel.org
 
-From: Sergio Aguirre <saaguirre@ti.com>
+* David Brownell <david-b@pacbell.net> [080827 23:54]:
+> On Wednesday 27 August 2008, Felipe Balbi wrote:
+> > I tried musb on omap2420 (with tusb), omap3430 and omap3530
+> > (beagle board) and all of them are working.
+> 
+> I tried it on Beagle and found that OTG mode wanted to oops
+> while binding the gadget driver ... static config.  That's
+> with current GIT.  Peripheral-only had the same issue ISTR.
+> 
+> Host mode seemed to come up partially.  There seem to be
+> issues with control-OUT transfers, which caused problems
+> trying to use the Ethernet adapter I was hooking up.
+> 
+> - Dave
+> 
+> p.s. FWIW my beagle identifies itself as 3430 ES2.2
+>      not as 3530.
 
-ARM: OMAP: Add CSI2 clock struct for handling it with clock API.
+AFAIK, the revision registers are same for 3430 and 3530.. Luckily you
+can now force the processor revision from board-*.c files if needed with
+omap2_set_globals_xxxx(). I think the 3550 patches for that have not
+been merged though.
 
-Add CSI2 clock struct for handling it with clock API when TI PM is disabled.
-
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- arch/arm/mach-omap2/clock34xx.h       |   12 ++++++++++++
- arch/arm/mach-omap2/cm-regbits-34xx.h |    2 ++
- 2 files changed, 14 insertions(+)
-
-Index: linux-omap-2.6/arch/arm/mach-omap2/clock34xx.h
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/clock34xx.h	2008-08-21 10:49:20.000000000 -0500
-+++ linux-omap-2.6/arch/arm/mach-omap2/clock34xx.h	2008-08-26 11:29:32.000000000 -0500
-@@ -2228,6 +2228,17 @@
- 	.recalc		= &followparent_recalc,
- };
- 
-+static struct clk csi2_96m_fck = {
-+        .name           = "csi2_96m_fck",
-+        .parent         = &core_96m_fck,
-+        .init           = &omap2_init_clk_clkdm,
-+        .enable_reg     = _OMAP34XX_CM_REGADDR(OMAP3430_CAM_MOD, CM_FCLKEN),
-+        .enable_bit     = OMAP3430_EN_CSI2_SHIFT,
-+        .flags          = CLOCK_IN_OMAP343X,
-+	.clkdm		= { .name = "cam_clkdm" },
-+        .recalc         = &followparent_recalc,
-+};
-+
- /* USBHOST - 3430ES2 only */
- 
- static struct clk usbhost_120m_fck = {
-@@ -3208,6 +3219,7 @@
- 	&dss_ick,
- 	&cam_mclk,
- 	&cam_ick,
-+	&csi2_96m_fck,
- 	&usbhost_120m_fck,
- 	&usbhost_48m_fck,
- 	&usbhost_ick,
-Index: linux-omap-2.6/arch/arm/mach-omap2/cm-regbits-34xx.h
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/cm-regbits-34xx.h	2008-08-21 10:49:20.000000000 -0500
-+++ linux-omap-2.6/arch/arm/mach-omap2/cm-regbits-34xx.h	2008-08-26 11:29:31.000000000 -0500
-@@ -530,6 +530,8 @@
- #define OMAP3430_CLKACTIVITY_DSS_MASK			(1 << 0)
- 
- /* CM_FCLKEN_CAM specific bits */
-+#define OMAP3430_EN_CSI2				(1 << 1)
-+#define OMAP3430_EN_CSI2_SHIFT				1
- 
- /* CM_ICLKEN_CAM specific bits */
-
+Tony
