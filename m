@@ -1,142 +1,47 @@
-From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 02/12] serial context save/restore
-Date: Tue, 2 Sep 2008 13:22:20 +0530 (IST)
-Message-ID: <46654.192.168.10.89.1220341940.squirrel@dbdmail.itg.ti.com>
-References: <59386.192.168.10.89.1220276248.squirrel@dbdmail.itg.ti.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH] ARM: OMAP3: Fix omapfb's problem on OMAP3430sdp
+Date: Tue, 2 Sep 2008 11:14:32 +0300
+Message-ID: <20080902081429.GB6928@frodo>
+References: <1220276228.2680.9.camel@localhost> <c656a4d20809012249p43213688pce54884c24541fcd@mail.gmail.com> <1220336007.19839.6.camel@localhost>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39433 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751505AbYIBHw0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 03:52:26 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m827qLQT020325
-	for <linux-omap@vger.kernel.org>; Tue, 2 Sep 2008 02:52:26 -0500
-Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id m827qIFE027676
-	for <linux-omap@vger.kernel.org>; Tue, 2 Sep 2008 02:52:19 -0500 (CDT)
-In-Reply-To: <59386.192.168.10.89.1220276248.squirrel@dbdmail.itg.ti.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:40260 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751021AbYIBIOs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 04:14:48 -0400
+Content-Disposition: inline
+In-Reply-To: <1220336007.19839.6.camel@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "stanley.miao" <stanley.miao@windriver.com>
+Cc: arun c <arun.edarath@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Resending this patch after fixing Russell's comments.
+On Tue, Sep 02, 2008 at 02:13:27PM +0800, stanley.miao wrote:
+> @@ -76,6 +81,11 @@ static int sdp2430_panel_enable(struct lcd_panel
+> *panel)
+>  {
+>  	u8 ded_val, ded_reg;
+>  	u8 grp_val, grp_reg;
+> +	
+> +	if(is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
 
+	missing space "if ()".
 
-This patch adds the context save restore functions for UART
+> @@ -104,6 +114,11 @@ static void sdp2430_panel_disable(struct lcd_panel
+> *panel)
+>  {
+>  	omap_set_gpio_dataout(enable_gpio, 0);
+>  	omap_set_gpio_dataout(backlight_gpio, 0);
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/serial.c             |   55 +++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/serial.h |   12 ++++++
- include/linux/serial_reg.h               |    1
- 3 files changed, 68 insertions(+)
+	nothing to do with your patch, but these should be converted to
+gpiolib.
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/serial.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/serial.c	2008-09-02
-13:06:15.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/serial.c	2008-09-02 13:06:20.000000000
-+0530
-@@ -290,6 +290,61 @@ void __init omap_serial_init(void)
- 	omap_serial_kick();
- }
+> +	if(is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
 
-+#ifdef CONFIG_ARCH_OMAP3
-+static struct omap3_uart_regs uart_ctx[OMAP_MAX_NR_PORTS];
-+void omap3_save_uart_ctx(int unum)
-+{
-+	u16 lcr = 0;
-+
-+	struct plat_serial8250_port *p = serial_platform_data + unum;
-+
-+	if (uart_ick[unum] == NULL)
-+		return;
-+
-+	lcr = serial_read_reg(p, UART_LCR);
-+	serial_write_reg(p, UART_LCR, 0xBF);
-+	uart_ctx[unum].dll = serial_read_reg(p, UART_DLL);
-+	uart_ctx[unum].dlh = serial_read_reg(p, UART_DLM);
-+	serial_write_reg(p, UART_LCR, lcr);
-+	uart_ctx[unum].ier = serial_read_reg(p, UART_IER);
-+	uart_ctx[unum].sysc = serial_read_reg(p, UART_OMAP_SYSC);
-+	uart_ctx[unum].scr = serial_read_reg(p, UART_OMAP_SCR);
-+	uart_ctx[unum].wer = serial_read_reg(p, UART_OMAP_WER);
-+}
-+EXPORT_SYMBOL(omap3_save_uart_ctx);
-+
-+void omap3_restore_uart_ctx(int unum)
-+{
-+	u16 efr = 0;
-+
-+	struct plat_serial8250_port *p = serial_platform_data + unum;
-+
-+	if (uart_ick[unum] == NULL)
-+		return;
-+
-+	serial_write_reg(p, UART_OMAP_MDR1, 0x7);
-+	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
-+	efr = serial_read_reg(p, UART_EFR);
-+	serial_write_reg(p, UART_EFR, UART_EFR_ECB);
-+	serial_write_reg(p, UART_LCR, 0x0); /* Operational mode */
-+	serial_write_reg(p, UART_IER, 0x0);
-+	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
-+	serial_write_reg(p, UART_DLL, uart_ctx[unum].dll);
-+	serial_write_reg(p, UART_DLM, uart_ctx[unum].dlh);
-+	serial_write_reg(p, UART_LCR, 0x0); /* Operational mode */
-+	serial_write_reg(p, UART_IER, uart_ctx[unum].ier);
-+	serial_write_reg(p, UART_FCR, 0xA1);
-+	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
-+	serial_write_reg(p, UART_EFR, efr);
-+	serial_write_reg(p, UART_LCR, UART_LCR_WLEN8);
-+	serial_write_reg(p, UART_OMAP_SCR, uart_ctx[unum].scr);
-+	serial_write_reg(p, UART_OMAP_WER, uart_ctx[unum].wer);
-+	serial_write_reg(p, UART_OMAP_SYSC, uart_ctx[unum].sysc);
-+	serial_write_reg(p, UART_OMAP_MDR1, 0x00); /* UART 16x mode */
-+}
-+EXPORT_SYMBOL(omap3_restore_uart_ctx);
-+#endif /* CONFIG_ARCH_OMAP3 */
-+
- static struct platform_device serial_device = {
- 	.name			= "serial8250",
- 	.id			= PLAT8250_DEV_PLATFORM,
-Index: linux-omap-2.6/include/linux/serial_reg.h
-===================================================================
---- linux-omap-2.6.orig/include/linux/serial_reg.h	2008-09-02
-13:06:10.000000000 +0530
-+++ linux-omap-2.6/include/linux/serial_reg.h	2008-09-02 13:16:00.000000000 +0530
-@@ -323,6 +323,7 @@
- #define UART_OMAP_MVER		0x14	/* Module version register */
- #define UART_OMAP_SYSC		0x15	/* System configuration register */
- #define UART_OMAP_SYSS		0x16	/* System status register */
-+#define UART_OMAP_WER		0x17	/* Wake-up enable register */
+missing space again. Please, run scripts/checkpatch.pl --strict patch.diff
+before sending your patches so we avoid obvious style mistakes.
 
- #endif /* _LINUX_SERIAL_REG_H */
-
-Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/serial.h
-===================================================================
---- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/serial.h	2008-09-02
-13:06:10.000000000 +0530
-+++ linux-omap-2.6/arch/arm/plat-omap/include/mach/serial.h	2008-09-02
-13:08:24.000000000 +0530
-@@ -40,4 +40,16 @@
- 			__ret;					\
- 			})
-
-+#ifndef __ASSEMBLY__
-+struct omap3_uart_regs {
-+	u16 dll;
-+	u16 dlh;
-+	u16 ier;
-+	u16 sysc;
-+	u16 scr;
-+	u16 wer;
-+};
-+extern void omap3_save_uart_ctx(int unum);
-+extern void omap3_restore_uart_ctx(int unum);
-+#endif /* __ASSEMBLY__ */
- #endif
-
-
+-- 
+balbi
