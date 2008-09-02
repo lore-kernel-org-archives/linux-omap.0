@@ -1,95 +1,101 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [PATCH 1/15] OMAP3 camera driver: V4L2: Adding IOCTL command to
- get slave private data.
-Date: Tue, 2 Sep 2008 11:15:58 -0500
-Message-ID: <A24693684029E5489D1D202277BE894411A0725A@dlee02.ent.ti.com>
-References: <48BD53E9.6060307@gmail.com>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: [PATCH 2/4] SOUND: SOC: CODECS: Add support for
+	the TWL4030 audio codec
+Date: Tue, 2 Sep 2008 09:36:29 -0700
+Message-ID: <5e088bd90809020936i2d5e8a12lee33acfe5cbd8cd6@mail.gmail.com>
+References: <1220306279-27977-1-git-send-email-sakoman@gmail.com>
+	<1220306279-27977-2-git-send-email-sakoman@gmail.com>
+	<1220306279-27977-3-git-send-email-sakoman@gmail.com>
+	<20080902112633.GB25176@sirena.org.uk>
+	<5e088bd90809020725g1d0dff70ue84f861ea3e22201@mail.gmail.com>
+	<20080902145328.GA3764@rakim.wolfsonmicro.main>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42936 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751113AbYIBQQI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 12:16:08 -0400
-In-Reply-To: <48BD53E9.6060307@gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20080902145328.GA3764@rakim.wolfsonmicro.main>
+Content-Disposition: inline
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Steve Sakoman <sakoman@gmail.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
-To: Zou Tao <zoutao51@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Zou,
-
-These set of patches are meant to work on OMAP3430 SDP with camkit v3, which contains MT9p012 sensor and DW9710 lens driver.
-
-We currently have omap zoom ldp board implementation as W.I.P., so it's expected that you don't have your camera sensor detected yet. We'll be posting the patches in this list as soon as we have them ready.
-
-This error you're getting for cam_mclk is something which we are working out with the power management team, but it shouldn't be a problem for getting that clock to work.
-
-Regards,
-Sergio
-
------Original Message-----
-From: Zou Tao [mailto:zoutao51@gmail.com] 
-Sent: Tuesday, September 02, 2008 9:56 AM
-To: Aguirre Rodriguez, Sergio Alberto
-Cc: linux-omap@vger.kernel.org
-Subject: Re: [PATCH 1/15] OMAP3 camera driver: V4L2: Adding IOCTL command to get slave private data.
-
-Hi:
-I'm using omap zoom ldp board, and i enable omap34xx cam option in kernel.
-My kernel version is v2.6.26-ti-07252008, which including most of the 15 
-patches, just having minor different.
-During boot, it reported"Clock cam_mclk didn't enable in 100000 tries", 
-but init has been finished successfully.
-After booting up , I tried to access /dev/video/0, but kernel reported 
-no such device.
-Adding debug info, I found that video_device[0] is NULL.
-and in
-omap34xxcam_probe() -> 
-v4l2_int_device_register()->v4l2_int_device_try_attach_all()->m->u.master->attach(s)
-but omap34xxcam_device_register() never been called. so cam failed to 
-register it.
-
-Could you give me some advices? Does it work on your board?
-
-
-Aguirre Rodriguez, Sergio Alberto wrote:
-> >From 0be1009427e55115058bfe72521a2a2811a976e8 Mon Sep 17 00:00:00 2001
-> From: Sakari Ailus <sakari.ailus@nokia.com>
-> Date: Tue, 15 Apr 2008 10:35:15 +0300
-> Subject: [PATCH] Adding IOCTL command to get slave private data.
+On Tue, Sep 2, 2008 at 7:53 AM, Mark Brown
+<broonie@opensource.wolfsonmicro.com> wrote:
+> On Tue, Sep 02, 2008 at 07:25:48AM -0700, Steve Sakoman wrote:
+>> On Tue, Sep 2, 2008 at 4:26 AM, Mark Brown <broonie@sirena.org.uk> wrote:
 >
-> Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
-> ---
->  include/media/v4l2-int-device.h |    6 ++++++
->  1 files changed, 6 insertions(+), 0 deletions(-)
+>> > This should also be added to SND_SOC_ALL_CODECS to ensure testing
+>> > coverage.
 >
-> diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
-> index c8b80e0..d9a0053 100644
-> --- a/include/media/v4l2-int-device.h
-> +++ b/include/media/v4l2-int-device.h
-> @@ -184,6 +184,11 @@ enum v4l2_int_ioctl_num {
->  	vidioc_int_dev_exit_num,
->  	/* Set device power state: 0 is off, non-zero is on. */
->  	vidioc_int_s_power_num,
-> +	/*
-> +	* Get slave private data, e.g. platform-specific slave
-> +	* configuration used by the master.
-> +	*/
-> +	vidioc_int_g_priv_num,
->  	/* Get slave interface parameters. */
->  	vidioc_int_g_ifparm_num,
->  	/* Does the slave need to be reset after VIDIOC_DQBUF? */
-> @@ -267,6 +272,7 @@ V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
->  V4L2_INT_WRAPPER_0(dev_init);
->  V4L2_INT_WRAPPER_0(dev_exit);
->  V4L2_INT_WRAPPER_1(s_power, int, );
-> +V4L2_INT_WRAPPER_1(g_priv, void, *);
->  V4L2_INT_WRAPPER_1(g_ifparm, struct v4l2_ifparm, *);
->  V4L2_INT_WRAPPER_1(g_needs_reset, void, *);
->  
->   
+>> Hmm . . . I get no hits grep-ing for SND_SOC_ALL_CODECS.  Could this
+>> be something we are missing in the linux-omap git?
+>
+> Yes, it's queued in ALSA for merge in the next window:
 
+OK, I'll leave this out for now and maerge when it appears in linux-omap
 
+>> >> +struct twl4030_priv {
+>> >> +     unsigned int dummy;
+>> >> +};
+>
+>> > If this is empty it should be removable?
+>
+>> I plan to support further codec features in future patches and have a
+>> strong suspicion that private data may be required.  Is it preferred
+>> to add the infrastructure now, or wait till it is required in the
+>> future?  I opted for the former, but don't really care either way.
+>
+> It'd be a bit cleaner to remove it but it's not a big deal either way -
+> leave it in if you find it useful.
+
+I'll remove it for now and add it back when required.
+
+>> >> +             twl4030_write(codec, REG_ARXL2PGA, 0x00);
+>> >> +             twl4030_write(codec, REG_ARXR2PGA, 0x00);
+>> >> +             twl4030_write_reg_cache(codec, REG_ARXL2PGA, ldac_reg);
+>> >> +             twl4030_write_reg_cache(codec, REG_ARXR2PGA, rdac_reg);
+>> >> +     } else {
+>> >> +             twl4030_write(codec, REG_ARXL2PGA, ldac_reg);
+>> >> +             twl4030_write(codec, REG_ARXR2PGA, rdac_reg);
+>> >> +     }
+>
+>> > It may be better to make these user visible controls - usually the mute
+>> > provided here is specifically for the DAC but these look like controls
+>> > for the PGA.  The intention here is to avoid artifacts from the DAC when
+>> > the input clock stops and start - if there aren't any then user space
+>> > may well appreciate the control.  Either way is fine.
+>
+>> I'm not hearing any clicks & pops, so I will leave this in.
+>
+> The point is that adding it in suppresses problems that might otherwise
+> occur - if it doesn't misbehave without this users may find it useful if
+> the mute control to be visible to them.
+
+I'll investigate to see if removing this results in clicks & pops.
+Will then do "the right thing"
+
+>> >> +     twl4030_init_chip();
+>> >> +     twl4030_power_up(codec, APLL_RATE_44100 | OPT_MODE);
+>
+>> > It looks like the driver is assuming a particular clock rate going into
+>> > the codec - does the chip require a fixed clock or is the driver only
+>> > supporting one configuration?  Either is fine.
+>
+>> There is a fixed clock.
+>
+> Fixed per board or fixed by the chip?
+
+The chip allows 19.2 Mhz, 26 Mhz, or 38.4 Mhz input clocks to the
+codec.  All existing boards (Overo, Beagle, and OMAP3 EVM) use 26 Mhz
+(generated by a fixed external oscillator chip).  I'll check with the
+Pandora folks, but I believe that they are also 26 Mhz.
+
+Steve
