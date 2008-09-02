@@ -1,34 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Enabling MUSB support
-Date: Tue, 2 Sep 2008 15:37:36 -0700
-Message-ID: <20080902223736.GI23085@atomide.com>
-References: <1f11a5490808270626t5b4aa599i18b730d12a6c4667@mail.gmail.com> <20080827133825.GC7354@gandalf.research.nokia.com> <200808272354.28531.david-b@pacbell.net> <21722675-22F7-43A5-83A6-B426B092CC89@student.utwente.nl> <5A47E75E594F054BAF48C5E4FC4B92AB02C40F5BE2@dbde02.ent.ti.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [RESEND][Review Request] Adding csi2_fck declaration to
+	clock34xx.h
+Date: Wed, 3 Sep 2008 01:37:52 +0300
+Message-ID: <20080902223749.GH6814@frodo>
+References: <A24693684029E5489D1D202277BE894411A0781F@dlee02.ent.ti.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62366 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751985AbYIBWhk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 18:37:40 -0400
+Received: from ns1.siteground211.com ([209.62.36.12]:47864 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751457AbYIBWiM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 18:38:12 -0400
 Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02C40F5BE2@dbde02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894411A0781F@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: Koen Kooi <k.kooi@student.utwente.nl>, David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Gadiyar, Anand <gadiyar@ti.com> [080828 01:04]:
-> > Op 28 aug 2008, om 08:54 heeft David Brownell het volgende geschreven:
-> > > p.s. FWIW my beagle identifies itself as 3430 ES2.2
-> > >     not as 3530.
-> > 
-> > You sadly can't detect the cpu revision in software (es2.2 doesn't  
-> > exist for 3530 afaik), see the threads on linux-omap about 
-> > adding that info to KConfig.
-> 
-> Or for 3430 afaik.
+On Tue, Sep 02, 2008 at 05:33:55PM -0500, Aguirre Rodriguez, Sergio Alberto wrote:
+> +static struct clk csi2_96m_fck = {
+> +        .name           = "csi2_96m_fck",
+> +        .parent         = &core_96m_fck,
+> +        .init           = &omap2_init_clk_clkdm,
+> +        .enable_reg     = _OMAP34XX_CM_REGADDR(OMAP3430_CAM_MOD, CM_FCLKEN),
+> +        .enable_bit     = OMAP3430_EN_CSI2_SHIFT,
+> +        .flags          = CLOCK_IN_OMAP343X,
+> +	.clkdm		= { .name = "cam_clkdm" },
+> +        .recalc         = &followparent_recalc,
+> +};
 
-Oops, sorry I should have replied here instead. We can do it from
-board-*.c files with omap2_set_globals_xxxx().
+do not use spaces for identation, I think it's a mailer problem. Try to
+use git send-email. Also, clkdm should be initialized as:
 
-Tony
+	.clkdm		= {
+		.name	= "cam_clkdm",
+	},
+
+>  /* CM_FCLKEN_CAM specific bits */
+> +#define OMAP3430_EN_CSI2				(1 << 1)
+> +#define OMAP3430_EN_CSI2_SHIFT				1
+
+align these with the rest of the file
+
+-- 
+balbi
