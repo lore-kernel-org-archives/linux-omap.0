@@ -1,44 +1,89 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 1/1] Add missing macro argument for devm_release_* family
-Date: Tue,  2 Sep 2008 12:06:24 +0300
-Message-ID: <1220346384-15792-1-git-send-email-Hiroshi.DOYU@nokia.com>
+From: "stanley.miao" <stanley.miao@windriver.com>
+Subject: Re: [PATCH] ARM: OMAP3: Fix omapfb's problem on OMAP3430sdp
+Date: Tue, 02 Sep 2008 17:33:17 +0800
+Message-ID: <1220347997.7042.5.camel@localhost>
+References: <1220276228.2680.9.camel@localhost>
+	 <c656a4d20809012249p43213688pce54884c24541fcd@mail.gmail.com>
+	 <1220336007.19839.6.camel@localhost>  <20080902081429.GB6928@frodo>
+Reply-To: stanley.miao@windriver.com
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:56370 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750802AbYIBJGu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 05:06:50 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8296Rol032282
-	for <linux-omap@vger.kernel.org>; Tue, 2 Sep 2008 12:06:47 +0300
-Received: from oreo.research.nokia.com (esdhcp04066.research.nokia.com [172.21.40.66])
-	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m8296Od6031504
-	for <linux-omap@vger.kernel.org>; Tue, 2 Sep 2008 12:06:25 +0300
+Received: from mail.windriver.com ([147.11.1.11]:37024 "EHLO mail.wrs.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750791AbYIBJbo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Sep 2008 05:31:44 -0400
+In-Reply-To: <20080902081429.GB6928@frodo>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: me@felipebalbi.com
+Cc: arun c <arun.edarath@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Thanks. I resolved the style problem. If gpio function needs to be
+changed, I think it should be in a single patch.
+
+Re-send the patch again.
+
+Fix omapfb's problem on OMAP3430
+
+Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
 ---
- include/linux/ioport.h |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/omap/lcd_2430sdp.c |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-index 22d2115..c813c63 100644
---- a/include/linux/ioport.h
-+++ b/include/linux/ioport.h
-@@ -158,9 +158,9 @@ extern struct resource * __devm_request_region(struct device *dev,
- 				struct resource *parent, resource_size_t start,
- 				resource_size_t n, const char *name);
+diff --git a/drivers/video/omap/lcd_2430sdp.c
+b/drivers/video/omap/lcd_2430sdp.c
+index 9af6cd0..cf8d2a5 100644
+--- a/drivers/video/omap/lcd_2430sdp.c
++++ b/drivers/video/omap/lcd_2430sdp.c
+@@ -23,6 +23,7 @@
  
--#define devm_release_region(start,n) \
-+#define devm_release_region(dev,start,n) \
- 	__devm_release_region(dev, &ioport_resource, (start), (n))
--#define devm_release_mem_region(start,n) \
-+#define devm_release_mem_region(dev,start,n) \
- 	__devm_release_region(dev, &iomem_resource, (start), (n))
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
++#include <linux/delay.h>
+ #include <linux/i2c/twl4030.h>
  
- extern void __devm_release_region(struct device *dev, struct resource *parent,
+ #include <mach/gpio.h>
+@@ -45,6 +46,10 @@ static unsigned enable_gpio;
+ #define ENABLE_VAUX3_DEDICATED	0x03
+ #define ENABLE_VAUX3_DEV_GRP	0x20
+ 
++#define ENABLE_VPLL2_DEDICATED          0x05
++#define ENABLE_VPLL2_DEV_GRP            0xE0
++#define TWL4030_VPLL2_DEV_GRP           0x33
++#define TWL4030_VPLL2_DEDICATED         0x36
+ 
+ #define t2_out(c, r, v) twl4030_i2c_write_u8(c, r, v)
+ 
+@@ -77,6 +82,13 @@ static int sdp2430_panel_enable(struct lcd_panel
+*panel)
+ 	u8 ded_val, ded_reg;
+ 	u8 grp_val, grp_reg;
+ 
++	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
++		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEDICATED,
++					TWL4030_VPLL2_DEDICATED);
++		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEV_GRP,
++					TWL4030_VPLL2_DEV_GRP);
++	}
++
+ 	if (machine_is_omap_3430sdp()) {
+ 		ded_reg = TWL4030_VAUX3_DEDICATED;
+ 		ded_val = ENABLE_VAUX3_DEDICATED;
+@@ -104,6 +116,11 @@ static void sdp2430_panel_disable(struct lcd_panel
+*panel)
+ {
+ 	omap_set_gpio_dataout(enable_gpio, 0);
+ 	omap_set_gpio_dataout(backlight_gpio, 0);
++	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
++		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEDICATED);
++		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEV_GRP);
++		mdelay(4);
++	}
+ }
+ 
+ static unsigned long sdp2430_panel_get_caps(struct lcd_panel *panel)
 -- 
-1.5.5.1.357.g1af8b
+1.5.6.3
 
