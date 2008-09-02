@@ -1,78 +1,77 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [alsa-devel] [PATCH 2/4] SOUND: SOC: CODECS: Add support for
-	the TWL4030 audio codec
-Date: Tue, 2 Sep 2008 15:53:28 +0100
-Message-ID: <20080902145328.GA3764@rakim.wolfsonmicro.main>
-References: <1220306279-27977-1-git-send-email-sakoman@gmail.com> <1220306279-27977-2-git-send-email-sakoman@gmail.com> <1220306279-27977-3-git-send-email-sakoman@gmail.com> <20080902112633.GB25176@sirena.org.uk> <5e088bd90809020725g1d0dff70ue84f861ea3e22201@mail.gmail.com>
+From: Zou Tao <zoutao51@gmail.com>
+Subject: Re: [PATCH 1/15] OMAP3 camera driver: V4L2: Adding IOCTL command
+ to get slave private data.
+Date: Tue, 02 Sep 2008 22:55:37 +0800
+Message-ID: <48BD53E9.6060307@gmail.com>
+References: <A24693684029E5489D1D202277BE89441191E320@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:33177 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751325AbYIBOxb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 10:53:31 -0400
-Content-Disposition: inline
-In-Reply-To: <5e088bd90809020725g1d0dff70ue84f861ea3e22201@mail.gmail.com>
+Received: from fk-out-0910.google.com ([209.85.128.187]:11273 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753404AbYIBOzl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 10:55:41 -0400
+Received: by fk-out-0910.google.com with SMTP id 18so1841754fkq.5
+        for <linux-omap@vger.kernel.org>; Tue, 02 Sep 2008 07:55:38 -0700 (PDT)
+In-Reply-To: <A24693684029E5489D1D202277BE89441191E320@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Steve Sakoman <steve@sakoman.com>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Sep 02, 2008 at 07:25:48AM -0700, Steve Sakoman wrote:
-> On Tue, Sep 2, 2008 at 4:26 AM, Mark Brown <broonie@sirena.org.uk> wrote:
+Hi:
+I'm using omap zoom ldp board, and i enable omap34xx cam option in kernel.
+My kernel version is v2.6.26-ti-07252008, which including most of the 15 
+patches, just having minor different.
+During boot, it reported"Clock cam_mclk didn't enable in 100000 tries", 
+but init has been finished successfully.
+After booting up , I tried to access /dev/video/0, but kernel reported 
+no such device.
+Adding debug info, I found that video_device[0] is NULL.
+and in
+omap34xxcam_probe() -> 
+v4l2_int_device_register()->v4l2_int_device_try_attach_all()->m->u.master->attach(s)
+but omap34xxcam_device_register() never been called. so cam failed to 
+register it.
 
-> > This should also be added to SND_SOC_ALL_CODECS to ensure testing
-> > coverage.
+Could you give me some advices? Does it work on your board?
 
-> Hmm . . . I get no hits grep-ing for SND_SOC_ALL_CODECS.  Could this
-> be something we are missing in the linux-omap git?
 
-Yes, it's queued in ALSA for merge in the next window:
+Aguirre Rodriguez, Sergio Alberto wrote:
+> >From 0be1009427e55115058bfe72521a2a2811a976e8 Mon Sep 17 00:00:00 2001
+> From: Sakari Ailus <sakari.ailus@nokia.com>
+> Date: Tue, 15 Apr 2008 10:35:15 +0300
+> Subject: [PATCH] Adding IOCTL command to get slave private data.
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
+> ---
+>  include/media/v4l2-int-device.h |    6 ++++++
+>  1 files changed, 6 insertions(+), 0 deletions(-)
+>
+> diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
+> index c8b80e0..d9a0053 100644
+> --- a/include/media/v4l2-int-device.h
+> +++ b/include/media/v4l2-int-device.h
+> @@ -184,6 +184,11 @@ enum v4l2_int_ioctl_num {
+>  	vidioc_int_dev_exit_num,
+>  	/* Set device power state: 0 is off, non-zero is on. */
+>  	vidioc_int_s_power_num,
+> +	/*
+> +	* Get slave private data, e.g. platform-specific slave
+> +	* configuration used by the master.
+> +	*/
+> +	vidioc_int_g_priv_num,
+>  	/* Get slave interface parameters. */
+>  	vidioc_int_g_ifparm_num,
+>  	/* Does the slave need to be reset after VIDIOC_DQBUF? */
+> @@ -267,6 +272,7 @@ V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
+>  V4L2_INT_WRAPPER_0(dev_init);
+>  V4L2_INT_WRAPPER_0(dev_exit);
+>  V4L2_INT_WRAPPER_1(s_power, int, );
+> +V4L2_INT_WRAPPER_1(g_priv, void, *);
+>  V4L2_INT_WRAPPER_1(g_ifparm, struct v4l2_ifparm, *);
+>  V4L2_INT_WRAPPER_1(g_needs_reset, void, *);
+>  
+>   
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound-2.6.git
-
-> >> +struct twl4030_priv {
-> >> +     unsigned int dummy;
-> >> +};
-
-> > If this is empty it should be removable?
-
-> I plan to support further codec features in future patches and have a
-> strong suspicion that private data may be required.  Is it preferred
-> to add the infrastructure now, or wait till it is required in the
-> future?  I opted for the former, but don't really care either way.
-
-It'd be a bit cleaner to remove it but it's not a big deal either way -
-leave it in if you find it useful.
-
-> >> +             twl4030_write(codec, REG_ARXL2PGA, 0x00);
-> >> +             twl4030_write(codec, REG_ARXR2PGA, 0x00);
-> >> +             twl4030_write_reg_cache(codec, REG_ARXL2PGA, ldac_reg);
-> >> +             twl4030_write_reg_cache(codec, REG_ARXR2PGA, rdac_reg);
-> >> +     } else {
-> >> +             twl4030_write(codec, REG_ARXL2PGA, ldac_reg);
-> >> +             twl4030_write(codec, REG_ARXR2PGA, rdac_reg);
-> >> +     }
-
-> > It may be better to make these user visible controls - usually the mute
-> > provided here is specifically for the DAC but these look like controls
-> > for the PGA.  The intention here is to avoid artifacts from the DAC when
-> > the input clock stops and start - if there aren't any then user space
-> > may well appreciate the control.  Either way is fine.
-
-> I'm not hearing any clicks & pops, so I will leave this in.
-
-The point is that adding it in suppresses problems that might otherwise
-occur - if it doesn't misbehave without this users may find it useful if
-the mute control to be visible to them.
-
-> >> +     twl4030_init_chip();
-> >> +     twl4030_power_up(codec, APLL_RATE_44100 | OPT_MODE);
-
-> > It looks like the driver is assuming a particular clock rate going into
-> > the codec - does the chip require a fixed clock or is the driver only
-> > supporting one configuration?  Either is fine.
-
-> There is a fixed clock.
-
-Fixed per board or fixed by the chip?
