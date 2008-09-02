@@ -1,41 +1,61 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: git-pull-request for omap2-upstream branch for next merge
-	window (Was: [PATCH 00/16] Omap2 patches for post 2.6.26)
-Date: Tue, 2 Sep 2008 15:21:31 -0700
-Message-ID: <20080902222130.GF23085@atomide.com>
-References: <20080819212300.GF17034@flint.arm.linux.org.uk> <20080820072310.GA28862@atomide.com> <20080823233711.GM4713@atomide.com> <20080826080616.GC24147@flint.arm.linux.org.uk> <alpine.LFD.1.10.0808261154200.1624@xanadu.home> <20080826162630.GA17304@flint.arm.linux.org.uk> <alpine.LFD.1.10.0808261306310.1624@xanadu.home> <alpine.LFD.1.10.0808261425370.1624@xanadu.home> <20080826184953.GB17304@flint.arm.linux.org.uk>
+Subject: Re: [PATCH] ARM: OMAP: Kconfig support HW ECC for nand driver on
+	OMAP3
+Date: Tue, 2 Sep 2008 15:24:43 -0700
+Message-ID: <20080902222443.GG23085@atomide.com>
+References: <19F8576C6E063C45BE387C64729E739403CD45C99B@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63602 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50467 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751633AbYIBWVm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 18:21:42 -0400
+	with ESMTP id S1751457AbYIBWYq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 18:24:46 -0400
 Content-Disposition: inline
-In-Reply-To: <20080826184953.GB17304@flint.arm.linux.org.uk>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403CD45C99B@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Nicolas Pitre <nico@cam.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+To: "Singh, Vimal" <vimalsingh@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [080826 11:50]:
-> On Tue, Aug 26, 2008 at 02:28:14PM -0400, Nicolas Pitre wrote:
-> > On Tue, 26 Aug 2008, Nicolas Pitre wrote:
-> > 
-> > > That's not all black or white.  Many people have branches which are 
-> > > rebased all the time, especially when those branches are made up of 
-> > > other evolving branches.  I Think this is the case of your devel branch 
-> > > which sounds pretty fine to me.  As long as the volatile nature of such 
-> > > branch is clearly advertised and people are told not to base their own 
-> > > work on of course, and I think you did so many times now.
-> > 
-> > And I've just seen the commit message of the top commit in the devel 
-> > branch.  :-)  If that is not effective then I don't know what might be.
+Hi,
+
+* Singh, Vimal <vimalsingh@ti.com> [080824 22:53]:
+> From: Teerth Reddy <teerth@ti.com>
 > 
-> Well, the theory is that it'll appear in any pull requests generated
-> by git-request-pull, and of course everyone reads the output of that
-> command before they mail it, don't they?  ;)
+> Add kconfig support for HW ECC for nand driver on OMAP3
+> 
+> Signed-off-by: Teerth Reddy <teerth@ti.com>
+> ---
+>  drivers/mtd/nand/Kconfig |   10 ++++++++++
+>  1 files changed, 10 insertions(+)
+> 
+> Index : linux-omap-2.6/drivers/mtd/nand/Kconfig
+> ==================================================================================
+> --- a/drivers/mtd/nand/Kconfig	2008-08-25 10:26:51.708901000 +0530
+> +++ b/drivers/mtd/nand/Kconfig	2008-08-25 10:28:12.820012000 +0530
+> @@ -74,6 +74,16 @@ config MTD_NAND_OMAP2
+>  	help
+>            Support for NAND flash on Texas Instruments OMAP2 and OMAP3 platforms.
+>  
+> +config MTD_NAND_OMAP_HWECC
+> +	bool "The Hardware ECC support"
+> +	depends on MTD_NAND && MTD_NAND_OMAP2
+> +	default n
+> +	help
+> +	 The ECC compuatation for the data to be written/read can be either by
+> +	 software or omap has Hw ecc engine which calculates it.
+> +	 MTD_NAND_OMAP_HWECC = y which enables the hw ecc
+> +	 MTD_NAND_OMAP_HWECC = n enables software ecc
+> +
+>  config MTD_NAND_OMAP
+>  	tristate "NAND Flash device on OMAP H3/H2/P2 boards"
+>  	depends on ARM && ARCH_OMAP1 && MTD_NAND && (MACH_OMAP_H2 || MACH_OMAP_H3 || MACH_OMAP_PERSEUS2)
 
-Heh, I'll rebase on top of the earlier pull.
+This stuff should be all going to the MTD list now. If we still have
+some MTD drivers that are not included in the MTD tree, we should
+prepare them for merging and send them to the MTD list.
+
+Thanks,
 
 Tony
