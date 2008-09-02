@@ -1,61 +1,102 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Kconfig support HW ECC for nand driver on
-	OMAP3
-Date: Tue, 2 Sep 2008 15:24:43 -0700
-Message-ID: <20080902222443.GG23085@atomide.com>
-References: <19F8576C6E063C45BE387C64729E739403CD45C99B@dbde02.ent.ti.com>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: RE: [Review Request] Adding csi2_fck declaration to clock34xx.h
+Date: Tue, 2 Sep 2008 17:31:03 -0500
+Message-ID: <A24693684029E5489D1D202277BE894411A0781B@dlee02.ent.ti.com>
+References: <alpine.DEB.1.00.0808201650540.1636@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50467 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751457AbYIBWYq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 18:24:46 -0400
-Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403CD45C99B@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:44093 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753383AbYIBWbL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 18:31:11 -0400
+In-Reply-To: <alpine.DEB.1.00.0808201650540.1636@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Singh, Vimal" <vimalsingh@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Hi Paul,
 
-* Singh, Vimal <vimalsingh@ti.com> [080824 22:53]:
-> From: Teerth Reddy <teerth@ti.com>
-> 
-> Add kconfig support for HW ECC for nand driver on OMAP3
-> 
-> Signed-off-by: Teerth Reddy <teerth@ti.com>
-> ---
->  drivers/mtd/nand/Kconfig |   10 ++++++++++
->  1 files changed, 10 insertions(+)
-> 
-> Index : linux-omap-2.6/drivers/mtd/nand/Kconfig
-> ==================================================================================
-> --- a/drivers/mtd/nand/Kconfig	2008-08-25 10:26:51.708901000 +0530
-> +++ b/drivers/mtd/nand/Kconfig	2008-08-25 10:28:12.820012000 +0530
-> @@ -74,6 +74,16 @@ config MTD_NAND_OMAP2
->  	help
->            Support for NAND flash on Texas Instruments OMAP2 and OMAP3 platforms.
->  
-> +config MTD_NAND_OMAP_HWECC
-> +	bool "The Hardware ECC support"
-> +	depends on MTD_NAND && MTD_NAND_OMAP2
-> +	default n
-> +	help
-> +	 The ECC compuatation for the data to be written/read can be either by
-> +	 software or omap has Hw ecc engine which calculates it.
-> +	 MTD_NAND_OMAP_HWECC = y which enables the hw ecc
-> +	 MTD_NAND_OMAP_HWECC = n enables software ecc
-> +
->  config MTD_NAND_OMAP
->  	tristate "NAND Flash device on OMAP H3/H2/P2 boards"
->  	depends on ARM && ARCH_OMAP1 && MTD_NAND && (MACH_OMAP_H2 || MACH_OMAP_H3 || MACH_OMAP_PERSEUS2)
+I had regenerated the patch with your suggestions.
 
-This stuff should be all going to the MTD list now. If we still have
-some MTD drivers that are not included in the MTD tree, we should
-prepare them for merging and send them to the MTD list.
+Resending it now for your review.
 
-Thanks,
+Regards,
+Sergio
 
-Tony
+-----Original Message-----
+From: Paul Walmsley [mailto:paul@pwsan.com] 
+Sent: Wednesday, August 20, 2008 6:08 PM
+To: Aguirre Rodriguez, Sergio Alberto
+Cc: linux-omap@vger.kernel.org
+Subject: Re: [Review Request] Adding csi2_fck declaration to clock34xx.h
+
+Hello Sergio Alberto,
+
+a few comments below.
+
+On Wed, 20 Aug 2008, Aguirre Rodriguez, Sergio Alberto wrote:
+
+> Can you please review the attached patch to see if:
+>
+> -          Is the declaration done correctly?
+
+Please include the patch text into the E-mail body, rather than attaching 
+it.  This way, it's much easier to comment on specific sections.  It's 
+been inserted below, and comments are inlined:
+
+Index: omapkernel/arch/arm/mach-omap2/clock34xx.h
+===================================================================
+--- omapkernel.orig/arch/arm/mach-omap2/clock34xx.h	2008-08-18 19:28:34.000000000 -0500
++++ omapkernel/arch/arm/mach-omap2/clock34xx.h	2008-08-18 19:30:51.000000000 -0500
+@@ -2210,6 +2210,17 @@
+ 	.recalc		= &followparent_recalc,
+ };
+ 
++static struct clk csi2_fck = {
++        .name           = "csi2_fck",
+
+Please use the clock name as it's listed in the TRM, e.g., "csi2_96m_fck" 
+(but convert the "fclk" on the end to "fck", for legacy reasons).  Please 
+use that for both the structure name and the clock name.
+
++        .parent         = &core_96m_fck,
++        .init           = &omap2_init_clk_clkdm,
++        .enable_reg     = _OMAP34XX_CM_REGADDR(OMAP3430_CAM_MOD, CM_FCLKEN),
++        .enable_bit     = 1,
+
+Rather than using a number in the .enable_bit field, please use a symbolic 
+constant.  In this case, use OMAP3430_EN_CSI2_SHIFT.  You'll also need to 
+patch cm-regbits-34xx.h to add that macro.
+
++        .flags          = CLOCK_IN_OMAP343X,
++        .clkdm_name     = "cam_clkdm",
++        .recalc         = &followparent_recalc,
++};
++
+ /* USBHOST - 3430ES2 only */
+ 
+ static struct clk usbhost_120m_fck = {
+@@ -3190,6 +3201,7 @@
+ 	&dss_ick,
+ 	&cam_mclk,
+ 	&cam_ick,
++	&csi2_fck,
+
+(of course, this will need to be updated also with the new name)
+
+ 	&usbhost_120m_fck,
+ 	&usbhost_48m_fck,
+ 	&usbhost_ick,
+
+> - Should that be enough for handling the CSI2 functional clock with the 
+> clock API
+
+Looks like it should work fine,
+
+
+- Paul
+
