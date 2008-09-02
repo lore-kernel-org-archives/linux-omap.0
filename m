@@ -1,67 +1,31 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 0/2] twl4030-usb patches
-Date: Tue, 2 Sep 2008 13:15:39 -0700
-Message-ID: <200809021315.39502.david-b@pacbell.net>
-References: <1220358712-25737-1-git-send-email-felipe.balbi@nokia.com> <200809021237.56825.david-b@pacbell.net> <20080902194917.GF6814@frodo>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [alsa-devel] [PATCH 2/4] SOUND: SOC: CODECS: Add support for	the TWL4030 audio codec
+Date: Tue, 2 Sep 2008 21:31:21 +0100
+Message-ID: <20080902203120.GA20914@sirena.org.uk>
+References: <1220306279-27977-1-git-send-email-sakoman@gmail.com> <1220306279-27977-2-git-send-email-sakoman@gmail.com> <1220306279-27977-3-git-send-email-sakoman@gmail.com> <20080902112633.GB25176@sirena.org.uk> <5e088bd90809020725g1d0dff70ue84f861ea3e22201@mail.gmail.com> <20080902145328.GA3764@rakim.wolfsonmicro.main> <5e088bd90809020936i2d5e8a12lee33acfe5cbd8cd6@mail.gmail.com> <20080902185432.GA3553@sirena.org.uk> <1220386089.6499.223.camel@odin>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:22347 "HELO
-	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753072AbYIBUPm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 16:15:42 -0400
-In-Reply-To: <20080902194917.GF6814@frodo>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:1278 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751390AbYIBUkT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 16:40:19 -0400
 Content-Disposition: inline
+In-Reply-To: <1220386089.6499.223.camel@odin>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
+To: Liam Girdwood <lrg@kernel.org>
+Cc: Steve Sakoman <sakoman@gmail.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-On Tuesday 02 September 2008, Felipe Balbi wrote:
-> > > One thing we might say, Jean Delvare won't accept twl4030 the way it is
-> > > now. Old style i2c drivers will be dropped soon. We have to get twl4030
-> > > properly done otherwise it'll be a pain later.
-> > 
-> > He's also not keen on growing drivers/i2c/chips ...
-> > So this driver should probably move to drivers/mfd too.
-> 
-> Sure... it should really be there since it really is a multifunction
-> device. In that case it would be merged through Samuel Ortiz, right ?
-> Most likely Cc:ing i2c@lm-sensors.org so i2c people could comment on the
-> code as well.
+On Tue, Sep 02, 2008 at 09:08:09PM +0100, Liam Girdwood wrote:
+> On Tue, 2008-09-02 at 19:54 +0100, Mark Brown wrote:
 
-Yes.  Though considering it's an irq_chip that dispatches
-through I2C ... maybe an LKML review too, for the core.
+> > OK, a comment to that effect somewhere (perhaps in set_sysclk() which
+> > only accepts 26MHz) probably wouldn't go amiss.
 
- 
-> > (When it starts moving upstream, I suspect some folk will
-> > ask why it doesn't support the drivers/regulator calls;
-> > that's still new, I'd not worry much.)
-> 
-> Well, but if we have proper APIs for doing stuff, we should really start
-> using them, don't you think ?
+> The codec set_sysclk() should also accept 19.2MHz and 38.4MHz otherwise
+> return -EINVAL. It should also have a nice comment too :)
 
-That's why I mentioned that.  My priority would be getting
-the existing core code fixed/merged.  Then other bits as
-needed to get widely-available boards (Beagle, soon Overo)
-working in mainline.  (Then the rest.)
-
-Being the first "external" user of a new API framework is
-something to take slowly... IMO it's not worth holding up
-twl4030 support to do that.
-
- 
-> I'll postpone my twl4030-usb patch and try to work on twl4030-core.c.
-> It'll be a huge task moving all of that to new style i2c driver.
-
-Well, it's got obvious increments that are simple.  Core first;
-then the other bits, incrementally.  Maybe the core could be
-pushed upstream without a lot of the other functions exposed.
-
-Note that the LED support isn't written yet, so there'd be
-nothing to convert.  :)
-
-- Dave
-
+Ideally, yes but it looked like that'd need additional code to set the
+codec up to use them.  Obviously the ideal thing would be if the driver
+supports everything the chip does.
