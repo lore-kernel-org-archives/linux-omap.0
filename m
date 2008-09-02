@@ -1,161 +1,63 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 02/12] serial context save/restore
-Date: Tue, 02 Sep 2008 14:30:42 +0300
-Message-ID: <87fxoirdi5.fsf@deeprootsystems.com>
-References: <59386.192.168.10.89.1220276248.squirrel@dbdmail.itg.ti.com>
-	<46654.192.168.10.89.1220341940.squirrel@dbdmail.itg.ti.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: is LDP broken on todays kernel
+Date: Tue, 2 Sep 2008 17:56:55 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087022A167322@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.171]:27519 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750740AbYIBLav (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 07:30:51 -0400
-Received: by wf-out-1314.google.com with SMTP id 27so2288856wfd.4
-        for <linux-omap@vger.kernel.org>; Tue, 02 Sep 2008 04:30:50 -0700 (PDT)
+Received: from devils.ext.ti.com ([198.47.26.153]:56515 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751248AbYIBM1G convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 08:27:06 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m82CQwq9011933
+	for <linux-omap@vger.kernel.org>; Tue, 2 Sep 2008 07:27:04 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m82CQvLu002988
+	for <linux-omap@vger.kernel.org>; Tue, 2 Sep 2008 17:56:57 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Rajendra,
+On today's Linux-omap tony GIT tree I can see that LDP is broken:
+Any comments. 
 
-"Rajendra Nayak" <rnayak@ti.com> writes:
-
-> Resending this patch after fixing Russell's comments.
->
->
-> This patch adds the context save restore functions for UART
->
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/mach-omap2/serial.c             |   55 +++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/mach/serial.h |   12 ++++++
->  include/linux/serial_reg.h               |    1
->  3 files changed, 68 insertions(+)
->
-> Index: linux-omap-2.6/arch/arm/mach-omap2/serial.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/serial.c	2008-09-02
-> 13:06:15.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/mach-omap2/serial.c	2008-09-02 13:06:20.000000000
-> +0530
-
-This patch (and all the others) still have line-wrapping problems.  In
-particualar see the diff hunk headers above.
-
-The result is that while 'patch' seems to apply them, the git tools
-(like git-apply, git-am) fail with "patch fragment without header."
-
-Could you regenerate the patches without wrapping?  I recommend using
-'git format-patch -n'.
-
-Thanks,
-
-Kevin
-
-
-> @@ -290,6 +290,61 @@ void __init omap_serial_init(void)
->  	omap_serial_kick();
->  }
->
-> +#ifdef CONFIG_ARCH_OMAP3
-> +static struct omap3_uart_regs uart_ctx[OMAP_MAX_NR_PORTS];
-> +void omap3_save_uart_ctx(int unum)
-> +{
-> +	u16 lcr = 0;
-> +
-> +	struct plat_serial8250_port *p = serial_platform_data + unum;
-> +
-> +	if (uart_ick[unum] == NULL)
-> +		return;
-> +
-> +	lcr = serial_read_reg(p, UART_LCR);
-> +	serial_write_reg(p, UART_LCR, 0xBF);
-> +	uart_ctx[unum].dll = serial_read_reg(p, UART_DLL);
-> +	uart_ctx[unum].dlh = serial_read_reg(p, UART_DLM);
-> +	serial_write_reg(p, UART_LCR, lcr);
-> +	uart_ctx[unum].ier = serial_read_reg(p, UART_IER);
-> +	uart_ctx[unum].sysc = serial_read_reg(p, UART_OMAP_SYSC);
-> +	uart_ctx[unum].scr = serial_read_reg(p, UART_OMAP_SCR);
-> +	uart_ctx[unum].wer = serial_read_reg(p, UART_OMAP_WER);
-> +}
-> +EXPORT_SYMBOL(omap3_save_uart_ctx);
-> +
-> +void omap3_restore_uart_ctx(int unum)
-> +{
-> +	u16 efr = 0;
-> +
-> +	struct plat_serial8250_port *p = serial_platform_data + unum;
-> +
-> +	if (uart_ick[unum] == NULL)
-> +		return;
-> +
-> +	serial_write_reg(p, UART_OMAP_MDR1, 0x7);
-> +	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
-> +	efr = serial_read_reg(p, UART_EFR);
-> +	serial_write_reg(p, UART_EFR, UART_EFR_ECB);
-> +	serial_write_reg(p, UART_LCR, 0x0); /* Operational mode */
-> +	serial_write_reg(p, UART_IER, 0x0);
-> +	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
-> +	serial_write_reg(p, UART_DLL, uart_ctx[unum].dll);
-> +	serial_write_reg(p, UART_DLM, uart_ctx[unum].dlh);
-> +	serial_write_reg(p, UART_LCR, 0x0); /* Operational mode */
-> +	serial_write_reg(p, UART_IER, uart_ctx[unum].ier);
-> +	serial_write_reg(p, UART_FCR, 0xA1);
-> +	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
-> +	serial_write_reg(p, UART_EFR, efr);
-> +	serial_write_reg(p, UART_LCR, UART_LCR_WLEN8);
-> +	serial_write_reg(p, UART_OMAP_SCR, uart_ctx[unum].scr);
-> +	serial_write_reg(p, UART_OMAP_WER, uart_ctx[unum].wer);
-> +	serial_write_reg(p, UART_OMAP_SYSC, uart_ctx[unum].sysc);
-> +	serial_write_reg(p, UART_OMAP_MDR1, 0x00); /* UART 16x mode */
-> +}
-> +EXPORT_SYMBOL(omap3_restore_uart_ctx);
-> +#endif /* CONFIG_ARCH_OMAP3 */
-> +
->  static struct platform_device serial_device = {
->  	.name			= "serial8250",
->  	.id			= PLAT8250_DEV_PLATFORM,
-> Index: linux-omap-2.6/include/linux/serial_reg.h
-> ===================================================================
-> --- linux-omap-2.6.orig/include/linux/serial_reg.h	2008-09-02
-> 13:06:10.000000000 +0530
-> +++ linux-omap-2.6/include/linux/serial_reg.h	2008-09-02 13:16:00.000000000 +0530
-> @@ -323,6 +323,7 @@
->  #define UART_OMAP_MVER		0x14	/* Module version register */
->  #define UART_OMAP_SYSC		0x15	/* System configuration register */
->  #define UART_OMAP_SYSS		0x16	/* System status register */
-> +#define UART_OMAP_WER		0x17	/* Wake-up enable register */
->
->  #endif /* _LINUX_SERIAL_REG_H */
->
-> Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/serial.h
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/serial.h	2008-09-02
-> 13:06:10.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/plat-omap/include/mach/serial.h	2008-09-02
-> 13:08:24.000000000 +0530
-> @@ -40,4 +40,16 @@
->  			__ret;					\
->  			})
->
-> +#ifndef __ASSEMBLY__
-> +struct omap3_uart_regs {
-> +	u16 dll;
-> +	u16 dlh;
-> +	u16 ier;
-> +	u16 sysc;
-> +	u16 scr;
-> +	u16 wer;
-> +};
-> +extern void omap3_save_uart_ctx(int unum);
-> +extern void omap3_restore_uart_ctx(int unum);
-> +#endif /* __ASSEMBLY__ */
->  #endif
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+<snip>
+6>OMAP DMA hardware revision 4.0
+<3>USB: No board-specific platform config found
+<6>i2c_omap i2c_omap.1: bus 1 rev3.12 at 2600 kHz
+<6>i2c_omap i2c_omap.2: bus 2 rev3.12 at 400 kHz
+<6>i2c_omap i2c_omap.3: bus 3 rev3.12 at 400 kHz
+<6>TWL4030: TRY attach Slave TWL4030-ID0 on Adapter OMAP I2C adapter [1]
+<6>TWL4030: TRY attach Slave TWL4030-ID1 on Adapter OMAP I2C adapter [1]
+<6>TWL4030: TRY attach Slave TWL4030-ID2 on Adapter OMAP I2C adapter [1]
+<6>TWL4030: TRY attach Slave TWL4030-ID3 on Adapter OMAP I2C adapter [1]
+<3>i2c_omap i2c_omap.1: controller timed out
+<4>------------[ cut here ]------------
+<4>WARNING: at drivers/i2c/chips/twl4030-core.c:903 twl4030_attach_adapter+0x188
+/0x470()
+Modules linked in:
+[<c0026f78>] (dump_stack+0x0/0x14) from [<c0046820>] (warn_on_slowpath+0x4c/0x68
+)
+[<c00467d4>] (warn_on_slowpath+0x0/0x68) from [<c0019c2c>] (twl4030_attach_adapt
+er+0x188/0x470)
+ r6:00000000 r5:00000011 r4:c01ff008
+[<c0019aa4>] (twl4030_attach_adapter+0x0/0x470) from [<c0148014>] (__attach_adap
+ter+0x30/0x38)
+[<c0147fe4>] (__attach_adapter+0x0/0x38) from [<c0141e1c>] (class_for_each_devic
+e+0x68/0xb4)
+ r5:c022bee4 r4:c788f890
+[<c0141db4>] (class_for_each_device+0x0/0xb4) from [<c0147a18>] (i2c_register_dr
+iver+0xb0/0xcc)
+[<c0147968>] (i2c_register_driver+0x0/0xcc) from [<c0019a9c>] (twl4030_init+0x18
+/0x20)
+ r7:00000000 r6:00000000 r5:c001e308 r4:c022ece0
+[<c0019a84>] (twl4030_init+0x0/0x20) from [<c0022298>] (__exception_text_end+0x5
+0/0x17c)
+[<c0022248>] (__exception_text_end+0x0/0x17c) from [<c00088d4>] (kernel_init+0x7
+0/0xdc)
+[<c0008864>] (kernel_init+0x0/0xdc) from [<c00493a4>] (do_exit+0x0/0x6e0)
+ r5:00000000 r4:00000000
+<4>---[ end trace 1b75b31a2719ed1c ]---
