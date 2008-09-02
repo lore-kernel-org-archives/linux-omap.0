@@ -1,101 +1,124 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: [PATCH 2/4] SOUND: SOC: CODECS: Add support for
-	the TWL4030 audio codec
-Date: Tue, 2 Sep 2008 09:36:29 -0700
-Message-ID: <5e088bd90809020936i2d5e8a12lee33acfe5cbd8cd6@mail.gmail.com>
-References: <1220306279-27977-1-git-send-email-sakoman@gmail.com>
-	<1220306279-27977-2-git-send-email-sakoman@gmail.com>
-	<1220306279-27977-3-git-send-email-sakoman@gmail.com>
-	<20080902112633.GB25176@sirena.org.uk>
-	<5e088bd90809020725g1d0dff70ue84f861ea3e22201@mail.gmail.com>
-	<20080902145328.GA3764@rakim.wolfsonmicro.main>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [patch 2.6.27-rc3-omap1] omap3 beagle: nand (mostly) cleanups
+Date: Tue, 2 Sep 2008 10:23:55 -0700
+Message-ID: <200809021023.55493.david-b@pacbell.net>
+References: <200808291012.47332.david-b@pacbell.net> <13B9B4C6EF24D648824FF11BE896716203653CA11D@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20080902145328.GA3764@rakim.wolfsonmicro.main>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:26526 "HELO
+	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751544AbYIBRX7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 13:23:59 -0400
+In-Reply-To: <13B9B4C6EF24D648824FF11BE896716203653CA11D@dlee02.ent.ti.com>
 Content-Disposition: inline
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Steve Sakoman <sakoman@gmail.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Sep 2, 2008 at 7:53 AM, Mark Brown
-<broonie@opensource.wolfsonmicro.com> wrote:
-> On Tue, Sep 02, 2008 at 07:25:48AM -0700, Steve Sakoman wrote:
->> On Tue, Sep 2, 2008 at 4:26 AM, Mark Brown <broonie@sirena.org.uk> wrote:
->
->> > This should also be added to SND_SOC_ALL_CODECS to ensure testing
->> > coverage.
->
->> Hmm . . . I get no hits grep-ing for SND_SOC_ALL_CODECS.  Could this
->> be something we are missing in the linux-omap git?
->
-> Yes, it's queued in ALSA for merge in the next window:
+On Friday 29 August 2008, Woodruff, Richard wrote:
+> Actually, this was talked about before a bit and the
+> SZ_xyz flags were left out. 
+> 
+> The point of telling the geometry in the addition was
+> to be explicit about the number of sectors being used. 
 
-OK, I'll leave this out for now and maerge when it appears in linux-omap
+So ... this instead?
 
->> >> +struct twl4030_priv {
->> >> +     unsigned int dummy;
->> >> +};
->
->> > If this is empty it should be removable?
->
->> I plan to support further codec features in future patches and have a
->> strong suspicion that private data may be required.  Is it preferred
->> to add the infrastructure now, or wait till it is required in the
->> future?  I opted for the former, but don't really care either way.
->
-> It'd be a bit cleaner to remove it but it's not a big deal either way -
-> leave it in if you find it useful.
+=== CUT HERE
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-I'll remove it for now and add it back when required.
+Clean up the Beagle NAND config a bit:  use SZ_128K instead of
+an arithmetic expression for the NAND block size.  Set the
+NAND_BUSWIDTH_16 flag.  Make its init routine static.
 
->> >> +             twl4030_write(codec, REG_ARXL2PGA, 0x00);
->> >> +             twl4030_write(codec, REG_ARXR2PGA, 0x00);
->> >> +             twl4030_write_reg_cache(codec, REG_ARXL2PGA, ldac_reg);
->> >> +             twl4030_write_reg_cache(codec, REG_ARXR2PGA, rdac_reg);
->> >> +     } else {
->> >> +             twl4030_write(codec, REG_ARXL2PGA, ldac_reg);
->> >> +             twl4030_write(codec, REG_ARXR2PGA, rdac_reg);
->> >> +     }
->
->> > It may be better to make these user visible controls - usually the mute
->> > provided here is specifically for the DAC but these look like controls
->> > for the PGA.  The intention here is to avoid artifacts from the DAC when
->> > the input clock stops and start - if there aren't any then user space
->> > may well appreciate the control.  Either way is fine.
->
->> I'm not hearing any clicks & pops, so I will leave this in.
->
-> The point is that adding it in suppresses problems that might otherwise
-> occur - if it doesn't misbehave without this users may find it useful if
-> the mute control to be visible to them.
+(Unrelated:  make omap3_beagle_i2c_init be part of beagle_init.
+It shouldn't be called on non-beagle hardware; and beagle_init
+already runs with other arch_initcall code.)
 
-I'll investigate to see if removing this results in clicks & pops.
-Will then do "the right thing"
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
->> >> +     twl4030_init_chip();
->> >> +     twl4030_power_up(codec, APLL_RATE_44100 | OPT_MODE);
->
->> > It looks like the driver is assuming a particular clock rate going into
->> > the codec - does the chip require a fixed clock or is the driver only
->> > supporting one configuration?  Either is fine.
->
->> There is a fixed clock.
->
-> Fixed per board or fixed by the chip?
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -42,32 +42,35 @@
+ #include <mach/gpmc.h>
+ #include <mach/nand.h>
+ 
++
+ #define GPMC_CS0_BASE  0x60
+ #define GPMC_CS_SIZE   0x30
+ 
++#define NAND_BLOCK_SIZE		SZ_128K
++
+ static struct mtd_partition omap3beagle_nand_partitions[] = {
+ 	/* All the partition sizes are listed in terms of NAND block size */
+ 	{
+ 		.name		= "X-Loader",
+ 		.offset		= 0,
+-		.size		= 4*(64 * 2048),
++		.size		= 4 * NAND_BLOCK_SIZE,
+ 		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+ 	},
+ 	{
+ 		.name		= "U-Boot",
+ 		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
+-		.size		= 15*(64 * 2048),
++		.size		= 15 * NAND_BLOCK_SIZE,
+ 		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+ 	},
+ 	{
+ 		.name		= "U-Boot Env",
+ 		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x260000 */
+-		.size		= 1*(64 * 2048),
++		.size		= 1 * NAND_BLOCK_SIZE,
+ 	},
+ 	{
+ 		.name		= "Kernel",
+ 		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
+-		.size		= 32*(64 * 2048),
++		.size		= 32 * NAND_BLOCK_SIZE,
+ 	},
+ 	{
+ 		.name		= "File System",
+@@ -77,6 +80,7 @@ static struct mtd_partition omap3beagle_
+ };
+ 
+ static struct omap_nand_platform_data omap3beagle_nand_data = {
++	.options	= NAND_BUSWIDTH_16,
+ 	.parts		= omap3beagle_nand_partitions,
+ 	.nr_parts	= ARRAY_SIZE(omap3beagle_nand_partitions),
+ 	.dma_channel	= -1,		/* disable DMA in OMAP NAND driver */
+@@ -205,7 +209,7 @@ static struct platform_device *omap3_bea
+ 	&keys_gpio,
+ };
+ 
+-void __init omap3beagle_flash_init(void)
++static void __init omap3beagle_flash_init(void)
+ {
+ 	u8 cs = 0;
+ 	u8 nandcs = GPMC_CS_NUM + 1;
+@@ -245,6 +249,7 @@ void __init omap3beagle_flash_init(void)
+ 
+ static void __init omap3_beagle_init(void)
+ {
++	omap3_beagle_i2c_init();
+ 	platform_add_devices(omap3_beagle_devices, ARRAY_SIZE(omap3_beagle_devices));
+ 	omap_board_config = omap3_beagle_config;
+ 	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
+@@ -255,8 +260,6 @@ static void __init omap3_beagle_init(voi
+ 	omap3beagle_flash_init();
+ }
+ 
+-arch_initcall(omap3_beagle_i2c_init);
+-
+ static void __init omap3_beagle_map_io(void)
+ {
+ 	omap2_set_globals_343x();
 
-The chip allows 19.2 Mhz, 26 Mhz, or 38.4 Mhz input clocks to the
-codec.  All existing boards (Overo, Beagle, and OMAP3 EVM) use 26 Mhz
-(generated by a fixed external oscillator chip).  I'll check with the
-Pandora folks, but I believe that they are also 26 Mhz.
 
-Steve
