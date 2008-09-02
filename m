@@ -1,46 +1,74 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: [PATCH 1/4] ARM: OMAP2: Add support for the
-	Gumstix Overo board
-Date: Tue, 2 Sep 2008 14:06:21 -0700
-Message-ID: <5e088bd90809021406n435a07d1m595ef8ca0e455989@mail.gmail.com>
-References: <1220306279-27977-1-git-send-email-sakoman@gmail.com>
-	<1220306279-27977-2-git-send-email-sakoman@gmail.com>
-	<20080902205822.GA32575@flint.arm.linux.org.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 12/33] Add tsc2005 touchscreen driver
+Date: Tue, 2 Sep 2008 22:33:36 +0100
+Message-ID: <20080902213336.GB32575@flint.arm.linux.org.uk>
+References: <1220116593-862-4-git-send-email-me@felipebalbi.com> <1220116593-862-5-git-send-email-me@felipebalbi.com> <1220116593-862-6-git-send-email-me@felipebalbi.com> <1220116593-862-7-git-send-email-me@felipebalbi.com> <1220116593-862-8-git-send-email-me@felipebalbi.com> <1220116593-862-9-git-send-email-me@felipebalbi.com> <1220116593-862-10-git-send-email-me@felipebalbi.com> <1220116593-862-11-git-send-email-me@felipebalbi.com> <1220116593-862-12-git-send-email-me@felipebalbi.com> <1220116593-862-13-git-send-email-me@felipebalbi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20080902205822.GA32575@flint.arm.linux.org.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:45665 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751677AbYIBVdu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2008 17:33:50 -0400
 Content-Disposition: inline
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Steve Sakoman <steve@sakoman.com>
+In-Reply-To: <1220116593-862-13-git-send-email-me@felipebalbi.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>
 
-On Tue, Sep 2, 2008 at 1:58 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Mon, Sep 01, 2008 at 02:57:56PM -0700, sakoman@gmail.com wrote:
->> +             .size           =  15 * NAND_BLOCK_SIZE,
->
-> Unnecessary additional spacing after '='.
+On Sat, Aug 30, 2008 at 08:16:12PM +0300, Felipe Balbi wrote:
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/input.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/delay.h>
+> +#include <linux/spi/spi.h>
+> +
+> +#ifdef CONFIG_ARCH_OMAP
+> +#include <mach/gpio.h>
+> +#endif
 
-<<SNIP>>
+#include <linux/gpio.h> ?
 
->> +struct platform_driver overo_panel_driver = {
->
-> Should be static.
->
+If this driver depends on having gpio, shouldn't that be reflected in the
+Kconfig entry?  ...
 
-Lots of great suggestions!  I will incorporate them in my resubmission.
+> +static int __devinit tsc2005_ts_init(struct tsc2005 *ts,
+> +				     struct tsc2005_platform_data *pdata)
+> +{
+> +	struct input_dev *idev;
+> +	int dav_gpio, r;
+> +	int x_max, y_max;
+> +	int x_fudge, y_fudge, p_fudge;
+> +
+> +	if (pdata->dav_gpio < 0) {
+> +		dev_err(&ts->spi->dev, "need DAV GPIO");
+> +		return -EINVAL;
+> +	}
+> +	dav_gpio = pdata->dav_gpio;
+> +	ts->dav_gpio = dav_gpio;
+> +	dev_dbg(&ts->spi->dev, "TSC2005: DAV GPIO = %d\n", dav_gpio);
+> +
+> +#ifdef CONFIG_ARCH_OMAP
+> +	r = omap_request_gpio(dav_gpio);
+> +	if (r < 0) {
+> +		dev_err(&ts->spi->dev, "unable to get DAV GPIO");
+> +		goto err1;
+> +	}
+> +	omap_set_gpio_direction(dav_gpio, 1);
+> +	ts->irq = OMAP_GPIO_IRQ(dav_gpio);
 
-Thanks,
+In fact, this driver requires ARCH_OMAP to set ts->irq, otherwise
+it's uninitialized.
 
-Steve
+> +	dev_dbg(&ts->spi->dev, "TSC2005: DAV IRQ = %d\n", ts->irq);
+> +#endif
+
+Can this be converted to the generic gpio stuff?
+
+> +	init_timer(&ts->penup_timer);
+> +	setup_timer(&ts->penup_timer, tsc2005_ts_penup_timer_handler,
+> +			(unsigned long)ts);
+
+setup_timer() does init_timer() so the first line is redundant.
