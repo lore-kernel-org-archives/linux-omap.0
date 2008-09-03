@@ -1,25 +1,37 @@
-From: Adrian Hunter <ext-adrian.hunter@nokia.com>
-Subject: Bug in twl4030backupbatt_voltage()
-Date: Wed, 03 Sep 2008 18:10:20 +0300
-Message-ID: <48BEA8DC.3030905@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [RESEND 2][Review Request] Adding csi2_fck declaration to
+ clock34xx.h
+Date: Wed, 3 Sep 2008 09:22:57 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0809030921570.13646@utopia.booyaka.com>
+References: <A24693684029E5489D1D202277BE894411A07844@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:42133 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751691AbYICPHS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 11:07:18 -0400
+Received: from utopia.booyaka.com ([72.9.107.138]:57300 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751255AbYICPW7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 11:22:59 -0400
+In-Reply-To: <A24693684029E5489D1D202277BE894411A07844@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: madhu.cr@ti.com
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, saaguirre@ti.com
 
-In the omap tree, commit f91fd98be045bec9c18e13110f22dafd44cb84b5
-fixed a bug with the use of function twl4030_madc_conversion()
-relating to the local variable 'struct twl4030_madc_request req'
-not being fully initialised.
+Hello Sergio,
 
-The same problem appears to be in the function
-twl4030backupbatt_voltage() which is in drivers/power/twl4030_bci_battery.c
+On Tue, 2 Sep 2008, Aguirre Rodriguez, Sergio Alberto wrote:
 
+> From: Sergio Aguirre <saaguirre@ti.com>
+> 
+> ARM: OMAP: Add CSI2 clock struct for handling it with clock API.
+> 
+> Add CSI2 clock struct for handling it with clock API when TI PM is disabled.
+
+> +	.clkdm		= {
+> +		.name = "cam_clkdm"
+> +	},
+
+Sorry to make you resend these again, but these should indeed be on one 
+line, the way you had it before, to conform with the rest of the file.
+
+
+- Paul
