@@ -1,63 +1,77 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: FOR COMMENT: void __iomem * and similar casts are Bad News
-Date: Wed, 3 Sep 2008 09:40:08 -0700
-Message-ID: <20080903164007.GP23085@atomide.com>
-References: <20080827220821.GE7227@flint.arm.linux.org.uk> <200808311447.20312.david-b@pacbell.net> <20080902221501.GD23085@atomide.com> <20080903075541.GA19980@flint.arm.linux.org.uk>
+From: "Arun KS" <getarunks@gmail.com>
+Subject: Re: Reset unused clocks during boot causing problem on 5912 OSK
+Date: Wed, 3 Sep 2008 22:57:59 +0530
+Message-ID: <dfeb90390809031027h4e0de05s2126a65984d648ae@mail.gmail.com>
+References: <dfeb90390809030702o40710b8cpab328466dac3a4a@mail.gmail.com>
+	 <20080903140921.GF16796@gandalf.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52918 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752597AbYICQkX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 12:40:23 -0400
+Received: from ti-out-0910.google.com ([209.85.142.185]:60219 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751691AbYICR2C (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 13:28:02 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so1720470tic.23
+        for <linux-omap@vger.kernel.org>; Wed, 03 Sep 2008 10:28:00 -0700 (PDT)
+In-Reply-To: <20080903140921.GF16796@gandalf.research.nokia.com>
 Content-Disposition: inline
-In-Reply-To: <20080903075541.GA19980@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org, Eduardo Valentin <edubezval@gmail.com>
+To: felipe.balbi@nokia.com
+Cc: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [080903 00:56]:
-> On Tue, Sep 02, 2008 at 03:15:10PM -0700, Tony Lindgren wrote:
-> > Back online now. These changes look ggood to me in general, except
-> > I suggest that we use the following standard:
-> > 
-> > - Keep OMAP1_IO_ADDRESS() and OMAP2_IO_ADDRESS() as I have some
-> >   experimental patches to compile in both omap1 and omap2 into the
-> >   same binary. Booting the kernel currently still requires some
-> >   Makefile.boot patching, but at least compiling everything in makes
-> >   things easier to maintain in the long run.
-> 
-> Already decided to do that.
+Hi Balbi,
 
-OK
+That clk_enable() is for sys_clkout, which is the MCLK for the CODEC.
 
-> > - Use io_p2v() for initializing dynamic stuff as it can be a function
-> >   for non-optimized multiboot binaries.
-> 
-> It can't become a function - it's used in structure initialization so
-> must be constant.
+I am following n810.c file itself.
 
-Outside the drivers we can use XXX_IO_ADDRESS() or set it during resource
-init with io_p2v().
+But I m talking about omap_mcbsp_request(0), which will only be called when
+we do an aplay, by the platform driver of the omap(sound/soc/omap/ompa-mcbsp.c).
+But before this the unused clocks are switched off by clock.c in
+arch/arm/mach-omap1/clocks.c.
+And when i call the omap_mcbsp_request(), the entire system hangs...
 
-> There's a few places where it's used where resources are passed into
-> drivers - in which case if the device is at a different physical address
-> it's the resources which should be changed, not the translation macro.
+Arun
 
-Yeah. Luckily it looks like there are only few drivers that would need
-patching for the resources.
-
-Other than that, do you see other reasons why io_p2v() could not be a
-function?
-
-> Anyway, I've put a modified version in my git tree.
-
-OK, will also apply to l-o tree after shortly.
-
-> I still want to hear on the other build fix in the patch, and there's
-> also a missing function for mmc stuff which I've not looked into yet.
-
-The mpuio build fix? That is a correct fix.
-
-Tony
+On Wed, Sep 3, 2008 at 7:39 PM, Felipe Balbi <felipe.balbi@nokia.com> wrote:
+> On Wed, Sep 03, 2008 at 07:32:51PM +0530, ext Arun KS wrote:
+>> Hi all,
+>>
+>> I am trying to write an ASOC driver for tlv320aic23 on 5912osk.
+>> When i do an aplay, the system is hanging.
+>> Later i found that it is hanging when mcbsp1 is requested in funcion
+>> omap_mcbsp_dai_startup in file sound/soc/omap/omap-mcbsp.c
+>>
+>> The reason is that the unused clocks are switched off during booting.
+>>
+>> So i decided to disable the option (reset unused clocks during boot) from
+>> system type -> TI OMAP Implementations in menuconfig.
+>>
+>> But still its not working.
+>>
+>> When i give omap_mcbsp_request(0) in init function of my machine
+>> driver, i m able
+>> to get the requested mcbsp.
+>
+> Take a look at sound/soc/omap/n810.c, under n810_startup() it calls
+> clk_enable().
+>
+> Maybe you should do the same. But since tlv320aic23 is used by more than
+> one machine you could make the clk_enable be board specific.
+>
+> But one step at a time, take a look here:
+>
+>  71 static int n810_startup(struct snd_pcm_substream *substream)
+>  72 {
+>  73         struct snd_soc_pcm_runtime *rtd = substream->private_data;
+>  74         struct snd_soc_codec *codec = rtd->socdev->codec;
+>  75
+>  76         n810_ext_control(codec);
+>  77         return clk_enable(sys_clkout2);
+>  78 }
+>
+> --
+> balbi
+>
