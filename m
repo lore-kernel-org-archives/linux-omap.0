@@ -1,89 +1,30 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: FOR COMMENT: void __iomem * and similar casts are Bad News
-Date: Wed, 3 Sep 2008 22:04:12 +0100
-Message-ID: <20080903210412.GJ19980@flint.arm.linux.org.uk>
-References: <20080827220821.GE7227@flint.arm.linux.org.uk> <a0580c510809030833w6cbc7e42ye0e8f4fc49b5b046@mail.gmail.com> <20080903184804.GA1788@flint.arm.linux.org.uk> <a0580c510809031233x452968f5g84311eb694cdde45@mail.gmail.com> <20080903194824.GE19980@flint.arm.linux.org.uk> <20080903203720.GV23085@atomide.com>
+Date: Wed, 3 Sep 2008 22:07:19 +0100
+Message-ID: <20080903210719.GK19980@flint.arm.linux.org.uk>
+References: <20080827220821.GE7227@flint.arm.linux.org.uk> <a0580c510809030833w6cbc7e42ye0e8f4fc49b5b046@mail.gmail.com> <20080903184804.GA1788@flint.arm.linux.org.uk> <a0580c510809031233x452968f5g84311eb694cdde45@mail.gmail.com> <20080903194824.GE19980@flint.arm.linux.org.uk> <a0580c510809031304p1da1d0f7h4f7c97e377505bc5@mail.gmail.com> <20080903204524.GI19980@flint.arm.linux.org.uk> <20080903205004.GW23085@atomide.com> <20080903205618.GX23085@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60089 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60092 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753706AbYICVEc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 17:04:32 -0400
+	with ESMTP id S1752079AbYICVHd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 17:07:33 -0400
 Content-Disposition: inline
-In-Reply-To: <20080903203720.GV23085@atomide.com>
+In-Reply-To: <20080903205618.GX23085@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Eduardo Valentin <edubezval@gmail.com>, linux-omap@vger.kernel.org
 
-On Wed, Sep 03, 2008 at 01:37:21PM -0700, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [080903 12:49]:
-> > Yes, that will be virtual.  But what does it mean to call:
-> > 
-> > 	omap_set_dma_dest_params()
-> > 
-> > specifying a virtual address?  Can the DMA controller cope with DMAing
-> > to virtual addresses?  My hunch is that the DMA controller can't cope
-> > with that, so giving it a virtual address is a bug.
-> > 
-> > Let me change the question: does omap_set_dma_dest_params()'s 4th
-> > argument take a virtual or a physical address?  If the former, it's
-> > prototype is wrong, and its 4th argument needs to be typed as
-> > 'void __iomem *' rather than 'unsigned long'.  If the latter, the code
-> > above is wrong.
+On Wed, Sep 03, 2008 at 01:56:18PM -0700, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [080903 13:50]:
+> > There is a 3450 public TRM somewhere AFAIK, anybody got a link for that?
+> > At least 5912 TRM is available somewhere.
 > 
-> The dma src and dest functions take physical addresses so the prototype
-> should be void __iomem *.
+> Sorry I meant 3550 public TRM. Here's the link to the 5912 TRM,
+> which covers 16xx.
+> 
+> http://focus.ti.com/dsp/docs/dspsupporttechdocsc.tsp?abstractName=spru742&sectionId=3&tabId=409
 
-Grr.  No.  Let me repeat the rule: 
-
-- virtual addresses are pointer like.
-- physical addresses are integer like.
-
-So, if it's a physical address, it should be stored in an integer type
-large enough to contain it, and that means something like u32, or
-unsigned long.
-
-If it's a virtual MMIO address, then it should be something like
-'void __iomem *', or if you want to play roulette with compiler padding,
-'struct foo __iomem *'.
-
-Okay, so lets accept that the 4th argument to omap_set_dma_dest_params()
-is a physical address.  It should be typed as 'unsigned long' (it is)
-and it then means that:
-
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index d084405..d9b1a42 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -652,6 +652,7 @@ int omap_mcbsp_xmit_buffer(unsigned int id, dma_addr_t buffer,
- 	omap_set_dma_dest_params(mcbsp[id].dma_tx_lch,
- 				 src_port,
- 				 OMAP_DMA_AMODE_CONSTANT,
-+				 /* FIXME: this is a virtual address */
- 				 mcbsp[id].io_base + OMAP_MCBSP_REG_DXR1,
- 				 0, 0);
- 
-@@ -713,6 +714,7 @@ int omap_mcbsp_recv_buffer(unsigned int id, dma_addr_t buffer,
- 	omap_set_dma_src_params(mcbsp[id].dma_rx_lch,
- 				src_port,
- 				OMAP_DMA_AMODE_CONSTANT,
-+				/* FIXME: this is a virtual address */
- 				mcbsp[id].io_base + OMAP_MCBSP_REG_DRR1,
- 				0, 0);
- 
-
-are broken because they're passing a virtual address into a function
-requiring a physical address.
-
-Now, to fix this in the right way isn't going to be easy, because
-arch/arm/plat-omap/mcbsp.c doesn't know what the physical address of
-the mcbsp actually is - it's only passed the virtual address via
-platform data (eww, yuck yuck yuck)...
-
-If this was a properly reviewed platform driver, and on *any* *other*
-ARM platform, it would take the resources containing the physical
-addresses and ioremap them... and this would be a trivial bug fix.
-
-I'll cook a patch up.
+Hmm, claims to only be 106K, and xpdf 3 claims the file is unreadable.
