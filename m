@@ -1,46 +1,48 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: FOR COMMENT: void __iomem * and similar casts are Bad News
-Date: Wed, 3 Sep 2008 20:34:21 +0100
-Message-ID: <20080903193421.GC19980@flint.arm.linux.org.uk>
-References: <20080827220821.GE7227@flint.arm.linux.org.uk> <200808311447.20312.david-b@pacbell.net> <20080902221501.GD23085@atomide.com> <20080903075541.GA19980@flint.arm.linux.org.uk> <20080903164007.GP23085@atomide.com>
+From: =?ISO-8859-1?Q?Ram=F3n_Finger_Lilienthal?= <ramon@instramed.com.br>
+Subject: Doubts about patching
+Date: Wed, 03 Sep 2008 16:13:28 -0300
+Message-ID: <48BEE1D8.20604@instramed.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55852 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752010AbYICTes (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 15:34:48 -0400
-Content-Disposition: inline
-In-Reply-To: <20080903164007.GP23085@atomide.com>
+Received: from fb04-05.mta.terra.com.br ([200.154.152.104]:37153 "EHLO
+	fb04-05.mta.terra.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752882AbYICTh4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 15:37:56 -0400
+Received: from sr03-09.mta.terra.com.br (sr03-09.mta.terra.com.br [200.154.152.48])
+	by milet.hst.terra.com.br (Postfix) with ESMTP id 80AB143C5615
+	for <linux-omap@vger.kernel.org>; Wed,  3 Sep 2008 16:16:20 -0300 (BRT)
+Received: from tiaro.hst.terra.com.br (tiaro.hst.terra.com.br [200.176.10.7])
+	by bungunia.hst.terra.com.br (Postfix) with ESMTP id CE64666076A
+	for <linux-omap@vger.kernel.org>; Wed,  3 Sep 2008 16:13:17 -0300 (BRT)
+Received: from [192.168.1.103] (unknown [201.37.105.27])
+	(authenticated user ramoninstramed@terra.com.br)
+	by tiaro.hst.terra.com.br (Postfix) with ESMTP id A68FD72810E
+	for <linux-omap@vger.kernel.org>; Wed,  3 Sep 2008 16:13:17 -0300 (BRT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org, Eduardo Valentin <edubezval@gmail.com>
+To: linux-omap@vger.kernel.org
 
-On Wed, Sep 03, 2008 at 09:40:08AM -0700, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [080903 00:56]:
-> > > - Use io_p2v() for initializing dynamic stuff as it can be a function
-> > >   for non-optimized multiboot binaries.
-> > 
-> > It can't become a function - it's used in structure initialization so
-> > must be constant.
-> 
-> Outside the drivers we can use XXX_IO_ADDRESS() or set it during resource
-> init with io_p2v().
+=46ellows,
 
-The question is why do we need it?  If the correct physical address
-is passed, then things should work out just fine anyway, especially
-if drivers start to use ioremap rather than relying on all these fixed
-translations.
+I am new on generating and applying patchs. I am  a little bit confused=
+=2E
 
-> > I still want to hear on the other build fix in the patch, and there's
-> > also a missing function for mmc stuff which I've not looked into yet.
-> 
-> The mpuio build fix? That is a correct fix.
-
-No, see drivers/usb/host/ohci-omap.c:
-
--#ifdef CONFIG_ARCH_OMAP_OTG
-+#ifdef CONFIG_USB_OTG /* CHECKME */
+Someone has a tutorial or a weblink that explains how to generate and=20
+apply a patch?
 
 
+Please, any help will be welcome.
+
+Regards,
+Eng. Ram=F3n F. Lilienthal
+Project Enginneer
+Instramed Ltda. - www.instramed.com.br
++55 (51) 33344199 ext. 213
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
