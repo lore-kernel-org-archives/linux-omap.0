@@ -1,48 +1,27 @@
-From: Russell King <rmk@arm.linux.org.uk>
-Subject: Re: FOR COMMENT: void __iomem * and similar casts are Bad News
-Date: Wed, 3 Sep 2008 19:48:04 +0100
-Message-ID: <20080903184804.GA1788@flint.arm.linux.org.uk>
-References: <20080827220821.GE7227@flint.arm.linux.org.uk> <a0580c510809030833w6cbc7e42ye0e8f4fc49b5b046@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Reset unused clocks during boot causing problem on 5912 OSK
+Date: Wed, 3 Sep 2008 20:00:19 +0100
+Message-ID: <20080903190019.GB19980@flint.arm.linux.org.uk>
+References: <dfeb90390809030702o40710b8cpab328466dac3a4a@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:50802 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:56996 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752066AbYICSsQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 14:48:16 -0400
+	with ESMTP id S1753417AbYICTAc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 15:00:32 -0400
 Content-Disposition: inline
-In-Reply-To: <a0580c510809030833w6cbc7e42ye0e8f4fc49b5b046@mail.gmail.com>
+In-Reply-To: <dfeb90390809030702o40710b8cpab328466dac3a4a@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>
+To: Arun KS <getarunks@gmail.com>
 Cc: linux-omap@vger.kernel.org
 
-On Wed, Sep 03, 2008 at 11:33:51AM -0400, Eduardo Valentin wrote:
-> > @@ -159,7 +159,7 @@ static struct omap_mcbsp_platform_data omap730_mcbsp_pdata[] = {
-> >  #ifdef CONFIG_ARCH_OMAP15XX
-> >  static struct omap_mcbsp_platform_data omap15xx_mcbsp_pdata[] = {
-> >        {
-> > -               .virt_base      = OMAP1510_MCBSP1_BASE,
-> > +               .virt_base      = OMAP1510_MCBSP1_BASE, /* FIXME: virtual or physical */
-> AFAIK, OMAP1510_MCBSP1_BASE is physical. So, I'd say:
-> +               .virt_base      = IO_ADDRESS(OMAP1510_MCBSP1_BASE),
-> 
-> Because, plat-omap/mcbsp.c expect .virt_base to be a virtual address.
+On Wed, Sep 03, 2008 at 07:32:51PM +0530, Arun KS wrote:
+> I am trying to write an ASOC driver for tlv320aic23 on 5912osk.
 
-Ok, I'll fix these which you've confirmed in my version for mainline.
+5912osk is OMAP1, yes ?  Uses arch/arm/mach-omap1/mcbsp.c ?
 
-> > @@ -701,6 +702,7 @@ int omap_mcbsp_xmit_buffer(unsigned int id, dma_addr_t buffer,
-> >        omap_set_dma_dest_params(mcbsp->dma_tx_lch,
-> >                                 src_port,
-> >                                 OMAP_DMA_AMODE_CONSTANT,
-> > +                                /* FIXME: this is a virtual address */
-> >                                 mcbsp->io_base + OMAP_MCBSP_REG_DXR1,
-> 
-> yes, that's true. This is expected to be virtual (mcbsp->io_base).
-
-Don't you mean that it is expected to be physical?
-
--- 
-Russell King
- Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
- maintainer of:
+Which is the file I pointed out passing physical addresses for mcbsp1
+and mcbsp3 instead of virtual addresses, resulting in code hitting
+something else rather than the right registers ?
