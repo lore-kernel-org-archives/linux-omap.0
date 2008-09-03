@@ -1,45 +1,49 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: FOR COMMENT: void __iomem * and similar casts are Bad News
-Date: Wed, 3 Sep 2008 08:55:41 +0100
-Message-ID: <20080903075541.GA19980@flint.arm.linux.org.uk>
-References: <20080827220821.GE7227@flint.arm.linux.org.uk> <200808311447.20312.david-b@pacbell.net> <20080902221501.GD23085@atomide.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: [PATCH 12/12] CORE OFF macro added, disabled by default
+Date: Wed, 03 Sep 2008 16:25:51 +0300
+Message-ID: <877i9txsww.fsf@trdhcp146196.ntc.nokia.com>
+References: <63425.192.168.10.89.1220276570.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35637 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751150AbYICHz7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 03:55:59 -0400
-Content-Disposition: inline
-In-Reply-To: <20080902221501.GD23085@atomide.com>
+Received: from smtp.nokia.com ([192.100.105.134]:34002 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751996AbYICNZh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 09:25:37 -0400
+In-Reply-To: <63425.192.168.10.89.1220276570.squirrel@dbdmail.itg.ti.com> (ext
+	Rajendra Nayak's message of "Mon, 1 Sep 2008 19:12:50 +0530 (IST)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org, Eduardo Valentin <edubezval@gmail.com>
+To: ext Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, Sep 02, 2008 at 03:15:10PM -0700, Tony Lindgren wrote:
-> Back online now. These changes look ggood to me in general, except
-> I suggest that we use the following standard:
-> 
-> - Keep OMAP1_IO_ADDRESS() and OMAP2_IO_ADDRESS() as I have some
->   experimental patches to compile in both omap1 and omap2 into the
->   same binary. Booting the kernel currently still requires some
->   Makefile.boot patching, but at least compiling everything in makes
->   things easier to maintain in the long run.
+"ext Rajendra Nayak" <rnayak@ti.com> writes:
+>
+>  	  WARNING: Enabling this option may cause your device to hang!
+>
+> +config OMAP_CPUIDLE_CORE_OFF
+> +	bool "CORE OFF support in CPUIdle"
+> +	depends on ARCH_OMAP34XX
+> +	default n
+> +	help
+> +	  Say Y if you want to enable CORE OFF support in CPUIdle
+> +
+> +	  Currently some drivers don't work well with OFF support
+> +	  enabled in CPUIlde. Once all device drivers are adapted
+> +	  to work with OFF mode in CPUIdle, this MACRO will be
+> +	  removed.
+> +
 
-Already decided to do that.
+Would it make sense to use more generic macro here? Something that
+could be shared between cpuidle, srf, pm_idle and suspend? It could
+also affect to all powerdomains, not just core.
 
-> - Use io_p2v() for initializing dynamic stuff as it can be a function
->   for non-optimized multiboot binaries.
+--=20
+Jouni H=C3=B6gander
 
-It can't become a function - it's used in structure initialization so
-must be constant.
-
-There's a few places where it's used where resources are passed into
-drivers - in which case if the device is at a different physical address
-it's the resources which should be changed, not the translation macro.
-
-Anyway, I've put a modified version in my git tree.
-
-I still want to hear on the other build fix in the patch, and there's
-also a missing function for mmc stuff which I've not looked into yet.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
