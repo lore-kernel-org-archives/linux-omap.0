@@ -1,41 +1,45 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 1/1] Use pmd_table() MACRO for unmap_area_sections()
-Date: Wed,  3 Sep 2008 08:36:28 +0300
-Message-ID: <1220420188-22518-1-git-send-email-Hiroshi.DOYU@nokia.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: FOR COMMENT: void __iomem * and similar casts are Bad News
+Date: Wed, 3 Sep 2008 08:55:41 +0100
+Message-ID: <20080903075541.GA19980@flint.arm.linux.org.uk>
+References: <20080827220821.GE7227@flint.arm.linux.org.uk> <200808311447.20312.david-b@pacbell.net> <20080902221501.GD23085@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:29755 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751985AbYICFhI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 01:37:08 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m835asDN030280
-	for <linux-omap@vger.kernel.org>; Wed, 3 Sep 2008 00:37:04 -0500
-Received: from oreo.research.nokia.com (esdhcp04066.research.nokia.com [172.21.40.66])
-	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m835aS6B029368
-	for <linux-omap@vger.kernel.org>; Wed, 3 Sep 2008 08:36:29 +0300
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35637 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751150AbYICHz7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 03:55:59 -0400
+Content-Disposition: inline
+In-Reply-To: <20080902221501.GD23085@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org, Eduardo Valentin <edubezval@gmail.com>
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
----
- arch/arm/mm/ioremap.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+On Tue, Sep 02, 2008 at 03:15:10PM -0700, Tony Lindgren wrote:
+> Back online now. These changes look ggood to me in general, except
+> I suggest that we use the following standard:
+> 
+> - Keep OMAP1_IO_ADDRESS() and OMAP2_IO_ADDRESS() as I have some
+>   experimental patches to compile in both omap1 and omap2 into the
+>   same binary. Booting the kernel currently still requires some
+>   Makefile.boot patching, but at least compiling everything in makes
+>   things easier to maintain in the long run.
 
-diff --git a/arch/arm/mm/ioremap.c b/arch/arm/mm/ioremap.c
-index b81dbf9..9ad7614 100644
---- a/arch/arm/mm/ioremap.c
-+++ b/arch/arm/mm/ioremap.c
-@@ -161,7 +161,7 @@ static void unmap_area_sections(unsigned long virt, unsigned long size)
- 			/*
- 			 * Free the page table, if there was one.
- 			 */
--			if ((pmd_val(pmd) & PMD_TYPE_MASK) == PMD_TYPE_TABLE)
-+			if ((pmd_table(pmd))
- 				pte_free_kernel(&init_mm, pmd_page_vaddr(pmd));
- 		}
- 
--- 
-1.5.5.1.357.g1af8b
+Already decided to do that.
 
+> - Use io_p2v() for initializing dynamic stuff as it can be a function
+>   for non-optimized multiboot binaries.
+
+It can't become a function - it's used in structure initialization so
+must be constant.
+
+There's a few places where it's used where resources are passed into
+drivers - in which case if the device is at a different physical address
+it's the resources which should be changed, not the translation macro.
+
+Anyway, I've put a modified version in my git tree.
+
+I still want to hear on the other build fix in the patch, and there's
+also a missing function for mmc stuff which I've not looked into yet.
