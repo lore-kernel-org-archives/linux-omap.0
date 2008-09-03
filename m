@@ -1,23 +1,23 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: FOR COMMENT: void __iomem * and similar casts are Bad News
-Date: Wed, 3 Sep 2008 14:35:29 -0700
-Message-ID: <20080903213528.GA23085@atomide.com>
+Date: Wed, 3 Sep 2008 22:38:10 +0100
+Message-ID: <20080903213810.GM19980@flint.arm.linux.org.uk>
 References: <20080827220821.GE7227@flint.arm.linux.org.uk> <200808311447.20312.david-b@pacbell.net> <20080902221501.GD23085@atomide.com> <20080903075541.GA19980@flint.arm.linux.org.uk> <20080903164007.GP23085@atomide.com> <20080903203250.GU23085@atomide.com> <13B9B4C6EF24D648824FF11BE8967162036545FC58@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49472 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751086AbYICVfo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 17:35:44 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55913 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755851AbYICVim (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 17:38:42 -0400
 Content-Disposition: inline
 In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162036545FC58@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>
 
-* Woodruff, Richard <r-woodruff2@ti.com> [080903 14:32]:
+On Wed, Sep 03, 2008 at 04:32:10PM -0500, Woodruff, Richard wrote:
 > 
 > > From: Tony Lindgren [mailto:tony@atomide.com]
 > > Sent: Wednesday, September 03, 2008 3:33 PM
@@ -57,7 +57,5 @@ Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, David Brownell <david-b@p
 > 
 > For example domain OFF mode is not compelling given how good retention is at the process node used for all OMAP2s.  But it is compelling on an OMAP3.  Pushing back OMAP3 needed code on to OMAP2 in this area ends up being not so beneficial for OMAP2. It causes regressions and slows down OMAP3 code adoption.  If its down nicely like Paul has been working at it may turn out well.  But the time to do this is extended.
 
-Well we already have pm24xx.c and pm34xx.c. AFAIK the code compiles
-for both 24xx and 34xx, but is only used on 34xx.
-
-Tony
+Can we _PLEASE_ take this discussion to a different thread.  OFF TOPIC.
+Thank you.
