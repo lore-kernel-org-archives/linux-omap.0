@@ -1,49 +1,39 @@
-From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: [PATCH 12/12] CORE OFF macro added, disabled by default
-Date: Wed, 03 Sep 2008 16:25:51 +0300
-Message-ID: <877i9txsww.fsf@trdhcp146196.ntc.nokia.com>
-References: <63425.192.168.10.89.1220276570.squirrel@dbdmail.itg.ti.com>
+From: "Arun KS" <getarunks@gmail.com>
+Subject: Reset unused clocks during boot causing problem on 5912 OSK
+Date: Wed, 3 Sep 2008 19:32:51 +0530
+Message-ID: <dfeb90390809030702o40710b8cpab328466dac3a4a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:34002 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751996AbYICNZh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 09:25:37 -0400
-In-Reply-To: <63425.192.168.10.89.1220276570.squirrel@dbdmail.itg.ti.com> (ext
-	Rajendra Nayak's message of "Mon, 1 Sep 2008 19:12:50 +0530 (IST)")
+Received: from ti-out-0910.google.com ([209.85.142.188]:37232 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752705AbYICOCx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 10:02:53 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so1683494tic.23
+        for <linux-omap@vger.kernel.org>; Wed, 03 Sep 2008 07:02:52 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-"ext Rajendra Nayak" <rnayak@ti.com> writes:
->
->  	  WARNING: Enabling this option may cause your device to hang!
->
-> +config OMAP_CPUIDLE_CORE_OFF
-> +	bool "CORE OFF support in CPUIdle"
-> +	depends on ARCH_OMAP34XX
-> +	default n
-> +	help
-> +	  Say Y if you want to enable CORE OFF support in CPUIdle
-> +
-> +	  Currently some drivers don't work well with OFF support
-> +	  enabled in CPUIlde. Once all device drivers are adapted
-> +	  to work with OFF mode in CPUIdle, this MACRO will be
-> +	  removed.
-> +
+Hi all,
 
-Would it make sense to use more generic macro here? Something that
-could be shared between cpuidle, srf, pm_idle and suspend? It could
-also affect to all powerdomains, not just core.
+I am trying to write an ASOC driver for tlv320aic23 on 5912osk.
+When i do an aplay, the system is hanging.
+Later i found that it is hanging when mcbsp1 is requested in funcion
+omap_mcbsp_dai_startup in file sound/soc/omap/omap-mcbsp.c
 
---=20
-Jouni H=C3=B6gander
+The reason is that the unused clocks are switched off during booting.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So i decided to disable the option (reset unused clocks during boot) from
+system type -> TI OMAP Implementations in menuconfig.
+
+But still its not working.
+
+When i give omap_mcbsp_request(0) in init function of my machine
+driver, i m able
+to get the requested mcbsp.
+
+Best Regards,
+Arun KS
