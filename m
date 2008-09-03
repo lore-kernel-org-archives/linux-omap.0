@@ -1,44 +1,64 @@
-From: Sakari Ailus <sakari.ailus@nokia.com>
-Subject: Re: [PATCH 12/15] OMAP3 camera driver: Add Sensor and Lens Driver.
-Date: Wed, 03 Sep 2008 17:35:32 +0300
-Message-ID: <48BEA0B4.8030709@nokia.com>
-References: <A24693684029E5489D1D202277BE89441191E332@dlee02.ent.ti.com>
+From: Eduardo Valentin <eduardo.valentin@indt.org.br>
+Subject: Re: [PATCH 17/33] add tea5761 radio driver
+Date: Wed, 3 Sep 2008 11:01:21 -0400
+Message-ID: <20080903150121.GA28711@knuth>
+References: <1220116593-862-11-git-send-email-me@felipebalbi.com> <1220116593-862-12-git-send-email-me@felipebalbi.com> <1220116593-862-13-git-send-email-me@felipebalbi.com> <1220116593-862-14-git-send-email-me@felipebalbi.com> <1220116593-862-15-git-send-email-me@felipebalbi.com> <1220116593-862-16-git-send-email-me@felipebalbi.com> <1220116593-862-17-git-send-email-me@felipebalbi.com> <1220116593-862-18-git-send-email-me@felipebalbi.com> <20080901102431.b7bc647e.jarkko.nikula@nokia.com> <20080901075937.GU9887@frodo>
+Reply-To: eduardo.valentin@indt.org.br
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:62403 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:64315 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752479AbYICOfz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 10:35:55 -0400
-In-Reply-To: <A24693684029E5489D1D202277BE89441191E332@dlee02.ent.ti.com>
+	with ESMTP id S1753157AbYICPBU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 11:01:20 -0400
+Content-Disposition: inline
+In-Reply-To: <20080901075937.GU9887@frodo>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Felipe Balbi <me@felipebalbi.com>
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-ext Aguirre Rodriguez, Sergio Alberto wrote:
-> From: Sergio Aguirre <saaguirre@ti.com>
-> 
-> OMAP: CAM: Add Sensor and Lens Driver
-> 
-> This adds the following sensor drivers:
-> * Micron MT9P012 sensor
-> * DW9710 Lens driver
-> 
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> ---
->  drivers/media/video/Kconfig   |   16
->  drivers/media/video/Makefile  |    2
->  drivers/media/video/Kconfig   |   16
->  drivers/media/video/Makefile  |    2
->  drivers/media/video/dw9710.c  |  583 +++++++++++++
->  drivers/media/video/dw9710.h  |   61 +
->  drivers/media/video/mt9p012.c | 1782 ++++++++++++++++++++++++++++++++++++++++++
->  drivers/media/video/mt9p012.h |  295 ++++++
+Hi guys,
 
-I think the sensor and lens drivers should be separate patches.
+Sorry for the late answer.
+
+On Mon, Sep 01, 2008 at 10:59:38AM +0300, ext Felipe Balbi wrote:
+> On Mon, Sep 01, 2008 at 10:24:31AM +0300, Jarkko Nikula wrote:
+> > On Sat, 30 Aug 2008 20:16:17 +0300
+> > "ext Felipe Balbi" <me@felipebalbi.com> wrote:
+> > 
+> > > From: Felipe Balbi <felipe.balbi@nokia.com>
+> > > 
+> > > Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> > > ---
+> > >  drivers/media/radio/Kconfig         |   13 +
+> > >  drivers/media/radio/Makefile        |    1 +
+> > >  drivers/media/radio/radio-tea5761.c |  517 ++++++++++++++++++++++++++
+> > > +++++++++ 3 files changed, 531 insertions(+), 0 deletions(-)
+> > >  create mode 100644 drivers/media/radio/radio-tea5761.c
+> > > 
+> > I have the impression that Eduardo Valentin had work in progress to
+> > push this via v4l list. However, don't know the current status.
+
+Yes, that's true. I tried pushing this through v4l list.
+But it got blocked. It seams there is duplicated code here.
+v4l already has a radio interface for tea. However, it is
+based on radio tuner api.
+
+The work here is to update our driver to use current code
+already in v4l2. Just a simple patch to remove duplicated code
+and adapt to use correct API.
+
+> 
+> Better asking. Eduardo, were you planning to push this one upstream ?
+> 
+> -- 
+> balbi
 
 -- 
-Sakari Ailus
-sakari.ailus@nokia.com
+
+BR,
+
+---
+Eduardo Bezerra Valentin
++55 92 21261118
