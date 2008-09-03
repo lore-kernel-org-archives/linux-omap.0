@@ -1,41 +1,63 @@
-From: David Brownell <david-b@pacbell.net>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: FOR COMMENT: void __iomem * and similar casts are Bad News
-Date: Wed, 3 Sep 2008 14:35:52 -0700
-Message-ID: <200809031435.52620.david-b@pacbell.net>
-References: <20080827220821.GE7227@flint.arm.linux.org.uk> <20080903203720.GV23085@atomide.com> <20080903210412.GJ19980@flint.arm.linux.org.uk>
+Date: Wed, 3 Sep 2008 14:35:29 -0700
+Message-ID: <20080903213528.GA23085@atomide.com>
+References: <20080827220821.GE7227@flint.arm.linux.org.uk> <200808311447.20312.david-b@pacbell.net> <20080902221501.GD23085@atomide.com> <20080903075541.GA19980@flint.arm.linux.org.uk> <20080903164007.GP23085@atomide.com> <20080903203250.GU23085@atomide.com> <13B9B4C6EF24D648824FF11BE8967162036545FC58@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp123.sbc.mail.sp1.yahoo.com ([69.147.64.96]:34958 "HELO
-	smtp123.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752359AbYICVf4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 17:35:56 -0400
-In-Reply-To: <20080903210412.GJ19980@flint.arm.linux.org.uk>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49472 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751086AbYICVfo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 17:35:44 -0400
 Content-Disposition: inline
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162036545FC58@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Eduardo Valentin <edubezval@gmail.com>, linux-omap@vger.kernel.org
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>
 
-On Wednesday 03 September 2008, Russell King - ARM Linux wrote:
-> - virtual addresses are pointer like.
-> - physical addresses are integer like.
+* Woodruff, Richard <r-woodruff2@ti.com> [080903 14:32]:
 > 
-> So, if it's a physical address, it should be stored in an integer type
-> large enough to contain it, and that means something like u32, or
-> unsigned long.
+> > From: Tony Lindgren [mailto:tony@atomide.com]
+> > Sent: Wednesday, September 03, 2008 3:33 PM
+> <snip>
+> > > Fixed translations do have some benefits.  You can ensure that you are
+> > using section or super section descriptors to cover large areas.  This
+> > does result in better TLB usage.  Along with freeing up TLB entries you
+> > also generally avoid TLB misses on IO calls which touch a variety of
+> > internal spaces as part of the IRQ sequence.
+> > >
+> > > With in a family of chips like 2420/22/23 or 3410/20/30/40 the
+> > internal space is mapped the same.
+> >
+> > I guess there's no advantage of using ioremap if the area is
+> > already mapped. For drivers that are shared across multiple
+> > archs or buses it makes sense.
+> 
+> That has been my general feeling.
+> 
+> Many drivers have some ISA'ish way to get address or they have dynamic ways.  While many probably hate the old fixed systems in embedded it doesn't always seem so offensive.
+> 
+> You still can abstract resources into platform specific data areas.
+> 
+> 
+> > > Frankly I've never been convinced that a multi OMAP1/2/3 image makes
+> > much sense apart forcing better code structure and being kind of cool.
+> > Each chip has very different performance targets and is really better
+> > built with an optimized tool chain (ARMv5, ARMv6, ARMv7).  Doing multi-
+> > boots with in the same architecture family seems really good but across
+> > seems less so.
+> >
+> > It definitely makes sense from distro and maintenance point of view. If
+> > we did not work towards multi-omap we would already have the same code
+> > duplicated many times over.
+> 
+> Yes.  But this also adds a high level of coupling.  Sometimes this great like an internal MUSB driver other times it complicates development like for power aspects.
+> 
+> For example domain OFF mode is not compelling given how good retention is at the process node used for all OMAP2s.  But it is compelling on an OMAP3.  Pushing back OMAP3 needed code on to OMAP2 in this area ends up being not so beneficial for OMAP2. It causes regressions and slows down OMAP3 code adoption.  If its down nicely like Paul has been working at it may turn out well.  But the time to do this is extended.
 
-And to complete the puzzle:  in the absense of IOMMU technologies
-what's the difference between a "physical address" and a dma_addr_t?
-(DMA addreses being integer-like.)
+Well we already have pm24xx.c and pm34xx.c. AFAIK the code compiles
+for both 24xx and 34xx, but is only used on 34xx.
 
-I would have expected omap_dma_set_{dest,src}_params() to accept a
-dma_addr_t instead of a "physical address", on general principles.
-And for those address types to be effectively the same, although it
-would be allowed (albeit annoying) to have some trivial mapping
-between the two (XOR some value etc).
-
-- Dave
-
+Tony
