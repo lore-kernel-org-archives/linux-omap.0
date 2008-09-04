@@ -1,37 +1,60 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: FOR COMMENT: void __iomem * and similar casts are Bad News
-Date: Thu, 4 Sep 2008 22:01:29 +0100
-Message-ID: <20080904210129.GG2309@flint.arm.linux.org.uk>
-References: <20080827220821.GE7227@flint.arm.linux.org.uk> <a0580c510809030833w6cbc7e42ye0e8f4fc49b5b046@mail.gmail.com> <20080904094655.GB10426@flint.arm.linux.org.uk> <20080904161033.GQ23085@atomide.com> <20080904161248.GC2309@flint.arm.linux.org.uk> <20080904162917.GR23085@atomide.com> <20080904170733.GD2309@flint.arm.linux.org.uk> <20080904175810.GS23085@atomide.com>
+Subject: cpu_is_omap15xx() doesn't get set for OMAP310
+Date: Thu, 4 Sep 2008 22:10:36 +0100
+Message-ID: <20080904211036.GH2309@flint.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34888 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36392 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753483AbYIDVBo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2008 17:01:44 -0400
+	with ESMTP id S1754691AbYIDVKs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2008 17:10:48 -0400
 Content-Disposition: inline
-In-Reply-To: <20080904175810.GS23085@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Eduardo Valentin <edubezval@gmail.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On Thu, Sep 04, 2008 at 10:58:13AM -0700, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [080904 10:07]:
-> > On Thu, Sep 04, 2008 at 09:29:19AM -0700, Tony Lindgren wrote:
-> > > That was fast :) Sounds we'll have a patch to test soon.
-> > 
-> > Of course.  In my tree.  The master branch contains the minimal fixes,
-> > and the devel branch contains everything.  If you want the individual
-> > patches, either pull the tree or grab the mboxes.
-> 
-> Hey looks good! I'll cherry pick them to l-o tree, then let's make
-> sure things work as expected.
+While trying out some of the changes in qemu (which emulates an OMAP310)
+I found that cpu_is_omap15xx() returns false.
 
-BTW, having an ack (or even an ok) for that last patch in the master
-branch would be useful:
+The comment says:
 
-[ARM] omap: fix virtual vs physical address space confusions
+ * Macros to group OMAP into cpu classes.
+ * These can be used in most places.
+ * cpu_is_omap7xx():    True for OMAP730
+ * cpu_is_omap15xx():   True for OMAP1510, OMAP5910 and OMAP310
 
-Planning to send them off tonight.
+and cpu_is_omap15xx() is defined as:
+
+#  define cpu_is_omap15xx()             is_omap15xx()
+
+#define GET_OMAP_CLASS  ((system_rev >> 24) & 0xff)
+
+#define IS_OMAP_CLASS(class, id)                        \
+static inline int is_omap ##class (void)                \
+{                                                       \
+        return (GET_OMAP_CLASS == (id)) ? 1 : 0;        \
+}
+
+IS_OMAP_CLASS(15xx, 0x15)
+
+
+So, it's looking for the top byte of system_rev to be 0x15.  However,
+the ID table in arch/arm/mach-omap1/id.c contains:
+
+{ .jtag_id = 0xb574, .die_rev = 0x2, .omap_id = 0x03310315, .type = 0x03100000},
+
+so the top byte contains 0x03.  Moreover, it goes on to say:
+
+        /* Add the cpu class info (7xx, 15xx, 16xx, 24xx) */
+        cpu_type = system_rev >> 24;
+        switch (cpu_type) {
+        case 0x03:
+                system_rev |= 0x15;
+                break;
+
+So, if this code is supposed to be setting the cpu class, it's setting
+it in the low byte.
+
+It looks to me like the omap1 ID code is out of step with the omap2 ID
+code, or omap310 ID support is broken.
