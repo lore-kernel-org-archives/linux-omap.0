@@ -1,54 +1,34 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: FOR COMMENT: void __iomem * and similar casts are Bad News
-Date: Wed, 3 Sep 2008 18:06:15 -0700
-Message-ID: <200809031806.15522.david-b@pacbell.net>
-References: <20080827220821.GE7227@flint.arm.linux.org.uk> <200809031506.00261.david-b@pacbell.net> <20080903225654.GO19980@flint.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 05/33] add tlv320aic23 driver
+Date: Wed, 3 Sep 2008 18:40:55 -0700
+Message-ID: <20080904014054.GO23085@atomide.com>
+References: <1220116593-862-2-git-send-email-me@felipebalbi.com> <1220116593-862-3-git-send-email-me@felipebalbi.com> <1220116593-862-4-git-send-email-me@felipebalbi.com> <1220116593-862-5-git-send-email-me@felipebalbi.com> <1220116593-862-6-git-send-email-me@felipebalbi.com> <20080901102228.02db1230.jarkko.nikula@nokia.com> <20080901080158.GV9887@frodo> <20080901111312.176e3a4c.jarkko.nikula@nokia.com> <65e025470809010802m4c12a6eeh9cf5d3a3643ff5b8@mail.gmail.com> <20080901151923.GB6654@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:23368 "HELO
-	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752557AbYIDBGS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 21:06:18 -0400
-In-Reply-To: <20080903225654.GO19980@flint.arm.linux.org.uk>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64171 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751955AbYIDBlC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 21:41:02 -0400
 Content-Disposition: inline
+In-Reply-To: <20080901151923.GB6654@frodo>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: Yuri Jaeger Monti <yurijm@gmail.com>, Jarkko Nikula <jarkko.nikula@nokia.com>, linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>
 
-On Wednesday 03 September 2008, Russell King - ARM Linux wrote:
-> On Wed, Sep 03, 2008 at 03:05:59PM -0700, David Brownell wrote:
-> > According to Mr. Grep, there are at least 10 ARMs that work
-> > like that [__arch_ioremap] in mainline.  Maybe Russell can
-> > recommend one of them as a preferred model.
+* Felipe Balbi <me@felipebalbi.com> [080901 08:20]:
+> On Mon, Sep 01, 2008 at 12:02:44PM -0300, Yuri Jaeger Monti wrote:
+> > We're still using OSK here. The patch compiled fine, although I'm still having
+> > some troubles with the audio in the board.
+> > Unfortunately I still don't have the knowledge to develop the ASoC driver, but
+> > I would be glad to help.
 > 
-> As I've been trying to say, I see this as a separate issue for the near
-> future.  At the moment, I'm trying to concentrate on one aspect only.
+> Please do, take any of other ASoC driver as an example and try to make
+> it work with tlv ;-)
 
-OK ... if you think that's a "near future" thing, great!  I think
-most bad usage in this area came from:
+Let's get rid of all the old audio drivers once osk5912 ASoC driver
+works. I'll export the old audio code into a patch on my website for
+references in case anybody needs it.
 
-	- Intentional "performance hacks", achieving what can
-	  better be done with an arch_ioremap and fixed mappings;
-
-	- Recently introduced goofage;
-
-	- Accidents/misunderstandings.
-
-Those latter two will become much less common when GCC starts to
-report errors which previously required a separate "sparse" run.
-
-
-> That is, getting OMAP to the point that we're using the compiler to
-> warn us when we do something silly, like passing a virtual address
-> to a function which takes a physical address, and fixing the places
-> which are currently wrong.
-
-Yeah.  I did a pass like that over a lot of OMAP1 drivers a few years
-back (before OMAP2/OMAP3); "sparse" was a big help.  If we're now ready
-to have GCC tell us that stuff, that's a lot better.
-
-- Dave
+Tony
