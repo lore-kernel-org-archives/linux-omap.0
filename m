@@ -1,31 +1,37 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: OMAP3EVM : Doesn't resume after suspend
-Date: Fri, 5 Sep 2008 02:08:22 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301A03B16D8@dbde02.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: FOR COMMENT: void __iomem * and similar casts are Bad News
+Date: Thu, 4 Sep 2008 22:01:29 +0100
+Message-ID: <20080904210129.GG2309@flint.arm.linux.org.uk>
+References: <20080827220821.GE7227@flint.arm.linux.org.uk> <a0580c510809030833w6cbc7e42ye0e8f4fc49b5b046@mail.gmail.com> <20080904094655.GB10426@flint.arm.linux.org.uk> <20080904161033.GQ23085@atomide.com> <20080904161248.GC2309@flint.arm.linux.org.uk> <20080904162917.GR23085@atomide.com> <20080904170733.GD2309@flint.arm.linux.org.uk> <20080904175810.GS23085@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41379 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759932AbYIDUie convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2008 16:38:34 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m84KcOwC003247
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 4 Sep 2008 15:38:32 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m84KcN8A005205
-	for <linux-omap@vger.kernel.org>; Fri, 5 Sep 2008 02:08:24 +0530 (IST)
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34888 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753483AbYIDVBo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2008 17:01:44 -0400
+Content-Disposition: inline
+In-Reply-To: <20080904175810.GS23085@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>, linux-omap@vger.kernel.org
 
-Hi all,
+On Thu, Sep 04, 2008 at 10:58:13AM -0700, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [080904 10:07]:
+> > On Thu, Sep 04, 2008 at 09:29:19AM -0700, Tony Lindgren wrote:
+> > > That was fast :) Sounds we'll have a patch to test soon.
+> > 
+> > Of course.  In my tree.  The master branch contains the minimal fixes,
+> > and the devel branch contains everything.  If you want the individual
+> > patches, either pull the tree or grab the mboxes.
+> 
+> Hey looks good! I'll cherry pick them to l-o tree, then let's make
+> sure things work as expected.
 
-I am building off the tag v2.6.26-omap2. While trying the suspend/resume, i noticed that suspend succeeds; but the resume doesn't happen.
-Did anyone else notice this behavior?
+BTW, having an ack (or even an ok) for that last patch in the master
+branch would be useful:
 
-Best regards,
-Sanjeev
+[ARM] omap: fix virtual vs physical address space confusions
+
+Planning to send them off tonight.
