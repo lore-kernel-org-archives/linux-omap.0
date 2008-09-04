@@ -1,15 +1,16 @@
 From: sakoman@gmail.com
-Subject: [PATCH 2/5] ARM: OMAP2: Add video driver the Gumstix Overo board
-Date: Wed,  3 Sep 2008 22:01:57 -0700
-Message-ID: <1220504520-6067-3-git-send-email-sakoman@gmail.com>
+Subject: [PATCH 3/5] SOUND: SOC: CODECS: Add support for the TWL4030 audio codec
+Date: Wed,  3 Sep 2008 22:01:58 -0700
+Message-ID: <1220504520-6067-4-git-send-email-sakoman@gmail.com>
 References: <1220504520-6067-1-git-send-email-sakoman@gmail.com>
  <1220504520-6067-2-git-send-email-sakoman@gmail.com>
+ <1220504520-6067-3-git-send-email-sakoman@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from static-74-41-60-154.dsl1.pco.ca.frontiernet.net ([74.41.60.154]:54658
+Received: from static-74-41-60-154.dsl1.pco.ca.frontiernet.net ([74.41.60.154]:54661
 	"EHLO tera.sakoman.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752315AbYIDFCK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2008 01:02:10 -0400
-In-Reply-To: <1220504520-6067-2-git-send-email-sakoman@gmail.com>
+	with ESMTP id S1752323AbYIDFCO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2008 01:02:14 -0400
+In-Reply-To: <1220504520-6067-3-git-send-email-sakoman@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
@@ -18,270 +19,881 @@ Cc: Steve Sakoman <steve@sakoman.com>
 From: Steve Sakoman <steve@sakoman.com>
 
 ---
- arch/arm/mach-omap2/board-overo.c |   11 +++
- drivers/video/omap/Kconfig        |   21 +++++
- drivers/video/omap/Makefile       |    1 +
- drivers/video/omap/lcd_overo.c    |  179 +++++++++++++++++++++++++++++++++++++
- 4 files changed, 212 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/omap/lcd_overo.c
+ sound/soc/codecs/Kconfig   |    5 +
+ sound/soc/codecs/Makefile  |    2 +
+ sound/soc/codecs/twl4030.c |  628 ++++++++++++++++++++++++++++++++++++++++++++
+ sound/soc/codecs/twl4030.h |  197 ++++++++++++++
+ 4 files changed, 832 insertions(+), 0 deletions(-)
+ create mode 100644 sound/soc/codecs/twl4030.c
+ create mode 100644 sound/soc/codecs/twl4030.h
 
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 42c1661..d4e86c7 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -159,12 +159,23 @@ static struct platform_device overo_twl4030rtc_device = {
- 	.id             = -1,
- };
+diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
+index 1db04a2..2f00e1e 100644
+--- a/sound/soc/codecs/Kconfig
++++ b/sound/soc/codecs/Kconfig
+@@ -50,3 +50,8 @@ config SND_SOC_CS4270_VD33_ERRATA
+ config SND_SOC_TLV320AIC3X
+ 	tristate
+ 	depends on I2C
++
++config SND_SOC_TWL4030
++	tristate
++	depends on SND_SOC && I2C
++
+diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
+index d7b97ab..a519ced 100644
+--- a/sound/soc/codecs/Makefile
++++ b/sound/soc/codecs/Makefile
+@@ -10,6 +10,7 @@ snd-soc-wm9712-objs := wm9712.o
+ snd-soc-wm9713-objs := wm9713.o
+ snd-soc-cs4270-objs := cs4270.o
+ snd-soc-tlv320aic3x-objs := tlv320aic3x.o
++snd-soc-twl4030-objs := twl4030.o
  
-+static struct platform_device overo_lcd_device = {
-+	.name		= "overo_lcd",
-+	.id		= -1,
-+};
-+
-+static struct omap_lcd_config overo_lcd_config __initdata = {
-+	.ctrl_name	= "internal",
-+};
-+
- static struct omap_board_config_kernel overo_config[] __initdata = {
- 	{ OMAP_TAG_UART,	&overo_uart_config },
- 	{ OMAP_TAG_MMC,		&overo_mmc_config },
-+	{ OMAP_TAG_LCD,		&overo_lcd_config },
- };
- 
- static struct platform_device *overo_devices[] __initdata = {
-+	&overo_lcd_device,
- #ifdef CONFIG_RTC_DRV_TWL4030
- 	&overo_twl4030rtc_device,
- #endif
-diff --git a/drivers/video/omap/Kconfig b/drivers/video/omap/Kconfig
-index bdeb8fb..5ebd591 100644
---- a/drivers/video/omap/Kconfig
-+++ b/drivers/video/omap/Kconfig
-@@ -7,6 +7,27 @@ config FB_OMAP
- 	help
-           Frame buffer driver for OMAP based boards.
- 
-+choice
-+	depends on FB_OMAP && MACH_OVERO
-+	prompt "Screen resolution"
-+	default FB_OMAP_079M3R
-+	help
-+	  Selected desired screen resolution
-+
-+config FB_OMAP_031M3R
-+	boolean "640 x 480 @ 60 Hz Reduced blanking"
-+
-+config FB_OMAP_048M3R
-+	boolean "800 x 600 @ 60 Hz Reduced blanking"
-+
-+config FB_OMAP_079M3R
-+	boolean "1024 x 768 @ 60 Hz Reduced blanking"
-+
-+config FB_OMAP_092M9R
-+	boolean "1280 x 720 @ 60 Hz Reduced blanking"
-+
-+endchoice
-+
- config FB_OMAP_LCDC_EXTERNAL
- 	bool "External LCD controller support"
- 	depends on FB_OMAP
-diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
-index f9b5cd4..291c46e 100644
---- a/drivers/video/omap/Makefile
-+++ b/drivers/video/omap/Makefile
-@@ -35,6 +35,7 @@ objs-y$(CONFIG_MACH_OMAP2EVM) += lcd_omap2evm.o
- objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
- objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
- objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
-+objs-y$(CONFIG_MACH_OVERO) += lcd_overo.o
- 
- omapfb-objs := $(objs-yy)
- 
-diff --git a/drivers/video/omap/lcd_overo.c b/drivers/video/omap/lcd_overo.c
+ obj-$(CONFIG_SND_SOC_AC97_CODEC)	+= snd-soc-ac97.o
+ obj-$(CONFIG_SND_SOC_AK4535)	+= snd-soc-ak4535.o
+@@ -23,3 +24,4 @@ obj-$(CONFIG_SND_SOC_WM9712)	+= snd-soc-wm9712.o
+ obj-$(CONFIG_SND_SOC_WM9713)	+= snd-soc-wm9713.o
+ obj-$(CONFIG_SND_SOC_CS4270)	+= snd-soc-cs4270.o
+ obj-$(CONFIG_SND_SOC_TLV320AIC3X)	+= snd-soc-tlv320aic3x.o
++obj-$(CONFIG_SND_SOC_TWL4030)	+= snd-soc-twl4030.o
+diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
 new file mode 100644
-index 0000000..2bc5c92
+index 0000000..683b8a1
 --- /dev/null
-+++ b/drivers/video/omap/lcd_overo.c
-@@ -0,0 +1,179 @@
++++ b/sound/soc/codecs/twl4030.c
+@@ -0,0 +1,628 @@
 +/*
-+ * LCD panel support for the Gumstix Overo
++ * ALSA SoC TWL4030 codec driver
 + *
-+ * Author: Steve Sakoman <steve@sakoman.com>
++ * Author:      Steve Sakoman, <steve@sakoman.com>
 + *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
 + *
 + * This program is distributed in the hope that it will be useful, but
 + * WITHOUT ANY WARRANTY; without even the implied warranty of
 + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 + * General Public License for more details.
 + *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
-+ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
 + *
 + */
 +
 +#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/init.h>
++#include <linux/delay.h>
++#include <linux/pm.h>
++#include <linux/i2c.h>
 +#include <linux/platform_device.h>
 +#include <linux/i2c/twl4030.h>
++#include <sound/core.h>
++#include <sound/pcm.h>
++#include <sound/pcm_params.h>
++#include <sound/soc.h>
++#include <sound/soc-dapm.h>
++#include <sound/initval.h>
 +
-+#include <mach/gpio.h>
-+#include <mach/mux.h>
-+#include <mach/omapfb.h>
-+#include <asm/mach-types.h>
++#include "twl4030.h"
 +
-+#define LCD_ENABLE       144
-+
-+static int overo_panel_init(struct lcd_panel *panel,
-+				struct omapfb_device *fbdev)
-+{
-+	if ((gpio_request(LCD_ENABLE, "LCD_ENABLE") == 0) &&
-+	    (gpio_direction_output(LCD_ENABLE, 1) == 0))
-+		gpio_export(LCD_ENABLE, 0);
-+	else
-+		printk(KERN_ERR "could not obtain gpio for LCD_ENABLE\n");
-+
-+	return 0;
-+}
-+
-+static void overo_panel_cleanup(struct lcd_panel *panel)
-+{
-+	gpio_free(LCD_ENABLE);
-+}
-+
-+static int overo_panel_enable(struct lcd_panel *panel)
-+{
-+	gpio_set_value(LCD_ENABLE, 1);
-+	return 0;
-+}
-+
-+static void overo_panel_disable(struct lcd_panel *panel)
-+{
-+	gpio_set_value(LCD_ENABLE, 0);
-+}
-+
-+static unsigned long overo_panel_get_caps(struct lcd_panel *panel)
-+{
-+	return 0;
-+}
-+
-+struct lcd_panel overo_panel = {
-+	.name		= "overo",
-+	.config		= OMAP_LCDC_PANEL_TFT,
-+	.bpp		= 16,
-+	.data_lines	= 24,
-+
-+#if defined CONFIG_FB_OMAP_031M3R
-+
-+	/* 640 x 480 @ 60 Hz  Reduced blanking VESA CVT 0.31M3-R */
-+	.x_res		= 640,
-+	.y_res		= 480,
-+	.hfp		= 48,
-+	.hsw		= 32,
-+	.hbp		= 80,
-+	.vfp		= 3,
-+	.vsw		= 4,
-+	.vbp		= 7,
-+	.pixel_clock	= 23500,
-+
-+#elif defined CONFIG_FB_OMAP_048M3R
-+
-+	/* 800 x 600 @ 60 Hz  Reduced blanking VESA CVT 0.48M3-R */
-+	.x_res		= 800,
-+	.y_res		= 600,
-+	.hfp		= 48,
-+	.hsw		= 32,
-+	.hbp		= 80,
-+	.vfp		= 3,
-+	.vsw		= 4,
-+	.vbp		= 11,
-+	.pixel_clock	= 35500,
-+
-+#elif defined CONFIG_FB_OMAP_079M3R
-+
-+	/* 1024 x 768 @ 60 Hz  Reduced blanking VESA CVT 0.79M3-R */
-+	.x_res		= 1024,
-+	.y_res		= 768,
-+	.hfp		= 48,
-+	.hsw		= 32,
-+	.hbp		= 80,
-+	.vfp		= 3,
-+	.vsw		= 4,
-+	.vbp		= 15,
-+	.pixel_clock	= 56000,
-+
-+#elif defined CONFIG_FB_OMAP_092M9R
-+
-+	/* 1280 x 720 @ 60 Hz  Reduced blanking VESA CVT 0.92M9-R */
-+	.x_res		= 1280,
-+	.y_res		= 720,
-+	.hfp		= 48,
-+	.hsw		= 32,
-+	.hbp		= 80,
-+	.vfp		= 3,
-+	.vsw		= 5,
-+	.vbp		= 13,
-+	.pixel_clock	= 64000,
-+
-+#else
-+
-+	/* use 640 x 480 if no config option */
-+	/* 640 x 480 @ 60 Hz  Reduced blanking VESA CVT 0.31M3-R */
-+	.x_res		= 640,
-+	.y_res		= 480,
-+	.hfp		= 48,
-+	.hsw		= 32,
-+	.hbp		= 80,
-+	.vfp		= 3,
-+	.vsw		= 4,
-+	.vbp		= 7,
-+	.pixel_clock	= 23500,
-+
-+#endif
-+
-+	.init		= overo_panel_init,
-+	.cleanup	= overo_panel_cleanup,
-+	.enable		= overo_panel_enable,
-+	.disable	= overo_panel_disable,
-+	.get_caps	= overo_panel_get_caps,
++/*
++ * twl4030 register cache & default register settings
++ */
++static const u8 twl4030_reg[TWL4030_CACHEREGNUM] = {
++	0x00, /* this register not used		*/
++	0x93, /* REG_CODEC_MODE		(0x1)	*/
++	0xc3, /* REG_OPTION		(0x2)	*/
++	0x00, /* REG_UNKNOWN		(0x3)	*/
++	0x00, /* REG_MICBIAS_CTL	(0x4)	*/
++	0x24, /* REG_ANAMICL		(0x5)	*/
++	0x04, /* REG_ANAMICR		(0x6)	*/
++	0x0a, /* REG_AVADC_CTL		(0x7)	*/
++	0x00, /* REG_ADCMICSEL		(0x8)	*/
++	0x00, /* REG_DIGMIXING		(0x9)	*/
++	0x0c, /* REG_ATXL1PGA		(0xA)	*/
++	0x0c, /* REG_ATXR1PGA		(0xB)	*/
++	0x00, /* REG_AVTXL2PGA		(0xC)	*/
++	0x00, /* REG_AVTXR2PGA		(0xD)	*/
++	0x01, /* REG_AUDIO_IF		(0xE)	*/
++	0x00, /* REG_VOICE_IF		(0xF)	*/
++	0x00, /* REG_ARXR1PGA		(0x10)	*/
++	0x00, /* REG_ARXL1PGA		(0x11)	*/
++	0x6c, /* REG_ARXR2PGA		(0x12)	*/
++	0x6c, /* REG_ARXL2PGA		(0x13)	*/
++	0x00, /* REG_VRXPGA		(0x14)	*/
++	0x00, /* REG_VSTPGA		(0x15)	*/
++	0x00, /* REG_VRX2ARXPGA		(0x16)	*/
++	0x0c, /* REG_AVDAC_CTL		(0x17)	*/
++	0x00, /* REG_ARX2VTXPGA		(0x18)	*/
++	0x00, /* REG_ARXL1_APGA_CTL	(0x19)	*/
++	0x00, /* REG_ARXR1_APGA_CTL	(0x1A)	*/
++	0x4b, /* REG_ARXL2_APGA_CTL	(0x1B)	*/
++	0x4b, /* REG_ARXR2_APGA_CTL	(0x1C)	*/
++	0x00, /* REG_ATX2ARXPGA		(0x1D)	*/
++	0x00, /* REG_BT_IF		(0x1E)	*/
++	0x00, /* REG_BTPGA		(0x1F)	*/
++	0x00, /* REG_BTSTPGA		(0x20)	*/
++	0x00, /* REG_EAR_CTL		(0x21)	*/
++	0x24, /* REG_HS_SEL		(0x22)	*/
++	0x0a, /* REG_HS_GAIN_SET	(0x23)	*/
++	0x00, /* REG_HS_POPN_SET	(0x24)	*/
++	0x00, /* REG_PREDL_CTL		(0x25)	*/
++	0x00, /* REG_PREDR_CTL		(0x26)	*/
++	0x00, /* REG_PRECKL_CTL		(0x27)	*/
++	0x00, /* REG_PRECKR_CTL		(0x28)	*/
++	0x00, /* REG_HFL_CTL		(0x29)	*/
++	0x00, /* REG_HFR_CTL		(0x2A)	*/
++	0x00, /* REG_ALC_CTL		(0x2B)	*/
++	0x00, /* REG_ALC_SET1		(0x2C)	*/
++	0x00, /* REG_ALC_SET2		(0x2D)	*/
++	0x00, /* REG_BOOST_CTL		(0x2E)	*/
++	0x01, /* REG_SOFTVOL_CTL	(0x2F)	*/
++	0x00, /* REG_DTMF_FREQSEL	(0x30)	*/
++	0x00, /* REG_DTMF_TONEXT1H	(0x31)	*/
++	0x00, /* REG_DTMF_TONEXT1L	(0x32)	*/
++	0x00, /* REG_DTMF_TONEXT2H	(0x33)	*/
++	0x00, /* REG_DTMF_TONEXT2L	(0x34)	*/
++	0x00, /* REG_DTMF_TONOFF	(0x35)	*/
++	0x00, /* REG_DTMF_WANONOFF	(0x36)	*/
++	0x00, /* REG_I2S_RX_SCRAMBLE_H	(0x37)	*/
++	0x00, /* REG_I2S_RX_SCRAMBLE_M	(0x38)	*/
++	0x00, /* REG_I2S_RX_SCRAMBLE_L	(0x39)	*/
++	0x16, /* REG_APLL_CTL		(0x3A)	*/
++	0x00, /* REG_DTMF_CTL		(0x3B)	*/
++	0x00, /* REG_DTMF_PGA_CTL2	(0x3C)	*/
++	0x00, /* REG_DTMF_PGA_CTL1	(0x3D)	*/
++	0x00, /* REG_MISC_SET_1		(0x3E)	*/
++	0x00, /* REG_PCMBTMUX		(0x3F)	*/
++	0x00, /* not used		(0x40)	*/
++	0x00, /* not used		(0x41)	*/
++	0x00, /* not used		(0x42)	*/
++	0x00, /* REG_RX_PATH_SEL	(0x43)	*/
++	0x00, /* REG_VDL_APGA_CTL	(0x44)	*/
++	0x00, /* REG_VIBRA_CTL		(0x45)	*/
++	0x00, /* REG_VIBRA_SET		(0x46)	*/
++	0x00, /* REG_VIBRA_PWM_SET	(0x47)	*/
++	0x00, /* REG_ANAMIC_GAIN	(0x48)	*/
++	0x00, /* REG_MISC_SET_2		(0x49)	*/
 +};
 +
-+static int overo_panel_probe(struct platform_device *pdev)
++static void twl4030_dump_registers(void)
 +{
-+	omapfb_register_panel(&overo_panel);
++	int i = 0;
++	u8 data;
++
++	printk(KERN_INFO "TWL 4030 Register dump for Audio Module\n");
++
++	for (i = REG_CODEC_MODE; i <= REG_MISC_SET_2; i++) {
++		twl4030_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &data, i);
++		printk(KERN_INFO "Register[0x%02x]=0x%02x\n", i, data);
++	}
++}
++
++/*
++ * read twl4030 register cache
++ */
++static inline unsigned int twl4030_read_reg_cache(struct snd_soc_codec *codec,
++	unsigned int reg)
++{
++	u8 *cache = codec->reg_cache;
++
++	return cache[reg];
++}
++
++/*
++ * write twl4030 register cache
++ */
++static inline void twl4030_write_reg_cache(struct snd_soc_codec *codec,
++						u8 reg, u8 value)
++{
++	u8 *cache = codec->reg_cache;
++
++	if (reg >= TWL4030_CACHEREGNUM)
++		return;
++	cache[reg] = value;
++}
++
++/*
++ * write to the twl4030 register space
++ */
++static int twl4030_write(struct snd_soc_codec *codec,
++			unsigned int reg, unsigned int value)
++{
++	twl4030_write_reg_cache(codec, reg, value);
++	return twl4030_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE, value, reg);
++}
++
++static void twl4030_init_chip(struct snd_soc_codec *codec)
++{
++	int i;
++	u8 byte;
++
++	/* clear CODECPDZ prior to setting register defaults */
++	twl4030_write(codec, REG_CODEC_MODE,
++		twl4030_reg[REG_CODEC_MODE] & ~CODECPDZ);
++
++	udelay(10);
++
++	/* set all audio section registers to reasonable defaults */
++	for (i = REG_OPTION; i <= REG_MISC_SET_2; i++)
++		twl4030_write(codec, i,	twl4030_reg[i]);
++
++}
++
++static const struct snd_kcontrol_new twl4030_snd_controls[] = {
++	SOC_DOUBLE_R("Master Playback Volume",
++		 REG_ARXL2PGA, REG_ARXR2PGA,
++		0, 127, 0),
++	SOC_DOUBLE_R("Capture Volume",
++		 REG_ATXL1PGA, REG_ATXR1PGA,
++		0, 127, 0),
++};
++
++/* add non dapm controls */
++static int twl4030_add_controls(struct snd_soc_codec *codec)
++{
++	int err, i;
++
++	for (i = 0; i < ARRAY_SIZE(twl4030_snd_controls); i++) {
++		err = snd_ctl_add(codec->card,
++				  snd_soc_cnew(&twl4030_snd_controls[i],
++						codec, NULL));
++		if (err < 0)
++			return err;
++	}
++
 +	return 0;
 +}
 +
-+static int overo_panel_remove(struct platform_device *pdev)
++static const struct snd_soc_dapm_widget twl4030_dapm_widgets[] = {
++	SND_SOC_DAPM_INPUT("INL"),
++	SND_SOC_DAPM_INPUT("INR"),
++
++	SND_SOC_DAPM_OUTPUT("OUTL"),
++	SND_SOC_DAPM_OUTPUT("OUTR"),
++
++	SND_SOC_DAPM_DAC("DACL", "Left Playback", SND_SOC_NOPM, 0, 0),
++	SND_SOC_DAPM_DAC("DACR", "Right Playback", SND_SOC_NOPM, 0, 0),
++
++	SND_SOC_DAPM_ADC("ADCL", "Left Capture", SND_SOC_NOPM, 0, 0),
++	SND_SOC_DAPM_ADC("ADCR", "Right Capture", SND_SOC_NOPM, 0, 0),
++};
++
++static const struct snd_soc_dapm_route intercon[] = {
++	/* outputs */
++	{"OUTL", NULL, "DACL"},
++	{"OUTR", NULL, "DACR"},
++
++	/* inputs */
++	{"ADCL", NULL, "INL"},
++	{"ADCR", NULL, "INR"},
++};
++
++static int twl4030_add_widgets(struct snd_soc_codec *codec)
 +{
-+	/* omapfb does not have unregister_panel */
++	snd_soc_dapm_new_controls(codec, twl4030_dapm_widgets,
++				 ARRAY_SIZE(twl4030_dapm_widgets));
++
++	snd_soc_dapm_add_routes(codec, intercon, ARRAY_SIZE(intercon));
++
++	snd_soc_dapm_new_widgets(codec);
 +	return 0;
 +}
 +
-+static struct platform_driver overo_panel_driver = {
-+	.probe		= overo_panel_probe,
-+	.remove		= overo_panel_remove,
-+	.driver		= {
-+		.name	= "overo_lcd",
-+		.owner	= THIS_MODULE,
++static void twl4030_power_up(struct snd_soc_codec *codec)
++{
++	u8 mode, byte, popn, hsgain;
++
++	/* set CODECPDZ to turn on codec */
++	mode = twl4030_read_reg_cache(codec, REG_CODEC_MODE);
++	twl4030_write(codec, REG_CODEC_MODE, mode | CODECPDZ);
++	udelay(10);
++
++	/* initiate offset cancellation */
++	twl4030_write(codec, REG_ANAMICL,
++		twl4030_reg[REG_ANAMICL] | CNCL_OFFSET_START);
++
++	/* wait for offset cancellation to complete */
++	twl4030_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &byte, REG_ANAMICL);
++	while ((byte & CNCL_OFFSET_START) == CNCL_OFFSET_START)
++		twl4030_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE,
++					&byte, REG_ANAMICL);
++
++	/* anti-pop when changing analog gain */
++	twl4030_write(codec, REG_MISC_SET_1,
++		twl4030_reg[REG_MISC_SET_1] | SMOOTH_ANAVOL_EN);
++
++	/* toggle CODECPDZ as per TRM */
++	twl4030_write(codec, REG_CODEC_MODE, mode & ~CODECPDZ);
++	udelay(10);
++
++	twl4030_write(codec, REG_CODEC_MODE, mode | CODECPDZ);
++	udelay(10);
++
++	/* program anti-pop with bias ramp delay */
++	popn = twl4030_read_reg_cache(codec, REG_HS_POPN_SET);
++	popn &= RAMP_DELAY;
++	popn |=	RAMP_DELAY_645MS;
++	twl4030_write(codec, REG_HS_POPN_SET, popn);
++	popn |=	VMID_EN;
++	twl4030_write(codec, REG_HS_POPN_SET, popn);
++
++	/* enable output stage and gain setting */
++	hsgain = HSR_GAIN_0DB | HSL_GAIN_0DB;
++	twl4030_write(codec, REG_HS_GAIN_SET, hsgain);
++
++	/* enable anti-pop ramp */
++	popn |= RAMP_EN;
++	twl4030_write(codec, REG_HS_POPN_SET, popn);
++}
++
++static void twl4030_power_down(struct snd_soc_codec *codec)
++{
++	u8 popn, hsgain, mode;
++
++	/* disable anti-pop ramp */
++	popn = twl4030_read_reg_cache(codec, REG_HS_POPN_SET);
++	popn &= ~RAMP_EN;
++	twl4030_write(codec, REG_HS_POPN_SET, popn);
++
++	/* disable output stage and gain setting */
++	hsgain = HSR_GAIN_PWR_DOWN | HSL_GAIN_PWR_DOWN;
++	twl4030_write(codec, REG_HS_GAIN_SET, hsgain);
++
++	/* disable bias out */
++	popn &= ~VMID_EN;
++	twl4030_write(codec, REG_HS_POPN_SET, popn);
++
++	/* power down */
++	mode = twl4030_read_reg_cache(codec, REG_CODEC_MODE);
++	twl4030_write(codec, REG_CODEC_MODE, mode & ~CODECPDZ);
++
++	udelay(10);
++}
++
++static int twl4030_set_bias_level(struct snd_soc_codec *codec,
++				  enum snd_soc_bias_level level)
++{
++	switch (level) {
++	case SND_SOC_BIAS_ON:
++		twl4030_power_up(codec);
++		break;
++	case SND_SOC_BIAS_PREPARE:
++		break;
++	case SND_SOC_BIAS_STANDBY:
++		twl4030_power_down(codec);
++		break;
++	case SND_SOC_BIAS_OFF:
++		twl4030_power_down(codec);
++		break;
++	}
++	codec->bias_level = level;
++
++	return 0;
++}
++
++static int twl4030_hw_params(struct snd_pcm_substream *substream,
++			   struct snd_pcm_hw_params *params)
++{
++	struct snd_soc_pcm_runtime *rtd = substream->private_data;
++	struct snd_soc_device *socdev = rtd->socdev;
++	struct snd_soc_codec *codec = socdev->codec;
++	u8 mode, old_mode, format, old_format;
++
++
++	/* bit rate */
++	old_mode = twl4030_read_reg_cache(codec, REG_CODEC_MODE) & ~CODECPDZ;
++	mode = old_mode;
++	mode &= ~APLL_RATE;
++	switch (params_rate(params)) {
++	case 44100:
++		mode |= APLL_RATE_44100;
++		break;
++	case 48000:
++		mode |= APLL_RATE_48000;
++		break;
++	default:
++		printk(KERN_ERR "TWL4030 hw params: unknown rate %d\n",
++			params_rate(params));
++		return -EINVAL;
++	}
++
++	if (mode != old_mode) {
++		/* change rate and turn codec back on */
++		twl4030_write(codec, REG_CODEC_MODE, mode);
++		mode |= CODECPDZ;
++		twl4030_write(codec, REG_CODEC_MODE, mode);
++	}
++
++	/* sample size */
++	old_format = twl4030_read_reg_cache(codec, REG_AUDIO_IF);
++	format = old_format;
++	format &= ~DATA_WIDTH;
++	switch (params_format(params)) {
++	case SNDRV_PCM_FORMAT_S16_LE:
++		format |= DATA_WIDTH_16S_16W;
++		break;
++	case SNDRV_PCM_FORMAT_S24_LE:
++		format |= DATA_WIDTH_32S_24W;
++		break;
++	default:
++		printk(KERN_ERR "TWL4030 hw params: unknown format %d\n",
++			params_format(params));
++		return -EINVAL;
++	}
++
++	if (format != old_format) {
++
++		/* clear CODECPDZ before changing format (codec requirement) */
++		mode = twl4030_read_reg_cache(codec, REG_CODEC_MODE);
++		mode &= ~CODECPDZ;
++		twl4030_write(codec, REG_CODEC_MODE, mode);
++
++		/* change format */
++		twl4030_write(codec, REG_AUDIO_IF, format);
++
++		/* set CODECPDZ afterwards */
++		mode |= CODECPDZ;
++		twl4030_write(codec, REG_CODEC_MODE, mode);
++	}
++	return 0;
++}
++
++static int twl4030_set_dai_sysclk(struct snd_soc_dai *codec_dai,
++		int clk_id, unsigned int freq, int dir)
++{
++	struct snd_soc_codec *codec = codec_dai->codec;
++	u8 infreq;
++
++	switch (freq) {
++	case 19200000:
++		infreq = APLL_INFREQ_19200KHZ;
++		break;
++	case 26000000:
++		infreq = APLL_INFREQ_26000KHZ;
++		break;
++	case 38400000:
++		infreq = APLL_INFREQ_38400KHZ;
++		break;
++	default:
++		printk(KERN_ERR "TWL4030 set sysclk: unknown rate %d\n",
++			freq);
++		return -EINVAL;
++	}
++
++	infreq |= APLL_EN;
++	twl4030_write(codec, REG_APLL_CTL, infreq);
++
++	return 0;
++}
++
++static int twl4030_set_dai_fmt(struct snd_soc_dai *codec_dai,
++			     unsigned int fmt)
++{
++	struct snd_soc_codec *codec = codec_dai->codec;
++	u8 mode, old_format, format;
++
++	/* get format */
++	old_format = twl4030_read_reg_cache(codec, REG_AUDIO_IF);
++	format = old_format;
++
++	/* set master/slave audio interface */
++	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
++	case SND_SOC_DAIFMT_CBM_CFM:
++		format &= ~(AIF_SLAVE_EN);
++		format |= CLK256FS_EN;
++		break;
++	case SND_SOC_DAIFMT_CBS_CFS:
++		format &= ~(CLK256FS_EN);
++		format |= AIF_SLAVE_EN;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	/* interface format */
++	format &= ~AIF_FORMAT;
++	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
++	case SND_SOC_DAIFMT_I2S:
++		format |= AIF_FORMAT_CODEC;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	if (format != old_format) {
++
++		/* clear CODECPDZ before changing format (codec requirement) */
++		mode = twl4030_read_reg_cache(codec, REG_CODEC_MODE);
++		mode &= ~CODECPDZ;
++		twl4030_write(codec, REG_CODEC_MODE, mode);
++
++		/* change format */
++		twl4030_write(codec, REG_AUDIO_IF, format);
++
++		/* set CODECPDZ afterwards */
++		mode |= CODECPDZ;
++		twl4030_write(codec, REG_CODEC_MODE, mode);
++	}
++
++	return 0;
++}
++
++#define TWL4030_RATES	 (SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000)
++#define TWL4030_FORMATS	 (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FORMAT_S24_LE)
++
++struct snd_soc_dai twl4030_dai = {
++	.name = "twl4030",
++	.playback = {
++		.stream_name = "Playback",
++		.channels_min = 2,
++		.channels_max = 2,
++		.rates = TWL4030_RATES,
++		.formats = TWL4030_FORMATS,},
++	.capture = {
++		.stream_name = "Capture",
++		.channels_min = 2,
++		.channels_max = 2,
++		.rates = TWL4030_RATES,
++		.formats = TWL4030_FORMATS,},
++	.ops = {
++		.hw_params = twl4030_hw_params,
 +	},
++	.dai_ops = {
++		.set_sysclk = twl4030_set_dai_sysclk,
++		.set_fmt = twl4030_set_dai_fmt,
++	}
 +};
++EXPORT_SYMBOL_GPL(twl4030_dai);
 +
-+static int __init overo_panel_drv_init(void)
++static int twl4030_suspend(struct platform_device *pdev, pm_message_t state)
 +{
-+	return platform_driver_register(&overo_panel_driver);
++	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
++	struct snd_soc_codec *codec = socdev->codec;
++
++	twl4030_set_bias_level(codec, SND_SOC_BIAS_OFF);
++
++	return 0;
 +}
 +
-+static void __exit overo_panel_drv_exit(void)
++static int twl4030_resume(struct platform_device *pdev)
 +{
-+	platform_driver_unregister(&overo_panel_driver);
++	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
++	struct snd_soc_codec *codec = socdev->codec;
++
++	twl4030_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
++	twl4030_set_bias_level(codec, codec->suspend_bias_level);
++	return 0;
 +}
 +
-+module_init(overo_panel_drv_init);
-+module_exit(overo_panel_drv_exit);
++/*
++ * initialize the driver
++ * register the mixer and dsp interfaces with the kernel
++ */
++
++static int twl4030_init(struct snd_soc_device *socdev)
++{
++	struct snd_soc_codec *codec = socdev->codec;
++	int ret = 0;
++
++	printk(KERN_INFO "TWL4030 Audio Codec init \n");
++
++	codec->name = "twl4030";
++	codec->owner = THIS_MODULE;
++	codec->read = twl4030_read_reg_cache;
++	codec->write = twl4030_write;
++	codec->set_bias_level = twl4030_set_bias_level;
++	codec->dai = &twl4030_dai;
++	codec->num_dai = 1;
++	codec->reg_cache_size = sizeof(twl4030_reg);
++	codec->reg_cache = kmemdup(twl4030_reg, sizeof(twl4030_reg),
++					GFP_KERNEL);
++	if (codec->reg_cache == NULL)
++		return -ENOMEM;
++
++	/* register pcms */
++	ret = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
++	if (ret < 0) {
++		printk(KERN_ERR "twl4030: failed to create pcms\n");
++		goto pcm_err;
++	}
++
++	twl4030_init_chip(codec);
++
++	/* power on device */
++	twl4030_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
++
++	twl4030_add_controls(codec);
++	twl4030_add_widgets(codec);
++
++	ret = snd_soc_register_card(socdev);
++	if (ret < 0) {
++		printk(KERN_ERR "twl4030: failed to register card\n");
++		goto card_err;
++	}
++
++	return ret;
++
++card_err:
++	snd_soc_free_pcms(socdev);
++	snd_soc_dapm_free(socdev);
++pcm_err:
++	kfree(codec->reg_cache);
++	return ret;
++}
++
++static struct snd_soc_device *twl4030_socdev;
++
++static int twl4030_probe(struct platform_device *pdev)
++{
++	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
++	struct snd_soc_codec *codec;
++
++	codec = kzalloc(sizeof(struct snd_soc_codec), GFP_KERNEL);
++	if (codec == NULL)
++		return -ENOMEM;
++
++	socdev->codec = codec;
++	mutex_init(&codec->mutex);
++	INIT_LIST_HEAD(&codec->dapm_widgets);
++	INIT_LIST_HEAD(&codec->dapm_paths);
++
++	twl4030_socdev = socdev;
++	twl4030_init(socdev);
++
++	return 0;
++}
++
++static int twl4030_remove(struct platform_device *pdev)
++{
++	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
++	struct snd_soc_codec *codec = socdev->codec;
++
++	printk(KERN_INFO "TWL4030 Audio Codec remove\n");
++	kfree(codec);
++
++	return 0;
++}
++
++struct snd_soc_codec_device soc_codec_dev_twl4030 = {
++	.probe = twl4030_probe,
++	.remove = twl4030_remove,
++	.suspend = twl4030_suspend,
++	.resume = twl4030_resume,
++};
++EXPORT_SYMBOL_GPL(soc_codec_dev_twl4030);
++
++MODULE_DESCRIPTION("ASoC TWL4030 codec driver");
++MODULE_AUTHOR("Steve Sakoman");
++MODULE_LICENSE("GPL");
+diff --git a/sound/soc/codecs/twl4030.h b/sound/soc/codecs/twl4030.h
+new file mode 100644
+index 0000000..013dabc
+--- /dev/null
++++ b/sound/soc/codecs/twl4030.h
+@@ -0,0 +1,197 @@
++/*
++ * ALSA SoC TWL4030 codec driver
++ *
++ * Author: Steve Sakoman <steve@sakoman.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#ifndef __TWL4030_AUDIO_H__
++#define __TWL4030_AUDIO_H__
++
++#define REG_CODEC_MODE		0x1
++#define REG_OPTION		0x2
++#define REG_UNKNOWN		0x3
++#define REG_MICBIAS_CTL		0x4
++#define REG_ANAMICL		0x5
++#define REG_ANAMICR		0x6
++#define REG_AVADC_CTL		0x7
++#define REG_ADCMICSEL		0x8
++#define REG_DIGMIXING		0x9
++#define REG_ATXL1PGA		0xA
++#define REG_ATXR1PGA		0xB
++#define REG_AVTXL2PGA		0xC
++#define REG_AVTXR2PGA		0xD
++#define REG_AUDIO_IF		0xE
++#define REG_VOICE_IF		0xF
++#define REG_ARXR1PGA		0x10
++#define REG_ARXL1PGA		0x11
++#define REG_ARXR2PGA		0x12
++#define REG_ARXL2PGA		0x13
++#define REG_VRXPGA		0x14
++#define REG_VSTPGA		0x15
++#define REG_VRX2ARXPGA		0x16
++#define REG_AVDAC_CTL		0x17
++#define REG_ARX2VTXPGA		0x18
++#define REG_ARXL1_APGA_CTL	0x19
++#define REG_ARXR1_APGA_CTL	0x1A
++#define REG_ARXL2_APGA_CTL	0x1B
++#define REG_ARXR2_APGA_CTL	0x1C
++#define REG_ATX2ARXPGA		0x1D
++#define REG_BT_IF		0x1E
++#define REG_BTPGA		0x1F
++#define REG_BTSTPGA		0x20
++#define REG_EAR_CTL		0x21
++#define REG_HS_SEL		0x22
++#define REG_HS_GAIN_SET		0x23
++#define REG_HS_POPN_SET		0x24
++#define REG_PREDL_CTL		0x25
++#define REG_PREDR_CTL		0x26
++#define REG_PRECKL_CTL		0x27
++#define REG_PRECKR_CTL		0x28
++#define REG_HFL_CTL		0x29
++#define REG_HFR_CTL		0x2A
++#define REG_ALC_CTL		0x2B
++#define REG_ALC_SET1		0x2C
++#define REG_ALC_SET2		0x2D
++#define REG_BOOST_CTL		0x2E
++#define REG_SOFTVOL_CTL		0x2F
++#define REG_DTMF_FREQSEL	0x30
++#define REG_DTMF_TONEXT1H	0x31
++#define REG_DTMF_TONEXT1L	0x32
++#define REG_DTMF_TONEXT2H	0x33
++#define REG_DTMF_TONEXT2L	0x34
++#define REG_DTMF_TONOFF		0x35
++#define REG_DTMF_WANONOFF	0x36
++#define REG_I2S_RX_SCRAMBLE_H	0x37
++#define REG_I2S_RX_SCRAMBLE_M	0x38
++#define REG_I2S_RX_SCRAMBLE_L	0x39
++#define REG_APLL_CTL		0x3A
++#define REG_DTMF_CTL		0x3B
++#define REG_DTMF_PGA_CTL2	0x3C
++#define REG_DTMF_PGA_CTL1	0x3D
++#define REG_MISC_SET_1		0x3E
++#define REG_PCMBTMUX		0x3F
++#define REG_RX_PATH_SEL		0x43
++#define REG_VDL_APGA_CTL	0x44
++#define REG_VIBRA_CTL		0x45
++#define REG_VIBRA_SET		0x46
++#define REG_VIBRA_PWM_SET	0x47
++#define REG_ANAMIC_GAIN		0x48
++#define REG_MISC_SET_2		0x49
++
++#define TWL4030_CACHEREGNUM	(REG_MISC_SET_2 + 1)
++
++/* Bitfield Definitions */
++
++/* CODEC_MODE (0x01) Fields */
++
++#define APLL_RATE		0xF0
++#define APLL_RATE_8000		0x00
++#define APLL_RATE_11025		0x10
++#define APLL_RATE_12000		0x20
++#define APLL_RATE_16000		0x40
++#define APLL_RATE_22050		0x50
++#define APLL_RATE_24000		0x60
++#define APLL_RATE_32000		0x80
++#define APLL_RATE_44100		0x90
++#define APLL_RATE_48000		0xA0
++#define SEL_16K			0x04
++#define CODECPDZ		0x02
++#define OPT_MODE		0x01
++
++/* ANAMICL (0x05) Fields */
++#define CNCL_OFFSET_START	0x80
++#define OFFSET_CNCL_SEL		0x60
++#define OFFSET_CNCL_SEL_ARX1	0x00
++#define OFFSET_CNCL_SEL_ARX2	0x20
++#define OFFSET_CNCL_SEL_VRX	0x40
++#define OFFSET_CNCL_SEL_ALL	0x60
++#define MICAMPL_EN		0x10
++#define CKMIC_EN		0x08
++#define AUXL_EN			0x04
++#define HSMIC_EN		0x02
++#define MAINMIC_EN		0x01
++
++/* ANAMICR (0x06) Fields */
++#define MICAMPR_EN		0x10
++#define AUXR_EN			0x04
++#define SUBMIC_EN		0x01
++
++/* AUDIO_IF (0x0E) Fields */
++
++#define AIF_SLAVE_EN		0x80
++#define DATA_WIDTH		0x60
++#define DATA_WIDTH_16S_16W	0x00
++#define DATA_WIDTH_32S_16W	0x40
++#define DATA_WIDTH_32S_24W	0x60
++#define AIF_FORMAT		0x18
++#define AIF_FORMAT_CODEC	0x00
++#define AIF_FORMAT_LEFT		0x08
++#define AIF_FORMAT_RIGHT	0x10
++#define AIF_FORMAT_TDM		0x18
++#define AIF_TRI_EN		0x04
++#define CLK256FS_EN		0x02
++#define AIF_EN			0x01
++
++/* HS_GAIN_SET (0x23) Fields */
++
++#define HSR_GAIN		0x0C
++#define HSR_GAIN_PWR_DOWN	0x00
++#define HSR_GAIN_PLUS_6DB	0x04
++#define HSR_GAIN_0DB		0x08
++#define HSR_GAIN_MINUS_6DB	0x0C
++#define HSL_GAIN		0x03
++#define HSL_GAIN_PWR_DOWN	0x00
++#define HSL_GAIN_PLUS_6DB	0x01
++#define HSL_GAIN_0DB		0x02
++#define HSL_GAIN_MINUS_6DB	0x03
++
++/* HS_POPN_SET (0x24) Fields */
++
++#define VMID_EN			0x40
++#define	EXTMUTE			0x20
++#define RAMP_DELAY		0x1C
++#define RAMP_DELAY_20MS		0x00
++#define RAMP_DELAY_40MS		0x04
++#define RAMP_DELAY_81MS		0x08
++#define RAMP_DELAY_161MS	0x0C
++#define RAMP_DELAY_323MS	0x10
++#define RAMP_DELAY_645MS	0x14
++#define RAMP_DELAY_1291MS	0x18
++#define RAMP_DELAY_2581MS	0x1C
++#define RAMP_EN			0x02
++
++/* APLL_CTL (0x3A) Fields */
++
++#define APLL_EN			0x10
++#define APLL_INFREQ		0x0F
++#define APLL_INFREQ_19200KHZ	0x05
++#define APLL_INFREQ_26000KHZ	0x06
++#define APLL_INFREQ_38400KHZ	0x0F
++
++/* REG_MISC_SET_1 (0x3E) Fields */
++
++#define CLK64_EN		0x80
++#define SCRAMBLE_EN		0x40
++#define FMLOOP_EN		0x20
++#define SMOOTH_ANAVOL_EN	0x02
++#define DIGMIC_LR_SWAP_EN	0x01
++
++extern struct snd_soc_dai twl4030_dai;
++extern struct snd_soc_codec_device soc_codec_dev_twl4030;
++
++#endif	/* End of __TWL4030_AUDIO_H__ */
 -- 
 1.5.4.5
 
