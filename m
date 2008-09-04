@@ -1,21 +1,38 @@
-From: "Ashwin Bihari" <abihari@gmail.com>
-Subject: Working with Linux-Omap GIT Tree
-Date: Thu, 4 Sep 2008 14:40:13 -0400
-Message-ID: <1f11a5490809041140u9ebba10r9687c5f72383101@mail.gmail.com>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: RE: Working with Linux-Omap GIT Tree
+Date: Thu, 4 Sep 2008 13:44:23 -0500
+Message-ID: <A24693684029E5489D1D202277BE894411A869D4@dlee02.ent.ti.com>
+References: <1f11a5490809041140u9ebba10r9687c5f72383101@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.183]:4357 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757340AbYIDSkP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2008 14:40:15 -0400
-Received: by wa-out-1112.google.com with SMTP id j37so43004waf.23
-        for <linux-omap@vger.kernel.org>; Thu, 04 Sep 2008 11:40:14 -0700 (PDT)
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:60879 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758866AbYIDSob convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2008 14:44:31 -0400
+In-Reply-To: <1f11a5490809041140u9ebba10r9687c5f72383101@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Ashwin Bihari <abihari@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+Hi Ashwin,
+
+The folder you're looking for has been moved to arch/arm/plat-omap/include/
+
+This has to have the same contents you had in that version + the following changes to them.
+
+Hope this helped you.
+
+Regards,
+Sergio
+
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Ashwin Bihari
+Sent: Thursday, September 04, 2008 1:40 PM
+To: linux-omap@vger.kernel.org
+Subject: Working with Linux-Omap GIT Tree
 
 Greetings,
 
@@ -54,3 +71,8 @@ which contains all the files I'm interested in modifying?
 
 Regards
 ~ Ashwin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
