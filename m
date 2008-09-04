@@ -1,32 +1,44 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: Git tree updated to v2.6.27-rc5, some USB diffs still lurking
-Date: Thu, 4 Sep 2008 02:55:43 +0300
-Message-ID: <20080903235541.GE6693@frodo>
-References: <20080903221218.GD23085@atomide.com> <20080903232754.GR19980@flint.arm.linux.org.uk> <20080903235223.GI23085@atomide.com>
+Subject: [ANNOUNCE] musb procfs
+Date: Thu, 4 Sep 2008 03:00:01 +0300
+Message-ID: <20080903235958.GF6693@frodo>
 Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:37158 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:33050 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751687AbYICX4E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 19:56:04 -0400
+	with ESMTP id S1751406AbYIDAAQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2008 20:00:16 -0400
+Received: from a91-154-115-238.elisa-laajakaista.fi ([91.154.115.238]:12595 helo=@)
+	by serv01.siteground211.com with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.69)
+	(envelope-from <me@felipebalbi.com>)
+	id 1Kb2Gh-0002En-G9
+	for linux-omap@vger.kernel.org; Wed, 03 Sep 2008 19:00:13 -0500
 Content-Disposition: inline
-In-Reply-To: <20080903235223.GI23085@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, David Brownell <david-b@pacbell.net>, Felipe Balbi <felipe.balbi@nokia.com>, Vikram Pandita <vikram.pandita@ti.com>, Nishant Kamat <nskamat@ti.com>
+To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Wed, Sep 03, 2008 at 04:52:25PM -0700, Tony Lindgren wrote:
-> OK, fixed for l-o tree. Felipe has the include fixes patch in Greg's
-> queue, but looks like that needs updating too. Felipe, can you take
-> care of that?
+Hi all,
 
-Yeah, I had a missing change in tusb6010_omap.c for which I have already
-sent the patch. Asked Greg to meld in the previous musb patch.
+This mail is just to let you know musb procfs file has been removed from
+musb for several reasons being "drivers shouldn't add procfs files" the
+most outstanding one.
 
-If you were talking about anything else, please point out ;-)
+For those used to change musb debugging level via "echo D3 >
+/proc/drivers/musb_hdrc" the same approach can be done by changing the
+debug module parameter or in runtime by writing to
+/sys/modules/musb_hdrc/parameters/debug
+
+All the other functionalities (testmodes, mostly) will be developed
+under debugfs or userspace accordingly but don't expect it to come
+too soon due to tight schedule at work on other tasks.
+
+If anyone wanna help on such tasks I can tell you what should be done.
+
+Thanks.
 
 -- 
 balbi
