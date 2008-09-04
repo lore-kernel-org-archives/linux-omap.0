@@ -1,44 +1,100 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: FOR COMMENT: void __iomem * and similar casts are Bad News
-Date: Thu, 4 Sep 2008 10:46:55 +0100
-Message-ID: <20080904094655.GB10426@flint.arm.linux.org.uk>
-References: <20080827220821.GE7227@flint.arm.linux.org.uk> <a0580c510809030833w6cbc7e42ye0e8f4fc49b5b046@mail.gmail.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [PATCH 3/5] SOUND: SOC: CODECS: Add support for
+ the TWL4030 audio codec
+Date: Thu, 4 Sep 2008 13:26:32 +0300
+Message-ID: <20080904132632.e64c3ce2.jarkko.nikula@nokia.com>
+References: <1220504520-6067-1-git-send-email-sakoman@gmail.com>
+	<1220504520-6067-2-git-send-email-sakoman@gmail.com>
+	<1220504520-6067-3-git-send-email-sakoman@gmail.com>
+	<1220504520-6067-4-git-send-email-sakoman@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52752 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752458AbYIDJrI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2008 05:47:08 -0400
-Content-Disposition: inline
-In-Reply-To: <a0580c510809030833w6cbc7e42ye0e8f4fc49b5b046@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1220504520-6067-4-git-send-email-sakoman@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "ext sakoman@gmail.com" <sakoman@gmail.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Steve Sakoman <steve@sakoman.com>
 List-Id: linux-omap@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>
-Cc: linux-omap@vger.kernel.org
 
-On Wed, Sep 03, 2008 at 11:33:51AM -0400, Eduardo Valentin wrote:
-> > @@ -159,7 +159,7 @@ static struct omap_mcbsp_platform_data omap730_mcbsp_pdata[] = {
-> >  #ifdef CONFIG_ARCH_OMAP15XX
-> >  static struct omap_mcbsp_platform_data omap15xx_mcbsp_pdata[] = {
-> >        {
-> > -               .virt_base      = OMAP1510_MCBSP1_BASE,
-> > +               .virt_base      = OMAP1510_MCBSP1_BASE, /* FIXME: virtual or physical */
-> AFAIK, OMAP1510_MCBSP1_BASE is physical. So, I'd say:
-> +               .virt_base      = IO_ADDRESS(OMAP1510_MCBSP1_BASE),
+On Wed,  3 Sep 2008 22:01:58 -0700
+"ext sakoman@gmail.com" <sakoman@gmail.com> wrote:
+
+> From: Steve Sakoman <steve@sakoman.com>
 > 
-> Because, plat-omap/mcbsp.c expect .virt_base to be a virtual address.
+> ---
+>  sound/soc/codecs/Kconfig   |    5 +
+>  sound/soc/codecs/Makefile  |    2 +
+>  sound/soc/codecs/twl4030.c |  628 +++++++++++++++++++++++++++++++++++
+...
+> +static void twl4030_dump_registers(void)
+> +{
+This is not needed since there is already nice function
+for it: sound/soc/soc-core.c: codec_reg_show.
 
-And today, the story is completely different, having looked through more
-of the code and some documentation.
+> +static void twl4030_power_up(struct snd_soc_codec *codec)
+> +{
+> +	u8 mode, byte, popn, hsgain;
+> +
+...
+> +	/* wait for offset cancellation to complete */
+> +	twl4030_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &byte,
+> REG_ANAMICL);
+> +	while ((byte & CNCL_OFFSET_START) == CNCL_OFFSET_START)
+> +		twl4030_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE,
+> +					&byte, REG_ANAMICL);
+> +
+Probably some timeout escape here.
 
-- OMAPxxxx_MCBSPx_BASE are all physical addresses.  Fine.
-- physical addresses > 0xfffb0000 are subject to an offset (IO_OFFSET)
-  but others for the DSP located and DSP shared peripherals aren't.
+> +static void twl4030_power_down(struct snd_soc_codec *codec)
+> +{
+...
+> +	udelay(10);
+> +}
+REVISIT comment for these kind of magic delays if doesn't work without.
 
-So, applying the IO_OFFSET via IO_ADDRESS() or io_p2v() to all addresses
-breaks.  Meaning it's completely random whether something should be put
-through IO_ADDRESS() and similar.
+> +static int twl4030_hw_params(struct snd_pcm_substream *substream,
+> +			   struct snd_pcm_hw_params *params)
+> +{
+...
+> +	switch (params_rate(params)) {
+> +	case 44100:
+> +		mode |= APLL_RATE_44100;
+> +		break;
+> +	case 48000:
+> +		mode |= APLL_RATE_48000;
+> +		break;
+> +	default:
+> +		printk(KERN_ERR "TWL4030 hw params: unknown rate %d
+> \n",
+> +			params_rate(params));
+> +		return -EINVAL;
+> +	}
+I checked that chip supports also other standard rates from 8 kHz,
+11.025 kHz, etc. However I didn't find from quick look how this relates
+to interface rate. I would say that small TODO comment to whom who has
+platform to try these combinations would be nice.
 
-This isn't obvious.  It isn't readable.  It isn't maintainable.  It doesn't
-lend itself to compile time checking.
+> +static int twl4030_set_dai_sysclk(struct snd_soc_dai *codec_dai,
+> +		int clk_id, unsigned int freq, int dir)
+> +{
+...
+> +
+> +	infreq |= APLL_EN;
+> +	twl4030_write(codec, REG_APLL_CTL, infreq);
+> +
+> +	return 0;
+> +}
+If this actually place for set_pll callback if one wants to manage PLL
+(APLL_EN bit) dynamically?
+
+
+Jarkko
