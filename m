@@ -1,25 +1,38 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [alsa-devel] [PATCH 4/5] SOUND: SOC: OMAP: Add support for Gumstix Overo
-Date: Thu, 4 Sep 2008 13:27:28 +0100
-Message-ID: <20080904122726.GD21663@sirena.org.uk>
-References: <1220504520-6067-1-git-send-email-sakoman@gmail.com> <1220504520-6067-2-git-send-email-sakoman@gmail.com> <1220504520-6067-3-git-send-email-sakoman@gmail.com> <1220504520-6067-4-git-send-email-sakoman@gmail.com> <1220504520-6067-5-git-send-email-sakoman@gmail.com>
+From: dinesh <dinesh.dua@coraltele.com>
+Subject: REGISTER 2 PCM FOR SAME DEVICE
+Date: Thu, 04 Sep 2008 18:10:43 +0530
+Message-ID: <1220532043.25078.6.camel@dinesh.dua>
+References: <1220504520-6067-1-git-send-email-sakoman@gmail.com>
+	<1220504520-6067-2-git-send-email-sakoman@gmail.com>
+	<1220504520-6067-3-git-send-email-sakoman@gmail.com>
+	<1220504520-6067-4-git-send-email-sakoman@gmail.com>
+	<20080904132632.e64c3ce2.jarkko.nikula@nokia.com>
+	<20080904122542.GC21663@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:3594 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750941AbYIDMk3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2008 08:40:29 -0400
-Content-Disposition: inline
-In-Reply-To: <1220504520-6067-5-git-send-email-sakoman@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20080904122542.GC21663@sirena.org.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@sirena.org.uk>
+Cc: "ext sakoman@gmail.com" <sakoman@gmail.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@nokia.com>, Steve Sakoman <steve@sakoman.com>
 List-Id: linux-omap@vger.kernel.org
-To: sakoman@gmail.com
-Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Steve Sakoman <steve@sakoman.com>
 
-On Wed, Sep 03, 2008 at 10:01:59PM -0700, sakoman@gmail.com wrote:
-> From: Steve Sakoman <steve@sakoman.com>
+Hi,
 
-You should sign it off too.  Anyway, it looks good:
+I have made a sound driver similar to mpc5200_psc.c and tlv codec.
+I have 2 channels which are interleaved.
 
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+I want to register these two channels as different devices on same card,
+How can i do it.
+
+Thanks,
+Dinesh Dua
