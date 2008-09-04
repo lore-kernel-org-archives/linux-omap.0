@@ -1,129 +1,44 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 08/12] update sram restore function
-Date: Thu, 04 Sep 2008 12:21:09 +0300
-Message-ID: <87tzcwz2pm.fsf@deeprootsystems.com>
-References: <62087.192.168.10.89.1220276488.squirrel@dbdmail.itg.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: FOR COMMENT: void __iomem * and similar casts are Bad News
+Date: Thu, 4 Sep 2008 10:46:55 +0100
+Message-ID: <20080904094655.GB10426@flint.arm.linux.org.uk>
+References: <20080827220821.GE7227@flint.arm.linux.org.uk> <a0580c510809030833w6cbc7e42ye0e8f4fc49b5b046@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.172]:9938 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755101AbYIDJVQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2008 05:21:16 -0400
-Received: by wf-out-1314.google.com with SMTP id 27so3191636wfd.4
-        for <linux-omap@vger.kernel.org>; Thu, 04 Sep 2008 02:21:16 -0700 (PDT)
-In-Reply-To: <62087.192.168.10.89.1220276488.squirrel@dbdmail.itg.ti.com> (Rajendra Nayak's message of "Mon\, 1 Sep 2008 19\:11\:28 +0530 \(IST\)")
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52752 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752458AbYIDJrI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2008 05:47:08 -0400
+Content-Disposition: inline
+In-Reply-To: <a0580c510809030833w6cbc7e42ye0e8f4fc49b5b046@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
+To: Eduardo Valentin <edubezval@gmail.com>
 Cc: linux-omap@vger.kernel.org
 
-"Rajendra Nayak" <rnayak@ti.com> writes:
+On Wed, Sep 03, 2008 at 11:33:51AM -0400, Eduardo Valentin wrote:
+> > @@ -159,7 +159,7 @@ static struct omap_mcbsp_platform_data omap730_mcbsp_pdata[] = {
+> >  #ifdef CONFIG_ARCH_OMAP15XX
+> >  static struct omap_mcbsp_platform_data omap15xx_mcbsp_pdata[] = {
+> >        {
+> > -               .virt_base      = OMAP1510_MCBSP1_BASE,
+> > +               .virt_base      = OMAP1510_MCBSP1_BASE, /* FIXME: virtual or physical */
+> AFAIK, OMAP1510_MCBSP1_BASE is physical. So, I'd say:
+> +               .virt_base      = IO_ADDRESS(OMAP1510_MCBSP1_BASE),
+> 
+> Because, plat-omap/mcbsp.c expect .virt_base to be a virtual address.
 
-> This patch updates the context restore function for sram
->
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/mach-omap2/pm34xx.c |   12 ++++++++----
->  arch/arm/plat-omap/sram.c    |   10 +++++++---
->  2 files changed, 15 insertions(+), 7 deletions(-)
->
-> Index: linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/pm34xx.c	2008-09-01
-> 18:11:35.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c	2008-09-01 18:11:54.000000000
-> +0530
-> @@ -50,7 +50,7 @@ struct power_state {
->
->  static LIST_HEAD(pwrst_list);
->
-> -static void (*_omap_sram_idle)(u32 *addr, int save_state);
-> +void (*_omap_sram_idle)(u32 *addr, int save_state);
+And today, the story is completely different, having looked through more
+of the code and some documentation.
 
-Why remove the static here?  This shouldn't need to be exposed if
-omap_push_sram_idle() is exposed.
+- OMAPxxxx_MCBSPx_BASE are all physical addresses.  Fine.
+- physical addresses > 0xfffb0000 are subject to an offset (IO_OFFSET)
+  but others for the DSP located and DSP shared peripherals aren't.
 
->  static void (*saved_idle)(void);
->
-> @@ -798,6 +798,12 @@ static int __init pwrdms_setup(struct po
->  	return set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
->  }
->
-> +void omap_push_sram_idle()
-> +{
-> +	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
-> +					omap34xx_cpu_suspend_sz);
-> +}
-> +
->  int __init omap3_pm_init(void)
->  {
->  	struct power_state *pwrst;
-> @@ -835,9 +841,7 @@ int __init omap3_pm_init(void)
->  	per_pwrdm = pwrdm_lookup("per_pwrdm");
->  	core_pwrdm = pwrdm_lookup("core_pwrdm");
->
-> -	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
-> -					omap34xx_cpu_suspend_sz);
-> -
-> +	omap_push_sram_idle();
->  	suspend_set_ops(&omap_pm_ops);
->
->  #ifndef CONFIG_CPU_IDLE
-> Index: linux-omap-2.6/arch/arm/plat-omap/sram.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/plat-omap/sram.c	2008-09-01 18:11:28.000000000
-> +0530
-> +++ linux-omap-2.6/arch/arm/plat-omap/sram.c	2008-09-01 18:11:54.000000000 +0530
-> @@ -26,6 +26,7 @@
->  #include <mach/board.h>
->
->  #include <mach/control.h>
-> +#include <mach/pm.h>
->
->  #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
->  # include "../mach-omap2/prm.h"
-> @@ -75,6 +76,8 @@ extern unsigned long omapfb_reserve_sram
->  					 unsigned long sram_size,
->  					 unsigned long pstart_avail,
->  					 unsigned long size_avail);
-> +extern void (*_omap_sram_idle)(u32 *addr, int save_state);
-> +extern void omap_push_sram_idle();
->
->  /*
->   * Depending on the target RAMFS firewall setup, the public usable amount of
-> @@ -367,14 +370,14 @@ u32 omap3_configure_core_dpll(u32 sdrc_r
->  					       sdrc_actim_ctrlb, m2);
->   }
->
-> -/* REVISIT: Should this be same as omap34xx_sram_init() after off-idle? */
-> -void restore_sram_functions(void)
-> +void omap3_restore_sram_ctx(void)
->  {
->  	omap_sram_ceil = omap_sram_base + omap_sram_size;
->
->  	_omap3_sram_configure_core_dpll =
->  		omap_sram_push(omap3_sram_configure_core_dpll,
->  			       omap3_sram_configure_core_dpll_sz);
-> +	omap_push_sram_idle();
->  }
->
->  int __init omap3_sram_init(void)
-> @@ -382,7 +385,8 @@ int __init omap3_sram_init(void)
->  	_omap3_sram_configure_core_dpll =
->  		omap_sram_push(omap3_sram_configure_core_dpll,
->  			       omap3_sram_configure_core_dpll_sz);
-> -
-> +	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
-> +				omap34xx_cpu_suspend_sz);
->  	return 0;
->  }
->  #else
+So, applying the IO_OFFSET via IO_ADDRESS() or io_p2v() to all addresses
+breaks.  Meaning it's completely random whether something should be put
+through IO_ADDRESS() and similar.
 
-Why not omap_push_sram_idle() here?
-
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This isn't obvious.  It isn't readable.  It isn't maintainable.  It doesn't
+lend itself to compile time checking.
