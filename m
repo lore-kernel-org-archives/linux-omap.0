@@ -1,110 +1,98 @@
 From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: [PATCH 3/5] SOUND: SOC: CODECS: Add support for
-	the TWL4030 audio codec
-Date: Thu, 4 Sep 2008 07:32:28 -0700
-Message-ID: <5e088bd90809040732x24b2123cl68fa9d2242ae2ae0@mail.gmail.com>
+Subject: Re: [alsa-devel] [PATCH 3/5] SOUND: SOC: CODECS: Add support for the TWL4030 audio codec
+Date: Thu, 4 Sep 2008 07:48:02 -0700
+Message-ID: <5e088bd90809040748u5f487c4fy3f347b851a8d7d7b@mail.gmail.com>
 References: <1220504520-6067-1-git-send-email-sakoman@gmail.com>
-	<1220504520-6067-2-git-send-email-sakoman@gmail.com>
-	<1220504520-6067-3-git-send-email-sakoman@gmail.com>
-	<1220504520-6067-4-git-send-email-sakoman@gmail.com>
-	<20080904132632.e64c3ce2.jarkko.nikula@nokia.com>
+	 <1220504520-6067-2-git-send-email-sakoman@gmail.com>
+	 <1220504520-6067-3-git-send-email-sakoman@gmail.com>
+	 <1220504520-6067-4-git-send-email-sakoman@gmail.com>
+	 <20080904120441.GB21663@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20080904132632.e64c3ce2.jarkko.nikula@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gx0-f16.google.com ([209.85.217.16]:45103 "EHLO
+	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751751AbYIDOsE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2008 10:48:04 -0400
+Received: by gxk9 with SMTP id 9so6357091gxk.13
+        for <linux-omap@vger.kernel.org>; Thu, 04 Sep 2008 07:48:02 -0700 (PDT)
+In-Reply-To: <20080904120441.GB21663@sirena.org.uk>
 Content-Disposition: inline
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Steve Sakoman <steve@sakoman.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: sakoman@gmail.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Steve Sakoman <steve@sakoman.com>
 
-On Thu, Sep 4, 2008 at 3:26 AM, Jarkko Nikula <jarkko.nikula@nokia.com> wrote:
-> On Wed,  3 Sep 2008 22:01:58 -0700
-> "ext sakoman@gmail.com" <sakoman@gmail.com> wrote:
+On Thu, Sep 4, 2008 at 5:04 AM, Mark Brown <broonie@sirena.org.uk> wrote:
+> On Wed, Sep 03, 2008 at 10:01:58PM -0700, sakoman@gmail.com wrote:
+>> +     /* initiate offset cancellation */
+>> +     twl4030_write(codec, REG_ANAMICL,
+>> +             twl4030_reg[REG_ANAMICL] | CNCL_OFFSET_START);
+>
+> It looks a bit odd to see this reading the register defaults rather than
+> the register cache.
 
->> +static void twl4030_dump_registers(void)
->> +{
-> This is not needed since there is already nice function
-> for it: sound/soc/soc-core.c: codec_reg_show.
+True.  I will fix this.
 
-I could probably get rid of this function.  It was quite useful during
-debugging and I was not aware of codec_reg_show.  IIRC, most of the
-other codec drivers also have the equivalent of this function, so we
-might want to clean them up too if there is a standard function to
-replace them.
-
+>
 >> +     /* wait for offset cancellation to complete */
->> +     twl4030_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &byte,
->> REG_ANAMICL);
+>> +     twl4030_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &byte, REG_ANAMICL);
 >> +     while ((byte & CNCL_OFFSET_START) == CNCL_OFFSET_START)
 >> +             twl4030_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE,
 >> +                                     &byte, REG_ANAMICL);
->> +
-> Probably some timeout escape here.
-
-Right you are!  This is a pet peeve of mine and I am humiliated I let
-this sneak in :-)
-
 >
->> +static void twl4030_power_down(struct snd_soc_codec *codec)
->> +{
-> ...
->> +     udelay(10);
->> +}
-> REVISIT comment for these kind of magic delays if doesn't work without.
+> How long is this likely to take?  If it might take a while then putting
+> a delay in between reads might be nice.  As Jarkko said, a timeout would
+> be a good idea too in case something went wrong.
 
-It *seems* to work without them, but every historic TI driver seemed
-to have them.  I figured that they might know something not reflected
-in the documentation.  I will add a REVIST comment.
+It happens quite quickly.  I'll add an exit to the loop and measure
+how many passes it takes.  If it is a large number I'll add a delay.
 
->> +static int twl4030_hw_params(struct snd_pcm_substream *substream,
->> +                        struct snd_pcm_hw_params *params)
->> +{
+>> +     /* anti-pop when changing analog gain */
+>> +     twl4030_write(codec, REG_MISC_SET_1,
+>> +             twl4030_reg[REG_MISC_SET_1] | SMOOTH_ANAVOL_EN);
+>
+> Another one reading the register defaults rather than register cache...
+
+I'll fix this.
+
+>> +     /* disable bias out */
+>> +     popn &= ~VMID_EN;
+>> +     twl4030_write(codec, REG_HS_POPN_SET, popn);
+>
 > ...
->> +     switch (params_rate(params)) {
->> +     case 44100:
->> +             mode |= APLL_RATE_44100;
+>
+>> +     case SND_SOC_BIAS_ON:
+>> +             twl4030_power_up(codec);
 >> +             break;
->> +     case 48000:
->> +             mode |= APLL_RATE_48000;
+>> +     case SND_SOC_BIAS_PREPARE:
 >> +             break;
->> +     default:
->> +             printk(KERN_ERR "TWL4030 hw params: unknown rate %d
->> \n",
->> +                     params_rate(params));
->> +             return -EINVAL;
->> +     }
-> I checked that chip supports also other standard rates from 8 kHz,
-> 11.025 kHz, etc. However I didn't find from quick look how this relates
-> to interface rate. I would say that small TODO comment to whom who has
-> platform to try these combinations would be nice.
+>> +     case SND_SOC_BIAS_STANDBY:
+>> +             twl4030_power_down(codec);
+>> +             break;
+>
+> Normally SND_SOC_BIAS_STANDBY would leave Vmid enabled but your power
+> down function turns it off.  The normal thing here is to have standby
+> bring the codec up and then apply relatively small tweaks in _ON and
+> _PREPARE that do things like improve the quality of the reference
+> voltages.  Equally well, since the driver does not yet implement DAPM
+> support doing this will give you power savings that you wouldn't
+> otherwise get.
+>
+> Does the codec have any bypass paths that can be set up?  If not it
+> shouldn't do much harm either way until you implement DAPM.
 
-It would be trivial to add support for the other data rates.  IIRC, I
-just matched the data rates that were supported by mcbsp.
+How about I add a "TODO" on this?  I'm swamped for the next few weeks
+and won't be able to give it the attention it deserves test-wise.
 
->> +static int twl4030_set_dai_sysclk(struct snd_soc_dai *codec_dai,
->> +             int clk_id, unsigned int freq, int dir)
->> +{
-> ...
+>> +/* AUDIO_IF (0x0E) Fields */
 >> +
->> +     infreq |= APLL_EN;
->> +     twl4030_write(codec, REG_APLL_CTL, infreq);
->> +
->> +     return 0;
->> +}
-> If this actually place for set_pll callback if one wants to manage PLL
-> (APLL_EN bit) dynamically?
+>> +#define AIF_SLAVE_EN         0x80
+>> +#define DATA_WIDTH           0x60
+>
+> These should really all get namespaced - some of them look relatively
+> likely to collide with registers for CPU side stuff.
 
-I can add a TODO comment for this.  I'm under delivery pressure for
-the next few weeks and won't get time to work on this.
+Good point.
 
 Steve
