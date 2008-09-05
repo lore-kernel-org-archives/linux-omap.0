@@ -1,107 +1,195 @@
-From: Zou Tao <zoutao51@gmail.com>
-Subject: Re: [PATCH 1/15] OMAP3 camera driver: V4L2: Adding IOCTL command
- to get slave private data.
-Date: Fri, 05 Sep 2008 21:36:37 +0800
-Message-ID: <48C135E5.1030506@gmail.com>
-References: <A24693684029E5489D1D202277BE894411A0725A@dlee02.ent.ti.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: [PATCH 1/4] PM: Dynamic GPIO clock handling
+Date: Fri, 05 Sep 2008 16:47:28 +0300
+Message-ID: <87od32vh5b.fsf@trdhcp146196.ntc.nokia.com>
+References: <1219851962-28972-1-git-send-email-tero.kristo@nokia.com>
+	<1219851962-28972-2-git-send-email-tero.kristo@nokia.com>
+	<alpine.DEB.1.00.0809050631590.5763@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.158]:2579 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752211AbYIENgi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 09:36:38 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so728562fgg.17
-        for <linux-omap@vger.kernel.org>; Fri, 05 Sep 2008 06:36:36 -0700 (PDT)
-In-Reply-To: <A24693684029E5489D1D202277BE894411A0725A@dlee02.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:26193 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752909AbYIENrW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 09:47:22 -0400
+In-Reply-To: <alpine.DEB.1.00.0809050631590.5763@utopia.booyaka.com> (ext Paul
+	Walmsley's message of "Fri, 5 Sep 2008 07:29:55 -0600 (MDT)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <tero.kristo@nokia.com>, linux-omap@vger.kernel.org
 
-Hi, Sergio:
-Thanks. And do you have any schedule when the patch will be released? If 
-you have , please let me know.
-B.R
-Tao
-Aguirre Rodriguez, Sergio Alberto wrote:
-> Hi Zou,
+"ext Paul Walmsley" <paul@pwsan.com> writes:
+
+> Hello Tero, Jouni,
 >
-> These set of patches are meant to work on OMAP3430 SDP with camkit v3, which contains MT9p012 sensor and DW9710 lens driver.
+> so is this basically a workaround patch?
+
+Yes in new format. Please do not use word workaround;)
+
 >
-> We currently have omap zoom ldp board implementation as W.I.P., so it's expected that you don't have your camera sensor detected yet. We'll be posting the patches in this list as soon as we have them ready.
+> a few comments:
 >
-> This error you're getting for cam_mclk is something which we are working out with the power management team, but it shouldn't be a problem for getting that clock to work.
+> On Wed, 27 Aug 2008, Tero Kristo wrote:
 >
-> Regards,
-> Sergio
->
-> -----Original Message-----
-> From: Zou Tao [mailto:zoutao51@gmail.com] 
-> Sent: Tuesday, September 02, 2008 9:56 AM
-> To: Aguirre Rodriguez, Sergio Alberto
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 1/15] OMAP3 camera driver: V4L2: Adding IOCTL command to get slave private data.
->
-> Hi:
-> I'm using omap zoom ldp board, and i enable omap34xx cam option in kernel.
-> My kernel version is v2.6.26-ti-07252008, which including most of the 15 
-> patches, just having minor different.
-> During boot, it reported"Clock cam_mclk didn't enable in 100000 tries", 
-> but init has been finished successfully.
-> After booting up , I tried to access /dev/video/0, but kernel reported 
-> no such device.
-> Adding debug info, I found that video_device[0] is NULL.
-> and in
-> omap34xxcam_probe() -> 
-> v4l2_int_device_register()->v4l2_int_device_try_attach_all()->m->u.master->attach(s)
-> but omap34xxcam_device_register() never been called. so cam failed to 
-> register it.
->
-> Could you give me some advices? Does it work on your board?
->
->
-> Aguirre Rodriguez, Sergio Alberto wrote:
->   
->> >From 0be1009427e55115058bfe72521a2a2811a976e8 Mon Sep 17 00:00:00 2001
->> From: Sakari Ailus <sakari.ailus@nokia.com>
->> Date: Tue, 15 Apr 2008 10:35:15 +0300
->> Subject: [PATCH] Adding IOCTL command to get slave private data.
->>
->> Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
+>> From: ext Jouni Hogander <jouni.hogander@nokia.com>
+>>=20
+>> In omap3 gpios 2-6 are in per domain. Functional clocks for these
+>> should be disabled.
+>>=20
+>> GPIO modules in PER domain are not able to act as a wake up source i=
+f
+>> PER domain is in retention. PER domain sleep transition before MPU i=
+s
+>> prevented by leaving icks active. PER domain still enters retention
+>> together with MPU. When this happens IOPAD wake up mechanism is used
+>> for gpios.
+>>=20
+>> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
 >> ---
->>  include/media/v4l2-int-device.h |    6 ++++++
->>  1 files changed, 6 insertions(+), 0 deletions(-)
->>
->> diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
->> index c8b80e0..d9a0053 100644
->> --- a/include/media/v4l2-int-device.h
->> +++ b/include/media/v4l2-int-device.h
->> @@ -184,6 +184,11 @@ enum v4l2_int_ioctl_num {
->>  	vidioc_int_dev_exit_num,
->>  	/* Set device power state: 0 is off, non-zero is on. */
->>  	vidioc_int_s_power_num,
->> +	/*
->> +	* Get slave private data, e.g. platform-specific slave
->> +	* configuration used by the master.
->> +	*/
->> +	vidioc_int_g_priv_num,
->>  	/* Get slave interface parameters. */
->>  	vidioc_int_g_ifparm_num,
->>  	/* Does the slave need to be reset after VIDIOC_DQBUF? */
->> @@ -267,6 +272,7 @@ V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
->>  V4L2_INT_WRAPPER_0(dev_init);
->>  V4L2_INT_WRAPPER_0(dev_exit);
->>  V4L2_INT_WRAPPER_1(s_power, int, );
->> +V4L2_INT_WRAPPER_1(g_priv, void, *);
->>  V4L2_INT_WRAPPER_1(g_ifparm, struct v4l2_ifparm, *);
->>  V4L2_INT_WRAPPER_1(g_needs_reset, void, *);
->>  
->>   
->>     
+>>  arch/arm/mach-omap2/pm.c     |   20 ++++++++------
+>>  arch/arm/mach-omap2/pm.h     |    2 +-
+>>  arch/arm/mach-omap2/pm34xx.c |   56 +++++++++++++++++++++++++++++++=
+++++++++++-
+>>  3 files changed, 67 insertions(+), 11 deletions(-)
+>>=20
+>> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+>> index 4652136..1de5f14 100644
+>> --- a/arch/arm/mach-omap2/pm.c
+>> +++ b/arch/arm/mach-omap2/pm.c
+>> @@ -32,7 +32,7 @@
+>>  #include "pm.h"
+>> =20
+>>  unsigned short enable_dyn_sleep;
+>> -unsigned short clocks_off_while_idle;
+>> +unsigned short gpio_clocks_off_while_idle;
+>>  atomic_t sleep_block =3D ATOMIC_INIT(0);
+>> =20
+>>  static ssize_t idle_show(struct kobject *, struct kobj_attribute *,=
+ char *);
+>> @@ -42,16 +42,16 @@ static ssize_t idle_store(struct kobject *k, str=
+uct kobj_attribute *,
+>>  static struct kobj_attribute sleep_while_idle_attr =3D
+>>  	__ATTR(sleep_while_idle, 0644, idle_show, idle_store);
+>> =20
+>> -static struct kobj_attribute clocks_off_while_idle_attr =3D
+>> -	__ATTR(clocks_off_while_idle, 0644, idle_show, idle_store);
+>> +static struct kobj_attribute gpio_clocks_off_while_idle_attr =3D
+>> +	__ATTR(gpio_clocks_off_while_idle, 0644, idle_show, idle_store);
+>> =20
+>>  static ssize_t idle_show(struct kobject *kobj, struct kobj_attribut=
+e *attr,
+>>  			 char *buf)
+>>  {
+>>  	if (attr =3D=3D &sleep_while_idle_attr)
+>>  		return sprintf(buf, "%hu\n", enable_dyn_sleep);
+>> -	else if (attr =3D=3D &clocks_off_while_idle_attr)
+>> -		return sprintf(buf, "%hu\n", clocks_off_while_idle);
+>> +	else if (attr =3D=3D &gpio_clocks_off_while_idle_attr)
+>> +		return sprintf(buf, "%hu\n", gpio_clocks_off_while_idle);
+>>  	else
+>>  		return -EINVAL;
+>>  }
+>> @@ -69,8 +69,8 @@ static ssize_t idle_store(struct kobject *kobj, st=
+ruct kobj_attribute *attr,
+>> =20
+>>  	if (attr =3D=3D &sleep_while_idle_attr)
+>>  		enable_dyn_sleep =3D value;
+>> -	else if (attr =3D=3D &clocks_off_while_idle_attr)
+>> -		clocks_off_while_idle =3D value;
+>> +	else if (attr =3D=3D &gpio_clocks_off_while_idle_attr)
+>> +		gpio_clocks_off_while_idle =3D value;
+>>  	else
+>>  		return -EINVAL;
+>> =20
+>> @@ -106,10 +106,12 @@ static int __init omap_pm_init(void)
+>>  	/* disabled till drivers are fixed */
+>>  	enable_dyn_sleep =3D 0;
+>>  	error =3D sysfs_create_file(power_kobj, &sleep_while_idle_attr.att=
+r);
+>> -	if (error)
+>> +	if (error) {
+>>  		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
+>> +		return error;
+>> +	}
+>>  	error =3D sysfs_create_file(power_kobj,
+>> -				  &clocks_off_while_idle_attr.attr);
+>> +				  &gpio_clocks_off_while_idle_attr.attr);
+>>  	if (error)
+>>  		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
+>> =20
+>> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+>> index 68c9278..d446ea4 100644
+>> --- a/arch/arm/mach-omap2/pm.h
+>> +++ b/arch/arm/mach-omap2/pm.h
+>> @@ -17,7 +17,7 @@ extern int omap2_pm_init(void);
+>>  extern int omap3_pm_init(void);
+>> =20
+>>  extern unsigned short enable_dyn_sleep;
+>> -extern unsigned short clocks_off_while_idle;
+>> +extern unsigned short gpio_clocks_off_while_idle;
+>>  extern atomic_t sleep_block;
+>> =20
+>>  extern void omap2_block_sleep(void);
+>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34=
+xx.c
+>> index a16eb33..0baf359 100644
+>> --- a/arch/arm/mach-omap2/pm34xx.c
+>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>> @@ -53,6 +53,43 @@ static void (*saved_idle)(void);
+>> =20
+>>  static struct powerdomain *mpu_pwrdm;
+>> =20
+>> +/* Dynamic GPIO clock handling for sleep routines.
+>> + * omap_sram_idle() will call these functions and they will dynamic=
+ally
+>> + * enable / disable GPIO clocks to allow sleep transitions. */
 >
->
->
->   
+> Please use CodingStyle format for multiple-line comments, e.g.,
 
+Yes, needs to be fixed...
+
+>
+> /*
+>  * Dynamic GPIO clock handling ...
+>  * etc. etc. etc.
+>  */
+>
+> This also applies to several other comments later in the file.
+
+ok
+
+>
+>> +#define NUM_OF_PERGPIOS 5
+>> +static struct clk *gpio_fcks[NUM_OF_PERGPIOS];
+>> +
+>> +/* Enable GPIO clocks from sleep routines if allowed */
+>> +static void per_gpio_clk_enable(void)
+>> +{
+>> +	int i;
+>> +
+>> +	if (gpio_clocks_off_while_idle =3D=3D 0)
+>> +		return;
+>> +	for (i =3D 1; i < NUM_OF_PERGPIOS + 1; i++)
+>> +		clk_enable(gpio_fcks[i-1]);
+>
+> Why not just:
+>
+>     for (i =3D 0; i < NUM_OF_PERGPIOS; i++)
+>              clk_enable(gpio_fcks[i]);
+>
+> ?
+
+Yes, these all needs to be fixed.=20
+
+Thank you for you comments.
+
+--=20
+Jouni H=C3=B6gander
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
