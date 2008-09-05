@@ -1,50 +1,67 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH] MUSB: Removes compilation warning in gadget mode
-Date: Fri, 5 Sep 2008 12:00:00 +0300
-Message-ID: <20080905085959.GA7420@frodo>
-References: <1220524485-8283-1-git-send-email-ajay.gupta@ti.com>
-Reply-To: me@felipebalbi.com
+From: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
+Subject: [PATCH] rtc-twl4030: Fix periodic interrupt
+Date: Fri, 5 Sep 2008 14:54:46 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB027DF89CEA@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:49476 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751623AbYIEJAG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 05:00:06 -0400
-Content-Disposition: inline
-In-Reply-To: <1220524485-8283-1-git-send-email-ajay.gupta@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:37998 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750839AbYIEJY4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 05:24:56 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id m859Onrp010304
+	for <linux-omap@vger.kernel.org>; Fri, 5 Sep 2008 04:24:54 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m859Olwq015666
+	for <linux-omap@vger.kernel.org>; Fri, 5 Sep 2008 14:54:48 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Sep 04, 2008 at 04:04:45PM +0530, Ajay Kumar Gupta wrote:
-> Fixes compilation warning when musb is configured in gadget mode.
-> 
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
 
-Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+RTC generates an extra spurious interrupt for every actual periodic
+interrupt. This is due to a problem with the RTC_IT bit of
+REG_PWR_ISR1. It requires two writes or two reads (when COR is 
+enabled) to clear it. Since COR is enabled and one read of the same
+register is done already (inside twl4030-pwrirq.c do_twl4030_pwrirq()
+function), we can do away with a need to add one more write into the 
+same register inside the interrupt handler, by replacing the write
+currently present with just one extra read.
 
-> ---
->  drivers/usb/musb/omap2430.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> index 472c304..ea5c504 100644
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-> @@ -53,7 +53,9 @@ static void musb_do_idle(unsigned long _musb)
->  {
->  	struct musb	*musb = (void *)_musb;
->  	unsigned long	flags;
-> +#ifdef CONFIG_USB_MUSB_HDRC_HCD
->  	u8	power;
-> +#endif
->  	u8	devctl;
->  
->  	devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
-> -- 
-> 1.5.6
+Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
+---
+David Brownell reported this issue earlier. This patch fixes it.
+Index: linux-omap-2.6/drivers/rtc/rtc-twl4030.c
+===================================================================
+--- linux-omap-2.6.orig/drivers/rtc/rtc-twl4030.c	2008-09-05 12:22:23.089855991 +0530
++++ linux-omap-2.6/drivers/rtc/rtc-twl4030.c	2008-09-05 12:49:55.634939761 +0530
+@@ -446,8 +446,13 @@ static irqreturn_t twl4030_rtc_interrupt
+ 				   REG_RTC_STATUS_REG);
+ 	if (res)
+ 		goto out;
+-	res = twl4030_i2c_write_u8(TWL4030_MODULE_INT,
+-			PWR_RTC_INT_CLR, REG_PWR_ISR1);
++
++	/* Clear on Read enabled. RTC_IT bit of REG_PWR_ISR1 needs
++	 * 2 reads to clear the interrupt. One read is done in
++	 * do_twl4030_pwrirq(). Doing the second read, to clear
++	 * the bit.
++	 */
++	res = twl4030_i2c_read_u8(TWL4030_MODULE_INT, &rd_reg, REG_PWR_ISR1);
+ 	if (res)
+ 		goto out;
 
--- 
-balbi
+
+--
+With Regards,
+Jagadeesh Bhaskar P
+ 
+----------------------------
+Some men see things as they are and say why - I dream things that never were and say why not.
+- George Bernard Shaw
+-------------------
+
