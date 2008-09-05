@@ -1,135 +1,94 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 2.6.27-rc3-omap1] omap3 beagle: nand (mostly) cleanups
-Date: Fri, 5 Sep 2008 09:43:50 -0700
-Message-ID: <20080905164350.GF24202@atomide.com>
-References: <200808291012.47332.david-b@pacbell.net> <13B9B4C6EF24D648824FF11BE896716203653CA11D@dlee02.ent.ti.com> <200809021023.55493.david-b@pacbell.net> <13B9B4C6EF24D648824FF11BE896716203653CA8A3@dlee02.ent.ti.com>
+Subject: Re: [PATCH] Patch for Touch Screen noise on OMAP3EVM.
+Date: Fri, 5 Sep 2008 09:50:20 -0700
+Message-ID: <20080905165019.GG24202@atomide.com>
+References: <764af1890808290007t4ec0afabs4980f23237629f2c@mail.gmail.com> <31e679430808290050g797e4b90g1b5fcb316dd97cd7@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63086 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54406 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751167AbYIEQn4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 12:43:56 -0400
+	with ESMTP id S1750839AbYIEQua (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 12:50:30 -0400
 Content-Disposition: inline
-In-Reply-To: <13B9B4C6EF24D648824FF11BE896716203653CA8A3@dlee02.ent.ti.com>
+In-Reply-To: <31e679430808290050g797e4b90g1b5fcb316dd97cd7@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Felipe Balbi <felipebalbi@users.sourceforge.net>
+Cc: Naveen Atmakuri <naveen.maillist@gmail.com>, linux-omap-open-source@linux.omap.com, linux-omap@vger.kernel.org
 
-* Woodruff, Richard <r-woodruff2@ti.com> [080902 10:33]:
-> Hi,
+* Felipe Balbi <felipebalbi@users.sourceforge.net> [080829 00:51]:
+> The new list is linux-omap@vger.kernel.org
 > 
-> > From: David Brownell [mailto:david-b@pacbell.net]
-> > > Actually, this was talked about before a bit and the
-> > > SZ_xyz flags were left out.
-> > >
-> > > The point of telling the geometry in the addition was
-> > > to be explicit about the number of sectors being used.
+> Thanks
+> 
+> On Fri, Aug 29, 2008 at 10:07 AM, Naveen Atmakuri
+> <naveen.maillist@gmail.com> wrote:
+> > When git kernel tree is used on a OMAP3EVM board file for touch screen
+> > testing, it shows lot of jitter. With this patch the jitter can be reduced.
 > >
-> > So ... this instead?
-> 
-> Yes that looks good thanks.
 
-Pushing these three beagle patches today.
+This patch does not seem to apply, can you please refresh?
+
+Thanks,
 
 Tony
 
 
-> 
-> > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> 
-> Acked-by: Richard Woodruff <r-woodruff2@ti.com>
-> 
+> > Signed-off-by: Naveen Atmakuri <anaveen@mistralsolutions.com>
 > > ---
-> >  arch/arm/mach-omap2/board-omap3beagle.c |   17 ++++++++++-------
-> >  1 file changed, 10 insertions(+), 7 deletions(-)
+> >  arch/arm/mach-omap2/board-omap3evm.c |   10 ++++++++++
+> >  1 files changed, 10 insertions(+), 0 deletions(-)
 > >
-> > --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> > +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> > @@ -42,32 +42,35 @@
-> >  #include <mach/gpmc.h>
-> >  #include <mach/nand.h>
+> > diff --git a/arch/arm/mach-omap2/board-omap3evm.c
+> > b/arch/arm/mach-omap2/board-omap3evm.c
+> > index 4963f0f..9a4784e 100644
+> > --- a/arch/arm/mach-omap2/board-omap3evm.c
+> > +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> > @@ -27,6 +27,8 @@
+> >  #include <asm/mach-types.h>
+> >  #include <asm/mach/arch.h>
+> >  #include <asm/mach/map.h>
+> > +#include <linux/io.h>
+> > +#include <linux/delay.h>
 > >
-> > +
-> >  #define GPMC_CS0_BASE  0x60
-> >  #define GPMC_CS_SIZE   0x30
-> >
-> > +#define NAND_BLOCK_SIZE              SZ_128K
-> > +
-> >  static struct mtd_partition omap3beagle_nand_partitions[] = {
-> >       /* All the partition sizes are listed in terms of NAND block size
-> > */
-> >       {
-> >               .name           = "X-Loader",
-> >               .offset         = 0,
-> > -             .size           = 4*(64 * 2048),
-> > +             .size           = 4 * NAND_BLOCK_SIZE,
-> >               .mask_flags     = MTD_WRITEABLE,        /* force read-only */
-> >       },
-> >       {
-> >               .name           = "U-Boot",
-> >               .offset         = MTDPART_OFS_APPEND,   /* Offset =
-> > 0x80000 */
-> > -             .size           = 15*(64 * 2048),
-> > +             .size           = 15 * NAND_BLOCK_SIZE,
-> >               .mask_flags     = MTD_WRITEABLE,        /* force read-only */
-> >       },
-> >       {
-> >               .name           = "U-Boot Env",
-> >               .offset         = MTDPART_OFS_APPEND,   /* Offset =
-> > 0x260000 */
-> > -             .size           = 1*(64 * 2048),
-> > +             .size           = 1 * NAND_BLOCK_SIZE,
-> >       },
-> >       {
-> >               .name           = "Kernel",
-> >               .offset         = MTDPART_OFS_APPEND,   /* Offset =
-> > 0x280000 */
-> > -             .size           = 32*(64 * 2048),
-> > +             .size           = 32 * NAND_BLOCK_SIZE,
-> >       },
-> >       {
-> >               .name           = "File System",
-> > @@ -77,6 +80,7 @@ static struct mtd_partition omap3beagle_
-> >  };
-> >
-> >  static struct omap_nand_platform_data omap3beagle_nand_data = {
-> > +     .options        = NAND_BUSWIDTH_16,
-> >       .parts          = omap3beagle_nand_partitions,
-> >       .nr_parts       = ARRAY_SIZE(omap3beagle_nand_partitions),
-> >       .dma_channel    = -1,           /* disable DMA in OMAP NAND driver
-> > */
-> > @@ -205,7 +209,7 @@ static struct platform_device *omap3_bea
-> >       &keys_gpio,
-> >  };
-> >
-> > -void __init omap3beagle_flash_init(void)
-> > +static void __init omap3beagle_flash_init(void)
-> >  {
-> >       u8 cs = 0;
-> >       u8 nandcs = GPMC_CS_NUM + 1;
-> > @@ -245,6 +249,7 @@ void __init omap3beagle_flash_init(void)
-> >
-> >  static void __init omap3_beagle_init(void)
-> >  {
-> > +     omap3_beagle_i2c_init();
-> >       platform_add_devices(omap3_beagle_devices,
-> > ARRAY_SIZE(omap3_beagle_devices));
-> >       omap_board_config = omap3_beagle_config;
-> >       omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
-> > @@ -255,8 +260,6 @@ static void __init omap3_beagle_init(voi
-> >       omap3beagle_flash_init();
+> >  #include <mach/gpio.h>
+> >  #include <mach/keypad.h>
+> > @@ -132,8 +134,16 @@ static int ads7846_get_pendown_state(void)
 > >  }
 > >
-> > -arch_initcall(omap3_beagle_i2c_init);
-> > -
-> >  static void __init omap3_beagle_map_io(void)
-> >  {
-> >       omap2_set_globals_343x();
+> >  struct ads7846_platform_data ads7846_config = {
+> > +    .x_max                  = 0x0fff,
+> > +    .y_max                  = 0x0fff,
+> > +    .x_plate_ohms           = 180,
+> > +    .pressure_max           = 255,
+> > +    .debounce_max           = 10,
+> > +    .debounce_tol           = 3,
+> > +    .debounce_rep           = 1,
+> >     .get_pendown_state    = ads7846_get_pendown_state,
+> >     .keep_vref_on        = 1,
+> > +    .settle_delay_usecs     = 150,
+> >  };
 > >
+> >  static struct omap2_mcspi_device_config ads7846_mcspi_config = {
+> > --
+> > 1.5.6
+> >
+> > Warm Regards,
+> > Naveen Atmakuri.
+> > _______________________________________________
+> > Linux-omap-open-source mailing list
+> > Linux-omap-open-source@linux.omap.com
+> > http://linux.omap.com/mailman/listinfo/linux-omap-open-source
 > >
 > 
+> 
+> 
+> -- 
+> Best Regards,
+> 
+> Felipe Balbi
+> felipebalbi@users.sourceforge.net
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
