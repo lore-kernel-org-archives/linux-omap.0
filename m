@@ -1,28 +1,28 @@
-From: Paul Walmsley <paul@booyaka.com>
-Subject: Re: [PATCH] OMAP2xxx EAC: fix build breakage due to recent IO
- changes
-Date: Thu, 4 Sep 2008 23:21:34 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0809042321110.25143@utopia.booyaka.com>
-References: <alpine.DEB.1.00.0809042237470.25143@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 0/2] OMAP2xxx EAC build fix and sparse cleanup
+Date: Thu, 04 Sep 2008 23:24:19 -0600
+Message-ID: <20080905052312.28183.55601.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:34306 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:38200 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751660AbYIEFVf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 01:21:35 -0400
-In-Reply-To: <alpine.DEB.1.00.0809042237470.25143@utopia.booyaka.com>
+	with ESMTP id S1750848AbYIEF07 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 01:26:59 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-On Thu, 4 Sep 2008, Paul Walmsley wrote:
+This series fixes a build bug in the EAC driver after the recent IO address
+changes, and resolves some sparse warnings.
 
-> Commit f228a725b975832ac5771ab2fc86d06bd694cdb3 breaks the build for this
-> driver; fix by using OMAP2_IO_ADDRESS.
+Compile-tested only.
 
-eh, never mind this patch, this is the wrong way to fix it.  Updated patch 
-coming shortly.
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
+---
 
-- Paul
+ sound/arm/omap/eac.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
