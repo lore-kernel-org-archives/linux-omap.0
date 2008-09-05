@@ -1,83 +1,43 @@
-From: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
-Subject: RE: [patch 2.6.27-rc5-omap1] rtc-twl4030 cleanup
-Date: Fri, 5 Sep 2008 14:57:43 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB027DF89CF3@dbde02.ent.ti.com>
-References: <200809041024.18572.david-b@pacbell.net>
- <200809041048.46177.david-b@pacbell.net>
- <EAF47CD23C76F840A9E7FCE10091EFAB027DF89BDB@dbde02.ent.ti.com>
- <200809050109.39844.david-b@pacbell.net>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [alsa-devel] [PATCH 3/5] SOUND: SOC: CODECS: Add support for the TWL4030 audio codec
+Date: Fri, 5 Sep 2008 11:06:46 +0100
+Message-ID: <20080905100646.GC12383@sirena.org.uk>
+References: <1220504520-6067-1-git-send-email-sakoman@gmail.com> <1220504520-6067-2-git-send-email-sakoman@gmail.com> <1220504520-6067-3-git-send-email-sakoman@gmail.com> <1220504520-6067-4-git-send-email-sakoman@gmail.com> <20080904120441.GB21663@sirena.org.uk> <5e088bd90809040748u5f487c4fy3f347b851a8d7d7b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47014 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751184AbYIEJ15 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 05:27:57 -0400
-In-Reply-To: <200809050109.39844.david-b@pacbell.net>
-Content-Language: en-US
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:4739 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750705AbYIEKGs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 06:06:48 -0400
+Content-Disposition: inline
+In-Reply-To: <5e088bd90809040748u5f487c4fy3f347b851a8d7d7b@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Steve Sakoman <sakoman@gmail.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Steve Sakoman <steve@sakoman.com>
 
+On Thu, Sep 04, 2008 at 07:48:02AM -0700, Steve Sakoman wrote:
+> On Thu, Sep 4, 2008 at 5:04 AM, Mark Brown <broonie@sirena.org.uk> wrote:
 
+> > Normally SND_SOC_BIAS_STANDBY would leave Vmid enabled but your power
+> > down function turns it off.  The normal thing here is to have standby
+> > bring the codec up and then apply relatively small tweaks in _ON and
 
-> -----Original Message-----
-> From: David Brownell [mailto:david-b@pacbell.net]
-> Sent: Friday, September 05, 2008 1:40 PM
-> To: Pakaravoor, Jagadeesh
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [patch 2.6.27-rc5-omap1] rtc-twl4030 cleanup
-> 
-> On Friday 05 September 2008, Pakaravoor, Jagadeesh wrote:
-> > RTC generates an extra spurious interrupt for every actual periodic
-> > interrupt. This is due to a problem with the RTC_IT bit of
-> > REG_PWR_ISR1. It requires two writes or two reads (when COR is
-> > enabled) to clear it. Since COR is enabled and one read of the same
-> > register is done already (inside twl4030-pwrirq.c do_twl4030_pwrirq()
-> > function), all we need is one more read.
-> >
-> > Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
-> 
-> Yes, that seems to make the 1/second update IRQs work right.
-> Thanks!
-> 
-> Were alarm IRQs having the same problem, just not as noticably?
-> 
-> The two other technical issues I know about with this driver
-> also relate to IRQs:
-> 
->   - Is it really true that alarm and update IRQs are
->     mutually exclusive?  Unusual if so ...
-> 
-> 	+ if exclusive, then don't let both be enabled
-> 	  at the same time (the way it now does)!
-> 
-> 	+ else, update irq handler so the comment is
-> 	  correct, and so the code stops assuming
-> 	  it's alarm -or- update irqs ... it should
-> 	  be possible to report *both* events at once.
-> 
->   - Are there any reasons alarm IRQs wouldn't be able
->     to wake the system from sleep states (STR etc)?
-> 
->     If not, then need to update suspend() to leave
->     the alarm active (yes?) and do various other stuff
->     related to driver model wakeup flags; rtc-omap.c
->     can be an example.  (Except for leaving update
->     IRQs active...)
-> 
-> The wakeup stuff will let programs like rtcwake work,
-> and enable the /sys/class/rtc/rtc0/wakealarm file.
-> It's better to have that stuff work than not, even
-> if OMAP power management uses states like STR very
-> differently than most other Linuxes.
-> 
-> - Dave
-> 
+...
 
-Dave,
-  Sorry that I'll be able to take a look into it only in a week's time, since I am going on a vacation from today.
+> > Does the codec have any bypass paths that can be set up?  If not it
+> > shouldn't do much harm either way until you implement DAPM.
 
--Jagadeesh
+> How about I add a "TODO" on this?  I'm swamped for the next few weeks
+> and won't be able to give it the attention it deserves test-wise.
+
+Like I say, if the codec/driver implement any bypass paths (paths that
+carry audio from the inputs to the outputs without using the DAC or ADC)
+then it'll break those - the device will be brought down to standby when
+there is no playback or record going, which will power the bypass paths
+down.  If that is an issue then documenting it (ideally with printks for
+users) should cover it for now.
+
+If there aren't any bypass paths then it should be fine to leave it
+as-is.
