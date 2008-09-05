@@ -1,100 +1,30 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Enable TWL4030 BCI for LDP platform
-Date: Fri, 5 Sep 2008 11:22:19 -0700
-Message-ID: <20080905182218.GS24202@atomide.com>
-References: <FCCFB4CDC6E5564B9182F639FC3560870229E813AB@dbde02.ent.ti.com> <FCCFB4CDC6E5564B9182F639FC3560870229E813B9@dbde02.ent.ti.com>
+Subject: Re: [PATCH v3 0/2] OMAP2xxx EAC build fix and sparse cleanup
+Date: Fri, 5 Sep 2008 11:28:46 -0700
+Message-ID: <20080905182846.GT24202@atomide.com>
+References: <20080905073522.7741.76584.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61384 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52183 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751663AbYIESWU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 14:22:20 -0400
+	with ESMTP id S1751002AbYIES2z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 14:28:55 -0400
 Content-Disposition: inline
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870229E813B9@dbde02.ent.ti.com>
+In-Reply-To: <20080905073522.7741.76584.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, jarkko.nikula@nokia.com
 
-* Pandita, Vikram <vikram.pandita@ti.com> [080821 09:22]:
-> From: Vikram Pandita <vikram.pandita@ti.com>
+* Paul Walmsley <paul@pwsan.com> [080905 01:29]:
+> This series fixes a build bug in the EAC driver after the recent IO address
+> changes, and resolves some sparse warnings.  Updated to use ioremap(). 
+> Thanks to Jarkko Nikula <jarkko.nikula@nokia.com> for testing and Russell
+> King <linux@arm.linux.org.uk> for review.
 > 
-> Add TWL4030 BCI Battery for 3430 LDP platform
+> Compile-tested only.
 
-Pushing today.
+Pushing both today.
 
 Tony
-
-
-> 
-> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> ---
->  arch/arm/mach-omap2/Makefile                |    1 +
->  arch/arm/mach-omap2/board-ldp.c             |    2 ++
->  arch/arm/plat-omap/include/mach/board-ldp.h |    2 ++
->  drivers/power/Kconfig                       |    2 +-
->  4 files changed, 6 insertions(+), 1 deletion(-)
-> 
-> Index: base-tony/arch/arm/mach-omap2/Makefile
-> ===================================================================
-> --- base-tony.orig/arch/arm/mach-omap2/Makefile	2008-08-21 15:06:23.000000000 +0530
-> +++ base-tony/arch/arm/mach-omap2/Makefile	2008-08-21 21:22:15.000000000 +0530
-> @@ -66,6 +66,7 @@ obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= boar
->  					   hsmmc.o
->  obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
->  					   hsmmc.o \
-> +					   bci.o \
->  					   usb-musb.o
->  obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
->  					   board-apollon-mmc.o	\
-> Index: base-tony/arch/arm/mach-omap2/board-ldp.c
-> ===================================================================
-> --- base-tony.orig/arch/arm/mach-omap2/board-ldp.c	2008-08-21 21:08:31.000000000 +0530
-> +++ base-tony/arch/arm/mach-omap2/board-ldp.c	2008-08-21 21:20:37.000000000 +0530
-> @@ -29,6 +29,7 @@
->  #include <asm/mach/arch.h>
->  #include <asm/mach/map.h>
->  
-> +#include <mach/board-ldp.h>
->  #include <mach/mcspi.h>
->  #include <mach/gpio.h>
->  #include <mach/board.h>
-> @@ -230,6 +231,7 @@ static void __init omap_ldp_init(void)
->  	spi_register_board_info(ldp_spi_board_info,
->  				ARRAY_SIZE(ldp_spi_board_info));
->  	ads7846_dev_init();
-> +	twl4030_bci_battery_init();
->  	omap_serial_init();
->  	usb_musb_init();
->  	hsmmc_init();
-> Index: base-tony/arch/arm/plat-omap/include/mach/board-ldp.h
-> ===================================================================
-> --- base-tony.orig/arch/arm/plat-omap/include/mach/board-ldp.h	2008-08-21 15:06:24.000000000 +0530
-> +++ base-tony/arch/arm/plat-omap/include/mach/board-ldp.h	2008-08-21 21:12:52.000000000 +0530
-> @@ -29,6 +29,8 @@
->  #ifndef __ASM_ARCH_OMAP_LDP_H
->  #define __ASM_ARCH_OMAP_LDP_H
->  
-> +extern void twl4030_bci_battery_init(void);
-> +
->  #define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
->  
->  #endif /* __ASM_ARCH_OMAP_LDP_H */
-> Index: base-tony/drivers/power/Kconfig
-> ===================================================================
-> --- base-tony.orig/drivers/power/Kconfig	2008-08-21 21:08:31.000000000 +0530
-> +++ base-tony/drivers/power/Kconfig	2008-08-21 21:09:17.000000000 +0530
-> @@ -72,7 +72,7 @@ config BATTERY_BQ27200
->  
->  config TWL4030_BCI_BATTERY
->  	tristate "OMAP TWL4030 BCI Battery driver"
-> -	depends on (MACH_OMAP_2430SDP || MACH_OMAP_3430SDP) && TWL4030_MADC
-> +	depends on (MACH_OMAP_2430SDP || MACH_OMAP_3430SDP || MACH_OMAP_LDP) && TWL4030_MADC
->  	default y
->  	help
->  	  Support for OMAP TWL4030 BCI Battery driver.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
