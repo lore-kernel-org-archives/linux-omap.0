@@ -1,55 +1,36 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [alsa-devel] [PATCH 3/5] SOUND: SOC: CODECS: Add support for the TWL4030 audio codec
-Date: Fri, 5 Sep 2008 11:30:40 +0100
-Message-ID: <20080905103040.GD12383@sirena.org.uk>
-References: <1220504520-6067-1-git-send-email-sakoman@gmail.com> <1220504520-6067-2-git-send-email-sakoman@gmail.com> <1220504520-6067-3-git-send-email-sakoman@gmail.com> <1220504520-6067-4-git-send-email-sakoman@gmail.com> <20080904132632.e64c3ce2.jarkko.nikula@nokia.com> <5e088bd90809040732x24b2123cl68fa9d2242ae2ae0@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: [PATCH] Implement powerdomain off on state counters
+Date: Fri,  5 Sep 2008 16:21:22 +0300
+Message-ID: <1220620885-6096-1-git-send-email-peter.de-schrijver@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:3059 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751708AbYIEKan (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 06:30:43 -0400
-Content-Disposition: inline
-In-Reply-To: <5e088bd90809040732x24b2123cl68fa9d2242ae2ae0@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:47098 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752683AbYIENVm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 09:21:42 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m85DLQpM010645
+	for <linux-omap@vger.kernel.org>; Fri, 5 Sep 2008 16:21:39 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Steve Sakoman <steve@sakoman.com>
+To: linux-omap@vger.kernel.org
+Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-On Thu, Sep 04, 2008 at 07:32:28AM -0700, Steve Sakoman wrote:
-> On Thu, Sep 4, 2008 at 3:26 AM, Jarkko Nikula <jarkko.nikula@nokia.com> wrote:
+This patchset implement counters to count the number of off to on state 
+transitions in a powerdomain. These counters will be made available to
+drivers in a later patchset to allow them to make a better informed
+decision wether to restore the hardware registers or not.
 
-> >> +static void twl4030_dump_registers(void)
-> >> +{
+Peter 'p2' De Schrijver (3):
+  Powerdomain debugging
+  Powerdomain off mode counters
+  PM and clock domain hooks for off mode counters
 
-> > This is not needed since there is already nice function
-> > for it: sound/soc/soc-core.c: codec_reg_show.
+ arch/arm/mach-omap2/Makefile                  |    2 +-
+ arch/arm/mach-omap2/clockdomain.c             |   10 +++++
+ arch/arm/mach-omap2/pm34xx.c                  |    9 +++-
+ arch/arm/mach-omap2/powerdomain-debug.c       |   50 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/powerdomain.c             |   48 +++++++++++++++++++++++-
+ arch/arm/plat-omap/include/mach/powerdomain.h |    9 ++++-
+ 6 files changed, 122 insertions(+), 6 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/powerdomain-debug.c
 
-> I could probably get rid of this function.  It was quite useful during
-> debugging and I was not aware of codec_reg_show.  IIRC, most of the
-> other codec drivers also have the equivalent of this function, so we
-> might want to clean them up too if there is a standard function to
-> replace them.
-
-Any references?  None of the in-tree drivers have them...
-
-> >> +static void twl4030_power_down(struct snd_soc_codec *codec)
-> >> +{
-> > ...
-> >> +     udelay(10);
-> >> +}
-> > REVISIT comment for these kind of magic delays if doesn't work without.
-
-> It *seems* to work without them, but every historic TI driver seemed
-> to have them.  I figured that they might know something not reflected
-> in the documentation.  I will add a REVIST comment.
-
-This sort of stuff is very common in codec drivers - normally the delays
-are there to allow the analogue side of the system time to settle down
-(waiting for capacitors to charge/discharge or reference voltages to
-stabalise, for example).  Ideally they have comments saying what's going
-on, of course.  Missing these delays often won't actually stop things
-working completely but will instead do things like reduce performance or
-generate audio artefacts - and sometimes it's application dependant if
-these are important.
