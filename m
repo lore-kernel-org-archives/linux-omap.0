@@ -1,43 +1,29 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [PATCH 3/5] SOUND: SOC: CODECS: Add support for
-	the TWL4030 audio codec
-Date: Fri, 5 Sep 2008 15:48:52 +0100
-Message-ID: <20080905144850.GJ12383@sirena.org.uk>
-References: <1220504520-6067-1-git-send-email-sakoman@gmail.com>
-	<1220504520-6067-2-git-send-email-sakoman@gmail.com>
-	<1220504520-6067-3-git-send-email-sakoman@gmail.com>
-	<1220504520-6067-4-git-send-email-sakoman@gmail.com>
-	<5e088bd90809050734x16e7cf6exb2d2e789124cb836@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] Implement powerdomain off on state counters
+Date: Fri, 5 Sep 2008 08:51:17 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0809050850360.5763@utopia.booyaka.com>
+References: <1220620885-6096-1-git-send-email-peter.de-schrijver@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <5e088bd90809050734x16e7cf6exb2d2e789124cb836@mail.gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, steve@sakoman.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:45156 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753415AbYIEOvS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 10:51:18 -0400
+In-Reply-To: <1220620885-6096-1-git-send-email-peter.de-schrijver@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Sep 05, 2008 at 07:34:00AM -0700, Steve Sakoman wrote:
-> From: Steve Sakoman <steve@sakoman.com>
+On Fri, 5 Sep 2008, Peter 'p2' De Schrijver wrote:
 
-Looks good.
+> This patchset implement counters to count the number of off to on state 
+> transitions in a powerdomain. These counters will be made available to
+> drivers in a later patchset to allow them to make a better informed
+> decision wether to restore the hardware registers or not.
 
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Acked-by: Paul Walmsley <paul@pwsan.com>
 
-> SOUND: SOC: CODECS: Add support for the TWL4030 audio codec
 
-Usually it'd be formatted as
-
-  ALSA: ASoC: Add support for TWL4030 audio codec
-
-but that's not too important.
+- Paul
