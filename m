@@ -1,66 +1,46 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] The clockdomain of clkout2_src_ck fixed
-Date: Fri, 5 Sep 2008 09:53:25 -0700
-Message-ID: <20080905165325.GH24202@atomide.com>
-References: <20080904014448.GP23085@atomide.com> <1220518469-26036-1-git-send-email-tomi.valkeinen@nokia.com> <alpine.DEB.1.00.0809041113110.10597@utopia.booyaka.com>
+Subject: Re: [RFC 0/2] McBSP and ASoC OMAP update patches for 2430 and 34xx
+Date: Fri, 5 Sep 2008 09:56:41 -0700
+Message-ID: <20080905165641.GI24202@atomide.com>
+References: <1219319718-1750-1-git-send-email-jarkko.nikula@nokia.com> <20080905011235.GZ23085@atomide.com> <5e088bd90809042318k762df6c8k79ef1fcbad9a8781@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58049 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61608 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751345AbYIEQx1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 12:53:27 -0400
+	with ESMTP id S1753622AbYIEQ4n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 12:56:43 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.1.00.0809041113110.10597@utopia.booyaka.com>
+In-Reply-To: <5e088bd90809042318k762df6c8k79ef1fcbad9a8781@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-omap@vger.kernel.org
+To: Steve Sakoman <sakoman@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Paul Walmsley <paul@pwsan.com> [080904 10:14]:
-> On Thu, 4 Sep 2008, Tomi Valkeinen wrote:
+* Steve Sakoman <sakoman@gmail.com> [080904 23:36]:
+> On Thu, Sep 4, 2008 at 6:12 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Jarkko Nikula <jarkko.nikula@nokia.com> [080821 04:58]:
+> >> Here are two patches adding support for OMAP2430 in McBSP driver and
+> >> adding support for 2430 and 34xx in ASoC OMAP McBSP DAI driver.
+> >>
+> >> These are generated from top of currect l-o head but they apply also on
+> >> top of Hiroshi's virtual clock patches with some offsets.
+> >>
+> >> If you have change to try them out on those CPUs, I would be happy to
+> >> hear. I've tested these only on N810. Second patch will naturally go
+> >> through the alsa-devel when we have necessary McBSP patches upstream.
+> >
+> > Can you please refresh these against the current l-o head?
 > 
-> > The clockdomain of clkout2_src_ck was set to "core_clkdm", which does not
-> > exist.
-> 
-> This is fine for now.  Technically, clkout2_src_ck is in the CM 
-> clockdomain, and there are some patches here that will add that; but until 
-> those are posted, this is good enough.
+> I've been testing these patches along with my Overo patches on the
+> current l-o head.  Audio is working fine, so the mcbsp changes haven't
+> broken anything.
 
-Pushing today.
+At least the first patch needs to be updated for phys_pbase instead of
+virt_base.
+
+> I do miss having functional USB though :-)
+
+Hmm, is the musb broken now?
 
 Tony
-
-> 
-> Acked-by: Paul Walmsley <paul@pwsan.com>
-> 
-> > 
-> > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-> > ---
-> >  arch/arm/mach-omap2/clock34xx.h |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-> > index 5d855e9..8da0097 100644
-> > --- a/arch/arm/mach-omap2/clock34xx.h
-> > +++ b/arch/arm/mach-omap2/clock34xx.h
-> > @@ -1010,7 +1010,7 @@ static struct clk clkout2_src_ck = {
-> >  	.clksel_mask	= OMAP3430_CLKOUT2SOURCE_MASK,
-> >  	.clksel		= clkout2_src_clksel,
-> >  	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES,
-> > -	.clkdm		= { .name = "core_clkdm" },
-> > +	.clkdm		= { .name = "core_l4_clkdm" },
-> >  	.recalc		= &omap2_clksel_recalc,
-> >  };
-> >  
-> > -- 
-> > 1.6.0.1
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
-> 
-> - Paul
