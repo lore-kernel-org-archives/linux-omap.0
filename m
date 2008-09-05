@@ -1,46 +1,86 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: [PATCH 3/5] SOUND: SOC: CODECS: Add support for
-	the TWL4030 audio codec
-Date: Fri, 5 Sep 2008 08:08:05 -0700
-Message-ID: <5e088bd90809050808sca612eci536dc1dad8daa599@mail.gmail.com>
-References: <1220504520-6067-1-git-send-email-sakoman@gmail.com>
-	<1220504520-6067-2-git-send-email-sakoman@gmail.com>
-	<1220504520-6067-3-git-send-email-sakoman@gmail.com>
-	<1220504520-6067-4-git-send-email-sakoman@gmail.com>
-	<5e088bd90809050734x16e7cf6exb2d2e789124cb836@mail.gmail.com>
-	<20080905144850.GJ12383@sirena.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2: Fix Nokia N8x0 second I2C bus device
+	registration
+Date: Fri, 5 Sep 2008 09:11:50 -0700
+Message-ID: <20080905161149.GB24202@atomide.com>
+References: <1220274304-23744-1-git-send-email-jarkko.nikula@nokia.com> <20080901191130.GA8837@kos.to>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20080905144850.GJ12383@sirena.org.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57387 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753961AbYIEQL7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 12:11:59 -0400
 Content-Disposition: inline
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Steve Sakoman <sakoman@gmail.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, steve@sakoman.com
+In-Reply-To: <20080901191130.GA8837@kos.to>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Riku Voipio <riku.voipio@iki.fi>
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, linux-omap@vger.kernel.org
 
-On Fri, Sep 5, 2008 at 7:48 AM, Mark Brown <broonie@sirena.org.uk> wrote:
+* Riku Voipio <riku.voipio@iki.fi> [080901 12:12]:
+> On Mon, Sep 01, 2008 at 04:05:04PM +0300, Jarkko Nikula wrote:
+> > - TSL2563 and LP5521 are found only in N810
+> > - Fix one typo
+> 
+> > Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+> 
+> Acked-by: Riku voipio <riku.voipio@iki.fi>
 
-> Looks good.
->
-> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
->
->> SOUND: SOC: CODECS: Add support for the TWL4030 audio codec
->
-> Usually it'd be formatted as
->
->  ALSA: ASoC: Add support for TWL4030 audio codec
+Pushing today.
 
-Thanks Mark!
+Tony
 
-I'll change the title on my final resubmission of the series
-
-Steve
+> 
+> > ---
+> >  arch/arm/mach-omap2/board-n800.c |   14 +++++++-------
+> >  1 files changed, 7 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/board-n800.c b/arch/arm/mach-omap2/board-n800.c
+> > index 95cc84a..1df9f3d 100644
+> > --- a/arch/arm/mach-omap2/board-n800.c
+> > +++ b/arch/arm/mach-omap2/board-n800.c
+> > @@ -649,12 +649,6 @@ static struct i2c_board_info __initdata_or_module n8x0_i2c_board_info_2[] = {
+> >  		.platform_data = &n800_tcm825x_platform_data,
+> >  #endif
+> >  	},
+> > -	{
+> > -		I2C_BOARD_INFO("tsl2563", 0x29),
+> > -	},
+> > -	{
+> > -		I2C_BOARD_INFO("lp5521", 0x32),
+> > -	},
+> >  };
+> >  
+> >  
+> > @@ -670,6 +664,12 @@ static struct i2c_board_info __initdata_or_module n810_i2c_board_info_2[] = {
+> >  		.irq		= OMAP_GPIO_IRQ(109),
+> >  		.platform_data	= &lm8323_pdata,
+> >  	},
+> > +	{
+> > +		I2C_BOARD_INFO("tsl2563", 0x29),
+> > +	},
+> > +	{
+> > +		I2C_BOARD_INFO("lp5521", 0x32),
+> > +	},
+> >  };
+> >  
+> >  void __init nokia_n800_common_init(void)
+> > @@ -694,7 +694,7 @@ void __init nokia_n800_common_init(void)
+> >  	omap_register_i2c_bus(1, 400, n800_i2c_board_info_1,
+> >  			      ARRAY_SIZE(n800_i2c_board_info_1));
+> >  	omap_register_i2c_bus(2, 400, n8x0_i2c_board_info_2,
+> > -			      ARRAY_SIZE(n800_i2c_board_info_2));
+> > +			      ARRAY_SIZE(n8x0_i2c_board_info_2));
+> >  	if (machine_is_nokia_n800())
+> >  		i2c_register_board_info(2, n800_i2c_board_info_2,
+> >  			ARRAY_SIZE(n800_i2c_board_info_2));
+> > -- 
+> > 1.5.6.3
+> 
+> -- 
+> "rm -rf" only sounds scary if you don't have backups
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
