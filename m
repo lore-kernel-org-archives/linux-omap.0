@@ -1,97 +1,96 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND 3][PATCH] Adding csi2_fck declaration to clock34xx.h
-Date: Fri, 5 Sep 2008 10:04:17 -0700
-Message-ID: <20080905170416.GJ24202@atomide.com>
-References: <A24693684029E5489D1D202277BE894411A07DA1@dlee02.ent.ti.com> <alpine.DEB.1.00.0809050003380.25143@utopia.booyaka.com>
+Subject: Re: [PATCH] ARM: OMAP3: Fix omapfb's problem on OMAP3430sdp
+Date: Fri, 5 Sep 2008 10:13:12 -0700
+Message-ID: <20080905171311.GK24202@atomide.com>
+References: <1220276228.2680.9.camel@localhost> <c656a4d20809012249p43213688pce54884c24541fcd@mail.gmail.com> <1220336007.19839.6.camel@localhost> <20080902081429.GB6928@frodo> <1220347997.7042.5.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54497 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49160 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755341AbYIERET (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 13:04:19 -0400
+	with ESMTP id S1752325AbYIERNU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 13:13:20 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.1.00.0809050003380.25143@utopia.booyaka.com>
+In-Reply-To: <1220347997.7042.5.camel@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "stanley.miao" <stanley.miao@windriver.com>
+Cc: me@felipebalbi.com, arun c <arun.edarath@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Paul Walmsley <paul@pwsan.com> [080904 23:04]:
-> On Wed, 3 Sep 2008, Aguirre Rodriguez, Sergio Alberto wrote:
+* stanley.miao <stanley.miao@windriver.com> [080902 02:32]:
+> Thanks. I resolved the style problem. If gpio function needs to be
+> changed, I think it should be in a single patch.
 > 
-> > From: Sergio Aguirre <saaguirre@ti.com>
-> > 
-> > ARM: OMAP: Add CSI2 clock struct for handling it with clock API.
-> > 
-> > Add CSI2 clock struct for handling it with clock API when TI PM is disabled.
-> > 
-> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> Re-send the patch again.
 > 
-> Acked-by: Paul Walmsley <paul@pwsan.com>
+> Fix omapfb's problem on OMAP3430
+> 
+> Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+> ---
+>  drivers/video/omap/lcd_2430sdp.c |   17 +++++++++++++++++
+>  1 files changed, 17 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/video/omap/lcd_2430sdp.c
+> b/drivers/video/omap/lcd_2430sdp.c
+> index 9af6cd0..cf8d2a5 100644
+> --- a/drivers/video/omap/lcd_2430sdp.c
+> +++ b/drivers/video/omap/lcd_2430sdp.c
+> @@ -23,6 +23,7 @@
+>  
+>  #include <linux/module.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/delay.h>
+>  #include <linux/i2c/twl4030.h>
+>  
+>  #include <mach/gpio.h>
+> @@ -45,6 +46,10 @@ static unsigned enable_gpio;
+>  #define ENABLE_VAUX3_DEDICATED	0x03
+>  #define ENABLE_VAUX3_DEV_GRP	0x20
+>  
+> +#define ENABLE_VPLL2_DEDICATED          0x05
+> +#define ENABLE_VPLL2_DEV_GRP            0xE0
+> +#define TWL4030_VPLL2_DEV_GRP           0x33
+> +#define TWL4030_VPLL2_DEDICATED         0x36
+>  
+>  #define t2_out(c, r, v) twl4030_i2c_write_u8(c, r, v)
+>  
+> @@ -77,6 +82,13 @@ static int sdp2430_panel_enable(struct lcd_panel
+> *panel)
+>  	u8 ded_val, ded_reg;
+>  	u8 grp_val, grp_reg;
+>  
+> +	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
+> +		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEDICATED,
+> +					TWL4030_VPLL2_DEDICATED);
+> +		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEV_GRP,
+> +					TWL4030_VPLL2_DEV_GRP);
+> +	}
+> +
+>  	if (machine_is_omap_3430sdp()) {
+>  		ded_reg = TWL4030_VAUX3_DEDICATED;
+>  		ded_val = ENABLE_VAUX3_DEDICATED;
 
-Pushing today.
+How about putting the is_sel_rev_greater_than test within the
+machine_is_omap3430sdp test?
 
 Tony
 
+> @@ -104,6 +116,11 @@ static void sdp2430_panel_disable(struct lcd_panel
+> *panel)
+>  {
+>  	omap_set_gpio_dataout(enable_gpio, 0);
+>  	omap_set_gpio_dataout(backlight_gpio, 0);
+> +	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
+> +		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEDICATED);
+> +		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEV_GRP);
+> +		mdelay(4);
+> +	}
+>  }
+>  
+>  static unsigned long sdp2430_panel_get_caps(struct lcd_panel *panel)
+> -- 
+> 1.5.6.3
 > 
-> 
-> > ---
-> >  arch/arm/mach-omap2/clock34xx.h       |   12 ++++++++++++
-> >  arch/arm/mach-omap2/cm-regbits-34xx.h |    2 ++
-> >  2 files changed, 14 insertions(+)
-> > 
-> > Index: linux-omap-2.6/arch/arm/mach-omap2/clock34xx.h
-> > ===================================================================
-> > --- linux-omap-2.6.orig/arch/arm/mach-omap2/clock34xx.h	2008-08-28 13:59:57.000000000 -0500
-> > +++ linux-omap-2.6/arch/arm/mach-omap2/clock34xx.h	2008-09-03 11:33:20.000000000 -0500
-> > @@ -2228,6 +2228,17 @@
-> >  	.recalc		= &followparent_recalc,
-> >  };
-> >  
-> > +static struct clk csi2_96m_fck = {
-> > +	.name		= "csi2_96m_fck",
-> > +	.parent		= &core_96m_fck,
-> > +	.init		= &omap2_init_clk_clkdm,
-> > +	.enable_reg	= _OMAP34XX_CM_REGADDR(OMAP3430_CAM_MOD, CM_FCLKEN),
-> > +	.enable_bit	= OMAP3430_EN_CSI2_SHIFT,
-> > +	.flags		= CLOCK_IN_OMAP343X,
-> > +	.clkdm		= { .name = "cam_clkdm" },
-> > +	.recalc		= &followparent_recalc,
-> > +};
-> > +
-> >  /* USBHOST - 3430ES2 only */
-> >  
-> >  static struct clk usbhost_120m_fck = {
-> > @@ -3208,6 +3219,7 @@
-> >  	&dss_ick,
-> >  	&cam_mclk,
-> >  	&cam_ick,
-> > +	&csi2_96m_fck,
-> >  	&usbhost_120m_fck,
-> >  	&usbhost_48m_fck,
-> >  	&usbhost_ick,
-> > Index: linux-omap-2.6/arch/arm/mach-omap2/cm-regbits-34xx.h
-> > ===================================================================
-> > --- linux-omap-2.6.orig/arch/arm/mach-omap2/cm-regbits-34xx.h	2008-08-28 13:59:57.000000000 -0500
-> > +++ linux-omap-2.6/arch/arm/mach-omap2/cm-regbits-34xx.h	2008-09-02 17:53:48.000000000 -0500
-> > @@ -530,6 +530,8 @@
-> >  #define OMAP3430_CLKACTIVITY_DSS_MASK			(1 << 0)
-> >  
-> >  /* CM_FCLKEN_CAM specific bits */
-> > +#define OMAP3430_EN_CSI2				(1 << 1)
-> > +#define OMAP3430_EN_CSI2_SHIFT				1
-> >  
-> >  /* CM_ICLKEN_CAM specific bits */
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
-> 
-> - Paul
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
