@@ -1,67 +1,36 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: cam_mclk clock not responding properly in OMAP3430
-Date: Thu, 4 Sep 2008 23:06:48 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0809042306110.25143@utopia.booyaka.com>
-References: <A24693684029E5489D1D202277BE894411A86D15@dlee02.ent.ti.com>
+Subject: Re: FOR COMMENT: void __iomem * and similar casts are Bad News
+Date: Thu, 4 Sep 2008 23:17:27 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0809042312410.25143@utopia.booyaka.com>
+References: <20080827220821.GE7227@flint.arm.linux.org.uk> <a0580c510809030833w6cbc7e42ye0e8f4fc49b5b046@mail.gmail.com> <20080904094655.GB10426@flint.arm.linux.org.uk> <20080904161033.GQ23085@atomide.com> <20080904161248.GC2309@flint.arm.linux.org.uk>
+ <20080904162917.GR23085@atomide.com> <20080904170733.GD2309@flint.arm.linux.org.uk> <20080904175810.GS23085@atomide.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:36420 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:36599 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750848AbYIEFGu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 01:06:50 -0400
-In-Reply-To: <A24693684029E5489D1D202277BE894411A86D15@dlee02.ent.ti.com>
+	with ESMTP id S1751216AbYIEFR2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 01:17:28 -0400
+In-Reply-To: <20080904175810.GS23085@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org
 
-Hello Sergio,
 
-On Thu, 4 Sep 2008, Aguirre Rodriguez, Sergio Alberto wrote:
+Hello Russell, Tony,
 
-> I'm working on camera implementation, and I want to debug why the cam_mclk clock is returning me a "count exceeded" message, although seems to be properly taken. (i.e. MT9P012 + ISP sensor works fine)
-> 
-> I'm having this message when trying to acquire it:
-> 
-> Clock cam_mclk didn't enable in 100000 tries
-> 
-> Any clue why is that?
+in arch/arm/plat-omap/include/mach/io.h, shouldn't these casts be 
+"__force void __iomem *" ?   
 
-Yes, I think so.  Does this patch fix the problem for you?
+#define IO_ADDRESS(pa)		((void __iomem *)__IO_ADDRESS(pa))
+#define OMAP1_IO_ADDRESS(pa)	((void __iomem *)__OMAP1_IO_ADDRESS(pa))
+#define OMAP2_IO_ADDRESS(pa)	((void __iomem *)__OMAP2_IO_ADDRESS(pa))
+
+sparse is emitting warnings again - i.e.,
+
+arch/arm/mach-omap2/irq.c:150:21: warning: cast adds address space to 
+expression (<asn:2>)
 
 
 - Paul
-
-
-[PATCH] OMAP3 clock: camera module has no target IDLEST bit
-
-From: Paul Walmsley <paul@pwsan.com>
-
-We must not attempt to wait for the CAM module to become ready after
-clock enable, since it has no target IDLEST bit.
-
-Thanks to Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com> for
-reporting this.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
----
- arch/arm/mach-omap2/clock.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index be5c616..189b8a6 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -256,6 +256,10 @@ static void omap2_clk_wait_ready(struct clk *clk)
- 	/* REVISIT: What are the appropriate exclusions for 34XX? */
- 	if (cpu_is_omap34xx()) {
- 
-+		/* CAM */
-+		if (prcm_mod == OMAP34XX_CM_REGADDR(OMAP3430_CAM_MOD, 0))
-+			return;
-+
- 		/* SSI */
- 		if (prcm_mod == OMAP34XX_CM_REGADDR(CORE_MOD, 0) &&
- 		    (reg & 0x0f) == 0 &&
