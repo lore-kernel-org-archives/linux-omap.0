@@ -1,64 +1,67 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP2xxx EAC: fix build breakage due to recent IO changes
-Date: Thu, 4 Sep 2008 22:39:07 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0809042237470.25143@utopia.booyaka.com>
+Subject: Re: cam_mclk clock not responding properly in OMAP3430
+Date: Thu, 4 Sep 2008 23:06:48 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0809042306110.25143@utopia.booyaka.com>
+References: <A24693684029E5489D1D202277BE894411A86D15@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:43391 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:36420 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750910AbYIEEjI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 00:39:08 -0400
+	with ESMTP id S1750848AbYIEFGu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 01:06:50 -0400
+In-Reply-To: <A24693684029E5489D1D202277BE894411A86D15@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+Hello Sergio,
+
+On Thu, 4 Sep 2008, Aguirre Rodriguez, Sergio Alberto wrote:
+
+> I'm working on camera implementation, and I want to debug why the cam_mclk clock is returning me a "count exceeded" message, although seems to be properly taken. (i.e. MT9P012 + ISP sensor works fine)
+> 
+> I'm having this message when trying to acquire it:
+> 
+> Clock cam_mclk didn't enable in 100000 tries
+> 
+> Any clue why is that?
+
+Yes, I think so.  Does this patch fix the problem for you?
 
 
-Commit f228a725b975832ac5771ab2fc86d06bd694cdb3 breaks the build for this
-driver; fix by using OMAP2_IO_ADDRESS.
+- Paul
 
-Compile-tested only.
+
+[PATCH] OMAP3 clock: camera module has no target IDLEST bit
+
+From: Paul Walmsley <paul@pwsan.com>
+
+We must not attempt to wait for the CAM module to become ready after
+clock enable, since it has no target IDLEST bit.
+
+Thanks to Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com> for
+reporting this.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-
+Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
 ---
- sound/arm/omap/eac.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/clock.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/sound/arm/omap/eac.c b/sound/arm/omap/eac.c
-index 9fe8d74..cb042e6 100644
---- a/sound/arm/omap/eac.c
-+++ b/sound/arm/omap/eac.c
-@@ -254,7 +254,7 @@
- /* internal structure of the EAC driver */
- struct omap_eac {
- 	struct mutex			mutex;
--	void __iomem *			base;
-+	u32				base;
- 	struct platform_device *	pdev;
- 	struct eac_platform_data *	pdata;
- 	struct snd_card *		card;
-@@ -279,12 +279,12 @@ MODULE_PARM_DESC(id, "ID string for OMAP24xx EAC");
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index be5c616..189b8a6 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -256,6 +256,10 @@ static void omap2_clk_wait_ready(struct clk *clk)
+ 	/* REVISIT: What are the appropriate exclusions for 34XX? */
+ 	if (cpu_is_omap34xx()) {
  
- static inline void eac_write_reg(struct omap_eac *eac, int idx, u16 val)
- {
--	__raw_writew(val, eac->base + idx);
-+	__raw_writew(val, OMAP2_IO_ADDRESS(eac->base + idx));
- }
- 
- static inline u16 eac_read_reg(struct omap_eac *eac, int idx)
- {
--	return __raw_readw(eac->base + idx);
-+	return __raw_readw(OMAP2_IO_ADDRESS(eac->base + idx));
- }
- 
- static int eac_get_clocks(struct omap_eac *eac)
-@@ -707,7 +707,7 @@ static int __devinit eac_probe(struct platform_device *pdev)
- 		err = -ENODEV;
- 		goto err1;
- 	}
--	eac->base = (void __iomem *)io_p2v(res->start);
-+	eac->base = res->start;
- 	eac->pdata = pdata;
- 
- 	/* pre-initialize EAC hw */
++		/* CAM */
++		if (prcm_mod == OMAP34XX_CM_REGADDR(OMAP3430_CAM_MOD, 0))
++			return;
++
+ 		/* SSI */
+ 		if (prcm_mod == OMAP34XX_CM_REGADDR(CORE_MOD, 0) &&
+ 		    (reg & 0x0f) == 0 &&
