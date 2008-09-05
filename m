@@ -1,62 +1,55 @@
-From: <shivananda.hebbarp@wipro.com>
-Subject: RE: [PATCH] BRIDGE OMAP PM Bug softlockup fix
-Date: Fri, 5 Sep 2008 15:36:24 +0530
-Message-ID: <70E3BF80B2DA6E469688AD5C3BBCC6C403F3CEC6@BLR-EC-MBX02.wipro.com>
-References: <27F9C60D11D683428E133F85D2BB4A534490090F@dlee03.ent.ti.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [alsa-devel] [PATCH 3/5] SOUND: SOC: CODECS: Add support for the TWL4030 audio codec
+Date: Fri, 5 Sep 2008 11:30:40 +0100
+Message-ID: <20080905103040.GD12383@sirena.org.uk>
+References: <1220504520-6067-1-git-send-email-sakoman@gmail.com> <1220504520-6067-2-git-send-email-sakoman@gmail.com> <1220504520-6067-3-git-send-email-sakoman@gmail.com> <1220504520-6067-4-git-send-email-sakoman@gmail.com> <20080904132632.e64c3ce2.jarkko.nikula@nokia.com> <5e088bd90809040732x24b2123cl68fa9d2242ae2ae0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wipro-blr-out01.wipro.com ([203.91.198.74]:57139 "EHLO
-	wipro-blr-out01.wipro.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751395AbYIEK35 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 06:29:57 -0400
-Received: from blr-ec-aa01.wipro.com (unknown [10.201.18.41])
-	by wipro-blr-out01.wipro.com (Symantec Mail Security) with ESMTP id 7CB204E4006
-	for <linux-omap@vger.kernel.org>; Fri,  5 Sep 2008 15:36:25 +0530 (IST)
-Content-class: urn:content-classes:message
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A534490090F@dlee03.ent.ti.com>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:3059 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751708AbYIEKan (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 06:30:43 -0400
+Content-Disposition: inline
+In-Reply-To: <5e088bd90809040732x24b2123cl68fa9d2242ae2ae0@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: x00omar@ti.com, linux-omap@vger.kernel.org
+To: Steve Sakoman <sakoman@gmail.com>
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Steve Sakoman <steve@sakoman.com>
 
- 
------Original Message-----
-From: linux-omap-owner@vger.kernel.org
-[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Ramirez Luna,
-Omar
-Sent: Friday, September 05, 2008 3:00 AM
-To: linux-omap@vger.kernel.org
-Subject: [PATCH] BRIDGE OMAP PM Bug softlockup fix
- @@ -753,9 +751,7 @@ static DSP_STATUS WMD_BRD_Stop(struct
-WMD_DEV_CONTEXT *hDevContext)
- 				 "for iva2_fck\n");
- 			}
- 		/* IVA2 is not in OFF state */
--		/* Read and set PM_PWSTCTRL_IVA2  to OFF */
--		HW_PWR_IVA2StateGet(resources.dwPrmBase,
-HW_PWR_DOMAIN_DSP,
--				     &pwrState);
-+		/* Set PM_PWSTCTRL_IVA2  to OFF */
- 		HW_PWR_IVA2PowerStateSet(resources.dwPrmBase,
- 					  HW_PWR_DOMAIN_DSP,
- 					  HW_PWR_STATE_OFF);
-@@ -2054,8 +2050,7 @@ static DSP_STATUS run_IdleBoot(u32 prm_base, u32
-cm_base,
- 	HW_PWRST_IVA2RegGet(prm_base, &temp);
- 	 if ((temp & 0x03) != 0x03 || (temp & 0x03) != 0x02) {
- 		/* IVA2 is not in ON state */
--		/* Read and set PM_PWSTCTRL_IVA2  to ON */
--		HW_PWR_IVA2StateGet(prm_base, HW_PWR_DOMAIN_DSP,
-&pwrState);
-+		/* Set PM_PWSTCTRL_IVA2  to ON */
- 		HW_PWR_IVA2PowerStateSet(prm_base, HW_PWR_DOMAIN_DSP,
- 					  HW_PWR_STATE_ON);
- 		/* Set the SW supervised state transition */
+On Thu, Sep 04, 2008 at 07:32:28AM -0700, Steve Sakoman wrote:
+> On Thu, Sep 4, 2008 at 3:26 AM, Jarkko Nikula <jarkko.nikula@nokia.com> wrote:
 
-Here in one place ,you access prm base with resources.dwPrmBase and next
-time access with just prm_base .Can we have have a consistent way of
-accessing it ?
+> >> +static void twl4030_dump_registers(void)
+> >> +{
 
---Shiva
+> > This is not needed since there is already nice function
+> > for it: sound/soc/soc-core.c: codec_reg_show.
+
+> I could probably get rid of this function.  It was quite useful during
+> debugging and I was not aware of codec_reg_show.  IIRC, most of the
+> other codec drivers also have the equivalent of this function, so we
+> might want to clean them up too if there is a standard function to
+> replace them.
+
+Any references?  None of the in-tree drivers have them...
+
+> >> +static void twl4030_power_down(struct snd_soc_codec *codec)
+> >> +{
+> > ...
+> >> +     udelay(10);
+> >> +}
+> > REVISIT comment for these kind of magic delays if doesn't work without.
+
+> It *seems* to work without them, but every historic TI driver seemed
+> to have them.  I figured that they might know something not reflected
+> in the documentation.  I will add a REVIST comment.
+
+This sort of stuff is very common in codec drivers - normally the delays
+are there to allow the analogue side of the system time to settle down
+(waiting for capacitors to charge/discharge or reference voltages to
+stabalise, for example).  Ideally they have comments saying what's going
+on, of course.  Missing these delays often won't actually stop things
+working completely but will instead do things like reduce performance or
+generate audio artefacts - and sometimes it's application dependant if
+these are important.
