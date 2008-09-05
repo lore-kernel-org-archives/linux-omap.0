@@ -1,43 +1,38 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: [RFC 0/2] McBSP and ASoC OMAP update patches for 2430 and 34xx
-Date: Fri, 5 Sep 2008 10:23:05 -0700
-Message-ID: <5e088bd90809051023t6aab7d93jd04d18d6843cb4e6@mail.gmail.com>
-References: <1219319718-1750-1-git-send-email-jarkko.nikula@nokia.com>
-	 <20080905011235.GZ23085@atomide.com>
-	 <5e088bd90809042318k762df6c8k79ef1fcbad9a8781@mail.gmail.com>
-	 <20080905165641.GI24202@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Errors on boot with 2.6.27-rc5 on omap3
+Date: Fri, 5 Sep 2008 10:23:13 -0700
+Message-ID: <20080905172313.GN24202@atomide.com>
+References: <5e088bd90809032041u69a60e71h4c22cfa3ce06ec86@mail.gmail.com> <200809032210.31687.david-b@pacbell.net> <5e088bd90809032227v56039032v881cc4fed61b676c@mail.gmail.com> <5e088bd90809032304k3e8bbd8cncea40b90ff6ab340@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.181]:16671 "EHLO
-	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752904AbYIERXH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 13:23:07 -0400
-Received: by py-out-1112.google.com with SMTP id p76so308319pyb.10
-        for <linux-omap@vger.kernel.org>; Fri, 05 Sep 2008 10:23:06 -0700 (PDT)
-In-Reply-To: <20080905165641.GI24202@atomide.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60668 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752375AbYIERXQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 13:23:16 -0400
 Content-Disposition: inline
+In-Reply-To: <5e088bd90809032304k3e8bbd8cncea40b90ff6ab340@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Steve Sakoman <sakoman@gmail.com>
+Cc: David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> At least the first patch needs to be updated for phys_pbase instead of
-> virt_base.
+* Steve Sakoman <sakoman@gmail.com> [080903 23:04]:
+> On Wed, Sep 3, 2008 at 10:27 PM, Steve Sakoman <sakoman@gmail.com> wrote:
+> > On Wed, Sep 3, 2008 at 10:10 PM, David Brownell <david-b@pacbell.net> wrote:
+> >> On Wednesday 03 September 2008, Steve Sakoman wrote:
+> >>> I get similar results for both Beagle and Overo, so the error occurs
+> >>> for both nand and onenand.  The boot eventually completes, of course
+> >>> without nand/onenand support.
+> >>
+> >> Does this help?
+> >>
+> >>  http://marc.info/?l=linux-kernel&m=121999823616458&w=2
+> >>
+> >> Block layer goofage; that patch is in Jens' queue.
+> 
+> The above mentioned patch does fix the issue.
 
-Yes it does, mcbsp is likely still working by the same accident of fate.
+This is now cherry-picked to l-o tree.
 
-> Hmm, is the musb broken now?
-
-It is on Overo if I base my patches against current top of tree
-(a376251519ced5831ed07ed234430725230ed93a)
-
-Doesn't crash, just quietly doesn't work.  I hear from Beagle folk
-that musb doesn't work there either.   I have it configured as a host
-port, and IIRC so do the Beagle folks
-
-If I base my patches against the state of the tree just prior to the
-move to rc5 (81c893795c2e1fbe0bf5f638ed6ae1e500b80a2d), musb works as
-well as it ever has.
-
-Steve
+Tony
