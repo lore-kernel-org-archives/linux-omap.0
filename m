@@ -1,71 +1,44 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: OMAP3EVM : Doesn't resume after suspend
-Date: Fri, 5 Sep 2008 19:25:05 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301A039AB94@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301A03B16D8@dbde02.ent.ti.com>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: [PATCH 3/5] SOUND: SOC: CODECS: Add support for
+	the TWL4030 audio codec
+Date: Fri, 5 Sep 2008 07:16:49 -0700
+Message-ID: <5e088bd90809050716r6b14c382s4648c019552ec3f6@mail.gmail.com>
+References: <1220504520-6067-1-git-send-email-sakoman@gmail.com>
+	<1220504520-6067-2-git-send-email-sakoman@gmail.com>
+	<1220504520-6067-3-git-send-email-sakoman@gmail.com>
+	<1220504520-6067-4-git-send-email-sakoman@gmail.com>
+	<20080904120441.GB21663@sirena.org.uk>
+	<5e088bd90809040748u5f487c4fy3f347b851a8d7d7b@mail.gmail.com>
+	<20080905100646.GC12383@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44746 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753292AbYIENzT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2008 09:55:19 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m85DtAXk008675
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 5 Sep 2008 08:55:17 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m85Dt9I3026829
-	for <linux-omap@vger.kernel.org>; Fri, 5 Sep 2008 19:25:09 +0530 (IST)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301A03B16D8@dbde02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20080905100646.GC12383@sirena.org.uk>
+Content-Disposition: inline
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Steve Sakoman <sakoman@gmail.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Steve Sakoman <steve@sakoman.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Premi, Sanjeev
-> Sent: Friday, September 05, 2008 2:08 AM
-> To: linux-omap@vger.kernel.org
-> Subject: OMAP3EVM : Doesn't resume after suspend
-> 
-> Hi all,
-> 
-> I am building off the tag v2.6.26-omap2. While trying the 
-> suspend/resume, i noticed that suspend succeeds; but the 
-> resume doesn't happen.
-> Did anyone else notice this behavior?
-> 
-> Best regards,
-> Sanjeev--
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in the body of a message to 
-> majordomo@vger.kernel.org More majordomo info at  
-> http://vger.kernel.org/majordomo-info.html
-> 
-> 
-After some mods, I was able to get the wake-up from the keypad event.
+On Fri, Sep 5, 2008 at 3:06 AM, Mark Brown <broonie@sirena.org.uk> wrote:
 
-However, these prints indicate that suspend may not have been successful:
+>> How about I add a "TODO" on this?  I'm swamped for the next few weeks
+>> and won't be able to give it the attention it deserves test-wise.
 
-  Freezing user space processes ... Freezing user space processes ... (elapsed 0.00 seconds) (elapsed 0.00 seconds) done.
-done.
-  Freezing remaining freezable tasks ... Freezing remaining freezable tasks ... (elapsed 0.00 seconds) (elapsed 0.00 seconds) done.done.
+> If there aren't any bypass paths then it should be fine to leave it
+> as-is.
 
-  Suspending console(s)
-  Suspending console(s)
+There are no bypass paths, so I will leave it as is for now.
 
-  -- <after key press> --
+I plan to get back to this in a few weeks and will then implement
+proper BIAS_PREPARE and BIAS_STANDBY support.
 
-  Powerdomain (mpu_pwrdm) didn't enter target state 3
-  Powerdomain (neon_pwrdm) didn't enter target state 0
-  Powerdomain (per_pwrdm) didn't enter target state 0
-  Could not enter target state in pm_suspend
-  eth0: link down
-  Restarting tasks ... Restarting tasks ... done.
-  done.
-
-Best regards,
-Sanjeev 
+Steve
