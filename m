@@ -1,58 +1,58 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: musb broken, was [RFC 0/2] McBSP and ASoC OMAP update patches for 2430 and 34xx
-Date: Sat, 6 Sep 2008 14:49:35 -0700
-Message-ID: <5e088bd90809061449l5b9d2d2dm1920301b70e6e5bf@mail.gmail.com>
+From: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Subject: Re: [PATCH] MUSB: Set INDEX register to 0 before accessing CONFIGDATA
+Date: Sat, 6 Sep 2008 22:04:01 -0700
+Message-ID: <200809062204.01492.david-b@pacbell.net>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02C418D1B1@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.177]:39078 "EHLO
-	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752380AbYIFVti (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Sep 2008 17:49:38 -0400
-Received: by py-out-1112.google.com with SMTP id p76so519504pyb.10
-        for <linux-omap@vger.kernel.org>; Sat, 06 Sep 2008 14:49:36 -0700 (PDT)
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02C418D1B1-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, Bryan Wu <cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Sep 5, 2008 at 10:52 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Steve Sakoman <sakoman@gmail.com> [080905 10:24]:
->> > Hmm, is the musb broken now?
->>
->> It is on Overo if I base my patches against current top of tree
->> (a376251519ced5831ed07ed234430725230ed93a)
->>
->> Doesn't crash, just quietly doesn't work.  I hear from Beagle folk
->> that musb doesn't work there either.   I have it configured as a host
->> port, and IIRC so do the Beagle folks
->>
->> If I base my patches against the state of the tree just prior to the
->> move to rc5 (81c893795c2e1fbe0bf5f638ed6ae1e500b80a2d), musb works as
->> well as it ever has.
->
-> Well with -rc5 we switched to the drivers/usb/musb code from mainline
-> kernel. Maybe try to diff musb code with:
->
-> $ git-diff 81c893795c2e1fbe0bf5f638ed6ae1e500b80a2d.. drivers/usb/musb
->
-> And see if there are any clues?
+On Thursday 04 September 2008, Gadiyar, Anand wrote:
+> From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+> 
+> The Index register needs to be zero to access CONFIGDATA.
+> musb_ep_select()will not set the MUSB_INDEX register unless INDEXED
+> mode addressing is used. This change will set the register correctly
+> in INDEXED as well as FLAT mode.
+> 
+> Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+> CC: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
-I did that and found that there are very few changes of substance,
-mostly formatting and comments.  In fact there were only a few lines
-that looked promising at all.
+ACK.  I *know* it was originally written that way.  I think
+the change was one of the Blackfin patches ... I hope this
+isn't one of those cases where the Blackfin version of this
+core acts differently.  (Like clearing that DMA IRQ status...)
 
-Mans Rullgard has verified that restoring these few lines fixes the
-musb issue on beagle (using musb in gadget mode) and I have verified
-that it fixes the issue on Overo (which uses musb in host mode).
 
-Mans has a patch in his git:
+> ---
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> index b398776..6c4da2f 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -1334,7 +1334,7 @@ static int __init musb_core_init(u16 musb_type, struct musb *musb)
+>  	int		i;
+>  
+>  	/* log core options (read using indexed model) */
+> -	musb_ep_select(mbase, 0);
+> +	musb_writeb(mbase, MUSB_INDEX, 0);
+>  	reg = musb_readb(mbase, 0x10 + MUSB_CONFIGDATA);
+>  
+>  	strcpy(aInfo, (reg & MUSB_CONFIGDATA_UTMIDW) ? "UTMI-16" : "UTMI-8");--
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-http://git.mansr.com/?p=linux-omap;a=commitdiff;h=1e5bc41773bb981b3a89bd762becf98c72be5e4c
 
-Neither of us understand musb details enough to propose this as *the*
-fix, but it seems likely to be the issue.
-
-Steve
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
