@@ -1,35 +1,48 @@
-From: "Budhee Jamaich" <budheej@gmail.com>
-Subject: powering up the mmc controller on 3430
-Date: Sun, 7 Sep 2008 22:19:40 +0300
-Message-ID: <57314e840809071219w71ec6e40ja6a8bf8e05a876c1@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/1] Use pmd_table() MACRO for unmap_area_sections()
+Date: Sun, 7 Sep 2008 20:36:20 +0100
+Message-ID: <20080907193619.GC10359@flint.arm.linux.org.uk>
+References: <1220420188-22518-1-git-send-email-Hiroshi.DOYU@nokia.com> <20080905172133.GM24202@atomide.com> <20080905224530.GE17156@flint.arm.linux.org.uk> <20080906.035635.186133813.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.172]:50001 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754322AbYIGTTl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Sep 2008 15:19:41 -0400
-Received: by wf-out-1314.google.com with SMTP id 27so1266875wfd.4
-        for <linux-omap@vger.kernel.org>; Sun, 07 Sep 2008 12:19:40 -0700 (PDT)
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53940 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755560AbYIGTgj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Sep 2008 15:36:39 -0400
 Content-Disposition: inline
+In-Reply-To: <20080906.035635.186133813.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org
 
-Hello everyone,
+On Sat, Sep 06, 2008 at 03:56:35AM +0300, Hiroshi DOYU wrote:
+> Would it be possible to have "pmd_table()" definition "in pgtable.h"?
 
-I am upgrading an mmc driver we have from an ancient kernel version
-(2.6.14) to a not-so-new (2.6.24).
+Well, the first question is... where has this come from, and why.
 
-I have one problem - in 2.6.14 we used the enable_mmc_power function,
-which is completely gone in 2.6.24, and i can't seem to find any
-reasonable replacement. could you please assist me how can I power up
-the mmc controller in 2.6.24 ?
+Looking at the omap tree, it's because of arch/arm/plat-omap/mmu.c,
+which seems to be somewhat weird and complex, duplicating some of
+what's going on elsewhere in the kernel.
 
-(we have legacy reasons for not using the in-tree mmc driver, which we
-will one day resolve, but now i really need to power up the controller
-from within our driver..)
+(And with the changes I've just queued up for the next mainline merge
+window, this file will probably break because of it's use of the kernel
+page table macros.)
 
-Thank you so much
-Budhee.
+A more portable way to do that would be to split out the innards of
+__arm_ioremap_pfn() into a separate function, and use that instead
+of exmap_set_armmmu().  Then, replace exmap_clear_armmmu() with
+unmap_area_sections() to tear down the ARM side of the mapping.
+
+As far as 'mmu->twl_mm' goes, the only reason I can see for that
+existing is as a way to use the kernel's page table accessors to
+manipulate something that isn't used for as the CPU's page table,
+which in turn leads to quite a number of nasty hacks in the code.
+Really that wants to use its own accessors and macros, and twl_mm
+eliminated.  A mm_struct isn't small.  And by doing so, you'll
+avoid the bug and memory leak in omap_mmu_register().  kfree'ing
+(!) a mm_struct onto a different slab cache from whence it came!
+
+Which probably will mean that there ends up only being one place
+where the construct which pmd_table() is replacing exists.
