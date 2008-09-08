@@ -1,147 +1,124 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH] MUSB: Fix for isochronous IN transfer
-Date: Mon,  8 Sep 2008 10:51:28 +0530
-Message-ID: <1220851288-14663-1-git-send-email-ajay.gupta@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41997 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751670AbYIHFVi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Sep 2008 01:21:38 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] MUSB: Support for high bandwidth isochronous transfer
+Date: Mon,  8 Sep 2008 10:53:51 +0530
+Message-ID: <1220851431-15373-1-git-send-email-ajay.gupta@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Fixes blurred capture images in dma mode. Isochronous error field in
-urb and source data buffer pointer were not updated properly in dma
-mode.
+Enables support for camera (as creative) requiring high bandwidth
+isochronous transfer.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 ---
+ drivers/usb/musb/musb_core.c |   18 +++++++++---------
+ drivers/usb/musb/musb_host.c |   32 +++++++++++++++++++++-----------
+ 2 files changed, 30 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index c939f81..9914f70 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1063,17 +1063,17 @@ static struct fifo_cfg __initdata mode_4_cfg[] = {
+ { .hw_ep_num =  7, .style = FIFO_TX,   .maxpacket = 512, },
+ { .hw_ep_num =  7, .style = FIFO_RX,   .maxpacket = 512, },
+ { .hw_ep_num =  8, .style = FIFO_TX,   .maxpacket = 512, },
+-{ .hw_ep_num =  8, .style = FIFO_RX,   .maxpacket = 512, },
++{ .hw_ep_num =  8, .style = FIFO_RX,   .maxpacket =  64, },
+ { .hw_ep_num =  9, .style = FIFO_TX,   .maxpacket = 512, },
+-{ .hw_ep_num =  9, .style = FIFO_RX,   .maxpacket = 512, },
++{ .hw_ep_num =  9, .style = FIFO_RX,   .maxpacket =  64, },
+ { .hw_ep_num = 10, .style = FIFO_TX,   .maxpacket = 512, },
+-{ .hw_ep_num = 10, .style = FIFO_RX,   .maxpacket = 512, },
+-{ .hw_ep_num = 11, .style = FIFO_TX,   .maxpacket = 512, },
+-{ .hw_ep_num = 11, .style = FIFO_RX,   .maxpacket = 512, },
+-{ .hw_ep_num = 12, .style = FIFO_TX,   .maxpacket = 512, },
+-{ .hw_ep_num = 12, .style = FIFO_RX,   .maxpacket = 512, },
+-{ .hw_ep_num = 13, .style = FIFO_TX,   .maxpacket = 512, },
+-{ .hw_ep_num = 13, .style = FIFO_RX,   .maxpacket = 512, },
++{ .hw_ep_num = 10, .style = FIFO_RX,   .maxpacket =  64, },
++{ .hw_ep_num = 11, .style = FIFO_TX,   .maxpacket = 256, },
++{ .hw_ep_num = 11, .style = FIFO_RX,   .maxpacket = 256, },
++{ .hw_ep_num = 12, .style = FIFO_TX,   .maxpacket = 256, },
++{ .hw_ep_num = 12, .style = FIFO_RX,   .maxpacket = 256, },
++{ .hw_ep_num = 13, .style = FIFO_TX,   .maxpacket = 256, },
++{ .hw_ep_num = 13, .style = FIFO_RX,   .maxpacket = 4096, },
+ { .hw_ep_num = 14, .style = FIFO_RXTX, .maxpacket = 1024, },
+ { .hw_ep_num = 15, .style = FIFO_RXTX, .maxpacket = 1024, },
+ };
 diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-index 08e421f..a481d54 100644
+index 08e421f..84173df 100644
 --- a/drivers/usb/musb/musb_host.c
 +++ b/drivers/usb/musb/musb_host.c
-@@ -1505,10 +1505,29 @@ void musb_host_rx(struct musb *musb, u8 epnum)
- 		musb_writew(hw_ep->regs, MUSB_RXCSR, val);
- 
- #ifdef CONFIG_USB_INVENTRA_DMA
-+		if (usb_pipeisoc(pipe)) {
-+			struct usb_iso_packet_descriptor *d;
-+
-+			d = urb->iso_frame_desc + qh->iso_idx;
-+			d->actual_length = xfer_len;
-+
-+			/* even if there was an error, we did the dma
-+			 * for iso_frame_desc->length
-+			 */
-+			if (d->status != EILSEQ && d->status != -EOVERFLOW)
-+				d->status = 0;
-+
-+			if (++qh->iso_idx >= urb->number_of_packets)
-+				done = true;
-+			else
-+				done = false;
-+
-+		} else  {
- 		/* done if urb buffer is full or short packet is recd */
- 		done = (urb->actual_length + xfer_len >=
- 				urb->transfer_buffer_length
- 			|| dma->actual_len < qh->maxpacket);
-+		}
- 
- 		/* send IN token for next packet, without AUTOREQ */
- 		if (!done) {
-@@ -1545,7 +1564,8 @@ void musb_host_rx(struct musb *musb, u8 epnum)
- 		if (dma) {
- 			struct dma_controller	*c;
- 			u16			rx_count;
--			int			ret;
-+			int			ret, length;
-+			dma_addr_t		buf;
- 
- 			rx_count = musb_readw(epio, MUSB_RXCOUNT);
- 
-@@ -1558,6 +1578,35 @@ void musb_host_rx(struct musb *musb, u8 epnum)
- 
- 			c = musb->dma_controller;
- 
-+			if (usb_pipeisoc(pipe)) {
-+				int status = 0;
-+				struct usb_iso_packet_descriptor *d;
-+
-+				d = urb->iso_frame_desc + qh->iso_idx;
-+
-+				if (iso_err) {
-+					status = -EILSEQ;
-+					urb->error_count++;
-+				}
-+				if (rx_count > d->length) {
-+					if (status == 0) {
-+						status = -EOVERFLOW;
-+						urb->error_count++;
-+					}
-+					DBG(2, "** OVERFLOW %d into %d\n",\
-+					    rx_count, d->length);
-+
-+					length = d->length;
-+				} else
-+					length = rx_count;
-+				d->status = status;
-+				buf = urb->transfer_dma + d->offset;
-+			} else {
-+				length = rx_count;
-+				buf = urb->transfer_dma +
-+						urb->actual_length;
-+			}
-+
- 			dma->desired_mode = 0;
- #ifdef USE_MODE1
- 			/* because of the issue below, mode 1 will
-@@ -1569,6 +1618,12 @@ void musb_host_rx(struct musb *musb, u8 epnum)
- 						urb->actual_length)
- 					> qh->maxpacket)
- 				dma->desired_mode = 1;
-+			if (rx_count < hw_ep->max_packet_sz_rx) {
-+				length = rx_count;
-+				dma->bDesiredMode = 0;
-+			} else {
-+				length = urb->transfer_buffer_length;
-+			}
- #endif
- 
- /* Disadvantage of using mode 1:
-@@ -1606,12 +1661,7 @@ void musb_host_rx(struct musb *musb, u8 epnum)
- 			 */
- 			ret = c->channel_program(
- 				dma, qh->maxpacket,
--				dma->desired_mode,
--				urb->transfer_dma
--					+ urb->actual_length,
--				(dma->desired_mode == 0)
--					? rx_count
--					: urb->transfer_buffer_length);
-+				dma->desired_mode, buf, length);
- 
- 			if (!ret) {
- 				c->channel_release(dma);
-@@ -1628,19 +1678,6 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+@@ -1443,6 +1443,10 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+ 			/* packet error reported later */
+ 			iso_err = true;
  		}
++	} else if (rx_csr & MUSB_RXCSR_INCOMPRX) {
++		DBG(3, "end %d Highbandwidth  incomplete ISO packet received\n"
++					, epnum);
++		status = -EPROTO;
  	}
  
--	if (dma && usb_pipeisoc(pipe)) {
--		struct usb_iso_packet_descriptor	*d;
--		int					iso_stat = status;
+ 	/* faults abort the transfer */
+@@ -1595,7 +1599,13 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+ 				val &= ~MUSB_RXCSR_H_AUTOREQ;
+ 			else
+ 				val |= MUSB_RXCSR_H_AUTOREQ;
+-			val |= MUSB_RXCSR_AUTOCLEAR | MUSB_RXCSR_DMAENAB;
++
++			if (qh->maxpacket & ~0x7ff)
++				/* Autoclear doesn't work in high bandwidth iso */
++				val |= MUSB_RXCSR_DMAENAB;
++			else
++				val |= MUSB_RXCSR_AUTOCLEAR
++					| MUSB_RXCSR_DMAENAB;
+ 
+ 			musb_writew(epio, MUSB_RXCSR,
+ 				MUSB_RXCSR_H_WZC_BITS | val);
+@@ -1666,6 +1676,7 @@ static int musb_schedule(
+ 	int			best_end, epnum;
+ 	struct musb_hw_ep	*hw_ep = NULL;
+ 	struct list_head	*head = NULL;
++	u16 			maxpacket;
+ 
+ 	/* use fixed hardware for control and bulk */
+ 	switch (qh->type) {
+@@ -1708,6 +1719,13 @@ static int musb_schedule(
+ 	best_diff = 4096;
+ 	best_end = -1;
+ 
++	if (qh->maxpacket & (1<<11))
++		maxpacket = 2 * (qh->maxpacket & 0x7ff);
++	else if (qh->maxpacket & (1<<12))
++		maxpacket = 3 * (qh->maxpacket & 0x7ff);
++	else
++		maxpacket = (qh->maxpacket & 0x7ff);
++
+ 	for (epnum = 1; epnum < musb->nr_endpoints; epnum++) {
+ 		int	diff;
+ 
+@@ -1718,9 +1736,9 @@ static int musb_schedule(
+ 			continue;
+ 
+ 		if (is_in)
+-			diff = hw_ep->max_packet_sz_rx - qh->maxpacket;
++			diff = hw_ep->max_packet_sz_rx - maxpacket;
+ 		else
+-			diff = hw_ep->max_packet_sz_tx - qh->maxpacket;
++			diff = hw_ep->max_packet_sz_tx - maxpacket;
+ 
+ 		if (diff > 0 && best_diff > diff) {
+ 			best_diff = diff;
+@@ -1797,13 +1815,6 @@ static int musb_urb_enqueue(
+ 	qh->is_ready = 1;
+ 
+ 	qh->maxpacket = le16_to_cpu(epd->wMaxPacketSize);
 -
--		d = urb->iso_frame_desc + qh->iso_idx;
--		d->actual_length += xfer_len;
--		if (iso_err) {
--			iso_stat = -EILSEQ;
--			urb->error_count++;
--		}
--		d->status = iso_stat;
+-	/* no high bandwidth support yet */
+-	if (qh->maxpacket & ~0x7ff) {
+-		ret = -EMSGSIZE;
+-		goto done;
 -	}
--
- finish:
- 	urb->actual_length += xfer_len;
- 	qh->offset += xfer_len;
