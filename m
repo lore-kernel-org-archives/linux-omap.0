@@ -1,91 +1,51 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 01/12] OMAP2/3 clockdomains: add CM and PRM clkdms
-Date: Mon, 08 Sep 2008 10:57:39 -0600
-Message-ID: <20080908165736.2540.45514.stgit@localhost.localdomain>
-References: <20080908164444.2540.98619.stgit@localhost.localdomain>
+Subject: [PATCH 00/12] Update OMAP2/3 powerdomains, clockdomains
+Date: Mon, 08 Sep 2008 10:57:36 -0600
+Message-ID: <20080908164444.2540.98619.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49045 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:49044 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753457AbYIIIUz (ORCPT
+	with ESMTP id S1753394AbYIIIUz (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Sep 2008 04:20:55 -0400
-In-Reply-To: <20080908164444.2540.98619.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>
 
-Add clockdomains for the CM and PRM.  These will ultimately replace the
-"wkup_clkdm", which appears to not actually exist on the hardware.
+This series updates the in-kernel OMAP2/3 clockdomain and powerdomain
+structures:
+
+- Split the placeholder clockdomain "wkup_clkdm" into "cm_clkdm" and
+  "prm_clkdm".  This more accurately reflects the hardware.
+
+- Add powerdomains and clockdomains for DPLLs 1 through 5 on OMAP3.
+
+- Associate every clock in OMAP2/3 clock tree with an appropriate
+  clockdomain.
 
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Boot-tested on N800, 2430SDP, and 3430SDP.
+
+
+- Paul
+
 ---
- arch/arm/mach-omap2/clockdomains.h            |   19 +++++++++++++++++++
- arch/arm/plat-omap/include/mach/powerdomain.h |    4 ++--
- 2 files changed, 21 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clockdomains.h b/arch/arm/mach-omap2/clockdomains.h
-index e17c369..ec5a720 100644
---- a/arch/arm/mach-omap2/clockdomains.h
-+++ b/arch/arm/mach-omap2/clockdomains.h
-@@ -14,6 +14,11 @@
- 
- /*
-  * OMAP2/3-common clockdomains
-+ *
-+ * Even though the 2420 has a single PRCM module from the
-+ * interconnect's perspective, internally it does appear to have
-+ * separate PRM and CM clockdomains.  The usual test case is
-+ * sys_clkout/sys_clkout2.
-  */
- 
- /* This is an implicit clockdomain - it is never defined as such in TRM */
-@@ -23,6 +28,18 @@ static struct clockdomain wkup_clkdm = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430),
- };
- 
-+static struct clockdomain prm_clkdm = {
-+	.name		= "prm_clkdm",
-+	.pwrdm		= { .name = "wkup_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430),
-+};
-+
-+static struct clockdomain cm_clkdm = {
-+	.name		= "cm_clkdm",
-+	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430),
-+};
-+
- /*
-  * 2420-only clockdomains
-  */
-@@ -266,6 +283,8 @@ static struct clkdm_pwrdm_autodep clkdm_pwrdm_autodeps[] = {
- static struct clockdomain *clockdomains_omap[] = {
- 
- 	&wkup_clkdm,
-+	&cm_clkdm,
-+	&prm_clkdm,
- 
- #ifdef CONFIG_ARCH_OMAP2420
- 	&mpu_2420_clkdm,
-diff --git a/arch/arm/plat-omap/include/mach/powerdomain.h b/arch/arm/plat-omap/include/mach/powerdomain.h
-index 4948cb7..69c9e67 100644
---- a/arch/arm/plat-omap/include/mach/powerdomain.h
-+++ b/arch/arm/plat-omap/include/mach/powerdomain.h
-@@ -50,9 +50,9 @@
- 
- /*
-  * Maximum number of clockdomains that can be associated with a powerdomain.
-- * CORE powerdomain is probably the worst case.
-+ * CORE powerdomain on OMAP3 is the worst case
-  */
--#define PWRDM_MAX_CLKDMS	3
-+#define PWRDM_MAX_CLKDMS	4
- 
- /* XXX A completely arbitrary number. What is reasonable here? */
- #define PWRDM_TRANSITION_BAILOUT 100000
 
+size:
+   text    data     bss     dec     hex filename
+3441310  157936  105728 3704974  38888e vmlinux.3430sdp.orig
+3441566  158440  105728 3705734  388b86 vmlinux.3430sdp.patched
+
+diffstat:
+ arch/arm/mach-omap2/clock.c                   |    8 +
+ arch/arm/mach-omap2/clock24xx.h               |   56 ++++++----
+ arch/arm/mach-omap2/clock34xx.h               |  139 ++++++++++++++++++-------
+ arch/arm/mach-omap2/clockdomains.h            |   64 +++++++++++-
+ arch/arm/mach-omap2/powerdomains.h            |    5 +
+ arch/arm/mach-omap2/powerdomains34xx.h        |   31 ++++++
+ arch/arm/plat-omap/include/mach/powerdomain.h |    4 -
+ 7 files changed, 238 insertions(+), 69 deletions(-)
 
