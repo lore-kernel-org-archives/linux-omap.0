@@ -1,83 +1,71 @@
-From: "stanley.miao" <stanley.miao@windriver.com>
-Subject: Re: [PATCH] ARM: OMAP3: Fix omapfb's problem on OMAP3430sdp
-Date: Mon, 08 Sep 2008 11:29:57 +0800
-Message-ID: <1220844597.28777.12.camel@localhost>
-References: <1220841751.28777.9.camel@localhost>
-Reply-To: stanley.miao@windriver.com
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 1/1] Use pmd_table() MACRO for unmap_area_sections()
+Date: Mon, 08 Sep 2008 06:38:54 +0300 (EEST)
+Message-ID: <20080908.063854.112344684.Hiroshi.DOYU@nokia.com>
+References: <20080905224530.GE17156@flint.arm.linux.org.uk>
+	<20080906.035635.186133813.Hiroshi.DOYU@nokia.com>
+	<20080907193619.GC10359@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:54680 "EHLO mail.wrs.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752801AbYIHD1s (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 7 Sep 2008 23:27:48 -0400
-In-Reply-To: <1220841751.28777.9.camel@localhost>
+Received: from smtp.nokia.com ([192.100.122.230]:18887 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752901AbYIHDjO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Sep 2008 23:39:14 -0400
+In-Reply-To: <20080907193619.GC10359@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>
+To: linux@arm.linux.org.uk
+Cc: tony@atomide.com, linux-omap@vger.kernel.org
 
-Prune off a empty line.
+Hi Russell, thank you for reviewing.
 
-Fix omapfb's problem on OMAP3430sdp.
+From: "ext Russell King - ARM Linux" <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/1] Use pmd_table() MACRO for unmap_area_sections()
+Date: Sun, 7 Sep 2008 20:36:20 +0100
 
----
- drivers/video/omap/lcd_2430sdp.c |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+> On Sat, Sep 06, 2008 at 03:56:35AM +0300, Hiroshi DOYU wrote:
+> > Would it be possible to have "pmd_table()" definition "in pgtable.h"?
+> 
+> Well, the first question is... where has this come from, and why.
+> 
+> Looking at the omap tree, it's because of arch/arm/plat-omap/mmu.c,
+> which seems to be somewhat weird and complex, duplicating some of
+> what's going on elsewhere in the kernel.
 
-diff --git a/drivers/video/omap/lcd_2430sdp.c
-b/drivers/video/omap/lcd_2430sdp.c
-index 9af6cd0..b456e02 100644
---- a/drivers/video/omap/lcd_2430sdp.c
-+++ b/drivers/video/omap/lcd_2430sdp.c
-@@ -23,6 +23,7 @@
- 
- #include <linux/module.h>
- #include <linux/platform_device.h>
-+#include <linux/delay.h>
- #include <linux/i2c/twl4030.h>
- 
- #include <mach/gpio.h>
-@@ -45,6 +46,10 @@ static unsigned enable_gpio;
- #define ENABLE_VAUX3_DEDICATED	0x03
- #define ENABLE_VAUX3_DEV_GRP	0x20
- 
-+#define ENABLE_VPLL2_DEDICATED          0x05
-+#define ENABLE_VPLL2_DEV_GRP            0xE0
-+#define TWL4030_VPLL2_DEV_GRP           0x33
-+#define TWL4030_VPLL2_DEDICATED         0x36
- 
- #define t2_out(c, r, v) twl4030_i2c_write_u8(c, r, v)
- 
-@@ -82,6 +87,13 @@ static int sdp2430_panel_enable(struct lcd_panel
-*panel)
- 		ded_val = ENABLE_VAUX3_DEDICATED;
- 		grp_reg = TWL4030_VAUX3_DEV_GRP;
- 		grp_val = ENABLE_VAUX3_DEV_GRP;
-+
-+		if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
-+			t2_out(PM_RECEIVER, ENABLE_VPLL2_DEDICATED,
-+					TWL4030_VPLL2_DEDICATED);
-+			t2_out(PM_RECEIVER, ENABLE_VPLL2_DEV_GRP,
-+					TWL4030_VPLL2_DEV_GRP);
-+		}
- 	} else {
- 		ded_reg = TWL4030_VAUX2_DEDICATED;
- 		ded_val = ENABLE_VAUX2_DEDICATED;
-@@ -104,6 +116,11 @@ static void sdp2430_panel_disable(struct lcd_panel
-*panel)
- {
- 	omap_set_gpio_dataout(enable_gpio, 0);
- 	omap_set_gpio_dataout(backlight_gpio, 0);
-+	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
-+		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEDICATED);
-+		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEV_GRP);
-+		mdelay(4);
-+	}
- }
- 
- static unsigned long sdp2430_panel_get_caps(struct lcd_panel *panel)
--- 
-1.5.6.3
+I totally agree on this and this should be refactored anyway.
+
+> (And with the changes I've just queued up for the next mainline merge
+> window, this file will probably break because of it's use of the kernel
+> page table macros.)
+
+OK, I will drop it and see how mainline merge affects.
+
+> A more portable way to do that would be to split out the innards of
+> __arm_ioremap_pfn() into a separate function, and use that instead
+> of exmap_set_armmmu().  Then, replace exmap_clear_armmmu() with
+> unmap_area_sections() to tear down the ARM side of the mapping.
+
+I got it. This code which keeps consistency with ARM MMU should be
+replaced completedly by them.
+
+> As far as 'mmu->twl_mm' goes, the only reason I can see for that
+> existing is as a way to use the kernel's page table accessors to
+> manipulate something that isn't used for as the CPU's page table,
+> which in turn leads to quite a number of nasty hacks in the code.
+> Really that wants to use its own accessors and macros, and twl_mm
+> eliminated.  A mm_struct isn't small.  And by doing so, you'll
+> avoid the bug and memory leak in omap_mmu_register().  kfree'ing
+> (!) a mm_struct onto a different slab cache from whence it came!
+
+Apart from the status of current "plat-omap/mmu.c", I cannot deny
+completely the possibilty of applying kernel generic APIs to this
+IOMMU driver in more cleaner manner because OMAP IOMMU is too
+similar to the generic MMU handling and ARM MMU code are designed
+quite flexible to afford the different versions of MMUs. I'm making a
+reworking patches of this IOMMU. So if possible, please take a look at
+them later.
+
+  Hiroshi DOYU
 
