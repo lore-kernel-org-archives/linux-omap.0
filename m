@@ -1,70 +1,147 @@
-From: "Ramesh Gupta Guntha" <x0023949@ti.com>
-Subject: RE: [PATCH] BRIDGE OMAP PM Bug softlockup fix
-Date: Mon, 8 Sep 2008 10:45:21 +0530
-Message-ID: <200809080515.m885FL2Z002681@dbdp31.itg.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH] MUSB: Fix for isochronous IN transfer
+Date: Mon,  8 Sep 2008 10:51:28 +0530
+Message-ID: <1220851288-14663-1-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55361 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:41997 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751670AbYIHFPc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Sep 2008 01:15:32 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m885FNOb025748
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 8 Sep 2008 00:15:31 -0500
-Received: from sasx0023949 (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m885FL2Z002681
-	for <linux-omap@vger.kernel.org>; Mon, 8 Sep 2008 10:45:22 +0530 (IST)
+	id S1751670AbYIHFVi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Sep 2008 01:21:38 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Hi Shivananda,
+Fixes blurred capture images in dma mode. Isochronous error field in
+urb and source data buffer pointer were not updated properly in dma
+mode.
 
-<snip>
-
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org 
->> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Ramirez Luna, 
->> Omar
->> Sent: Friday, September 05, 2008 3:00 AM
->> To: linux-omap@vger.kernel.org
->> Subject: [PATCH] BRIDGE OMAP PM Bug softlockup fix  @@ -753,9
->> +751,7 @@ static DSP_STATUS WMD_BRD_Stop(struct
->> WMD_DEV_CONTEXT *hDevContext)
->>                                  "for iva2_fck\n");
->>                         }
->>                 /* IVA2 is not in OFF state */
->> -               /* Read and set PM_PWSTCTRL_IVA2  to OFF */
->> -               HW_PWR_IVA2StateGet(resources.dwPrmBase,
->> HW_PWR_DOMAIN_DSP,
->> -                                    &pwrState);
->> +               /* Set PM_PWSTCTRL_IVA2  to OFF */
->>                 HW_PWR_IVA2PowerStateSet(resources.dwPrmBase,
->>                                           HW_PWR_DOMAIN_DSP,
->>                                           HW_PWR_STATE_OFF); @@ 
->> -2054,8 +2050,7 @@ static DSP_STATUS run_IdleBoot(u32 prm_base, u32 
->> cm_base,
->>         HW_PWRST_IVA2RegGet(prm_base, &temp);
->>          if ((temp & 0x03) != 0x03 || (temp & 0x03) != 0x02) {
->>                 /* IVA2 is not in ON state */
->> -               /* Read and set PM_PWSTCTRL_IVA2  to ON */
->> -               HW_PWR_IVA2StateGet(prm_base, HW_PWR_DOMAIN_DSP,
->> &pwrState);
->> +               /* Set PM_PWSTCTRL_IVA2  to ON */
->>                 HW_PWR_IVA2PowerStateSet(prm_base, HW_PWR_DOMAIN_DSP,
->>                                           HW_PWR_STATE_ON);
->>                 /* Set the SW supervised state transition */
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+---
+diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+index 08e421f..a481d54 100644
+--- a/drivers/usb/musb/musb_host.c
++++ b/drivers/usb/musb/musb_host.c
+@@ -1505,10 +1505,29 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+ 		musb_writew(hw_ep->regs, MUSB_RXCSR, val);
  
-> Here in one place ,you access prm base with resources.dwPrmBase and 
-> next time access with just prm_base .Can we have have a consistent way 
-> of accessing it ?
-
-Both are in different functions WMD_BRD_Stop and run_IdleBoot.
-
-Thanks
-Ramesh Gupta G
-
+ #ifdef CONFIG_USB_INVENTRA_DMA
++		if (usb_pipeisoc(pipe)) {
++			struct usb_iso_packet_descriptor *d;
++
++			d = urb->iso_frame_desc + qh->iso_idx;
++			d->actual_length = xfer_len;
++
++			/* even if there was an error, we did the dma
++			 * for iso_frame_desc->length
++			 */
++			if (d->status != EILSEQ && d->status != -EOVERFLOW)
++				d->status = 0;
++
++			if (++qh->iso_idx >= urb->number_of_packets)
++				done = true;
++			else
++				done = false;
++
++		} else  {
+ 		/* done if urb buffer is full or short packet is recd */
+ 		done = (urb->actual_length + xfer_len >=
+ 				urb->transfer_buffer_length
+ 			|| dma->actual_len < qh->maxpacket);
++		}
+ 
+ 		/* send IN token for next packet, without AUTOREQ */
+ 		if (!done) {
+@@ -1545,7 +1564,8 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+ 		if (dma) {
+ 			struct dma_controller	*c;
+ 			u16			rx_count;
+-			int			ret;
++			int			ret, length;
++			dma_addr_t		buf;
+ 
+ 			rx_count = musb_readw(epio, MUSB_RXCOUNT);
+ 
+@@ -1558,6 +1578,35 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+ 
+ 			c = musb->dma_controller;
+ 
++			if (usb_pipeisoc(pipe)) {
++				int status = 0;
++				struct usb_iso_packet_descriptor *d;
++
++				d = urb->iso_frame_desc + qh->iso_idx;
++
++				if (iso_err) {
++					status = -EILSEQ;
++					urb->error_count++;
++				}
++				if (rx_count > d->length) {
++					if (status == 0) {
++						status = -EOVERFLOW;
++						urb->error_count++;
++					}
++					DBG(2, "** OVERFLOW %d into %d\n",\
++					    rx_count, d->length);
++
++					length = d->length;
++				} else
++					length = rx_count;
++				d->status = status;
++				buf = urb->transfer_dma + d->offset;
++			} else {
++				length = rx_count;
++				buf = urb->transfer_dma +
++						urb->actual_length;
++			}
++
+ 			dma->desired_mode = 0;
+ #ifdef USE_MODE1
+ 			/* because of the issue below, mode 1 will
+@@ -1569,6 +1618,12 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+ 						urb->actual_length)
+ 					> qh->maxpacket)
+ 				dma->desired_mode = 1;
++			if (rx_count < hw_ep->max_packet_sz_rx) {
++				length = rx_count;
++				dma->bDesiredMode = 0;
++			} else {
++				length = urb->transfer_buffer_length;
++			}
+ #endif
+ 
+ /* Disadvantage of using mode 1:
+@@ -1606,12 +1661,7 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+ 			 */
+ 			ret = c->channel_program(
+ 				dma, qh->maxpacket,
+-				dma->desired_mode,
+-				urb->transfer_dma
+-					+ urb->actual_length,
+-				(dma->desired_mode == 0)
+-					? rx_count
+-					: urb->transfer_buffer_length);
++				dma->desired_mode, buf, length);
+ 
+ 			if (!ret) {
+ 				c->channel_release(dma);
+@@ -1628,19 +1678,6 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+ 		}
+ 	}
+ 
+-	if (dma && usb_pipeisoc(pipe)) {
+-		struct usb_iso_packet_descriptor	*d;
+-		int					iso_stat = status;
+-
+-		d = urb->iso_frame_desc + qh->iso_idx;
+-		d->actual_length += xfer_len;
+-		if (iso_err) {
+-			iso_stat = -EILSEQ;
+-			urb->error_count++;
+-		}
+-		d->status = iso_stat;
+-	}
+-
+ finish:
+ 	urb->actual_length += xfer_len;
+ 	qh->offset += xfer_len;
