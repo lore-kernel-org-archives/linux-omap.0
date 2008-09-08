@@ -1,124 +1,69 @@
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] MUSB: Support for high bandwidth isochronous transfer
-Date: Mon,  8 Sep 2008 10:53:51 +0530
-Message-ID: <1220851431-15373-1-git-send-email-ajay.gupta@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+From: anaveen@mistralsolutions.com
+Subject: [PATCH] Patch for Touch Screen noise on OMAP3EVM.
+Date: Mon, 08 Sep 2008 00:53:24 -0500
+Message-ID: <20080908005324.5y0or63ahpys8084@webmail.mistralsolutions.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII;
+	DelSp=Yes	format=flowed
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mx04.mailboxcop.com ([206.125.223.74]:53626 "EHLO
+	mx04.mailboxcop.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753514AbYIHFxf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2008 01:53:35 -0400
+Received: from secure3.apollohosting.com (secure3.apollohosting.com [206.125.215.253])
+	by mx04.mailboxcop.com (8.13.8/8.13.8) with ESMTP id m885rY64002828
+	for <linux-omap@vger.kernel.org>; Mon, 8 Sep 2008 00:53:34 -0500
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Enables support for camera (as creative) requiring high bandwidth
-isochronous transfer.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+
+When git kernel tree is used on a OMAP3EVM board file for touch screen  
+testing, it shows lot of jitter. With this patch the jitter can be  
+reduced.
+
+Signed-off-by: Naveen Atmakuri <anaveen@mistralsolutions.com>
 ---
- drivers/usb/musb/musb_core.c |   18 +++++++++---------
- drivers/usb/musb/musb_host.c |   32 +++++++++++++++++++++-----------
- 2 files changed, 30 insertions(+), 20 deletions(-)
+  arch/arm/mach-omap2/board-omap3evm.c |   10 ++++++++++
+  1 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index c939f81..9914f70 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -1063,17 +1063,17 @@ static struct fifo_cfg __initdata mode_4_cfg[] = {
- { .hw_ep_num =  7, .style = FIFO_TX,   .maxpacket = 512, },
- { .hw_ep_num =  7, .style = FIFO_RX,   .maxpacket = 512, },
- { .hw_ep_num =  8, .style = FIFO_TX,   .maxpacket = 512, },
--{ .hw_ep_num =  8, .style = FIFO_RX,   .maxpacket = 512, },
-+{ .hw_ep_num =  8, .style = FIFO_RX,   .maxpacket =  64, },
- { .hw_ep_num =  9, .style = FIFO_TX,   .maxpacket = 512, },
--{ .hw_ep_num =  9, .style = FIFO_RX,   .maxpacket = 512, },
-+{ .hw_ep_num =  9, .style = FIFO_RX,   .maxpacket =  64, },
- { .hw_ep_num = 10, .style = FIFO_TX,   .maxpacket = 512, },
--{ .hw_ep_num = 10, .style = FIFO_RX,   .maxpacket = 512, },
--{ .hw_ep_num = 11, .style = FIFO_TX,   .maxpacket = 512, },
--{ .hw_ep_num = 11, .style = FIFO_RX,   .maxpacket = 512, },
--{ .hw_ep_num = 12, .style = FIFO_TX,   .maxpacket = 512, },
--{ .hw_ep_num = 12, .style = FIFO_RX,   .maxpacket = 512, },
--{ .hw_ep_num = 13, .style = FIFO_TX,   .maxpacket = 512, },
--{ .hw_ep_num = 13, .style = FIFO_RX,   .maxpacket = 512, },
-+{ .hw_ep_num = 10, .style = FIFO_RX,   .maxpacket =  64, },
-+{ .hw_ep_num = 11, .style = FIFO_TX,   .maxpacket = 256, },
-+{ .hw_ep_num = 11, .style = FIFO_RX,   .maxpacket = 256, },
-+{ .hw_ep_num = 12, .style = FIFO_TX,   .maxpacket = 256, },
-+{ .hw_ep_num = 12, .style = FIFO_RX,   .maxpacket = 256, },
-+{ .hw_ep_num = 13, .style = FIFO_TX,   .maxpacket = 256, },
-+{ .hw_ep_num = 13, .style = FIFO_RX,   .maxpacket = 4096, },
- { .hw_ep_num = 14, .style = FIFO_RXTX, .maxpacket = 1024, },
- { .hw_ep_num = 15, .style = FIFO_RXTX, .maxpacket = 1024, },
- };
-diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-index 08e421f..84173df 100644
---- a/drivers/usb/musb/musb_host.c
-+++ b/drivers/usb/musb/musb_host.c
-@@ -1443,6 +1443,10 @@ void musb_host_rx(struct musb *musb, u8 epnum)
- 			/* packet error reported later */
- 			iso_err = true;
- 		}
-+	} else if (rx_csr & MUSB_RXCSR_INCOMPRX) {
-+		DBG(3, "end %d Highbandwidth  incomplete ISO packet received\n"
-+					, epnum);
-+		status = -EPROTO;
- 	}
- 
- 	/* faults abort the transfer */
-@@ -1595,7 +1599,13 @@ void musb_host_rx(struct musb *musb, u8 epnum)
- 				val &= ~MUSB_RXCSR_H_AUTOREQ;
- 			else
- 				val |= MUSB_RXCSR_H_AUTOREQ;
--			val |= MUSB_RXCSR_AUTOCLEAR | MUSB_RXCSR_DMAENAB;
-+
-+			if (qh->maxpacket & ~0x7ff)
-+				/* Autoclear doesn't work in high bandwidth iso */
-+				val |= MUSB_RXCSR_DMAENAB;
-+			else
-+				val |= MUSB_RXCSR_AUTOCLEAR
-+					| MUSB_RXCSR_DMAENAB;
- 
- 			musb_writew(epio, MUSB_RXCSR,
- 				MUSB_RXCSR_H_WZC_BITS | val);
-@@ -1666,6 +1676,7 @@ static int musb_schedule(
- 	int			best_end, epnum;
- 	struct musb_hw_ep	*hw_ep = NULL;
- 	struct list_head	*head = NULL;
-+	u16 			maxpacket;
- 
- 	/* use fixed hardware for control and bulk */
- 	switch (qh->type) {
-@@ -1708,6 +1719,13 @@ static int musb_schedule(
- 	best_diff = 4096;
- 	best_end = -1;
- 
-+	if (qh->maxpacket & (1<<11))
-+		maxpacket = 2 * (qh->maxpacket & 0x7ff);
-+	else if (qh->maxpacket & (1<<12))
-+		maxpacket = 3 * (qh->maxpacket & 0x7ff);
-+	else
-+		maxpacket = (qh->maxpacket & 0x7ff);
-+
- 	for (epnum = 1; epnum < musb->nr_endpoints; epnum++) {
- 		int	diff;
- 
-@@ -1718,9 +1736,9 @@ static int musb_schedule(
- 			continue;
- 
- 		if (is_in)
--			diff = hw_ep->max_packet_sz_rx - qh->maxpacket;
-+			diff = hw_ep->max_packet_sz_rx - maxpacket;
- 		else
--			diff = hw_ep->max_packet_sz_tx - qh->maxpacket;
-+			diff = hw_ep->max_packet_sz_tx - maxpacket;
- 
- 		if (diff > 0 && best_diff > diff) {
- 			best_diff = diff;
-@@ -1797,13 +1815,6 @@ static int musb_urb_enqueue(
- 	qh->is_ready = 1;
- 
- 	qh->maxpacket = le16_to_cpu(epd->wMaxPacketSize);
--
--	/* no high bandwidth support yet */
--	if (qh->maxpacket & ~0x7ff) {
--		ret = -EMSGSIZE;
--		goto done;
--	}
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c  
+b/arch/arm/mach-omap2/board-omap3evm.c
+index 4963f0f..9a4784e 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -27,6 +27,8 @@
+  #include <asm/mach-types.h>
+  #include <asm/mach/arch.h>
+  #include <asm/mach/map.h>
++#include <linux/io.h>
++#include <linux/delay.h>
+
+  #include <mach/gpio.h>
+  #include <mach/keypad.h>
+@@ -132,8 +134,16 @@ static int ads7846_get_pendown_state(void)
+  }
+
+  struct ads7846_platform_data ads7846_config = {
++	.x_max                  = 0x0fff,
++	.y_max                  = 0x0fff,
++	.x_plate_ohms           = 180,
++	.pressure_max           = 255,
++	.debounce_max           = 10,
++	.debounce_tol           = 3,
++	.debounce_rep           = 1,
+  	.get_pendown_state	= ads7846_get_pendown_state,
+  	.keep_vref_on		= 1,
++	.settle_delay_usecs     = 150,
+  };
+
+  static struct omap2_mcspi_device_config ads7846_mcspi_config = {
+-- 
+1.5.6
+
+Warm Regards,
+Naveen Atmakuri.
+
