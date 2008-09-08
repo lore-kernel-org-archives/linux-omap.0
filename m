@@ -1,128 +1,242 @@
-From: nskamat@ti.com
-Subject: [PATCH - Omapzoom][ONENAND] Add synchronous burst support
-Date: Mon,  8 Sep 2008 13:07:22 -0500
-Message-ID: <1220897242-18640-1-git-send-email-nskamat@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [Resend][PATCH - Omapzoom][NAND] Add prefetch and DMA support
+Date: Mon, 8 Sep 2008 19:13:19 +0100
+Message-ID: <20080908181319.GH8266@flint.arm.linux.org.uk>
+References: <1220897015-14338-1-git-send-email-nskamat@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53479 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753404AbYIHSHb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Sep 2008 14:07:31 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m88I7PB8011838
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 8 Sep 2008 13:07:30 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36955 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752930AbYIHSNh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2008 14:13:37 -0400
+Content-Disposition: inline
+In-Reply-To: <1220897015-14338-1-git-send-email-nskamat@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Vimal Singh <vimalsingh@ti.com>, Nishant Kamat <nskamat@ti.com>
+To: nskamat@ti.com
+Cc: linux-omap@vger.kernel.org, Vimal Singh <vimalsingh@ti.com>
 
-From: Vimal Singh <vimalsingh@ti.com>
+On Mon, Sep 08, 2008 at 01:03:35PM -0500, nskamat@ti.com wrote:
+> +#ifdef CONFIG_MTD_NAND_OMAP_PREFETCH
+> +	static int use_prefetch = 1;
+> +
+> +	/* "modprobe ... use_prefetch=0" etc */
+> +	module_param(use_prefetch, bool, 0);
+> +	MODULE_PARM_DESC(use_prefetch, "enable/disable use of PREFETCH");
 
-Following patch taken over the omapzoom.org tree adds
-synchronous burst read support to the OMAP2/3 onenand driver.
+Don't indent C code just because there's preprocessor stuff around it.
 
-Signed-off-by: Vimal Singh <vimalsingh@ti.com>
-Signed-off-by: Nishant Kamat <nskamat@ti.com>
----
- arch/arm/mach-omap2/board-3430sdp-flash.c |   59 +++++++++++++++++++++++++++---
- drivers/mtd/onenand/Kconfig               |    6 +++
- 2 files changed, 60 insertions(+), 5 deletions(-)
+> @@ -127,6 +148,9 @@
+>  	unsigned long			phys_base;
+>  	void __iomem			*gpmc_cs_baseaddr;
+>  	void __iomem			*gpmc_baseaddr;
+> +	void __iomem			*nand_pref_fifo_add;
 
-Index: omapkernel/drivers/mtd/onenand/Kconfig
-===================================================================
---- omapkernel.orig/drivers/mtd/onenand/Kconfig	2008-09-08 12:35:43.000000000 +0530
-+++ omapkernel/drivers/mtd/onenand/Kconfig	2008-09-08 13:00:39.000000000 +0530
-@@ -70,4 +70,10 @@
- 	  The simulator may simulate various OneNAND flash chips for the
- 	  OneNAND MTD layer.
- 
-+config MTD_ONENAND_SYNC_BURST_READ
-+	bool "OneNand Synchronous burst read support"
-+	help
-+	  Support for synchronous burst reads for a OneNand flash
-+	  device
-+
- endif # MTD_ONENAND
-Index: omapkernel/arch/arm/mach-omap2/board-3430sdp-flash.c
-===================================================================
---- omapkernel.orig/arch/arm/mach-omap2/board-3430sdp-flash.c	2008-09-08 12:35:43.000000000 +0530
-+++ omapkernel/arch/arm/mach-omap2/board-3430sdp-flash.c	2008-09-08 13:00:39.000000000 +0530
-@@ -76,8 +76,16 @@
- };
- 
- struct gpmc_cs_config pdc_onenand_gpmc_setting[] = {
-+#ifdef CONFIG_MTD_ONENAND_SYNC_BURST_READ
-+	{0x60801200, 0xF0900, 0x00030200, 0x0F040901, 0x0109100A, 0x1F060000},
-+#else
- 	{0x1200, 0x000F0F01, 0x00030301, 0x0F040F04, 0x010F1010, 0x1F060000},
-+#endif
-+#ifdef CONFIG_MTD_ONENAND_SYNC_BURST_READ
-+	{0x62801201, 0xF1000, 0x00030200, 0x0F041002, 0x02101013, 0x1F060000}
-+#else
- 	{0x1200, 0x000F0F01, 0x00030301, 0x0F040F04, 0x010F1010, 0x1F060000}
-+#endif
- };
- 
- struct gpmc_cs_config fpga_gpmc_setting[] = {
-@@ -252,15 +260,56 @@
- 	.resource	= &sdp_nand_resource,
- };
- 
--/*
-- * sdp_onenand_setup - The function configures the onenand flash.
-- * @onenand_base: Onenand base address
-+static unsigned short omap2_onenand_readw(void __iomem *addr)
-+{
-+	return readw(addr);
-+}
-+
-+static void omap2_onenand_writew(unsigned short value, void __iomem *addr)
-+{
-+	writew(value, addr);
-+}
-+
-+static int omap2_onenand_set_sync_mode(int cs, void __iomem *onenand_base,
-+					int freq)
-+{
-+#ifdef CONFIG_MTD_ONENAND_SYNC_BURST_READ
-+	u32 reg;
-+
-+	/* Configure OneNAND for sync read */
-+	reg = omap2_onenand_readw(onenand_base + ONENAND_REG_SYS_CFG1);
-+	reg &= ~((0x7 << ONENAND_SYS_CFG1_BRL_SHIFT) | (0x7 << 9));
-+	reg |=  (0x06 << ONENAND_SYS_CFG1_BRL_SHIFT) |
-+		ONENAND_SYS_CFG1_SYNC_READ |
-+		ONENAND_SYS_CFG1_BL_8 | 0x04;
-+	omap2_onenand_writew(reg, onenand_base + ONENAND_REG_SYS_CFG1);
-+
-+	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG2, 0xf1000);
-+	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG3, 0x00030200);
-+	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG4, 0x0f041002);
-+	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG5, 0x02101013);
-+	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG6, 0x1f060000);
-+	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, 0x62801201);
-+#endif
-+	return 0;
-+}
-+
-+/**
-+ *      sdp_onenand_setup - Set the onenand sync mode
-+ *      @onenand_base:  The onenand base address in GPMC memory map
-  *
-- * @return int:	Currently always returning zero.
-  */
- static int sdp_onenand_setup(void __iomem *onenand_base, int freq)
- {
--	/* Onenand setup does nothing at present */
-+	struct omap_onenand_platform_data *datap = &sdp_onenand_data;
-+	struct device *dev = &sdp_onenand_device.dev;
-+
-+	/* Set sync timings in GPMC */
-+	if (omap2_onenand_set_sync_mode(datap->cs, onenand_base, freq) < 0) {
-+		dev_err(dev, "Unable to set synchronous mode\n");
-+		return -EINVAL;
-+	}
-+
- 	return 0;
- }
- 
+Ok, nand_pref_fifo_add is MMIO.
+
+> +	struct completion		comp;
+> +	int				dma_ch;
+>  };
+>  
+>  /*
+> @@ -190,6 +214,85 @@
+>  		__raw_writeb(cmd, info->nand.IO_ADDR_W);
+>  }
+>  
+> +#ifdef CONFIG_MTD_NAND_OMAP_PREFETCH_DMA
+> +/*
+> + * omap_nand_dma_cb: callback on the completion of dma transfer
+> + * @lch: logical channel
+> + * @ch_satuts: channel status
+> + * @data: pointer to completion data structure
+> + */
+> +static void omap_nand_dma_cb(int lch, u16 ch_status, void *data)
+> +{
+> +	complete((struct completion *) data);
+> +}
+> +
+> +/*
+> + * omap_nand_dma_transfer: configer and start dma transfer
+> + * @mtd: MTD device structure
+> + * @addr: virtual address in RAM of source/destination
+> + * @count: number of data bytes to be transferred
+> + * @is_write: flag for read/write operation
+> + */
+> +static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
+> +					unsigned int count, int is_write)
+> +{
+> +	struct omap_nand_info *info = container_of(mtd,
+> +					struct omap_nand_info, mtd);
+> +
+> +	uint32_t prefetch_status = 0;
+> +
+> +	/* The fifo depth is 64 bytes. We have a synch at each frame and frame
+> +	 * length is 64 bytes.
+> +	 */
+> +	int buf_len = count/64;
+> +
+> +	if (is_write) {
+> +	    omap_set_dma_dest_params(info->dma_ch, 0, OMAP_DMA_AMODE_CONSTANT,
+> +						info->phys_base, 0, 0);
+> +	    omap_set_dma_dest_burst_mode(info->dma_ch, OMAP_DMA_DATA_BURST_16);
+> +	    omap_set_dma_src_params(info->dma_ch, 0, OMAP_DMA_AMODE_POST_INC,
+> +						virt_to_phys(addr), 0, 0);
+> +	    omap_set_dma_src_burst_mode(info->dma_ch, OMAP_DMA_DATA_BURST_16);
+> +	    omap_set_dma_transfer_params(info->dma_ch, OMAP_DMA_DATA_TYPE_S32,
+> +					0x10, buf_len, OMAP_DMA_SYNC_FRAME,
+> +					OMAP24XX_DMA_GPMC, OMAP_DMA_DST_SYNC);
+> +	} else {
+> +	    omap_set_dma_src_params(info->dma_ch, 0, OMAP_DMA_AMODE_CONSTANT,
+> +						info->phys_base, 0, 0);
+> +	    omap_set_dma_src_burst_mode(info->dma_ch, OMAP_DMA_DATA_BURST_16);
+> +	    omap_set_dma_dest_params(info->dma_ch, 0, OMAP_DMA_AMODE_POST_INC,
+> +						virt_to_phys(addr), 0, 0);
+> +	    omap_set_dma_dest_burst_mode(info->dma_ch, OMAP_DMA_DATA_BURST_16);
+> +	    omap_set_dma_transfer_params(info->dma_ch, OMAP_DMA_DATA_TYPE_S32,
+> +					0x10, buf_len, OMAP_DMA_SYNC_FRAME,
+> +					OMAP24XX_DMA_GPMC, OMAP_DMA_SRC_SYNC);
+> +	}
+> +
+> +	/*  configure and start prefetch transfer */
+> +	gpmc_prefetch_start(info->gpmc_cs, 0x1, count, is_write);
+> +	init_completion(&info->comp);
+> +	dma_sync_single_for_cpu(&info->pdev->dev,
+> +				virt_to_phys(addr), count, DMA_TO_DEVICE);
+
+Please read the DMA API and use the proper functions.  This is an abuse
+of the DMA API.
+
+> +	omap_start_dma(info->dma_ch);
+> +	wait_for_completion(&info->comp);
+> +	if (!is_write)
+> +		dma_sync_single_for_cpu(&info->pdev->dev,
+> +				virt_to_phys(addr), count, DMA_FROM_DEVICE);
+
+Ditto.  This is an abuse of the API.  This is how it's supposed to work:
+
+
+	enum dma_direction dir = is_write ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+	dma_addr_t dma_addr;
+
+	dma_addr = dma_map_single(&info->pdev->dev, addr, count, dir);
+
+	/* setup and start DMA using dma_addr */
+
+	wait_for_completion(&info->comp);
+
+	dma_unmap_single(&info->pdev->dev, dma_addr, count, dir);
+
+
+> +	prefetch_status = gpmc_prefetch_status();
+> +	while (prefetch_status & 0x3FFF)
+> +		prefetch_status = gpmc_prefetch_status();
+> +
+> +	/* disable and stop the PFPW engine */
+> +	gpmc_prefetch_stop();
+> +	return 0;
+> +}
+> +#else
+> +static void omap_nand_dma_cb(int lch, u16 ch_status, void *data) {}
+> +static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
+> +					unsigned int count, int is_write)
+> +{return 0; }
+> +#endif
+> +
+>  /*
+>   * omap_read_buf - read data from NAND controller into buffer
+>   * @mtd: MTD device structure
+> @@ -201,11 +304,33 @@
+>  	struct omap_nand_info *info = container_of(mtd,
+>  					struct omap_nand_info, mtd);
+>  	u16 *p = (u16 *) buf;
+> -
+> -	len >>= 1;
+> -
+> -	while (len--)
+> -		*p++ = cpu_to_le16(readw(info->nand.IO_ADDR_R));
+
+This driver needs work (see endianness explaination below.)
+
+> +	if (use_prefetch) {
+> +		uint32_t prefetch_status = 0;
+> +		int i = 0, bytes_to_read = 0;
+> +
+> +		if ((use_dma && len == mtd->oobsize) || (!use_dma)) {
+> +			/* configure and start prefetch transfer */
+> +			gpmc_prefetch_start(info->gpmc_cs, 0x0, len, 0x0);
+> +
+> +			prefetch_status = gpmc_prefetch_status();
+> +			while (len) {
+> +				bytes_to_read  = ((prefetch_status >> 24) & 0x7F) >> 1;
+> +				for (i = 0; (i < bytes_to_read) && (len); i++, len -= 2)
+> +					*p++ = cpu_to_le16(*(volatile u16 *)(info->nand_pref_fifo_add));
+
+Yet you dereference it.  This is illegal according to the Linux APIs.
+Use __raw_readw() here.
+
+Moreover, 'p' is a pointer to CPU endian memory, not le16 memory, so
+using cpu_to_le16 is wrong here.  What endian is there data in flash?
+
+> +				prefetch_status = gpmc_prefetch_status();
+> +			}
+> +			/* disable and stop the PFPW engine */
+> +			gpmc_prefetch_stop();
+> +		} else if (use_dma) {
+> +			if (info->dma_ch >= 0)
+> +				/* start transfer in DMA mode */
+> +				omap_nand_dma_transfer(mtd, p, len, 0x0);
+> +		}
+> +	} else {
+> +		len >>= 1;
+> +		while (len--)
+> +			*p++ = cpu_to_le16(readw(info->nand.IO_ADDR_R));
+
+Same problem wrt endianness.
+
+> +	}
+>  }
+>  
+>  /*
+> @@ -220,13 +345,35 @@
+>  						struct omap_nand_info, mtd);
+>  	u16 *p = (u16 *) buf;
+>  
+> -	len >>= 1;
+> -
+> -	while (len--) {
+> -		writew(cpu_to_le16(*p++), info->nand.IO_ADDR_W);
+> -
+> -		while (GPMC_BUF_EMPTY == (readl(info->gpmc_baseaddr +
+> +	if (use_prefetch) {
+> +		uint32_t prefetch_status = 0;
+> +		int i = 0, bytes_to_write = 0;
+> +
+> +		if ((use_dma && len == mtd->oobsize) || (!use_dma)) {
+> +			/*  configure and start prefetch transfer */
+> +			gpmc_prefetch_start(info->gpmc_cs, 0x0, len, 0x1);
+> +
+> +			prefetch_status = gpmc_prefetch_status();
+> +			while (prefetch_status & 0x3FFF) {
+> +				bytes_to_write = ((prefetch_status >> 24) & 0x7F)>>1;
+> +				for (i = 0; (i < bytes_to_write) && (len); i++, len -= 2)
+> +					*(volatile u16 *)(info->nand_pref_fifo_add) = cpu_to_le16(*p++);
+
+Ditto.
+
+> +				prefetch_status = gpmc_prefetch_status();
+> +			}
+> +			/* disable and stop the PFPW engine */
+> +			gpmc_prefetch_stop();
+> +		} else if (use_dma) {
+> +			if (info->dma_ch >= 0)
+> +				/* start transfer in DMA mode */
+> +				omap_nand_dma_transfer(mtd, p, len, 0x1);
+> +		}
+> +	} else {
+> +		len >>= 1;
+> +		while (len--) {
+> +			writew(cpu_to_le16(*p++), info->nand.IO_ADDR_W);
+
+Ditto.
+
