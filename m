@@ -1,60 +1,91 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Changes which shouldn't be in OMAP tree
-Date: Tue, 9 Sep 2008 09:12:13 +0100
-Message-ID: <20080909081213.GD9104@flint.arm.linux.org.uk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 01/12] OMAP2/3 clockdomains: add CM and PRM clkdms
+Date: Mon, 08 Sep 2008 10:57:39 -0600
+Message-ID: <20080908165736.2540.45514.stgit@localhost.localdomain>
+References: <20080908164444.2540.98619.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54947 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753177AbYIIIMY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Sep 2008 04:12:24 -0400
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:49045 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753457AbYIIIUz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Sep 2008 04:20:55 -0400
+In-Reply-To: <20080908164444.2540.98619.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>
 
-Tony (and whoever looks after the omapzoom tree),
+Add clockdomains for the CM and PRM.  These will ultimately replace the
+"wkup_clkdm", which appears to not actually exist on the hardware.
 
-While reviewing the omapzoom tree, I came across these three changes.
-They all shouldn't be there - I think they're all merge errors.
 
-The last one was fixed by a patch which added line 272 with the comment
-"relocate the stack".
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/clockdomains.h            |   19 +++++++++++++++++++
+ arch/arm/plat-omap/include/mach/powerdomain.h |    4 ++--
+ 2 files changed, 21 insertions(+), 2 deletions(-)
 
-Please take a look and revert these.
+diff --git a/arch/arm/mach-omap2/clockdomains.h b/arch/arm/mach-omap2/clockdomains.h
+index e17c369..ec5a720 100644
+--- a/arch/arm/mach-omap2/clockdomains.h
++++ b/arch/arm/mach-omap2/clockdomains.h
+@@ -14,6 +14,11 @@
+ 
+ /*
+  * OMAP2/3-common clockdomains
++ *
++ * Even though the 2420 has a single PRCM module from the
++ * interconnect's perspective, internally it does appear to have
++ * separate PRM and CM clockdomains.  The usual test case is
++ * sys_clkout/sys_clkout2.
+  */
+ 
+ /* This is an implicit clockdomain - it is never defined as such in TRM */
+@@ -23,6 +28,18 @@ static struct clockdomain wkup_clkdm = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430),
+ };
+ 
++static struct clockdomain prm_clkdm = {
++	.name		= "prm_clkdm",
++	.pwrdm		= { .name = "wkup_pwrdm" },
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430),
++};
++
++static struct clockdomain cm_clkdm = {
++	.name		= "cm_clkdm",
++	.pwrdm		= { .name = "core_pwrdm" },
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430),
++};
++
+ /*
+  * 2420-only clockdomains
+  */
+@@ -266,6 +283,8 @@ static struct clkdm_pwrdm_autodep clkdm_pwrdm_autodeps[] = {
+ static struct clockdomain *clockdomains_omap[] = {
+ 
+ 	&wkup_clkdm,
++	&cm_clkdm,
++	&prm_clkdm,
+ 
+ #ifdef CONFIG_ARCH_OMAP2420
+ 	&mpu_2420_clkdm,
+diff --git a/arch/arm/plat-omap/include/mach/powerdomain.h b/arch/arm/plat-omap/include/mach/powerdomain.h
+index 4948cb7..69c9e67 100644
+--- a/arch/arm/plat-omap/include/mach/powerdomain.h
++++ b/arch/arm/plat-omap/include/mach/powerdomain.h
+@@ -50,9 +50,9 @@
+ 
+ /*
+  * Maximum number of clockdomains that can be associated with a powerdomain.
+- * CORE powerdomain is probably the worst case.
++ * CORE powerdomain on OMAP3 is the worst case
+  */
+-#define PWRDM_MAX_CLKDMS	3
++#define PWRDM_MAX_CLKDMS	4
+ 
+ /* XXX A completely arbitrary number. What is reasonable here? */
+ #define PWRDM_TRANSITION_BAILOUT 100000
 
-diff --git a/arch/arm/boot/.gitignore b/arch/arm/boot/.gitignore
-index ce1c5ff..bbe9905 100644
---- a/arch/arm/boot/.gitignore
-+++ b/arch/arm/boot/.gitignore
-@@ -1,5 +1,5 @@
- Image
- zImage
-+uImage
- xipImage
- bootpImage
--uImage
-diff --git a/arch/arm/boot/compressed/head.S b/arch/arm/boot/compressed/head.S
-index 3c2c8f2..32be061 100644
---- a/arch/arm/boot/compressed/head.S
-+++ b/arch/arm/boot/compressed/head.S
-@@ -55,7 +55,7 @@
- #elif defined(CONFIG_ARCH_S3C2410)
- 		.macro loadsp, rb
- 		mov	\rb, #0x50000000
--		add	\rb, \rb, #0x4000 * CONFIG_S3C_LOWLEVEL_UART_PORT
-+		add	\rb, \rb, #0x4000 * CONFIG_S3C2410_LOWLEVEL_UART_PORT
- 		.endm
- #else
- 		.macro	loadsp,	rb
-@@ -782,6 +782,7 @@ __armv7_mmu_cache_flush:
- 		mcr	p15, 0, r10, c7, c14, 0	@ clean+invalidate D
- 		b	iflush
- hierarchical:
-+		adr	sp, no_cache_id		@ non-v7 code is temp stack
- 		stmfd	sp!, {r0-r5, r7, r9-r11}
- 		mrc	p15, 1, r0, c0, c0, 1	@ read clidr
- 		ands	r3, r0, #0x7000000	@ extract loc from clidr
 
