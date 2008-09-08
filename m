@@ -1,92 +1,69 @@
-From: "stanley.miao" <stanley.miao@windriver.com>
-Subject: [PATCH] ARM: OMAP3: Fix omapfb's problem on OMAP3430sdp
-Date: Mon, 08 Sep 2008 10:42:31 +0800
-Message-ID: <1220841751.28777.9.camel@localhost>
-Reply-To: stanley.miao@windriver.com
+From: "Bryan Wu" <cooloney@kernel.org>
+Subject: Re: [PATCH] MUSB: Set INDEX register to 0 before accessing CONFIGDATA
+Date: Mon, 8 Sep 2008 11:12:24 +0800
+Message-ID: <386072610809072012wcf053a6j37c238b82667c23a@mail.gmail.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02C418D1B1@dbde02.ent.ti.com>
+	 <200809062204.01492.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:38130 "EHLO mail.wrs.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751792AbYIHCkU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 7 Sep 2008 22:40:20 -0400
+Received: from yx-out-2324.google.com ([74.125.44.30]:24894 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752854AbYIHDMZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Sep 2008 23:12:25 -0400
+Received: by yx-out-2324.google.com with SMTP id 8so706135yxm.1
+        for <linux-omap@vger.kernel.org>; Sun, 07 Sep 2008 20:12:24 -0700 (PDT)
+In-Reply-To: <200809062204.01492.david-b@pacbell.net>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
 
-For clarity, I re-send this request.
+On Sun, Sep 7, 2008 at 1:04 PM, David Brownell <david-b@pacbell.net> wrote:
+> On Thursday 04 September 2008, Gadiyar, Anand wrote:
+>> From: Anand Gadiyar <gadiyar@ti.com>
+>>
+>> The Index register needs to be zero to access CONFIGDATA.
+>> musb_ep_select()will not set the MUSB_INDEX register unless INDEXED
+>> mode addressing is used. This change will set the register correctly
+>> in INDEXED as well as FLAT mode.
+>>
+>> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+>> CC: Ajay Kumar Gupta <ajay.gupta@ti.com>
+>
+> ACK.  I *know* it was originally written that way.  I think
+> the change was one of the Blackfin patches ... I hope this
+> isn't one of those cases where the Blackfin version of this
+> core acts differently.  (Like clearing that DMA IRQ status...)
+>
 
+For Blackfin, the register MUSB_CONFIGDATA is not exported out to software.
+So in the musb driver, Blackfin code can not access the MUSB_CONFIGDATA.
+The configuration is fixed in the software.
 
-In RGB565 mode, red and blue color are filtered, so the picture on LCD
-looks green and dark.
+-Bryan
 
-Fix omapfb's problem on OMAP3430sdp.
-
-Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
----
- drivers/video/omap/lcd_2430sdp.c |   18 ++++++++++++++++++
- 1 files changed, 18 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/video/omap/lcd_2430sdp.c
-b/drivers/video/omap/lcd_2430sdp.c
-index 9af6cd0..3747e7d 100644
---- a/drivers/video/omap/lcd_2430sdp.c
-+++ b/drivers/video/omap/lcd_2430sdp.c
-@@ -23,6 +23,7 @@
- 
- #include <linux/module.h>
- #include <linux/platform_device.h>
-+#include <linux/delay.h>
- #include <linux/i2c/twl4030.h>
- 
- #include <mach/gpio.h>
-@@ -45,6 +46,10 @@ static unsigned enable_gpio;
- #define ENABLE_VAUX3_DEDICATED	0x03
- #define ENABLE_VAUX3_DEV_GRP	0x20
- 
-+#define ENABLE_VPLL2_DEDICATED          0x05
-+#define ENABLE_VPLL2_DEV_GRP            0xE0
-+#define TWL4030_VPLL2_DEV_GRP           0x33
-+#define TWL4030_VPLL2_DEDICATED         0x36
- 
- #define t2_out(c, r, v) twl4030_i2c_write_u8(c, r, v)
- 
-@@ -77,11 +82,19 @@ static int sdp2430_panel_enable(struct lcd_panel
-*panel)
- 	u8 ded_val, ded_reg;
- 	u8 grp_val, grp_reg;
- 
-+
- 	if (machine_is_omap_3430sdp()) {
- 		ded_reg = TWL4030_VAUX3_DEDICATED;
- 		ded_val = ENABLE_VAUX3_DEDICATED;
- 		grp_reg = TWL4030_VAUX3_DEV_GRP;
- 		grp_val = ENABLE_VAUX3_DEV_GRP;
-+
-+		if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
-+			t2_out(PM_RECEIVER, ENABLE_VPLL2_DEDICATED,
-+					TWL4030_VPLL2_DEDICATED);
-+			t2_out(PM_RECEIVER, ENABLE_VPLL2_DEV_GRP,
-+					TWL4030_VPLL2_DEV_GRP);
-+		}
- 	} else {
- 		ded_reg = TWL4030_VAUX2_DEDICATED;
- 		ded_val = ENABLE_VAUX2_DEDICATED;
-@@ -104,6 +117,11 @@ static void sdp2430_panel_disable(struct lcd_panel
-*panel)
- {
- 	omap_set_gpio_dataout(enable_gpio, 0);
- 	omap_set_gpio_dataout(backlight_gpio, 0);
-+	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
-+		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEDICATED);
-+		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEV_GRP);
-+		mdelay(4);
-+	}
- }
- 
- static unsigned long sdp2430_panel_get_caps(struct lcd_panel *panel)
--- 
-1.5.6.3
-
+>
+>> ---
+>> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+>> index b398776..6c4da2f 100644
+>> --- a/drivers/usb/musb/musb_core.c
+>> +++ b/drivers/usb/musb/musb_core.c
+>> @@ -1334,7 +1334,7 @@ static int __init musb_core_init(u16 musb_type, struct musb *musb)
+>>       int             i;
+>>
+>>       /* log core options (read using indexed model) */
+>> -     musb_ep_select(mbase, 0);
+>> +     musb_writeb(mbase, MUSB_INDEX, 0);
+>>       reg = musb_readb(mbase, 0x10 + MUSB_CONFIGDATA);
+>>
+>>       strcpy(aInfo, (reg & MUSB_CONFIGDATA_UTMIDW) ? "UTMI-16" : "UTMI-8");--
+>> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+>
+>
