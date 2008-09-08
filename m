@@ -1,45 +1,32 @@
-From: "arun c" <arunedarath@mistralsolutions.com>
-Subject: [PATCH] omapfb: setting GOLCD bit for shadow registers to make effect
-Date: Mon, 8 Sep 2008 05:19:32 -0400
-Message-ID: <c656a4d20809080219q545ccff3v13221d2287f6de30@mail.gmail.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [alsa-devel] [PATCH 3/5] ALSA: ASoC: Add support for TWL4030 audio codec (rev 3)
+Date: Mon, 8 Sep 2008 10:56:14 +0100
+Message-ID: <20080908095607.GC790@sirena.org.uk>
+References: <1220769704-16705-1-git-send-email-sakoman@gmail.com> <1220769704-16705-2-git-send-email-sakoman@gmail.com> <1220769704-16705-3-git-send-email-sakoman@gmail.com> <1220769704-16705-4-git-send-email-sakoman@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.189]:22353 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752035AbYIHJTd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2008 05:19:33 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so855172tic.23
-        for <linux-omap@vger.kernel.org>; Mon, 08 Sep 2008 02:19:32 -0700 (PDT)
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:3785 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753608AbYIHJ4S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2008 05:56:18 -0400
 Content-Disposition: inline
+In-Reply-To: <1220769704-16705-4-git-send-email-sakoman@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: sakoman@gmail.com
+Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Steve Sakoman <steve@sakoman.com>
 
-A shadow register change has no direct effect on the display
-configuration until the GOLCD (DISPC_CONTROL[5]) is set.
+On Sat, Sep 06, 2008 at 11:41:42PM -0700, sakoman@gmail.com wrote:
 
-Signed-off-by: Arun C <arunedarath@mistralsolutions.com>
----
- drivers/video/omap/dispc.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+> +
+> +config SND_SOC_TWL4030
+> +	tristate
+> +	depends on SND_SOC && I2C
+> +
 
-diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
-index 82ba030..2e7af85 100644
---- a/drivers/video/omap/dispc.c
-+++ b/drivers/video/omap/dispc.c
-@@ -436,6 +436,11 @@ static inline int _setup_plane(int plane, int channel_out,
-
- 	dispc_write_reg(ri_reg[plane], (screen_width - width) * bpp / 8 + 1);
-
-+	/* Wait untill GOLCD bit is cleared and set it */
-+	while (dispc_read_reg(DISPC_CONTROL) & (1 << 5))
-+		continue;
-+	MOD_REG_FLD(DISPC_CONTROL, 1 << 5, 1 << 5);
-+
- 	return height * screen_width * bpp / 8;
- }
-
--- 
-1.5.3.4
+Sorry, didn't notice earlier: this should depend on whatever the config
+option is for the TWL4030 core driver rather than on I2C since it
+doesn't actually interact with I2C directly.  Although in most
+applications this won't make much odds since the machine driver will
+select the codec driver and select ignores the dependencies anyway.
