@@ -1,33 +1,34 @@
 From: "Budhee Jamaich" <budheej@gmail.com>
-Subject: 3430: can't find mmc debounce clock
-Date: Mon, 8 Sep 2008 16:18:09 +0300
-Message-ID: <57314e840809080618x1f0cd0aen74b1a03351dc8ef7@mail.gmail.com>
+Subject: Re: powering up the mmc controller on 3430
+Date: Mon, 8 Sep 2008 16:18:54 +0300
+Message-ID: <57314e840809080618j1216436fh658507266d1ac579@mail.gmail.com>
+References: <57314e840809071219w71ec6e40ja6a8bf8e05a876c1@mail.gmail.com>
+	 <13B9B4C6EF24D648824FF11BE8967162036553308D@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f16.google.com ([209.85.217.16]:53210 "EHLO
-	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751811AbYIHNSK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2008 09:18:10 -0400
-Received: by gxk9 with SMTP id 9so7691964gxk.13
-        for <linux-omap@vger.kernel.org>; Mon, 08 Sep 2008 06:18:09 -0700 (PDT)
+Received: from wf-out-1314.google.com ([209.85.200.175]:2155 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751504AbYIHNSz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2008 09:18:55 -0400
+Received: by wf-out-1314.google.com with SMTP id 27so1578304wfd.4
+        for <linux-omap@vger.kernel.org>; Mon, 08 Sep 2008 06:18:55 -0700 (PDT)
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162036553308D@dlee02.ent.ti.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello,
+On Mon, Sep 8, 2008 at 4:49 AM, Woodruff, Richard <r-woodruff2@ti.com> wrote:
+> I believe the driver now calls this via its platform data in arch/arm/mach-omap2/.  Same sequence but now a bit more generalized from the external driver point of view.
 
-I read that the mmc has 3 clocks: fixed functional clock (MMCi_FCLK),
-interface clock (MMCi_ICLK) and debounce clock (MMCi_32).
+Thank you, I will look into it....
 
-But, when I look in clock34xx.h, I can only see two of those - there
-is the "mmchs_fck" and "mmchs_ick". There is no struct clk for the
-debounce clock. Only when I look in older kernels I can see also the
-"mmchsdb2_fck".
-
-So where is the debounce clock struct ? (I want to 'get' and 'enable' it...)
-
-Thank you in advance
 Budhee
+>
+> Regards,
+> Richard W.
+>
+>
