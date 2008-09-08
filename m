@@ -1,50 +1,45 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 1/1] Use pmd_table() MACRO for unmap_area_sections()
-Date: Mon, 08 Sep 2008 09:47:29 +0300 (EEST)
-Message-ID: <20080908.094729.236526510.Hiroshi.DOYU@nokia.com>
-References: <20080906.035635.186133813.Hiroshi.DOYU@nokia.com>
-	<20080907193619.GC10359@flint.arm.linux.org.uk>
-	<13B9B4C6EF24D648824FF11BE89671620365533091@dlee02.ent.ti.com>
+From: "arun c" <arunedarath@mistralsolutions.com>
+Subject: [PATCH] omapfb: setting GOLCD bit for shadow registers to make effect
+Date: Mon, 8 Sep 2008 05:19:32 -0400
+Message-ID: <c656a4d20809080219q545ccff3v13221d2287f6de30@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:32999 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751814AbYIHGsE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2008 02:48:04 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE89671620365533091@dlee02.ent.ti.com>
+Received: from ti-out-0910.google.com ([209.85.142.189]:22353 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752035AbYIHJTd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2008 05:19:33 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so855172tic.23
+        for <linux-omap@vger.kernel.org>; Mon, 08 Sep 2008 02:19:32 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: r-woodruff2@ti.com
-Cc: linux@arm.linux.org.uk, tony@atomide.com, linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Richard,
+A shadow register change has no direct effect on the display
+configuration until the GOLCD (DISPC_CONTROL[5]) is set.
 
-From: "ext Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH 1/1] Use pmd_table() MACRO for unmap_area_sections()
-Date: Sun, 7 Sep 2008 21:04:56 -0500
+Signed-off-by: Arun C <arunedarath@mistralsolutions.com>
+---
+ drivers/video/omap/dispc.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-> 
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Russell King - ARM Linux
-> 
-> > Well, the first question is... where has this come from, and why.
-> 
-> In OMAPs, a few devices have a local IO MMU.  Their basic structure
-> is similar to an ARM MMU, but less featured. IVA & Camera have one
-> each on 3430/2430, a 2420 has those before mentioned and + 3rd in
-> its video accelerator.
-> 
-> The usage in TI kernels has varied a bit.  Some times they are just
-> load and lock TLB's, for others table walking can be enabled.  In
-> all cases if a table walk miss happens it is fatal and the IP block
-> device will have to be reset.
+diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
+index 82ba030..2e7af85 100644
+--- a/drivers/video/omap/dispc.c
++++ b/drivers/video/omap/dispc.c
+@@ -436,6 +436,11 @@ static inline int _setup_plane(int plane, int channel_out,
 
-In *theory*, from this IOMMU hardware perspective, it's feasible to
-load something on memory dynamically("on-demand loading") when a table
-walk miss happens by notifying it to some memory manager through
-its assigned interrupt. Practically this latency may be a problem in
-some cases;)
+ 	dispc_write_reg(ri_reg[plane], (screen_width - width) * bpp / 8 + 1);
 
-   Hiroshi DOYU
++	/* Wait untill GOLCD bit is cleared and set it */
++	while (dispc_read_reg(DISPC_CONTROL) & (1 << 5))
++		continue;
++	MOD_REG_FLD(DISPC_CONTROL, 1 << 5, 1 << 5);
++
+ 	return height * screen_width * bpp / 8;
+ }
+
+-- 
+1.5.3.4
