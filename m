@@ -1,30 +1,35 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: Enabling MUSB support
-Date: Sun, 7 Sep 2008 13:22:14 -0700
-Message-ID: <200809071322.15003.david-b@pacbell.net>
-References: <1f11a5490808270626t5b4aa599i18b730d12a6c4667@mail.gmail.com> <20080829190048.GA6768@frodo> <200808291305.31639.david-b@pacbell.net>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: powering up the mmc controller on 3430
+Date: Sun, 7 Sep 2008 20:49:49 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162036553308D@dlee02.ent.ti.com>
+References: <57314e840809071219w71ec6e40ja6a8bf8e05a876c1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp122.sbc.mail.sp1.yahoo.com ([69.147.64.95]:29689 "HELO
-	smtp122.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755679AbYIGUWR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Sep 2008 16:22:17 -0400
-In-Reply-To: <200808291305.31639.david-b@pacbell.net>
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:35049 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753078AbYIHBt4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Sep 2008 21:49:56 -0400
+In-Reply-To: <57314e840809071219w71ec6e40ja6a8bf8e05a876c1@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: felipe.balbi@nokia.com, ext Ashwin Bihari <abihari@gmail.com>, linux-omap@vger.kernel.org
+To: Budhee Jamaich <budheej@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Friday 29 August 2008, David Brownell wrote:
-> You're talking about some other problem. =A0I'm talking about
-> the one where it *OOPSES* while binding to the gadget driver.
+Hi,
 
-which fyi seems to have gone away ... not sure why though ...
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I have one problem - in 2.6.14 we used the enable_mmc_power function,
+> which is completely gone in 2.6.24, and i can't seem to find any
+> reasonable replacement. could you please assist me how can I power up
+> the mmc controller in 2.6.24 ?
+>
+> (we have legacy reasons for not using the in-tree mmc driver, which we
+> will one day resolve, but now i really need to power up the controller
+> from within our driver..)
+
+I believe the driver now calls this via its platform data in arch/arm/mach-omap2/.  Same sequence but now a bit more generalized from the external driver point of view.
+
+Regards,
+Richard W.
+
