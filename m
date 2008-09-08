@@ -1,15 +1,16 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 07/12] OMAP3 PRCM: add DPLL1-5 powerdomains, clockdomains
-Date: Mon, 08 Sep 2008 10:57:46 -0600
-Message-ID: <20080908165745.2540.54668.stgit@localhost.localdomain>
+Subject: [PATCH 08/12] OMAP3 clock: mark DPLL clocks with their DPLLx
+	clockdomains
+Date: Mon, 08 Sep 2008 10:57:47 -0600
+Message-ID: <20080908165746.2540.30358.stgit@localhost.localdomain>
 References: <20080908164444.2540.98619.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49064 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:49060 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753780AbYIIIU7 (ORCPT
+	with ESMTP id S1754660AbYIIIU7 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Sep 2008 04:20:59 -0400
 In-Reply-To: <20080908164444.2540.98619.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
@@ -17,127 +18,233 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>
 
-Each DPLL exists in its own powerdomain (cf 34xx TRM figure 4-18) and
-clockdomain; so, create powerdomain and clockdomain structures for them.
-These are used in a following patch for DPLL-related clocks.
+Mark each DPLL clock as belonging to their respective DPLL clockdomain.
+cf. 34xx TRM Table 4-27 (among other references).
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clockdomains.h     |   35 ++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/powerdomains.h     |    5 +++++
- arch/arm/mach-omap2/powerdomains34xx.h |   31 ++++++++++++++++++++++++++++
- 3 files changed, 71 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/clock34xx.h |   27 +++++++++++++++++++++++++++
+ 1 files changed, 27 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clockdomains.h b/arch/arm/mach-omap2/clockdomains.h
-index 2156668..5234be1 100644
---- a/arch/arm/mach-omap2/clockdomains.h
-+++ b/arch/arm/mach-omap2/clockdomains.h
-@@ -249,6 +249,36 @@ static struct clockdomain emu_clkdm = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index 0c2acea..682f43a 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -323,6 +323,7 @@ static struct clk dpll1_ck = {
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES | ALWAYS_ENABLED,
+ 	.round_rate	= &omap2_dpll_round_rate,
+ 	.set_rate	= &omap3_noncore_dpll_set_rate,
++	.clkdm		= { .name = "dpll1_clkdm" },
+ 	.recalc		= &omap3_dpll_recalc,
  };
  
-+static struct clockdomain dpll1_clkdm = {
-+	.name		= "dpll1_clkdm",
-+	.pwrdm		= { .name = "dpll1_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+static struct clockdomain dpll2_clkdm = {
-+	.name		= "dpll2_clkdm",
-+	.pwrdm		= { .name = "dpll2_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+static struct clockdomain dpll3_clkdm = {
-+	.name		= "dpll3_clkdm",
-+	.pwrdm		= { .name = "dpll3_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+static struct clockdomain dpll4_clkdm = {
-+	.name		= "dpll4_clkdm",
-+	.pwrdm		= { .name = "dpll4_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+static struct clockdomain dpll5_clkdm = {
-+	.name		= "dpll5_clkdm",
-+	.pwrdm		= { .name = "dpll5_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
-+};
-+
- #endif   /* CONFIG_ARCH_OMAP34XX */
- 
- /*
-@@ -310,6 +340,11 @@ static struct clockdomain *clockdomains_omap[] = {
- 	&usbhost_clkdm,
- 	&per_clkdm,
- 	&emu_clkdm,
-+	&dpll1_clkdm,
-+	&dpll2_clkdm,
-+	&dpll3_clkdm,
-+	&dpll4_clkdm,
-+	&dpll5_clkdm,
- #endif
- 
- 	NULL,
-diff --git a/arch/arm/mach-omap2/powerdomains.h b/arch/arm/mach-omap2/powerdomains.h
-index fba3440..51623e2 100644
---- a/arch/arm/mach-omap2/powerdomains.h
-+++ b/arch/arm/mach-omap2/powerdomains.h
-@@ -179,6 +179,11 @@ static struct powerdomain *powerdomains_omap[] __initdata = {
- 	&emu_pwrdm,
- 	&sgx_pwrdm,
- 	&usbhost_pwrdm,
-+	&dpll1_pwrdm,
-+	&dpll2_pwrdm,
-+	&dpll3_pwrdm,
-+	&dpll4_pwrdm,
-+	&dpll5_pwrdm,
- #endif
- 
- 	NULL
-diff --git a/arch/arm/mach-omap2/powerdomains34xx.h b/arch/arm/mach-omap2/powerdomains34xx.h
-index adbfa91..446a1ed 100644
---- a/arch/arm/mach-omap2/powerdomains34xx.h
-+++ b/arch/arm/mach-omap2/powerdomains34xx.h
-@@ -341,6 +341,37 @@ static struct powerdomain usbhost_pwrdm = {
- 	},
+@@ -335,6 +336,7 @@ static struct clk dpll1_x2_ck = {
+ 	.parent		= &dpll1_ck,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
++	.clkdm		= { .name = "dpll1_clkdm" },
+ 	.recalc		= &omap3_clkoutx2_recalc,
  };
  
-+static struct powerdomain dpll1_pwrdm = {
-+	.name		= "dpll1_pwrdm",
-+	.prcm_offs	= MPU_MOD,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+static struct powerdomain dpll2_pwrdm = {
-+	.name		= "dpll2_pwrdm",
-+	.prcm_offs	= OMAP3430_IVA2_MOD,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+static struct powerdomain dpll3_pwrdm = {
-+	.name		= "dpll3_pwrdm",
-+	.prcm_offs	= PLL_MOD,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+static struct powerdomain dpll4_pwrdm = {
-+	.name		= "dpll4_pwrdm",
-+	.prcm_offs	= PLL_MOD,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+static struct powerdomain dpll5_pwrdm = {
-+	.name		= "dpll5_pwrdm",
-+	.prcm_offs	= PLL_MOD,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
-+};
-+
-+
- #endif    /* CONFIG_ARCH_OMAP34XX */
+@@ -357,6 +359,7 @@ static struct clk dpll1_x2m2_ck = {
+ 	.clksel		= div16_dpll1_x2m2_clksel,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
++	.clkdm		= { .name = "dpll1_clkdm" },
+ 	.recalc		= &omap2_clksel_recalc,
+ };
  
+@@ -394,6 +397,7 @@ static struct clk dpll2_ck = {
+ 	.disable	= &omap3_noncore_dpll_disable,
+ 	.round_rate	= &omap2_dpll_round_rate,
+ 	.set_rate	= &omap3_noncore_dpll_set_rate,
++	.clkdm		= { .name = "dpll2_clkdm" },
+ 	.recalc		= &omap3_dpll_recalc,
+ };
+ 
+@@ -416,6 +420,7 @@ static struct clk dpll2_m2_ck = {
+ 	.clksel		= div16_dpll2_m2x2_clksel,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
++	.clkdm		= { .name = "dpll2_clkdm" },
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+@@ -447,6 +452,7 @@ static struct clk dpll3_ck = {
+ 	.dpll_data	= &dpll3_dd,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES | ALWAYS_ENABLED,
+ 	.round_rate	= &omap2_dpll_round_rate,
++	.clkdm		= { .name = "dpll3_clkdm" },
+ 	.recalc		= &omap3_dpll_recalc,
+ };
+ 
+@@ -459,6 +465,7 @@ static struct clk dpll3_x2_ck = {
+ 	.parent		= &dpll3_ck,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
++	.clkdm		= { .name = "dpll3_clkdm" },
+ 	.recalc		= &omap3_clkoutx2_recalc,
+ };
+ 
+@@ -512,6 +519,7 @@ static struct clk dpll3_m2_ck = {
+ 	.clksel		= div31_dpll3m2_clksel,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
++	.clkdm		= { .name = "dpll3_clkdm" },
+ 	.round_rate	= &omap2_clksel_round_rate,
+ 	.set_rate	= &omap3_core_dpll_m2_set_rate,
+ 	.recalc		= &omap2_clksel_recalc,
+@@ -549,6 +557,7 @@ static struct clk dpll3_m2x2_ck = {
+ 	.clksel		= dpll3_m2x2_ck_clksel,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
++	.clkdm		= { .name = "dpll3_clkdm" },
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+@@ -568,6 +577,7 @@ static struct clk dpll3_m3_ck = {
+ 	.clksel		= div16_dpll3_clksel,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
++	.clkdm		= { .name = "dpll3_clkdm" },
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+@@ -578,6 +588,7 @@ static struct clk dpll3_m3x2_ck = {
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_bit	= OMAP3430_PWRDN_EMU_CORE_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES | INVERT_ENABLE,
++	.clkdm		= { .name = "dpll3_clkdm" },
+ 	.recalc		= &omap3_clkoutx2_recalc,
+ };
+ 
+@@ -596,6 +607,7 @@ static struct clk emu_core_alwon_ck = {
+ 	.clksel		= emu_core_alwon_ck_clksel,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
++	.clkdm		= { .name = "dpll3_clkdm" },
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+@@ -631,6 +643,7 @@ static struct clk dpll4_ck = {
+ 	.disable	= &omap3_noncore_dpll_disable,
+ 	.round_rate	= &omap2_dpll_round_rate,
+ 	.set_rate	= &omap3_noncore_dpll_set_rate,
++	.clkdm		= { .name = "dpll4_clkdm" },
+ 	.recalc		= &omap3_dpll_recalc,
+ };
+ 
+@@ -644,6 +657,7 @@ static struct clk dpll4_x2_ck = {
+ 	.parent		= &dpll4_ck,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
++	.clkdm		= { .name = "dpll4_clkdm" },
+ 	.recalc		= &omap3_clkoutx2_recalc,
+ };
+ 
+@@ -662,6 +676,7 @@ static struct clk dpll4_m2_ck = {
+ 	.clksel		= div16_dpll4_clksel,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
++	.clkdm		= { .name = "dpll4_clkdm" },
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+@@ -672,6 +687,7 @@ static struct clk dpll4_m2x2_ck = {
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_bit	= OMAP3430_PWRDN_96M_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES | INVERT_ENABLE,
++	.clkdm		= { .name = "dpll4_clkdm" },
+ 	.recalc		= &omap3_clkoutx2_recalc,
+ };
+ 
+@@ -748,6 +764,7 @@ static struct clk dpll4_m3_ck = {
+ 	.clksel		= div16_dpll4_clksel,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
++	.clkdm		= { .name = "dpll4_clkdm" },
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+@@ -759,6 +776,7 @@ static struct clk dpll4_m3x2_ck = {
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_bit	= OMAP3430_PWRDN_TV_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES | INVERT_ENABLE,
++	.clkdm		= { .name = "dpll4_clkdm" },
+ 	.recalc		= &omap3_clkoutx2_recalc,
+ };
+ 
+@@ -857,6 +875,7 @@ static struct clk dpll4_m4_ck = {
+ 	.clksel		= div16_dpll4_clksel,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
++	.clkdm		= { .name = "dpll4_clkdm" },
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+@@ -867,6 +886,7 @@ static struct clk dpll4_m4x2_ck = {
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_bit	= OMAP3430_PWRDN_DSS1_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES | INVERT_ENABLE,
++	.clkdm		= { .name = "dpll4_clkdm" },
+ 	.recalc		= &omap3_clkoutx2_recalc,
+ };
+ 
+@@ -880,6 +900,7 @@ static struct clk dpll4_m5_ck = {
+ 	.clksel		= div16_dpll4_clksel,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
++	.clkdm		= { .name = "dpll4_clkdm" },
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+@@ -890,6 +911,7 @@ static struct clk dpll4_m5x2_ck = {
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_bit	= OMAP3430_PWRDN_CAM_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES | INVERT_ENABLE,
++	.clkdm		= { .name = "dpll4_clkdm" },
+ 	.recalc		= &omap3_clkoutx2_recalc,
+ };
+ 
+@@ -903,6 +925,7 @@ static struct clk dpll4_m6_ck = {
+ 	.clksel		= div16_dpll4_clksel,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
++	.clkdm		= { .name = "dpll4_clkdm" },
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+@@ -914,6 +937,7 @@ static struct clk dpll4_m6x2_ck = {
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_bit	= OMAP3430_PWRDN_EMU_PERIPH_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES | INVERT_ENABLE,
++	.clkdm		= { .name = "dpll4_clkdm" },
+ 	.recalc		= &omap3_clkoutx2_recalc,
+ };
+ 
+@@ -922,6 +946,7 @@ static struct clk emu_per_alwon_ck = {
+ 	.parent		= &dpll4_m6x2_ck,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
++	.clkdm		= { .name = "dpll4_clkdm" },
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+@@ -958,6 +983,7 @@ static struct clk dpll5_ck = {
+ 	.disable	= &omap3_noncore_dpll_disable,
+ 	.round_rate	= &omap2_dpll_round_rate,
+ 	.set_rate	= &omap3_noncore_dpll_set_rate,
++	.clkdm		= { .name = "dpll5_clkdm" },
+ 	.recalc		= &omap3_dpll_recalc,
+ };
+ 
+@@ -975,6 +1001,7 @@ static struct clk dpll5_m2_ck = {
+ 	.clksel		= div16_dpll5_clksel,
+ 	.flags		= CLOCK_IN_OMAP3430ES2 | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
++	.clkdm		= { .name = "dpll5_clkdm" },
+ 	.recalc		= &omap2_clksel_recalc,
+ };
  
 
 
