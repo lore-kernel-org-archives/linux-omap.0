@@ -1,73 +1,91 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH] Fixed CPU type check for OMAP3
-Date: Mon,  8 Sep 2008 19:33:49 +0300
-Message-ID: <1220891629-26093-1-git-send-email-tero.kristo@nokia.com>
+From: <Tero.Kristo@nokia.com>
+Subject: RE: [PATCH] Fixed CPU type check for OMAP3
+Date: Mon, 8 Sep 2008 17:47:44 +0300
+Message-ID: <B71CE868F2BC2847B3F23C5A8EE394307717F9@vaebe110.NOE.Nokia.com>
+References: <> <1220891629-26093-1-git-send-email-tero.kristo@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:32529 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751342AbYIHOoe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2008 10:44:34 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m88EiCAb005846
-	for <linux-omap@vger.kernel.org>; Mon, 8 Sep 2008 17:44:31 +0300
-Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m88EhG0r011508
-	for <linux-omap@vger.kernel.org>; Mon, 8 Sep 2008 17:43:16 +0300
-In-Reply-To: <>
-References: <>
+Received: from smtp.nokia.com ([192.100.105.134]:41852 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754410AbYIHOrz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2008 10:47:55 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m88ElYcg026833
+	for <linux-omap@vger.kernel.org>; Mon, 8 Sep 2008 09:47:53 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <1220891629-26093-1-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-ES version definitions were incorrect, also GP/EMU/SEC etc. types were not
-detected at all.
+Oops, minor bug here, pr_info is still putting out wrong data, should be
+from the array I added. Sending new patch soon. 
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
----
- arch/arm/mach-omap2/id.c              |    9 ++++++++-
- arch/arm/plat-omap/include/mach/cpu.h |    2 +-
- 2 files changed, 9 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index a526c0f..290b88c 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -53,6 +53,13 @@ static struct omap_id omap_ids[] __initdata = {
- 	{ .hawkeye = 0xb68a, .dev = 0x0, .type = 0x24300000 },
- };
- 
-+static const char omap3_revs[][4] = {
-+	"1.0",
-+	"2.0",
-+	"2.1",
-+	"3.0"
-+};
-+
- static struct omap_chip_id omap_chip;
- 
- /**
-@@ -224,7 +231,7 @@ void __init omap2_check_revision(void)
- 	 * Note that rev cannot be used directly as ES1.0 uses value 0.
- 	 */
- 	if (hawkeye == 0xb7ae) {
--		system_rev = 0x34300000 | ((1 + rev) << 12);
-+		_set_system_rev(0x34300000 | (rev << 12), rev);
- 		pr_info("OMAP%04x ES2.%i\n", system_rev >> 16, rev);
- 		_set_omap_chip();
- 		return;
-diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
-index e046418..e170d29 100644
---- a/arch/arm/plat-omap/include/mach/cpu.h
-+++ b/arch/arm/plat-omap/include/mach/cpu.h
-@@ -357,7 +357,7 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define OMAP3430_REV_ES1_0	0x34300000
- #define OMAP3430_REV_ES2_0	0x34301000
- #define OMAP3430_REV_ES2_1	0x34302000
--#define OMAP3430_REV_ES2_2	0x34303000
-+#define OMAP3430_REV_ES3_0	0x34303000
- 
- /*
-  * omap_chip bits
--- 
-1.5.4.3
-
+>-----Original Message-----
+>From: linux-omap-owner@vger.kernel.org 
+>[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of ext Tero Kristo
+>Sent: 08 September, 2008 19:34
+>To: linux-omap@vger.kernel.org
+>Subject: [PATCH] Fixed CPU type check for OMAP3
+>
+>ES version definitions were incorrect, also GP/EMU/SEC etc. 
+>types were not detected at all.
+>
+>Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+>---
+> arch/arm/mach-omap2/id.c              |    9 ++++++++-
+> arch/arm/plat-omap/include/mach/cpu.h |    2 +-
+> 2 files changed, 9 insertions(+), 2 deletions(-)
+>
+>diff --git a/arch/arm/mach-omap2/id.c 
+>b/arch/arm/mach-omap2/id.c index a526c0f..290b88c 100644
+>--- a/arch/arm/mach-omap2/id.c
+>+++ b/arch/arm/mach-omap2/id.c
+>@@ -53,6 +53,13 @@ static struct omap_id omap_ids[] __initdata = {
+> 	{ .hawkeye = 0xb68a, .dev = 0x0, .type = 0x24300000 },  };
+> 
+>+static const char omap3_revs[][4] = {
+>+	"1.0",
+>+	"2.0",
+>+	"2.1",
+>+	"3.0"
+>+};
+>+
+> static struct omap_chip_id omap_chip;
+> 
+> /**
+>@@ -224,7 +231,7 @@ void __init omap2_check_revision(void)
+> 	 * Note that rev cannot be used directly as ES1.0 uses value 0.
+> 	 */
+> 	if (hawkeye == 0xb7ae) {
+>-		system_rev = 0x34300000 | ((1 + rev) << 12);
+>+		_set_system_rev(0x34300000 | (rev << 12), rev);
+> 		pr_info("OMAP%04x ES2.%i\n", system_rev >> 16, rev);
+> 		_set_omap_chip();
+> 		return;
+>diff --git a/arch/arm/plat-omap/include/mach/cpu.h 
+>b/arch/arm/plat-omap/include/mach/cpu.h
+>index e046418..e170d29 100644
+>--- a/arch/arm/plat-omap/include/mach/cpu.h
+>+++ b/arch/arm/plat-omap/include/mach/cpu.h
+>@@ -357,7 +357,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+> #define OMAP3430_REV_ES1_0	0x34300000
+> #define OMAP3430_REV_ES2_0	0x34301000
+> #define OMAP3430_REV_ES2_1	0x34302000
+>-#define OMAP3430_REV_ES2_2	0x34303000
+>+#define OMAP3430_REV_ES3_0	0x34303000
+> 
+> /*
+>  * omap_chip bits
+>--
+>1.5.4.3
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe 
+>linux-omap" in the body of a message to 
+>majordomo@vger.kernel.org More majordomo info at  
+>http://vger.kernel.org/majordomo-info.html
+>
