@@ -1,71 +1,70 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 1/1] Use pmd_table() MACRO for unmap_area_sections()
-Date: Mon, 08 Sep 2008 06:38:54 +0300 (EEST)
-Message-ID: <20080908.063854.112344684.Hiroshi.DOYU@nokia.com>
-References: <20080905224530.GE17156@flint.arm.linux.org.uk>
-	<20080906.035635.186133813.Hiroshi.DOYU@nokia.com>
-	<20080907193619.GC10359@flint.arm.linux.org.uk>
+From: "Ramesh Gupta Guntha" <x0023949@ti.com>
+Subject: RE: [PATCH] BRIDGE OMAP PM Bug softlockup fix
+Date: Mon, 8 Sep 2008 10:45:21 +0530
+Message-ID: <200809080515.m885FL2Z002681@dbdp31.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:18887 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752901AbYIHDjO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Sep 2008 23:39:14 -0400
-In-Reply-To: <20080907193619.GC10359@flint.arm.linux.org.uk>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55361 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751670AbYIHFPc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Sep 2008 01:15:32 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m885FNOb025748
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 8 Sep 2008 00:15:31 -0500
+Received: from sasx0023949 (localhost [127.0.0.1])
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m885FL2Z002681
+	for <linux-omap@vger.kernel.org>; Mon, 8 Sep 2008 10:45:22 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux@arm.linux.org.uk
-Cc: tony@atomide.com, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi Russell, thank you for reviewing.
+Hi Shivananda,
 
-From: "ext Russell King - ARM Linux" <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/1] Use pmd_table() MACRO for unmap_area_sections()
-Date: Sun, 7 Sep 2008 20:36:20 +0100
+<snip>
 
-> On Sat, Sep 06, 2008 at 03:56:35AM +0300, Hiroshi DOYU wrote:
-> > Would it be possible to have "pmd_table()" definition "in pgtable.h"?
-> 
-> Well, the first question is... where has this come from, and why.
-> 
-> Looking at the omap tree, it's because of arch/arm/plat-omap/mmu.c,
-> which seems to be somewhat weird and complex, duplicating some of
-> what's going on elsewhere in the kernel.
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org 
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Ramirez Luna, 
+>> Omar
+>> Sent: Friday, September 05, 2008 3:00 AM
+>> To: linux-omap@vger.kernel.org
+>> Subject: [PATCH] BRIDGE OMAP PM Bug softlockup fix  @@ -753,9
+>> +751,7 @@ static DSP_STATUS WMD_BRD_Stop(struct
+>> WMD_DEV_CONTEXT *hDevContext)
+>>                                  "for iva2_fck\n");
+>>                         }
+>>                 /* IVA2 is not in OFF state */
+>> -               /* Read and set PM_PWSTCTRL_IVA2  to OFF */
+>> -               HW_PWR_IVA2StateGet(resources.dwPrmBase,
+>> HW_PWR_DOMAIN_DSP,
+>> -                                    &pwrState);
+>> +               /* Set PM_PWSTCTRL_IVA2  to OFF */
+>>                 HW_PWR_IVA2PowerStateSet(resources.dwPrmBase,
+>>                                           HW_PWR_DOMAIN_DSP,
+>>                                           HW_PWR_STATE_OFF); @@ 
+>> -2054,8 +2050,7 @@ static DSP_STATUS run_IdleBoot(u32 prm_base, u32 
+>> cm_base,
+>>         HW_PWRST_IVA2RegGet(prm_base, &temp);
+>>          if ((temp & 0x03) != 0x03 || (temp & 0x03) != 0x02) {
+>>                 /* IVA2 is not in ON state */
+>> -               /* Read and set PM_PWSTCTRL_IVA2  to ON */
+>> -               HW_PWR_IVA2StateGet(prm_base, HW_PWR_DOMAIN_DSP,
+>> &pwrState);
+>> +               /* Set PM_PWSTCTRL_IVA2  to ON */
+>>                 HW_PWR_IVA2PowerStateSet(prm_base, HW_PWR_DOMAIN_DSP,
+>>                                           HW_PWR_STATE_ON);
+>>                 /* Set the SW supervised state transition */
+ 
+> Here in one place ,you access prm base with resources.dwPrmBase and 
+> next time access with just prm_base .Can we have have a consistent way 
+> of accessing it ?
 
-I totally agree on this and this should be refactored anyway.
+Both are in different functions WMD_BRD_Stop and run_IdleBoot.
 
-> (And with the changes I've just queued up for the next mainline merge
-> window, this file will probably break because of it's use of the kernel
-> page table macros.)
-
-OK, I will drop it and see how mainline merge affects.
-
-> A more portable way to do that would be to split out the innards of
-> __arm_ioremap_pfn() into a separate function, and use that instead
-> of exmap_set_armmmu().  Then, replace exmap_clear_armmmu() with
-> unmap_area_sections() to tear down the ARM side of the mapping.
-
-I got it. This code which keeps consistency with ARM MMU should be
-replaced completedly by them.
-
-> As far as 'mmu->twl_mm' goes, the only reason I can see for that
-> existing is as a way to use the kernel's page table accessors to
-> manipulate something that isn't used for as the CPU's page table,
-> which in turn leads to quite a number of nasty hacks in the code.
-> Really that wants to use its own accessors and macros, and twl_mm
-> eliminated.  A mm_struct isn't small.  And by doing so, you'll
-> avoid the bug and memory leak in omap_mmu_register().  kfree'ing
-> (!) a mm_struct onto a different slab cache from whence it came!
-
-Apart from the status of current "plat-omap/mmu.c", I cannot deny
-completely the possibilty of applying kernel generic APIs to this
-IOMMU driver in more cleaner manner because OMAP IOMMU is too
-similar to the generic MMU handling and ARM MMU code are designed
-quite flexible to afford the different versions of MMUs. I'm making a
-reworking patches of this IOMMU. So if possible, please take a look at
-them later.
-
-  Hiroshi DOYU
+Thanks
+Ramesh Gupta G
 
