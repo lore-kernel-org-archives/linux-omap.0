@@ -1,49 +1,39 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: [PATCH 3/5] ALSA: ASoC: Add support for TWL4030
-	audio codec (rev 3)
-Date: Mon, 8 Sep 2008 11:16:17 -0700
-Message-ID: <5e088bd90809081116v58ff6b14rd2331e5fccaeb097@mail.gmail.com>
-References: <1220769704-16705-1-git-send-email-sakoman@gmail.com>
-	<1220769704-16705-2-git-send-email-sakoman@gmail.com>
-	<1220769704-16705-3-git-send-email-sakoman@gmail.com>
-	<1220769704-16705-4-git-send-email-sakoman@gmail.com>
-	<20080908095607.GC790@sirena.org.uk>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH]Add 3430 SDP board level support for HSMMC2
+Date: Mon, 8 Sep 2008 12:26:17 -0700
+Message-ID: <200809081226.18098.david-b@pacbell.net>
+References: <33259.192.168.10.89.1218608332.squirrel@dbdmail.itg.ti.com> <20080813085433.D5C2F363253@adsl-69-226-248-13.dsl.pltn13.pacbell.net> <00cf01c8fd26$cfc751b0$LocalHost@wipultra1303>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20080908095607.GC790@sirena.org.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:36536 "HELO
+	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753109AbYIHT0U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2008 15:26:20 -0400
+In-Reply-To: <00cf01c8fd26$cfc751b0$LocalHost@wipultra1303>
 Content-Disposition: inline
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: sakoman@gmail.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Steve Sakoman <steve@sakoman.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Madhusudhan Chikkature <madhu.cr@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org
 
-On Mon, Sep 8, 2008 at 2:56 AM, Mark Brown <broonie@sirena.org.uk> wrote:
-> On Sat, Sep 06, 2008 at 11:41:42PM -0700, sakoman@gmail.com wrote:
+On Wednesday 13 August 2008, Madhusudhan Chikkature wrote:
+> > A better way to do this would be to let the boards say exactly
+> > what the hardware configuration is, rather than requiring all
+> > OMAP3 boards to be set up exactly like the SDP...
 >
->> +
->> +config SND_SOC_TWL4030
->> +     tristate
->> +     depends on SND_SOC && I2C
->> +
->
-> Sorry, didn't notice earlier: this should depend on whatever the config
-> option is for the TWL4030 core driver rather than on I2C since it
-> doesn't actually interact with I2C directly.  Although in most
-> applications this won't make much odds since the machine driver will
-> select the codec driver and select ignores the dependencies anyway.
+> I think the initial version was written specific to SDP. Later
+> on it was changed to hsmmc.c and the platforms which required
+> simillar setup as SDP started using it.
 
-You are correct.  Good catch, though as you say it doesn't really
-matter in practice.
+Right ...
 
-I will re-submit a version with this fixed nonetheless.
 
-Steve
+> Now, if support for a new board is required which is unlike SDP a  
+> new file can still be added for that perticular board, right?
+
+Each board already gets a board-XYZ.c file.  So the clean way
+to do this is to have that file set up its hsmmc config ... NOT
+to clone versions of hsmmc.c for each board!
