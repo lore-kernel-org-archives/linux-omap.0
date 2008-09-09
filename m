@@ -1,68 +1,87 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Changes which shouldn't be in OMAP tree
-Date: Tue, 9 Sep 2008 08:25:44 -0700
-Message-ID: <20080909152543.GN29054@atomide.com>
-References: <20080909081213.GD9104@flint.arm.linux.org.uk>
+Subject: Re: [PATCH 1/2]  McBSP DMA support for  34xx
+Date: Tue, 9 Sep 2008 09:31:50 -0700
+Message-ID: <20080909163149.GO29054@atomide.com>
+References: <51857.192.168.10.89.1219911960.squirrel@dbdmail.itg.ti.com> <20080828135202.657264e6.jarkko.nikula@nokia.com> <01fe01c90900$26f83320$LocalHost@wipultra806>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49985 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53049 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752898AbYIIPZ4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Sep 2008 11:25:56 -0400
+	with ESMTP id S1754090AbYIIQb4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Sep 2008 12:31:56 -0400
 Content-Disposition: inline
-In-Reply-To: <20080909081213.GD9104@flint.arm.linux.org.uk>
+In-Reply-To: <01fe01c90900$26f83320$LocalHost@wipultra806>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org
+To: "shekhar, chandra" <x0044955@ti.com>
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [080909 01:12]:
-> Tony (and whoever looks after the omapzoom tree),
-> 
-> While reviewing the omapzoom tree, I came across these three changes.
-> They all shouldn't be there - I think they're all merge errors.
-> 
-> The last one was fixed by a patch which added line 272 with the comment
-> "relocate the stack".
-> 
-> Please take a look and revert these.
+* shekhar, chandra <x0044955@ti.com> [080828 04:21]:
+>
+> ----- Original Message ----- From: "Jarkko Nikula" 
+> <jarkko.nikula@nokia.com>
+> To: "ext chandra shekhar" <x0044955@ti.com>
+> Cc: <linux-omap@vger.kernel.org>
+> Sent: Thursday, August 28, 2008 4:22 PM
+> Subject: Re: [PATCH 1/2] McBSP DMA support for 34xx
+>
+>
+>> On Thu, 28 Aug 2008 13:56:00 +0530 (IST)
+>> "ext chandra shekhar" <x0044955@ti.com> wrote:
+>>
+>>> This patch supports DMA chaining mode and one time configuration for
+>>> entire transfer to improve performance.
+>>> Signed-off-by: chandra shekhar <x0044955@ti.com>
+>>> ---
+>>>  arch/arm/mach-omap2/mcbsp.c       |  702 ++++++++++++++++++++++++++++
+>>> +++++++++- arch/arm/plat-omap/mcbsp.c        |   19 -
+>>>  include/asm-arm/arch-omap/mcbsp.h |  127 +++++-
+>>>  3 files changed, 811 insertions(+), 37 deletions(-)
+>>>
+>> Hi
+>>
+>> What's the expected use case for DMA chaining mode or existing driver
+>> which would get improved performance? There should have some reason why
+>> this amount of new lines should be added.
+>
+> current McBSP ( arch/arm/plat-omap/mcbsp.c) code request and releases dma 
+> channel for each transfer .
+> so there is latency involved. Chaining help with smooth audio play 
+> because we can enque the buffer
+> while another transfer is ongoing.
 
-Thanks, reverted in l-o tree.
+But the omap ASoC does already circular dma that automatically loops back
+to the beginning of fifo as long as there's data. How would the chaining help
+with this?
+
+Maybe update your codec to work with omap ASoC and see if you still
+need chaining?
 
 Tony
 
-> 
-> diff --git a/arch/arm/boot/.gitignore b/arch/arm/boot/.gitignore
-> index ce1c5ff..bbe9905 100644
-> --- a/arch/arm/boot/.gitignore
-> +++ b/arch/arm/boot/.gitignore
-> @@ -1,5 +1,5 @@
->  Image
->  zImage
-> +uImage
->  xipImage
->  bootpImage
-> -uImage
-> diff --git a/arch/arm/boot/compressed/head.S b/arch/arm/boot/compressed/head.S
-> index 3c2c8f2..32be061 100644
-> --- a/arch/arm/boot/compressed/head.S
-> +++ b/arch/arm/boot/compressed/head.S
-> @@ -55,7 +55,7 @@
->  #elif defined(CONFIG_ARCH_S3C2410)
->  		.macro loadsp, rb
->  		mov	\rb, #0x50000000
-> -		add	\rb, \rb, #0x4000 * CONFIG_S3C_LOWLEVEL_UART_PORT
-> +		add	\rb, \rb, #0x4000 * CONFIG_S3C2410_LOWLEVEL_UART_PORT
->  		.endm
->  #else
->  		.macro	loadsp,	rb
-> @@ -782,6 +782,7 @@ __armv7_mmu_cache_flush:
->  		mcr	p15, 0, r10, c7, c14, 0	@ clean+invalidate D
->  		b	iflush
->  hierarchical:
-> +		adr	sp, no_cache_id		@ non-v7 code is temp stack
->  		stmfd	sp!, {r0-r5, r7, r9-r11}
->  		mrc	p15, 1, r0, c0, c0, 1	@ read clidr
->  		ands	r3, r0, #0x7000000	@ extract loc from clidr
-> 
+
+>
+>>
+>> Also ideally this should cover also OMAP1's from 16xx onward since they
+>> can link DMA channels together as well?
+>
+> Current code might even work for 16xx and later versions for 16 bit data. 
+> ( or can be extended to work on 16xx and later versions)
+> but i dont have board or TRM to check for any changes in DMA subsytem or 
+> McBSP. better to play safe.
+>
+> 2430 onwards McBSP dxr/drr is 32 bits, which allows 24 bit mono/stereo 
+> transfer easily. if we had to have 16 bit dxr1,2/drr1,2
+> then we will have to perform the manipulation on data for 24 bit ops. we 
+> will have to consider all the options before extending it to 16xx.
+>
+>>
+>>
+>> Jarkko
+>>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
