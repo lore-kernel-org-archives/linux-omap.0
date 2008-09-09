@@ -1,287 +1,137 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 09/12] OMAP2/3 clock: note clockdomains for remaining clocks
-Date: Mon, 08 Sep 2008 10:57:48 -0600
-Message-ID: <20080908165747.2540.54614.stgit@localhost.localdomain>
-References: <20080908164444.2540.98619.stgit@localhost.localdomain>
+From: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Subject: Re: [PATCH - Omapzoom][ONENAND] Add synchronous burst support
+Date: Tue, 09 Sep 2008 11:26:29 +0300
+Message-ID: <48C63335.40206@nokia.com>
+References: <1220897242-18640-1-git-send-email-nskamat@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49067 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754675AbYIIIVA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Sep 2008 04:21:00 -0400
-In-Reply-To: <20080908164444.2540.98619.stgit@localhost.localdomain>
+Received: from smtp.nokia.com ([192.100.122.230]:41937 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753798AbYIIIWh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Sep 2008 04:22:37 -0400
+In-Reply-To: <1220897242-18640-1-git-send-email-nskamat@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>
+To: "nskamat@ti.com" <nskamat@ti.com>
+Cc: linux-omap@vger.kernel.org, Vimal Singh <vimalsingh@ti.com>
 
-Fill in clockdomains for all remaining clocks.  On OMAP2, these mostly
-involve IVA and DSP clocks; on OMAP3, these mostly involve some core_l4_clkdm
-devices and the secure peripherals.
+nskamat@ti.com wrote:
+> From: Vimal Singh <vimalsingh@ti.com>
+> 
+> Following patch taken over the omapzoom.org tree adds
+> synchronous burst read support to the OMAP2/3 onenand driver.
+> 
+> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+> Signed-off-by: Nishant Kamat <nskamat@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-3430sdp-flash.c |   59 +++++++++++++++++++++++++++---
+>  drivers/mtd/onenand/Kconfig               |    6 +++
+>  2 files changed, 60 insertions(+), 5 deletions(-)
+> 
+> Index: omapkernel/drivers/mtd/onenand/Kconfig
+> ===================================================================
+> --- omapkernel.orig/drivers/mtd/onenand/Kconfig	2008-09-08 12:35:43.000000000 +0530
+> +++ omapkernel/drivers/mtd/onenand/Kconfig	2008-09-08 13:00:39.000000000 +0530
+> @@ -70,4 +70,10 @@
+>  	  The simulator may simulate various OneNAND flash chips for the
+>  	  OneNAND MTD layer.
+>  
+> +config MTD_ONENAND_SYNC_BURST_READ
+> +	bool "OneNand Synchronous burst read support"
+> +	help
+> +	  Support for synchronous burst reads for a OneNand flash
+> +	  device
+> +
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/clock24xx.h |    7 ++++++-
- arch/arm/mach-omap2/clock34xx.h |   26 +++++++++++++++++++++++++-
- 2 files changed, 31 insertions(+), 2 deletions(-)
+Is this necessary?  N800 / N810 have always supported synchronous burst read
+without this config option.
 
-diff --git a/arch/arm/mach-omap2/clock24xx.h b/arch/arm/mach-omap2/clock24xx.h
-index 5845850..e339f6d 100644
---- a/arch/arm/mach-omap2/clock24xx.h
-+++ b/arch/arm/mach-omap2/clock24xx.h
-@@ -1090,12 +1090,13 @@ static struct clk dsp_irate_ick = {
- 	.parent		= &dsp_fck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X | DELAYED_APP |
- 				CONFIG_PARTICIPANT | PARENT_CONTROLS_CLOCK,
-+	.clkdm		= { .name = "dsp_clkdm" },
- 	.clksel_reg	= _CM_REG_OFFSET(OMAP24XX_DSP_MOD, CM_CLKSEL),
- 	.clksel_mask	= OMAP24XX_CLKSEL_DSP_IF_MASK,
- 	.clksel		= dsp_irate_ick_clksel,
- 	.recalc		= &omap2_clksel_recalc,
- 	.round_rate	= &omap2_clksel_round_rate,
--	.set_rate	      = &omap2_clksel_set_rate
-+	.set_rate	= &omap2_clksel_set_rate
- };
- 
- /* 2420 only */
-@@ -1103,6 +1104,7 @@ static struct clk dsp_ick = {
- 	.name		= "dsp_ick",	 /* apparently ipi and isp */
- 	.parent		= &dsp_irate_ick,
- 	.flags		= CLOCK_IN_OMAP242X | DELAYED_APP | CONFIG_PARTICIPANT,
-+	.clkdm		= { .name = "dsp_clkdm" },
- 	.enable_reg	= _CM_REG_OFFSET(OMAP24XX_DSP_MOD, CM_ICLKEN),
- 	.enable_bit	= OMAP2420_EN_DSP_IPI_SHIFT,	      /* for ipi */
- };
-@@ -1112,6 +1114,7 @@ static struct clk iva2_1_ick = {
- 	.name		= "iva2_1_ick",
- 	.parent		= &dsp_irate_ick,
- 	.flags		= CLOCK_IN_OMAP243X | DELAYED_APP | CONFIG_PARTICIPANT,
-+	.clkdm		= { .name = "dsp_clkdm" },
- 	.enable_reg	= _CM_REG_OFFSET(OMAP24XX_DSP_MOD, CM_FCLKEN),
- 	.enable_bit	= OMAP24XX_CM_FCLKEN_DSP_EN_DSP_SHIFT,
- };
-@@ -1691,6 +1694,7 @@ static struct clk gpt7_ick = {
- 	.name		= "gpt7_ick",
- 	.parent		= &l4_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.enable_reg	= _CM_REG_OFFSET(CORE_MOD, CM_ICLKEN1),
- 	.enable_bit	= OMAP24XX_EN_GPT7_SHIFT,
- 	.recalc		= &followparent_recalc,
-@@ -2586,6 +2590,7 @@ static struct clk mmchs2_fck = {
- 	.id		= 2,
- 	.parent		= &func_96m_ck,
- 	.flags		= CLOCK_IN_OMAP243X,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.enable_reg	= _CM_REG_OFFSET(CORE_MOD, OMAP24XX_CM_FCLKEN2),
- 	.enable_bit	= OMAP2430_EN_MMCHS2_SHIFT,
- 	.recalc		= &followparent_recalc,
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-index 682f43a..8fe87e3 100644
---- a/arch/arm/mach-omap2/clock34xx.h
-+++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -795,7 +795,7 @@ static struct clk virt_omap_54m_fck = {
- 	.clksel		= virt_omap_54m_fck_clksel,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
--	.clkdm		= { .name = "cm_clkdm" },
-+	.clkdm		= { .name = "dpll4_clkdm" },
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
-@@ -1020,6 +1020,7 @@ static struct clk omap_120m_fck = {
- 	.clksel		= omap_120m_fck_clksel,
- 	.flags		= CLOCK_IN_OMAP3430ES2 | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
-+	.clkdm		= { .name = "dpll5_clkdm" },
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
-@@ -1175,6 +1176,7 @@ static struct clk arm_fck = {
- 	.clksel		= arm_fck_clksel,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
-+	.clkdm		= { .name = "mpu_clkdm" },
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
-@@ -1189,6 +1191,7 @@ static struct clk emu_mpu_alwon_ck = {
- 	.parent		= &mpu_ck,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
-+	.clkdm		= { .name = "mpu_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -1306,6 +1309,7 @@ static struct clk gfx_l3_ck = {
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(GFX_MOD, CM_ICLKEN),
- 	.enable_bit	= OMAP_EN_GFX_SHIFT,
- 	.flags		= CLOCK_IN_OMAP3430ES1,
-+	.clkdm		= { .name = "gfx_3430es1_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -1459,6 +1463,7 @@ static struct clk ts_fck = {
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, OMAP3430ES2_CM_FCLKEN3),
- 	.enable_bit	= OMAP3430ES2_EN_TS_SHIFT,
- 	.flags		= CLOCK_IN_OMAP3430ES2,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -1468,6 +1473,7 @@ static struct clk usbtll_fck = {
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, OMAP3430ES2_CM_FCLKEN3),
- 	.enable_bit	= OMAP3430ES2_EN_USBTLL_SHIFT,
- 	.flags		= CLOCK_IN_OMAP3430ES2,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -1624,6 +1630,7 @@ static struct clk mcspi4_fck = {
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP3430_EN_MCSPI4_SHIFT,
- 	.flags		= CLOCK_IN_OMAP343X,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -1634,6 +1641,7 @@ static struct clk mcspi3_fck = {
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP3430_EN_MCSPI3_SHIFT,
- 	.flags		= CLOCK_IN_OMAP343X,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -1644,6 +1652,7 @@ static struct clk mcspi2_fck = {
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP3430_EN_MCSPI2_SHIFT,
- 	.flags		= CLOCK_IN_OMAP343X,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -1654,6 +1663,7 @@ static struct clk mcspi1_fck = {
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP3430_EN_MCSPI1_SHIFT,
- 	.flags		= CLOCK_IN_OMAP343X,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -1663,6 +1673,7 @@ static struct clk uart2_fck = {
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP3430_EN_UART2_SHIFT,
- 	.flags		= CLOCK_IN_OMAP343X,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -1672,6 +1683,7 @@ static struct clk uart1_fck = {
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP3430_EN_UART1_SHIFT,
- 	.flags		= CLOCK_IN_OMAP343X,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -1681,6 +1693,7 @@ static struct clk fshostusb_fck = {
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP3430ES1_EN_FSHOSTUSB_SHIFT,
- 	.flags		= CLOCK_IN_OMAP3430ES1,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -1701,6 +1714,7 @@ static struct clk hdq_fck = {
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP3430_EN_HDQ_SHIFT,
- 	.flags		= CLOCK_IN_OMAP343X,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -1739,6 +1753,7 @@ static struct clk ssi_sst_fck = {
- 	.parent		= &ssi_ssr_fck,
- 	.fixed_div	= 2,
- 	.flags		= CLOCK_IN_OMAP343X | PARENT_CONTROLS_CLOCK,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.recalc		= &omap2_fixed_divisor_recalc,
- };
- 
-@@ -1796,6 +1811,7 @@ static struct clk security_l3_ick = {
- 	.parent		= &l3_ick,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
-+	.clkdm		= { .name = "core_l3_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -1805,6 +1821,7 @@ static struct clk pka_ick = {
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
- 	.enable_bit	= OMAP3430_EN_PKA_SHIFT,
- 	.flags		= CLOCK_IN_OMAP343X,
-+	.clkdm		= { .name = "core_l3_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -2089,6 +2106,7 @@ static struct clk omapctrl_ick = {
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
- 	.enable_bit	= OMAP3430_EN_OMAPCTRL_SHIFT,
- 	.flags		= CLOCK_IN_OMAP343X | ENABLE_ON_INIT,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -2131,6 +2149,7 @@ static struct clk usb_l4_ick = {
- 	.clksel_mask	= OMAP3430ES1_CLKSEL_FSHOSTUSB_MASK,
- 	.clksel		= usb_l4_clksel,
- 	.flags		= CLOCK_IN_OMAP3430ES1,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
-@@ -2143,6 +2162,7 @@ static struct clk security_l4_ick2 = {
- 	.parent		= &l4_ick,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -2152,6 +2172,7 @@ static struct clk aes1_ick = {
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
- 	.enable_bit	= OMAP3430_EN_AES1_SHIFT,
- 	.flags		= CLOCK_IN_OMAP343X,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -2161,6 +2182,7 @@ static struct clk rng_ick = {
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
- 	.enable_bit	= OMAP3430_EN_RNG_SHIFT,
- 	.flags		= CLOCK_IN_OMAP343X,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -2170,6 +2192,7 @@ static struct clk sha11_ick = {
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
- 	.enable_bit	= OMAP3430_EN_SHA11_SHIFT,
- 	.flags		= CLOCK_IN_OMAP343X,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -2179,6 +2202,7 @@ static struct clk des1_ick = {
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
- 	.enable_bit	= OMAP3430_EN_DES1_SHIFT,
- 	.flags		= CLOCK_IN_OMAP343X,
-+	.clkdm		= { .name = "core_l4_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
- 
+>  endif # MTD_ONENAND
+> Index: omapkernel/arch/arm/mach-omap2/board-3430sdp-flash.c
+> ===================================================================
+> --- omapkernel.orig/arch/arm/mach-omap2/board-3430sdp-flash.c	2008-09-08 12:35:43.000000000 +0530
+> +++ omapkernel/arch/arm/mach-omap2/board-3430sdp-flash.c	2008-09-08 13:00:39.000000000 +0530
+> @@ -76,8 +76,16 @@
+>  };
+>  
+>  struct gpmc_cs_config pdc_onenand_gpmc_setting[] = {
+> +#ifdef CONFIG_MTD_ONENAND_SYNC_BURST_READ
+> +	{0x60801200, 0xF0900, 0x00030200, 0x0F040901, 0x0109100A, 0x1F060000},
+> +#else
+>  	{0x1200, 0x000F0F01, 0x00030301, 0x0F040F04, 0x010F1010, 0x1F060000},
+> +#endif
+> +#ifdef CONFIG_MTD_ONENAND_SYNC_BURST_READ
+> +	{0x62801201, 0xF1000, 0x00030200, 0x0F041002, 0x02101013, 0x1F060000}
+> +#else
+>  	{0x1200, 0x000F0F01, 0x00030301, 0x0F040F04, 0x010F1010, 0x1F060000}
+> +#endif
+>  };
+>  
+>  struct gpmc_cs_config fpga_gpmc_setting[] = {
+> @@ -252,15 +260,56 @@
+>  	.resource	= &sdp_nand_resource,
+>  };
+>  
+> -/*
+> - * sdp_onenand_setup - The function configures the onenand flash.
+> - * @onenand_base: Onenand base address
+> +static unsigned short omap2_onenand_readw(void __iomem *addr)
+> +{
+> +	return readw(addr);
+> +}
+> +
+> +static void omap2_onenand_writew(unsigned short value, void __iomem *addr)
+> +{
+> +	writew(value, addr);
+> +}
+> +
+> +static int omap2_onenand_set_sync_mode(int cs, void __iomem *onenand_base,
+> +					int freq)
+> +{
+> +#ifdef CONFIG_MTD_ONENAND_SYNC_BURST_READ
+> +	u32 reg;
+> +
+> +	/* Configure OneNAND for sync read */
+> +	reg = omap2_onenand_readw(onenand_base + ONENAND_REG_SYS_CFG1);
+> +	reg &= ~((0x7 << ONENAND_SYS_CFG1_BRL_SHIFT) | (0x7 << 9));
+> +	reg |=  (0x06 << ONENAND_SYS_CFG1_BRL_SHIFT) |
+> +		ONENAND_SYS_CFG1_SYNC_READ |
+> +		ONENAND_SYS_CFG1_BL_8 | 0x04;
+> +	omap2_onenand_writew(reg, onenand_base + ONENAND_REG_SYS_CFG1);
+> +
+> +	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG2, 0xf1000);
+> +	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG3, 0x00030200);
+> +	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG4, 0x0f041002);
+> +	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG5, 0x02101013);
+> +	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG6, 0x1f060000);
+> +	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, 0x62801201);
 
+Are you aware that synchronous timings may be affected by frequency scaling.
+
+> +#endif
+> +	return 0;
+> +}
+> +
+> +/**
+> + *      sdp_onenand_setup - Set the onenand sync mode
+> + *      @onenand_base:  The onenand base address in GPMC memory map
+>   *
+> - * @return int:	Currently always returning zero.
+>   */
+>  static int sdp_onenand_setup(void __iomem *onenand_base, int freq)
+>  {
+> -	/* Onenand setup does nothing at present */
+> +	struct omap_onenand_platform_data *datap = &sdp_onenand_data;
+> +	struct device *dev = &sdp_onenand_device.dev;
+> +
+> +	/* Set sync timings in GPMC */
+> +	if (omap2_onenand_set_sync_mode(datap->cs, onenand_base, freq) < 0) {
+> +		dev_err(dev, "Unable to set synchronous mode\n");
+> +		return -EINVAL;
+> +	}
+> +
+>  	return 0;
+>  }
 
