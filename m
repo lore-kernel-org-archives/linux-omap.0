@@ -1,52 +1,45 @@
-From: "Singh, Vimal" <vimalsingh@ti.com>
-Subject: RE: [PATCH - Omapzoom] [NAND] Add prefetch and DMA support
-Date: Wed, 10 Sep 2008 19:42:05 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403CD517C43@dbde02.ent.ti.com>
-References: <DFEF307E035C8647B119E6A60DB62D4AEE4F7561@dlee02.ent.ti.com>,<200809081527.35446.david-b@pacbell.net>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: 3430: can't find mmc debounce clock
+Date: Wed, 10 Sep 2008 08:36:49 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0809100835560.20446@utopia.booyaka.com>
+References: <57314e840809080618x1f0cd0aen74b1a03351dc8ef7@mail.gmail.com> <alpine.DEB.1.00.0809100641010.20446@utopia.booyaka.com> <13B9B4C6EF24D648824FF11BE896716203655BDE26@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38608 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751574AbYIJOMV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 10:12:21 -0400
-In-Reply-To: <200809081527.35446.david-b@pacbell.net>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:42339 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751795AbYIJOgv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 10:36:51 -0400
+In-Reply-To: <13B9B4C6EF24D648824FF11BE896716203655BDE26@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, "Kamat, Nishant" <nskamat@ti.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Budhee Jamaich <budheej@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+On Wed, 10 Sep 2008, Woodruff, Richard wrote:
 
-> On Monday 08 September 2008, Kamat, Nishant wrote:
-> > +config MTD_NAND_OMAP_PREFETCH
-> > +       bool "GPMC prefetch support for NAND Flash device"
-> > +       depends on MTD_NAND && MTD_NAND_OMAP2
-> > +       default n
-> > +       help
-> > +        The NAND device can be accessed for Read/Write using GPMC PREFETCH engine
-> > +        to improve the performance.
->
-> Is there a reason this isn't always enabled, and the choice is just
-> whether to use DMA or not?
+> 
+> > > I read that the mmc has 3 clocks: fixed functional clock (MMCi_FCLK),
+> > > interface clock (MMCi_ICLK) and debounce clock (MMCi_32).
+> > >
+> > > But, when I look in clock34xx.h, I can only see two of those - there
+> > > is the "mmchs_fck" and "mmchs_ick". There is no struct clk for the
+> > > debounce clock. Only when I look in older kernels I can see also the
+> > > "mmchsdb2_fck".
+> > >
+> > > So where is the debounce clock struct ? (I want to 'get' and 'enable'
+> > it...)
+> >
+> > The debounce clocks are controlled by gpio[1-6]_fck.  Perhaps we should
+> > rename them, but that's what the current tree uses.
+> 
+> With out looking, that's a bit confusing to me.  Perhaps it's a porting wonder...
 
-Currently I had kept this for experimentation purpose. I will enable it in next patch.
+Ugh, sorry, the above is wrong.  Richard's solution below is right.
 
-> I'd be interested to see performance measurements for the three cases.
->
->         - current/slow code
->         - the readsw() update I sent previously
->         - this "prefetch engine"
+> 2430 did have a separate MMC denounce clock which is controllable at the PRCM level.  This is the name you mention above (2430 name).  I don't think 3430 provides the same control.  A 32K clock is fed into the MMC block, but it is probably controlled locally in MMC block not through clock API at PRCM level.
+> 
+> Maybe you just need an ifdef or is_cpu_ call.
 
-I will do these measurements.
 
-> And I'd expect this "prefetch engine" code would also be improved by
-> using readsw() and writesw() when DMA isn't in use.
->
-> On one ARM926 I observed a 16% speedup *just* from switching from
-> slow byte-at-a-time PIO to using readsb ... this current code has
-> that same pessimization.
-
-> - Dave
+- Paul
