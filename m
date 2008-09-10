@@ -1,64 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH]Enable 4-bit in HSMMC1 and HSMMC2 platform data
-Date: Wed, 10 Sep 2008 16:56:46 -0700
-Message-ID: <20080910235646.GV21163@atomide.com>
-References: <62710.192.168.10.89.1218608010.squirrel@dbdmail.itg.ti.com>
+Subject: Re: [PATCH]Add 3430 SDP board level support for HSMMC2
+Date: Wed, 10 Sep 2008 16:59:14 -0700
+Message-ID: <20080910235913.GW21163@atomide.com>
+References: <33259.192.168.10.89.1218608332.squirrel@dbdmail.itg.ti.com> <20080813085433.D5C2F363253@adsl-69-226-248-13.dsl.pltn13.pacbell.net> <00cf01c8fd26$cfc751b0$LocalHost@wipultra1303> <200809081226.18098.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62086 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64009 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752126AbYIJX4s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 19:56:48 -0400
+	with ESMTP id S1752248AbYIJX7Q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 19:59:16 -0400
 Content-Disposition: inline
-In-Reply-To: <62710.192.168.10.89.1218608010.squirrel@dbdmail.itg.ti.com>
+In-Reply-To: <200809081226.18098.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan Chikkature <madhu.cr@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Madhusudhan Chikkature <madhu.cr@ti.com>, linux-omap@vger.kernel.org
 
-* Madhusudhan Chikkature <madhu.cr@ti.com> [080812 23:13]:
-> From: Madhusudhan Chikkature<madhu.cr@ti.com>
+* David Brownell <david-b@pacbell.net> [080908 12:26]:
+> On Wednesday 13 August 2008, Madhusudhan Chikkature wrote:
+> > > A better way to do this would be to let the boards say exactly
+> > > what the hardware configuration is, rather than requiring all
+> > > OMAP3 boards to be set up exactly like the SDP...
+> >
+> > I think the initial version was written specific to SDP. Later
+> > on it was changed to hsmmc.c and the platforms which required
+> > simillar setup as SDP started using it.
 > 
-> ARM: OMAP3: Enable 4-bit support for HSMMC.
+> Right ...
 > 
-> This patch provides the fix to enable 4-bit support for HSMMC.
+> 
+> > Now, if support for a new board is required which is unlike SDP a  
+> > new file can still be added for that perticular board, right?
+> 
+> Each board already gets a board-XYZ.c file.  So the clean way
+> to do this is to have that file set up its hsmmc config ... NOT
+> to clone versions of hsmmc.c for each board!
 
-Pushing today.
+Madhu, are you planning to abstract hsmmc.c further so various boards
+can use it?
 
 Tony
-
-> Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
-> Signed-off-by: purushotam<purushotam@ti.com>
-> ---
->  arch/arm/plat-omap/devices.c |    8 ++++++--
->  1 files changed, 6 insertions(+), 2 deletions(-)
-> 
-> Index: linux-omap-2.6/arch/arm/plat-omap/devices.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/plat-omap/devices.c	2008-08-07
-> 15:56:52.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/plat-omap/devices.c	2008-08-11 10:57:37.000000000
-> +0530
-> @@ -289,13 +289,17 @@ static void __init omap_init_mmc(void)
->  	mmc = &mmc_conf->mmc[0];
-> 
->  	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
-> -		if (mmc->enabled)
-> +		if (mmc->enabled) {
-> +			mmc1_data.conf = *mmc;
->  			(void) platform_device_register(&mmc_omap_device1);
-> +		}
-> 
->  #if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX)
->  		mmc = &mmc_conf->mmc[1];
-> -		if (mmc->enabled)
-> +		if (mmc->enabled) {
-> +			mmc2_data.conf = *mmc;
->  			(void) platform_device_register(&mmc_omap_device2);
-> +		}
->  #endif
-> 
->  		return;
-> 
-> 
