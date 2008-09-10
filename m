@@ -1,133 +1,143 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 04/12] OMAP2/3 clock: convert wkup_clkdm CM clocks to
-	cm_clkdm
-Date: Wed, 10 Sep 2008 10:47:46 -0600
-Message-ID: <20080910164743.17024.74379.stgit@localhost.localdomain>
+Subject: [PATCH v2 07/12] OMAP3 PRCM: add DPLL1-5 powerdomains, clockdomains
+Date: Wed, 10 Sep 2008 10:47:55 -0600
+Message-ID: <20080910164752.17024.7304.stgit@localhost.localdomain>
 References: <20080910164631.17024.43733.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:58265 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:58278 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753814AbYIJQsz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 12:48:55 -0400
+	with ESMTP id S1753651AbYIJQs7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 12:48:59 -0400
 In-Reply-To: <20080910164631.17024.43733.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>
 
-Convert existing wkup_clkdm clocks that should be in the CM clockdomain
-to cm_clkdm.  (A later patch will add CM clockdomain associations for
-unassociated clocks.)
-
-
-References:
-
-OMAP2420 Multimedia Processor Silicon Revision 2.1.1, 2.2 TRM Version Q
-   Figure 5-9
-      - func_54m_ck, core_ck, func_96m_ck, func_48m_ck, func_12m_ck
-
-
-OMAP34xx Multimedia Device Silicon Revision 3.0 Version I TRM
-   Figure 4-35
-      - sys_clkout2
+Each DPLL exists in its own powerdomain (cf 34xx TRM figure 4-18) and
+clockdomain; so, create powerdomain and clockdomain structures for them.
+These are used in a following patch for DPLL-related clocks.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock24xx.h |   16 ++++++++--------
- arch/arm/mach-omap2/clock34xx.h |    2 +-
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/clockdomains.h     |   35 ++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/powerdomains.h     |    5 +++++
+ arch/arm/mach-omap2/powerdomains34xx.h |   31 ++++++++++++++++++++++++++++
+ 3 files changed, 71 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock24xx.h b/arch/arm/mach-omap2/clock24xx.h
-index 8915b52..5845850 100644
---- a/arch/arm/mach-omap2/clock24xx.h
-+++ b/arch/arm/mach-omap2/clock24xx.h
-@@ -757,7 +757,7 @@ static struct clk func_54m_ck = {
- 	.parent		= &apll54_ck,	/* can also be alt_clk */
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				RATE_PROPAGATES | PARENT_CONTROLS_CLOCK,
--	.clkdm		= { .name = "wkup_clkdm" },
-+	.clkdm		= { .name = "cm_clkdm" },
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= _CM_REG_OFFSET(PLL_MOD, CM_CLKSEL1),
- 	.clksel_mask	= OMAP24XX_54M_SOURCE,
-@@ -770,7 +770,7 @@ static struct clk core_ck = {
- 	.parent		= &dpll_ck,		/* can also be 32k */
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				ALWAYS_ENABLED | RATE_PROPAGATES,
--	.clkdm		= { .name = "wkup_clkdm" },
-+	.clkdm		= { .name = "cm_clkdm" },
- 	.recalc		= &followparent_recalc,
+diff --git a/arch/arm/mach-omap2/clockdomains.h b/arch/arm/mach-omap2/clockdomains.h
+index 2156668..5234be1 100644
+--- a/arch/arm/mach-omap2/clockdomains.h
++++ b/arch/arm/mach-omap2/clockdomains.h
+@@ -249,6 +249,36 @@ static struct clockdomain emu_clkdm = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
  };
  
-@@ -797,7 +797,7 @@ static struct clk func_96m_ck = {
- 	.parent		= &apll96_ck,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				RATE_PROPAGATES | PARENT_CONTROLS_CLOCK,
--	.clkdm		= { .name = "wkup_clkdm" },
-+	.clkdm		= { .name = "cm_clkdm" },
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= _CM_REG_OFFSET(PLL_MOD, CM_CLKSEL1),
- 	.clksel_mask	= OMAP2430_96M_SOURCE,
-@@ -830,7 +830,7 @@ static struct clk func_48m_ck = {
- 	.parent		= &apll96_ck,	 /* 96M or Alt */
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				RATE_PROPAGATES | PARENT_CONTROLS_CLOCK,
--	.clkdm		= { .name = "wkup_clkdm" },
-+	.clkdm		= { .name = "cm_clkdm" },
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= _CM_REG_OFFSET(PLL_MOD, CM_CLKSEL1),
- 	.clksel_mask	= OMAP24XX_48M_SOURCE,
-@@ -846,7 +846,7 @@ static struct clk func_12m_ck = {
- 	.fixed_div	= 4,
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				RATE_PROPAGATES | PARENT_CONTROLS_CLOCK,
--	.clkdm		= { .name = "wkup_clkdm" },
-+	.clkdm		= { .name = "cm_clkdm" },
- 	.recalc		= &omap2_fixed_divisor_recalc,
++static struct clockdomain dpll1_clkdm = {
++	.name		= "dpll1_clkdm",
++	.pwrdm		= { .name = "dpll1_pwrdm" },
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++static struct clockdomain dpll2_clkdm = {
++	.name		= "dpll2_clkdm",
++	.pwrdm		= { .name = "dpll2_pwrdm" },
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++static struct clockdomain dpll3_clkdm = {
++	.name		= "dpll3_clkdm",
++	.pwrdm		= { .name = "dpll3_pwrdm" },
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++static struct clockdomain dpll4_clkdm = {
++	.name		= "dpll4_clkdm",
++	.pwrdm		= { .name = "dpll4_pwrdm" },
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++static struct clockdomain dpll5_clkdm = {
++	.name		= "dpll5_clkdm",
++	.pwrdm		= { .name = "dpll5_pwrdm" },
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
++};
++
+ #endif   /* CONFIG_ARCH_OMAP34XX */
+ 
+ /*
+@@ -310,6 +340,11 @@ static struct clockdomain *clockdomains_omap[] = {
+ 	&usbhost_clkdm,
+ 	&per_clkdm,
+ 	&emu_clkdm,
++	&dpll1_clkdm,
++	&dpll2_clkdm,
++	&dpll3_clkdm,
++	&dpll4_clkdm,
++	&dpll5_clkdm,
+ #endif
+ 
+ 	NULL,
+diff --git a/arch/arm/mach-omap2/powerdomains.h b/arch/arm/mach-omap2/powerdomains.h
+index fba3440..51623e2 100644
+--- a/arch/arm/mach-omap2/powerdomains.h
++++ b/arch/arm/mach-omap2/powerdomains.h
+@@ -179,6 +179,11 @@ static struct powerdomain *powerdomains_omap[] __initdata = {
+ 	&emu_pwrdm,
+ 	&sgx_pwrdm,
+ 	&usbhost_pwrdm,
++	&dpll1_pwrdm,
++	&dpll2_pwrdm,
++	&dpll3_pwrdm,
++	&dpll4_pwrdm,
++	&dpll5_pwrdm,
+ #endif
+ 
+ 	NULL
+diff --git a/arch/arm/mach-omap2/powerdomains34xx.h b/arch/arm/mach-omap2/powerdomains34xx.h
+index adbfa91..446a1ed 100644
+--- a/arch/arm/mach-omap2/powerdomains34xx.h
++++ b/arch/arm/mach-omap2/powerdomains34xx.h
+@@ -341,6 +341,37 @@ static struct powerdomain usbhost_pwrdm = {
+ 	},
  };
  
-@@ -945,7 +945,7 @@ static struct clk sys_clkout2_src = {
- 	.name		= "sys_clkout2_src",
- 	.parent		= &func_54m_ck,
- 	.flags		= CLOCK_IN_OMAP242X | RATE_PROPAGATES | OFFSET_GR_MOD,
--	.clkdm		= { .name = "wkup_clkdm" },
-+	.clkdm		= { .name = "cm_clkdm" },
- 	.enable_reg	= _GR_MOD_OFFSET(OMAP24XX_PRCM_CLKOUT_CTRL_OFFSET),
- 	.enable_bit	= OMAP2420_CLKOUT2_EN_SHIFT,
- 	.init		= &omap2_init_clksel_parent,
-@@ -968,7 +968,7 @@ static struct clk sys_clkout2 = {
- 	.parent		= &sys_clkout2_src,
- 	.flags		= CLOCK_IN_OMAP242X | PARENT_CONTROLS_CLOCK |
- 				OFFSET_GR_MOD,
--	.clkdm		= { .name = "wkup_clkdm" },
-+	.clkdm		= { .name = "cm_clkdm" },
- 	.clksel_reg	= _GR_MOD_OFFSET(OMAP24XX_PRCM_CLKOUT_CTRL_OFFSET),
- 	.clksel_mask	= OMAP2420_CLKOUT2_DIV_MASK,
- 	.clksel		= sys_clkout2_clksel,
-@@ -981,7 +981,7 @@ static struct clk emul_ck = {
- 	.name		= "emul_ck",
- 	.parent		= &func_54m_ck,
- 	.flags		= CLOCK_IN_OMAP242X | OFFSET_GR_MOD,
--	.clkdm		= { .name = "wkup_clkdm" },
-+	.clkdm		= { .name = "cm_clkdm" },
- 	.enable_reg	= _GR_MOD_OFFSET(OMAP24XX_PRCM_CLKEMUL_CTRL_OFFSET),
- 	.enable_bit	= OMAP24XX_EMULATION_EN_SHIFT,
- 	.recalc		= &followparent_recalc,
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-index 7bd6f56..01414e2 100644
---- a/arch/arm/mach-omap2/clock34xx.h
-+++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -1023,7 +1023,7 @@ static struct clk clkout2_src_ck = {
- 	.clksel_mask	= OMAP3430_CLKOUT2SOURCE_MASK,
- 	.clksel		= clkout2_src_clksel,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES,
--	.clkdm		= { .name = "core_l4_clkdm" },
-+	.clkdm		= { .name = "cm_clkdm" },
- 	.recalc		= &omap2_clksel_recalc,
- };
++static struct powerdomain dpll1_pwrdm = {
++	.name		= "dpll1_pwrdm",
++	.prcm_offs	= MPU_MOD,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++static struct powerdomain dpll2_pwrdm = {
++	.name		= "dpll2_pwrdm",
++	.prcm_offs	= OMAP3430_IVA2_MOD,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++static struct powerdomain dpll3_pwrdm = {
++	.name		= "dpll3_pwrdm",
++	.prcm_offs	= PLL_MOD,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++static struct powerdomain dpll4_pwrdm = {
++	.name		= "dpll4_pwrdm",
++	.prcm_offs	= PLL_MOD,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++static struct powerdomain dpll5_pwrdm = {
++	.name		= "dpll5_pwrdm",
++	.prcm_offs	= PLL_MOD,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
++};
++
++
+ #endif    /* CONFIG_ARCH_OMAP34XX */
+ 
  
 
 
