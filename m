@@ -1,59 +1,83 @@
-From: "shekhar, chandra" <x0044955@ti.com>
-Subject: Re: [PATCH 1/2]  McBSP DMA support for  34xx
-Date: Wed, 10 Sep 2008 17:14:51 +0530
-Message-ID: <0e0b01c9133a$a479b3c0$LocalHost@wipultra806>
-References: <51857.192.168.10.89.1219911960.squirrel@dbdmail.itg.ti.com><20080828135202.657264e6.jarkko.nikula@nokia.com><01fe01c90900$26f83320$LocalHost@wipultra806><20080909163149.GO29054@atomide.com><0d7601c9132e$72d82100$LocalHost@wipultra806> <20080910141452.c59572e9.jarkko.nikula@nokia.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [BRIDGE] Rebase and sync with omapzoom bridge patch update
+Date: Wed, 10 Sep 2008 15:41:46 +0300 (EEST)
+Message-ID: <20080910.154146.234688808.Hiroshi.DOYU@nokia.com>
+References: <20080910.065332.170214513.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54038 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752098AbYIJLpI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Sep 2008 07:45:08 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:23263 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752108AbYIJMlx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 08:41:53 -0400
+In-Reply-To: <20080910.065332.170214513.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: x00omar@ti.com, h-kanigeri2@ti.com, grgupta@ti.com, juha.m.alanen@nokia.com, felipe.contreras@nokia.com, felipe.balbi@nokia.com
 
+Hi,
 
------ Original Message ----- 
-From: "Jarkko Nikula" <jarkko.nikula@nokia.com>
-To: "ext shekhar, chandra" <x0044955@ti.com>
-Cc: "Tony Lindgren" <tony@atomide.com>; <linux-omap@vger.kernel.org>
-Sent: Wednesday, September 10, 2008 4:44 PM
-Subject: Re: [PATCH 1/2] McBSP DMA support for 34xx
+It seems that the following site doesn't work with git.
+So please use:
 
+$ wget http://4869037.web.fc2.com/tidspbridge-20080910.tgz
 
-> On Wed, 10 Sep 2008 15:47:34 +0530
-> "ext shekhar, chandra" <x0044955@ti.com> wrote:
->
->> Most importantly,
->> 4> McBSP buffer ( To save power, for 34xx).
->> OMAP3430 McBSP interface 2 has 5k buffer for audio.  handling of this
->> buffer should be specific to McBSP.
->>
-> Actually it's not specific to McBSP only. I haven't paid attention into
-> these HW buffering issues but they have an effect. Like
->
-> - IRCC ALSA expects that playback/record is really stopped when trigger
->  callback returns
-> - How HW buffering affects pointer callback? Some low-latency audio
->  algorithms require that buffer position is known very precisely. E.g.
->  if modifying already queued audio buffer content but which is not
->  played out yet
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: [BRIDGE] Rebase and sync with omapzoom bridge patch update
+Date: Wed, 10 Sep 2008 06:53:32 +0300 (EEST)
 
-This harware buffer is not user accessible, but during data transfer it is 
-related to dma transfer.
-During data transfer instead of element sync, packet sync data transfer can be 
-used.
-DMA request length can be configured buffer threshold and packet sync transfer 
-can be used instead of element sync.
-
->
-> Jarkko
+> Hi,
 > 
-
+> I have updated all TI BRIDGE patches and rebased them against the
+> latest linux-omap again for easy integration of them. You can get it
+> by:
+>      git fetch http://4869037.web.fc2.com/linux.git bridge:<you branch>
+> 
+> Most of the patches come directly from OMAPZOOM(Thanks, TI bridge
+> team) and I just collected them;)
+> 
+> which includes the following patches.
+> 
+> Fernando Guzman Lugo (1):
+>       BRIDGE: Remove sparse warnings from wcd
+> 
+> Hiroshi DOYU (12):
+>       BRIDGE: Kconfig Entry
+>       BRIDGE: Header files
+>       BRIDGE: Doff image dynamic loader
+>       BRIDGE: Generic Utilities
+>       BRIDGE: Hardware Interfaces
+>       BRIDGE: Platform Manager
+>       BRIDGE: Resource Manager
+>       BRIDGE: Services
+>       BRIDGE: Mini driver
+>       BRIDGE: README
+>       BRIDGE: Fix header path
+>       BRIDGE: Sync omapzoom bridge patches
+> 
+> Omar Ramirez Luna (6):
+>       BRIDGE: Ceanup GT sparse warnings
+>       BRIDGE: Cleanup static declarations warnings
+>       BRIDGE: Remove unused clk structs
+>       BRIDGE: Clean up unusedvariables
+>       BRIDGE: Cosmetic changes reported from checkpatch
+>       BRIDGE: Checkpatch Cleanup
+> 
+> Ramesh Gupta (2):
+>       BRIDGE: Power management changes
+>       BRIDGE: OMAP PM Bug softlockup fix
+> 
+> ext Ramirez Luna, Omar (1):
+>       BRIDGE: OMAP CSL wrappers removed
+> 
+> x00omar@ti.com (1):
+>       BRIDGE: Add wcd table end
+> 
+> If you find some missing patches against omapzoom, please let me know.
+> 
+>      Hiroshi DOYU
+> 
+> 
+> 
