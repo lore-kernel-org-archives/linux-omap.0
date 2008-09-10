@@ -1,91 +1,61 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: omap24xx is broken in current head
-Date: Wed, 10 Sep 2008 16:40:53 -0700
-Message-ID: <20080910234053.GQ21163@atomide.com>
-References: <20080810115818.GG7574@frodo> <20080810121655.GH7574@frodo> <C558C578-1F45-433E-B82F-F5667CEBAFAF@student.utwente.nl> <1218388936.24010.138.camel@localhost> <20080811145053.GL25784@atomide.com> <28085EBF-3BA7-4093-A18F-4035D5DD8040@student.utwente.nl> <20080811152944.GP25784@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP: Fix occasional i2c driver hang
+Date: Wed, 10 Sep 2008 16:42:47 -0700
+Message-ID: <20080910234246.GR21163@atomide.com>
+References: <423644ca0808281230g1f8c20ceta4a6822098d4e431@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50570 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51931 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751986AbYIJXlA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 19:41:00 -0400
+	with ESMTP id S1752204AbYIJXms (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 19:42:48 -0400
 Content-Disposition: inline
-In-Reply-To: <20080811152944.GP25784@atomide.com>
+In-Reply-To: <423644ca0808281230g1f8c20ceta4a6822098d4e431@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: Igor Stoppa <igor.stoppa@nokia.com>, me@felipebalbi.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Jason Marini <jason.marini@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [080811 08:32]:
-> * Koen Kooi <k.kooi@student.utwente.nl> [080811 18:00]:
-> >
-> > Op 11 aug 2008, om 16:50 heeft Tony Lindgren het volgende geschreven:
-> >
-> >> * Igor Stoppa <igor.stoppa@nokia.com> [080810 20:39]:
-> >>> On Sun, 2008-08-10 at 14:37 +0200, ext Koen Kooi wrote:
-> >>>
-> >>>> "Broken as hell" if you want to do anything NEON related with it.
-> >>>
-> >>> yup
-> >>> Very unlucky but very true.
-> >>>> I
-> >>>> use 2007q3 with the -Os fix for compiling omap3 kernels
-> >>>
-> >>> Felipe: that's also what we should use internally, since it's the  
-> >>> only
-> >>> one approved by our system performance team.
-> >>
-> >> I'll revert this patch for now to avoid adding a compiler dependency
-> >> as we already have a pile of other issues to solve.
-> >
-> > Speaking of compiler dependencies, how about applying my patch that  
-> > enable vanilla gcc to compile the kernel? Russel (or Erik) seems to be  
-> > fond of rejecting my mails to the LAKML list, so I can't post it there. A 
-> > copy of it can be found here:
-> >
-> > http://ewi546.ewi.utwente.nl/git/?p=openembedded.git;a=blob;f=packages/linux/linux-omap2-git/beagleboard/no-harry-potter.diff;h=2bb20ab9c025312fcf0434de5bcb88aeceb4f87f;hb=HEAD
-> 
-> That seems like a good patch, you should see what the issue is with
-> posting to LAKML. Maybe add it to Russell's patch system meanwhile? :)
-> 
-> Meanwhile, yeah I'd say if that works on more compilers, let's add it
-> to l-o tree.
+* Jason Marini <jason.marini@gmail.com> [080828 12:31]:
+> The i2c driver contains a while loop that has no timeout.  If i2c is in a
+> funky state and OMAP_I2C_CON_STT remains asserted, the kernel hangs.  Insert
+> the standard i2c timeout into the loop.
 
-I still don't see this patch anywhere.. Koen, what's your mail problem
-with LAKML? Maybe Russell can help with this issue?
-
-Anyways, I'll apply this to l-o tree. Seems like the dash is the right
-naming according to this:
-
-http://sourceware.org/ml/binutils/2006-12/msg00149.html
+Pushing today.
 
 Tony
 
 
+> Signed-off-by: Jason P Marini <jason.marini@gmail.com>
+> ---
+>  drivers/i2c/busses/i2c-omap.c |    9 ++++++++-
+>  1 files changed, 8 insertions(+), 1 deletions(-)
 > 
-> Tony
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 3c4e581..3a7b6ef 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -440,9 +440,16 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+>  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, w);
 > 
-> 
-> > regards,
-> >
-> > Koen
-> >
-> >>
-> >>
-> >> Let's plan on re-applying this patch once the other issues are out of
-> >> the way.
-> >>
-> >> Tony
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-omap" 
-> >> in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>
-> >
-> 
-> 
+>  	if (dev->b_hw && stop) {
+> +		unsigned long delay = jiffies + OMAP_I2C_TIMEOUT;
+> +
+>  		/* H/w behavior: dont write stt and stp together.. */
+>  		while (omap_i2c_read_reg(dev, OMAP_I2C_CON_REG) & OMAP_I2C_CON_STT) {
+> -			/* Dont do anything - this will come in a couple of loops at max*/
+> +			/* Let the user know if i2c is in a bad state */
+> +			if (time_after (jiffies, delay)) {
+> +				dev_err(dev->dev, "controller timed out "
+> +				"waiting for start condition to finish\n");
+> +				return -ETIMEDOUT;
+> +			}
+>  		}
+>  		w |= OMAP_I2C_CON_STP;
+>  		w &= ~OMAP_I2C_CON_STT;
+> -- 
+> 1.5.5.1
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
