@@ -1,49 +1,82 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 10/12] Adds support for CPUIdle safe state
-Date: Wed, 10 Sep 2008 09:41:55 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0809100940400.20446@utopia.booyaka.com>
-References: <62933.192.168.10.89.1220276529.squirrel@dbdmail.itg.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/3][OMAP 3/4]table end for wcd command definitions
+Date: Wed, 10 Sep 2008 08:44:14 -0700
+Message-ID: <20080910154414.GB29054@atomide.com>
+References: <27F9C60D11D683428E133F85D2BB4A534486D6A4@dlee03.ent.ti.com> <20080829.080313.110221229.Hiroshi.DOYU@nokia.com> <20080910.070827.145357958.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:34331 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752585AbYIJPl4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 11:41:56 -0400
-In-Reply-To: <62933.192.168.10.89.1220276529.squirrel@dbdmail.itg.ti.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63531 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752216AbYIJPoa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 11:44:30 -0400
+Content-Disposition: inline
+In-Reply-To: <20080910.070827.145357958.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, x00omar@ti.com, h-kanigeri2@ti.com
 
-Hello Rajendra,
-
-On Mon, 1 Sep 2008, Rajendra Nayak wrote:
-
-> This patch adds the support to move to a safe-state on bm activity
+* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [080909 21:08]:
+> Hi,
 > 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/mach-omap2/cpuidle34xx.c |  152 +++++++++++++++++++-------------------
->  1 files changed, 79 insertions(+), 73 deletions(-)
+> Although this TI bridge patches are not integrated and a bit
+> independent S/W component, it would be nice to get some comments just
+> on this bridge header file location from kernel maintainer's
+> perspective.
 > 
-> Index: linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/cpuidle34xx.c	2008-09-01
-> 18:25:25.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c	2008-09-01
-> 18:27:10.000000000 +0530
-> @@ -269,6 +272,7 @@ int omap3_idle_init(void)
->  	struct omap3_processor_cx *cx;
->  	struct cpuidle_state *state;
->  	struct cpuidle_device *dev;
-> +	char clk_name[11];
+> "arch/arm/plat-omap/include/mach/bridge"
+>   or "arch/arm/plat-omap/include/bridge"?
 
-Nothing in this patch uses this - please drop or move to the patch that 
-uses this variable.
+How about put the bridge specific headers under include/linux/dspbridge?
+Then you can have just the omap specific headers under
+arch/arm/plat-omap/include/mach.
+
+Tony
+
 
 > 
->  	omap3_clear_scratchpad_contents();
->  	omap3_save_scratchpad_contents();
-
-- Paul
+> 	 Hiroshi DOYU
+> 
+> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> Subject: Re: [PATCH 2/3][OMAP 3/4]table end for wcd command definitions
+> Date: Fri, 29 Aug 2008 08:03:13 +0300 (EEST)
+> 
+> > Hi Omar,
+> > 
+> > I just noticed that the bridge specific header files are located
+> > under "linux/arch/arm/plat-omap/include/mach/bridge/", but it may be
+> > better to have them under "arch/arm/plat-omap/include/bridge/" because
+> > those header files are not related to the omap archtecture so much and
+> > mostly used for bridge specific purpose, although omap is the only
+> > platform to have bridge with dsp;) For me, it would make more sense
+> > logically, and also practically grepp'ing would work more nicely
+> > without any fancy tools like specifiying the directories to search.
+> > 
+> > Any comments?
+> > 
+> > 	Hiroshi DOYU
+> > 
+> > From: "ext Ramirez Luna, Omar" <x00omar@ti.com>
+> > Subject: [PATCH 2/3][OMAP 3/4]table end for wcd command definitions
+> > Date: Thu, 28 Aug 2008 20:30:44 -0500
+> > 
+> > > Added the table end 'CMD_BASE_END_OFFSET' define in wcdioctl.h
+> > > 
+> > > Signed-off-by: Omar Ramirez Luna <x00omar@ti.com>
+> > > ---
+> > > 
+> > > Index: omapkernel/arch/arm/plat-omap/include/mach/bridge/wcdioctl.h
+> > > ===================================================================
+> > > --- omapkernel.orig/arch/arm/plat-omap/include/mach/bridge/wcdioctl.h	2008-08-22 19:03:10.000000000 -0500
+> > > +++ omapkernel/arch/arm/plat-omap/include/mach/bridge/wcdioctl.h	2008-08-22 19:20:05.000000000 -0500
+> > > @@ -515,4 +515,5 @@
+> > >  #define CMD_CMM_GETINFO_OFFSET	  (CMD_CMM_BASE_OFFSET + 3)
+> > >  #define CMD_CMM_END_OFFSET	      CMD_CMM_GETINFO_OFFSET
+> > >  
+> > > +#define CMD_BASE_END_OFFSET	CMD_CMM_END_OFFSET
+> > >  #endif				/* WCDIOCTL_ */
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
