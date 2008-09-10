@@ -1,53 +1,41 @@
-From: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
-Subject: Re: [PATCH] MUSB: Set INDEX register to 0 before accessing
-	CONFIGDATA
-Date: Wed, 10 Sep 2008 22:01:18 +0300
-Message-ID: <20080910190114.GA6671@frodo>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02C418D1B1@dbde02.ent.ti.com> <200809062204.01492.david-b@pacbell.net> <386072610809072012wcf053a6j37c238b82667c23a@mail.gmail.com>
-Reply-To: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: omapzoom tree broken?
+Date: Wed, 10 Sep 2008 22:08:53 +0300
+Message-ID: <20080910190851.GB6671@frodo>
+References: <20080909175929.GK8894@flint.arm.linux.org.uk> <1f11a5490809091137r66a9d91cl850ad6e034fe5844@mail.gmail.com> <20080909185415.GM8894@flint.arm.linux.org.uk>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ns1.siteground211.com ([209.62.36.12]:35325 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751763AbYIJTJP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 15:09:15 -0400
 Content-Disposition: inline
-In-Reply-To: <386072610809072012wcf053a6j37c238b82667c23a-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bryan Wu <cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20080909185415.GM8894@flint.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Ashwin Bihari <abihari@gmail.com>, linux-omap@vger.kernel.org
 
-On Mon, Sep 08, 2008 at 11:12:24AM +0800, Bryan Wu wrote:
-> On Sun, Sep 7, 2008 at 1:04 PM, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org> wrote:
-> > On Thursday 04 September 2008, Gadiyar, Anand wrote:
-> >> From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-> >>
-> >> The Index register needs to be zero to access CONFIGDATA.
-> >> musb_ep_select()will not set the MUSB_INDEX register unless INDEXED
-> >> mode addressing is used. This change will set the register correctly
-> >> in INDEXED as well as FLAT mode.
-> >>
-> >> Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-> >> CC: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-> >
-> > ACK.  I *know* it was originally written that way.  I think
-> > the change was one of the Blackfin patches ... I hope this
-> > isn't one of those cases where the Blackfin version of this
-> > core acts differently.  (Like clearing that DMA IRQ status...)
-> >
+On Tue, Sep 09, 2008 at 07:54:15PM +0100, Russell King - ARM Linux wrote:
+> Looks like the pack index was corrupted; removing the one it just fetched
+> and repulling has made it happier.
 > 
-> For Blackfin, the register MUSB_CONFIGDATA is not exported out to software.
-> So in the musb driver, Blackfin code can not access the MUSB_CONFIGDATA.
-> The configuration is fixed in the software.
+> However, it's made me unhappier.  Again, can we please have it accessible
+> via the git protocol.  Or at least can whoever looks after that tree avoid
+> repacking it except maybe once a month?
+> 
+> Why?  I don't want to have to keep on fetching 300 odd MB of pack files
+> every time I pull from this tree.  10 minutes into my current pull and
+> I only have 80MB... another 220MB to go.  IOW, 45 minutes for a pull.
+> 
+> This really isn't practical.
 
-What happens if you try to read/write to the register ? Does it screw up
-things somehow or just ignores ??
-
-If it just ignores (and same for the other unexistent registers) we can
-drop that patch adding ifdefs to te register accesses otherwise we're
-gonna have to think about another solution to abstract that.
+Sure, repacking should be avoided on servers for that. Do what you want
+with your local copy and repack sure helps making git a bit faster,
+still it's not good for the server side since we'd have to pull the
+packs again and again.
 
 -- 
 balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
