@@ -1,83 +1,35 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [BRIDGE] Rebase and sync with omapzoom bridge patch update
-Date: Wed, 10 Sep 2008 15:41:46 +0300 (EEST)
-Message-ID: <20080910.154146.234688808.Hiroshi.DOYU@nokia.com>
-References: <20080910.065332.170214513.Hiroshi.DOYU@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: 3430: can't find mmc debounce clock
+Date: Wed, 10 Sep 2008 06:44:30 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0809100641010.20446@utopia.booyaka.com>
+References: <57314e840809080618x1f0cd0aen74b1a03351dc8ef7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:23263 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752108AbYIJMlx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 08:41:53 -0400
-In-Reply-To: <20080910.065332.170214513.Hiroshi.DOYU@nokia.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:56580 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751767AbYIJMob (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 08:44:31 -0400
+In-Reply-To: <57314e840809080618x1f0cd0aen74b1a03351dc8ef7@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: x00omar@ti.com, h-kanigeri2@ti.com, grgupta@ti.com, juha.m.alanen@nokia.com, felipe.contreras@nokia.com, felipe.balbi@nokia.com
+To: Budhee Jamaich <budheej@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+On Mon, 8 Sep 2008, Budhee Jamaich wrote:
 
-It seems that the following site doesn't work with git.
-So please use:
+> I read that the mmc has 3 clocks: fixed functional clock (MMCi_FCLK),
+> interface clock (MMCi_ICLK) and debounce clock (MMCi_32).
+> 
+> But, when I look in clock34xx.h, I can only see two of those - there
+> is the "mmchs_fck" and "mmchs_ick". There is no struct clk for the
+> debounce clock. Only when I look in older kernels I can see also the
+> "mmchsdb2_fck".
+> 
+> So where is the debounce clock struct ? (I want to 'get' and 'enable' it...)
 
-$ wget http://4869037.web.fc2.com/tidspbridge-20080910.tgz
+The debounce clocks are controlled by gpio[1-6]_fck.  Perhaps we should 
+rename them, but that's what the current tree uses.
 
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [BRIDGE] Rebase and sync with omapzoom bridge patch update
-Date: Wed, 10 Sep 2008 06:53:32 +0300 (EEST)
 
-> Hi,
-> 
-> I have updated all TI BRIDGE patches and rebased them against the
-> latest linux-omap again for easy integration of them. You can get it
-> by:
->      git fetch http://4869037.web.fc2.com/linux.git bridge:<you branch>
-> 
-> Most of the patches come directly from OMAPZOOM(Thanks, TI bridge
-> team) and I just collected them;)
-> 
-> which includes the following patches.
-> 
-> Fernando Guzman Lugo (1):
->       BRIDGE: Remove sparse warnings from wcd
-> 
-> Hiroshi DOYU (12):
->       BRIDGE: Kconfig Entry
->       BRIDGE: Header files
->       BRIDGE: Doff image dynamic loader
->       BRIDGE: Generic Utilities
->       BRIDGE: Hardware Interfaces
->       BRIDGE: Platform Manager
->       BRIDGE: Resource Manager
->       BRIDGE: Services
->       BRIDGE: Mini driver
->       BRIDGE: README
->       BRIDGE: Fix header path
->       BRIDGE: Sync omapzoom bridge patches
-> 
-> Omar Ramirez Luna (6):
->       BRIDGE: Ceanup GT sparse warnings
->       BRIDGE: Cleanup static declarations warnings
->       BRIDGE: Remove unused clk structs
->       BRIDGE: Clean up unusedvariables
->       BRIDGE: Cosmetic changes reported from checkpatch
->       BRIDGE: Checkpatch Cleanup
-> 
-> Ramesh Gupta (2):
->       BRIDGE: Power management changes
->       BRIDGE: OMAP PM Bug softlockup fix
-> 
-> ext Ramirez Luna, Omar (1):
->       BRIDGE: OMAP CSL wrappers removed
-> 
-> x00omar@ti.com (1):
->       BRIDGE: Add wcd table end
-> 
-> If you find some missing patches against omapzoom, please let me know.
-> 
->      Hiroshi DOYU
-> 
-> 
-> 
+- Paul
