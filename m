@@ -1,82 +1,178 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/3][OMAP 3/4]table end for wcd command definitions
-Date: Wed, 10 Sep 2008 08:44:14 -0700
-Message-ID: <20080910154414.GB29054@atomide.com>
-References: <27F9C60D11D683428E133F85D2BB4A534486D6A4@dlee03.ent.ti.com> <20080829.080313.110221229.Hiroshi.DOYU@nokia.com> <20080910.070827.145357958.Hiroshi.DOYU@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH v2 11/12] OMAP3 clock: remove duplicate call to
+	omap2_init_clk_clkdm()
+Date: Wed, 10 Sep 2008 10:48:07 -0600
+Message-ID: <20080910164804.17024.8739.stgit@localhost.localdomain>
+References: <20080910164631.17024.43733.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63531 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752216AbYIJPoa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 11:44:30 -0400
-Content-Disposition: inline
-In-Reply-To: <20080910.070827.145357958.Hiroshi.DOYU@nokia.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:58290 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753856AbYIJQtB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 12:49:01 -0400
+In-Reply-To: <20080910164631.17024.43733.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, x00omar@ti.com, h-kanigeri2@ti.com
+To: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>
 
-* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [080909 21:08]:
-> Hi,
-> 
-> Although this TI bridge patches are not integrated and a bit
-> independent S/W component, it would be nice to get some comments just
-> on this bridge header file location from kernel maintainer's
-> perspective.
-> 
-> "arch/arm/plat-omap/include/mach/bridge"
->   or "arch/arm/plat-omap/include/bridge"?
+The OMAP3 arch clock init code already calls omap2_init_clk_clkdm(), so there
+is no reason to call it again in the per-clock init.
 
-How about put the bridge specific headers under include/linux/dspbridge?
-Then you can have just the omap specific headers under
-arch/arm/plat-omap/include/mach.
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/clock34xx.h |   18 ------------------
+ 1 files changed, 0 insertions(+), 18 deletions(-)
 
-Tony
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index 8fe87e3..56ae83f 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -1337,7 +1337,6 @@ static struct clk gfx_l3_ick = {
+ static struct clk gfx_cg1_ck = {
+ 	.name		= "gfx_cg1_ck",
+ 	.parent		= &gfx_l3_fck, /* REVISIT: correct? */
+-	.init		= &omap2_init_clk_clkdm,
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(GFX_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430ES1_EN_2D_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP3430ES1,
+@@ -1348,7 +1347,6 @@ static struct clk gfx_cg1_ck = {
+ static struct clk gfx_cg2_ck = {
+ 	.name		= "gfx_cg2_ck",
+ 	.parent		= &gfx_l3_fck, /* REVISIT: correct? */
+-	.init		= &omap2_init_clk_clkdm,
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(GFX_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430ES1_EN_3D_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP3430ES1,
+@@ -1392,7 +1390,6 @@ static struct clk sgx_fck = {
+ static struct clk sgx_ick = {
+ 	.name		= "sgx_ick",
+ 	.parent		= &l3_ick,
+-	.init		= &omap2_init_clk_clkdm,
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(OMAP3430ES2_SGX_MOD, CM_ICLKEN),
+ 	.enable_bit	= OMAP3430ES2_EN_SGX_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP3430ES2,
+@@ -1405,7 +1402,6 @@ static struct clk sgx_ick = {
+ static struct clk d2d_26m_fck = {
+ 	.name		= "d2d_26m_fck",
+ 	.parent		= &sys_ck,
+-	.init		= &omap2_init_clk_clkdm,
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+ 	.enable_bit	= OMAP3430ES1_EN_D2D_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP3430ES1,
+@@ -1768,7 +1764,6 @@ static struct clk ssi_sst_fck = {
+ static struct clk core_l3_ick = {
+ 	.name		= "core_l3_ick",
+ 	.parent		= &l3_ick,
+-	.init		= &omap2_init_clk_clkdm,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
+ 	.clkdm		= { .name = "core_l3_clkdm" },
+@@ -1830,7 +1825,6 @@ static struct clk pka_ick = {
+ static struct clk core_l4_ick = {
+ 	.name		= "core_l4_ick",
+ 	.parent		= &l4_ick,
+-	.init		= &omap2_init_clk_clkdm,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
+ 	.clkdm		= { .name = "core_l4_clkdm" },
+@@ -2230,7 +2224,6 @@ static struct clk dss1_alwon_fck = {
+ static struct clk dss_tv_fck = {
+ 	.name		= "dss_tv_fck",
+ 	.parent		= &omap_54m_fck,
+-	.init		= &omap2_init_clk_clkdm,
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(OMAP3430_DSS_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_EN_TV_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP343X,
+@@ -2241,7 +2234,6 @@ static struct clk dss_tv_fck = {
+ static struct clk dss_96m_fck = {
+ 	.name		= "dss_96m_fck",
+ 	.parent		= &omap_96m_fck,
+-	.init		= &omap2_init_clk_clkdm,
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(OMAP3430_DSS_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_EN_TV_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP343X,
+@@ -2252,7 +2244,6 @@ static struct clk dss_96m_fck = {
+ static struct clk dss2_alwon_fck = {
+ 	.name		= "dss2_alwon_fck",
+ 	.parent		= &sys_ck,
+-	.init		= &omap2_init_clk_clkdm,
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(OMAP3430_DSS_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_EN_DSS2_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP343X,
+@@ -2264,7 +2255,6 @@ static struct clk dss_ick = {
+ 	/* Handles both L3 and L4 clocks */
+ 	.name		= "dss_ick",
+ 	.parent		= &l4_ick,
+-	.init		= &omap2_init_clk_clkdm,
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(OMAP3430_DSS_MOD, CM_ICLKEN),
+ 	.enable_bit	= OMAP3430_CM_ICLKEN_DSS_EN_DSS_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP343X,
+@@ -2298,7 +2288,6 @@ static struct clk cam_ick = {
+ 	/* Handles both L3 and L4 clocks */
+ 	.name		= "cam_ick",
+ 	.parent		= &l4_ick,
+-	.init		= &omap2_init_clk_clkdm,
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(OMAP3430_CAM_MOD, CM_ICLKEN),
+ 	.enable_bit	= OMAP3430_EN_CAM_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP343X,
+@@ -2309,7 +2298,6 @@ static struct clk cam_ick = {
+ static struct clk csi2_96m_fck = {
+ 	.name		= "csi2_96m_fck",
+ 	.parent		= &core_96m_fck,
+-	.init		= &omap2_init_clk_clkdm,
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(OMAP3430_CAM_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_EN_CSI2_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP343X,
+@@ -2322,7 +2310,6 @@ static struct clk csi2_96m_fck = {
+ static struct clk usbhost_120m_fck = {
+ 	.name		= "usbhost_120m_fck",
+ 	.parent		= &omap_120m_fck,
+-	.init		= &omap2_init_clk_clkdm,
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(OMAP3430ES2_USBHOST_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430ES2_EN_USBHOST2_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP3430ES2,
+@@ -2333,7 +2320,6 @@ static struct clk usbhost_120m_fck = {
+ static struct clk usbhost_48m_fck = {
+ 	.name		= "usbhost_48m_fck",
+ 	.parent		= &omap_48m_fck,
+-	.init		= &omap2_init_clk_clkdm,
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(OMAP3430ES2_USBHOST_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430ES2_EN_USBHOST1_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP3430ES2,
+@@ -2345,7 +2331,6 @@ static struct clk usbhost_ick = {
+ 	/* Handles both L3 and L4 clocks */
+ 	.name		= "usbhost_ick",
+ 	.parent		= &l4_ick,
+-	.init		= &omap2_init_clk_clkdm,
+ 	.enable_reg	= _OMAP34XX_CM_REGADDR(OMAP3430ES2_USBHOST_MOD, CM_ICLKEN),
+ 	.enable_bit	= OMAP3430ES2_EN_USBHOST_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP3430ES2,
+@@ -2408,7 +2393,6 @@ static struct clk gpt1_fck = {
+ 
+ static struct clk wkup_32k_fck = {
+ 	.name		= "wkup_32k_fck",
+-	.init		= &omap2_init_clk_clkdm,
+ 	.parent		= &omap_32k_fck,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES | ALWAYS_ENABLED,
+ 	.clkdm		= { .name = "prm_clkdm" },
+@@ -2522,7 +2506,6 @@ static struct clk gpt1_ick = {
+ static struct clk per_96m_fck = {
+ 	.name		= "per_96m_fck",
+ 	.parent		= &omap_96m_alwon_fck,
+-	.init		= &omap2_init_clk_clkdm,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
+ 	.clkdm		= { .name = "per_clkdm" },
+@@ -2532,7 +2515,6 @@ static struct clk per_96m_fck = {
+ static struct clk per_48m_fck = {
+ 	.name		= "per_48m_fck",
+ 	.parent		= &omap_48m_fck,
+-	.init		= &omap2_init_clk_clkdm,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
+ 	.clkdm		= { .name = "per_clkdm" },
 
 
-> 
-> 	 Hiroshi DOYU
-> 
-> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> Subject: Re: [PATCH 2/3][OMAP 3/4]table end for wcd command definitions
-> Date: Fri, 29 Aug 2008 08:03:13 +0300 (EEST)
-> 
-> > Hi Omar,
-> > 
-> > I just noticed that the bridge specific header files are located
-> > under "linux/arch/arm/plat-omap/include/mach/bridge/", but it may be
-> > better to have them under "arch/arm/plat-omap/include/bridge/" because
-> > those header files are not related to the omap archtecture so much and
-> > mostly used for bridge specific purpose, although omap is the only
-> > platform to have bridge with dsp;) For me, it would make more sense
-> > logically, and also practically grepp'ing would work more nicely
-> > without any fancy tools like specifiying the directories to search.
-> > 
-> > Any comments?
-> > 
-> > 	Hiroshi DOYU
-> > 
-> > From: "ext Ramirez Luna, Omar" <x00omar@ti.com>
-> > Subject: [PATCH 2/3][OMAP 3/4]table end for wcd command definitions
-> > Date: Thu, 28 Aug 2008 20:30:44 -0500
-> > 
-> > > Added the table end 'CMD_BASE_END_OFFSET' define in wcdioctl.h
-> > > 
-> > > Signed-off-by: Omar Ramirez Luna <x00omar@ti.com>
-> > > ---
-> > > 
-> > > Index: omapkernel/arch/arm/plat-omap/include/mach/bridge/wcdioctl.h
-> > > ===================================================================
-> > > --- omapkernel.orig/arch/arm/plat-omap/include/mach/bridge/wcdioctl.h	2008-08-22 19:03:10.000000000 -0500
-> > > +++ omapkernel/arch/arm/plat-omap/include/mach/bridge/wcdioctl.h	2008-08-22 19:20:05.000000000 -0500
-> > > @@ -515,4 +515,5 @@
-> > >  #define CMD_CMM_GETINFO_OFFSET	  (CMD_CMM_BASE_OFFSET + 3)
-> > >  #define CMD_CMM_END_OFFSET	      CMD_CMM_GETINFO_OFFSET
-> > >  
-> > > +#define CMD_BASE_END_OFFSET	CMD_CMM_END_OFFSET
-> > >  #endif				/* WCDIOCTL_ */
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
