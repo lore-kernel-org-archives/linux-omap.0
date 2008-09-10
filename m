@@ -1,87 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Working with Linux-Omap GIT Tree
-Date: Tue, 9 Sep 2008 12:17:56 -0700
-Message-ID: <20080909191756.GV29054@atomide.com>
-References: <1f11a5490809041150y69023b30ub166cc34615744b5@mail.gmail.com> <A24693684029E5489D1D202277BE894411A86A45@dlee02.ent.ti.com> <1f11a5490809091152j767d9032jecdeeace5b2d40bb@mail.gmail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: Working with Linux-Omap GIT Tree
+Date: Tue, 9 Sep 2008 19:58:29 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE896716203655BDCDA@dlee02.ent.ti.com>
+References: <1f11a5490809041150y69023b30ub166cc34615744b5@mail.gmail.com>
+	 <A24693684029E5489D1D202277BE894411A86A45@dlee02.ent.ti.com>
+ <1f11a5490809091152j767d9032jecdeeace5b2d40bb@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57466 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751731AbYIITSA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Sep 2008 15:18:00 -0400
-Content-Disposition: inline
+Received: from comal.ext.ti.com ([198.47.26.152]:49516 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751029AbYIJA6i convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Sep 2008 20:58:38 -0400
 In-Reply-To: <1f11a5490809091152j767d9032jecdeeace5b2d40bb@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ashwin Bihari <abihari@gmail.com>
-Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Ashwin Bihari <abihari@gmail.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Ashwin Bihari <abihari@gmail.com> [080909 11:52]:
+Hi,
+
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Ashwin Bihari
+
 > A quick question about the OMAP GIT trees as I'm playing with them
 > right now. There are two trees that I can see, one at
 > http://git.omapzoom.org/repo/omapkernel and another at
 > git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git.
 > The OMAPZoom tree seems to have a few of the files that are missing
 > from the git.kernel.org tree that I was looking to modify..
-> 
+>
 > Which tree should I be using to put my board-support files into? Or is
 > it a combination of the two?
 
-Create patches against linux-omap. And hopefully against the mainline
-tree soonish.
+Trees are related. Base line is derived by taking kernel.org, then linux-omap, then zoom specifics. The ultimate goal is functionality kernel.org.
 
-Tony
+The zoom kernel synchronizes with linx-omap frequently. It is different in a few areas. Part of its purpose is to export functionality as soon as possible. Traditionally, early chip development hasn't been available externally. This results in a divergence gap at the time of chip release.  We export the tree as a way to provide access to that work. It will take some time for public flows to pick up functionality. Making this reference available should accelerate new functions back into pure open source.
 
-> 
-> Regards
-> 
-> On Thu, Sep 4, 2008 at 3:04 PM, Aguirre Rodriguez, Sergio Alberto
-> <saaguirre@ti.com> wrote:
-> > And one more thing...
-> >
-> > If you have a driver which was previously including a header like this:
-> >
-> > #include <arch/arm/clock.h>
-> >
-> > You have to change it to:
-> >
-> > #include <mach/clock.h>
-> >
-> > To point to the new location.
-> >
-> > Regards,
-> > Sergio
-> >
-> > -----Original Message-----
-> > From: Ashwin Bihari [mailto:abihari@gmail.com]
-> > Sent: Thursday, September 04, 2008 1:51 PM
-> > To: Aguirre Rodriguez, Sergio Alberto
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: Working with Linux-Omap GIT Tree
-> >
-> > On Thu, Sep 4, 2008 at 2:44 PM, Aguirre Rodriguez, Sergio Alberto
-> > <saaguirre@ti.com> wrote:
-> >> Hi Ashwin,
-> >>
-> >> The folder you're looking for has been moved to arch/arm/plat-omap/include/
-> >>
-> >> This has to have the same contents you had in that version + the following changes to them.
-> >>
-> >> Hope this helped you.
-> >>
-> >> Regards,
-> >> Sergio
-> >
-> > Hi Sergio,
-> >
-> > Thanks for the pointer on the move. I should've spent more time poking
-> > around the trees I guess. Sorry for the noise..
-> >
-> > ~ Ashwin
-> >
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+How you leverage the tree depends on your needs.
+
+A differences list can be found: https://omapzoom.org/gf/project/omapkernel/wiki/?pagename=areas
+
+Regards,
+Richard W.
+
