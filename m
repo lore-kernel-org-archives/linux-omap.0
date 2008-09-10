@@ -1,35 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] ARM:OMAP3: Smartreflex disable/enable fix
-Date: Wed, 10 Sep 2008 10:55:22 -0700
-Message-ID: <20080910175522.GE21163@atomide.com>
-References: <1220004344-32542-1-git-send-email-ext-kalle.jokiniemi@nokia.com> <20080829104749.GE22816@flint.arm.linux.org.uk> <1220010935.6269.47.camel@kj-ubuntu>
+From: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
+Subject: Re: [PATCH] MUSB: Set INDEX register to 0 before accessing
+	CONFIGDATA
+Date: Wed, 10 Sep 2008 22:01:18 +0300
+Message-ID: <20080910190114.GA6671@frodo>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02C418D1B1@dbde02.ent.ti.com> <200809062204.01492.david-b@pacbell.net> <386072610809072012wcf053a6j37c238b82667c23a@mail.gmail.com>
+Reply-To: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50972 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751633AbYIJRzg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 13:55:36 -0400
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1220010935.6269.47.camel@kj-ubuntu>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <386072610809072012wcf053a6j37c238b82667c23a-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bryan Wu <cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-Cc: ext Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org
 
-* Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com> [080829 04:54]:
-> On pe, 2008-08-29 at 11:47 +0100, ext Russell King - ARM Linux wrote:
-> > On Fri, Aug 29, 2008 at 01:05:44PM +0300, Kalle Jokiniemi wrote:
-> > > Smartreflex modules have to be disabled when device enters WFI.
-> > > Previously only suspend idle path had these calls. By moving the
-> > > disable/enable calls to omap_sram_idle, all idle paths will be covered.
-> > 
-> > Won't deleting the calls from the suspend path break suspend/resume?
+On Mon, Sep 08, 2008 at 11:12:24AM +0800, Bryan Wu wrote:
+> On Sun, Sep 7, 2008 at 1:04 PM, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org> wrote:
+> > On Thursday 04 September 2008, Gadiyar, Anand wrote:
+> >> From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+> >>
+> >> The Index register needs to be zero to access CONFIGDATA.
+> >> musb_ep_select()will not set the MUSB_INDEX register unless INDEXED
+> >> mode addressing is used. This change will set the register correctly
+> >> in INDEXED as well as FLAT mode.
+> >>
+> >> Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+> >> CC: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> >
+> > ACK.  I *know* it was originally written that way.  I think
+> > the change was one of the Blackfin patches ... I hope this
+> > isn't one of those cases where the Blackfin version of this
+> > core acts differently.  (Like clearing that DMA IRQ status...)
+> >
 > 
-> No, since omap3_pm_suspend calls omap_sram_idle. The disabling is just
-> moves one step later. Also omap3_pm_idle and the idle loop in cpu idle
-> call omap_sram_idle, so they get covered as well.
+> For Blackfin, the register MUSB_CONFIGDATA is not exported out to software.
+> So in the musb driver, Blackfin code can not access the MUSB_CONFIGDATA.
+> The configuration is fixed in the software.
 
-Pushing today.
+What happens if you try to read/write to the register ? Does it screw up
+things somehow or just ignores ??
 
-Tony
+If it just ignores (and same for the other unexistent registers) we can
+drop that patch adding ifdefs to te register accesses otherwise we're
+gonna have to think about another solution to abstract that.
+
+-- 
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
