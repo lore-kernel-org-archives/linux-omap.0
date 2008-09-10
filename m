@@ -1,254 +1,552 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 07/12] System Control Module context save/restore
-Date: Wed, 10 Sep 2008 17:47:43 +0300
-Message-ID: <87sks8f46o.fsf@deeprootsystems.com>
-References: <61481.192.168.10.89.1220276457.squirrel@dbdmail.itg.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 05/12] PRCM context save/restore
+Date: Wed, 10 Sep 2008 09:31:10 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0809100925090.20446@utopia.booyaka.com>
+References: <61169.192.168.10.89.1220276406.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f16.google.com ([209.85.217.16]:36522 "EHLO
-	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750889AbYIJOrw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 10:47:52 -0400
-Received: by gxk9 with SMTP id 9so13793663gxk.13
-        for <linux-omap@vger.kernel.org>; Wed, 10 Sep 2008 07:47:51 -0700 (PDT)
-In-Reply-To: <61481.192.168.10.89.1220276457.squirrel@dbdmail.itg.ti.com> (Rajendra Nayak's message of "Mon\, 1 Sep 2008 19\:10\:57 +0530 \(IST\)")
+Received: from utopia.booyaka.com ([72.9.107.138]:44552 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751901AbYIJPbM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 11:31:12 -0400
+In-Reply-To: <61169.192.168.10.89.1220276406.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rajendra Nayak <rnayak@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-"Rajendra Nayak" <rnayak@ti.com> writes:
+On Mon, 1 Sep 2008, Rajendra Nayak wrote:
 
-> This patch adds the System control module context save/restore
->
+> This patch adds the context save restore functions for PRCM module
+
+This patch reads and writes from the INTCPS MIR registers, but is in
+prcm.c.  prcm.c should call INTCPS functions in mach-omap2/irq.c to do
+this.  I suggest something similar to the following:
+
+1. In arch/arm/plat-omap/include/mach/irqs.h, add:
+
+#define INTCPS_NR_MIR_REGS          3
+
+/**
+ * struct intcps_mir_ctx - INTCPS interrupt mask context
+ * @mir: contents of the INTPCS MIR registers
+ *
+ * Contents of the INTCPS MIR (interrupt mask) registers -
+ * used by omap_intcps_{save,restore}_mir() during PRCM context
+ * save/restore (*not* INTCPS).
+ */
+struct intcps_mir_ctx {
+    u32 mir[INTCPS_NR_MIR_REGS];
+}
+
+
+2. In the same file, in the #ifndef __ASSEMBLY__ section, add:
+
+void omap_intcps_save_mir(struct intc_mir_ctx *c);
+void omap_intcps_restore_mir(struct intc_mir_ctx *c);
+
+- In mach-omap2/irq.c in the register offsets section, add the three
+  INTC_MIR registers.
+
+- Add this code to mach-omap2/irq.c:
+
+void omap_intcps_save_mir(struct intc_mir_ctx *c)
+{
+        for (i = 0; i < INTCPS_NR_MIR_REGS; i++)
+                c->mir[i] = intc_bank_read_reg(&irq_banks[0], INTC_MIR0 + (0x20 * i));
+}
+
+
+void omap_intcps_restore_mir(struct intc_mir_ctx *c)
+{
+        for (i = 0; i < INTCPS_NR_MIR_REGS; i++)
+                intc_bank_write_reg(c->mir[i], &irq_banks[0], INTC_MIR0 + (0x20 * i));
+}
+
+
+> 
 > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 > ---
->  arch/arm/mach-omap2/control.c             |  105 ++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/mach/control.h |   61 +++++++++++++++++
->  2 files changed, 165 insertions(+), 1 deletion(-)
->
-> Index: linux-omap-2.6/arch/arm/mach-omap2/control.c
+>  arch/arm/mach-omap2/prcm.c                |  291 ++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/prm.h                 |    2
+>  arch/arm/plat-omap/include/mach/control.h |    2
+>  arch/arm/plat-omap/include/mach/prcm.h    |   92 +++++++++
+>  4 files changed, 387 insertions(+)
+> 
+> Index: linux-omap-2.6/arch/arm/mach-omap2/prcm.c
 > ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/control.c	2008-09-01
-> 18:11:34.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/mach-omap2/control.c	2008-09-01 18:11:54.000000000
-> +0530
-> @@ -73,6 +73,8 @@ void omap_ctrl_writel(u32 val, u16 offse
->
->  #define OMAP3430_PRM_RSTST \
->  		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, RM_RSTST)
-> +static struct omap3_control_module_regs control_ctx;
-> +
-
-I'm not sure what this patch was generated against, but it doesn't
-apply against linux-omap.  The PRM_RSTST definition above is not in
-linux-omap code.
-
-Kevin
-
->  /* Clears the scratchpad contents in case of cold boot-
->   called during bootup*/
->  void omap3_clear_scratchpad_contents(void)
-> @@ -190,4 +192,107 @@ void omap3_save_scratchpad_contents(void
->  		 &sdrc_block_contents, sizeof(sdrc_block_contents));
+> --- linux-omap-2.6.orig/arch/arm/mach-omap2/prcm.c	2008-09-01
+> 18:11:28.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/mach-omap2/prcm.c	2008-09-01 18:11:53.000000000 +0530
+> @@ -22,6 +22,7 @@
+>  #include <mach/prcm.h>
+> 
+>  #include "clock.h"
+> +#include "cm.h"
+>  #include "prm.h"
+>  #include "prm-regbits-24xx.h"
+> 
+> @@ -125,3 +126,293 @@ void __init omap2_set_globals_prcm(struc
+>  	prm_base = omap2_globals->prm;
+>  	cm_base = omap2_globals->cm;
 >  }
->
-> +void omap3_save_control_ctx(void)
+> +
+> +#ifdef CONFIG_ARCH_OMAP3
+> +#include "clock34xx.h"
+> +struct prcm_context_regs prcm_context;
+
+The above should be static.  Please move the #include to the top of the 
+file.
+
+Add a "static struct intcps_mir_ctx mir_ctx;" here.
+
+> +void omap3_save_prcm_ctx(void)
 > +{
-> +	control_ctx.sysconfig = omap_ctrl_readl(OMAP2_CONTROL_SYSCONFIG);
-> +	control_ctx.devconf0 = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
-> +	control_ctx.mem_dftrw0 = omap_ctrl_readl(OMAP343X_CONTROL_MEM_DFTRW0);
-> +	control_ctx.mem_dftrw1 = omap_ctrl_readl(OMAP343X_CONTROL_MEM_DFTRW1);
-> +	control_ctx.msuspendmux_0 =
-> +		       omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_0);
-> +	control_ctx.msuspendmux_1 =
-> +		       omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_1);
-> +	control_ctx.msuspendmux_2 =
-> +		       omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_2);
-> +	control_ctx.msuspendmux_3 =
-> +		       omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_3);
-> +	control_ctx.msuspendmux_4 =
-> +		       omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_4);
-> +	control_ctx.msuspendmux_5 =
-> +		       omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_5);
-> +	control_ctx.sec_ctrl = omap_ctrl_readl(OMAP2_CONTROL_SEC_CTRL);
-> +	control_ctx.devconf1 = omap_ctrl_readl(OMAP343X_CONTROL_DEVCONF1);
-> +	control_ctx.csirxfe = omap_ctrl_readl(OMAP343X_CONTROL_CSIRXFE);
-> +	control_ctx.iva2_bootaddr =
-> +		       omap_ctrl_readl(OMAP343X_CONTROL_IVA2_BOOTADDR);
-> +	control_ctx.iva2_bootmod =
-> +		       omap_ctrl_readl(OMAP343X_CONTROL_IVA2_BOOTMOD);
-> +	control_ctx.debobs_0 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS_0);
-> +	control_ctx.debobs_1 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS_1);
-> +	control_ctx.debobs_2 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS_2);
-> +	control_ctx.debobs_3 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS_3);
-> +	control_ctx.debobs_4 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS_4);
-> +	control_ctx.debobs_5 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS_5);
-> +	control_ctx.debobs_6 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS_6);
-> +	control_ctx.debobs_7 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS_7);
-> +	control_ctx.debobs_8 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS_8);
-> +	control_ctx.prog_io0 = omap_ctrl_readl(OMAP343X_CONTROL_PROG_IO0);
-> +	control_ctx.prog_io1 = omap_ctrl_readl(OMAP343X_CONTROL_PROG_IO1);
-> +	control_ctx.dss_dpll_spreading =
-> +	       omap_ctrl_readl(OMAP343X_CONTROL_DSS_DPLL_SPREADING);
-> +	control_ctx.core_dpll_spreading =
-> +	       omap_ctrl_readl(OMAP343X_CONTROL_CORE_DPLL_SPREADING);
-> +	control_ctx.per_dpll_spreading =
-> +	       omap_ctrl_readl(OMAP343X_CONTROL_PER_DPLL_SPREADING);
-> +	control_ctx.usbhost_dpll_spreading =
-> +	       omap_ctrl_readl(OMAP343X_CONTROL_USBHOST_DPLL_SPREADING);
-> +	control_ctx.pbias_lite = omap_ctrl_readl(OMAP343X_CONTROL_PBIAS_LITE);
-> +	control_ctx.temp_sensor = omap_ctrl_readl(OMAP343X_CONTROL_TEMP_SENSOR);
-> +	control_ctx.sramldo4 = omap_ctrl_readl(OMAP343X_CONTROL_SRAMLDO4);
-> +	control_ctx.sramldo5 = omap_ctrl_readl(OMAP343X_CONTROL_SRAMLDO5);
-> +	control_ctx.csi = omap_ctrl_readl(OMAP343X_CONTROL_CSI);
+> +	prcm_context.intc_mir_0 = omap_readl(INTC_MIR_0);
+> +	prcm_context.intc_mir_1 = omap_readl(INTC_MIR_1);
+> +	prcm_context.intc_mir_2 = omap_readl(INTC_MIR_2);
+
+Replace these with a call to omap_intcps_save_mir(&mir_ctx);
+
+> +	prcm_context.control_padconf_sys_nirq =
+> +			 omap_ctrl_readl(OMAP343X_CONTROL_PADCONF_SYSNIRQ);
+> +	prcm_context.iva2_cm_clksel2 =
+> +			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSEL2);
+> +	prcm_context.cm_sysconfig = __raw_readl(OMAP3430_CM_SYSCONFIG);
+> +	prcm_context.sgx_cm_clksel =
+> +			 cm_read_mod_reg(OMAP3430ES2_SGX_MOD, CM_CLKSEL);
+> +	prcm_context.wkup_cm_clksel = cm_read_mod_reg(WKUP_MOD, CM_CLKSEL);
+> +	prcm_context.dss_cm_clksel =
+> +			 cm_read_mod_reg(OMAP3430_DSS_MOD, CM_CLKSEL);
+> +	prcm_context.cam_cm_clksel =
+> +			 cm_read_mod_reg(OMAP3430_CAM_MOD, CM_CLKSEL);
+> +	prcm_context.per_cm_clksel =
+> +			 cm_read_mod_reg(OMAP3430_PER_MOD, CM_CLKSEL);
+> +	prcm_context.emu_cm_clksel =
+> +			 cm_read_mod_reg(OMAP3430_EMU_MOD, CM_CLKSEL1);
+> +	prcm_context.emu_cm_clkstctrl =
+> +			 cm_read_mod_reg(OMAP3430_EMU_MOD, CM_CLKSTCTRL);
+> +	prcm_context.pll_cm_autoidle2 =
+> +			 cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE2);
+> +	prcm_context.pll_cm_clksel5 =
+> +			 cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL5);
+> +	prcm_context.cm_polctrl = __raw_readl(OMAP3430_CM_POLCTRL);
+> +	prcm_context.iva2_cm_fclken =
+> +			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_FCLKEN);
+> +	prcm_context.core_cm_fclken1 =
+> +			 cm_read_mod_reg(CORE_MOD, CM_FCLKEN1);
+> +	prcm_context.core_cm_fclken3 =
+> +			 cm_read_mod_reg(CORE_MOD, OMAP3430ES2_CM_FCLKEN3);
+> +	prcm_context.sgx_cm_fclken =
+> +			 cm_read_mod_reg(OMAP3430ES2_SGX_MOD, CM_FCLKEN);
+> +	prcm_context.wkup_cm_fclken =
+> +			 cm_read_mod_reg(WKUP_MOD, CM_FCLKEN);
+> +	prcm_context.dss_cm_fclken =
+> +			 cm_read_mod_reg(OMAP3430_DSS_MOD, CM_FCLKEN);
+> +	prcm_context.cam_cm_fclken =
+> +			 cm_read_mod_reg(OMAP3430_CAM_MOD, CM_FCLKEN);
+> +	prcm_context.per_cm_fclken =
+> +			 cm_read_mod_reg(OMAP3430_PER_MOD, CM_FCLKEN);
+> +	prcm_context.usbhost_cm_fclken =
+> +			 cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, CM_FCLKEN);
+> +	prcm_context.core_cm_iclken1 =
+> +			 cm_read_mod_reg(CORE_MOD, CM_ICLKEN1);
+> +	prcm_context.core_cm_iclken2 =
+> +			 cm_read_mod_reg(CORE_MOD, CM_ICLKEN2);
+> +	prcm_context.core_cm_iclken3 =
+> +			 cm_read_mod_reg(CORE_MOD, CM_ICLKEN3);
+> +	prcm_context.sgx_cm_iclken =
+> +			 cm_read_mod_reg(OMAP3430ES2_SGX_MOD, CM_ICLKEN);
+> +	prcm_context.wkup_cm_iclken =
+> +			 cm_read_mod_reg(WKUP_MOD, CM_ICLKEN);
+> +	prcm_context.dss_cm_iclken =
+> +			 cm_read_mod_reg(OMAP3430_DSS_MOD, CM_ICLKEN);
+> +	prcm_context.cam_cm_iclken =
+> +			 cm_read_mod_reg(OMAP3430_CAM_MOD, CM_ICLKEN);
+> +	prcm_context.per_cm_iclken =
+> +			 cm_read_mod_reg(OMAP3430_PER_MOD, CM_ICLKEN);
+> +	prcm_context.usbhost_cm_iclken =
+> +			 cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, CM_ICLKEN);
+> +	prcm_context.iva2_cm_autiidle2 =
+> +			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_AUTOIDLE2);
+> +	prcm_context.mpu_cm_autoidle2 =
+> +			 cm_read_mod_reg(MPU_MOD, CM_AUTOIDLE2);
+> +	prcm_context.pll_cm_autoidle =
+> +			 cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
+> +	prcm_context.iva2_cm_clkstctrl =
+> +			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
+> +	prcm_context.mpu_cm_clkstctrl =
+> +			 cm_read_mod_reg(MPU_MOD, CM_CLKSTCTRL);
+> +	prcm_context.core_cm_clkstctrl =
+> +			 cm_read_mod_reg(CORE_MOD, CM_CLKSTCTRL);
+> +	prcm_context.sgx_cm_clkstctrl =
+> +			 cm_read_mod_reg(OMAP3430ES2_SGX_MOD, CM_CLKSTCTRL);
+> +	prcm_context.dss_cm_clkstctrl =
+> +			 cm_read_mod_reg(OMAP3430_DSS_MOD, CM_CLKSTCTRL);
+> +	prcm_context.cam_cm_clkstctrl =
+> +			 cm_read_mod_reg(OMAP3430_CAM_MOD, CM_CLKSTCTRL);
+> +	prcm_context.per_cm_clkstctrl =
+> +			 cm_read_mod_reg(OMAP3430_PER_MOD, CM_CLKSTCTRL);
+> +	prcm_context.neon_cm_clkstctrl =
+> +			 cm_read_mod_reg(OMAP3430_NEON_MOD, CM_CLKSTCTRL);
+> +	prcm_context.usbhost_cm_clkstctrl =
+> +			 cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, CM_CLKSTCTRL);
+> +	prcm_context.core_cm_autoidle1 =
+> +			 cm_read_mod_reg(CORE_MOD, CM_AUTOIDLE1);
+> +	prcm_context.core_cm_autoidle2 =
+> +			 cm_read_mod_reg(CORE_MOD, CM_AUTOIDLE2);
+> +	prcm_context.core_cm_autoidle3 =
+> +			 cm_read_mod_reg(CORE_MOD, CM_AUTOIDLE3);
+> +	prcm_context.wkup_cm_autoidle =
+> +			 cm_read_mod_reg(WKUP_MOD, CM_AUTOIDLE);
+> +	prcm_context.dss_cm_autoidle =
+> +			 cm_read_mod_reg(OMAP3430_DSS_MOD, CM_AUTOIDLE);
+> +	prcm_context.cam_cm_autoidle =
+> +			 cm_read_mod_reg(OMAP3430_CAM_MOD, CM_AUTOIDLE);
+> +	prcm_context.per_cm_autoidle =
+> +			 cm_read_mod_reg(OMAP3430_PER_MOD, CM_AUTOIDLE);
+> +	prcm_context.usbhost_cm_autoidle =
+> +			 cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, CM_AUTOIDLE);
+> +	prcm_context.sgx_cm_sleepdep =
+> +		 cm_read_mod_reg(OMAP3430ES2_SGX_MOD, OMAP3430_CM_SLEEPDEP);
+> +	prcm_context.dss_cm_sleepdep =
+> +		 cm_read_mod_reg(OMAP3430_DSS_MOD, OMAP3430_CM_SLEEPDEP);
+> +	prcm_context.cam_cm_sleepdep =
+> +		 cm_read_mod_reg(OMAP3430_CAM_MOD, OMAP3430_CM_SLEEPDEP);
+> +	prcm_context.per_cm_sleepdep =
+> +		 cm_read_mod_reg(OMAP3430_PER_MOD, OMAP3430_CM_SLEEPDEP);
+> +	prcm_context.usbhost_cm_sleepdep =
+> +		 cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, OMAP3430_CM_SLEEPDEP);
+> +	prcm_context.cm_clkout_ctrl = __raw_readl(OMAP3430_CM_CLKOUT_CTRL);
+> +	prcm_context.prm_clkout_ctrl = __raw_readl(OMAP3430_PRM_CLKOUT_CTRL);
+> +	prcm_context.sgx_pm_wkdep =
+> +		 prm_read_mod_reg(OMAP3430ES2_SGX_MOD, PM_WKDEP);
+> +	prcm_context.dss_pm_wkdep =
+> +		 prm_read_mod_reg(OMAP3430_DSS_MOD, PM_WKDEP);
+> +	prcm_context.cam_pm_wkdep =
+> +		 prm_read_mod_reg(OMAP3430_CAM_MOD, PM_WKDEP);
+> +	prcm_context.per_pm_wkdep =
+> +		 prm_read_mod_reg(OMAP3430_PER_MOD, PM_WKDEP);
+> +	prcm_context.neon_pm_wkdep =
+> +		 prm_read_mod_reg(OMAP3430_NEON_MOD, PM_WKDEP);
+> +	prcm_context.usbhost_pm_wkdep =
+> +		 prm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, PM_WKDEP);
+> +	prcm_context.core_pm_mpugrpsel1 =
+> +		 prm_read_mod_reg(CORE_MOD, OMAP3430_PM_MPUGRPSEL1);
+> +	prcm_context.iva2_pm_ivagrpsel1 =
+> +		 prm_read_mod_reg(OMAP3430_IVA2_MOD, OMAP3430_PM_IVAGRPSEL1);
+> +	prcm_context.core_pm_mpugrpsel3 =
+> +		 prm_read_mod_reg(CORE_MOD, OMAP3430ES2_PM_MPUGRPSEL3);
+> +	prcm_context.core_pm_ivagrpsel3 =
+> +		 prm_read_mod_reg(CORE_MOD, OMAP3430ES2_PM_IVAGRPSEL3);
+> +	prcm_context.wkup_pm_mpugrpsel =
+> +		 prm_read_mod_reg(WKUP_MOD, OMAP3430_PM_MPUGRPSEL);
+> +	prcm_context.wkup_pm_ivagrpsel =
+> +		 prm_read_mod_reg(WKUP_MOD, OMAP3430_PM_IVAGRPSEL);
+> +	prcm_context.per_pm_mpugrpsel =
+> +		 prm_read_mod_reg(OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
+> +	prcm_context.per_pm_ivagrpsel =
+> +		 prm_read_mod_reg(OMAP3430_PER_MOD, OMAP3430_PM_IVAGRPSEL);
+> +	prcm_context.wkup_pm_wken = prm_read_mod_reg(WKUP_MOD, PM_WKEN);
 > +	return;
 > +}
 > +
-> +void omap3_restore_control_ctx(void)
+> +void omap3_restore_prcm_ctx(void)
 > +{
-> +	omap_ctrl_writel(control_ctx.sysconfig, OMAP2_CONTROL_SYSCONFIG);
-> +	omap_ctrl_writel(control_ctx.devconf0, OMAP2_CONTROL_DEVCONF0);
-> +	omap_ctrl_writel(control_ctx.mem_dftrw0, OMAP343X_CONTROL_MEM_DFTRW0);
-> +	omap_ctrl_writel(control_ctx.mem_dftrw1, OMAP343X_CONTROL_MEM_DFTRW1);
-> +	omap_ctrl_writel(control_ctx.msuspendmux_0,
-> +					       OMAP2_CONTROL_MSUSPENDMUX_0);
-> +	omap_ctrl_writel(control_ctx.msuspendmux_1,
-> +					       OMAP2_CONTROL_MSUSPENDMUX_1);
-> +	omap_ctrl_writel(control_ctx.msuspendmux_2,
-> +					       OMAP2_CONTROL_MSUSPENDMUX_2);
-> +	omap_ctrl_writel(control_ctx.msuspendmux_3,
-> +					       OMAP2_CONTROL_MSUSPENDMUX_3);
-> +	omap_ctrl_writel(control_ctx.msuspendmux_4,
-> +					       OMAP2_CONTROL_MSUSPENDMUX_4);
-> +	omap_ctrl_writel(control_ctx.msuspendmux_5,
-> +					       OMAP2_CONTROL_MSUSPENDMUX_5);
-> +	omap_ctrl_writel(control_ctx.sec_ctrl, OMAP2_CONTROL_SEC_CTRL);
-> +	omap_ctrl_writel(control_ctx.devconf1, OMAP343X_CONTROL_DEVCONF1);
-> +	omap_ctrl_writel(control_ctx.csirxfe, OMAP343X_CONTROL_CSIRXFE);
-> +	omap_ctrl_writel(control_ctx.iva2_bootaddr,
-> +					       OMAP343X_CONTROL_IVA2_BOOTADDR);
-> +	omap_ctrl_writel(control_ctx.iva2_bootmod,
-> +					       OMAP343X_CONTROL_IVA2_BOOTMOD);
-> +	omap_ctrl_writel(control_ctx.debobs_0, OMAP343X_CONTROL_DEBOBS_0);
-> +	omap_ctrl_writel(control_ctx.debobs_1, OMAP343X_CONTROL_DEBOBS_1);
-> +	omap_ctrl_writel(control_ctx.debobs_2, OMAP343X_CONTROL_DEBOBS_2);
-> +	omap_ctrl_writel(control_ctx.debobs_3, OMAP343X_CONTROL_DEBOBS_3);
-> +	omap_ctrl_writel(control_ctx.debobs_4, OMAP343X_CONTROL_DEBOBS_4);
-> +	omap_ctrl_writel(control_ctx.debobs_5, OMAP343X_CONTROL_DEBOBS_5);
-> +	omap_ctrl_writel(control_ctx.debobs_6, OMAP343X_CONTROL_DEBOBS_6);
-> +	omap_ctrl_writel(control_ctx.debobs_7, OMAP343X_CONTROL_DEBOBS_7);
-> +	omap_ctrl_writel(control_ctx.debobs_8, OMAP343X_CONTROL_DEBOBS_8);
-> +	omap_ctrl_writel(control_ctx.prog_io0, OMAP343X_CONTROL_PROG_IO0);
-> +	omap_ctrl_writel(control_ctx.prog_io1, OMAP343X_CONTROL_PROG_IO1);
-> +	omap_ctrl_writel(control_ctx.dss_dpll_spreading,
-> +			       OMAP343X_CONTROL_DSS_DPLL_SPREADING);
-> +	omap_ctrl_writel(control_ctx.core_dpll_spreading,
-> +			       OMAP343X_CONTROL_CORE_DPLL_SPREADING);
-> +	omap_ctrl_writel(control_ctx.per_dpll_spreading,
-> +			       OMAP343X_CONTROL_PER_DPLL_SPREADING);
-> +	omap_ctrl_writel(control_ctx.usbhost_dpll_spreading,
-> +			       OMAP343X_CONTROL_USBHOST_DPLL_SPREADING);
-> +	omap_ctrl_writel(control_ctx.pbias_lite, OMAP343X_CONTROL_PBIAS_LITE);
-> +	omap_ctrl_writel(control_ctx.temp_sensor, OMAP343X_CONTROL_TEMP_SENSOR);
-> +	omap_ctrl_writel(control_ctx.sramldo4, OMAP343X_CONTROL_SRAMLDO4);
-> +	omap_ctrl_writel(control_ctx.sramldo5, OMAP343X_CONTROL_SRAMLDO5);
-> +	omap_ctrl_writel(control_ctx.csi, OMAP343X_CONTROL_CSI);
+
+Replace these with a call to omap_intcps_restore_mir(&mir_ctx);
+
+> +	omap_writel(prcm_context.intc_mir_0, INTC_MIR_0);
+> +	omap_writel(prcm_context.intc_mir_1, INTC_MIR_1);
+> +	omap_writel(prcm_context.intc_mir_2, INTC_MIR_2);
+> +	omap_ctrl_writel(prcm_context.control_padconf_sys_nirq,
+> +					 OMAP343X_CONTROL_PADCONF_SYSNIRQ);
+> +	cm_write_mod_reg(prcm_context.iva2_cm_clksel2, OMAP3430_IVA2_MOD,
+> +					 CM_CLKSEL2);
+> +	__raw_writel(prcm_context.cm_sysconfig, OMAP3430_CM_SYSCONFIG);
+> +	cm_write_mod_reg(prcm_context.sgx_cm_clksel, OMAP3430ES2_SGX_MOD,
+> +					 CM_CLKSEL);
+> +	cm_write_mod_reg(prcm_context.wkup_cm_clksel, WKUP_MOD, CM_CLKSEL);
+> +	cm_write_mod_reg(prcm_context.dss_cm_clksel, OMAP3430_DSS_MOD,
+> +					 CM_CLKSEL);
+> +	cm_write_mod_reg(prcm_context.cam_cm_clksel, OMAP3430_CAM_MOD,
+> +					 CM_CLKSEL);
+> +	cm_write_mod_reg(prcm_context.per_cm_clksel, OMAP3430_PER_MOD,
+> +					 CM_CLKSEL);
+> +	cm_write_mod_reg(prcm_context.emu_cm_clksel, OMAP3430_EMU_MOD,
+> +					 CM_CLKSEL1);
+> +	cm_write_mod_reg(prcm_context.emu_cm_clkstctrl, OMAP3430_EMU_MOD,
+> +					 CM_CLKSTCTRL);
+> +	cm_write_mod_reg(prcm_context.pll_cm_autoidle2, PLL_MOD,
+> +					 CM_AUTOIDLE2);
+> +	cm_write_mod_reg(prcm_context.pll_cm_clksel5, PLL_MOD,
+> +					 OMAP3430ES2_CM_CLKSEL5);
+> +	__raw_writel(prcm_context.cm_polctrl, OMAP3430_CM_POLCTRL);
+> +	cm_write_mod_reg(prcm_context.iva2_cm_fclken, OMAP3430_IVA2_MOD,
+> +					 CM_FCLKEN);
+> +	cm_write_mod_reg(prcm_context.core_cm_fclken1, CORE_MOD, CM_FCLKEN1);
+> +	cm_write_mod_reg(prcm_context.core_cm_fclken3, CORE_MOD,
+> +					 OMAP3430ES2_CM_FCLKEN3);
+> +	cm_write_mod_reg(prcm_context.sgx_cm_fclken, OMAP3430ES2_SGX_MOD,
+> +					 CM_FCLKEN);
+> +	cm_write_mod_reg(prcm_context.wkup_cm_fclken, WKUP_MOD, CM_FCLKEN);
+> +	cm_write_mod_reg(prcm_context.dss_cm_fclken, OMAP3430_DSS_MOD,
+> +					 CM_FCLKEN);
+> +	cm_write_mod_reg(prcm_context.cam_cm_fclken, OMAP3430_CAM_MOD,
+> +					 CM_FCLKEN);
+> +	cm_write_mod_reg(prcm_context.per_cm_fclken, OMAP3430_PER_MOD,
+> +					 CM_FCLKEN);
+> +	cm_write_mod_reg(prcm_context.usbhost_cm_fclken,
+> +					 OMAP3430ES2_USBHOST_MOD, CM_FCLKEN);
+> +	cm_write_mod_reg(prcm_context.core_cm_iclken1, CORE_MOD, CM_ICLKEN1);
+> +	cm_write_mod_reg(prcm_context.core_cm_iclken2, CORE_MOD, CM_ICLKEN2);
+> +	cm_write_mod_reg(prcm_context.core_cm_iclken3, CORE_MOD, CM_ICLKEN3);
+> +	cm_write_mod_reg(prcm_context.sgx_cm_iclken, OMAP3430ES2_SGX_MOD,
+> +					CM_ICLKEN);
+> +	cm_write_mod_reg(prcm_context.wkup_cm_iclken, WKUP_MOD, CM_ICLKEN);
+> +	cm_write_mod_reg(prcm_context.dss_cm_iclken, OMAP3430_DSS_MOD,
+> +					CM_ICLKEN);
+> +	cm_write_mod_reg(prcm_context.cam_cm_iclken, OMAP3430_CAM_MOD,
+> +					CM_ICLKEN);
+> +	cm_write_mod_reg(prcm_context.per_cm_iclken, OMAP3430_PER_MOD,
+> +					CM_ICLKEN);
+> +	cm_write_mod_reg(prcm_context.usbhost_cm_iclken,
+> +					OMAP3430ES2_USBHOST_MOD, CM_ICLKEN);
+> +	cm_write_mod_reg(prcm_context.iva2_cm_autiidle2, OMAP3430_IVA2_MOD,
+> +					CM_AUTOIDLE2);
+> +	cm_write_mod_reg(prcm_context.mpu_cm_autoidle2, MPU_MOD, CM_AUTOIDLE2);
+> +	cm_write_mod_reg(prcm_context.pll_cm_autoidle, PLL_MOD, CM_AUTOIDLE);
+> +	cm_write_mod_reg(prcm_context.iva2_cm_clkstctrl, OMAP3430_IVA2_MOD,
+> +					CM_CLKSTCTRL);
+> +	cm_write_mod_reg(prcm_context.mpu_cm_clkstctrl, MPU_MOD, CM_CLKSTCTRL);
+> +	cm_write_mod_reg(prcm_context.core_cm_clkstctrl, CORE_MOD,
+> +					CM_CLKSTCTRL);
+> +	cm_write_mod_reg(prcm_context.sgx_cm_clkstctrl, OMAP3430ES2_SGX_MOD,
+> +					CM_CLKSTCTRL);
+> +	cm_write_mod_reg(prcm_context.dss_cm_clkstctrl, OMAP3430_DSS_MOD,
+> +					CM_CLKSTCTRL);
+> +	cm_write_mod_reg(prcm_context.cam_cm_clkstctrl, OMAP3430_CAM_MOD,
+> +					CM_CLKSTCTRL);
+> +	cm_write_mod_reg(prcm_context.per_cm_clkstctrl, OMAP3430_PER_MOD,
+> +					CM_CLKSTCTRL);
+> +	cm_write_mod_reg(prcm_context.neon_cm_clkstctrl, OMAP3430_NEON_MOD,
+> +					CM_CLKSTCTRL);
+> +	cm_write_mod_reg(prcm_context.usbhost_cm_clkstctrl,
+> +					OMAP3430ES2_USBHOST_MOD, CM_CLKSTCTRL);
+> +	cm_write_mod_reg(prcm_context.core_cm_autoidle1, CORE_MOD,
+> +					CM_AUTOIDLE1);
+> +	cm_write_mod_reg(prcm_context.core_cm_autoidle2, CORE_MOD,
+> +					CM_AUTOIDLE2);
+> +	cm_write_mod_reg(prcm_context.core_cm_autoidle3, CORE_MOD,
+> +					CM_AUTOIDLE3);
+> +	cm_write_mod_reg(prcm_context.wkup_cm_autoidle, WKUP_MOD, CM_AUTOIDLE);
+> +	cm_write_mod_reg(prcm_context.dss_cm_autoidle, OMAP3430_DSS_MOD,
+> +					CM_AUTOIDLE);
+> +	cm_write_mod_reg(prcm_context.cam_cm_autoidle, OMAP3430_CAM_MOD,
+> +					CM_AUTOIDLE);
+> +	cm_write_mod_reg(prcm_context.per_cm_autoidle, OMAP3430_PER_MOD,
+> +					CM_AUTOIDLE);
+> +	cm_write_mod_reg(prcm_context.usbhost_cm_autoidle,
+> +					OMAP3430ES2_USBHOST_MOD, CM_AUTOIDLE);
+> +	cm_write_mod_reg(prcm_context.sgx_cm_sleepdep, OMAP3430ES2_SGX_MOD,
+> +					OMAP3430_CM_SLEEPDEP);
+> +	cm_write_mod_reg(prcm_context.dss_cm_sleepdep, OMAP3430_DSS_MOD,
+> +					OMAP3430_CM_SLEEPDEP);
+> +	cm_write_mod_reg(prcm_context.cam_cm_sleepdep, OMAP3430_CAM_MOD,
+> +					OMAP3430_CM_SLEEPDEP);
+> +	cm_write_mod_reg(prcm_context.per_cm_sleepdep, OMAP3430_PER_MOD,
+> +					OMAP3430_CM_SLEEPDEP);
+> +	cm_write_mod_reg(prcm_context.usbhost_cm_sleepdep,
+> +				 OMAP3430ES2_USBHOST_MOD, OMAP3430_CM_SLEEPDEP);
+> +	__raw_writel(prcm_context.cm_clkout_ctrl, OMAP3430_CM_CLKOUT_CTRL);
+> +	__raw_writel(prcm_context.prm_clkout_ctrl, OMAP3430_PRM_CLKOUT_CTRL);
+> +	prm_write_mod_reg(prcm_context.sgx_pm_wkdep, OMAP3430ES2_SGX_MOD,
+> +					PM_WKDEP);
+> +	prm_write_mod_reg(prcm_context.dss_pm_wkdep, OMAP3430_DSS_MOD,
+> +					PM_WKDEP);
+> +	prm_write_mod_reg(prcm_context.cam_pm_wkdep, OMAP3430_CAM_MOD,
+> +					PM_WKDEP);
+> +	prm_write_mod_reg(prcm_context.per_pm_wkdep, OMAP3430_PER_MOD,
+> +					PM_WKDEP);
+> +	prm_write_mod_reg(prcm_context.neon_pm_wkdep, OMAP3430_NEON_MOD,
+> +					PM_WKDEP);
+> +	prm_write_mod_reg(prcm_context.usbhost_pm_wkdep,
+> +					OMAP3430ES2_USBHOST_MOD, PM_WKDEP);
+> +	prm_write_mod_reg(prcm_context.core_pm_mpugrpsel1, CORE_MOD,
+> +					OMAP3430_PM_MPUGRPSEL1);
+> +	prm_write_mod_reg(prcm_context.iva2_pm_ivagrpsel1, OMAP3430_IVA2_MOD,
+> +					OMAP3430_PM_IVAGRPSEL1);
+> +	prm_write_mod_reg(prcm_context.core_pm_mpugrpsel3, CORE_MOD,
+> +					OMAP3430ES2_PM_MPUGRPSEL3);
+> +	prm_write_mod_reg(prcm_context.core_pm_ivagrpsel3, CORE_MOD,
+> +					OMAP3430ES2_PM_IVAGRPSEL3);
+> +	prm_write_mod_reg(prcm_context.wkup_pm_mpugrpsel, WKUP_MOD,
+> +					OMAP3430_PM_MPUGRPSEL);
+> +	prm_write_mod_reg(prcm_context.wkup_pm_ivagrpsel, WKUP_MOD,
+> +					OMAP3430_PM_IVAGRPSEL);
+> +	prm_write_mod_reg(prcm_context.per_pm_mpugrpsel, OMAP3430_PER_MOD,
+> +					OMAP3430_PM_MPUGRPSEL);
+> +	prm_write_mod_reg(prcm_context.per_pm_ivagrpsel, OMAP3430_PER_MOD,
+> +					 OMAP3430_PM_IVAGRPSEL);
+> +	prm_write_mod_reg(prcm_context.wkup_pm_wken, WKUP_MOD, PM_WKEN);
 > +	return;
 > +}
->  #endif /* CONFIG_ARCH_OMAP3 */
+> +#endif
+> Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/prcm.h
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/prcm.h	2008-09-01
+> 18:11:28.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/plat-omap/include/mach/prcm.h	2008-09-01
+> 18:11:53.000000000 +0530
+> @@ -30,6 +30,98 @@ void cm_write_mod_reg(u32 val, s16 modul
+>  u32 cm_read_mod_reg(s16 module, u16 idx);
+>  u32 cm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module, s16 idx);
+> 
+> +#ifdef CONFIG_ARCH_OMAP3
+> +
+> +#define START_PADCONF_SAVE 0x2
+> +#define PADCONF_SAVE_DONE  0x1
+> +
+> +/* Interrupt Controller registers */
+> +#define INTC_MIR_0      0x48200084
+> +#define INTC_MIR_1      0x482000A4
+> +#define INTC_MIR_2      0x482000C4
+
+Please erase the above three defines - they are absolute addresses and 
+should be handled in a relative manner like the other INTC regs.
+
+> +struct prcm_context_regs {
+> +	u32 intc_mir_0;
+> +	u32 intc_mir_1;
+> +	u32 intc_mir_2;
+> +	u32 control_padconf_sys_nirq;
+> +	u32 iva2_cm_clksel2;
+> +	u32 cm_sysconfig;
+> +	u32 sgx_cm_clksel;
+> +	u32 wkup_cm_clksel;
+> +	u32 dss_cm_clksel;
+> +	u32 cam_cm_clksel;
+> +	u32 per_cm_clksel;
+> +	u32 emu_cm_clksel;
+> +	u32 emu_cm_clkstctrl;
+> +	u32 pll_cm_autoidle2;
+> +	u32 pll_cm_clksel5;
+> +	u32 cm_polctrl;
+> +	u32 iva2_cm_fclken;
+> +	u32 core_cm_fclken1;
+> +	u32 core_cm_fclken3;
+> +	u32 sgx_cm_fclken;
+> +	u32 wkup_cm_fclken;
+> +	u32 dss_cm_fclken;
+> +	u32 cam_cm_fclken;
+> +	u32 per_cm_fclken;
+> +	u32 usbhost_cm_fclken;
+> +	u32 core_cm_iclken1;
+> +	u32 core_cm_iclken2;
+> +	u32 core_cm_iclken3;
+> +	u32 sgx_cm_iclken;
+> +	u32 wkup_cm_iclken;
+> +	u32 dss_cm_iclken;
+> +	u32 cam_cm_iclken;
+> +	u32 per_cm_iclken;
+> +	u32 usbhost_cm_iclken;
+> +	u32 iva2_cm_autiidle2;
+> +	u32 mpu_cm_autoidle2;
+> +	u32 pll_cm_autoidle;
+> +	u32 iva2_cm_clkstctrl;
+> +	u32 mpu_cm_clkstctrl;
+> +	u32 core_cm_clkstctrl;
+> +	u32 sgx_cm_clkstctrl;
+> +	u32 dss_cm_clkstctrl;
+> +	u32 cam_cm_clkstctrl;
+> +	u32 per_cm_clkstctrl;
+> +	u32 neon_cm_clkstctrl;
+> +	u32 usbhost_cm_clkstctrl;
+> +	u32 core_cm_autoidle1;
+> +	u32 core_cm_autoidle2;
+> +	u32 core_cm_autoidle3;
+> +	u32 wkup_cm_autoidle;
+> +	u32 dss_cm_autoidle;
+> +	u32 cam_cm_autoidle;
+> +	u32 per_cm_autoidle;
+> +	u32 usbhost_cm_autoidle;
+> +	u32 sgx_cm_sleepdep;
+> +	u32 dss_cm_sleepdep;
+> +	u32 cam_cm_sleepdep;
+> +	u32 per_cm_sleepdep;
+> +	u32 usbhost_cm_sleepdep;
+> +	u32 cm_clkout_ctrl;
+> +	u32 prm_clkout_ctrl;
+> +	u32 sgx_pm_wkdep;
+> +	u32 dss_pm_wkdep;
+> +	u32 cam_pm_wkdep;
+> +	u32 per_pm_wkdep;
+> +	u32 neon_pm_wkdep;
+> +	u32 usbhost_pm_wkdep;
+> +	u32 core_pm_mpugrpsel1;
+> +	u32 iva2_pm_ivagrpsel1;
+> +	u32 core_pm_mpugrpsel3;
+> +	u32 core_pm_ivagrpsel3;
+> +	u32 wkup_pm_mpugrpsel;
+> +	u32 wkup_pm_ivagrpsel;
+> +	u32 per_pm_mpugrpsel;
+> +	u32 per_pm_ivagrpsel;
+> +	u32 wkup_pm_wken;
+> +};
+> +
+> +void omap3_save_prcm_ctx(void);
+> +void omap3_restore_prcm_ctx(void);
+> +#endif
+>  #endif
+> 
+> 
+> Index: linux-omap-2.6/arch/arm/mach-omap2/prm.h
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/mach-omap2/prm.h	2008-09-01 18:11:28.000000000
+> +0530
+> +++ linux-omap-2.6/arch/arm/mach-omap2/prm.h	2008-09-01 18:11:53.000000000 +0530
+> @@ -137,9 +137,11 @@
+> 
+>  #define OMAP3430_PM_MPUGRPSEL				0x00a4
+>  #define OMAP3430_PM_MPUGRPSEL1				OMAP3430_PM_MPUGRPSEL
+> +#define OMAP3430ES2_PM_MPUGRPSEL3                       0x00f8
+
+Please check the whitespace on this define - it should use tabs.
+
+
+> 
+>  #define OMAP3430_PM_IVAGRPSEL				0x00a8
+>  #define OMAP3430_PM_IVAGRPSEL1				OMAP3430_PM_IVAGRPSEL
+> +#define OMAP3430ES2_PM_IVAGRPSEL3                       0x00f4
+
+Please check the whitespace on this define - it should use tabs.
+
+> 
+>  #define OMAP3430_PM_PREPWSTST				0x00e8
+> 
 > Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/control.h
 > ===================================================================
 > --- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/control.h	2008-09-01
-> 18:11:53.000000000 +0530
+> 18:11:34.000000000 +0530
 > +++ linux-omap-2.6/arch/arm/plat-omap/include/mach/control.h	2008-09-01
-> 18:11:54.000000000 +0530
-> @@ -151,7 +151,26 @@
->  #define OMAP343X_CONTROL_FUSE_SR	(OMAP2_CONTROL_GENERAL + 0x0130)
->  #define OMAP343X_CONTROL_IVA2_BOOTADDR	(OMAP2_CONTROL_GENERAL + 0x0190)
->  #define OMAP343X_CONTROL_IVA2_BOOTMOD	(OMAP2_CONTROL_GENERAL + 0x0194)
-> -#define OMAP343X_CONTROL_TEMP_SENSOR	(OMAP2_CONTROL_GENERAL + 0x02b4)
-> +#define OMAP343X_CONTROL_DEBOBS_0      (OMAP2_CONTROL_GENERAL + 0x01B0)
-> +#define OMAP343X_CONTROL_DEBOBS_1      (OMAP2_CONTROL_GENERAL + 0x01B4)
-> +#define OMAP343X_CONTROL_DEBOBS_2      (OMAP2_CONTROL_GENERAL + 0x01B8)
-> +#define OMAP343X_CONTROL_DEBOBS_3      (OMAP2_CONTROL_GENERAL + 0x01BC)
-> +#define OMAP343X_CONTROL_DEBOBS_4      (OMAP2_CONTROL_GENERAL + 0x01C0)
-> +#define OMAP343X_CONTROL_DEBOBS_5      (OMAP2_CONTROL_GENERAL + 0x01C4)
-> +#define OMAP343X_CONTROL_DEBOBS_6      (OMAP2_CONTROL_GENERAL + 0x01C8)
-> +#define OMAP343X_CONTROL_DEBOBS_7      (OMAP2_CONTROL_GENERAL + 0x01CC)
-> +#define OMAP343X_CONTROL_DEBOBS_8      (OMAP2_CONTROL_GENERAL + 0x01D0)
-> +#define OMAP343X_CONTROL_PROG_IO0      (OMAP2_CONTROL_GENERAL + 0x01D4)
-> +#define OMAP343X_CONTROL_PROG_IO1      (OMAP2_CONTROL_GENERAL + 0x01D8)
-> +#define OMAP343X_CONTROL_DSS_DPLL_SPREADING    (OMAP2_CONTROL_GENERAL + 0x01E0)
-> +#define OMAP343X_CONTROL_CORE_DPLL_SPREADING   (OMAP2_CONTROL_GENERAL + 0x01E4)
-> +#define OMAP343X_CONTROL_PER_DPLL_SPREADING    (OMAP2_CONTROL_GENERAL + 0x01E8)
-> +#define OMAP343X_CONTROL_USBHOST_DPLL_SPREADING (OMAP2_CONTROL_GENERAL + 0x01EC)
-> +#define OMAP343X_CONTROL_PBIAS_LITE    (OMAP2_CONTROL_GENERAL + 0x02B0)
-> +#define OMAP343X_CONTROL_TEMP_SENSOR   (OMAP2_CONTROL_GENERAL + 0x02B4)
-> +#define OMAP343X_CONTROL_SRAMLDO4      (OMAP2_CONTROL_GENERAL + 0x02B8)
-> +#define OMAP343X_CONTROL_SRAMLDO5      (OMAP2_CONTROL_GENERAL + 0x02C0)
-> +#define OMAP343X_CONTROL_CSI           (OMAP2_CONTROL_GENERAL + 0x02C4)
->
->  /*
->   * REVISIT: This list of registers is not comprehensive - there are more
-> @@ -211,6 +230,8 @@ extern void omap3_save_scratchpad_conten
->  extern void omap3_clear_scratchpad_contents(void);
->  extern u32 *get_restore_pointer(void);
->  extern u32 context_mem[128];
-> +extern void omap3_save_control_ctx(void);
-> +extern void omap3_restore_control_ctx(void);
->
->  struct omap3_scratchpad {
->  	u32 boot_config_ptr;
-> @@ -271,6 +292,44 @@ struct omap3_scratchpad_sdrc_block {
->  	u32 sdrc_context_addr;
->  };
->
-> +struct omap3_control_module_regs {
-> +	u32 sysconfig;
-> +	u32 devconf0;
-> +	u32 mem_dftrw0;
-> +	u32 mem_dftrw1;
-> +	u32 msuspendmux_0;
-> +	u32 msuspendmux_1;
-> +	u32 msuspendmux_2;
-> +	u32 msuspendmux_3;
-> +	u32 msuspendmux_4;
-> +	u32 msuspendmux_5;
-> +	u32 sec_ctrl;
-> +	u32 devconf1;
-> +	u32 csirxfe;
-> +	u32 iva2_bootaddr;
-> +	u32 iva2_bootmod;
-> +	u32 debobs_0;
-> +	u32 debobs_1;
-> +	u32 debobs_2;
-> +	u32 debobs_3;
-> +	u32 debobs_4;
-> +	u32 debobs_5;
-> +	u32 debobs_6;
-> +	u32 debobs_7;
-> +	u32 debobs_8;
-> +	u32 prog_io0;
-> +	u32 prog_io1;
-> +	u32 dss_dpll_spreading;
-> +	u32 core_dpll_spreading;
-> +	u32 per_dpll_spreading;
-> +	u32 usbhost_dpll_spreading;
-> +	u32 pbias_lite;
-> +	u32 temp_sensor;
-> +	u32 sramldo4;
-> +	u32 sramldo5;
-> +	u32 csi;
-> +};
+> 18:11:53.000000000 +0530
+> @@ -108,6 +108,8 @@
+>  #define OMAP24XX_CONTROL_TEST_KEY_8	(OMAP2_CONTROL_GENERAL + 0x00e0)
+>  #define OMAP24XX_CONTROL_TEST_KEY_9	(OMAP2_CONTROL_GENERAL + 0x00e4)
+> 
+> +#define OMAP343X_CONTROL_PADCONF_SYSNIRQ (OMAP2_CONTROL_INTERFACE + 0x01b0)
 > +
->  #else
->  #define omap_ctrl_base_get()		0
->  #define omap_ctrl_readb(x)		0
->
->
+>  /* 34xx-only CONTROL_GENERAL register offsets */
+>  #define OMAP343X_CONTROL_PADCONF_OFF	(OMAP2_CONTROL_GENERAL + 0x0000)
+>  #define OMAP343X_CONTROL_MEM_DFTRW0	(OMAP2_CONTROL_GENERAL + 0x0008)
+> 
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+- Paul
