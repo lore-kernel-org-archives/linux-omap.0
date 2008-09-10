@@ -1,35 +1,46 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: 3430: can't find mmc debounce clock
-Date: Wed, 10 Sep 2008 06:44:30 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0809100641010.20446@utopia.booyaka.com>
-References: <57314e840809080618x1f0cd0aen74b1a03351dc8ef7@mail.gmail.com>
+From: "Felipe Contreras" <felipe.contreras@gmail.com>
+Subject: Re: [BRIDGE] Rebase and sync with omapzoom bridge patch update
+Date: Wed, 10 Sep 2008 15:49:51 +0300
+Message-ID: <94a0d4530809100549r749810a6wb77a1d1bb576f762@mail.gmail.com>
+References: <20080910.065332.170214513.Hiroshi.DOYU@nokia.com>
+	 <20080910.154146.234688808.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56580 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751767AbYIJMob (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 08:44:31 -0400
-In-Reply-To: <57314e840809080618x1f0cd0aen74b1a03351dc8ef7@mail.gmail.com>
+Received: from wf-out-1314.google.com ([209.85.200.175]:65287 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751526AbYIJMtw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 08:49:52 -0400
+Received: by wf-out-1314.google.com with SMTP id 27so2501885wfd.4
+        for <linux-omap@vger.kernel.org>; Wed, 10 Sep 2008 05:49:51 -0700 (PDT)
+In-Reply-To: <20080910.154146.234688808.Hiroshi.DOYU@nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Budhee Jamaich <budheej@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap@vger.kernel.org, x00omar@ti.com, h-kanigeri2@ti.com, grgupta@ti.com, juha.m.alanen@nokia.com, felipe.contreras@nokia.com, felipe.balbi@nokia.com
 
-On Mon, 8 Sep 2008, Budhee Jamaich wrote:
+On Wed, Sep 10, 2008 at 3:41 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
+> Hi,
+>
+> It seems that the following site doesn't work with git.
+> So please use:
+>
+> $ wget http://4869037.web.fc2.com/tidspbridge-20080910.tgz
+>
+> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> Subject: [BRIDGE] Rebase and sync with omapzoom bridge patch update
+> Date: Wed, 10 Sep 2008 06:53:32 +0300 (EEST)
+>
+>> Hi,
+>>
+>> I have updated all TI BRIDGE patches and rebased them against the
+>> latest linux-omap again for easy integration of them. You can get it
+>> by:
+>>      git fetch http://4869037.web.fc2.com/linux.git bridge:<you branch>
 
-> I read that the mmc has 3 clocks: fixed functional clock (MMCi_FCLK),
-> interface clock (MMCi_ICLK) and debounce clock (MMCi_32).
-> 
-> But, when I look in clock34xx.h, I can only see two of those - there
-> is the "mmchs_fck" and "mmchs_ick". There is no struct clk for the
-> debounce clock. Only when I look in older kernels I can see also the
-> "mmchsdb2_fck".
-> 
-> So where is the debounce clock struct ? (I want to 'get' and 'enable' it...)
+This works fine here...
 
-The debounce clocks are controlled by gpio[1-6]_fck.  Perhaps we should 
-rename them, but that's what the current tree uses.
-
-
-- Paul
+-- 
+Felipe Contreras
