@@ -1,74 +1,59 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 2/3][OMAP 3/4]table end for wcd command definitions
-Date: Wed, 10 Sep 2008 07:08:27 +0300 (EEST)
-Message-ID: <20080910.070827.145357958.Hiroshi.DOYU@nokia.com>
-References: <27F9C60D11D683428E133F85D2BB4A534486D6A4@dlee03.ent.ti.com>
-	<20080829.080313.110221229.Hiroshi.DOYU@nokia.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH] MUSB: fix memory corruption when using more than max endpoints
+Date: Wed, 10 Sep 2008 08:53:56 +0300
+Message-ID: <1221026036-26477-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:63303 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750865AbYIJEIq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 00:08:46 -0400
-In-Reply-To: <20080829.080313.110221229.Hiroshi.DOYU@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:34195 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751110AbYIJFyH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 01:54:07 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux@arm.linux.org.uk, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, x00omar@ti.com, h-kanigeri2@ti.com
+To: linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi,
+There is no check if platform code passes in more endpoints (num_eps)
+than the maximum number of enpoints (MUSB_C_NUM_EPS.)  The result is
+that allocate_instance() happily writes past the end of 'struct musb'
+corrupting memory.
 
-Although this TI bridge patches are not integrated and a bit
-independent S/W component, it would be nice to get some comments just
-on this bridge header file location from kernel maintainer's
-perspective.
+The fix below increases the max to 32 (used on omap3) and also adds a
+BUG() if the platform code requests more than the max.
 
-"arch/arm/plat-omap/include/mach/bridge"
-  or "arch/arm/plat-omap/include/bridge"?
+This memory corruption was triggering various forms of crashes/panics
+with kmem_cache_alloc() in the backtrace.
 
-	 Hiroshi DOYU
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ drivers/usb/musb/musb_core.c |    1 +
+ drivers/usb/musb/musb_core.h |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletions(-)
 
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 2/3][OMAP 3/4]table end for wcd command definitions
-Date: Fri, 29 Aug 2008 08:03:13 +0300 (EEST)
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index c939f81..a132d9f 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1806,6 +1806,7 @@ allocate_instance(struct device *dev,
+ 	musb->ctrl_base = mbase;
+ 	musb->nIrq = -ENODEV;
+ 	musb->config = config;
++	BUG_ON(musb->config->num_eps > MUSB_C_NUM_EPS);
+ 	for (epnum = 0, ep = musb->endpoints;
+ 			epnum < musb->config->num_eps;
+ 			epnum++, ep++) {
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 8222725..5040ceb 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -153,7 +153,7 @@ static inline void musb_host_rx(struct musb *m, u8 e) {}
+ /****************************** CONSTANTS ********************************/
+ 
+ #ifndef MUSB_C_NUM_EPS
+-#define MUSB_C_NUM_EPS ((u8)16)
++#define MUSB_C_NUM_EPS ((u8)32)
+ #endif
+ 
+ #ifndef MUSB_MAX_END0_PACKET
+-- 
+1.6.0
 
-> Hi Omar,
-> 
-> I just noticed that the bridge specific header files are located
-> under "linux/arch/arm/plat-omap/include/mach/bridge/", but it may be
-> better to have them under "arch/arm/plat-omap/include/bridge/" because
-> those header files are not related to the omap archtecture so much and
-> mostly used for bridge specific purpose, although omap is the only
-> platform to have bridge with dsp;) For me, it would make more sense
-> logically, and also practically grepp'ing would work more nicely
-> without any fancy tools like specifiying the directories to search.
-> 
-> Any comments?
-> 
-> 	Hiroshi DOYU
-> 
-> From: "ext Ramirez Luna, Omar" <x00omar@ti.com>
-> Subject: [PATCH 2/3][OMAP 3/4]table end for wcd command definitions
-> Date: Thu, 28 Aug 2008 20:30:44 -0500
-> 
-> > Added the table end 'CMD_BASE_END_OFFSET' define in wcdioctl.h
-> > 
-> > Signed-off-by: Omar Ramirez Luna <x00omar@ti.com>
-> > ---
-> > 
-> > Index: omapkernel/arch/arm/plat-omap/include/mach/bridge/wcdioctl.h
-> > ===================================================================
-> > --- omapkernel.orig/arch/arm/plat-omap/include/mach/bridge/wcdioctl.h	2008-08-22 19:03:10.000000000 -0500
-> > +++ omapkernel/arch/arm/plat-omap/include/mach/bridge/wcdioctl.h	2008-08-22 19:20:05.000000000 -0500
-> > @@ -515,4 +515,5 @@
-> >  #define CMD_CMM_GETINFO_OFFSET	  (CMD_CMM_BASE_OFFSET + 3)
-> >  #define CMD_CMM_END_OFFSET	      CMD_CMM_GETINFO_OFFSET
-> >  
-> > +#define CMD_BASE_END_OFFSET	CMD_CMM_END_OFFSET
-> >  #endif				/* WCDIOCTL_ */
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
