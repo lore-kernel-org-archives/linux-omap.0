@@ -1,74 +1,92 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC] Patch for proper Cortex-A8 cache configuration output
-Date: Wed, 10 Sep 2008 16:28:07 -0700
-Message-ID: <20080910232807.GP21163@atomide.com>
-References: <489B24DA.4020008@googlemail.com> <20080808104007.GU24923@atomide.com>
+Subject: Re: omap24xx is broken in current head
+Date: Wed, 10 Sep 2008 16:40:53 -0700
+Message-ID: <20080910234053.GQ21163@atomide.com>
+References: <20080810115818.GG7574@frodo> <20080810121655.GH7574@frodo> <C558C578-1F45-433E-B82F-F5667CEBAFAF@student.utwente.nl> <1218388936.24010.138.camel@localhost> <20080811145053.GL25784@atomide.com> <28085EBF-3BA7-4093-A18F-4035D5DD8040@student.utwente.nl> <20080811152944.GP25784@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58226 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50570 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751057AbYIJX2J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 19:28:09 -0400
+	with ESMTP id S1751986AbYIJXlA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 19:41:00 -0400
 Content-Disposition: inline
-In-Reply-To: <20080808104007.GU24923@atomide.com>
+In-Reply-To: <20080811152944.GP25784@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: linux-omap@vger.kernel.org
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: Igor Stoppa <igor.stoppa@nokia.com>, me@felipebalbi.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-* Tony Lindgren <tony@atomide.com> [080808 03:41]:
-> * Dirk Behme <dirk.behme@googlemail.com> [080807 19:38]:
+* Tony Lindgren <tony@atomide.com> [080811 08:32]:
+> * Koen Kooi <k.kooi@student.utwente.nl> [080811 18:00]:
 > >
-> > Recent ARM kernel doesn't detect and output Cortex-A8 cache  
-> > configuration correctly. Result is something like this in kernel's boot 
-> > messages:
+> > Op 11 aug 2008, om 16:50 heeft Tony Lindgren het volgende geschreven:
 > >
-> > -- cut --
-> > ...
-> > CPU: ARMv7 Processor [411fc082] revision 2 (ARMv7), cr=00c5387f
-> > ...
-> > CPU0: D VIPT write-through cache
-> > CPU0: cache: 768 bytes, associativity 1, 8 byte lines, 64 sets
-> > ...
-> > -- cut --
+> >> * Igor Stoppa <igor.stoppa@nokia.com> [080810 20:39]:
+> >>> On Sun, 2008-08-10 at 14:37 +0200, ext Koen Kooi wrote:
+> >>>
+> >>>> "Broken as hell" if you want to do anything NEON related with it.
+> >>>
+> >>> yup
+> >>> Very unlucky but very true.
+> >>>> I
+> >>>> use 2007q3 with the -Os fix for compiling omap3 kernels
+> >>>
+> >>> Felipe: that's also what we should use internally, since it's the  
+> >>> only
+> >>> one approved by our system performance team.
+> >>
+> >> I'll revert this patch for now to avoid adding a compiler dependency
+> >> as we already have a pile of other issues to solve.
 > >
-> > Catalin sent a patch for this to linux-arm-kernel list:
+> > Speaking of compiler dependencies, how about applying my patch that  
+> > enable vanilla gcc to compile the kernel? Russel (or Erik) seems to be  
+> > fond of rejecting my mails to the LAKML list, so I can't post it there. A 
+> > copy of it can be found here:
 > >
-> > http://lists.arm.linux.org.uk/lurker/message/20080704.150532.983f01ca.en.html
-> >
-> > Result:
-> >
-> > -- cut --
-> > ...
-> > CPU0: L1 I VIPT cache. Caches unified at level 2, coherent at level 3
-> > CPU0: Level 1 cache is separate instruction and data
-> > CPU0: I cache: 16384 bytes, associativity 4, 64 byte lines, 64 sets,
-> >       supports RA
-> > CPU0: D cache: 16384 bytes, associativity 4, 64 byte lines, 64 sets,
-> >       supports RA WB WT
-> > CPU0: Level 2 cache is unified
-> > CPU0: unified cache: 262144 bytes, associativity 8, 64 byte lines, 512  
-> > sets,
-> >       supports WA RA WB WT
-> > ...
-> > -- cut --
-> >
-> > Some people really like this and this patch is used in some private  
-> > trees, e.g. for BeagleBoard.
-> >
-> > Unfortunately, RMK doesn't like the patch. He prefers to completely  
-> > remove 'broken' configuration output completely.
-> >
-> > What's about applying this patch locally to OMAP git until upstream ARM 
-> > kernel has a fix/remove solution for this?
+> > http://ewi546.ewi.utwente.nl/git/?p=openembedded.git;a=blob;f=packages/linux/linux-omap2-git/beagleboard/no-harry-potter.diff;h=2bb20ab9c025312fcf0434de5bcb88aeceb4f87f;hb=HEAD
 > 
-> Yeah, let's try it out next week after updating to rc2. There will be
-> also move of the headers to go under plat-omap, so let's get all that
-> done first.
+> That seems like a good patch, you should see what the issue is with
+> posting to LAKML. Maybe add it to Russell's patch system meanwhile? :)
+> 
+> Meanwhile, yeah I'd say if that works on more compilers, let's add it
+> to l-o tree.
 
-I guess Catalin will submit his patch at some point after 2.6.28 opens.
-I'll apply it l-o tree, and remove the L2 debug info we had in id.c
-to clean up id.c in the future patches.
+I still don't see this patch anywhere.. Koen, what's your mail problem
+with LAKML? Maybe Russell can help with this issue?
+
+Anyways, I'll apply this to l-o tree. Seems like the dash is the right
+naming according to this:
+
+http://sourceware.org/ml/binutils/2006-12/msg00149.html
 
 Tony
+
+
+> 
+> Tony
+> 
+> 
+> > regards,
+> >
+> > Koen
+> >
+> >>
+> >>
+> >> Let's plan on re-applying this patch once the other issues are out of
+> >> the way.
+> >>
+> >> Tony
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-omap" 
+> >> in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>
+> >
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
