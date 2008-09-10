@@ -1,74 +1,101 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] MUSB: fix memory corruption when using more than max
-	endpoints
-Date: Wed, 10 Sep 2008 13:36:16 +0300
-Message-ID: <20080910103616.GQ16796@gandalf.research.nokia.com>
-References: <1221026036-26477-1-git-send-email-khilman@deeprootsystems.com>
-Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+From: "Singh, Vimal" <vimalsingh@ti.com>
+Subject: RE: [Resend][PATCH - Omapzoom][NAND] Add prefetch and DMA support
+Date: Wed, 10 Sep 2008 16:17:47 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403CD517C42@dbde02.ent.ti.com>
+References: <1220897015-14338-1-git-send-email-nskamat@ti.com>,<20080908181319.GH8266@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1221026036-26477-1-git-send-email-khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ext Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44008 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751125AbYIJKsD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 06:48:03 -0400
+In-Reply-To: <20080908181319.GH8266@flint.arm.linux.org.uk>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, "Kamat, Nishant" <nskamat@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Let's keep linux-usb on the loop for musb related patches ;-)
+Hi,
 
-On Wed, Sep 10, 2008 at 08:53:56AM +0300, ext Kevin Hilman wrote:
-> There is no check if platform code passes in more endpoints (num_eps)
-> than the maximum number of enpoints (MUSB_C_NUM_EPS.)  The result is
-> that allocate_instance() happily writes past the end of 'struct musb'
-> corrupting memory.
+> On Mon, Sep 08, 2008 at 01:03:35PM -0500, nskamat@ti.com wrote:
+> > +#ifdef CONFIG_MTD_NAND_OMAP_PREFETCH
+> > +     static int use_prefetch = 1;
+> > +
+> > +     /* "modprobe ... use_prefetch=0" etc */
+> > +     module_param(use_prefetch, bool, 0);
+> > +     MODULE_PARM_DESC(use_prefetch, "enable/disable use of PREFETCH");
 > 
-> The fix below increases the max to 32 (used on omap3) and also adds a
-> BUG() if the platform code requests more than the max.
+> Don't indent C code just because there's preprocessor stuff around it.
+
+Ok, I will remove it.
+
+
+> > +     init_completion(&info->comp);
+> > +     dma_sync_single_for_cpu(&info->pdev->dev,
+> > +                             virt_to_phys(addr), count, DMA_TO_DEVICE);
 > 
-> This memory corruption was triggering various forms of crashes/panics
-> with kmem_cache_alloc() in the backtrace.
+> Please read the DMA API and use the proper functions.  This is an abuse
+> of the DMA API.
 > 
-> Signed-off-by: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-
-Looks ok, I'll put to my series.
-
-> ---
->  drivers/usb/musb/musb_core.c |    1 +
->  drivers/usb/musb/musb_core.h |    2 +-
->  2 files changed, 2 insertions(+), 1 deletions(-)
+> > +     omap_start_dma(info->dma_ch);
+> > +     wait_for_completion(&info->comp);
+> > +     if (!is_write)
+> > +             dma_sync_single_for_cpu(&info->pdev->dev,
+> > +                             virt_to_phys(addr), count, DMA_FROM_DEVICE);
 > 
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> index c939f81..a132d9f 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -1806,6 +1806,7 @@ allocate_instance(struct device *dev,
->  	musb->ctrl_base = mbase;
->  	musb->nIrq = -ENODEV;
->  	musb->config = config;
-> +	BUG_ON(musb->config->num_eps > MUSB_C_NUM_EPS);
+> Ditto.  This is an abuse of the API.  This is how it's supposed to work:
+> 
+> 
+>         enum dma_direction dir = is_write ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+>         dma_addr_t dma_addr;
+> 
+>         dma_addr = dma_map_single(&info->pdev->dev, addr, count, dir);
+> 
+>         /* setup and start DMA using dma_addr */
+> 
+>         wait_for_completion(&info->comp);
+> 
+>         dma_unmap_single(&info->pdev->dev, dma_addr, count, dir);
+> 
 
-It's good to have this check here.
+I will fix this in my next patch.
 
->  	for (epnum = 0, ep = musb->endpoints;
->  			epnum < musb->config->num_eps;
->  			epnum++, ep++) {
-> diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-> index 8222725..5040ceb 100644
-> --- a/drivers/usb/musb/musb_core.h
-> +++ b/drivers/usb/musb/musb_core.h
-> @@ -153,7 +153,7 @@ static inline void musb_host_rx(struct musb *m, u8 e) {}
->  /****************************** CONSTANTS ********************************/
->  
->  #ifndef MUSB_C_NUM_EPS
-> -#define MUSB_C_NUM_EPS ((u8)16)
-> +#define MUSB_C_NUM_EPS ((u8)32)
 
-16 is the right number.
+> > @@ -201,11 +304,33 @@
+> >       struct omap_nand_info *info = container_of(mtd,
+> >                                       struct omap_nand_info, mtd);
+> >       u16 *p = (u16 *) buf;
+> > -
+> > -     len >>= 1;
+> > -
+> > -     while (len--)
+> > -             *p++ = cpu_to_le16(readw(info->nand.IO_ADDR_R));
+> 
+> This driver needs work (see endianness explaination below.)
 
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This has been fixed by David Brownell, and I will re-base my patch on top of it.
+
+> > +                     while (len) {
+> > +                             bytes_to_read  = ((prefetch_status >> 24) & 0x7F) >> 1;
+> > +                             for (i = 0; (i < bytes_to_read) && (len); i++, len -= 2)
+> > +                                     *p++ = cpu_to_le16(*(volatile u16 *)(info->nand_pref_fifo_add));
+> 
+> Yet you dereference it.  This is illegal according to the Linux APIs.
+> Use __raw_readw() here.
+
+Ok, I will do this.
+
+> Moreover, 'p' is a pointer to CPU endian memory, not le16 memory, so
+> using cpu_to_le16 is wrong here.  What endian is there data in flash?
+
+Accessing nand flash is done by prefetch engine, which is also part of omap,
+so has same endianness.
+Yes I will remove cpu_to_le16 in my next patch.
+
+
+
+Thanks,
+vimal
