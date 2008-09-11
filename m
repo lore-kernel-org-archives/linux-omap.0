@@ -1,76 +1,62 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 29/29] PM: serial: ensure padconf wake-enable bits are set for UARTs
-Date: Thu, 11 Sep 2008 15:34:13 +0300
-Message-ID: <1221136453-16697-29-git-send-email-khilman@deeprootsystems.com>
-References: <87iqt2amoi.fsf@deeprootsystems.com>
- <1221136453-16697-1-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-2-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-3-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-4-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-5-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-6-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-7-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-8-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-9-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-10-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-11-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-12-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-13-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-14-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-15-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-16-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-17-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-18-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-19-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-20-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-21-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-22-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-23-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-24-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-25-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-26-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-27-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-28-git-send-email-khilman@deeprootsystems.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 28/29] PM FIX: convert TI io_p2v() usage to OMAP2_IO_ADDRESS()
+Date: Thu, 11 Sep 2008 14:05:50 +0100
+Message-ID: <20080911130550.GA4986@flint.arm.linux.org.uk>
+References: <1221136453-16697-19-git-send-email-khilman@deeprootsystems.com> <1221136453-16697-20-git-send-email-khilman@deeprootsystems.com> <1221136453-16697-21-git-send-email-khilman@deeprootsystems.com> <1221136453-16697-22-git-send-email-khilman@deeprootsystems.com> <1221136453-16697-23-git-send-email-khilman@deeprootsystems.com> <1221136453-16697-24-git-send-email-khilman@deeprootsystems.com> <1221136453-16697-25-git-send-email-khilman@deeprootsystems.com> <1221136453-16697-26-git-send-email-khilman@deeprootsystems.com> <1221136453-16697-27-git-send-email-khilman@deeprootsystems.com> <1221136453-16697-28-git-send-email-khilman@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:48520 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754422AbYIKMfA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 08:35:00 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48453 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755403AbYIKNGE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 09:06:04 -0400
+Content-Disposition: inline
 In-Reply-To: <1221136453-16697-28-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-FIXME: there needs to be a platform specific way to set which
-       padconf regs are actually used, as the current ones
-       are specific to 3430SDP.
+On Thu, Sep 11, 2008 at 03:34:12PM +0300, Kevin Hilman wrote:
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 5242ba0..7436332 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -222,7 +222,7 @@ static void restore_table_entry(void)
+>  	u32 previous_value, control_reg_value;
+>  	u32 *address;
+>  	/* Get virtual address of SCRATCHPAD */
+> -	scratchpad_address = (u32 *) io_p2v(SCRATCHPAD);
+> +	scratchpad_address = (u32 *) OMAP2_IO_ADDRESS(SCRATCHPAD);
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/serial.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+scratchpad_address should be u32 __iomem *, and that cast shouldn't
+be there.
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index c189cc9..96e3165 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -298,6 +298,15 @@ void __init omap_serial_init(void)
- 		v = __raw_readl(omap_uart_wk_en[i]);
- 		v |= omap_uart_wk_bit[i];
- 		__raw_writel(v, omap_uart_wk_en[i]);
-+
-+		/* Ensure PADCONF wake-enables are set */
-+		if (cpu_is_omap34xx() && omap34xx_uart_padconf[i]) {
-+			u16 w;
-+
-+			w = omap_ctrl_readw(omap34xx_uart_padconf[i]);
-+			w |= 0x4000;
-+			omap_ctrl_writew(w, omap34xx_uart_padconf[i]);
-+		}
- 	}
- 
- 	omap_serial_kick();
--- 
-1.6.0
+>  	/* Get address of entry that was modified */
+>  	address = (u32 *) *(scratchpad_address + TABLE_ADDRESS_OFFSET);
+>  	/* Get the previous value which needs to be restored */
+> @@ -924,7 +924,7 @@ void clear_scratchpad_contents(void)
+>  	u32 max_offset = SCRATHPAD_ROM_OFFSET;
+>  	u32 offset = 0;
+>  	u32 v;
+> -	u32 v_addr = io_p2v(SCRATCHPAD_ROM);
+> +	u32 v_addr = OMAP2_IO_ADDRESS(SCRATCHPAD_ROM);
 
+Ditto.
+
+>  	if (__raw_readl(OMAP3430_PRM_RSTST) & 0x1) {
+>  		for ( ; offset <= max_offset; offset += 0x4)
+>  			 __raw_writel(0x0, (v_addr + offset));
+> @@ -942,7 +942,7 @@ void save_scratchpad_contents(void)
+>  	u32 *sdram_context_address;
+>  
+>  	/* Get virtual address of SCRATCHPAD */
+> -	scratchpad_address = (u32 *) io_p2v(SCRATCHPAD);
+> +	scratchpad_address = (u32 *) OMAP2_IO_ADDRESS(SCRATCHPAD);
+
+Ditto.
