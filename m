@@ -1,68 +1,70 @@
-From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
-Subject: Re: Bug in twl4030backupbatt_voltage()
-Date: Thu, 11 Sep 2008 09:02:24 +0530
-Message-ID: <003e01c913bf$03754c70$LocalHost@wipultra1303>
-References: <48BEA8DC.3030905@nokia.com> <20080909174214.GP29054@atomide.com> <48C7771E.6080307@nokia.com> <022001c91346$d09d54a0$LocalHost@wipultra1303> <20080910153946.GA29054@atomide.com>
+From: "Bryan Wu" <cooloney-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] MUSB: Set INDEX register to 0 before accessing CONFIGDATA
+Date: Thu, 11 Sep 2008 11:35:30 +0800
+Message-ID: <386072610809102035s2b30cd70v424fc57def9fa8b2@mail.gmail.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02C418D1B1@dbde02.ent.ti.com>
+	 <200809062204.01492.david-b@pacbell.net>
+	 <386072610809072012wcf053a6j37c238b82667c23a@mail.gmail.com>
+	 <20080910190114.GA6671@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40049 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752743AbYIKDcU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 23:32:20 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20080910190114.GA6671@frodo>
+Content-Disposition: inline
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
+Cc: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Adrian Hunter <ext-adrian.hunter@nokia.com>, linux-omap@vger.kernel.org
 
-
------ Original Message ----- 
-From: "Tony Lindgren" <tony@atomide.com>
-To: "Madhusudhan Chikkature" <madhu.cr@ti.com>
-Cc: "Adrian Hunter" <ext-adrian.hunter@nokia.com>; <linux-omap@vger.kernel.org>
-Sent: Wednesday, September 10, 2008 9:09 PM
-Subject: Re: Bug in twl4030backupbatt_voltage()
-
-
->* Madhusudhan Chikkature <madhu.cr@ti.com> [080910 06:12]:
->> 
->> ----- Original Message ----- 
->> From: "Adrian Hunter" <ext-adrian.hunter@nokia.com>
->> To: "Tony Lindgren" <tony@atomide.com>
->> Cc: <linux-omap@vger.kernel.org>; <madhu.cr@ti.com>
->> Sent: Wednesday, September 10, 2008 12:58 PM
->> Subject: Re: Bug in twl4030backupbatt_voltage()
->> 
->> 
->> > Tony Lindgren wrote:
->> >> * Adrian Hunter <ext-adrian.hunter@nokia.com> [080903 08:08]:
->> >>> In the omap tree, commit f91fd98be045bec9c18e13110f22dafd44cb84b5
->> >>> fixed a bug with the use of function twl4030_madc_conversion()
->> >>> relating to the local variable 'struct twl4030_madc_request req'
->> >>> not being fully initialised.
->> >>>
->> >>> The same problem appears to be in the function
->> >>> twl4030backupbatt_voltage() which is in drivers/power/twl4030_bci_battery.c
->> >> 
->> >> Thanks, I'll initialize it to NULL. Wouldn't it have been easier just
->> >> to write a patch instead of the description above? :)
->> > 
->> > Apparently.
->> > 
->> > There is also req.do_avg which should be zero, if you assume the programmer's
->> > intent was to have uninitialised members set to zero.
->> I guess, I did not look at all the other members of the "twl4030_madc_request" structure. I might have missed it.
->> The do_avg and func_cb fields can both be set to NULL.
-> 
-> Can you please check the code and send a patch?
-Yes. I will do that.
-
-Regards,
-Madhu
-> 
-> Thanks,
-> 
-> Tony
-> 
+On Thu, Sep 11, 2008 at 3:01 AM, Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org> wrote:
+> On Mon, Sep 08, 2008 at 11:12:24AM +0800, Bryan Wu wrote:
+>> On Sun, Sep 7, 2008 at 1:04 PM, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org> wrote:
+>> > On Thursday 04 September 2008, Gadiyar, Anand wrote:
+>> >> From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+>> >>
+>> >> The Index register needs to be zero to access CONFIGDATA.
+>> >> musb_ep_select()will not set the MUSB_INDEX register unless INDEXED
+>> >> mode addressing is used. This change will set the register correctly
+>> >> in INDEXED as well as FLAT mode.
+>> >>
+>> >> Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+>> >> CC: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+>> >
+>> > ACK.  I *know* it was originally written that way.  I think
+>> > the change was one of the Blackfin patches ... I hope this
+>> > isn't one of those cases where the Blackfin version of this
+>> > core acts differently.  (Like clearing that DMA IRQ status...)
+>> >
+>>
+>> For Blackfin, the register MUSB_CONFIGDATA is not exported out to software.
+>> So in the musb driver, Blackfin code can not access the MUSB_CONFIGDATA.
+>> The configuration is fixed in the software.
 >
+> What happens if you try to read/write to the register ? Does it screw up
+> things somehow or just ignores ??
+>
+
+Since there is no such register MUSB_CONFIGDATA in Blackfin memory
+space, we can not access to such address.
+If we don't define this register, compiling will fail in Blackfin
+
+> If it just ignores (and same for the other unexistent registers) we can
+> drop that patch adding ifdefs to te register accesses otherwise we're
+> gonna have to think about another solution to abstract that.
+>
+
+Currently, I just added ifdefs to those registers which does not exist
+in Blackfin.
+I also want to find an elegant way to solve this difference instead of
+using ugly ifdefs here.
+
+-Bryan
+
+
+> balbi
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
