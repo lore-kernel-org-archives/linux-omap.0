@@ -1,55 +1,38 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCH] Fixed CPU type check for OMAP3
-Date: Thu, 11 Sep 2008 11:52:05 +0300
-Message-ID: <B71CE868F2BC2847B3F23C5A8EE394307A946D@vaebe110.NOE.Nokia.com>
-References: <1220892685-3422-1-git-send-email-tero.kristo@nokia.com> <20080911002912.GG21163@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH]Enable 4-bit in HSMMC1 and HSMMC2 platform data
+Date: Thu, 11 Sep 2008 10:13:09 +0100
+Message-ID: <20080911091309.GD26078@flint.arm.linux.org.uk>
+References: <62710.192.168.10.89.1218608010.squirrel@dbdmail.itg.ti.com> <20080910235646.GV21163@atomide.com> <20080911084828.GC26078@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:23246 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751742AbYIKIwP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 04:52:15 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <20080911002912.GG21163@atomide.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52852 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751787AbYIKJNb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 05:13:31 -0400
+Content-Disposition: inline
+In-Reply-To: <20080911084828.GC26078@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Madhusudhan Chikkature <madhu.cr@ti.com>, linux-omap@vger.kernel.org
 
- 
+On Thu, Sep 11, 2008 at 09:48:28AM +0100, Russell King - ARM Linux wrote:
+> On Wed, Sep 10, 2008 at 04:56:46PM -0700, Tony Lindgren wrote:
+> > * Madhusudhan Chikkature <madhu.cr@ti.com> [080812 23:13]:
+> > > From: Madhusudhan Chikkature<madhu.cr@ti.com>
+> > > 
+> > > ARM: OMAP3: Enable 4-bit support for HSMMC.
+> > > 
+> > > This patch provides the fix to enable 4-bit support for HSMMC.
+> > 
+> > Pushing today.
+> 
+> So, given my update for this, shouldn't this be something sent almost
+> immediately to me so stuff for mainline isn't falling behind.
+> 
+> Otherwise we're wasting our time trying to get mainline up to date.
 
->From: ext Tony Lindgren [mailto:tony@atomide.com] 
->Sent: 11 September, 2008 03:29
->
->I've redone the id.c, the old one was getting messy for omap2. 
->Maybe try my patch I posted on Tuesday and see how it works for you?
-
-Hmm did not notice this patch, just made a quick fix for this as I was
-seeing some problems with CPU type detection. I need to check this out
-when I have more time for this.
-
->
->Also one comment below.
->>  #define OMAP3430_REV_ES1_0	0x34300000
->>  #define OMAP3430_REV_ES2_0	0x34301000
->>  #define OMAP3430_REV_ES2_1	0x34302000
->> -#define OMAP3430_REV_ES2_2	0x34303000
->> +#define OMAP3430_REV_ES3_0	0x34303000
->>  
->>  /*
->>   * omap_chip bits
->
->Are you sure ES3.0 gives a three for revision? I believe 2.2 
->had 3, or is the revision register broken again?
-
-I have tested this piece of code with ES2.1 and ES3.0 and it gives
-correct results, so I am certain 3.0 gives a 3 for rev. Regarding 2.2 I
-am not so sure, I think such chip revision does not exist at all. There
-was also something weird with the earlier code as it increased revision
-by 1, thus giving wrong results for any revision... and causing
-is_sil_rev_* macros to give incorrect results.
-
--Tero
+New version of the MMC updates for mainline pushed out - with additional
+cleanups in place (and since it's a different patch, I've dropped Tony's
+ack from it.)
