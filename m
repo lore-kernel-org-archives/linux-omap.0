@@ -1,80 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/29] PM: proposed branch for PM collaboration
-Date: Thu, 11 Sep 2008 10:40:15 -0700
-Message-ID: <20080911174015.GJ21163@atomide.com>
-References: <87iqt2amoi.fsf@deeprootsystems.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH]Enable 4-bit in HSMMC1 and HSMMC2 platform data
+Date: Thu, 11 Sep 2008 19:13:12 +0100
+Message-ID: <20080911181312.GC4986@flint.arm.linux.org.uk>
+References: <62710.192.168.10.89.1218608010.squirrel@dbdmail.itg.ti.com> <20080910235646.GV21163@atomide.com> <20080911084828.GC26078@flint.arm.linux.org.uk> <20080911091309.GD26078@flint.arm.linux.org.uk> <20080911173333.GI21163@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:65276 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752412AbYIKRkR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 13:40:17 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:57797 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752472AbYIKSN3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 14:13:29 -0400
 Content-Disposition: inline
-In-Reply-To: <87iqt2amoi.fsf@deeprootsystems.com>
+In-Reply-To: <20080911173333.GI21163@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Madhusudhan Chikkature <madhu.cr@ti.com>, linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@deeprootsystems.com> [080911 05:32]:
-> Hello,
+On Thu, Sep 11, 2008 at 10:33:33AM -0700, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [080911 02:13]:
+> > New version of the MMC updates for mainline pushed out - with additional
+> > cleanups in place (and since it's a different patch, I've dropped Tony's
+> > ack from it.)
 > 
-> The following patchset is an attempt to collect the various PM patches
-> that have been flowing around, and organize them into one branch to be
-> used for further collaboration on PM development, in particular
-> OFF-mode support.
-> 
-> It is currently a collection of proposed patches[1] from TI and
-> various other patches from Nokia and others to get retention,
-> OFF-mode, CPUidle etc. working in the linux-omap tree.
-> 
-> This series is nowhere near ready for merging into linux-omap, but
-> will be useful for discussion and collaboration on getting the various
-> PM features working at the head of the linux-omap tree, and a place
-> where cleanup and rework efforts can be focused.  
-> 
-> If there are no major objections, I will create a branch in linux-omap
-> git and commit this series there.  As collaboration continues, I will
-> continue to collect and update patches, fix problems and rebase onto
-> the HEAD of linux-omap.  
-> 
-> The goal of this branch is only to facilitate the rework and cleanup
-> of the PM code so it can be merged into linux-omap.  Then, the branch
-> will disappear and work can be focused again on the HEAD of
-> linux-omap.
+> While we're at it, let's clean up the mmc mess further and split the
+> resources to mach-omap1/devices.c and mach-omap2/devices.c. That way
+> we get rid of the ifdef else between omap1 and omap2.
 
-Sounds good to me. It also makes it easier for people to test it.
+Great, it would be nice to get something in OMAP to the point where we
+can say it's finished, and doesn't have to be regularly tinkered with
+anymore.
 
-Tony
-
-> It has currently been tested with a minimal config on 3430SDP, and
-> OFF-mode is hit in suspend.  In order to hit suspend:
-> 
->   echo 1 > /sys/power/voltage_off_while_idle                   
->   echo 1 > /sys/power/gpio_clocks_off_while_idle               
->   echo 1 > /sys/power/uart_clocks_off_while_idle 
->   echo mem > /sys/power/state
-> 
-> Kevin
-> 
-> 
-> [1] This series is roughly based on the following:
-> 
-> Jouni Hogander, Tero Kristo
->  [PATCH 0/4] Refreshed PM workaround patches 2 -- 15 Aug
-> 
-> Rajendra Nayak:
->  [PATCH 00/11] OMAP3 CPUidle patches - ver 2 -- 18 July
-> 
-> As well as several patches/hacks/cleanups that have not yet been
-> posted to the list.
-> 
-> Also, there have been newer versions of the CPUidle patches that have
-> been reviewed on the list, but do not apply for various reasons.  As
-> soon as they are rebased and updated versions of those are available,
-> I will integrate them.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Is there anything else that the MMC stuff is missing at present?
