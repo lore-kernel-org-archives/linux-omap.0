@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 24/29] OMAP3SDP: Add new config for off mode testing
-Date: Thu, 11 Sep 2008 15:34:08 +0300
-Message-ID: <1221136453-16697-24-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 14/29] CORE context save/restore
+Date: Thu, 11 Sep 2008 15:33:58 +0300
+Message-ID: <1221136453-16697-14-git-send-email-khilman@deeprootsystems.com>
 References: <87iqt2amoi.fsf@deeprootsystems.com>
  <1221136453-16697-1-git-send-email-khilman@deeprootsystems.com>
  <1221136453-16697-2-git-send-email-khilman@deeprootsystems.com>
@@ -16,1117 +16,1343 @@ References: <87iqt2amoi.fsf@deeprootsystems.com>
  <1221136453-16697-11-git-send-email-khilman@deeprootsystems.com>
  <1221136453-16697-12-git-send-email-khilman@deeprootsystems.com>
  <1221136453-16697-13-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-14-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-15-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-16-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-17-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-18-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-19-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-20-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-21-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-22-git-send-email-khilman@deeprootsystems.com>
- <1221136453-16697-23-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:43116 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:43095 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755354AbYIKMfA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 08:35:00 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8BCY9Ru022490
-	for <linux-omap@vger.kernel.org>; Thu, 11 Sep 2008 07:34:58 -0500
-In-Reply-To: <1221136453-16697-23-git-send-email-khilman@deeprootsystems.com>
+	with ESMTP id S1755911AbYIKMeu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 08:34:50 -0400
+In-Reply-To: <1221136453-16697-13-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Jouni Hogander <jouni.hogander@nokia.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
 
-From: Jouni Hogander <jouni.hogander@nokia.com>
+From: Rajendra Nayak <rnayak@ti.com>
 
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+This patch adds the CORE context save/restore routines
+- save/restores the following
+	1) PRCM registers
+	2) INTC context
+	3) System Control module context
+	4) Padconf
 ---
- arch/arm/configs/omap_3430sdp_offmode_defconfig | 1073 +++++++++++++++++++++++
- 1 files changed, 1073 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/configs/omap_3430sdp_offmode_defconfig
+ arch/arm/mach-omap2/cpuidle34xx.c         |  608 ++++++++++++++++++++++-------
+ arch/arm/mach-omap2/cpuidle34xx.h         |   33 ++-
+ arch/arm/mach-omap2/pm34xx.c              |  144 +++++++-
+ arch/arm/mach-omap2/prm.h                 |    2 +
+ arch/arm/mach-omap2/serial.c              |   19 +-
+ arch/arm/mach-omap2/sleep34xx.S           |   12 +-
+ arch/arm/plat-omap/include/mach/common.h  |    2 +-
+ arch/arm/plat-omap/include/mach/control.h |   22 +-
+ arch/arm/plat-omap/include/mach/prcm.h    |   56 +++-
+ arch/arm/plat-omap/sram.c                 |    9 +-
+ drivers/serial/8250.c                     |   20 +
+ 11 files changed, 755 insertions(+), 172 deletions(-)
 
-diff --git a/arch/arm/configs/omap_3430sdp_offmode_defconfig b/arch/arm/configs/omap_3430sdp_offmode_defconfig
-new file mode 100644
-index 0000000..0d8ee50
---- /dev/null
-+++ b/arch/arm/configs/omap_3430sdp_offmode_defconfig
-@@ -0,0 +1,1073 @@
-+#
-+# Automatically generated make config: don't edit
-+# Linux kernel version: 2.6.27-rc3-omap1
-+# Fri Aug 22 11:46:52 2008
-+#
-+CONFIG_ARM=y
-+CONFIG_SYS_SUPPORTS_APM_EMULATION=y
-+CONFIG_GENERIC_GPIO=y
-+CONFIG_GENERIC_TIME=y
-+CONFIG_GENERIC_CLOCKEVENTS=y
-+CONFIG_MMU=y
-+# CONFIG_NO_IOPORT is not set
-+CONFIG_GENERIC_HARDIRQS=y
-+CONFIG_STACKTRACE_SUPPORT=y
-+CONFIG_HAVE_LATENCYTOP_SUPPORT=y
-+CONFIG_LOCKDEP_SUPPORT=y
-+CONFIG_TRACE_IRQFLAGS_SUPPORT=y
-+CONFIG_HARDIRQS_SW_RESEND=y
-+CONFIG_GENERIC_IRQ_PROBE=y
-+CONFIG_RWSEM_GENERIC_SPINLOCK=y
-+# CONFIG_ARCH_HAS_ILOG2_U32 is not set
-+# CONFIG_ARCH_HAS_ILOG2_U64 is not set
-+CONFIG_GENERIC_HWEIGHT=y
-+CONFIG_GENERIC_CALIBRATE_DELAY=y
-+CONFIG_ARCH_SUPPORTS_AOUT=y
-+CONFIG_ZONE_DMA=y
-+CONFIG_GENERIC_HARDIRQS_NO__DO_IRQ=y
-+CONFIG_VECTORS_BASE=0xffff0000
-+CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
-+
-+#
-+# General setup
-+#
-+CONFIG_EXPERIMENTAL=y
-+CONFIG_BROKEN_ON_SMP=y
-+CONFIG_INIT_ENV_ARG_LIMIT=32
-+CONFIG_LOCALVERSION=""
-+CONFIG_LOCALVERSION_AUTO=y
-+CONFIG_SWAP=y
-+CONFIG_SYSVIPC=y
-+CONFIG_SYSVIPC_SYSCTL=y
-+# CONFIG_POSIX_MQUEUE is not set
-+CONFIG_BSD_PROCESS_ACCT=y
-+# CONFIG_BSD_PROCESS_ACCT_V3 is not set
-+# CONFIG_TASKSTATS is not set
-+# CONFIG_AUDIT is not set
-+# CONFIG_IKCONFIG is not set
-+CONFIG_LOG_BUF_SHIFT=14
-+# CONFIG_CGROUPS is not set
-+CONFIG_GROUP_SCHED=y
-+CONFIG_FAIR_GROUP_SCHED=y
-+# CONFIG_RT_GROUP_SCHED is not set
-+CONFIG_USER_SCHED=y
-+# CONFIG_CGROUP_SCHED is not set
-+CONFIG_SYSFS_DEPRECATED=y
-+CONFIG_SYSFS_DEPRECATED_V2=y
-+# CONFIG_RELAY is not set
-+# CONFIG_NAMESPACES is not set
-+CONFIG_BLK_DEV_INITRD=y
-+CONFIG_INITRAMFS_SOURCE=""
-+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
-+CONFIG_SYSCTL=y
-+CONFIG_EMBEDDED=y
-+CONFIG_UID16=y
-+# CONFIG_SYSCTL_SYSCALL is not set
-+CONFIG_KALLSYMS=y
-+# CONFIG_KALLSYMS_ALL is not set
-+CONFIG_KALLSYMS_EXTRA_PASS=y
-+CONFIG_HOTPLUG=y
-+CONFIG_PRINTK=y
-+CONFIG_BUG=y
-+CONFIG_ELF_CORE=y
-+CONFIG_COMPAT_BRK=y
-+CONFIG_BASE_FULL=y
-+CONFIG_FUTEX=y
-+CONFIG_ANON_INODES=y
-+CONFIG_EPOLL=y
-+CONFIG_SIGNALFD=y
-+CONFIG_TIMERFD=y
-+CONFIG_EVENTFD=y
-+CONFIG_SHMEM=y
-+CONFIG_VM_EVENT_COUNTERS=y
-+CONFIG_SLAB=y
-+# CONFIG_SLUB is not set
-+# CONFIG_SLOB is not set
-+# CONFIG_PROFILING is not set
-+# CONFIG_MARKERS is not set
-+CONFIG_HAVE_OPROFILE=y
-+# CONFIG_KPROBES is not set
-+# CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS is not set
-+# CONFIG_HAVE_IOREMAP_PROT is not set
-+CONFIG_HAVE_KPROBES=y
-+CONFIG_HAVE_KRETPROBES=y
-+# CONFIG_HAVE_ARCH_TRACEHOOK is not set
-+# CONFIG_HAVE_DMA_ATTRS is not set
-+# CONFIG_USE_GENERIC_SMP_HELPERS is not set
-+CONFIG_HAVE_CLK=y
-+CONFIG_PROC_PAGE_MONITOR=y
-+CONFIG_HAVE_GENERIC_DMA_COHERENT=y
-+CONFIG_SLABINFO=y
-+CONFIG_RT_MUTEXES=y
-+# CONFIG_TINY_SHMEM is not set
-+CONFIG_BASE_SMALL=0
-+CONFIG_MODULES=y
-+# CONFIG_MODULE_FORCE_LOAD is not set
-+CONFIG_MODULE_UNLOAD=y
-+# CONFIG_MODULE_FORCE_UNLOAD is not set
-+CONFIG_MODVERSIONS=y
-+CONFIG_MODULE_SRCVERSION_ALL=y
-+CONFIG_KMOD=y
-+CONFIG_BLOCK=y
-+# CONFIG_LBD is not set
-+# CONFIG_BLK_DEV_IO_TRACE is not set
-+# CONFIG_LSF is not set
-+# CONFIG_BLK_DEV_BSG is not set
-+# CONFIG_BLK_DEV_INTEGRITY is not set
-+
-+#
-+# IO Schedulers
-+#
-+CONFIG_IOSCHED_NOOP=y
-+CONFIG_IOSCHED_AS=y
-+CONFIG_IOSCHED_DEADLINE=y
-+CONFIG_IOSCHED_CFQ=y
-+CONFIG_DEFAULT_AS=y
-+# CONFIG_DEFAULT_DEADLINE is not set
-+# CONFIG_DEFAULT_CFQ is not set
-+# CONFIG_DEFAULT_NOOP is not set
-+CONFIG_DEFAULT_IOSCHED="anticipatory"
-+CONFIG_CLASSIC_RCU=y
-+
-+#
-+# System Type
-+#
-+# CONFIG_ARCH_AAEC2000 is not set
-+# CONFIG_ARCH_INTEGRATOR is not set
-+# CONFIG_ARCH_REALVIEW is not set
-+# CONFIG_ARCH_VERSATILE is not set
-+# CONFIG_ARCH_AT91 is not set
-+# CONFIG_ARCH_CLPS7500 is not set
-+# CONFIG_ARCH_CLPS711X is not set
-+# CONFIG_ARCH_EBSA110 is not set
-+# CONFIG_ARCH_EP93XX is not set
-+# CONFIG_ARCH_FOOTBRIDGE is not set
-+# CONFIG_ARCH_NETX is not set
-+# CONFIG_ARCH_H720X is not set
-+# CONFIG_ARCH_IMX is not set
-+# CONFIG_ARCH_IOP13XX is not set
-+# CONFIG_ARCH_IOP32X is not set
-+# CONFIG_ARCH_IOP33X is not set
-+# CONFIG_ARCH_IXP23XX is not set
-+# CONFIG_ARCH_IXP2000 is not set
-+# CONFIG_ARCH_IXP4XX is not set
-+# CONFIG_ARCH_L7200 is not set
-+# CONFIG_ARCH_KIRKWOOD is not set
-+# CONFIG_ARCH_KS8695 is not set
-+# CONFIG_ARCH_NS9XXX is not set
-+# CONFIG_ARCH_LOKI is not set
-+# CONFIG_ARCH_MV78XX0 is not set
-+# CONFIG_ARCH_MXC is not set
-+# CONFIG_ARCH_ORION5X is not set
-+# CONFIG_ARCH_PNX4008 is not set
-+# CONFIG_ARCH_PXA is not set
-+# CONFIG_ARCH_RPC is not set
-+# CONFIG_ARCH_SA1100 is not set
-+# CONFIG_ARCH_S3C2410 is not set
-+# CONFIG_ARCH_SHARK is not set
-+# CONFIG_ARCH_LH7A40X is not set
-+# CONFIG_ARCH_DAVINCI is not set
-+CONFIG_ARCH_OMAP=y
-+# CONFIG_ARCH_MSM7X00A is not set
-+
-+#
-+# TI OMAP Implementations
-+#
-+CONFIG_ARCH_OMAP_OTG=y
-+# CONFIG_ARCH_OMAP1 is not set
-+# CONFIG_ARCH_OMAP2 is not set
-+CONFIG_ARCH_OMAP3=y
-+
-+#
-+# OMAP Feature Selections
-+#
-+# CONFIG_OMAP_DEBUG_POWERDOMAIN is not set
-+# CONFIG_OMAP_DEBUG_CLOCKDOMAIN is not set
-+CONFIG_OMAP_SMARTREFLEX=y
-+CONFIG_OMAP_SMARTREFLEX_TESTING=y
-+CONFIG_OMAP_RESET_CLOCKS=y
-+CONFIG_OMAP_BOOT_TAG=y
-+CONFIG_OMAP_BOOT_REASON=y
-+# CONFIG_OMAP_COMPONENT_VERSION is not set
-+# CONFIG_OMAP_GPIO_SWITCH is not set
-+CONFIG_OMAP_MUX=y
-+CONFIG_OMAP_MUX_DEBUG=y
-+CONFIG_OMAP_MUX_WARNINGS=y
-+# CONFIG_OMAP_MCBSP is not set
-+# CONFIG_OMAP_MMU_FWK is not set
-+# CONFIG_OMAP_MBOX_FWK is not set
-+# CONFIG_OMAP_MPU_TIMER is not set
-+CONFIG_OMAP_32K_TIMER=y
-+CONFIG_OMAP_32K_TIMER_HZ=128
-+CONFIG_OMAP_DM_TIMER=y
-+CONFIG_OMAP_LL_DEBUG_UART1=y
-+# CONFIG_OMAP_LL_DEBUG_UART2 is not set
-+# CONFIG_OMAP_LL_DEBUG_UART3 is not set
-+CONFIG_OMAP_SERIAL_WAKE=y
-+CONFIG_ARCH_OMAP34XX=y
-+CONFIG_ARCH_OMAP3430=y
-+
-+#
-+# OMAP Board Type
-+#
-+# CONFIG_MACH_OMAP_LDP is not set
-+CONFIG_MACH_OMAP_3430SDP=y
-+# CONFIG_MACH_OMAP3EVM is not set
-+# CONFIG_MACH_OMAP3_BEAGLE is not set
-+CONFIG_OMAP_TICK_GPTIMER=1
-+CONFIG_OMAP3_OFF_MODE=y
-+
-+#
-+# Boot options
-+#
-+
-+#
-+# Power management
-+#
-+
-+#
-+# Processor Type
-+#
-+CONFIG_CPU_32=y
-+CONFIG_CPU_32v6K=y
-+CONFIG_CPU_V7=y
-+CONFIG_CPU_32v7=y
-+CONFIG_CPU_ABRT_EV7=y
-+CONFIG_CPU_PABRT_IFAR=y
-+CONFIG_CPU_CACHE_V7=y
-+CONFIG_CPU_CACHE_VIPT=y
-+CONFIG_CPU_COPY_V6=y
-+CONFIG_CPU_TLB_V7=y
-+CONFIG_CPU_HAS_ASID=y
-+CONFIG_CPU_CP15=y
-+CONFIG_CPU_CP15_MMU=y
-+
-+#
-+# Processor Features
-+#
-+CONFIG_ARM_THUMB=y
-+# CONFIG_ARM_THUMBEE is not set
-+# CONFIG_CPU_ICACHE_DISABLE is not set
-+# CONFIG_CPU_DCACHE_DISABLE is not set
-+# CONFIG_CPU_BPREDICT_DISABLE is not set
-+CONFIG_HAS_TLS_REG=y
-+# CONFIG_OUTER_CACHE is not set
-+
-+#
-+# Bus support
-+#
-+# CONFIG_PCI_SYSCALL is not set
-+# CONFIG_ARCH_SUPPORTS_MSI is not set
-+# CONFIG_PCCARD is not set
-+
-+#
-+# Kernel Features
-+#
-+CONFIG_TICK_ONESHOT=y
-+CONFIG_NO_HZ=y
-+CONFIG_HIGH_RES_TIMERS=y
-+CONFIG_GENERIC_CLOCKEVENTS_BUILD=y
-+# CONFIG_PREEMPT is not set
-+CONFIG_HZ=128
-+CONFIG_AEABI=y
-+CONFIG_OABI_COMPAT=y
-+# CONFIG_ARCH_DISCONTIGMEM_ENABLE is not set
-+CONFIG_SELECT_MEMORY_MODEL=y
-+CONFIG_FLATMEM_MANUAL=y
-+# CONFIG_DISCONTIGMEM_MANUAL is not set
-+# CONFIG_SPARSEMEM_MANUAL is not set
-+CONFIG_FLATMEM=y
-+CONFIG_FLAT_NODE_MEM_MAP=y
-+# CONFIG_SPARSEMEM_STATIC is not set
-+# CONFIG_SPARSEMEM_VMEMMAP_ENABLE is not set
-+CONFIG_PAGEFLAGS_EXTENDED=y
-+CONFIG_SPLIT_PTLOCK_CPUS=4
-+# CONFIG_RESOURCES_64BIT is not set
-+CONFIG_ZONE_DMA_FLAG=1
-+CONFIG_BOUNCE=y
-+CONFIG_VIRT_TO_BUS=y
-+# CONFIG_LEDS is not set
-+CONFIG_ALIGNMENT_TRAP=y
-+
-+#
-+# Boot options
-+#
-+CONFIG_ZBOOT_ROM_TEXT=0x0
-+CONFIG_ZBOOT_ROM_BSS=0x0
-+CONFIG_CMDLINE="root=/dev/nfs nfsroot=192.168.0.1:/home/user/buildroot ip=192.168.0.2:192.168.0.1:192.168.0.1:255.255.255.0:tgt:eth0:off rw console=ttyS2,115200n8"
-+# CONFIG_XIP_KERNEL is not set
-+# CONFIG_KEXEC is not set
-+
-+#
-+# CPUIdle
-+#
-+
-+#
-+# CPU idle PM support
-+#
-+CONFIG_CPU_IDLE=y
-+
-+#
-+# Governors
-+#
-+# CONFIG_CPU_IDLE_GOV_LADDER is not set
-+CONFIG_CPU_IDLE_GOV_MENU=y
-+
-+#
-+# CPU Frequency scaling
-+#
-+# CONFIG_CPU_FREQ is not set
-+
-+#
-+# Floating point emulation
-+#
-+
-+#
-+# At least one emulation must be selected
-+#
-+# CONFIG_FPE_NWFPE is not set
-+# CONFIG_FPE_FASTFPE is not set
-+# CONFIG_VFP is not set
-+
-+#
-+# Userspace binary formats
-+#
-+CONFIG_BINFMT_ELF=y
-+# CONFIG_BINFMT_AOUT is not set
-+CONFIG_BINFMT_MISC=y
-+
-+#
-+# Power management options
-+#
-+CONFIG_PM=y
-+# CONFIG_PM_DEBUG is not set
-+CONFIG_PM_SLEEP=y
-+CONFIG_SUSPEND=y
-+CONFIG_SUSPEND_FREEZER=y
-+# CONFIG_APM_EMULATION is not set
-+CONFIG_ARCH_SUSPEND_POSSIBLE=y
-+CONFIG_NET=y
-+
-+#
-+# Networking options
-+#
-+CONFIG_PACKET=y
-+# CONFIG_PACKET_MMAP is not set
-+CONFIG_UNIX=y
-+CONFIG_XFRM=y
-+# CONFIG_XFRM_USER is not set
-+# CONFIG_XFRM_SUB_POLICY is not set
-+# CONFIG_XFRM_MIGRATE is not set
-+# CONFIG_XFRM_STATISTICS is not set
-+CONFIG_NET_KEY=y
-+# CONFIG_NET_KEY_MIGRATE is not set
-+CONFIG_INET=y
-+# CONFIG_IP_MULTICAST is not set
-+# CONFIG_IP_ADVANCED_ROUTER is not set
-+CONFIG_IP_FIB_HASH=y
-+CONFIG_IP_PNP=y
-+CONFIG_IP_PNP_DHCP=y
-+CONFIG_IP_PNP_BOOTP=y
-+CONFIG_IP_PNP_RARP=y
-+# CONFIG_NET_IPIP is not set
-+# CONFIG_NET_IPGRE is not set
-+# CONFIG_ARPD is not set
-+# CONFIG_SYN_COOKIES is not set
-+# CONFIG_INET_AH is not set
-+# CONFIG_INET_ESP is not set
-+# CONFIG_INET_IPCOMP is not set
-+# CONFIG_INET_XFRM_TUNNEL is not set
-+# CONFIG_INET_TUNNEL is not set
-+CONFIG_INET_XFRM_MODE_TRANSPORT=y
-+CONFIG_INET_XFRM_MODE_TUNNEL=y
-+CONFIG_INET_XFRM_MODE_BEET=y
-+# CONFIG_INET_LRO is not set
-+CONFIG_INET_DIAG=y
-+CONFIG_INET_TCP_DIAG=y
-+# CONFIG_TCP_CONG_ADVANCED is not set
-+CONFIG_TCP_CONG_CUBIC=y
-+CONFIG_DEFAULT_TCP_CONG="cubic"
-+# CONFIG_TCP_MD5SIG is not set
-+# CONFIG_IPV6 is not set
-+# CONFIG_NETWORK_SECMARK is not set
-+# CONFIG_NETFILTER is not set
-+# CONFIG_IP_DCCP is not set
-+# CONFIG_IP_SCTP is not set
-+# CONFIG_TIPC is not set
-+# CONFIG_ATM is not set
-+# CONFIG_BRIDGE is not set
-+# CONFIG_VLAN_8021Q is not set
-+# CONFIG_DECNET is not set
-+# CONFIG_LLC2 is not set
-+# CONFIG_IPX is not set
-+# CONFIG_ATALK is not set
-+# CONFIG_X25 is not set
-+# CONFIG_LAPB is not set
-+# CONFIG_ECONET is not set
-+# CONFIG_WAN_ROUTER is not set
-+# CONFIG_NET_SCHED is not set
-+
-+#
-+# Network testing
-+#
-+# CONFIG_NET_PKTGEN is not set
-+# CONFIG_HAMRADIO is not set
-+# CONFIG_CAN is not set
-+# CONFIG_IRDA is not set
-+# CONFIG_BT is not set
-+# CONFIG_AF_RXRPC is not set
-+
-+#
-+# Wireless
-+#
-+# CONFIG_CFG80211 is not set
-+# CONFIG_WIRELESS_EXT is not set
-+# CONFIG_MAC80211 is not set
-+# CONFIG_IEEE80211 is not set
-+# CONFIG_RFKILL is not set
-+# CONFIG_NET_9P is not set
-+
-+#
-+# Device Drivers
-+#
-+
-+#
-+# Generic Driver Options
-+#
-+CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
-+CONFIG_STANDALONE=y
-+CONFIG_PREVENT_FIRMWARE_BUILD=y
-+# CONFIG_FW_LOADER is not set
-+# CONFIG_DEBUG_DRIVER is not set
-+# CONFIG_DEBUG_DEVRES is not set
-+# CONFIG_SYS_HYPERVISOR is not set
-+# CONFIG_CONNECTOR is not set
-+# CONFIG_MTD is not set
-+# CONFIG_PARPORT is not set
-+# CONFIG_BLK_DEV is not set
-+# CONFIG_MISC_DEVICES is not set
-+CONFIG_HAVE_IDE=y
-+# CONFIG_IDE is not set
-+
-+#
-+# SCSI device support
-+#
-+# CONFIG_RAID_ATTRS is not set
-+CONFIG_SCSI=y
-+CONFIG_SCSI_DMA=y
-+# CONFIG_SCSI_TGT is not set
-+# CONFIG_SCSI_NETLINK is not set
-+CONFIG_SCSI_PROC_FS=y
-+
-+#
-+# SCSI support type (disk, tape, CD-ROM)
-+#
-+CONFIG_BLK_DEV_SD=y
-+# CONFIG_CHR_DEV_ST is not set
-+# CONFIG_CHR_DEV_OSST is not set
-+# CONFIG_BLK_DEV_SR is not set
-+# CONFIG_CHR_DEV_SG is not set
-+# CONFIG_CHR_DEV_SCH is not set
-+
-+#
-+# Some SCSI devices (e.g. CD jukebox) support multiple LUNs
-+#
-+# CONFIG_SCSI_MULTI_LUN is not set
-+# CONFIG_SCSI_CONSTANTS is not set
-+# CONFIG_SCSI_LOGGING is not set
-+# CONFIG_SCSI_SCAN_ASYNC is not set
-+CONFIG_SCSI_WAIT_SCAN=m
-+
-+#
-+# SCSI Transports
-+#
-+# CONFIG_SCSI_SPI_ATTRS is not set
-+# CONFIG_SCSI_FC_ATTRS is not set
-+# CONFIG_SCSI_ISCSI_ATTRS is not set
-+# CONFIG_SCSI_SAS_LIBSAS is not set
-+# CONFIG_SCSI_SRP_ATTRS is not set
-+CONFIG_SCSI_LOWLEVEL=y
-+# CONFIG_ISCSI_TCP is not set
-+# CONFIG_SCSI_DEBUG is not set
-+# CONFIG_SCSI_DH is not set
-+# CONFIG_ATA is not set
-+# CONFIG_MD is not set
-+CONFIG_NETDEVICES=y
-+# CONFIG_DUMMY is not set
-+# CONFIG_BONDING is not set
-+# CONFIG_MACVLAN is not set
-+# CONFIG_EQUALIZER is not set
-+# CONFIG_TUN is not set
-+# CONFIG_VETH is not set
-+# CONFIG_PHYLIB is not set
-+CONFIG_NET_ETHERNET=y
-+CONFIG_MII=y
-+# CONFIG_AX88796 is not set
-+CONFIG_SMC91X=y
-+# CONFIG_DM9000 is not set
-+# CONFIG_SMC911X is not set
-+# CONFIG_IBM_NEW_EMAC_ZMII is not set
-+# CONFIG_IBM_NEW_EMAC_RGMII is not set
-+# CONFIG_IBM_NEW_EMAC_TAH is not set
-+# CONFIG_IBM_NEW_EMAC_EMAC4 is not set
-+# CONFIG_B44 is not set
-+CONFIG_NETDEV_1000=y
-+CONFIG_NETDEV_10000=y
-+
-+#
-+# Wireless LAN
-+#
-+# CONFIG_WLAN_PRE80211 is not set
-+# CONFIG_WLAN_80211 is not set
-+# CONFIG_IWLWIFI_LEDS is not set
-+# CONFIG_WAN is not set
-+# CONFIG_PPP is not set
-+# CONFIG_SLIP is not set
-+# CONFIG_NETCONSOLE is not set
-+# CONFIG_NETPOLL is not set
-+# CONFIG_NET_POLL_CONTROLLER is not set
-+# CONFIG_ISDN is not set
-+
-+#
-+# Input device support
-+#
-+CONFIG_INPUT=y
-+# CONFIG_INPUT_FF_MEMLESS is not set
-+# CONFIG_INPUT_POLLDEV is not set
-+
-+#
-+# Userland interfaces
-+#
-+# CONFIG_INPUT_MOUSEDEV is not set
-+# CONFIG_INPUT_JOYDEV is not set
-+# CONFIG_INPUT_EVDEV is not set
-+# CONFIG_INPUT_EVBUG is not set
-+
-+#
-+# Input Device Drivers
-+#
-+# CONFIG_INPUT_KEYBOARD is not set
-+# CONFIG_INPUT_MOUSE is not set
-+# CONFIG_INPUT_JOYSTICK is not set
-+# CONFIG_INPUT_TABLET is not set
-+# CONFIG_INPUT_TOUCHSCREEN is not set
-+# CONFIG_INPUT_MISC is not set
-+
-+#
-+# Hardware I/O ports
-+#
-+# CONFIG_SERIO is not set
-+# CONFIG_GAMEPORT is not set
-+
-+#
-+# Character devices
-+#
-+CONFIG_VT=y
-+CONFIG_CONSOLE_TRANSLATIONS=y
-+CONFIG_VT_CONSOLE=y
-+CONFIG_HW_CONSOLE=y
-+# CONFIG_VT_HW_CONSOLE_BINDING is not set
-+# CONFIG_DEVKMEM is not set
-+# CONFIG_SERIAL_NONSTANDARD is not set
-+
-+#
-+# Serial drivers
-+#
-+CONFIG_SERIAL_8250=y
-+CONFIG_SERIAL_8250_CONSOLE=y
-+CONFIG_SERIAL_8250_NR_UARTS=32
-+CONFIG_SERIAL_8250_RUNTIME_UARTS=4
-+CONFIG_SERIAL_8250_EXTENDED=y
-+CONFIG_SERIAL_8250_MANY_PORTS=y
-+CONFIG_SERIAL_8250_SHARE_IRQ=y
-+CONFIG_SERIAL_8250_DETECT_IRQ=y
-+CONFIG_SERIAL_8250_RSA=y
-+
-+#
-+# Non-8250 serial port support
-+#
-+CONFIG_SERIAL_CORE=y
-+CONFIG_SERIAL_CORE_CONSOLE=y
-+CONFIG_UNIX98_PTYS=y
-+# CONFIG_LEGACY_PTYS is not set
-+# CONFIG_IPMI_HANDLER is not set
-+CONFIG_HW_RANDOM=y
-+# CONFIG_NVRAM is not set
-+# CONFIG_R3964 is not set
-+# CONFIG_RAW_DRIVER is not set
-+# CONFIG_TCG_TPM is not set
-+CONFIG_I2C=y
-+CONFIG_I2C_BOARDINFO=y
-+CONFIG_I2C_CHARDEV=y
-+CONFIG_I2C_HELPER_AUTO=y
-+
-+#
-+# I2C Hardware Bus support
-+#
-+
-+#
-+# I2C system bus drivers (mostly embedded / system-on-chip)
-+#
-+# CONFIG_I2C_GPIO is not set
-+# CONFIG_I2C_OCORES is not set
-+CONFIG_I2C_OMAP=y
-+# CONFIG_I2C_SIMTEC is not set
-+
-+#
-+# External I2C/SMBus adapter drivers
-+#
-+# CONFIG_I2C_PARPORT_LIGHT is not set
-+# CONFIG_I2C_TAOS_EVM is not set
-+
-+#
-+# Other I2C/SMBus bus drivers
-+#
-+# CONFIG_I2C_PCA_PLATFORM is not set
-+# CONFIG_I2C_STUB is not set
-+
-+#
-+# Miscellaneous I2C Chip support
-+#
-+# CONFIG_DS1682 is not set
-+# CONFIG_AT24 is not set
-+# CONFIG_SENSORS_EEPROM is not set
-+# CONFIG_SENSORS_PCF8574 is not set
-+# CONFIG_PCF8575 is not set
-+# CONFIG_SENSORS_PCA9539 is not set
-+# CONFIG_SENSORS_PCF8591 is not set
-+# CONFIG_ISP1301_OMAP is not set
-+# CONFIG_TPS65010 is not set
-+# CONFIG_SENSORS_TLV320AIC23 is not set
-+CONFIG_TWL4030_CORE=y
-+CONFIG_TWL4030_GPIO=y
-+# CONFIG_TWL4030_MADC is not set
-+CONFIG_TWL4030_USB=y
-+CONFIG_TWL4030_USB_HS_ULPI=y
-+# CONFIG_TWL4030_PWRBUTTON is not set
-+# CONFIG_TWL4030_POWEROFF is not set
-+# CONFIG_SENSORS_MAX6875 is not set
-+# CONFIG_SENSORS_TSL2550 is not set
-+# CONFIG_LP5521 is not set
-+# CONFIG_I2C_DEBUG_CORE is not set
-+# CONFIG_I2C_DEBUG_ALGO is not set
-+# CONFIG_I2C_DEBUG_BUS is not set
-+# CONFIG_I2C_DEBUG_CHIP is not set
-+# CONFIG_SPI is not set
-+CONFIG_ARCH_REQUIRE_GPIOLIB=y
-+CONFIG_GPIOLIB=y
-+# CONFIG_DEBUG_GPIO is not set
-+# CONFIG_GPIO_SYSFS is not set
-+
-+#
-+# I2C GPIO expanders:
-+#
-+# CONFIG_GPIO_MAX732X is not set
-+# CONFIG_GPIO_PCA953X is not set
-+# CONFIG_GPIO_PCF857X is not set
-+
-+#
-+# PCI GPIO expanders:
-+#
-+
-+#
-+# SPI GPIO expanders:
-+#
-+# CONFIG_W1 is not set
-+# CONFIG_POWER_SUPPLY is not set
-+# CONFIG_HWMON is not set
-+# CONFIG_WATCHDOG is not set
-+
-+#
-+# Sonics Silicon Backplane
-+#
-+CONFIG_SSB_POSSIBLE=y
-+# CONFIG_SSB is not set
-+
-+#
-+# Multifunction device drivers
-+#
-+# CONFIG_MFD_CORE is not set
-+# CONFIG_MFD_SM501 is not set
-+# CONFIG_HTC_EGPIO is not set
-+# CONFIG_HTC_PASIC3 is not set
-+# CONFIG_MFD_TMIO is not set
-+# CONFIG_MFD_T7L66XB is not set
-+# CONFIG_MFD_TC6387XB is not set
-+# CONFIG_MFD_TC6393XB is not set
-+
-+#
-+# Multimedia devices
-+#
-+
-+#
-+# Multimedia core support
-+#
-+# CONFIG_VIDEO_DEV is not set
-+# CONFIG_DVB_CORE is not set
-+# CONFIG_VIDEO_MEDIA is not set
-+
-+#
-+# Multimedia drivers
-+#
-+# CONFIG_DAB is not set
-+
-+#
-+# Graphics support
-+#
-+# CONFIG_VGASTATE is not set
-+# CONFIG_VIDEO_OUTPUT_CONTROL is not set
-+# CONFIG_FB is not set
-+# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
-+
-+#
-+# Display device support
-+#
-+# CONFIG_DISPLAY_SUPPORT is not set
-+
-+#
-+# Console display driver support
-+#
-+# CONFIG_VGA_CONSOLE is not set
-+CONFIG_DUMMY_CONSOLE=y
-+# CONFIG_SOUND is not set
-+# CONFIG_HID_SUPPORT is not set
-+# CONFIG_USB_SUPPORT is not set
-+# CONFIG_MMC is not set
-+# CONFIG_NEW_LEDS is not set
-+CONFIG_RTC_LIB=y
-+# CONFIG_RTC_CLASS is not set
-+# CONFIG_DMADEVICES is not set
-+
-+#
-+# Voltage and Current regulators
-+#
-+# CONFIG_REGULATOR is not set
-+# CONFIG_REGULATOR_FIXED_VOLTAGE is not set
-+# CONFIG_REGULATOR_VIRTUAL_CONSUMER is not set
-+# CONFIG_REGULATOR_BQ24022 is not set
-+# CONFIG_UIO is not set
-+
-+#
-+# CBUS support
-+#
-+# CONFIG_CBUS is not set
-+
-+#
-+# File systems
-+#
-+CONFIG_EXT2_FS=y
-+# CONFIG_EXT2_FS_XATTR is not set
-+# CONFIG_EXT2_FS_XIP is not set
-+CONFIG_EXT3_FS=y
-+# CONFIG_EXT3_FS_XATTR is not set
-+# CONFIG_EXT4DEV_FS is not set
-+CONFIG_JBD=y
-+# CONFIG_REISERFS_FS is not set
-+# CONFIG_JFS_FS is not set
-+# CONFIG_FS_POSIX_ACL is not set
-+# CONFIG_XFS_FS is not set
-+# CONFIG_OCFS2_FS is not set
-+CONFIG_DNOTIFY=y
-+CONFIG_INOTIFY=y
-+CONFIG_INOTIFY_USER=y
-+CONFIG_QUOTA=y
-+# CONFIG_QUOTA_NETLINK_INTERFACE is not set
-+CONFIG_PRINT_QUOTA_WARNING=y
-+# CONFIG_QFMT_V1 is not set
-+CONFIG_QFMT_V2=y
-+CONFIG_QUOTACTL=y
-+# CONFIG_AUTOFS_FS is not set
-+# CONFIG_AUTOFS4_FS is not set
-+# CONFIG_FUSE_FS is not set
-+
-+#
-+# CD-ROM/DVD Filesystems
-+#
-+# CONFIG_ISO9660_FS is not set
-+# CONFIG_UDF_FS is not set
-+
-+#
-+# DOS/FAT/NT Filesystems
-+#
-+CONFIG_FAT_FS=y
-+CONFIG_MSDOS_FS=y
-+CONFIG_VFAT_FS=y
-+CONFIG_FAT_DEFAULT_CODEPAGE=437
-+CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
-+# CONFIG_NTFS_FS is not set
-+
-+#
-+# Pseudo filesystems
-+#
-+CONFIG_PROC_FS=y
-+CONFIG_PROC_SYSCTL=y
-+CONFIG_SYSFS=y
-+CONFIG_TMPFS=y
-+# CONFIG_TMPFS_POSIX_ACL is not set
-+# CONFIG_HUGETLB_PAGE is not set
-+# CONFIG_CONFIGFS_FS is not set
-+
-+#
-+# Miscellaneous filesystems
-+#
-+# CONFIG_ADFS_FS is not set
-+# CONFIG_AFFS_FS is not set
-+# CONFIG_HFS_FS is not set
-+# CONFIG_HFSPLUS_FS is not set
-+# CONFIG_BEFS_FS is not set
-+# CONFIG_BFS_FS is not set
-+# CONFIG_EFS_FS is not set
-+# CONFIG_CRAMFS is not set
-+# CONFIG_VXFS_FS is not set
-+# CONFIG_MINIX_FS is not set
-+# CONFIG_OMFS_FS is not set
-+# CONFIG_HPFS_FS is not set
-+# CONFIG_QNX4FS_FS is not set
-+# CONFIG_ROMFS_FS is not set
-+# CONFIG_SYSV_FS is not set
-+# CONFIG_UFS_FS is not set
-+CONFIG_NETWORK_FILESYSTEMS=y
-+CONFIG_NFS_FS=y
-+CONFIG_NFS_V3=y
-+# CONFIG_NFS_V3_ACL is not set
-+CONFIG_NFS_V4=y
-+CONFIG_ROOT_NFS=y
-+# CONFIG_NFSD is not set
-+CONFIG_LOCKD=y
-+CONFIG_LOCKD_V4=y
-+CONFIG_NFS_COMMON=y
-+CONFIG_SUNRPC=y
-+CONFIG_SUNRPC_GSS=y
-+CONFIG_RPCSEC_GSS_KRB5=y
-+# CONFIG_RPCSEC_GSS_SPKM3 is not set
-+# CONFIG_SMB_FS is not set
-+# CONFIG_CIFS is not set
-+# CONFIG_NCP_FS is not set
-+# CONFIG_CODA_FS is not set
-+# CONFIG_AFS_FS is not set
-+
-+#
-+# Partition Types
-+#
-+CONFIG_PARTITION_ADVANCED=y
-+# CONFIG_ACORN_PARTITION is not set
-+# CONFIG_OSF_PARTITION is not set
-+# CONFIG_AMIGA_PARTITION is not set
-+# CONFIG_ATARI_PARTITION is not set
-+# CONFIG_MAC_PARTITION is not set
-+CONFIG_MSDOS_PARTITION=y
-+# CONFIG_BSD_DISKLABEL is not set
-+# CONFIG_MINIX_SUBPARTITION is not set
-+# CONFIG_SOLARIS_X86_PARTITION is not set
-+# CONFIG_UNIXWARE_DISKLABEL is not set
-+# CONFIG_LDM_PARTITION is not set
-+# CONFIG_SGI_PARTITION is not set
-+# CONFIG_ULTRIX_PARTITION is not set
-+# CONFIG_SUN_PARTITION is not set
-+# CONFIG_KARMA_PARTITION is not set
-+# CONFIG_EFI_PARTITION is not set
-+# CONFIG_SYSV68_PARTITION is not set
-+CONFIG_NLS=y
-+CONFIG_NLS_DEFAULT="iso8859-1"
-+CONFIG_NLS_CODEPAGE_437=y
-+# CONFIG_NLS_CODEPAGE_737 is not set
-+# CONFIG_NLS_CODEPAGE_775 is not set
-+# CONFIG_NLS_CODEPAGE_850 is not set
-+# CONFIG_NLS_CODEPAGE_852 is not set
-+# CONFIG_NLS_CODEPAGE_855 is not set
-+# CONFIG_NLS_CODEPAGE_857 is not set
-+# CONFIG_NLS_CODEPAGE_860 is not set
-+# CONFIG_NLS_CODEPAGE_861 is not set
-+# CONFIG_NLS_CODEPAGE_862 is not set
-+# CONFIG_NLS_CODEPAGE_863 is not set
-+# CONFIG_NLS_CODEPAGE_864 is not set
-+# CONFIG_NLS_CODEPAGE_865 is not set
-+# CONFIG_NLS_CODEPAGE_866 is not set
-+# CONFIG_NLS_CODEPAGE_869 is not set
-+# CONFIG_NLS_CODEPAGE_936 is not set
-+# CONFIG_NLS_CODEPAGE_950 is not set
-+# CONFIG_NLS_CODEPAGE_932 is not set
-+# CONFIG_NLS_CODEPAGE_949 is not set
-+# CONFIG_NLS_CODEPAGE_874 is not set
-+# CONFIG_NLS_ISO8859_8 is not set
-+# CONFIG_NLS_CODEPAGE_1250 is not set
-+# CONFIG_NLS_CODEPAGE_1251 is not set
-+# CONFIG_NLS_ASCII is not set
-+CONFIG_NLS_ISO8859_1=y
-+# CONFIG_NLS_ISO8859_2 is not set
-+# CONFIG_NLS_ISO8859_3 is not set
-+# CONFIG_NLS_ISO8859_4 is not set
-+# CONFIG_NLS_ISO8859_5 is not set
-+# CONFIG_NLS_ISO8859_6 is not set
-+# CONFIG_NLS_ISO8859_7 is not set
-+# CONFIG_NLS_ISO8859_9 is not set
-+# CONFIG_NLS_ISO8859_13 is not set
-+# CONFIG_NLS_ISO8859_14 is not set
-+# CONFIG_NLS_ISO8859_15 is not set
-+# CONFIG_NLS_KOI8_R is not set
-+# CONFIG_NLS_KOI8_U is not set
-+# CONFIG_NLS_UTF8 is not set
-+# CONFIG_DLM is not set
-+
-+#
-+# Kernel hacking
-+#
-+# CONFIG_PRINTK_TIME is not set
-+CONFIG_ENABLE_WARN_DEPRECATED=y
-+CONFIG_ENABLE_MUST_CHECK=y
-+CONFIG_FRAME_WARN=1024
-+CONFIG_MAGIC_SYSRQ=y
-+# CONFIG_UNUSED_SYMBOLS is not set
-+# CONFIG_DEBUG_FS is not set
-+# CONFIG_HEADERS_CHECK is not set
-+CONFIG_DEBUG_KERNEL=y
-+# CONFIG_DEBUG_SHIRQ is not set
-+CONFIG_DETECT_SOFTLOCKUP=y
-+# CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC is not set
-+CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE=0
-+CONFIG_SCHED_DEBUG=y
-+# CONFIG_SCHEDSTATS is not set
-+# CONFIG_TIMER_STATS is not set
-+# CONFIG_DEBUG_OBJECTS is not set
-+# CONFIG_DEBUG_SLAB is not set
-+# CONFIG_DEBUG_RT_MUTEXES is not set
-+# CONFIG_RT_MUTEX_TESTER is not set
-+# CONFIG_DEBUG_SPINLOCK is not set
-+CONFIG_DEBUG_MUTEXES=y
-+# CONFIG_DEBUG_LOCK_ALLOC is not set
-+# CONFIG_PROVE_LOCKING is not set
-+# CONFIG_LOCK_STAT is not set
-+# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
-+# CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
-+# CONFIG_DEBUG_KOBJECT is not set
-+# CONFIG_DEBUG_BUGVERBOSE is not set
-+CONFIG_DEBUG_INFO=y
-+# CONFIG_DEBUG_VM is not set
-+# CONFIG_DEBUG_WRITECOUNT is not set
-+# CONFIG_DEBUG_MEMORY_INIT is not set
-+# CONFIG_DEBUG_LIST is not set
-+# CONFIG_DEBUG_SG is not set
-+CONFIG_FRAME_POINTER=y
-+# CONFIG_BOOT_PRINTK_DELAY is not set
-+# CONFIG_RCU_TORTURE_TEST is not set
-+# CONFIG_BACKTRACE_SELF_TEST is not set
-+# CONFIG_FAULT_INJECTION is not set
-+# CONFIG_LATENCYTOP is not set
-+CONFIG_HAVE_FTRACE=y
-+CONFIG_HAVE_DYNAMIC_FTRACE=y
-+# CONFIG_FTRACE is not set
-+# CONFIG_IRQSOFF_TRACER is not set
-+# CONFIG_SCHED_TRACER is not set
-+# CONFIG_CONTEXT_SWITCH_TRACER is not set
-+# CONFIG_SAMPLES is not set
-+CONFIG_HAVE_ARCH_KGDB=y
-+# CONFIG_KGDB is not set
-+# CONFIG_DEBUG_USER is not set
-+# CONFIG_DEBUG_ERRORS is not set
-+# CONFIG_DEBUG_STACK_USAGE is not set
-+# CONFIG_DEBUG_LL is not set
-+
-+#
-+# Security options
-+#
-+# CONFIG_KEYS is not set
-+# CONFIG_SECURITY is not set
-+# CONFIG_SECURITY_FILE_CAPABILITIES is not set
-+CONFIG_CRYPTO=y
-+
-+#
-+# Crypto core or helper
-+#
-+CONFIG_CRYPTO_ALGAPI=y
-+CONFIG_CRYPTO_BLKCIPHER=y
-+CONFIG_CRYPTO_MANAGER=y
-+# CONFIG_CRYPTO_GF128MUL is not set
-+# CONFIG_CRYPTO_NULL is not set
-+# CONFIG_CRYPTO_CRYPTD is not set
-+# CONFIG_CRYPTO_AUTHENC is not set
-+# CONFIG_CRYPTO_TEST is not set
-+
-+#
-+# Authenticated Encryption with Associated Data
-+#
-+# CONFIG_CRYPTO_CCM is not set
-+# CONFIG_CRYPTO_GCM is not set
-+# CONFIG_CRYPTO_SEQIV is not set
-+
-+#
-+# Block modes
-+#
-+CONFIG_CRYPTO_CBC=y
-+# CONFIG_CRYPTO_CTR is not set
-+# CONFIG_CRYPTO_CTS is not set
-+CONFIG_CRYPTO_ECB=m
-+# CONFIG_CRYPTO_LRW is not set
-+CONFIG_CRYPTO_PCBC=m
-+# CONFIG_CRYPTO_XTS is not set
-+
-+#
-+# Hash modes
-+#
-+# CONFIG_CRYPTO_HMAC is not set
-+# CONFIG_CRYPTO_XCBC is not set
-+
-+#
-+# Digest
-+#
-+# CONFIG_CRYPTO_CRC32C is not set
-+# CONFIG_CRYPTO_MD4 is not set
-+CONFIG_CRYPTO_MD5=y
-+# CONFIG_CRYPTO_MICHAEL_MIC is not set
-+# CONFIG_CRYPTO_RMD128 is not set
-+# CONFIG_CRYPTO_RMD160 is not set
-+# CONFIG_CRYPTO_RMD256 is not set
-+# CONFIG_CRYPTO_RMD320 is not set
-+# CONFIG_CRYPTO_SHA1 is not set
-+# CONFIG_CRYPTO_SHA256 is not set
-+# CONFIG_CRYPTO_SHA512 is not set
-+# CONFIG_CRYPTO_TGR192 is not set
-+# CONFIG_CRYPTO_WP512 is not set
-+
-+#
-+# Ciphers
-+#
-+# CONFIG_CRYPTO_AES is not set
-+# CONFIG_CRYPTO_ANUBIS is not set
-+# CONFIG_CRYPTO_ARC4 is not set
-+# CONFIG_CRYPTO_BLOWFISH is not set
-+# CONFIG_CRYPTO_CAMELLIA is not set
-+# CONFIG_CRYPTO_CAST5 is not set
-+# CONFIG_CRYPTO_CAST6 is not set
-+CONFIG_CRYPTO_DES=y
-+# CONFIG_CRYPTO_FCRYPT is not set
-+# CONFIG_CRYPTO_KHAZAD is not set
-+# CONFIG_CRYPTO_SALSA20 is not set
-+# CONFIG_CRYPTO_SEED is not set
-+# CONFIG_CRYPTO_SERPENT is not set
-+# CONFIG_CRYPTO_TEA is not set
-+# CONFIG_CRYPTO_TWOFISH is not set
-+
-+#
-+# Compression
-+#
-+# CONFIG_CRYPTO_DEFLATE is not set
-+# CONFIG_CRYPTO_LZO is not set
-+CONFIG_CRYPTO_HW=y
-+
-+#
-+# Library routines
-+#
-+CONFIG_BITREVERSE=y
-+# CONFIG_GENERIC_FIND_FIRST_BIT is not set
-+# CONFIG_GENERIC_FIND_NEXT_BIT is not set
-+CONFIG_CRC_CCITT=y
-+# CONFIG_CRC16 is not set
-+CONFIG_CRC_T10DIF=y
-+# CONFIG_CRC_ITU_T is not set
-+CONFIG_CRC32=y
-+# CONFIG_CRC7 is not set
-+CONFIG_LIBCRC32C=y
-+CONFIG_PLIST=y
-+CONFIG_HAS_IOMEM=y
-+CONFIG_HAS_IOPORT=y
-+CONFIG_HAS_DMA=y
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index ee58873..a02da6d 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -28,7 +28,382 @@
+ #include <asm/arch/powerdomain.h>
+ #include <asm/arch/clockdomain.h>
+ #include <asm/arch/gpio.h>
++#include <asm/arch/gpmc.h>
++#include <asm/arch/control.h>
++#include <linux/sched.h>
+ #include "cpuidle34xx.h"
++#include "cm.h"
++#include "cm-regbits-34xx.h"
++#include "prm-regbits-34xx.h"
++#include "prm.h"
++#include "pm.h"
++#include "clock34xx.h"
++
++static int padconf_saved;
++void omap3_save_prcm_ctx(void)
++{
++	prcm_sleep_save[1] = omap_readl(INTC_MIR_0);
++	prcm_sleep_save[2] = omap_readl(INTC_MIR_1);
++	prcm_sleep_save[3] = omap_readl(INTC_MIR_2);
++	prcm_sleep_save[4] = omap_readl(CONTROL_PADCONF_SYS_NIRQ);
++	prcm_sleep_save[5] = omap_readl(OMAP34XX_GPIO1_IRQENABLE1);
++	prcm_sleep_save[6] = omap_readl(OMAP34XX_GPIO1_WAKEUPEN);
++	prcm_sleep_save[7] = cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSEL2);
++	prcm_sleep_save[8] = __raw_readl(OMAP3430_CM_SYSCONFIG);
++	prcm_sleep_save[9] = cm_read_mod_reg(OMAP3430ES2_SGX_MOD, CM_CLKSEL);
++	prcm_sleep_save[10] = cm_read_mod_reg(WKUP_MOD, CM_CLKSEL);
++	prcm_sleep_save[11] = cm_read_mod_reg(OMAP3430_DSS_MOD, CM_CLKSEL);
++	prcm_sleep_save[12] = cm_read_mod_reg(OMAP3430_CAM_MOD, CM_CLKSEL);
++	prcm_sleep_save[13] = cm_read_mod_reg(OMAP3430_PER_MOD, CM_CLKSEL);
++	prcm_sleep_save[14] = cm_read_mod_reg(OMAP3430_EMU_MOD, CM_CLKSEL1);
++	prcm_sleep_save[15] = cm_read_mod_reg(OMAP3430_EMU_MOD, CM_CLKSTCTRL);
++	prcm_sleep_save[16] = cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE2);
++	prcm_sleep_save[17] = cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL5);
++	prcm_sleep_save[18] = __raw_readl(OMAP3430_CM_POLCTRL);
++	prcm_sleep_save[19] = cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_FCLKEN);
++	prcm_sleep_save[20] = cm_read_mod_reg(CORE_MOD, CM_FCLKEN1);
++	prcm_sleep_save[21] = cm_read_mod_reg(CORE_MOD, OMAP3430ES2_CM_FCLKEN3);
++	prcm_sleep_save[22] = cm_read_mod_reg(OMAP3430ES2_SGX_MOD, CM_FCLKEN);
++	prcm_sleep_save[23] = cm_read_mod_reg(WKUP_MOD, CM_FCLKEN);
++	prcm_sleep_save[24] = cm_read_mod_reg(OMAP3430_DSS_MOD, CM_FCLKEN);
++	prcm_sleep_save[25] = cm_read_mod_reg(OMAP3430_CAM_MOD, CM_FCLKEN);
++	prcm_sleep_save[26] = cm_read_mod_reg(OMAP3430_PER_MOD, CM_FCLKEN);
++	prcm_sleep_save[27] = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
++							      CM_FCLKEN);
++	prcm_sleep_save[28] = cm_read_mod_reg(CORE_MOD, CM_ICLKEN1);
++	prcm_sleep_save[29] = cm_read_mod_reg(CORE_MOD, CM_ICLKEN2);
++	prcm_sleep_save[30] = cm_read_mod_reg(CORE_MOD, CM_ICLKEN3);
++	prcm_sleep_save[31] = cm_read_mod_reg(OMAP3430ES2_SGX_MOD, CM_ICLKEN);
++	prcm_sleep_save[32] = cm_read_mod_reg(WKUP_MOD, CM_ICLKEN);
++	prcm_sleep_save[33] = cm_read_mod_reg(OMAP3430_DSS_MOD, CM_ICLKEN);
++	prcm_sleep_save[34] = cm_read_mod_reg(OMAP3430_CAM_MOD, CM_ICLKEN);
++	prcm_sleep_save[35] = cm_read_mod_reg(OMAP3430_PER_MOD, CM_ICLKEN);
++	prcm_sleep_save[36] = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
++							      CM_ICLKEN);
++	prcm_sleep_save[37] = cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_AUTOIDLE2);
++	prcm_sleep_save[38] = cm_read_mod_reg(MPU_MOD, CM_AUTOIDLE2);
++	prcm_sleep_save[39] = cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
++	prcm_sleep_save[40] = cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
++	prcm_sleep_save[41] = cm_read_mod_reg(MPU_MOD, CM_CLKSTCTRL);
++	prcm_sleep_save[42] = cm_read_mod_reg(CORE_MOD, CM_CLKSTCTRL);
++	prcm_sleep_save[43] = cm_read_mod_reg(OMAP3430ES2_SGX_MOD,
++							      CM_CLKSTCTRL);
++	prcm_sleep_save[44] = cm_read_mod_reg(OMAP3430_DSS_MOD, CM_CLKSTCTRL);
++	prcm_sleep_save[45] = cm_read_mod_reg(OMAP3430_CAM_MOD, CM_CLKSTCTRL);
++	prcm_sleep_save[46] = cm_read_mod_reg(OMAP3430_PER_MOD, CM_CLKSTCTRL);
++	prcm_sleep_save[47] = cm_read_mod_reg(OMAP3430_NEON_MOD, CM_CLKSTCTRL);
++	prcm_sleep_save[48] = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
++							      CM_CLKSTCTRL);
++	prcm_sleep_save[49] = cm_read_mod_reg(CORE_MOD, CM_AUTOIDLE1);
++	prcm_sleep_save[50] = cm_read_mod_reg(CORE_MOD, CM_AUTOIDLE2);
++	prcm_sleep_save[51] = cm_read_mod_reg(CORE_MOD, CM_AUTOIDLE3);
++	prcm_sleep_save[52] = cm_read_mod_reg(WKUP_MOD, CM_AUTOIDLE);
++	prcm_sleep_save[53] = cm_read_mod_reg(OMAP3430_DSS_MOD, CM_AUTOIDLE);
++	prcm_sleep_save[54] = cm_read_mod_reg(OMAP3430_CAM_MOD, CM_AUTOIDLE);
++	prcm_sleep_save[55] = cm_read_mod_reg(OMAP3430_PER_MOD, CM_AUTOIDLE);
++	prcm_sleep_save[56] = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
++							      CM_AUTOIDLE);
++	prcm_sleep_save[57] = cm_read_mod_reg(OMAP3430ES2_SGX_MOD,
++						      OMAP3430_CM_SLEEPDEP);
++	prcm_sleep_save[58] = cm_read_mod_reg(OMAP3430_DSS_MOD,
++						      OMAP3430_CM_SLEEPDEP);
++	prcm_sleep_save[59] = cm_read_mod_reg(OMAP3430_CAM_MOD,
++						      OMAP3430_CM_SLEEPDEP);
++	prcm_sleep_save[60] = cm_read_mod_reg(OMAP3430_PER_MOD,
++						      OMAP3430_CM_SLEEPDEP);
++	prcm_sleep_save[61] = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
++						      OMAP3430_CM_SLEEPDEP);
++	prcm_sleep_save[62] = __raw_readl(OMAP3430_CM_CLKOUT_CTRL);
++	prcm_sleep_save[63] = __raw_readl(OMAP3430_PRM_CLKOUT_CTRL);
++	prcm_sleep_save[64] = prm_read_mod_reg(OMAP3430ES2_SGX_MOD, PM_WKDEP);
++	prcm_sleep_save[65] = prm_read_mod_reg(OMAP3430_DSS_MOD, PM_WKDEP);
++	prcm_sleep_save[66] = prm_read_mod_reg(OMAP3430_CAM_MOD, PM_WKDEP);
++	prcm_sleep_save[67] = prm_read_mod_reg(OMAP3430_PER_MOD, PM_WKDEP);
++	prcm_sleep_save[68] = prm_read_mod_reg(OMAP3430_NEON_MOD, PM_WKDEP);
++	prcm_sleep_save[69] = prm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
++							       PM_WKDEP);
++	prcm_sleep_save[70] = prm_read_mod_reg(CORE_MOD,
++					      OMAP3430_PM_MPUGRPSEL1);
++	prcm_sleep_save[71] = prm_read_mod_reg(OMAP3430_IVA2_MOD,
++					      OMAP3430_PM_IVAGRPSEL1);
++	prcm_sleep_save[72] = prm_read_mod_reg(CORE_MOD,
++					      OMAP3430ES2_PM_MPUGRPSEL3);
++	prcm_sleep_save[73] = prm_read_mod_reg(CORE_MOD,
++					      OMAP3430ES2_PM_IVAGRPSEL3);
++	prcm_sleep_save[74] = prm_read_mod_reg(WKUP_MOD, OMAP3430_PM_MPUGRPSEL);
++	prcm_sleep_save[75] = prm_read_mod_reg(WKUP_MOD,
++					      OMAP3430_PM_IVAGRPSEL);
++	prcm_sleep_save[76] = prm_read_mod_reg(OMAP3430_PER_MOD,
++					      OMAP3430_PM_MPUGRPSEL);
++	prcm_sleep_save[77] = prm_read_mod_reg(OMAP3430_PER_MOD,
++					      OMAP3430_PM_IVAGRPSEL);
++	prcm_sleep_save[78] = prm_read_mod_reg(WKUP_MOD, PM_WKEN);
++	return;
++}
++
++void omap3_restore_prcm_ctx(void)
++{
++	omap_writel(prcm_sleep_save[1], INTC_MIR_0);
++	omap_writel(prcm_sleep_save[2], INTC_MIR_1);
++	omap_writel(prcm_sleep_save[3], INTC_MIR_2);
++	omap_writel(prcm_sleep_save[4], CONTROL_PADCONF_SYS_NIRQ);
++	omap_writel(prcm_sleep_save[5], OMAP34XX_GPIO1_IRQENABLE1);
++	omap_writel(prcm_sleep_save[6], OMAP34XX_GPIO1_WAKEUPEN);
++	cm_write_mod_reg(prcm_sleep_save[7], OMAP3430_IVA2_MOD, CM_CLKSEL2);
++	__raw_writel(prcm_sleep_save[8], OMAP3430_CM_SYSCONFIG);
++	cm_write_mod_reg(prcm_sleep_save[9], OMAP3430ES2_SGX_MOD, CM_CLKSEL);
++	cm_write_mod_reg(prcm_sleep_save[10], WKUP_MOD, CM_CLKSEL);
++	cm_write_mod_reg(prcm_sleep_save[11], OMAP3430_DSS_MOD, CM_CLKSEL);
++	cm_write_mod_reg(prcm_sleep_save[12], OMAP3430_CAM_MOD, CM_CLKSEL);
++	cm_write_mod_reg(prcm_sleep_save[13], OMAP3430_PER_MOD, CM_CLKSEL);
++	cm_write_mod_reg(prcm_sleep_save[14], OMAP3430_EMU_MOD, CM_CLKSEL1);
++	cm_write_mod_reg(prcm_sleep_save[15], OMAP3430_EMU_MOD, CM_CLKSTCTRL);
++	cm_write_mod_reg(prcm_sleep_save[16], PLL_MOD, CM_AUTOIDLE2);
++	cm_write_mod_reg(prcm_sleep_save[17], PLL_MOD, OMAP3430ES2_CM_CLKSEL5);
++	__raw_writel(prcm_sleep_save[18], OMAP3430_CM_POLCTRL);
++	cm_write_mod_reg(prcm_sleep_save[19], OMAP3430_IVA2_MOD, CM_FCLKEN);
++	cm_write_mod_reg(prcm_sleep_save[20], CORE_MOD, CM_FCLKEN1);
++	cm_write_mod_reg(prcm_sleep_save[21], CORE_MOD, OMAP3430ES2_CM_FCLKEN3);
++	cm_write_mod_reg(prcm_sleep_save[22], OMAP3430ES2_SGX_MOD, CM_FCLKEN);
++	cm_write_mod_reg(prcm_sleep_save[23], WKUP_MOD, CM_FCLKEN);
++	cm_write_mod_reg(prcm_sleep_save[24], OMAP3430_DSS_MOD, CM_FCLKEN);
++	cm_write_mod_reg(prcm_sleep_save[25], OMAP3430_CAM_MOD, CM_FCLKEN);
++	cm_write_mod_reg(prcm_sleep_save[26], OMAP3430_PER_MOD, CM_FCLKEN);
++	cm_write_mod_reg(prcm_sleep_save[27], OMAP3430ES2_USBHOST_MOD,
++							       CM_FCLKEN);
++	cm_write_mod_reg(prcm_sleep_save[28], CORE_MOD, CM_ICLKEN1);
++	cm_write_mod_reg(prcm_sleep_save[29], CORE_MOD, CM_ICLKEN2);
++	cm_write_mod_reg(prcm_sleep_save[30], CORE_MOD, CM_ICLKEN3);
++	cm_write_mod_reg(prcm_sleep_save[31], OMAP3430ES2_SGX_MOD, CM_ICLKEN);
++	cm_write_mod_reg(prcm_sleep_save[32], WKUP_MOD, CM_ICLKEN);
++	cm_write_mod_reg(prcm_sleep_save[33], OMAP3430_DSS_MOD, CM_ICLKEN);
++	cm_write_mod_reg(prcm_sleep_save[34], OMAP3430_CAM_MOD, CM_ICLKEN);
++	cm_write_mod_reg(prcm_sleep_save[35], OMAP3430_PER_MOD, CM_ICLKEN);
++	cm_write_mod_reg(prcm_sleep_save[36], OMAP3430ES2_USBHOST_MOD,
++								CM_ICLKEN);
++	cm_write_mod_reg(prcm_sleep_save[37], OMAP3430_IVA2_MOD, CM_AUTOIDLE2);
++	cm_write_mod_reg(prcm_sleep_save[38], MPU_MOD, CM_AUTOIDLE2);
++	cm_write_mod_reg(prcm_sleep_save[39], PLL_MOD, CM_AUTOIDLE);
++	cm_write_mod_reg(prcm_sleep_save[40], OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
++	cm_write_mod_reg(prcm_sleep_save[41], MPU_MOD, CM_CLKSTCTRL);
++	cm_write_mod_reg(prcm_sleep_save[42], CORE_MOD, CM_CLKSTCTRL);
++	cm_write_mod_reg(prcm_sleep_save[43], OMAP3430ES2_SGX_MOD,
++						       CM_CLKSTCTRL);
++	cm_write_mod_reg(prcm_sleep_save[44], OMAP3430_DSS_MOD, CM_CLKSTCTRL);
++	cm_write_mod_reg(prcm_sleep_save[45], OMAP3430_CAM_MOD, CM_CLKSTCTRL);
++	cm_write_mod_reg(prcm_sleep_save[46], OMAP3430_PER_MOD, CM_CLKSTCTRL);
++	cm_write_mod_reg(prcm_sleep_save[47], OMAP3430_NEON_MOD, CM_CLKSTCTRL);
++	cm_write_mod_reg(prcm_sleep_save[48], OMAP3430ES2_USBHOST_MOD,
++							       CM_CLKSTCTRL);
++	cm_write_mod_reg(prcm_sleep_save[49], CORE_MOD, CM_AUTOIDLE1);
++	cm_write_mod_reg(prcm_sleep_save[50], CORE_MOD, CM_AUTOIDLE2);
++	cm_write_mod_reg(prcm_sleep_save[51], CORE_MOD, CM_AUTOIDLE3);
++	cm_write_mod_reg(prcm_sleep_save[52], WKUP_MOD, CM_AUTOIDLE);
++	cm_write_mod_reg(prcm_sleep_save[53], OMAP3430_DSS_MOD, CM_AUTOIDLE);
++	cm_write_mod_reg(prcm_sleep_save[54], OMAP3430_CAM_MOD, CM_AUTOIDLE);
++	cm_write_mod_reg(prcm_sleep_save[55], OMAP3430_PER_MOD, CM_AUTOIDLE);
++	cm_write_mod_reg(prcm_sleep_save[56], OMAP3430ES2_USBHOST_MOD,
++							       CM_AUTOIDLE);
++	cm_write_mod_reg(prcm_sleep_save[57], OMAP3430ES2_SGX_MOD,
++						       OMAP3430_CM_SLEEPDEP);
++	cm_write_mod_reg(prcm_sleep_save[58], OMAP3430_DSS_MOD,
++						       OMAP3430_CM_SLEEPDEP);
++	cm_write_mod_reg(prcm_sleep_save[59], OMAP3430_CAM_MOD,
++						       OMAP3430_CM_SLEEPDEP);
++	cm_write_mod_reg(prcm_sleep_save[60], OMAP3430_PER_MOD,
++						       OMAP3430_CM_SLEEPDEP);
++	cm_write_mod_reg(prcm_sleep_save[61], OMAP3430ES2_USBHOST_MOD,
++						       OMAP3430_CM_SLEEPDEP);
++	__raw_writel(prcm_sleep_save[62], OMAP3430_CM_CLKOUT_CTRL);
++	__raw_writel(prcm_sleep_save[63], OMAP3430_PRM_CLKOUT_CTRL);
++	prm_write_mod_reg(prcm_sleep_save[64], OMAP3430ES2_SGX_MOD, PM_WKDEP);
++	prm_write_mod_reg(prcm_sleep_save[65], OMAP3430_DSS_MOD, PM_WKDEP);
++	prm_write_mod_reg(prcm_sleep_save[66], OMAP3430_CAM_MOD, PM_WKDEP);
++	prm_write_mod_reg(prcm_sleep_save[67], OMAP3430_PER_MOD, PM_WKDEP);
++	prm_write_mod_reg(prcm_sleep_save[68], OMAP3430_NEON_MOD, PM_WKDEP);
++	prm_write_mod_reg(prcm_sleep_save[69], OMAP3430ES2_USBHOST_MOD,
++							       PM_WKDEP);
++	prm_write_mod_reg(prcm_sleep_save[70], CORE_MOD,
++					       OMAP3430_PM_MPUGRPSEL1);
++	prm_write_mod_reg(prcm_sleep_save[71], OMAP3430_IVA2_MOD,
++					       OMAP3430_PM_IVAGRPSEL1);
++	prm_write_mod_reg(prcm_sleep_save[72], CORE_MOD,
++					       OMAP3430ES2_PM_MPUGRPSEL3);
++	prm_write_mod_reg(prcm_sleep_save[73], CORE_MOD,
++					       OMAP3430ES2_PM_IVAGRPSEL3);
++	prm_write_mod_reg(prcm_sleep_save[74], WKUP_MOD,
++					       OMAP3430_PM_MPUGRPSEL);
++	prm_write_mod_reg(prcm_sleep_save[75], WKUP_MOD,
++					       OMAP3430_PM_IVAGRPSEL);
++	prm_write_mod_reg(prcm_sleep_save[76], OMAP3430_PER_MOD,
++					       OMAP3430_PM_MPUGRPSEL);
++	prm_write_mod_reg(prcm_sleep_save[77], OMAP3430_PER_MOD,
++					       OMAP3430_PM_IVAGRPSEL);
++	prm_write_mod_reg(prcm_sleep_save[78], WKUP_MOD, PM_WKEN);
++	return;
++}
++
++static void omap_save_intc_ctx(void)
++{
++	int ind = 0;
++	intc_context.sysconfig = omap_readl(INTCPS_SYSCONFIG);
++	intc_context.protection =  omap_readl(INTCPS_PROTECTION);
++	intc_context.idle = omap_readl(INTCPS_IDLE);
++	intc_context.threshold = omap_readl(INTCPS_THRESHOLD);
++	for (ind = 0; ind < 96; ind++)
++	       intc_context.ilr[ind] =
++		       omap_readl(INTC_BASE + (0x100 + 0x4*ind));
++	/* MIRs are saved and restore with other PRCM registers */
++}
++
++static void omap_restore_intc_ctx(void)
++{
++	int ind = 0;
++	omap_writel(intc_context.sysconfig, INTCPS_SYSCONFIG);
++	omap_writel(intc_context.protection, INTCPS_PROTECTION);
++	omap_writel(intc_context.idle, INTCPS_IDLE);
++	omap_writel(intc_context.threshold, INTCPS_THRESHOLD);
++	for (ind = 0; ind < 96; ind++)
++	       omap_writel(intc_context.ilr[ind],
++		       INTC_BASE + (0x100 + 0x4*ind));
++	/* MIRs are saved and restore with other PRCM registers */
++}
++
++static void omap_save_control_ctx(void)
++{
++	control_ctx.sysconfig = omap_ctrl_readl(OMAP2_CONTROL_SYSCONFIG);
++	control_ctx.devconf0 = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
++	control_ctx.mem_dftrw0 = omap_ctrl_readl(OMAP343X_CONTROL_MEM_DFTRW0);
++	control_ctx.mem_dftrw1 = omap_ctrl_readl(OMAP343X_CONTROL_MEM_DFTRW1);
++	control_ctx.msuspendmux_0 =
++		       omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_0);
++	control_ctx.msuspendmux_1 =
++		       omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_1);
++	control_ctx.msuspendmux_2 =
++		       omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_2);
++	control_ctx.msuspendmux_3 =
++		       omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_3);
++	control_ctx.msuspendmux_4 =
++		       omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_4);
++	control_ctx.msuspendmux_5 =
++		       omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_5);
++	control_ctx.sec_ctrl = omap_ctrl_readl(OMAP2_CONTROL_SEC_CTRL);
++	control_ctx.devconf1 = omap_ctrl_readl(OMAP343X_CONTROL_DEVCONF1);
++	control_ctx.csirxfe = omap_ctrl_readl(OMAP343X_CONTROL_CSIRXFE);
++	control_ctx.iva2_bootaddr =
++		       omap_ctrl_readl(OMAP343X_CONTROL_IVA2_BOOTADDR);
++	control_ctx.iva2_bootmod =
++		       omap_ctrl_readl(OMAP343X_CONTROL_IVA2_BOOTMOD);
++	control_ctx.debobs_0 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS_0);
++	control_ctx.debobs_1 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS_1);
++	control_ctx.debobs_2 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS_2);
++	control_ctx.debobs_3 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS_3);
++	control_ctx.debobs_4 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS_4);
++	control_ctx.debobs_5 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS_5);
++	control_ctx.debobs_6 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS_6);
++	control_ctx.debobs_7 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS_7);
++	control_ctx.debobs_8 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS_8);
++	control_ctx.prog_io0 = omap_ctrl_readl(OMAP343X_CONTROL_PROG_IO0);
++	control_ctx.prog_io1 = omap_ctrl_readl(OMAP343X_CONTROL_PROG_IO1);
++	control_ctx.dss_dpll_spreading =
++	       omap_ctrl_readl(OMAP343X_CONTROL_DSS_DPLL_SPREADING);
++	control_ctx.core_dpll_spreading =
++	       omap_ctrl_readl(OMAP343X_CONTROL_CORE_DPLL_SPREADING);
++	control_ctx.per_dpll_spreading =
++	       omap_ctrl_readl(OMAP343X_CONTROL_PER_DPLL_SPREADING);
++	control_ctx.usbhost_dpll_spreading =
++	       omap_ctrl_readl(OMAP343X_CONTROL_USBHOST_DPLL_SPREADING);
++	control_ctx.pbias_lite = omap_ctrl_readl(OMAP343X_CONTROL_PBIAS_LITE);
++	control_ctx.temp_sensor = omap_ctrl_readl(OMAP343X_CONTROL_TEMP_SENSOR);
++	control_ctx.sramldo4 = omap_ctrl_readl(OMAP343X_CONTROL_SRAMLDO4);
++	control_ctx.sramldo5 = omap_ctrl_readl(OMAP343X_CONTROL_SRAMLDO5);
++	control_ctx.csi = omap_ctrl_readl(OMAP343X_CONTROL_CSI);
++	return;
++}
++
++static void omap_restore_control_ctx(void)
++{
++	omap_ctrl_writel(control_ctx.sysconfig, OMAP2_CONTROL_SYSCONFIG);
++	omap_ctrl_writel(control_ctx.devconf0, OMAP2_CONTROL_DEVCONF0);
++	omap_ctrl_writel(control_ctx.mem_dftrw0, OMAP343X_CONTROL_MEM_DFTRW0);
++	omap_ctrl_writel(control_ctx.mem_dftrw1, OMAP343X_CONTROL_MEM_DFTRW1);
++	omap_ctrl_writel(control_ctx.msuspendmux_0,
++					       OMAP2_CONTROL_MSUSPENDMUX_0);
++	omap_ctrl_writel(control_ctx.msuspendmux_1,
++					       OMAP2_CONTROL_MSUSPENDMUX_1);
++	omap_ctrl_writel(control_ctx.msuspendmux_2,
++					       OMAP2_CONTROL_MSUSPENDMUX_2);
++	omap_ctrl_writel(control_ctx.msuspendmux_3,
++					       OMAP2_CONTROL_MSUSPENDMUX_3);
++	omap_ctrl_writel(control_ctx.msuspendmux_4,
++					       OMAP2_CONTROL_MSUSPENDMUX_4);
++	omap_ctrl_writel(control_ctx.msuspendmux_5,
++					       OMAP2_CONTROL_MSUSPENDMUX_5);
++	omap_ctrl_writel(control_ctx.sec_ctrl, OMAP2_CONTROL_SEC_CTRL);
++	omap_ctrl_writel(control_ctx.devconf1, OMAP343X_CONTROL_DEVCONF1);
++	omap_ctrl_writel(control_ctx.csirxfe, OMAP343X_CONTROL_CSIRXFE);
++	omap_ctrl_writel(control_ctx.iva2_bootaddr,
++					       OMAP343X_CONTROL_IVA2_BOOTADDR);
++	omap_ctrl_writel(control_ctx.iva2_bootmod,
++					       OMAP343X_CONTROL_IVA2_BOOTMOD);
++	omap_ctrl_writel(control_ctx.debobs_0, OMAP343X_CONTROL_DEBOBS_0);
++	omap_ctrl_writel(control_ctx.debobs_1, OMAP343X_CONTROL_DEBOBS_1);
++	omap_ctrl_writel(control_ctx.debobs_2, OMAP343X_CONTROL_DEBOBS_2);
++	omap_ctrl_writel(control_ctx.debobs_3, OMAP343X_CONTROL_DEBOBS_3);
++	omap_ctrl_writel(control_ctx.debobs_4, OMAP343X_CONTROL_DEBOBS_4);
++	omap_ctrl_writel(control_ctx.debobs_5, OMAP343X_CONTROL_DEBOBS_5);
++	omap_ctrl_writel(control_ctx.debobs_6, OMAP343X_CONTROL_DEBOBS_6);
++	omap_ctrl_writel(control_ctx.debobs_7, OMAP343X_CONTROL_DEBOBS_7);
++	omap_ctrl_writel(control_ctx.debobs_8, OMAP343X_CONTROL_DEBOBS_8);
++	omap_ctrl_writel(control_ctx.prog_io0, OMAP343X_CONTROL_PROG_IO0);
++	omap_ctrl_writel(control_ctx.prog_io1, OMAP343X_CONTROL_PROG_IO1);
++	omap_ctrl_writel(control_ctx.dss_dpll_spreading,
++			       OMAP343X_CONTROL_DSS_DPLL_SPREADING);
++	omap_ctrl_writel(control_ctx.core_dpll_spreading,
++			       OMAP343X_CONTROL_CORE_DPLL_SPREADING);
++	omap_ctrl_writel(control_ctx.per_dpll_spreading,
++			       OMAP343X_CONTROL_PER_DPLL_SPREADING);
++	omap_ctrl_writel(control_ctx.usbhost_dpll_spreading,
++			       OMAP343X_CONTROL_USBHOST_DPLL_SPREADING);
++	omap_ctrl_writel(control_ctx.pbias_lite, OMAP343X_CONTROL_PBIAS_LITE);
++	omap_ctrl_writel(control_ctx.temp_sensor, OMAP343X_CONTROL_TEMP_SENSOR);
++	omap_ctrl_writel(control_ctx.sramldo4, OMAP343X_CONTROL_SRAMLDO4);
++	omap_ctrl_writel(control_ctx.sramldo5, OMAP343X_CONTROL_SRAMLDO5);
++	omap_ctrl_writel(control_ctx.csi, OMAP343X_CONTROL_CSI);
++	return;
++}
++
++void omap3_save_core_ctx(void)
++{
++	u32 control_padconf_off;
++
++	if (!padconf_saved) {
++	       /* Save the padconf registers */
++	       control_padconf_off = omap_readl(CONTROL_PADCONF_OFF);
++	       control_padconf_off |= 2;
++	       omap_writel(control_padconf_off, CONTROL_PADCONF_OFF);
++	       /* wait for the save to complete */
++	       while (!omap_readl(CONTROL_GENERAL_PURPOSE_STATUS) & 0x1);
++	       padconf_saved = 1;
++	}
++	/* Save the Interrupt controller context */
++	omap_save_intc_ctx();
++	/* Save the GPMC context */
++	omap_save_gpmc_ctx();
++	/* Save the system control module context, padconf already save above*/
++	omap_save_control_ctx();
++}
++
++void omap3_restore_core_ctx(void)
++{
++	/* Restore the control module context, padconf restored by h/w */
++	omap_restore_control_ctx();
++	/* Restore the GPMC context */
++	omap_restore_gpmc_ctx();
++	/* Restore the interrupt controller context */
++	omap_restore_intc_ctx();
++	padconf_saved = 0;
++}
+ 
+ #ifdef CONFIG_CPU_IDLE
+ 
+@@ -42,6 +417,8 @@ static int omap3_idle_bm_check(void)
+ 	return 0;
+ }
+ 
++
++int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+ /* omap3_enter_idle - Programs OMAP3 to enter the specified state.
+  * returns the total time during which the system was idle.
+  */
+@@ -50,8 +427,7 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
+ {
+ 	struct omap3_processor_cx *cx = cpuidle_get_statedata(state);
+ 	struct timespec ts_preidle, ts_postidle, ts_idle;
+-	struct powerdomain *mpu_pd, *core_pd, *per_pd, *neon_pd;
+-	int per_pwrst, neon_pwrst;
++	struct powerdomain *mpu_pd, *core_pd;
+ 
+ 	current_cx_state = *cx;
+ 
+@@ -60,79 +436,37 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
+ 		return 0;
+ 	}
+ 
++	local_irq_disable();
++	local_fiq_disable();
++
+ 	/* Used to keep track of the total time in idle */
+ 	getnstimeofday(&ts_preidle);
+ 
++	if (cx->type > OMAP3_STATE_C1)
++		sched_clock_idle_sleep_event(); /* about to enter deep idle */
++
+ 	mpu_pd = pwrdm_lookup("mpu_pwrdm");
+ 	core_pd = pwrdm_lookup("core_pwrdm");
+-	per_pd = pwrdm_lookup("per_pwrdm");
+-	neon_pd = pwrdm_lookup("neon_pwrdm");
+ 
+-	/* Reset previous power state registers */
+-	pwrdm_clear_all_prev_pwrst(mpu_pd);
+-	pwrdm_clear_all_prev_pwrst(neon_pd);
+-	pwrdm_clear_all_prev_pwrst(core_pd);
+-	pwrdm_clear_all_prev_pwrst(per_pd);
++	set_pwrdm_state(mpu_pd, cx->mpu_state);
++	set_pwrdm_state(core_pd, cx->core_state);
+ 
+ 	if (omap_irq_pending())
+-		return 0;
+-
+-	per_pwrst = pwrdm_read_pwrst(per_pd);
+-	neon_pwrst = pwrdm_read_pwrst(neon_pd);
+-
+-	/* Program MPU to target state */
+-	if (cx->mpu_state < PWRDM_POWER_ON) {
+-		if (neon_pwrst == PWRDM_POWER_ON) {
+-			if (cx->mpu_state == PWRDM_POWER_RET)
+-				pwrdm_set_next_pwrst(neon_pd, PWRDM_POWER_RET);
+-			else if (cx->mpu_state == PWRDM_POWER_OFF)
+-				pwrdm_set_next_pwrst(neon_pd, PWRDM_POWER_OFF);
+-		}
+-		pwrdm_set_next_pwrst(mpu_pd, cx->mpu_state);
+-	}
+-
+-	/* Program CORE and PER to target state */
+-	if (cx->core_state < PWRDM_POWER_ON) {
+-		if (per_pwrst == PWRDM_POWER_ON) {
+-			omap2_gpio_prepare_for_retention();
+-			per_gpio_clk_disable();
+-			omap_serial_enable_clocks(0);
+-		}
+-		pwrdm_set_next_pwrst(core_pd, cx->core_state);
+-	}
+-
+-	*(scratchpad_restore_addr) = restore_pointer_address;
++		goto return_sleep_time;
+ 
+ 	/* Execute ARM wfi */
+ 	omap_sram_idle();
+ 
+-	*(scratchpad_restore_addr) = 0x0;
+-
+-	/* Program MPU/NEON to ON */
+-	if (cx->mpu_state < PWRDM_POWER_ON) {
+-		if (neon_pwrst == PWRDM_POWER_ON)
+-			pwrdm_set_next_pwrst(neon_pd, PWRDM_POWER_ON);
+-		pwrdm_set_next_pwrst(mpu_pd, PWRDM_POWER_ON);
+-	}
++return_sleep_time:
++	getnstimeofday(&ts_postidle);
++	ts_idle = timespec_sub(ts_postidle, ts_preidle);
+ 
+-	if (cx->core_state < PWRDM_POWER_ON) {
+-		if (per_pwrst == PWRDM_POWER_ON) {
+-			omap_serial_enable_clocks(1);
+-			per_gpio_clk_enable();
+-			omap2_gpio_resume_after_retention();
+-		}
+-		pwrdm_set_next_pwrst(core_pd, PWRDM_POWER_ON);
+-	}
++	if (cx->type > OMAP3_STATE_C1)
++		sched_clock_idle_wakeup_event(timespec_to_ns(&ts_idle));
+ 
+-	pr_debug("MPU prev st:%x,NEON prev st:%x\n",
+-			       pwrdm_read_prev_pwrst(mpu_pd),
+-			       pwrdm_read_prev_pwrst(neon_pd));
+-	pr_debug("PER prev st:%x,CORE prev st:%x\n",
+-			       pwrdm_read_prev_pwrst(per_pd),
+-			       pwrdm_read_prev_pwrst(core_pd));
++	local_irq_enable();
++	local_fiq_enable();
+ 
+-	getnstimeofday(&ts_postidle);
+-	ts_idle = timespec_sub(ts_postidle, ts_preidle);
+ 	return (u32)timespec_to_ns(&ts_idle)/1000;
+ }
+ 
+@@ -143,25 +477,28 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+ 	int i, j;
+ 
+ 	if ((state->flags & CPUIDLE_FLAG_CHECK_BM) && omap3_idle_bm_check()) {
+-
+-		/* Find current state in list */
+-		for (i = 0; i < OMAP3_MAX_STATES; i++)
+-			if (state == &dev->states[i])
+-				break;
+-		BUG_ON(i == OMAP3_MAX_STATES);
+-
+-		/* Back up to non 'CHECK_BM' state */
+-		for (j = i - 1;  j > 0; j--) {
+-			struct cpuidle_state *s = &dev->states[j];
+-
+-			if (!(s->flags & CPUIDLE_FLAG_CHECK_BM)) {
+-				new_state = s;
+-				break;
++		if (dev->safe_state)
++			return dev->safe_state->enter(dev, dev->safe_state);
++		else {
++			/* Find current state in list */
++			for (i = 0; i < OMAP3_MAX_STATES; i++)
++				if (state == &dev->states[i])
++					break;
++			BUG_ON(i == OMAP3_MAX_STATES);
++
++			/* Back up to non 'CHECK_BM' state */
++			for (j = i - 1;  j >= 0; j--) {
++				struct cpuidle_state *s = &dev->states[j];
++
++				if (!(s->flags & CPUIDLE_FLAG_CHECK_BM)) {
++					new_state = s;
++					break;
++				}
+ 			}
++			pr_debug("%s: Bus activity: Entering %s\
++				(instead of %s)\n", __func__,
++				 new_state->name, state->name);
+ 		}
+-
+-		pr_debug("%s: Bus activity: Entering %s (instead of %s)\n",
+-			__func__, new_state->name, state->name);
+ 	}
+ 
+ 	return omap3_enter_idle(dev, new_state ? : state);
+@@ -183,79 +520,79 @@ DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
+ void omap_init_power_states(void)
+ {
+ 	/* C0 . System executing code */
+-	omap3_power_states[0].valid = 1;
+-	omap3_power_states[0].type = OMAP3_STATE_C0;
+-	omap3_power_states[0].sleep_latency = 0;
+-	omap3_power_states[0].wakeup_latency = 0;
+-	omap3_power_states[0].threshold = 0;
+-	omap3_power_states[0].mpu_state = PWRDM_POWER_ON;
+-	omap3_power_states[0].core_state = PWRDM_POWER_ON;
+-	omap3_power_states[0].flags = CPUIDLE_FLAG_SHALLOW;
++	omap3_power_states[OMAP3_STATE_C0].valid = 1;
++	omap3_power_states[OMAP3_STATE_C0].type = OMAP3_STATE_C0;
++	omap3_power_states[OMAP3_STATE_C0].sleep_latency = 0;
++	omap3_power_states[OMAP3_STATE_C0].wakeup_latency = 0;
++	omap3_power_states[OMAP3_STATE_C0].threshold = 0;
++	omap3_power_states[OMAP3_STATE_C0].mpu_state = PWRDM_POWER_ON;
++	omap3_power_states[OMAP3_STATE_C0].core_state = PWRDM_POWER_ON;
++	omap3_power_states[OMAP3_STATE_C0].flags = CPUIDLE_FLAG_SHALLOW;
+ 
+ 	/* C1 . MPU WFI + Core active */
+-	omap3_power_states[1].valid = 1;
+-	omap3_power_states[1].type = OMAP3_STATE_C1;
+-	omap3_power_states[1].sleep_latency = 10;
+-	omap3_power_states[1].wakeup_latency = 10;
+-	omap3_power_states[1].threshold = 30;
+-	omap3_power_states[1].mpu_state = PWRDM_POWER_ON;
+-	omap3_power_states[1].core_state = PWRDM_POWER_ON;
+-	omap3_power_states[1].flags = CPUIDLE_FLAG_TIME_VALID |
++	omap3_power_states[OMAP3_STATE_C1].valid = 1;
++	omap3_power_states[OMAP3_STATE_C1].type = OMAP3_STATE_C1;
++	omap3_power_states[OMAP3_STATE_C1].sleep_latency = 10;
++	omap3_power_states[OMAP3_STATE_C1].wakeup_latency = 10;
++	omap3_power_states[OMAP3_STATE_C1].threshold = 30;
++	omap3_power_states[OMAP3_STATE_C1].mpu_state = PWRDM_POWER_ON;
++	omap3_power_states[OMAP3_STATE_C1].core_state = PWRDM_POWER_ON;
++	omap3_power_states[OMAP3_STATE_C1].flags = CPUIDLE_FLAG_TIME_VALID |
+ 						CPUIDLE_FLAG_SHALLOW;
+ 
+ 	/* C2 . MPU CSWR + Core active */
+-	omap3_power_states[2].valid = 1;
+-	omap3_power_states[2].type = OMAP3_STATE_C2;
+-	omap3_power_states[2].sleep_latency = 50;
+-	omap3_power_states[2].wakeup_latency = 50;
+-	omap3_power_states[2].threshold = 300;
+-	omap3_power_states[2].mpu_state = PWRDM_POWER_RET;
+-	omap3_power_states[2].core_state = PWRDM_POWER_ON;
+-	omap3_power_states[2].flags = CPUIDLE_FLAG_TIME_VALID |
++	omap3_power_states[OMAP3_STATE_C2].valid = 1;
++	omap3_power_states[OMAP3_STATE_C2].type = OMAP3_STATE_C2;
++	omap3_power_states[OMAP3_STATE_C2].sleep_latency = 50;
++	omap3_power_states[OMAP3_STATE_C2].wakeup_latency = 50;
++	omap3_power_states[OMAP3_STATE_C2].threshold = 300;
++	omap3_power_states[OMAP3_STATE_C2].mpu_state = PWRDM_POWER_RET;
++	omap3_power_states[OMAP3_STATE_C2].core_state = PWRDM_POWER_ON;
++	omap3_power_states[OMAP3_STATE_C2].flags = CPUIDLE_FLAG_TIME_VALID |
+ 						CPUIDLE_FLAG_BALANCED;
+ 
+ 	/* C3 . MPU OFF + Core active */
+-	omap3_power_states[3].valid = 1;
+-	omap3_power_states[3].type = OMAP3_STATE_C3;
+-	omap3_power_states[3].sleep_latency = 1500;
+-	omap3_power_states[3].wakeup_latency = 1800;
+-	omap3_power_states[3].threshold = 4000;
+-	omap3_power_states[3].mpu_state = PWRDM_POWER_OFF;
+-	omap3_power_states[3].core_state = PWRDM_POWER_ON;
+-	omap3_power_states[3].flags = CPUIDLE_FLAG_TIME_VALID |
+-			CPUIDLE_FLAG_BALANCED | CPUIDLE_FLAG_CHECK_BM;
++	omap3_power_states[OMAP3_STATE_C3].valid = 1;
++	omap3_power_states[OMAP3_STATE_C3].type = OMAP3_STATE_C3;
++	omap3_power_states[OMAP3_STATE_C3].sleep_latency = 1500;
++	omap3_power_states[OMAP3_STATE_C3].wakeup_latency = 1800;
++	omap3_power_states[OMAP3_STATE_C3].threshold = 4000;
++	omap3_power_states[OMAP3_STATE_C3].mpu_state = PWRDM_POWER_OFF;
++	omap3_power_states[OMAP3_STATE_C3].core_state = PWRDM_POWER_ON;
++	omap3_power_states[OMAP3_STATE_C3].flags = CPUIDLE_FLAG_TIME_VALID |
++			CPUIDLE_FLAG_BALANCED;
+ 
+ 	/* C4 . MPU CSWR + Core CSWR*/
+-	omap3_power_states[4].valid = 1;
+-	omap3_power_states[4].type = OMAP3_STATE_C4;
+-	omap3_power_states[4].sleep_latency = 2500;
+-	omap3_power_states[4].wakeup_latency = 7500;
+-	omap3_power_states[4].threshold = 12000;
+-	omap3_power_states[4].mpu_state = PWRDM_POWER_RET;
+-	omap3_power_states[4].core_state = PWRDM_POWER_RET;
+-	omap3_power_states[4].flags = CPUIDLE_FLAG_TIME_VALID |
++	omap3_power_states[OMAP3_STATE_C4].valid = 1;
++	omap3_power_states[OMAP3_STATE_C4].type = OMAP3_STATE_C4;
++	omap3_power_states[OMAP3_STATE_C4].sleep_latency = 2500;
++	omap3_power_states[OMAP3_STATE_C4].wakeup_latency = 7500;
++	omap3_power_states[OMAP3_STATE_C4].threshold = 12000;
++	omap3_power_states[OMAP3_STATE_C4].mpu_state = PWRDM_POWER_RET;
++	omap3_power_states[OMAP3_STATE_C4].core_state = PWRDM_POWER_RET;
++	omap3_power_states[OMAP3_STATE_C4].flags = CPUIDLE_FLAG_TIME_VALID |
+ 			CPUIDLE_FLAG_BALANCED | CPUIDLE_FLAG_CHECK_BM;
+ 
+ 	/* C5 . MPU OFF + Core CSWR */
+-	omap3_power_states[5].valid = 1;
+-	omap3_power_states[5].type = OMAP3_STATE_C5;
+-	omap3_power_states[5].sleep_latency = 3000;
+-	omap3_power_states[5].wakeup_latency = 8500;
+-	omap3_power_states[5].threshold = 15000;
+-	omap3_power_states[5].mpu_state = PWRDM_POWER_OFF;
+-	omap3_power_states[5].core_state = PWRDM_POWER_RET;
+-	omap3_power_states[5].flags = CPUIDLE_FLAG_TIME_VALID |
++	omap3_power_states[OMAP3_STATE_C5].valid = 1;
++	omap3_power_states[OMAP3_STATE_C5].type = OMAP3_STATE_C5;
++	omap3_power_states[OMAP3_STATE_C5].sleep_latency = 3000;
++	omap3_power_states[OMAP3_STATE_C5].wakeup_latency = 8500;
++	omap3_power_states[OMAP3_STATE_C5].threshold = 15000;
++	omap3_power_states[OMAP3_STATE_C5].mpu_state = PWRDM_POWER_OFF;
++	omap3_power_states[OMAP3_STATE_C5].core_state = PWRDM_POWER_RET;
++	omap3_power_states[OMAP3_STATE_C5].flags = CPUIDLE_FLAG_TIME_VALID |
+ 			CPUIDLE_FLAG_BALANCED | CPUIDLE_FLAG_CHECK_BM;
+ 
+ 	/* C6 . MPU OFF + Core OFF */
+-	omap3_power_states[6].valid = 0;
+-	omap3_power_states[6].type = OMAP3_STATE_C6;
+-	omap3_power_states[6].sleep_latency = 10000;
+-	omap3_power_states[6].wakeup_latency = 30000;
+-	omap3_power_states[6].threshold = 300000;
+-	omap3_power_states[6].mpu_state = PWRDM_POWER_OFF;
+-	omap3_power_states[6].core_state = PWRDM_POWER_OFF;
+-	omap3_power_states[6].flags = CPUIDLE_FLAG_TIME_VALID |
++	omap3_power_states[OMAP3_STATE_C6].valid = 1;
++	omap3_power_states[OMAP3_STATE_C6].type = OMAP3_STATE_C6;
++	omap3_power_states[OMAP3_STATE_C6].sleep_latency = 10000;
++	omap3_power_states[OMAP3_STATE_C6].wakeup_latency = 30000;
++	omap3_power_states[OMAP3_STATE_C6].threshold = 300000;
++	omap3_power_states[OMAP3_STATE_C6].mpu_state = PWRDM_POWER_OFF;
++	omap3_power_states[OMAP3_STATE_C6].core_state = PWRDM_POWER_OFF;
++	omap3_power_states[OMAP3_STATE_C6].flags = CPUIDLE_FLAG_TIME_VALID |
+ 			CPUIDLE_FLAG_DEEP | CPUIDLE_FLAG_CHECK_BM;
+ }
+ 
+@@ -273,6 +610,7 @@ int omap3_idle_init(void)
+ 	struct omap3_processor_cx *cx;
+ 	struct cpuidle_state *state;
+ 	struct cpuidle_device *dev;
++	char clk_name[11];
+ 
+ 	clear_scratchpad_contents();
+ 	save_scratchpad_contents();
+@@ -294,6 +632,8 @@ int omap3_idle_init(void)
+ 		state->flags = cx->flags;
+ 		state->enter = (state->flags & CPUIDLE_FLAG_CHECK_BM) ?
+ 			omap3_enter_idle_bm : omap3_enter_idle;
++		if (cx->type == OMAP3_STATE_C1)
++			dev->safe_state = state;
+ 		sprintf(state->name, "C%d", count+1);
+ 		count++;
+ 	}
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.h b/arch/arm/mach-omap2/cpuidle34xx.h
+index f2ebe68..a2036cf 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.h
++++ b/arch/arm/mach-omap2/cpuidle34xx.h
+@@ -30,20 +30,42 @@
+ #define OMAP3_STATE_C5 5 /* C5 - MPU OFF + Core RET */
+ #define OMAP3_STATE_C6 6 /* C6 - MPU OFF + Core OFF */
+ 
+-/* Currently, we support only upto C2 */
+-#define MAX_SUPPORTED_STATES 3
++/* Interrupt Controller registers */
++#define INTC_BASE	0x48200000
++#define INTC_MIR_0	0x48200084
++#define INTC_MIR_1	0x482000A4
++#define INTC_MIR_2	0x482000C4
++#define INTCPS_SYSCONFIG	0x48200010
++#define INTCPS_PROTECTION	0x4820004C
++#define INTCPS_IDLE	0x48200050
++#define INTCPS_THRESHOLD	0x48200068
++
++#define CONTROL_PADCONF_SYS_NIRQ	0x480021E0
++#define CONTROL_PADCONF_OFF	0x48002270
++#define CONTROL_GENERAL_PURPOSE_STATUS	0x480022F4
++
++#define OMAP34XX_GPIO1_IRQENABLE1	0x4831001c
++#define OMAP34XX_GPIO1_WAKEUPEN	0x48310020
++#define OMAP34XX_GPIO1_FALLINGDETECT	0x4831004c
+ 
+ extern unsigned short clocks_off_while_idle;
+ extern void omap_sram_idle(void);
+ extern int omap_irq_pending(void);
+ extern void per_gpio_clk_enable(void);
+ extern void per_gpio_clk_disable(void);
+-extern void omap_serial_enable_clocks(int enable);
++extern void omap_serial_enable_clocks(int enable, int unum);
+ extern int omap3_can_sleep();
+ extern void clear_scratchpad_contents(void);
+ extern void save_scratchpad_contents(void);
+ extern u32 *scratchpad_restore_addr;
+ extern u32 restore_pointer_address;
++extern void omap3_save_per_ctx();
++extern void omap3_restore_per_ctx();
++extern void omap_save_uart_ctx(int);
++extern void omap_restore_uart_ctx(int);
++extern void omap3_restore_sram_ctx();
++extern int omap3_can_sleep();
++extern int omap_serial_can_sleep();
+ 
+ struct omap3_processor_cx {
+ 	u8 valid;
+@@ -59,5 +81,10 @@ struct omap3_processor_cx {
+ void omap_init_power_states(void);
+ int omap3_idle_init(void);
+ 
++/* TODO fix the size:100 */
++static unsigned int prcm_sleep_save[100];
++static struct int_controller_context intc_context;
++static struct control_module_context control_ctx;
++
+ #endif /* ARCH_ARM_MACH_OMAP2_CPUIDLE_34XX */
+ 
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index acfca0b..da6eae1 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -65,6 +65,20 @@ static void (*_omap_sram_idle)(u32 *addr, int save_state);
+ static void (*saved_idle)(void);
+ 
+ static struct powerdomain *mpu_pwrdm;
++static struct powerdomain *neon_pwrdm, *per_pwrdm;
++static struct powerdomain *core_pwrdm;
++
++void omap3_save_per_ctx(void);
++void omap3_restore_per_ctx(void);
++void omap3_save_core_ctx(void);
++void omap3_restore_core_ctx(void);
++void omap3_save_sram_ctx(void);
++void omap3_restore_sram_ctx(void);
++void omap3_save_prcm_ctx(void);
++void omap3_restore_prcm_ctx(void);
++void omap_save_uart_ctx(int unum);
++void omap_restore_uart_ctx(int unum);
++int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+ 
+ /* Dynamic GPIO clock handling for sleep routines.
+  * omap_sram_idle() will call these functions and they will dynamically
+@@ -163,7 +177,6 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
+ 		cm_write_mod_reg(iclk, OMAP3430_PER_MOD, CM_ICLKEN);
+ 		cm_write_mod_reg(fclk, OMAP3430_PER_MOD, CM_FCLKEN);
+ 	}
+-
+ 	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
+ 		/* USBHOST */
+ 		wkst = prm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, PM_WKST);
+@@ -234,11 +247,19 @@ void omap_sram_idle(void)
+ 	/* save_state = 1 => Only L1 and logic lost */
+ 	/* save_state = 2 => Only L2 lost */
+ 	/* save_state = 3 => L1, L2 and logic lost */
+-	int save_state = 0, mpu_next_state;
++	int save_state = 0;
++	int mpu_next_state = PWRDM_POWER_ON, core_next_state = PWRDM_POWER_ON,
++		per_next_state = PWRDM_POWER_ON;
++	int mpu_prev_state, core_prev_state, per_prev_state;
+ 
+ 	if (!_omap_sram_idle)
+ 		return;
+ 
++	pwrdm_clear_all_prev_pwrst(mpu_pwrdm);
++	pwrdm_clear_all_prev_pwrst(neon_pwrdm);
++	pwrdm_clear_all_prev_pwrst(core_pwrdm);
++	pwrdm_clear_all_prev_pwrst(per_pwrdm);
++
+ 	mpu_next_state = pwrdm_read_next_pwrst(mpu_pwrdm);
+ 	switch (mpu_next_state) {
+ 	case PWRDM_POWER_ON:
+@@ -257,11 +278,76 @@ void omap_sram_idle(void)
+ 
+ 	pm_dbg_pre_suspend();
+ 
++	/* NEON control */
++	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
++	set_pwrdm_state(neon_pwrdm, mpu_next_state);
++
++	/* CORE & PER */
++	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
++	if (core_next_state < PWRDM_POWER_ON) {
++		omap2_gpio_prepare_for_retention();
++		/* PER changes only with core */
++		per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
++		if (per_next_state < PWRDM_POWER_ON) {
++			if (per_next_state == PWRDM_POWER_OFF) {
++				omap3_save_per_ctx();
++				omap_save_uart_ctx(2);
++			}
++			per_gpio_clk_disable();
++			omap_serial_enable_clocks(0, 2);
++		}
++		if (core_next_state == PWRDM_POWER_OFF) {
++			omap3_save_core_ctx();
++			omap3_save_prcm_ctx();
++			omap_save_uart_ctx(0);
++			omap_save_uart_ctx(1);
++		}
++		omap_serial_enable_clocks(0, 0);
++		omap_serial_enable_clocks(0, 1);
++		if (core_next_state == PWRDM_POWER_OFF)
++			omap3_save_prcm_ctx();
++		/* Enable IO-PAD wakeup */
++		prm_set_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
++	}
++
++	*(scratchpad_restore_addr) = restore_pointer_address;
++
+ 	_omap_sram_idle(context_mem, save_state);
++
++	*(scratchpad_restore_addr) = 0x0;
++
+ 	/* Restore table entry modified during MMU restoration */
+ 	if (pwrdm_read_prev_pwrst(mpu_pwrdm) == 0x0)
+ 		restore_table_entry();
+ 
++	if (core_next_state < PWRDM_POWER_ON) {
++		/* Disable IO-PAD wakeup */
++		prm_clear_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
++		core_prev_state = pwrdm_read_prev_pwrst(core_pwrdm);
++		if (core_prev_state == PWRDM_POWER_OFF)
++			omap3_restore_prcm_ctx();
++		omap_serial_enable_clocks(1, 0);
++		omap_serial_enable_clocks(1, 1);
++		if (core_prev_state == PWRDM_POWER_OFF) {
++			omap3_restore_core_ctx();
++			omap3_restore_sram_ctx();
++			omap_restore_uart_ctx(0);
++			omap_restore_uart_ctx(1);
++		}
++		if (per_next_state < PWRDM_POWER_ON) {
++			per_gpio_clk_enable();
++			/* This would be actually more effective */
++			omap_serial_enable_clocks(1, 2);
++			per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
++			if (per_prev_state == PWRDM_POWER_OFF) {
++				omap3_restore_per_ctx();
++				/* This would be actually more effective */
++				omap_restore_uart_ctx(2);
++			}
++		}
++		omap2_gpio_resume_after_retention();
++	}
++
+ 	pm_dbg_post_suspend();
+ }
+ 
+@@ -394,12 +480,16 @@ static void omap3_pm_idle(void)
+ 
+ 	omap2_gpio_prepare_for_retention();
+ 
+-	omap_serial_enable_clocks(0);
++	omap_serial_enable_clocks(0, 0);
++	omap_serial_enable_clocks(0, 1);
++	omap_serial_enable_clocks(0, 2);
+ 	per_gpio_clk_disable();
+ 
+ 	omap_sram_idle();
+ 
+-	omap_serial_enable_clocks(1);
++	omap_serial_enable_clocks(1, 0);
++	omap_serial_enable_clocks(1, 1);
++	omap_serial_enable_clocks(1, 2);
+ 	per_gpio_clk_enable();
+ 
+ 	omap2_gpio_resume_after_retention();
+@@ -437,12 +527,16 @@ static int omap3_pm_suspend(void)
+ 
+ 	omap2_gpio_prepare_for_retention();
+ 
+-	omap_serial_enable_clocks(0);
++	omap_serial_enable_clocks(0, 0);
++	omap_serial_enable_clocks(0, 1);
++	omap_serial_enable_clocks(0, 2);
+ 	per_gpio_clk_disable();
+ 
+ 	omap_sram_idle();
+ 
+-	omap_serial_enable_clocks(1);
++	omap_serial_enable_clocks(1, 0);
++	omap_serial_enable_clocks(1, 1);
++	omap_serial_enable_clocks(1, 2);
+ 	per_gpio_clk_enable();
+ 
+ 	omap2_gpio_resume_after_retention();
+@@ -653,6 +747,16 @@ static void __init prcm_setup_regs(void)
+ 			OCP_MOD, OMAP2_PRM_IRQENABLE_MPU_OFFSET);
+ }
+ 
++void omap3_save_per_ctx(void)
++{
++	omap_gpio_save();
++}
++
++void omap3_restore_per_ctx(void)
++{
++	omap_gpio_restore();
++}
++
+ static struct power_state *get_pwrst_node(const char *name)
+ {
+ 	struct powerdomain *pwrdm;
+@@ -722,8 +826,10 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm)
+ 	if (!pwrst)
+ 		return -ENOMEM;
+ 	pwrst->pwrdm = pwrdm;
+-	if (!strcmp(pwrst->pwrdm->name, "core_pwrdm"))
+-		pwrst->next_state = PWRDM_POWER_RET;
++	if (!strcmp(pwrst->pwrdm->name, "core_pwrdm") ||
++			!strcmp(pwrst->pwrdm->name, "mpu_pwrdm") ||
++			!strcmp(pwrst->pwrdm->name, "mpu_pwrdm"))
++		pwrst->next_state = PWRDM_POWER_ON;
+ 	else
+ 		pwrst->next_state = PWRDM_POWER_OFF;
+ 	list_add(&pwrst->node, &pwrst_list);
+@@ -746,6 +852,12 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm)
+ 	return set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
+ }
+ 
++void omap_push_sram_idle()
++{
++	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
++					omap34xx_cpu_suspend_sz);
++}
++
+ int __init omap3_pm_init(void)
+ {
+ 	struct power_state *pwrst;
+@@ -757,6 +869,7 @@ int __init omap3_pm_init(void)
+ 	/* XXX prcm_setup_regs needs to be before enabling hw
+ 	 * supervised mode for powerdomains */
+ 	prcm_setup_regs();
++	save_scratchpad_contents();
+ 
+ 	ret = request_irq(INT_34XX_PRCM_MPU_IRQ,
+ 			  (irq_handler_t)prcm_interrupt_handler,
+@@ -784,10 +897,11 @@ int __init omap3_pm_init(void)
+ 		printk(KERN_ERR "Failed to get mpu_pwrdm\n");
+ 		goto err2;
+ 	}
++	neon_pwrdm = pwrdm_lookup("neon_pwrdm");
++	per_pwrdm = pwrdm_lookup("per_pwrdm");
++	core_pwrdm = pwrdm_lookup("core_pwrdm");
+ 
+-	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
+-					omap34xx_cpu_suspend_sz);
+-
++	omap_push_sram_idle();
+ 	suspend_set_ops(&omap_pm_ops);
+ 
+ #ifndef CONFIG_CPU_IDLE
+@@ -801,6 +915,9 @@ int __init omap3_pm_init(void)
+ 		gpio_fcks[i-1] = clk_get(NULL, clk_name);
+ 	}
+ 
++	pwrdm_add_wkdep(neon_pwrdm, mpu_pwrdm);
++	pwrdm_add_wkdep(per_pwrdm, core_pwrdm);
++
+ err1:
+ 	return ret;
+ err2:
+@@ -878,8 +995,11 @@ void save_scratchpad_contents(void)
+ 	*(scratchpad_address++) = __raw_readl(OMAP3430_PRM_CLKSEL);
+ 	*(scratchpad_address++) = cm_read_mod_reg(CORE_MOD, CM_CLKSEL);
+ 	*(scratchpad_address++) = cm_read_mod_reg(WKUP_MOD, CM_CLKSEL);
++	/* TODO OMAP3430_CM_CLKEN_PLL is defined 0x4 */
++	/**(scratchpad_address++) = cm_read_mod_reg(PLL_MOD,
++		OMAP3430_CM_CLKEN_PLL);*/
+ 	*(scratchpad_address++) = cm_read_mod_reg(PLL_MOD,
+-				      OMAP3430_CM_CLKEN_PLL);
++				      0x0);
+ 	*(scratchpad_address++) = cm_read_mod_reg(PLL_MOD,
+ 				      OMAP3430_CM_AUTOIDLE_PLL);
+ 	*(scratchpad_address++) = cm_read_mod_reg(PLL_MOD,
+diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+index 3c6418e..a344e40 100644
+--- a/arch/arm/mach-omap2/prm.h
++++ b/arch/arm/mach-omap2/prm.h
+@@ -137,9 +137,11 @@
+ 
+ #define OMAP3430_PM_MPUGRPSEL				0x00a4
+ #define OMAP3430_PM_MPUGRPSEL1				OMAP3430_PM_MPUGRPSEL
++#define OMAP3430ES2_PM_MPUGRPSEL3			0x00f8
+ 
+ #define OMAP3430_PM_IVAGRPSEL				0x00a8
+ #define OMAP3430_PM_IVAGRPSEL1				OMAP3430_PM_IVAGRPSEL
++#define OMAP3430ES2_PM_IVAGRPSEL3			0x00f4
+ 
+ #define OMAP3430_PM_PREPWSTST				0x00e8
+ 
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 879d7c1..c189cc9 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -157,20 +157,17 @@ static void omap_serial_kick(void)
+ 		NSEC_PER_MSEC);
+ }
+ 
+-void omap_serial_enable_clocks(int enable)
++void omap_serial_enable_clocks(int enable, int unum)
+ {
+-	int i;
+ 	if (uart_clocks_off_while_idle == 0)
+ 		return;
+-	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
+-		if (uart_ick[i] && uart_fck[i]) {
+-			if (enable) {
+-				clk_enable(uart_ick[i]);
+-				clk_enable(uart_fck[i]);
+-			} else {
+-				clk_disable(uart_ick[i]);
+-				clk_disable(uart_fck[i]);
+-			}
++	if (uart_ick[unum] && uart_fck[unum]) {
++		if (enable) {
++			clk_enable(uart_ick[unum]);
++			clk_enable(uart_fck[unum]);
++		} else {
++			clk_disable(uart_ick[unum]);
++			clk_disable(uart_fck[unum]);
+ 		}
+ 	}
+ }
+diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+index 7cce8ef..efafa7e 100644
+--- a/arch/arm/mach-omap2/sleep34xx.S
++++ b/arch/arm/mach-omap2/sleep34xx.S
+@@ -457,10 +457,12 @@ loop2:
+ 	mov     r9, r4
+ 	/* create working copy of max way size*/
+ loop3:
+-	/* factor way and cache number into r11 */
+-	orr     r11, r10, r9, lsl r5
+-	/* factor index number into r11 */
+-	orr     r11, r11, r7, lsl r2
++ 	orr	r11, r10, r9, lsl r5	 @ factor way and cache number into r11
++ 	orr	r11, r11, r7, lsl r2	 @ factor index number into r11
++ 	lsl	r6, r9, r5
++ 	orr	r11, r10, r6		 @ factor way and cache number into r11
++ 	lsl	r6, r7, r2
++ 	orr	r11, r11, r6		 @ factor index number into r11
+ 	/*clean & invalidate by set/way */
+ 	mcr     p15, 0, r11, c7, c10, 2
+ 	/* decrement the way*/
+@@ -475,7 +477,7 @@ skip:
+ 	cmp     r3, r10
+ 	bgt     loop1
+ finished:
+-	/*swith back to cache level 0 */
++	/*switch back to cache level 0 */
+ 	mov     r10, #0
+ 	/* select current cache level in cssr */
+ 	mcr     p15, 2, r10, c0, c0, 0
+diff --git a/arch/arm/plat-omap/include/mach/common.h b/arch/arm/plat-omap/include/mach/common.h
+index 489add6..faba335 100644
+--- a/arch/arm/plat-omap/include/mach/common.h
++++ b/arch/arm/plat-omap/include/mach/common.h
+@@ -34,7 +34,7 @@ struct sys_timer;
+ extern void omap_map_common_io(void);
+ extern struct sys_timer omap_timer;
+ extern void omap_serial_init(void);
+-extern void omap_serial_enable_clocks(int enable);
++extern void omap_serial_enable_clocks(int enable, int unum);
+ extern int omap_serial_can_sleep(void);
+ extern void omap_gpio_save(void);
+ extern void omap_gpio_restore(void);
+diff --git a/arch/arm/plat-omap/include/mach/control.h b/arch/arm/plat-omap/include/mach/control.h
+index 9ca0e08..ef8cf12 100644
+--- a/arch/arm/plat-omap/include/mach/control.h
++++ b/arch/arm/plat-omap/include/mach/control.h
+@@ -149,7 +149,27 @@
+ #define OMAP343X_CONTROL_FUSE_SR	(OMAP2_CONTROL_GENERAL + 0x0130)
+ #define OMAP343X_CONTROL_IVA2_BOOTADDR	(OMAP2_CONTROL_GENERAL + 0x0190)
+ #define OMAP343X_CONTROL_IVA2_BOOTMOD	(OMAP2_CONTROL_GENERAL + 0x0194)
+-#define OMAP343X_CONTROL_TEMP_SENSOR	(OMAP2_CONTROL_GENERAL + 0x02b4)
++#define OMAP343X_CONTROL_DEBOBS_0	(OMAP2_CONTROL_GENERAL + 0x01B0)
++#define OMAP343X_CONTROL_DEBOBS_1	(OMAP2_CONTROL_GENERAL + 0x01B4)
++#define OMAP343X_CONTROL_DEBOBS_2	(OMAP2_CONTROL_GENERAL + 0x01B8)
++#define OMAP343X_CONTROL_DEBOBS_3	(OMAP2_CONTROL_GENERAL + 0x01BC)
++#define OMAP343X_CONTROL_DEBOBS_4	(OMAP2_CONTROL_GENERAL + 0x01C0)
++#define OMAP343X_CONTROL_DEBOBS_5	(OMAP2_CONTROL_GENERAL + 0x01C4)
++#define OMAP343X_CONTROL_DEBOBS_6	(OMAP2_CONTROL_GENERAL + 0x01C8)
++#define OMAP343X_CONTROL_DEBOBS_7	(OMAP2_CONTROL_GENERAL + 0x01CC)
++#define OMAP343X_CONTROL_DEBOBS_8	(OMAP2_CONTROL_GENERAL + 0x01D0)
++#define OMAP343X_CONTROL_PROG_IO0	(OMAP2_CONTROL_GENERAL + 0x01D4)
++#define OMAP343X_CONTROL_PROG_IO1	(OMAP2_CONTROL_GENERAL + 0x01D8)
++#define OMAP343X_CONTROL_DSS_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01E0)
++#define OMAP343X_CONTROL_CORE_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01E4)
++#define OMAP343X_CONTROL_PER_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01E8)
++#define OMAP343X_CONTROL_USBHOST_DPLL_SPREADING (OMAP2_CONTROL_GENERAL + 0x01EC)
++#define OMAP343X_CONTROL_PBIAS_LITE	(OMAP2_CONTROL_GENERAL + 0x02B0)
++#define OMAP343X_CONTROL_TEMP_SENSOR	(OMAP2_CONTROL_GENERAL + 0x02B4)
++#define OMAP343X_CONTROL_SRAMLDO4	(OMAP2_CONTROL_GENERAL + 0x02B8)
++#define OMAP343X_CONTROL_SRAMLDO5	(OMAP2_CONTROL_GENERAL + 0x02C0)
++#define OMAP343X_CONTROL_CSI		(OMAP2_CONTROL_GENERAL + 0x02b4)
++
+ 
+ /*
+  * REVISIT: This list of registers is not comprehensive - there are more
+diff --git a/arch/arm/plat-omap/include/mach/prcm.h b/arch/arm/plat-omap/include/mach/prcm.h
+index 80dddcb..f5fe518 100644
+--- a/arch/arm/plat-omap/include/mach/prcm.h
++++ b/arch/arm/plat-omap/include/mach/prcm.h
+@@ -30,9 +30,57 @@ void cm_write_mod_reg(u32 val, s16 module, u16 idx);
+ u32 cm_read_mod_reg(s16 module, u16 idx);
+ u32 cm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module, s16 idx);
+ 
+-#endif
+-
+-
+-
++#ifdef CONFIG_ARCH_OMAP3
++/* Structure to save interrupt controller context */
++struct int_controller_context {
++	u32 sysconfig;
++	u32 protection;
++	u32 idle;
++	u32 threshold;
++	u32 ilr[96];
++	u32 mir_0;
++	u32 mir_1;
++	u32 mir_2;
++};
+ 
++/* Structure to save control module context */
++struct control_module_context {
++	u32 sysconfig;
++	u32 devconf0;
++	u32 mem_dftrw0;
++	u32 mem_dftrw1;
++	u32 msuspendmux_0;
++	u32 msuspendmux_1;
++	u32 msuspendmux_2;
++	u32 msuspendmux_3;
++	u32 msuspendmux_4;
++	u32 msuspendmux_5;
++	u32 sec_ctrl;
++	u32 devconf1;
++	u32 csirxfe;
++	u32 iva2_bootaddr;
++	u32 iva2_bootmod;
++	u32 debobs_0;
++	u32 debobs_1;
++	u32 debobs_2;
++	u32 debobs_3;
++	u32 debobs_4;
++	u32 debobs_5;
++	u32 debobs_6;
++	u32 debobs_7;
++	u32 debobs_8;
++	u32 prog_io0;
++	u32 prog_io1;
++	u32 dss_dpll_spreading;
++	u32 core_dpll_spreading;
++	u32 per_dpll_spreading;
++	u32 usbhost_dpll_spreading;
++	u32 pbias_lite;
++	u32 temp_sensor;
++	u32 sramldo4;
++	u32 sramldo5;
++	u32 csi;
++};
+ 
++#endif /* CONFIG_ARCH_OMAP3 */
++#endif /* __ASM_ARM_ARCH_OMAP_PRCM_H */
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index 853048d..9cfb77f 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -26,6 +26,7 @@
+ #include <mach/board.h>
+ 
+ #include <mach/control.h>
++#include <mach/pm.h>
+ 
+ #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+ # include "../mach-omap2/prm.h"
+@@ -75,6 +76,8 @@ extern unsigned long omapfb_reserve_sram(unsigned long sram_pstart,
+ 					 unsigned long sram_size,
+ 					 unsigned long pstart_avail,
+ 					 unsigned long size_avail);
++extern void (*_omap_sram_idle)(u32 *addr, int save_state, int disable_clocks);
++extern void omap_push_sram_idle();
+ 
+ /*
+  * Depending on the target RAMFS firewall setup, the public usable amount of
+@@ -108,6 +111,7 @@ static int is_sram_locked(void)
+ 		return 1; /* assume locked with no PPA or security driver */
+ }
+ 
++
+ /*
+  * The amount of SRAM depends on the core type.
+  * Note that we cannot try to test for SRAM here because writes
+@@ -368,13 +372,14 @@ u32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl, u32 sdrc_actim_ctrla,
+  }
+ 
+ /* REVISIT: Should this be same as omap34xx_sram_init() after off-idle? */
+-void restore_sram_functions(void)
++void omap3_restore_sram_ctx(void)
+ {
+ 	omap_sram_ceil = omap_sram_base + omap_sram_size;
+ 
+ 	_omap3_sram_configure_core_dpll =
+ 		omap_sram_push(omap3_sram_configure_core_dpll,
+ 			       omap3_sram_configure_core_dpll_sz);
++	omap_push_sram_idle();
+ }
+ 
+ int __init omap3_sram_init(void)
+@@ -382,6 +387,8 @@ int __init omap3_sram_init(void)
+ 	_omap3_sram_configure_core_dpll =
+ 		omap_sram_push(omap3_sram_configure_core_dpll,
+ 			       omap3_sram_configure_core_dpll_sz);
++	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
++				omap34xx_cpu_suspend_sz);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/serial/8250.c b/drivers/serial/8250.c
+index 39aca22..aa21e12 100644
+--- a/drivers/serial/8250.c
++++ b/drivers/serial/8250.c
+@@ -1214,6 +1214,15 @@ static inline void __stop_tx(struct uart_8250_port *p)
+ 		p->ier &= ~UART_IER_THRI;
+ 		serial_out(p, UART_IER, p->ier);
+ 	}
++#ifdef CONFIG_ARCH_OMAP3
++	{
++		unsigned int tmp;
++		/* Allow dynamic handshake to allow OCP bus idle. RX events
++		 * can do async wake */
++		tmp = (serial_in(p, UART_OMAP_SYSC) & 0x7) | (2 << 3);
++		serial_out(p, UART_OMAP_SYSC, tmp); /* smart-idle */
++	}
++#endif
+ }
+ 
+ static void serial8250_stop_tx(struct uart_port *port)
+@@ -1261,6 +1270,17 @@ static void serial8250_start_tx(struct uart_port *port)
+ 		up->acr &= ~UART_ACR_TXDIS;
+ 		serial_icr_write(up, UART_ACR, up->acr);
+ 	}
++#ifdef CONFIG_ARCH_OMAP3
++	{
++		unsigned int tmp;
++		/* Disallow OCP bus idle. UART TX irqs are not seen during
++		 * bus idle. Alternative is to set kernel timer at fifo
++		 * drain rate.
++		 */
++		tmp = (serial_in(up, UART_OMAP_SYSC) & 0x7) | (1 << 3);
++		serial_out(up, UART_OMAP_SYSC, tmp); /* no-idle */
++	}
++#endif
+ }
+ 
+ static void serial8250_stop_rx(struct uart_port *port)
 -- 
 1.6.0
 
