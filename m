@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 19/29] OMAP3: Do not set mpu, core, neon states if cpuidle is used
-Date: Thu, 11 Sep 2008 15:34:03 +0300
-Message-ID: <1221136453-16697-19-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 29/29] PM: serial: ensure padconf wake-enable bits are set for UARTs
+Date: Thu, 11 Sep 2008 15:34:13 +0300
+Message-ID: <1221136453-16697-29-git-send-email-khilman@deeprootsystems.com>
 References: <87iqt2amoi.fsf@deeprootsystems.com>
  <1221136453-16697-1-git-send-email-khilman@deeprootsystems.com>
  <1221136453-16697-2-git-send-email-khilman@deeprootsystems.com>
@@ -21,64 +21,56 @@ References: <87iqt2amoi.fsf@deeprootsystems.com>
  <1221136453-16697-16-git-send-email-khilman@deeprootsystems.com>
  <1221136453-16697-17-git-send-email-khilman@deeprootsystems.com>
  <1221136453-16697-18-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-19-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-20-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-21-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-22-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-23-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-24-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-25-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-26-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-27-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-28-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:48489 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:48520 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755833AbYIKMeo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 08:34:44 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8BCYL65003375
-	for <linux-omap@vger.kernel.org>; Thu, 11 Sep 2008 15:34:42 +0300
-In-Reply-To: <1221136453-16697-18-git-send-email-khilman@deeprootsystems.com>
+	with ESMTP id S1754422AbYIKMfA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 08:35:00 -0400
+In-Reply-To: <1221136453-16697-28-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Jouni Hogander <jouni.hogander@nokia.com>, Git administrator <gitowner@stego.research.nokia.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-From: Jouni Hogander <jouni.hogander@nokia.com>
+FIXME: there needs to be a platform specific way to set which
+       padconf regs are actually used, as the current ones
+       are specific to 3430SDP.
 
-Let the cpuidle do the selection.
-
-Signed-off-by: Git administrator <gitowner@stego.research.nokia.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |   17 ++++++++++-------
- 1 files changed, 10 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/serial.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index d696dde..d6acf6c 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -815,12 +815,7 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm)
- 	if (!pwrst)
- 		return -ENOMEM;
- 	pwrst->pwrdm = pwrdm;
--	if (!strcmp(pwrst->pwrdm->name, "core_pwrdm") ||
--			!strcmp(pwrst->pwrdm->name, "mpu_pwrdm") ||
--			!strcmp(pwrst->pwrdm->name, "mpu_pwrdm"))
--		pwrst->next_state = PWRDM_POWER_ON;
--	else
--		pwrst->next_state = PWRDM_POWER_OFF;
-+	pwrst->next_state = PWRDM_POWER_RET;
- 	list_add(&pwrst->node, &pwrst_list);
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index c189cc9..96e3165 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -298,6 +298,15 @@ void __init omap_serial_init(void)
+ 		v = __raw_readl(omap_uart_wk_en[i]);
+ 		v |= omap_uart_wk_bit[i];
+ 		__raw_writel(v, omap_uart_wk_en[i]);
++
++		/* Ensure PADCONF wake-enables are set */
++		if (cpu_is_omap34xx() && omap34xx_uart_padconf[i]) {
++			u16 w;
++
++			w = omap_ctrl_readw(omap34xx_uart_padconf[i]);
++			w |= 0x4000;
++			omap_ctrl_writew(w, omap34xx_uart_padconf[i]);
++		}
+ 	}
  
- 	if (pwrdm_has_hdwr_sar(pwrdm))
-@@ -838,7 +833,15 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm)
- 	if (sysfs_create_file(suspend_dir_kobj, &(attr->attr)))
- 		return -ENOMEM;
- 
--	return set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
-+#ifdef CONFIG_CPU_IDLE
-+	/* Let cpuidle do selection here */
-+	if (!strcmp(pwrst->pwrdm->name, "core_pwrdm") ||
-+	    !strcmp(pwrst->pwrdm->name, "mpu_pwrdm") ||
-+	    !strcmp(pwrst->pwrdm->name, "neon_pwrdm"))
-+		return set_pwrdm_state(pwrst->pwrdm, PWRDM_POWER_ON);
-+	else
-+#endif
-+		return set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
- }
- 
- void omap_push_sram_idle()
+ 	omap_serial_kick();
 -- 
 1.6.0
 
