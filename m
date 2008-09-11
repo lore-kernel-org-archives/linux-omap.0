@@ -1,85 +1,39 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESENDING][PATCH 1/2]OMAP3 NAND: Add NAND support on OMAP3430
-Date: Wed, 10 Sep 2008 17:11:36 -0700
-Message-ID: <20080911001135.GA21163@atomide.com>
-References: <41054.192.168.10.89.1219747318.squirrel@dbdmail.itg.ti.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP2: Fix definition of SGX clock register
+	bits
+Date: Wed, 10 Sep 2008 17:13:03 -0700
+Message-ID: <20080911001303.GB21163@atomide.com>
+References: <20080827012736.GA10868@intune.research.nokia.com> <1219800687-11044-1-git-send-email-daniel.stone@nokia.com> <alpine.DEB.1.00.0808262258480.4624@utopia.booyaka.com> <20080827051309.GA3594@intune.research.nokia.com> <alpine.DEB.1.00.0808270049120.4624@utopia.booyaka.com> <20080827094217.GC15832@intune.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63018 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:65317 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751847AbYIKALk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 20:11:40 -0400
+	with ESMTP id S1752196AbYIKANP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 20:13:15 -0400
 Content-Disposition: inline
-In-Reply-To: <41054.192.168.10.89.1219747318.squirrel@dbdmail.itg.ti.com>
+In-Reply-To: <20080827094217.GC15832@intune.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: vimal singh <vimalsingh@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Daniel Stone <daniel.stone@nokia.com>
+Cc: ext Paul Walmsley <paul@booyaka.com>, linux-omap@vger.kernel.org
 
-* vimal singh <vimalsingh@ti.com> [080826 03:42]:
-> From: Teerth Reddy <teerth@ti.com>
+* Daniel Stone <daniel.stone@nokia.com> [080827 02:47]:
+> On Wed, Aug 27, 2008 at 12:50:37AM -0600, ext Paul Walmsley wrote:
+> > Hello Daniel,
+> > 
+> > On Wed, 27 Aug 2008, Daniel Stone wrote:
+> > 
+> > > Yep, looks fine to me: just wasn't really sure what to put.  Should I
+> > > resend, or?
+> > 
+> > yes, please resend - that will make it convenient for Tony to apply the 
+> > patches.
 > 
-> This patch adds NAND support on 3430sdp board
-> 
-> Signed-off-by: Teerth Reddy <teerth@ti.com>
-> ---
->  arch/arm/mach-omap2/board-3430sdp-flash.c |   88 ++++++++++++++++++++++++++++--
->  arch/arm/plat-omap/include/mach/gpmc.h    |   10 +++
->  2 files changed, 93 insertions(+), 5 deletions(-)
-> 
-> Index: linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp-flash.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/board-3430sdp-flash.c
-> +++ linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp-flash.c
-> @@ -24,6 +24,7 @@
->  #include <mach/onenand.h>
->  #include <mach/board.h>
->  #include <mach/gpmc.h>
-> +#include <mach/nand.h>
-> 
->  static struct mtd_partition sdp_nor_partitions[] = {
->  	/* bootloader (U-Boot, etc) in first sector */
-> @@ -137,6 +138,61 @@ static int sdp_onenand_setup(void __iome
->  	/* Onenand setup does nothing at present */
->  	return 0;
->  }
-> +
-> +static struct mtd_partition sdp_nand_partitions[] = {
-> +	/* All the partition sizes are listed in terms of NAND block size */
-> +	{
-> +		.name           = "X-Loader-NAND",
-> +		.offset         = 0,
-> +		.size           = 4 * (64 * 2048),
-> +		.mask_flags     = MTD_WRITEABLE,        /* force read-only */
-> +	},
-> +	{
-> +		.name           = "U-Boot-NAND",
-> +		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x80000 */
-> +		.size           = 4 * (64 * 2048),
-> +		.mask_flags     = MTD_WRITEABLE,        /* force read-only */
-> +	},
-> +	{
-> +		.name           = "Boot Env-NAND",
-> +		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x100000 */
-> +		.size           = 2 * (64 * 2048),
-> +	},
-> +	{
-> +		.name           = "Kernel-NAND",
-> +		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x140000 */
-> +		.size           = 32 * (64 * 2048),
-> +	},
-> +	{
-> +		.name           = "File System - NAND",
-> +		.size           = MTDPART_SIZ_FULL,
-> +		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x540000 */
-> +	},
-> +};
-> +
+> Hi,
+> I'll do that.  Thanks a lot for the review.
 
-Can you please update this to use the SZ_.. defines for .size as done
-now for sdp_nor_partitions?
-
-Thanks,
+ping, any news on the updated patch?
 
 Tony
+
