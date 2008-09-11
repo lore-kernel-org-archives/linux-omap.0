@@ -1,52 +1,65 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [BRIDGE] Rebase and sync with omapzoom bridge patch update
-Date: Thu, 11 Sep 2008 06:40:08 +0300 (EEST)
-Message-ID: <20080911.064008.113700303.Hiroshi.DOYU@nokia.com>
-References: <20080910.065332.170214513.Hiroshi.DOYU@nokia.com>
-	<20080910.154146.234688808.Hiroshi.DOYU@nokia.com>
-	<94a0d4530809100549r749810a6wb77a1d1bb576f762@mail.gmail.com>
+From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
+Subject: Re: HSMMC pending fixes
+Date: Thu, 11 Sep 2008 09:43:24 +0530
+Message-ID: <012101c913c4$bd28b850$LocalHost@wipultra1303>
+References: <1219072400-7814-1-git-send-email-jarkko.lavinen@nokia.com> <13B9B4C6EF24D648824FF11BE8967162036217F3A9@dlee02.ent.ti.com> <20080911000506.GX21163@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:34177 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752489AbYIKDkS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 23:40:18 -0400
-In-Reply-To: <94a0d4530809100549r749810a6wb77a1d1bb576f762@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:52990 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751157AbYIKENm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 00:13:42 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.contreras@gmail.com
-Cc: linux-omap@vger.kernel.org, x00omar@ti.com, h-kanigeri2@ti.com, grgupta@ti.com, juha.m.alanen@nokia.com, felipe.contreras@nokia.com, felipe.balbi@nokia.com
+To: Tony Lindgren <tony@atomide.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, linux-omap@vger.kernel.org
 
-Hi Felipe,
 
-From: "ext Felipe Contreras" <felipe.contreras@gmail.com>
-Subject: Re: [BRIDGE] Rebase and sync with omapzoom bridge patch update
-Date: Wed, 10 Sep 2008 15:49:51 +0300
+----- Original Message ----- 
+From: "Tony Lindgren" <tony@atomide.com>
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: "Jarkko Lavinen" <jarkko.lavinen@nokia.com>; <linux-omap@vger.kernel.org>
+Sent: Thursday, September 11, 2008 5:35 AM
+Subject: Re: HSMMC pending fixes
 
-> On Wed, Sep 10, 2008 at 3:41 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
-> > Hi,
-> >
-> > It seems that the following site doesn't work with git.
-> > So please use:
-> >
-> > $ wget http://4869037.web.fc2.com/tidspbridge-20080910.tgz
-> >
-> > From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> > Subject: [BRIDGE] Rebase and sync with omapzoom bridge patch update
-> > Date: Wed, 10 Sep 2008 06:53:32 +0300 (EEST)
-> >
-> >> Hi,
-> >>
-> >> I have updated all TI BRIDGE patches and rebased them against the
-> >> latest linux-omap again for easy integration of them. You can get it
-> >> by:
-> >>      git fetch http://4869037.web.fc2.com/linux.git bridge:<you branch>
+
+>* Woodruff, Richard <r-woodruff2@ti.com> [080818 14:09]:
+>> Hi,
+>> 
+>> > owner@vger.kernel.org] On Behalf Of Jarkko Lavinen
+>> 
+>> 
+>> > 2: Disable smartidle mode while suspending (workaround)
+>> 
+>> This was the work around we had in internal trees for a long time.
+>> 
+>> However Madhu C. recently updated this based on an internal investigation.  It is required to reset the command pin to clear the system for sleep.  This allows retention to work.
+>> 
+>> The non-idle work around when profiled showed it was taking a huge amount of time for the clock re-enable to work.  This actually would noticeably reduce MMC throughput when doing aggressive clock cutting in the driver and increase power usage.
+>> 
+>> +       } else {
+>> +               OMAP_HSMMC_WRITE(host->base, SYSCTL,
+>> +                       OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
+>> +               while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD) ;
+>> 
+>> If you use a really long time out then perhaps it doesn't matter.  But if you try and be aggressive it will hurt you.
 > 
-> This works fine here...
+> Pushing all except the workaround. Madhu, can you please send a patch
+> for what Richard is describing?
+Tony, I have already posted the above fix to L-o. I see that it is merged as well. With this fix, I guess there is no need to disable smart idle mode while suspending. Am I missing any other thing here?
 
-Thanks for letting me know. I will check it again, or find the better way...
+Regards,
+Madhu
 
-       Hiroshi DOYU
-
+> 
+> Thanks,
+> 
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+>
