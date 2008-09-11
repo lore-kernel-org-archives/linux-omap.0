@@ -1,25 +1,69 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH] Fix for twl4030-power.c build failure for beagleboard
-Date: Thu, 11 Sep 2008 14:50:01 +0300
-Message-ID: <1221133802-19613-1-git-send-email-peter.de-schrijver@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH 0/29] PM: proposed branch for PM collaboration
+Date: Thu, 11 Sep 2008 15:31:41 +0300
+Message-ID: <87iqt2amoi.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:60112 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752149AbYIKLui (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 07:50:38 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8BBoQUv002095
-	for <linux-omap@vger.kernel.org>; Thu, 11 Sep 2008 14:50:36 +0300
+Received: from an-out-0708.google.com ([209.85.132.247]:17718 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752720AbYIKMbw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 08:31:52 -0400
+Received: by an-out-0708.google.com with SMTP id d40so32613and.103
+        for <linux-omap@vger.kernel.org>; Thu, 11 Sep 2008 05:31:51 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-This patch should fix the twl4030-power.c build failure for beagleboard.
+Hello,
 
-Peter 'p2' De Schrijver (1):
-  Fix build for beagleboard
+The following patchset is an attempt to collect the various PM patches
+that have been flowing around, and organize them into one branch to be
+used for further collaboration on PM development, in particular
+OFF-mode support.
 
- drivers/i2c/chips/twl4030-power.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+It is currently a collection of proposed patches[1] from TI and
+various other patches from Nokia and others to get retention,
+OFF-mode, CPUidle etc. working in the linux-omap tree.
 
+This series is nowhere near ready for merging into linux-omap, but
+will be useful for discussion and collaboration on getting the various
+PM features working at the head of the linux-omap tree, and a place
+where cleanup and rework efforts can be focused.  
+
+If there are no major objections, I will create a branch in linux-omap
+git and commit this series there.  As collaboration continues, I will
+continue to collect and update patches, fix problems and rebase onto
+the HEAD of linux-omap.  
+
+The goal of this branch is only to facilitate the rework and cleanup
+of the PM code so it can be merged into linux-omap.  Then, the branch
+will disappear and work can be focused again on the HEAD of
+linux-omap.
+
+It has currently been tested with a minimal config on 3430SDP, and
+OFF-mode is hit in suspend.  In order to hit suspend:
+
+  echo 1 > /sys/power/voltage_off_while_idle                   
+  echo 1 > /sys/power/gpio_clocks_off_while_idle               
+  echo 1 > /sys/power/uart_clocks_off_while_idle 
+  echo mem > /sys/power/state
+
+Kevin
+
+
+[1] This series is roughly based on the following:
+
+Jouni Hogander, Tero Kristo
+ [PATCH 0/4] Refreshed PM workaround patches 2 -- 15 Aug
+
+Rajendra Nayak:
+ [PATCH 00/11] OMAP3 CPUidle patches - ver 2 -- 18 July
+
+As well as several patches/hacks/cleanups that have not yet been
+posted to the list.
+
+Also, there have been newer versions of the CPUidle patches that have
+been reviewed on the list, but do not apply for various reasons.  As
+soon as they are rebased and updated versions of those are available,
+I will integrate them.
