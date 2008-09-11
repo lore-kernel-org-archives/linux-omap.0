@@ -1,71 +1,203 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 07/12] System Control Module context save/restore
-Date: Thu, 11 Sep 2008 08:33:59 +0300
-Message-ID: <48C8ADC7.9020109@deeprootsystems.com>
-References: <012e01c913cb$6e5c6e90$LocalHost@wipultra1382>
+From: "vimal singh" <vimalsingh@ti.com>
+Subject: [RESENDING][PATCH 1/2]OMAP3 NAND: Add NAND support on OMAP3430
+Date: Thu, 11 Sep 2008 11:29:54 +0530 (IST)
+Message-ID: <33923.192.168.10.89.1221112794.squirrel@dbdmail.itg.ti.com>
+References: <41054.192.168.10.89.1219747319.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gv-out-0910.google.com ([216.239.58.184]:27233 "EHLO
-	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751440AbYIKFeE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 01:34:04 -0400
-Received: by gv-out-0910.google.com with SMTP id e6so128807gvc.37
-        for <linux-omap@vger.kernel.org>; Wed, 10 Sep 2008 22:34:03 -0700 (PDT)
-In-Reply-To: <012e01c913cb$6e5c6e90$LocalHost@wipultra1382>
+Received: from bear.ext.ti.com ([192.94.94.41]:56311 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754551AbYIKGAB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Sep 2008 02:00:01 -0400
+In-Reply-To: <41054.192.168.10.89.1219747319.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
+To: tony@atomide.com
 Cc: linux-omap@vger.kernel.org
 
-Rajendra Nayak wrote:
->  
-> 
->> -----Original Message-----
->> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->> Sent: Wednesday, September 10, 2008 8:18 PM
->> To: Rajendra Nayak
->> Cc: linux-omap@vger.kernel.org
->> Subject: Re: [PATCH 07/12] System Control Module context save/restore
->>
->> "Rajendra Nayak" <rnayak@ti.com> writes:
->>
->>> This patch adds the System control module context save/restore
->>>
->>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->>> ---
->>>  arch/arm/mach-omap2/control.c             |  105 
->> ++++++++++++++++++++++++++++++
->>>  arch/arm/plat-omap/include/mach/control.h |   61 +++++++++++++++++
->>>  2 files changed, 165 insertions(+), 1 deletion(-)
->>>
->>> Index: linux-omap-2.6/arch/arm/mach-omap2/control.c
->>> ===================================================================
->>> --- linux-omap-2.6.orig/arch/arm/mach-omap2/control.c	
->> 2008-09-01
->>> 18:11:34.000000000 +0530
->>> +++ linux-omap-2.6/arch/arm/mach-omap2/control.c	
->> 2008-09-01 18:11:54.000000000
->>> +0530
->>> @@ -73,6 +73,8 @@ void omap_ctrl_writel(u32 val, u16 offse
->>>
->>>  #define OMAP3430_PRM_RSTST \
->>>  		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, RM_RSTST)
->>> +static struct omap3_control_module_regs control_ctx;
->>> +
->> I'm not sure what this patch was generated against, but it doesn't
->> apply against linux-omap.  The PRM_RSTST definition above is not in
->> linux-omap code.
->>
->> Kevin
-> 
-> There is no reference to PRM_RSTST in this patch. It uses RM_RSTST which
-> can be found in arch/arm/mach-omap2/prm.h.
+Hi,
 
-You can see in the above quoted text that your 7/12 patch adds some code
-immediately after a line which defines OMAP3430_PRM_RSTST.   Since this 
-existing code is not in linux-omap, and I couldn't find it in previous 
-patches, it's not clear what this patch was generated against.
+Below is the updated patch after fixing Tony's comment.
 
-Kevin
+From: Teerth Reddy <teerth@ti.com>
+
+This patch adds NAND support on 3430sdp board
+
+[VS: updated for SZ_.. macros]
+
+Signed-off-by: Teerth Reddy <teerth@ti.com>
+Signed-off-by: Vimal Singh <vimal.singh@ti.com>
+---
+ arch/arm/mach-omap2/board-3430sdp-flash.c |   88 ++++++++++++++++++++++++++++--
+ arch/arm/plat-omap/include/mach/gpmc.h    |   10 +++
+ 2 files changed, 93 insertions(+), 5 deletions(-)
+
+Index: linux-omap-2.6_27_08_2008/arch/arm/mach-omap2/board-3430sdp-flash.c
+===================================================================
+---
+linux-omap-2.6_27_08_2008.orig/arch/arm/mach-omap2/board-3430sdp-flash.c	2008-08-27
+11:40:26.000000000 +0530
++++
+linux-omap-2.6_27_08_2008/arch/arm/mach-omap2/board-3430sdp-flash.c	2008-09-11
+11:10:44.000000000 +0530
+@@ -24,6 +24,7 @@
+ #include <mach/onenand.h>
+ #include <mach/board.h>
+ #include <mach/gpmc.h>
++#include <mach/nand.h>
+
+ static struct mtd_partition sdp_nor_partitions[] = {
+ 	/* bootloader (U-Boot, etc) in first sector */
+@@ -137,6 +138,61 @@
+ 	/* Onenand setup does nothing at present */
+ 	return 0;
+ }
++
++static struct mtd_partition sdp_nand_partitions[] = {
++	/* All the partition sizes are listed in terms of NAND block size */
++	{
++		.name           = "X-Loader-NAND",
++		.offset         = 0,
++		.size           = SZ_512K,
++		.mask_flags     = MTD_WRITEABLE,        /* force read-only */
++	},
++	{
++		.name           = "U-Boot-NAND",
++		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x80000 */
++		.size           = SZ_512K,
++		.mask_flags     = MTD_WRITEABLE,        /* force read-only */
++	},
++	{
++		.name           = "Boot Env-NAND",
++		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x100000 */
++		.size           = SZ_256K,
++	},
++	{
++		.name           = "Kernel-NAND",
++		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x140000 */
++		.size           = SZ_4M,
++	},
++	{
++		.name           = "File System - NAND",
++		.size           = MTDPART_SIZ_FULL,
++		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x540000 */
++	},
++};
++
++static struct omap_nand_platform_data sdp_nand_data = {
++	.parts          = sdp_nand_partitions,
++	.nr_parts       = ARRAY_SIZE(sdp_nand_partitions),
++	.nand_setup     = NULL,
++	.dma_channel    = -1,           /* disable DMA in OMAP NAND driver */
++	.dev_ready      = NULL,
++};
++
++static struct resource sdp_nand_resource = {
++	.flags          = IORESOURCE_MEM,
++};
++
++static struct platform_device sdp_nand_device = {
++	.name           = "omap2-nand",
++	.id             = 0,
++	.dev            = {
++	.platform_data  = &sdp_nand_data,
++	},
++	.num_resources  = 1,
++	.resource       = &sdp_nand_resource,
++};
++
++
+ /**
+  * sdp3430_flash_init - Identify devices connected to GPMC and register.
+  *
+@@ -145,7 +201,11 @@
+ void __init sdp3430_flash_init(void)
+ {
+ 	u8		cs = 0;
++	u8              nandcs = GPMC_CS_NUM + 1;
+ 	u8		onenandcs = GPMC_CS_NUM + 1;
++	unsigned long	gpmc_base_add;
++
++	gpmc_base_add   = OMAP34XX_GPMC_VIRT;
+
+ 	/* Configure start address and size of NOR device */
+ 	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
+@@ -163,25 +223,43 @@
+
+ 	while (cs < GPMC_CS_NUM) {
+ 		u32 ret = 0;
+-		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG7);
++		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+
+ 		/*
+-		* xloader/Uboot would have programmed the oneNAND
++		* xloader/Uboot would have programmed the NAND/oneNAND
+ 		* base address for us This is a ugly hack. The proper
+ 		* way of doing this is to pass the setup of u-boot up
+ 		* to kernel using kernel params - something on the
+ 		* lines of machineID. Check if oneNAND is configured
+ 		*/
+-		if ((ret & 0x3F) == (ONENAND_MAP >> 24))
++		if ((ret & 0xC00) == 0x800) {
++			/* Found it!! */
++			if (nandcs > GPMC_CS_NUM)
++				nandcs = cs;
++		} else {
++			ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG7);
++			if ((ret & 0x3F) == (ONENAND_MAP >> 24))
+ 			onenandcs = cs;
++		}
+ 		cs++;
+ 	}
+-	if (onenandcs > GPMC_CS_NUM) {
+-		printk(KERN_INFO "OneNAND: Unable to find configuration "
++	if ((nandcs > GPMC_CS_NUM) && (onenandcs > GPMC_CS_NUM)) {
++		printk(KERN_INFO "NAND/OneNAND: Unable to find configuration "
+ 				" in GPMC\n ");
+ 		return;
+ 	}
+
++	if (nandcs < GPMC_CS_NUM) {
++		sdp_nand_data.cs        = nandcs;
++		sdp_nand_data.gpmc_cs_baseaddr   = (void *)(gpmc_base_add +
++					GPMC_CS0_BASE + nandcs*GPMC_CS_SIZE);
++		sdp_nand_data.gpmc_baseaddr     = (void *) (gpmc_base_add);
++
++		if (platform_device_register(&sdp_nand_device) < 0) {
++			printk(KERN_ERR "Unable to register NAND device\n");
++		}
++	}
++
+ 	if (onenandcs < GPMC_CS_NUM) {
+ 		sdp_onenand_data.cs = onenandcs;
+ 		if (platform_device_register(&sdp_onenand_device) < 0)
+Index: linux-omap-2.6_27_08_2008/arch/arm/plat-omap/include/mach/gpmc.h
+===================================================================
+---
+linux-omap-2.6_27_08_2008.orig/arch/arm/plat-omap/include/mach/gpmc.h	2008-08-27
+11:40:27.000000000 +0530
++++ linux-omap-2.6_27_08_2008/arch/arm/plat-omap/include/mach/gpmc.h	2008-08-27
+15:21:22.000000000 +0530
+@@ -25,8 +25,18 @@
+ #define GPMC_CS_NAND_ADDRESS	0x20
+ #define GPMC_CS_NAND_DATA	0x24
+
++/*
++ * The following gpmc registers are being used by
++ * nand driver and hence is defined here.
++ * TBD: Move them to gpmc.c by providing appropriate
++ *  methods to read and write into these registers
++ */
++#define GPMC_IRQSTATUS		0x18
+ #define GPMC_CONFIG		0x50
+ #define GPMC_STATUS		0x54
++#define GPMC_CS0_BASE           0x60
++#define GPMC_CS_SIZE            0x30
++
+
+ #define GPMC_CONFIG1_WRAPBURST_SUPP     (1 << 31)
+ #define GPMC_CONFIG1_READMULTIPLE_SUPP  (1 << 30)
+
+
