@@ -1,78 +1,80 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Patch for Touch Screen noise on OMAP3EVM.
-Date: Wed, 10 Sep 2008 17:26:25 -0700
-Message-ID: <20080911002625.GF21163@atomide.com>
-References: <6B5159045A3A48F9831070C42A927DE7@mistral.in>
+Subject: Re: [PATCH] Fixed CPU type check for OMAP3
+Date: Wed, 10 Sep 2008 17:29:13 -0700
+Message-ID: <20080911002912.GG21163@atomide.com>
+References: <1220892685-3422-1-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61537 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63616 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751636AbYIKA00 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 20:26:26 -0400
+	with ESMTP id S1751986AbYIKA3O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2008 20:29:14 -0400
 Content-Disposition: inline
-In-Reply-To: <6B5159045A3A48F9831070C42A927DE7@mistral.in>
+In-Reply-To: <1220892685-3422-1-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: A NAVEEN <anaveen@mistralsolutions.com>
-Cc: linux-omap@vger.kernel.org, 'Samyeer Metrani' <samyeer@mistralsoftware.com>
+To: Tero Kristo <tero.kristo@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-* A NAVEEN <anaveen@mistralsolutions.com> [080907 23:09]:
-> 
-> 
-> When git kernel tree is used on a OMAP3EVM board file for touch screen
-> testing, it shows lot of jitter. With this patch the jitter can be
-> reduced.
+* Tero Kristo <tero.kristo@nokia.com> [080908 08:01]:
+> ES version definitions were incorrect, also GP/EMU/SEC etc. types were not
+> detected at all.
 
-Ah but this applies, pushing today.
+I've redone the id.c, the old one was getting messy for omap2. Maybe
+try my patch I posted on Tuesday and see how it works for you?
 
-Tony
+Also one comment below.
 
-> Signed-off-by: Naveen Atmakuri <anaveen@mistralsolutions.com>
+> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 > ---
->  arch/arm/mach-omap2/board-omap3evm.c |   10 ++++++++++
->  1 files changed, 10 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/id.c              |    11 +++++++++--
+>  arch/arm/plat-omap/include/mach/cpu.h |    2 +-
+>  2 files changed, 9 insertions(+), 2 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/board-omap3evm.c
-> b/arch/arm/mach-omap2/board-omap3evm.c
-> index 4963f0f..9a4784e 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -27,6 +27,8 @@
->  #include <asm/mach-types.h>
->  #include <asm/mach/arch.h>
->  #include <asm/mach/map.h>
-> +#include <linux/io.h>
-> +#include <linux/delay.h>
->  
->  #include <mach/gpio.h>
->  #include <mach/keypad.h>
-> @@ -132,8 +134,16 @@ static int ads7846_get_pendown_state(void)
->  }
->  
->  struct ads7846_platform_data ads7846_config = {
-> +	.x_max                  = 0x0fff,
-> +	.y_max                  = 0x0fff,
-> +	.x_plate_ohms           = 180,
-> +	.pressure_max           = 255,
-> +	.debounce_max           = 10,
-> +	.debounce_tol           = 3,
-> +	.debounce_rep           = 1,
->  	.get_pendown_state	= ads7846_get_pendown_state,
->  	.keep_vref_on		= 1,
-> +	.settle_delay_usecs     = 150,
+> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> index a526c0f..290b88c 100644
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -53,6 +53,13 @@ static struct omap_id omap_ids[] __initdata = {
+>  	{ .hawkeye = 0xb68a, .dev = 0x0, .type = 0x24300000 },
 >  };
 >  
->  static struct omap2_mcspi_device_config ads7846_mcspi_config = {
-> -- 
-> 1.5.6
-> 
-> 
-> Warm Regards,
-> Naveen Atmakuri.
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +static const char omap3_revs[][4] = {
+> +	"1.0",
+> +	"2.0",
+> +	"2.1",
+> +	"3.0"
+> +};
+> +
+>  static struct omap_chip_id omap_chip;
+>  
+>  /**
+> @@ -224,7 +231,7 @@ void __init omap2_check_revision(void)
+>  	 * Note that rev cannot be used directly as ES1.0 uses value 0.
+>  	 */
+>  	if (hawkeye == 0xb7ae) {
+> -		system_rev = 0x34300000 | ((1 + rev) << 12);
+> -		pr_info("OMAP%04x ES2.%i\n", system_rev >> 16, rev);
+> +		_set_system_rev(0x34300000 | (rev << 12), rev);
+> +		pr_info("OMAP%04x ES%s\n", system_rev >> 16, omap3_revs[rev]);
+>  		_set_omap_chip();
+>  		return;
+> diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
+> index e046418..e170d29 100644
+> --- a/arch/arm/plat-omap/include/mach/cpu.h
+> +++ b/arch/arm/plat-omap/include/mach/cpu.h
+> @@ -357,7 +357,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+>  #define OMAP3430_REV_ES1_0	0x34300000
+>  #define OMAP3430_REV_ES2_0	0x34301000
+>  #define OMAP3430_REV_ES2_1	0x34302000
+> -#define OMAP3430_REV_ES2_2	0x34303000
+> +#define OMAP3430_REV_ES3_0	0x34303000
+>  
+>  /*
+>   * omap_chip bits
+
+Are you sure ES3.0 gives a three for revision? I believe 2.2 had 3, or
+is the revision register broken again?
+
+Tony
