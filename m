@@ -1,158 +1,220 @@
-From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: [PATCH 04/12] I2C re-init for every cmd
-Date: Thu, 11 Sep 2008 13:04:10 +0300
-Message-ID: <87sks79exx.fsf@trdhcp146196.ntc.nokia.com>
-References: <59975.192.168.10.89.1220276306.squirrel@dbdmail.itg.ti.com>
+From: "vimal singh" <vimalsingh@ti.com>
+Subject: [RESENDING][PATCH 1/2]OMAP3 NAND: Add NAND support on OMAP3430
+Date: Thu, 11 Sep 2008 15:36:56 +0530 (IST)
+Message-ID: <48232.192.168.10.89.1221127616.squirrel@dbdmail.itg.ti.com>
+References: <41054.192.168.10.89.1219747319.squirrel@dbdmail.itg.ti.com>
+    <33923.192.168.10.89.1221112795.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:25923 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752007AbYIKKDN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 06:03:13 -0400
-In-Reply-To: <59975.192.168.10.89.1220276306.squirrel@dbdmail.itg.ti.com> (ext
-	Rajendra Nayak's message of "Mon, 1 Sep 2008 19:08:26 +0530 (IST)")
+Received: from comal.ext.ti.com ([198.47.26.152]:44695 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752071AbYIKKHD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Sep 2008 06:07:03 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8BA6vRe009639
+	for <linux-omap@vger.kernel.org>; Thu, 11 Sep 2008 05:07:02 -0500
+Received: from webmail.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id m8BA6slo025890
+	for <linux-omap@vger.kernel.org>; Thu, 11 Sep 2008 05:06:55 -0500 (CDT)
+In-Reply-To: <33923.192.168.10.89.1221112795.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-"ext Rajendra Nayak" <rnayak@ti.com> writes:
+From: Teerth Reddy <teerth@ti.com>
 
-> This patch does i2c init/re-init for every transfer
->
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  drivers/i2c/busses/i2c-omap.c |    2 ++
->  1 files changed, 2 insertions(+)
->
-> Index: linux-omap-2.6/drivers/i2c/busses/i2c-omap.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-omap-2.6.orig/drivers/i2c/busses/i2c-omap.c	2008-09-01
-> 18:11:28.000000000 +0530
-> +++ linux-omap-2.6/drivers/i2c/busses/i2c-omap.c	2008-09-01 18:11:52.=
-000000000
-> +0530
-> @@ -496,6 +496,8 @@ omap_i2c_xfer(struct i2c_adapter *adap,
->
->  	omap_i2c_unidle(dev);
->
-> +	omap_i2c_init(dev);
-> +
->  	if ((r =3D omap_i2c_wait_for_bb(dev)) < 0)
->  		goto out;
+This patch adds NAND support on 3430sdp board
 
-This is causing unacceptable delays on i2c transfers. This is because
-occasionally reset loop in init function enters msleep. Is it
-necessary to reset i2c controller after off-mode?
+[VS: updated for NAND_BLOCK_SIZE macros]
 
-Any opinions on this:
+Signed-off-by: Teerth Reddy <teerth@ti.com>
+Signed-off-by: Vimal Singh <vimal.singh@ti.com>
+---
+ arch/arm/mach-omap2/board-3430sdp-flash.c |   87 ++++++++++++++++++++++++++++--
+ arch/arm/plat-omap/include/mach/gpmc.h    |   10 +++
+ include/linux/mtd/nand.h                  |    2
+ 3 files changed, 93 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-oma=
-p.c
-index 3778735..4a27035 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -126,6 +126,14 @@
- /* I2C System Configuration Register (OMAP_I2C_SYSC): */
- #define OMAP_I2C_SYSC_SRST             (1 << 1)        /* Soft Reset *=
-/
-=20
-+struct omap3_i2c_regs {
-+       u16 sysc;
-+       u16 psc;
-+       u16 scll;
-+       u16 sclh;
-+       u16 buf;
+Index: linux-omap-2.6_27_08_2008/arch/arm/mach-omap2/board-3430sdp-flash.c
+===================================================================
+---
+linux-omap-2.6_27_08_2008.orig/arch/arm/mach-omap2/board-3430sdp-flash.c	2008-08-27
+11:40:26.000000000 +0530
++++
+linux-omap-2.6_27_08_2008/arch/arm/mach-omap2/board-3430sdp-flash.c	2008-09-11
+15:21:10.000000000 +0530
+@@ -24,6 +24,7 @@
+ #include <mach/onenand.h>
+ #include <mach/board.h>
+ #include <mach/gpmc.h>
++#include <mach/nand.h>
+
+ static struct mtd_partition sdp_nor_partitions[] = {
+ 	/* bootloader (U-Boot, etc) in first sector */
+@@ -137,6 +138,61 @@
+ 	/* Onenand setup does nothing at present */
+ 	return 0;
+ }
++
++static struct mtd_partition sdp_nand_partitions[] = {
++	/* All the partition sizes are listed in terms of NAND block size */
++	{
++		.name           = "X-Loader-NAND",
++		.offset         = 0,
++		.size           = 4 * NAND_BLOCK_SIZE,
++		.mask_flags     = MTD_WRITEABLE,        /* force read-only */
++	},
++	{
++		.name           = "U-Boot-NAND",
++		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x80000 */
++		.size           = 4 * NAND_BLOCK_SIZE,
++		.mask_flags     = MTD_WRITEABLE,        /* force read-only */
++	},
++	{
++		.name           = "Boot Env-NAND",
++		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x100000 */
++		.size           = 2 * NAND_BLOCK_SIZE,
++	},
++	{
++		.name           = "Kernel-NAND",
++		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x140000 */
++		.size           = 32 * NAND_BLOCK_SIZE,
++	},
++	{
++		.name           = "File System - NAND",
++		.size           = MTDPART_SIZ_FULL,
++		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x540000 */
++	},
 +};
 +
- struct omap_i2c_dev {
-        struct device           *dev;
-        void __iomem            *base;          /* virtual */
-@@ -147,6 +155,9 @@ struct omap_i2c_dev {
-        unsigned                b_hw:1;         /* bad h/w fixes */
-        unsigned                idle:1;
-        u16                     iestate;        /* Saved interrupt regi=
-ster */
-+#ifdef CONFIG_ARCH_OMAP34XX
-+       struct omap3_i2c_regs   context;
-+#endif
- };
-=20
- static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
-@@ -160,6 +171,26 @@ static inline u16 omap_i2c_read_reg(struct omap_i2=
-c_dev *i2c_dev, int reg)
-        return __raw_readw(i2c_dev->base + reg);
- }
-=20
-+#ifdef CONFIG_ARCH_OMAP34XX
-+void omap3_i2c_save_context(struct omap_i2c_dev *dev)
-+{
-+       dev->context.sysc =3D omap_i2c_read_reg(dev, OMAP_I2C_SYSC_REG)=
-;
-+       dev->context.psc =3D omap_i2c_read_reg(dev, OMAP_I2C_PSC_REG);
-+       dev->context.scll =3D omap_i2c_read_reg(dev, OMAP_I2C_SCLL_REG)=
-;
-+       dev->context.sclh =3D omap_i2c_read_reg(dev, OMAP_I2C_SCLH_REG)=
-;
-+       dev->context.buf =3D omap_i2c_read_reg(dev, OMAP_I2C_BUF_REG);
-+}
++static struct omap_nand_platform_data sdp_nand_data = {
++	.parts          = sdp_nand_partitions,
++	.nr_parts       = ARRAY_SIZE(sdp_nand_partitions),
++	.nand_setup     = NULL,
++	.dma_channel    = -1,           /* disable DMA in OMAP NAND driver */
++	.dev_ready      = NULL,
++};
 +
-+void omap3_i2c_restore_context(struct omap_i2c_dev *dev)
-+{
-+       omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->context.sysc);
-+       omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->context.psc);
-+       omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->context.scll);
-+       omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->context.sclh);
-+       omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->context.buf);
-+}
-+#endif
++static struct resource sdp_nand_resource = {
++	.flags          = IORESOURCE_MEM,
++};
 +
- static int __init omap_i2c_get_clocks(struct omap_i2c_dev *dev)
++static struct platform_device sdp_nand_device = {
++	.name           = "omap2-nand",
++	.id             = 0,
++	.dev            = {
++	.platform_data  = &sdp_nand_data,
++	},
++	.num_resources  = 1,
++	.resource       = &sdp_nand_resource,
++};
++
++
+ /**
+  * sdp3430_flash_init - Identify devices connected to GPMC and register.
+  *
+@@ -145,7 +201,11 @@
+ void __init sdp3430_flash_init(void)
  {
-        if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
-@@ -210,6 +241,10 @@ static void omap_i2c_unidle(struct omap_i2c_dev *d=
-ev)
-                clk_enable(dev->iclk);
-        clk_enable(dev->fclk);
-        dev->idle =3D 0;
+ 	u8		cs = 0;
++	u8              nandcs = GPMC_CS_NUM + 1;
+ 	u8		onenandcs = GPMC_CS_NUM + 1;
++	unsigned long	gpmc_base_add;
 +
-+       if (cpu_is_omap34xx())
-+               omap3_i2c_restore_context(dev);
++	gpmc_base_add   = OMAP34XX_GPMC_VIRT;
+
+ 	/* Configure start address and size of NOR device */
+ 	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
+@@ -163,25 +223,42 @@
+
+ 	while (cs < GPMC_CS_NUM) {
+ 		u32 ret = 0;
+-		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG7);
++		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+
+ 		/*
+-		* xloader/Uboot would have programmed the oneNAND
++		* xloader/Uboot would have programmed the NAND/oneNAND
+ 		* base address for us This is a ugly hack. The proper
+ 		* way of doing this is to pass the setup of u-boot up
+ 		* to kernel using kernel params - something on the
+ 		* lines of machineID. Check if oneNAND is configured
+ 		*/
+-		if ((ret & 0x3F) == (ONENAND_MAP >> 24))
++		if ((ret & 0xC00) == 0x800) {
++			/* Found it!! */
++			if (nandcs > GPMC_CS_NUM)
++				nandcs = cs;
++		} else {
++			ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG7);
++			if ((ret & 0x3F) == (ONENAND_MAP >> 24))
+ 			onenandcs = cs;
++		}
+ 		cs++;
+ 	}
+-	if (onenandcs > GPMC_CS_NUM) {
+-		printk(KERN_INFO "OneNAND: Unable to find configuration "
++	if ((nandcs > GPMC_CS_NUM) && (onenandcs > GPMC_CS_NUM)) {
++		printk(KERN_INFO "NAND/OneNAND: Unable to find configuration "
+ 				" in GPMC\n ");
+ 		return;
+ 	}
+
++	if (nandcs < GPMC_CS_NUM) {
++		sdp_nand_data.cs        = nandcs;
++		sdp_nand_data.gpmc_cs_baseaddr   = (void *)(gpmc_base_add +
++					GPMC_CS0_BASE + nandcs*GPMC_CS_SIZE);
++		sdp_nand_data.gpmc_baseaddr     = (void *) (gpmc_base_add);
 +
-        if (dev->iestate)
-                omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
- }
-@@ -344,6 +379,10 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
-                        OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
-                        OMAP_I2C_IE_AL)  | ((dev->fifo_size) ?
-                                (OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0=
-));
++		if (platform_device_register(&sdp_nand_device) < 0)
++			printk(KERN_ERR "Unable to register NAND device\n");
++	}
 +
-+       if (cpu_is_omap34xx())
-+               omap3_i2c_save_context(dev);
+ 	if (onenandcs < GPMC_CS_NUM) {
+ 		sdp_onenand_data.cs = onenandcs;
+ 		if (platform_device_register(&sdp_onenand_device) < 0)
+Index: linux-omap-2.6_27_08_2008/arch/arm/plat-omap/include/mach/gpmc.h
+===================================================================
+---
+linux-omap-2.6_27_08_2008.orig/arch/arm/plat-omap/include/mach/gpmc.h	2008-08-27
+11:40:27.000000000 +0530
++++ linux-omap-2.6_27_08_2008/arch/arm/plat-omap/include/mach/gpmc.h	2008-08-27
+15:21:22.000000000 +0530
+@@ -25,8 +25,18 @@
+ #define GPMC_CS_NAND_ADDRESS	0x20
+ #define GPMC_CS_NAND_DATA	0x24
+
++/*
++ * The following gpmc registers are being used by
++ * nand driver and hence is defined here.
++ * TBD: Move them to gpmc.c by providing appropriate
++ *  methods to read and write into these registers
++ */
++#define GPMC_IRQSTATUS		0x18
+ #define GPMC_CONFIG		0x50
+ #define GPMC_STATUS		0x54
++#define GPMC_CS0_BASE           0x60
++#define GPMC_CS_SIZE            0x30
 +
-        return 0;
- }
-=20
-@@ -496,8 +535,6 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_=
-msg msgs[], int num)
-=20
-        omap_i2c_unidle(dev);
-=20
--       omap_i2c_init(dev);
+
+ #define GPMC_CONFIG1_WRAPBURST_SUPP     (1 << 31)
+ #define GPMC_CONFIG1_READMULTIPLE_SUPP  (1 << 30)
+Index: linux-omap-2.6_27_08_2008/include/linux/mtd/nand.h
+===================================================================
+--- linux-omap-2.6_27_08_2008.orig/include/linux/mtd/nand.h	2008-09-11
+12:18:05.000000000 +0530
++++ linux-omap-2.6_27_08_2008/include/linux/mtd/nand.h	2008-09-11
+15:04:31.000000000 +0530
+@@ -45,7 +45,7 @@
+  */
+ #define NAND_MAX_OOBSIZE	64
+ #define NAND_MAX_PAGESIZE	2048
 -
-        if ((r =3D omap_i2c_wait_for_bb(dev)) < 0)
-                goto out;
++#define NAND_BLOCK_SIZE		SZ_128K
+ /*
+  * Constants for hardware specific CLE/ALE/NCE function
+  *
 
---=20
-Jouni H=C3=B6gander
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
