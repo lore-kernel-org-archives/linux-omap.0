@@ -1,249 +1,209 @@
-From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: [PATCH 04/12] I2C re-init for every cmd
-Date: Thu, 11 Sep 2008 14:01:13 +0300
-Message-ID: <87myif9cau.fsf@trdhcp146196.ntc.nokia.com>
-References: <59975.192.168.10.89.1220276306.squirrel@dbdmail.itg.ti.com>
-	<87sks79exx.fsf@trdhcp146196.ntc.nokia.com>
-	<002201c913f9$e86ecdd0$LocalHost@wipultra806>
+From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Subject: Re: [PATCH]Enable 4-bit in HSMMC1 and HSMMC2 platform data
+Date: Thu, 11 Sep 2008 14:23:15 +0300
+Message-ID: <20080911112315.GA10002@angel.research.nokia.com>
+References: <62710.192.168.10.89.1218608010.squirrel@dbdmail.itg.ti.com> <20080910235646.GV21163@atomide.com> <20080911084828.GC26078@flint.arm.linux.org.uk>
+Reply-To: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:38579 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:41436 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751521AbYIKLAI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 07:00:08 -0400
-In-Reply-To: <002201c913f9$e86ecdd0$LocalHost@wipultra806> (ext shekhar's
-	message of "Thu, 11 Sep 2008 16:03:59 +0530")
+	with ESMTP id S1751442AbYIKLXw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 07:23:52 -0400
+Content-Disposition: inline
+In-Reply-To: <20080911084828.GC26078@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext shekhar, chandra" <x0044955@ti.com>
-Cc: ext Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, linux-omap@vger.kernel.org
 
-"ext shekhar, chandra" <x0044955@ti.com> writes:
+On Thu, Sep 11, 2008 at 09:48:28AM +0100, ext Russell King - ARM Linux wrote:
+> So, given my update for this, shouldn't this be something sent almost
+> immediately to me so stuff for mainline isn't falling behind.
 
-> Hi,
->
-> Few comments inlined.
->
-> Regards,
-> Chandra
-> ----- Original Message -----=20
-> From: ""H=C3=B6gander" Jouni" <jouni.hogander@nokia.com>
-> To: "ext Rajendra Nayak" <rnayak@ti.com>
-> Cc: <linux-omap@vger.kernel.org>
-> Sent: Thursday, September 11, 2008 3:34 PM
-> Subject: Re: [PATCH 04/12] I2C re-init for every cmd
->
->
-> "ext Rajendra Nayak" <rnayak@ti.com> writes:
->
->> This patch does i2c init/re-init for every transfer
->>
->> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->> ---
->>  drivers/i2c/busses/i2c-omap.c |    2 ++
->>  1 files changed, 2 insertions(+)
->>
->> Index: linux-omap-2.6/drivers/i2c/busses/i2c-omap.c
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> --- linux-omap-2.6.orig/drivers/i2c/busses/i2c-omap.c 2008-09-01
->> 18:11:28.000000000 +0530
->> +++ linux-omap-2.6/drivers/i2c/busses/i2c-omap.c 2008-09-01 18:11:52=
-=2E000000000
->> +0530
->> @@ -496,6 +496,8 @@ omap_i2c_xfer(struct i2c_adapter *adap,
->>
->>  omap_i2c_unidle(dev);
->>
->> + omap_i2c_init(dev);
->> +
->>  if ((r =3D omap_i2c_wait_for_bb(dev)) < 0)
->>  goto out;
->
-> This is causing unacceptable delays on i2c transfers. This is because
-> occasionally reset loop in init function enters msleep. Is it
-> necessary to reset i2c controller after off-mode?
->
-> Any opinions on this:
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-o=
-map.c
-> index 3778735..4a27035 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -126,6 +126,14 @@
-> /* I2C System Configuration Register (OMAP_I2C_SYSC): */
-> #define OMAP_I2C_SYSC_SRST             (1 << 1)        /* Soft Reset =
-*/
->
-> +struct omap3_i2c_regs {
-> +       u16 sysc;
-> +       u16 psc;
-> +       u16 scll;
-> +       u16 sclh;
-> +       u16 buf;
-> +};
-> +
->
->
->
-> We can add this as a part of controller structure itself instaed of
-> creating a new structure. we will store this
-> psc, scll and others as a part of controller and just restore it. Tha=
-t
-> way we can do away with  omap3_i2c_save_context every time in clk
-> disable.
+Hi Russell and all
 
-My patch is neither saving ctx on every clk disable. Just after init.
+Here is a hopefully self-explaining patch, which enables 8-bit
+support similar to the 4-bit support in Omap HSMMC when then mmc
+confifuration from platform data tells it is available.
 
->
->
->
->
->
-> struct omap_i2c_dev {
->        struct device           *dev;
->        void __iomem            *base;          /* virtual */
-> @@ -147,6 +155,9 @@ struct omap_i2c_dev {
->        unsigned                b_hw:1;         /* bad h/w fixes */
->        unsigned                idle:1;
->        u16                     iestate;        /* Saved interrupt reg=
-ister */
-> +#ifdef CONFIG_ARCH_OMAP34XX
-> +       struct omap3_i2c_regs   context;
-> +#endif
->
->
->
-> I guess this should work for all the platforms. at least for omap2/3
-> it should work w/o any hiccups.
-> I2C_BUF is the only register which will require cpu check..so while
-> restoring we can put that check for 2430/34xx.
+I have tested it on a testboard with 2.6.26 beased kernel and
+write speed increased some 30..40%.
 
-Can we use off mode with omap2? Generally, should we build in
-save/restore code for other than omap3?
+Cheers,
+Jarkko
 
->
->
-> };
->
->
->
-> static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
-> @@ -160,6 +171,26 @@ static inline u16 omap_i2c_read_reg(struct
-> omap_i2c_dev *i2c_dev, int reg)
->        return __raw_readw(i2c_dev->base + reg);
-> }
->
-> +#ifdef CONFIG_ARCH_OMAP34XX
-> +void omap3_i2c_save_context(struct omap_i2c_dev *dev)
-> +{
-> +       dev->context.sysc =3D omap_i2c_read_reg(dev, OMAP_I2C_SYSC_RE=
-G);
-> +       dev->context.psc =3D omap_i2c_read_reg(dev, OMAP_I2C_PSC_REG)=
-;
-> +       dev->context.scll =3D omap_i2c_read_reg(dev, OMAP_I2C_SCLL_RE=
-G);
-> +       dev->context.sclh =3D omap_i2c_read_reg(dev, OMAP_I2C_SCLH_RE=
-G);
-> +       dev->context.buf =3D omap_i2c_read_reg(dev, OMAP_I2C_BUF_REG)=
-;
-> +}
-> +
->
->
-> +void omap3_i2c_restore_context(struct omap_i2c_dev *dev)
-> +{
-> +       omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->context.sysc)=
-;
-> +       omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->context.psc);
-> +       omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->context.scll)=
-;
-> +       omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->context.sclh)=
-;
-> +       omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->context.buf);
-> +}
-> +#endif
-> +
->
-> static int __init omap_i2c_get_clocks(struct omap_i2c_dev *dev)
-> {
->        if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
-> @@ -210,6 +241,10 @@ static void omap_i2c_unidle(struct omap_i2c_dev =
-*dev)
->                clk_enable(dev->iclk);
->        clk_enable(dev->fclk);
->        dev->idle =3D 0;
-> +
-> +       if (cpu_is_omap34xx())
-> +               omap3_i2c_restore_context(dev);
-> +
->        if (dev->iestate)
->                omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate)=
-;
-> }
-> @@ -344,6 +379,10 @@ static int omap_i2c_init(struct omap_i2c_dev *de=
-v)
->                        OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
->                        OMAP_I2C_IE_AL)  | ((dev->fifo_size) ?
->                                (OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : =
-0));
-> +
-> +       if (cpu_is_omap34xx())
-> +               omap3_i2c_save_context(dev);
-> +
->
->
->
-> this will become redundant as data will be part of controller
-> structure.
->
->
->        return 0;
-> }
->
-> @@ -496,8 +535,6 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct
-> i2c_msg msgs[], int num)
->
->        omap_i2c_unidle(dev);
->
-> -       omap_i2c_init(dev);
-> -
->
->
-> instead of calling restore from clk_enable we can replace
-> omap_i2c_init by omap3_i2c_restore_context. that way clock enable cod=
-e
-> will be clean.
+---
 
-Well, I though unidle could be ok as ie reg is already restored there?
+>From f739457703988da18a5509bd297c4f6ebed83291 Mon Sep 17 00:00:00 2001
+From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Date: Thu, 11 Sep 2008 14:15:31 +0300
+Subject: [PATCH] HSMMC: Enable 8-bit transfer when available.
 
->
->
->
->        if ((r =3D omap_i2c_wait_for_bb(dev)) < 0)
->                goto out;
->
-> --=20
-> Jouni H=C3=B6gander
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
->
+Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+---
+ arch/arm/plat-omap/devices.c            |    8 ++++++--
+ arch/arm/plat-omap/include/mach/board.h |    4 +++-
+ drivers/mmc/core/mmc.c                  |   17 +++++++++++++----
+ drivers/mmc/host/omap_hsmmc.c           |   10 ++++++++++
+ include/linux/mmc/host.h                |   12 +++++++-----
+ 5 files changed, 39 insertions(+), 12 deletions(-)
 
---=20
-Jouni H=C3=B6gander
+diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+index 3bd1da2..aa1299f 100644
+--- a/arch/arm/plat-omap/devices.c
++++ b/arch/arm/plat-omap/devices.c
+@@ -289,13 +289,17 @@ static void __init omap_init_mmc(void)
+ 	mmc = &mmc_conf->mmc[0];
+ 
+ 	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
+-		if (mmc->enabled)
++		if (mmc->enabled) {
++			mmc1_data.conf = *mmc;
+ 			(void) platform_device_register(&mmc_omap_device1);
++		}
+ 
+ #if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX)
+ 		mmc = &mmc_conf->mmc[1];
+-		if (mmc->enabled)
++		if (mmc->enabled) {
++			mmc2_data.conf = *mmc;
+ 			(void) platform_device_register(&mmc_omap_device2);
++		}
+ #endif
+ 
+ 		return;
+diff --git a/arch/arm/plat-omap/include/mach/board.h b/arch/arm/plat-omap/include/mach/board.h
+index a1a66ac..cd287dd 100644
+--- a/arch/arm/plat-omap/include/mach/board.h
++++ b/arch/arm/plat-omap/include/mach/board.h
+@@ -46,8 +46,10 @@ struct omap_mmc_conf {
+ 	unsigned nomux:1;
+ 	/* switch pin can be for card detect (default) or card cover */
+ 	unsigned cover:1;
+-	/* 4 wire signaling is optional, and is only used for SD/SDIO */
++	/* 4 and 8 wire signaling are optional */
+ 	unsigned wire4:1;
++	unsigned wire8:1;
++
+ 	/* use the internal clock */
+ 	unsigned internal_clock:1;
+ 	s16 power_pin;
+diff --git a/drivers/mmc/core/mmc.c b/drivers/mmc/core/mmc.c
+index fdd7c76..8c55df3 100644
+--- a/drivers/mmc/core/mmc.c
++++ b/drivers/mmc/core/mmc.c
+@@ -434,13 +434,23 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
+ 	 * Activate wide bus (if supported).
+ 	 */
+ 	if ((card->csd.mmca_vsn >= CSD_SPEC_VER_4) &&
+-		(host->caps & MMC_CAP_4_BIT_DATA)) {
++	    (host->caps & (MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA))) {
++		unsigned ext_csd_bit, driver_width;
++
++		if (host->caps & MMC_CAP_8_BIT_DATA) {
++			ext_csd_bit = EXT_CSD_BUS_WIDTH_8;
++			driver_width = MMC_BUS_WIDTH_8;
++		} else {
++			ext_csd_bit = EXT_CSD_BUS_WIDTH_4;
++			driver_width = MMC_BUS_WIDTH_4;
++		}
++
+ 		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
+-			EXT_CSD_BUS_WIDTH, EXT_CSD_BUS_WIDTH_4);
++				 EXT_CSD_BUS_WIDTH, ext_csd_bit);
+ 		if (err)
+ 			goto free_card;
+ 
+-		mmc_set_bus_width(card->host, MMC_BUS_WIDTH_4);
++		mmc_set_bus_width(card->host, driver_width);
+ 	}
+ 
+ 	if (!oldcard)
+@@ -624,4 +634,3 @@ err:
+ 
+ 	return err;
+ }
+-
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index af34871..92ad67e 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -72,6 +72,7 @@
+ #define MSBS			1<<5
+ #define BCE			1<<1
+ #define FOUR_BIT		1 << 1
++#define DW8			(1 << 5)
+ #define CC			0x1
+ #define TC			0x02
+ #define OD			0x1
+@@ -631,6 +632,7 @@ static void omap_mmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+ 	u16 dsor = 0;
+ 	unsigned long regval;
+ 	unsigned long timeout;
++	u32 con;
+ 
+ 	switch (ios->power_mode) {
+ 	case MMC_POWER_OFF:
+@@ -641,12 +643,18 @@ static void omap_mmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+ 		break;
+ 	}
+ 
++	con =  OMAP_HSMMC_READ(host->base, CON);
+ 	switch (mmc->ios.bus_width) {
++	case MMC_BUS_WIDTH_8:
++		OMAP_HSMMC_WRITE(host->base, CON, con | DW8);
++		break;
+ 	case MMC_BUS_WIDTH_4:
++		OMAP_HSMMC_WRITE(host->base, CON, con & ~DW8);
+ 		OMAP_HSMMC_WRITE(host->base, HCTL,
+ 			OMAP_HSMMC_READ(host->base, HCTL) | FOUR_BIT);
+ 		break;
+ 	case MMC_BUS_WIDTH_1:
++		OMAP_HSMMC_WRITE(host->base, CON, con & ~DW8);
+ 		OMAP_HSMMC_WRITE(host->base, HCTL,
+ 			OMAP_HSMMC_READ(host->base, HCTL) & ~FOUR_BIT);
+ 		break;
+@@ -814,6 +822,8 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
+ 
+ 	if (pdata->conf.wire4)
+ 		mmc->caps |= MMC_CAP_4_BIT_DATA;
++	if (pdata->conf.wire8)
++		mmc->caps |= MMC_CAP_8_BIT_DATA;
+ 
+ 	/* Only MMC1 supports 3.0V */
+ 	if (host->id == OMAP_MMC1_DEVID) {
+diff --git a/include/linux/mmc/host.h b/include/linux/mmc/host.h
+index 9c288c9..ddd8b97 100644
+--- a/include/linux/mmc/host.h
++++ b/include/linux/mmc/host.h
+@@ -41,6 +41,7 @@ struct mmc_ios {
+ 
+ #define MMC_BUS_WIDTH_1		0
+ #define MMC_BUS_WIDTH_4		2
++#define MMC_BUS_WIDTH_8		3
+ 
+ 	unsigned char	timing;			/* timing specification used */
+ 
+@@ -111,11 +112,12 @@ struct mmc_host {
+ 	unsigned long		caps;		/* Host capabilities */
+ 
+ #define MMC_CAP_4_BIT_DATA	(1 << 0)	/* Can the host do 4 bit transfers */
+-#define MMC_CAP_MMC_HIGHSPEED	(1 << 1)	/* Can do MMC high-speed timing */
+-#define MMC_CAP_SD_HIGHSPEED	(1 << 2)	/* Can do SD high-speed timing */
+-#define MMC_CAP_SDIO_IRQ	(1 << 3)	/* Can signal pending SDIO IRQs */
+-#define MMC_CAP_SPI		(1 << 4)	/* Talks only SPI protocols */
+-#define MMC_CAP_NEEDS_POLL	(1 << 5)	/* Needs polling for card-detection */
++#define MMC_CAP_8_BIT_DATA	(1 << 1)	/* Can the host do 8 bit transfers */
++#define MMC_CAP_MMC_HIGHSPEED	(1 << 2)	/* Can do MMC high-speed timing */
++#define MMC_CAP_SD_HIGHSPEED	(1 << 3)	/* Can do SD high-speed timing */
++#define MMC_CAP_SDIO_IRQ	(1 << 4)	/* Can signal pending SDIO IRQs */
++#define MMC_CAP_SPI		(1 << 5)	/* Talks only SPI protocols */
++#define MMC_CAP_NEEDS_POLL	(1 << 6)	/* Needs polling for card-detection */
+ 
+ 	/* host specific block data */
+ 	unsigned int		max_seg_size;	/* see blk_queue_max_segment_size */
+-- 
+1.5.6.5
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
