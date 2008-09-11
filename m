@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 15/29] OMAP3: PM: Move serial console check from omap3_can_sleep to idle loop
-Date: Thu, 11 Sep 2008 15:33:59 +0300
-Message-ID: <1221136453-16697-15-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 28/29] PM FIX: convert TI io_p2v() usage to OMAP2_IO_ADDRESS()
+Date: Thu, 11 Sep 2008 15:34:12 +0300
+Message-ID: <1221136453-16697-28-git-send-email-khilman@deeprootsystems.com>
 References: <87iqt2amoi.fsf@deeprootsystems.com>
  <1221136453-16697-1-git-send-email-khilman@deeprootsystems.com>
  <1221136453-16697-2-git-send-email-khilman@deeprootsystems.com>
@@ -17,66 +17,66 @@ References: <87iqt2amoi.fsf@deeprootsystems.com>
  <1221136453-16697-12-git-send-email-khilman@deeprootsystems.com>
  <1221136453-16697-13-git-send-email-khilman@deeprootsystems.com>
  <1221136453-16697-14-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-15-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-16-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-17-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-18-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-19-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-20-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-21-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-22-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-23-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-24-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-25-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-26-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-27-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:18964 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:19031 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755882AbYIKMev (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 08:34:51 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8BCYQwD018071
-	for <linux-omap@vger.kernel.org>; Thu, 11 Sep 2008 15:34:48 +0300
-In-Reply-To: <1221136453-16697-14-git-send-email-khilman@deeprootsystems.com>
+	with ESMTP id S1755880AbYIKMfI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 08:35:08 -0400
+In-Reply-To: <1221136453-16697-27-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Jouni Hogander <jouni.hogander@nokia.com>, Git administrator <gitowner@stego.research.nokia.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-From: Jouni Hogander <jouni.hogander@nokia.com>
-
-This fixes sluggish serial console.
-
-Signed-off-by: Git administrator <gitowner@stego.research.nokia.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |    2 +-
- arch/arm/mach-omap2/pm34xx.c      |    5 +++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index a02da6d..b19d2eb 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -431,7 +431,7 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
- 
- 	current_cx_state = *cx;
- 
--	if (cx->type == OMAP3_STATE_C0) {
-+	if (cx->type == OMAP3_STATE_C0 || !omap_serial_can_sleep()) {
- 		/* Do nothing for C0, not even a wfi */
- 		return 0;
- 	}
 diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index da6eae1..42fa546 100644
+index 5242ba0..7436332 100644
 --- a/arch/arm/mach-omap2/pm34xx.c
 +++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -398,8 +398,6 @@ int omap3_can_sleep(void)
- 		return 0;
- 	if (atomic_read(&sleep_block) > 0)
- 		return 0;
--	if (!omap_serial_can_sleep())
--		return 0;
- 	return 1;
- }
+@@ -222,7 +222,7 @@ static void restore_table_entry(void)
+ 	u32 previous_value, control_reg_value;
+ 	u32 *address;
+ 	/* Get virtual address of SCRATCHPAD */
+-	scratchpad_address = (u32 *) io_p2v(SCRATCHPAD);
++	scratchpad_address = (u32 *) OMAP2_IO_ADDRESS(SCRATCHPAD);
+ 	/* Get address of entry that was modified */
+ 	address = (u32 *) *(scratchpad_address + TABLE_ADDRESS_OFFSET);
+ 	/* Get the previous value which needs to be restored */
+@@ -924,7 +924,7 @@ void clear_scratchpad_contents(void)
+ 	u32 max_offset = SCRATHPAD_ROM_OFFSET;
+ 	u32 offset = 0;
+ 	u32 v;
+-	u32 v_addr = io_p2v(SCRATCHPAD_ROM);
++	u32 v_addr = OMAP2_IO_ADDRESS(SCRATCHPAD_ROM);
+ 	if (__raw_readl(OMAP3430_PRM_RSTST) & 0x1) {
+ 		for ( ; offset <= max_offset; offset += 0x4)
+ 			 __raw_writel(0x0, (v_addr + offset));
+@@ -942,7 +942,7 @@ void save_scratchpad_contents(void)
+ 	u32 *sdram_context_address;
  
-@@ -478,6 +476,9 @@ static void omap3_pm_idle(void)
- 	if (omap_irq_pending())
- 		goto out;
- 
-+	if (!omap_serial_can_sleep())
-+		goto out;
-+
- 	omap2_gpio_prepare_for_retention();
- 
- 	omap_serial_enable_clocks(0, 0);
+ 	/* Get virtual address of SCRATCHPAD */
+-	scratchpad_address = (u32 *) io_p2v(SCRATCHPAD);
++	scratchpad_address = (u32 *) OMAP2_IO_ADDRESS(SCRATCHPAD);
+ 	/* Get Restore pointer to jump to while waking up from OFF */
+ 	restore_address = get_restore_pointer();
+ 	/* Convert it to physical address */
 -- 
 1.6.0
 
