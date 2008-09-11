@@ -1,56 +1,48 @@
-From: Arno Steffen <arno.steffen@web.de>
-Subject: Setup of tools / include path ?
-Date: Thu, 11 Sep 2008 15:41:47 +0200
-Message-ID: <290843612@web.de>
+From: Daniel Stone <daniel.stone@nokia.com>
+Subject: Re: [PATCH 15/29] OMAP3: PM: Move serial console check from
+	omap3_can_sleep to idle loop
+Date: Thu, 11 Sep 2008 17:38:24 +0300
+Message-ID: <20080911143824.GO31563@intune.research.nokia.com>
+References: <1221136453-16697-6-git-send-email-khilman@deeprootsystems.com> <1221136453-16697-7-git-send-email-khilman@deeprootsystems.com> <1221136453-16697-8-git-send-email-khilman@deeprootsystems.com> <1221136453-16697-9-git-send-email-khilman@deeprootsystems.com> <1221136453-16697-10-git-send-email-khilman@deeprootsystems.com> <1221136453-16697-11-git-send-email-khilman@deeprootsystems.com> <1221136453-16697-12-git-send-email-khilman@deeprootsystems.com> <1221136453-16697-13-git-send-email-khilman@deeprootsystems.com> <1221136453-16697-14-git-send-email-khilman@deeprootsystems.com> <1221136453-16697-15-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="APlYHCtpeOhspHkB"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fmmailgate05.web.de ([217.72.192.243]:64073 "EHLO
-	fmmailgate05.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751848AbYIKNlt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 09:41:49 -0400
-Received: from web.de
-	by fmmailgate05.web.de (Postfix) with SMTP id 02ADE591C343
-	for <linux-omap@vger.kernel.org>; Thu, 11 Sep 2008 15:41:48 +0200 (CEST)
+Received: from smtp.nokia.com ([192.100.105.134]:54955 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751848AbYIKOi5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 10:38:57 -0400
+Content-Disposition: inline
+In-Reply-To: <1221136453-16697-15-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: ext Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, Jouni Hogander <jouni.hogander@nokia.com>
 
-I have a problem with my toolchain.
 
-I am using codesourcery lite in /opt/cs ...
-The omap kernel is in /opt/src/2.6-kernel ...
+--APlYHCtpeOhspHkB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I try to compile some test programm for gpio testing of EVM board  .. #=
-include <asm/arch/gpio.h>
+On Thu, Sep 11, 2008 at 03:33:59PM +0300, ext Kevin Hilman wrote:
+> Signed-off-by: Git administrator <gitowner@stego.research.nokia.com>
 
-Since this gpio.h is not part of cs I tried to compile with -I option a=
-s below:
+Oops. :)
 
-gcca -o gpio -I /opt/src/2.6_kernel/include/ gpio.c
-In file included from /opt/src/2.6_kernel/include/asm/arch/hardware.h:4=
-4,
-                 from /opt/src/2.6_kernel/include/asm/hardware.h:16,
-                 from /opt/src/2.6_kernel/include/asm/arch/gpio.h:29,
-                 from gpio.c:6:
-/opt/src/2.6_kernel/include/asm/arch/io.h:185: error: expected ':', ','=
-, ';', '}' or '__attribute__' before 'offset'
-/opt/src/2.6_kernel/include/asm/arch/io.h:191: error: expected ':', ','=
-, ';', '}' or '__attribute__' before 'offset'
+Cheers,
+Daniel
 
-What am I do wrong? I guess my toolchain is not done well, but I don't =
-know how to do it better. Someone can help?
+--APlYHCtpeOhspHkB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-*gcca is a link to arm-none.../bin/....gcc
-_______________________________________________________________________=
-_
-Schon geh=F6rt? Bei WEB.DE gibt' s viele kostenlose Spiele:
-http://games.entertainment.web.de/de/entertainment/games/free/index.htm=
-l
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iEYEARECAAYFAkjJLWAACgkQ68xJuWtYYdVpWACguoOuCcFDk0v/T57HweYIcN/M
+lUkAoLsGXwcRp+NXLjg96hXORn7SE6tc
+=ItMA
+-----END PGP SIGNATURE-----
+
+--APlYHCtpeOhspHkB--
