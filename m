@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 07/29] menuconfig updates for cpuidle
-Date: Thu, 11 Sep 2008 15:33:51 +0300
-Message-ID: <1221136453-16697-7-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 10/29] gpmc context save/restore
+Date: Thu, 11 Sep 2008 15:33:54 +0300
+Message-ID: <1221136453-16697-10-git-send-email-khilman@deeprootsystems.com>
 References: <87iqt2amoi.fsf@deeprootsystems.com>
  <1221136453-16697-1-git-send-email-khilman@deeprootsystems.com>
  <1221136453-16697-2-git-send-email-khilman@deeprootsystems.com>
@@ -9,12 +9,15 @@ References: <87iqt2amoi.fsf@deeprootsystems.com>
  <1221136453-16697-4-git-send-email-khilman@deeprootsystems.com>
  <1221136453-16697-5-git-send-email-khilman@deeprootsystems.com>
  <1221136453-16697-6-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-7-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-8-git-send-email-khilman@deeprootsystems.com>
+ <1221136453-16697-9-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:48462 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755234AbYIKMeb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 08:34:31 -0400
-In-Reply-To: <1221136453-16697-6-git-send-email-khilman@deeprootsystems.com>
+Received: from smtp.nokia.com ([192.100.122.230]:18897 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755694AbYIKMeg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 08:34:36 -0400
+In-Reply-To: <1221136453-16697-9-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -22,80 +25,139 @@ Cc: Rajendra Nayak <rnayak@ti.com>
 
 From: Rajendra Nayak <rnayak@ti.com>
 
-This patch enables the cpuidle option in menuconfig
-and selects the menu governor
+This patch adds the context save restore functions for GPMC
 ---
- arch/arm/Kconfig        |   10 ++++++++++
- drivers/cpuidle/Kconfig |   26 +++++++++++++++++++++-----
- 2 files changed, 31 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/gpmc.c             |   80 ++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/gpmc.h |   14 ++++++
+ 2 files changed, 94 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index aa475d9..a365bfc 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -1005,6 +1005,16 @@ config ATAGS_PROC
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index f3e0271..32f36fa 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -54,6 +54,21 @@
+ #define GPMC_CHUNK_SHIFT	24		/* 16 MB */
+ #define GPMC_SECTION_SHIFT	28		/* 128 MB */
  
- endmenu
++/*
++ * Structure to save/restore gpmc context
++ * to support core off
++ */
++static struct gpmc_context {
++	u32 sysconfig;
++	u32 irqenable;
++	u32 timeout_ctrl;
++	u32 config;
++	u32 prefetch_config1;
++	u32 prefetch_config2;
++	u32 prefetch_control;
++	struct gpmc_cs_config cs_context[GPMC_CS_NUM];
++} gpmc_ctx;
++
+ static struct resource	gpmc_mem_root;
+ static struct resource	gpmc_cs_mem[GPMC_CS_NUM];
+ static DEFINE_SPINLOCK(gpmc_mem_lock);
+@@ -451,3 +466,68 @@ void __init gpmc_init(void)
  
-+if (ARCH_OMAP)
+ 	gpmc_mem_init();
+ }
 +
-+menu "CPUIdle"
++void omap_save_gpmc_ctx()
++{
++	int i;
++	gpmc_ctx.sysconfig = gpmc_read_reg(GPMC_SYSCONFIG);
++	gpmc_ctx.irqenable = gpmc_read_reg(GPMC_IRQENABLE);
++	gpmc_ctx.timeout_ctrl = gpmc_read_reg(GPMC_TIMEOUT_CONTROL);
++	gpmc_ctx.config = gpmc_read_reg(GPMC_CONFIG);
++	gpmc_ctx.prefetch_config1 = gpmc_read_reg(GPMC_PREFETCH_CONFIG1);
++	gpmc_ctx.prefetch_config2 = gpmc_read_reg(GPMC_PREFETCH_CONFIG2);
++	gpmc_ctx.prefetch_control = gpmc_read_reg(GPMC_PREFETCH_CONTROL);
++	for (i = 0; i < GPMC_CS_NUM; i++) {
++		gpmc_ctx.cs_context[i].is_valid =
++				(gpmc_cs_read_reg(i, GPMC_CS_CONFIG7))
++								& (1 << 6);
++		if (gpmc_ctx.cs_context[i].is_valid) {
++			gpmc_ctx.cs_context[i].gpmc_config1 =
++				gpmc_cs_read_reg(i, GPMC_CS_CONFIG1);
++			gpmc_ctx.cs_context[i].gpmc_config2 =
++				gpmc_cs_read_reg(i, GPMC_CS_CONFIG2);
++			gpmc_ctx.cs_context[i].gpmc_config3 =
++				gpmc_cs_read_reg(i, GPMC_CS_CONFIG3);
++			gpmc_ctx.cs_context[i].gpmc_config4 =
++				gpmc_cs_read_reg(i, GPMC_CS_CONFIG4);
++			gpmc_ctx.cs_context[i].gpmc_config5 =
++				gpmc_cs_read_reg(i, GPMC_CS_CONFIG5);
++			gpmc_ctx.cs_context[i].gpmc_config6 =
++				gpmc_cs_read_reg(i, GPMC_CS_CONFIG6);
++			gpmc_ctx.cs_context[i].gpmc_config7 =
++				gpmc_cs_read_reg(i, GPMC_CS_CONFIG7);
++		}
++	}
++}
 +
-+source "drivers/cpuidle/Kconfig"
++void omap_restore_gpmc_ctx()
++{
++	int i;
++	gpmc_write_reg(GPMC_SYSCONFIG, gpmc_ctx.sysconfig);
++	gpmc_write_reg(GPMC_IRQENABLE, gpmc_ctx.irqenable);
++	gpmc_write_reg(GPMC_TIMEOUT_CONTROL, gpmc_ctx.timeout_ctrl);
++	gpmc_write_reg(GPMC_CONFIG, gpmc_ctx.config);
++	gpmc_write_reg(GPMC_PREFETCH_CONFIG1, gpmc_ctx.prefetch_config1);
++	gpmc_write_reg(GPMC_PREFETCH_CONFIG2, gpmc_ctx.prefetch_config2);
++	gpmc_write_reg(GPMC_PREFETCH_CONTROL, gpmc_ctx.prefetch_control);
++	for (i = 0; i < GPMC_CS_NUM; i++) {
++		if (gpmc_ctx.cs_context[i].is_valid) {
++			gpmc_cs_write_reg(i, GPMC_CS_CONFIG1,
++					gpmc_ctx.cs_context[i].gpmc_config1);
++			gpmc_cs_write_reg(i, GPMC_CS_CONFIG2,
++					gpmc_ctx.cs_context[i].gpmc_config2);
++			gpmc_cs_write_reg(i, GPMC_CS_CONFIG3,
++					gpmc_ctx.cs_context[i].gpmc_config3);
++			gpmc_cs_write_reg(i, GPMC_CS_CONFIG4,
++					gpmc_ctx.cs_context[i].gpmc_config4);
++			gpmc_cs_write_reg(i, GPMC_CS_CONFIG5,
++					gpmc_ctx.cs_context[i].gpmc_config5);
++			gpmc_cs_write_reg(i, GPMC_CS_CONFIG6,
++					gpmc_ctx.cs_context[i].gpmc_config6);
++			gpmc_cs_write_reg(i, GPMC_CS_CONFIG7,
++					gpmc_ctx.cs_context[i].gpmc_config7);
++		}
++	}
++}
 +
-+endmenu
 +
-+endif
-+
- if (ARCH_SA1100 || ARCH_INTEGRATOR || ARCH_OMAP || ARCH_IMX || ARCH_PXA)
+diff --git a/arch/arm/plat-omap/include/mach/gpmc.h b/arch/arm/plat-omap/include/mach/gpmc.h
+index 921b165..133991c 100644
+--- a/arch/arm/plat-omap/include/mach/gpmc.h
++++ b/arch/arm/plat-omap/include/mach/gpmc.h
+@@ -90,6 +90,18 @@ struct gpmc_timings {
+ 	u16 wr_data_mux_bus;	/* WRDATAONADMUXBUS */
+ };
  
- menu "CPU Frequency scaling"
-diff --git a/drivers/cpuidle/Kconfig b/drivers/cpuidle/Kconfig
-index 7dbc4a8..e27bb34 100644
---- a/drivers/cpuidle/Kconfig
-+++ b/drivers/cpuidle/Kconfig
-@@ -1,20 +1,36 @@
-+menu "CPU idle PM support"
- 
- config CPU_IDLE
- 	bool "CPU idle PM support"
--	default ACPI
-+	default n
- 	help
- 	  CPU idle is a generic framework for supporting software-controlled
- 	  idle processor power management.  It includes modular cross-platform
- 	  governors that can be swapped during runtime.
- 
--	  If you're using an ACPI-enabled platform, you should say Y here.
-+	  If you're using a mobile platform that supports CPU idle PM (e.g.
-+	  an ACPI-capable notebook), you should say Y here.
++/* Structure to save gpmc cs context */
++struct gpmc_cs_config {
++	u32 gpmc_config1;
++	u32 gpmc_config2;
++	u32 gpmc_config3;
++	u32 gpmc_config4;
++	u32 gpmc_config5;
++	u32 gpmc_config6;
++	u32 gpmc_config7;
++	int is_valid;
++};
 +
-+if CPU_IDLE
-+
-+comment "Governors"
+ extern unsigned int gpmc_ns_to_ticks(unsigned int time_ns);
+ extern unsigned int gpmc_ticks_to_ns(unsigned int ticks);
+ extern unsigned int gpmc_round_ns_to_ticks(unsigned int time_ns);
+@@ -103,6 +115,8 @@ extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
+ extern void gpmc_cs_free(int cs);
+ extern int gpmc_cs_set_reserved(int cs, int reserved);
+ extern int gpmc_cs_reserved(int cs);
++extern void omap_save_gpmc_ctx(void);
++extern void omap_restore_gpmc_ctx(void);
+ extern void __init gpmc_init(void);
  
- config CPU_IDLE_GOV_LADDER
--	bool
-+	bool "ladder"
- 	depends on CPU_IDLE
--	default y
-+	default n
- 
- config CPU_IDLE_GOV_MENU
--	bool
-+	bool "menu"
- 	depends on CPU_IDLE && NO_HZ
- 	default y
-+        help
-+	  This cpuidle governor evaluates all available states and chooses the
-+	  deepest state that meets all of the following constraints: BM activity,
-+	  expected time until next timer interrupt, and last break event time
-+	  delta.  It is designed to minimize power consumption.  Currently
-+	  dynticks is required.
-+
-+endif   # CPU_IDLE
-+
-+endmenu
+ #endif
 -- 
 1.6.0
 
