@@ -1,65 +1,66 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [patch] omap: usb: ehci: fix use of hcd->regs
-Date: Fri, 12 Sep 2008 16:37:13 +0300 (EEST)
-Message-ID: <20080912.163713.80279054.Hiroshi.DOYU@nokia.com>
-References: <20080912121024.GG759@gandalf.research.nokia.com>
-	<20080912.151404.108681717.Hiroshi.DOYU@nokia.com>
-	<20080912123010.GI759@gandalf.research.nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] Fix build for beagleboard
+Date: Fri, 12 Sep 2008 08:02:52 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0809120802090.16867@utopia.booyaka.com>
+References: <20080911181549.GK21163@atomide.com> <1221215556-5100-1-git-send-email-peter.de-schrijver@nokia.com> <1221215556-5100-2-git-send-email-peter.de-schrijver@nokia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:36035 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751192AbYILNhw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 09:37:52 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8CDbkE1008436
-	for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 16:37:50 +0300
-In-Reply-To: <20080912123010.GI759@gandalf.research.nokia.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:54387 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751192AbYILOCx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 10:02:53 -0400
+In-Reply-To: <1221215556-5100-2-git-send-email-peter.de-schrijver@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.balbi@nokia.com
+To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 Cc: linux-omap@vger.kernel.org
 
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [patch] omap: usb: ehci: fix use of hcd->regs
-Date: Fri, 12 Sep 2008 15:30:10 +0300
+On Fri, 12 Sep 2008, Peter 'p2' De Schrijver wrote:
 
-> On Fri, Sep 12, 2008 at 03:14:04PM +0300, Hiroshi DOYU wrote:
-> > From: "ext Felipe Balbi" <felipe.balbi@nokia.com>
-> > Subject: [patch] omap: usb: ehci: fix use of hcd->regs
-> > Date: Fri, 12 Sep 2008 15:10:24 +0300
-> > 
-> > > hcd->regs should be initialized by ioremaping hcd->rsrc_start and
-> > > hcd->rsrc_len. Fix it for ehci-omap.c.
-> > > 
-> > > Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> > > ---
-> > > 
-> > > diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-> > > index 8f122e5..a67533d 100644
-> > > --- a/drivers/usb/host/ehci-omap.c
-> > > +++ b/drivers/usb/host/ehci-omap.c
-> > > @@ -438,7 +438,7 @@ static int ehci_hcd_omap_drv_probe(struct platform_device *dev)
-> > >         hcd->rsrc_start = dev->resource[0].start;
-> > >         hcd->rsrc_len = dev->resource[0].end - dev->resource[0].start + 1;
-> > >  
-> > > -       hcd->regs = (void __iomem *) (int) IO_ADDRESS(hcd->rsrc_start);
-> > > +       hcd->regs = ioremap(hcd->rsrc_start, hcd->rsrc_len);
-> > 
-> > Return value check?
 > 
-> Good one. Here's a new version:
-> 
-> ===== cut here ====
-> 
-> From: Felipe Balbi <felipe.balbi@nokia.com>
-> Subject: [patch] omap: usb: ehci: fix usb of hcd->regs
-> 
-> hcd->regs should be initialized by ioremaping hcd->rsrc_start and
-> hcd->rsrc_len. Fix it for ehci-omap.c.
+> Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+This patch is also necessary for 2430SDP builds to succeed.
 
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+- Paul
+
+
+> ---
+>  drivers/i2c/chips/twl4030-power.c |    5 ++++-
+>  1 files changed, 4 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/i2c/chips/twl4030-power.c b/drivers/i2c/chips/twl4030-power.c
+> index 195c3c4..04a13aa 100644
+> --- a/drivers/i2c/chips/twl4030-power.c
+> +++ b/drivers/i2c/chips/twl4030-power.c
+> @@ -149,7 +149,7 @@ struct triton_ins t2_wrst_seq[] __initdata = {
+>  struct triton_ins sleep_on_seq[] __initdata = {
+>  	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_RC, RES_TYPE_ALL, RES_TYPE2_R0,
+>  			RES_STATE_SLEEP), 4},
+> -	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_ALL, RES_TYPE_R7,
+> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_ALL, RES_TYPE2_R0,
+>  			RES_STATE_SLEEP), 4},
+>  };
+>  
+> @@ -160,6 +160,9 @@ struct triton_ins sleep_off_seq[] __initdata = {
+>  	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_ALL, RES_TYPE2_R0,
+>  			RES_STATE_ACTIVE), 0x2},
+>  };
+> +
+> +struct triton_ins t2_wrst_seq[] __initdata = { };
+> +
+>  #endif
+>  
+>  static int __init twl4030_write_script_byte(u8 address, u8 byte)
+> -- 
+> 1.5.6.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+- Paul
