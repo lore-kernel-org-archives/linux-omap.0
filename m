@@ -1,44 +1,64 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH] omapfb: use proper bits per pixel for beagleboard.
-Date: Sat, 13 Sep 2008 01:28:20 +0300
-Message-ID: <1221258481-18531-1-git-send-email-felipe.contreras@gmail.com>
-References: <c656a4d20809120913i2cf6b2d0i33289ac8b45f76e9@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 00/12] Update OMAP2/3 powerdomains, clockdomains
+Date: Fri, 12 Sep 2008 15:33:50 -0700
+Message-ID: <20080912223349.GI10675@atomide.com>
+References: <20080910164631.17024.43733.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.158]:35818 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756731AbYILW21 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 18:28:27 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so610034fgg.17
-        for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 15:28:25 -0700 (PDT)
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64978 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753386AbYILWdw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 18:33:52 -0400
 Content-Disposition: inline
-In-Reply-To: <c656a4d20809120913i2cf6b2d0i33289ac8b45f76e9@mail.gmail.com>
+In-Reply-To: <20080910164631.17024.43733.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Felipe Contreras <felipe.contreras@gmail.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
-This was suggested by Mans Rullgard, otherwise it doesn't work.
+* Paul Walmsley <paul@pwsan.com> [080910 09:51]:
+> This second version adds two fixes: it removes the extraneous init
+> from csi2_96m_fck, and associates virt_opp_clkdm with wkup_pwrdm.
+> 
+> ...
+> 
+> This series updates the in-kernel OMAP2/3 clockdomain and powerdomain
+> structures:
+> 
+> - Split the placeholder clockdomain "wkup_clkdm" into "cm_clkdm" and
+>   "prm_clkdm".  This more accurately reflects the hardware.
+> 
+> - Add powerdomains and clockdomains for DPLLs 1 through 5 on OMAP3.
+> 
+> - Associate every clock in OMAP2/3 clock tree with an appropriate
+>   clockdomain.
+> 
+> Boot-tested on 2430SDP and 3430SDP.
 
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
----
- drivers/video/omap/lcd_omap3beagle.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Pushed these. Sounds like we need to queue up bunch of clock and
+powerdomain patches for mainline.
 
-diff --git a/drivers/video/omap/lcd_omap3beagle.c b/drivers/video/omap/lcd_omap3beagle.c
-index 9637735..dc59f39 100644
---- a/drivers/video/omap/lcd_omap3beagle.c
-+++ b/drivers/video/omap/lcd_omap3beagle.c
-@@ -66,7 +66,7 @@ struct lcd_panel omap3beagle_panel = {
- 	.name		= "omap3beagle",
- 	.config		= OMAP_LCDC_PANEL_TFT,
- 
--	.bpp		= 24,
-+	.bpp		= 16,
- 	.data_lines	= 24,
- 	.x_res		= LCD_XRES,
- 	.y_res		= LCD_YRES,
--- 
-1.6.0.1
+Tony
 
+> 
+> ---
+> 
+> size:
+>    text    data     bss     dec     hex filename
+> 3441382  157936  105728 3705046  3888d6 vmlinux.3430sdp.orig
+> 3441638  158440  105728 3705806  388bce vmlinux.3430sdp
+> 
+>  arch/arm/mach-omap2/clock.c                   |    8 +
+>  arch/arm/mach-omap2/clock24xx.h               |   56 ++++++----
+>  arch/arm/mach-omap2/clock34xx.h               |  140 ++++++++++++++++++-------
+>  arch/arm/mach-omap2/clockdomains.h            |   65 +++++++++++-
+>  arch/arm/mach-omap2/powerdomains.h            |    5 +
+>  arch/arm/mach-omap2/powerdomains34xx.h        |   31 ++++++
+>  arch/arm/plat-omap/include/mach/powerdomain.h |    4 -
+>  7 files changed, 239 insertions(+), 70 deletions(-)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
