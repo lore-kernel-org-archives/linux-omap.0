@@ -1,43 +1,73 @@
-From: "arun c" <arun.edarath@gmail.com>
-Subject: Re: omapfb not working on beagleboard
-Date: Fri, 12 Sep 2008 21:43:30 +0530
-Message-ID: <c656a4d20809120913i2cf6b2d0i33289ac8b45f76e9@mail.gmail.com>
-References: <94a0d4530809120422q1f0aaf67hb3a1422e2e631112@mail.gmail.com>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: RE: [PATCH] OMAP3 clock: remove extra init from csi2_96m_fck
+Date: Fri, 12 Sep 2008 11:30:36 -0500
+Message-ID: <A24693684029E5489D1D202277BE894411CCEEC5@dlee02.ent.ti.com>
+References: <20080910234736.GS21163@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.187]:37708 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753167AbYILQNc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 12:13:32 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so582338tic.23
-        for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 09:13:30 -0700 (PDT)
-In-Reply-To: <94a0d4530809120422q1f0aaf67hb3a1422e2e631112@mail.gmail.com>
-Content-Disposition: inline
+Received: from comal.ext.ti.com ([198.47.26.152]:42459 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752478AbYILQao convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 12:30:44 -0400
+In-Reply-To: <20080910234736.GS21163@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
+To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Sep 12, 2008 at 4:52 PM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> Hi,
->
-> I was getting bad image with the current omapfb on the Beagle Board
-> until Mans Rullgard told me to change the bits per pixel to 16.
->
-> Is there any reason why it's 24?
+Isn't this patch meant to be pushed after "Update powerdomains and clockdomains" series from Paul?
 
-As far as I know omapfb doesn't support 24bpp.
+I don't see that yet.
 
+Regards,
+Sergio
 
-> drivers/video/omap/lcd_omap3beagle.c
->
-> --
-> Felipe Contreras
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony Lindgren
+Sent: Wednesday, September 10, 2008 6:48 PM
+To: Paul Walmsley
+Cc: linux-omap@vger.kernel.org
+Subject: Re: [PATCH] OMAP3 clock: remove extra init from csi2_96m_fck
+
+* Paul Walmsley <paul@pwsan.com> [080909 09:59]:
+> 
+> csi2_96m_fck no longer should attempt to init its clockdomain pointer; the 
+> clock framework now does this by default.  Applies on top of the "Update 
+> powerdomains and clockdomains" series sent earlier.
+> 
+> Verified on 3430SDP ES2.
+
+Pushing today.
+
+Tony
+
+> 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> ---
+>  arch/arm/mach-omap2/clock34xx.h |    1 -
+>  1 files changed, 0 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+> index 65568c3..56ae83f 100644
+> --- a/arch/arm/mach-omap2/clock34xx.h
+> +++ b/arch/arm/mach-omap2/clock34xx.h
+> @@ -2298,7 +2298,6 @@ static struct clk cam_ick = {
+>  static struct clk csi2_96m_fck = {
+>  	.name		= "csi2_96m_fck",
+>  	.parent		= &core_96m_fck,
+> -	.init		= &omap2_init_clk_clkdm,
+>  	.enable_reg	= _OMAP34XX_CM_REGADDR(OMAP3430_CAM_MOD, CM_FCLKEN),
+>  	.enable_bit	= OMAP3430_EN_CSI2_SHIFT,
+>  	.flags		= CLOCK_IN_OMAP343X,
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
