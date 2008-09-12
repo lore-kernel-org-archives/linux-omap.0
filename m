@@ -1,34 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Felipe Balbi <me@felipebalbi.com>
 Subject: Re: [rfc] [patch] clean up to ehci-omap (Was: Re: [patch] omap:
 	usb: ehci: fix use of hcd->regs)
-Date: Fri, 12 Sep 2008 12:21:59 -0700
-Message-ID: <20080912192158.GG10675@atomide.com>
-References: <20080912121024.GG759@gandalf.research.nokia.com> <20080912182255.GD7132@frodo> <20080912183819.GE7132@frodo> <200809121216.27116.david-b@pacbell.net>
+Date: Fri, 12 Sep 2008 22:28:16 +0300
+Message-ID: <20080912192809.GF7132@frodo>
+References: <20080912121024.GG759@gandalf.research.nokia.com> <20080912182255.GD7132@frodo> <20080912183819.GE7132@frodo> <200809121216.27116.david-b@pacbell.net> <20080912192158.GG10675@atomide.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58978 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755410AbYILTWG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 15:22:06 -0400
+Received: from ns1.siteground211.com ([209.62.36.12]:40672 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753122AbYILT2e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 15:28:34 -0400
 Content-Disposition: inline
-In-Reply-To: <200809121216.27116.david-b@pacbell.net>
+In-Reply-To: <20080912192158.GG10675@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: me@felipebalbi.com, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: David Brownell <david-b@pacbell.net>, me@felipebalbi.com, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-* David Brownell <david-b@pacbell.net> [080912 12:18]:
-> On Friday 12 September 2008, Felipe Balbi wrote:
-> > =A0=A0=A0=A0=A0=A0=A0=A0/* Enusre bit is set */
+On Fri, Sep 12, 2008 at 12:21:59PM -0700, Tony Lindgren wrote:
+> * David Brownell <david-b@pacbell.net> [080912 12:18]:
+> > On Friday 12 September 2008, Felipe Balbi wrote:
+> > > =A0=A0=A0=A0=A0=A0=A0=A0/* Enusre bit is set */
+> >=20
+> > My Cortex Mark-I (cerebral, humanoid) treats that as a compile erro=
+r ... :)
 >=20
-> My Cortex Mark-I (cerebral, humanoid) treats that as a compile error =
-=2E.. :)
+> Have you tried preprocessing with squint? :)
 
-Have you tried preprocessing with squint? :)
+ehehe, it's not in my diff, so it wasn't me. :-p
+I'll fix it in the final clean up
 
-Tony
+--=20
+balbi
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
