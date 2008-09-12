@@ -1,334 +1,40 @@
-From: "Shah, Hardik" <hardik.shah@ti.com>
-Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
-Date: Fri, 12 Sep 2008 19:59:44 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02C42B43C8@dbde02.ent.ti.com>
-References: <1221144955.12281.6.camel@tubuntu>
+From: Paul Walmsley <paul@booyaka.com>
+Subject: Re: [RFC] OMAP3: GPIO: Enable debounce clock only when debounce is
+ enabled
+Date: Fri, 12 Sep 2008 08:34:47 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0809120832170.16867@utopia.booyaka.com>
+References: <1221216698-22327-1-git-send-email-jouni.hogander@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <video4linux-list-bounces@redhat.com>
-In-Reply-To: <1221144955.12281.6.camel@tubuntu>
-Content-Language: en-US
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:40887 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751241AbYILOes (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 10:34:48 -0400
+In-Reply-To: <1221216698-22327-1-git-send-email-jouni.hogander@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jouni Hogander <jouni.hogander@nokia.com>
+Cc: linux-omap@vger.kernel.org
+
+Hello Jouni,
+
+On Fri, 12 Sep 2008, Jouni Hogander wrote:
+
+> This patch changes gpio "driver" to enable debounce clock for
+> gpio-bank only when debounce is enabled for some gpio in that bank.
+> 
+> This patch obsoletes "PM: Dynamic GPIO clock handling" patch. Nasty
+> side effect is that gpios in per domain aren't capable to generate
+> wake-up if per domain is in sleep state. Anyway keeping dbcks enabled
+> all the time isn't either good way to workaround this problem. For
+> this we need to use iopad wake-up. Currently enabling iopad wakeup
+> mechanism for gpio pads is left for bootloader or kernel (depending
+> which one does the configuration)
+
+nice resolution to this issue!  Besides Daniel's change, also it would be 
+good to rename the "functional" clocks in the clock tree to indicate that 
+these are debounce clocks.  Perhaps to GPIOx_DBCLK?
 
 
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.ke=
-rnel.org] On Behalf Of Tomi
-> Valkeinen
-> Sent: Thursday, September 11, 2008 8:26 PM
-> To: linux-omap@vger.kernel.org
-> Subject: [PREVIEW] New display subsystem for OMAP2/3
->=20
-> Display Subsystem driver for OMAP2 and 3 (DSS2)
-> -----------------------------------------------
->=20
-> This is an almost total rewrite of the current OmapFB driver (let's cal=
-l it
-> DSS1). The main targets for this work are to implement DSI, TV-out and =
-multiple
-> display support.
->=20
-> The DSS2 driver (omap-dss module) lives in arch/arm/plat-omap/dss/, and=
- the FB,
-> panel and controller drivers live in drivers/video/omap2/. DSS1 and DSS=
-2 live
-> currently side by side, you can choose which one to use.
->=20
-> I know it would be best to modify the DSS1 driver to implement the miss=
-ing
-> features, but the task seemed overwhelming. The DSS1 driver was just no=
-t
-> designed for multiple displays or other outputs than parallel and rfbi,=
- and I
-> thought maintaining a patch set to change those wasn't something I coul=
-d handle
-> and stay sane. So I implemented DSS2 parallel to the DSS1.
->=20
-> I'm sending this now as a preview. DSS2 is in no way ready yet, even th=
-ough it
-> should be usable. I'm interested to hear comments about it, most import=
-antly if
-> it is ok to have DSS2 as a separate driver from DSS1 or is it a no-no.
->=20
-> Some code, especially in the dispc and rfbi, was taken and modified fro=
-m the
-> DSS1 driver by Imre Deak and others.
->=20
-> The patch set is about 200kB, so I decided not to send it as email, but=
- to put
-> it to http://www.bat.org/~tomba/omap-dss/
->=20
-> Architecture
-> ------------
->=20
-> DSS driver has to be loaded first, then the panel and the controller dr=
-ivers
-> are loaded and they register themselves to the DSS. At this point the D=
-SS is
-> ready. The DSS abstracts each display behind a struct omap_display, and=
- these
-> are the main interface to the DSS.
->=20
-> OmapFB driver gets a display from DSS, initializes framebuffer memory,
-> configures the display and activates it. Currently OmapFB only uses the=
- first
-> display.  Also, one could implement other ways to handle the displays a=
-s the
-> DSS does not depend on OmapFB in any way.
->=20
-> And a piece of cool ascii art:
->=20
->                 DSS
->                /   \
->               /     \        +--- Panel
->              /       \      /
-> Panel----Display     Display
->              \       /      \
->               \     /        +--- Ctrl
->                \   /
->               OmapFB
->=20
-> Porting panel and controller drivers to DSS2 is trivial. However, only =
-OMAP3
-> SDP panel driver is currently ported, as I don't have any other public
-> hardware.
->=20
-> Features
-> --------
->=20
-> Current implemented and tested features include:
-> - DSI output in command mode
-> - SDI output (not tested for a while, might've gotten broken)
-> - RFBI output (not tested for a while, might've gotten broken)
-> - Parallel output (OMAP3 SDP, both LCD and DVI)
-> - All pieces can be compiled as a module or inside kernel
-> - Display timing change (with, for example, fbset)
-> - Using DISPC to update any of the outputs
-> - Using CPU to update RFBI or DSI output
-> - OMAP DISPC planes
-> - RGB16, RGB24 packed, RGB24 unpacked
-> - YUV2, UYVY
->=20
-> TODO
-> ----
->=20
-> OMAP2 not tested for some time
-> - DSS2 did work on OMAP2, but I haven't been able to test it for some t=
-ime.
->=20
-> DSS locking
-> - Things break if you change dispc settings during DSI screen update.  =
-Probably
->   the same for RFBI.
->=20
-> Error checking
-> - Lots of checks are missing or implemented just as BUG()
->=20
-> Rotate (external FB)
-> Rotate (VRFB)
-> Rotate (SMS)
-> VENC
->=20
-> Pixel clock
-> - Currently allows only pixel clocks that can be exactly produced.
-> - Use DSI PLL to produce pixel clock
->=20
-> System DMA update for DSI
-> - Can be used for RGB16 and RGB24P modes. Probably not for RGB24U (how
->   to skip the empty byte?)
->=20
-> Power management
-> - Clocks on/off in the first place
->=20
-> Multiple display handling
-> - Perhaps extra framebuffers, and an ioctl to map any of the FBs to any=
- of the
->   DISPC planes or L4. So, for example, fb1 could be GFX plane, fb0 coul=
-d be
->   updated with CPU. Then later on fb1 could be changed to use CPU with =
-an
->   ioctl, and fb0 to use GFX.
-> - Because of the dependencies of the DISPC planes, LCD/DIGIT output,
->   the application has to know what it is doing.
->=20
-> Resolution change
-> - The x/y res of the framebuffer are not display resolutions, but just =
-the
->   resolution of the framebuffer (and the plane).
-> - The display resolution affects all planes on the display.
-> - Display resolution is not really a framebuffer feature. A sysfs
->   entry for each display? If yes, is that an omapfb or DSS feature?
->   Changing resolution affects the framebuffers.
->=20
-> DSI configuration
-> - Currently quite hardcoded configuration
->=20
-> OMAP1 support
-> - Not sure if needed
->=20
-Hi,
-It's time to re-design DSS frame buffer driver for the OMAP2/3.  Current =
-frame buffer driver is not covering the most of the functionality of the =
-OMAP2/3 DSS Hardware like multiple outputs and multiple overlay managers =
-supported by OMAP2/3 class of SoC. Again there is no V4L2 interface expos=
-ed by the DSS drivers for controlling the video pipelines of the DSS whic=
-h is highly desirable feature as the video pipelines of the DSS hardware =
-is a natural fit to the V4L2 architecture.
-
-We have already initiated the re-designing of the DSS drivers and already=
- posted the RFC for the same on the Linux-Omap and the V4L2 mailing lists=
-.  Below is the link for the RFC submitted by us on the open source maili=
-ng lists -
-
-http://lists-archives.org/video4linux/23648-omap3-display-driver-v4l2.htm=
-l
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg02510.html
-
-Typically most of the modern display devices which include the OMAP2 and =
-OMAP3, are required to support two separate types of interfaces - V4L2 in=
-terface for the video planes and fbdev interface for graphics planes. It =
-is impossible for these two drivers on separate frameworks to co-exist as=
- independent full fledged drivers. Hence this has been one of the main as=
-pects we are trying to address through our design, which includes as a co=
-mmon DSS library which can be used by both of the drivers.
-
-VIDEO0(V4L2)    VIDEO1(V4L2)   GFX0(fbdev0)
-		|	|		|
-		|	|		|
-		----DSS Library----
-		     |    |=20
-		    LCD   TV
-
-
-Here, the DSS library is the central set of APIs which is designed to mak=
-e sure that, there are no conflicts for resources, resources being the Gr=
-aphics plane (pipeline), Video planes (pipelines) and Overlay Managers. D=
-isplay library is not tied to any interfaces, like V4L2 or FBDEV.
-
-Output devices registers to the DSS library and applications will be able=
- to switch/exchange/change parameters through their interfaces going thro=
-ugh the DSS library.
-
-We believe that currently your implementation does not address these impo=
-rtant aspects and lot of the users will be at loss of functionality if th=
-is is not addressed.
-
-Below is the link to our implementation which we were about to post as me=
-ntioned in the RFC posted earlier. Please have a look at this.
-
-https://omapzoom.org/gf/project/omapkernel/docman/?subdir=3D10
-
-Following are the important features of the DSS library.  Detail design a=
-bout the DSS library is also available under above link.
-
-1. 	Display library will be the master controlling the DSS hardware. Any =
-driver
-	required to configure the DSS registers should call the DSS library APIs=
-.
-2. 	Display library includes modular functions for programming the video =
-and
-	graphics pipeline of the DSS independently of the framework (V4L2 and FB=
-DEV)
-	used.
-3. 	Display library includes functions for controlling the clock manageme=
-nt and
-	interrupt management. Since these functionalities is shared between the
-	individual pipelines and individual pipelines may be controlled by diffe=
-rent
-	drivers (V4L2 and FBDEV). Display library will maintain the reference co=
-unt and
-	necessary data structures for concurrency handling.
-4. 	Display library has interface for registering and deregistering the e=
-ncoders
-	attached with the overlay managers.
-5. 	Display library includes functions for selecting the output and stand=
-ards. Based
-	on the output selected display library will select the active encoder fr=
-om the
-	registered encoders.
-6. 	Display library supports programming of the overlay managers register=
-s
-	depending upon the output and mode selected. It will maintain the data
-	structures for overlay manager parameters as the overlay managers are sh=
-ared
-	between the pipelines.
-7. 	Display library supports saving and restoring of the context for powe=
-r
-	management.
-8. 	Display library is easily extendable to add the DSI, SDI and RFBI fun=
-ctionality=20
-	supported by DSS Hardware.
-
-Let us work together to get a best design out for OMAP2/3 DSS.
-
-
-Thanks and Regards,
-Hardik
-
-
-> FBSET
-> -----
->=20
-> fbset with omap planes support can be found at
-> http://www.bat.org/~tomba/fbset/
->=20
-> The debian package is from ubuntu, with a patch that adds omap support.
->=20
-> ---
->=20
->  arch/arm/mach-omap2/board-3430sdp.c       |   66 +-
->  arch/arm/plat-omap/Kconfig                |    2 +
->  arch/arm/plat-omap/Makefile               |    2 +
->  arch/arm/plat-omap/dss/Kconfig            |    5 +
->  arch/arm/plat-omap/dss/Makefile           |    6 +
->  arch/arm/plat-omap/dss/dispc.c            | 1539 +++++++++++++++++++
->  arch/arm/plat-omap/dss/display.c          |  304 ++++
->  arch/arm/plat-omap/dss/dpi.c              |  196 +++
->  arch/arm/plat-omap/dss/dsi.c              | 2371 +++++++++++++++++++++=
-++++++++
->  arch/arm/plat-omap/dss/dss.c              |  389 +++++
->  arch/arm/plat-omap/dss/dss.h              |  191 +++
->  arch/arm/plat-omap/dss/rfbi.c             | 1274 ++++++++++++++++
->  arch/arm/plat-omap/dss/sdi.c              |  152 ++
->  arch/arm/plat-omap/dss/venc.c             |  501 ++++++
->  arch/arm/plat-omap/fb.c                   |    9 +-
->  arch/arm/plat-omap/include/mach/display.h |  358 +++++
->  arch/arm/plat-omap/include/mach/omapfb.h  |    7 +
->  drivers/video/Kconfig                     |    1 +
->  drivers/video/Makefile                    |    1 +
->  drivers/video/omap/Kconfig                |    2 +-
->  drivers/video/omap2/Kconfig               |   20 +
->  drivers/video/omap2/Makefile              |    4 +
->  drivers/video/omap2/omapfb.c              | 1377 +++++++++++++++++
->  drivers/video/omap2/panel-sdp3430-dvi.c   |  157 ++
->  drivers/video/omap2/panel-sdp3430.c       |  187 +++
->  25 files changed, 9108 insertions(+), 13 deletions(-)
->=20
-> --
->=20
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
-ibe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+- Paul
