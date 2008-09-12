@@ -1,714 +1,721 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 2/3] Added sleep support to UART
-Date: Fri, 12 Sep 2008 14:38:14 +0300
-Message-ID: <1221219494-12636-3-git-send-email-tero.kristo@nokia.com>
-References: <>
- <1221219494-12636-1-git-send-email-tero.kristo@nokia.com>
- <1221219494-12636-2-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCH] PM debug support for 34xx
+Date: Fri, 12 Sep 2008 14:49:11 +0300
+Message-ID: <1221220151-12812-1-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:34512 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752613AbYILJtA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 05:49:00 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8C9mj5w023814
-	for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 12:48:57 +0300
+Received: from smtp.nokia.com ([192.100.122.230]:49902 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752812AbYILJ7j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 05:59:39 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8C9xElc000708
+	for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 12:59:36 +0300
 Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m8C9mBI0027254
-	for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 12:48:14 +0300
-In-Reply-To: <1221219494-12636-2-git-send-email-tero.kristo@nokia.com>
+	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m8C9x9LW027919
+	for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 12:59:09 +0300
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-UART usage (e.g. serial console) now denies sleep for 5 seconds. This
-makes it possible to use serial console when dynamic idle is
-enabled. Write 1 to /sys/power/uart_clocks_off_while_idle to enable uart
-clock disable on idle. Without this omap won't enter retention.
-
-Also moved code from pm-debug.c to serial.c, and made pm24xx.c use
-this new implementation.
-
-Sleep deny timer can be configured by writing desired value (in ms) to
-/sys/devices/platform/serial8250.0/serial_awake_time (default 5000, i.e.
-5 seconds.)
+This patch adds a few files to the debug file system for PM debugging
+purposes. Enabled with kernel config options CONFIG_PM_DEBUG and
+CONFIG_DEBUG_FS. Data available in debug filesystem after this patch:
+- State enter counters for power domains (OFF, RET, ON)
+- State timers for the above (in ns)
+- PM register dumps with programmable save points
+- Current power domain states
+- Interface to set_pwrdm_state()
 
 Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 ---
- arch/arm/mach-omap2/pm-debug.c           |  132 ----------------------
- arch/arm/mach-omap2/pm.c                 |   15 +++
- arch/arm/mach-omap2/pm.h                 |   10 +--
- arch/arm/mach-omap2/pm24xx.c             |   54 +++++----
- arch/arm/mach-omap2/pm34xx.c             |   13 ++
- arch/arm/mach-omap2/serial.c             |  180 +++++++++++++++++++++++++++++-
- arch/arm/plat-omap/include/mach/common.h |    3 +
- 7 files changed, 242 insertions(+), 165 deletions(-)
+ arch/arm/mach-omap2/clock.c                   |    2 +
+ arch/arm/mach-omap2/clockdomain.c             |   27 ++
+ arch/arm/mach-omap2/pm-debug.c                |  406 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.c                      |    2 +
+ arch/arm/mach-omap2/pm.h                      |   33 ++-
+ arch/arm/mach-omap2/pm34xx.c                  |    6 +-
+ arch/arm/mach-omap2/powerdomain.c             |   69 +++++
+ arch/arm/plat-omap/include/mach/powerdomain.h |    7 +-
+ 8 files changed, 548 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 1b14bcf..b00f5f4 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -37,138 +37,6 @@
- #ifdef CONFIG_PM_DEBUG
- int omap2_pm_debug = 0;
- 
--static int serial_console_clock_disabled;
--static int serial_console_uart;
--static unsigned int serial_console_next_disable;
--
--static struct clk *console_iclk, *console_fclk;
--
--static void serial_console_kick(void)
--{
--	serial_console_next_disable = omap2_read_32k_sync_counter();
--	/* Keep the clocks on for 4 secs */
--	serial_console_next_disable += 4 * 32768;
--}
--
--static void serial_wait_tx(void)
--{
--	static const unsigned long uart_bases[3] = {
--		0x4806a000, 0x4806c000, 0x4806e000
--	};
--	unsigned long lsr_reg;
--	int looped = 0;
--
--	/* Wait for TX FIFO and THR to get empty */
--	lsr_reg = IO_ADDRESS(uart_bases[serial_console_uart - 1] + (5 << 2));
--	while ((__raw_readb(lsr_reg) & 0x60) != 0x60)
--		looped = 1;
--	if (looped)
--		serial_console_kick();
--}
--
--u32 omap2_read_32k_sync_counter(void)
--{
--        return omap_readl(OMAP2_32KSYNCT_BASE + 0x0010);
--}
--
--void serial_console_fclk_mask(u32 *f1, u32 *f2)
--{
--	switch (serial_console_uart)  {
--	case 1:
--		*f1 &= ~(1 << 21);
--		break;
--	case 2:
--		*f1 &= ~(1 << 22);
--		break;
--	case 3:
--		*f2 &= ~(1 << 2);
--		break;
--	}
--}
--
--void serial_console_sleep(int enable)
--{
--	if (console_iclk == NULL || console_fclk == NULL)
--		return;
--
--	if (enable) {
--		BUG_ON(serial_console_clock_disabled);
--		if (clk_get_usecount(console_fclk) == 0)
--			return;
--		if ((int) serial_console_next_disable - (int) omap2_read_32k_sync_counter() >= 0)
--			return;
--		serial_wait_tx();
--		clk_disable(console_iclk);
--		clk_disable(console_fclk);
--		serial_console_clock_disabled = 1;
--	} else {
--		int serial_wakeup = 0;
--		u32 l;
--
--		switch (serial_console_uart)  {
--		case 1:
--			l = prm_read_mod_reg(CORE_MOD, PM_WKST1);
--			if (l & OMAP24XX_ST_UART1)
--				serial_wakeup = 1;
--			break;
--		case 2:
--			l = prm_read_mod_reg(CORE_MOD, PM_WKST1);
--			if (l & OMAP24XX_ST_UART2)
--				serial_wakeup = 1;
--			break;
--		case 3:
--			l = prm_read_mod_reg(CORE_MOD, OMAP24XX_PM_WKST2);
--			if (l & OMAP24XX_ST_UART3)
--				serial_wakeup = 1;
--			break;
--		}
--		if (serial_wakeup)
--			serial_console_kick();
--		if (!serial_console_clock_disabled)
--			return;
--		clk_enable(console_iclk);
--		clk_enable(console_fclk);
--		serial_console_clock_disabled = 0;
--	}
--}
--
--void pm_init_serial_console(void)
--{
--	const struct omap_serial_console_config *conf;
--	char name[16];
--
--	conf = omap_get_config(OMAP_TAG_SERIAL_CONSOLE,
--			       struct omap_serial_console_config);
--	if (conf == NULL)
--		return;
--	if (conf->console_uart > 3 || conf->console_uart < 1)
--		return;
--	serial_console_uart = conf->console_uart;
--	sprintf(name, "uart%d_fck", conf->console_uart);
--	console_fclk = clk_get(NULL, name);
--	if (IS_ERR(console_fclk))
--		console_fclk = NULL;
--	name[6] = 'i';
--	console_iclk = clk_get(NULL, name);
--	if (IS_ERR(console_fclk))
--		console_iclk = NULL;
--	if (console_fclk == NULL || console_iclk == NULL) {
--		serial_console_uart = 0;
--		return;
--	}
--	switch (serial_console_uart) {
--	case 1:
--		prm_set_mod_reg_bits(OMAP24XX_ST_UART1, CORE_MOD, PM_WKEN1);
--		break;
--	case 2:
--		prm_set_mod_reg_bits(OMAP24XX_ST_UART2, CORE_MOD, PM_WKEN1);
--		break;
--	case 3:
--		prm_set_mod_reg_bits(OMAP24XX_ST_UART3, CORE_MOD, OMAP24XX_PM_WKEN2);
--		break;
--	}
--}
--
- #define DUMP_PRM_MOD_REG(mod, reg)    \
- 	regs[reg_count].name = #mod "." #reg; \
- 	regs[reg_count++].val = prm_read_mod_reg(mod, reg)
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 1de5f14..b8aae08 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -33,6 +33,7 @@
- 
- unsigned short enable_dyn_sleep;
- unsigned short gpio_clocks_off_while_idle;
-+unsigned short uart_clocks_off_while_idle;
- atomic_t sleep_block = ATOMIC_INIT(0);
- 
- static ssize_t idle_show(struct kobject *, struct kobj_attribute *, char *);
-@@ -45,6 +46,9 @@ static struct kobj_attribute sleep_while_idle_attr =
- static struct kobj_attribute gpio_clocks_off_while_idle_attr =
- 	__ATTR(gpio_clocks_off_while_idle, 0644, idle_show, idle_store);
- 
-+static struct kobj_attribute uart_clocks_off_while_idle_attr =
-+	__ATTR(uart_clocks_off_while_idle, 0644, idle_show, idle_store);
-+
- static ssize_t idle_show(struct kobject *kobj, struct kobj_attribute *attr,
- 			 char *buf)
- {
-@@ -52,6 +56,8 @@ static ssize_t idle_show(struct kobject *kobj, struct kobj_attribute *attr,
- 		return sprintf(buf, "%hu\n", enable_dyn_sleep);
- 	else if (attr == &gpio_clocks_off_while_idle_attr)
- 		return sprintf(buf, "%hu\n", gpio_clocks_off_while_idle);
-+	else if (attr == &uart_clocks_off_while_idle_attr)
-+		return sprintf(buf, "%hu\n", uart_clocks_off_while_idle);
- 	else
- 		return -EINVAL;
- }
-@@ -71,6 +77,8 @@ static ssize_t idle_store(struct kobject *kobj, struct kobj_attribute *attr,
- 		enable_dyn_sleep = value;
- 	else if (attr == &gpio_clocks_off_while_idle_attr)
- 		gpio_clocks_off_while_idle = value;
-+	else if (attr == &uart_clocks_off_while_idle_attr)
-+		uart_clocks_off_while_idle = value;
- 	else
- 		return -EINVAL;
- 
-@@ -111,6 +119,13 @@ static int __init omap_pm_init(void)
- 		return error;
- 	}
- 	error = sysfs_create_file(power_kobj,
-+				  &uart_clocks_off_while_idle_attr.attr);
-+	if (error) {
-+		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
-+		return error;
-+	}
-+
-+	error = sysfs_create_file(power_kobj,
- 				  &gpio_clocks_off_while_idle_attr.attr);
- 	if (error)
- 		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index d446ea4..60a386d 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -18,25 +18,17 @@ extern int omap3_pm_init(void);
- 
- extern unsigned short enable_dyn_sleep;
- extern unsigned short gpio_clocks_off_while_idle;
-+extern unsigned short uart_clocks_off_while_idle;
- extern atomic_t sleep_block;
- 
- extern void omap2_block_sleep(void);
- extern void omap2_allow_sleep(void);
- 
--
- #ifdef CONFIG_PM_DEBUG
--extern u32 omap2_read_32k_sync_counter(void);
- extern void omap2_pm_dump(int mode, int resume, unsigned int us);
--extern void serial_console_fclk_mask(u32 *f1, u32 *f2);
--extern void pm_init_serial_console(void);
--extern void serial_console_sleep(int enable);
- extern int omap2_pm_debug;
- #else
--#define omap2_read_32k_sync_counter()		0
--#define serial_console_sleep(enable)		do {} while (0);
--#define pm_init_serial_console()		do {} while (0);
- #define omap2_pm_dump(mode, resume, us)		do {} while (0);
--#define serial_console_fclk_mask(f1, f2)		do {} while (0);
- #define omap2_pm_debug				0
- #endif /* CONFIG_PM_DEBUG */
- #endif
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index 60ff04f..4be9385 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -44,6 +44,7 @@
- #include <mach/mux.h>
- #include <mach/dma.h>
- #include <mach/board.h>
-+#include <mach/common.h>
- 
- #include "prm.h"
- #include "prm-regbits-24xx.h"
-@@ -74,7 +75,9 @@ static int omap2_fclks_active(void)
- 
- 	f1 = cm_read_mod_reg(CORE_MOD, CM_FCLKEN1);
- 	f2 = cm_read_mod_reg(CORE_MOD, OMAP24XX_CM_FCLKEN2);
--	serial_console_fclk_mask(&f1, &f2);
-+
-+	omap_serial_fclk_mask(&f1, &f2);
-+
- 	if (f1 | f2)
- 		return 1;
- 	return 0;
-@@ -82,7 +85,8 @@ static int omap2_fclks_active(void)
- 
- static void omap2_enter_full_retention(void)
- {
--	u32 l, sleep_time = 0;
-+	u32 l = 0;
-+	struct timespec sleep_time;
- 
- 	/* There is 1 reference hold for all children of the oscillator
- 	 * clock, the following will remove it. If no one else uses the
-@@ -112,30 +116,33 @@ static void omap2_enter_full_retention(void)
- 
- 	if (omap2_pm_debug) {
- 		omap2_pm_dump(0, 0, 0);
--		sleep_time = omap2_read_32k_sync_counter();
-+		getnstimeofday(&sleep_time);
- 	}
- 
-+	omap_serial_enable_clocks(0);
-+
- 	/* One last check for pending IRQs to avoid extra latency due
- 	 * to sleeping unnecessarily. */
- 	if (omap_irq_pending())
- 		goto no_sleep;
- 
--	serial_console_sleep(1);
- 	/* Jump to SRAM suspend code */
- 	omap2_sram_suspend(sdrc_read_reg(SDRC_DLLA_CTRL),
- 				OMAP_SDRC_REGADDR(SDRC_DLLA_CTRL),
- 				OMAP_SDRC_REGADDR(SDRC_POWER));
- no_sleep:
--	serial_console_sleep(0);
-+	omap_serial_check_wakeup();
-+	omap_serial_enable_clocks(1);
- 
- 	if (omap2_pm_debug) {
--		unsigned long long tmp;
--		u32 resume_time;
--
--		resume_time = omap2_read_32k_sync_counter();
--		tmp = resume_time - sleep_time;
--		tmp *= 1000000;
--		omap2_pm_dump(0, 1, tmp / 32768);
-+		struct timespec t;
-+		struct timespec ts_delta;
-+
-+		getnstimeofday(&t);
-+		ts_delta = timespec_sub(t, sleep_time);
-+		omap2_pm_dump(0, 1,
-+			      div_s64(timespec_to_ns(&ts_delta),
-+				      NSEC_PER_USEC));
- 	}
- 	omap2_gpio_resume_after_retention();
- 
-@@ -196,7 +203,7 @@ static int omap2_allow_mpu_retention(void)
- 
- static void omap2_enter_mpu_retention(void)
- {
--	u32 sleep_time = 0;
-+	struct timespec sleep_time;
- 	int only_idle = 0;
- 
- 	/* Putting MPU into the WFI state while a transfer is active
-@@ -225,19 +232,20 @@ static void omap2_enter_mpu_retention(void)
- 
- 	if (omap2_pm_debug) {
- 		omap2_pm_dump(only_idle ? 2 : 1, 0, 0);
--		sleep_time = omap2_read_32k_sync_counter();
-+		getnstimeofday(&sleep_time);
- 	}
- 
- 	omap2_sram_idle();
- 
- 	if (omap2_pm_debug) {
--		unsigned long long tmp;
--		u32 resume_time;
--
--		resume_time = omap2_read_32k_sync_counter();
--		tmp = resume_time - sleep_time;
--		tmp *= 1000000;
--		omap2_pm_dump(only_idle ? 2 : 1, 1, tmp / 32768);
-+		struct timespec t;
-+		struct timespec ts_delta;
-+
-+		getnstimeofday(&t);
-+		ts_delta = timespec_sub(t, sleep_time);
-+		omap2_pm_dump(only_idle ? 2 : 1, 1,
-+			      div_s64(timespec_to_ns(&ts_delta),
-+				      NSEC_PER_USEC));
- 	}
- }
- 
-@@ -253,6 +261,8 @@ static int omap2_can_sleep(void)
- 		return 0;
- 	if (omap_dma_running())
- 		return 0;
-+	if (!omap_serial_can_sleep())
-+		return 0;
- 
- 	return 1;
- }
-@@ -520,8 +530,6 @@ int __init omap2_pm_init(void)
- 
- 	prcm_setup_regs();
- 
--	pm_init_serial_console();
--
- 	/* Hack to prevent MPU retention when STI console is enabled. */
- 	{
- 		const struct omap_sti_console_config *sti;
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 3fb879c..8b12812 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -29,6 +29,7 @@
- #include <mach/pm.h>
- #include <mach/clockdomain.h>
- #include <mach/powerdomain.h>
-+#include <mach/common.h>
- 
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 88c8ef4..a5fc5b0 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -39,6 +39,7 @@
  #include "cm.h"
+ #include "cm-regbits-24xx.h"
  #include "cm-regbits-34xx.h"
-@@ -97,6 +98,9 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
- 	u32 wkst, irqstatus_mpu;
- 	u32 fclk, iclk;
++#include "pm.h"
  
-+	/* Check if we woke up to serial console activity */
-+	omap_serial_check_wakeup();
-+
- 	/* WKUP */
- 	wkst = prm_read_mod_reg(WKUP_MOD, PM_WKST);
- 	if (wkst) {
-@@ -213,8 +217,14 @@ static void omap_sram_idle(void)
- 	/* Disable GPIO clocks if allowed */
- 	per_gpio_clk_disable();
+ #define MAX_CLOCK_ENABLE_WAIT		100000
  
-+	/* Disable UART clocks if allowed */
-+	omap_serial_enable_clocks(0);
-+
- 	_omap_sram_idle(NULL, save_state);
+@@ -1025,5 +1026,6 @@ void omap2_clk_disable_unused(struct clk *clk)
  
-+	/* Enable UART clocks if allowed */
-+	omap_serial_enable_clocks(1);
-+
- 	/* Enable GPIO clocks if allowed */
- 	per_gpio_clk_enable();
- 
-@@ -256,6 +266,7 @@ static int omap3_fclks_active(void)
- 				  CM_FCLKEN);
- 
- 	gpio_fclk_mask(&fck_per);
-+	omap_serial_fclk_mask(&fck_core1, &fck_per);
- 
- 	if (fck_core1 | fck_core3 | fck_sgx | fck_dss |
- 	    fck_cam | fck_per | fck_usbhost)
-@@ -271,6 +282,8 @@ static int omap3_can_sleep(void)
- 		return 0;
- 	if (atomic_read(&sleep_block) > 0)
- 		return 0;
-+	if (!omap_serial_can_sleep())
-+		return 0;
- 	return 1;
+ 	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
+ 	_omap2_clk_disable(clk);
++	pm_dbg_clk_state_switch(clk);
  }
+ #endif
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index fa62f14..9670ed1 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -36,6 +36,8 @@
+ #include <mach/powerdomain.h>
+ #include <mach/clockdomain.h>
  
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index dbbef90..281c1c7 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -22,9 +22,66 @@
- 
- #include <mach/common.h>
- #include <mach/board.h>
-+#include <mach/clock.h>
-+#include <mach/control.h>
-+
-+#include "prm.h"
 +#include "pm.h"
 +
-+static unsigned int serial_awake_time = 5000;
+ /* clkdm_list contains all registered struct clockdomains */
+ static LIST_HEAD(clkdm_list);
  
- static struct clk *uart_ick[OMAP_MAX_NR_PORTS];
- static struct clk *uart_fck[OMAP_MAX_NR_PORTS];
-+static struct timespec omap_serial_next_sleep;
-+
-+#ifdef CONFIG_ARCH_OMAP24XX
-+static const u32 omap2_uart_wk_st[OMAP_MAX_NR_PORTS] = {
-+	OMAP2420_PRM_REGADDR(CORE_MOD, PM_WKST1),
-+	OMAP2420_PRM_REGADDR(CORE_MOD, PM_WKST1),
-+	OMAP2420_PRM_REGADDR(CORE_MOD, OMAP24XX_PM_WKST2)
-+};
-+static const u32 omap2_uart_wk_en[OMAP_MAX_NR_PORTS] = {
-+	OMAP2420_PRM_REGADDR(CORE_MOD, PM_WKEN1),
-+	OMAP2420_PRM_REGADDR(CORE_MOD, PM_WKEN1),
-+	OMAP2420_PRM_REGADDR(CORE_MOD, OMAP24XX_PM_WKEN2),
-+};
-+static const u32 omap2_uart_wk_bit[OMAP_MAX_NR_PORTS] = {
-+	OMAP24XX_ST_UART1, OMAP24XX_ST_UART2, OMAP24XX_ST_UART3
-+};
-+#endif
-+
-+#ifdef CONFIG_ARCH_OMAP34XX
-+static const u32 omap3_uart_wk_st[OMAP_MAX_NR_PORTS] = {
-+	OMAP34XX_PRM_REGADDR(CORE_MOD, PM_WKST1),
-+	OMAP34XX_PRM_REGADDR(CORE_MOD, PM_WKST1),
-+	OMAP34XX_PRM_REGADDR(OMAP3430_PER_MOD, PM_WKST1)
-+};
-+static const u32 omap3_uart_wk_en[OMAP_MAX_NR_PORTS] = {
-+	OMAP34XX_PRM_REGADDR(CORE_MOD, PM_WKEN1),
-+	OMAP34XX_PRM_REGADDR(CORE_MOD, PM_WKEN1),
-+	OMAP34XX_PRM_REGADDR(OMAP3430_PER_MOD, PM_WKEN1)
-+};
-+static const u32 omap3_uart_wk_bit[OMAP_MAX_NR_PORTS] = {
-+	OMAP3430_ST_UART1, OMAP3430_ST_UART2, OMAP3430_ST_UART3
-+};
-+#endif
-+
-+static const u32 *omap_uart_wk_st;
-+static const u32 *omap_uart_wk_en;
-+static const u32 *omap_uart_wk_bit;
-+
-+/* UART padconfig registers, these may differ if non-default padconfig
-+   is used */
-+#define CONTROL_PADCONF_UART1_RX 0x182
-+#define CONTROL_PADCONF_UART2_RX 0x17A
-+#define CONTROL_PADCONF_UART3_RX 0x19E
-+#define PADCONF_WAKEUP_ST 0x8000
-+
-+static const u32 omap34xx_uart_padconf[OMAP_MAX_NR_PORTS] = {
-+	CONTROL_PADCONF_UART1_RX,
-+	CONTROL_PADCONF_UART2_RX,
-+	CONTROL_PADCONF_UART3_RX
-+};
+@@ -567,6 +569,8 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
+ 	else
+ 		omap2_clkdm_wakeup(clkdm);
  
- static struct plat_serial8250_port serial_platform_data[] = {
- 	{
-@@ -83,9 +140,18 @@ static inline void __init omap_serial_reset(struct plat_serial8250_port *p)
- 	serial_write_reg(p, UART_OMAP_SYSC, (0x02 << 3) | (1 << 2) | (1 << 0));
++	pm_dbg_clkdm_state_switch(clkdm);
++
+ 	return 0;
  }
  
-+static void omap_serial_kick(void)
-+{
-+	getnstimeofday(&omap_serial_next_sleep);
-+	timespec_add_ns(&omap_serial_next_sleep, (s64)serial_awake_time *
-+		NSEC_PER_MSEC);
-+}
-+
- void omap_serial_enable_clocks(int enable)
- {
- 	int i;
-+	if (uart_clocks_off_while_idle == 0)
-+		return;
- 	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
- 		if (uart_ick[i] && uart_fck[i]) {
- 			if (enable) {
-@@ -99,6 +165,68 @@ void omap_serial_enable_clocks(int enable)
- 	}
- }
+@@ -618,6 +622,29 @@ int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
+ 	else
+ 		omap2_clkdm_sleep(clkdm);
  
-+void omap_serial_fclk_mask(u32 *f1, u32 *f2)
-+{
-+	if (uart_clocks_off_while_idle == 0)
-+		return;
-+	if (uart_ick[0])
-+		*f1 &= ~(1 << uart_fck[0]->enable_bit);
-+	if (uart_ick[1])
-+		*f1 &= ~(1 << uart_fck[1]->enable_bit);
-+	if (uart_ick[2])
-+		*f2 &= ~(1 << uart_fck[2]->enable_bit);
++	pm_dbg_clkdm_state_switch(clkdm);
++
++	return 0;
 +}
 +
-+void omap_serial_check_wakeup(void)
++#if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
++#include <linux/debugfs.h>
++#include <linux/seq_file.h>
++int clkdm_dbg_show_counters(struct seq_file *s, void *unused)
 +{
-+	int i;
++	struct clockdomain *clkdm;
 +
-+	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
-+		if (!uart_ick[i])
++	list_for_each_entry(clkdm, &clkdm_list, node) {
++		if (strcmp(clkdm->name, "emu_clkdm") == 0 ||
++			strcmp(clkdm->name, "wkup_clkdm") == 0)
 +			continue;
++		seq_printf(s, "%s->%s (%d)", clkdm->name,
++			   clkdm->pwrdm.ptr->name,
++			   atomic_read(&clkdm->usecount));
++		seq_printf(s, "\n");
++	}
 +
-+		if (cpu_is_omap34xx())
-+			if (omap_ctrl_readw(omap34xx_uart_padconf[i]) &
-+			    PADCONF_WAKEUP_ST) {
-+				omap_serial_kick();
-+				return;
+ 	return 0;
+ }
+ 
++#endif
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index b00f5f4..380a2a0 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -30,6 +30,9 @@
+ #include <mach/clock.h>
+ #include <mach/board.h>
+ 
++#include <mach/powerdomain.h>
++#include <mach/clockdomain.h>
++#include <mach/common.h>
+ #include "prm.h"
+ #include "cm.h"
+ #include "pm.h"
+@@ -153,4 +156,407 @@ void omap2_pm_dump(int mode, int resume, unsigned int us)
+ 		printk("%-20s: 0x%08x\n", regs[i].name, regs[i].val);
+ }
+ 
++#ifdef CONFIG_DEBUG_FS
++#include <linux/debugfs.h>
++#include <linux/seq_file.h>
++
++static void pm_dbg_regset_store(u32 *ptr);
++
++struct dentry *pm_dbg_dir;
++
++static int pm_dbg_init_done;
++
++enum {
++	PM_DBG_STATE_NOW = 0,
++	PM_DBG_STATE_PREV,
++};
++
++struct pm_module_def {
++	char name[8]; /* Name of the module */
++	short type; /* CM or PRM */
++	unsigned short offset;
++	int low; /* First register address on this module */
++	int high; /* Last register address on this module */
++};
++
++#define MOD_CM 0
++#define MOD_PRM 1
++
++static const struct pm_module_def pm_dbg_reg_modules[] = {
++	{ "IVA2", MOD_CM, OMAP3430_IVA2_MOD, 0, 0x4c },
++	{ "OCP", MOD_CM, OCP_MOD, 0, 0x10 },
++	{ "MPU", MOD_CM, MPU_MOD, 4, 0x4c },
++	{ "CORE", MOD_CM, CORE_MOD, 0, 0x4c },
++	{ "SGX", MOD_CM, OMAP3430ES2_SGX_MOD, 0, 0x4c },
++	{ "WKUP", MOD_CM, WKUP_MOD, 0, 0x40 },
++	{ "CCR", MOD_CM, PLL_MOD, 0, 0x70 },
++	{ "DSS", MOD_CM, OMAP3430_DSS_MOD, 0, 0x4c },
++	{ "CAM", MOD_CM, OMAP3430_CAM_MOD, 0, 0x4c },
++	{ "PER", MOD_CM, OMAP3430_PER_MOD, 0, 0x4c },
++	{ "EMU", MOD_CM, OMAP3430_EMU_MOD, 0x40, 0x54 },
++	{ "NEON", MOD_CM, OMAP3430_NEON_MOD, 0x20, 0x48 },
++	{ "USB", MOD_CM, OMAP3430ES2_USBHOST_MOD, 0, 0x4c },
++
++	{ "IVA2", MOD_PRM, OMAP3430_IVA2_MOD, 0x50, 0xfc },
++	{ "OCP", MOD_PRM, OCP_MOD, 4, 0x1c },
++	{ "MPU", MOD_PRM, MPU_MOD, 0x58, 0xe8 },
++	{ "CORE", MOD_PRM, CORE_MOD, 0x58, 0xf8 },
++	{ "SGX", MOD_PRM, OMAP3430ES2_SGX_MOD, 0x58, 0xe8 },
++	{ "WKUP", MOD_PRM, WKUP_MOD, 0xa0, 0xb0 },
++	{ "CCR", MOD_PRM, PLL_MOD, 0x40, 0x70 },
++	{ "DSS", MOD_PRM, OMAP3430_DSS_MOD, 0x58, 0xe8 },
++	{ "CAM", MOD_PRM, OMAP3430_CAM_MOD, 0x58, 0xe8 },
++	{ "PER", MOD_PRM, OMAP3430_PER_MOD, 0x58, 0xe8 },
++	{ "EMU", MOD_PRM, OMAP3430_EMU_MOD, 0x58, 0xe4 },
++	{ "GLBL", MOD_PRM, OMAP3430_GR_MOD, 0x20, 0xe4 },
++	{ "NEON", MOD_PRM, OMAP3430_NEON_MOD, 0x58, 0xe8 },
++	{ "USB", MOD_PRM, OMAP3430ES2_USBHOST_MOD, 0x58, 0xe8 },
++	{ "", 0, 0, 0, 0 },
++};
++
++#define PM_DBG_MAX_REG_SETS 4
++
++static void *pm_dbg_reg_set[PM_DBG_MAX_REG_SETS];
++
++static int pm_dbg_get_regset_size(void)
++{
++	static int regset_size;
++
++	if (regset_size == 0) {
++		int i = 0;
++
++		while (pm_dbg_reg_modules[i].name[0] != 0) {
++			regset_size += pm_dbg_reg_modules[i].high +
++				4 - pm_dbg_reg_modules[i].low;
++			i++;
++		}
++	}
++	return regset_size;
++}
++
++static int pm_dbg_show_regs(struct seq_file *s, void *unused)
++{
++	int i, j;
++	unsigned long val;
++	int reg_set = (int)s->private;
++	u32 *ptr;
++	void *store = NULL;
++	int regs;
++
++	if (reg_set == 0) {
++		store = kmalloc(pm_dbg_get_regset_size(), GFP_KERNEL);
++		ptr = store;
++		pm_dbg_regset_store(ptr);
++	} else {
++		ptr = pm_dbg_reg_set[reg_set - 1];
++	}
++
++	i = 0;
++
++	while (pm_dbg_reg_modules[i].name[0] != 0) {
++		regs = 0;
++		if (pm_dbg_reg_modules[i].type == MOD_CM)
++			seq_printf(s, "MOD: CM_%s (%08x)\n",
++				pm_dbg_reg_modules[i].name,
++				(u32)(OMAP2_CM_BASE +
++				pm_dbg_reg_modules[i].offset));
++		else
++			seq_printf(s, "MOD: PRM_%s (%08x)\n",
++				pm_dbg_reg_modules[i].name,
++				(u32)(OMAP2_PRM_BASE +
++				pm_dbg_reg_modules[i].offset));
++
++		for (j = pm_dbg_reg_modules[i].low;
++			j <= pm_dbg_reg_modules[i].high; j += 4) {
++			val = *(ptr++);
++			if (val != 0) {
++				regs++;
++				seq_printf(s, "  %02x => %08lx", j, val);
++				if (regs % 4 == 0)
++					seq_printf(s, "\n");
 +			}
-+
-+		if (__raw_readl(omap_uart_wk_st[i]) &
-+		    omap_uart_wk_bit[i]) {
-+			omap_serial_kick();
-+			return;
 +		}
++		seq_printf(s, "\n");
++		i++;
 +	}
++
++	if (store != NULL)
++		kfree(store);
++
++	return 0;
 +}
 +
-+int omap_serial_can_sleep(void)
++static void pm_dbg_regset_store(u32 *ptr)
 +{
-+	int i;
-+	struct timespec t;
++	int i, j;
++	u32 val;
 +
-+	struct plat_serial8250_port *p = serial_platform_data;
++	i = 0;
 +
-+	getnstimeofday(&t);
-+
-+	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
-+		if (!uart_ick[i])
-+			continue;
-+		/* Check if we have data in the transmit buffer */
-+		if ((serial_read_reg(p + i, UART_LSR) &
-+			(UART_LSR_TEMT|UART_LSR_THRE))
-+			!= (UART_LSR_TEMT|UART_LSR_THRE)) {
-+				omap_serial_kick();
-+				return 0;
++	while (pm_dbg_reg_modules[i].name[0] != 0) {
++		for (j = pm_dbg_reg_modules[i].low;
++			j <= pm_dbg_reg_modules[i].high; j += 4) {
++			if (pm_dbg_reg_modules[i].type == MOD_CM)
++				val = cm_read_mod_reg(
++					pm_dbg_reg_modules[i].offset, j);
++			else
++				val = prm_read_mod_reg(
++					pm_dbg_reg_modules[i].offset, j);
++			*(ptr++) = val;
 +		}
++		i++;
 +	}
-+
-+	if (timespec_compare(&t, &omap_serial_next_sleep) < 0)
-+		return 0;
-+
-+	return 1;
 +}
 +
- void __init omap_serial_init(void)
- {
- 	int i;
-@@ -116,8 +244,25 @@ void __init omap_serial_init(void)
- 	if (info == NULL)
- 		return;
- 
-+#ifdef CONFIG_ARCH_OMAP24XX
-+	if (cpu_is_omap242x()) {
-+		omap_uart_wk_st = omap2_uart_wk_st;
-+		omap_uart_wk_en = omap2_uart_wk_en;
-+		omap_uart_wk_bit = omap2_uart_wk_bit;
-+	}
-+#endif
-+
-+#ifdef CONFIG_ARCH_OMAP34XX
-+	if (cpu_is_omap34xx()) {
-+		omap_uart_wk_st = omap3_uart_wk_st;
-+		omap_uart_wk_en = omap3_uart_wk_en;
-+		omap_uart_wk_bit = omap3_uart_wk_bit;
-+	}
-+#endif
-+
- 	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
- 		struct plat_serial8250_port *p = serial_platform_data + i;
-+		u32 v;
- 
- 		if (!(info->enabled_uarts & (1 << i))) {
- 			p->membase = NULL;
-@@ -142,7 +287,31 @@ void __init omap_serial_init(void)
- 			clk_enable(uart_fck[i]);
- 
- 		omap_serial_reset(p);
-+
-+		v = __raw_readl(omap_uart_wk_en[i]);
-+		v |= omap_uart_wk_bit[i];
-+		__raw_writel(v, omap_uart_wk_en[i]);
- 	}
-+
-+	omap_serial_kick();
-+}
-+
-+static ssize_t awake_show(struct kobject *kobj, struct kobj_attribute *attr,
-+			  char *buf)
++int pm_dbg_regset_save(int reg_set)
 +{
-+	return sprintf(buf, "%u\n", serial_awake_time);
++	if (pm_dbg_reg_set[reg_set-1] == NULL)
++		return -EINVAL;
++
++	pm_dbg_regset_store(pm_dbg_reg_set[reg_set-1]);
++
++	return 0;
 +}
 +
-+static ssize_t awake_store(struct kobject *kobj, struct kobj_attribute *attr,
-+			   const char *buf, size_t n)
++static int _pm_dbg_state_switch(struct powerdomain *pwrdm, int flag)
 +{
-+	unsigned int value;
-+	if (sscanf(buf, "%u", &value) != 1) {
-+		printk(KERN_ERR "awake_store: Invalid value\n");
++	s64 t;
++	struct timespec now;
++	int prev;
++	int state;
++
++	if (pwrdm == NULL)
++		return -EINVAL;
++
++	state = pwrdm_read_pwrst(pwrdm);
++
++	switch (flag) {
++	case PM_DBG_STATE_NOW:
++		prev = pwrdm->state;
++		break;
++	case PM_DBG_STATE_PREV:
++		prev = pwrdm_read_prev_pwrst(pwrdm);
++		if (pwrdm->state != prev)
++			pwrdm->state_counter[prev]++;
++		break;
++	default:
 +		return -EINVAL;
 +	}
-+	serial_awake_time = value;
-+	return n;
++
++	if (pm_dbg_init_done) {
++		/* Update timer for previous state */
++		getnstimeofday(&now);
++		t = timespec_to_ns(&now);
++
++		pwrdm->state_timer[prev] += t - pwrdm->timer;
++
++		pwrdm->timer = t;
++
++		if (state != prev)
++			pwrdm->state_counter[state]++;
++	}
++
++	pwrdm->state = state;
++
++	return 0;
++}
++
++int pm_dbg_pwrdm_state_switch(struct powerdomain *pwrdm)
++{
++	return _pm_dbg_state_switch(pwrdm, PM_DBG_STATE_NOW);
++}
++
++int pm_dbg_clkdm_state_switch(struct clockdomain *clkdm)
++{
++	if (clkdm != NULL && clkdm->pwrdm.ptr != NULL) {
++		pwrdm_wait_transition(clkdm->pwrdm.ptr);
++		return pm_dbg_pwrdm_state_switch(clkdm->pwrdm.ptr);
++	}
++
++	return -EINVAL;
++}
++
++int pm_dbg_clk_state_switch(struct clk *clk)
++{
++	if (clk != NULL && clk->clkdm.ptr != NULL)
++		return pm_dbg_clkdm_state_switch(clk->clkdm.ptr);
++	return -EINVAL;
++}
++
++static int pm_dbg_pre_suspend_cb(struct powerdomain *pwrdm)
++{
++	pwrdm_clear_all_prev_pwrst(pwrdm);
++	_pm_dbg_state_switch(pwrdm, PM_DBG_STATE_NOW);
++	return 0;
++}
++
++static int pm_dbg_post_suspend_cb(struct powerdomain *pwrdm)
++{
++	_pm_dbg_state_switch(pwrdm, PM_DBG_STATE_PREV);
++	return 0;
++}
++
++int pm_dbg_pre_suspend(void)
++{
++	pwrdm_for_each(pm_dbg_pre_suspend_cb);
++	return 0;
++}
++
++int pm_dbg_post_suspend(void)
++{
++	pwrdm_for_each(pm_dbg_post_suspend_cb);
++	return 0;
++}
++
++enum {
++	DEBUG_FILE_COUNTERS = 0,
++	DEBUG_FILE_TIMERS,
++};
++
++int pm_dbg_show_counters(struct seq_file *s, void *unused)
++{
++	pwrdm_dbg_show_counters(s, unused);
++	clkdm_dbg_show_counters(s, unused);
++
++	return 0;
++}
++
++static int pm_dbg_open(struct inode *inode, struct file *file)
++{
++	switch ((int)inode->i_private) {
++	case DEBUG_FILE_COUNTERS:
++		return single_open(file, pm_dbg_show_counters,
++			&inode->i_private);
++	case DEBUG_FILE_TIMERS:
++	default:
++		return single_open(file, pwrdm_dbg_show_timers,
++			&inode->i_private);
++	};
++}
++
++static int pm_dbg_reg_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, pm_dbg_show_regs, inode->i_private);
++}
++
++static const struct file_operations debug_fops = {
++	.open           = pm_dbg_open,
++	.read           = seq_read,
++	.llseek         = seq_lseek,
++	.release        = single_release,
++};
++
++static const struct file_operations debug_reg_fops = {
++	.open           = pm_dbg_reg_open,
++	.read           = seq_read,
++	.llseek         = seq_lseek,
++	.release        = single_release,
++};
++
++static int pm_dbg_get_state(void *data, u64 *val)
++{
++	*val = pwrdm_read_pwrst((struct powerdomain *)data);
++	return 0;
++}
++static int pm_dbg_set_state(void *data, u64 val)
++{
++	set_pwrdm_state((struct powerdomain *)data, val);
++	return 0;
++}
++DEFINE_SIMPLE_ATTRIBUTE(debug_pwrdm_fops, pm_dbg_get_state, pm_dbg_set_state, "%llu\n");
++
++int pm_dbg_regset_init(int reg_set)
++{
++	char name[2];
++
++	if (reg_set < 1 || reg_set > PM_DBG_MAX_REG_SETS ||
++		pm_dbg_reg_set[reg_set-1] != NULL)
++		return -EINVAL;
++
++	pm_dbg_reg_set[reg_set-1] =
++		kmalloc(pm_dbg_get_regset_size(), GFP_KERNEL);
++
++	if (pm_dbg_reg_set[reg_set-1] == NULL)
++		return -ENOMEM;
++
++	if (pm_dbg_dir != NULL) {
++		sprintf(name, "%d", reg_set);
++
++		(void) debugfs_create_file(name, S_IRUGO,
++			pm_dbg_dir, (void *)reg_set, &debug_reg_fops);
++	}
++
++	return 0;
++}
++
++static int __init pwrdms_setup(struct powerdomain *pwrdm)
++{
++	s64 t;
++	int i;
++	struct timespec now;
++
++	getnstimeofday(&now);
++	t = timespec_to_ns(&now);
++
++	for (i = 0; i < 4; i++) {
++		pwrdm->state_counter[i] = 0;
++		pwrdm->state_timer[i] = 0;
++	}
++
++	pwrdm_wait_transition(pwrdm);
++	pwrdm->state = pwrdm_read_pwrst(pwrdm);
++	pwrdm->state_counter[pwrdm->state] = 1;
++	pwrdm->timer = t;
++
++	(void) debugfs_create_file(pwrdm->name, S_IRUGO|S_IWUSR,
++		pm_dbg_dir, pwrdm, &debug_pwrdm_fops);
++
++	return 0;
++}
++
++static int __init pm_dbg_init(void)
++{
++	int i;
++	struct dentry *d;
++	char name[2];
++
++	printk(KERN_INFO "pm_dbg_init()\n");
++
++	d = debugfs_create_dir("pm_debug", NULL);
++	if (IS_ERR(d))
++		return PTR_ERR(d);
++
++	(void) debugfs_create_file("count", S_IRUGO,
++		d, (void *)DEBUG_FILE_COUNTERS, &debug_fops);
++	(void) debugfs_create_file("time", S_IRUGO,
++		d, (void *)DEBUG_FILE_TIMERS, &debug_fops);
++
++	pm_dbg_dir = debugfs_create_dir("pwrdm_ctrl", d);
++	if (IS_ERR(pm_dbg_dir))
++		return PTR_ERR(pm_dbg_dir);
++
++	pwrdm_for_each(pwrdms_setup);
++
++	pm_dbg_dir = debugfs_create_dir("registers", d);
++	if (IS_ERR(pm_dbg_dir))
++		return PTR_ERR(pm_dbg_dir);
++
++	(void) debugfs_create_file("current", S_IRUGO,
++		pm_dbg_dir, (void *)0, &debug_reg_fops);
++
++	for (i = 0; i < PM_DBG_MAX_REG_SETS; i++)
++		if (pm_dbg_reg_set[i] != NULL) {
++			sprintf(name, "%d", i+1);
++			(void) debugfs_create_file(name, S_IRUGO,
++				pm_dbg_dir, (void *)(i+1), &debug_reg_fops);
++
++		}
++
++	pm_dbg_init_done = 1;
++
++	return 0;
++}
++late_initcall(pm_dbg_init);
++#endif
++
+ #endif
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index b8aae08..c063565 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -28,6 +28,8 @@
+ #include <asm/mach/time.h>
+ #include <asm/atomic.h>
+ 
++#include <mach/powerdomain.h>
++
+ #include <mach/pm.h>
+ #include "pm.h"
+ 
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 60a386d..19da5c7 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -28,7 +28,36 @@ extern void omap2_allow_sleep(void);
+ extern void omap2_pm_dump(int mode, int resume, unsigned int us);
+ extern int omap2_pm_debug;
+ #else
+-#define omap2_pm_dump(mode, resume, us)		do {} while (0);
+-#define omap2_pm_debug				0
++#define omap2_pm_dump(mode, resume, us) do {} while (0);
++#define omap2_pm_debug 0
++#endif
++
++#if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
++struct seq_file;
++struct clk;
++struct clockdomain;
++struct powerdomain;
++extern int pm_dbg_pwrdm_state_switch(struct powerdomain *pwrdm);
++extern int pm_dbg_clkdm_state_switch(struct clockdomain *clkdm);
++extern int pm_dbg_clk_state_switch(struct clk *clk);
++extern int pm_dbg_pre_suspend(void);
++extern int pm_dbg_post_suspend(void);
++extern int pm_dbg_regset_save(int reg_set);
++extern int pm_dbg_regset_init(int reg_set);
++extern int pwrdm_dbg_show_counters(struct seq_file *s, void *unused);
++extern int pwrdm_dbg_show_timers(struct seq_file *s, void *unused);
++extern int clkdm_dbg_show_counters(struct seq_file *s, void *unused);
++extern int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
++#else
++#define pm_dbg_pwrdm_state_switch(domain) do; while (0)
++#define pm_dbg_clkdm_state_switch(domain) do; while (0)
++#define pm_dbg_clk_state_switch(domain) do; while (0)
++#define pm_dbg_pre_suspend() do; while (0)
++#define pm_dbg_post_suspend() do; while (0)
++#define pm_dbg_regset_save(reg_set) do; while (0)
++#define pm_dbg_regset_init(reg_set) do; while (0)
++#define pwrdm_dbg_show_counters(s,unused) do; while (0)
++#define pwrdm_dbg_show_timers(s,unused) do; while (0)
++#define clkdm_dbg_show_counters(s,unused) do; while (0)
+ #endif /* CONFIG_PM_DEBUG */
+ #endif
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 8b12812..d2694f2 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -212,6 +212,8 @@ static void omap_sram_idle(void)
+ 	disable_smartreflex(SR1);
+ 	disable_smartreflex(SR2);
+ 
++	pm_dbg_pre_suspend();
++
+ 	omap2_gpio_prepare_for_retention();
+ 
+ 	/* Disable GPIO clocks if allowed */
+@@ -230,6 +232,8 @@ static void omap_sram_idle(void)
+ 
+ 	omap2_gpio_resume_after_retention();
+ 
++	pm_dbg_post_suspend();
++
+ 	/* Enable smartreflex after WFI */
+ 	enable_smartreflex(SR1);
+ 	enable_smartreflex(SR2);
+@@ -306,7 +310,7 @@ static int _clkdm_allow_idle(struct powerdomain *pwrdm,
+ /* This sets pwrdm state (other than mpu & core. Currently only ON &
+  * RET are supported. Function is assuming that clkdm doesn't have
+  * hw_sup mode enabled. */
+-static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
++int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+ {
+ 	u32 cur_state;
+ 	int ret = 0;
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 73e2971..097d5c4 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -1110,4 +1110,73 @@ int pwrdm_wait_transition(struct powerdomain *pwrdm)
+ 	return 0;
  }
  
- static struct platform_device serial_device = {
-@@ -153,8 +322,17 @@ static struct platform_device serial_device = {
- 	},
++#if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
+ 
++#include <linux/debugfs.h>
++#include <linux/seq_file.h>
++#include "pm.h"
++
++static const char pwrdm_state_names[][4] = {
++	"OFF",
++	"RET",
++	"INA",
++	"ON"
++};
++
++int pwrdm_dbg_show_counters(struct seq_file *s, void *unused)
++{
++	int i;
++	struct powerdomain *pwrdm;
++	unsigned long flags;
++
++	read_lock_irqsave(&pwrdm_rwlock, flags);
++	list_for_each_entry(pwrdm, &pwrdm_list, node) {
++		if (strcmp(pwrdm->name, "emu_pwrdm") == 0 ||
++			strcmp(pwrdm->name, "wkup_pwrdm") == 0)
++			continue;
++		if (pwrdm->state != pwrdm_read_pwrst(pwrdm))
++			printk(KERN_ERR "pwrdm state mismatch(%s) %d != %d\n",
++			       pwrdm->name, pwrdm->state,
++			       pwrdm_read_pwrst(pwrdm));
++		seq_printf(s, "%s (%s)", pwrdm->name,
++			   pwrdm_state_names[pwrdm->state]);
++		for (i = 0; i < 4; i++) {
++			seq_printf(s, ",%s:%d", pwrdm_state_names[i],
++				pwrdm->state_counter[i]);
++		}
++		seq_printf(s, "\n");
++	}
++	read_unlock_irqrestore(&pwrdm_rwlock, flags);
++
++	return 0;
++}
++
++int pwrdm_dbg_show_timers(struct seq_file *s, void *unused)
++{
++	int i;
++	struct powerdomain *pwrdm;
++	unsigned long flags;
++
++	read_lock_irqsave(&pwrdm_rwlock, flags);
++	list_for_each_entry(pwrdm, &pwrdm_list, node) {
++		if (strcmp(pwrdm->name, "emu_pwrdm") == 0 ||
++			strcmp(pwrdm->name, "wkup_pwrdm") == 0)
++			continue;
++
++		/* Update timer for current state */
++		pm_dbg_pwrdm_state_switch(pwrdm);
++
++		seq_printf(s, "%s (%s)", pwrdm->name,
++			pwrdm_state_names[pwrdm->state]);
++		for (i = 0; i < 4; i++) {
++			seq_printf(s, ",%s:%lld", pwrdm_state_names[i],
++				pwrdm->state_timer[i]);
++		}
++		seq_printf(s, "\n");
++	}
++	read_unlock_irqrestore(&pwrdm_rwlock, flags);
++
++	return 0;
++}
++
++#endif
+diff --git a/arch/arm/plat-omap/include/mach/powerdomain.h b/arch/arm/plat-omap/include/mach/powerdomain.h
+index 4948cb7..8785cb7 100644
+--- a/arch/arm/plat-omap/include/mach/powerdomain.h
++++ b/arch/arm/plat-omap/include/mach/powerdomain.h
+@@ -116,7 +116,12 @@ struct powerdomain {
+ 	struct clockdomain *pwrdm_clkdms[PWRDM_MAX_CLKDMS];
+ 
+ 	struct list_head node;
+-
++#ifdef CONFIG_PM_DEBUG
++	int state;
++	int state_counter[4];
++	s64 timer;
++	s64 state_timer[4];
++#endif
  };
  
-+static struct kobj_attribute serial_awake_attr =
-+	__ATTR(serial_awake_time, 0644, awake_show, awake_store);
-+
- static int __init omap_init(void)
- {
--	return platform_device_register(&serial_device);
-+	int ret;
-+
-+	ret = platform_device_register(&serial_device);
-+	if (!ret)
-+		ret = sysfs_create_file(&serial_device.dev.kobj,
-+					&serial_awake_attr.attr);
-+	return ret;
- }
- arch_initcall(omap_init);
-diff --git a/arch/arm/plat-omap/include/mach/common.h b/arch/arm/plat-omap/include/mach/common.h
-index 5f46249..003c08e 100644
---- a/arch/arm/plat-omap/include/mach/common.h
-+++ b/arch/arm/plat-omap/include/mach/common.h
-@@ -35,6 +35,9 @@ extern void omap_map_common_io(void);
- extern struct sys_timer omap_timer;
- extern void omap_serial_init(void);
- extern void omap_serial_enable_clocks(int enable);
-+extern int omap_serial_can_sleep(void);
-+extern void omap_serial_fclk_mask(u32 *f1, u32 *f2);
-+void omap_serial_check_wakeup(void);
- #ifdef CONFIG_I2C_OMAP
- extern int omap_register_i2c_bus(int bus_id, u32 clkrate,
- 				 struct i2c_board_info const *info,
+ 
 -- 
 1.5.4.3
 
