@@ -1,314 +1,91 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [PATCH 15/15] OMAP3 camera driver: OMAP34XXCAM: Add Sensors
-	Support.
-Date: Thu, 11 Sep 2008 19:53:14 -0500
-Message-ID: <A24693684029E5489D1D202277BE894411CCE9E4@dlee02.ent.ti.com>
-References: <20080911001744.GD21163@atomide.com>
+From: "Rajendra Nayak" <rnayak@ti.com>
+Subject: RE: [PATCH 0/29] PM: proposed branch for PM collaboration
+Date: Fri, 12 Sep 2008 09:14:45 +0530
+Message-ID: <020401c91489$e77ca330$LocalHost@wipultra1382>
+References: <87iqt2amoi.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51501 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752305AbYILAxW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2008 20:53:22 -0400
-In-Reply-To: <20080911001744.GD21163@atomide.com>
-Content-Language: en-US
+Received: from comal.ext.ti.com ([198.47.26.152]:52554 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752087AbYILDo5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Sep 2008 23:44:57 -0400
+In-Reply-To: <87iqt2amoi.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: 'Kevin Hilman' <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-Not by the moment, perhaps later. We'll leave it there by now.
+I don't see this patch from Tero/Jouni as part of this set.. 
+[PATCH 4/4] 34XX: PM: Workaround to enable autoidle for clocks and plls.
+Was this patch dropped? or is it now part of some other patch?
+ 
 
-Please hold this patch, as it is going to change.
-
-Thanks for your time.
-
-Regards,
-Sergio
-
------Original Message-----
-From: Tony Lindgren [mailto:tony@atomide.com] 
-Sent: Wednesday, September 10, 2008 7:18 PM
-To: Aguirre Rodriguez, Sergio Alberto
-Cc: linux-omap@vger.kernel.org
-Subject: Re: [PATCH 15/15] OMAP3 camera driver: OMAP34XXCAM: Add Sensors Support.
-
-* Aguirre Rodriguez, Sergio Alberto <saaguirre@ti.com> [080829 16:35]:
-> From: Sergio Aguirre <saaguirre@ti.com>
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
+> Sent: Thursday, September 11, 2008 6:02 PM
+> To: linux-omap@vger.kernel.org
+> Subject: [PATCH 0/29] PM: proposed branch for PM collaboration
 > 
-> OMAP34XX: CAM: Add Sensors Support
+> Hello,
 > 
-> This adds support in OMAP34xx SDP board file for Sensor and Lens
-> driver.
-
-Should this be in board-3430sdp-camera.c or something like that?
-
-Tony
-
+> The following patchset is an attempt to collect the various PM patches
+> that have been flowing around, and organize them into one branch to be
+> used for further collaboration on PM development, in particular
+> OFF-mode support.
 > 
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> ---
->  arch/arm/mach-omap2/board-3430sdp.c |  228 ++++++++++++++++++++++++++++++++++++
->  1 file changed, 228 insertions(+)
+> It is currently a collection of proposed patches[1] from TI and
+> various other patches from Nokia and others to get retention,
+> OFF-mode, CPUidle etc. working in the linux-omap tree.
 > 
-> Index: linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/board-3430sdp.c	2008-08-25 11:00:18.000000000 -0500
-> +++ linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c	2008-08-25 12:16:46.000000000 -0500
-> @@ -42,6 +42,19 @@
->  #include <mach/gpmc.h>
->  #include <linux/i2c/twl4030-rtc.h>
->  
-> +#ifdef CONFIG_VIDEO_OMAP3
-> +#include <media/v4l2-int-device.h>
-> +#include <../drivers/media/video/omap34xxcam.h>
-> +#include <../drivers/media/video/isp/ispreg.h>
-> +#if defined(CONFIG_VIDEO_MT9P012) || defined(CONFIG_VIDEO_MT9P012_MODULE)
-> +#include <../drivers/media/video/mt9p012.h>
-> +#endif
-> +#endif
-> +
-> +#ifdef CONFIG_VIDEO_DW9710
-> +#include <../drivers/media/video/dw9710.h>
-> +#endif
-> +
->  #include <asm/io.h>
->  #include <asm/delay.h>
->  #include <mach/control.h>
-> @@ -266,6 +279,216 @@
->  	},
->  };
->  
-> +#ifdef CONFIG_VIDEO_DW9710
-> +static int dw9710_lens_power_set(enum v4l2_power power)
-> +{
-> +
-> +	return 0;
-> +}
-> +
-> +static int dw9710_lens_set_prv_data(void *priv)
-> +{
-> +	struct omap34xxcam_hw_config *hwc = priv;
-> +
-> +	hwc->dev_index = 0;
-> +	hwc->dev_minor = 0;
-> +	hwc->dev_type = OMAP34XXCAM_SLAVE_LENS;
-> +
-> +	return 0;
-> +}
-> +
-> +static struct dw9710_platform_data sdp3430_dw9710_platform_data = {
-> +	.power_set      = dw9710_lens_power_set,
-> +	.priv_data_set  = dw9710_lens_set_prv_data,
-> +};
-> +#endif
-> +
-> +#if defined(CONFIG_VIDEO_MT9P012) || defined(CONFIG_VIDEO_MT9P012_MODULE)
-> +static void __iomem *fpga_map_addr;
-> +
-> +static struct omap34xxcam_sensor_config cam_hwc = {
-> +	.sensor_isp = 0,
-> +	.xclk = OMAP34XXCAM_XCLK_A,
-> +};
-> +
-> +static void enable_fpga_vio_1v8(u8 enable)
-> +{
-> +	u16 reg_val;
-> +
-> +	fpga_map_addr = ioremap(DEBUG_BASE, 4096);
-> +	reg_val = readw(fpga_map_addr + REG_SDP3430_FPGA_GPIO_2);
-> +
-> +	/* Ensure that the SPR_GPIO1_3v3 is 0 - powered off.. 1 is on */
-> +	if (reg_val & FPGA_SPR_GPIO1_3v3) {
-> +		reg_val |= FPGA_SPR_GPIO1_3v3;
-> +		reg_val |= FPGA_GPIO6_DIR_CTRL; /* output mode */
-> +		writew(reg_val, fpga_map_addr + REG_SDP3430_FPGA_GPIO_2);
-> +		/* give a few milli sec to settle down
-> +		 * Let the sensor also settle down.. if required..
-> +		 */
-> +		if (enable)
-> +			mdelay(10);
-> +	}
-> +
-> +	if (enable) {
-> +		reg_val |= FPGA_SPR_GPIO1_3v3 | FPGA_GPIO6_DIR_CTRL;
-> +		writew(reg_val, fpga_map_addr + REG_SDP3430_FPGA_GPIO_2);
-> +	}
-> +	/* Vrise time for the voltage - should be less than 1 ms */
-> +	mdelay(1);
-> +}
-> +
-> +static int mt9p012_sensor_set_prv_data(void *priv)
-> +{
-> +	struct omap34xxcam_hw_config *hwc = priv;
-> +
-> +	hwc->u.sensor.xclk = cam_hwc.xclk;
-> +	hwc->u.sensor.sensor_isp = cam_hwc.sensor_isp;
-> +	hwc->dev_index = 0;
-> +	hwc->dev_minor = 0;
-> +	hwc->dev_type = OMAP34XXCAM_SLAVE_SENSOR;
-> +	return 0;
-> +}
-> +
-> +static struct isp_interface_config mt9p012_if_config = {
-> +	.ccdc_par_ser = ISP_PARLL,
-> +	.dataline_shift = 0x1,
-> +	.hsvs_syncdetect = ISPCTRL_SYNC_DETECT_VSRISE,
-> +	.vdint0_timing = 0x0,
-> +	.vdint1_timing = 0x0,
-> +	.strobe = 0x0,
-> +	.prestrobe = 0x0,
-> +	.shutter = 0x0,
-> +	.u.par.par_bridge = 0x0,
-> +	.u.par.par_clk_pol = 0x0,
-> +};
-> +
-> +static int mt9p012_sensor_power_set(enum v4l2_power power)
-> +{
-> +	switch (power) {
-> +	case V4L2_POWER_OFF:
-> +		/* Power Down Sequence */
-> +#ifdef CONFIG_TWL4030_CORE
-> +		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +				VAUX_DEV_GRP_NONE, TWL4030_VAUX2_DEV_GRP);
-> +#else
-> +#error "no power companion board defined!"
-> +#endif
-> +		enable_fpga_vio_1v8(0);
-> +		omap_free_gpio(MT9P012_RESET_GPIO);
-> +		iounmap(fpga_map_addr);
-> +		omap_free_gpio(MT9P012_STANDBY_GPIO);
-> +		break;
-> +	case V4L2_POWER_ON:
-> +		/* Power Up Sequence */
-> +		isp_configure_interface(&mt9p012_if_config);
-> +
-> +		/* Request and configure gpio pins */
-> +		if (omap_request_gpio(MT9P012_STANDBY_GPIO) != 0) {
-> +			printk(KERN_WARNING "Could not request GPIO %d for "
-> +					"AF D88\n", MT9P012_STANDBY_GPIO);
-> +			return -EIO;
-> +		}
-> +
-> +		/* Request and configure gpio pins */
-> +		if (omap_request_gpio(MT9P012_RESET_GPIO) != 0)
-> +			return -EIO;
-> +
-> +		/* set to output mode */
-> +		omap_set_gpio_direction(MT9P012_STANDBY_GPIO, 0);
-> +		/* set to output mode */
-> +		omap_set_gpio_direction(MT9P012_RESET_GPIO, 0);
-> +
-> +		/* STANDBY_GPIO is active HIGH for set LOW to release */
-> +		omap_set_gpio_dataout(MT9P012_STANDBY_GPIO, 1);
-> +
-> +		/* nRESET is active LOW. set HIGH to release reset */
-> +		omap_set_gpio_dataout(MT9P012_RESET_GPIO, 1);
-> +
-> +		/* turn on digital power */
-> +		enable_fpga_vio_1v8(1);
-> +#ifdef CONFIG_TWL4030_CORE
-> +		/* turn on analog power */
-> +		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +					VAUX_2_8_V, TWL4030_VAUX2_DEDICATED);
-> +		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +					VAUX_DEV_GRP_P1, TWL4030_VAUX2_DEV_GRP);
-> +#else
-> +#error "no power companion board defined!"
-> +#endif
-> +
-> +		omap_set_gpio_dataout(MT9P012_STANDBY_GPIO, 0);
-> +
-> +		udelay(1000);
-> +
-> +		/* have to put sensor to reset to guarantee detection */
-> +		omap_set_gpio_dataout(MT9P012_RESET_GPIO, 0);
-> +
-> +		udelay(1500);
-> +
-> +		/* nRESET is active LOW. set HIGH to release reset */
-> +		omap_set_gpio_dataout(MT9P012_RESET_GPIO, 1);
-> +		/* give sensor sometime to get out of the reset. Datasheet says
-> +		   2400 xclks. At 6 MHz, 400 usec are enough */
-> +		udelay(300);
-> +		break;
-> +	case V4L2_POWER_STANDBY:
-> +		/* stand by */
-> +		omap_set_gpio_dataout(MT9P012_STANDBY_GPIO, 1);
-> +		break;
-> +	case V4L2_POWER_RESUME:
-> +		/* out of standby */
-> +		omap_set_gpio_dataout(MT9P012_STANDBY_GPIO, 0);
-> +		udelay(1000);
-> +		break;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static struct v4l2_ifparm ifparm = {
-> +	.if_type = V4L2_IF_TYPE_BT656,
-> +	.u = {
-> +		.bt656 = {
-> +			.frame_start_on_rising_vs = 1,
-> +			.latch_clk_inv = 0,
-> +			.mode = V4L2_IF_TYPE_BT656_MODE_NOBT_10BIT,
-> +			.clock_min = MT9P012_XCLK_MIN,
-> +			.clock_max = MT9P012_XCLK_MAX,
-> +		},
-> +	},
-> +};
-> +
-> +static int mt9p012_ifparm(struct v4l2_ifparm *p)
-> +{
-> +	*p = ifparm;
-> +	return 0;
-> +}
-> +
-> +static struct mt9p012_platform_data sdp3430_mt9p012_platform_data = {
-> +	.power_set      = mt9p012_sensor_power_set,
-> +	.priv_data_set  = mt9p012_sensor_set_prv_data,
-> +	.default_regs   = NULL,
-> +	.ifparm         = mt9p012_ifparm,
-> +};
-> +
-> +
-> +static struct i2c_board_info __initdata sdp3430_i2c_board_info[] = {
-> +#ifdef CONFIG_VIDEO_DW9710
-> +	{
-> +		I2C_BOARD_INFO(DW9710_NAME,  DW9710_AF_I2C_ADDR),
-> +		.platform_data = &sdp3430_dw9710_platform_data,
-> +	},
-> +#endif
-> +	{
-> +		I2C_BOARD_INFO("mt9p012", MT9P012_I2C_ADDR),
-> +		.platform_data = &sdp3430_mt9p012_platform_data,
-> +	},
-> +};
-> +
-> +#endif
-> +
-> +
->  static struct platform_device sdp3430_lcd_device = {
->  	.name		= "sdp2430_lcd",
->  	.id		= -1,
-> @@ -344,7 +567,12 @@
->  static int __init omap3430_i2c_init(void)
->  {
->  	omap_register_i2c_bus(1, 2600, NULL, 0);
-> +#if defined(CONFIG_VIDEO_MT9P012) || defined(CONFIG_VIDEO_MT9P012_MODULE)
-> +	omap_register_i2c_bus(2, 400, sdp3430_i2c_board_info,
-> +			      ARRAY_SIZE(sdp3430_i2c_board_info));
-> +#else
->  	omap_register_i2c_bus(2, 400, NULL, 0);
-> +#endif
->  	omap_register_i2c_bus(3, 400, NULL, 0);
->  	return 0;
->  }
+> This series is nowhere near ready for merging into linux-omap, but
+> will be useful for discussion and collaboration on getting the various
+> PM features working at the head of the linux-omap tree, and a place
+> where cleanup and rework efforts can be focused.  
+> 
+> If there are no major objections, I will create a branch in linux-omap
+> git and commit this series there.  As collaboration continues, I will
+> continue to collect and update patches, fix problems and rebase onto
+> the HEAD of linux-omap.  
+> 
+> The goal of this branch is only to facilitate the rework and cleanup
+> of the PM code so it can be merged into linux-omap.  Then, the branch
+> will disappear and work can be focused again on the HEAD of
+> linux-omap.
+> 
+> It has currently been tested with a minimal config on 3430SDP, and
+> OFF-mode is hit in suspend.  In order to hit suspend:
+> 
+>   echo 1 > /sys/power/voltage_off_while_idle                   
+>   echo 1 > /sys/power/gpio_clocks_off_while_idle               
+>   echo 1 > /sys/power/uart_clocks_off_while_idle 
+>   echo mem > /sys/power/state
+> 
+> Kevin
+> 
+> 
+> [1] This series is roughly based on the following:
+> 
+> Jouni Hogander, Tero Kristo
+>  [PATCH 0/4] Refreshed PM workaround patches 2 -- 15 Aug
+> 
+> Rajendra Nayak:
+>  [PATCH 00/11] OMAP3 CPUidle patches - ver 2 -- 18 July
+> 
+> As well as several patches/hacks/cleanups that have not yet been
+> posted to the list.
+> 
+> Also, there have been newer versions of the CPUidle patches that have
+> been reviewed on the list, but do not apply for various reasons.  As
+> soon as they are rebased and updated versions of those are available,
+> I will integrate them.
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
