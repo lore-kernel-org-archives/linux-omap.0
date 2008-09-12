@@ -1,38 +1,46 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [rfc] [patch] clean up to ehci-omap (Was: Re: [patch] omap:
-	usb: ehci: fix use of hcd->regs)
-Date: Fri, 12 Sep 2008 23:38:34 +0300
-Message-ID: <20080912203834.GI7132@frodo>
-References: <20080912121024.GG759@gandalf.research.nokia.com> <20080912182255.GD7132@frodo> <20080912183819.GE7132@frodo> <200809121216.27116.david-b@pacbell.net> <5A47E75E594F054BAF48C5E4FC4B92AB02C4007EC4@dbde02.ent.ti.com>
-Reply-To: me@felipebalbi.com
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: [PATCH] ASoC: OMAP: Fix Gumstix Overo machine driver by using snd_soc_dai struct
+Date: Fri, 12 Sep 2008 13:42:42 -0700
+Message-ID: <5e088bd90809121342i1f7f360fk6ae6123cc54556b6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:52609 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753314AbYILUis (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 16:38:48 -0400
+Received: from el-out-1112.google.com ([209.85.162.179]:45639 "EHLO
+	el-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755167AbYILUmo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 16:42:44 -0400
+Received: by el-out-1112.google.com with SMTP id z25so522522ele.1
+        for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 13:42:43 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02C4007EC4@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "me@felipebalbi.com" <me@felipebalbi.com>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, alsa-devel@alsa-project.org
 
-On Sat, Sep 13, 2008 at 01:31:12AM +0530, Gadiyar, Anand wrote:
-> Was planning on cleaning up this driver and sending to linux-omap as Tony
-> suggested, but I'm afraid I won't be able to look at it for a while.
-> 
-> So if you're going to be doing this anyway, then could you please meld in
-> Vikram's other patch from [1] as well?
+Structs snd_soc_codec_dai and snd_soc_cpu_dai are obsolete and are merged to
+snd_soc_dai by the commit 8687eb8bded8c3c5842a85bd0c30e43fc5a3e0e0.
 
-Do you think we should just drop support for the older versions of the
-expansion board ?
+Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+Acked-by: Steve Sakoman <steve@sakoman.com>
+---
+ sound/soc/omap/overo.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-> By the way, how do you propose to test this driver? Do you have the
-> expansion board for the SDP, or some other hardware that can be used?
+diff --git a/sound/soc/omap/overo.c b/sound/soc/omap/overo.c
+index 542ff6b..1a086ce 100644
+--- a/sound/soc/omap/overo.c
++++ b/sound/soc/omap/overo.c
+@@ -39,8 +39,8 @@ static int overo_hw_params(struct snd_pcm_substream
+*substream,
+ 	struct snd_pcm_hw_params *params)
+ {
+ 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+-	struct snd_soc_codec_dai *codec_dai = rtd->dai->codec_dai;
+-	struct snd_soc_cpu_dai *cpu_dai = rtd->dai->cpu_dai;
++	struct snd_soc_dai *codec_dai = rtd->dai->codec_dai;
++	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
+ 	int ret;
 
-I have one version of beagle with one ehci port ;-)
-
+ 	/* Set codec DAI configuration */
 -- 
-balbi
+1.5.6.5
