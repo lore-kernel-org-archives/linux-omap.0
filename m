@@ -1,54 +1,103 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/10] Patches for fixing the lowmem module
-Date: Fri, 12 Sep 2008 11:14:46 -0700
-Message-ID: <20080912181444.GE10675@atomide.com>
-References: <1221150042-10873-1-git-send-email-viktor.rosendahl@nokia.com> <20080911161702.GL16796@gandalf.research.nokia.com> <1221152129.10962.12.camel@viktor.research.nokia.com> <20080911164809.GN16796@gandalf.research.nokia.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [patch] omap: usb: ehci: fix use of hcd->regs
+Date: Fri, 12 Sep 2008 21:22:56 +0300
+Message-ID: <20080912182255.GD7132@frodo>
+References: <20080912121024.GG759@gandalf.research.nokia.com> <200809120932.57016.david-b@pacbell.net> <20080912175033.GB7132@frodo>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56882 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752375AbYILSOs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 14:14:48 -0400
+Received: from ns1.siteground211.com ([209.62.36.12]:45671 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753203AbYILSXI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 14:23:08 -0400
 Content-Disposition: inline
-In-Reply-To: <20080911164809.GN16796@gandalf.research.nokia.com>
+In-Reply-To: <20080912175033.GB7132@frodo>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Viktor Rosendahl <Viktor.Rosendahl@nokia.com>, linux-omap@vger.kernel.org
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: David Brownell <david-b@pacbell.net>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-* Felipe Balbi <felipe.balbi@nokia.com> [080911 09:48]:
-> On Thu, Sep 11, 2008 at 07:55:29PM +0300, Viktor Rosendahl wrote:
-> > On Thu, 2008-09-11 at 19:17 +0300, Felipe Balbi wrote:
-> > > On Thu, Sep 11, 2008 at 07:20:32PM +0300, ext Viktor Rosendahl wrote:
-> > > > 
-> > > > Hello,
-> > > > 
-> > > > Currently the lowmem module doesn't compile. Here are some patches
-> > > > that will fix a bug, make some improvements and even make it compile.
-> > > > 
-> > > >  security/lowmem.c |  258 ++++++++++++++++++++++++++++++++----------------------
-> > > >  1 file changed, 154 insertions(+), 104 deletions(-)
-> > > 
-> > > This series should be going to LKML, l-o will get it when merging
-> > > upstream I'd say.
-> > > 
-> > 
-> > The only problem is that currently the lowmem module doesn't exist in
-> > mainline. My guess is that the lowmem module would need quite a bit of
-> > more work before it would be accepted in mainline, if at all. 
-> > 
-> > It will probably take some time before we get it into mainline, so I
-> > suggest that these patches are meged into linux-omap now.
-> 
-> Hmm... got it ;-)
-> 
-> It's yet another piece of code that never made its way to mainline :-)
+On Fri, Sep 12, 2008 at 08:50:33PM +0300, Felipe Balbi wrote:
+> On Fri, Sep 12, 2008 at 09:32:56AM -0700, David Brownell wrote:
+> > On Friday 12 September 2008, Felipe Balbi wrote:
+> > > - =A0 =A0 =A0 hcd->regs =3D (void __iomem *) (int) IO_ADDRESS(hcd=
+->rsrc_start);
+> > > + =A0 =A0 =A0 hcd->regs =3D ioremap(hcd->rsrc_start, hcd->rsrc_le=
+n);
+> >=20
+> > This is missing its sibling iounmap() ...
+>=20
+> God... thanks Dave. Good catch. Patch coming soonish.
 
-Still, how about posting it to LKML? Other people may be interested in
-it too. And you'll find out what would have to be fixed to get it
-integrated.
+Here's the updated version. While at it, I'll send another patch gettin=
+g
+rid of some other mistakes during probe.
 
-Anyways, pushing to l-o tree today.
+=3D=3D=3D=3D=3D cut here =3D=3D=3D=3D
 
-Tony
+=46rom 818dc8ebd261cdc59670fe1580248ad47f18a1de Mon Sep 17 00:00:00 200=
+1
+=46rom: Felipe Balbi <felipe.balbi@nokia.com>
+Date: Fri, 12 Sep 2008 21:07:09 +0300
+Subject: [PATCH] omap: usb: ehci: fix usb of hcd->regs
+
+hcd->regs should be initialized by ioremaping hcd->rsrc_start and
+hcd->rsrc_len. Fix it for ehci-omap.c.
+
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/usb/host/ehci-omap.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.=
+c
+index 8f122e5..fff4195 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -438,7 +438,11 @@ static int ehci_hcd_omap_drv_probe(struct platform=
+_device *dev)
+ 	hcd->rsrc_start =3D dev->resource[0].start;
+ 	hcd->rsrc_len =3D dev->resource[0].end - dev->resource[0].start + 1;
+=20
+-	hcd->regs =3D (void __iomem *) (int) IO_ADDRESS(hcd->rsrc_start);
++	hcd->regs =3D ioremap(hcd->rsrc_start, hcd->rsrc_len);
++	if (!hcd->regs) {
++		dev_err(&dev->dev, "ioremap failed\n");
++		return -ENOMEM;
++	}
+=20
+ 	ehci =3D hcd_to_ehci(hcd);
+ 	ehci->caps =3D hcd->regs;
+@@ -457,8 +461,9 @@ static int ehci_hcd_omap_drv_probe(struct platform_=
+device *dev)
+=20
+ 	dev_dbg(hcd->self.controller, "ERR: add_hcd");
+ 	omap_stop_ehc(dev, hcd);
+-
++	iounmap(hcd->regs);
+ 	usb_put_hcd(hcd);
++
+ 	return retval;
+ }
+=20
+@@ -483,6 +488,7 @@ static int ehci_hcd_omap_drv_remove(struct platform=
+_device *dev)
+=20
+ 	dev_dbg(&dev->dev, "ehci_hcd_omap_drv_remove()");
+=20
++	iounmap(hcd->regs);
+ 	usb_remove_hcd(hcd);
+ 	usb_put_hcd(hcd);
+ 	omap_stop_ehc(dev, hcd);
+--=20
+1.6.0.1.196.g01914
+
+--=20
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
