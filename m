@@ -1,73 +1,33 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [PATCH] OMAP3 clock: remove extra init from csi2_96m_fck
-Date: Fri, 12 Sep 2008 11:30:36 -0500
-Message-ID: <A24693684029E5489D1D202277BE894411CCEEC5@dlee02.ent.ti.com>
-References: <20080910234736.GS21163@atomide.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [patch] omap: usb: ehci: fix use of hcd->regs
+Date: Fri, 12 Sep 2008 09:32:56 -0700
+Message-ID: <200809120932.57016.david-b@pacbell.net>
+References: <20080912121024.GG759@gandalf.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42459 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752478AbYILQao convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 12:30:44 -0400
-In-Reply-To: <20080910234736.GS21163@atomide.com>
-Content-Language: en-US
+Received: from smtp122.sbc.mail.sp1.yahoo.com ([69.147.64.95]:40876 "HELO
+	smtp122.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752727AbYILQc7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 12 Sep 2008 12:32:59 -0400
+In-Reply-To: <20080912121024.GG759@gandalf.research.nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: felipe.balbi@nokia.com
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Isn't this patch meant to be pushed after "Update powerdomains and clockdomains" series from Paul?
+On Friday 12 September 2008, Felipe Balbi wrote:
+> - =A0 =A0 =A0 hcd->regs =3D (void __iomem *) (int) IO_ADDRESS(hcd->rs=
+rc_start);
+> + =A0 =A0 =A0 hcd->regs =3D ioremap(hcd->rsrc_start, hcd->rsrc_len);
 
-I don't see that yet.
+This is missing its sibling iounmap() ...
 
-Regards,
-Sergio
-
------Original Message-----
-From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony Lindgren
-Sent: Wednesday, September 10, 2008 6:48 PM
-To: Paul Walmsley
-Cc: linux-omap@vger.kernel.org
-Subject: Re: [PATCH] OMAP3 clock: remove extra init from csi2_96m_fck
-
-* Paul Walmsley <paul@pwsan.com> [080909 09:59]:
-> 
-> csi2_96m_fck no longer should attempt to init its clockdomain pointer; the 
-> clock framework now does this by default.  Applies on top of the "Update 
-> powerdomains and clockdomains" series sent earlier.
-> 
-> Verified on 3430SDP ES2.
-
-Pushing today.
-
-Tony
-
-> 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> ---
->  arch/arm/mach-omap2/clock34xx.h |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-> index 65568c3..56ae83f 100644
-> --- a/arch/arm/mach-omap2/clock34xx.h
-> +++ b/arch/arm/mach-omap2/clock34xx.h
-> @@ -2298,7 +2298,6 @@ static struct clk cam_ick = {
->  static struct clk csi2_96m_fck = {
->  	.name		= "csi2_96m_fck",
->  	.parent		= &core_96m_fck,
-> -	.init		= &omap2_init_clk_clkdm,
->  	.enable_reg	= _OMAP34XX_CM_REGADDR(OMAP3430_CAM_MOD, CM_FCLKEN),
->  	.enable_bit	= OMAP3430_EN_CSI2_SHIFT,
->  	.flags		= CLOCK_IN_OMAP343X,
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
