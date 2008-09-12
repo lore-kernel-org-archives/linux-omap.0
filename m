@@ -1,39 +1,57 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [patch] omap: usb: ehci: fix use of hcd->regs
-Date: Fri, 12 Sep 2008 20:50:33 +0300
-Message-ID: <20080912175033.GB7132@frodo>
-References: <20080912121024.GG759@gandalf.research.nokia.com> <200809120932.57016.david-b@pacbell.net>
-Reply-To: me@felipebalbi.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: HSMMC pending fixes
+Date: Fri, 12 Sep 2008 10:58:47 -0700
+Message-ID: <20080912175846.GD10675@atomide.com>
+References: <1219072400-7814-1-git-send-email-jarkko.lavinen@nokia.com> <13B9B4C6EF24D648824FF11BE8967162036217F3A9@dlee02.ent.ti.com> <20080911000506.GX21163@atomide.com> <012101c913c4$bd28b850$LocalHost@wipultra1303>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:41565 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754622AbYILRun (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 13:50:43 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57082 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753202AbYILR6w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 13:58:52 -0400
 Content-Disposition: inline
-In-Reply-To: <200809120932.57016.david-b@pacbell.net>
+In-Reply-To: <012101c913c4$bd28b850$LocalHost@wipultra1303>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Madhusudhan Chikkature <madhu.cr@ti.com>
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, Jarkko Lavinen <jarkko.lavinen@nokia.com>, linux-omap@vger.kernel.org
 
-On Fri, Sep 12, 2008 at 09:32:56AM -0700, David Brownell wrote:
-> On Friday 12 September 2008, Felipe Balbi wrote:
-> > - =A0 =A0 =A0 hcd->regs =3D (void __iomem *) (int) IO_ADDRESS(hcd->=
-rsrc_start);
-> > + =A0 =A0 =A0 hcd->regs =3D ioremap(hcd->rsrc_start, hcd->rsrc_len)=
-;
->=20
-> This is missing its sibling iounmap() ...
+* Madhusudhan Chikkature <madhu.cr@ti.com> [080910 21:13]:
+> 
+> ----- Original Message ----- 
+> From: "Tony Lindgren" <tony@atomide.com>
+> To: "Woodruff, Richard" <r-woodruff2@ti.com>
+> Cc: "Jarkko Lavinen" <jarkko.lavinen@nokia.com>; <linux-omap@vger.kernel.org>
+> Sent: Thursday, September 11, 2008 5:35 AM
+> Subject: Re: HSMMC pending fixes
+> 
+> 
+> >* Woodruff, Richard <r-woodruff2@ti.com> [080818 14:09]:
+> >> Hi,
+> >> 
+> >> > owner@vger.kernel.org] On Behalf Of Jarkko Lavinen
+> >> 
+> >> 
+> >> > 2: Disable smartidle mode while suspending (workaround)
+> >> 
+> >> This was the work around we had in internal trees for a long time.
+> >> 
+> >> However Madhu C. recently updated this based on an internal investigation.  It is required to reset the command pin to clear the system for sleep.  This allows retention to work.
+> >> 
+> >> The non-idle work around when profiled showed it was taking a huge amount of time for the clock re-enable to work.  This actually would noticeably reduce MMC throughput when doing aggressive clock cutting in the driver and increase power usage.
+> >> 
+> >> +       } else {
+> >> +               OMAP_HSMMC_WRITE(host->base, SYSCTL,
+> >> +                       OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
+> >> +               while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD) ;
+> >> 
+> >> If you use a really long time out then perhaps it doesn't matter.  But if you try and be aggressive it will hurt you.
+> > 
+> > Pushing all except the workaround. Madhu, can you please send a patch
+> > for what Richard is describing?
+> Tony, I have already posted the above fix to L-o. I see that it is merged as well. With this fix, I guess there is no need to disable smart idle mode while suspending. Am I missing any other thing here?
 
-God... thanks Dave. Good catch. Patch coming soonish.
+Hmm OK. I guess the test then is to see if suspend works now properly.
 
---=20
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
