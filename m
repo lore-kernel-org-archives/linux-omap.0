@@ -1,91 +1,150 @@
-From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: RE: [PATCH 0/29] PM: proposed branch for PM collaboration
-Date: Fri, 12 Sep 2008 09:14:45 +0530
-Message-ID: <020401c91489$e77ca330$LocalHost@wipultra1382>
-References: <87iqt2amoi.fsf@deeprootsystems.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: [PATCH 04/12] I2C re-init for every cmd
+Date: Fri, 12 Sep 2008 10:48:35 +0300
+Message-ID: <877i9h7qjw.fsf@trdhcp146196.ntc.nokia.com>
+References: <56249.192.168.10.89.1221148518.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52554 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752087AbYILDo5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Sep 2008 23:44:57 -0400
-In-Reply-To: <87iqt2amoi.fsf@deeprootsystems.com>
+Received: from smtp.nokia.com ([192.100.122.233]:18518 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752233AbYILHra convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 03:47:30 -0400
+In-Reply-To: <56249.192.168.10.89.1221148518.squirrel@dbdmail.itg.ti.com> (ext
+	chandra shekhar's message of "Thu, 11 Sep 2008 21:25:18 +0530 (IST)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Kevin Hilman' <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
+To: ext chandra shekhar <x0044955@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-I don't see this patch from Tero/Jouni as part of this set.. 
-[PATCH 4/4] 34XX: PM: Workaround to enable autoidle for clocks and plls.
-Was this patch dropped? or is it now part of some other patch?
- 
+"ext chandra shekhar" <x0044955@ti.com> writes:
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> Sent: Thursday, September 11, 2008 6:02 PM
-> To: linux-omap@vger.kernel.org
-> Subject: [PATCH 0/29] PM: proposed branch for PM collaboration
-> 
-> Hello,
-> 
-> The following patchset is an attempt to collect the various PM patches
-> that have been flowing around, and organize them into one branch to be
-> used for further collaboration on PM development, in particular
-> OFF-mode support.
-> 
-> It is currently a collection of proposed patches[1] from TI and
-> various other patches from Nokia and others to get retention,
-> OFF-mode, CPUidle etc. working in the linux-omap tree.
-> 
-> This series is nowhere near ready for merging into linux-omap, but
-> will be useful for discussion and collaboration on getting the various
-> PM features working at the head of the linux-omap tree, and a place
-> where cleanup and rework efforts can be focused.  
-> 
-> If there are no major objections, I will create a branch in linux-omap
-> git and commit this series there.  As collaboration continues, I will
-> continue to collect and update patches, fix problems and rebase onto
-> the HEAD of linux-omap.  
-> 
-> The goal of this branch is only to facilitate the rework and cleanup
-> of the PM code so it can be merged into linux-omap.  Then, the branch
-> will disappear and work can be focused again on the HEAD of
-> linux-omap.
-> 
-> It has currently been tested with a minimal config on 3430SDP, and
-> OFF-mode is hit in suspend.  In order to hit suspend:
-> 
->   echo 1 > /sys/power/voltage_off_while_idle                   
->   echo 1 > /sys/power/gpio_clocks_off_while_idle               
->   echo 1 > /sys/power/uart_clocks_off_while_idle 
->   echo mem > /sys/power/state
-> 
-> Kevin
-> 
-> 
-> [1] This series is roughly based on the following:
-> 
-> Jouni Hogander, Tero Kristo
->  [PATCH 0/4] Refreshed PM workaround patches 2 -- 15 Aug
-> 
-> Rajendra Nayak:
->  [PATCH 00/11] OMAP3 CPUidle patches - ver 2 -- 18 July
-> 
-> As well as several patches/hacks/cleanups that have not yet been
-> posted to the list.
-> 
-> Also, there have been newer versions of the CPUidle patches that have
-> been reviewed on the list, but do not apply for various reasons.  As
-> soon as they are rebased and updated versions of those are available,
-> I will integrate them.
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+> agreed..but i guess it will not compile for 2430 and prev. platforms.
+> omap3_i2c_save_context and restore definition is under macro
+> while call is not. let me know if i am missing something.
+>
+> also is SYSC register restore needed??
 
+Here is the second version. Does it look any better to you?
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-oma=
+p.c
+index 3778735..0a11621 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -147,6 +147,12 @@ struct omap_i2c_dev {
+        unsigned                b_hw:1;         /* bad h/w fixes */
+        unsigned                idle:1;
+        u16                     iestate;        /* Saved interrupt regi=
+ster */
++#ifdef CONFIG_ARCH_OMAP34XX
++       u16                     pscstate;
++       u16                     scllstate;
++       u16                     sclhstate;
++       u16                     bufstate;
++#endif
+ };
+=20
+ static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
+@@ -209,16 +215,21 @@ static void omap_i2c_unidle(struct omap_i2c_dev *=
+dev)
+        if (dev->iclk !=3D NULL)
+                clk_enable(dev->iclk);
+        clk_enable(dev->fclk);
++
++#ifdef CONFIG_ARCH_OMAP34XX
++       omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
++       omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
++       omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
++       omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
++#endif
+        dev->idle =3D 0;
+-       if (dev->iestate)
+-               omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
++       omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
+ }
+=20
+ static void omap_i2c_idle(struct omap_i2c_dev *dev)
+ {
+        u16 iv;
+=20
+-       dev->iestate =3D omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+        omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
+        if (dev->rev1)
+                iv =3D omap_i2c_read_reg(dev, OMAP_I2C_IV_REG);
+@@ -238,7 +249,7 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
+=20
+ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ {
+-       u16 psc =3D 0, scll =3D 0, sclh =3D 0;
++       u16 psc =3D 0, scll =3D 0, sclh =3D 0, buf =3D 0;
+        u16 fsscll =3D 0, fssclh =3D 0, hsscll =3D 0, hssclh =3D 0;
+        unsigned long fclk_rate =3D 12000000;
+        unsigned long timeout;
+@@ -327,23 +338,30 @@ static int omap_i2c_init(struct omap_i2c_dev *dev=
+)
+        omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, scll);
+        omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, sclh);
+=20
+-       if (dev->fifo_size)
+-               /* Note: setup required fifo size - 1 */
+-               omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG,
+-                                       (dev->fifo_size - 1) << 8 | /* =
+RTRSH */
+-                                       OMAP_I2C_BUF_RXFIF_CLR |
+-                                       (dev->fifo_size - 1) | /* XTRSH=
+ */
+-                                       OMAP_I2C_BUF_TXFIF_CLR);
++       if (dev->fifo_size) {
++               /* Note: setup required fifo size - 1. RTRSH and XTRSH =
+*/
++               buf =3D (dev->fifo_size - 1) << 8 | OMAP_I2C_BUF_RXFIF_=
+CLR |
++                       (dev->fifo_size - 1) | OMAP_I2C_BUF_TXFIF_CLR;
++               omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, buf);
++       }
+=20
+        /* Take the I2C module out of reset: */
+        omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+=20
+        /* Enable interrupts */
+-       omap_i2c_write_reg(dev, OMAP_I2C_IE_REG,
+-                       (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
++       dev->iestate =3D (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
+                        OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
+                        OMAP_I2C_IE_AL)  | ((dev->fifo_size) ?
+-                               (OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0=
+));
++                                           (OMAP_I2C_IE_RDR | OMAP_I2C=
+_IE_XDR) : 0);
++       omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
++
++#ifdef CONFIG_ARCH_OMAP34XX
++       dev->pscstate =3D psc;
++       dev->scllstate =3D scll;
++       dev->sclhstate =3D sclh;
++       dev->bufstate =3D buf;
++#endif
++
+        return 0;
+ }
+=20
+@@ -496,8 +514,6 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_=
+msg msgs[], int num)
+=20
+        omap_i2c_unidle(dev);
+=20
+-       omap_i2c_init(dev);
+-
+        if ((r =3D omap_i2c_wait_for_bb(dev)) < 0)
+                goto out;
+
+--=20
+Jouni H=C3=B6gander
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
