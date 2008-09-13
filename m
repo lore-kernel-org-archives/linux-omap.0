@@ -1,53 +1,94 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 7/7][OMAP 3/4+] BRIDGE: set 0 for phys_mempool_* as
- default
-Date: Sat, 13 Sep 2008 12:53:42 +0300 (EEST)
-Message-ID: <20080913.125342.137248158.Hiroshi.DOYU@nokia.com>
-References: <27F9C60D11D683428E133F85D2BB4A5344A4F051@dlee03.ent.ti.com>
-	<20080913.074844.161898930.Hiroshi.DOYU@nokia.com>
-	<20080913084740.GA7007@frodo>
+Subject: Re: [PATCH 1/7][OMAP 3/4+] BRIDGE: Module ISR removed
+Date: Sat, 13 Sep 2008 12:55:26 +0300 (EEST)
+Message-ID: <20080913.125526.217888976.Hiroshi.DOYU@nokia.com>
+References: <496565EC904933469F292DDA3F1663E615187D03@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:53672 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754946AbYIMJx7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Sep 2008 05:53:59 -0400
-In-Reply-To: <20080913084740.GA7007@frodo>
+Received: from smtp.nokia.com ([192.100.122.230]:57691 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754904AbYIMJzg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Sep 2008 05:55:36 -0400
+In-Reply-To: <496565EC904933469F292DDA3F1663E615187D03@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: x00omar@ti.com, linux-omap@vger.kernel.org
+To: x00omar@ti.com, x0095840@ti.com
+Cc: vikram.pandita@ti.com, linux-omap@vger.kernel.org, h-kanigeri2@ti.com, felipe.contreras@gmail.com, Juha.M.Alanen@nokia.com
 
-Hi Felipe,
+Hi,
 
-From: "ext Felipe Balbi" <me@felipebalbi.com>
-Subject: Re: [PATCH 7/7][OMAP 3/4+] BRIDGE: set 0 for phys_mempool_* as default
-Date: Sat, 13 Sep 2008 11:47:40 +0300
+All of these patches are incorporated into the "l-o bridge patch
+series". I have updated other TI BRIDGE patches and rebased them
+against the latest l-o again for easy integration of TI DSP BRIDGE
+patches. You can get it by:
 
-> Hi Hiroshi,
-> 
-> On Sat, Sep 13, 2008 at 07:48:44AM +0300, Hiroshi DOYU wrote:
-> > I think that this configuration name "FB_OMAP_CONSISTENT_DMA_SIZE"
-> > sounds a bit strange because it is not specific to framebuffer.
-> 
-> I agree here, it's really not fb specific.
-> 
-> > So how about renaming this more generic name like
-> > "OMAP_CONSISTENT_DMA_SIZE"? Or making "CONSISTENT_DMA_SIZE" itself
-> > configurable in menuconfig?
-> 
-> For me it sounds like that value would change depending on the board, no?
+    $ wget http://4869037.web.fc2.com/tidspbridge-20080913.tgz
 
-Hm...this can be considered as a board specific, yes.
+Most of the patches come directly from OMAPZOOM(Thanks, TI bridge
+team!) and I just collected them;)
 
-> So maybe that size should be set up during board init. Maybe bundled
-> inside omapX_globals ??
+The current major diff against OMAPZOOM is the header file
+location. Now bridge specific header files are located
+under"linux/arch/arm/plat-omap/include/dspbridge", which was suggested
+as below:
 
-This sounds reasonable to me. Since FB and IVA are the only modules
-which depend on this size so far, expanding flexibility in menuconfig
-may no be necessary.
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg04126.html
 
-    Hiroshi DOYU
+This "l-o bridge patch series" includes the following patches.
+
+Axel Haslam (1):
+      BRIDGE: tiomap unmap fix
+
+Fernando Guzman Lugo (2):
+      BRIDGE: Remove sparse warnings from wcd
+      BRIDGE: Module ISR removed
+
+Guzman Lugo, Fernando (1):
+      BRIDGE: PRCS wrappers removal
+
+Hiroshi DOYU (17):
+      BRIDGE: Kconfig Entry
+      BRIDGE: Header files
+      BRIDGE: Doff image dynamic loader
+      BRIDGE: Generic Utilities
+      BRIDGE: Hardware Interfaces
+      BRIDGE: Platform Manager
+      BRIDGE: Resource Manager
+      BRIDGE: Services
+      BRIDGE: Mini driver
+      BRIDGE: README
+      BRIDGE: Fix header path
+      BRIDGE: Sync omapzoom bridge patches
+      BRIDGE: set 0 for phys_mempool_* as default
+      BRIDGE: Rename header file location
+      BRIDGE: Fix header path name to "arch/arm/plat-omap/include/dspbridge"
+      BRIDGE: Add 'dspbridge' dirname in header file inclusion
+      BRIDGE: Fix incorrect pathname
+
+Omar Ramirez Luna (7):
+      BRIDGE: Ceanup GT sparse warnings
+      BRIDGE: Cleanup static declarations warnings
+      BRIDGE: Remove unused clk structs
+      BRIDGE: Clean up unusedvariables
+      BRIDGE: Cosmetic changes reported from checkpatch
+      BRIDGE: Checkpatch Cleanup
+      BRIDGE: MMUfault infinite timeout fix
+
+Ramesh Gupta (2):
+      BRIDGE: Power management changes
+      BRIDGE: OMAP PM Bug softlockup fix
+
+Ramirez Luna, Omar (3):
+      BRIDGE: OMAP CSL wrappers removed
+      BRIDGE: Remove CDECL macro
+      BRIDGE: GT mask for DSP traces
+
+x00omar@ti.com (1):
+      BRIDGE: Add wcd table end
+
+If I missed somethig, please let me know.
+
+      Hiroshi DOYU
 
