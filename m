@@ -1,111 +1,377 @@
 From: "Ramirez Luna, Omar" <x00omar@ti.com>
-Subject: [PATCH 4/7][OMAP 3/4+] BRIDGE tiomap unmap fix
-Date: Fri, 12 Sep 2008 23:04:39 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A5344A4F04D@dlee03.ent.ti.com>
+Subject: [PATCH 5/7][OMAP 3/4+] BRIDGE MMUfault infinite timeout fix
+Date: Fri, 12 Sep 2008 23:05:58 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A5344A4F04E@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48815 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:48827 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750760AbYIMEEq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Sep 2008 00:04:46 -0400
+	id S1750769AbYIMEGF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Sep 2008 00:06:05 -0400
 Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8D44fUK027915
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8D460GB028443
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 23:04:46 -0500
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m8D44fgH009619
-	for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 23:04:41 -0500 (CDT)
+	for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 23:06:05 -0500
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m8D4601O009985
+	for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 23:06:00 -0500 (CDT)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Haslam, Axel" <axelhaslam@ti.com>
 
-From: Axel Haslam <axelhaslam@ti.com>
-Date: Fri, 12 Sep 2008 19:09:01 -0500
-Subject: [PATCH] BRIDGE tiomap unmap fix
+>From 19c2dde4fb6b3bb816fc004d6342b9996da301f1 Mon Sep 17 00:00:00 2001
+From: Omar Ramirez Luna <x0084701@dirac.sasken-mty.naucm.ext.ti.com>
+Date: Fri, 12 Sep 2008 20:33:28 -0500
+Subject: [PATCH] BRIDGE MMUfault infinite timeout fix
 
-Fixed unexpected return value when calling DSPProcessor_UnMap,
-now it provides only DSP_xxx return codes
+Enable loading of the Base image upon MMU fault even in the cases
+where the Node has infinite timeout. A new processor state PROC_ERROR
+is added to indicate the state of DSP when MMU and Sys error faults occur.
+Also a fixed resource cleanup code.
 
-Signed-off-by: Axel Haslam <axelhaslam@ti.com>
+Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
 ---
- drivers/dsp/bridge/wmd/tiomap3430.c |   40 ++++++++++++++++++++++++----------
- 1 files changed, 28 insertions(+), 12 deletions(-)
+ arch/arm/plat-omap/include/mach/bridge/brddefs.h |    2 +-
+ arch/arm/plat-omap/include/mach/bridge/dbdefs.h  |    3 +-
+ drivers/dsp/bridge/rmgr/drv.c                    |   48 +++++++++++----------
+ drivers/dsp/bridge/rmgr/node.c                   |   50 ++++++++++++----------
+ drivers/dsp/bridge/rmgr/proc.c                   |    3 +
+ drivers/dsp/bridge/wmd/_tiomap_pwr.h             |   18 ++++++++
+ drivers/dsp/bridge/wmd/tiomap3430_pwr.c          |    6 ---
+ drivers/dsp/bridge/wmd/tiomap_sm.c               |    1 +
+ drivers/dsp/bridge/wmd/ue_deh.c                  |   11 ++++-
+ 9 files changed, 86 insertions(+), 56 deletions(-)
 
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
-index e5c235d..5ff3670 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430.c
-@@ -1506,12 +1506,17 @@ static DSP_STATUS WMD_BRD_MemUnMap(struct WMD_DEV_CONTEXT *hDevContext,
- 				/* vaCurr aligned to pteSize? */
- 				if ((pteSize != 0) && (remBytesL2 >= pteSize) &&
- 				   !(vaCurr & (pteSize - 1))) {
--					HW_MMU_PteClear(pteAddrL2, vaCurr,
--							 pteSize);
--					remBytesL2 -= pteSize;
--					vaCurr += pteSize;
--					pteAddrL2 += (pteSize >> 12) *
--						      sizeof(u32);
-+					if (HW_MMU_PteClear(pteAddrL2,
-+						vaCurr, pteSize) == RET_OK) {
-+						status = DSP_SOK;
-+						remBytesL2 -= pteSize;
-+						vaCurr += pteSize;
-+						pteAddrL2 += (pteSize >> 12) *
-+								sizeof(u32);
-+					} else {
-+						status = DSP_EFAIL;
-+						goto EXIT_LOOP;
-+					}
- 				} else {
- 					status = DSP_EFAIL;
- 				}
-@@ -1522,9 +1527,13 @@ static DSP_STATUS WMD_BRD_MemUnMap(struct WMD_DEV_CONTEXT *hDevContext,
- 				if (pt->pgInfo[L2PageNum].numEntries == 0) {
- 					/* Clear the L1 PTE pointing to the
- 					 * L2 PT */
--					status = HW_MMU_PteClear(L1BaseVa,
--						 vaCurrOrig,
--						 HW_MMU_COARSE_PAGE_SIZE);
-+					if (RET_OK == HW_MMU_PteClear(L1BaseVa,
-+					vaCurrOrig, HW_MMU_COARSE_PAGE_SIZE))
-+						status = DSP_SOK;
-+					else {
-+						status = DSP_EFAIL;
-+						goto EXIT_LOOP;
-+					}
- 				}
- 				remBytes -= pteCount * PG_SIZE_4K;
- 			} else {
-@@ -1540,15 +1549,22 @@ static DSP_STATUS WMD_BRD_MemUnMap(struct WMD_DEV_CONTEXT *hDevContext,
- 			/* pteSize = 1 MB or 16 MB */
- 			if ((pteSize != 0) && (remBytes >= pteSize) &&
- 			   !(vaCurr & (pteSize - 1))) {
--				HW_MMU_PteClear(L1BaseVa, vaCurr, pteSize);
--				remBytes -= pteSize;
--				vaCurr += pteSize;
-+				if (HW_MMU_PteClear(L1BaseVa,
-+					vaCurr, pteSize) == RET_OK) {
-+					status = DSP_SOK;
-+					remBytes -= pteSize;
-+					vaCurr += pteSize;
-+				} else {
-+					status = DSP_EFAIL;
-+					goto EXIT_LOOP;
-+				}
- 		} else {
- 			status = DSP_EFAIL;
+diff --git a/arch/arm/plat-omap/include/mach/bridge/brddefs.h b/arch/arm/plat-omap/include/mach/bridge/brddefs.h
+index 1706fb7..99f373b 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/brddefs.h
++++ b/arch/arm/plat-omap/include/mach/bridge/brddefs.h
+@@ -45,7 +45,7 @@
+ #define BRD_HIBERNATION 0x7		/* MPU initiated hibernation */
+ #define BRD_RETENTION     0x8       /* Retention mode */
+ #define BRD_DSP_HIBERNATION     0x9       /* DSP initiated hibernation */
+-
++#define BRD_ERROR		0xA       /* Board state is Error */
+ 	typedef u32 BRD_STATUS;
+ 
+ /* BRD Object */
+diff --git a/arch/arm/plat-omap/include/mach/bridge/dbdefs.h b/arch/arm/plat-omap/include/mach/bridge/dbdefs.h
+index e9328a3..e92c24f 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/dbdefs.h
++++ b/arch/arm/plat-omap/include/mach/bridge/dbdefs.h
+@@ -221,7 +221,8 @@
+ 	enum DSP_PROCSTATE {
+ 		PROC_STOPPED,
+ 		PROC_LOADED,
+-		PROC_RUNNING
++		PROC_RUNNING,
++		PROC_ERROR
+ 	} ;
+ 
+ /* Node types */
+diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
+index 9e298f0..44db771 100644
+--- a/drivers/dsp/bridge/rmgr/drv.c
++++ b/drivers/dsp/bridge/rmgr/drv.c
+@@ -431,35 +431,40 @@ static DSP_STATUS DRV_ProcFreeNodeRes(HANDLE hPCtxt)
+ 	DSP_STATUS status = DSP_SOK;
+ 	struct NODE_RES_OBJECT *pNodeList = NULL;
+ 	struct NODE_RES_OBJECT *pNodeRes = NULL;
++	u32  nState;
+ 
+ 	DBC_Assert(hPCtxt != NULL);
+ 	pNodeList = pCtxt->pNodeList;
+ 	while (pNodeList != NULL) {
+ 		GT_0trace(curTrace, GT_ENTER, "DRV_ProcFreeNodeRes: 1");
+-	pNodeRes = pNodeList;
+-	pNodeList = pNodeList->next;
+-	if (pNodeRes->nodeAllocated) {
+-			if (NODE_GetState(pNodeRes->hNode) &
+-			  (NODE_ALLOCATED | NODE_CREATED |
+-			  NODE_RUNNING | NODE_PAUSED/*| NODE_TERMINATING */)) {
+-				GT_1trace(curTrace, GT_5CLASS,
+-					 "Calling Node_Terminate for Node:"
+-					 " 0x%x\n", pNodeRes->hNode);
+-				status = NODE_Terminate
+-					(pNodeRes->hNode, &status);
+-				GT_1trace(curTrace, GT_5CLASS,
+-					 "Calling Node_Delete for Node:"
+-					 " 0x%x\n", pNodeRes->hNode);
+-				status = NODE_Delete(pNodeRes->hNode);
+-				GT_1trace(curTrace, GT_5CLASS,
++		pNodeRes = pNodeList;
++		pNodeList = pNodeList->next;
++		if (pNodeRes->nodeAllocated) {
++			nState = NODE_GetState(pNodeRes->hNode) ;
++			GT_1trace(curTrace, GT_5CLASS,
++				"DRV_ProcFreeNodeRes: Node state %x\n", nState);
++			if (nState <= NODE_DELETING) {
++				if ((nState == NODE_RUNNING) ||
++					(nState == NODE_PAUSED) ||
++					(nState == NODE_TERMINATING)) {
++					GT_1trace(curTrace, GT_5CLASS,
++					"Calling Node_Terminate for Node:"
++					" 0x%x\n", pNodeRes->hNode);
++					status = NODE_Terminate
++						(pNodeRes->hNode, &status);
++					GT_1trace(curTrace, GT_5CLASS,
++						 "Calling Node_Delete for Node:"
++						 " 0x%x\n", pNodeRes->hNode);
++					status = NODE_Delete(pNodeRes->hNode);
++					GT_1trace(curTrace, GT_5CLASS,
+ 					"the status after the NodeDelete %x\n",
+ 					status);
+-			} else /*if (NODE_GetState(pNodeRes->hNode)
+-				== NODE_DONE)*/ {
+-				status = NODE_Delete(pNodeRes->hNode);
++				} else if ((nState == NODE_ALLOCATED)
++					|| (nState == NODE_CREATED))
++					status = NODE_Delete(pNodeRes->hNode);
+ 			}
+-			pNodeRes->nodeAllocated = 0;
  		}
++		pNodeRes->nodeAllocated = 0;
  	}
- 	 /* It is better to flush the TLB here, so that any stale old entries
- 	 * get flushed */
-+EXIT_LOOP:
- 	HW_MMU_TLBFlushAll(pDevContext->dwDSPMmuBase);
- 	DBG_Trace(DBG_LEVEL1, "WMD_BRD_MemUnMap vaCurr %x, pteAddrL1 %x "
- 		  "pteAddrL2 %x\n", vaCurr, pteAddrL1, pteAddrL2);
+ 	return status;
+ }
+@@ -1300,9 +1305,8 @@ u32 DRV_GetFirstDevObject(void)
+ 	if (DSP_SUCCEEDED
+ 	    (CFG_GetObject((u32 *)&pDrvObject, REG_DRV_OBJECT))) {
+ 		if ((pDrvObject->devList != NULL) &&
+-		   !LST_IsEmpty(pDrvObject->devList)) {
++		   !LST_IsEmpty(pDrvObject->devList))
+ 			dwDevObject = (u32) LST_First(pDrvObject->devList);
+-		}
+ 	}
+ 
+ 	return dwDevObject;
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index 598429a..ebedc14 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -1669,7 +1669,7 @@ DSP_STATUS NODE_Delete(struct NODE_OBJECT *hNode)
+ 	struct PROCESS_CONTEXT *pCtxt = NULL;
+ 	DSP_STATUS res_status = DSP_SOK;
+ #endif
+-
++	struct DSP_PROCESSORSTATE procStatus;
+ 	DBC_Require(cRefs > 0);
+ 	GT_1trace(NODE_debugMask, GT_ENTER, "NODE_Delete: hNode: 0x%x\n",
+ 		  hNode);
+@@ -1745,9 +1745,18 @@ func_cont1:
+ 			} else if (procId == IVA_UNIT)
+ 				ulDeleteFxn = (u32)hNode->nodeEnv;
+ 			if (DSP_SUCCEEDED(status)) {
+-				status = DISP_NodeDelete(hDisp, hNode,
+-					 hNodeMgr->ulFxnAddrs[RMSDELETENODE],
+-					 ulDeleteFxn, hNode->nodeEnv);
++				status = PROC_GetState(hProcessor, &procStatus,
++					sizeof(struct DSP_PROCESSORSTATE));
++				GT_1trace(NODE_debugMask, GT_4CLASS,
++						 "NODE_Delete: proc Status "
++						 "0x%x\n", procStatus.iState);
++				if (procStatus.iState != PROC_ERROR) {
++					status = DISP_NodeDelete(hDisp, hNode,
++					hNodeMgr->ulFxnAddrs[RMSDELETENODE],
++					ulDeleteFxn, hNode->nodeEnv);
++				} else
++					NODE_SetState(hNode, NODE_DONE);
++
+ 				/* Unload execute, if not unloaded, and delete
+ 				 * function */
+ 				if (state == NODE_RUNNING &&
+@@ -1779,18 +1788,11 @@ func_cont1:
+ 	hNodeMgr->uNumNodes--;
+ 	/* Decrement count of nodes created on DSP */
+ 	if ((state != NODE_ALLOCATED) || ((state == NODE_ALLOCATED) &&
+-	   (hNode->nodeEnv != (u32) NULL))) {
++	(hNode->nodeEnv != (u32) NULL)))
+ 		hNodeMgr->uNumCreated--;
+-		/* This is not acceptable since in deep sleep, all the
+-		 * peripherals are switched off We just need to put DSP
+-		 * CPU in idle mode */
+-	}
+ 	 /*  Free host-side resources allocated by NODE_Create()
+ 	 *  DeleteNode() fails if SM buffers not freed by client!  */
+ #ifndef RES_CLEANUP_DISABLE
+-	if (DSP_FAILED(status))
+-		goto func_cont;
+-
+ 	/* Update the node and stream resource status */
+ 	PRCS_GetCurrentHandle(&hProcess);
+ 	res_status = CFG_GetObject((u32 *)&hDrvObject, REG_DRV_OBJECT);
+@@ -1801,7 +1803,6 @@ func_cont1:
+ 			 &pCtxt, hNode, 0);
+ 	if (pCtxt == NULL)
+ 		goto func_cont;
+-
+ 	if (DRV_GetNodeResElement(hNode, &nodeRes, pCtxt) != DSP_ENOTFOUND) {
+ 		GT_0trace(NODE_debugMask, GT_5CLASS, "\nNODE_Delete12:\n");
+ 		DRV_ProcNodeUpdateStatus(nodeRes, false);
+@@ -1811,17 +1812,14 @@ func_cont:
+ 	GT_0trace(NODE_debugMask, GT_ENTER, "\nNODE_Delete13:\n ");
+ 	DeleteNode(hNode);
+ #ifndef RES_CLEANUP_DISABLE
+-	if (DSP_SUCCEEDED(status)) {
+-		GT_0trace(NODE_debugMask, GT_5CLASS, "\nNODE_Delete2:\n ");
+-		if (pCtxt != NULL)
+-			DRV_RemoveNodeResElement(nodeRes, (HANDLE)pCtxt);
+-
+-	}
++	GT_0trace(NODE_debugMask, GT_5CLASS, "\nNODE_Delete2:\n ");
++	if (pCtxt != NULL)
++		DRV_RemoveNodeResElement(nodeRes, (HANDLE)pCtxt);
+ #endif
+ 	GT_0trace(NODE_debugMask, GT_ENTER, "\nNODE_Delete3:\n ");
+-			/* Exit critical section */
+-			(void)SYNC_LeaveCS(hNodeMgr->hSync);
+-			PROC_NotifyClients(hProcessor, DSP_NODESTATECHANGE);
++	/* Exit critical section */
++	(void)SYNC_LeaveCS(hNodeMgr->hSync);
++	PROC_NotifyClients(hProcessor, DSP_NODESTATECHANGE);
+ func_end:
+ 	return status;
+ }
+@@ -2597,6 +2595,12 @@ DSP_STATUS NODE_Terminate(struct NODE_OBJECT *hNode, OUT DSP_STATUS *pStatus)
+ 	GT_1trace(NODE_debugMask, GT_ENTER,
+ 		 "NODE_Terminate: hNode: 0x%x\n", hNode);
+ 
++	if (pNode->hProcessor == NULL) {
++		GT_1trace(NODE_debugMask, GT_4CLASS,
++		"NODE_Terminate: pNode->hProcessor = 0x%x\n",
++		pNode->hProcessor);
++		goto func_end;
++	}
+ 	status = PROC_GetProcessorId(pNode->hProcessor, &procId);
+ 
+ 	if (DSP_SUCCEEDED(status)) {
+@@ -2703,7 +2707,7 @@ DSP_STATUS NODE_Terminate(struct NODE_OBJECT *hNode, OUT DSP_STATUS *pStatus)
+ 		}
+ 		(void)SYNC_LeaveCS(hNodeMgr->hSync);
+ 	}		/*End of SYNC_EnterCS */
+-
++func_end:
+ 	return status;
+ }
+ 
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index 1835fd0..c765cbf 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -910,6 +910,9 @@ DSP_STATUS PROC_GetState(DSP_HPROCESSOR hProcessor,
+ 			case BRD_LOADED:
+ 				pProcStatus->iState = PROC_LOADED;
+ 				break;
++			case BRD_ERROR:
++				pProcStatus->iState = PROC_ERROR;
++				break;
+ 			default:
+ 				status = DSP_EFAIL;
+ 				break;
+diff --git a/drivers/dsp/bridge/wmd/_tiomap_pwr.h b/drivers/dsp/bridge/wmd/_tiomap_pwr.h
+index 697097e..faa2309 100644
+--- a/drivers/dsp/bridge/wmd/_tiomap_pwr.h
++++ b/drivers/dsp/bridge/wmd/_tiomap_pwr.h
+@@ -77,6 +77,24 @@ DSP_STATUS PreScale_DSP(struct WMD_DEV_CONTEXT *pDevContext, IN void *pArgs);
+  */
+ DSP_STATUS handle_constraints_set(struct WMD_DEV_CONTEXT *pDevContext,
+ 				 IN void *pArgs);
++/*
++ *  ======== DSP_PeripheralClocks_Disable ========
++ *  	This function disables all the peripheral clocks that
++ *	were enabled by DSP. Call this function only when
++ *	DSP is entering Hibernation or when DSP is in
++ *	Error state
++ */
++DSP_STATUS DSP_PeripheralClocks_Disable(struct WMD_DEV_CONTEXT *pDevContext,
++					IN void *pArgs);
++
++/*
++ *  ======== DSP_PeripheralClocks_Enable ========
++ *  	This function enables all the peripheral clocks that
++ *	were requested by DSP.
++ */
++DSP_STATUS DSP_PeripheralClocks_Enable(struct WMD_DEV_CONTEXT *pDevContext,
++				       IN void *pArgs);
++
+ 
+ #endif				/* _TIOMAP_PWR_ */
+ 
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+index 751884b..0c207c8 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+@@ -82,12 +82,6 @@ extern struct constraint_handle *dsp_constraint_handle;
+ #endif
+ extern struct MAILBOX_CONTEXT mboxsetting;
+ 
+-extern void GetHWRegs(u32 prm_base, u32 cm_base);
+-DSP_STATUS DSP_PeripheralClocks_Disable(struct WMD_DEV_CONTEXT *pDevContext,
+-					IN void *pArgs);
+-DSP_STATUS DSP_PeripheralClocks_Enable(struct WMD_DEV_CONTEXT *pDevContext,
+-				       IN void *pArgs);
+-
+ /*
+  *  ======== handle_constraints_set ========
+  *  	Sets new DSP constraint
+diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c b/drivers/dsp/bridge/wmd/tiomap_sm.c
+index ce5e53c..e7adccd 100644
+--- a/drivers/dsp/bridge/wmd/tiomap_sm.c
++++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
+@@ -65,6 +65,7 @@
+ /*  ----------------------------------- This */
+ #include "_tiomap.h"
+ #include <chnl_sm.h>
++#include "_tiomap_pwr.h"
+ 
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
+diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
+index b2a85e2..f5ecc63 100644
+--- a/drivers/dsp/bridge/wmd/ue_deh.c
++++ b/drivers/dsp/bridge/wmd/ue_deh.c
+@@ -66,7 +66,8 @@
+ #include "mmu_fault.h"
+ #include "_tiomap.h"
+ #include "_deh.h"
+-#include <_tiomap_mmu.h>
++#include "_tiomap_mmu.h"
++#include "_tiomap_pwr.h"
+ #include <io_sm.h>
+ 
+ static struct HW_MMUMapAttrs_t  mapAttrs = { HW_LITTLE_ENDIAN,
+@@ -215,6 +216,8 @@ void WMD_DEH_Notify(struct DEH_MGR *hDehMgr, u32 ulEventMask,
+ 	if (MEM_IsValidHandle(pDehMgr, SIGNATURE)) {
+ 		printk(KERN_INFO "WMD_DEH_Notify: ********** DEVICE EXCEPTION "
+ 			"**********\n");
++		pDevContext = (struct WMD_DEV_CONTEXT *)pDehMgr->hWmdContext;
++
+ 		switch (ulEventMask) {
+ 		case DSP_SYSERROR:
+ 			/* reset errInfo structure before use */
+@@ -229,8 +232,6 @@ void WMD_DEH_Notify(struct DEH_MGR *hDehMgr, u32 ulEventMask,
+ 		case DSP_MMUFAULT:
+ 			/* MMU fault routine should have set err info
+ 			 * structure */
+-			pDevContext = (struct WMD_DEV_CONTEXT *)pDehMgr->
+-					hWmdContext;
+ 			pDehMgr->errInfo.dwErrMask = DSP_MMUFAULT;
+ 			printk(KERN_INFO "WMD_DEH_Notify: DSP_MMUFAULT,"
+ 				"errInfo = 0x%x\n", dwErrInfo);
+@@ -287,6 +288,10 @@ void WMD_DEH_Notify(struct DEH_MGR *hDehMgr, u32 ulEventMask,
+ 		/* Call DSP Trace Buffer */
+ 		PrintDspTraceBuffer(hDehMgr->hWmdContext);
+ 
++		/* Set the Board state as ERROR */
++		pDevContext->dwBrdState = BRD_ERROR;
++		/* Disable all the clocks that were enabled by DSP */
++		(void)DSP_PeripheralClocks_Disable(pDevContext, NULL);
+ 		/* Signal DSP error/exception event. */
+ 		NTFY_Notify(pDehMgr->hNtfy, ulEventMask);
+ 	}
 -- 
 1.5.5.4
 
