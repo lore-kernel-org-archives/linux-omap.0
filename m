@@ -1,49 +1,39 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+From: Felipe Balbi <me@felipebalbi.com>
 Subject: Re: [PATCH 7/7][OMAP 3/4+] BRIDGE: set 0 for phys_mempool_* as
- default
-Date: Sat, 13 Sep 2008 07:48:44 +0300 (EEST)
-Message-ID: <20080913.074844.161898930.Hiroshi.DOYU@nokia.com>
-References: <27F9C60D11D683428E133F85D2BB4A5344A4F050@dlee03.ent.ti.com>
-	<27F9C60D11D683428E133F85D2BB4A5344A4F051@dlee03.ent.ti.com>
+	default
+Date: Sat, 13 Sep 2008 11:47:40 +0300
+Message-ID: <20080913084740.GA7007@frodo>
+References: <27F9C60D11D683428E133F85D2BB4A5344A4F050@dlee03.ent.ti.com> <27F9C60D11D683428E133F85D2BB4A5344A4F051@dlee03.ent.ti.com> <20080913.074844.161898930.Hiroshi.DOYU@nokia.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:40849 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750851AbYIMEs4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Sep 2008 00:48:56 -0400
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A5344A4F051@dlee03.ent.ti.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:48144 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755203AbYIMIry (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Sep 2008 04:47:54 -0400
+Content-Disposition: inline
+In-Reply-To: <20080913.074844.161898930.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: x00omar@ti.com
-Cc: linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: x00omar@ti.com, linux-omap@vger.kernel.org
 
-Hi Omar,
+Hi Hiroshi,
 
-From: "ext Ramirez Luna, Omar" <x00omar@ti.com>
-Subject: RE: [PATCH 7/7][OMAP 3/4+] BRIDGE: set 0 for phys_mempool_* as default
-Date: Fri, 12 Sep 2008 23:27:01 -0500
+On Sat, Sep 13, 2008 at 07:48:44AM +0300, Hiroshi DOYU wrote:
+> I think that this configuration name "FB_OMAP_CONSISTENT_DMA_SIZE"
+> sounds a bit strange because it is not specific to framebuffer.
 
-> 
-> >From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> >Date: Fri, 12 Sep 2008 22:09:45 -0500
-> >Subject: [PATCH] BRIDGE: set 0 for phys_mempool_* as default
-> 
-> For this to work, we have observed that you must increase the size of Consistent DMA memory up to 14 MB, this is what we consider to be a safe standard size for bridge to work along with other OMAP components.
-> 
-> You can find this on menuconfig:
-> 	-> Device Drivers                                                                                 
-> 		-> Graphics support
-> 		FB_OMAP_CONSISTENT_DMA_SIZE [=14]
+I agree here, it's really not fb specific.
 
-Right.
+> So how about renaming this more generic name like
+> "OMAP_CONSISTENT_DMA_SIZE"? Or making "CONSISTENT_DMA_SIZE" itself
+> configurable in menuconfig?
 
-I think that this configuration name "FB_OMAP_CONSISTENT_DMA_SIZE"
-sounds a bit strange because it is not specific to framebuffer.
+For me it sounds like that value would change depending on the board, no?
+So maybe that size should be set up during board init. Maybe bundled
+inside omapX_globals ??
 
-So how about renaming this more generic name like
-"OMAP_CONSISTENT_DMA_SIZE"? Or making "CONSISTENT_DMA_SIZE" itself
-configurable in menuconfig?
-
-	Hiroshi DOYU
+-- 
+balbi
