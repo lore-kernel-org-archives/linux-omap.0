@@ -1,810 +1,1450 @@
-From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: [PATCH 1/7][OMAP 3/4+] BRIDGE: Module ISR removed
-Date: Fri, 12 Sep 2008 22:58:03 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E615187D03@dlee06.ent.ti.com>
+From: "Ramirez Luna, Omar" <x00omar@ti.com>
+Subject: [PATCH 2/7][OMAP 3/4+] BRIDGE Remove CDECL macro
+Date: Fri, 12 Sep 2008 23:01:22 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A5344A4F04B@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45255 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751326AbYIMD6L convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 23:58:11 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:55582 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750719AbYIMEBb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Sep 2008 00:01:31 -0400
 Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8D3w5xi031675
-	for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 22:58:10 -0500
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8D41P3x023546
+	for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 23:01:30 -0500
 Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m8D3w5wo007667
-	for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 22:58:05 -0500 (CDT)
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m8D41PiK008718
+	for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 23:01:25 -0500 (CDT)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
->From 60000e23ab5efb98dbdcff47620627099cc220d1 Mon Sep 17 00:00:00 2001
-From: Fernando Guzman Lugo <x0095840@ti.com>
-Date: Fri, 12 Sep 2008 21:04:03 -0500
-Subject: [PATCH] BRIDGE: Module ISR removed
+Date: Fri, 12 Sep 2008 17:25:07 -0500
+Subject: [PATCH] BRIDGE Remove CDECL macro
 
-This patch removes all the ISR wrapper functions
+Removing CDECL macro as it was defined as empty and
+not needed for Linux
 
 Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+Signed-off-by: Omar Ramirez Luna <x00omar@ti.com>
 ---
- arch/arm/plat-omap/include/mach/bridge/_chnl_sm.h |    1 -
- arch/arm/plat-omap/include/mach/bridge/io_sm.h    |    3 +-
- arch/arm/plat-omap/include/mach/bridge/isr.h      |  154 ------------
- drivers/dsp/bridge/Kbuild                         |    2 +-
- drivers/dsp/bridge/pmgr/chnl.c                    |    1 -
- drivers/dsp/bridge/services/isr.c                 |  261 ---------------------
- drivers/dsp/bridge/services/services.c            |   10 +-
- drivers/dsp/bridge/wmd/_deh.h                     |    2 -
- drivers/dsp/bridge/wmd/io_sm.c                    |   46 ++--
- drivers/dsp/bridge/wmd/mmu_fault.c                |    6 +-
- drivers/dsp/bridge/wmd/mmu_fault.h                |    2 +-
- drivers/dsp/bridge/wmd/tiomap_sm.c                |    1 -
- drivers/dsp/bridge/wmd/ue_deh.c                   |   14 +-
- 13 files changed, 39 insertions(+), 464 deletions(-)
- delete mode 100644 arch/arm/plat-omap/include/mach/bridge/isr.h
- delete mode 100644 drivers/dsp/bridge/services/isr.c
+ arch/arm/plat-omap/include/mach/bridge/chnl_sm.h  |   16 ++--
+ arch/arm/plat-omap/include/mach/bridge/cod.h      |   28 +++---
+ arch/arm/plat-omap/include/mach/bridge/dbdcddef.h |    2 +-
+ arch/arm/plat-omap/include/mach/bridge/dbdefs.h   |    2 +-
+ arch/arm/plat-omap/include/mach/bridge/dbtype.h   |    2 -
+ arch/arm/plat-omap/include/mach/bridge/dev.h      |   62 +++++++-------
+ arch/arm/plat-omap/include/mach/bridge/dpc.h      |   14 ++--
+ arch/arm/plat-omap/include/mach/bridge/mgr.h      |    6 +-
+ arch/arm/plat-omap/include/mach/bridge/msgdefs.h  |    2 +-
+ arch/arm/plat-omap/include/mach/bridge/nldrdefs.h |    4 +-
+ arch/arm/plat-omap/include/mach/bridge/proc.h     |    4 +-
+ arch/arm/plat-omap/include/mach/bridge/wmd.h      |   88 ++++++++++----------
+ drivers/dsp/bridge/pmgr/cod.c                     |    8 +-
+ drivers/dsp/bridge/pmgr/dev.c                     |   24 +++---
+ drivers/dsp/bridge/pmgr/wcd.c                     |   17 ++--
+ drivers/dsp/bridge/rmgr/mgr.c                     |    4 +-
+ drivers/dsp/bridge/rmgr/node.c                    |   10 +-
+ drivers/dsp/bridge/rmgr/proc.c                    |    4 +-
+ drivers/dsp/bridge/wmd/tiomap3430.c               |    2 +-
+ drivers/dsp/bridge/wmd/ue_deh.c                   |    2 +-
+ 20 files changed, 150 insertions(+), 151 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/mach/bridge/_chnl_sm.h b/arch/arm/plat-omap/include/mach/bridge/_chnl_sm.h
-index f6a6c69..4e82639 100644
---- a/arch/arm/plat-omap/include/mach/bridge/_chnl_sm.h
-+++ b/arch/arm/plat-omap/include/mach/bridge/_chnl_sm.h
-@@ -57,7 +57,6 @@
-
- #include <wcd.h>
- #include <wmd.h>
--#include <isr.h>
- #include <dpc.h>
-
- #include <list.h>
-diff --git a/arch/arm/plat-omap/include/mach/bridge/io_sm.h b/arch/arm/plat-omap/include/mach/bridge/io_sm.h
-index 413108f..892c06a 100644
---- a/arch/arm/plat-omap/include/mach/bridge/io_sm.h
-+++ b/arch/arm/plat-omap/include/mach/bridge/io_sm.h
-@@ -132,8 +132,7 @@
-  *      Interrupts are disabled and EOI for this interrupt has been sent.
+diff --git a/arch/arm/plat-omap/include/mach/bridge/chnl_sm.h b/arch/arm/plat-omap/include/mach/bridge/chnl_sm.h
+index 4db08b3..0b724be 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/chnl_sm.h
++++ b/arch/arm/plat-omap/include/mach/bridge/chnl_sm.h
+@@ -62,7 +62,7 @@
+  *  Requires:
   *  Ensures:
   */
--       extern bool IO_ISR(IN void *pRefData);
--
-+       irqreturn_t IO_ISR(int irq, IN void *pRefData);
+-       extern DSP_STATUS CDECL CHNLSM_DisableInterrupt(struct WMD_DEV_CONTEXT*
++       extern DSP_STATUS CHNLSM_DisableInterrupt(struct WMD_DEV_CONTEXT*
+                                                        hDevContext);
+
  /*
-  *  ======== IO_RequestChnl ========
+@@ -79,7 +79,7 @@
+  *      All data objects touched must be locked in memory.
+  *  Ensures:
+  */
+-       extern void CDECL CHNLSM_DPC(struct WMD_DEV_CONTEXT *hDevContext);
++       extern void CHNLSM_DPC(struct WMD_DEV_CONTEXT *hDevContext);
+
+ /*
+  *  ======== CHNLSM_EnableInterrupt ========
+@@ -91,7 +91,7 @@
+  *  Requires:
+  *  Ensures:
+  */
+-       extern DSP_STATUS CDECL CHNLSM_EnableInterrupt(struct WMD_DEV_CONTEXT*
++       extern DSP_STATUS CHNLSM_EnableInterrupt(struct WMD_DEV_CONTEXT*
+                                                       hDevContext);
+
+ /*
+@@ -106,7 +106,7 @@
+  *  Requires:
+  *  Ensures:
+  */
+-       extern DSP_STATUS CDECL CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT*
++       extern DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT*
+                                                    hDevContext);
+
+ /*
+@@ -124,7 +124,7 @@
+  *  Requires:
+  *  Ensures:
+  */
+-       extern DSP_STATUS CDECL CHNLSM_InterruptDSP2(struct WMD_DEV_CONTEXT*
++       extern DSP_STATUS CHNLSM_InterruptDSP2(struct WMD_DEV_CONTEXT*
+                                                     hDevContext, u16 wMbVal);
+
+ /*
+@@ -151,7 +151,7 @@
+  *  Ensures:
+  *      If the interrupt is *not* shared, this routine must return TRUE.
+  */
+-       extern bool CDECL CHNLSM_ISR(struct WMD_DEV_CONTEXT *hDevContext,
++       extern bool CHNLSM_ISR(struct WMD_DEV_CONTEXT *hDevContext,
+                                     OUT bool *pfSchedDPC,
+                                     OUT u16 *pwIntrVal);
+
+@@ -168,7 +168,7 @@
+  *  Requires:
+  *  Ensures:
+  */
+-       extern DSP_STATUS CDECL CHNLSM_Read(struct WMD_DEV_CONTEXT *hDevContext,
++       extern DSP_STATUS CHNLSM_Read(struct WMD_DEV_CONTEXT *hDevContext,
+                                            OUT u8 *pHostBuf,
+                                            u32 dwDSPAddr, u32 ulNumBytes);
+
+@@ -203,7 +203,7 @@
+  *  Requires:
+  *  Ensures:
+  */
+-       extern DSP_STATUS CDECL CHNLSM_Write(struct WMD_DEV_CONTEXT *hDevContext,
++       extern DSP_STATUS CHNLSM_Write(struct WMD_DEV_CONTEXT *hDevContext,
+                                            IN u8 *pHostBuf,
+                                            u32 dwDSPAddr, u32 ulNumBytes);
+
+diff --git a/arch/arm/plat-omap/include/mach/bridge/cod.h b/arch/arm/plat-omap/include/mach/bridge/cod.h
+index 6a37da7..a56789a 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/cod.h
++++ b/arch/arm/plat-omap/include/mach/bridge/cod.h
+@@ -101,7 +101,7 @@
+  *  Function prototypes for writing memory to a DSP system, allocating
+  *  and freeing DSP memory.
+  */
+-       typedef u32(CDECL *COD_WRITEFXN) (void *pPrivRef, u32 ulDspAddr,
++       typedef u32(*COD_WRITEFXN) (void *pPrivRef, u32 ulDspAddr,
+                                             void *pBuf, u32 ulNumBytes,
+                                             u32 nMemSpace);
+
+@@ -120,7 +120,7 @@
+  *  Ensures:
+  *
+  */
+-       extern void CDECL COD_Close(struct COD_LIBRARYOBJ *lib);
++       extern void COD_Close(struct COD_LIBRARYOBJ *lib);
+
+ /*
+  *  ======== COD_Create ========
+@@ -146,7 +146,7 @@
+  *      pstrZLFile != NULL
+  *  Ensures:
+  */
+-       extern DSP_STATUS CDECL COD_Create(OUT struct COD_MANAGER **phManager,
++       extern DSP_STATUS COD_Create(OUT struct COD_MANAGER **phManager,
+                                    char *pstrZLFile,
+                                    IN OPTIONAL CONST struct COD_ATTRS *attrs);
+
+@@ -163,7 +163,7 @@
+  *      valid hManager.
+  *  Ensures:
+  */
+-       extern void CDECL COD_Delete(struct COD_MANAGER *hManager);
++       extern void COD_Delete(struct COD_MANAGER *hManager);
+
+ /*
+  *  ======== COD_Exit ========
+@@ -178,7 +178,7 @@
+  *  Ensures:
+  *      Resources acquired in COD_Init() are freed.
+  */
+-       extern void CDECL COD_Exit();
++       extern void COD_Exit();
+
+ /*
+  *  ======== COD_GetBaseLib ========
+@@ -195,7 +195,7 @@
+  *      plib != NULL.
+  *  Ensures:
+  */
+-       extern DSP_STATUS CDECL COD_GetBaseLib(struct COD_MANAGER *hManager,
++       extern DSP_STATUS COD_GetBaseLib(struct COD_MANAGER *hManager,
+                                               struct DBLL_LibraryObj **plib);
+
+ /*
+@@ -215,7 +215,7 @@
+  *      pszName != NULL.
+  *  Ensures:
+  */
+-       extern DSP_STATUS CDECL COD_GetBaseName(struct COD_MANAGER *hManager,
++       extern DSP_STATUS COD_GetBaseName(struct COD_MANAGER *hManager,
+                                                char *pszName, u32 uSize);
+
+ /*
+@@ -233,7 +233,7 @@
+  *      pulEntry != NULL.
+  *  Ensures:
+  */
+-       extern DSP_STATUS CDECL COD_GetEntry(struct COD_MANAGER *hManager,
++       extern DSP_STATUS COD_GetEntry(struct COD_MANAGER *hManager,
+                                             u32 *pulEntry);
+
+ /*
+@@ -251,7 +251,7 @@
+  *      phLoader != NULL.
+  *  Ensures:
+  */
+-       extern DSP_STATUS CDECL COD_GetLoader(struct COD_MANAGER *hManager,
++       extern DSP_STATUS COD_GetLoader(struct COD_MANAGER *hManager,
+                                              struct DBLL_TarObj **phLoader);
+
+ /*
+@@ -280,7 +280,7 @@
+  *      else:  *puAddr == 0 and *puLen == 0;
+  *
+  */
+-       extern DSP_STATUS CDECL COD_GetSection(struct COD_LIBRARYOBJ *lib,
++       extern DSP_STATUS COD_GetSection(struct COD_LIBRARYOBJ *lib,
+                                               IN char *pstrSect,
+                                               OUT u32 *puAddr,
+                                               OUT u32 *puLen);
+@@ -306,7 +306,7 @@
+  *      pulValue != NULL.
+  *  Ensures:
+  */
+-       extern DSP_STATUS CDECL COD_GetSymValue(struct COD_MANAGER *hManager,
++       extern DSP_STATUS COD_GetSymValue(struct COD_MANAGER *hManager,
+                                                IN char *pstrSym,
+                                                OUT u32 *pulValue);
+
+@@ -322,7 +322,7 @@
+  *  Ensures:
+  *      A requirement for each of the other public COD functions.
+  */
+-       extern bool CDECL COD_Init();
++       extern bool COD_Init();
+
+ /*
+  *  ======== COD_LoadBase ========
+@@ -351,7 +351,7 @@
+  *      pfnWrite != NULL.
+  *  Ensures:
+  */
+-       extern DSP_STATUS CDECL COD_LoadBase(struct COD_MANAGER *hManager,
++       extern DSP_STATUS COD_LoadBase(struct COD_MANAGER *hManager,
+                                             u32 nArgc, char *aArgs[],
+                                             COD_WRITEFXN pfnWrite, void *pArb,
+                                             char *envp[]);
+@@ -423,7 +423,7 @@ extern DSP_STATUS COD_OpenBase(struct COD_MANAGER *hMgr, IN char *pszCoffPath,
+  *  Ensures:
+  *      DSP_SOK:  *pstrContent stores the content of the named section.
+  */
+-       extern DSP_STATUS CDECL COD_ReadSection(struct COD_LIBRARYOBJ *lib,
++       extern DSP_STATUS COD_ReadSection(struct COD_LIBRARYOBJ *lib,
+                                                IN char *pstrSect,
+                                                OUT char *pstrContent,
+                                                IN u32 cContentSize);
+diff --git a/arch/arm/plat-omap/include/mach/bridge/dbdcddef.h b/arch/arm/plat-omap/include/mach/bridge/dbdcddef.h
+index ec82600..13b7e04 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/dbdcddef.h
++++ b/arch/arm/plat-omap/include/mach/bridge/dbdcddef.h
+@@ -86,7 +86,7 @@
+        } ;
+
+ /* DCD Internal Callback Type */
+-       typedef DSP_STATUS(CDECL *DCD_REGISTERFXN) (IN struct DSP_UUID *pUuid,
++       typedef DSP_STATUS(*DCD_REGISTERFXN) (IN struct DSP_UUID *pUuid,
+                                                IN enum DSP_DCDOBJTYPE objType,
+                                                IN void *handle);
+
+diff --git a/arch/arm/plat-omap/include/mach/bridge/dbdefs.h b/arch/arm/plat-omap/include/mach/bridge/dbdefs.h
+index be0c1d1..e9328a3 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/dbdefs.h
++++ b/arch/arm/plat-omap/include/mach/bridge/dbdefs.h
+@@ -80,7 +80,7 @@
+ #define PG_ALIGN_HIGH(addr, pg_size) (((addr)+(pg_size)-1) & PG_MASK(pg_size))
+
+ /* API return value and calling convention */
+-#define DBAPI                       DSP_STATUS CDECL
++#define DBAPI                       DSP_STATUS
+
+ /* Infinite time value for the uTimeout parameter to DSPStream_Select() */
+ #define DSP_FOREVER                 (-1)
+diff --git a/arch/arm/plat-omap/include/mach/bridge/dbtype.h b/arch/arm/plat-omap/include/mach/bridge/dbtype.h
+index d886d03..eaadfba 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/dbtype.h
++++ b/arch/arm/plat-omap/include/mach/bridge/dbtype.h
+@@ -94,8 +94,6 @@ typedef void *HANDLE;         /* h    */
+
+ #define TEXT(x) x
+
+-#define CDECL
+-
+ #define DLLIMPORT
+ #define DLLEXPORT
+
+diff --git a/arch/arm/plat-omap/include/mach/bridge/dev.h b/arch/arm/plat-omap/include/mach/bridge/dev.h
+index a045209..8a97bca 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/dev.h
++++ b/arch/arm/plat-omap/include/mach/bridge/dev.h
+@@ -115,7 +115,7 @@
+  *      pHostBuf != NULL
+  *  Ensures:
+  */
+-       extern u32 CDECL DEV_BrdWriteFxn(void *pArb,
++       extern u32 DEV_BrdWriteFxn(void *pArb,
+                                           u32 ulDspAddr,
+                                           void *pHostBuf,
+                                           u32 ulNumBytes, u32 nMemSpace);
+@@ -158,7 +158,7 @@
+  *      Otherwise, does not create the device object, ensures the WMD module is
+  *      unloaded, and sets *phDevObject to NULL.
+  */
+-       extern DSP_STATUS CDECL DEV_CreateDevice(OUT struct DEV_OBJECT
++       extern DSP_STATUS DEV_CreateDevice(OUT struct DEV_OBJECT
+                                                 **phDevObject,
+                                                 IN CONST char *pstrWMDFileName,
+                                                 IN CONST struct CFG_HOSTRES
+@@ -204,7 +204,7 @@
+  *      Otherwise, does not create the device object, ensures the WMD module is
+  *      unloaded, and sets *phDevObject to NULL.
+  */
+-       extern DSP_STATUS CDECL DEV_CreateIVADevice(OUT struct DEV_OBJECT
++       extern DSP_STATUS DEV_CreateIVADevice(OUT struct DEV_OBJECT
+                                **phDevObject,
+                                IN CONST char *pstrWMDFileName,
+                                IN CONST struct CFG_HOSTRES *pHostConfig,
+@@ -229,7 +229,7 @@
+  *      DSP_SOK and hDevObject->hNodeMgr != NULL
+  *      else    hDevObject->hNodeMgr == NULL
+  */
+-       extern DSP_STATUS CDECL DEV_Create2(IN struct DEV_OBJECT *hDevObject);
++       extern DSP_STATUS DEV_Create2(IN struct DEV_OBJECT *hDevObject);
+
+ /*
+  *  ======== DEV_Destroy2 ========
+@@ -247,7 +247,7 @@
+  *      DSP_SOK and hDevObject->hNodeMgr == NULL
+  *      else    DSP_EFAIL.
+  */
+-       extern DSP_STATUS CDECL DEV_Destroy2(IN struct DEV_OBJECT *hDevObject);
++       extern DSP_STATUS DEV_Destroy2(IN struct DEV_OBJECT *hDevObject);
+
+ /*
+  *  ======== DEV_DestroyDevice ========
+@@ -265,7 +265,7 @@
+  *      DEV Initialized.
+  *  Ensures:
+  */
+-       extern DSP_STATUS CDECL DEV_DestroyDevice(struct DEV_OBJECT
++       extern DSP_STATUS DEV_DestroyDevice(struct DEV_OBJECT
+                                                  *hDevObject);
+
+ /*
+@@ -287,7 +287,7 @@
+  *                      or NULL.
+  *      else:           *phMgr is NULL.
+  */
+-       extern DSP_STATUS CDECL DEV_GetChnlMgr(struct DEV_OBJECT *hDevObject,
++       extern DSP_STATUS DEV_GetChnlMgr(struct DEV_OBJECT *hDevObject,
+                                               OUT struct CHNL_MGR **phMgr);
+
+ /*
+@@ -310,7 +310,7 @@
+  *                      or NULL.
+  *      else:           *phMgr is NULL.
+  */
+-       extern DSP_STATUS CDECL DEV_GetCmmMgr(struct DEV_OBJECT *hDevObject,
++       extern DSP_STATUS DEV_GetCmmMgr(struct DEV_OBJECT *hDevObject,
+                                              OUT struct CMM_OBJECT **phMgr);
+
+ /*
+@@ -333,7 +333,7 @@
+  *                      or NULL.
+  *      else:           *phMgr is NULL.
+  */
+-       extern DSP_STATUS CDECL DEV_GetDmmMgr(struct DEV_OBJECT *hDevObject,
++       extern DSP_STATUS DEV_GetDmmMgr(struct DEV_OBJECT *hDevObject,
+                                              OUT struct DMM_OBJECT **phMgr);
+
+ /*
+@@ -354,7 +354,7 @@
+  *      DSP_SOK:        *phCodMgr contains a handle to a COD manager object.
+  *      else:           *phCodMgr is NULL.
+  */
+-       extern DSP_STATUS CDECL DEV_GetCodMgr(struct DEV_OBJECT *hDevObject,
++       extern DSP_STATUS DEV_GetCodMgr(struct DEV_OBJECT *hDevObject,
+                                             OUT struct COD_MANAGER **phCodMgr);
+
+ /*
+@@ -374,7 +374,7 @@
+  *      DSP_SOK:    *phDehMgr contains a handle to a DEH manager object.
+  *      else:       *phDehMgr is NULL.
+  */
+-       extern DSP_STATUS CDECL DEV_GetDehMgr(struct DEV_OBJECT *hDevObject,
++       extern DSP_STATUS DEV_GetDehMgr(struct DEV_OBJECT *hDevObject,
+                                              OUT struct DEH_MGR **phDehMgr);
+
+ /*
+@@ -395,7 +395,7 @@
+  *      DSP_SOK:        *phDevNode contains a platform specific device ID;
+  *      else:           *phDevNode is NULL.
+  */
+-       extern DSP_STATUS CDECL DEV_GetDevNode(struct DEV_OBJECT *hDevObject,
++       extern DSP_STATUS DEV_GetDevNode(struct DEV_OBJECT *hDevObject,
+                                        OUT struct CFG_DEVNODE **phDevNode);
+
+ /*
+@@ -416,7 +416,7 @@
+  *      DSP_SOK:        *phDevNode contains a platform specific device ID;
+  *      else:           *phDevNode is NULL.
+  */
+-       extern DSP_STATUS CDECL DEV_GetDevType(struct DEV_OBJECT *hdevObject,
++       extern DSP_STATUS DEV_GetDevType(struct DEV_OBJECT *hdevObject,
+                                               u32 *devType);
+
+ /*
+@@ -437,7 +437,7 @@
+  *      A subsequent call to DEV_GetNext will return the next device object in
+  *      the list.
+  */
+-       extern struct DEV_OBJECT *CDECL DEV_GetFirst();
++       extern struct DEV_OBJECT *DEV_GetFirst();
+
+ /*
+  *  ======== DEV_GetIntfFxns ========
+@@ -457,7 +457,7 @@
+  *      DSP_SOK:        *ppIntfFxns contains a pointer to the WMD interface;
+  *      else:           *ppIntfFxns is NULL.
+  */
+-       extern DSP_STATUS CDECL DEV_GetIntfFxns(struct DEV_OBJECT *hDevObject,
++       extern DSP_STATUS DEV_GetIntfFxns(struct DEV_OBJECT *hDevObject,
+                                OUT struct WMD_DRV_INTERFACE **ppIntfFxns);
+
+ /*
+@@ -478,7 +478,7 @@
+  *      DSP_SOK:        *phMgr contains a handle to an IO manager object.
+  *      else:           *phMgr is NULL.
+  */
+-       extern DSP_STATUS CDECL DEV_GetIOMgr(struct DEV_OBJECT *hDevObject,
++       extern DSP_STATUS DEV_GetIOMgr(struct DEV_OBJECT *hDevObject,
+                                             OUT struct IO_MGR **phMgr);
+
+ /*
+@@ -503,7 +503,7 @@
+  *      A subsequent call to DEV_GetNext will return the next device object in
+  *      the list.
+  */
+-       extern struct DEV_OBJECT *CDECL DEV_GetNext(struct DEV_OBJECT
++       extern struct DEV_OBJECT *DEV_GetNext(struct DEV_OBJECT
+                                                    *hDevObject);
+
+ /*
+@@ -520,7 +520,7 @@
+  *      phNodeMgr != NULL.
+  *  Ensures:
+  */
+-       extern void CDECL DEV_GetMsgMgr(struct DEV_OBJECT *hDevObject,
++       extern void DEV_GetMsgMgr(struct DEV_OBJECT *hDevObject,
+                                        OUT struct MSG_MGR **phMsgMgr);
+
+ /*
+@@ -542,7 +542,7 @@
+  *      DSP_SOK:        *phNodeMgr contains a handle to a Node manager object.
+  *      else:           *phNodeMgr is NULL.
+  */
+-       extern DSP_STATUS CDECL DEV_GetNodeManager(struct DEV_OBJECT
++       extern DSP_STATUS DEV_GetNodeManager(struct DEV_OBJECT
+                                        *hDevObject,
+                                        OUT struct NODE_MGR **phNodeMgr);
+
+@@ -567,7 +567,7 @@
+  *  Ensures:
+  *      DSP_SOK:        *pulValue contains the symbol value;
+  */
+-       extern DSP_STATUS CDECL DEV_GetSymbol(struct DEV_OBJECT *hDevObject,
++       extern DSP_STATUS DEV_GetSymbol(struct DEV_OBJECT *hDevObject,
+                                              IN CONST char *pstrSym,
+                                              OUT u32 *pulValue);
+
+@@ -588,7 +588,7 @@
+  *      DSP_SOK:        *phWmdContext contains context handle;
+  *      else:           *phWmdContext is NULL;
+  */
+-       extern DSP_STATUS CDECL DEV_GetWMDContext(struct DEV_OBJECT *hDevObject,
++       extern DSP_STATUS DEV_GetWMDContext(struct DEV_OBJECT *hDevObject,
+                                OUT struct WMD_DEV_CONTEXT **phWmdContext);
+
+ /*
+@@ -603,7 +603,7 @@
+  *  Ensures:
+  *      When reference count == 0, DEV's private resources are freed.
+  */
+-       extern void CDECL DEV_Exit();
++       extern void DEV_Exit();
+
+ /*
+  *  ======== DEV_Init ========
+@@ -616,7 +616,7 @@
+  *  Ensures:
+  *      TRUE: A requirement for the other public DEV functions.
+  */
+-       extern bool CDECL DEV_Init();
++       extern bool DEV_Init();
+
+ /*
+  *  ======== DEV_IsLocked ========
+@@ -634,7 +634,7 @@
+  *      DEV Initialized.
+  *  Ensures:
+  */
+-       extern DSP_STATUS CDECL DEV_IsLocked(IN struct DEV_OBJECT *hDevObject);
++       extern DSP_STATUS DEV_IsLocked(IN struct DEV_OBJECT *hDevObject);
+
+ /*
+  *  ======== DEV_InsertProcObject ========
+@@ -659,7 +659,7 @@
+  *      this is the first Processor attaching.
+  *      If it is False, there are already processors attached.
+  */
+-       extern DSP_STATUS CDECL DEV_InsertProcObject(IN struct DEV_OBJECT
++       extern DSP_STATUS DEV_InsertProcObject(IN struct DEV_OBJECT
+                                                     *hDevObject,
+                                                     IN u32 hProcObject,
+                                                     OUT bool *
+@@ -688,7 +688,7 @@
+  *      List will be deleted when the DEV is destroyed.
+  *
+  */
+-       extern DSP_STATUS CDECL DEV_RemoveProcObject(struct DEV_OBJECT
++       extern DSP_STATUS DEV_RemoveProcObject(struct DEV_OBJECT
+                                                     *hDevObject,
+                                                     u32 hProcObject);
+
+@@ -712,7 +712,7 @@
+  *      delivered to clients.  This function does not ensure that
+  *      the notifications will ever be delivered.
+  */
+-       extern DSP_STATUS CDECL DEV_NotifyClients(struct DEV_OBJECT *hDevObject,
++       extern DSP_STATUS DEV_NotifyClients(struct DEV_OBJECT *hDevObject,
+                                                  u32 ulStatus);
+
+
+@@ -729,7 +729,7 @@
+  *  Requires:
+  *  Ensures:
+  */
+-       extern DSP_STATUS CDECL DEV_RemoveDevice(struct CFG_DEVNODE *hDevNode);
++       extern DSP_STATUS DEV_RemoveDevice(struct CFG_DEVNODE *hDevNode);
+
+ /*
+  *  ======== DEV_SetChnlMgr ========
+@@ -746,7 +746,7 @@
+  *      DEV Initialized.
+  *  Ensures:
+  */
+-       extern DSP_STATUS CDECL DEV_SetChnlMgr(struct DEV_OBJECT *hDevObject,
++       extern DSP_STATUS DEV_SetChnlMgr(struct DEV_OBJECT *hDevObject,
+                                               struct CHNL_MGR *hMgr);
+
+ /*
+@@ -761,7 +761,7 @@
+  *      DEV Initialized.
+  *  Ensures:
+  */
+-       extern void CDECL DEV_SetMsgMgr(struct DEV_OBJECT *hDevObject,
++       extern void DEV_SetMsgMgr(struct DEV_OBJECT *hDevObject,
+                                        struct MSG_MGR *hMgr);
+
+ /*
+@@ -780,6 +780,6 @@
+  *      DEV initialized.
+  *  Ensures:
+  */
+-       extern DSP_STATUS CDECL DEV_StartDevice(struct CFG_DEVNODE *hDevNode);
++       extern DSP_STATUS DEV_StartDevice(struct CFG_DEVNODE *hDevNode);
+
+ #endif                         /* DEV_ */
+diff --git a/arch/arm/plat-omap/include/mach/bridge/dpc.h b/arch/arm/plat-omap/include/mach/bridge/dpc.h
+index 8c7dfa9..08167b4 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/dpc.h
++++ b/arch/arm/plat-omap/include/mach/bridge/dpc.h
+@@ -60,7 +60,7 @@
+  *      However, the DPC may take hardware interrupts during execution.
+  *      Interrupts to the processor are enabled.
+  */
+-       typedef void(CDECL *DPC_PROC) (void *pRefData);
++       typedef void(*DPC_PROC) (void *pRefData);
+
+ /*
+  *  ======== DPC_Cancel ========
+@@ -77,7 +77,7 @@
+  *      If the DPC has already executed, is executing, or was not yet
+  *      scheduled, this function will have no effect.
+  */
+-       extern DSP_STATUS CDECL DPC_Cancel(IN struct DPC_OBJECT *hDPC);
++       extern DSP_STATUS DPC_Cancel(IN struct DPC_OBJECT *hDPC);
+
+ /*
+  *  ======== DPC_Create ========
+@@ -98,7 +98,7 @@
+  *      DSP_SOK: DPC object is created;
+  *      else: *phDPC is set to NULL.
+  */
+-       extern DSP_STATUS CDECL DPC_Create(OUT struct DPC_OBJECT **phDPC,
++       extern DSP_STATUS DPC_Create(OUT struct DPC_OBJECT **phDPC,
+                                           IN DPC_PROC pfnDPC,
+                                           IN void *pRefData);
+
+@@ -119,7 +119,7 @@
+  *  Ensures:
+  *      (SUCCESS && hDPC is NULL) or DSP_EFAILED status
+  */
+-       extern DSP_STATUS CDECL DPC_Destroy(IN struct DPC_OBJECT *hDPC);
++       extern DSP_STATUS DPC_Destroy(IN struct DPC_OBJECT *hDPC);
+
+ /*
+  *  ======== DPC_Exit ========
+@@ -132,7 +132,7 @@
+  *  Ensures:
+  *      Resources acquired in DPC_Init() are freed.
+  */
+-       extern void CDECL DPC_Exit();
++       extern void DPC_Exit();
+
+ /*
+  *  ======== DPC_Init ========
+@@ -145,7 +145,7 @@
+  *  Ensures:
+  *      A requirement for each of the other public DPC functions.
+  */
+-       extern bool CDECL DPC_Init();
++       extern bool DPC_Init();
+
+ /*
+  *  ======== DPC_Schedule ========
+@@ -162,6 +162,6 @@
+  *  Ensures:
+  *      DSP_SOK:        The DPC will not be called before this function returns.
+  */
+-       extern DSP_STATUS CDECL DPC_Schedule(IN struct DPC_OBJECT *hDPC);
++       extern DSP_STATUS DPC_Schedule(IN struct DPC_OBJECT *hDPC);
+
+ #endif                         /* DPC_ */
+diff --git a/arch/arm/plat-omap/include/mach/bridge/mgr.h b/arch/arm/plat-omap/include/mach/bridge/mgr.h
+index ac17d7a..fc57a6c 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/mgr.h
++++ b/arch/arm/plat-omap/include/mach/bridge/mgr.h
+@@ -194,7 +194,7 @@
+  *  Ensures:
+  *      When reference count == 0, MGR's private resources are freed.
+  */
+-       extern void CDECL MGR_Exit();
++       extern void MGR_Exit();
+
+ /*
+  *  ======== MGR_GetDCDHandle ========
+@@ -213,7 +213,7 @@
+  *      DSP_SOK and *phDCDHandle != NULL ||
+  *      DSP_EFAIL and *phDCDHandle == NULL
+  */
+-       extern DSP_STATUS CDECL MGR_GetDCDHandle(IN struct MGR_OBJECT
++       extern DSP_STATUS MGR_GetDCDHandle(IN struct MGR_OBJECT
+                                                 *hMGRHandle,
+                                                 OUT u32 *phDCDHandle);
+
+@@ -229,6 +229,6 @@
+  *  Ensures:
+  *      TRUE: A requirement for the other public MGR functions.
+  */
+-       extern bool CDECL MGR_Init();
++       extern bool MGR_Init();
+
+ #endif                         /* MGR_ */
+diff --git a/arch/arm/plat-omap/include/mach/bridge/msgdefs.h b/arch/arm/plat-omap/include/mach/bridge/msgdefs.h
+index 4e62335..22b38e8 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/msgdefs.h
++++ b/arch/arm/plat-omap/include/mach/bridge/msgdefs.h
+@@ -37,7 +37,7 @@
+        struct MSG_QUEUE;
+
+ /* Function prototype for callback to be called on RMS_EXIT message received */
+-       typedef void(CDECL *MSG_ONEXIT) (HANDLE h, s32 nStatus);
++       typedef void(*MSG_ONEXIT) (HANDLE h, s32 nStatus);
+
+ #endif                         /* MSGDEFS_ */
+
+diff --git a/arch/arm/plat-omap/include/mach/bridge/nldrdefs.h b/arch/arm/plat-omap/include/mach/bridge/nldrdefs.h
+index 09cd70c..acabf5c 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/nldrdefs.h
++++ b/arch/arm/plat-omap/include/mach/bridge/nldrdefs.h
+@@ -65,7 +65,7 @@
+  *  Requires:
+  *  Ensures:
+  */
+-       typedef u32(CDECL *NLDR_OVLYFXN) (void *pPrivRef, u32 ulDspRunAddr,
++       typedef u32(*NLDR_OVLYFXN) (void *pPrivRef, u32 ulDspRunAddr,
+                                             u32 ulDspLoadAddr,
+                                             u32 ulNumBytes, u32 nMemSpace);
+
+@@ -84,7 +84,7 @@
+  *  Requires:
+  *  Ensures:
+  */
+-       typedef u32(CDECL *NLDR_WRITEFXN) (void *pPrivRef,
++       typedef u32(*NLDR_WRITEFXN) (void *pPrivRef,
+                                              u32 ulDspAddr, void *pBuf,
+                                              u32 ulNumBytes, u32 nMemSpace);
+
+diff --git a/arch/arm/plat-omap/include/mach/bridge/proc.h b/arch/arm/plat-omap/include/mach/bridge/proc.h
+index 2b43085..e5a7b40 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/proc.h
++++ b/arch/arm/plat-omap/include/mach/bridge/proc.h
+@@ -246,7 +246,7 @@
+  *  Ensures:
+  *      When reference count == 0, PROC's private resources are freed.
+  */
+-       extern void CDECL PROC_Exit();
++       extern void PROC_Exit();
+
+ /*
+  * ======== PROC_GetDevObject =========
+@@ -280,7 +280,7 @@
+  *  Ensures:
+  *      TRUE: A requirement for the other public PROC functions.
+  */
+-       extern bool CDECL PROC_Init();
++       extern bool PROC_Init();
+
+ /*
+  *  ======== PROC_GetState ========
+diff --git a/arch/arm/plat-omap/include/mach/bridge/wmd.h b/arch/arm/plat-omap/include/mach/bridge/wmd.h
+index e346f7e..2b91d3a 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/wmd.h
++++ b/arch/arm/plat-omap/include/mach/bridge/wmd.h
+@@ -100,7 +100,7 @@
+  *      DSP_SOK:        Board is in BRD_IDLE state;
+  *      else:           Board state is indeterminate.
+  */
+-       typedef DSP_STATUS(CDECL
++       typedef DSP_STATUS(
+                           *WMD_BRD_MONITOR) (struct WMD_DEV_CONTEXT
+                           *hDevContext);
+
+@@ -121,7 +121,7 @@
+  *      ulBrdState  <= BRD_LASTSTATE.
+  *  Update the Board state to the specified state.
+  */
+-       typedef DSP_STATUS(CDECL
++       typedef DSP_STATUS(
+                           *WMD_BRD_SETSTATE) (struct WMD_DEV_CONTEXT
+                           *hDevContext, u32 ulBrdState);
+
+@@ -144,7 +144,7 @@
+  *                      Interrupts to the PC are enabled.
+  *      else:           Board state is indeterminate.
+  */
+-       typedef DSP_STATUS(CDECL *WMD_BRD_START) (struct WMD_DEV_CONTEXT
++       typedef DSP_STATUS(*WMD_BRD_START) (struct WMD_DEV_CONTEXT
+                                                *hDevContext, u32 dwDSPAddr);
+
+ /*
+@@ -167,7 +167,7 @@
+  *                      Interrupts to the PC are enabled.
+  *      else:           Board state is indeterminate.
+  */
+-       typedef DSP_STATUS(CDECL *WMD_BRD_MEMCOPY) (struct WMD_DEV_CONTEXT
++       typedef DSP_STATUS(*WMD_BRD_MEMCOPY) (struct WMD_DEV_CONTEXT
+                                             *hDevContext,
+                                             u32 ulDspDestAddr,
+                                             u32 ulDspSrcAddr,
+@@ -192,7 +192,7 @@
+  *      pHostBuf != NULL.
+  *  Ensures:
+  */
+-       typedef DSP_STATUS(CDECL *WMD_BRD_MEMWRITE) (struct WMD_DEV_CONTEXT
++       typedef DSP_STATUS(*WMD_BRD_MEMWRITE) (struct WMD_DEV_CONTEXT
+                                        *hDevContext,
+                                        IN u8 *pHostBuf,
+                                        u32 dwDSPAddr, u32 ulNumBytes,
+@@ -215,7 +215,7 @@
+  *      hDevContext != NULL;
+  *  Ensures:
+  */
+-       typedef DSP_STATUS(CDECL *WMD_BRD_MEMMAP) (struct WMD_DEV_CONTEXT
++       typedef DSP_STATUS(*WMD_BRD_MEMMAP) (struct WMD_DEV_CONTEXT
+                                        *hDevContext, u32 ulMpuAddr,
+                                        u32 ulVirtAddr, u32 ulNumBytes,
+                                        u32 ulMapAttrs);
+@@ -235,7 +235,7 @@
+  *      hDevContext != NULL;
+  *  Ensures:
+  */
+-       typedef DSP_STATUS(CDECL *WMD_BRD_MEMUNMAP) (struct WMD_DEV_CONTEXT
++       typedef DSP_STATUS(*WMD_BRD_MEMUNMAP) (struct WMD_DEV_CONTEXT
+                                        *hDevContext,
+                                        u32 ulVirtAddr,
+                                        u32 ulNumBytes);
+@@ -257,7 +257,7 @@
+  *                      Interrupts to the PC are disabled.
+  *      else:           Board state is indeterminate.
+  */
+-       typedef DSP_STATUS(CDECL *WMD_BRD_STOP) (struct WMD_DEV_CONTEXT
++       typedef DSP_STATUS(*WMD_BRD_STOP) (struct WMD_DEV_CONTEXT
+                                        *hDevContext);
+
+ /*
+@@ -275,7 +275,7 @@
+  *  Ensures:
+  *      *pdwState is one of {BRD_STOPPED, BRD_IDLE, BRD_RUNNING, BRD_UNKNOWN};
+  */
+-       typedef DSP_STATUS(CDECL *
++       typedef DSP_STATUS(*
+                           WMD_BRD_STATUS) (struct WMD_DEV_CONTEXT *hDevContext,
+                                            OUT BRD_STATUS * pdwState);
+
+@@ -300,7 +300,7 @@
+  *  Ensures:
+  *  Will not write more than ulNumBytes bytes into pHostBuf.
+  */
+-typedef DSP_STATUS(CDECL *WMD_BRD_READ) (struct WMD_DEV_CONTEXT *hDevContext,
++typedef DSP_STATUS(*WMD_BRD_READ) (struct WMD_DEV_CONTEXT *hDevContext,
+                                                  OUT u8 *pHostBuf,
+                                                  u32 dwDSPAddr,
+                                                  u32 ulNumBytes,
+@@ -326,7 +326,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_READ) (struct WMD_DEV_CONTEXT *hDevContext,
+  *      pHostBuf != NULL.
+  *  Ensures:
+  */
+-typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
++typedef DSP_STATUS(*WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
+                                                   IN u8 *pHostBuf,
+                                                   u32 dwDSPAddr,
+                                                   u32 ulNumBytes,
+@@ -363,7 +363,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      No channel manager exists for this board.
+  *  Ensures:
+  */
+-       typedef DSP_STATUS(CDECL *WMD_CHNL_CREATE)(OUT struct CHNL_MGR
++       typedef DSP_STATUS(*WMD_CHNL_CREATE)(OUT struct CHNL_MGR
+                                                    **phChnlMgr,
+                                                    struct DEV_OBJECT
+                                                    *hDevObject,
+@@ -384,7 +384,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      DSP_SOK: Cancels I/O on each open channel. Closes each open channel.
+  *          CHNL_Create may subsequently be called for the same device.
+  */
+-       typedef DSP_STATUS(CDECL *WMD_CHNL_DESTROY) (struct CHNL_MGR
++       typedef DSP_STATUS(*WMD_CHNL_DESTROY) (struct CHNL_MGR
+                                                      *hChnlMgr);
+ /*
+  *  ======== WMD_DEH_Notify ========
+@@ -401,7 +401,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
+  *     ulEventMask with a valid exception
+  *  Ensures:
+  */
+-       typedef void (CDECL *WMD_DEH_NOTIFY)(struct DEH_MGR *hDehMgr,
++       typedef void (*WMD_DEH_NOTIFY)(struct DEH_MGR *hDehMgr,
+                                        u32 ulEventMask, u32 dwErrInfo);
+
+
+@@ -448,7 +448,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      DSP_SOK:                *phChnl is a valid channel.
+  *      else:                   *phChnl is set to NULL if (phChnl != NULL);
+  */
+-       typedef DSP_STATUS(CDECL *WMD_CHNL_OPEN) (OUT struct CHNL_OBJECT
++       typedef DSP_STATUS(*WMD_CHNL_OPEN) (OUT struct CHNL_OBJECT
+                                                   **phChnl,
+                                                   struct CHNL_MGR *hChnlMgr,
+                                                   CHNL_MODE uMode,
+@@ -473,7 +473,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
+  *  Ensures:
+  *      DSP_SOK:        hChnl is no longer valid.
+  */
+-       typedef DSP_STATUS(CDECL *WMD_CHNL_CLOSE) (struct CHNL_OBJECT *hChnl);
++       typedef DSP_STATUS(*WMD_CHNL_CLOSE) (struct CHNL_OBJECT *hChnl);
+
+ /*
+  *  ======== WMD_CHNL_AddIOReq ========
+@@ -512,7 +512,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
+  *          corresponding IOC for this I/O request will have its status flag
+  *          set to CHNL_IOCSTATEOS.
+  */
+-       typedef DSP_STATUS(CDECL *WMD_CHNL_ADDIOREQ) (struct CHNL_OBJECT
++       typedef DSP_STATUS(*WMD_CHNL_ADDIOREQ) (struct CHNL_OBJECT
+                                                       *hChnl,
+                                                       void *pHostBuf,
+                                                       u32 cBytes,
+@@ -545,7 +545,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
+  *          returns, the channel event object will be left in a signalled
+  *          state.
+  */
+-       typedef DSP_STATUS(CDECL *WMD_CHNL_GETIOC) (struct CHNL_OBJECT *hChnl,
++       typedef DSP_STATUS(*WMD_CHNL_GETIOC) (struct CHNL_OBJECT *hChnl,
+                                                     u32 dwTimeOut,
+                                                     OUT struct CHNL_IOC *pIOC);
+
+@@ -567,7 +567,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
+  *  Ensures:
+  *      Subsequent I/O requests to this channel will not be accepted.
+  */
+-       typedef DSP_STATUS(CDECL *WMD_CHNL_CANCELIO) (struct CHNL_OBJECT
++       typedef DSP_STATUS(*WMD_CHNL_CANCELIO) (struct CHNL_OBJECT
+                                                       *hChnl);
+
+ /*
+@@ -587,7 +587,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
+  *  Ensures:
+  *      DSP_SOK:            No I/O requests will be pending on this channel.
+  */
+-       typedef DSP_STATUS(CDECL *WMD_CHNL_FLUSHIO) (struct CHNL_OBJECT *hChnl,
++       typedef DSP_STATUS(*WMD_CHNL_FLUSHIO) (struct CHNL_OBJECT *hChnl,
+                                                      u32 dwTimeOut);
+
+ /*
+@@ -606,7 +606,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      DSP_SOK:        pInfo points to a filled in CHNL_INFO struct,
+  *                      if (pInfo != NULL).
+  */
+-       typedef DSP_STATUS(CDECL *WMD_CHNL_GETINFO) (struct CHNL_OBJECT *hChnl,
++       typedef DSP_STATUS(*WMD_CHNL_GETINFO) (struct CHNL_OBJECT *hChnl,
+                                                      OUT struct CHNL_INFO
+                                                      *pChnlInfo);
+
+@@ -628,7 +628,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      DSP_SOK:            pMgrInfo points to a filled in CHNL_MGRINFO
+  *                          struct, if (pMgrInfo != NULL).
+  */
+-       typedef DSP_STATUS(CDECL *WMD_CHNL_GETMGRINFO) (struct CHNL_MGR
++       typedef DSP_STATUS(*WMD_CHNL_GETMGRINFO) (struct CHNL_MGR
+                                                         *hChnlMgr,
+                                                         u32 uChnlID,
+                                                         OUT struct CHNL_MGRINFO
+@@ -660,7 +660,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
+  *  Requires:
+  *  Ensures:
+  */
+-       typedef DSP_STATUS(CDECL *WMD_CHNL_IDLE) (struct CHNL_OBJECT *hChnl,
++       typedef DSP_STATUS(*WMD_CHNL_IDLE) (struct CHNL_OBJECT *hChnl,
+                                                   u32 dwTimeOut,
+                                                   bool fFlush);
+
+@@ -689,7 +689,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      uNotifyType == DSP_SIGNALEVENT.
+  *  Ensures:
+  */
+-       typedef DSP_STATUS(CDECL *WMD_CHNL_REGISTERNOTIFY)
++       typedef DSP_STATUS(*WMD_CHNL_REGISTERNOTIFY)
+                                (struct CHNL_OBJECT *hChnl,
+                                u32 uEventMask,
+                                u32 uNotifyType,
+@@ -733,7 +733,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      function returns, they must not be stored into the device context
+  *      structure.
+  */
+-       typedef DSP_STATUS(CDECL *WMD_DEV_CREATE) (OUT struct WMD_DEV_CONTEXT
++       typedef DSP_STATUS(*WMD_DEV_CREATE) (OUT struct WMD_DEV_CONTEXT
+                                                    **phDevContext,
+                                                    struct DEV_OBJECT
+                                                    *hDevObject,
+@@ -758,7 +758,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      IOCTL completion routines provided.
+  *  Ensures:
+  */
+-typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
++typedef DSP_STATUS(*WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
+                                        u32 dwCmd,
+                                        IN OUT void *pArgs);
+
+@@ -779,7 +779,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
+  *  Ensures:
+  *      DSP_SOK: Device context is freed.
+  */
+-       typedef DSP_STATUS(CDECL *WMD_DEV_DESTROY) (struct WMD_DEV_CONTEXT
++       typedef DSP_STATUS(*WMD_DEV_DESTROY) (struct WMD_DEV_CONTEXT
+                                             *hDevContext);
+
+ /*
+@@ -798,7 +798,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      phDehMgr != NULL;
+  *  Ensures:
+  */
+-       typedef DSP_STATUS(CDECL *WMD_DEH_CREATE) (OUT struct DEH_MGR
++       typedef DSP_STATUS(*WMD_DEH_CREATE) (OUT struct DEH_MGR
+                                                    **phDehMgr,
+                                                    struct DEV_OBJECT
+                                                    *hDevObject);
+@@ -816,7 +816,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      hDehMgr != NULL;
+  *  Ensures:
+  */
+-       typedef DSP_STATUS(CDECL *WMD_DEH_DESTROY) (struct DEH_MGR *hDehMgr);
++       typedef DSP_STATUS(*WMD_DEH_DESTROY) (struct DEH_MGR *hDehMgr);
+
+ /*
+  *  ======== WMD_DEH_RegisterNotify ========
+@@ -831,7 +831,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      hDehMgr != NULL;
+  *  Ensures:
+  */
+-       typedef DSP_STATUS(CDECL *WMD_DEH_REGISTERNOTIFY)
++       typedef DSP_STATUS(*WMD_DEH_REGISTERNOTIFY)
+                                (struct DEH_MGR *hDehMgr,
+                                u32 uEventMask, u32 uNotifyType,
+                                struct DSP_NOTIFICATION *hNotification);
+@@ -851,7 +851,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      pErrorInfo != NULL;
+  *  Ensures:
+  */
+-       typedef DSP_STATUS(CDECL *WMD_DEH_GETINFO) (struct DEH_MGR *phDehMgr,
++       typedef DSP_STATUS(*WMD_DEH_GETINFO) (struct DEH_MGR *phDehMgr,
+                                        struct DSP_ERRORINFO *pErrInfo);
+
+ /*
+@@ -874,7 +874,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      phIOMgr != NULL;
+  *  Ensures:
+  */
+-       typedef DSP_STATUS(CDECL *WMD_IO_CREATE) (OUT struct IO_MGR **phIOMgr,
++       typedef DSP_STATUS(*WMD_IO_CREATE) (OUT struct IO_MGR **phIOMgr,
+                                        struct DEV_OBJECT *hDevObject,
+                                        IN CONST struct IO_ATTRS *pMgrAttrs);
+
+@@ -892,7 +892,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      Valid hIOMgr;
+  *  Ensures:
+  */
+-       typedef DSP_STATUS(CDECL *WMD_IO_DESTROY) (struct IO_MGR *hIOMgr);
++       typedef DSP_STATUS(*WMD_IO_DESTROY) (struct IO_MGR *hIOMgr);
+
+ /*
+  *  ======== WMD_IO_OnLoaded ========
+@@ -909,7 +909,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      Valid hIOMgr;
+  *  Ensures:
+  */
+-       typedef DSP_STATUS(CDECL *WMD_IO_ONLOADED) (struct IO_MGR *hIOMgr);
++       typedef DSP_STATUS(*WMD_IO_ONLOADED) (struct IO_MGR *hIOMgr);
+
+ /*
+  *  ======== WMD_IO_GETPROCLOAD ========
+@@ -925,7 +925,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      Valid hIOMgr;
+  *  Ensures:
+  */
+-       typedef DSP_STATUS(CDECL *WMD_IO_GETPROCLOAD)(struct IO_MGR *hIOMgr,
++       typedef DSP_STATUS(*WMD_IO_GETPROCLOAD)(struct IO_MGR *hIOMgr,
+                           struct DSP_PROCLOADSTAT *pProcLoadStat);
+
+ /*
+@@ -946,7 +946,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      hDevObject != NULL.
+  *  Ensures:
+  */
+-       typedef DSP_STATUS(CDECL *WMD_MSG_CREATE)
++       typedef DSP_STATUS(*WMD_MSG_CREATE)
+                                (OUT struct MSG_MGR **phMsgMgr,
+                                struct DEV_OBJECT *hDevObject,
+                                MSG_ONEXIT msgCallback);
+@@ -973,7 +973,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
+  *  Ensures:
+  *      phMsgQueue !=NULL <==> DSP_SOK.
+  */
+-       typedef DSP_STATUS(CDECL *WMD_MSG_CREATEQUEUE)
++       typedef DSP_STATUS(*WMD_MSG_CREATEQUEUE)
+                                (struct MSG_MGR *hMsgMgr,
+                                OUT struct MSG_QUEUE **phMsgQueue,
+                                u32 dwId, u32 uMaxMsgs, HANDLE h);
+@@ -989,7 +989,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      Valid hMsgMgr.
+  *  Ensures:
+  */
+-       typedef void(CDECL *WMD_MSG_DELETE) (struct MSG_MGR *hMsgMgr);
++       typedef void(*WMD_MSG_DELETE) (struct MSG_MGR *hMsgMgr);
+
+ /*
+  *  ======== WMD_MSG_DeleteQueue ========
+@@ -1003,7 +1003,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      Valid hMsgQueue.
+  *  Ensures:
+  */
+-       typedef void(CDECL *WMD_MSG_DELETEQUEUE) (struct MSG_QUEUE *hMsgQueue);
++       typedef void(*WMD_MSG_DELETEQUEUE) (struct MSG_QUEUE *hMsgQueue);
+
+ /*
+  *  ======== WMD_MSG_Get ========
+@@ -1024,7 +1024,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      pMsg != NULL.
+  *  Ensures:
+  */
+-       typedef DSP_STATUS(CDECL *WMD_MSG_GET) (struct MSG_QUEUE *hMsgQueue,
++       typedef DSP_STATUS(*WMD_MSG_GET) (struct MSG_QUEUE *hMsgQueue,
+                                                 struct DSP_MSG *pMsg,
+                                                 u32 uTimeout);
+
+@@ -1047,7 +1047,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      pMsg != NULL.
+  *  Ensures:
+  */
+-       typedef DSP_STATUS(CDECL *WMD_MSG_PUT) (struct MSG_QUEUE *hMsgQueue,
++       typedef DSP_STATUS(*WMD_MSG_PUT) (struct MSG_QUEUE *hMsgQueue,
+                                                 IN CONST struct DSP_MSG *pMsg,
+                                                 u32 uTimeout);
+
+@@ -1072,7 +1072,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      uEventMask == DSP_NODEMESSAGEREADY || uEventMask == 0.
+  *  Ensures:
+  */
+-       typedef DSP_STATUS(CDECL *WMD_MSG_REGISTERNOTIFY)
++       typedef DSP_STATUS(*WMD_MSG_REGISTERNOTIFY)
+                                (struct MSG_QUEUE *hMsgQueue,
+                                u32 uEventMask, u32 uNotifyType,
+                                struct DSP_NOTIFICATION *hNotification);
+@@ -1092,7 +1092,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
+  *      dwId != 0.
+  *  Ensures:
+  */
+-       typedef void(CDECL *WMD_MSG_SETQUEUEID) (struct MSG_QUEUE *hMsgQueue,
++       typedef void(*WMD_MSG_SETQUEUEID) (struct MSG_QUEUE *hMsgQueue,
+                                                  u32 dwId);
+
+ /*
+@@ -1187,7 +1187,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
+  *  Details:
+  *      Win95: Called during the Device_Init phase.
+  */
+-       void CDECL WMD_DRV_Entry(OUT struct WMD_DRV_INTERFACE **ppDrvInterface,
++       void WMD_DRV_Entry(OUT struct WMD_DRV_INTERFACE **ppDrvInterface,
+                                 IN CONST char *pstrWMDFileName);
+
+ #endif                         /* WMD_ */
+diff --git a/drivers/dsp/bridge/pmgr/cod.c b/drivers/dsp/bridge/pmgr/cod.c
+index 257dd23..396c61e 100644
+--- a/drivers/dsp/bridge/pmgr/cod.c
++++ b/drivers/dsp/bridge/pmgr/cod.c
+@@ -139,7 +139,7 @@ static bool NoOp();
+ /*
+  *  ======== COD_Close ========
+  */
+-void CDECL COD_Close(struct COD_LIBRARYOBJ *lib)
++void COD_Close(struct COD_LIBRARYOBJ *lib)
+ {
+        struct COD_MANAGER *hMgr;
+
+@@ -281,7 +281,7 @@ void COD_Exit(void)
   *  Purpose:
-diff --git a/arch/arm/plat-omap/include/mach/bridge/isr.h b/arch/arm/plat-omap/include/mach/bridge/isr.h
-deleted file mode 100644
-index fb397bb..0000000
---- a/arch/arm/plat-omap/include/mach/bridge/isr.h
-+++ /dev/null
-@@ -1,154 +0,0 @@
--/*
-- * bridge/inc/isr.h
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * Copyright (C) 2005-2006 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-- */
--
--
--/*
-- *  ======== isr.h ========
-- *  Purpose:
-- *      Interrupt services.
-- *
-- *  Public Functions:
-- *      ISR_Exit
-- *      ISR_Init
-- *      ISR_Install
-- *      ISR_Uninstall
-- *
-- *  Notes:
-- *
-- *! Revision History:
-- *! ================
-- *! 01-Mar-2004 vp:  Added IVA related functions.
-- *! 06-Feb-2003 kc:  Added ISR_MAILBOX1 (renamed from DSP_MAILBOX1).
-- *! 05-Nov-2001 kc:  Added interrupt type param to ISR_Install.
-- *! 31-Jan-2000 rr:  Comments modified after code review.
-- *! 29-Oct-1999 kc:  Moved header files to within ifdefed 'extern "C"'.
-- *! 17-Sep-1997 gp:  Added CFG_HOSTRES struct as argument to ISR_Install, thus
-- *!                  breaking backward compatibility with Ver. 1.0 mini drivers.
-- *! 18-Aug-1997 cr:  Added explicit CDECL identifiers.
-- *! 03-Feb-1996 gp:  Changed behaviour of ISR_SimulateInt.
-- *! 24-Jul-1996 gp:  Created.
-- */
--
--#ifndef ISR_
--#define ISR_
--#include <host_os.h>
--#include <cfg.h>
--
--/* Interrupt Object handle: */
--       struct ISR_IRQ;
--
--/* ISR install type (private) */
--#define ISR_MAILBOX1            0x00000080     /* Arbitrary value */
--#define ISR_MAILBOX2                   0x00000081
--
--/* Temporary until the baseport defines it */
--#define MAIL_U3_MPU_IRQ        34
--/*
-- *  ======== ISR_PROC ========
-- *  Purpose:
-- *      Routine to service an interrupt.
-- *  Parameters:
-- *      pRefData:   Ptr to user data: passed in via ISR_Install.
-- *  Returns:
-- *      TRUE if the interrupt was handled; FALSE otherwise.
-- *  Requires:
-- *      ISR code must be in locked memory.
-- *      All data touched must be locked.
-- *      No resources should be acquired within the ISR.
-- *      May only call asynchrounous services.
-- *  Ensures:
-- *      This routine must not affect the state of the physical PIC.
-- *      (i.e.; don't send an EOI).
-- */
--       typedef bool (CDECL *ISR_PROC) (void *pRefData);
--
--/*
-- *  ======== ISR_Exit ========
-- *  Purpose:
-- *      Discontinue usage of the ISR module.
-- *  Parameters:
-- *  Returns:
-- *  Requires:
-- *      ISR_Init() was previously called.
-- *  Ensures:
-- *      Resources acquired in ISR_Init() are freed.
-- */
--       extern void CDECL ISR_Exit();
--
--/*
-- *  ======== ISR_Init ========
-- *  Purpose:
-- *      Initialize the ISR module's private state.
-- *  Parameters:
-- *  Returns:
-- *      TRUE if initialized; FALSE if error occured.
-- *  Requires:
-- *  Ensures:
-- *      A requirement for each of the other public ISR functions.
-- */
--       extern bool CDECL ISR_Init();
--
--/*
-- *  ======== ISR_Install ========
-- *  Purpose:
-- *      Register an ISR for a given IRQ with the system's interrupt manager.
-- *  Parameters:
-- *      phIRQ:          Ptr to store a handle to an interrupt object.
-- *      pHostConfig:    Ptr to a host resource structure, containing both
-- *                      interrupt and bus info.
-- *      pfnISR:         ISR function.  See definition of ISR_PROC.
-- *      dwIntrType:     Type of interrupt.
-- *      pRefData:       Pointer to user-defined reference data.
-- *  Returns:
-- *      DSP_SOK:        ISR installed.
-- *      DSP_EPOINTER:   phIRQ == NULL.
-- *      DSP_EMEMORY:    Insufficient memory.
-- *      DSP_EFAIL:      Error registering the ISR for the IRQ.
-- *  Requires:
-- *      pHostConfig is a valid pointer to assigned host resources;
-- *      iIRQ number is valid for this (host) processor.
-- *      See requirements for ISR_PROC.
-- *  Ensures:
-- *      DSP_SOK:    ISR is installed, and the IRQ is unmasked. The ISR can be
-- *                  called at any time until ISR_Uninstall() is called for this
-- *                  IRQ.
-- *      else:       *phIRQ is set to NULL.
-- */
--       extern DSP_STATUS CDECL ISR_Install(OUT struct ISR_IRQ **phIRQ,
--                                           IN CONST struct CFG_HOSTRES
--                                           *pHostConfig,
--                                           IN ISR_PROC pfnISR,
--                                           IN u32 dwIntrType,
--                                           IN void *pRefData);
--
--
--
--/*
-- *  ======== ISR_Uninstall ========
-- *  Purpose:
-- *      Deregister the ISR previously installed by ISR_Install().
-- *  Parameters:
-- *      hIRQ:           Handle to an IRQ object returned from ISR_Install().
-- *  Returns:
-- *      DSP_SOK:        Success.
-- *      DSP_EHANDLE:    Invalid hIRQ.
-- *  Requires:
-- *  Ensures:
-- *      (SUCCESS && hDPC is NULL) or DSP_EFAILED status
-- */
--       extern DSP_STATUS CDECL ISR_Uninstall(IN struct ISR_IRQ *hIRQ);
--
--#endif                         /* ISR_ */
-diff --git a/drivers/dsp/bridge/Kbuild b/drivers/dsp/bridge/Kbuild
-index 9fd1800..e2287cc 100644
---- a/drivers/dsp/bridge/Kbuild
-+++ b/drivers/dsp/bridge/Kbuild
-@@ -2,7 +2,7 @@ obj-$(CONFIG_MPU_BRIDGE)        += bridgedriver.o
-
- libgen = gen/gb.o gen/gt.o gen/gs.o gen/gh.o gen/_gt_para.o gen/uuidutil.o
- libservices = services/csl.o services/mem.o services/list.o services/dpc.o \
--               services/isr.o services/kfile.o services/sync.o \
-+               services/kfile.o services/sync.o \
-                services/clk.o services/cfg.o services/reg.o \
-                services/regsup.o services/prcs.o services/ntfy.o \
-                services/dbg.o services/services.o
-diff --git a/drivers/dsp/bridge/pmgr/chnl.c b/drivers/dsp/bridge/pmgr/chnl.c
-index 9742dac..def2080 100644
---- a/drivers/dsp/bridge/pmgr/chnl.c
-+++ b/drivers/dsp/bridge/pmgr/chnl.c
-@@ -78,7 +78,6 @@
- #include <cfg.h>
- #include <csl.h>
- #include <dpc.h>
--#include <isr.h>
- #include <list.h>
- #include <mem.h>
- #include <sync.h>
-diff --git a/drivers/dsp/bridge/services/isr.c b/drivers/dsp/bridge/services/isr.c
-deleted file mode 100644
-index 781a19c..0000000
---- a/drivers/dsp/bridge/services/isr.c
-+++ /dev/null
-@@ -1,261 +0,0 @@
--/*
-- * linux/drivers/dsp/bridge/services/isr.c
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * Copyright (C) 2005-2006 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-- */
--
--
--/*
-- *  ======== isrce.c ========
-- *  Purpose:
-- *      Interrupt services.
-- *
-- *  Public Functions:
-- *      ISR_Exit
-- *      ISR_Init
-- *      ISR_Install
-- *      ISR_Uninstall
-- *
-- *
-- *! Revision History:
-- *! ================
-- *! 06-Feb-2003 kc: Renamed DSP_MAILBOX1 to ISR_MAILBOX1.
-- *! 14-Mar-2002 rr: Added HELEN1_V1 flag while installing the interrupt.
-- *! 05-Nov-2001 kc: Updated ISR_Install to support multiple HW interrupts.
-- *! 27-Jul-2001 rr: Interrupt Id is based on x86 or ARM define.
-- *! 24-Apr-2001 ag: Replaced nkintr.h with hw.h.
-- *! 10-Oct-2000 rr: CeSetThreadPriority used instead of SetThreadPriority.
-- *! 11-Aug-2000 ag: Removed #include <stdwin.h>
-- *! 10-Aug-2000 rr: InterruptInitialize happens before the IST creation.
-- *! 15-Feb-2000 rr: InterruptInitialize return value checked.
-- *! 03-Feb-2000 rr: Module init/exit is handled by SERVICES Init/Exit.
-- *!             GT Changes.
-- *! 31-Jan-2000 rr: Changes after code review.Terminate thread,handle
-- *!                 modified.ISR_UnInstall frees the ISR_Object only on
-- *!                 Successful termination of the thread and the handle.
-- *! 19-Jan-2000 rr: Code Cleaned up after code review.
-- *! 06-Jan-2000 rr: Bus type included in the IRQ object. It is checked
-- *!                 during the install and uninstall.
-- *! 29-Dec-1999 rr: WaitForSingleObject removed during ISR_UnInstall
-- *! 22-Nov-1999 rr: Event gets created before CardRequestIRQ
-- *! 05-Nov-1999 rr: ISR_Install does not intialize the interrupt for PCMCIA
-- *!                 For other bus type this will happen. IST function return
-- *!                 value not checked as anyway we have to say InterruptDone
-- *! 29-Oct-1999 rr: Hardware IST is created here.
-- *! 25-Oct-1999 rr: New Isr design.
-- *! 13-Sep-1999 a0216266: Stubbed from isrnt.c.
-- */
--
--/*  ----------------------------------- Host OS */
--#include <host_os.h>
--
--/*  ----------------------------------- DSP/BIOS Bridge */
--#include <std.h>
--#include <dbdefs.h>
--#include <errbase.h>
--
--/*  ----------------------------------- Trace & Debug */
--#include <dbc.h>
--#include <gt.h>
--
--/*  ----------------------------------- OS Adaptation Layer */
--#include <list.h>
--#include <mem.h>
--
--/*  ----------------------------------- This */
--#include <isr.h>
--
--/*  ----------------------------------- Defines, Data Structures, Typedefs */
--#define SIGNATURE       0x5f525349     /* "ISR_" (in reverse). */
--
--/* The IRQ object, passed to our hardware and virtual interrupt routines: */
--struct ISR_IRQ {
--       u32 dwSignature;        /* Used for object validation.   */
--       void *pRefData;         /* Argument for client's ISR.    */
--       ISR_PROC pfnISR;        /* Client's ISR.                 */
--
--       u32 dwIntrID;           /* hardware intertupt identifier */
--};
--
--/*  ----------------------------------- Globals & Defines */
--#if GT_TRACE
--static struct GT_Mask ISR_DebugMask = { NULL, NULL };  /* ISR Debug Mask */
--#endif
--
--/*  ----------------------------------- Function Prototypes */
--static irqreturn_t HardwareIST(int irq, void *hIRQ);
--
--/*
-- *  ======== ISR_Exit ========
-- *  Purpose:
-- *      Discontinue usage of the ISR module.
-- */
--void ISR_Exit(void)
--{
--       GT_0trace(ISR_DebugMask, GT_ENTER, "Entered ISR_Exit\n");
--}
--
--/*
-- *  ======== ISR_Init ========
-- *  Purpose:
-- *      Initialize the ISR module's private state.
-- */
--bool ISR_Init(void)
--{
--       GT_create(&ISR_DebugMask, "IS");
--
--       GT_0trace(ISR_DebugMask, GT_5CLASS, "Entered ISR_Init\n");
--
--       return true;
--}
--
--/*
-- *  ======== ISR_Install ========
-- *  Purpose:
-- *      Register an ISR for a given IRQ with the system's interrupt manager.
-- */
--DSP_STATUS ISR_Install(OUT struct ISR_IRQ **phIRQ,
--                      IN CONST struct CFG_HOSTRES *pHostConfig,
--                      ISR_PROC pfnISR, u32 dwIntrType, void *pRefData)
--{
--       DSP_STATUS status = DSP_SOK;
--       struct ISR_IRQ *pIRQObject = NULL;
--
--       DBC_Require(pHostConfig);
--       DBC_Require(pRefData != NULL);
--
--       GT_5trace(ISR_DebugMask, GT_ENTER,
--                 "Entered ISR_Install, args:" "\n\thIRQ:"
--                 "0x%x\n\tpHostConfig: 0x%x\n\tpfnISR: 0x%x\n" "\tpRefData:"
--                 "0x%x\n \tdwIntrType 0x%x\n", phIRQ, pHostConfig, pfnISR,
--                 pRefData, dwIntrType);
--
--       if (phIRQ != NULL) {
--               *phIRQ = NULL;
--               /*
--                *  Allocate an IRQ object to store information allowing our
--                *  interrupt handler to dispatch to the client's interrupt
--                *  routines.
--                */
--               MEM_AllocObject(pIRQObject, struct ISR_IRQ, SIGNATURE);
--               if (pIRQObject != NULL) {
--                       /* Fill out the Object: */
--                       pIRQObject->pRefData = pRefData;
--                       pIRQObject->pfnISR = pfnISR;
--
--                       /* Install different HW interrupts based on interrupt
--                        * type. */
--                               switch (dwIntrType) {
--                               case ISR_MAILBOX1:
--                               pIRQObject->dwIntrID = INT_MAIL_MPU_IRQ;
--
--                               GT_0trace(ISR_DebugMask, GT_1CLASS,
--                                         "Setting intr id for "
--                                         "ISR_MAILBOX1\n");
--                               break;
--
--                               case ISR_MAILBOX2:
--                               pIRQObject->dwIntrID = MAIL_U3_MPU_IRQ;
--                               GT_0trace(ISR_DebugMask, GT_1CLASS,
--                                         "Setting intr id for "
--                                         "ISR_MAILBOX2\n");
--
--                               break;
--
--                               case DSP_MMUFAULT:
--                               pIRQObject->dwIntrID = INT_DSP_MMU_IRQ;
--                               GT_0trace(ISR_DebugMask, GT_1CLASS,
--                                         "Setting intr id for "
--                                         "DSP_MMUFAULT\n");
--                               break;
--
--                               default:
--                               pIRQObject->dwIntrID = (u32) 0x00;
--                               GT_0trace(ISR_DebugMask, GT_1CLASS,
--                                         "Setting intr id to NULL\n");
--                               break;
--                       }
--
--                       if (pIRQObject->dwIntrID != 0) {
--                               status = request_irq(pIRQObject->dwIntrID,
--                                                    HardwareIST, 0,
--                                                   "DspBridge", pIRQObject);
--                       } else {
--                               status = DSP_EINVALIDARG;
--                       }
--               }
--               if (DSP_SUCCEEDED(status)) {
--                       *phIRQ = pIRQObject;
--                       GT_1trace(ISR_DebugMask, GT_1CLASS,
--                                 "ISR:IRQ Object 0x%x \n",
--                                 pIRQObject);
--               } else {
--                       MEM_FreeObject(pIRQObject);
--               }
--       }
--       DBC_Ensure(DSP_SUCCEEDED(status) || (!phIRQ || *phIRQ == NULL));
--       return status;
--}
--
--/*
-- *  ======== ISR_Uninstall ========
-- *  Purpose:
-- *      Deregister the ISR previously installed by ISR_Install().
-- *      if it fails we do not delete the IRQ object.
-- */
--DSP_STATUS ISR_Uninstall(struct ISR_IRQ *hIRQ)
--{
--       DSP_STATUS status = DSP_SOK;
--       struct ISR_IRQ *pIRQObject = (struct ISR_IRQ *)hIRQ;
--
--       DBC_Require(hIRQ > 0);
--
--       GT_1trace(ISR_DebugMask, GT_ENTER,
--                 "Entered ISR_Uninstall, hIRQ: 0x%x\n", hIRQ);
--
--       if (MEM_IsValidHandle(hIRQ, SIGNATURE)) {
--               /* Linux function to uninstall ISR */
--               free_irq(pIRQObject->dwIntrID, pIRQObject);
--               pIRQObject->dwIntrID = (u32) -1;
--       } else {
--               status = DSP_EHANDLE;
--       }
--
--       /* Free our IRQ object: */
--       if (DSP_SUCCEEDED(status)) {
--               MEM_FreeObject(pIRQObject);
--               pIRQObject = NULL;
--       }
--
--       DBC_Ensure((DSP_SUCCEEDED(status) && pIRQObject == NULL) ||
--                  DSP_FAILED(status));
--
--       return status;
--}
--
--/*
-- *  ======== HardwareIST ========
-- *  Purpose:
-- *      Linux calls this IRQ handler on interrupt.
-- */
--static irqreturn_t HardwareIST(int irq, void *hIRQ)
--{
--       struct ISR_IRQ *pIRQObject = (struct ISR_IRQ *)hIRQ;
--
--       DBC_Require(irq == pIRQObject->dwIntrID);
--
--       /* Call the function registered in ISR_Install */
--       (*(pIRQObject->pfnISR)) (pIRQObject->pRefData);
--
--       return IRQ_HANDLED;
--}
-diff --git a/drivers/dsp/bridge/services/services.c b/drivers/dsp/bridge/services/services.c
-index a41c3ad..572e4f2 100644
---- a/drivers/dsp/bridge/services/services.c
-+++ b/drivers/dsp/bridge/services/services.c
-@@ -47,7 +47,6 @@
- #include <csl.h>
- #include <dbg.h>
- #include <dpc.h>
--#include <isr.h>
- #include <kfile.h>
- #include <list.h>
- #include <mem.h>
-@@ -92,7 +91,6 @@ void SERVICES_Exit(void)
-                PRCS_Exit();
-                LST_Exit();
-                KFILE_Exit();
--               ISR_Exit();
-                DPC_Exit();
-                DBG_Exit();
-                CSL_Exit();
-@@ -113,7 +111,7 @@ void SERVICES_Exit(void)
- bool SERVICES_Init(void)
- {
-        bool fInit = true;
--       bool fCFG, fCSL, fDBG, fDPC, fISR, fKFILE, fLST, fMEM;
-+       bool fCFG, fCSL, fDBG, fDPC, fKFILE, fLST, fMEM;
-        bool fPRCS, fREG, fSYNC, fCLK, fUTIL, fNTFY;
-
-        DBC_Require(cRefs >= 0);
-@@ -133,7 +131,6 @@ bool SERVICES_Init(void)
-                fCSL = CSL_Init();
-                fDBG = DBG_Init();
-                fDPC = DPC_Init();
--               fISR = ISR_Init();
-                fKFILE = KFILE_Init();
-                fLST = LST_Init();
-                fPRCS = PRCS_Init();
-@@ -143,7 +140,7 @@ bool SERVICES_Init(void)
-                fUTIL = UTIL_Init();
-                fNTFY = NTFY_Init();
-
--               fInit = fCFG && fCSL && fDBG && fDPC && fISR && fKFILE &&
-+               fInit = fCFG && fCSL && fDBG && fDPC && fKFILE &&
-                        fLST && fMEM && fPRCS && fREG && fSYNC && fCLK && fUTIL;
-
-                if (!fInit) {
-@@ -171,9 +168,6 @@ bool SERVICES_Init(void)
-                        if (fKFILE)
-                                KFILE_Exit();
-
--                       if (fISR)
--                               ISR_Exit();
--
-                        if (fDPC)
-                                DPC_Exit();
-
-diff --git a/drivers/dsp/bridge/wmd/_deh.h b/drivers/dsp/bridge/wmd/_deh.h
-index 4306501..586c939 100644
---- a/drivers/dsp/bridge/wmd/_deh.h
-+++ b/drivers/dsp/bridge/wmd/_deh.h
-@@ -29,7 +29,6 @@
- #define _DEH_
-
- #include <dpc.h>
--#include <isr.h>
- #include <ntfy.h>
- #include <wmd.h>
-
-@@ -41,7 +40,6 @@ struct DEH_MGR {
-        struct WMD_DEV_CONTEXT *hWmdContext;    /* WMD device context. */
-        struct NTFY_OBJECT *hNtfy;      /* NTFY object                  */
-        struct DPC_OBJECT *hMmuFaultDpc;        /* DPC object handle.  */
--       struct ISR_IRQ *hMmuFaultIsr;   /* DSP MMU ISR handle.          */
-        struct DSP_ERRORINFO errInfo;   /* DSP exception info.          */
- } ;
-
-diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-index d08421c..09ea3b1 100644
---- a/drivers/dsp/bridge/wmd/io_sm.c
-+++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -196,7 +196,6 @@ struct IO_MGR {
-        u8 *pMsgInput;  /* Address of input messages    */
-        u8 *pMsgOutput;         /* Address of output messages   */
-        u32 uSMBufSize;         /* Size of a shared memory I/O channel */
--       struct ISR_IRQ *hIRQ;           /* Virutalized IRQ handle       */
-        bool fSharedIRQ;        /* Is this IRQ shared?    */
-        struct DPC_OBJECT *hDPC;        /* DPC object handle        */
-        struct SYNC_CSOBJECT *hCSObj;   /* Critical section object handle */
-@@ -335,18 +334,19 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
-                IO_DisableInterrupt(hWmdContext);
-                if (devType == DSP_UNIT) {
-                        /* Plug the channel ISR:. */
--                       status = ISR_Install(&pIOMgr->hIRQ, &hostRes, IO_ISR,
--                                ISR_MAILBOX1, (void *)pIOMgr);
-+                       if ((request_irq(INT_MAIL_MPU_IRQ, IO_ISR, 0,
-+                                           "DspBridge", (void *)pIOMgr)) == 0)
-+                               status = DSP_SOK;
-+                       else
-+                               status = DSP_EFAIL;
-                }
--               if (DSP_SUCCEEDED(status)) {
--                       /* Enable interrupt used for dsp i/o link */
--                       /* moved  IO_EnableInterrupt(hWmdContext); */
--               } else {
-+               if (DSP_SUCCEEDED(status))
-+                       DBG_Trace(DBG_LEVEL1, "ISR_IRQ Object 0x%x \n",
-+                                                pIOMgr);
-+               else
-                        status = CHNL_E_ISR;
--               }
--       } else {
-+       } else
-                status = CHNL_E_ISR;
--       }
- func_cont:
-        if (DSP_FAILED(status)) {
-                /* Cleanup: */
-@@ -371,15 +371,15 @@ DSP_STATUS WMD_IO_Destroy(struct IO_MGR *hIOMgr)
-        struct WMD_DEV_CONTEXT *hWmdContext;
-        if (MEM_IsValidHandle(hIOMgr, IO_MGRSIGNATURE)) {
-                /* Unplug IRQ:    */
--               if (hIOMgr->hIRQ) {
--                       /* Disable interrupts from the board:  */
--                       if (DSP_SUCCEEDED(DEV_GetWMDContext(hIOMgr->hDevObject,
--                          &hWmdContext)))
--                               DBC_Assert(hWmdContext);
--                       (void)CHNLSM_DisableInterrupt(hWmdContext);
--                       (void)ISR_Uninstall(hIOMgr->hIRQ);
--                       (void)DPC_Destroy(hIOMgr->hDPC);
-+               /* Disable interrupts from the board:  */
-+               if (DSP_SUCCEEDED(DEV_GetWMDContext(hIOMgr->hDevObject,
-+                  &hWmdContext))) {
-+                       DBC_Assert(hWmdContext);
-                }
-+               (void)CHNLSM_DisableInterrupt(hWmdContext);
-+               /* Linux function to uninstall ISR */
-+               free_irq(INT_MAIL_MPU_IRQ, (void *)hIOMgr);
-+               (void)DPC_Destroy(hIOMgr->hDPC);
- #ifndef DSP_TRACEBUF_DISABLED
-                if (hIOMgr->pMsg)
-                        MEM_Free(hIOMgr->pMsg);
-@@ -1056,10 +1056,11 @@ void IO_DPC(IN OUT void *pRefData)
-  *      Calls the WMD's CHNL_ISR to determine if this interrupt is ours, then
-  *      schedules a DPC to dispatch I/O.
+  *      Get handle to the base image DBL library.
   */
--bool IO_ISR(IN void *pRefData)
-+irqreturn_t IO_ISR(int irq, IN void *pRefData)
+-DSP_STATUS CDECL COD_GetBaseLib(struct COD_MANAGER *hManager,
++DSP_STATUS COD_GetBaseLib(struct COD_MANAGER *hManager,
+                                struct DBLL_LibraryObj **plib)
  {
-        struct IO_MGR *hIOMgr = (struct IO_MGR *)pRefData;
-        bool fSchedDPC;
-+       DBC_Require(irq == INT_MAIL_MPU_IRQ);
-        DBC_Require(MEM_IsValidHandle(hIOMgr, IO_MGRSIGNATURE));
-        DBG_Trace(DBG_LEVEL3, "Entering IO_ISR(0x%x)\n", pRefData);
-        /* Call WMD's CHNLSM_ISR() to see if interrupt is ours, and process. */
-@@ -1082,13 +1083,10 @@ bool IO_ISR(IN void *pRefData)
-                                DPC_Schedule(hIOMgr->hDPC);
-                        }
-                }
--               return true;
--       } else {
-+       } else
-                /* Ensure that, if WMD didn't claim it, the IRQ is shared. */
-                DBC_Ensure(hIOMgr->fSharedIRQ);
--               /* If not ours, return false. */
--               return false;
--       }
-+       return IRQ_HANDLED;
+        DSP_STATUS status = DSP_SOK;
+@@ -298,7 +298,7 @@ DSP_STATUS CDECL COD_GetBaseLib(struct COD_MANAGER *hManager,
+ /*
+  *  ======== COD_GetBaseName ========
+  */
+-DSP_STATUS CDECL COD_GetBaseName(struct COD_MANAGER *hManager, char *pszName,
++DSP_STATUS COD_GetBaseName(struct COD_MANAGER *hManager, char *pszName,
+                                u32 uSize)
+ {
+        DSP_STATUS status = DSP_SOK;
+@@ -340,7 +340,7 @@ DSP_STATUS COD_GetEntry(struct COD_MANAGER *hManager, u32 *pulEntry)
+  *  Purpose:
+  *      Get handle to the DBLL loader.
+  */
+-DSP_STATUS CDECL COD_GetLoader(struct COD_MANAGER *hManager,
++DSP_STATUS COD_GetLoader(struct COD_MANAGER *hManager,
+                               struct DBLL_TarObj **phLoader)
+ {
+        DSP_STATUS status = DSP_SOK;
+diff --git a/drivers/dsp/bridge/pmgr/dev.c b/drivers/dsp/bridge/pmgr/dev.c
+index dbea4df..07f97ce 100644
+--- a/drivers/dsp/bridge/pmgr/dev.c
++++ b/drivers/dsp/bridge/pmgr/dev.c
+@@ -419,7 +419,7 @@ DSP_STATUS DEV_CreateDevice(OUT struct DEV_OBJECT **phDevObject,
+  *      (PROC Auto_Start) or PROC_Load this fxn is called. This creates
+  *      the Node Manager and updates the DEV Object.
+  */
+-DSP_STATUS CDECL DEV_Create2(struct DEV_OBJECT *hDevObject)
++DSP_STATUS DEV_Create2(struct DEV_OBJECT *hDevObject)
+ {
+        DSP_STATUS status = DSP_SOK;
+        struct DEV_OBJECT *pDevObject = hDevObject;
+@@ -452,7 +452,7 @@ DSP_STATUS CDECL DEV_Create2(struct DEV_OBJECT *hDevObject)
+  *  Purpose:
+  *      Destroys the Node manager for this device.
+  */
+-DSP_STATUS CDECL DEV_Destroy2(struct DEV_OBJECT *hDevObject)
++DSP_STATUS DEV_Destroy2(struct DEV_OBJECT *hDevObject)
+ {
+        DSP_STATUS status = DSP_SOK;
+        struct DEV_OBJECT *pDevObject = hDevObject;
+@@ -835,7 +835,7 @@ struct DEV_OBJECT *DEV_GetNext(struct DEV_OBJECT *hDevObject)
+ /*
+  *  ========= DEV_GetMsgMgr ========
+  */
+-void CDECL DEV_GetMsgMgr(struct DEV_OBJECT *hDevObject,
++void DEV_GetMsgMgr(struct DEV_OBJECT *hDevObject,
+                        OUT struct MSG_MGR **phMsgMgr)
+ {
+        DBC_Require(cRefs > 0);
+@@ -850,7 +850,7 @@ void CDECL DEV_GetMsgMgr(struct DEV_OBJECT *hDevObject,
+  *  Purpose:
+  *      Retrieve the Node Manager Handle
+  */
+-DSP_STATUS CDECL DEV_GetNodeManager(struct DEV_OBJECT *hDevObject,
++DSP_STATUS DEV_GetNodeManager(struct DEV_OBJECT *hDevObject,
+                                   OUT struct NODE_MGR **phNodeMgr)
+ {
+        DSP_STATUS status = DSP_SOK;
+@@ -882,7 +882,7 @@ DSP_STATUS CDECL DEV_GetNodeManager(struct DEV_OBJECT *hDevObject,
+ /*
+  *  ======== DEV_GetSymbol ========
+  */
+-DSP_STATUS CDECL DEV_GetSymbol(struct DEV_OBJECT *hDevObject,
++DSP_STATUS DEV_GetSymbol(struct DEV_OBJECT *hDevObject,
+                              IN CONST char *pstrSym, OUT u32 *pulValue)
+ {
+        DSP_STATUS status = DSP_SOK;
+@@ -951,7 +951,7 @@ DSP_STATUS DEV_GetWMDContext(struct DEV_OBJECT *hDevObject,
+  *      Decrement reference count, and free resources when reference count is
+  *      0.
+  */
+-void CDECL DEV_Exit(void)
++void DEV_Exit(void)
+ {
+        DBC_Require(cRefs > 0);
+
+@@ -973,7 +973,7 @@ void CDECL DEV_Exit(void)
+  *  Purpose:
+  *      Initialize DEV's private state, keeping a reference count on each call.
+  */
+-bool CDECL DEV_Init(void)
++bool DEV_Init(void)
+ {
+        bool fCmm, fDmm, fRetval = true;
+
+@@ -1038,7 +1038,7 @@ DSP_STATUS DEV_NotifyClients(struct DEV_OBJECT *hDevObject, u32 ulStatus)
+ /*
+  *  ======== DEV_RemoveDevice ========
+  */
+-DSP_STATUS CDECL DEV_RemoveDevice(struct CFG_DEVNODE *hDevNode)
++DSP_STATUS DEV_RemoveDevice(struct CFG_DEVNODE *hDevNode)
+ {
+        struct DEV_OBJECT *hDevObject;  /* handle to device object */
+        DSP_STATUS status = DSP_SOK;
+@@ -1111,7 +1111,7 @@ void DEV_SetMsgMgr(struct DEV_OBJECT *hDevObject, struct MSG_MGR *hMgr)
+  *  Purpose:
+  *      Initializes the new device with the BRIDGE environment.
+  */
+-DSP_STATUS CDECL DEV_StartDevice(struct CFG_DEVNODE *hDevNode)
++DSP_STATUS DEV_StartDevice(struct CFG_DEVNODE *hDevNode)
+ {
+        struct DEV_OBJECT *hDevObject = NULL;   /* handle to 'Bridge Device */
+        struct CFG_HOSTRES hostRes;     /* resources struct. */
+@@ -1267,7 +1267,7 @@ static DSP_STATUS InitCodMgr(struct DEV_OBJECT *pDevObject)
+  *  Ensures:
+  *      DSP_SOK and List is not Empty.
+  */
+-DSP_STATUS CDECL DEV_InsertProcObject(struct DEV_OBJECT *hDevObject,
++DSP_STATUS DEV_InsertProcObject(struct DEV_OBJECT *hDevObject,
+                                     u32 hProcObject,
+                                     OUT bool *pbAlreadyAttached)
+ {
+@@ -1313,7 +1313,7 @@ DSP_STATUS CDECL DEV_InsertProcObject(struct DEV_OBJECT *hDevObject,
+  *  Details:
+  *      List will be deleted when the DEV is destroyed.
+  */
+-DSP_STATUS CDECL DEV_RemoveProcObject(struct DEV_OBJECT *hDevObject,
++DSP_STATUS DEV_RemoveProcObject(struct DEV_OBJECT *hDevObject,
+                                     u32 hProcObject)
+ {
+        DSP_STATUS status = DSP_EFAIL;
+@@ -1343,7 +1343,7 @@ DSP_STATUS CDECL DEV_RemoveProcObject(struct DEV_OBJECT *hDevObject,
+        return status;
  }
 
- /*
-diff --git a/drivers/dsp/bridge/wmd/mmu_fault.c b/drivers/dsp/bridge/wmd/mmu_fault.c
-index b4abee1..936af22 100644
---- a/drivers/dsp/bridge/wmd/mmu_fault.c
-+++ b/drivers/dsp/bridge/wmd/mmu_fault.c
-@@ -55,6 +55,7 @@
-
- /*  ----------------------------------- This */
- #include "_deh.h"
-+#include <cfg.h>
- #include "_tiomap_mmu.h"
- #include "_tiomap.h"
- #include "mmu_fault.h"
-@@ -85,7 +86,7 @@ void MMU_FaultDpc(IN void *pRefData)
-  *  ======== MMU_FaultIsr ========
-  *      ISR to be triggered by a DSP MMU fault interrupt.
-  */
--void MMU_FaultIsr(IN void *pRefData)
-+irqreturn_t  MMU_FaultIsr(int irq, IN void *pRefData)
+-DSP_STATUS CDECL DEV_GetDevType(struct DEV_OBJECT *hdevObject, u32 *devType)
++DSP_STATUS DEV_GetDevType(struct DEV_OBJECT *hdevObject, u32 *devType)
  {
-        struct DEH_MGR *pDehMgr = (struct DEH_MGR *)pRefData;
-        struct WMD_DEV_CONTEXT *pDevContext;
-@@ -94,7 +95,7 @@ void MMU_FaultIsr(IN void *pRefData)
+        DSP_STATUS status = DSP_SOK;
+        struct DEV_OBJECT *pDevObject = (struct DEV_OBJECT *)hdevObject;
+diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
+index bf764b2..31a160b 100644
+--- a/drivers/dsp/bridge/pmgr/wcd.c
++++ b/drivers/dsp/bridge/pmgr/wcd.c
+@@ -836,8 +836,7 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
+ {
+        s32 i, len;
+        DSP_STATUS status = DSP_SOK;
+-       u8 __user *temp;
+-       u8 *temp1;
++       char *temp;
+        s32 argc = args->ARGS_PROC_LOAD.iArgc;
+        u8 **argv, **envp = NULL;
 
+@@ -852,8 +851,9 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
+        cp_fm_usr(argv, args->ARGS_PROC_LOAD.aArgv, status, argc);
+        for (i = 0; DSP_SUCCEEDED(status) && (i < argc); i++) {
+                if (argv[i] != NULL) {
+-                       temp = argv[i]; /* User space pointer to argument */
+-                       len = strlen_user(temp);
++                        /* User space pointer to argument */
++                       temp = (char *) argv[i];
++                       len = strlen_user((char *)temp);
+                        /* Kernel space pointer to argument */
+                        argv[i] = MEM_Alloc(len, MEM_NONPAGED);
+                        if (argv[i] == NULL) {
+@@ -869,16 +869,17 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
+                len = 0;
+                do {
+                        len++;
+-                       get_user(temp1, args->ARGS_PROC_LOAD.aEnvp);
+-               } while (temp1);
++                       get_user(temp, args->ARGS_PROC_LOAD.aEnvp);
++               } while (temp);
+                envp = MEM_Alloc(len * sizeof(u8 *), MEM_NONPAGED);
+                if (envp == NULL)
+                        status = DSP_EMEMORY;
 
-        DBG_Trace(DBG_LEVEL1, "Entering DEH_DspMmuIsr: 0x%x\n", pRefData);
--
-+       DBC_Require(irq == INT_DSP_MMU_IRQ);
-        DBC_Require(MEM_IsValidHandle(pDehMgr, SIGNATURE));
-
-        if (MEM_IsValidHandle(pDehMgr, SIGNATURE)) {
-@@ -138,6 +139,7 @@ void MMU_FaultIsr(IN void *pRefData)
-                }
-                PrintDspTraceBuffer(pDehMgr);
-        }
-+       return IRQ_HANDLED;
- }
-
-
-diff --git a/drivers/dsp/bridge/wmd/mmu_fault.h b/drivers/dsp/bridge/wmd/mmu_fault.h
-index 47602a9..009382a 100644
---- a/drivers/dsp/bridge/wmd/mmu_fault.h
-+++ b/drivers/dsp/bridge/wmd/mmu_fault.h
-@@ -39,7 +39,7 @@
-  *  ======== MMU_FaultIsr ========
-  *      ISR to be triggered by a DSP MMU fault interrupt.
+                cp_fm_usr(envp, args->ARGS_PROC_LOAD.aEnvp, status, len);
+                for (i = 0; DSP_SUCCEEDED(status) && (envp[i] != NULL); i++) {
+-                       temp = envp[i]; /* User space pointer to argument */
+-                       len = strlen_user(temp);
++                        /* User space pointer to argument */
++                       temp = (char *)envp[i];
++                       len = strlen_user((char *)temp);
+                        /* Kernel space pointer to argument */
+                        envp[i] = MEM_Alloc(len, MEM_NONPAGED);
+                        if (envp[i] == NULL) {
+diff --git a/drivers/dsp/bridge/rmgr/mgr.c b/drivers/dsp/bridge/rmgr/mgr.c
+index 791a456..4791aa1 100644
+--- a/drivers/dsp/bridge/rmgr/mgr.c
++++ b/drivers/dsp/bridge/rmgr/mgr.c
+@@ -393,7 +393,7 @@ func_end:
+  *      Decrement reference count, and free resources when reference count is
+  *      0.
   */
--       void MMU_FaultIsr(IN void *pRefData);
-+irqreturn_t  MMU_FaultIsr(int irq, IN void *pRefData);
-
+-void CDECL MGR_Exit(void)
++void MGR_Exit(void)
+ {
+        DBC_Require(cRefs > 0);
+        cRefs--;
+@@ -433,7 +433,7 @@ DSP_STATUS MGR_GetDCDHandle(struct MGR_OBJECT *hMGRHandle,
+  *  ======== MGR_Init ========
+  *      Initialize MGR's private state, keeping a reference count on each call.
+  */
+-bool CDECL MGR_Init(void)
++bool MGR_Init(void)
+ {
+        bool fRetval = true;
+        bool fInitDCD = false;
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index 57d1aef..598429a 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -353,9 +353,9 @@ static DSP_STATUS GetNodeProps(struct DCD_MANAGER *hDcdMgr,
+ static DSP_STATUS GetProcProps(struct NODE_MGR *hNodeMgr,
+                              struct DEV_OBJECT *hDevObject);
+ static DSP_STATUS GetRMSFxns(struct NODE_MGR *hNodeMgr);
+-static CDECL u32 Ovly(void *pPrivRef, u32 ulDspRunAddr, u32 ulDspLoadAddr,
++static u32 Ovly(void *pPrivRef, u32 ulDspRunAddr, u32 ulDspLoadAddr,
+                        u32 ulNumBytes, u32 nMemSpace);
+-static CDECL u32 Write(void *pPrivRef, u32 ulDspAddr, void *pBuf,
++static u32 Write(void *pPrivRef, u32 ulDspAddr, void *pBuf,
+                        u32 ulNumBytes, u32 nMemSpace);
+ #if GT_TRACE
+ static struct GT_Mask NODE_debugMask = { NULL, NULL };  /* GT trace variable */
+@@ -2232,7 +2232,7 @@ bool NODE_Init(void)
+  *  Purpose:
+  *      Gets called when RMS_EXIT is received for a node.
+  */
+-CDECL void NODE_OnExit(struct NODE_OBJECT *hNode, s32 nStatus)
++void NODE_OnExit(struct NODE_OBJECT *hNode, s32 nStatus)
+ {
+        DBC_Assert(MEM_IsValidHandle(hNode, NODE_SIGNATURE));
+        /* Set node state to done */
+@@ -3325,7 +3325,7 @@ static DSP_STATUS GetRMSFxns(struct NODE_MGR *hNodeMgr)
+  *  Purpose:
+  *      Called during overlay.Sends command to RMS to copy a block of data.
+  */
+-static CDECL u32 Ovly(void *pPrivRef, u32 ulDspRunAddr, u32 ulDspLoadAddr,
++static u32 Ovly(void *pPrivRef, u32 ulDspRunAddr, u32 ulDspLoadAddr,
+                        u32 ulNumBytes, u32 nMemSpace)
+ {
+        struct NODE_OBJECT *hNode = (struct NODE_OBJECT *)pPrivRef;
+@@ -3359,7 +3359,7 @@ static CDECL u32 Ovly(void *pPrivRef, u32 ulDspRunAddr, u32 ulDspLoadAddr,
  /*
-  *  ========PrintDspTraceBuffer ========
-diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c b/drivers/dsp/bridge/wmd/tiomap_sm.c
-index 35f6a77..ce5e53c 100644
---- a/drivers/dsp/bridge/wmd/tiomap_sm.c
-+++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
-@@ -49,7 +49,6 @@
- /*  ----------------------------------- OS Adaptation Layer */
- #include <cfg.h>
- #include <drv.h>
--#include <isr.h>
- #include <util.h>
+  *  ======== Write ========
+  */
+-static CDECL u32 Write(void *pPrivRef, u32 ulDspAddr, void *pBuf,
++static u32 Write(void *pPrivRef, u32 ulDspAddr, void *pBuf,
+                        u32 ulNumBytes, u32 nMemSpace)
+ {
+        struct NODE_OBJECT *hNode = (struct NODE_OBJECT *) pPrivRef;
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index 72b2f56..1835fd0 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -836,7 +836,7 @@ func_end:
+  *      Decrement reference count, and free resources when reference count is
+  *      0.
+  */
+-void CDECL PROC_Exit(void)
++void PROC_Exit(void)
+ {
+        DBC_Require(cRefs > 0);
 
- /*  ----------------------------------- Mini Driver */
+@@ -971,7 +971,7 @@ DSP_STATUS PROC_GetTrace(DSP_HPROCESSOR hProcessor, u8 *pBuf, u32 uMaxSize)
+  *  Purpose:
+  *      Initialize PROC's private state, keeping a reference count on each call
+  */
+-bool CDECL PROC_Init(void)
++bool PROC_Init(void)
+ {
+        bool fRetval = true;
+
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
+index 0b8b7a8..b850f23 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430.c
+@@ -239,7 +239,7 @@ static struct WMD_DRV_INTERFACE drvInterfaceFxns = {
+  *  purpose:
+  *      Mini Driver entry point.
+  */
+-void CDECL WMD_DRV_Entry(OUT struct WMD_DRV_INTERFACE **ppDrvInterface,
++void WMD_DRV_Entry(OUT struct WMD_DRV_INTERFACE **ppDrvInterface,
+              IN CONST char *pstrWMDFileName)
+ {
+
 diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
-index 0345b84..b5a016d 100644
+index b5a016d..665304f 100644
 --- a/drivers/dsp/bridge/wmd/ue_deh.c
 +++ b/drivers/dsp/bridge/wmd/ue_deh.c
-@@ -47,7 +47,6 @@
- #include <csl.h>
- #include <cfg.h>
- #include <dpc.h>
--#include <isr.h>
- #include <mem.h>
- #include <ntfy.h>
- #include <drv.h>
-@@ -119,9 +118,11 @@ DSP_STATUS WMD_DEH_Create(OUT struct DEH_MGR **phDehMgr,
-                        pDehMgr->errInfo.dwVal2 = 0L;
-                        pDehMgr->errInfo.dwVal3 = 0L;
-                        /* Install ISR function for DSP MMU fault */
--                       status = ISR_Install(&pDehMgr->hMmuFaultIsr,
--                                &cfgHostRes, (ISR_PROC)MMU_FaultIsr,
--                                DSP_MMUFAULT, (void *)pDehMgr);
-+                       if ((request_irq(INT_DSP_MMU_IRQ, MMU_FaultIsr, 0,
-+                                           "DspBridge", (void *)pDehMgr)) == 0)
-+                               status = DSP_SOK;
-+                       else
-+                               status = DSP_EFAIL;
-                }
-        }
-        if (DSP_FAILED(status)) {
-@@ -130,6 +131,8 @@ DSP_STATUS WMD_DEH_Create(OUT struct DEH_MGR **phDehMgr,
-                *phDehMgr = NULL;
-        } else {
-                *phDehMgr = (struct DEH_MGR *)pDehMgr;
-+               DBG_Trace(DBG_LEVEL1, "ISR_IRQ Object 0x%x \n",
-+                                        pDehMgr);
-        }
-        DBG_Trace(DBG_LEVEL1, "Exiting DEH_Create.\n");
-        return status;
-@@ -149,9 +152,8 @@ DSP_STATUS WMD_DEH_Destroy(struct DEH_MGR *hDehMgr)
-                /* If notification object exists, delete it */
-                if (pDehMgr->hNtfy)
-                        (void)NTFY_Delete(pDehMgr->hNtfy);
--
-                /* Disable DSP MMU fault */
--               (void)ISR_Uninstall(pDehMgr->hMmuFaultIsr);
-+               free_irq(INT_DSP_MMU_IRQ, pDehMgr);
-                (void)DPC_Destroy(pDehMgr->hMmuFaultDpc);
-                /* Deallocate the DEH manager object */
-                MEM_FreeObject(pDehMgr);
+@@ -369,7 +369,7 @@ DSP_STATUS PrintDspTraceBuffer(struct DEH_MGR *hDehMgr)
+  *  ======== WMD_DEH_Notify ========
+  *      DEH error notification function. Informs user about the error.
+  */
+-void CDECL WMD_DEH_Notify(struct DEH_MGR *hDehMgr, u32 ulEventMask,
++void WMD_DEH_Notify(struct DEH_MGR *hDehMgr, u32 ulEventMask,
+                         u32 dwErrInfo)
+ {
+        struct DEH_MGR *pDehMgr = (struct DEH_MGR *)hDehMgr;
 --
 1.5.5.4
 
