@@ -1,1450 +1,573 @@
 From: "Ramirez Luna, Omar" <x00omar@ti.com>
-Subject: [PATCH 2/7][OMAP 3/4+] BRIDGE Remove CDECL macro
-Date: Fri, 12 Sep 2008 23:01:22 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A5344A4F04B@dlee03.ent.ti.com>
+Subject: [PATCH 3/7][OMAP 3/4+] BRIDGE GT mask for DSP traces
+Date: Fri, 12 Sep 2008 23:03:45 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A5344A4F04C@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55582 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750719AbYIMEBb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Sep 2008 00:01:31 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:48790 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750755AbYIMEDx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Sep 2008 00:03:53 -0400
 Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8D41P3x023546
-	for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 23:01:30 -0500
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8D43lYf027385
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 23:03:52 -0500
 Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m8D41PiK008718
-	for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 23:01:25 -0500 (CDT)
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m8D43lkF009344
+	for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2008 23:03:47 -0500 (CDT)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Date: Fri, 12 Sep 2008 17:25:07 -0500
-Subject: [PATCH] BRIDGE Remove CDECL macro
+Date: Fri, 12 Sep 2008 18:50:10 -0500
+Subject: [PATCH] BRIDGE GT mask for DSP traces
 
-Removing CDECL macro as it was defined as empty and
-not needed for Linux
+Separate GT trace option provided to monitor DSP sys traces
 
-Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 Signed-off-by: Omar Ramirez Luna <x00omar@ti.com>
 ---
- arch/arm/plat-omap/include/mach/bridge/chnl_sm.h  |   16 ++--
- arch/arm/plat-omap/include/mach/bridge/cod.h      |   28 +++---
- arch/arm/plat-omap/include/mach/bridge/dbdcddef.h |    2 +-
- arch/arm/plat-omap/include/mach/bridge/dbdefs.h   |    2 +-
- arch/arm/plat-omap/include/mach/bridge/dbtype.h   |    2 -
- arch/arm/plat-omap/include/mach/bridge/dev.h      |   62 +++++++-------
- arch/arm/plat-omap/include/mach/bridge/dpc.h      |   14 ++--
- arch/arm/plat-omap/include/mach/bridge/mgr.h      |    6 +-
- arch/arm/plat-omap/include/mach/bridge/msgdefs.h  |    2 +-
- arch/arm/plat-omap/include/mach/bridge/nldrdefs.h |    4 +-
- arch/arm/plat-omap/include/mach/bridge/proc.h     |    4 +-
- arch/arm/plat-omap/include/mach/bridge/wmd.h      |   88 ++++++++++----------
- drivers/dsp/bridge/pmgr/cod.c                     |    8 +-
- drivers/dsp/bridge/pmgr/dev.c                     |   24 +++---
- drivers/dsp/bridge/pmgr/wcd.c                     |   17 ++--
- drivers/dsp/bridge/rmgr/mgr.c                     |    4 +-
- drivers/dsp/bridge/rmgr/node.c                    |   10 +-
- drivers/dsp/bridge/rmgr/proc.c                    |    4 +-
- drivers/dsp/bridge/wmd/tiomap3430.c               |    2 +-
- drivers/dsp/bridge/wmd/ue_deh.c                   |    2 +-
- 20 files changed, 150 insertions(+), 151 deletions(-)
+ arch/arm/plat-omap/include/mach/bridge/io_sm.h |    9 +
+ drivers/dsp/bridge/wmd/io_sm.c                 |  204 +++++++++++++++++++++++-
+ drivers/dsp/bridge/wmd/mmu_fault.c             |    1 -
+ drivers/dsp/bridge/wmd/mmu_fault.h             |    7 -
+ drivers/dsp/bridge/wmd/tiomap3430.c            |    2 +
+ drivers/dsp/bridge/wmd/ue_deh.c                |  190 +---------------------
+ 6 files changed, 215 insertions(+), 198 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/mach/bridge/chnl_sm.h b/arch/arm/plat-omap/include/mach/bridge/chnl_sm.h
-index 4db08b3..0b724be 100644
---- a/arch/arm/plat-omap/include/mach/bridge/chnl_sm.h
-+++ b/arch/arm/plat-omap/include/mach/bridge/chnl_sm.h
-@@ -62,7 +62,7 @@
-  *  Requires:
-  *  Ensures:
-  */
--       extern DSP_STATUS CDECL CHNLSM_DisableInterrupt(struct WMD_DEV_CONTEXT*
-+       extern DSP_STATUS CHNLSM_DisableInterrupt(struct WMD_DEV_CONTEXT*
-                                                        hDevContext);
+diff --git a/arch/arm/plat-omap/include/mach/bridge/io_sm.h b/arch/arm/plat-omap/include/mach/bridge/io_sm.h
+index 892c06a..b881475 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/io_sm.h
++++ b/arch/arm/plat-omap/include/mach/bridge/io_sm.h
+@@ -326,4 +326,13 @@
 
+        extern void IO_IntrDSP2(IN struct IO_MGR *pIOMgr, IN u16 wMbVal);
+
++       extern void IO_SM_init(void);
++
++/*
++ *  ========PrintDspTraceBuffer ========
++ *      Print DSP tracebuffer.
++ */
++       extern DSP_STATUS PrintDspTraceBuffer(struct WMD_DEV_CONTEXT
++                                               *hWmdContext);
++
+ #endif                         /* IOSM_ */
+diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+index 09ea3b1..2e6a401 100644
+--- a/drivers/dsp/bridge/wmd/io_sm.c
++++ b/drivers/dsp/bridge/wmd/io_sm.c
+@@ -165,6 +165,7 @@
+ /*  ----------------------------------- This */
+ #include <io_sm.h>
+ #include "_msg_sm.h"
++#include <gt.h>
+
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ #define OUTPUTNOTREADY  0xffff
+@@ -260,6 +261,11 @@ extern struct constraint_handle *dsp_constraint_handle;
+ #endif
+ #endif
+ #endif
++
++#if GT_TRACE
++static struct GT_Mask dsp_trace_mask = { NULL, NULL }; /* GT trace variable */
++#endif
++
  /*
-@@ -79,7 +79,7 @@
-  *      All data objects touched must be locked in memory.
-  *  Ensures:
-  */
--       extern void CDECL CHNLSM_DPC(struct WMD_DEV_CONTEXT *hDevContext);
-+       extern void CHNLSM_DPC(struct WMD_DEV_CONTEXT *hDevContext);
-
- /*
-  *  ======== CHNLSM_EnableInterrupt ========
-@@ -91,7 +91,7 @@
-  *  Requires:
-  *  Ensures:
-  */
--       extern DSP_STATUS CDECL CHNLSM_EnableInterrupt(struct WMD_DEV_CONTEXT*
-+       extern DSP_STATUS CHNLSM_EnableInterrupt(struct WMD_DEV_CONTEXT*
-                                                       hDevContext);
-
- /*
-@@ -106,7 +106,7 @@
-  *  Requires:
-  *  Ensures:
-  */
--       extern DSP_STATUS CDECL CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT*
-+       extern DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT*
-                                                    hDevContext);
-
- /*
-@@ -124,7 +124,7 @@
-  *  Requires:
-  *  Ensures:
-  */
--       extern DSP_STATUS CDECL CHNLSM_InterruptDSP2(struct WMD_DEV_CONTEXT*
-+       extern DSP_STATUS CHNLSM_InterruptDSP2(struct WMD_DEV_CONTEXT*
-                                                     hDevContext, u16 wMbVal);
-
- /*
-@@ -151,7 +151,7 @@
-  *  Ensures:
-  *      If the interrupt is *not* shared, this routine must return TRUE.
-  */
--       extern bool CDECL CHNLSM_ISR(struct WMD_DEV_CONTEXT *hDevContext,
-+       extern bool CHNLSM_ISR(struct WMD_DEV_CONTEXT *hDevContext,
-                                     OUT bool *pfSchedDPC,
-                                     OUT u16 *pwIntrVal);
-
-@@ -168,7 +168,7 @@
-  *  Requires:
-  *  Ensures:
-  */
--       extern DSP_STATUS CDECL CHNLSM_Read(struct WMD_DEV_CONTEXT *hDevContext,
-+       extern DSP_STATUS CHNLSM_Read(struct WMD_DEV_CONTEXT *hDevContext,
-                                            OUT u8 *pHostBuf,
-                                            u32 dwDSPAddr, u32 ulNumBytes);
-
-@@ -203,7 +203,7 @@
-  *  Requires:
-  *  Ensures:
-  */
--       extern DSP_STATUS CDECL CHNLSM_Write(struct WMD_DEV_CONTEXT *hDevContext,
-+       extern DSP_STATUS CHNLSM_Write(struct WMD_DEV_CONTEXT *hDevContext,
-                                            IN u8 *pHostBuf,
-                                            u32 dwDSPAddr, u32 ulNumBytes);
-
-diff --git a/arch/arm/plat-omap/include/mach/bridge/cod.h b/arch/arm/plat-omap/include/mach/bridge/cod.h
-index 6a37da7..a56789a 100644
---- a/arch/arm/plat-omap/include/mach/bridge/cod.h
-+++ b/arch/arm/plat-omap/include/mach/bridge/cod.h
-@@ -101,7 +101,7 @@
-  *  Function prototypes for writing memory to a DSP system, allocating
-  *  and freeing DSP memory.
-  */
--       typedef u32(CDECL *COD_WRITEFXN) (void *pPrivRef, u32 ulDspAddr,
-+       typedef u32(*COD_WRITEFXN) (void *pPrivRef, u32 ulDspAddr,
-                                             void *pBuf, u32 ulNumBytes,
-                                             u32 nMemSpace);
-
-@@ -120,7 +120,7 @@
-  *  Ensures:
-  *
-  */
--       extern void CDECL COD_Close(struct COD_LIBRARYOBJ *lib);
-+       extern void COD_Close(struct COD_LIBRARYOBJ *lib);
-
- /*
-  *  ======== COD_Create ========
-@@ -146,7 +146,7 @@
-  *      pstrZLFile != NULL
-  *  Ensures:
-  */
--       extern DSP_STATUS CDECL COD_Create(OUT struct COD_MANAGER **phManager,
-+       extern DSP_STATUS COD_Create(OUT struct COD_MANAGER **phManager,
-                                    char *pstrZLFile,
-                                    IN OPTIONAL CONST struct COD_ATTRS *attrs);
-
-@@ -163,7 +163,7 @@
-  *      valid hManager.
-  *  Ensures:
-  */
--       extern void CDECL COD_Delete(struct COD_MANAGER *hManager);
-+       extern void COD_Delete(struct COD_MANAGER *hManager);
-
- /*
-  *  ======== COD_Exit ========
-@@ -178,7 +178,7 @@
-  *  Ensures:
-  *      Resources acquired in COD_Init() are freed.
-  */
--       extern void CDECL COD_Exit();
-+       extern void COD_Exit();
-
- /*
-  *  ======== COD_GetBaseLib ========
-@@ -195,7 +195,7 @@
-  *      plib != NULL.
-  *  Ensures:
-  */
--       extern DSP_STATUS CDECL COD_GetBaseLib(struct COD_MANAGER *hManager,
-+       extern DSP_STATUS COD_GetBaseLib(struct COD_MANAGER *hManager,
-                                               struct DBLL_LibraryObj **plib);
-
- /*
-@@ -215,7 +215,7 @@
-  *      pszName != NULL.
-  *  Ensures:
-  */
--       extern DSP_STATUS CDECL COD_GetBaseName(struct COD_MANAGER *hManager,
-+       extern DSP_STATUS COD_GetBaseName(struct COD_MANAGER *hManager,
-                                                char *pszName, u32 uSize);
-
- /*
-@@ -233,7 +233,7 @@
-  *      pulEntry != NULL.
-  *  Ensures:
-  */
--       extern DSP_STATUS CDECL COD_GetEntry(struct COD_MANAGER *hManager,
-+       extern DSP_STATUS COD_GetEntry(struct COD_MANAGER *hManager,
-                                             u32 *pulEntry);
-
- /*
-@@ -251,7 +251,7 @@
-  *      phLoader != NULL.
-  *  Ensures:
-  */
--       extern DSP_STATUS CDECL COD_GetLoader(struct COD_MANAGER *hManager,
-+       extern DSP_STATUS COD_GetLoader(struct COD_MANAGER *hManager,
-                                              struct DBLL_TarObj **phLoader);
-
- /*
-@@ -280,7 +280,7 @@
-  *      else:  *puAddr == 0 and *puLen == 0;
-  *
-  */
--       extern DSP_STATUS CDECL COD_GetSection(struct COD_LIBRARYOBJ *lib,
-+       extern DSP_STATUS COD_GetSection(struct COD_LIBRARYOBJ *lib,
-                                               IN char *pstrSect,
-                                               OUT u32 *puAddr,
-                                               OUT u32 *puLen);
-@@ -306,7 +306,7 @@
-  *      pulValue != NULL.
-  *  Ensures:
-  */
--       extern DSP_STATUS CDECL COD_GetSymValue(struct COD_MANAGER *hManager,
-+       extern DSP_STATUS COD_GetSymValue(struct COD_MANAGER *hManager,
-                                                IN char *pstrSym,
-                                                OUT u32 *pulValue);
-
-@@ -322,7 +322,7 @@
-  *  Ensures:
-  *      A requirement for each of the other public COD functions.
-  */
--       extern bool CDECL COD_Init();
-+       extern bool COD_Init();
-
- /*
-  *  ======== COD_LoadBase ========
-@@ -351,7 +351,7 @@
-  *      pfnWrite != NULL.
-  *  Ensures:
-  */
--       extern DSP_STATUS CDECL COD_LoadBase(struct COD_MANAGER *hManager,
-+       extern DSP_STATUS COD_LoadBase(struct COD_MANAGER *hManager,
-                                             u32 nArgc, char *aArgs[],
-                                             COD_WRITEFXN pfnWrite, void *pArb,
-                                             char *envp[]);
-@@ -423,7 +423,7 @@ extern DSP_STATUS COD_OpenBase(struct COD_MANAGER *hMgr, IN char *pszCoffPath,
-  *  Ensures:
-  *      DSP_SOK:  *pstrContent stores the content of the named section.
-  */
--       extern DSP_STATUS CDECL COD_ReadSection(struct COD_LIBRARYOBJ *lib,
-+       extern DSP_STATUS COD_ReadSection(struct COD_LIBRARYOBJ *lib,
-                                                IN char *pstrSect,
-                                                OUT char *pstrContent,
-                                                IN u32 cContentSize);
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dbdcddef.h b/arch/arm/plat-omap/include/mach/bridge/dbdcddef.h
-index ec82600..13b7e04 100644
---- a/arch/arm/plat-omap/include/mach/bridge/dbdcddef.h
-+++ b/arch/arm/plat-omap/include/mach/bridge/dbdcddef.h
-@@ -86,7 +86,7 @@
-        } ;
-
- /* DCD Internal Callback Type */
--       typedef DSP_STATUS(CDECL *DCD_REGISTERFXN) (IN struct DSP_UUID *pUuid,
-+       typedef DSP_STATUS(*DCD_REGISTERFXN) (IN struct DSP_UUID *pUuid,
-                                                IN enum DSP_DCDOBJTYPE objType,
-                                                IN void *handle);
-
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dbdefs.h b/arch/arm/plat-omap/include/mach/bridge/dbdefs.h
-index be0c1d1..e9328a3 100644
---- a/arch/arm/plat-omap/include/mach/bridge/dbdefs.h
-+++ b/arch/arm/plat-omap/include/mach/bridge/dbdefs.h
-@@ -80,7 +80,7 @@
- #define PG_ALIGN_HIGH(addr, pg_size) (((addr)+(pg_size)-1) & PG_MASK(pg_size))
-
- /* API return value and calling convention */
--#define DBAPI                       DSP_STATUS CDECL
-+#define DBAPI                       DSP_STATUS
-
- /* Infinite time value for the uTimeout parameter to DSPStream_Select() */
- #define DSP_FOREVER                 (-1)
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dbtype.h b/arch/arm/plat-omap/include/mach/bridge/dbtype.h
-index d886d03..eaadfba 100644
---- a/arch/arm/plat-omap/include/mach/bridge/dbtype.h
-+++ b/arch/arm/plat-omap/include/mach/bridge/dbtype.h
-@@ -94,8 +94,6 @@ typedef void *HANDLE;         /* h    */
-
- #define TEXT(x) x
-
--#define CDECL
--
- #define DLLIMPORT
- #define DLLEXPORT
-
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dev.h b/arch/arm/plat-omap/include/mach/bridge/dev.h
-index a045209..8a97bca 100644
---- a/arch/arm/plat-omap/include/mach/bridge/dev.h
-+++ b/arch/arm/plat-omap/include/mach/bridge/dev.h
-@@ -115,7 +115,7 @@
-  *      pHostBuf != NULL
-  *  Ensures:
-  */
--       extern u32 CDECL DEV_BrdWriteFxn(void *pArb,
-+       extern u32 DEV_BrdWriteFxn(void *pArb,
-                                           u32 ulDspAddr,
-                                           void *pHostBuf,
-                                           u32 ulNumBytes, u32 nMemSpace);
-@@ -158,7 +158,7 @@
-  *      Otherwise, does not create the device object, ensures the WMD module is
-  *      unloaded, and sets *phDevObject to NULL.
-  */
--       extern DSP_STATUS CDECL DEV_CreateDevice(OUT struct DEV_OBJECT
-+       extern DSP_STATUS DEV_CreateDevice(OUT struct DEV_OBJECT
-                                                 **phDevObject,
-                                                 IN CONST char *pstrWMDFileName,
-                                                 IN CONST struct CFG_HOSTRES
-@@ -204,7 +204,7 @@
-  *      Otherwise, does not create the device object, ensures the WMD module is
-  *      unloaded, and sets *phDevObject to NULL.
-  */
--       extern DSP_STATUS CDECL DEV_CreateIVADevice(OUT struct DEV_OBJECT
-+       extern DSP_STATUS DEV_CreateIVADevice(OUT struct DEV_OBJECT
-                                **phDevObject,
-                                IN CONST char *pstrWMDFileName,
-                                IN CONST struct CFG_HOSTRES *pHostConfig,
-@@ -229,7 +229,7 @@
-  *      DSP_SOK and hDevObject->hNodeMgr != NULL
-  *      else    hDevObject->hNodeMgr == NULL
-  */
--       extern DSP_STATUS CDECL DEV_Create2(IN struct DEV_OBJECT *hDevObject);
-+       extern DSP_STATUS DEV_Create2(IN struct DEV_OBJECT *hDevObject);
-
- /*
-  *  ======== DEV_Destroy2 ========
-@@ -247,7 +247,7 @@
-  *      DSP_SOK and hDevObject->hNodeMgr == NULL
-  *      else    DSP_EFAIL.
-  */
--       extern DSP_STATUS CDECL DEV_Destroy2(IN struct DEV_OBJECT *hDevObject);
-+       extern DSP_STATUS DEV_Destroy2(IN struct DEV_OBJECT *hDevObject);
-
- /*
-  *  ======== DEV_DestroyDevice ========
-@@ -265,7 +265,7 @@
-  *      DEV Initialized.
-  *  Ensures:
-  */
--       extern DSP_STATUS CDECL DEV_DestroyDevice(struct DEV_OBJECT
-+       extern DSP_STATUS DEV_DestroyDevice(struct DEV_OBJECT
-                                                  *hDevObject);
-
- /*
-@@ -287,7 +287,7 @@
-  *                      or NULL.
-  *      else:           *phMgr is NULL.
-  */
--       extern DSP_STATUS CDECL DEV_GetChnlMgr(struct DEV_OBJECT *hDevObject,
-+       extern DSP_STATUS DEV_GetChnlMgr(struct DEV_OBJECT *hDevObject,
-                                               OUT struct CHNL_MGR **phMgr);
-
- /*
-@@ -310,7 +310,7 @@
-  *                      or NULL.
-  *      else:           *phMgr is NULL.
-  */
--       extern DSP_STATUS CDECL DEV_GetCmmMgr(struct DEV_OBJECT *hDevObject,
-+       extern DSP_STATUS DEV_GetCmmMgr(struct DEV_OBJECT *hDevObject,
-                                              OUT struct CMM_OBJECT **phMgr);
-
- /*
-@@ -333,7 +333,7 @@
-  *                      or NULL.
-  *      else:           *phMgr is NULL.
-  */
--       extern DSP_STATUS CDECL DEV_GetDmmMgr(struct DEV_OBJECT *hDevObject,
-+       extern DSP_STATUS DEV_GetDmmMgr(struct DEV_OBJECT *hDevObject,
-                                              OUT struct DMM_OBJECT **phMgr);
-
- /*
-@@ -354,7 +354,7 @@
-  *      DSP_SOK:        *phCodMgr contains a handle to a COD manager object.
-  *      else:           *phCodMgr is NULL.
-  */
--       extern DSP_STATUS CDECL DEV_GetCodMgr(struct DEV_OBJECT *hDevObject,
-+       extern DSP_STATUS DEV_GetCodMgr(struct DEV_OBJECT *hDevObject,
-                                             OUT struct COD_MANAGER **phCodMgr);
-
- /*
-@@ -374,7 +374,7 @@
-  *      DSP_SOK:    *phDehMgr contains a handle to a DEH manager object.
-  *      else:       *phDehMgr is NULL.
-  */
--       extern DSP_STATUS CDECL DEV_GetDehMgr(struct DEV_OBJECT *hDevObject,
-+       extern DSP_STATUS DEV_GetDehMgr(struct DEV_OBJECT *hDevObject,
-                                              OUT struct DEH_MGR **phDehMgr);
-
- /*
-@@ -395,7 +395,7 @@
-  *      DSP_SOK:        *phDevNode contains a platform specific device ID;
-  *      else:           *phDevNode is NULL.
-  */
--       extern DSP_STATUS CDECL DEV_GetDevNode(struct DEV_OBJECT *hDevObject,
-+       extern DSP_STATUS DEV_GetDevNode(struct DEV_OBJECT *hDevObject,
-                                        OUT struct CFG_DEVNODE **phDevNode);
-
- /*
-@@ -416,7 +416,7 @@
-  *      DSP_SOK:        *phDevNode contains a platform specific device ID;
-  *      else:           *phDevNode is NULL.
-  */
--       extern DSP_STATUS CDECL DEV_GetDevType(struct DEV_OBJECT *hdevObject,
-+       extern DSP_STATUS DEV_GetDevType(struct DEV_OBJECT *hdevObject,
-                                               u32 *devType);
-
- /*
-@@ -437,7 +437,7 @@
-  *      A subsequent call to DEV_GetNext will return the next device object in
-  *      the list.
-  */
--       extern struct DEV_OBJECT *CDECL DEV_GetFirst();
-+       extern struct DEV_OBJECT *DEV_GetFirst();
-
- /*
-  *  ======== DEV_GetIntfFxns ========
-@@ -457,7 +457,7 @@
-  *      DSP_SOK:        *ppIntfFxns contains a pointer to the WMD interface;
-  *      else:           *ppIntfFxns is NULL.
-  */
--       extern DSP_STATUS CDECL DEV_GetIntfFxns(struct DEV_OBJECT *hDevObject,
-+       extern DSP_STATUS DEV_GetIntfFxns(struct DEV_OBJECT *hDevObject,
-                                OUT struct WMD_DRV_INTERFACE **ppIntfFxns);
-
- /*
-@@ -478,7 +478,7 @@
-  *      DSP_SOK:        *phMgr contains a handle to an IO manager object.
-  *      else:           *phMgr is NULL.
-  */
--       extern DSP_STATUS CDECL DEV_GetIOMgr(struct DEV_OBJECT *hDevObject,
-+       extern DSP_STATUS DEV_GetIOMgr(struct DEV_OBJECT *hDevObject,
-                                             OUT struct IO_MGR **phMgr);
-
- /*
-@@ -503,7 +503,7 @@
-  *      A subsequent call to DEV_GetNext will return the next device object in
-  *      the list.
-  */
--       extern struct DEV_OBJECT *CDECL DEV_GetNext(struct DEV_OBJECT
-+       extern struct DEV_OBJECT *DEV_GetNext(struct DEV_OBJECT
-                                                    *hDevObject);
-
- /*
-@@ -520,7 +520,7 @@
-  *      phNodeMgr != NULL.
-  *  Ensures:
-  */
--       extern void CDECL DEV_GetMsgMgr(struct DEV_OBJECT *hDevObject,
-+       extern void DEV_GetMsgMgr(struct DEV_OBJECT *hDevObject,
-                                        OUT struct MSG_MGR **phMsgMgr);
-
- /*
-@@ -542,7 +542,7 @@
-  *      DSP_SOK:        *phNodeMgr contains a handle to a Node manager object.
-  *      else:           *phNodeMgr is NULL.
-  */
--       extern DSP_STATUS CDECL DEV_GetNodeManager(struct DEV_OBJECT
-+       extern DSP_STATUS DEV_GetNodeManager(struct DEV_OBJECT
-                                        *hDevObject,
-                                        OUT struct NODE_MGR **phNodeMgr);
-
-@@ -567,7 +567,7 @@
-  *  Ensures:
-  *      DSP_SOK:        *pulValue contains the symbol value;
-  */
--       extern DSP_STATUS CDECL DEV_GetSymbol(struct DEV_OBJECT *hDevObject,
-+       extern DSP_STATUS DEV_GetSymbol(struct DEV_OBJECT *hDevObject,
-                                              IN CONST char *pstrSym,
-                                              OUT u32 *pulValue);
-
-@@ -588,7 +588,7 @@
-  *      DSP_SOK:        *phWmdContext contains context handle;
-  *      else:           *phWmdContext is NULL;
-  */
--       extern DSP_STATUS CDECL DEV_GetWMDContext(struct DEV_OBJECT *hDevObject,
-+       extern DSP_STATUS DEV_GetWMDContext(struct DEV_OBJECT *hDevObject,
-                                OUT struct WMD_DEV_CONTEXT **phWmdContext);
-
- /*
-@@ -603,7 +603,7 @@
-  *  Ensures:
-  *      When reference count == 0, DEV's private resources are freed.
-  */
--       extern void CDECL DEV_Exit();
-+       extern void DEV_Exit();
-
- /*
-  *  ======== DEV_Init ========
-@@ -616,7 +616,7 @@
-  *  Ensures:
-  *      TRUE: A requirement for the other public DEV functions.
-  */
--       extern bool CDECL DEV_Init();
-+       extern bool DEV_Init();
-
- /*
-  *  ======== DEV_IsLocked ========
-@@ -634,7 +634,7 @@
-  *      DEV Initialized.
-  *  Ensures:
-  */
--       extern DSP_STATUS CDECL DEV_IsLocked(IN struct DEV_OBJECT *hDevObject);
-+       extern DSP_STATUS DEV_IsLocked(IN struct DEV_OBJECT *hDevObject);
-
- /*
-  *  ======== DEV_InsertProcObject ========
-@@ -659,7 +659,7 @@
-  *      this is the first Processor attaching.
-  *      If it is False, there are already processors attached.
-  */
--       extern DSP_STATUS CDECL DEV_InsertProcObject(IN struct DEV_OBJECT
-+       extern DSP_STATUS DEV_InsertProcObject(IN struct DEV_OBJECT
-                                                     *hDevObject,
-                                                     IN u32 hProcObject,
-                                                     OUT bool *
-@@ -688,7 +688,7 @@
-  *      List will be deleted when the DEV is destroyed.
-  *
-  */
--       extern DSP_STATUS CDECL DEV_RemoveProcObject(struct DEV_OBJECT
-+       extern DSP_STATUS DEV_RemoveProcObject(struct DEV_OBJECT
-                                                     *hDevObject,
-                                                     u32 hProcObject);
-
-@@ -712,7 +712,7 @@
-  *      delivered to clients.  This function does not ensure that
-  *      the notifications will ever be delivered.
-  */
--       extern DSP_STATUS CDECL DEV_NotifyClients(struct DEV_OBJECT *hDevObject,
-+       extern DSP_STATUS DEV_NotifyClients(struct DEV_OBJECT *hDevObject,
-                                                  u32 ulStatus);
-
-
-@@ -729,7 +729,7 @@
-  *  Requires:
-  *  Ensures:
-  */
--       extern DSP_STATUS CDECL DEV_RemoveDevice(struct CFG_DEVNODE *hDevNode);
-+       extern DSP_STATUS DEV_RemoveDevice(struct CFG_DEVNODE *hDevNode);
-
- /*
-  *  ======== DEV_SetChnlMgr ========
-@@ -746,7 +746,7 @@
-  *      DEV Initialized.
-  *  Ensures:
-  */
--       extern DSP_STATUS CDECL DEV_SetChnlMgr(struct DEV_OBJECT *hDevObject,
-+       extern DSP_STATUS DEV_SetChnlMgr(struct DEV_OBJECT *hDevObject,
-                                               struct CHNL_MGR *hMgr);
-
- /*
-@@ -761,7 +761,7 @@
-  *      DEV Initialized.
-  *  Ensures:
-  */
--       extern void CDECL DEV_SetMsgMgr(struct DEV_OBJECT *hDevObject,
-+       extern void DEV_SetMsgMgr(struct DEV_OBJECT *hDevObject,
-                                        struct MSG_MGR *hMgr);
-
- /*
-@@ -780,6 +780,6 @@
-  *      DEV initialized.
-  *  Ensures:
-  */
--       extern DSP_STATUS CDECL DEV_StartDevice(struct CFG_DEVNODE *hDevNode);
-+       extern DSP_STATUS DEV_StartDevice(struct CFG_DEVNODE *hDevNode);
-
- #endif                         /* DEV_ */
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dpc.h b/arch/arm/plat-omap/include/mach/bridge/dpc.h
-index 8c7dfa9..08167b4 100644
---- a/arch/arm/plat-omap/include/mach/bridge/dpc.h
-+++ b/arch/arm/plat-omap/include/mach/bridge/dpc.h
-@@ -60,7 +60,7 @@
-  *      However, the DPC may take hardware interrupts during execution.
-  *      Interrupts to the processor are enabled.
-  */
--       typedef void(CDECL *DPC_PROC) (void *pRefData);
-+       typedef void(*DPC_PROC) (void *pRefData);
-
- /*
-  *  ======== DPC_Cancel ========
-@@ -77,7 +77,7 @@
-  *      If the DPC has already executed, is executing, or was not yet
-  *      scheduled, this function will have no effect.
-  */
--       extern DSP_STATUS CDECL DPC_Cancel(IN struct DPC_OBJECT *hDPC);
-+       extern DSP_STATUS DPC_Cancel(IN struct DPC_OBJECT *hDPC);
-
- /*
-  *  ======== DPC_Create ========
-@@ -98,7 +98,7 @@
-  *      DSP_SOK: DPC object is created;
-  *      else: *phDPC is set to NULL.
-  */
--       extern DSP_STATUS CDECL DPC_Create(OUT struct DPC_OBJECT **phDPC,
-+       extern DSP_STATUS DPC_Create(OUT struct DPC_OBJECT **phDPC,
-                                           IN DPC_PROC pfnDPC,
-                                           IN void *pRefData);
-
-@@ -119,7 +119,7 @@
-  *  Ensures:
-  *      (SUCCESS && hDPC is NULL) or DSP_EFAILED status
-  */
--       extern DSP_STATUS CDECL DPC_Destroy(IN struct DPC_OBJECT *hDPC);
-+       extern DSP_STATUS DPC_Destroy(IN struct DPC_OBJECT *hDPC);
-
- /*
-  *  ======== DPC_Exit ========
-@@ -132,7 +132,7 @@
-  *  Ensures:
-  *      Resources acquired in DPC_Init() are freed.
-  */
--       extern void CDECL DPC_Exit();
-+       extern void DPC_Exit();
-
- /*
-  *  ======== DPC_Init ========
-@@ -145,7 +145,7 @@
-  *  Ensures:
-  *      A requirement for each of the other public DPC functions.
-  */
--       extern bool CDECL DPC_Init();
-+       extern bool DPC_Init();
-
- /*
-  *  ======== DPC_Schedule ========
-@@ -162,6 +162,6 @@
-  *  Ensures:
-  *      DSP_SOK:        The DPC will not be called before this function returns.
-  */
--       extern DSP_STATUS CDECL DPC_Schedule(IN struct DPC_OBJECT *hDPC);
-+       extern DSP_STATUS DPC_Schedule(IN struct DPC_OBJECT *hDPC);
-
- #endif                         /* DPC_ */
-diff --git a/arch/arm/plat-omap/include/mach/bridge/mgr.h b/arch/arm/plat-omap/include/mach/bridge/mgr.h
-index ac17d7a..fc57a6c 100644
---- a/arch/arm/plat-omap/include/mach/bridge/mgr.h
-+++ b/arch/arm/plat-omap/include/mach/bridge/mgr.h
-@@ -194,7 +194,7 @@
-  *  Ensures:
-  *      When reference count == 0, MGR's private resources are freed.
-  */
--       extern void CDECL MGR_Exit();
-+       extern void MGR_Exit();
-
- /*
-  *  ======== MGR_GetDCDHandle ========
-@@ -213,7 +213,7 @@
-  *      DSP_SOK and *phDCDHandle != NULL ||
-  *      DSP_EFAIL and *phDCDHandle == NULL
-  */
--       extern DSP_STATUS CDECL MGR_GetDCDHandle(IN struct MGR_OBJECT
-+       extern DSP_STATUS MGR_GetDCDHandle(IN struct MGR_OBJECT
-                                                 *hMGRHandle,
-                                                 OUT u32 *phDCDHandle);
-
-@@ -229,6 +229,6 @@
-  *  Ensures:
-  *      TRUE: A requirement for the other public MGR functions.
-  */
--       extern bool CDECL MGR_Init();
-+       extern bool MGR_Init();
-
- #endif                         /* MGR_ */
-diff --git a/arch/arm/plat-omap/include/mach/bridge/msgdefs.h b/arch/arm/plat-omap/include/mach/bridge/msgdefs.h
-index 4e62335..22b38e8 100644
---- a/arch/arm/plat-omap/include/mach/bridge/msgdefs.h
-+++ b/arch/arm/plat-omap/include/mach/bridge/msgdefs.h
-@@ -37,7 +37,7 @@
-        struct MSG_QUEUE;
-
- /* Function prototype for callback to be called on RMS_EXIT message received */
--       typedef void(CDECL *MSG_ONEXIT) (HANDLE h, s32 nStatus);
-+       typedef void(*MSG_ONEXIT) (HANDLE h, s32 nStatus);
-
- #endif                         /* MSGDEFS_ */
-
-diff --git a/arch/arm/plat-omap/include/mach/bridge/nldrdefs.h b/arch/arm/plat-omap/include/mach/bridge/nldrdefs.h
-index 09cd70c..acabf5c 100644
---- a/arch/arm/plat-omap/include/mach/bridge/nldrdefs.h
-+++ b/arch/arm/plat-omap/include/mach/bridge/nldrdefs.h
-@@ -65,7 +65,7 @@
-  *  Requires:
-  *  Ensures:
-  */
--       typedef u32(CDECL *NLDR_OVLYFXN) (void *pPrivRef, u32 ulDspRunAddr,
-+       typedef u32(*NLDR_OVLYFXN) (void *pPrivRef, u32 ulDspRunAddr,
-                                             u32 ulDspLoadAddr,
-                                             u32 ulNumBytes, u32 nMemSpace);
-
-@@ -84,7 +84,7 @@
-  *  Requires:
-  *  Ensures:
-  */
--       typedef u32(CDECL *NLDR_WRITEFXN) (void *pPrivRef,
-+       typedef u32(*NLDR_WRITEFXN) (void *pPrivRef,
-                                              u32 ulDspAddr, void *pBuf,
-                                              u32 ulNumBytes, u32 nMemSpace);
-
-diff --git a/arch/arm/plat-omap/include/mach/bridge/proc.h b/arch/arm/plat-omap/include/mach/bridge/proc.h
-index 2b43085..e5a7b40 100644
---- a/arch/arm/plat-omap/include/mach/bridge/proc.h
-+++ b/arch/arm/plat-omap/include/mach/bridge/proc.h
-@@ -246,7 +246,7 @@
-  *  Ensures:
-  *      When reference count == 0, PROC's private resources are freed.
-  */
--       extern void CDECL PROC_Exit();
-+       extern void PROC_Exit();
-
- /*
-  * ======== PROC_GetDevObject =========
-@@ -280,7 +280,7 @@
-  *  Ensures:
-  *      TRUE: A requirement for the other public PROC functions.
-  */
--       extern bool CDECL PROC_Init();
-+       extern bool PROC_Init();
-
- /*
-  *  ======== PROC_GetState ========
-diff --git a/arch/arm/plat-omap/include/mach/bridge/wmd.h b/arch/arm/plat-omap/include/mach/bridge/wmd.h
-index e346f7e..2b91d3a 100644
---- a/arch/arm/plat-omap/include/mach/bridge/wmd.h
-+++ b/arch/arm/plat-omap/include/mach/bridge/wmd.h
-@@ -100,7 +100,7 @@
-  *      DSP_SOK:        Board is in BRD_IDLE state;
-  *      else:           Board state is indeterminate.
-  */
--       typedef DSP_STATUS(CDECL
-+       typedef DSP_STATUS(
-                           *WMD_BRD_MONITOR) (struct WMD_DEV_CONTEXT
-                           *hDevContext);
-
-@@ -121,7 +121,7 @@
-  *      ulBrdState  <= BRD_LASTSTATE.
-  *  Update the Board state to the specified state.
-  */
--       typedef DSP_STATUS(CDECL
-+       typedef DSP_STATUS(
-                           *WMD_BRD_SETSTATE) (struct WMD_DEV_CONTEXT
-                           *hDevContext, u32 ulBrdState);
-
-@@ -144,7 +144,7 @@
-  *                      Interrupts to the PC are enabled.
-  *      else:           Board state is indeterminate.
-  */
--       typedef DSP_STATUS(CDECL *WMD_BRD_START) (struct WMD_DEV_CONTEXT
-+       typedef DSP_STATUS(*WMD_BRD_START) (struct WMD_DEV_CONTEXT
-                                                *hDevContext, u32 dwDSPAddr);
-
- /*
-@@ -167,7 +167,7 @@
-  *                      Interrupts to the PC are enabled.
-  *      else:           Board state is indeterminate.
-  */
--       typedef DSP_STATUS(CDECL *WMD_BRD_MEMCOPY) (struct WMD_DEV_CONTEXT
-+       typedef DSP_STATUS(*WMD_BRD_MEMCOPY) (struct WMD_DEV_CONTEXT
-                                             *hDevContext,
-                                             u32 ulDspDestAddr,
-                                             u32 ulDspSrcAddr,
-@@ -192,7 +192,7 @@
-  *      pHostBuf != NULL.
-  *  Ensures:
-  */
--       typedef DSP_STATUS(CDECL *WMD_BRD_MEMWRITE) (struct WMD_DEV_CONTEXT
-+       typedef DSP_STATUS(*WMD_BRD_MEMWRITE) (struct WMD_DEV_CONTEXT
-                                        *hDevContext,
-                                        IN u8 *pHostBuf,
-                                        u32 dwDSPAddr, u32 ulNumBytes,
-@@ -215,7 +215,7 @@
-  *      hDevContext != NULL;
-  *  Ensures:
-  */
--       typedef DSP_STATUS(CDECL *WMD_BRD_MEMMAP) (struct WMD_DEV_CONTEXT
-+       typedef DSP_STATUS(*WMD_BRD_MEMMAP) (struct WMD_DEV_CONTEXT
-                                        *hDevContext, u32 ulMpuAddr,
-                                        u32 ulVirtAddr, u32 ulNumBytes,
-                                        u32 ulMapAttrs);
-@@ -235,7 +235,7 @@
-  *      hDevContext != NULL;
-  *  Ensures:
-  */
--       typedef DSP_STATUS(CDECL *WMD_BRD_MEMUNMAP) (struct WMD_DEV_CONTEXT
-+       typedef DSP_STATUS(*WMD_BRD_MEMUNMAP) (struct WMD_DEV_CONTEXT
-                                        *hDevContext,
-                                        u32 ulVirtAddr,
-                                        u32 ulNumBytes);
-@@ -257,7 +257,7 @@
-  *                      Interrupts to the PC are disabled.
-  *      else:           Board state is indeterminate.
-  */
--       typedef DSP_STATUS(CDECL *WMD_BRD_STOP) (struct WMD_DEV_CONTEXT
-+       typedef DSP_STATUS(*WMD_BRD_STOP) (struct WMD_DEV_CONTEXT
-                                        *hDevContext);
-
- /*
-@@ -275,7 +275,7 @@
-  *  Ensures:
-  *      *pdwState is one of {BRD_STOPPED, BRD_IDLE, BRD_RUNNING, BRD_UNKNOWN};
-  */
--       typedef DSP_STATUS(CDECL *
-+       typedef DSP_STATUS(*
-                           WMD_BRD_STATUS) (struct WMD_DEV_CONTEXT *hDevContext,
-                                            OUT BRD_STATUS * pdwState);
-
-@@ -300,7 +300,7 @@
-  *  Ensures:
-  *  Will not write more than ulNumBytes bytes into pHostBuf.
-  */
--typedef DSP_STATUS(CDECL *WMD_BRD_READ) (struct WMD_DEV_CONTEXT *hDevContext,
-+typedef DSP_STATUS(*WMD_BRD_READ) (struct WMD_DEV_CONTEXT *hDevContext,
-                                                  OUT u8 *pHostBuf,
-                                                  u32 dwDSPAddr,
-                                                  u32 ulNumBytes,
-@@ -326,7 +326,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_READ) (struct WMD_DEV_CONTEXT *hDevContext,
-  *      pHostBuf != NULL.
-  *  Ensures:
-  */
--typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
-+typedef DSP_STATUS(*WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
-                                                   IN u8 *pHostBuf,
-                                                   u32 dwDSPAddr,
-                                                   u32 ulNumBytes,
-@@ -363,7 +363,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      No channel manager exists for this board.
-  *  Ensures:
-  */
--       typedef DSP_STATUS(CDECL *WMD_CHNL_CREATE)(OUT struct CHNL_MGR
-+       typedef DSP_STATUS(*WMD_CHNL_CREATE)(OUT struct CHNL_MGR
-                                                    **phChnlMgr,
-                                                    struct DEV_OBJECT
-                                                    *hDevObject,
-@@ -384,7 +384,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      DSP_SOK: Cancels I/O on each open channel. Closes each open channel.
-  *          CHNL_Create may subsequently be called for the same device.
-  */
--       typedef DSP_STATUS(CDECL *WMD_CHNL_DESTROY) (struct CHNL_MGR
-+       typedef DSP_STATUS(*WMD_CHNL_DESTROY) (struct CHNL_MGR
-                                                      *hChnlMgr);
- /*
-  *  ======== WMD_DEH_Notify ========
-@@ -401,7 +401,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
-  *     ulEventMask with a valid exception
-  *  Ensures:
-  */
--       typedef void (CDECL *WMD_DEH_NOTIFY)(struct DEH_MGR *hDehMgr,
-+       typedef void (*WMD_DEH_NOTIFY)(struct DEH_MGR *hDehMgr,
-                                        u32 ulEventMask, u32 dwErrInfo);
-
-
-@@ -448,7 +448,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      DSP_SOK:                *phChnl is a valid channel.
-  *      else:                   *phChnl is set to NULL if (phChnl != NULL);
-  */
--       typedef DSP_STATUS(CDECL *WMD_CHNL_OPEN) (OUT struct CHNL_OBJECT
-+       typedef DSP_STATUS(*WMD_CHNL_OPEN) (OUT struct CHNL_OBJECT
-                                                   **phChnl,
-                                                   struct CHNL_MGR *hChnlMgr,
-                                                   CHNL_MODE uMode,
-@@ -473,7 +473,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
-  *  Ensures:
-  *      DSP_SOK:        hChnl is no longer valid.
-  */
--       typedef DSP_STATUS(CDECL *WMD_CHNL_CLOSE) (struct CHNL_OBJECT *hChnl);
-+       typedef DSP_STATUS(*WMD_CHNL_CLOSE) (struct CHNL_OBJECT *hChnl);
-
- /*
-  *  ======== WMD_CHNL_AddIOReq ========
-@@ -512,7 +512,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
-  *          corresponding IOC for this I/O request will have its status flag
-  *          set to CHNL_IOCSTATEOS.
-  */
--       typedef DSP_STATUS(CDECL *WMD_CHNL_ADDIOREQ) (struct CHNL_OBJECT
-+       typedef DSP_STATUS(*WMD_CHNL_ADDIOREQ) (struct CHNL_OBJECT
-                                                       *hChnl,
-                                                       void *pHostBuf,
-                                                       u32 cBytes,
-@@ -545,7 +545,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
-  *          returns, the channel event object will be left in a signalled
-  *          state.
-  */
--       typedef DSP_STATUS(CDECL *WMD_CHNL_GETIOC) (struct CHNL_OBJECT *hChnl,
-+       typedef DSP_STATUS(*WMD_CHNL_GETIOC) (struct CHNL_OBJECT *hChnl,
-                                                     u32 dwTimeOut,
-                                                     OUT struct CHNL_IOC *pIOC);
-
-@@ -567,7 +567,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
-  *  Ensures:
-  *      Subsequent I/O requests to this channel will not be accepted.
-  */
--       typedef DSP_STATUS(CDECL *WMD_CHNL_CANCELIO) (struct CHNL_OBJECT
-+       typedef DSP_STATUS(*WMD_CHNL_CANCELIO) (struct CHNL_OBJECT
-                                                       *hChnl);
-
- /*
-@@ -587,7 +587,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
-  *  Ensures:
-  *      DSP_SOK:            No I/O requests will be pending on this channel.
-  */
--       typedef DSP_STATUS(CDECL *WMD_CHNL_FLUSHIO) (struct CHNL_OBJECT *hChnl,
-+       typedef DSP_STATUS(*WMD_CHNL_FLUSHIO) (struct CHNL_OBJECT *hChnl,
-                                                      u32 dwTimeOut);
-
- /*
-@@ -606,7 +606,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      DSP_SOK:        pInfo points to a filled in CHNL_INFO struct,
-  *                      if (pInfo != NULL).
-  */
--       typedef DSP_STATUS(CDECL *WMD_CHNL_GETINFO) (struct CHNL_OBJECT *hChnl,
-+       typedef DSP_STATUS(*WMD_CHNL_GETINFO) (struct CHNL_OBJECT *hChnl,
-                                                      OUT struct CHNL_INFO
-                                                      *pChnlInfo);
-
-@@ -628,7 +628,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      DSP_SOK:            pMgrInfo points to a filled in CHNL_MGRINFO
-  *                          struct, if (pMgrInfo != NULL).
-  */
--       typedef DSP_STATUS(CDECL *WMD_CHNL_GETMGRINFO) (struct CHNL_MGR
-+       typedef DSP_STATUS(*WMD_CHNL_GETMGRINFO) (struct CHNL_MGR
-                                                         *hChnlMgr,
-                                                         u32 uChnlID,
-                                                         OUT struct CHNL_MGRINFO
-@@ -660,7 +660,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
-  *  Requires:
-  *  Ensures:
-  */
--       typedef DSP_STATUS(CDECL *WMD_CHNL_IDLE) (struct CHNL_OBJECT *hChnl,
-+       typedef DSP_STATUS(*WMD_CHNL_IDLE) (struct CHNL_OBJECT *hChnl,
-                                                   u32 dwTimeOut,
-                                                   bool fFlush);
-
-@@ -689,7 +689,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      uNotifyType == DSP_SIGNALEVENT.
-  *  Ensures:
-  */
--       typedef DSP_STATUS(CDECL *WMD_CHNL_REGISTERNOTIFY)
-+       typedef DSP_STATUS(*WMD_CHNL_REGISTERNOTIFY)
-                                (struct CHNL_OBJECT *hChnl,
-                                u32 uEventMask,
-                                u32 uNotifyType,
-@@ -733,7 +733,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      function returns, they must not be stored into the device context
-  *      structure.
-  */
--       typedef DSP_STATUS(CDECL *WMD_DEV_CREATE) (OUT struct WMD_DEV_CONTEXT
-+       typedef DSP_STATUS(*WMD_DEV_CREATE) (OUT struct WMD_DEV_CONTEXT
-                                                    **phDevContext,
-                                                    struct DEV_OBJECT
-                                                    *hDevObject,
-@@ -758,7 +758,7 @@ typedef DSP_STATUS(CDECL *WMD_BRD_WRITE)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      IOCTL completion routines provided.
-  *  Ensures:
-  */
--typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-+typedef DSP_STATUS(*WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-                                        u32 dwCmd,
-                                        IN OUT void *pArgs);
-
-@@ -779,7 +779,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-  *  Ensures:
-  *      DSP_SOK: Device context is freed.
-  */
--       typedef DSP_STATUS(CDECL *WMD_DEV_DESTROY) (struct WMD_DEV_CONTEXT
-+       typedef DSP_STATUS(*WMD_DEV_DESTROY) (struct WMD_DEV_CONTEXT
-                                             *hDevContext);
-
- /*
-@@ -798,7 +798,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      phDehMgr != NULL;
-  *  Ensures:
-  */
--       typedef DSP_STATUS(CDECL *WMD_DEH_CREATE) (OUT struct DEH_MGR
-+       typedef DSP_STATUS(*WMD_DEH_CREATE) (OUT struct DEH_MGR
-                                                    **phDehMgr,
-                                                    struct DEV_OBJECT
-                                                    *hDevObject);
-@@ -816,7 +816,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      hDehMgr != NULL;
-  *  Ensures:
-  */
--       typedef DSP_STATUS(CDECL *WMD_DEH_DESTROY) (struct DEH_MGR *hDehMgr);
-+       typedef DSP_STATUS(*WMD_DEH_DESTROY) (struct DEH_MGR *hDehMgr);
-
- /*
-  *  ======== WMD_DEH_RegisterNotify ========
-@@ -831,7 +831,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      hDehMgr != NULL;
-  *  Ensures:
-  */
--       typedef DSP_STATUS(CDECL *WMD_DEH_REGISTERNOTIFY)
-+       typedef DSP_STATUS(*WMD_DEH_REGISTERNOTIFY)
-                                (struct DEH_MGR *hDehMgr,
-                                u32 uEventMask, u32 uNotifyType,
-                                struct DSP_NOTIFICATION *hNotification);
-@@ -851,7 +851,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      pErrorInfo != NULL;
-  *  Ensures:
-  */
--       typedef DSP_STATUS(CDECL *WMD_DEH_GETINFO) (struct DEH_MGR *phDehMgr,
-+       typedef DSP_STATUS(*WMD_DEH_GETINFO) (struct DEH_MGR *phDehMgr,
-                                        struct DSP_ERRORINFO *pErrInfo);
-
- /*
-@@ -874,7 +874,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      phIOMgr != NULL;
-  *  Ensures:
-  */
--       typedef DSP_STATUS(CDECL *WMD_IO_CREATE) (OUT struct IO_MGR **phIOMgr,
-+       typedef DSP_STATUS(*WMD_IO_CREATE) (OUT struct IO_MGR **phIOMgr,
-                                        struct DEV_OBJECT *hDevObject,
-                                        IN CONST struct IO_ATTRS *pMgrAttrs);
-
-@@ -892,7 +892,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      Valid hIOMgr;
-  *  Ensures:
-  */
--       typedef DSP_STATUS(CDECL *WMD_IO_DESTROY) (struct IO_MGR *hIOMgr);
-+       typedef DSP_STATUS(*WMD_IO_DESTROY) (struct IO_MGR *hIOMgr);
-
- /*
-  *  ======== WMD_IO_OnLoaded ========
-@@ -909,7 +909,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      Valid hIOMgr;
-  *  Ensures:
-  */
--       typedef DSP_STATUS(CDECL *WMD_IO_ONLOADED) (struct IO_MGR *hIOMgr);
-+       typedef DSP_STATUS(*WMD_IO_ONLOADED) (struct IO_MGR *hIOMgr);
-
- /*
-  *  ======== WMD_IO_GETPROCLOAD ========
-@@ -925,7 +925,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      Valid hIOMgr;
-  *  Ensures:
-  */
--       typedef DSP_STATUS(CDECL *WMD_IO_GETPROCLOAD)(struct IO_MGR *hIOMgr,
-+       typedef DSP_STATUS(*WMD_IO_GETPROCLOAD)(struct IO_MGR *hIOMgr,
-                           struct DSP_PROCLOADSTAT *pProcLoadStat);
-
- /*
-@@ -946,7 +946,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      hDevObject != NULL.
-  *  Ensures:
-  */
--       typedef DSP_STATUS(CDECL *WMD_MSG_CREATE)
-+       typedef DSP_STATUS(*WMD_MSG_CREATE)
-                                (OUT struct MSG_MGR **phMsgMgr,
-                                struct DEV_OBJECT *hDevObject,
-                                MSG_ONEXIT msgCallback);
-@@ -973,7 +973,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-  *  Ensures:
-  *      phMsgQueue !=NULL <==> DSP_SOK.
-  */
--       typedef DSP_STATUS(CDECL *WMD_MSG_CREATEQUEUE)
-+       typedef DSP_STATUS(*WMD_MSG_CREATEQUEUE)
-                                (struct MSG_MGR *hMsgMgr,
-                                OUT struct MSG_QUEUE **phMsgQueue,
-                                u32 dwId, u32 uMaxMsgs, HANDLE h);
-@@ -989,7 +989,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      Valid hMsgMgr.
-  *  Ensures:
-  */
--       typedef void(CDECL *WMD_MSG_DELETE) (struct MSG_MGR *hMsgMgr);
-+       typedef void(*WMD_MSG_DELETE) (struct MSG_MGR *hMsgMgr);
-
- /*
-  *  ======== WMD_MSG_DeleteQueue ========
-@@ -1003,7 +1003,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      Valid hMsgQueue.
-  *  Ensures:
-  */
--       typedef void(CDECL *WMD_MSG_DELETEQUEUE) (struct MSG_QUEUE *hMsgQueue);
-+       typedef void(*WMD_MSG_DELETEQUEUE) (struct MSG_QUEUE *hMsgQueue);
-
- /*
-  *  ======== WMD_MSG_Get ========
-@@ -1024,7 +1024,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      pMsg != NULL.
-  *  Ensures:
-  */
--       typedef DSP_STATUS(CDECL *WMD_MSG_GET) (struct MSG_QUEUE *hMsgQueue,
-+       typedef DSP_STATUS(*WMD_MSG_GET) (struct MSG_QUEUE *hMsgQueue,
-                                                 struct DSP_MSG *pMsg,
-                                                 u32 uTimeout);
-
-@@ -1047,7 +1047,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      pMsg != NULL.
-  *  Ensures:
-  */
--       typedef DSP_STATUS(CDECL *WMD_MSG_PUT) (struct MSG_QUEUE *hMsgQueue,
-+       typedef DSP_STATUS(*WMD_MSG_PUT) (struct MSG_QUEUE *hMsgQueue,
-                                                 IN CONST struct DSP_MSG *pMsg,
-                                                 u32 uTimeout);
-
-@@ -1072,7 +1072,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      uEventMask == DSP_NODEMESSAGEREADY || uEventMask == 0.
-  *  Ensures:
-  */
--       typedef DSP_STATUS(CDECL *WMD_MSG_REGISTERNOTIFY)
-+       typedef DSP_STATUS(*WMD_MSG_REGISTERNOTIFY)
-                                (struct MSG_QUEUE *hMsgQueue,
-                                u32 uEventMask, u32 uNotifyType,
-                                struct DSP_NOTIFICATION *hNotification);
-@@ -1092,7 +1092,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-  *      dwId != 0.
-  *  Ensures:
-  */
--       typedef void(CDECL *WMD_MSG_SETQUEUEID) (struct MSG_QUEUE *hMsgQueue,
-+       typedef void(*WMD_MSG_SETQUEUEID) (struct MSG_QUEUE *hMsgQueue,
-                                                  u32 dwId);
-
- /*
-@@ -1187,7 +1187,7 @@ typedef DSP_STATUS(CDECL *WMD_DEV_CTRL)(struct WMD_DEV_CONTEXT *hDevContext,
-  *  Details:
-  *      Win95: Called during the Device_Init phase.
-  */
--       void CDECL WMD_DRV_Entry(OUT struct WMD_DRV_INTERFACE **ppDrvInterface,
-+       void WMD_DRV_Entry(OUT struct WMD_DRV_INTERFACE **ppDrvInterface,
-                                 IN CONST char *pstrWMDFileName);
-
- #endif                         /* WMD_ */
-diff --git a/drivers/dsp/bridge/pmgr/cod.c b/drivers/dsp/bridge/pmgr/cod.c
-index 257dd23..396c61e 100644
---- a/drivers/dsp/bridge/pmgr/cod.c
-+++ b/drivers/dsp/bridge/pmgr/cod.c
-@@ -139,7 +139,7 @@ static bool NoOp();
- /*
-  *  ======== COD_Close ========
-  */
--void CDECL COD_Close(struct COD_LIBRARYOBJ *lib)
-+void COD_Close(struct COD_LIBRARYOBJ *lib)
+  *  ======== WMD_IO_Create ========
+  *      Create an IO manager object.
+@@ -1796,6 +1802,8 @@ void PrintDSPDebugTrace(struct IO_MGR *hIOMgr)
  {
-        struct COD_MANAGER *hMgr;
+        u32 ulNewMessageLength = 0, ulGPPCurPointer;
 
-@@ -281,7 +281,7 @@ void COD_Exit(void)
-  *  Purpose:
-  *      Get handle to the base image DBL library.
-  */
--DSP_STATUS CDECL COD_GetBaseLib(struct COD_MANAGER *hManager,
-+DSP_STATUS COD_GetBaseLib(struct COD_MANAGER *hManager,
-                                struct DBLL_LibraryObj **plib)
- {
-        DSP_STATUS status = DSP_SOK;
-@@ -298,7 +298,7 @@ DSP_STATUS CDECL COD_GetBaseLib(struct COD_MANAGER *hManager,
- /*
-  *  ======== COD_GetBaseName ========
-  */
--DSP_STATUS CDECL COD_GetBaseName(struct COD_MANAGER *hManager, char *pszName,
-+DSP_STATUS COD_GetBaseName(struct COD_MANAGER *hManager, char *pszName,
-                                u32 uSize)
- {
-        DSP_STATUS status = DSP_SOK;
-@@ -340,7 +340,7 @@ DSP_STATUS COD_GetEntry(struct COD_MANAGER *hManager, u32 *pulEntry)
-  *  Purpose:
-  *      Get handle to the DBLL loader.
-  */
--DSP_STATUS CDECL COD_GetLoader(struct COD_MANAGER *hManager,
-+DSP_STATUS COD_GetLoader(struct COD_MANAGER *hManager,
-                               struct DBLL_TarObj **phLoader)
- {
-        DSP_STATUS status = DSP_SOK;
-diff --git a/drivers/dsp/bridge/pmgr/dev.c b/drivers/dsp/bridge/pmgr/dev.c
-index dbea4df..07f97ce 100644
---- a/drivers/dsp/bridge/pmgr/dev.c
-+++ b/drivers/dsp/bridge/pmgr/dev.c
-@@ -419,7 +419,7 @@ DSP_STATUS DEV_CreateDevice(OUT struct DEV_OBJECT **phDevObject,
-  *      (PROC Auto_Start) or PROC_Load this fxn is called. This creates
-  *      the Node Manager and updates the DEV Object.
-  */
--DSP_STATUS CDECL DEV_Create2(struct DEV_OBJECT *hDevObject)
-+DSP_STATUS DEV_Create2(struct DEV_OBJECT *hDevObject)
- {
-        DSP_STATUS status = DSP_SOK;
-        struct DEV_OBJECT *pDevObject = hDevObject;
-@@ -452,7 +452,7 @@ DSP_STATUS CDECL DEV_Create2(struct DEV_OBJECT *hDevObject)
-  *  Purpose:
-  *      Destroys the Node manager for this device.
-  */
--DSP_STATUS CDECL DEV_Destroy2(struct DEV_OBJECT *hDevObject)
-+DSP_STATUS DEV_Destroy2(struct DEV_OBJECT *hDevObject)
- {
-        DSP_STATUS status = DSP_SOK;
-        struct DEV_OBJECT *pDevObject = hDevObject;
-@@ -835,7 +835,7 @@ struct DEV_OBJECT *DEV_GetNext(struct DEV_OBJECT *hDevObject)
- /*
-  *  ========= DEV_GetMsgMgr ========
-  */
--void CDECL DEV_GetMsgMgr(struct DEV_OBJECT *hDevObject,
-+void DEV_GetMsgMgr(struct DEV_OBJECT *hDevObject,
-                        OUT struct MSG_MGR **phMsgMgr)
- {
-        DBC_Require(cRefs > 0);
-@@ -850,7 +850,7 @@ void CDECL DEV_GetMsgMgr(struct DEV_OBJECT *hDevObject,
-  *  Purpose:
-  *      Retrieve the Node Manager Handle
-  */
--DSP_STATUS CDECL DEV_GetNodeManager(struct DEV_OBJECT *hDevObject,
-+DSP_STATUS DEV_GetNodeManager(struct DEV_OBJECT *hDevObject,
-                                   OUT struct NODE_MGR **phNodeMgr)
- {
-        DSP_STATUS status = DSP_SOK;
-@@ -882,7 +882,7 @@ DSP_STATUS CDECL DEV_GetNodeManager(struct DEV_OBJECT *hDevObject,
- /*
-  *  ======== DEV_GetSymbol ========
-  */
--DSP_STATUS CDECL DEV_GetSymbol(struct DEV_OBJECT *hDevObject,
-+DSP_STATUS DEV_GetSymbol(struct DEV_OBJECT *hDevObject,
-                              IN CONST char *pstrSym, OUT u32 *pulValue)
- {
-        DSP_STATUS status = DSP_SOK;
-@@ -951,7 +951,7 @@ DSP_STATUS DEV_GetWMDContext(struct DEV_OBJECT *hDevObject,
-  *      Decrement reference count, and free resources when reference count is
-  *      0.
-  */
--void CDECL DEV_Exit(void)
-+void DEV_Exit(void)
- {
-        DBC_Require(cRefs > 0);
-
-@@ -973,7 +973,7 @@ void CDECL DEV_Exit(void)
-  *  Purpose:
-  *      Initialize DEV's private state, keeping a reference count on each call.
-  */
--bool CDECL DEV_Init(void)
-+bool DEV_Init(void)
- {
-        bool fCmm, fDmm, fRetval = true;
-
-@@ -1038,7 +1038,7 @@ DSP_STATUS DEV_NotifyClients(struct DEV_OBJECT *hDevObject, u32 ulStatus)
- /*
-  *  ======== DEV_RemoveDevice ========
-  */
--DSP_STATUS CDECL DEV_RemoveDevice(struct CFG_DEVNODE *hDevNode)
-+DSP_STATUS DEV_RemoveDevice(struct CFG_DEVNODE *hDevNode)
- {
-        struct DEV_OBJECT *hDevObject;  /* handle to device object */
-        DSP_STATUS status = DSP_SOK;
-@@ -1111,7 +1111,7 @@ void DEV_SetMsgMgr(struct DEV_OBJECT *hDevObject, struct MSG_MGR *hMgr)
-  *  Purpose:
-  *      Initializes the new device with the BRIDGE environment.
-  */
--DSP_STATUS CDECL DEV_StartDevice(struct CFG_DEVNODE *hDevNode)
-+DSP_STATUS DEV_StartDevice(struct CFG_DEVNODE *hDevNode)
- {
-        struct DEV_OBJECT *hDevObject = NULL;   /* handle to 'Bridge Device */
-        struct CFG_HOSTRES hostRes;     /* resources struct. */
-@@ -1267,7 +1267,7 @@ static DSP_STATUS InitCodMgr(struct DEV_OBJECT *pDevObject)
-  *  Ensures:
-  *      DSP_SOK and List is not Empty.
-  */
--DSP_STATUS CDECL DEV_InsertProcObject(struct DEV_OBJECT *hDevObject,
-+DSP_STATUS DEV_InsertProcObject(struct DEV_OBJECT *hDevObject,
-                                     u32 hProcObject,
-                                     OUT bool *pbAlreadyAttached)
- {
-@@ -1313,7 +1313,7 @@ DSP_STATUS CDECL DEV_InsertProcObject(struct DEV_OBJECT *hDevObject,
-  *  Details:
-  *      List will be deleted when the DEV is destroyed.
-  */
--DSP_STATUS CDECL DEV_RemoveProcObject(struct DEV_OBJECT *hDevObject,
-+DSP_STATUS DEV_RemoveProcObject(struct DEV_OBJECT *hDevObject,
-                                     u32 hProcObject)
- {
-        DSP_STATUS status = DSP_EFAIL;
-@@ -1343,7 +1343,7 @@ DSP_STATUS CDECL DEV_RemoveProcObject(struct DEV_OBJECT *hDevObject,
-        return status;
++       GT_0trace(dsp_trace_mask, GT_ENTER, "Entering PrintDSPDebugTrace\n");
++
+        while (true) {
+                /* Get the DSP current pointer */
+                ulGPPCurPointer = *(u32 *) (hIOMgr->ulTraceBufferCurrent);
+@@ -1818,8 +1826,7 @@ void PrintDSPDebugTrace(struct IO_MGR *hIOMgr)
+                         * pointer */
+                        hIOMgr->ulGPPReadPointer += ulNewMessageLength;
+                        /* Print the trace messages */
+-                       DBG_Trace(DBG_LEVEL3, "hIOMgr->pMsg=0x%x",
+-                                hIOMgr->pMsg);
++                       GT_0trace(dsp_trace_mask, GT_1CLASS, hIOMgr->pMsg);
+                }
+                /* Handle trace buffer wraparound */
+                else if (ulGPPCurPointer < hIOMgr->ulGPPReadPointer) {
+@@ -1840,10 +1847,199 @@ void PrintDSPDebugTrace(struct IO_MGR *hIOMgr)
+                        hIOMgr->ulGPPReadPointer = hIOMgr->ulTraceBufferBegin +
+                                                   ulNewMessageLength;
+                        /* Print the trace messages */
+-                       DBG_Trace(DBG_LEVEL3, "hIOMgr->pMsg=0x%x",
+-                                hIOMgr->pMsg);
++                       GT_0trace(dsp_trace_mask, GT_1CLASS, hIOMgr->pMsg);
+                }
+        }
  }
+ #endif
 
--DSP_STATUS CDECL DEV_GetDevType(struct DEV_OBJECT *hdevObject, u32 *devType)
-+DSP_STATUS DEV_GetDevType(struct DEV_OBJECT *hdevObject, u32 *devType)
- {
-        DSP_STATUS status = DSP_SOK;
-        struct DEV_OBJECT *pDevObject = (struct DEV_OBJECT *)hdevObject;
-diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index bf764b2..31a160b 100644
---- a/drivers/dsp/bridge/pmgr/wcd.c
-+++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -836,8 +836,7 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
- {
-        s32 i, len;
-        DSP_STATUS status = DSP_SOK;
--       u8 __user *temp;
--       u8 *temp1;
-+       char *temp;
-        s32 argc = args->ARGS_PROC_LOAD.iArgc;
-        u8 **argv, **envp = NULL;
++/*
++ *  ======== PackTraceBuffer ========
++ *      Removes extra nulls from the trace buffer returned from the DSP.
++ *      Works even on buffers that already are packed (null removed); but has
++ *      one bug in that case -- loses the last character (replaces with '\0').
++ *      Continues through conversion for full set of nBytes input characters.
++ *  Parameters:
++ *    lpBuf:            Pointer to input/output buffer
++ *    nBytes:           Number of characters in the buffer
++ *    ulNumWords:       Number of DSP words in the buffer.  Indicates potential
++ *                      number of extra carriage returns to generate.
++ *  Returns:
++ *      DSP_SOK:        Success.
++ *      DSP_EMEMORY:    Unable to allocate memory.
++ *  Requires:
++ *      lpBuf must be a fully allocated writable block of at least nBytes.
++ *      There are no more than ulNumWords extra characters needed (the number of
++ *      linefeeds minus the number of NULLS in the input buffer).
++ */
++#if ((defined DEBUG) || (defined DDSP_DEBUG_PRODUCT))\
++       && GT_TRACE
++static DSP_STATUS PackTraceBuffer(char *lpBuf, u32 nBytes, u32 ulNumWords)
++{
++       DSP_STATUS status = DSP_SOK;
++
++       char *lpTmpBuf;
++       char *lpBufStart;
++       char *lpTmpStart;
++       u32 nCnt;
++       char thisChar;
++
++       /* tmp workspace, 1 KB longer than input buf */
++       lpTmpBuf = MEM_Calloc((nBytes + ulNumWords), MEM_PAGED);
++       if (lpTmpBuf == NULL) {
++               DBG_Trace(DBG_LEVEL7, "PackTrace buffer:OutofMemory \n");
++               status = DSP_EMEMORY;
++       }
++
++       if (DSP_SUCCEEDED(status)) {
++               lpBufStart = lpBuf;
++               lpTmpStart = lpTmpBuf;
++               for (nCnt = nBytes; nCnt > 0; nCnt--) {
++                       thisChar = *lpBuf++;
++                       switch (thisChar) {
++                       case '\0':      /* Skip null bytes */
++                               break;
++                       case '\n':      /* Convert \n to \r\n */
++                               /* NOTE: do not reverse order; Some OS */
++                               /* editors control doesn't understand "\n\r" */
++                               *lpTmpBuf++ = '\r';
++                               *lpTmpBuf++ = '\n';
++                               break;
++                       default:        /* Copy in the actual ascii byte */
++                               *lpTmpBuf++ = thisChar;
++                               break;
++                       }
++               }
++               *lpTmpBuf = '\0';    /* Make sure tmp buf is null terminated */
++               /* Cut output down to input buf size */
++               strncpy(lpBufStart, lpTmpStart, nBytes);
++               /*Make sure output is null terminated */
++               lpBufStart[nBytes - 1] = '\0';
++               MEM_Free(lpTmpStart);
++       }
++
++       return status;
++}
++#endif    /* ((defined DEBUG) || (defined DDSP_DEBUG_PRODUCT)) && GT_TRACE */
++
++/*
++ *  ======== PrintDspTraceBuffer ========
++ *      Prints the trace buffer returned from the DSP (if DBG_Trace is enabled).
++ *  Parameters:
++ *    hDehMgr:          Handle to DEH manager object
++ *                      number of extra carriage returns to generate.
++ *  Returns:
++ *      DSP_SOK:        Success.
++ *      DSP_EMEMORY:    Unable to allocate memory.
++ *  Requires:
++ *      hDehMgr muse be valid. Checked in WMD_DEH_Notify.
++ */
++DSP_STATUS PrintDspTraceBuffer(struct WMD_DEV_CONTEXT *hWmdContext)
++{
++       DSP_STATUS status = DSP_SOK;
++
++#if ((defined DEBUG) || (defined DDSP_DEBUG_PRODUCT))\
++       && GT_TRACE
++
++       struct COD_MANAGER *hCodMgr;
++       u32 ulTraceEnd;
++       u32 ulTraceBegin;
++       u32 ulNumBytes = 0;
++       u32 ulNumWords = 0;
++       u32 ulWordSize = 2;
++       CONST u32 uMaxSize = 512;
++       char *pszBuf;
++       u16 *lpszBuf;
++
++       struct WMD_DEV_CONTEXT *pWmdContext = (struct WMD_DEV_CONTEXT *)
++                                                       hWmdContext;
++       struct WMD_DRV_INTERFACE *pIntfFxns;
++       struct DEV_OBJECT *pDevObject = (struct DEV_OBJECT *)
++                                               pWmdContext->hDevObject;
++
++       status = DEV_GetCodMgr(pDevObject, &hCodMgr);
++       if (DSP_FAILED(status))
++               GT_0trace(dsp_trace_mask, GT_2CLASS,
++                        "PrintDspTraceBuffer: Failed on DEV_GetCodMgr.\n");
++
++       if (DSP_SUCCEEDED(status)) {
++               /* Look for SYS_PUTCBEG/SYS_PUTCEND: */
++               status = COD_GetSymValue(hCodMgr, COD_TRACEBEG, &ulTraceBegin);
++               GT_1trace(dsp_trace_mask, GT_2CLASS,
++                        "PrintDspTraceBuffer: ulTraceBegin Value 0x%x\n",
++                        ulTraceBegin);
++               if (DSP_FAILED(status))
++                       GT_0trace(dsp_trace_mask, GT_2CLASS,
++                                "PrintDspTraceBuffer: Failed on "
++                                "COD_GetSymValue.\n");
++
++       }
++       if (DSP_SUCCEEDED(status)) {
++               status = COD_GetSymValue(hCodMgr, COD_TRACEEND, &ulTraceEnd);
++               GT_1trace(dsp_trace_mask, GT_2CLASS,
++                        "PrintDspTraceBuffer: ulTraceEnd Value 0x%x\n",
++                        ulTraceEnd);
++               if (DSP_FAILED(status))
++                       GT_0trace(dsp_trace_mask, GT_2CLASS,
++                                "PrintDspTraceBuffer: Failed on "
++                                "COD_GetSymValue.\n");
++
++       }
++       if (DSP_SUCCEEDED(status)) {
++               ulNumBytes = (ulTraceEnd - ulTraceBegin) * ulWordSize;
++                /*  If the chip type is 55 then the addresses will be
++                *  byte addresses; convert them to word addresses.  */
++               if (ulNumBytes > uMaxSize)
++                       ulNumBytes = uMaxSize;
++
++               /* make sure the data we request fits evenly */
++               ulNumBytes = (ulNumBytes / ulWordSize) * ulWordSize;
++               GT_1trace(dsp_trace_mask, GT_2CLASS, "PrintDspTraceBuffer: "
++                        "ulNumBytes 0x%x\n", ulNumBytes);
++               ulNumWords = ulNumBytes * ulWordSize;
++               GT_1trace(dsp_trace_mask, GT_2CLASS, "PrintDspTraceBuffer: "
++                        "ulNumWords 0x%x\n", ulNumWords);
++               status = DEV_GetIntfFxns(pDevObject, &pIntfFxns);
++       }
++
++       if (DSP_SUCCEEDED(status)) {
++               pszBuf = MEM_Calloc(uMaxSize, MEM_NONPAGED);
++               lpszBuf = MEM_Calloc(ulNumBytes * 2, MEM_NONPAGED);
++               if (pszBuf != NULL) {
++                       /* Read bytes from the DSP trace buffer... */
++                       status = (*pIntfFxns->pfnBrdRead)(hWmdContext,
++                                (u8 *)pszBuf, (u32)ulTraceBegin,
++                                ulNumBytes, 0);
++                       if (DSP_FAILED(status))
++                               GT_0trace(dsp_trace_mask, GT_2CLASS,
++                                        "PrintDspTraceBuffer: "
++                                        "Failed to Read Trace Buffer.\n");
++
++                       if (DSP_SUCCEEDED(status)) {
++                               /* Pack and do newline conversion */
++                               GT_0trace(dsp_trace_mask, GT_2CLASS,
++                                        "PrintDspTraceBuffer: "
++                                        "before pack and unpack.\n");
++                               PackTraceBuffer(pszBuf, ulNumBytes, ulNumWords);
++                               GT_1trace(dsp_trace_mask, GT_1CLASS,
++                                        "DSP Trace Buffer:\n%s\n", pszBuf);
++                       }
++                       MEM_Free(pszBuf);
++                       MEM_Free(lpszBuf);
++               } else {
++                       GT_0trace(dsp_trace_mask, GT_2CLASS,
++                                "PrintDspTraceBuffer: Failed to "
++                                "allocate trace buffer.\n");
++                       status = DSP_EMEMORY;
++               }
++       }
++#endif
++       return status;
++}
++
++void IO_SM_init(void)
++{
++
++       GT_create(&dsp_trace_mask, "DT"); /* DSP Trace Mask */
++
++}
+diff --git a/drivers/dsp/bridge/wmd/mmu_fault.c b/drivers/dsp/bridge/wmd/mmu_fault.c
+index 936af22..683d0b2 100644
+--- a/drivers/dsp/bridge/wmd/mmu_fault.c
++++ b/drivers/dsp/bridge/wmd/mmu_fault.c
+@@ -137,7 +137,6 @@ irqreturn_t  MMU_FaultIsr(int irq, IN void *pRefData)
+                        HW_MMU_EventDisable(resources.dwDmmuBase,
+                                            HW_MMU_ALL_INTERRUPTS);
+                }
+-               PrintDspTraceBuffer(pDehMgr);
+        }
+        return IRQ_HANDLED;
+ }
+diff --git a/drivers/dsp/bridge/wmd/mmu_fault.h b/drivers/dsp/bridge/wmd/mmu_fault.h
+index 009382a..e05e475 100644
+--- a/drivers/dsp/bridge/wmd/mmu_fault.h
++++ b/drivers/dsp/bridge/wmd/mmu_fault.h
+@@ -41,12 +41,5 @@
+  */
+ irqreturn_t  MMU_FaultIsr(int irq, IN void *pRefData);
 
-@@ -852,8 +851,9 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
-        cp_fm_usr(argv, args->ARGS_PROC_LOAD.aArgv, status, argc);
-        for (i = 0; DSP_SUCCEEDED(status) && (i < argc); i++) {
-                if (argv[i] != NULL) {
--                       temp = argv[i]; /* User space pointer to argument */
--                       len = strlen_user(temp);
-+                        /* User space pointer to argument */
-+                       temp = (char *) argv[i];
-+                       len = strlen_user((char *)temp);
-                        /* Kernel space pointer to argument */
-                        argv[i] = MEM_Alloc(len, MEM_NONPAGED);
-                        if (argv[i] == NULL) {
-@@ -869,16 +869,17 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
-                len = 0;
-                do {
-                        len++;
--                       get_user(temp1, args->ARGS_PROC_LOAD.aEnvp);
--               } while (temp1);
-+                       get_user(temp, args->ARGS_PROC_LOAD.aEnvp);
-+               } while (temp);
-                envp = MEM_Alloc(len * sizeof(u8 *), MEM_NONPAGED);
-                if (envp == NULL)
-                        status = DSP_EMEMORY;
-
-                cp_fm_usr(envp, args->ARGS_PROC_LOAD.aEnvp, status, len);
-                for (i = 0; DSP_SUCCEEDED(status) && (envp[i] != NULL); i++) {
--                       temp = envp[i]; /* User space pointer to argument */
--                       len = strlen_user(temp);
-+                        /* User space pointer to argument */
-+                       temp = (char *)envp[i];
-+                       len = strlen_user((char *)temp);
-                        /* Kernel space pointer to argument */
-                        envp[i] = MEM_Alloc(len, MEM_NONPAGED);
-                        if (envp[i] == NULL) {
-diff --git a/drivers/dsp/bridge/rmgr/mgr.c b/drivers/dsp/bridge/rmgr/mgr.c
-index 791a456..4791aa1 100644
---- a/drivers/dsp/bridge/rmgr/mgr.c
-+++ b/drivers/dsp/bridge/rmgr/mgr.c
-@@ -393,7 +393,7 @@ func_end:
-  *      Decrement reference count, and free resources when reference count is
-  *      0.
-  */
--void CDECL MGR_Exit(void)
-+void MGR_Exit(void)
- {
-        DBC_Require(cRefs > 0);
-        cRefs--;
-@@ -433,7 +433,7 @@ DSP_STATUS MGR_GetDCDHandle(struct MGR_OBJECT *hMGRHandle,
-  *  ======== MGR_Init ========
-  *      Initialize MGR's private state, keeping a reference count on each call.
-  */
--bool CDECL MGR_Init(void)
-+bool MGR_Init(void)
- {
-        bool fRetval = true;
-        bool fInitDCD = false;
-diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
-index 57d1aef..598429a 100644
---- a/drivers/dsp/bridge/rmgr/node.c
-+++ b/drivers/dsp/bridge/rmgr/node.c
-@@ -353,9 +353,9 @@ static DSP_STATUS GetNodeProps(struct DCD_MANAGER *hDcdMgr,
- static DSP_STATUS GetProcProps(struct NODE_MGR *hNodeMgr,
-                              struct DEV_OBJECT *hDevObject);
- static DSP_STATUS GetRMSFxns(struct NODE_MGR *hNodeMgr);
--static CDECL u32 Ovly(void *pPrivRef, u32 ulDspRunAddr, u32 ulDspLoadAddr,
-+static u32 Ovly(void *pPrivRef, u32 ulDspRunAddr, u32 ulDspLoadAddr,
-                        u32 ulNumBytes, u32 nMemSpace);
--static CDECL u32 Write(void *pPrivRef, u32 ulDspAddr, void *pBuf,
-+static u32 Write(void *pPrivRef, u32 ulDspAddr, void *pBuf,
-                        u32 ulNumBytes, u32 nMemSpace);
- #if GT_TRACE
- static struct GT_Mask NODE_debugMask = { NULL, NULL };  /* GT trace variable */
-@@ -2232,7 +2232,7 @@ bool NODE_Init(void)
-  *  Purpose:
-  *      Gets called when RMS_EXIT is received for a node.
-  */
--CDECL void NODE_OnExit(struct NODE_OBJECT *hNode, s32 nStatus)
-+void NODE_OnExit(struct NODE_OBJECT *hNode, s32 nStatus)
- {
-        DBC_Assert(MEM_IsValidHandle(hNode, NODE_SIGNATURE));
-        /* Set node state to done */
-@@ -3325,7 +3325,7 @@ static DSP_STATUS GetRMSFxns(struct NODE_MGR *hNodeMgr)
-  *  Purpose:
-  *      Called during overlay.Sends command to RMS to copy a block of data.
-  */
--static CDECL u32 Ovly(void *pPrivRef, u32 ulDspRunAddr, u32 ulDspLoadAddr,
-+static u32 Ovly(void *pPrivRef, u32 ulDspRunAddr, u32 ulDspLoadAddr,
-                        u32 ulNumBytes, u32 nMemSpace)
- {
-        struct NODE_OBJECT *hNode = (struct NODE_OBJECT *)pPrivRef;
-@@ -3359,7 +3359,7 @@ static CDECL u32 Ovly(void *pPrivRef, u32 ulDspRunAddr, u32 ulDspLoadAddr,
- /*
-  *  ======== Write ========
-  */
--static CDECL u32 Write(void *pPrivRef, u32 ulDspAddr, void *pBuf,
-+static u32 Write(void *pPrivRef, u32 ulDspAddr, void *pBuf,
-                        u32 ulNumBytes, u32 nMemSpace)
- {
-        struct NODE_OBJECT *hNode = (struct NODE_OBJECT *) pPrivRef;
-diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-index 72b2f56..1835fd0 100644
---- a/drivers/dsp/bridge/rmgr/proc.c
-+++ b/drivers/dsp/bridge/rmgr/proc.c
-@@ -836,7 +836,7 @@ func_end:
-  *      Decrement reference count, and free resources when reference count is
-  *      0.
-  */
--void CDECL PROC_Exit(void)
-+void PROC_Exit(void)
- {
-        DBC_Require(cRefs > 0);
-
-@@ -971,7 +971,7 @@ DSP_STATUS PROC_GetTrace(DSP_HPROCESSOR hProcessor, u8 *pBuf, u32 uMaxSize)
-  *  Purpose:
-  *      Initialize PROC's private state, keeping a reference count on each call
-  */
--bool CDECL PROC_Init(void)
-+bool PROC_Init(void)
- {
-        bool fRetval = true;
+-/*
+- *  ========PrintDspTraceBuffer ========
+- *      Print DSP tracebuffer.
+- */
+-
+-extern DSP_STATUS  PrintDspTraceBuffer(struct DEH_MGR *hDehMgr);
+-
+ #endif                         /* MMU_FAULT_ */
 
 diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
-index 0b8b7a8..b850f23 100644
+index b850f23..e5c235d 100644
 --- a/drivers/dsp/bridge/wmd/tiomap3430.c
 +++ b/drivers/dsp/bridge/wmd/tiomap3430.c
-@@ -239,7 +239,7 @@ static struct WMD_DRV_INTERFACE drvInterfaceFxns = {
-  *  purpose:
-  *      Mini Driver entry point.
-  */
--void CDECL WMD_DRV_Entry(OUT struct WMD_DRV_INTERFACE **ppDrvInterface,
-+void WMD_DRV_Entry(OUT struct WMD_DRV_INTERFACE **ppDrvInterface,
-              IN CONST char *pstrWMDFileName)
- {
+@@ -246,6 +246,8 @@ void WMD_DRV_Entry(OUT struct WMD_DRV_INTERFACE **ppDrvInterface,
+        DBC_Require(pstrWMDFileName != NULL);
+        DBG_Trace(DBG_ENTER, "In the WMD_DRV_Entry \n");
 
++       IO_SM_init(); /* Initialization of io_sm module */
++
+        if (strcmp(pstrWMDFileName, "UMA") == 0)
+                *ppDrvInterface = &drvInterfaceFxns;
+        else
 diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
-index b5a016d..665304f 100644
+index 665304f..b2a85e2 100644
 --- a/drivers/dsp/bridge/wmd/ue_deh.c
 +++ b/drivers/dsp/bridge/wmd/ue_deh.c
-@@ -369,7 +369,7 @@ DSP_STATUS PrintDspTraceBuffer(struct DEH_MGR *hDehMgr)
+@@ -67,6 +67,7 @@
+ #include "_tiomap.h"
+ #include "_deh.h"
+ #include <_tiomap_mmu.h>
++#include <io_sm.h>
+
+ static struct HW_MMUMapAttrs_t  mapAttrs = { HW_LITTLE_ENDIAN,
+                                        HW_ELEM_SIZE_16BIT,
+@@ -186,186 +187,6 @@ DSP_STATUS WMD_DEH_RegisterNotify(struct DEH_MGR *hDehMgr, u32 uEventMask,
+
+
+ /*
+- *  ======== PackTraceBuffer ========
+- *      Removes extra nulls from the trace buffer returned from the DSP.
+- *      Works even on buffers that already are packed (null removed); but has
+- *      one bug in that case -- loses the last character (replaces with '\0').
+- *      Continues through conversion for full set of nBytes input characters.
+- *  Parameters:
+- *    lpBuf:            Pointer to input/output buffer
+- *    nBytes:           Number of characters in the buffer
+- *    ulNumWords:       Number of DSP words in the buffer.  Indicates potential
+- *                      number of extra carriage returns to generate.
+- *  Returns:
+- *      DSP_SOK:        Success.
+- *      DSP_EMEMORY:    Unable to allocate memory.
+- *  Requires:
+- *      lpBuf must be a fully allocated writable block of at least nBytes.
+- *      There are no more than ulNumWords extra characters needed (the number of
+- *      linefeeds minus the number of NULLS in the input buffer).
+- */
+-#if ((defined DEBUG) || (defined DDSP_DEBUG_PRODUCT))\
+-       && GT_TRACE
+-static DSP_STATUS PackTraceBuffer(char *lpBuf, u32 nBytes, u32 ulNumWords)
+-{
+-       DSP_STATUS status = DSP_SOK;
+-
+-       char *lpTmpBuf;
+-       char *lpBufStart;
+-       char *lpTmpStart;
+-       u32 nCnt;
+-       char thisChar;
+-
+-       /* tmp workspace, 1 KB longer than input buf */
+-       lpTmpBuf = MEM_Calloc((nBytes + ulNumWords), MEM_PAGED);
+-       if (lpTmpBuf == NULL) {
+-               DBG_Trace(DBG_LEVEL7, "PackTrace buffer:OutofMemory \n");
+-               status = DSP_EMEMORY;
+-       }
+-
+-       if (DSP_SUCCEEDED(status)) {
+-               lpBufStart = lpBuf;
+-               lpTmpStart = lpTmpBuf;
+-               for (nCnt = nBytes; nCnt > 0; nCnt--) {
+-                       thisChar = *lpBuf++;
+-                       switch (thisChar) {
+-                       case '\0':      /* Skip null bytes */
+-                               break;
+-                       case '\n':      /* Convert \n to \r\n */
+-                               /* NOTE: do not reverse order; Some OS */
+-                               /* editors control doesn't understand "\n\r" */
+-                               *lpTmpBuf++ = '\r';
+-                               *lpTmpBuf++ = '\n';
+-                               break;
+-                       default:        /* Copy in the actual ascii byte */
+-                               *lpTmpBuf++ = thisChar;
+-                               break;
+-                       }
+-               }
+-               *lpTmpBuf = '\0';    /* Make sure tmp buf is null terminated */
+-               /* Cut output down to input buf size */
+-               strncpy(lpBufStart, lpTmpStart, nBytes);
+-               /*Make sure output is null terminated */
+-               lpBufStart[nBytes - 1] = '\0';
+-               MEM_Free(lpTmpStart);
+-       }
+-
+-       return status;
+-}
+-#endif    /* ((defined DEBUG) || (defined DDSP_DEBUG_PRODUCT)) && GT_TRACE */
+-
+-/*
+- *  ======== PrintDspTraceBuffer ========
+- *      Prints the trace buffer returned from the DSP (if DBG_Trace is enabled).
+- *  Parameters:
+- *    hDehMgr:          Handle to DEH manager object
+- *                      number of extra carriage returns to generate.
+- *  Returns:
+- *      DSP_SOK:        Success.
+- *      DSP_EMEMORY:    Unable to allocate memory.
+- *  Requires:
+- *      hDehMgr muse be valid. Checked in WMD_DEH_Notify.
+- */
+-DSP_STATUS PrintDspTraceBuffer(struct DEH_MGR *hDehMgr)
+-{
+-       DSP_STATUS status = DSP_SOK;
+-
+-#if ((defined DEBUG) || (defined DDSP_DEBUG_PRODUCT))\
+-       && GT_TRACE
+-
+-       struct COD_MANAGER *hCodMgr;
+-       u32 ulTraceEnd;
+-       u32 ulTraceBegin;
+-       u32 ulNumBytes = 0;
+-       u32 ulNumWords = 0;
+-       u32 ulWordSize = 2;
+-       CONST u32 uMaxSize = 512;
+-       char *pszBuf;
+-       u16 *lpszBuf;
+-       struct WMD_DRV_INTERFACE *pIntfFxns;
+-       struct DEH_MGR *pDehMgr = (struct DEH_MGR *)hDehMgr;
+-       struct DEV_OBJECT *hDevObject = ((struct WMD_DEV_CONTEXT *)
+-                                       pDehMgr->hWmdContext)->hDevObject;
+-
+-       status = DEV_GetCodMgr(hDevObject, &hCodMgr);
+-       if (DSP_FAILED(status)) {
+-               DBG_Trace(DBG_LEVEL7,
+-                        "PrintDspTraceBuffer: Failed on DEV_GetCodMgr.\n");
+-       }
+-
+-       if (DSP_SUCCEEDED(status)) {
+-               /* Look for SYS_PUTCBEG/SYS_PUTCEND: */
+-               status = COD_GetSymValue(hCodMgr, COD_TRACEBEG, &ulTraceBegin);
+-               DBG_Trace(DBG_LEVEL1,
+-                        "PrintDspTraceBuffer: ulTraceBegin Value 0x%x\n",
+-                        ulTraceBegin);
+-               if (DSP_FAILED(status)) {
+-                       DBG_Trace(DBG_LEVEL7, "PrintDspTraceBuffer: Failed on "
+-                                "COD_GetSymValue.\n");
+-               }
+-       }
+-       if (DSP_SUCCEEDED(status)) {
+-               status = COD_GetSymValue(hCodMgr, COD_TRACEEND, &ulTraceEnd);
+-               DBG_Trace(DBG_LEVEL1,
+-                        "PrintDspTraceBuffer: ulTraceEnd Value 0x%x\n",
+-                        ulTraceEnd);
+-               if (DSP_FAILED(status)) {
+-                       DBG_Trace(DBG_LEVEL7, "PrintDspTraceBuffer: Failed on "
+-                                "COD_GetSymValue.\n");
+-               }
+-       }
+-       if (DSP_SUCCEEDED(status)) {
+-               ulNumBytes = (ulTraceEnd - ulTraceBegin) * ulWordSize;
+-                /*  If the chip type is 55 then the addresses will be
+-                *  byte addresses; convert them to word addresses.  */
+-               if (ulNumBytes > uMaxSize)
+-                       ulNumBytes = uMaxSize;
+-
+-               /* make sure the data we request fits evenly */
+-               ulNumBytes = (ulNumBytes / ulWordSize) * ulWordSize;
+-               DBG_Trace(DBG_LEVEL1, "PrintDspTraceBuffer: ulNumBytes 0x%x\n",
+-                        ulNumBytes);
+-               ulNumWords = ulNumBytes * ulWordSize;
+-               DBG_Trace(DBG_LEVEL1, "PrintDspTraceBuffer: ulNumWords 0x%x\n",
+-                        ulNumWords);
+-               status = DEV_GetIntfFxns(hDevObject, &pIntfFxns);
+-       }
+-
+-
+-       if (DSP_SUCCEEDED(status)) {
+-               pszBuf = MEM_Calloc(uMaxSize, MEM_NONPAGED);
+-               lpszBuf = MEM_Calloc(ulNumBytes * 2, MEM_NONPAGED);
+-               if (pszBuf != NULL) {
+-                       /* Read bytes from the DSP trace buffer... */
+-                       status = (*pIntfFxns->pfnBrdRead)(pDehMgr->hWmdContext,
+-                                (u8 *)pszBuf, (u32)ulTraceBegin,
+-                                ulNumBytes, 0);
+-                       if (DSP_FAILED(status)) {
+-                               DBG_Trace(DBG_LEVEL7, "PrintDspTraceBuffer: "
+-                                        "Failed to Read Trace Buffer.\n");
+-                       }
+-                       if (DSP_SUCCEEDED(status)) {
+-                               /* Pack and do newline conversion */
+-                               DBG_Trace(DBG_LEVEL1, "PrintDspTraceBuffer: "
+-                                        "before pack and unpack.\n");
+-                               PackTraceBuffer(pszBuf, ulNumBytes, ulNumWords);
+-                               DBG_Trace(DBG_LEVEL7, "DSP Trace Buffer:\n%s\n",
+-                                        pszBuf);
+-                       }
+-                       MEM_Free(pszBuf);
+-                       MEM_Free(lpszBuf);
+-               } else {
+-                       DBG_Trace(DBG_LEVEL7, "PrintDspTraceBuffer: Failed to "
+-                                "allocate trace buffer.\n");
+-                       status = DSP_EMEMORY;
+-               }
+-       }
+-#endif
+-       return status;
+-}
+-
+-
+-/*
   *  ======== WMD_DEH_Notify ========
   *      DEH error notification function. Informs user about the error.
   */
--void CDECL WMD_DEH_Notify(struct DEH_MGR *hDehMgr, u32 ulEventMask,
-+void WMD_DEH_Notify(struct DEH_MGR *hDehMgr, u32 ulEventMask,
-                         u32 dwErrInfo)
- {
-        struct DEH_MGR *pDehMgr = (struct DEH_MGR *)hDehMgr;
+@@ -456,11 +277,6 @@ void WMD_DEH_Notify(struct DEH_MGR *hDehMgr, u32 ulEventMask,
+                        /* Clear MMU interrupt */
+                        HW_MMU_EventAck(resources.dwDmmuBase,
+                                         HW_MMU_TRANSLATION_FAULT);
+-                       DBG_Trace(DBG_LEVEL6,
+-                                "***** PrintDspTraceBuffer: before\n");
+-                       PrintDspTraceBuffer(hDehMgr);
+-                       DBG_Trace(DBG_LEVEL6,
+-                                "***** PrintDspTraceBuffer: after \n");
+                        break;
+                default:
+                        DBG_Trace(DBG_LEVEL6,
+@@ -468,6 +284,9 @@ void WMD_DEH_Notify(struct DEH_MGR *hDehMgr, u32 ulEventMask,
+                                 "0x%x\n", dwErrInfo);
+                        break;
+                }
++               /* Call DSP Trace Buffer */
++               PrintDspTraceBuffer(hDehMgr->hWmdContext);
++
+                /* Signal DSP error/exception event. */
+                NTFY_Notify(pDehMgr->hNtfy, ulEventMask);
+        }
+@@ -503,4 +322,3 @@ DSP_STATUS WMD_DEH_GetInfo(struct DEH_MGR *hDehMgr,
+
+        return status;
+ }
+-
 --
 1.5.5.4
 
