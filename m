@@ -1,59 +1,49 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ASoC: OMAP: Fix Gumstix Overo machine driver by using
-	snd_soc_dai struct (rev 2)
-Date: Fri, 12 Sep 2008 17:00:17 -0700
-Message-ID: <20080913000017.GN10675@atomide.com>
-References: <5e088bd90809121352h561618d0r3dbe46ecb8f7dcdf@mail.gmail.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP2: Fix definition of SGX clock register
+	bits
+Date: Fri, 12 Sep 2008 17:17:37 -0700
+Message-ID: <20080913001736.GO10675@atomide.com>
+References: <20080827012736.GA10868@intune.research.nokia.com> <1219800687-11044-1-git-send-email-daniel.stone@nokia.com> <alpine.DEB.1.00.0808262258480.4624@utopia.booyaka.com> <20080827051309.GA3594@intune.research.nokia.com> <alpine.DEB.1.00.0808270049120.4624@utopia.booyaka.com> <20080827094217.GC15832@intune.research.nokia.com> <20080911001303.GB21163@atomide.com> <20080912153133.GQ31563@intune.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59190 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61325 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757240AbYIMAA0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 20:00:26 -0400
+	with ESMTP id S1752301AbYIMARk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2008 20:17:40 -0400
 Content-Disposition: inline
-In-Reply-To: <5e088bd90809121352h561618d0r3dbe46ecb8f7dcdf@mail.gmail.com>
+In-Reply-To: <20080912153133.GQ31563@intune.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, alsa-devel@alsa-project.org
+To: Daniel Stone <daniel.stone@nokia.com>
+Cc: ext Paul Walmsley <paul@booyaka.com>, linux-omap@vger.kernel.org
 
-* Steve Sakoman <sakoman@gmail.com> [080912 14:04]:
-> From: Jarkko Nikula <jarkko.nikula@nokia.com>
+* Daniel Stone <daniel.stone@nokia.com> [080912 08:31]:
+> On Wed, Sep 10, 2008 at 05:13:03PM -0700, ext Tony Lindgren wrote:
+> > * Daniel Stone <daniel.stone@nokia.com> [080827 02:47]:
+> > > On Wed, Aug 27, 2008 at 12:50:37AM -0600, ext Paul Walmsley wrote:
+> > > > Hello Daniel,
+> > > > 
+> > > > On Wed, 27 Aug 2008, Daniel Stone wrote:
+> > > > 
+> > > > > Yep, looks fine to me: just wasn't really sure what to put.  Should I
+> > > > > resend, or?
+> > > > 
+> > > > yes, please resend - that will make it convenient for Tony to apply the 
+> > > > patches.
+> > > 
+> > > Hi,
+> > > I'll do that.  Thanks a lot for the review.
+> > 
+> > ping, any news on the updated patch?
 > 
-> Structs snd_soc_codec_dai and snd_soc_cpu_dai are obsolete and are merged to
-> snd_soc_dai by the commit 8687eb8bded8c3c5842a85bd0c30e43fc5a3e0e0.
-> 
+> Sorry, my bad.  Inlined below.
 
-Pushing today to l-o tree.
+Thanks, that's pushed now.
+
+Looks like your second patch needs updating though, it does not apply.
+Can you please refresh that one too?
+
+Thanks
 
 Tony
-
-> Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
-> Acked-by: Steve Sakoman <steve@sakoman.com>
-> ---
->  sound/soc/omap/overo.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/sound/soc/omap/overo.c b/sound/soc/omap/overo.c
-> index 542ff6b..1a086ce 100644
-> --- a/sound/soc/omap/overo.c
-> +++ b/sound/soc/omap/overo.c
-> @@ -39,8 +39,8 @@ static int overo_hw_params(struct snd_pcm_substream
-> *substream,
->  	struct snd_pcm_hw_params *params)
->  {
->  	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-> -	struct snd_soc_codec_dai *codec_dai = rtd->dai->codec_dai;
-> -	struct snd_soc_cpu_dai *cpu_dai = rtd->dai->cpu_dai;
-> +	struct snd_soc_dai *codec_dai = rtd->dai->codec_dai;
-> +	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
->  	int ret;
-> 
->  	/* Set codec DAI configuration */
-> -- 
-> 1.5.6.5
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
