@@ -1,58 +1,63 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: [PATCH] ARM:OMAP2: follow new twl4030 RTC init convention in Overo board file
-Date: Sat, 13 Sep 2008 22:19:57 -0700
-Message-ID: <5e088bd90809132219j63bbec48hdd36ddb1357741e0@mail.gmail.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: [rfc] [patch] clean up to ehci-omap (Was: Re: [patch] omap:
+	usb: ehci: fix use of hcd->regs)
+Date: Mon, 15 Sep 2008 00:11:46 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087022A25316B@dbde02.ent.ti.com>
+References: <20080912121024.GG759@gandalf.research.nokia.com>
+ <20080912182255.GD7132@frodo> <20080912183819.GE7132@frodo>
+ <200809121216.27116.david-b@pacbell.net>
+ <20080912192158.GG10675@atomide.com> <20080912192809.GF7132@frodo>
+ <20080912193534.GH7132@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:30133 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751238AbYINFT5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Sep 2008 01:19:57 -0400
-Received: by wf-out-1314.google.com with SMTP id 27so1485480wfd.4
-        for <linux-omap@vger.kernel.org>; Sat, 13 Sep 2008 22:19:57 -0700 (PDT)
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:43113 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753551AbYINSnd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Sep 2008 14:43:33 -0400
+In-Reply-To: <20080912193534.GH7132@frodo>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: "me@felipebalbi.com" <me@felipebalbi.com>
+Cc: Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Overo was omitted from the changes in 74fcfe9c589f1060b5e5a791e9c0c54212d7c1b8
 
-This patch brings Overo RTC setup into line with the other omap boards
 
-Signed-off-by: Steve Sakoman <steve@sakoman.com>
----
- arch/arm/mach-omap2/board-overo.c |    8 --------
- 1 files changed, 0 insertions(+), 8 deletions(-)
+> -----Original Message-----
+> From: Felipe Balbi [mailto:me@felipebalbi.com]
+> Sent: Saturday, September 13, 2008 1:06 AM
+> To: Felipe Balbi
+> Cc: Tony Lindgren; David Brownell; felipe.balbi@nokia.com; Linux OMAP Mailing List; Pandita, Vikram
+> Subject: Re: [rfc] [patch] clean up to ehci-omap (Was: Re: [patch] omap: usb: ehci: fix use of hcd-
+> >regs)
+> 
+> Hi Vikram,
+> 
+> Those "issues" mentioned on the ehci-omap driver, are them silicon
+> version related ? I mean, does it happen on all omap3 silicons or
+> doesn't it happen with only versions of them ?
 
-diff --git a/arch/arm/mach-omap2/board-overo.c
-b/arch/arm/mach-omap2/board-overo.c
-index 5c23b4d..85ef43f 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -158,11 +158,6 @@ static void __init overo_init_irq(void)
- 	omap_gpio_init();
- }
+The issues mentioned are _not_ of omap34xx silicon, but of the PHY (ISP1504 in SDP-USB expansion board).
 
--static struct platform_device overo_twl4030rtc_device = {
--	.name           = "twl4030_rtc",
--	.id             = -1,
--};
--
- static struct platform_device overo_lcd_device = {
- 	.name		= "overo_lcd",
- 	.id		= -1,
-@@ -179,9 +174,6 @@ static struct omap_board_config_kernel
-overo_config[] __initdata = {
+> 
+> Case the second, we can make the workarounds be applied based on runtime
+> checks instead of #ifdefs. That would look nice.
 
- static struct platform_device *overo_devices[] __initdata = {
- 	&overo_lcd_device,
--#ifdef CONFIG_RTC_DRV_TWL4030
--	&overo_twl4030rtc_device,
--#endif
- };
+Better still is to move the PHY issues to platform/board specific function.
+Will try to submit a patch on that.
 
- static void __init overo_init(void)
--- 
-1.5.4.5
+> 
+> Also, it looks like PHY and TLL mode will be board specific, which means
+> we can use a platform_data to pass the correct mode to the driver and
+> get rid of those #ifdefs and Kconfig choices as well.
+
+Yes that can be done.
+
+> 
+> Any comments ?
+> 
+> --
+> balbi
+
