@@ -1,79 +1,61 @@
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Subject: Re: [PREVIEW] New display subsystem for OMAP2/3
-Date: Sat, 13 Sep 2008 22:47:40 +0100
-Message-ID: <yw1xbpyr3egz.fsf@thrashbarg.mansr.com>
-References: <1221144955.12281.6.camel@tubuntu> <5A47E75E594F054BAF48C5E4FC4B92AB02C42B43C8@dbde02.ent.ti.com> <20080912152937.GP31563@intune.research.nokia.com> <92846148-6506-47F1-8643-7333FB5E146A@student.utwente.nl>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: [PATCH] ARM:OMAP2: Add OVERO_GPIO_BT_XGATE to Overo board init
+Date: Sat, 13 Sep 2008 22:18:43 -0700
+Message-ID: <5e088bd90809132218g79bb0da8uf1a7befee988263e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:55237 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752369AbYIMVsB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 13 Sep 2008 17:48:01 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1KecyB-0002QD-Kr
-	for linux-omap@vger.kernel.org; Sat, 13 Sep 2008 21:47:55 +0000
-Received: from thrashbarg.mansr.com ([78.86.181.100])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Sat, 13 Sep 2008 21:47:55 +0000
-Received: from mans by thrashbarg.mansr.com with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Sat, 13 Sep 2008 21:47:55 +0000
+Received: from wf-out-1314.google.com ([209.85.200.173]:30879 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750944AbYINFSq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Sep 2008 01:18:46 -0400
+Received: by wf-out-1314.google.com with SMTP id 27so1485214wfd.4
+        for <linux-omap@vger.kernel.org>; Sat, 13 Sep 2008 22:18:43 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: video4linux-list@redhat.com
+To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Koen Kooi <k.kooi@student.utwente.nl> writes:
+Drive OVERO_GPIO_BT_XGATE low rather than relying on the pin mux pull
+down set by U-boot
 
-> Op 12 sep 2008, om 17:29 heeft Daniel Stone het volgende geschreven:
->
->> On Fri, Sep 12, 2008 at 07:59:44PM +0530, ext Shah, Hardik wrote:
->>> It's time to re-design DSS frame buffer driver for the OMAP2/3.
->>> Current frame buffer driver is not covering the most of the
->>> functionality of the OMAP2/3 DSS Hardware like multiple outputs and
->>> multiple overlay managers supported by OMAP2/3 class of SoC. Again
->>> there is no V4L2 interface exposed by the DSS drivers for
->>> controlling the video pipelines of the DSS which is highly
->>> desirable feature as the video pipelines of the DSS hardware is a
->>> natural fit to the V4L2 architecture.
->>
->> If you want to use v4l for video output, don't let me stop you, but =
-I
->> don't see that it has much actual wide use beyond TI PowerPoint
->> presentations about their graphical architecture.
->
-> That was my thought as well, but I've encountered at least 2 products
-> this weekend at IBC using the v4l way on omap3. One of the engineers
-> was complaining about the lack of synchronous updates if you move
-> various videoplanes around (think resizing video windows) which makes
-> the video picture end up outside your nice cairo-drawn borders. So
-> yes, it is getting used outside of TI :)
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
+---
+ arch/arm/mach-omap2/board-overo.c             |    6 ++++++
+ arch/arm/plat-omap/include/mach/board-overo.h |    1 +
+ 2 files changed, 7 insertions(+), 0 deletions(-)
 
-I'm thinking the best solution is probably to have a low-level
-internal driver providing access to various planes, exposing as much
-functionality as is practical.  Various user-space interfaces, such as
-fbdev and v4l, could then be implemented on top of this with very
-little code.  If I've understood things correctly, this is essentially
-what the patch in this thread is doing.  This approach should let the
-TI people and Koen's mythical friends from IBC use the v4l2 interface,
-while still allowing the less masochistic among us to use a simpler
-interface.
+diff --git a/arch/arm/mach-omap2/board-overo.c
+b/arch/arm/mach-omap2/board-overo.c
+index 396ec33..5c23b4d 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -207,6 +207,12 @@ static void __init overo_init(void)
+ 		printk(KERN_ERR "could not obtain gpio for OVERO_GPIO_W2W_NRESET\n");
+ 	}
 
-What I don't like about the patch posted is its size.  I'm sure the
-transition could be done in a sequence of smaller patches.  At the
-very least, it should be possible to move existing functionality to
-the new architecture, then add the new parts afterwards.  I also see
-little value in keeping the old model around, as is done in the patch.
++	if ((gpio_request(OVERO_GPIO_BT_XGATE, "OVERO_GPIO_BT_XGATE") == 0) &&
++	    (gpio_direction_output(OVERO_GPIO_BT_XGATE, 0) == 0))
++		gpio_export(OVERO_GPIO_BT_XGATE, 0);
++	else
++		printk(KERN_ERR "could not obtain gpio for OVERO_GPIO_BT_XGATE\n");
++
+ 	if ((gpio_request(OVERO_GPIO_BT_NRESET, "OVERO_GPIO_BT_NRESET") == 0) &&
+ 	    (gpio_direction_output(OVERO_GPIO_BT_NRESET, 1) == 0)) {
+ 		gpio_export(OVERO_GPIO_BT_NRESET, 0);
+diff --git a/arch/arm/plat-omap/include/mach/board-overo.h
+b/arch/arm/plat-omap/include/mach/board-overo.h
+index b70f22a..7ecae66 100644
+--- a/arch/arm/plat-omap/include/mach/board-overo.h
++++ b/arch/arm/plat-omap/include/mach/board-overo.h
+@@ -16,6 +16,7 @@
+ #ifndef __ASM_ARCH_OVERO_H
+ #define __ASM_ARCH_OVERO_H
 
---=20
-M=E5ns Rullg=E5rd
-mans@mansr.com
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
++#define OVERO_GPIO_BT_XGATE	15
+ #define OVERO_GPIO_W2W_NRESET	16
+ #define OVERO_GPIO_BT_NRESET	164
+ #define OVERO_GPIO_USBH_CPEN	168
+-- 
+1.5.4.5
