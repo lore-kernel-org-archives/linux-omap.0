@@ -1,61 +1,58 @@
 From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: [PATCH] ARM:OMAP2: Add OVERO_GPIO_BT_XGATE to Overo board init
-Date: Sat, 13 Sep 2008 22:18:43 -0700
-Message-ID: <5e088bd90809132218g79bb0da8uf1a7befee988263e@mail.gmail.com>
+Subject: [PATCH] ARM:OMAP2: follow new twl4030 RTC init convention in Overo board file
+Date: Sat, 13 Sep 2008 22:19:57 -0700
+Message-ID: <5e088bd90809132219j63bbec48hdd36ddb1357741e0@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.173]:30879 "EHLO
+Received: from wf-out-1314.google.com ([209.85.200.170]:30133 "EHLO
 	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750944AbYINFSq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Sep 2008 01:18:46 -0400
-Received: by wf-out-1314.google.com with SMTP id 27so1485214wfd.4
-        for <linux-omap@vger.kernel.org>; Sat, 13 Sep 2008 22:18:43 -0700 (PDT)
+	with ESMTP id S1751238AbYINFT5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Sep 2008 01:19:57 -0400
+Received: by wf-out-1314.google.com with SMTP id 27so1485480wfd.4
+        for <linux-omap@vger.kernel.org>; Sat, 13 Sep 2008 22:19:57 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Drive OVERO_GPIO_BT_XGATE low rather than relying on the pin mux pull
-down set by U-boot
+Overo was omitted from the changes in 74fcfe9c589f1060b5e5a791e9c0c54212d7c1b8
+
+This patch brings Overo RTC setup into line with the other omap boards
 
 Signed-off-by: Steve Sakoman <steve@sakoman.com>
 ---
- arch/arm/mach-omap2/board-overo.c             |    6 ++++++
- arch/arm/plat-omap/include/mach/board-overo.h |    1 +
- 2 files changed, 7 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-overo.c |    8 --------
+ 1 files changed, 0 insertions(+), 8 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-overo.c
 b/arch/arm/mach-omap2/board-overo.c
-index 396ec33..5c23b4d 100644
+index 5c23b4d..85ef43f 100644
 --- a/arch/arm/mach-omap2/board-overo.c
 +++ b/arch/arm/mach-omap2/board-overo.c
-@@ -207,6 +207,12 @@ static void __init overo_init(void)
- 		printk(KERN_ERR "could not obtain gpio for OVERO_GPIO_W2W_NRESET\n");
- 	}
+@@ -158,11 +158,6 @@ static void __init overo_init_irq(void)
+ 	omap_gpio_init();
+ }
 
-+	if ((gpio_request(OVERO_GPIO_BT_XGATE, "OVERO_GPIO_BT_XGATE") == 0) &&
-+	    (gpio_direction_output(OVERO_GPIO_BT_XGATE, 0) == 0))
-+		gpio_export(OVERO_GPIO_BT_XGATE, 0);
-+	else
-+		printk(KERN_ERR "could not obtain gpio for OVERO_GPIO_BT_XGATE\n");
-+
- 	if ((gpio_request(OVERO_GPIO_BT_NRESET, "OVERO_GPIO_BT_NRESET") == 0) &&
- 	    (gpio_direction_output(OVERO_GPIO_BT_NRESET, 1) == 0)) {
- 		gpio_export(OVERO_GPIO_BT_NRESET, 0);
-diff --git a/arch/arm/plat-omap/include/mach/board-overo.h
-b/arch/arm/plat-omap/include/mach/board-overo.h
-index b70f22a..7ecae66 100644
---- a/arch/arm/plat-omap/include/mach/board-overo.h
-+++ b/arch/arm/plat-omap/include/mach/board-overo.h
-@@ -16,6 +16,7 @@
- #ifndef __ASM_ARCH_OVERO_H
- #define __ASM_ARCH_OVERO_H
+-static struct platform_device overo_twl4030rtc_device = {
+-	.name           = "twl4030_rtc",
+-	.id             = -1,
+-};
+-
+ static struct platform_device overo_lcd_device = {
+ 	.name		= "overo_lcd",
+ 	.id		= -1,
+@@ -179,9 +174,6 @@ static struct omap_board_config_kernel
+overo_config[] __initdata = {
 
-+#define OVERO_GPIO_BT_XGATE	15
- #define OVERO_GPIO_W2W_NRESET	16
- #define OVERO_GPIO_BT_NRESET	164
- #define OVERO_GPIO_USBH_CPEN	168
+ static struct platform_device *overo_devices[] __initdata = {
+ 	&overo_lcd_device,
+-#ifdef CONFIG_RTC_DRV_TWL4030
+-	&overo_twl4030rtc_device,
+-#endif
+ };
+
+ static void __init overo_init(void)
 -- 
 1.5.4.5
