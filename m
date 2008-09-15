@@ -1,129 +1,113 @@
-From: "Felipe Contreras" <felipe.contreras@gmail.com>
-Subject: omapfb: help from userspace
-Date: Mon, 15 Sep 2008 17:38:55 +0300
-Message-ID: <94a0d4530809150738v7638988bnd12901d147a42d1e@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
+Date: Mon, 15 Sep 2008 17:38:20 +0300
+Message-ID: <1221489500.6312.104.camel@tubuntu>
+References: <19F8576C6E063C45BE387C64729E739403CD770026@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_71504_26779315.1221489535864"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.230]:51184 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752757AbYIOOi4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Sep 2008 10:38:56 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so2187131rvb.1
-        for <linux-omap@vger.kernel.org>; Mon, 15 Sep 2008 07:38:55 -0700 (PDT)
+Received: from smtp.nokia.com ([192.100.105.134]:21507 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753388AbYIOOjP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Sep 2008 10:39:15 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403CD770026@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Shah, Hardik" <hardik.shah@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>
 
-------=_Part_71504_26779315.1221489535864
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Mon, 2008-09-15 at 19:02 +0530, ext Hiremath, Vaibhav wrote:
 
-Hi,
+> We more concentrated on TV and LCD interface, out design doesn't support DSI as of now. As mentioned earlier it is easily extendible to support DSI.
+>  
+> If I understand your implementation correctly, right now there is no way you can switch the outputs, I mean to say from LCD to DVI. The frame buffer driver gets the handle with API omap_dss_get_display, which will return pointer to omap_display for panel-sdp3430. Henceforth all your functions will use omap_display configuring for LCD panel. How are you planning to add support for this? Through some ioctls or sysfs entry? How about switching between multiple overlay managers? 
 
-I've been trying to get the yuv overlay to work, but without success.
-I'm trying to do what Mans Rullgard is doing on omapfbplay[1], but I
-don't see anything happening.
+You can switch the outputs in the DSS driver. You can enable/disable
+displays individually, and configure the planes and or L4 pixel source
+for the display.
 
-The normal RGB plane is working fine, I'm attaching a test that writes
-data to the whole framebuffer.
+But yes, the fb driver does not support that currently.
 
-This is the output:
-# /tmp/fb_test
-main: size=720x400, 16bpp
-overlay: size=720x400, 16bpp
-panel: enabled=0
-panel: 0x0 - 720x400
-# /tmp/fb_test
-main: size=720x400, 16bpp
-overlay: size=720x400, 16bpp
-panel: enabled=1
-panel: 0x0 - 720x400
+One idea I had was to present each display with one framebuffer, so
+let's say we have 3 displays, we would have fb[0-2]. In addition to
+that, we would have two framebuffers for the video overlays. Only one of
+the displays can be updated with DISPC, so the overlays would appear
+there.
 
-Best regards.
+Then the display that is updated with DISPC could be changed on the fly
+to another one, but the framebuffer arrangement would stay the same (so
+fb0 would still be seen on display0, even if it's now updated with L4).
 
-[1] http://git.mansr.com/?p=omapfbplay
+There's still the question how to manage the video overlays, in this
+scenario they would automatically move to other LCD's as the DISPC
+target is changed. Also the TV-out is problematic.
 
--- 
-Felipe Contreras
+> This issue has been addresses with our design, you can change the output either to TV, LCD or to DVI through sysfs entry. Switching between multiple overlay managers is very well supported in DSS library. Currently SYSFS is the user interface layer to control the overlay managers. But in future DSS library will easily be suitable to support media processor interface which is in concept phase right now.  RFC for the media processor is at
 
-------=_Part_71504_26779315.1221489535864
-Content-Type: text/x-csrc; name=fb_test.c
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fl57af100
-Content-Disposition: attachment; filename=fb_test.c
+Does your design support displays that are not updated with DISPC?
 
-I2luY2x1ZGUgPGZjbnRsLmg+CiNpbmNsdWRlIDxzeXMvaW9jdGwuaD4KI2luY2x1ZGUgPGxpbnV4
-L2ZiLmg+CiNpbmNsdWRlIDxzeXMvbW1hbi5oPgoKI2luY2x1ZGUgPG1hY2gvb21hcGZiLmg+Cgoj
-aW5jbHVkZSA8c3RkaW8uaD4KI2luY2x1ZGUgPHN0ZGludC5oPgojaW5jbHVkZSA8c3RkYXJnLmg+
-CgojZGVmaW5lIE1JTihhLCBiKSAoKChhKSA8IChiKSkgPyAoYSkgOiAoYikpCgpzdGF0aWMgaW50
-IG1haW5fZmI7CnN0YXRpYyBpbnQgb3ZlcmxheV9mYjsKCnN0YXRpYyBzdHJ1Y3QgZmJfdmFyX3Nj
-cmVlbmluZm8gbWFpbl9zY3JlZW5faW5mbzsKc3RhdGljIHN0cnVjdCBmYl92YXJfc2NyZWVuaW5m
-byBvdmVybGF5X3NjcmVlbl9pbmZvOwpzdGF0aWMgc3RydWN0IG9tYXBmYl9tZW1faW5mbyBtZW1f
-aW5mbzsKc3RhdGljIHN0cnVjdCBvbWFwZmJfcGxhbmVfaW5mbyBwbGFuZV9pbmZvOwoKdWludDhf
-dCAqb3ZlcmxheV9tZW07Cgp1bnNpZ25lZCBpbnQgaW5wdXRfd2lkdGggPSA2NDA7CnVuc2lnbmVk
-IGludCBpbnB1dF9oZWlnaHQgPSA0ODA7CgpzdGF0aWMgdm9pZApsb2dfaGVscGVyIChjb25zdCBj
-aGFyICp0eXBlLAogICAgICAgICAgICBjb25zdCBjaGFyICpmaWxlLAogICAgICAgICAgICBjb25z
-dCBjaGFyICpmdW5jdGlvbiwKICAgICAgICAgICAgdW5zaWduZWQgaW50IGxpbmUsCiAgICAgICAg
-ICAgIGNvbnN0IGNoYXIgKmZtdCwKICAgICAgICAgICAgLi4uKQp7CiAgICBjaGFyICp0bXAgPSBO
-VUxMOwogICAgdmFfbGlzdCBhcmdzOwoKICAgIHZhX3N0YXJ0IChhcmdzLCBmbXQpOwoKICAgIHZh
-c3ByaW50ZiAoJnRtcCwgZm10LCBhcmdzKTsKCiAgICBmcHJpbnRmIChzdGRlcnIsICIlcyAlczol
-ZDolcygpICVzXG4iLAogICAgICAgICAgICAgdHlwZSwKICAgICAgICAgICAgIGZpbGUsIGxpbmUs
-IGZ1bmN0aW9uLAogICAgICAgICAgICAgdG1wKTsKCiAgICBmcmVlICh0bXApOwoKICAgIHZhX2Vu
-ZCAoYXJncyk7Cn0KCiNkZWZpbmUgbG9nX2Vycm9yKC4uLikgbG9nX2hlbHBlciAoImVycm9yIiwg
-X19GSUxFX18sIF9fZnVuY19fLCBfX0xJTkVfXywgX19WQV9BUkdTX18pOwoKdm9pZApzZXRfc2Ny
-ZWVuICh2b2lkKQp7CiNpZiAwCiAgICBvdmVybGF5X3NjcmVlbl9pbmZvLnhyZXMgPSBNSU4gKG1h
-aW5fc2NyZWVuX2luZm8ueHJlcywgaW5wdXRfd2lkdGgpICYgfjE1OwogICAgb3ZlcmxheV9zY3Jl
-ZW5faW5mby55cmVzID0gTUlOIChtYWluX3NjcmVlbl9pbmZvLnlyZXMsIGlucHV0X2hlaWdodCkg
-JiB+MTU7CiAgICBvdmVybGF5X3NjcmVlbl9pbmZvLnhvZmZzZXQgPSAwOwogICAgb3ZlcmxheV9z
-Y3JlZW5faW5mby55b2Zmc2V0ID0gMDsKI2Vsc2UKICAgIG92ZXJsYXlfc2NyZWVuX2luZm8ueHJl
-cyA9IG1haW5fc2NyZWVuX2luZm8ueHJlczsKICAgIG92ZXJsYXlfc2NyZWVuX2luZm8ueXJlcyA9
-IG1haW5fc2NyZWVuX2luZm8ueXJlczsKI2VuZGlmCiAgICBvdmVybGF5X3NjcmVlbl9pbmZvLm5v
-bnN0ZCA9IE9NQVBGQl9DT0xPUl9ZVVk0MjI7CgogICAgewogICAgICAgIGludCBlcnI7CiAgICAg
-ICAgZXJyID0gaW9jdGwgKG92ZXJsYXlfZmIsIEZCSU9QVVRfVlNDUkVFTklORk8sICZvdmVybGF5
-X3NjcmVlbl9pbmZvKTsKICAgICAgICBpZiAoZXJyICE9IDApCiAgICAgICAgewogICAgICAgICAg
-ICBsb2dfZXJyb3IgKCJvdmVybGF5IHNldCIpOwogICAgICAgICAgICByZXR1cm47CiAgICAgICAg
-fQogICAgfQp9Cgp2b2lkCnNldF9wbGFuZSAodm9pZCkKewogICAgcGxhbmVfaW5mby5lbmFibGVk
-ID0gMTsKI2lmIDAKICAgIHBsYW5lX2luZm8ucG9zX3ggPSAwOwogICAgcGxhbmVfaW5mby5wb3Nf
-eSA9IDA7CiAgICBwbGFuZV9pbmZvLm91dF93aWR0aCA9IG1haW5fc2NyZWVuX2luZm8ueHJlczsK
-ICAgIHBsYW5lX2luZm8ub3V0X2hlaWdodCA9IG1haW5fc2NyZWVuX2luZm8ueXJlczsKI2VuZGlm
-CgogICAgewogICAgICAgIGludCBlcnI7CiAgICAgICAgZXJyID0gaW9jdGwgKG92ZXJsYXlfZmIs
-IE9NQVBGQl9TRVRVUF9QTEFORSwgJnBsYW5lX2luZm8pOwogICAgICAgIGlmIChlcnIgIT0gMCkK
-ICAgICAgICB7CiAgICAgICAgICAgIGxvZ19lcnJvciAoImVycm9yPSVpIiwgZXJyKTsKICAgICAg
-ICAgICAgcmV0dXJuOwogICAgICAgIH0KICAgIH0KfQoKdm9pZApjbGVhbl9vbWFwICh2b2lkKQp7
-CiAgICB1bnNpZ25lZCBpbnQgaTsKICAgIGZvciAoaSA9IDA7IGkgPCBtZW1faW5mby5zaXplIC8g
-NDsgaSsrKQogICAgICAgICgodWludDMyX3QgKikgb3ZlcmxheV9tZW0pW2ldID0gMHhGRkZGQUFB
-QTsKfQoKaW50Cm1haW4gKHZvaWQpCnsKICAgIGludCBlcnI7CiAgICBtYWluX2ZiID0gLTE7CiAg
-ICBvdmVybGF5X2ZiID0gLTE7CgogICAgbWFpbl9mYiA9IG9wZW4gKCIvZGV2L2ZiMCIsIE9fUkRX
-Uik7CgogICAgaWYgKG1haW5fZmIgPT0gLTEpCiAgICB7CiAgICAgICAgbG9nX2Vycm9yICgiL2Rl
-di9mYjAiKTsKICAgICAgICByZXR1cm4gMTsKICAgIH0KCiAgICBpZiAoaW9jdGwgKG1haW5fZmIs
-IEZCSU9HRVRfVlNDUkVFTklORk8sICZtYWluX3NjcmVlbl9pbmZvKSkKICAgIHsKICAgICAgICBs
-b2dfZXJyb3IgKCJtYWluIHNjcmVlbiIpOwogICAgICAgIGdvdG8gbGVhdmU7CiAgICB9CgogICAg
-b3ZlcmxheV9mYiA9IG9wZW4gKCIvZGV2L2ZiMSIsIE9fUkRXUik7CgogICAgaWYgKG92ZXJsYXlf
-ZmIgPT0gLTEpCiAgICB7CiAgICAgICAgbG9nX2Vycm9yICgiL2Rldi9mYjEiKTsKICAgICAgICBy
-ZXR1cm4gMTsKICAgIH0KCiAgICBpZiAoaW9jdGwgKG92ZXJsYXlfZmIsIEZCSU9HRVRfVlNDUkVF
-TklORk8sICZvdmVybGF5X3NjcmVlbl9pbmZvKSkKICAgIHsKICAgICAgICBsb2dfZXJyb3IgKCJv
-dmVybGF5IHNjcmVlbiIpOwogICAgICAgIGdvdG8gbGVhdmU7CiAgICB9CgogICAgaWYgKGlvY3Rs
-IChvdmVybGF5X2ZiLCBPTUFQRkJfUVVFUllfUExBTkUsICZwbGFuZV9pbmZvKSkKICAgIHsKICAg
-ICAgICBsb2dfZXJyb3IgKCJvbWFwIHBhbmUiKTsKICAgICAgICBnb3RvIGxlYXZlOwogICAgfQoK
-ICAgIGlmIChpb2N0bCAob3ZlcmxheV9mYiwgT01BUEZCX1FVRVJZX01FTSwgJm1lbV9pbmZvKSkK
-ICAgIHsKICAgICAgICBsb2dfZXJyb3IgKCJvbWFwIG1lbSIpOwogICAgICAgIGdvdG8gbGVhdmU7
-CiAgICB9CgogICAgcHJpbnRmICgibWFpbjogc2l6ZT0laXglaSwgJWlicHBcbiIsIG1haW5fc2Ny
-ZWVuX2luZm8ueHJlcywgbWFpbl9zY3JlZW5faW5mby55cmVzLCBtYWluX3NjcmVlbl9pbmZvLmJp
-dHNfcGVyX3BpeGVsKTsKICAgIHByaW50ZiAoIm92ZXJsYXk6IHNpemU9JWl4JWksICVpYnBwXG4i
-LCBvdmVybGF5X3NjcmVlbl9pbmZvLnhyZXMsIG92ZXJsYXlfc2NyZWVuX2luZm8ueXJlcywgb3Zl
-cmxheV9zY3JlZW5faW5mby5iaXRzX3Blcl9waXhlbCk7CgogICAgLyogb21hcCAqLwogICAgcHJp
-bnRmICgicGFuZWw6IGVuYWJsZWQ9JXVcbiIsIHBsYW5lX2luZm8uZW5hYmxlZCk7CiAgICBwcmlu
-dGYgKCJwYW5lbDogJXV4JXUgLSAldXgldVxuIiwgcGxhbmVfaW5mby5wb3NfeCwgcGxhbmVfaW5m
-by5wb3NfeSwKICAgICAgICAgICAgcGxhbmVfaW5mby5vdXRfd2lkdGgsIHBsYW5lX2luZm8ub3V0
-X2hlaWdodCk7CgogICAgLyogbWFwIHRoZSBmcmFtZWJ1ZmZlciAqLwogICAgb3ZlcmxheV9tZW0g
-PSBtbWFwIChOVUxMLCBtZW1faW5mby5zaXplLCBQUk9UX1dSSVRFLCBNQVBfU0hBUkVELCBvdmVy
-bGF5X2ZiLCAwKTsKICAgIGlmIChvdmVybGF5X21lbSA9PSBNQVBfRkFJTEVEKQogICAgewogICAg
-ICAgIGxvZ19lcnJvciAoIm1tYXAiKTsKICAgICAgICBnb3RvIGxlYXZlOwogICAgfQoKICAgIGNs
-ZWFuX29tYXAgKCk7CiAgICBzZXRfc2NyZWVuICgpOwogICAgc2V0X3BsYW5lICgpOwoKbGVhdmU6
-CiAgICBtdW5tYXAgKG92ZXJsYXlfbWVtLCBtZW1faW5mby5zaXplKTsKCiAgICBpZiAob3Zlcmxh
-eV9mYikKICAgICAgICBjbG9zZSAob3ZlcmxheV9mYik7CgogICAgaWYgKG1haW5fZmIpCiAgICAg
-ICAgY2xvc2UgKG1haW5fZmIpOwoKICAgIHJldHVybiAwOwp9Cg==
-------=_Part_71504_26779315.1221489535864--
+Your design has good points. I have to think about the overlay managers
+a bit more. Especially if in some future hardware there were more
+overlay managers instead of the current two.
+
+> http://lists-archives.org/video4linux/23652-rfc-add-support-to-query-and-change-connections-inside-a-media-device.html
+> 
+> 
+> > I also wanted to be able to change the configuration on the fly,
+> > changing where DISPC output is going and which displays are updated with
+> > CPU or sDMA.
+> > 
+> > This is why I have the display-concept in my design.
+> > 
+> 
+> 
+> Here we both are on same page, you have broken the displays and modes supported into multiple files registering functions to the display.c file, there are many loopholes though.
+> 
+> > I haven't made support for multiple users of the displays (like separate
+> > fb and v4l drivers), but I don't immediately see why it couldn't be
+> > done.
+> > 
+> 
+> How are you going to handle the concurrency between these two?
+
+In the simple case of just an LCD and a TV-out, what are the concurrency
+problems? Each plane is independent of each other. Sure you need to
+check that the output is on if there's a plane enabled there and basic
+things like that. Are there some other issues I'm not seeing?
+
+> > However, there are some questions regarding that, as the planes do not
+> > represent displays, but just overlay planes. What happens when both fb
+> > and v4l drivers want to change the resolution or timings of the display?
+> > 
+> > Also I still don't quite know how to present displays to user space.
+> > Currently my omapfb just uses the first display, and that's it. I think
+> > in the end the user (be it X server, or perhaps some entity over it),
+> > needs to have some understanding of what OMAP offers and how it can use
+> > the displays. And there probably needs to be some product spesific
+> > configuration regarding this in userspace.
+> > 
+> 
+> Here are you saying application will have hardware specific support? Is this feasible?
+> 
+
+I don't see any other way. The displays are not independent of each
+other.  For example the OMAP3 SDP has LCD and DVI outputs. They can't be
+switched programmatically, but let's say it was possible. Only one of
+those displays can be enabled at time. If an application wants to use
+them both, it has to understand that they will not both work at the same
+time.
+
+Or if there are two DSI displays, and one is updated with DISPC and the
+other via L4. The application has to know that a video overlay can only
+be used on the first display, or it has to exchange the DISPC/L4
+updating order.
+
+Of course this is product specific software and configuration, not
+something I'm planning to put in the driver. A normal application does
+not have to know anything about it. I was just bringing it up to
+demonstrate what must be possible.
+
+ Tomi
+
+
