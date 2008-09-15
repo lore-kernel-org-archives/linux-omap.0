@@ -1,168 +1,94 @@
-From: "shekhar, chandra" <x0044955@ti.com>
-Subject: Re: [PATCH 04/12] I2C re-init for every cmd
-Date: Mon, 15 Sep 2008 12:27:23 +0530
-Message-ID: <011d01c91700$4ef7eec0$LocalHost@wipultra806>
-References: <56249.192.168.10.89.1221148518.squirrel@dbdmail.itg.ti.com> <877i9h7qjw.fsf@trdhcp146196.ntc.nokia.com>
+From: "Shah, Hardik" <hardik.shah@ti.com>
+Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
+Date: Mon, 15 Sep 2008 14:10:02 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02C4347B9B@dbde02.ent.ti.com>
+References: <yw1xbpyr3egz.fsf@thrashbarg.mansr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed	reply-type=original
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48344 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751683AbYIOG5i (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Sep 2008 02:57:38 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <video4linux-list-bounces@redhat.com>
+In-Reply-To: <yw1xbpyr3egz.fsf@thrashbarg.mansr.com>
+Content-Language: en-US
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+To: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?Q?=22H=C3=B6gander=22_Jouni?= <jouni.hogander@nokia.com>
-Cc: linux-omap@vger.kernel.org
-
-Hi,
-
-This patch looks ok.
-i would have preferred runtime check for 34xx. It will be a bit overhea=
-d for=20
-previous platforms.
-but will be good for  multi-omap support.
-
------ Original Message -----=20
-=46rom: ""H=C3=B6gander" Jouni" <jouni.hogander@nokia.com>
-To: "ext chandra shekhar" <x0044955@ti.com>
-Cc: <linux-omap@vger.kernel.org>
-Sent: Friday, September 12, 2008 1:18 PM
-Subject: Re: [PATCH 04/12] I2C re-init for every cmd
 
 
-"ext chandra shekhar" <x0044955@ti.com> writes:
 
-> agreed..but i guess it will not compile for 2430 and prev. platforms.
-> omap3_i2c_save_context and restore definition is under macro
-> while call is not. let me know if i am missing something.
->
-> also is SYSC register restore needed??
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.ke=
+rnel.org] On Behalf Of M=E5ns
+> Rullg=E5rd
+> Sent: Sunday, September 14, 2008 3:18 AM
+> To: linux-omap@vger.kernel.org
+> Cc: video4linux-list@redhat.com
+> Subject: Re: [PREVIEW] New display subsystem for OMAP2/3
+>=20
+> Koen Kooi <k.kooi@student.utwente.nl> writes:
+>=20
+> > Op 12 sep 2008, om 17:29 heeft Daniel Stone het volgende geschreven:
+> >
+> >> On Fri, Sep 12, 2008 at 07:59:44PM +0530, ext Shah, Hardik wrote:
+> >>> It's time to re-design DSS frame buffer driver for the OMAP2/3.
+> >>> Current frame buffer driver is not covering the most of the
+> >>> functionality of the OMAP2/3 DSS Hardware like multiple outputs and
+> >>> multiple overlay managers supported by OMAP2/3 class of SoC. Again
+> >>> there is no V4L2 interface exposed by the DSS drivers for
+> >>> controlling the video pipelines of the DSS which is highly
+> >>> desirable feature as the video pipelines of the DSS hardware is a
+> >>> natural fit to the V4L2 architecture.
+> >>
+> >> If you want to use v4l for video output, don't let me stop you, but =
+I
+> >> don't see that it has much actual wide use beyond TI PowerPoint
+> >> presentations about their graphical architecture.
+> >
+> > That was my thought as well, but I've encountered at least 2 products
+> > this weekend at IBC using the v4l way on omap3. One of the engineers
+> > was complaining about the lack of synchronous updates if you move
+> > various videoplanes around (think resizing video windows) which makes
+> > the video picture end up outside your nice cairo-drawn borders. So
+> > yes, it is getting used outside of TI :)
+>=20
+> I'm thinking the best solution is probably to have a low-level
+> internal driver providing access to various planes, exposing as much
+> functionality as is practical.  Various user-space interfaces, such as
+> fbdev and v4l, could then be implemented on top of this with very
+> little code.  If I've understood things correctly, this is essentially
+> what the patch in this thread is doing.  This approach should let the
+> TI people and Koen's mythical friends from IBC use the v4l2 interface,
+> while still allowing the less masochistic among us to use a simpler
+> interface.
+>=20
+> What I don't like about the patch posted is its size.  I'm sure the
+> transition could be done in a sequence of smaller patches.  At the
+> very least, it should be possible to move existing functionality to
+> the new architecture, then add the new parts afterwards.  I also see
+> little value in keeping the old model around, as is done in the patch.
 
-Here is the second version. Does it look any better to you?
+Our DSS library is inline with the above model suggested by you.  Followi=
+ng is the link containing DSS library code and small design document, whi=
+ch currently handles only video pipeline.  The next immediate goal is to =
+add the support for graphics pipeline functionality. =20
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-oma=
-p.c
-index 3778735..0a11621 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -147,6 +147,12 @@ struct omap_i2c_dev {
-        unsigned                b_hw:1;         /* bad h/w fixes */
-        unsigned                idle:1;
-        u16                     iestate;        /* Saved interrupt regi=
-ster */
-+#ifdef CONFIG_ARCH_OMAP34XX
-+       u16                     pscstate;
-+       u16                     scllstate;
-+       u16                     sclhstate;
-+       u16                     bufstate;
-+#endif
- };
+https://omapzoom.org/gf/project/omapkernel/docman/?subdir=3D10
 
- static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
-@@ -209,16 +215,21 @@ static void omap_i2c_unidle(struct omap_i2c_dev *=
-dev)
-        if (dev->iclk !=3D NULL)
-                clk_enable(dev->iclk);
-        clk_enable(dev->fclk);
-+
-+#ifdef CONFIG_ARCH_OMAP34XX
-+       omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
-+       omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
-+       omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
-+       omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
-+#endif
-        dev->idle =3D 0;
--       if (dev->iestate)
--               omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
-+       omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
- }
+=20
 
- static void omap_i2c_idle(struct omap_i2c_dev *dev)
- {
-        u16 iv;
-
--       dev->iestate =3D omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
-        omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
-        if (dev->rev1)
-                iv =3D omap_i2c_read_reg(dev, OMAP_I2C_IV_REG);
-@@ -238,7 +249,7 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
-
- static int omap_i2c_init(struct omap_i2c_dev *dev)
- {
--       u16 psc =3D 0, scll =3D 0, sclh =3D 0;
-+       u16 psc =3D 0, scll =3D 0, sclh =3D 0, buf =3D 0;
-        u16 fsscll =3D 0, fssclh =3D 0, hsscll =3D 0, hssclh =3D 0;
-        unsigned long fclk_rate =3D 12000000;
-        unsigned long timeout;
-@@ -327,23 +338,30 @@ static int omap_i2c_init(struct omap_i2c_dev *dev=
-)
-        omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, scll);
-        omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, sclh);
-
--       if (dev->fifo_size)
--               /* Note: setup required fifo size - 1 */
--               omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG,
--                                       (dev->fifo_size - 1) << 8 | /* =
-RTRSH */
--                                       OMAP_I2C_BUF_RXFIF_CLR |
--                                       (dev->fifo_size - 1) | /* XTRSH=
- */
--                                       OMAP_I2C_BUF_TXFIF_CLR);
-+       if (dev->fifo_size) {
-+               /* Note: setup required fifo size - 1. RTRSH and XTRSH =
-*/
-+               buf =3D (dev->fifo_size - 1) << 8 | OMAP_I2C_BUF_RXFIF_=
-CLR |
-+                       (dev->fifo_size - 1) | OMAP_I2C_BUF_TXFIF_CLR;
-+               omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, buf);
-+       }
-
-        /* Take the I2C module out of reset: */
-        omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
-
-        /* Enable interrupts */
--       omap_i2c_write_reg(dev, OMAP_I2C_IE_REG,
--                       (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
-+       dev->iestate =3D (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
-                        OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
-                        OMAP_I2C_IE_AL)  | ((dev->fifo_size) ?
--                               (OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0=
-));
-+                                           (OMAP_I2C_IE_RDR | OMAP_I2C=
-_IE_XDR)=20
-: 0);
-+       omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
-+
-+#ifdef CONFIG_ARCH_OMAP34XX
-+       dev->pscstate =3D psc;
-+       dev->scllstate =3D scll;
-+       dev->sclhstate =3D sclh;
-+       dev->bufstate =3D buf;
-+#endif
-+
-        return 0;
- }
-
-@@ -496,8 +514,6 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_=
-msg=20
-msgs[], int num)
-
-        omap_i2c_unidle(dev);
-
--       omap_i2c_init(dev);
--
-        if ((r =3D omap_i2c_wait_for_bb(dev)) < 0)
-                goto out;
-
---=20
-Jouni H=C3=B6gander
-
+Thanks and Regards,
+Hardik Shah
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
+ibe
+https://www.redhat.com/mailman/listinfo/video4linux-list
