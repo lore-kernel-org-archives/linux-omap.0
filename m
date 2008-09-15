@@ -1,45 +1,53 @@
-From: Viktor Rosendahl <Viktor.Rosendahl@nokia.com>
-Subject: Re: [PATCH 00/10] Patches for fixing the lowmem module
-Date: Mon, 15 Sep 2008 15:07:01 +0300
-Message-ID: <1221480421.15659.8.camel@viktor.research.nokia.com>
-References: <1221150042-10873-1-git-send-email-viktor.rosendahl@nokia.com>
-	 <20080911161702.GL16796@gandalf.research.nokia.com>
-	 <1221152129.10962.12.camel@viktor.research.nokia.com>
-	 <20080911164809.GN16796@gandalf.research.nokia.com>
-	 <20080912181444.GE10675@atomide.com>
+From: Daniel Stone <daniel.stone@nokia.com>
+Subject: Re: [PREVIEW] New display subsystem for OMAP2/3
+Date: Mon, 15 Sep 2008 15:04:33 +0300
+Message-ID: <20080915120433.GU31563@intune.research.nokia.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02C42B43C8@dbde02.ent.ti.com> <1221476854.6312.37.camel@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="SEFvVLxbW/dEDtN8"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:38169 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:39414 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752927AbYIOL5o (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Sep 2008 07:57:44 -0400
-In-Reply-To: <20080912181444.GE10675@atomide.com>
+	with ESMTP id S1752981AbYIOMEL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Sep 2008 08:04:11 -0400
+Content-Disposition: inline
+In-Reply-To: <1221476854.6312.37.camel@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
+To: ext Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "ext Shah, Hardik" <hardik.shah@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>
 
-On Fri, 2008-09-12 at 11:14 -0700, ext Tony Lindgren wrote:
 
-> Still, how about posting it to LKML? Other people may be interested in
-> it too. And you'll find out what would have to be fixed to get it
-> integrated.
+--SEFvVLxbW/dEDtN8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I don't really know what criteria mainline has but I am under the
-impression that adding new entries to /proc [like the current lowmem
-code does] would not be that popular.
+On Mon, Sep 15, 2008 at 02:07:34PM +0300, ext Tomi Valkeinen wrote:
+> Also I still don't quite know how to present displays to user space.
+> Currently my omapfb just uses the first display, and that's it. I think
+> in the end the user (be it X server, or perhaps some entity over it),
+> needs to have some understanding of what OMAP offers and how it can use
+> the displays. And there probably needs to be some product spesific
+> configuration regarding this in userspace.
 
-Another issue is that we are thinking that it would be desirable to
-still make some modifications to the interface. ABI changes are probably
-not that popular in mainline so it could be benefical to make those
-modifications before trying to push it there.
+All of which sound very poorly suited to fbdev and very well suited to
+DRM modesetting. :)
 
-Anyways, I am kind of busy right now but I will try to find the time to
-reshuffle the code within the next couple of weeks.
+Cheers,
+Daniel
 
-best regards,
+--SEFvVLxbW/dEDtN8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-Viktor
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
+iEYEARECAAYFAkjOT1EACgkQ68xJuWtYYdWnGQCfawhBxsuYIzQOdT7E7EoKBJ2i
+uqkAnRNPjzBPCSOoSAajJGUJu34e5BqS
+=VBjZ
+-----END PGP SIGNATURE-----
+
+--SEFvVLxbW/dEDtN8--
