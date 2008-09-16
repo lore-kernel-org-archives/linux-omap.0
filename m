@@ -1,250 +1,183 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH] Debobs and ETK padconf implementation
-Date: Tue, 16 Sep 2008 12:51:41 +0300
-Message-ID: <1221558702-6888-3-git-send-email-peter.de-schrijver@nokia.com>
-References: <1221558702-6888-1-git-send-email-peter.de-schrijver@nokia.com>
- <1221558702-6888-2-git-send-email-peter.de-schrijver@nokia.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: [PATCH 04/12] I2C re-init for every cmd
+Date: Tue, 16 Sep 2008 13:13:08 +0300
+Message-ID: <87r67kwg97.fsf@trdhcp146196.ntc.nokia.com>
+References: <56249.192.168.10.89.1221148518.squirrel@dbdmail.itg.ti.com>
+	<877i9h7qjw.fsf@trdhcp146196.ntc.nokia.com>
+	<87d4j4moh3.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="=-=-="
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:61056 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751561AbYIPJwJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 05:52:09 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8G9pRiA007640
-	for <linux-omap@vger.kernel.org>; Tue, 16 Sep 2008 04:52:07 -0500
-In-Reply-To: <1221558702-6888-2-git-send-email-peter.de-schrijver@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:51392 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751913AbYIPKLs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 06:11:48 -0400
+In-Reply-To: <87d4j4moh3.fsf@deeprootsystems.com> (ext Kevin Hilman's message
+	of "Tue, 16 Sep 2008 12:25:44 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+To: ext Kevin Hilman <khilman@deeprootsystems.com>
+Cc: ext chandra shekhar <x0044955@ti.com>, linux-omap@vger.kernel.org
+
+--=-=-=
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+"ext Kevin Hilman" <khilman@deeprootsystems.com> writes:
+
+> jouni.hogander@nokia.com (H=C3=B6gander Jouni) writes:
+>
+>> @@ -209,16 +215,21 @@ static void omap_i2c_unidle(struct omap_i2c_dev *d=
+ev)
+>>         if (dev->iclk !=3D NULL)
+>>                 clk_enable(dev->iclk);
+>>         clk_enable(dev->fclk);
+>> +
+>> +#ifdef CONFIG_ARCH_OMAP34XX
+>> +       omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
+>> +       omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
+>> +       omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
+>> +       omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
+>> +#endif
+>
+> The above should also be inside an if cpu_is_omap34xx() block so
+> it works correctly on multi-omap kernels.
+
+Here you are:
 
 
-Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+--=-=-=
+Content-Type: text/x-diff
+Content-Disposition: inline;
+ filename=0001-OMAP3-I2C-Implement-i2c-save-restore.patch
+
+>From 24db406dfb2ba6c9069b70c2efd1134ea29c23eb Mon Sep 17 00:00:00 2001
+From: Jouni Hogander <jouni.hogander@nokia.com>
+Date: Tue, 16 Sep 2008 13:03:24 +0300
+Subject: [RFC] OMAP3: I2C: Implement i2c save/restore
+
+
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
 ---
- arch/arm/mach-omap2/debobs.c |  214 ++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 214 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/debobs.c
+ drivers/i2c/busses/i2c-omap.c |   52 ++++++++++++++++++++++++++++------------
+ 1 files changed, 36 insertions(+), 16 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/debobs.c b/arch/arm/mach-omap2/debobs.c
-new file mode 100644
-index 0000000..1bde1f4
---- /dev/null
-+++ b/arch/arm/mach-omap2/debobs.c
-@@ -0,0 +1,214 @@
-+/*
-+ * arch/arm/mach-omap2/debobs.c
-+ *
-+ * Handle debobs pads
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ *
-+ * Written by Peter De Schrijver <peter.de-schrijver@nokia.com>
-+ *
-+ * This file is subject to the terms and conditions of the GNU General
-+ * Public License. See the file "COPYING" in the main directory of this
-+ * archive for more details.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 3778735..6f6cfcc 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -147,6 +147,12 @@ struct omap_i2c_dev {
+ 	unsigned		b_hw:1;		/* bad h/w fixes */
+ 	unsigned		idle:1;
+ 	u16			iestate;	/* Saved interrupt register */
++#ifdef CONFIG_ARCH_OMAP34XX
++	u16			pscstate;
++	u16			scllstate;
++	u16			sclhstate;
++	u16			bufstate;
++#endif
+ };
+ 
+ static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
+@@ -209,16 +215,23 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
+ 	if (dev->iclk != NULL)
+ 		clk_enable(dev->iclk);
+ 	clk_enable(dev->fclk);
 +
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/debugfs.h>
-+#include <linux/uaccess.h>
-+#include <linux/module.h>
-+#include <mach/control.h>
-+#include <mach/mux.h>
-+#include <mach/gpio.h>
-+#include <mach/board.h>
-+
-+#define ETK_GPIO_BEGIN		12
-+#define ETK_GPIO(i)		(ETK_GPIO_BEGIN + i)
-+#define NUM_OF_DEBOBS_PADS	18
-+
-+enum debobs_pad_mode {
-+	GPIO = 0,
-+	OBS = 1,
-+	ETK = 2,
-+	NO_MODE = 3,
-+};
-+
-+static char *debobs_pad_mode_names[] = {
-+	[GPIO] = "GPIO",
-+	[OBS] = "OBS",
-+	[ETK] = "ETK",
-+};
-+
-+struct obs {
-+	u16 offset;
-+	u8 value;
-+	u8 mask;
-+};
-+
-+struct debobs_pad {
-+	enum debobs_pad_mode mode;
-+	struct obs core_obs;
-+	struct obs wakeup_obs;
-+};
-+
-+static struct debobs_pad debobs_pads[NUM_OF_DEBOBS_PADS];
-+
-+static int debobs_mode_open(struct inode *inode, struct file *file)
-+{
-+	file->private_data = inode->i_private;
-+
-+	return 0;
-+}
-+
-+static ssize_t debobs_mode_read(struct file *file, char __user *user_buf,
-+				size_t count, loff_t *ppos)
-+{
-+	char buffer[10];
-+	int size;
-+	int pad_number = (int)file->private_data;
-+	struct debobs_pad *e = &debobs_pads[pad_number];
-+
-+	size = snprintf(buffer, sizeof(buffer), "%s\n",
-+			debobs_pad_mode_names[e->mode]);
-+	return simple_read_from_buffer(user_buf, count, ppos, buffer, size);
-+}
-+
-+static ssize_t debobs_mode_write(struct file *file, const char __user *user_buf,
-+				size_t count, loff_t *ppos)
-+{
-+	char buffer[10];
-+	int buf_size, i, pad_number;
-+	u16 muxmode = OMAP34XX_MUX_MODE7;
-+
-+	memset(buffer, 0, sizeof(buffer));
-+	buf_size = min(count, (sizeof(buffer)-1));
-+
-+	if (copy_from_user(buffer, user_buf, buf_size))
-+		return -EFAULT;
-+
-+	pad_number = (int)file->private_data;
-+
-+	for (i = 0; i < NO_MODE; i++) {
-+		if (!strnicmp(debobs_pad_mode_names[i],
-+				buffer,
-+				strlen(debobs_pad_mode_names[i]))) {
-+			switch (i) {
-+			case ETK:
-+				muxmode = OMAP34XX_MUX_MODE0;
-+				break;
-+			case GPIO:
-+				muxmode = OMAP34XX_MUX_MODE4;
-+				break;
-+			case OBS:
-+				muxmode = OMAP34XX_MUX_MODE7;
-+				break;
-+			}
-+			omap_ctrl_writew(muxmode,
-+					OMAP343X_PADCONF_ETK(pad_number));
-+			debobs_pads[pad_number].mode = i;
-+
-+			return count;
-+		}
++#ifdef CONFIG_ARCH_OMAP34XX
++	if (cpu_is_omap34xx()) {
++		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
++		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
++		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
++		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
 +	}
-+
-+	return -EINVAL;
-+}
-+
-+static const struct file_operations debobs_mode_fops = {
-+	.open 	= debobs_mode_open,
-+	.read	= debobs_mode_read,
-+	.write	= debobs_mode_write,
-+};
-+
-+static int debobs_get(void *data, u64 *val)
-+{
-+	struct obs *o = data;
-+
-+	*val = o->value;
-+
-+	return 0;
-+}
-+
-+static int debobs_set(void *data, u64 val)
-+{
-+	struct obs *o = data;
-+
-+	val &= BIT(o->mask) - 1;
-+
-+	omap_ctrl_writeb(val, o->offset);
-+	o->value = val;
-+
-+	return 0;
-+}
-+
-+DEFINE_SIMPLE_ATTRIBUTE(debobs_fops, debobs_get, debobs_set, "%llu\n");
-+
-+static inline int __init _new_debobs_pad(struct debobs_pad *pad, char *name,
-+					int number, struct dentry *root)
-+{
-+	struct dentry *d;
-+	struct obs *o;
-+
-+	d = debugfs_create_dir(name, root);
-+	if (IS_ERR(d))
-+		return PTR_ERR(d);
-+
-+	omap_ctrl_writew(OMAP34XX_MUX_MODE4, OMAP343X_PADCONF_ETK(number));
-+	omap_set_gpio_direction(ETK_GPIO(number), 1);
-+	gpio_export(ETK_GPIO(number), 1);
-+	(void) debugfs_create_file("mode", S_IRUGO | S_IWUGO, d,
-+					(void *)number, &debobs_mode_fops);
-+
-+	o = &pad->core_obs;
-+	o->offset = OMAP343X_CONTROL_DEBOBS(number);
-+	o->value = omap_ctrl_readw(o->offset);
-+	o->mask = 7;
-+	(void) debugfs_create_file("coreobs", S_IRUGO | S_IWUGO, d, o,
-+					&debobs_fops);
-+
-+	o = &pad->wakeup_obs;
-+	o->offset = OMAP343X_CONTROL_WKUP_DEBOBSMUX(number);
-+	o->value = omap_ctrl_readb(o->offset);
-+	o->mask = 5;
-+	(void) debugfs_create_file("wakeupobs", S_IRUGO | S_IWUGO, d, o,
-+					&debobs_fops);
-+
-+	return 0;
-+}
-+
-+static int __init init_debobs(void)
-+{
-+	struct dentry *debobs_root;
-+	int i, err;
-+	char name[10];
-+
-+	debobs_root = debugfs_create_dir("debobs", NULL);
-+	if (IS_ERR(debobs_root))
-+		return PTR_ERR(debobs_root);
-+
-+	for (i = 0; i < NUM_OF_DEBOBS_PADS; i++) {
-+		if (!omap_request_gpio(ETK_GPIO(i))) {
-+			snprintf(name, sizeof(name), "hw_dbg%d", i);
-+			err = _new_debobs_pad(&debobs_pads[i], name, i,
-+						debobs_root);
-+			if (err) {
-+				omap_free_gpio(ETK_GPIO(i));
-+				return err;
-+			}
-+		}
++#endif
+ 	dev->idle = 0;
+-	if (dev->iestate)
+-		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
++	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
+ }
+ 
+ static void omap_i2c_idle(struct omap_i2c_dev *dev)
+ {
+ 	u16 iv;
+ 
+-	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+ 	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
+ 	if (dev->rev1)
+ 		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG);
+@@ -238,7 +251,7 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
+ 
+ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ {
+-	u16 psc = 0, scll = 0, sclh = 0;
++	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
+ 	u16 fsscll = 0, fssclh = 0, hsscll = 0, hssclh = 0;
+ 	unsigned long fclk_rate = 12000000;
+ 	unsigned long timeout;
+@@ -327,23 +340,32 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 	omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, scll);
+ 	omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, sclh);
+ 
+-	if (dev->fifo_size)
+-		/* Note: setup required fifo size - 1 */
+-		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG,
+-					(dev->fifo_size - 1) << 8 | /* RTRSH */
+-					OMAP_I2C_BUF_RXFIF_CLR |
+-					(dev->fifo_size - 1) | /* XTRSH */
+-					OMAP_I2C_BUF_TXFIF_CLR);
++	if (dev->fifo_size) {
++		/* Note: setup required fifo size - 1. RTRSH and XTRSH */
++		buf = (dev->fifo_size - 1) << 8 | OMAP_I2C_BUF_RXFIF_CLR |
++			(dev->fifo_size - 1) | OMAP_I2C_BUF_TXFIF_CLR;
++		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, buf);
 +	}
+ 
+ 	/* Take the I2C module out of reset: */
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+ 
+ 	/* Enable interrupts */
+-	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG,
+-			(OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
++	dev->iestate = (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
+ 			OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
+ 			OMAP_I2C_IE_AL)  | ((dev->fifo_size) ?
+-				(OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0));
++				(OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0);
++	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
 +
-+	return 0;
-+}
++#ifdef CONFIG_ARCH_OMAP34XX
++	if (cpu_is_omap34xx()) {
++		dev->pscstate = psc;
++		dev->scllstate = scll;
++		dev->sclhstate = sclh;
++		dev->bufstate = buf;
++	}
++#endif
 +
-+late_initcall_sync(init_debobs);
+ 	return 0;
+ }
+ 
+@@ -496,8 +518,6 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+ 
+ 	omap_i2c_unidle(dev);
+ 
+-	omap_i2c_init(dev);
+-
+ 	if ((r = omap_i2c_wait_for_bb(dev)) < 0)
+ 		goto out;
+ 
 -- 
-1.5.6.3
+1.5.5
+
+
+--=-=-=
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+
+--=20
+Jouni H=C3=B6gander
+
+--=-=-=--
 
