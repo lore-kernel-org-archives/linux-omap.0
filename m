@@ -1,171 +1,64 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 04/12] I2C re-init for every cmd
-Date: Tue, 16 Sep 2008 12:25:44 +0300
-Message-ID: <87d4j4moh3.fsf@deeprootsystems.com>
-References: <56249.192.168.10.89.1221148518.squirrel@dbdmail.itg.ti.com>
-	<877i9h7qjw.fsf@trdhcp146196.ntc.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: [PATCH] Add debobs Kconfig item
+Date: Tue, 16 Sep 2008 12:51:42 +0300
+Message-ID: <1221558702-6888-4-git-send-email-peter.de-schrijver@nokia.com>
+References: <1221558702-6888-1-git-send-email-peter.de-schrijver@nokia.com>
+ <1221558702-6888-2-git-send-email-peter.de-schrijver@nokia.com>
+ <1221558702-6888-3-git-send-email-peter.de-schrijver@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.169]:13780 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751201AbYIPJZt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 05:25:49 -0400
-Received: by wf-out-1314.google.com with SMTP id 27so2454348wfd.4
-        for <linux-omap@vger.kernel.org>; Tue, 16 Sep 2008 02:25:48 -0700 (PDT)
-In-Reply-To: <877i9h7qjw.fsf@trdhcp146196.ntc.nokia.com>
- (=?iso-8859-1?Q?=22H=F6gander?= Jouni"'s message of "Fri\, 12 Sep 2008
- 10\:48\:35 +0300")
+Received: from smtp.nokia.com ([192.100.105.134]:61019 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751561AbYIPJv7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 05:51:59 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8G9pNdx007617
+	for <linux-omap@vger.kernel.org>; Tue, 16 Sep 2008 04:51:57 -0500
+In-Reply-To: <1221558702-6888-3-git-send-email-peter.de-schrijver@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?H=F6gander?= Jouni <jouni.hogander@nokia.com>
-Cc: ext chandra shekhar <x0044955@ti.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-jouni.hogander@nokia.com (H=F6gander Jouni) writes:
 
-> "ext chandra shekhar" <x0044955@ti.com> writes:
->
->> agreed..but i guess it will not compile for 2430 and prev. platforms=
-=2E
->> omap3_i2c_save_context and restore definition is under macro
->> while call is not. let me know if i am missing something.
->>
->> also is SYSC register restore needed??
->
-> Here is the second version. Does it look any better to you?
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-o=
-map.c
-> index 3778735..0a11621 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -147,6 +147,12 @@ struct omap_i2c_dev {
->         unsigned                b_hw:1;         /* bad h/w fixes */
->         unsigned                idle:1;
->         u16                     iestate;        /* Saved interrupt re=
-gister */
-> +#ifdef CONFIG_ARCH_OMAP34XX
-> +       u16                     pscstate;
-> +       u16                     scllstate;
-> +       u16                     sclhstate;
-> +       u16                     bufstate;
-> +#endif
->  };
-> =20
->  static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
-> @@ -209,16 +215,21 @@ static void omap_i2c_unidle(struct omap_i2c_dev=
- *dev)
->         if (dev->iclk !=3D NULL)
->                 clk_enable(dev->iclk);
->         clk_enable(dev->fclk);
-> +
-> +#ifdef CONFIG_ARCH_OMAP34XX
-> +       omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
-> +       omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
-> +       omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
-> +       omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
-> +#endif
+Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+---
+ arch/arm/mach-omap2/Kconfig  |   10 +++++++++-
+ arch/arm/mach-omap2/Makefile |    3 +++
+ 2 files changed, 12 insertions(+), 1 deletions(-)
 
-The above should also be inside an if cpu_is_omap34xx() block so
-it works correctly on multi-omap kernels.
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 43a679f..9d2f837 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -147,4 +147,12 @@ config OMAP3_OFF_MODE
+ 	depends on ARCH_OMAP3
+ 	default n
+ 	help
+-	  Use off mode for powerdomains.
+\ No newline at end of file
++	  Use off mode for powerdomains.
++
++config OMAP3_DEBOBS	
++	bool "OMAP 3430 Debug observability support"
++	depends on ARCH_OMAP3 && DEBUG_FS
++	default n
++	help
++	  Use ETK pads for debug observability
++
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 398a872..828f834 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -41,6 +41,9 @@ obj-$(CONFIG_OMAP_MBOX_FWK)	+= mailbox_mach.o
+ mailbox_mach-objs		:= mailbox.o
+ mmu_mach-objs			:= mmu.o
+ 
++# Debobs
++obj-$(CONFIG_OMAP3_DEBOBS)	+= debobs.o
++
+ # Specific board support
+ obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
+ obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o board-h4-mmc.o
+-- 
+1.5.6.3
 
-Kevin
-
->         dev->idle =3D 0;
-> -       if (dev->iestate)
-> -               omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate=
-);
-> +       omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
->  }
-> =20
->  static void omap_i2c_idle(struct omap_i2c_dev *dev)
->  {
->         u16 iv;
-> =20
-> -       dev->iestate =3D omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
->         omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
->         if (dev->rev1)
->                 iv =3D omap_i2c_read_reg(dev, OMAP_I2C_IV_REG);
-> @@ -238,7 +249,7 @@ static void omap_i2c_idle(struct omap_i2c_dev *de=
-v)
-> =20
->  static int omap_i2c_init(struct omap_i2c_dev *dev)
->  {
-> -       u16 psc =3D 0, scll =3D 0, sclh =3D 0;
-> +       u16 psc =3D 0, scll =3D 0, sclh =3D 0, buf =3D 0;
->         u16 fsscll =3D 0, fssclh =3D 0, hsscll =3D 0, hssclh =3D 0;
->         unsigned long fclk_rate =3D 12000000;
->         unsigned long timeout;
-> @@ -327,23 +338,30 @@ static int omap_i2c_init(struct omap_i2c_dev *d=
-ev)
->         omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, scll);
->         omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, sclh);
-> =20
-> -       if (dev->fifo_size)
-> -               /* Note: setup required fifo size - 1 */
-> -               omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG,
-> -                                       (dev->fifo_size - 1) << 8 | /=
-* RTRSH */
-> -                                       OMAP_I2C_BUF_RXFIF_CLR |
-> -                                       (dev->fifo_size - 1) | /* XTR=
-SH */
-> -                                       OMAP_I2C_BUF_TXFIF_CLR);
-> +       if (dev->fifo_size) {
-> +               /* Note: setup required fifo size - 1. RTRSH and XTRS=
-H */
-> +               buf =3D (dev->fifo_size - 1) << 8 | OMAP_I2C_BUF_RXFI=
-=46_CLR |
-> +                       (dev->fifo_size - 1) | OMAP_I2C_BUF_TXFIF_CLR=
-;
-> +               omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, buf);
-> +       }
-> =20
->         /* Take the I2C module out of reset: */
->         omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
-> =20
->         /* Enable interrupts */
-> -       omap_i2c_write_reg(dev, OMAP_I2C_IE_REG,
-> -                       (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
-> +       dev->iestate =3D (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
->                         OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
->                         OMAP_I2C_IE_AL)  | ((dev->fifo_size) ?
-> -                               (OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) :=
- 0));
-> +                                           (OMAP_I2C_IE_RDR | OMAP_I=
-2C_IE_XDR) : 0);
-> +       omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
-> +
-> +#ifdef CONFIG_ARCH_OMAP34XX
-> +       dev->pscstate =3D psc;
-> +       dev->scllstate =3D scll;
-> +       dev->sclhstate =3D sclh;
-> +       dev->bufstate =3D buf;
-> +#endif
-> +
->         return 0;
->  }
-> =20
-> @@ -496,8 +514,6 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2=
-c_msg msgs[], int num)
-> =20
->         omap_i2c_unidle(dev);
-> =20
-> -       omap_i2c_init(dev);
-> -
->         if ((r =3D omap_i2c_wait_for_bb(dev)) < 0)
->                 goto out;
->
-> --=20
-> Jouni H=F6gander
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
