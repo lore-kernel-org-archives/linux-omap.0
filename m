@@ -1,43 +1,221 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: OMAP support in mainline?
-Date: Tue, 16 Sep 2008 21:41:12 +0300
-Message-ID: <20080916184110.GA10733@frodo>
-References: <87tzcgi1gv.fsf@nokia.com> <alpine.DEB.1.00.0809160906140.21341@utopia.booyaka.com>
-Reply-To: me@felipebalbi.com
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: [PATCH] alsa: add Beagleboard SoC configuration.
+Date: Tue, 16 Sep 2008 23:51:35 +0300
+Message-ID: <1221597643-29601-1-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:42087 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754375AbYIPSll (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 14:41:41 -0400
+Received: from fk-out-0910.google.com ([209.85.128.185]:63778 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751222AbYIPUvn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 16:51:43 -0400
+Received: by fk-out-0910.google.com with SMTP id 18so2585841fkq.5
+        for <linux-omap@vger.kernel.org>; Tue, 16 Sep 2008 13:51:41 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.1.00.0809160906140.21341@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kalle Valo <kalle.valo@nokia.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Felipe Contreras <felipe.contreras@gmail.com>
 
-On Tue, Sep 16, 2008 at 09:13:21AM -0600, Paul Walmsley wrote:
-> On Tue, 16 Sep 2008, Kalle Valo wrote:
-> 
-> > Hello Linux OMAP community,
-> > 
-> > I have seen a lot of patches going to Russell and general talk about
-> > mainline support. What is actually the current situation? Is there
-> > hope to have good support in mainline soon? If yes, when?
-> > 
-> > Unsurprisingly I'm especially interested about N800/N810 support :)
-> 
-> Parts of N800/N810 are still broken in linux-omap tree.  At least sound 
-> did not work as of early September, and MMC still emits errors as 
-> described in:
-> 
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg02499.html
-> 
-> Don't recall what the current LM8323 status is.
+This is exactly the same as the overo configuration. It might make sense
+to have them in a single one.
 
-Bluetooth is also missing on mainline, but the driver needs some rework.
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+---
 
+This was suggested by Koen Kooi.
+
+ sound/soc/omap/Kconfig       |    8 ++
+ sound/soc/omap/Makefile      |    2 +
+ sound/soc/omap/omap3beagle.c |  149 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 159 insertions(+), 0 deletions(-)
+ create mode 100644 sound/soc/omap/omap3beagle.c
+
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+index d7b8939..ebad024 100644
+--- a/sound/soc/omap/Kconfig
++++ b/sound/soc/omap/Kconfig
+@@ -22,3 +22,11 @@ config SND_OMAP_SOC_OVERO
+ 	help
+ 	  Say Y if you want to add support for SoC audio on the Gumstix Overo.
+ 
++config SND_OMAP_SOC_OMAP3_BEAGLE
++	tristate "SoC Audio support for OMAP3 Beagle"
++	depends on SND_OMAP_SOC && MACH_OMAP3_BEAGLE
++	select SND_OMAP_SOC_MCBSP
++	select SND_SOC_TWL4030
++	help
++	  Say Y if you want to add support for SoC audio on the Beagleboard.
++
+diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
+index b96b97b..09fd0bb 100644
+--- a/sound/soc/omap/Makefile
++++ b/sound/soc/omap/Makefile
+@@ -8,7 +8,9 @@ obj-$(CONFIG_SND_OMAP_SOC_MCBSP) += snd-soc-omap-mcbsp.o
+ # OMAP Machine Support
+ snd-soc-n810-objs := n810.o
+ snd-soc-overo-objs := overo.o
++snd-soc-omap3beagle-objs := omap3beagle.o
+ 
+ obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
+ obj-$(CONFIG_SND_OMAP_SOC_OVERO) += snd-soc-overo.o
++obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
+ 
+diff --git a/sound/soc/omap/omap3beagle.c b/sound/soc/omap/omap3beagle.c
+new file mode 100644
+index 0000000..1d0e398
+--- /dev/null
++++ b/sound/soc/omap/omap3beagle.c
+@@ -0,0 +1,149 @@
++/*
++ * omap3beagle.c  --  SoC audio for OMAP3 Beagle
++ *
++ * Author: Steve Sakoman <steve@sakoman.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#include <linux/clk.h>
++#include <linux/platform_device.h>
++#include <sound/core.h>
++#include <sound/pcm.h>
++#include <sound/soc.h>
++#include <sound/soc-dapm.h>
++
++#include <asm/mach-types.h>
++#include <mach/hardware.h>
++#include <mach/gpio.h>
++#include <mach/mcbsp.h>
++
++#include "omap-mcbsp.h"
++#include "omap-pcm.h"
++#include "../codecs/twl4030.h"
++
++static int omap3beagle_hw_params(struct snd_pcm_substream *substream,
++	struct snd_pcm_hw_params *params)
++{
++	struct snd_soc_pcm_runtime *rtd = substream->private_data;
++	struct snd_soc_dai *codec_dai = rtd->dai->codec_dai;
++	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
++	int ret;
++
++	/* Set codec DAI configuration */
++	ret = snd_soc_dai_set_fmt(codec_dai,
++				  SND_SOC_DAIFMT_I2S |
++				  SND_SOC_DAIFMT_NB_NF |
++				  SND_SOC_DAIFMT_CBM_CFM);
++	if (ret < 0) {
++		printk(KERN_ERR "can't set codec DAI configuration\n");
++		return ret;
++	}
++
++	/* Set cpu DAI configuration */
++	ret = snd_soc_dai_set_fmt(cpu_dai,
++				  SND_SOC_DAIFMT_I2S |
++				  SND_SOC_DAIFMT_NB_NF |
++				  SND_SOC_DAIFMT_CBM_CFM);
++	if (ret < 0) {
++		printk(KERN_ERR "can't set cpu DAI configuration\n");
++		return ret;
++	}
++
++	/* Set the codec system clock for DAC and ADC */
++	ret = snd_soc_dai_set_sysclk(codec_dai, 0, 26000000,
++				     SND_SOC_CLOCK_IN);
++	if (ret < 0) {
++		printk(KERN_ERR "can't set codec system clock\n");
++		return ret;
++	}
++
++	return 0;
++}
++
++static struct snd_soc_ops omap3beagle_ops = {
++	.hw_params = omap3beagle_hw_params,
++};
++
++/* Digital audio interface glue - connects codec <--> CPU */
++static struct snd_soc_dai_link omap3beagle_dai = {
++	.name = "TWL4030",
++	.stream_name = "TWL4030",
++	.cpu_dai = &omap_mcbsp_dai[0],
++	.codec_dai = &twl4030_dai,
++	.ops = &omap3beagle_ops,
++};
++
++/* Audio machine driver */
++static struct snd_soc_machine snd_soc_machine_omap3beagle = {
++	.name = "omap3beagle",
++	.dai_link = &omap3beagle_dai,
++	.num_links = 1,
++};
++
++/* Audio subsystem */
++static struct snd_soc_device omap3beagle_snd_devdata = {
++	.machine = &snd_soc_machine_omap3beagle,
++	.platform = &omap_soc_platform,
++	.codec_dev = &soc_codec_dev_twl4030,
++};
++
++static struct platform_device *omap3beagle_snd_device;
++
++static int __init omap3beagle_soc_init(void)
++{
++	int ret;
++
++	printk(KERN_INFO "OMAP3 Beagle SoC init\n");
++	if (!machine_is_omap3_beagle()) {
++		printk(KERN_ERR "Not OMAP3 Beagle!\n");
++		return -ENODEV;
++	}
++
++	omap3beagle_snd_device = platform_device_alloc("soc-audio", -1);
++	if (!omap3beagle_snd_device) {
++		printk(KERN_ERR "Platform device allocation failed\n");
++		return -ENOMEM;
++	}
++
++	platform_set_drvdata(omap3beagle_snd_device, &omap3beagle_snd_devdata);
++	omap3beagle_snd_devdata.dev = &omap3beagle_snd_device->dev;
++	*(unsigned int *)omap3beagle_dai.cpu_dai->private_data = 1; /* McBSP2 */
++
++	ret = platform_device_add(omap3beagle_snd_device);
++	if (ret)
++		goto err1;
++
++	return 0;
++
++err1:
++	printk(KERN_ERR "Unable to add platform device\n");
++	platform_device_put(omap3beagle_snd_device);
++
++	return ret;
++}
++
++static void __exit omap3beagle_soc_exit(void)
++{
++	platform_device_unregister(omap3beagle_snd_device);
++}
++
++module_init(omap3beagle_soc_init);
++module_exit(omap3beagle_soc_exit);
++
++MODULE_AUTHOR("Steve Sakoman <steve@sakoman.com>");
++MODULE_DESCRIPTION("ALSA SoC OMAP3 Beagle");
++MODULE_LICENSE("GPL");
 -- 
-balbi
+1.6.0.1
+
