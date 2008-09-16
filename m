@@ -1,15 +1,15 @@
 From: Carlos Chinea <carlos.chinea@nokia.com>
-Subject: [PATCH 1/5] OMAP SSI hardware interface definitions
-Date: Tue, 16 Sep 2008 17:41:04 +0300
-Message-ID: <1221576068-16206-1-git-send-email-carlos.chinea@nokia.com>
+Subject: [PATCH 2/5] OMAP SSI driver interface
+Date: Tue, 16 Sep 2008 17:41:05 +0300
+Message-ID: <1221576068-16206-2-git-send-email-carlos.chinea@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:49297 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:49315 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752295AbYIPOlZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 10:41:25 -0400
+	with ESMTP id S1752636AbYIPOla (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 10:41:30 -0400
 Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8GEfG5T004260
-	for <linux-omap@vger.kernel.org>; Tue, 16 Sep 2008 17:41:22 +0300
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8GEfG5b004260
+	for <linux-omap@vger.kernel.org>; Tue, 16 Sep 2008 17:41:28 +0300
 In-Reply-To: 1221575400.6315.227.camel@groo.research.nokia.com
 References: 1221575400.6315.227.camel@groo.research.nokia.com
 Sender: linux-omap-owner@vger.kernel.org
@@ -18,30 +18,20 @@ To: linux-omap@vger.kernel.org
 
 Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
 ---
- arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h  |  145 ++++++++++++++++++++
- .../plat-omap/include/mach/ssi/ssi_reg_common.h    |   73 ++++++++++
- arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h  |   56 ++++++++
- arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h  |   65 +++++++++
- arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h  |  107 ++++++++++++++
- 5 files changed, 446 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h
- create mode 100644 arch/arm/plat-omap/include/mach/ssi/ssi_reg_common.h
- create mode 100644 arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h
- create mode 100644 arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h
- create mode 100644 arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h
+ include/linux/ssi_driver_if.h |  137 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 137 insertions(+), 0 deletions(-)
+ create mode 100644 include/linux/ssi_driver_if.h
 
-diff --git a/arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h b/arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h
+diff --git a/include/linux/ssi_driver_if.h b/include/linux/ssi_driver_if.h
 new file mode 100644
-index 0000000..5ed91cc
+index 0000000..bad8f22
 --- /dev/null
-+++ b/arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h
-@@ -0,0 +1,145 @@
++++ b/include/linux/ssi_driver_if.h
+@@ -0,0 +1,137 @@
 +/*
-+ * ssi_gdd_reg.h
++ * ssi_driver_if.h
 + *
-+ * Hardware defintions for SSI Controller GDD registers.
-+ *
-+ * HARDWARE: OMAP 2420, OMAP 3430
++ * Header for the SSI driver low level interface.
 + *
 + * Copyright (C) 2007-2008 Nokia Corporation. All rights reserved.
 + *
@@ -61,450 +51,119 @@ index 0000000..5ed91cc
 + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 + * 02110-1301 USA
 + */
-+#ifndef __SSI_GDD_REG_H__
-+#define __SSI_GDD_REG_H__
++#ifndef __SSI_DRIVER_IF_H__
++#define __SSI_DRIVER_IF_H__
 +
-+#include "ssi_reg_common.h"
++#include <linux/device.h>
 +
-+#define SSI_GDD_HW_ID_REG		SSI_GDD_REG32(0x0000)
-+#define SSI_GDD_PPORT_ID_REG		SSI_GDD_REG32(0x0010)
-+#define SSI_GDD_MPORT_ID_REG		SSI_GDD_REG32(0x0014)
++#define SSI_IOMEM_NAME		"SSI_IO_MEM"
++#define SSI_P1_MPU_IRQ0_NAME	"SSI_P1_MPU_IRQ0"
++#define SSI_P2_MPU_IRQ0_NAME	"SSI_P2_MPU_IRQ0"
++#define SSI_P1_MPU_IRQ1_NAME	"SSI_P1_MPU_IRQ1"
++#define SSI_P2_MPU_IRQ1_NAME	"SSI_P2_MPU_IRQ1"
++#define SSI_GDD_MPU_IRQ_NAME	"GDD_MPU_IRQ"
 +
-+#define SSI_GDD_PPORT_SR_REG		SSI_GDD_REG32(0x0020)
-+#	define SSI_PPORT_ACTIVE_LCH_NUMBER_MASK	0xFF
++/* IRQ values */
++#define SSI_P1_MPU_IRQ0		67
++#define SSI_P2_MPU_IRQ0		68
++#define SSI_P1_MPU_IRQ1		69
++#define SSI_P2_MPU_IRQ1		70
++#define SSI_GDD_MPU_IRQ		71
 +
-+#define SSI_GDD_MPORT_SR_REG		SSI_GDD_REG32(0x0024)
-+#	define SSI_MPORT_ACTIVE_LCH_NUMBER_MASK	0xFF
-+
-+#define SSI_GDD_TEST_REG 		SSI_GDD_REG32(0x0040)
-+#	define SSI_TEST			0x1
-+
-+#define SSI_GDD_GCR_REG			SSI_GDD_REG32(0x0100)
-+#	define	SSI_CLK_AUTOGATING_ON	(1<<3)
-+#	define	SSI_FREE		(1<<2)
-+#	define	SSI_SWITCH_OFF		0x1
-+
-+#define SSI_GDD_GRST_REG 		SSI_GDD_REG32(0x0200)
-+#	define SSI_SWRESET		0x1
-+
-+#define SSI_GDD_CSDP_BASE		0x0800
-+#define SSI_GDD_CSDP_OFFSET		0x40
-+#define SSI_GDD_CSDP_REG(channel) 	SSI_GDD_REG16(SSI_GDD_CSDP_BASE +\
-+					 (channel*SSI_GDD_CSDP_OFFSET))
-+#	define SSI_DST_BURST_EN_MASK	0xC000
-+#	define SSI_DST_SINGLE_ACCESS0	0x0
-+#	define SSI_DST_SINGLE_ACCESS	(0x1<<14)
-+#	define SSI_DST_BURST_4X32_BIT	(0x2<<14)
-+#	define SSI_DST_BURST_8x32_BIT	(0x3<<14)	/*NOTE: NOT SUPPORTED */
-+
-+#	define SSI_DST_MASK		0x1E00
-+#	define SSI_DST_MEMORY_PORT	(0x8<<9)
-+#	define SSI_DST_PERIPHERAL_PORT	(0x9<<9)
-+
-+#	define SSI_SRC_BURST_EN_MASK	0x0180
-+#	define SSI_SRC_SINGLE_ACCESS0	0x0
-+#	define SSI_SRC_SINGLE_ACCESS	(0x1<<7)
-+#	define SSI_SRC_BURST_4x32_BIT	(0x2<<7)
-+#	define SSI_SRC_BURST_8x32_BIT	(0x3<<7)	/*NOTE: NOT SUPPORTED */
-+
-+#	define SSI_SRC_MASK		0x003C
-+#	define SSI_SRC_MEMORY_PORT	(0x8<<2)
-+#	define SSI_SRC_PERIPHERAL_PORT	(0x9<<2)
-+
-+#	define SSI_DATA_TYPE_MASK	0x0003
-+#	define SSI_DATA_TYPE_S32	0x2
-+
-+#define SSI_GDD_CCR_BASE 		0x0802
-+#define SSI_GDD_CCR_OFFSET 		0x40
-+#define SSI_GDD_CCR_REG(channel)	SSI_GDD_REG16(SSI_GDD_CCR_BASE +\
-+					 (channel*SSI_GDD_CCR_OFFSET))
-+#	define SSI_DST_AMODE_MASK	(0x3<<14)
-+#	define SSI_DST_AMODE_CONST	0x0
-+#	define SSI_DST_AMODE_POSTINC	(0x1<<12)
-+
-+#	define SSI_SRC_AMODE_MASK	(0x3<<12)
-+#	define SSI_SRC_AMODE_CONST	0x0
-+#	define SSI_SRC_AMODE_POSTINC	(0x1<<12)
-+
-+#	define SSI_CCR_ENABLE		(0x1<<7)
-+
-+#	define SSI_CCR_SYNC_MASK	0x001F
-+
-+#define SSI_GDD_CICR_BASE 		0x0804
-+#define SSI_GDD_CICR_OFFSET		0x40
-+#define SSI_GDD_CICR_REG(channel)	SSI_GDD_REG16(SSI_GDD_CICR_BASE +\
-+					 (channel*SSI_GDD_CICR_OFFSET))
-+#	define SSI_BLOCK_IE		(0x1<<5)
-+#	define SSI_HALF_IE		(0x1<<2)
-+#	define SSI_TOUT_IE		0x1
-+
-+#define SSI_GDD_CSR_BASE 		0x0806
-+#define SSI_GDD_CSR_OFFSET 		0x40
-+#define SSI_GDD_CSR_REG(channel)	SSI_GDD_REG16(SSI_GDD_CSR_BASE +\
-+					 (channel*SSI_GDD_CSR_OFFSET))
-+#	define SSI_CSR_SYNC		(0x1<<6)
-+#	define SSI_CSR_BLOCK		(0x1<<5)
-+#	define SSI_CSR_HALF		(0x1<<2)
-+#	define SSI_CSR_TOUR		0x1
-+
-+#define SSI_GDD_CSSA_BASE 		0x0808
-+#define SSI_GDD_CSSA_OFFSET		0x40
-+#define SSI_GDD_CSSA_REG(channel)	SSI_GDD_REG32(SSI_GDD_CSSA_BASE +\
-+					 (channel*SSI_GDD_CSSA_OFFSET))
-+
-+#define SSI_GDD_CDSA_BASE 		0x080C
-+#define SSI_GDD_CDSA_OFFSET		0x40
-+#define SSI_GDD_CDSA_REG(channel)	SSI_GDD_REG32(SSI_GDD_CDSA_BASE +\
-+					 (channel*SSI_GDD_CDSA_OFFSET))
-+
-+#define SSI_GDD_CEN_BASE		0x0810
-+#define SSI_GDD_CEN_OFFSET		0x40
-+#define SSI_GDD_CEN_REG(channel)	SSI_GDD_REG16(SSI_GDD_CEN_BASE +\
-+					 (channel*SSI_GDD_CEN_OFFSET))
-+
-+#define SSI_GDD_CSAC_BASE 		0x0818
-+#define SSI_GDD_CSAC_OFFSET		0x40
-+#define SSI_GDD_CSAC_REG(channel) 	SSI_GDD_REG16(SSI_GDD_CSAC_BASE +\
-+					 (channel*SSI_GDD_CSAC_OFFSET))
-+
-+#define SSI_GDD_CDAC_BASE 		0x081A
-+#define SSI_GDD_CDAC_OFFSET		0x40
-+#define SSI_GDD_CDAC_REG(channel) 	SSI_GDD_REG16(SSI_GDD_CDAC_BASE +\
-+					 (channel*SSI_GDD_CDAC_OFFSET))
-+
-+#define SSI_GDD_CLNK_CTRL_BASE		0x0828
-+#define SSI_GDD_CLNK_CTRL_OFFSET	0x40
-+#define SSI_GDD_CLNK_CTRL_REG(channel)	SSI_GDD_REG16(SSI_GDD_CLNK_CTRL_BASE +\
-+					 (channel*SSI_GDD_CLNK_CTRL_OFFSET))
-+#	define SSI_ENABLE_LNK		(0x1<<15)
-+#	define SSI_STOP_LNK		(0x1<<14)
-+#	define NEXT_CH_ID_MASK		0xF
-+
-+#endif
-diff --git a/arch/arm/plat-omap/include/mach/ssi/ssi_reg_common.h b/arch/arm/plat-omap/include/mach/ssi/ssi_reg_common.h
-new file mode 100644
-index 0000000..e66fb43
---- /dev/null
-+++ b/arch/arm/plat-omap/include/mach/ssi/ssi_reg_common.h
-@@ -0,0 +1,73 @@
-+/*
-+ * ssi_reg_common.h
-+ *
-+ * Common hardware definitions for SSI.
-+ *
-+ * HARDWARE: OMAP 2420, 3430
-+ *
-+ * Copyright (C) 2007-2008 Nokia Corporation. All rights reserved.
-+ *
-+ * Contact: Carlos Chinea <carlos.chinea@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
-+
-+#ifndef __SSI_REG_COMMON_H__
-+#define __SSI_REG_COMMON_H__
-+
-+#define SSI_COMMON_BASE_ADDR		0x48050000
-+
-+/* SSI system registers */
-+#define SSI_SYS_OFFSET			0x8000
-+#define SSI_SYS_REG32(offset)		(SSI_SYS_OFFSET + (offset))
-+/* SSI GDD registers */
-+#define SSI_GDD_OFFSET			0x9000
-+#define SSI_GDD_REG32(offset)		(SSI_GDD_OFFSET + (offset))
-+#define SSI_GDD_REG16(offset)		(SSI_GDD_OFFSET + (offset))
-+
-+/* SSI SST registers */
-+/* General offset of SST port 1. First SST port register.*/
-+#define SSI_SST1_OFFSET			0xA000
-+/* General offset of SST port 2.*/
-+#define SSI_SST2_OFFSET			0xB000
-+/* Offset among the SST ports.*/
-+#define SSI_SST_PORT_OFFSET		0x1000
-+#define SSI_SST_OFFSET(port)		(SSI_SST1_OFFSET +\
-+					 ((port-1)*(SSI_SST_PORT_OFFSET)))
-+#define SSI_SST_REG(port, offset)	(SSI_SST_OFFSET(port) + (offset))
-+
-+/* SSI SSR registers */
-+/* General offset of SSR port 1. First SSR port register.*/
-+#define SSI_SSR1_OFFSET			0xA800
-+/* General offset of SSR port 2.*/
-+#define SSI_SSR2_OFFSET			0xB800
-+/* Offset among the SSR ports.*/
-+#define SSI_SSR_PORT_OFFSET		0x1000
-+#define SSI_SSR_OFFSET(port)		(SSI_SSR1_OFFSET +\
-+					 ((port-1)*(SSI_SSR_PORT_OFFSET)))
-+#define SSI_SSR_REG(port, offset)	(SSI_SSR_OFFSET(port) + (offset))
-+
-+#define SSI_IOMEM_BASE_ADDR		SSI_COMMON_BASE_ADDR
-+#define SSI_IOMEM_SIZE			0x3C00
++/* The number of ports handled by the driver. (MAX:2) */
++#define SSI_MAX_PORTS		1
 +
 +/*
-+ * FIXME: Following definitions to be removed.
-+ * They are used for checking that the SSI clocks are stable before accessing
-+ * the SSI registers.
++ * Masks used to enable or disable the reception of certain hardware events
++ * for the ssi_device_drivers
 + */
-+#define OMAP_COMMON_BASE                0x48000000
-+#define CM_IDLEST1_CORE_REG		0x4A20
-+#define ST_SSI				1
-+#endif
-diff --git a/arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h b/arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h
-new file mode 100644
-index 0000000..b272047
---- /dev/null
-+++ b/arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h
-@@ -0,0 +1,56 @@
-+/*
-+ * ssi_sst_reg.h
-+ *
-+ * Hardware definitions for SSI controller SSR registers.
-+ *
-+ * HARDWARE: OMAP 2420, 3430
-+ *
-+ * Copyright (C) 2007-2008 Nokia Corporation. All rights reserved.
-+ *
-+ * Contact: Carlos Chinea <carlos.chinea@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
++#define SSI_EVENT_CLEAR			0x00
++#define SSI_EVENT_MASK			0xFF
++#define SSI_EVENT_BREAK_DETECTED_MASK	0x01
++#define SSI_EVENT_ERROR_MASK		0x02
 +
-+#ifndef __SSI_SSR_REG_H__
-+#define __SSI_SSR_REG_H__
++#define ANY_SSI_CONTROLLER	-1
++#define ANY_CHANNEL		-1
++#define CHANNEL(channel)	(1<<channel)
 +
-+#include "ssi_reg_common.h"
++enum {
++	SSI_EVENT_BREAK_DETECTED = 0,
++	SSI_EVENT_ERROR,
++};
 +
-+#define SSI_SSR_ID_REG(port)			SSI_SSR_REG(port, 0x0000)
-+#define SSI_SSR_MODE_REG(port)			SSI_SSR_REG(port, 0x0004)
-+#define SSI_SSR_FRAMESIZE_REG(port)		SSI_SSR_REG(port, 0x0008)
-+#define SSI_SSR_RXSTATE_REG(port)  		SSI_SSR_REG(port, 0x000C)
-+#define SSI_SSR_BUFSTATE_REG(port) 		SSI_SSR_REG(port, 0x0010)
-+#	define NOTEMPTY(channel)		(1<<channel)
-+#define SSI_SSR_BREAK_REG(port)			SSI_SSR_REG(port, 0x001C)
-+#define SSI_SSR_ERROR_REG(port)			SSI_SSR_REG(port, 0x0020)
-+#define SSI_SSR_ERRORACK_REG(port)		SSI_SSR_REG(port, 0x0024)
-+#define SSI_SSR_OVERRUN_REG(port)		SSI_SSR_REG(port, 0x002C)
-+#define SSI_SSR_OVERRUNACK_REG(port)		SSI_SSR_REG(port, 0x0030)
-+#define SSI_SSR_TIMEOUT_REG(port)		SSI_SSR_REG(port, 0x0030)
-+#	define SSI_TIMEOUT_DEFAULT		0
-+#define SSI_SSR_CHANNELS_REG(port)		SSI_SSR_REG(port, 0x0028)
++enum {
++	SSI_IOCTL_WAKE_UP,
++	SSI_IOCTL_WAKE_DOWN,
++	SSI_IOCTL_SEND_BREAK,
++	GET_WAKE,
++};
 +
-+#define SSI_SSR_BUFFER_OFFSET_BASE		0x0080
-+#define SSI_SSR_BUFFER_CH_REG(port, channel)	SSI_SSR_REG(port, \
-+						(SSI_SSR_BUFFER_OFFSET_BASE +\
-+						 (channel * 0x04)))
++/* Forward references */
++struct ssi_device;
++struct ssi_dev;
++struct ssi_port;
++struct ssi_channel;
 +
-+#define SSI_SSR_SWAPBUFFER_OFFSET_BASE		0x00C0
-+#define SSI_SSR_SWAPBUFFER_CH_REG(port, channel) SSI_SSR_REG(port, \
-+						(SSI_SSR_SWAPBUFFER_OFFSET_BASE\
-+						 + (channel * 0x04)))
-+#endif
-diff --git a/arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h b/arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h
-new file mode 100644
-index 0000000..ed15908
---- /dev/null
-+++ b/arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h
-@@ -0,0 +1,65 @@
-+/*
-+ * ssi_sst_reg.h
-+ *
-+ * Hardware definitions for SSI controller SST registers.
-+ *
-+ * HARDWARE: OMAP 2420, 3430
-+ *
-+ * Copyright (C) 2007-2008 Nokia Corporation. All rights reserved.
-+ *
-+ * Contact: Carlos Chinea <carlos.chinea@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
++struct ssi_port_pd {
++	u32 tx_mode;
++	u32 tx_frame_size;
++	u32 divisor;
++	u32 tx_ch;
++	u32 arb_mode;
++	u32 rx_mode;
++	u32 rx_frame_size;
++	u32 rx_ch;
++	u32 timeout;
++	u8 n_irq;
++};
 +
-+#ifndef __SSI_SST_REG_H__
-+#define __SSI_SST_REG_H__
++struct ssi_platform_data {
++	unsigned char *clk_name;
++	struct ssi_dev *ssi_ctrl;
++	struct ssi_port_pd *ports;
++	u8 num_ports;
++};
 +
-+#include "ssi_reg_common.h"
++struct ssi_device {
++	int n_ctrl;
++	unsigned int n_p;
++	unsigned int n_ch;
++	char modalias[BUS_ID_SIZE];
++	struct ssi_channel *ch;
++	struct device device;
++};
 +
-+#define SSI_SST_ID_REG(port)			SSI_SST_REG(port, 0x0000)
-+#define SSI_SST_MODE_REG(port)			SSI_SST_REG(port, 0x0004)
-+#	define SSI_MODE_VAL_MASK		0x3
-+#	define SSI_MODE_SLEEP			0x0
-+#	define SSI_MODE_STREAM			0x1
-+#	define SSI_MODE_FRAME			0x2
-+#	define SSI_MODE_MULTIPOINTS		0x3
-+#define SSI_SST_FRAMESIZE_REG(port)		SSI_SST_REG(port, 0x0008)
-+#	define SSI_FRAMESIZE_DEFAULT		31
-+#define SSI_SST_TXSTATE_REG(port)  		SSI_SST_REG(port, 0x000C)
-+#	define	TXSTATE_IDLE			0x0
-+#define SSI_SST_BUFSTATE_REG(port) 		SSI_SST_REG(port, 0x0010)
-+#	define 	NOTFULL(channel)		(1<<channel)
-+#define SSI_SST_DIVISOR_REG(port)		SSI_SST_REG(port, 0x0018)
-+#	define SSI_DIVISOR_DEFAULT		1
++#define to_ssi_device(dev)	container_of(dev, struct ssi_device, device)
 +
-+#define SSI_SST_BREAK_REG(port)			SSI_SST_REG(port, 0x0020)
-+#define SSI_SST_CHANNELS_REG(port)		SSI_SST_REG(port, 0x0024)
-+#	define SSI_CHANNELS_DEFAULT		4
++struct ssi_device_driver {
++	unsigned long		ctrl_mask;
++	unsigned long		ch_mask[SSI_MAX_PORTS];
++	unsigned long		event_mask;
++	void 			(*port_event) (int c_id, unsigned int port,
++						unsigned int event, void *arg);
++	int			(*probe)(struct ssi_device *dev);
++	int			(*remove)(struct ssi_device *dev);
++	int			(*suspend)(struct ssi_device *dev,
++						pm_message_t mesg);
++	int			(*resume)(struct ssi_device *dev);
++	struct device_driver 	driver;
++};
 +
-+#define SSI_SST_ARBMODE_REG(port)		SSI_SST_REG(port, 0x0028)
-+#	define SSI_ARBMODE_ROUNDROBIN		0x0
-+#	define SSI_ARBMODE_PRIORITY		0x1
++#define to_ssi_device_driver(drv) container_of(drv, \
++						struct ssi_device_driver, \
++						driver)
 +
-+#define SSI_SST_BUFFER_OFFSET_BASE		0x0080
-+#define SSI_SST_BUFFER_CH_REG(port, channel)	SSI_SST_REG(port, \
-+						(SSI_SST_BUFFER_OFFSET_BASE +\
-+						 (channel * 0x4)))
-+
-+#define SSI_SST_SWAPBUF_OFFSET_BASE		0x00C0
-+#define SSI_SST_SWAPBUF_CH_REG(port, channel)	SSI_SST_REG(port, \
-+						(SSI_SST_SWAPBUF_OFFSET_BASE +\
-+						(channel * 0x4)))
-+#endif
-diff --git a/arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h b/arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h
-new file mode 100644
-index 0000000..2f1e1f5
---- /dev/null
-+++ b/arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h
-@@ -0,0 +1,107 @@
-+/*
-+ * ssi_sys_reg.h
-+ *
-+ * Hardware defintions for SSI Controller system registers.
-+ *
-+ * HARDWARE: OMAP 2420, 3430
-+ *
-+ * Copyright (C) 2007-2008 Nokia Corporation. All rights reserved.
-+ *
-+ * Contact: Carlos Chinea <carlos.chinea@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
-+
-+#ifndef __SSI_SYS_REG_H__
-+#define __SSI_SYS_REG_H__
-+
-+#include "ssi_reg_common.h"
-+
-+#define SSI_SYS_REVISION_REG		SSI_SYS_REG32(0x0000)
-+#	define SSI_REV_MASK		0x000000FF
-+#	define SSI_REV_MAJOR		0xF0
-+#	define SSI_REV_MINOR		0x0F
-+
-+#define SSI_SYS_SYSCONFIG_REG		SSI_SYS_REG32(0x0010)
-+#	define SSI_AUTOIDLE		1
-+#	define SSI_SOFTRESET		(1<<1)
-+#	define SSI_SIDLEMODE_FORCE	0
-+#	define SSI_SIDLEMODE_NO		(1<<3)
-+#	define SSI_SIDLEMODE_SMART	(1<<4)
-+#	define SSI_SIDLEMODE_MASK	0x00000018
-+#	define SSI_MIDLEMODE_FORCE	0
-+#	define SSI_MIDLEMODE_NO		(1<<12)
-+#	define SSI_MIDLEMODE_SMART	(1<<13)
-+#	define SSI_MIDLEMODE_MASK	0x00003000
-+
-+#define SSI_SYS_SYSSTATUS_REG		SSI_SYS_REG32(0x0014)
-+#	define SSI_RESETDONE		1
-+
-+#define SSI_SYS_MPU_STATUS_BASE		0x0808
-+#define SSI_SYS_MPU_STATUS_PORT_OFFSET	0x10
-+#define SSI_SYS_MPU_STATUS_IRQ_OFFSET	0x2
-+#define SSI_SYS_MPU_STATUS_REG(port, irq) \
-+		SSI_SYS_REG32(SSI_SYS_MPU_STATUS_BASE +\
-+		 (((port-1)*SSI_SYS_MPU_STATUS_PORT_OFFSET) +\
-+		 (irq*SSI_SYS_MPU_STATUS_IRQ_OFFSET)))
-+
-+#define SSI_SYS_MPU_ENABLE_BASE		0x080C
-+#define SSI_SYS_MPU_ENABLE_PORT_OFFSET	0x10
-+#define SSI_SYS_MPU_ENABLE_IRQ_OFFSET	0x8
-+#define SSI_SYS_MPU_ENABLE_REG(port, irq) \
-+		SSI_SYS_REG32(SSI_SYS_MPU_ENABLE_BASE +\
-+		 (((port-1)*SSI_SYS_MPU_ENABLE_PORT_OFFSET) +\
-+		 (irq*SSI_SYS_MPU_ENABLE_IRQ_OFFSET)))
-+
-+#define SSI_SYS_DSP_STATUS_BASE		0x0830
-+#define SSI_SYS_DSP_STATUS_PORT_OFFSET	0x10
-+#define SSI_SYS_DSP_STATUS_IRQ_OFFSET	0x8
-+#define SSI_SYS_DSP_STATUS_REG(port, irq) \
-+		SSI_SYS_REG32(SSI_SYS_DSP_STATUS_BASE +\
-+		 (((port-1)*SSI_SYS_DSP_STATUS_PORT_OFFSET) +\
-+		 (irq*SSI_SYS_DSP_STATUS_IRQ_OFFSET)))
-+
-+#define SSI_SYS_DSP_ENABLE_BASE		0x0834
-+#define SSI_SYS_DSP_ENABLE_PORT_OFFSET	0x10
-+#define SSI_SYS_DSP_ENABLE_IRQ_OFFSET	0x8
-+#define SSI_SYS_DSP_ENABLE_REG(port, irq) \
-+		SSI_SYS_REG32(SSI_SYS_DSP_ENABLE_BASE +\
-+		 (((port-1)*SSI_SYS_DSP_ENABLE_PORT_OFFSET) +\
-+		 (irq*SSI_SYS_DSP_ENABLE_IRQ_OFFSET)))
-+#	define SSI_SST_DATAACCEPT(channel)	(1<<channel)
-+#	define SSI_SSR_DATAAVAILABLE(channel)	(1<<(channel + 8))
-+#	define SSI_SSR_DATAOVERRUN(channel)	(1<<(channel + 16))
-+#	define SSI_ERROROCCURED			(1<<24)
-+#	define SSI_BREAKDETECTED		(1<<25)
-+
-+#define SSI_SYS_GDD_MPU_IRQ_STATUS_REG	SSI_SYS_REG32(0x0800)
-+#define SSI_SYS_GDD_MPU_IRQ_ENABLE_REG	SSI_SYS_REG32(0x0804)
-+#define SSI_SYS_GDD_DSP_IRQ_STATUS_REG 	SSI_SYS_REG32(0x0828)
-+#define SSI_SYS_GDD_DSP_IRQ_ENABLE_REG 	SSI_SYS_REG32(0x082C)
-+#	define SSI_GDD_LCH(channel)	(1<<channel)
-+
-+#define SSI_SYS_WAKE_OFFSET		0x10
-+#define SSI_SYS_WAKE_BASE		0x0C00
-+#define SSI_SYS_WAKE_REG(port) 		SSI_SYS_REG32(SSI_SYS_WAKE_BASE +\
-+					 ((port-1)*SSI_SYS_WAKE_OFFSET))
-+#define SSI_SYS_CLEAR_WAKE_BASE		0x0C04
-+#define SSI_SYS_CLEAR_WAKE_REG(port)	SSI_SYS_REG32(SSI_SYS_CLEAR_WAKE_BASE +\
-+					 ((port-1)*SSI_SYS_WAKE_OFFSET))
-+#define SSI_SYS_SET_WAKE_BASE		0x0C08
-+#define SSI_SYS_SET_WAKE_REG(port)	SSI_SYS_REG32(SSI_SYS_SET_WAKE_BASE +\
-+					 ((port-1)*SSI_SYS_WAKE_OFFSET))
-+#	define SSI_WAKE(channel)	(1<<channel)
-+#	define SSI_WAKE_MASK		0xFF
++int register_ssi_driver(struct ssi_device_driver *driver);
++void unregister_ssi_driver(struct ssi_device_driver *driver);
++int ssi_open(struct ssi_device *dev);
++int ssi_write(struct ssi_device *dev, u32 *data, unsigned int count);
++void ssi_write_cancel(struct ssi_device *dev);
++int ssi_read(struct ssi_device *dev, u32 *data, unsigned int w_count);
++void ssi_read_cancel(struct ssi_device *dev);
++int ssi_ioctl(struct ssi_device *dev, unsigned int command, void *arg);
++void ssi_close(struct ssi_device *dev);
++void ssi_dev_set_cb(struct ssi_device *dev, void (*r_cb)(struct ssi_device *dev)
++					, void (*w_cb)(struct ssi_device *dev));
 +#endif
 -- 
 1.5.3.6
