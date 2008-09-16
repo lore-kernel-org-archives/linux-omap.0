@@ -1,55 +1,68 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP3: GPIO: Enable debounce clock only when debounce
- is enabled v2.
-Date: Tue, 16 Sep 2008 06:19:51 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0809160618250.21341@utopia.booyaka.com>
-References: <873ak0mk5t.fsf@deeprootsystems.com> <1221567379-2177-1-git-send-email-jouni.hogander@nokia.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: Question about timers used in dsp bridge
+Date: Tue, 16 Sep 2008 15:27:55 +0300
+Message-ID: <87r67k8ed0.fsf@trdhcp146196.ntc.nokia.com>
+References: <200809161040.m8GAesjU011517@dbdp31.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40723 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752891AbYIPMTw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 08:19:52 -0400
-In-Reply-To: <1221567379-2177-1-git-send-email-jouni.hogander@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:27096 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751428AbYIPM0b convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 08:26:31 -0400
+In-Reply-To: <200809161040.m8GAesjU011517@dbdp31.itg.ti.com> (ext Ramesh Gupta
+	Guntha's message of "Tue, 16 Sep 2008 16:10:53 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jouni Hogander <jouni.hogander@nokia.com>
+To: ext Ramesh Gupta Guntha <x0023949@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-Hi Jouni,
+"ext Ramesh Gupta Guntha" <x0023949@ti.com> writes:
 
-sorry to make you rework this again, but:
+> Hi Jouni,=20
+>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org=20
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of=20
+>> "H=C3=B6gander" Jouni
+>> Sent: Tuesday, September 16, 2008 4:02 PM
+>> To: linux-omap@vger.kernel.org
+>> Subject: Question about timers used in dsp bridge
+>>=20
+>> Hi,
+>>=20
+>> Dsp bridge is using gpt5 and gpt6. When loading baseimage:
+>>=20
+>> cexec.out -T /lib/dsp/baseimage.dof
+>>=20
+>> both timers are started, but gpt5 is stopped at some point. Gpt6 is
+>> left running. Any idea what for these timers are used and why gpt6 i=
+s
+>> left running?
+>
+> In Dsp Bridge GPT5 is used as BIOS_CLK and used only while DSP is sta=
+rting, this is disabled once the DSP is started.=20
+> GPT6 is used for load monitoring purpose by DSP Bridge. GPT6 is
+> disabled only if the DSP enters into sleep state i.e. Hibernation.
 
-On Tue, 16 Sep 2008, Jouni Hogander wrote:
+Thanks for your explanation. Is it entering sleep state itself and
+then informing bridge driver about this or is it bridge which asks dsp
+to enter hibernation?
 
-> This patch changes gpio "driver" to enable debounce clock for
-> gpio-bank only when debounce is enabled for some gpio in that bank.
+>
+> Thanks
+> Ramesh Gupta G
+>
+>
+>
+>
 
->  
-> +#if defined(CONFIG_ARCH_OMAP3)
-> +	if (cpu_is_omap34xx())
-> +		enable ? clk_enable(bank->dbck) : clk_disable(bank->dbck);
-> +#endif
+--=20
+Jouni H=C3=B6gander
 
-the #ifdefs here are unnecessary, since the preprocessor will reduce 
-cpu_is_omap34xx() to a constant for single-OMAP builds..
-
-> @@ -1513,6 +1515,15 @@ static int __init _omap_gpio_init(void)
->  		}
->  		set_irq_chained_handler(bank->irq, gpio_irq_handler);
->  		set_irq_data(bank->irq, bank);
-> +
-> +#if defined(CONFIG_ARCH_OMAP3)
-> +		if (cpu_is_omap34xx()) {
-> +			sprintf(clk_name, "gpio%d_dbck", i + 1);
-> +			bank->dbck = clk_get(NULL, clk_name);
-> +			if (IS_ERR(bank->dbck))
-> +				printk(KERN_ERR "Could not get %s\n", clk_name);
-> +		}
-> +#endif
-
-as above.
-
-
-- Paul
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
