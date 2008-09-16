@@ -1,18 +1,17 @@
 From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH 2/3] Debobs and ETK padconf implementation
-Date: Tue, 16 Sep 2008 14:24:39 +0300
-Message-ID: <1221564280-7647-3-git-send-email-peter.de-schrijver@nokia.com>
+Subject: [PATCH 1/3] Add definitions for ETK pads and debobs registers
+Date: Tue, 16 Sep 2008 14:24:38 +0300
+Message-ID: <1221564280-7647-2-git-send-email-peter.de-schrijver@nokia.com>
 References: <1221564280-7647-1-git-send-email-peter.de-schrijver@nokia.com>
- <1221564280-7647-2-git-send-email-peter.de-schrijver@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:64764 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:64760 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752513AbYIPLZV (ORCPT
+	with ESMTP id S1751884AbYIPLZV (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 07:25:21 -0400
 Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8GBP4qP017968
-	for <linux-omap@vger.kernel.org>; Tue, 16 Sep 2008 14:25:19 +0300
-In-Reply-To: <1221564280-7647-2-git-send-email-peter.de-schrijver@nokia.com>
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8GBP0Ux017747
+	for <linux-omap@vger.kernel.org>; Tue, 16 Sep 2008 14:25:18 +0300
+In-Reply-To: <1221564280-7647-1-git-send-email-peter.de-schrijver@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -21,230 +20,60 @@ Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
 Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 ---
- arch/arm/mach-omap2/debobs.c |  214 ++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 214 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/debobs.c
+ arch/arm/plat-omap/include/mach/control.h |   33 +++++++++++++++++++++++++++++
+ 1 files changed, 33 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/debobs.c b/arch/arm/mach-omap2/debobs.c
-new file mode 100644
-index 0000000..1bde1f4
---- /dev/null
-+++ b/arch/arm/mach-omap2/debobs.c
-@@ -0,0 +1,214 @@
-+/*
-+ * arch/arm/mach-omap2/debobs.c
-+ *
-+ * Handle debobs pads
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ *
-+ * Written by Peter De Schrijver <peter.de-schrijver@nokia.com>
-+ *
-+ * This file is subject to the terms and conditions of the GNU General
-+ * Public License. See the file "COPYING" in the main directory of this
-+ * archive for more details.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
+diff --git a/arch/arm/plat-omap/include/mach/control.h b/arch/arm/plat-omap/include/mach/control.h
+index 6845dd7..223e174 100644
+--- a/arch/arm/plat-omap/include/mach/control.h
++++ b/arch/arm/plat-omap/include/mach/control.h
+@@ -149,6 +149,8 @@
+ #define OMAP343X_CONTROL_FUSE_SR	(OMAP2_CONTROL_GENERAL + 0x0130)
+ #define OMAP343X_CONTROL_IVA2_BOOTADDR	(OMAP2_CONTROL_GENERAL + 0x0190)
+ #define OMAP343X_CONTROL_IVA2_BOOTMOD	(OMAP2_CONTROL_GENERAL + 0x0194)
++#define OMAP343X_CONTROL_DEBOBS(i)	(OMAP2_CONTROL_GENERAL + 0x01B0 \
++					+ (i >> 1) * 4 + (!(i & 1) * 2))
+ #define OMAP343X_CONTROL_DEBOBS_0	(OMAP2_CONTROL_GENERAL + 0x01B0)
+ #define OMAP343X_CONTROL_DEBOBS_1	(OMAP2_CONTROL_GENERAL + 0x01B4)
+ #define OMAP343X_CONTROL_DEBOBS_2	(OMAP2_CONTROL_GENERAL + 0x01B8)
+@@ -170,6 +172,37 @@
+ #define OMAP343X_CONTROL_SRAMLDO5	(OMAP2_CONTROL_GENERAL + 0x02C0)
+ #define OMAP343X_CONTROL_CSI		(OMAP2_CONTROL_GENERAL + 0x02b4)
+ 
++/* 34xx PADCONF register offsets */
 +
++#define OMAP343X_PADCONF_ETK(i)		(OMAP2_CONTROL_PADCONFS + 0x5a8 + i*2)
++#define OMAP343X_PADCONF_ETK_CLK	OMAP343X_PADCONF_ETK(0)
++#define OMAP343X_PADCONF_ETK_CTL	OMAP343X_PADCONF_ETK(1)
++#define OMAP343X_PADCONF_ETK_D0		OMAP343X_PADCONF_ETK(2)
++#define OMAP343X_PADCONF_ETK_D1		OMAP343X_PADCONF_ETK(3)
++#define OMAP343X_PADCONF_ETK_D2		OMAP343X_PADCONF_ETK(4)
++#define OMAP343X_PADCONF_ETK_D3		OMAP343X_PADCONF_ETK(5)
++#define OMAP343X_PADCONF_ETK_D4		OMAP343X_PADCONF_ETK(6)
++#define OMAP343X_PADCONF_ETK_D5		OMAP343X_PADCONF_ETK(7)
++#define OMAP343X_PADCONF_ETK_D6		OMAP343X_PADCONF_ETK(8)
++#define OMAP343X_PADCONF_ETK_D7		OMAP343X_PADCONF_ETK(9)
++#define OMAP343X_PADCONF_ETK_D8		OMAP343X_PADCONF_ETK(10)
++#define OMAP343X_PADCONF_ETK_D9		OMAP343X_PADCONF_ETK(11)
++#define OMAP343X_PADCONF_ETK_D10	OMAP343X_PADCONF_ETK(12)
++#define OMAP343X_PADCONF_ETK_D11	OMAP343X_PADCONF_ETK(13)
++#define OMAP343X_PADCONF_ETK_D12	OMAP343X_PADCONF_ETK(14)
++#define OMAP343X_PADCONF_ETK_D13	OMAP343X_PADCONF_ETK(15)
++#define OMAP343X_PADCONF_ETK_D14	OMAP343X_PADCONF_ETK(16)
++#define OMAP343X_PADCONF_ETK_D15	OMAP343X_PADCONF_ETK(17)
 +
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/debugfs.h>
-+#include <linux/uaccess.h>
-+#include <linux/module.h>
-+#include <mach/control.h>
-+#include <mach/mux.h>
-+#include <mach/gpio.h>
-+#include <mach/board.h>
++/* 34xx GENERAL_WKUP regist offsets */
 +
-+#define ETK_GPIO_BEGIN		12
-+#define ETK_GPIO(i)		(ETK_GPIO_BEGIN + i)
-+#define NUM_OF_DEBOBS_PADS	18
-+
-+enum debobs_pad_mode {
-+	GPIO = 0,
-+	OBS = 1,
-+	ETK = 2,
-+	NO_MODE = 3,
-+};
-+
-+static char *debobs_pad_mode_names[] = {
-+	[GPIO] = "GPIO",
-+	[OBS] = "OBS",
-+	[ETK] = "ETK",
-+};
-+
-+struct obs {
-+	u16 offset;
-+	u8 value;
-+	u8 mask;
-+};
-+
-+struct debobs_pad {
-+	enum debobs_pad_mode mode;
-+	struct obs core_obs;
-+	struct obs wakeup_obs;
-+};
-+
-+static struct debobs_pad debobs_pads[NUM_OF_DEBOBS_PADS];
-+
-+static int debobs_mode_open(struct inode *inode, struct file *file)
-+{
-+	file->private_data = inode->i_private;
-+
-+	return 0;
-+}
-+
-+static ssize_t debobs_mode_read(struct file *file, char __user *user_buf,
-+				size_t count, loff_t *ppos)
-+{
-+	char buffer[10];
-+	int size;
-+	int pad_number = (int)file->private_data;
-+	struct debobs_pad *e = &debobs_pads[pad_number];
-+
-+	size = snprintf(buffer, sizeof(buffer), "%s\n",
-+			debobs_pad_mode_names[e->mode]);
-+	return simple_read_from_buffer(user_buf, count, ppos, buffer, size);
-+}
-+
-+static ssize_t debobs_mode_write(struct file *file, const char __user *user_buf,
-+				size_t count, loff_t *ppos)
-+{
-+	char buffer[10];
-+	int buf_size, i, pad_number;
-+	u16 muxmode = OMAP34XX_MUX_MODE7;
-+
-+	memset(buffer, 0, sizeof(buffer));
-+	buf_size = min(count, (sizeof(buffer)-1));
-+
-+	if (copy_from_user(buffer, user_buf, buf_size))
-+		return -EFAULT;
-+
-+	pad_number = (int)file->private_data;
-+
-+	for (i = 0; i < NO_MODE; i++) {
-+		if (!strnicmp(debobs_pad_mode_names[i],
-+				buffer,
-+				strlen(debobs_pad_mode_names[i]))) {
-+			switch (i) {
-+			case ETK:
-+				muxmode = OMAP34XX_MUX_MODE0;
-+				break;
-+			case GPIO:
-+				muxmode = OMAP34XX_MUX_MODE4;
-+				break;
-+			case OBS:
-+				muxmode = OMAP34XX_MUX_MODE7;
-+				break;
-+			}
-+			omap_ctrl_writew(muxmode,
-+					OMAP343X_PADCONF_ETK(pad_number));
-+			debobs_pads[pad_number].mode = i;
-+
-+			return count;
-+		}
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static const struct file_operations debobs_mode_fops = {
-+	.open 	= debobs_mode_open,
-+	.read	= debobs_mode_read,
-+	.write	= debobs_mode_write,
-+};
-+
-+static int debobs_get(void *data, u64 *val)
-+{
-+	struct obs *o = data;
-+
-+	*val = o->value;
-+
-+	return 0;
-+}
-+
-+static int debobs_set(void *data, u64 val)
-+{
-+	struct obs *o = data;
-+
-+	val &= BIT(o->mask) - 1;
-+
-+	omap_ctrl_writeb(val, o->offset);
-+	o->value = val;
-+
-+	return 0;
-+}
-+
-+DEFINE_SIMPLE_ATTRIBUTE(debobs_fops, debobs_get, debobs_set, "%llu\n");
-+
-+static inline int __init _new_debobs_pad(struct debobs_pad *pad, char *name,
-+					int number, struct dentry *root)
-+{
-+	struct dentry *d;
-+	struct obs *o;
-+
-+	d = debugfs_create_dir(name, root);
-+	if (IS_ERR(d))
-+		return PTR_ERR(d);
-+
-+	omap_ctrl_writew(OMAP34XX_MUX_MODE4, OMAP343X_PADCONF_ETK(number));
-+	omap_set_gpio_direction(ETK_GPIO(number), 1);
-+	gpio_export(ETK_GPIO(number), 1);
-+	(void) debugfs_create_file("mode", S_IRUGO | S_IWUGO, d,
-+					(void *)number, &debobs_mode_fops);
-+
-+	o = &pad->core_obs;
-+	o->offset = OMAP343X_CONTROL_DEBOBS(number);
-+	o->value = omap_ctrl_readw(o->offset);
-+	o->mask = 7;
-+	(void) debugfs_create_file("coreobs", S_IRUGO | S_IWUGO, d, o,
-+					&debobs_fops);
-+
-+	o = &pad->wakeup_obs;
-+	o->offset = OMAP343X_CONTROL_WKUP_DEBOBSMUX(number);
-+	o->value = omap_ctrl_readb(o->offset);
-+	o->mask = 5;
-+	(void) debugfs_create_file("wakeupobs", S_IRUGO | S_IWUGO, d, o,
-+					&debobs_fops);
-+
-+	return 0;
-+}
-+
-+static int __init init_debobs(void)
-+{
-+	struct dentry *debobs_root;
-+	int i, err;
-+	char name[10];
-+
-+	debobs_root = debugfs_create_dir("debobs", NULL);
-+	if (IS_ERR(debobs_root))
-+		return PTR_ERR(debobs_root);
-+
-+	for (i = 0; i < NUM_OF_DEBOBS_PADS; i++) {
-+		if (!omap_request_gpio(ETK_GPIO(i))) {
-+			snprintf(name, sizeof(name), "hw_dbg%d", i);
-+			err = _new_debobs_pad(&debobs_pads[i], name, i,
-+						debobs_root);
-+			if (err) {
-+				omap_free_gpio(ETK_GPIO(i));
-+				return err;
-+			}
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+late_initcall_sync(init_debobs);
++#define OMAP343X_CONTROL_WKUP_DEBOBSMUX(i) (OMAP343X_CONTROL_GENERAL_WKUP + \
++						0x008 + i)
++#define OMAP343X_CONTROL_WKUP_DEBOBS0	(OMAP343X_CONTROL_GENERAL_WKUP + 0x008)
++#define OMAP343X_CONTROL_WKUP_DEBOBS1	(OMAP343X_CONTROL_GENERAL_WKUP + 0x00C)
++#define OMAP343X_CONTROL_WKUP_DEBOBS2	(OMAP343X_CONTROL_GENERAL_WKUP + 0x010)
++#define OMAP343X_CONTROL_WKUP_DEBOBS3	(OMAP343X_CONTROL_GENERAL_WKUP + 0x014)
++#define OMAP343X_CONTROL_WKUP_DEBOBS4	(OMAP343X_CONTROL_GENERAL_WKUP + 0x018)
+ 
+ /*
+  * REVISIT: This list of registers is not comprehensive - there are more
 -- 
 1.5.6.3
 
