@@ -1,36 +1,406 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [rfc] [patch] clean up to ehci-omap (Was: Re: [patch] omap:
-	usb: ehci: fix use of hcd->regs)
-Date: Tue, 16 Sep 2008 10:28:49 +0300
-Message-ID: <20080916072847.GB2125@frodo>
-References: <20080912121024.GG759@gandalf.research.nokia.com> <FCCFB4CDC6E5564B9182F639FC356087022A25316B@dbde02.ent.ti.com> <20080914185721.GB6943@frodo> <200809152248.19959.david-b@pacbell.net>
-Reply-To: me@felipebalbi.com
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: omap-sdp3430_Rotation patch
+Date: Tue, 16 Sep 2008 08:41:01 +0100
+Message-ID: <20080916074100.GA6034@flint.arm.linux.org.uk>
+References: <c656a4d20809150248id788b30w7c9a75eb9c0c017e@mail.gmail.com> <FF55437E1F14DA4BAEB721A458B67017052D74CDB2@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:47612 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750770AbYIPH3N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 03:29:13 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35179 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752320AbYIPHli (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 03:41:38 -0400
 Content-Disposition: inline
-In-Reply-To: <200809152248.19959.david-b@pacbell.net>
+In-Reply-To: <FF55437E1F14DA4BAEB721A458B67017052D74CDB2@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: me@felipebalbi.com, "Pandita, Vikram" <vikram.pandita@ti.com>, Tony Lindgren <tony@atomide.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: "K, Rajesh" <krajesh@ti.com>
+Cc: arun c <arun.edarath@gmail.com>, "hirajeshk@yahoo.com" <hirajeshk@yahoo.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Sep 15, 2008 at 10:48:19PM -0700, David Brownell wrote:
-> > Subject: [PATCH 2/4] omap: usb: ehci: switch to use gpiolib
+On Tue, Sep 16, 2008 at 10:11:26AM +0530, K, Rajesh wrote:
+> > @@ -149,6 +147,20 @@
+> >  #define RESMAP_MASK(_page_nr)                                          \
+> >        (1 << ((_page_nr) & (sizeof(unsigned long) * 8 - 1)))
 > >
-> > Quit using omap-specific gpio handling and start using
-> > gpiolib for ehci-omap.c
+> > +dma_addr_t save_paddr;
+
+See comment about paddr[].
+
+> > +unsigned long save_vaddr;
+
+Virtual addresses should be pointer like.
+
+> > +
+> > +struct {
+> > +       dma_addr_t      paddr[4];
+
+These are physical addresses.  Please make them 'unsigned long' or
+resource_size_t, not dma_addr_t.
+
+> > +       unsigned long   vaddr[4];
+
+Ditto.
+
+> > +       u32 xoffset;
+> > +       u32 yoffset;
+> > +       unsigned long size_val;
+> > +       unsigned long control_val;
+> > +} vrfb;
+> > +
+> > +static int omap2_disp_set_vrfb(u32 width, u32 height, u32 bytes_per_pixel);
+> > +
+> >  struct resmap {
+> >        unsigned long   start;
+> >        unsigned        page_cnt;
+> > @@ -459,6 +471,108 @@ static int omap_dispc_setup_plane(int plane, int channel_out,
+> >        return r;
+> >  }
 > >
-> > Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> > +/*
+> > +* function: pages_per_side : Will provide page height & width
+> > +*      @ img_side : img_side
+> > +*      @ page_exp : page_exp
+> > +*      Return Value: Will return an integer.
+> > +*/
+> > +static inline u32
+> > +pages_per_side(u32 img_side, u32 page_exp)
+> > +{
+> > +       return (u32) (img_side + (1<<page_exp) - 1) >> page_exp;
+
+Unnecessary cast.
+
+> > +}
+> > +
+> > +/*
+> > +*      omap2_disp_set_vrfb : Will configure VRFB Support.Its a rotation engine
+> > +*      which will supports rotations of 0,90,180,270 degrees.
+> > +*      @width: Width of the  image
+> > +*      @height : height of the image
+> > +*      @bytes_per_pixel : color depth of the image
+> > +*      return value :  will return an integer value
+> > +*/
+> > +static int omap2_disp_set_vrfb(u32 width, u32 height, u32 bytes_per_pixel)
+> > +{
+> > +       int page_width_exp, page_height_exp, pixel_size_exp;
+> > +       int context = 0;
+> > +       vrfb.size_val = 0;
+> > +       vrfb.control_val = 0;
+> > +       pixel_size_exp = bytes_per_pixel >> 1;
+> > +       page_width_exp = PAGE_WIDTH_EXP;
+> > +       page_height_exp = PAGE_HEIGHT_EXP;
+> > +       width = ((1<<page_width_exp) *
+> > +                       (pages_per_side(width * bytes_per_pixel,
+> > +                       page_width_exp))) >> pixel_size_exp;
+> > +       height = (1<<page_height_exp) *
+> > +                       (pages_per_side(height, page_height_exp));
+> > +       __raw_writel(save_paddr, SMS_ROT0_PHYSICAL_BA(context));
+> > +       __raw_writel(0, SMS_ROT0_SIZE(context));
+> > +       vrfb.size_val |= (width << SMS_IMAGEWIDTH_OFFSET)|
+> > +                       (height << SMS_IMAGEHEIGHT_OFFSET);
+> > +       __raw_writel(vrfb.size_val, SMS_ROT0_SIZE(context));
+> > +       __raw_writel(0, SMS_ROT_CONTROL(context));
+> > +       vrfb.control_val |= pixel_size_exp << SMS_PS_OFFSET
+> > +                       | (page_width_exp - pixel_size_exp) << SMS_PW_OFFSET
+> > +                       | page_height_exp << SMS_PH_OFFSET;
+> > +       __raw_writel(vrfb.control_val, SMS_ROT_CONTROL(context));
+> > +       return 0;
+> > +}
+> > +
+> > +/*
+> > +*      omap_dispc_set_rotate : configuring rotation registers based on angle.
+> > +*      @ plane: graphics or video pipe line
+> > +*      @ angle: Rotation angle.
+> > +*      Return Value: Returns an integer.
+> > +*/
+> > +int omap_dispc_set_rotate(int plane, int angle)
+> > +{
+> > +       int width, height;
+> > +       u32 addr_base;
+> > +       u32 Bpp;
+
+Lower case variable names please.
+
+> > +       width = dispc.fbdev->fb_info[0]->var.xres;
+> > +       height = dispc.fbdev->fb_info[0]->var.yres;
+> > +       Bpp = dispc.fbdev->fb_info[0]->var.bits_per_pixel / 8;
+> > +       if (plane == OMAPFB_PLANE_GFX) {
+> > +               enable_lcd_clocks(1);
+> > +               /* clear GOLCD bit */
+> > +               MOD_REG_FLD(DISPC_CONTROL, 0x20, 0);
+> > +               omap2_disp_set_vrfb(width, height, Bpp);
+> > +               switch (angle) {
+> > +               case 0:
+> > +                       addr_base = vrfb.paddr[0];
+> > +                       dispc_write_reg(DISPC_GFX_BA0, addr_base);
+> > +                       dispc_write_reg(DISPC_GFX_PIXEL_INC, 1);
+> > +                       dispc_write_reg(DISPC_GFX_ROW_INC,
+> > +                               (ROT_LINE_LENGTH - width) * Bpp + 1);
+> > +                       break;
+> > +               case 90:
+> > +                       addr_base = vrfb.paddr[1];
+> > +                       dispc_write_reg(DISPC_GFX_BA0, addr_base);
+> > +                       dispc_write_reg(DISPC_GFX_PIXEL_INC, 1);
+> > +                       dispc_write_reg(DISPC_GFX_ROW_INC,
+> > +                               (ROT_LINE_LENGTH - height) * Bpp + 1);
+> > +                       break;
+> > +               case 180:
+> > +                       addr_base = vrfb.paddr[2];
+> > +                       dispc_write_reg(DISPC_GFX_BA0, addr_base);
+> > +                       dispc_write_reg(DISPC_GFX_PIXEL_INC, 1);
+> > +                       dispc_write_reg(DISPC_GFX_ROW_INC,
+> > +                               (ROT_LINE_LENGTH - width) * Bpp + 1);
+> > +                       break;
+> > +               case 270:
+> > +                       addr_base = vrfb.paddr[3];
+> > +                       dispc_write_reg(DISPC_GFX_BA0, addr_base);
+> > +                       dispc_write_reg(DISPC_GFX_PIXEL_INC, 1);
+> > +                       dispc_write_reg(DISPC_GFX_ROW_INC,
+> > +                               (ROT_LINE_LENGTH - height) * Bpp + 1);
+> > +                       break;
+> > +               }
+> > +               MOD_REG_FLD(DISPC_CONTROL, 0x20, 0x20);
+> > +               enable_lcd_clocks(0);
+> > +       }
+> > +       return 0;
+> > +}
+> > +
+> >  static void write_firh_reg(int plane, int reg, u32 value)
+> >  {
+> >        u32 base;
+> > @@ -1340,6 +1454,49 @@ static void cleanup_fbmem(void)
+> >        }
+> >  }
+> >
+> > +static void omap2_alloc_vrfb_mem(struct omapfb_mem_desc *req_vram)
+> > +{
+> > +       memset(&vrfb, 0, sizeof(vrfb));
+> > +       vrfb.paddr[0] = SMS_ROT_VIRT_BASE(0, 0);
+> > +       vrfb.paddr[1] = SMS_ROT_VIRT_BASE(0, 90);
+> > +       vrfb.paddr[2] = SMS_ROT_VIRT_BASE(0, 180);
+> > +       vrfb.paddr[3] = SMS_ROT_VIRT_BASE(0, 270);
+> > +
+> > +       if (!request_mem_region(vrfb.paddr[0],
+> > +               req_vram->region[0].size, "omapfb")) {
+> > +               printk(KERN_ERR "omapfb: can't reserve VRFB0 area\n");
+> > +       }
+> > +
+> > +       if (!request_mem_region(vrfb.paddr[1],
+> > +               req_vram->region[0].size, "omapfb")) {
+> > +               printk(KERN_ERR "omapfb: can't reserve VRFB90 area\n");
+> > +       }
+> > +
+> > +       if (!request_mem_region(vrfb.paddr[2],
+> > +               req_vram->region[0].size, "omapfb")) {
+> > +               printk(KERN_ERR "omapfb: can't reserve VRFB180 area\n");
+> > +       }
+> > +
+> > +       if (!request_mem_region(vrfb.paddr[3],
+> > +               req_vram->region[0].size, "omapfb")) {
+> > +               printk(KERN_ERR "omapfb: can't reserve VRFB270 area\n");
+> > +       }
+> > +
+> > +       vrfb.vaddr[0] = (unsigned long)ioremap(vrfb.paddr[0],
+> > +                       req_vram->region[0].size);
+> > +       vrfb.vaddr[1] = (unsigned long)ioremap(vrfb.paddr[1],
+> > +                       req_vram->region[0].size);
+> > +       vrfb.vaddr[2] = (unsigned long)ioremap(vrfb.paddr[2],
+> > +                       req_vram->region[0].size);
+> > +       vrfb.vaddr[3] = (unsigned long)ioremap(vrfb.paddr[3],
+> > +                       req_vram->region[0].size);
+
+You should never need to cast the return value from ioremap.
+
+> > +       if ((!vrfb.vaddr[0]) || (!vrfb.vaddr[1]) || (!vrfb.vaddr[2])
+> > +                               || (!vrfb.vaddr[3])) {
+> > +               printk(KERN_ERR "omapfb: can't map rotated view(s)\n");
+> > +       }
+> > +
+> > +}
+> > +
+> >  static int omap_dispc_init(struct omapfb_device *fbdev, int ext_mode,
+> >                           struct omapfb_mem_desc *req_vram)
+> >  {
+> > @@ -1425,10 +1582,11 @@ static int omap_dispc_init(struct omapfb_device *fbdev, int ext_mode,
+> >
+> >        if ((r = alloc_palette_ram()) < 0)
+> >                goto fail2;
+> > -
+> > +       omap2_alloc_vrfb_mem(req_vram);
+> What  if allocation fails??
 > 
-> ... yes, but also move all the pinmuxing to arch/arm/plat-omap/something
+> >        if ((r = setup_fbmem(req_vram)) < 0)
+> >                goto fail3;
+> > -
+> > +       save_paddr = dispc.mem_desc.region[0].paddr;
+> > +       dispc.fbdev->mem_desc.region[0].vaddr = (void *)vrfb.vaddr[0];
 
-usb_ehci_init() also needs to be changed. For now I'm only dealing with
-the driver itself, board init code will be dealt with on later patches.
+This cast screams that you're doing something wrong (as identified above).
 
--- 
-balbi
+> >        if (!skip_init) {
+> >                for (i = 0; i < dispc.mem_desc.region_cnt; i++) {
+> >                        memset(dispc.mem_desc.region[i].vaddr, 0,
+> > @@ -1507,4 +1665,5 @@ const struct lcd_ctrl omap2_int_ctrl = {
+> >        .set_color_key          = omap_dispc_set_color_key,
+> >        .get_color_key          = omap_dispc_get_color_key,
+> >        .mmap                   = omap_dispc_mmap_user,
+> > +       .set_rotate             = omap_dispc_set_rotate,
+> >  };
+> > diff --git a/drivers/video/omap/dispc.h b/drivers/video/omap/dispc.h
+> > index ef720a7..5f470b4 100644
+> > --- a/drivers/video/omap/dispc.h
+> > +++ b/drivers/video/omap/dispc.h
+> > @@ -2,6 +2,7 @@
+> >  #define _DISPC_H
+> >
+> >  #include <linux/interrupt.h>
+> > +#include <mach/hardware.h>
+> >
+> >  #define DISPC_PLANE_GFX                        0
+> >  #define DISPC_PLANE_VID1               1
+> > @@ -32,6 +33,36 @@
+> >  #define DISPC_TFT_DATA_LINES_18                2
+> >  #define DISPC_TFT_DATA_LINES_24                3
+> >
+> > +/* Rotation using VRFB */
+> > +#define SMS_ROT_VIRT_BASE(context, degree)      (0x70000000            \
+> > +                               | 0x4000000 * (context) \
+> > +                               | 0x1000000 * (degree/90))
+
+This can't be a virtual address for a kernel driver.  It's in the middle
+of userspace.  Luckily it isn't, and it's just that you've got a confusing
+name for the macro.  Please change the name.
+
+> > +#define VRFB_SIZE               (2048 * 640 * (16/8))
+> 
+> The static declaration of VRFB_SIZE will make it impossible to
+> use on hardwares using diffrent bpp(other than 16)
+> 
+> 
+> > +#define PAGE_WIDTH_EXP          5 /* Assuming SDRAM pagesize= 1024 */
+> > +#define PAGE_HEIGHT_EXP         5 /* 1024 = 2^5 * 2^5 */
+> > +#define SMS_IMAGEHEIGHT_OFFSET  16
+> > +#define SMS_IMAGEWIDTH_OFFSET   0
+> > +#define SMS_PH_OFFSET           8
+> > +#define SMS_PW_OFFSET           4
+> > +#define SMS_PS_OFFSET           0
+> > +#define ROT_LINE_LENGTH         2048
+> > +
+> > +#define DSS_REG_BASE           0x48050000
+> > +#define DISPC_REG_OFFSET       0x00000400
+> > +#define DISPC_BASE             0x48050400
+> > +#define OMAP_SMS_BASE           (0x6C000000)
+> > +#define DISPC_GFX_BA0          0x0080
+> > +#define DISPC_GFX_ROW_INC      0x00AC
+> > +#define DISPC_GFX_PIXEL_INC    0x00B0
+> > +#define DISPC_CONTROL          0x0040
+> > +
+> > +#define SMS_ROT0_PHYSICAL_BA(context)   OMAP2_IO_ADDRESS(OMAP_SMS_BASE + 0x188 \
+> > +                                               + 0x10 * context)
+> > +#define SMS_ROT_CONTROL(context)        OMAP2_IO_ADDRESS(OMAP_SMS_BASE + 0x180 \
+> > +                                               + 0x10 * context)
+> > +#define SMS_ROT0_SIZE(context)          OMAP2_IO_ADDRESS(OMAP_SMS_BASE + 0x184 \
+> > +                                               + 0x10 * context)
+> > +
+> >  extern void omap_dispc_set_lcd_size(int width, int height);
+> >
+> >  extern void omap_dispc_enable_lcd_out(int enable);
+> > diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
+> > index d176a2c..92d571c 100644
+> > --- a/drivers/video/omap/omapfb_main.c
+> > +++ b/drivers/video/omap/omapfb_main.c
+> > @@ -36,6 +36,7 @@
+> >
+> >  #define MODULE_NAME    "omapfb"
+> >
+> > +#define ROT_LINE_LENGTH         2048
+> >  static unsigned int    def_accel;
+> >  static unsigned long   def_vram[OMAPFB_PLANE_NUM];
+> >  static unsigned int    def_vram_cnt;
+> > @@ -219,10 +220,11 @@ static int ctrl_change_mode(struct fb_info *fbi)
+> >        if (r < 0)
+> >                return r;
+> >
+> > -       if (fbdev->ctrl->set_rotate != NULL)
+> > -               if((r = fbdev->ctrl->set_rotate(var->rotate)) < 0)
+> > +       if (fbdev->ctrl->set_rotate != NULL) {
+> > +               r = fbdev->ctrl->set_rotate(0, var->rotate);
+> > +               if (r < 0)
+> >                        return r;
+> > -
+> > +       }
+> >        if ((fbdev->ctrl->set_scale != NULL) && (plane->idx > 0))
+> >                r = fbdev->ctrl->set_scale(plane->idx,
+> >                                   var->xres, var->yres,
+> > @@ -425,7 +427,7 @@ static void set_fb_fix(struct fb_info *fbi)
+> >                break;
+> >        }
+> >        fix->accel              = FB_ACCEL_OMAP1610;
+> > -       fix->line_length        = var->xres_virtual * bpp / 8;
+> > +       fix->line_length        = ROT_LINE_LENGTH * bpp / 8;
+> >  }
+> >
+> >  static int set_color_mode(struct omapfb_plane_struct *plane,
+> > @@ -497,14 +499,14 @@ static int set_fb_var(struct fb_info *fbi,
+> >        bpp = var->bits_per_pixel;
+> >        if (plane->color_mode == OMAPFB_COLOR_RGB444)
+> >                bpp = 16;
+> > -
+> > +       xres_min = OMAPFB_PLANE_XRES_MIN;
+> > +       xres_max = panel->x_res;
+> > +       yres_min = OMAPFB_PLANE_YRES_MIN;
+> > +       yres_max = panel->y_res;
+
+Use tabs instead of spaces for code indentation.
+
+> >        switch (var->rotate) {
+> >        case 0:
+> >        case 180:
+> > -               xres_min = OMAPFB_PLANE_XRES_MIN;
+> > -               xres_max = panel->x_res;
+> > -               yres_min = OMAPFB_PLANE_YRES_MIN;
+> > -               yres_max = panel->y_res;
+> > +
+> >                if (cpu_is_omap15xx()) {
+> >                        var->xres = panel->x_res;
+> >                        var->yres = panel->y_res;
+> > @@ -512,10 +514,7 @@ static int set_fb_var(struct fb_info *fbi,
+> >                break;
+> >        case 90:
+> >        case 270:
+> > -               xres_min = OMAPFB_PLANE_YRES_MIN;
+> > -               xres_max = panel->y_res;
+> > -               yres_min = OMAPFB_PLANE_XRES_MIN;
+> > -               yres_max = panel->x_res;
+> > +
+> >                if (cpu_is_omap15xx()) {
+> >                        var->xres = panel->y_res;
+> >                        var->yres = panel->x_res;
+> > @@ -1718,7 +1717,7 @@ static int omapfb_do_probe(struct platform_device *pdev,
+> >
+> >        pr_info("omapfb: configured for panel %s\n", fbdev->panel->name);
+> >
+> > -       def_vxres = def_vxres ? : fbdev->panel->x_res;
+> > +       def_vxres = ROT_LINE_LENGTH;
+> >        def_vyres = def_vyres ? : fbdev->panel->y_res;
+> >
+> >        init_state++;
+> > --
+> >>Finally you did not provide a choice to boot with rotation (uses huge
+> >>framebuffer)
+> >>and  with out rotation (normal boot for hardwares which don't want rotation).
+> 
+> If you see my comment in the patch, I had mentioned that you need pass
+> "video=omapfb:rotate=0 parameters to your u-boot arguments to get rotation working".
+> With out boot params(normal boot), Rotation feature will not be enabled.
+> 
+> 
+> Regards,
+> Arun C
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
