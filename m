@@ -1,57 +1,35 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP3 IRQ: add some missing IRQs for secure peripherals
-Date: Tue, 16 Sep 2008 02:27:35 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0809160226410.21341@utopia.booyaka.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [rfc] [patch] clean up to ehci-omap (Was: Re: [patch] omap:
+	usb: ehci: fix use of hcd->regs)
+Date: Tue, 16 Sep 2008 11:28:44 +0300
+Message-ID: <20080916082844.GB21952@gandalf.research.nokia.com>
+References: <20080912121024.GG759@gandalf.research.nokia.com> <FCCFB4CDC6E5564B9182F639FC356087022A25316B@dbde02.ent.ti.com> <20080914185721.GB6943@frodo> <200809152249.34233.david-b@pacbell.net>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45399 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752373AbYIPI1h (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 04:27:37 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:47399 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752416AbYIPI3M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 04:29:12 -0400
+Content-Disposition: inline
+In-Reply-To: <200809152249.34233.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: ext David Brownell <david-b@pacbell.net>
+Cc: me@felipebalbi.com, "Pandita, Vikram" <vikram.pandita@ti.com>, Tony Lindgren <tony@atomide.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
+On Mon, Sep 15, 2008 at 10:49:33PM -0700, David Brownell wrote:
+> > +       dev_dbg(&dev->dev, "failed to initialized host controller\n");
+> 
+> ... and include the status code, to help identify *WHY* it failed
+> (this is re #3 ... should have sent three separate emails, with
+> inlined patches)
 
-Add in some missing IRQs for secure peripherals, defined in
-OMAP34xx Multimedia High Security Device Silicon Revision 3.0 Security
-Addendum Version B (SWPU119B)
+I didn't really to sent them for review. Was just trying to be sure
+Vikram had my patches before he starts working on that driver, but sure;
+when they're ready, I'll send them properly. Thanks for reviewing so far
+;-)
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/plat-omap/include/mach/irqs.h |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-omap/include/mach/irqs.h
-index e51e5e6..18cb99c 100644
---- a/arch/arm/plat-omap/include/mach/irqs.h
-+++ b/arch/arm/plat-omap/include/mach/irqs.h
-@@ -299,7 +299,9 @@
- 
- #define INT_34XX_ST_MCBSP2_IRQ	4
- #define INT_34XX_ST_MCBSP3_IRQ	5
-+#define INT_34XX_SSM_ABORT_IRQ	6
- #define INT_34XX_SYS_NIRQ	7
-+#define INT_34XX_D2D_FW_IRQ	8
- #define INT_34XX_PRCM_MPU_IRQ	11
- #define INT_34XX_MCBSP1_IRQ	16
- #define INT_34XX_MCBSP2_IRQ	17
-@@ -316,11 +318,17 @@
- #define INT_34XX_USIM_IRQ	35
- #define INT_34XX_WDT3_IRQ	36
- #define INT_34XX_SPI4_IRQ	48
-+#define INT_34XX_SHA1MD52_IRQ	49
-+#define INT_34XX_FPKA_READY_IRQ	50
-+#define INT_34XX_SHA1MD51_IRQ	51
-+#define INT_34XX_RNG_IRQ	52
- #define INT_34XX_I2C3_IRQ	61
-+#define INT_34XX_FPKA_ERROR_IRQ	64
- #define INT_34XX_PBIAS_IRQ	75
- #define INT_34XX_OHCI_IRQ	76
- #define INT_34XX_EHCI_IRQ	77
- #define INT_34XX_TLL_IRQ	78
-+#define INT_34XX_PARTHASH_IRQ	79
- #define INT_34XX_MMC3_IRQ	94
- #define INT_34XX_GPT12_IRQ	95
- 
+-- 
+balbi
