@@ -1,38 +1,45 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP support in mainline?
-Date: Tue, 16 Sep 2008 09:13:21 -0600 (MDT)
-Message-ID: <alpine.DEB.1.00.0809160906140.21341@utopia.booyaka.com>
-References: <87tzcgi1gv.fsf@nokia.com>
+Subject: [PATCH 1/5] OMAP2 PRCM: fix CM_IDLEST bits incorrectly marked as
+	2xxx-common
+Date: Tue, 16 Sep 2008 08:58:32 -0600
+Message-ID: <20080916145830.1470.50264.stgit@localhost.localdomain>
+References: <20080916145747.1470.51591.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:59100 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:47783 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753239AbYIPPNX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 11:13:23 -0400
-In-Reply-To: <87tzcgi1gv.fsf@nokia.com>
+	with ESMTP id S1754100AbYIPPPK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 11:15:10 -0400
+In-Reply-To: <20080916145747.1470.51591.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Valo <kalle.valo@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>
 
-On Tue, 16 Sep 2008, Kalle Valo wrote:
+This patch fixes a few OMAP2xxx CM_IDLEST bits that were incorrectly
+marked as being OMAP2xxx-wide, when they were actually 2420-specific.
 
-> Hello Linux OMAP community,
-> 
-> I have seen a lot of patches going to Russell and general talk about
-> mainline support. What is actually the current situation? Is there
-> hope to have good support in mainline soon? If yes, when?
-> 
-> Unsurprisingly I'm especially interested about N800/N810 support :)
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/cm-regbits-24xx.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Parts of N800/N810 are still broken in linux-omap tree.  At least sound 
-did not work as of early September, and MMC still emits errors as 
-described in:
+diff --git a/arch/arm/mach-omap2/cm-regbits-24xx.h b/arch/arm/mach-omap2/cm-regbits-24xx.h
+index 1098ecf..36a32a6 100644
+--- a/arch/arm/mach-omap2/cm-regbits-24xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-24xx.h
+@@ -117,8 +117,8 @@
+ #define OMAP24XX_ST_FAC					(1 << 25)
+ #define OMAP2420_ST_EAC					(1 << 24)
+ #define OMAP24XX_ST_HDQ					(1 << 23)
+-#define OMAP24XX_ST_I2C2				(1 << 20)
+-#define OMAP24XX_ST_I2C1				(1 << 19)
++#define OMAP2420_ST_I2C2				(1 << 20)
++#define OMAP2420_ST_I2C1				(1 << 19)
+ #define OMAP24XX_ST_MCBSP2				(1 << 16)
+ #define OMAP24XX_ST_MCBSP1				(1 << 15)
+ #define OMAP24XX_ST_DSS					(1 << 0)
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg02499.html
 
-Don't recall what the current LM8323 status is.
-
-
-- Paul
