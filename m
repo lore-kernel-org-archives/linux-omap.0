@@ -1,47 +1,116 @@
-From: Carlos Chinea <carlos.chinea@nokia.com>
-Subject: [PATCH 4/5] OMAP SSI integration into misc drivers
-Date: Tue, 16 Sep 2008 17:41:07 +0300
-Message-ID: <1221576068-16206-4-git-send-email-carlos.chinea@nokia.com>
+From: Tero Kristo <tero.kristo@nokia.com>
+Subject: [PATCH] PM: Fixed clockdomain state control for OMAP3
+Date: Tue, 16 Sep 2008 19:33:36 +0300
+Message-ID: <1221582816-21372-1-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:44389 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751222AbYIPOlo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 10:41:44 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8GEfZTg020266
-	for <linux-omap@vger.kernel.org>; Tue, 16 Sep 2008 09:41:43 -0500
-In-Reply-To: 1221575400.6315.227.camel@groo.research.nokia.com
-References: 1221575400.6315.227.camel@groo.research.nokia.com
+Received: from smtp.nokia.com ([192.100.122.230]:49753 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753554AbYIPOoU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 10:44:20 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8GEi9PR007615
+	for <linux-omap@vger.kernel.org>; Tue, 16 Sep 2008 17:44:19 +0300
+Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
+	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m8GEi7a0007483
+	for <linux-omap@vger.kernel.org>; Tue, 16 Sep 2008 17:44:08 +0300
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
----
- drivers/misc/Kconfig  |    2 ++
- drivers/misc/Makefile |    1 +
- 2 files changed, 3 insertions(+), 0 deletions(-)
+Hardware supervised control for clockdomain power state transitions now
+enabled in omap3_pm_init(). Also fixed set_pwrdm_state() to allow state
+changes between sleep states (i.e. RET<->OFF.)
 
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index f0202ee..b09dc68 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -488,4 +488,6 @@ config SGI_GRU_DEBUG
- 	This option enables addition debugging code for the SGI GRU driver. If
- 	you are unsure, say N.
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+---
+ arch/arm/mach-omap2/pm34xx.c |   38 +++++++++++++++++++-------------------
+ 1 files changed, 19 insertions(+), 19 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 01b637a..2bccdab 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -227,28 +227,13 @@ static int omap3_can_sleep(void)
+ 	return 1;
+ }
  
-+source "drivers/misc/ssi/Kconfig"
+-/* _clkdm_deny_idle - private callback function used by set_pwrdm_state() */
+-static int _clkdm_deny_idle(struct powerdomain *pwrdm,
+-			    struct clockdomain *clkdm)
+-{
+-	omap2_clkdm_deny_idle(clkdm);
+-	return 0;
+-}
+-
+-/* _clkdm_allow_idle - private callback function used by set_pwrdm_state() */
+-static int _clkdm_allow_idle(struct powerdomain *pwrdm,
+-			     struct clockdomain *clkdm)
+-{
+-	omap2_clkdm_allow_idle(clkdm);
+-	return 0;
+-}
+-
+ /* This sets pwrdm state (other than mpu & core. Currently only ON &
+  * RET are supported. Function is assuming that clkdm doesn't have
+  * hw_sup mode enabled. */
+ static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+ {
+ 	u32 cur_state;
++	int sleep_switch = 0;
+ 	int ret = 0;
+ 
+ 	if (pwrdm == NULL || IS_ERR(pwrdm))
+@@ -259,8 +244,12 @@ static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+ 	if (cur_state == state)
+ 		return ret;
+ 
+-	pwrdm_for_each_clkdm(pwrdm, _clkdm_deny_idle);
+-
++	if (pwrdm_read_pwrst(pwrdm) < PWRDM_POWER_ON) {
++		omap2_clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
++		sleep_switch = 1;
++		pwrdm_wait_transition(pwrdm);
++	}
 +
- endif # MISC_DEVICES
-diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
-index b6167e7..39e153d 100644
---- a/drivers/misc/Makefile
-+++ b/drivers/misc/Makefile
-@@ -31,3 +31,4 @@ obj-$(CONFIG_KGDB_TESTS)	+= kgdbts.o
- obj-$(CONFIG_SGI_XP)		+= sgi-xp/
- obj-$(CONFIG_SGI_GRU)		+= sgi-gru/
- obj-$(CONFIG_HP_ILO)		+= hpilo.o
-+obj-$(CONFIG_OMAP_SSI)		+= ssi/
+ 	ret = pwrdm_set_next_pwrst(pwrdm, state);
+ 	if (ret) {
+ 		printk(KERN_ERR "Unable to set state of powerdomain: %s\n",
+@@ -268,7 +257,10 @@ static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+ 		goto err;
+ 	}
+ 
+-	pwrdm_for_each_clkdm(pwrdm, _clkdm_allow_idle);
++	if (sleep_switch) {
++		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
++		pwrdm_wait_transition(pwrdm);
++	}
+ 
+ err:
+ 	return ret;
+@@ -540,6 +532,12 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm)
+ 	return set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
+ }
+ 
++static int __init clkdms_setup(struct clockdomain *clkdm)
++{
++	omap2_clkdm_allow_idle(clkdm);
++	return 0;
++}
++
+ int __init omap3_pm_init(void)
+ {
+ 	struct power_state *pwrst;
+@@ -566,6 +564,8 @@ int __init omap3_pm_init(void)
+ 		goto err2;
+ 	}
+ 
++	(void) clkdm_for_each(clkdms_setup);
++
+ 	mpu_pwrdm = pwrdm_lookup("mpu_pwrdm");
+ 	if (mpu_pwrdm == NULL) {
+ 		printk(KERN_ERR "Failed to get mpu_pwrdm\n");
 -- 
-1.5.3.6
+1.5.4.3
 
