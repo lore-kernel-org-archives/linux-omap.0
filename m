@@ -1,38 +1,59 @@
-From: "Ramesh Gupta Guntha" <x0023949@ti.com>
-Subject: RE: Question about timers used in dsp bridge
-Date: Tue, 16 Sep 2008 19:59:00 +0530
-Message-ID: <200809161429.m8GET1AQ006641@dbdp31.itg.ti.com>
-References: <87r67k8ed0.fsf@trdhcp146196.ntc.nokia.com>
+From: Carlos Chinea <carlos.chinea@nokia.com>
+Subject: [PATCH 0/5] RFC: OMAP Synchronous Serial Interface (SSI) driver
+Date: Tue, 16 Sep 2008 17:30:00 +0300
+Message-ID: <1221575400.6315.227.camel@groo.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47956 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754372AbYIPO3R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Sep 2008 10:29:17 -0400
-In-Reply-To: <87r67k8ed0.fsf@trdhcp146196.ntc.nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:47755 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750884AbYIPOac (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 10:30:32 -0400
+Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8GEUFeC025969
+	for <linux-omap@vger.kernel.org>; Tue, 16 Sep 2008 17:30:28 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?'=22H=F6gander=22_Jouni'?= <jouni.hogander@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi Jouni,
- 
-<snip>
+Hi guys !
 
-> > In Dsp Bridge GPT5 is used as BIOS_CLK and used only while 
-> DSP is starting, this is disabled once the DSP is started. 
-> > GPT6 is used for load monitoring purpose by DSP Bridge. GPT6 is 
-> > disabled only if the DSP enters into sleep state i.e. Hibernation.
-> 
-> Thanks for your explanation. Is it entering sleep state 
-> itself and then informing bridge driver about this or is it 
-> bridge which asks dsp to enter hibernation?
+I'm working on adding support for Nokia HSPA modems to OMAP.
 
-This is for both the cases like DSP initiated Hibernation , usually this happens if there is no activity for certain predefined amount of time and for system suspend where bridge asks dsp to enter into hibernation, for these two cases GPT6 is disabled.
+Please consider integrating the following patch set into the
+linux-omap tree. The patch set implements a generic device driver
+for the OMAP Synchronous Serial Interface. 
 
-Regards
-Ramesh Gupta G
+The Synchronous Serial Interface (SSI) is a high speed communication
+interface that is used for connecting OMAP to a cellular modem engine.
+
+The patch set is based on linux-omap 2.6.27-rc6.
+
+Any comments will be appreciated.
+
+Br,
+Carlos
+
+ Documentation/arm/OMAP/ssi/board-ssi.c.example       |  216 +++++++
+ Documentation/arm/OMAP/ssi/ssi                       |  233 +++++++
+ arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h    |  145 ++++
+ arch/arm/plat-omap/include/mach/ssi/ssi_reg_common.h |   73 ++
+ arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h    |   56 +
+ arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h    |   65 ++
+ arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h    |  108 +++
+ drivers/misc/Kconfig                                 |    2 
+ drivers/misc/Makefile                                |    2 
+ drivers/misc/ssi/Kconfig                             |   20 
+ drivers/misc/ssi/Makefile                            |   11 
+ drivers/misc/ssi/ssi_driver.c                        |  572 +++++++++++++++++++
+ drivers/misc/ssi/ssi_driver.h                        |  228 +++++++
+ drivers/misc/ssi/ssi_driver_bus.c                    |  218 +++++++
+ drivers/misc/ssi/ssi_driver_dma.c                    |  461 +++++++++++++++
+ drivers/misc/ssi/ssi_driver_if.c                     |  374 ++++++++++++
+ drivers/misc/ssi/ssi_driver_int.c                    |  296 +++++++++
+ include/linux/ssi_driver_if.h                        |  138 ++++
+ 18 files changed, 3213 insertions(+), 5 deletions(-)
+
+
 
