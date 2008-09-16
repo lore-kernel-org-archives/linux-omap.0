@@ -1,84 +1,38 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/3] OMAP2/3 clock: shorten some variable names in clock.c for
-	legibility
-Date: Tue, 16 Sep 2008 08:18:44 -0600
-Message-ID: <20080916141843.13182.82339.stgit@localhost.localdomain>
-References: <20080916141809.13182.31144.stgit@localhost.localdomain>
+From: "Ramesh Gupta Guntha" <x0023949@ti.com>
+Subject: RE: Question about timers used in dsp bridge
+Date: Tue, 16 Sep 2008 19:59:00 +0530
+Message-ID: <200809161429.m8GET1AQ006641@dbdp31.itg.ti.com>
+References: <87r67k8ed0.fsf@trdhcp146196.ntc.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:54879 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751636AbYIPOUF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 10:20:05 -0400
-In-Reply-To: <20080916141809.13182.31144.stgit@localhost.localdomain>
+Received: from bear.ext.ti.com ([192.94.94.41]:47956 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754372AbYIPO3R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Sep 2008 10:29:17 -0400
+In-Reply-To: <87r67k8ed0.fsf@trdhcp146196.ntc.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>
+To: =?iso-8859-1?Q?'=22H=F6gander=22_Jouni'?= <jouni.hogander@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Some unnecessarily verbose variable names are used in several clock.c
-functions; clean these up per CodingStyle.
+Hi Jouni,
+ 
+<snip>
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/clock.c |   18 +++++++++---------
- 1 files changed, 9 insertions(+), 9 deletions(-)
+> > In Dsp Bridge GPT5 is used as BIOS_CLK and used only while 
+> DSP is starting, this is disabled once the DSP is started. 
+> > GPT6 is used for load monitoring purpose by DSP Bridge. GPT6 is 
+> > disabled only if the DSP enters into sleep state i.e. Hibernation.
+> 
+> Thanks for your explanation. Is it entering sleep state 
+> itself and then informing bridge driver about this or is it 
+> bridge which asks dsp to enter hibernation?
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index a2211fb..a604c38 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -351,7 +351,7 @@ static void omap2_clk_wait_ready(struct clk *clk)
-  */
- static int _omap2_clk_enable(struct clk *clk)
- {
--	u32 regval32;
-+	u32 v;
- 
- 	if (clk->flags & (ALWAYS_ENABLED | PARENT_CONTROLS_CLOCK))
- 		return 0;
-@@ -365,11 +365,11 @@ static int _omap2_clk_enable(struct clk *clk)
- 		return 0; /* REVISIT: -EINVAL */
- 	}
- 
--	regval32 = __raw_readl(clk->enable_reg);
-+	v = __raw_readl(clk->enable_reg);
- 	if (clk->flags & INVERT_ENABLE)
--		regval32 &= ~(1 << clk->enable_bit);
-+		v &= ~(1 << clk->enable_bit);
- 	else
--		regval32 |= (1 << clk->enable_bit);
-+		v |= (1 << clk->enable_bit);
- 	__raw_writel(regval32, clk->enable_reg);
- 	wmb();
- 
-@@ -381,7 +381,7 @@ static int _omap2_clk_enable(struct clk *clk)
- /* Disables clock without considering parent dependencies or use count */
- static void _omap2_clk_disable(struct clk *clk)
- {
--	u32 regval32;
-+	u32 v;
- 
- 	if (clk->flags & (ALWAYS_ENABLED | PARENT_CONTROLS_CLOCK))
- 		return;
-@@ -401,12 +401,12 @@ static void _omap2_clk_disable(struct clk *clk)
- 		return;
- 	}
- 
--	regval32 = __raw_readl(clk->enable_reg);
-+	v = __raw_readl(clk->enable_reg);
- 	if (clk->flags & INVERT_ENABLE)
--		regval32 |= (1 << clk->enable_bit);
-+		v |= (1 << clk->enable_bit);
- 	else
--		regval32 &= ~(1 << clk->enable_bit);
--	__raw_writel(regval32, clk->enable_reg);
-+		v &= ~(1 << clk->enable_bit);
-+	__raw_writel(v, clk->enable_reg);
- 	wmb();
- }
- 
+This is for both the cases like DSP initiated Hibernation , usually this happens if there is no activity for certain predefined amount of time and for system suspend where bridge asks dsp to enter into hibernation, for these two cases GPT6 is disabled.
 
+Regards
+Ramesh Gupta G
 
