@@ -1,92 +1,55 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 5/6] OMAP3 clock: DPLLs should enter bypass if new rate is
-	sys_ck
-Date: Tue, 16 Sep 2008 06:16:50 -0600
-Message-ID: <20080916121639.4666.78175.stgit@localhost.localdomain>
-References: <20080916121521.4666.61245.stgit@localhost.localdomain>
+Subject: Re: [PATCH] OMAP3: GPIO: Enable debounce clock only when debounce
+ is enabled v2.
+Date: Tue, 16 Sep 2008 06:19:51 -0600 (MDT)
+Message-ID: <alpine.DEB.1.00.0809160618250.21341@utopia.booyaka.com>
+References: <873ak0mk5t.fsf@deeprootsystems.com> <1221567379-2177-1-git-send-email-jouni.hogander@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:58344 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:40723 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753098AbYIPMRl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 08:17:41 -0400
-In-Reply-To: <20080916121521.4666.61245.stgit@localhost.localdomain>
+	with ESMTP id S1752891AbYIPMTw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2008 08:19:52 -0400
+In-Reply-To: <1221567379-2177-1-git-send-email-jouni.hogander@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>
+To: Jouni Hogander <jouni.hogander@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-This patch causes a DPLL to enter bypass when it is instructed to set
-its rate to that of the parent clock.  Previously this was only possible
-after setting the DPLL rate, then disabling and re-enabling it.
+Hi Jouni,
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/clock34xx.c |   35 ++++++++++++++++++++++++-----------
- 1 files changed, 24 insertions(+), 11 deletions(-)
+sorry to make you rework this again, but:
 
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index 6963f2e..a2b8d1e 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -371,13 +371,17 @@ static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
-  * @clk: struct clk * of DPLL to set
-  * @rate: rounded target rate
-  *
-- * Program the DPLL with the rounded target rate.  Returns -EINVAL upon
-- * error, or 0 upon success.
-+ * Set the DPLL CLKOUT to the target rate.  If the DPLL can enter
-+ * low-power bypass, and the target rate is the sys_clk rate, then
-+ * configure the DPLL for bypass.  Otherwise, round the target rate if
-+ * it hasn't been done already, then program and lock the DPLL.
-+ * Returns -EINVAL upon error, or 0 upon success.
-  */
- static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
- {
- 	u16 freqsel;
- 	struct dpll_data *dd;
-+	int ret;
- 
- 	if (!clk || !rate)
- 		return -EINVAL;
-@@ -389,18 +393,27 @@ static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
- 	if (rate == omap2_get_dpll_rate(clk))
- 		return 0;
- 
--	if (dd->last_rounded_rate != rate)
--		omap2_dpll_round_rate(clk, rate);
-+	if (clk->parent->rate == rate &&
-+	    (clk->dpll_data->modes & (1 << DPLL_LOW_POWER_BYPASS))) {
- 
--	if (dd->last_rounded_rate == 0)
--		return -EINVAL;
-+		ret = _omap3_noncore_dpll_bypass(clk);
-+
-+	} else {
-+
-+		if (dd->last_rounded_rate != rate)
-+			omap2_dpll_round_rate(clk, rate);
- 
--	freqsel = _omap3_dpll_compute_freqsel(clk, dd->last_rounded_n);
--	if (!freqsel)
--		WARN_ON(1);
-+		if (dd->last_rounded_rate == 0)
-+			return -EINVAL;
- 
--	omap3_noncore_dpll_program(clk, dd->last_rounded_m, dd->last_rounded_n,
--				   freqsel);
-+		freqsel = _omap3_dpll_compute_freqsel(clk, dd->last_rounded_n);
-+		if (!freqsel)
-+			WARN_ON(1);
-+
-+		ret = omap3_noncore_dpll_program(clk, dd->last_rounded_m,
-+						 dd->last_rounded_n, freqsel);
-+
-+	}
- 
- 	omap3_dpll_recalc(clk);
- 
+On Tue, 16 Sep 2008, Jouni Hogander wrote:
+
+> This patch changes gpio "driver" to enable debounce clock for
+> gpio-bank only when debounce is enabled for some gpio in that bank.
+
+>  
+> +#if defined(CONFIG_ARCH_OMAP3)
+> +	if (cpu_is_omap34xx())
+> +		enable ? clk_enable(bank->dbck) : clk_disable(bank->dbck);
+> +#endif
+
+the #ifdefs here are unnecessary, since the preprocessor will reduce 
+cpu_is_omap34xx() to a constant for single-OMAP builds..
+
+> @@ -1513,6 +1515,15 @@ static int __init _omap_gpio_init(void)
+>  		}
+>  		set_irq_chained_handler(bank->irq, gpio_irq_handler);
+>  		set_irq_data(bank->irq, bank);
+> +
+> +#if defined(CONFIG_ARCH_OMAP3)
+> +		if (cpu_is_omap34xx()) {
+> +			sprintf(clk_name, "gpio%d_dbck", i + 1);
+> +			bank->dbck = clk_get(NULL, clk_name);
+> +			if (IS_ERR(bank->dbck))
+> +				printk(KERN_ERR "Could not get %s\n", clk_name);
+> +		}
+> +#endif
+
+as above.
 
 
+- Paul
