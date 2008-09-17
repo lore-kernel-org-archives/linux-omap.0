@@ -1,32 +1,48 @@
-From: "Budhee Jamaich" <budheej@gmail.com>
-Subject: Re: OMAP support in mainline?
-Date: Wed, 17 Sep 2008 09:18:40 +0300
-Message-ID: <57314e840809162318qa301e07tbf92b518ed4cc1e8@mail.gmail.com>
-References: <87tzcgi1gv.fsf@nokia.com>
-	 <alpine.DEB.1.00.0809160906140.21341@utopia.booyaka.com>
-	 <20080916184110.GA10733@frodo> <20080916232505.GC25885@atomide.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [PATCH] alsa: add Beagleboard SoC configuration.
+Date: Wed, 17 Sep 2008 09:19:48 +0300
+Message-ID: <20080917091948.78604384.jarkko.nikula@nokia.com>
+References: <1221597643-29601-1-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.179]:65027 "EHLO
-	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750847AbYIQGSl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Sep 2008 02:18:41 -0400
-Received: by py-out-1112.google.com with SMTP id p76so2288719pyb.10
-        for <linux-omap@vger.kernel.org>; Tue, 16 Sep 2008 23:18:41 -0700 (PDT)
-In-Reply-To: <20080916232505.GC25885@atomide.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.105.134]:61029 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751214AbYIQGUK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Sep 2008 02:20:10 -0400
+In-Reply-To: <1221597643-29601-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <me@felipebalbi.com>, Paul Walmsley <paul@pwsan.com>, Kalle Valo <kalle.valo@nokia.com>, linux-omap@vger.kernel.org
+To: ext Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap@vger.kernel.org, sakoman@gmail.com
 
-On Wed, Sep 17, 2008 at 2:25 AM, Tony Lindgren <tony@atomide.com> wrote:
-> Hopefully we'll get all core 24xx and 34xx files integrated soon. But
-> then there are tons of board-*.c files missing from mainline that
-> probably need to be cleaned up a bit.
+On Tue, 16 Sep 2008 23:51:35 +0300
+"ext Felipe Contreras" <felipe.contreras@gmail.com> wrote:
 
-What about sending the board to standby via /sys/power/state and
-waking it up via pressing one of the keypad buttons ? Is it already
-supported in mainline ?
+> This is exactly the same as the overo configuration. It might make
+> sense to have them in a single one.
+> 
+> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+> ---
+> 
+> This was suggested by Koen Kooi.
+> 
+>  sound/soc/omap/Kconfig       |    8 ++
+>  sound/soc/omap/Makefile      |    2 +
+>  sound/soc/omap/omap3beagle.c |  149 +++++++++++++++++++++++++++++++++
+> +++++++++ 3 files changed, 159 insertions(+), 0 deletions(-)
+>  create mode 100644 sound/soc/omap/omap3beagle.c
+> 
+Actually I've been using patched Overo driver in my Beagle for
+couple days now :-)
+
+However I propose to keep Beagle and Overo separated as this patch
+does. I think Overo can have more versatile audio connections than
+Beagle and thus likely to be extended over time where as Beagle audio
+HW is fixed as it's now.
+
+Steve, any comments?
+
+
+Jarkko
