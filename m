@@ -1,86 +1,128 @@
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Subject: Re: [PREVIEW] New display subsystem for OMAP2/3
-Date: Wed, 17 Sep 2008 09:47:05 +0100
-Message-ID: <yw1xy71rupkm.fsf@thrashbarg.mansr.com>
-References: <1221144955.12281.6.camel@tubuntu> <5A47E75E594F054BAF48C5E4FC4B92AB02C42B43C8@dbde02.ent.ti.com> <20080912152937.GP31563@intune.research.nokia.com> <92846148-6506-47F1-8643-7333FB5E146A@student.utwente.nl> <yw1xbpyr3egz.fsf@thrashbarg.mansr.com> <1221480334.6312.54.camel@tubuntu> <yw1xljxtxl8t.fsf@thrashbarg.mansr.com> <1221636762.6312.117.camel@tubuntu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Jouni Hogander <jouni.hogander@nokia.com>
+Subject: [PATCH PM-0] OMAP3: I2C: Implement i2c save/restore
+Date: Wed, 17 Sep 2008 12:45:27 +0300
+Message-ID: <1221644727-13809-1-git-send-email-jouni.hogander@nokia.com>
+References: <87r67kwg97.fsf@trdhcp146196.ntc.nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:57078 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751072AbYIQIr3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Sep 2008 04:47:29 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1Kfsh0-0003dU-FD
-	for linux-omap@vger.kernel.org; Wed, 17 Sep 2008 08:47:22 +0000
-Received: from thrashbarg.mansr.com ([78.86.181.100])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Wed, 17 Sep 2008 08:47:22 +0000
-Received: from mans by thrashbarg.mansr.com with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Wed, 17 Sep 2008 08:47:22 +0000
+Received: from smtp.nokia.com ([192.100.122.233]:21196 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751072AbYIQJoN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Sep 2008 05:44:13 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8H9hmGG008605
+	for <linux-omap@vger.kernel.org>; Wed, 17 Sep 2008 12:44:10 +0300
+In-Reply-To: <87r67kwg97.fsf@trdhcp146196.ntc.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: video4linux-list@redhat.com
 
-Tomi Valkeinen <tomi.valkeinen@nokia.com> writes:
+Save and restore needed registers instead of re-init.
 
-> On Mon, 2008-09-15 at 20:27 +0100, ext M=E5ns Rullg=E5rd wrote:
->> Tomi Valkeinen <tomi.valkeinen@nokia.com> writes:
->>=20
->> > On Sat, 2008-09-13 at 22:47 +0100, ext M=E5ns Rullg=E5rd wrote:
->> >> Koen Kooi <k.kooi@student.utwente.nl> writes:
->> >
->> >> What I don't like about the patch posted is its size.  I'm sure t=
-he
->> >> transition could be done in a sequence of smaller patches.  At th=
-e
->> >> very least, it should be possible to move existing functionality =
-to
->> >> the new architecture, then add the new parts afterwards.  I also =
-see
->> >> little value in keeping the old model around, as is done in the p=
-atch.
->> >
->> > I don't like the size either. However, I have no idea how the old =
-driver
->> > could be transformed to include this functionality with a reasonab=
-le
->> > effort. The implementations are quite different.
->> >
->> > Any suggestions how I could approach this task? Only thing that co=
-mes to
->> > my mind is that there are very similar low level functions in both=
- DSS1
->> > and DSS2 (for dispc and rfbi), that I could remove from the old pl=
-ace
->> > and move to arch/arm/plat-omap/dss/, but that doesn't take us very=
- far.
->>=20
->> Are the patches you posted your latest version of the code?  Do you
->> have this code in a public git repo?  I'd like to take a closer look
->> at what you've done.
->
-> They are not the very latest, but they are recent enough. Unfortunate=
-ly
-> I don't have them on a public git. Nokia is still a bit lacking in th=
-at
-> area =3D). They should apply to linux-omap kernel from last Thursday =
-(I
-> think the commit id is mentioned in the series file).
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+---
+ drivers/i2c/busses/i2c-omap.c |   47 +++++++++++++++++++++++++++--------------
+ 1 files changed, 31 insertions(+), 16 deletions(-)
 
-I don't like working on old code.  It inevitably leads to wasting time
-re-doing things that have already been done in the latest version.
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index a661ed3..211d7b5 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -147,6 +147,10 @@ struct omap_i2c_dev {
+ 	unsigned		b_hw:1;		/* bad h/w fixes */
+ 	unsigned		idle:1;
+ 	u16			iestate;	/* Saved interrupt register */
++	u16			pscstate;
++	u16			scllstate;
++	u16			sclhstate;
++	u16			bufstate;
+ };
+ 
+ static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
+@@ -209,16 +213,22 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
+ 	if (dev->iclk != NULL)
+ 		clk_enable(dev->iclk);
+ 	clk_enable(dev->fclk);
++
++	if (cpu_is_omap34xx()) {
++		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
++		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
++		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
++		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
++	}
++
+ 	dev->idle = 0;
+-	if (dev->iestate)
+-		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
++	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
+ }
+ 
+ static void omap_i2c_idle(struct omap_i2c_dev *dev)
+ {
+ 	u16 iv;
+ 
+-	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+ 	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
+ 	if (dev->rev1)
+ 		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG);
+@@ -238,7 +248,7 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
+ 
+ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ {
+-	u16 psc = 0, scll = 0, sclh = 0;
++	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
+ 	u16 fsscll = 0, fssclh = 0, hsscll = 0, hssclh = 0;
+ 	unsigned long fclk_rate = 12000000;
+ 	unsigned long timeout;
+@@ -327,23 +337,30 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 	omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, scll);
+ 	omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, sclh);
+ 
+-	if (dev->fifo_size)
+-		/* Note: setup required fifo size - 1 */
+-		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG,
+-					(dev->fifo_size - 1) << 8 | /* RTRSH */
+-					OMAP_I2C_BUF_RXFIF_CLR |
+-					(dev->fifo_size - 1) | /* XTRSH */
+-					OMAP_I2C_BUF_TXFIF_CLR);
++	if (dev->fifo_size) {
++		/* Note: setup required fifo size - 1. RTRSH and XTRSH */
++		buf = (dev->fifo_size - 1) << 8 | OMAP_I2C_BUF_RXFIF_CLR |
++			(dev->fifo_size - 1) | OMAP_I2C_BUF_TXFIF_CLR;
++		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, buf);
++	}
+ 
+ 	/* Take the I2C module out of reset: */
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+ 
+ 	/* Enable interrupts */
+-	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG,
+-			(OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
++	dev->iestate = (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
+ 			OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
+ 			OMAP_I2C_IE_AL)  | ((dev->fifo_size) ?
+-				(OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0));
++				(OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0);
++	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
++
++	if (cpu_is_omap34xx()) {
++		dev->pscstate = psc;
++		dev->scllstate = scll;
++		dev->sclhstate = sclh;
++		dev->bufstate = buf;
++	}
++
+ 	return 0;
+ }
+ 
+@@ -503,8 +520,6 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+ 
+ 	omap_i2c_unidle(dev);
+ 
+-	omap_i2c_init(dev);
+-
+ 	if ((r = omap_i2c_wait_for_bb(dev)) < 0)
+ 		goto out;
+ 
+-- 
+1.5.5
 
---=20
-M=E5ns Rullg=E5rd
-mans@mansr.com
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
