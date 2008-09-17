@@ -1,37 +1,102 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: OMAP support in mainline?
-Date: Wed, 17 Sep 2008 05:24:11 -0700
-Message-ID: <5e088bd90809170524s6cfae9b9ye1379f11afb5bb79@mail.gmail.com>
-References: <87tzcgi1gv.fsf@nokia.com> <20080916232505.GC25885@atomide.com>
-	 <20080917082043.04c94e2d.jarkko.nikula@nokia.com>
-	 <200809162255.00918.david-b@pacbell.net>
-	 <9934E327-66E0-48DF-9FB6-FFF828E5358B@student.utwente.nl>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/29] PM: proposed branch for PM collaboration
+Date: Wed, 17 Sep 2008 16:18:06 +0300
+Message-ID: <87prn29ai9.fsf@deeprootsystems.com>
+References: <87iqt2amoi.fsf@deeprootsystems.com>
+	<48CFB12A.4040001@deeprootsystems.com>
+	<2392409E-3902-40A5-BF17-194FE710C2D2@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.178]:23341 "EHLO
-	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750817AbYIQMYN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Sep 2008 08:24:13 -0400
-Received: by py-out-1112.google.com with SMTP id p76so2385787pyb.10
-        for <linux-omap@vger.kernel.org>; Wed, 17 Sep 2008 05:24:11 -0700 (PDT)
-In-Reply-To: <9934E327-66E0-48DF-9FB6-FFF828E5358B@student.utwente.nl>
-Content-Disposition: inline
+Received: from qb-out-0506.google.com ([72.14.204.227]:49260 "EHLO
+	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752068AbYIQNSP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Sep 2008 09:18:15 -0400
+Received: by qb-out-0506.google.com with SMTP id f11so4704126qba.17
+        for <linux-omap@vger.kernel.org>; Wed, 17 Sep 2008 06:18:11 -0700 (PDT)
+In-Reply-To: <2392409E-3902-40A5-BF17-194FE710C2D2@student.utwente.nl> (Koen Kooi's message of "Tue\, 16 Sep 2008 20\:17\:41 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: David Brownell <david-b@pacbell.net>, Felipe Balbi <me@felipebalbi.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+Cc: linux-omap@vger.kernel.org
 
-On Wed, Sep 17, 2008 at 12:16 AM, Koen Kooi <k.kooi@student.utwente.nl> wrote:
+Koen Kooi <k.kooi@student.utwente.nl> writes:
 
-> And they aren't working too well with current l-o git either with MUSB being
-> broken. There's a patch to fix client mode, but host mode still isn't
-> working.
+> Op 16 sep 2008, om 15:14 heeft Kevin Hilman het volgende geschreven:
+>
+>> Kevin Hilman wrote:
+>>> Hello,
+>>> The following patchset is an attempt to collect the various PM
+>>> patches
+>>> that have been flowing around, and organize them into one branch to
+>>> be
+>>> used for further collaboration on PM development, in particular
+>>> OFF-mode support.
+>>
+>> This series has been rebased onto today's OMAP git, and pushed as
+>> branch pm-0.
+>>
+>> I will now start collecting more recent versions of these patches
+>> and newer patches sent to the list for the next version of the
+>> branch.
+>
+> What are your plans for including the omap3 cpufreq patchset?
+>
 
-Host mode musb is working just fine on Overo with the "set
-transceiver" patch.  Not sure why you are having trouble with Beagle
-(and can't check since I don't have my Beagle board with me at the
-moment)
+The current CPUfreq patcheset has dependencies TI's shared resource
+framework (SRF), which in turn depends on the new OMAP PM layer.
+Neither of which are included in the current PM branch.
 
-Steve
+My current plan is to get off-mode in suspend and dynamic idle
+stabilized along with CPUidle before integrating the new PM layer and
+SRF.
+
+Kevin
+
+
+>
+>>
+>>
+>> Kevin
+>>
+>>> It is currently a collection of proposed patches[1] from TI and
+>>> various other patches from Nokia and others to get retention,
+>>> OFF-mode, CPUidle etc. working in the linux-omap tree.
+>>> This series is nowhere near ready for merging into linux-omap, but
+>>> will be useful for discussion and collaboration on getting the
+>>> various
+>>> PM features working at the head of the linux-omap tree, and a place
+>>> where cleanup and rework efforts can be focused.  If there are no
+>>> major objections, I will create a branch in linux-omap
+>>> git and commit this series there.  As collaboration continues, I will
+>>> continue to collect and update patches, fix problems and rebase onto
+>>> the HEAD of linux-omap.  The goal of this branch is only to
+>>> facilitate the rework and cleanup
+>>> of the PM code so it can be merged into linux-omap.  Then, the branch
+>>> will disappear and work can be focused again on the HEAD of
+>>> linux-omap.
+>>> It has currently been tested with a minimal config on 3430SDP, and
+>>> OFF-mode is hit in suspend.  In order to hit suspend:
+>>>  echo 1 > /sys/power/voltage_off_while_idle
+>>> echo 1 > /sys/power/gpio_clocks_off_while_idle                 echo
+>>> 1 > /sys/power/uart_clocks_off_while_idle   echo mem > /sys/power/
+>>> state
+>>> Kevin
+>>> [1] This series is roughly based on the following:
+>>> Jouni Hogander, Tero Kristo
+>>> [PATCH 0/4] Refreshed PM workaround patches 2 -- 15 Aug
+>>> Rajendra Nayak:
+>>> [PATCH 00/11] OMAP3 CPUidle patches - ver 2 -- 18 July
+>>> As well as several patches/hacks/cleanups that have not yet been
+>>> posted to the list.
+>>> Also, there have been newer versions of the CPUidle patches that have
+>>> been reviewed on the list, but do not apply for various reasons.  As
+>>> soon as they are rebased and updated versions of those are available,
+>>> I will integrate them.
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux- 
+>> omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
