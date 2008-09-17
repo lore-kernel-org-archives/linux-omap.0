@@ -1,92 +1,73 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: OMAP support in mainline?
-Date: Wed, 17 Sep 2008 09:16:54 +0200
-Message-ID: <9934E327-66E0-48DF-9FB6-FFF828E5358B@student.utwente.nl>
-References: <87tzcgi1gv.fsf@nokia.com> <20080916232505.GC25885@atomide.com> <20080917082043.04c94e2d.jarkko.nikula@nokia.com> <200809162255.00918.david-b@pacbell.net>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-2-662962714"
-Content-Transfer-Encoding: 7bit
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PREVIEW] New display subsystem for OMAP2/3
+Date: Wed, 17 Sep 2008 10:32:42 +0300
+Message-ID: <1221636762.6312.117.camel@tubuntu>
+References: <1221144955.12281.6.camel@tubuntu>
+	 <5A47E75E594F054BAF48C5E4FC4B92AB02C42B43C8@dbde02.ent.ti.com>
+	 <20080912152937.GP31563@intune.research.nokia.com>
+	 <92846148-6506-47F1-8643-7333FB5E146A@student.utwente.nl>
+	 <yw1xbpyr3egz.fsf@thrashbarg.mansr.com> <1221480334.6312.54.camel@tubuntu>
+	 <yw1xljxtxl8t.fsf@thrashbarg.mansr.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:46341 "EHLO smtp.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751549AbYIQHTH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Sep 2008 03:19:07 -0400
-In-Reply-To: <200809162255.00918.david-b@pacbell.net>
+Received: from smtp.nokia.com ([192.100.105.134]:21631 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750817AbYIQHeL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Sep 2008 03:34:11 -0400
+In-Reply-To: <yw1xljxtxl8t.fsf@thrashbarg.mansr.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Felipe Balbi <me@felipebalbi.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: ext =?ISO-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
+Cc: linux-omap@vger.kernel.org, video4linux-list@redhat.com
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-2-662962714
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+On Mon, 2008-09-15 at 20:27 +0100, ext M=C3=A5ns Rullg=C3=A5rd wrote:
+> Tomi Valkeinen <tomi.valkeinen@nokia.com> writes:
+>=20
+> > On Sat, 2008-09-13 at 22:47 +0100, ext M=C3=A5ns Rullg=C3=A5rd wrot=
+e:
+> >> Koen Kooi <k.kooi@student.utwente.nl> writes:
+> >
+> >> What I don't like about the patch posted is its size.  I'm sure th=
+e
+> >> transition could be done in a sequence of smaller patches.  At the
+> >> very least, it should be possible to move existing functionality t=
+o
+> >> the new architecture, then add the new parts afterwards.  I also s=
+ee
+> >> little value in keeping the old model around, as is done in the pa=
+tch.
+> >
+> > I don't like the size either. However, I have no idea how the old d=
+river
+> > could be transformed to include this functionality with a reasonabl=
+e
+> > effort. The implementations are quite different.
+> >
+> > Any suggestions how I could approach this task? Only thing that com=
+es to
+> > my mind is that there are very similar low level functions in both =
+DSS1
+> > and DSS2 (for dispc and rfbi), that I could remove from the old pla=
+ce
+> > and move to arch/arm/plat-omap/dss/, but that doesn't take us very =
+far.
+>=20
+> Are the patches you posted your latest version of the code?  Do you
+> have this code in a public git repo?  I'd like to take a closer look
+> at what you've done.
 
+They are not the very latest, but they are recent enough. Unfortunately
+I don't have them on a public git. Nokia is still a bit lacking in that
+area =3D). They should apply to linux-omap kernel from last Thursday (I
+think the commit id is mentioned in the series file).
 
-Op 17 sep 2008, om 07:55 heeft David Brownell het volgende geschreven:
-
-> On Tuesday 16 September 2008, Jarkko Nikula wrote:
->>
->> I think one good measure for this whole work when one can can run
->> Beagle or Overo with mainline kernel.
->
-> Yes ... ideally for 2.6.28 for both.  The Overo boards handed
-> out at the kernel summit are a bit visible right now as not
-> yet booting with mainline code.  :)
-
-And they aren't working too well with current l-o git either with MUSB  
-being broken. There's a patch to fix client mode, but host mode still  
-isn't working.
-
-regards,
-
-Koen
-
-
-
-
->
->
->
->> That would require some "spring-cleaning" effort and getting core,
->> TWL4030, etc. patches out but then it is much more easier to send
->> remaining board files and other drivers to their relevant lists.
->
-> My quick audit:
->
->  - core updates
->  - board files
->  - twl4030 ... converted to new-style, gpiolib, drivers/mfd
->  - hsmmc
->  - omap2 nand
->  - various pending musb updates
->
-> FB support would be nice too, but IMO not if that means rushing
-> the updates discussed lately.  Not all the TWL components would
-> need to go upstream at once.
->
-> - Dave
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux- 
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+ Tomi
 
 
---Apple-Mail-2-662962714
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: This is a digitally signed message part
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFI0K7oMkyGM64RGpERAgINAJ0X0LHEOVBBXbu9nDpgMdm5nWOulACfW/1G
-fgTnF+cnymyQmmMlu7FMKhs=
-=JVMo
------END PGP SIGNATURE-----
-
---Apple-Mail-2-662962714--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
