@@ -1,82 +1,249 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: OMAP support in mainline?
-Date: Wed, 17 Sep 2008 15:23:49 +0200
-Message-ID: <8192948C-751F-4C1C-B382-E381F903CC46@student.utwente.nl>
-References: <87tzcgi1gv.fsf@nokia.com> <20080916232505.GC25885@atomide.com> <20080917082043.04c94e2d.jarkko.nikula@nokia.com> <200809162255.00918.david-b@pacbell.net> <9934E327-66E0-48DF-9FB6-FFF828E5358B@student.utwente.nl> <5e088bd90809170524s6cfae9b9ye1379f11afb5bb79@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-6-684977005"
-Content-Transfer-Encoding: 7bit
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: [PATCH] Debobs and ETK padconf implementation
+Date: Wed, 17 Sep 2008 18:02:28 +0300
+Message-ID: <1221663749-26121-3-git-send-email-peter.de-schrijver@nokia.com>
+References: <1221663749-26121-1-git-send-email-peter.de-schrijver@nokia.com>
+ <1221663749-26121-2-git-send-email-peter.de-schrijver@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.utsp.utwente.nl ([130.89.2.8]:41389 "EHLO smtp.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752352AbYIQNYB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Sep 2008 09:24:01 -0400
-Received: from [172.20.1.5] (vpn006014.vpn.utwente.nl [130.89.6.14])
-          by smtp.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id m8HDNpIp032419
-          for <linux-omap@vger.kernel.org>; Wed, 17 Sep 2008 15:23:51 +0200
-In-Reply-To: <5e088bd90809170524s6cfae9b9ye1379f11afb5bb79@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.105.134]:24590 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752661AbYIQPDA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Sep 2008 11:03:00 -0400
+Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8HF2LHg002351
+	for <linux-omap@vger.kernel.org>; Wed, 17 Sep 2008 10:02:57 -0500
+In-Reply-To: <1221663749-26121-2-git-send-email-peter.de-schrijver@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-6-684977005
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+---
+ arch/arm/mach-omap2/debobs.c |  214 ++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 214 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/debobs.c
 
+diff --git a/arch/arm/mach-omap2/debobs.c b/arch/arm/mach-omap2/debobs.c
+new file mode 100644
+index 0000000..1bde1f4
+--- /dev/null
++++ b/arch/arm/mach-omap2/debobs.c
+@@ -0,0 +1,214 @@
++/*
++ * arch/arm/mach-omap2/debobs.c
++ *
++ * Handle debobs pads
++ *
++ * Copyright (C) 2008 Nokia Corporation
++ *
++ * Written by Peter De Schrijver <peter.de-schrijver@nokia.com>
++ *
++ * This file is subject to the terms and conditions of the GNU General
++ * Public License. See the file "COPYING" in the main directory of this
++ * archive for more details.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/debugfs.h>
++#include <linux/uaccess.h>
++#include <linux/module.h>
++#include <mach/control.h>
++#include <mach/mux.h>
++#include <mach/gpio.h>
++#include <mach/board.h>
++
++#define ETK_GPIO_BEGIN		12
++#define ETK_GPIO(i)		(ETK_GPIO_BEGIN + i)
++#define NUM_OF_DEBOBS_PADS	18
++
++enum debobs_pad_mode {
++	GPIO = 0,
++	OBS = 1,
++	ETK = 2,
++	NO_MODE = 3,
++};
++
++static char *debobs_pad_mode_names[] = {
++	[GPIO] = "GPIO",
++	[OBS] = "OBS",
++	[ETK] = "ETK",
++};
++
++struct obs {
++	u16 offset;
++	u8 value;
++	u8 mask;
++};
++
++struct debobs_pad {
++	enum debobs_pad_mode mode;
++	struct obs core_obs;
++	struct obs wakeup_obs;
++};
++
++static struct debobs_pad debobs_pads[NUM_OF_DEBOBS_PADS];
++
++static int debobs_mode_open(struct inode *inode, struct file *file)
++{
++	file->private_data = inode->i_private;
++
++	return 0;
++}
++
++static ssize_t debobs_mode_read(struct file *file, char __user *user_buf,
++				size_t count, loff_t *ppos)
++{
++	char buffer[10];
++	int size;
++	int pad_number = (int)file->private_data;
++	struct debobs_pad *e = &debobs_pads[pad_number];
++
++	size = snprintf(buffer, sizeof(buffer), "%s\n",
++			debobs_pad_mode_names[e->mode]);
++	return simple_read_from_buffer(user_buf, count, ppos, buffer, size);
++}
++
++static ssize_t debobs_mode_write(struct file *file, const char __user *user_buf,
++				size_t count, loff_t *ppos)
++{
++	char buffer[10];
++	int buf_size, i, pad_number;
++	u16 muxmode = OMAP34XX_MUX_MODE7;
++
++	memset(buffer, 0, sizeof(buffer));
++	buf_size = min(count, (sizeof(buffer)-1));
++
++	if (copy_from_user(buffer, user_buf, buf_size))
++		return -EFAULT;
++
++	pad_number = (int)file->private_data;
++
++	for (i = 0; i < NO_MODE; i++) {
++		if (!strnicmp(debobs_pad_mode_names[i],
++				buffer,
++				strlen(debobs_pad_mode_names[i]))) {
++			switch (i) {
++			case ETK:
++				muxmode = OMAP34XX_MUX_MODE0;
++				break;
++			case GPIO:
++				muxmode = OMAP34XX_MUX_MODE4;
++				break;
++			case OBS:
++				muxmode = OMAP34XX_MUX_MODE7;
++				break;
++			}
++			omap_ctrl_writew(muxmode,
++					OMAP343X_PADCONF_ETK(pad_number));
++			debobs_pads[pad_number].mode = i;
++
++			return count;
++		}
++	}
++
++	return -EINVAL;
++}
++
++static const struct file_operations debobs_mode_fops = {
++	.open 	= debobs_mode_open,
++	.read	= debobs_mode_read,
++	.write	= debobs_mode_write,
++};
++
++static int debobs_get(void *data, u64 *val)
++{
++	struct obs *o = data;
++
++	*val = o->value;
++
++	return 0;
++}
++
++static int debobs_set(void *data, u64 val)
++{
++	struct obs *o = data;
++
++	val &= BIT(o->mask) - 1;
++
++	omap_ctrl_writeb(val, o->offset);
++	o->value = val;
++
++	return 0;
++}
++
++DEFINE_SIMPLE_ATTRIBUTE(debobs_fops, debobs_get, debobs_set, "%llu\n");
++
++static inline int __init _new_debobs_pad(struct debobs_pad *pad, char *name,
++					int number, struct dentry *root)
++{
++	struct dentry *d;
++	struct obs *o;
++
++	d = debugfs_create_dir(name, root);
++	if (IS_ERR(d))
++		return PTR_ERR(d);
++
++	omap_ctrl_writew(OMAP34XX_MUX_MODE4, OMAP343X_PADCONF_ETK(number));
++	omap_set_gpio_direction(ETK_GPIO(number), 1);
++	gpio_export(ETK_GPIO(number), 1);
++	(void) debugfs_create_file("mode", S_IRUGO | S_IWUGO, d,
++					(void *)number, &debobs_mode_fops);
++
++	o = &pad->core_obs;
++	o->offset = OMAP343X_CONTROL_DEBOBS(number);
++	o->value = omap_ctrl_readw(o->offset);
++	o->mask = 7;
++	(void) debugfs_create_file("coreobs", S_IRUGO | S_IWUGO, d, o,
++					&debobs_fops);
++
++	o = &pad->wakeup_obs;
++	o->offset = OMAP343X_CONTROL_WKUP_DEBOBSMUX(number);
++	o->value = omap_ctrl_readb(o->offset);
++	o->mask = 5;
++	(void) debugfs_create_file("wakeupobs", S_IRUGO | S_IWUGO, d, o,
++					&debobs_fops);
++
++	return 0;
++}
++
++static int __init init_debobs(void)
++{
++	struct dentry *debobs_root;
++	int i, err;
++	char name[10];
++
++	debobs_root = debugfs_create_dir("debobs", NULL);
++	if (IS_ERR(debobs_root))
++		return PTR_ERR(debobs_root);
++
++	for (i = 0; i < NUM_OF_DEBOBS_PADS; i++) {
++		if (!omap_request_gpio(ETK_GPIO(i))) {
++			snprintf(name, sizeof(name), "hw_dbg%d", i);
++			err = _new_debobs_pad(&debobs_pads[i], name, i,
++						debobs_root);
++			if (err) {
++				omap_free_gpio(ETK_GPIO(i));
++				return err;
++			}
++		}
++	}
++
++	return 0;
++}
++
++late_initcall_sync(init_debobs);
+-- 
+1.5.6.3
 
-Op 17 sep 2008, om 14:24 heeft Steve Sakoman het volgende geschreven:
-
-> On Wed, Sep 17, 2008 at 12:16 AM, Koen Kooi  
-> <k.kooi@student.utwente.nl> wrote:
->
->> And they aren't working too well with current l-o git either with  
->> MUSB being
->> broken. There's a patch to fix client mode, but host mode still isn't
->> working.
->
-> Host mode musb is working just fine on Overo with the "set
-> transceiver" patch.  Not sure why you are having trouble with Beagle
-> (and can't check since I don't have my Beagle board with me at the
-> moment)
-
-I should clarify: OTG mode with a host cable doesn't work in .27rc, it  
-does work in 2.6.26. I haven't tried specifying pure hostmode, only OTG.
-I would try it on the evm as well, but that is having serious irq  
-issues with .27rc, pressing a key on the keypad triggers an irq  
-overrun, ethernet gives an oops on boot when trying to register and  
-irq etc,etc. 2.6.27 is looking really, really bad on omap3 at the  
-moment.
-
-regards,
-
-Koen
-
-
->
->
-> Steve
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux- 
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
---Apple-Mail-6-684977005
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: This is a digitally signed message part
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFI0QTmMkyGM64RGpERAs0NAJ4qzKsmIxjyzrqX7V01SIkn0DpA7QCcCiVq
-MJkk8va53zzDmAPvK9dGjoA=
-=PvcH
------END PGP SIGNATURE-----
-
---Apple-Mail-6-684977005--
