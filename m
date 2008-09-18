@@ -1,193 +1,126 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 01/11] OMAP3 clock: split mcbspX_src_fck from mcbspX_fck
-Date: Thu, 18 Sep 2008 11:46:54 -0600
-Message-ID: <20080918174649.7146.45635.stgit@localhost.localdomain>
+Subject: [PATCH v2 08/11] OMAP2/3 clock: convert omap2_wait_clock_ready() to
+	use clk.prcm_mod
+Date: Thu, 18 Sep 2008 11:47:15 -0600
+Message-ID: <20080918174712.7146.55539.stgit@localhost.localdomain>
 References: <20080918174432.7146.21366.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55095 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:55118 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755038AbYIRRsH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 13:48:07 -0400
+	with ESMTP id S1755280AbYIRRsJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 13:48:09 -0400
 In-Reply-To: <20080918174432.7146.21366.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>
 
-McBSP clock source control registers are located in the System Control
-Module, not the PRCM.  However, the clock enable/disable registers are
-in the CM.  Since the following patches require all registers in a
-struct clk to be in only one of {CM, PRM, SCM}, we must split the
-source clock selection into a separate struct clk from the clock
-enable/disable control.
+Convert omap2_wait_clock_ready() to use clk.prcm_mod rather than a
+void __iomem *.  This removes some cruft from clock24xx.c and sets
+up further cruft removal in a subsequent patch.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock34xx.h |   82 +++++++++++++++++++++++++++++++--------
- 1 files changed, 66 insertions(+), 16 deletions(-)
+ arch/arm/mach-omap2/clock.c     |   13 ++++++++-----
+ arch/arm/mach-omap2/clock.h     |    3 ++-
+ arch/arm/mach-omap2/clock24xx.c |   10 +---------
+ 3 files changed, 11 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-index 92d6903..adfbcb7 100644
---- a/arch/arm/mach-omap2/clock34xx.h
-+++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -1472,12 +1472,10 @@ static const struct clksel mcbsp_15_clksel[] = {
- 	{ .parent = NULL }
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 6433679..b2478b7 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -255,14 +255,16 @@ void omap2_fixed_divisor_recalc(struct clk *clk)
+ 
+ /**
+  * omap2_wait_clock_ready - wait for clock to enable
+- * @reg: physical address of clock IDLEST register
++ * @prcm_mod: CM submodule offset from CM_BASE (e.g., "MPU_MOD")
++ * @reg_index: offset of CM register address from prcm_mod
+  * @mask: value to mask against to determine if the clock is active
+  * @name: name of the clock (for printk)
+  *
+  * Returns 1 if the clock enabled in time, or 0 if it failed to enable
+  * in roughly MAX_CLOCK_ENABLE_WAIT microseconds.
+  */
+-int omap2_wait_clock_ready(void __iomem *reg, u32 mask, const char *name)
++int omap2_wait_clock_ready(s16 prcm_mod, u16 reg_index, u32 mask,
++			   const char *name)
+ {
+ 	int i = 0, ena = 0;
+ 
+@@ -276,7 +278,7 @@ int omap2_wait_clock_ready(void __iomem *reg, u32 mask, const char *name)
+ 		ena = 0;
+ 
+ 	/* Wait for lock */
+-	while (((__raw_readl(reg) & mask) != ena) &&
++	while (((cm_read_mod_reg(prcm_mod, reg_index) & mask) != ena) &&
+ 	       (i++ < MAX_CLOCK_ENABLE_WAIT)) {
+ 		udelay(1);
+ 	}
+@@ -287,7 +289,6 @@ int omap2_wait_clock_ready(void __iomem *reg, u32 mask, const char *name)
+ 		printk(KERN_ERR "Clock %s didn't enable in %d tries\n",
+ 		       name, MAX_CLOCK_ENABLE_WAIT);
+ 
+-
+ 	return (i < MAX_CLOCK_ENABLE_WAIT) ? 1 : 0;
  };
  
--static struct clk mcbsp5_fck = {
--	.name		= "mcbsp_fck",
-+static struct clk mcbsp5_src_fck = {
-+	.name		= "mcbsp_src_fck",
- 	.id		= 5,
- 	.init		= &omap2_init_clksel_parent,
--	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= OMAP3430_EN_MCBSP5_SHIFT,
- 	.clksel_reg	= OMAP343X_CTRL_REGADDR(OMAP343X_CONTROL_DEVCONF1),
- 	.clksel_mask	= OMAP2_MCBSP5_CLKS_MASK,
- 	.clksel		= mcbsp_15_clksel,
-@@ -1486,12 +1484,21 @@ static struct clk mcbsp5_fck = {
- 	.recalc		= &omap2_clksel_recalc,
- };
+@@ -389,7 +390,9 @@ static void omap2_clk_wait_ready(struct clk *clk)
+ 	idlest_reg = other_reg & ~PRCM_REGTYPE_MASK;
+ 	idlest_reg |= CM_IDLEST_REGTYPE;
  
--static struct clk mcbsp1_fck = {
-+static struct clk mcbsp5_fck = {
- 	.name		= "mcbsp_fck",
-+	.id		= 5,
-+	.parent		= &mcbsp5_src_fck,
-+	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
-+	.enable_bit	= OMAP3430_EN_MCBSP5_SHIFT,
-+	.flags		= CLOCK_IN_OMAP343X,
-+	.clkdm		= { .name = "core_l4_clkdm" },
-+	.recalc		= &followparent_recalc,
-+};
+-	omap2_wait_clock_ready((void __iomem *)idlest_reg, idlest_bit,
++	idlest_reg &= 0xff; /* convert to PRCM register index */
 +
-+static struct clk mcbsp1_src_fck = {
-+	.name		= "mcbsp_src_fck",
- 	.id		= 1,
- 	.init		= &omap2_init_clksel_parent,
--	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
--	.enable_bit	= OMAP3430_EN_MCBSP1_SHIFT,
- 	.clksel_reg	= OMAP343X_CTRL_REGADDR(OMAP2_CONTROL_DEVCONF0),
- 	.clksel_mask	= OMAP2_MCBSP1_CLKS_MASK,
- 	.clksel		= mcbsp_15_clksel,
-@@ -1500,6 +1507,17 @@ static struct clk mcbsp1_fck = {
- 	.recalc		= &omap2_clksel_recalc,
- };
++	omap2_wait_clock_ready(clk->prcm_mod, idlest_reg, idlest_bit,
+ 			       clk->name);
+ }
  
-+static struct clk mcbsp1_fck = {
-+	.name		= "mcbsp_fck",
-+	.id		= 1,
-+	.parent		= &mcbsp1_src_fck,
-+	.enable_reg	= _OMAP34XX_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
-+	.enable_bit	= OMAP3430_EN_MCBSP1_SHIFT,
-+	.flags		= CLOCK_IN_OMAP343X,
-+	.clkdm		= { .name = "core_l4_clkdm" },
-+	.recalc		= &followparent_recalc,
-+};
-+
- /* CORE_48M_FCK-derived clocks */
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index 3fa2e26..bcb0c03 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -48,7 +48,8 @@ void omap2_fixed_divisor_recalc(struct clk *clk);
+ long omap2_clksel_round_rate(struct clk *clk, unsigned long target_rate);
+ int omap2_clksel_set_rate(struct clk *clk, unsigned long rate);
+ u32 omap2_get_dpll_rate(struct clk *clk);
+-int omap2_wait_clock_ready(void __iomem *reg, u32 cval, const char *name);
++int omap2_wait_clock_ready(s16 prcm_mod, u16 idlest_reg, u32 cval,
++			   const char *name);
+ void omap2_clk_prepare_for_reboot(void);
  
- static struct clk core_48m_fck = {
-@@ -2773,14 +2791,35 @@ static const struct clksel mcbsp_234_clksel[] = {
- 	{ .parent = NULL }
- };
+ extern u8 cpu_mask;
+diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
+index ddb6429..a97d89d 100644
+--- a/arch/arm/mach-omap2/clock24xx.c
++++ b/arch/arm/mach-omap2/clock24xx.c
+@@ -93,7 +93,6 @@ static void omap2_disable_osc_ck(struct clk *clk)
+ static int omap2_clk_fixed_enable(struct clk *clk)
+ {
+ 	u32 cval, apll_mask;
+-	void __iomem *idlest;
  
-+static struct clk mcbsp2_src_fck = {
-+	.name		= "mcbsp_src_fck",
-+	.id		= 2,
-+	.init		= &omap2_init_clksel_parent,
-+	.clksel_reg	= OMAP343X_CTRL_REGADDR(OMAP2_CONTROL_DEVCONF0),
-+	.clksel_mask	= OMAP2_MCBSP2_CLKS_MASK,
-+	.clksel		= mcbsp_234_clksel,
-+	.flags		= CLOCK_IN_OMAP343X,
-+	.clkdm		= { .name = "per_clkdm" },
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
- static struct clk mcbsp2_fck = {
- 	.name		= "mcbsp_fck",
- 	.id		= 2,
--	.init		= &omap2_init_clksel_parent,
-+	.parent		= &mcbsp2_src_fck,
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
- 	.enable_bit	= OMAP3430_EN_MCBSP2_SHIFT,
--	.clksel_reg	= OMAP343X_CTRL_REGADDR(OMAP2_CONTROL_DEVCONF0),
--	.clksel_mask	= OMAP2_MCBSP2_CLKS_MASK,
-+	.flags		= CLOCK_IN_OMAP343X,
-+	.clkdm		= { .name = "per_clkdm" },
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
-+static struct clk mcbsp3_src_fck = {
-+	.name		= "mcbsp_src_fck",
-+	.id		= 3,
-+	.init		= &omap2_init_clksel_parent,
-+	.clksel_reg	= OMAP343X_CTRL_REGADDR(OMAP343X_CONTROL_DEVCONF1),
-+	.clksel_mask	= OMAP2_MCBSP3_CLKS_MASK,
- 	.clksel		= mcbsp_234_clksel,
- 	.flags		= CLOCK_IN_OMAP343X,
- 	.clkdm		= { .name = "per_clkdm" },
-@@ -2790,11 +2829,20 @@ static struct clk mcbsp2_fck = {
- static struct clk mcbsp3_fck = {
- 	.name		= "mcbsp_fck",
- 	.id		= 3,
--	.init		= &omap2_init_clksel_parent,
-+	.parent		= &mcbsp3_src_fck,
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
- 	.enable_bit	= OMAP3430_EN_MCBSP3_SHIFT,
-+	.flags		= CLOCK_IN_OMAP343X,
-+	.clkdm		= { .name = "per_clkdm" },
-+	.recalc		= &omap2_clksel_recalc,
-+};
-+
-+static struct clk mcbsp4_src_fck = {
-+	.name		= "mcbsp_src_fck",
-+	.id		= 4,
-+	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP343X_CTRL_REGADDR(OMAP343X_CONTROL_DEVCONF1),
--	.clksel_mask	= OMAP2_MCBSP3_CLKS_MASK,
-+	.clksel_mask	= OMAP2_MCBSP4_CLKS_MASK,
- 	.clksel		= mcbsp_234_clksel,
- 	.flags		= CLOCK_IN_OMAP343X,
- 	.clkdm		= { .name = "per_clkdm" },
-@@ -2804,12 +2852,9 @@ static struct clk mcbsp3_fck = {
- static struct clk mcbsp4_fck = {
- 	.name		= "mcbsp_fck",
- 	.id		= 4,
--	.init		= &omap2_init_clksel_parent,
-+	.parent		= &mcbsp4_src_fck,
- 	.enable_reg	= _OMAP34XX_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
- 	.enable_bit	= OMAP3430_EN_MCBSP4_SHIFT,
--	.clksel_reg	= OMAP343X_CTRL_REGADDR(OMAP343X_CONTROL_DEVCONF1),
--	.clksel_mask	= OMAP2_MCBSP4_CLKS_MASK,
--	.clksel		= mcbsp_234_clksel,
- 	.flags		= CLOCK_IN_OMAP343X,
- 	.clkdm		= { .name = "per_clkdm" },
- 	.recalc		= &omap2_clksel_recalc,
-@@ -3091,7 +3136,9 @@ static struct clk *onchip_34xx_clks[] __initdata = {
- 	&i2c3_fck,
- 	&i2c2_fck,
- 	&i2c1_fck,
-+	&mcbsp5_src_fck,
- 	&mcbsp5_fck,
-+	&mcbsp1_src_fck,
- 	&mcbsp1_fck,
- 	&core_48m_fck,
- 	&mcspi4_fck,
-@@ -3207,8 +3254,11 @@ static struct clk *onchip_34xx_clks[] __initdata = {
- 	&mcbsp2_ick,
- 	&mcbsp3_ick,
- 	&mcbsp4_ick,
-+	&mcbsp2_src_fck,
- 	&mcbsp2_fck,
-+	&mcbsp3_src_fck,
- 	&mcbsp3_fck,
-+	&mcbsp4_src_fck,
- 	&mcbsp4_fck,
- 	&emu_src_ck,
- 	&pclk_fck,
+ 	apll_mask = EN_APLL_LOCKED << clk->enable_bit;
+ 
+@@ -111,14 +110,7 @@ static int omap2_clk_fixed_enable(struct clk *clk)
+ 	else if (clk == &apll54_ck)
+ 		cval = OMAP24XX_ST_54M_APLL;
+ 
+-	if (cpu_is_omap242x())
+-		idlest = (__force void __iomem *)OMAP2420_CM_REGADDR(PLL_MOD,
+-								CM_IDLEST);
+-	else
+-		idlest = (__force void __iomem *)OMAP2430_CM_REGADDR(PLL_MOD,
+-								CM_IDLEST);
+-
+-	omap2_wait_clock_ready(idlest, cval, clk->name);
++	omap2_wait_clock_ready(PLL_MOD, CM_IDLEST, cval, clk->name);
+ 
+ 	/*
+ 	 * REVISIT: Should we return an error code if omap2_wait_clock_ready()
 
 
