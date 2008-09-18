@@ -1,76 +1,102 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 06/11] OMAP2/3 clock: use symbolic constants in
-	omap2_clk_wait_ready()
-Date: Thu, 18 Sep 2008 11:47:09 -0600
-Message-ID: <20080918174706.7146.13322.stgit@localhost.localdomain>
+Subject: [PATCH v2 10/11] OMAP2/3 clock: simplify omap2_clksel_get_src_field()
+Date: Thu, 18 Sep 2008 11:47:21 -0600
+Message-ID: <20080918174718.7146.88883.stgit@localhost.localdomain>
 References: <20080918174432.7146.21366.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55116 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:55122 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755022AbYIRRsJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 13:48:09 -0400
+	with ESMTP id S1755285AbYIRRsK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 13:48:10 -0400
 In-Reply-To: <20080918174432.7146.21366.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>
 
-Convert the bare constants in the register arithmetic in
-omap2_clk_wait_ready() to use meaningful symbolic names.
+Get rid of void __iomem * usage in omap2_clksel_get_src_field.
+Prepend the function name with an underscore to highlight that it is a
+static function.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock.c |   19 ++++++++++++++-----
- 1 files changed, 14 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/clock.c |   31 ++++++++++++-------------------
+ 1 files changed, 12 insertions(+), 19 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 2bdd587..ebf2d7e 100644
+index 062c034..621babc 100644
 --- a/arch/arm/mach-omap2/clock.c
 +++ b/arch/arm/mach-omap2/clock.c
-@@ -65,6 +65,13 @@
- #define ST_CORE_CLK_REF			0x1
- #define ST_CORE_CLK_32K			0x3
+@@ -803,18 +803,14 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
  
-+/* Bitmask to isolate the register type of clk.enable_reg */
-+#define PRCM_REGTYPE_MASK		0xf0
-+/* various CM register type options */
-+#define CM_FCLKEN_REGTYPE		0x00
-+#define CM_ICLKEN_REGTYPE		0x10
-+#define CM_IDLEST_REGTYPE		0x20
-+
- u8 cpu_mask;
+ /*
+  * Converts encoded control register address into a full address
+- * On error, *src_addr will be returned as 0.
++ * On error, the return value (parent_div) will be 0.
+  */
+-static u32 omap2_clksel_get_src_field(void __iomem **src_addr,
+-				      struct clk *src_clk, u32 *field_mask,
+-				      struct clk *clk, u32 *parent_div)
++static u32 _omap2_clksel_get_src_field(struct clk *src_clk, struct clk *clk,
++				       u32 *field_val)
+ {
+ 	const struct clksel *clks;
+ 	const struct clksel_rate *clkr;
  
- /*-------------------------------------------------------------------------
-@@ -301,12 +308,13 @@ static void omap2_clk_wait_ready(struct clk *clk)
- 	prcm_mod = reg & ~0xff;
- 	prcm_regid = reg & 0xff;
+-	*parent_div = 0;
+-	*src_addr = NULL;
+-
+ 	clks = omap2_get_clksel_by_parent(clk, src_clk);
+ 	if (!clks)
+ 		return 0;
+@@ -834,17 +830,14 @@ static u32 omap2_clksel_get_src_field(void __iomem **src_addr,
+ 	/* Should never happen.  Add a clksel mask to the struct clk. */
+ 	WARN_ON(clk->clksel_mask == 0);
  
-+	other_reg = reg & ~PRCM_REGTYPE_MASK;
-+
-+	/* If we are enabling an fclk, also test the iclk; and vice versa */
- 	if (prcm_regid >= CM_FCLKEN1 && prcm_regid <= OMAP24XX_CM_FCLKEN2)
--		other_reg = ((reg & ~0xf0) | 0x10); /* CM_ICLKEN* */
--	else if (prcm_regid >= CM_ICLKEN1 && prcm_regid <= OMAP24XX_CM_ICLKEN4)
--		other_reg = ((reg & ~0xf0) | 0x00); /* CM_FCLKEN* */
-+		other_reg |= CM_ICLKEN_REGTYPE;
- 	else
--		return;
-+		other_reg |= CM_FCLKEN_REGTYPE;
+-	*field_mask = clk->clksel_mask;
+-	*src_addr = clk->clksel_reg;
+-	*parent_div = clkr->div;
++	*field_val = clkr->val;
  
- 	/* Covers most of the cases - a few exceptions are below */
- 	other_bit = 1 << clk->enable_bit;
-@@ -377,7 +385,8 @@ static void omap2_clk_wait_ready(struct clk *clk)
- 	if (!(__raw_readl((void __iomem *)other_reg) & other_bit))
- 		return;
+-	return clkr->val;
++	return clkr->div;
+ }
  
--	idlest_reg = ((other_reg & ~0xf0) | 0x20); /* CM_IDLEST* */
-+	idlest_reg = other_reg & ~PRCM_REGTYPE_MASK;
-+	idlest_reg |= CM_IDLEST_REGTYPE;
+ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
+ {
+-	void __iomem *src_addr;
+-	u32 field_val, field_mask, v, parent_div;
++	u32 field_val, v, parent_div;
  
- 	omap2_wait_clock_ready((void __iomem *)idlest_reg, idlest_bit,
- 			       clk->name);
+ 	if (clk->flags & CONFIG_PARTICIPANT)
+ 		return -EINVAL;
+@@ -852,18 +845,18 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
+ 	if (!clk->clksel)
+ 		return -EINVAL;
+ 
+-	field_val = omap2_clksel_get_src_field(&src_addr, new_parent,
+-					       &field_mask, clk, &parent_div);
+-	if (src_addr == NULL)
++	parent_div = _omap2_clksel_get_src_field(new_parent, clk, &field_val);
++	if (!parent_div)
+ 		return -EINVAL;
+ 
+ 	if (clk->usecount > 0)
+ 		_omap2_clk_disable(clk);
+ 
+ 	/* Set new source value (previous dividers if any in effect) */
+-	v = __raw_readl(src_addr) & ~field_mask;
+-	v |= (field_val << __ffs(field_mask));
+-	__raw_writel(v, src_addr);
++	v = __raw_readl(clk->clksel_reg);
++	v &= ~clk->clksel_mask;
++	v |= field_val << __ffs(clk->clksel_mask);
++	__raw_writel(v, clk->clksel_reg);
+ 	wmb();
+ 
+ 	if (clk->flags & DELAYED_APP && cpu_is_omap24xx()) {
 
 
