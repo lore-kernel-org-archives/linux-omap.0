@@ -1,70 +1,70 @@
-From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
-Subject: Re: [PATCH PM-0] ARM: OMAP3: HSMMC: Ensure HSMMC is fully reset on boot
-Date: Thu, 18 Sep 2008 18:16:23 +0530
-Message-ID: <002501c9198c$8ff08430$LocalHost@wipultra1303>
-References: <1221740552-27110-1-git-send-email-khilman@deeprootsystems.com>
+From: "arun c" <arun.edarath@gmail.com>
+Subject: [PATCH] omapfb: Remove casting and change coding style
+Date: Thu, 18 Sep 2008 08:49:31 -0400
+Message-ID: <c656a4d20809180549y7ad49f40tb235a52ac6d9de8f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59609 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752822AbYIRMqf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 08:46:35 -0400
+Received: from ag-out-0708.google.com ([72.14.246.245]:16417 "EHLO
+	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752717AbYIRMtg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 08:49:36 -0400
+Received: by ag-out-0708.google.com with SMTP id 31so6400437agc.10
+        for <linux-omap@vger.kernel.org>; Thu, 18 Sep 2008 05:49:33 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+As sugested by RMK
 
------ Original Message ----- 
-From: "Kevin Hilman" <khilman@deeprootsystems.com>
-To: <linux-omap@vger.kernel.org>
-Cc: "Kevin Hilman" <khilman@deeprootsystems.com>
-Sent: Thursday, September 18, 2008 5:52 PM
-Subject: [PATCH PM-0] ARM: OMAP3: HSMMC: Ensure HSMMC is fully reset on boot
+Signed-off-by: Arun C <arunedarath@mistralsolutions.com>
+---
+ arch/arm/plat-omap/include/mach/omapfb.h |    4 ++--
+ drivers/video/omap/omapfb_main.c         |    6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
+diff --git a/arch/arm/plat-omap/include/mach/omapfb.h
+b/arch/arm/plat-omap/include/mach/omapfb.h
+index a4a84f3..a3c4408 100644
+--- a/arch/arm/plat-omap/include/mach/omapfb.h
++++ b/arch/arm/plat-omap/include/mach/omapfb.h
+@@ -276,8 +276,8 @@ typedef int (*omapfb_notifier_callback_t)(struct
+notifier_block *,
+ 					  void *fbi);
 
-> This ensures that an unused HSMMC block will not interfere with sleep.
-> 
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
-> arch/arm/mach-omap2/hsmmc.c |    8 ++++++++
-> 1 files changed, 8 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-> index 7334d86..03fe820 100644
-> --- a/arch/arm/mach-omap2/hsmmc.c
-> +++ b/arch/arm/mach-omap2/hsmmc.c
-> @@ -280,8 +280,16 @@ static struct omap_mmc_platform_data hsmmc_data = {
->  },
-> };
-> 
-> +static void __init hsmmc_reset(void)
-> +{
-> +       omap_writel(MMCHS_SYSCONFIG_SWRESET, MMCHS1_SYSCONFIG);
-> +       omap_writel(MMCHS_SYSCONFIG_SWRESET, MMCHS2_SYSCONFIG);
-> +       omap_writel(MMCHS_SYSCONFIG_SWRESET, MMCHS3_SYSCONFIG);
-> +}
-> +
-Where is MMCHS1_SYSCONFIG defined?
-After seting the softreset bit in SYSCONFIG, you might want to poll on the RESETDONE bit in SYSSTATUS to wait for the reset to complete.
-The interface and functional clocks should be provided before the reset is issued for reset to complete. At this point, I guess the clocks are not enabled yet.
+ struct omapfb_mem_region {
+-	dma_addr_t	paddr;
+-	void		*vaddr;
++	u32		paddr;
++	void __iomem	*vaddr;
+ 	unsigned long	size;
+ 	u8		type;		/* OMAPFB_PLANE_MEM_* */
+ 	unsigned	alloc:1;	/* allocated by the driver */
+diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
+index d176a2c..3bb4247 100644
+--- a/drivers/video/omap/omapfb_main.c
++++ b/drivers/video/omap/omapfb_main.c
+@@ -402,7 +402,7 @@ static void set_fb_fix(struct fb_info *fbi)
+ 	int bpp;
 
-Regards,
-Madhu
-> void __init hsmmc_init(void)
-> {
-> + hsmmc_reset();
->  omap2_init_mmc(&hsmmc_data);
-> }
-> 
-> -- 
-> 1.5.4.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
->
+ 	rg = &plane->fbdev->mem_desc.region[plane->idx];
+-	fbi->screen_base	= (char __iomem *)rg->vaddr;
++	fbi->screen_base	= rg->vaddr;
+ 	fix->smem_start		= rg->paddr;
+ 	fix->smem_len		= rg->size;
+
+@@ -1718,8 +1718,8 @@ static int omapfb_do_probe(struct platform_device *pdev,
+
+ 	pr_info("omapfb: configured for panel %s\n", fbdev->panel->name);
+
+-	def_vxres = def_vxres ? : fbdev->panel->x_res;
+-	def_vyres = def_vyres ? : fbdev->panel->y_res;
++	def_vxres = def_vxres ? def_vxres : fbdev->panel->x_res;
++	def_vyres = def_vyres ? def_vyres : fbdev->panel->y_res;
+
+ 	init_state++;
+
+-- 
+1.5.3.4
