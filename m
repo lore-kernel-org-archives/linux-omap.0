@@ -1,184 +1,34 @@
-From: David Brownell <david-b@pacbell.net>
+From: Felipe Balbi <me@felipebalbi.com>
 Subject: Re: [PATCH] watchdog: another ioremap() fix
-Date: Thu, 18 Sep 2008 10:03:16 -0700
-Message-ID: <200809181003.16664.david-b@pacbell.net>
-References: <1221746146-18252-1-git-send-email-felipe.balbi@nokia.com>
+Date: Thu, 18 Sep 2008 20:26:00 +0300
+Message-ID: <20080918172557.GA23716@frodo>
+References: <1221746146-18252-1-git-send-email-felipe.balbi@nokia.com> <200809181003.16664.david-b@pacbell.net>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:41615 "HELO
-	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754631AbYIRRDZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Sep 2008 13:03:25 -0400
-In-Reply-To: <1221746146-18252-1-git-send-email-felipe.balbi@nokia.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:53250 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754751AbYIRR0r (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 13:26:47 -0400
 Content-Disposition: inline
+In-Reply-To: <200809181003.16664.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: linux-omap@vger.kernel.org, gdavis@mvista.com, Tony Lindgren <tony@atomide.com>, Russel King <rmk@dyn-67.arm.linux.org.uk>, wim@iguana.be
+To: David Brownell <david-b@pacbell.net>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, gdavis@mvista.com, Tony Lindgren <tony@atomide.com>, Russel King <rmk@dyn-67.arm.linux.org.uk>, wim@iguana.be
 
-On Thursday 18 September 2008, Felipe Balbi wrote:
-> convert to use ioremap() and __raw_{read/write} friends.
-
-Why is this going to the OMAP list, not to LKML and cc'd
-the watchdog maintainer?  (I added Wim to the cc list...)
-
-If it's worth having, it's worth having in mainline...
-
-
-
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> ---
->  drivers/watchdog/omap_wdt.c |   52 +++++++++++++++++++++++++-----------------
->  1 files changed, 31 insertions(+), 21 deletions(-)
+On Thu, Sep 18, 2008 at 10:03:16AM -0700, David Brownell wrote:
+> On Thursday 18 September 2008, Felipe Balbi wrote:
+> > convert to use ioremap() and __raw_{read/write} friends.
 > 
-> diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-> index b111dec..e395743 100644
-> --- a/drivers/watchdog/omap_wdt.c
-> +++ b/drivers/watchdog/omap_wdt.c
-> @@ -71,12 +71,12 @@ static void omap_wdt_ping(struct omap_wdt_dev *wdev)
->  {
->  	void __iomem    *base = wdev->base;
->  	/* wait for posted write to complete */
-> -	while ((omap_readl(base + OMAP_WATCHDOG_WPS)) & 0x08)
-> +	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x08)
->  		cpu_relax();
->  	wdt_trgr_pattern = ~wdt_trgr_pattern;
-> -	omap_writel(wdt_trgr_pattern, (base + OMAP_WATCHDOG_TGR));
-> +	__raw_writel(wdt_trgr_pattern, (base + OMAP_WATCHDOG_TGR));
->  	/* wait for posted write to complete */
-> -	while ((omap_readl(base + OMAP_WATCHDOG_WPS)) & 0x08)
-> +	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x08)
->  		cpu_relax();
->  	/* reloaded WCRR from WLDR */
->  }
-> @@ -86,11 +86,11 @@ static void omap_wdt_enable(struct omap_wdt_dev *wdev)
->  	void __iomem *base;
->  	base = wdev->base;
->  	/* Sequence to enable the watchdog */
-> -	omap_writel(0xBBBB, base + OMAP_WATCHDOG_SPR);
-> -	while ((omap_readl(base + OMAP_WATCHDOG_WPS)) & 0x10)
-> +	__raw_writel(0xBBBB, base + OMAP_WATCHDOG_SPR);
-> +	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x10)
->  		cpu_relax();
-> -	omap_writel(0x4444, base + OMAP_WATCHDOG_SPR);
-> -	while ((omap_readl(base + OMAP_WATCHDOG_WPS)) & 0x10)
-> +	__raw_writel(0x4444, base + OMAP_WATCHDOG_SPR);
-> +	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x10)
->  		cpu_relax();
->  }
->  
-> @@ -99,11 +99,11 @@ static void omap_wdt_disable(struct omap_wdt_dev *wdev)
->  	void __iomem *base;
->  	base = wdev->base;
->  	/* sequence required to disable watchdog */
-> -	omap_writel(0xAAAA, base + OMAP_WATCHDOG_SPR);	/* TIMER_MODE */
-> -	while (omap_readl(base + OMAP_WATCHDOG_WPS) & 0x10)
-> +	__raw_writel(0xAAAA, base + OMAP_WATCHDOG_SPR);	/* TIMER_MODE */
-> +	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x10)
->  		cpu_relax();
-> -	omap_writel(0x5555, base + OMAP_WATCHDOG_SPR);	/* TIMER_MODE */
-> -	while (omap_readl(base + OMAP_WATCHDOG_WPS) & 0x10)
-> +	__raw_writel(0x5555, base + OMAP_WATCHDOG_SPR);	/* TIMER_MODE */
-> +	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x10)
->  		cpu_relax();
->  }
->  
-> @@ -123,10 +123,10 @@ static void omap_wdt_set_timeout(struct omap_wdt_dev *wdev)
->  	base = wdev->base;
->  
->  	/* just count up at 32 KHz */
-> -	while (omap_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
-> +	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
->  		cpu_relax();
-> -	omap_writel(pre_margin, base + OMAP_WATCHDOG_LDR);
-> -	while (omap_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
-> +	__raw_writel(pre_margin, base + OMAP_WATCHDOG_LDR);
-> +	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
->  		cpu_relax();
->  }
->  
-> @@ -152,10 +152,10 @@ static int omap_wdt_open(struct inode *inode, struct file *file)
->  	}
->  
->  	/* initialize prescaler */
-> -	while (omap_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
-> +	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
->  		cpu_relax();
-> -	omap_writel((1 << 5) | (PTV << 2), base + OMAP_WATCHDOG_CNTRL);
-> -	while (omap_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
-> +	__raw_writel((1 << 5) | (PTV << 2), base + OMAP_WATCHDOG_CNTRL);
-> +	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
->  		cpu_relax();
->  
->  	file->private_data = (void *) wdev;
-> @@ -225,7 +225,7 @@ omap_wdt_ioctl(struct inode *inode, struct file *file,
->  		return put_user(0, (int __user *)arg);
->  	case WDIOC_GETBOOTSTATUS:
->  		if (cpu_is_omap16xx())
-> -			return put_user(omap_readw(ARM_SYSST),
-> +			return put_user(__raw_readw(ARM_SYSST),
->  					(int __user *)arg);
->  		if (cpu_is_omap24xx())
->  			return put_user(omap_prcm_get_reset_sources(),
-> @@ -324,7 +324,12 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
->  			goto fail;
->  		}
->  	}
-> -	wdev->base = (void __iomem *) (mem->start);
-> +	wdev->base = ioremap(res->start, res->end - res->start + 1);
-> +	if (!wdev->base) {
-> +		ret = -ENOMEM;
-> +		goto fail;
-> +	}
-> +
->  	platform_set_drvdata(pdev, wdev);
->  
->  	omap_wdt_disable(wdev);
-> @@ -340,11 +345,11 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
->  		goto fail;
->  
->  	pr_info("OMAP Watchdog Timer Rev 0x%02x: initial timeout %d sec\n",
-> -		omap_readl(wdev->base + OMAP_WATCHDOG_REV) & 0xFF,
-> +		__raw_readl(wdev->base + OMAP_WATCHDOG_REV) & 0xFF,
->  		timer_margin);
->  
->  	/* autogate OCP interface clock */
-> -	omap_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
-> +	__raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
->  
->  	omap_wdt_dev = pdev;
->  
-> @@ -359,6 +364,8 @@ fail:
->  			clk_put(wdev->mpu_wdt_ick);
->  		if (wdev->mpu_wdt_fck)
->  			clk_put(wdev->mpu_wdt_fck);
-> +		if (wdev->base)
-> +			iounmap(wdev->base);
->  		kfree(wdev);
->  	}
->  	if (mem) {
-> @@ -396,6 +403,9 @@ static int omap_wdt_remove(struct platform_device *pdev)
->  		clk_put(wdev->mpu_wdt_fck);
->  		wdev->mpu_wdt_fck = NULL;
->  	}
-> +	if (wdev->base)
-> +		iounmap(wdev->base);
-> +
->  	kfree(wdev);
->  	omap_wdt_dev = NULL;
->  	return 0;
-> -- 
-> 1.6.0.1.308.gede4c
+> Why is this going to the OMAP list, not to LKML and cc'd
+> the watchdog maintainer?  (I added Wim to the cc list...)
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+> If it's worth having, it's worth having in mainline...
 
+My bad, forgot to Cc lkml. I'll resend when Wim gives his ok on the
+patch.
 
+-- 
+balbi
