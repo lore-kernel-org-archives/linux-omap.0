@@ -1,72 +1,56 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH PM-0] ARM: OMAP3: HSMMC: Ensure HSMMC is fully reset on boot
-Date: Thu, 18 Sep 2008 16:33:34 +0300
-Message-ID: <87r67ho9xt.fsf@deeprootsystems.com>
-References: <1221740552-27110-1-git-send-email-khilman@deeprootsystems.com>
-	<002501c9198c$8ff08430$LocalHost@wipultra1303>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: OMAP support in mainline?
+Date: Thu, 18 Sep 2008 08:36:06 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE896716203657701DB@dlee02.ent.ti.com>
+References: <87tzcgi1gv.fsf@nokia.com> <20080916232505.GC25885@atomide.com>
+	 <20080917082043.04c94e2d.jarkko.nikula@nokia.com>
+	 <200809162255.00918.david-b@pacbell.net>
+	 <9934E327-66E0-48DF-9FB6-FFF828E5358B@student.utwente.nl>
+	 <5e088bd90809170524s6cfae9b9ye1379f11afb5bb79@mail.gmail.com>
+	 <8192948C-751F-4C1C-B382-E381F903CC46@student.utwente.nl>
+	 <20080918095537.GD28615@gandalf.research.nokia.com>
+	 <DC3E0288-2605-450F-9E54-9B170B7669C9@student.utwente.nl>
+	 <FCCFB4CDC6E5564B9182F639FC356087022A3162A3@dbde02.ent.ti.com>
+ <1221738810.3873.37.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.184]:48474 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753026AbYIRNdj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 09:33:39 -0400
-Received: by fk-out-0910.google.com with SMTP id 18so3371532fkq.5
-        for <linux-omap@vger.kernel.org>; Thu, 18 Sep 2008 06:33:37 -0700 (PDT)
-In-Reply-To: <002501c9198c$8ff08430$LocalHost@wipultra1303> (Madhusudhan Chikkature's message of "Thu\, 18 Sep 2008 18\:16\:23 +0530")
+Received: from bear.ext.ti.com ([192.94.94.41]:57671 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752940AbYIRNgT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 09:36:19 -0400
+In-Reply-To: <1221738810.3873.37.camel@localhost>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan Chikkature <madhu.cr@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, "igor.stoppa@nokia.com" <igor.stoppa@nokia.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
 
-"Madhusudhan Chikkature" <madhu.cr@ti.com> writes:
-
-> ----- Original Message ----- 
-> From: "Kevin Hilman" <khilman@deeprootsystems.com>
-> To: <linux-omap@vger.kernel.org>
-> Cc: "Kevin Hilman" <khilman@deeprootsystems.com>
-> Sent: Thursday, September 18, 2008 5:52 PM
-> Subject: [PATCH PM-0] ARM: OMAP3: HSMMC: Ensure HSMMC is fully reset on boot
+> > > And, no, I'm not going to try omapzoom stuff, I want it working on
+> the
+> > > canonical linux-omap kernel, not some corporate version with god
+> knows
+> > > how many hacks.
+> >
+> > Your wish.
+> > I thought debugging and fixing the issue was more important than the
+> source of the fix !!!
 >
->
->> This ensures that an unused HSMMC block will not interfere with sleep.
->> 
->> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
->> ---
->> arch/arm/mach-omap2/hsmmc.c |    8 ++++++++
->> 1 files changed, 8 insertions(+), 0 deletions(-)
->> 
->> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
->> index 7334d86..03fe820 100644
->> --- a/arch/arm/mach-omap2/hsmmc.c
->> +++ b/arch/arm/mach-omap2/hsmmc.c
->> @@ -280,8 +280,16 @@ static struct omap_mmc_platform_data hsmmc_data = {
->>  },
->> };
->> 
->> +static void __init hsmmc_reset(void)
->> +{
->> +       omap_writel(MMCHS_SYSCONFIG_SWRESET, MMCHS1_SYSCONFIG);
->> +       omap_writel(MMCHS_SYSCONFIG_SWRESET, MMCHS2_SYSCONFIG);
->> +       omap_writel(MMCHS_SYSCONFIG_SWRESET, MMCHS3_SYSCONFIG);
->> +}
->> +
-> Where is MMCHS1_SYSCONFIG defined?
+> YES!
+> You have precisely exposed the problem with TI.
+> It could not have been formulated in a better way.
 
-Oops, I sent this prematurely, indeed it doesn't compile. :(
+Where do you think the lineage of the hardware and software is?  Do you believe it just jumped into being in open source?  All hardware and software is full of deliberate design and hacks. Its true cooperate design constraints are driven by the bottom line and for some in open source it is not.
 
-> After seting the softreset bit in SYSCONFIG, you might want to poll
-> on the RESETDONE bit in SYSSTATUS to wait for the reset to complete.
+If I look at this particular MUSB hardware/software stack I know it's a mix of purest work, semi-pure (sponsored by cooperate), and cooperate.  A lot of parties have advanced the technology with different agendas.  I've followed it from its start of life in hardware to its current state.
 
-OK, I'll add that.
+One positive bit for this block is most of the parties today are publicly making their work and specifications available. Hopefully with this enablement code will be free to evolve.
 
-> The interface and functional clocks should be provided before the
-> reset is issued for reset to complete. At this point, I guess the
-> clocks are not enabled yet.
+It would be nice if whatever code was on the main branch was not so frequently broken. Maybe those who are interested in it should work on a branch in the tree and periodically merge back at stable points.  Maybe finally merged drivers at kernel.org will server that purpose and the local tree's can be all development.
 
-They're not enabled by the kernel, but I believe they are enabled by
-the bootloader.  Are you suggesting I add explicit clk_enable|disable
-calls?
+Where we need something working for a customer 'today' we export a tree to do this. ...many strong statements in open source might be grouped as religious, lobbyist, or novice. We all use some mix of these in work.  What's your mix on this issue?
 
-Kevin
+Regards,
+Richard W.
 
