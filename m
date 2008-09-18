@@ -1,56 +1,160 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: OMAP support in mainline?
-Date: Thu, 18 Sep 2008 08:36:06 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE896716203657701DB@dlee02.ent.ti.com>
-References: <87tzcgi1gv.fsf@nokia.com> <20080916232505.GC25885@atomide.com>
-	 <20080917082043.04c94e2d.jarkko.nikula@nokia.com>
-	 <200809162255.00918.david-b@pacbell.net>
-	 <9934E327-66E0-48DF-9FB6-FFF828E5358B@student.utwente.nl>
-	 <5e088bd90809170524s6cfae9b9ye1379f11afb5bb79@mail.gmail.com>
-	 <8192948C-751F-4C1C-B382-E381F903CC46@student.utwente.nl>
-	 <20080918095537.GD28615@gandalf.research.nokia.com>
-	 <DC3E0288-2605-450F-9E54-9B170B7669C9@student.utwente.nl>
-	 <FCCFB4CDC6E5564B9182F639FC356087022A3162A3@dbde02.ent.ti.com>
- <1221738810.3873.37.camel@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [PATCH] watchdog: another ioremap() fix
+Date: Thu, 18 Sep 2008 16:55:46 +0300
+Message-ID: <1221746146-18252-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57671 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752940AbYIRNgT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 09:36:19 -0400
-In-Reply-To: <1221738810.3873.37.camel@localhost>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:58375 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753107AbYIROBN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 10:01:13 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, "igor.stoppa@nokia.com" <igor.stoppa@nokia.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: gdavis@mvista.com, Tony Lindgren <tony@atomide.com>, Russel King <rmk@dyn-67.arm.linux.org.uk>, Felipe Balbi <felipe.balbi@nokia.com>
 
-> > > And, no, I'm not going to try omapzoom stuff, I want it working on
-> the
-> > > canonical linux-omap kernel, not some corporate version with god
-> knows
-> > > how many hacks.
-> >
-> > Your wish.
-> > I thought debugging and fixing the issue was more important than the
-> source of the fix !!!
->
-> YES!
-> You have precisely exposed the problem with TI.
-> It could not have been formulated in a better way.
+convert to use ioremap() and __raw_{read/write} friends.
 
-Where do you think the lineage of the hardware and software is?  Do you believe it just jumped into being in open source?  All hardware and software is full of deliberate design and hacks. Its true cooperate design constraints are driven by the bottom line and for some in open source it is not.
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/watchdog/omap_wdt.c |   52 +++++++++++++++++++++++++-----------------
+ 1 files changed, 31 insertions(+), 21 deletions(-)
 
-If I look at this particular MUSB hardware/software stack I know it's a mix of purest work, semi-pure (sponsored by cooperate), and cooperate.  A lot of parties have advanced the technology with different agendas.  I've followed it from its start of life in hardware to its current state.
-
-One positive bit for this block is most of the parties today are publicly making their work and specifications available. Hopefully with this enablement code will be free to evolve.
-
-It would be nice if whatever code was on the main branch was not so frequently broken. Maybe those who are interested in it should work on a branch in the tree and periodically merge back at stable points.  Maybe finally merged drivers at kernel.org will server that purpose and the local tree's can be all development.
-
-Where we need something working for a customer 'today' we export a tree to do this. ...many strong statements in open source might be grouped as religious, lobbyist, or novice. We all use some mix of these in work.  What's your mix on this issue?
-
-Regards,
-Richard W.
+diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
+index b111dec..e395743 100644
+--- a/drivers/watchdog/omap_wdt.c
++++ b/drivers/watchdog/omap_wdt.c
+@@ -71,12 +71,12 @@ static void omap_wdt_ping(struct omap_wdt_dev *wdev)
+ {
+ 	void __iomem    *base = wdev->base;
+ 	/* wait for posted write to complete */
+-	while ((omap_readl(base + OMAP_WATCHDOG_WPS)) & 0x08)
++	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x08)
+ 		cpu_relax();
+ 	wdt_trgr_pattern = ~wdt_trgr_pattern;
+-	omap_writel(wdt_trgr_pattern, (base + OMAP_WATCHDOG_TGR));
++	__raw_writel(wdt_trgr_pattern, (base + OMAP_WATCHDOG_TGR));
+ 	/* wait for posted write to complete */
+-	while ((omap_readl(base + OMAP_WATCHDOG_WPS)) & 0x08)
++	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x08)
+ 		cpu_relax();
+ 	/* reloaded WCRR from WLDR */
+ }
+@@ -86,11 +86,11 @@ static void omap_wdt_enable(struct omap_wdt_dev *wdev)
+ 	void __iomem *base;
+ 	base = wdev->base;
+ 	/* Sequence to enable the watchdog */
+-	omap_writel(0xBBBB, base + OMAP_WATCHDOG_SPR);
+-	while ((omap_readl(base + OMAP_WATCHDOG_WPS)) & 0x10)
++	__raw_writel(0xBBBB, base + OMAP_WATCHDOG_SPR);
++	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x10)
+ 		cpu_relax();
+-	omap_writel(0x4444, base + OMAP_WATCHDOG_SPR);
+-	while ((omap_readl(base + OMAP_WATCHDOG_WPS)) & 0x10)
++	__raw_writel(0x4444, base + OMAP_WATCHDOG_SPR);
++	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x10)
+ 		cpu_relax();
+ }
+ 
+@@ -99,11 +99,11 @@ static void omap_wdt_disable(struct omap_wdt_dev *wdev)
+ 	void __iomem *base;
+ 	base = wdev->base;
+ 	/* sequence required to disable watchdog */
+-	omap_writel(0xAAAA, base + OMAP_WATCHDOG_SPR);	/* TIMER_MODE */
+-	while (omap_readl(base + OMAP_WATCHDOG_WPS) & 0x10)
++	__raw_writel(0xAAAA, base + OMAP_WATCHDOG_SPR);	/* TIMER_MODE */
++	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x10)
+ 		cpu_relax();
+-	omap_writel(0x5555, base + OMAP_WATCHDOG_SPR);	/* TIMER_MODE */
+-	while (omap_readl(base + OMAP_WATCHDOG_WPS) & 0x10)
++	__raw_writel(0x5555, base + OMAP_WATCHDOG_SPR);	/* TIMER_MODE */
++	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x10)
+ 		cpu_relax();
+ }
+ 
+@@ -123,10 +123,10 @@ static void omap_wdt_set_timeout(struct omap_wdt_dev *wdev)
+ 	base = wdev->base;
+ 
+ 	/* just count up at 32 KHz */
+-	while (omap_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
++	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
+ 		cpu_relax();
+-	omap_writel(pre_margin, base + OMAP_WATCHDOG_LDR);
+-	while (omap_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
++	__raw_writel(pre_margin, base + OMAP_WATCHDOG_LDR);
++	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
+ 		cpu_relax();
+ }
+ 
+@@ -152,10 +152,10 @@ static int omap_wdt_open(struct inode *inode, struct file *file)
+ 	}
+ 
+ 	/* initialize prescaler */
+-	while (omap_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
++	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
+ 		cpu_relax();
+-	omap_writel((1 << 5) | (PTV << 2), base + OMAP_WATCHDOG_CNTRL);
+-	while (omap_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
++	__raw_writel((1 << 5) | (PTV << 2), base + OMAP_WATCHDOG_CNTRL);
++	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
+ 		cpu_relax();
+ 
+ 	file->private_data = (void *) wdev;
+@@ -225,7 +225,7 @@ omap_wdt_ioctl(struct inode *inode, struct file *file,
+ 		return put_user(0, (int __user *)arg);
+ 	case WDIOC_GETBOOTSTATUS:
+ 		if (cpu_is_omap16xx())
+-			return put_user(omap_readw(ARM_SYSST),
++			return put_user(__raw_readw(ARM_SYSST),
+ 					(int __user *)arg);
+ 		if (cpu_is_omap24xx())
+ 			return put_user(omap_prcm_get_reset_sources(),
+@@ -324,7 +324,12 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
+ 			goto fail;
+ 		}
+ 	}
+-	wdev->base = (void __iomem *) (mem->start);
++	wdev->base = ioremap(res->start, res->end - res->start + 1);
++	if (!wdev->base) {
++		ret = -ENOMEM;
++		goto fail;
++	}
++
+ 	platform_set_drvdata(pdev, wdev);
+ 
+ 	omap_wdt_disable(wdev);
+@@ -340,11 +345,11 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
+ 		goto fail;
+ 
+ 	pr_info("OMAP Watchdog Timer Rev 0x%02x: initial timeout %d sec\n",
+-		omap_readl(wdev->base + OMAP_WATCHDOG_REV) & 0xFF,
++		__raw_readl(wdev->base + OMAP_WATCHDOG_REV) & 0xFF,
+ 		timer_margin);
+ 
+ 	/* autogate OCP interface clock */
+-	omap_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
++	__raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
+ 
+ 	omap_wdt_dev = pdev;
+ 
+@@ -359,6 +364,8 @@ fail:
+ 			clk_put(wdev->mpu_wdt_ick);
+ 		if (wdev->mpu_wdt_fck)
+ 			clk_put(wdev->mpu_wdt_fck);
++		if (wdev->base)
++			iounmap(wdev->base);
+ 		kfree(wdev);
+ 	}
+ 	if (mem) {
+@@ -396,6 +403,9 @@ static int omap_wdt_remove(struct platform_device *pdev)
+ 		clk_put(wdev->mpu_wdt_fck);
+ 		wdev->mpu_wdt_fck = NULL;
+ 	}
++	if (wdev->base)
++		iounmap(wdev->base);
++
+ 	kfree(wdev);
+ 	omap_wdt_dev = NULL;
+ 	return 0;
+-- 
+1.6.0.1.308.gede4c
 
