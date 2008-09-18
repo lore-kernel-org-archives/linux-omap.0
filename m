@@ -1,93 +1,55 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH] watchdog: another ioremap() fix
-Date: Thu, 18 Sep 2008 23:02:58 +0300
-Message-ID: <20080918200245.GA6617@frodo>
-References: <1221746146-18252-1-git-send-email-felipe.balbi@nokia.com> <200809181003.16664.david-b@pacbell.net> <20080918195007.GA14307@flint.arm.linux.org.uk>
-Reply-To: me@felipebalbi.com
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH] OMAP: USB EHCI: Support final revision of USB board
+Date: Fri, 19 Sep 2008 01:36:25 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02C4007EDA@dbde02.ent.ti.com>
+References: <FCCFB4CDC6E5564B9182F639FC35608701982C85CE@dbde02.ent.ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB02C3E314F6@dbde02.ent.ti.com>
+ <20080823232238.GL4713@atomide.com> <200809181222.54393.david-b@pacbell.net>
+ <5A47E75E594F054BAF48C5E4FC4B92AB02C4007ED9@dbde02.ent.ti.com>,<yw1x1vzhusux.fsf@thrashbarg.mansr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:33917 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755655AbYIRUDo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 16:03:44 -0400
-Content-Disposition: inline
-In-Reply-To: <20080918195007.GA14307@flint.arm.linux.org.uk>
+Received: from comal.ext.ti.com ([198.47.26.152]:40867 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755767AbYIRULe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 16:11:34 -0400
+In-Reply-To: <yw1x1vzhusux.fsf@thrashbarg.mansr.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: David Brownell <david-b@pacbell.net>, Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, gdavis@mvista.com, Tony Lindgren <tony@atomide.com>, wim@iguana.be
+To: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+>> "Gadiyar, Anand" <gadiyar@ti.com> writes:
+>>>
+>>> On Saturday 23 August 2008, Tony Lindgren wrote:
+>>> >
+>>> > > I'll get the ehci-omap code in better shape and submit separate=
+ly to the
+>>> > > linux-usb list.
+>>>
+>>> Given that we've not yet seen patches splitting out the board-speci=
+fic
+>>> bits into arch/arm/mach-omap2, I can't imagine those fixes being re=
+ady
+>>> for the 2.6.28 merge window.  (Hint for TI folk:  why not write the
+>>> code that way in the first place, avoiding all the delays inherent =
+in
+>>> writing code you *know* is unsuitable for merging to mainline?)
+>>
+>> Well, there are only a limited number of hours in a day. :)
+>=20
+> In my experience, writing code properly to begin with takes less time
+> than writing it badly first, and cleaning it up later.
+>=20
+> --
+> M=E5ns Rullg=E5rd
+> mans@mansr.com
 
-On Thu, Sep 18, 2008 at 08:50:07PM +0100, Russell King - ARM Linux wrote:
-> On Thu, Sep 18, 2008 at 10:03:16AM -0700, David Brownell wrote:
-> > On Thursday 18 September 2008, Felipe Balbi wrote:
-> > > convert to use ioremap() and __raw_{read/write} friends.
-> > 
-> > Why is this going to the OMAP list, not to LKML and cc'd
-> > the watchdog maintainer?  (I added Wim to the cc list...)
-> > 
-> > If it's worth having, it's worth having in mainline...
-> 
-> Indeed, this is definitely something that can go into mainline now and
-> trickle back down into the OMAP tree.
-> 
-> In other words, don't merge this into any OMAP tree, but get it into
-> mainline and wait for it to come back.  Same goes for any other fixes.
-> That means less work needs to be done by a very small number of
-> individuals who don't have enough time to push everything from the OMAP
-> tree upstream.
-
-Unfortunately I'll have to disagree here, a diff on omap_wdt.c against
-mainline shows quite a few changes since omap3 was introduced. Several
-patches never went to mainline. I'll prepare a sync up patch from omap to
-mainline and send both, but the omap3 stuff, won't be able to go in.
-Maybe i'll try to get rid of all the if (cpu_is_XXX()) stuff in
-omap_wdt.c and then send my patch on top of that.
-
-> The only real down side is that there's already a rather large delta
-> between the Tony's version and the mainline version:
-> 
->  drivers/watchdog/omap_wdt.c |  314 +++++++++++++++++---------------------------
->  1 file changed, 122 insertions(+), 192 deletions(-)
-
-Exactly.
-
-> which needs resolving first.  It's no good sending Wim a patch which can
-> only be applied to Tony's version of the driver.  Again, this is probably
-> the result of not pushing people hard enough to send their fixes upstream.
-
-Sure it is.
-
-> Now, I could leave this email at that, but I won't, because it'll be
-> ineffectual.  Yes yes yes is what everyone's saying.  We want OMAP to
-> be more merged with mainline, but, please Tony apply this patch so we
-> can have it working while we wait.
-> 
-> NO.  That's completely the wrong attitude.  As soon as it's in Tony's
-> tree, everyone goes on their merry way and forgets about it, leaving
-> it entirely up to Tony to sort out the resulting divergence with
-> mainline.  That's does not scale, and the fact that OMAP struggles
-> to merge with mainline proves it.
-
-totally agree with you here.
-
-> What I say to Tony: do you want OMAP to be merged into mainline, or
-> don't you.  If you do, do _not_ accept this patch but get the changes
-> already in your tree for omap_wdt.c up to Wim, and then get this patch
-> there.  Provide the carrot by getting the driver up to date in mainline,
-> and the stick by only accepting patches for this driver once they've
-> been acked by Wim.  Explicitly ask Wim to ack them for you.
-> 
-> Then you have one less driver to worry about constantly being out of
-> date with mainline.
-> 
-> Yes, it's probably radical for this community, but it _needs_ to happen.
-
-Well, what can I say. I'll try to get rid of those cpu conditional code
-in the driver and sync omap_wdt.c with mainline. Send all the patches
-via Wim, so Tony can get them later.
-
--- 
-balbi
+I totally agree. But I didn't write that in the first place - it's just=
+ that I
+happen to use this controller more often than others do :)--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
