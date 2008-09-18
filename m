@@ -1,111 +1,87 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 09/11] OMAP2/3 clock: remove omap2_get_clksel()
-Date: Thu, 18 Sep 2008 11:47:18 -0600
-Message-ID: <20080918174715.7146.87010.stgit@localhost.localdomain>
+Subject: [PATCH v2 05/11] OMAP2/3 clock: add _omap2_clk_{read,write}_reg()
+Date: Thu, 18 Sep 2008 11:47:06 -0600
+Message-ID: <20080918174703.7146.84730.stgit@localhost.localdomain>
 References: <20080918174432.7146.21366.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55124 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:55112 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755313AbYIRRsK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 13:48:10 -0400
+	with ESMTP id S1755239AbYIRRsI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 13:48:08 -0400
 In-Reply-To: <20080918174432.7146.21366.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>
 
-Remove omap2_get_clksel() and just use clk->clksel_reg and
-clk->clksel_mask directly.
+Create new static functions to read/write registers used in the struct
+clk, _omap2_clk_{read,write}_reg().  A subsequent patch will use these
+to ensure the correct register read/write instruction is used, which depends
+on whether the clock registers are in the CM, PRM, or SCM.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock.c |   46 +++++++++++--------------------------------
- 1 files changed, 12 insertions(+), 34 deletions(-)
+ arch/arm/mach-omap2/clock.c |   38 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 38 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index b2478b7..062c034 100644
+index 56065aa..2bdd587 100644
 --- a/arch/arm/mach-omap2/clock.c
 +++ b/arch/arm/mach-omap2/clock.c
-@@ -727,23 +727,6 @@ u32 omap2_divisor_to_clksel(struct clk *clk, u32 div)
- }
+@@ -29,6 +29,7 @@
+ #include <mach/sram.h>
+ #include <mach/cpu.h>
+ #include <mach/prcm.h>
++#include <mach/control.h>
+ #include <asm/div64.h>
  
+ #include <mach/sdrc.h>
+@@ -70,6 +71,43 @@ u8 cpu_mask;
+  * OMAP2/3 specific clock functions
+  *-------------------------------------------------------------------------*/
+ 
++/*
++ * _omap2_clk_read_reg - read a clock register
++ * @clk: struct clk *
++ *
++ * Given a struct clk *, returns the value of the clock's register.
++ */
++static u32 _omap2_clk_read_reg(u16 reg_offset, struct clk *clk)
++{
++	if (clk->prcm_mod & CLK_REG_IN_SCM)
++		return omap_ctrl_readl(reg_offset);
++	else if (clk->prcm_mod & CLK_REG_IN_PRM)
++		return prm_read_mod_reg(clk->prcm_mod & PRCM_MOD_ADDR_MASK,
++					reg_offset);
++	else
++		return cm_read_mod_reg(clk->prcm_mod, reg_offset);
++}
++
++/*
++ * _omap2_clk_write_reg - write a clock's register
++ * @v: value to write to the clock's enable_reg
++ * @clk: struct clk *
++ *
++ * Given a register value @v and struct clk * @clk, writes the value of @v to
++ * the clock's enable register.  No return value.
++ */
++static void _omap2_clk_write_reg(u32 v, u16 reg_offset, struct clk *clk)
++{
++	if (clk->prcm_mod & CLK_REG_IN_SCM)
++		omap_ctrl_writel(v, reg_offset);
++	else if (clk->prcm_mod & CLK_REG_IN_PRM)
++		prm_write_mod_reg(v, clk->prcm_mod & PRCM_MOD_ADDR_MASK,
++				  reg_offset);
++	else
++		cm_write_mod_reg(v, clk->prcm_mod, reg_offset);
++}
++
++
  /**
-- * omap2_get_clksel - find clksel register addr & field mask for a clk
-- * @clk: struct clk to use
-- * @field_mask: ptr to u32 to store the register field mask
-- *
-- * Returns the address of the clksel register upon success or NULL on error.
-- */
--static void __iomem *omap2_get_clksel(struct clk *clk, u32 *field_mask)
--{
--	if (unlikely((clk->clksel_reg == NULL) || (clk->clksel_mask == NULL)))
--		return NULL;
--
--	*field_mask = clk->clksel_mask;
--
--	return clk->clksel_reg;
--}
--
--/**
-  * omap2_clksel_get_divisor - get current divider applied to parent clock.
-  * @clk: OMAP struct clk to use.
-  *
-@@ -751,41 +734,36 @@ static void __iomem *omap2_get_clksel(struct clk *clk, u32 *field_mask)
-  */
- u32 omap2_clksel_get_divisor(struct clk *clk)
- {
--	u32 field_mask, v;
--	void __iomem *div_addr;
-+	u32 v;
- 
--	div_addr = omap2_get_clksel(clk, &field_mask);
--	if (div_addr == NULL)
-+	if (!clk->clksel_mask)
- 		return 0;
- 
--	v = __raw_readl(div_addr) & field_mask;
--	v >>= __ffs(field_mask);
-+	v = __raw_readl(clk->clksel_reg) & clk->clksel_mask;
-+	v >>= __ffs(clk->clksel_mask);
- 
- 	return omap2_clksel_to_divisor(clk, v);
- }
- 
- int omap2_clksel_set_rate(struct clk *clk, unsigned long rate)
- {
--	u32 field_mask, field_val, validrate, new_div = 0;
--	void __iomem *div_addr;
--	u32 v;
-+	u32 v, field_val, validrate, new_div = 0;
- 
--	validrate = omap2_clksel_round_rate_div(clk, rate, &new_div);
--	if (validrate != rate)
-+	if (!clk->clksel_mask)
- 		return -EINVAL;
- 
--	div_addr = omap2_get_clksel(clk, &field_mask);
--	if (div_addr == NULL)
-+	validrate = omap2_clksel_round_rate_div(clk, rate, &new_div);
-+	if (validrate != rate)
- 		return -EINVAL;
- 
- 	field_val = omap2_divisor_to_clksel(clk, new_div);
- 	if (field_val == ~0)
- 		return -EINVAL;
- 
--	v = __raw_readl(div_addr);
--	v &= ~field_mask;
--	v |= field_val << __ffs(field_mask);
--	__raw_writel(v, div_addr);
-+	v = __raw_readl(clk->clksel_reg);
-+	v &= ~clk->clksel_mask;
-+	v |= field_val << __ffs(clk->clksel_mask);
-+	__raw_writel(v, clk->clksel_reg);
- 
- 	wmb();
- 
+  * omap2_init_clk_clkdm - look up a clockdomain name, store pointer in clk
+  * @clk: OMAP clock struct ptr to use
 
 
