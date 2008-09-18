@@ -1,85 +1,79 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH] OMAP: USB EHCI: Support final revision of USB board
-Date: Fri, 19 Sep 2008 01:19:33 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02C4007ED9@dbde02.ent.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC35608701982C85CE@dbde02.ent.ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB02C3E314F6@dbde02.ent.ti.com>
- <20080823232238.GL4713@atomide.com>,<200809181222.54393.david-b@pacbell.net>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] watchdog: another ioremap() fix
+Date: Thu, 18 Sep 2008 20:50:07 +0100
+Message-ID: <20080918195007.GA14307@flint.arm.linux.org.uk>
+References: <1221746146-18252-1-git-send-email-felipe.balbi@nokia.com> <200809181003.16664.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58614 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754298AbYIRTtw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 15:49:52 -0400
-In-Reply-To: <200809181222.54393.david-b@pacbell.net>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51411 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754715AbYIRTug (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 15:50:36 -0400
+Content-Disposition: inline
+In-Reply-To: <200809181003.16664.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, gdavis@mvista.com, Tony Lindgren <tony@atomide.com>, wim@iguana.be
 
+On Thu, Sep 18, 2008 at 10:03:16AM -0700, David Brownell wrote:
+> On Thursday 18 September 2008, Felipe Balbi wrote:
+> > convert to use ioremap() and __raw_{read/write} friends.
 > 
-> On Saturday 23 August 2008, Tony Lindgren wrote:
-> >
-> > > I'll get the ehci-omap code in better shape and submit separately to the
-> > > linux-usb list.
+> Why is this going to the OMAP list, not to LKML and cc'd
+> the watchdog maintainer?  (I added Wim to the cc list...)
 > 
-> Given that we've not yet seen patches splitting out the board-specific
-> bits into arch/arm/mach-omap2, I can't imagine those fixes being ready
-> for the 2.6.28 merge window.  (Hint for TI folk:  why not write the
-> code that way in the first place, avoiding all the delays inherent in
-> writing code you *know* is unsuitable for merging to mainline?)
+> If it's worth having, it's worth having in mainline...
 
-Well, there are only a limited number of hours in a day. :)
+Indeed, this is definitely something that can go into mainline now and
+trickle back down into the OMAP tree.
 
-Hint taken: that that code was initially written badly is a valid point.
-But fixing it up is a non-trivial effort as is making sure it works. At the time I 
-wrote that e-mail (August 25) I did intend to have it out well before Felipe's
-11 September plan.
-
-As they say, the best laid plans of mice and men... At the moment it does
-not look like I'll be able to do this anytime soon.
-
-And if it's going upstream, it needs to be in better shape than it currently is.
-
-Even assuming that linux-usb decides to take it in it's current shape, it's 
-definitely not going to help things when the OHCI driver comes in. And if
-I'm going to be doing that cleanup anyway, I might as well get it right the
-first time. Correct?
-
-I'm going to be re-arranging this code, writing it the way it ought to have
-been the first time. But please don't expect this tomorrow.
-
-- Anand
+In other words, don't merge this into any OMAP tree, but get it into
+mainline and wait for it to come back.  Same goes for any other fixes.
+That means less work needs to be done by a very small number of
+individuals who don't have enough time to push everything from the OMAP
+tree upstream.
 
 
-> 
-> They'd have to get in through the "new driver" exception ... but that
-> doesn't seem workable either, since the mach-omap2 updates aren't ready
-> yet *either*, and there's not much time left for them to get into the
-> OMAP tree, tested, reviewed for the ARM merge window, and then pulled
-> into Russell's patch queue ...
-> 
-> In short:  unless that's ready in the next few days, that stuff may
-> not be able to hit mainline until 2.6.29 merges start (I'm guessing
-> that will mean January 2009).
-> 
-> 
-> > Well we should really sync all usb code with mainline now that musb is
-> > merged.
-> 
-> There are still a bunch of essential musb build fixes waiting to get
-> into mainline (from moving include/asm-arm in RC1).
-> 
-> I cc'd Greg; I'm hoping he plans to get those upstream soon, so
-> the 2.6.28-rc0 merge window can focus on the remaining functional
-> updates to make platforms work ... instead of build fixes, and then
-> needing another merge window for functional fixes.  It seems DaVinci
-> will be ready (platform updates are in Russell's queue).  OMAP3 looks
-> to be more involved.
-> 
-> - Dave
+However, the omap ioremap changes aren't in mainline yet.  Even so, that
+doesn't stop this change going in - the ioremap() changes only make
+ioremap() more efficient for those regions that are statically mapped.
+The end guarantees as far as the drivers are concerned (== give me a
+virtual mapping for the bus address/size I'm requesting) remain true
+no matter what.
 
 
+The only real down side is that there's already a rather large delta
+between the Tony's version and the mainline version:
+
+ drivers/watchdog/omap_wdt.c |  314 +++++++++++++++++---------------------------
+ 1 file changed, 122 insertions(+), 192 deletions(-)
+
+which needs resolving first.  It's no good sending Wim a patch which can
+only be applied to Tony's version of the driver.  Again, this is probably
+the result of not pushing people hard enough to send their fixes upstream.
+
+
+Now, I could leave this email at that, but I won't, because it'll be
+ineffectual.  Yes yes yes is what everyone's saying.  We want OMAP to
+be more merged with mainline, but, please Tony apply this patch so we
+can have it working while we wait.
+
+NO.  That's completely the wrong attitude.  As soon as it's in Tony's
+tree, everyone goes on their merry way and forgets about it, leaving
+it entirely up to Tony to sort out the resulting divergence with
+mainline.  That's does not scale, and the fact that OMAP struggles
+to merge with mainline proves it.
+
+What I say to Tony: do you want OMAP to be merged into mainline, or
+don't you.  If you do, do _not_ accept this patch but get the changes
+already in your tree for omap_wdt.c up to Wim, and then get this patch
+there.  Provide the carrot by getting the driver up to date in mainline,
+and the stick by only accepting patches for this driver once they've
+been acked by Wim.  Explicitly ask Wim to ack them for you.
+
+Then you have one less driver to worry about constantly being out of
+date with mainline.
+
+Yes, it's probably radical for this community, but it _needs_ to happen.
