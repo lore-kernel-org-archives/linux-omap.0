@@ -1,100 +1,71 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [rfc] [patch] clean up to ehci-omap (Was: Re: [patch] omap:
-	usb: ehci: fix use of hcd->regs)
-Date: Thu, 18 Sep 2008 15:05:20 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02C4348928@dbde02.ent.ti.com>
-References: <20080912121024.GG759@gandalf.research.nokia.com>
- <20080912182255.GD7132@frodo> <20080912183819.GE7132@frodo>
- <200809121216.27116.david-b@pacbell.net>
- <20080912192158.GG10675@atomide.com> <20080912192809.GF7132@frodo>
- <20080912193534.GH7132@frodo>
- <FCCFB4CDC6E5564B9182F639FC356087022A25316B@dbde02.ent.ti.com>
- <20080914185721.GB6943@frodo>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: OMAP support in mainline?
+Date: Thu, 18 Sep 2008 12:55:37 +0300
+Message-ID: <20080918095537.GD28615@gandalf.research.nokia.com>
+References: <87tzcgi1gv.fsf@nokia.com> <20080916232505.GC25885@atomide.com> <20080917082043.04c94e2d.jarkko.nikula@nokia.com> <200809162255.00918.david-b@pacbell.net> <9934E327-66E0-48DF-9FB6-FFF828E5358B@student.utwente.nl> <5e088bd90809170524s6cfae9b9ye1379f11afb5bb79@mail.gmail.com> <8192948C-751F-4C1C-B382-E381F903CC46@student.utwente.nl>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_5A47E75E594F054BAF48C5E4FC4B92AB02C4348928dbde02enttico_"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45488 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753477AbYIRJf4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Sep 2008 05:35:56 -0400
-In-Reply-To: <20080914185721.GB6943@frodo>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:61626 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751210AbYIRJ43 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 05:56:29 -0400
+Content-Disposition: inline
+In-Reply-To: <8192948C-751F-4C1C-B382-E381F903CC46@student.utwente.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "me@felipebalbi.com" <me@felipebalbi.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: ext Koen Kooi <k.kooi@student.utwente.nl>
+Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
---_002_5A47E75E594F054BAF48C5E4FC4B92AB02C4348928dbde02enttico_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+On Wed, Sep 17, 2008 at 03:23:49PM +0200, ext Koen Kooi wrote:
+>
+> Op 17 sep 2008, om 14:24 heeft Steve Sakoman het volgende geschreven:
+>
+>> On Wed, Sep 17, 2008 at 12:16 AM, Koen Kooi <k.kooi@student.utwente.nl> 
+>> wrote:
+>>
+>>> And they aren't working too well with current l-o git either with MUSB 
+>>> being
+>>> broken. There's a patch to fix client mode, but host mode still isn't
+>>> working.
+>>
+>> Host mode musb is working just fine on Overo with the "set
+>> transceiver" patch.  Not sure why you are having trouble with Beagle
+>> (and can't check since I don't have my Beagle board with me at the
+>> moment)
+>
+> I should clarify: OTG mode with a host cable doesn't work in .27rc, it does 
+> work in 2.6.26. I haven't tried specifying pure hostmode, only OTG.
+> I would try it on the evm as well, but that is having serious irq issues 
+> with .27rc, pressing a key on the keypad triggers an irq overrun, ethernet 
+> gives an oops on boot when trying to register and irq etc,etc. 2.6.27 is 
+> looking really, really bad on omap3 at the moment.
 
-Hi Felipe, Paul,
+Yeah, we lost some musb history when it went to mainline. I didn't test
+this patch yet cuz I've been quite busy at work, but it should make
+beagle work. Could you tell me if makes it work ?
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org On Behalf Of Felipe Balbi
-> Hi,
->=20
->=20
-> On Mon, Sep 15, 2008 at 12:11:46AM +0530, Pandita, Vikram wrote:
-> > The issues mentioned are _not_ of omap34xx silicon, but of=20
-> > the PHY (ISP1504 in SDP-USB expansion board).
->=20
-> Gotcha
->=20
-> > Better still is to move the PHY issues to platform/board specific funct=
-ion.
-> > Will try to submit a patch on that.
->=20
-> sounds good to me ;-)
->=20
-> If you can make your patch on top of the ones I have queued for sending,
-> I'd be glad. Also, if you could test them for me, that would be quite
-> nice since I only have a buggy version of beagleboard with one ehci
-> port.
->=20
-> I'm sending my patches attached for you, there's actually one from you
-> supporting the new version of the expansion board.
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 9d2dcb1..f7fe91e 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -215,12 +215,14 @@ void musb_platform_set_mode(struct musb *musb, u8 musb_mode)
 
-Your patches apply fine, but when you insmod the ehci module, we go into
-an infinite loop. Looks like some error reading a bit in CM_IDLEST2.
+ int __init musb_platform_init(struct musb *musb)
+ {
++       struct otg_transceiver *xceiv = otg_get_transceiver();
+        u32 l;
 
-Attached patch removes the infinite loop for now and at least enumeration
-can then happen. Ideally the clock framework should be taking care of
-enabling DPLL5 when the corresponding clocks are enabled, but this does not
-happen today.
+ #if defined(CONFIG_ARCH_OMAP2430)
+        omap_cfg_reg(AE5_2430_USB0HS_STP);
+ #endif
 
-@ Paul,
-	Would it be possible for you to look at this please?
++       memcpy(musb->xceiv, xceiv, sizeof(*xceiv));
+        musb_platform_resume(musb);
 
-Regards,
-Anand=
+        l = omap_readl(OTG_SYSCONFIG);
 
---_002_5A47E75E594F054BAF48C5E4FC4B92AB02C4348928dbde02enttico_
-Content-Type: application/octet-stream;
-	name="0005-omap-usb-ehci-dpll5-infinite-loop.patch"
-Content-Description: 0005-omap-usb-ehci-dpll5-infinite-loop.patch
-Content-Disposition: attachment;
-	filename="0005-omap-usb-ehci-dpll5-infinite-loop.patch"; size=860;
-	creation-date="Thu, 18 Sep 2008 15:03:35 GMT";
-	modification-date="Thu, 18 Sep 2008 15:03:35 GMT"
-Content-Transfer-Encoding: base64
 
-UmVtb3ZlIGluZmluaXRlIGxvb3AgaW4gRFBMTCA1IHByb2dyYW1taW5nLiBJZGVhbGx5LCBEUExM
-NSBzaG91bGQgYmUKdGFrZW4gY2FyZSBvZiBieSB0aGUgY2xvY2sgZnJhbWV3b3JrLgotLS0KIGRy
-aXZlcnMvdXNiL2hvc3QvZWhjaS1vbWFwLmMgfCAgICAyICsrCiAxIGZpbGVzIGNoYW5nZWQsIDIg
-aW5zZXJ0aW9ucygrKQoKSW5kZXg6IGxpbnV4LW9tYXAtMi42L2RyaXZlcnMvdXNiL2hvc3QvZWhj
-aS1vbWFwLmMKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PQotLS0gbGludXgtb21hcC0yLjYub3JpZy9kcml2ZXJzL3VzYi9o
-b3N0L2VoY2ktb21hcC5jCTIwMDgtMDktMTggMTQ6NTk6MzQuMDAwMDAwMDAwICswNTMwCisrKyBs
-aW51eC1vbWFwLTIuNi9kcml2ZXJzL3VzYi9ob3N0L2VoY2ktb21hcC5jCTIwMDgtMDktMTggMTU6
-MDA6MDkuNzM3NDc1NzU4ICswNTMwCkBAIC0xNzAsMTAgKzE3MCwxMiBAQCBzdGF0aWMgaW50IG9t
-YXBfc3RhcnRfZWhjKHN0cnVjdCBwbGF0Zm9yCiAJCQkoNyA8PCBPTUFQMzQzMEVTMl9FTl9QRVJJ
-UEgyX0RQTExfU0hJRlQpLAogCQkJUExMX01PRCwgT01BUDM0MzBFUzJfQ01fQ0xLRU4yKTsKIAor
-I2lmIDAKIAl3aGlsZSAoIShjbV9yZWFkX21vZF9yZWcoUExMX01PRCwgQ01fSURMRVNUMikgJgog
-CQkJCU9NQVAzNDMwRVMyX1NUX1BFUklQSDJfQ0xLX01BU0spKQogCQlkZXZfZGJnKGhjZC0+c2Vs
-Zi5jb250cm9sbGVyLCAiaWRsZXN0MiA9IDB4JXhcbiIsCiAJCQljbV9yZWFkX21vZF9yZWcoUExM
-X01PRCwgQ01fSURMRVNUMikpOworI2VuZGlmCiAJLyogRW5kIERQTEw1IHByb2dyYW1taW5nICov
-CiAKIAo=
-
---_002_5A47E75E594F054BAF48C5E4FC4B92AB02C4348928dbde02enttico_--
+-- 
+balbi
