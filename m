@@ -1,102 +1,88 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 10/11] OMAP2/3 clock: simplify omap2_clksel_get_src_field()
-Date: Thu, 18 Sep 2008 11:47:21 -0600
-Message-ID: <20080918174718.7146.88883.stgit@localhost.localdomain>
+Subject: [PATCH v2 07/11] OMAP2/3 clock: use prcm_mod field in
+	omap2_clk_wait_ready()
+Date: Thu, 18 Sep 2008 11:47:12 -0600
+Message-ID: <20080918174709.7146.10499.stgit@localhost.localdomain>
 References: <20080918174432.7146.21366.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55122 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:55113 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755285AbYIRRsK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 13:48:10 -0400
+	with ESMTP id S1755271AbYIRRsI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2008 13:48:08 -0400
 In-Reply-To: <20080918174432.7146.21366.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>
 
-Get rid of void __iomem * usage in omap2_clksel_get_src_field.
-Prepend the function name with an underscore to highlight that it is a
-static function.
+Use the newly-added clk.prcm_mod field in omap2_clk_wait_ready(),
+removing some internal register arithmetic.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock.c |   31 ++++++++++++-------------------
- 1 files changed, 12 insertions(+), 19 deletions(-)
+ arch/arm/mach-omap2/clock.c |   17 +++++++++--------
+ 1 files changed, 9 insertions(+), 8 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 062c034..621babc 100644
+index ebf2d7e..6433679 100644
 --- a/arch/arm/mach-omap2/clock.c
 +++ b/arch/arm/mach-omap2/clock.c
-@@ -803,18 +803,14 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
- 
- /*
-  * Converts encoded control register address into a full address
-- * On error, *src_addr will be returned as 0.
-+ * On error, the return value (parent_div) will be 0.
-  */
--static u32 omap2_clksel_get_src_field(void __iomem **src_addr,
--				      struct clk *src_clk, u32 *field_mask,
--				      struct clk *clk, u32 *parent_div)
-+static u32 _omap2_clksel_get_src_field(struct clk *src_clk, struct clk *clk,
-+				       u32 *field_val)
+@@ -302,10 +302,13 @@ int omap2_wait_clock_ready(void __iomem *reg, u32 mask, const char *name)
+ static void omap2_clk_wait_ready(struct clk *clk)
  {
- 	const struct clksel *clks;
- 	const struct clksel_rate *clkr;
+ 	u32 other_bit, idlest_bit;
+-	unsigned long reg, other_reg, idlest_reg, prcm_mod, prcm_regid;
++	unsigned long reg, other_reg, idlest_reg, prcm_regid;
++
++	/* Only CM-controlled clocks affect module IDLEST */
++	if (clk->prcm_mod & ~PRCM_MOD_ADDR_MASK)
++		return;
  
--	*parent_div = 0;
--	*src_addr = NULL;
--
- 	clks = omap2_get_clksel_by_parent(clk, src_clk);
- 	if (!clks)
- 		return 0;
-@@ -834,17 +830,14 @@ static u32 omap2_clksel_get_src_field(void __iomem **src_addr,
- 	/* Should never happen.  Add a clksel mask to the struct clk. */
- 	WARN_ON(clk->clksel_mask == 0);
+ 	reg = (unsigned long)clk->enable_reg;
+-	prcm_mod = reg & ~0xff;
+ 	prcm_regid = reg & 0xff;
  
--	*field_mask = clk->clksel_mask;
--	*src_addr = clk->clksel_reg;
--	*parent_div = clkr->div;
-+	*field_val = clkr->val;
+ 	other_reg = reg & ~PRCM_REGTYPE_MASK;
+@@ -321,9 +324,7 @@ static void omap2_clk_wait_ready(struct clk *clk)
+ 	idlest_bit = other_bit;
  
--	return clkr->val;
-+	return clkr->div;
- }
+ 	/* 24xx: DSS and CAM have no idlest bits for their target agents */
+-	if (cpu_is_omap24xx() &&
+-	    (prcm_mod == OMAP2420_CM_REGADDR(CORE_MOD, 0) ||
+-	     prcm_mod == OMAP2430_CM_REGADDR(CORE_MOD, 0)) &&
++	if (cpu_is_omap24xx() && clk->prcm_mod == CORE_MOD &&
+ 	    (reg & 0x0f) == 0) { /* CM_{F,I}CLKEN1 */
  
- int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
- {
--	void __iomem *src_addr;
--	u32 field_val, field_mask, v, parent_div;
-+	u32 field_val, v, parent_div;
+ 		if (clk->enable_bit == OMAP24XX_EN_DSS2_SHIFT ||
+@@ -337,7 +338,7 @@ static void omap2_clk_wait_ready(struct clk *clk)
+ 	if (cpu_is_omap34xx()) {
  
- 	if (clk->flags & CONFIG_PARTICIPANT)
- 		return -EINVAL;
-@@ -852,18 +845,18 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
- 	if (!clk->clksel)
- 		return -EINVAL;
+ 		/* SSI */
+-		if (prcm_mod == OMAP34XX_CM_REGADDR(CORE_MOD, 0) &&
++		if (clk->prcm_mod == CORE_MOD &&
+ 		    (reg & 0x0f) == 0 &&
+ 		    clk->enable_bit == OMAP3430_EN_SSI_SHIFT) {
  
--	field_val = omap2_clksel_get_src_field(&src_addr, new_parent,
--					       &field_mask, clk, &parent_div);
--	if (src_addr == NULL)
-+	parent_div = _omap2_clksel_get_src_field(new_parent, clk, &field_val);
-+	if (!parent_div)
- 		return -EINVAL;
+@@ -348,7 +349,7 @@ static void omap2_clk_wait_ready(struct clk *clk)
+ 		}
  
- 	if (clk->usecount > 0)
- 		_omap2_clk_disable(clk);
+ 		/* DSS */
+-		if (prcm_mod == OMAP34XX_CM_REGADDR(OMAP3430_DSS_MOD, 0)) {
++		if (clk->prcm_mod == OMAP3430_DSS_MOD) {
  
- 	/* Set new source value (previous dividers if any in effect) */
--	v = __raw_readl(src_addr) & ~field_mask;
--	v |= (field_val << __ffs(field_mask));
--	__raw_writel(v, src_addr);
-+	v = __raw_readl(clk->clksel_reg);
-+	v &= ~clk->clksel_mask;
-+	v |= field_val << __ffs(clk->clksel_mask);
-+	__raw_writel(v, clk->clksel_reg);
- 	wmb();
+ 			/* 3430ES1 DSS has no target idlest bits */
+ 			if (system_rev == OMAP3430_REV_ES1_0)
+@@ -366,7 +367,7 @@ static void omap2_clk_wait_ready(struct clk *clk)
  
- 	if (clk->flags & DELAYED_APP && cpu_is_omap24xx()) {
+ 		/* USBHOST */
+ 		if (system_rev > OMAP3430_REV_ES1_0 &&
+-		    prcm_mod == OMAP34XX_CM_REGADDR(OMAP3430ES2_USBHOST_MOD, 0)) {
++		    clk->prcm_mod == OMAP3430ES2_USBHOST_MOD) {
+ 
+ 			/*
+ 			 * The 120MHz clock apparently has nothing to do with
 
 
