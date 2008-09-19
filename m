@@ -1,109 +1,81 @@
-From: Philip Balister <philip@balister.org>
-Subject: Re: OMAP support in mainline?
-Date: Fri, 19 Sep 2008 15:10:25 -0400
-Message-ID: <48D3F921.8020306@balister.org>
-References: <87tzcgi1gv.fsf@nokia.com> <20080916232505.GC25885@atomide.com>	 <20080917082043.04c94e2d.jarkko.nikula@nokia.com>	 <200809162255.00918.david-b@pacbell.net>	 <9934E327-66E0-48DF-9FB6-FFF828E5358B@student.utwente.nl> <5e088bd90809170524s6cfae9b9ye1379f11afb5bb79@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms060704040903030105080008"
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: getting 2.6.25 from git to run on omap35x evm
+Date: Fri, 19 Sep 2008 21:16:43 +0200
+Message-ID: <95C4F54C-39F7-4E13-AEDD-7398DF2E34BB@student.utwente.nl>
+References: <dbdb2ea60809171136v5a380989mf57aca6ff1df5aba@mail.gmail.com> <ADBD1DC1-66B1-4EE2-92D8-051C5B91FC1C@student.utwente.nl> <dbdb2ea60809171223h7ef92c3dg6a4d41f29b9b8c1e@mail.gmail.com> <1f11a5490809171236k52fcc05q74ce5dfe1882d5cb@mail.gmail.com> <dbdb2ea60809171311g13631826m4b46a881ebbb1ae5@mail.gmail.com> <FCCFB4CDC6E5564B9182F639FC356087022A2BAB54@dbde02.ent.ti.com> <dbdb2ea60809190824w507aa4f4j5754b0b73d2664fe@mail.gmail.com> <98D88699-2EF7-4976-95BE-65CCD490C135@student.utwente.nl> <dbdb2ea60809191129k17dd8710j8c10cc17eb0dd637@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v929.2)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-8-878951404"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.geekisp.com ([216.168.135.169]:32715 "EHLO
-	starfish.geekisp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755275AbYISTKa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Sep 2008 15:10:30 -0400
-In-Reply-To: <5e088bd90809170524s6cfae9b9ye1379f11afb5bb79@mail.gmail.com>
+Received: from mx1.utsp.utwente.nl ([130.89.2.12]:40099 "EHLO mx.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752796AbYISTRq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Sep 2008 15:17:46 -0400
+Received: from [172.20.1.5] (vpn006014.vpn.utwente.nl [130.89.6.14])
+          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id m8JJGjdN008852
+          for <linux-omap@vger.kernel.org>; Fri, 19 Sep 2008 21:16:45 +0200
+In-Reply-To: <dbdb2ea60809191129k17dd8710j8c10cc17eb0dd637@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-This is a cryptographically signed message in MIME format.
-
---------------ms060704040903030105080008
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-8-878951404
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
 Content-Transfer-Encoding: 7bit
 
-Steve Sakoman wrote:
-> On Wed, Sep 17, 2008 at 12:16 AM, Koen Kooi <k.kooi@student.utwente.nl> wrote:
-> 
->> And they aren't working too well with current l-o git either with MUSB being
->> broken. There's a patch to fix client mode, but host mode still isn't
->> working.
-> 
-> Host mode musb is working just fine on Overo with the "set
-> transceiver" patch.  Not sure why you are having trouble with Beagle
-> (and can't check since I don't have my Beagle board with me at the
-> moment)
 
-Does anyone have any suggestions how to figure out what is broken about 
-OTG used a host on the Beagle?
+Op 19 sep 2008, om 20:29 heeft twebb het volgende geschreven:
 
-Philip
+>>
+>> The irq 369 problem is present on l-o git as well, no idea what's  
+>> causing
+>> it. Basically: 2.6.26 is awesome, 2.6.27rc is broken crap[1].
+>>
+>> regards,
+>>
+>> Koen
+>>
+>> [1] At least on beagle and evm, overo seems to work after a musb  
+>> patch
+>>
+>
+> Which is awesome, 2.6.26 on omapzoom.git or on linux-omap git?
 
---------------ms060704040903030105080008
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
+linux-omap git.
 
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJRTCC
-Av0wggJmoAMCAQICEHW4VJIUQV0u11NnfLpF2IUwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UE
-BhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMT
-I1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA4MDQxNDE5MTkzMVoX
-DTA5MDQxNDE5MTkzMVowYjERMA8GA1UEBBMIQmFsaXN0ZXIxDzANBgNVBCoTBlBoaWxpcDEY
-MBYGA1UEAxMPUGhpbGlwIEJhbGlzdGVyMSIwIAYJKoZIhvcNAQkBFhNwaGlsaXBAYmFsaXN0
-ZXIub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxyNViPlSmMq2Kl4m7iDB
-I3gB7Pwhg+4vnXCKEF3qIoLwNDVl27CP8RY0umjENzykOR6ZhzYx4fH8arNV5+nlXsH8KNnb
-Dpd5ICTZvbUJdt1gPETmLczGy4hh8woCu7qodyy7YZcGMiUY5LxoL7vIQHysir4rbMRV/JId
-mhKfFrHb+glDe8XbfTJ3xKO+BsMgLDaSiRMelH6uFLAVv9oRoIJxHQhwKLvlrOSQj+ek2fL6
-83BzOUsM4BN/fiwvtJ/y3doVEoKUp8ippOXrwLAXFPprPAAdIydqufTxHotooFqbQzqSJv4c
-TNDTxf2fg9YfH2RAs8vTdc/wgIVlL8fJnQIDAQABozAwLjAeBgNVHREEFzAVgRNwaGlsaXBA
-YmFsaXN0ZXIub3JnMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEASFC7i4DqutUT
-ifbyNtEe+e9bqgqWUScDFl0BTV5fFVBX/mFpM3RBZJfq+iM5q0L7qont3sGaXG0cdVvRk2dk
-uV2i0HwkmTLJ4HTLMyJ57BjMJWY9ydDiY+Ai1pINmjIgq/qI0aireByqNee68q+PaWE7bfW1
-XvfqZD56QunCijswggL9MIICZqADAgECAhB1uFSSFEFdLtdTZ3y6RdiFMA0GCSqGSIb3DQEB
-BQUAMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBM
-dGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTAeFw0w
-ODA0MTQxOTE5MzFaFw0wOTA0MTQxOTE5MzFaMGIxETAPBgNVBAQTCEJhbGlzdGVyMQ8wDQYD
-VQQqEwZQaGlsaXAxGDAWBgNVBAMTD1BoaWxpcCBCYWxpc3RlcjEiMCAGCSqGSIb3DQEJARYT
-cGhpbGlwQGJhbGlzdGVyLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMcj
-VYj5UpjKtipeJu4gwSN4Aez8IYPuL51wihBd6iKC8DQ1Zduwj/EWNLpoxDc8pDkemYc2MeHx
-/GqzVefp5V7B/CjZ2w6XeSAk2b21CXbdYDxE5i3MxsuIYfMKAru6qHcsu2GXBjIlGOS8aC+7
-yEB8rIq+K2zEVfySHZoSnxax2/oJQ3vF230yd8SjvgbDICw2kokTHpR+rhSwFb/aEaCCcR0I
-cCi75azkkI/npNny+vNwczlLDOATf34sL7Sf8t3aFRKClKfIqaTl68CwFxT6azwAHSMnarn0
-8R6LaKBam0M6kib+HEzQ08X9n4PWHx9kQLPL03XP8ICFZS/HyZ0CAwEAAaMwMC4wHgYDVR0R
-BBcwFYETcGhpbGlwQGJhbGlzdGVyLm9yZzAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBBQUA
-A4GBAEhQu4uA6rrVE4n28jbRHvnvW6oKllEnAxZdAU1eXxVQV/5haTN0QWSX6vojOatC+6qJ
-7d7BmlxtHHVb0ZNnZLldotB8JJkyyeB0yzMieewYzCVmPcnQ4mPgItaSDZoyIKv6iNGoq3gc
-qjXnuvKvj2lhO231tV736mQ+ekLpwoo7MIIDPzCCAqigAwIBAgIBDTANBgkqhkiG9w0BAQUF
-ADCB0TELMAkGA1UEBhMCWkExFTATBgNVBAgTDFdlc3Rlcm4gQ2FwZTESMBAGA1UEBxMJQ2Fw
-ZSBUb3duMRowGAYDVQQKExFUaGF3dGUgQ29uc3VsdGluZzEoMCYGA1UECxMfQ2VydGlmaWNh
-dGlvbiBTZXJ2aWNlcyBEaXZpc2lvbjEkMCIGA1UEAxMbVGhhd3RlIFBlcnNvbmFsIEZyZWVt
-YWlsIENBMSswKQYJKoZIhvcNAQkBFhxwZXJzb25hbC1mcmVlbWFpbEB0aGF3dGUuY29tMB4X
-DTAzMDcxNzAwMDAwMFoXDTEzMDcxNjIzNTk1OVowYjELMAkGA1UEBhMCWkExJTAjBgNVBAoT
-HFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25h
-bCBGcmVlbWFpbCBJc3N1aW5nIENBMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEpjxV
-c1X7TrnKmVoeaMB1BHCd3+n/ox7svc31W/Iadr1/DDph8r9RzgHU5VAKMNcCY1osiRVwjt3J
-8CuFWqo/cVbLrzwLB+fxH5E2JCoTzyvV84J3PQO+K/67GD4Hv0CAAmTXp6a7n2XRxSpUhQ9I
-BH+nttE8YQRAHmQZcmC3+wIDAQABo4GUMIGRMBIGA1UdEwEB/wQIMAYBAf8CAQAwQwYDVR0f
-BDwwOjA4oDagNIYyaHR0cDovL2NybC50aGF3dGUuY29tL1RoYXd0ZVBlcnNvbmFsRnJlZW1h
-aWxDQS5jcmwwCwYDVR0PBAQDAgEGMCkGA1UdEQQiMCCkHjAcMRowGAYDVQQDExFQcml2YXRl
-TGFiZWwyLTEzODANBgkqhkiG9w0BAQUFAAOBgQBIjNFQg+oLLswNo2asZw9/r6y+whehQ5aU
-nX9MIbj4Nh+qLZ82L8D0HFAgk3A8/a3hYWLD2ToZfoSxmRsAxRoLgnSeJVCUYsfbJ3FXJY3d
-qZw5jowgT2Vfldr394fWxghOrvbqNOUQGls1TXfjViF4gtwhGTXeJLHTHUb/XV9lTzGCA2Qw
-ggNgAgEBMHYwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQ
-dHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENB
-AhB1uFSSFEFdLtdTZ3y6RdiFMAkGBSsOAwIaBQCgggHDMBgGCSqGSIb3DQEJAzELBgkqhkiG
-9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA4MDkxOTE5MTAyNVowIwYJKoZIhvcNAQkEMRYEFBrc
-Vau3NkaBqJ+zRp7XM8PuEMC7MFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZI
-hvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGFBgkr
-BgEEAYI3EAQxeDB2MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGlu
-ZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWlu
-ZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTCBhwYLKoZIhvcNAQkQAgsxeKB2MGIxCzAJBgNVBAYT
-AlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNU
-aGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTAN
-BgkqhkiG9w0BAQEFAASCAQBhAIV0HI4rZiu64czbtD5qoriyYEUhy5Ma/TqkbSkiTrhLoaqF
-8KGTuh+6ILCQJs8nfk5CjyOX5jkIhsn9KwDlT8xw8PFMHhq5+YB3rC/T9Hf0as4L4En2JTAS
-TEE2LQXSYJhnmd4fQJDMNWjNJs1E+E6u6TGcFKwKcsnmC9Y1hW+sJ+sygNgy7t3T/iQe4AqJ
-onlU9PRWBfMYyHTZ09pLOUivbPN9wq/1CJ7lNm8LmDotIgf9Ic6jdpsOKwV3MGp2jvoLtQrO
-LstzSsV5NONGy/6KmHU3ILyQD8tnA+c07CT97GYGJ7rjyUOLBo5jlKXQZs5lkuGZ0hmX4j7r
-fo3aAAAAAAAA
---------------ms060704040903030105080008--
+>
+>
+> I try linux-omap git (tag = v2.6.26-omap2) and have problems mounting
+> rootfs.  Appears to be trying to mount root via NFS and ignoring
+> kernel command line specifying the mtdblock...
+>
+> Kernel command line: mem=128M console=ttyS0,115200n8 noinitrd root=/ 
+> dev/mtdblock
+> 4 rw rootfstype=jffs2  
+> ip=192.168.1.200:192.168.1.123:192.168.1.2:255.255.255.0::
+> eth0:on
+
+cmdlines work for me, did you set bootargs in uboot properly?
+
+regards,
+
+Koen
+
+
+--Apple-Mail-8-878951404
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: This is a digitally signed message part
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFI0/qdMkyGM64RGpERAmd1AJ4gnXrfEo8rowKCdbtJqAq/RNP9HgCgnL1k
+TrjfY7FOK2qkZ+3NlEo6WHY=
+=E+CT
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-8-878951404--
