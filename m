@@ -1,96 +1,65 @@
-From: notaz <notasas@gmail.com>
-Subject: [PATCH] ARM: OMAP: Add missing McBSP interrupts
-Date: Fri, 19 Sep 2008 17:24:36 +0300
-Message-ID: <6ed0b2680809190724g717e20f7k446c681ea48deca5@mail.gmail.com>
+From: twebb <taliaferro62@gmail.com>
+Subject: Re: getting 2.6.25 from git to run on omap35x evm
+Date: Fri, 19 Sep 2008 11:24:40 -0400
+Message-ID: <dbdb2ea60809190824w507aa4f4j5754b0b73d2664fe@mail.gmail.com>
+References: <dbdb2ea60809171136v5a380989mf57aca6ff1df5aba@mail.gmail.com>
+	 <ADBD1DC1-66B1-4EE2-92D8-051C5B91FC1C@student.utwente.nl>
+	 <dbdb2ea60809171223h7ef92c3dg6a4d41f29b9b8c1e@mail.gmail.com>
+	 <1f11a5490809171236k52fcc05q74ce5dfe1882d5cb@mail.gmail.com>
+	 <dbdb2ea60809171311g13631826m4b46a881ebbb1ae5@mail.gmail.com>
+	 <FCCFB4CDC6E5564B9182F639FC356087022A2BAB54@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f16.google.com ([209.85.217.16]:61059 "EHLO
-	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750977AbYISOYh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Sep 2008 10:24:37 -0400
-Received: by gxk9 with SMTP id 9so715973gxk.13
-        for <linux-omap@vger.kernel.org>; Fri, 19 Sep 2008 07:24:36 -0700 (PDT)
+Received: from wf-out-1314.google.com ([209.85.200.168]:5539 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751827AbYISPYl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Sep 2008 11:24:41 -0400
+Received: by wf-out-1314.google.com with SMTP id 27so517643wfd.4
+        for <linux-omap@vger.kernel.org>; Fri, 19 Sep 2008 08:24:40 -0700 (PDT)
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087022A2BAB54@dbde02.ent.ti.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-I was trying to get audio going through McBSP3, and was getting this:
+>>
+>> Great, that's helpful.  Do you know omapzoom linux-2.6.25 to be
+>> somewhat functional with OMAP 35x EVM, or would you suggest going with
+>> something newer like v2.6.26-ti-07252008?  Or must I go to 2.6.27-rc3?
+>>  I assume newer (to a point) would result in better stability on the
+>> 35x EVM?
+>
+> On omapzoom.org, I try to test for functionality complete and working for primarily LDP board and also 3430SDP. I have not tested the EVM stuff.
+>
+> I just completed up merging omapzoom tree to 2.6.27rc6 on branch: branch_2.6.27rc6_migration
+> You could have a look at it if that helps.
+>
 
-omap-mcbsp omap-mcbsp.3: Unable to request RX IRQ 0 for McBSP3
+I tried the rc6_migration branch, and after a few hiccups got it
+basically running.  However, seeing two problems - one is minor at
+this point but the other is a real issue.
 
-This patch fixes the problem for me.
-
--------------------------------------------------------------------------
-From: Grazvydas Ignotas <notasas@gmail.com>
-
-Transmit and receive interrupts must be specified for McBSP
-driver to work with McBSP 3-5.
-
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+#1 (minor) - I'm seeing the following and can't figure out why...
 ---
- arch/arm/mach-omap2/mcbsp.c            |    6 ++++++
- arch/arm/plat-omap/include/mach/irqs.h |    6 ++++++
- 2 files changed, 12 insertions(+), 0 deletions(-)
+DSS:clk set: ask=124000000, tgt=104000000, sup=96000000
+Unable to set the DSSfunctional clock to 96000000
 
-diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index afbe1e6..81c0d8b 100644
---- a/arch/arm/mach-omap2/mcbsp.c
-+++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -244,6 +244,8 @@ static struct omap_mcbsp_platform_data
-omap34xx_mcbsp_pdata[] = {
- 		.phys_base	= OMAP34XX_MCBSP3_BASE,
- 		.dma_rx_sync	= OMAP24XX_DMA_MCBSP3_RX,
- 		.dma_tx_sync	= OMAP24XX_DMA_MCBSP3_TX,
-+		.rx_irq		= INT_34XX_MCBSP3_IRQ_RX,
-+		.tx_irq		= INT_34XX_MCBSP3_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
- 		.clk_name	= "mcbsp_clk",
- 	},
-@@ -251,6 +253,8 @@ static struct omap_mcbsp_platform_data
-omap34xx_mcbsp_pdata[] = {
- 		.phys_base	= OMAP34XX_MCBSP4_BASE,
- 		.dma_rx_sync	= OMAP24XX_DMA_MCBSP4_RX,
- 		.dma_tx_sync	= OMAP24XX_DMA_MCBSP4_TX,
-+		.rx_irq		= INT_34XX_MCBSP4_IRQ_RX,
-+		.tx_irq		= INT_34XX_MCBSP4_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
- 		.clk_name	= "mcbsp_clk",
- 	},
-@@ -258,6 +262,8 @@ static struct omap_mcbsp_platform_data
-omap34xx_mcbsp_pdata[] = {
- 		.phys_base	= OMAP34XX_MCBSP5_BASE,
- 		.dma_rx_sync	= OMAP24XX_DMA_MCBSP5_RX,
- 		.dma_tx_sync	= OMAP24XX_DMA_MCBSP5_TX,
-+		.rx_irq		= INT_34XX_MCBSP5_IRQ_RX,
-+		.tx_irq		= INT_34XX_MCBSP5_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
- 		.clk_name	= "mcbsp_clk",
- 	},
-diff --git a/arch/arm/plat-omap/include/mach/irqs.h
-b/arch/arm/plat-omap/include/mach/irqs.h
-index e51e5e6..2858847 100644
---- a/arch/arm/plat-omap/include/mach/irqs.h
-+++ b/arch/arm/plat-omap/include/mach/irqs.h
-@@ -316,11 +316,17 @@
- #define INT_34XX_USIM_IRQ	35
- #define INT_34XX_WDT3_IRQ	36
- #define INT_34XX_SPI4_IRQ	48
-+#define INT_34XX_MCBSP4_IRQ_TX	54
-+#define INT_34XX_MCBSP4_IRQ_RX	55
- #define INT_34XX_I2C3_IRQ	61
- #define INT_34XX_PBIAS_IRQ	75
- #define INT_34XX_OHCI_IRQ	76
- #define INT_34XX_EHCI_IRQ	77
- #define INT_34XX_TLL_IRQ	78
-+#define INT_34XX_MCBSP5_IRQ_TX	81
-+#define INT_34XX_MCBSP5_IRQ_RX	82
-+#define INT_34XX_MCBSP3_IRQ_TX	89
-+#define INT_34XX_MCBSP3_IRQ_RX	90
- #define INT_34XX_MMC3_IRQ	94
- #define INT_34XX_GPT12_IRQ	95
+ UNABLE to enable dss TV fclk
+---
+any ideas?
 
--- 
-1.5.4.3
+#2 - when any key is pressed on the 35x EVM, I get the following
+output continuously...
+TWL4030 module irq 369 is disabled but can't be masked!
+TWL4030 module irq 369 is disabled but can't be masked!
+...
+
+Though it sounds like no one is testing this code against a 35x EVM,
+I'm still hoping someone may have a clue about what is going wrong
+here.
+
+Thanks,
+twebb
