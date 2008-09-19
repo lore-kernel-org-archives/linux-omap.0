@@ -1,36 +1,37 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 5/5] watchdog: introduce platform_data and remove cpu conditional code
-Date: Fri, 19 Sep 2008 08:46:34 +0100
-Message-ID: <20080919074633.GA12368@flint.arm.linux.org.uk>
-References: <1221776622-22906-1-git-send-email-me@felipebalbi.com> <1221776622-22906-2-git-send-email-me@felipebalbi.com> <1221776622-22906-3-git-send-email-me@felipebalbi.com> <1221776622-22906-4-git-send-email-me@felipebalbi.com> <1221776622-22906-5-git-send-email-me@felipebalbi.com> <1221776622-22906-6-git-send-email-me@felipebalbi.com> <20080918232006.GJ14307@flint.arm.linux.org.uk> <20080918232324.GM6617@frodo>
+From: Wim Van Sebroeck <wim@iguana.be>
+Subject: Re: [PATCH] watchdog: another ioremap() fix
+Date: Fri, 19 Sep 2008 10:06:55 +0200
+Message-ID: <20080919080655.GE22550@infomag.infomag.iguana.be>
+References: <1221746146-18252-1-git-send-email-felipe.balbi@nokia.com> <200809181003.16664.david-b@pacbell.net> <20080918172557.GA23716@frodo>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59186 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750800AbYISHqy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Sep 2008 03:46:54 -0400
+Received: from mailrelay003.isp.belgacom.be ([195.238.6.53]:21026 "EHLO
+	mailrelay003.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750914AbYISIHF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Sep 2008 04:07:05 -0400
 Content-Disposition: inline
-In-Reply-To: <20080918232324.GM6617@frodo>
+In-Reply-To: <20080918172557.GA23716@frodo>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Balbi <me@felipebalbi.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, "George G. Davis" <gdavis@mvista.com>, Wim Van Sebroeck <wim@iguana.be>, Felipe Balbi <felipe.balbi@nokia.com>
+Cc: David Brownell <david-b@pacbell.net>, Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, gdavis@mvista.com, Tony Lindgren <tony@atomide.com>, Russel King <rmk@dyn-67.arm.linux.org.uk>
 
-On Fri, Sep 19, 2008 at 02:23:25AM +0300, Felipe Balbi wrote:
-> On Fri, Sep 19, 2008 at 12:20:06AM +0100, Russell King - ARM Linux wrote:
-> > On Fri, Sep 19, 2008 at 01:23:42AM +0300, Felipe Balbi wrote:
-> > > +struct omap_wdt_platform_data {
-> > > +	const char	*ick;
-> > > +	const char	*fck;
+Hi Balbi,
+
+> > > convert to use ioremap() and __raw_{read/write} friends.
 > > 
-> > Grumble.  The clk API is supposed to make this stuff completely
-> > unnecessary - but OMAP doesn't implement the clk API correctly -
-> > by using the 'name' as the sole key.  The 'name' argument is
-> > supposed to be used to disambiguate between multiple clock
-> > inputs on a single device. ;(
+> > Why is this going to the OMAP list, not to LKML and cc'd
+> > the watchdog maintainer?  (I added Wim to the cc list...)
+> > 
+> > If it's worth having, it's worth having in mainline...
 > 
-> Yes, and we have two clocks for the same device_id on the bus. Right ?
+> My bad, forgot to Cc lkml. I'll resend when Wim gives his ok on the
+> patch.
 
-That's not a problem.  I have an solution to solve this, but for the
-time being, let's just keep the logic inside the omap_wdt driver.
+This is signed-off-by me.
+
+Greetings,
+Wim.
+
