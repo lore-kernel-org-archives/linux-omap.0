@@ -1,81 +1,65 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: getting 2.6.25 from git to run on omap35x evm
-Date: Fri, 19 Sep 2008 21:16:43 +0200
-Message-ID: <95C4F54C-39F7-4E13-AEDD-7398DF2E34BB@student.utwente.nl>
-References: <dbdb2ea60809171136v5a380989mf57aca6ff1df5aba@mail.gmail.com> <ADBD1DC1-66B1-4EE2-92D8-051C5B91FC1C@student.utwente.nl> <dbdb2ea60809171223h7ef92c3dg6a4d41f29b9b8c1e@mail.gmail.com> <1f11a5490809171236k52fcc05q74ce5dfe1882d5cb@mail.gmail.com> <dbdb2ea60809171311g13631826m4b46a881ebbb1ae5@mail.gmail.com> <FCCFB4CDC6E5564B9182F639FC356087022A2BAB54@dbde02.ent.ti.com> <dbdb2ea60809190824w507aa4f4j5754b0b73d2664fe@mail.gmail.com> <98D88699-2EF7-4976-95BE-65CCD490C135@student.utwente.nl> <dbdb2ea60809191129k17dd8710j8c10cc17eb0dd637@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-8-878951404"
+From: "Ashwin Bihari" <abihari@gmail.com>
+Subject: Re: OMAP support in mainline?
+Date: Fri, 19 Sep 2008 16:57:44 -0400
+Message-ID: <1f11a5490809191357v144f969jb93b6cd5022db4d4@mail.gmail.com>
+References: <87tzcgi1gv.fsf@nokia.com> <20080916232505.GC25885@atomide.com>
+	 <20080917082043.04c94e2d.jarkko.nikula@nokia.com>
+	 <200809162255.00918.david-b@pacbell.net>
+	 <9934E327-66E0-48DF-9FB6-FFF828E5358B@student.utwente.nl>
+	 <5e088bd90809170524s6cfae9b9ye1379f11afb5bb79@mail.gmail.com>
+	 <48D3F921.8020306@balister.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx1.utsp.utwente.nl ([130.89.2.12]:40099 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752796AbYISTRq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Sep 2008 15:17:46 -0400
-Received: from [172.20.1.5] (vpn006014.vpn.utwente.nl [130.89.6.14])
-          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id m8JJGjdN008852
-          for <linux-omap@vger.kernel.org>; Fri, 19 Sep 2008 21:16:45 +0200
-In-Reply-To: <dbdb2ea60809191129k17dd8710j8c10cc17eb0dd637@mail.gmail.com>
+Received: from rv-out-0506.google.com ([209.85.198.230]:2789 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751371AbYISU5p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Sep 2008 16:57:45 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so611948rvb.1
+        for <linux-omap@vger.kernel.org>; Fri, 19 Sep 2008 13:57:44 -0700 (PDT)
+In-Reply-To: <48D3F921.8020306@balister.org>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: Philip Balister <philip@balister.org>
+Cc: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-8-878951404
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
-
-
-Op 19 sep 2008, om 20:29 heeft twebb het volgende geschreven:
-
+On Fri, Sep 19, 2008 at 3:10 PM, Philip Balister <philip@balister.org> wrote:
+> Steve Sakoman wrote:
 >>
->> The irq 369 problem is present on l-o git as well, no idea what's  
->> causing
->> it. Basically: 2.6.26 is awesome, 2.6.27rc is broken crap[1].
+>> On Wed, Sep 17, 2008 at 12:16 AM, Koen Kooi <k.kooi@student.utwente.nl>
+>> wrote:
 >>
->> regards,
+>>> And they aren't working too well with current l-o git either with MUSB
+>>> being
+>>> broken. There's a patch to fix client mode, but host mode still isn't
+>>> working.
 >>
->> Koen
->>
->> [1] At least on beagle and evm, overo seems to work after a musb  
->> patch
->>
+>> Host mode musb is working just fine on Overo with the "set
+>> transceiver" patch.  Not sure why you are having trouble with Beagle
+>> (and can't check since I don't have my Beagle board with me at the
+>> moment)
 >
-> Which is awesome, 2.6.26 on omapzoom.git or on linux-omap git?
-
-linux-omap git.
-
+> Does anyone have any suggestions how to figure out what is broken about OTG
+> used a host on the Beagle?
 >
+> Philip
 >
-> I try linux-omap git (tag = v2.6.26-omap2) and have problems mounting
-> rootfs.  Appears to be trying to mount root via NFS and ignoring
-> kernel command line specifying the mtdblock...
->
-> Kernel command line: mem=128M console=ttyS0,115200n8 noinitrd root=/ 
-> dev/mtdblock
-> 4 rw rootfstype=jffs2  
-> ip=192.168.1.200:192.168.1.123:192.168.1.2:255.255.255.0::
-> eth0:on
 
-cmdlines work for me, did you set bootargs in uboot properly?
+On a related point..I built Kernel v.2.6.27-rc3 from the OMAPZOOM tree
+with MUSB OTG support. I plug in the mini-B connector into our board,
+and I get the interrupt and proper recognition that a peripheral mode
+should be used. When the mini-A connector is plugged in, however,
+nothing happens.
 
-regards,
+Since there is only one interrupt that triggers the check on which
+cable-type was plugged in, why would the mini-A cable not cause an
+interrupt to be generated?
 
-Koen
+I've also tried compiling the code in just MUSB HOST. Nothing happens,
+when I plug in the mini-B cable, it's detected by markedly less things
+happen because I don't have peripheral support.
 
-
---Apple-Mail-8-878951404
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: This is a digitally signed message part
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFI0/qdMkyGM64RGpERAmd1AJ4gnXrfEo8rowKCdbtJqAq/RNP9HgCgnL1k
-TrjfY7FOK2qkZ+3NlEo6WHY=
-=E+CT
------END PGP SIGNATURE-----
-
---Apple-Mail-8-878951404--
+Regards
+~ Ashwin
