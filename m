@@ -1,109 +1,105 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: OMAP support in mainline?
-Date: Fri, 19 Sep 2008 23:02:19 +0200
-Message-ID: <B2408D1C-F1FC-43FA-9979-BCE6D344B609@student.utwente.nl>
-References: <87tzcgi1gv.fsf@nokia.com> <20080916232505.GC25885@atomide.com> <20080917082043.04c94e2d.jarkko.nikula@nokia.com> <200809162255.00918.david-b@pacbell.net> <9934E327-66E0-48DF-9FB6-FFF828E5358B@student.utwente.nl> <5e088bd90809170524s6cfae9b9ye1379f11afb5bb79@mail.gmail.com> <48D3F921.8020306@balister.org> <1f11a5490809191357v144f969jb93b6cd5022db4d4@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-13-885287901"
-Content-Transfer-Encoding: 7bit
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: MUSB not workin in .27rc6, was: Re: OMAP support in mainline?
+Date: Sat, 20 Sep 2008 00:24:33 +0300
+Message-ID: <20080919212431.GP6617@frodo>
+References: <87tzcgi1gv.fsf@nokia.com> <20080916232505.GC25885@atomide.com> <20080917082043.04c94e2d.jarkko.nikula@nokia.com> <200809162255.00918.david-b@pacbell.net> <9934E327-66E0-48DF-9FB6-FFF828E5358B@student.utwente.nl> <5e088bd90809170524s6cfae9b9ye1379f11afb5bb79@mail.gmail.com> <8192948C-751F-4C1C-B382-E381F903CC46@student.utwente.nl> <20080918095537.GD28615@gandalf.research.nokia.com> <615FFFC3-999C-4DBD-A0FE-DCAA8BF18429@student.utwente.nl>
+Reply-To: me@felipebalbi.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx1.utsp.utwente.nl ([130.89.2.12]:44653 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750933AbYISVDt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Sep 2008 17:03:49 -0400
-In-Reply-To: <1f11a5490809191357v144f969jb93b6cd5022db4d4@mail.gmail.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:37225 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751371AbYISVYv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Sep 2008 17:24:51 -0400
+Content-Disposition: inline
+In-Reply-To: <615FFFC3-999C-4DBD-A0FE-DCAA8BF18429@student.utwente.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ashwin Bihari <abihari@gmail.com>
-Cc: Philip Balister <philip@balister.org>, linux-omap@vger.kernel.org
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: felipe.balbi@nokia.com, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-13-885287901
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
-
-
-Op 19 sep 2008, om 22:57 heeft Ashwin Bihari het volgende geschreven:
-
-> On Fri, Sep 19, 2008 at 3:10 PM, Philip Balister  
-> <philip@balister.org> wrote:
->> Steve Sakoman wrote:
+On Fri, Sep 19, 2008 at 06:09:04PM +0200, Koen Kooi wrote:
+>
+> Op 18 sep 2008, om 11:55 heeft Felipe Balbi het volgende geschreven:
+>
+>> On Wed, Sep 17, 2008 at 03:23:49PM +0200, ext Koen Kooi wrote:
 >>>
->>> On Wed, Sep 17, 2008 at 12:16 AM, Koen Kooi <k.kooi@student.utwente.nl 
->>> >
->>> wrote:
+>>> Op 17 sep 2008, om 14:24 heeft Steve Sakoman het volgende geschreve=
+n:
 >>>
->>>> And they aren't working too well with current l-o git either with  
->>>> MUSB
->>>> being
->>>> broken. There's a patch to fix client mode, but host mode still  
->>>> isn't
->>>> working.
+>>>> On Wed, Sep 17, 2008 at 12:16 AM, Koen Kooi=20
+>>>> <k.kooi@student.utwente.nl>
+>>>> wrote:
+>>>>
+>>>>> And they aren't working too well with current l-o git either with=
+=20
+>>>>> MUSB
+>>>>> being
+>>>>> broken. There's a patch to fix client mode, but host mode still =20
+>>>>> isn't
+>>>>> working.
+>>>>
+>>>> Host mode musb is working just fine on Overo with the "set
+>>>> transceiver" patch.  Not sure why you are having trouble with Beag=
+le
+>>>> (and can't check since I don't have my Beagle board with me at the
+>>>> moment)
 >>>
->>> Host mode musb is working just fine on Overo with the "set
->>> transceiver" patch.  Not sure why you are having trouble with Beagle
->>> (and can't check since I don't have my Beagle board with me at the
->>> moment)
+>>> I should clarify: OTG mode with a host cable doesn't work in .27rc,=
+ =20
+>>> it does
+>>> work in 2.6.26. I haven't tried specifying pure hostmode, only OTG.
+>>> I would try it on the evm as well, but that is having serious irq =20
+>>> issues
+>>> with .27rc, pressing a key on the keypad triggers an irq overrun, =20
+>>> ethernet
+>>> gives an oops on boot when trying to register and irq etc,etc. =20
+>>> 2.6.27 is
+>>> looking really, really bad on omap3 at the moment.
 >>
->> Does anyone have any suggestions how to figure out what is broken  
->> about OTG
->> used a host on the Beagle?
+>> Yeah, we lost some musb history when it went to mainline. I didn't =20
+>> test
+>> this patch yet cuz I've been quite busy at work, but it should make
+>> beagle work. Could you tell me if makes it work ?
 >>
->> Philip
+>> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430=
+=2Ec
+>> index 9d2dcb1..f7fe91e 100644
+>> --- a/drivers/usb/musb/omap2430.c
+>> +++ b/drivers/usb/musb/omap2430.c
+>> @@ -215,12 +215,14 @@ void musb_platform_set_mode(struct musb *musb,=
+ =20
+>> u8 musb_mode)
 >>
+>> int __init musb_platform_init(struct musb *musb)
+>> {
+>> +       struct otg_transceiver *xceiv =3D otg_get_transceiver();
+>>        u32 l;
+>>
+>> #if defined(CONFIG_ARCH_OMAP2430)
+>>        omap_cfg_reg(AE5_2430_USB0HS_STP);
+>> #endif
+>>
+>> +       memcpy(musb->xceiv, xceiv, sizeof(*xceiv));
+>>        musb_platform_resume(musb);
+>>
+>>        l =3D omap_readl(OTG_SYSCONFIG);
 >
-> On a related point..I built Kernel v.2.6.27-rc3 from the OMAPZOOM tree
-> with MUSB OTG support. I plug in the mini-B connector into our board,
-> and I get the interrupt and proper recognition that a peripheral mode
-> should be used. When the mini-A connector is plugged in, however,
-> nothing happens.
->
-> Since there is only one interrupt that triggers the check on which
-> cable-type was plugged in, why would the mini-A cable not cause an
-> interrupt to be generated?
+> Ok, another datapoint: client mode (tested on beagle by M=E5ns) and h=
+ost =20
+> mode (tested on overo by Steve) work with a similar patch as above, O=
+TG=20
+> mode is broken (tested on beagle and evm by me).
 
-I can crash my evm by pressing a key on the keypad triggering an irq  
-storm (see other thread), so it could be that something is wrong with  
-irqs in .27rc :(
+I don't recall having otg (id pin handling) working on omap3. I have
+some experimental patches on my local branch (they work, but need
+clean up).
 
-regards
-
-Koen
-
-
-
-
-
-
->
->
-> I've also tried compiling the code in just MUSB HOST. Nothing happens,
-> when I plug in the mini-B cable, it's detected by markedly less things
-> happen because I don't have peripheral support.
->
-> Regards
-> ~ Ashwin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux- 
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
---Apple-Mail-13-885287901
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: This is a digitally signed message part
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFI1BNdMkyGM64RGpERAhk4AJ4rqQ84VxQ5go9OLPt5uG6Q7k8lNwCfTjut
-5rPyLG9sug96jvs6bE418jA=
-=oRGI
------END PGP SIGNATURE-----
-
---Apple-Mail-13-885287901--
+--=20
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
