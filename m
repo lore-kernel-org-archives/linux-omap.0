@@ -1,48 +1,52 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 05/06][omapzoom] BRIDGE: Fix header path name to
- "arch/arm/plat-omap/include/dspbridge"
-Date: Sat, 20 Sep 2008 09:10:12 +0300 (EEST)
-Message-ID: <20080920.091012.233900997.Hiroshi.DOYU@nokia.com>
-References: <27F9C60D11D683428E133F85D2BB4A5344B3DCD7@dlee03.ent.ti.com>
+From: "arun c" <arunedarath@mistralsolutions.com>
+Subject: [PATCH] OMAP3EVM: TWL4030 Keypad irq error fix
+Date: Sat, 20 Sep 2008 02:51:40 -0400
+Message-ID: <c656a4d20809192351x39f71fach7145236a9e8e0552@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:49893 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750891AbYITGKU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Sep 2008 02:10:20 -0400
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A5344B3DCD7@dlee03.ent.ti.com>
+Received: from ti-out-0910.google.com ([209.85.142.190]:28358 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750891AbYITGvm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Sep 2008 02:51:42 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so414210tic.23
+        for <linux-omap@vger.kernel.org>; Fri, 19 Sep 2008 23:51:40 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: x00omar@ti.com
-Cc: vikram.pandita@ti.com, linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Omar,
+without this the below error messages were coming continuously
 
-From: "ext Ramirez Luna, Omar" <x00omar@ti.com>
-Subject: [PATCH 05/06][omapzoom] BRIDGE: Fix header path name to "arch/arm/plat-omap/include/dspbridge"
-Date: Fri, 19 Sep 2008 21:07:53 -0500
+TWL4030 module irq 369 is disabled but can't be masked!
+<2>TWL4030 module irq 369 is disabled but can't be masked!
 
-> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> Date: Fri, 19 Sep 2008 19:18:15 -0500
-> Subject: [PATCH] BRIDGE: Fix header path name to "arch/arm/plat-omap/include/dspbridge"
-> 
-> sed -i -e \
-> 's@arch/arm/plat-omap/include/bridge@arch/arm/plat-omap/include/dspbridge@g' \
-> drivers/dsp/bridge/Kbuild \
-> drivers/dsp/bridge/*/*.[ch] \
-> arch/arm/plat-omap/include/dspbridge/*.h
-> 
-> - * dspbridge/inc/chnl_sm.h
-> + * dsplinux/arch/arm/plat-omap/include/dspbridge//chnl_sm.h
+Signed-off-by: Arun C <arunedarath@mistralsolutions.com>
+---
+ arch/arm/mach-omap2/board-omap3evm.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-It seems that you ran the wrong script;)
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c
+b/arch/arm/mach-omap2/board-omap3evm.c
+index 92f70ce..f9fd06b 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -22,6 +22,7 @@
+ #include <linux/input.h>
+ #include <linux/spi/spi.h>
+ #include <linux/spi/ads7846.h>
++#include <linux/i2c/twl4030.h>
 
-Also it may be better that the paths are omitted as David Brownell
-suggested in another mail.
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -176,6 +177,7 @@ static struct omap_kp_platform_data omap3evm_kp_data = {
+ 	.keymap 	= omap3evm_keymap,
+ 	.keymapsize	= ARRAY_SIZE(omap3evm_keymap),
+ 	.rep		= 1,
++	.irq		= TWL4030_MODIRQ_KEYPAD,
+ };
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg04551.html
-
-	Hiroshi DOYU
-
+ static struct platform_device omap3evm_kp_device = {
+-- 
+1.5.3.4
