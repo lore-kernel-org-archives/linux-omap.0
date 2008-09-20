@@ -1,52 +1,52 @@
-From: "arun c" <arunedarath@mistralsolutions.com>
-Subject: [PATCH] OMAP3EVM: TWL4030 Keypad irq error fix
-Date: Sat, 20 Sep 2008 02:51:40 -0400
-Message-ID: <c656a4d20809192351x39f71fach7145236a9e8e0552@mail.gmail.com>
+From: "Zavala Trujillo, Diego" <diegozt@ti.com>
+Subject: [Patch] OMAP: ARM: Fix Comp for LDP on DeviceType
+Date: Sat, 20 Sep 2008 02:11:05 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE896716203657CAE29@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.190]:28358 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750891AbYITGvm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Sep 2008 02:51:42 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so414210tic.23
-        for <linux-omap@vger.kernel.org>; Fri, 19 Sep 2008 23:51:40 -0700 (PDT)
-Content-Disposition: inline
+Received: from comal.ext.ti.com ([198.47.26.152]:39546 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750891AbYITHLM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Sep 2008 03:11:12 -0400
+Received: from dlep95.itg.ti.com ([157.170.170.107])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8K7B6Fi022185
+	for <linux-omap@vger.kernel.org>; Sat, 20 Sep 2008 02:11:11 -0500
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m8K7B6eX006759
+	for <linux-omap@vger.kernel.org>; Sat, 20 Sep 2008 02:11:06 -0500 (CDT)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Zavala Trujillo, Diego" <diegozt@ti.com>
 
-without this the below error messages were coming continuously
 
-TWL4030 module irq 369 is disabled but can't be masked!
-<2>TWL4030 module irq 369 is disabled but can't be masked!
 
-Signed-off-by: Arun C <arunedarath@mistralsolutions.com>
+Regards,
+Fix the compilation for the 3430LDP.
+Replace omap_device_type for omap_type.
 ---
- arch/arm/mach-omap2/board-omap3evm.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-ldp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+ mode change 100644 => 100755 arch/arm/mach-omap2/board-ldp.c
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c
-b/arch/arm/mach-omap2/board-omap3evm.c
-index 92f70ce..f9fd06b 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -22,6 +22,7 @@
- #include <linux/input.h>
- #include <linux/spi/spi.h>
- #include <linux/spi/ads7846.h>
-+#include <linux/i2c/twl4030.h>
-
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -176,6 +177,7 @@ static struct omap_kp_platform_data omap3evm_kp_data = {
- 	.keymap 	= omap3evm_keymap,
- 	.keymapsize	= ARRAY_SIZE(omap3evm_keymap),
- 	.rep		= 1,
-+	.irq		= TWL4030_MODIRQ_KEYPAD,
- };
-
- static struct platform_device omap3evm_kp_device = {
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+old mode 100644
+new mode 100755
+index 9263be9..02359d5
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -54,7 +54,7 @@ static int __init msecure_init(void)
+ 
+ #ifdef CONFIG_RTC_DRV_TWL4030
+ 	/* 3430ES2.0 doesn't have msecure/gpio-22 line connected to T2 */
+-	if (omap_device_type() == OMAP2_DEVICE_TYPE_GP &&
++	if (omap_type() == OMAP2_DEVICE_TYPE_GP &&
+ 			system_rev < OMAP3430_REV_ES2_0) {
+ 		u32 msecure_pad_config_reg = omap_ctrl_base_get() + 0xA3C;
+ 		int mux_mask = 0x04;
 -- 
-1.5.3.4
+1.5.6.4
+
