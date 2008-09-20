@@ -1,30 +1,48 @@
-From: Wim Van Sebroeck <wim@iguana.be>
-Subject: Re: [PATCH 5/5] watchdog: introduce platform_data and remove cpu conditional code
-Date: Sat, 20 Sep 2008 07:48:41 +0200
-Message-ID: <20080920054841.GJ22550@infomag.infomag.iguana.be>
-References: <1221820359-8943-1-git-send-email-felipe.balbi@nokia.com> <1221820359-8943-2-git-send-email-felipe.balbi@nokia.com> <1221820359-8943-3-git-send-email-felipe.balbi@nokia.com> <1221820359-8943-4-git-send-email-felipe.balbi@nokia.com> <1221820359-8943-5-git-send-email-felipe.balbi@nokia.com> <1221820359-8943-6-git-send-email-felipe.balbi@nokia.com> <20080919190431.GA9675@flint.arm.linux.org.uk> <20080919213331.GA10156@frodo>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 05/06][omapzoom] BRIDGE: Fix header path name to
+ "arch/arm/plat-omap/include/dspbridge"
+Date: Sat, 20 Sep 2008 09:10:12 +0300 (EEST)
+Message-ID: <20080920.091012.233900997.Hiroshi.DOYU@nokia.com>
+References: <27F9C60D11D683428E133F85D2BB4A5344B3DCD7@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailrelay002.isp.belgacom.be ([195.238.6.175]:10691 "EHLO
-	mailrelay002.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750826AbYITFsr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 20 Sep 2008 01:48:47 -0400
-Content-Disposition: inline
-In-Reply-To: <20080919213331.GA10156@frodo>
+Received: from smtp.nokia.com ([192.100.122.233]:49893 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750891AbYITGKU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Sep 2008 02:10:20 -0400
+In-Reply-To: <27F9C60D11D683428E133F85D2BB4A5344B3DCD7@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <felipe.balbi@nokia.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Andrew Morton <akpm@linux-foundation.org>, "George G. Davis" <gdavis@mvista.com>
+To: x00omar@ti.com
+Cc: vikram.pandita@ti.com, linux-omap@vger.kernel.org
 
-Hi Balbi,
+Hi Omar,
 
-> Well, patches 4 and 5 should be ignored. Should I resend or could I rely
-> on the fact that people won't pick them up ?
+From: "ext Ramirez Luna, Omar" <x00omar@ti.com>
+Subject: [PATCH 05/06][omapzoom] BRIDGE: Fix header path name to "arch/arm/plat-omap/include/dspbridge"
+Date: Fri, 19 Sep 2008 21:07:53 -0500
 
-I will not pick them up (to add them in the watchdog tree).
+> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> Date: Fri, 19 Sep 2008 19:18:15 -0500
+> Subject: [PATCH] BRIDGE: Fix header path name to "arch/arm/plat-omap/include/dspbridge"
+> 
+> sed -i -e \
+> 's@arch/arm/plat-omap/include/bridge@arch/arm/plat-omap/include/dspbridge@g' \
+> drivers/dsp/bridge/Kbuild \
+> drivers/dsp/bridge/*/*.[ch] \
+> arch/arm/plat-omap/include/dspbridge/*.h
+> 
+> - * dspbridge/inc/chnl_sm.h
+> + * dsplinux/arch/arm/plat-omap/include/dspbridge//chnl_sm.h
 
-Kind regards,
-Wim.
+It seems that you ran the wrong script;)
+
+Also it may be better that the paths are omitted as David Brownell
+suggested in another mail.
+
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg04551.html
+
+	Hiroshi DOYU
 
