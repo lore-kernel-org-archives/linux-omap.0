@@ -1,52 +1,36 @@
-From: "Zavala Trujillo, Diego" <diegozt@ti.com>
-Subject: [Patch] OMAP: ARM: Fix Comp for LDP on DeviceType
-Date: Sat, 20 Sep 2008 02:11:05 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE896716203657CAE29@dlee02.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 3/5] watchdog: cleanup a bit omap_wdt.c
+Date: Sat, 20 Sep 2008 09:13:26 +0100
+Message-ID: <20080920081326.GB11114@flint.arm.linux.org.uk>
+References: <1221820359-8943-1-git-send-email-felipe.balbi@nokia.com> <1221820359-8943-3-git-send-email-felipe.balbi@nokia.com> <1221820359-8943-4-git-send-email-felipe.balbi@nokia.com> <200809191741.44986.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39546 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750891AbYITHLM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Sep 2008 03:11:12 -0400
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8K7B6Fi022185
-	for <linux-omap@vger.kernel.org>; Sat, 20 Sep 2008 02:11:11 -0500
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m8K7B6eX006759
-	for <linux-omap@vger.kernel.org>; Sat, 20 Sep 2008 02:11:06 -0500 (CDT)
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752924AbYITIOJ@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <200809191741.44986.david-b@pacbell.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Wim Van Sebroeck <wim@iguana.be>, Andrew Morton <akpm@linux-foundation.org>, "George G. Davis" <gdavis@mvista.com>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Zavala Trujillo, Diego" <diegozt@ti.com>
 
+On Fri, Sep 19, 2008 at 05:41:44PM -0700, David Brownell wrote:
+> On Friday 19 September 2008, Felipe Balbi wrote:
+> > =A0static int omap_wdt_open(struct inode *inode, struct file *file)
+> > =A0{
+> > -=A0=A0=A0=A0=A0=A0=A0struct omap_wdt_dev *wdev;
+> > -=A0=A0=A0=A0=A0=A0=A0void __iomem *base;
+> > -=A0=A0=A0=A0=A0=A0=A0wdev =3D platform_get_drvdata(omap_wdt_dev);
+> > -=A0=A0=A0=A0=A0=A0=A0base =3D wdev->base;
+> > +=A0=A0=A0=A0=A0=A0=A0struct omap_wdt_dev *wdev =3D platform_get_dr=
+vdata(omap_wdt_dev);
+> > +=A0=A0=A0=A0=A0=A0=A0void __iomem *base =3D wdev->base;
+> > +
+>=20
+> Oh, I see where "omap_wdt_dev" (global) gets used.  The normal
+> way to do stuff like that is using void* pointers placed in the
+> inode and file structures for exactly that purpose.
 
-
-Regards,
-Fix the compilation for the 3430LDP.
-Replace omap_device_type for omap_type.
----
- arch/arm/mach-omap2/board-ldp.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
- mode change 100644 => 100755 arch/arm/mach-omap2/board-ldp.c
-
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-old mode 100644
-new mode 100755
-index 9263be9..02359d5
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -54,7 +54,7 @@ static int __init msecure_init(void)
- 
- #ifdef CONFIG_RTC_DRV_TWL4030
- 	/* 3430ES2.0 doesn't have msecure/gpio-22 line connected to T2 */
--	if (omap_device_type() == OMAP2_DEVICE_TYPE_GP &&
-+	if (omap_type() == OMAP2_DEVICE_TYPE_GP &&
- 			system_rev < OMAP3430_REV_ES2_0) {
- 		u32 msecure_pad_config_reg = omap_ctrl_base_get() + 0xA3C;
- 		int mux_mask = 0x04;
--- 
-1.5.6.4
-
+You don't have an inode or a file structure until open() is called -
+at which point it _is_ placed in file->private_data.  So this driver
+is doing the right thing.
