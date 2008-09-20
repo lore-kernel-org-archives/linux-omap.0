@@ -1,1111 +1,3390 @@
 From: "Ramirez Luna, Omar" <x00omar@ti.com>
-Subject: [PATCH 03/06][omapzoom] BRIDGE Moving header files to a proper
- location
-Date: Fri, 19 Sep 2008 21:07:23 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A5344B3DCD5@dlee03.ent.ti.com>
+Subject: [PATCH 04/06][omapzoom] BRIDGE: Add 'dspbridge' dirname in header
+ file inclusion
+Date: Fri, 19 Sep 2008 21:07:43 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A5344B3DCD6@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50599 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:50606 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752721AbYITCHb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Sep 2008 22:07:31 -0400
+	with ESMTP id S1752785AbYITCHu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Sep 2008 22:07:50 -0400
 Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8K27Po5013442
-	for <linux-omap@vger.kernel.org>; Fri, 19 Sep 2008 21:07:30 -0500
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m8K27PhM016251
-	for <linux-omap@vger.kernel.org>; Fri, 19 Sep 2008 21:07:25 -0500 (CDT)
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8K27iMB013711
+	for <linux-omap@vger.kernel.org>; Fri, 19 Sep 2008 21:07:49 -0500
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m8K27ip5016312
+	for <linux-omap@vger.kernel.org>; Fri, 19 Sep 2008 21:07:44 -0500 (CDT)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Omar Ramirez Luna <x0084701@ti.com>
-Date: Fri, 19 Sep 2008 17:26:55 -0500
-Subject: [PATCH] BRIDGE Moving header files to a proper location
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Date: Fri, 19 Sep 2008 19:09:32 -0500
+Subject: [PATCH] BRIDGE: Add 'dspbridge' dirname in header file inclusion
 
-Moving header files and fixing path references.
+To remove dspbridge from -I
 
-        mach/bridge => dspbridge
+for i in arch/arm/plat-omap/include/dspbridge/*.h
+do
+        j=$(basename $i)
+        echo $j
+        sed -i -e 's@<\('"$j"'\)>@<dspbridge/\1>@g' \
+        drivers/dsp/bridge/*/*.[ch] \
+        arch/arm/plat-omap/include/dspbridge/*.h
+done
 
+ex)
+-#include <wmdioctl.h>
+-#include "clk.h"
++#include <dspbridge/wmdioctl.h>
++#include <dspbridge/clk.h>
 
 Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Signed-off-by: Omar Ramirez Luna <x00omar@ti.com>
 ---
- .../include/{mach/bridge => dspbridge}/_chnl_sm.h  |    2 +-
- .../include/{mach/bridge => dspbridge}/_dcd.h      |    2 +-
- .../include/{mach/bridge => dspbridge}/brddefs.h   |    2 +-
- .../include/{mach/bridge => dspbridge}/cfg.h       |    2 +-
- .../include/{mach/bridge => dspbridge}/cfgdefs.h   |    2 +-
- .../include/{mach/bridge => dspbridge}/chnl.h      |    2 +-
- .../include/{mach/bridge => dspbridge}/chnl_sm.h   |    0
- .../include/{mach/bridge => dspbridge}/chnldefs.h  |    2 +-
- .../include/{mach/bridge => dspbridge}/chnlpriv.h  |    2 +-
- .../include/{mach/bridge => dspbridge}/clk.h       |    2 +-
- .../include/{mach/bridge => dspbridge}/cmm.h       |    2 +-
- .../include/{mach/bridge => dspbridge}/cmmdefs.h   |    2 +-
- .../include/{mach/bridge => dspbridge}/cod.h       |    2 +-
- .../include/{mach/bridge => dspbridge}/csl.h       |    2 +-
- .../include/{mach/bridge => dspbridge}/dbc.h       |    2 +-
- .../include/{mach/bridge => dspbridge}/dbdcd.h     |    2 +-
- .../include/{mach/bridge => dspbridge}/dbdcddef.h  |    2 +-
- .../include/{mach/bridge => dspbridge}/dbdefs.h    |    2 +-
- .../include/{mach/bridge => dspbridge}/dbg.h       |    2 +-
- .../include/{mach/bridge => dspbridge}/dbldefs.h   |    2 +-
- .../include/{mach/bridge => dspbridge}/dbll.h      |    2 +-
- .../include/{mach/bridge => dspbridge}/dblldefs.h  |    2 +-
- .../include/{mach/bridge => dspbridge}/dbof.h      |    2 +-
- .../include/{mach/bridge => dspbridge}/dbreg.h     |    2 +-
- .../include/{mach/bridge => dspbridge}/dbtype.h    |    2 +-
- .../include/{mach/bridge => dspbridge}/dehdefs.h   |    2 +-
- .../include/{mach/bridge => dspbridge}/dev.h       |    2 +-
- .../include/{mach/bridge => dspbridge}/devdefs.h   |    2 +-
- .../include/{mach/bridge => dspbridge}/disp.h      |    2 +-
- .../include/{mach/bridge => dspbridge}/dispdefs.h  |    2 +-
- .../include/{mach/bridge => dspbridge}/dmm.h       |    0
- .../include/{mach/bridge => dspbridge}/dpc.h       |    0
- .../include/{mach/bridge => dspbridge}/drv.h       |    0
- .../include/{mach/bridge => dspbridge}/drvdefs.h   |    0
- .../include/{mach/bridge => dspbridge}/dspdrv.h    |    0
- .../{mach/bridge => dspbridge}/dynamic_loader.h    |    0
- .../include/{mach/bridge => dspbridge}/errbase.h   |    0
- .../include/{mach/bridge => dspbridge}/gb.h        |    0
- .../{mach/bridge => dspbridge}/getsection.h        |    0
- .../include/{mach/bridge => dspbridge}/gh.h        |    0
- .../include/{mach/bridge => dspbridge}/gs.h        |    0
- .../include/{mach/bridge => dspbridge}/gt.h        |    0
- .../include/{mach/bridge => dspbridge}/host_os.h   |    0
- .../include/{mach/bridge => dspbridge}/io.h        |    0
- .../include/{mach/bridge => dspbridge}/io_sm.h     |    0
- .../include/{mach/bridge => dspbridge}/iodefs.h    |    0
- .../include/{mach/bridge => dspbridge}/kfile.h     |    0
- .../include/{mach/bridge => dspbridge}/ldr.h       |    0
- .../include/{mach/bridge => dspbridge}/list.h      |    0
- .../include/{mach/bridge => dspbridge}/mbx_sh.h    |    0
- .../include/{mach/bridge => dspbridge}/mem.h       |    0
- .../include/{mach/bridge => dspbridge}/memdefs.h   |    0
- .../include/{mach/bridge => dspbridge}/mgr.h       |    0
- .../include/{mach/bridge => dspbridge}/mgrpriv.h   |    0
- .../include/{mach/bridge => dspbridge}/msg.h       |    0
- .../include/{mach/bridge => dspbridge}/msgdefs.h   |    0
- .../include/{mach/bridge => dspbridge}/nldr.h      |    0
- .../include/{mach/bridge => dspbridge}/nldrdefs.h  |    0
- .../include/{mach/bridge => dspbridge}/node.h      |    0
- .../include/{mach/bridge => dspbridge}/nodedefs.h  |    0
- .../include/{mach/bridge => dspbridge}/nodepriv.h  |    0
- .../include/{mach/bridge => dspbridge}/ntfy.h      |    0
- .../include/{mach/bridge => dspbridge}/prcs.h      |    0
- .../include/{mach/bridge => dspbridge}/proc.h      |    0
- .../include/{mach/bridge => dspbridge}/procpriv.h  |    2 +-
- .../include/{mach/bridge => dspbridge}/pwr.h       |    2 +-
- .../include/{mach/bridge => dspbridge}/pwr_sh.h    |    2 +-
- .../include/{mach/bridge => dspbridge}/reg.h       |    2 +-
- .../{mach/bridge => dspbridge}/resourcecleanup.h   |    2 +-
- .../include/{mach/bridge => dspbridge}/rmm.h       |    2 +-
- .../include/{mach/bridge => dspbridge}/rms_sh.h    |    2 +-
- .../include/{mach/bridge => dspbridge}/rmstypes.h  |    2 +-
- .../include/{mach/bridge => dspbridge}/services.h  |    2 +-
- .../include/{mach/bridge => dspbridge}/std.h       |    2 +-
- .../include/{mach/bridge => dspbridge}/strm.h      |    2 +-
- .../include/{mach/bridge => dspbridge}/strmdefs.h  |    2 +-
- .../include/{mach/bridge => dspbridge}/sync.h      |    2 +-
- .../include/{mach/bridge => dspbridge}/util.h      |    2 +-
- .../include/{mach/bridge => dspbridge}/utildefs.h  |    2 +-
- .../include/{mach/bridge => dspbridge}/uuidutil.h  |    2 +-
- .../include/{mach/bridge => dspbridge}/wcd.h       |    2 +-
- .../include/{mach/bridge => dspbridge}/wcdioctl.h  |    2 +-
- .../include/{mach/bridge => dspbridge}/wmd.h       |    2 +-
- .../include/{mach/bridge => dspbridge}/wmdchnl.h   |    2 +-
- .../include/{mach/bridge => dspbridge}/wmddeh.h    |    2 +-
- .../include/{mach/bridge => dspbridge}/wmdio.h     |    2 +-
- .../include/{mach/bridge => dspbridge}/wmdioctl.h  |    2 +-
- .../include/{mach/bridge => dspbridge}/wmdmsg.h    |    2 +-
- drivers/dsp/bridge/Kbuild                          |    2 +-
- 89 files changed, 54 insertions(+), 54 deletions(-)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/_chnl_sm.h (99%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/_dcd.h (99%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/brddefs.h (97%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/cfg.h (99%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/cfgdefs.h (98%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/chnl.h (99%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/chnl_sm.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/chnldefs.h (98%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/chnlpriv.h (98%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/clk.h (98%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/cmm.h (99%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/cmmdefs.h (98%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/cod.h (99%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/csl.h (98%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/dbc.h (97%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/dbdcd.h (99%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/dbdcddef.h (98%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/dbdefs.h (99%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/dbg.h (98%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/dbldefs.h (98%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/dbll.h (97%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/dblldefs.h (99%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/dbof.h (98%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/dbreg.h (99%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/dbtype.h (98%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/dehdefs.h (95%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/dev.h (99%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/devdefs.h (94%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/disp.h (99%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/dispdefs.h (95%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/dmm.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/dpc.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/drv.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/drvdefs.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/dspdrv.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/dynamic_loader.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/errbase.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/gb.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/getsection.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/gh.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/gs.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/gt.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/host_os.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/io.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/io_sm.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/iodefs.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/kfile.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/ldr.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/list.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/mbx_sh.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/mem.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/memdefs.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/mgr.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/mgrpriv.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/msg.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/msgdefs.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/nldr.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/nldrdefs.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/node.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/nodedefs.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/nodepriv.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/ntfy.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/prcs.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/proc.h (100%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/procpriv.h (94%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/pwr.h (98%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/pwr_sh.h (95%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/reg.h (99%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/resourcecleanup.h (97%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/rmm.h (99%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/rms_sh.h (98%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/rmstypes.h (95%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/services.h (96%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/std.h (98%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/strm.h (99%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/strmdefs.h (96%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/sync.h (99%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/util.h (98%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/utildefs.h (96%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/uuidutil.h (97%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/wcd.h (97%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/wcdioctl.h (99%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/wmd.h (99%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/wmdchnl.h (98%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/wmddeh.h (97%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/wmdio.h (96%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/wmdioctl.h (98%)
- rename arch/arm/plat-omap/include/{mach/bridge => dspbridge}/wmdmsg.h (97%)
+ arch/arm/plat-omap/include/dspbridge/_chnl_sm.h    |   10 ++--
+ arch/arm/plat-omap/include/dspbridge/_dcd.h        |    2 +-
+ arch/arm/plat-omap/include/dspbridge/cfg.h         |    4 +-
+ arch/arm/plat-omap/include/dspbridge/chnl.h        |    2 +-
+ arch/arm/plat-omap/include/dspbridge/chnl_sm.h     |    2 +-
+ arch/arm/plat-omap/include/dspbridge/chnlpriv.h    |    6 +-
+ arch/arm/plat-omap/include/dspbridge/cmm.h         |    6 +-
+ arch/arm/plat-omap/include/dspbridge/cmmdefs.h     |    2 +-
+ arch/arm/plat-omap/include/dspbridge/cod.h         |    2 +-
+ arch/arm/plat-omap/include/dspbridge/csl.h         |    2 +-
+ arch/arm/plat-omap/include/dspbridge/dbc.h         |    4 +-
+ arch/arm/plat-omap/include/dspbridge/dbdcd.h       |    6 +-
+ arch/arm/plat-omap/include/dspbridge/dbdcddef.h    |    4 +-
+ arch/arm/plat-omap/include/dspbridge/dbdefs.h      |    6 +-
+ arch/arm/plat-omap/include/dspbridge/dbg.h         |    2 +-
+ arch/arm/plat-omap/include/dspbridge/dbll.h        |    4 +-
+ arch/arm/plat-omap/include/dspbridge/dehdefs.h     |    4 +-
+ arch/arm/plat-omap/include/dspbridge/dev.h         |   20 +++---
+ arch/arm/plat-omap/include/dspbridge/disp.h        |    8 +-
+ arch/arm/plat-omap/include/dspbridge/dmm.h         |    2 +-
+ arch/arm/plat-omap/include/dspbridge/drv.h         |    4 +-
+ arch/arm/plat-omap/include/dspbridge/gb.h          |    2 +-
+ arch/arm/plat-omap/include/dspbridge/gh.h          |    2 +-
+ arch/arm/plat-omap/include/dspbridge/gt.h          |    2 +-
+ arch/arm/plat-omap/include/dspbridge/host_os.h     |    2 +-
+ arch/arm/plat-omap/include/dspbridge/io.h          |    6 +-
+ arch/arm/plat-omap/include/dspbridge/io_sm.h       |    6 +-
+ arch/arm/plat-omap/include/dspbridge/list.h        |    2 +-
+ arch/arm/plat-omap/include/dspbridge/mem.h         |    4 +-
+ arch/arm/plat-omap/include/dspbridge/mgr.h         |    2 +-
+ arch/arm/plat-omap/include/dspbridge/msg.h         |    4 +-
+ arch/arm/plat-omap/include/dspbridge/nldr.h        |   10 ++--
+ arch/arm/plat-omap/include/dspbridge/nldrdefs.h    |    4 +-
+ arch/arm/plat-omap/include/dspbridge/node.h        |    8 +-
+ arch/arm/plat-omap/include/dspbridge/nodepriv.h    |    6 +-
+ arch/arm/plat-omap/include/dspbridge/proc.h        |    4 +-
+ arch/arm/plat-omap/include/dspbridge/pwr.h         |    6 +-
+ arch/arm/plat-omap/include/dspbridge/pwr_sh.h      |    2 +-
+ .../plat-omap/include/dspbridge/resourcecleanup.h  |    4 +-
+ arch/arm/plat-omap/include/dspbridge/rms_sh.h      |    2 +-
+ arch/arm/plat-omap/include/dspbridge/rmstypes.h    |    2 +-
+ arch/arm/plat-omap/include/dspbridge/services.h    |    2 +-
+ arch/arm/plat-omap/include/dspbridge/std.h         |    2 +-
+ arch/arm/plat-omap/include/dspbridge/strm.h        |    4 +-
+ arch/arm/plat-omap/include/dspbridge/util.h        |    2 +-
+ arch/arm/plat-omap/include/dspbridge/wcdioctl.h    |    8 +-
+ arch/arm/plat-omap/include/dspbridge/wmd.h         |   14 ++--
+ arch/arm/plat-omap/include/dspbridge/wmddeh.h      |    4 +-
+ arch/arm/plat-omap/include/dspbridge/wmdio.h       |    4 +-
+ arch/arm/plat-omap/include/dspbridge/wmdmsg.h      |    2 +-
+ drivers/dsp/bridge/gen/_gt_para.c                  |    6 +-
+ drivers/dsp/bridge/gen/gb.c                        |    6 +-
+ drivers/dsp/bridge/gen/gh.c                        |    8 +-
+ drivers/dsp/bridge/gen/gs.c                        |    8 +-
+ drivers/dsp/bridge/gen/gt.c                        |    4 +-
+ drivers/dsp/bridge/gen/uuidutil.c                  |   10 ++--
+ drivers/dsp/bridge/pmgr/chnl.c                     |   32 +++++-----
+ drivers/dsp/bridge/pmgr/chnlobj.h                  |    4 +-
+ drivers/dsp/bridge/pmgr/cmm.c                      |   26 ++++----
+ drivers/dsp/bridge/pmgr/cod.c                      |   24 ++++----
+ drivers/dsp/bridge/pmgr/dbll.c                     |   26 ++++----
+ drivers/dsp/bridge/pmgr/dev.c                      |   52 ++++++++--------
+ drivers/dsp/bridge/pmgr/dmm.c                      |   24 ++++----
+ drivers/dsp/bridge/pmgr/io.c                       |   22 +++---
+ drivers/dsp/bridge/pmgr/ioobj.h                    |    4 +-
+ drivers/dsp/bridge/pmgr/msg.c                      |   22 +++---
+ drivers/dsp/bridge/pmgr/msgobj.h                   |    4 +-
+ drivers/dsp/bridge/pmgr/wcd.c                      |   52 ++++++++--------
+ drivers/dsp/bridge/rmgr/dbdcd.c                    |   24 ++++----
+ drivers/dsp/bridge/rmgr/disp.c                     |   34 +++++-----
+ drivers/dsp/bridge/rmgr/drv.c                      |   40 ++++++------
+ drivers/dsp/bridge/rmgr/drv_interface.c            |   48 +++++++-------
+ drivers/dsp/bridge/rmgr/dspdrv.c                   |   32 +++++-----
+ drivers/dsp/bridge/rmgr/mgr.c                      |   26 ++++----
+ drivers/dsp/bridge/rmgr/nldr.c                     |   32 +++++-----
+ drivers/dsp/bridge/rmgr/node.c                     |   68 ++++++++++----------
+ drivers/dsp/bridge/rmgr/proc.c                     |   56 ++++++++--------
+ drivers/dsp/bridge/rmgr/pwr.c                      |   12 ++--
+ drivers/dsp/bridge/rmgr/rmm.c                      |   16 ++--
+ drivers/dsp/bridge/rmgr/strm.c                     |   30 ++++----
+ drivers/dsp/bridge/services/cfg.c                  |   20 +++---
+ drivers/dsp/bridge/services/clk.c                  |   20 +++---
+ drivers/dsp/bridge/services/csl.c                  |   12 ++--
+ drivers/dsp/bridge/services/dbg.c                  |   12 ++--
+ drivers/dsp/bridge/services/dpc.c                  |   16 ++--
+ drivers/dsp/bridge/services/kfile.c                |   18 +++---
+ drivers/dsp/bridge/services/list.c                 |   12 ++--
+ drivers/dsp/bridge/services/mem.c                  |   16 ++--
+ drivers/dsp/bridge/services/ntfy.c                 |   22 +++---
+ drivers/dsp/bridge/services/prcs.c                 |   14 ++--
+ drivers/dsp/bridge/services/reg.c                  |   20 +++---
+ drivers/dsp/bridge/services/regsup.c               |   18 +++---
+ drivers/dsp/bridge/services/services.c             |   36 +++++-----
+ drivers/dsp/bridge/services/sync.c                 |   18 +++---
+ drivers/dsp/bridge/wmd/_deh.h                      |    6 +-
+ drivers/dsp/bridge/wmd/_msg_sm.h                   |    4 +-
+ drivers/dsp/bridge/wmd/_tiomap.h                   |    4 +-
+ drivers/dsp/bridge/wmd/chnl_sm.c                   |   28 ++++----
+ drivers/dsp/bridge/wmd/io_sm.c                     |   46 +++++++-------
+ drivers/dsp/bridge/wmd/mmu_fault.c                 |   22 +++---
+ drivers/dsp/bridge/wmd/msg_sm.c                    |   20 +++---
+ drivers/dsp/bridge/wmd/tiomap3430.c                |   50 +++++++-------
+ drivers/dsp/bridge/wmd/tiomap3430_pwr.c            |   26 ++++----
+ drivers/dsp/bridge/wmd/tiomap_io.c                 |   18 +++---
+ drivers/dsp/bridge/wmd/tiomap_sm.c                 |   24 ++++----
+ drivers/dsp/bridge/wmd/ue_deh.c                    |   32 +++++-----
+ 106 files changed, 755 insertions(+), 755 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/mach/bridge/_chnl_sm.h b/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
-similarity index 99%
-rename from arch/arm/plat-omap/include/mach/bridge/_chnl_sm.h
-rename to arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
-index 0b76572..5dfc892 100644
---- a/arch/arm/plat-omap/include/mach/bridge/_chnl_sm.h
+diff --git a/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h b/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
+index 5dfc892..ca5eb0a 100644
+--- a/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
 +++ b/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
-@@ -1,5 +1,5 @@
+@@ -55,12 +55,12 @@
+ #ifndef _CHNL_SM_
+ #define _CHNL_SM_
+
+-#include <wcd.h>
+-#include <wmd.h>
+-#include <dpc.h>
++#include <dspbridge/wcd.h>
++#include <dspbridge/wmd.h>
++#include <dspbridge/dpc.h>
+
+-#include <list.h>
+-#include <ntfy.h>
++#include <dspbridge/list.h>
++#include <dspbridge/ntfy.h>
+
  /*
-- * arch/arm/plat-omap/include/mach/bridge/_chnl_sm.h
-+ * arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/_dcd.h b/arch/arm/plat-omap/include/dspbridge/_dcd.h
-similarity index 99%
-rename from arch/arm/plat-omap/include/mach/bridge/_dcd.h
-rename to arch/arm/plat-omap/include/dspbridge/_dcd.h
-index 42b62ac..823a4f7 100644
---- a/arch/arm/plat-omap/include/mach/bridge/_dcd.h
+  *  These target side symbols define the beginning and ending addresses
+diff --git a/arch/arm/plat-omap/include/dspbridge/_dcd.h b/arch/arm/plat-omap/include/dspbridge/_dcd.h
+index 823a4f7..1987e71 100644
+--- a/arch/arm/plat-omap/include/dspbridge/_dcd.h
 +++ b/arch/arm/plat-omap/include/dspbridge/_dcd.h
-@@ -1,5 +1,5 @@
+@@ -54,7 +54,7 @@
+ #ifndef _WCD_
+ #define _WCD_
+
+-#include <wcdioctl.h>
++#include <dspbridge/wcdioctl.h>
+
  /*
-- * arch/arm/plat-omap/include/mach/bridge/_dcd.h
-+ * arch/arm/plat-omap/include/dspbridge/_dcd.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/brddefs.h b/arch/arm/plat-omap/include/dspbridge/brddefs.h
-similarity index 97%
-rename from arch/arm/plat-omap/include/mach/bridge/brddefs.h
-rename to arch/arm/plat-omap/include/dspbridge/brddefs.h
-index 99f373b..c9a4b25 100644
---- a/arch/arm/plat-omap/include/mach/bridge/brddefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/brddefs.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/brddefs.h
-+ * arch/arm/plat-omap/include/dspbridge/brddefs.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/cfg.h b/arch/arm/plat-omap/include/dspbridge/cfg.h
-similarity index 99%
-rename from arch/arm/plat-omap/include/mach/bridge/cfg.h
-rename to arch/arm/plat-omap/include/dspbridge/cfg.h
-index 84aed9c..7335702 100644
---- a/arch/arm/plat-omap/include/mach/bridge/cfg.h
+  *  ======== WCD_CallDevIOCtl ========
+diff --git a/arch/arm/plat-omap/include/dspbridge/cfg.h b/arch/arm/plat-omap/include/dspbridge/cfg.h
+index 7335702..46fd059 100644
+--- a/arch/arm/plat-omap/include/dspbridge/cfg.h
 +++ b/arch/arm/plat-omap/include/dspbridge/cfg.h
-@@ -1,5 +1,5 @@
+@@ -64,8 +64,8 @@
+
+ #ifndef CFG_
+ #define CFG_
+-#include <host_os.h>
+-#include <cfgdefs.h>
++#include <dspbridge/host_os.h>
++#include <dspbridge/cfgdefs.h>
+
  /*
-- * arch/arm/plat-omap/include/mach/bridge/cfg.h
-+ * arch/arm/plat-omap/include/dspbridge/cfg.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/cfgdefs.h b/arch/arm/plat-omap/include/dspbridge/cfgdefs.h
-similarity index 98%
-rename from arch/arm/plat-omap/include/mach/bridge/cfgdefs.h
-rename to arch/arm/plat-omap/include/dspbridge/cfgdefs.h
-index 7cdd68a..48217d3 100644
---- a/arch/arm/plat-omap/include/mach/bridge/cfgdefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/cfgdefs.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/cfgdefs.h
-+ * arch/arm/plat-omap/include/dspbridge/cfgdefs.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/chnl.h b/arch/arm/plat-omap/include/dspbridge/chnl.h
-similarity index 99%
-rename from arch/arm/plat-omap/include/mach/bridge/chnl.h
-rename to arch/arm/plat-omap/include/dspbridge/chnl.h
-index 3c0ad76..954e617 100644
---- a/arch/arm/plat-omap/include/mach/bridge/chnl.h
+  *  ======== CFG_Exit ========
+diff --git a/arch/arm/plat-omap/include/dspbridge/chnl.h b/arch/arm/plat-omap/include/dspbridge/chnl.h
+index 954e617..6a3a2d9 100644
+--- a/arch/arm/plat-omap/include/dspbridge/chnl.h
 +++ b/arch/arm/plat-omap/include/dspbridge/chnl.h
-@@ -1,5 +1,5 @@
+@@ -57,7 +57,7 @@
+ #ifndef CHNL_
+ #define CHNL_
+
+-#include <chnlpriv.h>
++#include <dspbridge/chnlpriv.h>
+
  /*
-- * arch/arm/plat-omap/include/mach/bridge/chnl.h
-+ * arch/arm/plat-omap/include/dspbridge/chnl.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/chnl_sm.h b/arch/arm/plat-omap/include/dspbridge/chnl_sm.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/chnl_sm.h
-rename to arch/arm/plat-omap/include/dspbridge/chnl_sm.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/chnldefs.h b/arch/arm/plat-omap/include/dspbridge/chnldefs.h
-similarity index 98%
-rename from arch/arm/plat-omap/include/mach/bridge/chnldefs.h
-rename to arch/arm/plat-omap/include/dspbridge/chnldefs.h
-index 370d4d3..9c246ae 100644
---- a/arch/arm/plat-omap/include/mach/bridge/chnldefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/chnldefs.h
-@@ -1,5 +1,5 @@
+  *  ======== CHNL_Close ========
+diff --git a/arch/arm/plat-omap/include/dspbridge/chnl_sm.h b/arch/arm/plat-omap/include/dspbridge/chnl_sm.h
+index 0b724be..da25fa7 100644
+--- a/arch/arm/plat-omap/include/dspbridge/chnl_sm.h
++++ b/arch/arm/plat-omap/include/dspbridge/chnl_sm.h
+@@ -50,7 +50,7 @@
+ #ifndef CHNLSM_
+ #define CHNLSM_
+
+-#include <wmd.h>
++#include <dspbridge/wmd.h>
+
  /*
-- * arch/arm/plat-omap/include/mach/bridge/chnldefs.h
-+ * arch/arm/plat-omap/include/dspbridge/chnldefs.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/chnlpriv.h b/arch/arm/plat-omap/include/dspbridge/chnlpriv.h
-similarity index 98%
-rename from arch/arm/plat-omap/include/mach/bridge/chnlpriv.h
-rename to arch/arm/plat-omap/include/dspbridge/chnlpriv.h
-index 319401e..e528960 100644
---- a/arch/arm/plat-omap/include/mach/bridge/chnlpriv.h
+  *  ======== CHNLSM_DisableInterrupt ========
+diff --git a/arch/arm/plat-omap/include/dspbridge/chnlpriv.h b/arch/arm/plat-omap/include/dspbridge/chnlpriv.h
+index e528960..8b3b420 100644
+--- a/arch/arm/plat-omap/include/dspbridge/chnlpriv.h
 +++ b/arch/arm/plat-omap/include/dspbridge/chnlpriv.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/chnlpriv.h
-+ * arch/arm/plat-omap/include/dspbridge/chnlpriv.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/clk.h b/arch/arm/plat-omap/include/dspbridge/clk.h
-similarity index 98%
-rename from arch/arm/plat-omap/include/mach/bridge/clk.h
-rename to arch/arm/plat-omap/include/dspbridge/clk.h
-index a3f490f..95e899b 100644
---- a/arch/arm/plat-omap/include/mach/bridge/clk.h
-+++ b/arch/arm/plat-omap/include/dspbridge/clk.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/clk.h
-+ * arch/arm/plat-omap/include/dspbridge/clk.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/cmm.h b/arch/arm/plat-omap/include/dspbridge/cmm.h
-similarity index 99%
-rename from arch/arm/plat-omap/include/mach/bridge/cmm.h
-rename to arch/arm/plat-omap/include/dspbridge/cmm.h
-index 5bc1ca5..bb87979 100644
---- a/arch/arm/plat-omap/include/mach/bridge/cmm.h
+@@ -46,9 +46,9 @@
+ #ifndef CHNLPRIV_
+ #define CHNLPRIV_
+
+-#include <chnldefs.h>
+-#include <devdefs.h>
+-#include <sync.h>
++#include <dspbridge/chnldefs.h>
++#include <dspbridge/devdefs.h>
++#include <dspbridge/sync.h>
+
+ /* CHNL Object validation signatures: */
+ #define CHNL_MGRSIGNATURE   0x52474D43 /* "CMGR" (in reverse). */
+diff --git a/arch/arm/plat-omap/include/dspbridge/cmm.h b/arch/arm/plat-omap/include/dspbridge/cmm.h
+index bb87979..e3da09d 100644
+--- a/arch/arm/plat-omap/include/dspbridge/cmm.h
 +++ b/arch/arm/plat-omap/include/dspbridge/cmm.h
-@@ -1,5 +1,5 @@
+@@ -67,10 +67,10 @@
+ #ifndef CMM_
+ #define CMM_
+
+-#include <devdefs.h>
++#include <dspbridge/devdefs.h>
+
+-#include <cmmdefs.h>
+-#include <host_os.h>
++#include <dspbridge/cmmdefs.h>
++#include <dspbridge/host_os.h>
+
  /*
-- * arch/arm/plat-omap/include/mach/bridge/cmm.h
-+ * arch/arm/plat-omap/include/dspbridge/cmm.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/cmmdefs.h b/arch/arm/plat-omap/include/dspbridge/cmmdefs.h
-similarity index 98%
-rename from arch/arm/plat-omap/include/mach/bridge/cmmdefs.h
-rename to arch/arm/plat-omap/include/dspbridge/cmmdefs.h
-index ee5ca87..978e248 100644
---- a/arch/arm/plat-omap/include/mach/bridge/cmmdefs.h
+  *  ======== CMM_CallocBuf ========
+diff --git a/arch/arm/plat-omap/include/dspbridge/cmmdefs.h b/arch/arm/plat-omap/include/dspbridge/cmmdefs.h
+index 978e248..54474fb 100644
+--- a/arch/arm/plat-omap/include/dspbridge/cmmdefs.h
 +++ b/arch/arm/plat-omap/include/dspbridge/cmmdefs.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/cmmdefs.h
-+ * arch/arm/plat-omap/include/dspbridge/cmmdefs.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/cod.h b/arch/arm/plat-omap/include/dspbridge/cod.h
-similarity index 99%
-rename from arch/arm/plat-omap/include/mach/bridge/cod.h
-rename to arch/arm/plat-omap/include/dspbridge/cod.h
-index a56789a..0cdb3e2 100644
---- a/arch/arm/plat-omap/include/mach/bridge/cod.h
+@@ -35,7 +35,7 @@
+ #ifndef CMMDEFS_
+ #define CMMDEFS_
+
+-#include <list.h>
++#include <dspbridge/list.h>
+
+ /* Cmm attributes used in CMM_Create() */
+        struct CMM_MGRATTRS {
+diff --git a/arch/arm/plat-omap/include/dspbridge/cod.h b/arch/arm/plat-omap/include/dspbridge/cod.h
+index 0cdb3e2..67af050 100644
+--- a/arch/arm/plat-omap/include/dspbridge/cod.h
 +++ b/arch/arm/plat-omap/include/dspbridge/cod.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/cod.h
-+ * arch/arm/plat-omap/include/dspbridge/cod.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/csl.h b/arch/arm/plat-omap/include/dspbridge/csl.h
-similarity index 98%
-rename from arch/arm/plat-omap/include/mach/bridge/csl.h
-rename to arch/arm/plat-omap/include/dspbridge/csl.h
-index a2f31a2..3152e0d 100644
---- a/arch/arm/plat-omap/include/mach/bridge/csl.h
+@@ -71,7 +71,7 @@
+ #ifndef COD_
+ #define COD_
+
+-#include <dblldefs.h>
++#include <dspbridge/dblldefs.h>
+
+ #define COD_MAXPATHLENGTH       255
+ #define COD_TRACEBEG            "SYS_PUTCBEG"
+diff --git a/arch/arm/plat-omap/include/dspbridge/csl.h b/arch/arm/plat-omap/include/dspbridge/csl.h
+index 3152e0d..7b31716 100644
+--- a/arch/arm/plat-omap/include/dspbridge/csl.h
 +++ b/arch/arm/plat-omap/include/dspbridge/csl.h
-@@ -1,5 +1,5 @@
+@@ -49,7 +49,7 @@
+ #ifndef CSL_
+ #define CSL_
+
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
  /*
-- * arch/arm/plat-omap/include/mach/bridge/csl.h
-+ * arch/arm/plat-omap/include/dspbridge/csl.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dbc.h b/arch/arm/plat-omap/include/dspbridge/dbc.h
-similarity index 97%
-rename from arch/arm/plat-omap/include/mach/bridge/dbc.h
-rename to arch/arm/plat-omap/include/dspbridge/dbc.h
-index 78e9dbe..c92a05f 100644
---- a/arch/arm/plat-omap/include/mach/bridge/dbc.h
+  *  ======== CSL_Exit ========
+diff --git a/arch/arm/plat-omap/include/dspbridge/dbc.h b/arch/arm/plat-omap/include/dspbridge/dbc.h
+index c92a05f..594ca99 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dbc.h
 +++ b/arch/arm/plat-omap/include/dspbridge/dbc.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/dbc.h
-+ * arch/arm/plat-omap/include/dspbridge/dbc.h
+@@ -32,7 +32,7 @@
   *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dbdcd.h b/arch/arm/plat-omap/include/dspbridge/dbdcd.h
-similarity index 99%
-rename from arch/arm/plat-omap/include/mach/bridge/dbdcd.h
-rename to arch/arm/plat-omap/include/dspbridge/dbdcd.h
-index cd5326c..4f3854d 100644
---- a/arch/arm/plat-omap/include/mach/bridge/dbdcd.h
+  *! Revision History:
+  *! ================
+- *! 11-Aug-2000 ag: Removed include <std.h>
++ *! 11-Aug-2000 ag: Removed include <dspbridge/std.h>
+  *! 22-Apr-1996 gp: Created.
+  */
+
+@@ -46,7 +46,7 @@
+ /* Assertion Macros: */
+ #if GT_TRACE
+
+-#include <gt.h>
++#include <dspbridge/gt.h>
+
+ #define DBC_Assert(exp) \
+     if (!(exp)) \
+diff --git a/arch/arm/plat-omap/include/dspbridge/dbdcd.h b/arch/arm/plat-omap/include/dspbridge/dbdcd.h
+index 4f3854d..6bb2312 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dbdcd.h
 +++ b/arch/arm/plat-omap/include/dspbridge/dbdcd.h
-@@ -1,5 +1,5 @@
+@@ -41,9 +41,9 @@
+ #ifndef DBDCD_
+ #define DBDCD_
+
+-#include <dbdcddef.h>
+-#include <host_os.h>
+-#include <nldrdefs.h>
++#include <dspbridge/dbdcddef.h>
++#include <dspbridge/host_os.h>
++#include <dspbridge/nldrdefs.h>
+
  /*
-- * arch/arm/plat-omap/include/mach/bridge/dbdcd.h
-+ * arch/arm/plat-omap/include/dspbridge/dbdcd.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dbdcddef.h b/arch/arm/plat-omap/include/dspbridge/dbdcddef.h
-similarity index 98%
-rename from arch/arm/plat-omap/include/mach/bridge/dbdcddef.h
-rename to arch/arm/plat-omap/include/dspbridge/dbdcddef.h
-index 13b7e04..562b6a0 100644
---- a/arch/arm/plat-omap/include/mach/bridge/dbdcddef.h
+  *  ======== DCD_AutoRegister ========
+diff --git a/arch/arm/plat-omap/include/dspbridge/dbdcddef.h b/arch/arm/plat-omap/include/dspbridge/dbdcddef.h
+index 562b6a0..28ee603 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dbdcddef.h
 +++ b/arch/arm/plat-omap/include/dspbridge/dbdcddef.h
-@@ -1,5 +1,5 @@
+@@ -42,8 +42,8 @@
+ #ifndef DBDCDDEF_
+ #define DBDCDDEF_
+
+-#include <dbdefs.h>
+-#include <mgrpriv.h>           /* for MGR_PROCESSOREXTINFO */
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/mgrpriv.h>         /* for MGR_PROCESSOREXTINFO */
+
  /*
-- * arch/arm/plat-omap/include/mach/bridge/dbdcddef.h
-+ * arch/arm/plat-omap/include/dspbridge/dbdcddef.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dbdefs.h b/arch/arm/plat-omap/include/dspbridge/dbdefs.h
-similarity index 99%
-rename from arch/arm/plat-omap/include/mach/bridge/dbdefs.h
-rename to arch/arm/plat-omap/include/dspbridge/dbdefs.h
-index b8350ec..66f3da4 100644
---- a/arch/arm/plat-omap/include/mach/bridge/dbdefs.h
+  *  The following defines are critical elements for the DCD module:
+diff --git a/arch/arm/plat-omap/include/dspbridge/dbdefs.h b/arch/arm/plat-omap/include/dspbridge/dbdefs.h
+index 66f3da4..422f5a6 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dbdefs.h
 +++ b/arch/arm/plat-omap/include/dspbridge/dbdefs.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/dbdefs.h
-+ * arch/arm/plat-omap/include/dspbridge/dbdefs.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dbg.h b/arch/arm/plat-omap/include/dspbridge/dbg.h
-similarity index 98%
-rename from arch/arm/plat-omap/include/mach/bridge/dbg.h
-rename to arch/arm/plat-omap/include/dspbridge/dbg.h
-index 0cf6bce..079c41b 100644
---- a/arch/arm/plat-omap/include/mach/bridge/dbg.h
+@@ -70,9 +70,9 @@
+
+ #include <linux/types.h>
+
+-#include <dbtype.h>            /* GPP side type definitions           */
+-#include <std.h>               /* DSP/BIOS type definitions           */
+-#include <rms_sh.h>            /* Types shared between GPP and DSP    */
++#include <dspbridge/dbtype.h>          /* GPP side type definitions           */
++#include <dspbridge/std.h>             /* DSP/BIOS type definitions           */
++#include <dspbridge/rms_sh.h>          /* Types shared between GPP and DSP    */
+
+ #define PG_SIZE_4K 4096
+ #define PG_MASK(pg_size) (~((pg_size)-1))
+diff --git a/arch/arm/plat-omap/include/dspbridge/dbg.h b/arch/arm/plat-omap/include/dspbridge/dbg.h
+index 079c41b..0269271 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dbg.h
 +++ b/arch/arm/plat-omap/include/dspbridge/dbg.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/dbg.h
-+ * arch/arm/plat-omap/include/dspbridge/dbg.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dbldefs.h b/arch/arm/plat-omap/include/dspbridge/dbldefs.h
-similarity index 98%
-rename from arch/arm/plat-omap/include/mach/bridge/dbldefs.h
-rename to arch/arm/plat-omap/include/dspbridge/dbldefs.h
-index b25fd1c..a53914d 100644
---- a/arch/arm/plat-omap/include/mach/bridge/dbldefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dbldefs.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/dbldefs.h
-+ * arch/arm/plat-omap/include/dspbridge/dbldefs.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dbll.h b/arch/arm/plat-omap/include/dspbridge/dbll.h
-similarity index 97%
-rename from arch/arm/plat-omap/include/mach/bridge/dbll.h
-rename to arch/arm/plat-omap/include/dspbridge/dbll.h
-index 461397c..3062055 100644
---- a/arch/arm/plat-omap/include/mach/bridge/dbll.h
+@@ -39,7 +39,7 @@
+
+ #ifndef DBG_
+ #define DBG_
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+ #include <linux/types.h>
+
+ /* Levels of trace debug messages: */
+diff --git a/arch/arm/plat-omap/include/dspbridge/dbll.h b/arch/arm/plat-omap/include/dspbridge/dbll.h
+index 3062055..8a44677 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dbll.h
 +++ b/arch/arm/plat-omap/include/dspbridge/dbll.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/dbll.h
-+ * arch/arm/plat-omap/include/dspbridge/dbll.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dblldefs.h b/arch/arm/plat-omap/include/dspbridge/dblldefs.h
-similarity index 99%
-rename from arch/arm/plat-omap/include/mach/bridge/dblldefs.h
-rename to arch/arm/plat-omap/include/dspbridge/dblldefs.h
-index 8d392f8..b03a1dc 100644
---- a/arch/arm/plat-omap/include/mach/bridge/dblldefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dblldefs.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/dblldefs.h
-+ * arch/arm/plat-omap/include/dspbridge/dblldefs.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dbof.h b/arch/arm/plat-omap/include/dspbridge/dbof.h
-similarity index 98%
-rename from arch/arm/plat-omap/include/mach/bridge/dbof.h
-rename to arch/arm/plat-omap/include/dspbridge/dbof.h
-index 6c05b3f..ceca3e0 100644
---- a/arch/arm/plat-omap/include/mach/bridge/dbof.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dbof.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/dbof.h
-+ * arch/arm/plat-omap/include/dspbridge/dbof.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dbreg.h b/arch/arm/plat-omap/include/dspbridge/dbreg.h
-similarity index 99%
-rename from arch/arm/plat-omap/include/mach/bridge/dbreg.h
-rename to arch/arm/plat-omap/include/dspbridge/dbreg.h
-index c3784cc..1149682 100644
---- a/arch/arm/plat-omap/include/mach/bridge/dbreg.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dbreg.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/dbreg.h
-+ * arch/arm/plat-omap/include/dspbridge/dbreg.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dbtype.h b/arch/arm/plat-omap/include/dspbridge/dbtype.h
-similarity index 98%
-rename from arch/arm/plat-omap/include/mach/bridge/dbtype.h
-rename to arch/arm/plat-omap/include/dspbridge/dbtype.h
-index eaadfba..57e9a62 100644
---- a/arch/arm/plat-omap/include/mach/bridge/dbtype.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dbtype.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/dbtype.h
-+ * arch/arm/plat-omap/include/dspbridge/dbtype.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dehdefs.h b/arch/arm/plat-omap/include/dspbridge/dehdefs.h
-similarity index 95%
-rename from arch/arm/plat-omap/include/mach/bridge/dehdefs.h
-rename to arch/arm/plat-omap/include/dspbridge/dehdefs.h
-index 47139ae..4887f54 100644
---- a/arch/arm/plat-omap/include/mach/bridge/dehdefs.h
+@@ -29,8 +29,8 @@
+ #ifndef DBLL_
+ #define DBLL_
+
+-#include <dbdefs.h>
+-#include <dblldefs.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/dblldefs.h>
+
+        extern void DBLL_close(struct DBLL_LibraryObj *lib);
+        extern DSP_STATUS DBLL_create(struct DBLL_TarObj **pTarget,
+diff --git a/arch/arm/plat-omap/include/dspbridge/dehdefs.h b/arch/arm/plat-omap/include/dspbridge/dehdefs.h
+index 4887f54..7f4cf29 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dehdefs.h
 +++ b/arch/arm/plat-omap/include/dspbridge/dehdefs.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/dehdefs.h
-+ * arch/arm/plat-omap/include/dspbridge/dehdefs.h
+@@ -21,7 +21,7 @@
   *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dev.h b/arch/arm/plat-omap/include/dspbridge/dev.h
-similarity index 99%
-rename from arch/arm/plat-omap/include/mach/bridge/dev.h
-rename to arch/arm/plat-omap/include/dspbridge/dev.h
-index 8a97bca..acc688b 100644
---- a/arch/arm/plat-omap/include/mach/bridge/dev.h
+  *! Revision History:
+  *! ================
+- *! 17-Dec-2001 ag: added #include <mbx_sh.h> for shared mailbox codes.
++ *! 17-Dec-2001 ag: added #include <dspbridge/mbx_sh.h> for shared mailbox codes.
+  *! 10-Dec-2001 kc: added DEH error base value and error max value.
+  *! 11-Sep-2001 kc: created.
+  */
+@@ -29,7 +29,7 @@
+ #ifndef DEHDEFS_
+ #define DEHDEFS_
+
+-#include <mbx_sh.h>            /* shared mailbox codes */
++#include <dspbridge/mbx_sh.h>          /* shared mailbox codes */
+
+ /* DEH object manager */
+        struct DEH_MGR;
+diff --git a/arch/arm/plat-omap/include/dspbridge/dev.h b/arch/arm/plat-omap/include/dspbridge/dev.h
+index acc688b..f3323c0 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dev.h
 +++ b/arch/arm/plat-omap/include/dspbridge/dev.h
-@@ -1,5 +1,5 @@
+@@ -80,18 +80,18 @@
+ #define DEV_
+
+ /*  ----------------------------------- Module Dependent Headers */
+-#include <chnldefs.h>
+-#include <cmm.h>
+-#include <cod.h>
+-#include <dehdefs.h>
+-#include <nodedefs.h>
+-#include <dispdefs.h>
+-#include <wmd.h>
+-#include <dmm.h>
+-#include <host_os.h>
++#include <dspbridge/chnldefs.h>
++#include <dspbridge/cmm.h>
++#include <dspbridge/cod.h>
++#include <dspbridge/dehdefs.h>
++#include <dspbridge/nodedefs.h>
++#include <dspbridge/dispdefs.h>
++#include <dspbridge/wmd.h>
++#include <dspbridge/dmm.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- This */
+-#include <devdefs.h>
++#include <dspbridge/devdefs.h>
+
+
  /*
-- * arch/arm/plat-omap/include/mach/bridge/dev.h
-+ * arch/arm/plat-omap/include/dspbridge/dev.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/devdefs.h b/arch/arm/plat-omap/include/dspbridge/devdefs.h
-similarity index 94%
-rename from arch/arm/plat-omap/include/mach/bridge/devdefs.h
-rename to arch/arm/plat-omap/include/dspbridge/devdefs.h
-index 3900379..08f0227 100644
---- a/arch/arm/plat-omap/include/mach/bridge/devdefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/devdefs.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/devdefs.h
-+ * arch/arm/plat-omap/include/dspbridge/devdefs.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/disp.h b/arch/arm/plat-omap/include/dspbridge/disp.h
-similarity index 99%
-rename from arch/arm/plat-omap/include/mach/bridge/disp.h
-rename to arch/arm/plat-omap/include/dspbridge/disp.h
-index d78b355..7b1d4e0 100644
---- a/arch/arm/plat-omap/include/mach/bridge/disp.h
+diff --git a/arch/arm/plat-omap/include/dspbridge/disp.h b/arch/arm/plat-omap/include/dspbridge/disp.h
+index 7b1d4e0..95e109c 100644
+--- a/arch/arm/plat-omap/include/dspbridge/disp.h
 +++ b/arch/arm/plat-omap/include/dspbridge/disp.h
-@@ -1,5 +1,5 @@
+@@ -46,10 +46,10 @@
+ #ifndef DISP_
+ #define DISP_
+
+-#include <dbdefs.h>
+-#include <nodedefs.h>
+-#include <nodepriv.h>
+-#include <dispdefs.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/nodedefs.h>
++#include <dspbridge/nodepriv.h>
++#include <dspbridge/dispdefs.h>
+
  /*
-- * arch/arm/plat-omap/include/mach/bridge/disp.h
-+ * arch/arm/plat-omap/include/dspbridge/disp.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dispdefs.h b/arch/arm/plat-omap/include/dspbridge/dispdefs.h
-similarity index 95%
-rename from arch/arm/plat-omap/include/mach/bridge/dispdefs.h
-rename to arch/arm/plat-omap/include/dspbridge/dispdefs.h
-index c69f58e..125fef3 100644
---- a/arch/arm/plat-omap/include/mach/bridge/dispdefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dispdefs.h
-@@ -1,5 +1,5 @@
+  *  ======== DISP_Create ========
+diff --git a/arch/arm/plat-omap/include/dspbridge/dmm.h b/arch/arm/plat-omap/include/dspbridge/dmm.h
+index 06dbdae..ea939ba 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dmm.h
++++ b/arch/arm/plat-omap/include/dspbridge/dmm.h
+@@ -32,7 +32,7 @@
+ #ifndef DMM_
+ #define DMM_
+
+-#include <dbdefs.h>
++#include <dspbridge/dbdefs.h>
+
+        struct DMM_OBJECT;
+
+diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
+index eddc161..274afc4 100644
+--- a/arch/arm/plat-omap/include/dspbridge/drv.h
++++ b/arch/arm/plat-omap/include/dspbridge/drv.h
+@@ -61,9 +61,9 @@
+ #ifndef DRV_
+ #define DRV_
+
+-#include <devdefs.h>
++#include <dspbridge/devdefs.h>
+
+-#include <drvdefs.h>
++#include <dspbridge/drvdefs.h>
+
+ #define DRV_ASSIGN     1
+ #define DRV_RELEASE    0
+diff --git a/arch/arm/plat-omap/include/dspbridge/gb.h b/arch/arm/plat-omap/include/dspbridge/gb.h
+index 52ec3ec..4c7b5ed 100644
+--- a/arch/arm/plat-omap/include/dspbridge/gb.h
++++ b/arch/arm/plat-omap/include/dspbridge/gb.h
+@@ -26,7 +26,7 @@
+ #define GB_
+
+ #define GB_NOBITS (~0)
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+ typedef s32 GB_BitNum;
+ struct GB_TMap;
+
+diff --git a/arch/arm/plat-omap/include/dspbridge/gh.h b/arch/arm/plat-omap/include/dspbridge/gh.h
+index 3fd6802..91fedfe 100644
+--- a/arch/arm/plat-omap/include/dspbridge/gh.h
++++ b/arch/arm/plat-omap/include/dspbridge/gh.h
+@@ -24,7 +24,7 @@
+
+ #ifndef GH_
+ #define GH_
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ extern struct GH_THashTab *GH_create(u16 maxBucket, u16 valSize,
+                u16(*hash) (void *, u16), bool(*match) (void *, void *),
+diff --git a/arch/arm/plat-omap/include/dspbridge/gt.h b/arch/arm/plat-omap/include/dspbridge/gt.h
+index 1ee72ee..47e6b5f 100644
+--- a/arch/arm/plat-omap/include/dspbridge/gt.h
++++ b/arch/arm/plat-omap/include/dspbridge/gt.h
+@@ -41,7 +41,7 @@
+ #define GT_TRACE 0         /* 0 = "trace compiled out"; 1 = "trace active" */
+ #endif
+
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ #if !defined(GT_ASSERT) || GT_TRACE
+ #define GT_ASSERT 1
+diff --git a/arch/arm/plat-omap/include/dspbridge/host_os.h b/arch/arm/plat-omap/include/dspbridge/host_os.h
+index de4fb90..edbfe7e 100644
+--- a/arch/arm/plat-omap/include/dspbridge/host_os.h
++++ b/arch/arm/plat-omap/include/dspbridge/host_os.h
+@@ -53,7 +53,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/ioport.h>
+ #include <linux/platform_device.h>
+-#include <dbtype.h>
++#include <dspbridge/dbtype.h>
+
+ #if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3430)
+ #include <mach/clock.h>
+diff --git a/arch/arm/plat-omap/include/dspbridge/io.h b/arch/arm/plat-omap/include/dspbridge/io.h
+index 1396350..1fb959b 100644
+--- a/arch/arm/plat-omap/include/dspbridge/io.h
++++ b/arch/arm/plat-omap/include/dspbridge/io.h
+@@ -36,10 +36,10 @@
+ #ifndef IO_
+ #define IO_
+
+-#include <cfgdefs.h>
+-#include <devdefs.h>
++#include <dspbridge/cfgdefs.h>
++#include <dspbridge/devdefs.h>
+
+-#include <iodefs.h>
++#include <dspbridge/iodefs.h>
+
  /*
-- * arch/arm/plat-omap/include/mach/bridge/dispdefs.h
-+ * arch/arm/plat-omap/include/dspbridge/dispdefs.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dmm.h b/arch/arm/plat-omap/include/dspbridge/dmm.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/dmm.h
-rename to arch/arm/plat-omap/include/dspbridge/dmm.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dpc.h b/arch/arm/plat-omap/include/dspbridge/dpc.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/dpc.h
-rename to arch/arm/plat-omap/include/dspbridge/dpc.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/drv.h
-rename to arch/arm/plat-omap/include/dspbridge/drv.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/drvdefs.h b/arch/arm/plat-omap/include/dspbridge/drvdefs.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/drvdefs.h
-rename to arch/arm/plat-omap/include/dspbridge/drvdefs.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dspdrv.h b/arch/arm/plat-omap/include/dspbridge/dspdrv.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/dspdrv.h
-rename to arch/arm/plat-omap/include/dspbridge/dspdrv.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/dynamic_loader.h b/arch/arm/plat-omap/include/dspbridge/dynamic_loader.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/dynamic_loader.h
-rename to arch/arm/plat-omap/include/dspbridge/dynamic_loader.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/errbase.h b/arch/arm/plat-omap/include/dspbridge/errbase.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/errbase.h
-rename to arch/arm/plat-omap/include/dspbridge/errbase.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/gb.h b/arch/arm/plat-omap/include/dspbridge/gb.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/gb.h
-rename to arch/arm/plat-omap/include/dspbridge/gb.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/getsection.h b/arch/arm/plat-omap/include/dspbridge/getsection.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/getsection.h
-rename to arch/arm/plat-omap/include/dspbridge/getsection.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/gh.h b/arch/arm/plat-omap/include/dspbridge/gh.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/gh.h
-rename to arch/arm/plat-omap/include/dspbridge/gh.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/gs.h b/arch/arm/plat-omap/include/dspbridge/gs.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/gs.h
-rename to arch/arm/plat-omap/include/dspbridge/gs.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/gt.h b/arch/arm/plat-omap/include/dspbridge/gt.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/gt.h
-rename to arch/arm/plat-omap/include/dspbridge/gt.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/host_os.h b/arch/arm/plat-omap/include/dspbridge/host_os.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/host_os.h
-rename to arch/arm/plat-omap/include/dspbridge/host_os.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/io.h b/arch/arm/plat-omap/include/dspbridge/io.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/io.h
-rename to arch/arm/plat-omap/include/dspbridge/io.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/io_sm.h b/arch/arm/plat-omap/include/dspbridge/io_sm.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/io_sm.h
-rename to arch/arm/plat-omap/include/dspbridge/io_sm.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/iodefs.h b/arch/arm/plat-omap/include/dspbridge/iodefs.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/iodefs.h
-rename to arch/arm/plat-omap/include/dspbridge/iodefs.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/kfile.h b/arch/arm/plat-omap/include/dspbridge/kfile.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/kfile.h
-rename to arch/arm/plat-omap/include/dspbridge/kfile.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/ldr.h b/arch/arm/plat-omap/include/dspbridge/ldr.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/ldr.h
-rename to arch/arm/plat-omap/include/dspbridge/ldr.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/list.h b/arch/arm/plat-omap/include/dspbridge/list.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/list.h
-rename to arch/arm/plat-omap/include/dspbridge/list.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/mbx_sh.h b/arch/arm/plat-omap/include/dspbridge/mbx_sh.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/mbx_sh.h
-rename to arch/arm/plat-omap/include/dspbridge/mbx_sh.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/mem.h b/arch/arm/plat-omap/include/dspbridge/mem.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/mem.h
-rename to arch/arm/plat-omap/include/dspbridge/mem.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/memdefs.h b/arch/arm/plat-omap/include/dspbridge/memdefs.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/memdefs.h
-rename to arch/arm/plat-omap/include/dspbridge/memdefs.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/mgr.h b/arch/arm/plat-omap/include/dspbridge/mgr.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/mgr.h
-rename to arch/arm/plat-omap/include/dspbridge/mgr.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/mgrpriv.h b/arch/arm/plat-omap/include/dspbridge/mgrpriv.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/mgrpriv.h
-rename to arch/arm/plat-omap/include/dspbridge/mgrpriv.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/msg.h b/arch/arm/plat-omap/include/dspbridge/msg.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/msg.h
-rename to arch/arm/plat-omap/include/dspbridge/msg.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/msgdefs.h b/arch/arm/plat-omap/include/dspbridge/msgdefs.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/msgdefs.h
-rename to arch/arm/plat-omap/include/dspbridge/msgdefs.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/nldr.h b/arch/arm/plat-omap/include/dspbridge/nldr.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/nldr.h
-rename to arch/arm/plat-omap/include/dspbridge/nldr.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/nldrdefs.h b/arch/arm/plat-omap/include/dspbridge/nldrdefs.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/nldrdefs.h
-rename to arch/arm/plat-omap/include/dspbridge/nldrdefs.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/node.h b/arch/arm/plat-omap/include/dspbridge/node.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/node.h
-rename to arch/arm/plat-omap/include/dspbridge/node.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/nodedefs.h b/arch/arm/plat-omap/include/dspbridge/nodedefs.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/nodedefs.h
-rename to arch/arm/plat-omap/include/dspbridge/nodedefs.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/nodepriv.h b/arch/arm/plat-omap/include/dspbridge/nodepriv.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/nodepriv.h
-rename to arch/arm/plat-omap/include/dspbridge/nodepriv.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/ntfy.h b/arch/arm/plat-omap/include/dspbridge/ntfy.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/ntfy.h
-rename to arch/arm/plat-omap/include/dspbridge/ntfy.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/prcs.h b/arch/arm/plat-omap/include/dspbridge/prcs.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/prcs.h
-rename to arch/arm/plat-omap/include/dspbridge/prcs.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/proc.h b/arch/arm/plat-omap/include/dspbridge/proc.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/mach/bridge/proc.h
-rename to arch/arm/plat-omap/include/dspbridge/proc.h
-diff --git a/arch/arm/plat-omap/include/mach/bridge/procpriv.h b/arch/arm/plat-omap/include/dspbridge/procpriv.h
-similarity index 94%
-rename from arch/arm/plat-omap/include/mach/bridge/procpriv.h
-rename to arch/arm/plat-omap/include/dspbridge/procpriv.h
-index 44b51fa..c9fb729 100644
---- a/arch/arm/plat-omap/include/mach/bridge/procpriv.h
-+++ b/arch/arm/plat-omap/include/dspbridge/procpriv.h
-@@ -1,5 +1,5 @@
+  *  ======== IO_Create ========
+diff --git a/arch/arm/plat-omap/include/dspbridge/io_sm.h b/arch/arm/plat-omap/include/dspbridge/io_sm.h
+index b881475..cabce3b 100644
+--- a/arch/arm/plat-omap/include/dspbridge/io_sm.h
++++ b/arch/arm/plat-omap/include/dspbridge/io_sm.h
+@@ -52,10 +52,10 @@
+ #ifndef IOSM_
+ #define IOSM_
+
+-#include <_chnl_sm.h>
+-#include <host_os.h>
++#include <dspbridge/_chnl_sm.h>
++#include <dspbridge/host_os.h>
+
+-#include <iodefs.h>
++#include <dspbridge/iodefs.h>
+
+ #define IO_INPUT            0
+ #define IO_OUTPUT           1
+diff --git a/arch/arm/plat-omap/include/dspbridge/list.h b/arch/arm/plat-omap/include/dspbridge/list.h
+index 5611270..b37d7a6 100644
+--- a/arch/arm/plat-omap/include/dspbridge/list.h
++++ b/arch/arm/plat-omap/include/dspbridge/list.h
+@@ -50,7 +50,7 @@
+ #ifndef LIST_
+ #define LIST_
+
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ #define LST_IsEmpty(l)      (((l)->head.next == &(l)->head))
+
+diff --git a/arch/arm/plat-omap/include/dspbridge/mem.h b/arch/arm/plat-omap/include/dspbridge/mem.h
+index 236268d..ffb3ec3 100644
+--- a/arch/arm/plat-omap/include/dspbridge/mem.h
++++ b/arch/arm/plat-omap/include/dspbridge/mem.h
+@@ -68,8 +68,8 @@
+ #ifndef MEM_
+ #define MEM_
+
+-#include <host_os.h>
+-#include <memdefs.h>
++#include <dspbridge/host_os.h>
++#include <dspbridge/memdefs.h>
+
  /*
-- * arch/arm/plat-omap/include/mach/bridge/procpriv.h
-+ * arch/arm/plat-omap/include/dspbridge/procpriv.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/pwr.h b/arch/arm/plat-omap/include/dspbridge/pwr.h
-similarity index 98%
-rename from arch/arm/plat-omap/include/mach/bridge/pwr.h
-rename to arch/arm/plat-omap/include/dspbridge/pwr.h
-index c936a70..b6f22e0 100644
---- a/arch/arm/plat-omap/include/mach/bridge/pwr.h
+  *  ======== MEM_Alloc ========
+diff --git a/arch/arm/plat-omap/include/dspbridge/mgr.h b/arch/arm/plat-omap/include/dspbridge/mgr.h
+index fc57a6c..1fd6fef 100644
+--- a/arch/arm/plat-omap/include/dspbridge/mgr.h
++++ b/arch/arm/plat-omap/include/dspbridge/mgr.h
+@@ -47,7 +47,7 @@
+ #ifndef MGR_
+ #define MGR_
+
+-#include <mgrpriv.h>
++#include <dspbridge/mgrpriv.h>
+
+ #define MAX_EVENTS 32
+
+diff --git a/arch/arm/plat-omap/include/dspbridge/msg.h b/arch/arm/plat-omap/include/dspbridge/msg.h
+index 91b325e..44375d6 100644
+--- a/arch/arm/plat-omap/include/dspbridge/msg.h
++++ b/arch/arm/plat-omap/include/dspbridge/msg.h
+@@ -39,8 +39,8 @@
+ #ifndef MSG_
+ #define MSG_
+
+-#include <devdefs.h>
+-#include <msgdefs.h>
++#include <dspbridge/devdefs.h>
++#include <dspbridge/msgdefs.h>
+
+ /*
+  *  ======== MSG_Create ========
+diff --git a/arch/arm/plat-omap/include/dspbridge/nldr.h b/arch/arm/plat-omap/include/dspbridge/nldr.h
+index 69e4bfa..b091337 100644
+--- a/arch/arm/plat-omap/include/dspbridge/nldr.h
++++ b/arch/arm/plat-omap/include/dspbridge/nldr.h
+@@ -41,11 +41,11 @@
+  *! 17-Apr-2002 jeh     Created.
+  */
+
+-#include <dbdefs.h>
+-#include <dbdcddef.h>
+-#include <dev.h>
+-#include <rmm.h>
+-#include <nldrdefs.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/dbdcddef.h>
++#include <dspbridge/dev.h>
++#include <dspbridge/rmm.h>
++#include <dspbridge/nldrdefs.h>
+
+ #ifndef NLDR_
+ #define NLDR_
+diff --git a/arch/arm/plat-omap/include/dspbridge/nldrdefs.h b/arch/arm/plat-omap/include/dspbridge/nldrdefs.h
+index acabf5c..d7436e8 100644
+--- a/arch/arm/plat-omap/include/dspbridge/nldrdefs.h
++++ b/arch/arm/plat-omap/include/dspbridge/nldrdefs.h
+@@ -29,8 +29,8 @@
+ #ifndef NLDRDEFS_
+ #define NLDRDEFS_
+
+-#include <dbdcddef.h>
+-#include <devdefs.h>
++#include <dspbridge/dbdcddef.h>
++#include <dspbridge/devdefs.h>
+
+ #define NLDR_MAXPATHLENGTH       255
+ /* NLDR Objects: */
+diff --git a/arch/arm/plat-omap/include/dspbridge/node.h b/arch/arm/plat-omap/include/dspbridge/node.h
+index 6aaf2bf..c683e47 100644
+--- a/arch/arm/plat-omap/include/dspbridge/node.h
++++ b/arch/arm/plat-omap/include/dspbridge/node.h
+@@ -63,11 +63,11 @@
+ #ifndef NODE_
+ #define NODE_
+
+-#include <procpriv.h>
++#include <dspbridge/procpriv.h>
+
+-#include <nodedefs.h>
+-#include <dispdefs.h>
+-#include <nldrdefs.h>
++#include <dspbridge/nodedefs.h>
++#include <dspbridge/dispdefs.h>
++#include <dspbridge/nldrdefs.h>
+
+ /*
+  *  ======== NODE_Allocate ========
+diff --git a/arch/arm/plat-omap/include/dspbridge/nodepriv.h b/arch/arm/plat-omap/include/dspbridge/nodepriv.h
+index 0e8d909..cb93389 100644
+--- a/arch/arm/plat-omap/include/dspbridge/nodepriv.h
++++ b/arch/arm/plat-omap/include/dspbridge/nodepriv.h
+@@ -38,9 +38,9 @@
+ #ifndef NODEPRIV_
+ #define NODEPRIV_
+
+-#include <strmdefs.h>
+-#include <nodedefs.h>
+-#include <nldrdefs.h>
++#include <dspbridge/strmdefs.h>
++#include <dspbridge/nodedefs.h>
++#include <dspbridge/nldrdefs.h>
+
+ /* DSP address of node environment structure */
+        typedef u32 NODE_ENV;
+diff --git a/arch/arm/plat-omap/include/dspbridge/proc.h b/arch/arm/plat-omap/include/dspbridge/proc.h
+index e5a7b40..ba256eb 100644
+--- a/arch/arm/plat-omap/include/dspbridge/proc.h
++++ b/arch/arm/plat-omap/include/dspbridge/proc.h
+@@ -62,8 +62,8 @@
+ #ifndef PROC_
+ #define PROC_
+
+-#include <cfgdefs.h>
+-#include <devdefs.h>
++#include <dspbridge/cfgdefs.h>
++#include <dspbridge/devdefs.h>
+
+ /*
+  *  ======== PROC_Attach ========
+diff --git a/arch/arm/plat-omap/include/dspbridge/pwr.h b/arch/arm/plat-omap/include/dspbridge/pwr.h
+index b6f22e0..a1567af 100644
+--- a/arch/arm/plat-omap/include/dspbridge/pwr.h
 +++ b/arch/arm/plat-omap/include/dspbridge/pwr.h
-@@ -1,5 +1,5 @@
+@@ -36,9 +36,9 @@
+ #ifndef PWR_
+ #define PWR_
+
+-#include <dbdefs.h>
+-#include <errbase.h>
+-#include <pwr_sh.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
++#include <dspbridge/pwr_sh.h>
+
  /*
-- * arch/arm/plat-omap/include/mach/bridge/pwr.h
-+ * arch/arm/plat-omap/include/dspbridge/pwr.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/pwr_sh.h b/arch/arm/plat-omap/include/dspbridge/pwr_sh.h
-similarity index 95%
-rename from arch/arm/plat-omap/include/mach/bridge/pwr_sh.h
-rename to arch/arm/plat-omap/include/dspbridge/pwr_sh.h
-index 244a8de..e7993c8 100644
---- a/arch/arm/plat-omap/include/mach/bridge/pwr_sh.h
+  *  ======== PWR_SleepDSP ========
+diff --git a/arch/arm/plat-omap/include/dspbridge/pwr_sh.h b/arch/arm/plat-omap/include/dspbridge/pwr_sh.h
+index e7993c8..4f19ec0 100644
+--- a/arch/arm/plat-omap/include/dspbridge/pwr_sh.h
 +++ b/arch/arm/plat-omap/include/dspbridge/pwr_sh.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/pwr_sh.h
-+ * arch/arm/plat-omap/include/dspbridge/pwr_sh.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/reg.h b/arch/arm/plat-omap/include/dspbridge/reg.h
-similarity index 99%
-rename from arch/arm/plat-omap/include/mach/bridge/reg.h
-rename to arch/arm/plat-omap/include/dspbridge/reg.h
-index 0657c8f..6e721f4 100644
---- a/arch/arm/plat-omap/include/mach/bridge/reg.h
-+++ b/arch/arm/plat-omap/include/dspbridge/reg.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/reg.h
-+ * arch/arm/plat-omap/include/dspbridge/reg.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/resourcecleanup.h b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-similarity index 97%
-rename from arch/arm/plat-omap/include/mach/bridge/resourcecleanup.h
-rename to arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-index a8378a9..aa7fef0 100644
---- a/arch/arm/plat-omap/include/mach/bridge/resourcecleanup.h
+@@ -27,7 +27,7 @@
+ #ifndef PWR_SH_
+ #define PWR_SH_
+
+-#include <mbx_sh.h>
++#include <dspbridge/mbx_sh.h>
+
+ /* valid sleep command codes that can be sent by GPP via mailbox: */
+ #define PWR_DEEPSLEEP           MBX_PM_DSPIDLE
+diff --git a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
+index aa7fef0..88de2b8 100644
+--- a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
 +++ b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/resourcecleanup.h
-+ * arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/rmm.h b/arch/arm/plat-omap/include/dspbridge/rmm.h
-similarity index 99%
-rename from arch/arm/plat-omap/include/mach/bridge/rmm.h
-rename to arch/arm/plat-omap/include/dspbridge/rmm.h
-index f637e1c..84e7313 100644
---- a/arch/arm/plat-omap/include/mach/bridge/rmm.h
-+++ b/arch/arm/plat-omap/include/dspbridge/rmm.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/rmm.h
-+ * arch/arm/plat-omap/include/dspbridge/rmm.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/rms_sh.h b/arch/arm/plat-omap/include/dspbridge/rms_sh.h
-similarity index 98%
-rename from arch/arm/plat-omap/include/mach/bridge/rms_sh.h
-rename to arch/arm/plat-omap/include/dspbridge/rms_sh.h
-index 2671fac..d567a25 100644
---- a/arch/arm/plat-omap/include/mach/bridge/rms_sh.h
+@@ -16,8 +16,8 @@
+
+ #ifndef RES_CLEANUP_DISABLE
+
+-#include <nodepriv.h>
+-#include <drv.h>
++#include <dspbridge/nodepriv.h>
++#include <dspbridge/drv.h>
+
+
+ extern DSP_STATUS DRV_GetProcCtxtList(struct PROCESS_CONTEXT **pPctxt,
+diff --git a/arch/arm/plat-omap/include/dspbridge/rms_sh.h b/arch/arm/plat-omap/include/dspbridge/rms_sh.h
+index d567a25..e2c5966 100644
+--- a/arch/arm/plat-omap/include/dspbridge/rms_sh.h
 +++ b/arch/arm/plat-omap/include/dspbridge/rms_sh.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/rms_sh.h
-+ * arch/arm/plat-omap/include/dspbridge/rms_sh.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/rmstypes.h b/arch/arm/plat-omap/include/dspbridge/rmstypes.h
-similarity index 95%
-rename from arch/arm/plat-omap/include/mach/bridge/rmstypes.h
-rename to arch/arm/plat-omap/include/dspbridge/rmstypes.h
-index 6f5888c..85769d4 100644
---- a/arch/arm/plat-omap/include/mach/bridge/rmstypes.h
+@@ -48,7 +48,7 @@
+ #ifndef RMS_SH_
+ #define RMS_SH_
+
+-#include <rmstypes.h>
++#include <dspbridge/rmstypes.h>
+
+ /* Node Types: */
+ #define RMS_TASK                1      /* Task node */
+diff --git a/arch/arm/plat-omap/include/dspbridge/rmstypes.h b/arch/arm/plat-omap/include/dspbridge/rmstypes.h
+index 85769d4..61c5063 100644
+--- a/arch/arm/plat-omap/include/dspbridge/rmstypes.h
 +++ b/arch/arm/plat-omap/include/dspbridge/rmstypes.h
-@@ -1,5 +1,5 @@
+@@ -33,7 +33,7 @@
  /*
-- * arch/arm/plat-omap/include/mach/bridge/rmstypes.h
-+ * arch/arm/plat-omap/include/dspbridge/rmstypes.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/services.h b/arch/arm/plat-omap/include/dspbridge/services.h
-similarity index 96%
-rename from arch/arm/plat-omap/include/mach/bridge/services.h
-rename to arch/arm/plat-omap/include/dspbridge/services.h
-index e192230..171f3cc 100644
---- a/arch/arm/plat-omap/include/mach/bridge/services.h
+  *  DSP-side definitions.
+  */
+-#include <std.h>
++#include <dspbridge/std.h>
+ typedef u32 RMS_WORD;
+ typedef char RMS_CHAR;
+
+diff --git a/arch/arm/plat-omap/include/dspbridge/services.h b/arch/arm/plat-omap/include/dspbridge/services.h
+index 171f3cc..f51afee 100644
+--- a/arch/arm/plat-omap/include/dspbridge/services.h
 +++ b/arch/arm/plat-omap/include/dspbridge/services.h
-@@ -1,5 +1,5 @@
+@@ -32,7 +32,7 @@
+ #ifndef SERVICES_
+ #define SERVICES_
+
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
  /*
-- * arch/arm/plat-omap/include/mach/bridge/services.h
-+ * arch/arm/plat-omap/include/dspbridge/services.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/std.h b/arch/arm/plat-omap/include/dspbridge/std.h
-similarity index 98%
-rename from arch/arm/plat-omap/include/mach/bridge/std.h
-rename to arch/arm/plat-omap/include/dspbridge/std.h
-index f557bf9..260c944 100644
---- a/arch/arm/plat-omap/include/mach/bridge/std.h
+  *  ======== SERVICES_Exit ========
+  *  Purpose:
+diff --git a/arch/arm/plat-omap/include/dspbridge/std.h b/arch/arm/plat-omap/include/dspbridge/std.h
+index 260c944..f11efcc 100644
+--- a/arch/arm/plat-omap/include/dspbridge/std.h
 +++ b/arch/arm/plat-omap/include/dspbridge/std.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/std.h
-+ * arch/arm/plat-omap/include/dspbridge/std.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/strm.h b/arch/arm/plat-omap/include/dspbridge/strm.h
-similarity index 99%
-rename from arch/arm/plat-omap/include/mach/bridge/strm.h
-rename to arch/arm/plat-omap/include/dspbridge/strm.h
-index 7cac09d..a27b659 100644
---- a/arch/arm/plat-omap/include/mach/bridge/strm.h
+@@ -38,7 +38,7 @@
+  *! 11-Jul-1997 dlr:   _5t_, and STD_SPOXTASK keyword for Tasking
+  *! 12-Jun-1997 mf:    _TMS320C60 -> _TMS320C6200
+  *! 13-Feb-1997 mf:    _62_, with 32-bit LgInt
+- *! 26-Nov-1996 kw:    merged bios-c00's and wsx-a27's <std.h> changes
++ *! 26-Nov-1996 kw:    merged bios-c00's and wsx-a27's <dspbridge/std.h> changes
+  *!                    *and* revision history
+  *! 12-Sep-1996 kw:    added C54x #ifdef's
+  *! 21-Aug-1996 mf:    removed #define main smain for _21_
+diff --git a/arch/arm/plat-omap/include/dspbridge/strm.h b/arch/arm/plat-omap/include/dspbridge/strm.h
+index a27b659..0f865f8 100644
+--- a/arch/arm/plat-omap/include/dspbridge/strm.h
 +++ b/arch/arm/plat-omap/include/dspbridge/strm.h
-@@ -1,5 +1,5 @@
+@@ -56,9 +56,9 @@
+ #ifndef STRM_
+ #define STRM_
+
+-#include <dev.h>
++#include <dspbridge/dev.h>
+
+-#include <strmdefs.h>
++#include <dspbridge/strmdefs.h>
+
  /*
-- * arch/arm/plat-omap/include/mach/bridge/strm.h
-+ * arch/arm/plat-omap/include/dspbridge/strm.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/strmdefs.h b/arch/arm/plat-omap/include/dspbridge/strmdefs.h
-similarity index 96%
-rename from arch/arm/plat-omap/include/mach/bridge/strmdefs.h
-rename to arch/arm/plat-omap/include/dspbridge/strmdefs.h
-index 9142e5d..cd31cc2 100644
---- a/arch/arm/plat-omap/include/mach/bridge/strmdefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/strmdefs.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/strmdefs.h
-+ * arch/arm/plat-omap/include/dspbridge/strmdefs.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/sync.h b/arch/arm/plat-omap/include/dspbridge/sync.h
-similarity index 99%
-rename from arch/arm/plat-omap/include/mach/bridge/sync.h
-rename to arch/arm/plat-omap/include/dspbridge/sync.h
-index dedd42a..ea8ea3f 100644
---- a/arch/arm/plat-omap/include/mach/bridge/sync.h
-+++ b/arch/arm/plat-omap/include/dspbridge/sync.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/sync.h
-+ * arch/arm/plat-omap/include/dspbridge/sync.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/util.h b/arch/arm/plat-omap/include/dspbridge/util.h
-similarity index 98%
-rename from arch/arm/plat-omap/include/mach/bridge/util.h
-rename to arch/arm/plat-omap/include/dspbridge/util.h
-index 3152507..f4d6c69 100644
---- a/arch/arm/plat-omap/include/mach/bridge/util.h
+  *  ======== STRM_AllocateBuffer ========
+diff --git a/arch/arm/plat-omap/include/dspbridge/util.h b/arch/arm/plat-omap/include/dspbridge/util.h
+index f4d6c69..1c84398 100644
+--- a/arch/arm/plat-omap/include/dspbridge/util.h
 +++ b/arch/arm/plat-omap/include/dspbridge/util.h
-@@ -1,5 +1,5 @@
+@@ -53,7 +53,7 @@
+ #include <linux/delay.h>
+ #include <linux/sched.h>
+
+-#include <utildefs.h>
++#include <dspbridge/utildefs.h>
+
  /*
-- * arch/arm/plat-omap/include/mach/bridge/util.h
-+ * arch/arm/plat-omap/include/dspbridge/util.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/utildefs.h b/arch/arm/plat-omap/include/dspbridge/utildefs.h
-similarity index 96%
-rename from arch/arm/plat-omap/include/mach/bridge/utildefs.h
-rename to arch/arm/plat-omap/include/dspbridge/utildefs.h
-index 7b7b6bf..f44cc19 100644
---- a/arch/arm/plat-omap/include/mach/bridge/utildefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/utildefs.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/utildefs.h
-+ * arch/arm/plat-omap/include/dspbridge/utildefs.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/uuidutil.h b/arch/arm/plat-omap/include/dspbridge/uuidutil.h
-similarity index 97%
-rename from arch/arm/plat-omap/include/mach/bridge/uuidutil.h
-rename to arch/arm/plat-omap/include/dspbridge/uuidutil.h
-index 1e8155e..6563a9c 100644
---- a/arch/arm/plat-omap/include/mach/bridge/uuidutil.h
-+++ b/arch/arm/plat-omap/include/dspbridge/uuidutil.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/uuidutil.h
-+ * arch/arm/plat-omap/include/dspbridge/uuidutil.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/wcd.h b/arch/arm/plat-omap/include/dspbridge/wcd.h
-similarity index 97%
-rename from arch/arm/plat-omap/include/mach/bridge/wcd.h
-rename to arch/arm/plat-omap/include/dspbridge/wcd.h
-index 3b2ecd5..a1cda92 100644
---- a/arch/arm/plat-omap/include/mach/bridge/wcd.h
-+++ b/arch/arm/plat-omap/include/dspbridge/wcd.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/wcd.h
-+ * arch/arm/plat-omap/include/dspbridge/wcd.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/wcdioctl.h b/arch/arm/plat-omap/include/dspbridge/wcdioctl.h
-similarity index 99%
-rename from arch/arm/plat-omap/include/mach/bridge/wcdioctl.h
-rename to arch/arm/plat-omap/include/dspbridge/wcdioctl.h
-index 4f4b875..5ffdcbc 100644
---- a/arch/arm/plat-omap/include/mach/bridge/wcdioctl.h
+  *  ======== UTIL_CDTestDll ========
+diff --git a/arch/arm/plat-omap/include/dspbridge/wcdioctl.h b/arch/arm/plat-omap/include/dspbridge/wcdioctl.h
+index 5ffdcbc..8702c11 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wcdioctl.h
 +++ b/arch/arm/plat-omap/include/dspbridge/wcdioctl.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/wcdioctl.h
-+ * arch/arm/plat-omap/include/dspbridge/wcdioctl.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/wmd.h b/arch/arm/plat-omap/include/dspbridge/wmd.h
-similarity index 99%
-rename from arch/arm/plat-omap/include/mach/bridge/wmd.h
-rename to arch/arm/plat-omap/include/dspbridge/wmd.h
-index 2b91d3a..affab8c 100644
---- a/arch/arm/plat-omap/include/mach/bridge/wmd.h
+@@ -66,10 +66,10 @@
+ #ifndef WCDIOCTL_
+ #define WCDIOCTL_
+
+-#include <mem.h>
+-#include <cmm.h>
+-#include <strmdefs.h>
+-#include <dbdcd.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/cmm.h>
++#include <dspbridge/strmdefs.h>
++#include <dspbridge/dbdcd.h>
+
+ union Trapped_Args {
+
+diff --git a/arch/arm/plat-omap/include/dspbridge/wmd.h b/arch/arm/plat-omap/include/dspbridge/wmd.h
+index affab8c..e632f27 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wmd.h
 +++ b/arch/arm/plat-omap/include/dspbridge/wmd.h
-@@ -1,5 +1,5 @@
+@@ -62,13 +62,13 @@
+ #ifndef WMD_
+ #define WMD_
+
+-#include <brddefs.h>
+-#include <cfgdefs.h>
+-#include <chnlpriv.h>
+-#include <dehdefs.h>
+-#include <devdefs.h>
+-#include <iodefs.h>
+-#include <msgdefs.h>
++#include <dspbridge/brddefs.h>
++#include <dspbridge/cfgdefs.h>
++#include <dspbridge/chnlpriv.h>
++#include <dspbridge/dehdefs.h>
++#include <dspbridge/devdefs.h>
++#include <dspbridge/iodefs.h>
++#include <dspbridge/msgdefs.h>
+
  /*
-- * arch/arm/plat-omap/include/mach/bridge/wmd.h
-+ * arch/arm/plat-omap/include/dspbridge/wmd.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/wmdchnl.h b/arch/arm/plat-omap/include/dspbridge/wmdchnl.h
-similarity index 98%
-rename from arch/arm/plat-omap/include/mach/bridge/wmdchnl.h
-rename to arch/arm/plat-omap/include/dspbridge/wmdchnl.h
-index 52725ce..8c85dc3 100644
---- a/arch/arm/plat-omap/include/mach/bridge/wmdchnl.h
-+++ b/arch/arm/plat-omap/include/dspbridge/wmdchnl.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/wmdchnl.h
-+ * arch/arm/plat-omap/include/dspbridge/wmdchnl.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/wmddeh.h b/arch/arm/plat-omap/include/dspbridge/wmddeh.h
-similarity index 97%
-rename from arch/arm/plat-omap/include/mach/bridge/wmddeh.h
-rename to arch/arm/plat-omap/include/dspbridge/wmddeh.h
-index 5a1680a..5c0fcb8 100644
---- a/arch/arm/plat-omap/include/mach/bridge/wmddeh.h
+  *  Any IOCTLS at or above this value are reserved for standard WMD
+diff --git a/arch/arm/plat-omap/include/dspbridge/wmddeh.h b/arch/arm/plat-omap/include/dspbridge/wmddeh.h
+index 5c0fcb8..c9959d1 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wmddeh.h
 +++ b/arch/arm/plat-omap/include/dspbridge/wmddeh.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/wmddeh.h
-+ * arch/arm/plat-omap/include/dspbridge/wmddeh.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/wmdio.h b/arch/arm/plat-omap/include/dspbridge/wmdio.h
-similarity index 96%
-rename from arch/arm/plat-omap/include/mach/bridge/wmdio.h
-rename to arch/arm/plat-omap/include/dspbridge/wmdio.h
-index 0a22f00..bd71c3b 100644
---- a/arch/arm/plat-omap/include/mach/bridge/wmdio.h
+@@ -41,9 +41,9 @@
+ #ifndef WMDDEH_
+ #define WMDDEH_
+
+-#include <devdefs.h>
++#include <dspbridge/devdefs.h>
+
+-#include <dehdefs.h>
++#include <dspbridge/dehdefs.h>
+
+        extern DSP_STATUS WMD_DEH_Create(OUT struct DEH_MGR **phDehMgr,
+                                         struct DEV_OBJECT *hDevObject);
+diff --git a/arch/arm/plat-omap/include/dspbridge/wmdio.h b/arch/arm/plat-omap/include/dspbridge/wmdio.h
+index bd71c3b..3c0747e 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wmdio.h
 +++ b/arch/arm/plat-omap/include/dspbridge/wmdio.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/wmdio.h
-+ * arch/arm/plat-omap/include/dspbridge/wmdio.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/wmdioctl.h b/arch/arm/plat-omap/include/dspbridge/wmdioctl.h
-similarity index 98%
-rename from arch/arm/plat-omap/include/mach/bridge/wmdioctl.h
-rename to arch/arm/plat-omap/include/dspbridge/wmdioctl.h
-index 8834658..eac4737 100644
---- a/arch/arm/plat-omap/include/mach/bridge/wmdioctl.h
-+++ b/arch/arm/plat-omap/include/dspbridge/wmdioctl.h
-@@ -1,5 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/bridge/wmdioctl.h
-+ * arch/arm/plat-omap/include/dspbridge/wmdioctl.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/arch/arm/plat-omap/include/mach/bridge/wmdmsg.h b/arch/arm/plat-omap/include/dspbridge/wmdmsg.h
-similarity index 97%
-rename from arch/arm/plat-omap/include/mach/bridge/wmdmsg.h
-rename to arch/arm/plat-omap/include/dspbridge/wmdmsg.h
-index 8ca23fd..14b40d6 100644
---- a/arch/arm/plat-omap/include/mach/bridge/wmdmsg.h
+@@ -35,8 +35,8 @@
+ #ifndef WMDIO_
+ #define WMDIO_
+
+-#include <devdefs.h>
+-#include <iodefs.h>
++#include <dspbridge/devdefs.h>
++#include <dspbridge/iodefs.h>
+
+        extern DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
+                                        struct DEV_OBJECT *hDevObject,
+diff --git a/arch/arm/plat-omap/include/dspbridge/wmdmsg.h b/arch/arm/plat-omap/include/dspbridge/wmdmsg.h
+index 14b40d6..59a2393 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wmdmsg.h
 +++ b/arch/arm/plat-omap/include/dspbridge/wmdmsg.h
-@@ -1,5 +1,5 @@
+@@ -37,7 +37,7 @@
+ #ifndef WMDMSG_
+ #define WMDMSG_
+
+-#include <msgdefs.h>
++#include <dspbridge/msgdefs.h>
+
+        extern DSP_STATUS WMD_MSG_Create(OUT struct MSG_MGR **phMsgMgr,
+                                         struct DEV_OBJECT *hDevObject,
+diff --git a/drivers/dsp/bridge/gen/_gt_para.c b/drivers/dsp/bridge/gen/_gt_para.c
+index b64805d..5362024 100644
+--- a/drivers/dsp/bridge/gen/_gt_para.c
++++ b/drivers/dsp/bridge/gen/_gt_para.c
+@@ -35,13 +35,13 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
++#include <dspbridge/std.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <gt.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- Function Prototypes */
+ static void error(char *msg, ...);
+diff --git a/drivers/dsp/bridge/gen/gb.c b/drivers/dsp/bridge/gen/gb.c
+index 15cec69..eb63183 100644
+--- a/drivers/dsp/bridge/gen/gb.c
++++ b/drivers/dsp/bridge/gen/gb.c
+@@ -30,11 +30,11 @@
+  */
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
++#include <dspbridge/std.h>
+ #include <linux/types.h>
+ /*  ----------------------------------- This */
+-#include <gs.h>
+-#include <gb.h>
++#include <dspbridge/gs.h>
++#include <dspbridge/gb.h>
+
+ typedef GB_BitNum GB_WordNum;
+
+diff --git a/drivers/dsp/bridge/gen/gh.c b/drivers/dsp/bridge/gen/gh.c
+index c267b16..6c30ced 100644
+--- a/drivers/dsp/bridge/gen/gh.c
++++ b/drivers/dsp/bridge/gen/gh.c
+@@ -19,13 +19,13 @@
+  *  ======== gh.c ========
+  */
+
+-#include <std.h>
++#include <dspbridge/std.h>
+
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+-#include <gs.h>
++#include <dspbridge/gs.h>
+
+-#include <gh.h>
++#include <dspbridge/gh.h>
+
+ struct Elem {
+        struct Elem *next;
+diff --git a/drivers/dsp/bridge/gen/gs.c b/drivers/dsp/bridge/gen/gs.c
+index a8a796a..a95b711 100644
+--- a/drivers/dsp/bridge/gen/gs.c
++++ b/drivers/dsp/bridge/gen/gs.c
+@@ -30,14 +30,14 @@
+  */
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
+ #include <linux/types.h>
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <mem.h>
++#include <dspbridge/mem.h>
+
+ /*  ----------------------------------- This */
+-#include <gs.h>
++#include <dspbridge/gs.h>
+
+ /*  ----------------------------------- Globals */
+ static u32 cumsize;
+diff --git a/drivers/dsp/bridge/gen/gt.c b/drivers/dsp/bridge/gen/gt.c
+index a2d2030..fbe30a7 100644
+--- a/drivers/dsp/bridge/gen/gt.c
++++ b/drivers/dsp/bridge/gen/gt.c
+@@ -29,10 +29,10 @@
+  */
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
++#include <dspbridge/std.h>
+
+ /*  ----------------------------------- This */
+-#include <gt.h>
++#include <dspbridge/gt.h>
+
+ #define GT_WILD        '*'
+
+diff --git a/drivers/dsp/bridge/gen/uuidutil.c b/drivers/dsp/bridge/gen/uuidutil.c
+index ac3a017..9abc69e 100644
+--- a/drivers/dsp/bridge/gen/uuidutil.c
++++ b/drivers/dsp/bridge/gen/uuidutil.c
+@@ -33,17 +33,17 @@
+  */
+
+ /*  ----------------------------------- Host OS  */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
++#include <dspbridge/dbc.h>
+
+ /*  ----------------------------------- This */
+-#include <uuidutil.h>
++#include <dspbridge/uuidutil.h>
+
  /*
-- * arch/arm/plat-omap/include/mach/bridge/wmdmsg.h
-+ * arch/arm/plat-omap/include/dspbridge/wmdmsg.h
-  *
-  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-  *
-diff --git a/drivers/dsp/bridge/Kbuild b/drivers/dsp/bridge/Kbuild
-index ab85d21..cc1ae72 100644
---- a/drivers/dsp/bridge/Kbuild
-+++ b/drivers/dsp/bridge/Kbuild
-@@ -37,5 +37,5 @@ ccflags-y += -Idrivers/dsp/bridge/services
- ccflags-y += -Idrivers/dsp/bridge/wmd
- ccflags-y += -Idrivers/dsp/bridge/pmgr
- ccflags-y += -Idrivers/dsp/bridge/rmgr
--ccflags-y += -Iarch/arm/plat-omap/include/mach/bridge
-+ccflags-y += -Iarch/arm/plat-omap/include/dspbridge
- ccflags-y += -Idrivers/dsp/bridge/hw
+  *  ======== UUID_UuidToString ========
+diff --git a/drivers/dsp/bridge/pmgr/chnl.c b/drivers/dsp/bridge/pmgr/chnl.c
+index ec15fb4..cf47d99 100644
+--- a/drivers/dsp/bridge/pmgr/chnl.c
++++ b/drivers/dsp/bridge/pmgr/chnl.c
+@@ -63,35 +63,35 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <cfg.h>
+-#include <csl.h>
+-#include <dpc.h>
+-#include <list.h>
+-#include <mem.h>
+-#include <sync.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/csl.h>
++#include <dspbridge/dpc.h>
++#include <dspbridge/list.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/sync.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <proc.h>
+-#include <dev.h>
++#include <dspbridge/proc.h>
++#include <dspbridge/dev.h>
+
+ /*  ----------------------------------- Others */
+-#include <chnlpriv.h>
++#include <dspbridge/chnlpriv.h>
+ #include <chnlobj.h>
+
+ /*  ----------------------------------- This */
+-#include <chnl.h>
++#include <dspbridge/chnl.h>
+
+ /*  ----------------------------------- Globals */
+ static u32 cRefs;
+diff --git a/drivers/dsp/bridge/pmgr/chnlobj.h b/drivers/dsp/bridge/pmgr/chnlobj.h
+index 267d5d9..8cf925f 100644
+--- a/drivers/dsp/bridge/pmgr/chnlobj.h
++++ b/drivers/dsp/bridge/pmgr/chnlobj.h
+@@ -35,8 +35,8 @@
+ #ifndef CHNLOBJ_
+ #define CHNLOBJ_
+
+-#include <chnldefs.h>
+-#include <wmd.h>
++#include <dspbridge/chnldefs.h>
++#include <dspbridge/wmd.h>
+
+ /* Object validateion macros: */
+ #define CHNL_IsValidMgr(h) \
+diff --git a/drivers/dsp/bridge/pmgr/cmm.c b/drivers/dsp/bridge/pmgr/cmm.c
+index 347922c..c664b01 100644
+--- a/drivers/dsp/bridge/pmgr/cmm.c
++++ b/drivers/dsp/bridge/pmgr/cmm.c
+@@ -94,27 +94,27 @@
+  */
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <errbase.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/errbase.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <cfg.h>
+-#include <list.h>
+-#include <mem.h>
+-#include <sync.h>
+-#include <util.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/list.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/sync.h>
++#include <dspbridge/util.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <dev.h>
+-#include <proc.h>
++#include <dspbridge/dev.h>
++#include <dspbridge/proc.h>
+
+ /*  ----------------------------------- This */
+-#include <cmm.h>
++#include <dspbridge/cmm.h>
+
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ /* Object signatures */
+diff --git a/drivers/dsp/bridge/pmgr/cod.c b/drivers/dsp/bridge/pmgr/cod.c
+index 396c61e..5e8b67f 100644
+--- a/drivers/dsp/bridge/pmgr/cod.c
++++ b/drivers/dsp/bridge/pmgr/cod.c
+@@ -56,29 +56,29 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <csl.h>
+-#include <kfile.h>
+-#include <ldr.h>
+-#include <mem.h>
++#include <dspbridge/csl.h>
++#include <dspbridge/kfile.h>
++#include <dspbridge/ldr.h>
++#include <dspbridge/mem.h>
+
+ /*  ----------------------------------- Platform Manager */
+ /* Include appropriate loader header file */
+-#include <dbll.h>
++#include <dspbridge/dbll.h>
+
+ /*  ----------------------------------- This */
+-#include <cod.h>
++#include <dspbridge/cod.h>
+
+ /* magic number for handle validation */
+ #define MAGIC   0xc001beef
+diff --git a/drivers/dsp/bridge/pmgr/dbll.c b/drivers/dsp/bridge/pmgr/dbll.c
+index 58f4082..c98f86d 100644
+--- a/drivers/dsp/bridge/pmgr/dbll.c
++++ b/drivers/dsp/bridge/pmgr/dbll.c
+@@ -35,29 +35,29 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <gt.h>
+-#include <dbc.h>
+-#include <gh.h>
++#include <dspbridge/gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gh.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <csl.h>
+-#include <mem.h>
++#include <dspbridge/csl.h>
++#include <dspbridge/mem.h>
+
+ /* Dynamic loader library interface */
+-#include <dynamic_loader.h>
+-#include <getsection.h>
++#include <dspbridge/dynamic_loader.h>
++#include <dspbridge/getsection.h>
+
+ /*  ----------------------------------- This */
+-#include <dbll.h>
+-#include <rmm.h>
++#include <dspbridge/dbll.h>
++#include <dspbridge/rmm.h>
+
+ #define DBLL_TARGSIGNATURE      0x544c4c44     /* "TLLD" */
+ #define DBLL_LIBSIGNATURE       0x4c4c4c44     /* "LLLD" */
+diff --git a/drivers/dsp/bridge/pmgr/dev.c b/drivers/dsp/bridge/pmgr/dev.c
+index 07f97ce..7809b97 100644
+--- a/drivers/dsp/bridge/pmgr/dev.c
++++ b/drivers/dsp/bridge/pmgr/dev.c
+@@ -84,7 +84,7 @@
+  *! 06-Oct-2000 rr: DEV_Destroy2 and DEV_Create2 added.
+  *! 02-Oct-2000 rr: DEV_GetNodeManager added.
+  *! 11-Aug-2000 ag: Added DEV_GetCmmMgr(), CMM_Init() & CMM_Exit().
+- *!                 Removed <std.h> & <stdwin.h>, added <dbtype.h>
++ *!                 Removed <dspbridge/std.h> & <stdwin.h>, added <dspbridge/dbtype.h>
+  *! 10-Aug-2000 rr: DEV_InsertProcObject/RemoveProcObject added.
+  *!                 DEV_Cleanup calls PROC_Detach if it is a matching process.
+  *! 27-Jul-2000 rr: DEV is in new directoy DEV and produces devlib.lib
+@@ -113,46 +113,46 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <dbg.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/dbg.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <cfg.h>
+-#include <ldr.h>
+-#include <list.h>
+-#include <mem.h>
+-#include <util.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/ldr.h>
++#include <dspbridge/list.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/util.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <cod.h>
+-#include <drv.h>
+-#include <proc.h>
+-#include <dmm.h>
++#include <dspbridge/cod.h>
++#include <dspbridge/drv.h>
++#include <dspbridge/proc.h>
++#include <dspbridge/dmm.h>
+
+ /*  ----------------------------------- Resource Manager */
+-#include <mgr.h>
+-#include <node.h>
++#include <dspbridge/mgr.h>
++#include <dspbridge/node.h>
+
+ /*  ----------------------------------- Others */
+-#include <dbreg.h>
+-#include <wcd.h>               /* WCD version info. */
++#include <dspbridge/dbreg.h>
++#include <dspbridge/wcd.h>             /* WCD version info. */
+
+-#include <chnl.h>
+-#include <io.h>
+-#include <msg.h>
+-#include <cmm.h>
++#include <dspbridge/chnl.h>
++#include <dspbridge/io.h>
++#include <dspbridge/msg.h>
++#include <dspbridge/cmm.h>
+
+ /*  ----------------------------------- This */
+-#include <dev.h>
++#include <dspbridge/dev.h>
+
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+
+diff --git a/drivers/dsp/bridge/pmgr/dmm.c b/drivers/dsp/bridge/pmgr/dmm.c
+index 6cc02d3..007b9c5 100644
+--- a/drivers/dsp/bridge/pmgr/dmm.c
++++ b/drivers/dsp/bridge/pmgr/dmm.c
+@@ -55,28 +55,28 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <errbase.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/errbase.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <list.h>
+-#include <mem.h>
+-#include <sync.h>
++#include <dspbridge/list.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/sync.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <dev.h>
+-#include <proc.h>
++#include <dspbridge/dev.h>
++#include <dspbridge/proc.h>
+
+ /*  ----------------------------------- This */
+-#include <dmm.h>
++#include <dspbridge/dmm.h>
+
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ /* Object signatures */
+diff --git a/drivers/dsp/bridge/pmgr/io.c b/drivers/dsp/bridge/pmgr/io.c
+index 7a74515..c686a49 100644
+--- a/drivers/dsp/bridge/pmgr/io.c
++++ b/drivers/dsp/bridge/pmgr/io.c
+@@ -38,28 +38,28 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <cfg.h>
+-#include <mem.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/mem.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <dev.h>
++#include <dspbridge/dev.h>
+
+ /*  ----------------------------------- This */
+ #include <ioobj.h>
+-#include <iodefs.h>
+-#include <io.h>
++#include <dspbridge/iodefs.h>
++#include <dspbridge/io.h>
+
+ /*  ----------------------------------- Globals */
+ static u32 cRefs;
+diff --git a/drivers/dsp/bridge/pmgr/ioobj.h b/drivers/dsp/bridge/pmgr/ioobj.h
+index 9dc4ac1..2a423d7 100644
+--- a/drivers/dsp/bridge/pmgr/ioobj.h
++++ b/drivers/dsp/bridge/pmgr/ioobj.h
+@@ -33,8 +33,8 @@
+ #ifndef IOOBJ_
+ #define IOOBJ_
+
+-#include <devdefs.h>
+-#include <wmd.h>
++#include <dspbridge/devdefs.h>
++#include <dspbridge/wmd.h>
+
+ /*
+  *  This struct is the first field in a IO_MGR struct, as implemented in
+diff --git a/drivers/dsp/bridge/pmgr/msg.c b/drivers/dsp/bridge/pmgr/msg.c
+index 56f28c1..b32d969 100644
+--- a/drivers/dsp/bridge/pmgr/msg.c
++++ b/drivers/dsp/bridge/pmgr/msg.c
+@@ -36,30 +36,30 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <list.h>
+-#include <mem.h>
++#include <dspbridge/list.h>
++#include <dspbridge/mem.h>
+
+ /*  ----------------------------------- Mini Driver */
+-#include <wmd.h>
++#include <dspbridge/wmd.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <dev.h>
++#include <dspbridge/dev.h>
+
+ /*  ----------------------------------- This */
+ #include <msgobj.h>
+-#include <msg.h>
++#include <dspbridge/msg.h>
+
+ /*  ----------------------------------- Globals */
+ #if GT_TRACE
+diff --git a/drivers/dsp/bridge/pmgr/msgobj.h b/drivers/dsp/bridge/pmgr/msgobj.h
+index 14da8da..72ad996 100644
+--- a/drivers/dsp/bridge/pmgr/msgobj.h
++++ b/drivers/dsp/bridge/pmgr/msgobj.h
+@@ -33,9 +33,9 @@
+ #ifndef MSGOBJ_
+ #define MSGOBJ_
+
+-#include <wmd.h>
++#include <dspbridge/wmd.h>
+
+-#include <msgdefs.h>
++#include <dspbridge/msgdefs.h>
+
+ /*
+  *  This struct is the first field in a MSG_MGR struct, as implemented in
+diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
+index 31a160b..5196282 100644
+--- a/drivers/dsp/bridge/pmgr/wcd.c
++++ b/drivers/dsp/bridge/pmgr/wcd.c
+@@ -92,50 +92,50 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <cfg.h>
+-#include <mem.h>
+-#include <ntfy.h>
+-#include <services.h>
+-#include <util.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/ntfy.h>
++#include <dspbridge/services.h>
++#include <dspbridge/util.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <chnl.h>
+-#include <dev.h>
+-#include <drv.h>
++#include <dspbridge/chnl.h>
++#include <dspbridge/dev.h>
++#include <dspbridge/drv.h>
+
+-#include <proc.h>
+-#include <strm.h>
++#include <dspbridge/proc.h>
++#include <dspbridge/strm.h>
+
+ /*  ----------------------------------- Resource Manager */
+-#include <disp.h>
+-#include <mgr.h>
+-#include <node.h>
+-#include <rmm.h>
++#include <dspbridge/disp.h>
++#include <dspbridge/mgr.h>
++#include <dspbridge/node.h>
++#include <dspbridge/rmm.h>
+
+
+ /*  ----------------------------------- Others */
+-#include <msg.h>
+-#include <cmm.h>
+-#include <io.h>
++#include <dspbridge/msg.h>
++#include <dspbridge/cmm.h>
++#include <dspbridge/io.h>
+
+ /*  ----------------------------------- This */
+-#include <_dcd.h>
+-#include <dbdcd.h>
++#include <dspbridge/_dcd.h>
++#include <dspbridge/dbdcd.h>
+
+ #ifndef RES_CLEANUP_DISABLE
+-#include <resourcecleanup.h>
++#include <dspbridge/resourcecleanup.h>
+ #endif
+
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+diff --git a/drivers/dsp/bridge/rmgr/dbdcd.c b/drivers/dsp/bridge/rmgr/dbdcd.c
+index 5e2dae3..fe147e3 100644
+--- a/drivers/dsp/bridge/rmgr/dbdcd.c
++++ b/drivers/dsp/bridge/rmgr/dbdcd.c
+@@ -62,29 +62,29 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <csl.h>
+-#include <mem.h>
+-#include <reg.h>
++#include <dspbridge/csl.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/reg.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <cod.h>
++#include <dspbridge/cod.h>
+
+ /*  ----------------------------------- Others */
+-#include <uuidutil.h>
++#include <dspbridge/uuidutil.h>
+
+ /*  ----------------------------------- This */
+-#include <dbdcd.h>
++#include <dspbridge/dbdcd.h>
+
+ /*  ----------------------------------- Global defines. */
+ #define SIGNATURE       0x5f444344     /* "DCD_" (in reverse). */
+diff --git a/drivers/dsp/bridge/rmgr/disp.c b/drivers/dsp/bridge/rmgr/disp.c
+index b0a701a..75a2146 100644
+--- a/drivers/dsp/bridge/rmgr/disp.c
++++ b/drivers/dsp/bridge/rmgr/disp.c
+@@ -47,37 +47,37 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <gt.h>
+-#include <dbc.h>
++#include <dspbridge/gt.h>
++#include <dspbridge/dbc.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <dev.h>
+-#include <mem.h>
+-#include <sync.h>
+-#include <csl.h>
++#include <dspbridge/dev.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/sync.h>
++#include <dspbridge/csl.h>
+
+ /*  ----------------------------------- Link Driver */
+-#include <wmd.h>
++#include <dspbridge/wmd.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <dev.h>
+-#include <chnldefs.h>
++#include <dspbridge/dev.h>
++#include <dspbridge/chnldefs.h>
+
+ /*  ----------------------------------- Resource Manager */
+-#include <nodedefs.h>
+-#include <nodepriv.h>
+-#include <rms_sh.h>
++#include <dspbridge/nodedefs.h>
++#include <dspbridge/nodepriv.h>
++#include <dspbridge/rms_sh.h>
+
+ /*  ----------------------------------- This */
+-#include <disp.h>
++#include <dspbridge/disp.h>
+
+ #define DISP_SIGNATURE       0x50534944        /* "PSID" */
+
+diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
+index c9f3d85..6a9930d 100644
+--- a/drivers/dsp/bridge/rmgr/drv.c
++++ b/drivers/dsp/bridge/rmgr/drv.c
+@@ -91,38 +91,38 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <cfg.h>
+-#include <csl.h>
+-#include <list.h>
+-#include <mem.h>
+-#include <reg.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/csl.h>
++#include <dspbridge/list.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/reg.h>
+
+ /*  ----------------------------------- Others */
+-#include <dbreg.h>
++#include <dspbridge/dbreg.h>
+
+ /*  ----------------------------------- This */
+-#include <drv.h>
+-#include <dev.h>
++#include <dspbridge/drv.h>
++#include <dspbridge/dev.h>
+
+ #ifndef RES_CLEANUP_DISABLE
+-#include <node.h>
+-#include <proc.h>
+-#include <strm.h>
+-#include <nodepriv.h>
+-#include <wmdchnl.h>
+-#include <resourcecleanup.h>
++#include <dspbridge/node.h>
++#include <dspbridge/proc.h>
++#include <dspbridge/strm.h>
++#include <dspbridge/nodepriv.h>
++#include <dspbridge/wmdchnl.h>
++#include <dspbridge/resourcecleanup.h>
+ #endif
+
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index e3dd595..24ee162 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -46,7 +46,7 @@
+
+ /*  ----------------------------------- Host OS */
+
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm.h>
+
+@@ -70,42 +70,42 @@
+ #endif
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <gt.h>
+-#include <dbc.h>
++#include <dspbridge/gt.h>
++#include <dspbridge/dbc.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <services.h>
+-#include <sync.h>
+-#include <reg.h>
+-#include <csl.h>
++#include <dspbridge/services.h>
++#include <dspbridge/sync.h>
++#include <dspbridge/reg.h>
++#include <dspbridge/csl.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <wcdioctl.h>
+-#include <_dcd.h>
+-#include <dspdrv.h>
+-#include <dbreg.h>
++#include <dspbridge/wcdioctl.h>
++#include <dspbridge/_dcd.h>
++#include <dspbridge/dspdrv.h>
++#include <dspbridge/dbreg.h>
+
+ /*  ----------------------------------- Resource Manager */
+-#include <pwr.h>
++#include <dspbridge/pwr.h>
+
+ /*  ----------------------------------- This */
+ #include <drv_interface.h>
+
+ #ifndef RES_CLEANUP_DISABLE
+-#include <cfg.h>
+-#include <resourcecleanup.h>
+-#include <chnl.h>
+-#include <proc.h>
+-#include <cfg.h>
+-#include <dev.h>
+-#include <drvdefs.h>
+-#include <drv.h>
+-#include <dbreg.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/resourcecleanup.h>
++#include <dspbridge/chnl.h>
++#include <dspbridge/proc.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/dev.h>
++#include <dspbridge/drvdefs.h>
++#include <dspbridge/drv.h>
++#include <dspbridge/dbreg.h>
+ #endif
+
+ #ifndef DISABLE_BRIDGE_PM
+diff --git a/drivers/dsp/bridge/rmgr/dspdrv.c b/drivers/dsp/bridge/rmgr/dspdrv.c
+index 77a4f49..632b07b 100644
+--- a/drivers/dsp/bridge/rmgr/dspdrv.c
++++ b/drivers/dsp/bridge/rmgr/dspdrv.c
+@@ -92,36 +92,36 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <cfg.h>
+-#include <csl.h>
+-#include <mem.h>
+-#include <reg.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/csl.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/reg.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <drv.h>
+-#include <dev.h>
+-#include <_dcd.h>
++#include <dspbridge/drv.h>
++#include <dspbridge/dev.h>
++#include <dspbridge/_dcd.h>
+
+ /*  ----------------------------------- Resource Manager */
+-#include <mgr.h>
++#include <dspbridge/mgr.h>
+
+ /*  ----------------------------------- Others */
+-#include <dbreg.h>
++#include <dspbridge/dbreg.h>
+
+ /*  ----------------------------------- This */
+-#include <dspdrv.h>
++#include <dspbridge/dspdrv.h>
+
+ /*  ----------------------------------- Globals */
+ struct GT_Mask curTrace;
+diff --git a/drivers/dsp/bridge/rmgr/mgr.c b/drivers/dsp/bridge/rmgr/mgr.c
+index 4791aa1..2895b75 100644
+--- a/drivers/dsp/bridge/rmgr/mgr.c
++++ b/drivers/dsp/bridge/rmgr/mgr.c
+@@ -41,27 +41,27 @@
+  */
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <cfg.h>
+-#include <mem.h>
+-#include <sync.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/sync.h>
+
+ /*  ----------------------------------- Others */
+-#include <dbdcd.h>
+-#include <dbreg.h>
+-#include <drv.h>
+-#include <dev.h>
++#include <dspbridge/dbdcd.h>
++#include <dspbridge/dbreg.h>
++#include <dspbridge/drv.h>
++#include <dspbridge/dev.h>
+
+ /*  ----------------------------------- This */
+-#include <mgr.h>
++#include <dspbridge/mgr.h>
+
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ #define ZLDLLNAME               ""
+diff --git a/drivers/dsp/bridge/rmgr/nldr.c b/drivers/dsp/bridge/rmgr/nldr.c
+index 3a7b42d..a6bd41a 100644
+--- a/drivers/dsp/bridge/rmgr/nldr.c
++++ b/drivers/dsp/bridge/rmgr/nldr.c
+@@ -50,33 +50,33 @@
+  *! 05-Aug-2002 jeh Created.
+  */
+
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+ #ifdef DEBUG
+-#include <dbg.h>
++#include <dspbridge/dbg.h>
+ #endif
+
+ /* OS adaptation layer */
+-#include <csl.h>
+-#include <mem.h>
++#include <dspbridge/csl.h>
++#include <dspbridge/mem.h>
+
+ /* Platform manager */
+-#include <cod.h>
+-#include <dev.h>
++#include <dspbridge/cod.h>
++#include <dspbridge/dev.h>
+
+ /* Resource manager */
+-#include <dbll.h>
+-#include <dbdcd.h>
+-#include <rmm.h>
+-#include <uuidutil.h>
++#include <dspbridge/dbll.h>
++#include <dspbridge/dbdcd.h>
++#include <dspbridge/rmm.h>
++#include <dspbridge/uuidutil.h>
+
+-#include <nldr.h>
++#include <dspbridge/nldr.h>
+
+ #define NLDR_SIGNATURE      0x52444c4e /* "RDLN" */
+ #define NLDR_NODESIGNATURE  0x4e444c4e /* "NDLN" */
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index bb4ae7d..73ecbbc 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -94,62 +94,62 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <cfg.h>
+-#include <csl.h>
+-#include <list.h>
+-#include <mem.h>
+-#include <proc.h>
+-#include <strm.h>
+-#include <sync.h>
+-#include <ntfy.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/csl.h>
++#include <dspbridge/list.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/proc.h>
++#include <dspbridge/strm.h>
++#include <dspbridge/sync.h>
++#include <dspbridge/ntfy.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <cmm.h>
+-#include <cod.h>
+-#include <dev.h>
+-#include <msg.h>
++#include <dspbridge/cmm.h>
++#include <dspbridge/cod.h>
++#include <dspbridge/dev.h>
++#include <dspbridge/msg.h>
+
+ /*  ----------------------------------- Resource Manager */
+-#include <dbdcd.h>
+-#include <disp.h>
+-#include <rms_sh.h>
++#include <dspbridge/dbdcd.h>
++#include <dspbridge/disp.h>
++#include <dspbridge/rms_sh.h>
+
+ /*  ----------------------------------- Link Driver */
+-#include <wmd.h>
+-#include <wmdioctl.h>
++#include <dspbridge/wmd.h>
++#include <dspbridge/wmdioctl.h>
+
+ /*  ----------------------------------- Others */
+-#include <gb.h>
++#include <dspbridge/gb.h>
+ #ifdef DEBUG
+-#include <uuidutil.h>
+-#include <dbg.h>
++#include <dspbridge/uuidutil.h>
++#include <dspbridge/dbg.h>
+ #endif
+
+ /*  ----------------------------------- This */
+-#include <nodepriv.h>
+-#include <node.h>
++#include <dspbridge/nodepriv.h>
++#include <dspbridge/node.h>
+
+ /* Static/Dynamic Loader includes */
+-#include <dbll.h>
+-#include <nldr.h>
++#include <dspbridge/dbll.h>
++#include <dspbridge/nldr.h>
+
+ #ifndef RES_CLEANUP_DISABLE
+-#include <drv.h>
+-#include <drvdefs.h>
+-#include <dbreg.h>
+-#include <resourcecleanup.h>
++#include <dspbridge/drv.h>
++#include <dspbridge/drvdefs.h>
++#include <dspbridge/dbreg.h>
++#include <dspbridge/resourcecleanup.h>
+ #endif
+
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index e8de8a1..66d763f 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -101,52 +101,52 @@
+  */
+
+ /* ------------------------------------ Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <cfg.h>
+-#include <csl.h>
+-#include <list.h>
+-#include <mem.h>
+-#include <ntfy.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/csl.h>
++#include <dspbridge/list.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/ntfy.h>
+
+ /*  ----------------------------------- Mini Driver */
+-#include <wmd.h>
++#include <dspbridge/wmd.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <cod.h>
+-#include <dev.h>
+-#include <drv.h>
+-#include <procpriv.h>
+-#include <dmm.h>
++#include <dspbridge/cod.h>
++#include <dspbridge/dev.h>
++#include <dspbridge/drv.h>
++#include <dspbridge/procpriv.h>
++#include <dspbridge/dmm.h>
+
+ /*  ----------------------------------- Resource Manager */
+-#include <mgr.h>
+-#include <node.h>
+-#include <nldr.h>
+-#include <rmm.h>
++#include <dspbridge/mgr.h>
++#include <dspbridge/node.h>
++#include <dspbridge/nldr.h>
++#include <dspbridge/rmm.h>
+
+ /*  ----------------------------------- Others */
+-#include <dbdcd.h>
+-#include <dbreg.h>
+-#include <msg.h>
+-#include <wmdioctl.h>
++#include <dspbridge/dbdcd.h>
++#include <dspbridge/dbreg.h>
++#include <dspbridge/msg.h>
++#include <dspbridge/wmdioctl.h>
+
+ /*  ----------------------------------- This */
+-#include <proc.h>
+-#include <pwr.h>
++#include <dspbridge/proc.h>
++#include <dspbridge/pwr.h>
+
+ #ifndef RES_CLEANUP_DISABLE
+-#include <resourcecleanup.h>
++#include <dspbridge/resourcecleanup.h>
+ #endif
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
+diff --git a/drivers/dsp/bridge/rmgr/pwr.c b/drivers/dsp/bridge/rmgr/pwr.c
+index 56e240f..9e04ab8 100644
+--- a/drivers/dsp/bridge/rmgr/pwr.c
++++ b/drivers/dsp/bridge/rmgr/pwr.c
+@@ -32,20 +32,20 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- This */
+-#include <pwr.h>
++#include <dspbridge/pwr.h>
+
+ /*  ----------------------------------- Resource Manager */
+-#include <devdefs.h>
+-#include <drv.h>
++#include <dspbridge/devdefs.h>
++#include <dspbridge/drv.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <dev.h>
++#include <dspbridge/dev.h>
+
+ /*  ----------------------------------- Link Driver */
+-#include <wmdioctl.h>
++#include <dspbridge/wmdioctl.h>
+
+ /*
+  *  ======== PWR_SleepDSP ========
+diff --git a/drivers/dsp/bridge/rmgr/rmm.c b/drivers/dsp/bridge/rmgr/rmm.c
+index af12982..2b6124e 100644
+--- a/drivers/dsp/bridge/rmgr/rmm.c
++++ b/drivers/dsp/bridge/rmgr/rmm.c
+@@ -52,20 +52,20 @@
+  */
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <list.h>
+-#include <mem.h>
++#include <dspbridge/list.h>
++#include <dspbridge/mem.h>
+
+ /*  ----------------------------------- This */
+-#include <rmm.h>
++#include <dspbridge/rmm.h>
+
+ #define RMM_TARGSIGNATURE   0x544d4d52 /* "TMMR" */
+
+diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
+index f216153..e3285e1 100644
+--- a/drivers/dsp/bridge/rmgr/strm.c
++++ b/drivers/dsp/bridge/rmgr/strm.c
+@@ -62,37 +62,37 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <mem.h>
+-#include <sync.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/sync.h>
+
+ /*  ----------------------------------- Mini Driver */
+-#include <wmd.h>
++#include <dspbridge/wmd.h>
+
+ /*  ----------------------------------- Resource Manager */
+-#include <nodepriv.h>
++#include <dspbridge/nodepriv.h>
+
+ /*  ----------------------------------- Others */
+-#include <cmm.h>
++#include <dspbridge/cmm.h>
+
+ /*  ----------------------------------- This */
+-#include <strm.h>
++#include <dspbridge/strm.h>
+
+ #ifndef RES_CLEANUP_DISABLE
+-#include <cfg.h>
+-#include <dbreg.h>
+-#include <resourcecleanup.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/dbreg.h>
++#include <dspbridge/resourcecleanup.h>
+ #endif
+
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+diff --git a/drivers/dsp/bridge/services/cfg.c b/drivers/dsp/bridge/services/cfg.c
+index 0fbddbd..ad8ee58 100644
+--- a/drivers/dsp/bridge/services/cfg.c
++++ b/drivers/dsp/bridge/services/cfg.c
+@@ -73,24 +73,24 @@
+  */
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <csl.h>
+-#include <reg.h>
++#include <dspbridge/csl.h>
++#include <dspbridge/reg.h>
+
+ /*  ----------------------------------- Others */
+-#include <dbreg.h>
++#include <dspbridge/dbreg.h>
+
+ /*  ----------------------------------- This */
+-#include <cfg.h>
+-#include <list.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/list.h>
+
+ struct DRV_EXT {
+        struct LST_ELEM link;
+diff --git a/drivers/dsp/bridge/services/clk.c b/drivers/dsp/bridge/services/clk.c
+index d37a85c..7ef1ba1 100644
+--- a/drivers/dsp/bridge/services/clk.c
++++ b/drivers/dsp/bridge/services/clk.c
+@@ -33,24 +33,24 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <csl.h>
+-#include <mem.h>
++#include <dspbridge/csl.h>
++#include <dspbridge/mem.h>
+
+ /*  ----------------------------------- This */
+-#include <clk.h>
+-#include <util.h>
++#include <dspbridge/clk.h>
++#include <dspbridge/util.h>
+
+
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+diff --git a/drivers/dsp/bridge/services/csl.c b/drivers/dsp/bridge/services/csl.c
+index f8e87f3..bf2437c 100644
+--- a/drivers/dsp/bridge/services/csl.c
++++ b/drivers/dsp/bridge/services/csl.c
+@@ -51,18 +51,18 @@
+  */
+
+ /* ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- This */
+-#include <csl.h>
++#include <dspbridge/csl.h>
+
+ /* Is character c in the string pstrDelim? */
+ #define IsDelimiter(c, pstrDelim) ((c != '\0') && \
+diff --git a/drivers/dsp/bridge/services/dbg.c b/drivers/dsp/bridge/services/dbg.c
+index e7b813b..747592e 100644
+--- a/drivers/dsp/bridge/services/dbg.c
++++ b/drivers/dsp/bridge/services/dbg.c
+@@ -46,16 +46,16 @@
+  */
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- This */
+-#include <dbg.h>
++#include <dspbridge/dbg.h>
+
+ /*  ----------------------------------- Globals */
+ #if GT_TRACE
+diff --git a/drivers/dsp/bridge/services/dpc.c b/drivers/dsp/bridge/services/dpc.c
+index a053ee7..8bcb8f6 100644
+--- a/drivers/dsp/bridge/services/dpc.c
++++ b/drivers/dsp/bridge/services/dpc.c
+@@ -45,22 +45,22 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <mem.h>
++#include <dspbridge/mem.h>
+
+ /*  ----------------------------------- This */
+-#include <dpc.h>
++#include <dspbridge/dpc.h>
+
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ #define SIGNATURE       0x5f435044     /* "DPC_" (in reverse). */
+diff --git a/drivers/dsp/bridge/services/kfile.c b/drivers/dsp/bridge/services/kfile.c
+index d839aab..8dc82ca 100644
+--- a/drivers/dsp/bridge/services/kfile.c
++++ b/drivers/dsp/bridge/services/kfile.c
+@@ -42,23 +42,23 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <csl.h>
+-#include <mem.h>
++#include <dspbridge/csl.h>
++#include <dspbridge/mem.h>
+
+ /*  ----------------------------------- This */
+-#include <kfile.h>
++#include <dspbridge/kfile.h>
+
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ #define SIGNATURE           0x4c49464b /* hex code of KFIL (reversed) */
+diff --git a/drivers/dsp/bridge/services/list.c b/drivers/dsp/bridge/services/list.c
+index 3d4c752..3e2bc99 100644
+--- a/drivers/dsp/bridge/services/list.c
++++ b/drivers/dsp/bridge/services/list.c
+@@ -48,18 +48,18 @@
+  */
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <mem.h>
++#include <dspbridge/mem.h>
+
+ /*  ----------------------------------- This */
+-#include <list.h>
++#include <dspbridge/list.h>
+
+ /*  ----------------------------------- Globals */
+ #if GT_TRACE
+diff --git a/drivers/dsp/bridge/services/mem.c b/drivers/dsp/bridge/services/mem.c
+index a01a058..05d78ed 100644
+--- a/drivers/dsp/bridge/services/mem.c
++++ b/drivers/dsp/bridge/services/mem.c
+@@ -52,20 +52,20 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- This */
+-#include <mem.h>
+-#include <list.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/list.h>
+
+ /*  ----------------------------------- Defines */
+ #define MEM_512MB   0x1fffffff
+diff --git a/drivers/dsp/bridge/services/ntfy.c b/drivers/dsp/bridge/services/ntfy.c
+index f5a4264..6645864 100644
+--- a/drivers/dsp/bridge/services/ntfy.c
++++ b/drivers/dsp/bridge/services/ntfy.c
+@@ -40,25 +40,25 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <csl.h>
+-#include <list.h>
+-#include <mem.h>
+-#include <sync.h>
++#include <dspbridge/csl.h>
++#include <dspbridge/list.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/sync.h>
+
+ /*  ----------------------------------- This */
+-#include <ntfy.h>
++#include <dspbridge/ntfy.h>
+
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ #define NTFY_SIGNATURE      0x5946544e /* "YFTN" */
+diff --git a/drivers/dsp/bridge/services/prcs.c b/drivers/dsp/bridge/services/prcs.c
+index cb45541..143d7f8 100644
+--- a/drivers/dsp/bridge/services/prcs.c
++++ b/drivers/dsp/bridge/services/prcs.c
+@@ -39,19 +39,19 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- This */
+-#include <prcs.h>
++#include <dspbridge/prcs.h>
+
+ /*  ----------------------------------- Globals & Defines */
+ #if GT_TRACE
+diff --git a/drivers/dsp/bridge/services/reg.c b/drivers/dsp/bridge/services/reg.c
+index 31eb3c0..2694c23 100644
+--- a/drivers/dsp/bridge/services/reg.c
++++ b/drivers/dsp/bridge/services/reg.c
+@@ -34,26 +34,26 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <csl.h>
+-#include <mem.h>
++#include <dspbridge/csl.h>
++#include <dspbridge/mem.h>
+
+ /*  ----------------------------------- Others */
+-#include <dbreg.h>
++#include <dspbridge/dbreg.h>
+
+ /*  ----------------------------------- This */
+-#include <reg.h>
++#include <dspbridge/reg.h>
+ #include <regsup.h>
+
+ #if GT_TRACE
+diff --git a/drivers/dsp/bridge/services/regsup.c b/drivers/dsp/bridge/services/regsup.c
+index cee2ea8..56c6900 100644
+--- a/drivers/dsp/bridge/services/regsup.c
++++ b/drivers/dsp/bridge/services/regsup.c
+@@ -29,21 +29,21 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
+-#include <dbreg.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
++#include <dspbridge/dbreg.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <mem.h>
+-#include <csl.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/csl.h>
+
+ /*  ----------------------------------- This */
+ #include <regsup.h>
+diff --git a/drivers/dsp/bridge/services/services.c b/drivers/dsp/bridge/services/services.c
+index d70cceb..6b99863 100644
+--- a/drivers/dsp/bridge/services/services.c
++++ b/drivers/dsp/bridge/services/services.c
+@@ -32,32 +32,32 @@
+  *! 01-Feb-2000 kc: Created.
+  */
+
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <cfg.h>
+-#include <csl.h>
+-#include <dbg.h>
+-#include <dpc.h>
+-#include <kfile.h>
+-#include <list.h>
+-#include <mem.h>
+-#include <ntfy.h>
+-#include <reg.h>
+-#include <sync.h>
+-#include <clk.h>
+-#include <util.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/csl.h>
++#include <dspbridge/dbg.h>
++#include <dspbridge/dpc.h>
++#include <dspbridge/kfile.h>
++#include <dspbridge/list.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/ntfy.h>
++#include <dspbridge/reg.h>
++#include <dspbridge/sync.h>
++#include <dspbridge/clk.h>
++#include <dspbridge/util.h>
+
+ /*  ----------------------------------- This */
+-#include <services.h>
++#include <dspbridge/services.h>
+
+ /*  ----------------------------------- Globals */
+ #if GT_TRACE
+diff --git a/drivers/dsp/bridge/services/sync.c b/drivers/dsp/bridge/services/sync.c
+index c49be0b..b4b3782 100644
+--- a/drivers/dsp/bridge/services/sync.c
++++ b/drivers/dsp/bridge/services/sync.c
+@@ -48,23 +48,23 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <gt.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <csl.h>
+-#include <mem.h>
++#include <dspbridge/csl.h>
++#include <dspbridge/mem.h>
+
+ /*  ----------------------------------- This */
+-#include <sync.h>
++#include <dspbridge/sync.h>
+
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ #define SIGNATURE       0x434e5953     /* "SYNC" (in reverse) */
+diff --git a/drivers/dsp/bridge/wmd/_deh.h b/drivers/dsp/bridge/wmd/_deh.h
+index 586c939..05c98eb 100644
+--- a/drivers/dsp/bridge/wmd/_deh.h
++++ b/drivers/dsp/bridge/wmd/_deh.h
+@@ -28,9 +28,9 @@
+ #ifndef _DEH_
+ #define _DEH_
+
+-#include <dpc.h>
+-#include <ntfy.h>
+-#include <wmd.h>
++#include <dspbridge/dpc.h>
++#include <dspbridge/ntfy.h>
++#include <dspbridge/wmd.h>
+
+ #define SIGNATURE       0x5f484544     /* "DEH_" backwards */
+
+diff --git a/drivers/dsp/bridge/wmd/_msg_sm.h b/drivers/dsp/bridge/wmd/_msg_sm.h
+index d7e796c..aa30b15 100644
+--- a/drivers/dsp/bridge/wmd/_msg_sm.h
++++ b/drivers/dsp/bridge/wmd/_msg_sm.h
+@@ -35,8 +35,8 @@
+ #ifndef _MSG_SM_
+ #define _MSG_SM_
+
+-#include <list.h>
+-#include <msgdefs.h>
++#include <dspbridge/list.h>
++#include <dspbridge/msgdefs.h>
+
+ /*
+  *  These target side symbols define the beginning and ending addresses
+diff --git a/drivers/dsp/bridge/wmd/_tiomap.h b/drivers/dsp/bridge/wmd/_tiomap.h
+index 4f2b43c..5e16892 100644
+--- a/drivers/dsp/bridge/wmd/_tiomap.h
++++ b/drivers/dsp/bridge/wmd/_tiomap.h
+@@ -46,10 +46,10 @@
+ #ifndef _TIOMAP_
+ #define _TIOMAP_
+
+-#include <devdefs.h>
++#include <dspbridge/devdefs.h>
+ #include <hw_defs.h>
+ #include <hw_mbox.h>
+-#include <wmdioctl.h>          /* for WMDIOCTL_EXTPROC defn */
++#include <dspbridge/wmdioctl.h>                /* for WMDIOCTL_EXTPROC defn */
+ #include "sync.h"
+ #include "clk.h"
+
+diff --git a/drivers/dsp/bridge/wmd/chnl_sm.c b/drivers/dsp/bridge/wmd/chnl_sm.c
+index 76fc618..3f32d72 100644
+--- a/drivers/dsp/bridge/wmd/chnl_sm.c
++++ b/drivers/dsp/bridge/wmd/chnl_sm.c
+@@ -114,32 +114,32 @@
+  */
+
+ /*  ----------------------------------- OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <dbg.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/dbg.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <mem.h>
+-#include <cfg.h>
+-#include <csl.h>
+-#include <sync.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/csl.h>
++#include <dspbridge/sync.h>
+
+ /*  ----------------------------------- Mini-Driver */
+-#include <wmd.h>
+-#include <wmdchnl.h>
++#include <dspbridge/wmd.h>
++#include <dspbridge/wmdchnl.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <dev.h>
++#include <dspbridge/dev.h>
+
+ /*  ----------------------------------- Others */
+-#include <io_sm.h>
++#include <dspbridge/io_sm.h>
+
+ /*  ----------------------------------- Define for This */
+ #define USERMODE_ADDR   PAGE_OFFSET
+diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+index 2e6a401..903171a 100644
+--- a/drivers/dsp/bridge/wmd/io_sm.c
++++ b/drivers/dsp/bridge/wmd/io_sm.c
+@@ -110,7 +110,7 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
+ #ifndef CONFIG_OMAP3_PM
+@@ -122,50 +122,50 @@
+ #endif
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <dbg.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/dbg.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <cfg.h>
+-#include <dpc.h>
+-#include <mem.h>
+-#include <ntfy.h>
+-#include <sync.h>
+-#include <reg.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/dpc.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/ntfy.h>
++#include <dspbridge/sync.h>
++#include <dspbridge/reg.h>
+
+ /* ------------------------------------ Hardware Abstraction Layer */
+ #include <hw_defs.h>
+ #include <hw_mmu.h>
+
+ /*  ----------------------------------- Mini Driver */
+-#include <wmddeh.h>
+-#include <wmdio.h>
+-#include <wmdioctl.h>
++#include <dspbridge/wmddeh.h>
++#include <dspbridge/wmdio.h>
++#include <dspbridge/wmdioctl.h>
+ #include <_tiomap.h>
+ #include <tiomap_io.h>
+ #include <_tiomap_pwr.h>
+ #include <tiomap_io.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <cod.h>
+-#include <dev.h>
+-#include <chnl_sm.h>
+-#include <dbreg.h>
++#include <dspbridge/cod.h>
++#include <dspbridge/dev.h>
++#include <dspbridge/chnl_sm.h>
++#include <dspbridge/dbreg.h>
+
+ /*  ----------------------------------- Others */
+-#include <rms_sh.h>
+-#include <mgr.h>
++#include <dspbridge/rms_sh.h>
++#include <dspbridge/mgr.h>
+ #include "_cmm.h"
+
+ /*  ----------------------------------- This */
+-#include <io_sm.h>
++#include <dspbridge/io_sm.h>
+ #include "_msg_sm.h"
+-#include <gt.h>
++#include <dspbridge/gt.h>
+
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ #define OUTPUTNOTREADY  0xffff
+diff --git a/drivers/dsp/bridge/wmd/mmu_fault.c b/drivers/dsp/bridge/wmd/mmu_fault.c
+index 683d0b2..1efd734 100644
+--- a/drivers/dsp/bridge/wmd/mmu_fault.c
++++ b/drivers/dsp/bridge/wmd/mmu_fault.c
+@@ -32,22 +32,22 @@
+  */
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <host_os.h>
+-#include <dbc.h>
+-#include <dbg.h>
++#include <dspbridge/host_os.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/dbg.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <dpc.h>
+-#include <mem.h>
+-#include <drv.h>
++#include <dspbridge/dpc.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/drv.h>
+
+ /*  ----------------------------------- Link Driver */
+-#include <wmddeh.h>
++#include <dspbridge/wmddeh.h>
+
+ /* ------------------------------------ Hardware Abstraction Layer */
+ #include <hw_defs.h>
+@@ -55,7 +55,7 @@
+
+ /*  ----------------------------------- This */
+ #include "_deh.h"
+-#include <cfg.h>
++#include <dspbridge/cfg.h>
+ #include "_tiomap_mmu.h"
+ #include "_tiomap.h"
+ #include "mmu_fault.h"
+diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/wmd/msg_sm.c
+index df37a39..a2bb079 100644
+--- a/drivers/dsp/bridge/wmd/msg_sm.c
++++ b/drivers/dsp/bridge/wmd/msg_sm.c
+@@ -43,27 +43,27 @@
+  */
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
++#include <dspbridge/dbc.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <list.h>
+-#include <mem.h>
+-#include <sync.h>
++#include <dspbridge/list.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/sync.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <dev.h>
++#include <dspbridge/dev.h>
+
+ /*  ----------------------------------- Others */
+-#include <io_sm.h>
++#include <dspbridge/io_sm.h>
+
+ /*  ----------------------------------- This */
+ #include <_msg_sm.h>
+-#include <wmdmsg.h>
++#include <dspbridge/wmdmsg.h>
+
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ #define MSGQ_SIGNATURE      0x5147534d /* "QGSM" */
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
+index 44a65b9..2b1771b 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430.c
+@@ -27,26 +27,26 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <dbg.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/dbg.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <mem.h>
+-#include <util.h>
+-#include <reg.h>
+-#include <dbreg.h>
+-#include <cfg.h>
+-#include <drv.h>
+-#include <csl.h>
+-#include <sync.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/util.h>
++#include <dspbridge/reg.h>
++#include <dspbridge/dbreg.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/drv.h>
++#include <dspbridge/csl.h>
++#include <dspbridge/sync.h>
+
+ /* ------------------------------------ Hardware Abstraction Layer */
+ #include <hw_defs.h>
+@@ -56,19 +56,19 @@
+ #include <hw_mbox.h>
+
+ /*  ----------------------------------- Link Driver */
+-#include <wmd.h>
+-#include <wmdchnl.h>
+-#include <wmddeh.h>
+-#include <wmdio.h>
+-#include <wmdmsg.h>
+-#include <pwr.h>
+-#include <chnl_sm.h>
+-#include <io_sm.h>
++#include <dspbridge/wmd.h>
++#include <dspbridge/wmdchnl.h>
++#include <dspbridge/wmddeh.h>
++#include <dspbridge/wmdio.h>
++#include <dspbridge/wmdmsg.h>
++#include <dspbridge/pwr.h>
++#include <dspbridge/chnl_sm.h>
++#include <dspbridge/io_sm.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <dev.h>
+-#include <wcd.h>
+-#include <dmm.h>
++#include <dspbridge/dev.h>
++#include <dspbridge/wcd.h>
++#include <dspbridge/dmm.h>
+
+ /*  ----------------------------------- Local */
+ #include "_tiomap.h"
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+index 0c207c8..f81fe08 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+@@ -30,24 +30,24 @@
+  */
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <dbdefs.h>
+-#include <errbase.h>
+-#include <cfg.h>
+-#include <drv.h>
+-#include <io_sm.h>
+-#include <chnl_sm.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/drv.h>
++#include <dspbridge/io_sm.h>
++#include <dspbridge/chnl_sm.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbg.h>
++#include <dspbridge/dbg.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <mem.h>
+-#include <util.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/util.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <brddefs.h>
+-#include <dev.h>
+-#include <iodefs.h>
++#include <dspbridge/brddefs.h>
++#include <dspbridge/dev.h>
++#include <dspbridge/iodefs.h>
+
+ /* ------------------------------------ Hardware Abstraction Layer */
+ #include <hw_defs.h>
+@@ -55,7 +55,7 @@
+ #include <hw_prcm.h>
+ #include <hw_mmu.h>
+
+-#include <pwr_sh.h>
++#include <dspbridge/pwr_sh.h>
+
+ /*  ----------------------------------- specific to this file */
+ #include "_tiomap.h"
+diff --git a/drivers/dsp/bridge/wmd/tiomap_io.c b/drivers/dsp/bridge/wmd/tiomap_io.c
+index a3c516c..57ff66e 100644
+--- a/drivers/dsp/bridge/wmd/tiomap_io.c
++++ b/drivers/dsp/bridge/wmd/tiomap_io.c
+@@ -30,21 +30,21 @@
+  */
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <dbg.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/dbg.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <dev.h>
+-#include <drv.h>
++#include <dspbridge/dev.h>
++#include <dspbridge/drv.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <mem.h>
+-#include <util.h>
+-#include <cfg.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/util.h>
++#include <dspbridge/cfg.h>
+
+ /*  ----------------------------------- specific to this file */
+ #include "_tiomap.h"
+diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c b/drivers/dsp/bridge/wmd/tiomap_sm.c
+index e7adccd..a80926d 100644
+--- a/drivers/dsp/bridge/wmd/tiomap_sm.c
++++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
+@@ -37,26 +37,26 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbg.h>
++#include <dspbridge/dbg.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <cfg.h>
+-#include <drv.h>
+-#include <util.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/drv.h>
++#include <dspbridge/util.h>
+
+ /*  ----------------------------------- Mini Driver */
+-#include <wmd.h>
++#include <dspbridge/wmd.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <wcd.h>
+-#include <dev.h>
++#include <dspbridge/wcd.h>
++#include <dspbridge/dev.h>
+
+ /* ------------------------------------ Hardware Abstraction Layer */
+ #include <hw_defs.h>
+@@ -64,7 +64,7 @@
+
+ /*  ----------------------------------- This */
+ #include "_tiomap.h"
+-#include <chnl_sm.h>
++#include <dspbridge/chnl_sm.h>
+ #include "_tiomap_pwr.h"
+
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
+index f5ecc63..8f86588 100644
+--- a/drivers/dsp/bridge/wmd/ue_deh.c
++++ b/drivers/dsp/bridge/wmd/ue_deh.c
+@@ -32,31 +32,31 @@
+  */
+
+ /*  ----------------------------------- Host OS */
+-#include <host_os.h>
++#include <dspbridge/host_os.h>
+
+ /*  ----------------------------------- DSP/BIOS Bridge */
+-#include <std.h>
+-#include <dbdefs.h>
+-#include <errbase.h>
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
+
+ /*  ----------------------------------- Trace & Debug */
+-#include <dbc.h>
+-#include <dbg.h>
++#include <dspbridge/dbc.h>
++#include <dspbridge/dbg.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <csl.h>
+-#include <cfg.h>
+-#include <dpc.h>
+-#include <mem.h>
+-#include <ntfy.h>
+-#include <drv.h>
++#include <dspbridge/csl.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/dpc.h>
++#include <dspbridge/mem.h>
++#include <dspbridge/ntfy.h>
++#include <dspbridge/drv.h>
+
+ /*  ----------------------------------- Link Driver */
+-#include <wmddeh.h>
++#include <dspbridge/wmddeh.h>
+
+ /*  ----------------------------------- Platform Manager */
+-#include <dev.h>
+-#include <wcd.h>
++#include <dspbridge/dev.h>
++#include <dspbridge/wcd.h>
+
+ /* ------------------------------------ Hardware Abstraction Layer */
+ #include <hw_defs.h>
+@@ -68,7 +68,7 @@
+ #include "_deh.h"
+ #include "_tiomap_mmu.h"
+ #include "_tiomap_pwr.h"
+-#include <io_sm.h>
++#include <dspbridge/io_sm.h>
+
+ static struct HW_MMUMapAttrs_t  mapAttrs = { HW_LITTLE_ENDIAN,
+                                        HW_ELEM_SIZE_16BIT,
 --
 1.6.0
 
