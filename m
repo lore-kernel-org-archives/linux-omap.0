@@ -1,745 +1,304 @@
 From: "Ramirez Luna, Omar" <x00omar@ti.com>
-Subject: [PATCH 01/06][omapzoom] BRIDGE Chnl module cleanup
-Date: Fri, 19 Sep 2008 21:06:52 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A5344B3DCD3@dlee03.ent.ti.com>
+Subject: [PATCH 02/06][omapzoom] BRIDGE: Sparse warnings cleanup
+Date: Fri, 19 Sep 2008 21:07:09 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A5344B3DCD4@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34292 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49581 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752192AbYITCHA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Sep 2008 22:07:00 -0400
+	id S1752719AbYITCHQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Sep 2008 22:07:16 -0400
 Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8K26sOC012688
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8K27AJw018608
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 19 Sep 2008 21:06:59 -0500
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m8K26sV8016098
-	for <linux-omap@vger.kernel.org>; Fri, 19 Sep 2008 21:06:54 -0500 (CDT)
+	for <linux-omap@vger.kernel.org>; Fri, 19 Sep 2008 21:07:15 -0500
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m8K27Afq016165
+	for <linux-omap@vger.kernel.org>; Fri, 19 Sep 2008 21:07:10 -0500 (CDT)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 From: Fernando Guzman Lugo <x0095840@ti.com>
-Date: Fri, 19 Sep 2008 11:31:58 -0500
-Subject: [PATCH] BRIDGE: Chnl module cleanup
+Date: Fri, 19 Sep 2008 11:25:36 -0500
+Subject: [PATCH] BRIDGE: Sparse warnings cleanup
 
-This patch removes all the functions not used in Chnl module
+This patch removes some sparse warnings about the following:
+
+Different Node enum type, static variables, __user references,
+unused variable in drv_interface.c, DRV object incompatible types
 
 Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 ---
- arch/arm/plat-omap/include/mach/bridge/chnl.h     |  369 +--------------------
- arch/arm/plat-omap/include/mach/bridge/chnlpriv.h |    2 +-
- drivers/dsp/bridge/pmgr/chnl.c                    |  256 --------------
- drivers/dsp/bridge/wmd/chnl_sm.c                  |    1 -
- 4 files changed, 2 insertions(+), 626 deletions(-)
+ arch/arm/plat-omap/include/mach/bridge/dbdefs.h   |   30 +++++++++++++-----
+ arch/arm/plat-omap/include/mach/bridge/kfile.h    |    2 +-
+ arch/arm/plat-omap/include/mach/bridge/nodepriv.h |   35 ---------------------
+ drivers/dsp/bridge/rmgr/drv_interface.c           |   18 +++--------
+ drivers/dsp/bridge/rmgr/dspdrv.c                  |    4 +-
+ drivers/dsp/bridge/rmgr/proc.c                    |    4 +-
+ drivers/dsp/bridge/services/kfile.c               |    3 +-
+ drivers/dsp/bridge/services/mem.c                 |    2 +-
+ drivers/dsp/bridge/wmd/tiomap3430.c               |    1 -
+ 9 files changed, 35 insertions(+), 64 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/mach/bridge/chnl.h b/arch/arm/plat-omap/include/mach/bridge/chnl.h
-index edc4808..3c0ad76 100644
---- a/arch/arm/plat-omap/include/mach/bridge/chnl.h
-+++ b/arch/arm/plat-omap/include/mach/bridge/chnl.h
-@@ -60,94 +60,6 @@
- #include <chnlpriv.h>
-
- /*
-- *  ======== CHNL_AddIOReq ========
-- *  Purpose:
-- *      Enqueue an I/O request for data transfer with the DSP on this channel.
-- *      The direction (mode) is specified in the channel object.
-- *  Parameters:
-- *      hChnl:          Channel object handle.
-- *      pHostBuf:       Host buffer address source.
-- *      cBytes:         Number of PC bytes to transfer. A zero value indicates
-- *                      that this buffer is the last in the output channel.
-- *                      A zero value is invalid for an input channel.
-- *  Returns:
-- *      DSP_SOK:        Success;
-- *      DSP_EHANDLE:    Invalid hChnl.
-- *      DSP_EPOINTER:   pHostBuf is invalid.
-- *      CHNL_E_NOEOS:   User cannot mark EOS on an input channel.
-- *      CHNL_E_CANCELLED: I/O has been cancelled on this channel.  No further
-- *                      I/O is allowed.
-- *      CHNL_E_EOS:     End of stream was already marked on a previous
-- *                      IORequest on this output channel. Not returned for
-- *                      input channels.
-- *      CHNL_E_NOIORPS: No free IO request packets available for queuing.
-- *      CHNL_E_BUFSIZE: Buffer submitted to this output channel is larger than
-- *                      the size of the physical shared memory output window.
-- *  Requires:
-- *      CHNL_Init() called.
-- *      pHostBuf points to memory which can be safely accessed at interrupt
-- *      time without page fault.
-- *  Ensures:
-- *      The buffer will be transferred if the channel is ready; otherwise, will
-- *      be queued for transfer when the channel becomes ready.  In any case,
-- *      notifications of I/O completion are asynchronous.
-- *      If cBytes is 0 for an output channel, subsequent CHNL_AddIOReq's on
-- *      this channel will fail with error code CHNL_E_EOS.  The corresponding
-- *      IOC for this I/O request will have its status flag set to
-- *      CHNL_IOCSTATEOS.
-- */
--       extern DSP_STATUS CHNL_AddIOReq(struct CHNL_OBJECT *hChnl,
--                                       void *pHostBuf,
--                                       u32 cBytes);
--
--/*
-- *  ======== CHNL_AllocBuffer ========
-- *  Purpose:
-- *      Allocate a zero-initialized buffer to be used in data transfers though
-- *      a channel managed by this channel manager.
-- *  Parameters:
-- *      ppBuf:              Location to store buffer pointer.
-- *      hChnlMgr:           Handle to a valid channel manager.
-- *      cBytes:             Size of buffer in bytes. Must be greater than zero.
-- *  Returns:
-- *      DSP_SOK:            Success.
-- *      DSP_EPOINTER:       ppBuf is invalid.
-- *      DSP_EHANDLE:        hChnlMgr is invalid.
-- *      DSP_EMEMORY:        Insufficient memory to allocate buffer.
-- *      DSP_EINVALIDARG:    Invalid cBytes value.
-- *  Requires:
-- *      CHNL_Init() called.
-- *  Ensures:
-- *      DSP_SOK:            *ppBuf points to memory which can be accessed in
-- *                          any context.
-- *      else:               *ppBuf contains NULL if ppBuf != NULL.
-- */
--       extern DSP_STATUS CHNL_AllocBuffer(OUT void **ppBuf,
--                                          struct CHNL_MGR *hChnlMgr,
--                                          u32 cBytes);
--
--/*
-- *  ======== CHNL_CancelIO ========
-- *  Purpose:
-- *      Return all I/O requests to the client which have not yet been
-- *      transferred.  The channel's I/O completion object is
-- *      signalled, and all the I/O requests are queued as IOC's, with the
-- *      status field set to CHNL_IOCSTATCANCEL.
-- *      This call is typically used in abort situations, and is a prelude to
-- *      CHNL_Close();
-- *  Parameters:
-- *      hChnl:          Channel object handle.
-- *  Returns:
-- *      DSP_SOK:           Success;
-- *      DSP_EHANDLE:       Invalid hChnl.
-- *  Requires:
-- *      CHNL_Init() called.
-- *  Ensures:
-- *      Subsequent I/O requests to this channel will not be accepted.
-- */
--       extern DSP_STATUS CHNL_CancelIO(struct CHNL_OBJECT *hChnl);
--
--/*
-  *  ======== CHNL_Close ========
-  *  Purpose:
-  *      Ensures all pending I/O on this channel is cancelled, discards all
-@@ -168,23 +80,6 @@
+diff --git a/arch/arm/plat-omap/include/mach/bridge/dbdefs.h b/arch/arm/plat-omap/include/mach/bridge/dbdefs.h
+index e92c24f..b8350ec 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/dbdefs.h
++++ b/arch/arm/plat-omap/include/mach/bridge/dbdefs.h
+@@ -225,21 +225,35 @@
+ 		PROC_ERROR
+ 	} ;
+ 
+-/* Node types */
+-	enum DSP_NODETYPE {
++/*
++ *  Node types: Message node, task node, xDAIS socket node, and
++ *  device node. _NODE_GPP is used when defining a stream connection
++ *  between a task or socket node and the GPP.
++ *
++ */
++	enum NODE_TYPE {
+ 		NODE_DEVICE,
+ 		NODE_TASK,
+ 		NODE_DAISSOCKET,
+-		NODE_MESSAGE
++		NODE_MESSAGE,
++		NODE_GPP
+ 	} ;
+ 
+-/* Node states */
+-	enum DSP_NODESTATE {
++/*
++ *  ======== NODE_STATE ========
++ *  Internal node states.
++ */
++	enum NODE_STATE {
+ 		NODE_ALLOCATED,
+ 		NODE_CREATED,
+ 		NODE_RUNNING,
+ 		NODE_PAUSED,
+-		NODE_DONE
++		NODE_DONE,
++		NODE_CREATING,
++		NODE_STARTING,
++		NODE_PAUSING,
++		NODE_TERMINATING,
++		NODE_DELETING,
+ 	} ;
+ 
+ /* Stream states */
+@@ -370,7 +384,7 @@
+ 		u32 cbStruct;
+ 		struct DSP_UUID uiNodeID;
+ 		char acName[DSP_MAXNAMELEN];
+-		enum DSP_NODETYPE uNodeType;
++		enum NODE_TYPE uNodeType;
+ 		u32 bCacheOnGPP;
+ 		struct DSP_RESOURCEREQMTS dspResourceReqmts;
+ 		s32 iPriority;
+@@ -405,7 +419,7 @@
+ 		u32 cbStruct;
+ 		struct DSP_NDBPROPS nbNodeDatabaseProps;
+ 		u32 uExecutionPriority;
+-		enum DSP_NODESTATE nsExecutionState;
++		enum NODE_STATE nsExecutionState;
+ 		DSP_HNODE hDeviceOwner;
+ 		u32 uNumberStreams;
+ 		struct DSP_STREAMCONNECT scStreamConnection[16];
+diff --git a/arch/arm/plat-omap/include/mach/bridge/kfile.h b/arch/arm/plat-omap/include/mach/bridge/kfile.h
+index f5fe88a..9a741be 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/kfile.h
++++ b/arch/arm/plat-omap/include/mach/bridge/kfile.h
+@@ -143,7 +143,7 @@
+  *      pBuffer is a valid pointer.
+  *  Ensures:
   */
-        extern DSP_STATUS CHNL_Close(struct CHNL_OBJECT *hChnl);
-
--/*
-- *  ======== CHNL_CloseOrphans ========
-- *  Purpose:
-- *      Close open channels orphaned by a closing process.
-- *  Parameters:
-- *      hChnlMgr:       Channel manager holding the channels.
-- *      hProcess:       Kernel mode handle of the process claiming the channels.
-- *  Returns:
-- *      DSP_SOK:        Success.
-- *      DSP_SFALSE:     No channels were left open by this process.
-- *      DSP_EHANDLE:    Invalid hChnlMgr handle.
-- *  Requires:
-- *      CHNL_Init() called.
-- *  Ensures:
-- */
--       extern DSP_STATUS CHNL_CloseOrphans(struct CHNL_MGR *hChnlMgr,
--                                           HANDLE hProcess);
-
+-	extern s32 KFILE_Read(OUT void *buffer,
++	extern s32 KFILE_Read(OUT void __user*buffer,
+ 			      IN s32 size, IN s32 count,
+ 			      IN struct KFILE_FileObj *hFile);
+ 
+diff --git a/arch/arm/plat-omap/include/mach/bridge/nodepriv.h b/arch/arm/plat-omap/include/mach/bridge/nodepriv.h
+index 51cf0bc..0e8d909 100644
+--- a/arch/arm/plat-omap/include/mach/bridge/nodepriv.h
++++ b/arch/arm/plat-omap/include/mach/bridge/nodepriv.h
+@@ -97,41 +97,6 @@
+ 	} ;
+ 
  /*
-  *  ======== CHNL_Create ========
-@@ -256,223 +151,6 @@
-  */
-        extern void CHNL_Exit();
-
--/*
-- *  ======== CHNL_FlushIO ========
-- *  Purpose:
-- *      For an output stream (to the DSP), flush all pending IO requests to the
-- *      output device.  This function will wait for IO completion for each of
-- *      the queued IO requests, up to the specified timeout (per IOR).   For
-- *      input streams (from the DSP), will cancel all pending IO requests.
-- *  Parameters:
-- *      hChnl:          Channel object handle.
-- *      dwTimeOut:      Timeout in milliseconds to wait for I/O completion.
-- *                      A value of CHNL_IOCINFINITE means to wait indefinitely.
-- *                      The value of CHNL_IOCNOWAIT is not allowed.
-- *  Returns:
-- *      DSP_SOK:            Success;
-- *      DSP_EHANDLE:        Invalid hChnl.
-- *      DSP_EINVALIDARG:    dwTimeOut value of CHNL_IOCNOWAIT was given.
-- *      CHNL_E_WAITTIMEOUT: Wait for flush of output stream timed out.
-- *  Requires:
-- *      CHNL_Init() called.
-- *  Ensures:
-- *      DSP_SOK:        No I/O requests will be pending on this channel.
-- */
--       extern DSP_STATUS CHNL_FlushIO(struct CHNL_OBJECT *hChnl,
--                                       u32 dwTimeOut);
--
--/*
-- *  ======== CHNL_FreeBuffer ========
-- *  Purpose:
-- *      Free a buffer previously allocated using CHNL_AllocBuffer().
-- *  Parameters:
-- *      hChnlMgr:       Handle to a valid channel manager.
-- *      cBytes:         Size of buffer in bytes.
-- *      pBuf:           Buffer pointer returned by CHNL_FreeBuffer().
-- *  Returns:
-- *      DSP_SOK:           Success.
-- *      DSP_EHANDLE:       hChnlMgr is invalid.
-- *      DSP_EINVALIDARG:   pBuf is NULL.
-- *  Requires:
-- *      CHNL_Init() called.
-- *  Ensures:
-- */
--       extern DSP_STATUS CHNL_FreeBuffer(struct CHNL_MGR *hChnlMgr,
--                                         u32 cBytes,
--                                         void *pBuf);
--
--/*
-- *  ======== CHNL_GetEventHandle ========
-- *  Purpose:
-- *      Retrieve this channel's I/O completion auto-reset event.
-- *  Parameters:
-- *      hChnl:          Handle to a valid channel object.
-- *      phEvent:        Location to store the I/O completion event object.
-- *  Returns:
-- *      DSP_SOK:        Success;
-- *      DSP_EHANDLE:    Invalid hChnl.
-- *      DSP_EPOINTER:   phEvent is invalid.
-- *  Requires:
-- *      CHNL_Init() called.
--
-- */
--       extern DSP_STATUS CHNL_GetEventHandle(struct CHNL_OBJECT *hChnl,
--                                             OUT HANDLE *phEvent);
--
--/*
-- *  ======== CHNL_GetHandle ========
-- *  Purpose:
-- *      Retrieve the channel handle given the logical ID and channel manager.
-- *  Parameters:
-- *      hChnlMgr:           Handle to a valid channel manager, or NULL.
-- *      uChnlID:            Channel ID.
-- *      phChnl:             Location to store channel handle.
-- *  Returns:
-- *      DSP_SOK:            Success;
-- *      DSP_EHANDLE:        Invalid hChnlMgr.
-- *      DSP_EPOINTER:       phChnl == NULL.
-- *      CHNL_E_BADCHANID:   Invalid channel ID.
-- *  Requires:
-- *      CHNL_Init() called.
-- *  Ensures:
-- *      DSP_SOK:            *phChnl points to a valid channel object,
-- *                          if phChnl != NULL.
-- */
--       extern DSP_STATUS CHNL_GetHandle(struct CHNL_MGR *hChnlMgr,
--                                        u32 uChnlID,
--                                        OUT struct CHNL_OBJECT **phChnl);
--
--/*
-- *  ======== CHNL_GetIOCompletion ========
-- *  Purpose:
-- *      Optionally wait for I/O completion on a channel.  Dequeue an I/O
-- *      completion record, which contains information about the completed
-- *      I/O request.
-- *  Parameters:
-- *      hChnl:          Channel object handle.
-- *      dwTimeOut:      Timeout in milliseconds to wait for completion.
-- *                      A value of CHNL_IOCINFINITE means to wait indefinitely.
-- *                      A value of CHNL_IOCNOWAIT will simply dequeue the
-- *                      first available IOC.
-- *      pIOC:           On output, contains host buffer address, bytes
-- *                      transferred, and status of I/O completion.
-- *      pIOC->status:   I/O Completion status: see chnldefs.h for definitions.
-- *  Returns:
-- *      DSP_SOK:        Success.
-- *      DSP_EHANDLE:    Invalid hChnl.
-- *      DSP_EPOINTER:   pIOC is invalid.
-- *      CHNL_E_NOIOC:   CHNL_IOCNOWAIT was specified as the dwTimeOut parameter
-- *                      yet no I/O completions were queued.
-- *  Requires:
-- *      CHNL_Init() called.
-- *  Ensures:
-- *      DSP_SOK:        If there are any remaining IOC's queued before this
-- *                      call returns, the channel event object will be left
-- *                      in a signalled state.
-- *      If the return status is anything other than DSP_EPOINTER or DSP_SOK,
-- *      then pIOC->pBuf will be set to NULL, pIOC->cBytes will be 0, and
-- *      pIOC->status will be undefined.
-- */
--       extern DSP_STATUS CHNL_GetIOCompletion(struct CHNL_OBJECT *hChnl,
--                                              u32 dwTimeOut,
--                                              OUT struct CHNL_IOC *pIOC);
--
--/*
-- *  ======== CHNL_GetId ========
-- *  Purpose:
-- *      Retrieve the channel logical ID of this channel.
-- *  Parameters:
-- *      hChnl:          Handle to a valid channel object.
-- *      pdwID:          Location to store logical ID.
-- *  Returns:
-- *      DSP_SOK:        Success;
-- *      DSP_EHANDLE:    Invalid hChnl.
-- *      DSP_EPOINTER:   pdwID is invalid.
-- *  Requires:
-- *      CHNL_Init() called.
-- *  Ensures:
-- */
--       extern DSP_STATUS CHNL_GetId(struct CHNL_OBJECT *hChnl,
--                                    OUT u32 *pdwID);
--
--/*
-- *  ======== CHNL_GetMgr ========
-- *  Purpose:
-- *      Retrieve a channel manager handle, required for opening new channels
-- *      and closing old ones on a given board.
-- *  Parameters:
-- *      hDevNode:       A valid system specific DEVNODE handle.
-- *      phChnlMgr:      Location to store the channel manager handle on output.
-- *  Returns:
-- *      DSP_SOK:        Success.
-- *      DSP_EHANDLE:    hDevNode is invalid.
-- *      CHNL_E_NOMGR:   No channel manager exists for this board.
-- *  Requires:
-- *      CHNL_Init() called.
-- *      phChnlMgr != NULL.
-- *  Ensures:
-- *      DSP_SOK: The DSP board represented by hDevNode was in the RUNNING state
-- *            before this function returned.
-- *      else: *phChnlMgr == NULL.
-- */
--       extern DSP_STATUS CHNL_GetMgr(struct CFG_DEVNODE *hDevNode,
--                                     OUT struct CHNL_MGR **phChnlMgr);
--
--/*
-- *  ======== CHNL_GetMode ========
-- *  Purpose:
-- *      Retrieve the mode flags of this channel.
-- *  Parameters:
-- *      hChnl:              Handle to a valid channel object.
-- *      pMode:              Location to store mode flags.
-- *  Returns:
-- *      DSP_SOK:            Success;
-- *      DSP_EHANDLE:        Invalid hChnl.
-- *      DSP_EPOINTER:       pMode is invalid.
-- *  Requires:
-- *      CHNL_Init() called.
-- *  Ensures:
-- */
--       extern DSP_STATUS CHNL_GetMode(struct CHNL_OBJECT *hChnl,
--                                      OUT CHNL_MODE * pMode);
--
--/*
-- *  ======== CHNL_GetPosition ========
-- *  Purpose:
-- *      Retrieve the total number of bytes transferred on this channel.
-- *  Parameters:
-- *      hChnl:              Handle to a valid channel object.
-- *      pcPosition:         Location to store number of bytes.
-- *  Returns:
-- *      DSP_SOK:            Success;
-- *      DSP_EHANDLE:        Invalid hChnl.
-- *      DSP_EPOINTER:       pcPosition is invalid.
-- *  Requires:
-- *      CHNL_Init() called.
-- *  Ensures:
-- */
--       extern DSP_STATUS CHNL_GetPosition(struct CHNL_OBJECT *hChnl,
--                                          OUT u32 *pcPosition);
--
--/*
-- *  ======== CHNL_GetProcessHandle ========
-- *  Purpose:
-- *      Retrieve the handle of the process owning this channel.
-- *  Parameters:
-- *      hChnl:              Channel handle.
-- *      phProcess:          Location to store the process handle.  A NULL value
-- *                          indicates the channel is either closed or is not
-- *                          owned by any particular process.
-- *  Returns:
-- *      DSP_SOK:            Success;
-- *      DSP_EHANDLE:        Invalid hChnl.
-- *      DSP_EPOINTER:       phProcess is invalid.
-- *  Requires:
-- *      CHNL_Init() called.
-- *  Ensures:
-- */
--       extern DSP_STATUS CHNL_GetProcessHandle(struct CHNL_OBJECT *hChnl,
--                                               OUT HANDLE *phProcess);
-
- /*
-  *  ======== CHNL_Init ========
-@@ -487,51 +165,6 @@
-  */
-        extern bool CHNL_Init();
-
--/*
-- *  ======== CHNL_Open ========
-- *  Purpose:
-- *      Open a new half-duplex channel to the DSP board.
-- *  Parameters:
-- *      phChnl:         Location to store a channel object handle.
-- *      hChnlMgr:       Handle to channel manager, as returned by CHNL_GetMgr().
-- *      uMode:          One of {CHNL_MODETODSP, CHNL_MODEFROMDSP} specifies
-- *                      direction of data transfer.
-- *      uChnlId:        If CHNL_PICKFREE is specified, the channel manager will
-- *                      select a free channel id (default);
-- *                      otherwise this field specifies the id of the channel.
-- *      pAttrs:         Channel attributes.  Attribute fields are as follows:
-- *      pAttrs->uIOReqs: Specifies the maximum number of I/O requests which can
-- *                       be pending at any given time. All request packets are
-- *                       preallocated when the channel is opened.
-- *      pAttrs->hEvent: This field allows the user to supply an auto reset
-- *                      event object for channel I/O completion notifications.
-- *                      It is the responsibility of the user to destroy this
-- *                      object AFTER closing the channel.
-- *                      This channel event object can be retrieved using
-- *                      CHNL_GetEventHandle().
-- *      pAttrs->hReserved: The kernel mode handle of this event object.
+- *  Node types: Message node, task node, xDAIS socket node, and
+- *  device node. _NODE_GPP is used when defining a stream connection
+- *  between a task or socket node and the GPP.
 - *
-- *  Returns:
-- *      DSP_SOK:                Success.
-- *      DSP_EHANDLE:            hChnlMgr is invalid.
-- *      DSP_EMEMORY:            Insufficient memory for requested resources.
-- *      DSP_EINVALIDARG:        Invalid number of IOReqs.
-- *      CHNL_E_BADMODE:         Invalid mode argument.
-- *      CHNL_E_OUTOFSTREAMS:    No free channels available.
-- *      CHNL_E_BADCHANID:       Channel ID is out of range.
-- *      CHNL_E_CHANBUSY:        Channel is in use.
-- *  Requires:
-- *      CHNL_Init() called.
-- *      phChnl != NULL.
-- *      pAttrs != NULL.
-- *      pAttrs->hEvent is a valid event handle.
-- *  Ensures:
-- *      DSP_SOK:        *phChnl is a valid channel.
-- *      else:           *phChnl is set to NULL if (phChnl != NULL);
+- *  ~~~~~~~~~~~~~~
+- *  TO DO:
+- *  Clean up when Node Manager uses only one critical section.
+- *  ~~~~~~~~~~~~~~
 - */
--       extern DSP_STATUS CHNL_Open(OUT struct CHNL_OBJECT **phChnl,
--                                   struct CHNL_MGR *hChnlMgr, CHNL_MODE uMode,
--                                   u32 uChnlId,
--                                   CONST IN struct CHNL_ATTRS *pAttrs);
-+
-
- #endif                         /* CHNL_ */
-diff --git a/arch/arm/plat-omap/include/mach/bridge/chnlpriv.h b/arch/arm/plat-omap/include/mach/bridge/chnlpriv.h
-index f9e504c..319401e 100644
---- a/arch/arm/plat-omap/include/mach/bridge/chnlpriv.h
-+++ b/arch/arm/plat-omap/include/mach/bridge/chnlpriv.h
-@@ -110,7 +110,7 @@
-                u32 cPosition;  /* Total bytes transferred.        */
-                u32 cIOCs;      /* Number of IOCs in queue.               */
-                u32 cIOReqs;    /* Number of IO Requests in queue.        */
--               HANDLE hProcess;        /* Process owning this channel.     */
-+               u32 hProcess;   /* Process owning this channel.     */
-                /*
-                 * Name of channel I/O completion event. Not required in Linux
-                 */
-diff --git a/drivers/dsp/bridge/pmgr/chnl.c b/drivers/dsp/bridge/pmgr/chnl.c
-index def2080..ec15fb4 100644
---- a/drivers/dsp/bridge/pmgr/chnl.c
-+++ b/drivers/dsp/bridge/pmgr/chnl.c
-@@ -99,99 +99,7 @@ static u32 cRefs;
- static struct GT_Mask CHNL_DebugMask = { NULL, NULL }; /* WCD CHNL Mask */
- #endif
-
--/*  ----------------------------------- Function Prototypes */
--static DSP_STATUS GetNumOpenChannels(struct CHNL_MGR *hChnlMgr,
--                                   OUT u32 *pcOpenChannels);
-
--static DSP_STATUS GetNumChannels(struct CHNL_MGR *hChnlMgr,
--                                OUT u32 *pcChannels);
+-	enum NODE_TYPE {
+-		_NODE_DEVICE = NODE_DEVICE,
+-		_NODE_TASK = NODE_TASK,
+-		_NODE_DAISSOCKET = NODE_DAISSOCKET,
+-		_NODE_MESSAGE = NODE_MESSAGE,
+-		NODE_GPP
+-	} ;
 -
 -/*
-- *  ======== CHNL_Close ========
-- *  Purpose:
-- *      Ensures all pending I/O on this channel is cancelled, discards all
-- *      queued I/O completion notifications, then frees the resources
-- *      allocated for this channel, and makes the corresponding logical
-- *      channel id available for subsequent use.
+- *  ======== NODE_STATE ========
+- *  Internal node states.
 - */
--DSP_STATUS CHNL_Close(struct CHNL_OBJECT *hChnl)
--{
--       DSP_STATUS status;
--       struct CHNL_OBJECT_ *pChnl = (struct CHNL_OBJECT_ *)hChnl;
--       struct WMD_DRV_INTERFACE *pIntfFxns;
--
--       DBC_Require(cRefs > 0);
--
--       GT_1trace(CHNL_DebugMask, GT_ENTER,
--                 "Entered CHNL_Close:hChnl: 0x%x\n",
--                 hChnl);
--
--       if (CHNL_IsValidChnl(pChnl)) {
--               pIntfFxns = pChnl->pChnlMgr->pIntfFxns;
--               status = (*pIntfFxns->pfnChnlClose) (hChnl);
--       } else {
--               GT_0trace(CHNL_DebugMask, GT_7CLASS,
--                         "CHNL_Close:Invalid Handle\n");
--               status = DSP_EHANDLE;
--       }
--       GT_2trace(CHNL_DebugMask, GT_ENTER,
--                 "Exiting CHNL_Close:hChnl: 0x%x, status:"
--                 " 0x%x\n", hChnl, status);
--       return status;
--}
+-	enum NODE_STATE {
+-		_NODE_ALLOCATED = NODE_ALLOCATED,
+-		_NODE_CREATED = NODE_CREATED,
+-		_NODE_RUNNING = NODE_RUNNING,
+-		_NODE_PAUSED = NODE_PAUSED,
+-		_NODE_DONE = NODE_DONE,
+-		NODE_CREATING,
+-		NODE_STARTING,
+-		NODE_PAUSING,
+-		NODE_TERMINATING,
+-		NODE_DELETING,
+-	} ;
 -
 -/*
-- *  ======== CHNL_CloseOrphans ========
-- *  Purpose:
-- *      Close open channels orphaned by a closing process.
-- */
--DSP_STATUS CHNL_CloseOrphans(struct CHNL_MGR *hChnlMgr, HANDLE hProcess)
--{
--       u32 uChnlID;
--       DSP_STATUS status = DSP_SFALSE;
--       HANDLE hProc;
--       u32 cOpenChannels;
--       u32 cTotalChnls;
--       struct CHNL_OBJECT *hChnl;
--
--       DBC_Require(cRefs > 0);
--
--       GT_2trace(CHNL_DebugMask, GT_ENTER,
--                 "Enter CHNL_CloseOrphans hChnlMgr "
--                 "0x%x\t\nhProcess: 0x%x\n", hChnlMgr, hProcess);
--       if (!CHNL_IsValidMgr((struct CHNL_MGR_ *)hChnlMgr)) {
--               status = DSP_EHANDLE;
--               goto func_end;
--       }
--       if (DSP_SUCCEEDED(GetNumOpenChannels(hChnlMgr, &cOpenChannels)) &&
--                        (cOpenChannels > 0)) {
--               if (DSP_FAILED(GetNumChannels(hChnlMgr, &cTotalChnls)))
--                       goto func_end;
--
--               /* For each channel (except for RMS), get process handle: */
--               for (uChnlID = 2; uChnlID < cTotalChnls; uChnlID++) {
--                       if (DSP_FAILED(CHNL_GetHandle(hChnlMgr, uChnlID,
--                           &hChnl))) {
--                               continue;
--                       }
--                       if (DSP_FAILED(CHNL_GetProcessHandle(hChnl,
--                           &hProc))) {
--                               continue;
--                       }
--                       /* See if channel owned by this process: */
--                       if (hProc == hProcess) {
--                               /* If so, close it now. */
--                               CHNL_Close(hChnl);
--                               status = DSP_SOK;
--                       }
--               }
--       }
--func_end:
--       GT_1trace(CHNL_DebugMask, GT_ENTER, "CHNL_CloseOrphans status 0x%x\n",
--                 status);
--
--       return status;
--}
-
- /*
-  *  ======== CHNL_Create ========
-@@ -320,84 +228,6 @@ void CHNL_Exit(void)
-        DBC_Ensure(cRefs >= 0);
+  *  ======== NODE_GetChannelId ========
+  *  Purpose:
+  *      Get the channel index reserved for a stream connection between the
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index e17ee70..e3dd595 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -164,8 +164,8 @@ struct omap34xx_bridge_suspend_data {
+ 
+ static struct omap34xx_bridge_suspend_data bridge_suspend_data;
+ 
+-int omap34xxbridge_suspend_lockout(struct omap34xx_bridge_suspend_data *s,
+-				  struct file *f)
++static int omap34xxbridge_suspend_lockout(
++		struct omap34xx_bridge_suspend_data *s, struct file *f)
+ {
+ 	if ((s)->suspended) {
+ 		if ((f)->f_flags & O_NONBLOCK)
+@@ -227,7 +227,7 @@ static struct file_operations bridge_fops = {
+ };
+ 
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+-u32 timeOut = 1000;
++static u32 timeOut = 1000;
+ 
+ static int bridge_suspend(struct platform_device *pdev, pm_message_t state);
+ static int bridge_resume(struct platform_device *pdev);
+@@ -354,9 +354,6 @@ static int __init bridge_init(void)
+ 	u32 temp;
+ 	dev_t   dev = 0 ;
+ 	int     result;
+-#ifndef CONFIG_OMAP3_PM
+-	u32 retvalue = 0;
+-#endif
+ 
+ 	/* use 2.6 device model */
+ 	if (driver_major) {
+@@ -510,8 +507,7 @@ static int __init bridge_init(void)
+ 			GT_0trace(driverTrace, GT_7CLASS,
+ 			"clk_get PASS to get iva2_ck \n");
+ 		}
+-		retvalue = clk_notifier_register(clk_handle, &iva_clk_notifier);
+-		if (!retvalue) {
++		if (!clk_notifier_register(clk_handle, &iva_clk_notifier)) {
+ 			GT_0trace(driverTrace, GT_7CLASS,
+ 			"clk_notifier_register PASS for iva2_ck \n");
+ 		} else {
+@@ -548,17 +544,13 @@ static void __exit bridge_exit(void)
+ {
+ 	dev_t devno;
+ 	bool ret;
+-#ifndef CONFIG_OMAP3_PM
+-	u32 retvalue = 0;
+-#endif
+ 	GT_0trace(driverTrace, GT_ENTER, "-> driver_exit\n");
+ 
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
+ 	/* remove the constraints */
+ #ifndef CONFIG_OMAP3_PM
+-	retvalue = clk_notifier_unregister(clk_handle, &iva_clk_notifier);
+-	if (!retvalue) {
++	if (!clk_notifier_unregister(clk_handle, &iva_clk_notifier)) {
+ 		GT_0trace(driverTrace, GT_7CLASS,
+ 		"clk_notifier_unregister PASS for iva2_ck \n");
+ 	} else {
+diff --git a/drivers/dsp/bridge/rmgr/dspdrv.c b/drivers/dsp/bridge/rmgr/dspdrv.c
+index eb5a8d7..77a4f49 100644
+--- a/drivers/dsp/bridge/rmgr/dspdrv.c
++++ b/drivers/dsp/bridge/rmgr/dspdrv.c
+@@ -211,8 +211,8 @@ func_cont:
+ 	} else {
+ 		GT_0trace(curTrace, GT_7CLASS, "DSP_Init Failed\n");
+ 	}			/* End WCD_InitComplete2 */
+-	DBC_Ensure((DSP_SUCCEEDED(status) && drvObject > 0) ||
+-		  (DSP_FAILED(status) && drvObject == 0));
++	DBC_Ensure((DSP_SUCCEEDED(status) && drvObject != NULL) ||
++		  (DSP_FAILED(status) && drvObject == NULL));
+ 	*initStatus = status;
+ 	/* Return the Driver Object */
+ 	return (u32)drvObject;
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index 9fe9edd..e8de8a1 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -876,8 +876,8 @@ DSP_STATUS PROC_GetDevObject(DSP_HPROCESSOR hProcessor,
+ 		*phDevObject = NULL;
+ 	}
+ 
+-	DBC_Ensure((DSP_SUCCEEDED(status) && *phDevObject > 0) ||
+-		   (DSP_FAILED(status) && *phDevObject == 0));
++	DBC_Ensure((DSP_SUCCEEDED(status) && *phDevObject != NULL) ||
++		   (DSP_FAILED(status) && *phDevObject == NULL));
+ 
+ 	return status;
  }
-
--/*
-- *  ======== CHNL_GetHandle ========
-- *  Purpose:
-- *      Retrieve the channel handle given the logical ID and channel manager.
-- */
--DSP_STATUS CHNL_GetHandle(struct CHNL_MGR *hChnlMgr, u32 uChnlID,
--                         OUT struct CHNL_OBJECT **phChnl)
--{
--       DSP_STATUS status = DSP_SOK;
--       struct CHNL_MGR_ *pChnlMgr = (struct CHNL_MGR_ *)hChnlMgr;
--       struct WMD_DRV_INTERFACE *pIntfFxns;
--       struct CHNL_MGRINFO chnlMgrInfo;
--
--       DBC_Require(cRefs > 0);
--
--       GT_3trace(CHNL_DebugMask, GT_ENTER, "Entered CHNL_GetHandle: hChnlMgr: "
--                 "0x%x\tuChnlID: 0x%x\t\nphChnl: 0x%x\n", hChnlMgr, uChnlID,
--                 phChnl);
--       if (phChnl) {
--               *phChnl = NULL;
--               if (CHNL_IsValidMgr(pChnlMgr)) {
--                       pIntfFxns = pChnlMgr->pIntfFxns;
--                       status = (*pIntfFxns->pfnChnlGetMgrInfo)(hChnlMgr,
--                                 uChnlID, &chnlMgrInfo);
--                       if (DSP_SUCCEEDED(status))
--                               *phChnl = chnlMgrInfo.hChnl;
--
--               } else {
--                       status = DSP_EHANDLE;
--                       GT_0trace(CHNL_DebugMask, GT_7CLASS,
--                                 "CHNL_GetHandle:Invalid Handle\n");
--               }
--       } else {
--               status = DSP_EPOINTER;
--       }
--       GT_2trace(CHNL_DebugMask, GT_ENTER,
--                 "Exit CHNL_GetHandle: status: 0x%x\t\n"
--                 "hChnl: 0x%x\n", status, *phChnl);
--       return status;
--}
--
--/*
-- *  ======== CHNL_GetProcessHandle ========
-- *  Purpose:
-- *      Retrieve the handle of the process owning this channel.
-- */
--DSP_STATUS CHNL_GetProcessHandle(struct CHNL_OBJECT *hChnl,
--                                OUT HANDLE *phProcess)
--{
--       DSP_STATUS status = DSP_SOK;
--       struct CHNL_OBJECT_ *pChnl = (struct CHNL_OBJECT_ *)hChnl;
--       struct WMD_DRV_INTERFACE *pIntfFxns;
--       struct CHNL_INFO chnlInfo;
--
--       DBC_Require(cRefs > 0);
--
--       GT_2trace(CHNL_DebugMask, GT_ENTER,
--                 "Enter CHNL_GetProcessHandle: hChnl: "
--                 "0x%x\t\n phProcess: 0x%x\n", hChnl, phProcess);
--       if (phProcess) {
--               *phProcess = NULL;
--               if (CHNL_IsValidChnl(pChnl)) {
--                       pIntfFxns = pChnl->pChnlMgr->pIntfFxns;
--                       status = (*pIntfFxns->pfnChnlGetInfo)(hChnl, &chnlInfo);
--                       if (DSP_SUCCEEDED(status))
--                               *phProcess = chnlInfo.hProcess;
--
--               } else {
--                       status = DSP_EHANDLE;
--               }
--       } else {
--               status = DSP_EPOINTER;
--       }
--       GT_2trace(CHNL_DebugMask, GT_ENTER,
--                 "Exit CHNL_GetProcessHandle: status: "
--                 "0x%x\t\n phProcess: 0x%x\n", status, *phProcess);
--       return status;
--}
-
- /*
-  *  ======== CHNL_Init ========
-@@ -427,90 +257,4 @@ bool CHNL_Init(void)
-        return fRetval;
+diff --git a/drivers/dsp/bridge/services/kfile.c b/drivers/dsp/bridge/services/kfile.c
+index eb1a2de..d839aab 100644
+--- a/drivers/dsp/bridge/services/kfile.c
++++ b/drivers/dsp/bridge/services/kfile.c
+@@ -206,7 +206,8 @@ struct KFILE_FileObj *KFILE_Open(CONST char *pszFileName, CONST char *pszMode)
+  *      Reads a specified number of bytes into a buffer.
+  */
+ s32
+-KFILE_Read(void *pBuffer, s32 cSize, s32 cCount, struct KFILE_FileObj *hFile)
++KFILE_Read(void __user*pBuffer, s32 cSize, s32 cCount,
++			struct KFILE_FileObj *hFile)
+ {
+ 	u32 dwBytesRead = 0;
+ 	s32 cRetVal = 0;
+diff --git a/drivers/dsp/bridge/services/mem.c b/drivers/dsp/bridge/services/mem.c
+index 83ad452..a01a058 100644
+--- a/drivers/dsp/bridge/services/mem.c
++++ b/drivers/dsp/bridge/services/mem.c
+@@ -137,7 +137,7 @@ static inline void MLST_RemoveElem(struct LST_LIST *pList,
+ 	pCurElem->prev = NULL;
  }
-
--/*
-- *  ======== GetNumOpenChannels ========
-- *  Purpose:
-- *      Retrieve number of open channels
-- *  Parameters:
-- *      hChnlMgr:       Handle to a valid channel manager, or NULL.
-- *      pcOpenChannels: Location to store number of open channels.
-- *  Returns:
-- *      DSP_SOK:        Success;
-- *      DSP_EHANDLE:    Invalid hChnlMgr.
-- *      E_POINTER:      pcOpenChannels == NULL.
-- *  Requires:
-- *  Ensures:
-- *      DSP_SOK:        *pcOpenChannels points to a valid number
-- *                      if pcOpenChannels != NULL.
-- */
--static DSP_STATUS GetNumOpenChannels(struct CHNL_MGR *hChnlMgr,
--                                    OUT u32 *pcOpenChannels)
--{
--       DSP_STATUS status = DSP_SOK;
--       struct CHNL_MGR_ *pChnlMgr = (struct CHNL_MGR_ *)hChnlMgr;
--       struct WMD_DRV_INTERFACE *pIntfFxns;
--       struct CHNL_MGRINFO chnlMgrInfo;
--
--       DBC_Require(cRefs > 0);
--       if (pcOpenChannels) {
--               *pcOpenChannels = 0;
--               if (CHNL_IsValidMgr(pChnlMgr)) {
--                       pIntfFxns = pChnlMgr->pIntfFxns;
--                       status = (*pIntfFxns->pfnChnlGetMgrInfo)(hChnlMgr, 0,
--                                &chnlMgrInfo);
--                       if (DSP_SUCCEEDED(status))
--                               *pcOpenChannels = chnlMgrInfo.cOpenChannels;
--
--               } else {
--                       status = DSP_EHANDLE;
--               }
--       } else {
--               status = DSP_EPOINTER;
--       }
--       return status;
--}
--
--/*
-- *  ======== GetNumOpenChannels ========
-- *  Purpose:
-- *      Retrieve number of total channels supported.
-- *  Parameters:
-- *      hChnlMgr:       Handle to a valid channel manager, or NULL.
-- *      pcChannels:     Location to store number of channels.
-- *  Returns:
-- *      DSP_SOK:        Success;
-- *      DSP_EHANDLE:    Invalid hChnlMgr.
-- *      E_POINTER:      pcOpenChannels == NULL.
-- *  Requires:
-- *  Ensures:
-- *      DSP_SOK:        *pcChannels points to a valid number
-- *                      if pcOpenChannels != NULL.
-- */
--static DSP_STATUS GetNumChannels(struct CHNL_MGR *hChnlMgr,
--                                OUT u32 *pcChannels)
--{
--       DSP_STATUS status = DSP_SOK;
--       struct CHNL_MGR_ *pChnlMgr = (struct CHNL_MGR_ *)hChnlMgr;
--       struct WMD_DRV_INTERFACE *pIntfFxns;
--       struct CHNL_MGRINFO chnlMgrInfo;
--
--       DBC_Require(cRefs > 0);
--
--       if (pcChannels) {
--               *pcChannels = 0;
--               if (CHNL_IsValidMgr(pChnlMgr)) {
--                       pIntfFxns = pChnlMgr->pIntfFxns;
--                       status = (*pIntfFxns->pfnChnlGetMgrInfo)(hChnlMgr, 0,
--                                &chnlMgrInfo);
--                       if (DSP_SUCCEEDED(status))
--                               *pcChannels = chnlMgrInfo.cChannels;
--
--               } else {
--                       status = DSP_EHANDLE;
--               }
--       } else {
--               status = DSP_EPOINTER;
--       }
--       return status;
--}
-
-diff --git a/drivers/dsp/bridge/wmd/chnl_sm.c b/drivers/dsp/bridge/wmd/chnl_sm.c
-index 48ac099..76fc618 100644
---- a/drivers/dsp/bridge/wmd/chnl_sm.c
-+++ b/drivers/dsp/bridge/wmd/chnl_sm.c
-@@ -916,7 +916,6 @@ DSP_STATUS WMD_CHNL_Open(OUT struct CHNL_OBJECT **phChnl,
-        pChnl->cChirps = pAttrs->uIOReqs;
-        pChnl->cIOCs = 0;
-        pChnl->cIOReqs = 0;
--       /* #WinCE# Let SYNC_ create our event  */
-        status = SYNC_OpenEvent(&hSyncEvent, pSyncAttrs);
-        if (DSP_SUCCEEDED(status)) {
-                status = NTFY_Create(&pChnl->hNtfy);
---
+ 
+-void MEM_Check(void)
++static void MEM_Check(void)
+ {
+ 	struct memInfo *pMem;
+ 	struct LST_ELEM *last = &mMan.lst.head;
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
+index 5ff3670..44a65b9 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430.c
+@@ -707,7 +707,6 @@ static DSP_STATUS WMD_BRD_Stop(struct WMD_DEV_CONTEXT *hDevContext)
+ 	struct CFG_HOSTRES resources;
+ 	struct PgTableAttrs *pPtAttrs;
+ 	u32 dspPwrState;
+-	enum HW_PwrState_t pwrState;
+ 	DSP_STATUS clk_status;
+ 
+ 	DBG_Trace(DBG_ENTER, "Entering WMD_BRD_Stop:\nhDevContext: 0x%x\n",
+-- 
 1.6.0
+
