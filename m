@@ -1,79 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/5] watchdog: cleanup a bit omap_wdt.c
-Date: Sun, 21 Sep 2008 11:41:00 -0700
-Message-ID: <20080921184058.GC7961@atomide.com>
-References: <1221820359-8943-1-git-send-email-felipe.balbi@nokia.com> <200809200832.15440.david-b@pacbell.net> <20080920161111.GA9873@flint.arm.linux.org.uk> <200809201018.42127.david-b@pacbell.net> <20080920180018.GD9873@flint.arm.linux.org.uk>
+Subject: Re: OMAP support in mainline?
+Date: Sun, 21 Sep 2008 11:42:33 -0700
+Message-ID: <20080921184232.GD7961@atomide.com>
+References: <87tzcgi1gv.fsf@nokia.com> <alpine.DEB.1.00.0809160906140.21341@utopia.booyaka.com> <20080916184110.GA10733@frodo> <20080916232505.GC25885@atomide.com> <20080917082043.04c94e2d.jarkko.nikula@nokia.com> <87y71rqo43.fsf@nokia.com> <20080917165350.GF25885@atomide.com> <20080917165725.GG25885@atomide.com> <20080917203247.GP5484@flint.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55929 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56801 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751940AbYIUSia (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Sep 2008 14:38:30 -0400
+	with ESMTP id S1752048AbYIUSjy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Sep 2008 14:39:54 -0400
 Content-Disposition: inline
-In-Reply-To: <20080920180018.GD9873@flint.arm.linux.org.uk>
+In-Reply-To: <20080917203247.GP5484@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: David Brownell <david-b@pacbell.net>, Felipe Balbi <felipe.balbi@nokia.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>, Andrew Morton <akpm@linux-foundation.org>, "George G. Davis" <gdavis@mvista.com>
+Cc: Kalle Valo <kalle.valo@nokia.com>, Jarkko Nikula <jarkko.nikula@nokia.com>, Felipe Balbi <me@felipebalbi.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [080920 11:01]:
-> On Sat, Sep 20, 2008 at 10:18:41AM -0700, David Brownell wrote:
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [080917 13:33]:
+> On Wed, Sep 17, 2008 at 09:57:25AM -0700, Tony Lindgren wrote:
+> > If any ATAGs are needed, such as for the serial console, it needs to
+> > be a generic ATAG for whole arch/arm.
+> 
+> Why is it needed for serial console anyway?  We already have a cross-
+> architecture way of defining the console - it's the 'console=' argument
+> given to the kernel at boot time via the argument string.
 
-<snip snip>
+In this case the hardware changes when the device is connected to a
+service jig. The serial port won't work without an external level
+converter that is on the jig. I guess console= could set UPF_DEAD
+or something similar for 8250.c to ignore that port rather than leave
+it out of the plat_serial8250_port.
 
-> 
-> > > We're into the third day on this one driver.  If every OMAP driver takes
-> > > this long ...
-> > 
-> > That seems like a strange way to account things.  It presumes
-> > that the only time review comments should be accepted is within
-> > a day of the patch getting posted.  Regardless of whether the
-> > reviewer has time at that point.
-> 
-> You define accounting for things in real time as "strange" - lol.  Your
-> following sentences don't follow either.
-> 
-> My point is that we currently have a BIG problem, and that is the OMAP
-> fork being so far out of line with mainline, it isn't funny.  It's
-> causing lots of pain for everyone here.  Folk are screaming for mainline
-> to be buildable for OMAP.
-> 
-> There are two approaches to achieve that: take each driver, polish it
-> for weeks on end until it's nice and shiney, and then submit it upstream.
-> Eventually, given enough man hours, you'll get to the point where you've
-> pushed everything upstream, but in the mean time, new work has been
-> queued so you need to start at the beginning again.  You've got a job
-> for life constantly polishing code.
-> 
-> The other approach is to decide that we have what we have, and that in
-> the interests of efficiently reducing divergence, merging the upstream
-> changes with the downstream changes and pushing the result upstream ASAP.
-> Once merged, further improvements and cleanups can be made by pushing
-> them separately upstream along with any other bug fixes.
-> 
-> Given the amount of divergence, the only approach which gives realistic
-> progress is the second one.
-> 
-> If you think the first approach is the way to go, then please join in
-> with Tony and myself reviewing the _entire_ OMAP tree, polishing every
-> patch, and pushing it upstream.  And I mean _everything_.  Not just the
-> USB stuff.  Encourage everyone else to do the same - because it will
-> take an army of individuals to make any forward progress.
-
-Hey, you gotta give Dave some credit! Dave's been polishing tons of omap
-code in addition to the USB, at least I2C, gpio, SPI come to mind. Not to
-mention all the blinking leds!
-
-Regarding getting and army of people to fix code, we need to start
-following another standard policy: All drivers must have a MAINTAINER
-who is capable of fixing things, and ideally doing things the right
-way from the start.
-
-It's not going to be enough that few people try to fix stuff and get
-burnt out on it over and over again when new omaps come around every
-1.5 years.
-
-<snip snip>
+Regards,
 
 Tony
