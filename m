@@ -1,48 +1,37 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.27-rc6-omap] hsmmc: request_irq says which controller is involved
-Date: Sun, 21 Sep 2008 14:16:14 -0700
-Message-ID: <200809211416.14496.david-b@pacbell.net>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [rfc] [patch] clean up to ehci-omap (Was: Re: [patch] omap: usb:
+ ehci: fix use of hcd->regs)
+Date: Sun, 21 Sep 2008 17:28:58 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0809211726590.16972@utopia.booyaka.com>
+References: <20080912121024.GG759@gandalf.research.nokia.com> <20080912182255.GD7132@frodo> <20080912183819.GE7132@frodo> <200809121216.27116.david-b@pacbell.net> <20080912192158.GG10675@atomide.com> <20080912192809.GF7132@frodo> <20080912193534.GH7132@frodo>
+ <FCCFB4CDC6E5564B9182F639FC356087022A25316B@dbde02.ent.ti.com> <20080914185721.GB6943@frodo> <5A47E75E594F054BAF48C5E4FC4B92AB02C4348928@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:41246 "HELO
-	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752822AbYIUVUU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 21 Sep 2008 17:20:20 -0400
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:60538 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751971AbYIUX27 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Sep 2008 19:28:59 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02C4348928@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "me@felipebalbi.com" <me@felipebalbi.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Make the hsmmc driver irq requests say which controller they're
-associated with (e.g. "mmc0") so /proc/interrupts is more useful.
+Hello Anand,
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+On Thu, 18 Sep 2008, Gadiyar, Anand wrote:
 
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -908,8 +908,8 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
- 			OMAP_HSMMC_READ(host->base, HCTL) | SDBP);
- 
- 	/* Request IRQ for MMC operations */
--	ret = request_irq(host->irq, mmc_omap_irq, IRQF_DISABLED, pdev->name,
--			 host);
-+	ret = request_irq(host->irq, mmc_omap_irq, IRQF_DISABLED,
-+			mmc_hostname(mmc), host);
- 	if (ret) {
- 		dev_dbg(mmc_dev(host->mmc), "Unable to grab HSMMC IRQ\n");
- 		goto err_irq;
-@@ -918,8 +918,8 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
- 	/* Request IRQ for card detect */
- 	if ((mmc_slot(host).card_detect_irq) && (mmc_slot(host).card_detect)) {
- 		ret = request_irq(mmc_slot(host).card_detect_irq,
--				  omap_mmc_cd_handler, IRQF_DISABLED, "MMC CD",
--				  host);
-+				  omap_mmc_cd_handler, IRQF_DISABLED,
-+				  mmc_hostname(mmc), host);
- 		if (ret) {
- 			dev_dbg(mmc_dev(host->mmc),
- 				"Unable to grab MMC CD IRQ\n");
+> Ideally the clock framework should be taking care of enabling DPLL5 when 
+> the corresponding clocks are enabled, but this does not happen today.
+
+It will do that now; but what it will not do is set DPLL5's rate 
+correctly.
+
+> @ Paul,
+> 	Would it be possible for you to look at this please?
+
+Yes, will send patches for this soon.
+
+
+- Paul
