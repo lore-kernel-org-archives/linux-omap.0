@@ -1,7 +1,7 @@
-From: "Felipe Contreras" <felipe.contreras@gmail.com>
-Subject: Re: OMAP support in mainline?
-Date: Sun, 21 Sep 2008 18:02:57 +0300
-Message-ID: <94a0d4530809210802ua99461s71c57fe722758c4a@mail.gmail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: OMAP support in mainline?
+Date: Sun, 21 Sep 2008 11:34:00 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE896716203657CAEC8@dlee02.ent.ti.com>
 References: <87tzcgi1gv.fsf@nokia.com>
 	 <5e088bd90809170524s6cfae9b9ye1379f11afb5bb79@mail.gmail.com>
 	 <8192948C-751F-4C1C-B382-E381F903CC46@student.utwente.nl>
@@ -12,55 +12,49 @@ References: <87tzcgi1gv.fsf@nokia.com>
 	 <13B9B4C6EF24D648824FF11BE896716203657701DB@dlee02.ent.ti.com>
 	 <1221814185.31752.11.camel@localhost>
 	 <13B9B4C6EF24D648824FF11BE896716203657CA5E8@dlee02.ent.ti.com>
+ <94a0d4530809210802ua99461s71c57fe722758c4a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.239]:28781 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751823AbYIUPDA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Sep 2008 11:03:00 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so1189691rvb.1
-        for <linux-omap@vger.kernel.org>; Sun, 21 Sep 2008 08:02:57 -0700 (PDT)
-In-Reply-To: <13B9B4C6EF24D648824FF11BE896716203657CA5E8@dlee02.ent.ti.com>
-Content-Disposition: inline
+Received: from comal.ext.ti.com ([198.47.26.152]:42803 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751739AbYIUQeQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 21 Sep 2008 12:34:16 -0400
+In-Reply-To: <94a0d4530809210802ua99461s71c57fe722758c4a@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>
 Cc: "igor.stoppa@nokia.com" <igor.stoppa@nokia.com>, Koen Kooi <k.kooi@student.utwente.nl>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>
 
-On Fri, Sep 19, 2008 at 4:50 PM, Woodruff, Richard <r-woodruff2@ti.com> wrote:
-> Hi Igor,
->
->> -----Original Message-----
->> > Where do you think the lineage of the hardware and software is?  Do
->> you believe it just jumped into being in open source?  All hardware and
->> software is full of deliberate design and hacks. Its true cooperate
->> design constraints are driven by the bottom line and for some in open
->> source it is not.
->>
->> Getting the HW to work somewhere is not good enough. It must be
->> supported in mainline, the more code you generate out of mainline, the
->> less likely anybody can get it to work after a while and it slows down
->> everybody.
->
-> Sure. In this case I'm just airing some frustration. It is not like some version of this isn't already shipping years back in N800. Rapid development/advancement is great but there should be a working spot which isn't by just by chance.
->
-> In this case a tree is just like a branch.  We have done some new development outside on this branch to enable a new dma mode to boost performance.  Hopefully that will be folded back in before too much time. I think I've seen a patch even. In the past we would have just 2x the performance on some old kernel and made it available.  But probably so out of phase you really had to work to get it.  Today using a current tree it is there and there is a lot better chance we or some community person will push it back.
-
-Nobody cares about tree vs branch, the problem is that the branch is
-forked from way back in the history.
-
-If you want your changes to be merged you need to rebase continuously,
-and not have a single ompazoom branch, but many. That way people can
-pick the patches they are interested in.
-
-The difference is a branch for changes to-be-merged vs a fork.
-
-For the vast majority of people, code that is not in upstream, is code
-that doesn't exist. That's why good branches should be temporal forks;
-as short in time as possible. Permanent forks go against
-collaboration.
-
--- 
-Felipe Contreras
+DQo+IEZyb206IEZlbGlwZSBDb250cmVyYXMgW21haWx0bzpmZWxpcGUuY29udHJlcmFzQGdtYWls
+LmNvbV0NCj4gU2VudDogU3VuZGF5LCBTZXB0ZW1iZXIgMjEsIDIwMDggMTA6MDMgQU0NCg0KPiA+
+IEluIHRoaXMgY2FzZSBhIHRyZWUgaXMganVzdCBsaWtlIGEgYnJhbmNoLiAgV2UgaGF2ZSBkb25l
+IHNvbWUgbmV3DQo+IGRldmVsb3BtZW50IG91dHNpZGUgb24gdGhpcyBicmFuY2ggdG8gZW5hYmxl
+IGEgbmV3IGRtYSBtb2RlIHRvIGJvb3N0DQo+IHBlcmZvcm1hbmNlLiAgSG9wZWZ1bGx5IHRoYXQg
+d2lsbCBiZSBmb2xkZWQgYmFjayBpbiBiZWZvcmUgdG9vIG11Y2ggdGltZS4NCj4gSSB0aGluayBJ
+J3ZlIHNlZW4gYSBwYXRjaCBldmVuLiBJbiB0aGUgcGFzdCB3ZSB3b3VsZCBoYXZlIGp1c3QgMngg
+dGhlDQo+IHBlcmZvcm1hbmNlIG9uIHNvbWUgb2xkIGtlcm5lbCBhbmQgbWFkZSBpdCBhdmFpbGFi
+bGUuICBCdXQgcHJvYmFibHkgc28NCj4gb3V0IG9mIHBoYXNlIHlvdSByZWFsbHkgaGFkIHRvIHdv
+cmsgdG8gZ2V0IGl0LiAgVG9kYXkgdXNpbmcgYSBjdXJyZW50DQo+IHRyZWUgaXQgaXMgdGhlcmUg
+YW5kIHRoZXJlIGlzIGEgbG90IGJldHRlciBjaGFuY2Ugd2Ugb3Igc29tZSBjb21tdW5pdHkNCj4g
+cGVyc29uIHdpbGwgcHVzaCBpdCBiYWNrLg0KDQpJIGFncmVlIHdpdGggdGhlIHdheSB5b3UgaGF2
+ZSBwdXQgdGhpcy4gIElkZWFsbHkgc2hvcnQgYnJhbmNoZXMgZnJvbSBhIGNlbnRyYWwgcm9vdCB3
+b3VsZCBiZSBiZXN0Lg0KDQpQYXJ0IG9mIHRoZSBjaGFsbGVuZ2UgaGVyZSBpcyB3ZSB3b3VsZCBo
+YXZlIHdvcmtlZCBmb3Igb3ZlciBhIHllYXIgYmVmb3JlIGNoaXAgc3BlY2lmaWNhdGlvbnMgYXJl
+IHJlbGVhc2FibGUuIEhhdmluZyBhIHdheSB0byBhYnNvcmIgdGhlIGZ1bmN0aW9uYWwgcGFydHMg
+b2YgdGhhdCB0aW1lIGlzIHNvbWV0aGluZyBub3QgZWFzaWx5IGRvbmUuICBUaGF0IGlzIG5vdCB0
+byBzYXkgd2UgaGF2ZSBkb25lIGl0IGluIHRoZSBiZXN0IG9yIG9ubHkgd2F5LiAgSXQgaXMgbm90
+IGFsd2F5cyBjb21wbGV0ZWx5IGRvbmUgZm9yIHRoYXQgbWF0dGVyLg0KDQpGb3IgdGhlIGxlZ2Fj
+eSBkcml2ZXJzIG9yIG5ldyBzaW1wbGUgb25lcyBrZWVwaW5nIGluIHN5bmMgb3IgcmVzeW5jJ2lu
+ZyBtYWtlcyBzZW5zZS4gIEl0IGlzIGFsd2F5cyB0aGUgcmlnaHQgYW5zd2VyLiBGb3IgbG9uZyBs
+ZWFkIHRpbWUgdGhpbmdzIGxpa2UgSVNQLWNhbWVyYSwgYnJpZGdlLCBkaXNwbGF5LCBwb3dlciBp
+dHMgcmVhbGx5IGhhcmQuIEVhY2ggb2YgdGhvc2Ugc3lzdGVtcyB0YWtlcyBhIG11bHRpLXllYXIg
+Zm9jdXMganVzdCB0byBnZXQgaXQgd29ya2luZyB3aXRoIG1vc3QgZnVuY3Rpb25hbGl0eS4gIFRo
+ZXJlIHJlYWxseSBpc24ndCBhIHNob3J0IGN1dCBmb3Igc29tZSBvZiB0aGVzZS4NCg0KSW4gdGhl
+c2UgYXJlYXMgdGhlcmUgdXN1YWxseSBpcyBzb21lb25lIHdpbGxpbmcgdG8ganVtcCBpbiB3aXRo
+IHRoZWlyIG93biByZWFzb25zLiBCdXQgdW5sZXNzIHRoZXkgcmVhbGx5IGFyZSBjYXBhYmxlLCBz
+dXBwb3J0ZWQgYW5kIHdpbGxpbmcgdG8gZGV2b3RlIDEuNSB5ZWFycyBjaGFuY2VzIGFyZSB0aGV5
+IGNhbiBub3QgZGVsaXZlci4gVGhlcmUgaXMgYSByZWFsIGRhbmdlciBvZiBuZXZlciBnZXR0aW5n
+IGl0IGRvbmUuDQoNClJlZ2FyZHMsDQpSaWNoYXJkIFcuDQoNCg==
