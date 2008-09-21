@@ -1,60 +1,79 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: OMAP support in mainline?
-Date: Sun, 21 Sep 2008 11:34:00 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE896716203657CAEC8@dlee02.ent.ti.com>
-References: <87tzcgi1gv.fsf@nokia.com>
-	 <5e088bd90809170524s6cfae9b9ye1379f11afb5bb79@mail.gmail.com>
-	 <8192948C-751F-4C1C-B382-E381F903CC46@student.utwente.nl>
-	 <20080918095537.GD28615@gandalf.research.nokia.com>
-	 <DC3E0288-2605-450F-9E54-9B170B7669C9@student.utwente.nl>
-	 <FCCFB4CDC6E5564B9182F639FC356087022A3162A3@dbde02.ent.ti.com>
-	 <1221738810.3873.37.camel@localhost>
-	 <13B9B4C6EF24D648824FF11BE896716203657701DB@dlee02.ent.ti.com>
-	 <1221814185.31752.11.camel@localhost>
-	 <13B9B4C6EF24D648824FF11BE896716203657CA5E8@dlee02.ent.ti.com>
- <94a0d4530809210802ua99461s71c57fe722758c4a@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] watchdog: another ioremap() fix
+Date: Sun, 21 Sep 2008 11:20:09 -0700
+Message-ID: <20080921182008.GB7961@atomide.com>
+References: <1221746146-18252-1-git-send-email-felipe.balbi@nokia.com> <200809181003.16664.david-b@pacbell.net> <20080918195007.GA14307@flint.arm.linux.org.uk> <200809181310.49569.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42803 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751739AbYIUQeQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 21 Sep 2008 12:34:16 -0400
-In-Reply-To: <94a0d4530809210802ua99461s71c57fe722758c4a@mail.gmail.com>
-Content-Language: en-US
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59200 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751052AbYIUSRk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Sep 2008 14:17:40 -0400
+Content-Disposition: inline
+In-Reply-To: <200809181310.49569.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "igor.stoppa@nokia.com" <igor.stoppa@nokia.com>, Koen Kooi <k.kooi@student.utwente.nl>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, gdavis@mvista.com, wim@iguana.be
 
-DQo+IEZyb206IEZlbGlwZSBDb250cmVyYXMgW21haWx0bzpmZWxpcGUuY29udHJlcmFzQGdtYWls
-LmNvbV0NCj4gU2VudDogU3VuZGF5LCBTZXB0ZW1iZXIgMjEsIDIwMDggMTA6MDMgQU0NCg0KPiA+
-IEluIHRoaXMgY2FzZSBhIHRyZWUgaXMganVzdCBsaWtlIGEgYnJhbmNoLiAgV2UgaGF2ZSBkb25l
-IHNvbWUgbmV3DQo+IGRldmVsb3BtZW50IG91dHNpZGUgb24gdGhpcyBicmFuY2ggdG8gZW5hYmxl
-IGEgbmV3IGRtYSBtb2RlIHRvIGJvb3N0DQo+IHBlcmZvcm1hbmNlLiAgSG9wZWZ1bGx5IHRoYXQg
-d2lsbCBiZSBmb2xkZWQgYmFjayBpbiBiZWZvcmUgdG9vIG11Y2ggdGltZS4NCj4gSSB0aGluayBJ
-J3ZlIHNlZW4gYSBwYXRjaCBldmVuLiBJbiB0aGUgcGFzdCB3ZSB3b3VsZCBoYXZlIGp1c3QgMngg
-dGhlDQo+IHBlcmZvcm1hbmNlIG9uIHNvbWUgb2xkIGtlcm5lbCBhbmQgbWFkZSBpdCBhdmFpbGFi
-bGUuICBCdXQgcHJvYmFibHkgc28NCj4gb3V0IG9mIHBoYXNlIHlvdSByZWFsbHkgaGFkIHRvIHdv
-cmsgdG8gZ2V0IGl0LiAgVG9kYXkgdXNpbmcgYSBjdXJyZW50DQo+IHRyZWUgaXQgaXMgdGhlcmUg
-YW5kIHRoZXJlIGlzIGEgbG90IGJldHRlciBjaGFuY2Ugd2Ugb3Igc29tZSBjb21tdW5pdHkNCj4g
-cGVyc29uIHdpbGwgcHVzaCBpdCBiYWNrLg0KDQpJIGFncmVlIHdpdGggdGhlIHdheSB5b3UgaGF2
-ZSBwdXQgdGhpcy4gIElkZWFsbHkgc2hvcnQgYnJhbmNoZXMgZnJvbSBhIGNlbnRyYWwgcm9vdCB3
-b3VsZCBiZSBiZXN0Lg0KDQpQYXJ0IG9mIHRoZSBjaGFsbGVuZ2UgaGVyZSBpcyB3ZSB3b3VsZCBo
-YXZlIHdvcmtlZCBmb3Igb3ZlciBhIHllYXIgYmVmb3JlIGNoaXAgc3BlY2lmaWNhdGlvbnMgYXJl
-IHJlbGVhc2FibGUuIEhhdmluZyBhIHdheSB0byBhYnNvcmIgdGhlIGZ1bmN0aW9uYWwgcGFydHMg
-b2YgdGhhdCB0aW1lIGlzIHNvbWV0aGluZyBub3QgZWFzaWx5IGRvbmUuICBUaGF0IGlzIG5vdCB0
-byBzYXkgd2UgaGF2ZSBkb25lIGl0IGluIHRoZSBiZXN0IG9yIG9ubHkgd2F5LiAgSXQgaXMgbm90
-IGFsd2F5cyBjb21wbGV0ZWx5IGRvbmUgZm9yIHRoYXQgbWF0dGVyLg0KDQpGb3IgdGhlIGxlZ2Fj
-eSBkcml2ZXJzIG9yIG5ldyBzaW1wbGUgb25lcyBrZWVwaW5nIGluIHN5bmMgb3IgcmVzeW5jJ2lu
-ZyBtYWtlcyBzZW5zZS4gIEl0IGlzIGFsd2F5cyB0aGUgcmlnaHQgYW5zd2VyLiBGb3IgbG9uZyBs
-ZWFkIHRpbWUgdGhpbmdzIGxpa2UgSVNQLWNhbWVyYSwgYnJpZGdlLCBkaXNwbGF5LCBwb3dlciBp
-dHMgcmVhbGx5IGhhcmQuIEVhY2ggb2YgdGhvc2Ugc3lzdGVtcyB0YWtlcyBhIG11bHRpLXllYXIg
-Zm9jdXMganVzdCB0byBnZXQgaXQgd29ya2luZyB3aXRoIG1vc3QgZnVuY3Rpb25hbGl0eS4gIFRo
-ZXJlIHJlYWxseSBpc24ndCBhIHNob3J0IGN1dCBmb3Igc29tZSBvZiB0aGVzZS4NCg0KSW4gdGhl
-c2UgYXJlYXMgdGhlcmUgdXN1YWxseSBpcyBzb21lb25lIHdpbGxpbmcgdG8ganVtcCBpbiB3aXRo
-IHRoZWlyIG93biByZWFzb25zLiBCdXQgdW5sZXNzIHRoZXkgcmVhbGx5IGFyZSBjYXBhYmxlLCBz
-dXBwb3J0ZWQgYW5kIHdpbGxpbmcgdG8gZGV2b3RlIDEuNSB5ZWFycyBjaGFuY2VzIGFyZSB0aGV5
-IGNhbiBub3QgZGVsaXZlci4gVGhlcmUgaXMgYSByZWFsIGRhbmdlciBvZiBuZXZlciBnZXR0aW5n
-IGl0IGRvbmUuDQoNClJlZ2FyZHMsDQpSaWNoYXJkIFcuDQoNCg==
+* David Brownell <david-b@pacbell.net> [080918 13:11]:
+> On Thursday 18 September 2008, Russell King - ARM Linux wrote:
+> > What I say to Tony: do you want OMAP to be merged into mainline, or
+> > don't you. =A0If you do, do _not_ accept this patch but get the cha=
+nges
+> > already in your tree for omap_wdt.c up to Wim, and then get this pa=
+tch
+> > there. =A0Provide the carrot by getting the driver up to date in ma=
+inline,
+> > and the stick by only accepting patches for this driver once they'v=
+e
+> > been acked by Wim. =A0Explicitly ask Wim to ack them for you.
+> >=20
+> > Then you have one less driver to worry about constantly being out o=
+f
+> > date with mainline.
+>=20
+> That sounds like a plan.  One could go further and work
+> something like the "stable" tree ... not merging into the
+> OMAP tree until the patch is merged, or at least queued,
+> for upstream.  Minimal exceptions, if any.  (And not for
+> this watchdog!)
+>=20
+> That should be workable for most drivers; sometimes with
+> a few arch/arm/plat-omap/include/mach/*.h updates you may
+> need to ack.  Things like CBUS support (no framework for
+> that is upstream) are cases where it'd fail.
+>=20
+> I'm not exactly in this particular loop except as a gadfly
+> with relevant insight/background/experience, but I suspect
+> that a basic goal *MUST* be to avoid having Tony and/or
+> Russell in the loop unless it's unavoidable. =20
+
+Been offline few days, glad to see the watchdog updates moving forward =
+:)
+
+Yes I agree we should deal with drivers directly on the appropriate
+mailing lists. And then have them fall downstream to l-o tree.
+
+We can use l-o tree for testing and integration, but let's add
+a new rule like Russell is suggesting: Let's get at least an ack from
+the appropriate maintainer before we apply the patches into l-o tree.
+
+And of course we've already moved quite a bit of the driver development
+to the right mailing lists like USB (except ehci-hcd, grr) and audio.
+
+Cheers,
+
+Tony
+
+
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
