@@ -1,66 +1,150 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/5] watchdog: cleanup a bit omap_wdt.c
-Date: Mon, 22 Sep 2008 02:30:33 -0700
-Message-ID: <20080922093032.GB28866@atomide.com>
-References: <1221820359-8943-1-git-send-email-felipe.balbi@nokia.com> <200809201018.42127.david-b@pacbell.net> <20080920180018.GD9873@flint.arm.linux.org.uk> <200809211845.42990.david-b@pacbell.net> <20080922075922.GD17746@flint.arm.linux.org.uk>
+From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
+Subject: [PATCH]OMAP HDQ driver ioremap changes
+Date: Mon, 22 Sep 2008 15:45:57 +0530 (IST)
+Message-ID: <43198.192.168.10.89.1222078557.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54659 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751550AbYIVJat (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Sep 2008 05:30:49 -0400
-Content-Disposition: inline
-In-Reply-To: <20080922075922.GD17746@flint.arm.linux.org.uk>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51513 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751592AbYIVKRh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Sep 2008 06:17:37 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: David Brownell <david-b@pacbell.net>, Felipe Balbi <felipe.balbi@nokia.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>, Andrew Morton <akpm@linux-foundation.org>, "George G. Davis" <gdavis@mvista.com>
+To: tony@atomide.com, linux-omap@vger.kernel.org
+Cc: johnpol@2ka.mipt.ru
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [080922 01:00]:
-> On Sun, Sep 21, 2008 at 06:45:42PM -0700, David Brownell wrote:
-> > Review rarely happens all at once, unless very few people look at
-> > the code.  Discouraging review is *extremely* strange.
-> 
-> I'm not discouraging review.  I'm saying that making inappropriate
-> comments isn't helpful.
-> 
-> Yes, your comments are right, but are they appropriate to getting
-> the OMAP watchdog drivers updated in mainline, or are they more
-> appropriate in a general sense to all watchdog drivers, and therefore
-> should be separate from that task?
-> 
-> > > My point is that we currently have a BIG problem, and that is the OMAP
-> > > fork being so far out of line with mainline, it isn't funny.
-> > 
-> > I call it a "branch" myself; "fork" sounds confrontational.
-> 
-> Call it what you want.
-> 
-> > When more of the arch/arm/* core bits merge -- like the clock and
-> > power domain updates ISTR you wanted to hold back -- then the rest
-> > starts to make sense upstream.
-> 
-> I never said that - you're twisting my words as normal.
-> 
-> > Yes, there are two unresolved issues in patch #1 which you seem
-> > to have successfully buried with your flamage.  Easy fixes, just
-> > strike a line and truncate a path.  The sort of thing that often
-> > gets queued in the MM tree as a "fixup" and then merged into a
-> > main patch.
-> 
-> Yet again you use confrontational language, inflaming this discussion.
-> 
-> Okay, I give up.  Folk here can carry on struggling to get their code
-> into mainline with endless reviews and getting fed up with having to
-> constantly rework the code over and over again.
+Hi Tony,
 
-Hey, please don't give up. You two easily get caught into infinite
-mail loops, it's not necessarily omap related ;)
+This patch provides the HDQ driver modifications to use ioremap for the base
+address.
 
-> Clearly my views aren't welcome.
+Regards,
+Madhu
+------------------------------------------------------------------
+From: Madhusudhan Chikkature<madhu.cr@ti.com>
 
-Not true, we _really_ appreciate your comments and help. Same goes for
-Dave.
+Modifications to the driver to use ioremap for the base address.
 
-Tony
+Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
+---
+ drivers/w1/masters/omap_hdq.c |   20 ++++++++++++++------
+ 1 files changed, 14 insertions(+), 6 deletions(-)
+
+Index: linux-omap-2.6/drivers/w1/masters/omap_hdq.c
+===================================================================
+--- linux-omap-2.6.orig/drivers/w1/masters/omap_hdq.c	2008-08-18
+14:48:26.000000000 +0530
++++ linux-omap-2.6/drivers/w1/masters/omap_hdq.c	2008-09-22 14:56:28.000000000
++0530
+@@ -53,7 +53,7 @@ DECLARE_WAIT_QUEUE_HEAD(hdq_wait_queue);
+ int W1_ID;
+
+ struct hdq_data {
+-	resource_size_t		hdq_base;
++	void __iomem		*hdq_base;
+ 	struct	semaphore	hdq_semlock;
+ 	int			hdq_usecount;
+ 	struct	clk		*hdq_ick;
+@@ -100,22 +100,22 @@ static struct w1_bus_master omap_w1_mast
+ static inline u8
+ hdq_reg_in(u32 offset)
+ {
+-	return omap_readb(hdq_data->hdq_base + offset);
++	return __raw_readb(hdq_data->hdq_base + offset);
+ }
+
+ static inline u8
+ hdq_reg_out(u32 offset, u8 val)
+ {
+-	omap_writeb(val, hdq_data->hdq_base + offset);
++	__raw_writeb(val, hdq_data->hdq_base + offset);
+ 	return val;
+ }
+
+ static inline u8
+ hdq_reg_merge(u32 offset, u8 val, u8 mask)
+ {
+-	u8 new_val = (omap_readb(hdq_data->hdq_base + offset) & ~mask)
++	u8 new_val = (__raw_readb(hdq_data->hdq_base + offset) & ~mask)
+ 			| (val & mask);
+-	omap_writeb(new_val, hdq_data->hdq_base + offset);
++	__raw_writeb(new_val, hdq_data->hdq_base + offset);
+ 	return new_val;
+ }
+
+@@ -577,7 +577,7 @@ static int __init omap_hdq_probe(struct
+ 		return -ENXIO;
+ 	}
+
+-	hdq_data->hdq_base = res->start;
++	hdq_data->hdq_base = ioremap(res->start, SZ_4K);
+
+ 	/* get interface & functional clock objects */
+ 	hdq_data->hdq_ick = clk_get(&pdev->dev, "hdq_ick");
+@@ -588,12 +588,14 @@ static int __init omap_hdq_probe(struct
+ 		if (IS_ERR(hdq_data->hdq_ick)) {
+ 			ret = PTR_ERR(hdq_data->hdq_ick);
+ 			platform_set_drvdata(pdev, NULL);
++			iounmap(hdq_data->hdq_base);
+ 			kfree(hdq_data);
+ 			return ret;
+ 		}
+ 		if (IS_ERR(hdq_data->hdq_fck)) {
+ 			ret = PTR_ERR(hdq_data->hdq_fck);
+ 			platform_set_drvdata(pdev, NULL);
++			iounmap(hdq_data->hdq_base);
+ 			kfree(hdq_data);
+ 			return ret;
+ 		}
+@@ -607,6 +609,7 @@ static int __init omap_hdq_probe(struct
+ 		clk_put(hdq_data->hdq_ick);
+ 		clk_put(hdq_data->hdq_fck);
+ 		platform_set_drvdata(pdev, NULL);
++		iounmap(hdq_data->hdq_base);
+ 		kfree(hdq_data);
+ 		return -ENODEV;
+ 	}
+@@ -617,6 +620,7 @@ static int __init omap_hdq_probe(struct
+ 		clk_put(hdq_data->hdq_ick);
+ 		clk_put(hdq_data->hdq_fck);
+ 		platform_set_drvdata(pdev, NULL);
++		iounmap(hdq_data->hdq_base);
+ 		kfree(hdq_data);
+ 		return -ENODEV;
+ 	}
+@@ -631,6 +635,7 @@ static int __init omap_hdq_probe(struct
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq	< 0) {
+ 		platform_set_drvdata(pdev, NULL);
++		iounmap(hdq_data->hdq_base);
+ 		kfree(hdq_data);
+ 		return -ENXIO;
+ 	}
+@@ -642,6 +647,7 @@ static int __init omap_hdq_probe(struct
+ 		clk_put(hdq_data->hdq_ick);
+ 		clk_put(hdq_data->hdq_fck);
+ 		platform_set_drvdata(pdev, NULL);
++		iounmap(hdq_data->hdq_base);
+ 		kfree(hdq_data);
+ 		return -ENODEV;
+ 	}
+@@ -656,6 +662,7 @@ static int __init omap_hdq_probe(struct
+ 		clk_put(hdq_data->hdq_ick);
+ 		clk_put(hdq_data->hdq_fck);
+ 		platform_set_drvdata(pdev, NULL);
++		iounmap(hdq_data->hdq_base);
+ 		kfree(hdq_data);
+ 		return ret;
+ 	}
+@@ -677,6 +684,7 @@ static int omap_hdq_remove(struct platfo
+ 	clk_put(hdq_data->hdq_fck);
+ 	free_irq(INT_24XX_HDQ_IRQ, &hdq_data->hdq_semlock);
+ 	platform_set_drvdata(pdev, NULL);
++	iounmap(hdq_data->hdq_base);
+ 	kfree(hdq_data);
+
+ 	return 0;
+
+
