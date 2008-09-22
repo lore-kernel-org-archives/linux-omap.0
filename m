@@ -1,51 +1,42 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 3/5] watchdog: cleanup a bit omap_wdt.c
-Date: Sun, 21 Sep 2008 19:01:18 -0700
-Message-ID: <200809211901.19080.david-b@pacbell.net>
-References: <1221820359-8943-1-git-send-email-felipe.balbi@nokia.com> <20080920180018.GD9873@flint.arm.linux.org.uk> <20080921184058.GC7961@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH PM-0] ARM: OMAP3: HSMMC: Ensure HSMMC is fully reset on
+ boot
+Date: Sun, 21 Sep 2008 23:26:44 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0809212325320.29963@utopia.booyaka.com>
+References: <1221740552-27110-1-git-send-email-khilman@deeprootsystems.com> <20080918124501.GF28615@gandalf.research.nokia.com> <8763os3e3m.fsf@trdhcp146196.ntc.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-435621511-1222061204=:29963"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:41391 "HELO
-	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752876AbYIVCBW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 21 Sep 2008 22:01:22 -0400
-In-Reply-To: <20080921184058.GC7961@atomide.com>
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:57234 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751445AbYIVF0p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Sep 2008 01:26:45 -0400
+In-Reply-To: <8763os3e3m.fsf@trdhcp146196.ntc.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <felipe.balbi@nokia.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>, Andrew Morton <akpm@linux-foundation.org>, "George G. Davis" <gdavis@mvista.com>
+To: =?ISO-8859-15?Q?H=F6gander_Jouni?= <jouni.hogander@nokia.com>
+Cc: felipe.balbi@nokia.com, ext Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-On Sunday 21 September 2008, Tony Lindgren wrote:
-> Hey, you gotta give Dave some credit! Dave's been polishing tons of omap
-> code in addition to the USB, at least I2C, gpio, SPI come to mind. Not to
-> mention all the blinking leds!
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Blinky leds can be the first visible sign of progress!  ;)
+--155748971-435621511-1222061204=:29963
+Content-Type: TEXT/PLAIN; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+Hello Jouni,
+
+On Fri, 19 Sep 2008, H=C3=B6gander Jouni wrote:
+
+> Anyway the plan is to have some generic code which resets all omap
+> modules on boot. Maybe even configure them in a way that they do
+> not break PM (or anything else). This would make sure that omap
+> modules that do not have drivers, would still be in a known
+> state. This is planned to be implemented in tiocp code. Paul, am I in
+> line with you in this?
+
+Yes, that is the plan.
 
 
-> Regarding getting an army of people to fix code, we need to start
-> following another standard policy: All drivers must have a MAINTAINER
-> who is capable of fixing things, and ideally doing things the right
-> way from the start.
-
-Which includes pushing their code into mainline ... and getting
-acks (as you noted elsewhere) from the subsystem maintainer to
-help avoid going too far astray.
-
-In some cases that implies getting some new frameworks into mainline,
-or updating the ones that are there.  The ALSA-SOC stuff has been
-a win there, in terms of maintainable code ... the previous solution
-involved very little reuse of the funky codec and data stream code,
-while now that's far more practical.
-
-Similarly I2C driver model support, GPIO expander infrastructure,
-and SPI:  instead of scattering board-specific code in drivers all
-over the source tree, it can now be split out fairly cleanly.  That
-makes maintainers much happier.
-
-- Dave
+- Paul
+--155748971-435621511-1222061204=:29963--
