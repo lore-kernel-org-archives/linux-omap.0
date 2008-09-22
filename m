@@ -1,37 +1,57 @@
-From: kucheria.amit@gmail.com
-Subject: [PATCH 1/2] Typo fix for clock_allow_idle
-Date: Mon, 22 Sep 2008 10:23:09 +0300
-Message-ID: <1222068189-10663-1-git-send-email-kucheria.amit@gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 3/5] watchdog: cleanup a bit omap_wdt.c
+Date: Mon, 22 Sep 2008 08:59:22 +0100
+Message-ID: <20080922075922.GD17746@flint.arm.linux.org.uk>
+References: <1221820359-8943-1-git-send-email-felipe.balbi@nokia.com> <200809201018.42127.david-b@pacbell.net> <20080920180018.GD9873@flint.arm.linux.org.uk> <200809211845.42990.david-b@pacbell.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:23285 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751629AbYIVHXf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Sep 2008 03:23:35 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48606 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751841AbYIVH7x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Sep 2008 03:59:53 -0400
+Content-Disposition: inline
+In-Reply-To: <200809211845.42990.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Amit Kucheria <amit.kucheria@verdurent.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Wim Van Sebroeck <wim@iguana.be>, Andrew Morton <akpm@linux-foundation.org>, "George G. Davis" <gdavis@mvista.com>
 
-From: Amit Kucheria <amit.kucheria@verdurent.com>
+On Sun, Sep 21, 2008 at 06:45:42PM -0700, David Brownell wrote:
+> Review rarely happens all at once, unless very few people look at
+> the code.  Discouraging review is *extremely* strange.
 
-Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
----
- arch/arm/plat-omap/include/mach/pm.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+I'm not discouraging review.  I'm saying that making inappropriate
+comments isn't helpful.
 
-diff --git a/arch/arm/plat-omap/include/mach/pm.h b/arch/arm/plat-omap/include/mach/pm.h
-index e4cf1c5..15c19f0 100644
---- a/arch/arm/plat-omap/include/mach/pm.h
-+++ b/arch/arm/plat-omap/include/mach/pm.h
-@@ -131,7 +131,7 @@ void clk_deny_idle(struct clk *clk);
-  * clk_allow_idle - Counters previous clk_deny_idle
-  * @clk: clock signal handle
-  */
--void clk_deny_idle(struct clk *clk);
-+void clk_allow_idle(struct clk *clk);
- 
- extern void omap_pm_idle(void);
- extern void omap_pm_suspend(void);
--- 
-1.5.6.3
+Yes, your comments are right, but are they appropriate to getting
+the OMAP watchdog drivers updated in mainline, or are they more
+appropriate in a general sense to all watchdog drivers, and therefore
+should be separate from that task?
 
+> > My point is that we currently have a BIG problem, and that is the OMAP
+> > fork being so far out of line with mainline, it isn't funny.
+> 
+> I call it a "branch" myself; "fork" sounds confrontational.
+
+Call it what you want.
+
+> When more of the arch/arm/* core bits merge -- like the clock and
+> power domain updates ISTR you wanted to hold back -- then the rest
+> starts to make sense upstream.
+
+I never said that - you're twisting my words as normal.
+
+> Yes, there are two unresolved issues in patch #1 which you seem
+> to have successfully buried with your flamage.  Easy fixes, just
+> strike a line and truncate a path.  The sort of thing that often
+> gets queued in the MM tree as a "fixup" and then merged into a
+> main patch.
+
+Yet again you use confrontational language, inflaming this discussion.
+
+Okay, I give up.  Folk here can carry on struggling to get their code
+into mainline with endless reviews and getting fed up with having to
+constantly rework the code over and over again.
+
+Clearly my views aren't welcome.
