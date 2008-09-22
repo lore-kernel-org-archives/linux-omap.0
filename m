@@ -1,58 +1,26 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH] omap: ldp: fix compile breakage and physical/virtual address usage
-Date: Mon, 22 Sep 2008 18:10:26 +0300
-Message-ID: <1222096226-31811-2-git-send-email-felipe.balbi@nokia.com>
-References: <1222096226-31811-1-git-send-email-felipe.balbi@nokia.com>
+Subject: patch 0/1 ldp fix
+Date: Mon, 22 Sep 2008 18:10:25 +0300
+Message-ID: <1222096226-31811-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:52700 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:52699 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752586AbYIVPKy (ORCPT
+	with ESMTP id S1752585AbYIVPKy (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Sep 2008 11:10:54 -0400
-In-Reply-To: <1222096226-31811-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, Nishant Kamat <nskamat@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>
+Cc: tony@atomide.com, Nishant Kamat <nskamat@ti.com>
 
-commit bf9454a3aaf2cad2321aa8f97bfd5d8c4ebc7bf5 broke compilation
-for ldp board. The following patch fixes it. Also fixes a wrong
-cast from a void __iomem * to u32.
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- arch/arm/mach-omap2/board-ldp.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+Hi all,
 
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index 9263be9..8b0256c 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -54,9 +54,10 @@ static int __init msecure_init(void)
- 
- #ifdef CONFIG_RTC_DRV_TWL4030
- 	/* 3430ES2.0 doesn't have msecure/gpio-22 line connected to T2 */
--	if (omap_device_type() == OMAP2_DEVICE_TYPE_GP &&
-+	if (omap_type() == OMAP2_DEVICE_TYPE_GP &&
- 			system_rev < OMAP3430_REV_ES2_0) {
--		u32 msecure_pad_config_reg = omap_ctrl_base_get() + 0xA3C;
-+		void __iomem *msecure_pad_config_reg =
-+			omap_ctrl_base_get() + 0xA3C;
- 		int mux_mask = 0x04;
- 		u16 tmp;
- 
-@@ -72,10 +73,10 @@ static int __init msecure_init(void)
- 		 * TWL4030 RTC time and calender registers.
- 		 */
- 
--		tmp = omap_readw(msecure_pad_config_reg);
-+		tmp = __raw_readw(msecure_pad_config_reg);
- 		tmp &= 0xF8;	/* To enable mux mode 03/04 = GPIO_RTC */
- 		tmp |= mux_mask;/* To enable mux mode 03/04 = GPIO_RTC */
--		omap_writew(tmp, msecure_pad_config_reg);
-+		__raw_writew(tmp, msecure_pad_config_reg);
- 
- 		gpio_direction_output(TWL4030_MSECURE_GPIO, 1);
- 	}
--- 
-1.6.0.1.308.gede4c
+the following patch is compile tested only. I'm Ccing Nishant since he's
+the one who sent board-ldp.c originaly.
+
+Nishant, if you can test the patch, I'd be glad.
+
+regards,
+
+	- balbi
 
