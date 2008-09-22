@@ -1,37 +1,117 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [rfc] [patch] clean up to ehci-omap (Was: Re: [patch] omap: usb:
- ehci: fix use of hcd->regs)
-Date: Sun, 21 Sep 2008 17:28:58 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0809211726590.16972@utopia.booyaka.com>
-References: <20080912121024.GG759@gandalf.research.nokia.com> <20080912182255.GD7132@frodo> <20080912183819.GE7132@frodo> <200809121216.27116.david-b@pacbell.net> <20080912192158.GG10675@atomide.com> <20080912192809.GF7132@frodo> <20080912193534.GH7132@frodo>
- <FCCFB4CDC6E5564B9182F639FC356087022A25316B@dbde02.ent.ti.com> <20080914185721.GB6943@frodo> <5A47E75E594F054BAF48C5E4FC4B92AB02C4348928@dbde02.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 3/5] watchdog: cleanup a bit omap_wdt.c
+Date: Sun, 21 Sep 2008 18:45:42 -0700
+Message-ID: <200809211845.42990.david-b@pacbell.net>
+References: <1221820359-8943-1-git-send-email-felipe.balbi@nokia.com> <200809201018.42127.david-b@pacbell.net> <20080920180018.GD9873@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60538 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751971AbYIUX27 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Sep 2008 19:28:59 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02C4348928@dbde02.ent.ti.com>
+Received: from smtp118.sbc.mail.sp1.yahoo.com ([69.147.64.91]:34925 "HELO
+	smtp118.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753175AbYIVBpp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 21 Sep 2008 21:45:45 -0400
+In-Reply-To: <20080920180018.GD9873@flint.arm.linux.org.uk>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "me@felipebalbi.com" <me@felipebalbi.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Wim Van Sebroeck <wim@iguana.be>, Andrew Morton <akpm@linux-foundation.org>, "George G. Davis" <gdavis@mvista.com>
 
-Hello Anand,
+On Saturday 20 September 2008, Russell King - ARM Linux wrote:
+> On Sat, Sep 20, 2008 at 10:18:41AM -0700, David Brownell wrote:
+>
+> > Yet i_private gets set up *somewhere* else that field wouldn't exist.
+> > Look around; you'll see it gets used.  (My quick grep started in the
+> > USB tree, where it turns out both usbfs and gadgetfs use it.)
+> 
+> Both of which are filesystems which have more control over the lifetime
+> of the inode.  Device drivers don't have such luxuries.
 
-On Thu, 18 Sep 2008, Gadiyar, Anand wrote:
-
-> Ideally the clock framework should be taking care of enabling DPLL5 when 
-> the corresponding clocks are enabled, but this does not happen today.
-
-It will do that now; but what it will not do is set DPLL5's rate 
-correctly.
-
-> @ Paul,
-> 	Would it be possible for you to look at this please?
-
-Yes, will send patches for this soon.
+Both of them are the *kernel part* of a *user mode device driver* ...
+but regardless, that doesn't invalidate what I said (and showed!)
+about how easy it is to initialize that (even in this watchdog case).
 
 
-- Paul
+> Well, are you going to manufacture a patch to update all the watchdog
+> drivers to use your new i_private method,
+
+If Alan Cox hadn't reminded us about pending cleanups to create more
+of a real watchdog framework, I might well have done so.  The core
+update was trivial; driver updates could trickle in when convenient.
+No "flag day" needed.  But as I noted:  Not part of this patch series.
+
+
+> > > We're into the third day on this one driver.  If every OMAP driver
+> > > takes this long ...
+> > 
+> > That seems like a strange way to account things.  It  presumes
+> > that the only time review comments should be accepted is within
+> > a day of the patch getting posted.  Regardless of whether the
+> > reviewer has time at that point.
+> 
+> You define accounting for things in real time as "strange" - lol.  Your
+> following sentences don't follow either.
+
+Redefining my words doesn't help, unless you're intent on creating
+arguments instead of consensus.
+
+Review rarely happens all at once, unless very few people look at
+the code.  Discouraging review is *extremely* strange.  Most developers
+want loads more than they ever get.  Yet you complained about me
+not reviewing at the same time you did (I happened to be traveling)
+despite there being no rush to queue this.  Also strange.
+
+
+> My point is that we currently have a BIG problem, and that is the OMAP
+> fork being so far out of line with mainline, it isn't funny.
+
+I call it a "branch" myself; "fork" sounds confrontational.
+
+When more of the arch/arm/* core bits merge -- like the clock and
+power domain updates ISTR you wanted to hold back -- then the rest
+starts to make sense upstream.  Things like board support, and the
+drivers needed by those boards.
+
+
+> There are two approaches to achieve that: take each driver, polish it
+> for weeks on end until it's nice and shiney, and then submit it upstream.
+> ...
+> The other approach is to decide that we have what we have, and that in
+> the interests of efficiently reducing divergence, merging the upstream
+> changes with the downstream changes and pushing the result upstream ASAP.
+
+Those are two ends of a *spectrum* reflecting how much work to put in,
+not two different "approaches".  Between those ends are MANY other
+options.  Those two ends are rarely used.
+
+Those options include what I've always thought is the norm:  review
+drivers as part of upstream submission, and resolve most issues before
+they get merged.  (It's an acknowledged issue that resolving them later
+tends to be quite difficult...)
+
+
+There's also the issue of strategy.  One can randomly take changes
+and merge them ... possibly leaving upstream a bit chaotic.  One
+could try to merge everything at once ... unrealistic.  One could
+merge enough to meet specific functional targets ... which makes
+more sense to me.  (Example:  "2.6.28 should boot beagleboard.org
+and gumstix Overo from mainline."  That might even be achievable...)
+
+
+> > If you *really* wanted to avoid wasting time you wouldn't have
+> > replied to my previous post, which agreed that one point I raised
+> > was a non-issue for this particular patch series.
+> 
+> Wim said: "Will add patches 1 to 3 when everyone is OK with them. I
+> still saw some comments from David."
+
+Yes, there are two unresolved issues in patch #1 which you seem
+to have successfully buried with your flamage.  Easy fixes, just
+strike a line and truncate a path.  The sort of thing that often
+gets queued in the MM tree as a "fixup" and then merged into a
+main patch.
+
+- Dave
