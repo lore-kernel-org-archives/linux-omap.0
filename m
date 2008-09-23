@@ -1,112 +1,52 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: PM related problem with dispc controller
-Date: Tue, 23 Sep 2008 13:41:43 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403CD7C94AF@dbde02.ent.ti.com>
-References: <87ej3b5lsy.fsf@trdhcp146196.ntc.nokia.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PREVIEW 2] New display subsystem for OMAP2/3
+Date: Tue, 23 Sep 2008 11:19:45 +0300
+Message-ID: <1222157985.8299.38.camel@tubuntu>
+References: <1222094917.8299.33.camel@tubuntu>
+	 <20080922151045.GC8171@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60543 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751353AbYIWILp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Sep 2008 04:11:45 -0400
-In-Reply-To: <87ej3b5lsy.fsf@trdhcp146196.ntc.nokia.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:51681 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752070AbYIWITw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Sep 2008 04:19:52 -0400
+In-Reply-To: <20080922151045.GC8171@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?H=F6gander_Jouni?= <jouni.hogander@nokia.com>, ext arun c <arun.edarath@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
+
+Hi,
+
+On Mon, 2008-09-22 at 18:10 +0300, ext Tony Lindgren wrote:
+> Hi,
+> 
+> * Tomi Valkeinen <tomi.valkeinen@nokia.com> [080922 17:49]:
+> > Hi,
+> > 
+> > I sent a preview of a new display subsystem for OMAP2/3 some time ago:
+> > http://marc.info/?l=linux-omap&m=122114505030542&w=2
+> > 
+> > I now have updated it, the patches are at the same place:
+> > http://www.bat.org/~tomba/omap-dss/
+> 
+> This discussion should go to linux-fbdev-devel list. Please keep l-o
+> list Cc'd though. Also you should post the patches as a proper inline
+> series, please see git-send-email man page.
+> 
+
+Ok, I'll move it to linux-fbdev-devel.
+
+I didn't post the patches inline, as they are quite big (250k+). I
+thought there was a "rule" to put big patches to some public place, not
+to mail them.
+
+What is the proper procedure for this work? Discuss and review the
+patches on fbdevel, and mail to l-o when finalized? Or go directly to
+Linus' tree?
+
+ Tomi
 
 
-
-Thanks,
-Vaibhav Hiremath
-Senior Software Engg.
-Platform Support Products
-Texas Instruments Inc
-Ph: +91-80-25099927
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.=
-kernel.org] On Behalf Of
-> H=F6gander Jouni
-> Sent: Tuesday, September 23, 2008 1:36 PM
-> To: ext arun c
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: PM related problem with dispc controller
->=20
-> "ext arun c" <arun.edarath@gmail.com> writes:
->=20
-> > On Tue, Sep 23, 2008 at 2:49 AM, H=F6gander Jouni
-> > <jouni.hogander@nokia.com> wrote:
-> >> Hi,
-> >>
-> >> I'm debugging pm-0 branch with SDP board and seeing lots of dispc
-> >> related error printouts:
-> >>
-> >> / # <4>__ratelimit: 453 callbacks suppressed
-> >> __ratelimit: 453 callbacks suppressed
-> >> <3>omapfb omapfb: irq error status 00e2
-> >> omapfb omapfb: irq error status 00e2
-> >> <3>omapfb omapfb: irq error status 00e2
-> >> omapfb omapfb: irq error status 00e2
-> >> <3>omapfb omapfb: irq error status 00c0
-> >> omapfb omapfb: irq error status 00c0
-> >> <3>omapfb omapfb: irq error status 0062
-> >> omapfb omapfb: irq error status 0062
-> >> <3>omapfb omapfb: irq error status 00c2
-> >> omapfb omapfb: irq error status 00c2
-> >>
-> >> The error bit in all these statuses is "GFXFIFOUNDERFLOW". Is this
-> >> something that could happen e.g. in a case that mpu wake-up from w=
-fi
-> >> takes too long? I mean is there some interrupt that should be serv=
-ed
-> >> faster? Or is this taken care by sdma/hw triggering and now sdma i=
-s
-> >> not capable to fill the fifo for reason or another?
-> >>
-> >> I have cpuidle enabled and it is "forced" to select only C1 or
-> >> C0. This means tha MPU, NEON, CORE and PER are always
-> >> ON/INACTIVE. Display is also on and there is penguin logo on it. W=
-hen
-> >> I see these error messages there is also flickering on the display=
-=2E
-> >>
-> >> This far I had found that on mpu wfi something is switched off
-> >> sometimes. I can see that from consumption of SDP board. Sometimes
-> >> consumption is much lower on wfi even if the states of domains are
-> >> same. When this happens, also these omapfb irq errors begin to hap=
-pen.
-> >>
-> >> I can workaround this problem by disabling DSS_ICK AUTOIDLE. Anoth=
-er
-> >> workaround is to disable hw supervised mode for core_l3_clkdm or
-> >> core_l4_clkdm.
-> >
-> > Try disabling the smart standby feature of DISPC
->=20
-> Yes, this actually helps. I see this also as a workaround. Is the cas=
-e
-> here that L3 domain is entering some sleep state and waking it up
-> takes too long for dispc?
->=20
-
-I have seen that without ENWAKEUP flag set (1 << 2), DISPC runs into sy=
-nc lost issue.
-
-> --
-> Jouni H=F6gander
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
