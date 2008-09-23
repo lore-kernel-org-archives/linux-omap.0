@@ -1,31 +1,65 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: MMC issues with 2.6.27-rc7
-Date: Tue, 23 Sep 2008 05:31:06 +0300
-Message-ID: <20080923023103.GF10156@frodo>
-References: <94a0d4530809221402l79abae77re8b062974e1af4a3@mail.gmail.com>
-Reply-To: me@felipebalbi.com
+From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
+Subject: Re: [PATCH]OMAP HDQ driver ioremap changes
+Date: Tue, 23 Sep 2008 10:07:23 +0530
+Message-ID: <00b801c91d36$156fd5a0$LocalHost@wipultra1303>
+References: <43198.192.168.10.89.1222078557.squirrel@dbdmail.itg.ti.com> <20080922130621.GC30680@2ka.mipt.ru> <018001c91cb4$f8088a10$LocalHost@wipultra1303> <20080922132717.GR24627@gandalf.research.nokia.com> <01c201c91cb7$97e06bf0$LocalHost@wipultra1303> <20080922143741.GV24627@gandalf.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:37507 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754845AbYIWCb1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Sep 2008 22:31:27 -0400
-Content-Disposition: inline
-In-Reply-To: <94a0d4530809221402l79abae77re8b062974e1af4a3@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:42360 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750958AbYIWEhq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Sep 2008 00:37:46 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+Cc: felipe.balbi@nokia.com, Evgeniy Polyakov <johnpol@2ka.mipt.ru>, tony@atomide.com, linux-omap@vger.kernel.org
 
-On Tue, Sep 23, 2008 at 12:02:51AM +0300, Felipe Contreras wrote:
-> Hi,
+
+----- Original Message ----- 
+From: "Felipe Balbi" <felipe.balbi@nokia.com>
+To: "ext Madhusudhan Chikkature" <madhu.cr@ti.com>
+Cc: <felipe.balbi@nokia.com>; "Evgeniy Polyakov" <johnpol@2ka.mipt.ru>; <tony@atomide.com>; <linux-omap@vger.kernel.org>
+Sent: Monday, September 22, 2008 8:07 PM
+Subject: Re: [PATCH]OMAP HDQ driver ioremap changes
+
+
+> On Mon, Sep 22, 2008 at 07:01:57PM +0530, ext Madhusudhan Chikkature wrote:
+>> 
+>> ----- Original Message ----- 
+>> From: "Felipe Balbi" <felipe.balbi@nokia.com>
+>> To: "ext Madhusudhan Chikkature" <madhu.cr@ti.com>
+>> Cc: "Evgeniy Polyakov" <johnpol@2ka.mipt.ru>; <tony@atomide.com>; <linux-omap@vger.kernel.org>
+>> Sent: Monday, September 22, 2008 6:57 PM
+>> Subject: Re: [PATCH]OMAP HDQ driver ioremap changes
+>> 
+>> 
+>> > On Mon, Sep 22, 2008 at 06:43:10PM +0530, ext Madhusudhan Chikkature wrote:
+>> >> Hi Evgeniy Polyakov,
+>> >> 
+>> >> Thanks for the comments. I will incorporate them and send the patch again. My comments inlined.
+>> > 
+>> > How about fixing it and later sending to mainline for integration ?
+>> 
+>> Yes. I will do that.
 > 
-> I just moved to 2.6.27-rc7 from rc6 and I'm having a lot of issues with MMC.
+> Really, that driver is a mess. Get the attached patch, break it into
+> proper smaller patches, see if it's really working since I just compile
+> tested, change the semaphore to mutex (in a separate patch), fix
+> comments to kernel-doc style, then you send a nice series fixing the
+> driver before sending the final driver to mainline.
+> 
+> It's time to start doing things properly. It's really annoying have to
+> keep cleaning stuff after it's in-tree.
 
-Which board is that ? I suppose it's a beagle with omap_hsmmc.c ?
+Balbi,
+Please note that the driver patches were submitted to L-o as RFC initially and all the comments provided by the community are fixed before it is pushed by Tony. 
 
-Could you git bisect and try to narrow down the patch that broke it ?
+There would be a time gap between the day the patches are submitted and before Tony pushes the patches to the tree. Any valid comments provided then would get promptly fixed. This would definetely avoid cleaning stuff which is already in tree to whatever extent it is possible.
 
--- 
-balbi
+Regards,
+Madhu
+> 
+> -- 
+> balbi
+>
