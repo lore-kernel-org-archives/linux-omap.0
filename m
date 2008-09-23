@@ -1,46 +1,70 @@
-From: Timo-Pekka Launonen <ext-timo-pekka.launonen@nokia.com>
-Subject: Power management tester
-Date: Tue, 23 Sep 2008 12:15:54 +0300
-Message-ID: <1222161355.28340.14.camel@vemppakone.ntc.nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PREVIEW 2] New display subsystem for OMAP2/3
+Date: Tue, 23 Sep 2008 12:24:46 +0300
+Message-ID: <20080923092445.GA5102@atomide.com>
+References: <1222094917.8299.33.camel@tubuntu> <20080922151045.GC8171@atomide.com> <1222157985.8299.38.camel@tubuntu> <47749FCA-154E-4203-892C-5A3544F9CDFC@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:63175 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750890AbYIWJQc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Sep 2008 05:16:32 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8N9GFbw031289
-	for <linux-omap@vger.kernel.org>; Tue, 23 Sep 2008 12:16:29 +0300
-Received: from [172.22.146.207] (trdhcp146207.ntc.nokia.com [172.22.146.207])
-	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m8N9Ft2f013368
-	for <linux-omap@vger.kernel.org>; Tue, 23 Sep 2008 12:15:55 +0300
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55570 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750838AbYIWJYv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Sep 2008 05:24:51 -0400
+Content-Disposition: inline
+In-Reply-To: <47749FCA-154E-4203-892C-5A3544F9CDFC@student.utwente.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-Hi,
+* Koen Kooi <k.kooi@student.utwente.nl> [080923 11:41]:
+>
+> Op 23 sep 2008, om 10:19 heeft Tomi Valkeinen het volgende geschreven:
+>
+>> Hi,
+>>
+>> On Mon, 2008-09-22 at 18:10 +0300, ext Tony Lindgren wrote:
+>>> Hi,
+>>>
+>>> * Tomi Valkeinen <tomi.valkeinen@nokia.com> [080922 17:49]:
+>>>> Hi,
+>>>>
+>>>> I sent a preview of a new display subsystem for OMAP2/3 some time  
+>>>> ago:
+>>>> http://marc.info/?l=linux-omap&m=122114505030542&w=2
+>>>>
+>>>> I now have updated it, the patches are at the same place:
+>>>> http://www.bat.org/~tomba/omap-dss/
+>>>
+>>> This discussion should go to linux-fbdev-devel list. Please keep l-o
+>>> list Cc'd though. Also you should post the patches as a proper inline
+>>> series, please see git-send-email man page.
+>>>
+>>
+>> Ok, I'll move it to linux-fbdev-devel.
+>>
+>> I didn't post the patches inline, as they are quite big (250k+). I
+>> thought there was a "rule" to put big patches to some public place,  
+>> not
+>> to mail them.
+>>
+>> What is the proper procedure for this work? Discuss and review the
+>> patches on fbdevel, and mail to l-o when finalized? Or go directly to
+>> Linus' tree?
+>
+> Or a branch on l-o (like pm-0)  that will get rebased when things  
+> change.
 
-there is a new project in garage.maemo.org called Power management
-tester. It is used to test that kernel and kernel modules implements
-working power management functionality. PM-tester loads kernel modules
-one by one and tests that they don't prevent suspend or dynamic sleep.
-It also verifies that all power domains are in correct state. Project
-pages could be found from https://garage.maemo.org/projects/pm-test/ and
-short wiki documentation from
-https://garage.maemo.org/plugins/wiki/index.php?id=778&type=g .
+I'd suggest discussing it on fbdevel list, and then have the necessary
+patches included into the mainline kernel via fbdevel. If you cc l-o
+list, people will have a chance to comment also.
 
-To use PM-tester kernel needs to have working power management support.
-Linux-omap tree has pm-0 branch which could be used. You need to enable
-power management support by setting CONFIG_PM=y and suspend
-CONFIG_SUSPEND=y. PM-tester also needs to have PM debug and debug fs
-enabled, CONFIG_PM_DEBUG=y and CONFIG_DEBUG_FS=y.
+Once you have an ack from the fbdevel list, we can apply the patches
+for testing into l-o tree while waiting for the patches to come down
+to l-o tree from the mainline tree.
 
-Prebuilt armel deb package can be downloaded from
-https://garage.maemo.org/frs/?group_id=778
+And of course you might want to have your own branch for the patches
+like Koen suggested. That will make it easy for people using l-o tree
+to try them out by doing a pull from your branch.
 
-Regards,
-Timo Launonen
-
-
+Tony
