@@ -1,405 +1,119 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 3/3] watchdog: cleanup a bit omap_wdt.c
-Date: Tue, 23 Sep 2008 14:33:51 +0300
-Message-ID: <1222169631-24556-4-git-send-email-felipe.balbi@nokia.com>
-References: <1222169631-24556-1-git-send-email-felipe.balbi@nokia.com>
- <1222169631-24556-2-git-send-email-felipe.balbi@nokia.com>
- <1222169631-24556-3-git-send-email-felipe.balbi@nokia.com>
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: [PATCH] OMAP3EVM: TWL4030 Keypad irq error fix
+Date: Tue, 23 Sep 2008 13:37:02 +0200
+Message-ID: <102CAAD1-D554-4CAD-B26F-DBFB2C418E9A@student.utwente.nl>
+References: <c656a4d20809192351x39f71fach7145236a9e8e0552@mail.gmail.com> <200809201022.49350.david-b@pacbell.net> <20080923110001.GL5102@atomide.com>
+Mime-Version: 1.0 (Apple Message framework v929.2)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-26--950513231"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:35144 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751216AbYIWLe2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Sep 2008 07:34:28 -0400
-In-Reply-To: <1222169631-24556-3-git-send-email-felipe.balbi@nokia.com>
+Received: from mx2.utsp.utwente.nl ([130.89.2.13]:58467 "EHLO mx.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750806AbYIWLhM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Sep 2008 07:37:12 -0400
+Received: from [172.20.1.5] (vpn006015.vpn.utwente.nl [130.89.6.15])
+          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id m8NBb4I2004172
+          for <linux-omap@vger.kernel.org>; Tue, 23 Sep 2008 13:37:05 +0200
+In-Reply-To: <20080923110001.GL5102@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>, Felipe Balbi <felipe.balbi@nokia.com>
+To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-Trivial cleanup patch.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-26--950513231
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/watchdog/omap_wdt.c |  136 +++++++++++++++++++++++++------------------
- 1 files changed, 79 insertions(+), 57 deletions(-)
 
-diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-index cfb101e..8c02fb0 100644
---- a/drivers/watchdog/omap_wdt.c
-+++ b/drivers/watchdog/omap_wdt.c
-@@ -1,5 +1,5 @@
- /*
-- * linux/drivers/watchdog/omap_wdt.c
-+ * omap_wdt.c
-  *
-  * Watchdog driver for the TI OMAP 16xx & 24xx/34xx 32KHz (non-secure) watchdog
-  *
-@@ -39,7 +39,6 @@
- #include <linux/platform_device.h>
- #include <linux/moduleparam.h>
- #include <linux/clk.h>
--
- #include <linux/bitops.h>
- #include <linux/io.h>
- #include <linux/uaccess.h>
-@@ -71,11 +70,14 @@ struct omap_wdt_dev {
- static void omap_wdt_ping(struct omap_wdt_dev *wdev)
- {
- 	void __iomem    *base = wdev->base;
-+
- 	/* wait for posted write to complete */
- 	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x08)
- 		cpu_relax();
-+
- 	wdt_trgr_pattern = ~wdt_trgr_pattern;
- 	__raw_writel(wdt_trgr_pattern, (base + OMAP_WATCHDOG_TGR));
-+
- 	/* wait for posted write to complete */
- 	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x08)
- 		cpu_relax();
-@@ -84,12 +86,13 @@ static void omap_wdt_ping(struct omap_wdt_dev *wdev)
- 
- static void omap_wdt_enable(struct omap_wdt_dev *wdev)
- {
--	void __iomem *base;
--	base = wdev->base;
-+	void __iomem *base = wdev->base;
-+
- 	/* Sequence to enable the watchdog */
- 	__raw_writel(0xBBBB, base + OMAP_WATCHDOG_SPR);
- 	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x10)
- 		cpu_relax();
-+
- 	__raw_writel(0x4444, base + OMAP_WATCHDOG_SPR);
- 	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x10)
- 		cpu_relax();
-@@ -97,12 +100,13 @@ static void omap_wdt_enable(struct omap_wdt_dev *wdev)
- 
- static void omap_wdt_disable(struct omap_wdt_dev *wdev)
- {
--	void __iomem *base;
--	base = wdev->base;
-+	void __iomem *base = wdev->base;
-+
- 	/* sequence required to disable watchdog */
- 	__raw_writel(0xAAAA, base + OMAP_WATCHDOG_SPR);	/* TIMER_MODE */
- 	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x10)
- 		cpu_relax();
-+
- 	__raw_writel(0x5555, base + OMAP_WATCHDOG_SPR);	/* TIMER_MODE */
- 	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x10)
- 		cpu_relax();
-@@ -120,12 +124,12 @@ static void omap_wdt_adjust_timeout(unsigned new_timeout)
- static void omap_wdt_set_timeout(struct omap_wdt_dev *wdev)
- {
- 	u32 pre_margin = GET_WLDR_VAL(timer_margin);
--	void __iomem *base;
--	base = wdev->base;
-+	void __iomem *base = wdev->base;
- 
- 	/* just count up at 32 KHz */
- 	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
- 		cpu_relax();
-+
- 	__raw_writel(pre_margin, base + OMAP_WATCHDOG_LDR);
- 	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
- 		cpu_relax();
-@@ -134,13 +138,11 @@ static void omap_wdt_set_timeout(struct omap_wdt_dev *wdev)
- /*
-  *	Allow only one task to hold it open
-  */
--
- static int omap_wdt_open(struct inode *inode, struct file *file)
- {
--	struct omap_wdt_dev *wdev;
--	void __iomem *base;
--	wdev = platform_get_drvdata(omap_wdt_dev);
--	base = wdev->base;
-+	struct omap_wdt_dev *wdev = platform_get_drvdata(omap_wdt_dev);
-+	void __iomem *base = wdev->base;
-+
- 	if (test_and_set_bit(1, (unsigned long *)&(wdev->omap_wdt_users)))
- 		return -EBUSY;
- 
-@@ -155,6 +157,7 @@ static int omap_wdt_open(struct inode *inode, struct file *file)
- 	/* initialize prescaler */
- 	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
- 		cpu_relax();
-+
- 	__raw_writel((1 << 5) | (PTV << 2), base + OMAP_WATCHDOG_CNTRL);
- 	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
- 		cpu_relax();
-@@ -163,13 +166,14 @@ static int omap_wdt_open(struct inode *inode, struct file *file)
- 
- 	omap_wdt_set_timeout(wdev);
- 	omap_wdt_enable(wdev);
-+
- 	return nonseekable_open(inode, file);
- }
- 
- static int omap_wdt_release(struct inode *inode, struct file *file)
- {
--	struct omap_wdt_dev *wdev;
--	wdev = file->private_data;
-+	struct omap_wdt_dev *wdev = file->private_data;
-+
- 	/*
- 	 *      Shut off the timer unless NOWAYOUT is defined.
- 	 */
-@@ -188,14 +192,15 @@ static int omap_wdt_release(struct inode *inode, struct file *file)
- 	printk(KERN_CRIT "omap_wdt: Unexpected close, not stopping!\n");
- #endif
- 	wdev->omap_wdt_users = 0;
-+
- 	return 0;
- }
- 
- static ssize_t omap_wdt_write(struct file *file, const char __user *data,
- 		size_t len, loff_t *ppos)
- {
--	struct omap_wdt_dev *wdev;
--	wdev = file->private_data;
-+	struct omap_wdt_dev *wdev = file->private_data;
-+
- 	/* Refresh LOAD_TIME. */
- 	if (len) {
- 		spin_lock(&wdt_lock);
-@@ -215,6 +220,7 @@ static long omap_wdt_ioctl(struct file *file, unsigned int cmd,
- 		.options = WDIOF_SETTIMEOUT,
- 		.firmware_version = 0,
- 	};
-+
- 	wdev = file->private_data;
- 
- 	switch (cmd) {
-@@ -253,7 +259,6 @@ static long omap_wdt_ioctl(struct file *file, unsigned int cmd,
- 	default:
- 		return -ENOTTY;
- 	}
--	return 0;
- }
- 
- static const struct file_operations omap_wdt_fops = {
-@@ -264,31 +269,37 @@ static const struct file_operations omap_wdt_fops = {
- 	.release = omap_wdt_release,
- };
- 
--
- static int __init omap_wdt_probe(struct platform_device *pdev)
- {
- 	struct resource *res, *mem;
--	int ret;
- 	struct omap_wdt_dev *wdev;
-+	int ret;
- 
- 	/* reserve static register mappings */
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res)
--		return -ENOENT;
-+	if (!res) {
-+		ret = -ENOENT;
-+		goto err_get_resource;
-+	}
- 
--	if (omap_wdt_dev)
--		return -EBUSY;
-+	if (omap_wdt_dev) {
-+		ret - EBUSY;
-+		goto err_busy;
-+	}
- 
- 	mem = request_mem_region(res->start, res->end - res->start + 1,
- 				 pdev->name);
--	if (mem == NULL)
--		return -EBUSY;
-+	if (!mem) {
-+		ret = -EBUSY;
-+		goto err_busy;
-+	}
- 
- 	wdev = kzalloc(sizeof(struct omap_wdt_dev), GFP_KERNEL);
- 	if (!wdev) {
- 		ret = -ENOMEM;
--		goto fail;
-+		goto err_kzalloc;
- 	}
-+
- 	wdev->omap_wdt_users = 0;
- 	wdev->mem = mem;
- 
-@@ -297,7 +308,7 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
- 		if (IS_ERR(wdev->armwdt_ck)) {
- 			ret = PTR_ERR(wdev->armwdt_ck);
- 			wdev->armwdt_ck = NULL;
--			goto fail;
-+			goto err_clk;
- 		}
- 	}
- 
-@@ -306,13 +317,13 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
- 		if (IS_ERR(wdev->mpu_wdt_ick)) {
- 			ret = PTR_ERR(wdev->mpu_wdt_ick);
- 			wdev->mpu_wdt_ick = NULL;
--			goto fail;
-+			goto err_clk;
- 		}
- 		wdev->mpu_wdt_fck = clk_get(&pdev->dev, "mpu_wdt_fck");
- 		if (IS_ERR(wdev->mpu_wdt_fck)) {
- 			ret = PTR_ERR(wdev->mpu_wdt_fck);
- 			wdev->mpu_wdt_fck = NULL;
--			goto fail;
-+			goto err_clk;
- 		}
- 	}
- 
-@@ -321,19 +332,19 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
- 		if (IS_ERR(wdev->mpu_wdt_ick)) {
- 			ret = PTR_ERR(wdev->mpu_wdt_ick);
- 			wdev->mpu_wdt_ick = NULL;
--			goto fail;
-+			goto err_clk;
- 		}
- 		wdev->mpu_wdt_fck = clk_get(&pdev->dev, "wdt2_fck");
- 		if (IS_ERR(wdev->mpu_wdt_fck)) {
- 			ret = PTR_ERR(wdev->mpu_wdt_fck);
- 			wdev->mpu_wdt_fck = NULL;
--			goto fail;
-+			goto err_clk;
- 		}
- 	}
- 	wdev->base = ioremap(res->start, res->end - res->start + 1);
- 	if (!wdev->base) {
- 		ret = -ENOMEM;
--		goto fail;
-+		goto err_ioremap;
- 	}
- 
- 	platform_set_drvdata(pdev, wdev);
-@@ -348,7 +359,7 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
- 
- 	ret = misc_register(&(wdev->omap_wdt_miscdev));
- 	if (ret)
--		goto fail;
-+		goto err_misc;
- 
- 	pr_info("OMAP Watchdog Timer Rev 0x%02x: initial timeout %d sec\n",
- 		__raw_readl(wdev->base + OMAP_WATCHDOG_REV) & 0xFF,
-@@ -361,28 +372,34 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
- 
- 	return 0;
- 
--fail:
--	if (wdev) {
--		platform_set_drvdata(pdev, NULL);
--		if (wdev->armwdt_ck)
--			clk_put(wdev->armwdt_ck);
--		if (wdev->mpu_wdt_ick)
--			clk_put(wdev->mpu_wdt_ick);
--		if (wdev->mpu_wdt_fck)
--			clk_put(wdev->mpu_wdt_fck);
--		iounmap(wdev->base);
--		kfree(wdev);
--	}
--	if (mem) {
--		release_mem_region(res->start, res->end - res->start + 1);
--	}
-+err_misc:
-+	platform_set_drvdata(pdev, NULL);
-+	iounmap(wdev->base);
-+
-+err_ioremap:
-+	wdev->base = NULL;
-+
-+err_clk:
-+	if (wdev->armwdt_ck)
-+		clk_put(wdev->armwdt_ck);
-+	if (wdev->mpu_wdt_ick)
-+		clk_put(wdev->mpu_wdt_ick);
-+	if (wdev->mpu_wdt_fck)
-+		clk_put(wdev->mpu_wdt_fck);
-+	kfree(wdev);
-+
-+err_kzalloc:
-+	release_mem_region(res->start, res->end - res->start + 1);
-+
-+err_busy:
-+err_get_resource:
-+
- 	return ret;
- }
- 
- static void omap_wdt_shutdown(struct platform_device *pdev)
- {
--	struct omap_wdt_dev *wdev;
--	wdev = platform_get_drvdata(pdev);
-+	struct omap_wdt_dev *wdev = platform_get_drvdata(pdev);
- 
- 	if (wdev->omap_wdt_users)
- 		omap_wdt_disable(wdev);
-@@ -390,8 +407,7 @@ static void omap_wdt_shutdown(struct platform_device *pdev)
- 
- static int omap_wdt_remove(struct platform_device *pdev)
- {
--	struct omap_wdt_dev *wdev;
--	wdev = platform_get_drvdata(pdev);
-+	struct omap_wdt_dev *wdev = platform_get_drvdata(pdev);
- 	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 
- 	if (!res)
-@@ -400,14 +416,17 @@ static int omap_wdt_remove(struct platform_device *pdev)
- 	misc_deregister(&(wdev->omap_wdt_miscdev));
- 	release_mem_region(res->start, res->end - res->start + 1);
- 	platform_set_drvdata(pdev, NULL);
-+
- 	if (wdev->armwdt_ck) {
- 		clk_put(wdev->armwdt_ck);
- 		wdev->armwdt_ck = NULL;
- 	}
-+
- 	if (wdev->mpu_wdt_ick) {
- 		clk_put(wdev->mpu_wdt_ick);
- 		wdev->mpu_wdt_ick = NULL;
- 	}
-+
- 	if (wdev->mpu_wdt_fck) {
- 		clk_put(wdev->mpu_wdt_fck);
- 		wdev->mpu_wdt_fck = NULL;
-@@ -416,6 +435,7 @@ static int omap_wdt_remove(struct platform_device *pdev)
- 
- 	kfree(wdev);
- 	omap_wdt_dev = NULL;
-+
- 	return 0;
- }
- 
-@@ -429,21 +449,23 @@ static int omap_wdt_remove(struct platform_device *pdev)
- 
- static int omap_wdt_suspend(struct platform_device *pdev, pm_message_t state)
- {
--	struct omap_wdt_dev *wdev;
--	wdev = platform_get_drvdata(pdev);
-+	struct omap_wdt_dev *wdev = platform_get_drvdata(pdev);
-+
- 	if (wdev->omap_wdt_users)
- 		omap_wdt_disable(wdev);
-+
- 	return 0;
- }
- 
- static int omap_wdt_resume(struct platform_device *pdev)
- {
--	struct omap_wdt_dev *wdev;
--	wdev = platform_get_drvdata(pdev);
-+	struct omap_wdt_dev *wdev = platform_get_drvdata(pdev);
-+
- 	if (wdev->omap_wdt_users) {
- 		omap_wdt_enable(wdev);
- 		omap_wdt_ping(wdev);
- 	}
-+
- 	return 0;
- }
- 
--- 
-1.6.0.1.308.gede4c
+Op 23 sep 2008, om 13:00 heeft Tony Lindgren het volgende geschreven:
 
+> * David Brownell <david-b@pacbell.net> [080920 20:23]:
+>> On Friday 19 September 2008, arun c wrote:
+>>> without this the below error messages were coming continuously
+>>>
+>>> TWL4030 module irq 369 is disabled but can't be masked!
+>>
+>> I can see how it would fix that.  :)
+>>
+>> But this is also a good illustration of why this keypad device
+>> should be initialized differently ... this particular data is
+>> not board-specific, and the root cause of the problem was that
+>> the device wasn't set up as part of twl4030 setup.
+>>
+>> The clean fix requires twl4030 to be a "new style" driver.
+>> Fix not yet available. :(
+>
+> Pushing until we have a better fix.
+
+But twl4030 now is a "new style" driver, so we have a start :)
+
+regards,
+
+Koen
+
+
+>
+>
+> Tony
+>
+>>
+>> - Dave
+>>
+>>
+>>> Signed-off-by: Arun C <arunedarath@mistralsolutions.com>
+>>> ---
+>>> arch/arm/mach-omap2/board-omap3evm.c |    2 ++
+>>> 1 files changed, 2 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/board-omap3evm.c
+>>> b/arch/arm/mach-omap2/board-omap3evm.c
+>>> index 92f70ce..f9fd06b 100644
+>>> --- a/arch/arm/mach-omap2/board-omap3evm.c
+>>> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+>>> @@ -22,6 +22,7 @@
+>>> #include <linux/input.h>
+>>> #include <linux/spi/spi.h>
+>>> #include <linux/spi/ads7846.h>
+>>> +#include <linux/i2c/twl4030.h>
+>>>
+>>> #include <mach/hardware.h>
+>>> #include <asm/mach-types.h>
+>>> @@ -176,6 +177,7 @@ static struct omap_kp_platform_data  
+>>> omap3evm_kp_data = {
+>>> 	.keymap 	= omap3evm_keymap,
+>>> 	.keymapsize	= ARRAY_SIZE(omap3evm_keymap),
+>>> 	.rep		= 1,
+>>> +	.irq		= TWL4030_MODIRQ_KEYPAD,
+>>> };
+>>>
+>>> static struct platform_device omap3evm_kp_device = {
+>>> -- 
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux- 
+>> omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux- 
+> omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+--Apple-Mail-26--950513231
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: This is a digitally signed message part
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFI2NTgMkyGM64RGpERAstyAJ400QFaRpGJY91/uHynFfXl6/kWYACgn+Nh
+IBZYGGscW0KsVtn78oaOOCk=
+=G1ih
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-26--950513231--
