@@ -1,163 +1,41 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 2/3] watchdog: another ioremap() fix
-Date: Tue, 23 Sep 2008 14:33:50 +0300
-Message-ID: <1222169631-24556-3-git-send-email-felipe.balbi@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/3] watchdog fixes
+Date: Tue, 23 Sep 2008 15:59:51 +0300
+Message-ID: <20080923125951.GP5102@atomide.com>
 References: <1222169631-24556-1-git-send-email-felipe.balbi@nokia.com>
- <1222169631-24556-2-git-send-email-felipe.balbi@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:31865 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750855AbYIWLjt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Sep 2008 07:39:49 -0400
-In-Reply-To: <1222169631-24556-2-git-send-email-felipe.balbi@nokia.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55280 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750806AbYIWM75 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Sep 2008 08:59:57 -0400
+Content-Disposition: inline
+In-Reply-To: <1222169631-24556-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>, Felipe Balbi <felipe.balbi@nokia.com>, "George G. Davis" <gdavis@mvista.com>
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: linux-omap@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>
 
-convert to use ioremap() and __raw_{read/write} friends.
+* Felipe Balbi <felipe.balbi@nokia.com> [080923 14:34]:
+> Hi Tony,
+> 
+> following we have omap versions of the watchdog patches.
+> 
+> As you can see in [1], they're already applied to Wim's
+> tree and in fact, you only need the first patch from this
+> series; the others can be fetched from Wim.
+> 
+> Felipe Balbi (3):
+>   watchdog: sync mainline changes
+>   watchdog: another ioremap() fix
+>   watchdog: cleanup a bit omap_wdt.c
+> 
+>  drivers/watchdog/omap_wdt.c |  223 +++++++++++++++++++++++++------------------
+>  1 files changed, 132 insertions(+), 91 deletions(-)
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-Signed-off-by: George G. Davis <gdavis@mvista.com>
-Signed-off-by: Wim Van Sebroeck <wim@iguana.be>
----
- drivers/watchdog/omap_wdt.c |   50 +++++++++++++++++++++++++------------------
- 1 files changed, 29 insertions(+), 21 deletions(-)
+Thanks, pushed them to l-o tree while waiting for them to fall down
+from them mainline kernel. Good job Felipe, that's one less driver
+to merge!
 
-diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-index 12b0771..cfb101e 100644
---- a/drivers/watchdog/omap_wdt.c
-+++ b/drivers/watchdog/omap_wdt.c
-@@ -72,12 +72,12 @@ static void omap_wdt_ping(struct omap_wdt_dev *wdev)
- {
- 	void __iomem    *base = wdev->base;
- 	/* wait for posted write to complete */
--	while ((omap_readl(base + OMAP_WATCHDOG_WPS)) & 0x08)
-+	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x08)
- 		cpu_relax();
- 	wdt_trgr_pattern = ~wdt_trgr_pattern;
--	omap_writel(wdt_trgr_pattern, (base + OMAP_WATCHDOG_TGR));
-+	__raw_writel(wdt_trgr_pattern, (base + OMAP_WATCHDOG_TGR));
- 	/* wait for posted write to complete */
--	while ((omap_readl(base + OMAP_WATCHDOG_WPS)) & 0x08)
-+	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x08)
- 		cpu_relax();
- 	/* reloaded WCRR from WLDR */
- }
-@@ -87,11 +87,11 @@ static void omap_wdt_enable(struct omap_wdt_dev *wdev)
- 	void __iomem *base;
- 	base = wdev->base;
- 	/* Sequence to enable the watchdog */
--	omap_writel(0xBBBB, base + OMAP_WATCHDOG_SPR);
--	while ((omap_readl(base + OMAP_WATCHDOG_WPS)) & 0x10)
-+	__raw_writel(0xBBBB, base + OMAP_WATCHDOG_SPR);
-+	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x10)
- 		cpu_relax();
--	omap_writel(0x4444, base + OMAP_WATCHDOG_SPR);
--	while ((omap_readl(base + OMAP_WATCHDOG_WPS)) & 0x10)
-+	__raw_writel(0x4444, base + OMAP_WATCHDOG_SPR);
-+	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x10)
- 		cpu_relax();
- }
- 
-@@ -100,11 +100,11 @@ static void omap_wdt_disable(struct omap_wdt_dev *wdev)
- 	void __iomem *base;
- 	base = wdev->base;
- 	/* sequence required to disable watchdog */
--	omap_writel(0xAAAA, base + OMAP_WATCHDOG_SPR);	/* TIMER_MODE */
--	while (omap_readl(base + OMAP_WATCHDOG_WPS) & 0x10)
-+	__raw_writel(0xAAAA, base + OMAP_WATCHDOG_SPR);	/* TIMER_MODE */
-+	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x10)
- 		cpu_relax();
--	omap_writel(0x5555, base + OMAP_WATCHDOG_SPR);	/* TIMER_MODE */
--	while (omap_readl(base + OMAP_WATCHDOG_WPS) & 0x10)
-+	__raw_writel(0x5555, base + OMAP_WATCHDOG_SPR);	/* TIMER_MODE */
-+	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x10)
- 		cpu_relax();
- }
- 
-@@ -124,10 +124,10 @@ static void omap_wdt_set_timeout(struct omap_wdt_dev *wdev)
- 	base = wdev->base;
- 
- 	/* just count up at 32 KHz */
--	while (omap_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
-+	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
- 		cpu_relax();
--	omap_writel(pre_margin, base + OMAP_WATCHDOG_LDR);
--	while (omap_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
-+	__raw_writel(pre_margin, base + OMAP_WATCHDOG_LDR);
-+	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
- 		cpu_relax();
- }
- 
-@@ -153,10 +153,10 @@ static int omap_wdt_open(struct inode *inode, struct file *file)
- 	}
- 
- 	/* initialize prescaler */
--	while (omap_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
-+	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
- 		cpu_relax();
--	omap_writel((1 << 5) | (PTV << 2), base + OMAP_WATCHDOG_CNTRL);
--	while (omap_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
-+	__raw_writel((1 << 5) | (PTV << 2), base + OMAP_WATCHDOG_CNTRL);
-+	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
- 		cpu_relax();
- 
- 	file->private_data = (void *) wdev;
-@@ -225,7 +225,7 @@ static long omap_wdt_ioctl(struct file *file, unsigned int cmd,
- 		return put_user(0, (int __user *)arg);
- 	case WDIOC_GETBOOTSTATUS:
- 		if (cpu_is_omap16xx())
--			return put_user(omap_readw(ARM_SYSST),
-+			return put_user(__raw_readw(ARM_SYSST),
- 					(int __user *)arg);
- 		if (cpu_is_omap24xx())
- 			return put_user(omap_prcm_get_reset_sources(),
-@@ -330,7 +330,12 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
- 			goto fail;
- 		}
- 	}
--	wdev->base = (void __iomem *) (mem->start);
-+	wdev->base = ioremap(res->start, res->end - res->start + 1);
-+	if (!wdev->base) {
-+		ret = -ENOMEM;
-+		goto fail;
-+	}
-+
- 	platform_set_drvdata(pdev, wdev);
- 
- 	omap_wdt_disable(wdev);
-@@ -346,11 +351,11 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
- 		goto fail;
- 
- 	pr_info("OMAP Watchdog Timer Rev 0x%02x: initial timeout %d sec\n",
--		omap_readl(wdev->base + OMAP_WATCHDOG_REV) & 0xFF,
-+		__raw_readl(wdev->base + OMAP_WATCHDOG_REV) & 0xFF,
- 		timer_margin);
- 
- 	/* autogate OCP interface clock */
--	omap_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
-+	__raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
- 
- 	omap_wdt_dev = pdev;
- 
-@@ -365,6 +370,7 @@ fail:
- 			clk_put(wdev->mpu_wdt_ick);
- 		if (wdev->mpu_wdt_fck)
- 			clk_put(wdev->mpu_wdt_fck);
-+		iounmap(wdev->base);
- 		kfree(wdev);
- 	}
- 	if (mem) {
-@@ -406,6 +412,8 @@ static int omap_wdt_remove(struct platform_device *pdev)
- 		clk_put(wdev->mpu_wdt_fck);
- 		wdev->mpu_wdt_fck = NULL;
- 	}
-+	iounmap(wdev->base);
-+
- 	kfree(wdev);
- 	omap_wdt_dev = NULL;
- 	return 0;
--- 
-1.6.0.1.308.gede4c
-
+Tony
