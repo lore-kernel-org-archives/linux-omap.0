@@ -1,65 +1,51 @@
 From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
 Subject: Re: [PATCH]OMAP HDQ driver ioremap changes
-Date: Tue, 23 Sep 2008 10:07:23 +0530
-Message-ID: <00b801c91d36$156fd5a0$LocalHost@wipultra1303>
-References: <43198.192.168.10.89.1222078557.squirrel@dbdmail.itg.ti.com> <20080922130621.GC30680@2ka.mipt.ru> <018001c91cb4$f8088a10$LocalHost@wipultra1303> <20080922132717.GR24627@gandalf.research.nokia.com> <01c201c91cb7$97e06bf0$LocalHost@wipultra1303> <20080922143741.GV24627@gandalf.research.nokia.com>
+Date: Tue, 23 Sep 2008 10:22:41 +0530
+Message-ID: <00da01c91d38$38421a00$LocalHost@wipultra1303>
+References: <43198.192.168.10.89.1222078557.squirrel@dbdmail.itg.ti.com> <20080922130621.GC30680@2ka.mipt.ru> <018001c91cb4$f8088a10$LocalHost@wipultra1303> <20080922132717.GR24627@gandalf.research.nokia.com> <01c201c91cb7$97e06bf0$LocalHost@wipultra1303> <20080922143741.GV24627@gandalf.research.nokia.com> <20080922201400.GA25509@2ka.mipt.ru> <20080923022419.GE10156@frodo>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42360 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:42981 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750958AbYIWEhq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Sep 2008 00:37:46 -0400
+	id S1751261AbYIWExd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Sep 2008 00:53:33 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: felipe.balbi@nokia.com, Evgeniy Polyakov <johnpol@2ka.mipt.ru>, tony@atomide.com, linux-omap@vger.kernel.org
+To: me@felipebalbi.com, Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, tony@atomide.com, linux-omap@vger.kernel.org
 
 
 ----- Original Message ----- 
-From: "Felipe Balbi" <felipe.balbi@nokia.com>
-To: "ext Madhusudhan Chikkature" <madhu.cr@ti.com>
-Cc: <felipe.balbi@nokia.com>; "Evgeniy Polyakov" <johnpol@2ka.mipt.ru>; <tony@atomide.com>; <linux-omap@vger.kernel.org>
-Sent: Monday, September 22, 2008 8:07 PM
+From: "Felipe Balbi" <me@felipebalbi.com>
+To: "Evgeniy Polyakov" <johnpol@2ka.mipt.ru>
+Cc: "Felipe Balbi" <felipe.balbi@nokia.com>; "ext Madhusudhan Chikkature" <madhu.cr@ti.com>; <tony@atomide.com>; <linux-omap@vger.kernel.org>
+Sent: Tuesday, September 23, 2008 7:54 AM
 Subject: Re: [PATCH]OMAP HDQ driver ioremap changes
 
 
-> On Mon, Sep 22, 2008 at 07:01:57PM +0530, ext Madhusudhan Chikkature wrote:
+> On Tue, Sep 23, 2008 at 12:14:00AM +0400, Evgeniy Polyakov wrote:
+>> On Mon, Sep 22, 2008 at 05:37:41PM +0300, Felipe Balbi (felipe.balbi@nokia.com) wrote:
+>> > +/*
+>> > + * Used to control the call to omap_hdq_get and omap_hdq_put.
+>> > + * HDQ Protocol: Write the CMD|REG_address first, followed by
+>> > + * the data wrire or read.
+>> > + */
+>> > +static int init_trans;
 >> 
->> ----- Original Message ----- 
->> From: "Felipe Balbi" <felipe.balbi@nokia.com>
->> To: "ext Madhusudhan Chikkature" <madhu.cr@ti.com>
->> Cc: "Evgeniy Polyakov" <johnpol@2ka.mipt.ru>; <tony@atomide.com>; <linux-omap@vger.kernel.org>
->> Sent: Monday, September 22, 2008 6:57 PM
->> Subject: Re: [PATCH]OMAP HDQ driver ioremap changes
->> 
->> 
->> > On Mon, Sep 22, 2008 at 06:43:10PM +0530, ext Madhusudhan Chikkature wrote:
->> >> Hi Evgeniy Polyakov,
->> >> 
->> >> Thanks for the comments. I will incorporate them and send the patch again. My comments inlined.
->> > 
->> > How about fixing it and later sending to mainline for integration ?
->> 
->> Yes. I will do that.
+>> This variable is not protected against simultaneous master's access
+>> afaics, isn't it possible to have multiple w1 masters on given board?
 > 
-> Really, that driver is a mess. Get the attached patch, break it into
-> proper smaller patches, see if it's really working since I just compile
-> tested, change the semaphore to mutex (in a separate patch), fix
-> comments to kernel-doc style, then you send a nice series fixing the
-> driver before sending the final driver to mainline.
-> 
-> It's time to start doing things properly. It's really annoying have to
-> keep cleaning stuff after it's in-tree.
+> Don't know much about 1-wire. Someone else should answer that. But I
+> suppose we should protect it, yeah.
 
-Balbi,
-Please note that the driver patches were submitted to L-o as RFC initially and all the comments provided by the community are fixed before it is pushed by Tony. 
-
-There would be a time gap between the day the patches are submitted and before Tony pushes the patches to the tree. Any valid comments provided then would get promptly fixed. This would definetely avoid cleaning stuff which is already in tree to whatever extent it is possible.
+We can not test that scenario on our board. But I guess we should protect it as 1-Wire protocol supports multiple access.
 
 Regards,
 Madhu
 > 
 > -- 
 > balbi
+> 
 >
