@@ -1,34 +1,26 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Add RX/TX interrupts for 2430 and 34xx
-	McBSP ports 3-5
-Date: Wed, 24 Sep 2008 12:39:03 +0300
-Message-ID: <20080924093902.GM5222@atomide.com>
-References: <1221569813-29771-1-git-send-email-jarkko.nikula@nokia.com> <20080924091402.GK5222@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH 0/3] Omap McBSP updates from linux-omap tree
+Date: Wed, 24 Sep 2008 12:52:20 +0300
+Message-ID: <1222249943-19435-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61128 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55023 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751766AbYIXJjK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 05:39:10 -0400
-Content-Disposition: inline
-In-Reply-To: <20080924091402.GK5222@atomide.com>
+	with ESMTP id S1751738AbYIXJwc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 05:52:32 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-* Tony Lindgren <tony@atomide.com> [080924 12:14]:
-> * Jarkko Nikula <jarkko.nikula@nokia.com> [080916 16:02]:
-> > Without RX and TX interrupt definitions, the omap_mcbsp_request will
-> > fail on OMAP2430 and OMAP34xx for ports 3-5 since default io_type is
-> > OMAP_MCBSP_IRQ_IO.
-> 
-> Pushing to l-o and merging into your earlier patch
-> "Add support for OMAP2430 in McBSP" for upstream.
+Hi all,
 
-Correction, merging 34xx interrupt changes into Chandra's
-"Allocate McBSP devices dynamically, add 34xx support"
-patch for upstream.
+This series contains pending McBSP patches from linux-omap tree
+for review.
+
+These patches are against Russell's devel branch as patches
+against the mainline tree would currently produce merge conflicts.
+
+Regards,
 
 Tony
+
