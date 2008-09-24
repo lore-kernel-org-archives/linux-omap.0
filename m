@@ -1,64 +1,103 @@
 From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
-Subject: [PATCH 5/9]HDQ driver: Convert few declarations to static
-Date: Wed, 24 Sep 2008 16:57:32 +0530 (IST)
-Message-ID: <51670.192.168.10.89.1222255652.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH 6/9]HDQ driver: use ioremap for HDQ base
+Date: Wed, 24 Sep 2008 16:59:32 +0530 (IST)
+Message-ID: <53267.192.168.10.89.1222255772.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46319 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:46381 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751354AbYIXL2j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Sep 2008 07:28:39 -0400
+	id S1750806AbYIXL3l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Sep 2008 07:29:41 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
 Cc: johnpol@2ka.mipt.ru, felipe.balbi@nokia.com, linux-omap@vger.kernel.org
 
 From: Madhusudhan Chikkature<madhu.cr@ti.com>
 
-Convert declaration to static.
+This patch provides the ioremap related changes to the driver.
 
 Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
 ---
- drivers/w1/masters/omap_hdq.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/w1/masters/omap_hdq.c |   21 ++++++++++++++-------
+ 1 files changed, 14 insertions(+), 7 deletions(-)
 
 Index: linux-omap-2.6/drivers/w1/masters/omap_hdq.c
 ===================================================================
 --- linux-omap-2.6.orig/drivers/w1/masters/omap_hdq.c	2008-09-24
-10:10:07.000000000 +0530
-+++ linux-omap-2.6/drivers/w1/masters/omap_hdq.c	2008-09-24 10:19:28.000000000
+10:46:53.000000000 +0530
++++ linux-omap-2.6/drivers/w1/masters/omap_hdq.c	2008-09-24 11:13:12.000000000
 +0530
-@@ -49,8 +49,8 @@
-
- #define OMAP_HDQ_MAX_USER			4
-
--DECLARE_WAIT_QUEUE_HEAD(hdq_wait_queue);
--int W1_ID;
-+static DECLARE_WAIT_QUEUE_HEAD(hdq_wait_queue);
-+static int w1_id;
+@@ -54,7 +54,7 @@ static int w1_id;
 
  struct hdq_data {
  	struct device		*dev;
-@@ -249,8 +249,8 @@ static void omap_w1_search_bus(void *_hd
+-	resource_size_t		hdq_base;
++	void __iomem		*hdq_base;
+ 	struct	semaphore	hdq_semlock;
+ 	int			hdq_usecount;
+ 	struct	clk		*hdq_ick;
+@@ -99,12 +99,12 @@ static struct w1_bus_master omap_w1_mast
+  */
+ static inline u8 hdq_reg_in(struct hdq_data *hdq_data, u32 offset)
  {
- 	u64 module_id, rn_le, cs, id;
+-	return omap_readb(hdq_data->hdq_base + offset);
++	return __raw_readb(hdq_data->hdq_base + offset);
+ }
 
--	if (W1_ID)
--		module_id = W1_ID;
-+	if (w1_id)
-+		module_id = w1_id;
- 	else
- 		module_id = 0x1;
+ static inline u8 hdq_reg_out(struct hdq_data *hdq_data, u32 offset, u8 val)
+ {
+-	omap_writeb(val, hdq_data->hdq_base + offset);
++	__raw_writeb(val, hdq_data->hdq_base + offset);
 
-@@ -715,7 +715,7 @@ omap_hdq_exit(void)
- module_init(omap_hdq_init);
- module_exit(omap_hdq_exit);
+ 	return val;
+ }
+@@ -112,9 +112,9 @@ static inline u8 hdq_reg_out(struct hdq_
+ static inline u8 hdq_reg_merge(struct hdq_data *hdq_data, u32 offset,
+ 			u8 val, u8 mask)
+ {
+-	u8 new_val = (omap_readb(hdq_data->hdq_base + offset) & ~mask)
++	u8 new_val = (__raw_readb(hdq_data->hdq_base + offset) & ~mask)
+ 			| (val & mask);
+-	omap_writeb(new_val, hdq_data->hdq_base + offset);
++	__raw_writeb(new_val, hdq_data->hdq_base + offset);
 
--module_param(W1_ID, int, S_IRUSR);
-+module_param(w1_id, int, S_IRUSR);
+ 	return new_val;
+ }
+@@ -589,7 +589,12 @@ static int __init omap_hdq_probe(struct
+ 		goto err_resource;
+ 	}
 
- MODULE_AUTHOR("Texas Instruments");
- MODULE_DESCRIPTION("HDQ driver Library");
+-	hdq_data->hdq_base = res->start;
++	hdq_data->hdq_base = ioremap(res->start, SZ_4K);
++	if (!hdq_data->hdq_base) {
++		dev_dbg(&pdev->dev, "ioremap failed\n");
++		ret = -EINVAL;
++		goto err_ioremap;
++	}
+
+ 	/* get interface & functional clock objects */
+ 	hdq_data->hdq_ick = clk_get(&pdev->dev, "hdq_ick");
+@@ -668,8 +673,9 @@ err_ick:
+ 	clk_put(hdq_data->hdq_fck);
+
+ err_clk:
+-	hdq_data->hdq_base = NULL;
++	iounmap(hdq_data->hdq_base);
+
++err_ioremap:
+ err_resource:
+ 	platform_set_drvdata(pdev, NULL);
+ 	kfree(hdq_data);
+@@ -695,6 +701,7 @@ static int omap_hdq_remove(struct platfo
+ 	clk_put(hdq_data->hdq_fck);
+ 	free_irq(INT_24XX_HDQ_IRQ, hdq_data);
+ 	platform_set_drvdata(pdev, NULL);
++	iounmap(hdq_data->hdq_base);
+ 	kfree(hdq_data);
+
+ 	return 0;
 
 
