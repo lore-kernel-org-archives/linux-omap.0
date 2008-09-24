@@ -1,32 +1,58 @@
-From: <Tero.Kristo@nokia.com>
-Subject: clk_disable_unused() is bugged
-Date: Wed, 24 Sep 2008 13:19:41 +0300
-Message-ID: <B71CE868F2BC2847B3F23C5A8EE39430890B53@vaebe110.NOE.Nokia.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH] OMAP3EVM: TWL4030 Keypad irq error fix
+Date: Wed, 24 Sep 2008 13:44:31 +0300
+Message-ID: <20080924104431.GL24627@gandalf.research.nokia.com>
+References: <c656a4d20809192351x39f71fach7145236a9e8e0552@mail.gmail.com> <20080923110001.GL5102@atomide.com> <102CAAD1-D554-4CAD-B26F-DBFB2C418E9A@student.utwente.nl> <200809231245.42614.david-b@pacbell.net>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:52119 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:55841 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751919AbYIXKU1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 06:20:27 -0400
-Content-class: urn:content-classes:message
+	with ESMTP id S1751878AbYIXKpT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 06:45:19 -0400
+Content-Disposition: inline
+In-Reply-To: <200809231245.42614.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com
+To: ext David Brownell <david-b@pacbell.net>
+Cc: Koen Kooi <k.kooi@student.utwente.nl>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-Hi,
+On Tue, Sep 23, 2008 at 12:45:42PM -0700, David Brownell wrote:
+> On Tuesday 23 September 2008, Koen Kooi wrote:
+> > >>
+> > >> The clean fix requires twl4030 to be a "new style" driver.
+> > >> Fix not yet available. :(
+> > >
+> > > Pushing until we have a better fix.
+> > 
+> > But twl4030 now is a "new style" driver, so we have a start :)
+> 
+> But who's working on it?  :)
+> 
+> Sketch of solution:
+> 
+>  - twl4030.h defines keypad platform_data
+> 
+>  - add_children() adds a platform device for keypad,
+>    and passes that platform_data
+> 
+>  - twl4030 keypad driver switches to platform_bus
+>    and uses that platform_data
+> 
+>  - board-specific init code provides the relevant
+>    platform_data (or none)
+> 
+> I'll do the GPIO code, which will be a slightly more
+> interesting example than the RTC.
 
-clk_disable_unused (in plat-omap/clock.c) is bugged in latest kernel. It
-checks whether ck->enable_reg is zero, and in most cases this happens to
-be so (CM_FCLKEN = 0.) Seems to be caused by some late change to
-clocktree where enable_reg fields are defined as module offsets, not
-register addresses. This bug causes several clocks to remain enabled
-after boot, and at least on OMAP3 it prevents retention.
+I can do the keypad since I'm already working on the usb as well. Dave,
+I'm gonna add twl_has_rtc(), twl_had_keypad() and twl_has_usb() to clean
+a bit add_children. With those, we're gonna be able to:
 
-Paul, you got a fix coming for this?
+if (twl_has_keypad() && pdata->keypad) {
+	...
+}
 
--Tero
-
+-- 
+balbi
