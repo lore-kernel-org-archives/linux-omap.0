@@ -1,198 +1,30 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP2EVM : Add touchscreen support
-Date: Wed, 24 Sep 2008 17:15:26 +0300
-Message-ID: <20080924141524.GS5222@atomide.com>
-References: <dfeb90390809240714l68debbct9fdc068cfc440f3@mail.gmail.com>
+Subject: Re: [PATCH] Temporary fix to boot OMAP1 based boards
+Date: Wed, 24 Sep 2008 17:27:29 +0300
+Message-ID: <20080924142728.GT5222@atomide.com>
+References: <dfeb90390809230823l7c37d15au49c5726c7510718c@mail.gmail.com> <20080924.065137.142952786.Hiroshi.DOYU@nokia.com> <dfeb90390809240005xadef43dhb78c8ae214baab64@mail.gmail.com> <20080924071201.GE5222@atomide.com> <20080924075959.GF5222@atomide.com> <alpine.DEB.2.00.0809240202250.15312@utopia.booyaka.com> <20080924080652.GG5222@atomide.com> <alpine.DEB.2.00.0809240207480.15312@utopia.booyaka.com> <20080924083446.GH5222@atomide.com> <alpine.DEB.2.00.0809240805410.15312@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55904 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55035 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751337AbYIXOPc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 10:15:32 -0400
+	with ESMTP id S1750988AbYIXO1i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 10:27:38 -0400
 Content-Disposition: inline
-In-Reply-To: <dfeb90390809240714l68debbct9fdc068cfc440f3@mail.gmail.com>
+In-Reply-To: <alpine.DEB.2.00.0809240805410.15312@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arun KS <arunks@mistralsolutions.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@booyaka.com>
+Cc: Arun KS <arunks@mistralsolutions.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org
 
-* Arun KS <arunks@mistralsolutions.com> [080924 17:14]:
-> This patch adds ads7846 touchscreen support to omap2evm board
+* Paul Walmsley <paul@booyaka.com> [080924 17:06]:
+> On Wed, 24 Sep 2008, Tony Lindgren wrote:
+> 
+> > How about this for a quick fix? It produces now a bunch of warnings
+> > until omap1 clock uses offsets too.
+> 
+> Looks good to me.  Good to see that VIRTUAL_IO_ADDRESS flag gone -- 
 
-Can you please split the mux changes into a separate patch?
-
-Thanks,
+OK, pushed with a minror change. I've marked DSP addresses as IOMEM.
 
 Tony
-
-> Signed-off-by: Arun KS <arunks@mistralsolutions.com>
-> ---
->  arch/arm/mach-omap2/board-omap2evm.c             |   64 ++++++++++++++++++++++
->  arch/arm/mach-omap2/mux.c                        |   11 ++++
->  arch/arm/plat-omap/include/mach/board-omap2evm.h |    2 +
->  arch/arm/plat-omap/include/mach/mux.h            |    9 +++
->  4 files changed, 86 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap2evm.c
-> b/arch/arm/mach-omap2/board-omap2evm.c
-> index 6ce7740..2cf13b1 100644
-> --- a/arch/arm/mach-omap2/board-omap2evm.c
-> +++ b/arch/arm/mach-omap2/board-omap2evm.c
-> @@ -22,6 +22,8 @@
->  #include <linux/mtd/mtd.h>
->  #include <linux/mtd/partitions.h>
->  #include <linux/mtd/nand.h>
-> +#include <linux/spi/spi.h>
-> +#include <linux/spi/ads7846.h>
-> 
->  #include <mach/hardware.h>
->  #include <asm/mach-types.h>
-> @@ -36,6 +38,8 @@
->  #include <mach/keypad.h>
->  #include <mach/gpmc.h>
->  #include <mach/nand.h>
-> +#include <mach/mcspi.h>
-> +#include <mach/mux.h>
-> 
->  #define GPMC_OFF_CONFIG1_0 0x60
-> 
-> @@ -181,6 +185,62 @@ static struct omap_lcd_config
-> omap2_evm_lcd_config __initdata = {
->  	.ctrl_name	= "internal",
->  };
-> 
-> +static void ads7846_dev_init(void)
-> +{
-> +
-> +	/*Setting the MUX */
-> +	omap_cfg_reg(Y18_2430_MCSPI1_CLK);
-> +	omap_cfg_reg(AD15_2430_MCSPI1_SIMO);
-> +	omap_cfg_reg(AE17_2430_MCSPI1_SOMI);
-> +	omap_cfg_reg(U1_2430_MCSPI1_CS0);
-> +
-> +	omap_cfg_reg(AF19_2430_GPIO_85);
-> +
-> +	if (omap_request_gpio(OMAP2_EVM_TS_GPIO) < 0)
-> +		printk(KERN_ERR "can't get ads7846 pen down GPIO\n");
-> +
-> +	omap_set_gpio_direction(OMAP2_EVM_TS_GPIO, 1);
-> +
-> +	omap_set_gpio_debounce(OMAP2_EVM_TS_GPIO, 1);
-> +	omap_set_gpio_debounce_time(OMAP2_EVM_TS_GPIO, 0xa);
-> +}
-> +
-> +static int ads7846_get_pendown_state(void)
-> +{
-> +	return !omap_get_gpio_datain(OMAP2_EVM_TS_GPIO);
-> +}
-> +
-> +struct ads7846_platform_data ads7846_config = {
-> +	.x_max			= 0x0fff,
-> +	.y_max			= 0x0fff,
-> +	.x_plate_ohms		= 180,
-> +	.pressure_max		= 255,
-> +	.debounce_max		= 10,
-> +	.debounce_tol		= 3,
-> +	.debounce_rep		= 1,
-> +	.get_pendown_state	= ads7846_get_pendown_state,
-> +	.keep_vref_on		= 1,
-> +	.settle_delay_usecs	= 150,
-> +};
-> +
-> +static struct omap2_mcspi_device_config ads7846_mcspi_config = {
-> +	.turbo_mode	= 0,
-> +	.single_channel	= 1,  /* 0: slave, 1: master */
-> +};
-> +
-> +struct spi_board_info omap2evm_spi_board_info[] = {
-> +	[0] = {
-> +		.modalias		= "ads7846",
-> +		.bus_num		= 1,
-> +		.chip_select		= 0,
-> +		.max_speed_hz		= 1500000,
-> +		.controller_data	= &ads7846_mcspi_config,
-> +		.irq			= OMAP_GPIO_IRQ(OMAP2_EVM_TS_GPIO),
-> +		.platform_data		= &ads7846_config,
-> +	},
-> +};
-> +
-> +
->  static int omap2evm_keymap[] = {
->  	KEY(0, 0, KEY_LEFT),
->  	KEY(0, 1, KEY_RIGHT),
-> @@ -269,9 +329,13 @@ static void __init omap2_evm_init(void)
->  	platform_add_devices(omap2_evm_devices, ARRAY_SIZE(omap2_evm_devices));
->  	omap_board_config = omap2_evm_config;
->  	omap_board_config_size = ARRAY_SIZE(omap2_evm_config);
-> +
-> +	spi_register_board_info(omap2evm_spi_board_info,
-> +				ARRAY_SIZE(omap2evm_spi_board_info));
->  	omap_serial_init();
->  	hsmmc_init();
->  	omap2evm_flash_init();
-> +	ads7846_dev_init();
->  }
-> 
->  static void __init omap2_evm_map_io(void)
-> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-> index 741ab18..7bbd87e 100644
-> --- a/arch/arm/mach-omap2/mux.c
-> +++ b/arch/arm/mach-omap2/mux.c
-> @@ -210,6 +210,17 @@ MUX_CFG_24XX("AC10_2430_MCBSP2_FSX_OFF",0x012E,	0,	0,	0,	1)
->  MUX_CFG_24XX("AD16_2430_MCBSP2_CLX_OFF",0x012F,	0,	0,	0,	1)
->  MUX_CFG_24XX("AE13_2430_MCBSP2_DX_OFF",	0x0130,	0,	0,	0,	1)
->  MUX_CFG_24XX("AD13_2430_MCBSP2_DR_OFF",	0x0131,	0,	0,	0,	1)
-> +
-> +/* 2430 MCSPI1 */
-> +MUX_CFG_24XX("SPI1_2430_MCSPI1_CLK",	0x010F,	0,	0,	0,	1)
-> +MUX_CFG_24XX("SPI1_2430_MCSPI1_SIMO",	0x0110,	0,	0,	0,	1)
-> +MUX_CFG_24XX("SPI1_2430_MCSPI1_SOMI",	0x0111,	0,	0,	0,	1)
-> +MUX_CFG_24XX("SPI1_2430_MCSPI1_CS0",	0x0112,	0,	0,	0,	1)
-> +MUX_CFG_24XX("SPI1_2430_GPIO_85",	0x0113,	3,	0,	0,	1)
-> +
-> +/* Touchscreen GPIO */
-> +MUX_CFG_24XX("AF19_2430_GPIO_85",	0x0113,	3,	0,	0,	1)
-> +
->  };
-> 
->  #define OMAP24XX_PINS_SZ	ARRAY_SIZE(omap24xx_pins)
-> diff --git a/arch/arm/plat-omap/include/mach/board-omap2evm.h
-> b/arch/arm/plat-omap/include/mach/board-omap2evm.h
-> index ec548d4..b46fba6 100644
-> --- a/arch/arm/plat-omap/include/mach/board-omap2evm.h
-> +++ b/arch/arm/plat-omap/include/mach/board-omap2evm.h
-> @@ -34,4 +34,6 @@
->  #define OMAP2EVM_ETHR_SIZE			1024
->  #define OMAP2EVM_ETHR_GPIO_IRQ		149
-> 
-> +#define OMAP2_EVM_TS_GPIO	85
-> +
->  #endif /* __ASM_ARCH_OMAP2_EVM_H */
-> diff --git a/arch/arm/plat-omap/include/mach/mux.h
-> b/arch/arm/plat-omap/include/mach/mux.h
-> index 5670d56..683474f 100644
-> --- a/arch/arm/plat-omap/include/mach/mux.h
-> +++ b/arch/arm/plat-omap/include/mach/mux.h
-> @@ -641,6 +641,15 @@ enum omap24xx_index {
->  	AE13_2430_MCBSP2_DX_OFF,
->  	AD13_2430_MCBSP2_DR_OFF,
-> 
-> +	/* 2430 McSPI*/
-> +	Y18_2430_MCSPI1_CLK,
-> +	AD15_2430_MCSPI1_SIMO,
-> +	AE17_2430_MCSPI1_SOMI,
-> +	U1_2430_MCSPI1_CS0,
-> +
-> +	/* Touchscreen GPIO */
-> +	AF19_2430_GPIO_85,
-> +
->  };
-> 
->  enum omap34xx_index {
-> -- 
-> 1.5.3.4
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
