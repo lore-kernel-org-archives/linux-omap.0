@@ -1,40 +1,31 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP: Allocate McBSP devices dynamically, add
-	34xx support
-Date: Wed, 24 Sep 2008 15:32:40 +0300
-Message-ID: <20080924123238.GQ5222@atomide.com>
-References: <1222249943-19435-1-git-send-email-tony@atomide.com> <1222249943-19435-2-git-send-email-tony@atomide.com> <20080924115838.GB18700@strlen.de> <20080924121001.GP5222@atomide.com>
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: Re: [PATCH 0/9] HDQ driver fixes
+Date: Wed, 24 Sep 2008 16:48:45 +0400
+Message-ID: <20080924124845.GE19866@2ka.mipt.ru>
+References: <42568.192.168.10.89.1222255148.squirrel@dbdmail.itg.ti.com> <20080924115535.GP24627@gandalf.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62858 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753582AbYIXMdG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 08:33:06 -0400
+Received: from relay.2ka.mipt.ru ([194.85.80.65]:55743 "EHLO 2ka.mipt.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750938AbYIXMtx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Sep 2008 08:49:53 -0400
 Content-Disposition: inline
-In-Reply-To: <20080924121001.GP5222@atomide.com>
+In-Reply-To: <20080924115535.GP24627@gandalf.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <ukleinek@strlen.de>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Chandra Shekhar <x0044955@ti.com>
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: ext Madhusudhan Chikkature <madhu.cr@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [080924 15:10]:
-> * Uwe Kleine-K=F6nig <ukleinek@strlen.de> [080924 14:58]:
+On Wed, Sep 24, 2008 at 02:55:35PM +0300, Felipe Balbi (felipe.balbi@nokia.com) wrote:
+> If you fix the comments I gave now, I think the patches should be
+> applied unless someone else has any comments to them. After that, you
+> could also prepare a patch sending this particular driver to
+> Evgeniy Polyakov <johnpol@2ka.mipt.ru> Cc:ing
+> linux-kernel@vger.kernel.org and linux-omap@vger.kernel.org
 
-<snip>
+I checked patches and do not see any objections, so feel free to add my
+ack if you want.
 
-> > Hhm, it looks there is already some 34xx support in the file.  Shou=
-ld
-> > the commit log be more detailed?
->=20
-> Will split into a separate patch.
-
-I'll change it to say add support for instances 3 - 5 on 34xx.
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+	Evgeniy Polyakov
