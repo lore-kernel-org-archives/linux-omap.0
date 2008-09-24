@@ -1,31 +1,217 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <ukleinek@strlen.de>
-Subject: Re: [PATCH 0/3] Omap McBSP updates from linux-omap tree
-Date: Wed, 24 Sep 2008 13:45:35 +0200
-Message-ID: <20080924114534.GA18700@strlen.de>
-References: <1222249943-19435-1-git-send-email-tony@atomide.com>
+From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
+Subject: [PATCH 9/9]HDQ driver:  Fix indentation and commenting style
+Date: Wed, 24 Sep 2008 17:06:30 +0530 (IST)
+Message-ID: <61763.192.168.10.89.1222256190.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:43587 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751239AbYIXLpi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Sep 2008 07:45:38 -0400
-Content-Disposition: inline
-In-Reply-To: <1222249943-19435-1-git-send-email-tony@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:47060 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750988AbYIXLpf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Sep 2008 07:45:35 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: johnpol@2ka.mipt.ru, felipe.balbi@nokia.com, linux-omap@vger.kernel.org
 
-Hello Tony,
+From: Madhusudhan Chikkature<madhu.cr@ti.com>
 
-> This series contains pending McBSP patches from linux-omap tree
-> for review.
-what about adding the patch I sent some time ago[1] to your series?
+This patch fixes the indentation, commenting style of a single line comment.
 
-Best regards
-Uwe
+Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
+---
+ drivers/w1/masters/omap_hdq.c |   81 +++++++++++++++---------------------------
+ 1 files changed, 29 insertions(+), 52 deletions(-)
 
-[1] Message-Id: <1221685893-2291-3-git-send-email-ukleinek@strlen.de>
-    http://mid.gmane.org/1221685893-2291-3-git-send-email-ukleinek@strlen.de
+Index: linux-omap-2.6/drivers/w1/masters/omap_hdq.c
+===================================================================
+--- linux-omap-2.6.orig/drivers/w1/masters/omap_hdq.c	2008-09-24
+14:41:43.000000000 +0530
++++ linux-omap-2.6/drivers/w1/masters/omap_hdq.c	2008-09-24 15:37:18.000000000
++0530
+@@ -77,12 +77,12 @@ static int __init omap_hdq_probe(struct
+ static int omap_hdq_remove(struct platform_device *pdev);
+
+ static struct platform_driver omap_hdq_driver = {
+-	.probe = omap_hdq_probe,
+-	.remove = omap_hdq_remove,
+-	.suspend = NULL,
+-	.resume = NULL,
+-	.driver = {
+-		.name = "omap_hdq",
++	.probe =	omap_hdq_probe,
++	.remove =	omap_hdq_remove,
++	.suspend =	NULL,
++	.resume =	NULL,
++	.driver =	{
++		.name =	"omap_hdq",
+ 	},
+ };
+
+@@ -100,9 +100,7 @@ static struct w1_bus_master omap_w1_mast
+ 	.search		= omap_w1_search_bus,
+ };
+
+-/*
+- * HDQ register I/O routines
+- */
++/* HDQ register I/O routines */
+ static inline u8 hdq_reg_in(struct hdq_data *hdq_data, u32 offset)
+ {
+ 	return __raw_readb(hdq_data->hdq_base + offset);
+@@ -161,11 +159,8 @@ static int hdq_wait_for_flag(struct hdq_
+ 	return ret;
+ }
+
+-/*
+- * write out a byte and fill *status with HDQ_INT_STATUS
+- */
+-static int
+-hdq_write_byte(struct hdq_data *hdq_data, u8 val, u8 *status)
++/* write out a byte and fill *status with HDQ_INT_STATUS */
++static int hdq_write_byte(struct hdq_data *hdq_data, u8 val, u8 *status)
+ {
+ 	int ret;
+ 	u8 tmp_status;
+@@ -216,9 +211,7 @@ hdq_write_byte(struct hdq_data *hdq_data
+ 	return ret;
+ }
+
+-/*
+- * HDQ Interrupt service routine.
+- */
++/* HDQ Interrupt service routine */
+ static irqreturn_t hdq_isr(int irq, void *_hdq)
+ {
+ 	struct hdq_data *hdq_data = _hdq;
+@@ -239,17 +232,13 @@ static irqreturn_t hdq_isr(int irq, void
+ 	return IRQ_HANDLED;
+ }
+
+-/*
+- * HDQ Mode: always return success.
+- */
++/* HDQ Mode: always return success */
+ static u8 omap_w1_reset_bus(void *_hdq)
+ {
+ 	return 0;
+ }
+
+-/*
+- * W1 search callback function.
+- */
++/* W1 search callback function */
+ static void omap_w1_search_bus(void *_hdq, u8 search_type,
+ 	w1_slave_found_callback slave_found)
+ {
+@@ -304,11 +293,8 @@ static int _omap_hdq_reset(struct hdq_da
+ 	return ret;
+ }
+
+-/*
+- * Issue break pulse to the device.
+- */
+-static int
+-omap_hdq_break(struct hdq_data *hdq_data)
++/* Issue break pulse to the device */
++static int omap_hdq_break(struct hdq_data *hdq_data)
+ {
+ 	int ret;
+ 	u8 tmp_status;
+@@ -368,6 +354,7 @@ omap_hdq_break(struct hdq_data *hdq_data
+ 			"return to zero, %x", tmp_status);
+
+ 	mutex_unlock(&hdq_data->hdq_mutex);
++
+ 	return ret;
+ }
+
+@@ -376,6 +363,7 @@ static int hdq_read_byte(struct hdq_data
+ 	int ret;
+ 	u8 status;
+ 	unsigned long irqflags;
++	unsigned long timeout = jiffies + OMAP_HDQ_TIMEOUT;
+
+ 	ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
+ 	if (ret < 0)
+@@ -395,14 +383,11 @@ static int hdq_read_byte(struct hdq_data
+ 		 * triggers another interrupt before we
+ 		 * sleep. So we have to wait for RXCOMPLETE bit.
+ 		 */
+-		{
+-			unsigned long timeout = jiffies + OMAP_HDQ_TIMEOUT;
+-			while (!(hdq_data->hdq_irqstatus
+-				& OMAP_HDQ_INT_STATUS_RXCOMPLETE)
+-				&& time_before(jiffies, timeout)) {
+-				set_current_state(TASK_UNINTERRUPTIBLE);
+-				schedule_timeout(1);
+-			}
++		while (!(hdq_data->hdq_irqstatus
++			& OMAP_HDQ_INT_STATUS_RXCOMPLETE)
++			&& time_before(jiffies, timeout)) {
++			set_current_state(TASK_UNINTERRUPTIBLE);
++			schedule_timeout(1);
+ 		}
+ 		hdq_reg_merge(hdq_data, OMAP_HDQ_CTRL_STATUS, 0,
+ 			OMAP_HDQ_CTRL_STATUS_DIR);
+@@ -425,11 +410,8 @@ static int hdq_read_byte(struct hdq_data
+
+ }
+
+-/*
+- * Enable clocks and set the controller to HDQ mode.
+- */
+-static int
+-omap_hdq_get(struct hdq_data *hdq_data)
++/* Enable clocks and set the controller to HDQ mode */
++static int omap_hdq_get(struct hdq_data *hdq_data)
+ {
+ 	int ret = 0;
+
+@@ -479,14 +461,12 @@ omap_hdq_get(struct hdq_data *hdq_data)
+ 		}
+ 	}
+ 	mutex_unlock(&hdq_data->hdq_mutex);
++
+ 	return ret;
+ }
+
+-/*
+- * Disable clocks to the module.
+- */
+-static int
+-omap_hdq_put(struct hdq_data *hdq_data)
++/* Disable clocks to the module */
++static int omap_hdq_put(struct hdq_data *hdq_data)
+ {
+ 	int ret = 0;
+
+@@ -507,12 +487,11 @@ omap_hdq_put(struct hdq_data *hdq_data)
+ 		}
+ 	}
+ 	mutex_unlock(&hdq_data->hdq_mutex);
++
+ 	return ret;
+ }
+
+-/*
+- * Read a byte of data from the device.
+- */
++/* Read a byte of data from the device */
+ static u8 omap_w1_read_byte(void *_hdq)
+ {
+ 	struct hdq_data *hdq_data = _hdq;
+@@ -547,9 +526,7 @@ static u8 omap_w1_read_byte(void *_hdq)
+ 	return val;
+ }
+
+-/*
+- * Write a byte of data to the device.
+- */
++/* Write a byte of data to the device */
+ static void omap_w1_write_byte(void *_hdq, u8 byte)
+ {
+ 	struct hdq_data *hdq_data = _hdq;
+
+
