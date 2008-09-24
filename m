@@ -1,60 +1,39 @@
-From: "Arun KS" <arunks@mistralsolutions.com>
-Subject: [PATCH 2/2] OMAP2EVM: Updates defconfig
-Date: Wed, 24 Sep 2008 20:11:39 +0530
-Message-ID: <dfeb90390809240741s789f6e11ke6ce6a62f0d8078c@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Temporary fix to boot OMAP1 based boards
+Date: Wed, 24 Sep 2008 17:43:37 +0300
+Message-ID: <20080924144335.GU5222@atomide.com>
+References: <dfeb90390809240005xadef43dhb78c8ae214baab64@mail.gmail.com> <20080924071201.GE5222@atomide.com> <20080924075959.GF5222@atomide.com> <alpine.DEB.2.00.0809240202250.15312@utopia.booyaka.com> <20080924080652.GG5222@atomide.com> <alpine.DEB.2.00.0809240207480.15312@utopia.booyaka.com> <20080924083446.GH5222@atomide.com> <alpine.DEB.2.00.0809240805410.15312@utopia.booyaka.com> <20080924142728.GT5222@atomide.com> <alpine.DEB.2.00.0809240830270.15312@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.235]:3700 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751151AbYIXOlk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 10:41:40 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so2736137rvb.1
-        for <linux-omap@vger.kernel.org>; Wed, 24 Sep 2008 07:41:39 -0700 (PDT)
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60379 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752117AbYIXOnp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 10:43:45 -0400
 Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.0809240830270.15312@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@booyaka.com>
+Cc: Arun KS <arunks@mistralsolutions.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org
 
-This patch enables mcspi support in omap2evm defconfig.
+* Paul Walmsley <paul@booyaka.com> [080924 17:35]:
+> On Wed, 24 Sep 2008, Tony Lindgren wrote:
+> 
+> > * Paul Walmsley <paul@booyaka.com> [080924 17:06]:
+> > > On Wed, 24 Sep 2008, Tony Lindgren wrote:
+> > > 
+> > > > How about this for a quick fix? It produces now a bunch of warnings
+> > > > until omap1 clock uses offsets too.
+> > > 
+> > > Looks good to me.  Good to see that VIRTUAL_IO_ADDRESS flag gone -- 
+> > 
+> > OK, pushed with a minror change. I've marked DSP addresses as IOMEM.
+> 
+> Are those marked as IOMEM() already in 
+> arch/arm/plat-omap/include/mach/hardware.h ?
 
-Signed-off-by: Arun KS <arunks@mistralsolutions.com>
----
- arch/arm/configs/omap2_evm_defconfig |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+No, but they could since it does not change the offset. Marking anything
+OMAP1_IO_ADDRESS would require grepping for that register naturally..
 
-diff --git a/arch/arm/configs/omap2_evm_defconfig
-b/arch/arm/configs/omap2_evm_defconfig
-index 61f0965..454fa46 100644
---- a/arch/arm/configs/omap2_evm_defconfig
-+++ b/arch/arm/configs/omap2_evm_defconfig
-@@ -1,7 +1,7 @@
- #
- # Automatically generated make config: don't edit
--# Linux kernel version: 2.6.27-rc3-omap1
--# Wed Aug 20 21:20:25 2008
-+# Linux kernel version: 2.6.27-rc7-omap1
-+# Wed Sep 24 18:43:59 2008
- #
- CONFIG_ARM=y
- CONFIG_SYS_SUPPORTS_APM_EMULATION=y
-@@ -264,6 +264,7 @@ CONFIG_GENERIC_CLOCKEVENTS_BUILD=y
- CONFIG_PREEMPT=y
- CONFIG_HZ=100
- # CONFIG_AEABI is not set
-+CONFIG_ARCH_FLATMEM_HAS_HOLES=y
- # CONFIG_ARCH_DISCONTIGMEM_ENABLE is not set
- CONFIG_SELECT_MEMORY_MODEL=y
- CONFIG_FLATMEM_MANUAL=y
-@@ -773,7 +774,7 @@ CONFIG_SPI_MASTER=y
- # SPI Master Controller Drivers
- #
- # CONFIG_SPI_BITBANG is not set
--# CONFIG_SPI_OMAP24XX is not set
-+CONFIG_SPI_OMAP24XX=y
-
- #
- # SPI Protocol Masters
--- 
-1.5.3.4
+Tony
