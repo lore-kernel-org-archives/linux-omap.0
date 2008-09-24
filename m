@@ -1,99 +1,28 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/5] Fix sections for omap-mcbsp platform driver
-Date: Wed, 24 Sep 2008 16:47:36 +0300
-Message-ID: <20080924134736.GR5222@atomide.com>
-References: <1222262955-13599-1-git-send-email-tony@atomide.com> <1222262955-13599-2-git-send-email-tony@atomide.com>
+From: Paul Walmsley <paul@booyaka.com>
+Subject: Re: [PATCH] Temporary fix to boot OMAP1 based boards
+Date: Wed, 24 Sep 2008 08:06:06 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0809240805410.15312@utopia.booyaka.com>
+References: <dfeb90390809230823l7c37d15au49c5726c7510718c@mail.gmail.com> <20080924.065137.142952786.Hiroshi.DOYU@nokia.com> <dfeb90390809240005xadef43dhb78c8ae214baab64@mail.gmail.com> <20080924071201.GE5222@atomide.com> <20080924075959.GF5222@atomide.com>
+ <alpine.DEB.2.00.0809240202250.15312@utopia.booyaka.com> <20080924080652.GG5222@atomide.com> <alpine.DEB.2.00.0809240207480.15312@utopia.booyaka.com> <20080924083446.GH5222@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="ghzN8eJ9Qlbqn3iT"
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51981 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752016AbYIXNrs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 09:47:48 -0400
-Content-Disposition: inline
-In-Reply-To: <1222262955-13599-2-git-send-email-tony@atomide.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:40332 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751867AbYIXOGJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 10:06:09 -0400
+In-Reply-To: <20080924083446.GH5222@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <ukleinek@strlen.de>, Russell King <rmk+kernel@arm.linux.org.uk>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arun KS <arunks@mistralsolutions.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org
+
+On Wed, 24 Sep 2008, Tony Lindgren wrote:
+
+> How about this for a quick fix? It produces now a bunch of warnings
+> until omap1 clock uses offsets too.
+
+Looks good to me.  Good to see that VIRTUAL_IO_ADDRESS flag gone -- 
 
 
---ghzN8eJ9Qlbqn3iT
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-* Tony Lindgren <tony@atomide.com> [080924 16:29]:
-> From: Uwe Kleine-König <ukleinek@strlen.de>
-> 
-> 	echo -n omap-mcbsp.1 > /sys/bus/platform/driver/omap-mcbsp/unbind
-> 	echo -n omap-mcbsp.1 > /sys/bus/platform/driver/omap-mcbsp/bind
-> 
-> While at it move the remove function to the .devexit.text section.
-
-Looks like I managed to trash the subject on this one, here's a fixed
-version.
-
-Tony
-
---ghzN8eJ9Qlbqn3iT
-Content-Type: text/x-diff; charset=iso-8859-1
-Content-Disposition: inline; filename="0001-Don-t-use-__init-but-__devinit-to-define-probe-funct.patch"
-Content-Transfer-Encoding: 8bit
-
->From f4ca1382337bfb1bf612fa07c2bb0207b1a5da37 Mon Sep 17 00:00:00 2001
-From: =?utf-8?q?Uwe=20Kleine-K=C3=B6nig?= <ukleinek@strlen.de>
-Date: Wed, 24 Sep 2008 16:13:11 +0300
-Subject: [PATCH] Fix sections for omap-mcbsp platform driver
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-
-Don't use __init but __devinit to define probe function.  A pointer to
-omap_mcbsp_probe is passed to the core via platform_driver_register and
-so the function must not disappear when the init code is freed.  Using
-__init and having HOTPLUG=y the following probably oopses:
-
-	echo -n omap-mcbsp.1 > /sys/bus/platform/driver/omap-mcbsp/unbind
-	echo -n omap-mcbsp.1 > /sys/bus/platform/driver/omap-mcbsp/bind
-
-While at it move the remove function to the .devexit.text section.
-
-Signed-off-by: Uwe Kleine-König <ukleinek@strlen.de>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index e63990f..e0803a8 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -804,7 +804,7 @@ EXPORT_SYMBOL(omap_mcbsp_set_spi_mode);
-  * McBSP1 and McBSP3 are directly mapped on 1610 and 1510.
-  * 730 has only 2 McBSP, and both of them are MPU peripherals.
-  */
--static int __init omap_mcbsp_probe(struct platform_device *pdev)
-+static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
- {
- 	struct omap_mcbsp_platform_data *pdata = pdev->dev.platform_data;
- 	int id = pdev->id - 1;
-@@ -868,7 +868,7 @@ exit:
- 	return ret;
- }
- 
--static int omap_mcbsp_remove(struct platform_device *pdev)
-+static int __devexit omap_mcbsp_remove(struct platform_device *pdev)
- {
- 	struct omap_mcbsp *mcbsp = platform_get_drvdata(pdev);
- 
-@@ -894,7 +894,7 @@ static int omap_mcbsp_remove(struct platform_device *pdev)
- 
- static struct platform_driver omap_mcbsp_driver = {
- 	.probe		= omap_mcbsp_probe,
--	.remove		= omap_mcbsp_remove,
-+	.remove		= __devexit_p(omap_mcbsp_remove),
- 	.driver		= {
- 		.name	= "omap-mcbsp",
- 	},
-
---ghzN8eJ9Qlbqn3iT--
+- Paul
