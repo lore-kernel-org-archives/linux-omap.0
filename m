@@ -1,30 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Temporary fix to boot OMAP1 based boards
-Date: Wed, 24 Sep 2008 17:27:29 +0300
-Message-ID: <20080924142728.GT5222@atomide.com>
-References: <dfeb90390809230823l7c37d15au49c5726c7510718c@mail.gmail.com> <20080924.065137.142952786.Hiroshi.DOYU@nokia.com> <dfeb90390809240005xadef43dhb78c8ae214baab64@mail.gmail.com> <20080924071201.GE5222@atomide.com> <20080924075959.GF5222@atomide.com> <alpine.DEB.2.00.0809240202250.15312@utopia.booyaka.com> <20080924080652.GG5222@atomide.com> <alpine.DEB.2.00.0809240207480.15312@utopia.booyaka.com> <20080924083446.GH5222@atomide.com> <alpine.DEB.2.00.0809240805410.15312@utopia.booyaka.com>
+From: "Felipe Contreras" <felipe.contreras@gmail.com>
+Subject: Re: MMC issues with 2.6.27-rc7
+Date: Wed, 24 Sep 2008 17:34:13 +0300
+Message-ID: <94a0d4530809240734n5ab77829je7ebe34887c44e95@mail.gmail.com>
+References: <94a0d4530809221402l79abae77re8b062974e1af4a3@mail.gmail.com>
+	 <20080923023103.GF10156@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55035 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750988AbYIXO1i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 10:27:38 -0400
+Received: from rv-out-0506.google.com ([209.85.198.231]:4358 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750988AbYIXOeO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 10:34:14 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so2733457rvb.1
+        for <linux-omap@vger.kernel.org>; Wed, 24 Sep 2008 07:34:13 -0700 (PDT)
+In-Reply-To: <20080923023103.GF10156@frodo>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.0809240805410.15312@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@booyaka.com>
-Cc: Arun KS <arunks@mistralsolutions.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org
+To: me@felipebalbi.com
+Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-* Paul Walmsley <paul@booyaka.com> [080924 17:06]:
-> On Wed, 24 Sep 2008, Tony Lindgren wrote:
-> 
-> > How about this for a quick fix? It produces now a bunch of warnings
-> > until omap1 clock uses offsets too.
-> 
-> Looks good to me.  Good to see that VIRTUAL_IO_ADDRESS flag gone -- 
+On Tue, Sep 23, 2008 at 5:31 AM, Felipe Balbi <me@felipebalbi.com> wrote:
+> On Tue, Sep 23, 2008 at 12:02:51AM +0300, Felipe Contreras wrote:
+>> Hi,
+>>
+>> I just moved to 2.6.27-rc7 from rc6 and I'm having a lot of issues with MMC.
+>
+> Which board is that ? I suppose it's a beagle with omap_hsmmc.c ?
 
-OK, pushed with a minror change. I've marked DSP addresses as IOMEM.
+Ah, yeah, I forgot to mention that: beagleboard.
 
-Tony
+> Could you git bisect and try to narrow down the patch that broke it ?
+
+Actually I pulled again and I'm not able to reproduce the issue
+anymore. I also have a different config -alsa -ubifs. I'm not sure
+what fixed the issue.
+
+-- 
+Felipe Contreras
