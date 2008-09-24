@@ -1,212 +1,187 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH 3/5] Move counter function into generic OMAP PM
-Date: Wed, 24 Sep 2008 17:11:56 +0300
-Message-ID: <1222265518-7230-4-git-send-email-peter.de-schrijver@nokia.com>
-References: <1222265518-7230-1-git-send-email-peter.de-schrijver@nokia.com>
- <1222265518-7230-2-git-send-email-peter.de-schrijver@nokia.com>
- <1222265518-7230-3-git-send-email-peter.de-schrijver@nokia.com>
+From: "Arun KS" <arunks@mistralsolutions.com>
+Subject: [PATCH] OMAP2EVM : Add touchscreen support
+Date: Wed, 24 Sep 2008 19:44:12 +0530
+Message-ID: <dfeb90390809240714l68debbct9fdc068cfc440f3@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:62519 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752311AbYIXONB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 10:13:01 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8OECJ2T012451
-	for <linux-omap@vger.kernel.org>; Wed, 24 Sep 2008 09:12:59 -0500
-In-Reply-To: <1222265518-7230-3-git-send-email-peter.de-schrijver@nokia.com>
+Received: from rv-out-0506.google.com ([209.85.198.235]:1284 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752160AbYIXOOM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 10:14:12 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so2725629rvb.1
+        for <linux-omap@vger.kernel.org>; Wed, 24 Sep 2008 07:14:12 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+This patch adds ads7846 touchscreen support to omap2evm board
 
-Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Signed-off-by: Arun KS <arunks@mistralsolutions.com>
 ---
- arch/arm/mach-omap2/powerdomain.c |  113 +++++++++++++++++++++++++++++++++++--
- 1 files changed, 107 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/board-omap2evm.c             |   64 ++++++++++++++++++++++
+ arch/arm/mach-omap2/mux.c                        |   11 ++++
+ arch/arm/plat-omap/include/mach/board-omap2evm.h |    2 +
+ arch/arm/plat-omap/include/mach/mux.h            |    9 +++
+ 4 files changed, 86 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 097d5c4..3249903 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -23,6 +23,7 @@
- #include <linux/errno.h>
- #include <linux/err.h>
- #include <linux/io.h>
-+#include <linux/platform_device.h>
- 
- #include <asm/atomic.h>
- 
-@@ -30,10 +31,17 @@
- #include "cm-regbits-34xx.h"
- #include "prm.h"
- #include "prm-regbits-34xx.h"
-+#include "pm.h"
- 
- #include <mach/cpu.h>
- #include <mach/powerdomain.h>
- #include <mach/clockdomain.h>
-+#include <mach/tiocp_device.h>
+diff --git a/arch/arm/mach-omap2/board-omap2evm.c
+b/arch/arm/mach-omap2/board-omap2evm.c
+index 6ce7740..2cf13b1 100644
+--- a/arch/arm/mach-omap2/board-omap2evm.c
++++ b/arch/arm/mach-omap2/board-omap2evm.c
+@@ -22,6 +22,8 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+ #include <linux/mtd/nand.h>
++#include <linux/spi/spi.h>
++#include <linux/spi/ads7846.h>
+
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -36,6 +38,8 @@
+ #include <mach/keypad.h>
+ #include <mach/gpmc.h>
+ #include <mach/nand.h>
++#include <mach/mcspi.h>
++#include <mach/mux.h>
+
+ #define GPMC_OFF_CONFIG1_0 0x60
+
+@@ -181,6 +185,62 @@ static struct omap_lcd_config
+omap2_evm_lcd_config __initdata = {
+ 	.ctrl_name	= "internal",
+ };
+
++static void ads7846_dev_init(void)
++{
 +
-+enum {
-+	PWRDM_STATE_NOW = 0,
-+	PWRDM_STATE_PREV,
++	/*Setting the MUX */
++	omap_cfg_reg(Y18_2430_MCSPI1_CLK);
++	omap_cfg_reg(AD15_2430_MCSPI1_SIMO);
++	omap_cfg_reg(AE17_2430_MCSPI1_SOMI);
++	omap_cfg_reg(U1_2430_MCSPI1_CS0);
++
++	omap_cfg_reg(AF19_2430_GPIO_85);
++
++	if (omap_request_gpio(OMAP2_EVM_TS_GPIO) < 0)
++		printk(KERN_ERR "can't get ads7846 pen down GPIO\n");
++
++	omap_set_gpio_direction(OMAP2_EVM_TS_GPIO, 1);
++
++	omap_set_gpio_debounce(OMAP2_EVM_TS_GPIO, 1);
++	omap_set_gpio_debounce_time(OMAP2_EVM_TS_GPIO, 0xa);
++}
++
++static int ads7846_get_pendown_state(void)
++{
++	return !omap_get_gpio_datain(OMAP2_EVM_TS_GPIO);
++}
++
++struct ads7846_platform_data ads7846_config = {
++	.x_max			= 0x0fff,
++	.y_max			= 0x0fff,
++	.x_plate_ohms		= 180,
++	.pressure_max		= 255,
++	.debounce_max		= 10,
++	.debounce_tol		= 3,
++	.debounce_rep		= 1,
++	.get_pendown_state	= ads7846_get_pendown_state,
++	.keep_vref_on		= 1,
++	.settle_delay_usecs	= 150,
 +};
- 
- /* pwrdm_list contains all registered struct powerdomains */
- static LIST_HEAD(pwrdm_list);
-@@ -102,6 +110,64 @@ static struct powerdomain *_pwrdm_deps_lookup(struct powerdomain *pwrdm,
- 	return pd->pwrdm;
++
++static struct omap2_mcspi_device_config ads7846_mcspi_config = {
++	.turbo_mode	= 0,
++	.single_channel	= 1,  /* 0: slave, 1: master */
++};
++
++struct spi_board_info omap2evm_spi_board_info[] = {
++	[0] = {
++		.modalias		= "ads7846",
++		.bus_num		= 1,
++		.chip_select		= 0,
++		.max_speed_hz		= 1500000,
++		.controller_data	= &ads7846_mcspi_config,
++		.irq			= OMAP_GPIO_IRQ(OMAP2_EVM_TS_GPIO),
++		.platform_data		= &ads7846_config,
++	},
++};
++
++
+ static int omap2evm_keymap[] = {
+ 	KEY(0, 0, KEY_LEFT),
+ 	KEY(0, 1, KEY_RIGHT),
+@@ -269,9 +329,13 @@ static void __init omap2_evm_init(void)
+ 	platform_add_devices(omap2_evm_devices, ARRAY_SIZE(omap2_evm_devices));
+ 	omap_board_config = omap2_evm_config;
+ 	omap_board_config_size = ARRAY_SIZE(omap2_evm_config);
++
++	spi_register_board_info(omap2evm_spi_board_info,
++				ARRAY_SIZE(omap2evm_spi_board_info));
+ 	omap_serial_init();
+ 	hsmmc_init();
+ 	omap2evm_flash_init();
++	ads7846_dev_init();
  }
- 
-+static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
-+{
-+	int prev;
-+	int state;
-+
-+	if (pwrdm == NULL)
-+		return -EINVAL;
-+
-+	state = pwrdm_read_pwrst(pwrdm);
-+
-+	switch (flag) {
-+	case PWRDM_STATE_NOW:
-+		prev = pwrdm->state;
-+		break;
-+	case PWRDM_STATE_PREV:
-+		prev = pwrdm_read_prev_pwrst(pwrdm);
-+		if (pwrdm->state != prev)
-+			pwrdm->state_counter[prev]++;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (state != prev)
-+		pwrdm->state_counter[state]++;
-+
-+	pm_dbg_update_time(pwrdm,prev);
-+
-+	pwrdm->state = state;
-+
-+	return 0;
-+}
-+
-+static int _pwrdm_pre_suspend_cb(struct powerdomain *pwrdm, void *user)
-+{
-+	pwrdm_clear_all_prev_pwrst(pwrdm);
-+	_pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
-+	return 0;
-+}
-+
-+static int _pwrdm_post_suspend_cb(struct powerdomain *pwrdm, void *user)
-+{
-+	_pwrdm_state_switch(pwrdm, PWRDM_STATE_PREV);
-+	return 0;
-+}
-+
-+static __init void _pwrdm_setup(struct powerdomain *pwrdm)
-+{
-+	int i;
-+
-+	for (i = 0; i < 4; i++) 
-+		pwrdm->state_counter[i] = 0;
-+
-+	pwrdm_wait_transition(pwrdm);
-+	pwrdm->state = pwrdm_read_pwrst(pwrdm);
-+	pwrdm->state_counter[pwrdm->state] = 1;
-+
-+}
- 
- /* Public functions */
- 
-@@ -117,9 +183,12 @@ void pwrdm_init(struct powerdomain **pwrdm_list)
- {
- 	struct powerdomain **p = NULL;
- 
--	if (pwrdm_list)
--		for (p = pwrdm_list; *p; p++)
-+	if (pwrdm_list) {
-+		for (p = pwrdm_list; *p; p++) {
- 			pwrdm_register(*p);
-+			_pwrdm_setup(*p);
-+		}
-+	}
- }
- 
- /**
-@@ -217,7 +286,7 @@ struct powerdomain *pwrdm_lookup(const char *name)
-  * anything else to indicate failure; or -EINVAL if the function
-  * pointer is null.
-  */
--int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm))
-+int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user), void *user)
- {
- 	struct powerdomain *temp_pwrdm;
- 	unsigned long flags;
-@@ -228,7 +297,7 @@ int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm))
- 
- 	read_lock_irqsave(&pwrdm_rwlock, flags);
- 	list_for_each_entry(temp_pwrdm, &pwrdm_list, node) {
--		ret = (*fn)(temp_pwrdm);
-+		ret = (*fn)(temp_pwrdm, user);
- 		if (ret)
- 			break;
- 	}
-@@ -1110,11 +1179,43 @@ int pwrdm_wait_transition(struct powerdomain *pwrdm)
- 	return 0;
- }
- 
-+int pwrdm_state_switch(struct powerdomain *pwrdm)
-+{
-+	return _pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
-+}
-+
-+int pwrdm_clkdm_state_switch(struct clockdomain *clkdm)
-+{
-+	if (clkdm != NULL && clkdm->pwrdm.ptr != NULL) {
-+		pwrdm_wait_transition(clkdm->pwrdm.ptr);
-+		return pwrdm_state_switch(clkdm->pwrdm.ptr);
-+	}
-+
-+	return -EINVAL;
-+}
-+int pwrdm_clk_state_switch(struct clk *clk)
-+{
-+	if (clk != NULL && clk->clkdm.ptr != NULL)
-+		return pwrdm_clkdm_state_switch(clk->clkdm.ptr);
-+	return -EINVAL;
-+}
-+
-+int pwrdm_pre_suspend(void)
-+{
-+	pwrdm_for_each(_pwrdm_pre_suspend_cb, NULL);
-+	return 0;
-+}
-+
-+int pwrdm_post_suspend(void)
-+{
-+	pwrdm_for_each(_pwrdm_post_suspend_cb, NULL);
-+	return 0;
-+}
-+
- #if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
- 
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
--#include "pm.h"
- 
- static const char pwrdm_state_names[][4] = {
- 	"OFF",
-@@ -1164,7 +1265,7 @@ int pwrdm_dbg_show_timers(struct seq_file *s, void *unused)
- 			continue;
- 
- 		/* Update timer for current state */
--		pm_dbg_pwrdm_state_switch(pwrdm);
-+		pwrdm_state_switch(pwrdm);
- 
- 		seq_printf(s, "%s (%s)", pwrdm->name,
- 			pwrdm_state_names[pwrdm->state]);
--- 
-1.5.6.3
 
+ static void __init omap2_evm_map_io(void)
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 741ab18..7bbd87e 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -210,6 +210,17 @@ MUX_CFG_24XX("AC10_2430_MCBSP2_FSX_OFF",0x012E,	0,	0,	0,	1)
+ MUX_CFG_24XX("AD16_2430_MCBSP2_CLX_OFF",0x012F,	0,	0,	0,	1)
+ MUX_CFG_24XX("AE13_2430_MCBSP2_DX_OFF",	0x0130,	0,	0,	0,	1)
+ MUX_CFG_24XX("AD13_2430_MCBSP2_DR_OFF",	0x0131,	0,	0,	0,	1)
++
++/* 2430 MCSPI1 */
++MUX_CFG_24XX("SPI1_2430_MCSPI1_CLK",	0x010F,	0,	0,	0,	1)
++MUX_CFG_24XX("SPI1_2430_MCSPI1_SIMO",	0x0110,	0,	0,	0,	1)
++MUX_CFG_24XX("SPI1_2430_MCSPI1_SOMI",	0x0111,	0,	0,	0,	1)
++MUX_CFG_24XX("SPI1_2430_MCSPI1_CS0",	0x0112,	0,	0,	0,	1)
++MUX_CFG_24XX("SPI1_2430_GPIO_85",	0x0113,	3,	0,	0,	1)
++
++/* Touchscreen GPIO */
++MUX_CFG_24XX("AF19_2430_GPIO_85",	0x0113,	3,	0,	0,	1)
++
+ };
+
+ #define OMAP24XX_PINS_SZ	ARRAY_SIZE(omap24xx_pins)
+diff --git a/arch/arm/plat-omap/include/mach/board-omap2evm.h
+b/arch/arm/plat-omap/include/mach/board-omap2evm.h
+index ec548d4..b46fba6 100644
+--- a/arch/arm/plat-omap/include/mach/board-omap2evm.h
++++ b/arch/arm/plat-omap/include/mach/board-omap2evm.h
+@@ -34,4 +34,6 @@
+ #define OMAP2EVM_ETHR_SIZE			1024
+ #define OMAP2EVM_ETHR_GPIO_IRQ		149
+
++#define OMAP2_EVM_TS_GPIO	85
++
+ #endif /* __ASM_ARCH_OMAP2_EVM_H */
+diff --git a/arch/arm/plat-omap/include/mach/mux.h
+b/arch/arm/plat-omap/include/mach/mux.h
+index 5670d56..683474f 100644
+--- a/arch/arm/plat-omap/include/mach/mux.h
++++ b/arch/arm/plat-omap/include/mach/mux.h
+@@ -641,6 +641,15 @@ enum omap24xx_index {
+ 	AE13_2430_MCBSP2_DX_OFF,
+ 	AD13_2430_MCBSP2_DR_OFF,
+
++	/* 2430 McSPI*/
++	Y18_2430_MCSPI1_CLK,
++	AD15_2430_MCSPI1_SIMO,
++	AE17_2430_MCSPI1_SOMI,
++	U1_2430_MCSPI1_CS0,
++
++	/* Touchscreen GPIO */
++	AF19_2430_GPIO_85,
++
+ };
+
+ enum omap34xx_index {
+-- 
+1.5.3.4
