@@ -1,71 +1,36 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: clk_disable_unused() is bugged
-Date: Wed, 24 Sep 2008 08:09:50 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0809240807450.15312@utopia.booyaka.com>
-References: <B71CE868F2BC2847B3F23C5A8EE39430890B53@vaebe110.NOE.Nokia.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: [PATCH 0/5] Move PM debug counters to normal PM code. Preview with sequence numbers
+Date: Wed, 24 Sep 2008 17:11:53 +0300
+Message-ID: <1222265518-7230-1-git-send-email-peter.de-schrijver@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40435 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752144AbYIXOJw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 10:09:52 -0400
-In-Reply-To: <B71CE868F2BC2847B3F23C5A8EE39430890B53@vaebe110.NOE.Nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:58110 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751280AbYIXOME (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 10:12:04 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8OEBkDK013064
+	for <linux-omap@vger.kernel.org>; Wed, 24 Sep 2008 17:12:01 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero.Kristo@nokia.com
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-Hello Tero (and anyone else),
+This patchset makes the PM counters no longer debug only. This will allow drivers to decide if they need to reinitialize the hardware due to an off to on transition. Patchset was made against the pm-0 branch.
 
-On Wed, 24 Sep 2008, Tero.Kristo@nokia.com wrote:
+Peter 'p2' De Schrijver (5):
+  Move some counter functions to powerdomain.c
+  Adapt prototypes for counter functions
+  Move counter function into generic OMAP PM
+  Make counter types unsigned, add closure pointer to pwrdm_for_each,
+    add prototypes
+  Add hooks to PM layer and clock tree for PM counters
 
-> clk_disable_unused (in plat-omap/clock.c) is bugged in latest kernel. It
-> checks whether ck->enable_reg is zero, and in most cases this happens to
-> be so (CM_FCLKEN = 0.) Seems to be caused by some late change to
-> clocktree where enable_reg fields are defined as module offsets, not
-> register addresses. This bug causes several clocks to remain enabled
-> after boot, and at least on OMAP3 it prevents retention.
-> 
-> Paul, you got a fix coming for this?
+ arch/arm/mach-omap2/clock.c                   |    3 +-
+ arch/arm/mach-omap2/clockdomain.c             |    4 +-
+ arch/arm/mach-omap2/pm-debug.c                |  107 ++++--------------------
+ arch/arm/mach-omap2/pm.h                      |   14 +--
+ arch/arm/mach-omap2/pm34xx.c                  |   10 +-
+ arch/arm/mach-omap2/powerdomain.c             |  113 +++++++++++++++++++++++--
+ arch/arm/plat-omap/include/mach/powerdomain.h |   13 ++-
+ 7 files changed, 146 insertions(+), 118 deletions(-)
 
-Yes, here's something that should at least fix the clk_disable_unused() 
-problem.  It seems to work on 2430SDP and 3430SDP here.  
-
-Any other help testing from anyone else is appreciated -
-
-
-- Paul
-
-
-Author: Paul Walmsley <paul@pwsan.com>
-Date:   Wed Sep 24 04:48:05 2008 -0600
-
-    OMAP2/3 clock: fix CONFIG_OMAP_RESET_CLOCKS
-    
-    plat-omap/clock.c was skipping clocks with enable_reg == 0.  This no longer
-    works now that we use enable_reg as an offset from a PRCM module.
-    
-    Problem found and traced by Tero Kristo <tero.kristo@nokia.com> -
-    thanks Tero.
-    
-    Signed-off-by: Paul Walmsley <paul@pwsan.com>
-
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index 197974d..7bbfba2 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -384,8 +384,11 @@ static int __init clk_disable_unused(void)
- 	unsigned long flags;
- 
- 	list_for_each_entry(ck, &clocks, node) {
--		if (ck->usecount > 0 || (ck->flags & ALWAYS_ENABLED) ||
--			ck->enable_reg == 0)
-+		if (ck->usecount > 0 ||
-+		    (ck->flags & (ALWAYS_ENABLED | PARENT_CONTROLS_CLOCK)))
-+			continue;
-+
-+		if (cpu_class_is_omap1() && ck->enable_reg == 0)
- 			continue;
- 
- 		spin_lock_irqsave(&clockfw_lock, flags);
