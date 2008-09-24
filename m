@@ -1,131 +1,31 @@
-From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
-Subject: [PATCH 8/9]HDQ driver:protect the shared flag
-Date: Wed, 24 Sep 2008 17:03:44 +0530 (IST)
-Message-ID: <58896.192.168.10.89.1222256024.squirrel@dbdmail.itg.ti.com>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <ukleinek@strlen.de>
+Subject: Re: [PATCH 0/3] Omap McBSP updates from linux-omap tree
+Date: Wed, 24 Sep 2008 13:45:35 +0200
+Message-ID: <20080924114534.GA18700@strlen.de>
+References: <1222249943-19435-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46584 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751922AbYIXLeK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Sep 2008 07:34:10 -0400
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:43587 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751239AbYIXLpi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Sep 2008 07:45:38 -0400
+Content-Disposition: inline
+In-Reply-To: <1222249943-19435-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: johnpol@2ka.mipt.ru, felipe.balbi@nokia.com, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-From: Madhusudhan Chikkature<madhu.cr@ti.com>
+Hello Tony,
 
-This patch moves the shared variable into the local structure and protects its
-updation.
+> This series contains pending McBSP patches from linux-omap tree
+> for review.
+what about adding the patch I sent some time ago[1] to your series?
 
-Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
----
- drivers/w1/masters/omap_hdq.c |   52 ++++++++++++++++++++++++++++++------------
- 1 files changed, 38 insertions(+), 14 deletions(-)
+Best regards
+Uwe
 
-Index: linux-omap-2.6/drivers/w1/masters/omap_hdq.c
-===================================================================
---- linux-omap-2.6.orig/drivers/w1/masters/omap_hdq.c	2008-09-24
-11:49:45.000000000 +0530
-+++ linux-omap-2.6/drivers/w1/masters/omap_hdq.c	2008-09-24 14:41:43.000000000
-+0530
-@@ -61,6 +61,12 @@ struct hdq_data {
- 	struct	clk		*hdq_fck;
- 	u8			hdq_irqstatus;
- 	spinlock_t		hdq_spinlock;
-+	/*
-+	 * Used to control the call to omap_hdq_get and omap_hdq_put.
-+	 * HDQ Protocol: Write the CMD|REG_address first, followed by
-+	 * the data wrire or read.
-+	 */
-+	int			init_trans;
- };
-
- static int omap_hdq_get(struct hdq_data *hdq_data);
-@@ -505,13 +511,6 @@ omap_hdq_put(struct hdq_data *hdq_data)
- }
-
- /*
-- * Used to control the call to omap_hdq_get and omap_hdq_put.
-- * HDQ Protocol: Write the CMD|REG_address first, followed by
-- * the data wrire or read.
-- */
--static int init_trans;
--
--/*
-  * Read a byte of data from the device.
-  */
- static u8 omap_w1_read_byte(void *_hdq)
-@@ -522,14 +521,26 @@ static u8 omap_w1_read_byte(void *_hdq)
-
- 	ret = hdq_read_byte(hdq_data, &val);
- 	if (ret) {
--		init_trans = 0;
-+		ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
-+		if (ret < 0) {
-+			dev_dbg(hdq_data->dev, "Could not acquire mutex\n");
-+			return -EINTR;
-+		}
-+		hdq_data->init_trans = 0;
-+		mutex_unlock(&hdq_data->hdq_mutex);
- 		omap_hdq_put(hdq_data);
- 		return -1;
- 	}
-
- 	/* Write followed by a read, release the module */
--	if (init_trans) {
--		init_trans = 0;
-+	if (hdq_data->init_trans) {
-+		ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
-+		if (ret < 0) {
-+			dev_dbg(hdq_data->dev, "Could not acquire mutex\n");
-+			return -EINTR;
-+		}
-+		hdq_data->init_trans = 0;
-+		mutex_unlock(&hdq_data->hdq_mutex);
- 		omap_hdq_put(hdq_data);
- 	}
-
-@@ -542,21 +553,34 @@ static u8 omap_w1_read_byte(void *_hdq)
- static void omap_w1_write_byte(void *_hdq, u8 byte)
- {
- 	struct hdq_data *hdq_data = _hdq;
-+	int ret;
- 	u8 status;
-
- 	/* First write to initialize the transfer */
--	if (init_trans == 0)
-+	if (hdq_data->init_trans == 0)
- 		omap_hdq_get(hdq_data);
-
--	init_trans++;
-+	ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
-+	if (ret < 0) {
-+		dev_dbg(hdq_data->dev, "Could not acquire mutex\n");
-+		return;
-+	}
-+	hdq_data->init_trans++;
-+	mutex_unlock(&hdq_data->hdq_mutex);
-
- 	hdq_write_byte(hdq_data, byte, &status);
- 	dev_dbg(hdq_data->dev, "Ctrl status %x\n", status);
-
- 	/* Second write, data transfered. Release the module */
--	if (init_trans > 1) {
-+	if (hdq_data->init_trans > 1) {
- 		omap_hdq_put(hdq_data);
--		init_trans = 0;
-+		ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
-+		if (ret < 0) {
-+			dev_dbg(hdq_data->dev, "Could not acquire mutex\n");
-+			return;
-+		}
-+		hdq_data->init_trans = 0;
-+		mutex_unlock(&hdq_data->hdq_mutex);
- 	}
-
- 	return;
-
-
+[1] Message-Id: <1221685893-2291-3-git-send-email-ukleinek@strlen.de>
+    http://mid.gmane.org/1221685893-2291-3-git-send-email-ukleinek@strlen.de
