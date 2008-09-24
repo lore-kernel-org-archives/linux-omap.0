@@ -1,118 +1,71 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH] Add hooks to PM layer and clock tree for PM counters
-Date: Wed, 24 Sep 2008 17:06:54 +0300
-Message-ID: <1222265214-7106-6-git-send-email-peter.de-schrijver@nokia.com>
-References: <1222265214-7106-1-git-send-email-peter.de-schrijver@nokia.com>
- <1222265214-7106-2-git-send-email-peter.de-schrijver@nokia.com>
- <1222265214-7106-3-git-send-email-peter.de-schrijver@nokia.com>
- <1222265214-7106-4-git-send-email-peter.de-schrijver@nokia.com>
- <1222265214-7106-5-git-send-email-peter.de-schrijver@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: clk_disable_unused() is bugged
+Date: Wed, 24 Sep 2008 08:09:50 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0809240807450.15312@utopia.booyaka.com>
+References: <B71CE868F2BC2847B3F23C5A8EE39430890B53@vaebe110.NOE.Nokia.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:57865 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751681AbYIXOJb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 10:09:31 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8OE9OKn010584
-	for <linux-omap@vger.kernel.org>; Wed, 24 Sep 2008 17:09:29 +0300
-In-Reply-To: <1222265214-7106-5-git-send-email-peter.de-schrijver@nokia.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:40435 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752144AbYIXOJw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 10:09:52 -0400
+In-Reply-To: <B71CE868F2BC2847B3F23C5A8EE39430890B53@vaebe110.NOE.Nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+To: Tero.Kristo@nokia.com
+Cc: linux-omap@vger.kernel.org
+
+Hello Tero (and anyone else),
+
+On Wed, 24 Sep 2008, Tero.Kristo@nokia.com wrote:
+
+> clk_disable_unused (in plat-omap/clock.c) is bugged in latest kernel. It
+> checks whether ck->enable_reg is zero, and in most cases this happens to
+> be so (CM_FCLKEN = 0.) Seems to be caused by some late change to
+> clocktree where enable_reg fields are defined as module offsets, not
+> register addresses. This bug causes several clocks to remain enabled
+> after boot, and at least on OMAP3 it prevents retention.
+> 
+> Paul, you got a fix coming for this?
+
+Yes, here's something that should at least fix the clk_disable_unused() 
+problem.  It seems to work on 2430SDP and 3430SDP here.  
+
+Any other help testing from anyone else is appreciated -
 
 
-Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
----
- arch/arm/mach-omap2/clock.c       |    3 ++-
- arch/arm/mach-omap2/clockdomain.c |    4 ++--
- arch/arm/mach-omap2/pm34xx.c      |   10 +++++-----
- 3 files changed, 9 insertions(+), 8 deletions(-)
+- Paul
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index d0006c4..1c94c02 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -1028,6 +1028,7 @@ void omap2_clk_disable_unused(struct clk *clk)
- 
- 	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
- 	_omap2_clk_disable(clk);
--	pm_dbg_clk_state_switch(clk);
-+	if (clk->clkdm.ptr != NULL)
-+		pwrdm_clkdm_state_switch(clk->clkdm.ptr);
- }
- #endif
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index 9670ed1..74e0817 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -569,7 +569,7 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
- 	else
- 		omap2_clkdm_wakeup(clkdm);
- 
--	pm_dbg_clkdm_state_switch(clkdm);
-+	pwrdm_clkdm_state_switch(clkdm);
- 
- 	return 0;
- }
-@@ -622,7 +622,7 @@ int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
- 	else
- 		omap2_clkdm_sleep(clkdm);
- 
--	pm_dbg_clkdm_state_switch(clkdm);
-+	pwrdm_clkdm_state_switch(clkdm);
- 
- 	return 0;
- }
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 1b0272d..a2fa210 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -279,7 +279,7 @@ void omap_sram_idle(void)
- 	disable_smartreflex(SR1);
- 	disable_smartreflex(SR2);
- 
--	pm_dbg_pre_suspend();
-+	pwrdm_pre_suspend();
- 
- 	/* NEON control */
- 	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
-@@ -362,7 +362,7 @@ void omap_sram_idle(void)
- 	enable_smartreflex(SR1);
- 	enable_smartreflex(SR2);
- 
--	pm_dbg_post_suspend();
-+	pwrdm_post_suspend();
- }
- 
- /*
-@@ -472,7 +472,7 @@ int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
- 	if (sleep_switch) {
- 		cm_rmw_mod_reg_bits(0x3, 0x3, pwrdm->prcm_offs, 0x48);
- 		pwrdm_wait_transition(pwrdm);
--		pm_dbg_pwrdm_state_switch(pwrdm);
-+		pwrdm_state_switch(pwrdm);
- 	}
- 
- err:
-@@ -795,7 +795,7 @@ static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
- 	return n;
- }
- 
--static int __init pwrdms_setup(struct powerdomain *pwrdm)
-+static int __init pwrdms_setup(struct powerdomain *pwrdm, void *user)
- {
- 	struct power_state *pwrst;
- 	struct kobj_attribute *attr;
-@@ -874,7 +874,7 @@ int __init omap3_pm_init(void)
- 		goto err2;
- 	}
- 
--	ret = pwrdm_for_each(pwrdms_setup);
-+	ret = pwrdm_for_each(pwrdms_setup, NULL);
- 	if (ret) {
- 		printk(KERN_ERR "Failed to setup powerdomains\n");
- 		goto err2;
--- 
-1.5.6.3
 
+Author: Paul Walmsley <paul@pwsan.com>
+Date:   Wed Sep 24 04:48:05 2008 -0600
+
+    OMAP2/3 clock: fix CONFIG_OMAP_RESET_CLOCKS
+    
+    plat-omap/clock.c was skipping clocks with enable_reg == 0.  This no longer
+    works now that we use enable_reg as an offset from a PRCM module.
+    
+    Problem found and traced by Tero Kristo <tero.kristo@nokia.com> -
+    thanks Tero.
+    
+    Signed-off-by: Paul Walmsley <paul@pwsan.com>
+
+diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+index 197974d..7bbfba2 100644
+--- a/arch/arm/plat-omap/clock.c
++++ b/arch/arm/plat-omap/clock.c
+@@ -384,8 +384,11 @@ static int __init clk_disable_unused(void)
+ 	unsigned long flags;
+ 
+ 	list_for_each_entry(ck, &clocks, node) {
+-		if (ck->usecount > 0 || (ck->flags & ALWAYS_ENABLED) ||
+-			ck->enable_reg == 0)
++		if (ck->usecount > 0 ||
++		    (ck->flags & (ALWAYS_ENABLED | PARENT_CONTROLS_CLOCK)))
++			continue;
++
++		if (cpu_class_is_omap1() && ck->enable_reg == 0)
+ 			continue;
+ 
+ 		spin_lock_irqsave(&clockfw_lock, flags);
