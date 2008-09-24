@@ -1,71 +1,50 @@
-From: "Arun KS" <arunks@mistralsolutions.com>
-Subject: [Resend] [PATCH 0/2] Add MCSPI1 Mux configuration
-Date: Wed, 24 Sep 2008 20:34:02 +0530
-Message-ID: <dfeb90390809240804i2a27090bicdfb0e5d7ff0c22f@mail.gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] OMAP3EVM: TWL4030 Keypad irq error fix
+Date: Wed, 24 Sep 2008 08:34:16 -0700
+Message-ID: <200809240834.17155.david-b@pacbell.net>
+References: <c656a4d20809192351x39f71fach7145236a9e8e0552@mail.gmail.com> <200809231245.42614.david-b@pacbell.net> <20080924104431.GL24627@gandalf.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.233]:3700 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751510AbYIXPED (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2008 11:04:03 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so2745023rvb.1
-        for <linux-omap@vger.kernel.org>; Wed, 24 Sep 2008 08:04:03 -0700 (PDT)
+Received: from smtp128.sbc.mail.sp1.yahoo.com ([69.147.65.187]:21516 "HELO
+	smtp128.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751528AbYIXPeU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Sep 2008 11:34:20 -0400
+In-Reply-To: <20080924104431.GL24627@gandalf.research.nokia.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: felipe.balbi@nokia.com
+Cc: Koen Kooi <k.kooi@student.utwente.nl>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-This patch adds mcspi1 and gpio_85 mux configuration on 2430
+On Wednesday 24 September 2008, Felipe Balbi wrote:
+>=20
+> > I'll do the GPIO code, which will be a slightly more
+> > interesting example than the RTC.
+>=20
+> I can do the keypad since I'm already working on the usb as well.
 
-Signed-off-by: Arun KS <arunks@mistralsolutions.com>
----
- arch/arm/mach-omap2/mux.c             |   10 ++++++++++
- arch/arm/plat-omap/include/mach/mux.h |    9 +++++++++
- 2 files changed, 19 insertions(+), 0 deletions(-)
+OK.  Good to know folk are actively working on getting
+this in shape for upstream!
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 741ab18..de2f5ee 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -210,6 +210,16 @@ MUX_CFG_24XX("AC10_2430_MCBSP2_FSX_OFF",0x012E,	0,	0,	0,	1)
- MUX_CFG_24XX("AD16_2430_MCBSP2_CLX_OFF",0x012F,	0,	0,	0,	1)
- MUX_CFG_24XX("AE13_2430_MCBSP2_DX_OFF",	0x0130,	0,	0,	0,	1)
- MUX_CFG_24XX("AD13_2430_MCBSP2_DR_OFF",	0x0131,	0,	0,	0,	1)
-+
-+/* 2430 MCSPI1 */
-+MUX_CFG_24XX("Y18_2430_MCSPI1_CLK",	0x010F,	0,	0,	0,	1)
-+MUX_CFG_24XX("AD15_2430_MCSPI1_SIMO",	0x0110,	0,	0,	0,	1)
-+MUX_CFG_24XX("AE17_2430_MCSPI1_SOMI",	0x0111,	0,	0,	0,	1)
-+MUX_CFG_24XX("SPI1_2430_MCSPI1_CS0",	0x0112,	0,	0,	0,	1)
-+
-+/* Touchscreen GPIO */
-+MUX_CFG_24XX("AF19_2430_GPIO_85",	0x0113,	3,	0,	0,	1)
-+
- };
 
- #define OMAP24XX_PINS_SZ	ARRAY_SIZE(omap24xx_pins)
-diff --git a/arch/arm/plat-omap/include/mach/mux.h
-b/arch/arm/plat-omap/include/mach/mux.h
-index 5670d56..683474f 100644
---- a/arch/arm/plat-omap/include/mach/mux.h
-+++ b/arch/arm/plat-omap/include/mach/mux.h
-@@ -641,6 +641,15 @@ enum omap24xx_index {
- 	AE13_2430_MCBSP2_DX_OFF,
- 	AD13_2430_MCBSP2_DR_OFF,
+> Dave,=20
+> I'm gonna add twl_has_rtc(), twl_had_keypad() and twl_has_usb() to cl=
+ean
+> a bit add_children. With those, we're gonna be able to:
+>=20
+> if (twl_has_keypad() && pdata->keypad) {
+> =A0=A0=A0=A0=A0=A0=A0=A0...
+> }
 
-+	/* 2430 McSPI*/
-+	Y18_2430_MCSPI1_CLK,
-+	AD15_2430_MCSPI1_SIMO,
-+	AE17_2430_MCSPI1_SOMI,
-+	U1_2430_MCSPI1_CS0,
-+
-+	/* Touchscreen GPIO */
-+	AF19_2430_GPIO_85,
-+
- };
+Sounds good.  Fault handling might need attention too.
 
- enum omap34xx_index {
--- 
-1.5.3.4
+- Dave
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
