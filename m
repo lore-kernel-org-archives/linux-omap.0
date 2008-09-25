@@ -1,52 +1,86 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/8] i2c-omap: Do not use interruptible wait call in omap_i2c_xfer_msg
-Date: Thu, 25 Sep 2008 10:53:47 +0300
-Message-ID: <1222329234-31473-2-git-send-email-tony@atomide.com>
+Subject: [PATCH 2/8] i2c-omap: Close suspected race between omap_i2c_idle() and omap_i2c_isr()
+Date: Thu, 25 Sep 2008 10:53:48 +0300
+Message-ID: <1222329234-31473-3-git-send-email-tony@atomide.com>
 References: <1222329234-31473-1-git-send-email-tony@atomide.com>
+ <1222329234-31473-2-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60743 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60810 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752269AbYIYHyD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 03:54:03 -0400
-In-Reply-To: <1222329234-31473-1-git-send-email-tony@atomide.com>
+	with ESMTP id S1752347AbYIYHyH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 03:54:07 -0400
+In-Reply-To: <1222329234-31473-2-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: i2c@lm-sensors.org
-Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@nokia.com>, Juha Yrjola <juha.yrjola@solidboot.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
 
-If there is a signal pending and wait_for_completion_interruptible_timeout
-terminates with -ERESTARTSYS, we return and disable the i2c clocks in
-omap_i2c_xfer.
+omap_i2c_idle() sets an internal flag, "dev->idle", instructing its
+ISR to decline interrupts.  It sets this flag before it actually masks
+the interrupts on the I2C controller.  This is problematic, since an
+I2C interrupt could arrive after dev->idle is set, but before the
+interrupt source is masked.  When this happens, Linux disables the I2C
+controller's IRQ, causing all future transactions on the bus to fail.
 
-If we terminate before sending last i2c message with a stop condition, the
-bus remains busy and we are not able to send new messages into bus with
-successive omap_i2c_xfer calls. Therefore a pending signal is not caught
-here and we return only because of timeout or i2c error.
+Symptoms, happening on about 7% of boots:
 
-Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
-Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
+   irq 56: nobody cared (try booting with the "irqpoll" option)
+   <warning traceback here>
+   Disabling IRQ #56
+   i2c_omap i2c_omap.1: controller timed out
+
+In omap_i2c_idle(), this patch sets dev->idle only after the interrupt
+mask write to the I2C controller has left the ARM write buffer.
+That's probably the major offender.  For additional prophylaxis, in
+omap_i2c_unidle(), the patch clears the dev->idle flag before
+interrupts are enabled, rather than afterwards.
+
+The patch has survived twenty-two reboots on the 3430SDP here without
+wedging I2C1.  Not absolutely dispositive, but promising!
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/i2c/busses/i2c-omap.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index e7eb7bf..cfb76f5 100644
+index cfb76f5..a06ad42 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -328,8 +328,8 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 		w |= OMAP_I2C_CON_STP;
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, w);
+@@ -181,22 +181,28 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
+ 	if (dev->iclk != NULL)
+ 		clk_enable(dev->iclk);
+ 	clk_enable(dev->fclk);
++	dev->idle = 0;
+ 	if (dev->iestate)
+ 		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
+-	dev->idle = 0;
+ }
  
--	r = wait_for_completion_interruptible_timeout(&dev->cmd_complete,
--						      OMAP_I2C_TIMEOUT);
-+	r = wait_for_completion_timeout(&dev->cmd_complete,
-+					OMAP_I2C_TIMEOUT);
- 	dev->buf_len = 0;
- 	if (r < 0)
- 		return r;
+ static void omap_i2c_idle(struct omap_i2c_dev *dev)
+ {
+ 	u16 iv;
+ 
+-	dev->idle = 1;
+ 	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+ 	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
+ 	if (dev->rev1)
+ 		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG);	/* Read clears */
+ 	else
+ 		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, dev->iestate);
++	/*
++	 * The wmb() is to ensure that the I2C interrupt mask write
++	 * reaches the I2C controller before the dev->idle store
++	 * occurs.
++	 */
++	wmb();
++	dev->idle = 1;
+ 	clk_disable(dev->fclk);
+ 	if (dev->iclk != NULL)
+ 		clk_disable(dev->iclk);
 -- 
 1.5.6.rc3.21.g8c6b5
 
