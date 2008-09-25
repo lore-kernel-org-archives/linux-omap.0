@@ -1,138 +1,55 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 8/10] HDQ driver:protect the shared flag
-Date: Thu, 25 Sep 2008 13:02:46 +0300
-Message-ID: <20080925100246.GX24627@gandalf.research.nokia.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC8EBF@dbde02.ent.ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Fixed OMAP3 version check
+Date: Thu, 25 Sep 2008 13:31:21 +0300
+Message-ID: <20080925103120.GI5222@atomide.com>
+References: <1221572797-15949-1-git-send-email-tero.kristo@nokia.com> <1221572797-15949-2-git-send-email-tero.kristo@nokia.com> <20080925101750.GG5222@atomide.com> <20080925102331.GC24627@gandalf.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:41140 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753014AbYIYK3R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 06:29:17 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53407 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753173AbYIYKbX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 06:31:23 -0400
 Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC8EBF@dbde02.ent.ti.com>
+In-Reply-To: <20080925102331.GC24627@gandalf.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "johnpol@2ka.mipt.ru" <johnpol@2ka.mipt.ru>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Tero Kristo <tero.kristo@nokia.com>, linux-omap@vger.kernel.org
 
-On Thu, Sep 25, 2008 at 12:28:22PM +0530, ext Gadiyar, Anand wrote:
-> From: Madhusudhan Chikkature <madhu.cr@ti.com>
+* Felipe Balbi <felipe.balbi@nokia.com> [080925 13:24]:
+> On Thu, Sep 25, 2008 at 01:17:51PM +0300, Tony Lindgren wrote:
+> > Hi,
+> > 
+> > * Tero Kristo <tero.kristo@nokia.com> [080916 14:59]:
+> > > CPU version was reported incorrectly (e.g. ES3.0 instead of ES2.1.)
+> > > Also added a piece of optimization for CPU type check (omap_type()).
+> > > 
+> > > Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+> > > ---
+> > >  arch/arm/mach-omap2/id.c |    7 +++++--
+> > >  1 files changed, 5 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> > > index ab7a6e9..4e2b449 100644
+> > > --- a/arch/arm/mach-omap2/id.c
+> > > +++ b/arch/arm/mach-omap2/id.c
+> > > @@ -37,7 +37,10 @@ EXPORT_SYMBOL(omap_chip_is);
+> > >  
+> > >  int omap_type(void)
+> > >  {
+> > > -	u32 val = 0;
+> > > +	static u32 val;
+> > > +
+> > > +	if (val != 0)
+> > > +		return val;
+> > 
+> > Hmm I guess this would return a random val? :)
 > 
-> This patch moves the shared variable into the local structure and
-> protects its updation.
-> 
-> Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
-Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
-> ---
->  drivers/w1/masters/omap_hdq.c |   52 ++++++++++++++++++++++++++++++------------
->  1 files changed, 38 insertions(+), 14 deletions(-)
-> 
-> Index: linux-omap-2.6/drivers/w1/masters/omap_hdq.c
-> ===================================================================
-> --- linux-omap-2.6.orig/drivers/w1/masters/omap_hdq.c	2008-09-24 11:49:45.000000000 +0530
-> +++ linux-omap-2.6/drivers/w1/masters/omap_hdq.c	2008-09-24 14:41:43.000000000 +0530
-> @@ -61,6 +61,12 @@ struct hdq_data {
->  	struct	clk		*hdq_fck;
->  	u8			hdq_irqstatus;
->  	spinlock_t		hdq_spinlock;
-> +	/*
-> +	 * Used to control the call to omap_hdq_get and omap_hdq_put.
-> +	 * HDQ Protocol: Write the CMD|REG_address first, followed by
-> +	 * the data wrire or read.
-> +	 */
-> +	int			init_trans;
->  };
->  
->  static int omap_hdq_get(struct hdq_data *hdq_data);
-> @@ -505,13 +511,6 @@ omap_hdq_put(struct hdq_data *hdq_data)
->  }
->  
->  /*
-> - * Used to control the call to omap_hdq_get and omap_hdq_put.
-> - * HDQ Protocol: Write the CMD|REG_address first, followed by
-> - * the data wrire or read.
-> - */
-> -static int init_trans;
-> -
-> -/*
->   * Read a byte of data from the device.
->   */
->  static u8 omap_w1_read_byte(void *_hdq)
-> @@ -522,14 +521,26 @@ static u8 omap_w1_read_byte(void *_hdq)
->  
->  	ret = hdq_read_byte(hdq_data, &val);
->  	if (ret) {
-> -		init_trans = 0;
-> +		ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
-> +		if (ret < 0) {
-> +			dev_dbg(hdq_data->dev, "Could not acquire mutex\n");
-> +			return -EINTR;
-> +		}
-> +		hdq_data->init_trans = 0;
-> +		mutex_unlock(&hdq_data->hdq_mutex);
->  		omap_hdq_put(hdq_data);
->  		return -1;
->  	}
->  
->  	/* Write followed by a read, release the module */
-> -	if (init_trans) {
-> -		init_trans = 0;
-> +	if (hdq_data->init_trans) {
-> +		ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
-> +		if (ret < 0) {
-> +			dev_dbg(hdq_data->dev, "Could not acquire mutex\n");
-> +			return -EINTR;
-> +		}
-> +		hdq_data->init_trans = 0;
-> +		mutex_unlock(&hdq_data->hdq_mutex);
->  		omap_hdq_put(hdq_data);
->  	}
->  
-> @@ -542,21 +553,34 @@ static u8 omap_w1_read_byte(void *_hdq)
->  static void omap_w1_write_byte(void *_hdq, u8 byte)
->  {
->  	struct hdq_data *hdq_data = _hdq;
-> +	int ret;
->  	u8 status;
->  
->  	/* First write to initialize the transfer */
-> -	if (init_trans == 0)
-> +	if (hdq_data->init_trans == 0)
->  		omap_hdq_get(hdq_data);
->  
-> -	init_trans++;
-> +	ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
-> +	if (ret < 0) {
-> +		dev_dbg(hdq_data->dev, "Could not acquire mutex\n");
-> +		return;
-> +	}
-> +	hdq_data->init_trans++;
-> +	mutex_unlock(&hdq_data->hdq_mutex);
->  
->  	hdq_write_byte(hdq_data, byte, &status);
->  	dev_dbg(hdq_data->dev, "Ctrl status %x\n", status);
->  
->  	/* Second write, data transfered. Release the module */
-> -	if (init_trans > 1) {
-> +	if (hdq_data->init_trans > 1) {
->  		omap_hdq_put(hdq_data);
-> -		init_trans = 0;
-> +		ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
-> +		if (ret < 0) {
-> +			dev_dbg(hdq_data->dev, "Could not acquire mutex\n");
-> +			return;
-> +		}
-> +		hdq_data->init_trans = 0;
-> +		mutex_unlock(&hdq_data->hdq_mutex);
->  	}
->  
->  	return;--
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> it would return 0, look that val is static.
 
--- 
-balbi
+Ah, sorry I did not see the static. So this is to cache the result
+to optimize it? I'd assume this function is only needed during some
+init code hopefully where performance does not matter..
+
+Tony
