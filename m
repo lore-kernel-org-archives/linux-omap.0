@@ -1,447 +1,214 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch] some drivers switch away from OMAP-specific GPIO calls
-Date: Thu, 25 Sep 2008 15:53:11 +0300
-Message-ID: <20080925125311.GT5222@atomide.com>
-References: <200809241935.57001.david-b@pacbell.net>
+Subject: Re: [patch linux-omap-git] twl4030-core: cleanups
+Date: Thu, 25 Sep 2008 15:54:22 +0300
+Message-ID: <20080925125422.GU5222@atomide.com>
+References: <200809250033.58063.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55748 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56924 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753035AbYIYMxQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 08:53:16 -0400
+	with ESMTP id S1753742AbYIYMyZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 08:54:25 -0400
 Content-Disposition: inline
-In-Reply-To: <200809241935.57001.david-b@pacbell.net>
+In-Reply-To: <200809250033.58063.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
 Cc: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [080925 05:36]:
+* David Brownell <david-b@pacbell.net> [080925 10:34]:
 > From: David Brownell <dbrownell@users.sourceforge.net>
 > 
-> This updates most of the OMAP drivers which are in mainline to
-> switch to using the cross-platform GPIO calls instead of the
-> older OMAP-specific ones.
+> A bunch of little cleanups to twl4030-core.
 > 
-> This is all fairly brainless/obvious stuff.  Probably the
-> most interesting bit is to observe that the omap-keypad
-> code seems to now have a portable core that could work with
-> non-OMAP matrix keypads.  (That would improve with hardware
-> IRQ debouncing enabled, of course...)
+>  - Remove needless header inclusions, symbols, and
+>    forward declarations.
+> 
+>  - Make coding style more standard.
+> 
+> And shrink the object size a bit.
 
-Do you want push this to mainline as part of gpiolib patches?
-
-Will apply to l-o tree.
+Pushing today.
 
 Tony
 
 > 
 > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 > ---
-> By "most", I mean it omits three drivers I know have patches
-> pending for the initial 2.6.28 merge window.  This should
-> apply as-is to both mainline and the OMAP tree ... so if
-> it passes muster to the OMAP team it's ready for upstream.
+>  drivers/i2c/chips/twl4030-core.c |   79 +++++++++++++------------------------
+>  1 file changed, 28 insertions(+), 51 deletions(-)
 > 
-> Other than those drivers, most of the relevant changes are
-> for board support files.
-> 
->  drivers/input/keyboard/omap-keypad.c |   27 ++++-----
->  drivers/mtd/nand/ams-delta.c         |    4 -
->  drivers/video/omap/lcd_inn1610.c     |   22 +++----
->  drivers/video/omap/lcd_osk.c         |   10 +--
->  drivers/video/omap/lcd_sx1.c         |   97 +++++++++++++++------------------
->  5 files changed, 74 insertions(+), 86 deletions(-)
-> 
-> --- a/drivers/input/keyboard/omap-keypad.c
-> +++ b/drivers/input/keyboard/omap-keypad.c
-> @@ -72,12 +72,9 @@ static unsigned int *col_gpios;
->  static void set_col_gpio_val(struct omap_kp *omap_kp, u8 value)
->  {
->  	int col;
-> -	for (col = 0; col < omap_kp->cols; col++) {
-> -		if (value & (1 << col))
-> -			omap_set_gpio_dataout(col_gpios[col], 1);
-> -		else
-> -			omap_set_gpio_dataout(col_gpios[col], 0);
-> -	}
+> --- a/drivers/i2c/chips/twl4030-core.c
+> +++ b/drivers/i2c/chips/twl4030-core.c
+> @@ -25,34 +25,23 @@
+>   * You should have received a copy of the GNU General Public License
+>   * along with this program; if not, write to the Free Software
+>   * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+> - *
+>   */
+>  
+> -#include <linux/module.h>
+>  #include <linux/kernel_stat.h>
+>  #include <linux/init.h>
+> -#include <linux/time.h>
+>  #include <linux/mutex.h>
+>  #include <linux/interrupt.h>
+> +#include <linux/irq.h>
+>  #include <linux/random.h>
+> -#include <linux/syscalls.h>
+>  #include <linux/kthread.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/clk.h>
+>  
+>  #include <linux/i2c.h>
+>  #include <linux/i2c/twl4030.h>
+>  #include <linux/i2c/twl4030-gpio.h>
+>  #include <linux/i2c/twl4030-madc.h>
+>  #include <linux/i2c/twl4030-pwrirq.h>
+> -#include <linux/slab.h>
+> -#include <linux/clk.h>
+> -#include <linux/device.h>
+> -#include <linux/irq.h>
+> -
+> -#include <asm/mach/irq.h>
+> -
+> -#include <mach/gpio.h>
+> -#include <mach/mux.h>
+>  
+>  #define DRIVER_NAME			"twl4030"
+>  
+> @@ -70,16 +59,13 @@
+>  /* Last - for index max*/
+>  #define TWL4030_MODULE_LAST		TWL4030_MODULE_SECURED_REG
+>  
+> +#define TWL4030_NUM_SLAVES		4
 > +
-> +	for (col = 0; col < omap_kp->cols; col++)
-> +		gpio_set_value(col_gpios[col], value & (1 << col));
->  }
+>  /* Slave address */
+> -#define TWL4030_NUM_SLAVES		0x04
+>  #define TWL4030_SLAVENUM_NUM0		0x00
+>  #define TWL4030_SLAVENUM_NUM1		0x01
+>  #define TWL4030_SLAVENUM_NUM2		0x02
+>  #define TWL4030_SLAVENUM_NUM3		0x03
+> -#define TWL4030_SLAVEID_ID0		0x48
+> -#define TWL4030_SLAVEID_ID1		0x49
+> -#define TWL4030_SLAVEID_ID2		0x4A
+> -#define TWL4030_SLAVEID_ID3		0x4B
 >  
->  static u8 get_row_gpio_val(struct omap_kp *omap_kp)
-> @@ -86,7 +83,7 @@ static u8 get_row_gpio_val(struct omap_k
->  	u8 value = 0;
+>  /* Base Address defns */
+>  /* USB ID */
+> @@ -143,9 +129,6 @@
+>  #define HFCLK_FREQ_38p4_MHZ		(3 << 0)
+>  #define HIGH_PERF_SQ			(1 << 3)
 >  
->  	for (row = 0; row < omap_kp->rows; row++) {
-> -		if (omap_get_gpio_datain(row_gpios[row]))
-> +		if (gpio_get_value(row_gpios[row]))
->  			value |= (1 << row);
->  	}
->  	return value;
-> @@ -333,23 +330,23 @@ static int __init omap_kp_probe(struct p
->  	if (cpu_is_omap24xx()) {
->  		/* Cols: outputs */
->  		for (col_idx = 0; col_idx < omap_kp->cols; col_idx++) {
-> -			if (omap_request_gpio(col_gpios[col_idx]) < 0) {
-> +			if (gpio_request(col_gpios[col_idx], "omap_kp_col") < 0) {
->  				printk(KERN_ERR "Failed to request"
->  				       "GPIO%d for keypad\n",
->  				       col_gpios[col_idx]);
->  				goto err1;
->  			}
-> -			omap_set_gpio_direction(col_gpios[col_idx], 0);
-> +			gpio_direction_output(col_gpios[col_idx], 0);
->  		}
->  		/* Rows: inputs */
->  		for (row_idx = 0; row_idx < omap_kp->rows; row_idx++) {
-> -			if (omap_request_gpio(row_gpios[row_idx]) < 0) {
-> +			if (gpio_request(row_gpios[row_idx], "omap_kp_row") < 0) {
->  				printk(KERN_ERR "Failed to request"
->  				       "GPIO%d for keypad\n",
->  				       row_gpios[row_idx]);
->  				goto err2;
->  			}
-> -			omap_set_gpio_direction(row_gpios[row_idx], 1);
-> +			gpio_direction_input(row_gpios[row_idx]);
->  		}
->  	} else {
->  		col_idx = 0;
-> @@ -418,10 +415,10 @@ err3:
->  	device_remove_file(&pdev->dev, &dev_attr_enable);
->  err2:
->  	for (i = row_idx - 1; i >=0; i--)
-> -		omap_free_gpio(row_gpios[i]);
-> +		gpio_free(row_gpios[i]);
->  err1:
->  	for (i = col_idx - 1; i >=0; i--)
-> -		omap_free_gpio(col_gpios[i]);
-> +		gpio_free(col_gpios[i]);
+> -/* on I2C-1 for 2430SDP */
+> -#define CONFIG_I2C_TWL4030_ID		1
+> -
+>  /* SIH_CTRL registers that aren't defined elsewhere */
+>  #define TWL4030_INTERRUPTS_BCISIHCTRL	0x0d
+>  #define TWL4030_MADC_MADC_SIH_CTRL	0x67
+> @@ -284,9 +267,6 @@ static const struct twl4030_mod_iregs __
+>  };
 >  
->  	kfree(omap_kp);
->  	input_free_device(input_dev);
-> @@ -438,9 +435,9 @@ static int omap_kp_remove(struct platfor
->  	if (cpu_is_omap24xx()) {
->  		int i;
->  		for (i = 0; i < omap_kp->cols; i++)
-> -			omap_free_gpio(col_gpios[i]);
-> +			gpio_free(col_gpios[i]);
->  		for (i = 0; i < omap_kp->rows; i++) {
-> -			omap_free_gpio(row_gpios[i]);
-> +			gpio_free(row_gpios[i]);
->  			free_irq(OMAP_GPIO_IRQ(row_gpios[i]), 0);
->  		}
->  	} else {
-> --- a/drivers/mtd/nand/ams-delta.c
-> +++ b/drivers/mtd/nand/ams-delta.c
-> @@ -145,7 +145,7 @@ static void ams_delta_hwcontrol(struct m
 >  
->  static int ams_delta_nand_ready(struct mtd_info *mtd)
->  {
-> -	return omap_get_gpio_datain(AMS_DELTA_GPIO_PIN_NAND_RB);
-> +	return gpio_get_value(AMS_DELTA_GPIO_PIN_NAND_RB);
->  }
+> -/* Helper functions */
+> -static void do_twl4030_irq(unsigned int irq, irq_desc_t *desc);
+> -
+>  /* Data Structures */
+>  /* To have info on T2 IRQ substem activated or not */
+>  static struct completion irq_event;
+> @@ -294,8 +274,7 @@ static struct completion irq_event;
+>  /* Structure to define on TWL4030 Slave ID */
+>  struct twl4030_client {
+>  	struct i2c_client *client;
+> -	const unsigned char address;
+> -	const char adapter_index;
+> +	u8 address;
+>  	bool inuse;
+>  
+>  	/* max numb of i2c_msg required is for read =2 */
+> @@ -337,33 +316,24 @@ static struct twl4030mapping twl4030_map
+>  	{ TWL4030_SLAVENUM_NUM3, TWL4030_BASEADD_SECURED_REG },
+>  };
+>  
+> -static struct twl4030_client twl4030_modules[TWL4030_NUM_SLAVES] = {
+> -	{
+> -		.address	= TWL4030_SLAVEID_ID0,
+> -		.adapter_index	= CONFIG_I2C_TWL4030_ID,
+> -	},
+> -	{
+> -		.address	= TWL4030_SLAVEID_ID1,
+> -		.adapter_index	= CONFIG_I2C_TWL4030_ID,
+> -	},
+> -	{
+> -		.address	= TWL4030_SLAVEID_ID2,
+> -		.adapter_index	= CONFIG_I2C_TWL4030_ID,
+> -	},
+> -	{
+> -		.address	= TWL4030_SLAVEID_ID3,
+> -		.adapter_index	= CONFIG_I2C_TWL4030_ID,
+> -	},
+> -};
+> +static struct twl4030_client twl4030_modules[TWL4030_NUM_SLAVES];
 >  
 >  /*
-> @@ -185,7 +185,7 @@ static int __init ams_delta_init(void)
->  	this->read_buf = ams_delta_read_buf;
->  	this->verify_buf = ams_delta_verify_buf;
->  	this->cmd_ctrl = ams_delta_hwcontrol;
-> -	if (!omap_request_gpio(AMS_DELTA_GPIO_PIN_NAND_RB)) {
-> +	if (gpio_request(AMS_DELTA_GPIO_PIN_NAND_RB, "nand_rdy") == 0) {
->  		this->dev_ready = ams_delta_nand_ready;
->  	} else {
->  		this->dev_ready = NULL;
-> --- a/drivers/video/omap/lcd_inn1610.c
-> +++ b/drivers/video/omap/lcd_inn1610.c
-> @@ -32,43 +32,43 @@ static int innovator1610_panel_init(stru
->  {
->  	int r = 0;
+>   * TWL4030 doesn't have PIH mask, hence dummy function for mask
+>   * and unmask.
+>   */
 >  
-> -	if (omap_request_gpio(14)) {
-> +	if (gpio_request(14, "lcd_en0")) {
->  		pr_err(MODULE_NAME ": can't request GPIO 14\n");
->  		r = -1;
->  		goto exit;
+> -static void twl4030_i2c_ackirq(unsigned int irq) {}
+> -static void twl4030_i2c_disableint(unsigned int irq) {}
+> -static void twl4030_i2c_enableint(unsigned int irq) {}
+> +static void twl4030_i2c_ackirq(unsigned int irq)
+> +{
+> +}
+> +
+> +static void twl4030_i2c_disableint(unsigned int irq)
+> +{
+> +}
+> +
+> +static void twl4030_i2c_enableint(unsigned int irq)
+> +{
+> +}
+>  
+>  /* information for processing in the Work Item */
+>  static struct irq_chip twl4030_irq_chip = {
+> @@ -749,7 +719,7 @@ static struct task_struct * __init start
+>  			     "twl4030 irq %d", irq);
+>  	if (!thread)
+>  		pr_err("%s: could not create twl4030 irq %d thread!\n",
+> -		       __func__, irq);
+> +		       DRIVER_NAME, irq);
+>  
+>  	return thread;
+>  }
+> @@ -799,9 +769,15 @@ static int __init power_companion_init(v
+>  	clk_put(osc);
+>  
+>  	switch (rate) {
+> -	case 19200000 : ctrl = HFCLK_FREQ_19p2_MHZ; break;
+> -	case 26000000 : ctrl = HFCLK_FREQ_26_MHZ; break;
+> -	case 38400000 : ctrl = HFCLK_FREQ_38p4_MHZ; break;
+> +	case 19200000:
+> +		ctrl = HFCLK_FREQ_19p2_MHZ;
+> +		break;
+> +	case 26000000:
+> +		ctrl = HFCLK_FREQ_26_MHZ;
+> +		break;
+> +	case 38400000:
+> +		ctrl = HFCLK_FREQ_38p4_MHZ;
+> +		break;
 >  	}
-> -	if (omap_request_gpio(15)) {
-> +	if (gpio_request(15, "lcd_en1")) {
->  		pr_err(MODULE_NAME ": can't request GPIO 15\n");
-> -		omap_free_gpio(14);
-> +		gpio_free(14);
->  		r = -1;
->  		goto exit;
->  	}
->  	/* configure GPIO(14, 15) as outputs */
-> -	omap_set_gpio_direction(14, 0);
-> -	omap_set_gpio_direction(15, 0);
-> +	gpio_direction_output(14, 0);
-> +	gpio_direction_output(15, 0);
->  exit:
->  	return r;
->  }
 >  
->  static void innovator1610_panel_cleanup(struct lcd_panel *panel)
->  {
-> -	omap_free_gpio(15);
-> -	omap_free_gpio(14);
-> +	gpio_free(15);
-> +	gpio_free(14);
->  }
+>  	ctrl |= HIGH_PERF_SQ;
+> @@ -980,6 +956,7 @@ twl4030_probe(struct i2c_client *client,
+>  	for (i = 0; i < TWL4030_NUM_SLAVES; i++) {
+>  		struct twl4030_client	*twl = &twl4030_modules[i];
 >  
->  static int innovator1610_panel_enable(struct lcd_panel *panel)
->  {
->  	/* set GPIO14 and GPIO15 high */
-> -	omap_set_gpio_dataout(14, 1);
-> -	omap_set_gpio_dataout(15, 1);
-> +	gpio_set_value(14, 1);
-> +	gpio_set_value(15, 1);
->  	return 0;
->  }
->  
->  static void innovator1610_panel_disable(struct lcd_panel *panel)
->  {
->  	/* set GPIO13, GPIO14 and GPIO15 low */
-> -	omap_set_gpio_dataout(14, 0);
-> -	omap_set_gpio_dataout(15, 0);
-> +	gpio_set_value(14, 0);
-> +	gpio_set_value(15, 0);
->  }
->  
->  static unsigned long innovator1610_panel_get_caps(struct lcd_panel *panel)
-> --- a/drivers/video/omap/lcd_osk.c
-> +++ b/drivers/video/omap/lcd_osk.c
-> @@ -29,6 +29,7 @@
->  
->  static int osk_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
->  {
-> +	/* gpio2 was allocated in board init */
->  	return 0;
->  }
->  
-> @@ -47,11 +48,8 @@ static int osk_panel_enable(struct lcd_p
->  	/* Set PWL level */
->  	omap_writeb(0xFF, OMAP_PWL_ENABLE);
->  
-> -	/* configure GPIO2 as output */
-> -	omap_set_gpio_direction(2, 0);
-> -
-> -	/* set GPIO2 high */
-> -	omap_set_gpio_dataout(2, 1);
-> +	/* set GPIO2 high (lcd power enabled) */
-> +	gpio_set_value(2, 1);
->  
->  	return 0;
->  }
-> @@ -65,7 +63,7 @@ static void osk_panel_disable(struct lcd
->  	omap_writeb(0x00, OMAP_PWL_CLK_ENABLE);
->  
->  	/* set GPIO2 low */
-> -	omap_set_gpio_dataout(2, 0);
-> +	gpio_set_value(2, 0);
->  }
->  
->  static unsigned long osk_panel_get_caps(struct lcd_panel *panel)
-> --- a/drivers/video/omap/lcd_sx1.c
-> +++ b/drivers/video/omap/lcd_sx1.c
-> @@ -81,21 +81,21 @@ static void epson_sendbyte(int flag, uns
->  	int i, shifter = 0x80;
->  
->  	if (!flag)
-> -		omap_set_gpio_dataout(_A_LCD_SSC_A0, 0);
-> +		gpio_set_value(_A_LCD_SSC_A0, 0);
->  	mdelay(2);
-> -	omap_set_gpio_dataout(A_LCD_SSC_RD, 1);
-> +	gpio_set_value(A_LCD_SSC_RD, 1);
->  
-> -	omap_set_gpio_dataout(A_LCD_SSC_SD, flag);
-> +	gpio_set_value(A_LCD_SSC_SD, flag);
->  
->  	OMAP_MCBSP_WRITE(OMAP1510_MCBSP3_BASE, PCR0, 0x2200);
->  	OMAP_MCBSP_WRITE(OMAP1510_MCBSP3_BASE, PCR0, 0x2202);
->  	for (i = 0; i < 8; i++) {
->  		OMAP_MCBSP_WRITE(OMAP1510_MCBSP3_BASE, PCR0, 0x2200);
-> -		omap_set_gpio_dataout(A_LCD_SSC_SD, shifter & byte);
-> +		gpio_set_value(A_LCD_SSC_SD, shifter & byte);
->  		OMAP_MCBSP_WRITE(OMAP1510_MCBSP3_BASE, PCR0, 0x2202);
->  		shifter >>= 1;
->  	}
-> -	omap_set_gpio_dataout(_A_LCD_SSC_A0, 1);
-> +	gpio_set_value(_A_LCD_SSC_A0, 1);
->  }
->  
->  static void init_system(void)
-> @@ -107,25 +107,18 @@ static void init_system(void)
->  static void setup_GPIO(void)
->  {
->  	/* new wave */
-> -	omap_request_gpio(A_LCD_SSC_RD);
-> -	omap_request_gpio(A_LCD_SSC_SD);
-> -	omap_request_gpio(_A_LCD_RESET);
-> -	omap_request_gpio(_A_LCD_SSC_CS);
-> -	omap_request_gpio(_A_LCD_SSC_A0);
-> -
-> -	/* set all GPIOs to output */
-> -	omap_set_gpio_direction(A_LCD_SSC_RD, 0);
-> -	omap_set_gpio_direction(A_LCD_SSC_SD, 0);
-> -	omap_set_gpio_direction(_A_LCD_RESET, 0);
-> -	omap_set_gpio_direction(_A_LCD_SSC_CS, 0);
-> -	omap_set_gpio_direction(_A_LCD_SSC_A0, 0);
-> +	gpio_request(A_LCD_SSC_RD, "lcd_ssc_rd");
-> +	gpio_request(A_LCD_SSC_SD, "lcd_ssc_sd");
-> +	gpio_request(_A_LCD_RESET, "lcd_reset");
-> +	gpio_request(_A_LCD_SSC_CS, "lcd_ssc_cs");
-> +	gpio_request(_A_LCD_SSC_A0, "lcd_ssc_a0");
->  
-> -	/* set GPIO data */
-> -	omap_set_gpio_dataout(A_LCD_SSC_RD, 1);
-> -	omap_set_gpio_dataout(A_LCD_SSC_SD, 0);
-> -	omap_set_gpio_dataout(_A_LCD_RESET, 0);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_A0, 1);
-> +	/* set GPIOs to output, with initial data */
-> +	gpio_direction_output(A_LCD_SSC_RD, 1);
-> +	gpio_direction_output(A_LCD_SSC_SD, 0);
-> +	gpio_direction_output(_A_LCD_RESET, 0);
-> +	gpio_direction_output(_A_LCD_SSC_CS, 1);
-> +	gpio_direction_output(_A_LCD_SSC_A0, 1);
->  }
->  
->  static void display_init(void)
-> @@ -139,61 +132,61 @@ static void display_init(void)
->  	mdelay(2);
->  
->  	/* reset LCD */
-> -	omap_set_gpio_dataout(A_LCD_SSC_SD, 1);
-> +	gpio_set_value(A_LCD_SSC_SD, 1);
->  	epson_sendbyte(0, 0x25);
->  
-> -	omap_set_gpio_dataout(_A_LCD_RESET, 0);
-> +	gpio_set_value(_A_LCD_RESET, 0);
->  	mdelay(10);
-> -	omap_set_gpio_dataout(_A_LCD_RESET, 1);
-> +	gpio_set_value(_A_LCD_RESET, 1);
->  
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-> +	gpio_set_value(_A_LCD_SSC_CS, 1);
->  	mdelay(2);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-> +	gpio_set_value(_A_LCD_SSC_CS, 0);
->  
->  	/* init LCD, phase 1 */
->  	epson_sendbyte(0, 0xCA);
->  	for (i = 0; i < 10; i++)
->  		epson_sendbyte(1, INIT_1[i]);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-> +	gpio_set_value(_A_LCD_SSC_CS, 1);
-> +	gpio_set_value(_A_LCD_SSC_CS, 0);
->  
->  	/* init LCD phase 2 */
->  	epson_sendbyte(0, 0xCB);
->  	for (i = 0; i < 125; i++)
->  		epson_sendbyte(1, INIT_2[i]);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-> +	gpio_set_value(_A_LCD_SSC_CS, 1);
-> +	gpio_set_value(_A_LCD_SSC_CS, 0);
->  
->  	/* init LCD phase 2a */
->  	epson_sendbyte(0, 0xCC);
->  	for (i = 0; i < 14; i++)
->  		epson_sendbyte(1, INIT_3[i]);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-> +	gpio_set_value(_A_LCD_SSC_CS, 1);
-> +	gpio_set_value(_A_LCD_SSC_CS, 0);
->  
->  	/* init LCD phase 3 */
->  	epson_sendbyte(0, 0xBC);
->  	epson_sendbyte(1, 0x08);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-> +	gpio_set_value(_A_LCD_SSC_CS, 1);
-> +	gpio_set_value(_A_LCD_SSC_CS, 0);
->  
->  	/* init LCD phase 4 */
->  	epson_sendbyte(0, 0x07);
->  	epson_sendbyte(1, 0x05);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-> +	gpio_set_value(_A_LCD_SSC_CS, 1);
-> +	gpio_set_value(_A_LCD_SSC_CS, 0);
->  
->  	/* init LCD phase 5 */
->  	epson_sendbyte(0, 0x94);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-> +	gpio_set_value(_A_LCD_SSC_CS, 1);
-> +	gpio_set_value(_A_LCD_SSC_CS, 0);
->  
->  	/* init LCD phase 6 */
->  	epson_sendbyte(0, 0xC6);
->  	epson_sendbyte(1, 0x80);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-> +	gpio_set_value(_A_LCD_SSC_CS, 1);
->  	mdelay(100); /* used to be 1000 */
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-> +	gpio_set_value(_A_LCD_SSC_CS, 0);
->  
->  	/* init LCD phase 7 */
->  	epson_sendbyte(0, 0x16);
-> @@ -201,8 +194,8 @@ static void display_init(void)
->  	epson_sendbyte(1, 0x00);
->  	epson_sendbyte(1, 0xB1);
->  	epson_sendbyte(1, 0x00);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-> +	gpio_set_value(_A_LCD_SSC_CS, 1);
-> +	gpio_set_value(_A_LCD_SSC_CS, 0);
->  
->  	/* init LCD phase 8 */
->  	epson_sendbyte(0, 0x76);
-> @@ -210,12 +203,12 @@ static void display_init(void)
->  	epson_sendbyte(1, 0x00);
->  	epson_sendbyte(1, 0xDB);
->  	epson_sendbyte(1, 0x00);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-> +	gpio_set_value(_A_LCD_SSC_CS, 1);
-> +	gpio_set_value(_A_LCD_SSC_CS, 0);
->  
->  	/* init LCD phase 9 */
->  	epson_sendbyte(0, 0xAF);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-> +	gpio_set_value(_A_LCD_SSC_CS, 1);
->  }
->  
->  static int sx1_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
-> @@ -231,18 +224,18 @@ static void sx1_panel_disable(struct lcd
->  {
->  	printk(KERN_INFO "SX1: LCD panel disable\n");
->  	sx1_setmmipower(0);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-> +	gpio_set_value(_A_LCD_SSC_CS, 1);
->  
->  	epson_sendbyte(0, 0x25);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-> +	gpio_set_value(_A_LCD_SSC_CS, 0);
->  
->  	epson_sendbyte(0, 0xAE);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-> +	gpio_set_value(_A_LCD_SSC_CS, 1);
->  	mdelay(100);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-> +	gpio_set_value(_A_LCD_SSC_CS, 0);
->  
->  	epson_sendbyte(0, 0x95);
-> -	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-> +	gpio_set_value(_A_LCD_SSC_CS, 1);
->  }
->  
->  static int sx1_panel_enable(struct lcd_panel *panel)
+> +		twl->address = client->addr + i;
+>  		if (i == 0)
+>  			twl->client = client;
+>  		else {
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
