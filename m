@@ -1,69 +1,67 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] Debobs and ETK padconf implementation
-Date: Thu, 25 Sep 2008 15:31:44 +0300
-Message-ID: <87vdwkmmof.fsf@deeprootsystems.com>
-References: <1221663749-26121-1-git-send-email-peter.de-schrijver@nokia.com>
-	<1221663749-26121-2-git-send-email-peter.de-schrijver@nokia.com>
-	<1221663749-26121-3-git-send-email-peter.de-schrijver@nokia.com>
-	<87ej38ob7t.fsf@deeprootsystems.com>
-	<20080925113550.GC4654@codecarver.research.nokia.com>
-	<873ajoo3mk.fsf@deeprootsystems.com>
-	<20080925115256.GD4654@codecarver.research.nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [patch 2.6.27-rc6-omap] ASOC: quieter boot for non-Overo boards
+Date: Thu, 25 Sep 2008 15:49:36 +0300
+Message-ID: <20080925124934.GR5222@atomide.com>
+References: <200809211414.42194.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:2644 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752750AbYIYMbz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 08:31:55 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so288133fgg.17
-        for <linux-omap@vger.kernel.org>; Thu, 25 Sep 2008 05:31:53 -0700 (PDT)
-In-Reply-To: <20080925115256.GD4654@codecarver.research.nokia.com> (Peter De Schrijver's message of "Thu\, 25 Sep 2008 14\:52\:56 +0300")
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52146 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752750AbYIYMtk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 08:49:40 -0400
+Content-Disposition: inline
+In-Reply-To: <200809211414.42194.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-omap@vger.kernel.org, Steve Sakoman <steve@sakoman.com>
 
-"Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
+* David Brownell <david-b@pacbell.net> [080922 00:50]:
+> Get rid of bogus ASOC boot messages on non-Overo boards.
 
-> On Thu, Sep 25, 2008 at 02:40:19PM +0300, ext Kevin Hilman wrote:
->> "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
->> 
->> >> 
->> >> The cross-platform gpiolib calls should be used here.
->> >> 
->> >> > +			snprintf(name, sizeof(name), "hw_dbg%d", i);
->> >> > +			err = _new_debobs_pad(&debobs_pads[i], name, i,
->> >> > +						debobs_root);
->> >> > +			if (err) {
->> >> > +				omap_free_gpio(ETK_GPIO(i));
->> >> > +				return err;
->> >> > +			}
->> >> > +		}
->> >> > +	}
->> >> 
->> >> In the successful case, future calls to gpio_request() to use these
->> >> lines will fail, since the line is reserved by the omap_request_gpio()
->> >> call.
->> >> 
->> >
->> > Yes. That's intended. If debobs sucessfully claims the GPIO line, noone
->> > else should be allowed to claim it, unless debobs releases it again.
->> >
->> 
->> In that case, what is the proposed method for other kernel code to use
->> the debobs lines?
->
-> Hmm, good point :) My idea was to use the gpiolib calls on GPIO12 -
-> GPIO29, but then there is no way for a user to know if the GPIO was
-> assigned to debobs or not... Maybe debobs should register as gpiolib
-> 'chip' and reexport those lines ? Would that make sense ?
+I'm not touching this without an ack from alsa list :)
 
-I think debobs should simply 'gpio_export' each pin.  It does not need
-to hold them.
+Tony
 
-Later on, if other kernel code comes along and does a gpio_request() I
-think the /sysfs entry for that line will disappear until it has been
-gpio_free'd.
-
-Kevin
+> 
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> ---
+>  sound/soc/omap/overo.c |    7 +++----
+>  1 file changed, 3 insertions(+), 4 deletions(-)
+> 
+> --- a/sound/soc/omap/overo.c
+> +++ b/sound/soc/omap/overo.c
+> @@ -107,11 +107,11 @@ static int __init overo_soc_init(void)
+>  {
+>  	int ret;
+>  
+> -	printk(KERN_INFO "overo SoC init\n");
+>  	if (!machine_is_overo()) {
+> -		printk(KERN_ERR "Not Overo!\n");
+> +		pr_debug("Not Overo!\n");
+>  		return -ENODEV;
+>  	}
+> +	printk(KERN_INFO "overo SoC init\n");
+>  
+>  	overo_snd_device = platform_device_alloc("soc-audio", -1);
+>  	if (!overo_snd_device) {
+> @@ -135,13 +135,12 @@ err1:
+>  
+>  	return ret;
+>  }
+> +module_init(overo_soc_init);
+>  
+>  static void __exit overo_soc_exit(void)
+>  {
+>  	platform_device_unregister(overo_snd_device);
+>  }
+> -
+> -module_init(overo_soc_init);
+>  module_exit(overo_soc_exit);
+>  
+>  MODULE_AUTHOR("Steve Sakoman <steve@sakoman.com>");
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
