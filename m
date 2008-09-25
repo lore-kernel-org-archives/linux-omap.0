@@ -1,436 +1,185 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch] some drivers switch away from OMAP-specific GPIO calls
-Date: Wed, 24 Sep 2008 19:35:56 -0700
-Message-ID: <200809241935.57001.david-b@pacbell.net>
+From: "Rajendra Nayak" <rnayak@ti.com>
+Subject: RE: clk_disable_unused() is bugged
+Date: Thu, 25 Sep 2008 10:23:16 +0530
+Message-ID: <00c701c91eca$a16afc20$LocalHost@wipultra1382>
+References: <alpine.DEB.2.00.0809240807450.15312@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp128.sbc.mail.sp1.yahoo.com ([69.147.65.187]:47334 "HELO
-	smtp128.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752286AbYIYCf7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Sep 2008 22:35:59 -0400
-Content-Disposition: inline
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53177 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750841AbYIYExf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 00:53:35 -0400
+In-Reply-To: <alpine.DEB.2.00.0809240807450.15312@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: 'Paul Walmsley' <paul@pwsan.com>, Tero.Kristo@nokia.com
+Cc: linux-omap@vger.kernel.org
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+Hi Paul,
 
-This updates most of the OMAP drivers which are in mainline to
-switch to using the cross-platform GPIO calls instead of the
-older OMAP-specific ones.
+I tried this patch on top of the pm-1 branch. On the 3430SDP I see idle being able to
+hit CORE RET, but system suspend seems to crash. See the crash log below.
 
-This is all fairly brainless/obvious stuff.  Probably the
-most interesting bit is to observe that the omap-keypad
-code seems to now have a portable core that could work with
-non-OMAP matrix keypads.  (That would improve with hardware
-IRQ debouncing enabled, of course...)
+regards,
+Rajendra
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
-By "most", I mean it omits three drivers I know have patches
-pending for the initial 2.6.28 merge window.  This should
-apply as-is to both mainline and the OMAP tree ... so if
-it passes muster to the OMAP team it's ready for upstream.
+# echo mem > /sys/power/state
+<6>PM: Syncing filesystems ... PM: Syncing filesystems ... done.
+done.
+Freezing user space processes ... Freezing user space processes ... (elapsed 0.0
+0 seconds) (elapsed 0.00 seconds) done.
+done.
+Freezing remaining freezable tasks ... Freezing remaining freezable tasks ... (e
+lapsed 0.00 seconds) (elapsed 0.00 seconds) done.done.
 
-Other than those drivers, most of the relevant changes are
-for board support files.
+Suspending console(s) (use no_console_suspend to debug)
+Suspending console(s) (use no_console_suspend to debug)
+<1>Unhandled fault: external abort on non-linefetch (0x1028) at 0xd8050440
+Internal error: : 1028 [#1]
+Modules linked in:
+CPU: 0    Not tainted  (2.6.27-rc7-omap1-04977-g9e6782a-dirty #16)
+PC is at omap_dispc_enable_lcd_out+0x28/0x48
+LR is at clk_enable+0x44/0x58
+pc : [<c018698c>]    lr : [<c003c4c8>]    psr: 20000013
+sp : c7a3bd90  ip : c7a3bd60  fp : c7a3bda4
+r10: c0376b4c  r9 : 00000005  r8 : c0365cbc
+r7 : c797fc00  r6 : 00000000  r5 : 00000000  r4 : 00000000
+r3 : c038eb48  r2 : d8050400  r1 : 00000008  r0 : 00000000
+Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+Control: 00c5387f  Table: 87a44018  DAC: 00000015
+Process sh (pid: 382, stack limit = 0xc7a3a2e0)
+Stack: (0xc7a3bd90 to 0xc7a3c000)
+bd80:                                     c7a3bd28 c038eb48 c7a3bdbc c7a3bda8
+bda0: c0188098 c0186970 c791dc00 00000003 c7a3be24 c7a3bdc0 c0184858 c0188070
+bdc0: 00000002 c789e0b4 00000005 c0376b4c c7a3bdf4 c7a3bde0 c01b4e78 c01b4d74
+bde0: c7a3be24 002bdc00 c7a3be0c c7a3bdf8 c02033d4 c01b4e5c 00000000 c006e444
+be00: c7a3be1c c7a3be1c c0376a1c c0365c10 00000000 00000002 c7a3be34 c7a3be28
+be20: c0185b68 c018479c c7a3be44 c7a3be38 c01a8d48 c0185b50 c7a3be54 c7a3be48
+be40: c01a8e38 c01a8d34 c7a3be6c c7a3be58 c01aaeb4 c01a8df4 00000000 c0365c10
+be60: c7a3bea4 c7a3be70 c01ab2cc c01aae88 c78444d4 c79b4ed4 c0052ddc c0389c3c
+be80: 00000003 00000003 c7a17000 00000004 c7a2dbb8 c029dbbc c7a3bec4 c7a3bea8
+bea0: c0074c24 c01aaf84 00000000 c0389f44 00000003 00000003 c7a3bedc c7a3bec8
+bec0: c0074e60 c0074be4 c030f868 00000003 c7a3bf04 c7a3bee0 c0074f6c c0074da0
+bee0: c780fcc8 00000004 c7a2dba0 c780a7a0 c03727a8 c7a3bf70 c7a3bf14 c7a3bf08
+bf00: c0168598 c0074ed0 c7a3bf44 c7a3bf18 c00dd558 c0168584 c7a3a000 c79fc920
+bf20: 40018000 c7a3bf70 00000004 40018000 c7a3a000 00000000 c7a3bf6c c7a3bf48
+bf40: c009c574 c00dd454 00000003 00000003 00000000 00000000 c79fc920 00000004
+bf60: c7a3bfa4 c7a3bf70 c009ca2c c009c4c8 00000000 00000000 c79fc920 00000000
+bf80: c7a3bfa4 00000004 40018000 4022c4f8 00000004 c002dd68 00000000 c7a3bfa8
+bfa0: c002dbc0 c009c9f4 00000004 40018000 00000001 40018000 00000004 00000000
+bfc0: 00000004 40018000 4022c4f8 00000004 00000004 0000000a 4022c000 00000874
+bfe0: 00000004 becb75f0 40175aa0 401c249c 60000010 00000001 8049e021 8049e421
+Backtrace:
+[<c0186964>] (omap_dispc_enable_lcd_out+0x0/0x48) from [<c0188098>] (omap_dispc_
+suspend+0x34/0x88)
+ r4:c038eb48
+[<c0188064>] (omap_dispc_suspend+0x0/0x88) from [<c0184858>] (omapfb_blank+0xc8/
+0x198)
+ r5:00000003 r4:c791dc00
+[<c0184790>] (omapfb_blank+0x0/0x198) from [<c0185b68>] (omapfb_suspend+0x24/0x2
+c)
+ r7:00000002 r6:00000000 r5:c0365c10 r4:c0376a1c
+[<c0185b44>] (omapfb_suspend+0x0/0x2c) from [<c01a8d48>] (platform_drv_suspend+0
+x20/0x24)
+[<c01a8d28>] (platform_drv_suspend+0x0/0x24) from [<c01a8e38>] (platform_pm_susp
+end+0x50/0x5c)
+[<c01a8de8>] (platform_pm_suspend+0x0/0x5c) from [<c01aaeb4>] (pm_op+0x38/0x7c)
+[<c01aae7c>] (pm_op+0x0/0x7c) from [<c01ab2cc>] (device_suspend+0x354/0x47c)
+ r5:c0365c10 r4:00000000
+[<c01aaf78>] (device_suspend+0x0/0x47c) from [<c0074c24>] (suspend_devices_and_e
+nter+0x4c/0x150)
+[<c0074bd8>] (suspend_devices_and_enter+0x0/0x150) from [<c0074e60>] (enter_stat
+e+0xcc/0x130)
+ r6:00000003 r5:00000003 r4:c0389f44
+[<c0074d94>] (enter_state+0x0/0x130) from [<c0074f6c>] (state_store+0xa8/0xc4)
+ r5:00000003 r4:c030f868
+[<c0074ec4>] (state_store+0x0/0xc4) from [<c0168598>] (kobj_attr_store+0x20/0x24
+)
+[<c0168578>] (kobj_attr_store+0x0/0x24) from [<c00dd558>] (sysfs_write_file+0x11
+0/0x144)
+[<c00dd448>] (sysfs_write_file+0x0/0x144) from [<c009c574>] (vfs_write+0xb8/0x14
+8)
+[<c009c4bc>] (vfs_write+0x0/0x148) from [<c009ca2c>] (sys_write+0x44/0x70)
+ r7:00000004 r6:c79fc920 r5:00000000 r4:00000000
+[<c009c9e8>] (sys_write+0x0/0x70) from [<c002dbc0>] (ret_fast_syscall+0x0/0x2c)
+ r8:c002dd68 r7:00000004 r6:4022c4f8 r5:40018000 r4:00000004
+Code: ebfffef2 e59f3020 e3a00000 e5932000 (e5923040)
+<4>---[ end trace 1c65dc045eaee4ae ]---
 
- drivers/input/keyboard/omap-keypad.c |   27 ++++-----
- drivers/mtd/nand/ams-delta.c         |    4 -
- drivers/video/omap/lcd_inn1610.c     |   22 +++----
- drivers/video/omap/lcd_osk.c         |   10 +--
- drivers/video/omap/lcd_sx1.c         |   97 +++++++++++++++------------------
- 5 files changed, 74 insertions(+), 86 deletions(-)
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Paul Walmsley
+> Sent: Wednesday, September 24, 2008 7:40 PM
+> To: Tero.Kristo@nokia.com
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: clk_disable_unused() is bugged
+> 
+> Hello Tero (and anyone else),
+> 
+> On Wed, 24 Sep 2008, Tero.Kristo@nokia.com wrote:
+> 
+> > clk_disable_unused (in plat-omap/clock.c) is bugged in 
+> latest kernel. It
+> > checks whether ck->enable_reg is zero, and in most cases 
+> this happens to
+> > be so (CM_FCLKEN = 0.) Seems to be caused by some late change to
+> > clocktree where enable_reg fields are defined as module offsets, not
+> > register addresses. This bug causes several clocks to remain enabled
+> > after boot, and at least on OMAP3 it prevents retention.
+> > 
+> > Paul, you got a fix coming for this?
+> 
+> Yes, here's something that should at least fix the 
+> clk_disable_unused() 
+> problem.  It seems to work on 2430SDP and 3430SDP here.  
+> 
+> Any other help testing from anyone else is appreciated -
+> 
+> 
+> - Paul
+> 
+> 
+> Author: Paul Walmsley <paul@pwsan.com>
+> Date:   Wed Sep 24 04:48:05 2008 -0600
+> 
+>     OMAP2/3 clock: fix CONFIG_OMAP_RESET_CLOCKS
+>     
+>     plat-omap/clock.c was skipping clocks with enable_reg == 
+> 0.  This no longer
+>     works now that we use enable_reg as an offset from a PRCM module.
+>     
+>     Problem found and traced by Tero Kristo <tero.kristo@nokia.com> -
+>     thanks Tero.
+>     
+>     Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> 
+> diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+> index 197974d..7bbfba2 100644
+> --- a/arch/arm/plat-omap/clock.c
+> +++ b/arch/arm/plat-omap/clock.c
+> @@ -384,8 +384,11 @@ static int __init clk_disable_unused(void)
+>  	unsigned long flags;
+>  
+>  	list_for_each_entry(ck, &clocks, node) {
+> -		if (ck->usecount > 0 || (ck->flags & ALWAYS_ENABLED) ||
+> -			ck->enable_reg == 0)
+> +		if (ck->usecount > 0 ||
+> +		    (ck->flags & (ALWAYS_ENABLED | 
+> PARENT_CONTROLS_CLOCK)))
+> +			continue;
+> +
+> +		if (cpu_class_is_omap1() && ck->enable_reg == 0)
+>  			continue;
+>  
+>  		spin_lock_irqsave(&clockfw_lock, flags);
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
---- a/drivers/input/keyboard/omap-keypad.c
-+++ b/drivers/input/keyboard/omap-keypad.c
-@@ -72,12 +72,9 @@ static unsigned int *col_gpios;
- static void set_col_gpio_val(struct omap_kp *omap_kp, u8 value)
- {
- 	int col;
--	for (col = 0; col < omap_kp->cols; col++) {
--		if (value & (1 << col))
--			omap_set_gpio_dataout(col_gpios[col], 1);
--		else
--			omap_set_gpio_dataout(col_gpios[col], 0);
--	}
-+
-+	for (col = 0; col < omap_kp->cols; col++)
-+		gpio_set_value(col_gpios[col], value & (1 << col));
- }
- 
- static u8 get_row_gpio_val(struct omap_kp *omap_kp)
-@@ -86,7 +83,7 @@ static u8 get_row_gpio_val(struct omap_k
- 	u8 value = 0;
- 
- 	for (row = 0; row < omap_kp->rows; row++) {
--		if (omap_get_gpio_datain(row_gpios[row]))
-+		if (gpio_get_value(row_gpios[row]))
- 			value |= (1 << row);
- 	}
- 	return value;
-@@ -333,23 +330,23 @@ static int __init omap_kp_probe(struct p
- 	if (cpu_is_omap24xx()) {
- 		/* Cols: outputs */
- 		for (col_idx = 0; col_idx < omap_kp->cols; col_idx++) {
--			if (omap_request_gpio(col_gpios[col_idx]) < 0) {
-+			if (gpio_request(col_gpios[col_idx], "omap_kp_col") < 0) {
- 				printk(KERN_ERR "Failed to request"
- 				       "GPIO%d for keypad\n",
- 				       col_gpios[col_idx]);
- 				goto err1;
- 			}
--			omap_set_gpio_direction(col_gpios[col_idx], 0);
-+			gpio_direction_output(col_gpios[col_idx], 0);
- 		}
- 		/* Rows: inputs */
- 		for (row_idx = 0; row_idx < omap_kp->rows; row_idx++) {
--			if (omap_request_gpio(row_gpios[row_idx]) < 0) {
-+			if (gpio_request(row_gpios[row_idx], "omap_kp_row") < 0) {
- 				printk(KERN_ERR "Failed to request"
- 				       "GPIO%d for keypad\n",
- 				       row_gpios[row_idx]);
- 				goto err2;
- 			}
--			omap_set_gpio_direction(row_gpios[row_idx], 1);
-+			gpio_direction_input(row_gpios[row_idx]);
- 		}
- 	} else {
- 		col_idx = 0;
-@@ -418,10 +415,10 @@ err3:
- 	device_remove_file(&pdev->dev, &dev_attr_enable);
- err2:
- 	for (i = row_idx - 1; i >=0; i--)
--		omap_free_gpio(row_gpios[i]);
-+		gpio_free(row_gpios[i]);
- err1:
- 	for (i = col_idx - 1; i >=0; i--)
--		omap_free_gpio(col_gpios[i]);
-+		gpio_free(col_gpios[i]);
- 
- 	kfree(omap_kp);
- 	input_free_device(input_dev);
-@@ -438,9 +435,9 @@ static int omap_kp_remove(struct platfor
- 	if (cpu_is_omap24xx()) {
- 		int i;
- 		for (i = 0; i < omap_kp->cols; i++)
--			omap_free_gpio(col_gpios[i]);
-+			gpio_free(col_gpios[i]);
- 		for (i = 0; i < omap_kp->rows; i++) {
--			omap_free_gpio(row_gpios[i]);
-+			gpio_free(row_gpios[i]);
- 			free_irq(OMAP_GPIO_IRQ(row_gpios[i]), 0);
- 		}
- 	} else {
---- a/drivers/mtd/nand/ams-delta.c
-+++ b/drivers/mtd/nand/ams-delta.c
-@@ -145,7 +145,7 @@ static void ams_delta_hwcontrol(struct m
- 
- static int ams_delta_nand_ready(struct mtd_info *mtd)
- {
--	return omap_get_gpio_datain(AMS_DELTA_GPIO_PIN_NAND_RB);
-+	return gpio_get_value(AMS_DELTA_GPIO_PIN_NAND_RB);
- }
- 
- /*
-@@ -185,7 +185,7 @@ static int __init ams_delta_init(void)
- 	this->read_buf = ams_delta_read_buf;
- 	this->verify_buf = ams_delta_verify_buf;
- 	this->cmd_ctrl = ams_delta_hwcontrol;
--	if (!omap_request_gpio(AMS_DELTA_GPIO_PIN_NAND_RB)) {
-+	if (gpio_request(AMS_DELTA_GPIO_PIN_NAND_RB, "nand_rdy") == 0) {
- 		this->dev_ready = ams_delta_nand_ready;
- 	} else {
- 		this->dev_ready = NULL;
---- a/drivers/video/omap/lcd_inn1610.c
-+++ b/drivers/video/omap/lcd_inn1610.c
-@@ -32,43 +32,43 @@ static int innovator1610_panel_init(stru
- {
- 	int r = 0;
- 
--	if (omap_request_gpio(14)) {
-+	if (gpio_request(14, "lcd_en0")) {
- 		pr_err(MODULE_NAME ": can't request GPIO 14\n");
- 		r = -1;
- 		goto exit;
- 	}
--	if (omap_request_gpio(15)) {
-+	if (gpio_request(15, "lcd_en1")) {
- 		pr_err(MODULE_NAME ": can't request GPIO 15\n");
--		omap_free_gpio(14);
-+		gpio_free(14);
- 		r = -1;
- 		goto exit;
- 	}
- 	/* configure GPIO(14, 15) as outputs */
--	omap_set_gpio_direction(14, 0);
--	omap_set_gpio_direction(15, 0);
-+	gpio_direction_output(14, 0);
-+	gpio_direction_output(15, 0);
- exit:
- 	return r;
- }
- 
- static void innovator1610_panel_cleanup(struct lcd_panel *panel)
- {
--	omap_free_gpio(15);
--	omap_free_gpio(14);
-+	gpio_free(15);
-+	gpio_free(14);
- }
- 
- static int innovator1610_panel_enable(struct lcd_panel *panel)
- {
- 	/* set GPIO14 and GPIO15 high */
--	omap_set_gpio_dataout(14, 1);
--	omap_set_gpio_dataout(15, 1);
-+	gpio_set_value(14, 1);
-+	gpio_set_value(15, 1);
- 	return 0;
- }
- 
- static void innovator1610_panel_disable(struct lcd_panel *panel)
- {
- 	/* set GPIO13, GPIO14 and GPIO15 low */
--	omap_set_gpio_dataout(14, 0);
--	omap_set_gpio_dataout(15, 0);
-+	gpio_set_value(14, 0);
-+	gpio_set_value(15, 0);
- }
- 
- static unsigned long innovator1610_panel_get_caps(struct lcd_panel *panel)
---- a/drivers/video/omap/lcd_osk.c
-+++ b/drivers/video/omap/lcd_osk.c
-@@ -29,6 +29,7 @@
- 
- static int osk_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
- {
-+	/* gpio2 was allocated in board init */
- 	return 0;
- }
- 
-@@ -47,11 +48,8 @@ static int osk_panel_enable(struct lcd_p
- 	/* Set PWL level */
- 	omap_writeb(0xFF, OMAP_PWL_ENABLE);
- 
--	/* configure GPIO2 as output */
--	omap_set_gpio_direction(2, 0);
--
--	/* set GPIO2 high */
--	omap_set_gpio_dataout(2, 1);
-+	/* set GPIO2 high (lcd power enabled) */
-+	gpio_set_value(2, 1);
- 
- 	return 0;
- }
-@@ -65,7 +63,7 @@ static void osk_panel_disable(struct lcd
- 	omap_writeb(0x00, OMAP_PWL_CLK_ENABLE);
- 
- 	/* set GPIO2 low */
--	omap_set_gpio_dataout(2, 0);
-+	gpio_set_value(2, 0);
- }
- 
- static unsigned long osk_panel_get_caps(struct lcd_panel *panel)
---- a/drivers/video/omap/lcd_sx1.c
-+++ b/drivers/video/omap/lcd_sx1.c
-@@ -81,21 +81,21 @@ static void epson_sendbyte(int flag, uns
- 	int i, shifter = 0x80;
- 
- 	if (!flag)
--		omap_set_gpio_dataout(_A_LCD_SSC_A0, 0);
-+		gpio_set_value(_A_LCD_SSC_A0, 0);
- 	mdelay(2);
--	omap_set_gpio_dataout(A_LCD_SSC_RD, 1);
-+	gpio_set_value(A_LCD_SSC_RD, 1);
- 
--	omap_set_gpio_dataout(A_LCD_SSC_SD, flag);
-+	gpio_set_value(A_LCD_SSC_SD, flag);
- 
- 	OMAP_MCBSP_WRITE(OMAP1510_MCBSP3_BASE, PCR0, 0x2200);
- 	OMAP_MCBSP_WRITE(OMAP1510_MCBSP3_BASE, PCR0, 0x2202);
- 	for (i = 0; i < 8; i++) {
- 		OMAP_MCBSP_WRITE(OMAP1510_MCBSP3_BASE, PCR0, 0x2200);
--		omap_set_gpio_dataout(A_LCD_SSC_SD, shifter & byte);
-+		gpio_set_value(A_LCD_SSC_SD, shifter & byte);
- 		OMAP_MCBSP_WRITE(OMAP1510_MCBSP3_BASE, PCR0, 0x2202);
- 		shifter >>= 1;
- 	}
--	omap_set_gpio_dataout(_A_LCD_SSC_A0, 1);
-+	gpio_set_value(_A_LCD_SSC_A0, 1);
- }
- 
- static void init_system(void)
-@@ -107,25 +107,18 @@ static void init_system(void)
- static void setup_GPIO(void)
- {
- 	/* new wave */
--	omap_request_gpio(A_LCD_SSC_RD);
--	omap_request_gpio(A_LCD_SSC_SD);
--	omap_request_gpio(_A_LCD_RESET);
--	omap_request_gpio(_A_LCD_SSC_CS);
--	omap_request_gpio(_A_LCD_SSC_A0);
--
--	/* set all GPIOs to output */
--	omap_set_gpio_direction(A_LCD_SSC_RD, 0);
--	omap_set_gpio_direction(A_LCD_SSC_SD, 0);
--	omap_set_gpio_direction(_A_LCD_RESET, 0);
--	omap_set_gpio_direction(_A_LCD_SSC_CS, 0);
--	omap_set_gpio_direction(_A_LCD_SSC_A0, 0);
-+	gpio_request(A_LCD_SSC_RD, "lcd_ssc_rd");
-+	gpio_request(A_LCD_SSC_SD, "lcd_ssc_sd");
-+	gpio_request(_A_LCD_RESET, "lcd_reset");
-+	gpio_request(_A_LCD_SSC_CS, "lcd_ssc_cs");
-+	gpio_request(_A_LCD_SSC_A0, "lcd_ssc_a0");
- 
--	/* set GPIO data */
--	omap_set_gpio_dataout(A_LCD_SSC_RD, 1);
--	omap_set_gpio_dataout(A_LCD_SSC_SD, 0);
--	omap_set_gpio_dataout(_A_LCD_RESET, 0);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
--	omap_set_gpio_dataout(_A_LCD_SSC_A0, 1);
-+	/* set GPIOs to output, with initial data */
-+	gpio_direction_output(A_LCD_SSC_RD, 1);
-+	gpio_direction_output(A_LCD_SSC_SD, 0);
-+	gpio_direction_output(_A_LCD_RESET, 0);
-+	gpio_direction_output(_A_LCD_SSC_CS, 1);
-+	gpio_direction_output(_A_LCD_SSC_A0, 1);
- }
- 
- static void display_init(void)
-@@ -139,61 +132,61 @@ static void display_init(void)
- 	mdelay(2);
- 
- 	/* reset LCD */
--	omap_set_gpio_dataout(A_LCD_SSC_SD, 1);
-+	gpio_set_value(A_LCD_SSC_SD, 1);
- 	epson_sendbyte(0, 0x25);
- 
--	omap_set_gpio_dataout(_A_LCD_RESET, 0);
-+	gpio_set_value(_A_LCD_RESET, 0);
- 	mdelay(10);
--	omap_set_gpio_dataout(_A_LCD_RESET, 1);
-+	gpio_set_value(_A_LCD_RESET, 1);
- 
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-+	gpio_set_value(_A_LCD_SSC_CS, 1);
- 	mdelay(2);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-+	gpio_set_value(_A_LCD_SSC_CS, 0);
- 
- 	/* init LCD, phase 1 */
- 	epson_sendbyte(0, 0xCA);
- 	for (i = 0; i < 10; i++)
- 		epson_sendbyte(1, INIT_1[i]);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-+	gpio_set_value(_A_LCD_SSC_CS, 1);
-+	gpio_set_value(_A_LCD_SSC_CS, 0);
- 
- 	/* init LCD phase 2 */
- 	epson_sendbyte(0, 0xCB);
- 	for (i = 0; i < 125; i++)
- 		epson_sendbyte(1, INIT_2[i]);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-+	gpio_set_value(_A_LCD_SSC_CS, 1);
-+	gpio_set_value(_A_LCD_SSC_CS, 0);
- 
- 	/* init LCD phase 2a */
- 	epson_sendbyte(0, 0xCC);
- 	for (i = 0; i < 14; i++)
- 		epson_sendbyte(1, INIT_3[i]);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-+	gpio_set_value(_A_LCD_SSC_CS, 1);
-+	gpio_set_value(_A_LCD_SSC_CS, 0);
- 
- 	/* init LCD phase 3 */
- 	epson_sendbyte(0, 0xBC);
- 	epson_sendbyte(1, 0x08);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-+	gpio_set_value(_A_LCD_SSC_CS, 1);
-+	gpio_set_value(_A_LCD_SSC_CS, 0);
- 
- 	/* init LCD phase 4 */
- 	epson_sendbyte(0, 0x07);
- 	epson_sendbyte(1, 0x05);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-+	gpio_set_value(_A_LCD_SSC_CS, 1);
-+	gpio_set_value(_A_LCD_SSC_CS, 0);
- 
- 	/* init LCD phase 5 */
- 	epson_sendbyte(0, 0x94);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-+	gpio_set_value(_A_LCD_SSC_CS, 1);
-+	gpio_set_value(_A_LCD_SSC_CS, 0);
- 
- 	/* init LCD phase 6 */
- 	epson_sendbyte(0, 0xC6);
- 	epson_sendbyte(1, 0x80);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-+	gpio_set_value(_A_LCD_SSC_CS, 1);
- 	mdelay(100); /* used to be 1000 */
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-+	gpio_set_value(_A_LCD_SSC_CS, 0);
- 
- 	/* init LCD phase 7 */
- 	epson_sendbyte(0, 0x16);
-@@ -201,8 +194,8 @@ static void display_init(void)
- 	epson_sendbyte(1, 0x00);
- 	epson_sendbyte(1, 0xB1);
- 	epson_sendbyte(1, 0x00);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-+	gpio_set_value(_A_LCD_SSC_CS, 1);
-+	gpio_set_value(_A_LCD_SSC_CS, 0);
- 
- 	/* init LCD phase 8 */
- 	epson_sendbyte(0, 0x76);
-@@ -210,12 +203,12 @@ static void display_init(void)
- 	epson_sendbyte(1, 0x00);
- 	epson_sendbyte(1, 0xDB);
- 	epson_sendbyte(1, 0x00);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-+	gpio_set_value(_A_LCD_SSC_CS, 1);
-+	gpio_set_value(_A_LCD_SSC_CS, 0);
- 
- 	/* init LCD phase 9 */
- 	epson_sendbyte(0, 0xAF);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-+	gpio_set_value(_A_LCD_SSC_CS, 1);
- }
- 
- static int sx1_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
-@@ -231,18 +224,18 @@ static void sx1_panel_disable(struct lcd
- {
- 	printk(KERN_INFO "SX1: LCD panel disable\n");
- 	sx1_setmmipower(0);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-+	gpio_set_value(_A_LCD_SSC_CS, 1);
- 
- 	epson_sendbyte(0, 0x25);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-+	gpio_set_value(_A_LCD_SSC_CS, 0);
- 
- 	epson_sendbyte(0, 0xAE);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-+	gpio_set_value(_A_LCD_SSC_CS, 1);
- 	mdelay(100);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
-+	gpio_set_value(_A_LCD_SSC_CS, 0);
- 
- 	epson_sendbyte(0, 0x95);
--	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
-+	gpio_set_value(_A_LCD_SSC_CS, 1);
- }
- 
- static int sx1_panel_enable(struct lcd_panel *panel)
