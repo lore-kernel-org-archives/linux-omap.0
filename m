@@ -1,60 +1,35 @@
-From: "Arun KS" <arunks@mistralsolutions.com>
-Subject: [Resend] [PATCH 3/3] OMAP2EVM: Updates defconfig
-Date: Thu, 25 Sep 2008 11:07:16 +0530
-Message-ID: <dfeb90390809242237g699ecca0xc3f9b9466399456e@mail.gmail.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [Resend] [PATCH 1/3] Add MCSPI1 and gpio_85 Mux configuration
+Date: Thu, 25 Sep 2008 08:53:28 +0300
+Message-ID: <20080925085328.62009bf3.jarkko.nikula@nokia.com>
+References: <dfeb90390809242234h2264c7acw3003d6895574f002@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.227]:22932 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752179AbYIYFhR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 01:37:17 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so291294rvb.1
-        for <linux-omap@vger.kernel.org>; Wed, 24 Sep 2008 22:37:16 -0700 (PDT)
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.105.134]:22570 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752197AbYIYFyA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 01:54:00 -0400
+In-Reply-To: <dfeb90390809242234h2264c7acw3003d6895574f002@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Arun KS <arunks@mistralsolutions.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Enables mcspi support in omap2evm defconfig
+On Thu, 25 Sep 2008 11:04:07 +0530
+"ext Arun KS" <arunks@mistralsolutions.com> wrote:
 
-Signed-off-by: Arun KS <arunks@mistralsolutions.com>
----
- arch/arm/configs/omap2_evm_defconfig |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+> This patch adds mcspi1 and gpio_85 mux configuration for 2430.
+> 
+> Signed-off-by: Arun KS <arunks@mistralsolutions.com>
+> ---
+>  arch/arm/mach-omap2/mux.c             |   10 ++++++++++
+>  arch/arm/plat-omap/include/mach/mux.h |    9 +++++++++
+>  2 files changed, 19 insertions(+), 0 deletions(-)
+> 
+How about adding muxing for remaining 2430 McBSP ports 3-5 as well in
+this patch?
 
-diff --git a/arch/arm/configs/omap2_evm_defconfig
-b/arch/arm/configs/omap2_evm_defconfig
-index 61f0965..454fa46 100644
---- a/arch/arm/configs/omap2_evm_defconfig
-+++ b/arch/arm/configs/omap2_evm_defconfig
-@@ -1,7 +1,7 @@
- #
- # Automatically generated make config: don't edit
--# Linux kernel version: 2.6.27-rc3-omap1
--# Wed Aug 20 21:20:25 2008
-+# Linux kernel version: 2.6.27-rc7-omap1
-+# Wed Sep 24 18:43:59 2008
- #
- CONFIG_ARM=y
- CONFIG_SYS_SUPPORTS_APM_EMULATION=y
-@@ -264,6 +264,7 @@ CONFIG_GENERIC_CLOCKEVENTS_BUILD=y
- CONFIG_PREEMPT=y
- CONFIG_HZ=100
- # CONFIG_AEABI is not set
-+CONFIG_ARCH_FLATMEM_HAS_HOLES=y
- # CONFIG_ARCH_DISCONTIGMEM_ENABLE is not set
- CONFIG_SELECT_MEMORY_MODEL=y
- CONFIG_FLATMEM_MANUAL=y
-@@ -773,7 +774,7 @@ CONFIG_SPI_MASTER=y
- # SPI Master Controller Drivers
- #
- # CONFIG_SPI_BITBANG is not set
--# CONFIG_SPI_OMAP24XX is not set
-+CONFIG_SPI_OMAP24XX=y
 
- #
- # SPI Protocol Masters
--- 
-1.5.3.4
+Jarkko
