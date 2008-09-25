@@ -1,17 +1,17 @@
 From: "Arun KS" <arunks@mistralsolutions.com>
 Subject: [PATCH] Adds MCBSP mux settings
-Date: Thu, 25 Sep 2008 13:04:22 +0530
-Message-ID: <dfeb90390809250034l56ce5074ude801aa1c51b0899@mail.gmail.com>
+Date: Thu, 25 Sep 2008 13:04:28 +0530
+Message-ID: <dfeb90390809250034x15494498p8109d52e1df44c77@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.235]:32041 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752026AbYIYHe0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 03:34:26 -0400
-Received: by rv-out-0506.google.com with SMTP id g9so49939rvb.5
-        for <linux-omap@vger.kernel.org>; Thu, 25 Sep 2008 00:34:26 -0700 (PDT)
+Received: from ti-out-0910.google.com ([209.85.142.186]:35347 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752077AbYIYHea (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 03:34:30 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so188884tic.23
+        for <linux-omap@vger.kernel.org>; Thu, 25 Sep 2008 00:34:28 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
