@@ -1,48 +1,50 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH] input: keypad: fix null pointer dereference
-Date: Thu, 25 Sep 2008 16:47:42 +0300
-Message-ID: <20080925134742.GF24627@gandalf.research.nokia.com>
-Reply-To: felipe.balbi@nokia.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] OMAP3 clock: fix dss1_alwon_fck
+Date: Thu, 25 Sep 2008 08:08:20 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0809250807330.14535@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:62293 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754272AbYIYNtP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 09:49:15 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8PDn09t009992
-	for <linux-omap@vger.kernel.org>; Thu, 25 Sep 2008 16:49:13 +0300
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:48439 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751904AbYIYOIX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 10:08:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: rnayak@ti.com, Tero.Kristo@nokia.com
 
-There was a potential NULL pointer dereference if we don't pass
-some fields of omap_kp_platform_data.
 
-At the point of the error message, kp->dbg_dev is not set so it
-would generate a NULL pointer dereference right away.
+Commit a63efb1547ac35dcb0f007090396a3c7510eb691 broke the dss1_alwon_fck
+clock enable on 3430ES2+.  The clock code was not waiting for the module
+to come out of idle.
 
-Fix it by using &pdev->dev
+Problem reported by Rajendra Nayak <rnayak@ti.com>.
 
-Signed-of-by: Felipe Balbi <felipe.balbi@nokia.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
+ arch/arm/mach-omap2/clock34xx.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/input/keyboard/omap-twl4030keypad.c b/drivers/input/keyboard/omap-twl4030keypad.c
-index 3893d63..48f29d3 100644
---- a/drivers/input/keyboard/omap-twl4030keypad.c
-+++ b/drivers/input/keyboard/omap-twl4030keypad.c
-@@ -238,7 +238,7 @@ static int __init omap_kp_probe(struct platform_device *pdev)
-                return -ENOMEM;
- 
-        if (!pdata->rows || !pdata->cols || !pdata->keymap) {
--               dev_err(kp->dbg_dev, "No rows, cols or keymap from pdata\n");
-+               dev_err(&pdev->dev, "No rows, cols or keymap from pdata\n");
-                kfree(kp);
-                return -EINVAL;
-        }
-
-
--- 
-balbi
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index 8ce7097..4722277 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -2304,7 +2304,7 @@ static struct clk dss1_alwon_fck_3430es1 = {
+ 	.prcm_mod	= OMAP3430_DSS_MOD,
+ 	.enable_reg	= CM_FCLKEN,
+ 	.enable_bit	= OMAP3430_EN_DSS1_SHIFT,
+-	.flags		= CLOCK_IN_OMAP343X,
++	.flags		= CLOCK_IN_OMAP3430ES1,
+ 	.clkdm		= { .name = "dss_clkdm" },
+ 	.recalc		= &followparent_recalc,
+ };
+@@ -2317,7 +2317,7 @@ static struct clk dss1_alwon_fck_3430es2 = {
+ 	.enable_reg	= CM_FCLKEN,
+ 	.enable_bit	= OMAP3430_EN_DSS1_SHIFT,
+ 	.idlest_bit	= OMAP3430ES2_ST_DSS_IDLE_SHIFT,
+-	.flags		= CLOCK_IN_OMAP343X | WAIT_READY,
++	.flags		= CLOCK_IN_OMAP3430ES2 | WAIT_READY,
+ 	.clkdm		= { .name = "dss_clkdm" },
+ 	.recalc		= &followparent_recalc,
+ };
