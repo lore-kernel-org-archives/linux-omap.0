@@ -1,68 +1,63 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: NULL pointer dereference when using ALSA SOC
-Date: Thu, 25 Sep 2008 23:46:01 +0200
-Message-ID: <69299993-CA68-4F6C-88E7-778A8DEDF7AF@student.utwente.nl>
-References: <dfeb90390809222326s44162f94sf42f96fdfc0a0690@mail.gmail.com> <01BA5FDD-AC4E-4450-B576-8A7DA867E314@student.utwente.nl> <dfeb90390809250638r22474563q1262209d15974cb9@mail.gmail.com> <200809251022.08544.david-b@pacbell.net> <5e088bd90809251034h4de27054tfa00182814791645@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-2--741173724"
-Content-Transfer-Encoding: 7bit
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 1/4] i2c: clean =?UTF-8?Q?add=5Fchildren=20a=20bit?=
+Date: Thu, 25 Sep 2008 17:08:52 -0500
+Message-ID: <1159ad0a30debc102abd8b29586ce5bf@felipebalbi.com>
+References: <1222354133-12919-1-git-send-email-felipe.balbi@nokia.com> <1222354133-12919-2-git-send-email-felipe.balbi@nokia.com> <200809251028.00242.david-b@pacbell.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx2.utsp.utwente.nl ([130.89.2.13]:57496 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755214AbYIYVtv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Sep 2008 17:49:51 -0400
-Received: from [172.20.1.5] (vpn006057.vpn.utwente.nl [130.89.6.57])
-          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id m8PLk5I2028805
-          for <linux-omap@vger.kernel.org>; Thu, 25 Sep 2008 23:46:06 +0200
-In-Reply-To: <5e088bd90809251034h4de27054tfa00182814791645@mail.gmail.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:39894 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753152AbYIYWI5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 18:08:57 -0400
+In-Reply-To: <200809251028.00242.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-2--741173724
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+Hi Dave,
 
-
-Op 25 sep 2008, om 19:34 heeft Steve Sakoman het volgende geschreven:
-
-> On Thu, Sep 25, 2008 at 10:22 AM, David Brownell <david- 
-> b@pacbell.net> wrote:
->> On Thursday 25 September 2008, Arun KS wrote:
->>>>>> I narrowed this into CONFIG_SLUB. When it's set, I can  
->>>>>> reproduce the
->>>>>> bug both with N810 and Beagle but not when using CONFIG_SLAB.
+On Thu, 25 Sep 2008 10:28:00 -0700, David Brownell <david-b@pacbell.net>
+wrote:
+> On Thursday 25 September 2008, Felipe Balbi wrote:
+>> Clean up add_children a bit before adding more children
+>> to twl4030-core.c
 >>
->> So it's confirmed that SLUB is a factor, but
->> the root cause is still not known or resolved?
->
-> Correct.  I suspect that somewhere in alsa-lib code is not checking an
-> error return on a memory allocation.  When I previously discussed this
-> issue with the folks on alsa-devel they suspected a bug in alsa-lib.
-> I'll give them this additional data and see if someone there wants to
-> help track down the root cause.
+>> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> 
+> ACK, except for:
+> 
+>> --- a/include/linux/i2c/twl4030.h
+>> +++ b/include/linux/i2c/twl4030.h
+>> @@ -145,4 +145,10 @@ int twl4030_free_gpio(int gpio);
+>>  	static inline int twl4030charger_usb_en(int enable) { return 0; }
+>>  #endif
+>>
+>> +#if defined(CONFIG_RTC_DRV_TWL4030) ||
+> defined(CONFIG_RTC_DRV_TWL4030_MODULE)
+>> +#define twl_has_rtc()	(1)
+>> +#else
+>> +#define twl_has_rtc()	(0)
+>> +#endif
+> 
+> Who else would need this, other than the core?
+> I think the answer is "nobody" ... so these macros
+> belong in the core itself, not a public header.
+> 
+> Also:  parens not appropriate around those values; and
+> "true" and "false" values would be a bit more clear...
 
-Hmmm, SLAB makes it trigger the null pointer less, not make it go away  
-completely :(
+you sure got a point here, I'll update the series when
+I get to work tomorrow (actualy today, already 1am).
 
-regards,
+Anyways, I'll update and resend the series.
 
-Koen
+-- 
+Best Regards,
 
---Apple-Mail-2--741173724
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: This is a digitally signed message part
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
+Felipe Balbi
+http://blog.felipebalbi.com
+me@felipebalbi.com
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFI3AacMkyGM64RGpERAgjBAJ0Qk6UNHLPAisfXmKRHskVfBlWIVQCgkwpm
-kcd3PfxSRI+9CMRZS+9pFtU=
-=g/vO
------END PGP SIGNATURE-----
-
---Apple-Mail-2--741173724--
