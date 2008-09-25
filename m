@@ -1,68 +1,96 @@
-From: Steve Sakoman <steve@sakoman.com>
-Subject: Re: [patch 2.6.27-rc6-omap] ASOC: quieter boot for non-Overo boards
-Date: Thu, 25 Sep 2008 10:07:31 -0700
-Message-ID: <1222362451.24304.59.camel@tera.sakoman.net>
-References: <200809211414.42194.david-b@pacbell.net>
-	 <20080925124934.GR5222@atomide.com>
-	 <200809250950.06409.david-b@pacbell.net>
-Reply-To: steve@sakoman.com
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] twl4030-gpio: Remove default pullup enable/disable of GPIO
+Date: Thu, 25 Sep 2008 10:20:50 -0700
+Message-ID: <200809251020.51152.david-b@pacbell.net>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB028BF72A8E@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx09.roch.ny.frontiernet.net ([66.133.183.226]:24547 "EHLO
-	mx09.roch.ny.frontiernet.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752792AbYIYRRO (ORCPT
+Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:21371 "HELO
+	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752757AbYIYRUy (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Sep 2008 13:17:14 -0400
-In-Reply-To: <200809250950.06409.david-b@pacbell.net>
+	Thu, 25 Sep 2008 13:20:54 -0400
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB028BF72A8E@dbde02.ent.ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Ghongadematt, Girish" <girishsg@ti.com>
 
-On Thu, 2008-09-25 at 09:50 -0700, David Brownell wrote:
-> On Thursday 25 September 2008, Tony Lindgren wrote:
-> > > Get rid of bogus ASOC boot messages on non-Overo boards.
-> > 
-> > I'm not touching this without an ack from alsa list :)
+On Thursday 25 September 2008, Pakaravoor, Jagadeesh wrote:
+> From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
 > 
-> Has this driver even gone to that list yet?  ;)
-
-Yes, the initial submission was reviewed and acked by folks on
-alsa-devel.
-
-And now that I think of it, this code should never execute on non-overo
-boards since they will have their own machine ASoC driver!  So this
-patch isn't really necessary.
-
-> I haven't really looked at initialization for this yet,
-> but my initial reaction to seeing the Beagle's version
-> of the overo.c file is that more sharing should exist.
-> (Wasn't the beagle ASOC init described as a clone?)
-
-This was discussed, but since the overo has some additional
-functionality that will be added to the machine portion of the driver it
-was decided to have separate machine files for overo and beagle.  I'm
-waiting for an overo "buddy" board that brings out the additional
-microphone inputs before I can add and test this functionality.
-
-> And then ... that, hey, this should hook into the same
-> MFD-style initialization as we're making the other
-> twl4030 code use.
+> One twl4030_request_gpio() should not tamper with the pullup
+> enabling/disabling of the rest of the GPIOs. So removing the default
+> pullup values written to REG_GPIOPUPDCTR1.
 > 
-> And finally ... whoa, maybe someone else can split
-> out the board-specific bits so they can be put in
-> the arch/arm/mach-omap2/board-XYZ.c files, since I'd
-> surely lose a lot of time learning ASOC if I were
-> to start that!  (These messages are right at the
-> core of that bit.)
+> Signed-off-by: Girish S G <girishsg@ti.com>
+> Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
 
-Putting the board specific bits in the arch/arm/mach-omap2/board-XYZ.c
-file has been discussed a number of times on alsa-devel and the folks
-there insist that for now (i.e. ASoC V1) this is the proper way to do
-things.
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 
-Steve
+Now I can remove this from my own GPIO cleanups.  ;)
+
+I was wondering why this code existed in the first
+place ... at *best* it makes sense when initializing
+the TWL4030.  But some boards may need to use some
+of those pullups; others, not.
+
+For that matter ... why does the hsmmc init glue always
+enable pullups on the card detect signals?  Are there
+boards which don't actually have external pullups there?
+It's fairly conventional that all MMC/SD signals have
+an external pullup.  (Except maybe DAT4..DAT7 for MMC+.)
+
+Need for such a pullup should be in board-specific init
+data, for boards which need it.
+
+- Dave
+
+
+
+> ---
+> Index: linux-omap-git/drivers/i2c/chips/twl4030-gpio.c
+> ===================================================================
+> --- linux-omap-git.orig/drivers/i2c/chips/twl4030-gpio.c	2008-09-25 17:30:27.000000000 +0530
+> +++ linux-omap-git/drivers/i2c/chips/twl4030-gpio.c	2008-09-25 18:43:08.932257869 +0530
+> @@ -301,7 +301,6 @@ int twl4030_request_gpio(int gpio)
+>  	if (gpio_usage_count & (0x1 << gpio))
+>  		ret = -EBUSY;
+>  	else {
+> -		u8 clear_pull[6] = { 0, 0, 0, 0, 0, 0 };
+>  		/* First time usage? - switch on GPIO module */
+>  		if (!gpio_usage_count) {
+>  			ret =
+> @@ -311,10 +310,6 @@ int twl4030_request_gpio(int gpio)
+>  		}
+>  		if (!ret)
+>  			gpio_usage_count |= (0x1 << gpio);
+> -
+> -		ret =
+> -		twl4030_i2c_write(TWL4030_MODULE_GPIO, clear_pull,
+> -				REG_GPIOPUPDCTR1, 5);
+>  	}
+>  	up(&gpio_sem);
+>  	return ret;
+> 
+> --
+> With Regards,
+> Jagadeesh Bhaskar P
+>  
+> ----------------------------
+> Some men see things as they are and say why - I dream things that never were and say why not.
+> - George Bernard Shaw
+> -------------------
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
 
