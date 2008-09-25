@@ -1,91 +1,138 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: MMC broken on beagleboard with current git
-Date: Thu, 25 Sep 2008 13:39:53 +0300
-Message-ID: <20080925103952.GJ5222@atomide.com>
-References: <FDAFB709-68B8-478D-8321-1322449B9A7F@student.utwente.nl> <20080925085142.GC5222@atomide.com> <77EE6A0D-895B-4E0B-B9C4-18D333BFF85C@student.utwente.nl> <20080925094718.GE5222@atomide.com> <4D346DA2-6C57-48A7-AC4E-2191C44497CF@student.utwente.nl>
+Subject: Re: [PATCH] PM: Fixed clockdomain state control for OMAP3
+Date: Thu, 25 Sep 2008 13:42:19 +0300
+Message-ID: <20080925104218.GK5222@atomide.com>
+References: <1221582816-21372-1-git-send-email-tero.kristo@nokia.com> <alpine.DEB.2.00.0809230722140.27938@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59824 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61593 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752863AbYIYKj4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 06:39:56 -0400
+	with ESMTP id S1753181AbYIYKmW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 06:42:22 -0400
 Content-Disposition: inline
-In-Reply-To: <4D346DA2-6C57-48A7-AC4E-2191C44497CF@student.utwente.nl>
+In-Reply-To: <alpine.DEB.2.00.0809230722140.27938@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@booyaka.com>
+Cc: Tero Kristo <tero.kristo@nokia.com>, linux-omap@vger.kernel.org
 
-* Koen Kooi <k.kooi@student.utwente.nl> [080925 13:25]:
->
-> Op 25 sep 2008, om 11:47 heeft Tony Lindgren het volgende geschreven:
->
->> * Koen Kooi <k.kooi@student.utwente.nl> [080925 12:23]:
->>>
->>> Op 25 sep 2008, om 10:51 heeft Tony Lindgren het volgende geschreven:
->>>
->>>> * Koen Kooi <k.kooi@student.utwente.nl> [080925 11:42]:
->>>>> Hi,
->>>>>
->>>>> I just built a kernel from current git[1] and the mmc controller
->>>>> doesn't
->>>>> get detected on boot on my beagleboards. The omap mmc system has
->>>>> seen a
->>>>> lot of changes lately, does anyone have a hint where to start  
->>>>> looking
->>>>> before attemping a bisect?
->>>>
->>>> Sounds like the recent mmc init changes we've done:
->>>>
->>>> 535e1808d1c77a580815f7d7daacc6c030e29cb1 -  12 september 2008
->>>
->>>> 8e6e06c71b9d21d85a3ae652868e2802c054a08a - 12 september 2008
->>>
->>>> c434c15d28c82d92e55897bd265c423e9ab69362 - 24 september 2008
->>>
->>>
->>>> I've verified that it works on omap3430sdp. But mach-omap2/hsmmc.c
->>>> needs
->>>> some more work done to support other mmc controllers besides the  
->>>> first
->>>> one.
->>>> I don't think other controllers ever worked before these patches
->>>> either though..
->>>>
->>>> Let me know if you can narrow it down to some commit and I may be  
->>>> able
->>>> to help further from there.
->>>
->>> The previous working version I built was based of
->>> de1121fdb899f762b9e717f44eaf3fae7c00cd3e which was commited at 13
->>> september 2008, so 535e18.. and 8e6e06c.. don't break it.
->>
->> OK, good to know. Can you try to git-bisect it?
->
-> That proved to be a lot less work than expected :)
->
-> Last good: 9d1dff8638c9e96a401e1885f9948662e9ff9636
-> First bad: c434c15d28c82d92e55897bd265c423e9ab69362
->
-> So 
-> http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=c434c15d28c82d92e55897bd265c423e9ab69362 
->  breaks MMC on beagle.
+* Paul Walmsley <paul@booyaka.com> [080923 16:22]:
+> On Tue, 16 Sep 2008, Tero Kristo wrote:
+> 
+> > Hardware supervised control for clockdomain power state transitions now
+> > enabled in omap3_pm_init(). Also fixed set_pwrdm_state() to allow state
+> > changes between sleep states (i.e. RET<->OFF.)
+> > 
+> > Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+> 
+> Acked-by: Paul Walmsley <paul@pwsan.com>
 
-Hmm, I don't understand how it could work on 3430sdp...
-
-Looks like board-omap3beagle.c calls hsmmc_init() just like
-board-3430sdp.c. Maybe timings have changed and you need
-a longer delay somewhere during the init?
-
-Maybe sprinkle some printks to hsmmc.c and see if that
-makes it to work?
-
-Also make sure omap_hsmmc.c probe finishes OK.
+Pushing today.
 
 Tony
 
->>>>> [1] http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=c434c15d28c82d92e55897bd265c423e9ab69362
-
-
-
+> 
+> 
+> > ---
+> >  arch/arm/mach-omap2/pm34xx.c |   38 +++++++++++++++++++-------------------
+> >  1 files changed, 19 insertions(+), 19 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> > index 01b637a..2bccdab 100644
+> > --- a/arch/arm/mach-omap2/pm34xx.c
+> > +++ b/arch/arm/mach-omap2/pm34xx.c
+> > @@ -227,28 +227,13 @@ static int omap3_can_sleep(void)
+> >  	return 1;
+> >  }
+> >  
+> > -/* _clkdm_deny_idle - private callback function used by set_pwrdm_state() */
+> > -static int _clkdm_deny_idle(struct powerdomain *pwrdm,
+> > -			    struct clockdomain *clkdm)
+> > -{
+> > -	omap2_clkdm_deny_idle(clkdm);
+> > -	return 0;
+> > -}
+> > -
+> > -/* _clkdm_allow_idle - private callback function used by set_pwrdm_state() */
+> > -static int _clkdm_allow_idle(struct powerdomain *pwrdm,
+> > -			     struct clockdomain *clkdm)
+> > -{
+> > -	omap2_clkdm_allow_idle(clkdm);
+> > -	return 0;
+> > -}
+> > -
+> >  /* This sets pwrdm state (other than mpu & core. Currently only ON &
+> >   * RET are supported. Function is assuming that clkdm doesn't have
+> >   * hw_sup mode enabled. */
+> >  static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+> >  {
+> >  	u32 cur_state;
+> > +	int sleep_switch = 0;
+> >  	int ret = 0;
+> >  
+> >  	if (pwrdm == NULL || IS_ERR(pwrdm))
+> > @@ -259,8 +244,12 @@ static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+> >  	if (cur_state == state)
+> >  		return ret;
+> >  
+> > -	pwrdm_for_each_clkdm(pwrdm, _clkdm_deny_idle);
+> > -
+> > +	if (pwrdm_read_pwrst(pwrdm) < PWRDM_POWER_ON) {
+> > +		omap2_clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
+> > +		sleep_switch = 1;
+> > +		pwrdm_wait_transition(pwrdm);
+> > +	}
+> > +
+> >  	ret = pwrdm_set_next_pwrst(pwrdm, state);
+> >  	if (ret) {
+> >  		printk(KERN_ERR "Unable to set state of powerdomain: %s\n",
+> > @@ -268,7 +257,10 @@ static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+> >  		goto err;
+> >  	}
+> >  
+> > -	pwrdm_for_each_clkdm(pwrdm, _clkdm_allow_idle);
+> > +	if (sleep_switch) {
+> > +		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
+> > +		pwrdm_wait_transition(pwrdm);
+> > +	}
+> >  
+> >  err:
+> >  	return ret;
+> > @@ -540,6 +532,12 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm)
+> >  	return set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
+> >  }
+> >  
+> > +static int __init clkdms_setup(struct clockdomain *clkdm)
+> > +{
+> > +	omap2_clkdm_allow_idle(clkdm);
+> > +	return 0;
+> > +}
+> > +
+> >  int __init omap3_pm_init(void)
+> >  {
+> >  	struct power_state *pwrst;
+> > @@ -566,6 +564,8 @@ int __init omap3_pm_init(void)
+> >  		goto err2;
+> >  	}
+> >  
+> > +	(void) clkdm_for_each(clkdms_setup);
+> > +
+> >  	mpu_pwrdm = pwrdm_lookup("mpu_pwrdm");
+> >  	if (mpu_pwrdm == NULL) {
+> >  		printk(KERN_ERR "Failed to get mpu_pwrdm\n");
+> > -- 
+> > 1.5.4.3
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
+> 
+> - Paul
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
