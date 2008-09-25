@@ -1,15 +1,15 @@
 From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: [PATCH 7/10] HDQ driver:replace semaphore with mutex
-Date: Thu, 25 Sep 2008 12:27:23 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC8EBD@dbde02.ent.ti.com>
+Subject: [PATCH 3/10] HDQ driver: modify probe fn exit points
+Date: Thu, 25 Sep 2008 12:23:22 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC8EB3@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46412 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751700AbYIYG6H convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 02:58:07 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:48911 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750892AbYIYG6v convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 02:58:51 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,182 +18,151 @@ Cc: "johnpol@2ka.mipt.ru" <johnpol@2ka.mipt.ru>, "felipe.balbi@nokia.com" <felip
 
 From: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-This patch replaces the usage of semaphore by mutex.
+This patch fix the exit paths in the probe function.
 
 Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
 ---
- drivers/w1/masters/omap_hdq.c |   42 ++++++++++++++++++++++--------------------
- 1 files changed, 22 insertions(+), 20 deletions(-)
+ drivers/w1/masters/omap_hdq.c |   85 ++++++++++++++++++++++--------------------
+ 1 files changed, 45 insertions(+), 40 deletions(-)
 
 Index: linux-omap-2.6/drivers/w1/masters/omap_hdq.c
 ===================================================================
---- linux-omap-2.6.orig/drivers/w1/masters/omap_hdq.c	2008-09-24 11:13:12.000000000 +0530
-+++ linux-omap-2.6/drivers/w1/masters/omap_hdq.c	2008-09-24 11:49:45.000000000 +0530
-@@ -55,7 +55,7 @@ static int w1_id;
- struct hdq_data {
- 	struct device		*dev;
- 	void __iomem		*hdq_base;
--	struct	semaphore	hdq_semlock;
-+	struct  mutex		hdq_mutex;
- 	int			hdq_usecount;
- 	struct	clk		*hdq_ick;
- 	struct	clk		*hdq_fck;
-@@ -308,12 +308,12 @@ omap_hdq_break(struct hdq_data *hdq_data
- 	u8 tmp_status;
- 	unsigned long irqflags;
+--- linux-omap-2.6.orig/drivers/w1/masters/omap_hdq.c	2008-09-23 17:04:50.000000000 +0530
++++ linux-omap-2.6/drivers/w1/masters/omap_hdq.c	2008-09-24 09:33:39.000000000 +0530
+@@ -573,17 +573,20 @@ static int __init omap_hdq_probe(struct 
+ 		return -ENODEV;
  
--	ret = down_interruptible(&hdq_data->hdq_semlock);
-+	ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
- 	if (ret < 0)
- 		return -EINTR;
+ 	hdq_data = kmalloc(sizeof(*hdq_data), GFP_KERNEL);
+-	if (!hdq_data)
+-		return -ENODEV;
++	if (!hdq_data) {
++		dev_dbg(&pdev->dev, "unable to allocate memory\n");
++		ret = -ENODEV;
++		goto err_kmalloc;
++	}
  
- 	if (!hdq_data->hdq_usecount) {
--		up(&hdq_data->hdq_semlock);
-+		mutex_unlock(&hdq_data->hdq_mutex);
- 		return -EINVAL;
+ 	hdq_data->dev = &pdev->dev;
+ 	platform_set_drvdata(pdev, hdq_data);
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (res == NULL) {
+-		platform_set_drvdata(pdev, NULL);
+-		kfree(hdq_data);
+-		return -ENXIO;
++	if (!res) {
++		dev_dbg(&pdev->dev, "unable to get resource\n");
++		ret = ENXIO;
++		goto err_resource;
  	}
  
-@@ -335,7 +335,7 @@ omap_hdq_break(struct hdq_data *hdq_data
- 		hdq_data->hdq_irqstatus, OMAP_HDQ_TIMEOUT);
- 	if (ret < 0) {
- 		dev_dbg(hdq_data->dev, "wait interrupted");
--		up(&hdq_data->hdq_semlock);
-+		mutex_unlock(&hdq_data->hdq_mutex);
- 		return -EINTR;
- 	}
- 
-@@ -346,7 +346,7 @@ omap_hdq_break(struct hdq_data *hdq_data
- 	if (!(tmp_status & OMAP_HDQ_INT_STATUS_TIMEOUT)) {
- 		dev_dbg(hdq_data->dev, "timeout waiting for TIMEOUT, %x",
- 				tmp_status);
--		up(&hdq_data->hdq_semlock);
-+		mutex_unlock(&hdq_data->hdq_mutex);
- 		return -ETIMEDOUT;
- 	}
- 	/*
-@@ -361,7 +361,7 @@ omap_hdq_break(struct hdq_data *hdq_data
- 		dev_dbg(hdq_data->dev, "timeout waiting INIT&GO bits"
- 			"return to zero, %x", tmp_status);
- 
--	up(&hdq_data->hdq_semlock);
-+	mutex_unlock(&hdq_data->hdq_mutex);
- 	return ret;
- }
- 
-@@ -371,12 +371,12 @@ static int hdq_read_byte(struct hdq_data
- 	u8 status;
- 	unsigned long irqflags;
- 
--	ret = down_interruptible(&hdq_data->hdq_semlock);
-+	ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
- 	if (ret < 0)
- 		return -EINTR;
- 
- 	if (!hdq_data->hdq_usecount) {
--		up(&hdq_data->hdq_semlock);
-+		mutex_unlock(&hdq_data->hdq_mutex);
- 		return -EINVAL;
- 	}
- 
-@@ -407,13 +407,13 @@ static int hdq_read_byte(struct hdq_data
- 		if (!(status & OMAP_HDQ_INT_STATUS_RXCOMPLETE)) {
- 			dev_dbg(hdq_data->dev, "timeout waiting for"
- 				"RXCOMPLETE, %x", status);
--			up(&hdq_data->hdq_semlock);
-+			mutex_unlock(&hdq_data->hdq_mutex);
- 			return -ETIMEDOUT;
+ 	hdq_data->hdq_base = res->start;
+@@ -596,15 +599,12 @@ static int __init omap_hdq_probe(struct 
+ 		dev_dbg(&pdev->dev, "Can't get HDQ clock objects\n");
+ 		if (IS_ERR(hdq_data->hdq_ick)) {
+ 			ret = PTR_ERR(hdq_data->hdq_ick);
+-			platform_set_drvdata(pdev, NULL);
+-			kfree(hdq_data);
+-			return ret;
++			goto err_clk;
+ 		}
+ 		if (IS_ERR(hdq_data->hdq_fck)) {
+ 			ret = PTR_ERR(hdq_data->hdq_fck);
+-			platform_set_drvdata(pdev, NULL);
+-			kfree(hdq_data);
+-			return ret;
++			clk_put(hdq_data->hdq_ick);
++			goto err_clk;
  		}
  	}
- 	/* the data is ready. Read it in! */
- 	*val = hdq_reg_in(hdq_data, OMAP_HDQ_RX_DATA);
--	up(&hdq_data->hdq_semlock);
-+	mutex_unlock(&hdq_data->hdq_mutex);
  
- 	return 0;
- 
-@@ -427,13 +427,13 @@ omap_hdq_get(struct hdq_data *hdq_data)
- {
- 	int ret = 0;
- 
--	ret = down_interruptible(&hdq_data->hdq_semlock);
-+	ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
- 	if (ret < 0)
- 		return -EINTR;
- 
- 	if (OMAP_HDQ_MAX_USER == hdq_data->hdq_usecount) {
- 		dev_dbg(hdq_data->dev, "attempt to exceed the max use count");
--		up(&hdq_data->hdq_semlock);
-+		mutex_unlock(&hdq_data->hdq_mutex);
- 		ret = -EINVAL;
- 	} else {
- 		hdq_data->hdq_usecount++;
-@@ -443,14 +443,14 @@ omap_hdq_get(struct hdq_data *hdq_data)
- 				dev_dbg(hdq_data->dev, "Can not enable ick\n");
- 				clk_put(hdq_data->hdq_ick);
- 				clk_put(hdq_data->hdq_fck);
--				up(&hdq_data->hdq_semlock);
-+				mutex_unlock(&hdq_data->hdq_mutex);
- 				return -ENODEV;
- 			}
- 			if (clk_enable(hdq_data->hdq_fck)) {
- 				dev_dbg(hdq_data->dev, "Can not enable fck\n");
- 				clk_put(hdq_data->hdq_ick);
- 				clk_put(hdq_data->hdq_fck);
--				up(&hdq_data->hdq_semlock);
-+				mutex_unlock(&hdq_data->hdq_mutex);
- 				return -ENODEV;
- 			}
- 
-@@ -472,7 +472,7 @@ omap_hdq_get(struct hdq_data *hdq_data)
- 			}
- 		}
- 	}
--	up(&hdq_data->hdq_semlock);
-+	mutex_unlock(&hdq_data->hdq_mutex);
- 	return ret;
- }
- 
-@@ -484,7 +484,7 @@ omap_hdq_put(struct hdq_data *hdq_data)
- {
- 	int ret = 0;
- 
--	ret = down_interruptible(&hdq_data->hdq_semlock);
-+	ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
- 	if (ret < 0)
- 		return -EINTR;
- 
-@@ -500,7 +500,7 @@ omap_hdq_put(struct hdq_data *hdq_data)
- 			clk_disable(hdq_data->hdq_fck);
- 		}
- 	}
--	up(&hdq_data->hdq_semlock);
-+	mutex_unlock(&hdq_data->hdq_mutex);
- 	return ret;
- }
- 
-@@ -614,7 +614,7 @@ static int __init omap_hdq_probe(struct 
- 	}
- 
- 	hdq_data->hdq_usecount = 0;
--	sema_init(&hdq_data->hdq_semlock, 1);
-+	mutex_init(&hdq_data->hdq_mutex);
+@@ -613,21 +613,14 @@ static int __init omap_hdq_probe(struct 
  
  	if (clk_enable(hdq_data->hdq_ick)) {
  		dev_dbg(&pdev->dev, "Can not enable ick\n");
-@@ -689,12 +689,14 @@ static int omap_hdq_remove(struct platfo
- {
- 	struct hdq_data *hdq_data = platform_get_drvdata(pdev);
- 
--	down_interruptible(&hdq_data->hdq_semlock);
-+	mutex_lock(&hdq_data->hdq_mutex);
-+
- 	if (0 != hdq_data->hdq_usecount) {
- 		dev_dbg(&pdev->dev, "removed when use count is not zero\n");
- 		return -EBUSY;
+-		clk_put(hdq_data->hdq_ick);
+-		clk_put(hdq_data->hdq_fck);
+-		platform_set_drvdata(pdev, NULL);
+-		kfree(hdq_data);
+-		return -ENODEV;
++		ret = -ENODEV;
++		goto err_ick;
  	}
--	up(&hdq_data->hdq_semlock);
-+
-+	mutex_unlock(&hdq_data->hdq_mutex);
  
- 	/* remove module dependency */
- 	clk_put(hdq_data->hdq_ick);
+ 	if (clk_enable(hdq_data->hdq_fck)) {
+ 		dev_dbg(&pdev->dev, "Can not enable fck\n");
+-		clk_disable(hdq_data->hdq_ick);
+-		clk_put(hdq_data->hdq_ick);
+-		clk_put(hdq_data->hdq_fck);
+-		platform_set_drvdata(pdev, NULL);
+-		kfree(hdq_data);
+-		return -ENODEV;
++		ret = -ENODEV;
++		goto err_fck;
+ 	}
+ 
+ 	rev = hdq_reg_in(hdq_data, OMAP_HDQ_REVISION);
+@@ -639,20 +632,14 @@ static int __init omap_hdq_probe(struct 
+ 
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq	< 0) {
+-		platform_set_drvdata(pdev, NULL);
+-		kfree(hdq_data);
+-		return -ENXIO;
++		ret = -ENXIO;
++		goto err_irq;
+ 	}
+ 
+-	if (request_irq(irq, hdq_isr, IRQF_DISABLED, "OMAP HDQ",
+-		hdq_data)) {
+-		dev_dbg(&pdev->dev, "request_irq failed\n");
+-		clk_disable(hdq_data->hdq_ick);
+-		clk_put(hdq_data->hdq_ick);
+-		clk_put(hdq_data->hdq_fck);
+-		platform_set_drvdata(pdev, NULL);
+-		kfree(hdq_data);
+-		return -ENODEV;
++	ret = request_irq(irq, hdq_isr, IRQF_DISABLED, "omap_hdq", hdq_data);
++	if (ret < 0) {
++		dev_dbg(&pdev->dev, "could not request irq\n");
++		goto err_irq;
+ 	}
+ 
+ 	/* don't clock the HDQ until it is needed */
+@@ -664,14 +651,32 @@ static int __init omap_hdq_probe(struct 
+ 	ret = w1_add_master_device(&omap_w1_master);
+ 	if (ret) {
+ 		dev_dbg(&pdev->dev, "Failure in registering w1 master\n");
+-		clk_put(hdq_data->hdq_ick);
+-		clk_put(hdq_data->hdq_fck);
+-		platform_set_drvdata(pdev, NULL);
+-		kfree(hdq_data);
+-		return ret;
++		goto err_w1;
+ 	}
+ 
+ 	return 0;
++
++err_w1:
++err_irq:
++	clk_disable(hdq_data->hdq_fck);
++
++err_fck:
++	clk_disable(hdq_data->hdq_ick);
++
++err_ick:
++	clk_put(hdq_data->hdq_ick);
++	clk_put(hdq_data->hdq_fck);
++
++err_clk:
++	hdq_data->hdq_base = NULL;
++
++err_resource:
++	platform_set_drvdata(pdev, NULL);
++	kfree(hdq_data);
++
++err_kmalloc:
++	return ret;
++
+ }
+ 
+ static int omap_hdq_remove(struct platform_device *pdev)
