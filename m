@@ -1,66 +1,58 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 2.6.27-rc6-omap] ASOC: quieter boot for non-Overo boards
-Date: Thu, 25 Sep 2008 15:49:36 +0300
-Message-ID: <20080925124934.GR5222@atomide.com>
-References: <200809211414.42194.david-b@pacbell.net>
+Subject: Re: [patch 2.6.27-rc6-omap] hsmmc: request_irq says which
+	controller is involved
+Date: Thu, 25 Sep 2008 15:50:30 +0300
+Message-ID: <20080925125029.GS5222@atomide.com>
+References: <200809211416.14496.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52146 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52982 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752750AbYIYMtk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 08:49:40 -0400
+	with ESMTP id S1752750AbYIYMud (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 08:50:33 -0400
 Content-Disposition: inline
-In-Reply-To: <200809211414.42194.david-b@pacbell.net>
+In-Reply-To: <200809211416.14496.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org, Steve Sakoman <steve@sakoman.com>
+Cc: linux-omap@vger.kernel.org
 
 * David Brownell <david-b@pacbell.net> [080922 00:50]:
-> Get rid of bogus ASOC boot messages on non-Overo boards.
+> Make the hsmmc driver irq requests say which controller they're
+> associated with (e.g. "mmc0") so /proc/interrupts is more useful.
 
-I'm not touching this without an ack from alsa list :)
+Pushing today.
 
 Tony
 
 > 
 > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
->  sound/soc/omap/overo.c |    7 +++----
->  1 file changed, 3 insertions(+), 4 deletions(-)
 > 
-> --- a/sound/soc/omap/overo.c
-> +++ b/sound/soc/omap/overo.c
-> @@ -107,11 +107,11 @@ static int __init overo_soc_init(void)
->  {
->  	int ret;
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -908,8 +908,8 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
+>  			OMAP_HSMMC_READ(host->base, HCTL) | SDBP);
 >  
-> -	printk(KERN_INFO "overo SoC init\n");
->  	if (!machine_is_overo()) {
-> -		printk(KERN_ERR "Not Overo!\n");
-> +		pr_debug("Not Overo!\n");
->  		return -ENODEV;
->  	}
-> +	printk(KERN_INFO "overo SoC init\n");
->  
->  	overo_snd_device = platform_device_alloc("soc-audio", -1);
->  	if (!overo_snd_device) {
-> @@ -135,13 +135,12 @@ err1:
->  
->  	return ret;
->  }
-> +module_init(overo_soc_init);
->  
->  static void __exit overo_soc_exit(void)
->  {
->  	platform_device_unregister(overo_snd_device);
->  }
-> -
-> -module_init(overo_soc_init);
->  module_exit(overo_soc_exit);
->  
->  MODULE_AUTHOR("Steve Sakoman <steve@sakoman.com>");
+>  	/* Request IRQ for MMC operations */
+> -	ret = request_irq(host->irq, mmc_omap_irq, IRQF_DISABLED, pdev->name,
+> -			 host);
+> +	ret = request_irq(host->irq, mmc_omap_irq, IRQF_DISABLED,
+> +			mmc_hostname(mmc), host);
+>  	if (ret) {
+>  		dev_dbg(mmc_dev(host->mmc), "Unable to grab HSMMC IRQ\n");
+>  		goto err_irq;
+> @@ -918,8 +918,8 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
+>  	/* Request IRQ for card detect */
+>  	if ((mmc_slot(host).card_detect_irq) && (mmc_slot(host).card_detect)) {
+>  		ret = request_irq(mmc_slot(host).card_detect_irq,
+> -				  omap_mmc_cd_handler, IRQF_DISABLED, "MMC CD",
+> -				  host);
+> +				  omap_mmc_cd_handler, IRQF_DISABLED,
+> +				  mmc_hostname(mmc), host);
+>  		if (ret) {
+>  			dev_dbg(mmc_dev(host->mmc),
+>  				"Unable to grab MMC CD IRQ\n");
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
