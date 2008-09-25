@@ -1,85 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Fixed OMAP3 version check
-Date: Thu, 25 Sep 2008 14:49:32 +0300
-Message-ID: <20080925114932.GP5222@atomide.com>
-References: <1221572797-15949-1-git-send-email-tero.kristo@nokia.com> <1221572797-15949-2-git-send-email-tero.kristo@nokia.com> <20080925101750.GG5222@atomide.com> <20080925102331.GC24627@gandalf.research.nokia.com> <20080925103120.GI5222@atomide.com> <20080925114117.GD24627@gandalf.research.nokia.com> <B71CE868F2BC2847B3F23C5A8EE394308CEC0F@vaebe110.NOE.Nokia.com> <20080925114731.GO5222@atomide.com>
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: Re: [PATCH] Debobs and ETK padconf implementation
+Date: Thu, 25 Sep 2008 14:52:56 +0300
+Message-ID: <20080925115256.GD4654@codecarver.research.nokia.com>
+References: <1221663749-26121-1-git-send-email-peter.de-schrijver@nokia.com> <1221663749-26121-2-git-send-email-peter.de-schrijver@nokia.com> <1221663749-26121-3-git-send-email-peter.de-schrijver@nokia.com> <87ej38ob7t.fsf@deeprootsystems.com> <20080925113550.GC4654@codecarver.research.nokia.com> <873ajoo3mk.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64355 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753223AbYIYLtf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 07:49:35 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:19589 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753223AbYIYLxi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 07:53:38 -0400
 Content-Disposition: inline
-In-Reply-To: <20080925114731.GO5222@atomide.com>
+In-Reply-To: <873ajoo3mk.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero.Kristo@nokia.com
-Cc: felipe.balbi@nokia.com, linux-omap@vger.kernel.org
+To: ext Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [080925 14:47]:
-> * Tero.Kristo@nokia.com <Tero.Kristo@nokia.com> [080925 14:45]:
-> >  
-> > 
-> > >-----Original Message-----
-> > >From: Balbi Felipe (Nokia-D/Helsinki) 
-> > >Sent: 25 September, 2008 14:41
-> > >To: ext Tony Lindgren
-> > >Cc: Balbi Felipe (Nokia-D/Helsinki); Kristo Tero 
-> > >(Nokia-D/Tampere); linux-omap@vger.kernel.org
-> > >Subject: Re: [PATCH] Fixed OMAP3 version check
-> > >
-> > >On Thu, Sep 25, 2008 at 01:31:21PM +0300, Tony Lindgren wrote:
-> > >> * Felipe Balbi <felipe.balbi@nokia.com> [080925 13:24]:
-> > >> > On Thu, Sep 25, 2008 at 01:17:51PM +0300, Tony Lindgren wrote:
-> > >> > > Hi,
-> > >> > > 
-> > >> > > * Tero Kristo <tero.kristo@nokia.com> [080916 14:59]:
-> > >> > > > CPU version was reported incorrectly (e.g. ES3.0 instead of 
-> > >> > > > ES2.1.) Also added a piece of optimization for CPU 
-> > >type check (omap_type()).
-> > >> > > > 
-> > >> > > > Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-> > >> > > > ---
-> > >> > > >  arch/arm/mach-omap2/id.c |    7 +++++--
-> > >> > > >  1 files changed, 5 insertions(+), 2 deletions(-)
-> > >> > > > 
-> > >> > > > diff --git a/arch/arm/mach-omap2/id.c 
-> > >b/arch/arm/mach-omap2/id.c 
-> > >> > > > index ab7a6e9..4e2b449 100644
-> > >> > > > --- a/arch/arm/mach-omap2/id.c
-> > >> > > > +++ b/arch/arm/mach-omap2/id.c
-> > >> > > > @@ -37,7 +37,10 @@ EXPORT_SYMBOL(omap_chip_is);
-> > >> > > >  
-> > >> > > >  int omap_type(void)
-> > >> > > >  {
-> > >> > > > -	u32 val = 0;
-> > >> > > > +	static u32 val;
-> > >> > > > +
-> > >> > > > +	if (val != 0)
-> > >> > > > +		return val;
-> > >> > > 
-> > >> > > Hmm I guess this would return a random val? :)
-> > >> > 
-> > >> > it would return 0, look that val is static.
-> > >> 
-> > >> Ah, sorry I did not see the static. So this is to cache the 
-> > >result to 
-> > >> optimize it? I'd assume this function is only needed during 
-> > >some init 
-> > >> code hopefully where performance does not matter..
-> > >
-> > >Yeah, it's not like we're gonna check the revision after the 
-> > >board is botted all up I guess.
-> > 
-> > PM code will need to either cache the type information or call this
-> > check every time when entering off-mode. Some things work differently in
-> > secure chips. Could probably just cache this inside PM code.
+On Thu, Sep 25, 2008 at 02:40:19PM +0300, ext Kevin Hilman wrote:
+> "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
 > 
-> How about setting up the save and restore registers properly for GP
-> and HS omap once during PM init?
+> >> 
+> >> The cross-platform gpiolib calls should be used here.
+> >> 
+> >> > +			snprintf(name, sizeof(name), "hw_dbg%d", i);
+> >> > +			err = _new_debobs_pad(&debobs_pads[i], name, i,
+> >> > +						debobs_root);
+> >> > +			if (err) {
+> >> > +				omap_free_gpio(ETK_GPIO(i));
+> >> > +				return err;
+> >> > +			}
+> >> > +		}
+> >> > +	}
+> >> 
+> >> In the successful case, future calls to gpio_request() to use these
+> >> lines will fail, since the line is reserved by the omap_request_gpio()
+> >> call.
+> >> 
+> >
+> > Yes. That's intended. If debobs sucessfully claims the GPIO line, noone
+> > else should be allowed to claim it, unless debobs releases it again.
+> >
+> 
+> In that case, what is the proposed method for other kernel code to use
+> the debobs lines?
 
-To clarify: Set the save and restore registers and needed functions only
-once during PM init depending on the omap type.
+Hmm, good point :) My idea was to use the gpiolib calls on GPIO12 -
+GPIO29, but then there is no way for a user to know if the GPIO was
+assigned to debobs or not... Maybe debobs should register as gpiolib
+'chip' and reexport those lines ? Would that make sense ?
 
-Tony
+Cheers,
+
+Peter.
+
+-- 
+goa is a state of mind
