@@ -1,15 +1,15 @@
 From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: [PATCH 3/10] HDQ driver: modify probe fn exit points
-Date: Thu, 25 Sep 2008 12:23:22 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC8EB3@dbde02.ent.ti.com>
+Subject: [PATCH 8/10] HDQ driver:protect the shared flag
+Date: Thu, 25 Sep 2008 12:28:22 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC8EBF@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48911 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58083 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750892AbYIYG6v convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 02:58:51 -0400
+	id S1751619AbYIYG7F convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 02:59:05 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,151 +18,111 @@ Cc: "johnpol@2ka.mipt.ru" <johnpol@2ka.mipt.ru>, "felipe.balbi@nokia.com" <felip
 
 From: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-This patch fix the exit paths in the probe function.
+This patch moves the shared variable into the local structure and
+protects its updation.
 
 Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
 ---
- drivers/w1/masters/omap_hdq.c |   85 ++++++++++++++++++++++--------------------
- 1 files changed, 45 insertions(+), 40 deletions(-)
+ drivers/w1/masters/omap_hdq.c |   52 ++++++++++++++++++++++++++++++------------
+ 1 files changed, 38 insertions(+), 14 deletions(-)
 
 Index: linux-omap-2.6/drivers/w1/masters/omap_hdq.c
 ===================================================================
---- linux-omap-2.6.orig/drivers/w1/masters/omap_hdq.c	2008-09-23 17:04:50.000000000 +0530
-+++ linux-omap-2.6/drivers/w1/masters/omap_hdq.c	2008-09-24 09:33:39.000000000 +0530
-@@ -573,17 +573,20 @@ static int __init omap_hdq_probe(struct 
- 		return -ENODEV;
+--- linux-omap-2.6.orig/drivers/w1/masters/omap_hdq.c	2008-09-24 11:49:45.000000000 +0530
++++ linux-omap-2.6/drivers/w1/masters/omap_hdq.c	2008-09-24 14:41:43.000000000 +0530
+@@ -61,6 +61,12 @@ struct hdq_data {
+ 	struct	clk		*hdq_fck;
+ 	u8			hdq_irqstatus;
+ 	spinlock_t		hdq_spinlock;
++	/*
++	 * Used to control the call to omap_hdq_get and omap_hdq_put.
++	 * HDQ Protocol: Write the CMD|REG_address first, followed by
++	 * the data wrire or read.
++	 */
++	int			init_trans;
+ };
  
- 	hdq_data = kmalloc(sizeof(*hdq_data), GFP_KERNEL);
--	if (!hdq_data)
--		return -ENODEV;
-+	if (!hdq_data) {
-+		dev_dbg(&pdev->dev, "unable to allocate memory\n");
-+		ret = -ENODEV;
-+		goto err_kmalloc;
-+	}
- 
- 	hdq_data->dev = &pdev->dev;
- 	platform_set_drvdata(pdev, hdq_data);
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (res == NULL) {
--		platform_set_drvdata(pdev, NULL);
--		kfree(hdq_data);
--		return -ENXIO;
-+	if (!res) {
-+		dev_dbg(&pdev->dev, "unable to get resource\n");
-+		ret = ENXIO;
-+		goto err_resource;
- 	}
- 
- 	hdq_data->hdq_base = res->start;
-@@ -596,15 +599,12 @@ static int __init omap_hdq_probe(struct 
- 		dev_dbg(&pdev->dev, "Can't get HDQ clock objects\n");
- 		if (IS_ERR(hdq_data->hdq_ick)) {
- 			ret = PTR_ERR(hdq_data->hdq_ick);
--			platform_set_drvdata(pdev, NULL);
--			kfree(hdq_data);
--			return ret;
-+			goto err_clk;
- 		}
- 		if (IS_ERR(hdq_data->hdq_fck)) {
- 			ret = PTR_ERR(hdq_data->hdq_fck);
--			platform_set_drvdata(pdev, NULL);
--			kfree(hdq_data);
--			return ret;
-+			clk_put(hdq_data->hdq_ick);
-+			goto err_clk;
- 		}
- 	}
- 
-@@ -613,21 +613,14 @@ static int __init omap_hdq_probe(struct 
- 
- 	if (clk_enable(hdq_data->hdq_ick)) {
- 		dev_dbg(&pdev->dev, "Can not enable ick\n");
--		clk_put(hdq_data->hdq_ick);
--		clk_put(hdq_data->hdq_fck);
--		platform_set_drvdata(pdev, NULL);
--		kfree(hdq_data);
--		return -ENODEV;
-+		ret = -ENODEV;
-+		goto err_ick;
- 	}
- 
- 	if (clk_enable(hdq_data->hdq_fck)) {
- 		dev_dbg(&pdev->dev, "Can not enable fck\n");
--		clk_disable(hdq_data->hdq_ick);
--		clk_put(hdq_data->hdq_ick);
--		clk_put(hdq_data->hdq_fck);
--		platform_set_drvdata(pdev, NULL);
--		kfree(hdq_data);
--		return -ENODEV;
-+		ret = -ENODEV;
-+		goto err_fck;
- 	}
- 
- 	rev = hdq_reg_in(hdq_data, OMAP_HDQ_REVISION);
-@@ -639,20 +632,14 @@ static int __init omap_hdq_probe(struct 
- 
- 	irq = platform_get_irq(pdev, 0);
- 	if (irq	< 0) {
--		platform_set_drvdata(pdev, NULL);
--		kfree(hdq_data);
--		return -ENXIO;
-+		ret = -ENXIO;
-+		goto err_irq;
- 	}
- 
--	if (request_irq(irq, hdq_isr, IRQF_DISABLED, "OMAP HDQ",
--		hdq_data)) {
--		dev_dbg(&pdev->dev, "request_irq failed\n");
--		clk_disable(hdq_data->hdq_ick);
--		clk_put(hdq_data->hdq_ick);
--		clk_put(hdq_data->hdq_fck);
--		platform_set_drvdata(pdev, NULL);
--		kfree(hdq_data);
--		return -ENODEV;
-+	ret = request_irq(irq, hdq_isr, IRQF_DISABLED, "omap_hdq", hdq_data);
-+	if (ret < 0) {
-+		dev_dbg(&pdev->dev, "could not request irq\n");
-+		goto err_irq;
- 	}
- 
- 	/* don't clock the HDQ until it is needed */
-@@ -664,14 +651,32 @@ static int __init omap_hdq_probe(struct 
- 	ret = w1_add_master_device(&omap_w1_master);
- 	if (ret) {
- 		dev_dbg(&pdev->dev, "Failure in registering w1 master\n");
--		clk_put(hdq_data->hdq_ick);
--		clk_put(hdq_data->hdq_fck);
--		platform_set_drvdata(pdev, NULL);
--		kfree(hdq_data);
--		return ret;
-+		goto err_w1;
- 	}
- 
- 	return 0;
-+
-+err_w1:
-+err_irq:
-+	clk_disable(hdq_data->hdq_fck);
-+
-+err_fck:
-+	clk_disable(hdq_data->hdq_ick);
-+
-+err_ick:
-+	clk_put(hdq_data->hdq_ick);
-+	clk_put(hdq_data->hdq_fck);
-+
-+err_clk:
-+	hdq_data->hdq_base = NULL;
-+
-+err_resource:
-+	platform_set_drvdata(pdev, NULL);
-+	kfree(hdq_data);
-+
-+err_kmalloc:
-+	return ret;
-+
+ static int omap_hdq_get(struct hdq_data *hdq_data);
+@@ -505,13 +511,6 @@ omap_hdq_put(struct hdq_data *hdq_data)
  }
  
- static int omap_hdq_remove(struct platform_device *pdev)
+ /*
+- * Used to control the call to omap_hdq_get and omap_hdq_put.
+- * HDQ Protocol: Write the CMD|REG_address first, followed by
+- * the data wrire or read.
+- */
+-static int init_trans;
+-
+-/*
+  * Read a byte of data from the device.
+  */
+ static u8 omap_w1_read_byte(void *_hdq)
+@@ -522,14 +521,26 @@ static u8 omap_w1_read_byte(void *_hdq)
+ 
+ 	ret = hdq_read_byte(hdq_data, &val);
+ 	if (ret) {
+-		init_trans = 0;
++		ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
++		if (ret < 0) {
++			dev_dbg(hdq_data->dev, "Could not acquire mutex\n");
++			return -EINTR;
++		}
++		hdq_data->init_trans = 0;
++		mutex_unlock(&hdq_data->hdq_mutex);
+ 		omap_hdq_put(hdq_data);
+ 		return -1;
+ 	}
+ 
+ 	/* Write followed by a read, release the module */
+-	if (init_trans) {
+-		init_trans = 0;
++	if (hdq_data->init_trans) {
++		ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
++		if (ret < 0) {
++			dev_dbg(hdq_data->dev, "Could not acquire mutex\n");
++			return -EINTR;
++		}
++		hdq_data->init_trans = 0;
++		mutex_unlock(&hdq_data->hdq_mutex);
+ 		omap_hdq_put(hdq_data);
+ 	}
+ 
+@@ -542,21 +553,34 @@ static u8 omap_w1_read_byte(void *_hdq)
+ static void omap_w1_write_byte(void *_hdq, u8 byte)
+ {
+ 	struct hdq_data *hdq_data = _hdq;
++	int ret;
+ 	u8 status;
+ 
+ 	/* First write to initialize the transfer */
+-	if (init_trans == 0)
++	if (hdq_data->init_trans == 0)
+ 		omap_hdq_get(hdq_data);
+ 
+-	init_trans++;
++	ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
++	if (ret < 0) {
++		dev_dbg(hdq_data->dev, "Could not acquire mutex\n");
++		return;
++	}
++	hdq_data->init_trans++;
++	mutex_unlock(&hdq_data->hdq_mutex);
+ 
+ 	hdq_write_byte(hdq_data, byte, &status);
+ 	dev_dbg(hdq_data->dev, "Ctrl status %x\n", status);
+ 
+ 	/* Second write, data transfered. Release the module */
+-	if (init_trans > 1) {
++	if (hdq_data->init_trans > 1) {
+ 		omap_hdq_put(hdq_data);
+-		init_trans = 0;
++		ret = mutex_lock_interruptible(&hdq_data->hdq_mutex);
++		if (ret < 0) {
++			dev_dbg(hdq_data->dev, "Could not acquire mutex\n");
++			return;
++		}
++		hdq_data->init_trans = 0;
++		mutex_unlock(&hdq_data->hdq_mutex);
+ 	}
+ 
+ 	return;
