@@ -1,68 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: MMC broken on beagleboard with current git
-Date: Thu, 25 Sep 2008 12:47:19 +0300
-Message-ID: <20080925094718.GE5222@atomide.com>
-References: <FDAFB709-68B8-478D-8321-1322449B9A7F@student.utwente.nl> <20080925085142.GC5222@atomide.com> <77EE6A0D-895B-4E0B-B9C4-18D333BFF85C@student.utwente.nl>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: [PATCH] ARM: OMAP3: DMA: Fix for sDMA Errata 1.113
+Date: Thu, 25 Sep 2008 15:31:23 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB028BF72897@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52270 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752034AbYIYJrZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 05:47:25 -0400
-Content-Disposition: inline
-In-Reply-To: <77EE6A0D-895B-4E0B-B9C4-18D333BFF85C@student.utwente.nl>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39315 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752998AbYIYKBe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 06:01:34 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8PA1PxC011370
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 25 Sep 2008 05:01:33 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m8PA1PYJ022985
+	for <linux-omap@vger.kernel.org>; Thu, 25 Sep 2008 15:31:25 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, beagleboard Board <beagleboard@googlegroups.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>
 
-* Koen Kooi <k.kooi@student.utwente.nl> [080925 12:23]:
->
-> Op 25 sep 2008, om 10:51 heeft Tony Lindgren het volgende geschreven:
->
->> * Koen Kooi <k.kooi@student.utwente.nl> [080925 11:42]:
->>> Hi,
->>>
->>> I just built a kernel from current git[1] and the mmc controller  
->>> doesn't
->>> get detected on boot on my beagleboards. The omap mmc system has  
->>> seen a
->>> lot of changes lately, does anyone have a hint where to start looking
->>> before attemping a bisect?
->>
->> Sounds like the recent mmc init changes we've done:
->>
->> 535e1808d1c77a580815f7d7daacc6c030e29cb1 -  12 september 2008
->
->> 8e6e06c71b9d21d85a3ae652868e2802c054a08a - 12 september 2008
->
->> c434c15d28c82d92e55897bd265c423e9ab69362 - 24 september 2008
->
->
->> I've verified that it works on omap3430sdp. But mach-omap2/hsmmc.c  
->> needs
->> some more work done to support other mmc controllers besides the first 
->> one.
->> I don't think other controllers ever worked before these patches
->> either though..
->>
->> Let me know if you can narrow it down to some commit and I may be able
->> to help further from there.
->
-> The previous working version I built was based of  
-> de1121fdb899f762b9e717f44eaf3fae7c00cd3e which was commited at 13  
-> september 2008, so 535e18.. and 8e6e06c.. don't break it.
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-OK, good to know. Can you try to git-bisect it?
+SDMA channel is not disabled after transaction error. So explicitly disable it.
 
-Tony
-
->>
->>> [1] http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=c434c15d28c82d92e55897bd265c423e9ab69362
->>
->>
->>
->
-
-
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked By : Nishant kamat <nskamat@ti.com>
+---
+Index: linux-omap-2.6/arch/arm/plat-omap/dma.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/dma.c	2008-09-23 16:41:23.000000000 +0530
++++ linux-omap-2.6/arch/arm/plat-omap/dma.c	2008-09-25 14:54:00.162059260 +0530
+@@ -1849,9 +1849,22 @@ static int omap2_dma_handle_ch(int ch)
+ 		printk(KERN_INFO
+ 		       "DMA synchronization event drop occurred with device "
+ 		       "%d\n", dma_chan[ch].dev_id);
+-	if (unlikely(status & OMAP2_DMA_TRANS_ERR_IRQ))
++	if (unlikely(status & OMAP2_DMA_TRANS_ERR_IRQ)) {
+ 		printk(KERN_INFO "DMA transaction error with device %d\n",
+ 		       dma_chan[ch].dev_id);
++		if (cpu_class_is_omap2()) {
++			/* Errata: sDMA Channel is not disabled
++			 * after a transaction error. So we explicitely
++			 * disable the channel
++			 */
++			u32 ccr;
++
++			ccr = dma_read(CCR(ch));
++			ccr &= ~OMAP_DMA_CCR_EN;
++			dma_write(ccr, CCR(ch));
++			dma_chan[ch].flags &= ~OMAP_DMA_ACTIVE;
++		}
++	}
+ 	if (unlikely(status & OMAP2_DMA_SECURE_ERR_IRQ))
+ 		printk(KERN_INFO "DMA secure error with device %d\n",
+ 		       dma_chan[ch].dev_id);
