@@ -1,68 +1,39 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 0/4] twl4030 driver changes
-Date: Thu, 25 Sep 2008 17:48:49 +0300
-Message-ID: <1222354133-12919-1-git-send-email-felipe.balbi@nokia.com>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: MMC broken on beagleboard with current git
+Date: Thu, 25 Sep 2008 08:24:30 -0700
+Message-ID: <5e088bd90809250824q38fb95e0q7a9e3f8a24a4d845@mail.gmail.com>
+References: <FDAFB709-68B8-478D-8321-1322449B9A7F@student.utwente.nl>
+	 <20080925085142.GC5222@atomide.com>
+	 <77EE6A0D-895B-4E0B-B9C4-18D333BFF85C@student.utwente.nl>
+	 <20080925094718.GE5222@atomide.com>
+	 <4D346DA2-6C57-48A7-AC4E-2191C44497CF@student.utwente.nl>
+	 <20080925103952.GJ5222@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:22007 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752286AbYIYOtL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 10:49:11 -0400
+Received: from rn-out-0910.google.com ([64.233.170.188]:37345 "EHLO
+	rn-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751904AbYIYPYc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 11:24:32 -0400
+Received: by rn-out-0910.google.com with SMTP id k40so164228rnd.17
+        for <linux-omap@vger.kernel.org>; Thu, 25 Sep 2008 08:24:31 -0700 (PDT)
+In-Reply-To: <20080925103952.GJ5222@atomide.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Koen Kooi <k.kooi@student.utwente.nl>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-Move twl4030 keypad and usb to new style of
-registration for twl4030 driver introduced
-by David Brownell.
+On Thu, Sep 25, 2008 at 3:39 AM, Tony Lindgren <tony@atomide.com> wrote:
 
-This is how the device tree looks now:
+> Hmm, I don't understand how it could work on 3430sdp...
+>
+> Looks like board-omap3beagle.c calls hsmmc_init() just like
+> board-3430sdp.c. Maybe timings have changed and you need
+> a longer delay somewhere during the init?
 
-$ find /sys | grep twl4030
-/sys/class/i2c-adapter/i2c-1/1-0048/twl4030_usb
-/sys/class/i2c-adapter/i2c-1/1-0048/twl4030_usb/uevent
-/sys/class/i2c-adapter/i2c-1/1-0048/twl4030_usb/modalias
-/sys/class/i2c-adapter/i2c-1/1-0048/twl4030_usb/subsystem
-/sys/class/i2c-adapter/i2c-1/1-0048/twl4030_usb/bus
-/sys/class/i2c-adapter/i2c-1/1-0048/twl4030_usb/power
-/sys/class/i2c-adapter/i2c-1/1-0048/twl4030_usb/power/wakeup
-/sys/class/i2c-adapter/i2c-1/1-0048/twl4030_usb/driver
-/sys/class/i2c-adapter/i2c-1/1-0048/twl4030_usb/vbus
+I can confirm that mmc is also broken on Overo.  I'll spend some time
+today investigating.
 
-/sys/class/i2c-adapter/i2c-1/1-004a/twl4030_keypad
-/sys/class/i2c-adapter/i2c-1/1-004a/twl4030_keypad/uevent
-/sys/class/i2c-adapter/i2c-1/1-004a/twl4030_keypad/modalias
-/sys/class/i2c-adapter/i2c-1/1-004a/twl4030_keypad/subsystem
-/sys/class/i2c-adapter/i2c-1/1-004a/twl4030_keypad/bus
-/sys/class/i2c-adapter/i2c-1/1-004a/twl4030_keypad/power
-/sys/class/i2c-adapter/i2c-1/1-004a/twl4030_keypad/power/wakeup
-/sys/class/i2c-adapter/i2c-1/1-004a/twl4030_keypad/driver
-/sys/class/i2c-adapter/i2c-1/1-004a/twl4030_keypad/input:input1
-
-/sys/class/i2c-adapter/i2c-1/1-004b/twl4030_rtc
-/sys/class/i2c-adapter/i2c-1/1-004b/twl4030_rtc/uevent
-/sys/class/i2c-adapter/i2c-1/1-004b/twl4030_rtc/modalias
-/sys/class/i2c-adapter/i2c-1/1-004b/twl4030_rtc/subsystem
-/sys/class/i2c-adapter/i2c-1/1-004b/twl4030_rtc/bus
-/sys/class/i2c-adapter/i2c-1/1-004b/twl4030_rtc/power
-/sys/class/i2c-adapter/i2c-1/1-004b/twl4030_rtc/power/wakeup
-/sys/class/i2c-adapter/i2c-1/1-004b/twl4030_rtc/driver
-/sys/class/i2c-adapter/i2c-1/1-004b/twl4030_rtc/rtc:rtc0
-
-Felipe Balbi (4):
-  i2c: clean add_children a bit
-  i2c: move twl4030_keypad to new style registration
-  i2c: move twl4030-usb to platform_device
-  i2c: twl4030-usb: add 'vbus' sysfs file
-
- arch/arm/mach-omap2/board-2430sdp.c         |   20 +-
- arch/arm/mach-omap2/board-3430sdp.c         |   19 +-
- arch/arm/mach-omap2/board-omap2evm.c        |   21 +-
- arch/arm/mach-omap2/board-omap3evm.c        |   20 +-
- drivers/i2c/chips/Kconfig                   |   16 --
- drivers/i2c/chips/twl4030-core.c            |  100 ++++++--
- drivers/i2c/chips/twl4030-usb.c             |  373 ++++++++++++++-------------
- drivers/input/keyboard/omap-twl4030keypad.c |    6 +-
- include/linux/i2c/twl4030.h                 |   38 +++
- 9 files changed, 344 insertions(+), 269 deletions(-)
-
+Steve
