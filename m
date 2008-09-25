@@ -1,47 +1,264 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: MMC broken on beagleboard with current git
-Date: Thu, 25 Sep 2008 11:51:44 +0300
-Message-ID: <20080925085142.GC5222@atomide.com>
-References: <FDAFB709-68B8-478D-8321-1322449B9A7F@student.utwente.nl>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] Debobs and ETK padconf implementation
+Date: Thu, 25 Sep 2008 11:56:22 +0300
+Message-ID: <87ej38ob7t.fsf@deeprootsystems.com>
+References: <1221663749-26121-1-git-send-email-peter.de-schrijver@nokia.com>
+	<1221663749-26121-2-git-send-email-peter.de-schrijver@nokia.com>
+	<1221663749-26121-3-git-send-email-peter.de-schrijver@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57689 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751306AbYIYIvt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 04:51:49 -0400
-Content-Disposition: inline
-In-Reply-To: <FDAFB709-68B8-478D-8321-1322449B9A7F@student.utwente.nl>
+Received: from nf-out-0910.google.com ([64.233.182.188]:6941 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752910AbYIYI4c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 04:56:32 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so121031nfc.21
+        for <linux-omap@vger.kernel.org>; Thu, 25 Sep 2008 01:56:31 -0700 (PDT)
+In-Reply-To: <1221663749-26121-3-git-send-email-peter.de-schrijver@nokia.com> (Peter De Schrijver's message of "Wed\, 17 Sep 2008 18\:02\:28 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, beagleboard Board <beagleboard@googlegroups.com>
+To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-* Koen Kooi <k.kooi@student.utwente.nl> [080925 11:42]:
-> Hi,
+"Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
+
+> Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+> ---
+>  arch/arm/mach-omap2/debobs.c |  214 ++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 214 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/debobs.c
 >
-> I just built a kernel from current git[1] and the mmc controller doesn't 
-> get detected on boot on my beagleboards. The omap mmc system has seen a 
-> lot of changes lately, does anyone have a hint where to start looking 
-> before attemping a bisect?
+> diff --git a/arch/arm/mach-omap2/debobs.c b/arch/arm/mach-omap2/debobs.c
+> new file mode 100644
+> index 0000000..1bde1f4
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/debobs.c
+> @@ -0,0 +1,214 @@
+> +/*
+> + * arch/arm/mach-omap2/debobs.c
+> + *
+> + * Handle debobs pads
+> + *
+> + * Copyright (C) 2008 Nokia Corporation
+> + *
+> + * Written by Peter De Schrijver <peter.de-schrijver@nokia.com>
+> + *
+> + * This file is subject to the terms and conditions of the GNU General
+> + * Public License. See the file "COPYING" in the main directory of this
+> + * archive for more details.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+> + */
+> +
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/init.h>
+> +#include <linux/debugfs.h>
+> +#include <linux/uaccess.h>
+> +#include <linux/module.h>
+> +#include <mach/control.h>
+> +#include <mach/mux.h>
+> +#include <mach/gpio.h>
+> +#include <mach/board.h>
+> +
+> +#define ETK_GPIO_BEGIN		12
+> +#define ETK_GPIO(i)		(ETK_GPIO_BEGIN + i)
+> +#define NUM_OF_DEBOBS_PADS	18
+> +
+> +enum debobs_pad_mode {
+> +	GPIO = 0,
+> +	OBS = 1,
+> +	ETK = 2,
+> +	NO_MODE = 3,
+> +};
+> +
+> +static char *debobs_pad_mode_names[] = {
+> +	[GPIO] = "GPIO",
+> +	[OBS] = "OBS",
+> +	[ETK] = "ETK",
+> +};
+> +
+> +struct obs {
+> +	u16 offset;
+> +	u8 value;
+> +	u8 mask;
+> +};
+> +
+> +struct debobs_pad {
+> +	enum debobs_pad_mode mode;
+> +	struct obs core_obs;
+> +	struct obs wakeup_obs;
+> +};
+> +
+> +static struct debobs_pad debobs_pads[NUM_OF_DEBOBS_PADS];
+> +
+> +static int debobs_mode_open(struct inode *inode, struct file *file)
+> +{
+> +	file->private_data = inode->i_private;
+> +
+> +	return 0;
+> +}
+> +
+> +static ssize_t debobs_mode_read(struct file *file, char __user *user_buf,
+> +				size_t count, loff_t *ppos)
+> +{
+> +	char buffer[10];
+> +	int size;
+> +	int pad_number = (int)file->private_data;
+> +	struct debobs_pad *e = &debobs_pads[pad_number];
+> +
+> +	size = snprintf(buffer, sizeof(buffer), "%s\n",
+> +			debobs_pad_mode_names[e->mode]);
+> +	return simple_read_from_buffer(user_buf, count, ppos, buffer, size);
+> +}
+> +
+> +static ssize_t debobs_mode_write(struct file *file, const char __user *user_buf,
+> +				size_t count, loff_t *ppos)
+> +{
+> +	char buffer[10];
+> +	int buf_size, i, pad_number;
+> +	u16 muxmode = OMAP34XX_MUX_MODE7;
+> +
+> +	memset(buffer, 0, sizeof(buffer));
+> +	buf_size = min(count, (sizeof(buffer)-1));
+> +
+> +	if (copy_from_user(buffer, user_buf, buf_size))
+> +		return -EFAULT;
+> +
+> +	pad_number = (int)file->private_data;
+> +
+> +	for (i = 0; i < NO_MODE; i++) {
+> +		if (!strnicmp(debobs_pad_mode_names[i],
+> +				buffer,
+> +				strlen(debobs_pad_mode_names[i]))) {
+> +			switch (i) {
+> +			case ETK:
+> +				muxmode = OMAP34XX_MUX_MODE0;
+> +				break;
+> +			case GPIO:
+> +				muxmode = OMAP34XX_MUX_MODE4;
+> +				break;
+> +			case OBS:
+> +				muxmode = OMAP34XX_MUX_MODE7;
+> +				break;
+> +			}
+> +			omap_ctrl_writew(muxmode,
+> +					OMAP343X_PADCONF_ETK(pad_number));
+> +			debobs_pads[pad_number].mode = i;
+> +
+> +			return count;
+> +		}
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static const struct file_operations debobs_mode_fops = {
+> +	.open 	= debobs_mode_open,
+> +	.read	= debobs_mode_read,
+> +	.write	= debobs_mode_write,
+> +};
+> +
+> +static int debobs_get(void *data, u64 *val)
+> +{
+> +	struct obs *o = data;
+> +
+> +	*val = o->value;
+> +
+> +	return 0;
+> +}
+> +
+> +static int debobs_set(void *data, u64 val)
+> +{
+> +	struct obs *o = data;
+> +
+> +	val &= BIT(o->mask) - 1;
+> +
+> +	omap_ctrl_writeb(val, o->offset);
+> +	o->value = val;
+> +
+> +	return 0;
+> +}
+> +
+> +DEFINE_SIMPLE_ATTRIBUTE(debobs_fops, debobs_get, debobs_set, "%llu\n");
+> +
+> +static inline int __init _new_debobs_pad(struct debobs_pad *pad, char *name,
+> +					int number, struct dentry *root)
+> +{
+> +	struct dentry *d;
+> +	struct obs *o;
+> +
+> +	d = debugfs_create_dir(name, root);
+> +	if (IS_ERR(d))
+> +		return PTR_ERR(d);
+> +
+> +	omap_ctrl_writew(OMAP34XX_MUX_MODE4, OMAP343X_PADCONF_ETK(number));
+> +	omap_set_gpio_direction(ETK_GPIO(number), 1);
+> +	gpio_export(ETK_GPIO(number), 1);
+> +	(void) debugfs_create_file("mode", S_IRUGO | S_IWUGO, d,
+> +					(void *)number, &debobs_mode_fops);
+> +
+> +	o = &pad->core_obs;
+> +	o->offset = OMAP343X_CONTROL_DEBOBS(number);
+> +	o->value = omap_ctrl_readw(o->offset);
+> +	o->mask = 7;
+> +	(void) debugfs_create_file("coreobs", S_IRUGO | S_IWUGO, d, o,
+> +					&debobs_fops);
+> +
+> +	o = &pad->wakeup_obs;
+> +	o->offset = OMAP343X_CONTROL_WKUP_DEBOBSMUX(number);
+> +	o->value = omap_ctrl_readb(o->offset);
+> +	o->mask = 5;
+> +	(void) debugfs_create_file("wakeupobs", S_IRUGO | S_IWUGO, d, o,
+> +					&debobs_fops);
+> +
+> +	return 0;
+> +}
+> +
+> +static int __init init_debobs(void)
+> +{
+> +	struct dentry *debobs_root;
+> +	int i, err;
+> +	char name[10];
+> +
+> +	debobs_root = debugfs_create_dir("debobs", NULL);
+> +	if (IS_ERR(debobs_root))
+> +		return PTR_ERR(debobs_root);
+> +
+> +	for (i = 0; i < NUM_OF_DEBOBS_PADS; i++) {
+> +		if (!omap_request_gpio(ETK_GPIO(i))) {
 
-Sounds like the recent mmc init changes we've done:
+The cross-platform gpiolib calls should be used here.
 
-535e1808d1c77a580815f7d7daacc6c030e29cb1
-8e6e06c71b9d21d85a3ae652868e2802c054a08a
-c434c15d28c82d92e55897bd265c423e9ab69362
+> +			snprintf(name, sizeof(name), "hw_dbg%d", i);
+> +			err = _new_debobs_pad(&debobs_pads[i], name, i,
+> +						debobs_root);
+> +			if (err) {
+> +				omap_free_gpio(ETK_GPIO(i));
+> +				return err;
+> +			}
+> +		}
+> +	}
 
-I've verified that it works on omap3430sdp. But mach-omap2/hsmmc.c needs
-some more work done to support other mmc controllers besides the first one.
-I don't think other controllers ever worked before these patches
-either though..
+In the successful case, future calls to gpio_request() to use these
+lines will fail, since the line is reserved by the omap_request_gpio()
+call.
 
-Let me know if you can narrow it down to some commit and I may be able
-to help further from there.
-
-Tony
-
-
-> [1] http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=commit;h=c434c15d28c82d92e55897bd265c423e9ab69362
-
-
+> +	return 0;
+> +}
+> +
+> +late_initcall_sync(init_debobs);
+> -- 
+> 1.5.6.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
