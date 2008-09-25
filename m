@@ -1,49 +1,48 @@
-From: "Arun KS" <arunks@mistralsolutions.com>
-Subject: Re: [Resend] [PATCH 1/3] Add MCSPI1 and gpio_85 Mux configuration
-Date: Thu, 25 Sep 2008 11:27:14 +0530
-Message-ID: <dfeb90390809242257x50e64be1t2fefc8f87af30ef9@mail.gmail.com>
-References: <dfeb90390809242234h2264c7acw3003d6895574f002@mail.gmail.com>
-	 <20080925085328.62009bf3.jarkko.nikula@nokia.com>
+From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
+Subject: Re: [PATCH 0/9] HDQ driver fixes
+Date: Thu, 25 Sep 2008 12:05:21 +0530
+Message-ID: <023c01c91ed8$e4422880$LocalHost@wipultra1303>
+References: <42568.192.168.10.89.1222255148.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.230]:20442 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752697AbYIYF5P (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 01:57:15 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so297361rvb.1
-        for <linux-omap@vger.kernel.org>; Wed, 24 Sep 2008 22:57:14 -0700 (PDT)
-In-Reply-To: <20080925085328.62009bf3.jarkko.nikula@nokia.com>
-Content-Disposition: inline
+Received: from comal.ext.ti.com ([198.47.26.152]:41881 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751969AbYIYGgh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 02:36:37 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tony@atomide.com
+Cc: johnpol@2ka.mipt.ru, felipe.balbi@nokia.com, linux-omap@vger.kernel.org, "Gadiyar, Anand" <gadiyar@ti.com>
 
-On Thu, Sep 25, 2008 at 11:23 AM, Jarkko Nikula <jarkko.nikula@nokia.com> wrote:
-> On Thu, 25 Sep 2008 11:04:07 +0530
-> "ext Arun KS" <arunks@mistralsolutions.com> wrote:
->
->> This patch adds mcspi1 and gpio_85 mux configuration for 2430.
->>
->> Signed-off-by: Arun KS <arunks@mistralsolutions.com>
->> ---
->>  arch/arm/mach-omap2/mux.c             |   10 ++++++++++
->>  arch/arm/plat-omap/include/mach/mux.h |    9 +++++++++
->>  2 files changed, 19 insertions(+), 0 deletions(-)
->>
-> How about adding muxing for remaining 2430 McBSP ports 3-5 as well in
-> this patch?
+Hi Tony,
 
-I will send a separate patch for that.
+Somehow the mailer I am using seem to wrap the patch header and I dont have a immediate fix for the same.So Anand will repost the same patches again on behalf of me.I added one more patch to the series which fixed some minor comments that came in after I posted the patches.
 
-Arun
->
->
-> Jarkko
+Regards,
+Madhu
+----- Original Message ----- 
+From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
+To: <tony@atomide.com>
+Cc: <johnpol@2ka.mipt.ru>; <felipe.balbi@nokia.com>; <linux-omap@vger.kernel.org>
+Sent: Wednesday, September 24, 2008 4:49 PM
+Subject: [PATCH 0/9] HDQ driver fixes
+
+
+> Hi Tony,
+> 
+> I am posting a series of nine patches for the HDQ driver. The patch series
+> provides cleanup of the driver pointed out by Filipe's diff file, use ioremap
+> for HDQ base, replace usage of semaphore with mutex, fixes some commenting
+> style and indentation.
+> 
+> Regards,
+> Madhu
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 >
