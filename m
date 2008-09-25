@@ -1,61 +1,68 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] Debobs and ETK padconf implementation
-Date: Thu, 25 Sep 2008 13:37:53 -0700
-Message-ID: <200809251337.54394.david-b@pacbell.net>
-References: <1221663749-26121-1-git-send-email-peter.de-schrijver@nokia.com> <200809251004.12962.david-b@pacbell.net> <48DBF45F.7020601@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: NULL pointer dereference when using ALSA SOC
+Date: Thu, 25 Sep 2008 23:46:01 +0200
+Message-ID: <69299993-CA68-4F6C-88E7-778A8DEDF7AF@student.utwente.nl>
+References: <dfeb90390809222326s44162f94sf42f96fdfc0a0690@mail.gmail.com> <01BA5FDD-AC4E-4450-B576-8A7DA867E314@student.utwente.nl> <dfeb90390809250638r22474563q1262209d15974cb9@mail.gmail.com> <200809251022.08544.david-b@pacbell.net> <5e088bd90809251034h4de27054tfa00182814791645@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v929.2)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-2--741173724"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:25800 "HELO
-	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753142AbYIYUh4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Sep 2008 16:37:56 -0400
-In-Reply-To: <48DBF45F.7020601@deeprootsystems.com>
-Content-Disposition: inline
+Received: from mx2.utsp.utwente.nl ([130.89.2.13]:57496 "EHLO mx.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755214AbYIYVtv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Sep 2008 17:49:51 -0400
+Received: from [172.20.1.5] (vpn006057.vpn.utwente.nl [130.89.6.57])
+          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id m8PLk5I2028805
+          for <linux-omap@vger.kernel.org>; Thu, 25 Sep 2008 23:46:06 +0200
+In-Reply-To: <5e088bd90809251034h4de27054tfa00182814791645@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>, linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-On Thursday 25 September 2008, Kevin Hilman wrote:
-> But I'm still not sure how to best deal with the possibiltity that th=
-e=20
-> pin might not always be a GPIO, but might be reconfigured/re-mux'd by=
-=20
-> this debobs interface as a debug observability pin.=20
-
-Some platforms have interfaces to reserve and unreserve pins.
-Normally used to ensure drivers can't do things like remux
-address bus pins, but I suppose it could also be used for this
-sort of thing too.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-2--741173724
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
 
-> My initial thought =20
-> was to have the debobs interface gpio_request() the line if it was in=
-=20
-> observability mode so that nobody else could use it as a GPIO line, t=
-hen=20
-> gpio_free() it when it was put back into GPIO mode thus making it=20
-> available to other users as a GPIO. =A0While that may work, it seems=20
-> counter-intuitive and rather kludgy. =A0Not sure what the best way is=
-=2E.
+Op 25 sep 2008, om 19:34 heeft Steve Sakoman het volgende geschreven:
 
-GPIOs are all that get managed with GPIO calls.
+> On Thu, Sep 25, 2008 at 10:22 AM, David Brownell <david- 
+> b@pacbell.net> wrote:
+>> On Thursday 25 September 2008, Arun KS wrote:
+>>>>>> I narrowed this into CONFIG_SLUB. When it's set, I can  
+>>>>>> reproduce the
+>>>>>> bug both with N810 and Beagle but not when using CONFIG_SLAB.
+>>
+>> So it's confirmed that SLUB is a factor, but
+>> the root cause is still not known or resolved?
+>
+> Correct.  I suspect that somewhere in alsa-lib code is not checking an
+> error return on a memory allocation.  When I previously discussed this
+> issue with the folks on alsa-devel they suspected a bug in alsa-lib.
+> I'll give them this additional data and see if someone there wants to
+> help track down the root cause.
 
-The pinmux calls use enums for pins, which could be used as
-identifiers with some reservation scheme that copes with
-other non-GPIO usages.
+Hmmm, SLAB makes it trigger the null pointer less, not make it go away  
+completely :(
 
-The worst case, design wise, is OMAP1 chips where many GPIOs
-can come out on several pins ... and conversely, many pins
-could be connected to any of several GPIOs (or MPUIOs).
+regards,
 
-- Dave
+Koen
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Apple-Mail-2--741173724
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: This is a digitally signed message part
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFI3AacMkyGM64RGpERAgjBAJ0Qk6UNHLPAisfXmKRHskVfBlWIVQCgkwpm
+kcd3PfxSRI+9CMRZS+9pFtU=
+=g/vO
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-2--741173724--
