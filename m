@@ -1,42 +1,56 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 1/8] twl4030: fix potential null pointer dereference
-Date: Fri, 26 Sep 2008 12:40:54 +0300
-Message-ID: <1222422061-3940-2-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 2/8] twl4030-gpio: Remove default pullup enable/disable of GPIO
+Date: Fri, 26 Sep 2008 12:40:55 +0300
+Message-ID: <1222422061-3940-3-git-send-email-felipe.balbi@nokia.com>
 References: <1222422061-3940-1-git-send-email-felipe.balbi@nokia.com>
+ <1222422061-3940-2-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:39717 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753125AbYIZJle (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 05:41:34 -0400
-In-Reply-To: <1222422061-3940-1-git-send-email-felipe.balbi@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:25456 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751714AbYIZJl0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 05:41:26 -0400
+In-Reply-To: <1222422061-3940-2-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: David Brownell <dbrownell@users.sourceforge.net>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>, Tony Lindgren <tony@atomide.com>, Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>, Girish S G <girishsg@ti.com>
 
-The following patch fix a potential null pointer
-dereference in twl4030 keypad driver when parts
-of keypad platform_data aren't passed down to the
-driver. At that point kp->dbg_dev is not set yet.
+From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+One twl4030_request_gpio() should not tamper with the pullup
+enabling/disabling of the rest of the GPIOs. So removing the default
+pullup values written to REG_GPIOPUPDCTR1.
+
+Signed-off-by: Girish S G <girishsg@ti.com>
+Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 ---
- drivers/input/keyboard/omap-twl4030keypad.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/i2c/chips/twl4030-gpio.c |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/input/keyboard/omap-twl4030keypad.c b/drivers/input/keyboard/omap-twl4030keypad.c
-index 3893d63..48f29d3 100644
---- a/drivers/input/keyboard/omap-twl4030keypad.c
-+++ b/drivers/input/keyboard/omap-twl4030keypad.c
-@@ -238,7 +238,7 @@ static int __init omap_kp_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	if (!pdata->rows || !pdata->cols || !pdata->keymap) {
--		dev_err(kp->dbg_dev, "No rows, cols or keymap from pdata\n");
-+		dev_err(&pdev->dev, "No rows, cols or keymap from pdata\n");
- 		kfree(kp);
- 		return -EINVAL;
+diff --git a/drivers/i2c/chips/twl4030-gpio.c b/drivers/i2c/chips/twl4030-gpio.c
+index 4d89abc..b51bed0 100644
+--- a/drivers/i2c/chips/twl4030-gpio.c
++++ b/drivers/i2c/chips/twl4030-gpio.c
+@@ -301,7 +301,6 @@ int twl4030_request_gpio(int gpio)
+ 	if (gpio_usage_count & (0x1 << gpio))
+ 		ret = -EBUSY;
+ 	else {
+-		u8 clear_pull[6] = { 0, 0, 0, 0, 0, 0 };
+ 		/* First time usage? - switch on GPIO module */
+ 		if (!gpio_usage_count) {
+ 			ret =
+@@ -311,10 +310,6 @@ int twl4030_request_gpio(int gpio)
+ 		}
+ 		if (!ret)
+ 			gpio_usage_count |= (0x1 << gpio);
+-
+-		ret =
+-		twl4030_i2c_write(TWL4030_MODULE_GPIO, clear_pull,
+-				REG_GPIOPUPDCTR1, 5);
  	}
+ 	up(&gpio_sem);
+ 	return ret;
 -- 
 1.6.0.2.307.gc427
 
