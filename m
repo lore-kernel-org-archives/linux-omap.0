@@ -1,34 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: MMC broken on beagleboard with current git
-Date: Fri, 26 Sep 2008 10:42:14 +0300
-Message-ID: <20080926074208.GC7962@atomide.com>
-References: <FDAFB709-68B8-478D-8321-1322449B9A7F@student.utwente.nl> <20080925085142.GC5222@atomide.com> <77EE6A0D-895B-4E0B-B9C4-18D333BFF85C@student.utwente.nl> <20080925094718.GE5222@atomide.com> <4D346DA2-6C57-48A7-AC4E-2191C44497CF@student.utwente.nl> <20080925103952.GJ5222@atomide.com> <5e088bd90809250824q38fb95e0q7a9e3f8a24a4d845@mail.gmail.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: NULL pointer dereference when using ALSA SOC
+Date: Fri, 26 Sep 2008 10:56:37 +0300
+Message-ID: <20080926105637.5d8a8a4d.jarkko.nikula@nokia.com>
+References: <dfeb90390809222326s44162f94sf42f96fdfc0a0690@mail.gmail.com>
+	<200809252220.43229.siarhei.siamashka@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52649 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753662AbYIZHjn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 03:39:43 -0400
-Content-Disposition: inline
-In-Reply-To: <5e088bd90809250824q38fb95e0q7a9e3f8a24a4d845@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.105.134]:59030 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751135AbYIZH50 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 03:57:26 -0400
+In-Reply-To: <200809252220.43229.siarhei.siamashka@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: Koen Kooi <k.kooi@student.utwente.nl>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: ext Siarhei Siamashka <siarhei.siamashka@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Steve Sakoman <sakoman@gmail.com> [080925 18:24]:
-> On Thu, Sep 25, 2008 at 3:39 AM, Tony Lindgren <tony@atomide.com> wrote:
-> 
-> > Hmm, I don't understand how it could work on 3430sdp...
+On Thu, 25 Sep 2008 22:20:43 +0300
+"ext Siarhei Siamashka" <siarhei.siamashka@gmail.com> wrote:
+
+> On Tuesday 23 September 2008, Arun KS wrote:
+> > Hi all,
 > >
-> > Looks like board-omap3beagle.c calls hsmmc_init() just like
-> > board-3430sdp.c. Maybe timings have changed and you need
-> > a longer delay somewhere during the init?
+> > I am writing an ASOC driver for tlvaic23 on osk5912 platform.
+> [...]
 > 
-> I can confirm that mmc is also broken on Overo.  I'll spend some time
-> today investigating.
+> Hi. Coincidentally I have been hacking the old aic23 driver in the
+> last few days to make it work on Nokia 770. Don't know if these fixes
+> have any value for linux-omap tree, but I would be glad if anybody
+> finds some of them useful. Patch against old 2.6.16 kernel can be
+> found here:
+>
+Hi
 
-I'll double check on omap3430sdp.
+sound/arm/omap is likely to disappear but with ASoC codec driver for
+aic23 and machine driver for OSK, those would allow quite easily to add
+support for 770 as well and to rotate support patch to 770 via
+alsa-devel list.
 
-Tony
+
+Jarkko
