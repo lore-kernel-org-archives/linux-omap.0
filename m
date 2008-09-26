@@ -1,238 +1,207 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 0/9] twl4030 updates
-Date: Fri, 26 Sep 2008 10:12:27 -0700
-Message-ID: <200809261012.28007.david-b@pacbell.net>
-References: <1222427996-7018-1-git-send-email-felipe.balbi@nokia.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH] OMAP3: Update USBHOST pinmux settings
+Date: Fri, 26 Sep 2008 23:04:30 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC95B7@dbde02.ent.ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC958E@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp123.sbc.mail.sp1.yahoo.com ([69.147.64.96]:21252 "HELO
-	smtp123.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753047AbYIZRMc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Sep 2008 13:12:32 -0400
-In-Reply-To: <1222427996-7018-1-git-send-email-felipe.balbi@nokia.com>
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:42983 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751611AbYIZReo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 13:34:44 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC958E@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: David Brownell <david-b@pacbell.net>
 
-Let's apply the following patch 10/9 on top of this though.
-And probably update the board files similarly (alpha order).
+Tony,
 
-As an FYI, if you look at the "MFD core" you'll observe that
-if some crap gets stripped away, the *useful* bit is a utility
-making some of this create-a-child-node easier.  It's not worth
-using now.  But a little bird told me that some of that crap
-may be getting stripped away soon, so add_children() could
-become simpler.  Wouldn't affect the function drivers (the
-OTG transceiver, keypad, GPIO, RTC, etc) because we have, with
-foresight, been using platform_device already.  ;)
+Hold off on this patch. Will send a better one on Monday.
 
-- Dave
+David pointerd out that the comments mentiond 4-pin PHY 
+mode, but six pins are described. Also, I just noticed that
+TXENs are marked as inputs - I believe they should be
+outputs. Will test the updated patch and resend.
 
-======= SNIP!
-From: David Brownell <dbrownell@users.sourceforge.net>
+Thanks Dave,
 
-Minor twl4030-core cleanups:  alphabetize the creation of the
-new sub-function nodes; wrap an #if around the OMAP-only part
-(to get more general build testing when this goes upstream);
-remove reference to undocumented "twl3040" variant.
+- Anand
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
- drivers/i2c/chips/twl4030-core.c |  115 ++++++++++++++++++-------------------
- 1 file changed, 59 insertions(+), 56 deletions(-)
-
---- a/drivers/i2c/chips/twl4030-core.c
-+++ b/drivers/i2c/chips/twl4030-core.c
-@@ -45,24 +45,12 @@
- 
- #define DRIVER_NAME			"twl4030"
- 
--#if defined(CONFIG_RTC_DRV_TWL4030) || defined(CONFIG_RTC_DRV_TWL4030_MODULE)
--#define twl_has_rtc()	true
--#else
--#define twl_has_rtc()	false
--#endif
--
- #if defined(CONFIG_KEYBOARD_TWL4030) || defined(CONFIG_KEYBOARD_TWL4030_MODULE)
- #define twl_has_keypad()	true
- #else
- #define twl_has_keypad()	false
- #endif
- 
--#if defined(CONFIG_TWL4030_USB) || defined(CONFIG_TWL4030_USB_MODULE)
--#define twl_has_usb()	true
--#else
--#define twl_has_usb()	false
--#endif
--
- #ifdef CONFIG_TWL4030_GPIO
- #define twl_has_gpio()	true
- #else
-@@ -75,6 +63,18 @@
- #define twl_has_madc()	false
- #endif
- 
-+#if defined(CONFIG_RTC_DRV_TWL4030) || defined(CONFIG_RTC_DRV_TWL4030_MODULE)
-+#define twl_has_rtc()	true
-+#else
-+#define twl_has_rtc()	false
-+#endif
-+
-+#if defined(CONFIG_TWL4030_USB) || defined(CONFIG_TWL4030_USB_MODULE)
-+#define twl_has_usb()	true
-+#else
-+#define twl_has_usb()	false
-+#endif
-+
- /* Primary Interrupt Handler on TWL4030 Registers */
- 
- /* Register Definitions */
-@@ -668,6 +668,27 @@ static int add_children(struct twl4030_p
- 	struct twl4030_client	*twl = NULL;
- 	int			status = 0;
- 
-+	if (twl_has_keypad() && pdata->keypad) {
-+		pdev = platform_device_alloc("twl4030_keypad", -1);
-+		if (pdev) {
-+			twl = &twl4030_modules[TWL4030_SLAVENUM_NUM2];
-+			pdev->dev.parent = &twl->client->dev;
-+			device_init_wakeup(&pdev->dev, 1);
-+			status = platform_device_add_data(pdev, pdata->keypad,
-+					sizeof(*pdata->keypad));
-+			if (status < 0) {
-+				platform_device_put(pdev);
-+				goto err;
-+			}
-+			status = platform_device_add(pdev);
-+			if (status < 0)
-+				platform_device_put(pdev);
-+		} else {
-+			status = -ENOMEM;
-+			goto err;
-+		}
-+	}
-+
- 	if (twl_has_gpio() && pdata->gpio) {
- 		twl = &twl4030_modules[TWL4030_SLAVENUM_NUM1];
- 
-@@ -706,6 +727,27 @@ static int add_children(struct twl4030_p
- 		}
- 	}
- 
-+	if (twl_has_madc() && pdata->madc) {
-+		pdev = platform_device_alloc("twl4030_madc", -1);
-+		if (pdev) {
-+			twl = &twl4030_modules[TWL4030_SLAVENUM_NUM2];
-+			pdev->dev.parent = &twl->client->dev;
-+			device_init_wakeup(&pdev->dev, 1);
-+			status = platform_device_add_data(pdev, pdata->madc,
-+					sizeof(*pdata->madc));
-+			if (status < 0) {
-+				platform_device_put(pdev);
-+				goto err;
-+			}
-+			status = platform_device_add(pdev);
-+			if (status < 0)
-+				platform_device_put(pdev);
-+		} else {
-+			status = -ENOMEM;
-+			goto err;
-+		}
-+	}
-+
- 	if (twl_has_rtc()) {
- 		pdev = platform_device_alloc("twl4030_rtc", -1);
- 		if (pdev) {
-@@ -736,27 +778,6 @@ static int add_children(struct twl4030_p
- 		}
- 	}
- 
--	if (twl_has_keypad() && pdata->keypad) {
--		pdev = platform_device_alloc("twl4030_keypad", -1);
--		if (pdev) {
--			twl = &twl4030_modules[TWL4030_SLAVENUM_NUM2];
--			pdev->dev.parent = &twl->client->dev;
--			device_init_wakeup(&pdev->dev, 1);
--			status = platform_device_add_data(pdev, pdata->keypad,
--					sizeof(*pdata->keypad));
--			if (status < 0) {
--				platform_device_put(pdev);
--				goto err;
--			}
--			status = platform_device_add(pdev);
--			if (status < 0)
--				platform_device_put(pdev);
--		} else {
--			status = -ENOMEM;
--			goto err;
--		}
--	}
--
- 	if (twl_has_usb() && pdata->usb) {
- 		pdev = platform_device_alloc("twl4030_usb", -1);
- 		if (pdev) {
-@@ -778,27 +799,6 @@ static int add_children(struct twl4030_p
- 		}
- 	}
- 
--	if (twl_has_madc() && pdata->madc) {
--		pdev = platform_device_alloc("twl4030_madc", -1);
--		if (pdev) {
--			twl = &twl4030_modules[TWL4030_SLAVENUM_NUM2];
--			pdev->dev.parent = &twl->client->dev;
--			device_init_wakeup(&pdev->dev, 1);
--			status = platform_device_add_data(pdev, pdata->madc,
--					sizeof(*pdata->madc));
--			if (status < 0) {
--				platform_device_put(pdev);
--				goto err;
--			}
--			status = platform_device_add(pdev);
--			if (status < 0)
--				platform_device_put(pdev);
--		} else {
--			status = -ENOMEM;
--			goto err;
--		}
--	}
--
- err:
- 	pr_err("failed to add twl4030's children\n");
- 	return status;
-@@ -844,17 +844,19 @@ static int __init unprotect_pm_master(vo
- 
- static int __init power_companion_init(void)
- {
-+	int e = 0;
-+
-+#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
- 	struct clk *osc;
- 	u32 rate;
- 	u8 ctrl = HFCLK_FREQ_26_MHZ;
--	int e = 0;
- 
- 	if (cpu_is_omap2430())
- 		osc = clk_get(NULL, "osc_ck");
- 	else
- 		osc = clk_get(NULL, "osc_sys_ck");
- 	if (IS_ERR(osc)) {
--		printk(KERN_WARNING "Skipping twl3040 internal clock init and "
-+		printk(KERN_WARNING "Skipping twl4030 internal clock init and "
- 				"using bootloader value (unknown osc rate)\n");
- 		return 0;
- 	}
-@@ -879,6 +881,7 @@ static int __init power_companion_init(v
- 	/* effect->MADC+USB ck en */
- 	e |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, ctrl, R_CFG_BOOT);
- 	e |= protect_pm_master();
-+#endif	/* OMAP */
- 
- 	return e;
- }
-
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Gadiyar, Anand
+> Sent: Friday, September 26, 2008 9:05 PM
+> To: linux-omap@vger.kernel.org
+> Subject: [PATCH] OMAP3: Update USBHOST pinmux settings
+> 
+> From: Anand Gadiyar <gadiyar@ti.com>
+> 
+> Add pin-mux settings for OHCI in PHY mode.
+> Also change settings for EHCI in TLL mode.
+> 
+> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> ---
+>  arch/arm/mach-omap2/mux.c             |   67 
+> +++++++++++++++++++++++++++-------
+>  arch/arm/plat-omap/include/mach/mux.h |   26 ++++++++++++-
+>  2 files changed, 80 insertions(+), 13 deletions(-)
+> 
+> Index: tony/arch/arm/mach-omap2/mux.c
+> ===================================================================
+> --- tony.orig/arch/arm/mach-omap2/mux.c	2008-09-04 
+> 12:57:33.000000000 +0530
+> +++ tony/arch/arm/mach-omap2/mux.c	2008-09-26 
+> 20:49:24.963867406 +0530
+> @@ -298,13 +298,13 @@ MUX_CFG_34XX("T2_3430_USB2HS_PHY_D7", 0x
+>  
+>  /* TLL - HSUSB: 12-pin TLL Port 1*/
+>  MUX_CFG_34XX("Y8_3430_USB1HS_TLL_CLK", 0x5da,
+> -		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
+> -MUX_CFG_34XX("Y9_3430_USB1HS_TLL_STP", 0x5d8,
+>  		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("Y9_3430_USB1HS_TLL_STP", 0x5d8,
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLUP)
+>  MUX_CFG_34XX("AA14_3430_USB1HS_TLL_DIR", 0x5ec,
+> -		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("AA11_3430_USB1HS_TLL_NXT", 0x5ee,
+> -		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("W13_3430_USB1HS_TLL_D0", 0x5dc,
+>  		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("W12_3430_USB1HS_TLL_D1", 0x5de,
+> @@ -324,13 +324,13 @@ MUX_CFG_34XX("Y13_3430_USB1HS_TLL_D7", 0
+>  
+>  /* TLL - HSUSB: 12-pin TLL Port 2*/
+>  MUX_CFG_34XX("AA8_3430_USB2HS_TLL_CLK", 0x5f0,
+> -		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
+> -MUX_CFG_34XX("AA10_3430_USB2HS_TLL_STP", 0x5f2,
+>  		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AA10_3430_USB2HS_TLL_STP", 0x5f2,
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLUP)
+>  MUX_CFG_34XX("AA9_3430_USB2HS_TLL_DIR", 0x5f4,
+> -		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("AB11_3430_USB2HS_TLL_NXT", 0x5f6,
+> -		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("AB10_3430_USB2HS_TLL_D0", 0x5f8,
+>  		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("AB9_3430_USB2HS_TLL_D1", 0x5fa,
+> @@ -350,13 +350,13 @@ MUX_CFG_34XX("T2_3430_USB2HS_TLL_D7", 0x
+>  
+>  /* TLL - HSUSB: 12-pin TLL Port 3*/
+>  MUX_CFG_34XX("AA6_3430_USB3HS_TLL_CLK", 0x180,
+> -		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
+> -MUX_CFG_34XX("AB3_3430_USB3HS_TLL_STP", 0x166,
+>  		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AB3_3430_USB3HS_TLL_STP", 0x166,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLUP)
+>  MUX_CFG_34XX("AA3_3430_USB3HS_TLL_DIR", 0x168,
+> -		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("Y3_3430_USB3HS_TLL_NXT", 0x16a,
+> -		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("AA5_3430_USB3HS_TLL_D0", 0x186,
+>  		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("Y4_3430_USB3HS_TLL_D1", 0x184,
+> @@ -373,6 +373,49 @@ MUX_CFG_34XX("AA13_3430_USB3HS_TLL_D6", 
+>  		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("AA12_3430_USB3HS_TLL_D7", 0x172,
+>  		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +
+> +/* PHY FSUSB: FS Serial PHY 4-pin mode for Port 1*/
+> +MUX_CFG_34XX("AF10_3430_USB1FS_PHY_MM1_RXDP", 0x5d8,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AG9_3430_USB1FS_PHY_MM1_RXDM", 0x5ee,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("W13_3430_USB1FS_PHY_MM1_RXRCV", 0x5dc,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("W12_3430_USB1FS_PHY_MM1_TXSE0", 0x5de,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("W11_3430_USB1FS_PHY_MM1_TXDAT", 0x5e0,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("Y11_3430_USB1FS_PHY_MM1_TXEN_N", 0x5ea,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +
+> +/* PHY FSUSB: FS Serial PHY 4-pin mode for Port 2*/
+> +MUX_CFG_34XX("AF7_3430_USB2FS_PHY_MM2_RXDP", 0x5f2,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AH7_3430_USB2FS_PHY_MM2_RXDM", 0x5f6,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AB10_3430_USB2FS_PHY_MM2_RXRCV", 0x5f8,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AB9_3430_USB2FS_PHY_MM2_TXSE0", 0x5fa,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("W3_3430_USB2FS_PHY_MM2_TXDAT", 0x1d4,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("T4_3430_USB2FS_PHY_MM2_TXEN_N", 0x1de,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
+> +
+> +/* PHY FSUSB: FS Serial PHY 4-pin mode for Port 3*/
+> +MUX_CFG_34XX("AH3_3430_USB3FS_PHY_MM3_RXDP", 0x166,
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AE3_3430_USB3FS_PHY_MM3_RXDM", 0x16a,
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AD1_3430_USB3FS_PHY_MM3_RXRCV", 0x186,
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AE1_3430_USB3FS_PHY_MM3_TXSE0", 0x184,
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AD2_3430_USB3FS_PHY_MM3_TXDAT", 0x188,
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AC1_3430_USB3FS_PHY_MM3_TXEN_N", 0x18a,
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
+> +
+>  };
+>  
+>  #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
+> Index: tony/arch/arm/plat-omap/include/mach/mux.h
+> ===================================================================
+> --- tony.orig/arch/arm/plat-omap/include/mach/mux.h	
+> 2008-09-04 12:57:33.000000000 +0530
+> +++ tony/arch/arm/plat-omap/include/mach/mux.h	
+> 2008-09-26 20:50:39.160537766 +0530
+> @@ -723,7 +723,31 @@ enum omap34xx_index {
+>  	AB12_3430_USB3HS_TLL_DATA4,
+>  	AB13_3430_USB3HS_TLL_DATA5,
+>  	AA13_3430_USB3HS_TLL_DATA6,
+> -	AA12_3430_USB3HS_TLL_DATA7
+> +	AA12_3430_USB3HS_TLL_DATA7,
+> +
+> +	/* PHY FSUSB: FS Serial PHY 4-pin mode for Port 1*/
+> +	AF10_3430_USB1FS_PHY_MM1_RXDP,
+> +	AG9_3430_USB1FS_PHY_MM1_RXDM,
+> +	W13_3430_USB1FS_PHY_MM1_RXRCV,
+> +	W12_3430_USB1FS_PHY_MM1_TXSE0,
+> +	W11_3430_USB1FS_PHY_MM1_TXDAT,
+> +	Y11_3430_USB1FS_PHY_MM1_TXEN_N,
+> +
+> +	/* PHY FSUSB: FS Serial PHY 4-pin mode for Port 2*/
+> +	AF7_3430_USB2FS_PHY_MM2_RXDP,
+> +	AH7_3430_USB2FS_PHY_MM2_RXDM,
+> +	AB10_3430_USB2FS_PHY_MM2_RXRCV,
+> +	AB9_3430_USB2FS_PHY_MM2_TXSE0,
+> +	W3_3430_USB2FS_PHY_MM2_TXDAT,
+> +	T4_3430_USB2FS_PHY_MM2_TXEN_N,
+> +
+> +	/* PHY FSUSB: FS Serial PHY 4-pin mode for Port 3*/
+> +	AH3_3430_USB3FS_PHY_MM3_RXDP,
+> +	AE3_3430_USB3FS_PHY_MM3_RXDM,
+> +	AD1_3430_USB3FS_PHY_MM3_RXRCV,
+> +	AE1_3430_USB3FS_PHY_MM3_TXSE0,
+> +	AD2_3430_USB3FS_PHY_MM3_TXDAT,
+> +	AC1_3430_USB3FS_PHY_MM3_TXEN_N,
+>  
+>  };
+>  --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
