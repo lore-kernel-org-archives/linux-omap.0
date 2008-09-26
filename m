@@ -1,47 +1,34 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch] some drivers switch away from OMAP-specific GPIO calls
-Date: Fri, 26 Sep 2008 10:41:22 +0300
-Message-ID: <20080926074109.GB7962@atomide.com>
-References: <200809241935.57001.david-b@pacbell.net> <20080925125311.GT5222@atomide.com> <200809250952.12282.david-b@pacbell.net>
+Subject: Re: MMC broken on beagleboard with current git
+Date: Fri, 26 Sep 2008 10:42:14 +0300
+Message-ID: <20080926074208.GC7962@atomide.com>
+References: <FDAFB709-68B8-478D-8321-1322449B9A7F@student.utwente.nl> <20080925085142.GC5222@atomide.com> <77EE6A0D-895B-4E0B-B9C4-18D333BFF85C@student.utwente.nl> <20080925094718.GE5222@atomide.com> <4D346DA2-6C57-48A7-AC4E-2191C44497CF@student.utwente.nl> <20080925103952.GJ5222@atomide.com> <5e088bd90809250824q38fb95e0q7a9e3f8a24a4d845@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51968 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52649 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753633AbYIZHij (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 03:38:39 -0400
+	with ESMTP id S1753662AbYIZHjn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 03:39:43 -0400
 Content-Disposition: inline
-In-Reply-To: <200809250952.12282.david-b@pacbell.net>
+In-Reply-To: <5e088bd90809250824q38fb95e0q7a9e3f8a24a4d845@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org
+To: Steve Sakoman <sakoman@gmail.com>
+Cc: Koen Kooi <k.kooi@student.utwente.nl>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-* David Brownell <david-b@pacbell.net> [080925 19:52]:
-> On Thursday 25 September 2008, Tony Lindgren wrote:
-> > >=20
-> > > This updates most of the OMAP drivers which are in mainline to
-> > > switch to using the cross-platform GPIO calls instead of the
-> > > older OMAP-specific ones.
-> > >=20
-> > > This is all fairly brainless/obvious stuff. =A0Probably the
-> > > most interesting bit is to observe that the omap-keypad
-> > > code seems to now have a portable core that could work with
-> > > non-OMAP matrix keypads. =A0(That would improve with hardware
-> > > IRQ debouncing enabled, of course...)
-> >=20
-> > Do you want push this to mainline as part of gpiolib patches?
->=20
-> I'l send it now that I have your Signed-off-By.
-> CC a few subsystem maintainers ... but I see no
-> point in splitting this into mini-patchlets.
+* Steve Sakoman <sakoman@gmail.com> [080925 18:24]:
+> On Thu, Sep 25, 2008 at 3:39 AM, Tony Lindgren <tony@atomide.com> wrote:
+> 
+> > Hmm, I don't understand how it could work on 3430sdp...
+> >
+> > Looks like board-omap3beagle.c calls hsmmc_init() just like
+> > board-3430sdp.c. Maybe timings have changed and you need
+> > a longer delay somewhere during the init?
+> 
+> I can confirm that mmc is also broken on Overo.  I'll spend some time
+> today investigating.
 
-OK sounds good to me.
+I'll double check on omap3430sdp.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
