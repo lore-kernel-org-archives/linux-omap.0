@@ -1,19 +1,18 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 0/9] twl4030 updates
-Date: Fri, 26 Sep 2008 11:55:21 -0700
-Message-ID: <200809261155.21887.david-b@pacbell.net>
-References: <1222427996-7018-1-git-send-email-felipe.balbi@nokia.com> <200809261012.28007.david-b@pacbell.net> <20080926175033.GC9890@frodo>
+Subject: Re: [PATCH 8/9] twl4030 uses gpiolib
+Date: Fri, 26 Sep 2008 11:57:09 -0700
+Message-ID: <200809261157.09485.david-b@pacbell.net>
+References: <1222427996-7018-1-git-send-email-felipe.balbi@nokia.com> <200809261010.50409.david-b@pacbell.net> <20080926174745.GB9890@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:22158 "HELO
-	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751983AbYIZSzY (ORCPT
+Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:26300 "HELO
+	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752400AbYIZS5L (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Sep 2008 14:55:24 -0400
-In-Reply-To: <20080926175033.GC9890@frodo>
+	Fri, 26 Sep 2008 14:57:11 -0400
+In-Reply-To: <20080926174745.GB9890@frodo>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -21,19 +20,27 @@ To: me@felipebalbi.com
 Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
 On Friday 26 September 2008, Felipe Balbi wrote:
-> I was trying to organize by order of importance to a running system. If
-> we run out of memory when registering the madc child, that should be ok,
-> but if we run out of memory when registering rtc, that might cause some
-> problems, right ?
+>=20
+> > Err, strike the "NYET-" for me. =A0Editing mistake, that
+> > should have been removed before. =A0;)
+>=20
+> There were a few comments in the patch header that sugested me this
+> patch wasn't finished yet :-)
 
-If we run out of memory *that early* it'll be a miracle if 
-the system can run at all...
+This patch is done.  The other work will be done later.
 
+=46or example, all the existing users of these APIs are
+in the hsmmc init logic.  That's kind of in flux now
+(at least semi-broken).  When it works again, several
+parts will change.
 
-> If you prefer in alphabetic order, it's no problem, I'll fix that ;-)
+Likewise there are dependencies on some gpiolib features
+that aren't yet merged.
 
-Alphabetical should be the default assumption.  It makes
-things easier to maintain ... when you're trying to find
-something, it's easy to figure out where it should be.
+- Dave
 
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
