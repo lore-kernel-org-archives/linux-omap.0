@@ -1,86 +1,72 @@
-From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-Subject: [PATCH] OMAP3 PM: Fix cpu idle init sequencing
-Date: Fri, 26 Sep 2008 11:04:20 +0300
-Message-ID: <1222416260-15821-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
+From: <Tero.Kristo@nokia.com>
+Subject: RE: [PATCH] OMAP3 clock: put DPLL into bypass if bypass rate = clk->rate, not hardware rate
+Date: Fri, 26 Sep 2008 11:17:38 +0300
+Message-ID: <B71CE868F2BC2847B3F23C5A8EE394308CF03D@vaebe110.NOE.Nokia.com>
+References: <alpine.DEB.2.00.0809250837350.14535@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:16747 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:22122 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751707AbYIZH64 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 03:58:56 -0400
-In-Reply-To: <>
-References: <>
+	with ESMTP id S1751734AbYIZIYc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 04:24:32 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <alpine.DEB.2.00.0809250837350.14535@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: rnayak@ti.com, jouni.hogander@nokia.com, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+To: paul@pwsan.com, linux-omap@vger.kernel.org
+Cc: rnayak@ti.com
 
-Previously omap3_idle_init was called in device_init, while
-omap_pm_init is called at late_initcall. This causes the cpu
-idle driver to call omap_sram_idle before it is properly
-initialized. This patch fixes the issue by moving omap3_idle_init
-into omap_pm_init.
+Hi,
 
-This applies on top of pm-0 branch.
+The three patches you sent (fix CONFIG_OMAP_RESET_CLOCKS, fix
+dss1_alwon_clk and this one) seem to fix problems I was seeing with
+retention.
 
-Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
----
- arch/arm/mach-omap2/cpuidle34xx.c |    1 -
- arch/arm/mach-omap2/cpuidle34xx.h |    5 +++++
- arch/arm/mach-omap2/pm.c          |    7 +++++++
- 3 files changed, 12 insertions(+), 1 deletions(-)
+-Tero
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 248b365..3d2c76e 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -665,5 +665,4 @@ int omap3_idle_init(void)
- 
- 	return 0;
- }
--__initcall(omap3_idle_init);
- #endif /* CONFIG_CPU_IDLE */
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.h b/arch/arm/mach-omap2/cpuidle34xx.h
-index a2036cf..fa000ce 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.h
-+++ b/arch/arm/mach-omap2/cpuidle34xx.h
-@@ -79,7 +79,12 @@ struct omap3_processor_cx {
- };
- 
- void omap_init_power_states(void);
-+
-+#ifdef CONFIG_CPU_IDLE
- int omap3_idle_init(void);
-+#else
-+static inline int omap3_idle_init(void) { return 0; }
-+#endif
- 
- /* TODO fix the size:100 */
- static unsigned int prcm_sleep_save[100];
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index d493e69..53bd72a 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -32,6 +32,7 @@
- 
- #include <mach/pm.h>
- #include "prm-regbits-34xx.h"
-+#include "cpuidle34xx.h"
- #include "pm.h"
- 
- unsigned short enable_dyn_sleep;
-@@ -128,6 +129,12 @@ static int __init omap_pm_init(void)
- 		printk(KERN_ERR "omap2|3_pm_init failed: %d\n", error);
- 		return error;
- 	}
-+	if (cpu_is_omap34xx())
-+		error = omap3_idle_init();
-+	if (error) {
-+		printk(KERN_ERR "omap3_idle_init failed: %d\n", error);
-+		return error;
-+	}
- 
- 	/* disabled till drivers are fixed */
- 	enable_dyn_sleep = 0;
--- 
-1.5.4.3
-
+>-----Original Message-----
+>From: ext Paul Walmsley [mailto:paul@pwsan.com] 
+>Sent: 25 September, 2008 17:39
+>To: linux-omap@vger.kernel.org
+>Cc: Kristo Tero (Nokia-D/Tampere); rnayak@ti.com
+>Subject: [PATCH] OMAP3 clock: put DPLL into bypass if bypass 
+>rate = clk->rate, not hardware rate
+>
+>
+>When a non-CORE DPLL is enabled via 
+>omap3_noncore_dpll_enable(), use the user's desired rate in 
+>clk->rate to determine whether to put the DPLL into bypass or 
+>lock mode, rather than reading the DPLL's current idle state 
+>from its hardware registers.
+>
+>This fixes a bug observed when leaving retention. Non-CORE 
+>DPLLs were not being relocked when downstream clocks 
+>re-enabled; rather, the DPLL entered bypass mode.
+>
+>Problem reported by Tero Kristo <tero.kristo@nokia.com>.
+>
+>Signed-off-by: Paul Walmsley <paul@pwsan.com>
+>---
+> arch/arm/mach-omap2/clock34xx.c |    4 +---
+> 1 files changed, 1 insertions(+), 3 deletions(-)
+>
+>diff --git a/arch/arm/mach-omap2/clock34xx.c 
+>b/arch/arm/mach-omap2/clock34xx.c index c89d6bc..df258f7 100644
+>--- a/arch/arm/mach-omap2/clock34xx.c
+>+++ b/arch/arm/mach-omap2/clock34xx.c
+>@@ -281,9 +281,7 @@ static int 
+>omap3_noncore_dpll_enable(struct clk *clk)
+> 	if (!dd)
+> 		return -EINVAL;
+> 
+>-	rate = omap2_get_dpll_rate(clk);
+>-
+>-	if (dd->bypass_clk->rate == rate)
+>+	if (clk->rate == dd->bypass_clk->rate)
+> 		r = _omap3_noncore_dpll_bypass(clk);
+> 	else
+> 		r = _omap3_noncore_dpll_lock(clk);
+>
