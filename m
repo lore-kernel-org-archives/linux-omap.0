@@ -1,114 +1,135 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 05/16] OMAP3: I2C context save/restore
-Date: Fri, 26 Sep 2008 17:48:07 +0530
-Message-ID: <01f601c91fd1$ef53c400$LocalHost@wipultra1382>
+Subject: [PATCH 06/16] OMAP3: INTC context save/restore
+Date: Fri, 26 Sep 2008 17:48:20 +0530
+Message-ID: <01f701c91fd1$f6ef8cd0$LocalHost@wipultra1382>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52921 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750912AbYIZMSR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 08:18:17 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:37872 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751635AbYIZMS3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 08:18:29 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: 'Kevin Hilman' <khilman@deeprootsystems.com>
 
-This patch does i2c init/re-init for every transfer.
-Avoids a i2c controller reset every time
+This patch adds the Interrupt controller context
+save/restore routines
 
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   41 +++++++++++++++++++++++++++--------------
- 1 files changed, 27 insertions(+), 14 deletions(-)
+ arch/arm/mach-omap2/irq.c              |   67 +++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/irqs.h |    5 ++
+ 2 files changed, 72 insertions(+)
 
-Index: linux-omap-2.6/drivers/i2c/busses/i2c-omap.c
+Index: linux-omap-2.6/arch/arm/mach-omap2/irq.c
 ===================================================================
---- linux-omap-2.6.orig/drivers/i2c/busses/i2c-omap.c	2008-09-25 16:26:40.000000000 +0530
-+++ linux-omap-2.6/drivers/i2c/busses/i2c-omap.c	2008-09-25 16:27:14.000000000 +0530
-@@ -147,6 +147,10 @@ struct omap_i2c_dev {
- 	unsigned		b_hw:1;		/* bad h/w fixes */
- 	unsigned		idle:1;
- 	u16			iestate;	/* Saved interrupt register */
-+	u16			pscstate;
-+	u16			scllstate;
-+	u16			sclhstate;
-+	u16			bufstate;
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/irq.c	2008-09-26 14:07:07.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/irq.c	2008-09-26 14:08:23.000000000 +0530
+@@ -24,6 +24,10 @@
+ #define INTC_SYSCONFIG		0x0010
+ #define INTC_SYSSTATUS		0x0014
+ #define INTC_CONTROL		0x0048
++#define INTC_PROTECTION		0x004C
++#define INTC_IDLE		0x0050
++#define INTC_THRESHOLD		0x0068
++#define INTC_MIR0		0x0084
+ #define INTC_MIR_CLEAR0		0x0088
+ #define INTC_MIR_SET0		0x008c
+ #define INTC_PENDING_IRQ0	0x0098
+@@ -48,6 +52,18 @@ static struct omap_irq_bank {
+ 	},
  };
  
- static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
-@@ -209,16 +213,20 @@ static void omap_i2c_unidle(struct omap_
- 	if (dev->iclk != NULL)
- 		clk_enable(dev->iclk);
- 	clk_enable(dev->fclk);
-+	if (cpu_is_omap34xx()) {
-+		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
-+		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
-+		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
-+		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
-+	}
- 	dev->idle = 0;
--	if (dev->iestate)
--		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
-+	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
++/* Structure to save interrupt controller context */
++struct omap3_intc_regs {
++	u32 sysconfig;
++	u32 protection;
++	u32 idle;
++	u32 threshold;
++	u32 ilr[INTCPS_NR_IRQS];
++	u32 mir[INTCPS_NR_MIR_REGS];
++};
++
++static struct omap3_intc_regs intc_context[ARRAY_SIZE(irq_banks)];
++
+ /* INTC bank register get/set */
+ 
+ static void intc_bank_write_reg(u32 val, struct omap_irq_bank *bank, u16 reg)
+@@ -167,3 +183,54 @@ void __init omap_init_irq(void)
+ 	}
  }
  
- static void omap_i2c_idle(struct omap_i2c_dev *dev)
- {
- 	u16 iv;
- 
--	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
- 	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
- 	if (dev->rev1)
- 		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG);
-@@ -238,7 +246,7 @@ static void omap_i2c_idle(struct omap_i2
- 
- static int omap_i2c_init(struct omap_i2c_dev *dev)
- {
--	u16 psc = 0, scll = 0, sclh = 0;
-+	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
- 	u16 fsscll = 0, fssclh = 0, hsscll = 0, hssclh = 0;
- 	unsigned long fclk_rate = 12000000;
- 	unsigned long timeout;
-@@ -327,23 +335,28 @@ static int omap_i2c_init(struct omap_i2c
- 	omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, scll);
- 	omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, sclh);
- 
--	if (dev->fifo_size)
--		/* Note: setup required fifo size - 1 */
--		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG,
--					(dev->fifo_size - 1) << 8 | /* RTRSH */
--					OMAP_I2C_BUF_RXFIF_CLR |
--					(dev->fifo_size - 1) | /* XTRSH */
--					OMAP_I2C_BUF_TXFIF_CLR);
-+	if (dev->fifo_size) {
-+		/* Note: setup required fifo size - 1. RTRSH and XTRSH */
-+		buf = (dev->fifo_size - 1) << 8 | OMAP_I2C_BUF_RXFIF_CLR |
-+			(dev->fifo_size - 1) | OMAP_I2C_BUF_TXFIF_CLR;
-+		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, buf);
++#ifdef CONFIG_ARCH_OMAP3
++void omap3_intc_save_context(void)
++{
++	int ind = 0, i = 0;
++	for (ind = 0; ind < ARRAY_SIZE(irq_banks); ind++) {
++		struct omap_irq_bank *bank = irq_banks + ind;
++		intc_context[ind].sysconfig =
++			intc_bank_read_reg(bank, INTC_SYSCONFIG);
++		intc_context[ind].protection =
++			intc_bank_read_reg(bank, INTC_PROTECTION);
++		intc_context[ind].idle =
++			intc_bank_read_reg(bank, INTC_IDLE);
++		intc_context[ind].threshold =
++			intc_bank_read_reg(bank, INTC_THRESHOLD);
++		for (i = 0; i < INTCPS_NR_IRQS; i++)
++			intc_context[ind].ilr[i] =
++				intc_bank_read_reg(bank, (0x100 + 0x4*ind));
++		for (i = 0; i < INTCPS_NR_MIR_REGS; i++)
++			intc_context[ind].mir[i] =
++				intc_bank_read_reg(&irq_banks[0], INTC_MIR0 +
++				(0x20 * i));
 +	}
- 
- 	/* Take the I2C module out of reset: */
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
- 
- 	/* Enable interrupts */
--	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG,
--			(OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
-+	dev->iestate = (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
- 			OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
- 			OMAP_I2C_IE_AL)  | ((dev->fifo_size) ?
--				(OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0));
-+				(OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0);
-+	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
-+	if (cpu_is_omap34xx()) {
-+		dev->pscstate = psc;
-+		dev->scllstate = scll;
-+		dev->sclhstate = sclh;
-+		dev->bufstate = buf;
++	/* MIRs are saved and restore with other PRCM registers */
++}
++
++void omap3_intc_restore_context(void)
++{
++	int ind = 0, i = 0;
++
++	for (ind = 0; ind < ARRAY_SIZE(irq_banks); ind++) {
++		struct omap_irq_bank *bank = irq_banks + ind;
++		intc_bank_write_reg(intc_context[ind].sysconfig,
++					bank, INTC_SYSCONFIG);
++		intc_bank_write_reg(intc_context[ind].sysconfig,
++					bank, INTC_SYSCONFIG);
++		intc_bank_write_reg(intc_context[ind].protection,
++					bank, INTC_PROTECTION);
++		intc_bank_write_reg(intc_context[ind].idle,
++					bank, INTC_IDLE);
++		intc_bank_write_reg(intc_context[ind].threshold,
++					bank, INTC_THRESHOLD);
++		for (i = 0; i < INTCPS_NR_IRQS; i++)
++			intc_bank_write_reg(intc_context[ind].ilr[i],
++				bank, (0x100 + 0x4*ind));
++		for (i = 0; i < INTCPS_NR_MIR_REGS; i++)
++			intc_bank_write_reg(intc_context[ind].mir[i],
++				 &irq_banks[0], INTC_MIR0 + (0x20 * i));
 +	}
- 	return 0;
- }
++	/* MIRs are saved and restore with other PRCM registers */
++}
++#endif /* CONFIG_ARCH_OMAP3 */
+Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/irqs.h
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/irqs.h	2008-09-26 14:07:07.000000000 +0530
++++ linux-omap-2.6/arch/arm/plat-omap/include/mach/irqs.h	2008-09-26 14:07:34.000000000 +0530
+@@ -367,9 +367,14 @@
  
+ #define OMAP_IRQ_BIT(irq)	(1 << ((irq) % 32))
+ 
++#define INTCPS_NR_MIR_REGS	3
++#define INTCPS_NR_IRQS		96
++
+ #ifndef __ASSEMBLY__
+ extern void omap_init_irq(void);
+ extern int omap_irq_pending(void);
++void omap3_intc_save_context(void);
++void omap3_intc_restore_context(void);
+ #endif
+ 
+ #include <mach/hardware.h>
 
