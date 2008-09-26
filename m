@@ -1,39 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: NULL pointer dereference when using ALSA SOC
-Date: Fri, 26 Sep 2008 10:40:17 +0300
-Message-ID: <20080926074013.GA7962@atomide.com>
-References: <dfeb90390809222326s44162f94sf42f96fdfc0a0690@mail.gmail.com> <200809252220.43229.siarhei.siamashka@gmail.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [patch 2.6.27-rc6-omap] ASOC: quieter boot for non-Overo boards
+Date: Fri, 26 Sep 2008 10:37:32 +0300
+Message-ID: <20080926103732.382cfb5b.jarkko.nikula@nokia.com>
+References: <200809211414.42194.david-b@pacbell.net>
+	<200809250950.06409.david-b@pacbell.net>
+	<1222362451.24304.59.camel@tera.sakoman.net>
+	<200809251041.48997.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51468 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753311AbYIZHhh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 03:37:37 -0400
-Content-Disposition: inline
-In-Reply-To: <200809252220.43229.siarhei.siamashka@gmail.com>
+Received: from smtp.nokia.com ([192.100.105.134]:56467 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753590AbYIZHi2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 03:38:28 -0400
+In-Reply-To: <200809251041.48997.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Siarhei Siamashka <siarhei.siamashka@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext David Brownell <david-b@pacbell.net>
+Cc: steve@sakoman.com, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-* Siarhei Siamashka <siarhei.siamashka@gmail.com> [080925 22:20]:
-> On Tuesday 23 September 2008, Arun KS wrote:
-> > Hi all,
-> >
-> > I am writing an ASOC driver for tlvaic23 on osk5912 platform.
-> [...]
+On Thu, 25 Sep 2008 10:41:48 -0700
+"ext David Brownell" <david-b@pacbell.net> wrote:
+
+> > Putting the board specific bits in the
+> > arch/arm/mach-omap2/board-XYZ.c file has been discussed a number of
+> > times on alsa-devel and the folks there insist that for now (i.e.
+> > ASoC V1) this is the proper way to do things.
 > 
-> Hi. Coincidentally I have been hacking the old aic23 driver in the last few
-> days to make it work on Nokia 770. Don't know if these fixes have any value
-> for linux-omap tree, but I would be glad if anybody finds some of them useful.
-> Patch against old 2.6.16 kernel can be found here:
-> http://lists.maemo.org/pipermail/maemo-developers/2008-September/035053.html
+> Hmm, I'm not sure I follow.  They want the SOC devices
+> in the wrong place in the driver model tree, potentially
+> impacting power management?
+> 
+> I don't want to fight that fight, but ... that seems unwise.
+> 
+Yep. Now in ASoC v1, the machine, platform/CPU and codec are tied
+together during compile time and I think it has been easier to
+review/manage by keeping them under one sound/soc directory.
 
-Of course we want all the patches integrated! Please start posting
-your patches to alsa-devel and cc linux-omap.
+I suppose that when ASoC v2 is in place and devices can be individually
+probed, we might see that machine drivers will start moving out from
+there.
 
-> A bug with current position detection in 'audio_get_dma_pos' is especially bad
-> as it causes sound stuttering on video playback.
 
-Tony
+Jarkko
