@@ -1,63 +1,30 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 1/4] i2c: clean =?UTF-8?Q?add=5Fchildren=20a=20bit?=
-Date: Thu, 25 Sep 2008 17:08:52 -0500
-Message-ID: <1159ad0a30debc102abd8b29586ce5bf@felipebalbi.com>
-References: <1222354133-12919-1-git-send-email-felipe.balbi@nokia.com> <1222354133-12919-2-git-send-email-felipe.balbi@nokia.com> <200809251028.00242.david-b@pacbell.net>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch 2.6.27-rc7-omap-git 0/2] twl4030 uses gpiolib
+Date: Thu, 25 Sep 2008 19:33:10 -0700
+Message-ID: <200809251933.10439.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:39894 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753152AbYIYWI5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2008 18:08:57 -0400
-In-Reply-To: <200809251028.00242.david-b@pacbell.net>
+Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:38483 "HELO
+	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752542AbYIZCjm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Sep 2008 22:39:42 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
 
-Hi Dave,
+Two patches follow ... they go on top of (a) the four from Felipe,
+which he's updating to move the twl_has_XYZ() macros into the core;
+(b) the pullup tweak from Jagadeesh:
 
-On Thu, 25 Sep 2008 10:28:00 -0700, David Brownell <david-b@pacbell.net>
-wrote:
-> On Thursday 25 September 2008, Felipe Balbi wrote:
->> Clean up add_children a bit before adding more children
->> to twl4030-core.c
->>
->> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> 
-> ACK, except for:
-> 
->> --- a/include/linux/i2c/twl4030.h
->> +++ b/include/linux/i2c/twl4030.h
->> @@ -145,4 +145,10 @@ int twl4030_free_gpio(int gpio);
->>  	static inline int twl4030charger_usb_en(int enable) { return 0; }
->>  #endif
->>
->> +#if defined(CONFIG_RTC_DRV_TWL4030) ||
-> defined(CONFIG_RTC_DRV_TWL4030_MODULE)
->> +#define twl_has_rtc()	(1)
->> +#else
->> +#define twl_has_rtc()	(0)
->> +#endif
-> 
-> Who else would need this, other than the core?
-> I think the answer is "nobody" ... so these macros
-> belong in the core itself, not a public header.
-> 
-> Also:  parens not appropriate around those values; and
-> "true" and "false" values would be a bit more clear...
+ - Define and initialize platform data
+ - Be a platform_driver which uses that and gpiolib
 
-you sure got a point here, I'll update the series when
-I get to work tomorrow (actualy today, already 1am).
+There's more work to be done, but this is IMO a good start and
+seems mergeable as-is.
 
-Anyways, I'll update and resend the series.
-
--- 
-Best Regards,
-
-Felipe Balbi
-http://blog.felipebalbi.com
-me@felipebalbi.com
-
+- Dave
