@@ -1,17 +1,19 @@
 From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH 1/1] Hook into PM counters
-Date: Fri, 26 Sep 2008 17:12:01 +0300
-Message-ID: <1222438323-14197-2-git-send-email-peter.de-schrijver@nokia.com>
+Subject: [PATCH 2/2] Hook into PM counters
+Date: Fri, 26 Sep 2008 17:12:03 +0300
+Message-ID: <1222438323-14197-4-git-send-email-peter.de-schrijver@nokia.com>
 References: <1222438323-14197-1-git-send-email-peter.de-schrijver@nokia.com>
+ <1222438323-14197-2-git-send-email-peter.de-schrijver@nokia.com>
+ <1222438323-14197-3-git-send-email-peter.de-schrijver@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:37980 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:37981 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752267AbYIZOUg (ORCPT
+	with ESMTP id S1752346AbYIZOUg (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 10:20:36 -0400
 Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8QEKNU6019058
-	for <linux-omap@vger.kernel.org>; Fri, 26 Sep 2008 17:20:33 +0300
-In-Reply-To: <1222438323-14197-1-git-send-email-peter.de-schrijver@nokia.com>
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m8QEKJP2019037
+	for <linux-omap@vger.kernel.org>; Fri, 26 Sep 2008 17:20:34 +0300
+In-Reply-To: <1222438323-14197-3-git-send-email-peter.de-schrijver@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
