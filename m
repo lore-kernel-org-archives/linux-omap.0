@@ -1,159 +1,135 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 02/16] OMAP3: GPMC context save/restore
-Date: Fri, 26 Sep 2008 17:47:33 +0530
-Message-ID: <01f301c91fd1$db2794c0$LocalHost@wipultra1382>
+Subject: [PATCH 03/16] OMAP3: Serial context save/restore
+Date: Fri, 26 Sep 2008 17:47:40 +0530
+Message-ID: <01f401c91fd1$df21a5c0$LocalHost@wipultra1382>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34279 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:52906 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751714AbYIZMRn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 08:17:43 -0400
+	id S1751751AbYIZMRu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 08:17:50 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: 'Kevin Hilman' <khilman@deeprootsystems.com>
 
-This patch adds the context save restore functions for GPMC 
+This patch adds the context save restore functions for UART
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/gpmc.c             |   93 +++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/gpmc.h |    3 +
- 2 files changed, 96 insertions(+)
+ arch/arm/mach-omap2/serial.c             |   65 +++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/serial.h |    4 +
+ include/linux/serial_reg.h               |    1 
+ 3 files changed, 70 insertions(+)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/gpmc.c
+Index: linux-omap-2.6/arch/arm/mach-omap2/serial.c
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/gpmc.c	2008-09-25 16:26:40.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/gpmc.c	2008-09-25 16:27:13.000000000 +0530
-@@ -54,10 +54,38 @@
- #define GPMC_CHUNK_SHIFT	24		/* 16 MB */
- #define GPMC_SECTION_SHIFT	28		/* 128 MB */
- 
-+/* Structure to save gpmc cs context */
-+struct gpmc_cs_config {
-+	u32 config1;
-+	u32 config2;
-+	u32 config3;
-+	u32 config4;
-+	u32 config5;
-+	u32 config6;
-+	u32 config7;
-+	int is_valid;
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/serial.c	2008-09-25 16:27:11.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/serial.c	2008-09-25 16:27:13.000000000 +0530
+@@ -68,6 +68,17 @@ static const u32 omap3_uart_wk_bit[OMAP_
+ 	OMAP3430_ST_UART2,
+ 	OMAP3430_ST_UART3,
+ };
++
++struct omap3_uart_regs {
++	u16 dll;
++	u16 dlh;
++	u16 ier;
++	u16 sysc;
++	u16 scr;
++	u16 wer;
 +};
 +
-+/*
-+ * Structure to save/restore gpmc context
-+ * to support core off on OMAP3
-+ */
-+struct omap3_gpmc_regs {
-+	u32 sysconfig;
-+	u32 irqenable;
-+	u32 timeout_ctrl;
-+	u32 config;
-+	u32 prefetch_config1;
-+	u32 prefetch_config2;
-+	u32 prefetch_control;
-+	struct gpmc_cs_config cs_context[GPMC_CS_NUM];
-+};
-+
- static struct resource	gpmc_mem_root;
- static struct resource	gpmc_cs_mem[GPMC_CS_NUM];
- static DEFINE_SPINLOCK(gpmc_mem_lock);
- static unsigned		gpmc_cs_map;
-+static struct omap3_gpmc_regs gpmc_context;
++static struct omap3_uart_regs uart_context[OMAP_MAX_NR_PORTS];
+ #endif
  
- static void __iomem *gpmc_base;
- 
-@@ -451,3 +479,68 @@ void __init gpmc_init(void)
- 
- 	gpmc_mem_init();
+ static const u32 *omap_uart_wk_st;
+@@ -315,6 +326,60 @@ static ssize_t awake_store(struct kobjec
+ 	return n;
  }
-+
+ 
 +#ifdef CONFIG_ARCH_OMAP3
-+void omap3_gpmc_save_context()
++void omap3_uart_save_context(int unum)
 +{
-+	int i;
-+	gpmc_context.sysconfig = gpmc_read_reg(GPMC_SYSCONFIG);
-+	gpmc_context.irqenable = gpmc_read_reg(GPMC_IRQENABLE);
-+	gpmc_context.timeout_ctrl = gpmc_read_reg(GPMC_TIMEOUT_CONTROL);
-+	gpmc_context.config = gpmc_read_reg(GPMC_CONFIG);
-+	gpmc_context.prefetch_config1 = gpmc_read_reg(GPMC_PREFETCH_CONFIG1);
-+	gpmc_context.prefetch_config2 = gpmc_read_reg(GPMC_PREFETCH_CONFIG2);
-+	gpmc_context.prefetch_control = gpmc_read_reg(GPMC_PREFETCH_CONTROL);
-+	for (i = 0; i < GPMC_CS_NUM; i++) {
-+		gpmc_context.cs_context[i].is_valid =
-+				(gpmc_cs_read_reg(i, GPMC_CS_CONFIG7))
-+							& GPMC_CONFIG7_CSVALID;
-+		if (gpmc_context.cs_context[i].is_valid) {
-+			gpmc_context.cs_context[i].config1 =
-+				gpmc_cs_read_reg(i, GPMC_CS_CONFIG1);
-+			gpmc_context.cs_context[i].config2 =
-+				gpmc_cs_read_reg(i, GPMC_CS_CONFIG2);
-+			gpmc_context.cs_context[i].config3 =
-+				gpmc_cs_read_reg(i, GPMC_CS_CONFIG3);
-+			gpmc_context.cs_context[i].config4 =
-+				gpmc_cs_read_reg(i, GPMC_CS_CONFIG4);
-+			gpmc_context.cs_context[i].config5 =
-+				gpmc_cs_read_reg(i, GPMC_CS_CONFIG5);
-+			gpmc_context.cs_context[i].config6 =
-+				gpmc_cs_read_reg(i, GPMC_CS_CONFIG6);
-+			gpmc_context.cs_context[i].config7 =
-+				gpmc_cs_read_reg(i, GPMC_CS_CONFIG7);
-+		}
-+	}
-+}
++	u16 lcr = 0;
 +
-+void omap3_gpmc_restore_context()
-+{
-+	int i;
-+	gpmc_write_reg(GPMC_SYSCONFIG, gpmc_context.sysconfig);
-+	gpmc_write_reg(GPMC_IRQENABLE, gpmc_context.irqenable);
-+	gpmc_write_reg(GPMC_TIMEOUT_CONTROL, gpmc_context.timeout_ctrl);
-+	gpmc_write_reg(GPMC_CONFIG, gpmc_context.config);
-+	gpmc_write_reg(GPMC_PREFETCH_CONFIG1, gpmc_context.prefetch_config1);
-+	gpmc_write_reg(GPMC_PREFETCH_CONFIG2, gpmc_context.prefetch_config2);
-+	gpmc_write_reg(GPMC_PREFETCH_CONTROL, gpmc_context.prefetch_control);
-+	for (i = 0; i < GPMC_CS_NUM; i++) {
-+		if (gpmc_context.cs_context[i].is_valid) {
-+			gpmc_cs_write_reg(i, GPMC_CS_CONFIG1,
-+				gpmc_context.cs_context[i].config1);
-+			gpmc_cs_write_reg(i, GPMC_CS_CONFIG2,
-+				gpmc_context.cs_context[i].config2);
-+			gpmc_cs_write_reg(i, GPMC_CS_CONFIG3,
-+				gpmc_context.cs_context[i].config3);
-+			gpmc_cs_write_reg(i, GPMC_CS_CONFIG4,
-+				gpmc_context.cs_context[i].config4);
-+			gpmc_cs_write_reg(i, GPMC_CS_CONFIG5,
-+				gpmc_context.cs_context[i].config5);
-+			gpmc_cs_write_reg(i, GPMC_CS_CONFIG6,
-+				gpmc_context.cs_context[i].config6);
-+			gpmc_cs_write_reg(i, GPMC_CS_CONFIG7,
-+				gpmc_context.cs_context[i].config7);
-+		}
-+	}
++	struct plat_serial8250_port *p = serial_platform_data + unum;
++
++	if (uart_ick[unum] == NULL)
++		return;
++
++	lcr = serial_read_reg(p, UART_LCR);
++	serial_write_reg(p, UART_LCR, 0xBF);
++	uart_context[unum].dll = serial_read_reg(p, UART_DLL);
++	uart_context[unum].dlh = serial_read_reg(p, UART_DLM);
++	serial_write_reg(p, UART_LCR, lcr);
++	uart_context[unum].ier = serial_read_reg(p, UART_IER);
++	uart_context[unum].sysc = serial_read_reg(p, UART_OMAP_SYSC);
++	uart_context[unum].scr = serial_read_reg(p, UART_OMAP_SCR);
++	uart_context[unum].wer = serial_read_reg(p, UART_OMAP_WER);
 +}
++EXPORT_SYMBOL(omap3_uart_save_context);
++
++void omap3_uart_restore_context(int unum)
++{
++	u16 efr = 0;
++
++	struct plat_serial8250_port *p = serial_platform_data + unum;
++
++	if (uart_ick[unum] == NULL)
++		return;
++
++	serial_write_reg(p, UART_OMAP_MDR1, 0x7);
++	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
++	efr = serial_read_reg(p, UART_EFR);
++	serial_write_reg(p, UART_EFR, UART_EFR_ECB);
++	serial_write_reg(p, UART_LCR, 0x0); /* Operational mode */
++	serial_write_reg(p, UART_IER, 0x0);
++	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
++	serial_write_reg(p, UART_DLL, uart_context[unum].dll);
++	serial_write_reg(p, UART_DLM, uart_context[unum].dlh);
++	serial_write_reg(p, UART_LCR, 0x0); /* Operational mode */
++	serial_write_reg(p, UART_IER, uart_context[unum].ier);
++	serial_write_reg(p, UART_FCR, 0xA1);
++	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
++	serial_write_reg(p, UART_EFR, efr);
++	serial_write_reg(p, UART_LCR, UART_LCR_WLEN8);
++	serial_write_reg(p, UART_OMAP_SCR, uart_context[unum].scr);
++	serial_write_reg(p, UART_OMAP_WER, uart_context[unum].wer);
++	serial_write_reg(p, UART_OMAP_SYSC, uart_context[unum].sysc);
++	serial_write_reg(p, UART_OMAP_MDR1, 0x00); /* UART 16x mode */
++}
++EXPORT_SYMBOL(omap3_uart_restore_context);
 +#endif /* CONFIG_ARCH_OMAP3 */
-Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/gpmc.h
++
+ static struct platform_device serial_device = {
+ 	.name			= "serial8250",
+ 	.id			= PLAT8250_DEV_PLATFORM,
+Index: linux-omap-2.6/include/linux/serial_reg.h
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/gpmc.h	2008-09-25 16:26:40.000000000 +0530
-+++ linux-omap-2.6/arch/arm/plat-omap/include/mach/gpmc.h	2008-09-25 16:27:13.000000000 +0530
-@@ -52,6 +52,7 @@
- #define GPMC_CONFIG1_FCLK_DIV2          (GPMC_CONFIG1_FCLK_DIV(1))
- #define GPMC_CONFIG1_FCLK_DIV3          (GPMC_CONFIG1_FCLK_DIV(2))
- #define GPMC_CONFIG1_FCLK_DIV4          (GPMC_CONFIG1_FCLK_DIV(3))
-+#define GPMC_CONFIG7_CSVALID		(1 << 6)
+--- linux-omap-2.6.orig/include/linux/serial_reg.h	2008-09-25 16:26:40.000000000 +0530
++++ linux-omap-2.6/include/linux/serial_reg.h	2008-09-25 16:27:13.000000000 +0530
+@@ -323,6 +323,7 @@
+ #define UART_OMAP_MVER		0x14	/* Module version register */
+ #define UART_OMAP_SYSC		0x15	/* System configuration register */
+ #define UART_OMAP_SYSS		0x16	/* System status register */
++#define UART_OMAP_WER		0x17	/* Wake-up enable register */
  
- /*
-  * Note that all values in this struct are in nanoseconds, while
-@@ -103,6 +104,8 @@ extern int gpmc_cs_request(int cs, unsig
- extern void gpmc_cs_free(int cs);
- extern int gpmc_cs_set_reserved(int cs, int reserved);
- extern int gpmc_cs_reserved(int cs);
-+extern void omap3_gpmc_save_context(void);
-+extern void omap3_gpmc_restore_context(void);
- extern void __init gpmc_init(void);
+ #endif /* _LINUX_SERIAL_REG_H */
  
+Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/serial.h
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/serial.h	2008-09-25 16:26:40.000000000 +0530
++++ linux-omap-2.6/arch/arm/plat-omap/include/mach/serial.h	2008-09-25 16:27:13.000000000 +0530
+@@ -40,4 +40,8 @@
+ 			__ret;						\
+ 			})
+ 
++#ifndef __ASSEMBLY__
++extern void omap3_uart_save_context(int unum);
++extern void omap3_uart_restore_context(int unum);
++#endif /* __ASSEMBLY__ */
  #endif
 
