@@ -1,44 +1,30 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: NULL pointer dereference when using ALSA SOC
-Date: Fri, 26 Sep 2008 10:56:37 +0300
-Message-ID: <20080926105637.5d8a8a4d.jarkko.nikula@nokia.com>
-References: <dfeb90390809222326s44162f94sf42f96fdfc0a0690@mail.gmail.com>
-	<200809252220.43229.siarhei.siamashka@gmail.com>
+From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+Subject: CPU idle init sequence
+Date: Fri, 26 Sep 2008 11:02:58 +0300
+Message-ID: <1222416178.23638.9.camel@kj-ubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:59030 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751135AbYIZH50 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 03:57:26 -0400
-In-Reply-To: <200809252220.43229.siarhei.siamashka@gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:16491 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751760AbYIZH5f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 03:57:35 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Siarhei Siamashka <siarhei.siamashka@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, =?ISO-8859-1?Q?H=F6gander?= Jouni <jouni.hogander@nokia.com>
 
-On Thu, 25 Sep 2008 22:20:43 +0300
-"ext Siarhei Siamashka" <siarhei.siamashka@gmail.com> wrote:
+Hi Rajendra,
 
-> On Tuesday 23 September 2008, Arun KS wrote:
-> > Hi all,
-> >
-> > I am writing an ASOC driver for tlvaic23 on osk5912 platform.
-> [...]
-> 
-> Hi. Coincidentally I have been hacking the old aic23 driver in the
-> last few days to make it work on Nokia 770. Don't know if these fixes
-> have any value for linux-omap tree, but I would be glad if anybody
-> finds some of them useful. Patch against old 2.6.16 kernel can be
-> found here:
->
-Hi
+We found a problem in the sequencing of omap_pm_init and
+omap3_idle_init. It seems that cpu idle is initialized before pm. This
+can cause omap_sram_idle to be called before the neccessary inits are
+done. I'll post a patch that fixes this by moving the omap3_idle_init
+call to omap_pm_init. Check it out if it has any problems.
 
-sound/arm/omap is likely to disappear but with ASoC codec driver for
-aic23 and machine driver for OSK, those would allow quite easily to add
-support for 770 as well and to rotate support patch to 770 via
-alsa-devel list.
+Compile & boot tested the patch on SDP, with and without
+CONFIG_CPU_IDLE.
 
-
-Jarkko
+regards,
+Kalle
