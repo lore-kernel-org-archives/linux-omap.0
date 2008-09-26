@@ -1,54 +1,65 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: MUSB OTG Interrupts
-Date: Fri, 26 Sep 2008 20:54:28 +0300
-Message-ID: <20080926175427.GE9890@frodo>
-References: <1f11a5490809260900q43d1524fn8811e9516663bc12@mail.gmail.com>
-Reply-To: me@felipebalbi.com
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH] watchdog: fix typo in omap_wdt.c
+Date: Fri, 26 Sep 2008 23:32:13 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC95BB@dbde02.ent.ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC959A@dbde02.ent.ti.com>
+ <20080926175237.GD9890@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:39948 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752418AbYIZRyg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 13:54:36 -0400
-Content-Disposition: inline
-In-Reply-To: <1f11a5490809260900q43d1524fn8811e9516663bc12@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53913 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751922AbYIZSC2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 14:02:28 -0400
+In-Reply-To: <20080926175237.GD9890@frodo>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ashwin Bihari <abihari@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "me@felipebalbi.com" <me@felipebalbi.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
 
-On Fri, Sep 26, 2008 at 12:00:17PM -0400, Ashwin Bihari wrote:
-> Greetings,
+> -----Original Message-----
+> From: Felipe Balbi [mailto:me@felipebalbi.com] 
+> Sent: Friday, September 26, 2008 11:23 PM
+> To: Gadiyar, Anand
+> Cc: linux-omap@vger.kernel.org; felipe.balbi@nokia.com
+> Subject: Re: [PATCH] watchdog: fix typo in omap_wdt.c
 > 
-> I've got a very curious problem with my OMAP3 based  board. I'm using
-> the OMAPZOOM kernel v2.6.27-rc3 and have enabled MUSB in OTG mode
-> (both host and perihperhal). I've got the file-backed-storage gadget.
-> If I plug the mini-B connector to the board, it gets the appropriate
-> interrupt and recognizes that it needs to be operate in peripheral
-> mode and goes about it's business. However, when I plug in the mini-A
-> connector to the board, there is no interrupt and no activity. I can
-> then unplug the mini-A connector, and plug in the mini-B connector to
-> get the interrupts and activity again.
+> On Fri, Sep 26, 2008 at 09:20:14PM +0530, Gadiyar, Anand wrote:
+> > From: Anand Gadiyar <gadiyar@ti.com>
+> > 
+> > Fix typo in omap_wdt.c introduced by a recent change
+> > 
+> > Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> > ---
+> >  drivers/watchdog/omap_wdt.c |    2 +-
+> >  1 files changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > Index: tony/drivers/watchdog/omap_wdt.c
+> > ===================================================================
+> > --- tony.orig/drivers/watchdog/omap_wdt.c	2008-09-25 
+> 16:45:08.000000000 +0530
+> > +++ tony/drivers/watchdog/omap_wdt.c	2008-09-26 
+> 21:14:48.059042569 +0530
+> > @@ -283,7 +283,7 @@ static int __init omap_wdt_probe(struct 
+> >  	}
+> >  
+> >  	if (omap_wdt_dev) {
+> > -		ret - EBUSY;
+> > +		ret = -EBUSY;
+> >  		goto err_busy;
+> >  	}
 > 
-> If I boot the board up with the mini-A connector plugged in, it is
-> properly found/recognized during driver installation and any devices
-> attached are properly found and can be used. The IRQs at this time
-> fire properly. I have a thumb drive connected to a high speed hub
-> connected to the OMAP board, and the drive is found, I can mount it
-> and do everything. Now, in this particular case, if I unplug the
-> mini-A connector and plug either the mini-A or mini-B connector,
-> nothing happens at all.
+> Those patches weren't applied to linux-omap yet, so this change should
+> be melded into the patch that introduced it. It's better to 
+> resend that
+> patch then to create a messed up bisect line.
 > 
-> Why am I only getting interrupts with the mini-B connector and not the
-> mini-A connector? Additionally, why does everything fail after my
-> second scenario above?
+> -- 
+> balbi
 
-Id pin interrupt handling is not done yet on twl4030-usb, I'm planning
-to finish that part when we finish fixing twl children registration.
+Of course they were merged. I saw this warning when I compiled linux-omap,
+when sending in that pin-muxing patch.
 
-If you have to do that and send a patch, that's ok. Just be sure to make
-it on top of latest twl4030-usb.c which I moved to platform_driver.
-
--- 
-balbi
+- Anand
