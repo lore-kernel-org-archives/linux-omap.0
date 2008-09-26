@@ -1,37 +1,27 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: [PATCH 9/9] i2c: move twl4030-madc to new registration style
-Date: Fri, 26 Sep 2008 13:01:59 -0700
-Message-ID: <5e088bd90809261301r66611a85u66ccdccd3e18fa89@mail.gmail.com>
-References: <1222427996-7018-1-git-send-email-felipe.balbi@nokia.com>
-	 <1222427996-7018-9-git-send-email-felipe.balbi@nokia.com>
-	 <1222427996-7018-10-git-send-email-felipe.balbi@nokia.com>
-	 <200809261250.50893.david-b@pacbell.net>
+From: Daniel Schaeffer <daniel.schaeffer@timesys.com>
+Subject: OMAP3EVM LCD red tint
+Date: Fri, 26 Sep 2008 16:20:47 -0400
+Message-ID: <48DD441F.6080106@timesys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:39864 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753086AbYIZUCA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 16:02:00 -0400
-Received: by wf-out-1314.google.com with SMTP id 27so1272631wfd.4
-        for <linux-omap@vger.kernel.org>; Fri, 26 Sep 2008 13:01:59 -0700 (PDT)
-In-Reply-To: <200809261250.50893.david-b@pacbell.net>
-Content-Disposition: inline
+Received: from exchange07.timesys.com ([209.114.137.35]:29073 "EHLO
+	exchange07.timesys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752050AbYIZU0I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 16:26:08 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Mikko Ylinen <mikko.k.ylinen@nokia.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Sep 26, 2008 at 12:50 PM, David Brownell <david-b@pacbell.net> wrote:
-> Steve, if Overo wires out any of the ADC channels on that
-> one connector, you may want to come up with a better fox.
+Has anyone looked into why the LCD display on the OMAP3EVM is always 
+tinted red? I created a couple of color test images that I cat'ed to 
+/dev/fb and it looks like the blue color channel is completely ignored. 
+  I was testing on v2.6.26-omap2 but is doesn't look like there have 
+been any changes to the fb driver since then so I'm assuming the issue 
+is also present in the head of the git tree.
 
-Overo does bring out the ADC channels to one of the 2 70 pin connectors.
+Regards,
 
-Let's go ahead with your proposed patch for now.  I will revisit it
-when I get an Overo "buddy" board that actually makes the ADC channels
-accessible.  At that point I can prepare a patch that includes all
-changes required to get the ADC stuff functioning.
+Daniel Schaeffer
 
-Steve
