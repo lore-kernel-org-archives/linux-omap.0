@@ -1,68 +1,48 @@
-From: Mikko Ylinen <mikko.k.ylinen@nokia.com>
-Subject: Re: [PATCH 9/9] i2c: move twl4030-madc to new registration style
-Date: Sat, 27 Sep 2008 10:37:17 +0300
-Message-ID: <48DDE2AD.1030202@nokia.com>
-References: <1222427996-7018-1-git-send-email-felipe.balbi@nokia.com> <1222427996-7018-9-git-send-email-felipe.balbi@nokia.com> <1222427996-7018-10-git-send-email-felipe.balbi@nokia.com> <200809261009.12639.david-b@pacbell.net> <20080926174643.GA9890@frodo>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: OMAP34xx vs OMAP 35xx
+Date: Sat, 27 Sep 2008 13:08:22 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301AFF40D64@dbde02.ent.ti.com>
+References: <dbdb2ea60809260745m3652748bm2d2773213c57a6b5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:54606 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750973AbYI0Hhs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Sep 2008 03:37:48 -0400
-In-Reply-To: <20080926174643.GA9890@frodo>
+Received: from comal.ext.ti.com ([198.47.26.152]:54852 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750804AbYI0Hic convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Sep 2008 03:38:32 -0400
+In-Reply-To: <dbdb2ea60809260745m3652748bm2d2773213c57a6b5@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com, David Brownell <david-b@pacbell.net>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: twebb <taliaferro62@gmail.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-Hi,
+Twebb,
 
-Felipe Balbi wrote:
-> On Fri, Sep 26, 2008 at 10:09:12AM -0700, David Brownell wrote:
->> Passing those registers in platform data seems bizarre.
->> Doesn't the MADC code know its own register offsets??
-> 
-> there two of them. i[ms]r[12].
+The "3" in OMAP3 stands for 3rd generation of OMAP devices - both OMAP34x and OMAP35x.
 
-twl4030 has two interrupt lines. For INT1 and INT2
-lines you should use I[MS]R1 and I[MS]R2, respectively.
+Besides the silicon technology differences (and minor pin-outs) there are varied number of changes between these processor families. One key difference is that OMAP35x family comprises of OMAP3503 (ARM only device), OMAP3515 (ARM + Graphics), OMAP3525 (ARM + C64x+ based IVA) and OMAP3530 (ARM + Graphics + IVA). OMAP3430 will be more closer to OMAP3530.
+See http://focus.ti.com/general/docs/gencontent.tsp?contentId=46725 for more details.
 
-This is board specific information. Beagleboard uses
-INT1.
+As for OMAP3430SDP and OMAP3EVM, the differences are many. They use cases for both these boards were quite different. It translates to form-factor, on-board peripherals, ...
 
->> The platform data should probably say which ADC channels
->> are wired up...
+Best regards,
+Sanjeev
+________________________________________
+From: linux-omap-owner@vger.kernel.org [linux-omap-owner@vger.kernel.org] On Behalf Of twebb [taliaferro62@gmail.com]
+Sent: Friday, September 26, 2008 8:15 PM
+To: linux-omap@vger.kernel.org Mailing List
+Subject: OMAP34xx vs OMAP 35xx
 
-Yeah, I thought about this at the time of writing the driver
-but dropped the idea because of problems with twl4030-core.
+I'm relatively new to the list and hoping someone can clarify a few
+things.  Does "OMAP3" imply support of both 34xx and 35xx?  When the
+term "OMAP3 EVM" is used, does this mean OMAP3430 SDP only or does it
+include OMAP35x EVM?
 
-I think this is a good idea and should be re-considered now.
+Thanks.
+twebb
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
->> And no ADC lines are even hooked up on Beagle, so the right
->> fix is just to not provide madc platform data on beagle.
->> Probably the same is true on some other boards.
-> 
-> Yeah, i wasn't sure if beagle and overo were using them, so I put
-> anyways.
-
-Not completely true. MADC has 16 channels out of which only 6
-are truly general purpose channels. Some channels are reserved
-for battery charger interface (BCI) and some for chip's internal
-purposes.
-
-Boards having twl4030 should have at least VBAT (ch 12),
-V backup battery (ch 9), and VBUS (ch 8) measurement available.
-
-On Beagleboard you can measure these three channels.
-
->> Plus:  MADC is just a set of ADC channels, right?
->> If so, the driver should have a comment saying that.
-> 
-> Mikko should comment on that as he wrote the driver.
-
-How detailed information would you like to have here?
-
--- 
-Regards, Mikko
