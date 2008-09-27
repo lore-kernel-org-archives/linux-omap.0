@@ -1,27 +1,45 @@
-From: Daniel Schaeffer <daniel.schaeffer@timesys.com>
-Subject: OMAP3EVM LCD red tint
-Date: Fri, 26 Sep 2008 16:20:47 -0400
-Message-ID: <48DD441F.6080106@timesys.com>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: [PATCH 5/8] i2c: move twl4030-usb to platform_device
+Date: Fri, 26 Sep 2008 20:13:27 -0700
+Message-ID: <5e088bd90809262013w1e300ce3g257a3ad8fa7b065d@mail.gmail.com>
+References: <1222422061-3940-1-git-send-email-felipe.balbi@nokia.com>
+	 <1222422061-3940-2-git-send-email-felipe.balbi@nokia.com>
+	 <1222422061-3940-3-git-send-email-felipe.balbi@nokia.com>
+	 <1222422061-3940-4-git-send-email-felipe.balbi@nokia.com>
+	 <1222422061-3940-5-git-send-email-felipe.balbi@nokia.com>
+	 <1222422061-3940-6-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from exchange07.timesys.com ([209.114.137.35]:29073 "EHLO
-	exchange07.timesys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752050AbYIZU0I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 16:26:08 -0400
+Received: from wf-out-1314.google.com ([209.85.200.172]:58136 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751670AbYI0DN3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2008 23:13:29 -0400
+Received: by wf-out-1314.google.com with SMTP id 27so1410995wfd.4
+        for <linux-omap@vger.kernel.org>; Fri, 26 Sep 2008 20:13:28 -0700 (PDT)
+In-Reply-To: <1222422061-3940-6-git-send-email-felipe.balbi@nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Felipe Balbi <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-Has anyone looked into why the LCD display on the OMAP3EVM is always 
-tinted red? I created a couple of color test images that I cat'ed to 
-/dev/fb and it looks like the blue color channel is completely ignored. 
-  I was testing on v2.6.26-omap2 but is doesn't look like there have 
-been any changes to the fb driver since then so I'm assuming the issue 
-is also present in the head of the git tree.
+On Fri, Sep 26, 2008 at 2:40 AM, Felipe Balbi <felipe.balbi@nokia.com> wrote:
+> use new style twl4030-core to register a platform_device
+> for twl4030-usb.
+>
+> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> ---
+>  arch/arm/mach-omap2/board-2430sdp.c     |    6 +
+>  arch/arm/mach-omap2/board-3430sdp.c     |    5 +
+>  arch/arm/mach-omap2/board-ldp.c         |    7 +
+>  arch/arm/mach-omap2/board-omap2evm.c    |    5 +
+>  arch/arm/mach-omap2/board-omap3beagle.c |    7 +
+>  arch/arm/mach-omap2/board-omap3evm.c    |    6 +-
 
-Regards,
+board-overo.c should have the same changes made.
 
-Daniel Schaeffer
+Should I submit a separate patch or can you incorporate in the the
+next revision?
 
+Steve
