@@ -1,48 +1,84 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: OMAP34xx vs OMAP 35xx
-Date: Sat, 27 Sep 2008 13:08:22 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301AFF40D64@dbde02.ent.ti.com>
-References: <dbdb2ea60809260745m3652748bm2d2773213c57a6b5@mail.gmail.com>
+From: "arun c" <arun.edarath@gmail.com>
+Subject: Re: OMAP3EVM LCD red tint
+Date: Sat, 27 Sep 2008 03:46:18 -0400
+Message-ID: <c656a4d20809270046u341aec27k6d896d4b42e799d4@mail.gmail.com>
+References: <48DD441F.6080106@timesys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54852 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750804AbYI0Hic convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Sep 2008 03:38:32 -0400
-In-Reply-To: <dbdb2ea60809260745m3652748bm2d2773213c57a6b5@mail.gmail.com>
-Content-Language: en-US
+Received: from ti-out-0910.google.com ([209.85.142.186]:25868 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751397AbYI0HqU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Sep 2008 03:46:20 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so530086tic.23
+        for <linux-omap@vger.kernel.org>; Sat, 27 Sep 2008 00:46:18 -0700 (PDT)
+In-Reply-To: <48DD441F.6080106@timesys.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: twebb <taliaferro62@gmail.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: Daniel Schaeffer <daniel.schaeffer@timesys.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Twebb,
+Hi Daniel Schaeffer
 
-The "3" in OMAP3 stands for 3rd generation of OMAP devices - both OMAP34x and OMAP35x.
+On Fri, Sep 26, 2008 at 4:20 PM, Daniel Schaeffer
+<daniel.schaeffer@timesys.com> wrote:
+> Has anyone looked into why the LCD display on the OMAP3EVM is always tinted
+> red? I created a couple of color test images that I cat'ed to /dev/fb and it
+> looks like the blue color channel is completely ignored.  I was testing on
+> v2.6.26-omap2 but is doesn't look like there have been any changes to the fb
+> driver since then so I'm assuming the issue is also present in the head of
+> the git tree.
+>
+> Regards,
+>
+> Daniel Schaeffer
+>
 
-Besides the silicon technology differences (and minor pin-outs) there are varied number of changes between these processor families. One key difference is that OMAP35x family comprises of OMAP3503 (ARM only device), OMAP3515 (ARM + Graphics), OMAP3525 (ARM + C64x+ based IVA) and OMAP3530 (ARM + Graphics + IVA). OMAP3430 will be more closer to OMAP3530.
-See http://focus.ti.com/general/docs/gencontent.tsp?contentId=46725 for more details.
+Try the patch below(Remember that you may have to manually edit because
+this patch is against current HEAD)
 
-As for OMAP3430SDP and OMAP3EVM, the differences are many. They use cases for both these boards were quite different. It translates to form-factor, on-board peripherals, ...
 
-Best regards,
-Sanjeev
-________________________________________
-From: linux-omap-owner@vger.kernel.org [linux-omap-owner@vger.kernel.org] On Behalf Of twebb [taliaferro62@gmail.com]
-Sent: Friday, September 26, 2008 8:15 PM
-To: linux-omap@vger.kernel.org Mailing List
-Subject: OMAP34xx vs OMAP 35xx
+diff --git a/drivers/video/omap/lcd_omap3evm.c
+b/drivers/video/omap/lcd_omap3evm.c
+index a564ca5..821bafe 100644
+--- a/drivers/video/omap/lcd_omap3evm.c
++++ b/drivers/video/omap/lcd_omap3evm.c
+@@ -44,6 +44,8 @@
+ #define ENABLE_VDAC_DEV_GRP	0x20
+ #define ENABLE_VPLL2_DEDICATED	0x05
+ #define ENABLE_VPLL2_DEV_GRP	0xE0
++#define TWL4030_VPLL2_DEV_GRP	0x33
++#define TWL4030_VPLL2_DEDICATED	0x36
 
-I'm relatively new to the list and hoping someone can clarify a few
-things.  Does "OMAP3" imply support of both 34xx and 35xx?  When the
-term "OMAP3 EVM" is used, does this mean OMAP3430 SDP only or does it
-include OMAP35x EVM?
+ #define TWL_LED_LEDEN		0x00
+ #define TWL_PWMA_PWMAON		0x00
+@@ -86,12 +88,24 @@ static void omap3evm_panel_cleanup(struct lcd_panel *panel)
 
-Thanks.
-twebb
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ static int omap3evm_panel_enable(struct lcd_panel *panel)
+ {
++	if (system_rev > OMAP3430_REV_ES1_0) {
++		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			ENABLE_VPLL2_DEDICATED, TWL4030_VPLL2_DEDICATED);
++		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			ENABLE_VPLL2_DEV_GRP, TWL4030_VPLL2_DEV_GRP);
++	}
+ 	omap_set_gpio_dataout(LCD_PANEL_ENABLE_GPIO, 0);
+ 	return 0;
+ }
 
+ static void omap3evm_panel_disable(struct lcd_panel *panel)
+ {
++	if (system_rev > OMAP3430_REV_ES1_0) {
++		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x0,
++			TWL4030_VPLL2_DEDICATED);
++		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x0,
++			TWL4030_VPLL2_DEV_GRP);
++	}
+ 	omap_set_gpio_dataout(LCD_PANEL_ENABLE_GPIO, 1);
+ }
+
+
+Regards,
+Arun C
