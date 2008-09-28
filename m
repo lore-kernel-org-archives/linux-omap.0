@@ -1,89 +1,80 @@
-From: Felipe Balbi <me@felipebalbi.com>
+From: David Brownell <david-b@pacbell.net>
 Subject: Re: [PATCH 11/9] move twl4030-gpio to drivers/gpio
-Date: Sun, 28 Sep 2008 06:14:13 +0300
-Message-ID: <20080928031411.GF8468@frodo>
-References: <1222427996-7018-1-git-send-email-felipe.balbi@nokia.com> <20080927222900.GC8468@frodo> <20080927230902.GD8468@frodo> <200809271645.20782.david-b@pacbell.net>
-Reply-To: me@felipebalbi.com
+Date: Sat, 27 Sep 2008 22:16:14 -0700
+Message-ID: <200809272216.14672.david-b@pacbell.net>
+References: <1222427996-7018-1-git-send-email-felipe.balbi@nokia.com> <200809271645.20782.david-b@pacbell.net> <20080928031411.GF8468@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:41680 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752353AbYI1DOZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Sep 2008 23:14:25 -0400
+Received: from smtp126.sbc.mail.sp1.yahoo.com ([69.147.65.185]:40629 "HELO
+	smtp126.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750818AbYI1FQQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 28 Sep 2008 01:16:16 -0400
+In-Reply-To: <20080928031411.GF8468@frodo>
 Content-Disposition: inline
-In-Reply-To: <200809271645.20782.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: me@felipebalbi.com, Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Jean Delvare <khali@linux-fr.org>
+To: me@felipebalbi.com
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Jean Delvare <khali@linux-fr.org>
 
-On Sat, Sep 27, 2008 at 04:45:20PM -0700, David Brownell wrote:
-> On Saturday 27 September 2008, Felipe Balbi wrote:
-> > We need something like the patch below (I can't find a substitute
-> > to twl4030_set_gpio_edge_ctrl and twl4030_set_gpio_debounce):
->=20
-> Something like that, yes.  I have other patches queued up though.
->=20
-> And meanwhile, your build seems goofed ... fix that first.
+On Saturday 27 September 2008, Felipe Balbi wrote:
+> On Sat, Sep 27, 2008 at 04:45:20PM -0700, David Brownell wrote:
+> > On Saturday 27 September 2008, Felipe Balbi wrote:
+> > > We need something like the patch below (I can't find a substitute
+> > > to twl4030_set_gpio_edge_ctrl and twl4030_set_gpio_debounce):
+> > 
+> > Something like that, yes.  I have other patches queued up though.
+> > 
+> > And meanwhile, your build seems goofed ... fix that first.
+> 
+> Yeah, it only happens when both mmc and twl4030-gpio are built as
+> modules. Still sounds weird since we have EXPORT_SYMBOL() for those
+> twl-specific crap.
 
-Yeah, it only happens when both mmc and twl4030-gpio are built as
-modules. Still sounds weird since we have EXPORT_SYMBOL() for those
-twl-specific crap.
+Don't yet build twl4030 as a module.  The vmlinux object can't
+link against symbols in other objects.  ;)
 
-Basically I'm using 3040sdp defconfig changing twl4030-gpio and mmc to
-modules.
+As I noted, the modular option is for build testing; when this
+goes to mainline, this code should be able to build on most any
+platform.  (Not just OMAP; not just ARM.)  I don't think any of
+the OMAP boards which actually use this code will be able to use
+that as a module, though.
 
-> For the moment I'm waiting until HSMMC works again in the OMAP
-> tree before I submit patches for any of those issues ... and
-> some of them imply updates from upstream.  Like these two:
->=20
->   http://marc.info/?l=3Dlinux-kernel&m=3D122239480403730&w=3D2
->   http://marc.info/?l=3Dlinux-kernel&m=3D122239472903349&w=3D2
->=20
-> For the "edge control" thing, I have a patch pushing that into
-> the standard IRQF_TRIGGER_{RISING,FALLING} and set_irq_type()
-> calls ... there was never a need for a twl-specific call here.
->=20
-> For debouncing, see this LKML RFC:
->=20
->   http://marc.info/?l=3Dlinux-kernel&m=3D122228602206108&w=3D2
+When hsmmc.c behaves again, I've got patches to get rid of its
+use of those twl-specific symbols.  Then that linkage issue
+will go away.
 
-the debouncing mechanism looks really good :-)
 
-> > @@ -48,7 +49,7 @@
-> > =A0
-> > =A0static int hsmmc_card_detect(int irq)
-> > =A0{
-> > -=A0=A0=A0=A0=A0=A0=A0return twl4030_get_gpio_datain(irq - TWL4030_=
-GPIO_IRQ_BASE);
-> > +=A0=A0=A0=A0=A0=A0=A0return gpio_get_value(irq - TWL4030_GPIO_IRQ_=
-BASE);
->=20
-> That's a non-portable version of irq_to_gpio() ... and one
-> which should use gpio_get_value_cansleep().  My patches use
-> a simpler scheme, which among other things lets other GPIOs
-> be used for card detect.
->=20
-> (I understand that not all OMAP3 customers want to use twl4030
-> for their power management ... and in any case, having this kind
-> of needless dependency between drivers is a Bad Thing.)
+> > For debouncing, see this LKML RFC:
+> > 
+> >   http://marc.info/?l=linux-kernel&m=122228602206108&w=2
+> 
+> the debouncing mechanism looks really good :-)
 
-That's true. Didn't got that at first look. We should use something
-like:
+Kind of brainless ... except for the observation that
+we pretty much need one of those.  ;)
 
-return gpio_get_value_cansleep(irq_to_gpio(irq));
 
-right ??
+> That's true. Didn't got that at first look. We should use something
+> like:
+> 
+> return gpio_get_value_cansleep(irq_to_gpio(irq));
+> 
+> right ??
 
-it's good that you've been playing with twl4030-gpio. You've written
-gpiolib anyways, so you might better than I do where stuff should go.
+I want to avoid the irq_to_gpio() bit.   Eventually the whole
+MMC/SD initialization needs reworking ... I doubt Overo will be
+the only board using one SD for storage, and an SDIO for WLAN.
 
---=20
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> it's good that you've been playing with twl4030-gpio. You've written
+> gpiolib anyways, so you might better than I do where stuff should go.
+
+Or in some cases:  where it's about time to add mechanisms
+to gpiolib.  ;)
+
+- dave
+
