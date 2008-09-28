@@ -1,50 +1,117 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: MMC broken on beagleboard with current git
-Date: Sun, 28 Sep 2008 15:46:43 +0300
-Message-ID: <20080928124641.GB8254@atomide.com>
-References: <FDAFB709-68B8-478D-8321-1322449B9A7F@student.utwente.nl> <20080925085142.GC5222@atomide.com> <77EE6A0D-895B-4E0B-B9C4-18D333BFF85C@student.utwente.nl> <20080925094718.GE5222@atomide.com> <4D346DA2-6C57-48A7-AC4E-2191C44497CF@student.utwente.nl> <20080925103952.GJ5222@atomide.com> <5e088bd90809250824q38fb95e0q7a9e3f8a24a4d845@mail.gmail.com> <20080926074208.GC7962@atomide.com> <20080926111351.GA8736@atomide.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch 2.6.27-rc7-omap1-git] beagle: two more GPIOs
+Date: Sun, 28 Sep 2008 10:55:04 -0700
+Message-ID: <200809281055.05000.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:65195 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751962AbYI1Mn6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Sep 2008 08:43:58 -0400
+Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:37048 "HELO
+	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751896AbYI1RzI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 28 Sep 2008 13:55:08 -0400
 Content-Disposition: inline
-In-Reply-To: <20080926111351.GA8736@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: Koen Kooi <k.kooi@student.utwente.nl>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [080926 14:11]:
-> * Tony Lindgren <tony@atomide.com> [080926 10:40]:
-> > * Steve Sakoman <sakoman@gmail.com> [080925 18:24]:
-> > > On Thu, Sep 25, 2008 at 3:39 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > > 
-> > > > Hmm, I don't understand how it could work on 3430sdp...
-> > > >
-> > > > Looks like board-omap3beagle.c calls hsmmc_init() just like
-> > > > board-3430sdp.c. Maybe timings have changed and you need
-> > > > a longer delay somewhere during the init?
-> > > 
-> > > I can confirm that mmc is also broken on Overo.  I'll spend some time
-> > > today investigating.
-> > 
-> > I'll double check on omap3430sdp.
-> 
-> Hmm, MMC does not seem to work any longer on 3430sdp either. I guess I
-> have broken it, sorry.
-> 
-> I've also confirmed that undoing c434c15d28c82d92e55897bd265c423e9ab69362
-> makes it work again.
-> 
-> I swear it was working when I last tested it.. I'll try to debug it
-> further, but I may not get to it for real until on Monday.
-> 
-> I still suspect some timing change caused by the init changes..
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-I've reverted c434c15d28c82d92e55897bd265c423e9ab69362 as I may not be
-able to debug it until Wednesday.
+Request two more GPIOs on Beagle:  MMC write protect, DVI enable.
 
-Tony
+Also define the first OMAP3 GPIO mux config symbols, with a new
+naming convention.  Examples:
+
+  - GPIO42 is bidirectional, and uses external pull up/down (if any);
+  - GPIO42_UP is bidirectional, with an internal pullup;
+  - GPIO42_DOWN is bidirectional, with an internal pulldown.
+  - GPIO42_OUT is output-only, and needs no pullup or pulldown.
+
+All of those would be fully functional through the standard GPIO
+interface as well as the legacy OMAP-only one, except GPIO42_OUT
+which won't let you read the actual pin value after setting it.
+
+There's no special off-mode support for these particular pins;
+on Beagle they have external pullups or pulldowns.
+
+(OMAP2 can use this naming convention too, except that since it
+has no input-enable the "_OUT" convention can't be used there.)
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+p.s. Looks like for GPIOs we could probably stop requiring
+the prefix saying which ball it uses on one BGA package...
+
+ arch/arm/mach-omap2/board-omap3beagle.c |   11 +++++++++++
+ arch/arm/mach-omap2/mux.c               |    9 +++++++++
+ arch/arm/plat-omap/include/mach/mux.h   |   10 +++++++++-
+ 3 files changed, 29 insertions(+), 1 deletion(-)
+
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -43,6 +43,7 @@
+ #include <mach/common.h>
+ #include <mach/gpmc.h>
+ #include <mach/nand.h>
++#include <mach/mux.h>
+ 
+ 
+ #define GPMC_CS0_BASE  0x60
+@@ -255,7 +256,17 @@ static void __init omap3_beagle_init(voi
+ 	omap_board_config = omap3_beagle_config;
+ 	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
+ 	omap_serial_init();
++
++	omap_cfg_reg(AH8_34XX_GPIO29);
++	gpio_request(29, "mmc0_wp");
++	gpio_direction_input(29);
+ 	hsmmc_init();
++
++	omap_cfg_reg(J25_34XX_GPIO170);
++	gpio_request(170, "DVI_nPD");
++	/* REVISIT leave DVI powered down until it's needed ... */
++	gpio_direction_output(170, true);
++
+ 	usb_musb_init();
+ 	usb_ehci_init();
+ 	omap3beagle_flash_init();
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -373,6 +373,15 @@ MUX_CFG_34XX("AA13_3430_USB3HS_TLL_D6", 
+ 		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+ MUX_CFG_34XX("AA12_3430_USB3HS_TLL_D7", 0x172,
+ 		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
++
++
++/* 34XX GPIO - bidirectional, unless the name has an "_OUT" suffix.
++ * no internal pullup/pulldown without "_UP" or "_DOWN" suffix.
++ */
++MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+ };
+ 
+ #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
+--- a/arch/arm/plat-omap/include/mach/mux.h
++++ b/arch/arm/plat-omap/include/mach/mux.h
+@@ -723,8 +723,16 @@ enum omap34xx_index {
+ 	AB12_3430_USB3HS_TLL_DATA4,
+ 	AB13_3430_USB3HS_TLL_DATA5,
+ 	AA13_3430_USB3HS_TLL_DATA6,
+-	AA12_3430_USB3HS_TLL_DATA7
++	AA12_3430_USB3HS_TLL_DATA7,
+ 
++	/* 34xx GPIO
++	 *  - normally these are bidirectional, no internal pullup/pulldown
++	 *  - use "_UP" suffix (GPIO3_UP) if internal pullup is configured
++	 *  - use "_DOWN" suffix (GPIO3_DOWN) with internal pulldown
++	 *  - use "_OUT" suffix (GPIO3_OUT) for output-only pins
++	 */
++	AH8_34XX_GPIO29,
++	J25_34XX_GPIO170,
+ };
+ 
+ struct omap_mux_cfg {
