@@ -1,49 +1,257 @@
 From: Ben Dooks <ben-linux@fluff.org>
-Subject: Re: [i2c] [PATCH 0/8] Updates for i2c-omap from linux-omap tree
-	for review, v2
-Date: Mon, 29 Sep 2008 23:23:10 +0100
-Message-ID: <20080929222310.GP2716@fluff.org.uk>
-References: <1222329234-31473-1-git-send-email-tony@atomide.com>
+Subject: Re: [i2c] [PATCH 3/8] i2c-omap: Add high-speed support to omap-i2c
+Date: Mon, 29 Sep 2008 23:25:49 +0100
+Message-ID: <20080929222549.GQ2716@fluff.org.uk>
+References: <1222329234-31473-1-git-send-email-tony@atomide.com> <1222329234-31473-2-git-send-email-tony@atomide.com> <1222329234-31473-3-git-send-email-tony@atomide.com> <1222329234-31473-4-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from aeryn.fluff.org.uk ([87.194.8.8]:54780 "EHLO
+Received: from aeryn.fluff.org.uk ([87.194.8.8]:54808 "EHLO
 	kira.home.fluff.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751477AbYI2WXP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 18:23:15 -0400
+	with ESMTP id S1751818AbYI2WZ7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 18:25:59 -0400
 Content-Disposition: inline
-In-Reply-To: <1222329234-31473-1-git-send-email-tony@atomide.com>
+In-Reply-To: <1222329234-31473-4-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: i2c@lm-sensors.org, linux-omap@vger.kernel.org
+Cc: i2c@lm-sensors.org, linux-omap@vger.kernel.org, Syed Mohammed Khasim <x0khasim@ti.com>
 
-On Thu, Sep 25, 2008 at 10:53:46AM +0300, Tony Lindgren wrote:
-> Hi all,
+On Thu, Sep 25, 2008 at 10:53:49AM +0300, Tony Lindgren wrote:
+> From: Syed Mohammed Khasim <x0khasim@ti.com>
 > 
-> Here's a repost of the whole series, the first series had a compile
-> error starting with one of the patches. Sorry for the extra noise.
+> Omap2430 has additional support for high-speed I2C.
 > 
-> This series contains pending i2c-omap patches from linux-omap tree
-> for review.
+> This patch moves I2C speed parameter (from module) to platform data.
+> Also added basic High Speed support based on I2C bus speed.
 > 
-> Looks like we've managed to pile up stuff in the omap tree for this
-> driver again... Anyways, future patches will be coming straight via
-> the i2c list.
+> This patch is tested for high speed I2C (with TWL4030 Keypad) and works as
+> expected.
 > 
-> The first two patches could be pushed as fixes to current -rc series,
-> but I'm fine with them going in later too.
+> Signed-off-by: Syed Mohammed Khasim  <x0khasim@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  drivers/i2c/busses/i2c-omap.c |  111 +++++++++++++++++++++++++++++-----------
+>  1 files changed, 80 insertions(+), 31 deletions(-)
+> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index a06ad42..0d30790 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -83,6 +83,7 @@
+>  /* I2C Configuration Register (OMAP_I2C_CON): */
+>  #define OMAP_I2C_CON_EN		(1 << 15)	/* I2C module enable */
+>  #define OMAP_I2C_CON_BE		(1 << 14)	/* Big endian mode */
+> +#define OMAP_I2C_CON_OPMODE	(1 << 12)	/* High Speed support */
+>  #define OMAP_I2C_CON_STB	(1 << 11)	/* Start byte mode (master) */
+>  #define OMAP_I2C_CON_MST	(1 << 10)	/* Master/slave mode */
+>  #define OMAP_I2C_CON_TRX	(1 << 9)	/* TX/RX mode (master only) */
+> @@ -91,6 +92,10 @@
+>  #define OMAP_I2C_CON_STP	(1 << 1)	/* Stop cond (master only) */
+>  #define OMAP_I2C_CON_STT	(1 << 0)	/* Start condition (master) */
+>  
+> +/* I2C SCL time value when Master */
+> +#define OMAP_I2C_SCLL_HSSCLL	8
+> +#define OMAP_I2C_SCLH_HSSCLH	8
+> +
+>  /* I2C System Test Register (OMAP_I2C_SYSTEST): */
+>  #ifdef DEBUG
+>  #define OMAP_I2C_SYSTEST_ST_EN		(1 << 15)	/* System test enable */
+> @@ -109,12 +114,6 @@
+>  /* I2C System Configuration Register (OMAP_I2C_SYSC): */
+>  #define OMAP_I2C_SYSC_SRST		(1 << 1)	/* Soft Reset */
+>  
+> -/* REVISIT: Use platform_data instead of module parameters */
+> -/* Fast Mode = 400 kHz, Standard = 100 kHz */
+> -static int clock = 100; /* Default: 100 kHz */
+> -module_param(clock, int, 0);
+> -MODULE_PARM_DESC(clock, "Set I2C clock in kHz: 400=fast mode (default == 100)");
+> -
+>  struct omap_i2c_dev {
+>  	struct device		*dev;
+>  	void __iomem		*base;		/* virtual */
+> @@ -123,6 +122,7 @@ struct omap_i2c_dev {
+>  	struct clk		*fclk;		/* Functional clock */
+>  	struct completion	cmd_complete;
+>  	struct resource		*ioarea;
+> +	u32			speed;		/* Speed of bus in Khz */
+>  	u16			cmd_err;
+>  	u8			*buf;
+>  	size_t			buf_len;
+> @@ -152,17 +152,28 @@ static int omap_i2c_get_clocks(struct omap_i2c_dev *dev)
+>  			return -ENODEV;
+>  		}
+>  	}
+> -
+> -	dev->fclk = clk_get(dev->dev, "i2c_fck");
+> -	if (IS_ERR(dev->fclk)) {
+> -		if (dev->iclk != NULL) {
+> -			clk_put(dev->iclk);
+> -			dev->iclk = NULL;
+> +	/* For I2C operations on 2430 we need 96Mhz clock */
+> +	if (cpu_is_omap2430()) {
+> +		dev->fclk = clk_get(dev->dev, "i2chs_fck");
+> +		if (IS_ERR(dev->fclk)) {
+> +			if (dev->iclk != NULL) {
+> +				clk_put(dev->iclk);
+> +				dev->iclk = NULL;
+> +			}
 
-It is too late in the -rc series, and it will be easier to push the
-lot in one go.
- 
-> I've left out some clean-up from the last patch so it won't conflict with
-> omap ioremp changes that are currently in Russell King's devel
-> branch.
+I'm sorry, but I think this is mis-use of the clock system. The
+actual name of the clock should be provided for the driver, not
+the driver having to search for different clocks.
 
-If you can provide an url to a git tree to pull, that'd be great,
-otherwise I'll apply from the series unless anyone else decides
-there are problems with it.
+> +			dev->fclk = NULL;
+> +			return -ENODEV;
+> +		}
+> +	} else {
+> +		dev->fclk = clk_get(dev->dev, "i2c_fck");
+> +		if (IS_ERR(dev->fclk)) {
+> +			if (dev->iclk != NULL) {
+> +				clk_put(dev->iclk);
+> +				dev->iclk = NULL;
+> +			}
+> +			dev->fclk = NULL;
+> +			return -ENODEV;
+>  		}
+> -		dev->fclk = NULL;
+> -		return -ENODEV;
+>  	}
+> -
+>  	return 0;
+>  }
+>  
+> @@ -210,9 +221,11 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
+>  
+>  static int omap_i2c_init(struct omap_i2c_dev *dev)
+>  {
+> -	u16 psc = 0;
+> +	u16 psc = 0, scll = 0, sclh = 0;
+> +	u16 fsscll = 0, fssclh = 0, hsscll = 0, hssclh = 0;
+>  	unsigned long fclk_rate = 12000000;
+>  	unsigned long timeout;
+> +	unsigned long internal_clk = 0;
+>  
+>  	if (!dev->rev1) {
+>  		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, OMAP_I2C_SYSC_SRST);
+> @@ -255,18 +268,47 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+>  			psc = fclk_rate / 12000000;
+>  	}
+>  
+> +	if (cpu_is_omap2430()) {
+> +
+> +		/* HSI2C controller internal clk rate should be 19.2 Mhz */
+> +		internal_clk = 19200;
+> +		fclk_rate = clk_get_rate(dev->fclk) / 1000;
+> +
+> +		/* Compute prescaler divisor */
+> +		psc = fclk_rate / internal_clk;
+> +		psc = psc - 1;
+> +
+> +		/* If configured for High Speed */
+> +		if (dev->speed > 400) {
+> +			/* For first phase of HS mode */
+> +			fsscll = internal_clk / (400 * 2) - 6;
+> +			fssclh = internal_clk / (400 * 2) - 6;
+> +
+> +			/* For second phase of HS mode */
+> +			hsscll = fclk_rate / (dev->speed * 2) - 6;
+> +			hssclh = fclk_rate / (dev->speed * 2) - 6;
+> +		} else {
+> +			/* To handle F/S modes */
+> +			fsscll = internal_clk / (dev->speed * 2) - 6;
+> +			fssclh = internal_clk / (dev->speed * 2) - 6;
+> +		}
+> +		scll = (hsscll << OMAP_I2C_SCLL_HSSCLL) | fsscll;
+> +		sclh = (hssclh << OMAP_I2C_SCLH_HSSCLH) | fssclh;
+> +	} else {
+> +		/* Program desired operating rate */
+> +		fclk_rate /= (psc + 1) * 1000;
+> +		if (psc > 2)
+> +			psc = 2;
+> +		scll = fclk_rate / (dev->speed * 2) - 7 + psc;
+> +		sclh = fclk_rate / (dev->speed * 2) - 7 + psc;
+> +	}
+> +
+>  	/* Setup clock prescaler to obtain approx 12MHz I2C module clock: */
+>  	omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, psc);
+>  
+> -	/* Program desired operating rate */
+> -	fclk_rate /= (psc + 1) * 1000;
+> -	if (psc > 2)
+> -		psc = 2;
+> -
+> -	omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG,
+> -			   fclk_rate / (clock * 2) - 7 + psc);
+> -	omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG,
+> -			   fclk_rate / (clock * 2) - 7 + psc);
+> +	/* SCL low and high time values */
+> +	omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, scll);
+> +	omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, sclh);
+>  
+>  	/* Take the I2C module out of reset: */
+>  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+> @@ -326,6 +368,11 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+>  	dev->cmd_err = 0;
+>  
+>  	w = OMAP_I2C_CON_EN | OMAP_I2C_CON_MST | OMAP_I2C_CON_STT;
+> +
+> +	/* High speed configuration */
+> +	if (dev->speed > 400)
+> +		w |= OMAP_I2C_CON_OPMODE;
+> +
+>  	if (msg->flags & I2C_M_TEN)
+>  		w |= OMAP_I2C_CON_XA;
+>  	if (!(msg->flags & I2C_M_RD))
+> @@ -562,6 +609,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>  	struct i2c_adapter	*adap;
+>  	struct resource		*mem, *irq, *ioarea;
+>  	int r;
+> +	u32 *speed = NULL;
+>  
+>  	/* NOTE: driver uses the static register mapping */
+>  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> @@ -582,17 +630,18 @@ omap_i2c_probe(struct platform_device *pdev)
+>  		return -EBUSY;
+>  	}
+>  
+> -	if (clock > 200)
+> -		clock = 400;	/* Fast mode */
+> -	else
+> -		clock = 100;	/* Standard mode */
+> -
+>  	dev = kzalloc(sizeof(struct omap_i2c_dev), GFP_KERNEL);
+>  	if (!dev) {
+>  		r = -ENOMEM;
+>  		goto err_release_region;
+>  	}
+>  
+> +	if (pdev->dev.platform_data != NULL)
+> +		speed = (u32 *) pdev->dev.platform_data;
+> +	else
+> +		*speed = 100; /* Defualt speed */
+> +
+> +	dev->speed = *speed;
+>  	dev->dev = &pdev->dev;
+>  	dev->irq = irq->start;
+>  	dev->base = (void __iomem *) IO_ADDRESS(mem->start);
+> @@ -618,7 +667,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>  	}
+>  	r = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
+>  	dev_info(dev->dev, "bus %d rev%d.%d at %d kHz\n",
+> -		 pdev->id, r >> 4, r & 0xf, clock);
+> +		 pdev->id, r >> 4, r & 0xf, dev->speed);
+>  
+>  	adap = &dev->adapter;
+>  	i2c_set_adapdata(adap, dev);
+> -- 
+> 1.5.6.rc3.21.g8c6b5
+> 
+> 
+> _______________________________________________
+> i2c mailing list
+> i2c@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/i2c
 
 -- 
 Ben (ben@fluff.org, http://www.fluff.org/)
