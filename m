@@ -1,57 +1,48 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.27-rc7-omap1-git] rtc-twl4030 portability updates
-Date: Sun, 28 Sep 2008 14:35:47 -0700
-Message-ID: <200809281435.47824.david-b@pacbell.net>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH] watchdog: fix typo in omap_wdt.c
+Date: Mon, 29 Sep 2008 09:56:06 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC9707@dbde02.ent.ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC959A@dbde02.ent.ti.com>
+ <20080926175237.GD9890@frodo>
+ <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC95BB@dbde02.ent.ti.com>
+ <20080926192746.GG9890@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:42639 "HELO
-	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752250AbYI1Vfu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 28 Sep 2008 17:35:50 -0400
-Content-Disposition: inline
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47172 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751171AbYI2E0Z convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 00:26:25 -0400
+In-Reply-To: <20080926192746.GG9890@frodo>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
+To: "me@felipebalbi.com" <me@felipebalbi.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+<snip> 
 
-Portability fixes (simplifications) for rtc-twl4030:  don't include
-so many needless headers, especially platform-specific ones.
+> > > Those patches weren't applied to linux-omap yet, so this change should
+> > > be melded into the patch that introduced it. It's better to resend that
+> > > patch then to create a messed up bisect line.
+> > > 
+> > > -- 
+> > > balbi
+> > 
+> > Of course they were merged. I saw this warning when I compiled linux-omap,
+> > when sending in that pin-muxing patch.
+> 
+> You're right, at first look I thought this was for omap_hdq.c :-p
+> 
+> Anyways, this patch should go also to Wim. Please send a copy of this
+> patch to him so he can apply to his tree as well, btw, here's 
+> his mail:
+> 
+> Wim Van Sebroeck <wim@iguana.be>
+> 
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
- drivers/rtc/rtc-twl4030.c |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+Done. I'm guessing I don't need to CC linux-omap on that. Let me know if
+I should have. I've sent it to Wim, with a CC to you (Felipe).
 
---- a/drivers/rtc/rtc-twl4030.c
-+++ b/drivers/rtc/rtc-twl4030.c
-@@ -21,23 +21,15 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/module.h>
--#include <linux/ioport.h>
--#include <linux/delay.h>
- #include <linux/types.h>
- #include <linux/rtc.h>
- #include <linux/bcd.h>
- #include <linux/platform_device.h>
--#include <linux/spinlock.h>
- #include <linux/interrupt.h>
--#include <linux/device.h>
-+
- #include <linux/i2c/twl4030.h>
- #include <linux/i2c/twl4030-rtc.h>
--#include <linux/io.h>
--#include <linux/irq.h>
- 
--#include <asm/mach/time.h>
--#include <asm/system.h>
--#include <mach/hardware.h>
- 
- #define ALL_TIME_REGS		6
- 
+- Anand
