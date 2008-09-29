@@ -1,29 +1,64 @@
-From: "Fabiano Ferronato" <fabatera@gmail.com>
-Subject: AT91SAM9261-EK : git's linux-omap vs. ordinary patched linux
-Date: Mon, 29 Sep 2008 08:53:32 -0300
-Message-ID: <4ba2630b0809290453v57fe78b9l40592de95bb27415@mail.gmail.com>
+From: "Arun KS" <arunks@mistralsolutions.com>
+Subject: Re: [PATCH 3/5] [RFC] ALSA ASOC Adds DSP DAI format support for platform driver
+Date: Mon, 29 Sep 2008 18:24:38 +0530
+Message-ID: <dfeb90390809290554x4ac2d8c2re353b4c9462c231b@mail.gmail.com>
+References: <dfeb90390809290250x7c9d3aafh232fbcbe8ae77d7e@mail.gmail.com>
+	 <20080929141540.e6ae8ead.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.190]:53640 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751898AbYI2Lxe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 07:53:34 -0400
-Received: by fk-out-0910.google.com with SMTP id 18so2000603fkq.5
-        for <linux-omap@vger.kernel.org>; Mon, 29 Sep 2008 04:53:32 -0700 (PDT)
+Received: from rv-out-0506.google.com ([209.85.198.233]:56179 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751293AbYI2Myi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 08:54:38 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so2247461rvb.1
+        for <linux-omap@vger.kernel.org>; Mon, 29 Sep 2008 05:54:38 -0700 (PDT)
+In-Reply-To: <20080929141540.e6ae8ead.jarkko.nikula@nokia.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, alsa-devel@vger.kernel.org, felipe.balbi@nokia.com
 
-Hi,
-I used linux-omap with OSK5912 and now starting with ATMEL's AT91SAM9261-EK.
-I have some questions about using linux-omap kernel with this board.
-Somebody had used AT91SAM9261-EK with other linux?
-I have to patch git's linux-omap to use it with AT91SAM9261-EK or only
-configure and make ?
-Is there any projects, libraries or modules ready to use with
-graphical applications?
-thanks in advance
-Fabiano
+Thanks all for the comments.
+I will incorporate and send the patches again.
+
+On Mon, Sep 29, 2008 at 4:45 PM, Jarkko Nikula <jarkko.nikula@nokia.com> wrote:
+> On Mon, 29 Sep 2008 15:20:12 +0530
+> "ext Arun KS" <arunks@mistralsolutions.com> wrote:
+>
+>> Enables DSP DAI format for mcbsp in omap platform driver
+>>
+>> Signed-off-by: Arun KS <arunks@mistralsolutions.com>
+>> ---
+>>  sound/soc/omap/omap-mcbsp.c |    6 ++++++
+>>  1 files changed, 6 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+>> index 3a4cc4b..1c024aa 100644
+>> --- a/sound/soc/omap/omap-mcbsp.c
+>> +++ b/sound/soc/omap/omap-mcbsp.c
+>> @@ -292,6 +292,12 @@ static int omap_mcbsp_dai_set_dai_fmt(struct
+>> snd_soc_dai *cpu_dai,
+>>               regs->rcr2      |= RDATDLY(1);
+>>               regs->xcr2      |= XDATDLY(1);
+>>               break;
+>> +     case SND_SOC_DAIFMT_DSP_A:
+>> +             /* 0-bit data delay */
+>> +             regs->rcr2      |= RDATDLY(0);
+>> +             regs->xcr2      |= XDATDLY(0);
+>> +             break;
+>> +
+>>       default:
+>
+> I think this is not enough. The word clock length equals to one BCLK
+> cycle in DSP mode. Not n channel bit BCLK cycles like in I2S.
+>
+>
+> Jarkko
+> --
+> To unsubscribe from this list: send the line "unsubscribe alsa-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
