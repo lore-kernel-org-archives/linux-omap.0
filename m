@@ -1,48 +1,66 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH] watchdog: fix typo in omap_wdt.c
-Date: Mon, 29 Sep 2008 09:56:06 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC9707@dbde02.ent.ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC959A@dbde02.ent.ti.com>
- <20080926175237.GD9890@frodo>
- <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC95BB@dbde02.ent.ti.com>
- <20080926192746.GG9890@frodo>
+From: "Arun KS" <arunks@mistralsolutions.com>
+Subject: Re: FOR COMMENT: void __iomem * and similar casts are Bad News
+Date: Mon, 29 Sep 2008 10:46:33 +0530
+Message-ID: <dfeb90390809282216p73e30653l399b165e464440cc@mail.gmail.com>
+References: <20080827220821.GE7227@flint.arm.linux.org.uk>
+	 <a0580c510809030833w6cbc7e42ye0e8f4fc49b5b046@mail.gmail.com>
+	 <20080904094655.GB10426@flint.arm.linux.org.uk>
+	 <20080904161033.GQ23085@atomide.com>
+	 <20080904161248.GC2309@flint.arm.linux.org.uk>
+	 <20080904162917.GR23085@atomide.com>
+	 <20080904170733.GD2309@flint.arm.linux.org.uk>
+	 <20080904175810.GS23085@atomide.com>
+	 <alpine.DEB.1.00.0809042312410.25143@utopia.booyaka.com>
+	 <alpine.DEB.1.00.0809042357360.25143@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47172 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751171AbYI2E0Z convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 00:26:25 -0400
-In-Reply-To: <20080926192746.GG9890@frodo>
-Content-Language: en-US
+Received: from rv-out-0506.google.com ([209.85.198.224]:21525 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751167AbYI2FQe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 01:16:34 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so2070869rvb.1
+        for <linux-omap@vger.kernel.org>; Sun, 28 Sep 2008 22:16:33 -0700 (PDT)
+In-Reply-To: <alpine.DEB.1.00.0809042357360.25143@utopia.booyaka.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "me@felipebalbi.com" <me@felipebalbi.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>
 
-<snip> 
+Hi All,
 
-> > > Those patches weren't applied to linux-omap yet, so this change should
-> > > be melded into the patch that introduced it. It's better to resend that
-> > > patch then to create a messed up bisect line.
-> > > 
-> > > -- 
-> > > balbi
-> > 
-> > Of course they were merged. I saw this warning when I compiled linux-omap,
-> > when sending in that pin-muxing patch.
-> 
-> You're right, at first look I thought this was for omap_hdq.c :-p
-> 
-> Anyways, this patch should go also to Wim. Please send a copy of this
-> patch to him so he can apply to his tree as well, btw, here's 
-> his mail:
-> 
-> Wim Van Sebroeck <wim@iguana.be>
-> 
+I am finished with the ASOC driver for tlvaic23b codec on osk.
+I tested the playback and capture.
 
-Done. I'm guessing I don't need to CC linux-omap on that. Let me know if
-I should have. I've sent it to Wim, with a CC to you (Felipe).
+But have certain issue which stops me from sending the patches.
 
-- Anand
+The system hangs when there is a request for mcbsp in the platform driver
+of omap ie.. at
+File:sound/soc/omap/omap-mcbsp.c
+Function: omap_mcbsp_dai_startup
+omap_mcbsp_request(mcbsp_data->bus_id);
+This is executed when we do an aplay.
+
+In the ALSA driver(sound/arm/omap/omap-alsa.c:513) the
+omap_mcbsp_request() is during the boot time.
+There no issues.
+
+So during my testing of the ASOC driver i comment out
+omap_mcbsp_request(mcbsp_data->bus_id); from
+platform driver (sound/soc/omap/omap-mcbsp.c) and insted requested the
+omap_mcbsp in my
+moudule_init of machine driver(ie sound/soc/omap/osk.c).
+
+Write which causes this hang is at
+File: arch/arm/mach-omap1/mcbsp.c
+Function: omap1_mcbsp_request
+
+ __raw_writew(__raw_readw(DSP_RSTCT2) | DPS_RSTCT2_PER_EN |
+                                DSP_RSTCT2_WD_PER_EN, DSP_RSTCT2);
+
+Anybody has some clues to fix this.
+
+Thanks
+Arun
