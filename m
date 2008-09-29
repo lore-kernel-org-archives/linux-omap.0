@@ -1,21 +1,41 @@
-From: "Jason Marini" <jason.marini@gmail.com>
-Subject: Re: i2c errors on omap3430sdp
-Date: Mon, 29 Sep 2008 12:17:54 -0400
-Message-ID: <423644ca0809290917u81926efxf329fc193b9e863b@mail.gmail.com>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: RE: i2c errors on omap3430sdp
+Date: Mon, 29 Sep 2008 12:14:15 -0500
+Message-ID: <A24693684029E5489D1D202277BE89441213A6C4@dlee02.ent.ti.com>
+References: <423644ca0809290917u81926efxf329fc193b9e863b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f16.google.com ([209.85.217.16]:48444 "EHLO
-	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754137AbYI2QRz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 12:17:55 -0400
-Received: by mail-gx0-f16.google.com with SMTP id 9so10693980gxk.13
-        for <linux-omap@vger.kernel.org>; Mon, 29 Sep 2008 09:17:55 -0700 (PDT)
-Content-Disposition: inline
+Received: from comal.ext.ti.com ([198.47.26.152]:37657 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751355AbYI2ROY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 13:14:24 -0400
+In-Reply-To: <423644ca0809290917u81926efxf329fc193b9e863b@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jason Marini <jason.marini@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+Jason, Felipe,
+
+Apparently it was a HW issue with the camkit I was using.
+
+I realized that when trying with another one :)
+
+Anyways, I appreciate your help and time.
+
+Jason, BTW, this messages kept appearing endlessly without being able to kill the process, is that expected?
+
+Regards,
+Sergio
+
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Jason Marini
+Sent: Monday, September 29, 2008 11:18 AM
 To: linux-omap@vger.kernel.org
+Subject: Re: i2c errors on omap3430sdp
 
 >> Hi all,
 >>
@@ -53,3 +73,8 @@ http://marc.info/?l=linux-omap&m=121995188317408&w=2
 You are seeing this message instead of a kernel hang :^)
 
 -Jason Marini
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
