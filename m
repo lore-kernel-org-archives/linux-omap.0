@@ -1,64 +1,58 @@
-From: "Arun KS" <arunks@mistralsolutions.com>
-Subject: Re: [PATCH 3/5] [RFC] ALSA ASOC Adds DSP DAI format support for platform driver
-Date: Mon, 29 Sep 2008 18:24:38 +0530
-Message-ID: <dfeb90390809290554x4ac2d8c2re353b4c9462c231b@mail.gmail.com>
-References: <dfeb90390809290250x7c9d3aafh232fbcbe8ae77d7e@mail.gmail.com>
-	 <20080929141540.e6ae8ead.jarkko.nikula@nokia.com>
+From: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
+Subject: [PATCH] gpmc: Remove compilation warning
+Date: Mon, 29 Sep 2008 18:40:43 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB028C31912F@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.233]:56179 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751293AbYI2Myi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 08:54:38 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so2247461rvb.1
-        for <linux-omap@vger.kernel.org>; Mon, 29 Sep 2008 05:54:38 -0700 (PDT)
-In-Reply-To: <20080929141540.e6ae8ead.jarkko.nikula@nokia.com>
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:36094 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751502AbYI2NK5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 09:10:57 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, alsa-devel@vger.kernel.org, felipe.balbi@nokia.com
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-Thanks all for the comments.
-I will incorporate and send the patches again.
+From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
 
-On Mon, Sep 29, 2008 at 4:45 PM, Jarkko Nikula <jarkko.nikula@nokia.com> wrote:
-> On Mon, 29 Sep 2008 15:20:12 +0530
-> "ext Arun KS" <arunks@mistralsolutions.com> wrote:
->
->> Enables DSP DAI format for mcbsp in omap platform driver
->>
->> Signed-off-by: Arun KS <arunks@mistralsolutions.com>
->> ---
->>  sound/soc/omap/omap-mcbsp.c |    6 ++++++
->>  1 files changed, 6 insertions(+), 0 deletions(-)
->>
->> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
->> index 3a4cc4b..1c024aa 100644
->> --- a/sound/soc/omap/omap-mcbsp.c
->> +++ b/sound/soc/omap/omap-mcbsp.c
->> @@ -292,6 +292,12 @@ static int omap_mcbsp_dai_set_dai_fmt(struct
->> snd_soc_dai *cpu_dai,
->>               regs->rcr2      |= RDATDLY(1);
->>               regs->xcr2      |= XDATDLY(1);
->>               break;
->> +     case SND_SOC_DAIFMT_DSP_A:
->> +             /* 0-bit data delay */
->> +             regs->rcr2      |= RDATDLY(0);
->> +             regs->xcr2      |= XDATDLY(0);
->> +             break;
->> +
->>       default:
->
-> I think this is not enough. The word clock length equals to one BCLK
-> cycle in DSP mode. Not n channel bit BCLK cycles like in I2S.
->
->
-> Jarkko
-> --
-> To unsubscribe from this list: send the line "unsubscribe alsa-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Return type of gpmc_init() function is void. Also, the error values
+returned by the function is not used by the caller. Hence it should
+not be returning any value.
+
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
+--
+Index: linux-omap-git/arch/arm/mach-omap2/gpmc.c
+===================================================================
+--- linux-omap-git.orig/arch/arm/mach-omap2/gpmc.c	2008-09-25 17:30:24.000000000 +0530
++++ linux-omap-git/arch/arm/mach-omap2/gpmc.c	2008-09-29 18:26:40.845433948 +0530
+@@ -427,16 +427,13 @@ void __init gpmc_init(void)
+ 	}
+ 
+ 	gpmc_l3_clk = clk_get(NULL, ck);
+-	if (IS_ERR(gpmc_l3_clk)) {
++	if (IS_ERR(gpmc_l3_clk))
+ 		printk(KERN_ERR "Could not get GPMC clock %s\n", ck);
+-		return -ENODEV;
+-	}
+ 
+ 	gpmc_base = ioremap(l, SZ_4K);
+ 	if (!gpmc_base) {
+ 		clk_put(gpmc_l3_clk);
+ 		printk(KERN_ERR "Could not get GPMC register memory\n");
+-		return -ENOMEM;
+ 	}
+ 
+ 	BUG_ON(IS_ERR(gpmc_l3_clk));
+--
+With Regards,
+Jagadeesh Bhaskar P
+ 
+----------------------------
+Some men see things as they are and say why - I dream things that never were and say why not.
+- George Bernard Shaw
+-------------------
+
