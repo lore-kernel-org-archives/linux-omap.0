@@ -1,39 +1,33 @@
-From: "monte L" <montesnl987@gmail.com>
-Subject: Power management in omap3430
-Date: Mon, 29 Sep 2008 20:43:43 +0530
-Message-ID: <cb629f950809290813x26df9a28v295aabfd50840c1c@mail.gmail.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 15/22] twl4030: move pm_power_off initialization to
+	twl4030-core.c
+Date: Mon, 29 Sep 2008 18:42:52 +0300
+Message-ID: <20080929154251.GG30555@frodo>
+References: <1222694079-16289-7-git-send-email-felipe.balbi@nokia.com> <1222694079-16289-8-git-send-email-felipe.balbi@nokia.com> <1222694079-16289-9-git-send-email-felipe.balbi@nokia.com> <1222694079-16289-10-git-send-email-felipe.balbi@nokia.com> <1222694079-16289-11-git-send-email-felipe.balbi@nokia.com> <1222694079-16289-12-git-send-email-felipe.balbi@nokia.com> <1222694079-16289-13-git-send-email-felipe.balbi@nokia.com> <1222694079-16289-14-git-send-email-felipe.balbi@nokia.com> <1222694079-16289-15-git-send-email-felipe.balbi@nokia.com> <1222694079-16289-16-git-send-email-felipe.balbi@nokia.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qb-out-0506.google.com ([72.14.204.234]:45643 "EHLO
-	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751478AbYI2PNp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 11:13:45 -0400
-Received: by qb-out-0506.google.com with SMTP id f11so1492302qba.17
-        for <linux-omap@vger.kernel.org>; Mon, 29 Sep 2008 08:13:44 -0700 (PDT)
+Received: from ns1.siteground211.com ([209.62.36.12]:34937 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750855AbYI2PnB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 11:43:01 -0400
 Content-Disposition: inline
+In-Reply-To: <1222694079-16289-16-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: linux-omap@vger.kernel.org, David Brownell <dbrownell@users.sourceforge.net>, Tony Lindgren <tony@atomide.com>
 
-Hello,
+On Mon, Sep 29, 2008 at 04:14:32PM +0300, Felipe Balbi wrote:
+> We don't really need a whole new driver just for initializing
+> one pointer. Move it to core initialization.
 
-I just got hold of omapzoom and am running linux from omapzoom site.
+I'll refactor this patch. We (me and Dave) agreed this code doesn't
+belong to twl4030-core.c. For now, let's keep it the way it is and we
+touch this when we go for twl4030-power.c and twl4030-pwrirq.c rework.
 
-Since I am new to omap, request some guidance on power mgmt:
+Resending the series soon.
 
-- Is OMAP PM interface from Paul the current power mgmt framework for omap3430?
-
-- Does it work together with PM QoS or any other framework (I have
-read Kevin's comments:
-http://marc.info/?l=linux-omap&m=120962073813933&w=2) Is there an
-update on this - will they co-exist?
-
-My work involves porting few middleware and applications on to
-OMAP3430 platform. I am seeking your help in how to go about handling
-power management aspects, which are so elaborate in omap3.
-
-Thanks for your time.
-
--Monte
+-- 
+balbi
