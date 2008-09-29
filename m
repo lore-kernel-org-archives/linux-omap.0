@@ -1,40 +1,35 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 00/23] twl4030 patches (v3)
-Date: Tue, 30 Sep 2008 00:04:10 +0300
-Message-ID: <20080929210408.GI2445@frodo>
-References: <1222705669-18230-1-git-send-email-me@felipebalbi.com> <200809291359.34589.david-b@pacbell.net>
-Reply-To: me@felipebalbi.com
+From: David Brownell <david-b@pacbell.net>
+Subject: does twl3040-pwrirq.c "need" to be a separate file?
+Date: Mon, 29 Sep 2008 14:17:12 -0700
+Message-ID: <200809291417.12437.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:52291 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751713AbYI2VEZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 17:04:25 -0400
+Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:26546 "HELO
+	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753481AbYI2VRP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Sep 2008 17:17:15 -0400
 Content-Disposition: inline
-In-Reply-To: <200809291359.34589.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Felipe Balbi <me@felipebalbi.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
+To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, Sep 29, 2008 at 01:59:34PM -0700, David Brownell wrote:
-> Well I can confirm that this is stuff I've seen to behave OK,
-> by diffing the patches against known-working versions.  There
-> were Overo differences, and some keymap things.
-> 
-> Patch 0002 (don't zero pullup/pulldown configuration) is still
-> missing the ACK I sent when it first came though.  :)
+Hi Peter,
 
-Damn... i might have missed it when moving the patches around work and
-home :-p
+I see your patch 68d7477caca19c0b52b5d4e85700cd3e6115577f created
+pwrirq.c as a separate file and thread.
 
-Will re-add it.
+I'm wondering if there's any particular reason that "bank" of
+interrupts shouldn't be handled directly by twl4030-core, and
+even by the same IRQ handling thread.
 
-> On the other hand, building against the tarball of patches
-> you sent gives me:
+As it stands now the TWL "core" is not especially core-ish in
+this respect, and I'd like to see that be resolved (e.g. by a
+patch I'll probably write this afternoon) before this code
+goes to mainline ...
 
-Steve also saw that, it's already fixed :-)
-
--- 
-balbi
+- Dave
