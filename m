@@ -1,7 +1,7 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 14/22] minor irq-related cleanups
-Date: Mon, 29 Sep 2008 16:14:31 +0300
-Message-ID: <1222694079-16289-15-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 19/22] twl4030-gpio irq_chip.set_type
+Date: Mon, 29 Sep 2008 16:14:36 +0300
+Message-ID: <1222694079-16289-20-git-send-email-felipe.balbi@nokia.com>
 References: <1222694079-16289-1-git-send-email-felipe.balbi@nokia.com>
  <1222694079-16289-2-git-send-email-felipe.balbi@nokia.com>
  <1222694079-16289-3-git-send-email-felipe.balbi@nokia.com>
@@ -16,12 +16,17 @@ References: <1222694079-16289-1-git-send-email-felipe.balbi@nokia.com>
  <1222694079-16289-12-git-send-email-felipe.balbi@nokia.com>
  <1222694079-16289-13-git-send-email-felipe.balbi@nokia.com>
  <1222694079-16289-14-git-send-email-felipe.balbi@nokia.com>
+ <1222694079-16289-15-git-send-email-felipe.balbi@nokia.com>
+ <1222694079-16289-16-git-send-email-felipe.balbi@nokia.com>
+ <1222694079-16289-17-git-send-email-felipe.balbi@nokia.com>
+ <1222694079-16289-18-git-send-email-felipe.balbi@nokia.com>
+ <1222694079-16289-19-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:52250 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751968AbYI2NPc (ORCPT
+Received: from smtp.nokia.com ([192.100.122.233]:29696 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751948AbYI2NPc (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 09:15:32 -0400
-In-Reply-To: <1222694079-16289-14-git-send-email-felipe.balbi@nokia.com>
+In-Reply-To: <1222694079-16289-19-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -29,170 +34,152 @@ Cc: David Brownell <dbrownell@users.sourceforge.net>, Tony Lindgren <tony@atomid
 
 From: David Brownell <dbrownell@users.sourceforge.net>
 
-Minor IRQ-related cleanups:  comment out the no-longer-used
-GPIO irq symbol (more to come, eventually); create RTC IRQ
-resource; and use that RTC IRQ resource.
-
-And incidentally, make the RTC code free the correct IRQ;
-it was pretty goofed up...
+Make twl4030 GPIO support set_type() request.
+Plus a bit of cleanup for the simple functions.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/gpio/twl4030-gpio.c      |    1 -
- drivers/i2c/chips/twl4030-core.c |   57 +++++++++++++++++++++----------------
- drivers/rtc/rtc-twl4030.c        |   11 +++++--
- include/linux/i2c/twl4030.h      |    2 +-
- 4 files changed, 41 insertions(+), 30 deletions(-)
+ drivers/gpio/twl4030-gpio.c |   84 +++++++++++++++++++++++++++++++++++++-----
+ 1 files changed, 74 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/gpio/twl4030-gpio.c b/drivers/gpio/twl4030-gpio.c
-index 2949da1..b65d476 100644
+index b65d476..e709fbb 100644
 --- a/drivers/gpio/twl4030-gpio.c
 +++ b/drivers/gpio/twl4030-gpio.c
-@@ -49,7 +49,6 @@
- /* REVISIT when these symbols vanish elsewhere, remove them here too */
- /* #undef TWL4030_GPIO_IRQ_BASE */
- /* #undef TWL4030_GPIO_IRQ_END */
--#undef TWL4030_MODIRQ_GPIO
+@@ -153,6 +153,9 @@ static unsigned int gpio_imr_shadow;
+ /* bitmask of pending requests to unmask gpio interrupts */
+ static unsigned int gpio_pending_unmask;
  
- static struct gpio_chip twl_gpiochip;
- static int twl4030_gpio_irq_base;
-diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
-index 80cf231..e0a6ef4 100644
---- a/drivers/i2c/chips/twl4030-core.c
-+++ b/drivers/i2c/chips/twl4030-core.c
-@@ -776,37 +776,44 @@ static int add_children(struct twl4030_platform_data *pdata)
- 	}
++/* bitmask of requests to set gpio irq trigger type */
++static unsigned int gpio_pending_trigger;
++
+ /* pointer to gpio unmask thread struct */
+ static struct task_struct *gpio_unmask_thread;
  
- 	if (twl_has_rtc()) {
-+		twl = &twl4030_modules[TWL4030_SLAVENUM_NUM3];
-+
- 		pdev = platform_device_alloc("twl4030_rtc", -1);
--		if (pdev) {
--			twl = &twl4030_modules[TWL4030_SLAVENUM_NUM3];
-+		if (!pdev) {
-+			pr_debug("%s: can't alloc rtc dev\n", DRIVER_NAME);
-+			status = -ENOMEM;
-+		} else {
- 			pdev->dev.parent = &twl->client->dev;
- 			device_init_wakeup(&pdev->dev, 1);
-+		}
+@@ -241,10 +244,15 @@ static void twl4030_gpio_unmask(unsigned int irq)
+  * controller to a kernel thread.  We only need to support the unmask method.
+  */
  
--			/*
--			 * FIXME add the relevant IRQ resource, and make the
--			 * rtc driver use it instead of hard-wiring ...
--			 *
--			 * REVISIT platform_data here currently only supports
--			 * setting up the "msecure" line ... which actually
--			 * violates the "princple of least privilege", since
--			 * it's effectively always in "high trust" mode.
--			 *
--			 * For now, expect equivalent treatment at board init:
--			 * setting msecure high.  Eventually, Linux might
--			 * become more aware of those HW security concerns.
--			 */
-+		/*
-+		 * REVISIT platform_data here currently might use of
-+		 * "msecure" line ... but for now we just expect board
-+		 * setup to tell the chip "we are secure" at all times.
-+		 * Eventually, Linux might become more aware of such
-+		 * HW security concerns, and "least privilege".
-+		 */
+-static void twl4030_gpio_mask_and_ack_irqchip(unsigned int irq) {}
+-static void twl4030_gpio_mask_irqchip(unsigned int irq) {}
++static void twl4030_gpio_irq_mask_and_ack(unsigned int irq)
++{
++}
 +
-+		/* RTC module IRQ */
-+		if (status == 0) {
-+			struct resource	r = {
-+				/* REVISIT don't hard-wire this stuff */
-+				.start = TWL4030_PWRIRQ_RTC,
-+				.flags = IORESOURCE_IRQ,
-+			};
-+
-+			status = platform_device_add_resources(pdev, &r, 1);
-+		}
++static void twl4030_gpio_irq_mask(unsigned int irq)
++{
++}
  
-+		if (status == 0)
- 			status = platform_device_add(pdev);
--			if (status < 0) {
--				platform_device_put(pdev);
--				dev_dbg(&twl->client->dev,
--						"can't create rtc dev, %d\n",
--						status);
--				goto err;
--			}
--		} else {
--			pr_debug("%s: can't alloc rtc dev\n", DRIVER_NAME);
--			status = -ENOMEM;
+-static void twl4030_gpio_unmask_irqchip(unsigned int irq)
++static void twl4030_gpio_irq_unmask(unsigned int irq)
+ {
+ 	int gpio = irq - twl4030_gpio_irq_base;
+ 
+@@ -253,11 +261,36 @@ static void twl4030_gpio_unmask_irqchip(unsigned int irq)
+ 		wake_up_process(gpio_unmask_thread);
+ }
+ 
++static int twl4030_gpio_irq_set_type(unsigned int irq, unsigned trigger)
++{
++	struct irq_desc *desc = irq_desc + irq;
++	int gpio = irq - twl4030_gpio_irq_base;
 +
-+		if (status < 0) {
-+			platform_device_put(pdev);
-+			dev_dbg(&twl->client->dev,
-+					"can't create rtc dev, %d\n",
-+					status);
- 			goto err;
++	trigger &= IRQ_TYPE_SENSE_MASK;
++	if (trigger & ~IRQ_TYPE_EDGE_BOTH)
++		return -EINVAL;
++	if ((desc->status & IRQ_TYPE_SENSE_MASK) == trigger)
++		return 0;
++
++	desc->status &= ~IRQ_TYPE_SENSE_MASK;
++	desc->status |= trigger;
++
++	/* REVISIT This makes the "unmask" thread do double duty,
++	 * updating IRQ trigger modes too.  Rename appropriately...
++	 */
++	gpio_pending_trigger |= (1 << gpio);
++	if (gpio_unmask_thread && gpio_unmask_thread->state != TASK_RUNNING)
++		wake_up_process(gpio_unmask_thread);
++
++	return 0;
++}
++
+ static struct irq_chip twl4030_gpio_irq_chip = {
+-	.name	= "twl4030",
+-	.ack	= twl4030_gpio_mask_and_ack_irqchip,
+-	.mask	= twl4030_gpio_mask_irqchip,
+-	.unmask	= twl4030_gpio_unmask_irqchip,
++	.name		= "twl4030",
++	.ack		= twl4030_gpio_irq_mask_and_ack,
++	.mask		= twl4030_gpio_irq_mask,
++	.unmask		= twl4030_gpio_irq_unmask,
++	.set_type	= twl4030_gpio_irq_set_type,
+ };
+ 
+ /*
+@@ -478,8 +511,6 @@ int twl4030_set_gpio_pull(int gpio, int pull_dircn)
+ 
+ /*
+  * Configure Edge control for a GPIO pin on TWL4030
+- *
+- * FIXME this should just be the irq_chip.set_type() method
+  */
+ int twl4030_set_gpio_edge_ctrl(int gpio, int edge)
+ {
+@@ -601,10 +632,14 @@ static int twl4030_gpio_unmask_thread(void *data)
+ 	while (!kthread_should_stop()) {
+ 		int irq;
+ 		unsigned int gpio_unmask;
++		unsigned int gpio_trigger;
+ 
+ 		local_irq_disable();
+ 		gpio_unmask = gpio_pending_unmask;
+ 		gpio_pending_unmask = 0;
++
++		gpio_trigger = gpio_pending_trigger;
++		gpio_pending_trigger = 0;
+ 		local_irq_enable();
+ 
+ 		for (irq = twl4030_gpio_irq_base; 0 != gpio_unmask;
+@@ -613,8 +648,37 @@ static int twl4030_gpio_unmask_thread(void *data)
+ 				twl4030_gpio_unmask(irq);
  		}
- 	}
-diff --git a/drivers/rtc/rtc-twl4030.c b/drivers/rtc/rtc-twl4030.c
-index 98aea07..b19151a 100644
---- a/drivers/rtc/rtc-twl4030.c
-+++ b/drivers/rtc/rtc-twl4030.c
-@@ -353,8 +353,12 @@ static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
- 	struct twl4030rtc_platform_data *pdata = pdev->dev.platform_data;
- 	struct rtc_device *rtc;
- 	int ret = 0;
-+	int irq = platform_get_irq(pdev, 0);
- 	u8 rd_reg;
  
-+	if (irq < 0)
-+		return irq;
++		for (irq = twl4030_gpio_irq_base;
++				gpio_trigger;
++				gpio_trigger >>= 1, irq++) {
++			struct irq_desc *desc;
++			unsigned type, edge;
 +
- 	if (pdata != NULL && pdata->init != NULL) {
- 		ret = pdata->init();
- 		if (ret < 0)
-@@ -389,7 +393,7 @@ static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
- 	if (ret < 0)
- 		goto out1;
++			if (!(gpio_trigger & 0x1))
++				continue;
++
++			desc = irq_desc + irq;
++			spin_lock_irq(&desc->lock);
++			type = desc->status & IRQ_TYPE_SENSE_MASK;
++			spin_unlock_irq(&desc->lock);
++
++			switch (type) {
++			case IRQ_TYPE_EDGE_RISING:
++				edge = TWL4030_GPIO_EDGE_RISING;
++				break;
++			case IRQ_TYPE_EDGE_FALLING:
++				edge = TWL4030_GPIO_EDGE_FALLING;
++				break;
++			default:
++				edge = TWL4030_GPIO_EDGE_RISING
++					| TWL4030_GPIO_EDGE_FALLING;
++				break;
++			}
++			twl4030_set_gpio_edge_ctrl(irq, edge);
++		}
++
+ 		local_irq_disable();
+-		if (!gpio_pending_unmask)
++		if (!gpio_pending_unmask && !gpio_pending_trigger)
+ 			set_current_state(TASK_INTERRUPTIBLE);
+ 		local_irq_enable();
  
--	ret = request_irq(TWL4030_PWRIRQ_RTC, twl4030_rtc_interrupt,
-+	ret = request_irq(irq, twl4030_rtc_interrupt,
- 				0, rtc->dev.bus_id, rtc);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "IRQ is not free.\n");
-@@ -438,7 +442,7 @@ static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
- 
- 
- out2:
--	free_irq(TWL4030_MODIRQ_PWR, rtc);
-+	free_irq(irq, rtc);
- out1:
- 	rtc_device_unregister(rtc);
- out0:
-@@ -457,11 +461,12 @@ static int __devexit twl4030_rtc_remove(struct platform_device *pdev)
- 	/* leave rtc running, but disable irqs */
- 	struct twl4030rtc_platform_data *pdata = pdev->dev.platform_data;
- 	struct rtc_device *rtc = platform_get_drvdata(pdev);
-+	int irq = platform_get_irq(pdev, 0);
- 
- 	mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
- 	mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_TIMER_M);
- 
--	free_irq(TWL4030_MODIRQ_PWR, rtc);
-+	free_irq(irq, rtc);
- 
- 	if (pdata != NULL && pdata->exit != NULL)
- 		pdata->exit();
-diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
-index 404300c..5828485 100644
---- a/include/linux/i2c/twl4030.h
-+++ b/include/linux/i2c/twl4030.h
-@@ -108,7 +108,7 @@ struct twl4030_platform_data {
- #include <mach/irqs.h>
- /* TWL4030 interrupts */
- 
--#define TWL4030_MODIRQ_GPIO		(TWL4030_IRQ_BASE + 0)
-+/* #define TWL4030_MODIRQ_GPIO		(TWL4030_IRQ_BASE + 0) */
- #define TWL4030_MODIRQ_KEYPAD		(TWL4030_IRQ_BASE + 1)
- #define TWL4030_MODIRQ_BCI		(TWL4030_IRQ_BASE + 2)
- #define TWL4030_MODIRQ_MADC		(TWL4030_IRQ_BASE + 3)
 -- 
 1.6.0.2.307.gc427
 
