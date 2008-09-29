@@ -1,111 +1,56 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 03/22] i2c: clean add_children a bit
-Date: Mon, 29 Sep 2008 16:14:20 +0300
-Message-ID: <1222694079-16289-4-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 02/22] twl4030-gpio: Remove default pullup enable/disable of GPIO
+Date: Mon, 29 Sep 2008 16:14:19 +0300
+Message-ID: <1222694079-16289-3-git-send-email-felipe.balbi@nokia.com>
 References: <1222694079-16289-1-git-send-email-felipe.balbi@nokia.com>
  <1222694079-16289-2-git-send-email-felipe.balbi@nokia.com>
- <1222694079-16289-3-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:52186 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750819AbYI2NPM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 09:15:12 -0400
-In-Reply-To: <1222694079-16289-3-git-send-email-felipe.balbi@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:29669 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751818AbYI2NPV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 09:15:21 -0400
+In-Reply-To: <1222694079-16289-2-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: David Brownell <dbrownell@users.sourceforge.net>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>, Tony Lindgren <tony@atomide.com>, Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>, Girish S G <girishsg@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-Clean up add_children a bit before adding more children
-to twl4030-core.c
+From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
 
+One twl4030_request_gpio() should not tamper with the pullup
+enabling/disabling of the rest of the GPIOs. So removing the default
+pullup values written to REG_GPIOPUPDCTR1.
+
+Signed-off-by: Girish S G <girishsg@ti.com>
+Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/i2c/chips/twl4030-core.c |   63 +++++++++++++++++++++----------------
- 1 files changed, 36 insertions(+), 27 deletions(-)
+ drivers/i2c/chips/twl4030-gpio.c |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
-index 47f65f8..e55f49e 100644
---- a/drivers/i2c/chips/twl4030-core.c
-+++ b/drivers/i2c/chips/twl4030-core.c
-@@ -45,6 +45,11 @@
- 
- #define DRIVER_NAME			"twl4030"
- 
-+#if defined(CONFIG_RTC_DRV_TWL4030) || defined(CONFIG_RTC_DRV_TWL4030_MODULE)
-+#define twl_has_rtc()	true
-+#else
-+#define twl_has_rtc()	false
-+#endif
- 
- /* Primary Interrupt Handler on TWL4030 Registers */
- 
-@@ -639,34 +644,38 @@ static int add_children(struct twl4030_platform_data *pdata)
- 	struct twl4030_client	*twl = NULL;
- 	int			status = 0;
- 
--#ifdef CONFIG_RTC_DRV_TWL4030
--	pdev = platform_device_alloc("twl4030_rtc", -1);
--	if (pdev) {
--		twl = &twl4030_modules[TWL4030_SLAVENUM_NUM3];
--		pdev->dev.parent = &twl->client->dev;
--		device_init_wakeup(&pdev->dev, 1);
+diff --git a/drivers/i2c/chips/twl4030-gpio.c b/drivers/i2c/chips/twl4030-gpio.c
+index 4d89abc..b51bed0 100644
+--- a/drivers/i2c/chips/twl4030-gpio.c
++++ b/drivers/i2c/chips/twl4030-gpio.c
+@@ -301,7 +301,6 @@ int twl4030_request_gpio(int gpio)
+ 	if (gpio_usage_count & (0x1 << gpio))
+ 		ret = -EBUSY;
+ 	else {
+-		u8 clear_pull[6] = { 0, 0, 0, 0, 0, 0 };
+ 		/* First time usage? - switch on GPIO module */
+ 		if (!gpio_usage_count) {
+ 			ret =
+@@ -311,10 +310,6 @@ int twl4030_request_gpio(int gpio)
+ 		}
+ 		if (!ret)
+ 			gpio_usage_count |= (0x1 << gpio);
 -
--		/*
--		 * FIXME add the relevant IRQ resource, and make the
--		 * rtc driver use it instead of hard-wiring ...
--		 *
--		 * REVISIT platform_data here currently only supports
--		 * setting up the "msecure" line ... which actually
--		 * violates the "princple of least privilege", since
--		 * it's effectively always in "high trust" mode.
--		 *
--		 * For now, expect equivalent treatment at board init:
--		 * setting msecure high.  Eventually, Linux might
--		 * become more aware of those HW security concerns.
--		 */
--
--		status = platform_device_add(pdev);
--		if (status < 0)
--			platform_device_put(pdev);
--	} else
--		status = -ENOMEM;
--#endif
-+	if (twl_has_rtc()) {
-+		pdev = platform_device_alloc("twl4030_rtc", -1);
-+		if (pdev) {
-+			twl = &twl4030_modules[TWL4030_SLAVENUM_NUM3];
-+			pdev->dev.parent = &twl->client->dev;
-+			device_init_wakeup(&pdev->dev, 1);
-+
-+			/*
-+			 * FIXME add the relevant IRQ resource, and make the
-+			 * rtc driver use it instead of hard-wiring ...
-+			 *
-+			 * REVISIT platform_data here currently only supports
-+			 * setting up the "msecure" line ... which actually
-+			 * violates the "princple of least privilege", since
-+			 * it's effectively always in "high trust" mode.
-+			 *
-+			 * For now, expect equivalent treatment at board init:
-+			 * setting msecure high.  Eventually, Linux might
-+			 * become more aware of those HW security concerns.
-+			 */
-+
-+			status = platform_device_add(pdev);
-+			if (status < 0)
-+				platform_device_put(pdev);
-+		} else {
-+			status = -ENOMEM;
-+			goto err;
-+		}
-+	}
- 
-+err:
-+	pr_err("failed to add twl4030's children\n");
- 	return status;
- }
- 
+-		ret =
+-		twl4030_i2c_write(TWL4030_MODULE_GPIO, clear_pull,
+-				REG_GPIOPUPDCTR1, 5);
+ 	}
+ 	up(&gpio_sem);
+ 	return ret;
 -- 
 1.6.0.2.307.gc427
 
