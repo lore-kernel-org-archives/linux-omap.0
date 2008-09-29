@@ -1,58 +1,62 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 00/23] twl4030 patches (v3)
-Date: Mon, 29 Sep 2008 13:59:34 -0700
-Message-ID: <200809291359.34589.david-b@pacbell.net>
-References: <1222705669-18230-1-git-send-email-me@felipebalbi.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 12/23] move twl4030-gpio to drivers/gpio
+Date: Tue, 30 Sep 2008 00:01:12 +0300
+Message-ID: <20080929210111.GH2445@frodo>
+References: <1222707783-18936-1-git-send-email-me@felipebalbi.com> <200809291306.20349.david-b@pacbell.net> <20080929201901.GF2445@frodo> <200809291346.00324.david-b@pacbell.net>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:44145 "HELO
-	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752055AbYI2U7h (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Sep 2008 16:59:37 -0400
-In-Reply-To: <1222705669-18230-1-git-send-email-me@felipebalbi.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:42358 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752255AbYI2VBU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 17:01:20 -0400
 Content-Disposition: inline
+In-Reply-To: <200809291346.00324.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: me@felipebalbi.com, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-Well I can confirm that this is stuff I've seen to behave OK,
-by diffing the patches against known-working versions.  There
-were Overo differences, and some keymap things.
+On Mon, Sep 29, 2008 at 01:45:59PM -0700, David Brownell wrote:
+> On Monday 29 September 2008, Felipe Balbi wrote:
+> > On Mon, Sep 29, 2008 at 01:06:19PM -0700, David Brownell wrote:
+> > > On Monday 29 September 2008, Felipe Balbi wrote:
+> > > > =A0drivers/{i2c/chips =3D> gpio}/twl4030-gpio.c | =A0 37 ++++++=
++++++++++++++++++----
+> > >=20
+> > > Best to avoid sending this type of patch except as backup
+> > > to a git pull request ... it's unusable to folk who use
+> > > quilt and thus don't have access to GIT extensions.
+> > >=20
+> > > Where "unusable" means "can't apply the patch".
+> >=20
+> > The good thing with the git extensions for rename detection is that=
+ we
+> > really see what has changed when you renamed the file and that's wh=
+at
+> > really matters, right ?
+>=20
+> That's not all that matters, although I certainly liked being
+> able to see that specific diff and confirm "yes, that's the
+> stuff I had intended to change".
+>=20
+> A more basic point of posting patches to lists is that they be
+> usable for testing.  And the git rename stuff prevents that.
 
-Patch 0002 (don't zero pullup/pulldown configuration) is still
-missing the ACK I sent when it first came though.  :)
+Well that's one point, yes. But only prevent for those who doesn't use
+git, right ? Although we can't really push everybody to drop quilt,
+cogito, "patch -p1", own scripts, etc.
 
+Then again, i really can't see why people still use quilt when we have
+stgit, which gives you quilt functionality with all git's goodies.
+Anyways, everybody should be able to choose a tool that fits better.
 
-On the other hand, building against the tarball of patches
-you sent gives me:
-
-arch/arm/mach-omap2/board-overo.c:154: error: variable 'overo_usb_data' has initializer but incomplete type
-arch/arm/mach-omap2/board-overo.c:155: error: unknown field 'usb_mode' specified in initializer
-arch/arm/mach-omap2/board-overo.c:155: warning: excess elements in struct initializer
-arch/arm/mach-omap2/board-overo.c:155: warning: (near initialization for 'overo_usb_data')
-arch/arm/mach-omap2/board-overo.c:162: warning: initialization from incompatible pointer type
-make[1]: *** [arch/arm/mach-omap2/board-overo.o] Error 1
-make: *** [arch/arm/mach-omap2] Error 2
-make: *** Waiting for unfinished jobs....
-  CC      arch/arm/plat-omap/i2c.o
-
----
- arch/arm/mach-omap2/board-overo.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -151,7 +151,7 @@ static struct twl4030_gpio_platform_data
- 	.irq_end	= TWL4030_GPIO_IRQ_END,
- };
- 
--static struct twl4030_usb_platform_data overo_usb_data = {
-+static struct twl4030_usb_data overo_usb_data = {
- 	.usb_mode	= T2_USB_MODE_ULPI,
- };
- 
+--=20
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
