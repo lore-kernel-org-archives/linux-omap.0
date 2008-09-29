@@ -1,7 +1,7 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 11/22] provide detailed diagnostics in add_children()
-Date: Mon, 29 Sep 2008 16:14:28 +0300
-Message-ID: <1222694079-16289-12-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 21/22] twl4030-gpio: irq and other cleanup
+Date: Mon, 29 Sep 2008 16:14:38 +0300
+Message-ID: <1222694079-16289-22-git-send-email-felipe.balbi@nokia.com>
 References: <1222694079-16289-1-git-send-email-felipe.balbi@nokia.com>
  <1222694079-16289-2-git-send-email-felipe.balbi@nokia.com>
  <1222694079-16289-3-git-send-email-felipe.balbi@nokia.com>
@@ -13,12 +13,22 @@ References: <1222694079-16289-1-git-send-email-felipe.balbi@nokia.com>
  <1222694079-16289-9-git-send-email-felipe.balbi@nokia.com>
  <1222694079-16289-10-git-send-email-felipe.balbi@nokia.com>
  <1222694079-16289-11-git-send-email-felipe.balbi@nokia.com>
+ <1222694079-16289-12-git-send-email-felipe.balbi@nokia.com>
+ <1222694079-16289-13-git-send-email-felipe.balbi@nokia.com>
+ <1222694079-16289-14-git-send-email-felipe.balbi@nokia.com>
+ <1222694079-16289-15-git-send-email-felipe.balbi@nokia.com>
+ <1222694079-16289-16-git-send-email-felipe.balbi@nokia.com>
+ <1222694079-16289-17-git-send-email-felipe.balbi@nokia.com>
+ <1222694079-16289-18-git-send-email-felipe.balbi@nokia.com>
+ <1222694079-16289-19-git-send-email-felipe.balbi@nokia.com>
+ <1222694079-16289-20-git-send-email-felipe.balbi@nokia.com>
+ <1222694079-16289-21-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:29678 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751824AbYI2NPY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 09:15:24 -0400
-In-Reply-To: <1222694079-16289-11-git-send-email-felipe.balbi@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:52212 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751838AbYI2NP0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 09:15:26 -0400
+In-Reply-To: <1222694079-16289-21-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -26,162 +36,111 @@ Cc: David Brownell <dbrownell@users.sourceforge.net>, Tony Lindgren <tony@atomid
 
 From: David Brownell <dbrownell@users.sourceforge.net>
 
-Provide detailed diagnostics in add_children() when DEBUG is
-defined ... and fix the non-DEBUG message to include minimal
-status, and not appear unless there was actually an error.
-
-Update the IRQ message; have it match what the GPIO subchip
-says, and as a precaution, make it only appear if the IRQs
-have been initialized.
+Remove some ARM and OMAP specific stuff from the twl4030 GPIO code,
+and some unused/undesirable CPP symbols.  Add minor checkpatch fixes.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-
-Added a few more diagnostics when platform_device_add() fails.
-
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/i2c/chips/twl4030-core.c |   59 ++++++++++++++++++++++++++++++-------
- 1 files changed, 48 insertions(+), 11 deletions(-)
+ drivers/gpio/twl4030-gpio.c |   27 ++++++++-------------------
+ include/linux/i2c/twl4030.h |    6 ------
+ 2 files changed, 8 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
-index 22850a8..5dcc3b1 100644
---- a/drivers/i2c/chips/twl4030-core.c
-+++ b/drivers/i2c/chips/twl4030-core.c
-@@ -672,8 +672,10 @@ static int add_children(struct twl4030_platform_data *pdata)
- 		twl = &twl4030_modules[TWL4030_SLAVENUM_NUM1];
+diff --git a/drivers/gpio/twl4030-gpio.c b/drivers/gpio/twl4030-gpio.c
+index 404cb34..cb83ff3 100644
+--- a/drivers/gpio/twl4030-gpio.c
++++ b/drivers/gpio/twl4030-gpio.c
+@@ -40,20 +40,12 @@
+ #include <linux/i2c/twl4030.h>
+ #include <linux/i2c/twl4030-gpio.h>
  
- 		pdev = platform_device_alloc("twl4030_gpio", -1);
--		if (!pdev)
-+		if (!pdev) {
-+			pr_debug("%s: can't alloc gpio dev\n", DRIVER_NAME);
- 			status = -ENOMEM;
-+		}
+-#include <mach/irqs.h>
+-#include <asm/mach/irq.h>
+-#include <mach/gpio.h>
+-#include <mach/mux.h>
  
- 		/* more driver model init */
- 		if (status == 0) {
-@@ -682,6 +684,12 @@ static int add_children(struct twl4030_platform_data *pdata)
+-
+-/* REVISIT when these symbols vanish elsewhere, remove them here too */
+-/* #undef TWL4030_GPIO_IRQ_BASE */
+-/* #undef TWL4030_GPIO_IRQ_END */
+-
+-static struct gpio_chip twl_gpiochip;
+ static int twl4030_gpio_irq_base;
+ static int twl4030_gpio_irq_end;
++static struct gpio_chip twl_gpiochip;
  
- 			status = platform_device_add_data(pdev, pdata->gpio,
- 					sizeof(*pdata->gpio));
-+			if (status < 0) {
-+				dev_dbg(&twl->client->dev,
-+					"can't add gpio data, %d\n",
-+					status);
-+				goto err;
-+			}
- 		}
- 
- 		/* GPIO module IRQ */
-@@ -715,13 +723,21 @@ static int add_children(struct twl4030_platform_data *pdata)
- 			status = platform_device_add_data(pdev, pdata->keypad,
- 					sizeof(*pdata->keypad));
- 			if (status < 0) {
-+				dev_dbg(&twl->client->dev,
-+					"can't add keypad data, %d\n",
-+					status);
- 				platform_device_put(pdev);
- 				goto err;
- 			}
- 			status = platform_device_add(pdev);
--			if (status < 0)
-+			if (status < 0) {
- 				platform_device_put(pdev);
-+				dev_dbg(&twl->client->dev,
-+						"can't create keypad dev, %d\n",
-+						status);
-+			}
- 		} else {
-+			pr_debug("%s: can't alloc keypad dev\n", DRIVER_NAME);
- 			status = -ENOMEM;
- 			goto err;
- 		}
-@@ -737,12 +753,20 @@ static int add_children(struct twl4030_platform_data *pdata)
- 					sizeof(*pdata->madc));
- 			if (status < 0) {
- 				platform_device_put(pdev);
-+				dev_dbg(&twl->client->dev,
-+					"can't add madc data, %d\n",
-+					status);
- 				goto err;
- 			}
- 			status = platform_device_add(pdev);
--			if (status < 0)
-+			if (status < 0) {
- 				platform_device_put(pdev);
-+				dev_dbg(&twl->client->dev,
-+						"can't create madc dev, %d\n",
-+						status);
-+			}
- 		} else {
-+			pr_debug("%s: can't alloc madc dev\n", DRIVER_NAME);
- 			status = -ENOMEM;
- 			goto err;
- 		}
-@@ -770,9 +794,14 @@ static int add_children(struct twl4030_platform_data *pdata)
- 			 */
- 
- 			status = platform_device_add(pdev);
--			if (status < 0)
-+			if (status < 0) {
- 				platform_device_put(pdev);
-+				dev_dbg(&twl->client->dev,
-+						"can't create rtc dev, %d\n",
-+						status);
-+			}
- 		} else {
-+			pr_debug("%s: can't alloc rtc dev\n", DRIVER_NAME);
- 			status = -ENOMEM;
- 			goto err;
- 		}
-@@ -788,19 +817,28 @@ static int add_children(struct twl4030_platform_data *pdata)
- 					sizeof(*pdata->usb));
- 			if (status < 0) {
- 				platform_device_put(pdev);
-+				dev_dbg(&twl->client->dev,
-+					"can't add usb data, %d\n",
-+					status);
- 				goto err;
- 			}
- 			status = platform_device_add(pdev);
--			if (status < 0)
-+			if (status < 0) {
- 				platform_device_put(pdev);
-+				dev_dbg(&twl->client->dev,
-+						"can't create usb dev, %d\n",
-+						status);
-+			}
- 		} else {
-+			pr_debug("%s: can't alloc usb dev\n", DRIVER_NAME);
- 			status = -ENOMEM;
- 			goto err;
- 		}
++/* genirq interfaces are not available to modules */
+ #ifdef MODULE
+ #define is_module()	true
+ #else
+@@ -530,7 +522,7 @@ static int twl4030_set_gpio_edge_ctrl(int gpio, int edge)
+ 	if (ret >= 0) {
+ 		/* clear the previous rising/falling values */
+ 		reg = (u8) ret;
+-		reg &= ~( MASK_GPIO_EDR1_GPIOxFALLING(c_off)
++		reg &= ~(MASK_GPIO_EDR1_GPIOxFALLING(c_off)
+ 			| MASK_GPIO_EDR1_GPIOxRISING(c_off));
+ 		reg |= c_msk;
+ 		ret = gpio_twl4030_write(base, reg);
+@@ -598,7 +590,7 @@ int twl4030_set_gpio_card_detect(int gpio, int enable)
+ 		ret = gpio_twl4030_write(REG_GPIO_CTRL, reg);
  	}
- 
- err:
--	pr_err("failed to add twl4030's children\n");
-+	if (status)
-+		pr_err("failed to add twl4030's children (status %d)\n", status);
- 	return status;
+ 	mutex_unlock(&gpio_lock);
+-	return (ret);
++	return ret;
  }
+ #endif
  
-@@ -1084,13 +1122,12 @@ twl4030_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 			&& twl4030_irq_base == 0
- 			&& client->irq
- 			&& pdata->irq_base
--			&& pdata->irq_end > pdata->irq_base)
-+			&& pdata->irq_end > pdata->irq_base) {
- 		twl_init_irq(client->irq, pdata->irq_base, pdata->irq_end);
-+		dev_info(&client->dev, "IRQ %d chains IRQs %d..%d\n",
-+				client->irq, pdata->irq_base, pdata->irq_end - 1);
-+	}
+@@ -847,9 +839,9 @@ static int __devinit gpio_twl4030_probe(struct platform_device *pdev)
+ 		/* install an irq handler for each of the gpio interrupts */
+ 		for (irq = twl4030_gpio_irq_base; irq < twl4030_gpio_irq_end;
+ 				irq++) {
+-			set_irq_chip(irq, &twl4030_gpio_irq_chip);
+-			set_irq_handler(irq, do_twl4030_gpio_irq);
+-			set_irq_flags(irq, IRQF_VALID);
++			set_irq_noprobe(irq);
++			set_irq_chip_and_handler(irq, &twl4030_gpio_irq_chip,
++					do_twl4030_gpio_irq);
+ 		}
  
--	dev_info(&client->dev, "chaining %d irqs\n",
--			twl4030_irq_base
--				? (pdata->irq_end - pdata->irq_base)
--				: 0);
- 	return 0;
+ 		/* gpio module IRQ */
+@@ -918,13 +910,10 @@ static int __devexit gpio_twl4030_remove(struct platform_device *pdev)
+ 	/* uninstall the gpio demultiplexing interrupt handler */
+ 	irq = platform_get_irq(pdev, 0);
+ 	set_irq_handler(irq, NULL);
+-	set_irq_flags(irq, 0);
  
- fail:
+ 	/* uninstall the irq handler for each of the gpio interrupts */
+-	for (irq = twl4030_gpio_irq_base; irq < twl4030_gpio_irq_end; irq++) {
++	for (irq = twl4030_gpio_irq_base; irq < twl4030_gpio_irq_end; irq++)
+ 		set_irq_handler(irq, NULL);
+-		set_irq_flags(irq, 0);
+-	}
+ 
+ 	/* stop the gpio unmask kernel thread */
+ 	if (gpio_unmask_thread) {
+diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
+index f26fda1..56a9415 100644
+--- a/include/linux/i2c/twl4030.h
++++ b/include/linux/i2c/twl4030.h
+@@ -138,17 +138,11 @@ struct twl4030_platform_data {
+ 
+ /* TWL4030 GPIO interrupt definitions */
+ 
+-#define TWL4030_GPIO_MIN		0
+ #define TWL4030_GPIO_MAX		18
+-#define TWL4030_GPIO_MAX_CD		2
+ #define TWL4030_GPIO_IRQ_NO(n)		(TWL4030_GPIO_IRQ_BASE + (n))
+-#define TWL4030_GPIO_IS_INPUT		1
+-#define TWL4030_GPIO_IS_OUTPUT		0
+ #define TWL4030_GPIO_IS_ENABLE		1
+-#define TWL4030_GPIO_IS_DISABLE		0
+ #define TWL4030_GPIO_PULL_UP		0
+ #define TWL4030_GPIO_PULL_DOWN		1
+-#define TWL4030_GPIO_PULL_NONE		2
+ 
+ /* Functions to read and write from TWL4030 */
+ 
 -- 
 1.6.0.2.307.gc427
 
