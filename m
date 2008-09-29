@@ -1,187 +1,95 @@
-From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: RE: [PATCH 15/16] OMAP3: Dynamic enable/disable of OFF support
-Date: Mon, 29 Sep 2008 12:32:19 +0530
-Message-ID: <024801c92201$506cf780$LocalHost@wipultra1382>
-References: <020001c91fd2$3c0c92e0$LocalHost@wipultra1382>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: FOR COMMENT: void __iomem * and similar casts are Bad News
+Date: Mon, 29 Sep 2008 10:44:45 +0300
+Message-ID: <20080929104445.5040e737.jarkko.nikula@nokia.com>
+References: <20080827220821.GE7227@flint.arm.linux.org.uk>
+	<a0580c510809030833w6cbc7e42ye0e8f4fc49b5b046@mail.gmail.com>
+	<20080904094655.GB10426@flint.arm.linux.org.uk>
+	<20080904161033.GQ23085@atomide.com>
+	<20080904161248.GC2309@flint.arm.linux.org.uk>
+	<20080904162917.GR23085@atomide.com>
+	<20080904170733.GD2309@flint.arm.linux.org.uk>
+	<20080904175810.GS23085@atomide.com>
+	<alpine.DEB.1.00.0809042312410.25143@utopia.booyaka.com>
+	<alpine.DEB.1.00.0809042357360.25143@utopia.booyaka.com>
+	<dfeb90390809282216p73e30653l399b165e464440cc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52147 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751731AbYI2HC3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 03:02:29 -0400
-In-Reply-To: <020001c91fd2$3c0c92e0$LocalHost@wipultra1382>
+Received: from smtp.nokia.com ([192.100.105.134]:53545 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751792AbYI2HpZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 03:45:25 -0400
+In-Reply-To: <dfeb90390809282216p73e30653l399b165e464440cc@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: 'Kevin Hilman' <khilman@deeprootsystems.com>
+To: ext Arun KS <arunks@mistralsolutions.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>
 
-Sorry I replied on a wrong patch mail earlier.. I meant the below wrt this patch.
+On Mon, 29 Sep 2008 10:46:33 +0530
+"ext Arun KS" <arunks@mistralsolutions.com> wrote:
 
-I just managed to see that this patch seems to break suspend functionality.
-If after bootup I enable OFF mode the subsequent suspend tries to put a few 
-power domains to OFF which are currently in RET, and since there is no code 
-in place today to handle RET to OFF transitions, they don't transition to OFF and
-remain in RET.
+> The system hangs when there is a request for mcbsp in the platform
+> driver of omap ie.. at
+> File:sound/soc/omap/omap-mcbsp.c
+> Function: omap_mcbsp_dai_startup
+> omap_mcbsp_request(mcbsp_data->bus_id);
+> This is executed when we do an aplay.
+> 
+Was this patch included?
 
-Supporting run time enable/disable of OFF functionality is kind of becoming complicated.
-Do we really see a need to have a run-time option to enable/disable OFF mode or can
-we have a compile time option for this? 
+commit f9d06c24f43b7620b14e4dd6dbf667fa68457766
+Author: Jarkko Nikula <jarkko.nikula@nokia.com>
+Date:   Mon Sep 22 16:47:51 2008 +0300
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Rajendra Nayak
-> Sent: Friday, September 26, 2008 5:50 PM
-> To: linux-omap@vger.kernel.org
-> Cc: 'Kevin Hilman'
-> Subject: [PATCH 15/16] OMAP3: Dynamic enable/disable of OFF support
-> 
-> This patch adds a runtime sysfs knob (/sys/power/enable_off_mode)
-> to enable/disbale CORE OFF support for OMAP3. 
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/mach-omap2/pm.c     |   21 +++++++++++++++++----
->  arch/arm/mach-omap2/pm.h     |    2 ++
->  arch/arm/mach-omap2/pm34xx.c |   26 ++++++++++++++++++++++++++
->  3 files changed, 45 insertions(+), 4 deletions(-)
-> 
-> Index: linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/pm34xx.c	
-> 2008-09-26 16:39:30.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c	
-> 2008-09-26 16:39:34.000000000 +0530
-> @@ -395,6 +395,32 @@ static int omap3_can_sleep(void)
->  	return 1;
->  }
->  
-> +int set_next_pwrst(struct powerdomain *pwrdm)
-> +{
-> +	struct power_state *pwrst;
-> +	int ret = 0;
-> +	u32 state;
-> +
-> +	if (!pwrdm->pwrsts)
-> +		return 0;
-> +
-> +	if (enable_off_mode)
-> +		state = PWRDM_POWER_OFF;
-> +	else
-> +		state = PWRDM_POWER_RET;
-> +
-> +	ret = pwrdm_set_next_pwrst(pwrdm, state);
-> +	if (ret) {
-> +		printk(KERN_ERR "Unable to set state of 
-> powerdomain: %s\n",
-> +		       pwrdm->name);
-> +		goto err;
-> +	}
-> +	list_for_each_entry(pwrst, &pwrst_list, node)
-> +		pwrst->next_state = state;
-> +err:
-> +	return ret;
-> +}
-> +
->  /* This sets pwrdm state (other than mpu & core. Currently only ON &
->   * RET are supported. Function is assuming that clkdm doesn't have
->   * hw_sup mode enabled. */
-> Index: linux-omap-2.6/arch/arm/mach-omap2/pm.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/pm.c	
-> 2008-09-26 16:39:30.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/mach-omap2/pm.c	2008-09-26 
-> 16:39:34.000000000 +0530
-> @@ -35,6 +35,7 @@
->  
->  unsigned short enable_dyn_sleep;
->  unsigned short clocks_off_while_idle;
-> +unsigned short enable_off_mode;
->  atomic_t sleep_block = ATOMIC_INIT(0);
->  
->  static ssize_t idle_show(struct kobject *, struct 
-> kobj_attribute *, char *);
-> @@ -47,6 +48,9 @@ static struct kobj_attribute sleep_while
->  static struct kobj_attribute clocks_off_while_idle_attr =
->  	__ATTR(clocks_off_while_idle, 0644, idle_show, idle_store);
->  
-> +static struct kobj_attribute enable_off_mode_attr =
-> +	__ATTR(enable_off_mode, 0644, idle_show, idle_store);
-> +
->  static ssize_t idle_show(struct kobject *kobj, struct 
-> kobj_attribute *attr,
->  			 char *buf)
->  {
-> @@ -54,6 +58,8 @@ static ssize_t idle_show(struct kobject 
->  		return sprintf(buf, "%hu\n", enable_dyn_sleep);
->  	else if (attr == &clocks_off_while_idle_attr)
->  		return sprintf(buf, "%hu\n", clocks_off_while_idle);
-> +	else if (attr == &enable_off_mode_attr)
-> +		return sprintf(buf, "%hu\n", enable_off_mode);
->  	else
->  		return -EINVAL;
->  }
-> @@ -69,13 +75,16 @@ static ssize_t idle_store(struct kobject
->  		return -EINVAL;
->  	}
->  
-> -	if (attr == &sleep_while_idle_attr)
-> +	if (attr == &sleep_while_idle_attr) {
->  		enable_dyn_sleep = value;
-> -	else if (attr == &clocks_off_while_idle_attr)
-> +	} else if (attr == &clocks_off_while_idle_attr) {
->  		clocks_off_while_idle = value;
-> -	else
-> +	} else if (attr == &enable_off_mode_attr) {
-> +		enable_off_mode = value;
-> +		pwrdm_for_each(set_next_pwrst);
-> +	} else {
->  		return -EINVAL;
-> -
-> +	}
->  	return n;
->  }
->  
-> @@ -114,6 +123,10 @@ static int __init omap_pm_init(void)
->  				  &clocks_off_while_idle_attr.attr);
->  	if (error)
->  		printk(KERN_ERR "sysfs_create_file failed: 
-> %d\n", error);
-> +	error = sysfs_create_file(power_kobj,
-> +				  &enable_off_mode_attr.attr);
-> +	if (error)
-> +		printk(KERN_ERR "sysfs_create_file failed: 
-> %d\n", error);
->  
->  	return error;
->  }
-> Index: linux-omap-2.6/arch/arm/mach-omap2/pm.h
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/pm.h	
-> 2008-09-26 16:39:30.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/mach-omap2/pm.h	2008-09-26 
-> 16:39:34.000000000 +0530
-> @@ -18,10 +18,12 @@ extern int omap3_pm_init(void);
->  
->  extern unsigned short enable_dyn_sleep;
->  extern unsigned short clocks_off_while_idle;
-> +extern unsigned short enable_off_mode;
->  extern atomic_t sleep_block;
->  
->  extern void omap2_block_sleep(void);
->  extern void omap2_allow_sleep(void);
-> +extern int set_next_pwrst(struct powerdomain *pwrdm);
->  
->  #define OMAP343X_TABLE_ADDRESS_OFFSET 0x31
->  #define OMAP343X_TABLE_VALUE_OFFSET   0x30
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+    ARM: OMAP: Fixes to omap_mcbsp_request function
 
+    Bootloader may let McBSP logic running so make sure that block is
+idle before requesting IRQs. Also make sure that TX and RX waitqueues
+are initialized before request_irq.
+
+Also you can get some debug messages from mcbsp by patch below and
+"echo 8 > /proc/sys/kernel/printk" in your target before executing
+aplay.
+
+---
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 798c91e..2bfb177 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -12,6 +12,7 @@
+  * Multichannel mode not supported.
+  */
+ 
++#define DEBUG
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/device.h>
+---
+
+> In the ALSA driver(sound/arm/omap/omap-alsa.c:513) the
+> omap_mcbsp_request() is during the boot time.
+> There no issues.
+> 
+> So during my testing of the ASOC driver i comment out
+> omap_mcbsp_request(mcbsp_data->bus_id); from
+> platform driver (sound/soc/omap/omap-mcbsp.c) and insted requested the
+> omap_mcbsp in my
+> moudule_init of machine driver(ie sound/soc/omap/osk.c).
+> 
+Legacy driver is doing some clock setup in snd_omap_alsa_post_probe
+before omap_mcbsp_request.
+
+	alsa_codec_config->codec_clock_setup();
+	alsa_codec_config->codec_clock_on();
+
+	omap_mcbsp_request(AUDIO_MCBSP);
+
+If my patch wasn't included I can understand that it would explain why
+legacy driver is working. If it was, then there still might be some
+registers which must be set to reset default before requesting irqs in
+omap_mcbsp_request.
+
+
+Jarkko
