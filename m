@@ -1,445 +1,201 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 3/4] omap iommu: sysfs for userland interface
-Date: Mon, 29 Sep 2008 08:27:03 +0300
-Message-ID: <1222666024-27137-4-git-send-email-Hiroshi.DOYU@nokia.com>
-References: <1222666024-27137-1-git-send-email-Hiroshi.DOYU@nokia.com>
- <1222666024-27137-2-git-send-email-Hiroshi.DOYU@nokia.com>
- <1222666024-27137-3-git-send-email-Hiroshi.DOYU@nokia.com>
+From: "Rajendra Nayak" <rnayak@ti.com>
+Subject: RE: [PATCH 14/16] OMAP3: CORE Off support
+Date: Mon, 29 Sep 2008 12:29:12 +0530
+Message-ID: <024701c92200$e20f55d0$LocalHost@wipultra1382>
+References: <01ff01c91fd2$36b19250$LocalHost@wipultra1382>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:38624 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750963AbYI2F2O (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 01:28:14 -0400
-In-Reply-To: <1222666024-27137-3-git-send-email-Hiroshi.DOYU@nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:55016 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750801AbYI2G7X convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 02:59:23 -0400
+In-Reply-To: <01ff01c91fd2$36b19250$LocalHost@wipultra1382>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux@arm.linux.org.uk, lethal@linux-sh.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: 'Kevin Hilman' <khilman@deeprootsystems.com>
 
-This patch is a experimental example and 'sysfs' isn't suitable to
-provide the userland with enough functionalities to control
-iommu. This 'sysfs' interface should be replaced by something else(ex:
-'dspfs').
+I just managed to see that this patch seems to break suspend functionality.
+If after bootup I enable OFF mode the subsequent suspend tries to put a few 
+power domains to OFF which are currently in RET, and since there is no code 
+in place today to handle RET to OFF transitions, they don't transition to OFF and
+remain in RET.
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
----
- arch/arm/plat-omap/iommu-sysfs.c |  407 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 407 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/plat-omap/iommu-sysfs.c
+Supporting run time enable/disable of OFF functionality is kind of becoming complicated.
+Do we really see a need to have a run-time option to enable/disable OFF mode or can
+we have a compile time option for this? 
 
-diff --git a/arch/arm/plat-omap/iommu-sysfs.c b/arch/arm/plat-omap/iommu-sysfs.c
-new file mode 100644
-index 0000000..a34ad8f
---- /dev/null
-+++ b/arch/arm/plat-omap/iommu-sysfs.c
-@@ -0,0 +1,407 @@
-+/*
-+ * omap iommu: sysfs for userland interface
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#define DEBUG
-+
-+#include <linux/err.h>
-+#include <linux/module.h>
-+#include <linux/clk.h>
-+#include <linux/platform_device.h>
-+
-+#include <mach/iommu.h>
-+#include <mach/iovmm.h>
-+
-+#include "iopgtable.h"
-+
-+#undef WARN_ON
-+#define WARN_ON(x) /* for isp clock issue */
-+
-+#define kobj_to_iommu(x)						\
-+	to_iommu((struct device *)container_of(x, struct device, kobj))
-+
-+static ssize_t generic_attr_show(struct device *dev,
-+				 struct device_attribute *attr, char *buf)
-+{
-+	struct iommu *obj = to_iommu(dev);
-+
-+	if (strcmp(attr->attr.name, "name") == 0)
-+		return sprintf(buf, "%s\n", obj->name);
-+
-+	if (strcmp(attr->attr.name, "version") == 0)
-+		return sprintf(buf, "%08x\n", iommu_arch_version());
-+
-+	if (strcmp(attr->attr.name, "nr_tlb_entries") == 0)
-+		return sprintf(buf, "%d\n", obj->nr_tlb_entries);
-+
-+	WARN_ON(1);
-+	return 0;
-+}
-+static DEVICE_ATTR(name, S_IRUGO, generic_attr_show, NULL);
-+static DEVICE_ATTR(nr_tlb_entries, S_IRUGO, generic_attr_show, NULL);
-+static DEVICE_ATTR(version, S_IRUGO, generic_attr_show, NULL);
-+
-+static ssize_t iotlb_attr_store(struct device *dev,
-+				struct device_attribute *attr, const char *buf,
-+				size_t count)
-+{
-+	struct iommu *obj = to_iommu(dev);
-+	struct iotlb_entry e;
-+	struct cr_regs cr;
-+	u32 da;
-+	int err;
-+
-+	sscanf(buf, "%x %x", &cr.cam, &cr.ram); /* FIXME: Add OMAP1 support */
-+	dev_dbg(obj->dev, "c:%08x r:%08x\n", cr.cam, cr.ram);
-+
-+	if (!cr.cam || !cr.ram)
-+		return -EINVAL;
-+
-+	da = iotlb_cr_to_virt(&cr);
-+
-+	err = clk_enable(obj->clk);
-+	WARN_ON(err);
-+
-+	flush_iotlb_page(obj, da);
-+
-+	iotlb_cr_to_e(&cr, &e);
-+	load_iotlb_entry(obj, &e);
-+
-+	clk_disable(obj->clk);
-+
-+	return count;
-+}
-+
-+static ssize_t iotlb_attr_show(struct device *dev,
-+			       struct device_attribute *attr, char *buf)
-+{
-+	int i, err;
-+	struct iotlb_lock saved, l;
-+	struct iommu *obj = to_iommu(dev);
-+	char *p;
-+
-+	err = clk_enable(obj->clk);
-+	WARN_ON(err);
-+
-+	iotlb_lock_get(obj, &saved);
-+	memcpy(&l, &saved, sizeof(saved));
-+
-+	p = buf;
-+	p += sprintf(p, "%8s %8s\n", "cam:", "ram:");
-+	p += sprintf(p, "-----------------------------------------\n");
-+
-+	for (i = 0; i < obj->nr_tlb_entries; i++) {
-+		struct cr_regs cr;
-+
-+		l.vict = i;
-+		iotlb_read_cr(obj, &l, &cr);
-+
-+		if (!iotlb_cr_valid(&cr))
-+			continue;
-+
-+		p += iotlb_dump_cr(obj, &cr, p);
-+	}
-+	iotlb_lock_set(obj, &saved);
-+	clk_disable(obj->clk);
-+
-+	return p - buf;
-+}
-+static DEVICE_ATTR(tlb, S_IRUGO | S_IWUSR, iotlb_attr_show, iotlb_attr_store);
-+
-+static ssize_t iopgtable_attr_store(struct device *dev,
-+				 struct device_attribute *attr, const char *buf,
-+				 size_t count)
-+{
-+	struct iommu *obj = to_iommu(dev);
-+	struct iotlb_entry e;
-+	struct cr_regs cr;
-+	u32 da;
-+	int err;
-+
-+	sscanf(buf, "%x %x", &cr.cam, &cr.ram);
-+	dev_dbg(obj->dev, "c:%08x r:%08x\n", cr.cam, cr.ram);
-+
-+	if (!cr.cam || !cr.ram)
-+		return -EINVAL;
-+
-+	da = iotlb_cr_to_virt(&cr);
-+
-+	err = clk_enable(obj->clk);
-+	WARN_ON(err);
-+
-+	iotlb_cr_to_e(&cr, &e);
-+	err = iopgtable_store_entry(obj, &e);
-+	if (err)
-+		dev_err(obj->dev, "%s: fail to store cr\n", __func__);
-+
-+	clk_disable(obj->clk);
-+
-+	return count;
-+}
-+
-+static ssize_t iopgtable_attr_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	int i;
-+	char *p = buf;
-+	struct iommu *obj = to_iommu(dev);
-+	u32 *iopgd;
-+
-+	/*
-+	 * FIXME: analyze the content of attribute in detail
-+	 */
-+
-+	p += sprintf(p, "L: %8s %8s\n", "da:", "pa:");
-+	p += sprintf(p, "-----------------------------------------\n");
-+
-+	spin_lock(&obj->page_table_lock);
-+
-+	iopgd = iopgd_offset(obj, 0);
-+	for (i = 0; i < PTRS_PER_IOPGD; i++, iopgd++) {
-+		int j;
-+		u32 *iopte;
-+
-+		if (!*iopgd)
-+			continue;
-+
-+		if (!((u32)*iopgd & IOPGD_TABLE)) {
-+			u32 da;
-+
-+			da = i << IOPGD_SHIFT;
-+			p += sprintf(p, "1: %08x %08x\n", da, *iopgd);
-+			continue;
-+		}
-+
-+		iopte = iopte_offset(iopgd, 0);
-+		dev_dbg(obj->dev, "%s: found iopte:%p\n", __func__, iopte);
-+
-+		for (j = 0; j < PTRS_PER_IOPTE; j++, iopte++) {
-+			u32 da;
-+
-+			if (!*iopte)
-+				continue;
-+
-+			dev_dbg(obj->dev, "%s: [%03d] %08x at %p\n", __func__,
-+				j, *iopte, iopte);
-+
-+			da = (i << IOPGD_SHIFT) + (j << IOPTE_SHIFT);
-+			p += sprintf(p, "2: %08x %08x\n", da, *iopte);
-+		}
-+	}
-+
-+	spin_unlock(&obj->page_table_lock);
-+
-+	return p - buf;
-+}
-+static DEVICE_ATTR(pgtable, S_IRUGO | S_IWUSR,
-+		   iopgtable_attr_show, iopgtable_attr_store);
-+
-+static ssize_t mmap_attr_show(struct device *dev,
-+			      struct device_attribute *attr, char *buf)
-+{
-+	struct iovm_struct *tmp;
-+	char *p = buf;
-+	struct iommu *obj = to_iommu(dev);
-+	int i = 0;
-+
-+	/*
-+	 * FIXME:
-+	 * - trace physical memory address as well
-+	 * - analyze the content of flags
-+	 */
-+
-+	p += sprintf(p, "%-3s %-8s %-8s %6s %8s\n",
-+		     "No", "start", "end", "size", "flags");
-+	p += sprintf(p, "-------------------------------------------------\n");
-+
-+	list_for_each_entry(tmp, &obj->mmap, list) {
-+		size_t len;
-+
-+		len = tmp->da_end - tmp->da_start;
-+
-+		p += sprintf(p, "%3d %08x-%08x %6x %8x\n",
-+			     i, tmp->da_start, tmp->da_end, len, tmp->flags);
-+		i++;
-+	}
-+
-+	return p - buf;
-+}
-+static DEVICE_ATTR(mmap, S_IRUGO, mmap_attr_show, NULL);
-+
-+#ifdef DEBUG
-+static ssize_t regs_attr_show(struct device *dev,
-+			      struct device_attribute *attr, char *buf)
-+{
-+	struct iommu *obj = to_iommu(dev);
-+
-+	return iommu_dump_regs(obj, buf);
-+}
-+static DEVICE_ATTR(regs, S_IRUGO, regs_attr_show, NULL);
-+#endif
-+
-+static struct attribute *iommu_attrs[] = {
-+	&dev_attr_name.attr,
-+	&dev_attr_nr_tlb_entries.attr,
-+	&dev_attr_version.attr,
-+	&dev_attr_tlb.attr,
-+	&dev_attr_pgtable.attr,
-+	&dev_attr_mmap.attr,
-+#ifdef DEBUG
-+	&dev_attr_regs.attr,
-+#endif
-+	NULL,
-+};
-+
-+static struct attribute_group iommu_attr_grp = {
-+	.attrs	= iommu_attrs,
-+};
-+
-+static ssize_t iommu_mem_read(struct kobject *kobj, struct bin_attribute *attr,
-+			      char *buf, loff_t offset, size_t count)
-+{
-+	int err;
-+	struct iovm_struct *area;
-+	struct iommu *obj = kobj_to_iommu(kobj);
-+
-+	mutex_lock(&obj->mmap_lock);
-+
-+	area = find_iovm_area(obj, offset);
-+	if (IS_ERR(area)) {
-+		mutex_unlock(&obj->mmap_lock);
-+		return -EINVAL;
-+	}
-+
-+	err = clk_enable(obj->clk);
-+	WARN_ON(err);
-+
-+	memcpy(buf, area->va, count);
-+
-+	clk_disable(obj->clk);
-+
-+	mutex_unlock(&obj->mmap_lock);
-+	return count;
-+}
-+
-+static ssize_t iommu_mem_write(struct kobject *kobj, struct bin_attribute *attr,
-+			       char *buf, loff_t offset, size_t count)
-+{
-+	int err;
-+	struct iovm_struct *area;
-+	struct iommu *obj = kobj_to_iommu(kobj);
-+
-+	mutex_lock(&obj->mmap_lock);
-+
-+	area = find_iovm_area(obj, offset);
-+	if (IS_ERR(area)) {
-+		mutex_unlock(&obj->mmap_lock);
-+		return -EINVAL;
-+	}
-+
-+	err = clk_enable(obj->clk);
-+	WARN_ON(err);
-+
-+	memcpy(area->va, buf, count);
-+
-+	clk_disable(obj->clk);
-+
-+	mutex_unlock(&obj->mmap_lock);
-+	return count;
-+}
-+
-+static int iommu_mem_mmap(struct kobject *kobj, struct bin_attribute *attr,
-+			  struct vm_area_struct *vma)
-+{
-+	struct iovm_struct *ia;
-+	struct iommu *obj = kobj_to_iommu(kobj);
-+
-+	BUG_ON(!IS_ALIGNED(vma->vm_pgoff, PAGE_SIZE));
-+
-+	mutex_lock(&obj->mmap_lock);
-+
-+	ia = find_iovm_area(obj, vma->vm_pgoff);
-+	if (IS_ERR(ia)) {
-+		mutex_unlock(&obj->mmap_lock);
-+		return -EINVAL;
-+	}
-+
-+	if ((vma->vm_end - vma->vm_start) != PAGE_SIZE) {
-+		mutex_unlock(&obj->mmap_lock);
-+		return -EINVAL;
-+	}
-+
-+	vma->vm_flags |= VM_IO;
-+	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-+
-+	if (io_remap_pfn_range(vma, vma->vm_start, (u32)ia->va >> PAGE_SHIFT,
-+			       PAGE_SIZE, vma->vm_page_prot)) {
-+		dev_err(obj->dev, "%s: n", __func__);
-+		mutex_unlock(&obj->mmap_lock);
-+		return -EAGAIN;
-+	}
-+	/* FIXME: clock should be kept on during mapped? */
-+
-+	mutex_unlock(&obj->mmap_lock);
-+	return 0;
-+}
-+
-+/* FIXME: replace sysfs with more flexible interface(ex: char dev or dspfs) */
-+static struct bin_attribute iommu_attr_mem = {
-+	.attr	= {
-+		.name	= "mem",
-+		.owner	= THIS_MODULE,
-+		.mode	= S_IRUSR | S_IWUSR | S_IRGRP,
-+	},
-+	.read	= iommu_mem_read,
-+	.write	= iommu_mem_write,
-+	.mmap	= iommu_mem_mmap,
-+};
-+
-+int iommu_register_sysfs(struct iommu *obj)
-+{
-+	int err;
-+
-+	if (!obj || !obj->dev)
-+		return -EINVAL;
-+
-+	err = sysfs_create_group(&obj->dev->kobj, &iommu_attr_grp);
-+	if (err)
-+		return err;
-+
-+	err = sysfs_create_bin_file(&obj->dev->kobj, &iommu_attr_mem);
-+	if (err)
-+		sysfs_remove_group(&obj->dev->kobj, &iommu_attr_grp);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(iommu_register_sysfs);
-+
-+void iommu_unregister_sysfs(struct iommu *obj)
-+{
-+	WARN_ON(!obj || !obj->dev);
-+
-+	sysfs_remove_bin_file(&obj->dev->kobj, &iommu_attr_mem);
-+	sysfs_remove_group(&obj->dev->kobj, &iommu_attr_grp);
-+}
-+EXPORT_SYMBOL_GPL(iommu_unregister_sysfs);
-+
-+static int __init iommu_sysfs_init(void)
-+{
-+	return 0;
-+}
-+module_init(iommu_sysfs_init)
-+
-+static void __exit iommu_sysfs_exit(void)
-+{
-+}
-+module_exit(iommu_sysfs_exit)
-+
-+MODULE_DESCRIPTION("omap iommu: sysfs for userland interface");
-+MODULE_AUTHOR("Hiroshi DOYU <Hiroshi.DOYU@nokia.com>");
-+MODULE_LICENSE("GPL v2");
--- 
-1.6.0.2.229.g1293c
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Rajendra Nayak
+> Sent: Friday, September 26, 2008 5:50 PM
+> To: linux-omap@vger.kernel.org
+> Cc: 'Kevin Hilman'
+> Subject: [PATCH 14/16] OMAP3: CORE Off support
+> 
+> This patch updates omap_sram_idle with CORE OFF support
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |   79 
+> +++++++++++++++++++++++++++++++++++++++++--
+>  1 files changed, 77 insertions(+), 2 deletions(-)
+> 
+> Index: linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/mach-omap2/pm34xx.c	
+> 2008-09-26 16:38:37.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c	
+> 2008-09-26 16:39:18.000000000 +0530
+> @@ -7,6 +7,9 @@
+>   * Tony Lindgren <tony@atomide.com>
+>   * Jouni Hogander
+>   *
+> + * Copyright (C) 2007 Texas Instruments, Inc.
+> + * Rajendra Nayak <rnayak@ti.com>
+> + *
+>   * Copyright (C) 2005 Texas Instruments, Inc.
+>   * Richard Woodruff <r-woodruff2@ti.com>
+>   *
+> @@ -27,11 +30,15 @@
+>  #include <mach/gpio.h>
+>  #include <mach/sram.h>
+>  #include <mach/pm.h>
+> +#include <mach/prcm.h>
+>  #include <mach/clockdomain.h>
+>  #include <mach/powerdomain.h>
+>  #include <mach/common.h>
+>  #include <mach/control.h>
+> +#include <mach/serial.h>
+> +#include <mach/gpio.h>
+>  #include <mach/sdrc.h>
+> +#include <mach/gpmc.h>
+>  #include <asm/tlbflush.h>
+>  
+>  #include "cm.h"
+> @@ -59,6 +66,46 @@ static struct powerdomain *mpu_pwrdm, *n
+>  static struct powerdomain *core_pwrdm, *per_pwrdm;
+>  
+>  int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+> +void omap3_sram_restore_context(void);
+> +
+> +void omap3_per_save_context(void)
+> +{
+> +	omap3_gpio_save_context();
+> +}
+> +
+> +void omap3_per_restore_context(void)
+> +{
+> +	omap3_gpio_restore_context();
+> +}
+> +
+> +void omap3_core_save_context(void)
+> +{
+> +	u32 control_padconf_off;
+> +	/* Save the padconf registers */
+> +	control_padconf_off =
+> +	omap_ctrl_readl(OMAP343X_CONTROL_PADCONF_OFF);
+> +	control_padconf_off |= START_PADCONF_SAVE;
+> +	omap_ctrl_writel(control_padconf_off, 
+> OMAP343X_CONTROL_PADCONF_OFF);
+> +	/* wait for the save to complete */
+> +	while (!omap_ctrl_readl(OMAP343X_CONTROL_GENERAL_PURPOSE_STATUS)
+> +			& PADCONF_SAVE_DONE);
+> +	/* Save the Interrupt controller context */
+> +	omap3_intc_save_context();
+> +	/* Save the GPMC context */
+> +	omap3_gpmc_save_context();
+> +	/* Save the system control module context, padconf 
+> already save above*/
+> +	omap3_control_save_context();
+> +}
+> +
+> +void omap3_core_restore_context(void)
+> +{
+> +	/* Restore the control module context, padconf restored 
+> by h/w */
+> +	omap3_control_restore_context();
+> +	/* Restore the GPMC context */
+> +	omap3_gpmc_restore_context();
+> +	/* Restore the interrupt controller context */
+> +	omap3_intc_restore_context();
+> +}
+>  
+>  /* PRCM Interrupt Handler for wakeups */
+>  static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
+> @@ -191,6 +238,7 @@ static void omap_sram_idle(void)
+>  	int mpu_next_state = PWRDM_POWER_ON;
+>  	int per_next_state = PWRDM_POWER_ON;
+>  	int core_next_state = PWRDM_POWER_ON;
+> +	int core_prev_state, per_prev_state;
+>  
+>  	if (!_omap_sram_idle)
+>  		return;
+> @@ -232,8 +280,19 @@ static void omap_sram_idle(void)
+>  		/* PER changes only with core */
+>  		per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
+>  		if (clocks_off_while_idle) {
+> -			if (per_next_state < PWRDM_POWER_ON)
+> +			if (per_next_state < PWRDM_POWER_ON) {
+> +				if (per_next_state == PWRDM_POWER_OFF) {
+> +					omap3_per_save_context();
+> +					omap3_uart_save_context(2);
+> +				}
+>  				omap_serial_enable_clocks(0, 2);
+> +			}
+> +			if (core_next_state == PWRDM_POWER_OFF) {
+> +				omap3_core_save_context();
+> +				omap3_prcm_save_context();
+> +				omap3_uart_save_context(0);
+> +				omap3_uart_save_context(1);
+> +			}
+>  			omap_serial_enable_clocks(0, 0);
+>  			omap_serial_enable_clocks(0, 1);
+>  		}
+> @@ -258,8 +317,23 @@ static void omap_sram_idle(void)
+>  		if (clocks_off_while_idle) {
+>  			omap_serial_enable_clocks(1, 0);
+>  			omap_serial_enable_clocks(1, 1);
+> -			if (per_next_state < PWRDM_POWER_ON)
+> +			core_prev_state = 
+> pwrdm_read_prev_pwrst(core_pwrdm);
+> +			if (core_prev_state == PWRDM_POWER_OFF) {
+> +				omap3_core_restore_context();
+> +				omap3_prcm_restore_context();
+> +				omap3_sram_restore_context();
+> +				omap3_uart_restore_context(0);
+> +				omap3_uart_restore_context(1);
+> +			}
+> +			if (per_next_state < PWRDM_POWER_ON) {
+>  				omap_serial_enable_clocks(1, 2);
+> +				per_prev_state =
+> +					
+> pwrdm_read_prev_pwrst(per_pwrdm);
+> +				if (per_prev_state == PWRDM_POWER_OFF) {
+> +					omap3_per_restore_context();
+> +					omap3_uart_restore_context(2);
+> +				}
+> +			}
+>  		}
+>  		omap2_gpio_resume_after_retention();
+>  	}
+> @@ -648,6 +722,7 @@ int __init omap3_pm_init(void)
+>  	/* XXX prcm_setup_regs needs to be before enabling hw
+>  	 * supervised mode for powerdomains */
+>  	prcm_setup_regs();
+> +	omap3_save_scratchpad_contents();
+>  
+>  	ret = request_irq(INT_34XX_PRCM_MPU_IRQ,
+>  			  (irq_handler_t)prcm_interrupt_handler,
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
