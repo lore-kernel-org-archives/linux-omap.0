@@ -1,22 +1,24 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: RE: [PATCH 14/16] OMAP3: CORE Off support
-Date: Mon, 29 Sep 2008 12:29:12 +0530
-Message-ID: <024701c92200$e20f55d0$LocalHost@wipultra1382>
-References: <01ff01c91fd2$36b19250$LocalHost@wipultra1382>
+Subject: RE: [PATCH 15/16] OMAP3: Dynamic enable/disable of OFF support
+Date: Mon, 29 Sep 2008 12:32:19 +0530
+Message-ID: <024801c92201$506cf780$LocalHost@wipultra1382>
+References: <020001c91fd2$3c0c92e0$LocalHost@wipultra1382>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55016 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52147 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750801AbYI2G7X convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 02:59:23 -0400
-In-Reply-To: <01ff01c91fd2$36b19250$LocalHost@wipultra1382>
+	id S1751731AbYI2HC3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2008 03:02:29 -0400
+In-Reply-To: <020001c91fd2$3c0c92e0$LocalHost@wipultra1382>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: 'Kevin Hilman' <khilman@deeprootsystems.com>
+
+Sorry I replied on a wrong patch mail earlier.. I meant the below wrt this patch.
 
 I just managed to see that this patch seems to break suspend functionality.
 If after bootup I enable OFF mode the subsequent suspend tries to put a few 
@@ -34,162 +36,146 @@ we have a compile time option for this?
 > Sent: Friday, September 26, 2008 5:50 PM
 > To: linux-omap@vger.kernel.org
 > Cc: 'Kevin Hilman'
-> Subject: [PATCH 14/16] OMAP3: CORE Off support
+> Subject: [PATCH 15/16] OMAP3: Dynamic enable/disable of OFF support
 > 
-> This patch updates omap_sram_idle with CORE OFF support
+> This patch adds a runtime sysfs knob (/sys/power/enable_off_mode)
+> to enable/disbale CORE OFF support for OMAP3. 
 > 
 > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 > ---
->  arch/arm/mach-omap2/pm34xx.c |   79 
-> +++++++++++++++++++++++++++++++++++++++++--
->  1 files changed, 77 insertions(+), 2 deletions(-)
+>  arch/arm/mach-omap2/pm.c     |   21 +++++++++++++++++----
+>  arch/arm/mach-omap2/pm.h     |    2 ++
+>  arch/arm/mach-omap2/pm34xx.c |   26 ++++++++++++++++++++++++++
+>  3 files changed, 45 insertions(+), 4 deletions(-)
 > 
 > Index: linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c
 > ===================================================================
 > --- linux-omap-2.6.orig/arch/arm/mach-omap2/pm34xx.c	
-> 2008-09-26 16:38:37.000000000 +0530
+> 2008-09-26 16:39:30.000000000 +0530
 > +++ linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c	
-> 2008-09-26 16:39:18.000000000 +0530
-> @@ -7,6 +7,9 @@
->   * Tony Lindgren <tony@atomide.com>
->   * Jouni Hogander
->   *
-> + * Copyright (C) 2007 Texas Instruments, Inc.
-> + * Rajendra Nayak <rnayak@ti.com>
-> + *
->   * Copyright (C) 2005 Texas Instruments, Inc.
->   * Richard Woodruff <r-woodruff2@ti.com>
->   *
-> @@ -27,11 +30,15 @@
->  #include <mach/gpio.h>
->  #include <mach/sram.h>
->  #include <mach/pm.h>
-> +#include <mach/prcm.h>
->  #include <mach/clockdomain.h>
->  #include <mach/powerdomain.h>
->  #include <mach/common.h>
->  #include <mach/control.h>
-> +#include <mach/serial.h>
-> +#include <mach/gpio.h>
->  #include <mach/sdrc.h>
-> +#include <mach/gpmc.h>
->  #include <asm/tlbflush.h>
+> 2008-09-26 16:39:34.000000000 +0530
+> @@ -395,6 +395,32 @@ static int omap3_can_sleep(void)
+>  	return 1;
+>  }
 >  
->  #include "cm.h"
-> @@ -59,6 +66,46 @@ static struct powerdomain *mpu_pwrdm, *n
->  static struct powerdomain *core_pwrdm, *per_pwrdm;
->  
->  int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
-> +void omap3_sram_restore_context(void);
-> +
-> +void omap3_per_save_context(void)
+> +int set_next_pwrst(struct powerdomain *pwrdm)
 > +{
-> +	omap3_gpio_save_context();
+> +	struct power_state *pwrst;
+> +	int ret = 0;
+> +	u32 state;
+> +
+> +	if (!pwrdm->pwrsts)
+> +		return 0;
+> +
+> +	if (enable_off_mode)
+> +		state = PWRDM_POWER_OFF;
+> +	else
+> +		state = PWRDM_POWER_RET;
+> +
+> +	ret = pwrdm_set_next_pwrst(pwrdm, state);
+> +	if (ret) {
+> +		printk(KERN_ERR "Unable to set state of 
+> powerdomain: %s\n",
+> +		       pwrdm->name);
+> +		goto err;
+> +	}
+> +	list_for_each_entry(pwrst, &pwrst_list, node)
+> +		pwrst->next_state = state;
+> +err:
+> +	return ret;
 > +}
 > +
-> +void omap3_per_restore_context(void)
-> +{
-> +	omap3_gpio_restore_context();
-> +}
-> +
-> +void omap3_core_save_context(void)
-> +{
-> +	u32 control_padconf_off;
-> +	/* Save the padconf registers */
-> +	control_padconf_off =
-> +	omap_ctrl_readl(OMAP343X_CONTROL_PADCONF_OFF);
-> +	control_padconf_off |= START_PADCONF_SAVE;
-> +	omap_ctrl_writel(control_padconf_off, 
-> OMAP343X_CONTROL_PADCONF_OFF);
-> +	/* wait for the save to complete */
-> +	while (!omap_ctrl_readl(OMAP343X_CONTROL_GENERAL_PURPOSE_STATUS)
-> +			& PADCONF_SAVE_DONE);
-> +	/* Save the Interrupt controller context */
-> +	omap3_intc_save_context();
-> +	/* Save the GPMC context */
-> +	omap3_gpmc_save_context();
-> +	/* Save the system control module context, padconf 
-> already save above*/
-> +	omap3_control_save_context();
-> +}
-> +
-> +void omap3_core_restore_context(void)
-> +{
-> +	/* Restore the control module context, padconf restored 
-> by h/w */
-> +	omap3_control_restore_context();
-> +	/* Restore the GPMC context */
-> +	omap3_gpmc_restore_context();
-> +	/* Restore the interrupt controller context */
-> +	omap3_intc_restore_context();
-> +}
+>  /* This sets pwrdm state (other than mpu & core. Currently only ON &
+>   * RET are supported. Function is assuming that clkdm doesn't have
+>   * hw_sup mode enabled. */
+> Index: linux-omap-2.6/arch/arm/mach-omap2/pm.c
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/mach-omap2/pm.c	
+> 2008-09-26 16:39:30.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/mach-omap2/pm.c	2008-09-26 
+> 16:39:34.000000000 +0530
+> @@ -35,6 +35,7 @@
 >  
->  /* PRCM Interrupt Handler for wakeups */
->  static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
-> @@ -191,6 +238,7 @@ static void omap_sram_idle(void)
->  	int mpu_next_state = PWRDM_POWER_ON;
->  	int per_next_state = PWRDM_POWER_ON;
->  	int core_next_state = PWRDM_POWER_ON;
-> +	int core_prev_state, per_prev_state;
+>  unsigned short enable_dyn_sleep;
+>  unsigned short clocks_off_while_idle;
+> +unsigned short enable_off_mode;
+>  atomic_t sleep_block = ATOMIC_INIT(0);
 >  
->  	if (!_omap_sram_idle)
->  		return;
-> @@ -232,8 +280,19 @@ static void omap_sram_idle(void)
->  		/* PER changes only with core */
->  		per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
->  		if (clocks_off_while_idle) {
-> -			if (per_next_state < PWRDM_POWER_ON)
-> +			if (per_next_state < PWRDM_POWER_ON) {
-> +				if (per_next_state == PWRDM_POWER_OFF) {
-> +					omap3_per_save_context();
-> +					omap3_uart_save_context(2);
-> +				}
->  				omap_serial_enable_clocks(0, 2);
-> +			}
-> +			if (core_next_state == PWRDM_POWER_OFF) {
-> +				omap3_core_save_context();
-> +				omap3_prcm_save_context();
-> +				omap3_uart_save_context(0);
-> +				omap3_uart_save_context(1);
-> +			}
->  			omap_serial_enable_clocks(0, 0);
->  			omap_serial_enable_clocks(0, 1);
->  		}
-> @@ -258,8 +317,23 @@ static void omap_sram_idle(void)
->  		if (clocks_off_while_idle) {
->  			omap_serial_enable_clocks(1, 0);
->  			omap_serial_enable_clocks(1, 1);
-> -			if (per_next_state < PWRDM_POWER_ON)
-> +			core_prev_state = 
-> pwrdm_read_prev_pwrst(core_pwrdm);
-> +			if (core_prev_state == PWRDM_POWER_OFF) {
-> +				omap3_core_restore_context();
-> +				omap3_prcm_restore_context();
-> +				omap3_sram_restore_context();
-> +				omap3_uart_restore_context(0);
-> +				omap3_uart_restore_context(1);
-> +			}
-> +			if (per_next_state < PWRDM_POWER_ON) {
->  				omap_serial_enable_clocks(1, 2);
-> +				per_prev_state =
-> +					
-> pwrdm_read_prev_pwrst(per_pwrdm);
-> +				if (per_prev_state == PWRDM_POWER_OFF) {
-> +					omap3_per_restore_context();
-> +					omap3_uart_restore_context(2);
-> +				}
-> +			}
->  		}
->  		omap2_gpio_resume_after_retention();
+>  static ssize_t idle_show(struct kobject *, struct 
+> kobj_attribute *, char *);
+> @@ -47,6 +48,9 @@ static struct kobj_attribute sleep_while
+>  static struct kobj_attribute clocks_off_while_idle_attr =
+>  	__ATTR(clocks_off_while_idle, 0644, idle_show, idle_store);
+>  
+> +static struct kobj_attribute enable_off_mode_attr =
+> +	__ATTR(enable_off_mode, 0644, idle_show, idle_store);
+> +
+>  static ssize_t idle_show(struct kobject *kobj, struct 
+> kobj_attribute *attr,
+>  			 char *buf)
+>  {
+> @@ -54,6 +58,8 @@ static ssize_t idle_show(struct kobject 
+>  		return sprintf(buf, "%hu\n", enable_dyn_sleep);
+>  	else if (attr == &clocks_off_while_idle_attr)
+>  		return sprintf(buf, "%hu\n", clocks_off_while_idle);
+> +	else if (attr == &enable_off_mode_attr)
+> +		return sprintf(buf, "%hu\n", enable_off_mode);
+>  	else
+>  		return -EINVAL;
+>  }
+> @@ -69,13 +75,16 @@ static ssize_t idle_store(struct kobject
+>  		return -EINVAL;
 >  	}
-> @@ -648,6 +722,7 @@ int __init omap3_pm_init(void)
->  	/* XXX prcm_setup_regs needs to be before enabling hw
->  	 * supervised mode for powerdomains */
->  	prcm_setup_regs();
-> +	omap3_save_scratchpad_contents();
 >  
->  	ret = request_irq(INT_34XX_PRCM_MPU_IRQ,
->  			  (irq_handler_t)prcm_interrupt_handler,
+> -	if (attr == &sleep_while_idle_attr)
+> +	if (attr == &sleep_while_idle_attr) {
+>  		enable_dyn_sleep = value;
+> -	else if (attr == &clocks_off_while_idle_attr)
+> +	} else if (attr == &clocks_off_while_idle_attr) {
+>  		clocks_off_while_idle = value;
+> -	else
+> +	} else if (attr == &enable_off_mode_attr) {
+> +		enable_off_mode = value;
+> +		pwrdm_for_each(set_next_pwrst);
+> +	} else {
+>  		return -EINVAL;
+> -
+> +	}
+>  	return n;
+>  }
+>  
+> @@ -114,6 +123,10 @@ static int __init omap_pm_init(void)
+>  				  &clocks_off_while_idle_attr.attr);
+>  	if (error)
+>  		printk(KERN_ERR "sysfs_create_file failed: 
+> %d\n", error);
+> +	error = sysfs_create_file(power_kobj,
+> +				  &enable_off_mode_attr.attr);
+> +	if (error)
+> +		printk(KERN_ERR "sysfs_create_file failed: 
+> %d\n", error);
+>  
+>  	return error;
+>  }
+> Index: linux-omap-2.6/arch/arm/mach-omap2/pm.h
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/mach-omap2/pm.h	
+> 2008-09-26 16:39:30.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/mach-omap2/pm.h	2008-09-26 
+> 16:39:34.000000000 +0530
+> @@ -18,10 +18,12 @@ extern int omap3_pm_init(void);
+>  
+>  extern unsigned short enable_dyn_sleep;
+>  extern unsigned short clocks_off_while_idle;
+> +extern unsigned short enable_off_mode;
+>  extern atomic_t sleep_block;
+>  
+>  extern void omap2_block_sleep(void);
+>  extern void omap2_allow_sleep(void);
+> +extern int set_next_pwrst(struct powerdomain *pwrdm);
+>  
+>  #define OMAP343X_TABLE_ADDRESS_OFFSET 0x31
+>  #define OMAP343X_TABLE_VALUE_OFFSET   0x30
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe 
