@@ -1,52 +1,43 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 04/25] i2c: move twl4030_keypad to new style
-	registration
-Date: Wed, 1 Oct 2008 01:30:21 +0300
-Message-ID: <20080930223000.GR2445@frodo>
-References: <1222800189-29737-1-git-send-email-me@felipebalbi.com> <1222800189-29737-4-git-send-email-me@felipebalbi.com> <1222800189-29737-5-git-send-email-me@felipebalbi.com> <200809301442.48086.david-b@pacbell.net>
-Reply-To: me@felipebalbi.com
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: [PATCH 00/25] twl4030 patches (v5)
+Date: Tue, 30 Sep 2008 16:30:50 -0700
+Message-ID: <5e088bd90809301630h99d25c6vf2cddfa6699ee0b6@mail.gmail.com>
+References: <1222800189-29737-1-git-send-email-me@felipebalbi.com>
+	 <200809301241.09171.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:58180 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753505AbYI3War (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 18:30:47 -0400
+Received: from wf-out-1314.google.com ([209.85.200.174]:55164 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754609AbYI3Xaw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 19:30:52 -0400
+Received: by wf-out-1314.google.com with SMTP id 27so297770wfd.4
+        for <linux-omap@vger.kernel.org>; Tue, 30 Sep 2008 16:30:51 -0700 (PDT)
+In-Reply-To: <200809301241.09171.david-b@pacbell.net>
 Content-Disposition: inline
-In-Reply-To: <200809301442.48086.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
 Cc: Felipe Balbi <me@felipebalbi.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-On Tue, Sep 30, 2008 at 02:42:47PM -0700, David Brownell wrote:
+On Tue, Sep 30, 2008 at 12:41 PM, David Brownell <david-b@pacbell.net> wrote:
 > On Tuesday 30 September 2008, Felipe Balbi wrote:
-> > +struct twl4030_keypad_data {
-> > +=A0=A0=A0=A0=A0=A0=A0int rows;
-> > +=A0=A0=A0=A0=A0=A0=A0int cols;
-> > +=A0=A0=A0=A0=A0=A0=A0int *keymap;
-> > +=A0=A0=A0=A0=A0=A0=A0int irq;
-> > +=A0=A0=A0=A0=A0=A0=A0unsigned int keymapsize;
-> > +=A0=A0=A0=A0=A0=A0=A0unsigned int rep:1;
-> > +};
->=20
-> To fix later:  "irq" should be a standard platform resource.
->=20
-> Those references in board init code to TWL4030_MODIRQ_KEYPAD
-> should vanish, and add_children() should just pass the right
-> number the standard way.
+>> Hopefully this is the final version:
+>
+> For the core?  This is IMO suitable for merging to linux-omap.
+> In terms of no-bugs-Dave-knows-about, for stuff he's touched.
+>
+> There will however be other updates later...
+>
+> ... including the patch 26/25 I'm about to send -- shrinkage.  ;)
 
-Cool, could you take a look at twl4030-bci changes ?? They request both
-irqs, which seems ok, but then we won't be able to get rid of
-TWL4030_MODIRQ_BCI.
+I tested the v5 series (26/25) on Overo and found no issues other than
+the musb problem we discussed earlier.
 
-If you can come up with an idea to change that, i'd be glad.
+I agree that it is suitable for merging.
 
---=20
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'll prepare a "twl4030-gpio: overo pull up/down init" and submit it
+after the merge.
+
+Steve
