@@ -1,263 +1,165 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 12/23] move twl4030-gpio to drivers/gpio
-Date: Tue, 30 Sep 2008 13:05:49 +0300
-Message-ID: <1222769160-31615-13-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 06/23] i2c: twl4030-usb: add 'vbus' sysfs file
+Date: Tue, 30 Sep 2008 13:05:43 +0300
+Message-ID: <1222769160-31615-7-git-send-email-felipe.balbi@nokia.com>
 References: <1222769160-31615-1-git-send-email-felipe.balbi@nokia.com>
  <1222769160-31615-2-git-send-email-felipe.balbi@nokia.com>
  <1222769160-31615-3-git-send-email-felipe.balbi@nokia.com>
  <1222769160-31615-4-git-send-email-felipe.balbi@nokia.com>
  <1222769160-31615-5-git-send-email-felipe.balbi@nokia.com>
  <1222769160-31615-6-git-send-email-felipe.balbi@nokia.com>
- <1222769160-31615-7-git-send-email-felipe.balbi@nokia.com>
- <1222769160-31615-8-git-send-email-felipe.balbi@nokia.com>
- <1222769160-31615-9-git-send-email-felipe.balbi@nokia.com>
- <1222769160-31615-10-git-send-email-felipe.balbi@nokia.com>
- <1222769160-31615-11-git-send-email-felipe.balbi@nokia.com>
- <1222769160-31615-12-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:35010 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752477AbYI3KHA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 06:07:00 -0400
-In-Reply-To: <1222769160-31615-12-git-send-email-felipe.balbi@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:58431 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752335AbYI3KGw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 06:06:52 -0400
+In-Reply-To: <1222769160-31615-6-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <felipe.balbi@nokia.com>
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+vbus sysfs file will report the state of vbus irq coming from
+twl4030-usb.
 
-Move the twl4030 GPIO support from drivers/i2c/chips to drivers/gpio,
-which is a more appropriate home for this code.
-
-The Kconfig symbol name is changed to match the GPIO_* convention for
-such symbols, so config files must change in the obvious ways (Kconfig
-will prompt you).  There's now some helptext.
-
-It can now be compiled as a module, should anyone really want to
-do that; that'll be mostly useful for test builds.  Sanity check the
-IRQ range we're given.
-
-Initialization order needed a bit of work too:  core add_children()
-called only after IRQs get set up, gpio uses subsys_initcall.  This
-depends on a patch making i2c driver model init use postcore_initcall.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- arch/arm/plat-omap/include/mach/irqs.h     |    2 +-
- drivers/gpio/Kconfig                       |    7 +++++
- drivers/gpio/Makefile                      |    1 +
- drivers/{i2c/chips => gpio}/twl4030-gpio.c |   37 +++++++++++++++++++++++----
- drivers/i2c/chips/Kconfig                  |    4 ---
- drivers/i2c/chips/Makefile                 |    1 -
- drivers/i2c/chips/twl4030-core.c           |   12 +++------
- 7 files changed, 44 insertions(+), 20 deletions(-)
- rename drivers/{i2c/chips => gpio}/twl4030-gpio.c (96%)
+ drivers/i2c/chips/twl4030-usb.c |   51 ++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 50 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-omap/include/mach/irqs.h
-index 29c92c9..8a4473e 100644
---- a/arch/arm/plat-omap/include/mach/irqs.h
-+++ b/arch/arm/plat-omap/include/mach/irqs.h
-@@ -369,7 +369,7 @@
+diff --git a/drivers/i2c/chips/twl4030-usb.c b/drivers/i2c/chips/twl4030-usb.c
+index 246aa9d..f530e71 100644
+--- a/drivers/i2c/chips/twl4030-usb.c
++++ b/drivers/i2c/chips/twl4030-usb.c
+@@ -29,6 +29,8 @@
+ #include <linux/time.h>
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
++#include <linux/spinlock.h>
++#include <linux/workqueue.h>
+ #include <linux/io.h>
+ #include <linux/usb.h>
+ #include <linux/usb/ch9.h>
+@@ -259,11 +261,17 @@
  
- /* External TWL4030 gpio interrupts are optional */
- #define TWL4030_GPIO_IRQ_BASE	TWL4030_PWR_IRQ_END
--#ifdef	CONFIG_TWL4030_GPIO
-+#ifdef	CONFIG_GPIO_TWL4030
- #define TWL4030_GPIO_NR_IRQS	18
- #else
- #define	TWL4030_GPIO_NR_IRQS	0
-diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
-index dbd42d6..293b4a7 100644
---- a/drivers/gpio/Kconfig
-+++ b/drivers/gpio/Kconfig
-@@ -127,6 +127,13 @@ config GPIO_PCF857X
- 	  This driver provides an in-kernel interface to those GPIOs using
- 	  platform-neutral GPIO calls.
  
-+config GPIO_TWL4030
-+	tristate "TWL4030/TPS659x0 GPIO Driver"
-+	depends on TWL4030_CORE && GPIOLIB
-+	help
-+	  Say yes here to access the GPIO signals of various multi-function
-+	  power management chips from Texas Instruments.
+ struct twl4030_usb {
++	struct work_struct	irq_work;
+ 	struct otg_transceiver	otg;
+ 	struct device		*dev;
+ 
++	/* for vbus reporting with irqs disabled */
++	spinlock_t		lock;
 +
- comment "PCI GPIO expanders:"
- 
- config GPIO_BT8XX
-diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
-index 01b4bbd..6aafdeb 100644
---- a/drivers/gpio/Makefile
-+++ b/drivers/gpio/Makefile
-@@ -9,4 +9,5 @@ obj-$(CONFIG_GPIO_MAX732X)	+= max732x.o
- obj-$(CONFIG_GPIO_MCP23S08)	+= mcp23s08.o
- obj-$(CONFIG_GPIO_PCA953X)	+= pca953x.o
- obj-$(CONFIG_GPIO_PCF857X)	+= pcf857x.o
-+obj-$(CONFIG_GPIO_TWL4030)	+= twl4030-gpio.o
- obj-$(CONFIG_GPIO_BT8XX)	+= bt8xxgpio.o
-diff --git a/drivers/i2c/chips/twl4030-gpio.c b/drivers/gpio/twl4030-gpio.c
-similarity index 96%
-rename from drivers/i2c/chips/twl4030-gpio.c
-rename to drivers/gpio/twl4030-gpio.c
-index 0d4dd28..2949da1 100644
---- a/drivers/i2c/chips/twl4030-gpio.c
-+++ b/drivers/gpio/twl4030-gpio.c
-@@ -1,5 +1,5 @@
- /*
-- * linux/drivers/i2c/chips/twl4030_gpio.c
-+ * twl4030_gpio.c -- access to GPIOs on TWL4030/TPS659x0 chips
-  *
-  * Copyright (C) 2006-2007 Texas Instruments, Inc.
-  * Copyright (C) 2006 MontaVista Software, Inc.
-@@ -23,7 +23,6 @@
-  * You should have received a copy of the GNU General Public License
-  * along with this program; if not, write to the Free Software
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-- *
-  */
- 
- #include <linux/module.h>
-@@ -48,14 +47,19 @@
- 
- 
- /* REVISIT when these symbols vanish elsewhere, remove them here too */
--#undef TWL4030_GPIO_IRQ_BASE
--#undef TWL4030_GPIO_IRQ_END
-+/* #undef TWL4030_GPIO_IRQ_BASE */
-+/* #undef TWL4030_GPIO_IRQ_END */
- #undef TWL4030_MODIRQ_GPIO
- 
- static struct gpio_chip twl_gpiochip;
- static int twl4030_gpio_irq_base;
- static int twl4030_gpio_irq_end;
- 
-+#ifdef MODULE
-+#define is_module()	true
-+#else
-+#define is_module()	false
-+#endif
- 
- /* BitField Definitions */
- 
-@@ -765,7 +769,24 @@ static int __devinit gpio_twl4030_probe(struct platform_device *pdev)
- 	twl4030_gpio_irq_base = pdata->irq_base;
- 	twl4030_gpio_irq_end = pdata->irq_end;
- 
--	/* REVISIT skip most of this if the irq range is empty... */
-+	if ((twl4030_gpio_irq_end - twl4030_gpio_irq_base) > 0) {
-+		if (is_module()) {
-+			dev_err(&pdev->dev,
-+				"can't dispatch IRQs from modules\n");
-+			goto no_irqs;
-+		}
-+		if (twl4030_gpio_irq_end > NR_IRQS) {
-+			dev_err(&pdev->dev,
-+				"last IRQ is too large: %d\n",
-+				twl4030_gpio_irq_end);
-+			return -EINVAL;
-+		}
-+	} else {
-+		dev_notice(&pdev->dev,
-+			"no IRQs being dispatched\n");
-+		goto no_irqs;
-+	}
+ 	/* pin configuration */
+ 	enum twl4030_usb_mode	usb_mode;
 +
- 	if (!ret) {
- 		/*
- 		 * Create a kernel thread to handle deferred unmasking of gpio
-@@ -805,6 +826,7 @@ static int __devinit gpio_twl4030_probe(struct platform_device *pdev)
- 			twl4030_gpio_irq_base, twl4030_gpio_irq_end - 1);
++	unsigned		vbus:1;
+ 	int			irq;
+ 	u8			asleep;
+ };
+@@ -529,6 +537,29 @@ static void twl4030_usb_ldo_init(struct twl4030_usb *twl)
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0, PROTECT_KEY);
+ }
+ 
++static ssize_t twl4030_usb_vbus_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct twl4030_usb *twl = dev_get_drvdata(dev);
++	unsigned long flags;
++	int ret = -EINVAL;
++
++	spin_lock_irqsave(&twl->lock, flags);
++	ret = sprintf(buf, "%s\n", twl->vbus ? "on" : "off");
++	spin_unlock_irqrestore(&twl->lock, flags);
++
++	return ret;
++}
++static DEVICE_ATTR(vbus, 0444, twl4030_usb_vbus_show, NULL);
++
++static void twl4030_usb_irq_work(struct work_struct *work)
++{
++	struct twl4030_usb *twl = container_of(work,
++			struct twl4030_usb, irq_work);
++
++	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
++}
++
+ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+ {
+ 	struct twl4030_usb *twl = _twl;
+@@ -541,10 +572,13 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+ 	if (val & USB_PRES_RISING) {
+ 		twl4030_phy_resume(twl);
+ 		twl4030charger_usb_en(1);
++		twl->vbus = 1;
+ 	} else {
+ 		twl4030charger_usb_en(0);
++		twl->vbus = 0;
+ 		twl4030_phy_suspend(twl, 0);
+ 	}
++	schedule_work(&twl->irq_work);
+ 
+ 	return IRQ_HANDLED;
+ }
+@@ -634,6 +668,7 @@ static int __init twl4030_usb_probe(struct platform_device *pdev)
+ 	struct twl4030_usb_data *pdata = pdev->dev.platform_data;
+ 	struct twl4030_usb	*twl;
+ 	int status;
++	u8			vbus;
+ 
+ 	twl = kzalloc(sizeof *twl, GFP_KERNEL);
+ 	if (!twl)
+@@ -644,12 +679,23 @@ static int __init twl4030_usb_probe(struct platform_device *pdev)
+ 		return -EINVAL;
  	}
  
-+no_irqs:
- 	if (!ret) {
- 		twl_gpiochip.base = pdata->gpio_base;
- 		twl_gpiochip.ngpio = TWL4030_GPIO_MAX;
-@@ -849,6 +871,9 @@ static int __devexit gpio_twl4030_remove(struct platform_device *pdev)
- 	if (status < 0)
++	WARN_ON(twl4030_i2c_read_u8(TWL4030_MODULE_INT,
++				&vbus, REG_PWR_EDR1) < 0);
++	vbus &= USB_PRES_RISING;
++
+ 	twl->dev		= &pdev->dev;
+ 	twl->irq		= TWL4030_PWRIRQ_USB_PRES;
+ 	twl->otg.set_host	= twl4030_set_host;
+ 	twl->otg.set_peripheral	= twl4030_set_peripheral;
+ 	twl->otg.set_suspend	= twl4030_set_suspend;
+ 	twl->usb_mode		= pdata->usb_mode;
++	twl->vbus		= vbus ? 1 : 0;
++
++	/* init spinlock for workqueue */
++	spin_lock_init(&twl->lock);
++
++	/* init irq workqueue before request_irq */
++	INIT_WORK(&twl->irq_work, twl4030_usb_irq_work);
+ 
+ 	usb_irq_disable(twl);
+ 	status = request_irq(twl->irq, twl4030_usb_irq, 0, "twl4030_usb", twl);
+@@ -660,7 +706,6 @@ static int __init twl4030_usb_probe(struct platform_device *pdev)
  		return status;
+ 	}
  
-+	if (is_module() || (twl4030_gpio_irq_end - twl4030_gpio_irq_base) <= 0)
-+		return 0;
+-
+ 	twl4030_usb_ldo_init(twl);
+ 	twl4030_phy_power(twl, 1);
+ 	twl4030_i2c_access(twl, 1);
+@@ -677,6 +722,9 @@ static int __init twl4030_usb_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, twl);
+ 	dev_info(&pdev->dev, "Initialized TWL4030 USB module\n");
+ 
++	if (device_create_file(&pdev->dev, &dev_attr_vbus))
++		dev_warn(&pdev->dev, "could not create sysfs file\n");
 +
- 	/* uninstall the gpio demultiplexing interrupt handler */
- 	irq = platform_get_irq(pdev, 0);
- 	set_irq_handler(irq, NULL);
-@@ -883,7 +908,7 @@ static int __init gpio_twl4030_init(void)
- {
- 	return platform_driver_register(&gpio_twl4030_driver);
- }
--module_init(gpio_twl4030_init);
-+subsys_initcall(gpio_twl4030_init);
- 
- static void __exit gpio_twl4030_exit(void)
- {
-diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
-index 1a21388..e6ac6a2 100644
---- a/drivers/i2c/chips/Kconfig
-+++ b/drivers/i2c/chips/Kconfig
-@@ -157,10 +157,6 @@ config TWL4030_CORE
- 	help
- 	  Say yes here if you have TWL4030 chip on your board
- 
--config TWL4030_GPIO
--	bool "TWL4030 GPIO Driver"
--	depends on TWL4030_CORE && GPIOLIB
--
- config TWL4030_MADC
- 	tristate "TWL4030 MADC Driver"
- 	depends on TWL4030_CORE
-diff --git a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
-index ad5f5db..75c531a 100644
---- a/drivers/i2c/chips/Makefile
-+++ b/drivers/i2c/chips/Makefile
-@@ -25,7 +25,6 @@ obj-$(CONFIG_MENELAUS)		+= menelaus.o
- obj-$(CONFIG_SENSORS_TSL2550)	+= tsl2550.o
- obj-$(CONFIG_SENSORS_TSL2563)	+= tsl2563.o
- obj-$(CONFIG_TWL4030_CORE)	+= twl4030-core.o twl4030-pwrirq.o twl4030-power.o
--obj-$(CONFIG_TWL4030_GPIO)	+= twl4030-gpio.o
- obj-$(CONFIG_TWL4030_USB)	+= twl4030-usb.o
- obj-$(CONFIG_TWL4030_POWEROFF)	+= twl4030-poweroff.o
- obj-$(CONFIG_TWL4030_PWRBUTTON)	+= twl4030-pwrbutton.o
-diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
-index 5dcc3b1..4ea6444 100644
---- a/drivers/i2c/chips/twl4030-core.c
-+++ b/drivers/i2c/chips/twl4030-core.c
-@@ -51,7 +51,7 @@
- #define twl_has_keypad()	false
- #endif
- 
--#ifdef CONFIG_TWL4030_GPIO
-+#if defined(CONFIG_GPIO_TWL4030) || defined(CONFIG_GPIO_TWL4030_MODULE)
- #define twl_has_gpio()	true
- #else
- #define twl_has_gpio()	false
-@@ -1110,10 +1110,6 @@ twl4030_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		mutex_init(&twl->xfer_lock);
- 	}
- 
--	status = add_children(pdata);
--	if (status < 0)
--		goto fail;
--
- 	/*
- 	 * Check if the PIH module is initialized, if yes, then init
- 	 * the T2 Interrupt subsystem
-@@ -1128,10 +1124,10 @@ twl4030_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 				client->irq, pdata->irq_base, pdata->irq_end - 1);
- 	}
- 
--	return 0;
--
-+	status = add_children(pdata);
- fail:
--	twl4030_remove(client);
-+	if (status < 0)
-+		twl4030_remove(client);
- 	return status;
+ 	return 0;
  }
  
+@@ -687,6 +735,7 @@ static int __exit twl4030_usb_remove(struct platform_device *pdev)
+ 
+ 	usb_irq_disable(twl);
+ 	free_irq(twl->irq, twl);
++	device_remove_file(twl->dev, &dev_attr_vbus);
+ 
+ 	/* set transceiver mode to power on defaults */
+ 	twl4030_usb_set_mode(twl, -1);
 -- 
 1.6.0.2.307.gc427
 
