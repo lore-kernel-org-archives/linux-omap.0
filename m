@@ -1,17 +1,17 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch twl series 1/2] twl4030-gpio:  pullup/pulldown init
-Date: Tue, 30 Sep 2008 10:56:20 -0700
-Message-ID: <200809301056.21434.david-b@pacbell.net>
+Subject: [patch twl series 2/2] twl4030-gpio:  beagle pull up/down init
+Date: Tue, 30 Sep 2008 10:56:33 -0700
+Message-ID: <200809301056.34020.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:29975 "HELO
+Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:29981 "HELO
 	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751792AbYI3R4g (ORCPT
+	by vger.kernel.org with SMTP id S1751813AbYI3R4h (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Sep 2008 13:56:36 -0400
+	Tue, 30 Sep 2008 13:56:37 -0400
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -20,177 +20,52 @@ Cc: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>, Girish S G <girishsg@ti.
 
 From: David Brownell <dbrownell@users.sourceforge.net>
 
-Finish moving initialization of pullups and pulldowns for twl4030
-GPIOs into board specific init.  Remove partial/incorrect init code
-for that from the hsmmc glue.
-
-Doing this right requires some attention from board init logic,
-based on how the TWL chip is wired.  Letting digital inputs float
-will waste power.  Everyone with board schematics should update
-their board init code so it matches their boards; meanwhile,
-this returns to "current" behavior (all pullups disabled) but
-finally offers a way to do it "right".
-
-Note that the ULPI pins won't need this attention (muxed against
-gpio{3-5,9-12,14} pins), and neither will ones with external
-pullups or pulldowns (conventional for MMC/SD card detect).
+Better TWL init on Beagle:  use the setup() callback to
+learn IRQ assignments; and configure pullups/pulldowns.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 ---
-This partially reverses the effect of patch 0002 of the series
-Felipe has been refreshing, in the sense that all pullups (and
-pullups) are again disabled.  HOWEVER it fills in that hole by
-providing a way boards can fix that -- example in patch #2.
+Similar patches will be needed for other TWL based boards.
 
- arch/arm/mach-omap2/hsmmc.c |    6 ---
- drivers/gpio/twl4030-gpio.c |   78 +++++++++++++++++++++---------------------
- include/linux/i2c/twl4030.h |    7 +++
- 3 files changed, 46 insertions(+), 45 deletions(-)
+ arch/arm/mach-omap2/board-omap3beagle.c |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -27,7 +27,6 @@
- #define VMMC1_DEDICATED		0x2A
- #define VSEL_3V			0x02
- #define VSEL_18V		0x00
--#define TWL_GPIO_PUPDCTR1	0x13
- #define TWL_GPIO_IMR1A		0x1C
- #define TWL_GPIO_ISR1A		0x19
- #define LDO_CLR			0x00
-@@ -65,11 +64,6 @@ static int hsmmc_late_init(struct device
- 	if (ret)
- 		goto err;
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -115,15 +115,31 @@ static struct twl4030_usb_data beagle_us
+ 	.usb_mode	= T2_USB_MODE_ULPI,
+ };
  
--	ret = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0x02,
--						TWL_GPIO_PUPDCTR1);
--	if (ret)
--		goto err;
--
- 	ret = twl4030_set_gpio_debounce(MMC1_CD_IRQ, TWL4030_GPIO_IS_ENABLE);
- 	if (ret)
- 		goto err;
---- a/drivers/gpio/twl4030-gpio.c
-+++ b/drivers/gpio/twl4030-gpio.c
-@@ -476,44 +476,6 @@ int twl4030_get_gpio_datain(int gpio)
- }
- EXPORT_SYMBOL(twl4030_get_gpio_datain);
- 
--#if 0
--/*
-- * Configure PULL type for a GPIO pin on TWL4030
-- */
--int twl4030_set_gpio_pull(int gpio, int pull_dircn)
--{
--	u8 c_bnk = GET_GPIO_CTL_BANK(gpio);
--	u8 c_off = GET_GPIO_CTL_OFF(gpio);
--	u8 c_msk = 0;
--	u8 reg = 0;
--	u8 base = 0;
--	int ret = 0;
--
--	if (unlikely((gpio >= TWL4030_GPIO_MAX)	||
--		!(gpio_usage_count & (0x1 << gpio))))
--		return -EPERM;
--
--	base = REG_GPIOPUPDCTR1 + c_bnk;
--	if (pull_dircn == TWL4030_GPIO_PULL_DOWN)
--		c_msk = MASK_GPIOPUPDCTR1_GPIOxPD(c_off);
--	else if (pull_dircn == TWL4030_GPIO_PULL_UP)
--		c_msk = MASK_GPIOPUPDCTR1_GPIOxPU(c_off);
--
--	mutex_lock(&gpio_lock);
--	ret = gpio_twl4030_read(base);
--	if (ret >= 0) {
--		/* clear the previous up/down values */
--		reg = (u8) (ret);
--		reg &= ~(MASK_GPIOPUPDCTR1_GPIOxPU(c_off) |
--			MASK_GPIOPUPDCTR1_GPIOxPD(c_off));
--		reg |= c_msk;
--		ret = gpio_twl4030_write(base, reg);
--	}
--	mutex_unlock(&gpio_lock);
--	return ret;
--}
--#endif
--
- static int twl4030_set_gpio_edge_ctrl(int gpio, int edge)
- {
- 	u8 c_bnk = GET_GPIO_CTL_BANK(gpio);
-@@ -578,6 +540,9 @@ EXPORT_SYMBOL(twl4030_set_gpio_debounce)
- #if 0
- /*
-  * Configure Card detect for GPIO pin on TWL4030
-+ *
-+ * This means:  VMMC1 or VMMC2 is enabled or disabled based
-+ * on the status of GPIO-0 or GPIO-1 pins (respectively).
-  */
- int twl4030_set_gpio_card_detect(int gpio, int enable)
- {
-@@ -800,6 +765,31 @@ static struct gpio_chip twl_gpiochip = {
- 
- /*----------------------------------------------------------------------*/
- 
-+static int __devinit gpio_twl4030_pulls(u32 ups, u32 downs)
++static int beagle_twl_gpio_setup(struct device *dev,
++		unsigned gpio, unsigned ngpio)
 +{
-+	u8		message[6];
-+	unsigned	i, gpio_bit;
-+
-+	/* For most pins, a pulldown was enabled by default.
-+	 * We should have data that's specific to this board.
++	/* request_gpio(gpio + 0, "mmc0_cd");
++	 * gpio_direction_input(gpio + 0);
 +	 */
-+	for (gpio_bit = 1, i = 1; i < 6; i++) {
-+		u8		bit_mask;
-+		unsigned	j;
 +
-+		for (bit_mask = 0, j = 0; j < 8; j += 2, gpio_bit <<= 1) {
-+			if (ups & gpio_bit)
-+				bit_mask |= 1 << (j + 1);
-+			else if (downs & gpio_bit)
-+				bit_mask |= 1 << (j + 0);
-+		}
-+		message[i] = bit_mask;
-+	}
++	gpio_request(gpio + 1, "EHCI_nOC");
++	gpio_direction_input(gpio + 1);
 +
-+	return twl4030_i2c_write(TWL4030_MODULE_GPIO, message,
-+				REG_GPIOPUPDCTR1, 5);
++	/* gpio + 18 + 0 == ledA, nEN_USB_PWR (out)
++	 * gpio + 18 + 1 == ledB, PMU_STAT (out, a LED)
++	 */
++
++	return 0;
 +}
 +
- static int gpio_twl4030_remove(struct platform_device *pdev);
+ static struct twl4030_gpio_platform_data beagle_gpio_data = {
+ 	.gpio_base	= OMAP_MAX_GPIO_LINES,
+ 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+ 	.irq_end	= TWL4030_GPIO_IRQ_END,
+-
+-	/* REVISIT:  setup() should use twl gpio index
+-	 *  - 0 as MMC card detect,
+-	 *  - 1 as EHCI port overcurrent (active low)
+-	 */
++	.pullups	= BIT(1),
++	.pulldowns	= BIT(2) | BIT(6) | BIT(7) | BIT(8) | BIT(13)
++				| BIT(15) | BIT(16) | BIT(17),
++	.setup		= beagle_twl_gpio_setup,
+ };
  
- static int __devinit gpio_twl4030_probe(struct platform_device *pdev)
-@@ -875,6 +865,18 @@ static int __devinit gpio_twl4030_probe(
- 
- no_irqs:
- 	if (!ret) {
-+		/*
-+		 * NOTE:  boards may waste power if they don't set pullups
-+		 * and pulldowns correctly ... default for non-ULPI pins is
-+		 * pulldown, and some other pins may have external pullups
-+		 * or pulldowns.  Careful!
-+		 */
-+		ret = gpio_twl4030_pulls(pdata->pullups, pdata->pulldowns);
-+		if (ret)
-+			dev_dbg(&pdev->dev, "pullups %.05x %.05x --> %d\n",
-+					pdata->pullups, pdata->pulldowns,
-+					ret);
-+
- 		twl_gpiochip.base = pdata->gpio_base;
- 		twl_gpiochip.ngpio = TWL4030_GPIO_MAX;
- 		twl_gpiochip.dev = &pdev->dev;
---- a/include/linux/i2c/twl4030.h
-+++ b/include/linux/i2c/twl4030.h
-@@ -62,8 +62,13 @@ struct twl4030_gpio_platform_data {
- 	int		gpio_base;
- 	unsigned	irq_base, irq_end;
- 
--	/* for gpio-N, bit (1 << N) is set if pullup should be used */
-+	/* For gpio-N, bit (1 << N) in "pullups" is set if that pullup
-+	 * should be enabled.  Else, if that bit is set in "pulldowns",
-+	 * that pulldown is enabled.  Don't waste power by letting any
-+	 * digital inputs float...
-+	 */
- 	u32		pullups;
-+	u32		pulldowns;
- 
- 	int		(*setup)(struct device *dev,
- 				unsigned gpio, unsigned ngpio);
+ static struct twl4030_platform_data beagle_twldata = {
