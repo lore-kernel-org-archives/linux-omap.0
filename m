@@ -1,82 +1,156 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH] omap: get rid of a useless cast
-Date: Tue, 30 Sep 2008 21:46:59 +0300
-Message-ID: <1222800419-29857-1-git-send-email-felipe.balbi@nokia.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: [PATCH 20/25] twl4030-gpio: irq and other cleanup
+Date: Tue, 30 Sep 2008 21:43:04 +0300
+Message-ID: <1222800189-29737-21-git-send-email-me@felipebalbi.com>
+References: <1222800189-29737-1-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-2-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-3-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-4-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-5-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-6-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-7-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-8-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-9-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-10-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-11-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-12-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-13-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-14-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-15-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-16-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-17-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-18-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-19-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-20-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:60103 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:60270 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750751AbYI3SrN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 14:47:13 -0400
+	with ESMTP id S1752588AbYI3SsG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 14:48:06 -0400
+In-Reply-To: <1222800189-29737-20-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <felipe.balbi@nokia.com>
 
-That cast was annyoing for quite a while. Now
-omap_ctrl_base_get() returns void __iomem *
-and __raw_read/write friends uses void __iomem *
-so there's no need for casting.
+From: David Brownell <dbrownell@users.sourceforge.net>
 
+Remove some ARM and OMAP specific stuff from the twl4030 GPIO code,
+and some unused/undesirable CPP symbols.  Add minor checkpatch fixes.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- arch/arm/mach-omap2/board-3430sdp.c |    7 ++++---
- arch/arm/mach-omap2/board-ldp.c     |    7 ++++---
- 2 files changed, 8 insertions(+), 6 deletions(-)
+ drivers/gpio/twl4030-gpio.c |   36 +++++++++++++++++++-----------------
+ include/linux/i2c/twl4030.h |    6 ------
+ 2 files changed, 19 insertions(+), 23 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 4264b68..530a4d4 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -129,7 +129,8 @@ static int __init msecure_init(void)
- 	/* 3430ES2.0 doesn't have msecure/gpio-22 line connected to T2 */
- 	if (omap_type() == OMAP2_DEVICE_TYPE_GP &&
- 			system_rev < OMAP3430_REV_ES2_0) {
--		u32 msecure_pad_config_reg = omap_ctrl_base_get() + 0xA3C;
-+		void __iomem *msecure_pad_config_reg = omap_ctrl_base_get() +
-+			0xA3C;
- 		int mux_mask = 0x04;
- 		u16 tmp;
+diff --git a/drivers/gpio/twl4030-gpio.c b/drivers/gpio/twl4030-gpio.c
+index 1ba3404..40abcbd 100644
+--- a/drivers/gpio/twl4030-gpio.c
++++ b/drivers/gpio/twl4030-gpio.c
+@@ -40,20 +40,25 @@
+ #include <linux/i2c/twl4030.h>
+ #include <linux/i2c/twl4030-gpio.h>
  
-@@ -144,10 +145,10 @@ static int __init msecure_init(void)
- 		 * is low. Make msecure line high in order to change the
- 		 * TWL4030 RTC time and calender registers.
- 		 */
--		tmp = omap_readw(msecure_pad_config_reg);
-+		tmp = __raw_readw(msecure_pad_config_reg);
- 		tmp &= 0xF8; /* To enable mux mode 03/04 = GPIO_RTC */
- 		tmp |= mux_mask;/* To enable mux mode 03/04 = GPIO_RTC */
--		omap_writew(tmp, msecure_pad_config_reg);
-+		__raw_writew(tmp, msecure_pad_config_reg);
+-#include <mach/irqs.h>
+-#include <asm/mach/irq.h>
+-#include <mach/gpio.h>
+-#include <mach/mux.h>
  
- 		gpio_direction_output(TWL4030_MSECURE_GPIO, 1);
+-
+-/* REVISIT when these symbols vanish elsewhere, remove them here too */
+-/* #undef TWL4030_GPIO_IRQ_BASE */
+-/* #undef TWL4030_GPIO_IRQ_END */
++static inline void activate_irq(int irq)
++{
++#ifdef CONFIG_ARM
++	/* ARM requires an extra step to clear IRQ_NOREQUEST, which it
++	 * sets on behalf of every irq_chip.  Also sets IRQ_NOPROBE.
++	 */
++	set_irq_flags(irq, IRQF_VALID);
++#else
++	/* same effect on other architectures */
++	set_irq_noprobe(irq);
++#endif
++}
+ 
+ static struct gpio_chip twl_gpiochip;
+ static int twl4030_gpio_irq_base;
+ static int twl4030_gpio_irq_end;
+ 
++/* genirq interfaces are not available to modules */
+ #ifdef MODULE
+ #define is_module()	true
+ #else
+@@ -530,7 +535,7 @@ static int twl4030_set_gpio_edge_ctrl(int gpio, int edge)
+ 	if (ret >= 0) {
+ 		/* clear the previous rising/falling values */
+ 		reg = (u8) ret;
+-		reg &= ~( MASK_GPIO_EDR1_GPIOxFALLING(c_off)
++		reg &= ~(MASK_GPIO_EDR1_GPIOxFALLING(c_off)
+ 			| MASK_GPIO_EDR1_GPIOxRISING(c_off));
+ 		reg |= c_msk;
+ 		ret = gpio_twl4030_write(base, reg);
+@@ -598,7 +603,7 @@ int twl4030_set_gpio_card_detect(int gpio, int enable)
+ 		ret = gpio_twl4030_write(REG_GPIO_CTRL, reg);
  	}
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index 35c03b7..96452ad 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -56,7 +56,8 @@ static int __init msecure_init(void)
- 	/* 3430ES2.0 doesn't have msecure/gpio-22 line connected to T2 */
- 	if (omap_device_type() == OMAP2_DEVICE_TYPE_GP &&
- 			system_rev < OMAP3430_REV_ES2_0) {
--		u32 msecure_pad_config_reg = omap_ctrl_base_get() + 0xA3C;
-+		void __iomem *msecure_pad_config_reg = omap_ctrl_base_get() +
-+			0xA3C;
- 		int mux_mask = 0x04;
- 		u16 tmp;
+ 	mutex_unlock(&gpio_lock);
+-	return (ret);
++	return ret;
+ }
+ #endif
  
-@@ -72,10 +73,10 @@ static int __init msecure_init(void)
- 		 * TWL4030 RTC time and calender registers.
- 		 */
+@@ -848,9 +853,9 @@ static int __devinit gpio_twl4030_probe(struct platform_device *pdev)
+ 		/* install an irq handler for each of the gpio interrupts */
+ 		for (irq = twl4030_gpio_irq_base; irq < twl4030_gpio_irq_end;
+ 				irq++) {
+-			set_irq_chip(irq, &twl4030_gpio_irq_chip);
+-			set_irq_handler(irq, do_twl4030_gpio_irq);
+-			set_irq_flags(irq, IRQF_VALID);
++			set_irq_chip_and_handler(irq, &twl4030_gpio_irq_chip,
++					do_twl4030_gpio_irq);
++			activate_irq(irq);
+ 		}
  
--		tmp = omap_readw(msecure_pad_config_reg);
-+		tmp = __raw_readw(msecure_pad_config_reg);
- 		tmp &= 0xF8;	/* To enable mux mode 03/04 = GPIO_RTC */
- 		tmp |= mux_mask;/* To enable mux mode 03/04 = GPIO_RTC */
--		omap_writew(tmp, msecure_pad_config_reg);
-+		__raw_writew(tmp, msecure_pad_config_reg);
+ 		/* gpio module IRQ */
+@@ -919,13 +924,10 @@ static int __devexit gpio_twl4030_remove(struct platform_device *pdev)
+ 	/* uninstall the gpio demultiplexing interrupt handler */
+ 	irq = platform_get_irq(pdev, 0);
+ 	set_irq_handler(irq, NULL);
+-	set_irq_flags(irq, 0);
  
- 		gpio_direction_output(TWL4030_MSECURE_GPIO, 1);
- 	}
+ 	/* uninstall the irq handler for each of the gpio interrupts */
+-	for (irq = twl4030_gpio_irq_base; irq < twl4030_gpio_irq_end; irq++) {
++	for (irq = twl4030_gpio_irq_base; irq < twl4030_gpio_irq_end; irq++)
+ 		set_irq_handler(irq, NULL);
+-		set_irq_flags(irq, 0);
+-	}
+ 
+ 	/* stop the gpio unmask kernel thread */
+ 	if (gpio_unmask_thread) {
+diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
+index f26fda1..56a9415 100644
+--- a/include/linux/i2c/twl4030.h
++++ b/include/linux/i2c/twl4030.h
+@@ -138,17 +138,11 @@ struct twl4030_platform_data {
+ 
+ /* TWL4030 GPIO interrupt definitions */
+ 
+-#define TWL4030_GPIO_MIN		0
+ #define TWL4030_GPIO_MAX		18
+-#define TWL4030_GPIO_MAX_CD		2
+ #define TWL4030_GPIO_IRQ_NO(n)		(TWL4030_GPIO_IRQ_BASE + (n))
+-#define TWL4030_GPIO_IS_INPUT		1
+-#define TWL4030_GPIO_IS_OUTPUT		0
+ #define TWL4030_GPIO_IS_ENABLE		1
+-#define TWL4030_GPIO_IS_DISABLE		0
+ #define TWL4030_GPIO_PULL_UP		0
+ #define TWL4030_GPIO_PULL_DOWN		1
+-#define TWL4030_GPIO_PULL_NONE		2
+ 
+ /* Functions to read and write from TWL4030 */
+ 
 -- 
 1.6.0.1.196.g01914
 
