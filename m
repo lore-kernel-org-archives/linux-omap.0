@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 11/25] provide detailed diagnostics in add_children()
-Date: Tue, 30 Sep 2008 21:42:55 +0300
-Message-ID: <1222800189-29737-12-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 15/25] i2c: switch twl4030-usb to use a resource for irq
+Date: Tue, 30 Sep 2008 21:42:59 +0300
+Message-ID: <1222800189-29737-16-git-send-email-me@felipebalbi.com>
 References: <1222800189-29737-1-git-send-email-me@felipebalbi.com>
  <1222800189-29737-2-git-send-email-me@felipebalbi.com>
  <1222800189-29737-3-git-send-email-me@felipebalbi.com>
@@ -13,175 +13,117 @@ References: <1222800189-29737-1-git-send-email-me@felipebalbi.com>
  <1222800189-29737-9-git-send-email-me@felipebalbi.com>
  <1222800189-29737-10-git-send-email-me@felipebalbi.com>
  <1222800189-29737-11-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-12-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-13-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-14-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-15-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:60545 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:60595 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753301AbYI3StP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 14:49:15 -0400
-In-Reply-To: <1222800189-29737-11-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1753315AbYI3St2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 14:49:28 -0400
+In-Reply-To: <1222800189-29737-15-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <felipe.balbi@nokia.com>
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+From: Felipe Balbi <felipe.balbi@nokia.com>
 
-Provide detailed diagnostics in add_children() when DEBUG is
-defined ... and fix the non-DEBUG message to include minimal
-status, and not appear unless there was actually an error.
-
-Update the IRQ message; have it match what the GPIO subchip
-says, and as a precaution, make it only appear if the IRQs
-have been initialized.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-
-Added a few more diagnostics when platform_device_add() fails.
+use platform_get_irq() for getting irq number passed
+to twl4030-usb via twl4030-core.c:add_children()
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/i2c/chips/twl4030-core.c |   59 ++++++++++++++++++++++++++++++-------
- 1 files changed, 48 insertions(+), 11 deletions(-)
+ drivers/i2c/chips/twl4030-core.c |   38 +++++++++++++++++++++++++++-----------
+ drivers/i2c/chips/twl4030-usb.c  |    2 +-
+ include/linux/i2c/twl4030.h      |    2 +-
+ 3 files changed, 29 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
-index 22850a8..5dcc3b1 100644
+index e0a6ef4..43424a8 100644
 --- a/drivers/i2c/chips/twl4030-core.c
 +++ b/drivers/i2c/chips/twl4030-core.c
-@@ -672,8 +672,10 @@ static int add_children(struct twl4030_platform_data *pdata)
- 		twl = &twl4030_modules[TWL4030_SLAVENUM_NUM1];
+@@ -819,9 +819,16 @@ static int add_children(struct twl4030_platform_data *pdata)
+ 	}
  
- 		pdev = platform_device_alloc("twl4030_gpio", -1);
--		if (!pdev)
+ 	if (twl_has_usb() && pdata->usb) {
++		twl = &twl4030_modules[TWL4030_SLAVENUM_NUM0];
++
+ 		pdev = platform_device_alloc("twl4030_usb", -1);
+-		if (pdev) {
+-			twl = &twl4030_modules[TWL4030_SLAVENUM_NUM0];
 +		if (!pdev) {
-+			pr_debug("%s: can't alloc gpio dev\n", DRIVER_NAME);
- 			status = -ENOMEM;
-+		}
- 
- 		/* more driver model init */
- 		if (status == 0) {
-@@ -682,6 +684,12 @@ static int add_children(struct twl4030_platform_data *pdata)
- 
- 			status = platform_device_add_data(pdev, pdata->gpio,
- 					sizeof(*pdata->gpio));
-+			if (status < 0) {
-+				dev_dbg(&twl->client->dev,
-+					"can't add gpio data, %d\n",
-+					status);
-+				goto err;
-+			}
- 		}
- 
- 		/* GPIO module IRQ */
-@@ -715,13 +723,21 @@ static int add_children(struct twl4030_platform_data *pdata)
- 			status = platform_device_add_data(pdev, pdata->keypad,
- 					sizeof(*pdata->keypad));
- 			if (status < 0) {
-+				dev_dbg(&twl->client->dev,
-+					"can't add keypad data, %d\n",
-+					status);
- 				platform_device_put(pdev);
- 				goto err;
- 			}
- 			status = platform_device_add(pdev);
--			if (status < 0)
-+			if (status < 0) {
- 				platform_device_put(pdev);
-+				dev_dbg(&twl->client->dev,
-+						"can't create keypad dev, %d\n",
-+						status);
-+			}
- 		} else {
-+			pr_debug("%s: can't alloc keypad dev\n", DRIVER_NAME);
- 			status = -ENOMEM;
- 			goto err;
- 		}
-@@ -737,12 +753,20 @@ static int add_children(struct twl4030_platform_data *pdata)
- 					sizeof(*pdata->madc));
- 			if (status < 0) {
- 				platform_device_put(pdev);
-+				dev_dbg(&twl->client->dev,
-+					"can't add madc data, %d\n",
-+					status);
- 				goto err;
- 			}
- 			status = platform_device_add(pdev);
--			if (status < 0)
-+			if (status < 0) {
- 				platform_device_put(pdev);
-+				dev_dbg(&twl->client->dev,
-+						"can't create madc dev, %d\n",
-+						status);
-+			}
- 		} else {
-+			pr_debug("%s: can't alloc madc dev\n", DRIVER_NAME);
- 			status = -ENOMEM;
- 			goto err;
- 		}
-@@ -770,9 +794,14 @@ static int add_children(struct twl4030_platform_data *pdata)
- 			 */
- 
- 			status = platform_device_add(pdev);
--			if (status < 0)
-+			if (status < 0) {
- 				platform_device_put(pdev);
-+				dev_dbg(&twl->client->dev,
-+						"can't create rtc dev, %d\n",
-+						status);
-+			}
- 		} else {
-+			pr_debug("%s: can't alloc rtc dev\n", DRIVER_NAME);
- 			status = -ENOMEM;
- 			goto err;
- 		}
-@@ -788,19 +817,28 @@ static int add_children(struct twl4030_platform_data *pdata)
- 					sizeof(*pdata->usb));
- 			if (status < 0) {
- 				platform_device_put(pdev);
-+				dev_dbg(&twl->client->dev,
-+					"can't add usb data, %d\n",
-+					status);
- 				goto err;
- 			}
- 			status = platform_device_add(pdev);
--			if (status < 0)
-+			if (status < 0) {
- 				platform_device_put(pdev);
-+				dev_dbg(&twl->client->dev,
-+						"can't create usb dev, %d\n",
-+						status);
-+			}
- 		} else {
 +			pr_debug("%s: can't alloc usb dev\n", DRIVER_NAME);
- 			status = -ENOMEM;
- 			goto err;
++			status = -ENOMEM;
++			goto err;
++		}
++
++		if (status == 0) {
+ 			pdev->dev.parent = &twl->client->dev;
+ 			device_init_wakeup(&pdev->dev, 1);
+ 			status = platform_device_add_data(pdev, pdata->usb,
+@@ -833,16 +840,25 @@ static int add_children(struct twl4030_platform_data *pdata)
+ 					status);
+ 				goto err;
+ 			}
++		}
++
++		if (status == 0) {
++			struct resource r = {
++				.start = TWL4030_PWRIRQ_USB_PRES,
++				.flags = IORESOURCE_IRQ,
++			};
++
++			status = platform_device_add_resources(pdev, &r, 1);
++		}
++
++		if (status == 0)
+ 			status = platform_device_add(pdev);
+-			if (status < 0) {
+-				platform_device_put(pdev);
+-				dev_dbg(&twl->client->dev,
+-						"can't create usb dev, %d\n",
+-						status);
+-			}
+-		} else {
+-			pr_debug("%s: can't alloc usb dev\n", DRIVER_NAME);
+-			status = -ENOMEM;
++
++		if (status < 0) {
++			platform_device_put(pdev);
++			dev_dbg(&twl->client->dev,
++					"can't create usb dev, %d\n",
++					status);
  		}
  	}
  
- err:
--	pr_err("failed to add twl4030's children\n");
-+	if (status)
-+		pr_err("failed to add twl4030's children (status %d)\n", status);
- 	return status;
- }
+diff --git a/drivers/i2c/chips/twl4030-usb.c b/drivers/i2c/chips/twl4030-usb.c
+index f530e71..133cc0f 100644
+--- a/drivers/i2c/chips/twl4030-usb.c
++++ b/drivers/i2c/chips/twl4030-usb.c
+@@ -684,7 +684,7 @@ static int __init twl4030_usb_probe(struct platform_device *pdev)
+ 	vbus &= USB_PRES_RISING;
  
-@@ -1084,13 +1122,12 @@ twl4030_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 			&& twl4030_irq_base == 0
- 			&& client->irq
- 			&& pdata->irq_base
--			&& pdata->irq_end > pdata->irq_base)
-+			&& pdata->irq_end > pdata->irq_base) {
- 		twl_init_irq(client->irq, pdata->irq_base, pdata->irq_end);
-+		dev_info(&client->dev, "IRQ %d chains IRQs %d..%d\n",
-+				client->irq, pdata->irq_base, pdata->irq_end - 1);
-+	}
+ 	twl->dev		= &pdev->dev;
+-	twl->irq		= TWL4030_PWRIRQ_USB_PRES;
++	twl->irq		= platform_get_irq(pdev, 0);
+ 	twl->otg.set_host	= twl4030_set_host;
+ 	twl->otg.set_peripheral	= twl4030_set_peripheral;
+ 	twl->otg.set_suspend	= twl4030_set_suspend;
+diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
+index 5828485..1c79c89 100644
+--- a/include/linux/i2c/twl4030.h
++++ b/include/linux/i2c/twl4030.h
+@@ -112,7 +112,7 @@ struct twl4030_platform_data {
+ #define TWL4030_MODIRQ_KEYPAD		(TWL4030_IRQ_BASE + 1)
+ #define TWL4030_MODIRQ_BCI		(TWL4030_IRQ_BASE + 2)
+ #define TWL4030_MODIRQ_MADC		(TWL4030_IRQ_BASE + 3)
+-#define TWL4030_MODIRQ_USB		(TWL4030_IRQ_BASE + 4)
++/* #define TWL4030_MODIRQ_USB		(TWL4030_IRQ_BASE + 4) */
+ #define TWL4030_MODIRQ_PWR		(TWL4030_IRQ_BASE + 5)
  
--	dev_info(&client->dev, "chaining %d irqs\n",
--			twl4030_irq_base
--				? (pdata->irq_end - pdata->irq_base)
--				: 0);
- 	return 0;
- 
- fail:
+ #define TWL4030_PWRIRQ_PWRBTN		(TWL4030_PWR_IRQ_BASE + 0)
 -- 
 1.6.0.1.196.g01914
 
