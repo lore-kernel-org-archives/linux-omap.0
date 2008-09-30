@@ -1,36 +1,47 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 09/25] i2c: move twl4030-madc to new registration style
-Date: Wed, 1 Oct 2008 01:28:25 +0300
-Message-ID: <20080930222823.GQ2445@frodo>
-References: <1222800189-29737-1-git-send-email-me@felipebalbi.com> <1222800189-29737-9-git-send-email-me@felipebalbi.com> <1222800189-29737-10-git-send-email-me@felipebalbi.com> <200809301445.19900.david-b@pacbell.net>
+Subject: Re: [PATCH 04/25] i2c: move twl4030_keypad to new style
+	registration
+Date: Wed, 1 Oct 2008 01:30:21 +0300
+Message-ID: <20080930223000.GR2445@frodo>
+References: <1222800189-29737-1-git-send-email-me@felipebalbi.com> <1222800189-29737-4-git-send-email-me@felipebalbi.com> <1222800189-29737-5-git-send-email-me@felipebalbi.com> <200809301442.48086.david-b@pacbell.net>
 Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:57807 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:58180 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753373AbYI3W2q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 18:28:46 -0400
+	with ESMTP id S1753505AbYI3War (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 18:30:47 -0400
 Content-Disposition: inline
-In-Reply-To: <200809301445.19900.david-b@pacbell.net>
+In-Reply-To: <200809301442.48086.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
-Cc: Felipe Balbi <me@felipebalbi.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>, Mikko Ylinen <mikko.k.ylinen@nokia.com>
+Cc: Felipe Balbi <me@felipebalbi.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-On Tue, Sep 30, 2008 at 02:45:19PM -0700, David Brownell wrote:
+On Tue, Sep 30, 2008 at 02:42:47PM -0700, David Brownell wrote:
 > On Tuesday 30 September 2008, Felipe Balbi wrote:
-> > =A0=A0=A0=A0=A0=A0=A0=A0ret =3D request_irq(TWL4030_MODIRQ_MADC, tw=
-l4030_madc_irq_handler,
+> > +struct twl4030_keypad_data {
+> > +=A0=A0=A0=A0=A0=A0=A0int rows;
+> > +=A0=A0=A0=A0=A0=A0=A0int cols;
+> > +=A0=A0=A0=A0=A0=A0=A0int *keymap;
+> > +=A0=A0=A0=A0=A0=A0=A0int irq;
+> > +=A0=A0=A0=A0=A0=A0=A0unsigned int keymapsize;
+> > +=A0=A0=A0=A0=A0=A0=A0unsigned int rep:1;
+> > +};
 >=20
-> Likewise:  pass the IRQ through a platform driver resource.
-> These TWL4030_MODIRQ_* symbols should vanish.
+> To fix later:  "irq" should be a standard platform resource.
 >=20
-> (To fix later.  No reason to hold up this batch of patches
-> any longer...)
+> Those references in board init code to TWL4030_MODIRQ_KEYPAD
+> should vanish, and add_children() should just pass the right
+> number the standard way.
 
-True, i'll cook a patch for it tomorrow :-D
+Cool, could you take a look at twl4030-bci changes ?? They request both
+irqs, which seems ok, but then we won't be able to get rid of
+TWL4030_MODIRQ_BCI.
+
+If you can come up with an idea to change that, i'd be glad.
 
 --=20
 balbi
