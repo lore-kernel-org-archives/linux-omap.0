@@ -1,7 +1,7 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 16/23] Move I2C driver model init earlier in the boot sequence
-Date: Tue, 30 Sep 2008 13:05:53 +0300
-Message-ID: <1222769160-31615-17-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 21/23] twl4030-core: portability updates
+Date: Tue, 30 Sep 2008 13:05:58 +0300
+Message-ID: <1222769160-31615-22-git-send-email-felipe.balbi@nokia.com>
 References: <1222769160-31615-1-git-send-email-felipe.balbi@nokia.com>
  <1222769160-31615-2-git-send-email-felipe.balbi@nokia.com>
  <1222769160-31615-3-git-send-email-felipe.balbi@nokia.com>
@@ -18,12 +18,17 @@ References: <1222769160-31615-1-git-send-email-felipe.balbi@nokia.com>
  <1222769160-31615-14-git-send-email-felipe.balbi@nokia.com>
  <1222769160-31615-15-git-send-email-felipe.balbi@nokia.com>
  <1222769160-31615-16-git-send-email-felipe.balbi@nokia.com>
+ <1222769160-31615-17-git-send-email-felipe.balbi@nokia.com>
+ <1222769160-31615-18-git-send-email-felipe.balbi@nokia.com>
+ <1222769160-31615-19-git-send-email-felipe.balbi@nokia.com>
+ <1222769160-31615-20-git-send-email-felipe.balbi@nokia.com>
+ <1222769160-31615-21-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:58458 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:58389 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752490AbYI3KHC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 06:07:02 -0400
-In-Reply-To: <1222769160-31615-16-git-send-email-felipe.balbi@nokia.com>
+	with ESMTP id S1752088AbYI3KGj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 06:06:39 -0400
+In-Reply-To: <1222769160-31615-21-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -31,29 +36,113 @@ Cc: Tony Lindgren <tony@atomide.com>, David Brownell <dbrownell@users.sourceforg
 
 From: David Brownell <dbrownell@users.sourceforge.net>
 
-This avoids oopsing in statically linked systems when some
-subsystems register I2C drivers in subsys_initcall() code,
-but those subsystems are linked (and initialized) before I2C.
+Improve handling of the OMAP-specific setup in twl4030-core,
+and remove various warnings on non-OMAP builds.
+
+The main remaining portability problem for this core code (from
+a build perspective) is needing symbols like TWL4030_PWR_IRQ_BASE
+which are undesirable and platform-specific.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/i2c/i2c-core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/i2c/chips/twl4030-core.c |   34 ++++++++++++++++++++++++----------
+ 1 files changed, 24 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-index b346a68..f520108 100644
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -978,7 +978,7 @@ static void __exit i2c_exit(void)
- 	bus_unregister(&i2c_bus_type);
+diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
+index 43424a8..efba776 100644
+--- a/drivers/i2c/chips/twl4030-core.c
++++ b/drivers/i2c/chips/twl4030-core.c
+@@ -75,6 +75,19 @@
+ #define twl_has_usb()	false
+ #endif
+ 
++static inline void activate_irq(int irq)
++{
++#ifdef CONFIG_ARM
++	/* ARM requires an extra step to clear IRQ_NOREQUEST, which it
++	 * sets on behalf of every irq_chip.  Also sets IRQ_NOPROBE.
++	 */
++	set_irq_flags(irq, IRQF_VALID);
++#else
++	/* same effect on other architectures */
++	set_irq_noprobe(irq);
++#endif
++}
++
+ /* Primary Interrupt Handler on TWL4030 Registers */
+ 
+ /* Register Definitions */
+@@ -584,7 +597,7 @@ static unsigned twl4030_irq_base;
+  */
+ static int twl4030_irq_thread(void *data)
+ {
+-	int irq = (int)data;
++	long irq = (long)data;
+ 	irq_desc_t *desc = irq_desc + irq;
+ 	static unsigned i2c_errors;
+ 	const static unsigned max_i2c_errors = 100;
+@@ -868,15 +881,15 @@ err:
+ 	return status;
  }
  
--subsys_initcall(i2c_init);
-+postcore_initcall(i2c_init);
- module_exit(i2c_exit);
+-static struct task_struct * __init start_twl4030_irq_thread(int irq)
++static struct task_struct * __init start_twl4030_irq_thread(long irq)
+ {
+ 	struct task_struct *thread;
  
- /* ----------------------------------------------------
+ 	init_completion(&irq_event);
+ 	thread = kthread_run(twl4030_irq_thread, (void *)irq,
+-			     "twl4030 irq %d", irq);
++			     "twl4030 irq %ld", irq);
+ 	if (!thread)
+-		pr_err("%s: could not create twl4030 irq %d thread!\n",
++		pr_err("%s: could not create twl4030 irq %ld thread!\n",
+ 		       DRIVER_NAME, irq);
+ 
+ 	return thread;
+@@ -909,16 +922,18 @@ static int __init unprotect_pm_master(void)
+ static int __init power_companion_init(void)
+ {
+ 	int e = 0;
+-
+-#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+ 	struct clk *osc;
+ 	u32 rate;
+ 	u8 ctrl = HFCLK_FREQ_26_MHZ;
+ 
++#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+ 	if (cpu_is_omap2430())
+ 		osc = clk_get(NULL, "osc_ck");
+ 	else
+ 		osc = clk_get(NULL, "osc_sys_ck");
++#else
++	osc = ERR_PTR(-EIO);
++#endif
+ 	if (IS_ERR(osc)) {
+ 		printk(KERN_WARNING "Skipping twl4030 internal clock init and "
+ 				"using bootloader value (unknown osc rate)\n");
+@@ -945,7 +960,6 @@ static int __init power_companion_init(void)
+ 	/* effect->MADC+USB ck en */
+ 	e |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, ctrl, R_CFG_BOOT);
+ 	e |= protect_pm_master();
+-#endif	/* OMAP */
+ 
+ 	return e;
+ }
+@@ -1051,9 +1065,9 @@ static void twl_init_irq(int irq_num, unsigned irq_base, unsigned irq_end)
+ 
+ 	/* install an irq handler for each of the PIH modules */
+ 	for (i = irq_base; i < irq_end; i++) {
+-		set_irq_chip(i, &twl4030_irq_chip);
+-		set_irq_handler(i, do_twl4030_module_irq);
+-		set_irq_flags(i, IRQF_VALID);
++		set_irq_chip_and_handler(i, &twl4030_irq_chip,
++				do_twl4030_module_irq);
++		activate_irq(i);
+ 	}
+ 
+ 	/* install an irq handler to demultiplex the TWL4030 interrupt */
 -- 
 1.6.0.2.307.gc427
 
