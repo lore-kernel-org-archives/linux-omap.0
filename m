@@ -1,65 +1,53 @@
-From: "Arun KS" <arunks@mistralsolutions.com>
-Subject: Re: [PATCH 3/5] [RFC] ALSA ASOC Adds DSP DAI format support for platform driver
-Date: Tue, 30 Sep 2008 12:11:45 +0530
-Message-ID: <dfeb90390809292341l2264ff52m80830952b38ea25f@mail.gmail.com>
-References: <dfeb90390809290250x7c9d3aafh232fbcbe8ae77d7e@mail.gmail.com>
-	 <20080929141540.e6ae8ead.jarkko.nikula@nokia.com>
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: Re: does twl3040-pwrirq.c "need" to be a separate file?
+Date: Tue, 30 Sep 2008 12:22:25 +0300
+Message-ID: <20080930092225.GD4552@codecarver.research.nokia.com>
+References: <200809291417.12437.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.226]:17167 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751489AbYI3Gls (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 02:41:48 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so2703195rvb.1
-        for <linux-omap@vger.kernel.org>; Mon, 29 Sep 2008 23:41:47 -0700 (PDT)
-In-Reply-To: <20080929141540.e6ae8ead.jarkko.nikula@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:29962 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751521AbYI3JXD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 05:23:03 -0400
 Content-Disposition: inline
+In-Reply-To: <200809291417.12437.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, alsa-devel@vger.kernel.org, felipe.balbi@nokia.com
+To: ext David Brownell <david-b@pacbell.net>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, Sep 29, 2008 at 4:45 PM, Jarkko Nikula <jarkko.nikula@nokia.com> wrote:
-> On Mon, 29 Sep 2008 15:20:12 +0530
-> "ext Arun KS" <arunks@mistralsolutions.com> wrote:
->
->> Enables DSP DAI format for mcbsp in omap platform driver
->>
->> Signed-off-by: Arun KS <arunks@mistralsolutions.com>
->> ---
->>  sound/soc/omap/omap-mcbsp.c |    6 ++++++
->>  1 files changed, 6 insertions(+), 0 deletions(-)
->>
->> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
->> index 3a4cc4b..1c024aa 100644
->> --- a/sound/soc/omap/omap-mcbsp.c
->> +++ b/sound/soc/omap/omap-mcbsp.c
->> @@ -292,6 +292,12 @@ static int omap_mcbsp_dai_set_dai_fmt(struct
->> snd_soc_dai *cpu_dai,
->>               regs->rcr2      |= RDATDLY(1);
->>               regs->xcr2      |= XDATDLY(1);
->>               break;
->> +     case SND_SOC_DAIFMT_DSP_A:
->> +             /* 0-bit data delay */
->> +             regs->rcr2      |= RDATDLY(0);
->> +             regs->xcr2      |= XDATDLY(0);
->> +             break;
->> +
->>       default:
->
-> I think this is not enough. The word clock length equals to one BCLK
-> cycle in DSP mode. Not n channel bit BCLK cycles like in I2S.
->
+Hi David,
 
-In DSP Mode, Frame sync is followed by two data words.
-I tested this patch and its working. Am i missing something ?
+On Mon, Sep 29, 2008 at 02:17:12PM -0700, ext David Brownell wrote:
+> Hi Peter,
+> 
+> I see your patch 68d7477caca19c0b52b5d4e85700cd3e6115577f created
+> pwrirq.c as a separate file and thread.
+> 
 
->
-> Jarkko
-> --
-> To unsubscribe from this list: send the line "unsubscribe alsa-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+I guess choose this solution because it was similar to the GPIO IRQs.
+Originally, this was 1 shared IRQ. But I wanted to change this to avoid
+every driver having to read PWR_ISR1 and clear his interrupt. This saves
+some i2c transactions.
+
+> I'm wondering if there's any particular reason that "bank" of
+> interrupts shouldn't be handled directly by twl4030-core, and
+> even by the same IRQ handling thread.
+> 
+
+I don't think so.
+
+> As it stands now the TWL "core" is not especially core-ish in
+> this respect, and I'd like to see that be resolved (e.g. by a
+> patch I'll probably write this afternoon) before this code
+> goes to mainline ...
+
+Ok. Good.
+
+Cheers,
+
+Peter.
+
+-- 
+goa is a state of mind
