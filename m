@@ -1,60 +1,177 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 00/16] OMAP3: Context save/Restore + OFF mode support
-Date: Tue, 30 Sep 2008 17:26:56 +0300
-Message-ID: <87r671btfz.fsf@deeprootsystems.com>
-References: <01f101c91fd1$c6c95900$LocalHost@wipultra1382>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: [PATCH v2] OMAP3: Update USBHOST pinmux settings
+Date: Tue, 30 Sep 2008 20:48:42 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D603E114@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.154]:44576 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751935AbYI3O1G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 10:27:06 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so61772fgg.17
-        for <linux-omap@vger.kernel.org>; Tue, 30 Sep 2008 07:27:04 -0700 (PDT)
-In-Reply-To: <01f101c91fd1$c6c95900$LocalHost@wipultra1382> (Rajendra Nayak's message of "Fri\, 26 Sep 2008 17\:46\:57 +0530")
+Received: from comal.ext.ti.com ([198.47.26.152]:50133 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752097AbYI3PS4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 11:18:56 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "tony@atomide.com" <tony@atomide.com>, David Brownell <david-b@pacbell.net>
 
-"Rajendra Nayak" <rnayak@ti.com> writes:
+From: Anand Gadiyar <gadiyar@ti.com>
 
-> This patch set adds context save/restore routines for minimal kernel and OFF mode
-> support in idle and suspend. This patch set applies on top of pm-1 branch.
->
-> This has context save/restore support implemented for the following modules
-> GPMC, UART, GPIO, I2C, PRCM, INTC, SCM, SRAM. 
->
-> A sysfs knob to dynamically control OFF mode is provided at 
-> /sys/power/enable_off_mode. This is set to 0 (disabled) by default.
->
+Add pin-mux settings for OHCI in PHY mode.
+Also change settings for EHCI in TLL mode.
 
-Hi Rajendra,
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+---
+Fixed comments below. Also fixed one pin that should
+have been marked output, but was wrongly marked input.
 
-This series is in much better shape, and allows me to hit retention or
-OFF in idle and suspend.  Thanks!
+ arch/arm/mach-omap2/mux.c             |   67 +++++++++++++++++++++++++++-------
+ arch/arm/plat-omap/include/mach/mux.h |   26 ++++++++++++-
+ 2 files changed, 80 insertions(+), 13 deletions(-)
 
-I will pull this series into pm-1 tomorrow.  There are few minor
-things that I will cleanup upon merging.
-
-- common:
-  - in several new functions, no space between local variable
-    definition and start of code
-  - copyright 2007 additions.  Shouldn't these be 2008?
-
-- 6/16: INTC
-  - remove the comment MIRs being saved with PRCM since this is no longer true
-
-- 11/16: PER/NEON
-  - checkpatch warnings
-
-- 15/16: /sys/power/enable_off_mode
-  - your method doesn't quite work, I have an alternative
-
-- 14/16: CORE off
-  - checkpatch errors and warnings
-
-Thanks,
-
-Kevin
+Index: tony/arch/arm/mach-omap2/mux.c
+===================================================================
+--- tony.orig/arch/arm/mach-omap2/mux.c	2008-09-26 22:53:19.000000000 +0530
++++ tony/arch/arm/mach-omap2/mux.c	2008-09-30 20:37:42.572206850 +0530
+@@ -298,13 +298,13 @@ MUX_CFG_34XX("T2_3430_USB2HS_PHY_D7", 0x
+ 
+ /* TLL - HSUSB: 12-pin TLL Port 1*/
+ MUX_CFG_34XX("Y8_3430_USB1HS_TLL_CLK", 0x5da,
+-		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
+-MUX_CFG_34XX("Y9_3430_USB1HS_TLL_STP", 0x5d8,
+ 		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("Y9_3430_USB1HS_TLL_STP", 0x5d8,
++		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLUP)
+ MUX_CFG_34XX("AA14_3430_USB1HS_TLL_DIR", 0x5ec,
+-		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
++		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+ MUX_CFG_34XX("AA11_3430_USB1HS_TLL_NXT", 0x5ee,
+-		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
++		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+ MUX_CFG_34XX("W13_3430_USB1HS_TLL_D0", 0x5dc,
+ 		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+ MUX_CFG_34XX("W12_3430_USB1HS_TLL_D1", 0x5de,
+@@ -324,13 +324,13 @@ MUX_CFG_34XX("Y13_3430_USB1HS_TLL_D7", 0
+ 
+ /* TLL - HSUSB: 12-pin TLL Port 2*/
+ MUX_CFG_34XX("AA8_3430_USB2HS_TLL_CLK", 0x5f0,
+-		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
+-MUX_CFG_34XX("AA10_3430_USB2HS_TLL_STP", 0x5f2,
+ 		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("AA10_3430_USB2HS_TLL_STP", 0x5f2,
++		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLUP)
+ MUX_CFG_34XX("AA9_3430_USB2HS_TLL_DIR", 0x5f4,
+-		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
++		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+ MUX_CFG_34XX("AB11_3430_USB2HS_TLL_NXT", 0x5f6,
+-		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
++		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+ MUX_CFG_34XX("AB10_3430_USB2HS_TLL_D0", 0x5f8,
+ 		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+ MUX_CFG_34XX("AB9_3430_USB2HS_TLL_D1", 0x5fa,
+@@ -350,13 +350,13 @@ MUX_CFG_34XX("T2_3430_USB2HS_TLL_D7", 0x
+ 
+ /* TLL - HSUSB: 12-pin TLL Port 3*/
+ MUX_CFG_34XX("AA6_3430_USB3HS_TLL_CLK", 0x180,
+-		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
+-MUX_CFG_34XX("AB3_3430_USB3HS_TLL_STP", 0x166,
+ 		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("AB3_3430_USB3HS_TLL_STP", 0x166,
++		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLUP)
+ MUX_CFG_34XX("AA3_3430_USB3HS_TLL_DIR", 0x168,
+-		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
++		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+ MUX_CFG_34XX("Y3_3430_USB3HS_TLL_NXT", 0x16a,
+-		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
++		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+ MUX_CFG_34XX("AA5_3430_USB3HS_TLL_D0", 0x186,
+ 		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+ MUX_CFG_34XX("Y4_3430_USB3HS_TLL_D1", 0x184,
+@@ -373,6 +373,49 @@ MUX_CFG_34XX("AA13_3430_USB3HS_TLL_D6", 
+ 		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+ MUX_CFG_34XX("AA12_3430_USB3HS_TLL_D7", 0x172,
+ 		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
++
++/* PHY FSUSB: FS Serial for Port 1 (multiple PHY modes supported) */
++MUX_CFG_34XX("AF10_3430_USB1FS_PHY_MM1_RXDP", 0x5d8,
++		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("AG9_3430_USB1FS_PHY_MM1_RXDM", 0x5ee,
++		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("W13_3430_USB1FS_PHY_MM1_RXRCV", 0x5dc,
++		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("W12_3430_USB1FS_PHY_MM1_TXSE0", 0x5de,
++		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("W11_3430_USB1FS_PHY_MM1_TXDAT", 0x5e0,
++		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("Y11_3430_USB1FS_PHY_MM1_TXEN_N", 0x5ea,
++		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
++
++/* PHY FSUSB: FS Serial for Port 2 (multiple PHY modes supported) */
++MUX_CFG_34XX("AF7_3430_USB2FS_PHY_MM2_RXDP", 0x5f2,
++		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("AH7_3430_USB2FS_PHY_MM2_RXDM", 0x5f6,
++		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("AB10_3430_USB2FS_PHY_MM2_RXRCV", 0x5f8,
++		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("AB9_3430_USB2FS_PHY_MM2_TXSE0", 0x5fa,
++		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("W3_3430_USB2FS_PHY_MM2_TXDAT", 0x1d4,
++		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("T4_3430_USB2FS_PHY_MM2_TXEN_N", 0x1de,
++		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
++
++/* PHY FSUSB: FS Serial for Port 3 (multiple PHY modes supported) */
++MUX_CFG_34XX("AH3_3430_USB3FS_PHY_MM3_RXDP", 0x166,
++		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("AE3_3430_USB3FS_PHY_MM3_RXDM", 0x16a,
++		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("AD1_3430_USB3FS_PHY_MM3_RXRCV", 0x186,
++		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("AE1_3430_USB3FS_PHY_MM3_TXSE0", 0x184,
++		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("AD2_3430_USB3FS_PHY_MM3_TXDAT", 0x188,
++		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("AC1_3430_USB3FS_PHY_MM3_TXEN_N", 0x18a,
++		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
++
+ };
+ 
+ #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
+Index: tony/arch/arm/plat-omap/include/mach/mux.h
+===================================================================
+--- tony.orig/arch/arm/plat-omap/include/mach/mux.h	2008-09-26 22:53:19.000000000 +0530
++++ tony/arch/arm/plat-omap/include/mach/mux.h	2008-09-30 20:38:35.290535041 +0530
+@@ -723,7 +723,31 @@ enum omap34xx_index {
+ 	AB12_3430_USB3HS_TLL_DATA4,
+ 	AB13_3430_USB3HS_TLL_DATA5,
+ 	AA13_3430_USB3HS_TLL_DATA6,
+-	AA12_3430_USB3HS_TLL_DATA7
++	AA12_3430_USB3HS_TLL_DATA7,
++
++	/* PHY FSUSB: FS Serial for Port 1 (multiple PHY modes supported) */
++	AF10_3430_USB1FS_PHY_MM1_RXDP,
++	AG9_3430_USB1FS_PHY_MM1_RXDM,
++	W13_3430_USB1FS_PHY_MM1_RXRCV,
++	W12_3430_USB1FS_PHY_MM1_TXSE0,
++	W11_3430_USB1FS_PHY_MM1_TXDAT,
++	Y11_3430_USB1FS_PHY_MM1_TXEN_N,
++
++	/* PHY FSUSB: FS Serial for Port 2 (multiple PHY modes supported) */
++	AF7_3430_USB2FS_PHY_MM2_RXDP,
++	AH7_3430_USB2FS_PHY_MM2_RXDM,
++	AB10_3430_USB2FS_PHY_MM2_RXRCV,
++	AB9_3430_USB2FS_PHY_MM2_TXSE0,
++	W3_3430_USB2FS_PHY_MM2_TXDAT,
++	T4_3430_USB2FS_PHY_MM2_TXEN_N,
++
++	/* PHY FSUSB: FS Serial for Port 3 (multiple PHY modes supported) */
++	AH3_3430_USB3FS_PHY_MM3_RXDP,
++	AE3_3430_USB3FS_PHY_MM3_RXDM,
++	AD1_3430_USB3FS_PHY_MM3_RXRCV,
++	AE1_3430_USB3FS_PHY_MM3_TXSE0,
++	AD2_3430_USB3FS_PHY_MM3_TXDAT,
++	AC1_3430_USB3FS_PHY_MM3_TXEN_N,
+ 
+ };
+ 
