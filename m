@@ -1,38 +1,60 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: MMC broken on beagleboard with current git
-Date: Tue, 30 Sep 2008 16:43:30 +0300
-Message-ID: <20080930134330.GD2492@gandalf.research.nokia.com>
-References: <20080925094718.GE5222@atomide.com> <4D346DA2-6C57-48A7-AC4E-2191C44497CF@student.utwente.nl> <20080925103952.GJ5222@atomide.com> <5e088bd90809250824q38fb95e0q7a9e3f8a24a4d845@mail.gmail.com> <20080926074208.GC7962@atomide.com> <20080926111351.GA8736@atomide.com> <20080928124641.GB8254@atomide.com> <20080930125838.GA15828@atomide.com> <20080930132222.GC2492@gandalf.research.nokia.com> <20080930133550.GA15017@atomide.com>
-Reply-To: felipe.balbi@nokia.com
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 00/16] OMAP3: Context save/Restore + OFF mode support
+Date: Tue, 30 Sep 2008 17:26:56 +0300
+Message-ID: <87r671btfz.fsf@deeprootsystems.com>
+References: <01f101c91fd1$c6c95900$LocalHost@wipultra1382>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:23703 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751669AbYI3Nog (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 09:44:36 -0400
-Content-Disposition: inline
-In-Reply-To: <20080930133550.GA15017@atomide.com>
+Received: from fg-out-1718.google.com ([72.14.220.154]:44576 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751935AbYI3O1G (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 10:27:06 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so61772fgg.17
+        for <linux-omap@vger.kernel.org>; Tue, 30 Sep 2008 07:27:04 -0700 (PDT)
+In-Reply-To: <01f101c91fd1$c6c95900$LocalHost@wipultra1382> (Rajendra Nayak's message of "Fri\, 26 Sep 2008 17\:46\:57 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, Steve Sakoman <sakoman@gmail.com>, Koen Kooi <k.kooi@student.utwente.nl>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, Sep 30, 2008 at 04:35:51PM +0300, Tony Lindgren wrote:
-> * Felipe Balbi <felipe.balbi@nokia.com> [080930 16:22]:
-> > On Tue, Sep 30, 2008 at 03:58:39PM +0300, Tony Lindgren wrote:
-> > > + * One controller can have multiple slots, like on some omap boards using
-> > > + * omap.c controller driver. Luckily this is not currently done on any known
-> > > + * omap_hsmmc.c device.
-> > 
-> > this is only true for omap1 afaict.
-> 
-> Do you mean omap.c but not on omap_hsmmc.c?
-> 
-> If for sure we'll never have multiple slots on omap_hsmmc.c, we could simplify
-> the code and assume the slot is always 0.
+"Rajendra Nayak" <rnayak@ti.com> writes:
 
-Yeah, looks like multislot is only useful for 2420 (h4 and n8x0).
+> This patch set adds context save/restore routines for minimal kernel and OFF mode
+> support in idle and suspend. This patch set applies on top of pm-1 branch.
+>
+> This has context save/restore support implemented for the following modules
+> GPMC, UART, GPIO, I2C, PRCM, INTC, SCM, SRAM. 
+>
+> A sysfs knob to dynamically control OFF mode is provided at 
+> /sys/power/enable_off_mode. This is set to 0 (disabled) by default.
+>
 
--- 
-balbi
+Hi Rajendra,
+
+This series is in much better shape, and allows me to hit retention or
+OFF in idle and suspend.  Thanks!
+
+I will pull this series into pm-1 tomorrow.  There are few minor
+things that I will cleanup upon merging.
+
+- common:
+  - in several new functions, no space between local variable
+    definition and start of code
+  - copyright 2007 additions.  Shouldn't these be 2008?
+
+- 6/16: INTC
+  - remove the comment MIRs being saved with PRCM since this is no longer true
+
+- 11/16: PER/NEON
+  - checkpatch warnings
+
+- 15/16: /sys/power/enable_off_mode
+  - your method doesn't quite work, I have an alternative
+
+- 14/16: CORE off
+  - checkpatch errors and warnings
+
+Thanks,
+
+Kevin
