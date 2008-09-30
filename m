@@ -1,71 +1,44 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: [PATCH 00/23] twl4030 patches (v4)
-Date: Tue, 30 Sep 2008 11:12:24 -0700
-Message-ID: <5e088bd90809301112n14186697v4c4a416daf5e451@mail.gmail.com>
-References: <1222769160-31615-1-git-send-email-felipe.balbi@nokia.com>
-	 <20080930130511.GB15828@atomide.com>
-	 <5e088bd90809300926j6a980b92r71a5c2b215d9f104@mail.gmail.com>
-	 <20080930173710.GN2445@frodo>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: [PATCH 01/25] twl4030: fix potential null pointer dereference
+Date: Tue, 30 Sep 2008 21:42:45 +0300
+Message-ID: <1222800189-29737-2-git-send-email-me@felipebalbi.com>
+References: <1222800189-29737-1-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f16.google.com ([209.85.217.16]:57272 "EHLO
-	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752301AbYI3SM0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 14:12:26 -0400
-Received: by gxk9 with SMTP id 9so12126758gxk.13
-        for <linux-omap@vger.kernel.org>; Tue, 30 Sep 2008 11:12:25 -0700 (PDT)
-In-Reply-To: <20080930173710.GN2445@frodo>
-Content-Disposition: inline
+Received: from ns1.siteground211.com ([209.62.36.12]:51183 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753079AbYI3SnX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 14:43:23 -0400
+In-Reply-To: <1222800189-29737-1-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, David Brownell <dbrownell@users.sourceforge.net>, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <felipe.balbi@nokia.com>
 
-On Tue, Sep 30, 2008 at 10:37 AM, Felipe Balbi <me@felipebalbi.com> wrote:
-> On Tue, Sep 30, 2008 at 09:26:09AM -0700, Steve Sakoman wrote:
->> On Tue, Sep 30, 2008 at 6:05 AM, Tony Lindgren <tony@atomide.com> wrote:
->>
->> > Let's plan on applying these tomorrow unless there are more comments.
->>
->> I'm seeing some issues on Overo when applying these patches.
->>
->> On a cold boot everything proceeds normally (including devices being
->> enumerated on the musb channel) until the kernel attempts to mount the
->> rootfs from mmc.  At that point boot messages stop:
->>
->> mmc0: new high speed SD card at address 55ce
->> mmcblk0: mmc0:55ce SD02G 1921024KiB
->>  mmcblk0:<7>mmc0: starting CMD18 arg 00000000 flags 000000b5
->>  p1 p2
->>
->> At first I thought mmc support was broken and the system was hung.
->> But after a 10 - 20 second delay I noticed that approximately every 10
->> seconds I get the following message:
->>
->> musb_h_tx_flush_fifo 124: Could not flush host TX fifo: csr: 000a
->>
->> After a few cycles of this the boot continues and completes normally,
->> but the musb port is now non-functional.
->>
->> If I do a reboot command or press the reset button, the overo reboots
->> without the above delays or error messages, however the musb port is
->> non-functional.
->>
->> It seems that something has gone awry in the twl4030 usb section,
->> since I get a functional system without these patches.  Any
->> suggestions as to where I should begin looking to help debug this?
->
-> remove the devices you have attached to musb port for now. musb
-> shouldn't prevent these patches from being applied. As I said before,
-> musb otg-host mode is not quite ok for omap3.
->
-> I'm pretty sure we're gonna have a lot to patch in order to get it in
-> good shape. A few patches are already coming from mainline btw.
+From: Felipe Balbi <felipe.balbi@nokia.com>
 
-I should have mentioned that these patches were applied to current top
-of tree *plus* the 7 musb patches you have queued up on linux-usb
-list.
+The following patch fix a potential null pointer
+dereference in twl4030 keypad driver when parts
+of keypad platform_data aren't passed down to the
+driver. At that point kp->dbg_dev is not set yet.
 
-Steve
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/input/keyboard/omap-twl4030keypad.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/input/keyboard/omap-twl4030keypad.c b/drivers/input/keyboard/omap-twl4030keypad.c
+index 3893d63..48f29d3 100644
+--- a/drivers/input/keyboard/omap-twl4030keypad.c
++++ b/drivers/input/keyboard/omap-twl4030keypad.c
+@@ -238,7 +238,7 @@ static int __init omap_kp_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 
+ 	if (!pdata->rows || !pdata->cols || !pdata->keymap) {
+-		dev_err(kp->dbg_dev, "No rows, cols or keymap from pdata\n");
++		dev_err(&pdev->dev, "No rows, cols or keymap from pdata\n");
+ 		kfree(kp);
+ 		return -EINVAL;
+ 	}
+-- 
+1.6.0.1.196.g01914
+
