@@ -1,60 +1,57 @@
-From: "Arun KS" <arunks@mistralsolutions.com>
-Subject: [PATCH 4/5 v1] ASoC adds destination and source port for dma
-Date: Tue, 30 Sep 2008 15:35:16 +0530
-Message-ID: <dfeb90390809300305o69fc4c20wc54b0dfa27b84fd9@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [PATCH 02/23] twl4030-gpio: Remove default pullup enable/disable of GPIO
+Date: Tue, 30 Sep 2008 13:05:39 +0300
+Message-ID: <1222769160-31615-3-git-send-email-felipe.balbi@nokia.com>
+References: <1222769160-31615-1-git-send-email-felipe.balbi@nokia.com>
+ <1222769160-31615-2-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.225]:36349 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751446AbYI3KFT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 06:05:19 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so2789370rvb.1
-        for <linux-omap@vger.kernel.org>; Tue, 30 Sep 2008 03:05:19 -0700 (PDT)
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:34538 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751602AbYI3KGc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 06:06:32 -0400
+In-Reply-To: <1222769160-31615-2-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org
-Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@nokia.com>, felipe.balbi@nokia.com
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, David Brownell <dbrownell@users.sourceforge.net>, Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>, Girish S G <girishsg@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-Adds destination and source port for dma in platform driver as
-required by OMAP1
+From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
 
-Signed-off-by: Arun KS <arunks@mistralsolutions.com>
+One twl4030_request_gpio() should not tamper with the pullup
+enabling/disabling of the rest of the GPIOs. So removing the default
+pullup values written to REG_GPIOPUPDCTR1.
+
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Girish S G <girishsg@ti.com>
+Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- sound/soc/omap/omap-pcm.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ drivers/i2c/chips/twl4030-gpio.c |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
 
-diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
-index 690bfea..e9084fd 100644
---- a/sound/soc/omap/omap-pcm.c
-+++ b/sound/soc/omap/omap-pcm.c
-@@ -97,7 +97,7 @@ static int omap_pcm_hw_params(struct
-snd_pcm_substream *substream,
- 	prtd->dma_data = dma_data;
- 	err = omap_request_dma(dma_data->dma_req, dma_data->name,
- 			       omap_pcm_dma_irq, substream, &prtd->dma_ch);
--	if (!cpu_is_omap1510()) {
-+	if (!err & !cpu_is_omap1510()) {
- 		/*
- 		 * Link channel with itself so DMA doesn't need any
- 		 * reprogramming while looping the buffer
-@@ -147,12 +147,14 @@ static int omap_pcm_prepare(struct
-snd_pcm_substream *substream)
- 		dma_params.src_or_dst_synch	= OMAP_DMA_DST_SYNC;
- 		dma_params.src_start		= runtime->dma_addr;
- 		dma_params.dst_start		= dma_data->port_addr;
-+		dma_params.dst_port		= OMAP_DMA_PORT_MPUI;
- 	} else {
- 		dma_params.src_amode		= OMAP_DMA_AMODE_CONSTANT;
- 		dma_params.dst_amode		= OMAP_DMA_AMODE_POST_INC;
- 		dma_params.src_or_dst_synch	= OMAP_DMA_SRC_SYNC;
- 		dma_params.src_start		= dma_data->port_addr;
- 		dma_params.dst_start		= runtime->dma_addr;
-+		dma_params.src_port		= OMAP_DMA_PORT_MPUI;
+diff --git a/drivers/i2c/chips/twl4030-gpio.c b/drivers/i2c/chips/twl4030-gpio.c
+index 4d89abc..b51bed0 100644
+--- a/drivers/i2c/chips/twl4030-gpio.c
++++ b/drivers/i2c/chips/twl4030-gpio.c
+@@ -301,7 +301,6 @@ int twl4030_request_gpio(int gpio)
+ 	if (gpio_usage_count & (0x1 << gpio))
+ 		ret = -EBUSY;
+ 	else {
+-		u8 clear_pull[6] = { 0, 0, 0, 0, 0, 0 };
+ 		/* First time usage? - switch on GPIO module */
+ 		if (!gpio_usage_count) {
+ 			ret =
+@@ -311,10 +310,6 @@ int twl4030_request_gpio(int gpio)
+ 		}
+ 		if (!ret)
+ 			gpio_usage_count |= (0x1 << gpio);
+-
+-		ret =
+-		twl4030_i2c_write(TWL4030_MODULE_GPIO, clear_pull,
+-				REG_GPIOPUPDCTR1, 5);
  	}
- 	/*
- 	 * Set DMA transfer frame size equal to ALSA period size and frame
+ 	up(&gpio_sem);
+ 	return ret;
 -- 
-1.5.3.4
+1.6.0.2.307.gc427
+
