@@ -1,72 +1,48 @@
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Subject: Re: [PATCH] OMAP3: Fix 34xx/35xx revision check
-Date: Tue, 30 Sep 2008 22:05:28 +0100
-Message-ID: <yw1xmyhpjqef.fsf@thrashbarg.mansr.com>
-References: <1222807935-27378-1-git-send-email-mans@mansr.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 09/25] i2c: move twl4030-madc to new registration style
+Date: Tue, 30 Sep 2008 14:45:19 -0700
+Message-ID: <200809301445.19900.david-b@pacbell.net>
+References: <1222800189-29737-1-git-send-email-me@felipebalbi.com> <1222800189-29737-9-git-send-email-me@felipebalbi.com> <1222800189-29737-10-git-send-email-me@felipebalbi.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:52479 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751489AbYI3VFh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Sep 2008 17:05:37 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1KkmPY-00025i-JC
-	for linux-omap@vger.kernel.org; Tue, 30 Sep 2008 21:05:36 +0000
-Received: from thrashbarg.mansr.com ([78.86.181.100])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Tue, 30 Sep 2008 21:05:36 +0000
-Received: from mans by thrashbarg.mansr.com with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Tue, 30 Sep 2008 21:05:36 +0000
+Received: from smtp126.sbc.mail.sp1.yahoo.com ([69.147.65.185]:29359 "HELO
+	smtp126.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752060AbYI3VpW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Sep 2008 17:45:22 -0400
+In-Reply-To: <1222800189-29737-10-git-send-email-me@felipebalbi.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>, Mikko Ylinen <mikko.k.ylinen@nokia.com>
 
-Mans Rullgard <mans@mansr.com> writes:
+On Tuesday 30 September 2008, Felipe Balbi wrote:
+> =A0=A0=A0=A0=A0=A0=A0=A0ret =3D request_irq(TWL4030_MODIRQ_MADC, twl4=
+030_madc_irq_handler,
 
-> The 35xx TRM lists incorrect values for the VERSION field of the
-> CONTROL_IDCODE register.  The correct values are those listed in
-> the 34xx TRM.
->
-> Correct message on boot verified on ES2.1 and ES3.0.
->
-> Signed-off-by: Mans Rullgard <mans@mansr.com>
-> ---
->  arch/arm/mach-omap2/id.c |    5 +++--
->  1 files changed, 3 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index ab7a6e9..9f72ae6 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -162,14 +162,15 @@ void __init omap34xx_check_revision(void)
->  	/*
->  	 * Detection for 34xx ES2.0 and above can be done with just
->  	 * hawkeye and rev. See TRM 1.5.2 Device Identification.
-> -	 * Note that rev cannot be used directly as ES1.0 uses value 0.
-> +	 * The 35xx TRM lists incorrect values for the revision number.
-> +	 * Correct values are documented in the 34xx TRM.
->  	 */
->  	idcode =3D read_tap_reg(OMAP_TAP_IDCODE);
->  	hawkeye =3D (idcode >> 12) & 0xffff;
->  	rev =3D (idcode >> 28) & 0xff;
->
->  	if (hawkeye =3D=3D 0xb7ae)
-> -		system_rev =3D 0x34300034 | ((1 + rev) << 12);
-> +		system_rev =3D 0x34300034 | (rev << 12);
->
->  out:
->  	switch (system_rev) {
+Likewise:  pass the IRQ through a platform driver resource.
+These TWL4030_MODIRQ_* symbols should vanish.
 
-=46orget this.  A fix was already in the tree, but not merged to my
-branch.
+(To fix later.  No reason to hold up this batch of patches
+any longer...)
 
---=20
-M=E5ns Rullg=E5rd
-mans@mansr.com
+
+> -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+ =A0IRQF_DISABLED, "twl4030_madc", &twl4030_madc);
+> -=A0=A0=A0=A0=A0=A0=A0if (ret)
+> -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0printk(KERN_ERR TWL4030=
+_MADC_PFX "request_irq: %d\n", ret);
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+ =A0IRQF_DISABLED, "twl4030_madc", madc);
+> +=A0=A0=A0=A0=A0=A0=A0if (ret) {
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0dev_dbg(&pdev->dev, "co=
+uld not request irq\n");
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0goto err_irq;
+> +=A0=A0=A0=A0=A0=A0=A0}
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
