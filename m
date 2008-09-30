@@ -1,252 +1,154 @@
-From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: RE: [PATCH 15/16] OMAP3: Dynamic enable/disable of OFF support
-Date: Tue, 30 Sep 2008 15:44:16 +0530
-Message-ID: <02eb01c922e5$4cc4c970$LocalHost@wipultra1382>
-References: <87prmmrmjg.fsf@trdhcp146196.ntc.nokia.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [PATCH 1/5 v1] ASoC Add TLV320AIC23 codec driver
+Date: Tue, 30 Sep 2008 11:19:52 +0100
+Message-ID: <20080930101951.GA19862@sirena.org.uk>
+References: <dfeb90390809300259k1b848aaehc3519ec50c6ec96d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60166 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751838AbYI3KOc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 06:14:32 -0400
-In-Reply-To: <87prmmrmjg.fsf@trdhcp146196.ntc.nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <dfeb90390809300259k1b848aaehc3519ec50c6ec96d@mail.gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Arun KS <arunks@mistralsolutions.com>
+Cc: alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@nokia.com>, felipe.balbi@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?Q?'=22H=C3=B6gander=22_Jouni'?= <jouni.hogander@nokia.com>, 'ext Kevin Hilman' <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
 
+On Tue, Sep 30, 2008 at 03:29:32PM +0530, Arun KS wrote:
 
-> -----Original Message-----
-> From: "H=C3=B6gander" Jouni [mailto:jouni.hogander@nokia.com]=20
-> Sent: Tuesday, September 30, 2008 3:19 PM
-> To: ext Kevin Hilman
-> Cc: Rajendra Nayak; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 15/16] OMAP3: Dynamic enable/disable of=20
-> OFF support
->=20
-> "ext Kevin Hilman" <khilman@deeprootsystems.com> writes:
->=20
-> > "Rajendra Nayak" <rnayak@ti.com> writes:
-> >
-> >> I just managed to see that this patch seems to break suspend
-> >> functionality.  If after bootup I enable OFF mode the subsequent
-> >> suspend tries to put a few power domains to OFF which are currentl=
-y
-> >> in RET, and since there is no code in place today to handle RET to
-> >> OFF transitions, they don't transition to OFF and remain in RET.
-> >
-> > See commit a974addcfa23181667fe32e5032820917bf4a2b2 from=20
-> Tero Kristo.
-> > This patch was meant to address these kinds of transitions, but it
-> > seems it's not working exactly right.  I'm debugging now.
-> >
-> >> Supporting run time enable/disable of OFF functionality is kind of
-> >> becoming complicated.  Do we really see a need to have a run-time
-> >> option to enable/disable OFF mode or can we have a compile time
-> >> option for this?
-> >
-> > Run-time option is required.
->=20
-> Whole cpuidle + srf concept is about changing between OFF/RET/ON
-> dynamically. So if implementing it through one sysfs entry is
-> discarded because it's complicated, how do you think you could
-> implement it in cpuidle and srf?
+Thanks!  It looks like you've addressed pretty much all the comments
+from the first round of reviews but a few additional (fairly minor
+comments):
 
-What I meant was that hacking around the *existing* code (which neither=
-=20
-has cpuidle nor SRF) just to support runtime enable/disable of OFF mode
-is getting complicated.
+> +static const char *tlv320aic23_rec_src[] = { "Line", "Mic" };
+> +static const char *tlv320aic23_sidetone_src[] =
+> +    { "-6db", "-9db", "-12db", "-18db", "0db" };
+> +
+> +static const struct soc_enum tlv320aic23_enum[] = {
+> +	SOC_ENUM_SINGLE(TLV320AIC23_ANALOG_AUDIO_CONTROL, 2, 2,
+> +			tlv320aic23_rec_src),
+> +	SOC_ENUM_SINGLE(TLV320AIC23_ANALOG_AUDIO_CONTROL, 6, 5,
+> +			tlv320aic23_sidetone_src),
+> +};
+> +
 
->=20
-> >
-> > Kevin
-> >
-> >>> -----Original Message-----
-> >>> From: linux-omap-owner@vger.kernel.org=20
-> >>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of=20
-> Rajendra Nayak
-> >>> Sent: Friday, September 26, 2008 5:50 PM
-> >>> To: linux-omap@vger.kernel.org
-> >>> Cc: 'Kevin Hilman'
-> >>> Subject: [PATCH 15/16] OMAP3: Dynamic enable/disable of=20
-> OFF support
-> >>>=20
-> >>> This patch adds a runtime sysfs knob (/sys/power/enable_off_mode)
-> >>> to enable/disbale CORE OFF support for OMAP3.=20
-> >>>=20
-> >>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> >>> ---
-> >>>  arch/arm/mach-omap2/pm.c     |   21 +++++++++++++++++----
-> >>>  arch/arm/mach-omap2/pm.h     |    2 ++
-> >>>  arch/arm/mach-omap2/pm34xx.c |   26 ++++++++++++++++++++++++++
-> >>>  3 files changed, 45 insertions(+), 4 deletions(-)
-> >>>=20
-> >>> Index: linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c
-> >>>=20
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> >>> --- linux-omap-2.6.orig/arch/arm/mach-omap2/pm34xx.c=09
-> >>> 2008-09-26 16:39:30.000000000 +0530
-> >>> +++ linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c=09
-> >>> 2008-09-26 16:39:34.000000000 +0530
-> >>> @@ -395,6 +395,32 @@ static int omap3_can_sleep(void)
-> >>>  	return 1;
-> >>>  }
-> >>> =20
-> >>> +int set_next_pwrst(struct powerdomain *pwrdm)
-> >>> +{
-> >>> +	struct power_state *pwrst;
-> >>> +	int ret =3D 0;
-> >>> +	u32 state;
-> >>> +
-> >>> +	if (!pwrdm->pwrsts)
-> >>> +		return 0;
-> >>> +
-> >>> +	if (enable_off_mode)
-> >>> +		state =3D PWRDM_POWER_OFF;
-> >>> +	else
-> >>> +		state =3D PWRDM_POWER_RET;
-> >>> +
-> >>> +	ret =3D pwrdm_set_next_pwrst(pwrdm, state);
-> >>> +	if (ret) {
-> >>> +		printk(KERN_ERR "Unable to set state of=20
-> >>> powerdomain: %s\n",
-> >>> +		       pwrdm->name);
-> >>> +		goto err;
-> >>> +	}
-> >>> +	list_for_each_entry(pwrst, &pwrst_list, node)
-> >>> +		pwrst->next_state =3D state;
-> >>> +err:
-> >>> +	return ret;
-> >>> +}
-> >>> +
-> >>>  /* This sets pwrdm state (other than mpu & core.=20
-> Currently only ON &
-> >>>   * RET are supported. Function is assuming that clkdm=20
-> doesn't have
-> >>>   * hw_sup mode enabled. */
-> >>> Index: linux-omap-2.6/arch/arm/mach-omap2/pm.c
-> >>>=20
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> >>> --- linux-omap-2.6.orig/arch/arm/mach-omap2/pm.c=09
-> >>> 2008-09-26 16:39:30.000000000 +0530
-> >>> +++ linux-omap-2.6/arch/arm/mach-omap2/pm.c	2008-09-26=20
-> >>> 16:39:34.000000000 +0530
-> >>> @@ -35,6 +35,7 @@
-> >>> =20
-> >>>  unsigned short enable_dyn_sleep;
-> >>>  unsigned short clocks_off_while_idle;
-> >>> +unsigned short enable_off_mode;
-> >>>  atomic_t sleep_block =3D ATOMIC_INIT(0);
-> >>> =20
-> >>>  static ssize_t idle_show(struct kobject *, struct=20
-> >>> kobj_attribute *, char *);
-> >>> @@ -47,6 +48,9 @@ static struct kobj_attribute sleep_while
-> >>>  static struct kobj_attribute clocks_off_while_idle_attr =3D
-> >>>  	__ATTR(clocks_off_while_idle, 0644, idle_show, idle_store);
-> >>> =20
-> >>> +static struct kobj_attribute enable_off_mode_attr =3D
-> >>> +	__ATTR(enable_off_mode, 0644, idle_show, idle_store);
-> >>> +
-> >>>  static ssize_t idle_show(struct kobject *kobj, struct=20
-> >>> kobj_attribute *attr,
-> >>>  			 char *buf)
-> >>>  {
-> >>> @@ -54,6 +58,8 @@ static ssize_t idle_show(struct kobject=20
-> >>>  		return sprintf(buf, "%hu\n", enable_dyn_sleep);
-> >>>  	else if (attr =3D=3D &clocks_off_while_idle_attr)
-> >>>  		return sprintf(buf, "%hu\n", clocks_off_while_idle);
-> >>> +	else if (attr =3D=3D &enable_off_mode_attr)
-> >>> +		return sprintf(buf, "%hu\n", enable_off_mode);
-> >>>  	else
-> >>>  		return -EINVAL;
-> >>>  }
-> >>> @@ -69,13 +75,16 @@ static ssize_t idle_store(struct kobject
-> >>>  		return -EINVAL;
-> >>>  	}
-> >>> =20
-> >>> -	if (attr =3D=3D &sleep_while_idle_attr)
-> >>> +	if (attr =3D=3D &sleep_while_idle_attr) {
-> >>>  		enable_dyn_sleep =3D value;
-> >>> -	else if (attr =3D=3D &clocks_off_while_idle_attr)
-> >>> +	} else if (attr =3D=3D &clocks_off_while_idle_attr) {
-> >>>  		clocks_off_while_idle =3D value;
-> >>> -	else
-> >>> +	} else if (attr =3D=3D &enable_off_mode_attr) {
-> >>> +		enable_off_mode =3D value;
-> >>> +		pwrdm_for_each(set_next_pwrst);
-> >>> +	} else {
-> >>>  		return -EINVAL;
-> >>> -
-> >>> +	}
-> >>>  	return n;
-> >>>  }
-> >>> =20
-> >>> @@ -114,6 +123,10 @@ static int __init omap_pm_init(void)
-> >>>  				  &clocks_off_while_idle_attr.attr);
-> >>>  	if (error)
-> >>>  		printk(KERN_ERR "sysfs_create_file failed:=20
-> >>> %d\n", error);
-> >>> +	error =3D sysfs_create_file(power_kobj,
-> >>> +				  &enable_off_mode_attr.attr);
-> >>> +	if (error)
-> >>> +		printk(KERN_ERR "sysfs_create_file failed:=20
-> >>> %d\n", error);
-> >>> =20
-> >>>  	return error;
-> >>>  }
-> >>> Index: linux-omap-2.6/arch/arm/mach-omap2/pm.h
-> >>>=20
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> >>> --- linux-omap-2.6.orig/arch/arm/mach-omap2/pm.h=09
-> >>> 2008-09-26 16:39:30.000000000 +0530
-> >>> +++ linux-omap-2.6/arch/arm/mach-omap2/pm.h	2008-09-26=20
-> >>> 16:39:34.000000000 +0530
-> >>> @@ -18,10 +18,12 @@ extern int omap3_pm_init(void);
-> >>> =20
-> >>>  extern unsigned short enable_dyn_sleep;
-> >>>  extern unsigned short clocks_off_while_idle;
-> >>> +extern unsigned short enable_off_mode;
-> >>>  extern atomic_t sleep_block;
-> >>> =20
-> >>>  extern void omap2_block_sleep(void);
-> >>>  extern void omap2_allow_sleep(void);
-> >>> +extern int set_next_pwrst(struct powerdomain *pwrdm);
-> >>> =20
-> >>>  #define OMAP343X_TABLE_ADDRESS_OFFSET 0x31
-> >>>  #define OMAP343X_TABLE_VALUE_OFFSET   0x30
-> >>>=20
-> >>> --
-> >>> To unsubscribe from this list: send the line "unsubscribe=20
-> >>> linux-omap" in
-> >>> the body of a message to majordomo@vger.kernel.org
-> >>> More majordomo info at  http://vger.kernel.org/majordomo-info.htm=
-l
-> >>>=20
-> >>>=20
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe=20
-> linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> >
->=20
-> --=20
-> Jouni H=C3=B6gander
->=20
->=20
->=20
+sidetone_src really ought to be a SOC_SINGLE_TLV rather than an enum
+from the looks of it - it's not selecting between sources for the
+sidetone, it's determining the level of the signal so a gain control
+with TLV information would present better in UIs.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +static const struct snd_kcontrol_new tlv320aic23_rec_src_mux_controls =
+> +SOC_DAPM_ENUM("Route", tlv320aic23_enum[0]);
+
+> +static const struct snd_kcontrol_new tlv320aic23_sidetone_src_controls =
+> +SOC_DAPM_ENUM("Route", tlv320aic23_enum[1]);
+
+I know some of the older codec drivers do it but there's no need to have
+the enums be an array and it doesn't help clarity.  Equally well, it's
+not a blocker for merge.
+
+> +static const struct snd_kcontrol_new tlv320aic23_snd_controls[] = {
+> +	SOC_DOUBLE_R("PCM Playback Volume", TLV320AIC23_LEFT_CHANNEL_VOLUME,
+> +		     TLV320AIC23_RIGHT_CHANNEL_VOLUME, 0, 0x7f, 0),
+
+TLV information might be nice here too (but it's not required).  I
+suspect "Digital Playback Volume" would be a better name, but I'm not
+100% sure on that one.
+
+> +	SOC_DOUBLE_R("Line Input Mute", TLV320AIC23_LEFT_LINE_VOLUME,
+> +		     TLV320AIC23_RIGHT_LINE_VOLUME, 7, 0x01, 0),
+
+This should be "Line Input Switch" for user interfaces to pick it up
+properly.
+
+> +static const struct snd_soc_dapm_route intercon[] = {
+> +
+> +	{"LHPOUT", NULL, "DAC"},
+> +	{"RHPOUT", NULL, "DAC"},
+> +
+> +	{"LOUT", NULL, "DAC"},
+> +	{"ROUT", NULL, "DAC"},
+> +
+> +	{"Capture Source", "Line", "LLINEIN"},
+> +	{"Capture Source", "Line", "RLINEIN"},
+> +
+> +	{"Capture Source", "Mic", "MICIN"},
+> +
+> +	{"PGA Mixer", "Line Switch", "Capture Source"},
+> +	{"PGA Mixer", "Mic Switch", "Capture Source"},
+> +
+> +	{"ADC", NULL, "PGA Mixer"},
+> +};
+
+There are no routes here for your bypass path(s) - this will mean that
+DAPM won't power them on unless there's an active playback and record.
+At present that's fine for digital only bypass paths but if there are
+analogue ones they should be visible here.
+
+> +static int tlv320aic23_mute(struct snd_soc_dai *dai, int mute)
+> +{
+> +	struct snd_soc_codec *codec = dai->codec;
+> +	u16 reg;
+> +
+> +	reg =
+> +	    tlv320aic23_read_reg_cache(codec,
+> +				       TLV320AIC23_DIGITAL_AUDIO_CONTROL) &
+> +	    ~DACM_MUTE;
+
+Have you resolved the word wrapping issues with your mailer?  I've not
+tried applying the patch but things like this make me think that it has
+been mangled.
+
+> +static int tlv320aic23_set_dai_sysclk(struct snd_soc_dai *codec_dai,
+> +				      int clk_id, unsigned int freq, int dir)
+> +{
+> +	struct snd_soc_codec *codec = codec_dai->codec;
+> +	struct tlv320aic23_priv *tlv320aic23 = codec->private_data;
+> +
+> +	tlv320aic23->sysclk = freq;
+> +	return 0;
+> +}
+
+You don't actually use sysclk for anything so you may as well drop this
+function and the local variable.
+
+> +		tlv320aic23->master = 1;
+> +		iface_reg |= MS_MASTER;
+> +		break;
+> +	case SND_SOC_DAIFMT_CBS_CFS:
+> +		tlv320aic23->master = 0;
+> +		break;
+
+You don't seem to use master anywhere either so it could also be
+dropped?
+
+> +
+> +/* Left (right) line input volume control register */
+> +#define LRS_ENABLED			0x0100
+> +#define LIM_MUTED			0x0080
+> +#define LIV_DEFAULT			0x0017
+> +#define LIV_MAX				0x001f
+> +#define LIV_MIN				0x0000
+
+All the definitions in the header should be namespaced - there's things
+like:
+
+> +/* Power control down register */
+> +#define DEVICE_POWER_OFF	  	0x0080
+> +#define CLK_OFF				0x0040
+> +#define OSC_OFF				0x0020
+> +#define OUT_OFF				0x0010
+> +#define DAC_OFF				0x0008
+> +#define ADC_OFF				0x0004
+> +#define MIC_OFF				0x0002
+> +#define LINE_OFF			0x0001
+
+which are very likely to collide with other chips.
