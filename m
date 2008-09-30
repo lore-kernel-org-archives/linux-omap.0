@@ -1,18 +1,18 @@
 From: David Brownell <david-b@pacbell.net>
 Subject: Re: [PATCH 20/23] twl4030-gpio: irq and other cleanup
-Date: Mon, 29 Sep 2008 17:06:08 -0700
-Message-ID: <200809291706.09549.david-b@pacbell.net>
+Date: Mon, 29 Sep 2008 17:30:45 -0700
+Message-ID: <200809291730.46154.david-b@pacbell.net>
 References: <1222707783-18936-1-git-send-email-me@felipebalbi.com> <1222707783-18936-20-git-send-email-me@felipebalbi.com> <1222707783-18936-21-git-send-email-me@felipebalbi.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:34196 "HELO
-	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752380AbYI3AGM (ORCPT
+Received: from smtp126.sbc.mail.sp1.yahoo.com ([69.147.65.185]:29600 "HELO
+	smtp126.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752101AbYI3Aas (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Sep 2008 20:06:12 -0400
+	Mon, 29 Sep 2008 20:30:48 -0400
 In-Reply-To: <1222707783-18936-21-git-send-email-me@felipebalbi.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
@@ -20,53 +20,45 @@ List-Id: linux-omap@vger.kernel.org
 To: Felipe Balbi <me@felipebalbi.com>
 Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-On Monday 29 September 2008, Felipe Balbi wrote:
-> From: David Brownell <dbrownell@users.sourceforge.net>
-> 
-> Remove some ARM and OMAP specific stuff from the twl4030 GPIO code,
-> and some unused/undesirable CPP symbols.  Add minor checkpatch fixes.
-
-This one and #0021 share a problem.  Looks like what I tested
-wasn't the version I thought I'd tested ...
-
-
-> @@ -847,9 +839,9 @@ static int __devinit gpio_twl4030_probe(struct platform_device *pdev)
->  		/* install an irq handler for each of the gpio interrupts */
->  		for (irq = twl4030_gpio_irq_base; irq < twl4030_gpio_irq_end;
->  				irq++) {
-> -			set_irq_chip(irq, &twl4030_gpio_irq_chip);
-> -			set_irq_handler(irq, do_twl4030_gpio_irq);
-
-The problem is right here:
-
-> -			set_irq_flags(irq, IRQF_VALID);
-> +			set_irq_noprobe(irq);
-
-What's going on is that set_irq_flags() is ARM-specific; so using it
-will break builds everywhere else; it can't be used without adding
-undesirable dependencies on ARM.  (Interface changes done in mainline
-may well overlook such stuff.  And if this mechanism were important,
-it would be needed on other platforms...)
-
-That normal usage (just mark as "valid"):
-
-  - Clears the IRQ_NOREQUEST flag ... the troublesome bit
-  - Sets IRQ_NOPROBE ... like the standard set_irq_noprobe() call
-  - Clears IRQ_NOAUTOEN ... set for some PCMCIA irqs and little else
-
-Thing is, ARM also *sets* IRQ_NOREQUEST (and NOPROBE) for all IRQs,
-very early.  And it's effectively the only architecture which uses
-that flag.  (PowerPC doesn't quite count, since you won't even get
-an IRQ number until it's been mapped and that flag is cleared.)
-
-... So it looks like I'm going to have to come up with a different
-portability fix, sigh.
+This update (to this patch) resolves that problem ... please
+merge this into the next version.
+--- beagle.orig/drivers/gpio/twl4030-gpio.c	2008-09-29 17:19:37.000000000 -0700
++++ beagle/drivers/gpio/twl4030-gpio.c	2008-09-29 17:16:04.000000000 -0700
+@@ -41,9 +41,22 @@
+ #include <linux/i2c/twl4030-gpio.h>
+ 
+ 
++static inline void activate_irq(int irq)
++{
++#ifdef CONFIG_ARM
++	/* ARM requires an extra step to clear IRQ_NOREQUEST, which it
++	 * sets on behalf of every irq_chip.  Also sets IRQ_NOPROBE.
++	 */
++	set_irq_flags(irq, IRQF_VALID);
++#else
++	/* same effect on other architectures */
++	set_irq_noprobe(irq);
++#endif
++}
++
++static struct gpio_chip twl_gpiochip;
+ static int twl4030_gpio_irq_base;
+ static int twl4030_gpio_irq_end;
+-static struct gpio_chip twl_gpiochip;
+ 
+ /* genirq interfaces are not available to modules */
+ #ifdef MODULE
+@@ -839,9 +852,9 @@ static int __devinit gpio_twl4030_probe(
+ 		/* install an irq handler for each of the gpio interrupts */
+ 		for (irq = twl4030_gpio_irq_base; irq < twl4030_gpio_irq_end;
+ 				irq++) {
+-			set_irq_noprobe(irq);
+ 			set_irq_chip_and_handler(irq, &twl4030_gpio_irq_chip,
+ 					do_twl4030_gpio_irq);
++			activate_irq(irq);
+ 		}
+ 
+ 		/* gpio module IRQ */
 
 
-
-> +			set_irq_chip_and_handler(irq, &twl4030_gpio_irq_chip,
-> +					do_twl4030_gpio_irq);
->  		}
->  
->  		/* gpio module IRQ */
 
