@@ -1,32 +1,32 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 20/23] twl4030-gpio: irq and other cleanup
-Date: Mon, 29 Sep 2008 17:30:45 -0700
-Message-ID: <200809291730.46154.david-b@pacbell.net>
-References: <1222707783-18936-1-git-send-email-me@felipebalbi.com> <1222707783-18936-20-git-send-email-me@felipebalbi.com> <1222707783-18936-21-git-send-email-me@felipebalbi.com>
+Subject: Re: [PATCH 21/23] twl4030-core: portability updates
+Date: Mon, 29 Sep 2008 17:31:46 -0700
+Message-ID: <200809291731.46901.david-b@pacbell.net>
+References: <1222707783-18936-1-git-send-email-me@felipebalbi.com> <1222707783-18936-21-git-send-email-me@felipebalbi.com> <1222707783-18936-22-git-send-email-me@felipebalbi.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp126.sbc.mail.sp1.yahoo.com ([69.147.65.185]:29600 "HELO
-	smtp126.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752101AbYI3Aas (ORCPT
+Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92]:40841 "HELO
+	smtp119.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752307AbYI3Abt (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Sep 2008 20:30:48 -0400
-In-Reply-To: <1222707783-18936-21-git-send-email-me@felipebalbi.com>
+	Mon, 29 Sep 2008 20:31:49 -0400
+In-Reply-To: <1222707783-18936-22-git-send-email-me@felipebalbi.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Balbi <me@felipebalbi.com>
 Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-This update (to this patch) resolves that problem ... please
-merge this into the next version.
---- beagle.orig/drivers/gpio/twl4030-gpio.c	2008-09-29 17:19:37.000000000 -0700
-+++ beagle/drivers/gpio/twl4030-gpio.c	2008-09-29 17:16:04.000000000 -0700
-@@ -41,9 +41,22 @@
- #include <linux/i2c/twl4030-gpio.h>
- 
+Similar fix needs merging into patch 21 too.
+
+--- beagle.orig/drivers/i2c/chips/twl4030-core.c	2008-09-29 17:21:37.000000000 -0700
++++ beagle/drivers/i2c/chips/twl4030-core.c	2008-09-29 17:21:25.000000000 -0700
+@@ -75,6 +75,19 @@
+ #define twl_has_usb()	false
+ #endif
  
 +static inline void activate_irq(int irq)
 +{
@@ -41,24 +41,17 @@ merge this into the next version.
 +#endif
 +}
 +
-+static struct gpio_chip twl_gpiochip;
- static int twl4030_gpio_irq_base;
- static int twl4030_gpio_irq_end;
--static struct gpio_chip twl_gpiochip;
+ /* Primary Interrupt Handler on TWL4030 Registers */
  
- /* genirq interfaces are not available to modules */
- #ifdef MODULE
-@@ -839,9 +852,9 @@ static int __devinit gpio_twl4030_probe(
- 		/* install an irq handler for each of the gpio interrupts */
- 		for (irq = twl4030_gpio_irq_base; irq < twl4030_gpio_irq_end;
- 				irq++) {
--			set_irq_noprobe(irq);
- 			set_irq_chip_and_handler(irq, &twl4030_gpio_irq_chip,
- 					do_twl4030_gpio_irq);
-+			activate_irq(irq);
- 		}
+ /* Register Definitions */
+@@ -1052,9 +1065,9 @@ static void twl_init_irq(int irq_num, un
  
- 		/* gpio module IRQ */
-
-
-
+ 	/* install an irq handler for each of the PIH modules */
+ 	for (i = irq_base; i < irq_end; i++) {
+-		set_irq_noprobe(i);
+ 		set_irq_chip_and_handler(i, &twl4030_irq_chip,
+ 				do_twl4030_module_irq);
++		activate_irq(i);
+ 	}
+ 
+ 	/* install an irq handler to demultiplex the TWL4030 interrupt */
