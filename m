@@ -1,12 +1,16 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 00/25] twl4030 patches (v5)
-Date: Tue, 30 Sep 2008 21:42:44 +0300
-Message-ID: <1222800189-29737-1-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 03/25] i2c: clean add_children a bit
+Date: Tue, 30 Sep 2008 21:42:47 +0300
+Message-ID: <1222800189-29737-4-git-send-email-me@felipebalbi.com>
+References: <1222800189-29737-1-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-2-git-send-email-me@felipebalbi.com>
+ <1222800189-29737-3-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:51175 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:51210 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752936AbYI3SnV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 14:43:21 -0400
+	with ESMTP id S1753192AbYI3Sn2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 14:43:28 -0400
+In-Reply-To: <1222800189-29737-3-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -14,72 +18,96 @@ Cc: Tony Lindgren <tony@atomide.com>, David Brownell <dbrownell@users.sourceforg
 
 From: Felipe Balbi <felipe.balbi@nokia.com>
 
-Hopefully this is the final version:
+Clean up add_children a bit before adding more children
+to twl4030-core.c
 
-In this version a bugfix to the use of
-twl4030_set_gpio_edge_ctrl() and includes Dave's
-pullup/pulldown patches.
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/i2c/chips/twl4030-core.c |   63 +++++++++++++++++++++----------------
+ 1 files changed, 36 insertions(+), 27 deletions(-)
 
-David Brownell (13):
-  twl4030 gpio platform data
-  twl4030 uses gpiolib
-  minor twl4030-core cleanups
-  provide detailed diagnostics in add_children()
-  move twl4030-gpio to drivers/gpio
-  minor irq-related cleanups
-  Move I2C driver model init earlier in the boot sequence
-  twl4030-gpio irq_chip.set_type
-  twl4030-gpio: remove legacy irq triggering calls and user
-  twl4030-gpio: irq and other cleanup
-  twl4030-core: portability updates
-  twl4030-gpio: pullup/pulldown init
-  twl4030-gpio: beagle pull up/down init
-
-Felipe Balbi (11):
-  twl4030: fix potential null pointer dereference
-  i2c: clean add_children a bit
-  i2c: move twl4030_keypad to new style registration
-  i2c: move twl4030-usb to platform_device
-  i2c: twl4030-usb: add 'vbus' sysfs file
-  i2c: move twl4030-madc to new registration style
-  i2c: added a few missing gotos to add_children()
-  i2c: switch twl4030-usb to use a resource for irq
-  i2c: minor cleanups to twl4030-pwrbutton.c
-  twl4030: minor cleanups to twl4030_bci_battery.c
-  twl4030-bci: move to new style registration method
-
-Jagadeesh Bhaskar Pakaravoor (1):
-  twl4030-gpio: Remove default pullup enable/disable of GPIO
-
- arch/arm/mach-omap2/Makefile                |    4 +-
- arch/arm/mach-omap2/bci.c                   |   57 ---
- arch/arm/mach-omap2/board-2430sdp.c         |   32 ++-
- arch/arm/mach-omap2/board-3430sdp.c         |   49 ++-
- arch/arm/mach-omap2/board-ldp.c             |   37 ++-
- arch/arm/mach-omap2/board-omap2evm.c        |   33 ++-
- arch/arm/mach-omap2/board-omap3beagle.c     |   35 ++
- arch/arm/mach-omap2/board-omap3evm.c        |   85 +++--
- arch/arm/mach-omap2/board-overo.c           |   11 +
- arch/arm/mach-omap2/hsmmc.c                 |   11 -
- arch/arm/plat-omap/include/mach/bci.h       |   17 -
- arch/arm/plat-omap/include/mach/irqs.h      |    2 +-
- drivers/gpio/Kconfig                        |    7 +
- drivers/gpio/Makefile                       |    1 +
- drivers/{i2c/chips => gpio}/twl4030-gpio.c  |  489 ++++++++++++++++++---------
- drivers/i2c/chips/Kconfig                   |   20 --
- drivers/i2c/chips/Makefile                  |    1 -
- drivers/i2c/chips/twl4030-core.c            |  344 +++++++++++++++++---
- drivers/i2c/chips/twl4030-madc.c            |  243 +++++++++-----
- drivers/i2c/chips/twl4030-pwrbutton.c       |   10 +-
- drivers/i2c/chips/twl4030-usb.c             |  373 +++++++++++----------
- drivers/i2c/i2c-core.c                      |    2 +-
- drivers/input/keyboard/omap-twl4030keypad.c |   10 +-
- drivers/mmc/host/omap_hsmmc.c               |    4 +-
- drivers/power/twl4030_bci_battery.c         |  184 +++++------
- drivers/rtc/rtc-twl4030.c                   |   11 +-
- include/linux/i2c/twl4030.h                 |   69 +++-
- 27 files changed, 1364 insertions(+), 777 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/bci.c
- delete mode 100644 arch/arm/plat-omap/include/mach/bci.h
- rename drivers/{i2c/chips => gpio}/twl4030-gpio.c (64%)
+diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
+index 47f65f8..e55f49e 100644
+--- a/drivers/i2c/chips/twl4030-core.c
++++ b/drivers/i2c/chips/twl4030-core.c
+@@ -45,6 +45,11 @@
+ 
+ #define DRIVER_NAME			"twl4030"
+ 
++#if defined(CONFIG_RTC_DRV_TWL4030) || defined(CONFIG_RTC_DRV_TWL4030_MODULE)
++#define twl_has_rtc()	true
++#else
++#define twl_has_rtc()	false
++#endif
+ 
+ /* Primary Interrupt Handler on TWL4030 Registers */
+ 
+@@ -639,34 +644,38 @@ static int add_children(struct twl4030_platform_data *pdata)
+ 	struct twl4030_client	*twl = NULL;
+ 	int			status = 0;
+ 
+-#ifdef CONFIG_RTC_DRV_TWL4030
+-	pdev = platform_device_alloc("twl4030_rtc", -1);
+-	if (pdev) {
+-		twl = &twl4030_modules[TWL4030_SLAVENUM_NUM3];
+-		pdev->dev.parent = &twl->client->dev;
+-		device_init_wakeup(&pdev->dev, 1);
+-
+-		/*
+-		 * FIXME add the relevant IRQ resource, and make the
+-		 * rtc driver use it instead of hard-wiring ...
+-		 *
+-		 * REVISIT platform_data here currently only supports
+-		 * setting up the "msecure" line ... which actually
+-		 * violates the "princple of least privilege", since
+-		 * it's effectively always in "high trust" mode.
+-		 *
+-		 * For now, expect equivalent treatment at board init:
+-		 * setting msecure high.  Eventually, Linux might
+-		 * become more aware of those HW security concerns.
+-		 */
+-
+-		status = platform_device_add(pdev);
+-		if (status < 0)
+-			platform_device_put(pdev);
+-	} else
+-		status = -ENOMEM;
+-#endif
++	if (twl_has_rtc()) {
++		pdev = platform_device_alloc("twl4030_rtc", -1);
++		if (pdev) {
++			twl = &twl4030_modules[TWL4030_SLAVENUM_NUM3];
++			pdev->dev.parent = &twl->client->dev;
++			device_init_wakeup(&pdev->dev, 1);
++
++			/*
++			 * FIXME add the relevant IRQ resource, and make the
++			 * rtc driver use it instead of hard-wiring ...
++			 *
++			 * REVISIT platform_data here currently only supports
++			 * setting up the "msecure" line ... which actually
++			 * violates the "princple of least privilege", since
++			 * it's effectively always in "high trust" mode.
++			 *
++			 * For now, expect equivalent treatment at board init:
++			 * setting msecure high.  Eventually, Linux might
++			 * become more aware of those HW security concerns.
++			 */
++
++			status = platform_device_add(pdev);
++			if (status < 0)
++				platform_device_put(pdev);
++		} else {
++			status = -ENOMEM;
++			goto err;
++		}
++	}
+ 
++err:
++	pr_err("failed to add twl4030's children\n");
+ 	return status;
+ }
+ 
+-- 
+1.6.0.1.196.g01914
 
