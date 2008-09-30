@@ -1,848 +1,298 @@
 From: "Arun KS" <arunks@mistralsolutions.com>
-Subject: [PATCH 1/5 v1] ASoC Add TLV320AIC23 codec driver
-Date: Tue, 30 Sep 2008 15:29:32 +0530
-Message-ID: <dfeb90390809300259k1b848aaehc3519ec50c6ec96d@mail.gmail.com>
+Subject: [PATCH 2/5 v1] Adds ASOC Support for 5912osk
+Date: Tue, 30 Sep 2008 15:31:47 +0530
+Message-ID: <dfeb90390809300301x464d9411r5fabb9b9b64e73a5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from rv-out-0506.google.com ([209.85.198.238]:36953 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751829AbYI3KBt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 06:01:49 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so2787751rvb.1
+        for <linux-omap@vger.kernel.org>; Tue, 30 Sep 2008 03:01:49 -0700 (PDT)
 Content-Disposition: inline
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org
-Cc: felipe.balbi@nokia.com, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: alsa-devel@alsa-project.org
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@nokia.com>, felipe.balbi@nokia.com
 
-ASoC codec driver for TLV320AIC23 device
+Adding ASOC machine driver for 5912osk
 
 Signed-off-by: Arun KS <arunks@mistralsolutions.com>
 ---
- sound/soc/codecs/Kconfig       |    5 +
- sound/soc/codecs/Makefile      |    2 +
- sound/soc/codecs/tlv320aic23.c |  631 ++++++++++++++++++++++++++++++++++++++++
- sound/soc/codecs/tlv320aic23.h |  125 ++++++++
- 4 files changed, 763 insertions(+), 0 deletions(-)
- create mode 100644 sound/soc/codecs/tlv320aic23.c
- create mode 100644 sound/soc/codecs/tlv320aic23.h
+ sound/soc/omap/5912osk.c |  232 ++++++++++++++++++++++++++++++++++++++++++++++
+ sound/soc/omap/Kconfig   |    8 ++
+ sound/soc/omap/Makefile  |    2 +
+ 3 files changed, 242 insertions(+), 0 deletions(-)
+ create mode 100644 sound/soc/omap/5912osk.c
 
-diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
-index 0507fcf..bdead2d 100644
---- a/sound/soc/codecs/Kconfig
-+++ b/sound/soc/codecs/Kconfig
-@@ -7,6 +7,7 @@ config SND_SOC_ALL_CODECS
- 	select SND_SOC_AK4535
- 	select SND_SOC_CS4270
- 	select SND_SOC_SSM2602
-+	select SND_SOC_TLV320AIC23
- 	select SND_SOC_TLV320AIC26
- 	select SND_SOC_TLV320AIC3X
- 	select SND_SOC_UDA1380
-@@ -62,6 +63,10 @@ config SND_SOC_CS4270_VD33_ERRATA
- config SND_SOC_SSM2602
- 	tristate
-
-+config SND_SOC_TLV320AIC23
-+	tristate
-+	depends on I2C
-+
- config SND_SOC_TLV320AIC26
- 	tristate "TI TLV320AIC26 Codec support"
- 	depends on SND_SOC && SPI
-diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
-index 0731844..90f0a58 100644
---- a/sound/soc/codecs/Makefile
-+++ b/sound/soc/codecs/Makefile
-@@ -4,6 +4,7 @@ snd-soc-ad73311-objs := ad73311.o
- snd-soc-ak4535-objs := ak4535.o
- snd-soc-cs4270-objs := cs4270.o
- snd-soc-ssm2602-objs := ssm2602.o
-+snd-soc-tlv320aic23-objs := tlv320aic23.o
- snd-soc-tlv320aic26-objs := tlv320aic26.o
- snd-soc-tlv320aic3x-objs := tlv320aic3x.o
- snd-soc-uda1380-objs := uda1380.o
-@@ -25,6 +26,7 @@ obj-$(CONFIG_SND_SOC_AD73311) += snd-soc-ad73311.o
- obj-$(CONFIG_SND_SOC_AK4535)	+= snd-soc-ak4535.o
- obj-$(CONFIG_SND_SOC_CS4270)	+= snd-soc-cs4270.o
- obj-$(CONFIG_SND_SOC_SSM2602)	+= snd-soc-ssm2602.o
-+obj-$(CONFIG_SND_SOC_TLV320AIC23)	+= snd-soc-tlv320aic23.o
- obj-$(CONFIG_SND_SOC_TLV320AIC26)	+= snd-soc-tlv320aic26.o
- obj-$(CONFIG_SND_SOC_TLV320AIC3X)	+= snd-soc-tlv320aic3x.o
- obj-$(CONFIG_SND_SOC_UDA1380)	+= snd-soc-uda1380.o
-diff --git a/sound/soc/codecs/tlv320aic23.c b/sound/soc/codecs/tlv320aic23.c
+diff --git a/sound/soc/omap/5912osk.c b/sound/soc/omap/5912osk.c
 new file mode 100644
-index 0000000..b602c87
+index 0000000..30932a1
 --- /dev/null
-+++ b/sound/soc/codecs/tlv320aic23.c
-@@ -0,0 +1,631 @@
++++ b/sound/soc/omap/5912osk.c
+@@ -0,0 +1,232 @@
 +/*
-+ * ALSA SoC TLV320AIC23 codec driver
++ * 5912osk.c  --  SoC audio for 5912 OSK
 + *
-+ * Author:      Arun KS, <arunks@mistralsolutions.com>
-+ * Copyright:   (C) 2008 Mistral Solutions Pvt Ltd.,
++ * Copyright (C) 2008 Mistral Solutions
 + *
-+ * Based on sound/soc/codecs/tlv320aic3x.c by Vladimir Barinov
++ * Contact: Arun KS  <arunks@mistralsolutions.com>
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
 + *
-+ * Notes:
-+ *  The AIC23 is a driver for a low power stereo audio
-+ *  codec tlv320aic23
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
 + *
-+ *  The machine layer should disable unsupported inputs/outputs by
-+ *  snd_soc_dapm_disable_pin(codec, "LHPOUT"), etc.
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
 + */
 +
-+#include <linux/module.h>
-+#include <linux/moduleparam.h>
-+#include <linux/init.h>
-+#include <linux/delay.h>
-+#include <linux/pm.h>
-+#include <linux/i2c.h>
++#include <linux/clk.h>
 +#include <linux/platform_device.h>
 +#include <sound/core.h>
 +#include <sound/pcm.h>
-+#include <sound/pcm_params.h>
 +#include <sound/soc.h>
 +#include <sound/soc-dapm.h>
-+#include <sound/initval.h>
 +
-+#include "tlv320aic23.h"
++#include <asm/mach-types.h>
++#include <mach/hardware.h>
++#include <linux/gpio.h>
++#include <mach/mcbsp.h>
 +
-+#define AUDIO_NAME "tlv320aic23"
-+#define AIC23_VERSION "0.1"
++#include "omap-mcbsp.h"
++#include "omap-pcm.h"
++#include "../codecs/tlv320aic23.h"
 +
-+/* codec private data */
-+struct tlv320aic23_priv {
-+	unsigned int sysclk;
-+	int master;
-+};
++#define CODEC_CLOCK 	12000000
 +
-+struct tlv320aic23_samplerate_reg_info {
-+	u32 sample_rate;
-+	u8 control;		/* SR3, SR2, SR1, SR0 and BOSR */
-+	u8 divider;		/* if 0 CLKIN = MCLK, if 1 CLKIN = MCLK/2 */
-+};
++static struct clk *tlv320aic23_mclk;
 +
-+/*
-+ * AIC23 register cache
-+ */
-+static const u16 tlv320aic23_reg[] = {
-+	0x0097, 0x0097, 0x00F9, 0x00F9,	/* 0 */
-+	0x001A, 0x0004, 0x0007, 0x0001,	/* 4 */
-+	0x0020, 0x0000, 0x0000, 0x0000,	/* 8 */
-+	0x0000, 0x0000, 0x0000, 0x0000,	/* 12 */
-+};
-+
-+/*
-+ * read tlv320aic23 register cache
-+ */
-+static inline unsigned int tlv320aic23_read_reg_cache(struct snd_soc_codec
-+						      *codec, unsigned int reg)
++static int osk_startup(struct snd_pcm_substream *substream)
 +{
-+	u16 *cache = codec->reg_cache;
-+	if (reg >= ARRAY_SIZE(tlv320aic23_reg))
-+		return -1;
-+	return cache[reg];
++	return clk_enable(tlv320aic23_mclk);
 +}
 +
-+/*
-+ * write tlv320aic23 register cache
-+ */
-+static inline void tlv320aic23_write_reg_cache(struct snd_soc_codec *codec,
-+					       u8 reg, u16 value)
++static void osk_shutdown(struct snd_pcm_substream *substream)
 +{
-+	u16 *cache = codec->reg_cache;
-+	if (reg >= ARRAY_SIZE(tlv320aic23_reg))
-+		return;
-+	cache[reg] = value;
++	clk_disable(tlv320aic23_mclk);
 +}
 +
-+/*
-+ * write to the tlv320aic23 register space
-+ */
-+static int tlv320aic23_write(struct snd_soc_codec *codec, unsigned int reg,
-+			     unsigned int value)
++static int osk_hw_params(struct snd_pcm_substream *substream,
++			 struct snd_pcm_hw_params *params)
 +{
++	struct snd_soc_pcm_runtime *rtd = substream->private_data;
++	struct snd_soc_dai *codec_dai = rtd->dai->codec_dai;
++	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
++	int err;
 +
-+	u8 data;
-+
-+	/* TLV320AIC23 has 7 bit address and 9 bits of data
-+	 * so we need to switch one data bit into reg and rest
-+	 * of data into val
-+	 */
-+
-+	if ((reg < 0 || reg > 9) && (reg != 15)) {
-+		printk(KERN_WARNING "%s Invalid register R%d\n", __func__, reg);
-+		return -1;
++	/* Set codec DAI configuration */
++	err = snd_soc_dai_set_fmt(codec_dai,
++				  SND_SOC_DAIFMT_DSP_A |
++				  SND_SOC_DAIFMT_NB_IF |
++				  SND_SOC_DAIFMT_CBM_CFM);
++	if (err < 0) {
++		printk(KERN_ERR "can't set codec DAI configuration\n");
++		return err;
 +	}
 +
-+	data = (reg << 1) | (value >> 8 & 0x01);
-+
-+	tlv320aic23_write_reg_cache(codec, reg, value);
-+
-+	if (codec->hw_write(codec->control_data, (u8) data,
-+			    (u8) (value & 0xff)) == 0)
-+		return 0;
-+
-+	printk(KERN_ERR "%s cannot write %03x to register R%d\n", __func__,
-+	       value, reg);
-+
-+	return -EIO;
-+}
-+
-+static const char *tlv320aic23_rec_src[] = { "Line", "Mic" };
-+static const char *tlv320aic23_sidetone_src[] =
-+    { "-6db", "-9db", "-12db", "-18db", "0db" };
-+
-+static const struct soc_enum tlv320aic23_enum[] = {
-+	SOC_ENUM_SINGLE(TLV320AIC23_ANALOG_AUDIO_CONTROL, 2, 2,
-+			tlv320aic23_rec_src),
-+	SOC_ENUM_SINGLE(TLV320AIC23_ANALOG_AUDIO_CONTROL, 6, 5,
-+			tlv320aic23_sidetone_src),
-+};
-+
-+static const struct snd_kcontrol_new tlv320aic23_rec_src_mux_controls =
-+SOC_DAPM_ENUM("Route", tlv320aic23_enum[0]);
-+
-+static const struct snd_kcontrol_new tlv320aic23_sidetone_src_controls =
-+SOC_DAPM_ENUM("Route", tlv320aic23_enum[1]);
-+
-+static const struct snd_kcontrol_new tlv320aic23_snd_controls[] = {
-+	SOC_DOUBLE_R("PCM Playback Volume", TLV320AIC23_LEFT_CHANNEL_VOLUME,
-+		     TLV320AIC23_RIGHT_CHANNEL_VOLUME, 0, 0x7f, 0),
-+	SOC_SINGLE("PCM Playback Switch", TLV320AIC23_DIGITAL_AUDIO_CONTROL, 3,
-+		   0x01, 1),
-+	SOC_DOUBLE_R("Line Input Mute", TLV320AIC23_LEFT_LINE_VOLUME,
-+		     TLV320AIC23_RIGHT_LINE_VOLUME, 7, 0x01, 0),
-+	SOC_DOUBLE_R("Line Input Volume", TLV320AIC23_LEFT_LINE_VOLUME,
-+		     TLV320AIC23_RIGHT_LINE_VOLUME, 0, 0x1f, 0),
-+	SOC_SINGLE("Mic Switch", TLV320AIC23_ANALOG_AUDIO_CONTROL, 1, 0x01, 0),
-+	SOC_SINGLE("Mic Booster Switch", TLV320AIC23_ANALOG_AUDIO_CONTROL, 0,
-+		   0x01, 0),
-+	SOC_SINGLE("Sidetone Switch", TLV320AIC23_ANALOG_AUDIO_CONTROL, 5, 1,
-+		   0),
-+	SOC_ENUM("Sidetone Gain", tlv320aic23_enum[1]),
-+	SOC_SINGLE("Line Bypass", TLV320AIC23_ANALOG_AUDIO_CONTROL, 3, 1, 0),
-+
-+};
-+
-+/* add non dapm controls */
-+static int tlv320aic23_add_controls(struct snd_soc_codec *codec)
-+{
-+
-+	int err, i;
-+
-+	for (i = 0; i < ARRAY_SIZE(tlv320aic23_snd_controls); i++) {
-+		err = snd_ctl_add(codec->card,
-+				  snd_soc_cnew(&tlv320aic23_snd_controls[i],
-+					       codec, NULL));
-+		if (err < 0)
-+			return err;
++	/* Set cpu DAI configuration */
++	err = snd_soc_dai_set_fmt(cpu_dai,
++				  SND_SOC_DAIFMT_DSP_A |
++				  SND_SOC_DAIFMT_NB_IF |
++				  SND_SOC_DAIFMT_CBM_CFM);
++	if (err < 0) {
++		printk(KERN_ERR "can't set cpu DAI configuration\n");
++		return err;
 +	}
 +
-+	return 0;
++	/* Set the codec system clock for DAC and ADC */
++	err =
++	    snd_soc_dai_set_sysclk(codec_dai, 0, CODEC_CLOCK, SND_SOC_CLOCK_IN);
 +
++	if (err < 0) {
++		printk(KERN_ERR "can't set codec system clock\n");
++		return err;
++	}
++
++	return err;
 +}
 +
-+/* PGA Mixer controls for Line and Mic switch */
-+static const struct snd_kcontrol_new tlv320aic23_pga_mixer_controls[] = {
-+	SOC_DAPM_SINGLE("Line Switch", TLV320AIC23_POWER_DOWN_CONTROL, 0, 1, 1),
-+	SOC_DAPM_SINGLE("Mic Switch", TLV320AIC23_POWER_DOWN_CONTROL, 1, 1, 1),
++static struct snd_soc_ops osk_ops = {
++	.startup = osk_startup,
++	.hw_params = osk_hw_params,
++	.shutdown = osk_shutdown,
 +};
 +
 +static const struct snd_soc_dapm_widget tlv320aic23_dapm_widgets[] = {
-+	SND_SOC_DAPM_DAC("DAC", "Playback", TLV320AIC23_POWER_DOWN_CONTROL, 3,
-+			 1),
-+	SND_SOC_DAPM_ADC("ADC", "Capture", TLV320AIC23_POWER_DOWN_CONTROL, 2,
-+			 1),
-+	SND_SOC_DAPM_MIXER("PGA Mixer", SND_SOC_NOPM, 0, 0,
-+			   &tlv320aic23_pga_mixer_controls[0],
-+			   ARRAY_SIZE(tlv320aic23_pga_mixer_controls)),
-+	SND_SOC_DAPM_MUX("Capture Source", SND_SOC_NOPM, 0, 0,
-+			 &tlv320aic23_rec_src_mux_controls),
-+
-+	SND_SOC_DAPM_OUTPUT("LHPOUT"),
-+	SND_SOC_DAPM_OUTPUT("RHPOUT"),
-+	SND_SOC_DAPM_OUTPUT("LOUT"),
-+	SND_SOC_DAPM_OUTPUT("ROUT"),
-+	SND_SOC_DAPM_INPUT("LLINEIN"),
-+	SND_SOC_DAPM_INPUT("RLINEIN"),
-+	SND_SOC_DAPM_INPUT("MICIN"),
++	SND_SOC_DAPM_HP("Headphone Jack", NULL),
++	SND_SOC_DAPM_LINE("Line In", NULL),
++	SND_SOC_DAPM_MIC("Mic Jack", NULL),
 +};
 +
-+static const struct snd_soc_dapm_route intercon[] = {
++static const struct snd_soc_dapm_route audio_map[] = {
++	{"Headphone Jack", NULL, "LHPOUT"},
++	{"Headphone Jack", NULL, "RHPOUT"},
 +
-+	{"LHPOUT", NULL, "DAC"},
-+	{"RHPOUT", NULL, "DAC"},
++	{"LLINEIN", NULL, "Line In"},
++	{"RLINEIN", NULL, "Line In"},
 +
-+	{"LOUT", NULL, "DAC"},
-+	{"ROUT", NULL, "DAC"},
-+
-+	{"Capture Source", "Line", "LLINEIN"},
-+	{"Capture Source", "Line", "RLINEIN"},
-+
-+	{"Capture Source", "Mic", "MICIN"},
-+
-+	{"PGA Mixer", "Line Switch", "Capture Source"},
-+	{"PGA Mixer", "Mic Switch", "Capture Source"},
-+
-+	{"ADC", NULL, "PGA Mixer"},
++	{"MICIN", NULL, "Mic Jack"},
 +};
 +
-+/* tlv320aic23 related */
-+static const struct tlv320aic23_samplerate_reg_info rate_reg_info[] = {
-+	{4000, 0x06, 1},	/*  4000 */
-+	{8000, 0x06, 0},	/*  8000 */
-+	{16000, 0x0C, 1},	/* 16000 */
-+	{22050, 0x11, 1},	/* 22050 */
-+	{24000, 0x00, 1},	/* 24000 */
-+	{32000, 0x0C, 0},	/* 32000 */
-+	{44100, 0x11, 0},	/* 44100 */
-+	{48000, 0x00, 0},	/* 48000 */
-+	{88200, 0x1F, 0},	/* 88200 */
-+	{96000, 0x0E, 0},	/* 96000 */
-+};
-+
-+static int tlv320aic23_add_widgets(struct snd_soc_codec *codec)
++static int osk_tlv320aic23_init(struct snd_soc_codec *codec)
 +{
++
++	/* Add 5912osk specific widgets */
 +	snd_soc_dapm_new_controls(codec, tlv320aic23_dapm_widgets,
 +				  ARRAY_SIZE(tlv320aic23_dapm_widgets));
 +
-+	/* set up audio path interconnects */
-+	snd_soc_dapm_add_routes(codec, intercon, ARRAY_SIZE(intercon));
++	/* Set up 5912osk specific audio path audio_map */
++	snd_soc_dapm_add_routes(codec, audio_map, ARRAY_SIZE(audio_map));
 +
-+	snd_soc_dapm_new_widgets(codec);
-+	return 0;
-+}
++	snd_soc_dapm_enable_pin(codec, "Headphone Jack");
++	snd_soc_dapm_enable_pin(codec, "Line In");
++	snd_soc_dapm_enable_pin(codec, "Mic Jack");
 +
-+static int tlv320aic23_hw_params(struct snd_pcm_substream *substream,
-+				 struct snd_pcm_hw_params *params)
-+{
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_device *socdev = rtd->socdev;
-+	struct snd_soc_codec *codec = socdev->codec;
-+	u16 iface_reg, data;
-+	u8 count = 0;
-+
-+	iface_reg = tlv320aic23_read_reg_cache(codec,
-+					       TLV320AIC23_DIGITAL_AUDIO_FORMAT)
-+	    & ~(0x03 << 2);
-+
-+	/* Search for the right sample rate */
-+	/* Verify what happens if the rate is not supported
-+	 * now it goes to 96Khz */
-+	while ((rate_reg_info[count].sample_rate != params_rate(params)) &&
-+	       (count < ARRAY_SIZE(rate_reg_info))) {
-+		count++;
-+	}
-+
-+	data = (rate_reg_info[count].divider << CLKIN_SHIFT) |
-+	    (rate_reg_info[count].control << BOSR_SHIFT) | USB_CLK_ON;
-+
-+	tlv320aic23_write(codec, TLV320AIC23_SAMPLE_RATE_CONTROL, data);
-+
-+	switch (params_format(params)) {
-+	case SNDRV_PCM_FORMAT_S16_LE:
-+		break;
-+	case SNDRV_PCM_FORMAT_S20_3LE:
-+		iface_reg |= (0x01 << 2);
-+		break;
-+	case SNDRV_PCM_FORMAT_S24_LE:
-+		iface_reg |= (0x02 << 2);
-+		break;
-+	case SNDRV_PCM_FORMAT_S32_LE:
-+		iface_reg |= (0x03 << 2);
-+		break;
-+	}
-+	tlv320aic23_write(codec, TLV320AIC23_DIGITAL_AUDIO_FORMAT, iface_reg);
++	snd_soc_dapm_sync(codec);
 +
 +	return 0;
 +}
 +
-+static int tlv320aic23_mute(struct snd_soc_dai *dai, int mute)
-+{
-+	struct snd_soc_codec *codec = dai->codec;
-+	u16 reg;
-+
-+	reg =
-+	    tlv320aic23_read_reg_cache(codec,
-+				       TLV320AIC23_DIGITAL_AUDIO_CONTROL) &
-+	    ~DACM_MUTE;
-+
-+	if (mute)
-+		tlv320aic23_write(codec, TLV320AIC23_DIGITAL_AUDIO_CONTROL,
-+				  reg | DACM_MUTE);
-+
-+	else
-+		tlv320aic23_write(codec, TLV320AIC23_DIGITAL_AUDIO_CONTROL,
-+				  reg);
-+
-+	return 0;
-+}
-+
-+static int tlv320aic23_set_dai_sysclk(struct snd_soc_dai *codec_dai,
-+				      int clk_id, unsigned int freq, int dir)
-+{
-+	struct snd_soc_codec *codec = codec_dai->codec;
-+	struct tlv320aic23_priv *tlv320aic23 = codec->private_data;
-+
-+	tlv320aic23->sysclk = freq;
-+	return 0;
-+}
-+
-+static int tlv320aic23_set_dai_fmt(struct snd_soc_dai *codec_dai,
-+				   unsigned int fmt)
-+{
-+	struct snd_soc_codec *codec = codec_dai->codec;
-+	struct tlv320aic23_priv *tlv320aic23 = codec->private_data;
-+	u16 iface_reg;
-+
-+	iface_reg =
-+	    tlv320aic23_read_reg_cache(codec,
-+				       TLV320AIC23_DIGITAL_AUDIO_FORMAT) &
-+	    (~0x03);
-+
-+	/* set master/slave audio interface */
-+	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
-+	case SND_SOC_DAIFMT_CBM_CFM:
-+		tlv320aic23->master = 1;
-+		iface_reg |= MS_MASTER;
-+		break;
-+	case SND_SOC_DAIFMT_CBS_CFS:
-+		tlv320aic23->master = 0;
-+		break;
-+	default:
-+		return -EINVAL;
-+
-+	}
-+
-+	/* interface format */
-+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-+	case SND_SOC_DAIFMT_I2S:
-+		iface_reg |= FOR_I2S;
-+		break;
-+	case SND_SOC_DAIFMT_DSP_A:
-+		iface_reg |= FOR_DSP;
-+		break;
-+	case SND_SOC_DAIFMT_RIGHT_J:
-+		break;
-+	case SND_SOC_DAIFMT_LEFT_J:
-+		iface_reg |= FOR_LJUST;
-+		break;
-+	default:
-+		return -EINVAL;
-+
-+	}
-+
-+	tlv320aic23_write(codec, TLV320AIC23_DIGITAL_AUDIO_FORMAT, iface_reg);
-+
-+	return 0;
-+}
-+
-+#define AIC23_RATES	SNDRV_PCM_RATE_8000_96000
-+#define AIC23_FORMATS	(SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S20_3LE | \
-+			 SNDRV_PCM_FMTBIT_S24_3LE | SNDRV_PCM_FMTBIT_S32_LE)
-+
-+struct snd_soc_dai tlv320aic23_dai = {
-+	.name = "tlv320aic23",
-+	.playback = {
-+		     .stream_name = "Playback",
-+		     .channels_min = 2,
-+		     .channels_max = 2,
-+		     .rates = AIC23_RATES,
-+		     .formats = AIC23_FORMATS,},
-+	.capture = {
-+		    .stream_name = "Capture",
-+		    .channels_min = 2,
-+		    .channels_max = 2,
-+		    .rates = AIC23_RATES,
-+		    .formats = AIC23_FORMATS,},
-+	.ops = {
-+		.hw_params = tlv320aic23_hw_params,
-+		},
-+	.dai_ops = {
-+		    .digital_mute = tlv320aic23_mute,
-+		    .set_sysclk = tlv320aic23_set_dai_sysclk,
-+		    .set_fmt = tlv320aic23_set_dai_fmt,
-+		    }
++/* Digital audio interface glue - connects codec <--> CPU */
++static struct snd_soc_dai_link osk_dai = {
++	.name = "TLV320AIC23",
++	.stream_name = "AIC23",
++	.cpu_dai = &omap_mcbsp_dai[0],
++	.codec_dai = &tlv320aic23_dai,
++	.init = osk_tlv320aic23_init,
++	.ops = &osk_ops,
 +};
-+EXPORT_SYMBOL_GPL(tlv320aic23_dai);
 +
-+static int tlv320aic23_suspend(struct platform_device *pdev,
-pm_message_t state)
++/* Audio machine driver */
++static struct snd_soc_machine snd_soc_machine_osk = {
++	.name = "5912OSK",
++	.dai_link = &osk_dai,
++	.num_links = 1,
++};
++
++/* Audio subsystem */
++static struct snd_soc_device osk_snd_devdata = {
++	.machine = &snd_soc_machine_osk,
++	.platform = &omap_soc_platform,
++	.codec_dev = &soc_codec_dev_tlv320aic23,
++};
++
++static struct platform_device *osk_snd_device;
++
++static int __init osk_soc_init(void)
 +{
-+	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
-+	struct snd_soc_codec *codec = socdev->codec;
-+	u16 reg;
++	int err;
++	u32 curRate;
++	struct device *dev;
 +
-+	reg = tlv320aic23_read_reg_cache(codec, TLV320AIC23_POWER_DOWN_CONTROL);
-+	tlv320aic23_write(codec, TLV320AIC23_POWER_DOWN_CONTROL,
-+			  reg | DEVICE_POWER_OFF | OUT_OFF);
++	if (!(machine_is_omap_osk()))
++		return -ENODEV;
 +
-+	return 0;
-+}
-+
-+static int tlv320aic23_resume(struct platform_device *pdev)
-+{
-+	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
-+	struct snd_soc_codec *codec = socdev->codec;
-+	int i;
-+	u8 data[2];
-+	u16 reg;
-+	u8 *cache = codec->reg_cache;
-+
-+	/* Sync reg_cache with the hardware */
-+	for (i = 0; i < ARRAY_SIZE(tlv320aic23_reg); i++) {
-+		data[0] = i;
-+		data[1] = cache[i];
-+		codec->hw_write(codec->control_data, data, 2);
-+	}
-+
-+	reg = tlv320aic23_read_reg_cache(codec, TLV320AIC23_POWER_DOWN_CONTROL);
-+	tlv320aic23_write(codec, TLV320AIC23_POWER_DOWN_CONTROL,
-+			  reg & (~DEVICE_POWER_OFF) & (~OUT_OFF));
-+
-+	return 0;
-+}
-+
-+/*
-+ * initialise the AIC23 driver
-+ * register the mixer and dsp interfaces with the kernel
-+ */
-+static int tlv320aic23_init(struct snd_soc_device *socdev)
-+{
-+	struct snd_soc_codec *codec = socdev->codec;
-+	int ret = 0;
-+	u16 reg;
-+
-+	codec->name = "tlv320aic23";
-+	codec->owner = THIS_MODULE;
-+	codec->read = tlv320aic23_read_reg_cache;
-+	codec->write = tlv320aic23_write;
-+	codec->dai = &tlv320aic23_dai;
-+	codec->num_dai = 1;
-+	codec->reg_cache_size = ARRAY_SIZE(tlv320aic23_reg);
-+	codec->reg_cache =
-+	    kmemdup(tlv320aic23_reg, sizeof(tlv320aic23_reg), GFP_KERNEL);
-+	if (codec->reg_cache == NULL)
++	osk_snd_device = platform_device_alloc("soc-audio", -1);
++	if (!osk_snd_device)
 +		return -ENOMEM;
 +
-+	/* Reset codec */
-+	tlv320aic23_write(codec, TLV320AIC23_RESET_CONTROL, 0);
++	platform_set_drvdata(osk_snd_device, &osk_snd_devdata);
++	osk_snd_devdata.dev = &osk_snd_device->dev;
++	*(unsigned int *)osk_dai.cpu_dai->private_data = 0;	/* McBSP1 */
++	err = platform_device_add(osk_snd_device);
++	if (err)
++		goto err1;
 +
-+	/* register pcms */
-+	ret = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
-+	if (ret < 0) {
-+		printk(KERN_ERR "tlv320aic23: failed to create pcms\n");
-+		goto pcm_err;
-+	}
-+	/* Power on the device */
-+	reg = tlv320aic23_read_reg_cache(codec, TLV320AIC23_POWER_DOWN_CONTROL);
-+	tlv320aic23_write(codec, TLV320AIC23_POWER_DOWN_CONTROL,
-+			  reg & (~DEVICE_POWER_OFF) & (~OUT_OFF));
++	dev = &osk_snd_device->dev;
 +
-+	tlv320aic23_write(codec, TLV320AIC23_DIGITAL_AUDIO_CONTROL, DEEMP_44K);
-+
-+	/* Unmute input */
-+	reg = tlv320aic23_read_reg_cache(codec, TLV320AIC23_LEFT_LINE_VOLUME);
-+	tlv320aic23_write(codec, TLV320AIC23_LEFT_LINE_VOLUME,
-+			  (reg & (~LIM_MUTED)) | (LRS_ENABLED));
-+	reg = tlv320aic23_read_reg_cache(codec, TLV320AIC23_RIGHT_LINE_VOLUME);
-+	tlv320aic23_write(codec, TLV320AIC23_RIGHT_LINE_VOLUME,
-+			  (reg & (~LIM_MUTED)) | LRS_ENABLED);
-+	reg =
-+	    tlv320aic23_read_reg_cache(codec, TLV320AIC23_ANALOG_AUDIO_CONTROL);
-+	tlv320aic23_write(codec, TLV320AIC23_ANALOG_AUDIO_CONTROL,
-+			  (reg | DAC_SELECTED) & (~MICM_MUTED) & (~BYPASS_ON));
-+
-+	/* Default output volume */
-+	tlv320aic23_write(codec, TLV320AIC23_LEFT_CHANNEL_VOLUME,
-+			  DEFAULT_OUTPUT_VOLUME & OUTPUT_VOLUME_MASK);
-+	tlv320aic23_write(codec, TLV320AIC23_RIGHT_CHANNEL_VOLUME,
-+			  DEFAULT_OUTPUT_VOLUME & OUTPUT_VOLUME_MASK);
-+
-+	/* Activate interface */
-+	reg =
-+	    tlv320aic23_read_reg_cache(codec,
-+				       TLV320AIC23_DIGITAL_INTERFACE_ACT);
-+	tlv320aic23_write(codec, TLV320AIC23_DIGITAL_INTERFACE_ACT,
-+			  reg | ACT_ON);
-+
-+	tlv320aic23_add_controls(codec);
-+	tlv320aic23_add_widgets(codec);
-+	ret = snd_soc_register_card(socdev);
-+	if (ret < 0) {
-+		printk(KERN_ERR "tlv320aic23: failed to register card\n");
-+		goto card_err;
++	tlv320aic23_mclk = clk_get(dev, "mclk");
++	if (IS_ERR(tlv320aic23_mclk)) {
++		printk(KERN_ERR "Could not get mclk clock\n");
++		return -ENODEV;
 +	}
 +
-+	return ret;
-+
-+card_err:
-+	snd_soc_free_pcms(socdev);
-+	snd_soc_dapm_free(socdev);
-+pcm_err:
-+	kfree(codec->reg_cache);
-+	return ret;
-+}
-+static struct snd_soc_device *tlv320aic23_socdev;
-+
-+#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-+/*
-+ * If the i2c layer weren't so broken, we could pass this kind of data
-+ * around
-+ */
-+static int tlv320aic23_codec_probe(struct i2c_client *i2c,
-+				   const struct i2c_device_id *i2c_id)
-+{
-+	struct snd_soc_device *socdev = tlv320aic23_socdev;
-+	struct snd_soc_codec *codec = socdev->codec;
-+	int ret;
-+
-+	if (!i2c_check_functionality(i2c->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-+		return -EINVAL;
-+
-+	i2c_set_clientdata(i2c, codec);
-+	codec->control_data = i2c;
-+
-+	ret = tlv320aic23_init(socdev);
-+	if (ret < 0) {
-+		printk(KERN_ERR "tlv320aic23: failed to initialise AIC23\n");
-+		goto err;
-+	}
-+	return ret;
-+
-+err:
-+	kfree(codec);
-+	kfree(i2c);
-+	return ret;
-+}
-+static int __exit tlv320aic23_i2c_remove(struct i2c_client *i2c)
-+{
-+	put_device(&i2c->dev);
-+	return 0;
-+}
-+
-+static const struct i2c_device_id tlv320aic23_id[] = {
-+	{"tlv320aic23", 0},
-+	{}
-+};
-+
-+MODULE_DEVICE_TABLE(i2c, tlv320aic23_id);
-+
-+static struct i2c_driver tlv320aic23_i2c_driver = {
-+	.driver = {
-+		   .name = "tlv320aic23",
-+		   },
-+	.probe = tlv320aic23_codec_probe,
-+	.remove = __exit_p(tlv320aic23_i2c_remove),
-+	.id_table = tlv320aic23_id,
-+};
-+
-+#endif
-+
-+static int tlv320aic23_probe(struct platform_device *pdev)
-+{
-+	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
-+	struct snd_soc_codec *codec;
-+	struct tlv320aic23_priv *tlv320aic23;
-+	int ret = 0;
-+
-+	printk(KERN_INFO "AIC23 Audio Codec %s\n", AIC23_VERSION);
-+
-+	codec = kzalloc(sizeof(struct snd_soc_codec), GFP_KERNEL);
-+	if (codec == NULL)
-+		return -ENOMEM;
-+
-+	tlv320aic23 = kzalloc(sizeof(struct tlv320aic23_priv), GFP_KERNEL);
-+	if (tlv320aic23 == NULL) {
-+		kfree(codec);
-+		return -ENOMEM;
++	if (clk_get_usecount(tlv320aic23_mclk) > 0) {
++		/* MCLK is already in use */
++		printk(KERN_WARNING
++		       "MCLK in use at %d Hz. We change it to %d Hz\n",
++		       (uint) clk_get_rate(tlv320aic23_mclk), CODEC_CLOCK);
 +	}
 +
-+	codec->private_data = tlv320aic23;
-+	socdev->codec = codec;
-+	mutex_init(&codec->mutex);
-+	INIT_LIST_HEAD(&codec->dapm_widgets);
-+	INIT_LIST_HEAD(&codec->dapm_paths);
++	/*
++	 * Configure 12 MHz output on MCLK.
++	 */
++	curRate = (uint) clk_get_rate(tlv320aic23_mclk);
++	if (curRate != CODEC_CLOCK) {
++		if (clk_set_rate(tlv320aic23_mclk, CODEC_CLOCK)) {
++			printk(KERN_ERR "Cannot set MCLK for AIC23 CODEC\n");
++			err = -ECANCELED;
++			goto err1;
++		}
++	}
 +
-+	tlv320aic23_socdev = socdev;
-+#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-+	codec->hw_write = (hw_write_t) i2c_smbus_write_byte_data;
-+	codec->hw_read = NULL;
-+	ret = i2c_add_driver(&tlv320aic23_i2c_driver);
-+	if (ret != 0)
-+		printk(KERN_ERR "can't add i2c driver");
-+#endif
-+	return ret;
-+}
-+
-+static int tlv320aic23_remove(struct platform_device *pdev)
-+{
-+	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
-+	struct snd_soc_codec *codec = socdev->codec;
-+
-+	snd_soc_free_pcms(socdev);
-+	snd_soc_dapm_free(socdev);
-+#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-+	i2c_del_driver(&tlv320aic23_i2c_driver);
-+#endif
-+	kfree(codec->private_data);
-+	kfree(codec->reg_cache);
-+	kfree(codec);
++	printk(KERN_INFO "MCLK = %d [%d], usecount = %d\n",
++	       (uint) clk_get_rate(tlv320aic23_mclk), CODEC_CLOCK,
++	       clk_get_usecount(tlv320aic23_mclk));
 +
 +	return 0;
-+}
-+struct snd_soc_codec_device soc_codec_dev_tlv320aic23 = {
-+	.probe = tlv320aic23_probe,
-+	.remove = tlv320aic23_remove,
-+	.suspend = tlv320aic23_suspend,
-+	.resume = tlv320aic23_resume,
-+};
-+EXPORT_SYMBOL_GPL(soc_codec_dev_tlv320aic23);
++err1:
++	clk_put(tlv320aic23_mclk);
++	platform_device_del(osk_snd_device);
++	platform_device_put(osk_snd_device);
 +
-+MODULE_DESCRIPTION("ASoC TLV320AIC23 codec driver");
++	return err;
++
++}
++
++static void __exit osk_soc_exit(void)
++{
++	platform_device_unregister(osk_snd_device);
++}
++
++module_init(osk_soc_init);
++module_exit(osk_soc_exit);
++
 +MODULE_AUTHOR("Arun KS <arunks@mistralsolutions.com>");
++MODULE_DESCRIPTION("ALSA SoC 5912 OSK");
 +MODULE_LICENSE("GPL");
-diff --git a/sound/soc/codecs/tlv320aic23.h b/sound/soc/codecs/tlv320aic23.h
-new file mode 100644
-index 0000000..7ffeaf6
---- /dev/null
-+++ b/sound/soc/codecs/tlv320aic23.h
-@@ -0,0 +1,125 @@
-+/*
-+ * ALSA SoC TLV320AIC23 codec driver
-+ *
-+ * Author:      Arun KS, <arunks@mistralsolutions.com>
-+ * Copyright:   (C) 2008 Mistral Solutions Pvt Ltd
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+index aea27e7..fc946bc 100644
+--- a/sound/soc/omap/Kconfig
++++ b/sound/soc/omap/Kconfig
+@@ -13,3 +13,11 @@ config SND_OMAP_SOC_N810
+ 	select SND_SOC_TLV320AIC3X
+ 	help
+ 	  Say Y if you want to add support for SoC audio on Nokia N810.
 +
-+#ifndef _TLV320AIC23_H
-+#define _TLV320AIC23_H
-+
-+/* Codec TLV320AIC23 */
-+#define TLV320AIC23_LEFT_LINE_VOLUME		0x00
-+#define TLV320AIC23_RIGHT_LINE_VOLUME		0x01
-+#define TLV320AIC23_LEFT_CHANNEL_VOLUME		0x02
-+#define TLV320AIC23_RIGHT_CHANNEL_VOLUME	0x03
-+#define TLV320AIC23_ANALOG_AUDIO_CONTROL	0x04
-+#define TLV320AIC23_DIGITAL_AUDIO_CONTROL	0x05
-+#define TLV320AIC23_POWER_DOWN_CONTROL		0x06
-+#define TLV320AIC23_DIGITAL_AUDIO_FORMAT	0x07
-+#define TLV320AIC23_SAMPLE_RATE_CONTROL		0x08
-+#define TLV320AIC23_DIGITAL_INTERFACE_ACT	0x09
-+#define TLV320AIC23_RESET_CONTROL		0x0F
-+
-+/* Left (right) line input volume control register */
-+#define LRS_ENABLED			0x0100
-+#define LIM_MUTED			0x0080
-+#define LIV_DEFAULT			0x0017
-+#define LIV_MAX				0x001f
-+#define LIV_MIN				0x0000
-+
-+/* Left (right) channel headphone volume control register */
-+#define LZC_ON				0x0080
-+#define LHV_DEFAULT			0x0079
-+#define LHV_MAX				0x007f
-+#define LHV_MIN				0x0000
-+
-+/* Analog audio path control register */
-+#define STA_REG(x)			((x)<<6)
-+#define STE_ENABLED			0x0020
-+#define DAC_SELECTED			0x0010
-+#define BYPASS_ON			0x0008
-+#define INSEL_MIC			0x0004
-+#define MICM_MUTED			0x0002
-+#define MICB_20DB			0x0001
-+
-+/* Digital audio path control register */
-+#define DACM_MUTE			0x0008
-+#define DEEMP_32K			0x0002
-+#define DEEMP_44K			0x0004
-+#define DEEMP_48K			0x0006
-+#define ADCHP_ON			0x0001
-+
-+/* Power control down register */
-+#define DEVICE_POWER_OFF	  	0x0080
-+#define CLK_OFF				0x0040
-+#define OSC_OFF				0x0020
-+#define OUT_OFF				0x0010
-+#define DAC_OFF				0x0008
-+#define ADC_OFF				0x0004
-+#define MIC_OFF				0x0002
-+#define LINE_OFF			0x0001
-+
-+/* Digital audio interface register */
-+#define MS_MASTER			0x0040
-+#define LRSWAP_ON			0x0020
-+#define LRP_ON				0x0010
-+#define IWL_16				0x0000
-+#define IWL_20				0x0004
-+#define IWL_24				0x0008
-+#define IWL_32				0x000C
-+#define FOR_I2S				0x0002
-+#define FOR_DSP				0x0003
-+#define FOR_LJUST			0x0001
-+
-+/* Sample rate control register */
-+#define CLKOUT_HALF			0x0080
-+#define CLKIN_HALF			0x0040
-+#define BOSR_384fs			0x0002 /* BOSR_272fs when in USB mode */
-+#define USB_CLK_ON			0x0001
-+#define SR_MASK                         0xf
-+#define CLKOUT_SHIFT                    7
-+#define CLKIN_SHIFT                     6
-+#define SR_SHIFT                        2
-+#define BOSR_SHIFT                      1
-+
-+/* Digital interface register */
-+#define ACT_ON				0x0001
-+
-+/*
-+ * AUDIO related MACROS
-+ */
-+
-+#define DEFAULT_OUTPUT_VOLUME		0x70
-+#define DEFAULT_INPUT_VOLUME		0x10	/* 0 ==> mute line in */
-+
-+#define OUTPUT_VOLUME_MIN		LHV_MIN
-+#define OUTPUT_VOLUME_MAX		LHV_MAX
-+#define OUTPUT_VOLUME_RANGE		(OUTPUT_VOLUME_MAX - OUTPUT_VOLUME_MIN)
-+#define OUTPUT_VOLUME_MASK		OUTPUT_VOLUME_MAX
-+
-+#define INPUT_VOLUME_MIN		LIV_MIN
-+#define INPUT_VOLUME_MAX		LIV_MAX
-+#define INPUT_VOLUME_RANGE		(INPUT_VOLUME_MAX - INPUT_VOLUME_MIN)
-+#define INPUT_VOLUME_MASK		INPUT_VOLUME_MAX
-+
-+#define SIDETONE_MASK			0x1c0
-+#define SIDETONE_0			0x100
-+#define SIDETONE_6			0x000
-+#define SIDETONE_9			0x040
-+#define SIDETONE_12			0x080
-+#define SIDETONE_18			0x0c0
-+
-+#define DEFAULT_ANALOG_AUDIO_CONTROL  (DAC_SELECTED | STE_ENABLED | \
-+					INSEL_MIC | MICB_20DB)
-+
-+
-+extern struct snd_soc_dai tlv320aic23_dai;
-+extern struct snd_soc_codec_device soc_codec_dev_tlv320aic23;
-+
-+#endif /* _TLV320AIC23_H */
-+
++config SND_OMAP_SOC_5912OSK
++	tristate "SoC Audio support for omap 5912osk"
++	depends on SND_OMAP_SOC && MACH_OMAP_OSK
++	select SND_OMAP_SOC_MCBSP
++	select SND_SOC_TLV320AIC23
++	help
++	  Say Y if you want to add support for SoC audio on 5912osk.
+diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
+index d8d8d58..d4f62fc 100644
+--- a/sound/soc/omap/Makefile
++++ b/sound/soc/omap/Makefile
+@@ -7,5 +7,7 @@ obj-$(CONFIG_SND_OMAP_SOC_MCBSP) += snd-soc-omap-mcbsp.o
+
+ # OMAP Machine Support
+ snd-soc-n810-objs := n810.o
++snd-soc-5912osk-objs := 5912osk.o
+
+ obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
++obj-$(CONFIG_SND_OMAP_SOC_5912OSK) += snd-soc-5912osk.o
 -- 
 1.5.3.4
