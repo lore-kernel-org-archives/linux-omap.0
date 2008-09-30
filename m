@@ -1,77 +1,42 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 00/23] twl4030 patches (v4)
-Date: Tue, 30 Sep 2008 13:05:37 +0300
-Message-ID: <1222769160-31615-1-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 01/23] twl4030: fix potential null pointer dereference
+Date: Tue, 30 Sep 2008 13:05:38 +0300
+Message-ID: <1222769160-31615-2-git-send-email-felipe.balbi@nokia.com>
+References: <1222769160-31615-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:58453 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:58376 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752058AbYI3KHA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 06:07:00 -0400
+	with ESMTP id S1751696AbYI3KGc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 06:06:32 -0400
+In-Reply-To: <1222769160-31615-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <felipe.balbi@nokia.com>
 
-In this version there are irq fixes from David Brownell.
+The following patch fix a potential null pointer
+dereference in twl4030 keypad driver when parts
+of keypad platform_data aren't passed down to the
+driver. At that point kp->dbg_dev is not set yet.
 
-David Brownell (11):
-  twl4030 gpio platform data
-  twl4030 uses gpiolib
-  minor twl4030-core cleanups
-  provide detailed diagnostics in add_children()
-  move twl4030-gpio to drivers/gpio
-  minor irq-related cleanups
-  Move I2C driver model init earlier in the boot sequence
-  twl4030-gpio irq_chip.set_type
-  twl4030-gpio: remove legacy irq triggering calls and user
-  twl4030-gpio: irq and other cleanup
-  twl4030-core: portability updates
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/input/keyboard/omap-twl4030keypad.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Felipe Balbi (11):
-  twl4030: fix potential null pointer dereference
-  i2c: clean add_children a bit
-  i2c: move twl4030_keypad to new style registration
-  i2c: move twl4030-usb to platform_device
-  i2c: twl4030-usb: add 'vbus' sysfs file
-  i2c: move twl4030-madc to new registration style
-  i2c: added a few missing gotos to add_children()
-  i2c: switch twl4030-usb to use a resource for irq
-  i2c: minor cleanups to twl4030-pwrbutton.c
-  twl4030: minor cleanups to twl4030_bci_battery.c
-  twl4030-bci: move to new style registration method
-
-Jagadeesh Bhaskar Pakaravoor (1):
-  twl4030-gpio: Remove default pullup enable/disable of GPIO
-
- arch/arm/mach-omap2/Makefile                |    4 +-
- arch/arm/mach-omap2/bci.c                   |   57 ----
- arch/arm/mach-omap2/board-2430sdp.c         |   32 ++-
- arch/arm/mach-omap2/board-3430sdp.c         |   49 +++-
- arch/arm/mach-omap2/board-ldp.c             |   37 +++-
- arch/arm/mach-omap2/board-omap2evm.c        |   33 ++-
- arch/arm/mach-omap2/board-omap3beagle.c     |   19 ++
- arch/arm/mach-omap2/board-omap3evm.c        |   85 +++---
- arch/arm/mach-omap2/board-overo.c           |   11 +
- arch/arm/mach-omap2/hsmmc.c                 |    5 -
- arch/arm/plat-omap/include/mach/bci.h       |   17 -
- arch/arm/plat-omap/include/mach/irqs.h      |    2 +-
- drivers/gpio/Kconfig                        |    7 +
- drivers/gpio/Makefile                       |    1 +
- drivers/{i2c/chips => gpio}/twl4030-gpio.c  |  418 +++++++++++++++++++--------
- drivers/i2c/chips/Kconfig                   |   20 --
- drivers/i2c/chips/Makefile                  |    1 -
- drivers/i2c/chips/twl4030-core.c            |  344 +++++++++++++++++++---
- drivers/i2c/chips/twl4030-madc.c            |  243 ++++++++++------
- drivers/i2c/chips/twl4030-pwrbutton.c       |   10 +-
- drivers/i2c/chips/twl4030-usb.c             |  373 ++++++++++++------------
- drivers/i2c/i2c-core.c                      |    2 +-
- drivers/input/keyboard/omap-twl4030keypad.c |   10 +-
- drivers/mmc/host/omap_hsmmc.c               |    4 +-
- drivers/power/twl4030_bci_battery.c         |  184 ++++++------
- drivers/rtc/rtc-twl4030.c                   |   11 +-
- include/linux/i2c/twl4030.h                 |   64 ++++-
- 27 files changed, 1306 insertions(+), 737 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/bci.c
- delete mode 100644 arch/arm/plat-omap/include/mach/bci.h
- rename drivers/{i2c/chips => gpio}/twl4030-gpio.c (67%)
+diff --git a/drivers/input/keyboard/omap-twl4030keypad.c b/drivers/input/keyboard/omap-twl4030keypad.c
+index 3893d63..48f29d3 100644
+--- a/drivers/input/keyboard/omap-twl4030keypad.c
++++ b/drivers/input/keyboard/omap-twl4030keypad.c
+@@ -238,7 +238,7 @@ static int __init omap_kp_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 
+ 	if (!pdata->rows || !pdata->cols || !pdata->keymap) {
+-		dev_err(kp->dbg_dev, "No rows, cols or keymap from pdata\n");
++		dev_err(&pdev->dev, "No rows, cols or keymap from pdata\n");
+ 		kfree(kp);
+ 		return -EINVAL;
+ 	}
+-- 
+1.6.0.2.307.gc427
 
