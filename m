@@ -1,42 +1,49 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 01/23] twl4030: fix potential null pointer dereference
-Date: Tue, 30 Sep 2008 13:05:38 +0300
-Message-ID: <1222769160-31615-2-git-send-email-felipe.balbi@nokia.com>
-References: <1222769160-31615-1-git-send-email-felipe.balbi@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:58376 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751696AbYI3KGc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 06:06:32 -0400
-In-Reply-To: <1222769160-31615-1-git-send-email-felipe.balbi@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Arun KS" <arunks@mistralsolutions.com>
+Subject: [PATCH 5/5 v1] ASoC Adds DSP DAI format support for
+	platform driver
+Date: Tue, 30 Sep 2008 15:36:54 +0530
+Message-ID: <dfeb90390809300306x60dd476ag5f5adf73b4cc25f5@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org
+Cc: felipe.balbi@nokia.com, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <felipe.balbi@nokia.com>
 
-The following patch fix a potential null pointer
-dereference in twl4030 keypad driver when parts
-of keypad platform_data aren't passed down to the
-driver. At that point kp->dbg_dev is not set yet.
+Enables DSP DAI format for mcbsp in omap platform driver
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+Signed-off-by: Arun KS <arunks@mistralsolutions.com>
 ---
- drivers/input/keyboard/omap-twl4030keypad.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ sound/soc/omap/omap-mcbsp.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/input/keyboard/omap-twl4030keypad.c b/drivers/input/keyboard/omap-twl4030keypad.c
-index 3893d63..48f29d3 100644
---- a/drivers/input/keyboard/omap-twl4030keypad.c
-+++ b/drivers/input/keyboard/omap-twl4030keypad.c
-@@ -238,7 +238,7 @@ static int __init omap_kp_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	if (!pdata->rows || !pdata->cols || !pdata->keymap) {
--		dev_err(kp->dbg_dev, "No rows, cols or keymap from pdata\n");
-+		dev_err(&pdev->dev, "No rows, cols or keymap from pdata\n");
- 		kfree(kp);
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index 35310e1..fb920e1 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -245,6 +245,11 @@ static int omap_mcbsp_dai_set_dai_fmt(struct
+snd_soc_dai *cpu_dai,
+ 		regs->rcr2	|= RDATDLY(1);
+ 		regs->xcr2	|= XDATDLY(1);
+ 		break;
++	case SND_SOC_DAIFMT_DSP_A:
++		/* 0-bit data delay */
++		regs->rcr2      |= RDATDLY(0);
++		regs->xcr2      |= XDATDLY(0);
++		break;
+ 	default:
+ 		/* Unsupported data format */
  		return -EINVAL;
- 	}
 -- 
-1.6.0.2.307.gc427
-
+1.5.3.4
