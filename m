@@ -1,57 +1,50 @@
-From: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
-Subject: [PATCH v2] gpmc: Remove compilation warning
-Date: Tue, 30 Sep 2008 16:37:19 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB028C45E289@dbde02.ent.ti.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB028C31912F@dbde02.ent.ti.com>
- <20080929131634.GJ13245@gandalf.research.nokia.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [i2c] [PATCH 1/8] i2c-omap: Do not use interruptible wait call
+ in omap_i2c_xfer_msg
+Date: Tue, 30 Sep 2008 14:51:00 +0300
+Message-ID: <20080930145100.62fdb0fa.jarkko.nikula@nokia.com>
+References: <1222329234-31473-1-git-send-email-tony@atomide.com>
+	<1222329234-31473-2-git-send-email-tony@atomide.com>
+	<20080929222100.GN2716@fluff.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43848 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752141AbYI3LHg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 07:07:36 -0400
-In-Reply-To: <20080929131634.GJ13245@gandalf.research.nokia.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:21547 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752460AbYI3L7f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 07:59:35 -0400
+In-Reply-To: <20080929222100.GN2716@fluff.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Daniel Stone <daniel.stone@nokia.com>
+To: ext Ben Dooks <ben-linux@fluff.org>
+Cc: Tony Lindgren <tony@atomide.com>, i2c@lm-sensors.org, Juha Yrjola <juha.yrjola@solidboot.com>, linux-omap@vger.kernel.org
 
-From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
+On Mon, 29 Sep 2008 23:21:00 +0100
+"ext Ben Dooks" <ben-linux@fluff.org> wrote:
 
-Return type of gpmc_init() function is void. Also, the error values
-returned by the function is not used by the caller. Hence it should
-not be returning any value.
+> On Thu, Sep 25, 2008 at 10:53:47AM +0300, Tony Lindgren wrote:
+> > From: Jarkko Nikula <jarkko.nikula@nokia.com>
+> > 
+> > If there is a signal pending and wait_for_completion_interruptible_timeout
+> > terminates with -ERESTARTSYS, we return and disable the i2c clocks in
+> > omap_i2c_xfer.
+> > 
+> > If we terminate before sending last i2c message with a stop condition, the
+> > bus remains busy and we are not able to send new messages into bus with
+> > successive omap_i2c_xfer calls. Therefore a pending signal is not caught
+> > here and we return only because of timeout or i2c error.
+> 
+> I assume that this is preferable to aborting an transfer when the
+> signal is caught (if possible) ?
+>  
+Most probably yes as long as the stop condition is generated
+successfully. IRCC bug behind this fix, OMAP I2C went into bus
+arbitration without code able to recover easily or something like that.
 
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
----
-Index: linux-omap-git/arch/arm/mach-omap2/gpmc.c
-===================================================================
---- linux-omap-git.orig/arch/arm/mach-omap2/gpmc.c	2008-09-25 17:30:24.000000000 +0530
-+++ linux-omap-git/arch/arm/mach-omap2/gpmc.c	2008-09-30 16:24:52.448034656 +0530
-@@ -427,19 +427,10 @@ void __init gpmc_init(void)
- 	}
- 
- 	gpmc_l3_clk = clk_get(NULL, ck);
--	if (IS_ERR(gpmc_l3_clk)) {
--		printk(KERN_ERR "Could not get GPMC clock %s\n", ck);
--		return -ENODEV;
--	}
--
--	gpmc_base = ioremap(l, SZ_4K);
--	if (!gpmc_base) {
--		clk_put(gpmc_l3_clk);
--		printk(KERN_ERR "Could not get GPMC register memory\n");
--		return -ENOMEM;
--	}
--
- 	BUG_ON(IS_ERR(gpmc_l3_clk));
-+	
-+	gpmc_base = ioremap(l, SZ_4K);
-+	BUG_ON(!gpmc_base);
- 
- 	l = gpmc_read_reg(GPMC_REVISION);
- 	printk(KERN_INFO "GPMC revision %d.%d\n", (l >> 4) & 0x0f, l & 0x0f);
+Would it be ok to let this fix as now, probably adding FIXME line near
+wait_for_completion_timeout so that we don't break anything now but
+note that this is not optimal fix?
+
+
+Jarkko
