@@ -1,66 +1,57 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [PATCH 1/5 v1] ASoC Add TLV320AIC23 codec driver
-Date: Tue, 30 Sep 2008 12:02:56 +0100
-Message-ID: <20080930110255.GE19862@sirena.org.uk>
-References: <dfeb90390809300259k1b848aaehc3519ec50c6ec96d@mail.gmail.com>
-	<20080930101951.GA19862@sirena.org.uk>
-	<dfeb90390809300347o4b386cffrb78c282f41e68fe9@mail.gmail.com>
+From: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
+Subject: [PATCH v2] gpmc: Remove compilation warning
+Date: Tue, 30 Sep 2008 16:37:19 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB028C45E289@dbde02.ent.ti.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB028C31912F@dbde02.ent.ti.com>
+ <20080929131634.GJ13245@gandalf.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <dfeb90390809300347o4b386cffrb78c282f41e68fe9@mail.gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Arun KS <arunks@mistralsolutions.com>
-Cc: alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@nokia.com>, felipe.balbi@nokia.com
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43848 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752141AbYI3LHg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 07:07:36 -0400
+In-Reply-To: <20080929131634.GJ13245@gandalf.research.nokia.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Daniel Stone <daniel.stone@nokia.com>
 
-On Tue, Sep 30, 2008 at 04:17:38PM +0530, Arun KS wrote:
-> On Tue, Sep 30, 2008 at 3:49 PM, Mark Brown <broonie@sirena.org.uk> wrote:
+From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
 
-> > There are no routes here for your bypass path(s) - this will mean that
-> > DAPM won't power them on unless there's an active playback and record.
-> > At present that's fine for digital only bypass paths but if there are
-> > analogue ones they should be visible here.
+Return type of gpmc_init() function is void. Also, the error values
+returned by the function is not used by the caller. Hence it should
+not be returning any value.
 
-> I made the bypass and sidetone as controls. The user can switchon them
-> through amixer controls.
-
-Right, they should be visible DAPM controls to allow user control.
-
->  sh-3.00# amixer cset numid=9 1
-> numid=9,iface=MIXER,name='Line Bypass'
->   ; type=BOOLEAN,access=rw------,values=1
->   : values=on
-> sh-3.00# amixer cset numid=11 1
-> numid=11,iface=MIXER,name='PGA Mixer Line Switch'
->   ; type=BOOLEAN,access=rw------,values=1
->   : values=on
-
-> Its working.
-
-Hrm.  That suggests that there's a bug in the power management
-somewhere - without routes DAPM won't know to power up any of the output
-stages when the bypass paths are in use, leaving them unpowered.  
-
-Note that a lot of PGAs will pass through audio when powered down so you
-need to check that things like mute and gain controls are functioning as
-expected rather than just testing for the presence of a signal.  Then
-again, looking at your driver again I don't see any power managent for
-the output stages either...
-
-You can see what DAPM is powering up by looking at:
-
-	/sys/bus/platform/devices/soc-audio/dapm_widgets
-
-Even if this works within the device DAPM still needs to know about the
-bypass paths so that it can manage components outside the codec.
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
+---
+Index: linux-omap-git/arch/arm/mach-omap2/gpmc.c
+===================================================================
+--- linux-omap-git.orig/arch/arm/mach-omap2/gpmc.c	2008-09-25 17:30:24.000000000 +0530
++++ linux-omap-git/arch/arm/mach-omap2/gpmc.c	2008-09-30 16:24:52.448034656 +0530
+@@ -427,19 +427,10 @@ void __init gpmc_init(void)
+ 	}
+ 
+ 	gpmc_l3_clk = clk_get(NULL, ck);
+-	if (IS_ERR(gpmc_l3_clk)) {
+-		printk(KERN_ERR "Could not get GPMC clock %s\n", ck);
+-		return -ENODEV;
+-	}
+-
+-	gpmc_base = ioremap(l, SZ_4K);
+-	if (!gpmc_base) {
+-		clk_put(gpmc_l3_clk);
+-		printk(KERN_ERR "Could not get GPMC register memory\n");
+-		return -ENOMEM;
+-	}
+-
+ 	BUG_ON(IS_ERR(gpmc_l3_clk));
++	
++	gpmc_base = ioremap(l, SZ_4K);
++	BUG_ON(!gpmc_base);
+ 
+ 	l = gpmc_read_reg(GPMC_REVISION);
+ 	printk(KERN_INFO "GPMC revision %d.%d\n", (l >> 4) & 0x0f, l & 0x0f);
