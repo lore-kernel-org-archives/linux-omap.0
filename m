@@ -1,453 +1,135 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 23/25] twl4030-bci: move to new style registration method
-Date: Tue, 30 Sep 2008 21:43:07 +0300
-Message-ID: <1222800189-29737-24-git-send-email-me@felipebalbi.com>
-References: <1222800189-29737-1-git-send-email-me@felipebalbi.com>
- <1222800189-29737-2-git-send-email-me@felipebalbi.com>
- <1222800189-29737-3-git-send-email-me@felipebalbi.com>
- <1222800189-29737-4-git-send-email-me@felipebalbi.com>
- <1222800189-29737-5-git-send-email-me@felipebalbi.com>
- <1222800189-29737-6-git-send-email-me@felipebalbi.com>
- <1222800189-29737-7-git-send-email-me@felipebalbi.com>
- <1222800189-29737-8-git-send-email-me@felipebalbi.com>
- <1222800189-29737-9-git-send-email-me@felipebalbi.com>
- <1222800189-29737-10-git-send-email-me@felipebalbi.com>
- <1222800189-29737-11-git-send-email-me@felipebalbi.com>
- <1222800189-29737-12-git-send-email-me@felipebalbi.com>
- <1222800189-29737-13-git-send-email-me@felipebalbi.com>
- <1222800189-29737-14-git-send-email-me@felipebalbi.com>
- <1222800189-29737-15-git-send-email-me@felipebalbi.com>
- <1222800189-29737-16-git-send-email-me@felipebalbi.com>
- <1222800189-29737-17-git-send-email-me@felipebalbi.com>
- <1222800189-29737-18-git-send-email-me@felipebalbi.com>
- <1222800189-29737-19-git-send-email-me@felipebalbi.com>
- <1222800189-29737-20-git-send-email-me@felipebalbi.com>
- <1222800189-29737-21-git-send-email-me@felipebalbi.com>
- <1222800189-29737-22-git-send-email-me@felipebalbi.com>
- <1222800189-29737-23-git-send-email-me@felipebalbi.com>
+From: "Nathan Monson" <nmonson@gmail.com>
+Subject: Re: Soft lockup when disconnecting musb isochronous device.
+Date: Tue, 30 Sep 2008 12:25:17 -0700
+Message-ID: <e5e6ade50809301225s16319a7cr133750b9273c1796@mail.gmail.com>
+References: <e5e6ade50809260951g50c3d55cn71ce7e7a04803184@mail.gmail.com>
+	 <19F8576C6E063C45BE387C64729E739403DC1A61CA@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:53359 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751813AbYI3SyJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 14:54:09 -0400
-In-Reply-To: <1222800189-29737-23-git-send-email-me@felipebalbi.com>
+Received: from rn-out-0910.google.com ([64.233.170.189]:33007 "EHLO
+	rn-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752301AbYI3TZT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 15:25:19 -0400
+Received: by rn-out-0910.google.com with SMTP id k40so78193rnd.17
+        for <linux-omap@vger.kernel.org>; Tue, 30 Sep 2008 12:25:17 -0700 (PDT)
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403DC1A61CA@dbde02.ent.ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <felipe.balbi@nokia.com>
+To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Felipe Balbi <felipe.balbi@nokia.com>
+Ajay, that did the trick.  Thanks so much for pointing that out.  My
+Logitech Quickcam 9000 is now rock solid with high speed iso capture.
 
-twl4030_bci_battery.c is now moved to new style
-registration of twl4030 children.
+- Nathan
 
-During the process a few bugfixes came, the main one
-is that twl4030-bci was releasing the wrong irq if
-battery registration had failed.
-
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- arch/arm/mach-omap2/Makefile          |    4 +--
- arch/arm/mach-omap2/bci.c             |   57 ---------------------------------
- arch/arm/mach-omap2/board-3430sdp.c   |   18 ++++++++++-
- arch/arm/mach-omap2/board-ldp.c       |   18 ++++++++++-
- arch/arm/plat-omap/include/mach/bci.h |   17 ----------
- drivers/i2c/chips/twl4030-core.c      |   50 +++++++++++++++++++++++++++++
- drivers/power/twl4030_bci_battery.c   |   25 +++++++++------
- include/linux/i2c/twl4030.h           |    5 +++
- 8 files changed, 105 insertions(+), 89 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/bci.c
- delete mode 100644 arch/arm/plat-omap/include/mach/bci.h
-
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index e18da0c..33de217 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -54,8 +54,7 @@ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
- 					   hsmmc.o \
- 					   usb-musb.o \
- 					   usb-ehci.o \
--					   board-3430sdp-flash.o \
--					   bci.o
-+					   board-3430sdp-flash.o
- obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
- 					   hsmmc.o \
- 					   usb-musb.o usb-ehci.o \
-@@ -65,7 +64,6 @@ obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
- 					   hsmmc.o \
--					   bci.o \
- 					   usb-musb.o
- obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
- 					   board-apollon-mmc.o	\
-diff --git a/arch/arm/mach-omap2/bci.c b/arch/arm/mach-omap2/bci.c
-deleted file mode 100644
-index 9b9f9d2..0000000
---- a/arch/arm/mach-omap2/bci.c
-+++ /dev/null
-@@ -1,57 +0,0 @@
--/*
-- * linux/arch/arm/mach-omap2/bci.c
-- *
-- * TWL4030 BCI platform device setup/initialization
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- */
--
--#include <linux/module.h>
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/platform_device.h>
--#include <mach/bci.h>
--
--#if defined(CONFIG_TWL4030_BCI_BATTERY) || \
--	defined(CONFIG_TWL4030_BCI_BATTERY_MODULE)
--/*
-- * Thermistor Calibration for Current Source and MADC
-- * Tolerance (for THS05-3H103F)
-- */
--static int sdp3430_batt_table[] = {
--/* 0 C*/
--30800, 29500, 28300, 27100,
--26000, 24900, 23900, 22900, 22000, 21100, 20300, 19400, 18700, 17900,
--17200, 16500, 15900, 15300, 14700, 14100, 13600, 13100, 12600, 12100,
--11600, 11200, 10800, 10400, 10000, 9630,   9280,   8950,   8620,   8310,
--8020,   7730,   7460,   7200,   6950,   6710,   6470,   6250,   6040,   5830,
--5640,   5450,   5260,   5090,   4920,   4760,   4600,   4450,   4310,   4170,
--4040,   3910,   3790,   3670,   3550
--};
--
--static struct twl4030_bci_platform_data sdp3430_bci_data = {
--      .battery_tmp_tbl = sdp3430_batt_table,
--      .tblsize = ARRAY_SIZE(sdp3430_batt_table),
--};
--
--static struct platform_device twl4030_bci_battery_device = {
--	.name           = "twl4030-bci-battery",
--	.id             = -1,
--	.dev            = {
--		.platform_data  = &sdp3430_bci_data,
--	},
--	.num_resources  = 0,
--};
--
--void __init twl4030_bci_battery_init(void)
--{
--	(void) platform_device_register(&twl4030_bci_battery_device);
--}
--#else
--void __init twl4030_bci_battery_init(void)
--{
--}
--#endif
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 661d5d0..4264b68 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -300,6 +300,22 @@ static struct omap_board_config_kernel sdp3430_config[] __initdata = {
- 	{ OMAP_TAG_LCD,		&sdp3430_lcd_config },
- };
- 
-+static int sdp3430_batt_table[] = {
-+/* 0 C*/
-+30800, 29500, 28300, 27100,
-+26000, 24900, 23900, 22900, 22000, 21100, 20300, 19400, 18700, 17900,
-+17200, 16500, 15900, 15300, 14700, 14100, 13600, 13100, 12600, 12100,
-+11600, 11200, 10800, 10400, 10000, 9630,   9280,   8950,   8620,   8310,
-+8020,   7730,   7460,   7200,   6950,   6710,   6470,   6250,   6040,   5830,
-+5640,   5450,   5260,   5090,   4920,   4760,   4600,   4450,   4310,   4170,
-+4040,   3910,   3790,   3670,   3550
-+};
-+
-+static struct twl4030_bci_platform_data sdp3430_bci_data = {
-+      .battery_tmp_tbl	= sdp3430_batt_table,
-+      .tblsize		= ARRAY_SIZE(sdp3430_batt_table),
-+};
-+
- static struct twl4030_gpio_platform_data sdp3430_gpio_data = {
- 	.gpio_base	= OMAP_MAX_GPIO_LINES,
- 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
-@@ -319,6 +335,7 @@ static struct twl4030_platform_data sdp3430_twldata = {
- 	.irq_end	= TWL4030_IRQ_END,
- 
- 	/* platform_data for children goes here */
-+	.bci		= &sdp3430_bci_data,
- 	.gpio		= &sdp3430_gpio_data,
- 	.madc		= &sdp3430_madc_data,
- 	.keypad		= &sdp3430_kp_data,
-@@ -361,7 +378,6 @@ static void __init omap_3430sdp_init(void)
- 	ads7846_dev_init();
- 	sdp3430_flash_init();
- 	msecure_init();
--	twl4030_bci_battery_init();
- 	omap_serial_init();
- 	usb_musb_init();
- 	usb_ehci_init();
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index a0e2c7a..35c03b7 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -183,6 +183,22 @@ static struct omap_board_config_kernel ldp_config[] __initdata = {
- 	{ OMAP_TAG_UART,	&ldp_uart_config },
- };
- 
-+static int ldp_batt_table[] = {
-+/* 0 C*/
-+30800, 29500, 28300, 27100,
-+26000, 24900, 23900, 22900, 22000, 21100, 20300, 19400, 18700, 17900,
-+17200, 16500, 15900, 15300, 14700, 14100, 13600, 13100, 12600, 12100,
-+11600, 11200, 10800, 10400, 10000, 9630,   9280,   8950,   8620,   8310,
-+8020,   7730,   7460,   7200,   6950,   6710,   6470,   6250,   6040,   5830,
-+5640,   5450,   5260,   5090,   4920,   4760,   4600,   4450,   4310,   4170,
-+4040,   3910,   3790,   3670,   3550
-+};
-+
-+static struct twl4030_bci_platform_data ldp_bci_data = {
-+      .battery_tmp_tbl	= ldp_batt_table,
-+      .tblsize		= ARRAY_SIZE(ldp_batt_table),
-+};
-+
- static struct twl4030_usb_data ldp_usb_data = {
- 	.usb_mode	= T2_USB_MODE_ULPI,
- };
-@@ -202,6 +218,7 @@ static struct twl4030_platform_data ldp_twldata = {
- 	.irq_end	= TWL4030_IRQ_END,
- 
- 	/* platform_data for children goes here */
-+	.bci		= &ldp_bci_data,
- 	.madc		= &ldp_madc_data,
- 	.usb		= &ldp_usb_data,
- 	.gpio		= &ldp_gpio_data,
-@@ -237,7 +254,6 @@ static void __init omap_ldp_init(void)
- 				ARRAY_SIZE(ldp_spi_board_info));
- 	msecure_init();
- 	ads7846_dev_init();
--	twl4030_bci_battery_init();
- 	omap_serial_init();
- 	usb_musb_init();
- 	hsmmc_init();
-diff --git a/arch/arm/plat-omap/include/mach/bci.h b/arch/arm/plat-omap/include/mach/bci.h
-deleted file mode 100644
-index 9baf59e..0000000
---- a/arch/arm/plat-omap/include/mach/bci.h
-+++ /dev/null
-@@ -1,17 +0,0 @@
--/*
-- *  arch/arm/plat-omap/include/mach/bci.h
-- *
-- *  Copyright (C) 2008 Texas Instruments, Inc.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--#ifndef ASMARM_ARCH_BCI_H
--#define ASMARM_ARCH_BCI_H
--struct twl4030_bci_platform_data {
--	int *battery_tmp_tbl;
--	unsigned int tblsize;
--};
--#endif
--
-diff --git a/drivers/i2c/chips/twl4030-core.c b/drivers/i2c/chips/twl4030-core.c
-index efba776..9debab4 100644
---- a/drivers/i2c/chips/twl4030-core.c
-+++ b/drivers/i2c/chips/twl4030-core.c
-@@ -45,6 +45,13 @@
- 
- #define DRIVER_NAME			"twl4030"
- 
-+#if defined(CONFIG_TWL4030_BCI_BATTERY) || \
-+	defined(CONFIG_TWL4030_BCI_BATTERY_MODUEL)
-+#define twl_has_bci()		true
-+#else
-+#define twl_has_bci()		false
-+#endif
-+
- #if defined(CONFIG_KEYBOARD_TWL4030) || defined(CONFIG_KEYBOARD_TWL4030_MODULE)
- #define twl_has_keypad()	true
- #else
-@@ -681,6 +688,49 @@ static int add_children(struct twl4030_platform_data *pdata)
- 	struct twl4030_client	*twl = NULL;
- 	int			status = 0;
- 
-+	if (twl_has_bci() && pdata->bci) {
-+		twl = &twl4030_modules[TWL4030_SLAVENUM_NUM3];
-+
-+		pdev = platform_device_alloc("twl4030_bci", -1);
-+		if (!pdev) {
-+			pr_debug("%s: can't alloc bci dev\n", DRIVER_NAME);
-+			status = -ENOMEM;
-+			goto err;
-+		}
-+
-+		if (status == 0) {
-+			pdev->dev.parent = &twl->client->dev;
-+			status = platform_device_add_data(pdev, pdata->bci,
-+					sizeof(*pdata->bci));
-+			if (status < 0) {
-+				dev_dbg(&twl->client->dev,
-+					"can't add bci data, %d\n",
-+					status);
-+				goto err;
-+			}
-+		}
-+
-+		if (status == 0) {
-+			struct resource r = {
-+				.start = TWL4030_PWRIRQ_CHG_PRES,
-+				.flags = IORESOURCE_IRQ,
-+			};
-+
-+			status = platform_device_add_resources(pdev, &r, 1);
-+		}
-+
-+		if (status == 0)
-+			status = platform_device_add(pdev);
-+
-+		if (status < 0) {
-+			platform_device_put(pdev);
-+			dev_dbg(&twl->client->dev,
-+					"can't create bci dev, %d\n",
-+					status);
-+			goto err;
-+		}
-+	}
-+
- 	if (twl_has_gpio() && pdata->gpio) {
- 		twl = &twl4030_modules[TWL4030_SLAVENUM_NUM1];
- 
-diff --git a/drivers/power/twl4030_bci_battery.c b/drivers/power/twl4030_bci_battery.c
-index 9ab6127..72a018b 100644
---- a/drivers/power/twl4030_bci_battery.c
-+++ b/drivers/power/twl4030_bci_battery.c
-@@ -23,7 +23,6 @@
- #include <linux/platform_device.h>
- #include <linux/i2c/twl4030.h>
- #include <linux/power_supply.h>
--#include <mach/bci.h>
- #include <linux/i2c/twl4030-madc.h>
- 
- #define T2_BATTERY_VOLT		0x04
-@@ -583,9 +582,8 @@ static int twl4030battery_current(void)
-  */
- static int twl4030backupbatt_voltage(void)
- {
--	int ret, temp;
--	u8 volt;
- 	struct twl4030_madc_request req;
-+	int temp;
- 
- 	req.channels = (1 << 9);
- 	req.do_avg = 0;
-@@ -826,9 +824,11 @@ static int twl4030_bci_battery_get_property(struct power_supply *psy,
- 					enum power_supply_property psp,
- 					union power_supply_propval *val)
- {
--	struct twl4030_bci_device_info *di = to_twl4030_bci_device_info(psy);
-+	struct twl4030_bci_device_info *di;
- 	int status = 0;
- 
-+	di = to_twl4030_bci_device_info(psy);
-+
- 	switch (psp) {
- 	case POWER_SUPPLY_PROP_STATUS:
- 		val->intval = di->charge_status;
-@@ -893,6 +893,7 @@ static int __init twl4030_bci_battery_probe(struct platform_device *pdev)
- {
- 	struct twl4030_bci_platform_data *pdata = pdev->dev.platform_data;
- 	struct twl4030_bci_device_info *di;
-+	int irq;
- 	int ret;
- 
- 	therm_tbl = pdata->battery_tmp_tbl;
-@@ -938,6 +939,8 @@ static int __init twl4030_bci_battery_probe(struct platform_device *pdev)
- 	if (ret)
- 		goto voltage_setup_fail;
- 
-+	/* REVISIT do we need to request both IRQs ?? */
-+
- 	/* request BCI interruption */
- 	ret = request_irq(TWL4030_MODIRQ_BCI, twl4030battery_interrupt,
- 		IRQF_DISABLED, pdev->name, NULL);
-@@ -947,17 +950,19 @@ static int __init twl4030_bci_battery_probe(struct platform_device *pdev)
- 		goto batt_irq_fail;
- 	}
- 
-+	irq = platform_get_irq(pdev, 0);
-+
- 	/* request Power interruption */
--	ret = request_irq(TWL4030_PWRIRQ_CHG_PRES, twl4030charger_interrupt,
-+	ret = request_irq(irq, twl4030charger_interrupt,
- 		0, pdev->name, di);
- 
- 	if (ret) {
- 		dev_dbg(&pdev->dev, "could not request irq %d, status %d\n",
--			TWL4030_PWRIRQ_CHG_PRES, ret);
-+			irq, ret);
- 		goto chg_irq_fail;
- 	}
- 
--	ret = power_supply_register(&dev->dev, &di->bat);
-+	ret = power_supply_register(&pdev->dev, &di->bat);
- 	if (ret) {
- 		dev_dbg(&pdev->dev, "failed to register main battery\n");
- 		goto batt_failed;
-@@ -982,9 +987,8 @@ static int __init twl4030_bci_battery_probe(struct platform_device *pdev)
- bk_batt_failed:
- 	power_supply_unregister(&di->bat);
- batt_failed:
--	free_irq(TWL4030_MODIRQ_PWR, di);
-+	free_irq(irq, di);
- chg_irq_fail:
--prev_setup_err:
- 	free_irq(TWL4030_MODIRQ_BCI, NULL);
- batt_irq_fail:
- voltage_setup_fail:
-@@ -1001,6 +1005,7 @@ temp_setup_fail:
- static int __exit twl4030_bci_battery_remove(struct platform_device *pdev)
- {
- 	struct twl4030_bci_device_info *di = platform_get_drvdata(pdev);
-+	int irq = platform_get_irq(pdev, 0);
- 
- 	twl4030charger_ac_en(DISABLE);
- 	twl4030charger_usb_en(DISABLE);
-@@ -1008,7 +1013,7 @@ static int __exit twl4030_bci_battery_remove(struct platform_device *pdev)
- 	twl4030battery_hw_presence_en(DISABLE);
- 
- 	free_irq(TWL4030_MODIRQ_BCI, NULL);
--	free_irq(TWL4030_MODIRQ_PWR, di);
-+	free_irq(irq, di);
- 
- 	flush_scheduled_work();
- 	power_supply_unregister(&di->bat);
-diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
-index 56a9415..1746733 100644
---- a/include/linux/i2c/twl4030.h
-+++ b/include/linux/i2c/twl4030.h
-@@ -52,6 +52,10 @@
- #define TWL4030_MODULE_RTC		0x14
- #define TWL4030_MODULE_SECURED_REG	0x15
- 
-+struct twl4030_bci_platform_data {
-+	int *battery_tmp_tbl;
-+	unsigned int tblsize;
-+};
- 
- /* TWL4030_GPIO_MAX (18) GPIOs, with interrupts */
- struct twl4030_gpio_platform_data {
-@@ -91,6 +95,7 @@ struct twl4030_usb_data {
- 
- struct twl4030_platform_data {
- 	unsigned				irq_base, irq_end;
-+	struct twl4030_bci_platform_data	*bci;
- 	struct twl4030_gpio_platform_data	*gpio;
- 	struct twl4030_madc_platform_data	*madc;
- 	struct twl4030_keypad_data		*keypad;
--- 
-1.6.0.1.196.g01914
-
+On Mon, Sep 29, 2008 at 11:03 PM, Gupta, Ajay Kumar <ajay.gupta@ti.com> wrote:
+>> I've been trying to get the UVC camera driver working in linux-omap on
+>> the Beagleboard, which uses musb.  With the latest linux-omap git,
+>> capture doesn't work.  Applying Ajay Gupta's MUSB patches posted here
+>> on 9/8 allows capture to work until the device is closed.
+>> With or without Ajay's patches, when the device is closed, the
+>> following lockup occurs.  Let me know if there is anything I can do to
+>> help debug this.
+>
+> Have you applied below patch posted on 25/08/2008?
+> [PATCH v3] OMAP: MUSB: Corrects urb unlink function path
+>
+> This patch is accepted and is pending to be merged with latest OMAP GIT.
+>
+> Regards,
+> Ajay
+>
+>
+> BUG: soft lockup - CPU#0 stuck for 61s! [mjpg_streamer:1770]
+> Modules linked in: ipv6 pegasus uvcvideo compat_ioctl32 videodev v4l1_compat
+>
+> Pid: 1770, comm:        mjpg_streamer
+> CPU: 0    Not tainted  (2.6.27-rc7-omap1 #4)
+> PC is at __mutex_lock_slowpath+0x1ec/0x204
+> LR is at __mutex_lock_slowpath+0x1c4/0x204
+> pc : [<c0320fa0>]    lr : [<c0320f78>]    psr: 60000013
+> sp : c7265ca0  ip : c7265ca0  fp : c7265cd4
+> r10: c79eb400  r9 : c7128218  r8 : c78a6a08
+> r7 : c78df9c0  r6 : 60000013  r5 : c0437690  r4 : c7265ca4
+> r3 : 00000000  r2 : 00000000  r1 : c7264000  r0 : c0437690
+> Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+> Control: 00c5387f  Table: 87348018  DAC: 00000015
+> [<c0034ca8>] (show_regs+0x0/0x50) from [<c007959c>]
+> (softlockup_tick+0x100/0x140)
+> r5:000000bc r4:0000007f
+> [<c007949c>] (softlockup_tick+0x0/0x140) from [<c005c08c>]
+> (run_local_timers+0x1c/0x20)
+> [<c005c070>] (run_local_timers+0x0/0x20) from [<c005c4e8>]
+> (update_process_times+0x30/0x5c)
+> [<c005c4b8>] (update_process_times+0x0/0x5c) from [<c006f138>]
+> (tick_sched_timer+0x8c/0xd8)
+> r5:c7265c58 r4:c044d630
+> [<c006f0ac>] (tick_sched_timer+0x0/0xd8) from [<c0069090>]
+> (__run_hrtimer+0x58/0x94)
+> r7:c0425e60 r6:c044d630 r5:c0425e60 r4:c044d630
+> [<c0069038>] (__run_hrtimer+0x0/0x94) from [<c0069c64>]
+> (hrtimer_interrupt+0x130/0x1a0)
+> r5:000000b9 r4:183847b0
+> [<c0069b34>] (hrtimer_interrupt+0x0/0x1a0) from [<c003d248>]
+> (omap2_gp_timer_interrupt+0x28/0x34)
+> [<c003d220>] (omap2_gp_timer_interrupt+0x0/0x34) from [<c0079a58>]
+> (handle_IRQ_event+0x3c/0x74)
+> [<c0079a1c>] (handle_IRQ_event+0x0/0x74) from [<c007b2a4>]
+> (handle_level_irq+0xd4/0xf0)
+> r7:c78df9c0 r6:00000000 r5:0000005f r4:c04279a8
+> [<c007b1d0>] (handle_level_irq+0x0/0xf0) from [<c0033048>]
+> (__exception_text_start+0x48/0x64)
+> r5:c04279a8 r4:0000005f
+> [<c0033000>] (__exception_text_start+0x0/0x64) from [<c0033830>]
+> (__irq_svc+0x30/0x80)
+> Exception stack(0xc7265c58 to 0xc7265ca0)
+> 5c40:                                                       c0437690 c7264000
+> 5c60: 00000000 00000000 c7265ca4 c0437690 60000013 c78df9c0 c78a6a08 c7128218
+> 5c80: c79eb400 c7265cd4 c7265ca0 c7265ca0 c0320f78 c0320fa0 60000013 ffffffff
+> r7:c78df9c0 r6:60000013 r5:d8200000 r4:ffffffff
+> [<c0320db4>] (__mutex_lock_slowpath+0x0/0x204) from [<c0320fc8>]
+> (mutex_lock+0x10/0x14)
+> r7:c7893000 r6:c7170c00 r5:c7170c00 r4:c791c738
+> [<c0320fb8>] (mutex_lock+0x0/0x14) from [<c01ed760>] (usb_kill_urb+0x38/0x104)
+> [<c01ed728>] (usb_kill_urb+0x0/0x104) from [<c01ece30>]
+> (usb_hcd_flush_endpoint+0xb0/0xcc)
+> r6:c791c740 r5:c7170c00 r4:c791c738
+> [<c01ecd80>] (usb_hcd_flush_endpoint+0x0/0xcc) from [<c01ee044>]
+> (usb_disable_endpoint+0x5c/0x6c)
+> r7:c7893000 r6:c78a6a40 r5:c7893000 r4:c791c740
+> [<c01edfe8>] (usb_disable_endpoint+0x0/0x6c) from [<c01ee180>]
+> (usb_disable_interface+0x34/0x4c)
+> r5:00000028 r4:00000001
+> [<c01ee14c>] (usb_disable_interface+0x0/0x4c) from [<c01ef4e0>]
+> (usb_set_interface+0xec/0x178)
+> r7:00000001 r6:00000000 r5:c7893000 r4:c78a6e00
+> [<c01ef3f4>] (usb_set_interface+0x0/0x178) from [<bf014c48>]
+> (uvc_video_enable+0x3c/0x74 [uvcvideo])
+> r8:c721c050 r7:c7265e68 r6:c721c094 r5:00000000 r4:c721c050
+> [<bf014c0c>] (uvc_video_enable+0x0/0x74 [uvcvideo]) from [<bf014308>]
+> (uvc_v4l2_do_ioctl+0xce4/0xf50 [uvcvideo])
+> r7:c7265e68 r6:c79f9e00 r5:c78d4760 r4:40045613
+> [<bf013624>] (uvc_v4l2_do_ioctl+0x0/0xf50 [uvcvideo]) from
+> [<bf008e20>] (video_usercopy+0x1b8/0x2b8 [videodev])
+> [<bf008c68>] (video_usercopy+0x0/0x2b8 [videodev]) from [<bf012fdc>]
+> (uvc_v4l2_ioctl+0x54/0x68 [uvcvideo])
+> [<bf012f88>] (uvc_v4l2_ioctl+0x0/0x68 [uvcvideo]) from [<c00ace28>]
+> (vfs_ioctl+0x68/0x78)
+> r7:c79eb400 r6:00000003 r5:40c78ccc r4:40045613
+> [<c00acdc0>] (vfs_ioctl+0x0/0x78) from [<c00ad0a8>] (do_vfs_ioctl+0x270/0x280)
+> r5:40c78ccc r4:c79eb400
+> [<c00ace38>] (do_vfs_ioctl+0x0/0x280) from [<c00ad0f8>] (sys_ioctl+0x40/0x64)
+> r7:c79eb400 r6:40045613 r5:40c78ccc r4:00000003
+> [<c00ad0b8>] (sys_ioctl+0x0/0x64) from [<c0033c80>] (ret_fast_syscall+0x0/0x2c)
+>
+> - Nathan
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
