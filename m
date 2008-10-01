@@ -1,33 +1,73 @@
 From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH 0/3] debobs support for OMAP3430.
-Date: Wed,  1 Oct 2008 18:11:10 +0300
-Message-ID: <1222873873-31760-1-git-send-email-peter.de-schrijver@nokia.com>
+Subject: [PATCH 1/3] Add definitions for ETK pads and debobs registers
+Date: Wed,  1 Oct 2008 18:11:11 +0300
+Message-ID: <1222873873-31760-2-git-send-email-peter.de-schrijver@nokia.com>
+References: <1222873873-31760-1-git-send-email-peter.de-schrijver@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:36112 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752985AbYJAPLg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Oct 2008 11:11:36 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m91FBKKg015698
-	for <linux-omap@vger.kernel.org>; Wed, 1 Oct 2008 18:11:34 +0300
+Received: from smtp.nokia.com ([192.100.122.233]:39385 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753110AbYJAPMG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Oct 2008 11:12:06 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m91FBi0w018706
+	for <linux-omap@vger.kernel.org>; Wed, 1 Oct 2008 18:12:02 +0300
+In-Reply-To: <1222873873-31760-1-git-send-email-peter.de-schrijver@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-This patch adds support for debug observability on OMAP3430 using the ETK lines. A new interface for using debug GPIOs is provided. This interface makes sure the debobs subsystem is initialized before actual gpiolib calls are made. 
 
-Peter 'p2' De Schrijver (3):
-  Add definitions for ETK pads and debobs registers
-  Debobs and ETK padconf implementation
-  Add debobs Kconfig item
+Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+---
+ arch/arm/plat-omap/include/mach/control.h |   34 +++++++++++++++++++++++++++++
+ 1 files changed, 34 insertions(+), 0 deletions(-)
 
- arch/arm/mach-omap2/Makefile              |    3 +
- arch/arm/mach-omap2/debobs.c              |  239 +++++++++++++++++++++++++++++
- arch/arm/plat-omap/Kconfig                |    7 +
- arch/arm/plat-omap/include/mach/control.h |   34 ++++
- arch/arm/plat-omap/include/mach/debobs.h  |    7 +
- 5 files changed, 290 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/debobs.c
- create mode 100644 arch/arm/plat-omap/include/mach/debobs.h
+diff --git a/arch/arm/plat-omap/include/mach/control.h b/arch/arm/plat-omap/include/mach/control.h
+index 9ca0e08..0ea0060 100644
+--- a/arch/arm/plat-omap/include/mach/control.h
++++ b/arch/arm/plat-omap/include/mach/control.h
+@@ -150,6 +150,40 @@
+ #define OMAP343X_CONTROL_IVA2_BOOTADDR	(OMAP2_CONTROL_GENERAL + 0x0190)
+ #define OMAP343X_CONTROL_IVA2_BOOTMOD	(OMAP2_CONTROL_GENERAL + 0x0194)
+ #define OMAP343X_CONTROL_TEMP_SENSOR	(OMAP2_CONTROL_GENERAL + 0x02b4)
++#define OMAP343X_CONTROL_DEBOBS(i)	(OMAP2_CONTROL_GENERAL + 0x01B0 \
++					+ ((i) >> 1) * 4 + (!(i) & 1) * 2)
++/* 34xx PADCONF register offsets */
++
++#define OMAP343X_PADCONF_ETK(i)		(OMAP2_CONTROL_PADCONFS + 0x5a8 + \
++						(i)*2)
++#define OMAP343X_PADCONF_ETK_CLK	OMAP343X_PADCONF_ETK(0)
++#define OMAP343X_PADCONF_ETK_CTL	OMAP343X_PADCONF_ETK(1)
++#define OMAP343X_PADCONF_ETK_D0		OMAP343X_PADCONF_ETK(2)
++#define OMAP343X_PADCONF_ETK_D1		OMAP343X_PADCONF_ETK(3)
++#define OMAP343X_PADCONF_ETK_D2		OMAP343X_PADCONF_ETK(4)
++#define OMAP343X_PADCONF_ETK_D3		OMAP343X_PADCONF_ETK(5)
++#define OMAP343X_PADCONF_ETK_D4		OMAP343X_PADCONF_ETK(6)
++#define OMAP343X_PADCONF_ETK_D5		OMAP343X_PADCONF_ETK(7)
++#define OMAP343X_PADCONF_ETK_D6		OMAP343X_PADCONF_ETK(8)
++#define OMAP343X_PADCONF_ETK_D7		OMAP343X_PADCONF_ETK(9)
++#define OMAP343X_PADCONF_ETK_D8		OMAP343X_PADCONF_ETK(10)
++#define OMAP343X_PADCONF_ETK_D9		OMAP343X_PADCONF_ETK(11)
++#define OMAP343X_PADCONF_ETK_D10	OMAP343X_PADCONF_ETK(12)
++#define OMAP343X_PADCONF_ETK_D11	OMAP343X_PADCONF_ETK(13)
++#define OMAP343X_PADCONF_ETK_D12	OMAP343X_PADCONF_ETK(14)
++#define OMAP343X_PADCONF_ETK_D13	OMAP343X_PADCONF_ETK(15)
++#define OMAP343X_PADCONF_ETK_D14	OMAP343X_PADCONF_ETK(16)
++#define OMAP343X_PADCONF_ETK_D15	OMAP343X_PADCONF_ETK(17)
++
++/* 34xx GENERAL_WKUP regist offsets */
++
++#define OMAP343X_CONTROL_WKUP_DEBOBSMUX(i) (OMAP343X_CONTROL_GENERAL_WKUP + \
++						0x008 + (i))
++#define OMAP343X_CONTROL_WKUP_DEBOBS0 (OMAP343X_CONTROL_GENERAL_WKUP + 0x008)
++#define OMAP343X_CONTROL_WKUP_DEBOBS1 (OMAP343X_CONTROL_GENERAL_WKUP + 0x00C)
++#define OMAP343X_CONTROL_WKUP_DEBOBS2 (OMAP343X_CONTROL_GENERAL_WKUP + 0x010)
++#define OMAP343X_CONTROL_WKUP_DEBOBS3 (OMAP343X_CONTROL_GENERAL_WKUP + 0x014)
++#define OMAP343X_CONTROL_WKUP_DEBOBS4 (OMAP343X_CONTROL_GENERAL_WKUP + 0x018)
+ 
+ /*
+  * REVISIT: This list of registers is not comprehensive - there are more
+-- 
+1.5.6.3
 
