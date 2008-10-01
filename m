@@ -1,48 +1,198 @@
-From: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
-Subject: RE: [PATCH 14/22] minor irq-related cleanups
-Date: Wed, 1 Oct 2008 12:23:53 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB028C45E77F@dbde02.ent.ti.com>
-References: <1222694079-16289-1-git-send-email-felipe.balbi@nokia.com>
- <1222694079-16289-2-git-send-email-felipe.balbi@nokia.com>
- <1222694079-16289-3-git-send-email-felipe.balbi@nokia.com>
- <1222694079-16289-4-git-send-email-felipe.balbi@nokia.com>
- <1222694079-16289-5-git-send-email-felipe.balbi@nokia.com>
- <1222694079-16289-6-git-send-email-felipe.balbi@nokia.com>
- <1222694079-16289-7-git-send-email-felipe.balbi@nokia.com>
- <1222694079-16289-8-git-send-email-felipe.balbi@nokia.com>
- <1222694079-16289-9-git-send-email-felipe.balbi@nokia.com>
- <1222694079-16289-10-git-send-email-felipe.balbi@nokia.com>
- <1222694079-16289-11-git-send-email-felipe.balbi@nokia.com>
- <1222694079-16289-12-git-send-email-felipe.balbi@nokia.com>
- <1222694079-16289-13-git-send-email-felipe.balbi@nokia.com>
- <1222694079-16289-14-git-send-email-felipe.balbi@nokia.com>
- <1222694079-16289-15-git-send-email-felipe.balbi@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH] MUSB: Fix for kernel panic with multiple bulk transfer
+Date: Wed,  1 Oct 2008 13:08:56 +0530
+Message-ID: <1222846736-18466-1-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48888 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751516AbYJAGyJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Oct 2008 02:54:09 -0400
-In-Reply-To: <1222694079-16289-15-git-send-email-felipe.balbi@nokia.com>
-Content-Language: en-US
+Received: from comal.ext.ti.com ([198.47.26.152]:45383 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750815AbYJAHjP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 1 Oct 2008 03:39:15 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: David Brownell <dbrownell@users.sourceforge.net>, Tony Lindgren <tony@atomide.com>
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com, Ajay Kumar Gupta <ajay.gupta@ti.com>, Romit Dasgupta <romit@ti.com>
 
-> -	ret = request_irq(TWL4030_PWRIRQ_RTC, twl4030_rtc_interrupt,
-> +	ret = request_irq(irq, twl4030_rtc_interrupt,
->  				0, rtc->dev.bus_id, rtc);
+Fixes kernel panic when multiple copy is performed among more than two mass
+storage media and transfer is aborted.musb_advance_schedule(),
+musb_urb_dequeue(),musb_cleanup_urb() and musb_h_disable() functions have
+been modified to correct urb handling associated with bulk and control
+endpoints which are multiplexed on one hardware endpoint.
 
-RTC was requesting "TWL4030_PWRIRQ_RTC".
+musb_advance_schedule() has been removed from musb_cleanup_urb() and added
+to musb_urb_dequeue(). musb_h_disable() has been modified to take care of
+multiple qh on same hw_ep scenario.
 
->  out2:
-> -	free_irq(TWL4030_MODIRQ_PWR, rtc);
-> +	free_irq(irq, rtc);
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+CC: Romit Dasgupta <romit@ti.com> 
+---
+Suggestions welcome to move while loop doing kfree(qh) from 
+musb_advance_schedule() and musb_h_disable() to musb_giveback().
 
-And, like BCI, was freeing a different IRQ no - "TWL4030_MODIRQ_PWR". Yet another great fix. ACK for this part too.
+ drivers/usb/musb/musb_host.c |  105 ++++++++++++++++++++++++++++++-----------
+ 1 files changed, 77 insertions(+), 28 deletions(-)
 
---
-Jagadeesh
+diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+index 8b4be01..c2474de 100644
+--- a/drivers/usb/musb/musb_host.c
++++ b/drivers/usb/musb/musb_host.c
+@@ -427,8 +427,17 @@ musb_advance_schedule(struct musb *musb, struct urb *urb,
+ 		qh = musb_giveback(qh, urb, 0);
+ 	else
+ 		qh = musb_giveback(qh, urb, urb->status);
++	while (qh && qh->is_ready && list_empty(&qh->hep->urb_list)) {
++		struct list_head *head;
++		head = qh->ring.prev;
++		list_del(&qh->ring);
++		qh->hep->hcpriv = NULL;
++		kfree(qh);
++		qh = first_qh(head);
++	}
+ 
+-	if (qh && qh->is_ready && !list_empty(&qh->hep->urb_list)) {
++
++	if (qh && qh->is_ready) {
+ 		DBG(4, "... next ep%d %cX urb %p\n",
+ 				hw_ep->epnum, is_in ? 'R' : 'T',
+ 				next_urb(qh));
+@@ -1964,8 +1973,6 @@ static int musb_cleanup_urb(struct urb *urb, struct musb_qh *qh, int is_in)
+ 		/* flush cpu writebuffer */
+ 		csr = musb_readw(epio, MUSB_TXCSR);
+ 	}
+-	if (status == 0)
+-		musb_advance_schedule(ep->musb, urb, ep, is_in);
+ 	return status;
+ }
+ 
+@@ -2026,13 +2033,24 @@ static int musb_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
+ 	/* NOTE:  qh is invalid unless !list_empty(&hep->urb_list) */
+ 	if (ret < 0 || (sched && qh != first_qh(sched))) {
+ 		int	ready = qh->is_ready;
+-
++		int 	type = urb->pipe;
+ 		ret = 0;
+ 		qh->is_ready = 0;
+ 		__musb_giveback(musb, urb, 0);
+-		qh->is_ready = ready;
+-	} else
++
++		if (list_empty(&qh->hep->urb_list) && list_empty(&qh->ring))
++			list_del(&qh->ring);
++		else
++			qh->is_ready = ready;
++		if (usb_pipeisoc(type))
++			musb->periodic[qh->hw_ep->epnum] = NULL;
++	} else {
+ 		ret = musb_cleanup_urb(urb, qh, urb->pipe & USB_DIR_IN);
++		if (!ret) {
++			musb_advance_schedule(qh->hw_ep->musb, urb, qh->hw_ep,
++					urb->pipe & USB_DIR_IN);
++		}
++	}
+ done:
+ 	spin_unlock_irqrestore(&musb->lock, flags);
+ 	return ret;
+@@ -2046,14 +2064,17 @@ musb_h_disable(struct usb_hcd *hcd, struct usb_host_endpoint *hep)
+ 	unsigned long		flags;
+ 	struct musb		*musb = hcd_to_musb(hcd);
+ 	u8			is_in = epnum & USB_DIR_IN;
+-	struct musb_qh		*qh = hep->hcpriv;
++	struct musb_qh		*qh, *qh_for_curr_urb;
+ 	struct urb		*urb, *tmp;
+ 	struct list_head	*sched;
+-
+-	if (!qh)
+-		return;
++	int			i;
+ 
+ 	spin_lock_irqsave(&musb->lock, flags);
++	qh = hep->hcpriv;
++	if (!qh) {
++		spin_unlock_irqrestore(&musb->lock, flags);
++		return;
++	}
+ 
+ 	switch (qh->type) {
+ 	case USB_ENDPOINT_XFER_CONTROL:
+@@ -2065,6 +2086,13 @@ musb_h_disable(struct usb_hcd *hcd, struct usb_host_endpoint *hep)
+ 		else
+ 			sched = &musb->out_bulk;
+ 		break;
++	case USB_ENDPOINT_XFER_ISOC:
++	case USB_ENDPOINT_XFER_INT:
++		for (i = 0; i < musb->nr_endpoints; i++) {
++			if (musb->periodic[i] == qh)
++				sched = &qh->ring;
++			break;
++		}
+ 	default:
+ 		/* REVISIT when we get a schedule tree, periodic transfers
+ 		 * won't always be at the head of a singleton queue...
+@@ -2073,26 +2101,47 @@ musb_h_disable(struct usb_hcd *hcd, struct usb_host_endpoint *hep)
+ 		break;
+ 	}
+ 
+-	/* NOTE:  qh is invalid unless !list_empty(&hep->urb_list) */
+-
+ 	/* kick first urb off the hardware, if needed */
+-	qh->is_ready = 0;
+-	if (!sched || qh == first_qh(sched)) {
++	if (sched) {
++		qh_for_curr_urb = qh;
+ 		urb = next_urb(qh);
+-
+-		/* make software (then hardware) stop ASAP */
+-		if (!urb->unlinked)
+-			urb->status = -ESHUTDOWN;
+-
+-		/* cleanup */
+-		musb_cleanup_urb(urb, qh, urb->pipe & USB_DIR_IN);
+-	} else
+-		urb = NULL;
+-
+-	/* then just nuke all the others */
+-	list_for_each_entry_safe_from(urb, tmp, &hep->urb_list, urb_list)
+-		musb_giveback(qh, urb, -ESHUTDOWN);
+-
++		if (urb) {
++			/* make software (then hardware) stop ASAP */
++			if (!urb->unlinked)
++				urb->status = -ESHUTDOWN;
++			/* cleanup first urb of first qh; */
++			if (qh == first_qh(sched)) {
++				musb_cleanup_urb(urb, qh,
++					urb->pipe & USB_DIR_IN);
++			}
++			qh = musb_giveback(qh, urb, -ESHUTDOWN);
++			if (qh == qh_for_curr_urb) {
++				list_for_each_entry_safe_from(urb, tmp,
++					&hep->urb_list, urb_list) {
++					qh = musb_giveback(qh, tmp, -ESHUTDOWN);
++					if (qh != qh_for_curr_urb)
++						break;
++				}
++			}
++		}
++		/* pick the next candidate and go */
++		if (qh && qh->is_ready) {
++			while (qh && qh->is_ready &&
++				list_empty(&qh->hep->urb_list)) {
++					struct list_head *head;
++					head = qh->ring.prev;
++					list_del(&qh->ring);
++					qh->hep->hcpriv = NULL;
++					kfree(qh);
++					qh = first_qh(head);
++			}
++			if (qh && qh->is_ready) {
++				epnum = qh->hep->desc.bEndpointAddress;
++				is_in = epnum & USB_DIR_IN;
++				musb_start_urb(musb, is_in, qh);
++			}
++		}
++	}
+ 	spin_unlock_irqrestore(&musb->lock, flags);
+ }
+ 
+-- 
+1.5.6
+
