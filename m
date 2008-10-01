@@ -1,52 +1,84 @@
-From: Mikko Ylinen <mikko.k.ylinen@nokia.com>
-Subject: Re: [PATCH 9/9] i2c: move twl4030-madc to new registration style
-Date: Wed, 01 Oct 2008 17:20:53 +0300
-Message-ID: <48E38745.8050800@nokia.com>
-References: <1222427996-7018-1-git-send-email-felipe.balbi@nokia.com> <20080926174643.GA9890@frodo> <48DDE2AD.1030202@nokia.com> <200809270804.16788.david-b@pacbell.net>
+From: "Jason Marini" <jason.marini@gmail.com>
+Subject: Re: i2c errors on omap3430sdp
+Date: Wed, 1 Oct 2008 10:22:29 -0400
+Message-ID: <423644ca0810010722w340603fegf5443394a07b6f42@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:28534 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751793AbYJAOVR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Oct 2008 10:21:17 -0400
-In-Reply-To: <200809270804.16788.david-b@pacbell.net>
+Received: from yx-out-2324.google.com ([74.125.44.28]:48464 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751660AbYJAOWa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Oct 2008 10:22:30 -0400
+Received: by yx-out-2324.google.com with SMTP id 8so92737yxm.1
+        for <linux-omap@vger.kernel.org>; Wed, 01 Oct 2008 07:22:29 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext David Brownell <david-b@pacbell.net>
-Cc: me@felipebalbi.com, Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
 
-Hi,
+Sergio,
 
-David Brownell wrote:
-> A question that may well come up when this heads upstream:
-> why is this exporting a miscdev, for an ioctl, when this
-> could all be done using sysfs and hwmon rules?  That is,
-> was this the "appropriate" way to export ADC channels?
+Yes, that is what I have seen as well.  Although this specific
+function returns -ETIMEDOUT, a function farther up the call stack must
+be looping until success.
 
-We could still do both, right?
+-Jason
 
-> And a slightly more pragmatic question:  does Nokia have
-> tools that would break if this were switched to hwmon style?
-
-We've used ioctl() mechanism to get ADC readings to user space quite
-some time already.
-
-I believe this is still a better option compared with hwmon/sysfs
-approach (Reason: sometimes we do those readings very often and
-for many channels. Instead of doing all that fd magic and atoi(),
-we just call ioctl() to get raw ADC data available for further
-processing).
-
->> How detailed information would you like to have here?
-> 
-> Enough to answer the question "what's a MADC?" for someone
-> who doesn't have TWL specs and hasn't read even any kind
-> of summary data sheet.  Three sentences would likely be
-> excessive; one good sentence might suffice.
-
-Perhaps duplicate the comments we have in Kconfig to .c?
-
--- 
-Regards, Mikko
+> Jason, Felipe,
+>
+> Apparently it was a HW issue with the camkit I was using.
+>
+> I realized that when trying with another one :)
+>
+> Anyways, I appreciate your help and time.
+>
+> Jason, BTW, this messages kept appearing endlessly without being able to kill the \
+> process, is that expected?
+>
+> Regards,
+> Sergio
+>
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On \
+>                Behalf Of Jason Marini
+> Sent: Monday, September 29, 2008 11:18 AM
+> To: linux-omap@vger.kernel.org
+> Subject: Re: i2c errors on omap3430sdp
+>
+> > > Hi all,
+> > >
+> > > I'm currently testing the OV3640 CSI2 camera implementation for 3430SDP, and I \
+> > > had \ it working some weeks ago.
+> > > Today I did a git pull from the master branch.
+> > >
+> > > Without changing anything i2c related, I now sometimes get a message that I \
+> > > wasn't \ getting before:
+> > > i2c_omap i2c_omap.2: controller timed out waiting for start condition to finish
+> > > i2c_omap i2c_omap.2: controller timed out waiting for start condition to finish
+> > >
+> > > Anyone is seeing this?
+> > >
+> > > Any omap i2c registration changes that I could be missing?
+> >
+> > Is you driver new style i2c driver ???
+> >
+> > Can you put some printks in your driver and try to narrow down which
+> > transfer is triggering this timeout ??
+> >
+> > --
+> > balbi
+> > --
+>
+> Sergio,
+>
+> I recently added a patch to print out that message if the i2c bus took
+> longer than 1s to poll for the i2c start condition.  I had been seeing
+> kernel lockups when doing soft resets, and JTAG debug pointed me an
+> infinite loop in the omap_i2c_read_reg function.  I added a timeout,
+> as can be seen in my patch here:
+> http://marc.info/?l=linux-omap&m=121995188317408&w=2
+>
+> You are seeing this message instead of a kernel hang :^)
+>
+> -Jason Marini
