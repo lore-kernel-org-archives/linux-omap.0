@@ -1,43 +1,39 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: [PATCH 00/25] twl4030 patches (v5)
-Date: Tue, 30 Sep 2008 16:30:50 -0700
-Message-ID: <5e088bd90809301630h99d25c6vf2cddfa6699ee0b6@mail.gmail.com>
-References: <1222800189-29737-1-git-send-email-me@felipebalbi.com>
-	 <200809301241.09171.david-b@pacbell.net>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: Soft lockup when disconnecting musb isochronous device.
+Date: Wed, 1 Oct 2008 09:45:43 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403DC1A6434@dbde02.ent.ti.com>
+References: <e5e6ade50809260951g50c3d55cn71ce7e7a04803184@mail.gmail.com>
+ <19F8576C6E063C45BE387C64729E739403DC1A61CA@dbde02.ent.ti.com>
+ <723A4899-A764-4476-BA28-118D86985449@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.174]:55164 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754609AbYI3Xaw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2008 19:30:52 -0400
-Received: by wf-out-1314.google.com with SMTP id 27so297770wfd.4
-        for <linux-omap@vger.kernel.org>; Tue, 30 Sep 2008 16:30:51 -0700 (PDT)
-In-Reply-To: <200809301241.09171.david-b@pacbell.net>
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:59387 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750698AbYJAEP5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Oct 2008 00:15:57 -0400
+In-Reply-To: <723A4899-A764-4476-BA28-118D86985449@student.utwente.nl>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Felipe Balbi <me@felipebalbi.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-On Tue, Sep 30, 2008 at 12:41 PM, David Brownell <david-b@pacbell.net> wrote:
-> On Tuesday 30 September 2008, Felipe Balbi wrote:
->> Hopefully this is the final version:
->
-> For the core?  This is IMO suitable for merging to linux-omap.
-> In terms of no-bugs-Dave-knows-about, for stuff he's touched.
->
-> There will however be other updates later...
->
-> ... including the patch 26/25 I'm about to send -- shrinkage.  ;)
+> it happens when w_scan tries to tune into a specific frequency on a  
+> USB DVB-T stick. Any ideas about that one?
+> 
+> I have applied these patches:
 
-I tested the v5 series (26/25) on Overo and found no issues other than
-the musb problem we discussed earlier.
+> [PATCH v3] OMAP:MUSB: Corrects urb unlink function path
+> usb: musb: fix something
+> MUSB high-bandwidth support patch
+> MUSB ISO dma fix.
 
-I agree that it is suitable for merging.
+What version are you working at? If it is not the latest version on OMAP
+GIT then try syncing with latest drivers/usb/storage/*
+I had some issue with a pendrive and it got fixed by taking
+latest (v2.6.27 rc3) usb/storage patches.
 
-I'll prepare a "twl4030-gpio: overo pull up/down init" and submit it
-after the merge.
-
-Steve
+Regards,
+Ajay 
