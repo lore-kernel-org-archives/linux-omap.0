@@ -1,177 +1,58 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch twl 2/2] remove <linux/i2c/twl4030-pwrirq.h>
-Date: Wed, 1 Oct 2008 23:45:18 -0700
-Message-ID: <200810012345.19043.david-b@pacbell.net>
+Subject: Re: [PATCH 2.6.27-rc8 1/2] drivers/mfd/twl4030-core.c
+Date: Wed, 1 Oct 2008 23:53:57 -0700
+Message-ID: <200810012353.57753.david-b@pacbell.net>
+References: <200810011144.20510.david-b@pacbell.net> <200810011453.26699.david-b@pacbell.net> <20081002060521.GA7942@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:30020 "HELO
-	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751706AbYJBGp2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Oct 2008 02:45:28 -0400
+Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:31800 "HELO
+	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753434AbYJBGyA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Oct 2008 02:54:00 -0400
+In-Reply-To: <20081002060521.GA7942@atomide.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Samuel Ortiz <sameo@openedhand.com>, lkml <linux-kernel@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+On Wednesday 01 October 2008, Tony Lindgren wrote:
+> * David Brownell <david-b@pacbell.net> [081002 00:53]:
+> > On Wednesday 01 October 2008, David Brownell wrote:
+> > 
+> > > NOTE: this is the current code from the linux-omap tree.
+> > 
+> > This chip being used on a whole bunch of boards:
+> > 
+> >  - Gumstix Overo
+> >  - BeagleBoard.org
+> >  - Omap ZOOM (Labrador)
+> >  - OMAP 2430 and 3430 SDP,
+> >  - OMAP2 and OMAP3 EVM
+> >  - ... more (openpandora.org ?)
 
-Get rid of another needless TWL header file:  twl4030-pwrirq.h
-can easily live in twl4030.h; updating its three users.
+My bad.  Openpandora just opened for preorders *today* (PST)
+and sold out all 3000 units.  I'm sure I mentioned it well
+after most of them were sold, so it's not my fault their
+server was killed.  Really ...
 
-Also switch to the shared definition of the SIH_CTRL COR bit,
-remove useless-to-non-driver MODULE_ALIAS(), and add a note
-about a but that will appear if anyone ever removes this code.
 
-No functional changes, just shrinkage.
+> > 
+> > which will get much closer to "usable with mainline kernels"
+> > when their power management chip works in mainline!  :)
+> 
+> Cool. I'll post some patches against mainline kernel
+> for booting minimal omap3 boards within next few days.
+> So we should get at least beagle and overo booting
+> to some extent, maybe with serial and musb.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
-This leaves only <linux/i2c/twl4030-madc.h> as "extra" yet
-associated with the TWL core code.  It's got all kinds of
-stuff; maybe someone else could split that up, making sure
-ioctl bits get properly exported by "make headers_install".
+Sounds like it *should* be a nice, modest, achievable
+goal, right?  Something tells me it won't be that easy!
+More power to you.
 
- drivers/i2c/chips/twl4030-pwrirq.c |   13 +++++------
- drivers/mfd/twl4030-core.c         |    1 
- drivers/rtc/rtc-twl4030.c          |    1 
- include/linux/i2c/twl4030-pwrirq.h |   39 -----------------------------------
- include/linux/i2c/twl4030.h        |   15 +++++++++++++
- 5 files changed, 21 insertions(+), 48 deletions(-)
+- Dave
 
---- a/drivers/i2c/chips/twl4030-pwrirq.c
-+++ b/drivers/i2c/chips/twl4030-pwrirq.c
-@@ -27,9 +27,7 @@
- #include <linux/random.h>
- #include <linux/kthread.h>
- #include <linux/i2c/twl4030.h>
--#include <linux/i2c/twl4030-pwrirq.h>
- 
--#define PWR_SIH_CTRL_COR (1<<2)
- 
- static u8 twl4030_pwrirq_mask;
- static u8 twl4030_pwrirq_pending_unmask;
-@@ -177,8 +175,9 @@ static int __init twl4030_pwrirq_init(vo
- 
- 	/* Enable clear on read */
- 
--	err = twl4030_i2c_write_u8(TWL4030_MODULE_INT, PWR_SIH_CTRL_COR,
--				   TWL4030_INT_PWR_SIH_CTRL);
-+	err = twl4030_i2c_write_u8(TWL4030_MODULE_INT,
-+				TWL4030_SIH_CTRL_COR_MASK,
-+				TWL4030_INT_PWR_SIH_CTRL);
- 	if (err)
- 		return err;
- 
-@@ -201,12 +200,15 @@ static int __init twl4030_pwrirq_init(vo
- 
- 	return 0;
- }
-+subsys_initcall(twl4030_pwrirq_init);
- 
- static void __exit twl4030_pwrirq_exit(void)
- {
- 
- 	int i;
- 
-+	/* FIXME the irqs are left enabled; trouble when they arrive... */
-+
- 	set_irq_handler(TWL4030_MODIRQ_PWR, NULL);
- 	set_irq_flags(TWL4030_MODIRQ_PWR, 0);
- 
-@@ -220,7 +222,4 @@ static void __exit twl4030_pwrirq_exit(v
- 		twl4030_pwrirq_unmask_thread = NULL;
- 	}
- }
--
--MODULE_ALIAS("i2c:twl4030-pwrirq");
--subsys_initcall(twl4030_pwrirq_init);
- module_exit(twl4030_pwrirq_exit);
---- a/drivers/mfd/twl4030-core.c
-+++ b/drivers/mfd/twl4030-core.c
-@@ -40,7 +40,6 @@
- #include <linux/i2c.h>
- #include <linux/i2c/twl4030.h>
- #include <linux/i2c/twl4030-madc.h>
--#include <linux/i2c/twl4030-pwrirq.h>
- 
- #define DRIVER_NAME			"twl4030"
- 
---- a/drivers/rtc/rtc-twl4030.c
-+++ b/drivers/rtc/rtc-twl4030.c
-@@ -28,7 +28,6 @@
- #include <linux/interrupt.h>
- 
- #include <linux/i2c/twl4030.h>
--#include <linux/i2c/twl4030-pwrirq.h>
- 
- 
- /*
---- a/include/linux/i2c/twl4030-pwrirq.h
-+++ /dev/null
-@@ -1,39 +0,0 @@
--/*
-- * twl4030-pwrirq.h - header for TWL4030 power interrupts
-- *
-- * Copyright (C) 2008 Texas Instruments, Inc.
-- * Copyright (C) 2008 Nokia Corporation
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-- *
-- */
--
--#ifndef __TWL4030_PWRIRQ_H_
--#define __TWL4030_PWRIRQ_H_
--
--/*
-- * Power Interrupt block register offsets (use TWL4030_MODULE_INT)
-- */
--
--#define TWL4030_INT_PWR_ISR1		0x0
--#define TWL4030_INT_PWR_IMR1		0x1
--#define TWL4030_INT_PWR_ISR2		0x2
--#define TWL4030_INT_PWR_IMR2		0x3
--#define TWL4030_INT_PWR_SIR		0x4	/* test register */
--#define TWL4030_INT_PWR_EDR1		0x5
--#define TWL4030_INT_PWR_EDR2		0x6
--#define TWL4030_INT_PWR_SIH_CTRL	0x7
--
--#endif /* End of __TWL4030_PWRIRQ_H */
---- a/include/linux/i2c/twl4030.h
-+++ b/include/linux/i2c/twl4030.h
-@@ -152,6 +152,21 @@ int twl4030_i2c_read(u8 mod_no, u8 *valu
- 
- /*----------------------------------------------------------------------*/
- 
-+/*
-+ * Power Interrupt block register offsets (use TWL4030_MODULE_INT)
-+ */
-+
-+#define TWL4030_INT_PWR_ISR1		0x0
-+#define TWL4030_INT_PWR_IMR1		0x1
-+#define TWL4030_INT_PWR_ISR2		0x2
-+#define TWL4030_INT_PWR_IMR2		0x3
-+#define TWL4030_INT_PWR_SIR		0x4	/* test register */
-+#define TWL4030_INT_PWR_EDR1		0x5
-+#define TWL4030_INT_PWR_EDR2		0x6
-+#define TWL4030_INT_PWR_SIH_CTRL	0x7
-+
-+/*----------------------------------------------------------------------*/
-+
- struct twl4030_bci_platform_data {
- 	int *battery_tmp_tbl;
- 	unsigned int tblsize;
+  
