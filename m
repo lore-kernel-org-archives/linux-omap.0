@@ -1,244 +1,497 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 05/10] ARM: OMAP2: Implement CPUfreq frequency table based on
-	PRCM table
-Date: Thu, 02 Oct 2008 10:37:52 -0600
-Message-ID: <20081002163752.15385.97004.stgit@localhost.localdomain>
+Subject: [PATCH 07/10] OMAP2/3 clockdomains: combine pwrdm,
+	pwrdm_name into union in struct clockdomain
+Date: Thu, 02 Oct 2008 10:37:54 -0600
+Message-ID: <20081002163753.15385.74353.stgit@localhost.localdomain>
 References: <20081002163508.15385.43247.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51910 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:51915 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754082AbYJBQrH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Oct 2008 12:47:07 -0400
+	with ESMTP id S1754093AbYJBQrI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Oct 2008 12:47:08 -0400
 In-Reply-To: <20081002163508.15385.43247.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@mvista.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-From: Kevin Hilman <khilman@mvista.com>
+struct clockdomain contains a struct powerdomain *pwrdm and const char
+*pwrdm_name.  The pwrdm_name is only used at initialization to look up
+the appropriate pwrdm pointer.  Combining these into a union saves
+about 100 bytes on 3430SDP.  This patch should not cause any change in
+kernel function.
 
-This patch adds a CPUfreq frequency-table implementation for OMAP2 by
-walking the PRCM rate-table for available entries and adding them to a
-CPUfreq table.
+Boot-tested on 3430SDP ES2.
 
-CPUfreq can then be used to manage switching between all the available
-entries in the PRCM rate table.  Either use the CPUfreq sysfs
-interface directly, (see Section 3 of Documentation/cpu-freq/user-guide.txt)
-or use the cpufrequtils package:
-http://www.kernel.org/pub/linux/utils/kernel/cpufreq/cpufrequtils.html
-
-Signed-off-by: Kevin Hilman <khilman@mvista.com>
-
-Updated to try to use cpufreq_table if it exists.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/clock24xx.c         |   42 ++++++++++++++++++++++
- arch/arm/plat-omap/cpu-omap.c           |   58 +++++++++++++++++++++++++++++--
- arch/arm/plat-omap/include/mach/clock.h |    3 ++
- 3 files changed, 99 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/clockdomain.c             |   58 +++++++++++--------------
+ arch/arm/mach-omap2/clockdomains.h            |   54 ++++++++++++-----------
+ arch/arm/plat-omap/include/mach/clockdomain.h |   24 ++++++----
+ 3 files changed, 68 insertions(+), 68 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-index 133c36f..9240e64 100644
---- a/arch/arm/mach-omap2/clock24xx.c
-+++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -378,6 +378,45 @@ static int omap2_select_table_rate(struct clk *clk, unsigned long rate)
- 	return 0;
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 4c3ce9c..882809d 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -71,14 +71,14 @@ static void _autodep_lookup(struct clkdm_pwrdm_autodep *autodep)
+ 	if (!omap_chip_is(autodep->omap_chip))
+ 		return;
+ 
+-	pwrdm = pwrdm_lookup(autodep->pwrdm_name);
++	pwrdm = pwrdm_lookup(autodep->pwrdm.name);
+ 	if (!pwrdm) {
+ 		pr_debug("clockdomain: _autodep_lookup: powerdomain %s "
+-			 "does not exist\n", autodep->pwrdm_name);
++			 "does not exist\n", autodep->pwrdm.name);
+ 		WARN_ON(1);
+ 		return;
+ 	}
+-	autodep->pwrdm = pwrdm;
++	autodep->pwrdm.ptr = pwrdm;
+ 
+ 	return;
+ }
+@@ -95,16 +95,13 @@ static void _clkdm_add_autodeps(struct clockdomain *clkdm)
+ {
+ 	struct clkdm_pwrdm_autodep *autodep;
+ 
+-	for (autodep = autodeps; autodep->pwrdm_name; autodep++) {
+-		if (!autodep->pwrdm)
+-			continue;
+-
++	for (autodep = autodeps; autodep->pwrdm.ptr; autodep++) {
+ 		pr_debug("clockdomain: adding %s sleepdep/wkdep for "
+-			 "pwrdm %s\n", autodep->pwrdm_name,
+-			 clkdm->pwrdm->name);
++			 "pwrdm %s\n", autodep->pwrdm.ptr->name,
++			 clkdm->pwrdm.ptr->name);
+ 
+-		pwrdm_add_sleepdep(clkdm->pwrdm, autodep->pwrdm);
+-		pwrdm_add_wkdep(clkdm->pwrdm, autodep->pwrdm);
++		pwrdm_add_sleepdep(clkdm->pwrdm.ptr, autodep->pwrdm.ptr);
++		pwrdm_add_wkdep(clkdm->pwrdm.ptr, autodep->pwrdm.ptr);
+ 	}
  }
  
-+#ifdef CONFIG_CPU_FREQ
-+/*
-+ * Walk PRCM rate table and fillout cpufreq freq_table
-+ */
-+static struct cpufreq_frequency_table freq_table[ARRAY_SIZE(rate_table)];
-+
-+void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
-+{
-+	struct prcm_config *prcm;
-+	int i = 0;
-+
-+	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
-+		if (!(prcm->flags & cpu_mask))
-+			continue;
-+		if (prcm->xtal_speed != sys_ck.rate)
-+			continue;
-+
-+		/* don't put bypass rates in table */
-+		if (prcm->dpll_speed == prcm->xtal_speed)
-+			continue;
-+
-+		freq_table[i].index = i;
-+		freq_table[i].frequency = prcm->mpu_speed / 1000;
-+		i++;
-+	}
-+
-+	if (i == 0) {
-+		printk(KERN_WARNING "%s: failed to initialize frequency "
-+		       "table\n", __func__);
-+		return;
-+	}
-+
-+	freq_table[i].index = i;
-+	freq_table[i].frequency = CPUFREQ_TABLE_END;
-+
-+	*table = &freq_table[0];
-+}
-+#endif
-+
- static struct clk_functions omap2_clk_functions = {
- 	.clk_enable		= omap2_clk_enable,
- 	.clk_disable		= omap2_clk_disable,
-@@ -385,6 +424,9 @@ static struct clk_functions omap2_clk_functions = {
- 	.clk_set_rate		= omap2_clk_set_rate,
- 	.clk_set_parent		= omap2_clk_set_parent,
- 	.clk_disable_unused	= omap2_clk_disable_unused,
-+#ifdef	CONFIG_CPU_FREQ
-+	.clk_init_cpufreq_table	= omap2_clk_init_cpufreq_table,
-+#endif
- };
- 
- static u32 omap2_get_apll_clkin(void)
-diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
-index b269024..e7d09c3 100644
---- a/arch/arm/plat-omap/cpu-omap.c
-+++ b/arch/arm/plat-omap/cpu-omap.c
-@@ -23,10 +23,14 @@
- #include <linux/io.h>
- 
- #include <mach/hardware.h>
-+#include <mach/clock.h>
-+#include <linux/io.h>
- #include <asm/system.h>
- 
- #define VERY_HI_RATE	900000000
- 
-+static struct cpufreq_frequency_table *freq_table;
-+
- #ifdef CONFIG_ARCH_OMAP1
- #define MPU_CLK		"mpu"
- #else
-@@ -39,6 +43,9 @@ static struct clk *mpu_clk;
- 
- int omap_verify_speed(struct cpufreq_policy *policy)
+@@ -120,16 +117,13 @@ static void _clkdm_del_autodeps(struct clockdomain *clkdm)
  {
-+	if (freq_table)
-+		return cpufreq_frequency_table_verify(policy, freq_table);
-+
- 	if (policy->cpu)
+ 	struct clkdm_pwrdm_autodep *autodep;
+ 
+-	for (autodep = autodeps; autodep->pwrdm_name; autodep++) {
+-		if (!autodep->pwrdm)
+-			continue;
+-
++	for (autodep = autodeps; autodep->pwrdm.ptr; autodep++) {
+ 		pr_debug("clockdomain: removing %s sleepdep/wkdep for "
+-			 "pwrdm %s\n", autodep->pwrdm_name,
+-			 clkdm->pwrdm->name);
++			 "pwrdm %s\n", autodep->pwrdm.ptr->name,
++			 clkdm->pwrdm.ptr->name);
+ 
+-		pwrdm_del_sleepdep(clkdm->pwrdm, autodep->pwrdm);
+-		pwrdm_del_wkdep(clkdm->pwrdm, autodep->pwrdm);
++		pwrdm_del_sleepdep(clkdm->pwrdm.ptr, autodep->pwrdm.ptr);
++		pwrdm_del_wkdep(clkdm->pwrdm.ptr, autodep->pwrdm.ptr);
+ 	}
+ }
+ 
+@@ -179,7 +173,7 @@ void clkdm_init(struct clockdomain **clkdms,
+ 
+ 	autodeps = init_autodeps;
+ 	if (autodeps)
+-		for (autodep = autodeps; autodep->pwrdm_name; autodep++)
++		for (autodep = autodeps; autodep->pwrdm.ptr; autodep++)
+ 			_autodep_lookup(autodep);
+ }
+ 
+@@ -202,13 +196,13 @@ int clkdm_register(struct clockdomain *clkdm)
+ 	if (!omap_chip_is(clkdm->omap_chip))
  		return -EINVAL;
  
-@@ -70,12 +77,26 @@ static int omap_target(struct cpufreq_policy *policy,
- 	struct cpufreq_freqs freqs;
- 	int ret = 0;
- 
-+	/* Ensure desired rate is within allowed range.  Some govenors
-+	 * (ondemand) will just pass target_freq=0 to get the minimum. */
-+	if (target_freq < policy->cpuinfo.min_freq)
-+		target_freq = policy->cpuinfo.min_freq;
-+	if (target_freq > policy->cpuinfo.max_freq)
-+		target_freq = policy->cpuinfo.max_freq;
-+
- 	freqs.old = omap_getspeed(0);
- 	freqs.new = clk_round_rate(mpu_clk, target_freq * 1000) / 1000;
- 	freqs.cpu = 0;
- 
-+	if (freqs.old == freqs.new)
-+		return ret;
-+
- 	cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
--	ret = clk_set_rate(mpu_clk, target_freq * 1000);
-+#ifdef CONFIG_CPU_FREQ_DEBUG
-+	printk(KERN_DEBUG "cpufreq-omap: transition: %u --> %u\n",
-+	       freqs.old, freqs.new);
-+#endif
-+	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
- 	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
- 
- 	return ret;
-@@ -83,16 +104,31 @@ static int omap_target(struct cpufreq_policy *policy,
- 
- static int __init omap_cpu_init(struct cpufreq_policy *policy)
- {
-+	int result = 0;
-+
- 	mpu_clk = clk_get(NULL, MPU_CLK);
- 	if (IS_ERR(mpu_clk))
- 		return PTR_ERR(mpu_clk);
- 
- 	if (policy->cpu != 0)
+-	pwrdm = pwrdm_lookup(clkdm->pwrdm_name);
++	pwrdm = pwrdm_lookup(clkdm->pwrdm.name);
+ 	if (!pwrdm) {
+ 		pr_debug("clockdomain: clkdm_register %s: powerdomain %s "
+-			 "does not exist\n", clkdm->name, clkdm->pwrdm_name);
++			 "does not exist\n", clkdm->name, clkdm->pwrdm.name);
  		return -EINVAL;
-+
- 	policy->cur = policy->min = policy->max = omap_getspeed(0);
--	policy->cpuinfo.min_freq = clk_round_rate(mpu_clk, 0) / 1000;
--	policy->cpuinfo.max_freq = clk_round_rate(mpu_clk, VERY_HI_RATE) / 1000;
--	policy->cpuinfo.transition_latency = CPUFREQ_ETERNAL;
-+
-+	clk_init_cpufreq_table(&freq_table);
-+	if (freq_table) {
-+		result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
-+		if (!result)
-+			cpufreq_frequency_table_get_attr(freq_table,
-+							policy->cpu);
-+	} else {
-+		policy->cpuinfo.min_freq = clk_round_rate(mpu_clk, 0) / 1000;
-+		policy->cpuinfo.max_freq = clk_round_rate(mpu_clk,
-+							VERY_HI_RATE) / 1000;
-+	}
-+
-+	/* FIXME: what's the actual transition time? */
-+	policy->cpuinfo.transition_latency = 10 * 1000 * 1000;
+ 	}
+-	clkdm->pwrdm = pwrdm;
++	clkdm->pwrdm.ptr = pwrdm;
  
- 	return 0;
- }
-@@ -103,6 +139,11 @@ static int omap_cpu_exit(struct cpufreq_policy *policy)
- 	return 0;
+ 	mutex_lock(&clkdm_mutex);
+ 	/* Verify that the clockdomain is not already registered */
+@@ -242,7 +236,7 @@ int clkdm_unregister(struct clockdomain *clkdm)
+ 	if (!clkdm)
+ 		return -EINVAL;
+ 
+-	pwrdm_del_clkdm(clkdm->pwrdm, clkdm);
++	pwrdm_del_clkdm(clkdm->pwrdm.ptr, clkdm);
+ 
+ 	mutex_lock(&clkdm_mutex);
+ 	list_del(&clkdm->node);
+@@ -327,7 +321,7 @@ struct powerdomain *clkdm_get_pwrdm(struct clockdomain *clkdm)
+ 	if (!clkdm)
+ 		return NULL;
+ 
+-	return clkdm->pwrdm;
++	return clkdm->pwrdm.ptr;
  }
  
-+static struct freq_attr *omap_cpufreq_attr[] = {
-+	&cpufreq_freq_attr_scaling_available_freqs,
-+	NULL,
-+};
-+
- static struct cpufreq_driver omap_driver = {
- 	.flags		= CPUFREQ_STICKY,
- 	.verify		= omap_verify_speed,
-@@ -111,6 +152,7 @@ static struct cpufreq_driver omap_driver = {
- 	.init		= omap_cpu_init,
- 	.exit		= omap_cpu_exit,
- 	.name		= "omap",
-+	.attr		= omap_cpufreq_attr,
+ 
+@@ -348,7 +342,7 @@ static int omap2_clkdm_clktrctrl_read(struct clockdomain *clkdm)
+ 	if (!clkdm)
+ 		return -EINVAL;
+ 
+-	v = cm_read_mod_reg(clkdm->pwrdm->prcm_offs, CM_CLKSTCTRL);
++	v = cm_read_mod_reg(clkdm->pwrdm.ptr->prcm_offs, CM_CLKSTCTRL);
+ 	v &= clkdm->clktrctrl_mask;
+ 	v >>= __ffs(clkdm->clktrctrl_mask);
+ 
+@@ -380,7 +374,7 @@ int omap2_clkdm_sleep(struct clockdomain *clkdm)
+ 	if (cpu_is_omap24xx()) {
+ 
+ 		cm_set_mod_reg_bits(OMAP24XX_FORCESTATE,
+-				    clkdm->pwrdm->prcm_offs, PM_PWSTCTRL);
++				    clkdm->pwrdm.ptr->prcm_offs, PM_PWSTCTRL);
+ 
+ 	} else if (cpu_is_omap34xx()) {
+ 
+@@ -388,7 +382,7 @@ int omap2_clkdm_sleep(struct clockdomain *clkdm)
+ 			 __ffs(clkdm->clktrctrl_mask));
+ 
+ 		cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask, v,
+-				    clkdm->pwrdm->prcm_offs, CM_CLKSTCTRL);
++				    clkdm->pwrdm.ptr->prcm_offs, CM_CLKSTCTRL);
+ 
+ 	} else {
+ 		BUG();
+@@ -422,7 +416,7 @@ int omap2_clkdm_wakeup(struct clockdomain *clkdm)
+ 	if (cpu_is_omap24xx()) {
+ 
+ 		cm_clear_mod_reg_bits(OMAP24XX_FORCESTATE,
+-				      clkdm->pwrdm->prcm_offs, PM_PWSTCTRL);
++				      clkdm->pwrdm.ptr->prcm_offs, PM_PWSTCTRL);
+ 
+ 	} else if (cpu_is_omap34xx()) {
+ 
+@@ -430,7 +424,7 @@ int omap2_clkdm_wakeup(struct clockdomain *clkdm)
+ 			 __ffs(clkdm->clktrctrl_mask));
+ 
+ 		cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask, v,
+-				    clkdm->pwrdm->prcm_offs, CM_CLKSTCTRL);
++				    clkdm->pwrdm.ptr->prcm_offs, CM_CLKSTCTRL);
+ 
+ 	} else {
+ 		BUG();
+@@ -478,7 +472,7 @@ void omap2_clkdm_allow_idle(struct clockdomain *clkdm)
+ 
+ 	cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask,
+ 			    v << __ffs(clkdm->clktrctrl_mask),
+-			    clkdm->pwrdm->prcm_offs,
++			    clkdm->pwrdm.ptr->prcm_offs,
+ 			    CM_CLKSTCTRL);
+ }
+ 
+@@ -516,7 +510,7 @@ void omap2_clkdm_deny_idle(struct clockdomain *clkdm)
+ 
+ 	cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask,
+ 			    v << __ffs(clkdm->clktrctrl_mask),
+-			    clkdm->pwrdm->prcm_offs, CM_CLKSTCTRL);
++			    clkdm->pwrdm.ptr->prcm_offs, CM_CLKSTCTRL);
+ 
+ 	if (atomic_read(&clkdm->usecount) > 0)
+ 		_clkdm_del_autodeps(clkdm);
+diff --git a/arch/arm/mach-omap2/clockdomains.h b/arch/arm/mach-omap2/clockdomains.h
+index cd86dcc..e17c369 100644
+--- a/arch/arm/mach-omap2/clockdomains.h
++++ b/arch/arm/mach-omap2/clockdomains.h
+@@ -19,7 +19,7 @@
+ /* This is an implicit clockdomain - it is never defined as such in TRM */
+ static struct clockdomain wkup_clkdm = {
+ 	.name		= "wkup_clkdm",
+-	.pwrdm_name	= "wkup_pwrdm",
++	.pwrdm		= { .name = "wkup_pwrdm" },
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430),
  };
  
- static int __init omap_cpufreq_init(void)
-@@ -119,3 +161,11 @@ static int __init omap_cpufreq_init(void)
- }
+@@ -31,7 +31,7 @@ static struct clockdomain wkup_clkdm = {
  
- arch_initcall(omap_cpufreq_init);
-+
-+/*
-+ * if ever we want to remove this, upon cleanup call:
-+ *
-+ * cpufreq_unregister_driver()
-+ * cpufreq_frequency_table_put_attr()
-+ */
-+
-diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
-index e32937b..d78d3a7 100644
---- a/arch/arm/plat-omap/include/mach/clock.h
-+++ b/arch/arm/plat-omap/include/mach/clock.h
-@@ -121,6 +121,9 @@ extern void clk_allow_idle(struct clk *clk);
- extern void clk_deny_idle(struct clk *clk);
- extern int clk_get_usecount(struct clk *clk);
- extern void clk_enable_init_clocks(void);
-+#ifdef CONFIG_CPU_FREQ
-+extern void clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
-+#endif
+ static struct clockdomain mpu_2420_clkdm = {
+ 	.name		= "mpu_clkdm",
+-	.pwrdm_name	= "mpu_pwrdm",
++	.pwrdm		= { .name = "mpu_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP,
+ 	.clktrctrl_mask = OMAP24XX_AUTOSTATE_MPU_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+@@ -39,7 +39,7 @@ static struct clockdomain mpu_2420_clkdm = {
  
- /* Clock flags */
- #define RATE_CKCTL		(1 << 0)	/* Main fixed ratio clocks */
+ static struct clockdomain iva1_2420_clkdm = {
+ 	.name		= "iva1_clkdm",
+-	.pwrdm_name	= "dsp_pwrdm",
++	.pwrdm		= { .name = "dsp_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+ 	.clktrctrl_mask = OMAP2420_AUTOSTATE_IVA_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+@@ -56,7 +56,7 @@ static struct clockdomain iva1_2420_clkdm = {
+ 
+ static struct clockdomain mpu_2430_clkdm = {
+ 	.name		= "mpu_clkdm",
+-	.pwrdm_name	= "mpu_pwrdm",
++	.pwrdm		= { .name = "mpu_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+ 	.clktrctrl_mask = OMAP24XX_AUTOSTATE_MPU_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+@@ -64,7 +64,7 @@ static struct clockdomain mpu_2430_clkdm = {
+ 
+ static struct clockdomain mdm_clkdm = {
+ 	.name		= "mdm_clkdm",
+-	.pwrdm_name	= "mdm_pwrdm",
++	.pwrdm		= { .name = "mdm_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+ 	.clktrctrl_mask = OMAP2430_AUTOSTATE_MDM_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+@@ -81,7 +81,7 @@ static struct clockdomain mdm_clkdm = {
+ 
+ static struct clockdomain dsp_clkdm = {
+ 	.name		= "dsp_clkdm",
+-	.pwrdm_name	= "dsp_pwrdm",
++	.pwrdm		= { .name = "dsp_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+ 	.clktrctrl_mask = OMAP24XX_AUTOSTATE_DSP_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX),
+@@ -89,7 +89,7 @@ static struct clockdomain dsp_clkdm = {
+ 
+ static struct clockdomain gfx_24xx_clkdm = {
+ 	.name		= "gfx_clkdm",
+-	.pwrdm_name	= "gfx_pwrdm",
++	.pwrdm		= { .name = "gfx_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+ 	.clktrctrl_mask = OMAP24XX_AUTOSTATE_GFX_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX),
+@@ -97,7 +97,7 @@ static struct clockdomain gfx_24xx_clkdm = {
+ 
+ static struct clockdomain core_l3_24xx_clkdm = {
+ 	.name		= "core_l3_clkdm",
+-	.pwrdm_name	= "core_pwrdm",
++	.pwrdm		= { .name = "core_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP,
+ 	.clktrctrl_mask = OMAP24XX_AUTOSTATE_L3_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX),
+@@ -105,7 +105,7 @@ static struct clockdomain core_l3_24xx_clkdm = {
+ 
+ static struct clockdomain core_l4_24xx_clkdm = {
+ 	.name		= "core_l4_clkdm",
+-	.pwrdm_name	= "core_pwrdm",
++	.pwrdm		= { .name = "core_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP,
+ 	.clktrctrl_mask = OMAP24XX_AUTOSTATE_L4_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX),
+@@ -113,7 +113,7 @@ static struct clockdomain core_l4_24xx_clkdm = {
+ 
+ static struct clockdomain dss_24xx_clkdm = {
+ 	.name		= "dss_clkdm",
+-	.pwrdm_name	= "core_pwrdm",
++	.pwrdm		= { .name = "core_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP,
+ 	.clktrctrl_mask = OMAP24XX_AUTOSTATE_DSS_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX),
+@@ -130,7 +130,7 @@ static struct clockdomain dss_24xx_clkdm = {
+ 
+ static struct clockdomain mpu_34xx_clkdm = {
+ 	.name		= "mpu_clkdm",
+-	.pwrdm_name	= "mpu_pwrdm",
++	.pwrdm		= { .name = "mpu_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP | CLKDM_CAN_FORCE_WAKEUP,
+ 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_MPU_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+@@ -138,7 +138,7 @@ static struct clockdomain mpu_34xx_clkdm = {
+ 
+ static struct clockdomain neon_clkdm = {
+ 	.name		= "neon_clkdm",
+-	.pwrdm_name	= "neon_pwrdm",
++	.pwrdm		= { .name = "neon_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+ 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_NEON_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+@@ -146,7 +146,7 @@ static struct clockdomain neon_clkdm = {
+ 
+ static struct clockdomain iva2_clkdm = {
+ 	.name		= "iva2_clkdm",
+-	.pwrdm_name	= "iva2_pwrdm",
++	.pwrdm		= { .name = "iva2_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+ 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_IVA2_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+@@ -154,7 +154,7 @@ static struct clockdomain iva2_clkdm = {
+ 
+ static struct clockdomain gfx_3430es1_clkdm = {
+ 	.name		= "gfx_clkdm",
+-	.pwrdm_name	= "gfx_pwrdm",
++	.pwrdm		= { .name = "gfx_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+ 	.clktrctrl_mask = OMAP3430ES1_CLKTRCTRL_GFX_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1),
+@@ -162,7 +162,7 @@ static struct clockdomain gfx_3430es1_clkdm = {
+ 
+ static struct clockdomain sgx_clkdm = {
+ 	.name		= "sgx_clkdm",
+-	.pwrdm_name	= "sgx_pwrdm",
++	.pwrdm		= { .name = "sgx_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+ 	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_SGX_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
+@@ -177,7 +177,7 @@ static struct clockdomain sgx_clkdm = {
+  */
+ static struct clockdomain d2d_clkdm = {
+ 	.name		= "d2d_clkdm",
+-	.pwrdm_name	= "core_pwrdm",
++	.pwrdm		= { .name = "core_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP,
+ 	.clktrctrl_mask = OMAP3430ES1_CLKTRCTRL_D2D_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+@@ -185,7 +185,7 @@ static struct clockdomain d2d_clkdm = {
+ 
+ static struct clockdomain core_l3_34xx_clkdm = {
+ 	.name		= "core_l3_clkdm",
+-	.pwrdm_name	= "core_pwrdm",
++	.pwrdm		= { .name = "core_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP,
+ 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_L3_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+@@ -193,7 +193,7 @@ static struct clockdomain core_l3_34xx_clkdm = {
+ 
+ static struct clockdomain core_l4_34xx_clkdm = {
+ 	.name		= "core_l4_clkdm",
+-	.pwrdm_name	= "core_pwrdm",
++	.pwrdm		= { .name = "core_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP,
+ 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_L4_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+@@ -201,7 +201,7 @@ static struct clockdomain core_l4_34xx_clkdm = {
+ 
+ static struct clockdomain dss_34xx_clkdm = {
+ 	.name		= "dss_clkdm",
+-	.pwrdm_name	= "dss_pwrdm",
++	.pwrdm		= { .name = "dss_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+ 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_DSS_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+@@ -209,7 +209,7 @@ static struct clockdomain dss_34xx_clkdm = {
+ 
+ static struct clockdomain cam_clkdm = {
+ 	.name		= "cam_clkdm",
+-	.pwrdm_name	= "cam_pwrdm",
++	.pwrdm		= { .name = "cam_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+ 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_CAM_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+@@ -217,7 +217,7 @@ static struct clockdomain cam_clkdm = {
+ 
+ static struct clockdomain usbhost_clkdm = {
+ 	.name		= "usbhost_clkdm",
+-	.pwrdm_name	= "usbhost_pwrdm",
++	.pwrdm		= { .name = "usbhost_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+ 	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_USBHOST_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
+@@ -225,7 +225,7 @@ static struct clockdomain usbhost_clkdm = {
+ 
+ static struct clockdomain per_clkdm = {
+ 	.name		= "per_clkdm",
+-	.pwrdm_name	= "per_pwrdm",
++	.pwrdm		= { .name = "per_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+ 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_PER_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+@@ -233,7 +233,7 @@ static struct clockdomain per_clkdm = {
+ 
+ static struct clockdomain emu_clkdm = {
+ 	.name		= "emu_clkdm",
+-	.pwrdm_name	= "emu_pwrdm",
++	.pwrdm		= { .name = "emu_pwrdm" },
+ 	.flags		= CLKDM_CAN_ENABLE_AUTO | CLKDM_CAN_SWSUP,
+ 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_EMU_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+@@ -247,14 +247,16 @@ static struct clockdomain emu_clkdm = {
+ 
+ static struct clkdm_pwrdm_autodep clkdm_pwrdm_autodeps[] = {
+ 	{
+-		.pwrdm_name = "mpu_pwrdm",
++		.pwrdm	   = { .name = "mpu_pwrdm" },
+ 		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+ 	},
+ 	{
+-		.pwrdm_name = "iva2_pwrdm",
++		.pwrdm	   = { .name = "iva2_pwrdm" },
+ 		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+ 	},
+-	{ NULL }
++	{
++		.pwrdm	   = { .name = NULL },
++	}
+ };
+ 
+ /*
+diff --git a/arch/arm/plat-omap/include/mach/clockdomain.h b/arch/arm/plat-omap/include/mach/clockdomain.h
+index 1f51f01..b9d0dd2 100644
+--- a/arch/arm/plat-omap/include/mach/clockdomain.h
++++ b/arch/arm/plat-omap/include/mach/clockdomain.h
+@@ -1,5 +1,5 @@
+ /*
+- * linux/include/asm-arm/arch-omap/clockdomain.h
++ * arch/arm/plat-omap/include/mach/clockdomain.h
+  *
+  * OMAP2/3 clockdomain framework functions
+  *
+@@ -48,11 +48,13 @@
+  */
+ struct clkdm_pwrdm_autodep {
+ 
+-	/* Name of the powerdomain to add a wkdep/sleepdep on */
+-	const char *pwrdm_name;
++	union {
++		/* Name of the powerdomain to add a wkdep/sleepdep on */
++		const char *name;
+ 
+-	/* Powerdomain pointer (looked up at clkdm_init() time) */
+-	struct powerdomain *pwrdm;
++		/* Powerdomain pointer (looked up at clkdm_init() time) */
++		struct powerdomain *ptr;
++	} pwrdm;
+ 
+ 	/* OMAP chip types that this clockdomain dep is valid on */
+ 	const struct omap_chip_id omap_chip;
+@@ -64,8 +66,13 @@ struct clockdomain {
+ 	/* Clockdomain name */
+ 	const char *name;
+ 
+-	/* Powerdomain enclosing this clockdomain */
+-	const char *pwrdm_name;
++	union {
++		/* Powerdomain enclosing this clockdomain */
++		const char *name;
++
++		/* Powerdomain pointer assigned at clkdm_register() */
++		struct powerdomain *ptr;
++	} pwrdm;
+ 
+ 	/* CLKTRCTRL/AUTOSTATE field mask in CM_CLKSTCTRL reg */
+ 	const u16 clktrctrl_mask;
+@@ -79,9 +86,6 @@ struct clockdomain {
+ 	/* Usecount tracking */
+ 	atomic_t usecount;
+ 
+-	/* Powerdomain pointer assigned at clkdm_register() */
+-	struct powerdomain *pwrdm;
+-
+ 	struct list_head node;
+ 
+ };
 
 
