@@ -1,23 +1,25 @@
 From: "Arun KS" <arunks@mistralsolutions.com>
 Subject: [PATCH 1/5 v2] ASoC Add TLV320AIC23 codec driver
-Date: Thu, 2 Oct 2008 14:45:49 +0530
-Message-ID: <dfeb90390810020215y605ce8a4v43331cb852bd6018@mail.gmail.com>
+Date: Thu, 2 Oct 2008 14:55:27 +0530
+Message-ID: <dfeb90390810020225h2e5e33a5jc4b71816bda0c21e@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="----=_Part_68102_21886253.1222938949983"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.238]:13782 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753031AbYJBJPv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Oct 2008 05:15:51 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so1046131rvb.1
-        for <linux-omap@vger.kernel.org>; Thu, 02 Oct 2008 02:15:50 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+	boundary="----=_Part_68167_8509622.1222939527323"
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
 To: alsa-devel@alsa-project.org
-Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@nokia.com>, troy.kisky@boundarydevices.com, felipe.balbi@nokia.com
+Cc: felipe.balbi@nokia.com, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@nokia.com>, troy.kisky@boundarydevices.com
+List-Id: linux-omap@vger.kernel.org
 
-------=_Part_68102_21886253.1222938949983
+------=_Part_68167_8509622.1222939527323
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
@@ -884,11 +886,11 @@ index 0000000..79d1faf
 -- 
 1.5.3.4
 
-------=_Part_68102_21886253.1222938949983
+------=_Part_68167_8509622.1222939527323
 Content-Type: text/x-patch;
  name=0001-ASoC-Add-TLV320AIC23-codec-driver.patch
 Content-Transfer-Encoding: base64
-X-Attachment-Id: f_flt69wlm0
+X-Attachment-Id: f_flt6lnwa0
 Content-Disposition: attachment;
  filename=0001-ASoC-Add-TLV320AIC23-codec-driver.patch
 
@@ -1338,4 +1340,15 @@ RVRPTkVfMTIJCTB4MDgwCisjZGVmaW5lIFRMVjMyMEFJQzIzX1NJREVUT05FXzE4CQkweDBjMAor
 CitleHRlcm4gc3RydWN0IHNuZF9zb2NfZGFpIHRsdjMyMGFpYzIzX2RhaTsKK2V4dGVybiBzdHJ1
 Y3Qgc25kX3NvY19jb2RlY19kZXZpY2Ugc29jX2NvZGVjX2Rldl90bHYzMjBhaWMyMzsKKworI2Vu
 ZGlmIC8qIF9UTFYzMjBBSUMyM19IICovCi0tIAoxLjUuMy40Cgo=
-------=_Part_68102_21886253.1222938949983--
+------=_Part_68167_8509622.1222939527323
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Alsa-devel mailing list
+Alsa-devel@alsa-project.org
+http://mailman.alsa-project.org/mailman/listinfo/alsa-devel
+
+------=_Part_68167_8509622.1222939527323--
