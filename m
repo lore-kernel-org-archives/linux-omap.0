@@ -1,190 +1,249 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [patch twl 2/2] remove <linux/i2c/twl4030-pwrirq.h>
-Date: Thu, 2 Oct 2008 12:05:45 +0300
-Message-ID: <20081002090545.GI7412@gandalf.research.nokia.com>
-References: <200810012345.19043.david-b@pacbell.net>
-Reply-To: felipe.balbi@nokia.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Timo Karjalainen <timo.o.karjalainen@nokia.com>
+Subject: [PATCH] lm8323 pwm fixes
+Date: Thu,  2 Oct 2008 12:07:22 +0300
+Message-ID: <1222938442-2805-1-git-send-email-timo.o.karjalainen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:26348 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752781AbYJBJGV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Oct 2008 05:06:21 -0400
-Content-Disposition: inline
-In-Reply-To: <200810012345.19043.david-b@pacbell.net>
+Received: from smtp.nokia.com ([192.100.122.233]:41979 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752939AbYJBJHe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Oct 2008 05:07:34 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9297TY5022219
+	for <linux-omap@vger.kernel.org>; Thu, 2 Oct 2008 12:07:31 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Timo Karjalainen <timo.o.karjalainen@nokia.com>, Daniel Stone <daniel.stone@nokia.com>
 
-On Wed, Oct 01, 2008 at 11:45:18PM -0700, David Brownell wrote:
-> From: David Brownell <dbrownell@users.sourceforge.net>
-> 
-> Get rid of another needless TWL header file:  twl4030-pwrirq.h
-> can easily live in twl4030.h; updating its three users.
-> 
-> Also switch to the shared definition of the SIH_CTRL COR bit,
-> remove useless-to-non-driver MODULE_ALIAS(), and add a note
-> about a but that will appear if anyone ever removes this code.
-> 
-> No functional changes, just shrinkage.
-> 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+This patch fixes two problems in LM8323 PWM control. One is that
+locking is needed when setting and reading pwm->desired_brightness
+asynchronously. The other is that LM8323 may stop a PWM script only
+after the current instruction has finished. If it is a long RAMP,
+the chip would keep executing the old instruction and new
+settings were effectively ignored.
 
-Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+Signed-off-by: Timo Karjalainen <timo.o.karjalainen@nokia.com>
+Signed-off-by: Daniel Stone <daniel.stone@nokia.com>
+---
+ drivers/input/keyboard/lm8323.c |  129 +++++++++++++++++++++------------------
+ 1 files changed, 69 insertions(+), 60 deletions(-)
 
-> ---
-> This leaves only <linux/i2c/twl4030-madc.h> as "extra" yet
-> associated with the TWL core code.  It's got all kinds of
-> stuff; maybe someone else could split that up, making sure
-> ioctl bits get properly exported by "make headers_install".
-> 
->  drivers/i2c/chips/twl4030-pwrirq.c |   13 +++++------
->  drivers/mfd/twl4030-core.c         |    1 
->  drivers/rtc/rtc-twl4030.c          |    1 
->  include/linux/i2c/twl4030-pwrirq.h |   39 -----------------------------------
->  include/linux/i2c/twl4030.h        |   15 +++++++++++++
->  5 files changed, 21 insertions(+), 48 deletions(-)
-> 
-> --- a/drivers/i2c/chips/twl4030-pwrirq.c
-> +++ b/drivers/i2c/chips/twl4030-pwrirq.c
-> @@ -27,9 +27,7 @@
->  #include <linux/random.h>
->  #include <linux/kthread.h>
->  #include <linux/i2c/twl4030.h>
-> -#include <linux/i2c/twl4030-pwrirq.h>
->  
-> -#define PWR_SIH_CTRL_COR (1<<2)
->  
->  static u8 twl4030_pwrirq_mask;
->  static u8 twl4030_pwrirq_pending_unmask;
-> @@ -177,8 +175,9 @@ static int __init twl4030_pwrirq_init(vo
->  
->  	/* Enable clear on read */
->  
-> -	err = twl4030_i2c_write_u8(TWL4030_MODULE_INT, PWR_SIH_CTRL_COR,
-> -				   TWL4030_INT_PWR_SIH_CTRL);
-> +	err = twl4030_i2c_write_u8(TWL4030_MODULE_INT,
-> +				TWL4030_SIH_CTRL_COR_MASK,
-> +				TWL4030_INT_PWR_SIH_CTRL);
->  	if (err)
->  		return err;
->  
-> @@ -201,12 +200,15 @@ static int __init twl4030_pwrirq_init(vo
->  
->  	return 0;
->  }
-> +subsys_initcall(twl4030_pwrirq_init);
->  
->  static void __exit twl4030_pwrirq_exit(void)
->  {
->  
->  	int i;
->  
-> +	/* FIXME the irqs are left enabled; trouble when they arrive... */
-> +
->  	set_irq_handler(TWL4030_MODIRQ_PWR, NULL);
->  	set_irq_flags(TWL4030_MODIRQ_PWR, 0);
->  
-> @@ -220,7 +222,4 @@ static void __exit twl4030_pwrirq_exit(v
->  		twl4030_pwrirq_unmask_thread = NULL;
->  	}
->  }
-> -
-> -MODULE_ALIAS("i2c:twl4030-pwrirq");
-> -subsys_initcall(twl4030_pwrirq_init);
->  module_exit(twl4030_pwrirq_exit);
-> --- a/drivers/mfd/twl4030-core.c
-> +++ b/drivers/mfd/twl4030-core.c
-> @@ -40,7 +40,6 @@
->  #include <linux/i2c.h>
->  #include <linux/i2c/twl4030.h>
->  #include <linux/i2c/twl4030-madc.h>
-> -#include <linux/i2c/twl4030-pwrirq.h>
->  
->  #define DRIVER_NAME			"twl4030"
->  
-> --- a/drivers/rtc/rtc-twl4030.c
-> +++ b/drivers/rtc/rtc-twl4030.c
-> @@ -28,7 +28,6 @@
->  #include <linux/interrupt.h>
->  
->  #include <linux/i2c/twl4030.h>
-> -#include <linux/i2c/twl4030-pwrirq.h>
->  
->  
->  /*
-> --- a/include/linux/i2c/twl4030-pwrirq.h
-> +++ /dev/null
-> @@ -1,39 +0,0 @@
-> -/*
-> - * twl4030-pwrirq.h - header for TWL4030 power interrupts
-> - *
-> - * Copyright (C) 2008 Texas Instruments, Inc.
-> - * Copyright (C) 2008 Nokia Corporation
-> - *
-> - * This program is free software; you can redistribute it and/or modify
-> - * it under the terms of the GNU General Public License as published by
-> - * the Free Software Foundation; either version 2 of the License, or
-> - * (at your option) any later version.
-> - *
-> - * This program is distributed in the hope that it will be useful,
-> - * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> - * GNU General Public License for more details.
-> - *
-> - * You should have received a copy of the GNU General Public License
-> - * along with this program; if not, write to the Free Software
-> - * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-> - *
-> - */
-> -
-> -#ifndef __TWL4030_PWRIRQ_H_
-> -#define __TWL4030_PWRIRQ_H_
-> -
-> -/*
-> - * Power Interrupt block register offsets (use TWL4030_MODULE_INT)
-> - */
-> -
-> -#define TWL4030_INT_PWR_ISR1		0x0
-> -#define TWL4030_INT_PWR_IMR1		0x1
-> -#define TWL4030_INT_PWR_ISR2		0x2
-> -#define TWL4030_INT_PWR_IMR2		0x3
-> -#define TWL4030_INT_PWR_SIR		0x4	/* test register */
-> -#define TWL4030_INT_PWR_EDR1		0x5
-> -#define TWL4030_INT_PWR_EDR2		0x6
-> -#define TWL4030_INT_PWR_SIH_CTRL	0x7
-> -
-> -#endif /* End of __TWL4030_PWRIRQ_H */
-> --- a/include/linux/i2c/twl4030.h
-> +++ b/include/linux/i2c/twl4030.h
-> @@ -152,6 +152,21 @@ int twl4030_i2c_read(u8 mod_no, u8 *valu
->  
->  /*----------------------------------------------------------------------*/
->  
-> +/*
-> + * Power Interrupt block register offsets (use TWL4030_MODULE_INT)
-> + */
-> +
-> +#define TWL4030_INT_PWR_ISR1		0x0
-> +#define TWL4030_INT_PWR_IMR1		0x1
-> +#define TWL4030_INT_PWR_ISR2		0x2
-> +#define TWL4030_INT_PWR_IMR2		0x3
-> +#define TWL4030_INT_PWR_SIR		0x4	/* test register */
-> +#define TWL4030_INT_PWR_EDR1		0x5
-> +#define TWL4030_INT_PWR_EDR2		0x6
-> +#define TWL4030_INT_PWR_SIH_CTRL	0x7
-> +
-> +/*----------------------------------------------------------------------*/
-> +
->  struct twl4030_bci_platform_data {
->  	int *battery_tmp_tbl;
->  	unsigned int tblsize;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+diff --git a/drivers/input/keyboard/lm8323.c b/drivers/input/keyboard/lm8323.c
+index 72bb587..342ef6a 100644
+--- a/drivers/input/keyboard/lm8323.c
++++ b/drivers/input/keyboard/lm8323.c
+@@ -141,6 +141,8 @@ struct lm8323_pwm {
+ 	int			fade_time;
+ 	int			brightness;
+ 	int			desired_brightness;
++	int			running;
++	struct mutex		lock;
+ 	struct work_struct	work;
+ 	struct led_classdev	cdev;
+ };
+@@ -384,6 +386,15 @@ static int lm8323_configure(struct lm8323_chip *lm)
+ 	return 0;
+ }
+ 
++static void pwm_done(struct lm8323_pwm *pwm)
++{
++	mutex_lock(&pwm->lock);
++	pwm->running = 0;
++	if (pwm->desired_brightness != pwm->brightness)
++		schedule_work(&pwm->work);
++	mutex_unlock(&pwm->lock);
++}
++
+ /*
+  * Bottom half: handle the interrupt by posting key events, or dealing with
+  * errors appropriately.
+@@ -411,12 +422,18 @@ static void lm8323_work(struct work_struct *work)
+ 						  "reinitialising\n");
+ 			lm8323_configure(lm);
+ 		}
+-		if (ints & INT_PWM1)
++		if (ints & INT_PWM1) {
+ 			debug(&lm->client->dev, "pwm1 engine completed\n");
+-		if (ints & INT_PWM2)
++			pwm_done(&lm->pwm1);
++		}
++		if (ints & INT_PWM2) {
+ 			debug(&lm->client->dev, "pwm2 engine completed\n");
+-		if (ints & INT_PWM3)
++			pwm_done(&lm->pwm2);
++		}
++		if (ints & INT_PWM3) {
+ 			debug(&lm->client->dev, "pwm3 engine completed\n");
++			pwm_done(&lm->pwm3);
++		}
+ 	}
+ 
+ 	mutex_unlock(&lm->lock);
+@@ -458,92 +475,80 @@ static void lm8323_write_pwm_one(struct lm8323_pwm *pwm, int pos, u16 cmd)
+ 
+ /*
+  * Write a script into a given PWM engine, concluding with PWM_END.
+- * If 'keepalive' is specified, the engine will be kept running
+- * indefinitely.
++ * If 'kill' is nonzero, the engine will be shut down at the end
++ * of the script, producing a zero output. Otherwise the engine
++ * will be kept running at the final PWM level indefinitely.
+  */
+-static void lm8323_write_pwm(struct lm8323_pwm *pwm, int keepalive,
+-			     int len, ...)
++static void lm8323_write_pwm(struct lm8323_pwm *pwm, int kill,
++			     int len, const u16 *cmds)
+ {
+ 	struct lm8323_chip *lm = pwm_to_lm8323(pwm);
+-	int i, cmd;
+-	va_list ap;
+-
+-	/*
+-	 * If there are any scripts running at the moment, terminate them
+-	 * and make sure the duty cycle is as if it finished.
+-	 */
+-	lm8323_write(lm, 2, LM8323_CMD_STOP_PWM, pwm->id);
+-
+-	va_start(ap, len);
+-	for (i = 0; i < len; i++) {
+-		cmd = va_arg(ap, int);
+-		lm8323_write_pwm_one(pwm, i, cmd);
+-	}
+-	va_end(ap);
++	int i;
+ 
+-	/* Wait for a trigger from any channel. This keeps the engine alive. */
+-	if (keepalive)
+-		lm8323_write_pwm_one(pwm, i++, PWM_WAIT_TRIG(0xe));
+-	else
+-		lm8323_write_pwm_one(pwm, i++, PWM_END(1));
++	for (i = 0; i < len; i++)
++		lm8323_write_pwm_one(pwm, i, cmds[i]);
+ 
++	lm8323_write_pwm_one(pwm, i++, PWM_END(kill));
+ 	lm8323_write(lm, 2, LM8323_CMD_START_PWM, pwm->id);
++	pwm->running = 1;
+ }
+ 
+ static void lm8323_pwm_work(struct work_struct *work)
+ {
+ 	struct lm8323_pwm *pwm = work_to_pwm(work);
+-	int div, perstep, steps, hz, direction, keepalive;
++	int div512, perstep, steps, hz, up, kill;
++	u16 pwm_cmds[3];
++	int num_cmds = 0;
++
++	mutex_lock(&pwm->lock);
+ 
+-	/* Do nothing if we're already at the requested level. */
+-	if (pwm->desired_brightness == pwm->brightness)
++	/*
++	 * Do nothing if we're already at the requested level,
++	 * or previous setting is not yet complete. In the latter
++	 * case we will be called again when the previous PWM script
++	 * finishes.
++	 */
++	if (pwm->running || pwm->desired_brightness == pwm->brightness) {
++		mutex_unlock(&pwm->lock);
+ 		return;
++	}
+ 
+-	keepalive = (pwm->desired_brightness > 0);
+-	direction = (pwm->desired_brightness > pwm->brightness);
++	kill = (pwm->desired_brightness == 0);
++	up = (pwm->desired_brightness > pwm->brightness);
+ 	steps = abs(pwm->desired_brightness - pwm->brightness);
+ 
+ 	/*
+ 	 * Convert time (in ms) into a divisor (512 or 16 on a refclk of
+ 	 * 32768Hz), and number of ticks per step.
+ 	 */
+-	if ((pwm->fade_time / steps) > (32768 / 512))
+-		div = 512;
+-	else
+-		div = 16;
++	if ((pwm->fade_time / steps) > (32768 / 512)) {
++		div512 = 1;
++		hz = 32768 / 512;
++	}
++	else {
++		div512 = 0;
++		hz = 32768 / 16;
++	}
+ 
+-	hz = 32768 / div;
+-	if (pwm->fade_time < ((steps * 1000) / hz))
+-		perstep = 1;
+-	else
+-		perstep = (hz * pwm->fade_time) / (steps * 1000);
++	perstep = (hz * pwm->fade_time) / (steps * 1000);
+ 
+ 	if (perstep == 0)
+ 		perstep = 1;
+ 	else if (perstep > 63)
+ 		perstep = 63;
+ 
+-	if (steps > 252) {
+-		lm8323_write_pwm(pwm, keepalive, 3,
+-				 PWM_RAMP((div == 512), perstep, 126,
+-					  direction),
+-				 PWM_RAMP((div == 512), perstep, 126,
+-					  direction),
+-				 PWM_RAMP((div == 512), perstep, steps - 252,
+-					  direction));
+-	} else if (steps > 126) {
+-		lm8323_write_pwm(pwm, keepalive, 2,
+-				 PWM_RAMP((div == 512), perstep, 126,
+-					  direction),
+-				 PWM_RAMP((div == 512), perstep, steps - 126,
+-					  direction));
+-	} else {
+-		lm8323_write_pwm(pwm, keepalive, 1,
+-				 PWM_RAMP((div == 512), perstep, steps,
+-					  direction));
++	while (steps) {
++		int s;
++
++		s = min(126, steps);
++		pwm_cmds[num_cmds++] = PWM_RAMP(div512, perstep, s, up);
++		steps -= s;
+ 	}
+ 
++	lm8323_write_pwm(pwm, kill, num_cmds, pwm_cmds);
++
+ 	pwm->brightness = pwm->desired_brightness;
++	mutex_unlock(&pwm->lock);
+ }
+ 
+ static void lm8323_pwm_set_brightness(struct led_classdev *led_cdev,
+@@ -552,7 +557,9 @@ static void lm8323_pwm_set_brightness(struct led_classdev *led_cdev,
+ 	struct lm8323_pwm *pwm = cdev_to_pwm(led_cdev);
+ 	struct lm8323_chip *lm = pwm_to_lm8323(pwm);
+ 
++	mutex_lock(&pwm->lock);
+ 	pwm->desired_brightness = brightness;
++	mutex_unlock(&pwm->lock);
+ 
+ 	if (in_interrupt()) {
+ 		schedule_work(&pwm->work);
+@@ -620,6 +627,8 @@ static int init_pwm(struct lm8323_chip *lm, int id, struct device *dev,
+ 	pwm->fade_time = 0;
+ 	pwm->brightness = 0;
+ 	pwm->desired_brightness = 0;
++	pwm->running = 0;
++	mutex_init(&pwm->lock);
+ 	if (name) {
+ 		pwm->cdev.name = name;
+ 		pwm->cdev.brightness_set = lm8323_pwm_set_brightness;
+@@ -917,7 +926,7 @@ static void __exit lm8323_exit(void)
+ 	i2c_del_driver(&lm8323_i2c_driver);
+ }
+ 
+-MODULE_AUTHOR("Daniel Stone");
++MODULE_AUTHOR("Timo O. Karjalainen <timo.o.karjalainen@nokia.com>, Daniel Stone");
+ MODULE_DESCRIPTION("LM8323 keypad driver");
+ MODULE_LICENSE("GPL");
+ 
 -- 
-balbi
+1.6.0
+
