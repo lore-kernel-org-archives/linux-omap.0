@@ -1,100 +1,38 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [patch 2.6.27-rc7-omap1-git 1/2] twl4030-core: move to
-	drivers/mfd
-Date: Thu, 2 Oct 2008 12:07:57 +0300
-Message-ID: <20081002090757.GJ7412@gandalf.research.nokia.com>
-References: <200810011947.55057.david-b@pacbell.net>
-Reply-To: felipe.balbi@nokia.com
+From: "Arun KS" <arunks@mistralsolutions.com>
+Subject: [PATCH 0/5 v2] ASoC Add TLV320AIC23 codec driver
+Date: Thu, 2 Oct 2008 14:41:51 +0530
+Message-ID: <dfeb90390810020211w46654179w9d4ccd8214b74bca@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:42072 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753082AbYJBJIR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Oct 2008 05:08:17 -0400
+Received: from rv-out-0506.google.com ([209.85.198.224]:11459 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753038AbYJBJLy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Oct 2008 05:11:54 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so1044844rvb.1
+        for <linux-omap@vger.kernel.org>; Thu, 02 Oct 2008 02:11:51 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <200810011947.55057.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org
+To: alsa-devel@alsa-project.org
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, troy.kisky@boundarydevices.com, Jarkko Nikula <jarkko.nikula@nokia.com>, felipe.balbi@nokia.com
 
-On Wed, Oct 01, 2008 at 07:47:54PM -0700, David Brownell wrote:
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Hi all,
 
-I suppose this first one should be From:
+This is the next version of patches for tlv320aic23 codec.
 
-> -static void __init twl4030_mask_clear_intrs(const struct twl4030_mod_iregs *t,
-> -					    const u8 t_sz)
-> -{
-> -	int i, j;
-> -
-> -	/*
-> -	 * N.B. - further efficiency is possible here.  Eight I2C
-> -	 * operations on BCI and GPIO modules are avoidable if I2C
-> -	 * burst read/write transactions were implemented.  Would
-> -	 * probably save about 1ms of boot time and a small amount of
-> -	 * power.
-> -	 */
-> -	for (i = 0; i < t_sz; i++) {
-> -		const struct twl4030_mod_iregs tmr = t[i];
-> -		int cor;
-> -
-> -		/* Are ISRs cleared by reads or writes? */
-> -		cor = twl4030_read_cor_bit(tmr.mod_no, tmr.sih_ctrl);
-> -		WARN_ON(cor < 0);
-> -
-> -		for (j = 0; j < tmr.reg_cnt; j++) {
-> -
-> -			/* Mask interrupts at the TWL4030 */
-> -			WARN_ON(twl4030_i2c_write_u8(tmr.mod_no, 0xff,
-> -						     tmr.imrs[j]) < 0);
-> -
-> -			/* Clear TWL4030 ISRs */
-> -			WARN_ON(twl4030_i2c_clear_isr(tmr.mod_no,
-> -						      tmr.isrs[j], cor) < 0);
-> -		}
-> -	}
-> -
-> -	return;
+Only patch 1 and 2 are different from their version 1 counterparts.
 
-this return can be removed.
+Changes:
+------------
 
-> +static void __init twl4030_mask_clear_intrs(const struct twl4030_mod_iregs *t,
-> +					    const u8 t_sz)
-> +{
-> +	int i, j;
-> +
-> +	/*
-> +	 * N.B. - further efficiency is possible here.  Eight I2C
-> +	 * operations on BCI and GPIO modules are avoidable if I2C
-> +	 * burst read/write transactions were implemented.  Would
-> +	 * probably save about 1ms of boot time and a small amount of
-> +	 * power.
-> +	 */
-> +	for (i = 0; i < t_sz; i++) {
-> +		const struct twl4030_mod_iregs tmr = t[i];
-> +		int cor;
-> +
-> +		/* Are ISRs cleared by reads or writes? */
-> +		cor = twl4030_read_cor_bit(tmr.mod_no, tmr.sih_ctrl);
-> +		WARN_ON(cor < 0);
-> +
-> +		for (j = 0; j < tmr.reg_cnt; j++) {
-> +
-> +			/* Mask interrupts at the TWL4030 */
-> +			WARN_ON(twl4030_i2c_write_u8(tmr.mod_no, 0xff,
-> +						     tmr.imrs[j]) < 0);
-> +
-> +			/* Clear TWL4030 ISRs */
-> +			WARN_ON(twl4030_i2c_clear_isr(tmr.mod_no,
-> +						      tmr.isrs[j], cor) < 0);
-> +		}
-> +	}
-> +
-> +	return;
+Patch1 - Incorporated the comments from Mark Brown.
+Patch2- File name is changed to osk5912.c from 5912osk.c.
 
-also this one
+Thanks Troy Kisky for your help and time.
 
--- 
-balbi
+Since my mailer is word wrapping the patches, I am attaching them too.
+
+Thanks
+Arun
