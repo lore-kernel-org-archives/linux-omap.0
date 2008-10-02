@@ -1,118 +1,77 @@
 From: "Arun KS" <arunks@mistralsolutions.com>
-Subject: [PATCH 4/5 v2] ASOC adds destination and source port
-	for dma
-Date: Thu, 2 Oct 2008 15:05:49 +0530
-Message-ID: <dfeb90390810020235v429c35cen3e80abdac41d7cee@mail.gmail.com>
+Subject: [PATCH 5/5 v2] ASoC Adds DSP DAI format support for platform driver
+Date: Thu, 2 Oct 2008 15:07:06 +0530
+Message-ID: <dfeb90390810020237r2f5b0fbdpeced17effcfba3c@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="----=_Part_68205_33257011.1222940149516"
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org
-Cc: felipe.balbi@nokia.com, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@nokia.com>, troy.kisky@boundarydevices.com
+	boundary="----=_Part_68218_22594813.1222940226803"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from rv-out-0506.google.com ([209.85.198.235]:12291 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752429AbYJBJhH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Oct 2008 05:37:07 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so1053114rvb.1
+        for <linux-omap@vger.kernel.org>; Thu, 02 Oct 2008 02:37:06 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: alsa-devel@alsa-project.org
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@nokia.com>, felipe.balbi@nokia.com, troy.kisky@boundarydevices.com
 
-------=_Part_68205_33257011.1222940149516
+------=_Part_68218_22594813.1222940226803
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Adds destination and source port for dma in platform driver as
-required by OMAP1
+Enables DSP DAI format for mcbsp in omap platform driver
 
 Signed-off-by: Arun KS <arunks@mistralsolutions.com>
 ---
- sound/soc/omap/omap-pcm.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ sound/soc/omap/omap-mcbsp.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
-index 690bfea..e9084fd 100644
---- a/sound/soc/omap/omap-pcm.c
-+++ b/sound/soc/omap/omap-pcm.c
-@@ -97,7 +97,7 @@ static int omap_pcm_hw_params(struct
-snd_pcm_substream *substream,
- 	prtd->dma_data = dma_data;
- 	err = omap_request_dma(dma_data->dma_req, dma_data->name,
- 			       omap_pcm_dma_irq, substream, &prtd->dma_ch);
--	if (!cpu_is_omap1510()) {
-+	if (!err & !cpu_is_omap1510()) {
- 		/*
- 		 * Link channel with itself so DMA doesn't need any
- 		 * reprogramming while looping the buffer
-@@ -147,12 +147,14 @@ static int omap_pcm_prepare(struct
-snd_pcm_substream *substream)
- 		dma_params.src_or_dst_synch	= OMAP_DMA_DST_SYNC;
- 		dma_params.src_start		= runtime->dma_addr;
- 		dma_params.dst_start		= dma_data->port_addr;
-+		dma_params.dst_port		= OMAP_DMA_PORT_MPUI;
- 	} else {
- 		dma_params.src_amode		= OMAP_DMA_AMODE_CONSTANT;
- 		dma_params.dst_amode		= OMAP_DMA_AMODE_POST_INC;
- 		dma_params.src_or_dst_synch	= OMAP_DMA_SRC_SYNC;
- 		dma_params.src_start		= dma_data->port_addr;
- 		dma_params.dst_start		= runtime->dma_addr;
-+		dma_params.src_port		= OMAP_DMA_PORT_MPUI;
- 	}
- 	/*
- 	 * Set DMA transfer frame size equal to ALSA period size and frame
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index 35310e1..fb920e1 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -245,6 +245,11 @@ static int omap_mcbsp_dai_set_dai_fmt(struct
+snd_soc_dai *cpu_dai,
+ 		regs->rcr2	|= RDATDLY(1);
+ 		regs->xcr2	|= XDATDLY(1);
+ 		break;
++	case SND_SOC_DAIFMT_DSP_A:
++		/* 0-bit data delay */
++		regs->rcr2      |= RDATDLY(0);
++		regs->xcr2      |= XDATDLY(0);
++		break;
+ 	default:
+ 		/* Unsupported data format */
+ 		return -EINVAL;
 -- 
 1.5.3.4
 
-------=_Part_68205_33257011.1222940149516
+------=_Part_68218_22594813.1222940226803
 Content-Type: text/x-patch;
- name=0004-ASOC-adds-destination-and-source-port-for-dma.patch
+ name=0005-ASoC-Adds-DSP-DAI-format-support-for-platform-driver.patch
 Content-Transfer-Encoding: base64
-X-Attachment-Id: f_flt706p80
+X-Attachment-Id: f_flt71u1s0
 Content-Disposition: attachment;
- filename=0004-ASOC-adds-destination-and-source-port-for-dma.patch
+ filename=0005-ASoC-Adds-DSP-DAI-format-support-for-platform-driver.patch
 
-RnJvbSA5MzFmMjM5NjJhYjUxNmMxZjQ4NTA1YTlkNjUyZTc1M2QwMTA2OTU1IE1vbiBTZXAgMTcg
+RnJvbSAzZjNjMjUyNjI1MjM2YmQ3ZjNhM2M5NDk3NjlkNDFiMjZlZmJjODA1IE1vbiBTZXAgMTcg
 MDA6MDA6MDAgMjAwMQpGcm9tOiBBcnVuIEtTIDxhcnVua3NAbWlzdHJhbHNvbHV0aW9ucy5jb20+
-CkRhdGU6IFR1ZSwgMzAgU2VwIDIwMDggMTM6MjY6MTggKzA1MzAKU3ViamVjdDogW1BBVENIXSBB
-U09DIGFkZHMgZGVzdGluYXRpb24gYW5kIHNvdXJjZSBwb3J0IGZvciBkbWEKCkFkZHMgZGVzdGlu
-YXRpb24gYW5kIHNvdXJjZSBwb3J0IGZvciBkbWEgaW4gcGxhdGZvcm0gZHJpdmVyIGFzCnJlcXVp
-cmVkIGJ5IE9NQVAxCgpTaWduZWQtb2ZmLWJ5OiBBcnVuIEtTIDxhcnVua3NAbWlzdHJhbHNvbHV0
-aW9ucy5jb20+Ci0tLQogc291bmQvc29jL29tYXAvb21hcC1wY20uYyB8ICAgIDQgKysrLQogMSBm
-aWxlcyBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0
-IGEvc291bmQvc29jL29tYXAvb21hcC1wY20uYyBiL3NvdW5kL3NvYy9vbWFwL29tYXAtcGNtLmMK
-aW5kZXggNjkwYmZlYS4uZTkwODRmZCAxMDA2NDQKLS0tIGEvc291bmQvc29jL29tYXAvb21hcC1w
-Y20uYworKysgYi9zb3VuZC9zb2Mvb21hcC9vbWFwLXBjbS5jCkBAIC05Nyw3ICs5Nyw3IEBAIHN0
-YXRpYyBpbnQgb21hcF9wY21faHdfcGFyYW1zKHN0cnVjdCBzbmRfcGNtX3N1YnN0cmVhbSAqc3Vi
-c3RyZWFtLAogCXBydGQtPmRtYV9kYXRhID0gZG1hX2RhdGE7CiAJZXJyID0gb21hcF9yZXF1ZXN0
-X2RtYShkbWFfZGF0YS0+ZG1hX3JlcSwgZG1hX2RhdGEtPm5hbWUsCiAJCQkgICAgICAgb21hcF9w
-Y21fZG1hX2lycSwgc3Vic3RyZWFtLCAmcHJ0ZC0+ZG1hX2NoKTsKLQlpZiAoIWNwdV9pc19vbWFw
-MTUxMCgpKSB7CisJaWYgKCFlcnIgJiAhY3B1X2lzX29tYXAxNTEwKCkpIHsKIAkJLyoKIAkJICog
-TGluayBjaGFubmVsIHdpdGggaXRzZWxmIHNvIERNQSBkb2Vzbid0IG5lZWQgYW55CiAJCSAqIHJl
-cHJvZ3JhbW1pbmcgd2hpbGUgbG9vcGluZyB0aGUgYnVmZmVyCkBAIC0xNDcsMTIgKzE0NywxNCBA
-QCBzdGF0aWMgaW50IG9tYXBfcGNtX3ByZXBhcmUoc3RydWN0IHNuZF9wY21fc3Vic3RyZWFtICpz
-dWJzdHJlYW0pCiAJCWRtYV9wYXJhbXMuc3JjX29yX2RzdF9zeW5jaAk9IE9NQVBfRE1BX0RTVF9T
-WU5DOwogCQlkbWFfcGFyYW1zLnNyY19zdGFydAkJPSBydW50aW1lLT5kbWFfYWRkcjsKIAkJZG1h
-X3BhcmFtcy5kc3Rfc3RhcnQJCT0gZG1hX2RhdGEtPnBvcnRfYWRkcjsKKwkJZG1hX3BhcmFtcy5k
-c3RfcG9ydAkJPSBPTUFQX0RNQV9QT1JUX01QVUk7CiAJfSBlbHNlIHsKIAkJZG1hX3BhcmFtcy5z
-cmNfYW1vZGUJCT0gT01BUF9ETUFfQU1PREVfQ09OU1RBTlQ7CiAJCWRtYV9wYXJhbXMuZHN0X2Ft
-b2RlCQk9IE9NQVBfRE1BX0FNT0RFX1BPU1RfSU5DOwogCQlkbWFfcGFyYW1zLnNyY19vcl9kc3Rf
-c3luY2gJPSBPTUFQX0RNQV9TUkNfU1lOQzsKIAkJZG1hX3BhcmFtcy5zcmNfc3RhcnQJCT0gZG1h
-X2RhdGEtPnBvcnRfYWRkcjsKIAkJZG1hX3BhcmFtcy5kc3Rfc3RhcnQJCT0gcnVudGltZS0+ZG1h
-X2FkZHI7CisJCWRtYV9wYXJhbXMuc3JjX3BvcnQJCT0gT01BUF9ETUFfUE9SVF9NUFVJOwogCX0K
-IAkvKgogCSAqIFNldCBETUEgdHJhbnNmZXIgZnJhbWUgc2l6ZSBlcXVhbCB0byBBTFNBIHBlcmlv
-ZCBzaXplIGFuZCBmcmFtZQotLSAKMS41LjMuNAoK
-------=_Part_68205_33257011.1222940149516
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Alsa-devel mailing list
-Alsa-devel@alsa-project.org
-http://mailman.alsa-project.org/mailman/listinfo/alsa-devel
-
-------=_Part_68205_33257011.1222940149516--
+CkRhdGU6IFR1ZSwgMzAgU2VwIDIwMDggMTM6MzA6MTUgKzA1MzAKU3ViamVjdDogW1BBVENIXSBB
+U29DIEFkZHMgRFNQIERBSSBmb3JtYXQgc3VwcG9ydCBmb3IgcGxhdGZvcm0gZHJpdmVyCgpFbmFi
+bGVzIERTUCBEQUkgZm9ybWF0IGZvciBtY2JzcCBpbiBvbWFwIHBsYXRmb3JtIGRyaXZlcgoKU2ln
+bmVkLW9mZi1ieTogQXJ1biBLUyA8YXJ1bmtzQG1pc3RyYWxzb2x1dGlvbnMuY29tPgotLS0KIHNv
+dW5kL3NvYy9vbWFwL29tYXAtbWNic3AuYyB8ICAgIDUgKysrKysKIDEgZmlsZXMgY2hhbmdlZCwg
+NSBpbnNlcnRpb25zKCspLCAwIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL3NvdW5kL3NvYy9v
+bWFwL29tYXAtbWNic3AuYyBiL3NvdW5kL3NvYy9vbWFwL29tYXAtbWNic3AuYwppbmRleCAzNTMx
+MGUxLi5mYjkyMGUxIDEwMDY0NAotLS0gYS9zb3VuZC9zb2Mvb21hcC9vbWFwLW1jYnNwLmMKKysr
+IGIvc291bmQvc29jL29tYXAvb21hcC1tY2JzcC5jCkBAIC0yNDUsNiArMjQ1LDExIEBAIHN0YXRp
+YyBpbnQgb21hcF9tY2JzcF9kYWlfc2V0X2RhaV9mbXQoc3RydWN0IHNuZF9zb2NfZGFpICpjcHVf
+ZGFpLAogCQlyZWdzLT5yY3IyCXw9IFJEQVRETFkoMSk7CiAJCXJlZ3MtPnhjcjIJfD0gWERBVERM
+WSgxKTsKIAkJYnJlYWs7CisJY2FzZSBTTkRfU09DX0RBSUZNVF9EU1BfQToKKwkJLyogMC1iaXQg
+ZGF0YSBkZWxheSAqLworCQlyZWdzLT5yY3IyICAgICAgfD0gUkRBVERMWSgwKTsKKwkJcmVncy0+
+eGNyMiAgICAgIHw9IFhEQVRETFkoMCk7CisJCWJyZWFrOwogCWRlZmF1bHQ6CiAJCS8qIFVuc3Vw
+cG9ydGVkIGRhdGEgZm9ybWF0ICovCiAJCXJldHVybiAtRUlOVkFMOwotLSAKMS41LjMuNAoK
+------=_Part_68218_22594813.1222940226803--
