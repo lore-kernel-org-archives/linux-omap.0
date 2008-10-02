@@ -1,205 +1,244 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 03/10] ARM: OMAP: Clock tree updates for OMAP2/3
-Date: Thu, 02 Oct 2008 10:37:51 -0600
-Message-ID: <20081002163750.15385.94159.stgit@localhost.localdomain>
+Subject: [PATCH 05/10] ARM: OMAP2: Implement CPUfreq frequency table based on
+	PRCM table
+Date: Thu, 02 Oct 2008 10:37:52 -0600
+Message-ID: <20081002163752.15385.97004.stgit@localhost.localdomain>
 References: <20081002163508.15385.43247.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51893 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:51910 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754053AbYJBQrD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Oct 2008 12:47:03 -0400
+	with ESMTP id S1754082AbYJBQrH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Oct 2008 12:47:07 -0400
 In-Reply-To: <20081002163508.15385.43247.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@mvista.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-Fix some bugs in the OMAP3 clock tree pertaining to the 96MHz clocks.
-The 96MHz portion of the clock tree should now have reasonable
-fidelity to the 34xx TRM Rev I.  One remaining question mark: it's not
-clear exactly which 96MHz source clock the USIM uses.  This patch
-sticks with the previous setting.
+From: Kevin Hilman <khilman@mvista.com>
 
-Add a missing OMAP24xx clock, the SSI L4 interface clock, as
-"ssi_l4_ick".
+This patch adds a CPUfreq frequency-table implementation for OMAP2 by
+walking the PRCM rate-table for available entries and adding them to a
+CPUfreq table.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
+CPUfreq can then be used to manage switching between all the available
+entries in the PRCM rate table.  Either use the CPUfreq sysfs
+interface directly, (see Section 3 of Documentation/cpu-freq/user-guide.txt)
+or use the cpufrequtils package:
+http://www.kernel.org/pub/linux/utils/kernel/cpufreq/cpufrequtils.html
+
+Signed-off-by: Kevin Hilman <khilman@mvista.com>
+
+Updated to try to use cpufreq_table if it exists.
+
 Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock24xx.h       |   15 +++++++++
- arch/arm/mach-omap2/clock34xx.h       |   56 +++++++++++++++++++++------------
- arch/arm/mach-omap2/cm-regbits-34xx.h |    8 ++++-
- 3 files changed, 57 insertions(+), 22 deletions(-)
+ arch/arm/mach-omap2/clock24xx.c         |   42 ++++++++++++++++++++++
+ arch/arm/plat-omap/cpu-omap.c           |   58 +++++++++++++++++++++++++++++--
+ arch/arm/plat-omap/include/mach/clock.h |    3 ++
+ 3 files changed, 99 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock24xx.h b/arch/arm/mach-omap2/clock24xx.h
-index 242a19d..00ca071 100644
---- a/arch/arm/mach-omap2/clock24xx.h
-+++ b/arch/arm/mach-omap2/clock24xx.h
-@@ -1290,6 +1290,20 @@ static struct clk ssi_ssr_sst_fck = {
- 	.set_rate	= &omap2_clksel_set_rate
- };
+diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
+index 133c36f..9240e64 100644
+--- a/arch/arm/mach-omap2/clock24xx.c
++++ b/arch/arm/mach-omap2/clock24xx.c
+@@ -378,6 +378,45 @@ static int omap2_select_table_rate(struct clk *clk, unsigned long rate)
+ 	return 0;
+ }
  
++#ifdef CONFIG_CPU_FREQ
 +/*
-+ * Presumably this is the same as SSI_ICLK.
-+ * TRM contradicts itself on what clockdomain SSI_ICLK is in
++ * Walk PRCM rate table and fillout cpufreq freq_table
 + */
-+static struct clk ssi_l4_ick = {
-+	.name		= "ssi_l4_ick",
-+	.parent		= &l4_ck,
-+	.clkdm_name	= "core_l4_clkdm",
-+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
-+	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
-+	.enable_bit	= OMAP24XX_EN_SSI_SHIFT,
-+	.recalc		= &followparent_recalc,
-+};
++static struct cpufreq_frequency_table freq_table[ARRAY_SIZE(rate_table)];
 +
- 
- /*
-  * GFX clock domain
-@@ -2688,6 +2702,7 @@ static struct clk *onchip_24xx_clks[] __initdata = {
- 	&usb_l4_ick,
- 	/* L4 domain clocks */
- 	&l4_ck,			/* used as both core_l4 and wu_l4 */
-+	&ssi_l4_ick,
- 	/* virtual meta-group clock */
- 	&virt_prcm_set,
- 	/* general l4 interface ck, multi-parent functional clk */
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-index afa1174..e22749e 100644
---- a/arch/arm/mach-omap2/clock34xx.h
-+++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -646,6 +646,12 @@ static const struct clksel omap_96m_alwon_fck_clksel[] = {
- 	{ .parent = NULL }
++void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
++{
++	struct prcm_config *prcm;
++	int i = 0;
++
++	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
++		if (!(prcm->flags & cpu_mask))
++			continue;
++		if (prcm->xtal_speed != sys_ck.rate)
++			continue;
++
++		/* don't put bypass rates in table */
++		if (prcm->dpll_speed == prcm->xtal_speed)
++			continue;
++
++		freq_table[i].index = i;
++		freq_table[i].frequency = prcm->mpu_speed / 1000;
++		i++;
++	}
++
++	if (i == 0) {
++		printk(KERN_WARNING "%s: failed to initialize frequency "
++		       "table\n", __func__);
++		return;
++	}
++
++	freq_table[i].index = i;
++	freq_table[i].frequency = CPUFREQ_TABLE_END;
++
++	*table = &freq_table[0];
++}
++#endif
++
+ static struct clk_functions omap2_clk_functions = {
+ 	.clk_enable		= omap2_clk_enable,
+ 	.clk_disable		= omap2_clk_disable,
+@@ -385,6 +424,9 @@ static struct clk_functions omap2_clk_functions = {
+ 	.clk_set_rate		= omap2_clk_set_rate,
+ 	.clk_set_parent		= omap2_clk_set_parent,
+ 	.clk_disable_unused	= omap2_clk_disable_unused,
++#ifdef	CONFIG_CPU_FREQ
++	.clk_init_cpufreq_table	= omap2_clk_init_cpufreq_table,
++#endif
  };
  
+ static u32 omap2_get_apll_clkin(void)
+diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
+index b269024..e7d09c3 100644
+--- a/arch/arm/plat-omap/cpu-omap.c
++++ b/arch/arm/plat-omap/cpu-omap.c
+@@ -23,10 +23,14 @@
+ #include <linux/io.h>
+ 
+ #include <mach/hardware.h>
++#include <mach/clock.h>
++#include <linux/io.h>
+ #include <asm/system.h>
+ 
+ #define VERY_HI_RATE	900000000
+ 
++static struct cpufreq_frequency_table *freq_table;
++
+ #ifdef CONFIG_ARCH_OMAP1
+ #define MPU_CLK		"mpu"
+ #else
+@@ -39,6 +43,9 @@ static struct clk *mpu_clk;
+ 
+ int omap_verify_speed(struct cpufreq_policy *policy)
+ {
++	if (freq_table)
++		return cpufreq_frequency_table_verify(policy, freq_table);
++
+ 	if (policy->cpu)
+ 		return -EINVAL;
+ 
+@@ -70,12 +77,26 @@ static int omap_target(struct cpufreq_policy *policy,
+ 	struct cpufreq_freqs freqs;
+ 	int ret = 0;
+ 
++	/* Ensure desired rate is within allowed range.  Some govenors
++	 * (ondemand) will just pass target_freq=0 to get the minimum. */
++	if (target_freq < policy->cpuinfo.min_freq)
++		target_freq = policy->cpuinfo.min_freq;
++	if (target_freq > policy->cpuinfo.max_freq)
++		target_freq = policy->cpuinfo.max_freq;
++
+ 	freqs.old = omap_getspeed(0);
+ 	freqs.new = clk_round_rate(mpu_clk, target_freq * 1000) / 1000;
+ 	freqs.cpu = 0;
+ 
++	if (freqs.old == freqs.new)
++		return ret;
++
+ 	cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
+-	ret = clk_set_rate(mpu_clk, target_freq * 1000);
++#ifdef CONFIG_CPU_FREQ_DEBUG
++	printk(KERN_DEBUG "cpufreq-omap: transition: %u --> %u\n",
++	       freqs.old, freqs.new);
++#endif
++	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
+ 	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
+ 
+ 	return ret;
+@@ -83,16 +104,31 @@ static int omap_target(struct cpufreq_policy *policy,
+ 
+ static int __init omap_cpu_init(struct cpufreq_policy *policy)
+ {
++	int result = 0;
++
+ 	mpu_clk = clk_get(NULL, MPU_CLK);
+ 	if (IS_ERR(mpu_clk))
+ 		return PTR_ERR(mpu_clk);
+ 
+ 	if (policy->cpu != 0)
+ 		return -EINVAL;
++
+ 	policy->cur = policy->min = policy->max = omap_getspeed(0);
+-	policy->cpuinfo.min_freq = clk_round_rate(mpu_clk, 0) / 1000;
+-	policy->cpuinfo.max_freq = clk_round_rate(mpu_clk, VERY_HI_RATE) / 1000;
+-	policy->cpuinfo.transition_latency = CPUFREQ_ETERNAL;
++
++	clk_init_cpufreq_table(&freq_table);
++	if (freq_table) {
++		result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
++		if (!result)
++			cpufreq_frequency_table_get_attr(freq_table,
++							policy->cpu);
++	} else {
++		policy->cpuinfo.min_freq = clk_round_rate(mpu_clk, 0) / 1000;
++		policy->cpuinfo.max_freq = clk_round_rate(mpu_clk,
++							VERY_HI_RATE) / 1000;
++	}
++
++	/* FIXME: what's the actual transition time? */
++	policy->cpuinfo.transition_latency = 10 * 1000 * 1000;
+ 
+ 	return 0;
+ }
+@@ -103,6 +139,11 @@ static int omap_cpu_exit(struct cpufreq_policy *policy)
+ 	return 0;
+ }
+ 
++static struct freq_attr *omap_cpufreq_attr[] = {
++	&cpufreq_freq_attr_scaling_available_freqs,
++	NULL,
++};
++
+ static struct cpufreq_driver omap_driver = {
+ 	.flags		= CPUFREQ_STICKY,
+ 	.verify		= omap_verify_speed,
+@@ -111,6 +152,7 @@ static struct cpufreq_driver omap_driver = {
+ 	.init		= omap_cpu_init,
+ 	.exit		= omap_cpu_exit,
+ 	.name		= "omap",
++	.attr		= omap_cpufreq_attr,
+ };
+ 
+ static int __init omap_cpufreq_init(void)
+@@ -119,3 +161,11 @@ static int __init omap_cpufreq_init(void)
+ }
+ 
+ arch_initcall(omap_cpufreq_init);
++
 +/*
-+ * DPLL4 generates DPLL4_M2X2_CLK which is then routed into the PRM as
-+ * PRM_96M_ALWON_(F)CLK.  Two clocks then emerge from the PRM:
-+ * 96M_ALWON_FCLK (called "omap_96m_alwon_fck" below) and
-+ * CM_96K_(F)CLK.
++ * if ever we want to remove this, upon cleanup call:
++ *
++ * cpufreq_unregister_driver()
++ * cpufreq_frequency_table_put_attr()
 + */
- static struct clk omap_96m_alwon_fck = {
- 	.name		= "omap_96m_alwon_fck",
- 	.parent		= &dpll4_m2x2_ck,
-@@ -654,31 +660,41 @@ static struct clk omap_96m_alwon_fck = {
- 	.clksel_mask	= OMAP3430_ST_PERIPH_CLK_MASK,
- 	.clksel		= omap_96m_alwon_fck_clksel,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
--				 PARENT_CONTROLS_CLOCK,
-+				PARENT_CONTROLS_CLOCK,
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
--static struct clk omap_96m_fck = {
--	.name		= "omap_96m_fck",
-+static struct clk cm_96m_fck = {
-+	.name		= "cm_96m_fck",
- 	.parent		= &omap_96m_alwon_fck,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
- 	.recalc		= &followparent_recalc,
- };
- 
--static const struct clksel cm_96m_fck_clksel[] = {
--	{ .parent = &sys_ck,	    .rates = dpll_bypass_rates },
--	{ .parent = &dpll4_m2x2_ck, .rates = dpll_locked_rates },
-+static const struct clksel_rate omap_96m_dpll_rates[] = {
-+	{ .div = 1, .val = 0, .flags = RATE_IN_343X | DEFAULT_RATE },
-+	{ .div = 0 }
-+};
 +
-+static const struct clksel_rate omap_96m_sys_rates[] = {
-+	{ .div = 1, .val = 1, .flags = RATE_IN_343X | DEFAULT_RATE },
-+	{ .div = 0 }
-+};
-+
-+static const struct clksel omap_96m_fck_clksel[] = {
-+	{ .parent = &cm_96m_fck, .rates = omap_96m_dpll_rates },
-+	{ .parent = &sys_ck,	 .rates = omap_96m_sys_rates },
- 	{ .parent = NULL }
- };
+diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
+index e32937b..d78d3a7 100644
+--- a/arch/arm/plat-omap/include/mach/clock.h
++++ b/arch/arm/plat-omap/include/mach/clock.h
+@@ -121,6 +121,9 @@ extern void clk_allow_idle(struct clk *clk);
+ extern void clk_deny_idle(struct clk *clk);
+ extern int clk_get_usecount(struct clk *clk);
+ extern void clk_enable_init_clocks(void);
++#ifdef CONFIG_CPU_FREQ
++extern void clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
++#endif
  
--static struct clk cm_96m_fck = {
--	.name		= "cm_96m_fck",
--	.parent		= &dpll4_m2x2_ck,
-+static struct clk omap_96m_fck = {
-+	.name		= "omap_96m_fck",
-+	.parent		= &sys_ck,
- 	.init		= &omap2_init_clksel_parent,
--	.clksel_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST),
--	.clksel_mask	= OMAP3430_ST_PERIPH_CLK_MASK,
--	.clksel		= cm_96m_fck_clksel,
-+	.clksel_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
-+	.clksel_mask	= OMAP3430_SOURCE_96M_MASK,
-+	.clksel		= omap_96m_fck_clksel,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
- 	.recalc		= &omap2_clksel_recalc,
-@@ -753,7 +769,7 @@ static struct clk omap_54m_fck = {
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
--static const struct clksel_rate omap_48m_96md2_rates[] = {
-+static const struct clksel_rate omap_48m_cm96m_rates[] = {
- 	{ .div = 2, .val = 0, .flags = RATE_IN_343X | DEFAULT_RATE },
- 	{ .div = 0 }
- };
-@@ -764,7 +780,7 @@ static const struct clksel_rate omap_48m_alt_rates[] = {
- };
- 
- static const struct clksel omap_48m_clksel[] = {
--	{ .parent = &cm_96m_fck, .rates = omap_48m_96md2_rates },
-+	{ .parent = &cm_96m_fck, .rates = omap_48m_cm96m_rates },
- 	{ .parent = &sys_altclk, .rates = omap_48m_alt_rates },
- 	{ .parent = NULL }
- };
-@@ -961,10 +977,10 @@ static const struct clksel_rate clkout2_src_54m_rates[] = {
- };
- 
- static const struct clksel clkout2_src_clksel[] = {
--	{ .parent = &core_ck,		  .rates = clkout2_src_core_rates },
--	{ .parent = &sys_ck,		  .rates = clkout2_src_sys_rates },
--	{ .parent = &omap_96m_alwon_fck,  .rates = clkout2_src_96m_rates },
--	{ .parent = &omap_54m_fck,	  .rates = clkout2_src_54m_rates },
-+	{ .parent = &core_ck,		.rates = clkout2_src_core_rates },
-+	{ .parent = &sys_ck,		.rates = clkout2_src_sys_rates },
-+	{ .parent = &cm_96m_fck,	.rates = clkout2_src_96m_rates },
-+	{ .parent = &omap_54m_fck,	.rates = clkout2_src_54m_rates },
- 	{ .parent = NULL }
- };
- 
-@@ -2790,8 +2806,8 @@ static struct clk mcbsp4_ick = {
- };
- 
- static const struct clksel mcbsp_234_clksel[] = {
--	{ .parent = &per_96m_fck, .rates = common_mcbsp_96m_rates },
--	{ .parent = &mcbsp_clks,  .rates = common_mcbsp_mcbsp_rates },
-+	{ .parent = &core_96m_fck, .rates = common_mcbsp_96m_rates },
-+	{ .parent = &mcbsp_clks,   .rates = common_mcbsp_mcbsp_rates },
- 	{ .parent = NULL }
- };
- 
-diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
-index 219f5c8..a46f93c 100644
---- a/arch/arm/mach-omap2/cm-regbits-34xx.h
-+++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-@@ -449,8 +449,12 @@
- #define OMAP3430_CORE_DPLL_MULT_MASK			(0x7ff << 16)
- #define OMAP3430_CORE_DPLL_DIV_SHIFT			8
- #define OMAP3430_CORE_DPLL_DIV_MASK			(0x7f << 8)
--#define OMAP3430_SOURCE_54M				(1 << 5)
--#define OMAP3430_SOURCE_48M				(1 << 3)
-+#define OMAP3430_SOURCE_96M_SHIFT			6
-+#define OMAP3430_SOURCE_96M_MASK			(1 << 6)
-+#define OMAP3430_SOURCE_54M_SHIFT			5
-+#define OMAP3430_SOURCE_54M_MASK			(1 << 5)
-+#define OMAP3430_SOURCE_48M_SHIFT			3
-+#define OMAP3430_SOURCE_48M_MASK			(1 << 3)
- 
- /* CM_CLKSEL2_PLL */
- #define OMAP3430_PERIPH_DPLL_MULT_SHIFT			8
+ /* Clock flags */
+ #define RATE_CKCTL		(1 << 0)	/* Main fixed ratio clocks */
 
 
