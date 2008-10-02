@@ -1,249 +1,100 @@
-From: Timo Karjalainen <timo.o.karjalainen@nokia.com>
-Subject: [PATCH] lm8323 pwm fixes
-Date: Thu,  2 Oct 2008 12:07:22 +0300
-Message-ID: <1222938442-2805-1-git-send-email-timo.o.karjalainen@nokia.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [patch 2.6.27-rc7-omap1-git 1/2] twl4030-core: move to
+	drivers/mfd
+Date: Thu, 2 Oct 2008 12:07:57 +0300
+Message-ID: <20081002090757.GJ7412@gandalf.research.nokia.com>
+References: <200810011947.55057.david-b@pacbell.net>
+Reply-To: felipe.balbi@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:41979 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:42072 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752939AbYJBJHe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Oct 2008 05:07:34 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9297TY5022219
-	for <linux-omap@vger.kernel.org>; Thu, 2 Oct 2008 12:07:31 +0300
+	with ESMTP id S1753082AbYJBJIR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Oct 2008 05:08:17 -0400
+Content-Disposition: inline
+In-Reply-To: <200810011947.55057.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Timo Karjalainen <timo.o.karjalainen@nokia.com>, Daniel Stone <daniel.stone@nokia.com>
+To: ext David Brownell <david-b@pacbell.net>
+Cc: linux-omap@vger.kernel.org
 
-This patch fixes two problems in LM8323 PWM control. One is that
-locking is needed when setting and reading pwm->desired_brightness
-asynchronously. The other is that LM8323 may stop a PWM script only
-after the current instruction has finished. If it is a long RAMP,
-the chip would keep executing the old instruction and new
-settings were effectively ignored.
+On Wed, Oct 01, 2008 at 07:47:54PM -0700, David Brownell wrote:
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 
-Signed-off-by: Timo Karjalainen <timo.o.karjalainen@nokia.com>
-Signed-off-by: Daniel Stone <daniel.stone@nokia.com>
----
- drivers/input/keyboard/lm8323.c |  129 +++++++++++++++++++++------------------
- 1 files changed, 69 insertions(+), 60 deletions(-)
+I suppose this first one should be From:
 
-diff --git a/drivers/input/keyboard/lm8323.c b/drivers/input/keyboard/lm8323.c
-index 72bb587..342ef6a 100644
---- a/drivers/input/keyboard/lm8323.c
-+++ b/drivers/input/keyboard/lm8323.c
-@@ -141,6 +141,8 @@ struct lm8323_pwm {
- 	int			fade_time;
- 	int			brightness;
- 	int			desired_brightness;
-+	int			running;
-+	struct mutex		lock;
- 	struct work_struct	work;
- 	struct led_classdev	cdev;
- };
-@@ -384,6 +386,15 @@ static int lm8323_configure(struct lm8323_chip *lm)
- 	return 0;
- }
- 
-+static void pwm_done(struct lm8323_pwm *pwm)
-+{
-+	mutex_lock(&pwm->lock);
-+	pwm->running = 0;
-+	if (pwm->desired_brightness != pwm->brightness)
-+		schedule_work(&pwm->work);
-+	mutex_unlock(&pwm->lock);
-+}
-+
- /*
-  * Bottom half: handle the interrupt by posting key events, or dealing with
-  * errors appropriately.
-@@ -411,12 +422,18 @@ static void lm8323_work(struct work_struct *work)
- 						  "reinitialising\n");
- 			lm8323_configure(lm);
- 		}
--		if (ints & INT_PWM1)
-+		if (ints & INT_PWM1) {
- 			debug(&lm->client->dev, "pwm1 engine completed\n");
--		if (ints & INT_PWM2)
-+			pwm_done(&lm->pwm1);
-+		}
-+		if (ints & INT_PWM2) {
- 			debug(&lm->client->dev, "pwm2 engine completed\n");
--		if (ints & INT_PWM3)
-+			pwm_done(&lm->pwm2);
-+		}
-+		if (ints & INT_PWM3) {
- 			debug(&lm->client->dev, "pwm3 engine completed\n");
-+			pwm_done(&lm->pwm3);
-+		}
- 	}
- 
- 	mutex_unlock(&lm->lock);
-@@ -458,92 +475,80 @@ static void lm8323_write_pwm_one(struct lm8323_pwm *pwm, int pos, u16 cmd)
- 
- /*
-  * Write a script into a given PWM engine, concluding with PWM_END.
-- * If 'keepalive' is specified, the engine will be kept running
-- * indefinitely.
-+ * If 'kill' is nonzero, the engine will be shut down at the end
-+ * of the script, producing a zero output. Otherwise the engine
-+ * will be kept running at the final PWM level indefinitely.
-  */
--static void lm8323_write_pwm(struct lm8323_pwm *pwm, int keepalive,
--			     int len, ...)
-+static void lm8323_write_pwm(struct lm8323_pwm *pwm, int kill,
-+			     int len, const u16 *cmds)
- {
- 	struct lm8323_chip *lm = pwm_to_lm8323(pwm);
--	int i, cmd;
--	va_list ap;
--
--	/*
--	 * If there are any scripts running at the moment, terminate them
--	 * and make sure the duty cycle is as if it finished.
--	 */
--	lm8323_write(lm, 2, LM8323_CMD_STOP_PWM, pwm->id);
--
--	va_start(ap, len);
--	for (i = 0; i < len; i++) {
--		cmd = va_arg(ap, int);
--		lm8323_write_pwm_one(pwm, i, cmd);
--	}
--	va_end(ap);
-+	int i;
- 
--	/* Wait for a trigger from any channel. This keeps the engine alive. */
--	if (keepalive)
--		lm8323_write_pwm_one(pwm, i++, PWM_WAIT_TRIG(0xe));
--	else
--		lm8323_write_pwm_one(pwm, i++, PWM_END(1));
-+	for (i = 0; i < len; i++)
-+		lm8323_write_pwm_one(pwm, i, cmds[i]);
- 
-+	lm8323_write_pwm_one(pwm, i++, PWM_END(kill));
- 	lm8323_write(lm, 2, LM8323_CMD_START_PWM, pwm->id);
-+	pwm->running = 1;
- }
- 
- static void lm8323_pwm_work(struct work_struct *work)
- {
- 	struct lm8323_pwm *pwm = work_to_pwm(work);
--	int div, perstep, steps, hz, direction, keepalive;
-+	int div512, perstep, steps, hz, up, kill;
-+	u16 pwm_cmds[3];
-+	int num_cmds = 0;
-+
-+	mutex_lock(&pwm->lock);
- 
--	/* Do nothing if we're already at the requested level. */
--	if (pwm->desired_brightness == pwm->brightness)
-+	/*
-+	 * Do nothing if we're already at the requested level,
-+	 * or previous setting is not yet complete. In the latter
-+	 * case we will be called again when the previous PWM script
-+	 * finishes.
-+	 */
-+	if (pwm->running || pwm->desired_brightness == pwm->brightness) {
-+		mutex_unlock(&pwm->lock);
- 		return;
-+	}
- 
--	keepalive = (pwm->desired_brightness > 0);
--	direction = (pwm->desired_brightness > pwm->brightness);
-+	kill = (pwm->desired_brightness == 0);
-+	up = (pwm->desired_brightness > pwm->brightness);
- 	steps = abs(pwm->desired_brightness - pwm->brightness);
- 
- 	/*
- 	 * Convert time (in ms) into a divisor (512 or 16 on a refclk of
- 	 * 32768Hz), and number of ticks per step.
- 	 */
--	if ((pwm->fade_time / steps) > (32768 / 512))
--		div = 512;
--	else
--		div = 16;
-+	if ((pwm->fade_time / steps) > (32768 / 512)) {
-+		div512 = 1;
-+		hz = 32768 / 512;
-+	}
-+	else {
-+		div512 = 0;
-+		hz = 32768 / 16;
-+	}
- 
--	hz = 32768 / div;
--	if (pwm->fade_time < ((steps * 1000) / hz))
--		perstep = 1;
--	else
--		perstep = (hz * pwm->fade_time) / (steps * 1000);
-+	perstep = (hz * pwm->fade_time) / (steps * 1000);
- 
- 	if (perstep == 0)
- 		perstep = 1;
- 	else if (perstep > 63)
- 		perstep = 63;
- 
--	if (steps > 252) {
--		lm8323_write_pwm(pwm, keepalive, 3,
--				 PWM_RAMP((div == 512), perstep, 126,
--					  direction),
--				 PWM_RAMP((div == 512), perstep, 126,
--					  direction),
--				 PWM_RAMP((div == 512), perstep, steps - 252,
--					  direction));
--	} else if (steps > 126) {
--		lm8323_write_pwm(pwm, keepalive, 2,
--				 PWM_RAMP((div == 512), perstep, 126,
--					  direction),
--				 PWM_RAMP((div == 512), perstep, steps - 126,
--					  direction));
--	} else {
--		lm8323_write_pwm(pwm, keepalive, 1,
--				 PWM_RAMP((div == 512), perstep, steps,
--					  direction));
-+	while (steps) {
-+		int s;
-+
-+		s = min(126, steps);
-+		pwm_cmds[num_cmds++] = PWM_RAMP(div512, perstep, s, up);
-+		steps -= s;
- 	}
- 
-+	lm8323_write_pwm(pwm, kill, num_cmds, pwm_cmds);
-+
- 	pwm->brightness = pwm->desired_brightness;
-+	mutex_unlock(&pwm->lock);
- }
- 
- static void lm8323_pwm_set_brightness(struct led_classdev *led_cdev,
-@@ -552,7 +557,9 @@ static void lm8323_pwm_set_brightness(struct led_classdev *led_cdev,
- 	struct lm8323_pwm *pwm = cdev_to_pwm(led_cdev);
- 	struct lm8323_chip *lm = pwm_to_lm8323(pwm);
- 
-+	mutex_lock(&pwm->lock);
- 	pwm->desired_brightness = brightness;
-+	mutex_unlock(&pwm->lock);
- 
- 	if (in_interrupt()) {
- 		schedule_work(&pwm->work);
-@@ -620,6 +627,8 @@ static int init_pwm(struct lm8323_chip *lm, int id, struct device *dev,
- 	pwm->fade_time = 0;
- 	pwm->brightness = 0;
- 	pwm->desired_brightness = 0;
-+	pwm->running = 0;
-+	mutex_init(&pwm->lock);
- 	if (name) {
- 		pwm->cdev.name = name;
- 		pwm->cdev.brightness_set = lm8323_pwm_set_brightness;
-@@ -917,7 +926,7 @@ static void __exit lm8323_exit(void)
- 	i2c_del_driver(&lm8323_i2c_driver);
- }
- 
--MODULE_AUTHOR("Daniel Stone");
-+MODULE_AUTHOR("Timo O. Karjalainen <timo.o.karjalainen@nokia.com>, Daniel Stone");
- MODULE_DESCRIPTION("LM8323 keypad driver");
- MODULE_LICENSE("GPL");
- 
+> -static void __init twl4030_mask_clear_intrs(const struct twl4030_mod_iregs *t,
+> -					    const u8 t_sz)
+> -{
+> -	int i, j;
+> -
+> -	/*
+> -	 * N.B. - further efficiency is possible here.  Eight I2C
+> -	 * operations on BCI and GPIO modules are avoidable if I2C
+> -	 * burst read/write transactions were implemented.  Would
+> -	 * probably save about 1ms of boot time and a small amount of
+> -	 * power.
+> -	 */
+> -	for (i = 0; i < t_sz; i++) {
+> -		const struct twl4030_mod_iregs tmr = t[i];
+> -		int cor;
+> -
+> -		/* Are ISRs cleared by reads or writes? */
+> -		cor = twl4030_read_cor_bit(tmr.mod_no, tmr.sih_ctrl);
+> -		WARN_ON(cor < 0);
+> -
+> -		for (j = 0; j < tmr.reg_cnt; j++) {
+> -
+> -			/* Mask interrupts at the TWL4030 */
+> -			WARN_ON(twl4030_i2c_write_u8(tmr.mod_no, 0xff,
+> -						     tmr.imrs[j]) < 0);
+> -
+> -			/* Clear TWL4030 ISRs */
+> -			WARN_ON(twl4030_i2c_clear_isr(tmr.mod_no,
+> -						      tmr.isrs[j], cor) < 0);
+> -		}
+> -	}
+> -
+> -	return;
+
+this return can be removed.
+
+> +static void __init twl4030_mask_clear_intrs(const struct twl4030_mod_iregs *t,
+> +					    const u8 t_sz)
+> +{
+> +	int i, j;
+> +
+> +	/*
+> +	 * N.B. - further efficiency is possible here.  Eight I2C
+> +	 * operations on BCI and GPIO modules are avoidable if I2C
+> +	 * burst read/write transactions were implemented.  Would
+> +	 * probably save about 1ms of boot time and a small amount of
+> +	 * power.
+> +	 */
+> +	for (i = 0; i < t_sz; i++) {
+> +		const struct twl4030_mod_iregs tmr = t[i];
+> +		int cor;
+> +
+> +		/* Are ISRs cleared by reads or writes? */
+> +		cor = twl4030_read_cor_bit(tmr.mod_no, tmr.sih_ctrl);
+> +		WARN_ON(cor < 0);
+> +
+> +		for (j = 0; j < tmr.reg_cnt; j++) {
+> +
+> +			/* Mask interrupts at the TWL4030 */
+> +			WARN_ON(twl4030_i2c_write_u8(tmr.mod_no, 0xff,
+> +						     tmr.imrs[j]) < 0);
+> +
+> +			/* Clear TWL4030 ISRs */
+> +			WARN_ON(twl4030_i2c_clear_isr(tmr.mod_no,
+> +						      tmr.isrs[j], cor) < 0);
+> +		}
+> +	}
+> +
+> +	return;
+
+also this one
+
 -- 
-1.6.0
-
+balbi
