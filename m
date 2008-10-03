@@ -1,33 +1,58 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [PATCH] Adds custom SOC_SINGLE_TLV for tlv320aic23
-	codec
-Date: Fri, 3 Oct 2008 12:48:17 +0100
-Message-ID: <20081003114817.GB26035@sirena.org.uk>
-References: <dfeb90390810030436sc40bb8bt5148514b607ac540@mail.gmail.com>
+From: Carlos Chinea <carlos.chinea@nokia.com>
+Subject: [RFC][PATCH 0/5] OMAP Synchronous Serial Interface (SSI) driver
+Date: Fri, 03 Oct 2008 14:50:06 +0300
+Message-ID: <1223034606.32631.156.camel@groo.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <dfeb90390810030436sc40bb8bt5148514b607ac540@mail.gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Arun KS <arunks@mistralsolutions.com>
-Cc: alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:26983 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752599AbYJCLuh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 07:50:37 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Oct 03, 2008 at 05:07:30PM +0530, Arun KS wrote:
-> Replaces SOC_ENUM with custom SOC_SINGLE_TLV for Sidetone volume
-> 
-> Signed-off-by: Arun KS <arunks@mistralsolutions.com>
+Hi guys !
 
-Looks good, thanks
+I'm working on adding support for Nokia HSPA modems to OMAP.
 
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Please consider integrating the following patch set into the
+linux-omap tree. The patch set implements a generic device driver
+for the OMAP Synchronous Serial Interface. 
+
+The Synchronous Serial Interface (SSI) is a high speed communication
+interface that is used for connecting OMAP to a cellular modem engine.
+
+The patch set is based on linux-omap 2.6.27-rc7.
+
+Any comments will be appreciated.
+
+Br,
+Carlos
+
+
+
+ Documentation/arm/OMAP/ssi/board-ssi.c.example     |  216 ++++++++
+ Documentation/arm/OMAP/ssi/ssi                     |  232 +++++++++
+ arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h  |  145 ++++++
+ .../plat-omap/include/mach/ssi/ssi_reg_common.h    |   73 +++
+ arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h  |   56 +++
+ arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h  |   65 +++
+ arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h  |  107 ++++
+ drivers/misc/Kconfig                               |    2 +
+ drivers/misc/Makefile                              |    1 +
+ drivers/misc/ssi/Kconfig                           |   11 +
+ drivers/misc/ssi/Makefile                          |    7 +
+ drivers/misc/ssi/ssi_driver.c                      |  513 ++++++++++++++++++++
+ drivers/misc/ssi/ssi_driver.h                      |  211 ++++++++
+ drivers/misc/ssi/ssi_driver_bus.c                  |  192 ++++++++
+ drivers/misc/ssi/ssi_driver_dma.c                  |  406 ++++++++++++++++
+ drivers/misc/ssi/ssi_driver_if.c                   |  335 +++++++++++++
+ drivers/misc/ssi/ssi_driver_int.c                  |  232 +++++++++
+ include/linux/ssi_driver_if.h                      |  137 ++++++
+ 18 files changed, 2941 insertions(+), 0 deletions(-)
+
+
