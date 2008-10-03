@@ -1,1020 +1,190 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP2/3 PM: create the OMAP PM interface and add a default
-	OMAP PM no-op layer.
-Date: Fri, 03 Oct 2008 04:58:46 -0600
-Message-ID: <20081003105833.10040.60814.stgit@localhost.localdomain>
-References: <20081003104140.10040.23992.stgit@localhost.localdomain>
+From: "Arun KS" <arunks@mistralsolutions.com>
+Subject: [PATCH] Adds custom SOC_SINGLE_TLV for tlv320aic23 codec
+Date: Fri, 3 Oct 2008 17:07:30 +0530
+Message-ID: <dfeb90390810030436sc40bb8bt5148514b607ac540@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed;
+	boundary="----=_Part_3743_16615078.1223033850499"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40737 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752240AbYJCLBC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 07:01:02 -0400
-In-Reply-To: <20081003104140.10040.23992.stgit@localhost.localdomain>
+Received: from rv-out-0506.google.com ([209.85.198.230]:7252 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752448AbYJCLhb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 07:37:31 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so1636186rvb.1
+        for <linux-omap@vger.kernel.org>; Fri, 03 Oct 2008 04:37:30 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>
+To: alsa-devel@alsa-project.org
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-The interface provides device drivers, CPUFreq, and DSP Bridge with a
-means of controlling OMAP power management parameters that are not yet
-supported by the Linux PM PMQOS interface.  Copious documentation and
-rationale is in the patch in Documentation/arm/OMAP/omap_pm and the
-interface header file, arch/arm/plat-omap/include/mach/omap-pm.h.
+------=_Part_3743_16615078.1223033850499
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Replaces SOC_ENUM with custom SOC_SINGLE_TLV for Sidetone volume
+
+Signed-off-by: Arun KS <arunks@mistralsolutions.com>
 ---
- Documentation/arm/OMAP/omap_pm            |  204 ++++++++++++++++++
- arch/arm/mach-omap2/io.c                  |    4=20
- arch/arm/plat-omap/Kconfig                |   13 +
- arch/arm/plat-omap/Makefile               |    1=20
- arch/arm/plat-omap/include/mach/omap-pm.h |  322 +++++++++++++++++++++=
-+++++++
- arch/arm/plat-omap/omap-pm-noop.c         |  330 +++++++++++++++++++++=
-++++++++
- 6 files changed, 874 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/arm/OMAP/omap_pm
- create mode 100644 arch/arm/plat-omap/include/mach/omap-pm.h
- create mode 100644 arch/arm/plat-omap/omap-pm-noop.c
+ sound/soc/codecs/tlv320aic23.c |   53 +++++++++++++++++++++++++++++++++++++---
+ 1 files changed, 49 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/arm/OMAP/omap_pm b/Documentation/arm/OMAP/om=
-ap_pm
-new file mode 100644
-index 0000000..7f0a8b6
---- /dev/null
-+++ b/Documentation/arm/OMAP/omap_pm
-@@ -0,0 +1,204 @@
-+
-+The OMAP PM interface
-+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-+
-+This document describes the temporary OMAP PM interface.  Driver
-+authors use these functions to communicate minimum latency or
-+throughput constraints to the kernel power management code.
-+Over time, the intention is to merge features from the OMAP PM
-+interface into the Linux PM QoS code.
-+
-+This document is divided into two parts:
-+
-+     - Rationale
-+     - Overview
-+
-+
-+Rationale: existing PM interfaces are currently not ideal for OMAP
-+------------------------------------------------------------------
-+
-+There are two PM interfaces in use with publicly-distributed OMAP
-+Linux code: the TI Shared Resource Framework (SRF) and the Linux PM
-+QoS parameters code.  Neither interface is currently ideal for Linux
-+OMAP code.
-+
-+TI Shared Resource Framework:
-+
-+The TI CDP tree drivers use the TI Shared Resource Framework (SRF) to
-+control chip power management.  TI got their "CDP" drivers up and
-+running quickly with considerable power savings using the SRF.
-+However, the SRF has some problems.  Many parameters are specified in
-+OMAP-specific terms, such as target OPPs (operating performance
-+points), rather than in terms of actual latency or throughput
-+requirements.  OPPs change depending on OMAP silicon revisions or OMAP
-+types, and are meaningless for other architectures, so drivers shared
-+between OMAP and other architectures would have to #ifdef out the SRF
-+constraints.
-+
-+Linux PM QoS parameters:
-+
-+In February 2008, the mainline Linux kernel added the Linux PM QoS
-+parameters code, located in kernel/pm_qos_params.c.  (This code
-+replaced the latency management code that was present in earlier
-+kernels.)  Ideally, OMAP drivers would be able to use this Linux PM
-+QoS code directly, but the PM QoS code has some drawbacks:
-+
-+- It combines some power management parameters that should be kept
-+  separate for maximum power savings on OMAP3.  For example, in the PM
-+  QoS code, CPU and system DMA wakeup latency are combined into one
-+  parameter; but on OMAP3, these are distinct parameters.  The Linux
-+  PM QoS code also combines all network power management knobs into
-+  two non-device-specific parameters.  OMAP2/3 systems can have
-+  different network devices with different power management
-+  requirements - for example, a wired Ethernet interface may have
-+  different latency and throughput constraints than a WiFi interface.
-+
-+- It does not yet cover all of the power management capabilities of
-+  the OMAP3 architecture.  It does not express latency constraints on
-+  a per-device or per-powerdomain basis; it only covers
-+  cpu_dma_latency and network throughput and latency, which would not
-+  cover most of the OMAP3 devices.
-+
-+The result: drivers using the current Linux PM QoS layer directly are
-+unlikely to reach the same level of power efficiency as driver code
-+using the SRF.
-+
-+So, the SRF provides significant power savings, but expresses power
-+constraints in an OMAP- and silicon-revision-specific way; and the PM
-+QoS layer expresses PM constraints in a cross-platform manner (in
-+terms of fundamental physical units), but does not support
-+per-powerdomain constraints and does not support many of the OMAP powe=
-r
-+management features.
-+
-+
-+Overview:  A medium-term alternative: the OMAP PM interface
-+-----------------------------------------------------------
-+
-+Drivers need to express PM parameters which:
-+
-+- support the range of power management parameters present in the TI S=
-RF;
-+
-+- separate the drivers from the underlying PM parameter
-+  implementation, whether it is the TI SRF or Linux PM QoS or Linux
-+  latency framework or something else;
-+
-+- specify PM parameters in terms of fundamental units, such as
-+  latency and throughput, rather than units which are specific to OMAP
-+  or to particular OMAP variants;
-+
-+- allow drivers which are shared with other architectures (e.g.,
-+  DaVinci) to add these constraints in a way which won't affect non-OM=
-AP
-+  systems,
-+
-+- can be implemented immediately with minimal disruption of other
-+  architectures.
-+
-+
-+This document proposes the OMAP PM interface, including the following
-+five power management functions for driver code:
-+
-+1. Set the maximum MPU wakeup latency:
-+   (*pdata->set_max_mpu_wakeup_lat)(struct device *dev, unsigned long =
-t)
-+
-+2. Set the maximum device wakeup latency:
-+   (*pdata->set_max_dev_wakeup_lat)(struct device *dev, unsigned long =
-t)
-+
-+3. Set the maximum system DMA transfer start latency (CORE pwrdm):
-+   (*pdata->set_max_sdma_lat)(struct device *dev, long t)
-+
-+4. Set the minimum bus throughput needed by a device:
-+   (*pdata->set_min_bus_tput)(struct device *dev, u8 agent_id, unsigne=
-d long r)
-+
-+5. Return the number of times the device has lost context
-+   (*pdata->get_dev_context_loss_count)(struct device *dev)
-+
-+
-+Further documentation for all OMAP PM interface functions can be
-+found in arch/arm/plat-omap/include/mach/omap-pm.h.
-+
-+
-+The OMAP PM layer is intended to be temporary
-+---------------------------------------------
-+
-+The intention is that eventually the Linux PM QoS layer should support
-+the range of power management features present in OMAP3.  As this
-+happens, existing drivers using the OMAP PM interface can be modified
-+to use the Linux PM QoS code; and the OMAP PM interface can disappear.
-+
-+
-+Driver usage of the OMAP PM functions
-+-------------------------------------
-+
-+As the 'pdata' in the above examples indicates, these functions are
-+exposed to drivers through function pointers in driver .platform_data
-+structures.  The function pointers are initialized by the board-*.c
-+files to point to the corresponding OMAP PM functions:
-+.set_max_dev_wakeup_lat will point to
-+omap_pm_set_max_dev_wakeup_lat(), etc.  Other architectures which do
-+not support these functions should leave these function pointers set
-+to NULL.  Drivers should use the following idiom:
-+
-+        if (pdata->set_max_dev_wakeup_lat)
-+            (*pdata->set_max_dev_wakeup_lat)(dev, t);
-+
-+The most common usage of these functions will probably be to specify
-+the maximum time from when an interrupt occurs, to when the device
-+becomes accessible.  To accomplish this, driver writers should use the
-+set_max_mpu_wakeup_lat() function to to constrain the MPU wakeup
-+latency, and the set_max_dev_wakeup_lat() function to constrain the
-+device wakeup latency (from clk_enable() to accessibility).  For
-+example,
-+
-+        /* Limit MPU wakeup latency */
-+        if (pdata->set_max_mpu_wakeup_lat)
-+            (*pdata->set_max_mpu_wakeup_lat)(dev, tc);
-+
-+        /* Limit device powerdomain wakeup latency */
-+        if (pdata->set_max_dev_wakeup_lat)
-+            (*pdata->set_max_dev_wakeup_lat)(dev, td);
-+
-+        /* total wakeup latency in this example: (tc + td) */
-+
-+The PM parameters can be overwritten by calling the function again
-+with the new value.  The settings can be removed by calling the
-+function with a t argument of -1 (except in the case of
-+set_max_bus_tput(), which should be called with an r argument of 0).
-+
-+The fifth function above, omap_pm_get_dev_context_loss_count(),
-+is intended as an optimization to allow drivers to determine whether t=
-he
-+device has lost its internal context.  If context has been lost, the
-+driver must restore its internal context before proceeding.
-+
-+
-+Other specialized interface functions
-+-------------------------------------
-+
-+The five functions listed above are intended to be usable by any
-+device driver.  DSPBridge and CPUFreq have a few special requirements.
-+DSPBridge expresses target DSP performance levels in terms of OPP IDs.
-+CPUFreq expresses target MPU performance levels in terms of MPU
-+frequency.  The OMAP PM interface contains functions for these
-+specialized cases to convert that input information (OPPs/MPU
-+frequency) into the form that the underlying power management
-+implementation needs:
-+
-+6. (*pdata->dsp_get_opp_table)(void)
-+
-+7. (*pdata->dsp_set_min_opp)(u8 opp_id)
-+
-+8. (*pdata->dsp_get_opp)(void)
-+
-+9. (*pdata->cpu_get_freq_table)(void)
-+
-+10. (*pdata->cpu_set_freq)(unsigned long f)
-+
-+11. (*pdata->cpu_get_freq)(void)
-+
-+
-+There are also functions for use by the clockdomain layer to indicate
-+that a powerdomain should wake up or be put to sleep.  These are not c=
-alled
-+via .platform_data.
-+
-+12. omap_pm_pwrdm_active(struct powerdomain *pwrdm)
-+
-+13. omap_pm_pwrdm_inactive(struct powerdomain *pwrdm)
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index adbe21f..0af7e74 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -38,6 +38,8 @@
- #include <mach/clockdomain.h>
- #include "clockdomains.h"
-=20
-+#include <mach/omap-pm.h>
-+
- /*
-  * The machine specific code may provide the extra mapping besides the
-  * default mapping provided here.
-@@ -197,9 +199,11 @@ void __init omap2_map_common_io(void)
- void __init omap2_init_common_hw(struct omap_sdrc_params *sp)
- {
- 	omap2_mux_init();
-+	omap_pm_if_early_init();
- 	pwrdm_init(powerdomains_omap);
- 	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
- 	omap2_clk_init();
-+	omap_pm_if_init(NULL, NULL);
- 	omap2_sdrc_init(sp);
- 	gpmc_init();
- }
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index 960c13f..ca790ac 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -247,4 +247,17 @@ config OMAP_SERIAL_WAKE
-=20
- endmenu
-=20
-+choice
-+	prompt "OMAP PM layer selection"
-+	depends on ARCH_OMAP
-+	default OMAP_PM_NOOP
-+
-+config OMAP_PM_NONE
-+	bool "No PM layer"
-+
-+config OMAP_PM_NOOP
-+	bool "No-op/debug PM layer"
-+
-+endchoice
-+
- endif
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index 1259846..0f61716 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -29,3 +29,4 @@ obj-$(CONFIG_OMAP_MMU_FWK) +=3D mmu.o
- # OMAP mailbox framework
- obj-$(CONFIG_OMAP_MBOX_FWK) +=3D mailbox.o
-=20
-+obj-$(CONFIG_OMAP_PM_NOOP) +=3D omap-pm-noop.o
-\ No newline at end of file
-diff --git a/arch/arm/plat-omap/include/mach/omap-pm.h b/arch/arm/plat-=
-omap/include/mach/omap-pm.h
-new file mode 100644
-index 0000000..91c24dd
---- /dev/null
-+++ b/arch/arm/plat-omap/include/mach/omap-pm.h
-@@ -0,0 +1,322 @@
-+/*
-+ * omap-pm.h - OMAP power management interface
-+ *
-+ * Copyright (C) 2008 Texas Instruments, Inc.
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Paul Walmsley
-+ *
-+ * Interface developed by (in alphabetical order): Karthik Dasu, Jouni
-+ * H=C3=B6gander, Tony Lindgren, Rajendra Nayak, Sakari Poussa,
-+ * Veeramanikandan Raju, Anand Sawant, Igor Stoppa, Paul Walmsley,
-+ * Richard Woodruff
-+ */
-+
-+#ifndef ASM_ARM_ARCH_OMAP_OMAP_PM_H
-+#define ASM_ARM_ARCH_OMAP_OMAP_PM_H
-+
-+#include <linux/device.h>
-+#include <linux/cpufreq.h>
-+
-+#include "powerdomain.h"
-+
-+/**
-+ * struct omap_opp - clock frequency-to-OPP ID table for DSP, MPU
-+ * @rate: target clock rate
-+ * @opp_id: OPP ID
-+ * @min_vdd: minimum VDD1 voltage (in millivolts) for this OPP
-+ *
-+ * Operating performance point data.  Can vary by OMAP chip and board.
-+ */
-+struct omap_opp {
-+	unsigned long rate;
-+	u8 opp_id;
-+	u16 min_vdd;
-+};
-+
-+/*
-+ * agent_id values for use with omap_pm_set_min_bus_tput():
-+ *
-+ * OCP_INITIATOR_AGENT is only valid for devices that can act as
-+ * initiators -- it represents the device's L3 interconnect
-+ * connection.  OCP_TARGET_AGENT represents the device's L4
-+ * interconnect connection.
-+ */
-+#define OCP_TARGET_AGENT		1
-+#define OCP_INITIATOR_AGENT		2
-+
-+/**
-+ * omap_pm_if_early_init - OMAP PM init code called before clock fw in=
-it
-+ *
-+ * Initialize anything that must be configured before the clock
-+ * framework starts.  The "_if_" is to avoid name collisions with the
-+ * PM idle-loop code.
-+ */
-+int __init omap_pm_if_early_init(void);
-+
-+/**
-+ * omap_pm_if_init - OMAP PM init code called after clock fw init
-+ * @mpu_opp_table: array ptr to struct omap_opp for MPU
-+ * @dsp_opp_table: array ptr to struct omap_opp for DSP
-+ *
-+ * The main initialization code.  OPP tables are passed in here.  The
-+ * "_if_" is to avoid name collisions with the PM idle-loop code.
-+ */
-+int __init omap_pm_if_init(struct omap_opp *mpu_opp_table,
-+			   struct omap_opp *dsp_opp_table);
-+
-+/**
-+ * omap_pm_if_exit - OMAP PM exit code
-+ *
-+ * Exit code; currently unused.  The "_if_" is to avoid name
-+ * collisions with the PM idle-loop code.
-+ */
-+void omap_pm_if_exit(void);
-+
-+/*
-+ * Device-driver-originated constraints (via board-*.c files, platform=
-_data)
-+ */
-+
-+
-+/**
-+ * omap_pm_set_max_mpu_wakeup_lat - set the maximum MPU wakeup latency
-+ * @dev: struct device * requesting the constraint
-+ * @t: maximum MPU wakeup latency in microseconds
-+ *
-+ * Request that the maximum interrupt latency for the MPU to be no
-+ * greater than 't' microseconds. "Interrupt latency" in this case is
-+ * defined as the elapsed time from the occurrence of a hardware or
-+ * timer interrupt to the time when the device driver's interrupt
-+ * service routine has been entered by the MPU.
-+ *
-+ * It is intended that underlying PM code will use this information to
-+ * determine what power state to put the MPU powerdomain into, and
-+ * possibly the CORE powerdomain as well, since interrupt handling
-+ * code currently runs from SDRAM.  Advanced PM or board*.c code may
-+ * also configure interrupt controller priorities, OCP bus priorities,
-+ * CPU speed(s), etc.
-+ *
-+ * This function will not affect device wakeup latency, e.g., time
-+ * elapsed from when a device driver enables a hardware device with
-+ * clk_enable(), to when the device is ready for register access or
-+ * other use.  To control this device wakeup latency, use
-+ * set_max_dev_wakeup_lat()
-+ *
-+ * Multiple calls to set_max_mpu_wakeup_lat() will replace the
-+ * previous t value.  To remove the latency target for the MPU, call
-+ * with t =3D -1.
-+ *
-+ * No return value.
-+ */
-+void omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t);
-+
-+
-+/**
-+ * omap_pm_set_min_bus_tput - set minimum bus throughput needed by dev=
-ice
-+ * @dev: struct device * requesting the constraint
-+ * @tbus_id: interconnect to operate on (OCP_{INITIATOR,TARGET}_AGENT)
-+ * @r: minimum throughput (in KiB/s)
-+ *
-+ * Request that the minimum data throughput on the OCP interconnect
-+ * attached to device 'dev' interconnect agent 'tbus_id' be no less
-+ * than 'r' KiB/s.
-+ *
-+ * It is expected that the OMAP PM or bus code will use this
-+ * information to set the interconnect clock to run at the lowest
-+ * possible speed that satisfies all current system users.  The PM or
-+ * bus code will adjust the estimate based on its model of the bus, so
-+ * device driver authors should attempt to specify an accurate
-+ * quantity for their device use case, and let the PM or bus code
-+ * overestimate the numbers as necessary to handle request/response
-+ * latency, other competing users on the system, etc.  On OMAP2/3, if
-+ * a driver requests a minimum L4 interconnect speed constraint, the
-+ * code will also need to add an minimum L3 interconnect speed
-+ * constraint,
-+ *
-+ * Multiple calls to set_min_bus_tput() will replace the previous rate
-+ * value for this device.  To remove the interconnect throughput
-+ * restriction for this device, call with r =3D 0.
-+ *
-+ * No return value.
-+ */
-+void omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigne=
-d long r);
-+
-+
-+/**
-+ * omap_pm_set_max_dev_wakeup_lat - set the maximum device enable late=
-ncy
-+ * @dev: struct device *
-+ * @t: maximum device wakeup latency in microseconds
-+ *
-+ * Request that the maximum amount of time necessary for a device to
-+ * become accessible after its clocks are enabled should be no greater
-+ * than 't' microseconds.  Specifically, this represents the time from
-+ * when a device driver enables device clocks with clk_enable(), to
-+ * when the register reads and writes on the device will succeed.
-+ * This function should be called before clk_disable() is called,
-+ * since the power state transition decision may be made during
-+ * clk_disable().
-+ *
-+ * It is intended that underlying PM code will use this information to
-+ * determine what power state to put the powerdomain enclosing this
-+ * device into.
-+ *
-+ * Multiple calls to set_max_dev_wakeup_lat() will replace the
-+ * previous wakeup latency values for this device.  To remove the wake=
-up
-+ * latency restriction for this device, call with t =3D -1.
-+ *
-+ * No return value.
-+ */
-+void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t);
-+
-+
-+/**
-+ * omap_pm_set_max_sdma_lat - set the maximum system DMA transfer star=
-t latency
-+ * @dev: struct device *
-+ * @t: maximum DMA transfer start latency in microseconds
-+ *
-+ * Request that the maximum system DMA transfer start latency for this
-+ * device 'dev' should be no greater than 't' microseconds.  "DMA
-+ * transfer start latency" here is defined as the elapsed time from
-+ * when a device (e.g., McBSP) requests that a system DMA transfer
-+ * start or continue, to the time at which data starts to flow into
-+ * that device from the system DMA controller.
-+ *
-+ * It is intended that underlying PM code will use this information to
-+ * determine what power state to put the CORE powerdomain into.
-+ *
-+ * Since system DMA transfers may not involve the MPU, this function
-+ * will not affect MPU wakeup latency.  Use set_max_cpu_lat() to do
-+ * so.  Similarly, this function will not affect device wakeup latency
-+ * -- use set_max_dev_wakeup_lat() to affect that.
-+ *
-+ * Multiple calls to set_max_sdma_lat() will replace the previous t
-+ * value for this device.  To remove the maximum DMA latency for this
-+ * device, call with t =3D -1.
-+ *
-+ * No return value.
-+ */
-+void omap_pm_set_max_sdma_lat(struct device *dev, long t);
-+
-+
-+/*
-+ * DSP Bridge-specific constraints
-+ */
-+
-+/**
-+ * omap_pm_dsp_get_opp_table - get OPP->DSP clock frequency table
-+ *
-+ * Intended for use by DSPBridge.  Returns an array of OPP->DSP clock
-+ * frequency entries.  The final item in the array should have .rate =3D
-+ * .opp_id =3D 0.
-+ */
-+const struct omap_opp *omap_pm_dsp_get_opp_table(void);
-+
-+/**
-+ * omap_pm_dsp_set_min_opp - receive desired OPP target ID from DSP Br=
-idge
-+ * @opp_id: target DSP OPP ID
-+ *
-+ * Set a minimum OPP ID for the DSP.  This is intended to be called
-+ * only from the DSP Bridge MPU-side driver.  Unfortunately, the only
-+ * information that code receives from the DSP/BIOS load estimator is =
-the
-+ * target OPP ID; hence, this interface.  No return value.
-+ */
-+void omap_pm_dsp_set_min_opp(u8 opp_id);
-+
-+/**
-+ * omap_pm_dsp_get_opp - report the current DSP OPP ID
-+ *
-+ * Report the current OPP for the DSP.  Since on OMAP3, the DSP and
-+ * MPU share a single voltage domain, the OPP ID returned back may
-+ * represent a higher DSP speed than the OPP requested via
-+ * omap_pm_dsp_set_min_opp().
-+ *
-+ * Returns the current VDD1 OPP ID, or 0 upon error.
-+ */
-+u8 omap_pm_dsp_get_opp(void);
-+
-+
-+/*
-+ * CPUFreq-originated constraint
-+ *
-+ * In the future, this should be handled by custom OPP clocktype
-+ * functions.
-+ */
-+
-+/**
-+ * omap_pm_cpu_get_freq_table - return a cpufreq_frequency_table array=
- ptr
-+ *
-+ * Provide a frequency table usable by CPUFreq for the current chip/bo=
-ard.
-+ * Returns a pointer to a struct cpufreq_frequency_table array or NULL
-+ * upon error.
-+ */
-+struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void);
-+
-+/**
-+ * omap_pm_cpu_set_freq - set the current minimum MPU frequency
-+ * @f: MPU frequency in Hz
-+ *
-+ * Set the current minimum CPU frequency.  The actual CPU frequency
-+ * used could end up higher if the DSP requested a higher OPP.
-+ * Intended to be called by plat-omap/cpu_omap.c:omap_target().  No
-+ * return value.
-+ */
-+void omap_pm_cpu_set_freq(unsigned long f);
-+
-+/**
-+ * omap_pm_cpu_get_freq - report the current CPU frequency
-+ *
-+ * Returns the current MPU frequency, or 0 upon error.
-+ */
-+unsigned long omap_pm_cpu_get_freq(void);
-+
-+
-+/*
-+ * Device context loss tracking
-+ */
-+
-+/**
-+ * omap_pm_get_dev_context_loss_count - return count of times dev has =
-lost ctx
-+ * @dev: struct device *
-+ *
-+ * This function returns the number of times that the device @dev has
-+ * lost its internal context.  This generally occurs on a powerdomain
-+ * transition to OFF.  Drivers use this as an optimization to avoid re=
-storing
-+ * context if the device hasn't lost it.  To use, drivers should initi=
-ally
-+ * call this in their context save functions and store the result.  Ea=
-rly in
-+ * the driver's context restore function, the driver should call this =
-function
-+ * again, and compare the result to the stored counter.  If they diffe=
-r, the
-+ * driver must restore device context.   If the number of context loss=
-es
-+ * exceeds the maximum positive integer, the function will wrap to 0 a=
-nd
-+ * continue counting.  Returns the number of context losses for this d=
-evice,
-+ * or -EINVAL upon error.
-+ */
-+int omap_pm_get_dev_context_loss_count(struct device *dev);
-+
-+
-+/*
-+ * Powerdomain usecounting hooks
-+ */
-+
-+/**
-+ * omap_pm_pwrdm_active - indicate that a power domain has become acti=
-ve
-+ * @pwrdm: struct powerdomain *
-+ *
-+ * Notify the OMAP PM layer that the power domain 'pwrdm' has become a=
-ctive,
-+ * presumably due to a device driver enabling an underlying clock.  Th=
-is
-+ * function is intended to be called by the clockdomain code, not by d=
-rivers.
-+ * No return value.
-+ */
-+void omap_pm_pwrdm_active(struct powerdomain *pwrdm);
-+
-+
-+/**
-+ * omap_pm_pwrdm_inactive - indicate that a power domain has become in=
-active
-+ * @pwrdm: struct powerdomain *
-+ *
-+ * Notify the OMAP PM layer that the power domain 'pwrdm' has become
-+ * inactive, presumably due to a device driver disabling an underlying
-+ * clock.  This function is intended to be called by the clockdomain
-+ * code, not by drivers.  No return value.
-+ */
-+void omap_pm_pwrdm_inactive(struct powerdomain *pwrdm);
-+
-+#endif
-diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/oma=
-p-pm-noop.c
-new file mode 100644
-index 0000000..5defb0e
---- /dev/null
-+++ b/arch/arm/plat-omap/omap-pm-noop.c
-@@ -0,0 +1,330 @@
-+/*
-+ * omap-pm-noop.c - OMAP power management interface - dummy version
-+ *
-+ * This code implements the OMAP power management interface to
-+ * drivers, CPUIdle, CPUFreq, and DSP Bridge.  It is strictly for
-+ * debug/demonstration use, as it does nothing but printk() whenever a
-+ * function is called (when DEBUG is defined, below)
-+ *
-+ * Copyright (C) 2008 Texas Instruments, Inc.
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Paul Walmsley
-+ *
-+ * Interface developed by (in alphabetical order):
-+ * Karthik Dasu, Tony Lindgren, Rajendra Nayak, Sakari Poussa, Veerama=
-nikandan
-+ * Raju, Anand Sawant, Igor Stoppa, Paul Walmsley, Richard Woodruff
-+ */
-+
-+#undef DEBUG
-+
-+#include <linux/init.h>
-+#include <linux/cpufreq.h>
-+#include <linux/device.h>
-+
-+/* Interface documentation is in mach/omap-pm.h */
-+#include <mach/omap-pm.h>
-+
-+#include <mach/powerdomain.h>
-+
-+static struct omap_opp *dsp_opps;
-+static struct omap_opp *mpu_opps;
-+
-+/*
-+ * Device-driver-originated constraints (via board-*.c files)
-+ */
-+
-+void omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t)
-+{
-+	if (!dev || t < -1) {
-+		WARN_ON(1);
-+		return;
-+	};
-+
-+	if (t =3D=3D -1)
-+		pr_debug("OMAP PM: remove max MPU wakeup latency constraint: "
-+			 "dev %s\n", dev_name(dev));
-+	else
-+		pr_debug("OMAP PM: add max MPU wakeup latency constraint: "
-+			 "dev %s, t =3D %ld usec\n", dev_name(dev), t);
-+
-+	/*
-+	 * For current Linux, this needs to map the MPU to a
-+	 * powerdomain, then go through the list of current max lat
-+	 * constraints on the MPU and find the smallest.  If
-+	 * the latency constraint has changed, the code should
-+	 * recompute the state to enter for the next powerdomain
-+	 * state.
-+	 *
-+	 * TI CDP code can call constraint_set here.
-+	 */
-+}
-+
-+void omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigne=
-d long r)
-+{
-+	if (!dev || agent_id !=3D OCP_INITIATOR_AGENT ||
-+	    agent_id !=3D OCP_TARGET_AGENT) {
-+		WARN_ON(1);
-+		return;
-+	};
-+
-+	if (r =3D=3D 0)
-+		pr_debug("OMAP PM: remove min bus tput constraint: "
-+			 "dev %s for agent_id %d\n", dev_name(dev), agent_id);
-+	else
-+		pr_debug("OMAP PM: add min bus tput constraint: "
-+			 "dev %s for agent_id %d: rate %ld KiB\n",
-+			 dev_name(dev), agent_id, r);
-+
-+	/*
-+	 * This code should model the interconnect and compute the
-+	 * required clock frequency, convert that to a VDD2 OPP ID, then
-+	 * set the VDD2 OPP appropriately.
-+	 *
-+	 * TI CDP code can call constraint_set here on the VDD2 OPP.
-+	 */
-+}
-+
-+void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t)
-+{
-+	if (!dev || t < -1) {
-+		WARN_ON(1);
-+		return;
-+	};
-+
-+	if (t =3D=3D -1)
-+		pr_debug("OMAP PM: remove max device latency constraint: "
-+			 "dev %s\n", dev_name(dev));
-+	else
-+		pr_debug("OMAP PM: add max device latency constraint: "
-+			 "dev %s, t =3D %ld usec\n", dev_name(dev), t);
-+
-+	/*
-+	 * For current Linux, this needs to map the device to a
-+	 * powerdomain, then go through the list of current max lat
-+	 * constraints on that powerdomain and find the smallest.  If
-+	 * the latency constraint has changed, the code should
-+	 * recompute the state to enter for the next powerdomain
-+	 * state.  Conceivably, this code should also determine
-+	 * whether to actually disable the device clocks or not,
-+	 * depending on how long it takes to re-enable the clocks.
-+	 *
-+	 * TI CDP code can call constraint_set here.
-+	 */
-+}
-+
-+void omap_pm_set_max_sdma_lat(struct device *dev, long t)
-+{
-+	if (!dev || t < -1) {
-+		WARN_ON(1);
-+		return;
-+	};
-+
-+	if (t =3D=3D -1)
-+		pr_debug("OMAP PM: remove max DMA latency constraint: "
-+			 "dev %s\n", dev_name(dev));
-+	else
-+		pr_debug("OMAP PM: add max DMA latency constraint: "
-+			 "dev %s, t =3D %ld usec\n", dev_name(dev), t);
-+
-+	/*
-+	 * For current Linux PM QOS params, this code should scan the
-+	 * list of maximum CPU and DMA latencies and select the
-+	 * smallest, then set cpu_dma_latency pm_qos_param
-+	 * accordingly.
-+	 *
-+	 * For future Linux PM QOS params, with separate CPU and DMA
-+	 * latency params, this code should just set the dma_latency param.
-+	 *
-+	 * TI CDP code can call constraint_set here.
-+	 */
-+
-+}
-+
-+
-+/*
-+ * DSP Bridge-specific constraints
-+ */
-+
-+const struct omap_opp *omap_pm_dsp_get_opp_table(void)
-+{
-+	pr_debug("OMAP PM: DSP request for OPP table\n");
-+
-+	/*
-+	 * Return DSP frequency table here:  The final item in the
-+	 * array should have .rate =3D .opp_id =3D 0.
-+	 */
-+
-+	return NULL;
-+}
-+
-+void omap_pm_dsp_set_min_opp(u8 opp_id)
-+{
-+	if (opp_id =3D=3D 0) {
-+		WARN_ON(1);
-+		return;
-+	}
-+
-+	pr_debug("OMAP PM: DSP requests minimum VDD1 OPP to be %d\n", opp_id)=
-;
-+
-+	/*
-+	 *
-+	 * For l-o dev tree, our VDD1 clk is keyed on OPP ID, so we
-+	 * can just test to see which is higher, the CPU's desired OPP
-+	 * ID or the DSP's desired OPP ID, and use whichever is
-+	 * highest.
-+	 *
-+	 * In CDP12.14+, the VDD1 OPP custom clock that controls the DSP
-+	 * rate is keyed on MPU speed, not the OPP ID.  So we need to
-+	 * map the OPP ID to the MPU speed for use with clk_set_rate()
-+	 * if it is higher than the current OPP clock rate.
-+	 *
-+	 */
-+}
-+
-+
-+u8 omap_pm_dsp_get_opp(void)
-+{
-+	pr_debug("OMAP PM: DSP requests current DSP OPP ID\n");
-+
-+	/*
-+	 * For l-o dev tree, call clk_get_rate() on VDD1 OPP clock
-+	 *
-+	 * CDP12.14+:
-+	 * Call clk_get_rate() on the OPP custom clock, map that to an
-+	 * OPP ID using the tables defined in board-*.c/chip-*.c files.
-+	 */
-+
-+	return 0;
-+}
-+
-+/*
-+ * CPUFreq-originated constraint
-+ *
-+ * In the future, this should be handled by custom OPP clocktype
-+ * functions.
-+ */
-+
-+struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void)
-+{
-+	pr_debug("OMAP PM: CPUFreq request for frequency table\n");
-+
-+	/*
-+	 * Return CPUFreq frequency table here: loop over
-+	 * all VDD1 clkrates, pull out the mpu_ck frequencies, build
-+	 * table
-+	 */
-+
-+	return NULL;
-+}
-+
-+void omap_pm_cpu_set_freq(unsigned long f)
-+{
-+	if (f =3D=3D 0) {
-+		WARN_ON(1);
-+		return;
-+	}
-+
-+	pr_debug("OMAP PM: CPUFreq requests CPU frequency to be set to %lu\n"=
-,
-+		 f);
-+
-+	/*
-+	 * For l-o dev tree, determine whether MPU freq or DSP OPP id
-+	 * freq is higher.  Find the OPP ID corresponding to the
-+	 * higher frequency.  Call clk_round_rate() and clk_set_rate()
-+	 * on the OPP custom clock.
-+	 *
-+	 * CDP should just be able to set the VDD1 OPP clock rate here.
-+	 */
-+}
-+
-+unsigned long omap_pm_cpu_get_freq(void)
-+{
-+	pr_debug("OMAP PM: CPUFreq requests current CPU frequency\n");
-+
-+	/*
-+	 * Call clk_get_rate() on the mpu_ck.
-+	 */
-+
-+	return 0;
-+}
-+
-+/*
-+ * Device context loss tracking
-+ */
-+
-+int omap_pm_get_dev_context_loss_count(struct device *dev)
-+{
-+	if (!dev) {
-+		WARN_ON(1);
-+		return -EINVAL;
-+	};
-+
-+	pr_debug("OMAP PM: returning context loss count for dev %s\n",
-+		 dev_name(dev));
-+
-+	/*
-+	 * Map the device to the powerdomain.  Return the powerdomain
-+	 * off counter.
-+	 */
-+
-+	return 0;
-+}
-+
-+/*
-+ * Powerdomain usecounting hooks
-+ */
-+
-+void omap_pm_pwrdm_active(struct powerdomain *pwrdm)
-+{
-+	if (!pwrdm) {
-+		WARN_ON(1);
-+		return;
-+	};
-+
-+	pr_debug("OMAP PM: powerdomain %s is becoming active\n", pwrdm->name)=
-;
-+
-+	/*
-+	 * CDP code apparently will need these for the enable_power_domain()
-+	 * and disable_power_domain() functions.
-+	 */
-+}
-+
-+void omap_pm_pwrdm_inactive(struct powerdomain *pwrdm)
-+{
-+	if (!pwrdm) {
-+		WARN_ON(1);
-+		return;
-+	};
-+
-+	pr_debug("OMAP PM: powerdomain %s is becoming inactive\n",
-+		 pwrdm->name);
-+
-+	/*
-+	 * CDP code apparently will need these for the enable_power_domain()
-+	 * and disable_power_domain() functions.
-+	 */
-+}
-+
-+/*
-+ * Should be called before clk framework since clk fw will call
-+ * omap_pm_pwrdm_{in,}active()
-+ */
-+int __init omap_pm_if_early_init(void)
-+{
-+	return 0;
-+}
-+
-+/* Must be called after clock framework is initialized */
-+int __init omap_pm_if_init(struct omap_opp *mpu_opp_table,
-+			   struct omap_opp *dsp_opp_table)
-+{
-+	mpu_opps =3D mpu_opp_table;
-+	dsp_opps =3D dsp_opp_table;
-+	return 0;
-+}
-+
-+void omap_pm_if_exit(void)
-+{
-+	/* Deallocate CPUFreq frequency table here */
-+}
-+
+diff --git a/sound/soc/codecs/tlv320aic23.c b/sound/soc/codecs/tlv320aic23.c
+index c2d35e9..bb7cfb8 100644
+--- a/sound/soc/codecs/tlv320aic23.c
++++ b/sound/soc/codecs/tlv320aic23.c
+@@ -113,7 +113,6 @@ static int tlv320aic23_write(struct snd_soc_codec
+*codec, unsigned int reg,
 
+ static const char *rec_src_text[] = { "Line", "Mic" };
+ static const char *deemph_text[] = {"None", "32Khz", "44.1Khz", "48Khz"};
+-static const char *sidetone_text[] = {"-6db", "-9db", "-12db", "-18db", "0db"};
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ static const struct soc_enum rec_src_enum =
+ 	SOC_ENUM_SINGLE(TLV320AIC23_ANLG, 2, 2, rec_src_text);
+@@ -125,11 +124,56 @@ static const struct soc_enum tlv320aic23_rec_src =
+ 	SOC_ENUM_SINGLE(TLV320AIC23_ANLG, 2, 2, rec_src_text);
+ static const struct soc_enum tlv320aic23_deemph =
+ 	SOC_ENUM_SINGLE(TLV320AIC23_DIGT, 1, 4, deemph_text);
+-static const struct soc_enum tlv320aic23_sidetone =
+-	SOC_ENUM_SINGLE(TLV320AIC23_ANLG, 6, 5, sidetone_text);
+
+ static const DECLARE_TLV_DB_SCALE(out_gain_tlv, -12100, 100, 0);
+ static const DECLARE_TLV_DB_SCALE(input_gain_tlv, -1725, 75, 0);
++static const DECLARE_TLV_DB_SCALE(sidetone_vol_tlv, -1800, 300, 0);
++
++static int snd_soc_tlv320aic23_put_volsw(struct snd_kcontrol *kcontrol,
++	struct snd_ctl_elem_value *ucontrol)
++{
++	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
++	u16 val, reg;
++
++	val = (ucontrol->value.integer.value[0] & 0x07);
++
++	/* linear conversion to userspace
++	* 000	=	-6db
++	* 001	=	-9db
++	* 010	=	-12db
++	* 011	=	-18db (Min)
++	* 100	=	0db (Max)
++	*/
++	val = (val >= 4) ? 4  : (3 - val);
++
++	reg = tlv320aic23_read_reg_cache(codec, TLV320AIC23_ANLG) & (~0x1C0);
++	tlv320aic23_write(codec, TLV320AIC23_ANLG, reg | (val << 6));
++
++	return 0;
++}
++
++static int snd_soc_tlv320aic23_get_volsw(struct snd_kcontrol *kcontrol,
++	struct snd_ctl_elem_value *ucontrol)
++{
++	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
++	u16 val;
++
++	val = tlv320aic23_read_reg_cache(codec, TLV320AIC23_ANLG) & (0x1C0);
++	val = val >> 6;
++	val = (val >= 4) ? 4  : (3 -  val);
++	ucontrol->value.integer.value[0] = val;
++	return 0;
++
++}
++
++#define SOC_TLV320AIC23_SINGLE_TLV(xname, reg, shift, max, invert, tlv_array) \
++{	.iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = xname, \
++	.access = SNDRV_CTL_ELEM_ACCESS_TLV_READ |\
++		 SNDRV_CTL_ELEM_ACCESS_READWRITE,\
++	.tlv.p = (tlv_array), \
++	.info = snd_soc_info_volsw, .get = snd_soc_tlv320aic23_get_volsw,\
++	.put = snd_soc_tlv320aic23_put_volsw, \
++	.private_value =  SOC_SINGLE_VALUE(reg, shift, max, invert) }
+
+ static const struct snd_kcontrol_new tlv320aic23_snd_controls[] = {
+ 	SOC_DOUBLE_R_TLV("Digital Playback Volume", TLV320AIC23_LCHNVOL,
+@@ -141,7 +185,8 @@ static const struct snd_kcontrol_new
+tlv320aic23_snd_controls[] = {
+ 			 TLV320AIC23_RINVOL, 0, 31, 0, input_gain_tlv),
+ 	SOC_SINGLE("Mic Input Switch", TLV320AIC23_ANLG, 1, 1, 1),
+ 	SOC_SINGLE("Mic Booster Switch", TLV320AIC23_ANLG, 0, 1, 0),
+-	SOC_ENUM("Sidetone Gain", tlv320aic23_sidetone),
++	SOC_TLV320AIC23_SINGLE_TLV("Sidetone Volume", TLV320AIC23_ANLG,
++				  6, 4, 0, sidetone_vol_tlv),
+ 	SOC_ENUM("Playback De-emphasis", tlv320aic23_deemph),
+ };
+
+-- 
+1.5.3.4
+
+------=_Part_3743_16615078.1223033850499
+Content-Type: text/x-patch;
+ name=0001-Adds-custom-SOC_SINGLE_TLV-for-tlv320aic23-codec.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fluqpzwz0
+Content-Disposition: attachment;
+ filename=0001-Adds-custom-SOC_SINGLE_TLV-for-tlv320aic23-codec.patch
+
+RnJvbSA1MWMyZmMzYjIxMmExMDhhYjY5Mzg5MzJlMWZlNTA4MjJjNGJhMTI1IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBBcnVuIEtTIDxhcnVua3NAbWlzdHJhbHNvbHV0aW9ucy5jb20+
+CkRhdGU6IEZyaSwgMyBPY3QgMjAwOCAxNzowMToxNiArMDUzMApTdWJqZWN0OiBbUEFUQ0hdIEFk
+ZHMgY3VzdG9tIFNPQ19TSU5HTEVfVExWIGZvciB0bHYzMjBhaWMyMyBjb2RlYwoKUmVwbGFjZXMg
+U09DX0VOVU0gd2l0aCBjdXN0b20gU09DX1NJTkdMRV9UTFYgZm9yIFNpZGV0b25lIHZvbHVtZQoK
+U2lnbmVkLW9mZi1ieTogQXJ1biBLUyA8YXJ1bmtzQG1pc3RyYWxzb2x1dGlvbnMuY29tPgotLS0K
+IHNvdW5kL3NvYy9jb2RlY3MvdGx2MzIwYWljMjMuYyB8ICAgNTMgKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKy0tLQogMSBmaWxlcyBjaGFuZ2VkLCA0OSBpbnNlcnRpb25zKCsp
+LCA0IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL3NvdW5kL3NvYy9jb2RlY3MvdGx2MzIwYWlj
+MjMuYyBiL3NvdW5kL3NvYy9jb2RlY3MvdGx2MzIwYWljMjMuYwppbmRleCBjMmQzNWU5Li5iYjdj
+ZmI4IDEwMDY0NAotLS0gYS9zb3VuZC9zb2MvY29kZWNzL3RsdjMyMGFpYzIzLmMKKysrIGIvc291
+bmQvc29jL2NvZGVjcy90bHYzMjBhaWMyMy5jCkBAIC0xMTMsNyArMTEzLDYgQEAgc3RhdGljIGlu
+dCB0bHYzMjBhaWMyM193cml0ZShzdHJ1Y3Qgc25kX3NvY19jb2RlYyAqY29kZWMsIHVuc2lnbmVk
+IGludCByZWcsCiAKIHN0YXRpYyBjb25zdCBjaGFyICpyZWNfc3JjX3RleHRbXSA9IHsgIkxpbmUi
+LCAiTWljIiB9Owogc3RhdGljIGNvbnN0IGNoYXIgKmRlZW1waF90ZXh0W10gPSB7Ik5vbmUiLCAi
+MzJLaHoiLCAiNDQuMUtoeiIsICI0OEtoeiJ9Owotc3RhdGljIGNvbnN0IGNoYXIgKnNpZGV0b25l
+X3RleHRbXSA9IHsiLTZkYiIsICItOWRiIiwgIi0xMmRiIiwgIi0xOGRiIiwgIjBkYiJ9OwogCiBz
+dGF0aWMgY29uc3Qgc3RydWN0IHNvY19lbnVtIHJlY19zcmNfZW51bSA9CiAJU09DX0VOVU1fU0lO
+R0xFKFRMVjMyMEFJQzIzX0FOTEcsIDIsIDIsIHJlY19zcmNfdGV4dCk7CkBAIC0xMjUsMTEgKzEy
+NCw1NiBAQCBzdGF0aWMgY29uc3Qgc3RydWN0IHNvY19lbnVtIHRsdjMyMGFpYzIzX3JlY19zcmMg
+PQogCVNPQ19FTlVNX1NJTkdMRShUTFYzMjBBSUMyM19BTkxHLCAyLCAyLCByZWNfc3JjX3RleHQp
+Owogc3RhdGljIGNvbnN0IHN0cnVjdCBzb2NfZW51bSB0bHYzMjBhaWMyM19kZWVtcGggPQogCVNP
+Q19FTlVNX1NJTkdMRShUTFYzMjBBSUMyM19ESUdULCAxLCA0LCBkZWVtcGhfdGV4dCk7Ci1zdGF0
+aWMgY29uc3Qgc3RydWN0IHNvY19lbnVtIHRsdjMyMGFpYzIzX3NpZGV0b25lID0KLQlTT0NfRU5V
+TV9TSU5HTEUoVExWMzIwQUlDMjNfQU5MRywgNiwgNSwgc2lkZXRvbmVfdGV4dCk7CiAKIHN0YXRp
+YyBjb25zdCBERUNMQVJFX1RMVl9EQl9TQ0FMRShvdXRfZ2Fpbl90bHYsIC0xMjEwMCwgMTAwLCAw
+KTsKIHN0YXRpYyBjb25zdCBERUNMQVJFX1RMVl9EQl9TQ0FMRShpbnB1dF9nYWluX3RsdiwgLTE3
+MjUsIDc1LCAwKTsKK3N0YXRpYyBjb25zdCBERUNMQVJFX1RMVl9EQl9TQ0FMRShzaWRldG9uZV92
+b2xfdGx2LCAtMTgwMCwgMzAwLCAwKTsKKworc3RhdGljIGludCBzbmRfc29jX3RsdjMyMGFpYzIz
+X3B1dF92b2xzdyhzdHJ1Y3Qgc25kX2tjb250cm9sICprY29udHJvbCwKKwlzdHJ1Y3Qgc25kX2N0
+bF9lbGVtX3ZhbHVlICp1Y29udHJvbCkKK3sKKwlzdHJ1Y3Qgc25kX3NvY19jb2RlYyAqY29kZWMg
+PSBzbmRfa2NvbnRyb2xfY2hpcChrY29udHJvbCk7CisJdTE2IHZhbCwgcmVnOworCisJdmFsID0g
+KHVjb250cm9sLT52YWx1ZS5pbnRlZ2VyLnZhbHVlWzBdICYgMHgwNyk7CisKKwkvKiBsaW5lYXIg
+Y29udmVyc2lvbiB0byB1c2Vyc3BhY2UKKwkqIDAwMAk9CS02ZGIKKwkqIDAwMQk9CS05ZGIKKwkq
+IDAxMAk9CS0xMmRiCisJKiAwMTEJPQktMThkYiAoTWluKQorCSogMTAwCT0JMGRiIChNYXgpCisJ
+Ki8KKwl2YWwgPSAodmFsID49IDQpID8gNCAgOiAoMyAtIHZhbCk7CisKKwlyZWcgPSB0bHYzMjBh
+aWMyM19yZWFkX3JlZ19jYWNoZShjb2RlYywgVExWMzIwQUlDMjNfQU5MRykgJiAofjB4MUMwKTsK
+Kwl0bHYzMjBhaWMyM193cml0ZShjb2RlYywgVExWMzIwQUlDMjNfQU5MRywgcmVnIHwgKHZhbCA8
+PCA2KSk7CisKKwlyZXR1cm4gMDsKK30KKworc3RhdGljIGludCBzbmRfc29jX3RsdjMyMGFpYzIz
+X2dldF92b2xzdyhzdHJ1Y3Qgc25kX2tjb250cm9sICprY29udHJvbCwKKwlzdHJ1Y3Qgc25kX2N0
+bF9lbGVtX3ZhbHVlICp1Y29udHJvbCkKK3sKKwlzdHJ1Y3Qgc25kX3NvY19jb2RlYyAqY29kZWMg
+PSBzbmRfa2NvbnRyb2xfY2hpcChrY29udHJvbCk7CisJdTE2IHZhbDsKKworCXZhbCA9IHRsdjMy
+MGFpYzIzX3JlYWRfcmVnX2NhY2hlKGNvZGVjLCBUTFYzMjBBSUMyM19BTkxHKSAmICgweDFDMCk7
+CisJdmFsID0gdmFsID4+IDY7CisJdmFsID0gKHZhbCA+PSA0KSA/IDQgIDogKDMgLSAgdmFsKTsK
+Kwl1Y29udHJvbC0+dmFsdWUuaW50ZWdlci52YWx1ZVswXSA9IHZhbDsKKwlyZXR1cm4gMDsKKwor
+fQorCisjZGVmaW5lIFNPQ19UTFYzMjBBSUMyM19TSU5HTEVfVExWKHhuYW1lLCByZWcsIHNoaWZ0
+LCBtYXgsIGludmVydCwgdGx2X2FycmF5KSBcCit7CS5pZmFjZSA9IFNORFJWX0NUTF9FTEVNX0lG
+QUNFX01JWEVSLCAubmFtZSA9IHhuYW1lLCBcCisJLmFjY2VzcyA9IFNORFJWX0NUTF9FTEVNX0FD
+Q0VTU19UTFZfUkVBRCB8XAorCQkgU05EUlZfQ1RMX0VMRU1fQUNDRVNTX1JFQURXUklURSxcCisJ
+LnRsdi5wID0gKHRsdl9hcnJheSksIFwKKwkuaW5mbyA9IHNuZF9zb2NfaW5mb192b2xzdywgLmdl
+dCA9IHNuZF9zb2NfdGx2MzIwYWljMjNfZ2V0X3ZvbHN3LFwKKwkucHV0ID0gc25kX3NvY190bHYz
+MjBhaWMyM19wdXRfdm9sc3csIFwKKwkucHJpdmF0ZV92YWx1ZSA9ICBTT0NfU0lOR0xFX1ZBTFVF
+KHJlZywgc2hpZnQsIG1heCwgaW52ZXJ0KSB9CiAKIHN0YXRpYyBjb25zdCBzdHJ1Y3Qgc25kX2tj
+b250cm9sX25ldyB0bHYzMjBhaWMyM19zbmRfY29udHJvbHNbXSA9IHsKIAlTT0NfRE9VQkxFX1Jf
+VExWKCJEaWdpdGFsIFBsYXliYWNrIFZvbHVtZSIsIFRMVjMyMEFJQzIzX0xDSE5WT0wsCkBAIC0x
+NDEsNyArMTg1LDggQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBzbmRfa2NvbnRyb2xfbmV3IHRsdjMy
+MGFpYzIzX3NuZF9jb250cm9sc1tdID0gewogCQkJIFRMVjMyMEFJQzIzX1JJTlZPTCwgMCwgMzEs
+IDAsIGlucHV0X2dhaW5fdGx2KSwKIAlTT0NfU0lOR0xFKCJNaWMgSW5wdXQgU3dpdGNoIiwgVExW
+MzIwQUlDMjNfQU5MRywgMSwgMSwgMSksCiAJU09DX1NJTkdMRSgiTWljIEJvb3N0ZXIgU3dpdGNo
+IiwgVExWMzIwQUlDMjNfQU5MRywgMCwgMSwgMCksCi0JU09DX0VOVU0oIlNpZGV0b25lIEdhaW4i
+LCB0bHYzMjBhaWMyM19zaWRldG9uZSksCisJU09DX1RMVjMyMEFJQzIzX1NJTkdMRV9UTFYoIlNp
+ZGV0b25lIFZvbHVtZSIsIFRMVjMyMEFJQzIzX0FOTEcsCisJCQkJICA2LCA0LCAwLCBzaWRldG9u
+ZV92b2xfdGx2KSwKIAlTT0NfRU5VTSgiUGxheWJhY2sgRGUtZW1waGFzaXMiLCB0bHYzMjBhaWMy
+M19kZWVtcGgpLAogfTsKIAotLSAKMS41LjMuNAoK
+------=_Part_3743_16615078.1223033850499--
