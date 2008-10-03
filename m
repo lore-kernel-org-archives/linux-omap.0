@@ -1,463 +1,855 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 04/07] ARM: OMAP2: Add pinmux support for omap34xx
-Date: Fri,  3 Oct 2008 14:56:46 +0300
-Message-ID: <1223035009-23866-5-git-send-email-tony@atomide.com>
+Subject: [PATCH 06/07] ARM: OMAP2: Misc updates from linux-omap tree
+Date: Fri,  3 Oct 2008 14:56:48 +0300
+Message-ID: <1223035009-23866-7-git-send-email-tony@atomide.com>
 References: <1223035009-23866-1-git-send-email-tony@atomide.com>
  <1223035009-23866-2-git-send-email-tony@atomide.com>
  <1223035009-23866-3-git-send-email-tony@atomide.com>
  <1223035009-23866-4-git-send-email-tony@atomide.com>
+ <1223035009-23866-5-git-send-email-tony@atomide.com>
+ <1223035009-23866-6-git-send-email-tony@atomide.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62926 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62997 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754283AbYJCLyL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 07:54:11 -0400
-In-Reply-To: <1223035009-23866-4-git-send-email-tony@atomide.com>
+	with ESMTP id S1754283AbYJCLyS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 07:54:18 -0400
+In-Reply-To: <1223035009-23866-6-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Vikram Pandita <vikram.pandita@ti.com>, Jarkko Nikula <jarkko.nikula@nokia.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-From: Vikram Pandita <vikram.pandita@ti.com>
+Misc updates from linux-omap tree, mostly to update common
+device initialization and add missing defines from linux-omap
+tree. Also some changes to make room for adding 34xx in
+following patches.
 
-This patch adds pinmux support for OMAP3. Incorporated review comments
-from Tony to make mux_value as bit mask. Tested on 3430SDP.
-
-Also merge in adding of I2C pins from Jarkko Nikula.
-
-Acked-by: Anand Gadiyar <gadiyar@ti.com>
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 6b7d672..4f44414 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -1,7 +1,7 @@
- /*
-  * linux/arch/arm/mach-omap2/mux.c
-  *
-- * OMAP2 pin multiplexing configurations
-+ * OMAP2 and OMAP3 pin multiplexing configurations
-  *
-  * Copyright (C) 2004 - 2008 Texas Instruments Inc.
-  * Copyright (C) 2003 - 2008 Nokia Corporation
-@@ -220,16 +220,179 @@ MUX_CFG_24XX("AD13_2430_MCBSP2_DR_OFF",	0x0131,	0,	0,	0,	1)
- #define OMAP24XX_PINS_SZ	0
- #endif	/* CONFIG_ARCH_OMAP24XX */
- 
--#define OMAP24XX_PULL_ENA	(1 << 3)
--#define OMAP24XX_PULL_UP	(1 << 4)
-+#ifdef CONFIG_ARCH_OMAP34XX
-+static struct pin_config __initdata_or_module omap34xx_pins[] = {
-+/*
-+ *		Name, reg-offset,
-+ *		mux-mode | [active-mode | off-mode]
-+ */
+diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/device=
+s.c
+index 99982d3..e382b43 100644
+--- a/arch/arm/mach-omap1/devices.c
++++ b/arch/arm/mach-omap1/devices.c
+@@ -101,7 +101,7 @@ static inline void omap_init_mbox(void) { }
+=20
+ #if defined(CONFIG_OMAP_STI)
+=20
+-#define OMAP1_STI_BASE		IO_ADDRESS(0xfffea000)
++#define OMAP1_STI_BASE		0xfffea000
+ #define OMAP1_STI_CHANNEL_BASE	(OMAP1_STI_BASE + 0x400)
+=20
+ static struct resource sti_resources[] =3D {
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index ea55f28..1fb330e 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -21,6 +21,7 @@
+ /* The maximum error between a target DPLL rate and the rounded rate i=
+n Hz */
+ #define DEFAULT_DPLL_RATE_TOLERANCE	50000
+=20
++int omap2_clk_init(void);
+ int omap2_clk_enable(struct clk *clk);
+ void omap2_clk_disable(struct clk *clk);
+ long omap2_clk_round_rate(struct clk *clk, unsigned long rate);
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/device=
+s.c
+index 2ee954a..cc5c294 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -23,49 +23,37 @@
+ #include <mach/board.h>
+ #include <mach/mux.h>
+ #include <mach/gpio.h>
++#include <mach/eac.h>
+=20
+-#if	defined(CONFIG_I2C_OMAP) || defined(CONFIG_I2C_OMAP_MODULE)
++#if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+=20
+-#define OMAP2_I2C_BASE2		0x48072000
+-#define OMAP2_I2C_INT2		57
+-
+-static struct resource i2c_resources2[] =3D {
++static struct resource cam_resources[] =3D {
+ 	{
+-		.start		=3D OMAP2_I2C_BASE2,
+-		.end		=3D OMAP2_I2C_BASE2 + 0x3f,
++		.start		=3D OMAP24XX_CAMERA_BASE,
++		.end		=3D OMAP24XX_CAMERA_BASE + 0xfff,
+ 		.flags		=3D IORESOURCE_MEM,
+ 	},
+ 	{
+-		.start		=3D OMAP2_I2C_INT2,
++		.start		=3D INT_24XX_CAM_IRQ,
+ 		.flags		=3D IORESOURCE_IRQ,
+-	},
++	}
+ };
+=20
+-static struct platform_device omap_i2c_device2 =3D {
+-	.name           =3D "i2c_omap",
+-	.id             =3D 2,
+-	.num_resources	=3D ARRAY_SIZE(i2c_resources2),
+-	.resource	=3D i2c_resources2,
++static struct platform_device omap_cam_device =3D {
++	.name		=3D "omap24xxcam",
++	.id		=3D -1,
++	.num_resources	=3D ARRAY_SIZE(cam_resources),
++	.resource	=3D cam_resources,
+ };
+=20
+-/* See also arch/arm/plat-omap/devices.c for first I2C on 24xx */
+-static void omap_init_i2c(void)
++static inline void omap_init_camera(void)
+ {
+-	/* REVISIT: Second I2C not in use on H4? */
+-	if (machine_is_omap_h4())
+-		return;
+-
+-	if (!cpu_is_omap2430()) {
+-		omap_cfg_reg(J15_24XX_I2C2_SCL);
+-		omap_cfg_reg(H19_24XX_I2C2_SDA);
+-	}
+-	(void) platform_device_register(&omap_i2c_device2);
++	platform_device_register(&omap_cam_device);
+ }
+-
+ #else
+-
+-static void omap_init_i2c(void) {}
+-
++static inline void omap_init_camera(void)
++{
++}
+ #endif
+=20
+ #if defined(CONFIG_OMAP_DSP) || defined(CONFIG_OMAP_DSP_MODULE)
+@@ -104,7 +92,9 @@ static inline void omap_init_mbox(void) { }
+=20
+ #if defined(CONFIG_OMAP_STI)
+=20
+-#define OMAP2_STI_BASE		IO_ADDRESS(0x48068000)
++#if defined(CONFIG_ARCH_OMAP2)
 +
-+/* 34xx I2C */
-+MUX_CFG_34XX("K21_34XX_I2C1_SCL", 0x1ba,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("J21_34XX_I2C1_SDA", 0x1bc,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AF15_34XX_I2C2_SCL", 0x1be,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AE15_34XX_I2C2_SDA", 0x1c0,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AF14_34XX_I2C3_SCL", 0x1c2,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AG14_34XX_I2C3_SDA", 0x1c4,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AD26_34XX_I2C4_SCL", 0xa00,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AE26_34XX_I2C4_SDA", 0xa02,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
++#define OMAP2_STI_BASE		0x48068000
+ #define OMAP2_STI_CHANNEL_BASE	0x54000000
+ #define OMAP2_STI_IRQ		4
+=20
+@@ -124,6 +114,25 @@ static struct resource sti_resources[] =3D {
+ 		.flags		=3D IORESOURCE_IRQ,
+ 	}
+ };
++#elif defined(CONFIG_ARCH_OMAP3)
 +
-+/* PHY - HSUSB: 12-pin ULPI PHY: Port 1*/
-+MUX_CFG_34XX("Y8_3430_USB1HS_PHY_CLK", 0x5da,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_OUTPUT)
-+MUX_CFG_34XX("Y9_3430_USB1HS_PHY_STP", 0x5d8,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_OUTPUT)
-+MUX_CFG_34XX("AA14_3430_USB1HS_PHY_DIR", 0x5ec,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AA11_3430_USB1HS_PHY_NXT", 0x5ee,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("W13_3430_USB1HS_PHY_D0", 0x5dc,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("W12_3430_USB1HS_PHY_D1", 0x5de,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("W11_3430_USB1HS_PHY_D2", 0x5e0,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("Y11_3430_USB1HS_PHY_D3", 0x5ea,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("W9_3430_USB1HS_PHY_D4", 0x5e4,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("Y12_3430_USB1HS_PHY_D5", 0x5e6,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("W8_3430_USB1HS_PHY_D6", 0x5e8,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("Y13_3430_USB1HS_PHY_D7", 0x5e2,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
++#define OMAP3_SDTI_BASE		0x54500000
++#define OMAP3_SDTI_CHANNEL_BASE	0x54600000
 +
-+/* PHY - HSUSB: 12-pin ULPI PHY: Port 2*/
-+MUX_CFG_34XX("AA8_3430_USB2HS_PHY_CLK", 0x5f0,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_OUTPUT)
-+MUX_CFG_34XX("AA10_3430_USB2HS_PHY_STP", 0x5f2,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_OUTPUT)
-+MUX_CFG_34XX("AA9_3430_USB2HS_PHY_DIR", 0x5f4,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AB11_3430_USB2HS_PHY_NXT", 0x5f6,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AB10_3430_USB2HS_PHY_D0", 0x5f8,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AB9_3430_USB2HS_PHY_D1", 0x5fa,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("W3_3430_USB2HS_PHY_D2", 0x1d4,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("T4_3430_USB2HS_PHY_D3", 0x1de,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("T3_3430_USB2HS_PHY_D4", 0x1d8,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("R3_3430_USB2HS_PHY_D5", 0x1da,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("R4_3430_USB2HS_PHY_D6", 0x1dc,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("T2_3430_USB2HS_PHY_D7", 0x1d6,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+
-+/* TLL - HSUSB: 12-pin TLL Port 1*/
-+MUX_CFG_34XX("Y8_3430_USB1HS_TLL_CLK", 0x5da,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
-+MUX_CFG_34XX("Y9_3430_USB1HS_TLL_STP", 0x5d8,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AA14_3430_USB1HS_TLL_DIR", 0x5ec,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
-+MUX_CFG_34XX("AA11_3430_USB1HS_TLL_NXT", 0x5ee,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
-+MUX_CFG_34XX("W13_3430_USB1HS_TLL_D0", 0x5dc,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("W12_3430_USB1HS_TLL_D1", 0x5de,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("W11_3430_USB1HS_TLL_D2", 0x5e0,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("Y11_3430_USB1HS_TLL_D3", 0x5ea,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("W9_3430_USB1HS_TLL_D4", 0x5e4,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("Y12_3430_USB1HS_TLL_D5", 0x5e6,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("W8_3430_USB1HS_TLL_D6", 0x5e8,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("Y13_3430_USB1HS_TLL_D7", 0x5e2,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+
-+/* TLL - HSUSB: 12-pin TLL Port 2*/
-+MUX_CFG_34XX("AA8_3430_USB2HS_TLL_CLK", 0x5f0,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
-+MUX_CFG_34XX("AA10_3430_USB2HS_TLL_STP", 0x5f2,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AA9_3430_USB2HS_TLL_DIR", 0x5f4,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
-+MUX_CFG_34XX("AB11_3430_USB2HS_TLL_NXT", 0x5f6,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
-+MUX_CFG_34XX("AB10_3430_USB2HS_TLL_D0", 0x5f8,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AB9_3430_USB2HS_TLL_D1", 0x5fa,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("W3_3430_USB2HS_TLL_D2", 0x1d4,
-+		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("T4_3430_USB2HS_TLL_D3", 0x1de,
-+		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("T3_3430_USB2HS_TLL_D4", 0x1d8,
-+		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("R3_3430_USB2HS_TLL_D5", 0x1da,
-+		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("R4_3430_USB2HS_TLL_D6", 0x1dc,
-+		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("T2_3430_USB2HS_TLL_D7", 0x1d6,
-+		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+
-+/* TLL - HSUSB: 12-pin TLL Port 3*/
-+MUX_CFG_34XX("AA6_3430_USB3HS_TLL_CLK", 0x180,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
-+MUX_CFG_34XX("AB3_3430_USB3HS_TLL_STP", 0x166,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AA3_3430_USB3HS_TLL_DIR", 0x168,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
-+MUX_CFG_34XX("Y3_3430_USB3HS_TLL_NXT", 0x16a,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
-+MUX_CFG_34XX("AA5_3430_USB3HS_TLL_D0", 0x186,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("Y4_3430_USB3HS_TLL_D1", 0x184,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("Y5_3430_USB3HS_TLL_D2", 0x188,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("W5_3430_USB3HS_TLL_D3", 0x18a,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AB12_3430_USB3HS_TLL_D4", 0x16c,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AB13_3430_USB3HS_TLL_D5", 0x16e,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AA13_3430_USB3HS_TLL_D6", 0x170,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AA12_3430_USB3HS_TLL_D7", 0x172,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
++static struct resource sti_resources[] =3D {
++	{
++		.start		=3D OMAP3_SDTI_BASE,
++		.end		=3D OMAP3_SDTI_BASE + 0xFFF,
++		.flags		=3D IORESOURCE_MEM,
++	},
++	{
++		.start		=3D OMAP3_SDTI_CHANNEL_BASE,
++		.end		=3D OMAP3_SDTI_CHANNEL_BASE + SZ_1M - 1,
++		.flags		=3D IORESOURCE_MEM,
++	}
 +};
 +
-+#define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
-+
-+#else
-+#define omap34xx_pins		NULL
-+#define OMAP34XX_PINS_SZ	0
-+#endif	/* CONFIG_ARCH_OMAP34XX */
- 
- #if defined(CONFIG_OMAP_MUX_DEBUG) || defined(CONFIG_OMAP_MUX_WARNINGS)
--void __init_or_module omap2_cfg_debug(const struct pin_config *cfg, u8 reg)
-+static void __init_or_module omap2_cfg_debug(const struct pin_config *cfg, u16 reg)
++#endif
+=20
+ static struct platform_device sti_device =3D {
+ 	.name		=3D "sti",
+@@ -140,12 +149,14 @@ static inline void omap_init_sti(void)
+ static inline void omap_init_sti(void) {}
+ #endif
+=20
+-#if defined(CONFIG_SPI_OMAP24XX)
++#if defined(CONFIG_SPI_OMAP24XX) || defined(CONFIG_SPI_OMAP24XX_MODULE=
+)
+=20
+ #include <mach/mcspi.h>
+=20
+ #define OMAP2_MCSPI1_BASE		0x48098000
+ #define OMAP2_MCSPI2_BASE		0x4809a000
++#define OMAP2_MCSPI3_BASE		0x480b8000
++#define OMAP2_MCSPI4_BASE		0x480ba000
+=20
+ static struct omap2_mcspi_platform_config omap2_mcspi1_config =3D {
+ 	.num_cs		=3D 4,
+@@ -159,7 +170,7 @@ static struct resource omap2_mcspi1_resources[] =3D=
  {
- 	u16 orig;
- 	u8 warn = 0, debug = 0;
- 
--	orig = omap_ctrl_readb(cfg->mux_reg);
-+	if (cpu_is_omap24xx())
-+		orig = omap_ctrl_readb(cfg->mux_reg);
-+	else
-+		orig = omap_ctrl_readw(cfg->mux_reg);
- 
- #ifdef	CONFIG_OMAP_MUX_DEBUG
- 	debug = cfg->debug;
-@@ -255,9 +418,9 @@ int __init_or_module omap24xx_cfg_reg(const struct pin_config *cfg)
- 	spin_lock_irqsave(&mux_spin_lock, flags);
- 	reg |= cfg->mask & 0x7;
- 	if (cfg->pull_val)
--		reg |= OMAP24XX_PULL_ENA;
-+		reg |= OMAP2_PULL_ENA;
- 	if (cfg->pu_pd_val)
--		reg |= OMAP24XX_PULL_UP;
-+		reg |= OMAP2_PULL_UP;
- 	omap2_cfg_debug(cfg, reg);
- 	omap_ctrl_writeb(reg, cfg->mux_reg);
- 	spin_unlock_irqrestore(&mux_spin_lock, flags);
-@@ -265,7 +428,26 @@ int __init_or_module omap24xx_cfg_reg(const struct pin_config *cfg)
- 	return 0;
- }
- #else
--#define omap24xx_cfg_reg	0
-+#define omap24xx_cfg_reg	NULL
+ 	},
+ };
+=20
+-struct platform_device omap2_mcspi1 =3D {
++static struct platform_device omap2_mcspi1 =3D {
+ 	.name		=3D "omap2_mcspi",
+ 	.id		=3D 1,
+ 	.num_resources	=3D ARRAY_SIZE(omap2_mcspi1_resources),
+@@ -181,7 +192,7 @@ static struct resource omap2_mcspi2_resources[] =3D=
+ {
+ 	},
+ };
+=20
+-struct platform_device omap2_mcspi2 =3D {
++static struct platform_device omap2_mcspi2 =3D {
+ 	.name		=3D "omap2_mcspi",
+ 	.id		=3D 2,
+ 	.num_resources	=3D ARRAY_SIZE(omap2_mcspi2_resources),
+@@ -191,16 +202,162 @@ struct platform_device omap2_mcspi2 =3D {
+ 	},
+ };
+=20
++#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
++static struct omap2_mcspi_platform_config omap2_mcspi3_config =3D {
++	.num_cs		=3D 2,
++};
++
++static struct resource omap2_mcspi3_resources[] =3D {
++	{
++	.start		=3D OMAP2_MCSPI3_BASE,
++	.end		=3D OMAP2_MCSPI3_BASE + 0xff,
++	.flags		=3D IORESOURCE_MEM,
++	},
++};
++
++static struct platform_device omap2_mcspi3 =3D {
++	.name		=3D "omap2_mcspi",
++	.id		=3D 3,
++	.num_resources	=3D ARRAY_SIZE(omap2_mcspi3_resources),
++	.resource	=3D omap2_mcspi3_resources,
++	.dev		=3D {
++		.platform_data =3D &omap2_mcspi3_config,
++	},
++};
 +#endif
 +
-+#ifdef CONFIG_ARCH_OMAP34XX
-+static int __init_or_module omap34xx_cfg_reg(const struct pin_config *cfg)
++#ifdef CONFIG_ARCH_OMAP3
++static struct omap2_mcspi_platform_config omap2_mcspi4_config =3D {
++	.num_cs		=3D 1,
++};
++
++static struct resource omap2_mcspi4_resources[] =3D {
++	{
++		.start		=3D OMAP2_MCSPI4_BASE,
++		.end		=3D OMAP2_MCSPI4_BASE + 0xff,
++		.flags		=3D IORESOURCE_MEM,
++	},
++};
++
++static struct platform_device omap2_mcspi4 =3D {
++	.name		=3D "omap2_mcspi",
++	.id		=3D 4,
++	.num_resources	=3D ARRAY_SIZE(omap2_mcspi4_resources),
++	.resource	=3D omap2_mcspi4_resources,
++	.dev		=3D {
++		.platform_data =3D &omap2_mcspi4_config,
++	},
++};
++#endif
++
+ static void omap_init_mcspi(void)
+ {
+ 	platform_device_register(&omap2_mcspi1);
+ 	platform_device_register(&omap2_mcspi2);
++#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
++	platform_device_register(&omap2_mcspi3);
++#endif
++#ifdef CONFIG_ARCH_OMAP3
++	platform_device_register(&omap2_mcspi4);
++#endif
+ }
+=20
+ #else
+ static inline void omap_init_mcspi(void) {}
+ #endif
+=20
++#ifdef CONFIG_SND_OMAP24XX_EAC
++
++#define OMAP2_EAC_BASE			0x48090000
++
++static struct resource omap2_eac_resources[] =3D {
++	{
++		.start		=3D OMAP2_EAC_BASE,
++		.end		=3D OMAP2_EAC_BASE + 0x109,
++		.flags		=3D IORESOURCE_MEM,
++	},
++};
++
++static struct platform_device omap2_eac_device =3D {
++	.name		=3D "omap24xx-eac",
++	.id		=3D -1,
++	.num_resources	=3D ARRAY_SIZE(omap2_eac_resources),
++	.resource	=3D omap2_eac_resources,
++	.dev =3D {
++		.platform_data =3D NULL,
++	},
++};
++
++void omap_init_eac(struct eac_platform_data *pdata)
 +{
-+	static DEFINE_SPINLOCK(mux_spin_lock);
-+	unsigned long flags;
-+	u16 reg = 0;
++	omap2_eac_device.dev.platform_data =3D pdata;
++	platform_device_register(&omap2_eac_device);
++}
 +
-+	spin_lock_irqsave(&mux_spin_lock, flags);
-+	reg |= cfg->mux_val;
-+	omap2_cfg_debug(cfg, reg);
-+	omap_ctrl_writew(reg, cfg->mux_reg);
-+	spin_unlock_irqrestore(&mux_spin_lock, flags);
++#else
++void omap_init_eac(struct eac_platform_data *pdata) {}
++#endif
 +
-+	return 0;
++#ifdef CONFIG_OMAP_SHA1_MD5
++static struct resource sha1_md5_resources[] =3D {
++	{
++		.start	=3D OMAP24XX_SEC_SHA1MD5_BASE,
++		.end	=3D OMAP24XX_SEC_SHA1MD5_BASE + 0x64,
++		.flags	=3D IORESOURCE_MEM,
++	},
++	{
++		.start	=3D INT_24XX_SHA1MD5,
++		.flags	=3D IORESOURCE_IRQ,
++	}
++};
++
++static struct platform_device sha1_md5_device =3D {
++	.name		=3D "OMAP SHA1/MD5",
++	.id		=3D -1,
++	.num_resources	=3D ARRAY_SIZE(sha1_md5_resources),
++	.resource	=3D sha1_md5_resources,
++};
++
++static void omap_init_sha1_md5(void)
++{
++	platform_device_register(&sha1_md5_device);
 +}
 +#else
-+#define omap34xx_cfg_reg	NULL
- #endif
- 
- int __init omap2_mux_init(void)
-@@ -274,6 +456,10 @@ int __init omap2_mux_init(void)
- 		arch_mux_cfg.pins	= omap24xx_pins;
- 		arch_mux_cfg.size	= OMAP24XX_PINS_SZ;
- 		arch_mux_cfg.cfg_reg	= omap24xx_cfg_reg;
-+	} else if (cpu_is_omap34xx()) {
-+		arch_mux_cfg.pins	= omap34xx_pins;
-+		arch_mux_cfg.size	= OMAP34XX_PINS_SZ;
-+		arch_mux_cfg.cfg_reg	= omap34xx_cfg_reg;
- 	}
- 
- 	return omap_mux_register(&arch_mux_cfg);
-diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
-index 614b2c1..5670d56 100644
---- a/arch/arm/plat-omap/include/mach/mux.h
-+++ b/arch/arm/plat-omap/include/mach/mux.h
-@@ -125,20 +125,64 @@
- 	.pu_pd_val	= pull_mode,				\
- },
- 
--
--#define PULL_DISABLED	0
--#define PULL_ENABLED	1
--
--#define PULL_DOWN	0
--#define PULL_UP		1
-+/* 24xx/34xx mux bit defines */
-+#define OMAP2_PULL_ENA		(1 << 3)
-+#define OMAP2_PULL_UP		(1 << 4)
-+#define OMAP2_ALTELECTRICALSEL	(1 << 5)
-+
-+/* 34xx specific mux bit defines */
-+#define OMAP3_INPUT_EN		(1 << 8)
-+#define OMAP3_OFF_EN		(1 << 9)
-+#define OMAP3_OFFOUT_EN		(1 << 10)
-+#define OMAP3_OFFOUT_VAL	(1 << 11)
-+#define OMAP3_OFF_PULL_EN	(1 << 12)
-+#define OMAP3_OFF_PULL_UP	(1 << 13)
-+#define OMAP3_WAKEUP_EN		(1 << 14)
-+
-+/* 34xx mux mode options for each pin. See TRM for options */
-+#define	OMAP34XX_MUX_MODE0	0
-+#define	OMAP34XX_MUX_MODE1	1
-+#define	OMAP34XX_MUX_MODE2	2
-+#define	OMAP34XX_MUX_MODE3	3
-+#define	OMAP34XX_MUX_MODE4	4
-+#define	OMAP34XX_MUX_MODE5	5
-+#define	OMAP34XX_MUX_MODE6	6
-+#define	OMAP34XX_MUX_MODE7	7
-+
-+/* 34xx active pin states */
-+#define OMAP34XX_PIN_OUTPUT		0
-+#define OMAP34XX_PIN_INPUT		OMAP3_INPUT_EN
-+#define OMAP34XX_PIN_INPUT_PULLUP	(OMAP2_PULL_ENA | OMAP3_INPUT_EN \
-+						| OMAP2_PULL_UP)
-+#define OMAP34XX_PIN_INPUT_PULLDOWN	(OMAP2_PULL_ENA | OMAP3_INPUT_EN)
-+
-+/* 34xx off mode states */
-+#define OMAP34XX_PIN_OFF_NONE           0
-+#define OMAP34XX_PIN_OFF_OUTPUT_HIGH	(OMAP3_OFF_EN | OMAP3_OFFOUT_EN \
-+						| OMAP3_OFFOUT_VAL)
-+#define OMAP34XX_PIN_OFF_OUTPUT_LOW	(OMAP3_OFF_EN | OMAP3_OFFOUT_EN)
-+#define OMAP34XX_PIN_OFF_INPUT_PULLUP	(OMAP3_OFF_EN | OMAP3_OFF_PULL_EN \
-+						| OMAP3_OFF_PULL_UP)
-+#define OMAP34XX_PIN_OFF_INPUT_PULLDOWN	(OMAP3_OFF_EN | OMAP3_OFF_PULL_EN)
-+#define OMAP34XX_PIN_OFF_WAKEUPENABLE	OMAP3_WAKEUP_EN
-+
-+#define MUX_CFG_34XX(desc, reg_offset, mux_value) {		\
-+	.name		= desc,					\
-+	.debug		= 0,					\
-+	.mux_reg	= reg_offset,				\
-+	.mux_val	= mux_value				\
-+},
- 
- struct pin_config {
--	char *name;
--	unsigned char busy;
--	unsigned char debug;
-+	char 			*name;
-+	const unsigned int 	mux_reg;
-+	unsigned char		debug;
- 
--	const char *mux_reg_name;
--	const unsigned int mux_reg;
-+#if	defined(CONFIG_ARCH_OMAP34XX)
-+	u16			mux_val; /* Wake-up, off mode, pull, mux mode */
++static inline void omap_init_sha1_md5(void) { }
 +#endif
 +
-+#if	defined(CONFIG_ARCH_OMAP1) || defined(CONFIG_ARCH_OMAP24XX)
- 	const unsigned char mask_offset;
- 	const unsigned char mask;
- 
-@@ -150,6 +194,12 @@ struct pin_config {
- 	const char *pu_pd_name;
- 	const unsigned int pu_pd_reg;
- 	const unsigned char pu_pd_val;
++#if defined(CONFIG_HDQ_MASTER_OMAP) || defined(CONFIG_HDQ_MASTER_OMAP_=
+MODULE)
++#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3430)
++#define OMAP_HDQ_BASE	0x480B2000
 +#endif
-+
-+#if	defined(CONFIG_OMAP_MUX_DEBUG) || defined(CONFIG_OMAP_MUX_WARNINGS)
-+	const char *mux_reg_name;
-+#endif
-+
- };
- 
- enum omap730_index {
-@@ -593,6 +643,90 @@ enum omap24xx_index {
- 
- };
- 
-+enum omap34xx_index {
-+	/* 34xx I2C */
-+	K21_34XX_I2C1_SCL,
-+	J21_34XX_I2C1_SDA,
-+	AF15_34XX_I2C2_SCL,
-+	AE15_34XX_I2C2_SDA,
-+	AF14_34XX_I2C3_SCL,
-+	AG14_34XX_I2C3_SDA,
-+	AD26_34XX_I2C4_SCL,
-+	AE26_34XX_I2C4_SDA,
-+
-+	/* PHY - HSUSB: 12-pin ULPI PHY: Port 1*/
-+	Y8_3430_USB1HS_PHY_CLK,
-+	Y9_3430_USB1HS_PHY_STP,
-+	AA14_3430_USB1HS_PHY_DIR,
-+	AA11_3430_USB1HS_PHY_NXT,
-+	W13_3430_USB1HS_PHY_DATA0,
-+	W12_3430_USB1HS_PHY_DATA1,
-+	W11_3430_USB1HS_PHY_DATA2,
-+	Y11_3430_USB1HS_PHY_DATA3,
-+	W9_3430_USB1HS_PHY_DATA4,
-+	Y12_3430_USB1HS_PHY_DATA5,
-+	W8_3430_USB1HS_PHY_DATA6,
-+	Y13_3430_USB1HS_PHY_DATA7,
-+
-+	/* PHY - HSUSB: 12-pin ULPI PHY: Port 2*/
-+	AA8_3430_USB2HS_PHY_CLK,
-+	AA10_3430_USB2HS_PHY_STP,
-+	AA9_3430_USB2HS_PHY_DIR,
-+	AB11_3430_USB2HS_PHY_NXT,
-+	AB10_3430_USB2HS_PHY_DATA0,
-+	AB9_3430_USB2HS_PHY_DATA1,
-+	W3_3430_USB2HS_PHY_DATA2,
-+	T4_3430_USB2HS_PHY_DATA3,
-+	T3_3430_USB2HS_PHY_DATA4,
-+	R3_3430_USB2HS_PHY_DATA5,
-+	R4_3430_USB2HS_PHY_DATA6,
-+	T2_3430_USB2HS_PHY_DATA7,
-+
-+
-+	/* TLL - HSUSB: 12-pin TLL Port 1*/
-+	Y8_3430_USB1HS_TLL_CLK,
-+	Y9_3430_USB1HS_TLL_STP,
-+	AA14_3430_USB1HS_TLL_DIR,
-+	AA11_3430_USB1HS_TLL_NXT,
-+	W13_3430_USB1HS_TLL_DATA0,
-+	W12_3430_USB1HS_TLL_DATA1,
-+	W11_3430_USB1HS_TLL_DATA2,
-+	Y11_3430_USB1HS_TLL_DATA3,
-+	W9_3430_USB1HS_TLL_DATA4,
-+	Y12_3430_USB1HS_TLL_DATA5,
-+	W8_3430_USB1HS_TLL_DATA6,
-+	Y13_3430_USB1HS_TLL_DATA7,
-+
-+	/* TLL - HSUSB: 12-pin TLL Port 2*/
-+	AA8_3430_USB2HS_TLL_CLK,
-+	AA10_3430_USB2HS_TLL_STP,
-+	AA9_3430_USB2HS_TLL_DIR,
-+	AB11_3430_USB2HS_TLL_NXT,
-+	AB10_3430_USB2HS_TLL_DATA0,
-+	AB9_3430_USB2HS_TLL_DATA1,
-+	W3_3430_USB2HS_TLL_DATA2,
-+	T4_3430_USB2HS_TLL_DATA3,
-+	T3_3430_USB2HS_TLL_DATA4,
-+	R3_3430_USB2HS_TLL_DATA5,
-+	R4_3430_USB2HS_TLL_DATA6,
-+	T2_3430_USB2HS_TLL_DATA7,
-+
-+	/* TLL - HSUSB: 12-pin TLL Port 3*/
-+	AA6_3430_USB3HS_TLL_CLK,
-+	AB3_3430_USB3HS_TLL_STP,
-+	AA3_3430_USB3HS_TLL_DIR,
-+	Y3_3430_USB3HS_TLL_NXT,
-+	AA5_3430_USB3HS_TLL_DATA0,
-+	Y4_3430_USB3HS_TLL_DATA1,
-+	Y5_3430_USB3HS_TLL_DATA2,
-+	W5_3430_USB3HS_TLL_DATA3,
-+	AB12_3430_USB3HS_TLL_DATA4,
-+	AB13_3430_USB3HS_TLL_DATA5,
-+	AA13_3430_USB3HS_TLL_DATA6,
-+	AA12_3430_USB3HS_TLL_DATA7
-+
++static struct resource omap_hdq_resources[] =3D {
++	{
++		.start		=3D OMAP_HDQ_BASE,
++		.end		=3D OMAP_HDQ_BASE + 0x1C,
++		.flags		=3D IORESOURCE_MEM,
++	},
++	{
++		.start		=3D INT_24XX_HDQ_IRQ,
++		.flags		=3D IORESOURCE_IRQ,
++	},
 +};
++static struct platform_device omap_hdq_dev =3D {
++	.name =3D "omap_hdq",
++	.id =3D 0,
++	.dev =3D {
++		.platform_data =3D NULL,
++	},
++	.num_resources	=3D ARRAY_SIZE(omap_hdq_resources),
++	.resource	=3D omap_hdq_resources,
++};
++static inline void omap_hdq_init(void)
++{
++	(void) platform_device_register(&omap_hdq_dev);
++}
++#else
++static inline void omap_hdq_init(void) {}
++#endif
 +
- struct omap_mux_cfg {
- 	struct pin_config	*pins;
- 	unsigned long		size;
+ /*--------------------------------------------------------------------=
+-----*/
+=20
+ static int __init omap2_init_devices(void)
+@@ -208,10 +365,12 @@ static int __init omap2_init_devices(void)
+ 	/* please keep these calls, and their implementations above,
+ 	 * in alphabetical order so they're easier to sort through.
+ 	 */
+-	omap_init_i2c();
++	omap_init_camera();
+ 	omap_init_mbox();
+ 	omap_init_mcspi();
++	omap_hdq_init();
+ 	omap_init_sti();
++	omap_init_sha1_md5();
+=20
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index ae83ed5..a8d34f6 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -23,7 +23,7 @@
+ #include <asm/mach-types.h>
+ #include <mach/gpmc.h>
+=20
+-#include "memory.h"
++#include <mach/sdrc.h>
+=20
+ /* GPMC register offsets */
+ #define GPMC_REVISION		0x00
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index d67d331..faf3f68 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -4,8 +4,11 @@
+  * OMAP2 I/O mapping code
+  *
+  * Copyright (C) 2005 Nokia Corporation
+- * Author: Juha Yrj=F6l=E4 <juha.yrjola@nokia.com>
+- * Updated map desc to add 2430 support : <x0khasim@ti.com>
++ * Copyright (C) 2007 Texas Instruments
++ *
++ * Author:
++ *	Juha Yrjola <juha.yrjola@nokia.com>
++ *	Syed Khasim <x0khasim@ti.com>
+  *
+  * This program is free software; you can redistribute it and/or modif=
+y
+  * it under the terms of the GNU General Public License version 2 as
+@@ -23,6 +26,11 @@
+=20
+ #include <mach/mux.h>
+ #include <mach/omapfb.h>
++#include <mach/sram.h>
++
++#include "memory.h"
++
++#include "clock.h"
+=20
+ #include <mach/powerdomain.h>
+=20
+@@ -31,13 +39,6 @@
+ #include <mach/clockdomain.h>
+ #include "clockdomains.h"
+=20
+-extern void omap_sram_init(void);
+-extern int omap2_clk_init(void);
+-extern void omap2_check_revision(void);
+-extern void omap2_init_memory(void);
+-extern void gpmc_init(void);
+-extern void omapfb_reserve_sdram(void);
+-
+ /*
+  * The machine specific code may provide the extra mapping besides the
+  * default mapping provided here.
+diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+index 3a3b2cb..a0bdf06 100644
+--- a/arch/arm/mach-omap2/irq.c
++++ b/arch/arm/mach-omap2/irq.c
+@@ -37,11 +37,9 @@ static struct omap_irq_bank {
+ } __attribute__ ((aligned(4))) irq_banks[] =3D {
+ 	{
+ 		/* MPU INTC */
+-		.base_reg	=3D IO_ADDRESS(OMAP24XX_IC_BASE),
++		.base_reg	=3D 0,
+ 		.nr_irqs	=3D 96,
+-	}, {
+-		/* XXX: DSP INTC */
+-	}
++	},
+ };
+=20
+ /* XXX: FIQ and additional INTC support (only MPU at the moment) */
+@@ -118,10 +116,8 @@ void __init omap_init_irq(void)
+ 	for (i =3D 0; i < ARRAY_SIZE(irq_banks); i++) {
+ 		struct omap_irq_bank *bank =3D irq_banks + i;
+=20
+-		/* XXX */
+-		if (!bank->base_reg)
+-			continue;
+-
++		if (cpu_is_omap24xx())
++			bank->base_reg =3D IO_ADDRESS(OMAP24XX_IC_BASE);
+ 		omap_irq_bank_init_one(bank);
+=20
+ 		nr_irqs +=3D bank->nr_irqs;
+diff --git a/arch/arm/mach-omap2/memory.h b/arch/arm/mach-omap2/memory.=
+h
+index 9a280b5..bb3db80 100644
+--- a/arch/arm/mach-omap2/memory.h
++++ b/arch/arm/mach-omap2/memory.h
+@@ -14,6 +14,9 @@
+  * published by the Free Software Foundation.
+  */
+=20
++#ifndef ARCH_ARM_MACH_OMAP2_MEMORY_H
++#define ARCH_ARM_MACH_OMAP2_MEMORY_H
++
+ /* Memory timings */
+ #define M_DDR		1
+ #define M_LOCK_CTRL	(1 << 2)
+@@ -34,3 +37,7 @@ extern u32 omap2_memory_get_fast_dll_ctrl(void);
+ extern u32 omap2_memory_get_type(void);
+ u32 omap2_dll_force_needed(void);
+ u32 omap2_reprogram_sdrc(u32 level, u32 force);
++void __init omap2_init_memory(void);
++void __init gpmc_init(void);
++
++#endif
+diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.=
+c
+index a716ecd..3ca15de 100644
+--- a/arch/arm/plat-omap/devices.c
++++ b/arch/arm/plat-omap/devices.c
+@@ -20,17 +20,17 @@
+ #include <asm/mach/map.h>
+=20
+ #include <mach/tc.h>
++#include <mach/control.h>
+ #include <mach/board.h>
+ #include <mach/mmc.h>
+ #include <mach/mux.h>
+ #include <mach/gpio.h>
+ #include <mach/menelaus.h>
+ #include <mach/mcbsp.h>
++#include <mach/dsp_common.h>
+=20
+ #if	defined(CONFIG_OMAP_DSP) || defined(CONFIG_OMAP_DSP_MODULE)
+=20
+-#include "../plat-omap/dsp/dsp_common.h"
+-
+ static struct dsp_platform_data dsp_pdata =3D {
+ 	.kdev_list =3D LIST_HEAD_INIT(dsp_pdata.kdev_list),
+ };
+@@ -76,7 +76,7 @@ int dsp_kfunc_device_register(struct dsp_kfunc_device=
+ *kdev)
+ {
+ 	static DEFINE_MUTEX(dsp_pdata_lock);
+=20
+-	mutex_init(&kdev->lock);
++	spin_lock_init(&kdev->lock);
+=20
+ 	mutex_lock(&dsp_pdata_lock);
+ 	list_add_tail(&kdev->entry, &dsp_pdata.kdev_list);
+@@ -525,10 +525,6 @@ static inline void omap_init_rng(void) {}
+  */
+ static int __init omap_init_devices(void)
+ {
+-/*
+- * Need to enable relevant once for 2430 SDP
+- */
+-#ifndef CONFIG_MACH_OMAP_2430SDP
+ 	/* please keep these calls, and their implementations above,
+ 	 * in alphabetical order so they're easier to sort through.
+ 	 */
+@@ -538,7 +534,6 @@ static int __init omap_init_devices(void)
+ 	omap_init_uwire();
+ 	omap_init_wdt();
+ 	omap_init_rng();
+-#endif
+ 	return 0;
+ }
+ arch_initcall(omap_init_devices);
+diff --git a/arch/arm/plat-omap/include/mach/board-2430sdp.h b/arch/arm=
+/plat-omap/include/mach/board-2430sdp.h
+index cf1dc02..10d449e 100644
+--- a/arch/arm/plat-omap/include/mach/board-2430sdp.h
++++ b/arch/arm/plat-omap/include/mach/board-2430sdp.h
+@@ -30,10 +30,12 @@
+ #define __ASM_ARCH_OMAP_2430SDP_H
+=20
+ /* Placeholder for 2430SDP specific defines */
+-#define OMAP24XX_ETHR_START		 0x08000300
++#define OMAP24XX_ETHR_START		0x08000300
+ #define OMAP24XX_ETHR_GPIO_IRQ		149
+ #define SDP2430_CS0_BASE		0x04000000
+=20
+-#define TWL4030_IRQNUM			INT_24XX_SYS_NIRQ
++/* Function prototypes */
++extern void sdp2430_flash_init(void);
++extern void sdp2430_usb_init(void);
+=20
+ #endif /* __ASM_ARCH_OMAP_2430SDP_H */
+diff --git a/arch/arm/plat-omap/include/mach/board-apollon.h b/arch/arm=
+/plat-omap/include/mach/board-apollon.h
+index d6f2a8e..731c858 100644
+--- a/arch/arm/plat-omap/include/mach/board-apollon.h
++++ b/arch/arm/plat-omap/include/mach/board-apollon.h
+@@ -31,6 +31,12 @@
+=20
+ extern void apollon_mmc_init(void);
+=20
++static inline int apollon_plus(void)
++{
++	/* The apollon plus has IDCODE revision 5 */
++	return system_rev & 0xc0;
++}
++
+ /* Placeholder for APOLLON specific defines */
+ #define APOLLON_ETHR_GPIO_IRQ		74
+=20
+diff --git a/arch/arm/plat-omap/include/mach/board-h4.h b/arch/arm/plat=
+-omap/include/mach/board-h4.h
+index 1470cd3..7c3fa0f 100644
+--- a/arch/arm/plat-omap/include/mach/board-h4.h
++++ b/arch/arm/plat-omap/include/mach/board-h4.h
+@@ -1,7 +1,7 @@
+ /*
+  * arch/arm/plat-omap/include/mach/board-h4.h
+  *
+- * Hardware definitions for TI OMAP1610 H4 board.
++ * Hardware definitions for TI OMAP2420 H4 board.
+  *
+  * Initial creation by Dirk Behme <dirk.behme@de.bosch.com>
+  *
+@@ -29,6 +29,9 @@
+ #ifndef __ASM_ARCH_OMAP_H4_H
+ #define __ASM_ARCH_OMAP_H4_H
+=20
++/* MMC Prototypes */
++extern void h4_mmc_init(void);
++
+ /* Placeholder for H4 specific defines */
+ #define OMAP24XX_ETHR_GPIO_IRQ		92
+ #endif /*  __ASM_ARCH_OMAP_H4_H */
+diff --git a/arch/arm/plat-omap/include/mach/board.h b/arch/arm/plat-om=
+ap/include/mach/board.h
+index 5444564..c23c12c 100644
+--- a/arch/arm/plat-omap/include/mach/board.h
++++ b/arch/arm/plat-omap/include/mach/board.h
+@@ -45,6 +45,8 @@ struct omap_mmc_conf {
+ 	unsigned cover:1;
+ 	/* 4 wire signaling is optional, and is only used for SD/SDIO */
+ 	unsigned wire4:1;
++	/* use the internal clock */
++	unsigned internal_clock:1;
+ 	s16 power_pin;
+ 	s16 switch_pin;
+ 	s16 wp_pin;
+diff --git a/arch/arm/plat-omap/include/mach/control.h b/arch/arm/plat-=
+omap/include/mach/control.h
+index ee378d2..dc98867 100644
+--- a/arch/arm/plat-omap/include/mach/control.h
++++ b/arch/arm/plat-omap/include/mach/control.h
+@@ -1,13 +1,10 @@
+-#ifndef __ASM_ARCH_CONTROL_H
+-#define __ASM_ARCH_CONTROL_H
+-
+ /*
+  * arch/arm/plat-omap/include/mach/control.h
+  *
+  * OMAP2/3 System Control Module definitions
+  *
+- * Copyright (C) 2007 Texas Instruments, Inc.
+- * Copyright (C) 2007 Nokia Corporation
++ * Copyright (C) 2007-2008 Texas Instruments, Inc.
++ * Copyright (C) 2007-2008 Nokia Corporation
+  *
+  * Written by Paul Walmsley
+  *
+@@ -16,14 +13,23 @@
+  * the Free Software Foundation.
+  */
+=20
++#ifndef __ASM_ARCH_CONTROL_H
++#define __ASM_ARCH_CONTROL_H
++
+ #include <mach/io.h>
+=20
++#ifndef __ASSEMBLY__
+ #define OMAP242X_CTRL_REGADDR(reg)					\
+ 	IO_ADDRESS(OMAP242X_CTRL_BASE + (reg))
+ #define OMAP243X_CTRL_REGADDR(reg)					\
+ 	IO_ADDRESS(OMAP243X_CTRL_BASE + (reg))
+ #define OMAP343X_CTRL_REGADDR(reg)					\
+ 	IO_ADDRESS(OMAP343X_CTRL_BASE + (reg))
++#else
++#define OMAP242X_CTRL_REGADDR(reg)	IO_ADDRESS(OMAP242X_CTRL_BASE + (re=
+g))
++#define OMAP243X_CTRL_REGADDR(reg)	IO_ADDRESS(OMAP243X_CTRL_BASE + (re=
+g))
++#define OMAP343X_CTRL_REGADDR(reg)	IO_ADDRESS(OMAP343X_CTRL_BASE + (re=
+g))
++#endif /* __ASSEMBLY__ */
+=20
+ /*
+  * As elsewhere, the "OMAP2_" prefix indicates that the macro is valid=
+ for
+@@ -134,6 +140,7 @@
+ #define OMAP343X_CONTROL_TEST_KEY_13	(OMAP2_CONTROL_GENERAL + 0x00fc)
+ #define OMAP343X_CONTROL_IVA2_BOOTADDR	(OMAP2_CONTROL_GENERAL + 0x0190=
+)
+ #define OMAP343X_CONTROL_IVA2_BOOTMOD	(OMAP2_CONTROL_GENERAL + 0x0194)
++#define OMAP343X_CONTROL_TEMP_SENSOR	(OMAP2_CONTROL_GENERAL + 0x02b4)
+=20
+ /*
+  * REVISIT: This list of registers is not comprehensive - there are mo=
+re
+diff --git a/arch/arm/plat-omap/include/mach/gpio.h b/arch/arm/plat-oma=
+p/include/mach/gpio.h
+index 35a653c..98e9008 100644
+--- a/arch/arm/plat-omap/include/mach/gpio.h
++++ b/arch/arm/plat-omap/include/mach/gpio.h
+@@ -76,6 +76,8 @@ extern void omap_free_gpio(int gpio);
+ extern void omap_set_gpio_direction(int gpio, int is_input);
+ extern void omap_set_gpio_dataout(int gpio, int enable);
+ extern int omap_get_gpio_datain(int gpio);
++extern void omap2_gpio_prepare_for_retention(void);
++extern void omap2_gpio_resume_after_retention(void);
+ extern void omap_set_gpio_debounce(int gpio, int enable);
+ extern void omap_set_gpio_debounce_time(int gpio, int enable);
+=20
+diff --git a/arch/arm/plat-omap/include/mach/gpmc.h b/arch/arm/plat-oma=
+p/include/mach/gpmc.h
+index 4258e00..3c7b425 100644
+--- a/arch/arm/plat-omap/include/mach/gpmc.h
++++ b/arch/arm/plat-omap/include/mach/gpmc.h
+@@ -25,6 +25,9 @@
+ #define GPMC_CS_NAND_ADDRESS	0x20
+ #define GPMC_CS_NAND_DATA	0x24
+=20
++#define GPMC_CONFIG		0x50
++#define GPMC_STATUS		0x54
++
+ #define GPMC_CONFIG1_WRAPBURST_SUPP     (1 << 31)
+ #define GPMC_CONFIG1_READMULTIPLE_SUPP  (1 << 30)
+ #define GPMC_CONFIG1_READTYPE_ASYNC     (0 << 29)
+diff --git a/arch/arm/plat-omap/include/mach/hardware.h b/arch/arm/plat=
+-omap/include/mach/hardware.h
+index abb01e4..29c849f 100644
+--- a/arch/arm/plat-omap/include/mach/hardware.h
++++ b/arch/arm/plat-omap/include/mach/hardware.h
+@@ -282,8 +282,8 @@
+=20
+ #include "omap730.h"
+ #include "omap1510.h"
+-#include "omap24xx.h"
+ #include "omap16xx.h"
++#include "omap24xx.h"
+ #include "omap34xx.h"
+=20
+ #ifndef __ASSEMBLER__
+diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-oma=
+p/include/mach/irqs.h
+index 62aa7df..fe0b3d3 100644
+--- a/arch/arm/plat-omap/include/mach/irqs.h
++++ b/arch/arm/plat-omap/include/mach/irqs.h
+@@ -125,6 +125,7 @@
+ #define INT_UART2		(15 + IH2_BASE)
+ #define INT_BT_MCSI1TX		(16 + IH2_BASE)
+ #define INT_BT_MCSI1RX		(17 + IH2_BASE)
++#define INT_SOSSI_MATCH		(19 + IH2_BASE)
+ #define INT_USB_W2FC		(20 + IH2_BASE)
+ #define INT_1WIRE		(21 + IH2_BASE)
+ #define INT_OS_TIMER		(22 + IH2_BASE)
+@@ -176,6 +177,7 @@
+ #define INT_1610_DMA_CH14	(61 + IH2_BASE)
+ #define INT_1610_DMA_CH15	(62 + IH2_BASE)
+ #define INT_1610_NAND		(63 + IH2_BASE)
++#define INT_1610_SHA1MD5	(91 + IH2_BASE)
+=20
+ /*
+  * OMAP-730 specific IRQ numbers for interrupt handler 2
+@@ -263,12 +265,16 @@
+ #define INT_24XX_GPTIMER10	46
+ #define INT_24XX_GPTIMER11	47
+ #define INT_24XX_GPTIMER12	48
++#define INT_24XX_SHA1MD5	51
+ #define INT_24XX_I2C1_IRQ	56
+ #define INT_24XX_I2C2_IRQ	57
++#define INT_24XX_HDQ_IRQ	58
+ #define INT_24XX_MCBSP1_IRQ_TX	59
+ #define INT_24XX_MCBSP1_IRQ_RX	60
+ #define INT_24XX_MCBSP2_IRQ_TX	62
+ #define INT_24XX_MCBSP2_IRQ_RX	63
++#define INT_24XX_SPI1_IRQ	65
++#define INT_24XX_SPI2_IRQ	66
+ #define INT_24XX_UART1_IRQ	72
+ #define INT_24XX_UART2_IRQ	73
+ #define INT_24XX_UART3_IRQ	74
+diff --git a/arch/arm/plat-omap/include/mach/omap1510.h b/arch/arm/plat=
+-omap/include/mach/omap1510.h
+index 505a38a..d240046 100644
+--- a/arch/arm/plat-omap/include/mach/omap1510.h
++++ b/arch/arm/plat-omap/include/mach/omap1510.h
+@@ -44,5 +44,7 @@
+ #define OMAP1510_DSPREG_SIZE	SZ_128K
+ #define OMAP1510_DSPREG_START	0xE1000000
+=20
++#define OMAP1510_DSP_MMU_BASE	(0xfffed200)
++
+ #endif /*  __ASM_ARCH_OMAP15XX_H */
+=20
+diff --git a/arch/arm/plat-omap/include/mach/omap16xx.h b/arch/arm/plat=
+-omap/include/mach/omap16xx.h
+index c6c93af..0e69b50 100644
+--- a/arch/arm/plat-omap/include/mach/omap16xx.h
++++ b/arch/arm/plat-omap/include/mach/omap16xx.h
+@@ -44,6 +44,11 @@
+ #define OMAP16XX_DSPREG_SIZE	SZ_128K
+ #define OMAP16XX_DSPREG_START	0xE1000000
+=20
++#define OMAP16XX_SEC_BASE	0xFFFE4000
++#define OMAP16XX_SEC_DES	(OMAP16XX_SEC_BASE + 0x0000)
++#define OMAP16XX_SEC_SHA1MD5	(OMAP16XX_SEC_BASE + 0x0800)
++#define OMAP16XX_SEC_RNG	(OMAP16XX_SEC_BASE + 0x1000)
++
+ /*
+  * -------------------------------------------------------------------=
+--------
+  * Interrupts
+@@ -190,7 +195,7 @@
+ #define WSPR_DISABLE_0         (0x0000aaaa)
+ #define WSPR_DISABLE_1         (0x00005555)
+=20
+-/* Mailbox */
++#define OMAP16XX_DSP_MMU_BASE	(0xfffed200)
+ #define OMAP16XX_MAILBOX_BASE	(0xfffcf000)
+=20
+ #endif /*  __ASM_ARCH_OMAP16XX_H */
+diff --git a/arch/arm/plat-omap/include/mach/omapfb.h b/arch/arm/plat-o=
+map/include/mach/omapfb.h
+index cae037d..ec67fb4 100644
+--- a/arch/arm/plat-omap/include/mach/omapfb.h
++++ b/arch/arm/plat-omap/include/mach/omapfb.h
+@@ -62,6 +62,7 @@
+ #define OMAPFB_CAPS_WINDOW_PIXEL_DOUBLE	0x00010000
+ #define OMAPFB_CAPS_WINDOW_SCALE	0x00020000
+ #define OMAPFB_CAPS_WINDOW_OVERLAY	0x00040000
++#define OMAPFB_CAPS_WINDOW_ROTATE	0x00080000
+ #define OMAPFB_CAPS_SET_BACKLIGHT	0x01000000
+=20
+ /* Values from DSP must map to lower 16-bits */
+@@ -305,6 +306,7 @@ struct lcd_ctrl {
+ 					   int screen_width,
+ 					   int pos_x, int pos_y, int width,
+ 					   int height, int color_mode);
++	int		(*set_rotate)	  (int angle);
+ 	int		(*setup_mem)	  (int plane, size_t size,
+ 					   int mem_type, unsigned long *paddr);
+ 	int		(*mmap)		  (struct fb_info *info,
+@@ -374,6 +376,7 @@ extern struct lcd_ctrl omap1_lcd_ctrl;
+ extern struct lcd_ctrl omap2_disp_ctrl;
+ #endif
+=20
++extern void omapfb_reserve_sdram(void);
+ extern void omapfb_register_panel(struct lcd_panel *panel);
+ extern void omapfb_write_first_pixel(struct omapfb_device *fbdev, u16 =
+pixval);
+ extern void omapfb_notify_clients(struct omapfb_device *fbdev,
+diff --git a/arch/arm/plat-omap/include/mach/sdrc.h b/arch/arm/plat-oma=
+p/include/mach/sdrc.h
+index d908eb5..25ee381 100644
+--- a/arch/arm/plat-omap/include/mach/sdrc.h
++++ b/arch/arm/plat-omap/include/mach/sdrc.h
+@@ -25,6 +25,8 @@
+ #define SDRC_DLLB_STATUS	0x06C
+ #define SDRC_POWER		0x070
+ #define SDRC_MR_0		0x084
++#define SDRC_ACTIM_CTRL_A	0x09c
++#define SDRC_ACTIM_CTRL_B	0x0a0
+ #define SDRC_RFR_CTRL_0		0x0a4
+=20
+ /*
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
