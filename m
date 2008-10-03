@@ -1,86 +1,101 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: [PATCH] i2c: change twl4030-usb back to subsys_initcall
-Date: Fri, 3 Oct 2008 12:19:33 +0200
-Message-ID: <132EE04E-D594-4F84-9C2B-D907D3D4CD5E@student.utwente.nl>
-References: <200810030136.33838.david-b@pacbell.net> <1223027154-20385-1-git-send-email-felipe.balbi@nokia.com>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-8--91162626"
+From: Carlos Chinea <carlos.chinea@nokia.com>
+Subject: [PATCH 0/5] RFC: OMAP Synchronous Serial Interface (SSI) driver
+	(take II)
+Date: Fri, 03 Oct 2008 13:25:15 +0300
+Message-ID: <1223029515.32631.148.camel@groo.research.nokia.com>
+References: <1221575400.6315.227.camel@groo.research.nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx3.utsp.utwente.nl ([130.89.2.14]:21233 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752619AbYJCKTy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 3 Oct 2008 06:19:54 -0400
-In-Reply-To: <1223027154-20385-1-git-send-email-felipe.balbi@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:26742 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751821AbYJCKZy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 06:25:54 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m93APm4i000570
+	for <linux-omap@vger.kernel.org>; Fri, 3 Oct 2008 13:25:52 +0300
+In-Reply-To: <1221575400.6315.227.camel@groo.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-8--91162626
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+Hi guys !
+
+A couple of weeks ago, I sent a set of patches for comments.
+I am sending a new set of those patches with debug statements removed and a bug fix.
+
+The new patch set is based on linux-omap 2.6.27-rc7
+
+Any comments will be appreciated.
+
+Br,
+Carlos
+
+ Documentation/arm/OMAP/ssi/board-ssi.c.example     |  216 ++++++++
+ Documentation/arm/OMAP/ssi/ssi                     |  232 +++++++++
+ arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h  |  145 ++++++
+ .../plat-omap/include/mach/ssi/ssi_reg_common.h    |   73 +++
+ arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h  |   56 +++
+ arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h  |   65 +++
+ arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h  |  107 ++++
+ drivers/misc/Kconfig                               |    2 +
+ drivers/misc/Makefile                              |    1 +
+ drivers/misc/ssi/Kconfig                           |   11 +
+ drivers/misc/ssi/Makefile                          |    7 +
+ drivers/misc/ssi/ssi_driver.c                      |  513 ++++++++++++++++++++
+ drivers/misc/ssi/ssi_driver.h                      |  211 ++++++++
+ drivers/misc/ssi/ssi_driver_bus.c                  |  192 ++++++++
+ drivers/misc/ssi/ssi_driver_dma.c                  |  406 ++++++++++++++++
+ drivers/misc/ssi/ssi_driver_if.c                   |  335 +++++++++++++
+ drivers/misc/ssi/ssi_driver_int.c                  |  232 +++++++++
+ include/linux/ssi_driver_if.h                      |  137 ++++++
+ 18 files changed, 2941 insertions(+), 0 deletions(-)
 
 
-Op 3 okt 2008, om 11:45 heeft Felipe Balbi het volgende geschreven:
-
-> without it, otg_get/set_transceiver won't be useful and
-> twl4030-usb transceiver won't get to musb code.
-
-Is the 'fix-something' patch still needed, and if yes, why isn't it in  
-l-o git yet?
-
-regards,
-
-Koen
-
-
->
->
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> ---
-> drivers/i2c/chips/twl4030-usb.c |    2 +-
-> 1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/i2c/chips/twl4030-usb.c b/drivers/i2c/chips/ 
-> twl4030-usb.c
-> index 133cc0f..922d7d6 100644
-> --- a/drivers/i2c/chips/twl4030-usb.c
-> +++ b/drivers/i2c/chips/twl4030-usb.c
-> @@ -774,7 +774,7 @@ static int __init twl4030_usb_init(void)
-> {
-> 	return platform_driver_register(&twl4030_driver);
-> }
-> -module_init(twl4030_usb_init);
-> +subsys_init(twl4030_usb_init);
->
-> static void __exit twl4030_usb_exit(void)
-> {
-> -- 
-> 1.6.0.2.307.gc427
->
+On Tue, 2008-09-16 at 17:30 +0300, ext Carlos Chinea wrote:
+> Hi guys !
+> 
+> I'm working on adding support for Nokia HSPA modems to OMAP.
+> 
+> Please consider integrating the following patch set into the
+> linux-omap tree. The patch set implements a generic device driver
+> for the OMAP Synchronous Serial Interface. 
+> 
+> The Synchronous Serial Interface (SSI) is a high speed communication
+> interface that is used for connecting OMAP to a cellular modem engine.
+> 
+> The patch set is based on linux-omap 2.6.27-rc6.
+> 
+> Any comments will be appreciated.
+> 
+> Br,
+> Carlos
+> 
+>  Documentation/arm/OMAP/ssi/board-ssi.c.example       |  216 +++++++
+>  Documentation/arm/OMAP/ssi/ssi                       |  233 +++++++
+>  arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h    |  145 ++++
+>  arch/arm/plat-omap/include/mach/ssi/ssi_reg_common.h |   73 ++
+>  arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h    |   56 +
+>  arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h    |   65 ++
+>  arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h    |  108 +++
+>  drivers/misc/Kconfig                                 |    2 
+>  drivers/misc/Makefile                                |    2 
+>  drivers/misc/ssi/Kconfig                             |   20 
+>  drivers/misc/ssi/Makefile                            |   11 
+>  drivers/misc/ssi/ssi_driver.c                        |  572 +++++++++++++++++++
+>  drivers/misc/ssi/ssi_driver.h                        |  228 +++++++
+>  drivers/misc/ssi/ssi_driver_bus.c                    |  218 +++++++
+>  drivers/misc/ssi/ssi_driver_dma.c                    |  461 +++++++++++++++
+>  drivers/misc/ssi/ssi_driver_if.c                     |  374 ++++++++++++
+>  drivers/misc/ssi/ssi_driver_int.c                    |  296 +++++++++
+>  include/linux/ssi_driver_if.h                        |  138 ++++
+>  18 files changed, 3213 insertions(+), 5 deletions(-)
+> 
+> 
+> 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux- 
-> omap" in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
 
-
---Apple-Mail-8--91162626
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: This is a digitally signed message part
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFI5fG3MkyGM64RGpERAjFsAJ9yv+1K2kXhyxkzKB5u8mwtKsGf2QCgl2uS
-oQ+FA/bMa4H+rU9wQtCiXBM=
-=Tym/
------END PGP SIGNATURE-----
-
---Apple-Mail-8--91162626--
