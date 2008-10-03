@@ -1,122 +1,463 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
-Date: Fri, 03 Oct 2008 16:25:44 +0300
-Message-ID: <1223040344.6118.23.camel@tubuntu>
-References: <19F8576C6E063C45BE387C64729E739403DC1A6A02@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [patch twl 1/2] remove <linux/i2c/twl4030-rtc.h>
+Date: Fri, 3 Oct 2008 16:28:58 +0300
+Message-ID: <20081003132857.GM25482@atomide.com>
+References: <200810012342.50866.david-b@pacbell.net> <20081002090517.GH7412@gandalf.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:23568 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751118AbYJCN0Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 09:26:25 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403DC1A6A02@dbde02.ent.ti.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:65171 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750874AbYJCN0F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 09:26:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20081002090517.GH7412@gandalf.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>, "Shah, Hardik" <hardik.shah@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: ext David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org
 
-Hi,
-
-> > -----Original Message-----
-> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > Sent: Thursday, October 02, 2008 1:55 PM
-> > To: Hiremath, Vaibhav
-> > Cc: Shah, Hardik; linux-omap@vger.kernel.org; video4linux-list@redhat.com
-> > Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
+* Felipe Balbi <felipe.balbi@nokia.com> [081002 12:08]:
+> On Wed, Oct 01, 2008 at 11:42:50PM -0700, David Brownell wrote:
+> > From: David Brownell <dbrownell@users.sourceforge.net>
 > > 
-> > Hi Vaibhav,
+> > Remove <linux/i2c/twl4030-rtc.h> by moving all the relevant contents
+> > into the driver itself, and removing the rest.  Stuff removed included
+> > many useless bitmasks, and remnants of the platform data hook.
 > > 
-> > On Wed, 2008-10-01 at 16:21 +0530, ext Hiremath, Vaibhav wrote:
-> > > Tomi,
-> > >
-> > > Have you got a chance to review the DSS library and V4l2 driver which we have posted?
+> > Add markers inside the rtc driver to split sections apart:  first
+> > data structure declarations, then the RTC driver, then platform bus
+> > glue for it all.
 > > 
-> > Unfortunately not very much. I've been glancing the DSS side of the
-> > driver, but not the v4l side as I don't know much about it.
+> > There's still an issue with the twl4030-pwrirq.h registers ... this
+> > driver has no business touching them!  This patch at least switches
+> > away from having private versions of those register definitions, and
+> > removes some unnecessary accesses to them.
 > > 
-> > There seems to be awfully lot ifdefs for board/cpu types in the code.
-> 
-> As far as ifdefs are concerned, they are added to take care of OMAP2/3 variants. Especially you will find many instances of CONFIG_ARCH_OMAP3410 and the reason is obvious, OMAP3410 doesn't have VENC. As I have mentioned before, DSS library is designed to support both LCD, TV, and many more.
-
-They make the code unclear. I have divided the functionality to separate
-files, that can easily be left out. So for OMAP3410 I would just disable
-the VENC config option. And then I can test for CONFIG_DSS_VENC, instead
-of OMAP3410 || OMAP2410 || OMAPwhatnot. Of course you can't do this for
-all things, but at least VENC is not one of these.
-
-And all board specific code should, in my opinion, be in board files. I
-don't have any board specific definitions in the DSS driver or the
-LCD/controller drivers. (well, ok, there is something in the DSI driver,
-it's still quite raw).
-
-> > My biased and superficial view of the differences between my DSS and
-> > yours is that:
-> 
-> Tomi, here I differ from you. There should not be biased opinion. What we are looking here is a good design which will fulfill all our requirements/use case, like LCD, DVI, HDMI and TV for us and DSI, RFBI for you.
-
-Agreed. I was just pointing out that I haven't used enough time to study
-your DSS to really comment on it, and that a coder tends to like his own
-code =).
-
-> > - My implementation is cleaner, better organized and more generic
-> 
-> Again, here both of us will be having biased comments to support our own design, so I would prefer not to comment on this. Lets people on the community decide whose design is better.
-> 
-> > - My implementation has support for DSI, SDI, RFBI, L4 updates
-> 
-> DSI, SDI and RFBI are the modes, which we can add anytime to the system depending as per our requirement. 
-> It is again driven by use case; you have use cases for DSI, SDI and RFBI. We have for TV, DVI, HDMI and LCD, so we strongly concentrated on these. 
-> 
-> We can very well add these supports to DSS Library with minimal effort.
-
-SDI is quite easy, but I wouldn't say adding RFBI and DSI is minimal
-effort. DSI is quite complex in itself, and the manual update mode
-changes how the DSS has to handle things.
-
-> > - Your implementation has better support for "extra" things like VRFB,
-> > color conversions, alpha etc.
-> > - Your implementation most likely has better power management support.
-> > - And of course what is most visible to the user, my version uses only
-> > framebuffers, and yours uses also v4l2 devices.
+> > No functional changes, just shrinkage.
 > > 
+> > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 > 
-> You really can't deny the V4L2 framework advantages over framebuffer, especially for streaming kind of applications. Looking towards the hardware features OMAP supports; we would really require to have such support/capabilities. Community is also in agreement for the V4L2 interface on OMAP-DSS.
+> I was willing to get rid of all of them and just keep twl4030.h
+> Nice job Dave :-)
 
-Well, I'm not the best one to comment on V4L2 as I don't know much about
-it. But I remember seeing quite negative comments about V4L2 a while ago
-in this or related mail thread, so I'm not yet ready to change to V4L2
-camp.
+This one does not apply, maybe some other patch is missing?
 
-The best option would be, of course, to have both =).
+patching file drivers/rtc/rtc-twl4030.c
+Hunk #1 FAILED at 28.
+Hunk #2 succeeded at 375 (offset 8 lines).
+Hunk #3 succeeded at 407 (offset 8 lines).
+Hunk #4 succeeded at 419 (offset 8 lines).
+Hunk #5 succeeded at 467 (offset 8 lines).
+Hunk #6 succeeded at 496 (offset 8 lines).
+Hunk #7 succeeded at 506 (offset 8 lines).
+Hunk #8 succeeded at 514 (offset 8 lines).
+1 out of 8 hunks FAILED -- saving rejects to file
+drivers/rtc/rtc-twl4030.c.rej
+patching file include/linux/i2c/twl4030-pwrirq.h
+patching file include/linux/i2c/twl4030-rtc.h
 
-> Tony/Hans,
-> Your comments would be helpful here.
+Tony
+
 > 
-> > As for the future, I have no choice but to keep using my DSS as we need
-> > the features it has. I feel it would be quite a big job to get those in
-> > to your driver. And even if I had a choice, I (unsurprisingly =) think
-> > that my version is better and would stick to it.
+> Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+> 
+> > ---
+> > This depends on an as-yet-unmerged RTC cleanup patch removing a
+> > bunch of headers.
 > > 
+> >  drivers/rtc/rtc-twl4030.c          |  105 +++++++++++++++------
+> >  include/linux/i2c/twl4030-pwrirq.h |    8 +
+> >  include/linux/i2c/twl4030-rtc.h    |  172 -----------------------------------
+> >  3 files changed, 79 insertions(+), 206 deletions(-)
+> > 
+> > --- a/drivers/rtc/rtc-twl4030.c
+> > +++ b/drivers/rtc/rtc-twl4030.c
+> > @@ -28,11 +28,63 @@
+> >  #include <linux/interrupt.h>
+> >  
+> >  #include <linux/i2c/twl4030.h>
+> > -#include <linux/i2c/twl4030-rtc.h>
+> > +#include <linux/i2c/twl4030-pwrirq.h>
+> > +
+> > +
+> > +/*
+> > + * RTC block register offsets (use TWL_MODULE_RTC)
+> > + */
+> > +#define REG_SECONDS_REG                          0x00
+> > +#define REG_MINUTES_REG                          0x01
+> > +#define REG_HOURS_REG                            0x02
+> > +#define REG_DAYS_REG                             0x03
+> > +#define REG_MONTHS_REG                           0x04
+> > +#define REG_YEARS_REG                            0x05
+> > +#define REG_WEEKS_REG                            0x06
+> >  
+> > +#define REG_ALARM_SECONDS_REG                    0x07
+> > +#define REG_ALARM_MINUTES_REG                    0x08
+> > +#define REG_ALARM_HOURS_REG                      0x09
+> > +#define REG_ALARM_DAYS_REG                       0x0A
+> > +#define REG_ALARM_MONTHS_REG                     0x0B
+> > +#define REG_ALARM_YEARS_REG                      0x0C
+> > +
+> > +#define REG_RTC_CTRL_REG                         0x0D
+> > +#define REG_RTC_STATUS_REG                       0x0E
+> > +#define REG_RTC_INTERRUPTS_REG                   0x0F
+> > +
+> > +#define REG_RTC_COMP_LSB_REG                     0x10
+> > +#define REG_RTC_COMP_MSB_REG                     0x11
+> >  
+> > +/* RTC_CTRL_REG bitfields */
+> > +#define BIT_RTC_CTRL_REG_STOP_RTC_M              0x01
+> > +#define BIT_RTC_CTRL_REG_ROUND_30S_M             0x02
+> > +#define BIT_RTC_CTRL_REG_AUTO_COMP_M             0x04
+> > +#define BIT_RTC_CTRL_REG_MODE_12_24_M            0x08
+> > +#define BIT_RTC_CTRL_REG_TEST_MODE_M             0x10
+> > +#define BIT_RTC_CTRL_REG_SET_32_COUNTER_M        0x20
+> > +#define BIT_RTC_CTRL_REG_GET_TIME_M              0x40
+> > +
+> > +/* RTC_STATUS_REG bitfields */
+> > +#define BIT_RTC_STATUS_REG_RUN_M                 0x02
+> > +#define BIT_RTC_STATUS_REG_1S_EVENT_M            0x04
+> > +#define BIT_RTC_STATUS_REG_1M_EVENT_M            0x08
+> > +#define BIT_RTC_STATUS_REG_1H_EVENT_M            0x10
+> > +#define BIT_RTC_STATUS_REG_1D_EVENT_M            0x20
+> > +#define BIT_RTC_STATUS_REG_ALARM_M               0x40
+> > +#define BIT_RTC_STATUS_REG_POWER_UP_M            0x80
+> > +
+> > +/* RTC_INTERRUPTS_REG bitfields */
+> > +#define BIT_RTC_INTERRUPTS_REG_EVERY_M           0x03
+> > +#define BIT_RTC_INTERRUPTS_REG_IT_TIMER_M        0x04
+> > +#define BIT_RTC_INTERRUPTS_REG_IT_ALARM_M        0x08
+> > +
+> > +
+> > +/* REG_SECONDS_REG through REG_YEARS_REG is how many registers? */
+> >  #define ALL_TIME_REGS		6
+> >  
+> > +/*----------------------------------------------------------------------*/
+> > +
+> >  /*
+> >   * Supports 1 byte read from TWL4030 RTC register.
+> >   */
+> > @@ -315,12 +367,19 @@ static irqreturn_t twl4030_rtc_interrupt
+> >  	if (res)
+> >  		goto out;
+> >  
+> > -	/* Clear on Read enabled. RTC_IT bit of REG_PWR_ISR1 needs
+> > -	 * 2 reads to clear the interrupt. One read is done in
+> > +	/* Clear on Read enabled. RTC_IT bit of TWL4030_INT_PWR_ISR1
+> > +	 * needs 2 reads to clear the interrupt. One read is done in
+> >  	 * do_twl4030_pwrirq(). Doing the second read, to clear
+> >  	 * the bit.
+> > +	 *
+> > +	 * FIXME the reason PWR_ISR1 needs an extra read is that
+> > +	 * RTC_IF retriggered until we cleared REG_ALARM_M above.
+> > +	 * But re-reading like this is a bad hack; by doing so we
+> > +	 * risk wrongly clearing status for some other IRQ (losing
+> > +	 * the interrupt).  Be smarter about handling RTC_UF ...
+> >  	 */
+> > -	res = twl4030_i2c_read_u8(TWL4030_MODULE_INT, &rd_reg, REG_PWR_ISR1);
+> > +	res = twl4030_i2c_read_u8(TWL4030_MODULE_INT,
+> > +			&rd_reg, TWL4030_INT_PWR_ISR1);
+> >  	if (res)
+> >  		goto out;
+> >  
+> > @@ -340,9 +399,10 @@ static struct rtc_class_ops twl4030_rtc_
+> >  	.set_alarm	= twl4030_rtc_set_alarm,
+> >  };
+> >  
+> > +/*----------------------------------------------------------------------*/
+> > +
+> >  static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
+> >  {
+> > -	struct twl4030rtc_platform_data *pdata = pdev->dev.platform_data;
+> >  	struct rtc_device *rtc;
+> >  	int ret = 0;
+> >  	int irq = platform_get_irq(pdev, 0);
+> > @@ -351,12 +411,6 @@ static int __devinit twl4030_rtc_probe(s
+> >  	if (irq < 0)
+> >  		return irq;
+> >  
+> > -	if (pdata != NULL && pdata->init != NULL) {
+> > -		ret = pdata->init();
+> > -		if (ret < 0)
+> > -			goto out;
+> > -	}
+> > -
+> >  	rtc = rtc_device_register(pdev->name,
+> >  				  &pdev->dev, &twl4030_rtc_ops, THIS_MODULE);
+> >  	if (IS_ERR(rtc)) {
+> > @@ -405,23 +459,19 @@ static int __devinit twl4030_rtc_probe(s
+> >  			goto out2;
+> >  	}
+> >  
+> > -	ret = twl4030_i2c_read_u8(TWL4030_MODULE_INT, &rd_reg, REG_PWR_IMR1);
+> > -	if (ret < 0)
+> > -		goto out2;
+> > -
+> > -	rd_reg &= PWR_RTC_IT_UNMASK;
+> > -	/* MASK PWR - we will need this */
+> > -	ret = twl4030_i2c_write_u8(TWL4030_MODULE_INT, rd_reg, REG_PWR_IMR1);
+> > -	if (ret < 0)
+> > -		goto out2;
+> > +	/* FIXME stop touching MODULE_INT registers; there's already
+> > +	 * driver code responsible for them.
+> > +	 */
+> >  
+> > -	ret = twl4030_i2c_read_u8(TWL4030_MODULE_INT, &rd_reg, REG_PWR_EDR1);
+> > +	/* use rising edge detection for RTC alarm */
+> > +	ret = twl4030_i2c_read_u8(TWL4030_MODULE_INT,
+> > +			&rd_reg, TWL4030_INT_PWR_EDR1);
+> >  	if (ret < 0)
+> >  		goto out2;
+> >  
+> > -	/* Rising edge detection enabled, needed for RTC alarm */
+> > -	rd_reg |= 0x80;
+> > -	ret = twl4030_i2c_write_u8(TWL4030_MODULE_INT, rd_reg, REG_PWR_EDR1);
+> > +	rd_reg |= BIT(3);
+> > +	ret = twl4030_i2c_write_u8(TWL4030_MODULE_INT,
+> > +			rd_reg, TWL4030_INT_PWR_EDR1);
+> >  	if (ret < 0)
+> >  		goto out2;
+> >  
+> > @@ -438,9 +488,6 @@ out2:
+> >  out1:
+> >  	rtc_device_unregister(rtc);
+> >  out0:
+> > -	if (pdata != NULL && pdata->exit != NULL)
+> > -		pdata->exit();
+> > -out:
+> >  	return ret;
+> >  }
+> >  
+> > @@ -451,7 +498,6 @@ out:
+> >  static int __devexit twl4030_rtc_remove(struct platform_device *pdev)
+> >  {
+> >  	/* leave rtc running, but disable irqs */
+> > -	struct twl4030rtc_platform_data *pdata = pdev->dev.platform_data;
+> >  	struct rtc_device *rtc = platform_get_drvdata(pdev);
+> >  	int irq = platform_get_irq(pdev, 0);
+> >  
+> > @@ -460,9 +506,6 @@ static int __devexit twl4030_rtc_remove(
+> >  
+> >  	free_irq(irq, rtc);
+> >  
+> > -	if (pdata != NULL && pdata->exit != NULL)
+> > -		pdata->exit();
+> > -
+> >  	rtc_device_unregister(rtc);
+> >  	platform_set_drvdata(pdev, NULL);
+> >  	return 0;
+> > --- a/include/linux/i2c/twl4030-pwrirq.h
+> > +++ b/include/linux/i2c/twl4030-pwrirq.h
+> > @@ -1,5 +1,5 @@
+> >  /*
+> > - * twl4030-gpio.h - header for TWL4030 GPIO module
+> > + * twl4030-pwrirq.h - header for TWL4030 power interrupts
+> >   *
+> >   * Copyright (C) 2008 Texas Instruments, Inc.
+> >   * Copyright (C) 2008 Nokia Corporation
+> > @@ -24,14 +24,16 @@
+> >  #define __TWL4030_PWRIRQ_H_
+> >  
+> >  /*
+> > - * INT Module Register definitions
+> > - * (not all registers are defined below)
+> > + * Power Interrupt block register offsets (use TWL4030_MODULE_INT)
+> >   */
+> >  
+> >  #define TWL4030_INT_PWR_ISR1		0x0
+> >  #define TWL4030_INT_PWR_IMR1		0x1
+> >  #define TWL4030_INT_PWR_ISR2		0x2
+> >  #define TWL4030_INT_PWR_IMR2		0x3
+> > +#define TWL4030_INT_PWR_SIR		0x4	/* test register */
+> > +#define TWL4030_INT_PWR_EDR1		0x5
+> > +#define TWL4030_INT_PWR_EDR2		0x6
+> >  #define TWL4030_INT_PWR_SIH_CTRL	0x7
+> >  
+> >  #endif /* End of __TWL4030_PWRIRQ_H */
+> > --- a/include/linux/i2c/twl4030-rtc.h
+> > +++ /dev/null
+> > @@ -1,172 +0,0 @@
+> > -/*
+> > - * include/asm-arm/arch-omap/twl4030-rtc.h
+> > - *
+> > - * Copyright (C) 2006 Texas Instruments, Inc.
+> > - *
+> > - * This program is free software; you can redistribute it and/or modify
+> > - * it under the terms of the GNU General Public License as published by
+> > - * the Free Software Foundation; either version 2 of the License, or
+> > - * (at your option) any later version.
+> > - *
+> > - * This program is distributed in the hope that it will be useful,
+> > - * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> > - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> > - * GNU General Public License for more details.
+> > - *
+> > - * You should have received a copy of the GNU General Public License
+> > - * along with this program; if not, write to the Free Software
+> > - * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+> > - */
+> > -#ifndef __TWL4030_RTC_H__
+> > -#define __TWL4030_RTC_H__
+> > -
+> > -#define REG_SECONDS_REG                          (0x0)
+> > -#define REG_MINUTES_REG                          (0x1)
+> > -#define REG_HOURS_REG                            (0x2)
+> > -#define REG_DAYS_REG                             (0x3)
+> > -#define REG_MONTHS_REG                           (0x4)
+> > -#define REG_YEARS_REG                            (0x5)
+> > -#define REG_WEEKS_REG                            (0x6)
+> > -#define REG_ALARM_SECONDS_REG                    (0x7)
+> > -#define REG_ALARM_MINUTES_REG                    (0x8)
+> > -#define REG_ALARM_HOURS_REG                      (0x9)
+> > -#define REG_ALARM_DAYS_REG                       (0xA)
+> > -#define REG_ALARM_MONTHS_REG                     (0xB)
+> > -#define REG_ALARM_YEARS_REG                      (0xC)
+> > -#define REG_RTC_CTRL_REG                         (0xD)
+> > -#define REG_RTC_STATUS_REG                       (0xE)
+> > -#define REG_RTC_INTERRUPTS_REG                   (0xF)
+> > -#define REG_RTC_COMP_LSB_REG                     (0x10)
+> > -#define REG_RTC_COMP_MSB_REG                     (0x11)
+> > -
+> > -/* REVISIT: these TWL4030 power registers are only used
+> > - * by rtc-twl4030 driver, move to an appropriate header
+> > - * if other drivers need the registers
+> > - */
+> > -/* Power registers */
+> > -#define REG_PWR_ISR1		0x00
+> > -#define REG_PWR_IMR1		0x01
+> > -#define REG_PWR_EDR1		0x05
+> > -
+> > -#define PWR_RTC_IT_UNMASK	 ~(0x08)
+> > -#define PWR_RTC_INT_CLR          0x08
+> > -
+> > -/**** BitField Definitions */
+> > -/* SECONDS_REG Fields */
+> > -#define BIT_SECONDS_REG_SEC0                     (0x000)
+> > -#define BIT_SECONDS_REG_SEC0_M                   (0x0000000F)
+> > -#define BIT_SECONDS_REG_SEC1                     (0x004)
+> > -#define BIT_SECONDS_REG_SEC1_M                   (0x00000070)
+> > -/* MINUTES_REG Fields */
+> > -#define BIT_MINUTES_REG_MIN0                     (0x000)
+> > -#define BIT_MINUTES_REG_MIN0_M                   (0x0000000F)
+> > -#define BIT_MINUTES_REG_MIN1                     (0x004)
+> > -#define BIT_MINUTES_REG_MIN1_M                   (0x00000070)
+> > -/* HOURS_REG Fields */
+> > -#define BIT_HOURS_REG_HOUR0                      (0x000)
+> > -#define BIT_HOURS_REG_HOUR0_M                    (0x0000000F)
+> > -#define BIT_HOURS_REG_HOUR1                      (0x004)
+> > -#define BIT_HOURS_REG_HOUR1_M                    (0x00000030)
+> > -#define BIT_HOURS_REG_PM_NAM                     (0x007)
+> > -#define BIT_HOURS_REG_PM_NAM_M                   (0x00000080)
+> > -/* DAYS_REG Fields */
+> > -#define BIT_DAYS_REG_DAY0                        (0x000)
+> > -#define BIT_DAYS_REG_DAY0_M                      (0x0000000F)
+> > -#define BIT_DAYS_REG_DAY1                        (0x004)
+> > -#define BIT_DAYS_REG_DAY1_M                      (0x00000030)
+> > -/* MONTHS_REG Fields */
+> > -#define BIT_MONTHS_REG_MONTH0                    (0x000)
+> > -#define BIT_MONTHS_REG_MONTH0_M                  (0x0000000F)
+> > -#define BIT_MONTHS_REG_MONTH1                    (0x004)
+> > -#define BIT_MONTHS_REG_MONTH1_M                  (0x00000010)
+> > -/* YEARS_REG Fields */
+> > -#define BIT_YEARS_REG_YEAR0                      (0x000)
+> > -#define BIT_YEARS_REG_YEAR0_M                    (0x0000000F)
+> > -#define BIT_YEARS_REG_YEAR1                      (0x004)
+> > -#define BIT_YEARS_REG_YEAR1_M                    (0x000000F0)
+> > -/* WEEKS_REG Fields */
+> > -#define BIT_WEEKS_REG_WEEK                       (0x000)
+> > -#define BIT_WEEKS_REG_WEEK_M                     (0x00000007)
+> > -/* ALARM_SECONDS_REG Fields */
+> > -#define BIT_ALARM_SECONDS_REG_ALARM_SEC0         (0x000)
+> > -#define BIT_ALARM_SECONDS_REG_ALARM_SEC0_M       (0x0000000F)
+> > -#define BIT_ALARM_SECONDS_REG_ALARM_SEC1         (0x004)
+> > -#define BIT_ALARM_SECONDS_REG_ALARM_SEC1_M       (0x00000070)
+> > -/* ALARM_MINUTES_REG Fields */
+> > -#define BIT_ALARM_MINUTES_REG_ALARM_MIN0         (0x000)
+> > -#define BIT_ALARM_MINUTES_REG_ALARM_MIN0_M       (0x0000000F)
+> > -#define BIT_ALARM_MINUTES_REG_ALARM_MIN1         (0x004)
+> > -#define BIT_ALARM_MINUTES_REG_ALARM_MIN1_M       (0x00000070)
+> > -/* ALARM_HOURS_REG Fields */
+> > -#define BIT_ALARM_HOURS_REG_ALARM_HOUR0          (0x000)
+> > -#define BIT_ALARM_HOURS_REG_ALARM_HOUR0_M        (0x0000000F)
+> > -#define BIT_ALARM_HOURS_REG_ALARM_HOUR1          (0x004)
+> > -#define BIT_ALARM_HOURS_REG_ALARM_HOUR1_M        (0x00000030)
+> > -#define BIT_ALARM_HOURS_REG_ALARM_PM_NAM         (0x007)
+> > -#define BIT_ALARM_HOURS_REG_ALARM_PM_NAM_M       (0x00000080)
+> > -/* ALARM_DAYS_REG Fields */
+> > -#define BIT_ALARM_DAYS_REG_ALARM_DAY0            (0x000)
+> > -#define BIT_ALARM_DAYS_REG_ALARM_DAY0_M          (0x0000000F)
+> > -#define BIT_ALARM_DAYS_REG_ALARM_DAY1            (0x004)
+> > -#define BIT_ALARM_DAYS_REG_ALARM_DAY1_M          (0x00000030)
+> > -/* ALARM_MONTHS_REG Fields */
+> > -#define BIT_ALARM_MONTHS_REG_ALARM_MONTH0        (0x000)
+> > -#define BIT_ALARM_MONTHS_REG_ALARM_MONTH0_M      (0x0000000F)
+> > -#define BIT_ALARM_MONTHS_REG_ALARM_MONTH1        (0x004)
+> > -#define BIT_ALARM_MONTHS_REG_ALARM_MONTH1_M      (0x00000010)
+> > -/* ALARM_YEARS_REG Fields */
+> > -#define BIT_ALARM_YEARS_REG_ALARM_YEAR0          (0x000)
+> > -#define BIT_ALARM_YEARS_REG_ALARM_YEAR0_M        (0x0000000F)
+> > -#define BIT_ALARM_YEARS_REG_ALARM_YEAR1          (0x004)
+> > -#define BIT_ALARM_YEARS_REG_ALARM_YEAR1_M        (0x000000F0)
+> > -/* RTC_CTRL_REG Fields */
+> > -#define BIT_RTC_CTRL_REG_STOP_RTC                (0x000)
+> > -#define BIT_RTC_CTRL_REG_STOP_RTC_M              (0x00000001)
+> > -#define BIT_RTC_CTRL_REG_ROUND_30S               (0x001)
+> > -#define BIT_RTC_CTRL_REG_ROUND_30S_M             (0x00000002)
+> > -#define BIT_RTC_CTRL_REG_AUTO_COMP               (0x002)
+> > -#define BIT_RTC_CTRL_REG_AUTO_COMP_M             (0x00000004)
+> > -#define BIT_RTC_CTRL_REG_MODE_12_24              (0x003)
+> > -#define BIT_RTC_CTRL_REG_MODE_12_24_M            (0x00000008)
+> > -#define BIT_RTC_CTRL_REG_TEST_MODE               (0x004)
+> > -#define BIT_RTC_CTRL_REG_TEST_MODE_M             (0x00000010)
+> > -#define BIT_RTC_CTRL_REG_SET_32_COUNTER          (0x005)
+> > -#define BIT_RTC_CTRL_REG_SET_32_COUNTER_M        (0x00000020)
+> > -#define BIT_RTC_CTRL_REG_GET_TIME                (0x006)
+> > -#define BIT_RTC_CTRL_REG_GET_TIME_M              (0x00000040)
+> > -/* RTC_STATUS_REG Fields */
+> > -#define BIT_RTC_STATUS_REG_RUN                   (0x001)
+> > -#define BIT_RTC_STATUS_REG_RUN_M                 (0x00000002)
+> > -#define BIT_RTC_STATUS_REG_1S_EVENT              (0x002)
+> > -#define BIT_RTC_STATUS_REG_1S_EVENT_M            (0x00000004)
+> > -#define BIT_RTC_STATUS_REG_1M_EVENT              (0x003)
+> > -#define BIT_RTC_STATUS_REG_1M_EVENT_M            (0x00000008)
+> > -#define BIT_RTC_STATUS_REG_1H_EVENT              (0x004)
+> > -#define BIT_RTC_STATUS_REG_1H_EVENT_M            (0x00000010)
+> > -#define BIT_RTC_STATUS_REG_1D_EVENT              (0x005)
+> > -#define BIT_RTC_STATUS_REG_1D_EVENT_M            (0x00000020)
+> > -#define BIT_RTC_STATUS_REG_ALARM                 (0x006)
+> > -#define BIT_RTC_STATUS_REG_ALARM_M               (0x00000040)
+> > -#define BIT_RTC_STATUS_REG_POWER_UP              (0x007)
+> > -#define BIT_RTC_STATUS_REG_POWER_UP_M            (0x00000080)
+> > -
+> > -/* RTC_INTERRUPTS_REG Fields */
+> > -#define BIT_RTC_INTERRUPTS_REG_EVERY             (0x000)
+> > -#define BIT_RTC_INTERRUPTS_REG_EVERY_M           (0x00000003)
+> > -#define BIT_RTC_INTERRUPTS_REG_IT_TIMER          (0x002)
+> > -#define BIT_RTC_INTERRUPTS_REG_IT_TIMER_M        (0x00000004)
+> > -#define BIT_RTC_INTERRUPTS_REG_IT_ALARM          (0x003)
+> > -#define BIT_RTC_INTERRUPTS_REG_IT_ALARM_M        (0x00000008)
+> > -/* RTC_COMP_LSB_REG Fields */
+> > -#define BIT_RTC_COMP_LSB_REG_RTC_COMP_LSB        (0x000)
+> > -#define BIT_RTC_COMP_LSB_REG_RTC_COMP_LSB_M      (0x000000FF)
+> > -/* RTC_COMP_MSB_REG Fields */
+> > -#define BIT_RTC_COMP_MSB_REG_RTC_COMP_MSB        (0x000)
+> > -#define BIT_RTC_COMP_MSB_REG_RTC_COMP_MSB_M      (0x000000FF)
+> > -
+> > -struct twl4030rtc_platform_data {
+> > -	int (*init)(void);
+> > -	void (*exit)(void);
+> > -};
+> > -
+> > -#endif				/* End of __TWL4030_RTC_H__ */
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> It's your personal choice to stick to whichever code base you want, I don't want to comment on that. But what I believe is, with your design we are limiting ourselves from supporting most of the features which hardware provides. 
-
-Is the limiting factor here the missing V4L2 interface? Or something in
-the core DSS driver? To my knowledge you can have all the HW features
-supported with framebuffers, even though V4L2 device can perhaps make
-the use easier for some applications.
-
-Well, one thing comes to my mind, and it's sharing the framebuffer
-memory between, for example, display and camera drivers. I believe you
-can do that with V4L2. Something else?
-
-> We can work together to add more support to DSS library.
-
-Sure, I don't really care which version is accepted, as long as we get
-all the features =). So if you see something usable in my code, just
-take it and add to your version.
-
- Tomi
-
-
+> -- 
+> balbi
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
