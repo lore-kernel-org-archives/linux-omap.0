@@ -1,39 +1,33 @@
-From: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
-Subject: RE: [patch twl] twl4030-core -- more cleanups
-Date: Fri, 3 Oct 2008 10:57:26 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB028C5400D3@dbde02.ent.ti.com>
-References: <200810021221.20286.david-b@pacbell.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] omap-keypad fixes for OMAP2
+Date: Fri, 3 Oct 2008 09:24:15 +0300
+Message-ID: <20081003062414.GF23962@atomide.com>
+References: <1222925329-28117-1-git-send-email-peter.ujfalusi@nokia.com> <20081002061237.GB7942@atomide.com> <200810021601.18006.peter.ujfalusi@nokia.com> <200810020817.57530.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58588 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752398AbYJCF1j convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 01:27:39 -0400
-In-Reply-To: <200810021221.20286.david-b@pacbell.net>
-Content-Language: en-US
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51429 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752913AbYJCGVU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 02:21:20 -0400
+Content-Disposition: inline
+In-Reply-To: <200810020817.57530.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>, linux-omap@vger.kernel.org
 
->  /*
-> - * twl4030_irq_thread() runs as a kernel thread.  It queries the twl4030
-> - * interrupt controller to see which modules are generating interrupt requests
-> - * and then calls the desc->handle method for each module requesting service.
-> + * This thread processes interrupts reported by the Primary Interrupt Handler.
->   */
+* David Brownell <david-b@pacbell.net> [081002 18:33]:
+> On Thursday 02 October 2008, Peter Ujfalusi wrote:
+> > commit ed39c59ff267249e7e789ea3bb64afc1e9afb5bd
+> > Author: Russell King <rmk@dyn-67.arm.linux.org.uk>
+> > omap: fix a load of "warning: symbol 'xxx' was not declared. Should it be static?"
+> > 
+> > Should I take the relevant parts from these commits and send it to linux-input?
+> 
+> I think those may be in Russell's GIT waiting for a 2.6.28 merge request.
+> 
 
-Why do we need to remove that piece of comment?
+Yeah that is already queued up.
 
-Can we not keep the comment this way?
-
-  /*
- - * twl4030_irq_thread() runs as a kernel thread.  It queries the twl4030
- - * interrupt controller to see which modules are generating interrupt requests
- + * This thread processes interrupts reported by the Primary Interrupt Handler,
-   * and then calls the desc->handle method for each module requesting service.
->   */
-
---
-Jagadeesh
+Tony
