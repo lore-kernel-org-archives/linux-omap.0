@@ -1,36 +1,78 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [patch] bugfix: SOUND: SOC: OMAP: Add support for
-	Gumstix Overo
-Date: Fri, 3 Oct 2008 18:49:48 +0100
-Message-ID: <20081003174948.GA17906@sirena.org.uk>
-References: <200810030811.33484.david-b@pacbell.net>
-	<20081003151846.GA9127@sirena.org.uk>
-	<200810030837.15131.david-b@pacbell.net>
+From: Marek Vasut <marek.vasut@gmail.com>
+Subject: Re: [patch 2.6.27-rc8-omap 0/7] resend of pending TWL patches
+Date: Fri, 3 Oct 2008 19:59:16 +0200
+Message-ID: <200810031959.16276.marek.vasut@gmail.com>
+References: <200810030857.37888.david-b@pacbell.net> <57969b5c0810031036q55075fdbw259159757f25c863@mail.gmail.com> <57969b5c0810031038w34f02dafxbc664f58cf5965ba@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ey-out-2122.google.com ([74.125.78.27]:10466 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750936AbYJCRys (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 13:54:48 -0400
+Received: by ey-out-2122.google.com with SMTP id 6so570100eyi.37
+        for <linux-omap@vger.kernel.org>; Fri, 03 Oct 2008 10:54:46 -0700 (PDT)
+In-Reply-To: <57969b5c0810031038w34f02dafxbc664f58cf5965ba@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <200810030837.15131.david-b@pacbell.net>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: David Brownell <david-b@pacbell.net>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Steve Sakoman <steve@sakoman.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Anand Gadiyar <gadiyar@gmail.com>
+Cc: David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org
 
-On Fri, Oct 03, 2008 at 08:37:14AM -0700, David Brownell wrote:
+On Friday 03 of October 2008 19:38:51 Anand Gadiyar wrote:
+That's nothing new in David's case ;-) (dont consider this an insult)
 
-> So if the only place these are queued is the OMAP tree, and
-> there is no particular objection to the patch, then there'd
-> seem be no issue merging it to the OMAP tree and having it
-> be part of the initial merge-to-mainline...
+> (Hit reply instead of reply-all... Reminder to self. Never send emails
+> when you're sleepy)
+>
+> On Fri, Oct 3, 2008 at 11:06 PM, Anand Gadiyar <gadiyar@gmail.com> wrote:
+> > On Fri, Oct 3, 2008 at 10:12 PM, David Brownell <david-b@pacbell.net> 
+wrote:
+> >> On Friday 03 October 2008, David Brownell wrote:
+> >>> This flushes my queue of TWL (and related) patches that
+> >>> seem ready to merge:
+> >>
+> >> Sanity tested on Beagle, FYI.
+> >>
+> >> Where I observed a new oddity:  the boot hung right after
+> >> listing the MTD partitions.  Which is where the EHCI code
+> >> would come up ... took that driver out of the build, and
+> >> the hang went away.  Clue, oh clue; where art thou?
+> >
+> > Well... Any chance this bit of code here helps? This infinite loop
+> > shouldn't even have been here. Oh well.
+> >
+> >
+> > ====CUT_HERE=====
+> > Remove infinite loop in DPLL 5 programming. Ideally, DPLL5 should be
+> > taken care of by the clock framework.
+> > ---
+> >  drivers/usb/host/ehci-omap.c |    2 ++
+> >  1 files changed, 2 insertions(+)
+> >
+> > Index: linux-omap-2.6/drivers/usb/host/ehci-omap.c
+> > ===================================================================
+> > --- linux-omap-2.6.orig/drivers/usb/host/ehci-omap.c    2008-09-18
+> > 14:59:34.000000000 +0530
+> > +++ linux-omap-2.6/drivers/usb/host/ehci-omap.c 2008-09-18
+> > 15:00:09.737475758 +0530
+> > @@ -170,10 +170,12 @@ static int omap_start_ehc(struct platfor
+> >                        (7 << OMAP3430ES2_EN_PERIPH2_DPLL_SHIFT),
+> >                        PLL_MOD, OMAP3430ES2_CM_CLKEN2);
+> >
+> > +#if 0
+> >        while (!(cm_read_mod_reg(PLL_MOD, CM_IDLEST2) &
+> >                                OMAP3430ES2_ST_PERIPH2_CLK_MASK))
+> >                dev_dbg(hcd->self.controller, "idlest2 = 0x%x\n",
+> >                        cm_read_mod_reg(PLL_MOD, CM_IDLEST2));
+> > +#endif
+> >        /* End DPLL5 programming */
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Yes, please squash it in with the other changes when you submit the
-twl4030 dependant stuff.
+
