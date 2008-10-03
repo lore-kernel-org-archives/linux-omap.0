@@ -1,94 +1,80 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 1/3] [RFC] clk: introduce clk_associate
-Date: Fri, 03 Oct 2008 09:23:36 +0300 (EEST)
-Message-ID: <20081003.092336.243854668.Hiroshi.DOYU@nokia.com>
-References: <200810010915.46032.david-b@pacbell.net>
-	<20081001.213437.22091635.Hiroshi.DOYU@nokia.com>
-	<200810021350.03739.david-b@pacbell.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/10] OMAP clock updates for post 2.6.27
+Date: Fri, 3 Oct 2008 09:38:22 +0300
+Message-ID: <20081003063817.GH23962@atomide.com>
+References: <20081002163508.15385.43247.stgit@localhost.localdomain> <20081002201715.GC12718@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:62777 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752280AbYJCGY2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 02:24:28 -0400
-In-Reply-To: <200810021350.03739.david-b@pacbell.net>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60115 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753308AbYJCGfg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 02:35:36 -0400
+Content-Disposition: inline
+In-Reply-To: <20081002201715.GC12718@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: david-b@pacbell.net
-Cc: felipe.balbi@nokia.com, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, khilman@deeprootsystems.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-Hi David,
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [081002 23:17]:
+> On Thu, Oct 02, 2008 at 10:37:46AM -0600, Paul Walmsley wrote:
+> > This patch series updates the OMAP2/3 clock tree. Some patches are
+> > from Tony's previous omap2-upstream series, and were already posted to
+> > linux-arm-kernel and reviewed[1].  The remaining patches are mostly
+> > clockdomain updates.
+> 
+> Great.
+> 
+> > The series can be pulled from:
+> > 
+> >    git://git.pwsan.com/linux-2.6 omap-clock-upstream
+> > 
+> > The branch is based on rmk/devel, since powerdomain and clockdomain
+> > changes are not yet in mainline.
+> 
+> I assume then you haven't read the top commit on my devel branch, which
+> reads:
+> 
+>     DO NOT BASE YOUR TREE ON THE DEVEL BRANCH
+> 
+>     Merge branch 'master' into devel
+> 
+> The reason is that 'devel' is a convenience merge branch of currently
+> about 25 other sub-branches for people who want to get the entire lot
+> of changes.  As such, the merges found there are frequently discarded
+> and recreated.
 
-=46rom: "ext David Brownell" <david-b@pacbell.net>
-Subject: Re: [PATCH 1/3] [RFC] clk: introduce clk_associate
-Date: Thu, 2 Oct 2008 13:50:02 -0700
+Sorry, there's been some miscommunication here. The idea was just to post
+the patches for review, and then have them pullable for you after you've
+gotten your current devel into the mainline.
 
-> On Wednesday 01 October 2008, Hiroshi DOYU wrote:
-> > Or, this feature itself can be covered by 'virtual clock(vclk)'?
-> >=20
-> > =A0 =A0 http://marc.info/?l=3Dlinux-omap&m=3D122066992729949&w=3D2
-> >=20
-> > which means that,
-> > in this case, if 'vclk' just has a single child, not multiple, it c=
-an
-> > be used just as 'aliasing' of clock names, without touching the
-> > contents of 'struct clk', since 'vclk' is a inhritance of 'struct c=
-lk'.
->=20
-<snip>
->
-> > Some driver may need to control multiple clocks at=20
-> > once. Some may need a clock which has different names between omap1=
-,
-> > omap2/3 or target boards. Or some may need to control multiple cloc=
-k
-> > groups from the functional perspective. So I think that a *flexible=
-*
-> > infrastructure would be better to afford such requiments, keeping
-> > 'struct clk' as simple as possible.
->=20
-> That vclk stuff looked a bit less obvious than I like.
-> Maybe I just haven't seen the need for those particular
-> flavors of flexibility.
+> If you want something more stable and omap related, that can be
+> arranged.
 
-I've looked around for some examples;). For this abstruction (or
-logical clock view), one of the case which clk_associate doesn't deal
-with is to handle multiple clocks together. There are some cases,
-where multiple clocks are handled(enable/disable) at once as below:
+Yeah if you have some commit that we can have the patches rebased on
+before you merge with mainline, that would be great.
 
- drivers/usb/gadget/omap_udc.c:	omap_udc_enable_clock()
- drivers/video/omap/rfbi.c:	rfbi_enable_clocks()
- arch/arm/mach-omap2/mcbsp.c:	omap_mcbsp_clk_enable()*1
- arch/arm/mach-omap2/serial.c:	omap_serial_enable_clocks()
- sound/arm/omap/eac.c:		eac_enable_clocks()
+The current plan is to have following series of patches pullable
+for you:
 
-With vclk, all the above home-brewed functions, *_enable_clocks(), can
-be replaced by a normal clk_enable(), with grouping the logical set of
-clocks in advance.
+- Remaining 8 patches from previous omap2-upstream that you already
+  looked before the header move. I'll repost these as they've shrank
+  quite a bit with your recent changes.
 
-=46or some of the above drivers, omap's "functional clock" and
-"interface clock" doesn't make sense. For such device drivers, those
-clocks may look just a single necessary clock and there's no "one to
-one" correspondence from the omap clock functionality definitions
-("ick"/"fck") perspective. I think that this is one of the examples,
-where the flexibily is required. Since required functionaliies for
-clocks depends on each device drivers, I think that it would give a
-wider solution to let device drivers to define their logical
-clocks(functionality) flexibly(not 1-to-1), rather than statically
-pre-defined standardized functional names, which is the 1-to-1
-correspondence of ick and fck in the TRM with aliasing.
+- McBSP patches already posted last week.
 
-But I agree on that 'vclk' is too flexible and I think that's why Paul
-hasn't taken it yet;)
+- One new patch for sram to make omap3 support compile. Not yet posted,
+  will try to get this posted today.
 
-*1: http://marc.info/?l=3Dlinux-omap&m=3D122066992729951&w=3D2
+- Minimal board support for Beagle and Overo. Not yet posted, will try
+  to get this posted today also.
 
-     Hiroshi DOYU
+- Then these 10 patches from Paul if you have enough time to look
+  through them.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'll also post the MMC init clean up, but that won't happen until
+next week. Anyways, lots of patches but that gets minimal omap3 booting
+with mainline.
+
+Tony
