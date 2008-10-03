@@ -1,39 +1,220 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch twl] twl4030-core -- more cleanups
-Date: Fri, 3 Oct 2008 07:09:19 -0700
-Message-ID: <200810030709.19790.david-b@pacbell.net>
-References: <200810021221.20286.david-b@pacbell.net> <200810030115.54197.david-b@pacbell.net> <EAF47CD23C76F840A9E7FCE10091EFAB028C5402D4@dbde02.ent.ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
+Date: Fri, 3 Oct 2008 19:46:05 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403DC1A6A39@dbde02.ent.ti.com>
+References: <20081003133400.GA6251@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:23441 "HELO
-	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751682AbYJCOJ1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 10:09:27 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB028C5402D4@dbde02.ent.ti.com>
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <video4linux-list-bounces@redhat.com>
+In-Reply-To: <20081003133400.GA6251@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+To: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Friday 03 October 2008, Pakaravoor, Jagadeesh wrote:
-> > (And then there's the way every SIH handler seems to
-> > be getting its own irq_chip and handler thread. =A0I'm
-> > sure that can be done much better.)
+
+
+Thanks,
+Vaibhav Hiremath
+Senior Software Engg.
+Platform Support Products
+Texas Instruments Inc
+Ph: +91-80-25099927
+
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Friday, October 03, 2008 7:04 PM
+> To: Tomi Valkeinen
+> Cc: Hiremath, Vaibhav; hverkuil@xs4all.nl; Shah, Hardik; linux-
+> omap@vger.kernel.org; video4linux-list@redhat.com
+> Subject: Re: [PREVIEW] New display subsystem for OMAP2/3
 >=20
-> So, is there going to be a change in the current way,
-> of spawning a separate thread, for power and gpio irqs?
+> * Tomi Valkeinen <tomi.valkeinen@nokia.com> [081003 16:26]:
+> > Hi,
+> >
+> > > > -----Original Message-----
+> > > > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> > > > Sent: Thursday, October 02, 2008 1:55 PM
+> > > > To: Hiremath, Vaibhav
+> > > > Cc: Shah, Hardik; linux-omap@vger.kernel.org; video4linux-
+> list@redhat.com
+> > > > Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
+> > > >
+> > > > Hi Vaibhav,
+> > > >
+> > > > On Wed, 2008-10-01 at 16:21 +0530, ext Hiremath, Vaibhav
+> wrote:
+> > > > > Tomi,
+> > > > >
+> > > > > Have you got a chance to review the DSS library and V4l2
+> driver which we have posted?
+> > > >
+> > > > Unfortunately not very much. I've been glancing the DSS side
+> of the
+> > > > driver, but not the v4l side as I don't know much about it.
+> > > >
+> > > > There seems to be awfully lot ifdefs for board/cpu types in
+> the code.
+> > >
+> > > As far as ifdefs are concerned, they are added to take care of
+> OMAP2/3 variants. Especially you will find many instances of
+> CONFIG_ARCH_OMAP3410 and the reason is obvious, OMAP3410 doesn't
+> have VENC. As I have mentioned before, DSS library is designed to
+> support both LCD, TV, and many more.
+> >
+> > They make the code unclear. I have divided the functionality to
+> separate
+> > files, that can easily be left out. So for OMAP3410 I would just
+> disable
+> > the VENC config option. And then I can test for CONFIG_DSS_VENC,
+> instead
+> > of OMAP3410 || OMAP2410 || OMAPwhatnot. Of course you can't do
+> this for
+> > all things, but at least VENC is not one of these.
+> >
+> > And all board specific code should, in my opinion, be in board
+> files. I
+> > don't have any board specific definitions in the DSS driver or the
+> > LCD/controller drivers. (well, ok, there is something in the DSI
+> driver,
+> > it's still quite raw).
+>=20
+> Yeah we should be able to compile in any combination of omap boards
+> with
+> whatever configuration from board-*.c files as platform_data.
+>=20
+> So ifdefs will totally break this.
+>=20
 
-I'm thinking about it.  Notice the core has twl4030_mod_regs,
-which is almost enough to take over irq_chip duties by itself.
-And it also has a thread handy ...=20
+Point taken, we will try to avoid ifdefs as much as possible and will div=
+ide depending on the functionality.
 
-- Dave
+> > > > My biased and superficial view of the differences between my
+> DSS and
+> > > > yours is that:
+> > >
+> > > Tomi, here I differ from you. There should not be biased
+> opinion. What we are looking here is a good design which will
+> fulfill all our requirements/use case, like LCD, DVI, HDMI and TV
+> for us and DSI, RFBI for you.
+> >
+> > Agreed. I was just pointing out that I haven't used enough time to
+> study
+> > your DSS to really comment on it, and that a coder tends to like
+> his own
+> > code =3D).
+> >
+> > > > - My implementation is cleaner, better organized and more
+> generic
+> > >
+> > > Again, here both of us will be having biased comments to support
+> our own design, so I would prefer not to comment on this. Lets
+> people on the community decide whose design is better.
+> > >
+> > > > - My implementation has support for DSI, SDI, RFBI, L4 updates
+> > >
+> > > DSI, SDI and RFBI are the modes, which we can add anytime to the
+> system depending as per our requirement.
+> > > It is again driven by use case; you have use cases for DSI, SDI
+> and RFBI. We have for TV, DVI, HDMI and LCD, so we strongly
+> concentrated on these.
+> > >
+> > > We can very well add these supports to DSS Library with minimal
+> effort.
+> >
+> > SDI is quite easy, but I wouldn't say adding RFBI and DSI is
+> minimal
+> > effort. DSI is quite complex in itself, and the manual update mode
+> > changes how the DSS has to handle things.
+> >
+> > > > - Your implementation has better support for "extra" things
+> like VRFB,
+> > > > color conversions, alpha etc.
+> > > > - Your implementation most likely has better power management
+> support.
+> > > > - And of course what is most visible to the user, my version
+> uses only
+> > > > framebuffers, and yours uses also v4l2 devices.
+> > > >
+> > >
+> > > You really can't deny the V4L2 framework advantages over
+> framebuffer, especially for streaming kind of applications. Looking
+> towards the hardware features OMAP supports; we would really require
+> to have such support/capabilities. Community is also in agreement
+> for the V4L2 interface on OMAP-DSS.
+> >
+> > Well, I'm not the best one to comment on V4L2 as I don't know much
+> about
+> > it. But I remember seeing quite negative comments about V4L2 a
+> while ago
+> > in this or related mail thread, so I'm not yet ready to change to
+> V4L2
+> > camp.
+> >
+> > The best option would be, of course, to have both =3D).
+> >
+> > > Tony/Hans,
+> > > Your comments would be helpful here.
+>=20
+> I'd rather not get too involved in the fb or v4l stuff, I already
+> have
+> enough things to look at. But I can certainly comment on stuff that
+> will
+> break booting multiple omaps the same time once the patches are
+> posted.
+>=20
+> > > > As for the future, I have no choice but to keep using my DSS
+> as we need
+> > > > the features it has. I feel it would be quite a big job to get
+> those in
+> > > > to your driver. And even if I had a choice, I (unsurprisingly
+> =3D) think
+> > > > that my version is better and would stick to it.
+> > > >
+> > >
+> > > It's your personal choice to stick to whichever code base you
+> want, I don't want to comment on that. But what I believe is, with
+> your design we are limiting ourselves from supporting most of the
+> features which hardware provides.
+> >
+> > Is the limiting factor here the missing V4L2 interface? Or
+> something in
+> > the core DSS driver? To my knowledge you can have all the HW
+> features
+> > supported with framebuffers, even though V4L2 device can perhaps
+> make
+> > the use easier for some applications.
+> >
+> > Well, one thing comes to my mind, and it's sharing the framebuffer
+> > memory between, for example, display and camera drivers. I believe
+> you
+> > can do that with V4L2. Something else?
+> >
+> > > We can work together to add more support to DSS library.
+> >
+> > Sure, I don't really care which version is accepted, as long as we
+> get
+> > all the features =3D). So if you see something usable in my code,
+> just
+> > take it and add to your version.
+>=20
+> Regards,
+>=20
+> Tony
+
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
+ibe
+https://www.redhat.com/mailman/listinfo/video4linux-list
