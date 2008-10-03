@@ -1,398 +1,132 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 2.6.27-rc7-omap1-git 2/2] twl4030-gpio.h removal
-Date: Fri, 3 Oct 2008 16:29:19 +0300
-Message-ID: <20081003132919.GN25482@atomide.com>
-References: <200810011948.21792.david-b@pacbell.net>
+Subject: Re: [PREVIEW] New display subsystem for OMAP2/3
+Date: Fri, 3 Oct 2008 16:34:01 +0300
+Message-ID: <20081003133400.GA6251@atomide.com>
+References: <19F8576C6E063C45BE387C64729E739403DC1A6A02@dbde02.ent.ti.com> <1223040344.6118.23.camel@tubuntu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:65492 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54136 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750936AbYJCN0W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 09:26:22 -0400
+	with ESMTP id S1751308AbYJCNbJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 09:31:09 -0400
 Content-Disposition: inline
-In-Reply-To: <200810011948.21792.david-b@pacbell.net>
+In-Reply-To: <1223040344.6118.23.camel@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>, "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>, "Shah, Hardik" <hardik.shah@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>
 
-* David Brownell <david-b@pacbell.net> [081002 06:23]:
-> From: David Brownell <dbrownell@users.sourceforge.net>
+* Tomi Valkeinen <tomi.valkeinen@nokia.com> [081003 16:26]:
+> Hi,
 > 
-> The <linux/i2c/...> directory has too many headers for twl4030
-> support.  Start simplifying that by moving twl430-gpio.h into
-> the main twl4030.h and also:
+> > > -----Original Message-----
+> > > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> > > Sent: Thursday, October 02, 2008 1:55 PM
+> > > To: Hiremath, Vaibhav
+> > > Cc: Shah, Hardik; linux-omap@vger.kernel.org; video4linux-list@redhat.com
+> > > Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
+> > > 
+> > > Hi Vaibhav,
+> > > 
+> > > On Wed, 2008-10-01 at 16:21 +0530, ext Hiremath, Vaibhav wrote:
+> > > > Tomi,
+> > > >
+> > > > Have you got a chance to review the DSS library and V4l2 driver which we have posted?
+> > > 
+> > > Unfortunately not very much. I've been glancing the DSS side of the
+> > > driver, but not the v4l side as I don't know much about it.
+> > > 
+> > > There seems to be awfully lot ifdefs for board/cpu types in the code.
+> > 
+> > As far as ifdefs are concerned, they are added to take care of OMAP2/3 variants. Especially you will find many instances of CONFIG_ARCH_OMAP3410 and the reason is obvious, OMAP3410 doesn't have VENC. As I have mentioned before, DSS library is designed to support both LCD, TV, and many more.
 > 
->  - Providing comments to summarize the { module, offset } logical
->    addressing vs the { i2c_client, register } physical addressing.
+> They make the code unclear. I have divided the functionality to separate
+> files, that can easily be left out. So for OMAP3410 I would just disable
+> the VENC config option. And then I can test for CONFIG_DSS_VENC, instead
+> of OMAP3410 || OMAP2410 || OMAPwhatnot. Of course you can't do this for
+> all things, but at least VENC is not one of these.
 > 
->  - Moving the { module, offset } based I/O calls next to the place
->    those modules are defined, with slightly improved descriptions.
-> 
->  - Adding some section markers internal to twl4030.h so unrelated
->    things can be visually separated.
-> 
->  - Move TWL4030_GPIO_MAX adjacent to the other GPIO symbols.
-> 
->  - Remove two more now-obsolete symbols (for GPIO pullup/pulldown).
-> 
->  - Have global definitions of the three SIH_CTRL register bits,
->    following the pattern of twl4030-core.c (and fixing a minor
->    fault handling bug in reading the clear-on-read bit).
-> 
-> To keep things simple, the only blocks with register declarations
-> in this file should be ones with registers that (cleanly) get
-> shared between components ... modules with SIH registers (for
-> IRQ handling) being the obvious candidates.
-> 
-> No functional changes.
+> And all board specific code should, in my opinion, be in board files. I
+> don't have any board specific definitions in the DSS driver or the
+> LCD/controller drivers. (well, ok, there is something in the DSI driver,
+> it's still quite raw).
 
-Pushing.
+Yeah we should be able to compile in any combination of omap boards with
+whatever configuration from board-*.c files as platform_data.
+
+So ifdefs will totally break this.
+
+> > > My biased and superficial view of the differences between my DSS and
+> > > yours is that:
+> > 
+> > Tomi, here I differ from you. There should not be biased opinion. What we are looking here is a good design which will fulfill all our requirements/use case, like LCD, DVI, HDMI and TV for us and DSI, RFBI for you.
+> 
+> Agreed. I was just pointing out that I haven't used enough time to study
+> your DSS to really comment on it, and that a coder tends to like his own
+> code =).
+> 
+> > > - My implementation is cleaner, better organized and more generic
+> > 
+> > Again, here both of us will be having biased comments to support our own design, so I would prefer not to comment on this. Lets people on the community decide whose design is better.
+> > 
+> > > - My implementation has support for DSI, SDI, RFBI, L4 updates
+> > 
+> > DSI, SDI and RFBI are the modes, which we can add anytime to the system depending as per our requirement. 
+> > It is again driven by use case; you have use cases for DSI, SDI and RFBI. We have for TV, DVI, HDMI and LCD, so we strongly concentrated on these. 
+> > 
+> > We can very well add these supports to DSS Library with minimal effort.
+> 
+> SDI is quite easy, but I wouldn't say adding RFBI and DSI is minimal
+> effort. DSI is quite complex in itself, and the manual update mode
+> changes how the DSS has to handle things.
+> 
+> > > - Your implementation has better support for "extra" things like VRFB,
+> > > color conversions, alpha etc.
+> > > - Your implementation most likely has better power management support.
+> > > - And of course what is most visible to the user, my version uses only
+> > > framebuffers, and yours uses also v4l2 devices.
+> > > 
+> > 
+> > You really can't deny the V4L2 framework advantages over framebuffer, especially for streaming kind of applications. Looking towards the hardware features OMAP supports; we would really require to have such support/capabilities. Community is also in agreement for the V4L2 interface on OMAP-DSS.
+> 
+> Well, I'm not the best one to comment on V4L2 as I don't know much about
+> it. But I remember seeing quite negative comments about V4L2 a while ago
+> in this or related mail thread, so I'm not yet ready to change to V4L2
+> camp.
+> 
+> The best option would be, of course, to have both =).
+> 
+> > Tony/Hans,
+> > Your comments would be helpful here.
+
+I'd rather not get too involved in the fb or v4l stuff, I already have
+enough things to look at. But I can certainly comment on stuff that will
+break booting multiple omaps the same time once the patches are posted.
+
+> > > As for the future, I have no choice but to keep using my DSS as we need
+> > > the features it has. I feel it would be quite a big job to get those in
+> > > to your driver. And even if I had a choice, I (unsurprisingly =) think
+> > > that my version is better and would stick to it.
+> > > 
+> > 
+> > It's your personal choice to stick to whichever code base you want, I don't want to comment on that. But what I believe is, with your design we are limiting ourselves from supporting most of the features which hardware provides. 
+> 
+> Is the limiting factor here the missing V4L2 interface? Or something in
+> the core DSS driver? To my knowledge you can have all the HW features
+> supported with framebuffers, even though V4L2 device can perhaps make
+> the use easier for some applications.
+> 
+> Well, one thing comes to my mind, and it's sharing the framebuffer
+> memory between, for example, display and camera drivers. I believe you
+> can do that with V4L2. Something else?
+> 
+> > We can work together to add more support to DSS library.
+> 
+> Sure, I don't really care which version is accepted, as long as we get
+> all the features =). So if you see something usable in my code, just
+> take it and add to your version.
+
+Regards,
 
 Tony
-
-> 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
->  drivers/gpio/twl4030-gpio.c      |    6 -
->  drivers/mfd/twl4030-core.c       |   12 ++-
->  include/linux/i2c/twl4030-gpio.h |   76 ---------------------
->  include/linux/i2c/twl4030.h      |  130 ++++++++++++++++++++++++++++++-------
->  4 files changed, 115 insertions(+), 109 deletions(-)
-> 
-> --- a/drivers/gpio/twl4030-gpio.c
-> +++ b/drivers/gpio/twl4030-gpio.c
-> @@ -38,7 +38,6 @@
->  #include <linux/slab.h>
->  
->  #include <linux/i2c/twl4030.h>
-> -#include <linux/i2c/twl4030-gpio.h>
->  
->  
->  /*
-> @@ -79,11 +78,6 @@ static int twl4030_gpio_irq_end;
->  #define is_module()	false
->  #endif
->  
-> -/* GPIO_SIH_CTRL Fields */
-> -#define MASK_GPIO_SIH_CTRL_EXCLEN	BIT(0)
-> -#define MASK_GPIO_SIH_CTRL_PENDDIS	BIT(1)
-> -#define MASK_GPIO_SIH_CTRL_COR		BIT(2)
-> -
->  /* GPIO_CTRL Fields */
->  #define MASK_GPIO_CTRL_GPIO0CD1		BIT(0)
->  #define MASK_GPIO_CTRL_GPIO1CD2		BIT(1)
-> --- a/drivers/mfd/twl4030-core.c
-> +++ b/drivers/mfd/twl4030-core.c
-> @@ -39,7 +39,6 @@
->  
->  #include <linux/i2c.h>
->  #include <linux/i2c/twl4030.h>
-> -#include <linux/i2c/twl4030-gpio.h>
->  #include <linux/i2c/twl4030-madc.h>
->  #include <linux/i2c/twl4030-pwrirq.h>
->  
-> @@ -183,7 +182,6 @@ static inline void activate_irq(int irq)
->  #define TWL4030_MADC_MADC_SIH_CTRL	0x67
->  #define TWL4030_KEYPAD_KEYP_SIH_CTRL	0x17
->  
-> -#define TWL4030_SIH_CTRL_COR_MASK	(1 << 2)
->  
->  /**
->   * struct twl4030_mod_iregs - TWL module IMR/ISR regs to mask/clear at init
-> @@ -341,12 +339,20 @@ struct twl4030mapping {
->  
->  /* mapping the module id to slave id and base address */
->  static struct twl4030mapping twl4030_map[TWL4030_MODULE_LAST + 1] = {
-> +	/*
-> +	 * NOTE:  don't change this table without updating the
-> +	 * <linux/i2c/twl4030.h> defines for TWL4030_MODULE_*
-> +	 * so they continue to match the order in this table.
-> +	 */
-> +
->  	{ TWL4030_SLAVENUM_NUM0, TWL4030_BASEADD_USB },
-> +
->  	{ TWL4030_SLAVENUM_NUM1, TWL4030_BASEADD_AUDIO_VOICE },
->  	{ TWL4030_SLAVENUM_NUM1, TWL4030_BASEADD_GPIO },
->  	{ TWL4030_SLAVENUM_NUM1, TWL4030_BASEADD_INTBR },
->  	{ TWL4030_SLAVENUM_NUM1, TWL4030_BASEADD_PIH },
->  	{ TWL4030_SLAVENUM_NUM1, TWL4030_BASEADD_TEST },
-> +
->  	{ TWL4030_SLAVENUM_NUM2, TWL4030_BASEADD_KEYPAD },
->  	{ TWL4030_SLAVENUM_NUM2, TWL4030_BASEADD_MADC },
->  	{ TWL4030_SLAVENUM_NUM2, TWL4030_BASEADD_INTERRUPTS },
-> @@ -357,6 +363,7 @@ static struct twl4030mapping twl4030_map
->  	{ TWL4030_SLAVENUM_NUM2, TWL4030_BASEADD_PWM1 },
->  	{ TWL4030_SLAVENUM_NUM2, TWL4030_BASEADD_PWMA },
->  	{ TWL4030_SLAVENUM_NUM2, TWL4030_BASEADD_PWMB },
-> +
->  	{ TWL4030_SLAVENUM_NUM3, TWL4030_BASEADD_BACKUP },
->  	{ TWL4030_SLAVENUM_NUM3, TWL4030_BASEADD_INT },
->  	{ TWL4030_SLAVENUM_NUM3, TWL4030_BASEADD_PM_MASTER },
-> @@ -1080,7 +1087,6 @@ static void __init twl4030_mask_clear_in
->  
->  		/* Are ISRs cleared by reads or writes? */
->  		cor = twl4030_read_cor_bit(tmr.mod_no, tmr.sih_ctrl);
-> -		WARN_ON(cor < 0);
->  
->  		for (j = 0; j < tmr.reg_cnt; j++) {
->  
-> --- a/include/linux/i2c/twl4030-gpio.h
-> +++ /dev/null
-> @@ -1,76 +0,0 @@
-> -/*
-> - * twl4030-gpio.h - header for TWL4030 GPIO module
-> - *
-> - * Copyright (C) 2005-2006, 2008 Texas Instruments, Inc.
-> - * Copyright (C) 2008 Nokia Corporation
-> - *
-> - * Based on tlv320aic23.c:
-> - * Copyright (c) by Kai Svahn <kai.svahn@nokia.com>
-> - *
-> - * This program is free software; you can redistribute it and/or modify
-> - * it under the terms of the GNU General Public License as published by
-> - * the Free Software Foundation; either version 2 of the License, or
-> - * (at your option) any later version.
-> - *
-> - * This program is distributed in the hope that it will be useful,
-> - * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> - * GNU General Public License for more details.
-> - *
-> - * You should have received a copy of the GNU General Public License
-> - * along with this program; if not, write to the Free Software
-> - * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-> - *
-> - */
-> -
-> -#ifndef __TWL4030_GPIO_H_
-> -#define __TWL4030_GPIO_H_
-> -
-> -/*
-> - * GPIO Block Register definitions
-> - */
-> -
-> -#define REG_GPIODATAIN1			0x0
-> -#define REG_GPIODATAIN2			0x1
-> -#define REG_GPIODATAIN3			0x2
-> -#define REG_GPIODATADIR1		0x3
-> -#define REG_GPIODATADIR2		0x4
-> -#define REG_GPIODATADIR3		0x5
-> -#define REG_GPIODATAOUT1		0x6
-> -#define REG_GPIODATAOUT2		0x7
-> -#define REG_GPIODATAOUT3		0x8
-> -#define REG_CLEARGPIODATAOUT1		0x9
-> -#define REG_CLEARGPIODATAOUT2		0xA
-> -#define REG_CLEARGPIODATAOUT3		0xB
-> -#define REG_SETGPIODATAOUT1		0xC
-> -#define REG_SETGPIODATAOUT2		0xD
-> -#define REG_SETGPIODATAOUT3		0xE
-> -#define REG_GPIO_DEBEN1			0xF
-> -#define REG_GPIO_DEBEN2			0x10
-> -#define REG_GPIO_DEBEN3			0x11
-> -#define REG_GPIO_CTRL			0x12
-> -#define REG_GPIOPUPDCTR1		0x13
-> -#define REG_GPIOPUPDCTR2		0x14
-> -#define REG_GPIOPUPDCTR3		0x15
-> -#define REG_GPIOPUPDCTR4		0x16
-> -#define REG_GPIOPUPDCTR5		0x17
-> -#define REG_GPIO_ISR1A			0x19
-> -#define REG_GPIO_ISR2A			0x1A
-> -#define REG_GPIO_ISR3A			0x1B
-> -#define REG_GPIO_IMR1A			0x1C
-> -#define REG_GPIO_IMR2A			0x1D
-> -#define REG_GPIO_IMR3A			0x1E
-> -#define REG_GPIO_ISR1B			0x1F
-> -#define REG_GPIO_ISR2B			0x20
-> -#define REG_GPIO_ISR3B			0x21
-> -#define REG_GPIO_IMR1B			0x22
-> -#define REG_GPIO_IMR2B			0x23
-> -#define REG_GPIO_IMR3B			0x24
-> -#define REG_GPIO_EDR1			0x28
-> -#define REG_GPIO_EDR2			0x29
-> -#define REG_GPIO_EDR3			0x2A
-> -#define REG_GPIO_EDR4			0x2B
-> -#define REG_GPIO_EDR5			0x2C
-> -#define REG_GPIO_SIH_CTRL		0x2D
-> -
-> -#endif /* End of __TWL4030_GPIO_H */
-> --- a/include/linux/i2c/twl4030.h
-> +++ b/include/linux/i2c/twl4030.h
-> @@ -25,15 +25,28 @@
->  #ifndef __TWL4030_H_
->  #define __TWL4030_H_
->  
-> -/* USB ID */
-> +/*
-> + * Using the twl4030 core we address registers using a pair
-> + *	{ module id, relative register offset }
-> + * which that core then maps to the relevant
-> + *	{ i2c slave, absolute register address }
-> + *
-> + * The module IDs are meaningful only to the twl4030 core code,
-> + * which uses them as array indices to look up the first register
-> + * address each module uses within a given i2c slave.
-> + */
-> +
-> +/* Slave 0 (i2c address 0x48) */
->  #define TWL4030_MODULE_USB		0x00
-> -/* AUD ID */
-> +
-> +/* Slave 1 (i2c address 0x49) */
->  #define TWL4030_MODULE_AUDIO_VOICE	0x01
->  #define TWL4030_MODULE_GPIO		0x02
->  #define TWL4030_MODULE_INTBR		0x03
->  #define TWL4030_MODULE_PIH		0x04
->  #define TWL4030_MODULE_TEST		0x05
-> -/* AUX ID */
-> +
-> +/* Slave 2 (i2c address 0x4a) */
->  #define TWL4030_MODULE_KEYPAD		0x06
->  #define TWL4030_MODULE_MADC		0x07
->  #define TWL4030_MODULE_INTERRUPTS	0x08
-> @@ -44,7 +57,8 @@
->  #define TWL4030_MODULE_PWM1		0x0D
->  #define TWL4030_MODULE_PWMA		0x0E
->  #define TWL4030_MODULE_PWMB		0x0F
-> -/* POWER ID */
-> +
-> +/* Slave 3 (i2c address 0x4b) */
->  #define TWL4030_MODULE_BACKUP		0x10
->  #define TWL4030_MODULE_INT		0x11
->  #define TWL4030_MODULE_PM_MASTER	0x12
-> @@ -52,6 +66,92 @@
->  #define TWL4030_MODULE_RTC		0x14
->  #define TWL4030_MODULE_SECURED_REG	0x15
->  
-> +/*
-> + * Read and write single 8-bit registers
-> + */
-> +int twl4030_i2c_write_u8(u8 mod_no, u8 val, u8 reg);
-> +int twl4030_i2c_read_u8(u8 mod_no, u8 *val, u8 reg);
-> +
-> +/*
-> + * Read and write several 8-bit registers at once.
-> + *
-> + * IMPORTANT:  For twl4030_i2c_write(), allocate num_bytes + 1
-> + * for the value, and populate your data starting at offset 1.
-> + */
-> +int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, u8 num_bytes);
-> +int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, u8 num_bytes);
-> +
-> +/*----------------------------------------------------------------------*/
-> +
-> +/*
-> + * NOTE:  at up to 1024 registers, this is a big chip.
-> + *
-> + * Avoid putting register declarations in this file, instead of into
-> + * a driver-private file, unless some of the registers in a block
-> + * need to be shared with other drivers.  One example is blocks that
-> + * have Secondary IRQ Handler (SIH) registers.
-> + */
-> +
-> +#define TWL4030_SIH_CTRL_EXCLEN_MASK	BIT(0)
-> +#define TWL4030_SIH_CTRL_PENDDIS_MASK	BIT(1)
-> +#define TWL4030_SIH_CTRL_COR_MASK	BIT(2)
-> +
-> +/*----------------------------------------------------------------------*/
-> +
-> +/*
-> + * GPIO Block Register offsets (use TWL4030_MODULE_GPIO)
-> + */
-> +
-> +#define REG_GPIODATAIN1			0x0
-> +#define REG_GPIODATAIN2			0x1
-> +#define REG_GPIODATAIN3			0x2
-> +#define REG_GPIODATADIR1		0x3
-> +#define REG_GPIODATADIR2		0x4
-> +#define REG_GPIODATADIR3		0x5
-> +#define REG_GPIODATAOUT1		0x6
-> +#define REG_GPIODATAOUT2		0x7
-> +#define REG_GPIODATAOUT3		0x8
-> +#define REG_CLEARGPIODATAOUT1		0x9
-> +#define REG_CLEARGPIODATAOUT2		0xA
-> +#define REG_CLEARGPIODATAOUT3		0xB
-> +#define REG_SETGPIODATAOUT1		0xC
-> +#define REG_SETGPIODATAOUT2		0xD
-> +#define REG_SETGPIODATAOUT3		0xE
-> +#define REG_GPIO_DEBEN1			0xF
-> +#define REG_GPIO_DEBEN2			0x10
-> +#define REG_GPIO_DEBEN3			0x11
-> +#define REG_GPIO_CTRL			0x12
-> +#define REG_GPIOPUPDCTR1		0x13
-> +#define REG_GPIOPUPDCTR2		0x14
-> +#define REG_GPIOPUPDCTR3		0x15
-> +#define REG_GPIOPUPDCTR4		0x16
-> +#define REG_GPIOPUPDCTR5		0x17
-> +#define REG_GPIO_ISR1A			0x19
-> +#define REG_GPIO_ISR2A			0x1A
-> +#define REG_GPIO_ISR3A			0x1B
-> +#define REG_GPIO_IMR1A			0x1C
-> +#define REG_GPIO_IMR2A			0x1D
-> +#define REG_GPIO_IMR3A			0x1E
-> +#define REG_GPIO_ISR1B			0x1F
-> +#define REG_GPIO_ISR2B			0x20
-> +#define REG_GPIO_ISR3B			0x21
-> +#define REG_GPIO_IMR1B			0x22
-> +#define REG_GPIO_IMR2B			0x23
-> +#define REG_GPIO_IMR3B			0x24
-> +#define REG_GPIO_EDR1			0x28
-> +#define REG_GPIO_EDR2			0x29
-> +#define REG_GPIO_EDR3			0x2A
-> +#define REG_GPIO_EDR4			0x2B
-> +#define REG_GPIO_EDR5			0x2C
-> +#define REG_GPIO_SIH_CTRL		0x2D
-> +
-> +/* Up to 18 signals are available as GPIOs, when their
-> + * pins are not assigned to another use (such as ULPI/USB).
-> + */
-> +#define TWL4030_GPIO_MAX		18
-> +
-> +/*----------------------------------------------------------------------*/
-> +
->  struct twl4030_bci_platform_data {
->  	int *battery_tmp_tbl;
->  	unsigned int tblsize;
-> @@ -109,6 +209,8 @@ struct twl4030_platform_data {
->  	/* REVISIT more to come ... _nothing_ should be hard-wired */
->  };
->  
-> +/*----------------------------------------------------------------------*/
-> +
->  /*
->   * FIXME completely stop using TWL4030_IRQ_BASE ... instead, pass the
->   * IRQ data to subsidiary devices using platform device resources.
-> @@ -148,28 +250,8 @@ struct twl4030_platform_data {
->  
->  /* TWL4030 GPIO interrupt definitions */
->  
-> -#define TWL4030_GPIO_MAX		18
->  #define TWL4030_GPIO_IRQ_NO(n)		(TWL4030_GPIO_IRQ_BASE + (n))
->  #define TWL4030_GPIO_IS_ENABLE		1
-> -#define TWL4030_GPIO_PULL_UP		0
-> -#define TWL4030_GPIO_PULL_DOWN		1
-> -
-> -/* Functions to read and write from TWL4030 */
-> -
-> -/*
-> - * IMP NOTE:
-> - * The base address of the module will be added by the triton driver
-> - * It is the caller's responsibility to ensure sane values
-> - */
-> -int twl4030_i2c_write_u8(u8 mod_no, u8 val, u8 reg);
-> -int twl4030_i2c_read_u8(u8 mod_no, u8 *val, u8 reg);
-> -
-> - /*
-> -  * i2c_write: IMPORTANT - Allocate value num_bytes+1 and valid data starts at
-> -  *		Offset 1.
-> -  */
-> -int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, u8 num_bytes);
-> -int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, u8 num_bytes);
->  
->  /*
->   * Exported TWL4030 GPIO APIs
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
