@@ -1,70 +1,45 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH v2] OMAP3: Update USBHOST pinmux settings
-Date: Fri, 3 Oct 2008 18:50:09 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D603E9C2@dbde02.ent.ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02D603E114@dbde02.ent.ti.com>
- <200810022351.04241.david-b@pacbell.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] i2c: change twl4030-usb back to subsys_initcall
+Date: Fri, 3 Oct 2008 16:28:32 +0300
+Message-ID: <20081003132830.GL25482@atomide.com>
+References: <200810030136.33838.david-b@pacbell.net> <1223027154-20385-1-git-send-email-felipe.balbi@nokia.com> <132EE04E-D594-4F84-9C2B-D907D3D4CD5E@student.utwente.nl> <20081003120445.GB27798@gandalf.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45405 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750797AbYJCNUV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 09:20:21 -0400
-In-Reply-To: <200810022351.04241.david-b@pacbell.net>
-Content-Language: en-US
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64678 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750721AbYJCNZh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 09:25:37 -0400
+Content-Disposition: inline
+In-Reply-To: <20081003120445.GB27798@gandalf.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: ext Koen Kooi <k.kooi@student.utwente.nl>, linux-omap@vger.kernel.org
 
-=20
+* Felipe Balbi <felipe.balbi@nokia.com> [081003 15:05]:
+> On Fri, Oct 03, 2008 at 12:19:33PM +0200, ext Koen Kooi wrote:
+> >
+> > Op 3 okt 2008, om 11:45 heeft Felipe Balbi het volgende geschreven:
+> >
+> >> without it, otg_get/set_transceiver won't be useful and
+> >> twl4030-usb transceiver won't get to musb code.
+> >
+> > Is the 'fix-something' patch still needed, and if yes, why isn't it in l-o 
+> > git yet?
+> 
+> we need that otg_get/set_transceiver call, yes. But those are omap
+> specifc. there's a patch pending in linux-usb making those calls
+> generic.
+> 
+> I'd say we can keep a patch in l-o only untill otg_get/set_transceiver
+> hooks get accepted.
+> 
+> What say you Tony ?
 
-> -----Original Message-----
-> From: David Brownell [mailto:david-b@pacbell.net]=20
-> On Tuesday 30 September 2008, Gadiyar, Anand wrote:
-> > From: Anand Gadiyar <gadiyar@ti.com>
-> >=20
-> > Add pin-mux settings for OHCI in PHY mode.
-> > Also change settings for EHCI in TLL mode.
-> >=20
-> > Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> > ---
-> > Fixed comments below. Also fixed one pin that should
-> > have been marked output, but was wrongly marked input.
-> >=20
-> > =A0arch/arm/mach-omap2/mux.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 67 +++++=
-++++++++++++++++++++++-------
-> > =A0arch/arm/plat-omap/include/mach/mux.h | =A0 26 ++++++++++++-
-> > =A02 files changed, 80 insertions(+), 13 deletions(-)
->=20
-> I didn't see anything obvious to complain about, but then I've
-> not delved deeply into OMAP3 EHCI.
->=20
-> Were you the person who was looking to package the PHY/TLL
-> mode setup in platform data?  Any progress on that?
+Sure, we should keep things working for all the omap users while
+waiting for the necessary stuff to get merged into mainline.
 
-Yup, that was me. Patches coming up over the weekend.
+Felipe, just let me know what we need for l-o tree for musb.
 
->=20
-> (I added EHCI to my Beagle/Overo config, and it came up
-> with all kinds of nonsense on the Beagle.  Configured
-> several ports, not just one, and in fact this board does
-> not even *have* the EHCI transceiver.  So it was very
-> obvious that EHCI setup wasn't right yet.  That's even
-> apart from the messaging goofs, which have trivial fixes
-> I'll send along in a while.)
-
-Yup. It currently assumes all ports are PHY mode or all ports
-are TLL mode.
-
->=20
-> - dave
->=20
->=20
-> --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
