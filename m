@@ -1,329 +1,370 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 04/05] ARM: OMAP2: Add support for the Gumstix Overo
-	board (rev 3)
-Date: Fri, 3 Oct 2008 15:50:06 +0300
-Message-ID: <20081003125005.GI25482@atomide.com>
-References: <1223035779-26306-1-git-send-email-tony@atomide.com> <1223035779-26306-2-git-send-email-tony@atomide.com> <1223035779-26306-3-git-send-email-tony@atomide.com> <1223035779-26306-4-git-send-email-tony@atomide.com> <1223035779-26306-5-git-send-email-tony@atomide.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
+Date: Fri, 3 Oct 2008 18:17:23 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403DC1A6A02@dbde02.ent.ti.com>
+References: <1222935892.6387.52.camel@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58743 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751614AbYJCMrP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 08:47:15 -0400
-Content-Disposition: inline
-In-Reply-To: <1223035779-26306-5-git-send-email-tony@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <video4linux-list-bounces@redhat.com>
+In-Reply-To: <1222935892.6387.52.camel@tubuntu>
+Content-Language: en-US
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, Tony Lindgren <tony@atomide.com>, "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Steve Sakoman <steve@sakoman.com>
 
-* Tony Lindgren <tony@atomide.com> [081003 15:26]:
-> From: Steve Sakoman <steve@sakoman.com>
-> 
-> This patch adds support for basic features: nand, uarts, i2c,
-> mmc, rtc, and usb
+Hi Tomi,
 
-Hmm, looks like I need to update this description as mmc and
-usb code is not ready yet.
+Thanks,
+Vaibhav Hiremath
+Senior Software Engg.
+Platform Support Products
+Texas Instruments Inc
+Ph: +91-80-25099927
 
-> Signed-off-by: Steve Sakoman <steve@sakoman.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 7634f23..477a613 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -49,3 +49,6 @@ config MACH_OMAP3_BEAGLE
->  	bool "OMAP3 BEAGLE board"
->  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
->  
-> +config MACH_OVERO
-> +	bool "Gumstix Overo board"
-> +	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index 420ad9a..feb9caf 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -30,4 +30,5 @@ obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
->  obj-$(CONFIG_MACH_OMAP_2430SDP)		+= board-2430sdp.o
->  obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o
->  obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o
-> +obj-$(CONFIG_MACH_OVERO)		+= board-overo.o
->  
-> diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-> new file mode 100644
-> index 0000000..394d88f
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/board-overo.c
-> @@ -0,0 +1,235 @@
-> +/*
-> + * board-overo.c (Gumstix Overo)
-> + *
-> + * Initial code: Steve Sakoman <steve@sakoman.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + *
-> + */
-> +
-> +#include <linux/clk.h>
-> +#include <linux/delay.h>
-> +#include <linux/err.h>
-> +#include <linux/init.h>
-> +#include <linux/io.h>
-> +#include <linux/kernel.h>
-> +#include <linux/platform_device.h>
-> +
-> +#include <linux/mtd/mtd.h>
-> +#include <linux/mtd/nand.h>
-> +#include <linux/mtd/partitions.h>
-> +
-> +#include <asm/mach-types.h>
-> +#include <asm/mach/arch.h>
-> +#include <asm/mach/flash.h>
-> +#include <asm/mach/map.h>
-> +
-> +#include <mach/board-overo.h>
-> +#include <mach/board.h>
-> +#include <mach/common.h>
-> +#include <mach/gpio.h>
-> +#include <mach/gpmc.h>
-> +#include <mach/hardware.h>
-> +#include <mach/nand.h>
-> +
-> +#define NAND_BLOCK_SIZE SZ_128K
-> +#define GPMC_CS0_BASE  0x60
-> +#define GPMC_CS_SIZE   0x30
-> +
-> +static struct mtd_partition overo_nand_partitions[] = {
-> +	{
-> +		.name           = "xloader",
-> +		.offset         = 0,			/* Offset = 0x00000 */
-> +		.size           = 4 * NAND_BLOCK_SIZE,
-> +		.mask_flags     = MTD_WRITEABLE
-> +	},
-> +	{
-> +		.name           = "uboot",
-> +		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
-> +		.size           = 14 * NAND_BLOCK_SIZE,
-> +	},
-> +	{
-> +		.name           = "uboot environment",
-> +		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x240000 */
-> +		.size           = 2 * NAND_BLOCK_SIZE,
-> +	},
-> +	{
-> +		.name           = "linux",
-> +		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
-> +		.size           = 32 * NAND_BLOCK_SIZE,
-> +	},
-> +	{
-> +		.name           = "rootfs",
-> +		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x680000 */
-> +		.size           = MTDPART_SIZ_FULL,
-> +	},
-> +};
-> +
-> +static struct omap_nand_platform_data overo_nand_data = {
-> +	.parts = overo_nand_partitions,
-> +	.nr_parts = ARRAY_SIZE(overo_nand_partitions),
-> +	.dma_channel = -1,	/* disable DMA in OMAP NAND driver */
-> +};
-> +
-> +static struct resource overo_nand_resource = {
-> +	.flags		= IORESOURCE_MEM,
-> +};
-> +
-> +static struct platform_device overo_nand_device = {
-> +	.name		= "omap2-nand",
-> +	.id		= -1,
-> +	.dev		= {
-> +		.platform_data	= &overo_nand_data,
-> +	},
-> +	.num_resources	= 1,
-> +	.resource	= &overo_nand_resource,
-> +};
-> +
-> +
-> +static void __init overo_flash_init(void)
-> +{
-> +	u8 cs = 0;
-> +	u8 nandcs = GPMC_CS_NUM + 1;
-> +
-> +	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
-> +
-> +	/* find out the chip-select on which NAND exists */
-> +	while (cs < GPMC_CS_NUM) {
-> +		u32 ret = 0;
-> +		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
-> +
-> +		if ((ret & 0xC00) == 0x800) {
-> +			printk(KERN_INFO "Found NAND on CS%d\n", cs);
-> +			if (nandcs > GPMC_CS_NUM)
-> +				nandcs = cs;
-> +		}
-> +		cs++;
-> +	}
-> +
-> +	if (nandcs > GPMC_CS_NUM) {
-> +		printk(KERN_INFO "NAND: Unable to find configuration "
-> +				 "in GPMC\n ");
-> +		return;
-> +	}
-> +
-> +	if (nandcs < GPMC_CS_NUM) {
-> +		overo_nand_data.cs = nandcs;
-> +		overo_nand_data.gpmc_cs_baseaddr = (void *)
-> +			(gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
-> +		overo_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
-> +
-> +		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
-> +		if (platform_device_register(&overo_nand_device) < 0)
-> +			printk(KERN_ERR "Unable to register NAND device\n");
-> +	}
-> +}
-> +static struct omap_uart_config overo_uart_config __initdata = {
-> +	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
-> +};
-> +
-> +static int __init overo_i2c_init(void)
-> +{
-> +	/* i2c2 pins are used for gpio */
-> +	omap_register_i2c_bus(3, 400, NULL, 0);
-> +	return 0;
-> +}
-> +
-> +static void __init overo_init_irq(void)
-> +{
-> +	omap_init_irq();
-> +	omap_gpio_init();
-> +}
-> +
-> +static struct platform_device overo_lcd_device = {
-> +	.name		= "overo_lcd",
-> +	.id		= -1,
-> +};
-> +
-> +static struct omap_lcd_config overo_lcd_config __initdata = {
-> +	.ctrl_name	= "internal",
-> +};
-> +
-> +static struct omap_board_config_kernel overo_config[] __initdata = {
-> +	{ OMAP_TAG_UART,	&overo_uart_config },
-> +	{ OMAP_TAG_LCD,		&overo_lcd_config },
-> +};
-> +
-> +static struct platform_device *overo_devices[] __initdata = {
-> +	&overo_lcd_device,
-> +};
-> +
-> +static void __init overo_init(void)
-> +{
-> +	overo_i2c_init();
-> +	platform_add_devices(overo_devices, ARRAY_SIZE(overo_devices));
-> +	omap_board_config = overo_config;
-> +	omap_board_config_size = ARRAY_SIZE(overo_config);
-> +	omap_serial_init();
-> +	overo_flash_init();
-> +
-> +	if ((gpio_request(OVERO_GPIO_W2W_NRESET,
-> +			  "OVERO_GPIO_W2W_NRESET") == 0) &&
-> +	    (gpio_direction_output(OVERO_GPIO_W2W_NRESET, 1) == 0)) {
-> +		gpio_export(OVERO_GPIO_W2W_NRESET, 0);
-> +		gpio_set_value(OVERO_GPIO_W2W_NRESET, 0);
-> +		udelay(10);
-> +		gpio_set_value(OVERO_GPIO_W2W_NRESET, 1);
-> +	} else {
-> +		printk(KERN_ERR "could not obtain gpio for "
-> +					"OVERO_GPIO_W2W_NRESET\n");
-> +	}
-> +
-> +	if ((gpio_request(OVERO_GPIO_BT_NRESET, "OVERO_GPIO_BT_NRESET") == 0) &&
-> +	    (gpio_direction_output(OVERO_GPIO_BT_NRESET, 1) == 0)) {
-> +		gpio_export(OVERO_GPIO_BT_NRESET, 0);
-> +		gpio_set_value(OVERO_GPIO_BT_NRESET, 0);
-> +		mdelay(6);
-> +		gpio_set_value(OVERO_GPIO_BT_NRESET, 1);
-> +	} else {
-> +		printk(KERN_ERR "could not obtain gpio for "
-> +					"OVERO_GPIO_BT_NRESET\n");
-> +	}
-> +
-> +	if ((gpio_request(OVERO_GPIO_USBH_CPEN, "OVERO_GPIO_USBH_CPEN") == 0) &&
-> +	    (gpio_direction_output(OVERO_GPIO_USBH_CPEN, 1) == 0))
-> +		gpio_export(OVERO_GPIO_USBH_CPEN, 0);
-> +	else
-> +		printk(KERN_ERR "could not obtain gpio for "
-> +					"OVERO_GPIO_USBH_CPEN\n");
-> +
-> +	if ((gpio_request(OVERO_GPIO_USBH_NRESET,
-> +			  "OVERO_GPIO_USBH_NRESET") == 0) &&
-> +	    (gpio_direction_output(OVERO_GPIO_USBH_NRESET, 1) == 0))
-> +		gpio_export(OVERO_GPIO_USBH_NRESET, 0);
-> +	else
-> +		printk(KERN_ERR "could not obtain gpio for "
-> +					"OVERO_GPIO_USBH_NRESET\n");
-> +}
-> +
-> +static void __init overo_map_io(void)
-> +{
-> +	omap2_set_globals_343x();
-> +	omap2_map_common_io();
-> +}
-> +
-> +MACHINE_START(OVERO, "Gumstix Overo")
-> +	.phys_io	= 0x48000000,
-> +	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-> +	.boot_params	= 0x80000100,
-> +	.map_io		= overo_map_io,
-> +	.init_irq	= overo_init_irq,
-> +	.init_machine	= overo_init,
-> +	.timer		= &omap_timer,
-> +MACHINE_END
-> diff --git a/arch/arm/plat-omap/include/mach/board-overo.h b/arch/arm/plat-omap/include/mach/board-overo.h
-> new file mode 100644
-> index 0000000..b70f22a
-> --- /dev/null
-> +++ b/arch/arm/plat-omap/include/mach/board-overo.h
-> @@ -0,0 +1,25 @@
-> +/*
-> + * board-overo.h (Gumstix Overo)
-> + *
-> + * Initial code: Steve Sakoman <steve@sakoman.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License as published by the
-> + * Free Software Foundation; either version 2 of the License, or (at your
-> + * option) any later version.
-> + *
-> + * You should have received a copy of the GNU General Public License along
-> + * with this program; if not, write to the Free Software Foundation, Inc.,
-> + * 675 Mass Ave, Cambridge, MA 02139, USA.
-> + */
-> +
-> +#ifndef __ASM_ARCH_OVERO_H
-> +#define __ASM_ARCH_OVERO_H
-> +
-> +#define OVERO_GPIO_W2W_NRESET	16
-> +#define OVERO_GPIO_BT_NRESET	164
-> +#define OVERO_GPIO_USBH_CPEN	168
-> +#define OVERO_GPIO_USBH_NRESET	183
-> +
-> +#endif /* ____ASM_ARCH_OVERO_H */
-> +
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -----Original Message-----
+> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> Sent: Thursday, October 02, 2008 1:55 PM
+> To: Hiremath, Vaibhav
+> Cc: Shah, Hardik; linux-omap@vger.kernel.org; video4linux-list@redhat.c=
+om
+> Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
+>=20
+> Hi Vaibhav,
+>=20
+> On Wed, 2008-10-01 at 16:21 +0530, ext Hiremath, Vaibhav wrote:
+> > Tomi,
+> >
+> > Have you got a chance to review the DSS library and V4l2 driver which=
+ we have posted?
+>=20
+> Unfortunately not very much. I've been glancing the DSS side of the
+> driver, but not the v4l side as I don't know much about it.
+>=20
+> There seems to be awfully lot ifdefs for board/cpu types in the code.
+
+As far as ifdefs are concerned, they are added to take care of OMAP2/3 va=
+riants. Especially you will find many instances of CONFIG_ARCH_OMAP3410 a=
+nd the reason is obvious, OMAP3410 doesn't have VENC. As I have mentioned=
+ before, DSS library is designed to support both LCD, TV, and many more.
+
+> Also there are strange things defined, like L4_VIRT
+>=20
+
+You are right; the code requires little-bit cleaning. There are some macr=
+os defined which driver or library doesn't use. We are in the process of =
+cleaning and soon will be posting patches.
+
+> My biased and superficial view of the differences between my DSS and
+> yours is that:
+
+Tomi, here I differ from you. There should not be biased opinion. What we=
+ are looking here is a good design which will fulfill all our requirement=
+s/use case, like LCD, DVI, HDMI and TV for us and DSI, RFBI for you.
+
+> - My implementation is cleaner, better organized and more generic
+
+Again, here both of us will be having biased comments to support our own =
+design, so I would prefer not to comment on this. Lets people on the comm=
+unity decide whose design is better.
+
+> - My implementation has support for DSI, SDI, RFBI, L4 updates
+
+DSI, SDI and RFBI are the modes, which we can add anytime to the system d=
+epending as per our requirement.=20
+It is again driven by use case; you have use cases for DSI, SDI and RFBI.=
+ We have for TV, DVI, HDMI and LCD, so we strongly concentrated on these.=
+=20
+
+We can very well add these supports to DSS Library with minimal effort.
+
+> - Your implementation has better support for "extra" things like VRFB,
+> color conversions, alpha etc.
+> - Your implementation most likely has better power management support.
+> - And of course what is most visible to the user, my version uses only
+> framebuffers, and yours uses also v4l2 devices.
+>=20
+
+You really can't deny the V4L2 framework advantages over framebuffer, esp=
+ecially for streaming kind of applications. Looking towards the hardware =
+features OMAP supports; we would really require to have such support/capa=
+bilities. Community is also in agreement for the V4L2 interface on OMAP-D=
+SS.
+
+Tony/Hans,
+Your comments would be helpful here.
+
+> As for the future, I have no choice but to keep using my DSS as we need
+> the features it has. I feel it would be quite a big job to get those in
+> to your driver. And even if I had a choice, I (unsurprisingly =3D) thin=
+k
+> that my version is better and would stick to it.
+>=20
+
+It's your personal choice to stick to whichever code base you want, I don=
+'t want to comment on that. But what I believe is, with your design we ar=
+e limiting ourselves from supporting most of the features which hardware =
+provides.=20
+
+We can work together to add more support to DSS library.=20
+
+> Have you had time to look at my code after I changed the overlay
+> handling? I've put the most recent version to a public git tree at
+> http://www.bat.org/~tomba/git/linux-omap-dss.git/ and I'll try to keep =
+that up to date.
+>=20
+
+Definitely I will review this code base, and will appreciate if I found s=
+omething good.
+
+>  Tomi
+>=20
+> >
+> > Thanks,
+> > Vaibhav Hiremath
+> > Senior Software Engg.
+> > Platform Support Products
+> > Texas Instruments Inc
+> > Ph: +91-80-25099927
+> >
+> > > -----Original Message-----
+> > > From: Hiremath, Vaibhav
+> > > Sent: Monday, September 15, 2008 9:51 PM
+> > > To: 'Tomi Valkeinen'
+> > > Cc: Shah, Hardik; linux-omap@vger.kernel.org; video4linux-list@redh=
+at.com
+> > > Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
+> > >
+> > >
+> > >
+> > > Thanks,
+> > > Vaibhav Hiremath
+> > > Senior Software Engg.
+> > > Platform Support Products
+> > > Texas Instruments Inc
+> > > Ph: +91-80-25099927
+> > > TI IP Ph: 509-9927
+> > > http://dbdwss01.india.ti.com/pspproducts/
+> > >
+> > > > -----Original Message-----
+> > > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@v=
+ger.kernel.org] On Behalf Of
+> Tomi
+> > > > Valkeinen
+> > > > Sent: Monday, September 15, 2008 8:08 PM
+> > > > To: Hiremath, Vaibhav
+> > > > Cc: Shah, Hardik; linux-omap@vger.kernel.org; video4linux-list@re=
+dhat.com
+> > > > Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
+> > > >
+> > > > On Mon, 2008-09-15 at 19:02 +0530, ext Hiremath, Vaibhav wrote:
+> > > >
+> > > > > We more concentrated on TV and LCD interface, out design doesn'=
+t support DSI as of now. As
+> > > > mentioned earlier it is easily extendible to support DSI.
+> > > > >
+> > > > > If I understand your implementation correctly, right now there =
+is no way you can switch the
+> > > > outputs, I mean to say from LCD to DVI. The frame buffer driver g=
+ets the handle with API
+> > > > omap_dss_get_display, which will return pointer to omap_display f=
+or panel-sdp3430. Henceforth
+> all
+> > > > your functions will use omap_display configuring for LCD panel. H=
+ow are you planning to add
+> support
+> > > > for this? Through some ioctls or sysfs entry? How about switching=
+ between multiple overlay
+> > > managers?
+> > > >
+> > > > You can switch the outputs in the DSS driver. You can enable/disa=
+ble
+> > > > displays individually, and configure the planes and or L4 pixel s=
+ource
+> > > > for the display.
+> > > >
+> > > > But yes, the fb driver does not support that currently.
+> > > >
+> > > > One idea I had was to present each display with one framebuffer, =
+so
+> > > > let's say we have 3 displays, we would have fb[0-2]. In addition =
+to
+> > > > that, we would have two framebuffers for the video overlays. Only=
+ one of
+> > > > the displays can be updated with DISPC, so the overlays would app=
+ear
+> > > > there.
+> > > >
+> > > > Then the display that is updated with DISPC could be changed on t=
+he fly
+> > > > to another one, but the framebuffer arrangement would stay the sa=
+me (so
+> > > > fb0 would still be seen on display0, even if it's now updated wit=
+h L4).
+> > > >
+> > > > There's still the question how to manage the video overlays, in t=
+his
+> > > > scenario they would automatically move to other LCD's as the DISP=
+C
+> > > > target is changed. Also the TV-out is problematic.
+> > > >
+> > > > > This issue has been addresses with our design, you can change t=
+he output either to TV, LCD or
+> to
+> > > > DVI through sysfs entry. Switching between multiple overlay manag=
+ers is very well supported in
+> DSS
+> > > > library. Currently SYSFS is the user interface layer to control t=
+he overlay managers. But in
+> future
+> > > > DSS library will easily be suitable to support media processor in=
+terface which is in concept
+> phase
+> > > > right now.  RFC for the media processor is at
+> > > >
+> > > > Does your design support displays that are not updated with DISPC=
+?
+> > >
+> > > Yes, it should. I don't see any reason why it should fail if the di=
+splay is completely
+> independent.
+> > >
+> > > >
+> > > > Your design has good points. I have to think about the overlay ma=
+nagers
+> > > > a bit more. Especially if in some future hardware there were more
+> > > > overlay managers instead of the current two.
+> > > >
+> > >
+> > > Let me take this opportunity, shortly I will post the DSS library a=
+nd V4L2 driver. We can work
+> > > together to add support for DSI, RFBI and SDI support to it.
+> > >
+> > > > > http://lists-archives.org/video4linux/23652-rfc-add-support-to-=
+query-and-change-connections-
+> > > inside-
+> > > > a-media-device.html
+> > > > >
+> > > > >
+> > > > > > I also wanted to be able to change the configuration on the f=
+ly,
+> > > > > > changing where DISPC output is going and which displays are u=
+pdated with
+> > > > > > CPU or sDMA.
+> > > > > >
+> > > > > > This is why I have the display-concept in my design.
+> > > > > >
+> > > > >
+> > > > >
+> > > > > Here we both are on same page, you have broken the displays and=
+ modes supported into multiple
+> > > files
+> > > > registering functions to the display.c file, there are many looph=
+oles though.
+> > > > >
+> > > > > > I haven't made support for multiple users of the displays (li=
+ke separate
+> > > > > > fb and v4l drivers), but I don't immediately see why it could=
+n't be
+> > > > > > done.
+> > > > > >
+> > > > >
+> > > > > How are you going to handle the concurrency between these two?
+> > > >
+> > > > In the simple case of just an LCD and a TV-out, what are the conc=
+urrency
+> > > > problems? Each plane is independent of each other. Sure you need =
+to
+> > > > check that the output is on if there's a plane enabled there and =
+basic
+> > > > things like that. Are there some other issues I'm not seeing?
+> > > >
+> > >
+> > > Yes some of the features of the DSS are tied to overlay managers an=
+d not the individual planes
+> like
+> > > global alpha, alpha blending enabling and timing parameters. So whi=
+le programming of these
+> parameters
+> > > DSS library will have to maintain the data structures for the same =
+and then any high level
+> drivers
+> > > can query those data structures.
+> > >
+> > > > > > However, there are some questions regarding that, as the plan=
+es do not
+> > > > > > represent displays, but just overlay planes. What happens whe=
+n both fb
+> > > > > > and v4l drivers want to change the resolution or timings of t=
+he display?
+> > > > > >
+> > > > > > Also I still don't quite know how to present displays to user=
+ space.
+> > > > > > Currently my omapfb just uses the first display, and that's i=
+t. I think
+> > > > > > in the end the user (be it X server, or perhaps some entity o=
+ver it),
+> > > > > > needs to have some understanding of what OMAP offers and how =
+it can use
+> > > > > > the displays. And there probably needs to be some product spe=
+sific
+> > > > > > configuration regarding this in userspace.
+> > > > > >
+> > > > >
+> > > > > Here are you saying application will have hardware specific sup=
+port? Is this feasible?
+> > > > >
+> > > >
+> > > > I don't see any other way. The displays are not independent of ea=
+ch
+> > > > other.  For example the OMAP3 SDP has LCD and DVI outputs. They c=
+an't be
+> > > > switched programmatically, but let's say it was possible. Only on=
+e of
+> > > > those displays can be enabled at time. If an application wants to=
+ use
+> > > > them both, it has to understand that they will not both work at t=
+he same
+> > > > time.
+> > > >
+> > > > Or if there are two DSI displays, and one is updated with DISPC a=
+nd the
+> > > > other via L4. The application has to know that a video overlay ca=
+n only
+> > > > be used on the first display, or it has to exchange the DISPC/L4
+> > > > updating order.
+> > > >
+> > > > Of course this is product specific software and configuration, no=
+t
+> > > > something I'm planning to put in the driver. A normal application=
+ does
+> > > > not have to know anything about it. I was just bringing it up to
+> > > > demonstrate what must be possible.
+> > > >
+> > > >  Tomi
+> > > >
+> > > >
+> > > > --
+> > > > To unsubscribe from this list: send the line "unsubscribe linux-o=
+map" in
+> > > > the body of a message to majordomo@vger.kernel.org
+> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.htm=
+l
+> >
+>=20
+
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
+ibe
+https://www.redhat.com/mailman/listinfo/video4linux-list
