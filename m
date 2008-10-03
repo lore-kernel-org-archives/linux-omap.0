@@ -1,49 +1,43 @@
-From: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
-Subject: RE: [patch twl] twl4030-core -- more cleanups
-Date: Fri, 3 Oct 2008 14:43:23 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB028C5402D4@dbde02.ent.ti.com>
-References: <200810021221.20286.david-b@pacbell.net>
- <EAF47CD23C76F840A9E7FCE10091EFAB028C5400D3@dbde02.ent.ti.com>
- <200810030115.54197.david-b@pacbell.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [PATCH] i2c: change twl4030-usb back to subsys_initcall
+Date: Fri,  3 Oct 2008 12:45:54 +0300
+Message-ID: <1223027154-20385-1-git-send-email-felipe.balbi@nokia.com>
+References: <200810030136.33838.david-b@pacbell.net>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38214 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752619AbYJCJNf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 05:13:35 -0400
-In-Reply-To: <200810030115.54197.david-b@pacbell.net>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:36401 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751821AbYJCJq0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 05:46:26 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m939kG0k012775
+	for <linux-omap@vger.kernel.org>; Fri, 3 Oct 2008 12:46:23 +0300
+In-Reply-To: <200810030136.33838.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-> The general policy on comments is that they should not
-> be translating the C code into English.  Not only are
-> such comments pointless (the C code says the same thing,
-> more precisely) but they also are more likely to become
-> obsolete as the code changes.  (That's a well known
-> problem:  comments usually don't get updated when the
-> code changes.)
+without it, otg_get/set_transceiver won't be useful and
+twl4030-usb transceiver won't get to musb code.
 
-Thanks for the info and point noted. :)
-> 
-> So in my opinion we "should" not have this comment
-> just paraphrase (in English) what the code does,
-> one sentence per code block.
-> 
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/i2c/chips/twl4030-usb.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-And now, I do agree.
+diff --git a/drivers/i2c/chips/twl4030-usb.c b/drivers/i2c/chips/twl4030-usb.c
+index 133cc0f..922d7d6 100644
+--- a/drivers/i2c/chips/twl4030-usb.c
++++ b/drivers/i2c/chips/twl4030-usb.c
+@@ -774,7 +774,7 @@ static int __init twl4030_usb_init(void)
+ {
+ 	return platform_driver_register(&twl4030_driver);
+ }
+-module_init(twl4030_usb_init);
++subsys_init(twl4030_usb_init);
+ 
+ static void __exit twl4030_usb_exit(void)
+ {
+-- 
+1.6.0.2.307.gc427
 
-
-> (And then there's the way every SIH handler seems to
-> be getting its own irq_chip and handler thread.  I'm
-> sure that can be done much better.)
-
-So, is there going to be a change in the current way,
-of spawning a separate thread, for power and gpio irqs?
-
---
-Jagadeesh
