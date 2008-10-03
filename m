@@ -1,48 +1,50 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 1/5] OMAP SSI hardware interface definitions
-Date: Fri, 3 Oct 2008 07:27:42 -0700
-Message-ID: <200810030727.42701.david-b@pacbell.net>
-References: <1223029515.32631.148.camel@groo.research.nokia.com> <1223029782-12009-1-git-send-email-carlos.chinea@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] usb: add back otg_get_transceiver
+Date: Fri, 3 Oct 2008 17:31:34 +0300
+Message-ID: <20081003143132.GG6251@atomide.com>
+References: <1223043350-17588-1-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:30092 "HELO
-	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750904AbYJCO1p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 10:27:45 -0400
-In-Reply-To: <1223029782-12009-1-git-send-email-carlos.chinea@nokia.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50452 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751277AbYJCO2k (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 10:28:40 -0400
 Content-Disposition: inline
+In-Reply-To: <1223043350-17588-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Carlos Chinea <carlos.chinea@nokia.com>
+To: Felipe Balbi <felipe.balbi@nokia.com>
 Cc: linux-omap@vger.kernel.org
 
-On Friday 03 October 2008, Carlos Chinea wrote:
->=20
-> Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
-
-You should provide patch comments, in the form of at least
-one whole sentence.  $SUBJECT is rarely felt to be enough.
-
-
+* Felipe Balbi <felipe.balbi@nokia.com> [081003 17:18]:
+> make twl4030_usb transceiver reach musb.
+> 
+> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 > ---
-> =A0arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h =A0| =A0145 ++++=
-++++++++++++++++
-> =A0.../plat-omap/include/mach/ssi/ssi_reg_common.h =A0 =A0| =A0 73 ++=
-++++++++
-> =A0arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h =A0| =A0 56 ++++=
-++++
-> =A0arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h =A0| =A0 65 ++++=
-+++++
-> =A0arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h =A0| =A0107 ++++=
-++++++++++
-> =A05 files changed, 446 insertions(+), 0 deletions(-)
+>  drivers/usb/musb/omap2430.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index 9d2dcb1..be4e779 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -215,12 +215,14 @@ void musb_platform_set_mode(struct musb *musb, u8 musb_mode)
+>  
+>  int __init musb_platform_init(struct musb *musb)
+>  {
+> +	struct otg_transceiver *x = otg_get_transceiver();
+>  	u32 l;
+>  
+>  #if defined(CONFIG_ARCH_OMAP2430)
+>  	omap_cfg_reg(AE5_2430_USB0HS_STP);
+>  #endif
+>  
+> +	musb->xceiv = *x;
+>  	musb_platform_resume(musb);
+>  
+>  	l = omap_readl(OTG_SYSCONFIG);
 
-Why is this five files instead of one?
+Pushed until you have something in mainline.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
