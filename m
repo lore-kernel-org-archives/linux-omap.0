@@ -1,110 +1,113 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/5] RFC: OMAP Synchronous Serial Interface (SSI)
-	driver (take II)
-Date: Fri, 3 Oct 2008 13:34:39 +0300
-Message-ID: <20081003103437.GG25482@atomide.com>
-References: <1221575400.6315.227.camel@groo.research.nokia.com> <1223029515.32631.148.camel@groo.research.nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] OMAP PM interface, version 4
+Date: Fri, 03 Oct 2008 04:58:33 -0600
+Message-ID: <20081003104140.10040.23992.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:65304 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753413AbYJCKbm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 06:31:42 -0400
-Content-Disposition: inline
-In-Reply-To: <1223029515.32631.148.camel@groo.research.nokia.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:40736 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751777AbYJCLBB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 07:01:01 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Carlos Chinea <carlos.chinea@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* Carlos Chinea <carlos.chinea@nokia.com> [081003 13:26]:
-> Hi guys !
-> 
-> A couple of weeks ago, I sent a set of patches for comments.
-> I am sending a new set of those patches with debug statements removed and a bug fix.
-> 
-> The new patch set is based on linux-omap 2.6.27-rc7
-> 
-> Any comments will be appreciated.
+Hello,
 
-You should send this to LKML, and cc linux-omap to get proper review
-of these patches.
+this is the fourth version of the OMAP PM interface patch.
 
-Tony
+Major changes since the third revision:
 
-> 
-> Br,
-> Carlos
-> 
->  Documentation/arm/OMAP/ssi/board-ssi.c.example     |  216 ++++++++
->  Documentation/arm/OMAP/ssi/ssi                     |  232 +++++++++
->  arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h  |  145 ++++++
->  .../plat-omap/include/mach/ssi/ssi_reg_common.h    |   73 +++
->  arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h  |   56 +++
->  arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h  |   65 +++
->  arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h  |  107 ++++
->  drivers/misc/Kconfig                               |    2 +
->  drivers/misc/Makefile                              |    1 +
->  drivers/misc/ssi/Kconfig                           |   11 +
->  drivers/misc/ssi/Makefile                          |    7 +
->  drivers/misc/ssi/ssi_driver.c                      |  513 ++++++++++++++++++++
->  drivers/misc/ssi/ssi_driver.h                      |  211 ++++++++
->  drivers/misc/ssi/ssi_driver_bus.c                  |  192 ++++++++
->  drivers/misc/ssi/ssi_driver_dma.c                  |  406 ++++++++++++++++
->  drivers/misc/ssi/ssi_driver_if.c                   |  335 +++++++++++++
->  drivers/misc/ssi/ssi_driver_int.c                  |  232 +++++++++
->  include/linux/ssi_driver_if.h                      |  137 ++++++
->  18 files changed, 2941 insertions(+), 0 deletions(-)
-> 
-> 
-> On Tue, 2008-09-16 at 17:30 +0300, ext Carlos Chinea wrote:
-> > Hi guys !
-> > 
-> > I'm working on adding support for Nokia HSPA modems to OMAP.
-> > 
-> > Please consider integrating the following patch set into the
-> > linux-omap tree. The patch set implements a generic device driver
-> > for the OMAP Synchronous Serial Interface. 
-> > 
-> > The Synchronous Serial Interface (SSI) is a high speed communication
-> > interface that is used for connecting OMAP to a cellular modem engine.
-> > 
-> > The patch set is based on linux-omap 2.6.27-rc6.
-> > 
-> > Any comments will be appreciated.
-> > 
-> > Br,
-> > Carlos
-> > 
-> >  Documentation/arm/OMAP/ssi/board-ssi.c.example       |  216 +++++++
-> >  Documentation/arm/OMAP/ssi/ssi                       |  233 +++++++
-> >  arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h    |  145 ++++
-> >  arch/arm/plat-omap/include/mach/ssi/ssi_reg_common.h |   73 ++
-> >  arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h    |   56 +
-> >  arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h    |   65 ++
-> >  arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h    |  108 +++
-> >  drivers/misc/Kconfig                                 |    2 
-> >  drivers/misc/Makefile                                |    2 
-> >  drivers/misc/ssi/Kconfig                             |   20 
-> >  drivers/misc/ssi/Makefile                            |   11 
-> >  drivers/misc/ssi/ssi_driver.c                        |  572 +++++++++++++++++++
-> >  drivers/misc/ssi/ssi_driver.h                        |  228 +++++++
-> >  drivers/misc/ssi/ssi_driver_bus.c                    |  218 +++++++
-> >  drivers/misc/ssi/ssi_driver_dma.c                    |  461 +++++++++++++++
-> >  drivers/misc/ssi/ssi_driver_if.c                     |  374 ++++++++++++
-> >  drivers/misc/ssi/ssi_driver_int.c                    |  296 +++++++++
-> >  include/linux/ssi_driver_if.h                        |  138 ++++
-> >  18 files changed, 3213 insertions(+), 5 deletions(-)
-> > 
-> > 
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1. omap_pm_get_dev_context_loss_count() has been added.  Normally,
+   drivers must restore their context upon every clk_enable(), since
+   the device's powerdomain could have been previously switched off.
+   If, after clk_enable() in driver code, this function returns the
+   same value than was returned in a previous call before a
+   clk_disable(), drivers can avoid restoring device context.
+
+2. Documentation updated.
+
+
+=46urther comments welcome,
+
+- Paul=20
+
+---------------------------------
+
+This message proposes the fourth version of a power management
+interface (the "OMAP PM interface") for the linux-omap kernel tree.
+
+It includes a general device driver PM interface, along with some
+specialized interfaces for CPUFreq, DSPBridge, and the
+powerdomain/clockdomain code.  This message focuses on the general
+device driver portion, since it is most relevant to the larger
+community of OMAP device driver developers.
+
+The interface is intended to allow drivers to take advantage of OMAP
+power management features:
+
+- without locking drivers into a particular underlying implementation;
+
+- without adding constraints that are specific to particular OMAP
+  variants; and
+
+- without affecting other architectures.
+
+The device driver portion of the interface covers five types of PM
+constraints:
+
+1. Set the maximum MPU wakeup latency
+
+2. Set the maximum device wakeup latency
+
+3. Set the maximum system DMA transfer start latency (CORE pwrdm)
+
+4. Set the minimum bus throughput needed by a device
+
+5. Get the number of times a device has lost context.
+
+These are described in more detail in the patch.
+
+This interface is intended to be temporary, to survive only until the
+Linux PM QoS layer supports these features.
+
+This interface is a collaborative product of many people from Nokia
+and TI: Karthik Dasu, Jouni H=C3=B6gander, Tony Lindgren, Rajendra Naya=
+k,
+Sakari Poussa, Veeramanikandan Raju, Anand Sawant, Igor Stoppa, Paul
+Walmsley, and Richard Woodruff.
+
+Included in the patch is a 'no-op' implementation that documents the
+interface and emits debug messages.  Rajendra Nayak at TI has
+developed an initial implementation of the OMAP PM interface that
+relies mostly on TI's Shared Resource Framework.  Also under
+development is an implementation of the OMAP PM code that uses the
+existing Linux PM QoS code.
+
+
+Comments welcomed,
+
+- Paul
+
+---
+
+ Documentation/arm/OMAP/omap_pm            |  204 ++++++++++++++++++
+ arch/arm/mach-omap2/io.c                  |    4=20
+ arch/arm/plat-omap/Kconfig                |   13 +
+ arch/arm/plat-omap/Makefile               |    1=20
+ arch/arm/plat-omap/include/mach/omap-pm.h |  319 +++++++++++++++++++++=
++++++++
+ arch/arm/plat-omap/omap-pm-noop.c         |  330 +++++++++++++++++++++=
+++++++++
+ 6 files changed, 871 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/arm/OMAP/omap_pm
+ create mode 100644 arch/arm/plat-omap/include/mach/omap-pm.h
+ create mode 100644 arch/arm/plat-omap/omap-pm-noop.c
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
