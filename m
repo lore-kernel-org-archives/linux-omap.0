@@ -1,76 +1,54 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: OMAP support in mainline?
-Date: Fri, 3 Oct 2008 01:36:33 -0700
-Message-ID: <200810030136.33838.david-b@pacbell.net>
-References: <e5e6ade50810030020q62e2a305tf9111f626c1eb42f@mail.gmail.com> <20081003075220.GD10743@frodo>
+From: Liam Girdwood <lrg@kernel.org>
+Subject: Re: [alsa-devel] [PATCH 1/5 v2] ASoC Add TLV320AIC23 codec driver
+Date: Fri, 03 Oct 2008 10:06:04 +0100
+Message-ID: <1223024764.6814.69.camel@dell-desktop.example.com>
+References: <dfeb90390810020215y605ce8a4v43331cb852bd6018@mail.gmail.com>
+	 <20081003081856.GC25482@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:44199 "HELO
-	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752811AbYJCIgg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 04:36:36 -0400
-In-Reply-To: <20081003075220.GD10743@frodo>
-Content-Disposition: inline
+Received: from hera.kernel.org ([140.211.167.34]:32994 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752614AbYJCJGX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 3 Oct 2008 05:06:23 -0400
+In-Reply-To: <20081003081856.GC25482@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: Nathan Monson <nmonson@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arun KS <arunks@mistralsolutions.com>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@nokia.com>, felipe.balbi@nokia.com, troy.kisky@boundarydevices.com
 
-On Friday 03 October 2008, Felipe Balbi wrote:
-> On Fri, Oct 03, 2008 at 12:20:56AM -0700, Nathan Monson wrote:
-> > On Thu, Sep 18, 2008 at 3:26PM, Felipe Balbi wrote:
-> > > Yeah, we lost some musb history when it went to mainline. I didn't test
-> > > this patch yet cuz I've been quite busy at work, but it should make
-> > > beagle work. Could you tell me if makes it work ?
-> > 
-> > This patch has been working for me until the latest round of twl4030 changes.
-> > 
-> > Commit fde13f8fc7de977e71304fd500fed029b41ceb19/"move twl4030-usb to
-> > platform-device" changed subsys_initcall to module_init in
-> > twl4030-usb.
-> > 
-> > Now, twl4030-usb is initialized after musb.  This means
-> > otg_set_transceiver is called later in boot, so the patch below gets
-> > null back from otg_get_transceiver and oopses on *xceiv.
-> > 
-> > Unfortunately, without the patch, USB host doesn't work on the BeagleBoard.
-
-I see it working ... there's a bit of oddness in a host-only config,
-devices have to be plugged in after boot, but "doesn't work" seems
-pretty wrong.
-
- 
-> > Other than this, the new kernel seems to work pretty well for me.
+On Fri, 2008-10-03 at 11:18 +0300, Tony Lindgren wrote:
+> Hi,
 > 
-> Dave, this will be fixed when i2c with your patch initializing i2c
-> earlier on boot. Right ?
-
-That's just driver model init, allowing i2c drivers to register
-earlier, so subsys initcalls can rely on i2c to already have been
-initialized ... so, no.
-
-Within a given initcall level -- like subsys, or (later) driver -- the
-initialization sequence is controlled by kernel link order, which is
-a function of location in the source tree. 
-
-
-> For now, let's keep subsys_initcall() on twl4030_usb. I'll prepare a
-> patch and send it really soon.
-
-That's the right longer-term answer, I think.
-
-- Dave
-
-
+> * Arun KS <arunks@mistralsolutions.com> [081002 12:18]:
+> > ASoC codec driver for TLV320AIC23 device
 > 
-> Thanks for notifying me Nathan.
+> One comment below based on a quick browse.
 > 
-> -- 
-> balbi
+> <snip>
 > 
+> > +static void tlv320aic23_shutdown(struct snd_pcm_substream *substream)
+> > +{
+> > +	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+> > +	struct snd_soc_device *socdev = rtd->socdev;
+> > +	struct snd_soc_codec *codec = socdev->codec;
+> > +
+> > +	/* deactivate */
+> > +	if (!codec->active) {
+> > +		udelay(50);
+> > +		tlv320aic23_write(codec, TLV320AIC23_ACTIVE, 0x0);
+> > +	}
+> > +}
+> > +
+> 
+> What's the purpose of the udelay() here? Looks like if needed it should
+> be after the twl32aic23_write().. Otherwise the problem is probably
+> somewhere else.
 > 
 
+Iirc this was found to reduce pops and clicks on shutdown on another
+very similar codec in this family.
+
+Liam
 
