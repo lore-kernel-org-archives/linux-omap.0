@@ -1,80 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/10] OMAP clock updates for post 2.6.27
-Date: Fri, 3 Oct 2008 09:38:22 +0300
-Message-ID: <20081003063817.GH23962@atomide.com>
-References: <20081002163508.15385.43247.stgit@localhost.localdomain> <20081002201715.GC12718@flint.arm.linux.org.uk>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH v2] OMAP3: Update USBHOST pinmux settings
+Date: Thu, 2 Oct 2008 23:51:03 -0700
+Message-ID: <200810022351.04241.david-b@pacbell.net>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02D603E114@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60115 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753308AbYJCGfg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 02:35:36 -0400
+Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:40003 "HELO
+	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755271AbYJCHDg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 03:03:36 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02D603E114@dbde02.ent.ti.com>
 Content-Disposition: inline
-In-Reply-To: <20081002201715.GC12718@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [081002 23:17]:
-> On Thu, Oct 02, 2008 at 10:37:46AM -0600, Paul Walmsley wrote:
-> > This patch series updates the OMAP2/3 clock tree. Some patches are
-> > from Tony's previous omap2-upstream series, and were already posted to
-> > linux-arm-kernel and reviewed[1].  The remaining patches are mostly
-> > clockdomain updates.
-> 
-> Great.
-> 
-> > The series can be pulled from:
-> > 
-> >    git://git.pwsan.com/linux-2.6 omap-clock-upstream
-> > 
-> > The branch is based on rmk/devel, since powerdomain and clockdomain
-> > changes are not yet in mainline.
-> 
-> I assume then you haven't read the top commit on my devel branch, which
-> reads:
-> 
->     DO NOT BASE YOUR TREE ON THE DEVEL BRANCH
-> 
->     Merge branch 'master' into devel
-> 
-> The reason is that 'devel' is a convenience merge branch of currently
-> about 25 other sub-branches for people who want to get the entire lot
-> of changes.  As such, the merges found there are frequently discarded
-> and recreated.
+On Tuesday 30 September 2008, Gadiyar, Anand wrote:
+> From: Anand Gadiyar <gadiyar@ti.com>
+>=20
+> Add pin-mux settings for OHCI in PHY mode.
+> Also change settings for EHCI in TLL mode.
+>=20
+> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> ---
+> Fixed comments below. Also fixed one pin that should
+> have been marked output, but was wrongly marked input.
+>=20
+> =A0arch/arm/mach-omap2/mux.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 67 +++++++=
+++++++++++++++++++++-------
+> =A0arch/arm/plat-omap/include/mach/mux.h | =A0 26 ++++++++++++-
+> =A02 files changed, 80 insertions(+), 13 deletions(-)
 
-Sorry, there's been some miscommunication here. The idea was just to post
-the patches for review, and then have them pullable for you after you've
-gotten your current devel into the mainline.
+I didn't see anything obvious to complain about, but then I've
+not delved deeply into OMAP3 EHCI.
 
-> If you want something more stable and omap related, that can be
-> arranged.
+Were you the person who was looking to package the PHY/TLL
+mode setup in platform data?  Any progress on that?
 
-Yeah if you have some commit that we can have the patches rebased on
-before you merge with mainline, that would be great.
+(I added EHCI to my Beagle/Overo config, and it came up
+with all kinds of nonsense on the Beagle.  Configured
+several ports, not just one, and in fact this board does
+not even *have* the EHCI transceiver.  So it was very
+obvious that EHCI setup wasn't right yet.  That's even
+apart from the messaging goofs, which have trivial fixes
+I'll send along in a while.)
 
-The current plan is to have following series of patches pullable
-for you:
+- dave
 
-- Remaining 8 patches from previous omap2-upstream that you already
-  looked before the header move. I'll repost these as they've shrank
-  quite a bit with your recent changes.
-
-- McBSP patches already posted last week.
-
-- One new patch for sram to make omap3 support compile. Not yet posted,
-  will try to get this posted today.
-
-- Minimal board support for Beagle and Overo. Not yet posted, will try
-  to get this posted today also.
-
-- Then these 10 patches from Paul if you have enough time to look
-  through them.
-
-I'll also post the MMC init clean up, but that won't happen until
-next week. Anyways, lots of patches but that gets minimal omap3 booting
-with mainline.
-
-Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
