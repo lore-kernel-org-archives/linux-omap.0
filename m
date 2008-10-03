@@ -1,76 +1,47 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch twl] twl4030-core -- more cleanups
-Date: Fri, 3 Oct 2008 01:15:53 -0700
-Message-ID: <200810030115.54197.david-b@pacbell.net>
-References: <200810021221.20286.david-b@pacbell.net> <EAF47CD23C76F840A9E7FCE10091EFAB028C5400D3@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/5 v2] ASoC Add TLV320AIC23 codec driver
+Date: Fri, 3 Oct 2008 11:18:57 +0300
+Message-ID: <20081003081856.GC25482@atomide.com>
+References: <dfeb90390810020215y605ce8a4v43331cb852bd6018@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:42544 "HELO
-	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751401AbYJCIP4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 04:15:56 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB028C5400D3@dbde02.ent.ti.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62946 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751537AbYJCIQE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 04:16:04 -0400
 Content-Disposition: inline
+In-Reply-To: <dfeb90390810020215y605ce8a4v43331cb852bd6018@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Arun KS <arunks@mistralsolutions.com>
+Cc: alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@nokia.com>, troy.kisky@boundarydevices.com, felipe.balbi@nokia.com
 
-On Thursday 02 October 2008, Pakaravoor, Jagadeesh wrote:
-> >  /*
-> > - * twl4030_irq_thread() runs as a kernel thread.  It queries the twl4030
-> > - * interrupt controller to see which modules are generating interrupt requests
-> > - * and then calls the desc->handle method for each module requesting service.
-> > + * This thread processes interrupts reported by the Primary Interrupt Handler.
-> >   */
-> 
-> Why do we need to remove that piece of comment?
-> 
-> Can we not keep the comment this way?
+Hi,
 
-We "can", but "should" we?
+* Arun KS <arunks@mistralsolutions.com> [081002 12:18]:
+> ASoC codec driver for TLV320AIC23 device
 
-The general policy on comments is that they should not
-be translating the C code into English.  Not only are
-such comments pointless (the C code says the same thing,
-more precisely) but they also are more likely to become
-obsolete as the code changes.  (That's a well known
-problem:  comments usually don't get updated when the
-code changes.)
+One comment below based on a quick browse.
 
-So in my opinion we "should" not have this comment
-just paraphrase (in English) what the code does,
-one sentence per code block.
+<snip>
 
->   /*
->  - * twl4030_irq_thread() runs as a kernel thread.  It queries the twl4030
->  - * interrupt controller to see which modules are generating interrupt requests
->  + * This thread processes interrupts reported by the Primary Interrupt Handler,
->    * and then calls the desc->handle method for each module requesting service.
+> +static void tlv320aic23_shutdown(struct snd_pcm_substream *substream)
+> +{
+> +	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+> +	struct snd_soc_device *socdev = rtd->socdev;
+> +	struct snd_soc_codec *codec = socdev->codec;
+> +
+> +	/* deactivate */
+> +	if (!codec->active) {
+> +		udelay(50);
+> +		tlv320aic23_write(codec, TLV320AIC23_ACTIVE, 0x0);
+> +	}
+> +}
+> +
 
-Plus, it's desc->handle_irq() not desc->handle().  ;)
+What's the purpose of the udelay() here? Looks like if needed it should
+be after the twl32aic23_write().. Otherwise the problem is probably
+somewhere else.
 
-
-I expect all the details of the IRQ handling to get overhauled
-in a while, anyway.  Mainline will be getting some threaded
-IRQ infrastructure, and I'd expect it to help out here.
-
-(And then there's the way every SIH handler seems to
-be getting its own irq_chip and handler thread.  I'm
-sure that can be done much better.)
-
-- Dave
-
-
-
-> >   */
-> 
-> --
-> Jagadeesh
-> 
-> 
-
-
+Tony
