@@ -1,45 +1,65 @@
-From: twebb <taliaferro62@gmail.com>
-Subject: android on omap
-Date: Fri, 3 Oct 2008 10:51:22 -0400
-Message-ID: <dbdb2ea60810030751j2cd9bb88h82b5a91eecbbaf50@mail.gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch] bugfix:  SOUND: SOC: OMAP: Add support for Gumstix Overo
+Date: Fri, 3 Oct 2008 08:11:33 -0700
+Message-ID: <200810030811.33484.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.180]:56177 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750718AbYJCOvX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 10:51:23 -0400
-Received: by wa-out-1112.google.com with SMTP id v27so812638wah.21
-        for <linux-omap@vger.kernel.org>; Fri, 03 Oct 2008 07:51:22 -0700 (PDT)
+Received: from smtp127.sbc.mail.sp1.yahoo.com ([69.147.65.186]:21803 "HELO
+	smtp127.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752262AbYJCPLn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 11:11:43 -0400
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: alsa-devel@alsa-project.org
+Cc: linux-omap@vger.kernel.org, Steve Sakoman <steve@sakoman.com>
 
-I'm using linux-2.6.26 from the l-o git on an omap3 based target, and
-have patched it with android-0.9 patch derived as described in various
-forums about porting android to real hardware.  I'm also using the android
-filesystem and binaries as extracted from 0.9 release.  I can start target and
-all seems OK - to a point.  Kernel starts OK, android init starts OK,
-all processes appear to start OK.  However, when process
-'system_server' starts, screen changes from "ANDROID_" to blank, and
-about 45-60 seconds later 'system_server' goes away and process
-'zygote' restarts.  When started with strace, I see the error output
-below.
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Can anyone make any sense of this error/exception?  By the way, the
-target does not have network connectivity via USB, but does have it
-via ethernet.  Might this be an issue?
+Get rid of bogus ASOC boot messages on non-Overo boards,
+such as with a kernel built for both Overo and Beagle.
 
-Thanks,
-twebb
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-By: Steve Sakoman <steve@sakoman.com>
+---
+I'm not sure where the four patches for Overo support are
+in the ALSA queue (that's how they'll merge, yes?) but I'll
+suggest this one merge into the initial "overo.c" submit...
 
-java.lang.RuntimeException: ANDROID_SOCKET_zygote unset or invalid
-       at com.android.internal.os.ZygoteInit.registerZygoteSocket(ZygoteInit.java:156)
-       at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:461)
-       at dalvik.system.NativeStart.main(Native Method)
-Caused by: java.lang.NumberFormatException: unable to parse 'null' as integer
-       at java.lang.Integer.parseInt(Integer.java:362)
-       at java.lang.Integer.parseInt(Integer.java:341)
-       at com.android.internal.os.ZygoteInit.registerZygoteSocket(ZygoteInit.java:154)
+ sound/soc/omap/overo.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+--- a/sound/soc/omap/overo.c
++++ b/sound/soc/omap/overo.c
+@@ -107,11 +107,11 @@ static int __init overo_soc_init(void)
+ {
+ 	int ret;
+ 
+-	printk(KERN_INFO "overo SoC init\n");
+ 	if (!machine_is_overo()) {
+-		printk(KERN_ERR "Not Overo!\n");
++		pr_debug("Not Overo!\n");
+ 		return -ENODEV;
+ 	}
++	printk(KERN_INFO "overo SoC init\n");
+ 
+ 	overo_snd_device = platform_device_alloc("soc-audio", -1);
+ 	if (!overo_snd_device) {
+@@ -135,13 +135,12 @@ err1:
+ 
+ 	return ret;
+ }
++module_init(overo_soc_init);
+ 
+ static void __exit overo_soc_exit(void)
+ {
+ 	platform_device_unregister(overo_snd_device);
+ }
+-
+-module_init(overo_soc_init);
+ module_exit(overo_soc_exit);
+ 
+ MODULE_AUTHOR("Steve Sakoman <steve@sakoman.com>");
