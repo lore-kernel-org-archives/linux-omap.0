@@ -1,17 +1,21 @@
 From: Carlos Chinea <carlos.chinea@nokia.com>
-Subject: [PATCH 1/5] OMAP SSI hardware interface definitions
-Date: Fri,  3 Oct 2008 13:29:38 +0300
-Message-ID: <1223029782-12009-1-git-send-email-carlos.chinea@nokia.com>
+Subject: [PATCH 5/5] OMAP SSI API documentation
+Date: Fri,  3 Oct 2008 13:29:42 +0300
+Message-ID: <1223029782-12009-5-git-send-email-carlos.chinea@nokia.com>
 References: <1223029515.32631.148.camel@groo.research.nokia.com>
+ <1223029782-12009-1-git-send-email-carlos.chinea@nokia.com>
+ <1223029782-12009-2-git-send-email-carlos.chinea@nokia.com>
+ <1223029782-12009-3-git-send-email-carlos.chinea@nokia.com>
+ <1223029782-12009-4-git-send-email-carlos.chinea@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:60027 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752700AbYJCKaY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 06:30:24 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m93AUCV8028328
-	for <linux-omap@vger.kernel.org>; Fri, 3 Oct 2008 13:30:21 +0300
-In-Reply-To: <1223029515.32631.148.camel@groo.research.nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:22512 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753408AbYJCKa2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 06:30:28 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m93AU59q007276
+	for <linux-omap@vger.kernel.org>; Fri, 3 Oct 2008 05:30:26 -0500
+In-Reply-To: <1223029782-12009-4-git-send-email-carlos.chinea@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -19,181 +23,20 @@ To: linux-omap@vger.kernel.org
 
 Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
 ---
- arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h  |  145 ++++++++++++++++++++
- .../plat-omap/include/mach/ssi/ssi_reg_common.h    |   73 ++++++++++
- arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h  |   56 ++++++++
- arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h  |   65 +++++++++
- arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h  |  107 ++++++++++++++
- 5 files changed, 446 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h
- create mode 100644 arch/arm/plat-omap/include/mach/ssi/ssi_reg_common.h
- create mode 100644 arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h
- create mode 100644 arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h
- create mode 100644 arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h
+ Documentation/arm/OMAP/ssi/board-ssi.c.example |  216 ++++++++++++++++++++++
+ Documentation/arm/OMAP/ssi/ssi                 |  232 ++++++++++++++++++++++++
+ 2 files changed, 448 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/arm/OMAP/ssi/board-ssi.c.example
+ create mode 100644 Documentation/arm/OMAP/ssi/ssi
 
-diff --git a/arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h b/arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h
+diff --git a/Documentation/arm/OMAP/ssi/board-ssi.c.example b/Documentation/arm/OMAP/ssi/board-ssi.c.example
 new file mode 100644
-index 0000000..5ed91cc
+index 0000000..a346628
 --- /dev/null
-+++ b/arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h
-@@ -0,0 +1,145 @@
++++ b/Documentation/arm/OMAP/ssi/board-ssi.c.example
+@@ -0,0 +1,216 @@
 +/*
-+ * ssi_gdd_reg.h
-+ *
-+ * Hardware defintions for SSI Controller GDD registers.
-+ *
-+ * HARDWARE: OMAP 2420, OMAP 3430
-+ *
-+ * Copyright (C) 2007-2008 Nokia Corporation. All rights reserved.
-+ *
-+ * Contact: Carlos Chinea <carlos.chinea@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
-+#ifndef __SSI_GDD_REG_H__
-+#define __SSI_GDD_REG_H__
-+
-+#include "ssi_reg_common.h"
-+
-+#define SSI_GDD_HW_ID_REG		SSI_GDD_REG32(0x0000)
-+#define SSI_GDD_PPORT_ID_REG		SSI_GDD_REG32(0x0010)
-+#define SSI_GDD_MPORT_ID_REG		SSI_GDD_REG32(0x0014)
-+
-+#define SSI_GDD_PPORT_SR_REG		SSI_GDD_REG32(0x0020)
-+#	define SSI_PPORT_ACTIVE_LCH_NUMBER_MASK	0xFF
-+
-+#define SSI_GDD_MPORT_SR_REG		SSI_GDD_REG32(0x0024)
-+#	define SSI_MPORT_ACTIVE_LCH_NUMBER_MASK	0xFF
-+
-+#define SSI_GDD_TEST_REG 		SSI_GDD_REG32(0x0040)
-+#	define SSI_TEST			0x1
-+
-+#define SSI_GDD_GCR_REG			SSI_GDD_REG32(0x0100)
-+#	define	SSI_CLK_AUTOGATING_ON	(1<<3)
-+#	define	SSI_FREE		(1<<2)
-+#	define	SSI_SWITCH_OFF		0x1
-+
-+#define SSI_GDD_GRST_REG 		SSI_GDD_REG32(0x0200)
-+#	define SSI_SWRESET		0x1
-+
-+#define SSI_GDD_CSDP_BASE		0x0800
-+#define SSI_GDD_CSDP_OFFSET		0x40
-+#define SSI_GDD_CSDP_REG(channel) 	SSI_GDD_REG16(SSI_GDD_CSDP_BASE +\
-+					 (channel*SSI_GDD_CSDP_OFFSET))
-+#	define SSI_DST_BURST_EN_MASK	0xC000
-+#	define SSI_DST_SINGLE_ACCESS0	0x0
-+#	define SSI_DST_SINGLE_ACCESS	(0x1<<14)
-+#	define SSI_DST_BURST_4X32_BIT	(0x2<<14)
-+#	define SSI_DST_BURST_8x32_BIT	(0x3<<14)	/*NOTE: NOT SUPPORTED */
-+
-+#	define SSI_DST_MASK		0x1E00
-+#	define SSI_DST_MEMORY_PORT	(0x8<<9)
-+#	define SSI_DST_PERIPHERAL_PORT	(0x9<<9)
-+
-+#	define SSI_SRC_BURST_EN_MASK	0x0180
-+#	define SSI_SRC_SINGLE_ACCESS0	0x0
-+#	define SSI_SRC_SINGLE_ACCESS	(0x1<<7)
-+#	define SSI_SRC_BURST_4x32_BIT	(0x2<<7)
-+#	define SSI_SRC_BURST_8x32_BIT	(0x3<<7)	/*NOTE: NOT SUPPORTED */
-+
-+#	define SSI_SRC_MASK		0x003C
-+#	define SSI_SRC_MEMORY_PORT	(0x8<<2)
-+#	define SSI_SRC_PERIPHERAL_PORT	(0x9<<2)
-+
-+#	define SSI_DATA_TYPE_MASK	0x0003
-+#	define SSI_DATA_TYPE_S32	0x2
-+
-+#define SSI_GDD_CCR_BASE 		0x0802
-+#define SSI_GDD_CCR_OFFSET 		0x40
-+#define SSI_GDD_CCR_REG(channel)	SSI_GDD_REG16(SSI_GDD_CCR_BASE +\
-+					 (channel*SSI_GDD_CCR_OFFSET))
-+#	define SSI_DST_AMODE_MASK	(0x3<<14)
-+#	define SSI_DST_AMODE_CONST	0x0
-+#	define SSI_DST_AMODE_POSTINC	(0x1<<12)
-+
-+#	define SSI_SRC_AMODE_MASK	(0x3<<12)
-+#	define SSI_SRC_AMODE_CONST	0x0
-+#	define SSI_SRC_AMODE_POSTINC	(0x1<<12)
-+
-+#	define SSI_CCR_ENABLE		(0x1<<7)
-+
-+#	define SSI_CCR_SYNC_MASK	0x001F
-+
-+#define SSI_GDD_CICR_BASE 		0x0804
-+#define SSI_GDD_CICR_OFFSET		0x40
-+#define SSI_GDD_CICR_REG(channel)	SSI_GDD_REG16(SSI_GDD_CICR_BASE +\
-+					 (channel*SSI_GDD_CICR_OFFSET))
-+#	define SSI_BLOCK_IE		(0x1<<5)
-+#	define SSI_HALF_IE		(0x1<<2)
-+#	define SSI_TOUT_IE		0x1
-+
-+#define SSI_GDD_CSR_BASE 		0x0806
-+#define SSI_GDD_CSR_OFFSET 		0x40
-+#define SSI_GDD_CSR_REG(channel)	SSI_GDD_REG16(SSI_GDD_CSR_BASE +\
-+					 (channel*SSI_GDD_CSR_OFFSET))
-+#	define SSI_CSR_SYNC		(0x1<<6)
-+#	define SSI_CSR_BLOCK		(0x1<<5)
-+#	define SSI_CSR_HALF		(0x1<<2)
-+#	define SSI_CSR_TOUR		0x1
-+
-+#define SSI_GDD_CSSA_BASE 		0x0808
-+#define SSI_GDD_CSSA_OFFSET		0x40
-+#define SSI_GDD_CSSA_REG(channel)	SSI_GDD_REG32(SSI_GDD_CSSA_BASE +\
-+					 (channel*SSI_GDD_CSSA_OFFSET))
-+
-+#define SSI_GDD_CDSA_BASE 		0x080C
-+#define SSI_GDD_CDSA_OFFSET		0x40
-+#define SSI_GDD_CDSA_REG(channel)	SSI_GDD_REG32(SSI_GDD_CDSA_BASE +\
-+					 (channel*SSI_GDD_CDSA_OFFSET))
-+
-+#define SSI_GDD_CEN_BASE		0x0810
-+#define SSI_GDD_CEN_OFFSET		0x40
-+#define SSI_GDD_CEN_REG(channel)	SSI_GDD_REG16(SSI_GDD_CEN_BASE +\
-+					 (channel*SSI_GDD_CEN_OFFSET))
-+
-+#define SSI_GDD_CSAC_BASE 		0x0818
-+#define SSI_GDD_CSAC_OFFSET		0x40
-+#define SSI_GDD_CSAC_REG(channel) 	SSI_GDD_REG16(SSI_GDD_CSAC_BASE +\
-+					 (channel*SSI_GDD_CSAC_OFFSET))
-+
-+#define SSI_GDD_CDAC_BASE 		0x081A
-+#define SSI_GDD_CDAC_OFFSET		0x40
-+#define SSI_GDD_CDAC_REG(channel) 	SSI_GDD_REG16(SSI_GDD_CDAC_BASE +\
-+					 (channel*SSI_GDD_CDAC_OFFSET))
-+
-+#define SSI_GDD_CLNK_CTRL_BASE		0x0828
-+#define SSI_GDD_CLNK_CTRL_OFFSET	0x40
-+#define SSI_GDD_CLNK_CTRL_REG(channel)	SSI_GDD_REG16(SSI_GDD_CLNK_CTRL_BASE +\
-+					 (channel*SSI_GDD_CLNK_CTRL_OFFSET))
-+#	define SSI_ENABLE_LNK		(0x1<<15)
-+#	define SSI_STOP_LNK		(0x1<<14)
-+#	define NEXT_CH_ID_MASK		0xF
-+
-+#endif
-diff --git a/arch/arm/plat-omap/include/mach/ssi/ssi_reg_common.h b/arch/arm/plat-omap/include/mach/ssi/ssi_reg_common.h
-new file mode 100644
-index 0000000..e66fb43
---- /dev/null
-+++ b/arch/arm/plat-omap/include/mach/ssi/ssi_reg_common.h
-@@ -0,0 +1,73 @@
-+/*
-+ * ssi_reg_common.h
-+ *
-+ * Common hardware definitions for SSI.
-+ *
-+ * HARDWARE: OMAP 2420, 3430
++ * board-ssi.c.example
 + *
 + * Copyright (C) 2007-2008 Nokia Corporation. All rights reserved.
 + *
@@ -214,299 +57,438 @@ index 0000000..e66fb43
 + * 02110-1301 USA
 + */
 +
-+#ifndef __SSI_REG_COMMON_H__
-+#define __SSI_REG_COMMON_H__
++#ifdef CONFIG_OMAP_SSI
 +
-+#define SSI_COMMON_BASE_ADDR		0x48050000
++#include <linux/platform_device.h>
++#include <linux/err.h>
++#include <linux/clk.h>
++#include <linux/io.h>
++#include <linux/ssi_driver_if.h>
++#include <mach/ssi/ssi_sys_reg.h>
++#include <mach/ssi/ssi_ssr_reg.h>
++#include <mach/ssi/ssi_sst_reg.h>
 +
-+/* SSI system registers */
-+#define SSI_SYS_OFFSET			0x8000
-+#define SSI_SYS_REG32(offset)		(SSI_SYS_OFFSET + (offset))
-+/* SSI GDD registers */
-+#define SSI_GDD_OFFSET			0x9000
-+#define SSI_GDD_REG32(offset)		(SSI_GDD_OFFSET + (offset))
-+#define SSI_GDD_REG16(offset)		(SSI_GDD_OFFSET + (offset))
++#include "clock.h"
 +
-+/* SSI SST registers */
-+/* General offset of SST port 1. First SST port register.*/
-+#define SSI_SST1_OFFSET			0xA000
-+/* General offset of SST port 2.*/
-+#define SSI_SST2_OFFSET			0xB000
-+/* Offset among the SST ports.*/
-+#define SSI_SST_PORT_OFFSET		0x1000
-+#define SSI_SST_OFFSET(port)		(SSI_SST1_OFFSET +\
-+					 ((port-1)*(SSI_SST_PORT_OFFSET)))
-+#define SSI_SST_REG(port, offset)	(SSI_SST_OFFSET(port) + (offset))
++struct ssi_internal_clk {
++	struct clk clk;
++	struct clk **childs;
++	int n_childs;
++	struct platform_device *pdev;
++};
 +
-+/* SSI SSR registers */
-+/* General offset of SSR port 1. First SSR port register.*/
-+#define SSI_SSR1_OFFSET			0xA800
-+/* General offset of SSR port 2.*/
-+#define SSI_SSR2_OFFSET			0xB800
-+/* Offset among the SSR ports.*/
-+#define SSI_SSR_PORT_OFFSET		0x1000
-+#define SSI_SSR_OFFSET(port)		(SSI_SSR1_OFFSET +\
-+					 ((port-1)*(SSI_SSR_PORT_OFFSET)))
-+#define SSI_SSR_REG(port, offset)	(SSI_SSR_OFFSET(port) + (offset))
++static struct ssi_internal_clk ssi_clock;
 +
-+#define SSI_IOMEM_BASE_ADDR		SSI_COMMON_BASE_ADDR
-+#define SSI_IOMEM_SIZE			0x3C00
++static void ssi_pdev_release(struct device *dev)
++{
++}
 +
-+/*
-+ * FIXME: Following definitions to be removed.
-+ * They are used for checking that the SSI clocks are stable before accessing
-+ * the SSI registers.
-+ */
-+#define OMAP_COMMON_BASE                0x48000000
-+#define CM_IDLEST1_CORE_REG		0x4A20
-+#define ST_SSI				1
++static struct ssi_port_pd ssi_ports[] = {
++	[0] = {
++		.tx_mode = SSI_MODE_FRAME,
++		.tx_frame_size = SSI_FRAMESIZE_DEFAULT,
++		.divisor = SSI_DIVISOR_DEFAULT,
++		.tx_ch = SSI_CHANNELS_DEFAULT,
++		.arb_mode = SSI_ARBMODE_ROUNDROBIN,
++		.rx_mode = SSI_MODE_FRAME,
++		.rx_frame_size = SSI_FRAMESIZE_DEFAULT,
++		.rx_ch = SSI_CHANNELS_DEFAULT,
++		.timeout = SSI_TIMEOUT_DEFAULT,
++		.n_irq = 0,
++		},
++};
++
++static struct ssi_platform_data ssi_p_d = {
++	.clk_name = "ssi_clk",
++	.num_ports = ARRAY_SIZE(ssi_ports),
++	.ports = ssi_ports,
++};
++
++static struct resource ssi_resources[] = {
++	[0] = {
++		.start = SSI_IOMEM_BASE_ADDR,
++		.end = SSI_IOMEM_BASE_ADDR + SSI_IOMEM_SIZE,
++		.name = SSI_IOMEM_NAME,
++		.flags = IORESOURCE_MEM,
++		},
++	[1] = 	{
++		.start = SSI_P1_MPU_IRQ0,
++		.end = SSI_P1_MPU_IRQ0,
++		.name = SSI_P1_MPU_IRQ0_NAME,
++		.flags = IORESOURCE_IRQ,
++		},
++	[2] = 	{
++		.start = SSI_P1_MPU_IRQ1,
++		.end = SSI_P1_MPU_IRQ1,
++		.name = SSI_P1_MPU_IRQ1_NAME,
++		.flags = IORESOURCE_IRQ,
++		},
++	[3] = 	{
++		.start = SSI_P2_MPU_IRQ0,
++		.end = SSI_P2_MPU_IRQ0,
++		.name = SSI_P2_MPU_IRQ0_NAME,
++		.flags = IORESOURCE_IRQ,
++		},
++	[4] = 	{
++		.start = SSI_P2_MPU_IRQ1,
++		.end = SSI_P2_MPU_IRQ1,
++		.name = SSI_P2_MPU_IRQ1_NAME,
++		.flags = IORESOURCE_IRQ,
++		},
++	[5] = 	{
++		.start = SSI_GDD_MPU_IRQ,
++		.end = SSI_GDD_MPU_IRQ,
++		.name = SSI_GDD_MPU_IRQ_NAME,
++		.flags = IORESOURCE_IRQ,
++		},
++};
++
++static struct platform_device ssi_pdev = {
++	.name = "omap_ssi",
++	.id = -1,
++	.num_resources = ARRAY_SIZE(ssi_resources),
++	.resource = ssi_resources,
++	.dev = 	{
++		.release = ssi_pdev_release,
++		.platform_data = &ssi_p_d,
++		},
++};
++
++static void set_ssi_mode(struct platform_device *pdev, u32 mode)
++{
++	void __iomem *base = (void __iomem *)pdev->resource[0].start;
++	int port;
++	int num_ports = ((struct ssi_platform_data *)
++					(pdev->dev.platform_data))->num_ports;
++
++	for (port = 0; port < num_ports; port++) {
++		outl(mode, OMAP2_IO_ADDRESS(base + SSI_SST_MODE_REG(port)));
++		outl(mode, OMAP2_IO_ADDRESS(base + SSI_SSR_MODE_REG(port)));
++	}
++}
++
++static int ssi_clk_init(struct ssi_internal_clk *ssi_clk)
++{
++	const char *clk_names[] = { "ssi_ick", "ssi_ssr_fck" };
++	int i;
++	int j;
++
++	ssi_clk->n_childs = ARRAY_SIZE(clk_names);
++	ssi_clk->childs = kzalloc(ssi_clk->n_childs * sizeof(*ssi_clk->childs),
++								GFP_KERNEL);
++	if (!ssi_clk->childs)
++		return -ENOMEM;
++
++	for (i = 0; i < ssi_clk->n_childs; i++) {
++		ssi_clk->childs[i] = clk_get(NULL, clk_names[i]);
++		if (IS_ERR(ssi_clk->childs[i])) {
++			pr_err("Unable to get SSI clock: %s", clk_names[i]);
++			for (j = i - 1; j >= 0; j--)
++				clk_put(ssi_clk->childs[j]);
++			return -ENODEV;
++		}
++	}
++
++	return 0;
++}
++
++static int ssi_clk_enable(struct clk *clk)
++{
++	struct ssi_internal_clk *ssi_clk =
++				container_of(clk, struct ssi_internal_clk, clk);
++	int err = 0;
++	int i;
++	int j;
++
++	for (i = 0; ((i < ssi_clk->n_childs) && (err >= 0)); i++)
++		err = omap2_clk_enable(ssi_clk->childs[i]);
++
++	if (unlikely(err < 0)) {
++		pr_err("Error on SSI clk %d\n", i);
++		for (j = i - 1; j >= 0; j--)
++			omap2_clk_disable(ssi_clk->childs[j]);
++	} else {
++		if (ssi_clk->clk.usecount == 1)
++			set_ssi_mode(ssi_clk->pdev, SSI_MODE_FRAME);
++	}
++
++	return err;
++}
++
++static void ssi_clk_disable(struct clk *clk)
++{
++	struct ssi_internal_clk *ssi_clk =
++				container_of(clk, struct ssi_internal_clk, clk);
++
++	int i;
++
++	if (ssi_clk->clk.usecount == 0)
++		set_ssi_mode(ssi_clk->pdev, SSI_MODE_SLEEP);
++
++	for (i = 0; i < ssi_clk->n_childs; i++)
++		omap2_clk_disable(ssi_clk->childs[i]);
++}
++
++static struct ssi_internal_clk ssi_clock = {
++	.clk = {
++		.name = "ssi_clk",
++		.id = -1,
++		.enable = ssi_clk_enable,
++		.disable = ssi_clk_disable,
++	},
++	.pdev = &ssi_pdev,
++};
++
++void __init ssi_init(void)
++{
++	int err;
++
++	ssi_clk_init(&ssi_clock);
++	clk_register(&ssi_clock.clk);
++
++	err = platform_device_register(&ssi_pdev);
++	if (err < 0)
++		pr_err("Unable to register SSI platform device: %d\n", err);
++}
 +#endif
-diff --git a/arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h b/arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h
+diff --git a/Documentation/arm/OMAP/ssi/ssi b/Documentation/arm/OMAP/ssi/ssi
 new file mode 100644
-index 0000000..b272047
+index 0000000..990ae48
 --- /dev/null
-+++ b/arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h
-@@ -0,0 +1,56 @@
-+/*
-+ * ssi_sst_reg.h
-+ *
-+ * Hardware definitions for SSI controller SSR registers.
-+ *
-+ * HARDWARE: OMAP 2420, 3430
-+ *
-+ * Copyright (C) 2007-2008 Nokia Corporation. All rights reserved.
-+ *
-+ * Contact: Carlos Chinea <carlos.chinea@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
++++ b/Documentation/arm/OMAP/ssi/ssi
+@@ -0,0 +1,232 @@
++OMAP SSI API's How To
++=====================
 +
-+#ifndef __SSI_SSR_REG_H__
-+#define __SSI_SSR_REG_H__
++The Synchronous Serial Interface (SSI) is a high speed communication interface
++that is used for connecting OMAP to a cellular modem engine.
 +
-+#include "ssi_reg_common.h"
++The SSI interface supports full duplex communication over multiple channels and
++is capable of reaching speeds up to 110 Mbit/s
 +
-+#define SSI_SSR_ID_REG(port)			SSI_SSR_REG(port, 0x0000)
-+#define SSI_SSR_MODE_REG(port)			SSI_SSR_REG(port, 0x0004)
-+#define SSI_SSR_FRAMESIZE_REG(port)		SSI_SSR_REG(port, 0x0008)
-+#define SSI_SSR_RXSTATE_REG(port)  		SSI_SSR_REG(port, 0x000C)
-+#define SSI_SSR_BUFSTATE_REG(port) 		SSI_SSR_REG(port, 0x0010)
-+#	define NOTEMPTY(channel)		(1<<channel)
-+#define SSI_SSR_BREAK_REG(port)			SSI_SSR_REG(port, 0x001C)
-+#define SSI_SSR_ERROR_REG(port)			SSI_SSR_REG(port, 0x0020)
-+#define SSI_SSR_ERRORACK_REG(port)		SSI_SSR_REG(port, 0x0024)
-+#define SSI_SSR_OVERRUN_REG(port)		SSI_SSR_REG(port, 0x002C)
-+#define SSI_SSR_OVERRUNACK_REG(port)		SSI_SSR_REG(port, 0x0030)
-+#define SSI_SSR_TIMEOUT_REG(port)		SSI_SSR_REG(port, 0x0030)
-+#	define SSI_TIMEOUT_DEFAULT		0
-+#define SSI_SSR_CHANNELS_REG(port)		SSI_SSR_REG(port, 0x0028)
++I OMAP SSI driver API overview
++-----------------------------
 +
-+#define SSI_SSR_BUFFER_OFFSET_BASE		0x0080
-+#define SSI_SSR_BUFFER_CH_REG(port, channel)	SSI_SSR_REG(port, \
-+						(SSI_SSR_BUFFER_OFFSET_BASE +\
-+						 (channel * 0x04)))
++A) SSI Bus, SSI channels and protocol drivers overview. 
 +
-+#define SSI_SSR_SWAPBUFFER_OFFSET_BASE		0x00C0
-+#define SSI_SSR_SWAPBUFFER_CH_REG(port, channel) SSI_SSR_REG(port, \
-+						(SSI_SSR_SWAPBUFFER_OFFSET_BASE\
-+						 + (channel * 0x04)))
-+#endif
-diff --git a/arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h b/arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h
-new file mode 100644
-index 0000000..ed15908
---- /dev/null
-+++ b/arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h
-@@ -0,0 +1,65 @@
-+/*
-+ * ssi_sst_reg.h
-+ *
-+ * Hardware definitions for SSI controller SST registers.
-+ *
-+ * HARDWARE: OMAP 2420, 3430
-+ *
-+ * Copyright (C) 2007-2008 Nokia Corporation. All rights reserved.
-+ *
-+ * Contact: Carlos Chinea <carlos.chinea@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
++The OMAP SSI driver is intended to be used inside the kernel by protocol drivers.
 +
-+#ifndef __SSI_SST_REG_H__
-+#define __SSI_SST_REG_H__
++The OMAP SSI abstracts the concept of SSI channels by creating an SSI bus an
++attaching SSI channel devices to it.(see Figure 1)
 +
-+#include "ssi_reg_common.h"
++Protocol drivers will then claim one or more SSI channels, after registering with the OMAP SSI driver.
 +
-+#define SSI_SST_ID_REG(port)			SSI_SST_REG(port, 0x0000)
-+#define SSI_SST_MODE_REG(port)			SSI_SST_REG(port, 0x0004)
-+#	define SSI_MODE_VAL_MASK		0x3
-+#	define SSI_MODE_SLEEP			0x0
-+#	define SSI_MODE_STREAM			0x1
-+#	define SSI_MODE_FRAME			0x2
-+#	define SSI_MODE_MULTIPOINTS		0x3
-+#define SSI_SST_FRAMESIZE_REG(port)		SSI_SST_REG(port, 0x0008)
-+#	define SSI_FRAMESIZE_DEFAULT		31
-+#define SSI_SST_TXSTATE_REG(port)  		SSI_SST_REG(port, 0x000C)
-+#	define	TXSTATE_IDLE			0x0
-+#define SSI_SST_BUFSTATE_REG(port) 		SSI_SST_REG(port, 0x0010)
-+#	define 	NOTFULL(channel)		(1<<channel)
-+#define SSI_SST_DIVISOR_REG(port)		SSI_SST_REG(port, 0x0018)
-+#	define SSI_DIVISOR_DEFAULT		1
++	+---------------------+		+----------------+
++	+  SSI channel device +		+  SSI protocol  +
++	+  (omap_ssi.pX-cY)   +	<-------+  driver        +
++	+---------------------+		+----------------+
++		|				|
++(/sys/bus/ssi/devices/omap_ssi.pX-cy)	(/sys/bus/ssi/drivers/ssi_protocol)
++		|				|
+++---------------------------------------------------------------+
+++			SSI bus					+	
+++---------------------------------------------------------------+	
++	
++			Figure 1.
 +
-+#define SSI_SST_BREAK_REG(port)			SSI_SST_REG(port, 0x0020)
-+#define SSI_SST_CHANNELS_REG(port)		SSI_SST_REG(port, 0x0024)
-+#	define SSI_CHANNELS_DEFAULT		4
++(NOTE: omap_ssi.pX-cY represents the SSI channel Y on port X from the omap_ssi
++device)
 +
-+#define SSI_SST_ARBMODE_REG(port)		SSI_SST_REG(port, 0x0028)
-+#	define SSI_ARBMODE_ROUNDROBIN		0x0
-+#	define SSI_ARBMODE_PRIORITY		0x1
++B) Data transfers
 +
-+#define SSI_SST_BUFFER_OFFSET_BASE		0x0080
-+#define SSI_SST_BUFFER_CH_REG(port, channel)	SSI_SST_REG(port, \
-+						(SSI_SST_BUFFER_OFFSET_BASE +\
-+						 (channel * 0x4)))
++The OMAP SSI driver exports an asynchronous interface for sending and receiving
++data over the SSI channels. Protocol drivers will register a set of read and write
++completion callbacks for each SSI channel they use.
 +
-+#define SSI_SST_SWAPBUF_OFFSET_BASE		0x00C0
-+#define SSI_SST_SWAPBUF_CH_REG(port, channel)	SSI_SST_REG(port, \
-+						(SSI_SST_SWAPBUF_OFFSET_BASE +\
-+						(channel * 0x4)))
-+#endif
-diff --git a/arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h b/arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h
-new file mode 100644
-index 0000000..2f1e1f5
---- /dev/null
-+++ b/arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h
-@@ -0,0 +1,107 @@
-+/*
-+ * ssi_sys_reg.h
-+ *
-+ * Hardware defintions for SSI Controller system registers.
-+ *
-+ * HARDWARE: OMAP 2420, 3430
-+ *
-+ * Copyright (C) 2007-2008 Nokia Corporation. All rights reserved.
-+ *
-+ * Contact: Carlos Chinea <carlos.chinea@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
++Protocol drivers call ssi_write/ssi_read functions to signal the OMAP SSI driver
++that is willing to write/read data to/from a channel. Transfers are completed only
++when the OMAP SSI driver calls the completion callback.
 +
-+#ifndef __SSI_SYS_REG_H__
-+#define __SSI_SYS_REG_H__
++An SSI channel can simultaneously have both a read and a write request
++pending, however, requests cannot be queued.
 +
-+#include "ssi_reg_common.h"
++It is safe to call ssi_write/ssi_read functions inside the callbacks functions.
++In fact, a protocol driver should normally re-issue the read request from within
++the read callback, in order to not miss any incoming messages.
 +
-+#define SSI_SYS_REVISION_REG		SSI_SYS_REG32(0x0000)
-+#	define SSI_REV_MASK		0x000000FF
-+#	define SSI_REV_MAJOR		0xF0
-+#	define SSI_REV_MINOR		0x0F
++C) Error handling
 +
-+#define SSI_SYS_SYSCONFIG_REG		SSI_SYS_REG32(0x0010)
-+#	define SSI_AUTOIDLE		1
-+#	define SSI_SOFTRESET		(1<<1)
-+#	define SSI_SIDLEMODE_FORCE	0
-+#	define SSI_SIDLEMODE_NO		(1<<3)
-+#	define SSI_SIDLEMODE_SMART	(1<<4)
-+#	define SSI_SIDLEMODE_MASK	0x00000018
-+#	define SSI_MIDLEMODE_FORCE	0
-+#	define SSI_MIDLEMODE_NO		(1<<12)
-+#	define SSI_MIDLEMODE_SMART	(1<<13)
-+#	define SSI_MIDLEMODE_MASK	0x00003000
++SSI is a multi channel interface but the channels share the same physical wires.
++Therefore, any transmission error potentially affects all the protocol drivers
++that sit on top of the SSI driver. Whenever an error occurs, it is broadcasted to
++all protocol drivers.
 +
-+#define SSI_SYS_SYSSTATUS_REG		SSI_SYS_REG32(0x0014)
-+#	define SSI_RESETDONE		1
++Errors are signaled to the protocol drivers through the port_event callback.
++Protocol drivers can avoid receiving those notifications by not setting the
++SSI_EVENT_ERROR in the event_mask field.(see struct ssi_device_driver)
 +
-+#define SSI_SYS_MPU_STATUS_BASE		0x0808
-+#define SSI_SYS_MPU_STATUS_PORT_OFFSET	0x10
-+#define SSI_SYS_MPU_STATUS_IRQ_OFFSET	0x2
-+#define SSI_SYS_MPU_STATUS_REG(port, irq) \
-+		SSI_SYS_REG32(SSI_SYS_MPU_STATUS_BASE +\
-+		 (((port-1)*SSI_SYS_MPU_STATUS_PORT_OFFSET) +\
-+		 (irq*SSI_SYS_MPU_STATUS_IRQ_OFFSET)))
++Completion callbacks functions are only called when a transfer has succeed.
 +
-+#define SSI_SYS_MPU_ENABLE_BASE		0x080C
-+#define SSI_SYS_MPU_ENABLE_PORT_OFFSET	0x10
-+#define SSI_SYS_MPU_ENABLE_IRQ_OFFSET	0x8
-+#define SSI_SYS_MPU_ENABLE_REG(port, irq) \
-+		SSI_SYS_REG32(SSI_SYS_MPU_ENABLE_BASE +\
-+		 (((port-1)*SSI_SYS_MPU_ENABLE_PORT_OFFSET) +\
-+		 (irq*SSI_SYS_MPU_ENABLE_IRQ_OFFSET)))
++II OMAP SSI API's
++-----------------
 +
-+#define SSI_SYS_DSP_STATUS_BASE		0x0830
-+#define SSI_SYS_DSP_STATUS_PORT_OFFSET	0x10
-+#define SSI_SYS_DSP_STATUS_IRQ_OFFSET	0x8
-+#define SSI_SYS_DSP_STATUS_REG(port, irq) \
-+		SSI_SYS_REG32(SSI_SYS_DSP_STATUS_BASE +\
-+		 (((port-1)*SSI_SYS_DSP_STATUS_PORT_OFFSET) +\
-+		 (irq*SSI_SYS_DSP_STATUS_IRQ_OFFSET)))
++A) Include
 +
-+#define SSI_SYS_DSP_ENABLE_BASE		0x0834
-+#define SSI_SYS_DSP_ENABLE_PORT_OFFSET	0x10
-+#define SSI_SYS_DSP_ENABLE_IRQ_OFFSET	0x8
-+#define SSI_SYS_DSP_ENABLE_REG(port, irq) \
-+		SSI_SYS_REG32(SSI_SYS_DSP_ENABLE_BASE +\
-+		 (((port-1)*SSI_SYS_DSP_ENABLE_PORT_OFFSET) +\
-+		 (irq*SSI_SYS_DSP_ENABLE_IRQ_OFFSET)))
-+#	define SSI_SST_DATAACCEPT(channel)	(1<<channel)
-+#	define SSI_SSR_DATAAVAILABLE(channel)	(1<<(channel + 8))
-+#	define SSI_SSR_DATAOVERRUN(channel)	(1<<(channel + 16))
-+#	define SSI_ERROROCCURED			(1<<24)
-+#	define SSI_BREAKDETECTED		(1<<25)
++#include<linux/ssi_driver_if.h>
 +
-+#define SSI_SYS_GDD_MPU_IRQ_STATUS_REG	SSI_SYS_REG32(0x0800)
-+#define SSI_SYS_GDD_MPU_IRQ_ENABLE_REG	SSI_SYS_REG32(0x0804)
-+#define SSI_SYS_GDD_DSP_IRQ_STATUS_REG 	SSI_SYS_REG32(0x0828)
-+#define SSI_SYS_GDD_DSP_IRQ_ENABLE_REG 	SSI_SYS_REG32(0x082C)
-+#	define SSI_GDD_LCH(channel)	(1<<channel)
++B) int register_ssi_driver(struct ssi_device_driver *driver);
 +
-+#define SSI_SYS_WAKE_OFFSET		0x10
-+#define SSI_SYS_WAKE_BASE		0x0C00
-+#define SSI_SYS_WAKE_REG(port) 		SSI_SYS_REG32(SSI_SYS_WAKE_BASE +\
-+					 ((port-1)*SSI_SYS_WAKE_OFFSET))
-+#define SSI_SYS_CLEAR_WAKE_BASE		0x0C04
-+#define SSI_SYS_CLEAR_WAKE_REG(port)	SSI_SYS_REG32(SSI_SYS_CLEAR_WAKE_BASE +\
-+					 ((port-1)*SSI_SYS_WAKE_OFFSET))
-+#define SSI_SYS_SET_WAKE_BASE		0x0C08
-+#define SSI_SYS_SET_WAKE_REG(port)	SSI_SYS_REG32(SSI_SYS_SET_WAKE_BASE +\
-+					 ((port-1)*SSI_SYS_WAKE_OFFSET))
-+#	define SSI_WAKE(channel)	(1<<channel)
-+#	define SSI_WAKE_MASK		0xFF
-+#endif
++Description: Register an SSI protocol driver
++
++Parameter: A protocol driver declaration (see struct ssi_device_driver)
++
++B) void unregister_ssi_driver(struct ssi_device_driver *driver);
++
++Description: Unregister an SSI protocol driver
++
++Parameter: A protocol driver declaration (see struct ssi_device_driver)
++
++C) int ssi_open(struct ssi_device *dev);
++
++Description: Open an SSI device channel
++
++Parameter: The SSI channel
++
++D) int ssi_write(struct ssi_device *dev, u32 *data, unsigned int count);
++
++Description: Send data through an SSI channel. The transfer is only completed
++when the write_complete callback is called
++
++Parameters:
++	- dev: SSI channel
++	- data: pointer to the data to send
++	- count: number of 32-bit words to be sent
++
++E) void ssi_write_cancel(struct ssi_device *dev);
++
++Description: Cancel current pending write operation
++
++Parameters: SSI channel
++	
++F) int ssi_read(struct ssi_device *dev, u32 *data, unsigned int w_count);
++
++Description: Receive data through an SSI channel. The transfer is only completed
++when the read_complete callback is called
++
++Parameters:
++	- dev: SSI channel
++	- data: pointer where to store the data
++	- count: number of 32-bit words to be read
++
++
++G) void ssi_read_cancel(struct ssi_device *dev);
++
++Description: Cancel current pending read operation
++
++Parameters: SSI channel
++
++H) int ssi_ioctl(struct ssi_device *dev, unsigned int command, void *arg);
++
++Description: Apply some control command to the port associated to the given
++SSI channel
++
++Parameters:
++	- dev: SSI channel
++	- command: command to execute
++	- arg: parameter for the control command
++
++Commands:
++	- SSI_IOCTL_WAKE_UP: 
++		Description: Set SSI wakeup line for the channel
++		Parameters: None
++	- SSI_IOCTL_WAKE_DOWN:
++		Description: Unset SSI wakeup line for the channel
++		Parameters: None
++	- SSI_IOCTL_SEND_BREAK:
++		Description: Send a HW BREAK frame in FRAME mode
++		Parameters: None
++	- SSI_IOCTL_WAKE:
++		Description: Get wakeup line status
++		Parameters: Pointer to a u32 variable to return result
++		(Result: 0 means wakeline DOWN, other result means wakeline UP)
++
++I)void ssi_close(struct ssi_device *dev);
++
++Description: Close an SSI channel
++
++Parameters: The SSI channel to close
++
++J) void ssi_dev_set_cb(	struct ssi_device *dev,
++			void (*r_cb)(struct ssi_device *dev),
++			void (*w_cb)(struct ssi_device *dev));
++
++Description: Set the read and write callbacks for the SSI channel. This
++function is usually called in the probe function of the SSI protocol driver to
++set completion callbacks for the asynchronous read and write transfer
++
++Parameters:
++	- dev: SSI channel
++	- r_cb: Pointer to a callback function to signal that a read transfer is
++		completed
++	- w_cb: Pointer to a callback function to signal that a write transfer
++		is completed
++
++H) struct ssi_device_driver
++
++Description: Protocol drivers pass this struct to the register_ssi_driver function
++in order to register with the OMAP SSI driver. Among other things it tells the
++OMAP SSI driver which channels the protocol driver wants to allocate for its use
++
++Declaration:
++struct ssi_device_driver {
++	unsigned long		ctrl_mask;
++	unsigned long		ch_mask[SSI_MAX_PORTS];
++	unsigned long		event_mask;
++	void 			(*port_event) (int c_id, unsigned int port,
++						unsigned int event, void *arg);
++	int			(*probe)(struct ssi_device *dev);
++	int			(*remove)(struct ssi_device *dev);
++	int			(*suspend)(struct ssi_device *dev,
++						pm_message_t mesg);
++	int			(*resume)(struct ssi_device *dev);
++	struct device_driver 	driver;
++};
++
++Fields description:
++	ctrl_mask: SSI block ids to use
++	ch_mask[SSI_MAX_PORTS]: SSI channels to use
++	event_mask: SSI events to be notified
++	port_event: Function callback for notifying SSI events
++		   (i.e.: error transfer)
++		Parameters:
++			c_id: SSI Block id which generate the event
++			port: Port number which generate the event
++			event: Event code
++	probe: Probe function
++		Parameters: SSI channel
++	remove: Remove function
++		Parameters: SSI channel
++
++Example:
++
++static struct ssi_device_driver ssi_protocol_driver = {
++	.ctrl_mask = ANY_SSI_CONTROLLER,
++	.ch_mask[0] = CHANNEL(0) | CHANNEL(1),
++	.event_mask = SSI_EVENT_ERROR_MASK,
++	.port_event = port_event_callback,
++	.probe = ssi_proto_probe,
++	.remove = __devexit_p(ssi_proto_remove),
++	.driver = {
++			.name = "ssi_protocol",
++	},
++};
++
++
++III OMAP SSI platform_device
++----------------------------
++
++You can find a example of how to define an SSI platform device in:
++
++Documentation/arm/OMAP/ssi/board-ssi.c.example
++
++=================================================
++Contact: Carlos Chinea <carlos.chinea@nokia.com>
++Copyright (C) 2008 Nokia Corporation.
 -- 
 1.5.3.6
 
