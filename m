@@ -1,45 +1,122 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] i2c: change twl4030-usb back to subsys_initcall
-Date: Fri, 3 Oct 2008 16:28:32 +0300
-Message-ID: <20081003132830.GL25482@atomide.com>
-References: <200810030136.33838.david-b@pacbell.net> <1223027154-20385-1-git-send-email-felipe.balbi@nokia.com> <132EE04E-D594-4F84-9C2B-D907D3D4CD5E@student.utwente.nl> <20081003120445.GB27798@gandalf.research.nokia.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
+Date: Fri, 03 Oct 2008 16:25:44 +0300
+Message-ID: <1223040344.6118.23.camel@tubuntu>
+References: <19F8576C6E063C45BE387C64729E739403DC1A6A02@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64678 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750721AbYJCNZh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 09:25:37 -0400
-Content-Disposition: inline
-In-Reply-To: <20081003120445.GB27798@gandalf.research.nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:23568 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751118AbYJCN0Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 09:26:25 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403DC1A6A02@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: ext Koen Kooi <k.kooi@student.utwente.nl>, linux-omap@vger.kernel.org
+To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>, "Shah, Hardik" <hardik.shah@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>
 
-* Felipe Balbi <felipe.balbi@nokia.com> [081003 15:05]:
-> On Fri, Oct 03, 2008 at 12:19:33PM +0200, ext Koen Kooi wrote:
-> >
-> > Op 3 okt 2008, om 11:45 heeft Felipe Balbi het volgende geschreven:
-> >
-> >> without it, otg_get/set_transceiver won't be useful and
-> >> twl4030-usb transceiver won't get to musb code.
-> >
-> > Is the 'fix-something' patch still needed, and if yes, why isn't it in l-o 
-> > git yet?
+Hi,
+
+> > -----Original Message-----
+> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> > Sent: Thursday, October 02, 2008 1:55 PM
+> > To: Hiremath, Vaibhav
+> > Cc: Shah, Hardik; linux-omap@vger.kernel.org; video4linux-list@redhat.com
+> > Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
+> > 
+> > Hi Vaibhav,
+> > 
+> > On Wed, 2008-10-01 at 16:21 +0530, ext Hiremath, Vaibhav wrote:
+> > > Tomi,
+> > >
+> > > Have you got a chance to review the DSS library and V4l2 driver which we have posted?
+> > 
+> > Unfortunately not very much. I've been glancing the DSS side of the
+> > driver, but not the v4l side as I don't know much about it.
+> > 
+> > There seems to be awfully lot ifdefs for board/cpu types in the code.
 > 
-> we need that otg_get/set_transceiver call, yes. But those are omap
-> specifc. there's a patch pending in linux-usb making those calls
-> generic.
+> As far as ifdefs are concerned, they are added to take care of OMAP2/3 variants. Especially you will find many instances of CONFIG_ARCH_OMAP3410 and the reason is obvious, OMAP3410 doesn't have VENC. As I have mentioned before, DSS library is designed to support both LCD, TV, and many more.
+
+They make the code unclear. I have divided the functionality to separate
+files, that can easily be left out. So for OMAP3410 I would just disable
+the VENC config option. And then I can test for CONFIG_DSS_VENC, instead
+of OMAP3410 || OMAP2410 || OMAPwhatnot. Of course you can't do this for
+all things, but at least VENC is not one of these.
+
+And all board specific code should, in my opinion, be in board files. I
+don't have any board specific definitions in the DSS driver or the
+LCD/controller drivers. (well, ok, there is something in the DSI driver,
+it's still quite raw).
+
+> > My biased and superficial view of the differences between my DSS and
+> > yours is that:
 > 
-> I'd say we can keep a patch in l-o only untill otg_get/set_transceiver
-> hooks get accepted.
+> Tomi, here I differ from you. There should not be biased opinion. What we are looking here is a good design which will fulfill all our requirements/use case, like LCD, DVI, HDMI and TV for us and DSI, RFBI for you.
+
+Agreed. I was just pointing out that I haven't used enough time to study
+your DSS to really comment on it, and that a coder tends to like his own
+code =).
+
+> > - My implementation is cleaner, better organized and more generic
 > 
-> What say you Tony ?
+> Again, here both of us will be having biased comments to support our own design, so I would prefer not to comment on this. Lets people on the community decide whose design is better.
+> 
+> > - My implementation has support for DSI, SDI, RFBI, L4 updates
+> 
+> DSI, SDI and RFBI are the modes, which we can add anytime to the system depending as per our requirement. 
+> It is again driven by use case; you have use cases for DSI, SDI and RFBI. We have for TV, DVI, HDMI and LCD, so we strongly concentrated on these. 
+> 
+> We can very well add these supports to DSS Library with minimal effort.
 
-Sure, we should keep things working for all the omap users while
-waiting for the necessary stuff to get merged into mainline.
+SDI is quite easy, but I wouldn't say adding RFBI and DSI is minimal
+effort. DSI is quite complex in itself, and the manual update mode
+changes how the DSS has to handle things.
 
-Felipe, just let me know what we need for l-o tree for musb.
+> > - Your implementation has better support for "extra" things like VRFB,
+> > color conversions, alpha etc.
+> > - Your implementation most likely has better power management support.
+> > - And of course what is most visible to the user, my version uses only
+> > framebuffers, and yours uses also v4l2 devices.
+> > 
+> 
+> You really can't deny the V4L2 framework advantages over framebuffer, especially for streaming kind of applications. Looking towards the hardware features OMAP supports; we would really require to have such support/capabilities. Community is also in agreement for the V4L2 interface on OMAP-DSS.
 
-Tony
+Well, I'm not the best one to comment on V4L2 as I don't know much about
+it. But I remember seeing quite negative comments about V4L2 a while ago
+in this or related mail thread, so I'm not yet ready to change to V4L2
+camp.
+
+The best option would be, of course, to have both =).
+
+> Tony/Hans,
+> Your comments would be helpful here.
+> 
+> > As for the future, I have no choice but to keep using my DSS as we need
+> > the features it has. I feel it would be quite a big job to get those in
+> > to your driver. And even if I had a choice, I (unsurprisingly =) think
+> > that my version is better and would stick to it.
+> > 
+> 
+> It's your personal choice to stick to whichever code base you want, I don't want to comment on that. But what I believe is, with your design we are limiting ourselves from supporting most of the features which hardware provides. 
+
+Is the limiting factor here the missing V4L2 interface? Or something in
+the core DSS driver? To my knowledge you can have all the HW features
+supported with framebuffers, even though V4L2 device can perhaps make
+the use easier for some applications.
+
+Well, one thing comes to my mind, and it's sharing the framebuffer
+memory between, for example, display and camera drivers. I believe you
+can do that with V4L2. Something else?
+
+> We can work together to add more support to DSS library.
+
+Sure, I don't really care which version is accepted, as long as we get
+all the features =). So if you see something usable in my code, just
+take it and add to your version.
+
+ Tomi
+
+
