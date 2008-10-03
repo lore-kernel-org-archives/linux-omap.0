@@ -1,161 +1,181 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 07/07] ARM: OMAP2: Fix sparse, checkpatch warnings in OMAP2/3 IRQ code
-Date: Fri,  3 Oct 2008 14:56:49 +0300
-Message-ID: <1223035009-23866-8-git-send-email-tony@atomide.com>
+Subject: [PATCH 03/07] ARM: OMAP2: Use omap_globals for CPU detection for multi-omap
+Date: Fri,  3 Oct 2008 14:56:45 +0300
+Message-ID: <1223035009-23866-4-git-send-email-tony@atomide.com>
 References: <1223035009-23866-1-git-send-email-tony@atomide.com>
  <1223035009-23866-2-git-send-email-tony@atomide.com>
  <1223035009-23866-3-git-send-email-tony@atomide.com>
- <1223035009-23866-4-git-send-email-tony@atomide.com>
- <1223035009-23866-5-git-send-email-tony@atomide.com>
- <1223035009-23866-6-git-send-email-tony@atomide.com>
- <1223035009-23866-7-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63043 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62881 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754706AbYJCLyV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 07:54:21 -0400
-In-Reply-To: <1223035009-23866-7-git-send-email-tony@atomide.com>
+	with ESMTP id S1754219AbYJCLyI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 07:54:08 -0400
+In-Reply-To: <1223035009-23866-3-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-From: Paul Walmsley <paul@pwsan.com>
+This allows to get rid of the ifdefs and will allow simpler
+CPU detection in the future.
 
-Fix sparse warnings in mach-omap2/irq.c. Fix by defining
-intc_bank_write_reg() and intc_bank_read_reg(), and convert INTC module
-register access to use them rather than __raw_{read,write}l.
-
-Also clear up some checkpatch warnings involving includes from asm/
-rather than linux/.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index a0bdf06..4759658 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -13,17 +13,22 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/interrupt.h>
--#include <linux/io.h>
- #include <mach/hardware.h>
- #include <asm/mach/irq.h>
--#include <asm/irq.h>
-+#include <linux/io.h>
-+
-+/* selected INTC register offsets */
-+
-+#define INTC_REVISION		0x0000
-+#define INTC_SYSCONFIG		0x0010
-+#define INTC_SYSSTATUS		0x0014
-+#define INTC_CONTROL		0x0048
-+#define INTC_MIR_CLEAR0		0x0088
-+#define INTC_MIR_SET0		0x008c
-+#define INTC_PENDING_IRQ0	0x0098
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 7342128..bf45ff3 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -18,24 +18,15 @@
  
--#define INTC_REVISION	0x0000
--#define INTC_SYSCONFIG	0x0010
--#define INTC_SYSSTATUS	0x0014
--#define INTC_CONTROL	0x0048
--#define INTC_MIR_CLEAR0	0x0088
--#define INTC_MIR_SET0	0x008c
-+/* Number of IRQ state bits in each MIR register */
-+#define IRQ_BITS_PER_REG	32
+ #include <asm/cputype.h>
  
- /*
-  * OMAP2 has a number of different interrupt controllers, each interrupt
-@@ -42,36 +47,40 @@ static struct omap_irq_bank {
- 	},
- };
++#include <mach/common.h>
+ #include <mach/control.h>
+ #include <mach/cpu.h>
  
-+/* INTC bank register get/set */
+-#if defined(CONFIG_ARCH_OMAP2420)
+-#define TAP_BASE	IO_ADDRESS(0x48014000)
+-#elif defined(CONFIG_ARCH_OMAP2430)
+-#define TAP_BASE	IO_ADDRESS(0x4900A000)
+-#elif defined(CONFIG_ARCH_OMAP34XX)
+-#define TAP_BASE	IO_ADDRESS(0x4830A000)
+-#endif
++static u32 class;
++static void __iomem *tap_base;
++static u16 tap_prod_id;
+ 
+ #define OMAP_TAP_IDCODE		0x0204
+-#if defined(CONFIG_ARCH_OMAP34XX)
+-#define OMAP_TAP_PROD_ID	0x0210
+-#else
+-#define OMAP_TAP_PROD_ID	0x0208
+-#endif
+-
+ #define OMAP_TAP_DIE_ID_0	0x0218
+ #define OMAP_TAP_DIE_ID_1	0x021C
+ #define OMAP_TAP_DIE_ID_2	0x0220
+@@ -94,18 +85,24 @@ static u32 __init read_tap_reg(int reg)
+ 	 * it means its Cortex r0p0 which is 3430 ES1
+ 	 */
+ 	if ((((cpuid >> 4) & 0xFFF) == 0xC08) && ((cpuid & 0xF) == 0x0)) {
 +
-+static void intc_bank_write_reg(u32 val, struct omap_irq_bank *bank, u16 reg)
++		if (reg == tap_prod_id) {
++			regval = 0x000F00F0;
++			goto out;
++		}
++
+ 		switch (reg) {
+ 		case OMAP_TAP_IDCODE  : regval = 0x0B7AE02F; break;
+ 		/* Making DevType as 0xF in ES1 to differ from ES2 */
+-		case OMAP_TAP_PROD_ID : regval = 0x000F00F0; break;
+ 		case OMAP_TAP_DIE_ID_0: regval = 0x01000000; break;
+ 		case OMAP_TAP_DIE_ID_1: regval = 0x1012d687; break;
+ 		case OMAP_TAP_DIE_ID_2:	regval = 0x00000000; break;
+ 		case OMAP_TAP_DIE_ID_3:	regval = 0x2d2c0000; break;
+ 		}
+ 	} else
+-		regval = __raw_readl(TAP_BASE + reg);
++		regval = __raw_readl(tap_base + reg);
+ 
++out:
+ 	return regval;
+ 
+ }
+@@ -204,7 +201,7 @@ void __init omap2_check_revision(void)
+ 	u8  rev;
+ 
+ 	idcode = read_tap_reg(OMAP_TAP_IDCODE);
+-	prod_id = read_tap_reg(OMAP_TAP_PROD_ID);
++	prod_id = read_tap_reg(tap_prod_id);
+ 	hawkeye = (idcode >> 12) & 0xffff;
+ 	rev = (idcode >> 28) & 0x0f;
+ 	dev_type = (prod_id >> 16) & 0x0f;
+@@ -269,3 +266,13 @@ void __init omap2_check_revision(void)
+ 
+ }
+ 
++void __init omap2_set_globals_tap(struct omap_globals *omap2_globals)
 +{
-+	__raw_writel(val, (__force void __iomem *)(bank->base_reg + reg));
++	class = omap2_globals->class;
++	tap_base = omap2_globals->tap;
++
++	if (class == 0x3430)
++		tap_prod_id = 0x0210;
++	else
++		tap_prod_id = 0x0208;
 +}
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+index 434beae..0843b88 100644
+--- a/arch/arm/plat-omap/common.c
++++ b/arch/arm/plat-omap/common.c
+@@ -248,6 +248,7 @@ static struct omap_globals *omap2_globals;
+ 
+ static void __init __omap2_set_globals(void)
+ {
++	omap2_set_globals_tap(omap2_globals);
+ 	omap2_set_globals_memory(omap2_globals);
+ 	omap2_set_globals_control(omap2_globals);
+ 	omap2_set_globals_prcm(omap2_globals);
+@@ -258,6 +259,7 @@ static void __init __omap2_set_globals(void)
+ #if defined(CONFIG_ARCH_OMAP2420)
+ 
+ static struct omap_globals omap242x_globals = {
++	.class	= OMAP242X_CLASS,
+ 	.tap	= OMAP2_IO_ADDRESS(0x48014000),
+ 	.sdrc	= OMAP2_IO_ADDRESS(OMAP2420_SDRC_BASE),
+ 	.sms	= OMAP2_IO_ADDRESS(OMAP2420_SMS_BASE),
+@@ -276,6 +278,7 @@ void __init omap2_set_globals_242x(void)
+ #if defined(CONFIG_ARCH_OMAP2430)
+ 
+ static struct omap_globals omap243x_globals = {
++	.class	= OMAP243X_CLASS,
+ 	.tap	= OMAP2_IO_ADDRESS(0x4900a000),
+ 	.sdrc	= OMAP2_IO_ADDRESS(OMAP243X_SDRC_BASE),
+ 	.sms	= OMAP2_IO_ADDRESS(OMAP243X_SMS_BASE),
+@@ -294,6 +297,7 @@ void __init omap2_set_globals_243x(void)
+ #if defined(CONFIG_ARCH_OMAP3430)
+ 
+ static struct omap_globals omap343x_globals = {
++	.class	= OMAP343X_CLASS,
+ 	.tap	= OMAP2_IO_ADDRESS(0x4830A000),
+ 	.sdrc	= OMAP2_IO_ADDRESS(OMAP343X_SDRC_BASE),
+ 	.sms	= OMAP2_IO_ADDRESS(OMAP343X_SMS_BASE),
+diff --git a/arch/arm/plat-omap/include/mach/common.h b/arch/arm/plat-omap/include/mach/common.h
+index 515c628..ef70e2b 100644
+--- a/arch/arm/plat-omap/include/mach/common.h
++++ b/arch/arm/plat-omap/include/mach/common.h
+@@ -50,6 +50,7 @@ static inline int omap_register_i2c_bus(int bus_id, u32 clkrate,
+ 
+ /* IO bases for various OMAP processors */
+ struct omap_globals {
++	u32		class;		/* OMAP class to detect */
+ 	void __iomem	*tap;		/* Control module ID code */
+ 	void __iomem	*sdrc;		/* SDRAM Controller */
+ 	void __iomem	*sms;		/* SDRAM Memory Scheduler */
+@@ -63,6 +64,7 @@ void omap2_set_globals_243x(void);
+ void omap2_set_globals_343x(void);
+ 
+ /* These get called from omap2_set_globals_xxxx(), do not call these */
++void omap2_set_globals_tap(struct omap_globals *);
+ void omap2_set_globals_memory(struct omap_globals *);
+ void omap2_set_globals_control(struct omap_globals *);
+ void omap2_set_globals_prcm(struct omap_globals *);
+diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
+index 05aee0e..e046418 100644
+--- a/arch/arm/plat-omap/include/mach/cpu.h
++++ b/arch/arm/plat-omap/include/mach/cpu.h
+@@ -346,9 +346,14 @@ IS_OMAP_TYPE(3430, 0x3430)
+ 		get_sil_revision(system_rev)
+ 
+ /* Various silicon macros defined here */
++#define OMAP242X_CLASS		0x24200000
+ #define OMAP2420_REV_ES1_0	0x24200000
+ #define OMAP2420_REV_ES2_0	0x24201000
 +
-+static u32 intc_bank_read_reg(struct omap_irq_bank *bank, u16 reg)
-+{
-+	return __raw_readl((__force void __iomem *)(bank->base_reg + reg));
-+}
++#define OMAP243X_CLASS		0x24300000
+ #define OMAP2430_REV_ES1_0	0x24300000
 +
- /* XXX: FIQ and additional INTC support (only MPU at the moment) */
- static void omap_ack_irq(unsigned int irq)
- {
--	__raw_writel(0x1, irq_banks[0].base_reg + INTC_CONTROL);
-+	intc_bank_write_reg(0x1, &irq_banks[0], INTC_CONTROL);
- }
- 
- static void omap_mask_irq(unsigned int irq)
- {
--	int offset = (irq >> 5) << 5;
-+	int offset = irq & (~(IRQ_BITS_PER_REG - 1));
- 
--	if (irq >= 64) {
--		irq %= 64;
--	} else if (irq >= 32) {
--		irq %= 32;
--	}
-+	irq &= (IRQ_BITS_PER_REG - 1);
- 
--	__raw_writel(1 << irq, irq_banks[0].base_reg + INTC_MIR_SET0 + offset);
-+	intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_SET0 + offset);
- }
- 
- static void omap_unmask_irq(unsigned int irq)
- {
--	int offset = (irq >> 5) << 5;
-+	int offset = irq & (~(IRQ_BITS_PER_REG - 1));
- 
--	if (irq >= 64) {
--		irq %= 64;
--	} else if (irq >= 32) {
--		irq %= 32;
--	}
-+	irq &= (IRQ_BITS_PER_REG - 1);
- 
--	__raw_writel(1 << irq, irq_banks[0].base_reg + INTC_MIR_CLEAR0 + offset);
-+	intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_CLEAR0 + offset);
- }
- 
- static void omap_mask_ack_irq(unsigned int irq)
-@@ -91,20 +100,20 @@ static void __init omap_irq_bank_init_one(struct omap_irq_bank *bank)
- {
- 	unsigned long tmp;
- 
--	tmp = __raw_readl(bank->base_reg + INTC_REVISION) & 0xff;
-+	tmp = intc_bank_read_reg(bank, INTC_REVISION) & 0xff;
- 	printk(KERN_INFO "IRQ: Found an INTC at 0x%p "
- 			 "(revision %ld.%ld) with %d interrupts\n",
- 			 bank->base_reg, tmp >> 4, tmp & 0xf, bank->nr_irqs);
- 
--	tmp = __raw_readl(bank->base_reg + INTC_SYSCONFIG);
-+	tmp = intc_bank_read_reg(bank, INTC_SYSCONFIG);
- 	tmp |= 1 << 1;	/* soft reset */
--	__raw_writel(tmp, bank->base_reg + INTC_SYSCONFIG);
-+	intc_bank_write_reg(tmp, bank, INTC_SYSCONFIG);
- 
--	while (!(__raw_readl(bank->base_reg + INTC_SYSSTATUS) & 0x1))
-+	while (!(intc_bank_read_reg(bank, INTC_SYSSTATUS) & 0x1))
- 		/* Wait for reset to complete */;
- 
- 	/* Enable autoidle */
--	__raw_writel(1 << 0, bank->base_reg + INTC_SYSCONFIG);
-+	intc_bank_write_reg(1 << 0, bank, INTC_SYSCONFIG);
- }
- 
- void __init omap_init_irq(void)
-@@ -117,7 +126,8 @@ void __init omap_init_irq(void)
- 		struct omap_irq_bank *bank = irq_banks + i;
- 
- 		if (cpu_is_omap24xx())
--			bank->base_reg = IO_ADDRESS(OMAP24XX_IC_BASE);
-+			bank->base_reg = OMAP2_IO_ADDRESS(OMAP24XX_IC_BASE);
-+
- 		omap_irq_bank_init_one(bank);
- 
- 		nr_irqs += bank->nr_irqs;
++#define OMAP343X_CLASS		0x34300000
+ #define OMAP3430_REV_ES1_0	0x34300000
+ #define OMAP3430_REV_ES2_0	0x34301000
+ #define OMAP3430_REV_ES2_1	0x34302000
