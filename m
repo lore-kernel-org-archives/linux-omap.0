@@ -1,38 +1,53 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH] usb: add back otg_get_transceiver
-Date: Sat, 4 Oct 2008 02:56:39 +0300
-Message-ID: <20081003235637.GI10743@frodo>
-References: <1223043350-17588-1-git-send-email-felipe.balbi@nokia.com> <20081003143132.GG6251@atomide.com> <e5e6ade50810031304x6aa4a6dfj5b92e730221d85f1@mail.gmail.com>
-Reply-To: me@felipebalbi.com
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [patch 2.6.27-rc7-omap1-git 1/2] twl4030-core: move to drivers/mfd
+Date: Fri, 3 Oct 2008 17:00:37 -0700
+Message-ID: <200810031700.38008.david-b@pacbell.net>
+References: <200810011947.55057.david-b@pacbell.net> <200810031516.32367.david-b@pacbell.net> <e5e6ade50810031631q59e527b7ke0e8787a857165f2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:57165 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753264AbYJCX5D (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 19:57:03 -0400
+Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:34868 "HELO
+	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753352AbYJDAAk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2008 20:00:40 -0400
+In-Reply-To: <e5e6ade50810031631q59e527b7ke0e8787a857165f2@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <e5e6ade50810031304x6aa4a6dfj5b92e730221d85f1@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Nathan Monson <nmonson@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Oct 03, 2008 at 01:04:27PM -0700, Nathan Monson wrote:
-> On Fri, Oct 3, 2008 at 7:31 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Felipe Balbi <felipe.balbi@nokia.com> [081003 17:18]:
-> >> make twl4030_usb transceiver reach musb.
+On Friday 03 October 2008, Nathan Monson wrote:
+> > =A0http://marc.info/?l=3Dlinux-omap&m=3D122297833314280&w=3D2
 > >
-> > Pushed until you have something in mainline.
-> 
-> Now that this is in linux-omap git, my BeagleBoard no longer boots due
-> to a null dereference in musb_platform_init (*x).
-> 
-> Applying "i2c: change twl4030-usb back to subsys_initcall" from
-> earlier today allows the kernel to boot.
+> > commenting on the issue I noted when I posted this patch;
+> > showing how I work around that specific I2C error. =A0It'd
+> > likely work for you too.
+>=20
+> Thanks for pointing this out. =A0The retry patch earlier in the threa=
+d
+> fixes the problem.
+>=20
+> On 5 test boots I received the "i2c_omap i2c_omap.1: controller timed
+> out" message all 5 times, but it recovers and seems to work fine.
 
-expected behavior without that patch applied. musb tries to get a
-transceiver that doesn't exist yet since twl4030 is probing after musb.
+That's good news.
 
--- 
-balbi
+Now, I'll hope someone more in touch with the I2C hardware
+can take a look at drivers/i2c/busses/i2c-omap.c and suggest
+some way to stop getting this error ... nice that it's rather
+reproducible, if one were to debug it!
+
+As I noted in the message above, I see this error in other
+cases too.  All of them "of course" should be made to handle
+such faults better.  But virtually nothing in the I2C stack
+does sane fault handling, so we also need the i2c-omap code
+to stop misbehaving.
+
+- Dave
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
