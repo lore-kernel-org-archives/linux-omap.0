@@ -1,92 +1,46 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: [PATCH] OMAP: Increase VMALLOC_END to allow 256MB RAM
-Date: Sat, 4 Oct 2008 11:38:55 +0200
-Message-ID: <04C4B3A9-6FEA-4141-BDAB-74C7274301BC@student.utwente.nl>
-References: <1222936611-19084-1-git-send-email-mans@mansr.com> <87d4ijwdje.fsf@deeprootsystems.com>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-11--7199887"
+From: twebb <taliaferro62@gmail.com>
+Subject: Re: [PATCH 0/0] Add minimal omap34xx support
+Date: Sat, 4 Oct 2008 08:42:18 -0400
+Message-ID: <dbdb2ea60810040542n377bafc9sabec371c294e4151@mail.gmail.com>
+References: <1223035779-26306-1-git-send-email-tony@atomide.com>
+	 <dbdb2ea60810030852h67b898a8p13b716f2e6c746e6@mail.gmail.com>
+	 <20081004070534.GB30190@muru.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx2.utsp.utwente.nl ([130.89.2.13]:34438 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752173AbYJDJjE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 4 Oct 2008 05:39:04 -0400
-Received: from [172.20.1.5] (vpn006014.vpn.utwente.nl [130.89.6.14])
-          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id m949cvI2025185
-          for <linux-omap@vger.kernel.org>; Sat, 4 Oct 2008 11:38:58 +0200
-In-Reply-To: <87d4ijwdje.fsf@deeprootsystems.com>
+Received: from wa-out-1112.google.com ([209.85.146.183]:45599 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750815AbYJDMmV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Oct 2008 08:42:21 -0400
+Received: by wa-out-1112.google.com with SMTP id v27so1024689wah.21
+        for <linux-omap@vger.kernel.org>; Sat, 04 Oct 2008 05:42:19 -0700 (PDT)
+In-Reply-To: <20081004070534.GB30190@muru.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, david-b@pacbell.net
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-11--7199887
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
-
-
-Op 2 okt 2008, om 11:29 heeft Kevin Hilman het volgende geschreven:
-
-> Mans Rullgard <mans@mansr.com> writes:
 >
->> This increases VMALLOC_END to 0x18000000, making room for 256MB
->> RAM with the default 128MB vmalloc region.
->>
->> Signed-off-by: Mans Rullgard <mans@mansr.com>
->> ---
->> arch/arm/plat-omap/include/mach/vmalloc.h |    2 +-
->> 1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/include/mach/vmalloc.h b/arch/arm/ 
->> plat-omap/include/mach/vmalloc.h
->> index d8515cb..b97dfaf 100644
->> --- a/arch/arm/plat-omap/include/mach/vmalloc.h
->> +++ b/arch/arm/plat-omap/include/mach/vmalloc.h
->> @@ -17,5 +17,5 @@
->>  * along with this program; if not, write to the Free Software
->>  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  
->> 02111-1307 USA
->>  */
->> -#define VMALLOC_END	  (PAGE_OFFSET + 0x17000000)
->> +#define VMALLOC_END	  (PAGE_OFFSET + 0x18000000)
+> Yeah there is active development going on in linux-omap mailing list
+> for the EVMs too. And Mistral's older 5912OSK is probably the best
+> supported omap board in the mainline kernel.
 >
-> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+> Basically adding new boards is just a question of adding the board-*.c
+> file, and .config for the drivers to include. Some board of course
+> have custom devices too.
 >
-> I have a similar patch locally, but the problem I currently have with
-> it is that there is no longer any hole between vmalloc space and the
-> beginning of IO space (the first virtual mappings start at
-> 0xd8000000.)
+> Anyways, we'll add more boards to the mainline kernel later on, but
+> first we have to get the the minimal omap3 support working with
+> mainline kernel.
 >
-> It's a bit unsafe, but IMO it's is probably OK for the short term.
-> Longer term I think the virtual address space of the OMAP kernels
-> needs to be reworked.  It currenly just maps directly onto the
-> physical address space, which makes the IO_ADDRESS() conversion macros
-> simple, but leaves lots of wasted space in the virtual address space.
 
-I was told that omap3 support 512MB of ram, so is it possible to  
-account for that as well, or can we revisit that when the actual LP- 
-DDR become available?
+I'm not really looking for OMAP35x EVM support in mainline, but in l-o
+git.  And it seems like that's where it's not often mentioned/tested
+against - but beagle, zoom, overo are.  In looking for 35x support, is
+it wrong to focus on l-o git instead of mainline?  Won't support
+always be in l-o first?
 
-regards,
-
-Koen
-
-
-
-
---Apple-Mail-11--7199887
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: This is a digitally signed message part
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFI5zmxMkyGM64RGpERAk9eAKCJ303hTrcdW1AfURl/sqFjklBvTwCgs7tV
-CjBPM2dXH/ztebXzAkOO+oQ=
-=8H0B
------END PGP SIGNATURE-----
-
---Apple-Mail-11--7199887--
+Thanks,
+twebb
