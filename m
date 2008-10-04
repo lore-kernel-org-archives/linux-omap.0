@@ -1,38 +1,33 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/5] Fix sections for omap-mcbsp platform driver
-Date: Sat, 4 Oct 2008 15:33:08 +0100
-Message-ID: <20081004143308.GA16636@flint.arm.linux.org.uk>
-References: <1222262955-13599-1-git-send-email-tony@atomide.com> <1222262955-13599-2-git-send-email-tony@atomide.com> <20080924134736.GR5222@atomide.com>
+Subject: Re: [PATCH 2/5] ARM: OMAP: Allocate McBSP devices dynamically
+Date: Sat, 4 Oct 2008 15:33:16 +0100
+Message-ID: <20081004143316.GB16636@flint.arm.linux.org.uk>
+References: <1222262955-13599-1-git-send-email-tony@atomide.com> <1222262955-13599-2-git-send-email-tony@atomide.com> <1222262955-13599-3-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48930 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48933 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753006AbYJDOdY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Oct 2008 10:33:24 -0400
+	with ESMTP id S1753011AbYJDOda (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Oct 2008 10:33:30 -0400
 Content-Disposition: inline
-In-Reply-To: <20080924134736.GR5222@atomide.com>
+In-Reply-To: <1222262955-13599-3-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <ukleinek@strlen.de>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Chandra Shekhar <x0044955@ti.com>
 
-On Wed, Sep 24, 2008 at 04:47:36PM +0300, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [080924 16:29]:
-> > From: Uwe Kleine-K=F6nig <ukleinek@strlen.de>
-> >=20
-> > 	echo -n omap-mcbsp.1 > /sys/bus/platform/driver/omap-mcbsp/unbind
-> > 	echo -n omap-mcbsp.1 > /sys/bus/platform/driver/omap-mcbsp/bind
-> >=20
-> > While at it move the remove function to the .devexit.text section.
->=20
-> Looks like I managed to trash the subject on this one, here's a fixed
-> version.
+On Wed, Sep 24, 2008 at 04:29:12PM +0300, Tony Lindgren wrote:
+> From: Chandra Shekhar <x0044955@ti.com>
+> 
+> Based on Chandra's earlier patches in linux-omap tree.
+> 
+> Note that omap1_mcbsp_check and omap2_mcbsp_check are no longer
+> needed as there's now omap_mcbsp_check_valid_id() defined.
+> 
+> Also some functions can now be marked __init.
+> 
+> Signed-off-by: Chandra Shekhar <x0044955@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
 Ok.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
