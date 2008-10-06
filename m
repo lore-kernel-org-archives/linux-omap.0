@@ -1,71 +1,48 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [patch twl 1/2] remove <linux/i2c/twl4030-rtc.h>
-Date: Mon, 06 Oct 2008 17:57:14 +0300
-Message-ID: <87hc7pvkj9.fsf@deeprootsystems.com>
-References: <200810012342.50866.david-b@pacbell.net>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] alsa: add Beagleboard SoC configuration.
+Date: Mon, 6 Oct 2008 09:09:24 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0810060906140.354@utopia.booyaka.com>
+References: <1221597643-29601-1-git-send-email-felipe.contreras@gmail.com> <200810032334.04565.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.191]:36316 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752649AbYJFO5X (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 10:57:23 -0400
-Received: by fk-out-0910.google.com with SMTP id 18so2312125fkq.5
-        for <linux-omap@vger.kernel.org>; Mon, 06 Oct 2008 07:57:21 -0700 (PDT)
-In-Reply-To: <200810012342.50866.david-b@pacbell.net> (David Brownell's message of "Wed\, 1 Oct 2008 23\:42\:50 -0700")
+Received: from utopia.booyaka.com ([72.9.107.138]:36043 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752545AbYJFPJT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 11:09:19 -0400
+In-Reply-To: <200810032334.04565.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org
 
-David Brownell <david-b@pacbell.net> writes:
+Hi David,
 
-> From: David Brownell <dbrownell@users.sourceforge.net>
->
-> Remove <linux/i2c/twl4030-rtc.h> by moving all the relevant contents
-> into the driver itself, and removing the rest.  Stuff removed included
-> many useless bitmasks, and remnants of the platform data hook.
->
-> Add markers inside the rtc driver to split sections apart:  first
-> data structure declarations, then the RTC driver, then platform bus
-> glue for it all.
->
-> There's still an issue with the twl4030-pwrirq.h registers ... this
-> driver has no business touching them!  This patch at least switches
-> away from having private versions of those register definitions, and
-> removes some unnecessary accesses to them.
->
-> No functional changes, just shrinkage.
->
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+On Fri, 3 Oct 2008, David Brownell wrote:
 
-In addition, remove the #include of twl4030-rtc.h from board-3430sdp.c
+> On Tuesday 16 September 2008, Felipe Contreras wrote:
+> > This is exactly the same as the overo configuration. It might make sense
+> > to have them in a single one.
+> 
+> I got a hard lockup (no timer ticking), no blinkenlights, etc ...
+> doesn't look like the issue is *this* driver.
 
-Kevin
+...
+
+> [ INFO: possible recursive locking detected ]
+> 2.6.27-rc8-omap1 #174
+> ---------------------------------------------
+> aplay/1816 is trying to acquire lock:
+>  (clockfw_lock){....}, at: [<c0036be4>] clk_enable+0x24/0x70
+> 
+> but task is already holding lock:
+>  (clockfw_lock){....}, at: [<c0036be4>] clk_enable+0x24/0x70
+
+Yeah, the code that's in that driver is broken.  The driver 
+sets up a custom clk_enable() function that calls clk_enable() again.  And 
+clk_enable() takes clockfw_lock.
+
+The omap_clk_associate() code should resolve this problem.
 
 
->From aa394ce81d3c63f64ae27e89c2588950aaee2995 Mon Sep 17 00:00:00 2001
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Date: Mon, 6 Oct 2008 17:52:43 +0300
-Subject: [PATCH] ARM: OMAP3: Remove include of removed twl4030-rtc.h
-
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/board-3430sdp.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 4264b68..56f28ae 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -40,7 +40,6 @@
- #include <mach/keypad.h>
- #include <mach/dma.h>
- #include <mach/gpmc.h>
--#include <linux/i2c/twl4030-rtc.h>
- 
- #include <asm/io.h>
- #include <asm/delay.h>
--- 
-1.6.0
-
+- Paul
