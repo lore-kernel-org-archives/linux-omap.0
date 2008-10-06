@@ -1,40 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/10] HDQ driver: Remove global pointer
-Date: Mon, 6 Oct 2008 13:31:08 +0300
-Message-ID: <20081006103106.GC2806@atomide.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC8EAA@dbde02.ent.ti.com> <20080925114057.GB31477@2ka.mipt.ru> <20081006091705.GA2806@atomide.com> <20081006093538.GA18359@2ka.mipt.ru>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [PATCH] omap: mmc: fix compile breakage on board-n800-mmc.c
+Date: Mon, 6 Oct 2008 13:32:27 +0300
+Message-ID: <20081006133227.8fd5e001.jarkko.nikula@nokia.com>
+References: <1223284162-7511-1-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50601 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752374AbYJFK2R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 06:28:17 -0400
-Content-Disposition: inline
-In-Reply-To: <20081006093538.GA18359@2ka.mipt.ru>
+Received: from smtp.nokia.com ([192.100.122.233]:52220 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752718AbYJFKcy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 06:32:54 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m96AWaiZ015934
+	for <linux-omap@vger.kernel.org>; Mon, 6 Oct 2008 13:32:51 +0300
+In-Reply-To: <1223284162-7511-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
+To: ext Felipe Balbi <felipe.balbi@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-* Evgeniy Polyakov <johnpol@2ka.mipt.ru> [081006 12:36]:
-> Hi.
+On Mon,  6 Oct 2008 12:09:22 +0300
+"ext Felipe Balbi" <felipe.balbi@nokia.com> wrote:
+
+> Commit 81d2c7d87a9c1eb724788fce7312922effa1b1ae broke
+> compilation of board-n800-mmc.c, this patch fixes it.
 > 
-> On Mon, Oct 06, 2008 at 12:17:06PM +0300, Tony Lindgren (tony@atomide.com) wrote:
-> > Great, pushing to linux-omap tree.
-> > 
-> > Evgeniy, are these already in your queue for upstream?
+> Still n810 doesn't boot anymore with current linux-omap.
+> Will look into that soon.
 > 
-> Not really, since I do not follow omap tree and will not be able to
-> handle dependency there. Please push w1 part when appropriate changes in
-> the arch tree are ready.
+> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> ---
+>  arch/arm/mach-omap2/board-n800-mmc.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
+> 
+Heh, I did the very same patch already last week :-)
 
-* Madhusudhan Chikkature <madhu.cr@ti.com> [081006 12:38]:
->
-> These patches are against the L-o tree. We need to send the complete
-driver patches against the LKML kernel tree to Evgeniy.
+http://marc.info/?l=linux-omap&m=122286380121424&w=2
 
-OK, Madhu, can you please do the patches against the mainline kernel
-for Evgeniy?
+I'm not sure but I think N810 was booting then. Or I was using N800.
 
-Tony
+
+Jarkko
