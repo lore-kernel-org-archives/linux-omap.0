@@ -1,44 +1,184 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: [PATCH] omap: mmc: fix compile breakage on board-n800-mmc.c
-Date: Mon, 6 Oct 2008 13:32:27 +0300
-Message-ID: <20081006133227.8fd5e001.jarkko.nikula@nokia.com>
-References: <1223284162-7511-1-git-send-email-felipe.balbi@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] OMAP3: Update USBHOST pinmux settings
+Date: Mon, 6 Oct 2008 13:39:29 +0300
+Message-ID: <20081006103928.GD2806@atomide.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02D603E114@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:52220 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752718AbYJFKcy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 06:32:54 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m96AWaiZ015934
-	for <linux-omap@vger.kernel.org>; Mon, 6 Oct 2008 13:32:51 +0300
-In-Reply-To: <1223284162-7511-1-git-send-email-felipe.balbi@nokia.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57439 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752850AbYJFKgd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 06:36:33 -0400
+Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02D603E114@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Felipe Balbi <felipe.balbi@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Brownell <david-b@pacbell.net>
 
-On Mon,  6 Oct 2008 12:09:22 +0300
-"ext Felipe Balbi" <felipe.balbi@nokia.com> wrote:
+* Gadiyar, Anand <gadiyar@ti.com> [080930 18:19]:
+> From: Anand Gadiyar <gadiyar@ti.com>
+> 
+> Add pin-mux settings for OHCI in PHY mode.
+> Also change settings for EHCI in TLL mode.
 
-> Commit 81d2c7d87a9c1eb724788fce7312922effa1b1ae broke
-> compilation of board-n800-mmc.c, this patch fixes it.
-> 
-> Still n810 doesn't boot anymore with current linux-omap.
-> Will look into that soon.
-> 
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+Pushing to linux-omap, and will also merge in to the minimal 34xx
+support patch for mainline.
+
+Tony
+
+> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 > ---
->  arch/arm/mach-omap2/board-n800-mmc.c |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
+> Fixed comments below. Also fixed one pin that should
+> have been marked output, but was wrongly marked input.
 > 
-Heh, I did the very same patch already last week :-)
-
-http://marc.info/?l=linux-omap&m=122286380121424&w=2
-
-I'm not sure but I think N810 was booting then. Or I was using N800.
-
-
-Jarkko
+>  arch/arm/mach-omap2/mux.c             |   67 +++++++++++++++++++++++++++-------
+>  arch/arm/plat-omap/include/mach/mux.h |   26 ++++++++++++-
+>  2 files changed, 80 insertions(+), 13 deletions(-)
+> 
+> Index: tony/arch/arm/mach-omap2/mux.c
+> ===================================================================
+> --- tony.orig/arch/arm/mach-omap2/mux.c	2008-09-26 22:53:19.000000000 +0530
+> +++ tony/arch/arm/mach-omap2/mux.c	2008-09-30 20:37:42.572206850 +0530
+> @@ -298,13 +298,13 @@ MUX_CFG_34XX("T2_3430_USB2HS_PHY_D7", 0x
+>  
+>  /* TLL - HSUSB: 12-pin TLL Port 1*/
+>  MUX_CFG_34XX("Y8_3430_USB1HS_TLL_CLK", 0x5da,
+> -		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
+> -MUX_CFG_34XX("Y9_3430_USB1HS_TLL_STP", 0x5d8,
+>  		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("Y9_3430_USB1HS_TLL_STP", 0x5d8,
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLUP)
+>  MUX_CFG_34XX("AA14_3430_USB1HS_TLL_DIR", 0x5ec,
+> -		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("AA11_3430_USB1HS_TLL_NXT", 0x5ee,
+> -		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("W13_3430_USB1HS_TLL_D0", 0x5dc,
+>  		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("W12_3430_USB1HS_TLL_D1", 0x5de,
+> @@ -324,13 +324,13 @@ MUX_CFG_34XX("Y13_3430_USB1HS_TLL_D7", 0
+>  
+>  /* TLL - HSUSB: 12-pin TLL Port 2*/
+>  MUX_CFG_34XX("AA8_3430_USB2HS_TLL_CLK", 0x5f0,
+> -		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
+> -MUX_CFG_34XX("AA10_3430_USB2HS_TLL_STP", 0x5f2,
+>  		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AA10_3430_USB2HS_TLL_STP", 0x5f2,
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLUP)
+>  MUX_CFG_34XX("AA9_3430_USB2HS_TLL_DIR", 0x5f4,
+> -		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("AB11_3430_USB2HS_TLL_NXT", 0x5f6,
+> -		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("AB10_3430_USB2HS_TLL_D0", 0x5f8,
+>  		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("AB9_3430_USB2HS_TLL_D1", 0x5fa,
+> @@ -350,13 +350,13 @@ MUX_CFG_34XX("T2_3430_USB2HS_TLL_D7", 0x
+>  
+>  /* TLL - HSUSB: 12-pin TLL Port 3*/
+>  MUX_CFG_34XX("AA6_3430_USB3HS_TLL_CLK", 0x180,
+> -		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
+> -MUX_CFG_34XX("AB3_3430_USB3HS_TLL_STP", 0x166,
+>  		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AB3_3430_USB3HS_TLL_STP", 0x166,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLUP)
+>  MUX_CFG_34XX("AA3_3430_USB3HS_TLL_DIR", 0x168,
+> -		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("Y3_3430_USB3HS_TLL_NXT", 0x16a,
+> -		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("AA5_3430_USB3HS_TLL_D0", 0x186,
+>  		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("Y4_3430_USB3HS_TLL_D1", 0x184,
+> @@ -373,6 +373,49 @@ MUX_CFG_34XX("AA13_3430_USB3HS_TLL_D6", 
+>  		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("AA12_3430_USB3HS_TLL_D7", 0x172,
+>  		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +
+> +/* PHY FSUSB: FS Serial for Port 1 (multiple PHY modes supported) */
+> +MUX_CFG_34XX("AF10_3430_USB1FS_PHY_MM1_RXDP", 0x5d8,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AG9_3430_USB1FS_PHY_MM1_RXDM", 0x5ee,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("W13_3430_USB1FS_PHY_MM1_RXRCV", 0x5dc,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("W12_3430_USB1FS_PHY_MM1_TXSE0", 0x5de,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("W11_3430_USB1FS_PHY_MM1_TXDAT", 0x5e0,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("Y11_3430_USB1FS_PHY_MM1_TXEN_N", 0x5ea,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
+> +
+> +/* PHY FSUSB: FS Serial for Port 2 (multiple PHY modes supported) */
+> +MUX_CFG_34XX("AF7_3430_USB2FS_PHY_MM2_RXDP", 0x5f2,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AH7_3430_USB2FS_PHY_MM2_RXDM", 0x5f6,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AB10_3430_USB2FS_PHY_MM2_RXRCV", 0x5f8,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AB9_3430_USB2FS_PHY_MM2_TXSE0", 0x5fa,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("W3_3430_USB2FS_PHY_MM2_TXDAT", 0x1d4,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("T4_3430_USB2FS_PHY_MM2_TXEN_N", 0x1de,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
+> +
+> +/* PHY FSUSB: FS Serial for Port 3 (multiple PHY modes supported) */
+> +MUX_CFG_34XX("AH3_3430_USB3FS_PHY_MM3_RXDP", 0x166,
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AE3_3430_USB3FS_PHY_MM3_RXDM", 0x16a,
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AD1_3430_USB3FS_PHY_MM3_RXRCV", 0x186,
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AE1_3430_USB3FS_PHY_MM3_TXSE0", 0x184,
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AD2_3430_USB3FS_PHY_MM3_TXDAT", 0x188,
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AC1_3430_USB3FS_PHY_MM3_TXEN_N", 0x18a,
+> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
+> +
+>  };
+>  
+>  #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
+> Index: tony/arch/arm/plat-omap/include/mach/mux.h
+> ===================================================================
+> --- tony.orig/arch/arm/plat-omap/include/mach/mux.h	2008-09-26 22:53:19.000000000 +0530
+> +++ tony/arch/arm/plat-omap/include/mach/mux.h	2008-09-30 20:38:35.290535041 +0530
+> @@ -723,7 +723,31 @@ enum omap34xx_index {
+>  	AB12_3430_USB3HS_TLL_DATA4,
+>  	AB13_3430_USB3HS_TLL_DATA5,
+>  	AA13_3430_USB3HS_TLL_DATA6,
+> -	AA12_3430_USB3HS_TLL_DATA7
+> +	AA12_3430_USB3HS_TLL_DATA7,
+> +
+> +	/* PHY FSUSB: FS Serial for Port 1 (multiple PHY modes supported) */
+> +	AF10_3430_USB1FS_PHY_MM1_RXDP,
+> +	AG9_3430_USB1FS_PHY_MM1_RXDM,
+> +	W13_3430_USB1FS_PHY_MM1_RXRCV,
+> +	W12_3430_USB1FS_PHY_MM1_TXSE0,
+> +	W11_3430_USB1FS_PHY_MM1_TXDAT,
+> +	Y11_3430_USB1FS_PHY_MM1_TXEN_N,
+> +
+> +	/* PHY FSUSB: FS Serial for Port 2 (multiple PHY modes supported) */
+> +	AF7_3430_USB2FS_PHY_MM2_RXDP,
+> +	AH7_3430_USB2FS_PHY_MM2_RXDM,
+> +	AB10_3430_USB2FS_PHY_MM2_RXRCV,
+> +	AB9_3430_USB2FS_PHY_MM2_TXSE0,
+> +	W3_3430_USB2FS_PHY_MM2_TXDAT,
+> +	T4_3430_USB2FS_PHY_MM2_TXEN_N,
+> +
+> +	/* PHY FSUSB: FS Serial for Port 3 (multiple PHY modes supported) */
+> +	AH3_3430_USB3FS_PHY_MM3_RXDP,
+> +	AE3_3430_USB3FS_PHY_MM3_RXDM,
+> +	AD1_3430_USB3FS_PHY_MM3_RXRCV,
+> +	AE1_3430_USB3FS_PHY_MM3_TXSE0,
+> +	AD2_3430_USB3FS_PHY_MM3_TXDAT,
+> +	AC1_3430_USB3FS_PHY_MM3_TXEN_N,
+>  
+>  };
+>  
