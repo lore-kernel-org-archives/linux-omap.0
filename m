@@ -1,54 +1,72 @@
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Subject: Re: [PATCH] OMAP 2/3 V4L2 display driver on video planes
-Date: Mon, 06 Oct 2008 09:41:48 +0100
-Message-ID: <yw1x63o6cdyr.fsf@thrashbarg.mansr.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02D610739F@dbde02.ent.ti.com>
-	<200810060829.25055.hverkuil@xs4all.nl>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM:OMAP2: Add OVERO_GPIO_BT_XGATE to Overo board init
+Date: Mon, 6 Oct 2008 11:45:04 +0300
+Message-ID: <20081006084503.GJ14042@atomide.com>
+References: <5e088bd90809132218g79bb0da8uf1a7befee988263e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <video4linux-list-bounces@redhat.com>
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-To: video4linux-list@redhat.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49771 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751249AbYJFImI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 04:42:08 -0400
+Content-Disposition: inline
+In-Reply-To: <5e088bd90809132218g79bb0da8uf1a7befee988263e@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Steve Sakoman <sakoman@gmail.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
+* Steve Sakoman <sakoman@gmail.com> [080914 08:18]:
+> Drive OVERO_GPIO_BT_XGATE low rather than relying on the pin mux pull
+> down set by U-boot
 
-> On Monday 06 October 2008 08:06:30 Shah, Hardik wrote:
->> 4.  VIDIOC_S/G_OMAP2_COLORKEY:  Color keying allows the pixels with
->> the defined color on the video pipelines to be replaced with the
->> pixels on the graphics pipelines.  I believe similar feature must be
->> available on almost all next generation of video hardware. We can add
->> new ioctl for this feature in V4L2 framework. I think VIDIOC_S_FBUF
->> ioctl is used for setting up the buffer parameters on per buffer
->> basis.  So IMHO this ioctl is not a natural fit for the above
->> functionality. Please provide your comments on same.
->
-> Do I understand correctly that if the color in the *video* streams=20
-> matches the colorkey, then it is replaced by the color in the=20
-> *framebuffer* (aka menu/overlay)? Usually it is the other way around:=20
-> if the framebuffer (menu) has chromakey pixels, then those pixels are=20
-> replaced by pixels from the video stream. That's what the current API=20
-> does.
+Pushing today. Will also merge into the minimal board support patch
+for mainline kernel.
 
-The OMAP3 hardware supports both type of keying, but not
-simultaneously.
+Tony
 
---=20
-M=E5ns Rullg=E5rd
-mans@mansr.com
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
-ibe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
+> Signed-off-by: Steve Sakoman <steve@sakoman.com>
+> ---
+>  arch/arm/mach-omap2/board-overo.c             |    6 ++++++
+>  arch/arm/plat-omap/include/mach/board-overo.h |    1 +
+>  2 files changed, 7 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-overo.c
+> b/arch/arm/mach-omap2/board-overo.c
+> index 396ec33..5c23b4d 100644
+> --- a/arch/arm/mach-omap2/board-overo.c
+> +++ b/arch/arm/mach-omap2/board-overo.c
+> @@ -207,6 +207,12 @@ static void __init overo_init(void)
+>  		printk(KERN_ERR "could not obtain gpio for OVERO_GPIO_W2W_NRESET\n");
+>  	}
+> 
+> +	if ((gpio_request(OVERO_GPIO_BT_XGATE, "OVERO_GPIO_BT_XGATE") == 0) &&
+> +	    (gpio_direction_output(OVERO_GPIO_BT_XGATE, 0) == 0))
+> +		gpio_export(OVERO_GPIO_BT_XGATE, 0);
+> +	else
+> +		printk(KERN_ERR "could not obtain gpio for OVERO_GPIO_BT_XGATE\n");
+> +
+>  	if ((gpio_request(OVERO_GPIO_BT_NRESET, "OVERO_GPIO_BT_NRESET") == 0) &&
+>  	    (gpio_direction_output(OVERO_GPIO_BT_NRESET, 1) == 0)) {
+>  		gpio_export(OVERO_GPIO_BT_NRESET, 0);
+> diff --git a/arch/arm/plat-omap/include/mach/board-overo.h
+> b/arch/arm/plat-omap/include/mach/board-overo.h
+> index b70f22a..7ecae66 100644
+> --- a/arch/arm/plat-omap/include/mach/board-overo.h
+> +++ b/arch/arm/plat-omap/include/mach/board-overo.h
+> @@ -16,6 +16,7 @@
+>  #ifndef __ASM_ARCH_OVERO_H
+>  #define __ASM_ARCH_OVERO_H
+> 
+> +#define OVERO_GPIO_BT_XGATE	15
+>  #define OVERO_GPIO_W2W_NRESET	16
+>  #define OVERO_GPIO_BT_NRESET	164
+>  #define OVERO_GPIO_USBH_CPEN	168
+> -- 
+> 1.5.4.5
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
