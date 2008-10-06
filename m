@@ -1,33 +1,60 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 1/3] [RFC] clk: introduce clk_associate
-Date: Mon, 6 Oct 2008 21:53:08 +0300
-Message-ID: <20081006185305.GC8273@frodo>
-References: <200810010915.46032.david-b@pacbell.net> <200810021350.03739.david-b@pacbell.net> <20081003.092336.243854668.Hiroshi.DOYU@nokia.com> <200810061142.08759.david-b@pacbell.net>
-Reply-To: me@felipebalbi.com
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: Current git head oops'es at boot on Overo
+Date: Mon, 6 Oct 2008 12:53:13 -0700
+Message-ID: <200810061253.13997.david-b@pacbell.net>
+References: <5e088bd90810061126g75ff7768k8fa768751a31e379@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:39476 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752106AbYJFSxc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 14:53:32 -0400
+Received: from smtp128.sbc.mail.sp1.yahoo.com ([69.147.65.187]:20772 "HELO
+	smtp128.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752964AbYJFTxQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 15:53:16 -0400
+In-Reply-To: <5e088bd90810061126g75ff7768k8fa768751a31e379@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <200810061142.08759.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, felipe.balbi@nokia.com, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, khilman@deeprootsystems.com
+To: Steve Sakoman <sakoman@gmail.com>
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-On Mon, Oct 06, 2008 at 11:42:08AM -0700, David Brownell wrote:
-> They're all OMAP-specific drivers.  They can know that they
-> need to ask for both clocks.  If perchance only one of them
-> were actually needed, that would be exceptional ... and the
-> driver should be able to assume the device was properly
-> set up, and continue without it.
+On Monday 06 October 2008, Steve Sakoman wrote:
+> Build is stock 62c36fdd962de2db5d62a326490913f41c442a5c, no additional patches.
+> 
+> Without DEBUG_LL, boot silently fails. With DEBUG_LL, one can see that
+> the failure is due to a NULL pointer dereference in musb.
+> 
+> I suspect that the root cause is related to:
+> 
+> <3>i2c_omap i2c_omap.1: controller timed out
+> <4>twl4030_usb: probe of twl4030_usb failed with error -22
+> 
+> Adding David Brownell's i2c-omap timeout workaround patch eliminates
+> this error
 
-exactly, look at the changes to watchdog driver for an example :-)
-if interface clock fails, we continue anyways since we could be using it
-in an omap1-based board.
+Right.  I'd suggest merging that, except that would provide
+zero incentive to actually fix the i2c-omap problem.
 
--- 
-balbi
+And I *have* seen those timeout errors on other requests...
+
+
+> and the boot then fails on EHCI. 
+> 
+> I disabled EHCI in defconfig and was able to get the boot to complete.
+
+Ditto.  I suspect one of those no-timeout busy-waits is just
+neglecting to complete... :(
+
+
+>  However unlike others, I find that musb is not functional -- and the
+> trick of disconnecting the USB cable and then reconnecting it does not
+> work.
+
+I observed the same thing.  More specifically, no IRQs arrive at
+the twl4030-usb driver.
+
+The *very same kernel* works fine on Beagle... is there something
+different about the USB setup that might explain this?
+
+- Dave
