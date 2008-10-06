@@ -1,212 +1,680 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 3/3] clk: use clk_associate on watchdog driver
-Date: Tue,  7 Oct 2008 01:47:32 +0300
-Message-ID: <1223333252-25687-4-git-send-email-me@felipebalbi.com>
-References: <1223333252-25687-1-git-send-email-me@felipebalbi.com>
- <1223333252-25687-2-git-send-email-me@felipebalbi.com>
- <1223333252-25687-3-git-send-email-me@felipebalbi.com>
+Subject: Re: [RFC][PATCH 1/5] OMAP SSI hardware interface definitions
+Date: Tue, 7 Oct 2008 02:16:17 +0300
+Message-ID: <20081006231552.GD8273@frodo>
+References: <1223034606.32631.156.camel@groo.research.nokia.com> <1223034750-18690-1-git-send-email-carlos.chinea@nokia.com>
+Reply-To: me@felipebalbi.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:55588 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:46433 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754314AbYJFWsS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 18:48:18 -0400
-In-Reply-To: <1223333252-25687-3-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1752442AbYJFXQs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 19:16:48 -0400
+Content-Disposition: inline
+In-Reply-To: <1223034750-18690-1-git-send-email-carlos.chinea@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, Wim Van Sebroeck <wim@iguana.be>
+To: Carlos Chinea <carlos.chinea@nokia.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-From: Felipe Balbi <felipe.balbi@nokia.com>
+On Fri, Oct 03, 2008 at 02:52:26PM +0300, Carlos Chinea wrote:
+> 
+> Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
+> ---
+>  arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h  |  145 ++++++++++++++++++++
+>  .../plat-omap/include/mach/ssi/ssi_reg_common.h    |   73 ++++++++++
+>  arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h  |   56 ++++++++
+>  arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h  |   65 +++++++++
+>  arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h  |  107 ++++++++++++++
+>  5 files changed, 446 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h
+>  create mode 100644 arch/arm/plat-omap/include/mach/ssi/ssi_reg_common.h
+>  create mode 100644 arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h
+>  create mode 100644 arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h
+>  create mode 100644 arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h
+> 
+> diff --git a/arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h b/arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h
+> new file mode 100644
+> index 0000000..5ed91cc
+> --- /dev/null
+> +++ b/arch/arm/plat-omap/include/mach/ssi/ssi_gdd_reg.h
+> @@ -0,0 +1,145 @@
+> +/*
+> + * ssi_gdd_reg.h
+> + *
+> + * Hardware defintions for SSI Controller GDD registers.
+> + *
+> + * HARDWARE: OMAP 2420, OMAP 3430
 
-Get rid of clk mess on omap_watchdog driver by
-using clk_associate.
+This is unnecessary, if we happen to use the same in omap4 we're gonna
+have to update. Please remove.
 
-Cc: Wim Van Sebroeck <wim@iguana.be>
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- Documentation/arm/OMAP/clk_function_name.txt |    4 +
- arch/arm/plat-omap/devices.c                 |   18 ++++--
- drivers/watchdog/omap_wdt.c                  |   87 ++++++++------------------
- 3 files changed, 43 insertions(+), 66 deletions(-)
+> + * Copyright (C) 2007-2008 Nokia Corporation. All rights reserved.
+> + *
+> + * Contact: Carlos Chinea <carlos.chinea@nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + */
+> +#ifndef __SSI_GDD_REG_H__
+> +#define __SSI_GDD_REG_H__
+> +
+> +#include "ssi_reg_common.h"
+> +
+> +#define SSI_GDD_HW_ID_REG		SSI_GDD_REG32(0x0000)
 
-diff --git a/Documentation/arm/OMAP/clk_function_name.txt b/Documentation/arm/OMAP/clk_function_name.txt
-index 0828812..f5ddcc6 100644
---- a/Documentation/arm/OMAP/clk_function_name.txt
-+++ b/Documentation/arm/OMAP/clk_function_name.txt
-@@ -7,3 +7,7 @@ function name given to the clks in omap1, omap2 and omap3.
- Function name		|     OMAP1	|         OMAP2		|      OMAP3
- -------------------------------------------------------------------------------
- musb_ick		|	-	|   osc_ck/usbhs_ick	|   hsotgusb_ick
-+-------------------------------------------------------------------------------
-+wdt_fck			| armwdt_ck	|   mpu_wdt_fck		|   wdt2_fck
-+-------------------------------------------------------------------------------
-+wdt_ick			|	-	|   mpu_wdt_fck		|   wdt2_ick
-diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-index c22bd5f..c1e253c 100644
---- a/arch/arm/plat-omap/devices.c
-+++ b/arch/arm/plat-omap/devices.c
-@@ -298,16 +298,24 @@ static struct platform_device omap_wdt_device = {
- 
- static void omap_init_wdt(void)
- {
--	if (cpu_is_omap16xx())
-+	if (cpu_is_omap16xx()) {
-+		omap_clk_associate("armwdt_ck", &omap_wdt_device.dev, "wdt_fck");
- 		wdt_resources[0].start = 0xfffeb000;
--	else if (cpu_is_omap2420())
-+	} else if (cpu_is_omap2420()) {
-+		omap_clk_associate("mpu_wdt_fck", &omap_wdt_device.dev, "wdt_fck");
-+		omap_clk_associate("mpu_wdt_ick", &omap_wdt_device.dev, "wdt_ick");
- 		wdt_resources[0].start = 0x48022000; /* WDT2 */
--	else if (cpu_is_omap2430())
-+	} else if (cpu_is_omap2430()) {
-+		omap_clk_associate("mpu_wdt_fck", &omap_wdt_device.dev, "wdt_fck");
-+		omap_clk_associate("mpu_wdt_ick", &omap_wdt_device.dev, "wdt_ick");
- 		wdt_resources[0].start = 0x49016000; /* WDT2 */
--	else if (cpu_is_omap343x())
-+	} else if (cpu_is_omap343x()) {
-+		omap_clk_associate("wdt2_fck", &omap_wdt_device.dev, "wdt_fck");
-+		omap_clk_associate("wdt2_ick", &omap_wdt_device.dev, "wdt_ick");
- 		wdt_resources[0].start = 0x48314000; /* WDT2 */
--	else
-+	} else {
- 		return;
-+	}
- 
- 	wdt_resources[0].end = wdt_resources[0].start + 0x4f;
- 
-diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-index 7bcbb7f..e31d7f5 100644
---- a/drivers/watchdog/omap_wdt.c
-+++ b/drivers/watchdog/omap_wdt.c
-@@ -60,9 +60,8 @@ struct omap_wdt_dev {
- 	void __iomem    *base;          /* physical */
- 	struct device   *dev;
- 	int             omap_wdt_users;
--	struct clk      *armwdt_ck;
--	struct clk      *mpu_wdt_ick;
--	struct clk      *mpu_wdt_fck;
-+	struct clk      *ick;
-+	struct clk      *fck;
- 	struct resource *mem;
- 	struct miscdevice omap_wdt_miscdev;
- };
-@@ -146,13 +145,10 @@ static int omap_wdt_open(struct inode *inode, struct file *file)
- 	if (test_and_set_bit(1, (unsigned long *)&(wdev->omap_wdt_users)))
- 		return -EBUSY;
- 
--	if (cpu_is_omap16xx())
--		clk_enable(wdev->armwdt_ck);	/* Enable the clock */
--
--	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
--		clk_enable(wdev->mpu_wdt_ick);    /* Enable the interface clock */
--		clk_enable(wdev->mpu_wdt_fck);    /* Enable the functional clock */
--	}
-+	if (wdev->fck)
-+		clk_enable(wdev->fck);    /* Enable the functional clock */
-+	if (wdev->ick)
-+		clk_enable(wdev->ick);    /* Enable the interface clock */
- 
- 	/* initialize prescaler */
- 	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
-@@ -303,44 +299,20 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
- 	wdev->omap_wdt_users = 0;
- 	wdev->mem = mem;
- 
--	if (cpu_is_omap16xx()) {
--		wdev->armwdt_ck = clk_get(&pdev->dev, "armwdt_ck");
--		if (IS_ERR(wdev->armwdt_ck)) {
--			ret = PTR_ERR(wdev->armwdt_ck);
--			wdev->armwdt_ck = NULL;
--			goto err_clk;
--		}
-+	wdev->fck = clk_get(&pdev->dev, "wdt_fck");
-+	if (IS_ERR(wdev->fck)) {
-+		ret = PTR_ERR(wdev->fck);
-+		wdev->fck = NULL;
-+		goto err_clk;
- 	}
- 
--	if (cpu_is_omap24xx()) {
--		wdev->mpu_wdt_ick = clk_get(&pdev->dev, "mpu_wdt_ick");
--		if (IS_ERR(wdev->mpu_wdt_ick)) {
--			ret = PTR_ERR(wdev->mpu_wdt_ick);
--			wdev->mpu_wdt_ick = NULL;
--			goto err_clk;
--		}
--		wdev->mpu_wdt_fck = clk_get(&pdev->dev, "mpu_wdt_fck");
--		if (IS_ERR(wdev->mpu_wdt_fck)) {
--			ret = PTR_ERR(wdev->mpu_wdt_fck);
--			wdev->mpu_wdt_fck = NULL;
--			goto err_clk;
--		}
-+	wdev->ick = clk_get(&pdev->dev, "wdt_ick");
-+	if (IS_ERR(wdev->ick)) {
-+		ret = PTR_ERR(wdev->ick);
-+		wdev->ick = NULL;
-+		goto err_clk;
- 	}
- 
--	if (cpu_is_omap34xx()) {
--		wdev->mpu_wdt_ick = clk_get(&pdev->dev, "wdt2_ick");
--		if (IS_ERR(wdev->mpu_wdt_ick)) {
--			ret = PTR_ERR(wdev->mpu_wdt_ick);
--			wdev->mpu_wdt_ick = NULL;
--			goto err_clk;
--		}
--		wdev->mpu_wdt_fck = clk_get(&pdev->dev, "wdt2_fck");
--		if (IS_ERR(wdev->mpu_wdt_fck)) {
--			ret = PTR_ERR(wdev->mpu_wdt_fck);
--			wdev->mpu_wdt_fck = NULL;
--			goto err_clk;
--		}
--	}
- 	wdev->base = ioremap(res->start, res->end - res->start + 1);
- 	if (!wdev->base) {
- 		ret = -ENOMEM;
-@@ -380,12 +352,10 @@ err_ioremap:
- 	wdev->base = NULL;
- 
- err_clk:
--	if (wdev->armwdt_ck)
--		clk_put(wdev->armwdt_ck);
--	if (wdev->mpu_wdt_ick)
--		clk_put(wdev->mpu_wdt_ick);
--	if (wdev->mpu_wdt_fck)
--		clk_put(wdev->mpu_wdt_fck);
-+	if (wdev->ick)
-+		clk_put(wdev->ick);
-+	if (wdev->fck)
-+		clk_put(wdev->fck);
- 	kfree(wdev);
- 
- err_kzalloc:
-@@ -417,19 +387,14 @@ static int omap_wdt_remove(struct platform_device *pdev)
- 	release_mem_region(res->start, res->end - res->start + 1);
- 	platform_set_drvdata(pdev, NULL);
- 
--	if (wdev->armwdt_ck) {
--		clk_put(wdev->armwdt_ck);
--		wdev->armwdt_ck = NULL;
--	}
--
--	if (wdev->mpu_wdt_ick) {
--		clk_put(wdev->mpu_wdt_ick);
--		wdev->mpu_wdt_ick = NULL;
-+	if (wdev->ick) {
-+		clk_put(wdev->ick);
-+		wdev->ick = NULL;
- 	}
- 
--	if (wdev->mpu_wdt_fck) {
--		clk_put(wdev->mpu_wdt_fck);
--		wdev->mpu_wdt_fck = NULL;
-+	if (wdev->fck) {
-+		clk_put(wdev->fck);
-+		wdev->fck = NULL;
- 	}
- 	iounmap(wdev->base);
- 
+this is not a good practice, use the correct offsets for all registers
+
+> +#define SSI_GDD_PPORT_ID_REG		SSI_GDD_REG32(0x0010)
+> +#define SSI_GDD_MPORT_ID_REG		SSI_GDD_REG32(0x0014)
+> +
+> +#define SSI_GDD_PPORT_SR_REG		SSI_GDD_REG32(0x0020)
+> +#	define SSI_PPORT_ACTIVE_LCH_NUMBER_MASK	0xFF
+> +
+> +#define SSI_GDD_MPORT_SR_REG		SSI_GDD_REG32(0x0024)
+> +#	define SSI_MPORT_ACTIVE_LCH_NUMBER_MASK	0xFF
+> +
+> +#define SSI_GDD_TEST_REG 		SSI_GDD_REG32(0x0040)
+			   ^ trailing whitespace
+
+> +#	define SSI_TEST			0x1
+> +
+> +#define SSI_GDD_GCR_REG			SSI_GDD_REG32(0x0100)
+> +#	define	SSI_CLK_AUTOGATING_ON	(1<<3)
+					  ^^ add spaces around <<
+
+> +#	define	SSI_FREE		(1<<2)
+> +#	define	SSI_SWITCH_OFF		0x1
+> +
+> +#define SSI_GDD_GRST_REG 		SSI_GDD_REG32(0x0200)
+			   ^ trailing whitespace
+
+> +#	define SSI_SWRESET		0x1
+> +
+> +#define SSI_GDD_CSDP_BASE		0x0800
+> +#define SSI_GDD_CSDP_OFFSET		0x40
+> +#define SSI_GDD_CSDP_REG(channel) 	SSI_GDD_REG16(SSI_GDD_CSDP_BASE +\
+				    ^ trailing whitespace
+> +					 (channel*SSI_GDD_CSDP_OFFSET))
+						 ^ add spaces around *
+
+> +#	define SSI_DST_BURST_EN_MASK	0xC000
+> +#	define SSI_DST_SINGLE_ACCESS0	0x0
+> +#	define SSI_DST_SINGLE_ACCESS	(0x1<<14)
+> +#	define SSI_DST_BURST_4X32_BIT	(0x2<<14)
+> +#	define SSI_DST_BURST_8x32_BIT	(0x3<<14)	/*NOTE: NOT SUPPORTED */
+
+(1 << 14), (2 << 14) and (3 << 14) (up to 9) is enough.	 ^ add a space
+before NOTE
+
+> +
+> +#	define SSI_DST_MASK		0x1E00
+
+make all the hex numbers lower case
+
+> +#	define SSI_DST_MEMORY_PORT	(0x8<<9)
+> +#	define SSI_DST_PERIPHERAL_PORT	(0x9<<9)
+> +
+> +#	define SSI_SRC_BURST_EN_MASK	0x0180
+> +#	define SSI_SRC_SINGLE_ACCESS0	0x0
+> +#	define SSI_SRC_SINGLE_ACCESS	(0x1<<7)
+> +#	define SSI_SRC_BURST_4x32_BIT	(0x2<<7)
+> +#	define SSI_SRC_BURST_8x32_BIT	(0x3<<7)	/*NOTE: NOT SUPPORTED */
+> +
+> +#	define SSI_SRC_MASK		0x003C
+> +#	define SSI_SRC_MEMORY_PORT	(0x8<<2)
+> +#	define SSI_SRC_PERIPHERAL_PORT	(0x9<<2)
+> +
+> +#	define SSI_DATA_TYPE_MASK	0x0003
+> +#	define SSI_DATA_TYPE_S32	0x2
+> +
+> +#define SSI_GDD_CCR_BASE 		0x0802
+			   ^ trailing whitespace
+
+> +#define SSI_GDD_CCR_OFFSET 		0x40
+			     ^ trailing whitespace
+
+> +#define SSI_GDD_CCR_REG(channel)	SSI_GDD_REG16(SSI_GDD_CCR_BASE +\
+> +					 (channel*SSI_GDD_CCR_OFFSET))
+						 ^ missing space
+
+> +#	define SSI_DST_AMODE_MASK	(0x3<<14)
+> +#	define SSI_DST_AMODE_CONST	0x0
+> +#	define SSI_DST_AMODE_POSTINC	(0x1<<12)
+> +
+> +#	define SSI_SRC_AMODE_MASK	(0x3<<12)
+> +#	define SSI_SRC_AMODE_CONST	0x0
+> +#	define SSI_SRC_AMODE_POSTINC	(0x1<<12)
+> +
+> +#	define SSI_CCR_ENABLE		(0x1<<7)
+> +
+> +#	define SSI_CCR_SYNC_MASK	0x001F
+> +
+> +#define SSI_GDD_CICR_BASE 		0x0804
+			    ^ trailing whitespace
+
+> +#define SSI_GDD_CICR_OFFSET		0x40
+> +#define SSI_GDD_CICR_REG(channel)	SSI_GDD_REG16(SSI_GDD_CICR_BASE +\
+> +					 (channel*SSI_GDD_CICR_OFFSET))
+> +#	define SSI_BLOCK_IE		(0x1<<5)
+					(1 << 5)
+
+> +#	define SSI_HALF_IE		(0x1<<2)
+					(1 << 2)
+
+> +#	define SSI_TOUT_IE		0x1
+					(1 << 0)
+
+> +
+> +#define SSI_GDD_CSR_BASE 		0x0806
+			   ^ trailing whitespace
+
+> +#define SSI_GDD_CSR_OFFSET 		0x40
+			     ^ trailing whitespace
+
+> +#define SSI_GDD_CSR_REG(channel)	SSI_GDD_REG16(SSI_GDD_CSR_BASE +\
+> +					 (channel*SSI_GDD_CSR_OFFSET))
+> +#	define SSI_CSR_SYNC		(0x1<<6)
+					(1 << 6)
+
+> +#	define SSI_CSR_BLOCK		(0x1<<5)
+					(1 << 5)
+
+> +#	define SSI_CSR_HALF		(0x1<<2)
+					(1 << 2)
+
+> +#	define SSI_CSR_TOUR		0x1
+> +
+> +#define SSI_GDD_CSSA_BASE 		0x0808
+			    ^ trailing whitespace
+
+> +#define SSI_GDD_CSSA_OFFSET		0x40
+> +#define SSI_GDD_CSSA_REG(channel)	SSI_GDD_REG32(SSI_GDD_CSSA_BASE +\
+> +					 (channel*SSI_GDD_CSSA_OFFSET))
+						 ^ missing space
+> +
+> +#define SSI_GDD_CDSA_BASE 		0x080C
+			    ^ trailing whitespace
+
+> +#define SSI_GDD_CDSA_OFFSET		0x40
+> +#define SSI_GDD_CDSA_REG(channel)	SSI_GDD_REG32(SSI_GDD_CDSA_BASE +\
+> +					 (channel*SSI_GDD_CDSA_OFFSET))
+						 ^ missing space
+
+> +
+> +#define SSI_GDD_CEN_BASE		0x0810
+> +#define SSI_GDD_CEN_OFFSET		0x40
+> +#define SSI_GDD_CEN_REG(channel)	SSI_GDD_REG16(SSI_GDD_CEN_BASE +\
+> +					 (channel*SSI_GDD_CEN_OFFSET))
+						 ^ missing space
+
+> +
+> +#define SSI_GDD_CSAC_BASE 		0x0818
+			    ^ trailing whitespace
+
+> +#define SSI_GDD_CSAC_OFFSET		0x40
+> +#define SSI_GDD_CSAC_REG(channel) 	SSI_GDD_REG16(SSI_GDD_CSAC_BASE +\
+				    ^ trailing whitespace
+
+> +					 (channel*SSI_GDD_CSAC_OFFSET))
+						 ^ missing space
+
+> +
+> +#define SSI_GDD_CDAC_BASE 		0x081A
+			    ^ trailing whitespace
+
+> +#define SSI_GDD_CDAC_OFFSET		0x40
+> +#define SSI_GDD_CDAC_REG(channel) 	SSI_GDD_REG16(SSI_GDD_CDAC_BASE +\
+				    ^ trailing whitespace
+
+> +					 (channel*SSI_GDD_CDAC_OFFSET))
+						 ^ missing space
+> +
+> +#define SSI_GDD_CLNK_CTRL_BASE		0x0828
+> +#define SSI_GDD_CLNK_CTRL_OFFSET	0x40
+> +#define SSI_GDD_CLNK_CTRL_REG(channel)	SSI_GDD_REG16(SSI_GDD_CLNK_CTRL_BASE +\
+> +					 (channel*SSI_GDD_CLNK_CTRL_OFFSET))
+						 ^ missing space
+> +#	define SSI_ENABLE_LNK		(0x1<<15)
+					(1 << 15)
+
+> +#	define SSI_STOP_LNK		(0x1<<14)
+					(1 << 14)
+> +#	define NEXT_CH_ID_MASK		0xF
+> +
+> +#endif
+> diff --git a/arch/arm/plat-omap/include/mach/ssi/ssi_reg_common.h b/arch/arm/plat-omap/include/mach/ssi/ssi_reg_common.h
+> new file mode 100644
+> index 0000000..e66fb43
+> --- /dev/null
+> +++ b/arch/arm/plat-omap/include/mach/ssi/ssi_reg_common.h
+> @@ -0,0 +1,73 @@
+> +/*
+> + * ssi_reg_common.h
+> + *
+> + * Common hardware definitions for SSI.
+> + *
+> + * HARDWARE: OMAP 2420, 3430
+
+unnecessary
+
+> + *
+> + * Copyright (C) 2007-2008 Nokia Corporation. All rights reserved.
+> + *
+> + * Contact: Carlos Chinea <carlos.chinea@nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + */
+> +
+> +#ifndef __SSI_REG_COMMON_H__
+> +#define __SSI_REG_COMMON_H__
+> +
+> +#define SSI_COMMON_BASE_ADDR		0x48050000
+> +
+> +/* SSI system registers */
+> +#define SSI_SYS_OFFSET			0x8000
+> +#define SSI_SYS_REG32(offset)		(SSI_SYS_OFFSET + (offset))
+> +/* SSI GDD registers */
+> +#define SSI_GDD_OFFSET			0x9000
+> +#define SSI_GDD_REG32(offset)		(SSI_GDD_OFFSET + (offset))
+> +#define SSI_GDD_REG16(offset)		(SSI_GDD_OFFSET + (offset))
+> +
+> +/* SSI SST registers */
+> +/* General offset of SST port 1. First SST port register.*/
+> +#define SSI_SST1_OFFSET			0xA000
+> +/* General offset of SST port 2.*/
+> +#define SSI_SST2_OFFSET			0xB000
+> +/* Offset among the SST ports.*/
+> +#define SSI_SST_PORT_OFFSET		0x1000
+> +#define SSI_SST_OFFSET(port)		(SSI_SST1_OFFSET +\
+> +					 ((port-1)*(SSI_SST_PORT_OFFSET)))
+					       ^  ^ missing spaces
+
+> +#define SSI_SST_REG(port, offset)	(SSI_SST_OFFSET(port) + (offset))
+> +
+> +/* SSI SSR registers */
+> +/* General offset of SSR port 1. First SSR port register.*/
+> +#define SSI_SSR1_OFFSET			0xA800
+> +/* General offset of SSR port 2.*/
+> +#define SSI_SSR2_OFFSET			0xB800
+> +/* Offset among the SSR ports.*/
+> +#define SSI_SSR_PORT_OFFSET		0x1000
+> +#define SSI_SSR_OFFSET(port)		(SSI_SSR1_OFFSET +\
+> +					 ((port-1)*(SSI_SSR_PORT_OFFSET)))
+						  ^ missing space
+
+> +#define SSI_SSR_REG(port, offset)	(SSI_SSR_OFFSET(port) + (offset))
+> +
+> +#define SSI_IOMEM_BASE_ADDR		SSI_COMMON_BASE_ADDR
+> +#define SSI_IOMEM_SIZE			0x3C00
+> +
+> +/*
+> + * FIXME: Following definitions to be removed.
+> + * They are used for checking that the SSI clocks are stable before accessing
+> + * the SSI registers.
+> + */
+> +#define OMAP_COMMON_BASE                0x48000000
+> +#define CM_IDLEST1_CORE_REG		0x4A20
+> +#define ST_SSI				1
+> +#endif
+> diff --git a/arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h b/arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h
+> new file mode 100644
+> index 0000000..b272047
+> --- /dev/null
+> +++ b/arch/arm/plat-omap/include/mach/ssi/ssi_ssr_reg.h
+> @@ -0,0 +1,56 @@
+> +/*
+> + * ssi_sst_reg.h
+> + *
+> + * Hardware definitions for SSI controller SSR registers.
+> + *
+> + * HARDWARE: OMAP 2420, 3430
+
+unnecessary
+
+> + *
+> + * Copyright (C) 2007-2008 Nokia Corporation. All rights reserved.
+> + *
+> + * Contact: Carlos Chinea <carlos.chinea@nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + */
+> +
+> +#ifndef __SSI_SSR_REG_H__
+> +#define __SSI_SSR_REG_H__
+> +
+> +#include "ssi_reg_common.h"
+> +
+> +#define SSI_SSR_ID_REG(port)			SSI_SSR_REG(port, 0x0000)
+> +#define SSI_SSR_MODE_REG(port)			SSI_SSR_REG(port, 0x0004)
+> +#define SSI_SSR_FRAMESIZE_REG(port)		SSI_SSR_REG(port, 0x0008)
+> +#define SSI_SSR_RXSTATE_REG(port)  		SSI_SSR_REG(port, 0x000C)
+				    ^^ trailing whitespaces
+
+> +#define SSI_SSR_BUFSTATE_REG(port) 		SSI_SSR_REG(port, 0x0010)
+				     ^ trailing whitespace
+
+> +#	define NOTEMPTY(channel)		(1<<channel)
+						  ^^ missing spaces
+
+> +#define SSI_SSR_BREAK_REG(port)			SSI_SSR_REG(port, 0x001C)
+> +#define SSI_SSR_ERROR_REG(port)			SSI_SSR_REG(port, 0x0020)
+> +#define SSI_SSR_ERRORACK_REG(port)		SSI_SSR_REG(port, 0x0024)
+> +#define SSI_SSR_OVERRUN_REG(port)		SSI_SSR_REG(port, 0x002C)
+> +#define SSI_SSR_OVERRUNACK_REG(port)		SSI_SSR_REG(port, 0x0030)
+> +#define SSI_SSR_TIMEOUT_REG(port)		SSI_SSR_REG(port, 0x0030)
+> +#	define SSI_TIMEOUT_DEFAULT		0
+> +#define SSI_SSR_CHANNELS_REG(port)		SSI_SSR_REG(port, 0x0028)
+> +
+> +#define SSI_SSR_BUFFER_OFFSET_BASE		0x0080
+> +#define SSI_SSR_BUFFER_CH_REG(port, channel)	SSI_SSR_REG(port, \
+> +						(SSI_SSR_BUFFER_OFFSET_BASE +\
+> +						 (channel * 0x04)))
+> +
+> +#define SSI_SSR_SWAPBUFFER_OFFSET_BASE		0x00C0
+> +#define SSI_SSR_SWAPBUFFER_CH_REG(port, channel) SSI_SSR_REG(port, \
+> +						(SSI_SSR_SWAPBUFFER_OFFSET_BASE\
+> +						 + (channel * 0x04)))
+> +#endif
+> diff --git a/arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h b/arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h
+> new file mode 100644
+> index 0000000..ed15908
+> --- /dev/null
+> +++ b/arch/arm/plat-omap/include/mach/ssi/ssi_sst_reg.h
+> @@ -0,0 +1,65 @@
+> +/*
+> + * ssi_sst_reg.h
+> + *
+> + * Hardware definitions for SSI controller SST registers.
+> + *
+> + * HARDWARE: OMAP 2420, 3430
+
+unnecessary
+
+> + *
+> + * Copyright (C) 2007-2008 Nokia Corporation. All rights reserved.
+> + *
+> + * Contact: Carlos Chinea <carlos.chinea@nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + */
+> +
+> +#ifndef __SSI_SST_REG_H__
+> +#define __SSI_SST_REG_H__
+> +
+> +#include "ssi_reg_common.h"
+> +
+> +#define SSI_SST_ID_REG(port)			SSI_SST_REG(port, 0x0000)
+> +#define SSI_SST_MODE_REG(port)			SSI_SST_REG(port, 0x0004)
+> +#	define SSI_MODE_VAL_MASK		0x3
+> +#	define SSI_MODE_SLEEP			0x0
+> +#	define SSI_MODE_STREAM			0x1
+> +#	define SSI_MODE_FRAME			0x2
+> +#	define SSI_MODE_MULTIPOINTS		0x3
+> +#define SSI_SST_FRAMESIZE_REG(port)		SSI_SST_REG(port, 0x0008)
+> +#	define SSI_FRAMESIZE_DEFAULT		31
+> +#define SSI_SST_TXSTATE_REG(port)  		SSI_SST_REG(port, 0x000C)
+				    ^^ trailing whitespaces
+
+> +#	define	TXSTATE_IDLE			0x0
+> +#define SSI_SST_BUFSTATE_REG(port) 		SSI_SST_REG(port, 0x0010)
+				     ^ trailing whitespace
+
+> +#	define 	NOTFULL(channel)		(1<<channel)
+	      ^ trailing whitespace		  ^^ missing spaces
+
+> +#define SSI_SST_DIVISOR_REG(port)		SSI_SST_REG(port, 0x0018)
+> +#	define SSI_DIVISOR_DEFAULT		1
+> +
+> +#define SSI_SST_BREAK_REG(port)			SSI_SST_REG(port, 0x0020)
+> +#define SSI_SST_CHANNELS_REG(port)		SSI_SST_REG(port, 0x0024)
+> +#	define SSI_CHANNELS_DEFAULT		4
+> +
+> +#define SSI_SST_ARBMODE_REG(port)		SSI_SST_REG(port, 0x0028)
+> +#	define SSI_ARBMODE_ROUNDROBIN		0x0
+> +#	define SSI_ARBMODE_PRIORITY		0x1
+> +
+> +#define SSI_SST_BUFFER_OFFSET_BASE		0x0080
+> +#define SSI_SST_BUFFER_CH_REG(port, channel)	SSI_SST_REG(port, \
+> +						(SSI_SST_BUFFER_OFFSET_BASE +\
+> +						 (channel * 0x4)))
+> +
+> +#define SSI_SST_SWAPBUF_OFFSET_BASE		0x00C0
+> +#define SSI_SST_SWAPBUF_CH_REG(port, channel)	SSI_SST_REG(port, \
+> +						(SSI_SST_SWAPBUF_OFFSET_BASE +\
+> +						(channel * 0x4)))
+> +#endif
+> diff --git a/arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h b/arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h
+> new file mode 100644
+> index 0000000..2f1e1f5
+> --- /dev/null
+> +++ b/arch/arm/plat-omap/include/mach/ssi/ssi_sys_reg.h
+> @@ -0,0 +1,107 @@
+> +/*
+> + * ssi_sys_reg.h
+> + *
+> + * Hardware defintions for SSI Controller system registers.
+> + *
+> + * HARDWARE: OMAP 2420, 3430
+
+unnecessary
+
+> + *
+> + * Copyright (C) 2007-2008 Nokia Corporation. All rights reserved.
+> + *
+> + * Contact: Carlos Chinea <carlos.chinea@nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + */
+> +
+> +#ifndef __SSI_SYS_REG_H__
+> +#define __SSI_SYS_REG_H__
+> +
+> +#include "ssi_reg_common.h"
+> +
+> +#define SSI_SYS_REVISION_REG		SSI_SYS_REG32(0x0000)
+> +#	define SSI_REV_MASK		0x000000FF
+> +#	define SSI_REV_MAJOR		0xF0
+> +#	define SSI_REV_MINOR		0x0F
+> +
+> +#define SSI_SYS_SYSCONFIG_REG		SSI_SYS_REG32(0x0010)
+> +#	define SSI_AUTOIDLE		1
+> +#	define SSI_SOFTRESET		(1<<1)
+
+add spaces
+
+> +#	define SSI_SIDLEMODE_FORCE	0
+> +#	define SSI_SIDLEMODE_NO		(1<<3)
+
+add spaces
+
+> +#	define SSI_SIDLEMODE_SMART	(1<<4)
+
+add spaces
+
+> +#	define SSI_SIDLEMODE_MASK	0x00000018
+> +#	define SSI_MIDLEMODE_FORCE	0
+> +#	define SSI_MIDLEMODE_NO		(1<<12)
+
+add spaces
+
+> +#	define SSI_MIDLEMODE_SMART	(1<<13)
+
+add spaces
+
+> +#	define SSI_MIDLEMODE_MASK	0x00003000
+> +
+> +#define SSI_SYS_SYSSTATUS_REG		SSI_SYS_REG32(0x0014)
+> +#	define SSI_RESETDONE		1
+> +
+> +#define SSI_SYS_MPU_STATUS_BASE		0x0808
+> +#define SSI_SYS_MPU_STATUS_PORT_OFFSET	0x10
+> +#define SSI_SYS_MPU_STATUS_IRQ_OFFSET	0x2
+> +#define SSI_SYS_MPU_STATUS_REG(port, irq) \
+> +		SSI_SYS_REG32(SSI_SYS_MPU_STATUS_BASE +\
+> +		 (((port-1)*SSI_SYS_MPU_STATUS_PORT_OFFSET) +\
+> +		 (irq*SSI_SYS_MPU_STATUS_IRQ_OFFSET)))
+> +
+> +#define SSI_SYS_MPU_ENABLE_BASE		0x080C
+> +#define SSI_SYS_MPU_ENABLE_PORT_OFFSET	0x10
+> +#define SSI_SYS_MPU_ENABLE_IRQ_OFFSET	0x8
+> +#define SSI_SYS_MPU_ENABLE_REG(port, irq) \
+> +		SSI_SYS_REG32(SSI_SYS_MPU_ENABLE_BASE +\
+> +		 (((port-1)*SSI_SYS_MPU_ENABLE_PORT_OFFSET) +\
+
+add spaces
+
+> +		 (irq*SSI_SYS_MPU_ENABLE_IRQ_OFFSET)))
+
+add spaces
+
+> +
+> +#define SSI_SYS_DSP_STATUS_BASE		0x0830
+> +#define SSI_SYS_DSP_STATUS_PORT_OFFSET	0x10
+> +#define SSI_SYS_DSP_STATUS_IRQ_OFFSET	0x8
+> +#define SSI_SYS_DSP_STATUS_REG(port, irq) \
+> +		SSI_SYS_REG32(SSI_SYS_DSP_STATUS_BASE +\
+> +		 (((port-1)*SSI_SYS_DSP_STATUS_PORT_OFFSET) +\
+
+add spaces
+
+> +		 (irq*SSI_SYS_DSP_STATUS_IRQ_OFFSET)))
+
+add spaces
+
+> +
+> +#define SSI_SYS_DSP_ENABLE_BASE		0x0834
+> +#define SSI_SYS_DSP_ENABLE_PORT_OFFSET	0x10
+> +#define SSI_SYS_DSP_ENABLE_IRQ_OFFSET	0x8
+> +#define SSI_SYS_DSP_ENABLE_REG(port, irq) \
+> +		SSI_SYS_REG32(SSI_SYS_DSP_ENABLE_BASE +\
+> +		 (((port-1)*SSI_SYS_DSP_ENABLE_PORT_OFFSET) +\
+
+add spaces
+
+> +		 (irq*SSI_SYS_DSP_ENABLE_IRQ_OFFSET)))
+
+add spaces
+
+> +#	define SSI_SST_DATAACCEPT(channel)	(1<<channel)
+
+add spaces
+
+> +#	define SSI_SSR_DATAAVAILABLE(channel)	(1<<(channel + 8))
+
+add spaces
+
+> +#	define SSI_SSR_DATAOVERRUN(channel)	(1<<(channel + 16))
+
+add spaces
+
+> +#	define SSI_ERROROCCURED			(1<<24)
+
+add spaces
+
+> +#	define SSI_BREAKDETECTED		(1<<25)
+
+add spaces
+
+> +
+> +#define SSI_SYS_GDD_MPU_IRQ_STATUS_REG	SSI_SYS_REG32(0x0800)
+> +#define SSI_SYS_GDD_MPU_IRQ_ENABLE_REG	SSI_SYS_REG32(0x0804)
+> +#define SSI_SYS_GDD_DSP_IRQ_STATUS_REG 	SSI_SYS_REG32(0x0828)
+					 ^ trailing whitespace
+
+> +#define SSI_SYS_GDD_DSP_IRQ_ENABLE_REG 	SSI_SYS_REG32(0x082C)
+					 ^ trailing whitespace
+
+> +#	define SSI_GDD_LCH(channel)	(1<<channel)
+> +
+> +#define SSI_SYS_WAKE_OFFSET		0x10
+> +#define SSI_SYS_WAKE_BASE		0x0C00
+> +#define SSI_SYS_WAKE_REG(port) 		SSI_SYS_REG32(SSI_SYS_WAKE_BASE +\
+				 ^ trailing whitespace
+
+> +					 ((port-1)*SSI_SYS_WAKE_OFFSET))
+
+add spaces
+
+> +#define SSI_SYS_CLEAR_WAKE_BASE		0x0C04
+> +#define SSI_SYS_CLEAR_WAKE_REG(port)	SSI_SYS_REG32(SSI_SYS_CLEAR_WAKE_BASE +\
+> +					 ((port-1)*SSI_SYS_WAKE_OFFSET))
+
+add spaces
+
+> +#define SSI_SYS_SET_WAKE_BASE		0x0C08
+> +#define SSI_SYS_SET_WAKE_REG(port)	SSI_SYS_REG32(SSI_SYS_SET_WAKE_BASE +\
+> +					 ((port-1)*SSI_SYS_WAKE_OFFSET))
+
+add spaces
+
+> +#	define SSI_WAKE(channel)	(1<<channel)
+
+add spaces
+
+> +#	define SSI_WAKE_MASK		0xFF
+
+lower case
+
 -- 
-1.6.0.1.196.g01914
-
+balbi
