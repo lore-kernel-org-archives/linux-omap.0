@@ -1,48 +1,42 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 02/10] ARM: OMAP: Fix sparse, checkpatch warnings in
- OMAP2/3 PRCM/PM code
-Date: Mon, 6 Oct 2008 09:13:39 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0810060911500.354@utopia.booyaka.com>
-References: <20081002163508.15385.43247.stgit@localhost.localdomain> <20081002163749.15385.75147.stgit@localhost.localdomain> <20081004131911.GA5674@flint.arm.linux.org.uk> <alpine.DEB.2.00.0810060848470.354@utopia.booyaka.com>
- <20081006150903.GA27466@flint.arm.linux.org.uk>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: Compilation broken for 3430SDP defconfig
+Date: Mon, 6 Oct 2008 18:47:20 +0300
+Message-ID: <20081006154716.GA8273@frodo>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02D6107644@dbde02.ent.ti.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57776 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752618AbYJFPNe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 11:13:34 -0400
-In-Reply-To: <20081006150903.GA27466@flint.arm.linux.org.uk>
+Received: from ns1.siteground211.com ([209.62.36.12]:48026 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751633AbYJFPrz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 11:47:55 -0400
+Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02D6107644@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-On Mon, 6 Oct 2008, Russell King - ARM Linux wrote:
-
-> On Mon, Oct 06, 2008 at 08:52:46AM -0600, Paul Walmsley wrote:
-> > OK.  Tony's tree contains some patches which thoroughly clean this 
-> > function up, but they are large.  Would you like me to send those along 
-> > with this patch set, or would you prefer that I just drop this part of the 
-> > patch and repost?
+On Mon, Oct 06, 2008 at 09:14:19PM +0530, Gadiyar, Anand wrote:
+> CONFIG_GPIO_TWL4030 needs to be set in menuconfig otherwise,
+> for OMAP3 defconfig we get the below build error.
 > 
-> Probably the most productive solution is to drop that part and repost.
+> arch/arm/mach-omap2/built-in.o: In function `hsmmc_card_detect':
+> /share/anand/tony/arch/arm/mach-omap2/hsmmc.c:50: undefined reference to `twl4030_get_gpio_datain'
+> arch/arm/mach-omap2/built-in.o: In function `hsmmc_cleanup':
+> /share/anand/tony/arch/arm/mach-omap2/hsmmc.c:82: undefined reference to `twl4030_free_gpio'
+> arch/arm/mach-omap2/built-in.o: In function `hsmmc_late_init':
+> /share/anand/tony/arch/arm/mach-omap2/hsmmc.c:63: undefined reference to `twl4030_request_gpio'
+> /share/anand/tony/arch/arm/mach-omap2/hsmmc.c:67: undefined reference to `twl4030_set_gpio_debounce'
+> make: *** [.tmp_vmlinux1] Error 1
 
-Will do.
+Yes, we need defconfig changes since Kconfig is not asking about the new
+CONFIG_GPIO_TWL4030 symbol added.
 
-> However, my thoughts from looking over the existing clock code is that,
-> at some point, I'd like to rewrite the entire OMAP clk code to get rid
-> of stuff like this.  Realistically, I'm scared to do so - the current
-> implementation is very complex that getting a proper overview is rather
-> difficult...
+That'll probably change soon when we start using standard gpio calls but
+please, provide the defconfig change. You could even do it for all omap3
+plus 2430.
 
-Perhaps the current code in Tony's tree at:
-
-http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6.git;a=blob;f=arch/arm/mach-omap2/clock.c;h=c3af24e8e3e557029f3cc07a7c8384d3a4befdd2;hb=HEAD#l298
-
-is more reasonable?
-
-(human readable reference: line 298 of arch/arm/mach-omap2/clock.c)
-
-
-- Paul
+-- 
+balbi
