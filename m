@@ -1,481 +1,99 @@
-From: "arun c" <arun.edarath@gmail.com>
-Subject: Re: omap-sdp3430_Rotation patch
-Date: Mon, 6 Oct 2008 11:13:40 +0530
-Message-ID: <c656a4d20810052243g2885336eo8612499079bb7ae5@mail.gmail.com>
-References: <c656a4d20809150248id788b30w7c9a75eb9c0c017e@mail.gmail.com>
-	 <200810060425.m964P0FG004356@dbdp31.itg.ti.com>
+From: "Shah, Hardik" <hardik.shah@ti.com>
+Subject: RE: [PATCH] OMAP 2/3 V4L2 display driver on video planes
+Date: Mon, 6 Oct 2008 11:36:30 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D610739F@dbde02.ent.ti.com>
+References: <20081005081931.1dfdd7b4@pedra.chehab.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.191]:45245 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752628AbYJFFnm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 01:43:42 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so1344646tic.23
-        for <linux-omap@vger.kernel.org>; Sun, 05 Oct 2008 22:43:40 -0700 (PDT)
-In-Reply-To: <200810060425.m964P0FG004356@dbdp31.itg.ti.com>
-Content-Disposition: inline
+Received: from devils.ext.ti.com ([198.47.26.153]:52895 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752509AbYJFGK7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 02:10:59 -0400
+In-Reply-To: <20081005081931.1dfdd7b4@pedra.chehab.org>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajesh <krajesh@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "Hadli, Manjunath" <mrh@ti.com>
 
-Hi Rajesh,
+Hi,
 
-On Mon, Oct 6, 2008 at 9:54 AM, Rajesh <krajesh@ti.com> wrote:
->
-> Thanks for giving me the comments.I have incorporated all the comments
-> and sending the complete patch for review
->
-> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->
-> From Rajesh K krajesh<krajesh@ti.com>
->
-As I said earlier rotation is not for a particular board it will
-affect all omap2/3 boards, so better
-change this describtion.
 
-> OMAP FBDEV: VRFB framebuffer rotation support for OMAP SDP
->
-> This patch provides rotation support OMAP SDP. You will have to append
-> video=omapfb:rotate=0 parameters to your u-boot arguments to get this
-> working.
-> This supports 0,90,180 and 270 degree rotations.
->
-> Signed-off-by: Rajesh  K     < krajesh@ti.com >
-> Signed-off-by: Iqbal shareef < iqbal@ti.com >
->
-> ---
->  arch/arm/plat-omap/include/mach/omapfb.h |    4 +-
->  drivers/video/omap/dispc.c               |  193
-> +++++++++++++++++++++++++++++-
->  drivers/video/omap/dispc.h               |   29 +++++
->  drivers/video/omap/omapfb_main.c         |   37 ++++---
->  4 files changed, 243 insertions(+), 20 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/include/mach/omapfb.h
-> b/arch/arm/plat-omap/include/mach/omapfb.h
-> index a4a84f3..338a11d 100644
-> --- a/arch/arm/plat-omap/include/mach/omapfb.h
-> +++ b/arch/arm/plat-omap/include/mach/omapfb.h
-> @@ -277,7 +277,7 @@ typedef int (*omapfb_notifier_callback_t)(struct
-> notifier_block *,
->
->  struct omapfb_mem_region {
->        dma_addr_t      paddr;
-> -       void            *vaddr;
-> +       void __iomem    *vaddr;
->        unsigned long   size;
->        u8              type;           /* OMAPFB_PLANE_MEM_* */
->        unsigned        alloc:1;        /* allocated by the driver */
-> @@ -306,7 +306,7 @@ struct lcd_ctrl {
->                                           int screen_width,
->                                           int pos_x, int pos_y, int width,
->                                           int height, int color_mode);
-> -       int             (*set_rotate)     (int angle);
-> +       int             (*set_rotate)     (int plane, int angle);
->        int             (*setup_mem)      (int plane, size_t size,
->                                           int mem_type, unsigned long
-> *paddr);
->        int             (*mmap)           (struct fb_info *info,
-> diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
-> index ce4c4de..94c96dd 100644
-> --- a/drivers/video/omap/dispc.c
-> +++ b/drivers/video/omap/dispc.c
-> @@ -149,12 +149,25 @@
->  #define RESMAP_MASK(_page_nr)                                          \
->        (1 << ((_page_nr) & (sizeof(unsigned long) * 8 - 1)))
->
-> +unsigned long save_paddr;
-> +unsigned long save_vaddr;
-> +
->  struct resmap {
->        unsigned long   start;
->        unsigned        page_cnt;
->        unsigned long   *map;
->  };
->
-> +struct {
-> +       unsigned long   paddr[4];
-> +       void __iomem   *vaddr[4];
-> +       u32 xoffset;
-> +       u32 yoffset;
-> +       unsigned long size_val;
-> +       unsigned long control_val;
-> +} vrfb;
-> +
-> +static void omap2_disp_set_vrfb(u32 width, u32 height, u32
-> bytes_per_pixel);
->  static struct {
->        void __iomem    *base;
->
-> @@ -459,6 +472,170 @@ static int omap_dispc_setup_plane(int plane, int
-> channel_out,
->        return r;
->  }
->
-> +/*
-> +*  pages_per_side : Will provide pages per side
-> +*      @ img_side : img_side
-> +*      @ page_exp : page_exponential
-> +*      Return Value: Returns pages per side value.
-> +*/
-> +
-> +static inline u32 pages_per_side(u32 img_side, u32 page_exp)
-> +{
-> +       return (img_side + (1<<page_exp) - 1) >> page_exp;
-> +}
-> +
-> +/*
-> +*      omap2_disp_set_vrfb : Will configure VRFB Support.Its a rotation
-> engine
-> +*      which will supports rotations of 0,90,180,270 degrees.
-> +*      @width: Width of the  image
-> +*      @height : height of the image
-> +*      @bytes_per_pixel : color depth of the image
-> +*      return value :  None
-> +*/
-> +
-> +static void omap2_disp_set_vrfb(u32 width, u32 height, u32 bytes_per_pixel)
-> +{
-> +       int page_width_exp, page_height_exp, pixel_size_exp;
-> +       int context = 0;
-> +       vrfb.size_val = 0;
-> +       vrfb.control_val = 0;
-> +       pixel_size_exp = bytes_per_pixel >> 1;
-> +       page_width_exp = PAGE_WIDTH_EXP;
-> +       page_height_exp = PAGE_HEIGHT_EXP;
-> +
-> +       width = ((1<<page_width_exp) *
-> +                       (pages_per_side(width * bytes_per_pixel,
-> +                       page_width_exp))) >> pixel_size_exp;
-> +       height = (1<<page_height_exp) *
-> +                       (pages_per_side(height, page_height_exp));
-> +
-> +       __raw_writel(save_paddr, SMS_ROT0_PHYSICAL_BA(context));
-> +       __raw_writel(0, SMS_ROT0_SIZE(context));
-> +
-> +       vrfb.size_val |= (width << SMS_IMAGEWIDTH_OFFSET)|
-> +                       (height << SMS_IMAGEHEIGHT_OFFSET);
-> +       __raw_writel(vrfb.size_val, SMS_ROT0_SIZE(context));
-> +       __raw_writel(0, SMS_ROT_CONTROL(context));
-> +       vrfb.control_val |= pixel_size_exp << SMS_PS_OFFSET
-> +                       | (page_width_exp - pixel_size_exp) << SMS_PW_OFFSET
-> +                       | page_height_exp << SMS_PH_OFFSET;
-> +       __raw_writel(vrfb.control_val, SMS_ROT_CONTROL(context));
-> +}
-> +
-> +/*
-> +*      omap_dispc_set_rotate : configuring rotation registers based on
-> angle.
-> +*      @ plane: graphics or video pipe line
-> +*      @ angle: Rotation angle.
-> +*      Return Value: Returns 0 on success
-> +                       Returns -1 if it fails.
-> +*/
-> +
-> +int omap_dispc_set_rotate(int plane, int angle)
-> +{
-> +       int width, height;
-> +       u32 addr_base;
-> +       u32 bpp;
-> +       int r = 0;
-> +
-> +       width = dispc.fbdev->fb_info[0]->var.xres;
-> +       height = dispc.fbdev->fb_info[0]->var.yres;
-> +       bpp = dispc.fbdev->fb_info[0]->var.bits_per_pixel / 8;
-> +
-> +       if (plane == OMAPFB_PLANE_GFX) {
-> +               enable_lcd_clocks(1);
-> +               /* clear GOLCD bit */
-> +               MOD_REG_FLD(DISPC_CONTROL, 0x20, 0);
-> +               if (omapfb_dispc_rotation == 1) {
-> +                       omap2_disp_set_vrfb(width, height, bpp);
-> +                       switch (angle) {
-> +                       case 0:
-> +                               addr_base = vrfb.paddr[0];
-> +                               dispc_write_reg(DISPC_GFX_BA0, addr_base);
-> +                               dispc_write_reg(DISPC_GFX_PIXEL_INC, 1);
-> +                               dispc_write_reg(DISPC_GFX_ROW_INC,
-> +                                       (ROT_LINE_LENGTH - width) * bpp +
-> 1);
-> +                       break;
-> +                       case 90:
-> +                               addr_base = vrfb.paddr[1];
-> +                               dispc_write_reg(DISPC_GFX_BA0, addr_base);
-> +                               dispc_write_reg(DISPC_GFX_PIXEL_INC, 1);
-> +                               dispc_write_reg(DISPC_GFX_ROW_INC,
-> +                                       (ROT_LINE_LENGTH - height) * bpp +
-> 1);
-> +                       break;
-> +                       case 180:
-> +                               addr_base = vrfb.paddr[2];
-> +                               dispc_write_reg(DISPC_GFX_BA0, addr_base);
-> +                               dispc_write_reg(DISPC_GFX_PIXEL_INC, 1);
-> +                               dispc_write_reg(DISPC_GFX_ROW_INC,
-> +                                       (ROT_LINE_LENGTH - width) * bpp +
-> 1);
-> +                       break;
-> +                       case 270:
-> +                               addr_base = vrfb.paddr[3];
-> +                               dispc_write_reg(DISPC_GFX_BA0, addr_base);
-> +                               dispc_write_reg(DISPC_GFX_PIXEL_INC, 1);
-> +                               dispc_write_reg(DISPC_GFX_ROW_INC,
-> +                                       (ROT_LINE_LENGTH - height) * bpp +
-> 1);
-> +                       break;
-> +                       }
-> +               } else {
-> +                       return r;
-> +               }
-> +               /* set GOLCD bit */
-> +               MOD_REG_FLD(DISPC_CONTROL, 0x20, 0x20);
-> +               enable_lcd_clocks(0);
-> +       }
-> +       return r;
-> +}
-> +
-> +static int omap2_alloc_vrfb_mem(struct omapfb_mem_desc *req_vram)
-> +{
-> +       int r = 0;
-> +       memset(&vrfb, 0, sizeof(vrfb));
-> +       vrfb.paddr[0] = SMS_ROT_BASE_ADDR(0, 0);
-> +       vrfb.paddr[1] = SMS_ROT_BASE_ADDR(0, 90);
-> +       vrfb.paddr[2] = SMS_ROT_BASE_ADDR(0, 180);
-> +       vrfb.paddr[3] = SMS_ROT_BASE_ADDR(0, 270);
-> +
-> +       if (!request_mem_region(vrfb.paddr[0],
-> +               req_vram->region[0].size, "omapfb")) {
-> +                       r = -1;
-> +                       printk(KERN_ERR "omapfb: can't reserve VRFB0
-> area\n");
-> +       }
-> +
-> +       if (!request_mem_region(vrfb.paddr[1],
-> +               req_vram->region[0].size, "omapfb")) {
-> +                       r = -1;
-> +                       printk(KERN_ERR "omapfb: can't reserve VRFB90
-> area\n");
-> +       }
-> +
-> +       if (!request_mem_region(vrfb.paddr[2],
-> +               req_vram->region[0].size, "omapfb")) {
-> +                       r = -1;
-> +                       printk(KERN_ERR "omapfb: can't reserveVRFB180
-> area\n");
-> +       }
-> +
-> +       if (!request_mem_region(vrfb.paddr[3],
-> +               req_vram->region[0].size, "omapfb")) {
-> +                       r = -1;
-> +                       printk(KERN_ERR "omapfb: can't reserve VRFB270
-> area\n");
-> +       }
-> +
-> +       vrfb.vaddr[0] = ioremap(vrfb.paddr[0],
-> +                               req_vram->region[0].size);
-> +       vrfb.vaddr[1] = ioremap(vrfb.paddr[1],
-> +                               req_vram->region[0].size);
-> +       vrfb.vaddr[2] = ioremap(vrfb.paddr[2],
-> +                               req_vram->region[0].size);
-> +       vrfb.vaddr[3] = ioremap(vrfb.paddr[3],
-> +                               req_vram->region[0].size);
-> +       if ((!vrfb.vaddr[0]) || (!vrfb.vaddr[1]) || (!vrfb.vaddr[2])
-> +                               || (!vrfb.vaddr[3])) {
-> +               r = -1;
-> +               printk(KERN_ERR "omapfb: can't map rotated view(s)\n");
-> +       }
-> +       return r;
-> +}
-> +
->  static void write_firh_reg(int plane, int reg, u32 value)
->  {
->        u32 base;
-> @@ -1425,10 +1602,20 @@ static int omap_dispc_init(struct omapfb_device
-> *fbdev, int ext_mode,
->
->        if ((r = alloc_palette_ram()) < 0)
->                goto fail2;
-> -
-> +       if (omapfb_dispc_rotation == 1) {
-> +               if (omap2_alloc_vrfb_mem(req_vram) < 0)
-> +                       printk(KERN_ERR "VRFB memory allocation failed");
-> +               }
->        if ((r = setup_fbmem(req_vram)) < 0)
->                goto fail3;
-> -
-> +       if (omapfb_dispc_rotation == 1) {
-> +               save_paddr = dispc.mem_desc.region[0].paddr;
-> +               save_vaddr = dispc.mem_desc.region[0].vaddr;
-> +               dispc.mem_desc.region[0].vaddr = vrfb.vaddr[0];
-> +               dispc.mem_desc.region[0].paddr = vrfb.paddr[0];
-> +               dispc.fbdev->mem_desc.region[0].paddr = vrfb.paddr[0];
-> +               dispc.fbdev->mem_desc.region[0].vaddr = vrfb.vaddr[0];
-> +       }
->        if (!skip_init) {
->                for (i = 0; i < dispc.mem_desc.region_cnt; i++) {
->                        memset(dispc.mem_desc.region[i].vaddr, 0,
-> @@ -1478,7 +1665,6 @@ fail0:
->  static void omap_dispc_cleanup(void)
->  {
->        int i;
-> -
->        omap_dispc_set_update_mode(OMAPFB_UPDATE_DISABLED);
->        /* This will also disable clocks that are on */
->        for (i = 0; i < dispc.mem_desc.region_cnt; i++)
-> @@ -1507,4 +1693,5 @@ const struct lcd_ctrl omap2_int_ctrl = {
->        .set_color_key          = omap_dispc_set_color_key,
->        .get_color_key          = omap_dispc_get_color_key,
->        .mmap                   = omap_dispc_mmap_user,
-> +       .set_rotate             = omap_dispc_set_rotate,
->  };
-> diff --git a/drivers/video/omap/dispc.h b/drivers/video/omap/dispc.h
-> index ef720a7..5b29e6f 100644
-> --- a/drivers/video/omap/dispc.h
-> +++ b/drivers/video/omap/dispc.h
-> @@ -32,6 +32,35 @@
->  #define DISPC_TFT_DATA_LINES_18                2
->  #define DISPC_TFT_DATA_LINES_24                3
->
-> +/* Rotation using VRFB */
-> +extern int omapfb_dispc_rotation;
-> +#define SMS_ROT_BASE_ADDR(context, degree)      (0x70000000            \
-> +                               | 0x4000000 * (context) \
-> +                               | 0x1000000 * (degree/90))
-> +#define PAGE_WIDTH_EXP          5 /* Assuming SDRAM pagesize= 1024 */
-> +#define PAGE_HEIGHT_EXP         5 /* 1024 = 2^5 * 2^5 */
-> +#define SMS_IMAGEHEIGHT_OFFSET  16
-> +#define SMS_IMAGEWIDTH_OFFSET   0
-> +#define SMS_PH_OFFSET           8
-> +#define SMS_PW_OFFSET           4
-> +#define SMS_PS_OFFSET           0
-> +#define ROT_LINE_LENGTH         2048
-> +
-> +
+> -----Original Message-----
+> From: Mauro Carvalho Chehab [mailto:mchehab@infradead.org]
+> Sent: Sunday, October 05, 2008 4:50 PM
+> To: Shah, Hardik
+> Cc: Hans Verkuil; video4linux-list@redhat.com; linux-omap@vger.kernel.org; linux-fbdev-
+> devel@lists.sourceforge.net
+> Subject: Re: [PATCH] OMAP 2/3 V4L2 display driver on video planes
+> 
+> On Fri, 3 Oct 2008 20:10:36 +0530
+> "Shah, Hardik" <hardik.shah@ti.com> wrote:
+> 
+> 
+ 
+> I don't like the idea of having private ioctls. This generally means that only
+> a very restricted subset of userspace apps that are aware of the that API will
+> work. This is really bad.
+> 
+> So, I prefer to discuss the need for newer ioctls and add it into the standard
+> whenever make some sense (ok, maybe you might have some ioctls that are really
+> very specific for your app and that won't break userspace apps - I've acked
+> with 2 private ioctls on uvc driver in the past due to that).
+> 
+[Shah, Hardik] Following are the custom IOCTLs used in the V4L2 display driver of DSS.
 
-> +#define DSS_REG_BASE           0x48050000
-> +#define DISPC_REG_OFFSET       0x00000400
-> +#define DISPC_BASE             0x48050400
-> +#define OMAP_SMS_BASE           (0x6C000000)
-> +#define DISPC_GFX_BA0          0x0080
-> +#define DISPC_GFX_ROW_INC      0x00AC
-> +#define DISPC_GFX_PIXEL_INC    0x00B0
-> +#define DISPC_CONTROL          0x0040
-> +
-> +#define SMS_ROT0_PHYSICAL_BA(context)   OMAP2_IO_ADDRESS(OMAP_SMS_BASE +
-> 0x188 \
-> +                                       + 0x10 * context)
-> +#define SMS_ROT_CONTROL(context)        OMAP2_IO_ADDRESS(OMAP_SMS_BASE +
-> 0x180 \
-> +                                       + 0x10 * context)
-> +#define SMS_ROT0_SIZE(context)          OMAP2_IO_ADDRESS(OMAP_SMS_BASE +
-> 0x184 \
-> +                                       + 0x10 * context)
->  extern void omap_dispc_set_lcd_size(int width, int height);
+1.  VIDIOC_S/G_OMAP2_MIRROR: This ioctl is used to enable the mirroring of the image. Hardware supports mirroring. As pointed out by Hans it will be better to move it to VIDIOC_S_CTRL ioctl. we can add the new control id for the mirroring.
+
+2.  VIDIOC_S/G_OMAP2_ROTATION: Rotation is used to enable the rotation of the image. This also can be moved to the VIDIOC_S_CTRL ioctl.  Need to add new control id for the rotation also. 
+
+3.  VIDIOC_S/G_OMAP2_LINK: This feature is software provided. OMAP DSS is having two video pipelines.  Using this feature user can link the two video pipelines. This means the streaming of the video on one pipeline will be linked to the other pipeline with the same parameters as the original pipeline.  Same image can be streamed on both the pipelines, one of the pipeline's output going to TV and other one to LCD.  I believe this feature is very specific to OMAP, and should remain as the custom ioctl.
+
+4.  VIDIOC_S/G_OMAP2_COLORKEY:  Color keying allows the pixels with the defined color on the video pipelines to be replaced with the pixels on the graphics pipelines.  I believe similar feature must be available on almost all next generation of video hardware. We can add new ioctl for this feature in V4L2 framework. I think VIDIOC_S_FBUF ioctl is used for setting up the buffer parameters on per buffer basis.  So IMHO this ioctl is not a natural fit for the above functionality. Please provide your comments on same.
+
+5. VIDIOC_S/G_OMAP2_BGCOLOR: This ioctl is used to set the Background color on either TV or LCD. It takes two inputs, first is the output device second is the color to be set. I think this can be added to the standard ioctl list but is it ok to have the output device as one of the parameters in the input structure? Instead we can set the background color for the current output.
+
+6. VIDIOC_OMAP2_COLORKEY_ENABLE/DISABLE.  This ioctl is used to enable or the disable the color keying feature described above. This can be added as the one of the control using VIDIOC_S_CTRL ioctl.
+
+7.  VIDIOC_S/G_OMAP2_COLORCONV:  This is a hardware feature.  Video pipelines of the DSS are capable of getting the buffer in the YUV/UYVY format. But internally DSS operates on RGB format.  So hardware has a capability to convert the YUV format to RGB format.  This is done using the color conversion matrix in the hardware.  It accepts the structure as input which has 9 unsigned short variables representing the coefficients for color conversion.  I think this feature will also be present in many new devices. So we can have the standard ioctl for this.
+
+8.  VIDIOC_S_OMAP2_DEFCOLORCONV:  This ioctl just programs the default color conversion matrix defined by the driver.  This we can have as one of the controls using VIDIOC_S_CTRL ioctl.
+
+Please let me know your view/thoughts on above custom ioctls added in the driver.
+
+> 
+> So, if you are having several points where you're violating the rule, probably
+> your code is very complex or you are using long names instead of short ones. On
+> the fisrt case, try to break the complex stuff  into smaller and simpler static
+> functions. The compiler will deal with those functions like inline, so this
+> won't cost cpu cycles, but it will make easier for people to understand what
+> you're doing.
+> 
+[Shah, Hardik] I will revisit the code and structure it properly.
+
+> 
+> Perhaps the better would be for you to have one public machine where you all
+> can work and merge your work. I'm OK on pulling and seeing patches outside LinuxTV.
+> 
+> > [Shah, Hardik] we are in process of coordinating this.
 >
->  extern void omap_dispc_enable_lcd_out(int enable);
-> diff --git a/drivers/video/omap/omapfb_main.c
-> b/drivers/video/omap/omapfb_main.c
-> index d176a2c..8f2746c 100644
-> --- a/drivers/video/omap/omapfb_main.c
-> +++ b/drivers/video/omap/omapfb_main.c
-> @@ -35,7 +35,8 @@
->  #include "dispc.h"
->
->  #define MODULE_NAME    "omapfb"
-> -
-> +int omapfb_dispc_rotation = -1;
-> +#define ROT_LINE_LENGTH         2048
->  static unsigned int    def_accel;
->  static unsigned long   def_vram[OMAPFB_PLANE_NUM];
->  static unsigned int    def_vram_cnt;
-> @@ -219,9 +220,11 @@ static int ctrl_change_mode(struct fb_info *fbi)
->        if (r < 0)
->                return r;
->
-> -       if (fbdev->ctrl->set_rotate != NULL)
-> -               if((r = fbdev->ctrl->set_rotate(var->rotate)) < 0)
-> +       if (fbdev->ctrl->set_rotate != NULL) {
-> +               r = fbdev->ctrl->set_rotate(0, var->rotate);
-> +               if (r < 0)
->                        return r;
-> +               }
->
->        if ((fbdev->ctrl->set_scale != NULL) && (plane->idx > 0))
->                r = fbdev->ctrl->set_scale(plane->idx,
-> @@ -425,7 +428,10 @@ static void set_fb_fix(struct fb_info *fbi)
->                break;
->        }
->        fix->accel              = FB_ACCEL_OMAP1610;
-> -       fix->line_length        = var->xres_virtual * bpp / 8;
-> +       if (omapfb_dispc_rotation)
-> +               fix->line_length        = ROT_LINE_LENGTH * bpp / 8;
-> +       else if (!omapfb_dispc_rotation)
-> +               fix->line_length        = var->xres_virtual * bpp / 8;
->  }
->
->  static int set_color_mode(struct omapfb_plane_struct *plane,
-> @@ -497,14 +503,13 @@ static int set_fb_var(struct fb_info *fbi,
->        bpp = var->bits_per_pixel;
->        if (plane->color_mode == OMAPFB_COLOR_RGB444)
->                bpp = 16;
-> -
-> +       xres_min = OMAPFB_PLANE_XRES_MIN;
-> +       xres_max = panel->x_res;
-> +       yres_min = OMAPFB_PLANE_YRES_MIN;
-> +       yres_max = panel->y_res;
->        switch (var->rotate) {
->        case 0:
->        case 180:
-> -               xres_min = OMAPFB_PLANE_XRES_MIN;
-> -               xres_max = panel->x_res;
-> -               yres_min = OMAPFB_PLANE_YRES_MIN;
-> -               yres_max = panel->y_res;
->                if (cpu_is_omap15xx()) {
->                        var->xres = panel->x_res;
->                        var->yres = panel->y_res;
-> @@ -512,10 +517,6 @@ static int set_fb_var(struct fb_info *fbi,
->                break;
->        case 90:
->        case 270:
-> -               xres_min = OMAPFB_PLANE_YRES_MIN;
-> -               xres_max = panel->y_res;
-> -               yres_min = OMAPFB_PLANE_XRES_MIN;
-> -               yres_max = panel->x_res;
->                if (cpu_is_omap15xx()) {
->                        var->xres = panel->y_res;
->                        var->yres = panel->x_res;
-> @@ -1718,7 +1719,11 @@ static int omapfb_do_probe(struct platform_device
-> *pdev,
->
->        pr_info("omapfb: configured for panel %s\n", fbdev->panel->name);
->
-> -       def_vxres = def_vxres ? : fbdev->panel->x_res;
-> +       if (omapfb_dispc_rotation)
-> +               def_vxres = ROT_LINE_LENGTH;
-> +       else if (!omapfb_dispc_rotation)
-> +               def_vxres = def_vxres ? : fbdev->panel->x_res;
-> +
->        def_vyres = def_vyres ? : fbdev->panel->y_res;
->
->        init_state++;
-> @@ -1909,8 +1914,10 @@ static int __init omapfb_setup(char *options)
->                        def_vxres = simple_strtoul(this_opt + 6, NULL, 0);
->                else if (!strncmp(this_opt, "vyres:", 6))
->                        def_vyres = simple_strtoul(this_opt + 6, NULL, 0);
-> -               else if (!strncmp(this_opt, "rotate:", 7))
-> +               else if (!strncmp(this_opt, "rotate=", 7)) {
-> +                       omapfb_dispc_rotation = 1;
->                        def_rotate = (simple_strtoul(this_opt + 7, NULL,
-> 0));
-> +                       }
->                else if (!strncmp(this_opt, "mirror:", 7))
->                        def_mirror = (simple_strtoul(this_opt + 7, NULL,
-> 0));
->                else if (!strncmp(this_opt, "manual_update", 13))
-> --
-> 1.5.3.2
->
->
+
+> One option in the future is to base your work on a git tree. I've changed a lot
+> the proccess of submitting patches upstream, to avoid having to rebase my tree
+> (Yet, I had to do two rebases during 2.6.27 cycle). If I can keep my tree
+> without rebase, the developers may rely on it and start sending me git pull
+> requests also. Let's see if I can do this for 2.6.28.
+> 
+> I think we should start discussing using git trees as the reference for
+> v4l/dvb development, and start moving developers tree to git. This would solve
+> the issues with complex projects like OMAP, where you need to touch not only on
+> V4L/DVB subsystem.
+> 
+> This topic deserves some more discussion,
+[Shah, Hardik] Right now Manju is on travel.  I will confirm with him once he comes back.
+ 
+> Cheers,
+> Mauro.
+
