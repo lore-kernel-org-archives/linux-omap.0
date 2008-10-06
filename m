@@ -1,41 +1,40 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 1/3] i2c: lp5521: remove dead code
-Date: Mon, 6 Oct 2008 13:02:10 +0300
-Message-ID: <20081006100210.GI7437@gandalf.research.nokia.com>
-References: <1223284291-7675-1-git-send-email-felipe.balbi@nokia.com> <1223284291-7675-2-git-send-email-felipe.balbi@nokia.com> <20081006094722.GA23994@intune.research.nokia.com>
-Reply-To: felipe.balbi@nokia.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/10] HDQ driver: Remove global pointer
+Date: Mon, 6 Oct 2008 13:31:08 +0300
+Message-ID: <20081006103106.GC2806@atomide.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC8EAA@dbde02.ent.ti.com> <20080925114057.GB31477@2ka.mipt.ru> <20081006091705.GA2806@atomide.com> <20081006093538.GA18359@2ka.mipt.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:48420 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752209AbYJFKCa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 06:02:30 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m96A29R5017804
-	for <linux-omap@vger.kernel.org>; Mon, 6 Oct 2008 13:02:27 +0300
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50601 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752374AbYJFK2R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 06:28:17 -0400
 Content-Disposition: inline
-In-Reply-To: <20081006094722.GA23994@intune.research.nokia.com>
+In-Reply-To: <20081006093538.GA18359@2ka.mipt.ru>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Stone <daniel.stone@nokia.com>
-Cc: ext Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, Mathias Nyman <mathias.nyman@nokia.com>
+To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
 
-On Mon, Oct 06, 2008 at 12:47:22PM +0300, Daniel Stone wrote:
-> On Mon, Oct 06, 2008 at 12:11:29PM +0300, ext Felipe Balbi wrote:
-> > That LED_CONNECTED_WRONG was never defined so removing.
-> > If someone needs those hooks, add back via proper
-> > platform_data instead of nasty ifdefery.
+* Evgeniy Polyakov <johnpol@2ka.mipt.ru> [081006 12:36]:
+> Hi.
+> 
+> On Mon, Oct 06, 2008 at 12:17:06PM +0300, Tony Lindgren (tony@atomide.com) wrote:
+> > Great, pushing to linux-omap tree.
 > > 
-> > Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> > Evgeniy, are these already in your queue for upstream?
 > 
-> Signed-off-by: Daniel Stone <daniel.stone@nokia.com>
-> 
-> IIRC, LED_CONNECTED_WRONG was only for early hardware builds of the
-> N810.
+> Not really, since I do not follow omap tree and will not be able to
+> handle dependency there. Please push w1 part when appropriate changes in
+> the arch tree are ready.
 
-yeah and it's really weird to keep that since it was a bad hw mistake
-:-p
+* Madhusudhan Chikkature <madhu.cr@ti.com> [081006 12:38]:
+>
+> These patches are against the L-o tree. We need to send the complete
+driver patches against the LKML kernel tree to Evgeniy.
 
--- 
-balbi
+OK, Madhu, can you please do the patches against the mainline kernel
+for Evgeniy?
+
+Tony
