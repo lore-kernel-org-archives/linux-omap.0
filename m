@@ -1,54 +1,43 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 3/3] lp5521: move to drivers/leds
-Date: Mon, 6 Oct 2008 09:33:49 -0700
-Message-ID: <200810060933.49739.david-b@pacbell.net>
-References: <1223284291-7675-4-git-send-email-felipe.balbi@nokia.com> <20081006125809.GR7437@gandalf.research.nokia.com> <48EA135D.3070104@nokia.com>
+Subject: Re: [RESENDING][PATCH 1/2]OMAP3 NAND: Add NAND support on OMAP3430
+Date: Mon, 6 Oct 2008 09:37:13 -0700
+Message-ID: <200810060937.13668.david-b@pacbell.net>
+References: <41054.192.168.10.89.1219747319.squirrel@dbdmail.itg.ti.com> <48232.192.168.10.89.1221127616.squirrel@dbdmail.itg.ti.com> <20081006112039.GF2806@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp127.sbc.mail.sp1.yahoo.com ([69.147.65.186]:32655 "HELO
-	smtp127.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752879AbYJFQd5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 12:33:57 -0400
-In-Reply-To: <48EA135D.3070104@nokia.com>
+Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:28652 "HELO
+	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752879AbYJFQhQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 12:37:16 -0400
+In-Reply-To: <20081006112039.GF2806@atomide.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: mathias nyman <mathias.nyman@nokia.com>
-Cc: felipe.balbi@nokia.com, ext Riku Voipio <riku.voipio@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, rpurdie@rpsys.net
+To: Tony Lindgren <tony@atomide.com>, vimal singh <vimalsingh@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Monday 06 October 2008, mathias nyman wrote:
-> The driver for the next version of the lp552x chip uses the led class 
-> for the direct mode
+On Monday 06 October 2008, Tony Lindgren wrote:
+> > --- linux-omap-2.6_27_08_2008.orig/include/linux/mtd/nand.h
+> > +++ linux-omap-2.6_27_08_2008/include/linux/mtd/nand.h
+> > @@ -45,7 +45,7 @@
+> > =A0 */
+> > =A0#define NAND_MAX_OOBSIZE=A0=A0=A0=A0=A064
+> > =A0#define NAND_MAX_PAGESIZE=A0=A0=A0=A02048
+> > -
+> > +#define NAND_BLOCK_SIZE=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0S=
+Z_128K
+> > =A0/*
 
-That sounds like the way to start ... any reason why the
-current driver couldn't be changed do the same?
+This is specific to 3430 SDP though ... there are plenty
+of other NAND block sizes in the world.
 
-This would seem like a good motivation to add some features
-to the LED framework.  Here are three types of LED that it
-doesn't support well today:
+Suggest moving this definition to board-3430sdp-flash.c
+where it's relevant.
 
- - Bicolor leds with two leads ... R-or-G, two wires,
-   opposite diode directions.
-
- - Bicolor LEDs with three leads ... like R-and-Y, three
-   wires, common anode or common cathode
-
- - RGB leds, four leads ... like R-and-G-and-B, etc
-
-Except for the first case, these can be stuffed into the
-framework by modeling them as multiple LEDs.  But when you
-do that it gets awkward to make sure that for example you
-get a purple (+R, -G, +B) blink, since the timers need to
-be exactly in phase.  Or to combine blinking with PWM, so
-you could for example mix in a little green...
-
-Surely some features that would support RGB (RG, YG, etc)
-LEDs better could support both fancy (lp5521) and simple
-(GPIO without PWM) implementations ...
-
-- Dave
-
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
