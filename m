@@ -1,55 +1,38 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: Compilation broken for 3430SDP defconfig
-Date: Mon, 6 Oct 2008 13:20:16 -0500
-Message-ID: <A24693684029E5489D1D202277BE8944122B9B84@dlee02.ent.ti.com>
-References: <200810060941.36725.david-b@pacbell.net>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Current git head oops'es at boot on Overo
+Date: Mon, 6 Oct 2008 11:26:54 -0700
+Message-ID: <5e088bd90810061126g75ff7768k8fa768751a31e379@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51494 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751559AbYJFSUf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 14:20:35 -0400
-In-Reply-To: <200810060941.36725.david-b@pacbell.net>
-Content-Language: en-US
+Received: from yx-out-2324.google.com ([74.125.44.30]:1488 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751939AbYJFS0z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 14:26:55 -0400
+Received: by yx-out-2324.google.com with SMTP id 8so449455yxm.1
+        for <linux-omap@vger.kernel.org>; Mon, 06 Oct 2008 11:26:54 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, "me@felipebalbi.com" <me@felipebalbi.com>
-Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-Hi all,
+Build is stock 62c36fdd962de2db5d62a326490913f41c442a5c, no additional patches.
 
-Today I did a pull from the linux-omap tree, and I have this error in compilation with the sdp defconfig:
+Without DEBUG_LL, boot silently fails. With DEBUG_LL, one can see that
+the failure is due to a NULL pointer dereference in musb.
 
-  CC      arch/arm/mach-omap2/board-3430sdp.o
-arch/arm/mach-omap2/board-3430sdp.c:43:35: error: linux/i2c/twl4030-rtc.h: No such file or directory
-arch/arm/mach-omap2/board-3430sdp.c: In function 'msecure_init':
-arch/arm/mach-omap2/board-3430sdp.c:132: warning: initialization makes integer from pointer without a cast
-make[1]: *** [arch/arm/mach-omap2/board-3430sdp.o] Error 1
-make: *** [arch/arm/mach-omap2] Error 2
+I suspect that the root cause is related to:
 
-So, I just did a git pull, then a git gc. I'm not seeing that linux/i2c/twl4030-rtc.h file now. Has someone moved it? Or do you think it could be something related to my clone?
+<3>i2c_omap i2c_omap.1: controller timed out
+<4>twl4030_usb: probe of twl4030_usb failed with error -22
 
-Regards,
-Sergio
+Adding David Brownell's i2c-omap timeout workaround patch eliminates
+this error and the boot then fails on EHCI.
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of David Brownell
-> Sent: Monday, October 06, 2008 11:42 AM
-> To: me@felipebalbi.com
-> Cc: Gadiyar, Anand; linux-omap@vger.kernel.org; tony@atomide.com
-> Subject: Re: Compilation broken for 3430SDP defconfig
->
-> On Monday 06 October 2008, Felipe Balbi wrote:
-> > Yes, we need defconfig changes since Kconfig is not asking about the new
-> > CONFIG_GPIO_TWL4030 symbol added.
->
-> I seem to have tested with "make oldconfig" not "make ..._defconfig".
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I disabled EHCI in defconfig and was able to get the boot to complete.
+ However unlike others, I find that musb is not functional -- and the
+trick of disconnecting the USB cable and then reconnecting it does not
+work.
 
+Steve
