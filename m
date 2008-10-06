@@ -1,60 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2]OMAP3 NAND: Enable support for nand driver on
-	OMAP3430
-Date: Mon, 6 Oct 2008 14:21:21 +0300
-Message-ID: <20081006112120.GG2806@atomide.com>
-References: <19F8576C6E063C45BE387C64729E739403CD517C24@dbde02.ent.ti.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [Linux-fbdev-devel] [PATCH] OMAP 2/3 V4L2 display driver on
+ video planes
+Date: Mon, 6 Oct 2008 13:22:39 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0810061320170.9028@anakin>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02D61074A6@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56843 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752387AbYJFLSW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 07:18:22 -0400
-Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403CD517C24@dbde02.ent.ti.com>
+Received: from yergi.telenet-ops.be ([195.130.132.36]:49926 "EHLO
+	yergi.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752842AbYJFLXs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 07:23:48 -0400
+Received: from winston.telenet-ops.be (unknown [195.130.137.75])
+	by yergi.telenet-ops.be (Postfix) with ESMTP id 848F95CA847
+	for <linux-omap@vger.kernel.org>; Mon,  6 Oct 2008 13:23:13 +0200 (CEST)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02D61074A6@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Singh, Vimal" <vimalsingh@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Shah, Hardik" <hardik.shah@ti.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "Hadli, Manjunath" <mrh@ti.com>, Mauro Carvalho Chehab <mchehab@infradead.org>
 
-* Singh, Vimal <vimalsingh@ti.com> [080826 13:19]:
-> From: Teerth Reddy <teerth@ti.com>
-> 
-> This patch enables the support for nand driver on 3430sdp
+On Mon, 6 Oct 2008, Shah, Hardik wrote:
+> > -----Original Message-----
+> > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> > On Monday 06 October 2008 08:06:30 Shah, Hardik wrote:
+> > > > -----Original Message-----
+> > > > From: Mauro Carvalho Chehab [mailto:mchehab@infradead.org]
+> > > 4.  VIDIOC_S/G_OMAP2_COLORKEY:  Color keying allows the pixels with
+> > > the defined color on the video pipelines to be replaced with the
+> > > pixels on the graphics pipelines.  I believe similar feature must be
+> > > available on almost all next generation of video hardware. We can add
+> > > new ioctl for this feature in V4L2 framework. I think VIDIOC_S_FBUF
+> > > ioctl is used for setting up the buffer parameters on per buffer
+> > > basis.  So IMHO this ioctl is not a natural fit for the above
+> > > functionality. Please provide your comments on same.
+> > 
+> > Do I understand correctly that if the color in the *video* streams
+> > matches the colorkey, then it is replaced by the color in the
+> > *framebuffer* (aka menu/overlay)? Usually it is the other way around:
+> > if the framebuffer (menu) has chromakey pixels, then those pixels are
+> > replaced by pixels from the video stream. That's what the current API
+> > does
+> [Shah, Hardik] This is a hardware provided feature. It can be both ways as
+> hardware supports both the features. It means replacing the graphics
+> pipelines pixels with video pipeline pixels and other way is also true.
+> When both graphics and video pipelines are going to the same output device
+> and when the colorkeying is enabled then the pixels of the video pipelines
+> of specific color are replaced by the pixels of the graphics pipeline.
+> This is done automatically done by the overlay manager aka compositor.
+> Graphics pipeline can be controlled by frame buffer interface or V4L2
+> interface.
+> In driver we only need to enable the color keying and state that whether
+> it is a source color keying or destination color keying along with the
+> color code.
 
-Pushing today.
+As video input usually contains noise: is it an exact color match, or a
+range? IIRC, I saw a similar feature on a different chip some years ago,
+and there the color key was a (YCbCr) range.
 
-Tony
+Gr{oetje,eeting}s,
 
-> Signed-off-by: Teerth Reddy <teerth@ti.com>
-> ---
->  arch/arm/configs/omap_3430sdp_defconfig  |   12 +++++++++++-
->  1 files changed, 11 insertions(+), 1 deletion(-)
-> 
-> Index : linux-omap-2.6/arch/arm/configs/omap_3430sdp_defconfig
-> =====================================================================================
-> --- a/arch/arm/configs/omap_3430sdp_defconfig 2008-08-06 13:03:38.859241000 +0530
-> +++ b/arch/arm/configs/omap_3430sdp_defconfig 2008-08-05 16:02:20.037348000 +0530
-> @@ -493,7 +493,17 @@ CONFIG_MTD_OMAP_NOR=y
->  # CONFIG_MTD_DOC2000 is not set
->  # CONFIG_MTD_DOC2001 is not set
->  # CONFIG_MTD_DOC2001PLUS is not set
-> -# CONFIG_MTD_NAND is not set
-> +CONFIG_MTD_NAND=y
-> +# CONFIG_MTD_NAND_VERIFY_WRITE is not set
-> +CONFIG_MTD_NAND_ECC_SMC=y
-> +# CONFIG_MTD_NAND_MUSEUM_IDS is not set
-> +CONFIG_MTD_NAND_OMAP2=y
-> +CONFIG_MTD_NAND_OMAP_HWECC=y
-> +CONFIG_MTD_NAND_IDS=y
-> +# CONFIG_MTD_NAND_DISKONCHIP is not set
-> +# CONFIG_MTD_NAND_NANDSIM is not set
-> +# CONFIG_MTD_NAND_PLATFORM is not set
-> +# CONFIG_MTD_ALAUDA is not set
->  CONFIG_MTD_ONENAND=y
->  CONFIG_MTD_ONENAND_VERIFY_WRITE=y
->  # CONFIG_MTD_ONENAND_GENERIC is not set--
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+						Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+							    -- Linus Torvalds
