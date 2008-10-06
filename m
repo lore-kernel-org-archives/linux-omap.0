@@ -1,121 +1,222 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] lp5521: move to drivers/leds
-Date: Mon, 6 Oct 2008 14:17:23 +0300
-Message-ID: <20081006111721.GE2806@atomide.com>
-References: <1223284291-7675-4-git-send-email-felipe.balbi@nokia.com> <20081006110851.GA8580@kos.to>
+Subject: Re: [RESENDING][PATCH 1/2]OMAP3 NAND: Add NAND support on OMAP3430
+Date: Mon, 6 Oct 2008 14:20:40 +0300
+Message-ID: <20081006112039.GF2806@atomide.com>
+References: <41054.192.168.10.89.1219747319.squirrel@dbdmail.itg.ti.com> <33923.192.168.10.89.1221112795.squirrel@dbdmail.itg.ti.com> <48232.192.168.10.89.1221127616.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53522 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56352 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751975AbYJFLOc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 07:14:32 -0400
+	with ESMTP id S1751788AbYJFLRm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 07:17:42 -0400
 Content-Disposition: inline
-In-Reply-To: <20081006110851.GA8580@kos.to>
+In-Reply-To: <48232.192.168.10.89.1221127616.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Riku Voipio <riku.voipio@iki.fi>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, Mathias Nyman <mathias.nyman@nokia.com>, rpurdie@rpsys.net
+To: vimal singh <vimalsingh@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-* Riku Voipio <riku.voipio@iki.fi> [081006 14:09]:
-> On Mon, Oct 06, 2008 at 12:11:31PM +0300, Felipe Balbi wrote:
-> > This driver should be sitting together with the other
-> > led drivers.
+* vimal singh <vimalsingh@ti.com> [080911 13:07]:
+> From: Teerth Reddy <teerth@ti.com>
 > 
-> But this driver actually doesn't implement the led sysfs interface.
-> If the driver is changed to implement the led framework interface,
-> we break the existing n810 userland and expose only limited subset
-> of lp5521 features for userland..
+> This patch adds NAND support on 3430sdp board
+> 
+> [VS: updated for NAND_BLOCK_SIZE macros]
 
-Maybe this feature should be a distro specific hack on top of
-the mainline tree?
+Pushing today.
 
 Tony
 
-> > Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> > ---
-> >  drivers/i2c/chips/Kconfig                          |    7 -------
-> >  drivers/i2c/chips/Makefile                         |    1 -
-> >  drivers/leds/Kconfig                               |    7 +++++++
-> >  drivers/leds/Makefile                              |    1 +
-> >  drivers/{i2c/chips/lp5521.c => leds/leds-lp5521.c} |    0
-> >  5 files changed, 8 insertions(+), 8 deletions(-)
-> >  rename drivers/{i2c/chips/lp5521.c => leds/leds-lp5521.c} (100%)
-> > 
-> > diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
-> > index e6ac6a2..1b9bc11 100644
-> > --- a/drivers/i2c/chips/Kconfig
-> > +++ b/drivers/i2c/chips/Kconfig
-> > @@ -225,13 +225,6 @@ config SENSORS_TSL2563
-> >           This driver can also be built as a module.  If so, the module
-> >           will be called tsl2563.
-> >  
-> > -config LP5521
-> > -	tristate "LP5521 LED driver chip"
-> > -	depends on I2C
-> > -	help
-> > -	  If you say yes here you get support for the National Semiconductor
-> > -	  LP5521 LED driver.
-> > -
-> >  config MENELAUS
-> >  	bool "TWL92330/Menelaus PM chip"
-> >  	depends on I2C=y && ARCH_OMAP24XX
-> > diff --git a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
-> > index 75c531a..7523e58 100644
-> > --- a/drivers/i2c/chips/Makefile
-> > +++ b/drivers/i2c/chips/Makefile
-> > @@ -30,7 +30,6 @@ obj-$(CONFIG_TWL4030_POWEROFF)	+= twl4030-poweroff.o
-> >  obj-$(CONFIG_TWL4030_PWRBUTTON)	+= twl4030-pwrbutton.o
-> >  obj-$(CONFIG_TWL4030_MADC)	+= twl4030-madc.o
-> >  obj-$(CONFIG_RTC_X1205_I2C)	+= x1205.o
-> > -obj-$(CONFIG_LP5521)		+= lp5521.o
-> >  
-> >  ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
-> >  EXTRA_CFLAGS += -DDEBUG
-> > diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
-> > index 6a2f441..bd7c4dc 100644
-> > --- a/drivers/leds/Kconfig
-> > +++ b/drivers/leds/Kconfig
-> > @@ -146,6 +146,13 @@ config LEDS_CM_X270
-> >  	help
-> >  	  This option enables support for the CM-X270 LEDs.
-> >  
-> > +config LEDS_LP5521
-> > +	tristate "LED Support for LP5521 RGB LEDs"
-> > +	depends on LEDS_CLASS && I2C
-> > +	help
-> > +	  If you say yes here you get support for the National Semiconductor
-> > +	  LP5521 LED driver used in n8x0 boards.
-> > +
-> >  config LEDS_CLEVO_MAIL
-> >  	tristate "Mail LED on Clevo notebook (EXPERIMENTAL)"
-> >  	depends on LEDS_CLASS && X86 && SERIO_I8042 && DMI && EXPERIMENTAL
-> > diff --git a/drivers/leds/Makefile b/drivers/leds/Makefile
-> > index fd6316e..ce5c8cd 100644
-> > --- a/drivers/leds/Makefile
-> > +++ b/drivers/leds/Makefile
-> > @@ -21,6 +21,7 @@ obj-$(CONFIG_LEDS_COBALT_RAQ)		+= leds-cobalt-raq.o
-> >  obj-$(CONFIG_LEDS_PCA9532)		+= leds-pca9532.o
-> >  obj-$(CONFIG_LEDS_GPIO)			+= leds-gpio.o
-> >  obj-$(CONFIG_LEDS_CM_X270)              += leds-cm-x270.o
-> > +obj-$(CONFIG_LEDS_LP5521)		+= leds-lp5521.o
-> >  obj-$(CONFIG_LEDS_CLEVO_MAIL)		+= leds-clevo-mail.o
-> >  obj-$(CONFIG_LEDS_HP6XX)		+= leds-hp6xx.o
-> >  obj-$(CONFIG_LEDS_FSG)			+= leds-fsg.o
-> > diff --git a/drivers/i2c/chips/lp5521.c b/drivers/leds/leds-lp5521.c
-> > similarity index 100%
-> > rename from drivers/i2c/chips/lp5521.c
-> > rename to drivers/leds/leds-lp5521.c
-> > -- 
-> > 1.6.0.2.307.gc427
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Teerth Reddy <teerth@ti.com>
+> Signed-off-by: Vimal Singh <vimal.singh@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-3430sdp-flash.c |   87 ++++++++++++++++++++++++++++--
+>  arch/arm/plat-omap/include/mach/gpmc.h    |   10 +++
+>  include/linux/mtd/nand.h                  |    2
+>  3 files changed, 93 insertions(+), 6 deletions(-)
 > 
-> -- 
-> "rm -rf" only sounds scary if you don't have backups
+> Index: linux-omap-2.6_27_08_2008/arch/arm/mach-omap2/board-3430sdp-flash.c
+> ===================================================================
+> ---
+> linux-omap-2.6_27_08_2008.orig/arch/arm/mach-omap2/board-3430sdp-flash.c	2008-08-27
+> 11:40:26.000000000 +0530
+> +++
+> linux-omap-2.6_27_08_2008/arch/arm/mach-omap2/board-3430sdp-flash.c	2008-09-11
+> 15:21:10.000000000 +0530
+> @@ -24,6 +24,7 @@
+>  #include <mach/onenand.h>
+>  #include <mach/board.h>
+>  #include <mach/gpmc.h>
+> +#include <mach/nand.h>
+> 
+>  static struct mtd_partition sdp_nor_partitions[] = {
+>  	/* bootloader (U-Boot, etc) in first sector */
+> @@ -137,6 +138,61 @@
+>  	/* Onenand setup does nothing at present */
+>  	return 0;
+>  }
+> +
+> +static struct mtd_partition sdp_nand_partitions[] = {
+> +	/* All the partition sizes are listed in terms of NAND block size */
+> +	{
+> +		.name           = "X-Loader-NAND",
+> +		.offset         = 0,
+> +		.size           = 4 * NAND_BLOCK_SIZE,
+> +		.mask_flags     = MTD_WRITEABLE,        /* force read-only */
+> +	},
+> +	{
+> +		.name           = "U-Boot-NAND",
+> +		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x80000 */
+> +		.size           = 4 * NAND_BLOCK_SIZE,
+> +		.mask_flags     = MTD_WRITEABLE,        /* force read-only */
+> +	},
+> +	{
+> +		.name           = "Boot Env-NAND",
+> +		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x100000 */
+> +		.size           = 2 * NAND_BLOCK_SIZE,
+> +	},
+> +	{
+> +		.name           = "Kernel-NAND",
+> +		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x140000 */
+> +		.size           = 32 * NAND_BLOCK_SIZE,
+> +	},
+> +	{
+> +		.name           = "File System - NAND",
+> +		.size           = MTDPART_SIZ_FULL,
+> +		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x540000 */
+> +	},
+> +};
+> +
+> +static struct omap_nand_platform_data sdp_nand_data = {
+> +	.parts          = sdp_nand_partitions,
+> +	.nr_parts       = ARRAY_SIZE(sdp_nand_partitions),
+> +	.nand_setup     = NULL,
+> +	.dma_channel    = -1,           /* disable DMA in OMAP NAND driver */
+> +	.dev_ready      = NULL,
+> +};
+> +
+> +static struct resource sdp_nand_resource = {
+> +	.flags          = IORESOURCE_MEM,
+> +};
+> +
+> +static struct platform_device sdp_nand_device = {
+> +	.name           = "omap2-nand",
+> +	.id             = 0,
+> +	.dev            = {
+> +	.platform_data  = &sdp_nand_data,
+> +	},
+> +	.num_resources  = 1,
+> +	.resource       = &sdp_nand_resource,
+> +};
+> +
+> +
+>  /**
+>   * sdp3430_flash_init - Identify devices connected to GPMC and register.
+>   *
+> @@ -145,7 +201,11 @@
+>  void __init sdp3430_flash_init(void)
+>  {
+>  	u8		cs = 0;
+> +	u8              nandcs = GPMC_CS_NUM + 1;
+>  	u8		onenandcs = GPMC_CS_NUM + 1;
+> +	unsigned long	gpmc_base_add;
+> +
+> +	gpmc_base_add   = OMAP34XX_GPMC_VIRT;
+> 
+>  	/* Configure start address and size of NOR device */
+>  	if (is_sil_rev_greater_than(OMAP3430_REV_ES1_0)) {
+> @@ -163,25 +223,42 @@
+> 
+>  	while (cs < GPMC_CS_NUM) {
+>  		u32 ret = 0;
+> -		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG7);
+> +		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+> 
+>  		/*
+> -		* xloader/Uboot would have programmed the oneNAND
+> +		* xloader/Uboot would have programmed the NAND/oneNAND
+>  		* base address for us This is a ugly hack. The proper
+>  		* way of doing this is to pass the setup of u-boot up
+>  		* to kernel using kernel params - something on the
+>  		* lines of machineID. Check if oneNAND is configured
+>  		*/
+> -		if ((ret & 0x3F) == (ONENAND_MAP >> 24))
+> +		if ((ret & 0xC00) == 0x800) {
+> +			/* Found it!! */
+> +			if (nandcs > GPMC_CS_NUM)
+> +				nandcs = cs;
+> +		} else {
+> +			ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG7);
+> +			if ((ret & 0x3F) == (ONENAND_MAP >> 24))
+>  			onenandcs = cs;
+> +		}
+>  		cs++;
+>  	}
+> -	if (onenandcs > GPMC_CS_NUM) {
+> -		printk(KERN_INFO "OneNAND: Unable to find configuration "
+> +	if ((nandcs > GPMC_CS_NUM) && (onenandcs > GPMC_CS_NUM)) {
+> +		printk(KERN_INFO "NAND/OneNAND: Unable to find configuration "
+>  				" in GPMC\n ");
+>  		return;
+>  	}
+> 
+> +	if (nandcs < GPMC_CS_NUM) {
+> +		sdp_nand_data.cs        = nandcs;
+> +		sdp_nand_data.gpmc_cs_baseaddr   = (void *)(gpmc_base_add +
+> +					GPMC_CS0_BASE + nandcs*GPMC_CS_SIZE);
+> +		sdp_nand_data.gpmc_baseaddr     = (void *) (gpmc_base_add);
+> +
+> +		if (platform_device_register(&sdp_nand_device) < 0)
+> +			printk(KERN_ERR "Unable to register NAND device\n");
+> +	}
+> +
+>  	if (onenandcs < GPMC_CS_NUM) {
+>  		sdp_onenand_data.cs = onenandcs;
+>  		if (platform_device_register(&sdp_onenand_device) < 0)
+> Index: linux-omap-2.6_27_08_2008/arch/arm/plat-omap/include/mach/gpmc.h
+> ===================================================================
+> ---
+> linux-omap-2.6_27_08_2008.orig/arch/arm/plat-omap/include/mach/gpmc.h	2008-08-27
+> 11:40:27.000000000 +0530
+> +++ linux-omap-2.6_27_08_2008/arch/arm/plat-omap/include/mach/gpmc.h	2008-08-27
+> 15:21:22.000000000 +0530
+> @@ -25,8 +25,18 @@
+>  #define GPMC_CS_NAND_ADDRESS	0x20
+>  #define GPMC_CS_NAND_DATA	0x24
+> 
+> +/*
+> + * The following gpmc registers are being used by
+> + * nand driver and hence is defined here.
+> + * TBD: Move them to gpmc.c by providing appropriate
+> + *  methods to read and write into these registers
+> + */
+> +#define GPMC_IRQSTATUS		0x18
+>  #define GPMC_CONFIG		0x50
+>  #define GPMC_STATUS		0x54
+> +#define GPMC_CS0_BASE           0x60
+> +#define GPMC_CS_SIZE            0x30
+> +
+> 
+>  #define GPMC_CONFIG1_WRAPBURST_SUPP     (1 << 31)
+>  #define GPMC_CONFIG1_READMULTIPLE_SUPP  (1 << 30)
+> Index: linux-omap-2.6_27_08_2008/include/linux/mtd/nand.h
+> ===================================================================
+> --- linux-omap-2.6_27_08_2008.orig/include/linux/mtd/nand.h	2008-09-11
+> 12:18:05.000000000 +0530
+> +++ linux-omap-2.6_27_08_2008/include/linux/mtd/nand.h	2008-09-11
+> 15:04:31.000000000 +0530
+> @@ -45,7 +45,7 @@
+>   */
+>  #define NAND_MAX_OOBSIZE	64
+>  #define NAND_MAX_PAGESIZE	2048
+> -
+> +#define NAND_BLOCK_SIZE		SZ_128K
+>  /*
+>   * Constants for hardware specific CLE/ALE/NCE function
+>   *
+> 
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
