@@ -1,53 +1,55 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 3/3] lp5521: move to drivers/leds
-Date: Mon, 6 Oct 2008 15:58:09 +0300
-Message-ID: <20081006125809.GR7437@gandalf.research.nokia.com>
-References: <1223284291-7675-4-git-send-email-felipe.balbi@nokia.com> <20081006110851.GA8580@kos.to> <20081006111721.GE2806@atomide.com> <20081006115103.GN7437@gandalf.research.nokia.com> <20081006125457.GA16255@kos.to>
-Reply-To: felipe.balbi@nokia.com
+From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
+Subject: Re: [PATCH 1/10] HDQ driver: Remove global pointer
+Date: Mon, 6 Oct 2008 18:42:08 +0530
+Message-ID: <05b201c927b5$2599a580$LocalHost@wipultra1303>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02D5DC8EAA@dbde02.ent.ti.com> <20080925114057.GB31477@2ka.mipt.ru> <20081006091705.GA2806@atomide.com> <20081006093538.GA18359@2ka.mipt.ru> <20081006103106.GC2806@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:27938 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752927AbYJFM7J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 08:59:09 -0400
-Content-Disposition: inline
-In-Reply-To: <20081006125457.GA16255@kos.to>
+Received: from devils.ext.ti.com ([198.47.26.153]:42039 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753083AbYJFNM1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 09:12:27 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Riku Voipio <riku.voipio@iki.fi>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Mathias Nyman <mathias.nyman@nokia.com>, rpurdie@rpsys.net
+To: Tony Lindgren <tony@atomide.com>, Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, felipe.balbi@nokia.com, linux-omap@vger.kernel.org
 
-On Mon, Oct 06, 2008 at 03:54:57PM +0300, ext Riku Voipio wrote:
-> On Mon, Oct 06, 2008 at 02:51:03PM +0300, Felipe Balbi wrote:
-> > On Mon, Oct 06, 2008 at 02:17:23PM +0300, Tony Lindgren wrote:
-> > > * Riku Voipio <riku.voipio@iki.fi> [081006 14:09]:
-> > > > On Mon, Oct 06, 2008 at 12:11:31PM +0300, Felipe Balbi wrote:
-> > > > > This driver should be sitting together with the other
-> > > > > led drivers.
-> > > > 
-> > > > But this driver actually doesn't implement the led sysfs interface.
-> > > > If the driver is changed to implement the led framework interface,
-> > > > we break the existing n810 userland and expose only limited subset
-> > > > of lp5521 features for userland..
-> > > 
-> > > Maybe this feature should be a distro specific hack on top of
-> > > the mainline tree?
-> > 
-> > the problem is that led api (afaict) doesn't really have abstraction for
-> > rgb leds like the one we use. It can only handle blinky leds and on/off
-> > transitions and we need more functionality.
+
+----- Original Message ----- 
+From: "Tony Lindgren" <tony@atomide.com>
+To: "Evgeniy Polyakov" <johnpol@2ka.mipt.ru>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>; <felipe.balbi@nokia.com>; <linux-omap@vger.kernel.org>; "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
+Sent: Monday, October 06, 2008 4:01 PM
+Subject: Re: [PATCH 1/10] HDQ driver: Remove global pointer
+
+
+>* Evgeniy Polyakov <johnpol@2ka.mipt.ru> [081006 12:36]:
+>> Hi.
+>> 
+>> On Mon, Oct 06, 2008 at 12:17:06PM +0300, Tony Lindgren (tony@atomide.com) wrote:
+>> > Great, pushing to linux-omap tree.
+>> > 
+>> > Evgeniy, are these already in your queue for upstream?
+>> 
+>> Not really, since I do not follow omap tree and will not be able to
+>> handle dependency there. Please push w1 part when appropriate changes in
+>> the arch tree are ready.
 > 
-> RGB can somewhat be handled, by creating three led devices:
+> * Madhusudhan Chikkature <madhu.cr@ti.com> [081006 12:38]:
+>>
+>> These patches are against the L-o tree. We need to send the complete
+> driver patches against the LKML kernel tree to Evgeniy.
 > 
-> n810:red:foo
-> n810:gree:foo
-> n810:blue:foo
+> OK, Madhu, can you please do the patches against the mainline kernel
+> for Evgeniy?
 
-If that's the case I'd expect the driver author to do it since I have no
-time left for that. A few fixes here and there to the driver is fine and
-preparing the driver for mainline integration is also fine since it's a
-simple cp iteration.
+I will create the patches and send them to Evgeniy.
 
--- 
-balbi
+Regards,
+Madhu
+> 
+> Tony
+> 
+>
