@@ -1,77 +1,57 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: Compilation broken for 3430SDP defconfig
-Date: Mon, 6 Oct 2008 13:25:03 -0500
-Message-ID: <A24693684029E5489D1D202277BE8944122B9B9E@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE8944122B9B84@dlee02.ent.ti.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH] alsa: add Beagleboard SoC configuration.
+Date: Mon, 6 Oct 2008 21:32:19 +0300
+Message-ID: <20081006183216.GB8273@frodo>
+References: <1221597643-29601-1-git-send-email-felipe.contreras@gmail.com> <200810032334.04565.david-b@pacbell.net> <alpine.DEB.2.00.0810060906140.354@utopia.booyaka.com> <200810061101.54350.david-b@pacbell.net>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38578 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751809AbYJFSZQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 14:25:16 -0400
-In-Reply-To: <A24693684029E5489D1D202277BE8944122B9B84@dlee02.ent.ti.com>
-Content-Language: en-US
+Received: from ns1.siteground211.com ([209.62.36.12]:57156 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751747AbYJFScl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 14:32:41 -0400
+Content-Disposition: inline
+In-Reply-To: <200810061101.54350.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, David Brownell <david-b@pacbell.net>, "me@felipebalbi.com" <me@felipebalbi.com>
-Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: Paul Walmsley <paul@pwsan.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org
 
-Ok, I just noticed from the mails what happened.. :)
+On Mon, Oct 06, 2008 at 11:01:53AM -0700, David Brownell wrote:
+> On Monday 06 October 2008, Paul Walmsley wrote:
+> > > [ INFO: possible recursive locking detected ]
+> > > 2.6.27-rc8-omap1 #174
+> > > ---------------------------------------------
+> > > aplay/1816 is trying to acquire lock:
+> > > =A0(clockfw_lock){....}, at: [<c0036be4>] clk_enable+0x24/0x70
+> > >=20
+> > > but task is already holding lock:
+> > > =A0(clockfw_lock){....}, at: [<c0036be4>] clk_enable+0x24/0x70
+> >=20
+> > Yeah, the code that's in that driver is broken. =A0The driver=20
+> > sets up a custom clk_enable() function that calls clk_enable() agai=
+n. =A0And=20
+> > clk_enable() takes clockfw_lock.
+>=20
+> I don't follow.  Could you point at those lines of code?
+> The only clkfw_lock I see is in plat-omap/clock.c code ...
+> which isn't part of this ASoC driver or even its board glue.
+>=20
+> =20
+> > The omap_clk_associate() code should resolve this problem.
+>=20
+> Time to resolve that, then... are you saying that the patches
+> Felipe posted will, if merged, make this lockdep report go
+> away so it's safe to run lockdep and ALSA on twl4030 codecs?
 
-Sorry for the unnecessary alert.
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio Alberto
-> Sent: Monday, October 06, 2008 1:20 PM
-> To: David Brownell; me@felipebalbi.com
-> Cc: Gadiyar, Anand; linux-omap@vger.kernel.org; tony@atomide.com
-> Subject: RE: Compilation broken for 3430SDP defconfig
->
-> Hi all,
->
-> Today I did a pull from the linux-omap tree, and I have this error in
-> compilation with the sdp defconfig:
->
->   CC      arch/arm/mach-omap2/board-3430sdp.o
-> arch/arm/mach-omap2/board-3430sdp.c:43:35: error: linux/i2c/twl4030-rtc.h:
-> No such file or directory
-> arch/arm/mach-omap2/board-3430sdp.c: In function 'msecure_init':
-> arch/arm/mach-omap2/board-3430sdp.c:132: warning: initialization makes
-> integer from pointer without a cast
-> make[1]: *** [arch/arm/mach-omap2/board-3430sdp.o] Error 1
-> make: *** [arch/arm/mach-omap2] Error 2
->
-> So, I just did a git pull, then a git gc. I'm not seeing that
-> linux/i2c/twl4030-rtc.h file now. Has someone moved it? Or do you think it
-> could be something related to my clone?
->
-> Regards,
-> Sergio
->
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of David Brownell
-> > Sent: Monday, October 06, 2008 11:42 AM
-> > To: me@felipebalbi.com
-> > Cc: Gadiyar, Anand; linux-omap@vger.kernel.org; tony@atomide.com
-> > Subject: Re: Compilation broken for 3430SDP defconfig
-> >
-> > On Monday 06 October 2008, Felipe Balbi wrote:
-> > > Yes, we need defconfig changes since Kconfig is not asking about the
-> new
-> > > CONFIG_GPIO_TWL4030 symbol added.
-> >
-> > I seem to have tested with "make oldconfig" not "make ..._defconfig".
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+heh, I'll repost tomorrow changing the name to omap_clk_associate()
 
+--=20
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
