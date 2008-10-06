@@ -1,339 +1,204 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.28-rc8-omap-git] twl4030-gpio irq simplification
-Date: Mon, 6 Oct 2008 00:41:32 -0700
-Message-ID: <200810060041.32321.david-b@pacbell.net>
+Subject: [patch/rfc/rft 2.6.27-rc8-omap-git] twl4030-pwrirq simplification, cleanup
+Date: Mon, 6 Oct 2008 01:19:18 -0700
+Message-ID: <200810060119.18848.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:33473 "HELO
-	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751262AbYJFHlf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 03:41:35 -0400
+Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:22759 "HELO
+	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753078AbYJFITV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 04:19:21 -0400
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+I can't test the pwrbutton stuff, but rtc and musb behave...
 
-Simplify and correct TWL4030 GPIO IRQ handling:
+With one issue:  the usb transceiver glue misbehaves on
+startup if the device is connected.  (Again.)  I looked at
+this a bit, and I think the issue is probably caused by
+not actually using key USB registers ... IRQ trigger
+mode state transitions are at best a fragile proxy for the
+real state.
 
- - support mask() not just unmask()
- - use genirq handle_edge_irq() handler not custom hacks 
- - let that handle (correct) accounting of chained IRQ counts
- - use the more efficient clear-on-read mechanism
- - don't misuse IRQ_LEVEL
- - remove some superfluous locking
- - locking fix:  all irq_chip data needs spinlock protection
+(This is similar to the GPIO patch I just sent, but simpler
+except for the impact on the few drivers thinking oddly
+about IRQs.  Those patches cover the key SIH modules, and
+a similar one affects the PIH in twl4030-core.)
 
-Cleanups:
- - give the helper thread a more accurate name
- - don't name the NOP ack() method misleadingly
- - use generic_handle_irq(), not a manually unrolled version thereof
- - comment fixes
+- Dave
 
-Note that the previous IRQ dispatch code was somewhat confused.
-It seemed not to know that it was working with edge triggered
-interrupts, much less ones which could be transparently acked.
 
-(Also note that COR=1 doesn't enable Clear-On-Read for all modules;
-some are documented as using COR=0 for that.  GPIO uses COR=1.)
+================================
+Streamline the "power irq" code, and some of the mechanisms
+it uses:
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+ - Support IRQ masking, not just unmasking; simpler code.
+ - Use the standard handle_edge_irq() handler for these edge IRQs.
+ - Use generic_handle_irq() instead of a manual expansion thereof.
+ - Provide a missing spinlock for the shared data.
+
+In short, use more of the standard genirq code ... more correctly.
+
+Also, update the drivers using the "power IRQ" accordingly:
+
+ - Don't request IRQF_DISABLED if the handler makes I2C calls;
+   and defend against lockdep forcing it on us.
+
+ - Let the irq_chip handle IRQ mask/unmask; it handles mutual
+   exclusion between drivers, among other things.
+
+ - (Unrelated) remove useless MODULE_ALIAS in pwrbutton.
+
+The USB transceiver driver still places some dodgey games with IRQ
+enable/disable, and IRQ trigger flags.  At least some of them seem
+like they'd be simplified by using USB transceiver registers ...
+notably, startup code, which doesn't seem to check state before
+it enters an irq-driven mode.
+
+For the moment, these drivers still (wrongly) try to configure IRQ
+trigger modes themselves ... again, that's something that an irq_chip
+handles (but not yet, for this one).
+
+NOTE:  tested (MUSB and RTC only) along with the init/retry hack
+to make twl4030-pwrirq work around the i2c-omap timeout problems.
+
 ---
-First step of the plan to share more core irq code ...
+ drivers/i2c/chips/twl4030-pwrbutton.c |   33 ++++------
+ drivers/i2c/chips/twl4030-pwrirq.c    |   98 ++++++++++----------------------
+ drivers/i2c/chips/twl4030-usb.c       |   57 ++++++++----------
+ drivers/rtc/rtc-twl4030.c             |    8 ++
+ 4 files changed, 80 insertions(+), 116 deletions(-)
 
- drivers/gpio/twl4030-gpio.c |  265 +++++++++++++++---------------------------
- 1 file changed, 96 insertions(+), 169 deletions(-)
-
---- a/drivers/gpio/twl4030-gpio.c
-+++ b/drivers/gpio/twl4030-gpio.c
-@@ -26,11 +26,8 @@
-  */
+--- a/drivers/i2c/chips/twl4030-pwrbutton.c
++++ b/drivers/i2c/chips/twl4030-pwrbutton.c
+@@ -49,6 +49,14 @@ static irqreturn_t powerbutton_irq(int i
+ 	int err;
+ 	u8 value;
  
- #include <linux/module.h>
--#include <linux/kernel_stat.h>
- #include <linux/init.h>
--#include <linux/time.h>
- #include <linux/interrupt.h>
--#include <linux/device.h>
- #include <linux/kthread.h>
- #include <linux/irq.h>
- #include <linux/gpio.h>
-@@ -92,17 +89,18 @@ static DEFINE_MUTEX(gpio_lock);
- /* store usage of each GPIO. - each bit represents one GPIO */
- static unsigned int gpio_usage_count;
- 
--/* shadow the imr register */
--static unsigned int gpio_imr_shadow;
-+/* protect what irq_chip modifies through its helper task */
-+static DEFINE_SPINLOCK(gpio_spinlock);
- 
--/* bitmask of pending requests to unmask gpio interrupts */
--static unsigned int gpio_pending_unmask;
-+/* shadow the imr register; updates are delayed */
-+static u32 gpio_imr_shadow;
-+static bool gpio_pending_mask;
- 
- /* bitmask of requests to set gpio irq trigger type */
- static unsigned int gpio_pending_trigger;
- 
--/* pointer to gpio unmask thread struct */
--static struct task_struct *gpio_unmask_thread;
-+/* pointer to helper thread */
-+static struct task_struct *gpio_helper_thread;
- 
- /*
-  * Helper functions to read and write the GPIO ISR and IMR registers as
-@@ -110,6 +108,9 @@ static struct task_struct *gpio_unmask_t
-  * The caller must hold gpio_lock.
-  */
- 
-+/* NOTE:  only the IRQ dispatcher may read ISR; reading it has
-+ * side effects, because of the clear-on-read mechanism (COR=1).
-+ */
- static int gpio_read_isr(unsigned int *isr)
- {
- 	int ret;
-@@ -123,19 +124,9 @@ static int gpio_read_isr(unsigned int *i
- 	return ret;
- }
- 
--static int gpio_write_isr(unsigned int isr)
--{
--	isr &= GPIO_32_MASK;
--	/*
--	 * The buffer passed to the twl4030_i2c_write() routine must have an
--	 * extra byte at the beginning reserved for its internal use.
--	 */
--	isr <<= 8;
--	isr = cpu_to_le32(isr);
--	return twl4030_i2c_write(TWL4030_MODULE_GPIO, (u8 *) &isr,
--				REG_GPIO_ISR1A, 3);
--}
--
-+/* IMR is written only during initialization and
-+ * by request of the irq_chip code.
-+ */
- static int gpio_write_imr(unsigned int imr)
- {
- 	imr &= GPIO_32_MASK;
-@@ -150,66 +141,54 @@ static int gpio_write_imr(unsigned int i
- }
- 
- /*
-- * These routines are analagous to the irqchip methods, but they are designed
-- * to be called from thread context with cpu interrupts enabled and with no
-- * locked spinlocks.  We call these routines from our custom IRQ handler
-- * instead of the usual irqchip methods.
-- */
--static void twl4030_gpio_mask_and_ack(unsigned int irq)
--{
--	int gpio = irq - twl4030_gpio_irq_base;
--
--	mutex_lock(&gpio_lock);
--	/* mask */
--	gpio_imr_shadow |= (1 << gpio);
--	gpio_write_imr(gpio_imr_shadow);
--	/* ack */
--	gpio_write_isr(1 << gpio);
--	mutex_unlock(&gpio_lock);
--}
--
--static void twl4030_gpio_unmask(unsigned int irq)
--{
--	int gpio = irq - twl4030_gpio_irq_base;
--
--	mutex_lock(&gpio_lock);
--	gpio_imr_shadow &= ~(1 << gpio);
--	gpio_write_imr(gpio_imr_shadow);
--	mutex_unlock(&gpio_lock);
--}
--
--/*
-  * These are the irqchip methods for the TWL4030 GPIO interrupts.
-  * Our IRQ handle method doesn't call these, but they will be called by
-  * other routines such as setup_irq() and enable_irq().  They are called
-- * with cpu interrupts disabled and with a lock on the irq_controller_lock
-+ * with cpu interrupts disabled and with a lock on the irq_desc.lock
-  * spinlock.  This complicates matters, because accessing the TWL4030 GPIO
-  * interrupt controller requires I2C bus transactions that can't be initiated
-  * in this context.  Our solution is to defer accessing the interrupt
-- * controller to a kernel thread.  We only need to support the unmask method.
-+ * controller to a kernel thread.
-  */
- 
--static void twl4030_gpio_irq_mask_and_ack(unsigned int irq)
-+static void twl4030_gpio_irq_ack(unsigned int irq)
- {
-+	/* NOP -- dispatcher acks when it reads ISR */
- }
- 
- static void twl4030_gpio_irq_mask(unsigned int irq)
- {
-+	int gpio = irq - twl4030_gpio_irq_base;
-+	u32 mask = 1 << gpio;
-+	unsigned long flags;
++#ifdef CONFIG_LOCKDEP
++	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
++	 * we don't want and can't tolerate.  Although it might be
++	 * friendlier not to borrow this thread context...
++	 */
++	local_irq_enable();
++#endif
 +
-+	spin_lock_irqsave(&gpio_spinlock, flags);
-+	gpio_pending_mask = true;
-+	gpio_imr_shadow |= mask;
-+	if (gpio_helper_thread && gpio_helper_thread->state != TASK_RUNNING)
-+		wake_up_process(gpio_helper_thread);
-+	spin_unlock_irqrestore(&gpio_spinlock, flags);
- }
+ 	err = twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &value,
+ 				  STS_HW_CONDITIONS);
+ 	if (!err)  {
+@@ -67,6 +75,7 @@ static int __init twl4030_pwrbutton_init
+ 	int err = 0;
+ 	u8 value;
  
- static void twl4030_gpio_irq_unmask(unsigned int irq)
- {
- 	int gpio = irq - twl4030_gpio_irq_base;
-+	u32 mask = 1 << gpio;
-+	unsigned long flags;
- 
--	gpio_pending_unmask |= (1 << gpio);
--	if (gpio_unmask_thread && gpio_unmask_thread->state != TASK_RUNNING)
--		wake_up_process(gpio_unmask_thread);
-+	spin_lock_irqsave(&gpio_spinlock, flags);
-+	gpio_pending_mask = true;
-+	gpio_imr_shadow &= ~mask;
-+	if (gpio_helper_thread && gpio_helper_thread->state != TASK_RUNNING)
-+		wake_up_process(gpio_helper_thread);
-+	spin_unlock_irqrestore(&gpio_spinlock, flags);
- }
- 
- static int twl4030_gpio_irq_set_type(unsigned int irq, unsigned trigger)
- {
- 	struct irq_desc *desc = irq_desc + irq;
- 	int gpio = irq - twl4030_gpio_irq_base;
-+	unsigned long flags;
- 
- 	trigger &= IRQ_TYPE_SENSE_MASK;
- 	if (trigger & ~IRQ_TYPE_EDGE_BOTH)
-@@ -220,19 +199,18 @@ static int twl4030_gpio_irq_set_type(uns
- 	desc->status &= ~IRQ_TYPE_SENSE_MASK;
- 	desc->status |= trigger;
- 
--	/* REVISIT This makes the "unmask" thread do double duty,
--	 * updating IRQ trigger modes too.  Rename appropriately...
--	 */
-+	spin_lock_irqsave(&gpio_spinlock, flags);
- 	gpio_pending_trigger |= (1 << gpio);
--	if (gpio_unmask_thread && gpio_unmask_thread->state != TASK_RUNNING)
--		wake_up_process(gpio_unmask_thread);
-+	if (gpio_helper_thread && gpio_helper_thread->state != TASK_RUNNING)
-+		wake_up_process(gpio_helper_thread);
-+	spin_unlock_irqrestore(&gpio_spinlock, flags);
- 
- 	return 0;
- }
- 
- static struct irq_chip twl4030_gpio_irq_chip = {
- 	.name		= "twl4030",
--	.ack		= twl4030_gpio_irq_mask_and_ack,
-+	.ack		= twl4030_gpio_irq_ack,
- 	.mask		= twl4030_gpio_irq_mask,
- 	.unmask		= twl4030_gpio_irq_unmask,
- 	.set_type	= twl4030_gpio_irq_set_type,
-@@ -281,7 +259,7 @@ int twl4030_request_gpio(int gpio)
- 		if (!gpio_usage_count) {
- 			ret = gpio_twl4030_write(REG_GPIO_CTRL,
- 					MASK_GPIO_CTRL_GPIO_ON);
--			ret = gpio_twl4030_write(REG_GPIO_SIH_CTRL, 0x00);
-+
- 		}
- 		if (!ret)
- 			gpio_usage_count |= BIT(gpio);
-@@ -475,37 +453,42 @@ int twl4030_set_gpio_card_detect(int gpi
- /* MODULE FUNCTIONS */
- 
- /*
-- * gpio_unmask_thread() runs as a kernel thread.  It is awakened by the unmask
-- * method for the GPIO interrupts.  It unmasks all of the GPIO interrupts
-- * specified in the gpio_pending_unmask bitmask.  We have to do the unmasking
-- * in a kernel thread rather than directly in the unmask method because of the
-+ * gpio_helper_thread() is a kernel thread that is awakened by irq_chip
-+ * methods to update IRQ masks and trigger modes.
-+ *
-+ * We must do this in a thread rather than in irq_chip methods because of the
-  * need to access the TWL4030 via the I2C bus.  Note that we don't need to be
-  * concerned about race conditions where the request to unmask a GPIO interrupt
-  * has already been cancelled before this thread does the unmasking.  If a GPIO
-  * interrupt is improperly unmasked, then the IRQ handler for it will mask it
-  * when an interrupt occurs.
-  */
--static int twl4030_gpio_unmask_thread(void *data)
-+static int twl4030_gpio_helper_thread(void *dev)
- {
- 	current->flags |= PF_NOFREEZE;
- 
- 	while (!kthread_should_stop()) {
- 		int irq;
--		unsigned int gpio_unmask;
-+		bool do_mask;
-+		u32 local_imr;
- 		unsigned int gpio_trigger;
- 
--		local_irq_disable();
--		gpio_unmask = gpio_pending_unmask;
--		gpio_pending_unmask = 0;
-+		spin_lock_irq(&gpio_spinlock);
-+
-+		do_mask = gpio_pending_mask;
-+		gpio_pending_mask = false;
-+		local_imr = gpio_imr_shadow;
- 
- 		gpio_trigger = gpio_pending_trigger;
- 		gpio_pending_trigger = 0;
--		local_irq_enable();
- 
--		for (irq = twl4030_gpio_irq_base; 0 != gpio_unmask;
--				gpio_unmask >>= 1, irq++) {
--			if (gpio_unmask & 0x1)
--				twl4030_gpio_unmask(irq);
-+		spin_unlock_irq(&gpio_spinlock);
-+
-+		if (do_mask) {
-+			int status = gpio_write_imr(local_imr);
-+
-+			if (status)
-+				dev_err(dev, "write IMR err %d\n", status);
- 		}
- 
- 		for (irq = twl4030_gpio_irq_base;
-@@ -526,10 +509,10 @@ static int twl4030_gpio_unmask_thread(vo
- 					type);
- 		}
- 
--		local_irq_disable();
--		if (!gpio_pending_unmask && !gpio_pending_trigger)
-+		spin_lock_irq(&gpio_spinlock);
-+		if (!gpio_pending_mask && !gpio_pending_trigger)
- 			set_current_state(TASK_INTERRUPTIBLE);
--		local_irq_enable();
-+		spin_unlock_irq(&gpio_spinlock);
- 
- 		schedule();
++	/* PWRBTN == PWRON */
+ 	if (request_irq(TWL4030_PWRIRQ_PWRBTN, powerbutton_irq, 0,
+ 			"PwrButton", NULL) < 0) {
+ 		printk(KERN_ERR "Unable to allocate IRQ for power button\n");
+@@ -92,22 +101,9 @@ static int __init twl4030_pwrbutton_init
+ 		goto free_irq_and_out;
  	}
-@@ -538,51 +521,6 @@ static int twl4030_gpio_unmask_thread(vo
+ 
+-	err = twl4030_i2c_read_u8(TWL4030_MODULE_INT, &value, PWR_IMR1);
+-	if (err) {
+-		printk(KERN_WARNING "I2C error %d while reading TWL4030"
+-					" INT PWR_IMR1 register\n", err);
+-
+-		goto free_input_dev;
+-	}
+-
+-	err = twl4030_i2c_write_u8(TWL4030_MODULE_INT,
+-				   value & (~PWR_PWRON_IRQ), PWR_IMR1);
+-	if (err) {
+-		printk(KERN_WARNING "I2C error %d while writing TWL4030"
+-				    " INT PWR_IMR1 register\n", err);
+-		goto free_input_dev;
+-	}
+-
++	/* FIXME just pass IRQF_EDGE_FALLING | IRQF_EDGE_RISING
++	 * to request_irq(), once MODULE_INT supports them...
++	 */
+ 	err = twl4030_i2c_read_u8(TWL4030_MODULE_INT, &value, PWR_EDR1);
+ 	if (err) {
+ 		printk(KERN_WARNING "I2C error %d while reading TWL4030"
+@@ -136,19 +132,16 @@ free_irq_and_out:
+ out:
+ 	return err;
+ }
++module_init(twl4030_pwrbutton_init);
+ 
+ static void __exit twl4030_pwrbutton_exit(void)
+ {
+ 	free_irq(TWL4030_PWRIRQ_PWRBTN, NULL);
+ 	input_unregister_device(powerbutton_dev);
+ 	input_free_device(powerbutton_dev);
+-
+ }
+-
+-module_init(twl4030_pwrbutton_init);
+ module_exit(twl4030_pwrbutton_exit);
+ 
+-MODULE_ALIAS("i2c:twl4030-pwrbutton");
+ MODULE_DESCRIPTION("Triton2 Power Button");
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Peter De Schrijver");
+--- a/drivers/i2c/chips/twl4030-pwrirq.c
++++ b/drivers/i2c/chips/twl4030-pwrirq.c
+@@ -29,21 +29,35 @@
+ #include <linux/i2c/twl4030.h>
+ 
+ 
++static DEFINE_SPINLOCK(pwr_lock);
+ static u8 twl4030_pwrirq_mask;
+-static u8 twl4030_pwrirq_pending_unmask;
+ 
+ static struct task_struct *twl4030_pwrirq_unmask_thread;
+ 
+ static void twl4030_pwrirq_ack(unsigned int irq) {}
+ 
+-static void twl4030_pwrirq_disableint(unsigned int irq) {}
++static void twl4030_pwrirq_disableint(unsigned int irq)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&pwr_lock, flags);
++	twl4030_pwrirq_mask |= 1 << (irq - TWL4030_PWR_IRQ_BASE);
++	if (twl4030_pwrirq_unmask_thread
++			&& twl4030_pwrirq_unmask_thread->state != TASK_RUNNING)
++		wake_up_process(twl4030_pwrirq_unmask_thread);
++	spin_unlock_irqrestore(&pwr_lock, flags);
++}
+ 
+ static void twl4030_pwrirq_enableint(unsigned int irq)
+ {
+-	twl4030_pwrirq_pending_unmask |= 1 << (irq - TWL4030_PWR_IRQ_BASE);
+-	if (twl4030_pwrirq_unmask_thread &&
+-		twl4030_pwrirq_unmask_thread->state != TASK_RUNNING)
++	unsigned long flags;
++
++	spin_lock_irqsave(&pwr_lock, flags);
++	twl4030_pwrirq_mask &= ~(1 << (irq - TWL4030_PWR_IRQ_BASE));
++	if (twl4030_pwrirq_unmask_thread
++			&& twl4030_pwrirq_unmask_thread->state != TASK_RUNNING)
+ 		wake_up_process(twl4030_pwrirq_unmask_thread);
++	spin_unlock_irqrestore(&pwr_lock, flags);
  }
  
- /*
-- * do_twl4030_gpio_irq() is the desc->handle method for each of the twl4030
-- * gpio interrupts.  It executes in kernel thread context.
-- * On entry, cpu interrupts are enabled.
-- */
--static void do_twl4030_gpio_irq(unsigned int irq, irq_desc_t *desc)
+ static struct irq_chip twl4030_pwrirq_chip = {
+@@ -53,48 +67,6 @@ static struct irq_chip twl4030_pwrirq_ch
+ 	.unmask	= twl4030_pwrirq_enableint,
+ };
+ 
+-static void do_twl4030_pwrmodule_irq(unsigned int irq, irq_desc_t *desc)
 -{
 -	struct irqaction *action;
 -	const unsigned int cpu = smp_processor_id();
 -
 -	desc->status |= IRQ_LEVEL;
--
--	/*
--	 * Acknowledge, clear _AND_ disable the interrupt.
--	 */
--	twl4030_gpio_mask_and_ack(irq);
 -
 -	if (!desc->depth) {
 -		kstat_cpu(cpu).irqs[irq]++;
@@ -343,8 +208,8 @@ First step of the plan to share more core irq code ...
 -			int ret;
 -			int status = 0;
 -			int retval = 0;
+-
 -			do {
--				/* Call the ISR with cpu interrupts enabled. */
 -				ret = action->handler(irq, action->dev_id);
 -				if (ret == IRQ_HANDLED)
 -					status |= action->flags;
@@ -352,144 +217,223 @@ First step of the plan to share more core irq code ...
 -				action = action->next;
 -			} while (action);
 -
+-			if (status & IRQF_SAMPLE_RANDOM)
+-				add_interrupt_randomness(irq);
+-
 -			if (retval != IRQ_HANDLED)
--				printk(KERN_ERR "ISR for TWL4030 GPIO"
+-				printk(KERN_ERR "ISR for TWL4030 power module"
 -					" irq %d can't handle interrupt\n",
 -					irq);
--
--			if (!desc->depth)
--				twl4030_gpio_unmask(irq);
+-		} else {
+-			local_irq_disable();
+-			twl4030_pwrirq_mask |= 1 << (irq - TWL4030_PWR_IRQ_BASE);
+-			local_irq_enable();
+-			twl4030_i2c_write_u8(TWL4030_MODULE_INT,
+-					     twl4030_pwrirq_mask,
+-					     TWL4030_INT_PWR_IMR1);
 -		}
 -	}
 -}
 -
--/*
-  * do_twl4030_gpio_module_irq() is the desc->handle method for the twl4030 gpio
-  * module interrupt.  It executes in kernel thread context.
-  * This is a chained interrupt, so there is no desc->action method for it.
-@@ -593,38 +531,21 @@ static void do_twl4030_gpio_irq(unsigned
-  */
- static void do_twl4030_gpio_module_irq(unsigned int irq, irq_desc_t *desc)
+ static void do_twl4030_pwrirq(unsigned int irq, irq_desc_t *desc)
  {
--	const unsigned int cpu = smp_processor_id();
--
--	desc->status |= IRQ_LEVEL;
--	/*
--	* The desc->handle method would normally call the desc->chip->ack
--	* method here, but we won't bother since our ack method is NULL.
--	*/
--	if (!desc->depth) {
--		int gpio_irq;
--		unsigned int gpio_isr;
--
--		kstat_cpu(cpu).irqs[irq]++;
--		local_irq_enable();
--
--		mutex_lock(&gpio_lock);
--		if (gpio_read_isr(&gpio_isr))
--			gpio_isr = 0;
--		mutex_unlock(&gpio_lock);
-+	int gpio_irq;
-+	unsigned int gpio_isr;
+ 	const unsigned int cpu = smp_processor_id();
+@@ -113,6 +85,7 @@ static void do_twl4030_pwrirq(unsigned i
+ 		local_irq_enable();
+ 		ret = twl4030_i2c_read_u8(TWL4030_MODULE_INT, &pwr_isr,
+ 					  TWL4030_INT_PWR_ISR1);
++		local_irq_disable();
+ 		if (ret) {
+ 			printk(KERN_WARNING
+ 				"I2C error %d while reading TWL4030"
+@@ -122,13 +95,10 @@ static void do_twl4030_pwrirq(unsigned i
  
--		for (gpio_irq = twl4030_gpio_irq_base; 0 != gpio_isr;
--			gpio_isr >>= 1, gpio_irq++) {
--			if (gpio_isr & 0x1) {
--				irq_desc_t *d = irq_desc + gpio_irq;
--				d->handle_irq(gpio_irq, d);
+ 		for (module_irq = TWL4030_PWR_IRQ_BASE; pwr_isr != 0;
+ 			module_irq++, pwr_isr >>= 1) {
+-			if (pwr_isr & 1) {
+-				irq_desc_t *d = irq_desc + module_irq;
+-				d->handle_irq(module_irq, d);
 -			}
--		}
-+	/* PIH irqs like this can't be individually masked or acked ...
-+	 * so we don't even call the PIH irq_chip stub methods.
-+	 */
-+	local_irq_enable();
-+	if (gpio_read_isr(&gpio_isr))
-+		gpio_isr = 0;
-+	local_irq_disable();
++			if (pwr_isr & 1)
++				generic_handle_irq(module_irq);
+ 		}
  
 -		local_irq_disable();
--		/*
--		 * Here is where we should call the unmask method, but again we
--		 * won't bother since it is NULL.
--		 */
-+	for (gpio_irq = twl4030_gpio_irq_base; 0 != gpio_isr;
-+		gpio_isr >>= 1, gpio_irq++) {
-+		if (gpio_isr & 0x1)
-+			generic_handle_irq(gpio_irq);
+ 		desc->chip->unmask(irq);
  	}
  }
+@@ -138,22 +108,19 @@ static int twl4030_pwrirq_thread(void *d
+ 	current->flags |= PF_NOFREEZE;
  
-@@ -706,7 +627,7 @@ static int __devinit gpio_twl4030_probe(
- 	int irq = 0;
+ 	while (!kthread_should_stop()) {
+-		u8 local_unmask;
+-
+-		local_irq_disable();
+-		local_unmask = twl4030_pwrirq_pending_unmask;
+-		twl4030_pwrirq_pending_unmask = 0;
+-		local_irq_enable();
++		u8 local_mask;
  
- 	/* All GPIO interrupts are initially masked */
--	gpio_pending_unmask = 0;
-+	gpio_pending_mask = false;
- 	gpio_imr_shadow = GPIO_32_MASK;
- 	ret = gpio_write_imr(gpio_imr_shadow);
+-		twl4030_pwrirq_mask &= ~local_unmask;
++		spin_lock_irq(&pwr_lock);
++		local_mask = twl4030_pwrirq_mask;
++		spin_unlock_irq(&pwr_lock);
  
-@@ -733,15 +654,14 @@ static int __devinit gpio_twl4030_probe(
+-		twl4030_i2c_write_u8(TWL4030_MODULE_INT, twl4030_pwrirq_mask,
++		twl4030_i2c_write_u8(TWL4030_MODULE_INT, local_mask,
+ 				     TWL4030_INT_PWR_IMR1);
  
- 	if (!ret) {
- 		/*
--		 * Create a kernel thread to handle deferred unmasking of gpio
-+		 * Create a kernel thread to handle deferred operations on gpio
- 		 * interrupts.
- 		 */
--		gpio_unmask_thread = kthread_create(twl4030_gpio_unmask_thread,
--			NULL, "twl4030 gpio");
--		if (!gpio_unmask_thread) {
-+		gpio_helper_thread = kthread_create(twl4030_gpio_helper_thread,
-+				&pdev->dev, "twl4030 gpio");
-+		if (!gpio_helper_thread) {
- 			dev_err(&pdev->dev,
--				"could not create twl4030 gpio unmask"
--				" thread!\n");
-+				"could not create helper thread!\n");
- 			ret = -ENOMEM;
- 		}
+-		local_irq_disable();
+-		if (!twl4030_pwrirq_pending_unmask)
++		spin_lock_irq(&pwr_lock);
++		if (local_mask == twl4030_pwrirq_mask)
+ 			set_current_state(TASK_INTERRUPTIBLE);
+-		local_irq_enable();
++		spin_unlock_irq(&pwr_lock);
+ 
+ 		schedule();
  	}
-@@ -751,19 +671,26 @@ static int __devinit gpio_twl4030_probe(
- 		for (irq = twl4030_gpio_irq_base; irq < twl4030_gpio_irq_end;
- 				irq++) {
- 			set_irq_chip_and_handler(irq, &twl4030_gpio_irq_chip,
--					do_twl4030_gpio_irq);
-+					handle_edge_irq);
- 			activate_irq(irq);
- 		}
+@@ -168,7 +135,6 @@ static int __init twl4030_pwrirq_init(vo
+ 	int i, err;
  
- 		/* gpio module IRQ */
- 		irq = platform_get_irq(pdev, 0);
+ 	twl4030_pwrirq_mask = 0xff;
+-	twl4030_pwrirq_pending_unmask = 0;
  
-+		/* COR=1 means irqs are acked by reading ISR
-+		 * PENDDIS=0 means pending events enabled
-+		 * EXCLEN=0 means route to both irq lines
-+		 */
-+		gpio_twl4030_write(REG_GPIO_SIH_CTRL,
-+				TWL4030_SIH_CTRL_COR_MASK);
+ /* HEY:  core already did this.
+  * But that's surely not why we
+@@ -201,8 +167,8 @@ msleep(10);
+ 	}
+ 
+ 	for (i = TWL4030_PWR_IRQ_BASE; i < TWL4030_PWR_IRQ_END; i++) {
+-		set_irq_chip(i, &twl4030_pwrirq_chip);
+-		set_irq_handler(i, do_twl4030_pwrmodule_irq);
++		set_irq_chip_and_handler(i, &twl4030_pwrirq_chip,
++				handle_edge_irq);
+ 		set_irq_flags(i, IRQF_VALID);
+ 	}
+ 
+--- a/drivers/i2c/chips/twl4030-usb.c
++++ b/drivers/i2c/chips/twl4030-usb.c
+@@ -237,14 +237,9 @@
+ #define GPIO_USB_4PIN_ULPI_2430C	(3 << 0)
+ 
+ /* In module TWL4030_MODULE_INT */
+-#define REG_PWR_ISR1			0x00
+-#define REG_PWR_IMR1			0x01
+-#define USB_PRES			(1 << 2)
+ #define REG_PWR_EDR1			0x05
+ #define USB_PRES_FALLING		(1 << 4)
+ #define USB_PRES_RISING			(1 << 5)
+-#define REG_PWR_SIH_CTRL		0x07
+-#define COR				(1 << 2)
+ 
+ /* bits in OTG_CTRL */
+ #define	OTG_XCEIV_OUTPUTS \
+@@ -274,6 +269,7 @@ struct twl4030_usb {
+ 	unsigned		vbus:1;
+ 	int			irq;
+ 	u8			asleep;
++	bool			irq_enabled;
+ };
+ 
+ /* internal define on top of container_of */
+@@ -417,6 +413,8 @@ static void usb_irq_enable(struct twl403
+ {
+ 	u8 val;
+ 
++	/* FIXME use set_irq_type(...) when that (soon) works */
 +
- 		/*
- 		 * Install an irq handler to demultiplex the gpio module
- 		 * interrupt.
- 		 */
- 		set_irq_chained_handler(irq, do_twl4030_gpio_module_irq);
--		wake_up_process(gpio_unmask_thread);
-+		wake_up_process(gpio_helper_thread);
+ 	/* edge setup */
+ 	WARN_ON(twl4030_i2c_read_u8(TWL4030_MODULE_INT,
+ 				&val, REG_PWR_EDR1) < 0);
+@@ -429,34 +427,18 @@ static void usb_irq_enable(struct twl403
+ 	WARN_ON(twl4030_i2c_write_u8_verify(twl, TWL4030_MODULE_INT,
+ 				val, REG_PWR_EDR1) < 0);
  
- 		dev_info(&pdev->dev, "IRQ %d chains IRQs %d..%d\n", irq,
- 			twl4030_gpio_irq_base, twl4030_gpio_irq_end - 1);
-@@ -837,10 +764,10 @@ static int __devexit gpio_twl4030_remove
- 	for (irq = twl4030_gpio_irq_base; irq < twl4030_gpio_irq_end; irq++)
- 		set_irq_handler(irq, NULL);
+-	/* un-mask interrupt */
+-	WARN_ON(twl4030_i2c_read_u8(TWL4030_MODULE_INT,
+-				&val, REG_PWR_IMR1) < 0);
+-
+-	val &= ~USB_PRES;
+-
+-	WARN_ON(twl4030_i2c_write_u8_verify(twl, TWL4030_MODULE_INT,
+-				val, REG_PWR_IMR1) < 0);
++	if (!twl->irq_enabled) {
++		enable_irq(twl->irq);
++		twl->irq_enabled = true;
++	}
+ }
  
--	/* stop the gpio unmask kernel thread */
--	if (gpio_unmask_thread) {
--		kthread_stop(gpio_unmask_thread);
--		gpio_unmask_thread = NULL;
-+	/* stop the gpio helper kernel thread */
-+	if (gpio_helper_thread) {
-+		kthread_stop(gpio_helper_thread);
-+		gpio_helper_thread = NULL;
- 	}
+ static void usb_irq_disable(struct twl4030_usb *twl)
+ {
+-	u8 val;
+-
+-	/* undo edge setup */
+-	WARN_ON(twl4030_i2c_read_u8(TWL4030_MODULE_INT,
+-				&val, REG_PWR_EDR1) < 0);
+-	val &= ~(USB_PRES_RISING | USB_PRES_FALLING);
+-	WARN_ON(twl4030_i2c_write_u8_verify(twl, TWL4030_MODULE_INT,
+-				val, REG_PWR_EDR1) < 0);
+-
+-	/* mask interrupt */
+-	WARN_ON(twl4030_i2c_read_u8(TWL4030_MODULE_INT,
+-				&val, REG_PWR_IMR1) < 0);
+-	val |= USB_PRES;
+-
+-	WARN_ON(twl4030_i2c_write_u8_verify(twl, TWL4030_MODULE_INT,
+-				val, REG_PWR_IMR1) < 0);
++	if (twl->irq_enabled) {
++		disable_irq(twl->irq);
++		twl->irq_enabled = false;
++	}
+ }
  
- 	return 0;
+ static void twl4030_phy_power(struct twl4030_usb *twl, int on)
+@@ -565,6 +547,21 @@ static irqreturn_t twl4030_usb_irq(int i
+ 	struct twl4030_usb *twl = _twl;
+ 	u8 val;
+ 
++#ifdef CONFIG_LOCKDEP
++	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
++	 * we don't want and can't tolerate.  Although it might be
++	 * friendlier not to borrow this thread context...
++	 */
++	local_irq_enable();
++#endif
++
++	/* FIXME stop accessing PWR_EDR1 ... if nothing else, we
++	 * know which edges we told the IRQ to trigger on.  And
++	 * there seem to be OTG_specific registers and irqs that
++	 * provide the right info without guessing like this:
++	 * USB_INT_STS, ID_STATUS, STS_HW_CONDITIONS, etc.
++	 */
++
+ 	/* action based on cable attach or detach */
+ 	WARN_ON(twl4030_i2c_read_u8(TWL4030_MODULE_INT,
+ 				&val, REG_PWR_EDR1) < 0);
+@@ -697,7 +694,7 @@ static int __init twl4030_usb_probe(stru
+ 	/* init irq workqueue before request_irq */
+ 	INIT_WORK(&twl->irq_work, twl4030_usb_irq_work);
+ 
+-	usb_irq_disable(twl);
++	twl->irq_enabled = true;
+ 	status = request_irq(twl->irq, twl4030_usb_irq, 0, "twl4030_usb", twl);
+ 	if (status < 0) {
+ 		dev_dbg(&pdev->dev, "can't get IRQ %d, err %d\n",
+--- a/drivers/rtc/rtc-twl4030.c
++++ b/drivers/rtc/rtc-twl4030.c
+@@ -347,6 +347,14 @@ static irqreturn_t twl4030_rtc_interrupt
+ 	int res;
+ 	u8 rd_reg;
+ 
++#ifdef CONFIG_LOCKDEP
++	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
++	 * we don't want and can't tolerate.  Although it might be
++	 * friendlier not to borrow this thread context...
++	 */
++	local_irq_enable();
++#endif
++
+ 	res = twl4030_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
+ 	if (res)
+ 		goto out;
