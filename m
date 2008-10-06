@@ -1,67 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: ldp: fix compile breakage and physical/virtual
-	address usage
-Date: Mon, 6 Oct 2008 11:39:10 +0300
-Message-ID: <20081006083910.GI14042@atomide.com>
-References: <1222096226-31811-1-git-send-email-felipe.balbi@nokia.com> <1222096226-31811-2-git-send-email-felipe.balbi@nokia.com>
+From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
+Subject: Re: [PATCH] OMAP 2/3 V4L2 display driver on video planes
+Date: Mon, 06 Oct 2008 09:41:48 +0100
+Message-ID: <yw1x63o6cdyr.fsf@thrashbarg.mansr.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02D610739F@dbde02.ent.ti.com>
+	<200810060829.25055.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61931 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751361AbYJFIgM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 04:36:12 -0400
-Content-Disposition: inline
-In-Reply-To: <1222096226-31811-2-git-send-email-felipe.balbi@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <video4linux-list-bounces@redhat.com>
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+To: video4linux-list@redhat.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: linux-omap@vger.kernel.org, Nishant Kamat <nskamat@ti.com>
 
-* Felipe Balbi <felipe.balbi@nokia.com> [080922 18:11]:
-> commit bf9454a3aaf2cad2321aa8f97bfd5d8c4ebc7bf5 broke compilation
-> for ldp board. The following patch fixes it. Also fixes a wrong
-> cast from a void __iomem * to u32.
+Hans Verkuil <hverkuil@xs4all.nl> writes:
 
-Pushing today.
+> On Monday 06 October 2008 08:06:30 Shah, Hardik wrote:
+>> 4.  VIDIOC_S/G_OMAP2_COLORKEY:  Color keying allows the pixels with
+>> the defined color on the video pipelines to be replaced with the
+>> pixels on the graphics pipelines.  I believe similar feature must be
+>> available on almost all next generation of video hardware. We can add
+>> new ioctl for this feature in V4L2 framework. I think VIDIOC_S_FBUF
+>> ioctl is used for setting up the buffer parameters on per buffer
+>> basis.  So IMHO this ioctl is not a natural fit for the above
+>> functionality. Please provide your comments on same.
+>
+> Do I understand correctly that if the color in the *video* streams=20
+> matches the colorkey, then it is replaced by the color in the=20
+> *framebuffer* (aka menu/overlay)? Usually it is the other way around:=20
+> if the framebuffer (menu) has chromakey pixels, then those pixels are=20
+> replaced by pixels from the video stream. That's what the current API=20
+> does.
 
-Tony
+The OMAP3 hardware supports both type of keying, but not
+simultaneously.
 
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> ---
->  arch/arm/mach-omap2/board-ldp.c |    9 +++++----
->  1 files changed, 5 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-> index 9263be9..8b0256c 100644
-> --- a/arch/arm/mach-omap2/board-ldp.c
-> +++ b/arch/arm/mach-omap2/board-ldp.c
-> @@ -54,9 +54,10 @@ static int __init msecure_init(void)
->  
->  #ifdef CONFIG_RTC_DRV_TWL4030
->  	/* 3430ES2.0 doesn't have msecure/gpio-22 line connected to T2 */
-> -	if (omap_device_type() == OMAP2_DEVICE_TYPE_GP &&
-> +	if (omap_type() == OMAP2_DEVICE_TYPE_GP &&
->  			system_rev < OMAP3430_REV_ES2_0) {
-> -		u32 msecure_pad_config_reg = omap_ctrl_base_get() + 0xA3C;
-> +		void __iomem *msecure_pad_config_reg =
-> +			omap_ctrl_base_get() + 0xA3C;
->  		int mux_mask = 0x04;
->  		u16 tmp;
->  
-> @@ -72,10 +73,10 @@ static int __init msecure_init(void)
->  		 * TWL4030 RTC time and calender registers.
->  		 */
->  
-> -		tmp = omap_readw(msecure_pad_config_reg);
-> +		tmp = __raw_readw(msecure_pad_config_reg);
->  		tmp &= 0xF8;	/* To enable mux mode 03/04 = GPIO_RTC */
->  		tmp |= mux_mask;/* To enable mux mode 03/04 = GPIO_RTC */
-> -		omap_writew(tmp, msecure_pad_config_reg);
-> +		__raw_writew(tmp, msecure_pad_config_reg);
->  
->  		gpio_direction_output(TWL4030_MSECURE_GPIO, 1);
->  	}
-> -- 
-> 1.6.0.1.308.gede4c
-> 
+--=20
+M=E5ns Rullg=E5rd
+mans@mansr.com
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
+ibe
+https://www.redhat.com/mailman/listinfo/video4linux-list
