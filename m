@@ -1,43 +1,43 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 04/10] ARM: OMAP2: Remove OMAP_PRM_REGADDR, OMAP_CM_REGADDR
-Date: Tue, 7 Oct 2008 00:39:54 +0100
-Message-ID: <20081006233954.GD27466@flint.arm.linux.org.uk>
-References: <20081002163508.15385.43247.stgit@localhost.localdomain> <20081002163751.15385.31321.stgit@localhost.localdomain> <20081006161849.GC27466@flint.arm.linux.org.uk>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: HEAD unbootable on 2430SDP
+Date: Mon, 6 Oct 2008 18:46:35 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE89671620365AE0E8F@dlee02.ent.ti.com>
+References: <a46a26fd0810061633h788d7c96ke5eb4a1f5fe440d4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43558 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751559AbYJFXkJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 19:40:09 -0400
-Content-Disposition: inline
-In-Reply-To: <20081006161849.GC27466@flint.arm.linux.org.uk>
+Received: from devils.ext.ti.com ([198.47.26.153]:50291 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752722AbYJFXqn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 19:46:43 -0400
+In-Reply-To: <a46a26fd0810061633h788d7c96ke5eb4a1f5fe440d4@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Juha Kuikka <juha.kuikka@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Oct 06, 2008 at 05:18:49PM +0100, Russell King - ARM Linux wrote:
-> On Thu, Oct 02, 2008 at 10:37:52AM -0600, Paul Walmsley wrote:
-> > From: Tony Lindgren <tony@atomide.com>
-> > 
-> > Remove OMAP_PRM_REGADDR and OMAP_CM_REGADDR.  Use
-> > prm_read/write_mod_reg() or cm_read/write_mod_reg() instead.  For
-> > assembly, use OMAPXXXX_PRM_REGADDR or OMAPXXXX_CM_REGADDR macros.
-> 
-> I do have concerns about this patch as well - hating those casts
-> that are required to store an offset in 'enable_reg', which then
-> have to be un-casted to add the correct base address.
-> 
-> I've been trying to work out if there's a better way to do this
-> using the existing structures.  How about:
 
-I've modified this idea slightly, since using a mask instead of bit
-numbers makes it possible to remove more special casing... and I also
-have a perl script to convert the clock definitions.
 
-One thing I've noticed, however, is that there seem to be clocks which
-result in omap2_clk_wait_ready() being called, which checks the "other"
-F or I clock register, but there's no corresponding clock defined in
-the source for that bit.  Eg, iva1_ifck in clock24xx.h.  What does it
-mean?
+> I am running into a weird problem with the current HEAD on OMAP2430SDP.
+>
+> It seems the execution goes into infinite loop in intc_bank_read_reg()
+> function.
+>
+> In the:
+>         while (!(intc_bank_read_reg(bank, INTC_SYSSTATUS) & 0x1))
+>                 /* Wait for reset to complete */;
+
+Did your board boot loader setup the peripheral port remap register?
+
+If not you must make sure the INTC is mapped to non-shared-device mapping else you won't be seeing the INTC registers properly.
+
+Using the remap register works, but if you inspect TLBs you'll see it uses all 4k'ers instead of a single 1M section entry for L4 range.  This will cut performance some.
+
+In a local hack a while back we had used some reserved L4 space to provide a separate mapping for the INTC with non-shared-device mapping.  If you do this you can shut down the remap register.
+
+Probably most people are not appreciating benefit of that setup.
+
+Regards,
+Richard W.
+
