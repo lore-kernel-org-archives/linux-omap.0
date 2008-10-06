@@ -1,57 +1,191 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [Patch] OMAP: ARM: Fix Comp for LDP on DeviceType
-Date: Mon, 6 Oct 2008 11:51:07 +0300
-Message-ID: <20081006085105.GK14042@atomide.com>
-References: <13B9B4C6EF24D648824FF11BE896716203657CAE29@dlee02.ent.ti.com>
+From: "Shah, Hardik" <hardik.shah@ti.com>
+Subject: RE: [PATCH] OMAP 2/3 V4L2 display driver on video planes
+Date: Mon, 6 Oct 2008 14:20:45 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D61074A6@dbde02.ent.ti.com>
+References: <200810060829.25055.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55263 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751803AbYJFIsK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 04:48:10 -0400
-Content-Disposition: inline
-In-Reply-To: <13B9B4C6EF24D648824FF11BE896716203657CAE29@dlee02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:59195 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751793AbYJFIwT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 04:52:19 -0400
+In-Reply-To: <200810060829.25055.hverkuil@xs4all.nl>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Zavala Trujillo, Diego" <diegozt@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "Hadli, Manjunath" <mrh@ti.com>
 
-* Zavala Trujillo, Diego <diegozt@ti.com> [080920 10:11]:
+Hi,
+
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Monday, October 06, 2008 11:59 AM
+> To: Shah, Hardik
+> Cc: Mauro Carvalho Chehab; video4linux-list@redhat.com; linux-omap@vger.kernel.org; linux-fbdev-
+> devel@lists.sourceforge.net; Hadli, Manjunath
+> Subject: Re: [PATCH] OMAP 2/3 V4L2 display driver on video planes
+> 
+> On Monday 06 October 2008 08:06:30 Shah, Hardik wrote:
+> > Hi,
+> >
+> > > -----Original Message-----
+> > > From: Mauro Carvalho Chehab [mailto:mchehab@infradead.org]
+> > > Sent: Sunday, October 05, 2008 4:50 PM
+> > > To: Shah, Hardik
+> > > Cc: Hans Verkuil; video4linux-list@redhat.com;
+> > > linux-omap@vger.kernel.org; linux-fbdev-
+> > > devel@lists.sourceforge.net
+> > > Subject: Re: [PATCH] OMAP 2/3 V4L2 display driver on video planes
+> > >
+> > > On Fri, 3 Oct 2008 20:10:36 +0530
+> > > "Shah, Hardik" <hardik.shah@ti.com> wrote:
+> > >
+> > >
+> > >
+> > > I don't like the idea of having private ioctls. This generally
+> > > means that only a very restricted subset of userspace apps that are
+> > > aware of the that API will work. This is really bad.
+> > >
+> > > So, I prefer to discuss the need for newer ioctls and add it into
+> > > the standard whenever make some sense (ok, maybe you might have
+> > > some ioctls that are really very specific for your app and that
+> > > won't break userspace apps - I've acked with 2 private ioctls on
+> > > uvc driver in the past due to that).
+> >
+> > [Shah, Hardik] Following are the custom IOCTLs used in the V4L2
+> > display driver of DSS.
+> >
+> > 1.  VIDIOC_S/G_OMAP2_MIRROR: This ioctl is used to enable the
+> > mirroring of the image. Hardware supports mirroring. As pointed out
+> > by Hans it will be better to move it to VIDIOC_S_CTRL ioctl. we can
+> > add the new control id for the mirroring.
+> 
+> HFLIP and VFLIP user controls already exist.
+> 
+> > 2.  VIDIOC_S/G_OMAP2_ROTATION: Rotation is used to enable the
+> > rotation of the image. This also can be moved to the VIDIOC_S_CTRL
+> > ioctl.  Need to add new control id for the rotation also.
+> 
+> A new standard user control can be added for this.
+> 
+> > 3.  VIDIOC_S/G_OMAP2_LINK: This feature is software provided. OMAP
+> > DSS is having two video pipelines.  Using this feature user can link
+> > the two video pipelines. This means the streaming of the video on one
+> > pipeline will be linked to the other pipeline with the same
+> > parameters as the original pipeline.  Same image can be streamed on
+> > both the pipelines, one of the pipeline's output going to TV and
+> > other one to LCD.  I believe this feature is very specific to OMAP,
+> > and should remain as the custom ioctl.
+> 
+> I agree.
+> 
+> > 4.  VIDIOC_S/G_OMAP2_COLORKEY:  Color keying allows the pixels with
+> > the defined color on the video pipelines to be replaced with the
+> > pixels on the graphics pipelines.  I believe similar feature must be
+> > available on almost all next generation of video hardware. We can add
+> > new ioctl for this feature in V4L2 framework. I think VIDIOC_S_FBUF
+> > ioctl is used for setting up the buffer parameters on per buffer
+> > basis.  So IMHO this ioctl is not a natural fit for the above
+> > functionality. Please provide your comments on same.
+> 
+> Do I understand correctly that if the color in the *video* streams
+> matches the colorkey, then it is replaced by the color in the
+> *framebuffer* (aka menu/overlay)? Usually it is the other way around:
+> if the framebuffer (menu) has chromakey pixels, then those pixels are
+> replaced by pixels from the video stream. That's what the current API
+> does
+[Shah, Hardik] This is a hardware provided feature. It can be both ways as hardware supports both the features. It means replacing the graphics pipelines pixels with video pipeline pixels and other way is also true. When both graphics and video pipelines are going to the same output device and when the colorkeying is enabled then the pixels of the video pipelines of specific color are replaced by the pixels of the graphics pipeline. This is done automatically done by the overlay manager aka compositor. Graphics pipeline can be controlled by frame buffer interface or V4L2 interface. 
+In driver we only need to enable the color keying and state that whether it is a source color keying or destination color keying along with the color code.
+> 
+> > 5. VIDIOC_S/G_OMAP2_BGCOLOR: This ioctl is used to set the Background
+> > color on either TV or LCD. It takes two inputs, first is the output
+> > device second is the color to be set. I think this can be added to
+> > the standard ioctl list but is it ok to have the output device as one
+> > of the parameters in the input structure? Instead we can set the
+> > background color for the current output.
+> 
+> Setting the background color for the current output is the more logical
+> choice. It would also be a nice addition for e.g. the ivtv driver where
+> a similar functionality exists (currently unused).
+> 
+> I assume that background color refers to the part of the display not
+> covered by a menu or video?
+[Shah, Hardik] Yes background color refers to the whole display screen. Its not covered by menu or video.
+> 
+> > 6. VIDIOC_OMAP2_COLORKEY_ENABLE/DISABLE.  This ioctl is used to
+> > enable or the disable the color keying feature described above. This
+> > can be added as the one of the control using VIDIOC_S_CTRL ioctl.
+> 
+> Depends on the answer to 4).
+> 
+> > 7.  VIDIOC_S/G_OMAP2_COLORCONV:  This is a hardware feature.  Video
+> > pipelines of the DSS are capable of getting the buffer in the
+> > YUV/UYVY format. But internally DSS operates on RGB format.  So
+> > hardware has a capability to convert the YUV format to RGB format.
+> > This is done using the color conversion matrix in the hardware.  It
+> > accepts the structure as input which has 9 unsigned short variables
+> > representing the coefficients for color conversion.  I think this
+> > feature will also be present in many new devices. So we can have the
+> > standard ioctl for this.
+> 
+> I think so too, it's pretty much a standard operation.
+> 
+> > 8.  VIDIOC_S_OMAP2_DEFCOLORCONV:  This ioctl just programs the
+> > default color conversion matrix defined by the driver.  This we can
+> > have as one of the controls using VIDIOC_S_CTRL ioctl.
+> 
+> I don't understand the need for this one. In what way does it differ
+> from OMAP2_COLORCONV?
+[Shah, Hardik] This gives the extra control to user application, where the color conversion matrix programmed was not showing up the correct colors onto display, and now user wants to restore back the default color conv matrix. 
+This we can also support by passing NULL argument to the VIDIOC_S_OMAP2_COLORCONV ioctl to program the default color conv. matrix.
+
+> 
+> > Please let me know your view/thoughts on above custom ioctls added in
+> > the driver.
+> 
+> My pleasure,
+> 
+> 	Hans
+> 
+> >
+> > > So, if you are having several points where you're violating the
+> > > rule, probably your code is very complex or you are using long
+> > > names instead of short ones. On the fisrt case, try to break the
+> > > complex stuff  into smaller and simpler static functions. The
+> > > compiler will deal with those functions like inline, so this won't
+> > > cost cpu cycles, but it will make easier for people to understand
+> > > what you're doing.
+> >
+> > [Shah, Hardik] I will revisit the code and structure it properly.
+> >
+> > > Perhaps the better would be for you to have one public machine
+> > > where you all can work and merge your work. I'm OK on pulling and
+> > > seeing patches outside LinuxTV.
+> > >
+> > > > [Shah, Hardik] we are in process of coordinating this.
+> > >
+> > > One option in the future is to base your work on a git tree. I've
+> > > changed a lot the proccess of submitting patches upstream, to avoid
+> > > having to rebase my tree (Yet, I had to do two rebases during
+> > > 2.6.27 cycle). If I can keep my tree without rebase, the developers
+> > > may rely on it and start sending me git pull requests also. Let's
+> > > see if I can do this for 2.6.28.
+> > >
+> > > I think we should start discussing using git trees as the reference
+> > > for v4l/dvb development, and start moving developers tree to git.
+> > > This would solve the issues with complex projects like OMAP, where
+> > > you need to touch not only on V4L/DVB subsystem.
+> > >
+> > > This topic deserves some more discussion,
+> >
+> > [Shah, Hardik] Right now Manju is on travel.  I will confirm with him
+> > once he comes back.
+> >
+> > > Cheers,
+> > > Mauro.
 > 
 > 
-> Regards,
-> Fix the compilation for the 3430LDP.
-> Replace omap_device_type for omap_type.
 
-Thanks, looks like I've already pushed a similar patch from Felipe.
-
-Tony
-
-> ---
->  arch/arm/mach-omap2/board-ldp.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->  mode change 100644 => 100755 arch/arm/mach-omap2/board-ldp.c
-> 
-> diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-> old mode 100644
-> new mode 100755
-> index 9263be9..02359d5
-> --- a/arch/arm/mach-omap2/board-ldp.c
-> +++ b/arch/arm/mach-omap2/board-ldp.c
-> @@ -54,7 +54,7 @@ static int __init msecure_init(void)
->  
->  #ifdef CONFIG_RTC_DRV_TWL4030
->  	/* 3430ES2.0 doesn't have msecure/gpio-22 line connected to T2 */
-> -	if (omap_device_type() == OMAP2_DEVICE_TYPE_GP &&
-> +	if (omap_type() == OMAP2_DEVICE_TYPE_GP &&
->  			system_rev < OMAP3430_REV_ES2_0) {
->  		u32 msecure_pad_config_reg = omap_ctrl_base_get() + 0xA3C;
->  		int mux_mask = 0x04;
-> -- 
-> 1.5.6.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
