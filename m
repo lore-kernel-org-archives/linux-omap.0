@@ -1,46 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: mmc: fix compile breakage on board-n800-mmc.c
-Date: Mon, 6 Oct 2008 15:22:26 +0300
-Message-ID: <20081006122225.GJ2806@atomide.com>
-References: <1223284162-7511-1-git-send-email-felipe.balbi@nokia.com> <20081006133227.8fd5e001.jarkko.nikula@nokia.com> <20081006114931.GM7437@gandalf.research.nokia.com>
+From: Riku Voipio <riku.voipio@iki.fi>
+Subject: Re: [PATCH 3/3] lp5521: move to drivers/leds
+Date: Mon, 6 Oct 2008 15:54:57 +0300
+Message-ID: <20081006125457.GA16255@kos.to>
+References: <1223284291-7675-4-git-send-email-felipe.balbi@nokia.com> <20081006110851.GA8580@kos.to> <20081006111721.GE2806@atomide.com> <20081006115103.GN7437@gandalf.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58635 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751788AbYJFMT3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 08:19:29 -0400
+Received: from naru.obs2.net ([84.20.150.76]:56316 "EHLO narury.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753205AbYJFMy6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 Oct 2008 08:54:58 -0400
 Content-Disposition: inline
-In-Reply-To: <20081006114931.GM7437@gandalf.research.nokia.com>
+In-Reply-To: <20081006115103.GN7437@gandalf.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Mathias Nyman <mathias.nyman@nokia.com>, rpurdie@rpsys.net
 
-* Felipe Balbi <felipe.balbi@nokia.com> [081006 14:50]:
-> On Mon, Oct 06, 2008 at 01:32:27PM +0300, Jarkko Nikula wrote:
-> > On Mon,  6 Oct 2008 12:09:22 +0300
-> > "ext Felipe Balbi" <felipe.balbi@nokia.com> wrote:
-> > 
-> > > Commit 81d2c7d87a9c1eb724788fce7312922effa1b1ae broke
-> > > compilation of board-n800-mmc.c, this patch fixes it.
+On Mon, Oct 06, 2008 at 02:51:03PM +0300, Felipe Balbi wrote:
+> On Mon, Oct 06, 2008 at 02:17:23PM +0300, Tony Lindgren wrote:
+> > * Riku Voipio <riku.voipio@iki.fi> [081006 14:09]:
+> > > On Mon, Oct 06, 2008 at 12:11:31PM +0300, Felipe Balbi wrote:
+> > > > This driver should be sitting together with the other
+> > > > led drivers.
 > > > 
-> > > Still n810 doesn't boot anymore with current linux-omap.
-> > > Will look into that soon.
-> > > 
-> > > Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> > > ---
-> > >  arch/arm/mach-omap2/board-n800-mmc.c |    6 +++---
-> > >  1 files changed, 3 insertions(+), 3 deletions(-)
-> > > 
-> > Heh, I did the very same patch already last week :-)
+> > > But this driver actually doesn't implement the led sysfs interface.
+> > > If the driver is changed to implement the led framework interface,
+> > > we break the existing n810 userland and expose only limited subset
+> > > of lp5521 features for userland..
 > > 
-> > http://marc.info/?l=linux-omap&m=122286380121424&w=2
-> > 
-> > I'm not sure but I think N810 was booting then. Or I was using N800.
+> > Maybe this feature should be a distro specific hack on top of
+> > the mainline tree?
 > 
-> cool, let's push your patch then ;-)
+> the problem is that led api (afaict) doesn't really have abstraction for
+> rgb leds like the one we use. It can only handle blinky leds and on/off
+> transitions and we need more functionality.
 
-Sorry already pushed Felipe's version.
+RGB can somewhat be handled, by creating three led devices:
 
-Tony
+n810:red:foo
+n810:gree:foo
+n810:blue:foo
+
+blinking could also be done, but that would be suboptimal. Mainly
+we would lose all the cool fading etc stuff than can be programmed
+to run on lp5521 without main cpu intervention..
+
+> This driver will probably loop around for a while until we find out that
+> led api needs to be extended.
+
+Or implement a minimal led api (off/brightness) as well as keep the
+custom interface for time being, if that's ok with Richard (the led
+subsystem maintainer).
+
+-- 
+"rm -rf" only sounds scary if you don't have backups
