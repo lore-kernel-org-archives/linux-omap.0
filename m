@@ -1,49 +1,165 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: Compilation broken for 3430SDP defconfig
-Date: Mon, 6 Oct 2008 21:23:22 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D610764D@dbde02.ent.ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02D6107644@dbde02.ent.ti.com>
- <20081006154716.GA8273@frodo>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 04/10] ARM: OMAP2: Remove OMAP_PRM_REGADDR, OMAP_CM_REGADDR
+Date: Mon, 6 Oct 2008 17:18:49 +0100
+Message-ID: <20081006161849.GC27466@flint.arm.linux.org.uk>
+References: <20081002163508.15385.43247.stgit@localhost.localdomain> <20081002163751.15385.31321.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57520 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752701AbYJFPxf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 11:53:35 -0400
-In-Reply-To: <20081006154716.GA8273@frodo>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48516 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752773AbYJFQTE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 12:19:04 -0400
+Content-Disposition: inline
+In-Reply-To: <20081002163751.15385.31321.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "me@felipebalbi.com" <me@felipebalbi.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-> -----Original Message-----
-> From: Felipe Balbi [mailto:me@felipebalbi.com] 
-> On Mon, Oct 06, 2008 at 09:14:19PM +0530, Gadiyar, Anand wrote:
-> > CONFIG_GPIO_TWL4030 needs to be set in menuconfig otherwise,
-> > for OMAP3 defconfig we get the below build error.
-> > 
-> > arch/arm/mach-omap2/built-in.o: In function `hsmmc_card_detect':
-> > /share/anand/tony/arch/arm/mach-omap2/hsmmc.c:50: undefined reference to `twl4030_get_gpio_datain'
-> > arch/arm/mach-omap2/built-in.o: In function `hsmmc_cleanup':
-> > /share/anand/tony/arch/arm/mach-omap2/hsmmc.c:82: undefined reference to `twl4030_free_gpio'
-> > arch/arm/mach-omap2/built-in.o: In function `hsmmc_late_init':
-> > /share/anand/tony/arch/arm/mach-omap2/hsmmc.c:63: undefined reference to `twl4030_request_gpio'
-> > /share/anand/tony/arch/arm/mach-omap2/hsmmc.c:67: undefined reference to `twl4030_set_gpio_debounce'
-> > make: *** [.tmp_vmlinux1] Error 1
+On Thu, Oct 02, 2008 at 10:37:52AM -0600, Paul Walmsley wrote:
+> From: Tony Lindgren <tony@atomide.com>
 > 
-> Yes, we need defconfig changes since Kconfig is not asking about the new
-> CONFIG_GPIO_TWL4030 symbol added.
-> 
-> That'll probably change soon when we start using standard gpio calls but
-> please, provide the defconfig change. You could even do it for all omap3
-> plus 2430.
+> Remove OMAP_PRM_REGADDR and OMAP_CM_REGADDR.  Use
+> prm_read/write_mod_reg() or cm_read/write_mod_reg() instead.  For
+> assembly, use OMAPXXXX_PRM_REGADDR or OMAPXXXX_CM_REGADDR macros.
 
-Will it help if we have a 'default' option in drivers/gpio/Kconfig?
+I do have concerns about this patch as well - hating those casts
+that are required to store an offset in 'enable_reg', which then
+have to be un-casted to add the correct base address.
 
-Something like:
-+	default y if ARCH_OMAP34XX || MACH_OMAP_2430SDP
+I've been trying to work out if there's a better way to do this
+using the existing structures.  How about:
 
+struct clk {
+	...
+	void __iomem	*base;
+	struct clk	*other_clk;	/* associated func/interface clock */
+	u16		enable_offset;
+	u16		idlest_offset;
+	u16		clksel_offset;
+	u8		enable_bit;
+	u8		idlest_bit;
+	...
+	int		(*enable)(struct clk *);
+	void		(*disable)(struct clk *);
+	...
+};
 
+(or use u8 if the offsets always fit.)
+
+The setup of apll96_ck becomes:
+
+static struct clk apll96_ck = {
+	.name		= "apll96_ck",
+	.parent 	= &sys_ck,
+	.rate		= 96000000,
+	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
+				RATE_FIXED | RATE_PROPAGATES | ENABLE_ON_INIT,
+	.clkdm_name	= "wkup_clkdm",
+
+	.enable_offset	= CM_REG_OFFSET(PLL_MOD, CM_CLKEN),
+	.idlest_offset	= CM_REG_OFFSET(PLL_MOD, CM_IDLEST),
+
+	.enable_bit	= OFFSET_OF_BIT(EN_APLL_LOCKED << OMAP24XX_EN_96M_PLL_SHIFT),
+	.idlest_bit	= OFFSET_OF_BIT(OMAP24XX_ST_96M_APLL),
+
+	.enable 	= clkll_enable32_and_wait,
+	.disable	= clkll_disable32,
+
+	.recalc 	= &propagate_rate,
+};
+
+(replacing OFFSET_OF_BIT() with the appropriate real bit position number).
+
+You register all such clocks thusly:
+
+void clk_register_offset_clks(void __iomem *base, struct clk **clks, size_t num)
+{
+	size_t i;
+	for (i = 0; i < num; i++) {
+		struct clk *clk = clks[i];
+
+		clk->base = base;
+		clk_register(clk);
+	}
+}
+
+static struct clk cm_clks[] = {
+	&apll96_ck,
+};
+
+	clk_register_offset_clks(cm_base, cm_clks, ARRAY_SIZE(cm_clks);
+
+and, eg, the accesses to the enable register become:
+
+int clkll_enable32(struct clk *clk)
+{
+	u32 val, mask = 1 << clk->enable_bit;
+
+	val = __raw_readl(clk->base + clk->enable_offset);
+	if (clk->flags & INVERT_ENABLE)
+		val &= ~mask;
+	else
+		val |= mask;
+	__raw_writel(val, clk->base + clk->enable_offset);
+	wmb();
+	return 0;
+}
+
+void clkll_disable32(struct clk *clk)
+{
+	u32 val, mask = 1 << clk->enable_bit;
+
+	val = __raw_readl(clk->base + clk->enable_offset);
+	if (clk->flags & INVERT_ENABLE)
+		val |= mask;
+	else
+		val &= ~mask;
+	__raw_writel(val, clk->base + clk->enable_offset);
+	wmb();
+}
+
+int clkll_is_running32(struct clk *clk)
+{
+	u32 val, mask = 1 << clk->enable_bit;
+	val = __raw_readl(clk->base + clk->enable_offset) & mask;
+	return clk->flags & INVERT_ENABLE ? !val : !!val;
+}
+
+int clkll_enable32_and_wait(struct clk *clk)
+{
+	u32 mask, result, val;
+	unsigned int tries = 0;
+
+	if (!clkll_is_running32(clk))
+		clkll_enable32(clk);
+
+	/* check if other clock, if any, is running */
+	if (clk->other_clk && !clkll_is_running32(clk->other_clk))
+		return 0;
+
+	val = mask = 1 << clk->idlest_bit;
+	if (inverted_on_this_cpu)
+		val = 0;
+
+	for (tries = 0; tries < MAX_CLOCK_ENABLE_WAIT; tries++, udelay(1)) {
+		result = __raw_readl(clk->base + clk->idlest_offset) & mask;
+		if (result == val)
+			break;
+	}
+
+	if (result == val)
+		pr_debug("Clock %s stable after %uus\n", clk->name, tries);
+	else
+		pr_err("Clock %s failed to stablize after %uus\n",
+			clk->name, tries);
+
+	return result == val ? 0 : -ETIMEDOUT;
+}
+
+Then, you use clkll_enable32() if you don't need to wait for the clock
+to stablize, or clkll_enable32_and_wait() if you do.
+
+If you need 16-bit, which I think I've seen, obviously create the
+corresponding versions.
