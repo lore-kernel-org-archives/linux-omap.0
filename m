@@ -1,87 +1,49 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [ANNOUNCE] New PM branch: pm-20081006
-Date: Mon, 06 Oct 2008 17:45:30 +0300
-Message-ID: <87myhhvl2t.fsf@deeprootsystems.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 00/10] OMAP clock updates for post 2.6.27
+Date: Mon, 6 Oct 2008 08:48:38 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0810060840430.354@utopia.booyaka.com>
+References: <20081002163508.15385.43247.stgit@localhost.localdomain> <20081002201715.GC12718@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.184]:33326 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752842AbYJFOpi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 10:45:38 -0400
-Received: by fk-out-0910.google.com with SMTP id 18so2308015fkq.5
-        for <linux-omap@vger.kernel.org>; Mon, 06 Oct 2008 07:45:36 -0700 (PDT)
+Received: from utopia.booyaka.com ([72.9.107.138]:36844 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752145AbYJFOsd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 10:48:33 -0400
+In-Reply-To: <20081002201715.GC12718@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-Hello,
+On Thu, 2 Oct 2008, Russell King - ARM Linux wrote:
 
-The latest PM branch, is now available in the linux-omap tree.  The
-git-shortlog is below[1], but from a high level, this branch includes
-support for
+> On Thu, Oct 02, 2008 at 10:37:46AM -0600, Paul Walmsley wrote:
+> > The series can be pulled from:
+> > 
+> >    git://git.pwsan.com/linux-2.6 omap-clock-upstream
+> > 
+> > The branch is based on rmk/devel, since powerdomain and clockdomain
+> > changes are not yet in mainline.
+> 
+> I assume then you haven't read the top commit on my devel branch, which
+> reads:
+> 
+>     DO NOT BASE YOUR TREE ON THE DEVEL BRANCH
+> 
+>     Merge branch 'master' into devel
+> 
+> The reason is that 'devel' is a convenience merge branch of currently
+> about 25 other sub-branches for people who want to get the entire lot
+> of changes.  As such, the merges found there are frequently discarded
+> and recreated.
 
-- full-chip retention in dynamic idle
-- full-chip retention in suspend
-- full-chip OFF in dynamic idle
-- full-chip OFF in suspend
+Sorry about that - thanks for the explanation.
 
-The choice of retention versus off-mode can be selected using
-/sys/power/enable_off_mode (zero by default.)
+> If you want something more stable and omap related, that can be
+> arranged.
 
-Tested on 3430SDP.
-
-To test:
-
-# echo 1 > /sys/power/clocks_off_while_idle
-# echo 1 > /sys/power/sleep_while_idle
-# echo 1 > /sys/power/voltage_off_while_idle
-
-and optionally for off-mode
-
-# echo 1 > /sys/power/enable_off_mode
-
-Kevin
+That would be great.  Is this the omap-all branch?
 
 
-[1] git shortlog:
-
-Amit Kucheria (2): PM: Typo fix for clock_allow_idle HSMMC: Make
-      driver support dynamic idle
-
-Kalle Jokiniemi (3):
-      OMAP3: Remove CONFIG_OMAP_SYSOFFMODE flag
-      OMAP: Sysfs interface for enabling voltage off in idle
-      OMAP3: OFF command integration
-
-Kevin Hilman (5):
-      ARM: OMAP3: HSMMC: Ensure HSMMC is fully reset on boot
-      PM: serial: ensure padconf wake-enable bits are set for UARTs
-      ARM: OMAP3: PM: allow runtime enable/disable of OFF mode
-      TEMP: Merge into IRQ save/restore patch
-      ARM: OMAP3: PM: remove unused 'context_mem' var from sleep34xx.S
-
-Paul Walmsley (1):
-      OMAP2/3 PM: create the OMAP PM interface and add a default OMAP PM no-op layer.
-
-Rajendra Nayak (16):
-      OMAP3: Adds missing CM offset defs
-      OMAP3: GPMC context save/restore
-      OMAP3: Serial context save/restore
-      OMAP3: GPIO context save/restore
-      OMAP3: I2C context save/restore
-      OMAP3: INTC context save/restore
-      OMAP3: PRCM context save/restore
-      OMAP3: Populate scratchpad contents
-      OMAP3: SCM context save/restore
-      OMAP3: SRAM restore function
-      OMAP3: PER/NEON/CORE control in idle
-      OMAP3: Restore MMU table entry
-      OMAP3: MPU Off support
-      OMAP3: CORE Off support
-      OMAP3: Dynamic enable/disable of OFF support
-      OMAP3: 3430SDP minimal kernel defconfig
-
-Tero Kristo (2):
-      PM: Added sleep support to UART
-      PM debug support for 34xx
+- Paul
