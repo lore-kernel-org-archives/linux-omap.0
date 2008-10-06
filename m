@@ -1,184 +1,112 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] OMAP3: Update USBHOST pinmux settings
-Date: Mon, 6 Oct 2008 13:39:29 +0300
-Message-ID: <20081006103928.GD2806@atomide.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02D603E114@dbde02.ent.ti.com>
+From: Riku Voipio <riku.voipio@iki.fi>
+Subject: Re: [PATCH 3/3] lp5521: move to drivers/leds
+Date: Mon, 6 Oct 2008 14:08:51 +0300
+Message-ID: <20081006110851.GA8580@kos.to>
+References: <1223284291-7675-4-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57439 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752850AbYJFKgd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 06:36:33 -0400
+Received: from naru.obs2.net ([84.20.150.76]:55729 "EHLO narury.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752392AbYJFLIy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 Oct 2008 07:08:54 -0400
 Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02D603E114@dbde02.ent.ti.com>
+In-Reply-To: <1223284291-7675-4-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Brownell <david-b@pacbell.net>
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: linux-omap@vger.kernel.org, Mathias Nyman <mathias.nyman@nokia.com>, rpurdie@rpsys.net
 
-* Gadiyar, Anand <gadiyar@ti.com> [080930 18:19]:
-> From: Anand Gadiyar <gadiyar@ti.com>
-> 
-> Add pin-mux settings for OHCI in PHY mode.
-> Also change settings for EHCI in TLL mode.
+On Mon, Oct 06, 2008 at 12:11:31PM +0300, Felipe Balbi wrote:
+> This driver should be sitting together with the other
+> led drivers.
 
-Pushing to linux-omap, and will also merge in to the minimal 34xx
-support patch for mainline.
+But this driver actually doesn't implement the led sysfs interface.
+If the driver is changed to implement the led framework interface,
+we break the existing n810 userland and expose only limited subset
+of lp5521 features for userland..
 
-Tony
-
-> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 > ---
-> Fixed comments below. Also fixed one pin that should
-> have been marked output, but was wrongly marked input.
+>  drivers/i2c/chips/Kconfig                          |    7 -------
+>  drivers/i2c/chips/Makefile                         |    1 -
+>  drivers/leds/Kconfig                               |    7 +++++++
+>  drivers/leds/Makefile                              |    1 +
+>  drivers/{i2c/chips/lp5521.c => leds/leds-lp5521.c} |    0
+>  5 files changed, 8 insertions(+), 8 deletions(-)
+>  rename drivers/{i2c/chips/lp5521.c => leds/leds-lp5521.c} (100%)
 > 
->  arch/arm/mach-omap2/mux.c             |   67 +++++++++++++++++++++++++++-------
->  arch/arm/plat-omap/include/mach/mux.h |   26 ++++++++++++-
->  2 files changed, 80 insertions(+), 13 deletions(-)
+> diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
+> index e6ac6a2..1b9bc11 100644
+> --- a/drivers/i2c/chips/Kconfig
+> +++ b/drivers/i2c/chips/Kconfig
+> @@ -225,13 +225,6 @@ config SENSORS_TSL2563
+>           This driver can also be built as a module.  If so, the module
+>           will be called tsl2563.
+>  
+> -config LP5521
+> -	tristate "LP5521 LED driver chip"
+> -	depends on I2C
+> -	help
+> -	  If you say yes here you get support for the National Semiconductor
+> -	  LP5521 LED driver.
+> -
+>  config MENELAUS
+>  	bool "TWL92330/Menelaus PM chip"
+>  	depends on I2C=y && ARCH_OMAP24XX
+> diff --git a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
+> index 75c531a..7523e58 100644
+> --- a/drivers/i2c/chips/Makefile
+> +++ b/drivers/i2c/chips/Makefile
+> @@ -30,7 +30,6 @@ obj-$(CONFIG_TWL4030_POWEROFF)	+= twl4030-poweroff.o
+>  obj-$(CONFIG_TWL4030_PWRBUTTON)	+= twl4030-pwrbutton.o
+>  obj-$(CONFIG_TWL4030_MADC)	+= twl4030-madc.o
+>  obj-$(CONFIG_RTC_X1205_I2C)	+= x1205.o
+> -obj-$(CONFIG_LP5521)		+= lp5521.o
+>  
+>  ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
+>  EXTRA_CFLAGS += -DDEBUG
+> diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
+> index 6a2f441..bd7c4dc 100644
+> --- a/drivers/leds/Kconfig
+> +++ b/drivers/leds/Kconfig
+> @@ -146,6 +146,13 @@ config LEDS_CM_X270
+>  	help
+>  	  This option enables support for the CM-X270 LEDs.
+>  
+> +config LEDS_LP5521
+> +	tristate "LED Support for LP5521 RGB LEDs"
+> +	depends on LEDS_CLASS && I2C
+> +	help
+> +	  If you say yes here you get support for the National Semiconductor
+> +	  LP5521 LED driver used in n8x0 boards.
+> +
+>  config LEDS_CLEVO_MAIL
+>  	tristate "Mail LED on Clevo notebook (EXPERIMENTAL)"
+>  	depends on LEDS_CLASS && X86 && SERIO_I8042 && DMI && EXPERIMENTAL
+> diff --git a/drivers/leds/Makefile b/drivers/leds/Makefile
+> index fd6316e..ce5c8cd 100644
+> --- a/drivers/leds/Makefile
+> +++ b/drivers/leds/Makefile
+> @@ -21,6 +21,7 @@ obj-$(CONFIG_LEDS_COBALT_RAQ)		+= leds-cobalt-raq.o
+>  obj-$(CONFIG_LEDS_PCA9532)		+= leds-pca9532.o
+>  obj-$(CONFIG_LEDS_GPIO)			+= leds-gpio.o
+>  obj-$(CONFIG_LEDS_CM_X270)              += leds-cm-x270.o
+> +obj-$(CONFIG_LEDS_LP5521)		+= leds-lp5521.o
+>  obj-$(CONFIG_LEDS_CLEVO_MAIL)		+= leds-clevo-mail.o
+>  obj-$(CONFIG_LEDS_HP6XX)		+= leds-hp6xx.o
+>  obj-$(CONFIG_LEDS_FSG)			+= leds-fsg.o
+> diff --git a/drivers/i2c/chips/lp5521.c b/drivers/leds/leds-lp5521.c
+> similarity index 100%
+> rename from drivers/i2c/chips/lp5521.c
+> rename to drivers/leds/leds-lp5521.c
+> -- 
+> 1.6.0.2.307.gc427
 > 
-> Index: tony/arch/arm/mach-omap2/mux.c
-> ===================================================================
-> --- tony.orig/arch/arm/mach-omap2/mux.c	2008-09-26 22:53:19.000000000 +0530
-> +++ tony/arch/arm/mach-omap2/mux.c	2008-09-30 20:37:42.572206850 +0530
-> @@ -298,13 +298,13 @@ MUX_CFG_34XX("T2_3430_USB2HS_PHY_D7", 0x
->  
->  /* TLL - HSUSB: 12-pin TLL Port 1*/
->  MUX_CFG_34XX("Y8_3430_USB1HS_TLL_CLK", 0x5da,
-> -		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
-> -MUX_CFG_34XX("Y9_3430_USB1HS_TLL_STP", 0x5d8,
->  		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("Y9_3430_USB1HS_TLL_STP", 0x5d8,
-> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLUP)
->  MUX_CFG_34XX("AA14_3430_USB1HS_TLL_DIR", 0x5ec,
-> -		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
-> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
->  MUX_CFG_34XX("AA11_3430_USB1HS_TLL_NXT", 0x5ee,
-> -		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
-> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
->  MUX_CFG_34XX("W13_3430_USB1HS_TLL_D0", 0x5dc,
->  		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
->  MUX_CFG_34XX("W12_3430_USB1HS_TLL_D1", 0x5de,
-> @@ -324,13 +324,13 @@ MUX_CFG_34XX("Y13_3430_USB1HS_TLL_D7", 0
->  
->  /* TLL - HSUSB: 12-pin TLL Port 2*/
->  MUX_CFG_34XX("AA8_3430_USB2HS_TLL_CLK", 0x5f0,
-> -		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
-> -MUX_CFG_34XX("AA10_3430_USB2HS_TLL_STP", 0x5f2,
->  		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("AA10_3430_USB2HS_TLL_STP", 0x5f2,
-> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLUP)
->  MUX_CFG_34XX("AA9_3430_USB2HS_TLL_DIR", 0x5f4,
-> -		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
-> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
->  MUX_CFG_34XX("AB11_3430_USB2HS_TLL_NXT", 0x5f6,
-> -		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
-> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
->  MUX_CFG_34XX("AB10_3430_USB2HS_TLL_D0", 0x5f8,
->  		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
->  MUX_CFG_34XX("AB9_3430_USB2HS_TLL_D1", 0x5fa,
-> @@ -350,13 +350,13 @@ MUX_CFG_34XX("T2_3430_USB2HS_TLL_D7", 0x
->  
->  /* TLL - HSUSB: 12-pin TLL Port 3*/
->  MUX_CFG_34XX("AA6_3430_USB3HS_TLL_CLK", 0x180,
-> -		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
-> -MUX_CFG_34XX("AB3_3430_USB3HS_TLL_STP", 0x166,
->  		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("AB3_3430_USB3HS_TLL_STP", 0x166,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLUP)
->  MUX_CFG_34XX("AA3_3430_USB3HS_TLL_DIR", 0x168,
-> -		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
->  MUX_CFG_34XX("Y3_3430_USB3HS_TLL_NXT", 0x16a,
-> -		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
->  MUX_CFG_34XX("AA5_3430_USB3HS_TLL_D0", 0x186,
->  		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
->  MUX_CFG_34XX("Y4_3430_USB3HS_TLL_D1", 0x184,
-> @@ -373,6 +373,49 @@ MUX_CFG_34XX("AA13_3430_USB3HS_TLL_D6", 
->  		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
->  MUX_CFG_34XX("AA12_3430_USB3HS_TLL_D7", 0x172,
->  		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +
-> +/* PHY FSUSB: FS Serial for Port 1 (multiple PHY modes supported) */
-> +MUX_CFG_34XX("AF10_3430_USB1FS_PHY_MM1_RXDP", 0x5d8,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("AG9_3430_USB1FS_PHY_MM1_RXDM", 0x5ee,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("W13_3430_USB1FS_PHY_MM1_RXRCV", 0x5dc,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("W12_3430_USB1FS_PHY_MM1_TXSE0", 0x5de,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("W11_3430_USB1FS_PHY_MM1_TXDAT", 0x5e0,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("Y11_3430_USB1FS_PHY_MM1_TXEN_N", 0x5ea,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
-> +
-> +/* PHY FSUSB: FS Serial for Port 2 (multiple PHY modes supported) */
-> +MUX_CFG_34XX("AF7_3430_USB2FS_PHY_MM2_RXDP", 0x5f2,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("AH7_3430_USB2FS_PHY_MM2_RXDM", 0x5f6,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("AB10_3430_USB2FS_PHY_MM2_RXRCV", 0x5f8,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("AB9_3430_USB2FS_PHY_MM2_TXSE0", 0x5fa,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("W3_3430_USB2FS_PHY_MM2_TXDAT", 0x1d4,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("T4_3430_USB2FS_PHY_MM2_TXEN_N", 0x1de,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
-> +
-> +/* PHY FSUSB: FS Serial for Port 3 (multiple PHY modes supported) */
-> +MUX_CFG_34XX("AH3_3430_USB3FS_PHY_MM3_RXDP", 0x166,
-> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("AE3_3430_USB3FS_PHY_MM3_RXDM", 0x16a,
-> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("AD1_3430_USB3FS_PHY_MM3_RXRCV", 0x186,
-> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("AE1_3430_USB3FS_PHY_MM3_TXSE0", 0x184,
-> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("AD2_3430_USB3FS_PHY_MM3_TXDAT", 0x188,
-> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("AC1_3430_USB3FS_PHY_MM3_TXEN_N", 0x18a,
-> +		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
-> +
->  };
->  
->  #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
-> Index: tony/arch/arm/plat-omap/include/mach/mux.h
-> ===================================================================
-> --- tony.orig/arch/arm/plat-omap/include/mach/mux.h	2008-09-26 22:53:19.000000000 +0530
-> +++ tony/arch/arm/plat-omap/include/mach/mux.h	2008-09-30 20:38:35.290535041 +0530
-> @@ -723,7 +723,31 @@ enum omap34xx_index {
->  	AB12_3430_USB3HS_TLL_DATA4,
->  	AB13_3430_USB3HS_TLL_DATA5,
->  	AA13_3430_USB3HS_TLL_DATA6,
-> -	AA12_3430_USB3HS_TLL_DATA7
-> +	AA12_3430_USB3HS_TLL_DATA7,
-> +
-> +	/* PHY FSUSB: FS Serial for Port 1 (multiple PHY modes supported) */
-> +	AF10_3430_USB1FS_PHY_MM1_RXDP,
-> +	AG9_3430_USB1FS_PHY_MM1_RXDM,
-> +	W13_3430_USB1FS_PHY_MM1_RXRCV,
-> +	W12_3430_USB1FS_PHY_MM1_TXSE0,
-> +	W11_3430_USB1FS_PHY_MM1_TXDAT,
-> +	Y11_3430_USB1FS_PHY_MM1_TXEN_N,
-> +
-> +	/* PHY FSUSB: FS Serial for Port 2 (multiple PHY modes supported) */
-> +	AF7_3430_USB2FS_PHY_MM2_RXDP,
-> +	AH7_3430_USB2FS_PHY_MM2_RXDM,
-> +	AB10_3430_USB2FS_PHY_MM2_RXRCV,
-> +	AB9_3430_USB2FS_PHY_MM2_TXSE0,
-> +	W3_3430_USB2FS_PHY_MM2_TXDAT,
-> +	T4_3430_USB2FS_PHY_MM2_TXEN_N,
-> +
-> +	/* PHY FSUSB: FS Serial for Port 3 (multiple PHY modes supported) */
-> +	AH3_3430_USB3FS_PHY_MM3_RXDP,
-> +	AE3_3430_USB3FS_PHY_MM3_RXDM,
-> +	AD1_3430_USB3FS_PHY_MM3_RXRCV,
-> +	AE1_3430_USB3FS_PHY_MM3_TXSE0,
-> +	AD2_3430_USB3FS_PHY_MM3_TXDAT,
-> +	AC1_3430_USB3FS_PHY_MM3_TXEN_N,
->  
->  };
->  
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+"rm -rf" only sounds scary if you don't have backups
