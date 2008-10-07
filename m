@@ -1,68 +1,131 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: USB serial devices not working on linux-omap musb.
-Date: Mon, 6 Oct 2008 18:20:09 -0700
-Message-ID: <200810061820.09437.david-b@pacbell.net>
-References: <e5e6ade50809302135q172a83b7pb87e9309499b5821@mail.gmail.com> <e5e6ade50810011158h12091ca1ocea1243d9437d692@mail.gmail.com> <19F8576C6E063C45BE387C64729E739403DC1D5565@dbde02.ent.ti.com>
+Subject: [patch 1/2 rc8-omap-git] twl4030 "subdriver" irq tweaks
+Date: Mon, 6 Oct 2008 20:37:59 -0700
+Message-ID: <200810062037.59468.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:22002 "HELO
-	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754380AbYJGBUM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 21:20:12 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403DC1D5565@dbde02.ent.ti.com>
+Received: from smtp128.sbc.mail.sp1.yahoo.com ([69.147.65.187]:33646 "HELO
+	smtp128.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753450AbYJGDnh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 23:43:37 -0400
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Cc: Nathan Monson <nmonson@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-On Wednesday 01 October 2008, Gupta, Ajay Kumar wrote:
-> Currently all the BULK request are multiplexed on one hardware endpoint
-> and when a wifi or eth device is in use they never release BULK hardware
-> endpoint so that it can be used by other devices. This causes failure of
-> serial device when any of wifi/eth is in use.
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Any driver that keeps a bulk request posted at all times, usually
-an IN transfer as with most stuff in drivers/net, has this issue.
+Bugfixes to TWL subdriver irq handler setup ... lockdep
+workarounds, remove IRQF_DISABLED.  NOPs with current code.
 
+These changes are specific to the drivers which register
+directly with the PIH irq_chip (in twl4030-core), and are 
+prerequsites to a cleanup patch for that PIH infrastructure.
+(Unless you don't use these drivers.)
 
-> I am working on to use different hardware endpoint for different BULK
-> devices and would submit a patch once it is done.
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+I can't test any of these, but "what could go wrong" ...
 
-Be careful of that strategy.  It'll die quickly on a number of the
-non-OMAP platforms, which don't populte as many endpoints.
+ drivers/i2c/chips/twl4030-madc.c            |   10 +++++++++-
+ drivers/input/keyboard/omap-twl4030keypad.c |   11 +++++++++--
+ drivers/power/twl4030_bci_battery.c         |   18 +++++++++++++++++-
+ 3 files changed, 35 insertions(+), 4 deletions(-)
 
-The strategy I had thought about was to allow use of more endpoints
-if they were available, as a way to improve performance if enough
-resources were available ... but primarily, act more like "normal"
-hardware, and use a mechanism that's currently disabled.
-
-That mechanism being NAK limits.  See the REVISIT comment in
-the musb_urb_enqueue() function, where it sets interval to zero
-for bulk and control transfers.
-
-The way it would work:  if the NAK limit gets hit, the transfer
-will stop "early".  Finish cleaning it up (DMA might be an issue),
-rotate that bulk transfer to the end of that bulk queue, stuff the
-next transfer where that one was, repeat.
-
-Using that mechanism on one bulk endpoint would mean it wouldn't be
-possible for transfers on it to starve everything else going the
-same direction.
-
-Using that on a periodic endpoint would mean not tying down one
-endpoint doing, say, an every-256-msec hub poll for one hub,
-while there's no endpoint free for an every-8-msec mouse or
-keyboard poll ...
-
-In short:  I strongly encourage you to find a way to use the
-NAK limit scheme to let incomplete host side transfers stop
-themselves and free up their resources for re-use, without
-giving up the ability to continue those transfers later.
-
-- Dave
-
-
+--- a/drivers/i2c/chips/twl4030-madc.c
++++ b/drivers/i2c/chips/twl4030-madc.c
+@@ -148,6 +148,14 @@ static irqreturn_t twl4030_madc_irq_hand
+ 	u8 isr_val, imr_val;
+ 	int i;
+ 
++#ifdef CONFIG_LOCKDEP
++	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
++	 * we don't want and can't tolerate.  Although it might be
++	 * friendlier not to borrow this thread context...
++	 */
++	local_irq_enable();
++#endif
++
+ 	/* Use COR to ack interrupts since we have no shared IRQs in ISRx */
+ 	isr_val = twl4030_madc_read(madc, madc->isr);
+ 	imr_val = twl4030_madc_read(madc, madc->imr);
+@@ -451,7 +459,7 @@ static int __init twl4030_madc_probe(str
+ 				   regval, TWL4030_BCI_BCICTL1);
+ 
+ 	ret = request_irq(TWL4030_MODIRQ_MADC, twl4030_madc_irq_handler,
+-			  IRQF_DISABLED, "twl4030_madc", madc);
++			  0, "twl4030_madc", madc);
+ 	if (ret) {
+ 		dev_dbg(&pdev->dev, "could not request irq\n");
+ 		goto err_irq;
+--- a/drivers/input/keyboard/omap-twl4030keypad.c
++++ b/drivers/input/keyboard/omap-twl4030keypad.c
+@@ -208,6 +208,14 @@ static irqreturn_t do_kp_irq(int irq, vo
+ 	u8 reg;
+ 	int ret;
+ 
++#ifdef CONFIG_LOCKDEP
++	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
++	 * we don't want and can't tolerate.  Although it might be
++	 * friendlier not to borrow this thread context...
++	 */
++	local_irq_enable();
++#endif
++
+ 	/* Read & Clear TWL4030 pending interrupt */
+ 	ret = twl4030_kpread(kp, TWL4030_MODULE_KEYPAD, &reg, KEYP_ISR1, 1);
+ 
+@@ -340,8 +348,7 @@ static int __init omap_kp_probe(struct p
+ 	 * This ISR will always execute in kernel thread context because of
+ 	 * the need to access the TWL4030 over the I2C bus.
+ 	 */
+-	ret = request_irq(kp->irq, do_kp_irq, IRQF_DISABLED,
+-			"TWL4030 Keypad", kp);
++	ret = request_irq(kp->irq, do_kp_irq, 0, pdev->name, kp);
+ 	if (ret < 0) {
+ 		dev_info(kp->dbg_dev, "request_irq failed for irq no=%d\n",
+ 			kp->irq);
+--- a/drivers/power/twl4030_bci_battery.c
++++ b/drivers/power/twl4030_bci_battery.c
+@@ -210,6 +210,14 @@ static irqreturn_t twl4030charger_interr
+ {
+ 	struct twl4030_bci_device_info *di = _di;
+ 
++#ifdef CONFIG_LOCKDEP
++	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
++	 * we don't want and can't tolerate.  Although it might be
++	 * friendlier not to borrow this thread context...
++	 */
++	local_irq_enable();
++#endif
++
+ 	twl4030charger_presence_evt();
+ 	power_supply_changed(&di->bat);
+ 
+@@ -310,6 +318,14 @@ static irqreturn_t twl4030battery_interr
+ 	u8 isr1a_val, isr2a_val, clear_2a, clear_1a;
+ 	int ret;
+ 
++#ifdef CONFIG_LOCKDEP
++	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
++	 * we don't want and can't tolerate.  Although it might be
++	 * friendlier not to borrow this thread context...
++	 */
++	local_irq_enable();
++#endif
++
+ 	ret = twl4030_i2c_read_u8(TWL4030_MODULE_INTERRUPTS, &isr1a_val,
+ 				REG_BCIISR1A);
+ 	if (ret)
+@@ -943,7 +959,7 @@ static int __init twl4030_bci_battery_pr
+ 
+ 	/* request BCI interruption */
+ 	ret = request_irq(TWL4030_MODIRQ_BCI, twl4030battery_interrupt,
+-		IRQF_DISABLED, pdev->name, NULL);
++		0, pdev->name, NULL);
+ 	if (ret) {
+ 		dev_dbg(&pdev->dev, "could not request irq %d, status %d\n",
+ 			TWL4030_MODIRQ_BCI, ret);
