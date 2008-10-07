@@ -1,16 +1,16 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch 1/2 rc8-omap-git] twl4030 "subdriver" irq tweaks
-Date: Mon, 6 Oct 2008 20:37:59 -0700
-Message-ID: <200810062037.59468.david-b@pacbell.net>
+Subject: [patch 2/2 rc8-omap-git] twl4030-core irq simplification
+Date: Mon, 6 Oct 2008 20:43:35 -0700
+Message-ID: <200810062043.35080.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp128.sbc.mail.sp1.yahoo.com ([69.147.65.187]:33646 "HELO
+Received: from smtp128.sbc.mail.sp1.yahoo.com ([69.147.65.187]:33648 "HELO
 	smtp128.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753450AbYJGDnh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 23:43:37 -0400
+	by vger.kernel.org with SMTP id S1753583AbYJGDni (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Oct 2008 23:43:38 -0400
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,114 +18,124 @@ To: linux-omap@vger.kernel.org
 
 From: David Brownell <dbrownell@users.sourceforge.net>
 
-Bugfixes to TWL subdriver irq handler setup ... lockdep
-workarounds, remove IRQF_DISABLED.  NOPs with current code.
+Simplify twl4030 IRQ handling by removing a needless custom flow
+handler.  The top level IRQs, from the PIH, are well suited for
+handle_simple_irq() ... they can't be acked or masked.
 
-These changes are specific to the drivers which register
-directly with the PIH irq_chip (in twl4030-core), and are 
-prerequsites to a cleanup patch for that PIH infrastructure.
-(Unless you don't use these drivers.)
+Switching resolves some issues with how IRQs were dispatched.
+Notably, abuse of desc->status, IRQ accounting, and handling
+of various faults.
+
+In short, use standard genirq code.
+
+Drivers that request_irq() to the PIH will need to pay more
+attention to things like setting IRQF_DISABLED (since it's
+no longer ignored), and making I2C calls from handlers (you'll
+need a lockdep workaround).
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 ---
-I can't test any of these, but "what could go wrong" ...
+Tested with the updated TWL GPIO and pwrirq drivers (now using
+handle_edge_irq).  It should behave without those updates, too.
 
- drivers/i2c/chips/twl4030-madc.c            |   10 +++++++++-
- drivers/input/keyboard/omap-twl4030keypad.c |   11 +++++++++--
- drivers/power/twl4030_bci_battery.c         |   18 +++++++++++++++++-
- 3 files changed, 35 insertions(+), 4 deletions(-)
+ drivers/mfd/twl4030-core.c |   75 ++-----------------------------------------
+ 1 file changed, 4 insertions(+), 71 deletions(-)
 
---- a/drivers/i2c/chips/twl4030-madc.c
-+++ b/drivers/i2c/chips/twl4030-madc.c
-@@ -148,6 +148,14 @@ static irqreturn_t twl4030_madc_irq_hand
- 	u8 isr_val, imr_val;
- 	int i;
+--- a/drivers/mfd/twl4030-core.c
++++ b/drivers/mfd/twl4030-core.c
+@@ -535,68 +535,6 @@ EXPORT_SYMBOL(twl4030_i2c_read_u8);
  
-+#ifdef CONFIG_LOCKDEP
-+	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
-+	 * we don't want and can't tolerate.  Although it might be
-+	 * friendlier not to borrow this thread context...
-+	 */
-+	local_irq_enable();
-+#endif
-+
- 	/* Use COR to ack interrupts since we have no shared IRQs in ISRx */
- 	isr_val = twl4030_madc_read(madc, madc->isr);
- 	imr_val = twl4030_madc_read(madc, madc->imr);
-@@ -451,7 +459,7 @@ static int __init twl4030_madc_probe(str
- 				   regval, TWL4030_BCI_BCICTL1);
+ /*----------------------------------------------------------------------*/
  
- 	ret = request_irq(TWL4030_MODIRQ_MADC, twl4030_madc_irq_handler,
--			  IRQF_DISABLED, "twl4030_madc", madc);
-+			  0, "twl4030_madc", madc);
- 	if (ret) {
- 		dev_dbg(&pdev->dev, "could not request irq\n");
- 		goto err_irq;
---- a/drivers/input/keyboard/omap-twl4030keypad.c
-+++ b/drivers/input/keyboard/omap-twl4030keypad.c
-@@ -208,6 +208,14 @@ static irqreturn_t do_kp_irq(int irq, vo
- 	u8 reg;
- 	int ret;
+-/*
+- * do_twl4030_module_irq() is the desc->handle method for each of the twl4030
+- * module interrupts that doesn't chain to another irq_chip (GPIO, power, etc).
+- * It executes in kernel thread context.  On entry, cpu interrupts are disabled.
+- */
+-static void do_twl4030_module_irq(unsigned int irq, irq_desc_t *desc)
+-{
+-	struct irqaction *action;
+-	const unsigned int cpu = smp_processor_id();
+-
+-	/*
+-	 * Earlier this was desc->triggered = 1;
+-	 */
+-	desc->status |= IRQ_LEVEL;
+-
+-	/*
+-	 * The desc->handle method would normally call the desc->chip->ack
+-	 * method here, but we won't bother since our ack method is NULL.
+-	 */
+-
+-	if (!desc->depth) {
+-		kstat_cpu(cpu).irqs[irq]++;
+-
+-		action = desc->action;
+-		if (action) {
+-			int ret;
+-			int status = 0;
+-			int retval = 0;
+-
+-			local_irq_enable();
+-
+-			do {
+-				/* Call the ISR with cpu interrupts enabled */
+-				ret = action->handler(irq, action->dev_id);
+-				if (ret == IRQ_HANDLED)
+-					status |= action->flags;
+-				retval |= ret;
+-				action = action->next;
+-			} while (action);
+-
+-			if (status & IRQF_SAMPLE_RANDOM)
+-				add_interrupt_randomness(irq);
+-
+-			local_irq_disable();
+-
+-			if (retval != IRQ_HANDLED)
+-				printk(KERN_ERR "ISR for TWL4030 module"
+-					" irq %d can't handle interrupt\n",
+-					irq);
+-
+-			/*
+-			 * Here is where we should call the unmask method, but
+-			 * again we won't bother since it is NULL.
+-			 */
+-		} else
+-			printk(KERN_CRIT "TWL4030 module irq %d has no ISR"
+-					" but can't be masked!\n", irq);
+-	} else
+-		printk(KERN_CRIT "TWL4030 module irq %d is disabled but can't"
+-				" be masked!\n", irq);
+-}
+-
+ static unsigned twl4030_irq_base;
  
-+#ifdef CONFIG_LOCKDEP
-+	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
-+	 * we don't want and can't tolerate.  Although it might be
-+	 * friendlier not to borrow this thread context...
-+	 */
-+	local_irq_enable();
-+#endif
-+
- 	/* Read & Clear TWL4030 pending interrupt */
- 	ret = twl4030_kpread(kp, TWL4030_MODULE_KEYPAD, &reg, KEYP_ISR1, 1);
+ static struct completion irq_event;
+@@ -611,7 +549,6 @@ static int twl4030_irq_thread(void *data
+ 	static unsigned i2c_errors;
+ 	const static unsigned max_i2c_errors = 100;
  
-@@ -340,8 +348,7 @@ static int __init omap_kp_probe(struct p
- 	 * This ISR will always execute in kernel thread context because of
- 	 * the need to access the TWL4030 over the I2C bus.
- 	 */
--	ret = request_irq(kp->irq, do_kp_irq, IRQF_DISABLED,
--			"TWL4030 Keypad", kp);
-+	ret = request_irq(kp->irq, do_kp_irq, 0, pdev->name, kp);
- 	if (ret < 0) {
- 		dev_info(kp->dbg_dev, "request_irq failed for irq no=%d\n",
- 			kp->irq);
---- a/drivers/power/twl4030_bci_battery.c
-+++ b/drivers/power/twl4030_bci_battery.c
-@@ -210,6 +210,14 @@ static irqreturn_t twl4030charger_interr
- {
- 	struct twl4030_bci_device_info *di = _di;
+-	daemonize("twl4030-irq");
+ 	current->flags |= PF_NOFREEZE;
  
-+#ifdef CONFIG_LOCKDEP
-+	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
-+	 * we don't want and can't tolerate.  Although it might be
-+	 * friendlier not to borrow this thread context...
-+	 */
-+	local_irq_enable();
-+#endif
-+
- 	twl4030charger_presence_evt();
- 	power_supply_changed(&di->bat);
+ 	while (!kthread_should_stop()) {
+@@ -691,8 +625,7 @@ static struct task_struct * __init start
+ 	struct task_struct *thread;
  
-@@ -310,6 +318,14 @@ static irqreturn_t twl4030battery_interr
- 	u8 isr1a_val, isr2a_val, clear_2a, clear_1a;
- 	int ret;
+ 	init_completion(&irq_event);
+-	thread = kthread_run(twl4030_irq_thread, (void *)irq,
+-			     "twl4030 irq %ld", irq);
++	thread = kthread_run(twl4030_irq_thread, (void *)irq, "twl4030-irq");
+ 	if (!thread)
+ 		pr_err("%s: could not create twl4030 irq %ld thread!\n",
+ 		       DRIVER_NAME, irq);
+@@ -1126,7 +1059,7 @@ static void twl_init_irq(int irq_num, un
+ 	/* install an irq handler for each of the PIH modules */
+ 	for (i = irq_base; i < irq_end; i++) {
+ 		set_irq_chip_and_handler(i, &twl4030_irq_chip,
+-				do_twl4030_module_irq);
++				handle_simple_irq);
+ 		activate_irq(i);
+ 	}
  
-+#ifdef CONFIG_LOCKDEP
-+	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
-+	 * we don't want and can't tolerate.  Although it might be
-+	 * friendlier not to borrow this thread context...
-+	 */
-+	local_irq_enable();
-+#endif
-+
- 	ret = twl4030_i2c_read_u8(TWL4030_MODULE_INTERRUPTS, &isr1a_val,
- 				REG_BCIISR1A);
- 	if (ret)
-@@ -943,7 +959,7 @@ static int __init twl4030_bci_battery_pr
- 
- 	/* request BCI interruption */
- 	ret = request_irq(TWL4030_MODIRQ_BCI, twl4030battery_interrupt,
--		IRQF_DISABLED, pdev->name, NULL);
-+		0, pdev->name, NULL);
- 	if (ret) {
- 		dev_dbg(&pdev->dev, "could not request irq %d, status %d\n",
- 			TWL4030_MODIRQ_BCI, ret);
