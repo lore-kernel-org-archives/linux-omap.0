@@ -1,17 +1,18 @@
 From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH 1/3] Add closures to clkdm_for_each
-Date: Tue,  7 Oct 2008 16:33:14 +0300
-Message-ID: <1223386396-29560-2-git-send-email-peter.de-schrijver@nokia.com>
+Subject: [PATCH 2/3] Add pm-debug counters
+Date: Tue,  7 Oct 2008 16:33:15 +0300
+Message-ID: <1223386396-29560-3-git-send-email-peter.de-schrijver@nokia.com>
 References: <1223386396-29560-1-git-send-email-peter.de-schrijver@nokia.com>
+ <1223386396-29560-2-git-send-email-peter.de-schrijver@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:43263 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753329AbYJGNdc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Oct 2008 09:33:32 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m97DXHJY020850
-	for <linux-omap@vger.kernel.org>; Tue, 7 Oct 2008 16:33:30 +0300
-In-Reply-To: <1223386396-29560-1-git-send-email-peter.de-schrijver@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:25276 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753499AbYJGNdv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Oct 2008 09:33:51 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m97DXPrX005627
+	for <linux-omap@vger.kernel.org>; Tue, 7 Oct 2008 16:33:48 +0300
+In-Reply-To: <1223386396-29560-2-git-send-email-peter.de-schrijver@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -20,165 +21,332 @@ Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
 Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 ---
- arch/arm/mach-omap2/clockdomain.c             |   31 ++----------------------
- arch/arm/mach-omap2/pm24xx.c                  |    2 +-
- arch/arm/mach-omap2/pm34xx.c                  |   13 ++++------
- arch/arm/plat-omap/include/mach/clockdomain.h |    3 +-
- 4 files changed, 11 insertions(+), 38 deletions(-)
+ arch/arm/mach-omap2/pm-debug.c                |  153 ++++++++++++-------------
+ arch/arm/mach-omap2/pm.h                      |   19 +---
+ arch/arm/plat-omap/include/mach/powerdomain.h |   14 ++-
+ 3 files changed, 87 insertions(+), 99 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index 33290a7..f0f02a5 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -297,7 +297,8 @@ struct clockdomain *clkdm_lookup(const char *name)
-  * anything else to indicate failure; or -EINVAL if the function pointer
-  * is null.
-  */
--int clkdm_for_each(int (*fn)(struct clockdomain *clkdm))
-+int clkdm_for_each(int (*fn)(struct clockdomain *clkdm, void *user),
-+			void *user)
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 380a2a0..64d40c4 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -167,8 +167,8 @@ struct dentry *pm_dbg_dir;
+ static int pm_dbg_init_done;
+ 
+ enum {
+-	PM_DBG_STATE_NOW = 0,
+-	PM_DBG_STATE_PREV,
++	DEBUG_FILE_COUNTERS = 0,
++	DEBUG_FILE_TIMERS,
+ };
+ 
+ struct pm_module_def {
+@@ -218,6 +218,13 @@ static const struct pm_module_def pm_dbg_reg_modules[] = {
+ 
+ static void *pm_dbg_reg_set[PM_DBG_MAX_REG_SETS];
+ 
++static const char pwrdm_state_names[][4] = {
++	"OFF",
++	"RET",
++	"INA",
++	"ON"
++};
++
+ static int pm_dbg_get_regset_size(void)
  {
- 	struct clockdomain *clkdm;
- 	int ret = 0;
-@@ -307,7 +308,7 @@ int clkdm_for_each(int (*fn)(struct clockdomain *clkdm))
- 
- 	mutex_lock(&clkdm_mutex);
- 	list_for_each_entry(clkdm, &clkdm_list, node) {
--		ret = (*fn)(clkdm);
-+		ret = (*fn)(clkdm, user);
- 		if (ret)
- 			break;
- 	}
-@@ -569,8 +570,6 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
- 	else
- 		omap2_clkdm_wakeup(clkdm);
- 
--	pm_dbg_clkdm_state_switch(clkdm);
--
- 	pwrdm_clkdm_state_switch(clkdm);
- 
+ 	static int regset_size;
+@@ -318,107 +325,96 @@ int pm_dbg_regset_save(int reg_set)
  	return 0;
-@@ -624,31 +623,7 @@ int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
- 	else
- 		omap2_clkdm_sleep(clkdm);
+ }
  
--	pm_dbg_clkdm_state_switch(clkdm);
--
- 	pwrdm_clkdm_state_switch(clkdm);
+-static int _pm_dbg_state_switch(struct powerdomain *pwrdm, int flag)
++void pm_dbg_update_time(struct powerdomain *pwrdm, int prev)
+ {
+ 	s64 t;
+ 	struct timespec now;
+-	int prev;
+-	int state;
+ 
+-	if (pwrdm == NULL)
+-		return -EINVAL;
++	if (!pm_dbg_init_done)
++		return ;
+ 
+-	state = pwrdm_read_pwrst(pwrdm);
++	/* Update timer for previous state */
++	getnstimeofday(&now);
++	t = timespec_to_ns(&now);
+ 
+-	switch (flag) {
+-	case PM_DBG_STATE_NOW:
+-		prev = pwrdm->state;
+-		break;
+-	case PM_DBG_STATE_PREV:
+-		prev = pwrdm_read_prev_pwrst(pwrdm);
+-		if (pwrdm->state != prev)
+-			pwrdm->state_counter[prev]++;
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
++	pwrdm->state_timer[prev] += t - pwrdm->timer;
+ 
+-	if (pm_dbg_init_done) {
+-		/* Update timer for previous state */
+-		getnstimeofday(&now);
+-		t = timespec_to_ns(&now);
++	pwrdm->timer = t;
+ 
+-		pwrdm->state_timer[prev] += t - pwrdm->timer;
++}
+ 
+-		pwrdm->timer = t;
++static int clkdm_dbg_show_counter(struct clockdomain *clkdm, void *user)
++{
++	struct seq_file *s = (struct seq_file *)user;
+ 
+-		if (state != prev)
+-			pwrdm->state_counter[state]++;
+-	}
++	if (strcmp(clkdm->name, "emu_clkdm") == 0 ||
++		strcmp(clkdm->name, "wkup_clkdm") == 0)
++		return 0;
+ 
+-	pwrdm->state = state;
++	seq_printf(s, "%s->%s (%d)", clkdm->name,
++			clkdm->pwrdm.ptr->name,
++			atomic_read(&clkdm->usecount));
++	seq_printf(s, "\n");
  
  	return 0;
  }
--
--#if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
--#include <linux/debugfs.h>
--#include <linux/seq_file.h>
--int clkdm_dbg_show_counters(struct seq_file *s, void *unused)
+ 
+-int pm_dbg_pwrdm_state_switch(struct powerdomain *pwrdm)
++static int pwrdm_dbg_show_counter(struct powerdomain *pwrdm, void *user)
+ {
+-	return _pm_dbg_state_switch(pwrdm, PM_DBG_STATE_NOW);
+-}
++	struct seq_file *s = (struct seq_file *)user;
++	int i;
+ 
+-int pm_dbg_clkdm_state_switch(struct clockdomain *clkdm)
 -{
--	struct clockdomain *clkdm;
--
--	list_for_each_entry(clkdm, &clkdm_list, node) {
--		if (strcmp(clkdm->name, "emu_clkdm") == 0 ||
--			strcmp(clkdm->name, "wkup_clkdm") == 0)
--			continue;
--		seq_printf(s, "%s->%s (%d)", clkdm->name,
--			   clkdm->pwrdm.ptr->name,
--			   atomic_read(&clkdm->usecount));
--		seq_printf(s, "\n");
+-	if (clkdm != NULL && clkdm->pwrdm.ptr != NULL) {
+-		pwrdm_wait_transition(clkdm->pwrdm.ptr);
+-		return pm_dbg_pwrdm_state_switch(clkdm->pwrdm.ptr);
 -	}
--
++	if (strcmp(pwrdm->name, "emu_pwrdm") == 0 ||
++		strcmp(pwrdm->name, "wkup_pwrdm") == 0)
++		return 0;
+ 
+-	return -EINVAL;
+-}
++	if (pwrdm->state != pwrdm_read_pwrst(pwrdm))
++		printk(KERN_ERR "pwrdm state mismatch(%s) %d != %d\n",
++			pwrdm->name, pwrdm->state, pwrdm_read_pwrst(pwrdm));
+ 
+-int pm_dbg_clk_state_switch(struct clk *clk)
+-{
+-	if (clk != NULL && clk->clkdm.ptr != NULL)
+-		return pm_dbg_clkdm_state_switch(clk->clkdm.ptr);
+-	return -EINVAL;
+-}
++	seq_printf(s, "%s (%s)", pwrdm->name,
++			pwrdm_state_names[pwrdm->state]);
++	for (i = 0; i < 4; i++)
++		seq_printf(s, ",%s:%d", pwrdm_state_names[i],
++			pwrdm->state_counter[i]);
+ 
+-static int pm_dbg_pre_suspend_cb(struct powerdomain *pwrdm)
+-{
+-	pwrdm_clear_all_prev_pwrst(pwrdm);
+-	_pm_dbg_state_switch(pwrdm, PM_DBG_STATE_NOW);
 -	return 0;
 -}
--
--#endif
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index 4be9385..3ec68f7 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -401,7 +401,7 @@ static void __init prcm_setup_regs(void)
- 	omap2_clkdm_sleep(gfx_clkdm);
++	seq_printf(s, "\n");
  
- 	/* Enable clockdomain hardware-supervised control for all clkdms */
--	clkdm_for_each(_pm_clkdm_enable_hwsup);
-+	clkdm_for_each(_pm_clkdm_enable_hwsup, NULL);
- 
- 	/* Enable clock autoidle for all domains */
- 	cm_write_mod_reg(OMAP24XX_AUTO_CAM |
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 90e108b..2688086 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -174,8 +174,6 @@ static void omap_sram_idle(void)
- 	disable_smartreflex(SR1);
- 	disable_smartreflex(SR2);
- 
--	pm_dbg_pre_suspend();
--
- 	pwrdm_pre_transition();
- 
- 	omap2_gpio_prepare_for_retention();
-@@ -192,13 +190,12 @@ static void omap_sram_idle(void)
- 
- 	omap2_gpio_resume_after_retention();
- 
--	pm_dbg_post_suspend();
-+	pwrdm_post_transition();
- 
- 	/* Enable smartreflex after WFI */
- 	enable_smartreflex(SR1);
- 	enable_smartreflex(SR2);
- 
--	pwrdm_post_transition();
- 
+-static int pm_dbg_post_suspend_cb(struct powerdomain *pwrdm)
+-{
+-	_pm_dbg_state_switch(pwrdm, PM_DBG_STATE_PREV);
+ 	return 0;
  }
  
-@@ -538,7 +535,7 @@ static void __init prcm_setup_regs(void)
- 			OCP_MOD, OMAP2_PRM_IRQENABLE_MPU_OFFSET);
+-int pm_dbg_pre_suspend(void)
++static int pwrdm_dbg_show_timer(struct powerdomain *pwrdm, void *user)
+ {
+-	pwrdm_for_each(pm_dbg_pre_suspend_cb);
++	struct seq_file *s = (struct seq_file *)user;
++	int i;
++
++	if (strcmp(pwrdm->name, "emu_pwrdm") == 0 ||
++		strcmp(pwrdm->name, "wkup_pwrdm") == 0)
++		return 0;
++
++	pwrdm_state_switch(pwrdm);
++
++	seq_printf(s, "%s (%s)", pwrdm->name,
++		pwrdm_state_names[pwrdm->state]);
++
++	for (i = 0; i < 4; i++)
++		seq_printf(s, ",%s:%lld", pwrdm_state_names[i],
++			pwrdm->state_timer[i]);
++
++	seq_printf(s, "\n");
++
+ 	return 0;
+ }
+ 
+-int pm_dbg_post_suspend(void)
++static void pm_dbg_show_counters(struct seq_file *s, void *unused)
+ {
+-	pwrdm_for_each(pm_dbg_post_suspend_cb);
+-	return 0;
++	pwrdm_for_each(pwrdm_dbg_show_counter, s);
++	clkdm_for_each(clkdm_dbg_show_counter, s);
+ }
+ 
+-enum {
+-	DEBUG_FILE_COUNTERS = 0,
+-	DEBUG_FILE_TIMERS,
+-};
+-
+-int pm_dbg_show_counters(struct seq_file *s, void *unused)
++static void pm_dbg_show_timers(struct seq_file *s, void *unused)
+ {
+-	pwrdm_dbg_show_counters(s, unused);
+-	clkdm_dbg_show_counters(s, unused);
+-
+-	return 0;
++	pwrdm_for_each(pwrdm_dbg_show_timer, s);
+ }
+ 
+ static int pm_dbg_open(struct inode *inode, struct file *file)
+@@ -429,7 +425,7 @@ static int pm_dbg_open(struct inode *inode, struct file *file)
+ 			&inode->i_private);
+ 	case DEBUG_FILE_TIMERS:
+ 	default:
+-		return single_open(file, pwrdm_dbg_show_timers,
++		return single_open(file, pm_dbg_show_timers,
+ 			&inode->i_private);
+ 	};
+ }
+@@ -489,23 +485,18 @@ int pm_dbg_regset_init(int reg_set)
+ 	return 0;
  }
  
 -static int __init pwrdms_setup(struct powerdomain *pwrdm)
 +static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
  {
- 	struct power_state *pwrst;
+-	s64 t;
+ 	int i;
++	s64 t;
+ 	struct timespec now;
  
-@@ -558,7 +555,7 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm)
- 	return set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
- }
+ 	getnstimeofday(&now);
+ 	t = timespec_to_ns(&now);
  
--static int __init clkdms_setup(struct clockdomain *clkdm)
-+static int __init clkdms_setup(struct clockdomain *clkdm, void *unused)
- {
- 	omap2_clkdm_allow_idle(clkdm);
- 	return 0;
-@@ -584,13 +581,13 @@ int __init omap3_pm_init(void)
- 		goto err1;
- 	}
+-	for (i = 0; i < 4; i++) {
+-		pwrdm->state_counter[i] = 0;
++	for (i = 0; i < 4; i++)
+ 		pwrdm->state_timer[i] = 0;
+-	}
  
--	ret = pwrdm_for_each(pwrdms_setup);
-+	ret = pwrdm_for_each(pwrdms_setup, NULL);
- 	if (ret) {
- 		printk(KERN_ERR "Failed to setup powerdomains\n");
- 		goto err2;
- 	}
+-	pwrdm_wait_transition(pwrdm);
+-	pwrdm->state = pwrdm_read_pwrst(pwrdm);
+-	pwrdm->state_counter[pwrdm->state] = 1;
+ 	pwrdm->timer = t;
  
--	(void) clkdm_for_each(clkdms_setup);
-+	(void) clkdm_for_each(clkdms_setup, NULL);
+ 	(void) debugfs_create_file(pwrdm->name, S_IRUGO|S_IWUSR,
+@@ -535,7 +526,7 @@ static int __init pm_dbg_init(void)
+ 	if (IS_ERR(pm_dbg_dir))
+ 		return PTR_ERR(pm_dbg_dir);
  
- 	mpu_pwrdm = pwrdm_lookup("mpu_pwrdm");
- 	if (mpu_pwrdm == NULL) {
-diff --git a/arch/arm/plat-omap/include/mach/clockdomain.h b/arch/arm/plat-omap/include/mach/clockdomain.h
-index b9d0dd2..99ebd88 100644
---- a/arch/arm/plat-omap/include/mach/clockdomain.h
-+++ b/arch/arm/plat-omap/include/mach/clockdomain.h
-@@ -95,7 +95,8 @@ int clkdm_register(struct clockdomain *clkdm);
- int clkdm_unregister(struct clockdomain *clkdm);
- struct clockdomain *clkdm_lookup(const char *name);
+-	pwrdm_for_each(pwrdms_setup);
++	pwrdm_for_each(pwrdms_setup, NULL);
  
--int clkdm_for_each(int (*fn)(struct clockdomain *clkdm));
-+int clkdm_for_each(int (*fn)(struct clockdomain *clkdm, void *user),
+ 	pm_dbg_dir = debugfs_create_dir("registers", d);
+ 	if (IS_ERR(pm_dbg_dir))
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 038931c..55a9cdd 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -31,32 +31,21 @@ extern int omap2_pm_debug;
+ #define omap2_pm_debug 0
+ #endif
+ 
++extern int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
++
+ #if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
+ struct seq_file;
+ struct clk;
+ struct clockdomain;
+ struct powerdomain;
+-extern int pm_dbg_pwrdm_state_switch(struct powerdomain *pwrdm);
+-extern int pm_dbg_clkdm_state_switch(struct clockdomain *clkdm);
+-extern int pm_dbg_clk_state_switch(struct clk *clk);
+-extern int pm_dbg_pre_suspend(void);
+-extern int pm_dbg_post_suspend(void);
+ extern int pm_dbg_regset_save(int reg_set);
+ extern int pm_dbg_regset_init(int reg_set);
+-extern int pwrdm_dbg_show_counters(struct seq_file *s, void *unused);
+-extern int pwrdm_dbg_show_timers(struct seq_file *s, void *unused);
+ extern int clkdm_dbg_show_counters(struct seq_file *s, void *unused);
+-extern int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
++extern void pm_dbg_update_time(struct powerdomain *pwrdm, int prev);
+ #else
+-#define pm_dbg_pwrdm_state_switch(domain) do; while (0)
+-#define pm_dbg_clkdm_state_switch(domain) do; while (0)
+-#define pm_dbg_clk_state_switch(domain) do; while (0)
+-#define pm_dbg_pre_suspend() do; while (0)
+-#define pm_dbg_post_suspend() do; while (0)
+ #define pm_dbg_regset_save(reg_set) do; while (0)
+ #define pm_dbg_regset_init(reg_set) do; while (0)
+-#define pwrdm_dbg_show_counters(s,unused) do; while (0)
+-#define pwrdm_dbg_show_timers(s,unused) do; while (0)
+ #define clkdm_dbg_show_counters(s,unused) do; while (0)
++#define pm_dbg_update_time(pwrdm, prev) do; while (0)
+ #endif /* CONFIG_PM_DEBUG */
+ #endif
+diff --git a/arch/arm/plat-omap/include/mach/powerdomain.h b/arch/arm/plat-omap/include/mach/powerdomain.h
+index 1c27d7d..2d6f9a0 100644
+--- a/arch/arm/plat-omap/include/mach/powerdomain.h
++++ b/arch/arm/plat-omap/include/mach/powerdomain.h
+@@ -74,6 +74,11 @@ struct pwrdm_dep {
+ 
+ 	int state;
+ 	unsigned state_counter[4];
++
++#ifdef CONFIG_PM_DEBUG
++	s64 timer;
++	s64 state_timer[4];
++#endif
+ };
+ 
+ struct powerdomain {
+@@ -118,9 +123,11 @@ struct powerdomain {
+ 	struct clockdomain *pwrdm_clkdms[PWRDM_MAX_CLKDMS];
+ 
+ 	struct list_head node;
+-#ifdef CONFIG_PM_DEBUG
++
+ 	int state;
+-	int state_counter[4];
++	unsigned state_counter[4];
++
++#ifdef CONFIG_PM_DEBUG
+ 	s64 timer;
+ 	s64 state_timer[4];
+ #endif
+@@ -133,7 +140,8 @@ int pwrdm_register(struct powerdomain *pwrdm);
+ int pwrdm_unregister(struct powerdomain *pwrdm);
+ struct powerdomain *pwrdm_lookup(const char *name);
+ 
+-int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm));
++int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
 +			void *user);
- struct powerdomain *clkdm_get_pwrdm(struct clockdomain *clkdm);
  
- void omap2_clkdm_allow_idle(struct clockdomain *clkdm);
+ int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
+ int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
 -- 
 1.5.6.3
 
