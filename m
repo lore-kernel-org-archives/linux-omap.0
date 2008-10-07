@@ -1,34 +1,74 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: HTTP url not working
-Date: Tue, 7 Oct 2008 10:02:42 +0300
-Message-ID: <20081007070241.GB21037@atomide.com>
-References: <94a0d4530810060744m111dfd19mf4c3a9e76f11894f@mail.gmail.com>
+Date: Tue, 7 Oct 2008 10:27:53 +0300
+Message-ID: <20081007072752.GC21037@atomide.com>
+References: <94a0d4530810060744m111dfd19mf4c3a9e76f11894f@mail.gmail.com> <20081007070241.GB21037@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62427 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62538 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751527AbYJGG7o (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Oct 2008 02:59:44 -0400
+	with ESMTP id S1751250AbYJGHYz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Oct 2008 03:24:55 -0400
 Content-Disposition: inline
-In-Reply-To: <94a0d4530810060744m111dfd19mf4c3a9e76f11894f@mail.gmail.com>
+In-Reply-To: <20081007070241.GB21037@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Contreras <felipe.contreras@gmail.com>
 Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-* Felipe Contreras <felipe.contreras@gmail.com> [081006 17:44]:
-> Hi,
+* Tony Lindgren <tony@atomide.com> [081007 09:59]:
+> * Felipe Contreras <felipe.contreras@gmail.com> [081006 17:44]:
+> > Hi,
+> > 
+> > The http url doesn't seem to be working anymore:
+> > http://www.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+> > 
+> > Can you?
+> > mv .git/post-update{.sample,}
 > 
-> The http url doesn't seem to be working anymore:
-> http://www.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+> Hmm, I just did a git-clone over http, and it worked fine. 
 > 
-> Can you?
-> mv .git/post-update{.sample,}
+> Kevin just told me that the new pm branched don't show up over http,
+> but do appear over git. Trying to debug.
 
-Hmm, I just did a git-clone over http, and it worked fine. 
+Looks like it's some kernel.org mirroring issue with http.
 
-Kevin just told me that the new pm branched don't show up over http,
-but do appear over git. Trying to debug.
+If I edit .git/config to use git protocol:
+
+url = git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+
+And then pull:
+
+$ rm .git/refs/remotes/origin/pm-*; git-pull -v
+>From git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6
+ = [up to date]      linus      -> origin/linus
+ a58e707..62c36fd  master     -> origin/master
+ = [up to date]      omap2-upstream -> origin/omap2-upstream
+ = [up to date]      omap3-upstream -> origin/omap3-upstream
+ * [new branch]      pm-0       -> origin/pm-0
+ * [new branch]      pm-0.5     -> origin/pm-0.5
+ * [new branch]      pm-1       -> origin/pm-1
+ * [new branch]      pm-20081006 -> origin/pm-20081006
+Already up-to-date.
+
+It work fine.
+
+
+But if I edit .git/config to use http protocol:
+
+url = http://www.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+
+And then pull:
+
+$ rm .git/refs/remotes/origin/pm-*; git-pull -v
+>From http://www.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6
+ = [up to date]      linus      -> origin/linus
+ + 62c36fd...a58e707 master     -> origin/master  (forced update)
+ * [new branch]      pm-0       -> origin/pm-0
+ * [new branch]      pm-1       -> origin/pm-1
+Already up-to-date.
+    
+It pulls something that's old.
 
 Tony
