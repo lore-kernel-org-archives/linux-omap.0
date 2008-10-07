@@ -1,92 +1,34 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: kernel oops for 3430sdp
-Date: Tue, 7 Oct 2008 14:29:14 -0500
-Message-ID: <A24693684029E5489D1D202277BE894412369437@dlee02.ent.ti.com>
-References: <200810071128.52889.david-b@pacbell.net>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: DVB-T problems with MUSB
+Date: Tue, 7 Oct 2008 12:32:27 -0700
+Message-ID: <200810071232.27362.david-b@pacbell.net>
+References: <70E3439A-A4CE-442B-928A-EEBAB253F279@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47236 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752961AbYJGT3V convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Oct 2008 15:29:21 -0400
-In-Reply-To: <200810071128.52889.david-b@pacbell.net>
-Content-Language: en-US
+Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:34359 "HELO
+	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753423AbYJGTc3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Oct 2008 15:32:29 -0400
+In-Reply-To: <70E3439A-A4CE-442B-928A-EEBAB253F279@student.utwente.nl>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Thanks for that, it worked fine now.
+On Tuesday 07 October 2008, Koen Kooi wrote:
+> Is this a problem with MUSB, omap dma or the dvb stack?
 
-> -----Original Message-----
-> From: David Brownell [mailto:david-b@pacbell.net]
-> Sent: Tuesday, October 07, 2008 1:29 PM
-> To: Aguirre Rodriguez, Sergio Alberto
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: kernel oops for 3430sdp
-> 
-> On Tuesday 07 October 2008, Aguirre Rodriguez, Sergio Alberto wrote:
-> > <1>Unable to handle kernel NULL pointer dereference at virtual address
-> 00000000
-> 
-> Did you try with the hack I've sent, to work around one problematic
-> (and surprisingly reproducible!) i2c-omap timeout?  Appended.
-> 
-> Given I2C faults, many things blow up rudely ... hardly any I2C
-> drivers are written to tolerate transfer errors.  Not entirely
-> unreasonably, since such errors are otherwise quite rare.
-> 
-> 
-> I currently suspect there's an issue where the i2c-omap code can
-> handle a bunch of requests that group closely together ... or are
-> separated by a lot of time ... but there's some middle ground
-> where if you wait the "right" amount of time before making the
-> next request, it times out instead of working correctly.
-> 
-> I have no proof behind that theory, but it does seem to match up
-> to a few of the observed facts.  Notably that the i2c timeouts
-> appear when the only device on that bus is the TWL4030, and the
-> drivers make known-to-be-valid requets ... the timeouts started
-> to appear only after some trivial changes in init timings, which
-> were caused by moving code out of drivers/i2c into directories
-> that are more appropriate.
-> 
-> - Dave
-> 
-> 
-> ---
->  drivers/i2c/chips/twl4030-pwrirq.c |   10 ++++++++++
->  1 file changed, 10 insertions(+)
-> 
-> --- a/drivers/i2c/chips/twl4030-pwrirq.c
-> +++ b/drivers/i2c/chips/twl4030-pwrirq.c
-> @@ -161,6 +161,8 @@ static int twl4030_pwrirq_thread(void *d
->  	return 0;
->  }
-> 
-> +#include <linux/delay.h>
-> +
->  static int __init twl4030_pwrirq_init(void)
->  {
->  	int i, err;
-> @@ -168,8 +170,16 @@ static int __init twl4030_pwrirq_init(vo
->  	twl4030_pwrirq_mask = 0xff;
->  	twl4030_pwrirq_pending_unmask = 0;
-> 
-> +/* HEY:  core already did this.
-> + * But that's surely not why we
-> + * sometimes see timeouts here ...
-> + */
-> +for (i = 0; i < 5; i++) {
->  	err = twl4030_i2c_write_u8(TWL4030_MODULE_INT, twl4030_pwrirq_mask,
->  					TWL4030_INT_PWR_IMR1);
-> +if (!err) break;
-> +msleep(10);
-> +}
->  	if (err)
->  		return err;
-> 
-> 
+ISTR a similar problem discussed on Linux-USB in the last
+few months ...
+
+Don't recall the outcome for sure, but I think the problem
+was the DVB stack passing a DMA-unsafe buffer to USB.  If the
+buffer came from vmalloc rather than kmalloc or get_pages,
+passing it to USB is not allowed.
+
+- Dave
 
