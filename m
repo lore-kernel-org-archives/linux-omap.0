@@ -1,77 +1,91 @@
-From: Adrian Hunter <ext-adrian.hunter@nokia.com>
-Subject: Re: android on omap
-Date: Tue, 07 Oct 2008 15:59:22 +0300
-Message-ID: <48EB5D2A.1010605@nokia.com>
-References: <dbdb2ea60810030751j2cd9bb88h82b5a91eecbbaf50@mail.gmail.com>	 <36DDB8F8BC2C8F4E98C848C74F03F88314130EAD@dlee03.ent.ti.com>	 <dbdb2ea60810031121q4a4ee20fjbe7a2b420a3e9fea@mail.gmail.com>	 <36DDB8F8BC2C8F4E98C848C74F03F883141311BA@dlee03.ent.ti.com>	 <dbdb2ea60810031417o307a4e4h329da2855ea66dd0@mail.gmail.com>	 <36DDB8F8BC2C8F4E98C848C74F03F8831413145B@dlee03.ent.ti.com> <dbdb2ea60810061445n532e361fj5a188e0898baca24@mail.gmail.com> <36DDB8F8BC2C8F4E98C848C74F03F883141B5408@dlee03.ent.ti.com>
+From: "Felipe Contreras" <felipe.contreras@gmail.com>
+Subject: Re: HTTP url not working
+Date: Tue, 7 Oct 2008 15:58:08 +0300
+Message-ID: <94a0d4530810070558l7c9a4b85tc4065fb727d804bf@mail.gmail.com>
+References: <94a0d4530810060744m111dfd19mf4c3a9e76f11894f@mail.gmail.com>
+	 <20081007070241.GB21037@atomide.com>
+	 <20081007072752.GC21037@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:35375 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753209AbYJGMyK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Oct 2008 08:54:10 -0400
-In-Reply-To: <36DDB8F8BC2C8F4E98C848C74F03F883141B5408@dlee03.ent.ti.com>
+Received: from rv-out-0506.google.com ([209.85.198.233]:51922 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753287AbYJGM6J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Oct 2008 08:58:09 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so3553269rvb.1
+        for <linux-omap@vger.kernel.org>; Tue, 07 Oct 2008 05:58:09 -0700 (PDT)
+In-Reply-To: <20081007072752.GC21037@atomide.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Deacon, Keith" <kdeacon@ti.com>
-Cc: twebb <taliaferro62@gmail.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-Deacon, Keith wrote:
-> Haven't seen that error - sorry.
-> 
-> Unable to mmap stands out.  I know there was a lot of updates to the shared memory subsystem and there was some Android share memory driver introduced with the Android patch set.  Seems like it's trying to mmap some shared memory and failing.  The rest just seems to be fallout because it can't do what it wants to now.
+On Tue, Oct 7, 2008 at 10:27 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Tony Lindgren <tony@atomide.com> [081007 09:59]:
+>> * Felipe Contreras <felipe.contreras@gmail.com> [081006 17:44]:
+>> > Hi,
+>> >
+>> > The http url doesn't seem to be working anymore:
+>> > http://www.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+>> >
+>> > Can you?
+>> > mv .git/post-update{.sample,}
+>>
+>> Hmm, I just did a git-clone over http, and it worked fine.
+>>
+>> Kevin just told me that the new pm branched don't show up over http,
+>> but do appear over git. Trying to debug.
+>
+> Looks like it's some kernel.org mirroring issue with http.
+>
+> If I edit .git/config to use git protocol:
+>
+> url = git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+>
+> And then pull:
+>
+> $ rm .git/refs/remotes/origin/pm-*; git-pull -v
+> From git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6
+>  = [up to date]      linus      -> origin/linus
+>  a58e707..62c36fd  master     -> origin/master
+>  = [up to date]      omap2-upstream -> origin/omap2-upstream
+>  = [up to date]      omap3-upstream -> origin/omap3-upstream
+>  * [new branch]      pm-0       -> origin/pm-0
+>  * [new branch]      pm-0.5     -> origin/pm-0.5
+>  * [new branch]      pm-1       -> origin/pm-1
+>  * [new branch]      pm-20081006 -> origin/pm-20081006
+> Already up-to-date.
+>
+> It work fine.
+>
+>
+> But if I edit .git/config to use http protocol:
+>
+> url = http://www.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+>
+> And then pull:
+>
+> $ rm .git/refs/remotes/origin/pm-*; git-pull -v
+> From http://www.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6
+>  = [up to date]      linus      -> origin/linus
+>  + 62c36fd...a58e707 master     -> origin/master  (forced update)
+>  * [new branch]      pm-0       -> origin/pm-0
+>  * [new branch]      pm-1       -> origin/pm-1
+> Already up-to-date.
+>
+> It pulls something that's old.
 
-JFFS2 supports only read-only mmap.  If that is a problem, you could try UBIFS.
+Yes, it seems there was a git version update or something because the
+post-update hook is not there anymore.
 
-> 
-> ...Kd
-> 
-> 
->> -----Original Message-----
->> From: twebb [mailto:taliaferro62@gmail.com]
->> Sent: Monday, October 06, 2008 4:46 PM
->> To: Deacon, Keith; linux-omap@vger.kernel.org Mailing List
->> Subject: Re: android on omap
->>
->>> Had problems with using NFS because Android tries to set specific
->> permission and ownership of files - and has a nasty habit of testing those
->> permissions frequently.  If you have any local storage options - that
->> would help.  Also, check your init.rc file for things like mount trying to
->> remount the filesystem readonly - Android assumes a very specific
->> partition layout - which can be consolidated into one partition as long as
->> init.rc is adjusted to match.
->>> Does the root file system reside on NFS? Have you enabled "Networking"
->> while
->>> configuring the kernel?
->>>
->> I've now moved filesystem to target (jffs2).  Things are a little
->> better, and different.  Using logcat, I'm now seeing dalvikvm errors
->> and warnings as shown below.  Particularly odd since I wasn't seeing
->> this error when rootfs was mounted via NFS.  Any ideas?
->>
->> I really appreciate your input.
->>
->> Thanks,
->> twebb
->>
->> D/dalvikvm(  483): DexOpt: --- BEGIN 'core.jar' (bootstrap=1) ---
->> E/dalvikvm(  501): unable to mmap DEX cache: Invalid argument
->> E/dalvikvm(  501): Optimization failed
->> D/dalvikvm(  483): DexOpt: waiting for verify+opt, pid=501
->> W/dalvikvm(  483): DexOpt: --- END 'core.jar' --- status=0xff00, process
->> failed
->> E/dalvikvm(  483): Unable to extract+optimize DEX from
->> '/system/framework/core.jar'
->> D/dalvikvm(  483): Failed on '/system/framework/core.jar' (boot=1)
->> D/dalvikvm(  483): VM cleaning up
->> D/dalvikvm(  483): LinearAlloc 0x0 used 4100 of 4194304 (0%)
->> W/dalvikvm(  483): JNI_CreateJavaVM failed
->> E/AndroidRuntime(  483): JNI_CreateJavaVM failed
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+You can see it here:
+http://www.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git/info/refs
 
+The refs are pointing to old commits, and nothing will change until
+you run git update-server-info. If you enable the hook that will be
+done automatically each time the refs are updated.
+
+-- 
+Felipe Contreras
