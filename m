@@ -1,35 +1,64 @@
-From: "Nathan Monson" <nmonson@gmail.com>
-Subject: Re: [PATCH] MUSB: BULK request on different available endpoints
-Date: Mon, 6 Oct 2008 23:06:29 -0700
-Message-ID: <e5e6ade50810062306g7734b253j1e08f985b2d0ff68@mail.gmail.com>
-References: <1223358144-19712-1-git-send-email-ajay.gupta@ti.com>
+From: "vimal singh" <vimalsingh@ti.com>
+Subject: OMAP3 NAND: move NAND_BLOCK_SIZE macro to board-3430sdp-flash.c
+Date: Tue, 7 Oct 2008 11:41:08 +0530 (IST)
+Message-ID: <46446.192.168.10.89.1223359868.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:49583 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751263AbYJGGGa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Oct 2008 02:06:30 -0400
-Received: by qw-out-2122.google.com with SMTP id 3so707511qwe.37
-        for <linux-omap@vger.kernel.org>; Mon, 06 Oct 2008 23:06:29 -0700 (PDT)
-In-Reply-To: <1223358144-19712-1-git-send-email-ajay.gupta@ti.com>
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:56047 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751373AbYJGGLO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 7 Oct 2008 02:11:14 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m976B9KP007968
+	for <linux-omap@vger.kernel.org>; Tue, 7 Oct 2008 01:11:14 -0500
+Received: from webmail.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id m976B6q6009012
+	for <linux-omap@vger.kernel.org>; Tue, 7 Oct 2008 01:11:07 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, david-b@pacbell.net, me@felipebalbi.com
+To: linux-omap@vger.kernel.org
 
-On Mon, Oct 6, 2008 at 10:42 PM, Ajay Kumar Gupta <ajay.gupta@ti.com> wrote:
-> Fixes co-working issue of usb serial device with usb/net devices while
-> oter endpoints are free and can be used.This patch implements the policy
-> that if endpoint resources are available then different BULK request goes
-> to different endpoint otherwise they are multiplexed to one reserved
-> endpoint as currently done.
+Moving NAND_BLOCK_SIZE definition to board-3430sdp-flash.c
 
-Tested with current linux-omap git (plus other MUSB patches from
-Ajay).  It works great for me.  No problems running serial, wifi, and
-cameras at once off MUSB host.
+Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+---
+ arch/arm/mach-omap2/board-3430sdp-flash.c |    2 ++
+ include/linux/mtd/nand.h                  |    2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-Thank you!
-- Nathan
+Index: linux-omap-2.6_27_08_2008/arch/arm/mach-omap2/board-3430sdp-flash.c
+===================================================================
+---
+linux-omap-2.6_27_08_2008.orig/arch/arm/mach-omap2/board-3430sdp-flash.c	2008-10-07
+11:28:53.000000000 +0530
++++
+linux-omap-2.6_27_08_2008/arch/arm/mach-omap2/board-3430sdp-flash.c	2008-10-07
+11:30:12.000000000 +0530
+@@ -26,6 +26,8 @@
+ #include <mach/gpmc.h>
+ #include <mach/nand.h>
+
++#define NAND_BLOCK_SIZE		SZ_128K
++
+ static struct mtd_partition sdp_nor_partitions[] = {
+ 	/* bootloader (U-Boot, etc) in first sector */
+ 	{
+Index: linux-omap-2.6_27_08_2008/include/linux/mtd/nand.h
+===================================================================
+--- linux-omap-2.6_27_08_2008.orig/include/linux/mtd/nand.h	2008-10-07
+11:29:00.000000000 +0530
++++ linux-omap-2.6_27_08_2008/include/linux/mtd/nand.h	2008-10-07
+11:29:56.000000000 +0530
+@@ -45,7 +45,7 @@
+  */
+ #define NAND_MAX_OOBSIZE	64
+ #define NAND_MAX_PAGESIZE	2048
+-#define NAND_BLOCK_SIZE		SZ_128K
++
+ /*
+  * Constants for hardware specific CLE/ALE/NCE function
+  *
+
+
