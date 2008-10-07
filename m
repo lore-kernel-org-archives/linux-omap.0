@@ -1,67 +1,93 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH] kill warnings in gpmc
-Date: Tue, 7 Oct 2008 16:35:27 +0300
-Message-ID: <20081007133527.GY7437@gandalf.research.nokia.com>
-References: <20081007130411.GX7437@gandalf.research.nokia.com> <EAF47CD23C76F840A9E7FCE10091EFAB028C62FBE6@dbde02.ent.ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: HTTP url not working
+Date: Tue, 7 Oct 2008 17:00:49 +0300
+Message-ID: <20081007140046.GV21037@atomide.com>
+References: <94a0d4530810060744m111dfd19mf4c3a9e76f11894f@mail.gmail.com> <20081007070241.GB21037@atomide.com> <20081007072752.GC21037@atomide.com> <94a0d4530810070558l7c9a4b85tc4065fb727d804bf@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:43715 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753326AbYJGNgl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Oct 2008 09:36:41 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54289 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755346AbYJGN5x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Oct 2008 09:57:53 -0400
 Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB028C62FBE6@dbde02.ent.ti.com>
+In-Reply-To: <94a0d4530810070558l7c9a4b85tc4065fb727d804bf@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
-Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-On Tue, Oct 07, 2008 at 06:39:20PM +0530, ext Pakaravoor, Jagadeesh wrote:
+* Felipe Contreras <felipe.contreras@gmail.com> [081007 15:58]:
+> On Tue, Oct 7, 2008 at 10:27 AM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Tony Lindgren <tony@atomide.com> [081007 09:59]:
+> >> * Felipe Contreras <felipe.contreras@gmail.com> [081006 17:44]:
+> >> > Hi,
+> >> >
+> >> > The http url doesn't seem to be working anymore:
+> >> > http://www.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+> >> >
+> >> > Can you?
+> >> > mv .git/post-update{.sample,}
+> >>
+> >> Hmm, I just did a git-clone over http, and it worked fine.
+> >>
+> >> Kevin just told me that the new pm branched don't show up over http,
+> >> but do appear over git. Trying to debug.
+> >
+> > Looks like it's some kernel.org mirroring issue with http.
+> >
+> > If I edit .git/config to use git protocol:
+> >
+> > url = git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+> >
+> > And then pull:
+> >
+> > $ rm .git/refs/remotes/origin/pm-*; git-pull -v
+> > From git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6
+> >  = [up to date]      linus      -> origin/linus
+> >  a58e707..62c36fd  master     -> origin/master
+> >  = [up to date]      omap2-upstream -> origin/omap2-upstream
+> >  = [up to date]      omap3-upstream -> origin/omap3-upstream
+> >  * [new branch]      pm-0       -> origin/pm-0
+> >  * [new branch]      pm-0.5     -> origin/pm-0.5
+> >  * [new branch]      pm-1       -> origin/pm-1
+> >  * [new branch]      pm-20081006 -> origin/pm-20081006
+> > Already up-to-date.
+> >
+> > It work fine.
+> >
+> >
+> > But if I edit .git/config to use http protocol:
+> >
+> > url = http://www.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+> >
+> > And then pull:
+> >
+> > $ rm .git/refs/remotes/origin/pm-*; git-pull -v
+> > From http://www.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6
+> >  = [up to date]      linus      -> origin/linus
+> >  + 62c36fd...a58e707 master     -> origin/master  (forced update)
+> >  * [new branch]      pm-0       -> origin/pm-0
+> >  * [new branch]      pm-1       -> origin/pm-1
+> > Already up-to-date.
+> >
+> > It pulls something that's old.
 > 
-> > Trivial cleanup patch. Do not return values in void
-> > functions
-> > 
+> Yes, it seems there was a git version update or something because the
+> post-update hook is not there anymore.
 > 
-> I had sent that fix for the same, though not merged in yet. :)
+> You can see it here:
+> http://www.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git/info/refs
+> 
+> The refs are pointing to old commits, and nothing will change until
+> you run git update-server-info. If you enable the hook that will be
+> done automatically each time the refs are updated.
 
-True, now I remember. Tony, I'm ok with that patch if you are.
+OK, thanks for the info.
 
-> 
-> ==Cut here
-> 
-> From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
-> 
-> Return type of gpmc_init() function is void. Also, the error values
-> returned by the function is not used by the caller. Hence it should
-> not be returning any value.
-> 
-> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
-> --
-> Index: linux-omap-git/arch/arm/mach-omap2/gpmc.c
-> ===================================================================
-> --- linux-omap-git.orig/arch/arm/mach-omap2/gpmc.c	2008-09-25 17:30:24.000000000 +0530
-> +++ linux-omap-git/arch/arm/mach-omap2/gpmc.c	2008-09-29 18:26:40.845433948 +0530
-> @@ -427,16 +427,13 @@ void __init gpmc_init(void)
->  	}
->  
->  	gpmc_l3_clk = clk_get(NULL, ck);
-> -	if (IS_ERR(gpmc_l3_clk)) {
-> +	if (IS_ERR(gpmc_l3_clk))
->  		printk(KERN_ERR "Could not get GPMC clock %s\n", ck);
-> -		return -ENODEV;
-> -	}
->  
->  	gpmc_base = ioremap(l, SZ_4K);
->  	if (!gpmc_base) {
->  		clk_put(gpmc_l3_clk);
->  		printk(KERN_ERR "Could not get GPMC register memory\n");
-> -		return -ENOMEM;
->  	}
->  
->  	BUG_ON(IS_ERR(gpmc_l3_clk));
+I've renamed post-update.sample into post-update, which
+does exec git-update-server-info.
 
--- 
-balbi
+I've also renamed the other *.sample files to enable them.
+
+Tony
