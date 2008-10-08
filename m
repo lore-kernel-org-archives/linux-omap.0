@@ -1,104 +1,109 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] twl4030: Fix pwrirq by making sure the module is
-	responding (Re: kernel oops for 3430sdp)
-Date: Wed, 8 Oct 2008 17:55:21 +0300
-Message-ID: <20081008145517.GJ30831@atomide.com>
-References: <A24693684029E5489D1D202277BE8944123692F2@dlee02.ent.ti.com> <200810071128.52889.david-b@pacbell.net> <20081007200921.GI8273@frodo>
+Subject: Re: git pull request for minimal omap3 support (Re: [PATCH 0/0]
+	Add minimal omap34xx support)
+Date: Wed, 8 Oct 2008 17:58:39 +0300
+Message-ID: <20081008145836.GK30831@atomide.com>
+References: <1223035779-26306-1-git-send-email-tony@atomide.com> <20081008075000.GD30831@atomide.com> <20081008081255.GG30831@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="3siQDZowHQqNOShm"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54349 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59451 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750753AbYJHOzf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Oct 2008 10:55:35 -0400
+	with ESMTP id S1754143AbYJHO7D (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Oct 2008 10:59:03 -0400
 Content-Disposition: inline
-In-Reply-To: <20081007200921.GI8273@frodo>
+In-Reply-To: <20081008081255.GG30831@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: David Brownell <david-b@pacbell.net>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org
 
+* Tony Lindgren <tony@atomide.com> [081008 11:10]:
+> * Tony Lindgren <tony@atomide.com> [081008 10:47]:
+> > * Tony Lindgren <tony@atomide.com> [081003 15:06]:
+> > > Hi all,
+> > > 
+> > > Here are few patches to add minimal omap34xx support, and
+> > > board files for Beagle and Overo boards.
+> > > 
+> > > The minimal omap34xx support patch was previously posted here
+> > > with the omap2 patches, this patch has some additions, such
+> > > as sram support.
+> > > 
+> > > For folks who are wondering what the Beagle and Overo boards
+> > > are, here are some links:
+> > > 
+> > > http://beagleboard.org/
+> > > http://www.gumstix.net/Overo/cat/Overo/115.html
+> > 
+> > Here's the pull request for this series. Note that this depends
+> > on the earlies omap2-upstream series.
 
---3siQDZowHQqNOShm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+<snip>
 
-* Felipe Balbi <me@felipebalbi.com> [081008 06:13]:
-> On Tue, Oct 07, 2008 at 11:28:52AM -0700, David Brownell wrote:
-> > On Tuesday 07 October 2008, Aguirre Rodriguez, Sergio Alberto wrote:
-> > > <1>Unable to handle kernel NULL pointer dereference at virtual address 00000000
-> > 
-> > Did you try with the hack I've sent, to work around one problematic
-> > (and surprisingly reproducible!) i2c-omap timeout?  Appended.
-> > 
-> > Given I2C faults, many things blow up rudely ... hardly any I2C
-> > drivers are written to tolerate transfer errors.  Not entirely
-> > unreasonably, since such errors are otherwise quite rare.
-> > 
-> > 
-> > I currently suspect there's an issue where the i2c-omap code can
-> > handle a bunch of requests that group closely together ... or are
-> > separated by a lot of time ... but there's some middle ground
-> > where if you wait the "right" amount of time before making the
-> > next request, it times out instead of working correctly.
-> > 
-> > I have no proof behind that theory, but it does seem to match up
-> > to a few of the observed facts.  Notably that the i2c timeouts
-> > appear when the only device on that bus is the TWL4030, and the
-> > drivers make known-to-be-valid requets ... the timeouts started
-> > to appear only after some trivial changes in init timings, which
-> > were caused by moving code out of drivers/i2c into directories
-> > that are more appropriate.
+> Scrap this pull request, sorry for the extra noise.
 > 
-> I was debugging the i2c-omap.c today but so far no clue why that i2c
-> timeout is coming. It's really weird that it only fails on twl4030-usb
-> (well, actually pwrirq and twl4030-usb fails since it can't
-> request_irq).
+> I should not have any of these patches credited for me. I've just split
+> some patches and they are still showing as from me. Will repost with right
+> From: field.
 
-I suspect that twl is not yet initialized for pwrirq handling at this
-point. At least this patch seems to help, no idea on what registers
-we should check though.. Anybody got ideas on what needs to be checked
-for pwrirq?
+OK, here's the updated pull request:
 
-Tony
+The following changes since commit 684ae84fa8ebff956e7b9fc91bcaa1d0805da4d8:
+  Paul Walmsley (1):
+        ARM: OMAP2: Fix sparse, checkpatch warnings in OMAP2/3 IRQ code
 
---3siQDZowHQqNOShm
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="twl-pwrirq-hack.patch"
+are available in the git repository at:
 
->From f5766a9dbd845911f7bf87bbc71437964b2cc91a Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Wed, 8 Oct 2008 17:22:30 +0300
-Subject: [PATCH] twl4030: Fix pwrirq by making sure the module is responding
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap3-upstream
 
-Something needs to be checked with twl pwriq module before
-trying to use it. Not yet sure what should be checked though..
-At least PWR_IMR1 seems to change from 0x0 after few reads.
+Steve Sakoman (2):
+      ARM: OMAP2: Add support for the Gumstix Overo board (rev 3)
+      ARM: OMAP2: Defconfig for the Gumstix Overo board (rev 3)
 
-diff --git a/drivers/i2c/chips/twl4030-pwrirq.c b/drivers/i2c/chips/twl4030-pwrirq.c
-index ce66dd4..fd17c3e 100644
---- a/drivers/i2c/chips/twl4030-pwrirq.c
-+++ b/drivers/i2c/chips/twl4030-pwrirq.c
-@@ -130,10 +130,19 @@ static int twl4030_pwrirq_thread(void *data)
- 
- static int __init twl4030_pwrirq_init(void)
- {
--	int i, err;
-+	int i = 10, err;
-+	u8 tmp;
- 
- 	twl4030_pwrirq_mask = 0xff;
- 
-+	/* Wait for other the module to start responding */
-+	while (i--) {
-+		err = twl4030_i2c_read_u8(TWL4030_MODULE_INT, &tmp,
-+						TWL4030_INT_PWR_IMR1);
-+		if ((tmp & 0xf) != 0)
-+			break;
-+	}
-+
- 	err = twl4030_i2c_write_u8(TWL4030_MODULE_INT, twl4030_pwrirq_mask,
- 					TWL4030_INT_PWR_IMR1);
- 	if (err)
+Syed Mohammed, Khasim (3):
+      ARM: OMAP3: Add minimal omap3430 support
+      ARM: OMAP3: Add minimal Beagle board support
+      ARM: OMAP3: Add Beagle defconfig
 
---3siQDZowHQqNOShm--
+ arch/arm/Makefile                                  |    1 +
+ arch/arm/configs/omap3_beagle_defconfig            | 1321 ++++++++++++++
+ arch/arm/configs/overo_defconfig                   | 1885 ++++++++++++++++++++
+ arch/arm/mach-omap2/Kconfig                        |   18 +-
+ arch/arm/mach-omap2/Makefile                       |    3 +
+ arch/arm/mach-omap2/board-omap3beagle.c            |  244 +++
+ arch/arm/mach-omap2/board-overo.c                  |  242 +++
+ arch/arm/mach-omap2/gpmc.c                         |    5 +
+ arch/arm/mach-omap2/io.c                           |  126 ++-
+ arch/arm/mach-omap2/irq.c                          |    2 +
+ arch/arm/mach-omap2/memory.c                       |   14 +
+ arch/arm/mach-omap2/mux.c                          |   67 +-
+ arch/arm/mach-omap2/sram34xx.S                     |  179 ++
+ arch/arm/mm/Kconfig                                |    2 +-
+ arch/arm/plat-omap/Kconfig                         |    9 +-
+ arch/arm/plat-omap/devices.c                       |   15 +-
+ .../arm/plat-omap/include/mach/board-omap3beagle.h |   33 +
+ arch/arm/plat-omap/include/mach/board-overo.h      |   26 +
+ arch/arm/plat-omap/include/mach/debug-macro.S      |   12 +
+ arch/arm/plat-omap/include/mach/entry-macro.S      |   12 +-
+ arch/arm/plat-omap/include/mach/gpmc.h             |    4 +
+ arch/arm/plat-omap/include/mach/hardware.h         |    4 +
+ arch/arm/plat-omap/include/mach/io.h               |    3 -
+ arch/arm/plat-omap/include/mach/irqs.h             |   35 +
+ arch/arm/plat-omap/include/mach/mcbsp.h            |    2 +-
+ arch/arm/plat-omap/include/mach/memory.h           |    2 +-
+ arch/arm/plat-omap/include/mach/mux.h              |   26 +-
+ arch/arm/plat-omap/include/mach/omap24xx.h         |    1 -
+ arch/arm/plat-omap/include/mach/sdrc.h             |    4 +-
+ arch/arm/plat-omap/include/mach/sram.h             |   10 +
+ arch/arm/plat-omap/include/mach/system.h           |    2 +-
+ arch/arm/plat-omap/io.c                            |   32 +-
+ arch/arm/plat-omap/sram.c                          |   53 +-
+ 33 files changed, 4303 insertions(+), 91 deletions(-)
+ create mode 100644 arch/arm/configs/omap3_beagle_defconfig
+ create mode 100644 arch/arm/configs/overo_defconfig
+ create mode 100644 arch/arm/mach-omap2/board-omap3beagle.c
+ create mode 100644 arch/arm/mach-omap2/board-overo.c
+ create mode 100644 arch/arm/mach-omap2/sram34xx.S
+ create mode 100644 arch/arm/plat-omap/include/mach/board-omap3beagle.h
+ create mode 100644 arch/arm/plat-omap/include/mach/board-overo.h
