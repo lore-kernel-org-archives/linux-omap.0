@@ -1,97 +1,39 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] twl4030: Fix pwrirq by making sure the module is responding (Re: kernel oops for 3430sdp)
-Date: Wed, 8 Oct 2008 11:05:17 -0700
-Message-ID: <200810081105.17689.david-b@pacbell.net>
-References: <A24693684029E5489D1D202277BE8944123692F2@dlee02.ent.ti.com> <20081007200921.GI8273@frodo> <20081008145517.GJ30831@atomide.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: OMAP3 interrupt maintainer
+Date: Wed, 8 Oct 2008 21:29:55 +0300
+Message-ID: <20081008182953.GN8273@frodo>
+References: <E1Knc5n-00026E-Lz@amazonia.comcast.net>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp127.sbc.mail.sp1.yahoo.com ([69.147.65.186]:46712 "HELO
-	smtp127.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754135AbYJHSGv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Oct 2008 14:06:51 -0400
-In-Reply-To: <20081008145517.GJ30831@atomide.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:40709 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752594AbYJHSaN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Oct 2008 14:30:13 -0400
 Content-Disposition: inline
+In-Reply-To: <E1Knc5n-00026E-Lz@amazonia.comcast.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <me@felipebalbi.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Rick Bronson <rick@efn.org>
+Cc: linux-omap@vger.kernel.org
 
-On Wednesday 08 October 2008, Tony Lindgren wrote:
-> I suspect that twl is not yet initialized for pwrirq handling at this
-> point. At least this patch seems to help, 
+On Wed, Oct 08, 2008 at 09:40:55AM -0700, Rick Bronson wrote:
+> Hi,
+> 
+>   I'm looking for the maintainer of the OMAP3 interrupt code in the
+> Linux kernel.  Specifically, this file:
+> 
+> include/asm-arm/arch-omap/entry-macro.S
+> 
+> I believe there is an issue with handling spurious interrupts.
+> 
+>   Thanks very much.
 
-Did you verify that the value you read isn't 0xff?  Or does the
-issue seem to be the mere attempt to read a register?
+Just post the issue. Anyone interested will follow it :-)
 
-I have a hard time seeing the root cause be anything other than
-problems in i2c-omap, since the timeouts appear at various other
-places too.
+btw, there's no interrupt maintainer afaict. Tony Lindgren would be most
+indicated as the omap maintainer.
 
-
-> no idea on what registers 
-> we should check though.. Anybody got ideas on what needs to be checked
-> for pwrirq?
-
-Well, there does seem to be an issue where the "pending IRQ" mechanism
-can leave a PWRIRQ.PWRON interrupt pending sometimes.  If you see a
-bunch of alarming-but-harmless boot messages like 
-
-  TWL4030 module irq 373 is disabled but can't be masked!
-
-before pwrirq registers, that seems to be the issue.  A debug hack I
-applied (appended) reported that the mask (IMR) was 0xff but the IRQ
-was still being raised ... when pwrirq registered itself, the stream
-of those messages stopped.  (Or, when this hack dumped the status and
-thus kicked in clear-on-read ...)
-
-- Dave
-
-
-=============================
----
- drivers/mfd/twl4030-core.c |   40 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
-
---- a/drivers/mfd/twl4030-core.c
-+++ b/drivers/mfd/twl4030-core.c
-@@ -574,6 +574,36 @@ static int twl4030_irq_thread(void *data
- 			continue;
- 		}
- 
-+		/* power irq before handler registered? */
-+		if ((pih_isr & BIT(5)) && irq_desc[twl4030_irq_base + 5].depth) {
-+			u8 buf[8];
-+			int status;
-+			int retries = 3;
-+
-+			while (retries--) {
-+				status = twl4030_i2c_read(TWL4030_MODULE_INT,
-+						buf, 0, sizeof buf);
-+				if (status == 0) {
-+					pr_crit("... PWR: "
-+						"%02x.%02x/%02x.%02x "
-+						"%02x; "
-+						"%02x.%02x, "
-+						"%02x "
-+						"\n",
-+						/* {ISR,IMR}{1,2} */
-+						buf[0], buf[1], buf[2], buf[3],
-+						/* SIH */
-+						buf[4],
-+						/* EDR */
-+						buf[5], buf[6],
-+						/* CTRL */
-+						buf[7]);
-+				} else
-+					pr_crit("... read PWR --> %d\n",
-+						status);
-+			}
-+		}
-+
- 		/* these handlers deal with the relevant SIH irq status */
- 		local_irq_disable();
- 		for (module_irq = twl4030_irq_base;
-
+-- 
+balbi
