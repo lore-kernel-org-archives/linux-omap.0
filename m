@@ -1,1143 +1,1375 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 01/05] ARM: OMAP2: Add minimal omap3430 support, v2
-Date: Wed, 8 Oct 2008 11:19:40 +0300
-Message-ID: <20081008081936.GH30831@atomide.com>
-References: <1223035779-26306-1-git-send-email-tony@atomide.com> <1223035779-26306-2-git-send-email-tony@atomide.com>
+Subject: Re: [PATCH 03/05] ARM: OMAP3: Add Beagle defconfig, v2
+Date: Wed, 8 Oct 2008 11:21:18 +0300
+Message-ID: <20081008082115.GI30831@atomide.com>
+References: <1223035779-26306-1-git-send-email-tony@atomide.com> <1223035779-26306-2-git-send-email-tony@atomide.com> <1223035779-26306-3-git-send-email-tony@atomide.com> <1223035779-26306-4-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="qMm9M+Fa2AknHoGS"
+Content-Type: multipart/mixed; boundary="/NkBOFFp2J2Af1nK"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63574 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64725 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751137AbYJHIQp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Oct 2008 04:16:45 -0400
+	with ESMTP id S1752257AbYJHISX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Oct 2008 04:18:23 -0400
 Content-Disposition: inline
-In-Reply-To: <1223035779-26306-2-git-send-email-tony@atomide.com>
+In-Reply-To: <1223035779-26306-4-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Syed Mohammed Khasim <x0khasim@ti.com>, Karthik Dasu <karthik-dp@ti.com>, Adrian Hunter <ext-adrian.hunter@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
 
---qMm9M+Fa2AknHoGS
+--/NkBOFFp2J2Af1nK
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
 * Tony Lindgren <tony@atomide.com> [081003 15:07]:
-> Add minimal omap3430 support based on earlier patches from
-> Syed Mohammed Khasim. Also merge in omap34xx SRAM support
-> from Karthik Dasu and use consistent naming for sram init
-> functions.
+> Add Beagle defconfig
 > 
-> Also do following changes that make 34xx support usable:
-> 
-> - Rename IRQ_SIR_IRQ to INTCPS_SIR_IRQ and define it locally
->   in entry-macro.S
-> 
-> - Update mach-omap2/io.c to support 2420, 2430, and 34xx
-> 
-> - Also merge in 34xx GPMC changes to add fields wr_access and
->   wr_data_mux_bus from Adrian Hunter
-> 
-> - Remove memory initialization call omap2_init_memory() until
->   until more generic memory initialization patches are posted.
->   It's OK to rely on bootloader initialization until then.
 
-This patch should not be from me, here's the patch with
-right From: field.
+Missing SOB and not from me either.. Here's an updated version.
 
 Tony
 
---qMm9M+Fa2AknHoGS
+--/NkBOFFp2J2Af1nK
 Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="omap3-minimal-v2.patch"
+Content-Disposition: inline; filename="beagle-defconfig-v2.patch"
 
->From 65d167be9ff52570b6e2c4bf57f329a7e40e79c9 Mon Sep 17 00:00:00 2001
+>From fa0cc73857b6f1ae3f0ee9116ac50f814c479f07 Mon Sep 17 00:00:00 2001
 From: Syed Mohammed, Khasim <khasim@ti.com>
-Date: Tue, 7 Oct 2008 14:56:21 +0300
-Subject: [PATCH] ARM: OMAP3: Add minimal omap3430 support
+Date: Tue, 7 Oct 2008 14:56:22 +0300
+Subject: [PATCH] ARM: OMAP3: Add Beagle defconfig
 
-Add minimal omap3430 support based on earlier patches from
-Syed Mohammed Khasim. Also merge in omap34xx SRAM support
-from Karthik Dasu and use consistent naming for sram init
-functions.
-
-Also do following changes that make 34xx support usable:
-
-- Remove unused sram.c functions for 34xx
-
-- Rename IRQ_SIR_IRQ to INTCPS_SIR_IRQ and define it locally
-  in entry-macro.S
-
-- Update mach-omap2/io.c to support 2420, 2430, and 34xx
-
-- Also merge in 34xx GPMC changes to add fields wr_access and
-  wr_data_mux_bus from Adrian Hunter
-
-- Remove memory initialization call omap2_init_memory() until
-  until more generic memory initialization patches are posted.
-  It's OK to rely on bootloader initialization until then.
+Add Beagle defconfig
 
 Signed-off-by: Syed Mohammed, Khasim <khasim@ti.com>
-Signed-off-by: Karthik Dasu<karthik-dp@ti.com>
-Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/Makefile b/arch/arm/Makefile
-index 703a44f..552ea6d 100644
---- a/arch/arm/Makefile
-+++ b/arch/arm/Makefile
-@@ -118,6 +118,7 @@ endif
-  machine-$(CONFIG_ARCH_IXP23XX)    := ixp23xx
-  machine-$(CONFIG_ARCH_OMAP1)	   := omap1
-  machine-$(CONFIG_ARCH_OMAP2)	   := omap2
-+ machine-$(CONFIG_ARCH_OMAP3)	   := omap2
-     plat-$(CONFIG_ARCH_OMAP)	   := omap
-  machine-$(CONFIG_ARCH_S3C2410)	   := s3c2410 s3c2400 s3c2412 s3c2440 s3c2442 s3c2443
-     plat-$(CONFIG_PLAT_S3C24XX)	   := s3c24xx
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 7069c9d..e2481e4 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -15,8 +15,17 @@ config ARCH_OMAP2430
- 	bool "OMAP2430 support"
- 	depends on ARCH_OMAP24XX
- 
-+config ARCH_OMAP34XX
-+	bool "OMAP34xx Based System"
-+	depends on ARCH_OMAP3
-+
-+config ARCH_OMAP3430
-+	bool "OMAP3430 support"
-+	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-+	select ARCH_OMAP_OTG
-+
- comment "OMAP Board Type"
--	depends on ARCH_OMAP2
-+	depends on ARCH_OMAP2 || ARCH_OMAP3
- 
- config MACH_OMAP_GENERIC
- 	bool "Generic OMAP board"
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 800639e..0dc40db 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -12,6 +12,7 @@ obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
- # Functions loaded to SRAM
- obj-$(CONFIG_ARCH_OMAP2420)		+= sram242x.o
- obj-$(CONFIG_ARCH_OMAP2430)		+= sram243x.o
-+obj-$(CONFIG_ARCH_OMAP3)		+= sram34xx.o
- 
- # Power Management
- ifeq ($(CONFIG_PM),y)
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 149bfba..375ad27 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -220,6 +220,11 @@ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
- 
- 	GPMC_SET_ONE(GPMC_CS_CONFIG5, 24, 27, page_burst_access);
- 
-+	if (cpu_is_omap34xx()) {
-+		GPMC_SET_ONE(GPMC_CS_CONFIG6, 16, 19, wr_data_mux_bus);
-+		GPMC_SET_ONE(GPMC_CS_CONFIG6, 24, 28, wr_access);
-+	}
-+
- 	/* caller is expected to have initialized CONFIG1 to cover
- 	 * at least sync vs async
- 	 */
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 03c6ab1..71a9de3 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -43,7 +43,9 @@
-  * The machine specific code may provide the extra mapping besides the
-  * default mapping provided here.
-  */
--static struct map_desc omap2_io_desc[] __initdata = {
-+
-+#ifdef CONFIG_ARCH_OMAP24XX
-+static struct map_desc omap24xx_io_desc[] __initdata = {
- 	{
- 		.virtual	= L3_24XX_VIRT,
- 		.pfn		= __phys_to_pfn(L3_24XX_PHYS),
-@@ -51,12 +53,39 @@ static struct map_desc omap2_io_desc[] __initdata = {
- 		.type		= MT_DEVICE
- 	},
- 	{
--		.virtual        = L4_24XX_VIRT,
--		.pfn            = __phys_to_pfn(L4_24XX_PHYS),
--		.length         = L4_24XX_SIZE,
--		.type           = MT_DEVICE
-+		.virtual	= L4_24XX_VIRT,
-+		.pfn		= __phys_to_pfn(L4_24XX_PHYS),
-+		.length		= L4_24XX_SIZE,
-+		.type		= MT_DEVICE
-+	},
-+};
-+
-+#ifdef CONFIG_ARCH_OMAP2420
-+static struct map_desc omap242x_io_desc[] __initdata = {
-+	{
-+		.virtual	= DSP_MEM_24XX_VIRT,
-+		.pfn		= __phys_to_pfn(DSP_MEM_24XX_PHYS),
-+		.length		= DSP_MEM_24XX_SIZE,
-+		.type		= MT_DEVICE
-+	},
-+	{
-+		.virtual	= DSP_IPI_24XX_VIRT,
-+		.pfn		= __phys_to_pfn(DSP_IPI_24XX_PHYS),
-+		.length		= DSP_IPI_24XX_SIZE,
-+		.type		= MT_DEVICE
- 	},
-+	{
-+		.virtual	= DSP_MMU_24XX_VIRT,
-+		.pfn		= __phys_to_pfn(DSP_MMU_24XX_PHYS),
-+		.length		= DSP_MMU_24XX_SIZE,
-+		.type		= MT_DEVICE
-+	},
-+};
-+
-+#endif
-+
- #ifdef CONFIG_ARCH_OMAP2430
-+static struct map_desc omap243x_io_desc[] __initdata = {
- 	{
- 		.virtual	= L4_WK_243X_VIRT,
- 		.pfn		= __phys_to_pfn(L4_WK_243X_PHYS),
-@@ -69,30 +98,90 @@ static struct map_desc omap2_io_desc[] __initdata = {
- 		.length		= OMAP243X_GPMC_SIZE,
- 		.type		= MT_DEVICE
- 	},
-+	{
-+		.virtual	= OMAP243X_SDRC_VIRT,
-+		.pfn		= __phys_to_pfn(OMAP243X_SDRC_PHYS),
-+		.length		= OMAP243X_SDRC_SIZE,
-+		.type		= MT_DEVICE
-+	},
-+	{
-+		.virtual	= OMAP243X_SMS_VIRT,
-+		.pfn		= __phys_to_pfn(OMAP243X_SMS_PHYS),
-+		.length		= OMAP243X_SMS_SIZE,
-+		.type		= MT_DEVICE
-+	},
-+};
- #endif
-+#endif
-+
-+#ifdef	CONFIG_ARCH_OMAP34XX
-+static struct map_desc omap34xx_io_desc[] __initdata = {
- 	{
--		.virtual	= DSP_MEM_24XX_VIRT,
--		.pfn		= __phys_to_pfn(DSP_MEM_24XX_PHYS),
--		.length		= DSP_MEM_24XX_SIZE,
-+		.virtual	= L3_34XX_VIRT,
-+		.pfn		= __phys_to_pfn(L3_34XX_PHYS),
-+		.length		= L3_34XX_SIZE,
- 		.type		= MT_DEVICE
- 	},
- 	{
--		.virtual	= DSP_IPI_24XX_VIRT,
--		.pfn		= __phys_to_pfn(DSP_IPI_24XX_PHYS),
--		.length		= DSP_IPI_24XX_SIZE,
-+		.virtual	= L4_34XX_VIRT,
-+		.pfn		= __phys_to_pfn(L4_34XX_PHYS),
-+		.length		= L4_34XX_SIZE,
- 		.type		= MT_DEVICE
- 	},
- 	{
--		.virtual	= DSP_MMU_24XX_VIRT,
--		.pfn		= __phys_to_pfn(DSP_MMU_24XX_PHYS),
--		.length		= DSP_MMU_24XX_SIZE,
-+		.virtual	= L4_WK_34XX_VIRT,
-+		.pfn		= __phys_to_pfn(L4_WK_34XX_PHYS),
-+		.length		= L4_WK_34XX_SIZE,
-+		.type		= MT_DEVICE
-+	},
-+	{
-+		.virtual	= OMAP34XX_GPMC_VIRT,
-+		.pfn		= __phys_to_pfn(OMAP34XX_GPMC_PHYS),
-+		.length		= OMAP34XX_GPMC_SIZE,
-+		.type		= MT_DEVICE
-+	},
-+	{
-+		.virtual	= OMAP343X_SMS_VIRT,
-+		.pfn		= __phys_to_pfn(OMAP343X_SMS_PHYS),
-+		.length		= OMAP343X_SMS_SIZE,
-+		.type		= MT_DEVICE
-+	},
-+	{
-+		.virtual	= OMAP343X_SDRC_VIRT,
-+		.pfn		= __phys_to_pfn(OMAP343X_SDRC_PHYS),
-+		.length		= OMAP343X_SDRC_SIZE,
- 		.type		= MT_DEVICE
--	}
-+	},
-+	{
-+		.virtual	= L4_PER_34XX_VIRT,
-+		.pfn		= __phys_to_pfn(L4_PER_34XX_PHYS),
-+		.length		= L4_PER_34XX_SIZE,
-+		.type		= MT_DEVICE
-+	},
-+	{
-+		.virtual	= L4_EMU_34XX_VIRT,
-+		.pfn		= __phys_to_pfn(L4_EMU_34XX_PHYS),
-+		.length		= L4_EMU_34XX_SIZE,
-+		.type		= MT_DEVICE
-+	},
- };
-+#endif
- 
- void __init omap2_map_common_io(void)
- {
--	iotable_init(omap2_io_desc, ARRAY_SIZE(omap2_io_desc));
-+#if defined(CONFIG_ARCH_OMAP2420)
-+	iotable_init(omap24xx_io_desc, ARRAY_SIZE(omap24xx_io_desc));
-+	iotable_init(omap242x_io_desc, ARRAY_SIZE(omap242x_io_desc));
-+#endif
-+
-+#if defined(CONFIG_ARCH_OMAP2430)
-+	iotable_init(omap24xx_io_desc, ARRAY_SIZE(omap24xx_io_desc));
-+	iotable_init(omap243x_io_desc, ARRAY_SIZE(omap243x_io_desc));
-+#endif
-+
-+#if defined(CONFIG_ARCH_OMAP34XX)
-+	iotable_init(omap34xx_io_desc, ARRAY_SIZE(omap34xx_io_desc));
-+#endif
- 
- 	/* Normally devicemaps_init() would flush caches and tlb after
- 	 * mdesc->map_io(), but we must also do it here because of the CPU
-@@ -112,11 +201,6 @@ void __init omap2_init_common_hw(void)
- 	pwrdm_init(powerdomains_omap);
- 	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
- 	omap2_clk_init();
--/*
-- * Need to Fix this for 2430
-- */
--#ifndef CONFIG_ARCH_OMAP2430
- 	omap2_init_memory();
--#endif
- 	gpmc_init();
- }
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index 0dbcffa..6282083 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -128,6 +128,8 @@ void __init omap_init_irq(void)
- 
- 		if (cpu_is_omap24xx())
- 			bank->base_reg = OMAP2_IO_ADDRESS(OMAP24XX_IC_BASE);
-+		else if (cpu_is_omap34xx())
-+			bank->base_reg = OMAP2_IO_ADDRESS(OMAP34XX_IC_BASE);
- 
- 		omap_irq_bank_init_one(bank);
- 
-diff --git a/arch/arm/mach-omap2/memory.c b/arch/arm/mach-omap2/memory.c
-index 6b49cc9..48b01f4 100644
---- a/arch/arm/mach-omap2/memory.c
-+++ b/arch/arm/mach-omap2/memory.c
-@@ -102,6 +102,17 @@ u32 omap2_reprogram_sdrc(u32 level, u32 force)
- 	return prev;
- }
- 
-+#if !defined(CONFIG_ARCH_OMAP2)
-+void omap2_sram_ddr_init(u32 *slow_dll_ctrl, u32 fast_dll_ctrl,
-+				u32 base_cs, u32 force_unlock)
-+{
-+}
-+void omap2_sram_reprogram_sdrc(u32 perf_level, u32 dll_val,
-+				      u32 mem_type)
-+{
-+}
-+#endif
-+
- void omap2_init_memory_params(u32 force_lock_to_unlock_mode)
- {
- 	unsigned long dll_cnt;
-@@ -166,6 +177,9 @@ void __init omap2_init_memory(void)
- {
- 	u32 l;
- 
-+	if (!cpu_is_omap2420())
-+		return;
-+
- 	l = sms_read_reg(SMS_SYSCONFIG);
- 	l &= ~(0x3 << 3);
- 	l |= (0x2 << 3);
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 6188e2f..5558803 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -298,13 +298,13 @@ MUX_CFG_34XX("T2_3430_USB2HS_PHY_D7", 0x1d6,
- 
- /* TLL - HSUSB: 12-pin TLL Port 1*/
- MUX_CFG_34XX("Y8_3430_USB1HS_TLL_CLK", 0x5da,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
--MUX_CFG_34XX("Y9_3430_USB1HS_TLL_STP", 0x5d8,
- 		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("Y9_3430_USB1HS_TLL_STP", 0x5d8,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLUP)
- MUX_CFG_34XX("AA14_3430_USB1HS_TLL_DIR", 0x5ec,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
- MUX_CFG_34XX("AA11_3430_USB1HS_TLL_NXT", 0x5ee,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
- MUX_CFG_34XX("W13_3430_USB1HS_TLL_D0", 0x5dc,
- 		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
- MUX_CFG_34XX("W12_3430_USB1HS_TLL_D1", 0x5de,
-@@ -324,13 +324,13 @@ MUX_CFG_34XX("Y13_3430_USB1HS_TLL_D7", 0x5e2,
- 
- /* TLL - HSUSB: 12-pin TLL Port 2*/
- MUX_CFG_34XX("AA8_3430_USB2HS_TLL_CLK", 0x5f0,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
--MUX_CFG_34XX("AA10_3430_USB2HS_TLL_STP", 0x5f2,
- 		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AA10_3430_USB2HS_TLL_STP", 0x5f2,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLUP)
- MUX_CFG_34XX("AA9_3430_USB2HS_TLL_DIR", 0x5f4,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
- MUX_CFG_34XX("AB11_3430_USB2HS_TLL_NXT", 0x5f6,
--		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
- MUX_CFG_34XX("AB10_3430_USB2HS_TLL_D0", 0x5f8,
- 		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
- MUX_CFG_34XX("AB9_3430_USB2HS_TLL_D1", 0x5fa,
-@@ -350,13 +350,13 @@ MUX_CFG_34XX("T2_3430_USB2HS_TLL_D7", 0x1d6,
- 
- /* TLL - HSUSB: 12-pin TLL Port 3*/
- MUX_CFG_34XX("AA6_3430_USB3HS_TLL_CLK", 0x180,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
--MUX_CFG_34XX("AB3_3430_USB3HS_TLL_STP", 0x166,
- 		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AB3_3430_USB3HS_TLL_STP", 0x166,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLUP)
- MUX_CFG_34XX("AA3_3430_USB3HS_TLL_DIR", 0x168,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
- MUX_CFG_34XX("Y3_3430_USB3HS_TLL_NXT", 0x16a,
--		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
- MUX_CFG_34XX("AA5_3430_USB3HS_TLL_D0", 0x186,
- 		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
- MUX_CFG_34XX("Y4_3430_USB3HS_TLL_D1", 0x184,
-@@ -373,6 +373,49 @@ MUX_CFG_34XX("AA13_3430_USB3HS_TLL_D6", 0x170,
- 		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
- MUX_CFG_34XX("AA12_3430_USB3HS_TLL_D7", 0x172,
- 		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+
-+/* PHY FSUSB: FS Serial for Port 1 (multiple PHY modes supported) */
-+MUX_CFG_34XX("AF10_3430_USB1FS_PHY_MM1_RXDP", 0x5d8,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AG9_3430_USB1FS_PHY_MM1_RXDM", 0x5ee,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("W13_3430_USB1FS_PHY_MM1_RXRCV", 0x5dc,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("W12_3430_USB1FS_PHY_MM1_TXSE0", 0x5de,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("W11_3430_USB1FS_PHY_MM1_TXDAT", 0x5e0,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("Y11_3430_USB1FS_PHY_MM1_TXEN_N", 0x5ea,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
-+
-+/* PHY FSUSB: FS Serial for Port 2 (multiple PHY modes supported) */
-+MUX_CFG_34XX("AF7_3430_USB2FS_PHY_MM2_RXDP", 0x5f2,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AH7_3430_USB2FS_PHY_MM2_RXDM", 0x5f6,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AB10_3430_USB2FS_PHY_MM2_RXRCV", 0x5f8,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AB9_3430_USB2FS_PHY_MM2_TXSE0", 0x5fa,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("W3_3430_USB2FS_PHY_MM2_TXDAT", 0x1d4,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("T4_3430_USB2FS_PHY_MM2_TXEN_N", 0x1de,
-+		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_OUTPUT)
-+
-+/* PHY FSUSB: FS Serial for Port 3 (multiple PHY modes supported) */
-+MUX_CFG_34XX("AH3_3430_USB3FS_PHY_MM3_RXDP", 0x166,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AE3_3430_USB3FS_PHY_MM3_RXDM", 0x16a,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AD1_3430_USB3FS_PHY_MM3_RXRCV", 0x186,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AE1_3430_USB3FS_PHY_MM3_TXSE0", 0x184,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AD2_3430_USB3FS_PHY_MM3_TXDAT", 0x188,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_INPUT_PULLDOWN)
-+MUX_CFG_34XX("AC1_3430_USB3FS_PHY_MM3_TXEN_N", 0x18a,
-+		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
-+
- };
- 
- #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
-diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
+diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
 new file mode 100644
-index 0000000..2c71461
+index 0000000..e042d27
 --- /dev/null
-+++ b/arch/arm/mach-omap2/sram34xx.S
-@@ -0,0 +1,179 @@
-+/*
-+ * linux/arch/arm/mach-omap3/sram.S
-+ *
-+ * Omap3 specific functions that need to be run in internal SRAM
-+ *
-+ * (C) Copyright 2007
-+ * Texas Instruments Inc.
-+ * Rajendra Nayak <rnayak@ti.com>
-+ *
-+ * (C) Copyright 2004
-+ * Texas Instruments, <www.ti.com>
-+ * Richard Woodruff <r-woodruff2@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation; either version 2 of
-+ * the License, or (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR /PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-+ * MA 02111-1307 USA
-+ */
-+#include <linux/linkage.h>
-+#include <asm/assembler.h>
-+#include <mach/hardware.h>
++++ b/arch/arm/configs/omap3_beagle_defconfig
+@@ -0,0 +1,1321 @@
++#
++# Automatically generated make config: don't edit
++# Linux kernel version: 2.6.27-rc8
++# Wed Oct  1 17:14:22 2008
++#
++CONFIG_ARM=y
++CONFIG_SYS_SUPPORTS_APM_EMULATION=y
++CONFIG_GENERIC_GPIO=y
++CONFIG_GENERIC_TIME=y
++CONFIG_GENERIC_CLOCKEVENTS=y
++CONFIG_MMU=y
++# CONFIG_NO_IOPORT is not set
++CONFIG_GENERIC_HARDIRQS=y
++CONFIG_STACKTRACE_SUPPORT=y
++CONFIG_HAVE_LATENCYTOP_SUPPORT=y
++CONFIG_LOCKDEP_SUPPORT=y
++CONFIG_TRACE_IRQFLAGS_SUPPORT=y
++CONFIG_HARDIRQS_SW_RESEND=y
++CONFIG_GENERIC_IRQ_PROBE=y
++CONFIG_RWSEM_GENERIC_SPINLOCK=y
++# CONFIG_ARCH_HAS_ILOG2_U32 is not set
++# CONFIG_ARCH_HAS_ILOG2_U64 is not set
++CONFIG_GENERIC_HWEIGHT=y
++CONFIG_GENERIC_CALIBRATE_DELAY=y
++CONFIG_ARCH_SUPPORTS_AOUT=y
++CONFIG_ZONE_DMA=y
++CONFIG_GENERIC_HARDIRQS_NO__DO_IRQ=y
++CONFIG_VECTORS_BASE=0xffff0000
++CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
 +
-+#include <mach/io.h>
++#
++# General setup
++#
++CONFIG_EXPERIMENTAL=y
++CONFIG_BROKEN_ON_SMP=y
++CONFIG_INIT_ENV_ARG_LIMIT=32
++CONFIG_LOCALVERSION=""
++CONFIG_LOCALVERSION_AUTO=y
++CONFIG_SWAP=y
++CONFIG_SYSVIPC=y
++CONFIG_SYSVIPC_SYSCTL=y
++# CONFIG_POSIX_MQUEUE is not set
++CONFIG_BSD_PROCESS_ACCT=y
++# CONFIG_BSD_PROCESS_ACCT_V3 is not set
++# CONFIG_TASKSTATS is not set
++# CONFIG_AUDIT is not set
++# CONFIG_IKCONFIG is not set
++CONFIG_LOG_BUF_SHIFT=14
++# CONFIG_CGROUPS is not set
++CONFIG_GROUP_SCHED=y
++CONFIG_FAIR_GROUP_SCHED=y
++# CONFIG_RT_GROUP_SCHED is not set
++CONFIG_USER_SCHED=y
++# CONFIG_CGROUP_SCHED is not set
++CONFIG_SYSFS_DEPRECATED=y
++CONFIG_SYSFS_DEPRECATED_V2=y
++# CONFIG_RELAY is not set
++# CONFIG_NAMESPACES is not set
++CONFIG_BLK_DEV_INITRD=y
++CONFIG_INITRAMFS_SOURCE=""
++CONFIG_CC_OPTIMIZE_FOR_SIZE=y
++CONFIG_SYSCTL=y
++CONFIG_EMBEDDED=y
++CONFIG_UID16=y
++# CONFIG_SYSCTL_SYSCALL is not set
++CONFIG_KALLSYMS=y
++# CONFIG_KALLSYMS_ALL is not set
++CONFIG_KALLSYMS_EXTRA_PASS=y
++CONFIG_HOTPLUG=y
++CONFIG_PRINTK=y
++CONFIG_BUG=y
++CONFIG_ELF_CORE=y
++CONFIG_COMPAT_BRK=y
++CONFIG_BASE_FULL=y
++CONFIG_FUTEX=y
++CONFIG_ANON_INODES=y
++CONFIG_EPOLL=y
++CONFIG_SIGNALFD=y
++CONFIG_TIMERFD=y
++CONFIG_EVENTFD=y
++CONFIG_SHMEM=y
++CONFIG_VM_EVENT_COUNTERS=y
++CONFIG_SLAB=y
++# CONFIG_SLUB is not set
++# CONFIG_SLOB is not set
++# CONFIG_PROFILING is not set
++# CONFIG_MARKERS is not set
++CONFIG_HAVE_OPROFILE=y
++# CONFIG_KPROBES is not set
++# CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS is not set
++# CONFIG_HAVE_IOREMAP_PROT is not set
++CONFIG_HAVE_KPROBES=y
++CONFIG_HAVE_KRETPROBES=y
++# CONFIG_HAVE_ARCH_TRACEHOOK is not set
++# CONFIG_HAVE_DMA_ATTRS is not set
++# CONFIG_USE_GENERIC_SMP_HELPERS is not set
++CONFIG_HAVE_CLK=y
++CONFIG_PROC_PAGE_MONITOR=y
++CONFIG_HAVE_GENERIC_DMA_COHERENT=y
++CONFIG_SLABINFO=y
++CONFIG_RT_MUTEXES=y
++# CONFIG_TINY_SHMEM is not set
++CONFIG_BASE_SMALL=0
++CONFIG_MODULES=y
++# CONFIG_MODULE_FORCE_LOAD is not set
++CONFIG_MODULE_UNLOAD=y
++# CONFIG_MODULE_FORCE_UNLOAD is not set
++CONFIG_MODVERSIONS=y
++CONFIG_MODULE_SRCVERSION_ALL=y
++CONFIG_KMOD=y
++CONFIG_BLOCK=y
++# CONFIG_LBD is not set
++# CONFIG_BLK_DEV_IO_TRACE is not set
++# CONFIG_LSF is not set
++# CONFIG_BLK_DEV_BSG is not set
++# CONFIG_BLK_DEV_INTEGRITY is not set
 +
-+#include "sdrc.h"
-+#include "cm.h"
++#
++# IO Schedulers
++#
++CONFIG_IOSCHED_NOOP=y
++CONFIG_IOSCHED_AS=y
++CONFIG_IOSCHED_DEADLINE=y
++CONFIG_IOSCHED_CFQ=y
++CONFIG_DEFAULT_AS=y
++# CONFIG_DEFAULT_DEADLINE is not set
++# CONFIG_DEFAULT_CFQ is not set
++# CONFIG_DEFAULT_NOOP is not set
++CONFIG_DEFAULT_IOSCHED="anticipatory"
++CONFIG_CLASSIC_RCU=y
 +
-+	.text
++#
++# System Type
++#
++# CONFIG_ARCH_AAEC2000 is not set
++# CONFIG_ARCH_INTEGRATOR is not set
++# CONFIG_ARCH_REALVIEW is not set
++# CONFIG_ARCH_VERSATILE is not set
++# CONFIG_ARCH_AT91 is not set
++# CONFIG_ARCH_CLPS7500 is not set
++# CONFIG_ARCH_CLPS711X is not set
++# CONFIG_ARCH_EBSA110 is not set
++# CONFIG_ARCH_EP93XX is not set
++# CONFIG_ARCH_FOOTBRIDGE is not set
++# CONFIG_ARCH_NETX is not set
++# CONFIG_ARCH_H720X is not set
++# CONFIG_ARCH_IMX is not set
++# CONFIG_ARCH_IOP13XX is not set
++# CONFIG_ARCH_IOP32X is not set
++# CONFIG_ARCH_IOP33X is not set
++# CONFIG_ARCH_IXP23XX is not set
++# CONFIG_ARCH_IXP2000 is not set
++# CONFIG_ARCH_IXP4XX is not set
++# CONFIG_ARCH_L7200 is not set
++# CONFIG_ARCH_KIRKWOOD is not set
++# CONFIG_ARCH_KS8695 is not set
++# CONFIG_ARCH_NS9XXX is not set
++# CONFIG_ARCH_LOKI is not set
++# CONFIG_ARCH_MV78XX0 is not set
++# CONFIG_ARCH_MXC is not set
++# CONFIG_ARCH_ORION5X is not set
++# CONFIG_ARCH_PNX4008 is not set
++# CONFIG_ARCH_PXA is not set
++# CONFIG_ARCH_RPC is not set
++# CONFIG_ARCH_SA1100 is not set
++# CONFIG_ARCH_S3C2410 is not set
++# CONFIG_ARCH_SHARK is not set
++# CONFIG_ARCH_LH7A40X is not set
++# CONFIG_ARCH_DAVINCI is not set
++CONFIG_ARCH_OMAP=y
++# CONFIG_ARCH_MSM7X00A is not set
 +
-+/*
-+ * Change frequency of core dpll
-+ * r0 = sdrc_rfr_ctrl r1 = sdrc_actim_ctrla r2 = sdrc_actim_ctrlb r3 = M2
-+ */
-+ENTRY(omap3_sram_configure_core_dpll)
-+	stmfd	sp!, {r1-r12, lr}	@ store regs to stack
-+	cmp	r3, #0x2
-+	blne	configure_sdrc
-+	cmp	r3, #0x2
-+	blne	lock_dll
-+	cmp	r3, #0x1
-+	blne	unlock_dll
-+	bl	sdram_in_selfrefresh	@ put the SDRAM in self refresh
-+	bl 	configure_core_dpll
-+	bl	enable_sdrc
-+	cmp	r3, #0x1
-+	blne	wait_dll_unlock
-+	cmp	r3, #0x2
-+	blne	wait_dll_lock
-+	cmp	r3, #0x1
-+	blne	configure_sdrc
-+	mov 	r0, #0 			@ return value
-+	ldmfd	sp!, {r1-r12, pc}	@ restore regs and return
-+unlock_dll:
-+	ldr	r4, omap3_sdrc_dlla_ctrl
-+	ldr	r5, [r4]
-+	orr	r5, r5, #0x4
-+	str	r5, [r4]
-+	bx	lr
-+lock_dll:
-+	ldr	r4, omap3_sdrc_dlla_ctrl
-+	ldr	r5, [r4]
-+	bic	r5, r5, #0x4
-+	str	r5, [r4]
-+	bx	lr
-+sdram_in_selfrefresh:
-+	mov	r5, #0x0		@ Move 0 to R5
-+	mcr	p15, 0, r5, c7, c10, 5	@ memory barrier
-+	ldr	r4, omap3_sdrc_power	@ read the SDRC_POWER register
-+	ldr	r5, [r4]		@ read the contents of SDRC_POWER
-+	orr 	r5, r5, #0x40		@ enable self refresh on idle req
-+	str 	r5, [r4]		@ write back to SDRC_POWER register
-+	ldr	r4, omap3_cm_iclken1_core	@ read the CM_ICLKEN1_CORE reg
-+	ldr	r5, [r4]
-+	bic	r5, r5, #0x2		@ disable iclk bit for SRDC
-+	str 	r5, [r4]
-+wait_sdrc_idle:
-+	ldr 	r4, omap3_cm_idlest1_core
-+	ldr 	r5, [r4]
-+	and 	r5, r5, #0x2		@ check for SDRC idle
-+	cmp 	r5, #2
-+	bne 	wait_sdrc_idle
-+	bx 	lr
-+configure_core_dpll:
-+	ldr 	r4, omap3_cm_clksel1_pll
-+	ldr	r5, [r4]
-+	ldr	r6, core_m2_mask_val	@ modify m2 for core dpll
-+	and	r5, r5, r6
-+	orr	r5, r5, r3, lsl #0x1B	@ r3 contains the M2 val
-+	str	r5, [r4]
-+	mov 	r5, #0x800		@ wait for the clock to stabilise
-+	cmp	r3, #2
-+	bne	wait_clk_stable
-+	bx	lr
-+wait_clk_stable:
-+	subs 	r5, r5, #1
-+	bne	wait_clk_stable
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	bx	lr
-+enable_sdrc:
-+	ldr 	r4, omap3_cm_iclken1_core
-+	ldr	r5, [r4]
-+	orr 	r5, r5, #0x2		@ enable iclk bit for SDRC
-+	str 	r5, [r4]
-+wait_sdrc_idle1:
-+	ldr 	r4, omap3_cm_idlest1_core
-+	ldr	r5, [r4]
-+	and 	r5, r5, #0x2
-+	cmp	r5, #0
-+	bne	wait_sdrc_idle1
-+	ldr	r4, omap3_sdrc_power
-+	ldr	r5, [r4]
-+	bic 	r5, r5, #0x40
-+	str 	r5, [r4]
-+	bx	lr
-+wait_dll_lock:
-+	ldr	r4, omap3_sdrc_dlla_status
-+	ldr	r5, [r4]
-+	and 	r5, r5, #0x4
-+	cmp	r5, #0x4
-+	bne	wait_dll_lock
-+	bx	lr
-+wait_dll_unlock:
-+	ldr	r4, omap3_sdrc_dlla_status
-+	ldr	r5, [r4]
-+	and	r5, r5, #0x4
-+	cmp	r5, #0x0
-+	bne	wait_dll_unlock
-+	bx	lr
-+configure_sdrc:
-+	ldr	r4, omap3_sdrc_rfr_ctrl
-+	str	r0, [r4]
-+	ldr	r4, omap3_sdrc_actim_ctrla
-+	str	r1, [r4]
-+	ldr	r4, omap3_sdrc_actim_ctrlb
-+	str	r2, [r4]
-+	bx	lr
++#
++# TI OMAP Implementations
++#
++CONFIG_ARCH_OMAP_OTG=y
++# CONFIG_ARCH_OMAP1 is not set
++# CONFIG_ARCH_OMAP2 is not set
++CONFIG_ARCH_OMAP3=y
 +
-+omap3_sdrc_power:
-+	.word OMAP34XX_SDRC_REGADDR(SDRC_POWER)
-+omap3_cm_clksel1_pll:
-+	.word OMAP34XX_CM_REGADDR(PLL_MOD, CM_CLKSEL1)
-+omap3_cm_idlest1_core:
-+	.word OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST)
-+omap3_cm_iclken1_core:
-+	.word OMAP34XX_CM_REGADDR(CORE_MOD, CM_ICLKEN1)
-+omap3_sdrc_rfr_ctrl:
-+	.word OMAP34XX_SDRC_REGADDR(SDRC_RFR_CTRL_0)
-+omap3_sdrc_actim_ctrla:
-+	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A_0)
-+omap3_sdrc_actim_ctrlb:
-+	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B_0)
-+omap3_sdrc_dlla_status:
-+	.word OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
-+omap3_sdrc_dlla_ctrl:
-+	.word OMAP34XX_SDRC_REGADDR(SDRC_DLLA_CTRL)
-+core_m2_mask_val:
-+	.word 0x07FFFFFF
++#
++# OMAP Feature Selections
++#
++# CONFIG_OMAP_DEBUG_POWERDOMAIN is not set
++# CONFIG_OMAP_DEBUG_CLOCKDOMAIN is not set
++# CONFIG_OMAP_RESET_CLOCKS is not set
++# CONFIG_OMAP_MUX is not set
++# CONFIG_OMAP_MCBSP is not set
++# CONFIG_OMAP_MPU_TIMER is not set
++CONFIG_OMAP_32K_TIMER=y
++CONFIG_OMAP_32K_TIMER_HZ=128
++CONFIG_OMAP_DM_TIMER=y
++# CONFIG_OMAP_LL_DEBUG_UART1 is not set
++# CONFIG_OMAP_LL_DEBUG_UART2 is not set
++CONFIG_OMAP_LL_DEBUG_UART3=y
++CONFIG_ARCH_OMAP34XX=y
++CONFIG_ARCH_OMAP3430=y
 +
-+ENTRY(omap3_sram_configure_core_dpll_sz)
-+	.word	. - omap3_sram_configure_core_dpll
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index ef62bf2..a94f0c4 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -15,6 +15,9 @@ config ARCH_OMAP1
- config ARCH_OMAP2
- 	bool "TI OMAP2"
- 
-+config ARCH_OMAP3
-+	bool "TI OMAP3"
++#
++# OMAP Board Type
++#
++CONFIG_MACH_OMAP3_BEAGLE=y
 +
- endchoice
- 
- comment "OMAP Feature Selections"
-@@ -112,13 +115,13 @@ config OMAP_MPU_TIMER
- 
- config OMAP_32K_TIMER
- 	bool "Use 32KHz timer"
--	depends on ARCH_OMAP16XX || ARCH_OMAP24XX
-+	depends on ARCH_OMAP16XX || ARCH_OMAP24XX || ARCH_OMAP34XX
- 	help
- 	  Select this option if you want to enable the OMAP 32KHz timer.
- 	  This timer saves power compared to the OMAP_MPU_TIMER, and has
- 	  support for no tick during idle. The 32KHz timer provides less
- 	  intra-tick resolution than OMAP_MPU_TIMER. The 32KHz timer is
--	  currently only available for OMAP16XX and 24XX.
-+	  currently only available for OMAP16XX, 24XX and 34XX.
- 
- endchoice
- 
-@@ -133,7 +136,7 @@ config OMAP_32K_TIMER_HZ
- 
- config OMAP_DM_TIMER
- 	bool "Use dual-mode timer"
--	depends on ARCH_OMAP16XX || ARCH_OMAP24XX
-+	depends on ARCH_OMAP16XX || ARCH_OMAP24XX || ARCH_OMAP34XX
- 	help
- 	 Select this option if you want to use OMAP Dual-Mode timers.
- 
-diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-index 1c1d831..2625ce3 100644
---- a/arch/arm/plat-omap/devices.c
-+++ b/arch/arm/plat-omap/devices.c
-@@ -94,6 +94,10 @@ static inline void omap_init_dsp(void) { }
- 
- static void omap_init_kp(void)
- {
-+	/* 2430 and 34xx keypad is on TWL4030 */
-+	if (cpu_is_omap2430() || cpu_is_omap34xx())
-+		return;
++#
++# Boot options
++#
 +
- 	if (machine_is_omap_h2() || machine_is_omap_h3()) {
- 		omap_cfg_reg(F18_1610_KBC0);
- 		omap_cfg_reg(D20_1610_KBC1);
-@@ -395,8 +399,17 @@ static inline void omap_init_uwire(void) {}
- 
- #if	defined(CONFIG_OMAP_WATCHDOG) || defined(CONFIG_OMAP_WATCHDOG_MODULE)
- 
--#ifdef CONFIG_ARCH_OMAP24XX
-+#if defined(CONFIG_ARCH_OMAP34XX)
-+#define	OMAP_WDT_BASE		0x48314000
-+#elif defined(CONFIG_ARCH_OMAP24XX)
++#
++# Power management
++#
 +
-+#ifdef CONFIG_ARCH_OMAP2430
-+/* WDT2 */
-+#define	OMAP_WDT_BASE		0x49016000
-+#else
- #define	OMAP_WDT_BASE		0x48022000
-+#endif
++#
++# Processor Type
++#
++CONFIG_CPU_32=y
++CONFIG_CPU_32v6K=y
++CONFIG_CPU_V7=y
++CONFIG_CPU_32v7=y
++CONFIG_CPU_ABRT_EV7=y
++CONFIG_CPU_PABRT_IFAR=y
++CONFIG_CPU_CACHE_V7=y
++CONFIG_CPU_CACHE_VIPT=y
++CONFIG_CPU_COPY_V6=y
++CONFIG_CPU_TLB_V7=y
++CONFIG_CPU_HAS_ASID=y
++CONFIG_CPU_CP15=y
++CONFIG_CPU_CP15_MMU=y
 +
- #else
- #define	OMAP_WDT_BASE		0xfffeb000
- #endif
-diff --git a/arch/arm/plat-omap/include/mach/debug-macro.S b/arch/arm/plat-omap/include/mach/debug-macro.S
-index 1b0039b..1b11f5c 100644
---- a/arch/arm/plat-omap/include/mach/debug-macro.S
-+++ b/arch/arm/plat-omap/include/mach/debug-macro.S
-@@ -35,6 +35,18 @@
- #ifdef CONFIG_OMAP_LL_DEBUG_UART3
- 		add	\rx, \rx, #0x00004000	@ UART 3
- #endif
++#
++# Processor Features
++#
++CONFIG_ARM_THUMB=y
++# CONFIG_ARM_THUMBEE is not set
++# CONFIG_CPU_ICACHE_DISABLE is not set
++# CONFIG_CPU_DCACHE_DISABLE is not set
++# CONFIG_CPU_BPREDICT_DISABLE is not set
++CONFIG_HAS_TLS_REG=y
++# CONFIG_OUTER_CACHE is not set
 +
-+#elif	CONFIG_ARCH_OMAP3
-+		moveq	\rx, #0x48000000	@ physical base address
-+		movne	\rx, #0xd8000000	@ virtual base
-+		orr	\rx, \rx, #0x0006a000
-+#ifdef CONFIG_OMAP_LL_DEBUG_UART2
-+		add	\rx, \rx, #0x00002000	@ UART 2
-+#endif
-+#ifdef CONFIG_OMAP_LL_DEBUG_UART3
-+		add	\rx, \rx, #0x00fb0000	@ UART 3
-+		add	\rx, \rx, #0x00006000
-+#endif
- #endif
- 		.endm
- 
-diff --git a/arch/arm/plat-omap/include/mach/entry-macro.S b/arch/arm/plat-omap/include/mach/entry-macro.S
-index d4e9043..030118e 100644
---- a/arch/arm/plat-omap/include/mach/entry-macro.S
-+++ b/arch/arm/plat-omap/include/mach/entry-macro.S
-@@ -55,9 +55,17 @@
- 1510:
- 		.endm
- 
--#elif defined(CONFIG_ARCH_OMAP24XX)
-+#endif
-+#if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
- 
-+#if defined(CONFIG_ARCH_OMAP24XX)
- #include <mach/omap24xx.h>
-+#endif
-+#if defined(CONFIG_ARCH_OMAP34XX)
-+#include <mach/omap34xx.h>
-+#endif
++#
++# Bus support
++#
++# CONFIG_PCI_SYSCALL is not set
++# CONFIG_ARCH_SUPPORTS_MSI is not set
++# CONFIG_PCCARD is not set
 +
-+#define INTCPS_SIR_IRQ_OFFSET	0x0040		/* Active interrupt number */
- 
- 		.macro	disable_fiq
- 		.endm
-@@ -79,7 +87,7 @@
- 		ldr	\irqnr, [\base, #0xd8] /* IRQ pending reg 3 */
- 		cmp	\irqnr, #0x0
- 2222:
--		ldrne	\irqnr, [\base, #IRQ_SIR_IRQ]
-+		ldrne	\irqnr, [\base, #INTCPS_SIR_IRQ_OFFSET]
- 
- 		.endm
- 
-diff --git a/arch/arm/plat-omap/include/mach/gpmc.h b/arch/arm/plat-omap/include/mach/gpmc.h
-index 3c7b425..45b6784 100644
---- a/arch/arm/plat-omap/include/mach/gpmc.h
-+++ b/arch/arm/plat-omap/include/mach/gpmc.h
-@@ -84,6 +84,10 @@ struct gpmc_timings {
- 	u16 access;		/* Start-cycle to first data valid delay */
- 	u16 rd_cycle;		/* Total read cycle time */
- 	u16 wr_cycle;		/* Total write cycle time */
++#
++# Kernel Features
++#
++CONFIG_TICK_ONESHOT=y
++CONFIG_NO_HZ=y
++CONFIG_HIGH_RES_TIMERS=y
++CONFIG_GENERIC_CLOCKEVENTS_BUILD=y
++CONFIG_VMSPLIT_3G=y
++# CONFIG_VMSPLIT_2G is not set
++# CONFIG_VMSPLIT_1G is not set
++CONFIG_PAGE_OFFSET=0xC0000000
++# CONFIG_PREEMPT is not set
++CONFIG_HZ=128
++CONFIG_AEABI=y
++CONFIG_OABI_COMPAT=y
++CONFIG_ARCH_FLATMEM_HAS_HOLES=y
++# CONFIG_ARCH_DISCONTIGMEM_ENABLE is not set
++CONFIG_SELECT_MEMORY_MODEL=y
++CONFIG_FLATMEM_MANUAL=y
++# CONFIG_DISCONTIGMEM_MANUAL is not set
++# CONFIG_SPARSEMEM_MANUAL is not set
++CONFIG_FLATMEM=y
++CONFIG_FLAT_NODE_MEM_MAP=y
++# CONFIG_SPARSEMEM_STATIC is not set
++# CONFIG_SPARSEMEM_VMEMMAP_ENABLE is not set
++CONFIG_PAGEFLAGS_EXTENDED=y
++CONFIG_SPLIT_PTLOCK_CPUS=4
++# CONFIG_RESOURCES_64BIT is not set
++CONFIG_ZONE_DMA_FLAG=1
++CONFIG_BOUNCE=y
++CONFIG_VIRT_TO_BUS=y
++# CONFIG_LEDS is not set
++CONFIG_ALIGNMENT_TRAP=y
 +
-+	/* The following are only on OMAP3430 */
-+	u16 wr_access;		/* WRACCESSTIME */
-+	u16 wr_data_mux_bus;	/* WRDATAONADMUXBUS */
- };
- 
- extern unsigned int gpmc_ns_to_ticks(unsigned int time_ns);
-diff --git a/arch/arm/plat-omap/include/mach/io.h b/arch/arm/plat-omap/include/mach/io.h
-index dd0cf06..adc83b7 100644
---- a/arch/arm/plat-omap/include/mach/io.h
-+++ b/arch/arm/plat-omap/include/mach/io.h
-@@ -73,7 +73,6 @@
- #define L4_24XX_VIRT	0xd8000000
- #define L4_24XX_SIZE	SZ_1M		/* 1MB of 128MB used, want 1MB sect */
- 
--#ifdef CONFIG_ARCH_OMAP2430
- #define L4_WK_243X_PHYS		L4_WK_243X_BASE		/* 0x49000000 */
- #define L4_WK_243X_VIRT		0xd9000000
- #define L4_WK_243X_SIZE		SZ_1M
-@@ -87,8 +86,6 @@
- #define OMAP243X_SMS_VIRT	0xFC000000
- #define OMAP243X_SMS_SIZE	SZ_1M
- 
--#endif
--
- #define IO_OFFSET		0x90000000
- #define __IO_ADDRESS(pa)	((pa) + IO_OFFSET)	/* Works for L3 and L4 */
- #define __OMAP2_IO_ADDRESS(pa)	((pa) + IO_OFFSET)	/* Works for L3 and L4 */
-diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-omap/include/mach/irqs.h
-index e9fd630..9ee0496 100644
---- a/arch/arm/plat-omap/include/mach/irqs.h
-+++ b/arch/arm/plat-omap/include/mach/irqs.h
-@@ -286,6 +286,41 @@
- #define INT_24XX_USB_IRQ_OTG	80
- #define INT_24XX_MMC_IRQ	83
- 
-+#define INT_34XX_BENCH_MPU_EMUL	3
-+#define INT_34XX_ST_MCBSP2_IRQ	4
-+#define INT_34XX_ST_MCBSP3_IRQ	5
-+#define INT_34XX_SSM_ABORT_IRQ	6
-+#define INT_34XX_SYS_NIRQ	7
-+#define INT_34XX_D2D_FW_IRQ	8
-+#define INT_34XX_PRCM_MPU_IRQ	11
-+#define INT_34XX_MCBSP1_IRQ	16
-+#define INT_34XX_MCBSP2_IRQ	17
-+#define INT_34XX_MCBSP3_IRQ	22
-+#define INT_34XX_MCBSP4_IRQ	23
-+#define INT_34XX_CAM_IRQ	24
-+#define INT_34XX_MCBSP5_IRQ	27
-+#define INT_34XX_GPIO_BANK1	29
-+#define INT_34XX_GPIO_BANK2	30
-+#define INT_34XX_GPIO_BANK3	31
-+#define INT_34XX_GPIO_BANK4	32
-+#define INT_34XX_GPIO_BANK5	33
-+#define INT_34XX_GPIO_BANK6	34
-+#define INT_34XX_USIM_IRQ	35
-+#define INT_34XX_WDT3_IRQ	36
-+#define INT_34XX_SPI4_IRQ	48
-+#define INT_34XX_SHA1MD52_IRQ	49
-+#define INT_34XX_FPKA_READY_IRQ	50
-+#define INT_34XX_SHA1MD51_IRQ	51
-+#define INT_34XX_RNG_IRQ	52
-+#define INT_34XX_I2C3_IRQ	61
-+#define INT_34XX_FPKA_ERROR_IRQ	64
-+#define INT_34XX_PBIAS_IRQ	75
-+#define INT_34XX_OHCI_IRQ	76
-+#define INT_34XX_EHCI_IRQ	77
-+#define INT_34XX_TLL_IRQ	78
-+#define INT_34XX_PARTHASH_IRQ	79
-+#define INT_34XX_MMC3_IRQ	94
-+#define INT_34XX_GPT12_IRQ	95
- /* Max. 128 level 2 IRQs (OMAP1610), 192 GPIOs (OMAP730) and
-  * 16 MPUIO lines */
- #define OMAP_MAX_GPIO_LINES	192
-diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
-index a3074f2..c8d0aa1 100644
---- a/arch/arm/plat-omap/include/mach/mcbsp.h
-+++ b/arch/arm/plat-omap/include/mach/mcbsp.h
-@@ -91,7 +91,7 @@
- #define AUDIO_DMA_TX		OMAP_DMA_MCBSP1_TX
- #define AUDIO_DMA_RX		OMAP_DMA_MCBSP1_RX
- 
--#elif defined(CONFIG_ARCH_OMAP24XX)
-+#elif defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
- 
- #define OMAP_MCBSP_REG_DRR2	0x00
- #define OMAP_MCBSP_REG_DRR1	0x04
-diff --git a/arch/arm/plat-omap/include/mach/memory.h b/arch/arm/plat-omap/include/mach/memory.h
-index a325caf..d40cac6 100644
---- a/arch/arm/plat-omap/include/mach/memory.h
-+++ b/arch/arm/plat-omap/include/mach/memory.h
-@@ -38,7 +38,7 @@
-  */
- #if defined(CONFIG_ARCH_OMAP1)
- #define PHYS_OFFSET		UL(0x10000000)
--#elif defined(CONFIG_ARCH_OMAP2)
-+#elif defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
- #define PHYS_OFFSET		UL(0x80000000)
- #endif
- 
-diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
-index 5670d56..6bbf178 100644
---- a/arch/arm/plat-omap/include/mach/mux.h
-+++ b/arch/arm/plat-omap/include/mach/mux.h
-@@ -723,7 +723,31 @@ enum omap34xx_index {
- 	AB12_3430_USB3HS_TLL_DATA4,
- 	AB13_3430_USB3HS_TLL_DATA5,
- 	AA13_3430_USB3HS_TLL_DATA6,
--	AA12_3430_USB3HS_TLL_DATA7
-+	AA12_3430_USB3HS_TLL_DATA7,
++#
++# Boot options
++#
++CONFIG_ZBOOT_ROM_TEXT=0x0
++CONFIG_ZBOOT_ROM_BSS=0x0
++CONFIG_CMDLINE="root=/dev/nfs nfsroot=192.168.0.1:/home/user/buildroot ip=192.168.0.2:192.168.0.1:192.168.0.1:255.255.255.0:tgt:eth0:off rw console=ttyS2,115200n8"
++# CONFIG_XIP_KERNEL is not set
++# CONFIG_KEXEC is not set
 +
-+	/* PHY FSUSB: FS Serial for Port 1 (multiple PHY modes supported) */
-+	AF10_3430_USB1FS_PHY_MM1_RXDP,
-+	AG9_3430_USB1FS_PHY_MM1_RXDM,
-+	W13_3430_USB1FS_PHY_MM1_RXRCV,
-+	W12_3430_USB1FS_PHY_MM1_TXSE0,
-+	W11_3430_USB1FS_PHY_MM1_TXDAT,
-+	Y11_3430_USB1FS_PHY_MM1_TXEN_N,
++#
++# CPU Power Management
++#
++# CONFIG_CPU_FREQ is not set
++# CONFIG_CPU_IDLE is not set
 +
-+	/* PHY FSUSB: FS Serial for Port 2 (multiple PHY modes supported) */
-+	AF7_3430_USB2FS_PHY_MM2_RXDP,
-+	AH7_3430_USB2FS_PHY_MM2_RXDM,
-+	AB10_3430_USB2FS_PHY_MM2_RXRCV,
-+	AB9_3430_USB2FS_PHY_MM2_TXSE0,
-+	W3_3430_USB2FS_PHY_MM2_TXDAT,
-+	T4_3430_USB2FS_PHY_MM2_TXEN_N,
++#
++# Floating point emulation
++#
 +
-+	/* PHY FSUSB: FS Serial for Port 3 (multiple PHY modes supported) */
-+	AH3_3430_USB3FS_PHY_MM3_RXDP,
-+	AE3_3430_USB3FS_PHY_MM3_RXDM,
-+	AD1_3430_USB3FS_PHY_MM3_RXRCV,
-+	AE1_3430_USB3FS_PHY_MM3_TXSE0,
-+	AD2_3430_USB3FS_PHY_MM3_TXDAT,
-+	AC1_3430_USB3FS_PHY_MM3_TXEN_N,
- 
- };
- 
-diff --git a/arch/arm/plat-omap/include/mach/omap24xx.h b/arch/arm/plat-omap/include/mach/omap24xx.h
-index 556f0eb..24335d4 100644
---- a/arch/arm/plat-omap/include/mach/omap24xx.h
-+++ b/arch/arm/plat-omap/include/mach/omap24xx.h
-@@ -39,7 +39,6 @@
- /* interrupt controller */
- #define OMAP24XX_IC_BASE	(L4_24XX_BASE + 0xfe000)
- #define OMAP24XX_IVA_INTC_BASE	0x40000000
--#define IRQ_SIR_IRQ		0x0040
- 
- #define OMAP2420_CTRL_BASE	L4_24XX_BASE
- #define OMAP2420_32KSYNCT_BASE	(L4_24XX_BASE + 0x4000)
-diff --git a/arch/arm/plat-omap/include/mach/sdrc.h b/arch/arm/plat-omap/include/mach/sdrc.h
-index 25ee381..a98c6c3 100644
---- a/arch/arm/plat-omap/include/mach/sdrc.h
-+++ b/arch/arm/plat-omap/include/mach/sdrc.h
-@@ -25,8 +25,8 @@
- #define SDRC_DLLB_STATUS	0x06C
- #define SDRC_POWER		0x070
- #define SDRC_MR_0		0x084
--#define SDRC_ACTIM_CTRL_A	0x09c
--#define SDRC_ACTIM_CTRL_B	0x0a0
-+#define SDRC_ACTIM_CTRL_A_0	0x09c
-+#define SDRC_ACTIM_CTRL_B_0	0x0a0
- #define SDRC_RFR_CTRL_0		0x0a4
- 
- /*
-diff --git a/arch/arm/plat-omap/include/mach/sram.h b/arch/arm/plat-omap/include/mach/sram.h
-index e093234..ab35d62 100644
---- a/arch/arm/plat-omap/include/mach/sram.h
-+++ b/arch/arm/plat-omap/include/mach/sram.h
-@@ -21,6 +21,10 @@ extern void omap2_sram_reprogram_sdrc(u32 perf_level, u32 dll_val,
- 				      u32 mem_type);
- extern u32 omap2_set_prcm(u32 dpll_ctrl_val, u32 sdrc_rfr_val, int bypass);
- 
-+extern u32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl,
-+				     u32 sdrc_actim_ctrla,
-+				     u32 sdrc_actim_ctrlb, u32 m2);
++#
++# At least one emulation must be selected
++#
++CONFIG_FPE_NWFPE=y
++# CONFIG_FPE_NWFPE_XP is not set
++# CONFIG_FPE_FASTFPE is not set
++CONFIG_VFP=y
++CONFIG_VFPv3=y
++# CONFIG_NEON is not set
 +
- /* Do not use these */
- extern void omap1_sram_reprogram_clock(u32 ckctl, u32 dpllctl);
- extern unsigned long omap1_sram_reprogram_clock_sz;
-@@ -53,4 +57,10 @@ extern void omap243x_sram_reprogram_sdrc(u32 perf_level, u32 dll_val,
- 						u32 mem_type);
- extern unsigned long omap243x_sram_reprogram_sdrc_sz;
- 
++#
++# Userspace binary formats
++#
++CONFIG_BINFMT_ELF=y
++# CONFIG_BINFMT_AOUT is not set
++CONFIG_BINFMT_MISC=y
 +
-+extern u32 omap3_sram_configure_core_dpll(u32 sdrc_rfr_ctrl,
-+					  u32 sdrc_actim_ctrla,
-+					  u32 sdrc_actim_ctrlb, u32 m2);
-+extern unsigned long omap3_sram_configure_core_dpll_sz;
++#
++# Power management options
++#
++# CONFIG_PM is not set
++CONFIG_ARCH_SUSPEND_POSSIBLE=y
++CONFIG_NET=y
 +
- #endif
-diff --git a/arch/arm/plat-omap/include/mach/system.h b/arch/arm/plat-omap/include/mach/system.h
-index 06a28c7..06923f2 100644
---- a/arch/arm/plat-omap/include/mach/system.h
-+++ b/arch/arm/plat-omap/include/mach/system.h
-@@ -40,7 +40,7 @@ static inline void omap1_arch_reset(char mode)
- 
- static inline void arch_reset(char mode)
- {
--	if (!cpu_is_omap24xx())
-+	if (!cpu_class_is_omap2())
- 		omap1_arch_reset(mode);
- 	else
- 		omap_prcm_arch_reset(mode);
-diff --git a/arch/arm/plat-omap/io.c b/arch/arm/plat-omap/io.c
-index 0253c45..af326ef 100644
---- a/arch/arm/plat-omap/io.c
-+++ b/arch/arm/plat-omap/io.c
-@@ -47,11 +47,13 @@ void __iomem *omap_ioremap(unsigned long p, size_t size, unsigned int type)
- 	}
- #endif
- #ifdef CONFIG_ARCH_OMAP2
--	if (cpu_class_is_omap2()) {
-+	if (cpu_is_omap24xx()) {
- 		if (BETWEEN(p, L3_24XX_PHYS, L3_24XX_SIZE))
- 			return XLATE(p, L3_24XX_PHYS, L3_24XX_VIRT);
- 		if (BETWEEN(p, L4_24XX_PHYS, L4_24XX_SIZE))
- 			return XLATE(p, L4_24XX_PHYS, L4_24XX_VIRT);
-+	}
-+	if (cpu_is_omap2420()) {
- 		if (BETWEEN(p, DSP_MEM_24XX_PHYS, DSP_MEM_24XX_SIZE))
- 			return XLATE(p, DSP_MEM_24XX_PHYS, DSP_MEM_24XX_VIRT);
- 		if (BETWEEN(p, DSP_IPI_24XX_PHYS, DSP_IPI_24XX_SIZE))
-@@ -59,14 +61,36 @@ void __iomem *omap_ioremap(unsigned long p, size_t size, unsigned int type)
- 		if (BETWEEN(p, DSP_MMU_24XX_PHYS, DSP_MMU_24XX_SIZE))
- 			return XLATE(p, DSP_MMU_24XX_PHYS, DSP_MMU_24XX_VIRT);
- 	}
--#ifdef CONFIG_ARCH_OMAP2430
- 	if (cpu_is_omap2430()) {
- 		if (BETWEEN(p, L4_WK_243X_PHYS, L4_WK_243X_SIZE))
--			return XLATE(L4_WK_243X_PHYS, L4_WK_243X_VIRT);
-+			return XLATE(p, L4_WK_243X_PHYS, L4_WK_243X_VIRT);
- 		if (BETWEEN(p, OMAP243X_GPMC_PHYS, OMAP243X_GPMC_SIZE))
--			return XLATE(OMAP243X_GPMC_PHYS, OMAP243X_GPMC_VIRT);
-+			return XLATE(p, OMAP243X_GPMC_PHYS, OMAP243X_GPMC_VIRT);
-+		if (BETWEEN(p, OMAP243X_SDRC_PHYS, OMAP243X_SDRC_SIZE))
-+			return XLATE(p, OMAP243X_SDRC_PHYS, OMAP243X_SDRC_VIRT);
-+		if (BETWEEN(p, OMAP243X_SMS_PHYS, OMAP243X_SMS_SIZE))
-+			return XLATE(p, OMAP243X_SMS_PHYS, OMAP243X_SMS_VIRT);
- 	}
- #endif
-+#ifdef CONFIG_ARCH_OMAP3
-+	if (cpu_is_omap34xx()) {
-+		if (BETWEEN(p, L3_34XX_PHYS, L3_34XX_SIZE))
-+			return XLATE(p, L3_34XX_PHYS, L3_34XX_VIRT);
-+		if (BETWEEN(p, L4_34XX_PHYS, L4_34XX_SIZE))
-+			return XLATE(p, L4_34XX_PHYS, L4_34XX_VIRT);
-+		if (BETWEEN(p, L4_WK_34XX_PHYS, L4_WK_34XX_SIZE))
-+			return XLATE(p, L4_WK_34XX_PHYS, L4_WK_34XX_VIRT);
-+		if (BETWEEN(p, OMAP34XX_GPMC_PHYS, OMAP34XX_GPMC_SIZE))
-+			return XLATE(p, OMAP34XX_GPMC_PHYS, OMAP34XX_GPMC_VIRT);
-+		if (BETWEEN(p, OMAP343X_SMS_PHYS, OMAP343X_SMS_SIZE))
-+			return XLATE(p, OMAP343X_SMS_PHYS, OMAP343X_SMS_VIRT);
-+		if (BETWEEN(p, OMAP343X_SDRC_PHYS, OMAP343X_SDRC_SIZE))
-+			return XLATE(p, OMAP343X_SDRC_PHYS, OMAP343X_SDRC_VIRT);
-+		if (BETWEEN(p, L4_PER_34XX_PHYS, L4_PER_34XX_SIZE))
-+			return XLATE(p, L4_PER_34XX_PHYS, L4_PER_34XX_VIRT);
-+		if (BETWEEN(p, L4_EMU_34XX_PHYS, L4_EMU_34XX_SIZE))
-+			return XLATE(p, L4_EMU_34XX_PHYS, L4_EMU_34XX_VIRT);
-+	}
- #endif
- 
- 	return __arm_ioremap(p, size, type);
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index ac67eeb..4d22452 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -271,7 +271,7 @@ int __init omap1_sram_init(void)
- #define omap1_sram_init()	do {} while (0)
- #endif
- 
--#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
-+#if defined(CONFIG_ARCH_OMAP2)
- 
- static void (*_omap2_sram_ddr_init)(u32 *slow_dll_ctrl, u32 fast_dll_ctrl,
- 			      u32 base_cs, u32 force_unlock);
-@@ -352,23 +352,19 @@ static inline int omap243x_sram_init(void)
- 
- #ifdef CONFIG_ARCH_OMAP3
- 
--static u32 (*_omap2_sram_reprogram_gpmc)(u32 perf_level);
--u32 omap2_sram_reprogram_gpmc(u32 perf_level)
--{
--	if (!_omap2_sram_reprogram_gpmc)
--		omap_sram_error();
--
--	return _omap2_sram_reprogram_gpmc(perf_level);
--}
--
--static u32 (*_omap2_sram_configure_core_dpll)(u32 m, u32 n,
--						u32 freqsel, u32 m2);
--u32 omap2_sram_configure_core_dpll(u32 m, u32 n, u32 freqsel, u32 m2)
-+static u32 (*_omap3_sram_configure_core_dpll)(u32 sdrc_rfr_ctrl,
-+					      u32 sdrc_actim_ctrla,
-+					      u32 sdrc_actim_ctrlb,
-+					      u32 m2);
-+u32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl, u32 sdrc_actim_ctrla,
-+			      u32 sdrc_actim_ctrlb, u32 m2)
- {
--	if (!_omap2_sram_configure_core_dpll)
-+	if (!_omap3_sram_configure_core_dpll)
- 		omap_sram_error();
- 
--	return _omap2_sram_configure_core_dpll(m, n, freqsel, m2);
-+	return _omap3_sram_configure_core_dpll(sdrc_rfr_ctrl,
-+					       sdrc_actim_ctrla,
-+					       sdrc_actim_ctrlb, m2);
- }
- 
- /* REVISIT: Should this be same as omap34xx_sram_init() after off-idle? */
-@@ -376,31 +372,16 @@ void restore_sram_functions(void)
- {
- 	omap_sram_ceil = omap_sram_base + omap_sram_size;
- 
--	_omap2_sram_reprogram_gpmc = omap_sram_push(omap34xx_sram_reprogram_gpmc,
--		omap34xx_sram_reprogram_gpmc_sz);
--
--	_omap2_sram_configure_core_dpll =
--			omap_sram_push(omap34xx_sram_configure_core_dpll,
--					omap34xx_sram_configure_core_dpll_sz);
-+	_omap3_sram_configure_core_dpll =
-+		omap_sram_push(omap3_sram_configure_core_dpll,
-+			       omap3_sram_configure_core_dpll_sz);
- }
- 
- int __init omap34xx_sram_init(void)
- {
--	_omap2_sram_ddr_init = omap_sram_push(omap34xx_sram_ddr_init,
--					omap34xx_sram_ddr_init_sz);
--
--	_omap2_sram_reprogram_sdrc = omap_sram_push(omap34xx_sram_reprogram_sdrc,
--					omap34xx_sram_reprogram_sdrc_sz);
--
--	_omap2_set_prcm = omap_sram_push(omap34xx_sram_set_prcm,
--					omap34xx_sram_set_prcm_sz);
--
--	_omap2_sram_reprogram_gpmc = omap_sram_push(omap34xx_sram_reprogram_gpmc,
--					omap34xx_sram_reprogram_gpmc_sz);
--
--	_omap2_sram_configure_core_dpll =
--				omap_sram_push(omap34xx_sram_configure_core_dpll,
--					omap34xx_sram_configure_core_dpll_sz);
-+	_omap3_sram_configure_core_dpll =
-+		omap_sram_push(omap3_sram_configure_core_dpll,
-+			       omap3_sram_configure_core_dpll_sz);
- 
- 	return 0;
- }
++#
++# Networking options
++#
++CONFIG_PACKET=y
++# CONFIG_PACKET_MMAP is not set
++CONFIG_UNIX=y
++CONFIG_XFRM=y
++# CONFIG_XFRM_USER is not set
++# CONFIG_XFRM_SUB_POLICY is not set
++# CONFIG_XFRM_MIGRATE is not set
++# CONFIG_XFRM_STATISTICS is not set
++CONFIG_NET_KEY=y
++# CONFIG_NET_KEY_MIGRATE is not set
++CONFIG_INET=y
++# CONFIG_IP_MULTICAST is not set
++# CONFIG_IP_ADVANCED_ROUTER is not set
++CONFIG_IP_FIB_HASH=y
++CONFIG_IP_PNP=y
++CONFIG_IP_PNP_DHCP=y
++CONFIG_IP_PNP_BOOTP=y
++CONFIG_IP_PNP_RARP=y
++# CONFIG_NET_IPIP is not set
++# CONFIG_NET_IPGRE is not set
++# CONFIG_ARPD is not set
++# CONFIG_SYN_COOKIES is not set
++# CONFIG_INET_AH is not set
++# CONFIG_INET_ESP is not set
++# CONFIG_INET_IPCOMP is not set
++# CONFIG_INET_XFRM_TUNNEL is not set
++# CONFIG_INET_TUNNEL is not set
++CONFIG_INET_XFRM_MODE_TRANSPORT=y
++CONFIG_INET_XFRM_MODE_TUNNEL=y
++CONFIG_INET_XFRM_MODE_BEET=y
++# CONFIG_INET_LRO is not set
++CONFIG_INET_DIAG=y
++CONFIG_INET_TCP_DIAG=y
++# CONFIG_TCP_CONG_ADVANCED is not set
++CONFIG_TCP_CONG_CUBIC=y
++CONFIG_DEFAULT_TCP_CONG="cubic"
++# CONFIG_TCP_MD5SIG is not set
++# CONFIG_IPV6 is not set
++# CONFIG_NETWORK_SECMARK is not set
++# CONFIG_NETFILTER is not set
++# CONFIG_IP_DCCP is not set
++# CONFIG_IP_SCTP is not set
++# CONFIG_TIPC is not set
++# CONFIG_ATM is not set
++# CONFIG_BRIDGE is not set
++# CONFIG_VLAN_8021Q is not set
++# CONFIG_DECNET is not set
++# CONFIG_LLC2 is not set
++# CONFIG_IPX is not set
++# CONFIG_ATALK is not set
++# CONFIG_X25 is not set
++# CONFIG_LAPB is not set
++# CONFIG_ECONET is not set
++# CONFIG_WAN_ROUTER is not set
++# CONFIG_NET_SCHED is not set
++
++#
++# Network testing
++#
++# CONFIG_NET_PKTGEN is not set
++# CONFIG_HAMRADIO is not set
++# CONFIG_CAN is not set
++# CONFIG_IRDA is not set
++# CONFIG_BT is not set
++# CONFIG_AF_RXRPC is not set
++
++#
++# Wireless
++#
++# CONFIG_CFG80211 is not set
++# CONFIG_WIRELESS_EXT is not set
++# CONFIG_MAC80211 is not set
++# CONFIG_IEEE80211 is not set
++# CONFIG_RFKILL is not set
++# CONFIG_NET_9P is not set
++
++#
++# Device Drivers
++#
++
++#
++# Generic Driver Options
++#
++CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
++CONFIG_STANDALONE=y
++CONFIG_PREVENT_FIRMWARE_BUILD=y
++# CONFIG_FW_LOADER is not set
++# CONFIG_DEBUG_DRIVER is not set
++# CONFIG_DEBUG_DEVRES is not set
++# CONFIG_SYS_HYPERVISOR is not set
++# CONFIG_CONNECTOR is not set
++CONFIG_MTD=y
++# CONFIG_MTD_DEBUG is not set
++# CONFIG_MTD_CONCAT is not set
++CONFIG_MTD_PARTITIONS=y
++# CONFIG_MTD_REDBOOT_PARTS is not set
++# CONFIG_MTD_CMDLINE_PARTS is not set
++# CONFIG_MTD_AFS_PARTS is not set
++# CONFIG_MTD_AR7_PARTS is not set
++
++#
++# User Modules And Translation Layers
++#
++CONFIG_MTD_CHAR=y
++CONFIG_MTD_BLKDEVS=y
++CONFIG_MTD_BLOCK=y
++# CONFIG_FTL is not set
++# CONFIG_NFTL is not set
++# CONFIG_INFTL is not set
++# CONFIG_RFD_FTL is not set
++# CONFIG_SSFDC is not set
++# CONFIG_MTD_OOPS is not set
++
++#
++# RAM/ROM/Flash chip drivers
++#
++# CONFIG_MTD_CFI is not set
++# CONFIG_MTD_JEDECPROBE is not set
++CONFIG_MTD_MAP_BANK_WIDTH_1=y
++CONFIG_MTD_MAP_BANK_WIDTH_2=y
++CONFIG_MTD_MAP_BANK_WIDTH_4=y
++# CONFIG_MTD_MAP_BANK_WIDTH_8 is not set
++# CONFIG_MTD_MAP_BANK_WIDTH_16 is not set
++# CONFIG_MTD_MAP_BANK_WIDTH_32 is not set
++CONFIG_MTD_CFI_I1=y
++CONFIG_MTD_CFI_I2=y
++# CONFIG_MTD_CFI_I4 is not set
++# CONFIG_MTD_CFI_I8 is not set
++# CONFIG_MTD_RAM is not set
++# CONFIG_MTD_ROM is not set
++# CONFIG_MTD_ABSENT is not set
++
++#
++# Mapping drivers for chip access
++#
++# CONFIG_MTD_COMPLEX_MAPPINGS is not set
++# CONFIG_MTD_PLATRAM is not set
++
++#
++# Self-contained MTD device drivers
++#
++# CONFIG_MTD_SLRAM is not set
++# CONFIG_MTD_PHRAM is not set
++# CONFIG_MTD_MTDRAM is not set
++# CONFIG_MTD_BLOCK2MTD is not set
++
++#
++# Disk-On-Chip Device Drivers
++#
++# CONFIG_MTD_DOC2000 is not set
++# CONFIG_MTD_DOC2001 is not set
++# CONFIG_MTD_DOC2001PLUS is not set
++CONFIG_MTD_NAND=y
++# CONFIG_MTD_NAND_VERIFY_WRITE is not set
++# CONFIG_MTD_NAND_ECC_SMC is not set
++# CONFIG_MTD_NAND_MUSEUM_IDS is not set
++CONFIG_MTD_NAND_IDS=y
++# CONFIG_MTD_NAND_DISKONCHIP is not set
++# CONFIG_MTD_NAND_NANDSIM is not set
++# CONFIG_MTD_NAND_PLATFORM is not set
++# CONFIG_MTD_ALAUDA is not set
++# CONFIG_MTD_ONENAND is not set
++
++#
++# UBI - Unsorted block images
++#
++# CONFIG_MTD_UBI is not set
++# CONFIG_PARPORT is not set
++CONFIG_BLK_DEV=y
++# CONFIG_BLK_DEV_COW_COMMON is not set
++CONFIG_BLK_DEV_LOOP=y
++# CONFIG_BLK_DEV_CRYPTOLOOP is not set
++# CONFIG_BLK_DEV_NBD is not set
++# CONFIG_BLK_DEV_UB is not set
++CONFIG_BLK_DEV_RAM=y
++CONFIG_BLK_DEV_RAM_COUNT=16
++CONFIG_BLK_DEV_RAM_SIZE=16384
++# CONFIG_BLK_DEV_XIP is not set
++# CONFIG_CDROM_PKTCDVD is not set
++# CONFIG_ATA_OVER_ETH is not set
++# CONFIG_MISC_DEVICES is not set
++CONFIG_HAVE_IDE=y
++# CONFIG_IDE is not set
++
++#
++# SCSI device support
++#
++# CONFIG_RAID_ATTRS is not set
++CONFIG_SCSI=y
++CONFIG_SCSI_DMA=y
++# CONFIG_SCSI_TGT is not set
++# CONFIG_SCSI_NETLINK is not set
++CONFIG_SCSI_PROC_FS=y
++
++#
++# SCSI support type (disk, tape, CD-ROM)
++#
++CONFIG_BLK_DEV_SD=y
++# CONFIG_CHR_DEV_ST is not set
++# CONFIG_CHR_DEV_OSST is not set
++# CONFIG_BLK_DEV_SR is not set
++# CONFIG_CHR_DEV_SG is not set
++# CONFIG_CHR_DEV_SCH is not set
++
++#
++# Some SCSI devices (e.g. CD jukebox) support multiple LUNs
++#
++# CONFIG_SCSI_MULTI_LUN is not set
++# CONFIG_SCSI_CONSTANTS is not set
++# CONFIG_SCSI_LOGGING is not set
++# CONFIG_SCSI_SCAN_ASYNC is not set
++CONFIG_SCSI_WAIT_SCAN=m
++
++#
++# SCSI Transports
++#
++# CONFIG_SCSI_SPI_ATTRS is not set
++# CONFIG_SCSI_FC_ATTRS is not set
++# CONFIG_SCSI_ISCSI_ATTRS is not set
++# CONFIG_SCSI_SAS_LIBSAS is not set
++# CONFIG_SCSI_SRP_ATTRS is not set
++CONFIG_SCSI_LOWLEVEL=y
++# CONFIG_ISCSI_TCP is not set
++# CONFIG_SCSI_DEBUG is not set
++# CONFIG_SCSI_DH is not set
++# CONFIG_ATA is not set
++# CONFIG_MD is not set
++CONFIG_NETDEVICES=y
++# CONFIG_DUMMY is not set
++# CONFIG_BONDING is not set
++# CONFIG_MACVLAN is not set
++# CONFIG_EQUALIZER is not set
++# CONFIG_TUN is not set
++# CONFIG_VETH is not set
++# CONFIG_NET_ETHERNET is not set
++# CONFIG_NETDEV_1000 is not set
++# CONFIG_NETDEV_10000 is not set
++
++#
++# Wireless LAN
++#
++# CONFIG_WLAN_PRE80211 is not set
++# CONFIG_WLAN_80211 is not set
++# CONFIG_IWLWIFI_LEDS is not set
++
++#
++# USB Network Adapters
++#
++# CONFIG_USB_CATC is not set
++# CONFIG_USB_KAWETH is not set
++# CONFIG_USB_PEGASUS is not set
++# CONFIG_USB_RTL8150 is not set
++# CONFIG_USB_USBNET is not set
++# CONFIG_WAN is not set
++# CONFIG_PPP is not set
++# CONFIG_SLIP is not set
++# CONFIG_NETCONSOLE is not set
++# CONFIG_NETPOLL is not set
++# CONFIG_NET_POLL_CONTROLLER is not set
++# CONFIG_ISDN is not set
++
++#
++# Input device support
++#
++CONFIG_INPUT=y
++# CONFIG_INPUT_FF_MEMLESS is not set
++# CONFIG_INPUT_POLLDEV is not set
++
++#
++# Userland interfaces
++#
++# CONFIG_INPUT_MOUSEDEV is not set
++# CONFIG_INPUT_JOYDEV is not set
++# CONFIG_INPUT_EVDEV is not set
++# CONFIG_INPUT_EVBUG is not set
++
++#
++# Input Device Drivers
++#
++# CONFIG_INPUT_KEYBOARD is not set
++# CONFIG_INPUT_MOUSE is not set
++# CONFIG_INPUT_JOYSTICK is not set
++# CONFIG_INPUT_TABLET is not set
++# CONFIG_INPUT_TOUCHSCREEN is not set
++# CONFIG_INPUT_MISC is not set
++
++#
++# Hardware I/O ports
++#
++# CONFIG_SERIO is not set
++# CONFIG_GAMEPORT is not set
++
++#
++# Character devices
++#
++CONFIG_VT=y
++CONFIG_CONSOLE_TRANSLATIONS=y
++CONFIG_VT_CONSOLE=y
++CONFIG_HW_CONSOLE=y
++# CONFIG_VT_HW_CONSOLE_BINDING is not set
++CONFIG_DEVKMEM=y
++# CONFIG_SERIAL_NONSTANDARD is not set
++
++#
++# Serial drivers
++#
++CONFIG_SERIAL_8250=y
++CONFIG_SERIAL_8250_CONSOLE=y
++CONFIG_SERIAL_8250_NR_UARTS=32
++CONFIG_SERIAL_8250_RUNTIME_UARTS=4
++CONFIG_SERIAL_8250_EXTENDED=y
++CONFIG_SERIAL_8250_MANY_PORTS=y
++CONFIG_SERIAL_8250_SHARE_IRQ=y
++CONFIG_SERIAL_8250_DETECT_IRQ=y
++CONFIG_SERIAL_8250_RSA=y
++
++#
++# Non-8250 serial port support
++#
++CONFIG_SERIAL_CORE=y
++CONFIG_SERIAL_CORE_CONSOLE=y
++CONFIG_UNIX98_PTYS=y
++# CONFIG_LEGACY_PTYS is not set
++# CONFIG_IPMI_HANDLER is not set
++CONFIG_HW_RANDOM=y
++# CONFIG_NVRAM is not set
++# CONFIG_R3964 is not set
++# CONFIG_RAW_DRIVER is not set
++# CONFIG_TCG_TPM is not set
++CONFIG_I2C=y
++CONFIG_I2C_BOARDINFO=y
++CONFIG_I2C_CHARDEV=y
++CONFIG_I2C_HELPER_AUTO=y
++
++#
++# I2C Hardware Bus support
++#
++
++#
++# I2C system bus drivers (mostly embedded / system-on-chip)
++#
++# CONFIG_I2C_GPIO is not set
++# CONFIG_I2C_OCORES is not set
++CONFIG_I2C_OMAP=y
++# CONFIG_I2C_SIMTEC is not set
++
++#
++# External I2C/SMBus adapter drivers
++#
++# CONFIG_I2C_PARPORT_LIGHT is not set
++# CONFIG_I2C_TAOS_EVM is not set
++# CONFIG_I2C_TINY_USB is not set
++
++#
++# Other I2C/SMBus bus drivers
++#
++# CONFIG_I2C_PCA_PLATFORM is not set
++# CONFIG_I2C_STUB is not set
++
++#
++# Miscellaneous I2C Chip support
++#
++# CONFIG_DS1682 is not set
++# CONFIG_AT24 is not set
++# CONFIG_SENSORS_EEPROM is not set
++# CONFIG_SENSORS_PCF8574 is not set
++# CONFIG_PCF8575 is not set
++# CONFIG_SENSORS_PCA9539 is not set
++# CONFIG_SENSORS_PCF8591 is not set
++# CONFIG_ISP1301_OMAP is not set
++# CONFIG_TPS65010 is not set
++# CONFIG_SENSORS_MAX6875 is not set
++# CONFIG_SENSORS_TSL2550 is not set
++# CONFIG_I2C_DEBUG_CORE is not set
++# CONFIG_I2C_DEBUG_ALGO is not set
++# CONFIG_I2C_DEBUG_BUS is not set
++# CONFIG_I2C_DEBUG_CHIP is not set
++# CONFIG_SPI is not set
++CONFIG_ARCH_REQUIRE_GPIOLIB=y
++CONFIG_GPIOLIB=y
++# CONFIG_DEBUG_GPIO is not set
++# CONFIG_GPIO_SYSFS is not set
++
++#
++# I2C GPIO expanders:
++#
++# CONFIG_GPIO_MAX732X is not set
++# CONFIG_GPIO_PCA953X is not set
++# CONFIG_GPIO_PCF857X is not set
++
++#
++# PCI GPIO expanders:
++#
++
++#
++# SPI GPIO expanders:
++#
++# CONFIG_W1 is not set
++# CONFIG_POWER_SUPPLY is not set
++# CONFIG_HWMON is not set
++# CONFIG_THERMAL is not set
++# CONFIG_THERMAL_HWMON is not set
++# CONFIG_WATCHDOG is not set
++
++#
++# Sonics Silicon Backplane
++#
++CONFIG_SSB_POSSIBLE=y
++# CONFIG_SSB is not set
++
++#
++# Multifunction device drivers
++#
++# CONFIG_MFD_CORE is not set
++# CONFIG_MFD_SM501 is not set
++# CONFIG_HTC_EGPIO is not set
++# CONFIG_HTC_PASIC3 is not set
++# CONFIG_UCB1400_CORE is not set
++# CONFIG_MFD_TMIO is not set
++# CONFIG_MFD_T7L66XB is not set
++# CONFIG_MFD_TC6387XB is not set
++# CONFIG_MFD_TC6393XB is not set
++
++#
++# Multimedia devices
++#
++
++#
++# Multimedia core support
++#
++# CONFIG_VIDEO_DEV is not set
++# CONFIG_DVB_CORE is not set
++# CONFIG_VIDEO_MEDIA is not set
++
++#
++# Multimedia drivers
++#
++CONFIG_DAB=y
++# CONFIG_USB_DABUSB is not set
++
++#
++# Graphics support
++#
++# CONFIG_VGASTATE is not set
++# CONFIG_VIDEO_OUTPUT_CONTROL is not set
++# CONFIG_FB is not set
++# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
++
++#
++# Display device support
++#
++# CONFIG_DISPLAY_SUPPORT is not set
++
++#
++# Console display driver support
++#
++# CONFIG_VGA_CONSOLE is not set
++CONFIG_DUMMY_CONSOLE=y
++# CONFIG_SOUND is not set
++# CONFIG_HID_SUPPORT is not set
++CONFIG_USB_SUPPORT=y
++CONFIG_USB_ARCH_HAS_HCD=y
++CONFIG_USB_ARCH_HAS_OHCI=y
++# CONFIG_USB_ARCH_HAS_EHCI is not set
++CONFIG_USB=y
++# CONFIG_USB_DEBUG is not set
++# CONFIG_USB_ANNOUNCE_NEW_DEVICES is not set
++
++#
++# Miscellaneous USB options
++#
++CONFIG_USB_DEVICEFS=y
++CONFIG_USB_DEVICE_CLASS=y
++# CONFIG_USB_DYNAMIC_MINORS is not set
++# CONFIG_USB_OTG is not set
++# CONFIG_USB_OTG_WHITELIST is not set
++# CONFIG_USB_OTG_BLACKLIST_HUB is not set
++CONFIG_USB_MON=y
++
++#
++# USB Host Controller Drivers
++#
++# CONFIG_USB_C67X00_HCD is not set
++# CONFIG_USB_ISP116X_HCD is not set
++# CONFIG_USB_ISP1760_HCD is not set
++# CONFIG_USB_OHCI_HCD is not set
++# CONFIG_USB_SL811_HCD is not set
++# CONFIG_USB_R8A66597_HCD is not set
++CONFIG_USB_MUSB_HDRC=y
++CONFIG_USB_MUSB_SOC=y
++
++#
++# OMAP 343x high speed USB support
++#
++CONFIG_USB_MUSB_HOST=y
++# CONFIG_USB_MUSB_PERIPHERAL is not set
++# CONFIG_USB_MUSB_OTG is not set
++# CONFIG_USB_GADGET_MUSB_HDRC is not set
++CONFIG_USB_MUSB_HDRC_HCD=y
++# CONFIG_MUSB_PIO_ONLY is not set
++CONFIG_USB_INVENTRA_DMA=y
++# CONFIG_USB_TI_CPPI_DMA is not set
++# CONFIG_USB_MUSB_DEBUG is not set
++
++#
++# USB Device Class drivers
++#
++# CONFIG_USB_ACM is not set
++# CONFIG_USB_PRINTER is not set
++# CONFIG_USB_WDM is not set
++
++#
++# NOTE: USB_STORAGE enables SCSI, and 'SCSI disk support'
++#
++
++#
++# may also be needed; see USB_STORAGE Help for more information
++#
++# CONFIG_USB_STORAGE is not set
++# CONFIG_USB_LIBUSUAL is not set
++
++#
++# USB Imaging devices
++#
++# CONFIG_USB_MDC800 is not set
++# CONFIG_USB_MICROTEK is not set
++
++#
++# USB port drivers
++#
++# CONFIG_USB_SERIAL is not set
++
++#
++# USB Miscellaneous drivers
++#
++# CONFIG_USB_EMI62 is not set
++# CONFIG_USB_EMI26 is not set
++# CONFIG_USB_ADUTUX is not set
++# CONFIG_USB_RIO500 is not set
++# CONFIG_USB_LEGOTOWER is not set
++# CONFIG_USB_LCD is not set
++# CONFIG_USB_BERRY_CHARGE is not set
++# CONFIG_USB_LED is not set
++# CONFIG_USB_CYPRESS_CY7C63 is not set
++# CONFIG_USB_CYTHERM is not set
++# CONFIG_USB_PHIDGET is not set
++# CONFIG_USB_IDMOUSE is not set
++# CONFIG_USB_FTDI_ELAN is not set
++# CONFIG_USB_APPLEDISPLAY is not set
++# CONFIG_USB_LD is not set
++# CONFIG_USB_TRANCEVIBRATOR is not set
++# CONFIG_USB_IOWARRIOR is not set
++# CONFIG_USB_TEST is not set
++# CONFIG_USB_ISIGHTFW is not set
++CONFIG_USB_GADGET=y
++# CONFIG_USB_GADGET_DEBUG is not set
++# CONFIG_USB_GADGET_DEBUG_FILES is not set
++CONFIG_USB_GADGET_SELECTED=y
++# CONFIG_USB_GADGET_AMD5536UDC is not set
++# CONFIG_USB_GADGET_ATMEL_USBA is not set
++# CONFIG_USB_GADGET_FSL_USB2 is not set
++# CONFIG_USB_GADGET_NET2280 is not set
++# CONFIG_USB_GADGET_PXA25X is not set
++CONFIG_USB_GADGET_M66592=y
++CONFIG_USB_M66592=y
++# CONFIG_USB_GADGET_PXA27X is not set
++# CONFIG_USB_GADGET_GOKU is not set
++# CONFIG_USB_GADGET_LH7A40X is not set
++# CONFIG_USB_GADGET_OMAP is not set
++# CONFIG_USB_GADGET_S3C2410 is not set
++# CONFIG_USB_GADGET_AT91 is not set
++# CONFIG_USB_GADGET_DUMMY_HCD is not set
++CONFIG_USB_GADGET_DUALSPEED=y
++# CONFIG_USB_ZERO is not set
++CONFIG_USB_ETH=m
++CONFIG_USB_ETH_RNDIS=y
++# CONFIG_USB_GADGETFS is not set
++# CONFIG_USB_FILE_STORAGE is not set
++# CONFIG_USB_G_SERIAL is not set
++# CONFIG_USB_MIDI_GADGET is not set
++# CONFIG_USB_G_PRINTER is not set
++# CONFIG_USB_CDC_COMPOSITE is not set
++CONFIG_MMC=y
++# CONFIG_MMC_DEBUG is not set
++# CONFIG_MMC_UNSAFE_RESUME is not set
++
++#
++# MMC/SD Card Drivers
++#
++CONFIG_MMC_BLOCK=y
++CONFIG_MMC_BLOCK_BOUNCE=y
++# CONFIG_SDIO_UART is not set
++# CONFIG_MMC_TEST is not set
++
++#
++# MMC/SD Host Controller Drivers
++#
++# CONFIG_MMC_SDHCI is not set
++# CONFIG_MMC_OMAP is not set
++# CONFIG_MEMSTICK is not set
++# CONFIG_ACCESSIBILITY is not set
++# CONFIG_NEW_LEDS is not set
++CONFIG_RTC_LIB=y
++CONFIG_RTC_CLASS=y
++CONFIG_RTC_HCTOSYS=y
++CONFIG_RTC_HCTOSYS_DEVICE="rtc0"
++# CONFIG_RTC_DEBUG is not set
++
++#
++# RTC interfaces
++#
++CONFIG_RTC_INTF_SYSFS=y
++CONFIG_RTC_INTF_PROC=y
++CONFIG_RTC_INTF_DEV=y
++# CONFIG_RTC_INTF_DEV_UIE_EMUL is not set
++# CONFIG_RTC_DRV_TEST is not set
++
++#
++# I2C RTC drivers
++#
++# CONFIG_RTC_DRV_DS1307 is not set
++# CONFIG_RTC_DRV_DS1374 is not set
++# CONFIG_RTC_DRV_DS1672 is not set
++# CONFIG_RTC_DRV_MAX6900 is not set
++# CONFIG_RTC_DRV_RS5C372 is not set
++# CONFIG_RTC_DRV_ISL1208 is not set
++# CONFIG_RTC_DRV_X1205 is not set
++# CONFIG_RTC_DRV_PCF8563 is not set
++# CONFIG_RTC_DRV_PCF8583 is not set
++# CONFIG_RTC_DRV_M41T80 is not set
++# CONFIG_RTC_DRV_S35390A is not set
++# CONFIG_RTC_DRV_FM3130 is not set
++
++#
++# SPI RTC drivers
++#
++
++#
++# Platform RTC drivers
++#
++# CONFIG_RTC_DRV_CMOS is not set
++# CONFIG_RTC_DRV_DS1511 is not set
++# CONFIG_RTC_DRV_DS1553 is not set
++# CONFIG_RTC_DRV_DS1742 is not set
++# CONFIG_RTC_DRV_STK17TA8 is not set
++# CONFIG_RTC_DRV_M48T86 is not set
++# CONFIG_RTC_DRV_M48T59 is not set
++# CONFIG_RTC_DRV_V3020 is not set
++
++#
++# on-CPU RTC drivers
++#
++# CONFIG_DMADEVICES is not set
++
++#
++# Voltage and Current regulators
++#
++# CONFIG_REGULATOR is not set
++# CONFIG_REGULATOR_FIXED_VOLTAGE is not set
++# CONFIG_REGULATOR_VIRTUAL_CONSUMER is not set
++# CONFIG_REGULATOR_BQ24022 is not set
++# CONFIG_UIO is not set
++
++#
++# File systems
++#
++CONFIG_EXT2_FS=y
++# CONFIG_EXT2_FS_XATTR is not set
++# CONFIG_EXT2_FS_XIP is not set
++CONFIG_EXT3_FS=y
++# CONFIG_EXT3_FS_XATTR is not set
++# CONFIG_EXT4DEV_FS is not set
++CONFIG_JBD=y
++# CONFIG_REISERFS_FS is not set
++# CONFIG_JFS_FS is not set
++# CONFIG_FS_POSIX_ACL is not set
++# CONFIG_XFS_FS is not set
++# CONFIG_OCFS2_FS is not set
++CONFIG_DNOTIFY=y
++CONFIG_INOTIFY=y
++CONFIG_INOTIFY_USER=y
++CONFIG_QUOTA=y
++# CONFIG_QUOTA_NETLINK_INTERFACE is not set
++CONFIG_PRINT_QUOTA_WARNING=y
++# CONFIG_QFMT_V1 is not set
++CONFIG_QFMT_V2=y
++CONFIG_QUOTACTL=y
++# CONFIG_AUTOFS_FS is not set
++# CONFIG_AUTOFS4_FS is not set
++# CONFIG_FUSE_FS is not set
++
++#
++# CD-ROM/DVD Filesystems
++#
++# CONFIG_ISO9660_FS is not set
++# CONFIG_UDF_FS is not set
++
++#
++# DOS/FAT/NT Filesystems
++#
++CONFIG_FAT_FS=y
++CONFIG_MSDOS_FS=y
++CONFIG_VFAT_FS=y
++CONFIG_FAT_DEFAULT_CODEPAGE=437
++CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
++# CONFIG_NTFS_FS is not set
++
++#
++# Pseudo filesystems
++#
++CONFIG_PROC_FS=y
++CONFIG_PROC_SYSCTL=y
++CONFIG_SYSFS=y
++CONFIG_TMPFS=y
++# CONFIG_TMPFS_POSIX_ACL is not set
++# CONFIG_HUGETLB_PAGE is not set
++# CONFIG_CONFIGFS_FS is not set
++
++#
++# Miscellaneous filesystems
++#
++# CONFIG_ADFS_FS is not set
++# CONFIG_AFFS_FS is not set
++# CONFIG_HFS_FS is not set
++# CONFIG_HFSPLUS_FS is not set
++# CONFIG_BEFS_FS is not set
++# CONFIG_BFS_FS is not set
++# CONFIG_EFS_FS is not set
++CONFIG_JFFS2_FS=y
++CONFIG_JFFS2_FS_DEBUG=0
++CONFIG_JFFS2_FS_WRITEBUFFER=y
++# CONFIG_JFFS2_FS_WBUF_VERIFY is not set
++# CONFIG_JFFS2_SUMMARY is not set
++# CONFIG_JFFS2_FS_XATTR is not set
++# CONFIG_JFFS2_COMPRESSION_OPTIONS is not set
++CONFIG_JFFS2_ZLIB=y
++# CONFIG_JFFS2_LZO is not set
++CONFIG_JFFS2_RTIME=y
++# CONFIG_JFFS2_RUBIN is not set
++# CONFIG_CRAMFS is not set
++# CONFIG_VXFS_FS is not set
++# CONFIG_MINIX_FS is not set
++# CONFIG_OMFS_FS is not set
++# CONFIG_HPFS_FS is not set
++# CONFIG_QNX4FS_FS is not set
++# CONFIG_ROMFS_FS is not set
++# CONFIG_SYSV_FS is not set
++# CONFIG_UFS_FS is not set
++CONFIG_NETWORK_FILESYSTEMS=y
++CONFIG_NFS_FS=y
++CONFIG_NFS_V3=y
++# CONFIG_NFS_V3_ACL is not set
++CONFIG_NFS_V4=y
++CONFIG_ROOT_NFS=y
++# CONFIG_NFSD is not set
++CONFIG_LOCKD=y
++CONFIG_LOCKD_V4=y
++CONFIG_NFS_COMMON=y
++CONFIG_SUNRPC=y
++CONFIG_SUNRPC_GSS=y
++CONFIG_RPCSEC_GSS_KRB5=y
++# CONFIG_RPCSEC_GSS_SPKM3 is not set
++# CONFIG_SMB_FS is not set
++# CONFIG_CIFS is not set
++# CONFIG_NCP_FS is not set
++# CONFIG_CODA_FS is not set
++# CONFIG_AFS_FS is not set
++
++#
++# Partition Types
++#
++CONFIG_PARTITION_ADVANCED=y
++# CONFIG_ACORN_PARTITION is not set
++# CONFIG_OSF_PARTITION is not set
++# CONFIG_AMIGA_PARTITION is not set
++# CONFIG_ATARI_PARTITION is not set
++# CONFIG_MAC_PARTITION is not set
++CONFIG_MSDOS_PARTITION=y
++# CONFIG_BSD_DISKLABEL is not set
++# CONFIG_MINIX_SUBPARTITION is not set
++# CONFIG_SOLARIS_X86_PARTITION is not set
++# CONFIG_UNIXWARE_DISKLABEL is not set
++# CONFIG_LDM_PARTITION is not set
++# CONFIG_SGI_PARTITION is not set
++# CONFIG_ULTRIX_PARTITION is not set
++# CONFIG_SUN_PARTITION is not set
++# CONFIG_KARMA_PARTITION is not set
++# CONFIG_EFI_PARTITION is not set
++# CONFIG_SYSV68_PARTITION is not set
++CONFIG_NLS=y
++CONFIG_NLS_DEFAULT="iso8859-1"
++CONFIG_NLS_CODEPAGE_437=y
++# CONFIG_NLS_CODEPAGE_737 is not set
++# CONFIG_NLS_CODEPAGE_775 is not set
++# CONFIG_NLS_CODEPAGE_850 is not set
++# CONFIG_NLS_CODEPAGE_852 is not set
++# CONFIG_NLS_CODEPAGE_855 is not set
++# CONFIG_NLS_CODEPAGE_857 is not set
++# CONFIG_NLS_CODEPAGE_860 is not set
++# CONFIG_NLS_CODEPAGE_861 is not set
++# CONFIG_NLS_CODEPAGE_862 is not set
++# CONFIG_NLS_CODEPAGE_863 is not set
++# CONFIG_NLS_CODEPAGE_864 is not set
++# CONFIG_NLS_CODEPAGE_865 is not set
++# CONFIG_NLS_CODEPAGE_866 is not set
++# CONFIG_NLS_CODEPAGE_869 is not set
++# CONFIG_NLS_CODEPAGE_936 is not set
++# CONFIG_NLS_CODEPAGE_950 is not set
++# CONFIG_NLS_CODEPAGE_932 is not set
++# CONFIG_NLS_CODEPAGE_949 is not set
++# CONFIG_NLS_CODEPAGE_874 is not set
++# CONFIG_NLS_ISO8859_8 is not set
++# CONFIG_NLS_CODEPAGE_1250 is not set
++# CONFIG_NLS_CODEPAGE_1251 is not set
++# CONFIG_NLS_ASCII is not set
++CONFIG_NLS_ISO8859_1=y
++# CONFIG_NLS_ISO8859_2 is not set
++# CONFIG_NLS_ISO8859_3 is not set
++# CONFIG_NLS_ISO8859_4 is not set
++# CONFIG_NLS_ISO8859_5 is not set
++# CONFIG_NLS_ISO8859_6 is not set
++# CONFIG_NLS_ISO8859_7 is not set
++# CONFIG_NLS_ISO8859_9 is not set
++# CONFIG_NLS_ISO8859_13 is not set
++# CONFIG_NLS_ISO8859_14 is not set
++# CONFIG_NLS_ISO8859_15 is not set
++# CONFIG_NLS_KOI8_R is not set
++# CONFIG_NLS_KOI8_U is not set
++# CONFIG_NLS_UTF8 is not set
++# CONFIG_DLM is not set
++
++#
++# Kernel hacking
++#
++# CONFIG_PRINTK_TIME is not set
++CONFIG_ENABLE_WARN_DEPRECATED=y
++CONFIG_ENABLE_MUST_CHECK=y
++CONFIG_FRAME_WARN=1024
++CONFIG_MAGIC_SYSRQ=y
++# CONFIG_UNUSED_SYMBOLS is not set
++# CONFIG_DEBUG_FS is not set
++# CONFIG_HEADERS_CHECK is not set
++CONFIG_DEBUG_KERNEL=y
++# CONFIG_DEBUG_SHIRQ is not set
++CONFIG_DETECT_SOFTLOCKUP=y
++# CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC is not set
++CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE=0
++CONFIG_SCHED_DEBUG=y
++# CONFIG_SCHEDSTATS is not set
++# CONFIG_TIMER_STATS is not set
++# CONFIG_DEBUG_OBJECTS is not set
++# CONFIG_DEBUG_SLAB is not set
++# CONFIG_DEBUG_RT_MUTEXES is not set
++# CONFIG_RT_MUTEX_TESTER is not set
++# CONFIG_DEBUG_SPINLOCK is not set
++CONFIG_DEBUG_MUTEXES=y
++# CONFIG_DEBUG_LOCK_ALLOC is not set
++# CONFIG_PROVE_LOCKING is not set
++# CONFIG_LOCK_STAT is not set
++# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
++# CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
++# CONFIG_DEBUG_KOBJECT is not set
++# CONFIG_DEBUG_BUGVERBOSE is not set
++CONFIG_DEBUG_INFO=y
++# CONFIG_DEBUG_VM is not set
++# CONFIG_DEBUG_WRITECOUNT is not set
++# CONFIG_DEBUG_MEMORY_INIT is not set
++# CONFIG_DEBUG_LIST is not set
++# CONFIG_DEBUG_SG is not set
++CONFIG_FRAME_POINTER=y
++# CONFIG_BOOT_PRINTK_DELAY is not set
++# CONFIG_RCU_TORTURE_TEST is not set
++# CONFIG_BACKTRACE_SELF_TEST is not set
++# CONFIG_FAULT_INJECTION is not set
++# CONFIG_LATENCYTOP is not set
++CONFIG_HAVE_FTRACE=y
++CONFIG_HAVE_DYNAMIC_FTRACE=y
++# CONFIG_FTRACE is not set
++# CONFIG_IRQSOFF_TRACER is not set
++# CONFIG_SCHED_TRACER is not set
++# CONFIG_CONTEXT_SWITCH_TRACER is not set
++# CONFIG_SAMPLES is not set
++CONFIG_HAVE_ARCH_KGDB=y
++# CONFIG_KGDB is not set
++# CONFIG_DEBUG_USER is not set
++# CONFIG_DEBUG_ERRORS is not set
++# CONFIG_DEBUG_STACK_USAGE is not set
++# CONFIG_DEBUG_LL is not set
++
++#
++# Security options
++#
++# CONFIG_KEYS is not set
++# CONFIG_SECURITY is not set
++# CONFIG_SECURITY_FILE_CAPABILITIES is not set
++CONFIG_CRYPTO=y
++
++#
++# Crypto core or helper
++#
++CONFIG_CRYPTO_ALGAPI=y
++CONFIG_CRYPTO_BLKCIPHER=y
++CONFIG_CRYPTO_MANAGER=y
++# CONFIG_CRYPTO_GF128MUL is not set
++# CONFIG_CRYPTO_NULL is not set
++# CONFIG_CRYPTO_CRYPTD is not set
++# CONFIG_CRYPTO_AUTHENC is not set
++# CONFIG_CRYPTO_TEST is not set
++
++#
++# Authenticated Encryption with Associated Data
++#
++# CONFIG_CRYPTO_CCM is not set
++# CONFIG_CRYPTO_GCM is not set
++# CONFIG_CRYPTO_SEQIV is not set
++
++#
++# Block modes
++#
++CONFIG_CRYPTO_CBC=y
++# CONFIG_CRYPTO_CTR is not set
++# CONFIG_CRYPTO_CTS is not set
++CONFIG_CRYPTO_ECB=m
++# CONFIG_CRYPTO_LRW is not set
++CONFIG_CRYPTO_PCBC=m
++# CONFIG_CRYPTO_XTS is not set
++
++#
++# Hash modes
++#
++# CONFIG_CRYPTO_HMAC is not set
++# CONFIG_CRYPTO_XCBC is not set
++
++#
++# Digest
++#
++# CONFIG_CRYPTO_CRC32C is not set
++# CONFIG_CRYPTO_MD4 is not set
++CONFIG_CRYPTO_MD5=y
++# CONFIG_CRYPTO_MICHAEL_MIC is not set
++# CONFIG_CRYPTO_RMD128 is not set
++# CONFIG_CRYPTO_RMD160 is not set
++# CONFIG_CRYPTO_RMD256 is not set
++# CONFIG_CRYPTO_RMD320 is not set
++# CONFIG_CRYPTO_SHA1 is not set
++# CONFIG_CRYPTO_SHA256 is not set
++# CONFIG_CRYPTO_SHA512 is not set
++# CONFIG_CRYPTO_TGR192 is not set
++# CONFIG_CRYPTO_WP512 is not set
++
++#
++# Ciphers
++#
++# CONFIG_CRYPTO_AES is not set
++# CONFIG_CRYPTO_ANUBIS is not set
++# CONFIG_CRYPTO_ARC4 is not set
++# CONFIG_CRYPTO_BLOWFISH is not set
++# CONFIG_CRYPTO_CAMELLIA is not set
++# CONFIG_CRYPTO_CAST5 is not set
++# CONFIG_CRYPTO_CAST6 is not set
++CONFIG_CRYPTO_DES=y
++# CONFIG_CRYPTO_FCRYPT is not set
++# CONFIG_CRYPTO_KHAZAD is not set
++# CONFIG_CRYPTO_SALSA20 is not set
++# CONFIG_CRYPTO_SEED is not set
++# CONFIG_CRYPTO_SERPENT is not set
++# CONFIG_CRYPTO_TEA is not set
++# CONFIG_CRYPTO_TWOFISH is not set
++
++#
++# Compression
++#
++# CONFIG_CRYPTO_DEFLATE is not set
++# CONFIG_CRYPTO_LZO is not set
++CONFIG_CRYPTO_HW=y
++
++#
++# Library routines
++#
++CONFIG_BITREVERSE=y
++# CONFIG_GENERIC_FIND_FIRST_BIT is not set
++# CONFIG_GENERIC_FIND_NEXT_BIT is not set
++CONFIG_CRC_CCITT=y
++# CONFIG_CRC16 is not set
++# CONFIG_CRC_T10DIF is not set
++# CONFIG_CRC_ITU_T is not set
++CONFIG_CRC32=y
++# CONFIG_CRC7 is not set
++CONFIG_LIBCRC32C=y
++CONFIG_ZLIB_INFLATE=y
++CONFIG_ZLIB_DEFLATE=y
++CONFIG_PLIST=y
++CONFIG_HAS_IOMEM=y
++CONFIG_HAS_IOPORT=y
++CONFIG_HAS_DMA=y
 
---qMm9M+Fa2AknHoGS--
+--/NkBOFFp2J2Af1nK--
