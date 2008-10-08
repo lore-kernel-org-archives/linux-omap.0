@@ -1,48 +1,181 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 2/3] Adapt twl4030 power code to new twl4030 code
-Date: Wed, 8 Oct 2008 00:22:20 -0700
-Message-ID: <200810080022.21028.david-b@pacbell.net>
-References: <1223390050-11499-1-git-send-email-peter.de-schrijver@nokia.com> <200810070919.55138.david-b@pacbell.net> <20081008064913.GA4542@codecarver.research.nokia.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: [PATCH 2/5] HDQ: BQ27000 HDQ Slave Interface Driver
+Date: Wed, 8 Oct 2008 12:49:19 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D6107AF2@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:45815 "HELO
-	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751782AbYJHHWX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Oct 2008 03:22:23 -0400
-In-Reply-To: <20081008064913.GA4542@codecarver.research.nokia.com>
-Content-Disposition: inline
+Received: from devils.ext.ti.com ([198.47.26.153]:60243 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753492AbYJHHWo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Oct 2008 03:22:44 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: "johnpol@2ka.mipt.ru" <johnpol@2ka.mipt.ru>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
 
-On Tuesday 07 October 2008, Peter 'p2' De Schrijver wrote:
-> >=20
-> > Your set of patches seems to have discarded support for quite
-> > a few platforms. =A0I don't quite know the details of what these
-> > PM scripts are doing ... could they be misbehaving on Beagle,
-> > so that they explain why "reboot" on RC8 fails?
->=20
-> It might. At least the warmreset script might cause problems on Beagl=
-e.
-> I'm not familiar enough with beagle to know for sure.
+From: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-An RC3 kernel of mine reboots fine; RC7 and RC8 don't.  I'm
-told other folk have seen the issue too.
+This patch provides the BQ27000 slave interface driver.
 
-The problem certainly doesn't kick in *before* the twl-power
-code runs (as I happened to notice due to a bug), but I have
-no particular reason to suspect that's an issue ... beyond it
-having fingers in that reset process.
+Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+---
+ drivers/w1/slaves/Kconfig      |    7 ++
+ drivers/w1/slaves/Makefile     |    2 
+ drivers/w1/slaves/w1_bq27000.c |  120 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 128 insertions(+), 1 deletion(-)
 
-If the next version of your patches changes this behavior,
-that might be some evidence.  ;)
-
-- Dave
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Index: linux-2.6/drivers/w1/slaves/Kconfig
+===================================================================
+--- linux-2.6.orig/drivers/w1/slaves/Kconfig	2008-09-19 13:39:41.000000000 +0530
++++ linux-2.6/drivers/w1/slaves/Kconfig	2008-09-26 14:45:04.000000000 +0530
+@@ -44,4 +44,11 @@ config W1_SLAVE_DS2760
+ 
+ 	  If you are unsure, say N.
+ 
++config W1_SLAVE_BQ27000
++	tristate "BQ27000 slave support"
++	depends on W1
++	help
++	  Say Y here if you want to use a hdq
++	  bq27000 slave support.
++
+ endmenu
+Index: linux-2.6/drivers/w1/slaves/Makefile
+===================================================================
+--- linux-2.6.orig/drivers/w1/slaves/Makefile	2008-09-19 13:39:41.000000000 +0530
++++ linux-2.6/drivers/w1/slaves/Makefile	2008-09-26 14:45:43.000000000 +0530
+@@ -6,4 +6,4 @@ obj-$(CONFIG_W1_SLAVE_THERM)	+= w1_therm
+ obj-$(CONFIG_W1_SLAVE_SMEM)	+= w1_smem.o
+ obj-$(CONFIG_W1_SLAVE_DS2433)	+= w1_ds2433.o
+ obj-$(CONFIG_W1_SLAVE_DS2760)	+= w1_ds2760.o
+-
++obj-$(CONFIG_W1_SLAVE_BQ27000)	+= w1_bq27000.o
+Index: linux-2.6/drivers/w1/slaves/w1_bq27000.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6/drivers/w1/slaves/w1_bq27000.c	2008-09-26 14:43:42.000000000 +0530
+@@ -0,0 +1,120 @@
++/*
++ * drivers/w1/slaves/w1_bq27000.c
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2. This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/device.h>
++#include <linux/types.h>
++#include <linux/platform_device.h>
++#include <linux/mutex.h>
++
++#include "../w1.h"
++#include "../w1_int.h"
++#include "../w1_family.h"
++
++#define HDQ_CMD_READ	(0)
++#define HDQ_CMD_WRITE	(1<<7)
++
++int F_ID;
++int family_id;
++
++void w1_bq27000_write(struct device *dev, u8 buf, u8 reg)
++{
++	struct w1_slave *sl = container_of(dev, struct w1_slave, dev);
++	if (!dev) {
++		pr_info("Could not obtain slave dev ptr\n");
++		return;
++	}
++
++	w1_write_8(sl->master, HDQ_CMD_WRITE | reg);
++	w1_write_8(sl->master, buf);
++}
++EXPORT_SYMBOL(w1_bq27000_write);
++
++int w1_bq27000_read(struct device *dev, u8 reg)
++{
++	u8 val;
++	struct w1_slave *sl = container_of(dev, struct w1_slave, dev);
++	if (!dev)
++		return 0;
++
++	w1_write_8(sl->master, HDQ_CMD_READ | reg);
++	val = w1_read_8(sl->master);
++
++	return val;
++}
++EXPORT_SYMBOL(w1_bq27000_read);
++
++static int w1_bq27000_add_slave(struct w1_slave *sl)
++{
++	int ret;
++	int id = 1;
++	struct platform_device *pdev;
++
++	pdev = platform_device_alloc("bq27000-battery", id);
++	if (!pdev) {
++		ret = -ENOMEM;
++		return ret;
++	}
++	pdev->dev.parent = &sl->dev;
++
++	ret = platform_device_add(pdev);
++	if (ret)
++		goto pdev_add_failed;
++
++	dev_set_drvdata(&sl->dev, pdev);
++
++	goto success;
++
++pdev_add_failed:
++	platform_device_unregister(pdev);
++success:
++	return ret;
++}
++
++static void w1_bq27000_remove_slave(struct w1_slave *sl)
++{
++	struct platform_device *pdev = dev_get_drvdata(&sl->dev);
++	platform_device_unregister(pdev);
++}
++
++static struct w1_family_ops w1_bq27000_fops = {
++	.add_slave	= w1_bq27000_add_slave,
++	.remove_slave	= w1_bq27000_remove_slave,
++};
++
++static struct w1_family w1_bq27000_family = {
++	.fid = 1,
++	.fops = &w1_bq27000_fops,
++};
++
++static int __init w1_bq27000_init(void)
++{
++	if (F_ID)
++		w1_bq27000_family.fid = F_ID;
++
++	return w1_register_family(&w1_bq27000_family);
++}
++
++static void __exit w1_bq27000_exit(void)
++{
++	w1_unregister_family(&w1_bq27000_family);
++}
++
++
++module_init(w1_bq27000_init);
++module_exit(w1_bq27000_exit);
++
++module_param(F_ID, int, S_IRUSR);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Texas Instruments Ltd");
++MODULE_DESCRIPTION("HDQ/1-wire slave driver bq27000 battery monitor chip");
