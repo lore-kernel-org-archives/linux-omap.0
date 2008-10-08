@@ -1,93 +1,84 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: [PATCH 3/5] HDQ: OMAP: Add HDQ Device
-Date: Wed, 8 Oct 2008 12:53:57 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D6107AF4@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: git-pull request for omap mcbsp changes (Re: [PATCH 5/5] ARM:
+	OMAP: Fixes to omap_mcbsp_request function)
+Date: Wed, 8 Oct 2008 10:32:37 +0300
+Message-ID: <20081008073236.GA30831@atomide.com>
+References: <1222262955-13599-1-git-send-email-tony@atomide.com> <1222262955-13599-2-git-send-email-tony@atomide.com> <1222262955-13599-3-git-send-email-tony@atomide.com> <1222262955-13599-4-git-send-email-tony@atomide.com> <1222262955-13599-5-git-send-email-tony@atomide.com> <1222262955-13599-6-git-send-email-tony@atomide.com> <20081004143712.GE16636@flint.arm.linux.org.uk> <20081007184827.GI7263@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60438 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753640AbYJHH1A convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Oct 2008 03:27:00 -0400
-Content-Language: en-US
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62952 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751021AbYJHH3v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Oct 2008 03:29:51 -0400
+Content-Disposition: inline
+In-Reply-To: <20081007184827.GI7263@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "johnpol@2ka.mipt.ru" <johnpol@2ka.mipt.ru>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@nokia.com>
 
-From: Madhusudhan Chikkature <madhu.cr@ti.com>
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [081008 04:25]:
+> On Sat, Oct 04, 2008 at 03:37:12PM +0100, Russell King - ARM Linux wr=
+ote:
+> > On Wed, Sep 24, 2008 at 04:29:15PM +0300, Tony Lindgren wrote:
+> > > From: Jarkko Nikula <jarkko.nikula@nokia.com>
+> > >=20
+> > > Bootloader may let McBSP logic running so make sure that block is=
+ idle
+> > > before requesting IRQs. Also make sure that TX and RX waitqueues =
+are
+> > > initialized before request_irq.
+> > >=20
+> > > Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> >=20
+> > Ok.
+>=20
+> The other question to ask about these patches is: does it finally all=
+ow
+> mainline to reach parity with your tree on the McBSP code?
 
-Device registeration for the TI OMAP2430/3430 HDQ driver.
+Yes.
 
-Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
-Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
-Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
----
- arch/arm/mach-omap2/devices.c          |   33 +++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/irqs.h |    1 +
- 2 files changed, 34 insertions(+)
+> If not, is it possible to have a set of patches which brings the McBS=
+P
+> code completely up to date in mainline?
 
-Index: linux-2.6/arch/arm/mach-omap2/devices.c
-===================================================================
---- linux-2.6.orig/arch/arm/mach-omap2/devices.c	2008-09-19 13:39:38.000000000 +0530
-+++ linux-2.6/arch/arm/mach-omap2/devices.c	2008-09-30 10:07:51.000000000 +0530
-@@ -201,6 +201,38 @@ static void omap_init_mcspi(void)
- static inline void omap_init_mcspi(void) {}
- #endif
- 
-+#if defined(CONFIG_HDQ_MASTER_OMAP) || defined(CONFIG_HDQ_MASTER_OMAP_MODULE)
-+#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3430)
-+#define OMAP_HDQ_BASE		0x480B2000
-+#endif
-+static struct resource omap_hdq_resources[] = {
-+	{
-+		.start		= OMAP_HDQ_BASE,
-+		.end		= OMAP_HDQ_BASE + 0x1C,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= INT_24XX_HDQ_IRQ,
-+		.flags		= IORESOURCE_IRQ,
-+	},
-+};
-+static struct platform_device omap_hdq_dev = {
-+	.name		= "omap_hdq",
-+	.id = 0,
-+	.dev = {
-+		.platform_data = NULL,
-+	},
-+	.num_resources		= ARRAY_SIZE(omap_hdq_resources),
-+	.resource		= omap_hdq_resources,
-+};
-+static inline void omap_hdq_init(void)
-+{
-+	(void) platform_device_register(&omap_hdq_dev);
-+}
-+#else
-+static inline void omap_hdq_init(void) {}
-+#endif
-+
- /*-------------------------------------------------------------------------*/
- 
- static int __init omap2_init_devices(void)
-@@ -212,6 +244,7 @@ static int __init omap2_init_devices(voi
- 	omap_init_mbox();
- 	omap_init_mcspi();
- 	omap_init_sti();
-+	omap_hdq_init();
- 
- 	return 0;
- }
-Index: linux-2.6/arch/arm/plat-omap/include/mach/irqs.h
-===================================================================
---- linux-2.6.orig/arch/arm/plat-omap/include/mach/irqs.h	2008-09-26 14:34:25.000000000 +0530
-+++ linux-2.6/arch/arm/plat-omap/include/mach/irqs.h	2008-09-26 14:55:19.000000000 +0530
-@@ -265,6 +265,7 @@
- #define INT_24XX_GPTIMER12	48
- #define INT_24XX_I2C1_IRQ	56
- #define INT_24XX_I2C2_IRQ	57
-+#define INT_24XX_HDQ_IRQ	58
- #define INT_24XX_MCBSP1_IRQ_TX	59
- #define INT_24XX_MCBSP1_IRQ_RX	60
- #define INT_24XX_MCBSP2_IRQ_TX	62
+There are no other McBSP patches pending right now.
+
+Here's the pull request for you for these patches:
+
+The following changes since commit 56f68556d7bbb51dd158c74deb09c783345b=
+fbbd:
+  Russell King (1):
+        Merge unstable branch 'omap-rmk'
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.g=
+it omap-upstream
+
+Chandra Shekhar (2):
+      ARM: OMAP: Allocate McBSP devices dynamically
+      ARM: OMAP: Add support for McBSP devices 3 - 5 on 34xx
+
+Jarkko Nikula (2):
+      ARM: OMAP: Add support for OMAP2430 in McBSP
+      ARM: OMAP: Fixes to omap_mcbsp_request function
+
+Uwe Kleine-K=F6nig (1):
+      Fix sections for omap-mcbsp platform driver
+
+ arch/arm/mach-omap1/mcbsp.c             |   37 +--
+ arch/arm/mach-omap2/mcbsp.c             |  147 ++++++++++--
+ arch/arm/plat-omap/include/mach/mcbsp.h |   41 +++-
+ arch/arm/plat-omap/mcbsp.c              |  403 ++++++++++++++++++-----=
+--------
+ 4 files changed, 404 insertions(+), 224 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
