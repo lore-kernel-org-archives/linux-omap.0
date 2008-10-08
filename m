@@ -1,84 +1,79 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: git-pull request for omap mcbsp changes (Re: [PATCH 5/5] ARM:
-	OMAP: Fixes to omap_mcbsp_request function)
-Date: Wed, 8 Oct 2008 10:32:37 +0300
-Message-ID: <20081008073236.GA30831@atomide.com>
-References: <1222262955-13599-1-git-send-email-tony@atomide.com> <1222262955-13599-2-git-send-email-tony@atomide.com> <1222262955-13599-3-git-send-email-tony@atomide.com> <1222262955-13599-4-git-send-email-tony@atomide.com> <1222262955-13599-5-git-send-email-tony@atomide.com> <1222262955-13599-6-git-send-email-tony@atomide.com> <20081004143712.GE16636@flint.arm.linux.org.uk> <20081007184827.GI7263@flint.arm.linux.org.uk>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: [PATCH 5/5] HDQ: Documentation for OMAP HDQ
+Date: Wed, 8 Oct 2008 12:56:33 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D6107AF7@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62952 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751021AbYJHH3v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Oct 2008 03:29:51 -0400
-Content-Disposition: inline
-In-Reply-To: <20081007184827.GI7263@flint.arm.linux.org.uk>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45181 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751289AbYJHHaq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Oct 2008 03:30:46 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@nokia.com>
+To: "johnpol@2ka.mipt.ru" <johnpol@2ka.mipt.ru>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [081008 04:25]:
-> On Sat, Oct 04, 2008 at 03:37:12PM +0100, Russell King - ARM Linux wr=
-ote:
-> > On Wed, Sep 24, 2008 at 04:29:15PM +0300, Tony Lindgren wrote:
-> > > From: Jarkko Nikula <jarkko.nikula@nokia.com>
-> > >=20
-> > > Bootloader may let McBSP logic running so make sure that block is=
- idle
-> > > before requesting IRQs. Also make sure that TX and RX waitqueues =
-are
-> > > initialized before request_irq.
-> > >=20
-> > > Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
-> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> >=20
-> > Ok.
->=20
-> The other question to ask about these patches is: does it finally all=
-ow
-> mainline to reach parity with your tree on the McBSP code?
+From: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-Yes.
+This patch adds a brief documentation about omap2430/3430 HDQ/1-wire driver.
 
-> If not, is it possible to have a set of patches which brings the McBS=
-P
-> code completely up to date in mainline?
+Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+---
+ Documentation/w1/masters/omap-hdq |   46 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 46 insertions(+)
 
-There are no other McBSP patches pending right now.
-
-Here's the pull request for you for these patches:
-
-The following changes since commit 56f68556d7bbb51dd158c74deb09c783345b=
-fbbd:
-  Russell King (1):
-        Merge unstable branch 'omap-rmk'
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.g=
-it omap-upstream
-
-Chandra Shekhar (2):
-      ARM: OMAP: Allocate McBSP devices dynamically
-      ARM: OMAP: Add support for McBSP devices 3 - 5 on 34xx
-
-Jarkko Nikula (2):
-      ARM: OMAP: Add support for OMAP2430 in McBSP
-      ARM: OMAP: Fixes to omap_mcbsp_request function
-
-Uwe Kleine-K=F6nig (1):
-      Fix sections for omap-mcbsp platform driver
-
- arch/arm/mach-omap1/mcbsp.c             |   37 +--
- arch/arm/mach-omap2/mcbsp.c             |  147 ++++++++++--
- arch/arm/plat-omap/include/mach/mcbsp.h |   41 +++-
- arch/arm/plat-omap/mcbsp.c              |  403 ++++++++++++++++++-----=
---------
- 4 files changed, 404 insertions(+), 224 deletions(-)
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Index: linux-omap-2.6/Documentation/w1/masters/omap-hdq
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-omap-2.6/Documentation/w1/masters/omap-hdq	2007-12-17 15:43:26.306248879 +0530
+@@ -0,0 +1,46 @@
++Kernel driver for omap HDQ/1-wire module.
++========================================
++
++Supported chips:
++================
++	HDQ/1-wire controller on the TI OMAP 2430/3430 platforms.
++
++A useful link about HDQ basics:
++===============================
++http://focus.ti.com/lit/an/slua408/slua408.pdf
++
++Description:
++============
++The HDQ/1-Wire module of TI OMAP2430/3430 platforms implement the hardware
++protocol of the master functions of the Benchmark HDQ and the Dallas
++Semiconductor 1-Wire protocols. These protocols use a single wire for
++communication between the master (HDQ/1-Wire controller) and the slave
++(HDQ/1-Wire external compliant device).
++
++A typical application of the HDQ/1-Wire module is the communication with battery
++monitor (gas gauge) integrated circuits.
++
++The controller supports operation in both HDQ and 1-wire mode. The essential
++difference between the HDQ and 1-wire mode is how the slave device responds to
++initialization pulse.In HDQ mode, the firmware does not require the host to
++create an initialization pulse to the slave.However, the slave can be reset by
++using an initialization pulse (also referred to as a break pulse).The slave
++does not respond with a presence pulse as it does in the 1-Wire protocol.
++
++Remarks:
++========
++The driver (drivers/w1/masters/omap_hdq.c) supports the HDQ mode of the
++controller. In this mode, as we can not read the ID which obeys the W1
++spec(family:id:crc), a module parameter can be passed to the driver which will
++be used to calculate the CRC and pass back an appropriate slave ID to the W1
++core.
++
++By default the master driver and the BQ slave i/f
++driver(drivers/w1/slaves/w1_bq27000.c) sets the ID to 1.
++Please note to load both the modules with a different ID if required, but note
++that the ID used should be same for both master and slave driver loading.
++
++e.g:
++insmod omap_hdq.ko W1_ID=2
++inamod w1_bq27000.ko F_ID=2
++
