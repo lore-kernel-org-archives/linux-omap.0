@@ -1,15 +1,15 @@
 From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: [PATCH 2/5] HDQ: BQ27000 HDQ Slave Interface Driver
-Date: Wed, 8 Oct 2008 12:49:19 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D6107AF2@dbde02.ent.ti.com>
+Subject: [PATCH 3/5] HDQ: OMAP: Add HDQ Device
+Date: Wed, 8 Oct 2008 12:53:57 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D6107AF4@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60243 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:60438 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753492AbYJHHWo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Oct 2008 03:22:44 -0400
+	with ESMTP id S1753640AbYJHH1A convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Oct 2008 03:27:00 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,164 +18,76 @@ Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@v
 
 From: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-This patch provides the BQ27000 slave interface driver.
+Device registeration for the TI OMAP2430/3430 HDQ driver.
 
 Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
 Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 ---
- drivers/w1/slaves/Kconfig      |    7 ++
- drivers/w1/slaves/Makefile     |    2 
- drivers/w1/slaves/w1_bq27000.c |  120 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 128 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/devices.c          |   33 +++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/irqs.h |    1 +
+ 2 files changed, 34 insertions(+)
 
-Index: linux-2.6/drivers/w1/slaves/Kconfig
+Index: linux-2.6/arch/arm/mach-omap2/devices.c
 ===================================================================
---- linux-2.6.orig/drivers/w1/slaves/Kconfig	2008-09-19 13:39:41.000000000 +0530
-+++ linux-2.6/drivers/w1/slaves/Kconfig	2008-09-26 14:45:04.000000000 +0530
-@@ -44,4 +44,11 @@ config W1_SLAVE_DS2760
+--- linux-2.6.orig/arch/arm/mach-omap2/devices.c	2008-09-19 13:39:38.000000000 +0530
++++ linux-2.6/arch/arm/mach-omap2/devices.c	2008-09-30 10:07:51.000000000 +0530
+@@ -201,6 +201,38 @@ static void omap_init_mcspi(void)
+ static inline void omap_init_mcspi(void) {}
+ #endif
  
- 	  If you are unsure, say N.
++#if defined(CONFIG_HDQ_MASTER_OMAP) || defined(CONFIG_HDQ_MASTER_OMAP_MODULE)
++#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3430)
++#define OMAP_HDQ_BASE		0x480B2000
++#endif
++static struct resource omap_hdq_resources[] = {
++	{
++		.start		= OMAP_HDQ_BASE,
++		.end		= OMAP_HDQ_BASE + 0x1C,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= INT_24XX_HDQ_IRQ,
++		.flags		= IORESOURCE_IRQ,
++	},
++};
++static struct platform_device omap_hdq_dev = {
++	.name		= "omap_hdq",
++	.id = 0,
++	.dev = {
++		.platform_data = NULL,
++	},
++	.num_resources		= ARRAY_SIZE(omap_hdq_resources),
++	.resource		= omap_hdq_resources,
++};
++static inline void omap_hdq_init(void)
++{
++	(void) platform_device_register(&omap_hdq_dev);
++}
++#else
++static inline void omap_hdq_init(void) {}
++#endif
++
+ /*-------------------------------------------------------------------------*/
  
-+config W1_SLAVE_BQ27000
-+	tristate "BQ27000 slave support"
-+	depends on W1
-+	help
-+	  Say Y here if you want to use a hdq
-+	  bq27000 slave support.
-+
- endmenu
-Index: linux-2.6/drivers/w1/slaves/Makefile
+ static int __init omap2_init_devices(void)
+@@ -212,6 +244,7 @@ static int __init omap2_init_devices(voi
+ 	omap_init_mbox();
+ 	omap_init_mcspi();
+ 	omap_init_sti();
++	omap_hdq_init();
+ 
+ 	return 0;
+ }
+Index: linux-2.6/arch/arm/plat-omap/include/mach/irqs.h
 ===================================================================
---- linux-2.6.orig/drivers/w1/slaves/Makefile	2008-09-19 13:39:41.000000000 +0530
-+++ linux-2.6/drivers/w1/slaves/Makefile	2008-09-26 14:45:43.000000000 +0530
-@@ -6,4 +6,4 @@ obj-$(CONFIG_W1_SLAVE_THERM)	+= w1_therm
- obj-$(CONFIG_W1_SLAVE_SMEM)	+= w1_smem.o
- obj-$(CONFIG_W1_SLAVE_DS2433)	+= w1_ds2433.o
- obj-$(CONFIG_W1_SLAVE_DS2760)	+= w1_ds2760.o
--
-+obj-$(CONFIG_W1_SLAVE_BQ27000)	+= w1_bq27000.o
-Index: linux-2.6/drivers/w1/slaves/w1_bq27000.c
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-2.6/drivers/w1/slaves/w1_bq27000.c	2008-09-26 14:43:42.000000000 +0530
-@@ -0,0 +1,120 @@
-+/*
-+ * drivers/w1/slaves/w1_bq27000.c
-+ *
-+ * Copyright (C) 2007 Texas Instruments, Inc.
-+ *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2. This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ *
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/device.h>
-+#include <linux/types.h>
-+#include <linux/platform_device.h>
-+#include <linux/mutex.h>
-+
-+#include "../w1.h"
-+#include "../w1_int.h"
-+#include "../w1_family.h"
-+
-+#define HDQ_CMD_READ	(0)
-+#define HDQ_CMD_WRITE	(1<<7)
-+
-+int F_ID;
-+int family_id;
-+
-+void w1_bq27000_write(struct device *dev, u8 buf, u8 reg)
-+{
-+	struct w1_slave *sl = container_of(dev, struct w1_slave, dev);
-+	if (!dev) {
-+		pr_info("Could not obtain slave dev ptr\n");
-+		return;
-+	}
-+
-+	w1_write_8(sl->master, HDQ_CMD_WRITE | reg);
-+	w1_write_8(sl->master, buf);
-+}
-+EXPORT_SYMBOL(w1_bq27000_write);
-+
-+int w1_bq27000_read(struct device *dev, u8 reg)
-+{
-+	u8 val;
-+	struct w1_slave *sl = container_of(dev, struct w1_slave, dev);
-+	if (!dev)
-+		return 0;
-+
-+	w1_write_8(sl->master, HDQ_CMD_READ | reg);
-+	val = w1_read_8(sl->master);
-+
-+	return val;
-+}
-+EXPORT_SYMBOL(w1_bq27000_read);
-+
-+static int w1_bq27000_add_slave(struct w1_slave *sl)
-+{
-+	int ret;
-+	int id = 1;
-+	struct platform_device *pdev;
-+
-+	pdev = platform_device_alloc("bq27000-battery", id);
-+	if (!pdev) {
-+		ret = -ENOMEM;
-+		return ret;
-+	}
-+	pdev->dev.parent = &sl->dev;
-+
-+	ret = platform_device_add(pdev);
-+	if (ret)
-+		goto pdev_add_failed;
-+
-+	dev_set_drvdata(&sl->dev, pdev);
-+
-+	goto success;
-+
-+pdev_add_failed:
-+	platform_device_unregister(pdev);
-+success:
-+	return ret;
-+}
-+
-+static void w1_bq27000_remove_slave(struct w1_slave *sl)
-+{
-+	struct platform_device *pdev = dev_get_drvdata(&sl->dev);
-+	platform_device_unregister(pdev);
-+}
-+
-+static struct w1_family_ops w1_bq27000_fops = {
-+	.add_slave	= w1_bq27000_add_slave,
-+	.remove_slave	= w1_bq27000_remove_slave,
-+};
-+
-+static struct w1_family w1_bq27000_family = {
-+	.fid = 1,
-+	.fops = &w1_bq27000_fops,
-+};
-+
-+static int __init w1_bq27000_init(void)
-+{
-+	if (F_ID)
-+		w1_bq27000_family.fid = F_ID;
-+
-+	return w1_register_family(&w1_bq27000_family);
-+}
-+
-+static void __exit w1_bq27000_exit(void)
-+{
-+	w1_unregister_family(&w1_bq27000_family);
-+}
-+
-+
-+module_init(w1_bq27000_init);
-+module_exit(w1_bq27000_exit);
-+
-+module_param(F_ID, int, S_IRUSR);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Texas Instruments Ltd");
-+MODULE_DESCRIPTION("HDQ/1-wire slave driver bq27000 battery monitor chip");
+--- linux-2.6.orig/arch/arm/plat-omap/include/mach/irqs.h	2008-09-26 14:34:25.000000000 +0530
++++ linux-2.6/arch/arm/plat-omap/include/mach/irqs.h	2008-09-26 14:55:19.000000000 +0530
+@@ -265,6 +265,7 @@
+ #define INT_24XX_GPTIMER12	48
+ #define INT_24XX_I2C1_IRQ	56
+ #define INT_24XX_I2C2_IRQ	57
++#define INT_24XX_HDQ_IRQ	58
+ #define INT_24XX_MCBSP1_IRQ_TX	59
+ #define INT_24XX_MCBSP1_IRQ_RX	60
+ #define INT_24XX_MCBSP2_IRQ_TX	62
