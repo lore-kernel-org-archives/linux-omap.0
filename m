@@ -1,46 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/0] Add minimal omap34xx support
-Date: Thu, 9 Oct 2008 18:17:25 +0300
-Message-ID: <20081009151724.GK26230@atomide.com>
-References: <1223035779-26306-1-git-send-email-tony@atomide.com> <dbdb2ea60810030852h67b898a8p13b716f2e6c746e6@mail.gmail.com> <20081004070534.GB30190@muru.com> <20081009145436.GI435@flint.arm.linux.org.uk>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH] twl4030-core: fix a typo
+Date: Thu, 9 Oct 2008 19:07:22 +0300
+Message-ID: <20081009160713.GA12091@frodo>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB028C6305D0@dbde02.ent.ti.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59385 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753747AbYJIPRk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 11:17:40 -0400
+Received: from ns1.siteground211.com ([209.62.36.12]:52795 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752927AbYJIQHa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 12:07:30 -0400
 Content-Disposition: inline
-In-Reply-To: <20081009145436.GI435@flint.arm.linux.org.uk>
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB028C6305D0@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: twebb <taliaferro62@gmail.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [081009 17:54]:
-> On Sat, Oct 04, 2008 at 07:05:35AM +0000, Tony Lindgren wrote:
-> > Yeah there is active development going on in linux-omap mailing list
-> > for the EVMs too. And Mistral's older 5912OSK is probably the best
-> > supported omap board in the mainline kernel.
-> > 
-> > Basically adding new boards is just a question of adding the board-*.c
-> > file, and .config for the drivers to include. Some board of course
-> > have custom devices too.
-> > 
-> > Anyways, we'll add more boards to the mainline kernel later on, but
-> > first we have to get the the minimal omap3 support working with
-> > mainline kernel.
+On Thu, Oct 09, 2008 at 08:44:49PM +0530, Pakaravoor, Jagadeesh wrote:
+> From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
 > 
-> Note that my only OMAP based board(s) here are the Nokia 770 (which I
-> don't classify as a development platform) and the OMAP3430 LDP board.
+> Fix a trivial typo.
 
-Yeah 770 has bunch of stuff that should be cleand up first.. It's pretty
-much useless without cbus support.
+please Cc Samuel Ortiz <sameo@openedhand.com> and lkml
 
-> Having the LDP board queued up in preference to things like the
-> Gumstix, Beagle and Overo would be far more useful to me.
 
-Sure, I'll post a minimal LDP patch separately tomorrow. I don't have
-an LDP so I can't verify it boots though.
+> Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
+> ---
+> Index: linux-omap-git/drivers/mfd/twl4030-core.c
+> ===================================================================
+> --- linux-omap-git.orig/drivers/mfd/twl4030-core.c	2008-10-09 18:32:15.000000000 +0530
+> +++ linux-omap-git/drivers/mfd/twl4030-core.c	2008-10-09 20:40:18.007239952 +0530
+> @@ -57,7 +57,7 @@
+>  #define DRIVER_NAME			"twl4030"
+>  
+>  #if defined(CONFIG_TWL4030_BCI_BATTERY) || \
+> -	defined(CONFIG_TWL4030_BCI_BATTERY_MODUEL)
+> +	defined(CONFIG_TWL4030_BCI_BATTERY_MODULE)
+>  #define twl_has_bci()		true
+>  #else
+>  #define twl_has_bci()		false
+> 
+> --
+> With Regards,
+> Jagadeesh Bhaskar P
+>  
+> ----------------------------
+> Some men see things as they are and say why - I dream things that never were and say why not.
+> - George Bernard Shaw
+> -------------------
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Tony
+-- 
+balbi
