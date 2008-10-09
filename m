@@ -1,85 +1,105 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH] Fix IO address issue.
-Date: Thu, 9 Oct 2008 15:40:11 +0300
-Message-ID: <20081009124011.GB32342@gandalf.research.nokia.com>
-References: <1223555249-5223-1-git-send-email-roman.tereshonkov@nokia.com>
-Reply-To: felipe.balbi@nokia.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: omapfb: help from userspace
+Date: Thu, 9 Oct 2008 15:43:58 +0300
+Message-ID: <20081009124357.GF26230@atomide.com>
+References: <e5e6ade50810081136n2067600csf3c77195da0ef110@mail.gmail.com> <e5e6ade50810081321h6f638cafjbe00f4c8a3a50f2c@mail.gmail.com> <13B9B4C6EF24D648824FF11BE89671620365B58844@dlee02.ent.ti.com> <B85A65D85D7EB246BE421B3FB0FBB59301B0108CAB@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="PmA2V3Z32TCmWXqI"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:61957 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756947AbYJIMkT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 08:40:19 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m99CeG22004964
-	for <linux-omap@vger.kernel.org>; Thu, 9 Oct 2008 07:40:17 -0500
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:65224 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757555AbYJIMoE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 08:44:04 -0400
 Content-Disposition: inline
-In-Reply-To: <1223555249-5223-1-git-send-email-roman.tereshonkov@nokia.com>
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301B0108CAB@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Roman Tereshonkov <roman.tereshonkov@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: Nathan Monson <nmonson@gmail.com>
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, "TK, Pratheesh Gangadhar" <pratheesh@ti.com>
 
-On Thu, Oct 09, 2008 at 03:27:29PM +0300, Tereshonkov Roman wrote:
+
+--PmA2V3Z32TCmWXqI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+* TK, Pratheesh Gangadhar <pratheesh@ti.com> [081009 09:20]:
+> >The need for this has been discussed on this list a few times in the past.  >Not having it is a bug to me for OMAP3.
+> >
+> >There shouldn't really be any performance side effects the way it is being >used.
 > 
-> Signed-off-by: Roman Tereshonkov <roman.tereshonkov@nokia.com>
-> ---
->  drivers/misc/sti/sdti.c |   12 ++++++------
->  1 files changed, 6 insertions(+), 6 deletions(-)
+> I agree, I did not notice any performance impact - we are using this setting for couple of months now without any problem. But there are some future compatibility concerns in below thread - it should be fine for OMAP3 though 
 > 
-> diff --git a/drivers/misc/sti/sdti.c b/drivers/misc/sti/sdti.c
-> index c35821d..2631ccf 100644
-> --- a/drivers/misc/sti/sdti.c
-> +++ b/drivers/misc/sti/sdti.c
-> @@ -32,7 +32,7 @@
->  #define CPU2_TRACE_EN		0x02
->  
->  static struct clk *sdti_ck;
-> -unsigned long sti_base, sti_channel_base;
-> +void __iomem sti_base, sti_channel_base;
-
-this is wrong. They should be pointers
-
->  static DEFINE_SPINLOCK(sdti_lock);
->  
->  void omap_sti_channel_write_trace(int len, int id, void *data,
-> @@ -137,14 +137,14 @@ static int __devinit omap_sdti_probe(struct platform_device *pdev)
->  	}
->  
->  	size = res->end - res->start;
-> -	sti_base = (unsigned long)ioremap(res->start, size);
-> +	sti_base = ioremap(res->start, size);
->  	if (unlikely(!sti_base))
->  		return -ENODEV;
->  
->  	size = cres->end - cres->start;
-> -	sti_channel_base = (unsigned long)ioremap(cres->start, size);
-> +	sti_channel_base = ioremap(cres->start, size);
->  	if (unlikely(!sti_channel_base)) {
-> -		iounmap((void *)sti_base);
-> +		iounmap(sti_base);
->  		return -ENODEV;
->  	}
->  
-> @@ -153,8 +153,8 @@ static int __devinit omap_sdti_probe(struct platform_device *pdev)
->  
->  static int __devexit omap_sdti_remove(struct platform_device *pdev)
->  {
-> -	iounmap((void *)sti_channel_base);
-> -	iounmap((void *)sti_base);
-> +	iounmap(sti_channel_base);
-> +	iounmap(sti_base);
->  	omap_sdti_exit();
->  
->  	return 0;
-> -- 
-> 1.5.5.1
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg02949.html
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Let's go back to having a strongly ordered memory model.  Please.
+> 
+> On pre-ARMv6, updates to CPSR are guaranteed to take place in program
+> order with a strongly-ordered memory access. This is still true on
+> ARMv6/v7 for backward compatibility but the feature is deprecated and it
+> might not be true for future architecture versions. At some point
+> barriers might be needed.
 
--- 
-balbi
+Nathan, good to hear that the SO mode helps. But since you seem to
+have it easily reproducable..
+
+Could you try the following patch based on RMK's earlier patch
+without the strongly ordered patch and see if that makes any
+difference?
+
+If this patch alone does not do anything, maybe try reading back
+something from the dsp interrupt registers after write also
+in the dsp interrupt handler?
+
+Also you might want to read through the thread linked in the
+patch description.
+
+And, if that still does not work, I'm suspecting that in some cases
+write-read is not enough, and only write-write ensures that it gets
+posted. Some ARM docs say that writes are only posted relative to
+other writes, but I don't know if it can be really that way.
+
+At least we have at least one hack like that in the
+drivers/mmc/host/omap.c.
+
+Anyways, it would be nice to solve this issue for good. The problem
+has been making it easily reproducable.
+
+Thanks,
+
+Tony
+
+--PmA2V3Z32TCmWXqI
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="irq-read.patch"
+
+>From 5732ab12201cff25f036e1e20dc23fdb779c8589 Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Thu, 9 Oct 2008 15:25:16 +0300
+Subject: [PATCH] Read INTC_REVISION after write to ensure write is posted
+
+Based on Russell's earlier patch at:
+
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg02904.html
+
+diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+index 4ffb4f1..3ae3c8c 100644
+--- a/arch/arm/mach-omap2/irq.c
++++ b/arch/arm/mach-omap2/irq.c
+@@ -64,6 +64,7 @@ static u32 intc_bank_read_reg(struct omap_irq_bank *bank, u16 reg)
+ static void omap_ack_irq(unsigned int irq)
+ {
+ 	intc_bank_write_reg(0x1, &irq_banks[0], INTC_CONTROL);
++	intc_bank_read_reg(&irq_banks[0], INTC_REVISION);
+ }
+ 
+ static void omap_mask_irq(unsigned int irq)
+@@ -73,6 +74,7 @@ static void omap_mask_irq(unsigned int irq)
+ 	irq &= (IRQ_BITS_PER_REG - 1);
+ 
+ 	intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_SET0 + offset);
++	intc_bank_read_reg(&irq_banks[0], INTC_REVISION);
+ }
+ 
+ static void omap_unmask_irq(unsigned int irq)
+
+--PmA2V3Z32TCmWXqI--
