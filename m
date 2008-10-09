@@ -1,331 +1,597 @@
-From: "Castaneda Gonzalez, Axel" <x0055901@ti.com>
-Subject: [PATCH 02/02] [omapzoom]ARM-OMAP3-Automatic_TV_detection
-Date: Thu, 9 Oct 2008 11:10:14 -0500
-Message-ID: <70ABD7B1D427A94DA659B4C84B0F5D4A50BEE9FA@dlee06.ent.ti.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [RFC][PATCH 5/5] OMAP SSI API documentation
+Date: Thu, 9 Oct 2008 19:47:23 +0300
+Message-ID: <20081009164715.GB12091@frodo>
+References: <1223034606.32631.156.camel@groo.research.nokia.com> <1223034750-18690-1-git-send-email-carlos.chinea@nokia.com> <1223034750-18690-2-git-send-email-carlos.chinea@nokia.com> <1223034750-18690-3-git-send-email-carlos.chinea@nokia.com> <1223034750-18690-4-git-send-email-carlos.chinea@nokia.com> <1223034750-18690-5-git-send-email-carlos.chinea@nokia.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48058 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753462AbYJIQKW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 12:10:22 -0400
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m99GAHvS026620
-	for <linux-omap@vger.kernel.org>; Thu, 9 Oct 2008 11:10:22 -0500
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m99GAGMZ010782
-	for <linux-omap@vger.kernel.org>; Thu, 9 Oct 2008 11:10:16 -0500 (CDT)
-Content-Language: en-US
+Received: from ns1.siteground211.com ([209.62.36.12]:52943 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753835AbYJIQrd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 12:47:33 -0400
+Content-Disposition: inline
+In-Reply-To: <1223034750-18690-5-git-send-email-carlos.chinea@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Carlos Chinea <carlos.chinea@nokia.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-From: Axel Castaneda Gonzalez<x0055901@ti.com>
+On Fri, Oct 03, 2008 at 02:52:30PM +0300, Carlos Chinea wrote:
 
-ARM: OMAP3: Automatic TV detection
+there are issues in the documentation as well.
 
-This patch provides automatic TV detection support
-on omapzoom display driver. When a stream is run on
-video1, video2 is automatically linked and displayed on TV.
+> Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
+> ---
+>  Documentation/arm/OMAP/ssi/board-ssi.c.example |  216 ++++++++++++++++++++++
+>  Documentation/arm/OMAP/ssi/ssi                 |  232 ++++++++++++++++++++++++
+>  2 files changed, 448 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/arm/OMAP/ssi/board-ssi.c.example
+>  create mode 100644 Documentation/arm/OMAP/ssi/ssi
+> 
+> diff --git a/Documentation/arm/OMAP/ssi/board-ssi.c.example b/Documentation/arm/OMAP/ssi/board-ssi.c.example
+> new file mode 100644
+> index 0000000..a346628
+> --- /dev/null
+> +++ b/Documentation/arm/OMAP/ssi/board-ssi.c.example
+> @@ -0,0 +1,216 @@
+> +/*
+> + * board-ssi.c.example
+> + *
+> + * Copyright (C) 2007-2008 Nokia Corporation. All rights reserved.
+> + *
+> + * Contact: Carlos Chinea <carlos.chinea@nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + */
+> +
+> +#ifdef CONFIG_OMAP_SSI
 
-User can enable or disable this bind to TV, through the
-use of /sys/class/display_control/omap_disp_control/tv_state,
-automatic detection/switching is only enabled when this sysfs
-entry is populated with 1 and a TV is connected to S-Video port.
+don't ifdef here. This file should only be built if SSI is selected.
 
-Signed-off-by: Axel Castaneda Gonzalez<x0055901@ti.com>
----
- media/video/omap/omap24xxvout.c    |  139 ++++++++++++++++++++++++++++++++++++-
- media/video/omap/omap24xxvoutdef.h |    6 +
- video/omap/omap_disp_out.c         |   36 ++++++++-
- 3 files changed, 173 insertions(+), 8 deletions(-)
+> +
+> +#include <linux/platform_device.h>
+> +#include <linux/err.h>
+> +#include <linux/clk.h>
+> +#include <linux/io.h>
+> +#include <linux/ssi_driver_if.h>
+> +#include <mach/ssi/ssi_sys_reg.h>
+> +#include <mach/ssi/ssi_ssr_reg.h>
+> +#include <mach/ssi/ssi_sst_reg.h>
 
-Index: git-ti-omap34tree/drivers/media/video/omap/omap24xxvout.c
-===================================================================
---- git-ti-omap34tree.orig/drivers/media/video/omap/omap24xxvout.c
-+++ git-ti-omap34tree/drivers/media/video/omap/omap24xxvout.c
-@@ -134,6 +134,7 @@ static int rotation_support = -1;
- #define SMS_RGB_PIXSIZE                2
- #define SMS_YUYV_PIXSIZE       4
- #define VRFB_TX_TIMEOUT                1000
-+#define AUTO_VIDEO_LINK                2
+you see how many includes you need to make it work ?
 
- #ifdef CONFIG_FB_OMAP_720P_STREAMING
- #define VID_MAX_WIDTH          HD_720P_WIDTH  /* Largest width */
-@@ -143,6 +144,8 @@ static int rotation_support = -1;
- #define VID_MAX_HEIGHT         WVGA_SQUARE_HEIGHT_R90 /* Largest height */
- #endif
+It should be #include <linux/ssi.h> and that's all. This driver can be
+generic enough to build and work on non-omap platforms, can't it ?
 
-+static int prev_output_dev = -1;
-+
- static struct omap24xxvout_device *saved_v1out, *saved_v2out;
+> +
+> +#include "clock.h"
+> +
+> +struct ssi_internal_clk {
+> +	struct clk clk;
+> +	struct clk **childs;
+> +	int n_childs;
+> +	struct platform_device *pdev;
 
- #define STREAMING_IS_ON()      ((saved_v1out && saved_v1out->streaming) || \
-@@ -156,6 +159,7 @@ static struct omap24xxvout_device *saved
-  */
+why do you need to let the internal clock know so much about the user ?
+I think struct device * should be enough here.
 
- static int vout_linked;
-+int tv_state;
- static spinlock_t vout_link_lock;
+> +};
+> +
+> +static struct ssi_internal_clk ssi_clock;
+> +
+> +static void ssi_pdev_release(struct device *dev)
+> +{
+> +}
+> +
+> +static struct ssi_port_pd ssi_ports[] = {
+> +	[0] = {
+> +		.tx_mode = SSI_MODE_FRAME,
+> +		.tx_frame_size = SSI_FRAMESIZE_DEFAULT,
+> +		.divisor = SSI_DIVISOR_DEFAULT,
+> +		.tx_ch = SSI_CHANNELS_DEFAULT,
+> +		.arb_mode = SSI_ARBMODE_ROUNDROBIN,
+> +		.rx_mode = SSI_MODE_FRAME,
+> +		.rx_frame_size = SSI_FRAMESIZE_DEFAULT,
+> +		.rx_ch = SSI_CHANNELS_DEFAULT,
+> +		.timeout = SSI_TIMEOUT_DEFAULT,
+> +		.n_irq = 0,
+> +		},
 
- static struct videobuf_queue_ops dummy_vbq_ops;
-@@ -315,6 +319,112 @@ omap24xxvout_sync (struct omap24xxvout_d
-                        dest->rotation, dest->mirror);
- }
+tabify these.
 
-+void omap24xxvout_set_link(struct omap24xxvout_device *vout, int link_status)
-+{
-+
-+       int *link = &link_status;
-+       spin_lock(&vout_link_lock);
-+       if ((*link == 0) && (vout_linked == vout->vid))
-+               vout_linked = -1;
-+
-+       omap2_disp_get_dss();
-+
-+       if ((*link == 1) && (vout_linked == -1 || vout_linked == vout->vid)) {
-+               vout_linked = 2;
-+               if (vout_linked == OMAP2_VIDEO2) {
-+                       /* sync V2 to V1 for img and crop */
-+                       omap24xxvout_sync(saved_v2out, saved_v1out);
-+               } else {
-+                       /* sync V1 to V2 */
-+                       omap24xxvout_sync(saved_v1out, saved_v2out);
-+               }
-+       }
-+
-+       omap2_disp_put_dss();
-+       spin_unlock(&vout_link_lock);
-+}
-+
-+
-+int omap24xxvout_streaming_link(struct omap24xxvout_device *vout,
-+                                       struct omap24xxvout_fh *fh) {
-+       if (vout->streaming)
-+               return -EBUSY;
-+
-+       vout->streaming = fh;
-+       omap2_disp_get_dss();
-+
-+       omap2_disp_config_vlayer(vout->vid, &vout->pix,
-+                       &vout->crop, &vout->win, vout->rotation,
-+                       vout->mirror);
-+       omap2_disp_put_dss();
-+       return 0;
-+}
-+
-+
-+int omap24xxvout_tv_link(void){
-+
-+       struct omap24xxvout_device *vout = NULL;
-+       struct omap24xxvout_fh *fh;
-+
-+       vout = saved_v2out;
-+
-+       if (vout == NULL)
-+               return -ENODEV;
-+
-+       /* for now, we only support single open */
-+       if (vout->opened)
-+               return -EBUSY;
-+
-+       vout->opened += 1;
-+       if (!omap2_disp_request_layer(vout->vid)) {
-+               vout->opened -= 1;
-+               return -ENODEV;
-+       }
-+
-+       omap2_disp_get_dss();
-+
-+       /* allocate per-filehandle data */
-+       fh = kmalloc(sizeof(*fh), GFP_KERNEL);
-+       if (NULL == fh) {
-+               omap2_disp_release_layer(vout->vid);
-+               omap2_disp_put_dss();
-+               vout->opened -= 1;
-+               return -ENOMEM;
-+       }
-+
-+       omap2_disp_put_dss();
-+
-+       omap24xxvout_set_link(vout, 1);
-+       omap24xxvout_streaming_link(vout, fh);
-+       return 0;
-+}
-+
-+static  int
-+omap24xxvout_tv_link_release(void) {
-+       struct omap24xxvout_device *vout = saved_v2out;
-+
-+       omap2_disp_get_dss();
-+       vout->streaming = NULL;
-+       omap2_disp_disable_layer(vout->vid);
-+
-+       if ((vout_linked != -1) && (vout->vid != vout_linked))
-+               omap2_disp_disable_layer((vout->vid ==
-+                               OMAP2_VIDEO1) ? OMAP2_VIDEO2 : OMAP2_VIDEO1);
-+
-+       omap2_disp_release_layer(vout->vid);
-+       omap2_disp_put_dss();
-+       vout->opened -= 1;
-+
-+       /* need to remove the link when the either slave or master is gone */
-+       spin_lock(&vout_link_lock);
-+       omap24xxvout_set_link(vout, 0);
-+       if (vout_linked != -1)
-+               vout_linked = -1;
-+
-+       spin_unlock(&vout_link_lock);
-+       return 0;
-+}
-+
- static int
- omap24xxvout_do_ioctl (struct inode *inode, struct file *file,
-                       unsigned int cmd, void *arg)
-@@ -1017,10 +1127,25 @@ omap24xxvout_do_ioctl (struct inode *ino
-                int k;
-                if (vout->streaming)
-                        return -EBUSY;
--               /*
--                * If rotation mode is selected then allocate a
--                *  dummy or hidden buffer to map the SMS virtual space
-+
-+               if (automatic_link && vout->vid == 1) {
-+                       tv_state = get_tv_state();
-+                       if (tv_state) {
-+                               prev_output_dev =
-+                                       omap2_disp_get_output_dev(
-+                                               AUTO_VIDEO_LINK);
-+                               if (prev_output_dev != OMAP2_OUTPUT_TV)
-+                                       set_output_device("tv",
-+                                               AUTO_VIDEO_LINK);
-+                                       omap24xxvout_tv_link();
-+                       }
-+               }
-+
-+               /*
-+                * If rotation mode is selected then allocate a
-+                *  dummy or hidden buffer to map the SMS virtual space
-                 */
-+
-                if (vout->vid != vout_linked){
-                        if (vout->rotation >= 0){
+> +};
+> +
+> +static struct ssi_platform_data ssi_p_d = {
+> +	.clk_name = "ssi_clk",
+> +	.num_ports = ARRAY_SIZE(ssi_ports),
+> +	.ports = ssi_ports,
 
-@@ -1122,6 +1247,13 @@ omap24xxvout_do_ioctl (struct inode *ino
-                 * stop streaming
-                 */
+tabify
 
-+               if (automatic_link && tv_state && vout->vid == 1) {
-+                       omap24xxvout_tv_link_release();
-+                       if (prev_output_dev == OMAP2_OUTPUT_LCD) {
-+                               set_output_device("lcd", AUTO_VIDEO_LINK);
-+                               prev_output_dev = -1;
-+                       }
-+               }
-                if (vout->streaming == fh){
-                        omap2_disp_disable_layer (vout->vid);
-                        vout->streaming = NULL;
-@@ -2273,6 +2405,7 @@ omap24xxvout_init (void)
-        omap2_disp_save_initstate(OMAP2_VIDEO2);
-        omap2_disp_put_dss();
+> +};
+> +
+> +static struct resource ssi_resources[] = {
+> +	[0] = {
+> +		.start = SSI_IOMEM_BASE_ADDR,
+> +		.end = SSI_IOMEM_BASE_ADDR + SSI_IOMEM_SIZE,
+> +		.name = SSI_IOMEM_NAME,
+> +		.flags = IORESOURCE_MEM,
+> +		},
 
-+       tv_state = 0;
-        vout_linked = -1;
-        spin_lock_init (&vout_link_lock);
-        return 0;
-Index: git-ti-omap34tree/drivers/video/omap/omap_disp_out.c
-===================================================================
---- git-ti-omap34tree.orig/drivers/video/omap/omap_disp_out.c
-+++ git-ti-omap34tree/drivers/video/omap/omap_disp_out.c
-@@ -195,6 +195,8 @@ struct res_handle * tv_rhandle = NULL;
- static struct spi_device *wvgalcd_spi;
- #endif
+tabify and the closing bracket should be aligned with [0]
 
-+int automatic_link;
-+
- #ifdef CONFIG_OMAP2_LCD
- static int dvi_in_use; /* dvi output flag */
- static int lcd_in_use;
-@@ -981,7 +983,7 @@ lcd_suspend(struct platform_device *odev
-        mdelay(40);
- #endif
-        omap2_dss_rgb_disable();
--
-+       automatic_link = 0;
-        return 0;
- }
+> +	[1] = 	{
+	     ^  trailing whitespace
 
-@@ -1862,20 +1864,44 @@ static void disable_tv_detect(void){
-        omap2_disp_put_all_clks();
- }
+> +		.start = SSI_P1_MPU_IRQ0,
+> +		.end = SSI_P1_MPU_IRQ0,
+> +		.name = SSI_P1_MPU_IRQ0_NAME,
+> +		.flags = IORESOURCE_IRQ,
+> +		},
 
--static ssize_t
--tv_state_show(struct device *dev, struct device_attribute *attr, char *buf) {
-+ssize_t
-+set_output_device(const char *buffer, int layer) {
-+       ssize_t ret;
-+       if (strncmp(buffer, "lcd", 3) == 0)
-+               ret = write_layer_out("lcd", 3, layer);
-+       else  if (strncmp(buffer, "tv", 2) == 0)
-+               ret = write_layer_out("tv", 2, layer);
-+       else
-+               ret = -EINVAL;
-+       return  ret;
-+}
-+EXPORT_SYMBOL(set_output_device);
-+
-+int
-+get_tv_state(void){
-        int tv_state;
-+
-        enable_tv_detect();
-        msleep(TV_DETECT_DELAY);
-        tv_state = omap_get_gpio_datain(TV_INT_GPIO);
-        disable_tv_detect();
--       return  sprintf(buf, "%d\n", tv_state);
-+       return tv_state;
-+}
-+EXPORT_SYMBOL(get_tv_state);
-+
-+static ssize_t
-+tv_state_show(struct device *dev, struct device_attribute *attr, char *buf) {
-+       return  sprintf(buf, "%d\n", get_tv_state());
- }
+tabify
+tabify and the closing bracket should be aligned with [1]
 
- static ssize_t
- tv_state_store(struct device *dev, struct device_attribute *attr,
-                const char *buffer, size_t count) {
--       return 0;
-+       if (strncmp(buffer, "1", 1) == 0)
-+               automatic_link = 1;
-+       else if (strncmp(buffer, "0", 1) == 0)
-+               automatic_link = 0;
-+       return count;
- }
- #endif
+> +	[2] = 	{
+	     ^  trailing whitespace
 
-Index: git-ti-omap34tree/drivers/media/video/omap/omap24xxvoutdef.h
-===================================================================
---- git-ti-omap34tree.orig/drivers/media/video/omap/omap24xxvoutdef.h
-+++ git-ti-omap34tree/drivers/media/video/omap/omap24xxvoutdef.h
-@@ -102,6 +102,7 @@ struct omap24xxvout_fh {
-        struct videobuf_queue vbq;
- };
+> +		.start = SSI_P1_MPU_IRQ1,
+> +		.end = SSI_P1_MPU_IRQ1,
+> +		.name = SSI_P1_MPU_IRQ1_NAME,
+> +		.flags = IORESOURCE_IRQ,
+> +		},
 
-+
- #ifdef CONFIG_ARCH_OMAP34XX
+tabify
+tabify and the closing bracket should be aligned with [2]
 
+> +	[3] = 	{
+	     ^  trailing whitespace
 
-@@ -174,4 +175,9 @@ struct omap3_aux_disp_fh {
- };
- #endif
+> +		.start = SSI_P2_MPU_IRQ0,
+> +		.end = SSI_P2_MPU_IRQ0,
+> +		.name = SSI_P2_MPU_IRQ0_NAME,
+> +		.flags = IORESOURCE_IRQ,
+> +		},
 
-+/* TV detection autoswitching support */
-+       extern int automatic_link;
-+       extern int get_tv_state(void);
-+       extern ssize_t set_output_device(const char *buffer, int);
-+
- #endif /* ifndef OMAP24XXVOUTDEF_H */
---
+tabify
+tabify and the closing bracket should be aligned with [3]
 
+> +	[4] = 	{
+	     ^  trailing whitespace
+
+> +		.start = SSI_P2_MPU_IRQ1,
+> +		.end = SSI_P2_MPU_IRQ1,
+> +		.name = SSI_P2_MPU_IRQ1_NAME,
+> +		.flags = IORESOURCE_IRQ,
+> +		},
+
+tabify
+tabify and the closing bracket should be aligned with [4]
+
+> +	[5] = 	{
+	     ^  trailing whitespace
+
+> +		.start = SSI_GDD_MPU_IRQ,
+> +		.end = SSI_GDD_MPU_IRQ,
+> +		.name = SSI_GDD_MPU_IRQ_NAME,
+> +		.flags = IORESOURCE_IRQ,
+> +		},
+
+tabify and the closing bracket should be aligned with [5]
+
+> +};
+> +
+> +static struct platform_device ssi_pdev = {
+> +	.name = "omap_ssi",
+> +	.id = -1,
+> +	.num_resources = ARRAY_SIZE(ssi_resources),
+> +	.resource = ssi_resources,
+> +	.dev = 	{
+	      ^  trailing whitespace
+
+> +		.release = ssi_pdev_release,
+> +		.platform_data = &ssi_p_d,
+> +		},
+
+this bracket should be aligned with .dev
+
+> +};
+> +
+> +static void set_ssi_mode(struct platform_device *pdev, u32 mode)
+> +{
+> +	void __iomem *base = (void __iomem *)pdev->resource[0].start;
+
+this is wrong, looks like mode sould be passed down to the driver and
+the driver would set_ssi_mode().
+
+> +	int port;
+> +	int num_ports = ((struct ssi_platform_data *)
+
+the cast is unnecessary and you're abusing platform_data, I'd say.
+
+> +					(pdev->dev.platform_data))->num_ports;
+> +
+> +	for (port = 0; port < num_ports; port++) {
+> +		outl(mode, OMAP2_IO_ADDRESS(base + SSI_SST_MODE_REG(port)));
+> +		outl(mode, OMAP2_IO_ADDRESS(base + SSI_SSR_MODE_REG(port)));
+> +	}
+> +}
+> +
+> +static int ssi_clk_init(struct ssi_internal_clk *ssi_clk)
+> +{
+> +	const char *clk_names[] = { "ssi_ick", "ssi_ssr_fck" };
+> +	int i;
+> +	int j;
+> +
+> +	ssi_clk->n_childs = ARRAY_SIZE(clk_names);
+> +	ssi_clk->childs = kzalloc(ssi_clk->n_childs * sizeof(*ssi_clk->childs),
+> +								GFP_KERNEL);
+> +	if (!ssi_clk->childs)
+> +		return -ENOMEM;
+> +
+> +	for (i = 0; i < ssi_clk->n_childs; i++) {
+> +		ssi_clk->childs[i] = clk_get(NULL, clk_names[i]);
+> +		if (IS_ERR(ssi_clk->childs[i])) {
+> +			pr_err("Unable to get SSI clock: %s", clk_names[i]);
+> +			for (j = i - 1; j >= 0; j--)
+> +				clk_put(ssi_clk->childs[j]);
+> +			return -ENODEV;
+> +		}
+> +	}
+
+this looks like it should be done by the driver and not board-specific.
+
+> +
+> +	return 0;
+> +}
+> +
+> +static int ssi_clk_enable(struct clk *clk)
+> +{
+> +	struct ssi_internal_clk *ssi_clk =
+> +				container_of(clk, struct ssi_internal_clk, clk);
+> +	int err = 0;
+> +	int i;
+> +	int j;
+> +
+> +	for (i = 0; ((i < ssi_clk->n_childs) && (err >= 0)); i++)
+> +		err = omap2_clk_enable(ssi_clk->childs[i]);
+> +
+> +	if (unlikely(err < 0)) {
+> +		pr_err("Error on SSI clk %d\n", i);
+> +		for (j = i - 1; j >= 0; j--)
+> +			omap2_clk_disable(ssi_clk->childs[j]);
+
+if you get and error, return already, will avoid the else below.
+
+> +	} else {
+> +		if (ssi_clk->clk.usecount == 1)
+> +			set_ssi_mode(ssi_clk->pdev, SSI_MODE_FRAME);
+> +	}
+> +
+> +	return err;
+> +}
+> +
+> +static void ssi_clk_disable(struct clk *clk)
+> +{
+> +	struct ssi_internal_clk *ssi_clk =
+> +				container_of(clk, struct ssi_internal_clk, clk);
+> +
+> +	int i;
+> +
+> +	if (ssi_clk->clk.usecount == 0)
+> +		set_ssi_mode(ssi_clk->pdev, SSI_MODE_SLEEP);
+> +
+> +	for (i = 0; i < ssi_clk->n_childs; i++)
+> +		omap2_clk_disable(ssi_clk->childs[i]);
+> +}
+> +
+> +static struct ssi_internal_clk ssi_clock = {
+> +	.clk = {
+> +		.name = "ssi_clk",
+> +		.id = -1,
+> +		.enable = ssi_clk_enable,
+> +		.disable = ssi_clk_disable,
+> +	},
+> +	.pdev = &ssi_pdev,
+> +};
+
+it doesn't look like you do anything useful with this ssi_internal_clk
+structure. I'd say you can move the clk definition to <mach/clock.h> if
+Tony, Paul and Kevin are ok with it.
+
+> +
+> +void __init ssi_init(void)
+> +{
+> +	int err;
+> +
+> +	ssi_clk_init(&ssi_clock);
+> +	clk_register(&ssi_clock.clk);
+> +
+> +	err = platform_device_register(&ssi_pdev);
+> +	if (err < 0)
+> +		pr_err("Unable to register SSI platform device: %d\n", err);
+
+if the clk definition can be moved to <mach/clock.h> then you can
+simply:
+
+return platform_device_register(&ssi_pdev);
+
+> +}
+> +#endif
+> diff --git a/Documentation/arm/OMAP/ssi/ssi b/Documentation/arm/OMAP/ssi/ssi
+> new file mode 100644
+> index 0000000..990ae48
+> --- /dev/null
+> +++ b/Documentation/arm/OMAP/ssi/ssi
+
+let's use an extension to this file: ssi.txt
+
+> @@ -0,0 +1,232 @@
+> +OMAP SSI API's How To
+> +=====================
+> +
+> +The Synchronous Serial Interface (SSI) is a high speed communication interface
+> +that is used for connecting OMAP to a cellular modem engine.
+> +
+> +The SSI interface supports full duplex communication over multiple channels and
+> +is capable of reaching speeds up to 110 Mbit/s
+> +
+> +I OMAP SSI driver API overview
+> +-----------------------------
+> +
+> +A) SSI Bus, SSI channels and protocol drivers overview. 
+							  ^ trailing whitespace
+
+> +
+> +The OMAP SSI driver is intended to be used inside the kernel by protocol drivers.
+> +
+> +The OMAP SSI abstracts the concept of SSI channels by creating an SSI bus an
+
+s/an/and (at the end)
+
+> +attaching SSI channel devices to it.(see Figure 1)
+				       ^ add a space
+
+> +
+> +Protocol drivers will then claim one or more SSI channels, after registering with the OMAP SSI driver.
+> +
+> +	+---------------------+		+----------------+
+> +	+  SSI channel device +		+  SSI protocol  +
+> +	+  (omap_ssi.pX-cY)   +	<-------+  driver        +
+> +	+---------------------+		+----------------+
+> +		|				|
+> +(/sys/bus/ssi/devices/omap_ssi.pX-cy)	(/sys/bus/ssi/drivers/ssi_protocol)
+> +		|				|
+> ++---------------------------------------------------------------+
+> ++			SSI bus					+	
+> ++---------------------------------------------------------------+	
+> +	
+> +			Figure 1.
+> +
+> +(NOTE: omap_ssi.pX-cY represents the SSI channel Y on port X from the omap_ssi
+> +device)
+
+you could go simpler and call it:
+
+/sys/bus/ssi/devices/X-Y: (X == port, Y == channel);
+
+> +
+> +B) Data transfers
+> +
+> +The OMAP SSI driver exports an asynchronous interface for sending and receiving
+> +data over the SSI channels. Protocol drivers will register a set of read and write
+> +completion callbacks for each SSI channel they use.
+> +
+> +Protocol drivers call ssi_write/ssi_read functions to signal the OMAP SSI driver
+> +that is willing to write/read data to/from a channel. Transfers are completed only
+> +when the OMAP SSI driver calls the completion callback.
+> +
+> +An SSI channel can simultaneously have both a read and a write request
+> +pending, however, requests cannot be queued.
+> +
+> +It is safe to call ssi_write/ssi_read functions inside the callbacks functions.
+> +In fact, a protocol driver should normally re-issue the read request from within
+> +the read callback, in order to not miss any incoming messages.
+> +
+> +C) Error handling
+> +
+> +SSI is a multi channel interface but the channels share the same physical wires.
+> +Therefore, any transmission error potentially affects all the protocol drivers
+> +that sit on top of the SSI driver. Whenever an error occurs, it is broadcasted to
+> +all protocol drivers.
+> +
+> +Errors are signaled to the protocol drivers through the port_event callback.
+> +Protocol drivers can avoid receiving those notifications by not setting the
+> +SSI_EVENT_ERROR in the event_mask field.(see struct ssi_device_driver)
+> +
+> +Completion callbacks functions are only called when a transfer has succeed.
+> +
+> +II OMAP SSI API's
+> +-----------------
+> +
+> +A) Include
+> +
+> +#include<linux/ssi_driver_if.h>
+> +
+> +B) int register_ssi_driver(struct ssi_device_driver *driver);
+> +
+> +Description: Register an SSI protocol driver
+> +
+> +Parameter: A protocol driver declaration (see struct ssi_device_driver)
+> +
+> +B) void unregister_ssi_driver(struct ssi_device_driver *driver);
+> +
+> +Description: Unregister an SSI protocol driver
+> +
+> +Parameter: A protocol driver declaration (see struct ssi_device_driver)
+> +
+> +C) int ssi_open(struct ssi_device *dev);
+> +
+> +Description: Open an SSI device channel
+> +
+> +Parameter: The SSI channel
+> +
+> +D) int ssi_write(struct ssi_device *dev, u32 *data, unsigned int count);
+> +
+> +Description: Send data through an SSI channel. The transfer is only completed
+> +when the write_complete callback is called
+> +
+> +Parameters:
+> +	- dev: SSI channel
+> +	- data: pointer to the data to send
+> +	- count: number of 32-bit words to be sent
+> +
+> +E) void ssi_write_cancel(struct ssi_device *dev);
+> +
+> +Description: Cancel current pending write operation
+> +
+> +Parameters: SSI channel
+> +	
+> +F) int ssi_read(struct ssi_device *dev, u32 *data, unsigned int w_count);
+> +
+> +Description: Receive data through an SSI channel. The transfer is only completed
+> +when the read_complete callback is called
+> +
+> +Parameters:
+> +	- dev: SSI channel
+> +	- data: pointer where to store the data
+> +	- count: number of 32-bit words to be read
+> +
+> +
+> +G) void ssi_read_cancel(struct ssi_device *dev);
+> +
+> +Description: Cancel current pending read operation
+> +
+> +Parameters: SSI channel
+> +
+> +H) int ssi_ioctl(struct ssi_device *dev, unsigned int command, void *arg);
+> +
+> +Description: Apply some control command to the port associated to the given
+> +SSI channel
+> +
+> +Parameters:
+> +	- dev: SSI channel
+> +	- command: command to execute
+> +	- arg: parameter for the control command
+> +
+> +Commands:
+> +	- SSI_IOCTL_WAKE_UP: 
+> +		Description: Set SSI wakeup line for the channel
+> +		Parameters: None
+> +	- SSI_IOCTL_WAKE_DOWN:
+> +		Description: Unset SSI wakeup line for the channel
+> +		Parameters: None
+> +	- SSI_IOCTL_SEND_BREAK:
+> +		Description: Send a HW BREAK frame in FRAME mode
+> +		Parameters: None
+> +	- SSI_IOCTL_WAKE:
+> +		Description: Get wakeup line status
+> +		Parameters: Pointer to a u32 variable to return result
+> +		(Result: 0 means wakeline DOWN, other result means wakeline UP)
+> +
+> +I)void ssi_close(struct ssi_device *dev);
+> +
+> +Description: Close an SSI channel
+> +
+> +Parameters: The SSI channel to close
+> +
+> +J) void ssi_dev_set_cb(	struct ssi_device *dev,
+> +			void (*r_cb)(struct ssi_device *dev),
+> +			void (*w_cb)(struct ssi_device *dev));
+> +
+> +Description: Set the read and write callbacks for the SSI channel. This
+> +function is usually called in the probe function of the SSI protocol driver to
+> +set completion callbacks for the asynchronous read and write transfer
+> +
+> +Parameters:
+> +	- dev: SSI channel
+> +	- r_cb: Pointer to a callback function to signal that a read transfer is
+> +		completed
+> +	- w_cb: Pointer to a callback function to signal that a write transfer
+> +		is completed
+> +
+> +H) struct ssi_device_driver
+> +
+> +Description: Protocol drivers pass this struct to the register_ssi_driver function
+> +in order to register with the OMAP SSI driver. Among other things it tells the
+> +OMAP SSI driver which channels the protocol driver wants to allocate for its use
+> +
+> +Declaration:
+> +struct ssi_device_driver {
+> +	unsigned long		ctrl_mask;
+> +	unsigned long		ch_mask[SSI_MAX_PORTS];
+> +	unsigned long		event_mask;
+> +	void 			(*port_event) (int c_id, unsigned int port,
+> +						unsigned int event, void *arg);
+> +	int			(*probe)(struct ssi_device *dev);
+> +	int			(*remove)(struct ssi_device *dev);
+> +	int			(*suspend)(struct ssi_device *dev,
+> +						pm_message_t mesg);
+> +	int			(*resume)(struct ssi_device *dev);
+> +	struct device_driver 	driver;
+> +};
+> +
+> +Fields description:
+> +	ctrl_mask: SSI block ids to use
+> +	ch_mask[SSI_MAX_PORTS]: SSI channels to use
+> +	event_mask: SSI events to be notified
+> +	port_event: Function callback for notifying SSI events
+> +		   (i.e.: error transfer)
+> +		Parameters:
+> +			c_id: SSI Block id which generate the event
+> +			port: Port number which generate the event
+> +			event: Event code
+> +	probe: Probe function
+> +		Parameters: SSI channel
+> +	remove: Remove function
+> +		Parameters: SSI channel
+> +
+> +Example:
+> +
+> +static struct ssi_device_driver ssi_protocol_driver = {
+> +	.ctrl_mask = ANY_SSI_CONTROLLER,
+> +	.ch_mask[0] = CHANNEL(0) | CHANNEL(1),
+> +	.event_mask = SSI_EVENT_ERROR_MASK,
+> +	.port_event = port_event_callback,
+> +	.probe = ssi_proto_probe,
+> +	.remove = __devexit_p(ssi_proto_remove),
+> +	.driver = {
+> +			.name = "ssi_protocol",
+> +	},
+> +};
+> +
+> +
+> +III OMAP SSI platform_device
+> +----------------------------
+> +
+> +You can find a example of how to define an SSI platform device in:
+> +
+> +Documentation/arm/OMAP/ssi/board-ssi.c.example
+> +
+> +=================================================
+> +Contact: Carlos Chinea <carlos.chinea@nokia.com>
+> +Copyright (C) 2008 Nokia Corporation.
+> -- 
+> 1.5.3.6
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+balbi
