@@ -1,76 +1,33 @@
-From: "Zavala Trujillo, Diego" <diegozt@ti.com>
-Subject: RE: [Patch] OMAP: ARM: Fix Comp for LDP on DeviceType
-Date: Thu, 9 Oct 2008 08:58:55 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE89671620365B58C77@dlee02.ent.ti.com>
-References: <13B9B4C6EF24D648824FF11BE896716203657CAE29@dlee02.ent.ti.com>
- <20081006085105.GK14042@atomide.com>
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] MUSB: Fixes endpoint allocation logic
+Date: Thu, 9 Oct 2008 17:17:42 +0300
+Message-ID: <20081009141742.GB19375@gandalf.research.nokia.com>
+References: <1223372190-8050-1-git-send-email-ajay.gupta@ti.com>
+Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56178 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751889AbYJIN7D convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 09:59:03 -0400
-In-Reply-To: <20081006085105.GK14042@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1223372190-8050-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ext Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org, me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Ok, thanks.
-
-Regards,
- 
-Diego Zavala Trujillo
-Linux Base Port Team 
-TI-Monterrey
-Tel. 214.567.6384
-
------Original Message-----
-From: Tony Lindgren [mailto:tony@atomide.com] 
-Sent: Monday, October 06, 2008 3:51 AM
-To: Zavala Trujillo, Diego
-Cc: linux-omap@vger.kernel.org
-Subject: Re: [Patch] OMAP: ARM: Fix Comp for LDP on DeviceType
-
-* Zavala Trujillo, Diego <diegozt@ti.com> [080920 10:11]:
+On Tue, Oct 07, 2008 at 03:06:30PM +0530, Ajay Kumar Gupta wrote:
+> musb->periodic[] flag was getting set for an endpoint even when only rx
+> or tx is used.This patch adds two field musb->in[16] and musb->out[16]
+> in place of musb->periodic[32] which will enable endpoint allocation
+> flag setting on rx/tx basis of an endpoint.
 > 
-> 
-> Regards,
-> Fix the compilation for the 3430LDP.
-> Replace omap_device_type for omap_type.
-
-Thanks, looks like I've already pushed a similar patch from Felipe.
-
-Tony
-
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 > ---
->  arch/arm/mach-omap2/board-ldp.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->  mode change 100644 => 100755 arch/arm/mach-omap2/board-ldp.c
-> 
-> diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-> old mode 100644
-> new mode 100755
-> index 9263be9..02359d5
-> --- a/arch/arm/mach-omap2/board-ldp.c
-> +++ b/arch/arm/mach-omap2/board-ldp.c
-> @@ -54,7 +54,7 @@ static int __init msecure_init(void)
->  
->  #ifdef CONFIG_RTC_DRV_TWL4030
->  	/* 3430ES2.0 doesn't have msecure/gpio-22 line connected to T2 */
-> -	if (omap_device_type() == OMAP2_DEVICE_TYPE_GP &&
-> +	if (omap_type() == OMAP2_DEVICE_TYPE_GP &&
->  			system_rev < OMAP3430_REV_ES2_0) {
->  		u32 msecure_pad_config_reg = omap_ctrl_base_get() + 0xA3C;
->  		int mux_mask = 0x04;
-> -- 
-> 1.5.6.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+applied.
+
+-- 
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
