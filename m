@@ -1,65 +1,72 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 00/05] OMAP3: CPUidle driver
-Date: Thu, 09 Oct 2008 16:27:17 +0300
-Message-ID: <87prm9ucei.fsf@deeprootsystems.com>
-References: <001601c9293d$79bd4200$LocalHost@wipultra1382>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP2 not booting in 2.6.27-rc9?
+Date: Thu, 9 Oct 2008 07:37:37 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0810090736020.1405@utopia.booyaka.com>
+References: <20081009103258.cbace620.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-138864406-1223559457=:1405"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.187]:38275 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758239AbYJIN10 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 09:27:26 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so10065nfc.21
-        for <linux-omap@vger.kernel.org>; Thu, 09 Oct 2008 06:27:25 -0700 (PDT)
-In-Reply-To: <001601c9293d$79bd4200$LocalHost@wipultra1382> (Rajendra Nayak's message of "Wed\, 8 Oct 2008 17\:30\:33 +0530")
+Received: from utopia.booyaka.com ([72.9.107.138]:51505 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759811AbYJINha (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 09:37:30 -0400
+In-Reply-To: <20081009103258.cbace620.jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
 Cc: linux-omap@vger.kernel.org
 
-"Rajendra Nayak" <rnayak@ti.com> writes:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> This patch set implements Cpuidle driver for OMAP3 platforms. It is
-> validated on the 3430SDP (using the omap_3430sdp_min_defconfig) and
-> applies on the pm-20081006 branch.
+--155748971-138864406-1223559457=:1405
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Excellent.  Thank you.  I'll pull into pm-20081006 today.
+Hi Jarkko,
 
-One question: You have C6 to hit chip-off, but it is never enabled.
-Has this been tested?  Enabling it allows me to hit chip OFF, but it
-never comes back from OFF-mode.  I will push some patches to make this
-work with /sys/power/enable_off_mode.
+On Thu, 9 Oct 2008, Jarkko Nikula wrote:
 
-Some minor problems that I will fixup when rebasing to the next pm
-branch:
+> At least N810 hangs somewhere executing local_flush_tlb_all() in
+> omap_map_sram. Last printk is before that call.
 
- - You removed C0, but all the comments still refer to it
- - /sys/power/enable_off_mode doesn't affect off-mode states
-   in CPUidle
+does the following patch fix the problem for you?
 
-patch 1:
- - I still don't like the #ifdefs for the init sequence.
+- Paul
 
-patch 2:
- - checkpatch warning
+Author: Paul Walmsley <paul@pwsan.com>
+Date:   Thu Oct 9 07:27:38 2008 -0600
 
-Kevin
+    Commit 1c957036bbd912322793da676d05e169abf24782 breaks booting on
+    OMAP2; the SRAM is mapped on top of the L4 interconnect.  This causes
+    the system to hang early in boot in omap_map_sram() during a TLB flush.
+    Fix by moving SRAM elsewhere in the memory map.
+   =20
+    Reported by Jarkko Nikula <jarkko.nikula@nokia.com>.  This patch is a
+    collaboration with Tony Lindgren <tony@atomide.com> and
+    Kevin Hilman <khilman@deeprootsystems.com>.
+   =20
+    Tested on 2430SDP.
+   =20
+    Signed-off-by: Paul Walmsley <paul@pwsan.com>
+    Cc: Kevin Hilman <khilman@deeprootsystems.com>
+    Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
+    Cc: Tony Lindgren <tony@atomide.com>
+    Cc: M=E5ns Rullg=E5rd <mans@mansr.com>
 
-> The following C states are defined and used 
->
->  *      C0 . System executing code (Not an idle state)
->  *      C1 . MPU WFI + Core active
->  *      C2 . MPU CSWR + Core active
->  *      C3 . MPU OFF + Core active
->  *      C4 . MPU CSWR + Core CSWR
->  *      C5 . MPU OFF + Core CSWR
->  *      C6 . MPU OFF + Core OFF
->
-> CPUidle support is not enabled by default in any of the defconfigs and hence has to enabled seperately 
-> if you plan to test these patches.
->
-> CPUIdle ---> [*] CPU idle PM support
->
-> regards,
-> Rajendra
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index 853048d..ca4c276 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -37,8 +37,8 @@
+ #define OMAP1_SRAM_VA=09=09VMALLOC_END
+ #define OMAP2_SRAM_PA=09=090x40200000
+ #define OMAP2_SRAM_PUB_PA=090x4020f800
+-#define OMAP2_SRAM_VA=09=09VMALLOC_END
+-#define OMAP2_SRAM_PUB_VA=09(VMALLOC_END + 0x800)
++#define OMAP2_SRAM_VA=09=090xe1000000
++#define OMAP2_SRAM_PUB_VA=09(OMAP2_SRAM_VA + 0x800)
+ #define OMAP3_SRAM_PA           0x40200000
+ #define OMAP3_SRAM_VA           0xd7000000
+ #define OMAP3_SRAM_PUB_PA       0x40208000
+--155748971-138864406-1223559457=:1405--
