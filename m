@@ -1,59 +1,51 @@
-From: Daniel Stone <daniel.stone@nokia.com>
-Subject: Re: [PATCH 0/2] omapfb bugfixes
-Date: Thu, 9 Oct 2008 13:08:36 +0300
-Message-ID: <20081009100836.GM6212@intune.research.nokia.com>
-References: <20081009094224.GK6212@intune.research.nokia.com> <20081009095852.GE31385@atomide.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZGDvG9BNY5+B3nxW"
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 1/1] ARM: OMAP: fix uninitialized warning
+Date: Thu,  9 Oct 2008 14:38:00 +0300
+Message-ID: <1223552280-14373-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:44789 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753824AbYJIKGI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 06:06:08 -0400
-Content-Disposition: inline
-In-Reply-To: <20081009095852.GE31385@atomide.com>
+Received: from smtp.nokia.com ([192.100.122.233]:17765 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756667AbYJILiS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 07:38:18 -0400
+Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m99BcERm006813
+	for <linux-omap@vger.kernel.org>; Thu, 9 Oct 2008 14:38:16 +0300
+Received: from oreo.research.nokia.com (esdhcp04066.research.nokia.com [172.21.40.66])
+	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m99Bc1G1019688
+	for <linux-omap@vger.kernel.org>; Thu, 9 Oct 2008 14:38:01 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
+warning: 'rev_name' may be used uninitialized in this function
 
---ZGDvG9BNY5+B3nxW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+ arch/arm/mach-omap2/id.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-On Thu, Oct 09, 2008 at 12:58:55PM +0300, ext Tony Lindgren wrote:
-> * Daniel Stone <daniel.stone@nokia.com> [081009 12:39]:
-> > Hi,
-> > These should be fine for merging, one bugfix from Siarhei and one tiny
-> > Kconfig dependency update.
->=20
-> OK. Can you also refresh your "FB: OMAP: DISPC: Allow multiple
-> external IRQ handlers" patch?
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 7a7ad18..c002076 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -147,7 +147,7 @@ void __init omap34xx_check_revision(void)
+ 	u32 cpuid, idcode;
+ 	u16 hawkeye;
+ 	u8 rev;
+-	char *rev_name;
++	char *rev_name = "ES1.0";
+ 
+ 	/*
+ 	 * We cannot access revision registers on ES1.0.
+@@ -157,7 +157,6 @@ void __init omap34xx_check_revision(void)
+ 	cpuid = read_cpuid(CPUID_ID);
+ 	if ((((cpuid >> 4) & 0xfff) == 0xc08) && ((cpuid & 0xf) == 0x0)) {
+ 		system_rev = OMAP3430_REV_ES1_0;
+-		rev_name = "ES1.0";
+ 		goto out;
+ 	}
+ 
+-- 
+1.6.0.2.229.g1293c
 
-Sure, no problem.  Sent now.
-
-> We really should get all the fb stuff to fbdevel list, but let's wait
-> a bit on that, too many other things to deal with right now.
-
-Yeah, good point, sorry. :)
-
-Cheers,
-Daniel
-
---ZGDvG9BNY5+B3nxW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkjt2CQACgkQ68xJuWtYYdVmrACgqhejhrwGX7dE1JfcGudK66l0
-SZIAn11NVHS9XYy2YqIICzqrrnxrAWMf
-=hGP0
------END PGP SIGNATURE-----
-
---ZGDvG9BNY5+B3nxW--
