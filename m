@@ -1,72 +1,76 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP2 not booting in 2.6.27-rc9?
-Date: Thu, 9 Oct 2008 07:37:37 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0810090736020.1405@utopia.booyaka.com>
-References: <20081009103258.cbace620.jarkko.nikula@nokia.com>
+From: "Zavala Trujillo, Diego" <diegozt@ti.com>
+Subject: RE: [Patch] OMAP: ARM: Fix Comp for LDP on DeviceType
+Date: Thu, 9 Oct 2008 08:58:55 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE89671620365B58C77@dlee02.ent.ti.com>
+References: <13B9B4C6EF24D648824FF11BE896716203657CAE29@dlee02.ent.ti.com>
+ <20081006085105.GK14042@atomide.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-138864406-1223559457=:1405"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51505 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759811AbYJINha (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 09:37:30 -0400
-In-Reply-To: <20081009103258.cbace620.jarkko.nikula@nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:56178 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751889AbYJIN7D convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 09:59:03 -0400
+In-Reply-To: <20081006085105.GK14042@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+Ok, thanks.
+
+Regards,
+ 
+Diego Zavala Trujillo
+Linux Base Port Team 
+TI-Monterrey
+Tel. 214.567.6384
+
+-----Original Message-----
+From: Tony Lindgren [mailto:tony@atomide.com] 
+Sent: Monday, October 06, 2008 3:51 AM
+To: Zavala Trujillo, Diego
 Cc: linux-omap@vger.kernel.org
+Subject: Re: [Patch] OMAP: ARM: Fix Comp for LDP on DeviceType
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+* Zavala Trujillo, Diego <diegozt@ti.com> [080920 10:11]:
+> 
+> 
+> Regards,
+> Fix the compilation for the 3430LDP.
+> Replace omap_device_type for omap_type.
 
---155748971-138864406-1223559457=:1405
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Thanks, looks like I've already pushed a similar patch from Felipe.
 
-Hi Jarkko,
+Tony
 
-On Thu, 9 Oct 2008, Jarkko Nikula wrote:
+> ---
+>  arch/arm/mach-omap2/board-ldp.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>  mode change 100644 => 100755 arch/arm/mach-omap2/board-ldp.c
+> 
+> diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+> old mode 100644
+> new mode 100755
+> index 9263be9..02359d5
+> --- a/arch/arm/mach-omap2/board-ldp.c
+> +++ b/arch/arm/mach-omap2/board-ldp.c
+> @@ -54,7 +54,7 @@ static int __init msecure_init(void)
+>  
+>  #ifdef CONFIG_RTC_DRV_TWL4030
+>  	/* 3430ES2.0 doesn't have msecure/gpio-22 line connected to T2 */
+> -	if (omap_device_type() == OMAP2_DEVICE_TYPE_GP &&
+> +	if (omap_type() == OMAP2_DEVICE_TYPE_GP &&
+>  			system_rev < OMAP3430_REV_ES2_0) {
+>  		u32 msecure_pad_config_reg = omap_ctrl_base_get() + 0xA3C;
+>  		int mux_mask = 0x04;
+> -- 
+> 1.5.6.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> At least N810 hangs somewhere executing local_flush_tlb_all() in
-> omap_map_sram. Last printk is before that call.
-
-does the following patch fix the problem for you?
-
-- Paul
-
-Author: Paul Walmsley <paul@pwsan.com>
-Date:   Thu Oct 9 07:27:38 2008 -0600
-
-    Commit 1c957036bbd912322793da676d05e169abf24782 breaks booting on
-    OMAP2; the SRAM is mapped on top of the L4 interconnect.  This causes
-    the system to hang early in boot in omap_map_sram() during a TLB flush.
-    Fix by moving SRAM elsewhere in the memory map.
-   =20
-    Reported by Jarkko Nikula <jarkko.nikula@nokia.com>.  This patch is a
-    collaboration with Tony Lindgren <tony@atomide.com> and
-    Kevin Hilman <khilman@deeprootsystems.com>.
-   =20
-    Tested on 2430SDP.
-   =20
-    Signed-off-by: Paul Walmsley <paul@pwsan.com>
-    Cc: Kevin Hilman <khilman@deeprootsystems.com>
-    Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
-    Cc: Tony Lindgren <tony@atomide.com>
-    Cc: M=E5ns Rullg=E5rd <mans@mansr.com>
-
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index 853048d..ca4c276 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -37,8 +37,8 @@
- #define OMAP1_SRAM_VA=09=09VMALLOC_END
- #define OMAP2_SRAM_PA=09=090x40200000
- #define OMAP2_SRAM_PUB_PA=090x4020f800
--#define OMAP2_SRAM_VA=09=09VMALLOC_END
--#define OMAP2_SRAM_PUB_VA=09(VMALLOC_END + 0x800)
-+#define OMAP2_SRAM_VA=09=090xe1000000
-+#define OMAP2_SRAM_PUB_VA=09(OMAP2_SRAM_VA + 0x800)
- #define OMAP3_SRAM_PA           0x40200000
- #define OMAP3_SRAM_VA           0xd7000000
- #define OMAP3_SRAM_PUB_PA       0x40208000
---155748971-138864406-1223559457=:1405--
