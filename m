@@ -1,63 +1,49 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: OMAP2 not booting in 2.6.27-rc9?
-Date: Thu, 9 Oct 2008 10:32:58 +0300
-Message-ID: <20081009103258.cbace620.jarkko.nikula@nokia.com>
+From: Daniel Stone <daniel.stone@nokia.com>
+Subject: [PATCH 0/2] omapfb bugfixes
+Date: Thu, 9 Oct 2008 12:42:24 +0300
+Message-ID: <20081009094224.GK6212@intune.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="W1uEbMXJ1Mj4g6TI"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:34813 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:60129 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750795AbYJIHds (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 03:33:48 -0400
+	with ESMTP id S1753076AbYJIJjk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 05:39:40 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m999dYjB014765
+	for <linux-omap@vger.kernel.org>; Thu, 9 Oct 2008 12:39:37 +0300
+Received: from intune.research.nokia.com (intune.research.nokia.com [172.21.50.54])
+	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m999dWlg016856
+	for <linux-omap@vger.kernel.org>; Thu, 9 Oct 2008 12:39:33 +0300
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com
-
-Hi
-
-At least N810 hangs somewhere executing local_flush_tlb_all() in
-omap_map_sram. Last printk is before that call.
-
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index 853048d..5ddf417 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -215,8 +215,11 @@ void __init omap_map_sram(void)
- 	 * mdesc->map_io(), but since we're called from map_io(), we
- 	 * must do it here.
- 	 */
-+printk("%s @ %d\n", __func__, __LINE__);
- 	local_flush_tlb_all();
-+printk("%s @ %d\n", __func__, __LINE__);
- 	flush_cache_all();
-+printk("%s @ %d\n", __func__, __LINE__);
- 
- 	/*
- 	 * Looks like we need to preserve some bootloader code at the
 
 
-Reverting Paul's commit below doesn't help.
+--W1uEbMXJ1Mj4g6TI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-commit 61db7fb1c78c32b6abdc5c7965981de332aeaa5b
-Author: Paul Walmsley <paul@pwsan.com>
-Date:   Tue Aug 12 00:04:15 2008 +0100
+Hi,
+These should be fine for merging, one bugfix from Siarhei and one tiny
+Kconfig dependency update.
 
-    [ARM] 5192/1: ARM TLB: add v7wbi_{possible,always}_flags to
-{possible,always
+Cheers,
+Daniel
 
+--W1uEbMXJ1Mj4g6TI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-However Beagle is still booting fine with my current head
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
-commit 5b99e69f31fa575e53483e1f90c3a88939ca0b95
-Merge: f9ceca7... 4330ed8...
-Author: Tony Lindgren <tony@atomide.com>
-Date:   Tue Oct 7 14:27:17 2008 +0300
+iEYEARECAAYFAkjt0gAACgkQ68xJuWtYYdUa4QCfRSFfL8dJEiYpsV0SfZ5W8JW/
+qIMAn02EwS2D/4wtvb+zRGBFafjSbVKz
+=JyFQ
+-----END PGP SIGNATURE-----
 
-    Merge current mainline tree into linux-omap tree
-    
-    Merge branches 'master' and 'linus'
-
-
-Jarkko
+--W1uEbMXJ1Mj4g6TI--
