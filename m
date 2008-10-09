@@ -1,39 +1,63 @@
-From: "TK, Pratheesh Gangadhar" <pratheesh@ti.com>
-Subject: RE: omapfb: help from userspace
-Date: Thu, 9 Oct 2008 11:50:26 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301B0108CAB@dbde02.ent.ti.com>
-References: <e5e6ade50810081136n2067600csf3c77195da0ef110@mail.gmail.com>
- <e5e6ade50810081321h6f638cafjbe00f4c8a3a50f2c@mail.gmail.com>
- <13B9B4C6EF24D648824FF11BE89671620365B58844@dlee02.ent.ti.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: OMAP2 not booting in 2.6.27-rc9?
+Date: Thu, 9 Oct 2008 10:32:58 +0300
+Message-ID: <20081009103258.cbace620.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36782 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755890AbYJIGUh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 02:20:37 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE89671620365B58844@dlee02.ent.ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:34813 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750795AbYJIHds (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 03:33:48 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>, Nathan Monson <nmonson@gmail.com>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: paul@pwsan.com
 
->The need for this has been discussed on this list a few times in the past.  >Not having it is a bug to me for OMAP3.
->
->There shouldn't really be any performance side effects the way it is being >used.
+Hi
 
-I agree, I did not notice any performance impact - we are using this setting for couple of months now without any problem. But there are some future compatibility concerns in below thread - it should be fine for OMAP3 though 
+At least N810 hangs somewhere executing local_flush_tlb_all() in
+omap_map_sram. Last printk is before that call.
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg02949.html
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index 853048d..5ddf417 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -215,8 +215,11 @@ void __init omap_map_sram(void)
+ 	 * mdesc->map_io(), but since we're called from map_io(), we
+ 	 * must do it here.
+ 	 */
++printk("%s @ %d\n", __func__, __LINE__);
+ 	local_flush_tlb_all();
++printk("%s @ %d\n", __func__, __LINE__);
+ 	flush_cache_all();
++printk("%s @ %d\n", __func__, __LINE__);
+ 
+ 	/*
+ 	 * Looks like we need to preserve some bootloader code at the
 
-> Let's go back to having a strongly ordered memory model.  Please.
 
-On pre-ARMv6, updates to CPSR are guaranteed to take place in program
-order with a strongly-ordered memory access. This is still true on
-ARMv6/v7 for backward compatibility but the feature is deprecated and it
-might not be true for future architecture versions. At some point
-barriers might be needed.
+Reverting Paul's commit below doesn't help.
 
-Regards,
-Pratheesh
+commit 61db7fb1c78c32b6abdc5c7965981de332aeaa5b
+Author: Paul Walmsley <paul@pwsan.com>
+Date:   Tue Aug 12 00:04:15 2008 +0100
+
+    [ARM] 5192/1: ARM TLB: add v7wbi_{possible,always}_flags to
+{possible,always
+
+
+However Beagle is still booting fine with my current head
+
+commit 5b99e69f31fa575e53483e1f90c3a88939ca0b95
+Merge: f9ceca7... 4330ed8...
+Author: Tony Lindgren <tony@atomide.com>
+Date:   Tue Oct 7 14:27:17 2008 +0300
+
+    Merge current mainline tree into linux-omap tree
+    
+    Merge branches 'master' and 'linus'
+
+
+Jarkko
