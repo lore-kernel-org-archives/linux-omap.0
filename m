@@ -1,48 +1,31 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH 2.6.27-rc9-omap] i2c-omap: timeouts begone
-Date: Wed, 8 Oct 2008 18:38:37 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE89671620365B58A45@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE8944123692F2@dlee02.ent.ti.com>
- <20081008183808.GA31385@atomide.com>
- <200810081236.48940.david-b@pacbell.net>
- <200810081436.06810.david-b@pacbell.net> <20081008215455.GA15087@frodo>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 2.6.27-rc9-omap] i2c-omap: timeouts begone
+Date: Wed, 8 Oct 2008 18:09:19 -0700
+Message-ID: <200810081809.20153.david-b@pacbell.net>
+References: <A24693684029E5489D1D202277BE8944123692F2@dlee02.ent.ti.com> <20081008215455.GA15087@frodo> <13B9B4C6EF24D648824FF11BE89671620365B58A45@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43701 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754018AbYJHXir convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Oct 2008 19:38:47 -0400
-Content-Language: en-US
+Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:22979 "HELO
+	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753549AbYJIBJW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Oct 2008 21:09:22 -0400
+In-Reply-To: <13B9B4C6EF24D648824FF11BE89671620365B58A45@dlee02.ent.ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "me@felipebalbi.com" <me@felipebalbi.com>, David Brownell <david-b@pacbell.net>
-Cc: Tony Lindgren <tony@atomide.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: "me@felipebalbi.com" <me@felipebalbi.com>, Tony Lindgren <tony@atomide.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> Actually, scanning i2c_init shows what looks to be a problem.
->
->  235 static int omap_i2c_init(struct omap_i2c_dev *dev)
->  236 {
->  237         u16 psc = 0, scll = 0, sclh = 0;
->  238         u16 fsscll = 0, fssclh = 0, hsscll = 0, hssclh = 0;
->  239         unsigned long fclk_rate = 12000000;
->  240         unsigned long timeout;
->  241         unsigned long internal_clk = 0;
->  242
->  243         if (!dev->rev1) {
->  244                 omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
-> OMAP_I2C_SYSC_SRST);
->
-> None of the module local OCP registers are being setup properly.  A
-> write of a 0x2 kills other settings.  If after this operation the SSYC
-> reg will say:
->       -Forced Idle
->       -Locally gate I+F clock on ocp-segment idle request
->       -wake up disabled
+On Wednesday 08 October 2008, Woodruff, Richard wrote:
+> BTW, I see these settings are correct in Zoom tree in clock functions.
 
-BTW, I see these settings are correct in Zoom tree in clock functions. http://git.omapzoom.org/?p=omapkernel;a=blob;f=drivers/i2c/busses/i2c-omap.c;hb=d0b4bad4926f9a147a73498f7a62a0ae1cf6f83a
+Someone working with that Zoom tree might consider putting
+together a patch.  ;)
 
-Regards,
-Richard W.
+Meanwhile, I'll stick with my simple one.
 
+- Dave
+ 
