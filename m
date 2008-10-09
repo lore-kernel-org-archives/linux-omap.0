@@ -1,58 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 01/05] ARM: OMAP2: Add minimal omap3430 support
-Date: Thu, 9 Oct 2008 18:09:07 +0300
-Message-ID: <20081009150905.GJ26230@atomide.com>
-References: <1223035779-26306-1-git-send-email-tony@atomide.com>
-	<1223035779-26306-2-git-send-email-tony@atomide.com>
-	<20081009144737.GG435@flint.arm.linux.org.uk>
+From: twebb <taliaferro62@gmail.com>
+Subject: Re: android on omap
+Date: Thu, 9 Oct 2008 11:08:44 -0400
+Message-ID: <dbdb2ea60810090808m4c867635y961c3c6e3d024929@mail.gmail.com>
+References: <dbdb2ea60810030751j2cd9bb88h82b5a91eecbbaf50@mail.gmail.com>
+	 <36DDB8F8BC2C8F4E98C848C74F03F88314130EAD@dlee03.ent.ti.com>
+	 <dbdb2ea60810031121q4a4ee20fjbe7a2b420a3e9fea@mail.gmail.com>
+	 <36DDB8F8BC2C8F4E98C848C74F03F883141311BA@dlee03.ent.ti.com>
+	 <dbdb2ea60810031417o307a4e4h329da2855ea66dd0@mail.gmail.com>
+	 <36DDB8F8BC2C8F4E98C848C74F03F8831413145B@dlee03.ent.ti.com>
+	 <dbdb2ea60810061445n532e361fj5a188e0898baca24@mail.gmail.com>
+	 <36DDB8F8BC2C8F4E98C848C74F03F883141B5408@dlee03.ent.ti.com>
+	 <48EB5D2A.1010605@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from wf-out-1314.google.com ([209.85.200.170]:5184 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753717AbYJIPIp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 11:08:45 -0400
+Received: by wf-out-1314.google.com with SMTP id 27so108130wfd.4
+        for <linux-omap@vger.kernel.org>; Thu, 09 Oct 2008 08:08:44 -0700 (PDT)
+In-Reply-To: <48EB5D2A.1010605@nokia.com>
 Content-Disposition: inline
-In-Reply-To: <20081009144737.GG435@flint.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://lists.arm.linux.org.uk/lurker/list/linux-arm-kernel.html>
-List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
-List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
-List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.arm.linux.org.uk
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Syed Mohammed Khasim <x0khasim@ti.com>, Karthik Dasu <karthik-dp@ti.com>, Adrian Hunter <ext-adrian.hunter@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Cc: "Deacon, Keith" <kdeacon@ti.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, anilvpr@gmail.com, Mat Johnson <seevion@aol.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [081009 18:07]:
-> On Fri, Oct 03, 2008 at 03:09:35PM +0300, Tony Lindgren wrote:
-> > @@ -51,12 +53,39 @@ static struct map_desc omap2_io_desc[] __initdata = {
-> >  		.type		= MT_DEVICE
-> >  	},
-> >  	{
-> > -		.virtual        = L4_24XX_VIRT,
-> > -		.pfn            = __phys_to_pfn(L4_24XX_PHYS),
-> > -		.length         = L4_24XX_SIZE,
-> > -		.type           = MT_DEVICE
-> > +		.virtual	= L4_24XX_VIRT,
-> > +		.pfn		= __phys_to_pfn(L4_24XX_PHYS),
-> > +		.length		= L4_24XX_SIZE,
-> > +		.type		= MT_DEVICE
-> 
-> It would be good to transition all of the OMAP structure initializations
-> over to using a trailing ',' on the last initializer as per the rest of
-> the kernel source.  Having that additional ',' makes script based
-> rewriting of the contents of structures a lot easier, and reduces the
-> chances of patches clashing.
-> 
-> I'm not suggesting it as something that needs to be done now though.
+>
+> JFFS2 supports only read-only mmap.  If that is a problem, you could try
+> UBIFS.
+>
 
-Sure, I'll send you a patch for that after the merge window. Along
-with the fix for omap cpu detection and mmc init.
+Now when mounting rootfs as yaffs2, the servicemanager dies/exits
+almost immediately on android startup, and logcat output is shown
+below.  However, when mounting same rootfs via NFS, I don't see this
+problem (though I do have other issues).  Does the error
 
-Tony
+E/dalvikvm-gc(  483): Could not create 176128-byte ashmem mark stack
 
--------------------------------------------------------------------
-List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
-FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
-Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
+indicate a specific problem?  Might there be a way to dump more
+specific/verbose output at startup to get a better understanding of
+what's wrong?
+
+Thanks,
+twebb
+
+
+I/DEBUG   (  481): debuggerd: Aug 14 2008 18:58:32
+E/mountd  (  480): could not read initial mass storage state
+D/AndroidRuntime(  483):
+D/AndroidRuntime(  483): >>>>>>>>>>>>>> AndroidRuntime START <<<<<<<<<<<<<<
+D/AndroidRuntime(  483): CheckJNI is ON
+D/AndroidRuntime(  483): --- registering native functions ---
+I/Zygote  (  483): Preloading classes...
+E/dalvikvm-gc(  483): Could not create 176128-byte ashmem mark stack
