@@ -1,44 +1,86 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH 0/7] Integrate the twl4030 power code into new twl4030 mfd
-Date: Fri, 10 Oct 2008 19:56:09 +0300
-Message-ID: <1223657776-16544-1-git-send-email-peter.de-schrijver@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] i2c-omap: fix I2C timeouts due to recursive
+ omap_i2c_{un,}idle()
+Date: Fri, 10 Oct 2008 10:58:30 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0810101056020.13922@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:56021 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761626AbYJJQ44 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 12:56:56 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9AGu9KS000850
-	for <linux-omap@vger.kernel.org>; Fri, 10 Oct 2008 11:56:54 -0500
+Received: from utopia.booyaka.com ([72.9.107.138]:45420 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758412AbYJJQ6d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 12:58:33 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: david-b@pacbell.net, r-woodruff2@ti.com
 
-This patchset integrates the twl4030 power code into the new twl4030 mfd framework. The scripts will be moved to the board specific data.
 
-Peter 'p2' De Schrijver (7):
-  Remove existing twl4030 power script code.
-  Add defines and data types for twl4030.
-  Twl4030 power code updated for new twl4030 core
-  Hook twl4030 power code into twl4030 core.
-  3430sdp and ldp use custom twl4030 power scripts.
-  Generic twl4030 power script for 3430 based boards.
-  omap3 evm beagle and overo use the generic twl4030 script
+omap_i2c_unidle() and omap_i2c_idle() are called recursively during
+omap_i2c_probe().  This is evidently unexpected and will wipe
+out the I2C interrupt enable register the second time that
+omap_i2c_idle() is called consecutively.  Any I2C transactions
+following a probe of a bus with at least one device on it will then
+time out.
 
- arch/arm/mach-omap2/Makefile                  |    9 +-
- arch/arm/mach-omap2/board-3430sdp.c           |   61 +++++
- arch/arm/mach-omap2/board-ldp.c               |   62 +++++
- arch/arm/mach-omap2/board-omap3beagle.c       |    3 +
- arch/arm/mach-omap2/board-omap3evm.c          |    3 +
- arch/arm/mach-omap2/board-overo.c             |    3 +
- arch/arm/mach-omap2/twl4030-generic-scripts.c |   78 ++++++
- drivers/i2c/chips/twl4030-power.c             |  343 -------------------------
- drivers/mfd/twl4030-core.c                    |   11 +
- drivers/mfd/twl4030-power.c                   |  270 +++++++++++++++++++
- include/linux/i2c/twl4030.h                   |   64 +++++
- 11 files changed, 561 insertions(+), 346 deletions(-)
- create mode 100644 arch/arm/mach-omap2/twl4030-generic-scripts.c
- delete mode 100644 drivers/i2c/chips/twl4030-power.c
- create mode 100644 drivers/mfd/twl4030-power.c
+Fix by moving omap_i2c_idle() further up in omap_i2c_probe().  Ensure
+the I2C controller is marked as idle before the probe starts.  Also
+attempt to catch future reappearances of this bug early in development
+by warning in omap_i2c_{un,}idle() when they are called recursively.
 
+Problem reported by David Brownell <david-b@pacbell.net>.
+
+Tested on 3430SDP and 2430SDP.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Richard Woodruff <r-woodruff2@ti.com>
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 1e6c3fd..a999606 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -202,6 +202,8 @@ static void omap_i2c_put_clocks(struct omap_i2c_dev *dev)
+ 
+ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
+ {
++	WARN_ON(!dev->idle);
++
+ 	if (dev->iclk != NULL)
+ 		clk_enable(dev->iclk);
+ 	clk_enable(dev->fclk);
+@@ -214,6 +216,8 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
+ {
+ 	u16 iv;
+ 
++	WARN_ON(dev->idle);
++
+ 	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+ 	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
+ 	if (dev->rev1)
+@@ -748,6 +752,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		*speed = 100; /* Defualt speed */
+ 
+ 	dev->speed = *speed;
++	dev->idle = 1;
+ 	dev->dev = &pdev->dev;
+ 	dev->irq = irq->start;
+ 	dev->base = ioremap(mem->start, mem->end - mem->start + 1);
+@@ -797,6 +802,8 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	dev_info(dev->dev, "bus %d rev%d.%d at %d kHz\n",
+ 		 pdev->id, r >> 4, r & 0xf, dev->speed);
+ 
++	omap_i2c_idle(dev);
++
+ 	adap = &dev->adapter;
+ 	i2c_set_adapdata(adap, dev);
+ 	adap->owner = THIS_MODULE;
+@@ -813,8 +820,6 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		goto err_free_irq;
+ 	}
+ 
+-	omap_i2c_idle(dev);
+-
+ 	return 0;
+ 
+ err_free_irq:
