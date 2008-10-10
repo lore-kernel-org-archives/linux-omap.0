@@ -1,130 +1,311 @@
 From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH 7/7] omap3 evm, beagle and overo use the generic twl4030 script
-Date: Fri, 10 Oct 2008 19:56:16 +0300
-Message-ID: <1223657776-16544-8-git-send-email-peter.de-schrijver@nokia.com>
+Subject: [PATCH 3/7] Twl4030 power code updated for new twl4030 core
+Date: Fri, 10 Oct 2008 19:56:12 +0300
+Message-ID: <1223657776-16544-4-git-send-email-peter.de-schrijver@nokia.com>
 References: <1223657776-16544-1-git-send-email-peter.de-schrijver@nokia.com>
  <1223657776-16544-2-git-send-email-peter.de-schrijver@nokia.com>
  <1223657776-16544-3-git-send-email-peter.de-schrijver@nokia.com>
- <1223657776-16544-4-git-send-email-peter.de-schrijver@nokia.com>
- <1223657776-16544-5-git-send-email-peter.de-schrijver@nokia.com>
- <1223657776-16544-6-git-send-email-peter.de-schrijver@nokia.com>
- <1223657776-16544-7-git-send-email-peter.de-schrijver@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:42990 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758822AbYJJQ4d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 12:56:33 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9AGuRT8013211
-	for <linux-omap@vger.kernel.org>; Fri, 10 Oct 2008 19:56:30 +0300
-In-Reply-To: <1223657776-16544-7-git-send-email-peter.de-schrijver@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:55990 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755842AbYJJQ42 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 12:56:28 -0400
+Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9AGuMY6000912
+	for <linux-omap@vger.kernel.org>; Fri, 10 Oct 2008 11:56:25 -0500
+In-Reply-To: <1223657776-16544-3-git-send-email-peter.de-schrijver@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-Make omap3 evm, beagle and overo use the generic twl4030 script.
+This patch adds the twl4030 power handling. It downloads the scripts provided
+by the board configuration to the twl4030 and configures the chip to call
+the relevant script for each event (processor group 1 and 2 sleep,
+processor group 3 sleep, wakeup or warm reset).
 
 Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 ---
- arch/arm/mach-omap2/Makefile            |    9 ++++++---
- arch/arm/mach-omap2/board-omap3beagle.c |    3 +++
- arch/arm/mach-omap2/board-omap3evm.c    |    3 +++
- arch/arm/mach-omap2/board-overo.c       |    3 +++
- 4 files changed, 15 insertions(+), 3 deletions(-)
+ drivers/mfd/twl4030-power.c |  270 +++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 270 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/mfd/twl4030-power.c
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 33de217..ed0cd7a 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -58,10 +58,12 @@ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
- obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
- 					   hsmmc.o \
- 					   usb-musb.o usb-ehci.o \
--					   board-omap3evm-flash.o
-+					   board-omap3evm-flash.o \
-+					   twl4030-generic-scripts.o
- obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
- 					   usb-musb.o usb-ehci.o \
--					   hsmmc.o
-+					   hsmmc.o \
-+					   twl4030-generic-scripts.o
- obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
- 					   hsmmc.o \
- 					   usb-musb.o
-@@ -77,7 +79,8 @@ obj-$(CONFIG_MACH_NOKIA_N810)		+= board-n810.o
- obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
- 					   hsmmc.o \
- 					   usb-musb.o \
--					   usb-ehci.o
-+					   usb-ehci.o \
-+					   twl4030-generic-scripts.o
- 
- # TUSB 6010 chips
- obj-$(CONFIG_MACH_OMAP2_TUSB6010)	+= usb-tusb6010.o
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 19702c7..1579a5e 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -51,6 +51,8 @@
- 
- #define NAND_BLOCK_SIZE		SZ_128K
- 
-+extern struct twl4030_power_data generic3430_t2scripts_data;
+diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+new file mode 100644
+index 0000000..bdeac36
+--- /dev/null
++++ b/drivers/mfd/twl4030-power.c
+@@ -0,0 +1,270 @@
++/*
++ * linux/drivers/i2c/chips/twl4030-power.c
++ *
++ * Handle TWL4030 Power initialization
++ *
++ * Copyright (C) 2008 Nokia Corporation
++ * Copyright (C) 2006 Texas Instruments, Inc
++ *
++ * Written by 	Kalle Jokiniemi
++ *		Peter De Schrijver <peter.de-schrijver@nokia.com>
++ *
++ * This file is subject to the terms and conditions of the GNU General
++ * Public License. See the file "COPYING" in the main directory of this
++ * archive for more details.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
 +
- static struct mtd_partition omap3beagle_nand_partitions[] = {
- 	/* All the partition sizes are listed in terms of NAND block size */
- 	{
-@@ -149,6 +151,7 @@ static struct twl4030_platform_data beagle_twldata = {
- 	/* platform_data for children goes here */
- 	.usb		= &beagle_usb_data,
- 	.gpio		= &beagle_gpio_data,
-+	.power		= &generic3430_t2scripts_data,
- };
- 
- static struct i2c_board_info __initdata beagle_i2c_boardinfo[] = {
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 3538067..dd7d1b7 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -42,6 +42,8 @@
- 
- #include "sdram-micron-mt46h32m32lf-6.h"
- 
-+extern struct twl4030_power_data generic3430_t2scripts_data;
++#include <linux/module.h>
++#include <linux/pm.h>
++#include <linux/i2c/twl4030.h>
++#include <linux/platform_device.h>
 +
- static struct resource omap3evm_smc911x_resources[] = {
- 	[0] =	{
- 		.start  = OMAP3EVM_ETHR_START,
-@@ -139,6 +141,7 @@ static struct twl4030_platform_data omap3evm_twldata = {
- 	.keypad		= &omap3evm_kp_data,
- 	.madc		= &omap3evm_madc_data,
- 	.usb		= &omap3evm_usb_data,
-+	.power		= &generic3430_t2scripts_data,
- 	.gpio		= &omap3evm_gpio_data,
- };
- 
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 4e2781a..4d2203f 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -55,6 +55,8 @@
- #define GPMC_CS0_BASE  0x60
- #define GPMC_CS_SIZE   0x30
- 
-+extern struct twl4030_power_data generic3430_t2scripts_data;
++#include <asm/mach-types.h>
 +
- static struct mtd_partition overo_nand_partitions[] = {
- 	{
- 		.name           = "xloader",
-@@ -160,6 +162,7 @@ static struct twl4030_platform_data overo_twldata = {
- 	.irq_end	= TWL4030_IRQ_END,
- 	.gpio		= &overo_gpio_data,
- 	.usb		= &overo_usb_data,
-+	.power		= &generic3430_t2scripts_data,
- };
- 
- static struct i2c_board_info __initdata overo_i2c_boardinfo[] = {
++static u8 triton_next_free_address = 0x2b;
++
++#define PWR_P1_SW_EVENTS	0x10
++#define PWR_DEVOFF	(1<<0)
++
++#define PHY_TO_OFF_PM_MASTER(p)		(p - 0x36)
++#define PHY_TO_OFF_PM_RECEIVER(p)	(p - 0x5b)
++
++/* resource - hfclk */
++#define R_HFCLKOUT_DEV_GRP 	PHY_TO_OFF_PM_RECEIVER(0xe6)
++
++/* PM events */
++#define R_P1_SW_EVENTS		PHY_TO_OFF_PM_MASTER(0x46)
++#define R_P2_SW_EVENTS		PHY_TO_OFF_PM_MASTER(0x47)
++#define R_P3_SW_EVENTS		PHY_TO_OFF_PM_MASTER(0x48)
++#define R_CFG_P1_TRANSITION	PHY_TO_OFF_PM_MASTER(0x36)
++#define R_CFG_P2_TRANSITION	PHY_TO_OFF_PM_MASTER(0x37)
++#define R_CFG_P3_TRANSITION	PHY_TO_OFF_PM_MASTER(0x38)
++
++#define LVL_WAKEUP	0x08
++
++#define ENABLE_WARMRESET (1<<4)
++
++#define END_OF_SCRIPT		0x3f
++
++#define R_SEQ_ADD_A2S		PHY_TO_OFF_PM_MASTER(0x55)
++#define R_SEQ_ADD_SA12		PHY_TO_OFF_PM_MASTER(0x56)
++#define	R_SEQ_ADD_S2A3		PHY_TO_OFF_PM_MASTER(0x57)
++#define	R_SEQ_ADD_WARM		PHY_TO_OFF_PM_MASTER(0x58)
++#define R_MEMORY_ADDRESS	PHY_TO_OFF_PM_MASTER(0x59)
++#define R_MEMORY_DATA		PHY_TO_OFF_PM_MASTER(0x5a)
++
++#define R_PROTECT_KEY		0x0E
++#define KEY_1			0xC0
++#define KEY_2			0x0C
++
++static int __init twl4030_write_script_byte(u8 address, u8 byte)
++{
++	int err;
++
++	err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, address,
++					R_MEMORY_ADDRESS);
++	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, byte,
++					R_MEMORY_DATA);
++
++	return err;
++}
++
++static int __init twl4030_write_script_ins(u8 address, u16 pmb_message,
++						u8 delay, u8 next)
++{
++	int err = 0;
++
++	address *= 4;
++	err |= twl4030_write_script_byte(address++, pmb_message >> 8);
++	err |= twl4030_write_script_byte(address++, pmb_message & 0xff);
++	err |= twl4030_write_script_byte(address++, delay);
++	err |= twl4030_write_script_byte(address++, next);
++
++	return err;
++}
++
++static int __init twl4030_write_script(u8 address, struct twl4030_ins *script,
++					int len)
++{
++	int err = 0;
++
++	for (; len; len--, address++, script++) {
++		if (len == 1)
++			err |= twl4030_write_script_ins(address,
++							script->pmb_message,
++							script->delay,
++							END_OF_SCRIPT);
++		else
++			err |= twl4030_write_script_ins(address,
++							script->pmb_message,
++							script->delay,
++							address + 1);
++	}
++
++	return err;
++}
++
++static int __init config_wakeup3_sequence(u8 address)
++{
++
++	int err = 0;
++
++	/* Set SLEEP to ACTIVE SEQ address for P3 */
++	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, address,
++				  R_SEQ_ADD_S2A3);
++
++	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, LVL_WAKEUP,
++					R_P3_SW_EVENTS);
++	if (err)
++		printk(KERN_ERR "TWL4030 wakeup sequence for P3" \
++				"config error\n");
++
++	return err;
++}
++
++static int __init config_wakeup12_sequence(u8 address)
++{
++	int err = 0;
++
++	/* Set SLEEP to ACTIVE SEQ address for P1 and P2 */
++	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, address,
++				  R_SEQ_ADD_SA12);
++
++	/* P1/P2/P3 LVL_WAKEUP should be on LEVEL */
++	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, LVL_WAKEUP,
++					R_P1_SW_EVENTS);
++	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, LVL_WAKEUP,
++					R_P2_SW_EVENTS);
++
++	if (machine_is_omap_3430sdp() || machine_is_omap_ldp()) {
++		u8 data;
++		/* Disabling AC charger effect on sleep-active transitions */
++		err |= twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &data,
++						R_CFG_P1_TRANSITION);
++		data &= ~(1<<1);
++		err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, data ,
++						R_CFG_P1_TRANSITION);
++	}
++
++	if (err)
++		printk(KERN_ERR "TWL4030 wakeup sequence for P1 and P2" \
++				"config error\n");
++
++	return err;
++}
++
++static int __init config_sleep_sequence(u8 address)
++{
++	int err = 0;
++
++	/*
++	 * CLKREQ is pulled high on the 2430SDP, therefore, we need to take
++	 * it out of the HFCLKOUT DEV_GRP for P1 else HFCLKOUT can't be stopped.
++	 */
++
++	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++				  0x20, R_HFCLKOUT_DEV_GRP);
++
++	/* Set ACTIVE to SLEEP SEQ address in T2 memory*/
++	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, address,
++				  R_SEQ_ADD_A2S);
++
++	if (err)
++		printk(KERN_ERR "TWL4030 sleep sequence config error\n");
++
++	return err;
++}
++
++static int __init config_warmreset_sequence(u8 address)
++{
++
++	int err = 0;
++	u8 rd_data;
++
++	/* Set WARM RESET SEQ address for P1 */
++	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, address,
++					R_SEQ_ADD_WARM);
++
++	/* P1/P2/P3 enable WARMRESET */
++	err |= twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &rd_data,
++					R_P1_SW_EVENTS);
++	rd_data |= ENABLE_WARMRESET;
++	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, rd_data,
++					R_P1_SW_EVENTS);
++
++	err |= twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &rd_data,
++					R_P2_SW_EVENTS);
++	rd_data |= ENABLE_WARMRESET;
++	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, rd_data,
++					R_P2_SW_EVENTS);
++
++	err |= twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &rd_data,
++					R_P3_SW_EVENTS);
++	rd_data |= ENABLE_WARMRESET;
++	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, rd_data,
++					R_P3_SW_EVENTS);
++
++	if (err)
++		printk(KERN_ERR
++			"TWL4030 Power Companion Warmreset seq config error\n");
++	return err;
++}
++
++static int __init load_triton_script(struct twl4030_script *tscript)
++{
++	u8 address = triton_next_free_address;
++	int err;
++
++	err = twl4030_write_script(address, tscript->script, tscript->size);
++	if (err)
++		return err;
++
++	triton_next_free_address += tscript->size;
++
++	if (tscript->flags & TRITON_WRST_SCRIPT)
++		err |= config_warmreset_sequence(address);
++
++	if (tscript->flags & TRITON_WAKEUP12_SCRIPT)
++		err |= config_wakeup12_sequence(address);
++
++	if (tscript->flags & TRITON_WAKEUP3_SCRIPT)
++		err |= config_wakeup3_sequence(address);
++
++	if (tscript->flags & TRITON_SLEEP_SCRIPT)
++		err |= config_sleep_sequence(address);
++
++	return err;
++}
++
++void __init twl4030_power_init(struct twl4030_power_data *triton2_scripts)
++{
++	int err = 0;
++	int i;
++
++	err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, KEY_1,
++				R_PROTECT_KEY);
++	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, KEY_2,
++				R_PROTECT_KEY);
++	if (err)
++		return err;
++
++	for (i = 0; i < triton2_scripts->size; i++) {
++		err = load_triton_script(triton2_scripts->scripts[i]);
++		if (err)
++			return err;
++	}
++
++	err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0, R_PROTECT_KEY);
++
++	return err;
++
++}
 -- 
 1.5.6.3
 
