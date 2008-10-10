@@ -1,37 +1,19 @@
 From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH 0/1] Enable CONFIG_GPIO_TWL4030=y
-Date: Fri, 10 Oct 2008 17:42:34 +0530
-Message-ID: <1223640754-27304-1-git-send-email-premi@ti.com>
+Subject: [PATCH 1/1] Enable CONFIG_GPIO_TWL4030=y
+Date: Fri, 10 Oct 2008 17:48:58 +0530
+Message-ID: <1223641138-27480-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42980 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753053AbYJJMMn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Oct 2008 08:12:43 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:34635 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753325AbYJJMTH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 08:19:07 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9ACCa6a030959
-	for <linux-omap@vger.kernel.org>; Fri, 10 Oct 2008 07:12:42 -0500
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9ACIxBD006182
+	for <linux-omap@vger.kernel.org>; Fri, 10 Oct 2008 07:19:05 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Sanjeev Premi <premi@ti.com>
-
-Re-submit after updates to omap_2430sdp_defconfig
-
-Sanjeev Premi (1):
-  Enable CONFIG_GPIO_TWL4030=y
-
- arch/arm/configs/omap2_evm_defconfig    |    1 +
- arch/arm/configs/omap3_beagle_defconfig |    1 +
- arch/arm/configs/omap3_evm_defconfig    |    1 +
- arch/arm/configs/omap_2430sdp_defconfig |   22 ++++++++++++++++++++++
- arch/arm/configs/omap_3430sdp_defconfig |    1 +
- arch/arm/configs/omap_ldp_defconfig     |    1 +
- 6 files changed, 27 insertions(+), 0 deletions(-)
-
->From 0679bcd6dd5d24e2b1ddf549a758f170d42948f8 Mon Sep 17 00:00:00 2001
-From: Sanjeev Premi <premi@ti.com>
-Date: Fri, 10 Oct 2008 16:25:12 +0530
-Subject: [PATCH 1/1] Enable CONFIG_GPIO_TWL4030=y
 
 Without this option, kernel builds would fail, with
 errors similar to:
