@@ -1,56 +1,53 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH] [omap2] Fix compiler warnings in gpmc.c
-Date: Fri, 10 Oct 2008 15:49:51 +0530
-Message-ID: <1223633991-32406-1-git-send-email-premi@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/3] Add PM debug counters on top of PM counters
+Date: Fri, 10 Oct 2008 13:23:26 +0300
+Message-ID: <87wsggzr35.fsf@deeprootsystems.com>
+References: <1223386396-29560-1-git-send-email-peter.de-schrijver@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37935 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751991AbYJJKUC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Oct 2008 06:20:02 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9AAJs8R012304
-	for <linux-omap@vger.kernel.org>; Fri, 10 Oct 2008 05:20:00 -0500
+Received: from ug-out-1314.google.com ([66.249.92.169]:53814 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752493AbYJJKXi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 06:23:38 -0400
+Received: by ug-out-1314.google.com with SMTP id k3so1247402ugf.37
+        for <linux-omap@vger.kernel.org>; Fri, 10 Oct 2008 03:23:36 -0700 (PDT)
+In-Reply-To: <1223386396-29560-1-git-send-email-peter.de-schrijver@nokia.com> (Peter De Schrijver's message of "Tue\,  7 Oct 2008 16\:33\:13 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
+To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Fix these compiler warnings:
+"Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
 
-gpmc.c: In function 'gpmc_init':
-gpmc.c:432: warning: 'return' with a value, in function returning void
-gpmc.c:439: warning: 'return' with a value, in function returning void
+> This patch provides the PM debug counters and time feature on top of
+> the PM counters. Patch based on pm-1 branch + PM counters patch.
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
----
- arch/arm/mach-omap2/gpmc.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+Peter,
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index f3e0271..4365c59 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -429,18 +429,16 @@ void __init gpmc_init(void)
- 	gpmc_l3_clk = clk_get(NULL, ck);
- 	if (IS_ERR(gpmc_l3_clk)) {
- 		printk(KERN_ERR "Could not get GPMC clock %s\n", ck);
--		return -ENODEV;
-+		BUG();
- 	}
- 
- 	gpmc_base = ioremap(l, SZ_4K);
- 	if (!gpmc_base) {
- 		clk_put(gpmc_l3_clk);
- 		printk(KERN_ERR "Could not get GPMC register memory\n");
--		return -ENOMEM;
-+		BUG();
- 	}
- 
--	BUG_ON(IS_ERR(gpmc_l3_clk));
--
- 	l = gpmc_read_reg(GPMC_REVISION);
- 	printk(KERN_INFO "GPMC revision %d.%d\n", (l >> 4) & 0x0f, l & 0x0f);
- 	/* Set smart idle mode and automatic L3 clock gating */
--- 
-1.5.6
+Can you refresh these against l-o master + PM counters patch?  Also,
+it would be helpful to have a more thorough desciption of each patch.
 
+Thanks,
+
+Kevin
+
+> Peter 'p2' De Schrijver (3):
+>   Add closures to clkdm_for_each
+>   Add pm-debug counters
+>   Hook into powerdomain code
+>
+>  arch/arm/mach-omap2/clockdomain.c             |   31 +-----
+>  arch/arm/mach-omap2/pm-debug.c                |  153 ++++++++++++-------------
+>  arch/arm/mach-omap2/pm.h                      |   19 +---
+>  arch/arm/mach-omap2/pm24xx.c                  |    2 +-
+>  arch/arm/mach-omap2/pm34xx.c                  |   13 +--
+>  arch/arm/mach-omap2/powerdomain.c             |   95 +++-------------
+>  arch/arm/plat-omap/include/mach/clockdomain.h |    3 +-
+>  arch/arm/plat-omap/include/mach/powerdomain.h |   14 ++-
+>  8 files changed, 114 insertions(+), 216 deletions(-)
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
