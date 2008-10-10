@@ -1,46 +1,34 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: [PATCH] i2c-omap: fix I2C timeouts due to recursive omap_i2c_{un,}idle()
-Date: Fri, 10 Oct 2008 10:48:39 -0700
-Message-ID: <5e088bd90810101048v6919541i7c76be248d8e4ac6@mail.gmail.com>
-References: <alpine.DEB.2.00.0810101056020.13922@utopia.booyaka.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 7/7] omap3 evm, beagle and overo use the generic twl4030 script
+Date: Fri, 10 Oct 2008 10:50:29 -0700
+Message-ID: <200810101050.29525.david-b@pacbell.net>
+References: <1223657776-16544-1-git-send-email-peter.de-schrijver@nokia.com> <1223657776-16544-7-git-send-email-peter.de-schrijver@nokia.com> <1223657776-16544-8-git-send-email-peter.de-schrijver@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f16.google.com ([209.85.217.16]:51448 "EHLO
-	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756053AbYJJRsl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 13:48:41 -0400
-Received: by gxk9 with SMTP id 9so1049054gxk.13
-        for <linux-omap@vger.kernel.org>; Fri, 10 Oct 2008 10:48:40 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.0810101056020.13922@utopia.booyaka.com>
+Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92]:32824 "HELO
+	smtp119.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1761238AbYJJRuc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Oct 2008 13:50:32 -0400
+In-Reply-To: <1223657776-16544-8-git-send-email-peter.de-schrijver@nokia.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, David Brownell <david-b@pacbell.net>
+To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Oct 10, 2008 at 9:58 AM, Paul Walmsley <paul@pwsan.com> wrote:
->
-> omap_i2c_unidle() and omap_i2c_idle() are called recursively during
-> omap_i2c_probe().  This is evidently unexpected and will wipe
-> out the I2C interrupt enable register the second time that
-> omap_i2c_idle() is called consecutively.  Any I2C transactions
-> following a probe of a bus with at least one device on it will then
-> time out.
->
-> Fix by moving omap_i2c_idle() further up in omap_i2c_probe().  Ensure
-> the I2C controller is marked as idle before the probe starts.  Also
-> attempt to catch future reappearances of this bug early in development
-> by warning in omap_i2c_{un,}idle() when they are called recursively.
->
-> Problem reported by David Brownell <david-b@pacbell.net>.
->
-> Tested on 3430SDP and 2430SDP.
->
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: David Brownell <david-b@pacbell.net>
-> Cc: Richard Woodruff <r-woodruff2@ti.com>
+On Friday 10 October 2008, Peter 'p2' De Schrijver wrote:
+> +extern struct twl4030_power_data generic3430_t2scripts_data;
 
-I can confirm that this patch eliminates the i2c timeout issues on Overo.
+Such "extern" decls should as a rule be in header files...
 
-Acked-by; Steve Sakoman <steve@sakoman.com>
+In this case the rule is appropriate, since you've got the
+same decl in three different places.  That's about two times
+more often than I'm comfortable making exceptions to such a
+rule ... :)
+
+- Dave
+
