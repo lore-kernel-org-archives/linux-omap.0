@@ -1,70 +1,85 @@
-From: "Juha Kuikka" <juha.kuikka@gmail.com>
-Subject: Re: HEAD unbootable on 2430SDP
-Date: Thu, 9 Oct 2008 17:35:44 -0700
-Message-ID: <a46a26fd0810091735o107fcebcs479ac33a43ff0d4e@mail.gmail.com>
-References: <a46a26fd0810061633h788d7c96ke5eb4a1f5fe440d4@mail.gmail.com>
-	 <13B9B4C6EF24D648824FF11BE89671620365AE0E8F@dlee02.ent.ti.com>
-	 <a46a26fd0810061708xdd4b50ax150132fdca62f83@mail.gmail.com>
-	 <a46a26fd0810071757y41094df1o1b99e3a0dd6d5e0a@mail.gmail.com>
+From: "Rajendra Nayak" <rnayak@ti.com>
+Subject: RE: [PATCH 00/05] OMAP3: CPUidle driver
+Date: Fri, 10 Oct 2008 09:14:12 +0530
+Message-ID: <00dc01c92a8a$778b96a0$LocalHost@wipultra1382>
+References: <87prm9ucei.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wx-out-0506.google.com ([66.249.82.239]:64452 "EHLO
-	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753352AbYJJAfs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 20:35:48 -0400
-Received: by wx-out-0506.google.com with SMTP id h27so128798wxd.4
-        for <linux-omap@vger.kernel.org>; Thu, 09 Oct 2008 17:35:44 -0700 (PDT)
-In-Reply-To: <a46a26fd0810071757y41094df1o1b99e3a0dd6d5e0a@mail.gmail.com>
-Content-Disposition: inline
+Received: from comal.ext.ti.com ([198.47.26.152]:47235 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751539AbYJJDoY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2008 23:44:24 -0400
+In-Reply-To: <87prm9ucei.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: 'Kevin Hilman' <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-This problem was fixed by the patch in email:
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+> Sent: Thursday, October 09, 2008 6:57 PM
+> To: Rajendra Nayak
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 00/05] OMAP3: CPUidle driver
+> 
+> "Rajendra Nayak" <rnayak@ti.com> writes:
+> 
+> > This patch set implements Cpuidle driver for OMAP3 platforms. It is
+> > validated on the 3430SDP (using the omap_3430sdp_min_defconfig) and
+> > applies on the pm-20081006 branch.
+> 
+> Excellent.  Thank you.  I'll pull into pm-20081006 today.
+> 
+> One question: You have C6 to hit chip-off, but it is never enabled.
+> Has this been tested?  Enabling it allows me to hit chip OFF, but it
+> never comes back from OFF-mode.  I will push some patches to make this
+> work with /sys/power/enable_off_mode.
 
-[PATCH] OMAP2xxx: move SRAM to fix boot hang
+Yes, that was something I missed out in those patches. I will send in a patch
+to do that if you have'nt done it already.
 
-I thought the 0xD8000000 -> 0x40200000 in MMU tables looked a bit odd. :)
+> 
+> Some minor problems that I will fixup when rebasing to the next pm
+> branch:
+> 
+>  - You removed C0, but all the comments still refer to it
+>  - /sys/power/enable_off_mode doesn't affect off-mode states
+>    in CPUidle
+> 
+> patch 1:
+>  - I still don't like the #ifdefs for the init sequence.
+> 
+> patch 2:
+>  - checkpatch warning
 
-Thanks,
- - Juha
+That was for an extern in a C file (cpuidle34xx.c) and I was'nt sure which 
+header was the right place for it (since now we don't have a cpuidle34xx.h).
+So I kind of left it there.
 
-On Tue, Oct 7, 2008 at 5:57 PM, Juha Kuikka <juha.kuikka@gmail.com> wrote:
-> On Mon, Oct 6, 2008 at 5:08 PM, Juha Kuikka <juha.kuikka@gmail.com> wrote:
->>
->> On Mon, Oct 6, 2008 at 4:46 PM, Woodruff, Richard <r-woodruff2@ti.com> wrote:
->> >
->> >
->> >> I am running into a weird problem with the current HEAD on OMAP2430SDP.
->> >>
->> >> It seems the execution goes into infinite loop in intc_bank_read_reg()
->> >> function.
->> >>
->> >> In the:
->> >>         while (!(intc_bank_read_reg(bank, INTC_SYSSTATUS) & 0x1))
->> >>                 /* Wait for reset to complete */;
->> >
->> > Did your board boot loader setup the peripheral port remap register?
->>
->> I'm using the u-boot snapshot from
->> http://linux.omap.com/pub/bootloader/2430sdp/source/u-boot-Sept2507.tar.gz.
->>
->> And it seems to map it.
->>
->
-> I might also add that the kernel at
-> http://linux.omap.com/pub/kernel/2430sdp/source/linux-2.6.14-omap2-v5.tgz
-> boots without this issue.
->
->  - Juha
-> --
-> Madness takes it's toll. Please have exact change.
->
+> 
+> Kevin
+> 
+> > The following C states are defined and used 
+> >
+> >  *      C0 . System executing code (Not an idle state)
+> >  *      C1 . MPU WFI + Core active
+> >  *      C2 . MPU CSWR + Core active
+> >  *      C3 . MPU OFF + Core active
+> >  *      C4 . MPU CSWR + Core CSWR
+> >  *      C5 . MPU OFF + Core CSWR
+> >  *      C6 . MPU OFF + Core OFF
+> >
+> > CPUidle support is not enabled by default in any of the 
+> defconfigs and hence has to enabled seperately 
+> > if you plan to test these patches.
+> >
+> > CPUIdle ---> [*] CPU idle PM support
+> >
+> > regards,
+> > Rajendra
+> 
+> 
 
-
-
--- 
-Madness takes it's toll. Please have exact change.
