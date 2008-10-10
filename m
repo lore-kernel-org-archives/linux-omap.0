@@ -1,111 +1,68 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH] Enable CONFIG_GPIO_TWL4030=y
-Date: Fri, 10 Oct 2008 14:20:29 +0300
-Message-ID: <20081010112029.GF29131@gandalf.research.nokia.com>
-References: <1223636826-10107-1-git-send-email-premi@ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP2xxx: move SRAM to fix boot hang
+Date: Fri, 10 Oct 2008 14:24:58 +0300
+Message-ID: <20081010112457.GR3044@atomide.com>
+References: <20081009232100.13509.6688.stgit@localhost.localdomain> <20081009232106.13509.80699.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:26923 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750904AbYJJLU7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 07:20:59 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49174 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753810AbYJJLZE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 07:25:04 -0400
 Content-Disposition: inline
-In-Reply-To: <1223636826-10107-1-git-send-email-premi@ti.com>
+In-Reply-To: <20081009232106.13509.80699.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Sanjeev Premi <premi@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Jarkko Nikula <jarkko.nikula@nokia.com>, =?iso-8859-1?Q?M=E5nsRullg=E5rd?= <mans@mansr.com>
 
-On Fri, Oct 10, 2008 at 04:37:06PM +0530, ext Sanjeev Premi wrote:
-> Without this option, kernel builds would fail, with
-> errors similar to:
-> 
-> hsmmc.c:50: undefined reference to `twl4030_get_gpio_datain'
-> hsmmc.c:82: undefined reference to `twl4030_free_gpio'
-> hsmmc.c:63: undefined reference to `twl4030_request_gpio'
-> hsmmc.c:67: undefined reference to `twl4030_set_gpio_debounce'
+* Paul Walmsley <paul@pwsan.com> [081010 02:23]:
+> Commit 1c957036bbd912322793da676d05e169abf24782 breaks booting on
+> OMAP2; it causes the SRAM to be mapped on top of the L4 interconnect.
+> This causes the system to hang early in boot in omap_map_sram() durin=
+g
+> the TLB flush. Fix by moving SRAM elsewhere in the memory map.
+>=20
+> Reported by Jarkko Nikula <jarkko.nikula@nokia.com>.  This patch is a
+> collaboration with Tony Lindgren <tony@atomide.com> and
+> Kevin Hilman <khilman@deeprootsystems.com>.
+>=20
+> Boot-tested on 2430SDP (by Paul) and N810 (by Jarkko).
 
-Can you 2430sdp defconfig.
+Pushing.
 
-> 
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
+Tony
+
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Tested-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: M=E5ns Rullg=E5rd <mans@mansr.com>
 > ---
->  arch/arm/configs/omap2_evm_defconfig    |    1 +
->  arch/arm/configs/omap3_beagle_defconfig |    1 +
->  arch/arm/configs/omap3_evm_defconfig    |    1 +
->  arch/arm/configs/omap_3430sdp_defconfig |    1 +
->  arch/arm/configs/omap_ldp_defconfig     |    1 +
->  5 files changed, 5 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/configs/omap2_evm_defconfig b/arch/arm/configs/omap2_evm_defconfig
-> index 61f0965..b52426a 100644
-> --- a/arch/arm/configs/omap2_evm_defconfig
-> +++ b/arch/arm/configs/omap2_evm_defconfig
-> @@ -795,6 +795,7 @@ CONFIG_GPIOLIB=y
->  # CONFIG_GPIO_MAX732X is not set
->  # CONFIG_GPIO_PCA953X is not set
->  # CONFIG_GPIO_PCF857X is not set
-> +CONFIG_GPIO_TWL4030=y
->  
->  #
->  # PCI GPIO expanders:
-> diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
-> index 7805995..0d2f770 100644
-> --- a/arch/arm/configs/omap3_beagle_defconfig
-> +++ b/arch/arm/configs/omap3_beagle_defconfig
-> @@ -709,6 +709,7 @@ CONFIG_HAVE_GPIO_LIB=y
->  #
->  # CONFIG_GPIO_PCA953X is not set
->  # CONFIG_GPIO_PCF857X is not set
-> +CONFIG_GPIO_TWL4030=y
->  
->  #
->  # SPI GPIO expanders:
-> diff --git a/arch/arm/configs/omap3_evm_defconfig b/arch/arm/configs/omap3_evm_defconfig
-> index ebeaef3..507a689 100644
-> --- a/arch/arm/configs/omap3_evm_defconfig
-> +++ b/arch/arm/configs/omap3_evm_defconfig
-> @@ -779,6 +779,7 @@ CONFIG_HAVE_GPIO_LIB=y
->  #
->  # CONFIG_GPIO_PCA953X is not set
->  # CONFIG_GPIO_PCF857X is not set
-> +CONFIG_GPIO_TWL4030=y
->  
->  #
->  # SPI GPIO expanders:
-> diff --git a/arch/arm/configs/omap_3430sdp_defconfig b/arch/arm/configs/omap_3430sdp_defconfig
-> index 11c0cf7..bd6006c 100644
-> --- a/arch/arm/configs/omap_3430sdp_defconfig
-> +++ b/arch/arm/configs/omap_3430sdp_defconfig
-> @@ -790,6 +790,7 @@ CONFIG_HAVE_GPIO_LIB=y
->  #
->  # CONFIG_GPIO_PCA953X is not set
->  # CONFIG_GPIO_PCF857X is not set
-> +CONFIG_GPIO_TWL4030=y
->  
->  #
->  # SPI GPIO expanders:
-> diff --git a/arch/arm/configs/omap_ldp_defconfig b/arch/arm/configs/omap_ldp_defconfig
-> index 9a90975..fd34367 100644
-> --- a/arch/arm/configs/omap_ldp_defconfig
-> +++ b/arch/arm/configs/omap_ldp_defconfig
-> @@ -549,6 +549,7 @@ CONFIG_HAVE_GPIO_LIB=y
->  #
->  # CONFIG_GPIO_PCA953X is not set
->  # CONFIG_GPIO_PCF857X is not set
-> +CONFIG_GPIO_TWL4030=y
->  
->  #
->  # SPI GPIO expanders:
-> -- 
-> 1.5.6
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-balbi
+>  arch/arm/plat-omap/sram.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> index 853048d..027b101 100644
+> --- a/arch/arm/plat-omap/sram.c
+> +++ b/arch/arm/plat-omap/sram.c
+> @@ -37,8 +37,8 @@
+>  #define OMAP1_SRAM_VA		VMALLOC_END
+>  #define OMAP2_SRAM_PA		0x40200000
+>  #define OMAP2_SRAM_PUB_PA	0x4020f800
+> -#define OMAP2_SRAM_VA		VMALLOC_END
+> -#define OMAP2_SRAM_PUB_VA	(VMALLOC_END + 0x800)
+> +#define OMAP2_SRAM_VA		0xe3000000
+> +#define OMAP2_SRAM_PUB_VA	(OMAP2_SRAM_VA + 0x800)
+>  #define OMAP3_SRAM_PA           0x40200000
+>  #define OMAP3_SRAM_VA           0xd7000000
+>  #define OMAP3_SRAM_PUB_PA       0x40208000
+>=20
+>=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
