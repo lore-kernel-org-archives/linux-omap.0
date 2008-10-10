@@ -1,163 +1,60 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 2/5] HDQ: BQ27000 HDQ Slave Interface Driver
-Date: Fri, 10 Oct 2008 13:40:51 -0700
-Message-ID: <20081010134051.93be2ae9.akpm@linux-foundation.org>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02D6107AF2@dbde02.ent.ti.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: Git tree updated to v2.6.27, some issues remain
+Date: Sat, 11 Oct 2008 02:19:49 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870239624A2E@dbde02.ent.ti.com>
+References: <20081010120427.GZ3044@atomide.com>
+	 <200810100843.47808.david-b@pacbell.net>
+ <5e088bd90810100857p2cea5429s810c9810f05bd341@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46204 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758970AbYJJUot (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Oct 2008 16:44:49 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02D6107AF2@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:45155 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761248AbYJJUuJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 16:50:09 -0400
+In-Reply-To: <5e088bd90810100857p2cea5429s810c9810f05bd341@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: johnpol@2ka.mipt.ru, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, madhu.cr@ti.com
+To: Steve Sakoman <sakoman@gmail.com>, David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-On Wed, 8 Oct 2008 12:49:19 +0530
-"Gadiyar, Anand" <gadiyar@ti.com> wrote:
-
-> From: Madhusudhan Chikkature <madhu.cr@ti.com>
-> 
-> This patch provides the BQ27000 slave interface driver.
-> 
-> ...
+>Sent: Friday, October 10, 2008 10:58 AM
+>To: David Brownell; linux-omap@vger.kernel.org List
+>Subject: Re: Git tree updated to v2.6.27, some issues remain
 >
-> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-> +++ linux-2.6/drivers/w1/slaves/w1_bq27000.c	2008-09-26 14:43:42.000000000 +0530
-> @@ -0,0 +1,120 @@
-> +/*
-> + * drivers/w1/slaves/w1_bq27000.c
-> + *
-> + * Copyright (C) 2007 Texas Instruments, Inc.
-> + *
-> + * This file is licensed under the terms of the GNU General Public License
-> + * version 2. This program is licensed "as is" without any warranty of any
-> + * kind, whether express or implied.
-> + *
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/device.h>
-> +#include <linux/types.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/mutex.h>
-> +
-> +#include "../w1.h"
-> +#include "../w1_int.h"
-> +#include "../w1_family.h"
-> +
-> +#define HDQ_CMD_READ	(0)
-> +#define HDQ_CMD_WRITE	(1<<7)
-> +
-> +int F_ID;
-> +int family_id;
+>On Fri, Oct 10, 2008 at 8:43 AM, David Brownell <david-b@pacbell.net> wrote:
+>> On Friday 10 October 2008, Tony Lindgren wrote:
+>>> Anything else not working right now?
+>>
+>> MUSB on Overo...
+>
+>Indeed.  Any theories?
 
-No, we don't want to add kernel-wide symbols with names like this. 
-Please either rename them to something which clearly identifies the
-subsystem to which they belong, or make them static.
+My theory - 
 
-> +void w1_bq27000_write(struct device *dev, u8 buf, u8 reg)
-> +{
-> +	struct w1_slave *sl = container_of(dev, struct w1_slave, dev);
-> +	if (!dev) {
-> +		pr_info("Could not obtain slave dev ptr\n");
-> +		return;
-> +	}
-> +
-> +	w1_write_8(sl->master, HDQ_CMD_WRITE | reg);
-> +	w1_write_8(sl->master, buf);
-> +}
-> +EXPORT_SYMBOL(w1_bq27000_write);
-> +
-> +int w1_bq27000_read(struct device *dev, u8 reg)
-> +{
-> +	u8 val;
-> +	struct w1_slave *sl = container_of(dev, struct w1_slave, dev);
-> +	if (!dev)
-> +		return 0;
-> +
-> +	w1_write_8(sl->master, HDQ_CMD_READ | reg);
-> +	val = w1_read_8(sl->master);
-> +
-> +	return val;
-> +}
-> +EXPORT_SYMBOL(w1_bq27000_read);
+In: drivers/mfd/twl4030-core.c
+	struct resource r = {
+      	  .start = TWL4030_PWRIRQ_USB_PRES,
+	        .flags = IORESOURCE_IRQ,
+	};
+	status = platform_device_add_resources(pdev, &r, 1);
 
-It's conventional to put a blank line between end-of-locals and
-start-of-code.
+where value of TWL4030_PWRIRQ_USB_PRES = 378
 
-> +static int w1_bq27000_add_slave(struct w1_slave *sl)
-> +{
-> +	int ret;
-> +	int id = 1;
-> +	struct platform_device *pdev;
-> +
-> +	pdev = platform_device_alloc("bq27000-battery", id);
 
-Like that.
+In: drivers/i2c/chips/twl4030-usb.c
+       status = request_irq(twl->irq ^(378)^ , twl4030_usb_irq, 0, "twl4030_usb", twl);
+fails because 378 > NR_IRQS
 
-> +	if (!pdev) {
-> +		ret = -ENOMEM;
-> +		return ret;
-> +	}
-> +	pdev->dev.parent = &sl->dev;
-> +
-> +	ret = platform_device_add(pdev);
-> +	if (ret)
-> +		goto pdev_add_failed;
-> +
-> +	dev_set_drvdata(&sl->dev, pdev);
-> +
-> +	goto success;
-> +
-> +pdev_add_failed:
-> +	platform_device_unregister(pdev);
-> +success:
-> +	return ret;
-> +}
-> +
-> +static void w1_bq27000_remove_slave(struct w1_slave *sl)
-> +{
-> +	struct platform_device *pdev = dev_get_drvdata(&sl->dev);
-> +	platform_device_unregister(pdev);
-> +}
-> +
-> +static struct w1_family_ops w1_bq27000_fops = {
-> +	.add_slave	= w1_bq27000_add_slave,
-> +	.remove_slave	= w1_bq27000_remove_slave,
-> +};
-> +
-> +static struct w1_family w1_bq27000_family = {
-> +	.fid = 1,
-> +	.fops = &w1_bq27000_fops,
-> +};
-> +
-> +static int __init w1_bq27000_init(void)
-> +{
-> +	if (F_ID)
-> +		w1_bq27000_family.fid = F_ID;
-> +
-> +	return w1_register_family(&w1_bq27000_family);
-> +}
-> +
-> +static void __exit w1_bq27000_exit(void)
-> +{
-> +	w1_unregister_family(&w1_bq27000_family);
-> +}
-> +
-> +
-> +module_init(w1_bq27000_init);
-> +module_exit(w1_bq27000_exit);
-> +
-> +module_param(F_ID, int, S_IRUSR);
-> +
-> +MODULE_LICENSE("GPL");
-> +MODULE_AUTHOR("Texas Instruments Ltd");
-> +MODULE_DESCRIPTION("HDQ/1-wire slave driver bq27000 battery monitor chip");--
+
+
+>
+>I am trying a second build with EHCI enabled to see if it still dies on boot.
+>
+>Steve
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
