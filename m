@@ -1,68 +1,67 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP2xxx: move SRAM to fix boot hang
-Date: Fri, 10 Oct 2008 14:24:58 +0300
-Message-ID: <20081010112457.GR3044@atomide.com>
-References: <20081009232100.13509.6688.stgit@localhost.localdomain> <20081009232106.13509.80699.stgit@localhost.localdomain>
+Subject: Re: [PATCH] [omap2] Fix compiler warnings in gpmc.c
+Date: Fri, 10 Oct 2008 14:27:08 +0300
+Message-ID: <20081010112708.GS3044@atomide.com>
+References: <1223633991-32406-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49174 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50660 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753810AbYJJLZE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 07:25:04 -0400
+	with ESMTP id S1753255AbYJJL1L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 07:27:11 -0400
 Content-Disposition: inline
-In-Reply-To: <20081009232106.13509.80699.stgit@localhost.localdomain>
+In-Reply-To: <1223633991-32406-1-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Jarkko Nikula <jarkko.nikula@nokia.com>, =?iso-8859-1?Q?M=E5nsRullg=E5rd?= <mans@mansr.com>
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [081010 02:23]:
-> Commit 1c957036bbd912322793da676d05e169abf24782 breaks booting on
-> OMAP2; it causes the SRAM to be mapped on top of the L4 interconnect.
-> This causes the system to hang early in boot in omap_map_sram() durin=
-g
-> the TLB flush. Fix by moving SRAM elsewhere in the memory map.
->=20
-> Reported by Jarkko Nikula <jarkko.nikula@nokia.com>.  This patch is a
-> collaboration with Tony Lindgren <tony@atomide.com> and
-> Kevin Hilman <khilman@deeprootsystems.com>.
->=20
-> Boot-tested on 2430SDP (by Paul) and N810 (by Jarkko).
+* Sanjeev Premi <premi@ti.com> [081010 13:22]:
+> Fix these compiler warnings:
+> 
+> gpmc.c: In function 'gpmc_init':
+> gpmc.c:432: warning: 'return' with a value, in function returning void
+> gpmc.c:439: warning: 'return' with a value, in function returning void
 
 Pushing.
 
 Tony
 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Tested-by: Jarkko Nikula <jarkko.nikula@nokia.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: M=E5ns Rullg=E5rd <mans@mansr.com>
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
 > ---
->  arch/arm/plat-omap/sram.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
->=20
-> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-> index 853048d..027b101 100644
-> --- a/arch/arm/plat-omap/sram.c
-> +++ b/arch/arm/plat-omap/sram.c
-> @@ -37,8 +37,8 @@
->  #define OMAP1_SRAM_VA		VMALLOC_END
->  #define OMAP2_SRAM_PA		0x40200000
->  #define OMAP2_SRAM_PUB_PA	0x4020f800
-> -#define OMAP2_SRAM_VA		VMALLOC_END
-> -#define OMAP2_SRAM_PUB_VA	(VMALLOC_END + 0x800)
-> +#define OMAP2_SRAM_VA		0xe3000000
-> +#define OMAP2_SRAM_PUB_VA	(OMAP2_SRAM_VA + 0x800)
->  #define OMAP3_SRAM_PA           0x40200000
->  #define OMAP3_SRAM_VA           0xd7000000
->  #define OMAP3_SRAM_PUB_PA       0x40208000
->=20
->=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  arch/arm/mach-omap2/gpmc.c |    6 ++----
+>  1 files changed, 2 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index f3e0271..4365c59 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -429,18 +429,16 @@ void __init gpmc_init(void)
+>  	gpmc_l3_clk = clk_get(NULL, ck);
+>  	if (IS_ERR(gpmc_l3_clk)) {
+>  		printk(KERN_ERR "Could not get GPMC clock %s\n", ck);
+> -		return -ENODEV;
+> +		BUG();
+>  	}
+>  
+>  	gpmc_base = ioremap(l, SZ_4K);
+>  	if (!gpmc_base) {
+>  		clk_put(gpmc_l3_clk);
+>  		printk(KERN_ERR "Could not get GPMC register memory\n");
+> -		return -ENOMEM;
+> +		BUG();
+>  	}
+>  
+> -	BUG_ON(IS_ERR(gpmc_l3_clk));
+> -
+>  	l = gpmc_read_reg(GPMC_REVISION);
+>  	printk(KERN_INFO "GPMC revision %d.%d\n", (l >> 4) & 0x0f, l & 0x0f);
+>  	/* Set smart idle mode and automatic L3 clock gating */
+> -- 
+> 1.5.6
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
