@@ -1,53 +1,94 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 2.6.27-rc9-omap] i2c-omap: timeouts begone
-Date: Fri, 10 Oct 2008 05:36:42 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0810100527190.13922@utopia.booyaka.com>
-References: <A24693684029E5489D1D202277BE8944123692F2@dlee02.ent.ti.com> <20081008183808.GA31385@atomide.com> <200810081236.48940.david-b@pacbell.net> <200810081436.06810.david-b@pacbell.net> <20081008215455.GA15087@frodo>
- <13B9B4C6EF24D648824FF11BE89671620365B589EC@dlee02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Fix IO address issue.
+Date: Fri, 10 Oct 2008 14:41:14 +0300
+Message-ID: <20081010114111.GV3044@atomide.com>
+References: <1223629509-6111-1-git-send-email-roman.tereshonkov@nokia.com> <20081010090900.GB29131@gandalf.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37175 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754872AbYJJLgn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 07:36:43 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE89671620365B589EC@dlee02.ent.ti.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62343 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753809AbYJJLlS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 07:41:18 -0400
+Content-Disposition: inline
+In-Reply-To: <20081010090900.GB29131@gandalf.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "me@felipebalbi.com" <me@felipebalbi.com>, David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: ext Roman Tereshonkov <roman.tereshonkov@nokia.com>, linux-omap@vger.kernel.org
 
-Hi Richard,
-
-trying to fix this problem and have a few questions.
-
-On Wed, 8 Oct 2008, Woodruff, Richard wrote:
-
-> None of the module local OCP registers are being setup properly.  A 
-> write of a 0x2 kills other settings.  If after this operation the SSYC 
-> reg will say:
->         -Forced Idle
->         -Locally gate I+F clock on ocp-segment idle request
->         -wake up disabled
+* Felipe Balbi <felipe.balbi@nokia.com> [081010 12:24]:
+> On Fri, Oct 10, 2008 at 12:05:09PM +0300, Tereshonkov Roman wrote:
 > 
-> If it is left this way what can happen is when L4/L3 clock stop partial 
-> idle is broadcast, this module will ack and gate its clocks.  This will 
-> result in you dropping data. Or if the data was sent ok, but clock stop 
-> happens, you won't be able to wake the system properly as you've cleared 
-> the local wakeup generation.  The result will be a timeout.
+> A patch description would be great here
+> 
+> > 
+> > Signed-off-by: Roman Tereshonkov <roman.tereshonkov@nokia.com>
+> 
+> Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
 
-Okay, so for OMAP3, the workarounds in the omapzoom tree to change the 
-SYSC.CLOCKACTIVITY bits when the clocks are enabled and disabled are not 
-necessary?
+Pushing.
 
-It sounds like the only thing that is needed on OMAP3 is to make sure that 
-the SYSCONFIG register is set properly after a software reset? 
+Tony
 
-> On OMAP2 I2C wasn't hooked properly into PRCM for handshake so it needed 
-> a workaround.  The same isn't true for OMAP3.  Treating the two as if 
-> they are the same with respect to power is false.
-
-Could you explain further about which workaround this is?  OMAP2 I2C does 
-not appear to have any SYSC bits exposed other than SOFTRESET?
-
-- Paul
+> 
+> > ---
+> >  drivers/misc/sti/sdti.c |   12 ++++++------
+> >  1 files changed, 6 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/drivers/misc/sti/sdti.c b/drivers/misc/sti/sdti.c
+> > index c35821d..2631ccf 100644
+> > --- a/drivers/misc/sti/sdti.c
+> > +++ b/drivers/misc/sti/sdti.c
+> > @@ -32,7 +32,7 @@
+> >  #define CPU2_TRACE_EN		0x02
+> >  
+> >  static struct clk *sdti_ck;
+> > -unsigned long sti_base, sti_channel_base;
+> > +void __iomem *sti_base, *sti_channel_base;
+> >  static DEFINE_SPINLOCK(sdti_lock);
+> >  
+> >  void omap_sti_channel_write_trace(int len, int id, void *data,
+> > @@ -137,14 +137,14 @@ static int __devinit omap_sdti_probe(struct platform_device *pdev)
+> >  	}
+> >  
+> >  	size = res->end - res->start;
+> > -	sti_base = (unsigned long)ioremap(res->start, size);
+> > +	sti_base = ioremap(res->start, size);
+> >  	if (unlikely(!sti_base))
+> >  		return -ENODEV;
+> >  
+> >  	size = cres->end - cres->start;
+> > -	sti_channel_base = (unsigned long)ioremap(cres->start, size);
+> > +	sti_channel_base = ioremap(cres->start, size);
+> >  	if (unlikely(!sti_channel_base)) {
+> > -		iounmap((void *)sti_base);
+> > +		iounmap(sti_base);
+> >  		return -ENODEV;
+> >  	}
+> >  
+> > @@ -153,8 +153,8 @@ static int __devinit omap_sdti_probe(struct platform_device *pdev)
+> >  
+> >  static int __devexit omap_sdti_remove(struct platform_device *pdev)
+> >  {
+> > -	iounmap((void *)sti_channel_base);
+> > -	iounmap((void *)sti_base);
+> > +	iounmap(sti_channel_base);
+> > +	iounmap(sti_base);
+> >  	omap_sdti_exit();
+> >  
+> >  	return 0;
+> > -- 
+> > 1.5.5.1
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> -- 
+> balbi
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
