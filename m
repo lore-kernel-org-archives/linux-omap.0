@@ -1,59 +1,43 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: Git tree updated to v2.6.27, some issues remain
-Date: Sat, 11 Oct 2008 03:58:05 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870239624A47@dbde02.ent.ti.com>
+From: "Nathan Monson" <nmonson@gmail.com>
+Subject: Re: Git tree updated to v2.6.27, some issues remain
+Date: Fri, 10 Oct 2008 15:29:26 -0700
+Message-ID: <e5e6ade50810101529y53a1e203g68d5faeaaada22c7@mail.gmail.com>
 References: <20081010120427.GZ3044@atomide.com>
 	 <200810100843.47808.david-b@pacbell.net>
- <5e088bd90810100857p2cea5429s810c9810f05bd341@mail.gmail.com>
- <FCCFB4CDC6E5564B9182F639FC3560870239624A2E@dbde02.ent.ti.com>
- <FCCFB4CDC6E5564B9182F639FC3560870239624A46@dbde02.ent.ti.com>
+	 <5e088bd90810100857p2cea5429s810c9810f05bd341@mail.gmail.com>
+	 <FCCFB4CDC6E5564B9182F639FC3560870239624A2E@dbde02.ent.ti.com>
+	 <FCCFB4CDC6E5564B9182F639FC3560870239624A46@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42024 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750933AbYJJW2T convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 18:28:19 -0400
+Received: from qw-out-2122.google.com ([74.125.92.25]:35528 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751101AbYJJW31 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 18:29:27 -0400
+Received: by qw-out-2122.google.com with SMTP id 3so240099qwe.37
+        for <linux-omap@vger.kernel.org>; Fri, 10 Oct 2008 15:29:26 -0700 (PDT)
 In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870239624A46@dbde02.ent.ti.com>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>, David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-
->Sent: Friday, October 10, 2008 5:15 PM
->To: Steve Sakoman; David Brownell; linux-omap@vger.kernel.org List
->Subject: RE: Git tree updated to v2.6.27, some issues remain
+On Fri, Oct 10, 2008 at 3:15 PM, Pandita, Vikram <vikram.pandita@ti.com> wrote:
+> Theory changed. NR_IRQS is 402. so above is not the issue.
 >
->>>>> Anything else not working right now?
->>>>
->>>> MUSB on Overo...
->>>
+> Theory 2:
+> When I debug on LDP board, I can see the failure happening in request_irq()
 >
->Theory 2:
->When I debug on LDP board, I can see the failure happening in request_irq()
->
->In T2-probe:
->	request_irq( ... )
->		...
->		if (irq_desc[irq].status & IRQ_NOREQUEST)
->			return -EINVAL;	>>>> code returns from here !!!
->		...
+> In T2-probe:
+>        request_irq( ... )
+>                ...
+>                if (irq_desc[irq].status & IRQ_NOREQUEST)
+>                        return -EINVAL; >>>> code returns from here !!!
+>                ...
 
-This patch fixes the T2-probe request_irq() issue:
+This is exactly what I saw when testing bare linux-omap git without
+Dave's i2c retry patch.  Maybe the patch is not working for you?
 
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index 5983926..57cad7e 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -159,7 +159,7 @@ void __init omap_init_irq(void)
- 	printk(KERN_INFO "Total of %ld interrupts on %d active controller%s\n",
- 	       nr_irqs, nr_banks, nr_banks > 1 ? "s" : "");
- 
--	for (i = 0; i < nr_irqs; i++) {
-+	for (i = 0; i < NR_IRQS; /*nr_irqs;*/ i++) {
- 		set_irq_chip(i, &omap_irq_chip);
- 		set_irq_handler(i, handle_level_irq);
- 		set_irq_flags(i, IRQF_VALID);
-
+- Nathan
