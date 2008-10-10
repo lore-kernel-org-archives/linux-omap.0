@@ -1,37 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Failures with rc9
-Date: Fri, 10 Oct 2008 13:13:08 +0300
-Message-ID: <20081010101307.GL3044@atomide.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301B020C2CF@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH] [omap2] Fix compiler warnings in gpmc.c
+Date: Fri, 10 Oct 2008 15:49:51 +0530
+Message-ID: <1223633991-32406-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54421 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751309AbYJJKNN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 06:13:13 -0400
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301B020C2CF@dbde02.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37935 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751991AbYJJKUC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Oct 2008 06:20:02 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9AAJs8R012304
+	for <linux-omap@vger.kernel.org>; Fri, 10 Oct 2008 05:20:00 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-* Premi, Sanjeev <premi@ti.com> [081010 13:02]:
-> Hi all,
-> 
-> Noticed build failures with v2.6.27-rc9-5073-g5b99e69, when building for omap3_evm.
-> 
-> arch/arm/mach-omap2/built-in.o: In function `hsmmc_card_detect':
-> /home/self/linux-omap/arch/arm/mach-omap2/hsmmc.c:50: undefined reference to `twl4030_get_gpio_datain'
-> arch/arm/mach-omap2/built-in.o: In function `hsmmc_cleanup':
-> /home/self/linux-omap/arch/arm/mach-omap2/hsmmc.c:82: undefined reference to `twl4030_free_gpio'
-> arch/arm/mach-omap2/built-in.o: In function `hsmmc_late_init':
-> /home/self/linux-omap/arch/arm/mach-omap2/hsmmc.c:63: undefined reference to `twl4030_request_gpio'
-> /home/self/linux-omap/arch/arm/mach-omap2/hsmmc.c:67: undefined reference to `twl4030_set_gpio_debounce'
-> make: *** [.tmp_vmlinux1] Error 1
+Fix these compiler warnings:
 
-Sorry, you need to manually enable CONFIG_GPIO_TWL4030=y in your
-.config until we have all the defconfigs updated.
+gpmc.c: In function 'gpmc_init':
+gpmc.c:432: warning: 'return' with a value, in function returning void
+gpmc.c:439: warning: 'return' with a value, in function returning void
 
-Tony
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ arch/arm/mach-omap2/gpmc.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index f3e0271..4365c59 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -429,18 +429,16 @@ void __init gpmc_init(void)
+ 	gpmc_l3_clk = clk_get(NULL, ck);
+ 	if (IS_ERR(gpmc_l3_clk)) {
+ 		printk(KERN_ERR "Could not get GPMC clock %s\n", ck);
+-		return -ENODEV;
++		BUG();
+ 	}
+ 
+ 	gpmc_base = ioremap(l, SZ_4K);
+ 	if (!gpmc_base) {
+ 		clk_put(gpmc_l3_clk);
+ 		printk(KERN_ERR "Could not get GPMC register memory\n");
+-		return -ENOMEM;
++		BUG();
+ 	}
+ 
+-	BUG_ON(IS_ERR(gpmc_l3_clk));
+-
+ 	l = gpmc_read_reg(GPMC_REVISION);
+ 	printk(KERN_INFO "GPMC revision %d.%d\n", (l >> 4) & 0x0f, l & 0x0f);
+ 	/* Set smart idle mode and automatic L3 clock gating */
+-- 
+1.5.6
+
