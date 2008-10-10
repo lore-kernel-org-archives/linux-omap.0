@@ -1,53 +1,97 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/3] Add PM debug counters on top of PM counters
-Date: Fri, 10 Oct 2008 13:23:26 +0300
-Message-ID: <87wsggzr35.fsf@deeprootsystems.com>
-References: <1223386396-29560-1-git-send-email-peter.de-schrijver@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH] Enable CONFIG_GPIO_TWL4030=y
+Date: Fri, 10 Oct 2008 16:37:06 +0530
+Message-ID: <1223636826-10107-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:53814 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752493AbYJJKXi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 06:23:38 -0400
-Received: by ug-out-1314.google.com with SMTP id k3so1247402ugf.37
-        for <linux-omap@vger.kernel.org>; Fri, 10 Oct 2008 03:23:36 -0700 (PDT)
-In-Reply-To: <1223386396-29560-1-git-send-email-peter.de-schrijver@nokia.com> (Peter De Schrijver's message of "Tue\,  7 Oct 2008 16\:33\:13 +0300")
+Received: from comal.ext.ti.com ([198.47.26.152]:40399 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753147AbYJJLHQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Oct 2008 07:07:16 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9AB78LF027687
+	for <linux-omap@vger.kernel.org>; Fri, 10 Oct 2008 06:07:14 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-"Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
+Without this option, kernel builds would fail, with
+errors similar to:
 
-> This patch provides the PM debug counters and time feature on top of
-> the PM counters. Patch based on pm-1 branch + PM counters patch.
+hsmmc.c:50: undefined reference to `twl4030_get_gpio_datain'
+hsmmc.c:82: undefined reference to `twl4030_free_gpio'
+hsmmc.c:63: undefined reference to `twl4030_request_gpio'
+hsmmc.c:67: undefined reference to `twl4030_set_gpio_debounce'
 
-Peter,
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ arch/arm/configs/omap2_evm_defconfig    |    1 +
+ arch/arm/configs/omap3_beagle_defconfig |    1 +
+ arch/arm/configs/omap3_evm_defconfig    |    1 +
+ arch/arm/configs/omap_3430sdp_defconfig |    1 +
+ arch/arm/configs/omap_ldp_defconfig     |    1 +
+ 5 files changed, 5 insertions(+), 0 deletions(-)
 
-Can you refresh these against l-o master + PM counters patch?  Also,
-it would be helpful to have a more thorough desciption of each patch.
+diff --git a/arch/arm/configs/omap2_evm_defconfig b/arch/arm/configs/omap2_evm_defconfig
+index 61f0965..b52426a 100644
+--- a/arch/arm/configs/omap2_evm_defconfig
++++ b/arch/arm/configs/omap2_evm_defconfig
+@@ -795,6 +795,7 @@ CONFIG_GPIOLIB=y
+ # CONFIG_GPIO_MAX732X is not set
+ # CONFIG_GPIO_PCA953X is not set
+ # CONFIG_GPIO_PCF857X is not set
++CONFIG_GPIO_TWL4030=y
+ 
+ #
+ # PCI GPIO expanders:
+diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
+index 7805995..0d2f770 100644
+--- a/arch/arm/configs/omap3_beagle_defconfig
++++ b/arch/arm/configs/omap3_beagle_defconfig
+@@ -709,6 +709,7 @@ CONFIG_HAVE_GPIO_LIB=y
+ #
+ # CONFIG_GPIO_PCA953X is not set
+ # CONFIG_GPIO_PCF857X is not set
++CONFIG_GPIO_TWL4030=y
+ 
+ #
+ # SPI GPIO expanders:
+diff --git a/arch/arm/configs/omap3_evm_defconfig b/arch/arm/configs/omap3_evm_defconfig
+index ebeaef3..507a689 100644
+--- a/arch/arm/configs/omap3_evm_defconfig
++++ b/arch/arm/configs/omap3_evm_defconfig
+@@ -779,6 +779,7 @@ CONFIG_HAVE_GPIO_LIB=y
+ #
+ # CONFIG_GPIO_PCA953X is not set
+ # CONFIG_GPIO_PCF857X is not set
++CONFIG_GPIO_TWL4030=y
+ 
+ #
+ # SPI GPIO expanders:
+diff --git a/arch/arm/configs/omap_3430sdp_defconfig b/arch/arm/configs/omap_3430sdp_defconfig
+index 11c0cf7..bd6006c 100644
+--- a/arch/arm/configs/omap_3430sdp_defconfig
++++ b/arch/arm/configs/omap_3430sdp_defconfig
+@@ -790,6 +790,7 @@ CONFIG_HAVE_GPIO_LIB=y
+ #
+ # CONFIG_GPIO_PCA953X is not set
+ # CONFIG_GPIO_PCF857X is not set
++CONFIG_GPIO_TWL4030=y
+ 
+ #
+ # SPI GPIO expanders:
+diff --git a/arch/arm/configs/omap_ldp_defconfig b/arch/arm/configs/omap_ldp_defconfig
+index 9a90975..fd34367 100644
+--- a/arch/arm/configs/omap_ldp_defconfig
++++ b/arch/arm/configs/omap_ldp_defconfig
+@@ -549,6 +549,7 @@ CONFIG_HAVE_GPIO_LIB=y
+ #
+ # CONFIG_GPIO_PCA953X is not set
+ # CONFIG_GPIO_PCF857X is not set
++CONFIG_GPIO_TWL4030=y
+ 
+ #
+ # SPI GPIO expanders:
+-- 
+1.5.6
 
-Thanks,
-
-Kevin
-
-> Peter 'p2' De Schrijver (3):
->   Add closures to clkdm_for_each
->   Add pm-debug counters
->   Hook into powerdomain code
->
->  arch/arm/mach-omap2/clockdomain.c             |   31 +-----
->  arch/arm/mach-omap2/pm-debug.c                |  153 ++++++++++++-------------
->  arch/arm/mach-omap2/pm.h                      |   19 +---
->  arch/arm/mach-omap2/pm24xx.c                  |    2 +-
->  arch/arm/mach-omap2/pm34xx.c                  |   13 +--
->  arch/arm/mach-omap2/powerdomain.c             |   95 +++-------------
->  arch/arm/plat-omap/include/mach/clockdomain.h |    3 +-
->  arch/arm/plat-omap/include/mach/powerdomain.h |   14 ++-
->  8 files changed, 114 insertions(+), 216 deletions(-)
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
