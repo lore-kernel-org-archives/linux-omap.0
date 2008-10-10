@@ -1,52 +1,67 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: (unknown)
-Date: Fri, 10 Oct 2008 15:42:17 +0300
-Message-ID: <20081010124217.GB7503@gandalf.research.nokia.com>
+Subject: Re: [PATCH] Fix compiler warnings in smartreflex.c
+Date: Fri, 10 Oct 2008 15:44:07 +0300
+Message-ID: <20081010124407.GC7503@gandalf.research.nokia.com>
+References: <1223642237-9345-1-git-send-email-premi@ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:35709 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754459AbYJJMm0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 08:42:26 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9ACg3H6003783
-	for <linux-omap@vger.kernel.org>; Fri, 10 Oct 2008 07:42:24 -0500
+Received: from smtp.nokia.com ([192.100.122.230]:20302 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755001AbYJJMoS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2008 08:44:18 -0400
 Content-Disposition: inline
+In-Reply-To: <1223642237-9345-1-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: linux-omap@vger.kernel.org, Mathias Nyman <mathias.nyman@nokia.com>
+To: ext Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-tony@atomide.com
-Bcc: 
-Subject: Re: [PATCH 0/3] lp5521
-Reply-To: felipe.balbi@nokia.com
-In-Reply-To: <1223284291-7675-1-git-send-email-felipe.balbi@nokia.com>
-
-On Mon, Oct 06, 2008 at 12:11:28PM +0300, Felipe Balbi wrote:
-> A few cleanups and moving to drivers/leds. This driver
-> is probably ok for making its way to mainline, by the morning
-> I'll generate a patch against mainline and send to Richard
-> (led maintainer) for integration.
+On Fri, Oct 10, 2008 at 06:07:17PM +0530, ext Sanjeev Premi wrote:
+> Fix these compiler warnings:
+> smartreflex.c:126: warning: initialization makes integer from pointer without a cast
+> smartreflex.c:134: warning: initialization makes integer from pointer without a cast
 > 
-> *** Note: compile tested only due to the fact n810 doesn't boot.
-
-News here ??
-
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> ---
+>  arch/arm/mach-omap2/smartreflex.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> Felipe Balbi (3):
->   i2c: lp5521: remove dead code
->   i2c: lp5521: cosmetic fixes
->   lp5521: move to drivers/leds
+> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+> index e54c0fb..8460633 100644
+> --- a/arch/arm/mach-omap2/smartreflex.c
+> +++ b/arch/arm/mach-omap2/smartreflex.c
+> @@ -123,7 +123,7 @@ static struct omap_sr sr1 = {
+>  	.is_sr_reset		= 1,
+>  	.is_autocomp_active	= 0,
+>  	.clk_length		= 0,
+> -	.srbase_addr		= OMAP2_IO_ADDRESS(OMAP34XX_SR1_BASE),
+> +	.srbase_addr		= (u32)OMAP2_IO_ADDRESS(OMAP34XX_SR1_BASE),
+
+please don't. Most likely srbase_addr should move to void __iomem *
+
+Paul, any comments ??
+
+>  };
+>  
+>  static struct omap_sr sr2 = {
+> @@ -131,7 +131,7 @@ static struct omap_sr sr2 = {
+>  	.is_sr_reset		= 1,
+>  	.is_autocomp_active	= 0,
+>  	.clk_length		= 0,
+> -	.srbase_addr		= OMAP2_IO_ADDRESS(OMAP34XX_SR2_BASE),
+> +	.srbase_addr		= (u32)OMAP2_IO_ADDRESS(OMAP34XX_SR2_BASE),
+>  };
+>  
+>  static struct sr_custom_clk sr1_custom_clk = {
+> -- 
+> 1.5.6
 > 
->  drivers/i2c/chips/Kconfig                          |    7 -
->  drivers/i2c/chips/Makefile                         |    1 -
->  drivers/leds/Kconfig                               |    7 +
->  drivers/leds/Makefile                              |    1 +
->  drivers/{i2c/chips/lp5521.c => leds/leds-lp5521.c} |  181 ++++++++------------
->  5 files changed, 81 insertions(+), 116 deletions(-)
->  rename drivers/{i2c/chips/lp5521.c => leds/leds-lp5521.c} (79%)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
 balbi
