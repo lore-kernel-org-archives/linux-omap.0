@@ -1,33 +1,29 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] i2c-omap: fix I2C timeouts due to recursive
-	omap_i2c_{un,}idle()
-Date: Sat, 11 Oct 2008 17:58:32 +0300
-Message-ID: <20081011145826.GA15868@atomide.com>
-References: <alpine.DEB.2.00.0810101056020.13922@utopia.booyaka.com> <200810101429.45548.david-b@pacbell.net>
+Subject: Re: [PATCH] [omap2] Fix compiler warnings in gpmc.c
+Date: Sat, 11 Oct 2008 18:00:15 +0300
+Message-ID: <20081011150011.GB15868@atomide.com>
+References: <1223633991-32406-1-git-send-email-premi@ti.com> <20081010112708.GS3044@atomide.com> <EAF47CD23C76F840A9E7FCE10091EFAB028C70DE4D@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55292 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56412 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753954AbYJKO6h (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 11 Oct 2008 10:58:37 -0400
+	with ESMTP id S1752582AbYJKPAR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 11 Oct 2008 11:00:17 -0400
 Content-Disposition: inline
-In-Reply-To: <200810101429.45548.david-b@pacbell.net>
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB028C70DE4D@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, r-woodruff2@ti.com
+To: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
+Cc: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* David Brownell <david-b@pacbell.net> [081011 00:32]:
-> On Friday 10 October 2008, Paul Walmsley wrote:
-> > Problem reported by David Brownell <david-b@pacbell.net>.
+* Pakaravoor, Jagadeesh <j-pakaravoor@ti.com> [081010 17:58]:
 > 
-> Hmm, seems to solve the problem for me too... though for
-> the life of me I can't quite see how that explains all
-> the symptoms I've observed.  I'll keep an eye out to see
-> what comes up over time; I could believe this is only one
-> of the problems lurking here.
+> What was wrong with this patch?
+> 
+> http://marc.info/?l=linux-omap&m=122277286326989&w=2
 
-Great to hear Paul got it figured out! Pushed.
+Hmm, looks like I forgot again we already had a patch for that, sorry :)
+I'll take a better look on Tuesday.
 
 Tony
