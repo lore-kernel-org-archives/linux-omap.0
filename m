@@ -1,29 +1,28 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] [omap2] Fix compiler warnings in gpmc.c
-Date: Sat, 11 Oct 2008 18:00:15 +0300
-Message-ID: <20081011150011.GB15868@atomide.com>
-References: <1223633991-32406-1-git-send-email-premi@ti.com> <20081010112708.GS3044@atomide.com> <EAF47CD23C76F840A9E7FCE10091EFAB028C70DE4D@dbde02.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [patch 2.6.27-omap-git 6/6] remove some gllobal twl4030 IRQ defines
+Date: Sat, 11 Oct 2008 11:18:03 -0700
+Message-ID: <200810111118.03419.david-b@pacbell.net>
+References: <200810101423.01759.david-b@pacbell.net> <94a0d4530810110218q7cc99834yb95610c58543779c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56412 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752582AbYJKPAR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 11 Oct 2008 11:00:17 -0400
+Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:30018 "HELO
+	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1758876AbYJKSSH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 11 Oct 2008 14:18:07 -0400
+In-Reply-To: <94a0d4530810110218q7cc99834yb95610c58543779c@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB028C70DE4D@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-* Pakaravoor, Jagadeesh <j-pakaravoor@ti.com> [081010 17:58]:
-> 
-> What was wrong with this patch?
-> 
-> http://marc.info/?l=linux-omap&m=122277286326989&w=2
+On Saturday 11 October 2008, Felipe Contreras wrote:
+> s/gllobal/global/
 
-Hmm, looks like I forgot again we already had a patch for that, sorry :)
-I'll take a better look on Tuesday.
+I was fending off an attack by a gang of homeless llamas
+as I wrote that ... ;)
 
-Tony
