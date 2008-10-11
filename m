@@ -1,37 +1,29 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: Git tree updated to v2.6.27, some issues remain
-Date: Fri, 10 Oct 2008 18:26:07 -0700
-Message-ID: <200810101826.07538.david-b@pacbell.net>
-References: <20081010120427.GZ3044@atomide.com> <200810101732.31094.david-b@pacbell.net> <FCCFB4CDC6E5564B9182F639FC3560870239624A53@dbde02.ent.ti.com>
+From: "Felipe Contreras" <felipe.contreras@gmail.com>
+Subject: Re: [patch 2.6.27-omap-git 6/6] remove some gllobal twl4030 IRQ defines
+Date: Sat, 11 Oct 2008 12:18:05 +0300
+Message-ID: <94a0d4530810110218q7cc99834yb95610c58543779c@mail.gmail.com>
+References: <200810101423.01759.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:46512 "HELO
-	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754090AbYJKB0K (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Oct 2008 21:26:10 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870239624A53@dbde02.ent.ti.com>
+Received: from rv-out-0506.google.com ([209.85.198.225]:60386 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751100AbYJKJSG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 11 Oct 2008 05:18:06 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so969573rvb.1
+        for <linux-omap@vger.kernel.org>; Sat, 11 Oct 2008 02:18:06 -0700 (PDT)
+In-Reply-To: <200810101423.01759.david-b@pacbell.net>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: Steve Sakoman <sakoman@gmail.com>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-omap@vger.kernel.org
 
-On Friday 10 October 2008, Pandita, Vikram wrote:
-> I did not have your following patch.
-> Without this patch, the pwrirq does not initialize TWL-USB flag: set_irq_flags(i, IRQF_VALID); 
-> And hence the failure. 
-> 
-> With your patch, you delay the i2c writing and then the set_irq_flags() gets called.
+On Sat, Oct 11, 2008 at 12:23 AM, David Brownell <david-b@pacbell.net> wrote:
+> From: David Brownell <dbrownell@users.sourceforge.net>
 
-A better fix for this one would be either of the recent i2c-omap patches:
-mine disabling the low-power idle mechanism, or Paul's making it actually
-work like it was supposed to.  Paul's fix should IMO be merged.
+s/gllobal/global/
 
-The "MUSB doesn't work on Overo" problem kicks in even with the I2C idle
-problem fixed, or that workaround patch.
-
-- Dave
+-- 
+Felipe Contreras
