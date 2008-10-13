@@ -1,45 +1,52 @@
 From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH 3/7] Twl4030 power code updated for new twl4030 core
-Date: Mon, 13 Oct 2008 18:44:08 +0300
-Message-ID: <1223912652-24463-4-git-send-email-peter.de-schrijver@nokia.com>
+Subject: [PATCH 6/7] Generic twl4030 power script for 3430 based boards.
+Date: Mon, 13 Oct 2008 18:44:11 +0300
+Message-ID: <1223912652-24463-7-git-send-email-peter.de-schrijver@nokia.com>
 References: <1223912652-24463-1-git-send-email-peter.de-schrijver@nokia.com>
  <1223912652-24463-2-git-send-email-peter.de-schrijver@nokia.com>
  <1223912652-24463-3-git-send-email-peter.de-schrijver@nokia.com>
+ <1223912652-24463-4-git-send-email-peter.de-schrijver@nokia.com>
+ <1223912652-24463-5-git-send-email-peter.de-schrijver@nokia.com>
+ <1223912652-24463-6-git-send-email-peter.de-schrijver@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:39535 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:39562 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755340AbYJMPol (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Oct 2008 11:44:41 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9DFi3VR003901
-	for <linux-omap@vger.kernel.org>; Mon, 13 Oct 2008 10:44:39 -0500
-In-Reply-To: <1223912652-24463-3-git-send-email-peter.de-schrijver@nokia.com>
+	with ESMTP id S1755489AbYJMPot (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Oct 2008 11:44:49 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9DFi8Ks003920
+	for <linux-omap@vger.kernel.org>; Mon, 13 Oct 2008 10:44:47 -0500
+In-Reply-To: <1223912652-24463-6-git-send-email-peter.de-schrijver@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-This patch adds the twl4030 power handling. It downloads the scripts provided
-by the board configuration to the twl4030 and configures the chip to call
-the relevant script for each event (processor group 1 and 2 sleep,
-processor group 3 sleep, wakeup or warm reset).
+This is a generic twl4030 power script for 3430 based boards. It handles
+sleep and wakeup events. In case of a sleep event it will first put the
+Reset and Control (RC) resources to sleep and then put the voltage regulators
+to sleep. In case of a wakeup event, the system clock will be started first,
+then the voltage regulators will be woken up and finally the RC resources will
+be woken up.
 
 Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 ---
- drivers/mfd/twl4030-power.c |  270 +++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 270 insertions(+), 0 deletions(-)
- create mode 100644 drivers/mfd/twl4030-power.c
+ arch/arm/mach-omap2/twl4030-generic-scripts.c |   78 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/twl4030-generic-scripts.h |    8 +++
+ 2 files changed, 86 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/twl4030-generic-scripts.c
+ create mode 100644 arch/arm/mach-omap2/twl4030-generic-scripts.h
 
-diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+diff --git a/arch/arm/mach-omap2/twl4030-generic-scripts.c b/arch/arm/mach-omap2/twl4030-generic-scripts.c
 new file mode 100644
-index 0000000..d9d1655
+index 0000000..f41c9ef
 --- /dev/null
-+++ b/drivers/mfd/twl4030-power.c
-@@ -0,0 +1,270 @@
++++ b/arch/arm/mach-omap2/twl4030-generic-scripts.c
+@@ -0,0 +1,78 @@
 +/*
-+ * linux/drivers/i2c/chips/twl4030-power.c
++ * arch/arm/mach-omap2/twl4030-generic-scripts.c
 + *
-+ * Handle TWL4030 Power initialization
++ * Generic power control scripts for TWL4030
 + *
 + * Copyright (C) 2008 Nokia Corporation
 + * Copyright (C) 2006 Texas Instruments, Inc
@@ -61,251 +68,73 @@ index 0000000..d9d1655
 + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 + */
 +
-+#include <linux/module.h>
-+#include <linux/pm.h>
++#include <linux/kernel.h>
++#include <linux/device.h>
++#include <linux/init.h>
 +#include <linux/i2c/twl4030.h>
-+#include <linux/platform_device.h>
 +
-+#include <asm/mach-types.h>
++/*
++ * This script instructs twl4030 to first put the Reset and Control (RC)
++ * resources to sleep and then all the other resources.
++ */
 +
-+static u8 triton_next_free_address = 0x2b;
++static struct twl4030_ins sleep_on_seq[] __initdata = {
++	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_RC, RES_TYPE_ALL, RES_TYPE2_R0,
++			RES_STATE_SLEEP), 4},
++	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_ALL, RES_TYPE2_R0,
++			RES_STATE_SLEEP), 4},
++};
 +
-+#define PWR_P1_SW_EVENTS	0x10
-+#define PWR_DEVOFF	(1<<0)
++static struct twl4030_script sleep_on_script __initdata = {
++	.script = sleep_on_seq,
++	.size   = ARRAY_SIZE(sleep_on_seq),
++	.flags  = TRITON_SLEEP_SCRIPT,
++};
 +
-+#define PHY_TO_OFF_PM_MASTER(p)		(p - 0x36)
-+#define PHY_TO_OFF_PM_RECEIVER(p)	(p - 0x5b)
++/*
++ * This script instructs twl4030 to first enable CLKEN, then wakeup the
++ * regulators and then all other resources.
++ */
 +
-+/* resource - hfclk */
-+#define R_HFCLKOUT_DEV_GRP 	PHY_TO_OFF_PM_RECEIVER(0xe6)
++static struct twl4030_ins wakeup_seq[] __initdata = {
++	{MSG_SINGULAR(DEV_GRP_NULL, 0x17, RES_STATE_ACTIVE), 0x30},
++	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_PP_PR, RES_TYPE_ALL, RES_TYPE2_R0,
++			RES_STATE_ACTIVE), 0x37},
++	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_ALL, RES_TYPE2_R0,
++			RES_STATE_ACTIVE), 0x2},
++};
 +
-+/* PM events */
-+#define R_P1_SW_EVENTS		PHY_TO_OFF_PM_MASTER(0x46)
-+#define R_P2_SW_EVENTS		PHY_TO_OFF_PM_MASTER(0x47)
-+#define R_P3_SW_EVENTS		PHY_TO_OFF_PM_MASTER(0x48)
-+#define R_CFG_P1_TRANSITION	PHY_TO_OFF_PM_MASTER(0x36)
-+#define R_CFG_P2_TRANSITION	PHY_TO_OFF_PM_MASTER(0x37)
-+#define R_CFG_P3_TRANSITION	PHY_TO_OFF_PM_MASTER(0x38)
++static struct twl4030_script wakeup_script __initdata = {
++	.script = wakeup_seq,
++	.size   = ARRAY_SIZE(wakeup_seq),
++	.flags  = TRITON_WAKEUP12_SCRIPT | TRITON_WAKEUP3_SCRIPT,
++};
 +
-+#define LVL_WAKEUP	0x08
++static struct twl4030_script *twl4030_scripts[] __initdata = {
++	&sleep_on_script,
++	&wakeup_script,
++};
 +
-+#define ENABLE_WARMRESET (1<<4)
++struct twl4030_power_data generic3430_t2scripts_data __initdata = {
++	.scripts        = twl4030_scripts,
++	.size           = ARRAY_SIZE(twl4030_scripts),
++};
 +
-+#define END_OF_SCRIPT		0x3f
 +
-+#define R_SEQ_ADD_A2S		PHY_TO_OFF_PM_MASTER(0x55)
-+#define R_SEQ_ADD_SA12		PHY_TO_OFF_PM_MASTER(0x56)
-+#define	R_SEQ_ADD_S2A3		PHY_TO_OFF_PM_MASTER(0x57)
-+#define	R_SEQ_ADD_WARM		PHY_TO_OFF_PM_MASTER(0x58)
-+#define R_MEMORY_ADDRESS	PHY_TO_OFF_PM_MASTER(0x59)
-+#define R_MEMORY_DATA		PHY_TO_OFF_PM_MASTER(0x5a)
+diff --git a/arch/arm/mach-omap2/twl4030-generic-scripts.h b/arch/arm/mach-omap2/twl4030-generic-scripts.h
+new file mode 100644
+index 0000000..64d8d3f
+--- /dev/null
++++ b/arch/arm/mach-omap2/twl4030-generic-scripts.h
+@@ -0,0 +1,8 @@
++#ifndef __TWL4030_GENERIC_SCRIPTS_H
++#define __TWL4030_GENERIC_SCRIPTS_H
 +
-+#define R_PROTECT_KEY		0x0E
-+#define KEY_1			0xC0
-+#define KEY_2			0x0C
++#include <linux/i2c/twl4030.h>
 +
-+static int __init twl4030_write_script_byte(u8 address, u8 byte)
-+{
-+	int err;
++extern struct twl4030_power_data generic3430_t2scripts_data;
 +
-+	err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, address,
-+					R_MEMORY_ADDRESS);
-+	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, byte,
-+					R_MEMORY_DATA);
-+
-+	return err;
-+}
-+
-+static int __init twl4030_write_script_ins(u8 address, u16 pmb_message,
-+						u8 delay, u8 next)
-+{
-+	int err = 0;
-+
-+	address *= 4;
-+	err |= twl4030_write_script_byte(address++, pmb_message >> 8);
-+	err |= twl4030_write_script_byte(address++, pmb_message & 0xff);
-+	err |= twl4030_write_script_byte(address++, delay);
-+	err |= twl4030_write_script_byte(address++, next);
-+
-+	return err;
-+}
-+
-+static int __init twl4030_write_script(u8 address, struct twl4030_ins *script,
-+					int len)
-+{
-+	int err = 0;
-+
-+	for (; len; len--, address++, script++) {
-+		if (len == 1)
-+			err |= twl4030_write_script_ins(address,
-+							script->pmb_message,
-+							script->delay,
-+							END_OF_SCRIPT);
-+		else
-+			err |= twl4030_write_script_ins(address,
-+							script->pmb_message,
-+							script->delay,
-+							address + 1);
-+	}
-+
-+	return err;
-+}
-+
-+static int __init config_wakeup3_sequence(u8 address)
-+{
-+
-+	int err = 0;
-+
-+	/* Set SLEEP to ACTIVE SEQ address for P3 */
-+	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, address,
-+				  R_SEQ_ADD_S2A3);
-+
-+	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, LVL_WAKEUP,
-+					R_P3_SW_EVENTS);
-+	if (err)
-+		printk(KERN_ERR "TWL4030 wakeup sequence for P3" \
-+				"config error\n");
-+
-+	return err;
-+}
-+
-+static int __init config_wakeup12_sequence(u8 address)
-+{
-+	int err = 0;
-+
-+	/* Set SLEEP to ACTIVE SEQ address for P1 and P2 */
-+	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, address,
-+				  R_SEQ_ADD_SA12);
-+
-+	/* P1/P2/P3 LVL_WAKEUP should be on LEVEL */
-+	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, LVL_WAKEUP,
-+					R_P1_SW_EVENTS);
-+	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, LVL_WAKEUP,
-+					R_P2_SW_EVENTS);
-+
-+	if (machine_is_omap_3430sdp() || machine_is_omap_ldp()) {
-+		u8 data;
-+		/* Disabling AC charger effect on sleep-active transitions */
-+		err |= twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &data,
-+						R_CFG_P1_TRANSITION);
-+		data &= ~(1<<1);
-+		err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, data ,
-+						R_CFG_P1_TRANSITION);
-+	}
-+
-+	if (err)
-+		printk(KERN_ERR "TWL4030 wakeup sequence for P1 and P2" \
-+				"config error\n");
-+
-+	return err;
-+}
-+
-+static int __init config_sleep_sequence(u8 address)
-+{
-+	int err = 0;
-+
-+	/*
-+	 * CLKREQ is pulled high on the 2430SDP, therefore, we need to take
-+	 * it out of the HFCLKOUT DEV_GRP for P1 else HFCLKOUT can't be stopped.
-+	 */
-+
-+	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+				  0x20, R_HFCLKOUT_DEV_GRP);
-+
-+	/* Set ACTIVE to SLEEP SEQ address in T2 memory*/
-+	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, address,
-+				  R_SEQ_ADD_A2S);
-+
-+	if (err)
-+		printk(KERN_ERR "TWL4030 sleep sequence config error\n");
-+
-+	return err;
-+}
-+
-+static int __init config_warmreset_sequence(u8 address)
-+{
-+
-+	int err = 0;
-+	u8 rd_data;
-+
-+	/* Set WARM RESET SEQ address for P1 */
-+	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, address,
-+					R_SEQ_ADD_WARM);
-+
-+	/* P1/P2/P3 enable WARMRESET */
-+	err |= twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &rd_data,
-+					R_P1_SW_EVENTS);
-+	rd_data |= ENABLE_WARMRESET;
-+	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, rd_data,
-+					R_P1_SW_EVENTS);
-+
-+	err |= twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &rd_data,
-+					R_P2_SW_EVENTS);
-+	rd_data |= ENABLE_WARMRESET;
-+	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, rd_data,
-+					R_P2_SW_EVENTS);
-+
-+	err |= twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &rd_data,
-+					R_P3_SW_EVENTS);
-+	rd_data |= ENABLE_WARMRESET;
-+	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, rd_data,
-+					R_P3_SW_EVENTS);
-+
-+	if (err)
-+		printk(KERN_ERR
-+			"TWL4030 warmreset seq config error\n");
-+	return err;
-+}
-+
-+static int __init load_triton_script(struct twl4030_script *tscript)
-+{
-+	u8 address = triton_next_free_address;
-+	int err;
-+
-+	err = twl4030_write_script(address, tscript->script, tscript->size);
-+	if (err)
-+		return err;
-+
-+	triton_next_free_address += tscript->size;
-+
-+	if (tscript->flags & TRITON_WRST_SCRIPT)
-+		err |= config_warmreset_sequence(address);
-+
-+	if (tscript->flags & TRITON_WAKEUP12_SCRIPT)
-+		err |= config_wakeup12_sequence(address);
-+
-+	if (tscript->flags & TRITON_WAKEUP3_SCRIPT)
-+		err |= config_wakeup3_sequence(address);
-+
-+	if (tscript->flags & TRITON_SLEEP_SCRIPT)
-+		err |= config_sleep_sequence(address);
-+
-+	return err;
-+}
-+
-+void __init twl4030_power_init(struct twl4030_power_data *triton2_scripts)
-+{
-+	int err = 0;
-+	int i;
-+
-+	err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, KEY_1,
-+				R_PROTECT_KEY);
-+	err |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, KEY_2,
-+				R_PROTECT_KEY);
-+	if (err)
-+		printk(KERN_ERR
-+			"TWL4030 Unable to unlock registers\n");
-+
-+	for (i = 0; i < triton2_scripts->size; i++) {
-+		err = load_triton_script(triton2_scripts->scripts[i]);
-+		if (err)
-+			break;
-+	}
-+
-+	if (twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0, R_PROTECT_KEY))
-+		printk(KERN_ERR
-+			"TWL4030 Unable to relock registers\n");
-+}
++#endif
 -- 
 1.5.6.3
 
