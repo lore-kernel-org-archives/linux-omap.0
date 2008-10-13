@@ -1,17 +1,17 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.27-omap-git+ 1/5] gpiolib request/free hooks
-Date: Mon, 13 Oct 2008 13:00:21 -0700
-Message-ID: <200810131300.21494.david-b@pacbell.net>
+Subject: [patch 2.6.27-omap-git+ 5/5] support LED signals on Beagle
+Date: Mon, 13 Oct 2008 13:05:05 -0700
+Message-ID: <200810131305.05769.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp128.sbc.mail.sp1.yahoo.com ([69.147.65.187]:36236 "HELO
+Received: from smtp128.sbc.mail.sp1.yahoo.com ([69.147.65.187]:36280 "HELO
 	smtp128.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753115AbYJMUSh (ORCPT
+	by vger.kernel.org with SMTP id S1753768AbYJMUSk (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 Oct 2008 16:18:37 -0400
+	Mon, 13 Oct 2008 16:18:40 -0400
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,236 +19,71 @@ To: linux-omap@vger.kernel.org
 
 From: David Brownell <dbrownell@users.sourceforge.net>
 
-Add a new internal mechanism to gpiolib to support low power
-operations by letting gpio_chip instances see when their GPIOs
-are in use.  When no GPIOs are active, chips may be able to 
-enter lower powered runtime states by disabling clocks and/or
-power domains.
+Export Beagle's third LED to the LED framework, now that it's
+accessible through the twl4030-gpio code.
+
+Claim the VBUS control, defaulting to OFF.  Boards that have an
+EHCI connector (not rev B) will need to update this slightly.
+(Ideally as part of adding hooks to the ehci-map code supporting
+external power switching and overcurrent detection.)
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
- Documentation/gpio.txt     |    4 +
- drivers/gpio/gpiolib.c     |   91 ++++++++++++++++++++++++++++++++++++-------
- include/asm-generic/gpio.h |    9 ++++
- 3 files changed, 91 insertions(+), 13 deletions(-)
+ arch/arm/mach-omap2/board-omap3beagle.c |   23 ++++++++++++++++++-----
+ 1 file changed, 18 insertions(+), 5 deletions(-)
 
---- a/Documentation/gpio.txt
-+++ b/Documentation/gpio.txt
-@@ -240,6 +240,10 @@ signal, or (b) something wrongly believe
- needed to manage a signal that's in active use.  That is, requesting a
- GPIO can serve as a kind of lock.
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -115,19 +115,26 @@ static struct twl4030_usb_data beagle_us
+ 	.usb_mode	= T2_USB_MODE_ULPI,
+ };
  
-+Some platforms may also use knowledge about what GPIOs are active for
-+power management, such as by powering down unused chip sectors and, more
-+easily, gating off unused clocks.
++static struct gpio_led gpio_leds[];
 +
- These two calls are optional because not not all current Linux platforms
- offer such functionality in their GPIO support; a valid implementation
- could return success for all gpio_request() calls.  Unlike the other calls,
---- a/drivers/gpio/gpiolib.c
-+++ b/drivers/gpio/gpiolib.c
-@@ -67,17 +67,28 @@ static inline void desc_set_label(struct
-  * when setting direction, and otherwise illegal.  Until board setup code
-  * and drivers use explicit requests everywhere (which won't happen when
-  * those calls have no teeth) we can't avoid autorequesting.  This nag
-- * message should motivate switching to explicit requests...
-+ * message should motivate switching to explicit requests... so should
-+ * the weaker cleanup after faults, compared to gpio_request().
-  */
--static void gpio_ensure_requested(struct gpio_desc *desc)
-+static int gpio_ensure_requested(struct gpio_desc *desc, unsigned offset)
+ static int beagle_twl_gpio_setup(struct device *dev,
+ 		unsigned gpio, unsigned ngpio)
  {
- 	if (test_and_set_bit(FLAG_REQUESTED, &desc->flags) == 0) {
--		pr_warning("GPIO-%d autorequested\n", (int)(desc - gpio_desc));
-+		struct gpio_chip *chip = desc->chip;
-+		int gpio = chip->base + offset;
+-	/* request_gpio(gpio + 0, "mmc0_cd");
+-	 * gpio_direction_input(gpio + 0);
++	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
 +
-+		if (!try_module_get(chip->owner)) {
-+			pr_err("GPIO-%d: module can't be gotten \n", gpio);
-+			clear_bit(FLAG_REQUESTED, &desc->flags);
-+			/* lose */
-+			return -EIO;
-+		}
-+		pr_warning("GPIO-%d autorequested\n", gpio);
- 		desc_set_label(desc, "[auto]");
--		if (!try_module_get(desc->chip->owner))
--			pr_err("GPIO-%d: module can't be gotten \n",
--					(int)(desc - gpio_desc));
-+		/* caller must chip->request() w/o spinlock */
-+		if (chip->request)
-+			return 1;
- 	}
-+	return 0;
- }
- 
- /* caller holds gpio_lock *OR* gpio is marked as requested */
-@@ -752,6 +763,7 @@ EXPORT_SYMBOL_GPL(gpiochip_remove);
- int gpio_request(unsigned gpio, const char *label)
- {
- 	struct gpio_desc	*desc;
-+	struct gpio_chip	*chip;
- 	int			status = -EINVAL;
- 	unsigned long		flags;
- 
-@@ -760,14 +772,15 @@ int gpio_request(unsigned gpio, const ch
- 	if (!gpio_is_valid(gpio))
- 		goto done;
- 	desc = &gpio_desc[gpio];
--	if (desc->chip == NULL)
-+	chip = desc->chip;
-+	if (chip == NULL)
- 		goto done;
- 
--	if (!try_module_get(desc->chip->owner))
-+	if (!try_module_get(chip->owner))
- 		goto done;
- 
- 	/* NOTE:  gpio_request() can be called in early boot,
--	 * before IRQs are enabled.
-+	 * before IRQs are enabled, for non-sleeping (SOC) GPIOs.
++	/* REVISIT: need ehci-omap hooks for external VBUS
++	 * power switch and overcurrent detect
  	 */
  
- 	if (test_and_set_bit(FLAG_REQUESTED, &desc->flags) == 0) {
-@@ -775,7 +788,20 @@ int gpio_request(unsigned gpio, const ch
- 		status = 0;
- 	} else {
- 		status = -EBUSY;
--		module_put(desc->chip->owner);
-+		module_put(chip->owner);
-+	}
+ 	gpio_request(gpio + 1, "EHCI_nOC");
+ 	gpio_direction_input(gpio + 1);
+ 
+-	/* gpio + 18 + 0 == ledA, nEN_USB_PWR (out)
+-	 * gpio + 18 + 1 == ledB, PMU_STAT (out, a LED)
+-	 */
++	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active low) */
++	gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
++	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
 +
-+	if (chip->request) {
-+		/* chip->request may sleep */
-+		spin_unlock_irqrestore(&gpio_lock, flags);
-+		status = chip->request(chip, gpio - chip->base);
-+		spin_lock_irqsave(&gpio_lock, flags);
-+
-+		if (status < 0) {
-+			desc_set_label(desc, NULL);
-+			module_put(chip->owner);
-+			clear_bit(FLAG_REQUESTED, &desc->flags);
-+		}
- 	}
++	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
++	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
  
- done:
-@@ -791,6 +817,7 @@ void gpio_free(unsigned gpio)
- {
- 	unsigned long		flags;
- 	struct gpio_desc	*desc;
-+	struct gpio_chip	*chip;
+ 	return 0;
+ }
+@@ -136,6 +143,7 @@ static struct twl4030_gpio_platform_data
+ 	.gpio_base	= OMAP_MAX_GPIO_LINES,
+ 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+ 	.irq_end	= TWL4030_GPIO_IRQ_END,
++	.use_leds	= true,
+ 	.pullups	= BIT(1),
+ 	.pulldowns	= BIT(2) | BIT(6) | BIT(7) | BIT(8) | BIT(13)
+ 				| BIT(15) | BIT(16) | BIT(17),
+@@ -198,6 +206,11 @@ static struct gpio_led gpio_leds[] = {
+ 		.default_trigger	= "mmc0",
+ 		.gpio			= 149,
+ 	},
++	{
++		.name			= "beagleboard::pmu_stat",
++		.gpio			= -EINVAL,	/* gets replaced */
++		.active_low		= true,
++	},
+ };
  
- 	if (!gpio_is_valid(gpio)) {
- 		WARN_ON(extra_checks);
-@@ -802,9 +829,17 @@ void gpio_free(unsigned gpio)
- 	spin_lock_irqsave(&gpio_lock, flags);
- 
- 	desc = &gpio_desc[gpio];
--	if (desc->chip && test_and_clear_bit(FLAG_REQUESTED, &desc->flags)) {
-+	chip = desc->chip;
-+	if (chip && test_bit(FLAG_REQUESTED, &desc->flags)) {
-+		if (chip->free) {
-+			spin_unlock_irqrestore(&gpio_lock, flags);
-+			might_sleep_if(extra_checks && chip->can_sleep);
-+			chip->free(chip, gpio - chip->base);
-+			spin_lock_irqsave(&gpio_lock, flags);
-+		}
- 		desc_set_label(desc, NULL);
- 		module_put(desc->chip->owner);
-+		clear_bit(FLAG_REQUESTED, &desc->flags);
- 	} else
- 		WARN_ON(extra_checks);
- 
-@@ -869,7 +904,9 @@ int gpio_direction_input(unsigned gpio)
- 	gpio -= chip->base;
- 	if (gpio >= chip->ngpio)
- 		goto fail;
--	gpio_ensure_requested(desc);
-+	status = gpio_ensure_requested(desc, gpio);
-+	if (status < 0)
-+		goto fail;
- 
- 	/* now we know the gpio is valid and chip won't vanish */
- 
-@@ -877,9 +914,22 @@ int gpio_direction_input(unsigned gpio)
- 
- 	might_sleep_if(extra_checks && chip->can_sleep);
- 
-+	if (status) {
-+		status = chip->request(chip, gpio);
-+		if (status < 0) {
-+			pr_debug("GPIO-%d: chip request fail, %d\n",
-+				chip->base + gpio, status);
-+			/* and it's not available to anyone else ...
-+			 * gpio_request() is the fully clean solution.
-+			 */
-+			goto lose;
-+		}
-+	}
-+
- 	status = chip->direction_input(chip, gpio);
- 	if (status == 0)
- 		clear_bit(FLAG_IS_OUT, &desc->flags);
-+lose:
- 	return status;
- fail:
- 	spin_unlock_irqrestore(&gpio_lock, flags);
-@@ -907,7 +957,9 @@ int gpio_direction_output(unsigned gpio,
- 	gpio -= chip->base;
- 	if (gpio >= chip->ngpio)
- 		goto fail;
--	gpio_ensure_requested(desc);
-+	status = gpio_ensure_requested(desc, gpio);
-+	if (status < 0)
-+		goto fail;
- 
- 	/* now we know the gpio is valid and chip won't vanish */
- 
-@@ -915,9 +967,22 @@ int gpio_direction_output(unsigned gpio,
- 
- 	might_sleep_if(extra_checks && chip->can_sleep);
- 
-+	if (status) {
-+		status = chip->request(chip, gpio);
-+		if (status < 0) {
-+			pr_debug("GPIO-%d: chip request fail, %d\n",
-+				chip->base + gpio, status);
-+			/* and it's not available to anyone else ...
-+			 * gpio_request() is the fully clean solution.
-+			 */
-+			goto lose;
-+		}
-+	}
-+
- 	status = chip->direction_output(chip, gpio, value);
- 	if (status == 0)
- 		set_bit(FLAG_IS_OUT, &desc->flags);
-+lose:
- 	return status;
- fail:
- 	spin_unlock_irqrestore(&gpio_lock, flags);
---- a/include/asm-generic/gpio.h
-+++ b/include/asm-generic/gpio.h
-@@ -35,6 +35,10 @@ struct module;
-  * @label: for diagnostics
-  * @dev: optional device providing the GPIOs
-  * @owner: helps prevent removal of modules exporting active GPIOs
-+ * @request: optional hook for chip-specific activation, such as
-+ *	enabling module power and clock; may sleep
-+ * @free: optional hook for chip-specific deactivation, such as
-+ *	disabling module power and clock; may sleep
-  * @direction_input: configures signal "offset" as input, or returns error
-  * @get: returns value for signal "offset"; for output signals this
-  *	returns either the value actually sensed, or zero
-@@ -67,6 +71,11 @@ struct gpio_chip {
- 	struct device		*dev;
- 	struct module		*owner;
- 
-+	int			(*request)(struct gpio_chip *chip,
-+						unsigned offset);
-+	void			(*free)(struct gpio_chip *chip,
-+						unsigned offset);
-+
- 	int			(*direction_input)(struct gpio_chip *chip,
- 						unsigned offset);
- 	int			(*get)(struct gpio_chip *chip,
+ static struct gpio_led_platform_data gpio_led_info = {
+
