@@ -1,39 +1,44 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: Re: [PATCH 5/7] 3430sdp and ldp use custom twl4030 power scripts.
-Date: Mon, 13 Oct 2008 11:45:02 +0300
-Message-ID: <20081013084502.GE4596@codecarver.research.nokia.com>
-References: <1223657776-16544-1-git-send-email-peter.de-schrijver@nokia.com> <1223657776-16544-5-git-send-email-peter.de-schrijver@nokia.com> <1223657776-16544-6-git-send-email-peter.de-schrijver@nokia.com> <200810101053.22508.david-b@pacbell.net>
+From: "TK, Pratheesh Gangadhar" <pratheesh@ti.com>
+Subject: disable_irq is broken in linux-omap-git
+Date: Mon, 13 Oct 2008 15:21:02 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301B020CBE5@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:57536 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755050AbYJMIp1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Oct 2008 04:45:27 -0400
-Content-Disposition: inline
-In-Reply-To: <200810101053.22508.david-b@pacbell.net>
+Received: from comal.ext.ti.com ([198.47.26.152]:48491 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932205AbYJMJvM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Oct 2008 05:51:12 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9D9p48q032731
+	for <linux-omap@vger.kernel.org>; Mon, 13 Oct 2008 04:51:10 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m9D9p29o029537
+	for <linux-omap@vger.kernel.org>; Mon, 13 Oct 2008 15:21:03 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Oct 10, 2008 at 10:53:22AM -0700, ext David Brownell wrote:
-> On Friday 10 October 2008, Peter 'p2' De Schrijver wrote:
-> > The TI 3430dsp and ldp boards have a custom power script.
-> 
-> And for those of us less conversant in this tech ... could
-> you summarize, in words of one syllable or less, just what
-> these scripts do that's different from the "generic" one?
-> And why the generic script is inappropriate?
-> 
+=46YI, this seems to be currently broken as default_disable in kernel/i=
+rq/chip.c is defined to be an EMPTY function. It will affect drivers us=
+ing disable_irq and following patch fixes it.
 
-These scripts are already in linux-omap, so this just maintaining
-existing functionality. I don't have access to an LDP, and have no idea
-why they don't use the generic script.
+static void default_disable(unsigned int irq)
+{
++          struct irq_desc *desc =3D irq_desc + irq;
++
++          desc->chip->mask(irq);
++          desc->status |=3D IRQ_MASKED;
++
+}
 
-Cheers,
-
-Peter.
-
--- 
-goa is a state of mind
+Regards,
+Pratheesh
+=A0
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
