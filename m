@@ -1,78 +1,62 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: git pull request for minimal omap3 support one more time
-Date: Mon, 13 Oct 2008 14:32:56 +0100
-Message-ID: <20081013133256.GA3510@flint.arm.linux.org.uk>
-References: <1223035779-26306-1-git-send-email-tony@atomide.com> <dbdb2ea60810030852h67b898a8p13b716f2e6c746e6@mail.gmail.com> <20081004070534.GB30190@muru.com> <20081009145436.GI435@flint.arm.linux.org.uk> <20081009151724.GK26230@atomide.com> <20081010073251.GN435@flint.arm.linux.org.uk> <20081010091557.GI3044@atomide.com> <20081010092520.GK3044@atomide.com> <20081010113533.GU3044@atomide.com>
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: Re: [PATCH 1/5] HDQ Driver for OMAP2430/3430
+Date: Mon, 13 Oct 2008 17:42:40 +0400
+Message-ID: <20081013134239.GB13565@2ka.mipt.ru>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02D6107AF0@dbde02.ent.ti.com> <20081010133845.8b82fac3.akpm@linux-foundation.org> <062801c92d37$3413bdd0$LocalHost@wipultra1303>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36436 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757489AbYJMNdN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Oct 2008 09:33:13 -0400
+Received: from relay.2ka.mipt.ru ([194.85.80.65]:50376 "EHLO 2ka.mipt.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751113AbYJMNlI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Oct 2008 09:41:08 -0400
 Content-Disposition: inline
-In-Reply-To: <20081010113533.GU3044@atomide.com>
+In-Reply-To: <062801c92d37$3413bdd0$LocalHost@wipultra1303>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: twebb <taliaferro62@gmail.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Madhusudhan Chikkature <madhu.cr@ti.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, "Gadiyar, Anand" <gadiyar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Fri, Oct 10, 2008 at 02:35:34PM +0300, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [081010 12:41]:
-> > * Tony Lindgren <tony@atomide.com> [081010 12:15]:
-> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [081010 11:42=
-]:
-> > > > On Thu, Oct 09, 2008 at 06:17:25PM +0300, Tony Lindgren wrote:
-> > > > > Sure, I'll post a minimal LDP patch separately tomorrow. I do=
-n't have
-> > > > > an LDP so I can't verify it boots though.
-> > > >=20
-> > > > Unfortunately, Linus has been unpredictable, and released 2.6.2=
-7 last
-> > > > night, rather than the usual one week after -rc9.
-> > > >=20
-> > > > What this means is that the merge window is now open, and I sho=
-uldn't
-> > > > be accepting anything else into my kernel tree.
-> > > >=20
-> > > > However, if you can get LDP in by this evening, I'll pull it in=
-to the
-> > > > tree.  That will be the final devel code merged into my tree fo=
-r 2.6.28.
-> > >=20
-> > > Sure. Here's the minimal board patch for LDP with it's defconfig
-> > > in the following mail. Also added to the omap3-upstream queue.
-> >=20
-> > Here's the defconfig.
->=20
-> And here's the updated pull request for you with the LDP patches adde=
-d.
->=20
-> I also changed the title of the Overo patches to say OMAP3 instead of
-> OMAP2 for consistency.
->=20
-> Note that this will also pull the already posted omap2-upstream as
-> omap3-upstream is based on that.
+Hi.
 
-There's something wrong with one of the sets I've pulled from you:
+On Mon, Oct 13, 2008 at 06:55:43PM +0530, Madhusudhan Chikkature (madhu.cr@ti.com) wrote:
+> >> +static int hdq_write_byte(struct hdq_data *hdq_data, u8 val, u8 *status)
+> >> +{
+> >> +       int ret;
+> >> +       u8 tmp_status;
+> >> +       unsigned long irqflags;
+> >> +
+> >> +       *status = 0;
+> >> +
+> >> +       spin_lock_irqsave(&hdq_data->hdq_spinlock, irqflags);
+> >> +       /* clear interrupt flags via a dummy read */
+> >> +       hdq_reg_in(hdq_data, OMAP_HDQ_INT_STATUS);
+> >> +       /* ISR loads it with new INT_STATUS */
+> >> +       hdq_data->hdq_irqstatus = 0;
+> >> +       spin_unlock_irqrestore(&hdq_data->hdq_spinlock, irqflags);
+> >> +
+> >> +       hdq_reg_out(hdq_data, OMAP_HDQ_TX_DATA, val);
+> >> +
+> >> +       /* set the GO bit */
+> >> +       hdq_reg_merge(hdq_data, OMAP_HDQ_CTRL_STATUS, OMAP_HDQ_CTRL_STATUS_GO,
+> >> +               OMAP_HDQ_CTRL_STATUS_DIR | OMAP_HDQ_CTRL_STATUS_GO);
+> >> +       /* wait for the TXCOMPLETE bit */
+> >> +       ret = wait_event_interruptible_timeout(hdq_wait_queue,
+> >> +               hdq_data->hdq_irqstatus, OMAP_HDQ_TIMEOUT);
+> >> +       if (ret < 0) {
+> >> +               dev_dbg(hdq_data->dev, "wait interrupted");
+> >> +               return -EINTR;
+> >> +       }
+> > 
+> > Is this desirable?  The user hits ^C and the driver bails out?
+> > 
+> > I assume so, but was this tested?
+> 
+> Andrew, What is the test scenario you mean here? A user hitting ^C when the driver is waiting for the TXCOMPLETE bit?
 
-arch/arm/mach-omap2/mcbsp.c:253: error: =E2=80=98INT_24XX_MCBSP3_IRQ_RX=
-=E2=80=99 undeclared here (not in a function)
-arch/arm/mach-omap2/mcbsp.c:254: error: =E2=80=98INT_24XX_MCBSP3_IRQ_TX=
-=E2=80=99 undeclared here (not in a function)
-arch/arm/mach-omap2/mcbsp.c:262: error: =E2=80=98INT_24XX_MCBSP4_IRQ_RX=
-=E2=80=99 undeclared here (not in a function)
-arch/arm/mach-omap2/mcbsp.c:263: error: =E2=80=98INT_24XX_MCBSP4_IRQ_TX=
-=E2=80=99 undeclared here (not in a function)
-arch/arm/mach-omap2/mcbsp.c:271: error: =E2=80=98INT_24XX_MCBSP5_IRQ_RX=
-=E2=80=99 undeclared here (not in a function)
-arch/arm/mach-omap2/mcbsp.c:272: error: =E2=80=98INT_24XX_MCBSP5_IRQ_TX=
-=E2=80=99 undeclared here (not in a function)
+Just plain return looks suspicious, is there some kind of a race between
+calling code (which for example frees hdq_data) and the path, which sets
+the bit and wakes up this thread?
 
-Please take a look and resolve ASAP.  Thanks.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+	Evgeniy Polyakov
