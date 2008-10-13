@@ -1,140 +1,154 @@
 From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH 6/7] Generic twl4030 power script for 3430 based boards.
-Date: Mon, 13 Oct 2008 18:44:11 +0300
-Message-ID: <1223912652-24463-7-git-send-email-peter.de-schrijver@nokia.com>
+Subject: [PATCH 7/7] omap3 evm, beagle and overo use the generic twl4030 script
+Date: Mon, 13 Oct 2008 18:44:12 +0300
+Message-ID: <1223912652-24463-8-git-send-email-peter.de-schrijver@nokia.com>
 References: <1223912652-24463-1-git-send-email-peter.de-schrijver@nokia.com>
  <1223912652-24463-2-git-send-email-peter.de-schrijver@nokia.com>
  <1223912652-24463-3-git-send-email-peter.de-schrijver@nokia.com>
  <1223912652-24463-4-git-send-email-peter.de-schrijver@nokia.com>
  <1223912652-24463-5-git-send-email-peter.de-schrijver@nokia.com>
  <1223912652-24463-6-git-send-email-peter.de-schrijver@nokia.com>
+ <1223912652-24463-7-git-send-email-peter.de-schrijver@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:39562 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:39543 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755489AbYJMPot (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Oct 2008 11:44:49 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9DFi8Ks003920
-	for <linux-omap@vger.kernel.org>; Mon, 13 Oct 2008 10:44:47 -0500
-In-Reply-To: <1223912652-24463-6-git-send-email-peter.de-schrijver@nokia.com>
+	with ESMTP id S1755351AbYJMPon (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Oct 2008 11:44:43 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9DFice2004427
+	for <linux-omap@vger.kernel.org>; Mon, 13 Oct 2008 10:44:42 -0500
+In-Reply-To: <1223912652-24463-7-git-send-email-peter.de-schrijver@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-This is a generic twl4030 power script for 3430 based boards. It handles
-sleep and wakeup events. In case of a sleep event it will first put the
-Reset and Control (RC) resources to sleep and then put the voltage regulators
-to sleep. In case of a wakeup event, the system clock will be started first,
-then the voltage regulators will be woken up and finally the RC resources will
-be woken up.
+Make omap3 evm, beagle and overo use the generic twl4030 script.
 
 Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 ---
- arch/arm/mach-omap2/twl4030-generic-scripts.c |   78 +++++++++++++++++++++++++
- arch/arm/mach-omap2/twl4030-generic-scripts.h |    8 +++
- 2 files changed, 86 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/twl4030-generic-scripts.c
- create mode 100644 arch/arm/mach-omap2/twl4030-generic-scripts.h
+ arch/arm/mach-omap2/Makefile            |    9 ++++++---
+ arch/arm/mach-omap2/board-omap3beagle.c |    4 ++--
+ arch/arm/mach-omap2/board-omap3evm.c    |    4 ++--
+ arch/arm/mach-omap2/board-overo.c       |    4 ++--
+ 4 files changed, 12 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/twl4030-generic-scripts.c b/arch/arm/mach-omap2/twl4030-generic-scripts.c
-new file mode 100644
-index 0000000..f41c9ef
---- /dev/null
-+++ b/arch/arm/mach-omap2/twl4030-generic-scripts.c
-@@ -0,0 +1,78 @@
-+/*
-+ * arch/arm/mach-omap2/twl4030-generic-scripts.c
-+ *
-+ * Generic power control scripts for TWL4030
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Copyright (C) 2006 Texas Instruments, Inc
-+ *
-+ * Written by 	Kalle Jokiniemi
-+ *		Peter De Schrijver <peter.de-schrijver@nokia.com>
-+ *
-+ * This file is subject to the terms and conditions of the GNU General
-+ * Public License. See the file "COPYING" in the main directory of this
-+ * archive for more details.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/device.h>
-+#include <linux/init.h>
-+#include <linux/i2c/twl4030.h>
-+
-+/*
-+ * This script instructs twl4030 to first put the Reset and Control (RC)
-+ * resources to sleep and then all the other resources.
-+ */
-+
-+static struct twl4030_ins sleep_on_seq[] __initdata = {
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_RC, RES_TYPE_ALL, RES_TYPE2_R0,
-+			RES_STATE_SLEEP), 4},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_ALL, RES_TYPE2_R0,
-+			RES_STATE_SLEEP), 4},
-+};
-+
-+static struct twl4030_script sleep_on_script __initdata = {
-+	.script = sleep_on_seq,
-+	.size   = ARRAY_SIZE(sleep_on_seq),
-+	.flags  = TRITON_SLEEP_SCRIPT,
-+};
-+
-+/*
-+ * This script instructs twl4030 to first enable CLKEN, then wakeup the
-+ * regulators and then all other resources.
-+ */
-+
-+static struct twl4030_ins wakeup_seq[] __initdata = {
-+	{MSG_SINGULAR(DEV_GRP_NULL, 0x17, RES_STATE_ACTIVE), 0x30},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_PP_PR, RES_TYPE_ALL, RES_TYPE2_R0,
-+			RES_STATE_ACTIVE), 0x37},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_ALL, RES_TYPE2_R0,
-+			RES_STATE_ACTIVE), 0x2},
-+};
-+
-+static struct twl4030_script wakeup_script __initdata = {
-+	.script = wakeup_seq,
-+	.size   = ARRAY_SIZE(wakeup_seq),
-+	.flags  = TRITON_WAKEUP12_SCRIPT | TRITON_WAKEUP3_SCRIPT,
-+};
-+
-+static struct twl4030_script *twl4030_scripts[] __initdata = {
-+	&sleep_on_script,
-+	&wakeup_script,
-+};
-+
-+struct twl4030_power_data generic3430_t2scripts_data __initdata = {
-+	.scripts        = twl4030_scripts,
-+	.size           = ARRAY_SIZE(twl4030_scripts),
-+};
-+
-+
-diff --git a/arch/arm/mach-omap2/twl4030-generic-scripts.h b/arch/arm/mach-omap2/twl4030-generic-scripts.h
-new file mode 100644
-index 0000000..64d8d3f
---- /dev/null
-+++ b/arch/arm/mach-omap2/twl4030-generic-scripts.h
-@@ -0,0 +1,8 @@
-+#ifndef __TWL4030_GENERIC_SCRIPTS_H
-+#define __TWL4030_GENERIC_SCRIPTS_H
-+
-+#include <linux/i2c/twl4030.h>
-+
-+extern struct twl4030_power_data generic3430_t2scripts_data;
-+
-+#endif
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 33de217..ed0cd7a 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -58,10 +58,12 @@ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
+ obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
+ 					   hsmmc.o \
+ 					   usb-musb.o usb-ehci.o \
+-					   board-omap3evm-flash.o
++					   board-omap3evm-flash.o \
++					   twl4030-generic-scripts.o
+ obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
+ 					   usb-musb.o usb-ehci.o \
+-					   hsmmc.o
++					   hsmmc.o \
++					   twl4030-generic-scripts.o
+ obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
+ 					   hsmmc.o \
+ 					   usb-musb.o
+@@ -77,7 +79,8 @@ obj-$(CONFIG_MACH_NOKIA_N810)		+= board-n810.o
+ obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
+ 					   hsmmc.o \
+ 					   usb-musb.o \
+-					   usb-ehci.o
++					   usb-ehci.o \
++					   twl4030-generic-scripts.o
+ 
+ # TUSB 6010 chips
+ obj-$(CONFIG_MACH_OMAP2_TUSB6010)	+= usb-tusb6010.o
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 19702c7..cc9506b 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -24,8 +24,6 @@
+ #include <linux/input.h>
+ #include <linux/gpio_keys.h>
+ 
+-#include <linux/i2c/twl4030.h>
+-
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+ #include <linux/mtd/nand.h>
+@@ -45,6 +43,7 @@
+ #include <mach/nand.h>
+ #include <mach/mux.h>
+ 
++#include "twl4030-generic-scripts.h"
+ 
+ #define GPMC_CS0_BASE  0x60
+ #define GPMC_CS_SIZE   0x30
+@@ -149,6 +148,7 @@ static struct twl4030_platform_data beagle_twldata = {
+ 	/* platform_data for children goes here */
+ 	.usb		= &beagle_usb_data,
+ 	.gpio		= &beagle_gpio_data,
++	.power		= &generic3430_t2scripts_data,
+ };
+ 
+ static struct i2c_board_info __initdata beagle_i2c_boardinfo[] = {
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 3538067..a72772f 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -20,8 +20,6 @@
+ #include <linux/clk.h>
+ #include <linux/input.h>
+ 
+-#include <linux/i2c/twl4030.h>
+-
+ #include <linux/spi/spi.h>
+ #include <linux/spi/ads7846.h>
+ #include <linux/i2c/twl4030.h>
+@@ -41,6 +39,7 @@
+ #include <mach/mcspi.h>
+ 
+ #include "sdram-micron-mt46h32m32lf-6.h"
++#include "twl4030-generic-scripts.h"
+ 
+ static struct resource omap3evm_smc911x_resources[] = {
+ 	[0] =	{
+@@ -139,6 +138,7 @@ static struct twl4030_platform_data omap3evm_twldata = {
+ 	.keypad		= &omap3evm_kp_data,
+ 	.madc		= &omap3evm_madc_data,
+ 	.usb		= &omap3evm_usb_data,
++	.power		= &generic3430_t2scripts_data,
+ 	.gpio		= &omap3evm_gpio_data,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 4e2781a..b0e5cec 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -27,8 +27,6 @@
+ #include <linux/kernel.h>
+ #include <linux/platform_device.h>
+ 
+-#include <linux/i2c/twl4030.h>
+-
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
+ #include <linux/mtd/partitions.h>
+@@ -50,6 +48,7 @@
+ #include <mach/usb-musb.h>
+ 
+ #include "sdram-micron-mt46h32m32lf-6.h"
++#include "twl4030-generic-scripts.h"
+ 
+ #define NAND_BLOCK_SIZE SZ_128K
+ #define GPMC_CS0_BASE  0x60
+@@ -160,6 +159,7 @@ static struct twl4030_platform_data overo_twldata = {
+ 	.irq_end	= TWL4030_IRQ_END,
+ 	.gpio		= &overo_gpio_data,
+ 	.usb		= &overo_usb_data,
++	.power		= &generic3430_t2scripts_data,
+ };
+ 
+ static struct i2c_board_info __initdata overo_i2c_boardinfo[] = {
 -- 
 1.5.6.3
 
