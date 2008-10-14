@@ -1,89 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: OMAP: Revert omap3 WDT changes to avoid merge
-	conflict (Re: linux-next: manual merge of the arm tree)
-Date: Tue, 14 Oct 2008 13:30:24 -0700
-Message-ID: <20081014203017.GH8150@atomide.com>
-References: <20081014132745.051f6418.sfr@canb.auug.org.au> <20081014075950.GA22855@flint.arm.linux.org.uk> <200810140107.14647.david-b@pacbell.net> <20081014200805.GF8150@atomide.com>
+Subject: Re: git pull request for minimal omap3 support one more time
+Date: Tue, 14 Oct 2008 13:35:32 -0700
+Message-ID: <20081014203530.GI8150@atomide.com>
+References: <20081004070534.GB30190@muru.com> <20081009145436.GI435@flint.arm.linux.org.uk> <20081009151724.GK26230@atomide.com> <20081010073251.GN435@flint.arm.linux.org.uk> <20081010091557.GI3044@atomide.com> <20081010092520.GK3044@atomide.com> <20081010113533.GU3044@atomide.com> <20081013133256.GA3510@flint.arm.linux.org.uk> <20081014171907.GD8150@atomide.com> <20081014185100.GA20627@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="kVXhAStRUZ/+rrGn"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-next-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55604 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751054AbYJNUfr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 16:35:47 -0400
 Content-Disposition: inline
-In-Reply-To: <20081014200805.GF8150@atomide.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Russell King <rmk@arm.linux.org.uk>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-omap@vger.kernel.org, Richard Woodruff <r-woodruff2@ti.com>, linux-next@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, Wim Van Sebroeck <wim@iguana.be>, Syed Mohammed Khasim <khasim@ti.com>, David Brownell <david-b@pacbell.net>
+In-Reply-To: <20081014185100.GA20627@flint.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: twebb <taliaferro62@gmail.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-
---kVXhAStRUZ/+rrGn
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-* Tony Lindgren <tony@atomide.com> [081014 13:09]:
-> * David Brownell <david-b@pacbell.net> [081014 11:53]:
-> > On Tuesday 14 October 2008, Russell King wrote:
-> > > Since the OMAP updates I merged from Tony are already broken due to
-> > > missing definitions, and I'm not getting any response from Tony on
-> > > fixing those,
-> 
-> I just sent you a fix for that few hours ago.
-> 
-> > Probably has to do with his travel plans, which he mentioned
-> > last week (Thursday?).  I think he's back online in the next
-> > day or two.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [081014 12:39]:
+> On Tue, Oct 14, 2008 at 10:19:08AM -0700, Tony Lindgren wrote:
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [081013 09:15]:
+> > > There's something wrong with one of the sets I've pulled from you:
+> > > 
+> > > arch/arm/mach-omap2/mcbsp.c:253: error: ???INT_24XX_MCBSP3_IRQ_RX??? undeclared here (not in a function)
+> > > arch/arm/mach-omap2/mcbsp.c:254: error: ???INT_24XX_MCBSP3_IRQ_TX??? undeclared here (not in a function)
+> > > arch/arm/mach-omap2/mcbsp.c:262: error: ???INT_24XX_MCBSP4_IRQ_RX??? undeclared here (not in a function)
+> > > arch/arm/mach-omap2/mcbsp.c:263: error: ???INT_24XX_MCBSP4_IRQ_TX??? undeclared here (not in a function)
+> > > arch/arm/mach-omap2/mcbsp.c:271: error: ???INT_24XX_MCBSP5_IRQ_RX??? undeclared here (not in a function)
+> > > arch/arm/mach-omap2/mcbsp.c:272: error: ???INT_24XX_MCBSP5_IRQ_TX??? undeclared here (not in a function)
+> > > 
+> > > Please take a look and resolve ASAP.  Thanks.
 > > 
+> > Sorry for the delay, I was sitting in an airplane again.
 > > 
-> > > I will be dropping the problematical updates so we can 
-> > > at least keep mainline OMAP in a buildable state.  That seems to mean
-> > > dropping the new OMAP3 support.
+> > Here's the fix, looks like the missing McBSP irqs should have been
+> > merged into the recent McBSP patches.
+> > 
+> > This patch is also in your patch system as 5301/1.
 > 
-> Yes, I'm back online. And please don't drop these patches, sounds
-> like this is a trivial merge issue.
-
-And here's the patch for Russell to avoid the merge conflict.
-Also in Russell's patch tracking system as patch 5302/1.
-
+> Thanks, that solved that problem, but there's one more to come:
 > 
-> Regards,
+> arch/arm/plat-omap/devices.c: In function 'omap_mcbsp_register_board_cfg':
+> arch/arm/plat-omap/devices.c:163: error: 'OMAP_MAX_MCBSP_COUNT' undeclared (first use in this function)
+> arch/arm/plat-omap/devices.c:163: error: (Each undeclared identifier is reported only once
+> arch/arm/plat-omap/devices.c:163: error: for each function it appears in.)
 > 
-> Tony
+> The good news is that that seems to be the last error building for LDP.
 
---kVXhAStRUZ/+rrGn
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="wdt.patch"
+Grrr, just few mins and I'll send a patch. Will also build test this
+time :)
 
-From: Tony Lindgren <tony@atomide.com>
-Date: Tue, 14 Oct 2008 13:25:20 -0700
-Subject: [PATCH] ARM: OMAP: Revert omap3 WDT changes to avoid merge conflict
-
-With the upcoming WDT patches OMAP_WDT_BASE is no longer needed
-in devices.c. Revert some earlier omap3 changes to avoid merge
-conflicts with the WDT patches.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/plat-omap/devices.c
-+++ b/arch/arm/plat-omap/devices.c
-@@ -399,17 +399,8 @@ static inline void omap_init_uwire(void) {}
- 
- #if	defined(CONFIG_OMAP_WATCHDOG) || defined(CONFIG_OMAP_WATCHDOG_MODULE)
- 
--#if defined(CONFIG_ARCH_OMAP34XX)
--#define	OMAP_WDT_BASE		0x48314000
--#elif defined(CONFIG_ARCH_OMAP24XX)
--
--#ifdef CONFIG_ARCH_OMAP2430
--/* WDT2 */
--#define	OMAP_WDT_BASE		0x49016000
--#else
-+#ifdef CONFIG_ARCH_OMAP24XX
- #define	OMAP_WDT_BASE		0x48022000
--#endif
--
- #else
- #define	OMAP_WDT_BASE		0xfffeb000
- #endif
-
---kVXhAStRUZ/+rrGn--
+Tony
