@@ -1,91 +1,134 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 1/5] HDQ Driver for OMAP2430/3430
-Date: Tue, 14 Oct 2008 05:50:02 -0700
-Message-ID: <20081014055002.24ff586a.akpm@linux-foundation.org>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02D6107AF0@dbde02.ent.ti.com>
-	<20081010133845.8b82fac3.akpm@linux-foundation.org>
-	<062801c92d37$3413bdd0$LocalHost@wipultra1303>
-	<20081013085323.f8bd7efb.akpm@linux-foundation.org>
-	<015c01c92dda$1b754340$LocalHost@wipultra1303>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [PATCH 4/8] leds: lp5521: simplify mode setting
+Date: Tue, 14 Oct 2008 16:01:36 +0300
+Message-ID: <1223989300-27294-5-git-send-email-felipe.balbi@nokia.com>
+References: <1223989300-27294-1-git-send-email-felipe.balbi@nokia.com>
+ <1223989300-27294-2-git-send-email-felipe.balbi@nokia.com>
+ <1223989300-27294-3-git-send-email-felipe.balbi@nokia.com>
+ <1223989300-27294-4-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50432 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754812AbYJNMuB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Oct 2008 08:50:01 -0400
-In-Reply-To: <015c01c92dda$1b754340$LocalHost@wipultra1303>
+Received: from smtp.nokia.com ([192.100.122.233]:48391 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755410AbYJNNCZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 09:02:25 -0400
+In-Reply-To: <1223989300-27294-4-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan Chikkature <madhu.cr@ti.com>
-Cc: gadiyar@ti.com, johnpol@2ka.mipt.ru, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, Richard Purdie <rpurdie@rpsys.net>
 
-> On Tue, 14 Oct 2008 14:21:50 +0530 "Madhusudhan Chikkature" <madhu.cr@ti.com> wrote:
-> 
-> ----- Original Message ----- 
-> From: "Andrew Morton" <akpm@linux-foundation.org>
-> To: "Madhusudhan Chikkature" <madhu.cr@ti.com>
-> Cc: <gadiyar@ti.com>; <johnpol@2ka.mipt.ru>; <linux-kernel@vger.kernel.org>; <linux-omap@vger.kernel.org>
-> Sent: Monday, October 13, 2008 9:23 PM
-> Subject: Re: [PATCH 1/5] HDQ Driver for OMAP2430/3430
-> 
-> 
-> >> On Mon, 13 Oct 2008 18:55:43 +0530 "Madhusudhan Chikkature" <madhu.cr@ti.com> wrote:
-> >> 
-> >> ----- Original Message ----- 
-> >> From: "Andrew Morton" <akpm@linux-foundation.org>
-> >> To: "Gadiyar, Anand" <gadiyar@ti.com>
-> >> Cc: <johnpol@2ka.mipt.ru>; <linux-kernel@vger.kernel.org>; <linux-omap@vger.kernel.org>; <madhu.cr@ti.com>
-> >> Sent: Saturday, October 11, 2008 2:08 AM
-> >> Subject: Re: [PATCH 1/5] HDQ Driver for OMAP2430/3430
-> >> 
-> >> 
-> >> >> +       /* set the GO bit */
-> >> >> +       hdq_reg_merge(hdq_data, OMAP_HDQ_CTRL_STATUS, OMAP_HDQ_CTRL_STATUS_GO,
-> >> >> +               OMAP_HDQ_CTRL_STATUS_DIR | OMAP_HDQ_CTRL_STATUS_GO);
-> >> >> +       /* wait for the TXCOMPLETE bit */
-> >> >> +       ret = wait_event_interruptible_timeout(hdq_wait_queue,
-> >> >> +               hdq_data->hdq_irqstatus, OMAP_HDQ_TIMEOUT);
-> >> >> +       if (ret < 0) {
-> >> >> +               dev_dbg(hdq_data->dev, "wait interrupted");
-> >> >> +               return -EINTR;
-> >> >> +       }
-> >> > 
-> >> > Is this desirable?  The user hits ^C and the driver bails out?
-> >> > 
-> >> > I assume so, but was this tested?
-> >> 
-> >> Andrew, What is the test scenario you mean here? A user hitting ^C when the driver is waiting for the TXCOMPLETE bit?
-> > 
-> > Yes.
-> > 
-> 
-> Yes. It is desired to return an error if the condition in the wait is not met. I need to change the check for return value to check for zero and neg value.
-> 
-> I spent some time to test this perticular scenario.I could not really see any impact of hitting ^C when an application is 
-> transfering data in the background. When the h/w is programmed to transfer data and the driver issues a wait, I see that 
-> TXCOMPLETE interrupt comes immediately and wakes up as expected. 
-> 
-> So guess I am unable to hit ^C exactly when the driver is waiting in wait_event_interruptible_timeout(before the condition 
-> is met) for it to catch the signal. Is it generally suggested to use wait_event_timeout so that ^C signal is not caught?
-> 
+Avoid using string magic and use integer for comparisson
 
-I think it's reasonable to permit the driver's operations to be interrupted
-in this manner.  It's done in quite a few other places.  But the problem is
-actually *testing* it.
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/leds/leds-lp5521.c |   52 ++++++++++++++++++++++++++++++++-----------
+ 1 files changed, 38 insertions(+), 14 deletions(-)
 
-I guess one could do a whitebox-style test.  Add new code like:
+diff --git a/drivers/leds/leds-lp5521.c b/drivers/leds/leds-lp5521.c
+index e040c4d..9e94ff8 100644
+--- a/drivers/leds/leds-lp5521.c
++++ b/drivers/leds/leds-lp5521.c
+@@ -46,10 +46,6 @@
+ #define LP5521_REG_G_PROG_MEM		0x30
+ #define LP5521_REG_B_PROG_MEM		0x50
+ 
+-#define LP5521_MODE_LOAD		"load"
+-#define LP5521_MODE_RUN			"run"
+-#define LP5521_MODE_DIRECT_CONTROL	"direct"
+-
+ #define LP5521_CURRENT_1m5		0x0f
+ #define LP5521_CURRENT_3m1		0x1f
+ #define LP5521_CURRENT_4m7		0x2f
+@@ -69,17 +65,23 @@
+ 
+ #define LP5521_PROGRAM_LENGTH		32	/* in bytes */
+ 
++enum lp5521_mode {
++	LP5521_MODE_LOAD,
++	LP5521_MODE_RUN,
++	LP5521_MODE_DIRECT_CONTROL,
++};
++
+ struct lp5521_chip {
+ 	/* device lock */
+ 	struct mutex		lock;
+ 	struct i2c_client	*client;
+-	char			*mode;
++	enum lp5521_mode	mode;
+ 	int			red;
+ 	int			green;
+ 	int			blue;
+ };
+ 
+-static int lp5521_set_mode(struct lp5521_chip *chip, char *mode);
++static int lp5521_set_mode(struct lp5521_chip *chip, enum lp5521_mode mode);
+ 
+ static inline int lp5521_write(struct i2c_client *client, u8 reg, u8 value)
+ {
+@@ -313,8 +315,25 @@ static ssize_t show_mode(struct device *dev,
+ 		char *buf)
+ {
+ 	struct lp5521_chip *chip = dev_get_drvdata(dev);
++	char *mode;
++
++	mutex_lock(&chip->lock);
++	switch (chip->mode) {
++	case LP5521_MODE_RUN:
++		mode = "run";
++		break;
++	case LP5521_MODE_LOAD:
++		mode = "load";
++		break;
++	case LP5521_MODE_DIRECT_CONTROL:
++		mode = "direct";
++		break;
++	default:
++		mode = "undefined";
++	}
++	mutex_unlock(&chip->lock);
+ 
+-	return sprintf(buf, "%s\n", chip->mode);
++	return sprintf(buf, "%s\n", mode);
+ }
+ 
+ static ssize_t store_mode(struct device *dev,
+@@ -442,23 +461,28 @@ static void lp5521_unregister_sysfs(struct i2c_client *client)
+ /*			Set chip operating mode			*/
+ /*--------------------------------------------------------------*/
+ 
+-static int lp5521_set_mode(struct lp5521_chip *chip, char *mode)
++static int lp5521_set_mode(struct lp5521_chip *chip, enum lp5521_mode mode)
+ {
+ 	struct i2c_client *client = chip->client ;
+ 	int ret = 0;
+ 
+ 	/* if in that mode already do nothing, except for run */
+-	if (!strcmp(mode, chip->mode) && strcmp(mode, LP5521_MODE_RUN))
++	if (chip->mode == mode && mode != LP5521_MODE_RUN)
+ 		return 0;
+ 
+-	if (!strcmp(mode, LP5521_MODE_RUN))
++	switch (mode) {
++	case LP5521_MODE_RUN:
+ 		ret = lp5521_run_program(chip);
+-
+-	if (!strcmp(mode, LP5521_MODE_LOAD))
++		break;
++	case LP5521_MODE_LOAD:
+ 		ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x15);
+-
+-	if (!strcmp(mode, LP5521_MODE_DIRECT_CONTROL))
++		break;
++	case LP5521_MODE_DIRECT_CONTROL:
+ 		ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x3F);
++		break;
++	default:
++		dev_dbg(&client->dev, "unsupported mode %d\n", mode);
++	}
+ 
+ 	chip->mode = mode;
+ 
+-- 
+1.6.0.2.307.gc427
 
-	{
-		static int x;
-		if (!(x++ % 1000)) {
-			printk("hit ^c now\n");
-			msleep(2000);
-		}
-	}
-
-in the right place.
-
-Tricky.
