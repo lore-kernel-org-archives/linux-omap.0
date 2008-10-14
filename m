@@ -1,40 +1,33 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 6/8] tsl2563: move tsl2563 to drivers/hwmon
-Date: Wed, 15 Oct 2008 00:50:27 +0300
-Message-ID: <20081014215024.GC31842@frodo>
-References: <1223989300-27294-1-git-send-email-felipe.balbi@nokia.com> <200810140900.55697.david-b@pacbell.net> <20081014212034.GA31842@frodo> <200810141444.51894.david-b@pacbell.net>
-Reply-To: me@felipebalbi.com
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 2/7] input: tsc2005: move to gpiolib
+Date: Tue, 14 Oct 2008 16:20:04 -0700
+Message-ID: <200810141620.04834.david-b@pacbell.net>
+References: <1224020397-2842-1-git-send-email-me@felipebalbi.com> <1224020397-2842-2-git-send-email-me@felipebalbi.com> <1224020397-2842-3-git-send-email-me@felipebalbi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:52808 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751034AbYJNVu5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 17:50:57 -0400
+Received: from smtp127.sbc.mail.sp1.yahoo.com ([69.147.65.186]:27783 "HELO
+	smtp127.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755311AbYJNXUH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Oct 2008 19:20:07 -0400
+In-Reply-To: <1224020397-2842-3-git-send-email-me@felipebalbi.com>
 Content-Disposition: inline
-In-Reply-To: <200810141444.51894.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: me@felipebalbi.com, felipe.balbi@nokia.com, ext Jean Delvare <khali@linux-fr.org>, linux-omap@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-On Tue, Oct 14, 2008 at 02:44:51PM -0700, David Brownell wrote:
-> On Tuesday 14 October 2008, Felipe Balbi wrote:
-> > I'd say that if it goes to the "wrong" place and doesn't bother anyone,
-> > will get forgotten. Just like the whole bunch of other drivers sitting
-> > in linux-omap...
-> 
-> I thought the point was to have them sit in mainline.  ;)
+On Tuesday 14 October 2008, Felipe Balbi wrote:
+> -=A0=A0=A0=A0=A0=A0=A0omap_set_gpio_direction(dav_gpio, 1);
+> +=A0=A0=A0=A0=A0=A0=A0gpio_direction_input(dav_gpio);
+> =A0=A0=A0=A0=A0=A0=A0=A0ts->irq =3D OMAP_GPIO_IRQ(dav_gpio);
 
-Exactly :-)
+That should be ts->irq =3D gpio_to_irq(dav_gpio) ...
 
-> Some of these drivers are first-of-a-kind, so these questions wouldn't
-> necessarily have come up before.  That's one of the obstacles to
-> mainline merge that isn't always acknowledged.
-
-That's also true, but then again most of those drivers got forgotten and
-never made their way to mainline. If you look at mainline archives,
-you'll see that most of omap drivers never "tried" to go upstream.
-
--- 
-balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
