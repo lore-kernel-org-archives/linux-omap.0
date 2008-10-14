@@ -1,99 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: git pull request for minimal omap3 support one more time
-Date: Tue, 14 Oct 2008 13:55:15 -0700
-Message-ID: <20081014205514.GJ8150@atomide.com>
-References: <20081009145436.GI435@flint.arm.linux.org.uk> <20081009151724.GK26230@atomide.com> <20081010073251.GN435@flint.arm.linux.org.uk> <20081010091557.GI3044@atomide.com> <20081010092520.GK3044@atomide.com> <20081010113533.GU3044@atomide.com> <20081013133256.GA3510@flint.arm.linux.org.uk> <20081014171907.GD8150@atomide.com> <20081014185100.GA20627@flint.arm.linux.org.uk> <20081014203530.GI8150@atomide.com>
+Subject: Re: [PATCH 1/3] clk: introduce omap_clk_associate
+Date: Tue, 14 Oct 2008 13:59:26 -0700
+Message-ID: <20081014205925.GK8150@atomide.com>
+References: <1223333252-25687-1-git-send-email-me@felipebalbi.com> <alpine.DEB.2.00.0810141039580.15253@utopia.booyaka.com> <20081014172921.GJ20247@frodo> <200810141047.44803.david-b@pacbell.net> <20081014180634.GL20247@frodo>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="zjcmjzIkjQU2rmur"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62902 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51436 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755401AbYJNUza (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 16:55:30 -0400
+	with ESMTP id S1752522AbYJNU7g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 16:59:36 -0400
 Content-Disposition: inline
-In-Reply-To: <20081014203530.GI8150@atomide.com>
+In-Reply-To: <20081014180634.GL20247@frodo>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: twebb <taliaferro62@gmail.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: David Brownell <david-b@pacbell.net>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>
 
-
---zjcmjzIkjQU2rmur
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-* Tony Lindgren <tony@atomide.com> [081014 13:37]:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [081014 12:39]:
-> > On Tue, Oct 14, 2008 at 10:19:08AM -0700, Tony Lindgren wrote:
-> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [081013 09:15]:
-> > > > There's something wrong with one of the sets I've pulled from you:
-> > > > 
-> > > > arch/arm/mach-omap2/mcbsp.c:253: error: ???INT_24XX_MCBSP3_IRQ_RX??? undeclared here (not in a function)
-> > > > arch/arm/mach-omap2/mcbsp.c:254: error: ???INT_24XX_MCBSP3_IRQ_TX??? undeclared here (not in a function)
-> > > > arch/arm/mach-omap2/mcbsp.c:262: error: ???INT_24XX_MCBSP4_IRQ_RX??? undeclared here (not in a function)
-> > > > arch/arm/mach-omap2/mcbsp.c:263: error: ???INT_24XX_MCBSP4_IRQ_TX??? undeclared here (not in a function)
-> > > > arch/arm/mach-omap2/mcbsp.c:271: error: ???INT_24XX_MCBSP5_IRQ_RX??? undeclared here (not in a function)
-> > > > arch/arm/mach-omap2/mcbsp.c:272: error: ???INT_24XX_MCBSP5_IRQ_TX??? undeclared here (not in a function)
-> > > > 
-> > > > Please take a look and resolve ASAP.  Thanks.
+* Felipe Balbi <me@felipebalbi.com> [081014 12:31]:
+> On Tue, Oct 14, 2008 at 10:47:44AM -0700, David Brownell wrote:
+> > On Tuesday 14 October 2008, Felipe Balbi wrote:
+> > > I didn't quite get you here. The idea of mmc_fck is so that
 > > > 
-> > > Sorry for the delay, I was sitting in an airplane again.
+> > > clk_get(dev, "mmc_fck");
 > > > 
-> > > Here's the fix, looks like the missing McBSP irqs should have been
-> > > merged into the recent McBSP patches.
-> > > 
-> > > This patch is also in your patch system as 5301/1.
+> > > works fine and returns the correct clock. If we have several fck and ick
+> > > function names, how will we clk_get() the right one ??
 > > 
-> > Thanks, that solved that problem, but there's one more to come:
+> > If "dev" is an MMC device, there's no way to confuse
+> > its "fck" and "ick" with those for, say, I2C.   Right?
+> > That's the whole point of associating logical clock
+> > names with the device.
 > > 
-> > arch/arm/plat-omap/devices.c: In function 'omap_mcbsp_register_board_cfg':
-> > arch/arm/plat-omap/devices.c:163: error: 'OMAP_MAX_MCBSP_COUNT' undeclared (first use in this function)
-> > arch/arm/plat-omap/devices.c:163: error: (Each undeclared identifier is reported only once
-> > arch/arm/plat-omap/devices.c:163: error: for each function it appears in.)
-> > 
-> > The good news is that that seems to be the last error building for LDP.
+> > And as Paul noted, if a device has several such clocks,
+> > then it needs several such names.
 > 
-> Grrr, just few mins and I'll send a patch. Will also build test this
-> time :)
+> hmm... that's true. Forgot about matching dev as well :-p
+> hehehe. Makes sense to me, let's use fclk and iclk then :-)
+> 
+> The main idea then would be that clk(dev, "iclk") translates to english
+> into "get me the interface clock of mmc device" (when dev is an mmc
+> device, of course).
 
-Here's the patch to fix this. Also available in your patch system as 5305/1.
-
-Regards,
+And that we can use same naming in the driver no matter which omap :)
 
 Tony
-
---zjcmjzIkjQU2rmur
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="mcbsp.patch"
-
-From: Tony Lindgren <tony@atomide.com>
-Date: Tue, 14 Oct 2008 13:43:48 -0700
-Subject: [PATCH] ARM: OMAP: Fix compile of McBSP by removing unnecessary check
-
-Recent McBSP patches changed to allocating devices dynamically
-and the check for OMAP_MAX_MCBSP_COUNT became unnecessary.
-
-The check for OMAP_MAX_MCBSP_COUNT should have been removed with
-the earlier McBSP patches in devices.c but was accidentally left
-out.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/plat-omap/devices.c
-+++ b/arch/arm/plat-omap/devices.c
-@@ -159,13 +159,6 @@ void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data *config,
- {
- 	int i;
- 
--	if (size > OMAP_MAX_MCBSP_COUNT) {
--		printk(KERN_WARNING "Registered too many McBSPs platform_data."
--			" Using maximum (%d) available.\n",
--			OMAP_MAX_MCBSP_COUNT);
--		size = OMAP_MAX_MCBSP_COUNT;
--	}
--
- 	omap_mcbsp_devices = kzalloc(size * sizeof(struct platform_device *),
- 				     GFP_KERNEL);
- 	if (!omap_mcbsp_devices) {
-
---zjcmjzIkjQU2rmur--
