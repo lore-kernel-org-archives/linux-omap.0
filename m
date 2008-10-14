@@ -1,35 +1,99 @@
-From: Russell King <rmk@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM: OMAP: Revert omap3 WDT changes to avoid merge conflict (Re: linux-next: manual merge of the arm tree)
-Date: Tue, 14 Oct 2008 21:40:23 +0100
-Message-ID: <20081014204022.GB20614@flint.arm.linux.org.uk>
-References: <20081014132745.051f6418.sfr@canb.auug.org.au> <20081014075950.GA22855@flint.arm.linux.org.uk> <200810140107.14647.david-b@pacbell.net> <20081014200805.GF8150@atomide.com> <20081014203017.GH8150@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: git pull request for minimal omap3 support one more time
+Date: Tue, 14 Oct 2008 13:55:15 -0700
+Message-ID: <20081014205514.GJ8150@atomide.com>
+References: <20081009145436.GI435@flint.arm.linux.org.uk> <20081009151724.GK26230@atomide.com> <20081010073251.GN435@flint.arm.linux.org.uk> <20081010091557.GI3044@atomide.com> <20081010092520.GK3044@atomide.com> <20081010113533.GU3044@atomide.com> <20081013133256.GA3510@flint.arm.linux.org.uk> <20081014171907.GD8150@atomide.com> <20081014185100.GA20627@flint.arm.linux.org.uk> <20081014203530.GI8150@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="zjcmjzIkjQU2rmur"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49968 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750899AbYJNUkt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 16:40:49 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62902 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755401AbYJNUza (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 16:55:30 -0400
 Content-Disposition: inline
-In-Reply-To: <20081014203017.GH8150@atomide.com>
+In-Reply-To: <20081014203530.GI8150@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-omap@vger.kernel.org, Richard Woodruff <r-woodruff2@ti.com>, linux-next@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, Wim Van Sebroeck <wim@iguana.be>, Syed Mohammed Khasim <khasim@ti.com>, David Brownell <david-b@pacbell.net>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: twebb <taliaferro62@gmail.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-On Tue, Oct 14, 2008 at 01:30:24PM -0700, Tony Lindgren wrote:
-> And here's the patch for Russell to avoid the merge conflict.
-> Also in Russell's patch tracking system as patch 5302/1.
 
-This evening, only now having the time to investigate what's going
-on there (as a result of added your other patch to fix the build
-error I reported on Saturday) it turns out to be much more trivial
-a conflict than I was suspecting from sfr's description.
+--zjcmjzIkjQU2rmur
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-However, the results of the final merge with 'master' on my devel
-branch never go to Linus, so your patch may still be required.
+* Tony Lindgren <tony@atomide.com> [081014 13:37]:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [081014 12:39]:
+> > On Tue, Oct 14, 2008 at 10:19:08AM -0700, Tony Lindgren wrote:
+> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [081013 09:15]:
+> > > > There's something wrong with one of the sets I've pulled from you:
+> > > > 
+> > > > arch/arm/mach-omap2/mcbsp.c:253: error: ???INT_24XX_MCBSP3_IRQ_RX??? undeclared here (not in a function)
+> > > > arch/arm/mach-omap2/mcbsp.c:254: error: ???INT_24XX_MCBSP3_IRQ_TX??? undeclared here (not in a function)
+> > > > arch/arm/mach-omap2/mcbsp.c:262: error: ???INT_24XX_MCBSP4_IRQ_RX??? undeclared here (not in a function)
+> > > > arch/arm/mach-omap2/mcbsp.c:263: error: ???INT_24XX_MCBSP4_IRQ_TX??? undeclared here (not in a function)
+> > > > arch/arm/mach-omap2/mcbsp.c:271: error: ???INT_24XX_MCBSP5_IRQ_RX??? undeclared here (not in a function)
+> > > > arch/arm/mach-omap2/mcbsp.c:272: error: ???INT_24XX_MCBSP5_IRQ_TX??? undeclared here (not in a function)
+> > > > 
+> > > > Please take a look and resolve ASAP.  Thanks.
+> > > 
+> > > Sorry for the delay, I was sitting in an airplane again.
+> > > 
+> > > Here's the fix, looks like the missing McBSP irqs should have been
+> > > merged into the recent McBSP patches.
+> > > 
+> > > This patch is also in your patch system as 5301/1.
+> > 
+> > Thanks, that solved that problem, but there's one more to come:
+> > 
+> > arch/arm/plat-omap/devices.c: In function 'omap_mcbsp_register_board_cfg':
+> > arch/arm/plat-omap/devices.c:163: error: 'OMAP_MAX_MCBSP_COUNT' undeclared (first use in this function)
+> > arch/arm/plat-omap/devices.c:163: error: (Each undeclared identifier is reported only once
+> > arch/arm/plat-omap/devices.c:163: error: for each function it appears in.)
+> > 
+> > The good news is that that seems to be the last error building for LDP.
+> 
+> Grrr, just few mins and I'll send a patch. Will also build test this
+> time :)
 
--- 
-Russell King
- Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
- maintainer of:
+Here's the patch to fix this. Also available in your patch system as 5305/1.
+
+Regards,
+
+Tony
+
+--zjcmjzIkjQU2rmur
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="mcbsp.patch"
+
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 14 Oct 2008 13:43:48 -0700
+Subject: [PATCH] ARM: OMAP: Fix compile of McBSP by removing unnecessary check
+
+Recent McBSP patches changed to allocating devices dynamically
+and the check for OMAP_MAX_MCBSP_COUNT became unnecessary.
+
+The check for OMAP_MAX_MCBSP_COUNT should have been removed with
+the earlier McBSP patches in devices.c but was accidentally left
+out.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/plat-omap/devices.c
++++ b/arch/arm/plat-omap/devices.c
+@@ -159,13 +159,6 @@ void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data *config,
+ {
+ 	int i;
+ 
+-	if (size > OMAP_MAX_MCBSP_COUNT) {
+-		printk(KERN_WARNING "Registered too many McBSPs platform_data."
+-			" Using maximum (%d) available.\n",
+-			OMAP_MAX_MCBSP_COUNT);
+-		size = OMAP_MAX_MCBSP_COUNT;
+-	}
+-
+ 	omap_mcbsp_devices = kzalloc(size * sizeof(struct platform_device *),
+ 				     GFP_KERNEL);
+ 	if (!omap_mcbsp_devices) {
+
+--zjcmjzIkjQU2rmur--
