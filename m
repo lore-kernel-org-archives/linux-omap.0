@@ -1,63 +1,43 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/2] OMAP2/3 GPTIMER: skip unnecessary TLDR write during
-	non-autoreload
-Date: Tue, 14 Oct 2008 11:27:48 -0600
-Message-ID: <20081014172745.5459.1893.stgit@localhost.localdomain>
-References: <20081014172417.5459.36601.stgit@localhost.localdomain>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 3/8] lp5521: move to drivers/leds
+Date: Tue, 14 Oct 2008 20:32:09 +0300
+Message-ID: <20081014173208.GK20247@frodo>
+References: <1223989300-27294-1-git-send-email-felipe.balbi@nokia.com> <200810140853.28676.david-b@pacbell.net> <20081014171102.GI20247@frodo> <200810141019.52997.david-b@pacbell.net>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49892 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753019AbYJNRar (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 13:30:47 -0400
-In-Reply-To: <20081014172417.5459.36601.stgit@localhost.localdomain>
+Received: from ns1.siteground211.com ([209.62.36.12]:45255 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752643AbYJNRcV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 13:32:21 -0400
+Content-Disposition: inline
+In-Reply-To: <200810141019.52997.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, Richard Woodruff <r-woodruff2@ti.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: me@felipebalbi.com, Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, Richard Purdie <rpurdie@rpsys.net>
 
-The GPTIMER TLDR register does not need to be written if the GPTIMER
-is not in autoreload mode.  This is the usual case for dynamic tick-enabled
-kernels.
+On Tue, Oct 14, 2008 at 10:19:52AM -0700, David Brownell wrote:
+> On Tuesday 14 October 2008, Felipe Balbi wrote:
+> > On Tue, Oct 14, 2008 at 08:53:28AM -0700, David Brownell wrote:
+> > > On Tuesday 14 October 2008, Felipe Balbi wrote:
+> > > > This driver should be sitting together with the other
+> > > > led drivers.
+> > > 
+> > > ... iff it actually uses the LED framework.  Which it
+> > > doesn't, yet, even for simple operations.
+> > 
+> > Should I change the order of the patches ? The patch going to Richard is
+> > only the final version of it, so there wouldn't be any difference for
+> > him I'd say.
+> 
+> The rule of thumb is to preserve bisectability.  That may be less
+> important inside the OMAP tree.  The sequencing is fine, but it'd
+> be less confusing to patch-at-a-time review to at least see the
+> comment that a *later* patch makes it use the LED framework.
 
-Simulation data indicate that skipping the read that occurs as part of
-the write should save at least 300-320 ns for each GPTIMER1 timer
-reprogram.  (This assumes L4-Wakeup is at 19MHz and GPTIMER write
-posting is enabled.)  Skipping the write itself probably won't have
-much impact since it should be posted on the OCP interconnect.
+makes sense, I'll put a comment to patch 2.
 
-Tested on 2430SDP and 3430SDP.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Richard Woodruff <r-woodruff2@ti.com>
----
- arch/arm/plat-omap/dmtimer.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 59be3aa..08028f6 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -549,14 +549,15 @@ void omap_dm_timer_set_load_start(struct omap_dm_timer *timer, int autoreload,
- 	u32 l;
- 
- 	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
--	if (autoreload)
-+	if (autoreload) {
- 		l |= OMAP_TIMER_CTRL_AR;
--	else
-+		omap_dm_timer_write_reg(timer, OMAP_TIMER_LOAD_REG, load);
-+	} else {
- 		l &= ~OMAP_TIMER_CTRL_AR;
-+	}
- 	l |= OMAP_TIMER_CTRL_ST;
- 
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_COUNTER_REG, load);
--	omap_dm_timer_write_reg(timer, OMAP_TIMER_LOAD_REG, load);
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
- }
- 
-
-
+-- 
+balbi
