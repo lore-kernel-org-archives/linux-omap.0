@@ -1,57 +1,65 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 7/8] input: lm8323: get rid of global pdata pointer
-Date: Tue, 14 Oct 2008 16:01:39 +0300
-Message-ID: <1223989300-27294-8-git-send-email-felipe.balbi@nokia.com>
-References: <1223989300-27294-1-git-send-email-felipe.balbi@nokia.com>
- <1223989300-27294-2-git-send-email-felipe.balbi@nokia.com>
- <1223989300-27294-3-git-send-email-felipe.balbi@nokia.com>
- <1223989300-27294-4-git-send-email-felipe.balbi@nokia.com>
- <1223989300-27294-5-git-send-email-felipe.balbi@nokia.com>
- <1223989300-27294-6-git-send-email-felipe.balbi@nokia.com>
- <1223989300-27294-7-git-send-email-felipe.balbi@nokia.com>
+From: "Felipe Contreras" <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 2/6] HS/EMU OMAP3 SRAM size fix
+Date: Tue, 14 Oct 2008 16:07:05 +0300
+Message-ID: <94a0d4530810140607s7590ef54iac70d03661f6a4a6@mail.gmail.com>
+References: <1223987011-25667-1-git-send-email-tero.kristo@nokia.com>
+	 <1223987011-25667-2-git-send-email-tero.kristo@nokia.com>
+	 <1223987011-25667-3-git-send-email-tero.kristo@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:48444 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755568AbYJNNCl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 09:02:41 -0400
-In-Reply-To: <1223989300-27294-7-git-send-email-felipe.balbi@nokia.com>
+Received: from rv-out-0506.google.com ([209.85.198.228]:19300 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752445AbYJNNHG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 09:07:06 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so2371828rvb.1
+        for <linux-omap@vger.kernel.org>; Tue, 14 Oct 2008 06:07:05 -0700 (PDT)
+In-Reply-To: <1223987011-25667-3-git-send-email-tero.kristo@nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Tero Kristo <tero.kristo@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-pdata is only used during probe to initialize a few fields
-from lm8323 device structure. Moving pdata pointer to probe
-won't harm anybody.
+On Tue, Oct 14, 2008 at 3:23 PM, Tero Kristo <tero.kristo@nokia.com> wrote:
+> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+> ---
+>  arch/arm/plat-omap/sram.c |   12 +++++++++---
+>  1 files changed, 9 insertions(+), 3 deletions(-)
+>  mode change 100644 => 100755 arch/arm/plat-omap/sram.c
+>
+> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> old mode 100644
+> new mode 100755
+> index 9cfb77f..f0ac426
+> --- a/arch/arm/plat-omap/sram.c
+> +++ b/arch/arm/plat-omap/sram.c
+> @@ -125,9 +125,15 @@ void __init omap_detect_sram(void)
+>        if (cpu_class_is_omap2()) {
+>                if (is_sram_locked()) {
+>                        if (cpu_is_omap34xx()) {
+> -                               omap_sram_base = OMAP3_SRAM_PUB_VA;
+> -                               omap_sram_start = OMAP3_SRAM_PUB_PA;
+> -                               omap_sram_size = 0x8000; /* 32K */
+> +                               if (omap_type() == OMAP2_DEVICE_TYPE_GP) {
+> +                                       omap_sram_base = OMAP3_SRAM_PUB_VA;
+> +                                       omap_sram_start = OMAP3_SRAM_PUB_PA;
+> +                                       omap_sram_size = 0x8000; /* 32K */
+> +                               } else {
+> +                                       omap_sram_base = OMAP3_SRAM_PUB_VA;
+> +                                       omap_sram_start = OMAP3_SRAM_PUB_PA;
+> +                                       omap_sram_size = 0x7000; /* 28K */
+> +                               }
 
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/input/keyboard/lm8323.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+It seems omap_sram_base and _start are the same, maybe have leave them
+outside the if?
 
-diff --git a/drivers/input/keyboard/lm8323.c b/drivers/input/keyboard/lm8323.c
-index 72bb587..b6f464c 100644
---- a/drivers/input/keyboard/lm8323.c
-+++ b/drivers/input/keyboard/lm8323.c
-@@ -184,9 +184,6 @@ static struct lm8323_chip *pwm_to_lm8323(struct lm8323_pwm *pwm)
- 	}
- }
- 
--static struct lm8323_platform_data *lm8323_pdata;
--
--
- #define LM8323_MAX_DATA 8
- 
- /*
-@@ -673,6 +670,7 @@ static DEVICE_ATTR(disable_kp, 0644, lm8323_show_disable, lm8323_set_disable);
- static int lm8323_probe(struct i2c_client *client,
- 					const struct i2c_device_id *id)
- {
-+	struct lm8323_platform_data *lm8323_pdata;
- 	struct input_dev *idev;
- 	struct lm8323_chip *lm;
- 	int i, err = 0;
+>                        } else {
+>                                omap_sram_base = OMAP2_SRAM_PUB_VA;
+>                                omap_sram_start = OMAP2_SRAM_PUB_PA;
+> --
+> 1.5.4.3
+
 -- 
-1.6.0.2.307.gc427
-
+Felipe Contreras
