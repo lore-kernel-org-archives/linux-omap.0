@@ -1,99 +1,57 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 3/8] lp5521: move to drivers/leds
-Date: Tue, 14 Oct 2008 16:01:35 +0300
-Message-ID: <1223989300-27294-4-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 7/8] input: lm8323: get rid of global pdata pointer
+Date: Tue, 14 Oct 2008 16:01:39 +0300
+Message-ID: <1223989300-27294-8-git-send-email-felipe.balbi@nokia.com>
 References: <1223989300-27294-1-git-send-email-felipe.balbi@nokia.com>
  <1223989300-27294-2-git-send-email-felipe.balbi@nokia.com>
  <1223989300-27294-3-git-send-email-felipe.balbi@nokia.com>
+ <1223989300-27294-4-git-send-email-felipe.balbi@nokia.com>
+ <1223989300-27294-5-git-send-email-felipe.balbi@nokia.com>
+ <1223989300-27294-6-git-send-email-felipe.balbi@nokia.com>
+ <1223989300-27294-7-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:30943 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755550AbYJNNC2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 09:02:28 -0400
-In-Reply-To: <1223989300-27294-3-git-send-email-felipe.balbi@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:48444 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755568AbYJNNCl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 09:02:41 -0400
+In-Reply-To: <1223989300-27294-7-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, Richard Purdie <rpurdie@rpsys.net>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-This driver should be sitting together with the other
-led drivers.
+pdata is only used during probe to initialize a few fields
+from lm8323 device structure. Moving pdata pointer to probe
+won't harm anybody.
 
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/i2c/chips/Kconfig                          |    7 -------
- drivers/i2c/chips/Makefile                         |    1 -
- drivers/leds/Kconfig                               |    7 +++++++
- drivers/leds/Makefile                              |    1 +
- drivers/{i2c/chips/lp5521.c => leds/leds-lp5521.c} |    0
- 5 files changed, 8 insertions(+), 8 deletions(-)
- rename drivers/{i2c/chips/lp5521.c => leds/leds-lp5521.c} (100%)
+ drivers/input/keyboard/lm8323.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
-index d803c41..0aed293 100644
---- a/drivers/i2c/chips/Kconfig
-+++ b/drivers/i2c/chips/Kconfig
-@@ -219,13 +219,6 @@ config SENSORS_TSL2563
-          This driver can also be built as a module.  If so, the module
-          will be called tsl2563.
+diff --git a/drivers/input/keyboard/lm8323.c b/drivers/input/keyboard/lm8323.c
+index 72bb587..b6f464c 100644
+--- a/drivers/input/keyboard/lm8323.c
++++ b/drivers/input/keyboard/lm8323.c
+@@ -184,9 +184,6 @@ static struct lm8323_chip *pwm_to_lm8323(struct lm8323_pwm *pwm)
+ 	}
+ }
  
--config LP5521
--	tristate "LP5521 LED driver chip"
--	depends on I2C
--	help
--	  If you say yes here you get support for the National Semiconductor
--	  LP5521 LED driver.
+-static struct lm8323_platform_data *lm8323_pdata;
 -
- config MENELAUS
- 	bool "TWL92330/Menelaus PM chip"
- 	depends on I2C=y && ARCH_OMAP24XX
-diff --git a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
-index ba41a57..5e17df3 100644
---- a/drivers/i2c/chips/Makefile
-+++ b/drivers/i2c/chips/Makefile
-@@ -30,7 +30,6 @@ obj-$(CONFIG_TWL4030_POWEROFF)	+= twl4030-poweroff.o
- obj-$(CONFIG_TWL4030_PWRBUTTON)	+= twl4030-pwrbutton.o
- obj-$(CONFIG_TWL4030_MADC)	+= twl4030-madc.o
- obj-$(CONFIG_RTC_X1205_I2C)	+= x1205.o
--obj-$(CONFIG_LP5521)		+= lp5521.o
+-
+ #define LM8323_MAX_DATA 8
  
- ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
- EXTRA_CFLAGS += -DDEBUG
-diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
-index 6a2f441..d61cdf0 100644
---- a/drivers/leds/Kconfig
-+++ b/drivers/leds/Kconfig
-@@ -146,6 +146,13 @@ config LEDS_CM_X270
- 	help
- 	  This option enables support for the CM-X270 LEDs.
- 
-+config LEDS_LP5521
-+	tristate "LP5521 LED driver chip"
-+	depends on LEDS_CLASS && I2C
-+	help
-+	  If you say yes here you get support for the National Semiconductor
-+	  LP5521 LED driver used in n8x0 boards.
-+
- config LEDS_CLEVO_MAIL
- 	tristate "Mail LED on Clevo notebook (EXPERIMENTAL)"
- 	depends on LEDS_CLASS && X86 && SERIO_I8042 && DMI && EXPERIMENTAL
-diff --git a/drivers/leds/Makefile b/drivers/leds/Makefile
-index fd6316e..ce5c8cd 100644
---- a/drivers/leds/Makefile
-+++ b/drivers/leds/Makefile
-@@ -21,6 +21,7 @@ obj-$(CONFIG_LEDS_COBALT_RAQ)		+= leds-cobalt-raq.o
- obj-$(CONFIG_LEDS_PCA9532)		+= leds-pca9532.o
- obj-$(CONFIG_LEDS_GPIO)			+= leds-gpio.o
- obj-$(CONFIG_LEDS_CM_X270)              += leds-cm-x270.o
-+obj-$(CONFIG_LEDS_LP5521)		+= leds-lp5521.o
- obj-$(CONFIG_LEDS_CLEVO_MAIL)		+= leds-clevo-mail.o
- obj-$(CONFIG_LEDS_HP6XX)		+= leds-hp6xx.o
- obj-$(CONFIG_LEDS_FSG)			+= leds-fsg.o
-diff --git a/drivers/i2c/chips/lp5521.c b/drivers/leds/leds-lp5521.c
-similarity index 100%
-rename from drivers/i2c/chips/lp5521.c
-rename to drivers/leds/leds-lp5521.c
+ /*
+@@ -673,6 +670,7 @@ static DEVICE_ATTR(disable_kp, 0644, lm8323_show_disable, lm8323_set_disable);
+ static int lm8323_probe(struct i2c_client *client,
+ 					const struct i2c_device_id *id)
+ {
++	struct lm8323_platform_data *lm8323_pdata;
+ 	struct input_dev *idev;
+ 	struct lm8323_chip *lm;
+ 	int i, err = 0;
 -- 
 1.6.0.2.307.gc427
 
