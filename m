@@ -1,53 +1,137 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 1/7] input: lm8323: get rid of global pdata pointer
-Date: Wed, 15 Oct 2008 00:39:51 +0300
-Message-ID: <1224020397-2842-2-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 5/7] i2c: lp5521: simplify mode setting
+Date: Wed, 15 Oct 2008 00:39:55 +0300
+Message-ID: <1224020397-2842-6-git-send-email-me@felipebalbi.com>
 References: <1224020397-2842-1-git-send-email-me@felipebalbi.com>
+ <1224020397-2842-2-git-send-email-me@felipebalbi.com>
+ <1224020397-2842-3-git-send-email-me@felipebalbi.com>
+ <1224020397-2842-4-git-send-email-me@felipebalbi.com>
+ <1224020397-2842-5-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:47933 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:48024 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751091AbYJNVkU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 17:40:20 -0400
-In-Reply-To: <1224020397-2842-1-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1751567AbYJNVku (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 17:40:50 -0400
+In-Reply-To: <1224020397-2842-5-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, Richard Purdie <rpurdie@rpsys.net>
 
 From: Felipe Balbi <felipe.balbi@nokia.com>
 
-pdata is only used during probe to initialize a few fields
-from lm8323 device structure. Moving pdata pointer to probe
-won't harm anybody.
+Avoid using string magic and use integer for comparisson
 
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/input/keyboard/lm8323.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+ drivers/i2c/chips/lp5521.c |   52 ++++++++++++++++++++++++++++++++-----------
+ 1 files changed, 38 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/input/keyboard/lm8323.c b/drivers/input/keyboard/lm8323.c
-index 72bb587..b6f464c 100644
---- a/drivers/input/keyboard/lm8323.c
-+++ b/drivers/input/keyboard/lm8323.c
-@@ -184,9 +184,6 @@ static struct lm8323_chip *pwm_to_lm8323(struct lm8323_pwm *pwm)
- 	}
+diff --git a/drivers/i2c/chips/lp5521.c b/drivers/i2c/chips/lp5521.c
+index e040c4d..9e94ff8 100644
+--- a/drivers/i2c/chips/lp5521.c
++++ b/drivers/i2c/chips/lp5521.c
+@@ -46,10 +46,6 @@
+ #define LP5521_REG_G_PROG_MEM		0x30
+ #define LP5521_REG_B_PROG_MEM		0x50
+ 
+-#define LP5521_MODE_LOAD		"load"
+-#define LP5521_MODE_RUN			"run"
+-#define LP5521_MODE_DIRECT_CONTROL	"direct"
+-
+ #define LP5521_CURRENT_1m5		0x0f
+ #define LP5521_CURRENT_3m1		0x1f
+ #define LP5521_CURRENT_4m7		0x2f
+@@ -69,17 +65,23 @@
+ 
+ #define LP5521_PROGRAM_LENGTH		32	/* in bytes */
+ 
++enum lp5521_mode {
++	LP5521_MODE_LOAD,
++	LP5521_MODE_RUN,
++	LP5521_MODE_DIRECT_CONTROL,
++};
++
+ struct lp5521_chip {
+ 	/* device lock */
+ 	struct mutex		lock;
+ 	struct i2c_client	*client;
+-	char			*mode;
++	enum lp5521_mode	mode;
+ 	int			red;
+ 	int			green;
+ 	int			blue;
+ };
+ 
+-static int lp5521_set_mode(struct lp5521_chip *chip, char *mode);
++static int lp5521_set_mode(struct lp5521_chip *chip, enum lp5521_mode mode);
+ 
+ static inline int lp5521_write(struct i2c_client *client, u8 reg, u8 value)
+ {
+@@ -313,8 +315,25 @@ static ssize_t show_mode(struct device *dev,
+ 		char *buf)
+ {
+ 	struct lp5521_chip *chip = dev_get_drvdata(dev);
++	char *mode;
++
++	mutex_lock(&chip->lock);
++	switch (chip->mode) {
++	case LP5521_MODE_RUN:
++		mode = "run";
++		break;
++	case LP5521_MODE_LOAD:
++		mode = "load";
++		break;
++	case LP5521_MODE_DIRECT_CONTROL:
++		mode = "direct";
++		break;
++	default:
++		mode = "undefined";
++	}
++	mutex_unlock(&chip->lock);
+ 
+-	return sprintf(buf, "%s\n", chip->mode);
++	return sprintf(buf, "%s\n", mode);
  }
  
--static struct lm8323_platform_data *lm8323_pdata;
--
--
- #define LM8323_MAX_DATA 8
+ static ssize_t store_mode(struct device *dev,
+@@ -442,23 +461,28 @@ static void lp5521_unregister_sysfs(struct i2c_client *client)
+ /*			Set chip operating mode			*/
+ /*--------------------------------------------------------------*/
  
- /*
-@@ -673,6 +670,7 @@ static DEVICE_ATTR(disable_kp, 0644, lm8323_show_disable, lm8323_set_disable);
- static int lm8323_probe(struct i2c_client *client,
- 					const struct i2c_device_id *id)
+-static int lp5521_set_mode(struct lp5521_chip *chip, char *mode)
++static int lp5521_set_mode(struct lp5521_chip *chip, enum lp5521_mode mode)
  {
-+	struct lm8323_platform_data *lm8323_pdata;
- 	struct input_dev *idev;
- 	struct lm8323_chip *lm;
- 	int i, err = 0;
+ 	struct i2c_client *client = chip->client ;
+ 	int ret = 0;
+ 
+ 	/* if in that mode already do nothing, except for run */
+-	if (!strcmp(mode, chip->mode) && strcmp(mode, LP5521_MODE_RUN))
++	if (chip->mode == mode && mode != LP5521_MODE_RUN)
+ 		return 0;
+ 
+-	if (!strcmp(mode, LP5521_MODE_RUN))
++	switch (mode) {
++	case LP5521_MODE_RUN:
+ 		ret = lp5521_run_program(chip);
+-
+-	if (!strcmp(mode, LP5521_MODE_LOAD))
++		break;
++	case LP5521_MODE_LOAD:
+ 		ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x15);
+-
+-	if (!strcmp(mode, LP5521_MODE_DIRECT_CONTROL))
++		break;
++	case LP5521_MODE_DIRECT_CONTROL:
+ 		ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x3F);
++		break;
++	default:
++		dev_dbg(&client->dev, "unsupported mode %d\n", mode);
++	}
+ 
+ 	chip->mode = mode;
+ 
 -- 
 1.6.0.2.307.gc427
 
