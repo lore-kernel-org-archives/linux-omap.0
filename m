@@ -1,68 +1,85 @@
-From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
-Subject: Re: [PATCH 1/5] HDQ Driver for OMAP2430/3430
-Date: Tue, 14 Oct 2008 14:21:50 +0530
-Message-ID: <015c01c92dda$1b754340$LocalHost@wipultra1303>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02D6107AF0@dbde02.ent.ti.com><20081010133845.8b82fac3.akpm@linux-foundation.org><062801c92d37$3413bdd0$LocalHost@wipultra1303> <20081013085323.f8bd7efb.akpm@linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Tero Kristo <tero.kristo@nokia.com>
+Subject: [PATCH 1/6] Support for EMU/HS off-mode for DMA
+Date: Tue, 14 Oct 2008 15:23:26 +0300
+Message-ID: <1223987011-25667-2-git-send-email-tero.kristo@nokia.com>
+References: <>
+ <1223987011-25667-1-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57876 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751882AbYJNIzW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 04:55:22 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:33568 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754616AbYJNKiJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 06:38:09 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9EAc6aH006407
+	for <linux-omap@vger.kernel.org>; Tue, 14 Oct 2008 13:38:07 +0300
+Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
+	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m9EAbjLt000373
+	for <linux-omap@vger.kernel.org>; Tue, 14 Oct 2008 13:37:47 +0300
+In-Reply-To: <1223987011-25667-1-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: gadiyar@ti.com, johnpol@2ka.mipt.ru, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
+- DMA interrupt disable routine added
+- Added DMA controller reset to DMA context restore
 
------ Original Message ----- 
-From: "Andrew Morton" <akpm@linux-foundation.org>
-To: "Madhusudhan Chikkature" <madhu.cr@ti.com>
-Cc: <gadiyar@ti.com>; <johnpol@2ka.mipt.ru>; <linux-kernel@vger.kernel.org>; <linux-omap@vger.kernel.org>
-Sent: Monday, October 13, 2008 9:23 PM
-Subject: Re: [PATCH 1/5] HDQ Driver for OMAP2430/3430
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+---
+ arch/arm/plat-omap/dma.c              |   14 ++++++++++++++
+ arch/arm/plat-omap/include/mach/dma.h |    2 ++
+ 2 files changed, 16 insertions(+), 0 deletions(-)
+ mode change 100644 => 100755 arch/arm/plat-omap/dma.c
+ mode change 100644 => 100755 arch/arm/plat-omap/include/mach/dma.h
 
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+old mode 100644
+new mode 100755
+index 38c57ce..4d4016f
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -2309,6 +2309,9 @@ EXPORT_SYMBOL(omap_dma_global_context_save);
+ 
+ void omap_dma_global_context_restore(void)
+ {
++	dma_write(0x2, OCP_SYSCONFIG);
++	while (!__raw_readl(omap_dma_base + OMAP_DMA4_SYSSTATUS))
++		;
+ 	dma_write(omap_dma_global_context.dma_gcr, GCR);
+ 	dma_write(omap_dma_global_context.dma_ocp_sysconfig,
+ 		OCP_SYSCONFIG);
+@@ -2317,6 +2320,17 @@ void omap_dma_global_context_restore(void)
+ }
+ EXPORT_SYMBOL(omap_dma_global_context_restore);
+ 
++void omap_dma_disable_irq(int lch)
++{
++	u32 val;
++	if (cpu_class_is_omap2()) {
++		/* Disable interrupts */
++		val = dma_read(IRQENABLE_L0);
++		val &= ~(1 << lch);
++		dma_write(val, IRQENABLE_L0);
++	}
++}
++
+ /*----------------------------------------------------------------------------*/
+ 
+ static int __init omap_init_dma(void)
+diff --git a/arch/arm/plat-omap/include/mach/dma.h b/arch/arm/plat-omap/include/mach/dma.h
+old mode 100644
+new mode 100755
+index f1f588a..1cd390d
+--- a/arch/arm/plat-omap/include/mach/dma.h
++++ b/arch/arm/plat-omap/include/mach/dma.h
+@@ -531,6 +531,8 @@ extern int omap_get_dma_index(int lch, int *ei, int *fi);
+ void omap_dma_global_context_save(void);
+ void omap_dma_global_context_restore(void);
+ 
++extern void omap_dma_disable_irq(int lch);
++
+ /* Chaining APIs */
+ #ifndef CONFIG_ARCH_OMAP1
+ extern int omap_request_dma_chain(int dev_id, const char *dev_name,
+-- 
+1.5.4.3
 
->> On Mon, 13 Oct 2008 18:55:43 +0530 "Madhusudhan Chikkature" <madhu.cr@ti.com> wrote:
->> 
->> ----- Original Message ----- 
->> From: "Andrew Morton" <akpm@linux-foundation.org>
->> To: "Gadiyar, Anand" <gadiyar@ti.com>
->> Cc: <johnpol@2ka.mipt.ru>; <linux-kernel@vger.kernel.org>; <linux-omap@vger.kernel.org>; <madhu.cr@ti.com>
->> Sent: Saturday, October 11, 2008 2:08 AM
->> Subject: Re: [PATCH 1/5] HDQ Driver for OMAP2430/3430
->> 
->> 
->> >> +       /* set the GO bit */
->> >> +       hdq_reg_merge(hdq_data, OMAP_HDQ_CTRL_STATUS, OMAP_HDQ_CTRL_STATUS_GO,
->> >> +               OMAP_HDQ_CTRL_STATUS_DIR | OMAP_HDQ_CTRL_STATUS_GO);
->> >> +       /* wait for the TXCOMPLETE bit */
->> >> +       ret = wait_event_interruptible_timeout(hdq_wait_queue,
->> >> +               hdq_data->hdq_irqstatus, OMAP_HDQ_TIMEOUT);
->> >> +       if (ret < 0) {
->> >> +               dev_dbg(hdq_data->dev, "wait interrupted");
->> >> +               return -EINTR;
->> >> +       }
->> > 
->> > Is this desirable?  The user hits ^C and the driver bails out?
->> > 
->> > I assume so, but was this tested?
->> 
->> Andrew, What is the test scenario you mean here? A user hitting ^C when the driver is waiting for the TXCOMPLETE bit?
-> 
-> Yes.
-> 
-
-Yes. It is desired to return an error if the condition in the wait is not met. I need to change the check for return value to check for zero and neg value.
-
-I spent some time to test this perticular scenario.I could not really see any impact of hitting ^C when an application is 
-transfering data in the background. When the h/w is programmed to transfer data and the driver issues a wait, I see that 
-TXCOMPLETE interrupt comes immediately and wakes up as expected. 
-
-So guess I am unable to hit ^C exactly when the driver is waiting in wait_event_interruptible_timeout(before the condition 
-is met) for it to catch the signal. Is it generally suggested to use wait_event_timeout so that ^C signal is not caught?
-
-Regards,
-Madhu
