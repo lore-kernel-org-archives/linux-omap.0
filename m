@@ -1,129 +1,106 @@
-From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: RE: [PATCH 00/05] OMAP3: CPUidle driver
-Date: Tue, 14 Oct 2008 16:11:46 +0530
-Message-ID: <00ab01c92de9$76890190$LocalHost@wipultra1382>
-References: <87hc7lu8tc.fsf@deeprootsystems.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 2/2] OMAP2/3 I2C: reprogram OCP_SYSCONFIG register after reset
+Date: Tue, 14 Oct 2008 06:19:48 -0600
+Message-ID: <20081014121926.1210.11681.stgit@localhost.localdomain>
+References: <20081014121031.1210.96214.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39443 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752479AbYJNKl7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 06:41:59 -0400
-In-Reply-To: <87hc7lu8tc.fsf@deeprootsystems.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:38058 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755375AbYJNMVb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 08:21:31 -0400
+In-Reply-To: <20081014121031.1210.96214.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Kevin Hilman' <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, Richard Woodruff <r-woodruff2@ti.com>
 
+The I2C controller clears its OCP_SYSCONFIG register after an OCP soft reset.
+Reprogram OCP_SYSCONFIG for maximum power savings on rev3.6 controllers
+and beyond.  On 2430, this involves setting the module AUTOIDLE bit.
+On 3430, this includes module AUTOIDLE, wakeup enable, slave smart-idle,
+and considers only the module functional clock state for idle-ack.
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> Sent: Thursday, October 09, 2008 8:15 PM
-> To: Rajendra Nayak
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 00/05] OMAP3: CPUidle driver
-> 
-> Kevin Hilman <khilman@deeprootsystems.com> writes:
-> 
-> > "Rajendra Nayak" <rnayak@ti.com> writes:
-> >
-> >> This patch set implements Cpuidle driver for OMAP3 platforms. It is
-> >> validated on the 3430SDP (using the omap_3430sdp_min_defconfig) and
-> >> applies on the pm-20081006 branch.
-> >
-> > Excellent.  Thank you.  I'll pull into pm-20081006 today.
-> >
-> > One question: You have C6 to hit chip-off, but it is never enabled.
-> > Has this been tested?  Enabling it allows me to hit chip OFF, but it
-> > never comes back from OFF-mode.  I will push some patches 
-> to make this
-> > work with /sys/power/enable_off_mode.
-> 
-> I got this to work on custom HW, but not on 3430SDP.  Can you confirm
-> whether or not you can use C6 on 3430SDP?  Off-in-idle without CPUidle
-> seems to work, but not with CPUidle + C6.
-> 
-> 
+Boot-tested on 2430SDP and 3430SDP.
 
-Hi Kevin,
-
-With just this patch below I could see that I was able to hit sysoff even
-with CPUidle.
-
-Doing this I could see the SYSOFF LED toggle..
-# echo -n 1 > /sys/power/clocks_off_while_idle
-# echo -n 1 > /sys/power/sleep_while_idle
-# echo -n 1 > /sys/power/voltage_off_while_idle
-# echo -n 1 > /sys/power/enable_off_mode
-
-And doing this stops the toggle..
-# echo -n 0 > /sys/power/enable_off_mode
-
-Was there any other issue you saw with CPUidle + C6?
-
-Rajendra
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Richard Woodruff <r-woodruff2@ti.com>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/i2c/busses/i2c-omap.c |   40 ++++++++++++++++++++++++++++++++++------
+ 1 files changed, 34 insertions(+), 6 deletions(-)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/cpuidle34xx.c	2008-10-14 14:46:21.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/cpuidle34xx.c	2008-10-14 14:46:24.000000000 +0530
-@@ -191,7 +191,7 @@ void omap_init_power_states(void)
- 				CPUIDLE_FLAG_CHECK_BM;
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 12bdb69..d012ad7 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -123,11 +123,19 @@
+ #define OMAP_I2C_SYSTEST_SDA_O		(1 << 0)	/* SDA line drive out */
+ #endif
  
- 	/* C6 . MPU OFF + Core OFF */
--	omap3_power_states[OMAP3_STATE_C6].valid = 0;
-+	omap3_power_states[OMAP3_STATE_C6].valid = 1;
- 	omap3_power_states[OMAP3_STATE_C6].type = OMAP3_STATE_C6;
- 	omap3_power_states[OMAP3_STATE_C6].sleep_latency = 10000;
- 	omap3_power_states[OMAP3_STATE_C6].wakeup_latency = 30000;
+-/* I2C System Status register (OMAP_I2C_SYSS): */
+-#define OMAP_I2C_SYSS_RDONE		(1 << 0)	/* Reset Done */
++/* OCP_SYSSTATUS bit definitions */
++#define SYSS_RESETDONE_MASK		(1 << 0)
++
++/* OCP_SYSCONFIG bit definitions */
++#define SYSC_CLOCKACTIVITY_MASK		(0x3 << 8)
++#define SYSC_SIDLEMODE_MASK		(0x3 << 3)
++#define SYSC_ENAWAKEUP_MASK		(1 << 2)
++#define SYSC_SOFTRESET_MASK		(1 << 1)
++#define SYSC_AUTOIDLE_MASK		(1 << 0)
++
++#define SYSC_IDLEMODE_SMART		0x2
++#define SYSC_CLOCKACTIVITY_FCLK		0x2
+ 
+-/* I2C System Configuration Register (OMAP_I2C_SYSC): */
+-#define OMAP_I2C_SYSC_SRST		(1 << 1)	/* Soft Reset */
+ 
+ struct omap_i2c_dev {
+ 	struct device		*dev;
+@@ -252,13 +260,13 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 	unsigned long internal_clk = 0;
+ 
+ 	if (dev->rev >= OMAP_I2C_REV_2) {
+-		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, OMAP_I2C_SYSC_SRST);
++		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, SYSC_SOFTRESET_MASK);
+ 		/* For some reason we need to set the EN bit before the
+ 		 * reset done bit gets set. */
+ 		timeout = jiffies + OMAP_I2C_TIMEOUT;
+ 		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+ 		while (!(omap_i2c_read_reg(dev, OMAP_I2C_SYSS_REG) &
+-			 OMAP_I2C_SYSS_RDONE)) {
++			 SYSS_RESETDONE_MASK)) {
+ 			if (time_after(jiffies, timeout)) {
+ 				dev_warn(dev->dev, "timeout waiting "
+ 						"for controller reset\n");
+@@ -266,6 +274,26 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 			}
+ 			msleep(1);
+ 		}
++
++		/* SYSC register is cleared by the reset; rewrite it */
++		if (dev->rev == OMAP_I2C_REV_ON_2430) {
++
++			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
++					   SYSC_AUTOIDLE_MASK);
++
++		} else if (dev->rev >= OMAP_I2C_REV_ON_3430) {
++			u32 v;
++
++			v = SYSC_AUTOIDLE_MASK;
++			v |= SYSC_ENAWAKEUP_MASK;
++			v |= (SYSC_IDLEMODE_SMART <<
++			      __ffs(SYSC_SIDLEMODE_MASK));
++			v |= (SYSC_CLOCKACTIVITY_FCLK <<
++			      __ffs(SYSC_CLOCKACTIVITY_MASK));
++
++			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, v);
++
++		}
+ 	}
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+ 
 
-
-> 
-> > Some minor problems that I will fixup when rebasing to the next pm
-> > branch:
-> >
-> >  - You removed C0, but all the comments still refer to it
-> >  - /sys/power/enable_off_mode doesn't affect off-mode states
-> >    in CPUidle
-> >
-> > patch 1:
-> >  - I still don't like the #ifdefs for the init sequence.
-> >
-> > patch 2:
-> >  - checkpatch warning
-> >
-> > Kevin
-> >
-> >> The following C states are defined and used 
-> >>
-> >>  *      C0 . System executing code (Not an idle state)
-> >>  *      C1 . MPU WFI + Core active
-> >>  *      C2 . MPU CSWR + Core active
-> >>  *      C3 . MPU OFF + Core active
-> >>  *      C4 . MPU CSWR + Core CSWR
-> >>  *      C5 . MPU OFF + Core CSWR
-> >>  *      C6 . MPU OFF + Core OFF
-> >>
-> >> CPUidle support is not enabled by default in any of the 
-> defconfigs and hence has to enabled seperately 
-> >> if you plan to test these patches.
-> >>
-> >> CPUIdle ---> [*] CPU idle PM support
-> >>
-> >> regards,
-> >> Rajendra
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
 
