@@ -1,40 +1,34 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 1/5] HDQ Driver for OMAP2430/3430
-Date: Tue, 14 Oct 2008 07:30:58 -0700
-Message-ID: <20081014073058.e5d972e6.akpm@linux-foundation.org>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02D6107AF0@dbde02.ent.ti.com>
-	<20081010133845.8b82fac3.akpm@linux-foundation.org>
-	<062801c92d37$3413bdd0$LocalHost@wipultra1303>
-	<20081013085323.f8bd7efb.akpm@linux-foundation.org>
-	<015c01c92dda$1b754340$LocalHost@wipultra1303>
-	<20081014055002.24ff586a.akpm@linux-foundation.org>
-	<20081014134249.GA5611@2ka.mipt.ru>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 6/8] tsl2563: move tsl2563 to drivers/hwmon
+Date: Tue, 14 Oct 2008 17:38:47 +0300
+Message-ID: <20081014143847.GD28161@gandalf.research.nokia.com>
+References: <1223989300-27294-1-git-send-email-felipe.balbi@nokia.com> <1223989300-27294-2-git-send-email-felipe.balbi@nokia.com> <1223989300-27294-3-git-send-email-felipe.balbi@nokia.com> <1223989300-27294-4-git-send-email-felipe.balbi@nokia.com> <1223989300-27294-5-git-send-email-felipe.balbi@nokia.com> <1223989300-27294-6-git-send-email-felipe.balbi@nokia.com> <1223989300-27294-7-git-send-email-felipe.balbi@nokia.com> <20081014153824.3722411c@hyperion.delvare> <20081014135230.GA28019@gandalf.research.nokia.com> <20081014161426.552115e5@hyperion.delvare>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55317 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750883AbYJNOeY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Oct 2008 10:34:24 -0400
-In-Reply-To: <20081014134249.GA5611@2ka.mipt.ru>
+Received: from smtp.nokia.com ([192.100.122.233]:58115 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751166AbYJNOj7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 10:39:59 -0400
+Content-Disposition: inline
+In-Reply-To: <20081014161426.552115e5@hyperion.delvare>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Cc: madhu.cr@ti.com, gadiyar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: ext Jean Delvare <khali@linux-fr.org>
+Cc: felipe.balbi@nokia.com, linux-omap@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Jonathan Cameron <Jonathan.Cameron@gmail.com>
 
-> On Tue, 14 Oct 2008 17:42:49 +0400 Evgeniy Polyakov <johnpol@2ka.mipt.ru> wrote:
-> Hi.
-> 
-> On Tue, Oct 14, 2008 at 05:50:02AM -0700, Andrew Morton (akpm@linux-foundation.org) wrote:
-> > I think it's reasonable to permit the driver's operations to be interrupted
-> > in this manner.  It's done in quite a few other places.  But the problem is
-> > actually *testing* it.
-> 
-> Why not just skipping the waiting and returning error pretending user
-> really sent a signal?
+On Tue, Oct 14, 2008 at 04:14:26PM +0200, ext Jean Delvare wrote:
+> I've implied a sysfs interface with my tsl2550 driver, essentially
+> derived from the hwmon sysfs interface. I hope you followed it in your
+> driver if possible. When these drivers have a new home, we can document
+> the sysfs interface. Or, if these drivers end up in the industrial I/O
+> subsystem, maybe a completely different interface will be used instead
+> (but then it's in Jonathan's hands.)
 
-Better than nothing, but because signal_pending() isn't actually true,
-upper layers wil behave differently.
+Hmm, I didn't really write the driver, I'm just fixing a few stuff to
+prepare for submission to mainline. If we end up with your sysfs
+interface, I can change that, no problem.
 
+-- 
+balbi
