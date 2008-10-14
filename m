@@ -1,50 +1,50 @@
-From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
-Subject: [PATCH] twl4030-usb: rename twl4030_driver to twl4030_usb_driver.
-Date: Tue, 14 Oct 2008 11:37:14 +0530
-Message-ID: <1223964434-5752-1-git-send-email-j-pakaravoor@ti.com>
+From: Russell King <rmk@arm.linux.org.uk>
+Subject: Re: linux-next: manual merge of the arm tree
+Date: Tue, 14 Oct 2008 08:59:50 +0100
+Message-ID: <20081014075950.GA22855@flint.arm.linux.org.uk>
+References: <20081014132745.051f6418.sfr@canb.auug.org.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51334 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751751AbYJNGH0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 02:07:26 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47438 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753077AbYJNIAO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 04:00:14 -0400
+Content-Disposition: inline
+In-Reply-To: <20081014132745.051f6418.sfr@canb.auug.org.au>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
+To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-omap@vger.kernel.org, Richard Woodruff <r-woodruff2@ti.com>
+Cc: linux-next@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, Wim Van Sebroeck <wim@iguana.be>, Syed Mohammed Khasim <khasim@ti.com>, Tony Lindgren <tony@atomide.com>
 
-The i2c_driver in twl4030-core.c and platform_driver of twl4030-usb.c
-both has the name twl4030_driver. This leads to unnecessary confusion.
+On Tue, Oct 14, 2008 at 01:27:45PM +1100, Stephen Rothwell wrote:
+> Hi Russell,
+> 
+> Today's linux-next merge of the arm tree got a conflict in
+> arch/arm/plat-omap/devices.c between commit
+> 2817142f31bfbf26c216bf4f9192540c81b2d071 ("[WATCHDOG] omap_wdt.c: sync
+> linux-omap changes") from Linus' tree and commit
+> cc26b3b01bc96a8b8c36671b0dc4898b2a152ea8 ("ARM: OMAP3: Add minimal
+> omap3430 support") from the arm tree.
+> 
+> The former removed code that the latter modified.  I fixed it up
+> by just removing the section of code as the former patch seems to take
+> account of what the latter is trying to do (but it may not be correct).
+> You can fix it by merging Linus' tree and doing this or a similar (maybe
+> correct) fixup.
 
-So rename the usb platform_driver appropriately to:
-twl4030_usb_driver.
+This sounds very messy.  I suspect I need Tony to look at that and
+tell me what the right solution is.  However...
 
-Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
-Index: linux-omap-git/drivers/i2c/chips/twl4030-usb.c
-===================================================================
---- linux-omap-git.orig/drivers/i2c/chips/twl4030-usb.c	2008-10-10 20:35:15.000000000 +0530
-+++ linux-omap-git/drivers/i2c/chips/twl4030-usb.c	2008-10-14 11:01:09.785700607 +0530
-@@ -758,7 +758,7 @@ static int __exit twl4030_usb_remove(str
- 	return 0;
- }
- 
--static struct platform_driver twl4030_driver = {
-+static struct platform_driver twl4030_usb_driver = {
- 	.probe		= twl4030_usb_probe,
- 	.remove		= __exit_p(twl4030_remove),
- 	.driver		= {
-@@ -769,13 +769,13 @@ static struct platform_driver twl4030_dr
- 
- static int __init twl4030_usb_init(void)
- {
--	return platform_driver_register(&twl4030_driver);
-+	return platform_driver_register(&twl4030_usb_driver);
- }
- subsys_initcall(twl4030_usb_init);
- 
- static void __exit twl4030_usb_exit(void)
- {
--	platform_driver_unregister(&twl4030_driver);
-+	platform_driver_unregister(&twl4030_usb_driver);
- }
- module_exit(twl4030_usb_exit);
- 
+Since the OMAP updates I merged from Tony are already broken due to
+missing definitions, and I'm not getting any response from Tony on
+fixing those, I will be dropping the problematical updates so we can
+at least keep mainline OMAP in a buildable state.  That seems to mean
+dropping the new OMAP3 support.
+
+That would include dropping the above commit causing the merge conflict.
+
+-- 
+Russell King
+ Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
+ maintainer of:
