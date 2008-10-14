@@ -1,30 +1,68 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: linux-next: manual merge of the arm tree
-Date: Tue, 14 Oct 2008 01:07:14 -0700
-Message-ID: <200810140107.14647.david-b@pacbell.net>
-References: <20081014132745.051f6418.sfr@canb.auug.org.au> <20081014075950.GA22855@flint.arm.linux.org.uk>
+From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
+Subject: Re: [PATCH 1/5] HDQ Driver for OMAP2430/3430
+Date: Tue, 14 Oct 2008 14:21:50 +0530
+Message-ID: <015c01c92dda$1b754340$LocalHost@wipultra1303>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02D6107AF0@dbde02.ent.ti.com><20081010133845.8b82fac3.akpm@linux-foundation.org><062801c92d37$3413bdd0$LocalHost@wipultra1303> <20081013085323.f8bd7efb.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20081014075950.GA22855@flint.arm.linux.org.uk>
-Content-Disposition: inline
-Sender: linux-next-owner@vger.kernel.org
-To: Russell King <rmk@arm.linux.org.uk>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-omap@vger.kernel.org, Richard Woodruff <r-woodruff2@ti.com>, linux-next@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, Wim Van Sebroeck <wim@iguana.be>, Syed Mohammed Khasim <khasim@ti.com>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57876 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751882AbYJNIzW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 04:55:22 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-On Tuesday 14 October 2008, Russell King wrote:
-> Since the OMAP updates I merged from Tony are already broken due to
-> missing definitions, and I'm not getting any response from Tony on
-> fixing those,
-
-Probably has to do with his travel plans, which he mentioned
-last week (Thursday?).  I think he's back online in the next
-day or two.
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: gadiyar@ti.com, johnpol@2ka.mipt.ru, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
 
-> I will be dropping the problematical updates so we can=20
-> at least keep mainline OMAP in a buildable state. =A0That seems to me=
-an
-> dropping the new OMAP3 support.
+----- Original Message ----- 
+From: "Andrew Morton" <akpm@linux-foundation.org>
+To: "Madhusudhan Chikkature" <madhu.cr@ti.com>
+Cc: <gadiyar@ti.com>; <johnpol@2ka.mipt.ru>; <linux-kernel@vger.kernel.org>; <linux-omap@vger.kernel.org>
+Sent: Monday, October 13, 2008 9:23 PM
+Subject: Re: [PATCH 1/5] HDQ Driver for OMAP2430/3430
+
+
+>> On Mon, 13 Oct 2008 18:55:43 +0530 "Madhusudhan Chikkature" <madhu.cr@ti.com> wrote:
+>> 
+>> ----- Original Message ----- 
+>> From: "Andrew Morton" <akpm@linux-foundation.org>
+>> To: "Gadiyar, Anand" <gadiyar@ti.com>
+>> Cc: <johnpol@2ka.mipt.ru>; <linux-kernel@vger.kernel.org>; <linux-omap@vger.kernel.org>; <madhu.cr@ti.com>
+>> Sent: Saturday, October 11, 2008 2:08 AM
+>> Subject: Re: [PATCH 1/5] HDQ Driver for OMAP2430/3430
+>> 
+>> 
+>> >> +       /* set the GO bit */
+>> >> +       hdq_reg_merge(hdq_data, OMAP_HDQ_CTRL_STATUS, OMAP_HDQ_CTRL_STATUS_GO,
+>> >> +               OMAP_HDQ_CTRL_STATUS_DIR | OMAP_HDQ_CTRL_STATUS_GO);
+>> >> +       /* wait for the TXCOMPLETE bit */
+>> >> +       ret = wait_event_interruptible_timeout(hdq_wait_queue,
+>> >> +               hdq_data->hdq_irqstatus, OMAP_HDQ_TIMEOUT);
+>> >> +       if (ret < 0) {
+>> >> +               dev_dbg(hdq_data->dev, "wait interrupted");
+>> >> +               return -EINTR;
+>> >> +       }
+>> > 
+>> > Is this desirable?  The user hits ^C and the driver bails out?
+>> > 
+>> > I assume so, but was this tested?
+>> 
+>> Andrew, What is the test scenario you mean here? A user hitting ^C when the driver is waiting for the TXCOMPLETE bit?
+> 
+> Yes.
+> 
+
+Yes. It is desired to return an error if the condition in the wait is not met. I need to change the check for return value to check for zero and neg value.
+
+I spent some time to test this perticular scenario.I could not really see any impact of hitting ^C when an application is 
+transfering data in the background. When the h/w is programmed to transfer data and the driver issues a wait, I see that 
+TXCOMPLETE interrupt comes immediately and wakes up as expected. 
+
+So guess I am unable to hit ^C exactly when the driver is waiting in wait_event_interruptible_timeout(before the condition 
+is met) for it to catch the signal. Is it generally suggested to use wait_event_timeout so that ^C signal is not caught?
+
+Regards,
+Madhu
