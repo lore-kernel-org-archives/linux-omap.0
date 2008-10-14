@@ -1,40 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: linux-next: manual merge of the arm tree
-Date: Tue, 14 Oct 2008 13:08:05 -0700
-Message-ID: <20081014200805.GF8150@atomide.com>
-References: <20081014132745.051f6418.sfr@canb.auug.org.au> <20081014075950.GA22855@flint.arm.linux.org.uk> <200810140107.14647.david-b@pacbell.net>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 1/3] [RFC] clk: introduce clk_associate
+Date: Tue, 14 Oct 2008 23:19:54 +0300 (EEST)
+Message-ID: <20081014.231954.235303071.Hiroshi.DOYU@nokia.com>
+References: <200810010915.46032.david-b@pacbell.net>
+	<20081001.213437.22091635.Hiroshi.DOYU@nokia.com>
+	<alpine.DEB.2.00.0810140712570.15253@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200810140107.14647.david-b@pacbell.net>
-Sender: linux-next-owner@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Russell King <rmk@arm.linux.org.uk>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-omap@vger.kernel.org, Richard Woodruff <r-woodruff2@ti.com>, linux-next@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, Wim Van Sebroeck <wim@iguana.be>, Syed Mohammed Khasim <khasim@ti.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:31533 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753288AbYJNUUI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2008 16:20:08 -0400
+In-Reply-To: <alpine.DEB.2.00.0810140712570.15253@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: paul@pwsan.com
+Cc: david-b@pacbell.net, felipe.balbi@nokia.com, linux-omap@vger.kernel.org, tony@atomide.com, khilman@deeprootsystems.com
 
-* David Brownell <david-b@pacbell.net> [081014 11:53]:
-> On Tuesday 14 October 2008, Russell King wrote:
-> > Since the OMAP updates I merged from Tony are already broken due to
-> > missing definitions, and I'm not getting any response from Tony on
-> > fixing those,
+Hi Paul,
 
-I just sent you a fix for that few hours ago.
+I understood both points you explained below, while I still think that
+standardizing clock names may be a little bit rigid.
 
-> Probably has to do with his travel plans, which he mentioned
-> last week (Thursday?).  I think he's back online in the next
-> day or two.
->=20
->=20
-> > I will be dropping the problematical updates so we can=20
-> > at least keep mainline OMAP in a buildable state. =A0That seems to =
-mean
-> > dropping the new OMAP3 support.
+Thank you for your review and comments.
 
-Yes, I'm back online. And please don't drop these patches, sounds
-like this is a trivial merge issue.
+  Hiroshi DOYU
 
-Regards,
+From: "ext Paul Walmsley" <paul@pwsan.com>
+Subject: Re: [PATCH 1/3] [RFC] clk: introduce clk_associate
+Date: Tue, 14 Oct 2008 10:33:42 -0600 (MDT)
 
-Tony
+> 
+> Hi,
+> 
+> between omap_clk_associate() and vclk, my preference is for the 
+> omap_clk_associate() approach.
+> 
+> The core problem is that the vclk patches create clocks with multiple 
+> parents in a way that is hidden from the clock framework.  This causes 
+> both semantic and practical problems.
+> 
+> Semantically, the patches cause the meaning of set_rate() and set_parent() 
+> to be confused, and any driver that wants to call set_parent() or 
+> set_rate() on those clocks will need to have their own custom functions 
+> for those operations.  I'd like to keep the amount of that custom code 
+> minimized.
+> 
+> In practical terms, the vclk code will cause spinlock recursion bugs like 
+> the ones that currently exist with the McBSP driver:
+> 
+>    http://marc.info/?l=linux-omap&m=122310205615940&w=2
+> 
+> since vclks will call clk_enable()/disable()/set_rate()/etc. inside the 
+> clockfw_lock spinlock.  Using the vclk patches also means that the number 
+> of custom clocks will explode, as each driver is likely to define at 
+> least one custom clock.
+> 
+> [ eventually, we'll need to deal with the multiple parent issue, if for no 
+> other reason than to fix usecounting for clocks like dss_ick.  But it will 
+> need to be handled by the clock framework code itself.  And this problem 
+> is pretty low on the priority list...  ]
+> 
+> So between the two, I'd like to see omap_clk_associate() integrated.  I 
+> have some comments to post on Felipe's code; once those are 
+> addressed, hopefully we can merge it.
+> 
+> 
+> - Paul
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
