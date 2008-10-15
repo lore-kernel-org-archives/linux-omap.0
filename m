@@ -1,36 +1,69 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH 0/3] debugfs entries for PM counters
-Date: Wed, 15 Oct 2008 18:13:46 +0300
-Message-ID: <1224083629-25061-1-git-send-email-peter.de-schrijver@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: git pull request for minimal omap3 support one more time
+Date: Wed, 15 Oct 2008 11:34:01 -0700
+Message-ID: <20081015183401.GM8150@atomide.com>
+References: <20081004070534.GB30190@muru.com> <20081009145436.GI435@flint.arm.linux.org.uk> <20081009151724.GK26230@atomide.com> <20081010073251.GN435@flint.arm.linux.org.uk> <20081010091557.GI3044@atomide.com> <20081010092520.GK3044@atomide.com> <20081010113533.GU3044@atomide.com> <20081013133256.GA3510@flint.arm.linux.org.uk> <20081014171907.GD8150@atomide.com> <20081015090250.d32cf7f7.jarkko.nikula@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:21691 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754725AbYJOPOL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Oct 2008 11:14:11 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9FFDqx9017384
-	for <linux-omap@vger.kernel.org>; Wed, 15 Oct 2008 18:14:08 +0300
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56857 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751783AbYJOSeT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Oct 2008 14:34:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20081015090250.d32cf7f7.jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, twebb <taliaferro62@gmail.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-This patchset adds 2 debugfs entries for power management counters.
-pm_debug/count indicates how many times each powerdomain entered each state
-(On, Inactive, Retention, Off).
-pm_debug/time indicates how much time each powerdomain spent per state.
+Hi,
 
-Peter 'p2' De Schrijver (3):
-  Add closures to clkdm_for_each and pwrdm_for_each.
-  Add pm-debug counters
-  Hook into powerdomain code
+* Jarkko Nikula <jarkko.nikula@nokia.com> [081014 23:03]:
+> On Tue, 14 Oct 2008 10:19:08 -0700
+> "ext Tony Lindgren" <tony@atomide.com> wrote:
+> 
+> > > Please take a look and resolve ASAP.  Thanks.
+> > 
+> > Sorry for the delay, I was sitting in an airplane again.
+> > 
+> > Here's the fix, looks like the missing McBSP irqs should have been
+> > merged into the recent McBSP patches.
+> > 
+> > This patch is also in your patch system as 5301/1.
+> > 
+> Tony,
+> 
+> If my patch below from linux-omap was forgotten from original pull
+> request, please note that it's required to add those rx/tx irqs into
+> omap_mcbsp_platform_data structs in arch/arm/mach-omap2/mcbsp.c as
+> well. Otherwise arch/arm/plat-omap/mcbsp.c: omap_mcbsp_request will
+> fail when requesting zero defined irqs.
+> 
+> Sorry, not noting this before.
+> 
+> 
+> Jarkko
+> 
+> commit c29cfcead32c8dcb9738a085d498aebe6ab160af
+> Author: Jarkko Nikula <jarkko.nikula@nokia.com>
+> Date:   Tue Sep 16 15:56:53 2008 +0300
+> 
+>     ARM: OMAP: Add RX/TX interrupts for 2430 and 34xx McBSP ports 3-5
+>     
+>     Without RX and TX interrupt definitions, the omap_mcbsp_request will
+>     fail on OMAP2430 and OMAP34xx for ports 3-5 since default io_type is
+>     OMAP_MCBSP_IRQ_IO.
 
- arch/arm/mach-omap2/clockdomain.c             |    5 +-
- arch/arm/mach-omap2/pm-debug.c                |  175 +++++++++++++++++++++++++
- arch/arm/mach-omap2/pm.h                      |    2 +
- arch/arm/mach-omap2/pm34xx.c                  |    8 +-
- arch/arm/mach-omap2/powerdomain.c             |   17 ++-
- arch/arm/plat-omap/include/mach/clockdomain.h |    3 +-
- arch/arm/plat-omap/include/mach/powerdomain.h |    8 +-
- 7 files changed, 204 insertions(+), 14 deletions(-)
+It's there, in Russell's omap-all branch. I just merged your fix
+into your other patch:
 
+commit 05228c35c67995c745ae3c768eaf90740c643fa9
+Author: Jarkko Nikula <jarkko.nikula@nokia.com>
+Date:   Wed Oct 8 10:01:40 2008 +0300
+
+    ARM: OMAP: Add support for OMAP2430 in McBSP
+
+Regards,
+
+Tony
