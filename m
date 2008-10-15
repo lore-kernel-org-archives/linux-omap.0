@@ -1,49 +1,35 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH 6/8] tsl2563: move tsl2563 to drivers/hwmon
-Date: Wed, 15 Oct 2008 10:26:04 +0200
-Message-ID: <20081015102604.27c4d707@hyperion.delvare>
-References: <1223989300-27294-1-git-send-email-felipe.balbi@nokia.com>
-	<200810140900.55697.david-b@pacbell.net>
-	<20081014212034.GA31842@frodo>
-	<200810141444.51894.david-b@pacbell.net>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/3] [RFC] clk: introduce clk_associate
+Date: Wed, 15 Oct 2008 03:13:49 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0810150301510.14740@utopia.booyaka.com>
+References: <200810010915.46032.david-b@pacbell.net> <20081001.213437.22091635.Hiroshi.DOYU@nokia.com> <alpine.DEB.2.00.0810140712570.15253@utopia.booyaka.com> <20081014.231954.235303071.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:15392 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751671AbYJOI0S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Oct 2008 04:26:18 -0400
-In-Reply-To: <200810141444.51894.david-b@pacbell.net>
+Received: from utopia.booyaka.com ([72.9.107.138]:35748 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751843AbYJOJNv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Oct 2008 05:13:51 -0400
+In-Reply-To: <20081014.231954.235303071.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Felipe Balbi <me@felipebalbi.com>, linux-omap@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: david-b@pacbell.net, felipe.balbi@nokia.com, linux-omap@vger.kernel.org, tony@atomide.com, khilman@deeprootsystems.com
 
-Hi Felipe, David,
+Hello Hiroshi,
 
-On Tue, 14 Oct 2008 14:44:51 -0700, David Brownell wrote:
-> On Tuesday 14 October 2008, Felipe Balbi wrote:
-> > I'd say that if it goes to the "wrong" place and doesn't bother anyone,
-> > will get forgotten. Just like the whole bunch of other drivers sitting
-> > in linux-omap...
+On Tue, 14 Oct 2008, Hiroshi DOYU wrote:
 
-You're not merging drivers upstream just to bother people, are you?
+> I understood both points you explained below, while I still think that
+> standardizing clock names may be a little bit rigid.
 
-There's nothing wrong with drivers being forgotten. Each driver gets
-the level of attention it deserves depending on how broken and useful
-it is.
+Perhaps you can help me understand - are you referring to the use of the 
+TRM clocks, rather than creating a custom clock for each device driver?  
+Or are you referring to the clock names used in the omap_clk_associate() 
+calls?
 
-> I thought the point was to have them sit in mainline.  ;)
-> 
-> > Funny that most of such drivers are for nokia tablets :-p
-> 
-> Some of these drivers are first-of-a-kind, so these questions wouldn't
-> necessarily have come up before.  That's one of the obstacles to
-> mainline merge that isn't always acknowledged.
+> Thank you for your review and comments.
 
-Well, as you said before, it seems we have drivers/misc exactly for
-that case.
+You're welcome,
 
--- 
-Jean Delvare
+- Paul
