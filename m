@@ -1,69 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: git pull request for minimal omap3 support one more time
-Date: Wed, 15 Oct 2008 11:34:01 -0700
-Message-ID: <20081015183401.GM8150@atomide.com>
-References: <20081004070534.GB30190@muru.com> <20081009145436.GI435@flint.arm.linux.org.uk> <20081009151724.GK26230@atomide.com> <20081010073251.GN435@flint.arm.linux.org.uk> <20081010091557.GI3044@atomide.com> <20081010092520.GK3044@atomide.com> <20081010113533.GU3044@atomide.com> <20081013133256.GA3510@flint.arm.linux.org.uk> <20081014171907.GD8150@atomide.com> <20081015090250.d32cf7f7.jarkko.nikula@nokia.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH 1/3] [RFC] clk: introduce clk_associate
+Date: Wed, 15 Oct 2008 17:41:49 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE89671620365CA801A@dlee02.ent.ti.com>
+References: <200810010851.47774.david-b@pacbell.net>
+ <20081001155755.GG7412@gandalf.research.nokia.com>
+ <200810010915.46032.david-b@pacbell.net>
+ <20081001.213437.22091635.Hiroshi.DOYU@nokia.com>
+ <alpine.DEB.2.00.0810140712570.15253@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56857 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751783AbYJOSeT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Oct 2008 14:34:19 -0400
-Content-Disposition: inline
-In-Reply-To: <20081015090250.d32cf7f7.jarkko.nikula@nokia.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40484 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753195AbYJOWmK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Oct 2008 18:42:10 -0400
+In-Reply-To: <alpine.DEB.2.00.0810140712570.15253@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, twebb <taliaferro62@gmail.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: "david-b@pacbell.net" <david-b@pacbell.net>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
 Hi,
 
-* Jarkko Nikula <jarkko.nikula@nokia.com> [081014 23:03]:
-> On Tue, 14 Oct 2008 10:19:08 -0700
-> "ext Tony Lindgren" <tony@atomide.com> wrote:
-> 
-> > > Please take a look and resolve ASAP.  Thanks.
-> > 
-> > Sorry for the delay, I was sitting in an airplane again.
-> > 
-> > Here's the fix, looks like the missing McBSP irqs should have been
-> > merged into the recent McBSP patches.
-> > 
-> > This patch is also in your patch system as 5301/1.
-> > 
-> Tony,
-> 
-> If my patch below from linux-omap was forgotten from original pull
-> request, please note that it's required to add those rx/tx irqs into
-> omap_mcbsp_platform_data structs in arch/arm/mach-omap2/mcbsp.c as
-> well. Otherwise arch/arm/plat-omap/mcbsp.c: omap_mcbsp_request will
-> fail when requesting zero defined irqs.
-> 
-> Sorry, not noting this before.
-> 
-> 
-> Jarkko
-> 
-> commit c29cfcead32c8dcb9738a085d498aebe6ab160af
-> Author: Jarkko Nikula <jarkko.nikula@nokia.com>
-> Date:   Tue Sep 16 15:56:53 2008 +0300
-> 
->     ARM: OMAP: Add RX/TX interrupts for 2430 and 34xx McBSP ports 3-5
->     
->     Without RX and TX interrupt definitions, the omap_mcbsp_request will
->     fail on OMAP2430 and OMAP34xx for ports 3-5 since default io_type is
->     OMAP_MCBSP_IRQ_IO.
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Paul Walmsley
 
-It's there, in Russell's omap-all branch. I just merged your fix
-into your other patch:
+> between omap_clk_associate() and vclk, my preference is for the
+> omap_clk_associate() approach.
+>
+> The core problem is that the vclk patches create clocks with multiple
+> parents in a way that is hidden from the clock framework.  This causes
+> both semantic and practical problems.
+>
+> Semantically, the patches cause the meaning of set_rate() and set_parent()
+> to be confused, and any driver that wants to call set_parent() or
+> set_rate() on those clocks will need to have their own custom functions
+> for those operations.  I'd like to keep the amount of that custom code
+> minimized.
 
-commit 05228c35c67995c745ae3c768eaf90740c643fa9
-Author: Jarkko Nikula <jarkko.nikula@nokia.com>
-Date:   Wed Oct 8 10:01:40 2008 +0300
+I agree and these mirror my comments when it was first proposed.
 
-    ARM: OMAP: Add support for OMAP2430 in McBSP
+Having a virtual node does however have some benefits which may be worth exploiting for future.
+
+For these types of nodes it might be they just return an error if someone tries to use them.  Or have some way to get its attributes.
+
+When you do allow a set rate on a virtual clock it will have to be custom.  There may be a number of valid internal combinations.  Providing a "clock-cluster" OPP table is probably enough.
 
 Regards,
+Richard W.
 
-Tony
