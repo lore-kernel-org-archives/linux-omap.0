@@ -1,95 +1,63 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 2/7] input: tsc2005: move to gpiolib
-Date: Wed, 15 Oct 2008 13:21:01 +0300
-Message-ID: <20081015102101.GI28161@gandalf.research.nokia.com>
-References: <1224020397-2842-1-git-send-email-me@felipebalbi.com> <1224020397-2842-2-git-send-email-me@felipebalbi.com> <1224020397-2842-3-git-send-email-me@felipebalbi.com> <200810141620.04834.david-b@pacbell.net>
-Reply-To: felipe.balbi@nokia.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Lauri Leukkunen <lauri.leukkunen@nokia.com>
+Subject: [PATCH] OMAP3: ack spurious IRQs in get_irqnr_and_base
+Date: Wed, 15 Oct 2008 14:51:51 +0300
+Message-ID: <1224071511-4670-1-git-send-email-lauri.leukkunen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:38314 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752663AbYJOKVt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Oct 2008 06:21:49 -0400
-Content-Disposition: inline
-In-Reply-To: <200810141620.04834.david-b@pacbell.net>
+Received: from smtp.nokia.com ([192.100.105.134]:58226 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751080AbYJOLvj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Oct 2008 07:51:39 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9FBpI94010079
+	for <linux-omap@vger.kernel.org>; Wed, 15 Oct 2008 06:51:36 -0500
+Received: from localhost.localdomain (pure.research.nokia.com [172.21.42.21])
+	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m9FBpKPO000330
+	for <linux-omap@vger.kernel.org>; Wed, 15 Oct 2008 14:51:21 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext David Brownell <david-b@pacbell.net>
-Cc: Felipe Balbi <me@felipebalbi.com>, linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: linux-omap@vger.kernel.org
 
-On Tue, Oct 14, 2008 at 04:20:04PM -0700, David Brownell wrote:
-> That should be ts->irq = gpio_to_irq(dav_gpio) ...
+This prevents spurious interrupts from repeating unacked and
+thus locking the system, while still allowing the spurious
+bad irq error message to be show on console.
 
-New version below
-
-========== cut here =========
-
->From 28368394029be3c8bbfa44c0d433bf06a64c2761 Mon Sep 17 00:00:00 2001
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Date: Wed, 15 Oct 2008 00:39:52 +0300
-Subject: [PATCH 2/7] input: tsc2005: move to gpiolib
-
-Get rid of omap-specific gpio calls and switch over
-to gpiolib.
-
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+Signed-off-by: Lauri Leukkunen <lauri.leukkunen@nokia.com>
 ---
- drivers/input/touchscreen/tsc2005.c |   17 +++++------------
- 1 files changed, 5 insertions(+), 12 deletions(-)
+ arch/arm/plat-omap/include/mach/entry-macro.S |   21 ++++++++++++++++++++-
+ 1 files changed, 20 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/input/touchscreen/tsc2005.c b/drivers/input/touchscreen/tsc2005.c
-index 7fb107e..0c631d4 100644
---- a/drivers/input/touchscreen/tsc2005.c
-+++ b/drivers/input/touchscreen/tsc2005.c
-@@ -534,16 +534,14 @@ static int __devinit tsc2005_ts_init(struct tsc2005 *ts,
- 	ts->dav_gpio = dav_gpio;
- 	dev_dbg(&ts->spi->dev, "TSC2005: DAV GPIO = %d\n", dav_gpio);
+diff --git a/arch/arm/plat-omap/include/mach/entry-macro.S b/arch/arm/plat-omap/include/mach/entry-macro.S
+index a8fca9d..c88a4cb 100644
+--- a/arch/arm/plat-omap/include/mach/entry-macro.S
++++ b/arch/arm/plat-omap/include/mach/entry-macro.S
+@@ -87,7 +87,26 @@
+ 		ldr	\irqnr, [\base, #0xd8] /* IRQ pending reg 3 */
+ 		cmp	\irqnr, #0x0
+ 2222:
+-		ldrne	\irqnr, [\base, #INTCPS_SIR_IRQ_OFFSET]
++#if defined(CONFIG_ARCH_OMAP34XX)
++		mov	\tmp, \irqnr
++#endif
++ 		ldrne	\irqnr, [\base, #INTCPS_SIR_IRQ_OFFSET]
++#if defined(CONFIG_ARCH_OMAP34XX)
++		mov	\irqstat, \irqnr
++		bic	\irqstat, \irqstat, #0x7f /* check for spurious flag */
++		cmp	\irqstat, #0x0
++		beq	2223f
++		mov	\irqstat, #0x1 /* Ack the spurious irq, this lets it
++					* generate a bad irq error message,
++					* but prevents infinitely repeating
++					* irq.
++					*/
++		str	\irqstat, [\base, #0x48] /* INTC_CONTROL register */
++2223:
++		cmp	\tmp, #0x0 /* set conditional back to what it was
++				    * before spurious test
++				    */
++#endif
  
--#ifdef CONFIG_ARCH_OMAP
--	r = omap_request_gpio(dav_gpio);
-+	r = gpio_request(dav_gpio, "dav_gpio");
- 	if (r < 0) {
- 		dev_err(&ts->spi->dev, "unable to get DAV GPIO");
- 		goto err1;
- 	}
--	omap_set_gpio_direction(dav_gpio, 1);
--	ts->irq = OMAP_GPIO_IRQ(dav_gpio);
-+	gpio_direction_input(dav_gpio);
-+	ts->irq = gpio_to_irq(dav_gpio);
- 	dev_dbg(&ts->spi->dev, "TSC2005: DAV IRQ = %d\n", ts->irq);
--#endif
- 	init_timer(&ts->penup_timer);
- 	setup_timer(&ts->penup_timer, tsc2005_ts_penup_timer_handler,
- 			(unsigned long)ts);
-@@ -612,9 +610,7 @@ err3:
- 	tsc2005_stop_scan(ts);
- 	input_free_device(idev);
- err2:
--#ifdef CONFIG_ARCH_OMAP
--	omap_free_gpio(dav_gpio);
--#endif
-+	gpio_free(dav_gpio);
- err1:
- 	return r;
- }
-@@ -671,10 +667,7 @@ static int __devexit tsc2005_remove(struct spi_device *spi)
+ 		.endm
  
- 	free_irq(ts->irq, ts);
- 	input_unregister_device(ts->idev);
--
--#ifdef CONFIG_ARCH_OMAP
--	omap_free_gpio(ts->dav_gpio);
--#endif
-+	gpio_free(ts->dav_gpio);
- 	kfree(ts);
- 
- 	return 0;
 -- 
-1.6.0.2.307.gc427
+1.5.6.5
 
-
--- 
-balbi
