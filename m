@@ -1,55 +1,42 @@
-From: Lauri Leukkunen <lauri.leukkunen@nokia.com>
-Subject: Re: omapfb: help from userspace
-Date: Wed, 15 Oct 2008 15:04:51 +0300
-Message-ID: <20081015120451.GF23395@pure.research.nokia.com>
-References: <e5e6ade50810081136n2067600csf3c77195da0ef110@mail.gmail.com> <e5e6ade50810081321h6f638cafjbe00f4c8a3a50f2c@mail.gmail.com> <13B9B4C6EF24D648824FF11BE89671620365B58844@dlee02.ent.ti.com> <B85A65D85D7EB246BE421B3FB0FBB59301B0108CAB@dbde02.ent.ti.com> <20081009124357.GF26230@atomide.com> <e5e6ade50810091055se7af4aasc404eb92f176dfeb@mail.gmail.com> <alpine.DEB.2.00.0810150556140.14740@utopia.booyaka.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH 1/3] clk: introduce omap_clk_associate
+Date: Wed, 15 Oct 2008 07:45:57 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE89671620365CA7824@dlee02.ent.ti.com>
+References: <1223333252-25687-1-git-send-email-me@felipebalbi.com>
+	<alpine.DEB.2.00.0810141039580.15253@utopia.booyaka.com>
+	<20081014172921.GJ20247@frodo>	<200810141047.44803.david-b@pacbell.net>
+	<20081014180634.GL20247@frodo> <20081014205925.GK8150@atomide.com>
+	<1224018598.4977.27.camel@localhost>	<20081014212409.GL8150@atomide.com>
+ <87wsgabcp0.fsf@trdhcp146196.ntc.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:49438 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752667AbYJOMEx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Oct 2008 08:04:53 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.0810150556140.14740@utopia.booyaka.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:34439 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751054AbYJOMqP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Oct 2008 08:46:15 -0400
+In-Reply-To: <87wsgabcp0.fsf@trdhcp146196.ntc.nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Paul Walmsley <paul@pwsan.com>
-Cc: Nathan Monson <nmonson@gmail.com>, Tony Lindgren <tony@atomide.com>, "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, "TK, Pratheesh Gangadhar" <pratheesh@ti.com>
+To: =?utf-8?B?SMO2Z2FuZGVyIEpvdW5p?= <jouni.hogander@nokia.com>, ext Tony Lindgren <tony@atomide.com>
+Cc: Igor Stoppa <igor.stoppa@nokia.com>, Felipe Balbi <me@felipebalbi.com>, David Brownell <david-b@pacbell.net>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>
 
-On 15/10/08 05:57 -0600, ext Paul Walmsley wrote:
-> Hi Nathan,
-> 
-> On Thu, 9 Oct 2008, Nathan Monson wrote:
-> 
-> > On Thu, Oct 9, 2008 at 5:43 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > > Nathan, good to hear that the SO mode helps. But since you seem to
-> > > have it easily reproducable..
-> > 
-> > Reproducing is as easy as applying the DSP Bridge kernel patches and
-> > then running the 'ping.out' sample like this:  while true; do
-> > ping.out; done
-> > 
-> > > Could you try the following patch based on RMK's earlier patch
-> > > without the strongly ordered patch and see if that makes any
-> > > difference?
-> > 
-> > Maybe it lasted a few seconds longer, or maybe it was luck, but in any
-> > case it eventually went into an IRQ -33 loop even with this patch.
-> 
-> could you try Lauri's patch posted here:
-> 
-> http://marc.info/?l=linux-omap&m=122407150608770&w=2
-> 
-> without the strongly-ordered memory patches?
-
-I would like TI or ARM to confirm if my assumption is correct that the IRQ
-will be re-raised if it gets corrupted in this way (resulting in a spurious
-irq -33, which seems to be the most common one ;). If not, then this patch
-will cause us to drop interrupts which is not good. Of course it is still
-better than ending in a permanent loop, but only marginally.
-
-I also tried the SO patch, result wasn't able to boot up at all (sorry, don't
-have the log to show where it died).
-
-/lauri
+PiA+PiBXYXNuJ3QgdGhhdCBvbmUgb2YgdGhlIG1haW4gZmVhdHVyZXMgb2YgdGhlIGNsb2NrIEZX
+LCB3aGVuIGl0IHdhcw0KPiA+PiBkZXNpZ25lZD8NCj4gPg0KPiA+IFllcy4gQnV0IHdlIGFkZGlu
+ZyBzZXBhcmF0ZSBpY2sgYW5kIGZjayBkdXJpbmcgb21hcDI0MjAgY29uZnVzZWQNCj4gPiB0aGF0
+Lg0KPg0KPiBXaHkgdGhpcyB3YXMgb3JpZ2luYWxseSBkb25lPyBJIG1lYW4gd2UgaGF2ZSBwb3Nz
+aWJpbGl0eSB0byBhdXRvZ2F0ZQ0KPiBpbnRlcmZhY2UgY2xvY2tzLiBBRkFJSyB0aG9zZSBjb3Vs
+ZCBiZSBqdXN0IGZpbmUgYmUgZW5hYmxlZCBvbiBib290IGFuZA0KPiBsZXQNCj4gdGhlIGh3IHRv
+IHRha2UgY2FyZSBvZiB0aGVtLg0KDQpBdXRvZ2F0aW5nIG9ubHkgaGFwcGVucyB3aGVuIHlvdSBn
+ZXQgYWxsIHByZWNvbmRpdGlvbnMgbWV0LiAgRm9yIG11Y2ggb2YgT01BUDIgdGltZSB0aGlzIHdh
+cyBub3QgdGhlIGNhc2UuICBGb3IgbC1vIEnigJltIG5vdCBzdXJlIHRvZGF5IGlmIGl0IGlzIHll
+dCB0aGUgY2FzZS4gIEZvciBPTUFQMyB0aGlzIGhhcyBiZWVuIGEgdGFyZ2V0Lg0KDQpZb3UgZG8g
+bmVlZCBzZWxlY3RpdmUgY29udHJvbCBmb3Igc29tZSBtb2R1bGVzLg0KDQpUaGUgaWRlYWwgc2hv
+dWxkIGJlIHRvIGp1c3QgY29udHJvbCBGIGFuZCBsZXQgSSBiZSBhdXRvIGhhbmRsZWQuICBJbiBy
+ZXRyb3NwZWN0IHNvbWV0aGluZyBsaWtlIHYtY2xvY2sncyB3aGljaCBoYW5kbGUgdGhlIHNldCBm
+b3IgYSBtb2R1bGUsIGJ1dCBhbHNvIGhhdmUgZXhwbGljaXQgYWNjZXNzIHdoZW4gaXRzIG5lZWRl
+ZCB0byBpbmRpdmlkdWFsIG9uZXMuICBQZXJoYXBzIGEgdiBjbG9jayB3aXRoIHNlcGFyYXRlIGlk
+J3MgZm9yIGluZGl2aWR1YWwgY2xvY2tzLi4uICBTb21lIG9mIHRoaXMgbWF5IGJlIGdvb2QgZm9y
+IG5leHQgZ2VuIG9tYXBzLg0KDQpSZWdhcmRzLA0KUmljaGFyZCBXLg0K
