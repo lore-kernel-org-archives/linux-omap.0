@@ -1,93 +1,47 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [patch FYI] twl4030 dumps revision info
-Date: Fri, 17 Oct 2008 04:49:54 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702396893F6@dbde02.ent.ti.com>
-References: <200810152123.42459.david-b@pacbell.net>
+From: "Nathan Monson" <nmonson@gmail.com>
+Subject: Re: omapfb: help from userspace
+Date: Thu, 16 Oct 2008 16:20:39 -0700
+Message-ID: <e5e6ade50810161620k29cbc356i3f92fa80771ffec4@mail.gmail.com>
+References: <20081009124357.GF26230@atomide.com>
+	 <alpine.DEB.2.00.0810150556140.14740@utopia.booyaka.com>
+	 <e5e6ade50810152349x38b6f5e2oe59780cc2008c837@mail.gmail.com>
+	 <20081016205743.GS15820@atomide.com>
+	 <e5e6ade50810161507y4a5ac9d6m9754169575dfbdda@mail.gmail.com>
+	 <20081016221053.GZ15820@atomide.com>
+	 <e5e6ade50810161515h6c050ab2k1657e1e3a12edd6c@mail.gmail.com>
+	 <20081016225222.GA15820@atomide.com>
+	 <20081016225905.GB15820@atomide.com>
+	 <20081016230203.GC15820@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56579 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752930AbYJPXUJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Oct 2008 19:20:09 -0400
-In-Reply-To: <200810152123.42459.david-b@pacbell.net>
-Content-Language: en-US
+Received: from qw-out-2122.google.com ([74.125.92.26]:37376 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755876AbYJPXUk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Oct 2008 19:20:40 -0400
+Received: by qw-out-2122.google.com with SMTP id 3so100124qwe.37
+        for <linux-omap@vger.kernel.org>; Thu, 16 Oct 2008 16:20:39 -0700 (PDT)
+In-Reply-To: <20081016230203.GC15820@atomide.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, "TK, Pratheesh Gangadhar" <pratheesh@ti.com>, Rick Bronson <rick@efn.org>
 
->Sent: Wednesday, October 15, 2008 11:24 PM
->To: linux-omap@vger.kernel.org
->Subject: [patch FYI] twl4030 dumps revision info
+On Thu, Oct 16, 2008 at 4:02 PM, Tony Lindgren <tony@atomide.com> wrote:
+> Well with this one I eventually got one -33 error, but not a series of
+> them.
 >
->
->---
-> drivers/mfd/twl4030-core.c |   62 +++++++++++++++++++++++++++++++++++++++++++
-> 1 file changed, 62 insertions(+)
->
->+};
->+
->+static u32 twl_id(struct device *dev)
->+{
->+	const u32 mask = ((1 << 16) - 1) << 12;
->+	union { u8 bytes[4]; u32 word; } idcode;
->+	int status;
->+	u8 nibble;
->+	char *chip;
->+	const struct es_desc *desc;
->+
->+	status = twl4030_i2c_read(TWL4030_MODULE_INTBR,
->+			idcode.bytes, 0, 4);
->+	if (status < 0)
->+		return 0;
->+
->+	idcode.word = le32_to_cpu(idcode.word),
+> This is with Lauri's patch and this patch applied.
 
-End of line should be ;
-	Hope you are not using , operator :-) 
+With this patch alone, or with this patch plus your earlier patch, I
+still get a dead kernel printing an endless series of the -33 errors.
 
->+	nibble = idcode.word >> 28;
->+
->+	/* NOTE:  TWL5030 / TPS65930 ES1.0 mis-identifies as TWL4030 */
->+
->+	if ((idcode.word & mask) == (0x0009002F & mask)) {
->+		chip = "TWL4030";
->+		desc = twl4030_es;
->+	} else if ((idcode.word & mask) == (0x0009802F & mask)) {
->+		chip = "TWL5030";
->+		desc = twl5030_es;
->+	} else {
->+		chip = "unrecognized";
->+		desc = NULL;
->+	}
->+
->+	while (desc && desc->name[0]) {
->+		if (desc->nibble == nibble) {
->+			dev_info(dev, "%s ES %s; idcode %08x\n",
->+					chip, desc->name, idcode.word);
->+			return idcode.word;
->+		}
->+		desc++;
->+	}
->+	dev_info(dev, "%s; idcode %08x\n", chip, idcode.word);
->+	return idcode.word;
->+}
->+
-> /* NOTE:  this driver only handles a single twl4030/tps659x0 chip */
-> static int
-> twl4030_probe(struct i2c_client *client, const struct i2c_device_id *id)
->@@ -795,6 +855,8 @@ twl4030_probe(struct i2c_client *client,
->
-> 	if(0)dumpit();
->
->+	twl_id(&client->dev);
->+
-> 	/* setup clock framework */
-> 	clocks_init();
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+With Lauri's patch alone, I can run the DSP all day.  I still get a
+fairly steady stream of -33s errors, but the kernel never gets stuck
+in a loop and the DSP continues working.
 
+With the S-O patch, everything works.  No errors.
+
+- Nathan
