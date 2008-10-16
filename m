@@ -1,21 +1,21 @@
 From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [PATCH 16/28] [OMAPZOOM] OMAP: CAM: Add MMS Kernel changes
-Date: Wed, 15 Oct 2008 20:29:30 -0500
-Message-ID: <A24693684029E5489D1D202277BE89441256884E@dlee02.ent.ti.com>
+Subject: [PATCH 17/28] [OMAPZOOM] OMAP: CAM: Add MMS Kernel changes
+Date: Wed, 15 Oct 2008 20:30:31 -0500
+Message-ID: <A24693684029E5489D1D202277BE89441256884F@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50349 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41766 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752892AbYJPB3h convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Oct 2008 21:29:37 -0400
+	id S1753211AbYJPBai convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Oct 2008 21:30:38 -0400
 Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9G1TVBS012327
-	for <linux-omap@vger.kernel.org>; Wed, 15 Oct 2008 20:29:36 -0500
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m9G1TVGj015658
-	for <linux-omap@vger.kernel.org>; Wed, 15 Oct 2008 20:29:31 -0500 (CDT)
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9G1UWqU015144
+	for <linux-omap@vger.kernel.org>; Wed, 15 Oct 2008 20:30:37 -0500
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m9G1UWGB016539
+	for <linux-omap@vger.kernel.org>; Wed, 15 Oct 2008 20:30:32 -0500 (CDT)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -33,482 +33,647 @@ NOTE: Credits to MMS crew for all this.
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- drivers/media/video/isp/isp.c        |   40 ++++++++---
- drivers/media/video/isp/isp_af.c     |   28 +++++---
- drivers/media/video/isp/ispccdc.c    |  117 ++++++++++++++++++++++++++++++++---
- drivers/media/video/isp/ispccdc.h    |    4 -
- drivers/media/video/isp/isph3a.c     |   12 +++
- drivers/media/video/isp/ispmmu.h     |    2
- drivers/media/video/isp/isppreview.c |    3
- drivers/media/video/isp/isppreview.h |    9 ++
- 8 files changed, 180 insertions(+), 35 deletions(-)
+ drivers/media/video/isp/omap_previewer.c |  392 +++++++++++++++++++++++--------
+ drivers/media/video/isp/omap_previewer.h |   22 +
+ 2 files changed, 309 insertions(+), 105 deletions(-)
 
-Index: omapkernel/drivers/media/video/isp/isp.c
+Index: omapkernel/drivers/media/video/isp/omap_previewer.c
 ===================================================================
---- omapkernel.orig/drivers/media/video/isp/isp.c       2008-10-15 19:37:26.000000000 -0500
-+++ omapkernel/drivers/media/video/isp/isp.c    2008-10-15 19:40:02.000000000 -0500
-@@ -71,6 +71,10 @@
-                .description = "Bayer10 (GrR/BGb)",
-                .pixelformat = V4L2_PIX_FMT_SGRBG10,
-        },
-+       {
-+               .description = "Bayer10 (pattern)",
-+               .pixelformat = V4L2_PIX_FMT_PATT,
-+       }
- };
+--- omapkernel.orig/drivers/media/video/isp/omap_previewer.c    2008-10-15 19:25:00.000000000 -0500
++++ omapkernel/drivers/media/video/isp/omap_previewer.c 2008-10-15 19:53:07.000000000 -0500
+@@ -38,6 +38,24 @@
 
- /* ISP Crop capabilities */
-@@ -980,6 +984,14 @@
+ #define OMAP_PREV_NAME         "omap-previewer"
+
++#define BIT_SET(var, shift, mask, val)         \
++       do {                                    \
++               var = (var & ~(mask << shift))  \
++                       | (val << shift);       \
++       } while (0)
++
++/*
++#define OMAP_ISP_PREVIEWER_DEBUG
++*/
++#undef OMAP_ISP_PREVIEWER_DEBUG
++
++#ifdef OMAP_ISP_PREVIEWER_DEBUG
++#define DPRINTK_PREVIEWER(format, ...) \
++       printk(KERN_DEBUG "PREV: " format, ## __VA_ARGS__)
++#else
++#define DPRINTK_PREVIEWER(format, ...)
++#endif
++
+ static int prev_major = -1;
+ static struct device *prev_dev;
+ static struct class *prev_class;
+@@ -45,6 +63,7 @@
+ static struct platform_driver omap_previewer_driver;
+
+ static u32 prev_bufsize;
++static u32 lsc_bufsize;
+
+ /**
+  * prev_calculate_crop - Calculate crop size according to device parameters
+@@ -119,6 +138,10 @@
+                isppreview_enable_hmed(0);
+
+        if (config->features & PREV_DARK_FRAME_SUBTRACT) {
++               DPRINTK_PREVIEWER("[%s] darkaddr %08x, darklineoffset %d\n",
++                                               __func__,
++                                               config->drkf_params.addr,
++                                               config->drkf_params.offset);
+                isppreview_set_darkaddr(config->drkf_params.addr);
+                isppreview_config_darklineoffset(config->drkf_params.offset);
+                isppreview_enable_drkframe(1);
+@@ -200,28 +223,11 @@
+                goto err_einval;
+        }
+
+-       if (params->features & PREV_DARK_FRAME_SUBTRACT)
+-               if (!params->drkf_params.addr
+-                                       || (params->drkf_params.offset % 32)) {
+-                       dev_err(prev_dev, "validate_params: dark frame "
+-                                                               "address\n");
+-                       goto err_einval;
+-               }
+-
+-       if (params->features & PREV_LENS_SHADING)
+-               if ((params->lens_shading_shift > 7)
+-                                       || !params->drkf_params.addr
+-                                       || (params->drkf_params.offset % 32)) {
+-                       dev_err(prev_dev, "validate_params: lens shading "
+-                                                               "shift\n");
+-                       goto err_einval;
+-               }
+-
+        if ((params->size_params.in_pitch <= 0)
+                                || (params->size_params.in_pitch % 32)) {
+                params->size_params.in_pitch =
+                                (params->size_params.hsize * 2) & 0xFFE0;
+-               dev_err(prev_dev, "\nError in in_pitch; new value = %d",
++               dev_err(prev_dev, "Error in in_pitch; new value = %d",
+                                                params->size_params.in_pitch);
+        }
+
+@@ -248,6 +254,40 @@
+                complete(&device->wfc);
+ }
+
++#define ISP_CTRL_SBL_SHARED_RPORTB     (1 << 28)
++#define ISP_CTRL_SBL_SHARED_RPORTA     (1 << 27)
++#define SBL_SHARED_RPORTB              28
++#define CBUFF1_BCF_CTRL                        24
++#define CBUFF0_BCF_CTRL                        22
++#define SBL_RD_RAM_EN                  18
++#define SHIFT                          6
++
++static void previewer_set_isp_ctrl(void)
++{
++       u32 val;
++
++       val = omap_readl(ISP_CTRL);
++
++       /* Read port used by preview module data read */
++       val &= ~ISP_CTRL_SBL_SHARED_RPORTA;
++
++       /* Read port used by preview module dark frame read */
++       val &= ~ISP_CTRL_SBL_SHARED_RPORTB;
++
++       BIT_SET(val, CBUFF1_BCF_CTRL, 0x3, 0x01);
++       BIT_SET(val, CBUFF0_BCF_CTRL, 0x3, 0x01);
++       BIT_SET(val, SBL_RD_RAM_EN, 0x1, 0x1);
++       BIT_SET(val, SHIFT, 0x3, 0x00);
++
++       /* write ISP CTRL register */
++       omap_writel(val, ISP_CTRL);
++
++#define TCTRL_CTRL  0x480BC050
++#define TCTRL_FRAME 0x480BC054
++       omap_writel(0x00000004, TCTRL_CTRL);
++       omap_writel(0x000C0000, TCTRL_FRAME);
++}
++
+ /**
+  * prev_do_preview - Performs the Preview process
+  * @device: Structure containing ISP preview wrapper global information
+@@ -268,25 +308,23 @@
+                return -EINVAL;
+        }
+
++       previewer_set_isp_ctrl();
++
+        if (device->params->size_params.pixsize == PREV_INWIDTH_8BIT)
+                bpp = 1;
+        else
+                bpp = 2;
+
+        size = device->params->size_params.hsize *
+-               device->params->size_params.vsize * bpp;
++                  device->params->size_params.vsize * bpp;
+
+-       ret = isppreview_set_inaddr(device->isp_addr_read);
+-       if (ret)
+-               goto out;
+-
+-       ret = isppreview_set_outaddr(device->isp_addr_read);
+-       if (ret)
+-               goto out;
++       isppreview_config_datapath(PRV_RAW_MEM, PREVIEW_MEM);
+
+        isppreview_try_size(device->params->size_params.hsize,
+                                        device->params->size_params.vsize,
+-                                       &out_hsize, &out_vsize);
++                                           &out_hsize,
++                                           &out_vsize);
++
+
+        ret = isppreview_config_inlineoffset(device->params->size_params.hsize
+                                                * bpp);
+@@ -302,10 +340,18 @@
+        ret = isppreview_config_size(device->params->size_params.hsize,
+                                        device->params->size_params.vsize,
+                                        out_hsize, out_vsize);
++
++       device->params->drkf_params.addr = device->isp_addr_lsc;
++
++       prev_hw_setup(device->params);
++
++       ret = isppreview_set_inaddr(device->isp_addr_read);
+        if (ret)
                 goto out;
-        }
 
-+       if ((irqstatus & HS_VS) == HS_VS) {
-+               if (irqdis->isp_callbk[CBK_HS_VS])
-+                       irqdis->isp_callbk[CBK_HS_VS](HS_VS,
-+                               irqdis->isp_callbk_arg1[CBK_HS_VS],
-+                               irqdis->isp_callbk_arg2[CBK_HS_VS]);
-+               is_irqhandled = 1;
+-       isppreview_config_datapath(PRV_RAW_MEM, PREVIEW_MEM);
++       ret = isppreview_set_outaddr(device->isp_addr_read);
++       if (ret)
++               goto out;
+
+        ret = isp_set_callback(CBK_PREV_DONE, preview_isr, (void *)device,
+                                                                (void *)NULL);
+@@ -317,11 +363,6 @@
+
+        wait_for_completion_interruptible(&device->wfc);
+
+-       if (device->isp_addr_read) {
+-               ispmmu_unmap(device->isp_addr_read);
+-               device->isp_addr_read = 0;
+-       }
+-
+        ret = isp_unset_callback(CBK_PREV_DONE);
+
+        dev_dbg(prev_dev, "prev_do_preview L\n");
+@@ -340,11 +381,25 @@
+        struct prev_fh *fh = q->priv_data;
+        struct prev_device *device = fh->device;
+
+-       ispmmu_unmap(device->isp_addr_read);
+-       device->isp_addr_read = 0;
+-       spin_lock(&device->vbq_lock);
+-       vb->state = VIDEOBUF_NEEDS_INIT;
+-       spin_unlock(&device->vbq_lock);
++       if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++               ispmmu_unmap(device->isp_addr_read);
++               device->isp_addr_read = 0;
++               spin_lock(&device->inout_vbq_lock);
++               vb->state = VIDEOBUF_NEEDS_INIT;
++               spin_unlock(&device->inout_vbq_lock);
++       } else if (q->type == V4L2_BUF_TYPE_PRIVATE) {
++               ispmmu_unmap(device->isp_addr_lsc);
++               device->isp_addr_lsc = 0;
++               spin_lock(&device->lsc_vbq_lock);
++               vb->state = VIDEOBUF_NEEDS_INIT;
++               spin_unlock(&device->lsc_vbq_lock);
 +       }
 +
-        if ((irqstatus & CCDC_VD1) == CCDC_VD1) {
-                if (irqdis->isp_callbk[CBK_CCDC_VD1])
-                                irqdis->isp_callbk[CBK_CCDC_VD1](CCDC_VD1,
-@@ -1028,14 +1040,6 @@
-                is_irqhandled = 1;
-        }
-
--       if ((irqstatus & HS_VS) == HS_VS) {
--               if (irqdis->isp_callbk[CBK_HS_VS])
--                       irqdis->isp_callbk[CBK_HS_VS](HS_VS,
--                               irqdis->isp_callbk_arg1[CBK_HS_VS],
--                               irqdis->isp_callbk_arg2[CBK_HS_VS]);
--               is_irqhandled = 1;
--       }
--
-        if ((irqstatus & H3A_AF_DONE) == H3A_AF_DONE) {
-                if (irqdis->isp_callbk[CBK_H3A_AF_DONE])
-                        irqdis->isp_callbk[CBK_H3A_AF_DONE](H3A_AF_DONE,
-@@ -1191,6 +1195,9 @@
-                                                is_isppreview_enabled())
-                isppreview_enable(1);
-
-+       /* clear any pending IRQs */
-+       omap_writel(0xFFFFFFFF, ISP_IRQ0STATUS);
++       if (vb->memory != V4L2_MEMORY_MMAP) {
++               videobuf_dma_unmap(q, videobuf_to_dma(vb));
++               videobuf_dma_free(videobuf_to_dma(vb));
++       }
 +
-        return;
+        dev_dbg(prev_dev, "previewer_vbq_release\n");
  }
- EXPORT_SYMBOL(isp_start);
-@@ -1258,7 +1265,8 @@
 
-        isp_release_resources();
-        if ((pix_input->pixelformat == V4L2_PIX_FMT_SGRBG10) &&
--               (pix_output->pixelformat != V4L2_PIX_FMT_SGRBG10)) {
-+               ((pix_output->pixelformat == V4L2_PIX_FMT_YUYV) ||
-+               (pix_output->pixelformat == V4L2_PIX_FMT_UYVY))) {
-                        ispmodule_obj.isp_pipeline = OMAP_ISP_CCDC |
-                                        OMAP_ISP_PREVIEW | OMAP_ISP_RESIZER;
-                        ispccdc_request();
-@@ -1277,15 +1285,23 @@
-                isppreview_config_datapath(PRV_RAW_CCDC, PREVIEW_RSZ);
-                ispresizer_config_datapath(RSZ_OTFLY_YUV);
- #endif
--       } else {
-+       } else if (pix_input->pixelformat == pix_output->pixelformat) {
-                ispmodule_obj.isp_pipeline = OMAP_ISP_CCDC;
-                ispccdc_request();
-                if (pix_input->pixelformat == V4L2_PIX_FMT_SGRBG10)
-                        ispccdc_config_datapath(CCDC_RAW, CCDC_OTHERS_MEM);
--               else
-+               else if (pix_input->pixelformat == V4L2_PIX_FMT_PATT) {
-+                       /* MMS */
-+                       ispccdc_config_datapath(CCDC_RAW_PATTERN,
-+                                                       CCDC_OTHERS_LSC_MEM);
-+               } else if ((pix_input->pixelformat == V4L2_PIX_FMT_YUYV) ||
-+                               (pix_input->pixelformat == V4L2_PIX_FMT_UYVY)) {
-                        ispccdc_config_datapath(CCDC_YUV_SYNC,
-                                                        CCDC_OTHERS_MEM);
--       }
-+               } else
+@@ -364,25 +419,52 @@
+        struct prev_device *device = fh->device;
+        u32 bpp = 1;
+
+-       spin_lock(&device->vbq_lock);
+-       if (*cnt <= 0)
+-               *cnt = VIDEO_MAX_FRAME;
+-
+-       if (*cnt > VIDEO_MAX_FRAME)
+-               *cnt = VIDEO_MAX_FRAME;
+-
+-       if (!device->params->size_params.hsize ||
+-               !device->params->size_params.vsize) {
+-               dev_err(prev_dev, "Can't setup buffer size\n");
+-               spin_unlock(&device->vbq_lock);
++       if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++               spin_lock(&device->inout_vbq_lock);
++
++               if (*cnt <= 0)
++                       *cnt = 1;
++
++               if (*cnt > VIDEO_MAX_FRAME)
++                       *cnt = VIDEO_MAX_FRAME;
++
++               if (!device->params->size_params.hsize ||
++                       !device->params->size_params.vsize) {
++                               dev_err(prev_dev, "Can't setup buffer size\n");
++                               spin_unlock(&device->inout_vbq_lock);
 +                       return -EINVAL;
-+       } else
-+               return -EINVAL;
-        return 0;
- }
-
-Index: omapkernel/drivers/media/video/isp/isp_af.c
-===================================================================
---- omapkernel.orig/drivers/media/video/isp/isp_af.c    2008-10-15 19:37:24.000000000 -0500
-+++ omapkernel/drivers/media/video/isp/isp_af.c 2008-10-15 19:40:49.000000000 -0500
-@@ -313,9 +313,10 @@
-        busyaf = omap_readl(ISPH3A_PCR);
-
-        if ((busyaf & AF_BUSYAF) == AF_BUSYAF) {
--               DPRINTK_ISPH3A("AF_register_setup_ERROR : Engine Busy");
--               DPRINTK_ISPH3A("\n Configuration cannot be done ");
--               return -AF_ERR_ENGINE_BUSY;
-+               /* DPRINTK_ISPH3A("AF_register_setup_ERROR : Engine Busy"); */
-+               /* DPRINTK_ISPH3A("\n Configuration cannot be done "); */
-+               /* return -AF_ERR_ENGINE_BUSY; */
-+               isp_af_enable(0);
++               }
++
++               if (device->params->size_params.pixsize == PREV_INWIDTH_10BIT)
++                       bpp = 2;
++               *size = prev_bufsize = bpp * device->params->size_params.hsize
++                                       * device->params->size_params.vsize;
++               spin_unlock(&device->inout_vbq_lock);
++       } else if (q->type == V4L2_BUF_TYPE_PRIVATE) {
++               spin_lock(&device->lsc_vbq_lock);
++               if (*cnt <= 0)
++                       *cnt = 1;
++
++               if (*cnt > 1)
++                       *cnt = 1;
++
++               if (!device->params->size_params.hsize ||
++                       !device->params->size_params.vsize) {
++                       dev_err(prev_dev, "Can't setup lsc buffer size\n");
++                       spin_unlock(&device->lsc_vbq_lock);
++                       return -EINVAL;
++               }
++
++               /* upsampled lsc table size - for now bpp = 2 */
++               bpp = 2;
++               *size = lsc_bufsize = bpp * device->params->size_params.hsize
++                       * device->params->size_params.vsize;
++
++               spin_unlock(&device->lsc_vbq_lock);
++       } else {
+                return -EINVAL;
         }
 
-        /*Check IIR Coefficient and start Values */
-@@ -396,8 +397,6 @@
-        /*Set configuration flag to indicate HW setup done */
-        if (af_dev_configptr->config->af_config)
-                isp_af_enable(1);
--       else
--               isp_af_enable(0);
-
-        /*Success */
+-       if (device->params->size_params.pixsize == PREV_INWIDTH_10BIT)
+-               bpp = 2;
+-       *size = prev_bufsize = bpp * device->params->size_params.hsize
+-                                       * device->params->size_params.vsize;
+-       spin_unlock(&device->vbq_lock);
+        dev_dbg(prev_dev, "previewer_vbq_setup\n");
         return 0;
-@@ -702,9 +701,8 @@
- /* Function to Enable/Disable AF Engine */
- int isp_af_enable(int enable)
- {
--       unsigned int pcr;
--
--       pcr = omap_readl(ISPH3A_PCR);
-+       /* Before enabling AF H3A we need to clear pending interrupts */
-+       omap_writel(IRQ0STATUS_H3A_AF_DONE_IRQ, ISP_IRQ0STATUS);
+ }
+@@ -407,38 +489,103 @@
+        struct videobuf_dmabuf *dma = videobuf_to_dma(vb);
 
-        /* Set AF_EN bit in PCR Register */
-        if (enable) {
-@@ -714,12 +712,20 @@
+        dev_dbg(prev_dev, "previewer_vbq_prepare E\n");
+-       spin_lock(&device->vbq_lock);
+-       if (vb->baddr) {
+-               vb->size = prev_bufsize;
+-               vb->bsize = prev_bufsize;
+-       } else {
+-               spin_unlock(&device->vbq_lock);
+-               dev_err(prev_dev, "No user buffer allocated\n");
+-               goto out;
+-       }
+
+-       vb->width = device->params->size_params.hsize;
+-       vb->height = device->params->size_params.vsize;
+-       vb->field = field;
+-       spin_unlock(&device->vbq_lock);
++       if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++               spin_lock(&device->inout_vbq_lock);
++
++               if (vb->baddr) {
++                       vb->size = prev_bufsize;
++                       vb->bsize = prev_bufsize;
++                       DPRINTK_PREVIEWER("[%s] bsize = %d\n", __func__,
++                                                               vb->bsize);
++               } else {
++                       spin_unlock(&device->inout_vbq_lock);
++                       dev_err(prev_dev, "No user buffer allocated\n");
++                       goto out;
++               }
++
++               vb->width = device->params->size_params.hsize;
++               vb->height = device->params->size_params.vsize;
++               vb->field = field;
++               spin_unlock(&device->inout_vbq_lock);
++
++               if (vb->state == VIDEOBUF_NEEDS_INIT) {
++                       DPRINTK_PREVIEWER("[%s] baddr = %08x\n", __func__,
++                                                               (int)vb->baddr);
++                       err = videobuf_iolock(q, vb, NULL);
++                       if (!err) {
++                               isp_addr = ispmmu_map_sg(dma->sglist,
++                                                               dma->sglen);
++
++                               if (!isp_addr) {
++                                       err = -EIO;
++                               } else {
++                                       device->isp_addr_read = isp_addr;
++                                       DPRINTK_PREVIEWER("[%s] "
++                                               "isp_addr_read = %08x\n",
++                                               __func__, isp_addr);
++                               }
++                       }
++               }
+
+-       if (vb->state == VIDEOBUF_NEEDS_INIT) {
+-               err = videobuf_iolock(q, vb, NULL);
+                if (!err) {
+-                       isp_addr = ispmmu_map_sg(dma->sglist, dma->sglen);
+-                       if (!isp_addr)
+-                               err = -EIO;
+-                       else
+-                               device->isp_addr_read = isp_addr;
++                       vb->state = VIDEOBUF_PREPARED;
++                       flush_cache_user_range(NULL, vb->baddr, (vb->baddr +
++                                                               vb->bsize));
++               } else {
++                       previewer_vbq_release(q, vb);
+                }
+-       }
+
+-       if (!err) {
+-               vb->state = VIDEOBUF_PREPARED;
+-               flush_cache_user_range(NULL, vb->baddr,
+-                                       (vb->baddr + vb->bsize));
+-       } else
+-               previewer_vbq_release(q, vb);
++       } else if (q->type == V4L2_BUF_TYPE_PRIVATE) {
++
++               spin_lock(&device->lsc_vbq_lock);
++
++               if (vb->baddr) {
++                       vb->size = lsc_bufsize;
++                       vb->bsize = lsc_bufsize;
++                       DPRINTK_PREVIEWER("[%s] bsize = %d\n", __func__,
++                                                               vb->bsize);
++               } else {
++                       spin_unlock(&device->lsc_vbq_lock);
++                       dev_err(prev_dev, "No user buffer allocated\n");
++                       goto out;
++               }
++
++               vb->width = device->params->size_params.hsize;
++               vb->height = device->params->size_params.vsize;
++               vb->field = field;
++               spin_unlock(&device->lsc_vbq_lock);
++
++               if (vb->state == VIDEOBUF_NEEDS_INIT) {
++                       DPRINTK_PREVIEWER("[%s] baddr = %08x\n", __func__,
++                                                               (int)vb->baddr);
++                       err = videobuf_iolock(q, vb, NULL);
++                       if (!err) {
++                               isp_addr = ispmmu_map_sg(dma->sglist,
++                                                               dma->sglen);
++                               if (!isp_addr) {
++                                       err = -EIO;
++                               } else {
++                                       device->isp_addr_lsc = isp_addr;
++                                       DPRINTK_PREVIEWER("[%s] isp_addr_lsc ="
++                                                               " %08x\n",
++                                                               __func__,
++                                                               isp_addr);
++                               }
++                       }
++               }
++
++               if (!err) {
++                       vb->state = VIDEOBUF_PREPARED;
++                       flush_cache_user_range(NULL, vb->baddr, (vb->baddr +
++                                                               vb->bsize));
++               } else {
++                       previewer_vbq_release(q, vb);
++               }
++
++       } else {
++               return -EINVAL;
++       }
+
+        dev_dbg(prev_dev, "previewer_vbq_prepare L\n");
+ out:
+@@ -495,11 +642,17 @@
+        device->opened = 1;
+
+        filp->private_data = fh;
+-       fh->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++       fh->inout_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++       fh->lsc_type = V4L2_BUF_TYPE_PRIVATE;
+        fh->device = device;
+
+-       videobuf_queue_sg_init(&fh->vbq, &device->vbq_ops, NULL,
+-                                       &device->vbq_lock, fh->type,
++       videobuf_queue_sg_init(&fh->inout_vbq, &device->vbq_ops, NULL,
++                                       &device->inout_vbq_lock, fh->inout_type,
++                                       V4L2_FIELD_NONE,
++                                       sizeof(struct videobuf_buffer), fh);
++
++       videobuf_queue_sg_init(&fh->lsc_vbq, &device->vbq_ops, NULL,
++                                       &device->lsc_vbq_lock, fh->lsc_type,
+                                        V4L2_FIELD_NONE,
+                                        sizeof(struct videobuf_buffer), fh);
+
+@@ -521,14 +674,17 @@
+ {
+        struct prev_fh *fh = filp->private_data;
+        struct prev_device *device = fh->device;
+-       struct videobuf_queue *q = &fh->vbq;
++       struct videobuf_queue *q1 = &fh->inout_vbq;
++       struct videobuf_queue *q2 = &fh->lsc_vbq;
+
+        device->opened = 0;
+        device->params = NULL;
+        isppreview_free();
+        isp_put();
+-       videobuf_mmap_free(q);
++       videobuf_mmap_free(q1);
++       videobuf_mmap_free(q2);
+        prev_bufsize = 0;
++       lsc_bufsize = 0;
+        filp->private_data = NULL;
+        kfree(fh);
+
+@@ -546,10 +702,7 @@
+  **/
+ static int previewer_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+-       struct prev_fh *fh = file->private_data;
+-       dev_dbg(prev_dev, "previewer_mmap\n");
+-
+-       return videobuf_mmap_mapper(&fh->vbq, vma);
++       return -EINVAL;
+ }
+
+ /**
+@@ -590,40 +743,83 @@
+
+        switch (cmd) {
+        case PREV_REQBUF:
++       {
++               struct v4l2_requestbuffers *req;
++
+                if (mutex_lock_interruptible(&device->prevwrap_mutex))
+                        goto err_eintr;
+-               ret = videobuf_reqbufs(&fh->vbq, (void *)arg);
++
++               req = (struct v4l2_requestbuffers *) arg;
++
++               if (req->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
++                       ret = videobuf_reqbufs(&fh->inout_vbq, (void *) arg);
++               else if (req->type == V4L2_BUF_TYPE_PRIVATE)
++                       ret = videobuf_reqbufs(&fh->lsc_vbq, (void *) arg);
++               else
++                       ret = -EINVAL;
++
+                mutex_unlock(&device->prevwrap_mutex);
+                break;
++       }
+
+        case PREV_QUERYBUF:
++       {
++               struct v4l2_buffer *b;
++
+                if (mutex_lock_interruptible(&device->prevwrap_mutex))
+                        goto err_eintr;
+-               ret = videobuf_querybuf(&fh->vbq, (void *)arg);
++               b = (struct v4l2_buffer *) arg;
++
++               if (b->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
++                       ret = videobuf_querybuf(&fh->inout_vbq, (void *) arg);
++               else if (b->type == V4L2_BUF_TYPE_PRIVATE)
++                       ret = videobuf_querybuf(&fh->lsc_vbq, (void *) arg);
++               else
++                       ret = -EINVAL;
++
+                mutex_unlock(&device->prevwrap_mutex);
+                break;
++       }
+
+        case PREV_QUEUEBUF:
++       {
++               struct v4l2_buffer *b;
++
+                if (mutex_lock_interruptible(&device->prevwrap_mutex))
+                        goto err_eintr;
+-               ret = videobuf_qbuf(&fh->vbq, (void *)arg);
++
++               b = (struct v4l2_buffer *) arg;
++               if (b->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
++                       ret = videobuf_qbuf(&fh->inout_vbq, (void *) arg);
++               else if (b->type == V4L2_BUF_TYPE_PRIVATE)
++                       ret = videobuf_qbuf(&fh->lsc_vbq, (void *) arg);
++               else
++                       ret = -EINVAL;
++
+                mutex_unlock(&device->prevwrap_mutex);
+                break;
++       }
+
+        case PREV_SET_PARAM:
+                if (mutex_lock_interruptible(&device->prevwrap_mutex))
+                        goto err_eintr;
++               DPRINTK_PREVIEWER("%s PREV_SET_PARAMS before copy from user:\n",
++                                                               __func__);
+                if (copy_from_user(&params, (struct prev_params *)arg,
+                                                sizeof(struct prev_params))) {
+                        mutex_unlock(&device->prevwrap_mutex);
+                        return -EFAULT;
+                }
++               DPRINTK_PREVIEWER("%s PREV_SET_PARAMS before prev validate "
++                                                       "params:\n", __func__);
+                ret = prev_validate_params(&params);
+                if (ret < 0) {
+                        dev_err(prev_dev, "Error validating parameters!\n");
+                        mutex_unlock(&device->prevwrap_mutex);
+                        goto out;
+                }
++               DPRINTK_PREVIEWER("%s PREV_SET_PARAMSbefore memcopy:\n",
++                                                               __func__);
+                if (device->params)
+                        memcpy(device->params, &params,
+                                                sizeof(struct prev_params));
+@@ -632,7 +828,7 @@
                         return -EINVAL;
                 }
 
--               pcr |= AF_EN;
-+               omap_writel((omap_readl(ISPH3A_PCR) | AF_EN), ISPH3A_PCR);
-        } else {
-+               u32 timeout = 20;
-                isp_unset_callback(CBK_H3A_AF_DONE);
--               pcr &= ~AF_EN;
-+               omap_writel((omap_readl(ISPH3A_PCR) & ~AF_EN), ISPH3A_PCR);
-+               while ((omap_readl(ISPH3A_PCR) & AF_BUSYAF) && timeout) {
-+                       mdelay(10);
-+                       timeout--;
-+               }
-+               if (timeout == 0) {
-+                       printk(KERN_DEBUG "%s - can't disable AF H3A\n",
-+                                                               __func__);
-+               }
-        }
--       omap_writel(pcr, ISPH3A_PCR);
-        return 0;
- }
-
-Index: omapkernel/drivers/media/video/isp/ispccdc.c
-===================================================================
---- omapkernel.orig/drivers/media/video/isp/ispccdc.c   2008-10-15 19:37:25.000000000 -0500
-+++ omapkernel/drivers/media/video/isp/ispccdc.c        2008-10-15 19:42:28.000000000 -0500
-@@ -189,6 +189,11 @@
-        } else {
-                if ((ISP_ABS_CCDC_BLCLAMP & ccdc_struct->update) ==
-                                        ISP_ABS_CCDC_BLCLAMP) {
-+                       if (copy_from_user(&bclamp_t,
-+                               (struct ispccdc_bclamp *)(ccdc_struct->bclamp),
-+                               sizeof(struct ispccdc_bclamp)))
-+                               goto copy_from_user_err;
-+
-                        ispccdc_enable_black_clamp(0);
-                        ispccdc_config_black_clamp(bclamp_t);
-                }
-@@ -571,6 +576,19 @@
-                ispccdc_config_vp(vpcfg);
-                ispccdc_enable_vp(1);
+-               ret = prev_hw_setup(device->params);
++               /* ret = prev_hw_setup(device->params); */
+                mutex_unlock(&device->prevwrap_mutex);
                 break;
-+       case CCDC_OTHERS_LSC_MEM: /* Added by MMS */
-+               syn_mode |= ISPCCDC_SYN_MODE_VP2SDR;
-+               syn_mode |= ISPCCDC_SYN_MODE_WEN;
-+               /* Generally cam_wen is used with cam_hs, vs signals */
-+               syn_mode |= ISPCCDC_SYN_MODE_EXWEN;
-+               omap_writel((omap_readl(ISPCCDC_CFG))
-+                       | ISPCCDC_CFG_WENLOG, ISPCCDC_CFG);
-+               /* Video Port Configuration */
-+               vpcfg.bitshift_sel = BIT9_0;
-+               vpcfg.freq_sel = PIXCLKBY2;
-+               ispccdc_config_vp(vpcfg);
-+               ispccdc_enable_vp(1);
-+               break;
+
+@@ -654,13 +850,13 @@
+                break;
+
+        case PREV_GET_CROPSIZE:
+-               {
++       {
+                struct prev_cropsize outputsize;
+                prev_calculate_crop(device, &outputsize);
+                if (copy_to_user((struct prev_cropsize *)arg, &outputsize,
+                                                sizeof(struct prev_cropsize)))
+                        ret = -EFAULT;
+-               }
++       }
+                break;
+
         default:
-                DPRINTK_ISPCCDC("ISP_ERR: Wrong CCDC Output");
-                return -EINVAL;
-@@ -616,6 +634,32 @@
-                blkcfg.dcsubval = 0;
-                ispccdc_config_black_clamp(blkcfg);
-                break;
-+       /* Added by MMS */
-+       case CCDC_RAW_PATTERN:
-+               /* Slave mode */
-+               syncif.ccdc_mastermode = 0;
-+               /* Normal */
-+               syncif.datapol = 0;
-+               syncif.datsz = DAT8;
-+               /* Progressive Mode */
-+               syncif.fldmode = 0;
-+               /* Input */
-+               syncif.fldout = 0;
-+               /* Positive */
-+               syncif.fldpol = 0;
-+               /* Odd Field */
-+               syncif.fldstat = 0;
-+               /* Positive */
-+               syncif.hdpol = 0;
-+               syncif.ipmod = RAW;
-+               /* Positive */
-+               syncif.vdpol = 0;
-+               ispccdc_config_sync_if(syncif);
-+               ispccdc_config_imgattr(colptn);
-+               /* Config DC sub */
-+               blkcfg.dcsubval = 42;
-+               ispccdc_config_black_clamp(blkcfg);
-+               break;
-        case CCDC_YUV_BT:
-                break;
-        case CCDC_OTHERS:
-@@ -644,6 +688,7 @@
-        u32 syn_mode = omap_readl(ISPCCDC_SYN_MODE);
-
-        syn_mode |= ISPCCDC_SYN_MODE_VDHDEN;
-+       syn_mode &= ~ISPCCDC_SYN_MODE_PACK8; /* Added by MMS */
-
-        if (syncif.fldstat)
-                syn_mode |= ISPCCDC_SYN_MODE_FLDSTAT;
-@@ -668,6 +713,7 @@
-        switch (syncif.datsz) {
-        case DAT8:
-                syn_mode |= ISPCCDC_SYN_MODE_DATSIZ_8;
-+               syn_mode |= ISPCCDC_SYN_MODE_PACK8; /* Added by MMS */
-                break;
-        case DAT10:
-                syn_mode |= ISPCCDC_SYN_MODE_DATSIZ_10;
-@@ -837,10 +883,11 @@
- {
-        u32 blcomp_val = 0;
-
--       blcomp_val |= blcomp.b_mg << ISPCCDC_BLKCMP_B_MG_SHIFT;
--       blcomp_val |= blcomp.gb_g << ISPCCDC_BLKCMP_GB_G_SHIFT;
--       blcomp_val |= blcomp.gr_cy << ISPCCDC_BLKCMP_GR_CY_SHIFT;
--       blcomp_val |= blcomp.r_ye << ISPCCDC_BLKCMP_R_YE_SHIFT;
-+       blcomp_val |= (((u32)blcomp.b_mg & 0xFF) << ISPCCDC_BLKCMP_B_MG_SHIFT);
-+       blcomp_val |= (((u32)blcomp.gb_g & 0xFF) << ISPCCDC_BLKCMP_GB_G_SHIFT);
-+       blcomp_val |= (((u32)blcomp.gr_cy & 0xFF) <<
-+                                               ISPCCDC_BLKCMP_GR_CY_SHIFT);
-+       blcomp_val |= (((u32)blcomp.r_ye & 0xFF) << ISPCCDC_BLKCMP_R_YE_SHIFT);
-
-        omap_writel(blcomp_val, ISPCCDC_BLKCMP);
- }
-@@ -1087,7 +1134,9 @@
-
-        if ((ispccdc_obj.ccdc_outfmt == CCDC_OTHERS_MEM) ||
-                                                (ispccdc_obj.ccdc_outfmt ==
--                                               CCDC_OTHERS_VP_MEM)) {
-+                                               CCDC_OTHERS_VP_MEM) ||
-+                                               (ispccdc_obj.ccdc_outfmt ==
-+                                               CCDC_OTHERS_LSC_MEM)) {
-                if (*output_w % 16) {
-                        *output_w -= (*output_w % 16);
-                        *output_w += 16;
-@@ -1197,10 +1246,17 @@
-                                        (ispccdc_obj.ccdcout_h <<
-                                        ISPCCDC_VP_OUT_VERT_NUM_SHIFT),
-                                        ISPCCDC_VP_OUT);
-+/* MMS: fix wrong pattern */
-+/*
-                omap_writel(0 << ISPCCDC_HORZ_INFO_SPH_SHIFT |
-                                        ((ispccdc_obj.ccdcout_w - 1) <<
-                                        ISPCCDC_HORZ_INFO_NPH_SHIFT),
-                                        ISPCCDC_HORZ_INFO);
-+*/
-+               omap_writel(1 << ISPCCDC_HORZ_INFO_SPH_SHIFT |
-+                                       ((ispccdc_obj.ccdcout_w - 1) <<
-+                                       ISPCCDC_HORZ_INFO_NPH_SHIFT),
-+                                       ISPCCDC_HORZ_INFO);
-                omap_writel(0 << ISPCCDC_VERT_START_SLV0_SHIFT,
-                                        ISPCCDC_VERT_START);
-                omap_writel((ispccdc_obj.ccdcout_h - 1) <<
-@@ -1212,10 +1268,47 @@
-                                        ISPCCDC_VDINT_0_SHIFT) |
-                                        ((50 & ISPCCDC_VDINT_1_MASK) <<
-                                        ISPCCDC_VDINT_1_SHIFT), ISPCCDC_VDINT);
-+       } else if (ispccdc_obj.ccdc_outfmt == CCDC_OTHERS_LSC_MEM) {
-+               /* Added by MMS */
-+               /* Start with 1 pixel apart */
-+               omap_writel((1 << ISPCCDC_FMT_HORZ_FMTSPH_SHIFT)
-+                               | (ispccdc_obj.ccdcin_w
-+                               << ISPCCDC_FMT_HORZ_FMTLNH_SHIFT),
-+                               ISPCCDC_FMT_HORZ);
-+
-+               omap_writel((0 << ISPCCDC_FMT_VERT_FMTSLV_SHIFT)
-+                               | ((ispccdc_obj.ccdcin_h)
-+                               << ISPCCDC_FMT_VERT_FMTLNV_SHIFT),
-+                               ISPCCDC_FMT_VERT);
-+
-+               omap_writel((ispccdc_obj.ccdcout_w
-+                               << ISPCCDC_VP_OUT_HORZ_NUM_SHIFT)
-+                               | (ispccdc_obj.ccdcout_h
-+                               << ISPCCDC_VP_OUT_VERT_NUM_SHIFT),
-+                               ISPCCDC_VP_OUT);
-+               omap_writel(0 << ISPCCDC_HORZ_INFO_SPH_SHIFT
-+                               | ((ispccdc_obj.ccdcout_w - 1)
-+                               << ISPCCDC_HORZ_INFO_NPH_SHIFT),
-+                               ISPCCDC_HORZ_INFO);
-+               omap_writel(0 << ISPCCDC_VERT_START_SLV0_SHIFT,
-+                               ISPCCDC_VERT_START);
-+               omap_writel((ispccdc_obj.ccdcout_h - 1)
-+                               << ISPCCDC_VERT_LINES_NLV_SHIFT,
-+                               ISPCCDC_VERT_LINES);
-+               /*Configure the HSIZE_OFF with output buffer width*/
-+
-+               ispccdc_config_outlineoffset((ispccdc_obj.ccdcout_w * 2), 0, 0);
-+               omap_writel((((ispccdc_obj.ccdcout_h - 25)
-+                               & ISPCCDC_VDINT_0_MASK)
-+                               << ISPCCDC_VDINT_0_SHIFT)
-+                               | (((50) &  ISPCCDC_VDINT_1_MASK)
-+                               << ISPCCDC_VDINT_1_SHIFT),
-+                               ISPCCDC_VDINT);
-        }
-
-        if (is_isplsc_activated()) {
--               if (ispccdc_obj.ccdc_inpfmt == CCDC_RAW) {
-+               if ((ispccdc_obj.ccdc_inpfmt == CCDC_RAW) ||
-+                       (ispccdc_obj.ccdc_inpfmt == CCDC_RAW_PATTERN)) {
-                        ispccdc_config_lsc(&lsc_config);
-                        ispccdc_load_lsc(lsc_config.size);
-                }
-@@ -1318,9 +1411,10 @@
- {
-        if (enable) {
-                if (ccdc_use_lsc && !ispccdc_obj.lsc_en &&
--                       (ispccdc_obj.ccdc_inpfmt == CCDC_RAW))
-+                       ((ispccdc_obj.ccdc_inpfmt == CCDC_RAW) ||
-+                       (ispccdc_obj.ccdc_inpfmt == CCDC_RAW_PATTERN)))
-                        ispccdc_enable_lsc(1);
+@@ -792,8 +988,8 @@
+        device->vbq_ops.buf_prepare = previewer_vbq_prepare;
+        device->vbq_ops.buf_release = previewer_vbq_release;
+        device->vbq_ops.buf_queue = previewer_vbq_queue;
+-       spin_lock_init(&device->vbq_lock);
 -
-+                       mdelay(10);
-                        omap_writel(omap_readl(ISPCCDC_PCR) | (ISPCCDC_PCR_EN),
-                                                                ISPCCDC_PCR);
-        } else {
-@@ -1442,6 +1536,13 @@
-                                        omap_readl(ISPCCDC_LSC_TABLE_BASE));
-        DPRINTK_ISPCCDC("###CCDC LSC TABLE OFFSET=0x%x\n",
-                                        omap_readl(ISPCCDC_LSC_TABLE_OFFSET));
-+       /* Added by MMS */
-+       DPRINTK_ISPCCDC("###CCDC ISPCCDC_BLKCMP=0x%x\n",
-+                                               omap_readl(ISPCCDC_BLKCMP));
-+       DPRINTK_ISPCCDC("###CCDC ISPCCDC_DCSUB=0x%x\n",
-+                                               omap_readl(ISPCCDC_DCSUB));
-+       DPRINTK_ISPCCDC("###CCDC ISPCCDC_FPC=0x%x\n", omap_readl(ISPCCDC_FPC));
-+
- }
- EXPORT_SYMBOL(ispccdc_print_status);
++       spin_lock_init(&device->inout_vbq_lock);
++       spin_lock_init(&device->lsc_vbq_lock);
+        prevdevice = device;
+        return 0;
 
-Index: omapkernel/drivers/media/video/isp/ispccdc.h
+Index: omapkernel/drivers/media/video/isp/omap_previewer.h
 ===================================================================
---- omapkernel.orig/drivers/media/video/isp/ispccdc.h   2008-10-15 19:25:00.000000000 -0500
-+++ omapkernel/drivers/media/video/isp/ispccdc.h        2008-10-15 19:39:20.000000000 -0500
-@@ -42,6 +42,7 @@
-        CCDC_RAW,
-        CCDC_YUV_SYNC,
-        CCDC_YUV_BT,
-+       CCDC_RAW_PATTERN,
-        CCDC_OTHERS
- };
-
-@@ -50,7 +51,8 @@
-        CCDC_YUV_MEM_RSZ,
-        CCDC_OTHERS_VP,
-        CCDC_OTHERS_MEM,
--       CCDC_OTHERS_VP_MEM
-+       CCDC_OTHERS_VP_MEM,
-+       CCDC_OTHERS_LSC_MEM
- };
-
- /* Enumeration constants for the sync interface parameters */
-Index: omapkernel/drivers/media/video/isp/isph3a.c
-===================================================================
---- omapkernel.orig/drivers/media/video/isp/isph3a.c    2008-10-15 19:37:24.000000000 -0500
-+++ omapkernel/drivers/media/video/isp/isph3a.c 2008-10-15 19:43:30.000000000 -0500
-@@ -28,6 +28,7 @@
- #include <linux/io.h>
- #include <linux/uaccess.h>
- #include <asm/cacheflush.h>
-+#include <linux/delay.h>
-
- #include "isp.h"
- #include "ispreg.h"
-@@ -215,9 +216,20 @@
-                                                                ISPH3A_PCR);
-                DPRINTK_ISPH3A("    H3A enabled \n");
-        } else {
-+               int timeout = 20;
-                aewb_regs.reg_pcr &= ~ISPH3A_PCR_AEW_EN;
-                omap_writel(omap_readl(ISPH3A_PCR) & ~ISPH3A_PCR_AEW_EN,
-                                                                ISPH3A_PCR);
-+               while ((omap_readl(ISPH3A_PCR) & ISPH3A_PCR_AEW_BUSY) &&
-+                                                               timeout) {
-+                       mdelay(10);
-+                       timeout--;
-+               }
-+               if (timeout == 0) {
-+                       printk(KERN_DEBUG "%s - can't disable AEWB H3A\n",
-+                                                               __func__);
-+               }
-+
-                DPRINTK_ISPH3A("    H3A disabled \n");
-        }
-        aewb_config_local.aewb_enable = enable;
-Index: omapkernel/drivers/media/video/isp/ispmmu.h
-===================================================================
---- omapkernel.orig/drivers/media/video/isp/ispmmu.h    2008-10-15 19:25:00.000000000 -0500
-+++ omapkernel/drivers/media/video/isp/ispmmu.h 2008-10-15 19:39:20.000000000 -0500
-@@ -65,7 +65,7 @@
-  * to keep track of these 16 L2 page table's status.
+--- omapkernel.orig/drivers/media/video/isp/omap_previewer.h    2008-10-15 19:25:00.000000000 -0500
++++ omapkernel/drivers/media/video/isp/omap_previewer.h 2008-10-15 19:54:02.000000000 -0500
+@@ -134,29 +134,37 @@
+  * @opened: State of the device.
+  * @wfc: Wait for completion. Used for locking operations.
+  * @prevwrap_mutex: Mutex for preview wrapper use.
+- * @vbq_lock: Spinlock for videobuf queues.
++ * @inout_vbq_lock: Spinlock for in/out videobuf queues.
++ * @lsc_vbq_lock: Spinlock for LSC videobuf queues.
+  * @vbq_ops: Videobuf queue operations
+  * @isp_addr_read: Input/Output address
++ * @isp_addr_read: LSC address
   */
- #define L2P_TABLE_SIZE                 1024
--#define L2P_TABLE_NR                   41 /* Currently supports 4*5MP shots */
-+#define L2P_TABLE_NR                   62 /* Currently supports 4*5MP shots */
- #define L2P_TABLES_SIZE                (L2P_TABLE_SIZE * L2P_TABLE_NR)
-
- /* Extra memory allocated to get ttb aligned on 16KB */
-Index: omapkernel/drivers/media/video/isp/isppreview.c
-===================================================================
---- omapkernel.orig/drivers/media/video/isp/isppreview.c        2008-10-15 19:37:25.000000000 -0500
-+++ omapkernel/drivers/media/video/isp/isppreview.c     2008-10-15 19:44:09.000000000 -0500
-@@ -69,7 +69,8 @@
-        {ISPPRV_CDC_THR1, 0x0000},
-        {ISPPRV_CDC_THR2, 0x0000},
-        {ISPPRV_CDC_THR3, 0x0000},
--       {ISPPRV_PCR, 0x0000},
-+/* Removed by MMS */
-+/*     {ISPPRV_PCR, 0x0000}, */
-        {ISP_TOK_TERM, 0x0000}
+ struct prev_device {
+        struct prev_params *params;
+        unsigned char opened;
+        struct completion wfc;
+-       struct mutex prevwrap_mutex; /* For generic internal use */
+-       spinlock_t vbq_lock;    /* For videobuffer queue handling */
++       struct mutex prevwrap_mutex;
++       spinlock_t inout_vbq_lock; /* Spinlock for in/out videobuf queues. */
++       spinlock_t lsc_vbq_lock; /* Spinlock for LSC videobuf queues. */
+        struct videobuf_queue_ops vbq_ops;
+        dma_addr_t isp_addr_read;
++       dma_addr_t isp_addr_lsc;
  };
 
-Index: omapkernel/drivers/media/video/isp/isppreview.h
-===================================================================
---- omapkernel.orig/drivers/media/video/isp/isppreview.h        2008-10-15 19:37:24.000000000 -0500
-+++ omapkernel/drivers/media/video/isp/isppreview.h     2008-10-15 19:44:50.000000000 -0500
-@@ -28,13 +28,20 @@
- #define ISPPRV_BRIGHT_DEF              0x1
- #define ISPPRV_BRIGHT_LOW              0x0
- #define ISPPRV_BRIGHT_HIGH             0xF
--#define ISPPRV_BRIGHT_UNITS            0x7
-+#define ISPPRV_BRIGHT_UNITS            0x1
-
-+/*
- #define ISPPRV_CONTRAST_STEP           0x1
- #define ISPPRV_CONTRAST_DEF            0x2
- #define ISPPRV_CONTRAST_LOW            0x0
- #define ISPPRV_CONTRAST_HIGH           0xF
- #define ISPPRV_CONTRAST_UNITS          0x5
-+*/
-+#define ISPPRV_CONTRAST_STEP           0x1
-+#define ISPPRV_CONTRAST_DEF            0x1 /* MMS */
-+#define ISPPRV_CONTRAST_LOW            0x0
-+#define ISPPRV_CONTRAST_HIGH           0xF
-+#define ISPPRV_CONTRAST_UNITS          0x16 /* MMS */
-
- #define NO_AVE                         0x0
- #define AVE_2_PIX                      0x1
+ /**
+  * struct prev_fh - Per-filehandle data structure
+- * @type: Used buffer type.
+- * @vbq: Videobuffer queue.
++ * @inout_type: Used buffer type for I/O.
++ * @inout_vbq: I/O Videobuffer queue.
++ * @lsc_type: Used buffer type for LSC.
++ * @lsc_vbq: LSC Videobuffer queue.
+  * @device: Pointer to device information structure.
+  */
+ struct prev_fh {
+-       enum v4l2_buf_type type;
+-       struct videobuf_queue vbq;
++       enum v4l2_buf_type inout_type;
++       struct videobuf_queue inout_vbq;
++       enum v4l2_buf_type lsc_type;
++       struct videobuf_queue lsc_vbq;
+        struct prev_device *device;
+ };
+ #endif
