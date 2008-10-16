@@ -1,42 +1,41 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 02/04] OMAP3 SRF: MPU/CORE/PD latency modeling
-Date: Thu, 16 Oct 2008 19:42:10 +0530
-Message-ID: <022401c92f99$2df73fd0$LocalHost@wipultra1382>
+Subject: [PATCH 03/04] OMAP3 SRF: omap3 srf driver
+Date: Thu, 16 Oct 2008 19:42:18 +0530
+Message-ID: <022501c92f99$331425f0$LocalHost@wipultra1382>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46717 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44672 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752187AbYJPOMS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Oct 2008 10:12:18 -0400
+	id S1752685AbYJPOM0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Oct 2008 10:12:26 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9GECBIv032278
-	for <linux-omap@vger.kernel.org>; Thu, 16 Oct 2008 09:12:17 -0500
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9GECJtX016162
+	for <linux-omap@vger.kernel.org>; Thu, 16 Oct 2008 09:12:25 -0500
 Received: from wipultra1382 (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m9GECA6j024257
-	for <linux-omap@vger.kernel.org>; Thu, 16 Oct 2008 19:42:10 +0530 (IST)
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m9GECJcC024266
+	for <linux-omap@vger.kernel.org>; Thu, 16 Oct 2008 19:42:19 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-This patch adds resource def's for mpu/core/powerdomain
-latencies for OMAP3
+Adds init/change_level/validate_level calls for latency 
+resources on OMAP3
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/resource34xx.h |  226 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 226 insertions(+)
+ arch/arm/mach-omap2/resource34xx.c |  126 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 126 insertions(+)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h
+Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h	2008-10-16 19:11:29.000000000 +0530
-@@ -0,0 +1,226 @@
++++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c	2008-10-16 18:07:14.000000000 +0530
+@@ -0,0 +1,126 @@
 +/*
-+ * linux/arch/arm/mach-omap2/resource34xx.h
-+ *
-+ * OMAP3 resource definitions
++ * linux/arch/arm/mach-omap2/resource34xx.c
++ * OMAP3 resource init/change_level/validate_level functions
 + *
 + * Copyright (C) 2007-2008 Texas Instruments, Inc.
 + * Rajendra Nayak <rnayak@ti.com>
@@ -48,215 +47,116 @@ Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h
 + * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
 + * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-+ *
 + * History:
 + *
 + */
 +
-+#ifndef __ARCH_ARM_MACH_OMAP2_RESOURCE_H
-+#define __ARCH_ARM_MACH_OMAP2_RESOURCE_H
-+
-+#include <mach/resource.h>
++#include <linux/pm_qos_params.h>
 +#include <mach/powerdomain.h>
++#include <mach/clockdomain.h>
++#include "resource34xx.h"
 +
-+/*
-+ * mpu_latency/core_latency are used to control the cpuidle C state.
++int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
++
++/**
++ * init_latency - Initializes the mpu/core latency resource.
++ * @resp: Latency resource to be initalized
++ *
++ * No return value.
 + */
-+void init_latency(struct shared_resource *resp);
-+int set_latency(struct shared_resource *resp, u32 target_level);
++void init_latency(struct shared_resource *resp)
++{
++	resp->no_of_users = 0;
++	resp->curr_level = RES_DEFAULTLEVEL;
++	*((u8 *)resp->resource_data) = 0;
++	return;
++}
 +
-+static u8 mpu_qos_req_added;
-+static u8 core_qos_req_added;
-+
-+static struct shared_resource_ops lat_res_ops = {
-+	.init 		= init_latency,
-+	.change_level   = set_latency,
-+};
-+
-+static struct shared_resource mpu_latency = {
-+	.name 		= "mpu_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data  = &mpu_qos_req_added,
-+	.ops 		= &lat_res_ops,
-+};
-+
-+static struct shared_resource core_latency = {
-+	.name 		= "core_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data	= &core_qos_req_added,
-+	.ops 		= &lat_res_ops,
-+};
-+
-+/*
-+ * Power domain Latencies are used to control the target Power
-+ * domain state once all clocks for the power domain
-+ * are released.
++/**
++ * set_latency - Adds/Updates and removes the CPU_DMA_LATENCY in *pm_qos_params.
++ * @resp: resource pointer
++ * @latency: target latency to be set
++ *
++ * Returns 0 on success, or error values as returned by
++ * pm_qos_update_requirement/pm_qos_add_requirement.
 + */
-+void init_pd_latency(struct shared_resource *resp);
-+int set_pd_latency(struct shared_resource *resp, u32 target_level);
++int set_latency(struct shared_resource *resp, u32 latency)
++{
++	u8 *pm_qos_req_added;
 +
-+/* Power Domain Latency levels */
-+#define PD_LATENCY_OFF		0x0
-+#define PD_LATENCY_RET		0x1
-+#define PD_LATENCY_INACT	0x2
-+#define PD_LATENCY_ON		0x3
++	if (resp->curr_level == latency)
++		return 0;
++	else
++		/* Update the resources current level */
++		resp->curr_level = latency;
 +
-+#define PD_LATENCY_MAXLEVEL 	0x4
++	pm_qos_req_added = resp->resource_data;
++	if (latency == RES_DEFAULTLEVEL)
++		/* No more users left, remove the pm_qos_req if present */
++		if (*pm_qos_req_added) {
++			pm_qos_remove_requirement(PM_QOS_CPU_DMA_LATENCY,
++							resp->name);
++			*pm_qos_req_added = 0;
++			return 0;
++		}
 +
-+struct pd_latency_db {
-+	char *pwrdm_name;
-+	struct powerdomain *pd;
-+	/* Latencies for each state transition, stored in us */
-+	unsigned long latency[PD_LATENCY_MAXLEVEL];
-+};
++	if (*pm_qos_req_added) {
++		return pm_qos_update_requirement(PM_QOS_CPU_DMA_LATENCY,
++						resp->name, latency);
++	} else {
++		*pm_qos_req_added = 1;
++		return pm_qos_add_requirement(PM_QOS_CPU_DMA_LATENCY,
++						resp->name, latency);
++	}
++}
 +
-+static struct shared_resource_ops pd_lat_res_ops = {
-+	.init		= init_pd_latency,
-+	.change_level 	= set_pd_latency,
-+};
++/**
++ * init_pd_latency - Initializes the power domain latency resource.
++ * @resp: Power Domain Latency resource to be initialized.
++ *
++ * No return value.
++ */
++void init_pd_latency(struct shared_resource *resp)
++{
++	struct pd_latency_db *pd_lat_db;
 +
-+static struct pd_latency_db iva2_pwrdm_lat_db = {
-+	.pwrdm_name = "iva2_pwrdm",
-+	.latency[PD_LATENCY_OFF] = 1100,
-+	.latency[PD_LATENCY_RET] = 350,
-+	.latency[PD_LATENCY_INACT] = -1,
-+	.latency[PD_LATENCY_ON] = 0
-+};
++	resp->no_of_users = 0;
++	resp->curr_level = PD_LATENCY_OFF;
++	pd_lat_db = resp->resource_data;
++	/* Populate the power domain associated with the latency resource */
++	pd_lat_db->pd = pwrdm_lookup(pd_lat_db->pwrdm_name);
++	return;
++}
 +
-+static struct shared_resource iva2_pwrdm_latency = {
-+	.name		= "iva2_pwrdm_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data	= &iva2_pwrdm_lat_db,
-+	.ops		= &pd_lat_res_ops,
-+};
++/**
++ * set_pd_latency - Updates the curr_level of the power domain resource.
++ * @resp: Power domain latency resource.
++ * @latency: New latency value acceptable.
++ *
++ * This function maps the latency in microsecs to the acceptable
++ * Power domain state using the latency DB.
++ * It then programs the power domain to enter the target state.
++ * Always returns 0.
++ */
++int set_pd_latency(struct shared_resource *resp, u32 latency)
++{
++	u32 pd_lat_level, ind;
++	struct pd_latency_db *pd_lat_db;
++	struct powerdomain *pwrdm;
 +
-+static struct pd_latency_db gfx_pwrdm_lat_db = {
-+	.pwrdm_name = "gfx_pwrdm",
-+	.latency[PD_LATENCY_OFF] = 1000,
-+	.latency[PD_LATENCY_RET] = 100,
-+	.latency[PD_LATENCY_INACT] = -1,
-+	.latency[PD_LATENCY_ON]	 = 0
-+};
++	pd_lat_db = resp->resource_data;
++	pwrdm = pd_lat_db->pd;
++	pd_lat_level = PD_LATENCY_OFF;
++	/* using the latency db map to the appropriate PD state */
++	for (ind = 0; ind < PD_LATENCY_MAXLEVEL; ind++) {
++		if (pd_lat_db->latency[ind] < latency) {
++			pd_lat_level = ind;
++			break;
++		}
++	}
 +
-+static struct shared_resource gfx_pwrdm_latency = {
-+	.name		= "gfx_pwrdm_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1),
-+	.resource_data	= &gfx_pwrdm_lat_db,
-+	.ops		= &pd_lat_res_ops,
-+};
-+
-+static struct shared_resource sgx_pwrdm_latency = {
-+	.name 		= "sgx_pwrdm_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
-+	.resource_data  = &gfx_pwrdm_lat_db,
-+	.ops		= &pd_lat_res_ops,
-+};
-+
-+static struct pd_latency_db dss_pwrdm_lat_db = {
-+	.pwrdm_name = "dss_pwrdm",
-+	.latency[PD_LATENCY_OFF] = 70,
-+	.latency[PD_LATENCY_RET] = 20,
-+	.latency[PD_LATENCY_INACT] = -1,
-+	.latency[PD_LATENCY_ON]	 = 0
-+};
-+
-+static struct shared_resource dss_pwrdm_latency = {
-+	.name		= "dss_pwrdm_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data	= &dss_pwrdm_lat_db,
-+	.ops		= &pd_lat_res_ops,
-+};
-+
-+static struct pd_latency_db cam_pwrdm_lat_db = {
-+	.pwrdm_name = "cam_pwrdm",
-+	.latency[PD_LATENCY_OFF] = 850,
-+	.latency[PD_LATENCY_RET] = 35,
-+	.latency[PD_LATENCY_INACT] = -1,
-+	.latency[PD_LATENCY_ON]	 = 0
-+};
-+
-+static struct shared_resource cam_pwrdm_latency = {
-+	.name		= "cam_pwrdm_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data	= &cam_pwrdm_lat_db,
-+	.ops		= &pd_lat_res_ops,
-+};
-+
-+static struct pd_latency_db per_pwrdm_lat_db = {
-+	.pwrdm_name = "per_pwrdm",
-+	.latency[PD_LATENCY_OFF] = 200,
-+	.latency[PD_LATENCY_RET] = 110,
-+	.latency[PD_LATENCY_INACT] = -1,
-+	.latency[PD_LATENCY_ON]	 = 0
-+};
-+
-+static struct shared_resource per_pwrdm_latency = {
-+	.name		= "per_pwrdm_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data	= &per_pwrdm_lat_db,
-+	.ops		= &pd_lat_res_ops,
-+};
-+
-+static struct pd_latency_db neon_pwrdm_lat_db = {
-+	.pwrdm_name = "neon_pwrdm",
-+	.latency[PD_LATENCY_OFF] = 200,
-+	.latency[PD_LATENCY_RET] = 35,
-+	.latency[PD_LATENCY_INACT] = -1,
-+	.latency[PD_LATENCY_ON]	 = 0
-+};
-+
-+static struct shared_resource neon_pwrdm_latency = {
-+	.name		= "neon_pwrdm_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data	= &neon_pwrdm_lat_db,
-+	.ops		= &pd_lat_res_ops,
-+};
-+
-+static struct pd_latency_db usbhost_pwrdm_lat_db = {
-+	.pwrdm_name = "usbhost_pwrdm",
-+	.latency[PD_LATENCY_OFF] = 800,
-+	.latency[PD_LATENCY_RET] = 150,
-+	.latency[PD_LATENCY_INACT] = -1,
-+	.latency[PD_LATENCY_ON]	 = 0
-+};
-+
-+static struct shared_resource usbhost_pwrdm_latency = {
-+	.name		= "usbhost_pwrdm_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
-+	.resource_data  = &usbhost_pwrdm_lat_db,
-+	.ops		= &pd_lat_res_ops,
-+};
-+
-+static struct pd_latency_db emu_pwrdm_lat_db = {
-+	.pwrdm_name = "emu_pwrdm",
-+	.latency[PD_LATENCY_OFF] = 1000,
-+	.latency[PD_LATENCY_RET] = 100,
-+	.latency[PD_LATENCY_INACT] = -1,
-+	.latency[PD_LATENCY_ON]  = 0
-+};
-+
-+static struct shared_resource emu_pwrdm_latency = {
-+	.name           = "emu_pwrdm",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data  = &emu_pwrdm_lat_db,
-+	.ops		= &pd_lat_res_ops,
-+};
-+
-+struct shared_resource *resources_omap[] __initdata = {
-+	&mpu_latency,
-+	&core_latency,
-+	/* Power Domain Latency resources */
-+	&iva2_pwrdm_latency,
-+	&gfx_pwrdm_latency,
-+	&sgx_pwrdm_latency,
-+	&dss_pwrdm_latency,
-+	&cam_pwrdm_latency,
-+	&per_pwrdm_latency,
-+	&neon_pwrdm_latency,
-+	&usbhost_pwrdm_latency,
-+	&emu_pwrdm_latency,
-+	NULL
-+};
-+
-+#endif /* __ARCH_ARM_MACH_OMAP2_RESOURCE_H */
++	resp->curr_level = pd_lat_level;
++	set_pwrdm_state(pwrdm, pd_lat_level);
++	return 0;
++}
 
