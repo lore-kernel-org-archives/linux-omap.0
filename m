@@ -1,52 +1,60 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH 1/3] clk: introduce omap_clk_associate
-Date: Wed, 15 Oct 2008 17:42:19 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE89671620365CA801E@dlee02.ent.ti.com>
-References: <1223333252-25687-1-git-send-email-me@felipebalbi.com>
-	<alpine.DEB.2.00.0810141039580.15253@utopia.booyaka.com>
-	<20081014172921.GJ20247@frodo>	<200810141047.44803.david-b@pacbell.net>
-	<20081014180634.GL20247@frodo> <20081014205925.GK8150@atomide.com>
-	<1224018598.4977.27.camel@localhost>	<20081014212409.GL8150@atomide.com>
-	<87wsgabcp0.fsf@trdhcp146196.ntc.nokia.com>
-	<alpine.DEB.2.00.0810150106370.8581@utopia.booyaka.com>
- <87wsga9fip.fsf@trdhcp146196.ntc.nokia.com>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: [PATCH 1/28] [OMAPZOOM] OMAP3PM: Change CSI2 clock name
+Date: Wed, 15 Oct 2008 20:16:22 -0500
+Message-ID: <A24693684029E5489D1D202277BE894412568835@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40497 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753816AbYJOWmd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Oct 2008 18:42:33 -0400
-In-Reply-To: <87wsga9fip.fsf@trdhcp146196.ntc.nokia.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41241 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752549AbYJPBQ3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Oct 2008 21:16:29 -0400
+Received: from dlep95.itg.ti.com ([157.170.170.107])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9G1GNOk007083
+	for <linux-omap@vger.kernel.org>; Wed, 15 Oct 2008 20:16:28 -0500
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m9G1GN8i003001
+	for <linux-omap@vger.kernel.org>; Wed, 15 Oct 2008 20:16:23 -0500 (CDT)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?B?SMO2Z2FuZGVyIEpvdW5p?= <jouni.hogander@nokia.com>, ext Paul Walmsley <paul@pwsan.com>
-Cc: ext Tony Lindgren <tony@atomide.com>, Igor Stoppa <igor.stoppa@nokia.com>, Felipe Balbi <me@felipebalbi.com>, David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>
 
-DQo+IEZyb206IEjDtmdhbmRlciBKb3VuaSBbbWFpbHRvOmpvdW5pLmhvZ2FuZGVyQG5va2lhLmNv
-bV0NCj4gU2VudDogV2VkbmVzZGF5LCBPY3RvYmVyIDE1LCAyMDA4IDg6MDQgQU0NCg0KPiBMMyBh
-bmQgTDQgYXJlIGFueXdheSBvbiB3aGVuIG5vdCBpbiB3ZmksIGJlY2F1c2Ugb2Ygc2xlZXAvd2tk
-ZXAsIHNvIG5vDQo+IHBvd2VyIHNhdmUuIFRoaXMgaXMgdGhlIGNhc2UgYXQgbGVhc3Qgd2l0aCBP
-TUFQMyBub3Qgc3VyZSBhYm91dCBPTUFQMi4NCg0KUHJvYmFibHkgc29tZSBzYXZpbmdzIGluc2lk
-ZSBvZiBpbmRpdmlkdWFsIGRvbWFpbnMgd2hlbiB0aGV5IGFyZSBpbiBpZGxlIGxpa2UgY2FtZXJh
-LiAgRGVmaWFudGx5IGludGVybmFsIGF1dG9nYXRpbmcgaW4gQ29ydGV4QTggc2F2ZXMgcG93ZXIg
-aWYgTVBVIGRvbWFpbiBpcyBpbiBpZGxlLiAgLi4uIFJlY2FsbCBpZiBEU1AgaXMgdXAgYW5kIHJ1
-bm5pbmcgTDMvTDQgbWlnaHQgYmUgdXAsIGJ1dCBNUFUgY291bGQgYmUgaW4gV0ZJIHdpdGggaXRz
-IGRvbWFpbiBnYXRlZCBvZmYgKGFsc28gaW4gSU5BQ1RJVkUvUkVUL09GRikuDQoNCkEgMXN0IG9y
-ZGVyIHBvd2VyIHdhc3RlciBpcyBmYW4gb3V0IGZyb20gTDMvTDQgYXMgeW91IHNheS4NCg0KRnV0
-dXJlIE9NQVBzIGFkZCBtb3JlIGRvbWFpbnMgdG8gcmVkdWNlIGZhbiBvdXQgZWZmZWN0IGV2ZW4g
-aWYgTDMvTDQgaXMgb24uDQoNCj4gSW4gbWFueSBtb2R1bGVzIHRoZXJlIGlzIGFsc28gcG9zc2li
-aWxpdHkgdG8gZ2F0ZSBpY2sgYnkgSFcgd2hlbiBub3QNCj4gaW4gd2ZpIChzZWUgQVVUT0lETEUg
-aW4gU1lDT05GSUcpLiBJJ20gbm90IHN1cmUgYWJvdXQgdGhpcyBidXQNCj4gZXh0cmVtZWx5IGFs
-c28gZmNrcyBjb3VsZCBiZSB0YWtlbiBjYXJlIGJ5IEhXIChzZWUgQ0xPQ0tBQ1RJVklUWSBpbg0K
-PiBTWVNDT05GSUcpLg0KDQpNb2R1bGUgQVVUT0lETEUgY2FuIHNhdmUgcG93ZXIgYnkgc2VsZWN0
-aXZlIGdhdGluZyBpbnNpZGUgdGhlIG1vZHVsZS4gIEFuIGVhc3kgZXhwZXJpbWVudCBpcyB0byBt
-ZWFzdXJlIHBvd2VyIHdoaWxlIHN0b3BwZWQgaW4gdGhlIGRlYnVnZ2VyIGFuZCBlbmFibGUvZGlz
-YWJsZSBpbmRpdmlkdWFsIGF1dG8gaWRsZXMuICBZb3UnbGwgYmUgc3VycHJpc2VkIGhvdyBtdWNo
-IHlvdSBnZXQgYmFjayBvbiBzb21ldGhpbmcgbGlrZSBzZWN1cml0eSBhY2NlbGVyYXRvcnMgKGFs
-bCBJLWNsb2NrLCBzbyBnYXRpbmcgaW5zaWRlIG9mIG1vZHVsZXMgaGVscHMsIGV2ZW4gaWYgbDMv
-bDQgaXMgdXApLg0KDQpDbG9jayBhY3Rpdml0eSBpbiBzb21lIG1vZHVsZXMgZG9lcyBkbyBleHRy
-YSBnYXRpbmcgYXQgc2VnbWVudCBpZGxlIHRpbWUuDQoNClJlZ2FyZHMsDQpSaWNoYXJkIFcuDQoN
-Cg==
+From: Sergio Aguirre <saaguirre@ti.com>
+
+OMAP3PM: Change CSI2 clock name
+
+This patch sets the name of the clock to csi2_96m_fck, to be in sync
+with the name of the same clock in Paul Walmsley's clock framework.
+
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ arch/arm/mach-omap2/clock_34xx.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+Index: omapkernel/arch/arm/mach-omap2/clock_34xx.h
+===================================================================
+--- omapkernel.orig/arch/arm/mach-omap2/clock_34xx.h	2008-10-14 18:48:29.000000000 -0500
++++ omapkernel/arch/arm/mach-omap2/clock_34xx.h	2008-10-14 18:52:32.000000000 -0500
+@@ -937,8 +937,8 @@
+ 	.recalc = &omap3_clk_recalc,
+ };
+ 
+-static struct clk csi2_fck = {
+-	.name = "csi2_fck",
++static struct clk csi2_96m_fck = {
++	.name = "csi2_96m_fck",
+ 	.prcmid = PRCM_CSI2,
+ 	.parent = &func_96m_ck,
+ 	.flags = CLOCK_IN_OMAP343X | F_CLK | POWER_ON_REQUIRED,
+@@ -1490,7 +1490,7 @@
+ 	&dss_ick,
+ 	&cam_mclk,
+ 	&cam_ick,
+-	&csi2_fck,
++	&csi2_96m_fck,
+ 	&gpt1_fck,
+ 	&gpt1_ick,
+ 	&sync_32k_fck,
