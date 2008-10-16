@@ -1,37 +1,115 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 1/7] input: lm8323: get rid of global pdata pointer
-Date: Thu, 16 Oct 2008 00:10:57 -0400
-Message-ID: <20081016041057.GC16860@anvil.corenet.prv>
-References: <1224020397-2842-1-git-send-email-me@felipebalbi.com> <1224020397-2842-2-git-send-email-me@felipebalbi.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch FYI] twl4030 dumps revision info
+Date: Wed, 15 Oct 2008 21:23:42 -0700
+Message-ID: <200810152123.42459.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f16.google.com ([209.85.217.16]:57079 "EHLO
-	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750787AbYJPELJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Oct 2008 00:11:09 -0400
-Received: by gxk9 with SMTP id 9so7828193gxk.13
-        for <linux-omap@vger.kernel.org>; Wed, 15 Oct 2008 21:11:07 -0700 (PDT)
+Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:41622 "HELO
+	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750824AbYJPEXo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Oct 2008 00:23:44 -0400
 Content-Disposition: inline
-In-Reply-To: <1224020397-2842-2-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>
+To: linux-omap@vger.kernel.org
 
-Hi Felipe,
+This is a diagnostic patch, dumping the IDCODE of the
+TWL4030/TWL5030/... family chips.
 
-On Wed, Oct 15, 2008 at 12:39:51AM +0300, Felipe Balbi wrote:
-> From: Felipe Balbi <felipe.balbi@nokia.com>
-> 
-> pdata is only used during probe to initialize a few fields
-> from lm8323 device structure. Moving pdata pointer to probe
-> won't harm anybody.
-> 
+Not for merging, at least for now.  Later this may be
+useful to make sure the reduced-functionality catalog
+parts (TPS series) don't go registering components that
+don't exist, like the battery charger.
 
-I don't think I have these drivers.  I also think that they should
-depend on GPIOLIB (I noticed that OMAP selects GPIOLIB but I think
-ecplicit dependency should still be present).
+The main curiousity we've uncovered is that TWL5030 ES1.0
+mis-identifies itself as TWL4030 ES1.0 ... unclear just now
+whether that's also true of ES1.1 and later parts.
 
--- 
-Dmitry
+- Dave
+
+---
+ drivers/mfd/twl4030-core.c |   62 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 62 insertions(+)
+
+--- a/drivers/mfd/twl4030-core.c
++++ b/drivers/mfd/twl4030-core.c
+@@ -748,6 +748,66 @@ static int twl4030_remove(struct i2c_cli
+ 	return 0;
+ }
+ 
++struct es_desc {
++	u8	nibble;
++	char	name[4];
++};
++
++static const struct es_desc twl4030_es[] = {
++	{ 0, "1.0", },
++	{ 1, "2.x", },
++	{ 4, "3.0", },
++	{ 5, "3.1", },
++	{ },
++};
++static const struct es_desc twl5030_es[] = {
++	{ 0, "1.0", },
++	{ 1, "1.1", },
++	{ },
++};
++
++static u32 twl_id(struct device *dev)
++{
++	const u32 mask = ((1 << 16) - 1) << 12;
++	union { u8 bytes[4]; u32 word; } idcode;
++	int status;
++	u8 nibble;
++	char *chip;
++	const struct es_desc *desc;
++
++	status = twl4030_i2c_read(TWL4030_MODULE_INTBR,
++			idcode.bytes, 0, 4);
++	if (status < 0)
++		return 0;
++
++	idcode.word = le32_to_cpu(idcode.word),
++	nibble = idcode.word >> 28;
++
++	/* NOTE:  TWL5030 / TPS65930 ES1.0 mis-identifies as TWL4030 */
++
++	if ((idcode.word & mask) == (0x0009002F & mask)) {
++		chip = "TWL4030";
++		desc = twl4030_es;
++	} else if ((idcode.word & mask) == (0x0009802F & mask)) {
++		chip = "TWL5030";
++		desc = twl5030_es;
++	} else {
++		chip = "unrecognized";
++		desc = NULL;
++	}
++
++	while (desc && desc->name[0]) {
++		if (desc->nibble == nibble) {
++			dev_info(dev, "%s ES %s; idcode %08x\n",
++					chip, desc->name, idcode.word);
++			return idcode.word;
++		}
++		desc++;
++	}
++	dev_info(dev, "%s; idcode %08x\n", chip, idcode.word);
++	return idcode.word;
++}
++
+ /* NOTE:  this driver only handles a single twl4030/tps659x0 chip */
+ static int
+ twl4030_probe(struct i2c_client *client, const struct i2c_device_id *id)
+@@ -795,6 +855,8 @@ twl4030_probe(struct i2c_client *client,
+ 
+ 	if(0)dumpit();
+ 
++	twl_id(&client->dev);
++
+ 	/* setup clock framework */
+ 	clocks_init();
+ 
