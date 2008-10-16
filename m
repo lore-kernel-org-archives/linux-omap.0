@@ -1,162 +1,432 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 03/04] OMAP3 SRF: omap3 srf driver
-Date: Thu, 16 Oct 2008 19:42:18 +0530
-Message-ID: <022501c92f99$331425f0$LocalHost@wipultra1382>
+Subject: [PATCH 04/04] OMAP3 SRF: OMAP PM srf implementation
+Date: Thu, 16 Oct 2008 19:42:32 +0530
+Message-ID: <022601c92f99$3b011c00$LocalHost@wipultra1382>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44672 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752685AbYJPOM0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Oct 2008 10:12:26 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:53677 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753178AbYJPOMk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Oct 2008 10:12:40 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9GECJtX016162
-	for <linux-omap@vger.kernel.org>; Thu, 16 Oct 2008 09:12:25 -0500
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9GECXkM006585
+	for <linux-omap@vger.kernel.org>; Thu, 16 Oct 2008 09:12:39 -0500
 Received: from wipultra1382 (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m9GECJcC024266
-	for <linux-omap@vger.kernel.org>; Thu, 16 Oct 2008 19:42:19 +0530 (IST)
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id m9GECW0H024280
+	for <linux-omap@vger.kernel.org>; Thu, 16 Oct 2008 19:42:32 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Adds init/change_level/validate_level calls for latency 
-resources on OMAP3
+Adds SRF calls into OMAP PM skeleton layer developed by Paul Walmsley.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/resource34xx.c |  126 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 126 insertions(+)
+ arch/arm/mach-omap2/Makefile               |    1 
+ arch/arm/plat-omap/Kconfig                 |    3 
+ arch/arm/plat-omap/Makefile                |    4 
+ arch/arm/plat-omap/include/mach/resource.h |    1 
+ arch/arm/plat-omap/omap-pm-srf.c           |  342 +++++++++++++++++++++++++++++
+ 5 files changed, 350 insertions(+), 1 deletion(-)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c
+Index: linux-omap-2.6/arch/arm/plat-omap/omap-pm-srf.c
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c	2008-10-16 18:07:14.000000000 +0530
-@@ -0,0 +1,126 @@
++++ linux-omap-2.6/arch/arm/plat-omap/omap-pm-srf.c	2008-10-16 19:20:35.000000000 +0530
+@@ -0,0 +1,342 @@
 +/*
-+ * linux/arch/arm/mach-omap2/resource34xx.c
-+ * OMAP3 resource init/change_level/validate_level functions
++ * omap-pm-srf.c - OMAP power management interface implemented
++ * using Shared resource framework
 + *
-+ * Copyright (C) 2007-2008 Texas Instruments, Inc.
-+ * Rajendra Nayak <rnayak@ti.com>
++ * This code implements the OMAP power management interface to
++ * drivers, CPUIdle, CPUFreq, and DSP Bridge.  It is strictly for
++ * debug/demonstration use, as it does nothing but printk() whenever a
++ * function is called (when DEBUG is defined, below)
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * Copyright (C) 2008 Texas Instruments, Inc.
++ * Copyright (C) 2008 Nokia Corporation
++ * Paul Walmsley
 + *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-+ * History:
-+ *
++ * Interface developed by (in alphabetical order):
++ * Karthik Dasu, Tony Lindgren, Rajendra Nayak, Sakari Poussa, Veeramanikandan
++ * Raju, Anand Sawant, Igor Stoppa, Paul Walmsley, Richard Woodruff
 + */
 +
-+#include <linux/pm_qos_params.h>
++#undef DEBUG
++
++#include <linux/init.h>
++#include <linux/cpufreq.h>
++#include <linux/device.h>
++
++#include <mach/omap-pm.h>
 +#include <mach/powerdomain.h>
-+#include <mach/clockdomain.h>
-+#include "resource34xx.h"
++#include <mach/resource.h>
++/* TODO: Put this back in once tiocp layer is available */
++/*
++#include <asm/arch/tiocp.h>
++*/
 +
-+int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
++static struct omap_opp *dsp_opps;
++static struct omap_opp *mpu_opps;
++
++#define LAT_RES_POSTAMBLE "_latency"
++#define MAX_LATENCY_RES_NAME 30
 +
 +/**
-+ * init_latency - Initializes the mpu/core latency resource.
-+ * @resp: Latency resource to be initalized
++ * get_lat_res_name - gets the latency resource name given a power domain name
++ * @pwrdm_name: Name of the power domain.
++ * @lat_name: Buffer in which latency resource name is populated
++ * @size: Max size of the latency resource name
 + *
-+ * No return value.
++ * Returns the latency resource name populated in lat_name.
 + */
-+void init_latency(struct shared_resource *resp)
++void get_lat_res_name(const char *pwrdm_name, char **lat_name, int size)
 +{
-+	resp->no_of_users = 0;
-+	resp->curr_level = RES_DEFAULTLEVEL;
-+	*((u8 *)resp->resource_data) = 0;
++	strcpy(*lat_name, "");
++	WARN_ON(strlen(pwrdm_name) + strlen(LAT_RES_POSTAMBLE) > size);
++	strcpy(*lat_name, pwrdm_name);
++	strcat(*lat_name, LAT_RES_POSTAMBLE);
 +	return;
 +}
 +
-+/**
-+ * set_latency - Adds/Updates and removes the CPU_DMA_LATENCY in *pm_qos_params.
-+ * @resp: resource pointer
-+ * @latency: target latency to be set
-+ *
-+ * Returns 0 on success, or error values as returned by
-+ * pm_qos_update_requirement/pm_qos_add_requirement.
++/*
++ * Device-driver-originated constraints (via board-*.c files)
 + */
-+int set_latency(struct shared_resource *resp, u32 latency)
++
++void omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t)
 +{
-+	u8 *pm_qos_req_added;
++	if (!dev || t < -1) {
++		WARN_ON(1);
++		return;
++	};
 +
-+	if (resp->curr_level == latency)
-+		return 0;
-+	else
-+		/* Update the resources current level */
-+		resp->curr_level = latency;
-+
-+	pm_qos_req_added = resp->resource_data;
-+	if (latency == RES_DEFAULTLEVEL)
-+		/* No more users left, remove the pm_qos_req if present */
-+		if (*pm_qos_req_added) {
-+			pm_qos_remove_requirement(PM_QOS_CPU_DMA_LATENCY,
-+							resp->name);
-+			*pm_qos_req_added = 0;
-+			return 0;
-+		}
-+
-+	if (*pm_qos_req_added) {
-+		return pm_qos_update_requirement(PM_QOS_CPU_DMA_LATENCY,
-+						resp->name, latency);
++	if (t == -1) {
++		pr_debug("OMAP PM: remove max MPU wakeup latency constraint: "
++			 "dev %s\n", dev_name(dev));
++		resource_release("mpu_latency", dev);
 +	} else {
-+		*pm_qos_req_added = 1;
-+		return pm_qos_add_requirement(PM_QOS_CPU_DMA_LATENCY,
-+						resp->name, latency);
++		pr_debug("OMAP PM: add max MPU wakeup latency constraint: "
++			 "dev %s, t = %ld usec\n", dev_name(dev), t);
++		resource_request("mpu_latency", dev, t);
 +	}
 +}
 +
-+/**
-+ * init_pd_latency - Initializes the power domain latency resource.
-+ * @resp: Power Domain Latency resource to be initialized.
-+ *
-+ * No return value.
-+ */
-+void init_pd_latency(struct shared_resource *resp)
++void omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigned long r)
 +{
-+	struct pd_latency_db *pd_lat_db;
++	if (!dev || agent_id != OCP_INITIATOR_AGENT ||
++	    agent_id != OCP_TARGET_AGENT) {
++		WARN_ON(1);
++		return;
++	};
 +
-+	resp->no_of_users = 0;
-+	resp->curr_level = PD_LATENCY_OFF;
-+	pd_lat_db = resp->resource_data;
-+	/* Populate the power domain associated with the latency resource */
-+	pd_lat_db->pd = pwrdm_lookup(pd_lat_db->pwrdm_name);
++	if (r == 0)
++		pr_debug("OMAP PM: remove min bus tput constraint: "
++			 "dev %s for agent_id %d\n", dev_name(dev), agent_id);
++	else
++		pr_debug("OMAP PM: add min bus tput constraint: "
++			 "dev %s for agent_id %d: rate %ld KiB\n",
++			 dev_name(dev), agent_id, r);
++
++	/*
++	 * This code should model the interconnect and compute the
++	 * required clock frequency, convert that to a VDD2 OPP ID, then
++	 * set the VDD2 OPP appropriately.
++	 *
++	 * TI CDP code can call constraint_set here on the VDD2 OPP.
++	 */
++}
++
++void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t)
++{
++	/* struct tiocp *tiocp_dev; */
++	struct powerdomain *pwrdm_dev;
++	char *lat_res_name;
++
++	if (!dev || t < -1) {
++		WARN_ON(1);
++		return;
++	};
++	/* Look for the devices Power Domain */
++	/* TODO: Put this back in once tiocp layer is available
++	tiocp_dev = container_of(dev, struct tiocp, dev);
++	pwrdm_dev = tiocp_dev->pwrdm;
++	*/
++	lat_res_name = kmalloc(MAX_LATENCY_RES_NAME, GFP_KERNEL);
++	if (!lat_res_name) {
++		printk(KERN_ERR "OMAP-PM: FATAL ERROR: kmalloc failed\n");
++		return;
++	}
++	get_lat_res_name(pwrdm_dev->name, &lat_res_name, MAX_LATENCY_RES_NAME);
++
++	if (t == -1) {
++		pr_debug("OMAP PM: remove max device latency constraint: "
++			 "dev %s\n", dev_name(dev));
++		resource_release(lat_res_name, dev);
++	} else {
++		pr_debug("OMAP PM: add max device latency constraint: "
++			 "dev %s, t = %ld usec\n", dev_name(dev), t);
++		resource_request(lat_res_name, dev, t);
++	}
++
++	kfree(lat_res_name);
 +	return;
 +}
 +
-+/**
-+ * set_pd_latency - Updates the curr_level of the power domain resource.
-+ * @resp: Power domain latency resource.
-+ * @latency: New latency value acceptable.
-+ *
-+ * This function maps the latency in microsecs to the acceptable
-+ * Power domain state using the latency DB.
-+ * It then programs the power domain to enter the target state.
-+ * Always returns 0.
-+ */
-+int set_pd_latency(struct shared_resource *resp, u32 latency)
++void omap_pm_set_max_sdma_lat(struct device *dev, long t)
 +{
-+	u32 pd_lat_level, ind;
-+	struct pd_latency_db *pd_lat_db;
-+	struct powerdomain *pwrdm;
++	if (!dev || t < -1) {
++		WARN_ON(1);
++		return;
++	};
 +
-+	pd_lat_db = resp->resource_data;
-+	pwrdm = pd_lat_db->pd;
-+	pd_lat_level = PD_LATENCY_OFF;
-+	/* using the latency db map to the appropriate PD state */
-+	for (ind = 0; ind < PD_LATENCY_MAXLEVEL; ind++) {
-+		if (pd_lat_db->latency[ind] < latency) {
-+			pd_lat_level = ind;
-+			break;
-+		}
++	if (t == -1) {
++		pr_debug("OMAP PM: remove max DMA latency constraint: "
++			 "dev %s\n", dev_name(dev));
++		resource_release("core_latency", dev);
++	} else {
++		pr_debug("OMAP PM: add max DMA latency constraint: "
++			 "dev %s, t = %ld usec\n", dev_name(dev), t);
++		resource_request("core_latency", dev, t);
++	}
++}
++
++
++/*
++ * DSP Bridge-specific constraints
++ */
++const struct omap_opp *omap_pm_dsp_get_opp_table(void)
++{
++	pr_debug("OMAP PM: DSP request for OPP table\n");
++
++	/*
++	 * Return DSP frequency table here:  The final item in the
++	 * array should have .rate = .opp_id = 0.
++	 */
++
++	return NULL;
++}
++
++void omap_pm_dsp_set_min_opp(u8 opp_id)
++{
++	if (opp_id == 0) {
++		WARN_ON(1);
++		return;
 +	}
 +
-+	resp->curr_level = pd_lat_level;
-+	set_pwrdm_state(pwrdm, pd_lat_level);
++	pr_debug("OMAP PM: DSP requests minimum VDD1 OPP to be %d\n", opp_id);
++
++	/*
++	 *
++	 * For l-o dev tree, our VDD1 clk is keyed on OPP ID, so we
++	 * can just test to see which is higher, the CPU's desired OPP
++	 * ID or the DSP's desired OPP ID, and use whichever is
++	 * highest.
++	 *
++	 * In CDP12.14+, the VDD1 OPP custom clock that controls the DSP
++	 * rate is keyed on MPU speed, not the OPP ID.  So we need to
++	 * map the OPP ID to the MPU speed for use with clk_set_rate()
++	 * if it is higher than the current OPP clock rate.
++	 *
++	 */
++}
++
++u8 omap_pm_dsp_get_opp(void)
++{
++	pr_debug("OMAP PM: DSP requests current DSP OPP ID\n");
++
++	/*
++	 * For l-o dev tree, call clk_get_rate() on VDD1 OPP clock
++	 *
++	 * CDP12.14+:
++	 * Call clk_get_rate() on the OPP custom clock, map that to an
++	 * OPP ID using the tables defined in board-*.c/chip-*.c files.
++	 */
++
 +	return 0;
 +}
++
++/*
++ * CPUFreq-originated constraint
++ *
++ * In the future, this should be handled by custom OPP clocktype
++ * functions.
++ */
++
++struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void)
++{
++	pr_debug("OMAP PM: CPUFreq request for frequency table\n");
++
++	/*
++	 * Return CPUFreq frequency table here: loop over
++	 * all VDD1 clkrates, pull out the mpu_ck frequencies, build
++	 * table
++	 */
++
++	return NULL;
++}
++
++void omap_pm_cpu_set_freq(unsigned long f)
++{
++	if (f == 0) {
++		WARN_ON(1);
++		return;
++	}
++
++	pr_debug("OMAP PM: CPUFreq requests CPU frequency to be set to %lu\n",
++		 f);
++
++	/*
++	 * For l-o dev tree, determine whether MPU freq or DSP OPP id
++	 * freq is higher.  Find the OPP ID corresponding to the
++	 * higher frequency.  Call clk_round_rate() and clk_set_rate()
++	 * on the OPP custom clock.
++	 *
++	 * CDP should just be able to set the VDD1 OPP clock rate here.
++	 */
++}
++
++unsigned long omap_pm_cpu_get_freq(void)
++{
++	pr_debug("OMAP PM: CPUFreq requests current CPU frequency\n");
++
++	/*
++	 * Call clk_get_rate() on the mpu_ck.
++	 */
++
++	return 0;
++}
++
++/*
++ * Device context loss tracking
++ */
++
++int omap_pm_get_dev_context_loss_count(struct device *dev)
++{
++	if (!dev) {
++		WARN_ON(1);
++		return -EINVAL;
++	};
++
++	pr_debug("OMAP PM: returning context loss count for dev %s\n",
++		 dev_name(dev));
++
++	/*
++	 * Map the device to the powerdomain.  Return the powerdomain
++	 * off counter.
++	 */
++
++	return 0;
++}
++
++/*
++ * Powerdomain usecounting hooks
++ */
++
++void omap_pm_pwrdm_active(struct powerdomain *pwrdm)
++{
++	if (!pwrdm) {
++		WARN_ON(1);
++		return;
++	};
++
++	pr_debug("OMAP PM: powerdomain %s is becoming active\n", pwrdm->name);
++
++	/*
++	 * CDP code apparently will need these for the enable_power_domain()
++	 * and disable_power_domain() functions.
++	 */
++}
++
++void omap_pm_pwrdm_inactive(struct powerdomain *pwrdm)
++{
++	if (!pwrdm) {
++		WARN_ON(1);
++		return;
++	};
++
++	pr_debug("OMAP PM: powerdomain %s is becoming inactive\n",
++		 pwrdm->name);
++
++	/*
++	 * CDP code apparently will need these for the enable_power_domain()
++	 * and disable_power_domain() functions.
++	 */
++}
++
++/*
++ * Should be called before clk framework since clk fw will call
++ * omap_pm_pwrdm_{in,}active()
++ */
++int __init omap_pm_if_early_init(void)
++{
++	return 0;
++}
++
++/* Must be called after clock framework is initialized */
++int __init omap_pm_if_init(struct omap_opp *mpu_opp_table,
++			   struct omap_opp *dsp_opp_table)
++{
++	mpu_opps = mpu_opp_table;
++	dsp_opps = dsp_opp_table;
++	resource_init(resources_omap);
++	return 0;
++}
++
++void omap_pm_if_exit(void)
++{
++	/* Deallocate CPUFreq frequency table here */
++}
+Index: linux-omap-2.6/arch/arm/mach-omap2/Makefile
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/Makefile	2008-10-16 19:06:37.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/Makefile	2008-10-16 19:13:02.000000000 +0530
+@@ -33,6 +33,7 @@ obj-$(CONFIG_OMAP_SMARTREFLEX)		+= smart
+ # Clock framework
+ obj-$(CONFIG_ARCH_OMAP2)		+= clock24xx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= clock34xx.o
++obj-$(CONFIG_OMAP_PM_SRF)		+=  resource34xx.o
+ 
+ # DSP
+ obj-$(CONFIG_OMAP_MMU_FWK)	+= mmu_mach.o
+Index: linux-omap-2.6/arch/arm/plat-omap/Kconfig
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/Kconfig	2008-10-08 10:51:48.000000000 +0530
++++ linux-omap-2.6/arch/arm/plat-omap/Kconfig	2008-10-16 19:13:02.000000000 +0530
+@@ -258,6 +258,9 @@ config OMAP_PM_NONE
+ config OMAP_PM_NOOP
+ 	bool "No-op/debug PM layer"
+ 
++config OMAP_PM_SRF
++	bool "PM layer implemented using SRF"
++
+ endchoice
+ 
+ endif
+Index: linux-omap-2.6/arch/arm/plat-omap/Makefile
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/Makefile	2008-10-08 10:51:48.000000000 +0530
++++ linux-omap-2.6/arch/arm/plat-omap/Makefile	2008-10-16 19:13:02.000000000 +0530
+@@ -29,4 +29,6 @@ obj-$(CONFIG_OMAP_MMU_FWK) += mmu.o
+ # OMAP mailbox framework
+ obj-$(CONFIG_OMAP_MBOX_FWK) += mailbox.o
+ 
+-obj-$(CONFIG_OMAP_PM_NOOP) += omap-pm-noop.o
+\ No newline at end of file
++obj-$(CONFIG_OMAP_PM_NOOP) += omap-pm-noop.o
++obj-$(CONFIG_OMAP_PM_SRF) += omap-pm-srf.o \
++				resource.o
+Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/resource.h
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/resource.h	2008-10-16 19:06:46.000000000 +0530
++++ linux-omap-2.6/arch/arm/plat-omap/include/mach/resource.h	2008-10-16 19:13:02.000000000 +0530
+@@ -67,6 +67,7 @@ struct users_list {
+ 	u8 usage;
+ };
+ 
++extern struct shared_resource *resources_omap[];
+ /* Shared resource Framework API's */
+ void resource_init(struct shared_resource **resources);
+ int resource_register(struct shared_resource *res);
 
