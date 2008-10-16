@@ -1,21 +1,21 @@
 From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [PATCH 4/28] [OMAPZOOM] OMAP: CAM: ISP: USER: Misc fixes
-Date: Wed, 15 Oct 2008 20:19:12 -0500
-Message-ID: <A24693684029E5489D1D202277BE894412568839@dlee02.ent.ti.com>
+Subject: [PATCH 5/28] [OMAPZOOM] OMAP: CAM: ISP: Core Fixes
+Date: Wed, 15 Oct 2008 20:19:52 -0500
+Message-ID: <A24693684029E5489D1D202277BE89441256883B@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46852 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752670AbYJPBTT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Oct 2008 21:19:19 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:49935 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752656AbYJPBT7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Oct 2008 21:19:59 -0400
 Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9G1JDIZ013080
-	for <linux-omap@vger.kernel.org>; Wed, 15 Oct 2008 20:19:18 -0500
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m9G1JDM2005783
-	for <linux-omap@vger.kernel.org>; Wed, 15 Oct 2008 20:19:13 -0500 (CDT)
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9G1Jrwc006803
+	for <linux-omap@vger.kernel.org>; Wed, 15 Oct 2008 20:19:58 -0500
+Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m9G1JrTc006251
+	for <linux-omap@vger.kernel.org>; Wed, 15 Oct 2008 20:19:53 -0500 (CDT)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -24,470 +24,531 @@ Cc: "Pandita, Vikram" <vikram.pandita@ti.com>
 
 From: Sergio Aguirre <saaguirre@ti.com>
 
-OMAP: CAM: ISP: USER: Misc fixes
+OMAP: CAM: ISP: Core Fixes
 
-This patch includes fixes for the following:
- - Added IOCTL defines from isp.h file
- - Added ISP H3A limit defines
- - Added ISP AF limit and paxel size defines
- - Remove dependency from types.h header by switching to __u* types
-   
+This patch Adds the following changes:
+ - Removes useless headers
+ - Add DMA cache flush for fixing green line problem on streaming
+ - Aligns color effects handling with CDP release
+ - Removes IRQ registers saving/restore on context save/restore
+ - Removes isp_open and isp_close, and adds isp_release_resources
+   instead.
+ - Fixes V4L2 control handling operation, now responds properly when
+   calling vidioc_g_ctrl IOCTL with V4L2_CTRL_FLAG_NEXT_CTRL flag.
+ - Simplify isp_stop code.
+ - Boundary checking fixes.
+ - Removes IOCTL declares from isp header.
+ - Add resizer output boundaries.
+ - Corrected ISPCCDC_BLKCMP_GR_CY_SHIFT value.
 
+Signed-off-by: Mohit Jalori <mjalori@ti.com>
+Signed-off-by: Dominic Curran <dcurran@ti.com>
+Signed-off-by: Vaibhav Hiremat <hvaibhav@ti.com>
 Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- arch/arm/plat-omap/include/mach/isp_user.h |  271 +++++++++++++++++------------
- 1 file changed, 161 insertions(+), 110 deletions(-)
+ drivers/media/video/isp/isp.c    |  245 ++++++++++++++++++++++++---------------
+ drivers/media/video/isp/isp.h    |   22 ---
+ drivers/media/video/isp/ispreg.h |    4
+ 3 files changed, 161 insertions(+), 110 deletions(-)
 
-Index: omapkernel/arch/arm/plat-omap/include/mach/isp_user.h
+Index: omapkernel/drivers/media/video/isp/isp.c
 ===================================================================
---- omapkernel.orig/arch/arm/plat-omap/include/mach/isp_user.h	2008-10-15 19:25:00.000000000 -0500
-+++ omapkernel/arch/arm/plat-omap/include/mach/isp_user.h	2008-10-15 19:36:01.000000000 -0500
-@@ -20,6 +20,24 @@
- #ifndef OMAP_ISP_USER_H
- #define OMAP_ISP_USER_H
- 
-+/* ISP Private IOCTLs */
-+#define VIDIOC_PRIVATE_ISP_CCDC_CFG	\
-+	_IOWR('V', BASE_VIDIOC_PRIVATE + 1, struct ispccdc_update_config)
-+#define VIDIOC_PRIVATE_ISP_PRV_CFG \
-+	_IOWR('V', BASE_VIDIOC_PRIVATE + 2, struct ispprv_update_config)
-+#define VIDIOC_PRIVATE_ISP_AEWB_CFG \
-+	_IOWR('V', BASE_VIDIOC_PRIVATE + 4, struct isph3a_aewb_config)
-+#define VIDIOC_PRIVATE_ISP_AEWB_REQ \
-+	_IOWR('V', BASE_VIDIOC_PRIVATE + 5, struct isph3a_aewb_data)
-+#define VIDIOC_PRIVATE_ISP_HIST_CFG \
-+	_IOWR('V', BASE_VIDIOC_PRIVATE + 6, struct isp_hist_config)
-+#define VIDIOC_PRIVATE_ISP_HIST_REQ \
-+	_IOWR('V', BASE_VIDIOC_PRIVATE + 7, struct isp_hist_data)
-+#define VIDIOC_PRIVATE_ISP_AF_CFG \
-+	_IOWR('V', BASE_VIDIOC_PRIVATE + 8, struct af_configuration)
-+#define VIDIOC_PRIVATE_ISP_AF_REQ \
-+	_IOWR('V', BASE_VIDIOC_PRIVATE + 9, struct isp_af_data)
+--- omapkernel.orig/drivers/media/video/isp/isp.c       2008-10-14 12:12:13.000000000 -0500
++++ omapkernel/drivers/media/video/isp/isp.c    2008-10-14 12:16:12.000000000 -0500
+@@ -30,12 +30,11 @@
+ #include <linux/err.h>
+ #include <linux/interrupt.h>
+ #include <linux/clk.h>
++#include <linux/dma-mapping.h>
+ #include <asm/irq.h>
+ #include <linux/bitops.h>
+ #include <linux/scatterlist.h>
+ #include <asm/mach-types.h>
+-#include <mach/clock.h>
+-#include <mach/io.h>
+ #include <linux/device.h>
+ #include <linux/videodev2.h>
+
+@@ -108,7 +107,7 @@
+                        .type = V4L2_CTRL_TYPE_INTEGER,
+                        .name = "Color Effects",
+                        .minimum = PREV_DEFAULT_COLOR,
+-                       .maximum = PREV_SEPIA_COLOR,
++                       .maximum = PREV_BW_COLOR,
+                        .step = 1,
+                        .default_value = PREV_DEFAULT_COLOR,
+                },
+@@ -219,8 +218,6 @@
+ /* Structure for saving/restoring ISP module registers */
+ static struct isp_reg isp_reg_list[] = {
+        {ISP_SYSCONFIG, 0},
+-       {ISP_IRQ0ENABLE, 0},
+-       {ISP_IRQ1ENABLE, 0},
+        {ISP_TCTRL_GRESET_LENGTH, 0},
+        {ISP_TCTRL_PSTRB_REPLAY, 0},
+        {ISP_CTRL, 0},
+@@ -277,26 +274,39 @@
+        return i;
+ }
+
+-/**
+- * isp_open - Reserve ISP submodules for operation
+- **/
+-void isp_open(void)
++static int find_next_vctrl(int id)
+ {
+-       ispccdc_request();
+-       isppreview_request();
+-       ispresizer_request();
+-       return;
++       int i;
++       u32 best = (u32)-1;
 +
- /* AE/AWB related structures and flags*/
- 
- /* Flags for update field */
-@@ -32,6 +50,39 @@
- #define MAX_FRAME_COUNT		0x0FFF
- #define MAX_FUTURE_FRAMES	10
- 
-+#define MAX_SATURATION_LIM	1023
-+#define MIN_WIN_H		2
-+#define MAX_WIN_H		256
-+#define MIN_WIN_W		6
-+#define MAX_WIN_W		256
-+#define MAX_WINVC		128
-+#define MAX_WINHC		36
-+#define MAX_WINSTART		4095
-+#define MIN_SUB_INC		2
-+#define MAX_SUB_INC		32
++       for (i = 0; i < ARRAY_SIZE(video_control); i++) {
++               if (video_control[i].qc.id > id
++                   && (best == (u32)-1
++                       || video_control[i].qc.id
++                       < video_control[best].qc.id)) {
++                       best = i;
++               }
++       }
 +
-+/* Range Constants */
-+#define AF_IIRSH_MIN			0
-+#define AF_IIRSH_MAX			4094
-+#define AF_PAXEL_HORIZONTAL_COUNT_MIN	0
-+#define AF_PAXEL_HORIZONTAL_COUNT_MAX	35
-+#define AF_PAXEL_VERTICAL_COUNT_MIN	0
-+#define AF_PAXEL_VERTICAL_COUNT_MAX	127
-+#define AF_PAXEL_INCREMENT_MIN		0
-+#define AF_PAXEL_INCREMENT_MAX		14
-+#define AF_PAXEL_HEIGHT_MIN		0
-+#define AF_PAXEL_HEIGHT_MAX		127
-+#define AF_PAXEL_WIDTH_MIN		0
-+#define AF_PAXEL_WIDTH_MAX		127
-+#define AF_PAXEL_HZSTART_MIN		2
-+#define AF_PAXEL_HZSTART_MAX		4094
++       if (best == (u32)-1)
++               return -EINVAL;
 +
-+#define AF_PAXEL_VTSTART_MIN		0
-+#define AF_PAXEL_VTSTART_MAX		4095
-+#define AF_THRESHOLD_MAX		255
-+#define AF_COEF_MAX			4095
-+#define AF_PAXEL_SIZE			48
++       return best;
+ }
+-EXPORT_SYMBOL(isp_set_pipeline);
+
+ /**
+- * isp_close - Free ISP submodules
++ * isp_release_resources - Free ISP submodules
+  **/
+-void isp_close(void)
++void isp_release_resources(void)
+ {
+-       ispccdc_free();
+-       isppreview_free();
+-       ispresizer_free();
++       if (ispmodule_obj.isp_pipeline & OMAP_ISP_CCDC)
++               ispccdc_free();
 +
++       if (ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW)
++               isppreview_free();
++
++       if (ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER)
++               ispresizer_free();
+        return;
+ }
+ EXPORT_SYMBOL(omapisp_unset_callback);
+@@ -1075,7 +1085,7 @@
+
+        return;
+ }
+-EXPORT_SYMBOL(isp_open);
++EXPORT_SYMBOL(isp_set_pipeline);
+
  /**
-  * struct isph3a_aewb_config - AE AWB configuration reset values.
-  * saturation_limit: Saturation limit.
-@@ -51,19 +102,19 @@
-  * @aewb_enable: AE AWB stats generation EN flag.
-  */
- struct isph3a_aewb_config {
--	u16 saturation_limit;
--	u16 win_height;
--	u16 win_width;
--	u16 ver_win_count;
--	u16 hor_win_count;
--	u16 ver_win_start;
--	u16 hor_win_start;
--	u16 blk_ver_win_start;
--	u16 blk_win_height;
--	u16 subsample_ver_inc;
--	u16 subsample_hor_inc;
--	u8 alaw_enable;
--	u8 aewb_enable;
-+	__u16 saturation_limit;
-+	__u16 win_height;
-+	__u16 win_width;
-+	__u16 ver_win_count;
-+	__u16 hor_win_count;
-+	__u16 ver_win_start;
-+	__u16 hor_win_start;
-+	__u16 blk_ver_win_start;
-+	__u16 blk_win_height;
-+	__u16 subsample_ver_inc;
-+	__u16 subsample_hor_inc;
-+	__u8 alaw_enable;
-+	__u8 aewb_enable;
- };
- 
+  * omapisp_unset_callback - Unsets all the callbacks associated with ISP module
+@@ -1099,7 +1109,6 @@
+        }
+        omap_writel(omap_readl(ISP_IRQ0STATUS) | ISP_INT_CLR, ISP_IRQ0STATUS);
+ }
+-EXPORT_SYMBOL(isp_close);
+
  /**
-@@ -86,18 +137,18 @@
-  */
- struct isph3a_aewb_data {
- 	void *h3a_aewb_statistics_buf;
--	u32 shutter;
--	u16 gain;
--	u32 shutter_cap;
--	u16 gain_cap;
--	u16 dgain;
--	u16 wb_gain_b;
--	u16 wb_gain_r;
--	u16 wb_gain_gb;
--	u16 wb_gain_gr;
--	u16 frame_number;
--	u16 curr_frame;
--	u8 update;
-+	__u32 shutter;
-+	__u16 gain;
-+	__u32 shutter_cap;
-+	__u16 gain_cap;
-+	__u16 dgain;
-+	__u16 wb_gain_b;
-+	__u16 wb_gain_r;
-+	__u16 wb_gain_gb;
-+	__u16 wb_gain_gr;
-+	__u16 frame_number;
-+	__u16 curr_frame;
-+	__u8 update;
- 	struct timeval ts;
- 	unsigned long field_count;
- };
-@@ -111,34 +162,34 @@
- #define BINS_256		0x3
- 
- struct isp_hist_config {
--	u8 hist_source;		/* CCDC or Memory */
--	u8 input_bit_width;	/* Needed o know the size per pixel */
--	u8 hist_frames;		/* Num of frames to be processed and
-+	__u8 hist_source;		/* CCDC or Memory */
-+	__u8 input_bit_width;	/* Needed o know the size per pixel */
-+	__u8 hist_frames;		/* Num of frames to be processed and
- 				 * accumulated
- 				 */
--	u8 hist_h_v_info;	/* frame-input width and height if source is
-+	__u8 hist_h_v_info;	/* frame-input width and height if source is
- 				 * memory
- 				 */
--	u16 hist_radd;		/* frame-input address in memory */
--	u16 hist_radd_off;	/* line-offset for frame-input */
--	u16 hist_bins;		/* number of bins: 32, 64, 128, or 256 */
--	u16 wb_gain_R;		/* White Balance Field-to-Pattern Assignments */
--	u16 wb_gain_RG;		/* White Balance Field-to-Pattern Assignments */
--	u16 wb_gain_B;		/* White Balance Field-to-Pattern Assignments */
--	u16 wb_gain_BG;		/* White Balance Field-to-Pattern Assignments */
--	u8 num_regions;		/* number of regions to be configured */
--	u16 reg0_hor;		/* Region 0 size and position */
--	u16 reg0_ver;		/* Region 0 size and position */
--	u16 reg1_hor;		/* Region 1 size and position */
--	u16 reg1_ver;		/* Region 1 size and position */
--	u16 reg2_hor;		/* Region 2 size and position */
--	u16 reg2_ver;		/* Region 2 size and position */
--	u16 reg3_hor;		/* Region 3 size and position */
--	u16 reg3_ver;		/* Region 3 size and position */
-+	__u16 hist_radd;		/* frame-input address in memory */
-+	__u16 hist_radd_off;	/* line-offset for frame-input */
-+	__u16 hist_bins;	/* number of bins: 32, 64, 128, or 256 */
-+	__u16 wb_gain_R;	/* White Balance Field-to-Pattern Assignments */
-+	__u16 wb_gain_RG;	/* White Balance Field-to-Pattern Assignments */
-+	__u16 wb_gain_B;	/* White Balance Field-to-Pattern Assignments */
-+	__u16 wb_gain_BG;	/* White Balance Field-to-Pattern Assignments */
-+	__u8 num_regions;		/* number of regions to be configured */
-+	__u16 reg0_hor;		/* Region 0 size and position */
-+	__u16 reg0_ver;		/* Region 0 size and position */
-+	__u16 reg1_hor;		/* Region 1 size and position */
-+	__u16 reg1_ver;		/* Region 1 size and position */
-+	__u16 reg2_hor;		/* Region 2 size and position */
-+	__u16 reg2_ver;		/* Region 2 size and position */
-+	__u16 reg3_hor;		/* Region 3 size and position */
-+	__u16 reg3_ver;		/* Region 3 size and position */
- };
- 
- struct isp_hist_data {
--	u32 *hist_statistics_buf;	/* Pointer to pass to user */
-+	__u32 *hist_statistics_buf;	/* Pointer to pass to user */
- };
- 
- /* Auto Focus related structs */
-@@ -312,17 +363,17 @@
-  * @size: Size of LSC gain table. Filled when loaded from userspace.
-  */
- struct ispccdc_lsc_config {
--	u8 offset;
--	u8 gain_mode_n;
--	u8 gain_mode_m;
--	u8 gain_format;
--	u16 fmtsph;
--	u16 fmtlnh;
--	u16 fmtslv;
--	u16 fmtlnv;
--	u8 initial_x;
--	u8 initial_y;
--	u32 size;
-+	__u16 offset;
-+	__u8 gain_mode_n;
-+	__u8 gain_mode_m;
-+	__u8 gain_format;
-+	__u16 fmtsph;
-+	__u16 fmtlnh;
-+	__u16 fmtslv;
-+	__u16 fmtlnv;
-+	__u8 initial_x;
-+	__u8 initial_y;
-+	__u32 size;
- };
- 
+  * isp_start - Starts ISP submodule
+@@ -1122,53 +1131,29 @@
+  **/
+ void isp_stop()
+ {
+-       int timeout;
++       int timeout = 0;
+
+        spin_lock(&isp_obj.isp_temp_buf_lock);
+        ispmodule_obj.isp_temp_state = ISP_FREE_RUNNING;
+        spin_unlock(&isp_obj.isp_temp_buf_lock);
+-       omapisp_unset_callback();
+-
+-       if ((ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) &&
+-                                               is_ispresizer_enabled()) {
+-               ispresizer_enable(0);
+-               timeout = 0;
+-               while (ispresizer_busy() && (timeout < 20)) {
+-                       timeout++;
+-                       mdelay(10);
+-               }
+-       }
+-
+-       if ((ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW) &&
+-                                               is_isppreview_enabled()) {
+-               isppreview_enable(0);
+-               timeout = 0;
+-               while (isppreview_busy() && (timeout < 20)) {
+-                       timeout++;
+-                       mdelay(10);
+-               }
+-       }
+
+-       if (ispmodule_obj.isp_pipeline & OMAP_ISP_CCDC) {
+-               ispccdc_enable_lsc(0);
+-               ispccdc_enable(0);
+-               timeout = 0;
+-               while (ispccdc_busy() && (timeout < 20)) {
+-                       timeout++;
+-                       mdelay(10);
++       omapisp_unset_callback();
++       ispccdc_enable_lsc(0);
++       ispccdc_enable(0);
++       isppreview_enable(0);
++       ispresizer_enable(0);
++       isp_save_ctx();
++       omap_writel(omap_readl(ISP_SYSCONFIG) |
++               ISP_SYSCONFIG_SOFTRESET, ISP_SYSCONFIG);
++       while (!(omap_readl(ISP_SYSSTATUS) & 0x1)) {
++               timeout++;
++               if (timeout >= 10) {
++                       printk(KERN_ALERT "isp.c: cannot reset ISP\n");
++                       return;
+                }
++               msleep(1);
+        }
+-       if (ispccdc_busy() || isppreview_busy() || ispresizer_busy()) {
+-               isp_save_ctx();
+-               omap_writel(omap_readl(ISP_SYSCONFIG) |
+-                       ISP_SYSCONFIG_SOFTRESET, ISP_SYSCONFIG);
+-               timeout = 0;
+-               while ((!(omap_readl(ISP_SYSSTATUS) & 0x1)) && timeout < 20) {
+-                       timeout++;
+-                       mdelay(1);
+-               }
+        isp_restore_ctx();
+-       }
+ }
+
  /**
-@@ -334,11 +385,11 @@
-  * @dcsubval: Digital Black Clamp subtract value.
-  */
- struct ispccdc_bclamp {
--	u8 obgain;
--	u8 obstpixel;
--	u8 oblines;
--	u8 oblen;
--	u16 dcsubval;
-+	__u8 obgain;
-+	__u8 obstpixel;
-+	__u8 oblines;
-+	__u8 oblen;
-+	__u16 dcsubval;
- };
- 
+@@ -1196,15 +1181,20 @@
+ void isp_calc_pipeline(struct v4l2_pix_format *pix_input,
+                                        struct v4l2_pix_format *pix_output)
+ {
+-       ispmodule_obj.isp_pipeline = OMAP_ISP_CCDC;
++       isp_release_resources();
+        if ((pix_input->pixelformat == V4L2_PIX_FMT_SGRBG10) &&
+                (pix_output->pixelformat != V4L2_PIX_FMT_SGRBG10)) {
+-               ispmodule_obj.isp_pipeline |= (OMAP_ISP_PREVIEW |
+-                                                       OMAP_ISP_RESIZER);
++                       ispmodule_obj.isp_pipeline = OMAP_ISP_CCDC |
++                                       OMAP_ISP_PREVIEW | OMAP_ISP_RESIZER;
++                       ispccdc_request();
++                       isppreview_request();
++                       ispresizer_request();
+                ispccdc_config_datapath(CCDC_RAW, CCDC_OTHERS_VP);
+                isppreview_config_datapath(PRV_RAW_CCDC, PREVIEW_RSZ);
+                ispresizer_config_datapath(RSZ_OTFLY_YUV);
+        } else {
++               ispmodule_obj.isp_pipeline = OMAP_ISP_CCDC;
++               ispccdc_request();
+                if (pix_input->pixelformat == V4L2_PIX_FMT_SGRBG10)
+                        ispccdc_config_datapath(CCDC_RAW, CCDC_OTHERS_MEM);
+                else
+@@ -1301,22 +1291,24 @@
+                break;
+        case PREV_DONE:
+                if (is_isppreview_enabled()) {
+-                       if (ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) {
+-                               if (!ispmodule_obj.applyCrop && (ispmodule_obj.
+-                                                       isp_temp_state ==
+-                                                       ISP_BUF_INIT))
+-                                       ispresizer_enable(1);
+-                               if (ispmodule_obj.applyCrop &&
+-                                                       !ispresizer_busy()) {
+-                                       ispresizer_enable(0);
+-                                       ispresizer_applycrop();
+-                                       ispmodule_obj.applyCrop = 0;
+-                               }
++               if (ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) {
++                       spin_lock(&isp_obj.isp_temp_buf_lock);
++                       if (!ispmodule_obj.applyCrop &&
++                                       (ispmodule_obj.isp_temp_state ==
++                                       ISP_BUF_INIT))
++                               ispresizer_enable(1);
++                       spin_unlock(&isp_obj.isp_temp_buf_lock);
++                       if (ispmodule_obj.applyCrop &&
++                               !ispresizer_busy()) {
++                               ispresizer_enable(0);
++                               ispresizer_applycrop();
++                               ispmodule_obj.applyCrop = 0;
+                        }
+                        isppreview_config_shadow_registers();
+                        isph3a_update_wb();
+-                       if (ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER)
+-                               return;
++               }
++               if (ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER)
++                       return;
+                }
+                break;
+        case RESZ_DONE:
+@@ -1339,7 +1331,7 @@
+                spin_unlock(&isp_obj.isp_temp_buf_lock);
+                return;
+        default:
+-               break;
++               return;
+        }
+
+        spin_lock_irqsave(&ispsg.lock, flags);
+@@ -1374,6 +1366,29 @@
+ EXPORT_SYMBOL(isp_stop);
+
  /**
-@@ -347,8 +398,8 @@
-  * @fpcaddr: Memory address of the FPC Table
-  */
- struct ispccdc_fpc {
--	u16 fpnum;
--	u32 fpcaddr;
-+	__u16 fpnum;
-+	__u32 fpcaddr;
++ * isp_vbq_sync - Walks the pages table and flushes the cache for
++ *                each page.
++ **/
++int isp_vbq_sync(struct videobuf_buffer *vb)
++{
++       struct videobuf_dmabuf *vdma;
++       u32 sg_element_addr;
++       int i;
++
++       vdma = videobuf_to_dma(vb);
++
++       for (i = 0; i < vdma->sglen; i++) {
++               sg_element_addr = sg_dma_address(vdma->sglist + i);
++               /* Page align address */
++               sg_element_addr &= ~(PAGE_SIZE-1);
++
++               dma_sync_single_for_cpu(NULL, sg_element_addr,
++                               PAGE_SIZE, DMA_FROM_DEVICE);
++       }
++       return 0;
++}
++
++/**
+  * isp_sgdma_process - Sets operations and config for specified SG DMA
+  * @sgdma: SG-DMA function to work on.
+  * @irq: Flag to specify if an IRQ is associated with the DMA completion.
+@@ -1397,23 +1412,42 @@
+                                ispccdc_enable(1);
+                                isp_start();
+                                *dma_notify = 0;
+-                               ispmodule_obj.isp_temp_state = ISP_BUF_TRAN;
++                               spin_lock(&isp_obj.isp_temp_buf_lock);
++                               if (ispmodule_obj.isp_pipeline
++                                       & OMAP_ISP_RESIZER) {
++                                       ispmodule_obj.isp_temp_state =
++                                               ISP_BUF_INIT;
++                               } else
++                                       ispmodule_obj.isp_temp_state =
++                                               ISP_BUF_TRAN;
++                               spin_unlock(&isp_obj.isp_temp_buf_lock);
+                        } else {
++                               spin_lock(&isp_obj.isp_temp_buf_lock);
+                                if (ispmodule_obj.isp_temp_state ==
+                                                        ISP_FREE_RUNNING) {
+                                        isp_set_sgdma_callback(sgdma_state,
+                                                                func_ptr);
+                                        isp_set_buf(sgdma_state);
+-                                       ispccdc_enable(1);
+-                                       ispmodule_obj.isp_temp_state =
+-                                                               ISP_BUF_TRAN;
++                                       /* Non startup case */
++                                       if (ispmodule_obj.isp_pipeline
++                                       & OMAP_ISP_RESIZER) {
++                                               ispmodule_obj.isp_temp_state =
++                                                       ISP_BUF_INIT;
++                                       } else {
++                                               ispmodule_obj.isp_temp_state =
++                                                       ISP_BUF_TRAN;
++                                               ispccdc_enable(1);
++                                       }
+                                }
++                               spin_unlock(&isp_obj.isp_temp_buf_lock);
+                        }
+                } else {
+                        isp_set_sgdma_callback(sgdma_state, func_ptr);
+                        isp_set_buf(sgdma_state);
+-                       ispccdc_enable(1);
+-                       ispmodule_obj.isp_temp_state = ISP_BUF_INIT;
++                       /* Non startup case */
++                       if (!(ispmodule_obj.isp_pipeline
++                               & OMAP_ISP_RESIZER))
++                               ispccdc_enable(1);
+
+                        if (*dma_notify) {
+                                isp_start();
+@@ -1423,6 +1457,7 @@
+        } else {
+                spin_lock(&isp_obj.isp_temp_buf_lock);
+                isp_CCDC_VD01_disable();
++               ispresizer_enable(0);
+                ispmodule_obj.isp_temp_state = ISP_FREE_RUNNING;
+                spin_unlock(&isp_obj.isp_temp_buf_lock);
+        }
+@@ -1453,6 +1488,7 @@
+
+        if ((sglen < 0) || ((sglen > 0) & !sglist))
+                return -EINVAL;
++       isp_vbq_sync(vb);
+
+        spin_lock_irqsave(&ispsg.lock, flags);
+
+@@ -1531,9 +1567,12 @@
+ {
+        int i;
+
+-       i = find_vctrl(a->id);
+-       if (i == -EINVAL)
+-               a->flags = V4L2_CTRL_FLAG_DISABLED;
++       if (a->id & V4L2_CTRL_FLAG_NEXT_CTRL) {
++               a->id &= ~V4L2_CTRL_FLAG_NEXT_CTRL;
++               i = find_next_vctrl(a->id);
++       } else {
++               i = find_vctrl(a->id);
++       }
+
+        if (i < 0)
+                return -EINVAL;
+@@ -1604,7 +1643,7 @@
+                        isppreview_update_contrast(&new_value);
+                break;
+        case V4L2_CID_PRIVATE_ISP_COLOR_FX:
+-               if (new_value > PREV_SEPIA_COLOR)
++               if (new_value > PREV_BW_COLOR)
+                        rval = -EINVAL;
+                else
+                        isppreview_set_color(&new_value);
+@@ -1897,6 +1936,15 @@
+                                        struct v4l2_pix_format *pix_output)
+ {
+        int rval = 0;
++
++       if (pix_output->width <= ISPRSZ_MIN_OUTPUT ||
++               pix_output->height <= ISPRSZ_MIN_OUTPUT)
++               return -EINVAL;
++
++       if (pix_output->width >= ISPRSZ_MAX_OUTPUT ||
++               pix_output->height > ISPRSZ_MAX_OUTPUT)
++               return -EINVAL;
++
+        ispmodule_obj.ccdc_input_width = pix_input->width;
+        ispmodule_obj.ccdc_input_height = pix_input->height;
+        ispmodule_obj.resizer_output_width = pix_output->width;
+@@ -1907,6 +1955,12 @@
+                                        ispmodule_obj.ccdc_input_height,
+                                        &ispmodule_obj.ccdc_output_width,
+                                        &ispmodule_obj.ccdc_output_height);
++               if (rval) {
++                       printk(KERN_ERR "ISP_ERR: The dimensions %dx%d are not"
++                                       " supported\n", pix_input->width,
++                                       pix_input->height);
++                       return rval;
++               }
+                pix_output->width = ispmodule_obj.ccdc_output_width;
+                pix_output->height = ispmodule_obj.ccdc_output_height;
+        }
+@@ -1920,6 +1974,12 @@
+                                        ispmodule_obj.preview_input_height,
+                                        &ispmodule_obj.preview_output_width,
+                                        &ispmodule_obj.preview_output_height);
++               if (rval) {
++                       printk(KERN_ERR "ISP_ERR: The dimensions %dx%d are not"
++                                       " supported\n", pix_input->width,
++                                       pix_input->height);
++                       return rval;
++               }
+                pix_output->width = ispmodule_obj.preview_output_width;
+                pix_output->height = ispmodule_obj.preview_output_height;
+        }
+@@ -1933,6 +1993,12 @@
+                                        &ispmodule_obj.resizer_input_height,
+                                        &ispmodule_obj.resizer_output_width,
+                                        &ispmodule_obj.resizer_output_height);
++               if (rval) {
++                       printk(KERN_ERR "ISP_ERR: The dimensions %dx%d are not"
++                                       " supported\n", pix_input->width,
++                                       pix_input->height);
++                       return rval;
++               }
+                pix_output->width = ispmodule_obj.resizer_output_width;
+                pix_output->height = ispmodule_obj.resizer_output_height;
+        }
+@@ -2096,11 +2162,14 @@
+                if (--isp_obj.ref_count == 0) {
+                        isp_save_ctx();
+                        off_mode = 1;
+-
++                       isp_release_resources();
++                       ispmodule_obj.isp_pipeline = 0;
+                        clk_disable(isp_obj.cam_ick);
+                        clk_disable(isp_obj.cam_mclk);
+                        clk_put(isp_obj.cam_ick);
+                        clk_put(isp_obj.cam_mclk);
++                       memset(&ispcroprect, 0, sizeof(ispcroprect));
++                       memset(&cur_rect, 0, sizeof(cur_rect));
+                }
+        mutex_unlock(&(isp_obj.isp_mutex));
+        DPRINTK_ISPCTRL("isp_put: new %d\n", isp_obj.ref_count);
+Index: omapkernel/drivers/media/video/isp/isp.h
+===================================================================
+--- omapkernel.orig/drivers/media/video/isp/isp.h       2008-10-14 12:12:13.000000000 -0500
++++ omapkernel/drivers/media/video/isp/isp.h    2008-10-14 12:15:43.000000000 -0500
+@@ -36,24 +36,6 @@
+ /* Our ISP specific controls */
+ #define V4L2_CID_PRIVATE_ISP_COLOR_FX          (V4L2_CID_PRIVATE_BASE + 0)
+
+-/* ISP Private IOCTLs */
+-#define VIDIOC_PRIVATE_ISP_CCDC_CFG    \
+-       _IOWR('V', BASE_VIDIOC_PRIVATE + 1, struct ispccdc_update_config)
+-#define VIDIOC_PRIVATE_ISP_PRV_CFG \
+-       _IOWR('V', BASE_VIDIOC_PRIVATE + 2, struct ispprv_update_config)
+-#define VIDIOC_PRIVATE_ISP_AEWB_CFG \
+-       _IOWR('V', BASE_VIDIOC_PRIVATE + 4, struct isph3a_aewb_config)
+-#define VIDIOC_PRIVATE_ISP_AEWB_REQ \
+-       _IOWR('V', BASE_VIDIOC_PRIVATE + 5, struct isph3a_aewb_data)
+-#define VIDIOC_PRIVATE_ISP_HIST_CFG \
+-       _IOWR('V', BASE_VIDIOC_PRIVATE + 6, struct isp_hist_config)
+-#define VIDIOC_PRIVATE_ISP_HIST_REQ \
+-       _IOWR('V', BASE_VIDIOC_PRIVATE + 7, struct isp_hist_data)
+-#define VIDIOC_PRIVATE_ISP_AF_CFG \
+-       _IOWR('V', BASE_VIDIOC_PRIVATE + 8, struct af_configuration)
+-#define VIDIOC_PRIVATE_ISP_AF_REQ \
+-       _IOWR('V', BASE_VIDIOC_PRIVATE + 9, struct isp_af_data)
+-
+ #define ISP_TOK_TERM           0xFFFFFFFF      /*
+                                                 * terminating token for ISP
+                                                 * modules reg list
+@@ -231,9 +213,7 @@
+        char idle_mode;
  };
- 
- /**
-@@ -359,10 +410,10 @@
-  * @r_ye: R/Ye pixels. 2's complement. -128 to +127.
-  */
- struct ispccdc_blcomp {
--	u8 b_mg;
--	u8 gb_g;
--	u8 gr_cy;
--	u8 r_ye;
-+	__u8 b_mg;
-+	__u8 gb_g;
-+	__u8 gr_cy;
-+	__u8 r_ye;
- };
- 
- /**
-@@ -384,9 +435,9 @@
-  * @h_even: Horizontal Culling pattern for even lines.
-  */
- struct ispccdc_culling {
--	u8 v_pattern;
--	u16 h_odd;
--	u16 h_even;
-+	__u8 v_pattern;
-+	__u16 h_odd;
-+	__u16 h_even;
- };
- 
- /**
-@@ -402,16 +453,16 @@
-  * @lsc: Pointer to LSC gain table.
-  */
- struct ispccdc_update_config {
--	u16 update;
--	u16 flag;
-+	__u16 update;
-+	__u16 flag;
- 	enum alaw_ipwidth alawip;
- 	struct ispccdc_bclamp *bclamp;
- 	struct ispccdc_blcomp *blcomp;
- 	struct ispccdc_fpc *fpc;
- 	struct ispccdc_lsc_config *lsc_cfg;
- 	struct ispccdc_culling *cull;
--	u32 colptn;
--	u8 *lsc;
-+	__u32 colptn;
-+	__u8 *lsc;
- };
- 
- /* Preview configuration */
-@@ -442,9 +493,9 @@
-  * @thres: Horizontal median filter threshold.
-  */
- struct ispprev_hmed {
--	u8 odddist;
--	u8 evendist;
--	u8 thres;
-+	__u8 odddist;
-+	__u8 evendist;
-+	__u8 thres;
- };
- 
- /*
-@@ -464,9 +515,9 @@
-  */
- struct ispprev_cfa {
- 	enum cfa_fmt cfafmt;
--	u8 cfa_gradthrs_vert;
--	u8 cfa_gradthrs_horz;
--	u32 *cfa_table;
-+	__u8 cfa_gradthrs_vert;
-+	__u8 cfa_gradthrs_horz;
-+	__u32 *cfa_table;
- };
- 
- /**
-@@ -476,9 +527,9 @@
-  * @hypf_en: Flag to enable/disable the High Pass Filter.
-  */
- struct ispprev_csup {
--	u8 gain;
--	u8 thres;
--	u8 hypf_en;
-+	__u8 gain;
-+	__u8 thres;
-+	__u8 hypf_en;
- };
- 
- /**
-@@ -490,11 +541,11 @@
-  * @coef0: White balance gain - COEF 0 (U8Q5).
-  */
- struct ispprev_wbal {
--	u16 dgain;
--	u8 coef3;
--	u8 coef2;
--	u8 coef1;
--	u8 coef0;
-+	__u16 dgain;
-+	__u8 coef3;
-+	__u8 coef2;
-+	__u8 coef1;
-+	__u8 coef0;
- };
- 
- /**
-@@ -505,11 +556,11 @@
-  */
- struct ispprev_blkadj {
- 	/*Black level offset adjustment for Red in 2's complement format */
--	u8 red;
-+	__u8 red;
- 	/*Black level offset adjustment for Green in 2's complement format */
--	u8 green;
-+	__u8 green;
- 	/* Black level offset adjustment for Blue in 2's complement format */
--	u8 blue;
-+	__u8 blue;
- };
- 
- /**
-@@ -521,8 +572,8 @@
-  * @offset: Blending offset value for R,G,B in 2's complement integer format.
-  */
- struct ispprev_rgbtorgb {
--	u16 matrix[3][3];
--	u16 offset[3];
-+	__u16 matrix[3][3];
-+	__u16 offset[3];
- };
- 
- /**
-@@ -534,8 +585,8 @@
-  * @offset: CSC offset values for Y offset, CB offset and CR offset respectively
-  */
- struct ispprev_csc {
--	u16 matrix[RGB_MAX][RGB_MAX];
--	s16 offset[RGB_MAX];
-+	__u16 matrix[RGB_MAX][RGB_MAX];
-+	__s16 offset[RGB_MAX];
- };
- 
- /**
-@@ -546,10 +597,10 @@
-  * @maxY: Maximum Y value
-  */
- struct ispprev_yclimit {
--	u8 minC;
--	u8 maxC;
--	u8 minY;
--	u8 maxY;
-+	__u8 minC;
-+	__u8 maxC;
-+	__u8 minY;
-+	__u8 maxY;
- };
- 
- /**
-@@ -558,8 +609,8 @@
-  * @detect_correct: Thresholds for correction bit 0:10 detect 16:25 correct
-  */
- struct ispprev_dcor {
--	u8 couplet_mode_en;
--	u32 detect_correct[4];
-+	__u8 couplet_mode_en;
-+	__u32 detect_correct[4];
- };
- 
- /**
-@@ -568,8 +619,8 @@
-  * @table: Pointer to the Noise Filter table
-  */
- struct ispprev_nf {
--	u8 spread;
--	u32 table[64];
-+	__u8 spread;
-+	__u32 table[64];
- };
- 
- /**
-@@ -595,10 +646,10 @@
-  * @blue_gamma: Pointer to blue gamma correction table.
-  */
- struct ispprv_update_config {
--	u16 update;
--	u16 flag;
-+	__u16 update;
-+	__u16 flag;
- 	void *yen;
--	u32 shading_shift;
-+	__u32 shading_shift;
- 	struct ispprev_hmed *prev_hmed;
- 	struct ispprev_cfa *prev_cfa;
- 	struct ispprev_csup *csup;
-@@ -609,9 +660,9 @@
- 	struct ispprev_yclimit *yclimit;
- 	struct ispprev_dcor *prev_dcor;
- 	struct ispprev_nf *prev_nf;
--	u32 *red_gamma;
--	u32 *green_gamma;
--	u32 *blue_gamma;
-+	__u32 *red_gamma;
-+	__u32 *green_gamma;
-+	__u32 *blue_gamma;
- };
- 
- #endif /* OMAP_ISP_USER_H */
+
+-void isp_open(void);
+-
+-void isp_close(void);
++void isp_release_resources(void);
+
+ void isp_start(void);
+
+Index: omapkernel/drivers/media/video/isp/ispreg.h
+===================================================================
+--- omapkernel.orig/drivers/media/video/isp/ispreg.h    2008-10-14 12:12:13.000000000 -0500
++++ omapkernel/drivers/media/video/isp/ispreg.h 2008-10-14 12:15:43.000000000 -0500
+@@ -408,6 +408,8 @@
+
+ #define ISPPRV_MAXOUTPUT_WIDTH         1280
+ #define ISPPRV_MAXOUTPUT_WIDTH_ES2     3300
++#define ISPRSZ_MIN_OUTPUT              64
++#define ISPRSZ_MAX_OUTPUT              3312
+
+ /* Resizer module register offset */
+ #define ISPRSZ_PID                     0x480BD000
+@@ -867,7 +869,7 @@
+
+ #define ISPCCDC_BLKCMP_B_MG_SHIFT              0
+ #define ISPCCDC_BLKCMP_GB_G_SHIFT              8
+-#define ISPCCDC_BLKCMP_GR_CY_SHIFT             6
++#define ISPCCDC_BLKCMP_GR_CY_SHIFT             16
+ #define ISPCCDC_BLKCMP_R_YE_SHIFT              24
+
+ #define ISPCCDC_FPC_FPNUM_SHIFT                        0
