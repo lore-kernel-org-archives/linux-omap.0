@@ -1,22 +1,21 @@
 From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [PATCH 12/28] [OMAPZOOM] OMAP3430: SDP: CAM: Fix Capture mem
- boundary
-Date: Wed, 15 Oct 2008 20:25:18 -0500
-Message-ID: <A24693684029E5489D1D202277BE894412568843@dlee02.ent.ti.com>
+Subject: [PATCH 13/28] [OMAPZOOM] OMAP: CAM: MT9P012: Misc Fixes
+Date: Wed, 15 Oct 2008 20:25:53 -0500
+Message-ID: <A24693684029E5489D1D202277BE894412568845@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36618 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41581 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753059AbYJPBZZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Oct 2008 21:25:25 -0400
+	id S1753157AbYJPB0B convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Oct 2008 21:26:01 -0400
 Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9G1PJBK027818
-	for <linux-omap@vger.kernel.org>; Wed, 15 Oct 2008 20:25:24 -0500
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m9G1PJjD011525
-	for <linux-omap@vger.kernel.org>; Wed, 15 Oct 2008 20:25:19 -0500 (CDT)
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9G1PtgN012518
+	for <linux-omap@vger.kernel.org>; Wed, 15 Oct 2008 20:26:00 -0500
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m9G1PtZ1011940
+	for <linux-omap@vger.kernel.org>; Wed, 15 Oct 2008 20:25:55 -0500 (CDT)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -25,121 +24,111 @@ Cc: "Pandita, Vikram" <vikram.pandita@ti.com>
 
 From: Sergio Aguirre <saaguirre@ti.com>
 
-OMAP3430: SDP: CAM: Fix Capture mem boundary
+OMAP: CAM: MT9P012: Misc Fixes
 
-This patch specifies the capture_mem boundary in sensor hw info
-struct, cleans up the I2C buffer registration, and removes the
-v4l2_ifparm, as we don't longer need it.
+This patch adds the following changes:
+ - Removal of v4l2_ifparm use, as it is no longer needed.
+ - Fix I2C writing of stream_off commands while XCLK wasn't available.
+ - Fix for 30 fps capture on sizes lower than 3MP.
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- arch/arm/mach-omap2/board-3430sdp.c |   60 ++++++++++++------------------------
- 1 file changed, 20 insertions(+), 40 deletions(-)
+ drivers/media/video/mt9p012.c |   50 ++++++------------------------------------
+ 1 file changed, 8 insertions(+), 42 deletions(-)
 
-Index: omapkernel/arch/arm/mach-omap2/board-3430sdp.c
+Index: omapkernel/drivers/media/video/mt9p012.c
 ===================================================================
---- omapkernel.orig/arch/arm/mach-omap2/board-3430sdp.c 2008-10-13 16:50:30.000000000 -0500
-+++ omapkernel/arch/arm/mach-omap2/board-3430sdp.c      2008-10-14 12:07:27.000000000 -0500
-@@ -23,6 +23,7 @@
- #include <linux/spi/spi.h>
- #include <linux/spi/ads7846.h>
- #include <linux/i2c/twl4030.h>
-+#include <linux/mm.h>
-
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -552,6 +553,7 @@
- static struct omap34xxcam_sensor_config cam_hwc = {
-        .sensor_isp = 0,
-        .xclk = OMAP34XXCAM_XCLK_A,
-+       .capture_mem = PAGE_ALIGN(2592 * 1944 * 2) * 4,
- };
-
- static void enable_fpga_vio_1v8(u8 enable)
-@@ -587,6 +589,7 @@
-
-        hwc->u.sensor.xclk = cam_hwc.xclk;
-        hwc->u.sensor.sensor_isp = cam_hwc.sensor_isp;
-+       hwc->u.sensor.capture_mem = cam_hwc.capture_mem;
-        hwc->dev_index = 0;
-        hwc->dev_minor = 0;
-        hwc->dev_type = OMAP34XXCAM_SLAVE_SENSOR;
-@@ -689,44 +692,10 @@
-        return 0;
+--- omapkernel.orig/drivers/media/video/mt9p012.c	2008-10-03 17:48:05.000000000 -0500
++++ omapkernel/drivers/media/video/mt9p012.c	2008-10-14 12:30:17.000000000 -0500
+@@ -1391,30 +1391,6 @@
  }
-
--static struct v4l2_ifparm ifparm = {
--       .if_type = V4L2_IF_TYPE_BT656,
--       .u = {
--               .bt656 = {
--                       .frame_start_on_rising_vs = 1,
--                       .latch_clk_inv = 0,
--                       .mode = V4L2_IF_TYPE_BT656_MODE_NOBT_10BIT,
--                       .clock_min = MT9P012_XCLK_MIN,
--                       .clock_max = MT9P012_XCLK_MAX,
--               },
--       },
--};
--
--static int mt9p012_ifparm(struct v4l2_ifparm *p)
+ 
+ /**
+- * ioctl_g_ifparm - V4L2 sensor interface handler for vidioc_int_g_ifparm_num
+- * @s: pointer to standard V4L2 device structure
+- * @p: pointer to standard V4L2 vidioc_int_g_ifparm_num ioctl structure
+- *
+- * Gets slave interface parameters.
+- * Calculates the required xclk value to support the requested
+- * clock parameters in p.  This value is returned in the p
+- * parameter.
+- */
+-static int ioctl_g_ifparm(struct v4l2_int_device *s, struct v4l2_ifparm *p)
 -{
--       *p = ifparm;
--       return 0;
+-	struct mt9p012_sensor *sensor = s->priv;
+-	int rval;
+-
+-	rval = sensor->pdata->ifparm(p);
+-	if (rval)
+-		return rval;
+-
+-	p->u.bt656.clock_curr = xclk_current;
+-
+-	return 0;
 -}
 -
- static struct mt9p012_platform_data sdp3430_mt9p012_platform_data = {
-        .power_set      = mt9p012_sensor_power_set,
-        .priv_data_set  = mt9p012_sensor_set_prv_data,
-        .default_regs   = NULL,
--       .ifparm         = mt9p012_ifparm,
--};
+-/**
+  * ioctl_g_priv - V4L2 sensor interface handler for vidioc_int_g_priv_num
+  * @s: pointer to standard V4L2 device structure
+  * @p: void pointer to hold sensor's private data address
+@@ -1426,7 +1402,6 @@
+ 	struct mt9p012_sensor *sensor = s->priv;
+ 
+ 	return sensor->pdata->priv_data_set(p);
 -
--
--static struct i2c_board_info __initdata sdp3430_i2c2_boardinfo[] = {
--#ifdef CONFIG_VIDEO_DW9710
--       {
--               I2C_BOARD_INFO(DW9710_NAME,  DW9710_AF_I2C_ADDR),
--               .platform_data = &sdp3430_dw9710_platform_data,
--       },
--#endif
--       {
--               I2C_BOARD_INFO("mt9p012", MT9P012_I2C_ADDR),
--               .platform_data = &sdp3430_mt9p012_platform_data,
--       },
- };
-
- #endif
-@@ -847,16 +816,27 @@
-        },
- };
-
-+static struct i2c_board_info __initdata sdp3430_i2c_boardinfo_2[] = {
-+#if defined(CONFIG_VIDEO_MT9P012) || defined(CONFIG_VIDEO_MT9P012_MODULE)
-+       {
-+               I2C_BOARD_INFO("mt9p012", MT9P012_I2C_ADDR),
-+               .platform_data = &sdp3430_mt9p012_platform_data,
-+       },
-+#ifdef CONFIG_VIDEO_DW9710
-+       {
-+               I2C_BOARD_INFO(DW9710_NAME,  DW9710_AF_I2C_ADDR),
-+               .platform_data = &sdp3430_dw9710_platform_data,
-+       },
-+#endif
-+#endif
-+};
-+
- static int __init omap3430_i2c_init(void)
- {
-        omap_register_i2c_bus(1, 2600, sdp3430_i2c_boardinfo,
-                        ARRAY_SIZE(sdp3430_i2c_boardinfo));
--#if defined(CONFIG_VIDEO_MT9P012) || defined(CONFIG_VIDEO_MT9P012_MODULE)
--       omap_register_i2c_bus(2, 400, sdp3430_i2c2_boardinfo,
--                             ARRAY_SIZE(sdp3430_i2c2_boardinfo));
--#else
--       omap_register_i2c_bus(2, 400, NULL, 0);
--#endif
-+       omap_register_i2c_bus(2, 400, sdp3430_i2c_boardinfo_2,
-+                       ARRAY_SIZE(sdp3430_i2c_boardinfo_2));
-        omap_register_i2c_bus(3, 400, NULL, 0);
-        return 0;
  }
+ 
+ /**
+@@ -1440,24 +1415,15 @@
+ {
+ 	struct mt9p012_sensor *sensor = s->priv;
+ 	struct i2c_client *c = sensor->i2c_client;
+-	struct v4l2_ifparm p;
+ 	int rval;
+ 
+-	rval = ioctl_g_ifparm(s, &p);
+-	if (rval) {
+-		dev_err(&c->dev, "Unable to get if params\n");
+-		return rval;
+-	}
+-
+-	if (((on == V4L2_POWER_OFF) || (on == V4L2_POWER_STANDBY))
+-		&& (sensor->state == SENSOR_DETECTED))
++	if ((on == V4L2_POWER_STANDBY) && (sensor->state == SENSOR_DETECTED))
+ 		mt9p012_write_regs(c, stream_off_list);
+ 
+-
+ 	if ((on != V4L2_POWER_ON) && (on != V4L2_POWER_RESUME))
+ 		isp_set_xclk(0, MT9P012_USE_XCLKA);
+ 	else
+-		isp_set_xclk(p.u.bt656.clock_curr, MT9P012_USE_XCLKA);
++		isp_set_xclk(xclk_current, MT9P012_USE_XCLKA);
+ 
+ 
+ 	rval = sensor->pdata->power_set(on);
+@@ -1588,10 +1554,12 @@
+ 
+ 	/* Do we already reached all discrete framesizes? */
+ 
+-	if ((frmi->width == mt9p012_sizes[4].width) &&
+-				(frmi->height == mt9p012_sizes[4].height)) {
+-		/* FIXME: The only frameinterval supported by 5MP capture is
+-		 * 1/11 fps
++	if (((frmi->width == mt9p012_sizes[4].width) &&
++				(frmi->height == mt9p012_sizes[4].height)) ||
++				((frmi->width == mt9p012_sizes[3].width) &&
++				(frmi->height == mt9p012_sizes[3].height))) {
++		/* FIXME: The only frameinterval supported by 5MP and 3MP
++		 * capture sizes is 1/11 fps
+ 		 */
+ 		if (frmi->index != 0)
+ 			return -EINVAL;
+@@ -1622,8 +1590,6 @@
+ 	  .func = (v4l2_int_ioctl_func *)ioctl_s_power },
+ 	{ .num = vidioc_int_g_priv_num,
+ 	  .func = (v4l2_int_ioctl_func *)ioctl_g_priv },
+-	{ .num = vidioc_int_g_ifparm_num,
+-	  .func = (v4l2_int_ioctl_func *)ioctl_g_ifparm },
+ 	{ .num = vidioc_int_init_num,
+ 	  .func = (v4l2_int_ioctl_func *)ioctl_init },
+ 	{ .num = vidioc_int_enum_fmt_cap_num,
