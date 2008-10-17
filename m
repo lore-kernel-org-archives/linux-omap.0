@@ -1,37 +1,66 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH] i2c: omap: highspeed only over 1000mhz
-Date: Sat, 18 Oct 2008 00:09:55 +0300
-Message-ID: <1224277795-17143-1-git-send-email-felipe.balbi@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: beagle won't boot.
+Date: Fri, 17 Oct 2008 14:12:06 -0700
+Message-ID: <20081017211206.GT15820@atomide.com>
+References: <E1KquQr-0002qg-Sg@amazonia.comcast.net> <5A47E75E594F054BAF48C5E4FC4B92AB02D5F9A67A@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:46172 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753769AbYJQVKk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Oct 2008 17:10:40 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51350 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753628AbYJQVML (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Oct 2008 17:12:11 -0400
+Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02D5F9A67A@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Ben Dooks <ben-linux@fluff.org>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "rick@efn.org" <rick@efn.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-up to 1000mhz it's Fast Mode+, not highspeed.
+* Gadiyar, Anand <gadiyar@ti.com> [081017 12:01]:
+> > Hi,
+> > 
+> >   I got the lastest code on Oct 16 via:
+> > 
+> > git clone git://source.mvista.com/git/linux-omap-2.6.git
+> > cd linux-omap-2.6
+> > make omap3_beagle_defconfig
+> > make uImage CROSS_COMPILE="arm-angstrom-linux-gnueabi-" CC="ccache arm-angstrom-linux-gnueabi-gcc-4.2.1+csl-arm-2007q3-53" LD="arm-angstrom-linux-gnueabi-ld"
+> > 
+> >   and it doesn't seem to want to cooperate with my beagleboard.  As
+> > far as I can tell, it's stuck in
+> > 
+> > the while loop in omap_start_ehc().  I think because this bit never
+> > got set:
+> > 
+> > CM_FCLKEN3_CORE->EN_USBTLL (page 472 of the OMAP3 pdf).
+> > 
+> >   Might have something to do with "usbtll_fck".
+> > 
+> >   Any help greatly appreciated.
+> 
+> Quick and simple solution,
+> 1. "make menuconfig"
+> 2. Go to Device Drivers -> USB Support
+> 3. Disable EHCI HCD
+> 4. Rebuild and boot
+> 
+> EHCI doesn't work anyway on beagle. Why bother having it built in in defconfig?
+> 
+> - Anand
+> *Extremely frustrated with EHCI and clock control at the moment*
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/i2c/busses/i2c-omap.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+I've disabled EHCI for now in all board configs.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index a999606..53d6244 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -296,7 +296,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 		psc = psc - 1;
- 
- 		/* If configured for High Speed */
--		if (dev->speed > 400) {
-+		if (dev->speed > 1000) {
- 			/* For first phase of HS mode */
- 			fsscll = internal_clk / (400 * 2) - 6;
- 			fssclh = internal_clk / (400 * 2) - 6;
--- 
-1.6.0.2.307.gc427
+Tony
 
+
+> 
+> > 
+> >   Thanks,
+> > 
+> >   Rick
+> > --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
