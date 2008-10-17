@@ -1,147 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [i2c] [PATCH 8/8] i2c-omap: Clean-up i2c-omap
-Date: Fri, 17 Oct 2008 08:41:41 -0700
-Message-ID: <20081017154140.GN15820@atomide.com>
-References: <1222329234-31473-1-git-send-email-tony@atomide.com> <1222329234-31473-2-git-send-email-tony@atomide.com> <1222329234-31473-3-git-send-email-tony@atomide.com> <1222329234-31473-4-git-send-email-tony@atomide.com> <1222329234-31473-5-git-send-email-tony@atomide.com> <1222329234-31473-6-git-send-email-tony@atomide.com> <1222329234-31473-7-git-send-email-tony@atomide.com> <1222329234-31473-8-git-send-email-tony@atomide.com> <1222329234-31473-9-git-send-email-tony@atomide.com> <20080929223125.GV2716@fluff.org.uk>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="wjoFZxbW4tu+iR6v"
-Content-Transfer-Encoding: 8bit
+From: Rick Bronson <rick@efn.org>
+Subject: [PATCH] ARM: OMAP: Fix for omap3_noncore_dpll_enable() warning
+Date: Fri, 17 Oct 2008 08:57:03 -0700
+Message-ID: <E1KqrhH-0001Gl-1p@amazonia.comcast.net>
+References: <20081016160350.GI15820@atomide.com>
+Reply-To: rick@efn.org
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64637 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754837AbYJQPmB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Oct 2008 11:42:01 -0400
-Content-Disposition: inline
-In-Reply-To: <20080929223125.GV2716@fluff.org.uk>
+Received: from samwise.efn.org ([12.33.21.33]:42402 "EHLO samwise.efn.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757821AbYJQP5H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Oct 2008 11:57:07 -0400
+Received: from amazonia.comcast.net (c-67-171-210-97.hsd1.or.comcast.net [67.171.210.97])
+	by samwise.efn.org (Postfix) with ESMTP id 79C7F170158
+	for <linux-omap@vger.kernel.org>; Fri, 17 Oct 2008 08:57:01 -0700 (PDT)
+Received: from rick by amazonia.comcast.net with local (Exim 4.69)
+	(envelope-from <rick@efn.org>)
+	id 1KqrhH-0001Gl-1p
+	for linux-omap@vger.kernel.org; Fri, 17 Oct 2008 08:57:03 -0700
+In-reply-to: <20081016160350.GI15820@atomide.com> (message from Tony Lindgren
+	on Thu, 16 Oct 2008 09:03:53 -0700)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ben Dooks <ben-linux@fluff.org>
-Cc: i2c@lm-sensors.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
+Hi,
 
---wjoFZxbW4tu+iR6v
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+  This patch fixes this warning which, as Tomi Valkeinen pointed out, is
+really an error.
 
-* Ben Dooks <ben-linux@fluff.org> [080929 15:31]:
-> On Thu, Sep 25, 2008 at 10:53:54AM +0300, Tony Lindgren wrote:
-> > Minor checkpatch and formatting clean-up. Also update copyrights.
-> 
-> looks ok, assuming it doesn't get broken by any changes
-> from the review comments i've made earlier in the series.
+  CC      arch/arm/mach-omap2/clock34xx.o
+arch/arm/mach-omap2/clock34xx.c: In function 'omap3_noncore_dpll_enable':
+arch/arm/mach-omap2/clock34xx.c:290: warning: 'rate' is used uninitialized in this function
 
-Here's this one updated with one sparse fix to change the
-#define omap_i2c_rev1_isr NULL instead of 0.
-
-Tony
-
---wjoFZxbW4tu+iR6v
-Content-Type: text/x-diff; charset=iso-8859-1
-Content-Disposition: inline; filename="0008-i2c-omap-Clean-up-i2c-omap.patch"
-Content-Transfer-Encoding: 8bit
-
->From 8537c8bb8753f3e3c5dd23ec15ba59c3562812a1 Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Fri, 17 Oct 2008 07:49:27 -0700
-Subject: [PATCH] i2c-omap: Clean-up i2c-omap
-
-Minor sparse, checkpatch and formatting clean-up. Also update copyrights.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/i2c/busses/i2c-omap.c |   31 ++++++++++++++++++-------------
- 1 files changed, 18 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 5560064..17166a2 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -2,13 +2,16 @@
-  * TI OMAP I2C master mode driver
-  *
-  * Copyright (C) 2003 MontaVista Software, Inc.
-- * Copyright (C) 2004 Texas Instruments.
-- *
-- * Updated to work with multiple I2C interfaces on 24xx by
-- * Tony Lindgren <tony@atomide.com> and Imre Deak <imre.deak@nokia.com>
-  * Copyright (C) 2005 Nokia Corporation
-+ * Copyright (C) 2004 - 2007 Texas Instruments.
-  *
-- * Cleaned up by Juha Yrjölä <juha.yrjola@nokia.com>
-+ * Originally written by MontaVista Software, Inc.
-+ * Additional contributions by:
-+ *	Tony Lindgren <tony@atomide.com>
-+ *	Imre Deak <imre.deak@nokia.com>
-+ *	Juha Yrjölä <juha.yrjola@solidboot.com>
-+ *	Syed Khasim <x0khasim@ti.com>
-+ *	Nishant Menon <nm@ti.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -33,8 +36,7 @@
- #include <linux/completion.h>
- #include <linux/platform_device.h>
- #include <linux/clk.h>
--
--#include <asm/io.h>
-+#include <linux/io.h>
+--- linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c.~1~	2008-10-16 13:33:26.000000000 -0700
++++ linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c	2008-10-17 07:35:50.000000000 -0700
+@@ -270,8 +270,7 @@ static int _omap3_noncore_dpll_stop(stru
+  */
+ static int omap3_noncore_dpll_enable(struct clk *clk)
+ {
+-	int r;
+-	long rate;
++	int rate;
+ 	struct dpll_data *dd;
  
- /* timeout waiting for the controller to respond */
- #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
-@@ -204,7 +206,7 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
- 	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
- 	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
- 	if (dev->rev1)
--		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG);	/* Read clears */
-+		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
+ 	if (clk == &dpll3_ck)
+@@ -282,14 +281,14 @@ static int omap3_noncore_dpll_enable(str
+ 		return -EINVAL;
+ 
+ 	if (clk->rate == dd->bypass_clk->rate)
+-		r = _omap3_noncore_dpll_bypass(clk);
++		rate = _omap3_noncore_dpll_bypass(clk);
  	else
- 		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, dev->iestate);
- 	/*
-@@ -323,9 +325,9 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+-		r = _omap3_noncore_dpll_lock(clk);
++		rate = _omap3_noncore_dpll_lock(clk);
  
- 	/* Enable interrupts */
- 	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG,
--			   (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
--			    OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
--			    OMAP_I2C_IE_AL)  | ((dev->fifo_size) ?
-+			(OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
-+			OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
-+			OMAP_I2C_IE_AL)  | ((dev->fifo_size) ?
- 				(OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0));
- 	return 0;
+-	if (!r)
++	if (!rate)
+ 		clk->rate = rate;
+ 
+-	return r;
++	return rate;
  }
-@@ -391,8 +393,10 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 		w |= OMAP_I2C_CON_XA;
- 	if (!(msg->flags & I2C_M_RD))
- 		w |= OMAP_I2C_CON_TRX;
-+
- 	if (!dev->b_hw && stop)
- 		w |= OMAP_I2C_CON_STP;
-+
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, w);
  
- 	/*
-@@ -471,7 +475,8 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
- 
- 	omap_i2c_unidle(dev);
- 
--	if ((r = omap_i2c_wait_for_bb(dev)) < 0)
-+	r = omap_i2c_wait_for_bb(dev);
-+	if (r < 0)
- 		goto out;
- 
- 	for (i = 0; i < num; i++) {
-@@ -564,7 +569,7 @@ omap_i2c_rev1_isr(int this_irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- #else
--#define omap_i2c_rev1_isr		0
-+#define omap_i2c_rev1_isr		NULL
- #endif
- 
- static irqreturn_t
--- 
-1.5.6.rc3.21.g8c6b5
-
-
---wjoFZxbW4tu+iR6v--
+ /**
