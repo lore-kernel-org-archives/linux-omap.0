@@ -1,44 +1,122 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [Resend] [PATCH 0/3] OMAP2EVM : Touchscreen driver support
-Date: Fri, 17 Oct 2008 14:41:43 -0700
-Message-ID: <20081017214143.GB18573@atomide.com>
-References: <dfeb90390809242231w1c7c5143jee3b54f03ee79415@mail.gmail.com>
+Subject: Re: [PATCH] Adds MCBSP mux settings
+Date: Fri, 17 Oct 2008 14:42:04 -0700
+Message-ID: <20081017214204.GC18573@atomide.com>
+References: <dfeb90390809250034x15494498p8109d52e1df44c77@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59206 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59460 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756891AbYJQVlq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Oct 2008 17:41:46 -0400
+	with ESMTP id S1754283AbYJQVmG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Oct 2008 17:42:06 -0400
 Content-Disposition: inline
-In-Reply-To: <dfeb90390809242231w1c7c5143jee3b54f03ee79415@mail.gmail.com>
+In-Reply-To: <dfeb90390809250034x15494498p8109d52e1df44c77@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Arun KS <arunks@mistralsolutions.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Arun KS <arunks@mistralsolutions.com> [080924 22:32]:
-> Hi,
-> 
-> Please ignore all the previous patches I have send.
-> I did some modifications and here are the final series.
-> 
-> Patch 1 : Adds mux settings required for mspi1 and gpio_85.
-> Patch 2 : Adds support for ads7846 touchscreen driver on omap2evm.
-> Patch 3 : Updates the defconfig of omap2evm board with mspi.
-> 
-> Now I am using cross-platform GPIO calls instead of the older
-> OMAP-specific ones.
+* Arun KS <arunks@mistralsolutions.com> [080925 00:34]:
+> Adding MCBSP port 1, 3, 4 and 5 ports mux settings for 2430.
 
-Pushing all three, sorry for the delay with these. BTW, one of
-these patches was wrapped and required manual editing to make it apply,
-so you might want to check your mailer settings.
+Pushing.
 
 Tony
 
+> Signed-off-by: Arun KS <arunks@mistralsolutions.com>
+> ---
+>  arch/arm/mach-omap2/mux.c             |   24 ++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/mach/mux.h |   24 ++++++++++++++++++++++++
+>  2 files changed, 48 insertions(+), 0 deletions(-)
 > 
-> Thanks,
-> Arun
+> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+> index 3e877ab..f272bfa 100644
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -202,6 +202,15 @@ MUX_CFG_24XX("AE9_2430_USB0HS_NXT",	0x13D,	0,	0,	0,	1)
+>  MUX_CFG_24XX("AC7_2430_USB0HS_DATA7",	0x13E,	0,	0,	0,	1)
+> 
+>  /* 2430 McBSP */
+> +MUX_CFG_24XX("AD6_2430_MCBSP_CLKS",	0x011E,	0,	0,	0,	1)
+> +
+> +MUX_CFG_24XX("AB2_2430_MCBSP1_CLKR",	0x011A,	0,	0,	0,	1)
+> +MUX_CFG_24XX("AD5_2430_MCBSP1_FSR",	0x011B,	0,	0,	0,	1)
+> +MUX_CFG_24XX("AA1_2430_MCBSP1_DX",	0x011C,	0,	0,	0,	1)
+> +MUX_CFG_24XX("AF3_2430_MCBSP1_DR",	0x011D,	0,	0,	0,	1)
+> +MUX_CFG_24XX("AB3_2430_MCBSP1_FSX",	0x011F,	0,	0,	0,	1)
+> +MUX_CFG_24XX("Y9_2430_MCBSP1_CLKX",	0x0120,	0,	0,	0,	1)
+> +
+>  MUX_CFG_24XX("AC10_2430_MCBSP2_FSX",	0x012E,	1,	0,	0,	1)
+>  MUX_CFG_24XX("AD16_2430_MCBSP2_CLX",	0x012F,	1,	0,	0,	1)
+>  MUX_CFG_24XX("AE13_2430_MCBSP2_DX",	0x0130,	1,	0,	0,	1)
+> @@ -211,6 +220,21 @@ MUX_CFG_24XX("AD16_2430_MCBSP2_CLX_OFF",0x012F,	0,	0,	0,	1)
+>  MUX_CFG_24XX("AE13_2430_MCBSP2_DX_OFF",	0x0130,	0,	0,	0,	1)
+>  MUX_CFG_24XX("AD13_2430_MCBSP2_DR_OFF",	0x0131,	0,	0,	0,	1)
+> 
+> +MUX_CFG_24XX("AC9_2430_MCBSP3_CLKX",	0x0103,	0,	0,	0,	1)
+> +MUX_CFG_24XX("AE4_2430_MCBSP3_FSX",	0x0104,	0,	0,	0,	1)
+> +MUX_CFG_24XX("AE2_2430_MCBSP3_DR",	0x0105,	0,	0,	0,	1)
+> +MUX_CFG_24XX("AF4_2430_MCBSP3_DX",	0x0106,	0,	0,	0,	1)
+> +
+> +MUX_CFG_24XX("N3_2430_MCBSP4_CLKX",	0x010B,	1,	0,	0,	1)
+> +MUX_CFG_24XX("AD23_2430_MCBSP4_DR",	0x010C,	1,	0,	0,	1)
+> +MUX_CFG_24XX("AB25_2430_MCBSP4_DX",	0x010D,	1,	0,	0,	1)
+> +MUX_CFG_24XX("AC25_2430_MCBSP4_FSX",	0x010E,	1,	0,	0,	1)
+> +
+> +MUX_CFG_24XX("AE16_2430_MCBSP5_CLKX",	0x00ED,	1,	0,	0,	1)
+> +MUX_CFG_24XX("AF12_2430_MCBSP5_FSX",	0x00ED,	1,	0,	0,	1)
+> +MUX_CFG_24XX("K7_2430_MCBSP5_DX",	0x00EF,	1,	0,	0,	1)
+> +MUX_CFG_24XX("M1_2430_MCBSP5_DR",	0x00F0,	1,	0,	0,	1)
+> +
+>  /* 2430 MCSPI1 */
+>  MUX_CFG_24XX("Y18_2430_MCSPI1_CLK",	0x010F,	0,	0,	0,	1)
+>  MUX_CFG_24XX("AD15_2430_MCSPI1_SIMO",	0x0110,	0,	0,	0,	1)
+> diff --git a/arch/arm/plat-omap/include/mach/mux.h
+> b/arch/arm/plat-omap/include/mach/mux.h
+> index 683474f..1798bfe 100644
+> --- a/arch/arm/plat-omap/include/mach/mux.h
+> +++ b/arch/arm/plat-omap/include/mach/mux.h
+> @@ -632,6 +632,15 @@ enum omap24xx_index {
+>  	AC7_2430_USB0HS_DATA7,
+> 
+>  	/* 2430 McBSP */
+> +	AD6_2430_MCBSP_CLKS,
+> +
+> +	AB2_2430_MCBSP1_CLKR,
+> +	AD5_2430_MCBSP1_FSR,
+> +	AA1_2430_MCBSP1_DX,
+> +	AF3_2430_MCBSP1_DR,
+> +	AB3_2430_MCBSP1_FSX,
+> +	Y9_2430_MCBSP1_CLKX,
+> +
+>  	AC10_2430_MCBSP2_FSX,
+>  	AD16_2430_MCBSP2_CLX,
+>  	AE13_2430_MCBSP2_DX,
+> @@ -641,6 +650,21 @@ enum omap24xx_index {
+>  	AE13_2430_MCBSP2_DX_OFF,
+>  	AD13_2430_MCBSP2_DR_OFF,
+> 
+> +	AC9_2430_MCBSP3_CLKX,
+> +	AE4_2430_MCBSP3_FSX,
+> +	AE2_2430_MCBSP3_DR,
+> +	AF4_2430_MCBSP3_DX,
+> +
+> +	N3_2430_MCBSP4_CLKX,
+> +	AD23_2430_MCBSP4_DR,
+> +	AB25_2430_MCBSP4_DX,
+> +	AC25_2430_MCBSP4_FSX,
+> +
+> +	AE16_2430_MCBSP5_CLKX,
+> +	AF12_2430_MCBSP5_FSX,
+> +	K7_2430_MCBSP5_DX,
+> +	M1_2430_MCBSP5_DR,
+> +
+>  	/* 2430 McSPI*/
+>  	Y18_2430_MCSPI1_CLK,
+>  	AD15_2430_MCSPI1_SIMO,
+> -- 
+> 1.5.3.4
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
