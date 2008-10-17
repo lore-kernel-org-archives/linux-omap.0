@@ -1,81 +1,66 @@
-From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-Subject: [PATCH] OMAP3: Remove CONFIG_OMAP_SYSOFFMODE flag
-Date: Fri, 17 Oct 2008 09:46:08 +0300
-Message-ID: <1224225968-20828-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
+From: "Dasgupta, Romit" <romit@ti.com>
+Subject: RE: [PATCH 01/04] OMAP3 SRF: Generic shared resource f/w
+Date: Fri, 17 Oct 2008 13:05:35 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301B038E9DC@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301B03147FF@dbde02.ent.ti.com>
+ <02a701c93021$c7615ab0$LocalHost@wipultra1382>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:24052 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751010AbYJQGpp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Oct 2008 02:45:45 -0400
-In-Reply-To: <>
-References: <>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44193 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751440AbYJQHfr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Oct 2008 03:35:47 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9H7Zela018924
+	for <linux-omap@vger.kernel.org>; Fri, 17 Oct 2008 02:35:46 -0500
+In-Reply-To: <02a701c93021$c7615ab0$LocalHost@wipultra1382>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+To: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Remove CONFIG_OMAP_SYSOFFMODE flag and do the full initialization of voltage
-controller . Enabling automatic sending of OFF command and selecting wether
-SYS_OFF_MODE signal is used should be determined dynamically. Hence they are
-now not set in the initialization.
+>> 1) curr_level of the shared_resource is not updated in
+>> update_resource_level
+>
+>Yes, its not. Its done as part of the platform specific change_level call.
 
-The sleep voltage for OFF mode is changed to default 1,2V for VDD1 and
-1,15V for VDD2. Using the 0,9V setting causes hangup.
+[Romit] Kindly see below. I was thinking that it is better that we do not access any fields of struct shared_resource from outside this file. Would the line below solve the problem?
 
-Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
----
- arch/arm/mach-omap2/pm34xx.c           |   10 +---------
- arch/arm/mach-omap2/prm-regbits-34xx.h |    4 ++--
- 2 files changed, 3 insertions(+), 11 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index a828db6..457639f 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -622,10 +622,7 @@ static void __init configure_vc(void)
- 				OMAP3_PRM_VC_I2C_CFG_OFFSET);
- 
- 	/* Setup voltctrl and other setup times */
--
--#ifdef CONFIG_OMAP_SYSOFFMODE
--	prm_write_mod_reg(OMAP3430_AUTO_OFF | OMAP3430_AUTO_RET |
--			OMAP3430_SEL_OFF, OMAP3430_GR_MOD,
-+	prm_write_mod_reg(OMAP3430_AUTO_RET, OMAP3430_GR_MOD,
- 			OMAP3_PRM_VOLTCTRL_OFFSET);
- 
- 	prm_write_mod_reg(OMAP3430_CLKSETUP_DURATION, OMAP3430_GR_MOD,
-@@ -640,11 +637,6 @@ static void __init configure_vc(void)
- 			OMAP3_PRM_VOLTOFFSET_OFFSET);
- 	prm_write_mod_reg(OMAP3430_VOLTSETUP2_DURATION, OMAP3430_GR_MOD,
- 			OMAP3_PRM_VOLTSETUP2_OFFSET);
--#else
--	prm_set_mod_reg_bits(OMAP3430_AUTO_RET, OMAP3430_GR_MOD,
--			OMAP3_PRM_VOLTCTRL_OFFSET);
--#endif
--
- }
- 
- static int __init omap3_pm_early_init(void)
-diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
-index f82b5a7..d73eee8 100644
---- a/arch/arm/mach-omap2/prm-regbits-34xx.h
-+++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
-@@ -466,13 +466,13 @@
- #define OMAP3430_VC_CMD_VAL0_ON				(0x3 << 4)
- #define OMAP3430_VC_CMD_VAL0_ONLP			(0x3 << 3)
- #define OMAP3430_VC_CMD_VAL0_RET			(0x3 << 3)
--#define OMAP3430_VC_CMD_VAL0_OFF			(0x3 << 3)
-+#define OMAP3430_VC_CMD_VAL0_OFF			(0x3 << 4)
- 
- /* PRM_VC_CMD_VAL_1 specific bits */
- #define OMAP3430_VC_CMD_VAL1_ON				(0xB << 2)
- #define OMAP3430_VC_CMD_VAL1_ONLP			(0x3 << 3)
- #define OMAP3430_VC_CMD_VAL1_RET			(0x3 << 3)
--#define OMAP3430_VC_CMD_VAL1_OFF			(0x3 << 3)
-+#define OMAP3430_VC_CMD_VAL1_OFF			(0xB << 2)
- 
- /* PRM_VC_CH_CONF */
- #define OMAP3430_CMD1					(1 << 20)
--- 
-1.5.4.3
+>> >+static int update_resource_level(struct shared_resource *resp)
+>> >+{
+>> >+      struct users_list *user;
+>> >+      unsigned long target_level;
+>> >+      int ret;
+>> >+
+>> >+      /* Regenerate the target_value for the resource */
+>> >+      target_level = RES_DEFAULTLEVEL;
+>> >+      list_for_each_entry(user, &resp->users_list, node)
+>> >+              if (user->level > target_level)
+>> >+                      target_level = user->level;
+>> >+
+>> >+      pr_debug("SRF: Changing Level for resource %s to %ld\n",
+>> >+                              resp->name, target_level);
+>> >+      ret = resp->ops->change_level(resp, target_level);
+>> >+      if (ret) {
+>> >+              printk(KERN_ERR "Unable to Change"
+>> >+                                      "level for resource
+>> %s to %ld\n",
+>> >+              resp->name, target_level);
+>> >+      } else 
+	          resp->curr_level = target_level; /* [Romit]  Should be done here.*/
+>> >+      return ret;
+>> >+}
+>
+>> 2) resource_request invokes spin_lock_irqsave and then if it
+>> is a request for a new device it invokes get_user().
+>> get_user() calls kmalloc with GFP_KERNEL. So it can sleep.
+>> Hence you will sleep with spinlocks held!!
+>
+>Right, so I'll probably have to add a GFP_ATOMIC flag to that.
+>I am now thinking If I really need spinlocks, think I can do with mutex's instead.
+>The spinlocks were put in place to take care of the omap-pm hooks from
+>clock f/w which no longer seem to be needed.
+[Romit] Trying to review the rest of the patches in the patchset to get a better picture.
 
