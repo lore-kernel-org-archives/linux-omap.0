@@ -1,37 +1,62 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: dpll4_ck rate broken
-Date: Fri, 17 Oct 2008 15:09:54 +0300
-Message-ID: <1224245394.19051.14.camel@tubuntu>
-References: <1224241708.19051.6.camel@tubuntu>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: Madhu Chikkature <madhu.cr@ti.com>
+Subject: [Resending PATCH 1/4] W1: export w1_read_8 function
+Date: Fri, 17 Oct 2008 20:21:55 +0530
+Message-ID: <1224255115-21614-1-git-send-email-madhu.cr@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:61358 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753404AbYJQMKh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Oct 2008 08:10:37 -0400
-In-Reply-To: <1224241708.19051.6.camel@tubuntu>
+Received: from devils.ext.ti.com ([198.47.26.153]:42905 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752913AbYJQOwP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Oct 2008 10:52:15 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, paul@pwsan.com
+To: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-On Fri, 2008-10-17 at 14:08 +0300, ext Tomi Valkeinen wrote:
-> Hi,
-> 
-> With latest linux-omap kernel, the dpll4_ck rate is a bit funny:
-> 
-> ~ # cat /debug/clock/virt_26m_ck/osc_sys_ck/sys_ck/rate 
-> 13000000
-> 
-> ~ # cat /debug/clock/virt_26m_ck/osc_sys_ck/sys_ck/dpll4_ck/rate 
-> 3224773576
-> 
+From: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-The reason seems to be in arch/arm/mach-omap2/clock34xx.c:
-omap3_noncore_dpll_enable(). It sets the dpll4_ck rate to the value of
-an unassigned local variable 'rate'.
+This patch exports the w1_read_8 function for use of drivers.
+The OMAP HDQ driver(drivers/w1/masters/omap_hdq.c) uses this function.
 
- Tomi
+Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
+Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+---
+The OMAP HDQ add device patch is dropped from the series
+as it has already gone upstream through the linux omap tree
 
+ drivers/w1/w1.h    |    1 +
+ drivers/w1/w1_io.c |    3 ++-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
+Index: linux-2.6/drivers/w1/w1_io.c
+===================================================================
+--- linux-2.6.orig/drivers/w1/w1_io.c	2008-10-17 08:14:23.000000000 +0530
++++ linux-2.6/drivers/w1/w1_io.c	2008-10-17 17:59:13.021464129 +0530
+@@ -217,7 +217,7 @@ u8 w1_triplet(struct w1_master *dev, int
+  * @param dev     the master device
+  * @return        the byte read
+  */
+-static u8 w1_read_8(struct w1_master * dev)
++u8 w1_read_8(struct w1_master * dev)
+ {
+ 	int i;
+ 	u8 res = 0;
+@@ -230,6 +230,7 @@ static u8 w1_read_8(struct w1_master * d
+ 
+ 	return res;
+ }
++EXPORT_SYMBOL_GPL(w1_read_8);
+ 
+ /**
+  * Writes a series of bytes.
+Index: linux-2.6/drivers/w1/w1.h
+===================================================================
+--- linux-2.6.orig/drivers/w1/w1.h	2008-10-17 08:14:23.000000000 +0530
++++ linux-2.6/drivers/w1/w1.h	2008-10-17 17:59:13.022464098 +0530
+@@ -206,6 +206,7 @@ void w1_slave_detach(struct w1_slave *sl
+ 
+ u8 w1_triplet(struct w1_master *dev, int bdir);
+ void w1_write_8(struct w1_master *, u8);
++u8 w1_read_8(struct w1_master *);
+ int w1_reset_bus(struct w1_master *);
+ u8 w1_calc_crc8(u8 *, int);
+ void w1_write_block(struct w1_master *, const u8 *, int);
