@@ -1,50 +1,60 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: Re: [PATCH 5/6] Generic twl4030 power script for 3430 based boards.
-Date: Fri, 17 Oct 2008 12:10:01 +0300
-Message-ID: <20081017091001.GA4637@codecarver.research.nokia.com>
-References: <1224077854-23481-1-git-send-email-peter.de-schrijver@nokia.com> <1224077854-23481-5-git-send-email-peter.de-schrijver@nokia.com> <1224077854-23481-6-git-send-email-peter.de-schrijver@nokia.com> <200810161609.47835.david-b@pacbell.net>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: Git tree updated to v2.6.27, some issues remain
+Date: Fri, 17 Oct 2008 12:54:39 +0300
+Message-ID: <20081017095439.GM3812@gandalf.research.nokia.com>
+References: <20081010120427.GZ3044@atomide.com> <200810161243.41079.david-b@pacbell.net> <D944DB09-436B-4549-8D61-EAC385290F26@student.utwente.nl> <200810161346.08862.david-b@pacbell.net>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:37132 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752062AbYJQJKX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Oct 2008 05:10:23 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:47575 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752667AbYJQJzm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Oct 2008 05:55:42 -0400
 Content-Disposition: inline
-In-Reply-To: <200810161609.47835.david-b@pacbell.net>
+In-Reply-To: <200810161346.08862.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: ext David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org
+Cc: Koen Kooi <k.kooi@student.utwente.nl>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-On Thu, Oct 16, 2008 at 04:09:47PM -0700, ext David Brownell wrote:
-> On Wednesday 15 October 2008, Peter 'p2' De Schrijver wrote:
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/twl4030-generic-scripts.h
-> > @@ -0,0 +1,8 @@
-> > +#ifndef __TWL4030_GENERIC_SCRIPTS_H
-> > +#define __TWL4030_GENERIC_SCRIPTS_H
-> > +
-> > +#include <linux/i2c/twl4030.h>
-> > +
-> > +extern struct twl4030_power_data generic3430_t2scripts_data;
-> > +
-> > +#endif
+On Thu, Oct 16, 2008 at 01:46:08PM -0700, David Brownell wrote:
+> On Thursday 16 October 2008, Koen Kooi wrote:
+> > > The MUSB transceiver-level issues I was aware of (mostly
+> > > on Overo, but minor glitches on Beagle) now seem to be
+> > > fixed by the combination of the IRQ patches I sent last
+> > > week, plus the twl4030-usb patch I just sent.
+> > 
+> > Does your patch also make OTG cable detect work?
 > 
-> I'd still put this decl into arch/arm/mach-omap2/pm.h, which
-> is already a bit of a grab-bag of PM hooks.  As you noted,
-> having a header for a single declaration isn't the Best Way.
+> I'm not entirely sure what you mean by that ...
+> 
+> For an OTG connector there are four states of note:
+> 
+>  (1) Nothing connected
+>  (2) There's a B-connector
+> 	(2a) with nothing on the other end, same as (1)
+> 	(2b) with a host on the other end, suppling VBUS
+>  (3) There's an A-connector, grounding the ID pin
+> 	(3a) with nothing on the other end,
+> 	(3b) with a periphereral pulling up D+ or D-
+> 
+> That patch uses the STS_HW_CONDITIONS register to detect
+> those three basic states ...
+> 
+> Now, whether the musb_hdrc code handles both (3a) and (3b)
+> correctly is another issue.  Recently it only handled the
+> (3b) case, which is what I tend to use.
+> 
+> On this go-around I didn't test the (3a) case.  If that
+> starts to work, great; but I was focussing on fixing the
+> regresssions.  Does it work for you?  (So you can plug
+> in a B-device to the other end, "later"?)
 
-In retrospect I don't think that's such a good idea either. pm.h
-contains prototypes related to OMAP2/3 powermanagement. Even though
-twl4030 plays some role in powermanagement, it's more at the system
-level then at the OMAP chip level. Ie. from an OMAP point of view
-nothing has to be switched off. But from a system point of view, it does
-save some power to switch things off. So I don't feel it belongs there.
-
-Cheers,
-
-Peter.
+In that case, if we have nothing connected on the other end, there's not
+much to do besides xceiv.state = OTG_STATE_A_IDLE; It won't be useful to
+start sourcing vbus since there's nothing to use it and we'd just spend
+battery for nothing.
 
 -- 
-goa is a state of mind
+balbi
