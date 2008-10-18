@@ -1,15 +1,15 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 3/5] OMAP243x omapdev: add OMAP243x omapdev records
-Date: Sat, 18 Oct 2008 15:59:12 -0600
-Message-ID: <20081018215911.9699.59160.stgit@localhost.localdomain>
+Subject: [PATCH 2/5] OMAP242x omapdev: add OMAP242x omapdev records
+Date: Sat, 18 Oct 2008 15:59:11 -0600
+Message-ID: <20081018215910.9699.13379.stgit@localhost.localdomain>
 References: <20081018215247.9699.35039.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45270 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:45269 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750899AbYJRWAK (ORCPT
+	with ESMTP id S1750878AbYJRWAK (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Oct 2008 18:00:10 -0400
 In-Reply-To: <20081018215247.9699.35039.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
@@ -17,126 +17,117 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>
 
-Add records for most of the OMAP243x/OMAP253x physical on-chip
-devices.  Include platform_device name and id fields for most of the
-devices currently in use by the codebase.
+Add records for most of the OMAP242x physical on-chip devices.  Include
+platform_device name and id fields for most of the devices currently in use
+by the codebase.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/omapdev-common.h |   90 +++++
- arch/arm/mach-omap2/omapdev243x.h    |  661 ++++++++++++++++++++++++++++++++++
- 2 files changed, 751 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omapdev243x.h
+ arch/arm/mach-omap2/omapdev-common.h |   81 +++++
+ arch/arm/mach-omap2/omapdev242x.h    |  581 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 662 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/omapdev242x.h
 
 diff --git a/arch/arm/mach-omap2/omapdev-common.h b/arch/arm/mach-omap2/omapdev-common.h
-index ce2852d..964efd6 100644
+index ce03f3d..ce2852d 100644
 --- a/arch/arm/mach-omap2/omapdev-common.h
 +++ b/arch/arm/mach-omap2/omapdev-common.h
-@@ -102,6 +102,96 @@ static struct omapdev *omapdevs[] = {
- 	&pka_242x_omapdev,
- #endif
+@@ -21,6 +21,87 @@
+ #include "omapdev3xxx.h"
  
-+#ifdef CONFIG_ARCH_OMAP2430
-+	&mpu_243x_omapdev,
-+	&iva2_243x_omapdev,
-+	&iva2_mmu_243x_omapdev,
-+	&gfx_243x_omapdev,
-+	&l3_243x_omapdev,
-+	&l4_core_243x_omapdev,
-+	&l4_wkup_243x_omapdev,
-+	&dsp_243x_omapdev,
-+	&control_243x_omapdev,
-+	&tap_243x_omapdev,
-+	&gpio2_243x_omapdev,
-+	&gpio3_243x_omapdev,
-+	&gpio4_243x_omapdev,
-+	&gptimer12_243x_omapdev,
-+	&uart3_243x_omapdev,
-+	&mcbsp2_243x_omapdev,
-+	&wdtimer4_243x_omapdev,
-+	&gptimer2_243x_omapdev,
-+	&gptimer3_243x_omapdev,
-+	&gptimer4_243x_omapdev,
-+	&gptimer5_243x_omapdev,
-+	&gptimer6_243x_omapdev,
-+	&gptimer7_243x_omapdev,
-+	&gptimer8_243x_omapdev,
-+	&gptimer9_243x_omapdev,
-+	&etb_243x_omapdev,
-+	&cwt_243x_omapdev,
-+	&xti_243x_omapdev,
-+	&dap_243x_omapdev,
-+	&dsi_243x_omapdev,
-+	&dsi_pll_243x_omapdev,
-+	&dss_243x_omapdev,
-+	&dispc_243x_omapdev,
-+	&rfbi_243x_omapdev,
-+	&venc_243x_omapdev,
-+	&fac_243x_omapdev,
-+	&cam_243x_omapdev,
-+	&cam_core_243x_omapdev,
-+	&cam_dma_243x_omapdev,
-+	&cam_mmu_243x_omapdev,
-+	&mpu_intc_243x_omapdev,
-+	&modem_intc_243x_omapdev,
-+	&sms_243x_omapdev,
-+	&gpmc_243x_omapdev,
-+	&sdrc_243x_omapdev,
-+	&ocm_ram_243x_omapdev,
-+	&ocm_rom_243x_omapdev,
-+	&sad2d_243x_omapdev,
-+	&ssi_243x_omapdev,
-+	&ohci_243x_omapdev,
-+	&fsotg_243x_omapdev,
-+	&hsotg_243x_omapdev,
-+	&sdma_243x_omapdev,
-+	&i2c1_243x_omapdev,
-+	&i2c2_243x_omapdev,
-+	&uart1_243x_omapdev,
-+	&uart2_243x_omapdev,
-+	&mcbsp1_243x_omapdev,
-+	&gptimer10_243x_omapdev,
-+	&gptimer11_243x_omapdev,
-+	&mailbox_243x_omapdev,
-+	&mcspi1_243x_omapdev,
-+	&mcspi2_243x_omapdev,
-+	&mg_243x_omapdev,
-+	&hdq_243x_omapdev,
-+	&mspro_243x_omapdev,
-+	&mcbsp5_243x_omapdev,
-+	&hsmmc1_243x_omapdev,
-+	&hsmmc2_243x_omapdev,
-+	&mcspi3_243x_omapdev,
-+	&gptimer1_243x_omapdev,
-+	&prm_243x_omapdev,
-+	&cm_243x_omapdev,
-+	&omap_32ksynct_243x_omapdev,
-+	&gpio1_243x_omapdev,
-+	&wdtimer2_243x_omapdev,
-+	&wdtimer1_243x_omapdev,
-+	&rng_243x_omapdev,
-+	&sha1md5_243x_omapdev,
-+	&des_243x_omapdev,
-+	&aes_243x_omapdev,
-+	&pka_243x_omapdev,
-+	&modem_243x_omapdev,
-+	&icr_243x_omapdev,
-+	&mcbsp3_243x_omapdev,
-+	&mcbsp4_243x_omapdev,
-+	&gpio5_243x_omapdev,
+ static struct omapdev *omapdevs[] = {
++
++#ifdef CONFIG_ARCH_OMAP2420
++	&mpu_242x_omapdev,
++	&iva_242x_omapdev,
++	&gfx_242x_omapdev,
++	&prcm_242x_omapdev,
++	&l3_242x_omapdev,
++	&l4_core_242x_omapdev,
++	&dsp_242x_omapdev,
++	&dsp_mmu_242x_omapdev,
++	&control_242x_omapdev,
++	&tap_242x_omapdev,
++	&gpio2_242x_omapdev,
++	&gpio3_242x_omapdev,
++	&gpio4_242x_omapdev,
++	&gptimer12_242x_omapdev,
++	&uart3_242x_omapdev,
++	&mcbsp2_242x_omapdev,
++	&wdtimer4_242x_omapdev,
++	&gptimer2_242x_omapdev,
++	&gptimer3_242x_omapdev,
++	&gptimer4_242x_omapdev,
++	&gptimer5_242x_omapdev,
++	&gptimer6_242x_omapdev,
++	&gptimer7_242x_omapdev,
++	&gptimer8_242x_omapdev,
++	&gptimer9_242x_omapdev,
++	&etb_242x_omapdev,
++	&cwt_242x_omapdev,
++	&xti_242x_omapdev,
++	&dap_242x_omapdev,
++	&dsi_242x_omapdev,
++	&dsi_pll_242x_omapdev,
++	&dss_242x_omapdev,
++	&dispc_242x_omapdev,
++	&rfbi_242x_omapdev,
++	&venc_242x_omapdev,
++	&fac_242x_omapdev,
++	&cam_242x_omapdev,
++	&cam_core_242x_omapdev,
++	&cam_dma_242x_omapdev,
++	&cam_mmu_242x_omapdev,
++	&mpu_intc_242x_omapdev,
++	&sms_242x_omapdev,
++	&gpmc_242x_omapdev,
++	&sdrc_242x_omapdev,
++	&ocm_ram_242x_omapdev,
++	&ocm_rom_242x_omapdev,
++	&ssi_242x_omapdev,
++	&ohci_242x_omapdev,
++	&otg_242x_omapdev,
++	&sdma_242x_omapdev,
++	&i2c1_242x_omapdev,
++	&i2c2_242x_omapdev,
++	&uart1_242x_omapdev,
++	&uart2_242x_omapdev,
++	&mcbsp1_242x_omapdev,
++	&gptimer10_242x_omapdev,
++	&gptimer11_242x_omapdev,
++	&mailbox_242x_omapdev,
++	&mcspi1_242x_omapdev,
++	&mcspi2_242x_omapdev,
++	&mg_242x_omapdev,
++	&hdq_242x_omapdev,
++	&mspro_242x_omapdev,
++	&wdtimer3_242x_omapdev,
++	&vlynq_242x_omapdev,
++	&eac_242x_omapdev,
++	&mmc_242x_omapdev,
++	&gptimer1_242x_omapdev,
++	&omap_32ksynct_242x_omapdev,
++	&gpio1_242x_omapdev,
++	&wdtimer2_242x_omapdev,
++	&wdtimer1_242x_omapdev,
++	&rng_242x_omapdev,
++	&sha1md5_242x_omapdev,
++	&des_242x_omapdev,
++	&aes_242x_omapdev,
++	&pka_242x_omapdev,
 +#endif
 +
  	NULL,
  };
  
-diff --git a/arch/arm/mach-omap2/omapdev243x.h b/arch/arm/mach-omap2/omapdev243x.h
+diff --git a/arch/arm/mach-omap2/omapdev242x.h b/arch/arm/mach-omap2/omapdev242x.h
 new file mode 100644
-index 0000000..6a51cb3
+index 0000000..3898958
 --- /dev/null
-+++ b/arch/arm/mach-omap2/omapdev243x.h
-@@ -0,0 +1,661 @@
++++ b/arch/arm/mach-omap2/omapdev242x.h
+@@ -0,0 +1,581 @@
 +/*
-+ * TI OCP devices present on OMAP243x
++ * TI OCP devices present on OMAP242x
 + *
 + * Copyright (C) 2007-2008 Texas Instruments, Inc.
 + * Copyright (C) 2007-2008 Nokia Corporation
@@ -148,653 +139,573 @@ index 0000000..6a51cb3
 + *
 + */
 +
-+#ifndef ARCH_ARM_MACH_OMAP2_OMAPDEV_243X_H
-+#define ARCH_ARM_MACH_OMAP2_OMAPDEV_243X_H
++#ifndef ARCH_ARM_MACH_OMAP2_OMAPDEV_242X_H
++#define ARCH_ARM_MACH_OMAP2_OMAPDEV_242X_H
 +
 +#include <linux/serial_8250.h>
 +
 +#include <mach/cpu.h>
 +#include <mach/omapdev.h>
 +
-+#ifdef CONFIG_ARCH_OMAP2430
++#ifdef CONFIG_ARCH_OMAP2420
 +
-+/* 2430 data from 2430 TRM ES2.1 Rev G */
-+
-+/* XXX add IVA2.1 WUGEN for 2430/3430 ? */
-+
++/* 242x data from 2420 TRM ES2.1.1 ES2.2 Rev Q */
 +
 +/* MPU */
 +
-+static struct omapdev mpu_243x_omapdev = {
++static struct omapdev mpu_242x_omapdev = {
 +	.name		= "mpu_omapdev",
 +	.pwrdm		= { .name = "mpu_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+/* IVA2/DSP */
 +
-+/* dsp_omapdev is what is used on OMAP243x */
-+static struct omapdev iva2_243x_omapdev = {
-+	.name		= "iva2_omapdev",
-+	.pwrdm		= { .name = "iva2_pwrdm" },
-+	.pdev_name	= "dsp",
-+	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++/* DSP/IVA pwrdm */
++
++/* This is IVA1, the ARM7 core on 2420 */
++static struct omapdev iva_242x_omapdev = {
++	.name		= "iva_omapdev",
++	.pwrdm		= { .name = "dsp_pwrdm" },
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
-+
-+static struct omapdev iva2_mmu_243x_omapdev = {
-+	.name		= "iva2_mmu_omapdev",
-+	.pwrdm		= { .name = "iva2_pwrdm" },
-+	.pdev_name	= "dsp",
-+	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
 +
 +/* GFX */
 +
 +/* XXX VGP/MBX split ? */
-+static struct omapdev gfx_243x_omapdev = {
++static struct omapdev gfx_242x_omapdev = {
 +	.name		= "gfx_omapdev",
 +	.pwrdm		= { .name = "gfx_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
++/* WKUP */
 +
-+/* CORE pwrdm	 */
++static struct omapdev prcm_242x_omapdev = {
++	.name		= "prcm_omapdev",
++	.pwrdm		= { .name = "wkup_pwrdm" },
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
++};
++
++/* CORE */
 +
 +/* L3 bus configuration: RT, AP, LA, PM blocks */
-+static struct omapdev l3_243x_omapdev = {
++static struct omapdev l3_242x_omapdev = {
 +	.name		= "l3_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
 +/* L4_CORE bus configuration: RT, AP, LA, PM blocks */
-+static struct omapdev l4_core_243x_omapdev = {
++static struct omapdev l4_core_242x_omapdev = {
 +	.name		= "l4_core_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+/* L4_WKUP bus configuration: RT, AP, LA, PM blocks */
-+static struct omapdev l4_wkup_243x_omapdev = {
-+	.name		= "l4_wkup_omapdev",
-+	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+static struct omapdev dsp_243x_omapdev = {
++static struct omapdev dsp_242x_omapdev = {
 +	.name		= "dsp_omapdev",
 +	.pwrdm		= { .name = "dsp_pwrdm" },
 +	.pdev_name	= "dsp",
 +	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
++};
++
++static struct omapdev dsp_mmu_242x_omapdev = {
++	.name		= "dsp_mmu_omapdev",
++	.pwrdm		= { .name = "dsp_pwrdm" },
++	.pdev_name	= "dsp",
++	.pdev_id	= -1,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
 +/* Wakeup */
 +
 +/* on CORE pwrdm in OMAP3 */
-+static struct omapdev control_243x_omapdev = {
++static struct omapdev control_242x_omapdev = {
 +	.name		= "control_omapdev",
 +	.pwrdm		= { .name = "wkup_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev tap_243x_omapdev = {
++static struct omapdev tap_242x_omapdev = {
 +	.name		= "tap_omapdev",
 +	.pwrdm		= { .name = "wkup_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
 +/* GPIO2-4 is on PER_PWRDM on OMAP3 */
-+static struct omapdev gpio2_243x_omapdev = {
++static struct omapdev gpio2_242x_omapdev = {
 +	.name		= "gpio2_omapdev",
 +	.pwrdm		= { .name = "wkup_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev gpio3_243x_omapdev = {
++static struct omapdev gpio3_242x_omapdev = {
 +	.name		= "gpio3_omapdev",
 +	.pwrdm		= { .name = "wkup_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev gpio4_243x_omapdev = {
++static struct omapdev gpio4_242x_omapdev = {
 +	.name		= "gpio4_omapdev",
 +	.pwrdm		= { .name = "wkup_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev gptimer12_243x_omapdev = {
++static struct omapdev gptimer12_242x_omapdev = {
 +	.name		= "gptimer12_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev uart3_243x_omapdev = {
++static struct omapdev uart3_242x_omapdev = {
 +	.name		= "uart3_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "serial8250",
 +	.pdev_id	= PLAT8250_DEV_PLATFORM,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev mcbsp2_243x_omapdev = {
++static struct omapdev mcbsp2_242x_omapdev = {
 +	.name		= "mcbsp2_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "omap-mcbsp",
 +	.pdev_id	= 2,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
 +/* aka the "IVA2 wdtimer" */
-+static struct omapdev wdtimer4_243x_omapdev = {
++static struct omapdev wdtimer4_242x_omapdev = {
 +	.name		= "wdtimer4_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.pdev_name	= "wdt",
-+	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev gptimer2_243x_omapdev = {
++static struct omapdev gptimer2_242x_omapdev = {
 +	.name		= "gptimer2_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev gptimer3_243x_omapdev = {
++static struct omapdev gptimer3_242x_omapdev = {
 +	.name		= "gptimer3_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev gptimer4_243x_omapdev = {
++static struct omapdev gptimer4_242x_omapdev = {
 +	.name		= "gptimer4_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev gptimer5_243x_omapdev = {
++static struct omapdev gptimer5_242x_omapdev = {
 +	.name		= "gptimer5_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev gptimer6_243x_omapdev = {
++static struct omapdev gptimer6_242x_omapdev = {
 +	.name		= "gptimer6_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev gptimer7_243x_omapdev = {
++static struct omapdev gptimer7_242x_omapdev = {
 +	.name		= "gptimer7_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev gptimer8_243x_omapdev = {
++static struct omapdev gptimer8_242x_omapdev = {
 +	.name		= "gptimer8_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev gptimer9_243x_omapdev = {
++static struct omapdev gptimer9_242x_omapdev = {
 +	.name		= "gptimer9_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev etb_243x_omapdev = {
++static struct omapdev etb_242x_omapdev = {
 +	.name		= "etb_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev cwt_243x_omapdev = {
++static struct omapdev cwt_242x_omapdev = {
 +	.name		= "cwt_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev xti_243x_omapdev = {
++static struct omapdev xti_242x_omapdev = {
 +	.name		= "xti_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "sti",
 +	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev dap_243x_omapdev = {
++static struct omapdev dap_242x_omapdev = {
 +	.name		= "dap_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev dsi_243x_omapdev = {
++static struct omapdev dsi_242x_omapdev = {
 +	.name		= "dsi_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "omapfb",
 +	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev dsi_pll_243x_omapdev = {
++static struct omapdev dsi_pll_242x_omapdev = {
 +	.name		= "dsi_pll_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "omapfb",
 +	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev dss_243x_omapdev = {
++static struct omapdev dss_242x_omapdev = {
 +	.name		= "dss_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "omapfb",
 +	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev dispc_243x_omapdev = {
++static struct omapdev dispc_242x_omapdev = {
 +	.name		= "dispc_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "omapfb",
 +	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev rfbi_243x_omapdev = {
++static struct omapdev rfbi_242x_omapdev = {
 +	.name		= "rfbi_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "omapfb",
 +	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev venc_243x_omapdev = {
++static struct omapdev venc_242x_omapdev = {
 +	.name		= "venc_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "omapfb",
 +	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev fac_243x_omapdev = {
++static struct omapdev fac_242x_omapdev = {
 +	.name		= "fac_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev cam_243x_omapdev = {
++static struct omapdev cam_242x_omapdev = {
 +	.name		= "cam_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "omap24xxcam",
 +	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev cam_core_243x_omapdev = {
++static struct omapdev cam_core_242x_omapdev = {
 +	.name		= "cam_core_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "omap24xxcam",
 +	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev cam_dma_243x_omapdev = {
++static struct omapdev cam_dma_242x_omapdev = {
 +	.name		= "cam_dma_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "omap24xxcam",
 +	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev cam_mmu_243x_omapdev = {
++static struct omapdev cam_mmu_242x_omapdev = {
 +	.name		= "cam_mmu_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "omap24xxcam",
 +	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
 +/* Connected to the ARM1136 peripheral port, not an L3/L4 interconnect */
-+static struct omapdev mpu_intc_243x_omapdev = {
++static struct omapdev mpu_intc_242x_omapdev = {
 +	.name		= "mpu_intc_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+/* XXX guessing on this one; TRM does not cover it well */
-+static struct omapdev modem_intc_243x_omapdev = {
-+	.name		= "modem_intc_omapdev",
-+	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+static struct omapdev sms_243x_omapdev = {
++static struct omapdev sms_242x_omapdev = {
 +	.name		= "sms_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev gpmc_243x_omapdev = {
++static struct omapdev gpmc_242x_omapdev = {
 +	.name		= "gpmc_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev sdrc_243x_omapdev = {
++static struct omapdev sdrc_242x_omapdev = {
 +	.name		= "sdrc_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev ocm_ram_243x_omapdev = {
++static struct omapdev ocm_ram_242x_omapdev = {
 +	.name		= "ocm_ram_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev ocm_rom_243x_omapdev = {
++static struct omapdev ocm_rom_242x_omapdev = {
 +	.name		= "ocm_rom_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev sad2d_243x_omapdev = {
-+	.name		= "sad2d_omapdev",
-+	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+static struct omapdev ssi_243x_omapdev = {
++static struct omapdev ssi_242x_omapdev = {
 +	.name		= "ssi_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev ohci_243x_omapdev = {
++static struct omapdev ohci_242x_omapdev = {
 +	.name		= "ohci_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "ohci",
 +	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev fsotg_243x_omapdev = {
-+	.name		= "fsotg_omapdev",
++static struct omapdev otg_242x_omapdev = {
++	.name		= "otg_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "omap_otg",
 +	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev hsotg_243x_omapdev = {
-+	.name		= "hsotg_omapdev",
-+	.pwrdm		= { .name = "core_pwrdm" },
-+	.pdev_name	= "omap_otg",
-+	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+static struct omapdev sdma_243x_omapdev = {
++static struct omapdev sdma_242x_omapdev = {
 +	.name		= "sdma_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev i2c1_243x_omapdev = {
++static struct omapdev i2c1_242x_omapdev = {
 +	.name		= "i2c1_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "i2c_omap",
 +	.pdev_id	= 1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev i2c2_243x_omapdev = {
++static struct omapdev i2c2_242x_omapdev = {
 +	.name		= "i2c2_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "i2c_omap",
 +	.pdev_id	= 2,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev uart1_243x_omapdev = {
++static struct omapdev uart1_242x_omapdev = {
 +	.name		= "uart1_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "serial8250",
 +	.pdev_id	= PLAT8250_DEV_PLATFORM,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev uart2_243x_omapdev = {
++static struct omapdev uart2_242x_omapdev = {
 +	.name		= "uart2_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "serial8250",
 +	.pdev_id	= PLAT8250_DEV_PLATFORM,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev mcbsp1_243x_omapdev = {
++static struct omapdev mcbsp1_242x_omapdev = {
 +	.name		= "mcbsp1_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "omap-mcbsp",
 +	.pdev_id	= 1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev gptimer10_243x_omapdev = {
++static struct omapdev gptimer10_242x_omapdev = {
 +	.name		= "gptimer10_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev gptimer11_243x_omapdev = {
++static struct omapdev gptimer11_242x_omapdev = {
 +	.name		= "gptimer11_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev mailbox_243x_omapdev = {
++static struct omapdev mailbox_242x_omapdev = {
 +	.name		= "mailbox_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "mailbox",
 +	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev mcspi1_243x_omapdev = {
++static struct omapdev mcspi1_242x_omapdev = {
 +	.name		= "mcspi1_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "omap2_mcspi",
 +	.pdev_id	= 1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev mcspi2_243x_omapdev = {
++static struct omapdev mcspi2_242x_omapdev = {
 +	.name		= "mcspi2_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "omap2_mcspi",
 +	.pdev_id	= 2,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev mg_243x_omapdev = {
++static struct omapdev mg_242x_omapdev = {
 +	.name		= "mg_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev hdq_243x_omapdev = {
++static struct omapdev hdq_242x_omapdev = {
 +	.name		= "hdq_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "omap_hdq",
 +	.pdev_id	= 0,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev mspro_243x_omapdev = {
++static struct omapdev mspro_242x_omapdev = {
 +	.name		= "mspro_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev mcbsp5_243x_omapdev = {
-+	.name		= "mcbsp5_omapdev",
++/* Not present on 2430 - present on 3430 in PER pwrdm */
++static struct omapdev wdtimer3_242x_omapdev = {
++	.name		= "wdtimer3_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.pdev_name	= "omap-mcbsp",
-+	.pdev_id	= 5,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev hsmmc1_243x_omapdev = {
-+	.name		= "hsmmc1_omapdev",
++static struct omapdev vlynq_242x_omapdev = {
++	.name		= "vlynq_omapdev",
++	.pwrdm		= { .name = "core_pwrdm" },
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
++};
++
++static struct omapdev eac_242x_omapdev = {
++	.name		= "eac_omapdev",
++	.pwrdm		= { .name = "core_pwrdm" },
++	.pdev_name	= "omap24xx-eac",
++	.pdev_id	= -1,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
++};
++
++static struct omapdev mmc_242x_omapdev = {
++	.name		= "mmc_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "mmci-omap",
 +	.pdev_id	= 0,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev hsmmc2_243x_omapdev = {
-+	.name		= "hsmmc2_omapdev",
-+	.pwrdm		= { .name = "core_pwrdm" },
-+	.pdev_name	= "mmci-omap",
-+	.pdev_id	= 1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+static struct omapdev mcspi3_243x_omapdev = {
-+	.name		= "mcspi3_omapdev",
-+	.pwrdm		= { .name = "core_pwrdm" },
-+	.pdev_name	= "omap2_mcspi",
-+	.pdev_id	= 3,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+
-+
-+/* WKUP */
-+
-+static struct omapdev gptimer1_243x_omapdev = {
++static struct omapdev gptimer1_242x_omapdev = {
 +	.name		= "gptimer1_omapdev",
 +	.pwrdm		= { .name = "wkup_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev prm_243x_omapdev = {
-+	.name		= "prm_omapdev",
-+	.pwrdm		= { .name = "wkup_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+static struct omapdev cm_243x_omapdev = {
-+	.name		= "cm_omapdev",
-+	.pwrdm		= { .name = "wkup_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+static struct omapdev omap_32ksynct_243x_omapdev = {
++static struct omapdev omap_32ksynct_242x_omapdev = {
 +	.name		= "32ksynct_omapdev",
 +	.pwrdm		= { .name = "wkup_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev gpio1_243x_omapdev = {
++static struct omapdev gpio1_242x_omapdev = {
 +	.name		= "gpio1_omapdev",
 +	.pwrdm		= { .name = "wkup_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
 +/* aka the "omap wdtimer" on 2430 or the "mpu wdtimer" on 3430 */
-+static struct omapdev wdtimer2_243x_omapdev = {
++static struct omapdev wdtimer2_242x_omapdev = {
 +	.name		= "wdtimer2_omapdev",
 +	.pwrdm		= { .name = "wkup_pwrdm" },
 +	.pdev_name	= "omap_wdt",
 +	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
 +/* Secure-mode devices */
 +
 +/* aka the "secure wdtimer" */
-+static struct omapdev wdtimer1_243x_omapdev = {
++static struct omapdev wdtimer1_242x_omapdev = {
 +	.name		= "wdtimer1_omapdev",
 +	.pwrdm		= { .name = "wkup_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev rng_243x_omapdev = {
++static struct omapdev rng_242x_omapdev = {
 +	.name		= "rng_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "omap_rng",
 +	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev sha1md5_243x_omapdev = {
++/* XXX is the slash in this pdev_name going to wreck sysfs? */
++static struct omapdev sha1md5_242x_omapdev = {
 +	.name		= "sha1md5_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
 +	.pdev_name	= "OMAP SHA1/MD5",
 +	.pdev_id	= -1,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev des_243x_omapdev = {
++static struct omapdev des_242x_omapdev = {
 +	.name		= "des_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev aes_243x_omapdev = {
++static struct omapdev aes_242x_omapdev = {
 +	.name		= "aes_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
-+static struct omapdev pka_243x_omapdev = {
++static struct omapdev pka_242x_omapdev = {
 +	.name		= "pka_omapdev",
 +	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
 +};
 +
++#endif	 /* CONFIG_ARCH_OMAP2420 */
 +
-+static struct omapdev modem_243x_omapdev = {
-+	.name		= "modem_omapdev",
-+	.pwrdm		= { .name = "mdm_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+static struct omapdev icr_243x_omapdev = {
-+	.name		= "icr_omapdev",
-+	.pwrdm		= { .name = "wkup_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+/* These two McBSP instances are in PER on 3430 */
-+static struct omapdev mcbsp3_243x_omapdev = {
-+	.name		= "mcbsp3_omapdev",
-+	.pwrdm		= { .name = "core_pwrdm" },
-+	.pdev_name	= "omap-mcbsp",
-+	.pdev_id	= 3,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+static struct omapdev mcbsp4_243x_omapdev = {
-+	.name		= "mcbsp4_omapdev",
-+	.pwrdm		= { .name = "core_pwrdm" },
-+	.pdev_name	= "omap-mcbsp",
-+	.pdev_id	= 4,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+static struct omapdev gpio5_243x_omapdev = {
-+	.name		= "gpio5_omapdev",
-+	.pwrdm		= { .name = "core_pwrdm" },
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+#endif /* CONFIG_ARCH_OMAP2430 */
 +
 +#endif
++
 
 
