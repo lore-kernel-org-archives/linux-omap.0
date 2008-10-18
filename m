@@ -1,275 +1,103 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 5/5] OMAP2/3 omapdev: add code to walk the omapdev records
-Date: Sat, 18 Oct 2008 15:59:19 -0600
-Message-ID: <20081018215914.9699.22120.stgit@localhost.localdomain>
-References: <20081018215247.9699.35039.stgit@localhost.localdomain>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 0/4] bq27x00 updates
+Date: Sun, 19 Oct 2008 01:23:43 +0300
+Message-ID: <20081018222338.GT31842@frodo>
+References: <1224277248-17021-1-git-send-email-felipe.balbi@nokia.com> <20081018211643.GA1272@oksana.dev.rtsoft.ru>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45286 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750952AbYJRWAP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Oct 2008 18:00:15 -0400
-In-Reply-To: <20081018215247.9699.35039.stgit@localhost.localdomain>
+Received: from ns1.siteground211.com ([209.62.36.12]:43244 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750926AbYJRWYA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Oct 2008 18:24:00 -0400
+Content-Disposition: inline
+In-Reply-To: <20081018211643.GA1272@oksana.dev.rtsoft.ru>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>
+To: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, Anton Vorontsov <cbou@mail.ru>, David Woodhouse <dwmw2@infradead.org>
 
-Register the omapdevs early in the boot process.  Also provide
-functions for other code (primarily the OMAP PM layer at the moment)
-to look up an omapdev given a platform_device name and id.
+On Sun, Oct 19, 2008 at 01:16:43AM +0400, Anton Vorontsov wrote:
+> On Sat, Oct 18, 2008 at 12:00:44AM +0300, Felipe Balbi wrote:
+> > The previous driver for bq27x00 batteries was a real
+> > ifdef mess. The following patches separate common code
+> > and create separate drivers for bq27200 and bq27000.
+> 
+> FYI (if you don't know already): Rodolfo Giometti already
+> cleaned up bq27200 part of that driver and submitted it few
+> months ago.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/Makefile              |    2 
- arch/arm/mach-omap2/io.c                  |    3 
- arch/arm/mach-omap2/omapdev.c             |  177 +++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/omapdev.h |    7 +
- 4 files changed, 188 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omapdev.c
+Didn't know that. Good to know by the way. In any case I think Copyright
+Texas Instruments should be kept as is and not like Rodolfo wrote:
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 33de217..25a4791 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -5,7 +5,7 @@
- # Common support
- obj-y := irq.o id.o io.o sdrc.o control.o prcm.o clock.o mux.o \
- 		devices.o serial.o gpmc.o timer-gp.o powerdomain.o \
--		clockdomain.o
-+		clockdomain.o omapdev.o
- 
- obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
- 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 05d4f2d..1829c1b 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -29,6 +29,8 @@
- #include <mach/sdrc.h>
- #include <mach/gpmc.h>
- 
-+#include "omapdev-common.h"
-+
- #include "clock.h"
- 
- #include <mach/powerdomain.h>
-@@ -202,6 +204,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sp)
- 	omap_pm_if_early_init();
- 	pwrdm_init(powerdomains_omap);
- 	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
-+	omapdev_init(omapdevs);
- 	omap2_clk_init();
- 	omap_pm_if_init(NULL, NULL);
- 	omap2_sdrc_init(sp);
-diff --git a/arch/arm/mach-omap2/omapdev.c b/arch/arm/mach-omap2/omapdev.c
-new file mode 100644
-index 0000000..1488681
---- /dev/null
-+++ b/arch/arm/mach-omap2/omapdev.c
-@@ -0,0 +1,177 @@
-+/*
-+ * omapdev device registration and handling code
-+ *
-+ * Copyright (C) 2007-2008 Texas Instruments, Inc.
-+ * Copyright (C) 2007-2008 Nokia Corporation
-+ * Paul Walmsley
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+#undef DEBUG
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/types.h>
-+#include <linux/list.h>
-+#include <linux/errno.h>
-+#include <linux/err.h>
-+#include <linux/platform_device.h>
-+
-+#include <mach/cpu.h>
-+#include <mach/powerdomain.h>
-+#include <mach/omapdev.h>
-+
-+/* odev_list contains all registered struct omapdevs */
-+static LIST_HEAD(odev_list);
-+
-+
-+/* Private functions */
-+
-+/*
-+ * _omapdev_lookup - look up an OMAP module pointer by its name
-+ * @name: name of the OMAP module to look up
-+ *
-+ * Finds a registered OMAP module by its name, returning a pointer to
-+ * it.	Returns a pointer to the struct omapdev if found, or NULL
-+ * otherwise.
-+ */
-+static struct omapdev *_omapdev_lookup(const char *name)
-+{
-+	struct omapdev *odev, *temp_odev;
-+
-+	if (!name)
-+		return NULL;
-+
-+	odev = NULL;
-+
-+	list_for_each_entry(temp_odev, &odev_list, node) {
-+		if (!strcmp(name, temp_odev->name)) {
-+			odev = temp_odev;
-+			break;
-+		}
-+	}
-+
-+	return odev;
-+}
-+
-+/*
-+ * _omapdev_register - register an OMAP module
-+ * @odev: struct omapdev * to register
-+ *
-+ * Adds a OMAP module to the internal OMAP module list.  Returns
-+ * -EINVAL if given a null pointer, -EEXIST if a OMAP module is
-+ * already registered by the provided name, or 0 upon success.
-+ */
-+static int _omapdev_register(struct omapdev *odev)
-+{
-+	struct powerdomain *pwrdm;
-+
-+	if (!odev)
-+		return -EINVAL;
-+
-+	if (!omap_chip_is(odev->omap_chip))
-+		return -EINVAL;
-+
-+	if (_omapdev_lookup(odev->name))
-+		return -EEXIST;
-+
-+	pwrdm = pwrdm_lookup(odev->pwrdm.name);
-+	if (!pwrdm) {
-+		pr_debug("omapdev: cannot register %s: bad powerdomain\n",
-+			 odev->name);
-+		return -EINVAL;
-+	}
-+	odev->pwrdm.ptr = pwrdm;
-+
-+	list_add(&odev->node, &odev_list);
-+
-+	pr_debug("omapdev: registered %s\n", odev->name);
-+
-+	return 0;
-+}
-+
-+
-+
-+/* Public functions */
-+
-+
-+/**
-+ * omapdev_init - set up the OMAP module layer
-+ * @odevs: ptr to a array of omapdev ptrs to register
-+ *
-+ * Loop through the list of OMAP modules, registering them all.  No
-+ * return value.
-+ */
-+void omapdev_init(struct omapdev **odevs)
-+{
-+	struct omapdev **d = NULL;
-+
-+	if (!list_empty(&odev_list)) {
-+		pr_debug("omapdev: init already called\n");
-+		return;
-+	}
-+
-+	for (d = odevs; *d; d++) {
-+		int v;
-+
-+		if (!omap_chip_is((*d)->omap_chip))
-+			continue;
-+
-+		v = _omapdev_register(*d);
-+		if (ERR_PTR(v))
-+			pr_err("omapdev: could not register %s\n",
-+			       (*d)->name);
-+	}
-+}
-+
-+
-+/**
-+ * omapdev_get_pwrdm - return pwrdm pointer associated with the device
-+ * @omapdev: omapdev *
-+ *
-+ */
-+struct powerdomain *omapdev_get_pwrdm(struct omapdev *odev)
-+{
-+	if (!odev)
-+		return NULL;
-+
-+	return odev->pwrdm.ptr;
-+}
-+
-+
-+/**
-+ * omapdev_find_pdev - look up an OMAP module by platform_device
-+ * @pdev_name: platform_device name to find
-+ * @pdev_id: platform_device id to find
-+ *
-+ * Finds a registered OMAP module by the platform_device name and ID
-+ * that is associated with it in the omapdev structure. If multiple
-+ * records exist, simply returns the 'first' record that it finds -
-+ * this is probably not optimal behavior, but should work for current
-+ * purposes.  Returns a pointer to the struct omapdev if found, or
-+ * NULL otherwise.
-+ */
-+struct omapdev *omapdev_find_pdev(struct platform_device *pdev)
-+{
-+	struct omapdev *odev, *temp_odev;
-+
-+	if (!pdev)
-+		return NULL;
-+
-+	odev = NULL;
-+
-+	list_for_each_entry(temp_odev, &odev_list, node) {
-+		if (temp_odev->pdev_name &&
-+		    !strcmp(pdev->name, temp_odev->pdev_name) &&
-+		    pdev->id == temp_odev->pdev_id) {
-+			odev = temp_odev;
-+			break;
-+		}
-+	}
-+
-+	return odev;
-+}
-+
-diff --git a/arch/arm/plat-omap/include/mach/omapdev.h b/arch/arm/plat-omap/include/mach/omapdev.h
-index ef91f00..4b379bc 100644
---- a/arch/arm/plat-omap/include/mach/omapdev.h
-+++ b/arch/arm/plat-omap/include/mach/omapdev.h
-@@ -15,6 +15,7 @@
- 
- #include <linux/types.h>
- #include <linux/list.h>
-+#include <linux/platform_device.h>
- 
- #include <mach/cpu.h>
- #include <mach/powerdomain.h>
-@@ -47,5 +48,11 @@ struct omapdev {
- };
- 
- 
-+void omapdev_init(struct omapdev **odev_list);
-+
-+struct powerdomain *omapdev_get_pwrdm(struct omapdev *odev);
-+
-+struct omapdev *omapdev_find_pdev(struct platform_device *pdev);
-+
- 
- #endif
+"Based on a previous work by Copyright (C) 2008 Texas Instruments, Inc."
 
+since he's not really writing new driver from scratch but only cleaning
+up an existing one that still sits in linux-omap tree.
 
+In any case, that's what you get when you don't push your drivers upstream,
+right ?? :-p
+
+Hopefully TI will start pushing their code upstream and this kind of
+issue will vanish.
+
+> http://lkml.org/lkml/2008/6/18/154
+> 
+> It will appear in the 2.6.28 kernel. For now it lives here:
+> 
+> http://git.infradead.org/battery-2.6.git?a=commitdiff;h=b996ad0e9fb15ca4acc60bcd0380912117a45d13
+> 
+> So I'd be happy if you could just rework it to support
+> bq27000 (w1) interface as well.
+
+Sure, but I'll only take a look at that after it falls into mainline.
+And btw, I don't have access to bq27000, only bq27200, so don't know if
+I'm gonna be the best person to put down that code since I can only
+build test.
+
+> > The code looks much cleaner, but we had to keep a global
+> > static pointer to hold the i2c_client (bq27200) or the
+> > w1 device (bq27000).
+> 
+> Yeah, this is not great...
+
+What I was trying to do, actually, is to provide a generic structure for
+bq27200 and bq27000 and another device specific which would hold the
+bus-related hooks (basically a pointer to i2c_client or a pointer to
+the w1 dev).
+
+Turned out that would be way too complicated for such a simple driver.
+
+> Can you consider this idea
+> http://kerneltrap.org/mailarchive/linux-kernel/2008/6/23/2198444
+> ?
+> 
+> It shows only i2c part, but the idea should be clear:
+> there should be w1 and i2c drivers, both would create bq27x00
+> platform devices, then the platform driver would not depend on
+> any hw interface.
+
+That looks good, but please don't add new stuff to drivers/i2c/chips.
+That directory is schedule to vanish asap. Also, I think bq27x00.h
+should not site in include/linux since it's not really related to the
+kernel as a whole.
+
+Sure you need the access method, but that structure is initialized by
+bq27200.c or bq27000.c; better would be to move bq27200.c into
+drivers/power and make bq27x00.h sit inside drivers/power as well.
+
+Also, this line is wrong:
+
++	di->bus = platform_get_drvdata(pdev);
+
+di->bus will get initialized by di again. The correct would be:
+
+di->bus = pdev->dev.platform_data;
+
+another point is that I suppose that goto idr_try_again should have a
+max_tries hook to prevent that code from looping unconditionally if we
+can't get new IDR (for some reason).
+
+-- 
+balbi
