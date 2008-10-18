@@ -1,68 +1,172 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH] Fix bootup crash for LDP platform
-Date: Sat, 18 Oct 2008 22:43:14 +0300
-Message-ID: <20081018194304.GP31842@frodo>
-References: <1224284642-13863-1-git-send-email-vikram.pandita@ti.com> <20081017235020.GM31842@frodo> <20081018135642.GP18573@atomide.com> <200810181228.09194.david-b@pacbell.net>
+Subject: Re: [PATCH] omap: Add basic support for Pandora handheld console
+Date: Sat, 18 Oct 2008 22:55:29 +0300
+Message-ID: <20081018195518.GQ31842@frodo>
+References: <1224357743-23060-1-git-send-email-notasas@gmail.com>
 Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:36676 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:35413 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750754AbYJRTnc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Oct 2008 15:43:32 -0400
+	with ESMTP id S1750865AbYJRTzp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Oct 2008 15:55:45 -0400
 Content-Disposition: inline
-In-Reply-To: <200810181228.09194.david-b@pacbell.net>
+In-Reply-To: <1224357743-23060-1-git-send-email-notasas@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <me@felipebalbi.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-On Sat, Oct 18, 2008 at 12:28:08PM -0700, David Brownell wrote:
-> On Saturday 18 October 2008, Tony Lindgren wrote:
-> > Pushed. I hope you have a real fix for this coming from mainline soon :)
-> 
-> There's a general issue to sort out here too.
-> 
-> The early development of the MUSB code was on DaVinci, and
-> then TUSB6010, which integrate (a) an OTG transceiver, plus
-> (b) the OTG hardware.  So musb_hdrc currently presumes it
-> always works that way.
-> 
-> However, OMAP3 (and 2430) split out (a) into the TWL4030
-> or TWL5030 chip, leaving (b) integral to the MUSB silicon.
-> 
-> But the MUSB code only accomodates that through a hack ...
-> in musb/omap2430.c is the line which I suspect oopsed:
-> 
-> 	musb->xceiv = *x;
-> 
-> So when the twl4030 transceiver support does its thing,
-> it does it to the original otg_transceiver struct instead
-> of the copy being used by the MUSB core.  Wrong!!!
-> 
-> Partial fixup patch appended; doesn't resolve $SUBJECT
-> issue, I think, but it's in the right direction.
+On Sat, Oct 18, 2008 at 10:22:23PM +0300, Grazvydas Ignotas wrote:
+> +static struct mtd_partition omap3pandora_nand_partitions[] = {
+> +	{
+> +		.name           = "xloader",
+> +		.offset         = 0,			/* Offset = 0x00000 */
+> +		.size           = 4 * NAND_BLOCK_SIZE,
+> +		.mask_flags     = MTD_WRITEABLE
+> +	},
+> +	{
 
-Looks fine. I recall talking to you about this some months ago but my
-approach was about introducing a drivers/usb/otg layer to which we would
-usb_otg_register_driver() or something similar thus allowing musb (or
-any other consumer) just use the otg_tranceiver that is registered now.
+}, { looks better
 
-The good thing about it is that it would allow us to switch otg
-transceivers and not have to add aditional conditional code to handle
-it.
+> +		.name           = "uboot",
+> +		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
+> +		.size           = 14 * NAND_BLOCK_SIZE,
+> +	},
+> +	{
+> +		.name           = "uboot environment",
+> +		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x240000 */
+> +		.size           = 2 * NAND_BLOCK_SIZE,
+> +	},
+> +	{
+> +		.name           = "linux",
+> +		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
+> +		.size           = 32 * NAND_BLOCK_SIZE,
+> +	},
+> +	{
+> +		.name           = "rootfs",
+> +		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x680000 */
+> +		.size           = MTDPART_SIZ_FULL,
+> +	},
+> +};
+> +
+> +static struct omap_nand_platform_data omap3pandora_nand_data = {
+> +	.parts = omap3pandora_nand_partitions,
+> +	.nr_parts = ARRAY_SIZE(omap3pandora_nand_partitions),
+> +	.dma_channel = -1,	/* disable DMA in OMAP NAND driver */
 
-Your approach looks good but case we have to change the transceiver (not
-twl4030-usb, let's say) it's a bit difficult to handle that.
+tabify these:
 
-I'd say your fix is good as a short term, right ? We have already
-blackfin support for musb and most likely they won't usb twl4030 chips,
-I also got a mail from another company asking about adding their musb
-glue to our code so this problem with the otg transceiver might soon be
-a big pain.
+.parts		= omap3pandora_nand_partitions,
 
-What do you say ??
+etc
+
+> +};
+> +
+> +static struct resource omap3pandora_nand_resource = {
+> +	.flags		= IORESOURCE_MEM,
+> +};
+
+this should be:
+
+static struct resource omap3pandora_nand_resource[] = {
+	{
+		.flags	= IORESOURCE_MEM,
+	},
+};
+
+> +
+> +static struct platform_device omap3pandora_nand_device = {
+> +	.name		= "omap2-nand",
+> +	.id		= -1,
+> +	.dev		= {
+> +		.platform_data	= &omap3pandora_nand_data,
+> +	},
+> +	.num_resources	= 1,
+
+and this should be:
+
+ARRAY_SIZE(omap3pandora_nand_resource);
+
+> +	.resource	= &omap3pandora_nand_resource,
+
+and this won't need & operator
+
+> +};
+> +
+> +
+
+one blank line is enough :-)
+
+> +static void __init omap3pandora_flash_init(void)
+> +{
+> +	u8 cs = 0;
+> +	u8 nandcs = GPMC_CS_NUM + 1;
+> +
+> +	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
+> +
+> +	/* find out the chip-select on which NAND exists */
+> +	while (cs < GPMC_CS_NUM) {
+> +		u32 ret = 0;
+> +		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+> +
+> +		if ((ret & 0xC00) == 0x800) {
+> +			printk(KERN_INFO "Found NAND on CS%d\n", cs);
+> +			if (nandcs > GPMC_CS_NUM)
+> +				nandcs = cs;
+> +		}
+> +		cs++;
+> +	}
+> +
+> +	if (nandcs > GPMC_CS_NUM) {
+> +		printk(KERN_INFO "NAND: Unable to find configuration "
+> +				 "in GPMC\n ");
+> +		return;
+> +	}
+> +
+> +	if (nandcs < GPMC_CS_NUM) {
+> +		omap3pandora_nand_data.cs = nandcs;
+> +		omap3pandora_nand_data.gpmc_cs_baseaddr = (void *)
+> +			(gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
+> +		omap3pandora_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
+> +
+> +		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
+> +		if (platform_device_register(&omap3pandora_nand_device) < 0)
+> +			printk(KERN_ERR "Unable to register NAND device\n");
+> +	}
+> +}
+
+please add a blank line here.
+
+> +static struct omap_uart_config omap3pandora_uart_config __initdata = {
+> +	.enabled_uarts	= (1 << 2), /* UART3 */
+> +};
+
+please add a blank line here.
+
+> +static struct twl4030_gpio_platform_data omap3pandora_gpio_data = {
+> +	.gpio_base	= OMAP_MAX_GPIO_LINES,
+> +	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+> +	.irq_end	= TWL4030_GPIO_IRQ_END,
+> +};
+
+<snip>
+
+> +static void __init omap3pandora_init(void)
+> +{
+> +	omap3pandora_i2c_init();
+> +	platform_add_devices(omap3pandora_devices, ARRAY_SIZE(omap3pandora_devices));
+> +	omap_board_config = omap3pandora_config;
+> +	omap_board_config_size = ARRAY_SIZE(omap3pandora_config);
+> +	omap_serial_init();
+> +	hsmmc_init();
+> +	usb_musb_init();
+> +	usb_ehci_init();
+
+Are you guys really using both ??
+
+do you have an otg port on pandora ??
 
 -- 
 balbi
