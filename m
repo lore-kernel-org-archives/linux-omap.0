@@ -1,54 +1,47 @@
 From: Anton Vorontsov <avorontsov@ru.mvista.com>
-Subject: Re: [PATCH 1/4] power_supply: bq27x00: separate common code
-Date: Sun, 19 Oct 2008 01:36:00 +0400
-Message-ID: <20081018213600.GB1272@oksana.dev.rtsoft.ru>
-References: <1224277248-17021-1-git-send-email-felipe.balbi@nokia.com> <1224277248-17021-2-git-send-email-felipe.balbi@nokia.com>
+Subject: Re: [PATCH 2/4] power_supply: bq27200: separate bq27200-specific
+	driver
+Date: Sun, 19 Oct 2008 01:46:35 +0400
+Message-ID: <20081018214635.GA12264@oksana.dev.rtsoft.ru>
+References: <1224277248-17021-1-git-send-email-felipe.balbi@nokia.com> <1224277248-17021-2-git-send-email-felipe.balbi@nokia.com> <1224277248-17021-3-git-send-email-felipe.balbi@nokia.com>
 Reply-To: avorontsov@ru.mvista.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1251
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rtsoft3.corbina.net ([85.21.88.6]:18182 "EHLO
+Received: from rtsoft3.corbina.net ([85.21.88.6]:18220 "EHLO
 	buildserver.ru.mvista.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750928AbYJRVgC (ORCPT
+	by vger.kernel.org with ESMTP id S1750952AbYJRVqh (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 18 Oct 2008 17:36:02 -0400
+	Sat, 18 Oct 2008 17:46:37 -0400
 Content-Disposition: inline
-In-Reply-To: <1224277248-17021-2-git-send-email-felipe.balbi@nokia.com>
+In-Reply-To: <1224277248-17021-3-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Balbi <felipe.balbi@nokia.com>
 Cc: linux-omap@vger.kernel.org, Anton Vorontsov <cbou@mail.ru>, David Woodhouse <dwmw2@infradead.org>
 
-On Sat, Oct 18, 2008 at 12:00:45AM +0300, Felipe Balbi wrote:
-> put common code into a separate file and link it to new
-> drivers which will come in later patches.
-
-Looks good. Though I would prefer platform_device approach.
-Nobody want to implement this though... don't know why, it is
-quite easy...
-http://kerneltrap.org/mailarchive/linux-kernel/2008/6/23/2198444
-
-
-Few comments below.
-
+On Sat, Oct 18, 2008 at 12:00:46AM +0300, Felipe Balbi wrote:
+> Create a separate driver for bq27200 chip. On a later patch,
+> the old file and cold will be remove and Makefile/Kconfig
+> updated.
+> 
 > Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 > ---
->  drivers/power/bq27x00.c |  190 +++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/power/bq27x00.h |   54 +++++++++++++
->  2 files changed, 244 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/power/bq27x00.c
->  create mode 100644 drivers/power/bq27x00.h
+>  drivers/power/bq27200.c |  202 +++++++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 202 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/power/bq27200.c
 > 
-> diff --git a/drivers/power/bq27x00.c b/drivers/power/bq27x00.c
+> diff --git a/drivers/power/bq27200.c b/drivers/power/bq27200.c
 > new file mode 100644
-> index 0000000..5609829
+> index 0000000..ef03743
 > --- /dev/null
-> +++ b/drivers/power/bq27x00.c
-> @@ -0,0 +1,190 @@
+> +++ b/drivers/power/bq27200.c
+> @@ -0,0 +1,202 @@
 > +/*
-> + * bq27x00.c - Shared functions between BQ27200 and BQ27000
+> + * bq27200.c - BQ27200 battery driver
 > + *
 > + * Copyright (C) 2008 Texas Instruments, Inc.
+> + * Copyright (C) 2008 Nokia Corporation
 > + *
 > + * Author: Texas Instruments
 > + *
@@ -68,292 +61,209 @@ Few comments below.
 > +#include <linux/delay.h>
 > +#include <linux/platform_device.h>
 > +#include <linux/power_supply.h>
+> +#include <linux/i2c.h>
 > +
 > +#include "bq27x00.h"
 > +
-> +unsigned int cache_time = 60000;
+> +static struct i2c_client *bq_client;
 
-I think it should be static, no?
+:-(
 
-> +module_param(cache_time, uint, 0644);
-> +MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
-> +
-> +enum power_supply_property bq27x00_props[] = {
+Platform device approach would eliminate need for this...
 
-static?
-
-> +	POWER_SUPPLY_PROP_PRESENT,
-> +	POWER_SUPPLY_PROP_VOLTAGE_NOW,
-> +	POWER_SUPPLY_PROP_CURRENT_NOW,
-> +	POWER_SUPPLY_PROP_CHARGE_NOW,
-> +	POWER_SUPPLY_PROP_CAPACITY,
-> +	POWER_SUPPLY_PROP_TEMP,
-> +};
-> +
-> +static int bq27x00_read(u8 reg, int *rt_value, int b_single,
-> +	struct bq27x00_device_info *di);
-> +
-> +/*
-> + * Return the battery temperature in Celcius degrees
-> + * Or < 0 if something fails.
-> + */
-> +static int bq27x00_temperature(struct bq27x00_device_info *di)
-> +{
-> +	int ret, temp = 0;
-> +
-> +	ret = bq27x00_read(BQ27x00_REG_TEMP, &temp, 0, di);
-> +	if (ret) {
-> +		pr_err("BQ27x00 battery driver:"
-> +			"Error reading temperature from the battery\n");
-
-dev_err()
-
-> +		return ret;
-> +	}
-> +
-> +	return (temp >> 2) - 273;
-> +}
-> +
-> +/*
-> + * Return the battery Voltage in milivolts
-> + * Or < 0 if something fails.
-> + */
-> +static int bq27x00_voltage(struct bq27x00_device_info *di)
-> +{
-> +	int ret, volt = 0;
-> +
-> +	ret = bq27x00_read(BQ27x00_REG_VOLT, &volt, 0, di);
-> +	if (ret) {
-> +		pr_err("BQ27x00 battery driver:"
-> +			"Error reading battery voltage from the battery\n");
-
-dev_err()
-
-> +		return ret;
-> +	}
-> +
-> +	return volt;
-> +}
-> +
-> +/*
-> + * Return the battery average current
-> + * Note that current can be negative signed as well
-> + * Or 0 if something fails.
-> + */
-> +static int bq27x00_current(struct bq27x00_device_info *di)
-> +{
-> +	int ret, curr = 0, flags = 0;
-
-int ret;
-int cur = 0;
-int flags = 0;
-
-The same applies for other functions.
-
-> +
-> +	ret = bq27x00_read(BQ27x00_REG_AI, &curr, 0, di);
-> +	if (ret) {
-> +		dev_dbg(di->dev, "Error reading current from the battery\n");
-> +		return 0;
-> +	}
-> +	ret = bq27x00_read(BQ27x00_REG_FLAGS, &flags, 0, di);
-> +	if (ret < 0) {
-> +		dev_dbg(di->dev, "Error reading battery flags\n");
-> +		return 0;
-> +	}
-> +	if ((flags & (1 << 7)) != 0) {
-> +		pr_debug("Negative current\n");
-
-Why not dev_dbg() here?
-
-> +		return -curr;
-> +	} else {
-> +		return curr;
-> +	}
-> +}
-> +
-> +/*
-> + * Return the battery Relative State-of-Charge
-> + * Or < 0 if something fails.
-> + */
-> +static int bq27x00_rsoc(struct bq27x00_device_info *di)
-> +{
-> +	int ret, rsoc = 0;
-> +
-> +	ret = bq27x00_read(BQ27x00_REG_RSOC, &rsoc, 1, di);
-> +	if (ret) {
-> +		pr_err("BQ27x00 battery driver:"
-> +			"Error reading battery Relative"
-> +			"State-of-Charge\n");
-
-dev_err()
-
-> +		return ret;
-> +	}
-> +	return rsoc;
-> +}
-> +
-> +static int bq27x00_read(u8 reg, int *rt_value, int b_single,
+> +static inline int bq27200_read(u8 reg, int *rt_value, int b_single,
 > +	struct bq27x00_device_info *di)
 > +{
-> +	return di->bus->read(reg, rt_value, b_single, di);
-> +}
+> +	struct i2c_client *client = bq_client;
+> +	struct i2c_msg msg[1];
+> +	unsigned char data[2];
+> +	int err;
 > +
-> +/*
-> + * Read the battery temp, voltage, current and relative state of charge.
-> + */
-> +void bq27x00_read_status(struct bq27x00_device_info *di)
-> +{
-> +	if (di->update_time && time_before(jiffies, di->update_time +
-> +					msecs_to_jiffies(cache_time)))
-> +		return;
+> +	if (!client->adapter)
+> +		return -ENODEV;
 > +
-> +	di->temp_C = bq27x00_temperature(di);
-> +	di->voltage_uV = bq27x00_voltage(di);
-> +	di->current_uA = bq27x00_current(di);
-> +	di->charge_rsoc = bq27x00_rsoc(di);
+> +	msg->addr = client->addr;
+> +	msg->flags = 0;
+> +	msg->len = 1;
+> +	msg->buf = data;
 > +
-> +	di->update_time = jiffies;
-> +}
+> +	data[0] = reg;
+> +	err = i2c_transfer(client->adapter, msg, 1);
 > +
-> +int bq27x00_get_property(struct power_supply *psy,
-> +					enum power_supply_property psp,
-> +					union power_supply_propval *val)
-> +{
-> +	struct bq27x00_device_info *di = to_bq27x00_device_info(psy);
-> +
-> +	switch (psp) {
-> +	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-> +		val->intval = di->voltage_uV;
-> +		break;
-> +	case POWER_SUPPLY_PROP_CURRENT_NOW:
-> +		val->intval = di->current_uA;
-> +		break;
-> +	case POWER_SUPPLY_PROP_CHARGE_NOW:
-> +		val->intval = di->charge_rsoc;
-> +		break;
-> +	case POWER_SUPPLY_PROP_TEMP:
-> +		val->intval = di->temp_C;
+> +	if (err >= 0) {
 
-Per Documentation/power/power_supply_class.txt we return temperature
-in tenths of degree Celsius. I think the driver doesn't convert it to
-proper units. (The same applies to the driver that it already
-in the battery-2.6.git tree. :-( We should fix that).
+Would look better if you swap the success/fail cases:
 
-> +		break;
-> +	case POWER_SUPPLY_PROP_CAPACITY:
-> +		val->intval = di->charge_rsoc;
+if (err < 0) {
+	dev_err();
+	return err;
+}
 
-I don't quite get it. In what units rsoc is? PROP_CAPACITY should
-be in percents, not uAh.
+success-code-here;
 
-See Documentation/power/power_supply_class.txt
-
-> +		break;
-> +	case POWER_SUPPLY_PROP_PRESENT:
-> +		if (di->voltage_uV == 0)
-> +			val->intval = 0;
+> +		if (!b_single)
+> +			msg->len = 2;
 > +		else
-> +			val->intval = 1;
-> +		break;
-> +	default:
-> +		return -EINVAL;
+> +			msg->len = 1;
+> +
+> +		msg->flags = I2C_M_RD;
+> +		err = i2c_transfer(client->adapter, msg, 1);
+> +		if (err >= 0) {
+> +			if (!b_single)
+> +				*rt_value = data[1] | HIGH_BYTE(data[0]);
+> +			else
+> +				*rt_value = data[0];
+> +
+> +			return 0;
+> +		} else {
+> +			dev_dbg(di->dev, "read failed with status %d\n", err);
+> +			return err;
+> +		}
+> +	} else {
+> +		dev_dbg(di->dev, "write failed with status %d\n", err);
+> +		return err;
 > +	}
+> +}
+> +
+> +static void bq27200_work(struct work_struct *work)
+> +{
+> +	struct bq27x00_device_info *di = container_of(work,
+> +		struct bq27x00_device_info, monitor_work.work);
+> +
+> +	bq27x00_read_status(di);
+> +	schedule_delayed_work(&di->monitor_work, 100);
+> +}
+> +
+> +static int __init bq27200_probe(struct i2c_client *client,
+> +		const struct i2c_device_id *id)
+> +{
+> +	struct bq27x00_device_info *di;
+> +	struct bq27x00_access_methods *bus;
+> +	int retval = 0;
+> +
+> +	di = kzalloc(sizeof(*di), GFP_KERNEL);
+> +	if (!di) {
+> +		dev_dbg(&client->dev, "could not allocate dev info's memory\n");
+> +		retval = -ENOMEM;
+> +		goto err_di;
+> +	}
+> +
+> +	bus = kzalloc(sizeof(*bus), GFP_KERNEL);
+> +	if (!bus) {
+> +		dev_dbg(&client->dev, "could not allocate bus' memory\n");
+> +		retval = -ENOMEM;
+> +		goto err_bus;
+> +	}
+> +
+> +	i2c_set_clientdata(client, di);
+> +	di->dev = &client->dev;
+> +	di->bat.name = "bq27200";
+> +	bus->read = &bq27200_read;
+> +	di->bus = bus;
+> +	bq_client = client;
+> +
+> +	bq27x00_powersupply_init(di);
+> +
+> +	retval = power_supply_register(&client->dev, &di->bat);
+> +	if (retval) {
+> +		dev_dbg(&client->dev, "could not register power_supply, %d\n",
+> +				retval);
+> +		goto err_psy;
+> +	}
+> +
+> +	INIT_DELAYED_WORK(&di->monitor_work, bq27200_work);
+> +	schedule_delayed_work(&di->monitor_work, 100);
+
+This should be done before registering the power supply. Otherwise
+code may use the di->monitor_work before it has initialized.
+
+> +	return 0;
+> +
+> +err_psy:
+> +	i2c_set_clientdata(client, NULL);
+> +	kfree(bus);
+> +
+> +err_bus:
+> +	kfree(di);
+> +
+> +err_di:
+> +	return retval;
+> +}
+> +
+> +static int __exit bq27200_remove(struct i2c_client *client)
+> +{
+> +	struct bq27x00_device_info *di  = i2c_get_clientdata(client);
+> +
+> +	flush_scheduled_work();
+> +	power_supply_unregister(&di->bat);
+> +	kfree(di->bus);
+> +	kfree(di);
 > +
 > +	return 0;
 > +}
 > +
-> +void bq27x00_powersupply_init(struct bq27x00_device_info *di)
+> +#ifdef CONFIG_PM
+> +static int bq27200_suspend(struct i2c_client *client, pm_message_t mesg)
 > +{
-> +	di->bat.type = POWER_SUPPLY_TYPE_BATTERY;
-> +	di->bat.properties = bq27x00_props;
-> +	di->bat.num_properties = ARRAY_SIZE(bq27x00_props);
-> +	di->bat.get_property = bq27x00_get_property;
-> +	di->bat.external_power_changed = NULL;
+> +	struct bq27x00_device_info *di  = i2c_get_clientdata(client);
+> +
+> +	cancel_delayed_work(&di->monitor_work);
+> +	return 0;
 > +}
 > +
-> diff --git a/drivers/power/bq27x00.h b/drivers/power/bq27x00.h
-> new file mode 100644
-> index 0000000..f465ed8
-> --- /dev/null
-> +++ b/drivers/power/bq27x00.h
-> @@ -0,0 +1,54 @@
-> +/*
-> + * bq27x00.h - exported symbols placeholder
-> + *
-> + * Copyright (C) 2008 Texas Instruments, Inc.
-> + * Copyright (C) 2008 Nokia Corporation
-> + *
-> + * Author: Texas Instruments
-> + *
-> + * This package is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-> + * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-> + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-> + *
-> + */
-
-#ifndef __POWER_BQ27X00_H
-#define __POWER_BQ27X00_H
-
-> +#define BQ27x00_REG_TEMP		0x06
-> +#define BQ27x00_REG_VOLT		0x08
-> +#define BQ27x00_REG_RSOC		0x0B /* Relative State-of-Charge */
-> +#define BQ27x00_REG_AI			0x14
-> +#define BQ27x00_REG_FLAGS		0x0A
-> +#define HIGH_BYTE(A)			((A) << 8)
-
-This macros has a problem that we fixed once already:
-
-http://git.infradead.org/battery-2.6.git?a=commitdiff;h=8aef7e8f8de2d900da892085edbf14ea35fe6881
-
+> +static int bq27200_resume(struct i2c_client *client)
+> +{
+> +	struct bq27x00_device_info *di  = i2c_get_clientdata(client);
 > +
-> +struct bq27x00_device_info {
-> +	struct device		*dev;
-> +	unsigned long		update_time;
-> +	int			voltage_uV;
-> +	int			current_uA;
-> +	int			temp_C;
-> +	int			charge_rsoc;
-> +	struct bq27x00_access_methods	*bus;
-> +	struct power_supply	bat;
-> +	struct delayed_work	monitor_work;
+> +	schedule_delayed_work(&di->monitor_work, 0);
+> +	return 0;
+> +}
+> +#else
+> +#define bq27200_suspend	NULL
+> +#define bq27200_resume	NULL
+> +#endif /* CONFIG_PM */
+> +
+> +static const struct i2c_device_id bq27200_id[] = {
+> +	{ "bq27200", 0 },
+
+No need for ", 0".
+
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(i2c, bq27200_id);
+> +
+> +static struct i2c_driver bq27200_driver = {
+> +	.driver		= {
+> +		.name   = "bq27200",
+> +	},
+> +	.probe		= bq27200_probe,
+> +	.remove		= __exit_p(bq27200_remove),
+> +	.suspend	= bq27200_suspend,
+> +	.resume		= bq27200_resume,
+> +	.id_table	= bq27200_id,
 > +};
 > +
-> +struct bq27x00_access_methods {
-> +	int (*read)(u8 reg, int *rt_value, int b_single,
-> +		struct bq27x00_device_info *di);
-> +};
+> +static int __init bq27200_init(void)
+> +{
+> +	return i2c_add_driver(&bq27200_driver);
+> +}
+> +module_init(bq27200_init);
 > +
-> +extern unsigned int cache_time;
-
-It seems this extern isn't used anywhere. Plus the name is too generic
-for global symbol.
-
-> +extern enum power_supply_property bq27x00_props[];
-
-It seems you don't need this extern.
-
-> +extern void bq27x00_powersupply_init(struct bq27x00_device_info *di);
-> +extern void bq27x00_read_status(struct bq27x00_device_info *di);
-> +extern int bq27x00_get_property(struct power_supply *psy,
-> +		enum power_supply_property psp,
-> +		union power_supply_propval *val);
-
-Ditto for these two.
-
+> +static void __exit bq27200_exit(void)
+> +{
+> +	i2c_del_driver(&bq27200_driver);
+> +}
+> +module_exit(bq27200_exit);
 > +
-> +#define to_bq27x00_device_info(x) container_of((x), \
-> +				struct bq27x00_device_info, bat);
+> +MODULE_AUTHOR("Texas Instruments");
+> +MODULE_DESCRIPTION("BQ27200 battery moniter driver");
+> +MODULE_LICENSE("GPL");
 > +
+> -- 
+> 1.6.0.2.307.gc427
 
-#endif /* __POWER_BQ27X00_H */
 
-
-Thanks!
+Thanks,
 
 -- 
 Anton Vorontsov
