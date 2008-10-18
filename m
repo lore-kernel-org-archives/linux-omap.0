@@ -1,172 +1,107 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH] omap: Add basic support for Pandora handheld console
-Date: Sat, 18 Oct 2008 22:55:29 +0300
-Message-ID: <20081018195518.GQ31842@frodo>
-References: <1224357743-23060-1-git-send-email-notasas@gmail.com>
-Reply-To: me@felipebalbi.com
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] Fix bootup crash for LDP platform
+Date: Sat, 18 Oct 2008 13:16:50 -0700
+Message-ID: <200810181316.51253.david-b@pacbell.net>
+References: <1224284642-13863-1-git-send-email-vikram.pandita@ti.com> <200810181228.09194.david-b@pacbell.net> <20081018194304.GP31842@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:35413 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750865AbYJRTzp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Oct 2008 15:55:45 -0400
+Received: from smtp126.sbc.mail.sp1.yahoo.com ([69.147.65.185]:31112 "HELO
+	smtp126.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750958AbYJRUQx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 18 Oct 2008 16:16:53 -0400
+In-Reply-To: <20081018194304.GP31842@frodo>
 Content-Disposition: inline
-In-Reply-To: <1224357743-23060-1-git-send-email-notasas@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: me@felipebalbi.com
+Cc: Tony Lindgren <tony@atomide.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sat, Oct 18, 2008 at 10:22:23PM +0300, Grazvydas Ignotas wrote:
-> +static struct mtd_partition omap3pandora_nand_partitions[] = {
-> +	{
-> +		.name           = "xloader",
-> +		.offset         = 0,			/* Offset = 0x00000 */
-> +		.size           = 4 * NAND_BLOCK_SIZE,
-> +		.mask_flags     = MTD_WRITEABLE
-> +	},
-> +	{
+On Saturday 18 October 2008, Felipe Balbi wrote:
+> > Partial fixup patch appended; doesn't resolve $SUBJECT
+> > issue, I think, but it's in the right direction.
+> 
+> Looks fine. I recall talking to you about this some months ago but my
+> approach was about introducing a drivers/usb/otg layer to which we would
+> usb_otg_register_driver() or something similar thus allowing musb (or
+> any other consumer) just use the otg_tranceiver that is registered now.
 
-}, { looks better
+Right now all we need is a way to make sure the MUSB code
+isn't assuming an integrated transceiver ... the patch I
+just sent is *only* to git rid of that "use an out-of-date
+copy of the original transceiver" logic.
 
-> +		.name           = "uboot",
-> +		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
-> +		.size           = 14 * NAND_BLOCK_SIZE,
-> +	},
-> +	{
-> +		.name           = "uboot environment",
-> +		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x240000 */
-> +		.size           = 2 * NAND_BLOCK_SIZE,
-> +	},
-> +	{
-> +		.name           = "linux",
-> +		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
-> +		.size           = 32 * NAND_BLOCK_SIZE,
-> +	},
-> +	{
-> +		.name           = "rootfs",
-> +		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x680000 */
-> +		.size           = MTDPART_SIZ_FULL,
-> +	},
-> +};
-> +
-> +static struct omap_nand_platform_data omap3pandora_nand_data = {
-> +	.parts = omap3pandora_nand_partitions,
-> +	.nr_parts = ARRAY_SIZE(omap3pandora_nand_partitions),
-> +	.dma_channel = -1,	/* disable DMA in OMAP NAND driver */
 
-tabify these:
+There are certainly some improvements that can be made in
+the area of OTG transceiver handling.  There are some PXA
+related patches in that area, too.  ISTR one of them was
+just to provide calls to register and unregister the OTG
+transceiver, moving them out of platform code (where they
+live today)...
 
-.parts		= omap3pandora_nand_partitions,
+What I recall about your drivers/usb/otg notion (maybe not
+entirely correctly) was that it covered a lot of stuff
+which, it seemed to me, didn't need abstracting.
 
-etc
+Maybe once we get the current MUSB stuff to work within
+the current framework -- which splits out otg_transceiver
+as an entity that host and peripheral side controller
+drivers talk to -- we should revisit such stuff.
 
-> +};
-> +
-> +static struct resource omap3pandora_nand_resource = {
-> +	.flags		= IORESOURCE_MEM,
-> +};
 
-this should be:
+> The good thing about it is that it would allow us to switch otg
+> transceivers and not have to add aditional conditional code to handle
+> it.
+> 
+> Your approach looks good but case we have to change the transceiver (not
+> twl4030-usb, let's say) it's a bit difficult to handle that.
 
-static struct resource omap3pandora_nand_resource[] = {
-	{
-		.flags	= IORESOURCE_MEM,
-	},
-};
+I don't follow *that* at all.  If some driver other than
+twl4030-usb registers as the system's OTG transceiver,
+MUSB on OMAP3x should just use that.  All musb should do
+is ask for the transceiver, and then talk to it ... but
+the current code can't do that.
 
-> +
-> +static struct platform_device omap3pandora_nand_device = {
-> +	.name		= "omap2-nand",
-> +	.id		= -1,
-> +	.dev		= {
-> +		.platform_data	= &omap3pandora_nand_data,
-> +	},
-> +	.num_resources	= 1,
 
-and this should be:
+> I'd say your fix is good as a short term, right ?
 
-ARRAY_SIZE(omap3pandora_nand_resource);
+Let's make sure it doesn't break DaVinci and TUSB first.
+It'd be good to remove the musb->xceiv->state doubled
+indirections in most places too, just as cleanup.
 
-> +	.resource	= &omap3pandora_nand_resource,
+(Plus cope with the $SUBJECT issue "for real"!)
 
-and this won't need & operator
 
-> +};
-> +
-> +
+> We have already 
+> blackfin support for musb and most likely they won't usb twl4030 chips,
 
-one blank line is enough :-)
+Right.  Does Blackfin have an integrated transceiver like
+DaVinci and TUSB?  Or does it use a discrete one?
 
-> +static void __init omap3pandora_flash_init(void)
-> +{
-> +	u8 cs = 0;
-> +	u8 nandcs = GPMC_CS_NUM + 1;
-> +
-> +	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
-> +
-> +	/* find out the chip-select on which NAND exists */
-> +	while (cs < GPMC_CS_NUM) {
-> +		u32 ret = 0;
-> +		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
-> +
-> +		if ((ret & 0xC00) == 0x800) {
-> +			printk(KERN_INFO "Found NAND on CS%d\n", cs);
-> +			if (nandcs > GPMC_CS_NUM)
-> +				nandcs = cs;
-> +		}
-> +		cs++;
-> +	}
-> +
-> +	if (nandcs > GPMC_CS_NUM) {
-> +		printk(KERN_INFO "NAND: Unable to find configuration "
-> +				 "in GPMC\n ");
-> +		return;
-> +	}
-> +
-> +	if (nandcs < GPMC_CS_NUM) {
-> +		omap3pandora_nand_data.cs = nandcs;
-> +		omap3pandora_nand_data.gpmc_cs_baseaddr = (void *)
-> +			(gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
-> +		omap3pandora_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
-> +
-> +		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
-> +		if (platform_device_register(&omap3pandora_nand_device) < 0)
-> +			printk(KERN_ERR "Unable to register NAND device\n");
-> +	}
-> +}
 
-please add a blank line here.
+> I also got a mail from another company asking about adding their musb
+> glue to our code so this problem with the otg transceiver might soon be
+> a big pain.
+> 
+> What do you say ??
 
-> +static struct omap_uart_config omap3pandora_uart_config __initdata = {
-> +	.enabled_uarts	= (1 << 2), /* UART3 */
-> +};
+I'm thinking this issue needs resolving before twl4030-usb can
+go upstream.  :)
 
-please add a blank line here.
+Does mainline work with tusb6010 today?  I see lots of USB
+patches merged yesterday.  And enough ARM/DaVinci patches
+merged (a few days back) that its MUSB might work too.
 
-> +static struct twl4030_gpio_platform_data omap3pandora_gpio_data = {
-> +	.gpio_base	= OMAP_MAX_GPIO_LINES,
-> +	.irq_base	= TWL4030_GPIO_IRQ_BASE,
-> +	.irq_end	= TWL4030_GPIO_IRQ_END,
-> +};
+- Dave
 
-<snip>
 
-> +static void __init omap3pandora_init(void)
-> +{
-> +	omap3pandora_i2c_init();
-> +	platform_add_devices(omap3pandora_devices, ARRAY_SIZE(omap3pandora_devices));
-> +	omap_board_config = omap3pandora_config;
-> +	omap_board_config_size = ARRAY_SIZE(omap3pandora_config);
-> +	omap_serial_init();
-> +	hsmmc_init();
-> +	usb_musb_init();
-> +	usb_ehci_init();
+> 
+> -- 
+> balbi
+> 
+> 
 
-Are you guys really using both ??
 
-do you have an otg port on pandora ??
-
--- 
-balbi
