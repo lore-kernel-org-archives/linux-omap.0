@@ -1,63 +1,77 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 1/5] OMAP2/3 omapdev: add basic omapdev structure
-Date: Sat, 18 Oct 2008 15:59:10 -0600
-Message-ID: <20081018215908.9699.79756.stgit@localhost.localdomain>
+Subject: [PATCH 5/5] OMAP2/3 omapdev: add code to walk the omapdev records
+Date: Sat, 18 Oct 2008 15:59:19 -0600
+Message-ID: <20081018215914.9699.22120.stgit@localhost.localdomain>
 References: <20081018215247.9699.35039.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45268 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:45286 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750837AbYJRWAJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Oct 2008 18:00:09 -0400
+	with ESMTP id S1750952AbYJRWAP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Oct 2008 18:00:15 -0400
 In-Reply-To: <20081018215247.9699.35039.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>
 
-Add a structure 'omapdev' to represent on-chip hardware peripherals.
-Currently the only additional information stored are the powerdomains for
-each on-chip peripheral, although the long-term intention is to use this
-to handle device reset at boot time and to clean up device registration.
-
-Use platform_device name and id fields to link this structure back to the
-corresponding platform_device.  In the medium- to long-term, it may be best
-to use a generic device pointer so system devices can be linked also; but
-for now, most cases can be handled via platform_device.
-
-struct omapdev differs in purpose from struct platform_device in that
-platform_device is currently used to represent "logical" devices in
-the Linux driver model, whereas this struct omapdev is used to
-represent physical on-chip devices in the OMAP memory map.  An example
-is the OMAP2xxx camera driver.  It uses only one platform_device,
-"omap24xxcam.-1", but on the hardware, that platform_device covers
-several independent on-chip devices with their own address space and
-control parameters.  Other examples of multiple omapdevs per platform_device
-include the display subsystem and UARTs.
-
-struct omapdev entries are only for on-chip devices.  Off-chip
-peripherals are not included in omapdev.  So, smc91x and onenand, for example,
-will not be included.  What belongs in those two cases would be some sort
-of GPMC platform_device.
+Register the omapdevs early in the boot process.  Also provide
+functions for other code (primarily the OMAP PM layer at the moment)
+to look up an omapdev given a platform_device name and id.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/omapdev-common.h      |   27 +++++++++++++++
- arch/arm/plat-omap/include/mach/omapdev.h |   51 +++++++++++++++++++++++++++++
- 2 files changed, 78 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omapdev-common.h
- create mode 100644 arch/arm/plat-omap/include/mach/omapdev.h
+ arch/arm/mach-omap2/Makefile              |    2 
+ arch/arm/mach-omap2/io.c                  |    3 
+ arch/arm/mach-omap2/omapdev.c             |  177 +++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/omapdev.h |    7 +
+ 4 files changed, 188 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/omapdev.c
 
-diff --git a/arch/arm/mach-omap2/omapdev-common.h b/arch/arm/mach-omap2/omapdev-common.h
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 33de217..25a4791 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -5,7 +5,7 @@
+ # Common support
+ obj-y := irq.o id.o io.o sdrc.o control.o prcm.o clock.o mux.o \
+ 		devices.o serial.o gpmc.o timer-gp.o powerdomain.o \
+-		clockdomain.o
++		clockdomain.o omapdev.o
+ 
+ obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
+ 
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 05d4f2d..1829c1b 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -29,6 +29,8 @@
+ #include <mach/sdrc.h>
+ #include <mach/gpmc.h>
+ 
++#include "omapdev-common.h"
++
+ #include "clock.h"
+ 
+ #include <mach/powerdomain.h>
+@@ -202,6 +204,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sp)
+ 	omap_pm_if_early_init();
+ 	pwrdm_init(powerdomains_omap);
+ 	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
++	omapdev_init(omapdevs);
+ 	omap2_clk_init();
+ 	omap_pm_if_init(NULL, NULL);
+ 	omap2_sdrc_init(sp);
+diff --git a/arch/arm/mach-omap2/omapdev.c b/arch/arm/mach-omap2/omapdev.c
 new file mode 100644
-index 0000000..ce03f3d
+index 0000000..1488681
 --- /dev/null
-+++ b/arch/arm/mach-omap2/omapdev-common.h
-@@ -0,0 +1,27 @@
++++ b/arch/arm/mach-omap2/omapdev.c
+@@ -0,0 +1,177 @@
 +/*
-+ * OMAP on-chip devices present on OMAP2/3
++ * omapdev device registration and handling code
 + *
 + * Copyright (C) 2007-2008 Texas Instruments, Inc.
 + * Copyright (C) 2007-2008 Nokia Corporation
@@ -68,77 +82,194 @@ index 0000000..ce03f3d
 + * published by the Free Software Foundation.
 + *
 + */
++#undef DEBUG
 +
-+#ifndef ARCH_ARM_MACH_OMAP2_OMAPDEV_COMMON_H
-+#define ARCH_ARM_MACH_OMAP2_OMAPDEV_COMMON_H
-+
-+#include <mach/omapdev.h>
-+
-+#include "omapdev242x.h"
-+#include "omapdev243x.h"
-+#include "omapdev3xxx.h"
-+
-+static struct omapdev *omapdevs[] = {
-+	NULL,
-+};
-+
-+#endif
-diff --git a/arch/arm/plat-omap/include/mach/omapdev.h b/arch/arm/plat-omap/include/mach/omapdev.h
-new file mode 100644
-index 0000000..ef91f00
---- /dev/null
-+++ b/arch/arm/plat-omap/include/mach/omapdev.h
-@@ -0,0 +1,51 @@
-+/*
-+ * OMAP on-chip device: structure and function call definitions
-+ *
-+ * Copyright (C) 2007-2008 Texas Instruments, Inc.
-+ * Copyright (C) 2007-2008 Nokia Corporation
-+ * Paul Walmsley
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+#ifndef ARCH_ARM_PLAT_OMAP_OMAPDEV_H
-+#define ARCH_ARM_PLAT_OMAP_OMAPDEV_H
-+
++#include <linux/kernel.h>
++#include <linux/module.h>
 +#include <linux/types.h>
 +#include <linux/list.h>
++#include <linux/errno.h>
++#include <linux/err.h>
++#include <linux/platform_device.h>
 +
 +#include <mach/cpu.h>
 +#include <mach/powerdomain.h>
++#include <mach/omapdev.h>
++
++/* odev_list contains all registered struct omapdevs */
++static LIST_HEAD(odev_list);
++
++
++/* Private functions */
++
++/*
++ * _omapdev_lookup - look up an OMAP module pointer by its name
++ * @name: name of the OMAP module to look up
++ *
++ * Finds a registered OMAP module by its name, returning a pointer to
++ * it.	Returns a pointer to the struct omapdev if found, or NULL
++ * otherwise.
++ */
++static struct omapdev *_omapdev_lookup(const char *name)
++{
++	struct omapdev *odev, *temp_odev;
++
++	if (!name)
++		return NULL;
++
++	odev = NULL;
++
++	list_for_each_entry(temp_odev, &odev_list, node) {
++		if (!strcmp(name, temp_odev->name)) {
++			odev = temp_odev;
++			break;
++		}
++	}
++
++	return odev;
++}
++
++/*
++ * _omapdev_register - register an OMAP module
++ * @odev: struct omapdev * to register
++ *
++ * Adds a OMAP module to the internal OMAP module list.  Returns
++ * -EINVAL if given a null pointer, -EEXIST if a OMAP module is
++ * already registered by the provided name, or 0 upon success.
++ */
++static int _omapdev_register(struct omapdev *odev)
++{
++	struct powerdomain *pwrdm;
++
++	if (!odev)
++		return -EINVAL;
++
++	if (!omap_chip_is(odev->omap_chip))
++		return -EINVAL;
++
++	if (_omapdev_lookup(odev->name))
++		return -EEXIST;
++
++	pwrdm = pwrdm_lookup(odev->pwrdm.name);
++	if (!pwrdm) {
++		pr_debug("omapdev: cannot register %s: bad powerdomain\n",
++			 odev->name);
++		return -EINVAL;
++	}
++	odev->pwrdm.ptr = pwrdm;
++
++	list_add(&odev->node, &odev_list);
++
++	pr_debug("omapdev: registered %s\n", odev->name);
++
++	return 0;
++}
++
++
++
++/* Public functions */
++
 +
 +/**
-+ * struct omapdev - OMAP on-chip hardware devices
-+ * @name: name of the device - should match TRM
-+ * @pwrdm: powerdomain that the device resides in
-+ * @omap_chip: OMAP chips this omapdev is valid for
-+ * @pdev_name: platform_device name associated with this omapdev (if any)
-+ * @pdev_id: platform_device id associated with this omapdev (if any)
++ * omapdev_init - set up the OMAP module layer
++ * @odevs: ptr to a array of omapdev ptrs to register
++ *
++ * Loop through the list of OMAP modules, registering them all.  No
++ * return value.
++ */
++void omapdev_init(struct omapdev **odevs)
++{
++	struct omapdev **d = NULL;
++
++	if (!list_empty(&odev_list)) {
++		pr_debug("omapdev: init already called\n");
++		return;
++	}
++
++	for (d = odevs; *d; d++) {
++		int v;
++
++		if (!omap_chip_is((*d)->omap_chip))
++			continue;
++
++		v = _omapdev_register(*d);
++		if (ERR_PTR(v))
++			pr_err("omapdev: could not register %s\n",
++			       (*d)->name);
++	}
++}
++
++
++/**
++ * omapdev_get_pwrdm - return pwrdm pointer associated with the device
++ * @omapdev: omapdev *
 + *
 + */
-+struct omapdev {
++struct powerdomain *omapdev_get_pwrdm(struct omapdev *odev)
++{
++	if (!odev)
++		return NULL;
 +
-+	const char *name;
-+
-+	union {
-+		const char *name;
-+		struct powerdomain *ptr;
-+	} pwrdm;
-+
-+	const struct omap_chip_id omap_chip;
-+
-+	const char *pdev_name;
-+
-+	const int pdev_id;
-+
-+	struct list_head node;
-+};
++	return odev->pwrdm.ptr;
++}
 +
 +
++/**
++ * omapdev_find_pdev - look up an OMAP module by platform_device
++ * @pdev_name: platform_device name to find
++ * @pdev_id: platform_device id to find
++ *
++ * Finds a registered OMAP module by the platform_device name and ID
++ * that is associated with it in the omapdev structure. If multiple
++ * records exist, simply returns the 'first' record that it finds -
++ * this is probably not optimal behavior, but should work for current
++ * purposes.  Returns a pointer to the struct omapdev if found, or
++ * NULL otherwise.
++ */
++struct omapdev *omapdev_find_pdev(struct platform_device *pdev)
++{
++	struct omapdev *odev, *temp_odev;
 +
-+#endif
++	if (!pdev)
++		return NULL;
++
++	odev = NULL;
++
++	list_for_each_entry(temp_odev, &odev_list, node) {
++		if (temp_odev->pdev_name &&
++		    !strcmp(pdev->name, temp_odev->pdev_name) &&
++		    pdev->id == temp_odev->pdev_id) {
++			odev = temp_odev;
++			break;
++		}
++	}
++
++	return odev;
++}
++
+diff --git a/arch/arm/plat-omap/include/mach/omapdev.h b/arch/arm/plat-omap/include/mach/omapdev.h
+index ef91f00..4b379bc 100644
+--- a/arch/arm/plat-omap/include/mach/omapdev.h
++++ b/arch/arm/plat-omap/include/mach/omapdev.h
+@@ -15,6 +15,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/list.h>
++#include <linux/platform_device.h>
+ 
+ #include <mach/cpu.h>
+ #include <mach/powerdomain.h>
+@@ -47,5 +48,11 @@ struct omapdev {
+ };
+ 
+ 
++void omapdev_init(struct omapdev **odev_list);
++
++struct powerdomain *omapdev_get_pwrdm(struct omapdev *odev);
++
++struct omapdev *omapdev_find_pdev(struct platform_device *pdev);
++
+ 
+ #endif
 
 
