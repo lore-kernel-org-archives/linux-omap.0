@@ -1,45 +1,63 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH] omap: Add basic support for Pandora handheld console
-Date: Sat, 18 Oct 2008 23:40:18 +0300
-Message-ID: <20081018204015.GS31842@frodo>
-References: <1224357743-23060-1-git-send-email-notasas@gmail.com> <20081018195518.GQ31842@frodo> <6ed0b2680810181319l6aa9f76co652a89778eefcdd1@mail.gmail.com>
-Reply-To: me@felipebalbi.com
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: Re: [PATCH 0/4] bq27x00 updates
+Date: Sun, 19 Oct 2008 01:16:43 +0400
+Message-ID: <20081018211643.GA1272@oksana.dev.rtsoft.ru>
+References: <1224277248-17021-1-git-send-email-felipe.balbi@nokia.com>
+Reply-To: avorontsov@ru.mvista.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1251
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:42834 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750952AbYJRUkq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Oct 2008 16:40:46 -0400
+Received: from rtsoft3.corbina.net ([85.21.88.6]:18134 "EHLO
+	buildserver.ru.mvista.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751040AbYJRVQp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 18 Oct 2008 17:16:45 -0400
 Content-Disposition: inline
-In-Reply-To: <6ed0b2680810181319l6aa9f76co652a89778eefcdd1@mail.gmail.com>
+In-Reply-To: <1224277248-17021-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: me@felipebalbi.com, linux-omap@vger.kernel.org
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: linux-omap@vger.kernel.org, Anton Vorontsov <cbou@mail.ru>, David Woodhouse <dwmw2@infradead.org>
 
-On Sat, Oct 18, 2008 at 11:19:57PM +0300, Grazvydas Ignotas wrote:
-> On Sat, Oct 18, 2008 at 10:55 PM, Felipe Balbi <me@felipebalbi.com> wrote:
-> > On Sat, Oct 18, 2008 at 10:22:23PM +0300, Grazvydas Ignotas wrote:
-> >> +     hsmmc_init();
-> >> +     usb_musb_init();
-> >> +     usb_ehci_init();
-> >
-> > Are you guys really using both ??
-> >
-> > do you have an otg port on pandora ??
-> 
-> Yup, we have both EHCI and OTG. See http://openpandora.ca/ . EHCI was
-> functional several weeks back, now it locks up just like on beagle.
-> Will resend soon with coding style changes..
+On Sat, Oct 18, 2008 at 12:00:44AM +0300, Felipe Balbi wrote:
+> The previous driver for bq27x00 batteries was a real
+> ifdef mess. The following patches separate common code
+> and create separate drivers for bq27200 and bq27000.
 
-cool :-)
+FYI (if you don't know already): Rodolfo Giometti already
+cleaned up bq27200 part of that driver and submitted it few
+months ago.
 
-I'll put my hands in that board when it comes out :-p
+http://lkml.org/lkml/2008/6/18/154
 
-BTW, the EHCI stuff is regarding to a infinite loop without timeout.
-Search the archives of linux-omap and you will find a simple workaround
-;-)
+It will appear in the 2.6.28 kernel. For now it lives here:
+
+http://git.infradead.org/battery-2.6.git?a=commitdiff;h=b996ad0e9fb15ca4acc60bcd0380912117a45d13
+
+So I'd be happy if you could just rework it to support
+bq27000 (w1) interface as well.
+
+> The code looks much cleaner, but we had to keep a global
+> static pointer to hold the i2c_client (bq27200) or the
+> w1 device (bq27000).
+
+Yeah, this is not great...
+
+> If anyone has a better solution, I'd like to hear since
+> keeping that global pointer doesn't look nice.
+
+Can you consider this idea
+http://kerneltrap.org/mailarchive/linux-kernel/2008/6/23/2198444
+?
+
+It shows only i2c part, but the idea should be clear:
+there should be w1 and i2c drivers, both would create bq27x00
+platform devices, then the platform driver would not depend on
+any hw interface.
+
+Thanks,
 
 -- 
-balbi
+Anton Vorontsov
+email: cbouatmailru@gmail.com
+irc://irc.freenode.net/bd2
