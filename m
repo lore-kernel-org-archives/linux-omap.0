@@ -1,40 +1,31 @@
 From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH 0/2] OMAP: I2C: reprogram OCP_SYSCONFIG after device
+Subject: RE: [PATCH 2/2] OMAP2/3 I2C: reprogram OCP_SYSCONFIG register after
  reset
-Date: Sun, 19 Oct 2008 08:06:47 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE89671620365D153BF@dlee02.ent.ti.com>
+Date: Sun, 19 Oct 2008 08:12:39 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE89671620365D153C0@dlee02.ent.ti.com>
 References: <20081014121031.1210.96214.stgit@localhost.localdomain>
+ <20081014121926.1210.11681.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50957 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51091 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751272AbYJSNGy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 19 Oct 2008 09:06:54 -0400
-In-Reply-To: <20081014121031.1210.96214.stgit@localhost.localdomain>
+	id S1751272AbYJSNMq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 19 Oct 2008 09:12:46 -0400
+In-Reply-To: <20081014121926.1210.11681.stgit@localhost.localdomain>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-PiBob3dldmVyLCB0aGUgQ0xPQ0tBQ1RJVklUWSBjaGFuZ2Ugb24gY2xrX2VuYWJsZSgpL2Nsa19k
-aXNhYmxlKCkgaW4gdGhhdA0KPiBjb2RlIGN1cnJlbnRseSBzZWVtcyBwb2ludGxlc3MsIHNvIGl0
-IGhhcyBiZWVuIGV4Y2x1ZGVkIHVudGlsIG1vcmUNCj4gaW5mb3JtYXRpb24gaXMgYXZhaWxhYmxl
-IGZyb20gVEkgb3IgdW50aWwgcHJvYmxlbXMgYXJlIGVuY291bnRlcmVkLg0KDQpJSVJDIENMT0NL
-QUNUSVZJVFkgc2V0dGluZ3MgbWFpbmx5IGhhZCB0byBkbyB3aXRoIGlmIEkyQyB3YXMgbWFzdGVy
-IG9yIHNsYXZlLiAgUGFydCBvZiBUSSBwYXRjaCBzZXQgYWxsb3dzIHNsYXZlIG1vZGUuICBTZWVt
-cyBsaWtlIHNvbWUgR1BTIGNoaXAgbmVlZGVkIHRvIGJlIG1hc3RlciBvciBzb21ldGhpbmcgYWxv
-bmcgdGhvc2UgbGluZXMuICBPbmUgb2YgdGhlIFRJLUFTUCBncm91cHMgbmVlZGVkIGl0Lg0KDQpH
-dWlkYW5jZSB3YXMgeW91IHNob3VsZCB0cmVhdCBpbnRlcm5hbCBjbG9ja3MgZGlmZmVyZW50bHkg
-YXQgb2NwLXNlZ21lbnQtaWRsZS1yZXF1ZXN0IHRpbWUgaWYgeW91IHdlcmUgdGhlIG9uZSBnZW5l
-cmF0aW5nIHRoZSBjbG9jayBvciBpdCB3YXMgY29taW5nIGluIGZyb20gdGhlIG91dHNpZGUgd29y
-bGQuICBJdCB3YXMgcmVwb3J0ZWQgbm90IGRvaW5nIHRoaXMgY29ycmVjdGx5IHdvdWxkIHJlc3Vs
-dCBpbiBwb3NzaWJsZSBkYXRhIGJlaW5nIGxvc3QuDQoNCk1jQlNQIGFuZCBhdWRpbyBoYXZlIGEg
-c2ltaWxhciByZWxhdGlvbnNoaXAgd2hlbiB5b3UgZG8gbWFzdGVyL3NsYXZlIGFuZCB5b3VyIHNh
-bXBsZSBjbG9jayBjb21lcyBmcm9tIHRoZSBvdXRzaWRlLg0KDQotLS0tLS0tLS0tLS0NCkdQVElN
-RVIgQ0xPQ0tBQ1RJVlRZIGlzIG1vcmUgZWFzaWx5IHVuZGVyc3Rvb2QuICBBdCBvY3Atc2VnbWVu
-dC1pZGxlLXJlcXVlc3QgZm9yIHRoZSBzeXN0ZW0gaGVhcnQgYmVhdCB5b3Ugd2FudCB0byBrZWVw
-IHRoYXQgRkNMSyBydW5uaW5nIHNvIHlvdSBzZXQgaXQgc28uICBUaGVyZSBjb3VsZCBiZSBhIGNh
-c2Ugd2l0aCBvdGhlciB0aW1lcnMgdGhhdCB5b3UganVzdCBsZXQgdGhlbSBiZSBzaHV0IGRvd24u
-DQoNClJlZ2FyZHMsDQpSaWNoYXJkIFcuDQo=
+DQo+IEZyb206IFBhdWwgV2FsbXNsZXkgW21haWx0bzpwYXVsQHB3c2FuLmNvbV0NCj4gU2VudDog
+VHVlc2RheSwgT2N0b2JlciAxNCwgMjAwOCA3OjIwIEFNDQoNCkZyb20gYSBxdWljayBnbGFuY2Ug
+dGhhdCBsb29rcyBvay4NCg0KSSdsbCByZXN0YXRlIG9sZCBuZXdzIHBvc3RlZCBoZXJlIGJlZm9y
+ZToNCg0KRm9yIE9NQVAyIHRoZSBzbWFydC1pZGxlIGhhbmRzaGFrZSBmb3IgSTJDIGRpZCBub3Qg
+bWFrZSBpdCB0byB0aGUgbW9kdWxlIGFuZCB3YXMgdGllZCBvZmYgYXQgcHJjbSBsZXZlbC4gIFRo
+aXMgcmVxdWlyZWQgYSBoYWNrIHRvIGVuc3VyZSBkYXRhIHdhcyBub3QgbG9zdCBpZiBlZmZlY3Rp
+dmUgcG93ZXIgbWFuYWdlbWVudCB3YXMgaW4gdXNlLiAgTWNCU1AgYWxzbyBoYWQgdGhpcyBpc3N1
+ZS4NCg0KT24gT01BUDMgaXQgaXMgYWxsIGhvb2tlZCB1cCBhcyBleHBlY3RlZCBzbyBtb2RpZnlp
+bmcgaGFuZHNoYWtlcyBkb2VzIHdoYXQgaXMgZXhwZWN0ZWQuDQoNClRoZSBPTUFQMiBlcnJhdGEg
+ZGlkIG1lbnRpb24gdGhpcy4NCg0KUmVnYXJkcywNClJpY2hhcmQgVy4NCg==
