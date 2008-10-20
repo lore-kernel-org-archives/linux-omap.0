@@ -1,139 +1,41 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH 5/6] Generic twl4030 power script for 3430 based boards.
-Date: Mon, 20 Oct 2008 11:37:55 +0300
-Message-ID: <1224491876-4353-6-git-send-email-peter.de-schrijver@nokia.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 0/6] Integrate the twl4030 power code into new twl4030 mfd
+Date: Mon, 20 Oct 2008 02:02:16 -0700
+Message-ID: <200810200202.17033.david-b@pacbell.net>
 References: <1224491876-4353-1-git-send-email-peter.de-schrijver@nokia.com>
- <1224491876-4353-2-git-send-email-peter.de-schrijver@nokia.com>
- <1224491876-4353-3-git-send-email-peter.de-schrijver@nokia.com>
- <1224491876-4353-4-git-send-email-peter.de-schrijver@nokia.com>
- <1224491876-4353-5-git-send-email-peter.de-schrijver@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:52123 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751156AbYJTIiV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Oct 2008 04:38:21 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9K8bNgm016144
-	for <linux-omap@vger.kernel.org>; Mon, 20 Oct 2008 03:38:19 -0500
-In-Reply-To: <1224491876-4353-5-git-send-email-peter.de-schrijver@nokia.com>
+Received: from smtp126.sbc.mail.sp1.yahoo.com ([69.147.65.185]:37316 "HELO
+	smtp126.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751464AbYJTJCT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Oct 2008 05:02:19 -0400
+In-Reply-To: <1224491876-4353-1-git-send-email-peter.de-schrijver@nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-This is a generic twl4030 power script for 3430 based boards. It handles
-sleep and wakeup events. In case of a sleep event it will first put the
-Reset and Control (RC) resources to sleep and then put the voltage regulators
-to sleep. In case of a wakeup event, the system clock will be started first,
-then the voltage regulators will be woken up and finally the RC resources will
-be woken up.
+On Monday 20 October 2008, Peter 'p2' De Schrijver wrote:
+> This patchset integrates the twl4030 power code into the new twl4030 =
+mfd framework.
+> The scripts will be moved to the board specific data.
+>=20
+> Peter 'p2' De Schrijver (6):
+> =A0 Add defines and data types for twl4030.
+> =A0 Move existing TWL4030 code to drivers/mfd
+> =A0 Hook twl4030 power code into twl4030 core.
+> =A0 3430sdp and ldp use custom twl4030 power scripts.
+> =A0 Generic twl4030 power script for 3430 based boards.
+> =A0 omap3 evm, beagle and overo use the generic twl4030 script
 
-Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
----
- arch/arm/mach-omap2/twl4030-generic-scripts.c |   78 +++++++++++++++++++++++++
- arch/arm/mach-omap2/twl4030-generic-scripts.h |    8 +++
- 2 files changed, 86 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/twl4030-generic-scripts.c
- create mode 100644 arch/arm/mach-omap2/twl4030-generic-scripts.h
+Seems OK to me ... any reason this shouldn't go to mainline?
 
-diff --git a/arch/arm/mach-omap2/twl4030-generic-scripts.c b/arch/arm/mach-omap2/twl4030-generic-scripts.c
-new file mode 100644
-index 0000000..f41c9ef
---- /dev/null
-+++ b/arch/arm/mach-omap2/twl4030-generic-scripts.c
-@@ -0,0 +1,78 @@
-+/*
-+ * arch/arm/mach-omap2/twl4030-generic-scripts.c
-+ *
-+ * Generic power control scripts for TWL4030
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Copyright (C) 2006 Texas Instruments, Inc
-+ *
-+ * Written by 	Kalle Jokiniemi
-+ *		Peter De Schrijver <peter.de-schrijver@nokia.com>
-+ *
-+ * This file is subject to the terms and conditions of the GNU General
-+ * Public License. See the file "COPYING" in the main directory of this
-+ * archive for more details.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/device.h>
-+#include <linux/init.h>
-+#include <linux/i2c/twl4030.h>
-+
-+/*
-+ * This script instructs twl4030 to first put the Reset and Control (RC)
-+ * resources to sleep and then all the other resources.
-+ */
-+
-+static struct twl4030_ins sleep_on_seq[] __initdata = {
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_RC, RES_TYPE_ALL, RES_TYPE2_R0,
-+			RES_STATE_SLEEP), 4},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_ALL, RES_TYPE2_R0,
-+			RES_STATE_SLEEP), 4},
-+};
-+
-+static struct twl4030_script sleep_on_script __initdata = {
-+	.script = sleep_on_seq,
-+	.size   = ARRAY_SIZE(sleep_on_seq),
-+	.flags  = TRITON_SLEEP_SCRIPT,
-+};
-+
-+/*
-+ * This script instructs twl4030 to first enable CLKEN, then wakeup the
-+ * regulators and then all other resources.
-+ */
-+
-+static struct twl4030_ins wakeup_seq[] __initdata = {
-+	{MSG_SINGULAR(DEV_GRP_NULL, 0x17, RES_STATE_ACTIVE), 0x30},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_PP_PR, RES_TYPE_ALL, RES_TYPE2_R0,
-+			RES_STATE_ACTIVE), 0x37},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_ALL, RES_TYPE2_R0,
-+			RES_STATE_ACTIVE), 0x2},
-+};
-+
-+static struct twl4030_script wakeup_script __initdata = {
-+	.script = wakeup_seq,
-+	.size   = ARRAY_SIZE(wakeup_seq),
-+	.flags  = TRITON_WAKEUP12_SCRIPT | TRITON_WAKEUP3_SCRIPT,
-+};
-+
-+static struct twl4030_script *twl4030_scripts[] __initdata = {
-+	&sleep_on_script,
-+	&wakeup_script,
-+};
-+
-+struct twl4030_power_data generic3430_t2scripts_data __initdata = {
-+	.scripts        = twl4030_scripts,
-+	.size           = ARRAY_SIZE(twl4030_scripts),
-+};
-+
-+
-diff --git a/arch/arm/mach-omap2/twl4030-generic-scripts.h b/arch/arm/mach-omap2/twl4030-generic-scripts.h
-new file mode 100644
-index 0000000..64d8d3f
---- /dev/null
-+++ b/arch/arm/mach-omap2/twl4030-generic-scripts.h
-@@ -0,0 +1,8 @@
-+#ifndef __TWL4030_GENERIC_SCRIPTS_H
-+#define __TWL4030_GENERIC_SCRIPTS_H
-+
-+#include <linux/i2c/twl4030.h>
-+
-+extern struct twl4030_power_data generic3430_t2scripts_data;
-+
-+#endif
--- 
-1.5.6.3
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
