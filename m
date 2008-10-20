@@ -1,61 +1,48 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH] OMAPFB: fix printing of reserved memory
-Date: Mon, 20 Oct 2008 17:45:18 +0300
-Message-ID: <1224513918.23383.14.camel@tubuntu>
-References: <20080912102716.23245.73291.stgit@tubuntu>
-	 <20081017214530.GD18573@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: About EHCI
+Date: Mon, 20 Oct 2008 22:40:51 +0300
+Message-ID: <1224531651-31926-1-git-send-email-notasas@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:43215 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751056AbYJTOpe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Oct 2008 10:45:34 -0400
-In-Reply-To: <20081017214530.GD18573@atomide.com>
+Received: from gv-out-0910.google.com ([216.239.58.184]:8102 "EHLO
+	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753111AbYJTTl4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Oct 2008 15:41:56 -0400
+Received: by gv-out-0910.google.com with SMTP id e6so363102gvc.37
+        for <linux-omap@vger.kernel.org>; Mon, 20 Oct 2008 12:41:02 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Grazvydas Ignotas <notasas@gmail.com>
 
-On Fri, 2008-10-17 at 14:45 -0700, ext Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@nokia.com> [080912 03:27]:
-> > Print reserved memory only if it was actually reserved.
-> 
-> Can you reply with your Signed-off-by?
+It might already be known, but reverting the following commit
+brings EHCI back to life (at least on Pandora):
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-> 
-> Thanks,
-> 
-> Tony
-> 
-> > ---
-> > 
-> >  arch/arm/plat-omap/fb.c |    5 +++--
-> >  1 files changed, 3 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/arch/arm/plat-omap/fb.c b/arch/arm/plat-omap/fb.c
-> > index f9927a7..63c82ef 100644
-> > --- a/arch/arm/plat-omap/fb.c
-> > +++ b/arch/arm/plat-omap/fb.c
-> > @@ -207,9 +207,10 @@ void __init omapfb_reserve_sdram(void)
-> >  			config_invalid = 1;
-> >  			return;
-> >  		}
-> > -		if (rg.paddr)
-> > +		if (rg.paddr) {
-> >  			reserve_bootmem(rg.paddr, rg.size, BOOTMEM_DEFAULT);
-> > -		reserved += rg.size;
-> > +			reserved += rg.size;
-> > +		}
-> >  		omapfb_config.mem_desc.region[i] = rg;
-> >  		configured_regions++;
-> >  	}
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+commit 8b1f0bd44fe490ec631230c8c040753a2bda8caa
+Author: Paul Walmsley <paul@pwsan.com>
+Date:   Thu Sep 25 08:38:46 2008 -0600
+
+OMAP3 clock: put DPLL into bypass if bypass rate = clk->rate, not hardware rate
+
+[...]
+
+---
+ arch/arm/mach-omap2/clock34xx.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index c89d6bc..df258f7 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -281,9 +281,7 @@ static int omap3_noncore_dpll_enable(struct clk *clk)
+ 	if (!dd)
+ 		return -EINVAL;
+ 
+-	rate = omap2_get_dpll_rate(clk);
+-
+-	if (dd->bypass_clk->rate == rate)
++	if (clk->rate == dd->bypass_clk->rate)
+ 		r = _omap3_noncore_dpll_bypass(clk);
+ 	else
+ 		r = _omap3_noncore_dpll_lock(clk);
 
