@@ -1,34 +1,45 @@
-From: Seth Forshee <seth.forshee@gmail.com>
-Subject: AUTO_EXTVOLT on OMAP2430
-Date: Mon, 20 Oct 2008 00:07:26 -0500
-Message-ID: <20081020050726.GA12891@ubuntu-workstation>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [PATCH] i2c: omap: highspeed only over 1000mhz
+Date: Mon, 20 Oct 2008 13:26:59 +0300
+Message-ID: <20081020102659.GA31599@gandalf.research.nokia.com>
+References: <1224277795-17143-1-git-send-email-felipe.balbi@nokia.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wx-out-0506.google.com ([66.249.82.230]:27026 "EHLO
-	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751735AbYJTFHt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Oct 2008 01:07:49 -0400
-Received: by wx-out-0506.google.com with SMTP id h27so744794wxd.4
-        for <linux-omap@vger.kernel.org>; Sun, 19 Oct 2008 22:07:45 -0700 (PDT)
+Received: from smtp.nokia.com ([192.100.122.233]:35914 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750763AbYJTK2A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Oct 2008 06:28:00 -0400
 Content-Disposition: inline
+In-Reply-To: <1224277795-17143-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: linux-omap@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, Tony Lindgren <tony@atomide.com>
 
-I'm working with what basically amounts to an older version of the linux-omap
-kernel with substantial modifications.  I found that in some situations I was
-getting about 4 mA more current draw during suspend than at other times.  This
-was ultimately being caused by some of the code that runs in SRAM masking off
-the PRCM_VOLTCTRL[AUTO_EXTVOLT] bit. I compared to tips in the linux-omap repo
-for comparison and found the situation is the same -- the bit is set during
-initialization, but will be cleared by the SRAM code that configures the SDRC.
+up to 1000khz it's Fast Mode+, not highspeed.
 
->From reading the TRM it seems that this bit should only affect the retention
-and off states, so I don't understand why it needs to be masked during SDRC
-configuration.  Is there any danger in changing the mask to leave this bit
-unchanged?  Or would it be safer to set this bit before suspend and clear it
-after?
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/i2c/busses/i2c-omap.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Thanks,
-Seth
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index a999606..53d6244 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -296,7 +296,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 		psc = psc - 1;
+ 
+ 		/* If configured for High Speed */
+-		if (dev->speed > 400) {
++		if (dev->speed > 1000) {
+ 			/* For first phase of HS mode */
+ 			fsscll = internal_clk / (400 * 2) - 6;
+ 			fssclh = internal_clk / (400 * 2) - 6;
+-- 
+1.6.0.2.307.gc427
+
+-- 
+balbi
