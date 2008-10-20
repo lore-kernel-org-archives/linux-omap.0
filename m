@@ -1,29 +1,38 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
 Subject: Re: [PATCH] i2c: omap: highspeed only over 1000mhz
-Date: Mon, 20 Oct 2008 16:22:00 +0300
-Message-ID: <20081020132200.GE31599@gandalf.research.nokia.com>
-References: <1224277795-17143-1-git-send-email-felipe.balbi@nokia.com> <20081020102659.GA31599@gandalf.research.nokia.com> <48FC7CA9.4040102@gmail.com> <20081020125355.GC31599@gandalf.research.nokia.com> <48FC851C.3040506@gmail.com>
+Date: Mon, 20 Oct 2008 20:10:48 +0300
+Message-ID: <20081020171048.GE25323@gandalf.research.nokia.com>
+References: <1224277795-17143-1-git-send-email-felipe.balbi@nokia.com> <20081020102659.GA31599@gandalf.research.nokia.com> <20081020151512.GA8298@atomide.com>
 Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:30870 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751715AbYJTNWe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Oct 2008 09:22:34 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:25270 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755877AbYJTRL5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Oct 2008 13:11:57 -0400
 Content-Disposition: inline
-In-Reply-To: <48FC851C.3040506@gmail.com>
+In-Reply-To: <20081020151512.GA8298@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Nishanth Menon <menon.nishanth@gmail.com>
-Cc: felipe.balbi@nokia.com, linux-omap@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, Tony Lindgren <tony@atomide.com>
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>
 
-On Mon, Oct 20, 2008 at 08:18:20AM -0500, ext Nishanth Menon wrote:
+On Mon, Oct 20, 2008 at 08:15:16AM -0700, Tony Lindgren wrote:
+> * Felipe Balbi <felipe.balbi@nokia.com> [081020 03:27]:
+> > up to 1000khz it's Fast Mode+, not highspeed.
+> 
+> Have you tested this? To me it seems this code is needed for
+> dev->speed > 400, and the comment may be wrong.
 
-hehe, please don't send html mails,
+the thing is that looks like omap i2c controller doesn't support fast
+mode+ devices, would be useful if someone had a fastmode+ device to test
+with.
 
-That was a nice catch. Didn't see that in the TRM. Let's drop this patch
-then, or at least until someone test a FM+ device with omap3.
+Let's drop this one.
+
+btw, at least triton still works, but then again it could be working as
+a high speed with a lower speed.
 
 -- 
 balbi
