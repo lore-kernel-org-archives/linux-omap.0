@@ -1,41 +1,251 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 0/6] Integrate the twl4030 power code into new twl4030 mfd
-Date: Mon, 20 Oct 2008 02:02:16 -0700
-Message-ID: <200810200202.17033.david-b@pacbell.net>
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: [PATCH 4/6] 3430sdp and ldp use custom twl4030 power scripts.
+Date: Mon, 20 Oct 2008 11:37:54 +0300
+Message-ID: <1224491876-4353-5-git-send-email-peter.de-schrijver@nokia.com>
 References: <1224491876-4353-1-git-send-email-peter.de-schrijver@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+ <1224491876-4353-2-git-send-email-peter.de-schrijver@nokia.com>
+ <1224491876-4353-3-git-send-email-peter.de-schrijver@nokia.com>
+ <1224491876-4353-4-git-send-email-peter.de-schrijver@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp126.sbc.mail.sp1.yahoo.com ([69.147.65.185]:37316 "HELO
-	smtp126.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751464AbYJTJCT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Oct 2008 05:02:19 -0400
-In-Reply-To: <1224491876-4353-1-git-send-email-peter.de-schrijver@nokia.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.233]:23096 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751246AbYJTIip (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Oct 2008 04:38:45 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9K8cM20003431
+	for <linux-omap@vger.kernel.org>; Mon, 20 Oct 2008 11:38:42 +0300
+In-Reply-To: <1224491876-4353-4-git-send-email-peter.de-schrijver@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-On Monday 20 October 2008, Peter 'p2' De Schrijver wrote:
-> This patchset integrates the twl4030 power code into the new twl4030 =
-mfd framework.
-> The scripts will be moved to the board specific data.
->=20
-> Peter 'p2' De Schrijver (6):
-> =A0 Add defines and data types for twl4030.
-> =A0 Move existing TWL4030 code to drivers/mfd
-> =A0 Hook twl4030 power code into twl4030 core.
-> =A0 3430sdp and ldp use custom twl4030 power scripts.
-> =A0 Generic twl4030 power script for 3430 based boards.
-> =A0 omap3 evm, beagle and overo use the generic twl4030 script
+The TI 3430dsp and ldp boards have a custom power script to handle sleep and off modes.
 
-Seems OK to me ... any reason this shouldn't go to mainline?
+Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+---
+ arch/arm/mach-omap2/board-3430sdp.c |   84 +++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-ldp.c     |   84 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 168 insertions(+), 0 deletions(-)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 56f28ae..bb591bb 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -47,6 +47,8 @@
+ 
+ #include "sdram-qimonda-hyb18m512160af-6.h"
+ 
++#define CONFIG_DISABLE_HFCLK 1
++
+ #define	SDP3430_SMC91X_CS	3
+ 
+ #define ENABLE_VAUX3_DEDICATED	0x03
+@@ -329,6 +331,87 @@ static struct twl4030_madc_platform_data sdp3430_madc_data = {
+ 	.irq_line	= 1,
+ };
+ 
++
++static struct twl4030_ins __initdata sleep_on_seq[] = {
++/*
++ * Turn off VDD1 and VDD2.
++ */
++	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_OFF), 4},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_OFF), 2},
++#ifdef CONFIG_DISABLE_HFCLK
++/*
++ * And also turn off the OMAP3 PLLs and the sysclk output.
++ */
++	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_OFF), 3},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_OFF), 3},
++#endif
++};
++
++static struct twl4030_script sleep_on_script __initdata = {
++	.script	= sleep_on_seq,
++	.size	= ARRAY_SIZE(sleep_on_seq),
++	.flags	= TRITON_SLEEP_SCRIPT,
++};
++
++static struct twl4030_ins wakeup_seq[] __initdata = {
++#ifndef CONFIG_DISABLE_HFCLK
++/*
++ * Wakeup VDD1 and VDD2.
++ */
++	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 4},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_ACTIVE), 2},
++#else
++/*
++ * Reenable the OMAP3 PLLs.
++ * Wakeup VDD1 and VDD2.
++ * Reenable sysclk output.
++ */
++	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_ACTIVE), 0x30},
++	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 0x30},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_ACTIVE), 0x37},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 3},
++#endif /* #ifndef CONFIG_DISABLE_HFCLK */
++};
++
++static struct twl4030_script wakeup_script __initdata = {
++	.script	= wakeup_seq,
++	.size	= ARRAY_SIZE(wakeup_seq),
++	.flags	= TRITON_WAKEUP12_SCRIPT | TRITON_WAKEUP3_SCRIPT,
++};
++
++static struct twl4030_ins wrst_seq[] __initdata = {
++/*
++ * Reset twl4030.
++ * Reset VDD1 regulator.
++ * Reset VDD2 regulator.
++ * Reset VPLL1 regulator.
++ * Enable sysclk output.
++ * Reenable twl4030.
++ */
++	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_OFF), 2},
++	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_WRST), 15},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_WRST), 15},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_WRST), 0x60},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
++	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_ACTIVE), 2},
++};
++static struct twl4030_script wrst_script __initdata = {
++	.script = wrst_seq,
++	.size   = ARRAY_SIZE(wakeup_seq),
++	.flags  = TRITON_WRST_SCRIPT,
++};
++
++static struct twl4030_script *twl4030_scripts[] __initdata = {
++	&sleep_on_script,
++	&wakeup_script,
++	&wrst_script,
++};
++
++static struct twl4030_power_data sdp3430_t2scripts_data __initdata = {
++	.scripts	= twl4030_scripts,
++	.size		= ARRAY_SIZE(twl4030_scripts),
++};
++
+ static struct twl4030_platform_data sdp3430_twldata = {
+ 	.irq_base	= TWL4030_IRQ_BASE,
+ 	.irq_end	= TWL4030_IRQ_END,
+@@ -338,6 +421,7 @@ static struct twl4030_platform_data sdp3430_twldata = {
+ 	.gpio		= &sdp3430_gpio_data,
+ 	.madc		= &sdp3430_madc_data,
+ 	.keypad		= &sdp3430_kp_data,
++	.power		= &sdp3430_t2scripts_data,
+ 	.usb		= &sdp3430_usb_data,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index 92710c3..d4d4e90 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -41,6 +41,8 @@
+ #include <asm/delay.h>
+ #include <mach/control.h>
+ 
++#define CONFIG_DISABLE_HFCLK 1
++
+ #define ENABLE_VAUX1_DEDICATED	0x03
+ #define ENABLE_VAUX1_DEV_GRP	0x20
+ 
+@@ -195,6 +197,87 @@ static int ldp_batt_table[] = {
+ 4040,   3910,   3790,   3670,   3550
+ };
+ 
++static struct twl4030_ins __initdata sleep_on_seq[] = {
++/*
++ * Turn off VDD1 and VDD2.
++ */
++	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_OFF), 4},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_OFF), 2},
++#ifdef CONFIG_DISABLE_HFCLK
++/*
++ * And also turn off the OMAP3 PLLs and the sysclk output.
++ */
++	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_OFF), 3},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_OFF), 3},
++#endif
++};
++
++static struct twl4030_script sleep_on_script __initdata = {
++	.script	= sleep_on_seq,
++	.size	= ARRAY_SIZE(sleep_on_seq),
++	.flags	= TRITON_SLEEP_SCRIPT,
++};
++
++static struct twl4030_ins wakeup_seq[] __initdata = {
++#ifndef CONFIG_DISABLE_HFCLK
++/*
++ * Wakeup VDD1 and VDD2.
++ */
++	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 4},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_ACTIVE), 2},
++#else
++/*
++ * Reenable the OMAP3 PLLs.
++ * Wakeup VDD1 and VDD2.
++ * Reenable sysclk output.
++ */
++	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_ACTIVE), 0x30},
++	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 0x30},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_ACTIVE), 0x37},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 3},
++#endif /* #ifndef CONFIG_DISABLE_HFCLK */
++};
++
++static struct twl4030_script wakeup_script __initdata = {
++	.script	= wakeup_seq,
++	.size	= ARRAY_SIZE(wakeup_seq),
++	.flags	= TRITON_WAKEUP12_SCRIPT | TRITON_WAKEUP3_SCRIPT,
++};
++
++static struct twl4030_ins wrst_seq[] __initdata = {
++/*
++ * Reset twl4030.
++ * Reset VDD1 regulator.
++ * Reset VDD2 regulator.
++ * Reset VPLL1 regulator.
++ * Enable sysclk output.
++ * Reenable twl4030.
++ */
++	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_OFF), 2},
++	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_WRST), 15},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_WRST), 15},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_WRST), 0x60},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
++	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_ACTIVE), 2},
++};
++
++static struct twl4030_script wrst_script __initdata = {
++	.script = wrst_seq,
++	.size   = ARRAY_SIZE(wakeup_seq),
++	.flags  = TRITON_WRST_SCRIPT,
++};
++
++static struct twl4030_script *twl4030_scripts[] __initdata = {
++	&sleep_on_script,
++	&wakeup_script,
++	&wrst_script,
++};
++
++static struct twl4030_power_data sdp3430_t2scripts_data __initdata = {
++	.scripts	= twl4030_scripts,
++	.size		= ARRAY_SIZE(twl4030_scripts),
++};
++
+ static struct twl4030_bci_platform_data ldp_bci_data = {
+ 	.battery_tmp_tbl	= ldp_batt_table,
+ 	.tblsize		= ARRAY_SIZE(ldp_batt_table),
+@@ -222,6 +305,7 @@ static struct twl4030_platform_data ldp_twldata = {
+ 	.bci		= &ldp_bci_data,
+ 	.madc		= &ldp_madc_data,
+ 	.usb		= &ldp_usb_data,
++	.power		= &sdp3430_t2scripts_data,
+ 	.gpio		= &ldp_gpio_data,
+ };
+ 
+-- 
+1.5.6.3
+
