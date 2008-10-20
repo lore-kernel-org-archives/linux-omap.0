@@ -1,47 +1,43 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: Fwd: Re: [rtc-linux] [patch 2/3] rtc-twl4030 driver
-Date: Mon, 20 Oct 2008 15:51:38 -0700
-Message-ID: <200810201551.39189.david-b@pacbell.net>
-References: <200810181213.18616.david-b@pacbell.net> <20081020223151.GD4197@sortiz.org>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Mans Rullgard <mans@mansr.com>
+Subject: [PATCH 1/2] OMAP: Make dpll4_m4_ck programmable with clk_set_rate()
+Date: Tue, 21 Oct 2008 00:24:23 +0100
+Message-ID: <1224545064-25551-1-git-send-email-mans@mansr.com>
+References: <yw1xhc76hmvi.fsf@thrashbarg.mansr.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:23084 "HELO
-	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753084AbYJTWvm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Oct 2008 18:51:42 -0400
-In-Reply-To: <20081020223151.GD4197@sortiz.org>
-Content-Disposition: inline
+Received: from agrajag.mansr.com ([78.86.181.102]:33084 "EHLO mail.mansr.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751753AbYJTXY0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Oct 2008 19:24:26 -0400
+Received: from thrashbarg.mansr.com (thrashbarg.mansr.com [78.86.181.100])
+	by mail.mansr.com (Postfix) with ESMTP id 7B98D1C0089
+	for <linux-omap@vger.kernel.org>; Tue, 21 Oct 2008 00:24:24 +0100 (BST)
+In-Reply-To: <yw1xhc76hmvi.fsf@thrashbarg.mansr.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@openedhand.com>
-Cc: linux-omap@vger.kernel.org, Alessandro Zummo <alessandro.zummo@towertech.it>
+To: linux-omap@vger.kernel.org
 
-On Monday 20 October 2008, Samuel Ortiz wrote:
-> I am pushing this code without MODULE_AUTHOR for now.
-> I agree with Alessandro it would be nice to have it, but only if it's someone
-> that could actually maintain it somehow. Are Dmitry or/and Alexandre good
-> candidates for that ?
+Filling the set_rate and round_rate fields of dpll4_m4_ck makes
+this clock programmable through clk_set_rate().  This is needed
+to give omapfb control over the dss1_alwon_fck rate.
 
-I won't speak for them ...
+Signed-off-by: Mans Rullgard <mans@mansr.com>
+---
+ arch/arm/mach-omap2/clock34xx.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-The OMAP community has, so far, tended to be fairly
-good about pitching in to fix things that break; so
-there may be less of a worry there.  I also know that
-TI is trying to be a bit more "in the loop" with its
-staff and mainline, so that should help a bit too.
-
-Anyway, this driver "Just Works", so nothing else
-could go wrong.  ;)
-
-- Dave
-
-p.s. I just noticed a boatload of genirq patches
-     go upstream ... I suspect that at least the
-     reference to NR_IRQS in that one patch will
-     need to change.
-
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index 4adf78e..e51e182 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -875,6 +875,8 @@ static struct clk dpll4_m6_ck = {
+ 				PARENT_CONTROLS_CLOCK,
+ 	.clkdm		= { .name = "dpll4_clkdm" },
+ 	.recalc		= &omap2_clksel_recalc,
++	.set_rate	= &omap2_clksel_set_rate,
++	.round_rate	= &omap2_clksel_round_rate,
+ };
+ 
+ /* The PWRDN bit is apparently only available on 3430ES2 and above */
+-- 
+1.6.0.2
 
