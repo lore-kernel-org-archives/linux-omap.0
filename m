@@ -1,83 +1,58 @@
-From: Mans Rullgard <mans@mansr.com>
-Subject: [PATCH 2/2] OMAP: Add clk_get_parent() for OMAP2/3
-Date: Tue, 21 Oct 2008 00:24:24 +0100
-Message-ID: <1224545064-25551-2-git-send-email-mans@mansr.com>
-References: <yw1xhc76hmvi.fsf@thrashbarg.mansr.com>
+From: Samuel Ortiz <sameo@openedhand.com>
+Subject: Re: Fwd: Re: [rtc-linux] [patch 2/3] rtc-twl4030 driver
+Date: Tue, 21 Oct 2008 01:15:55 +0200
+Message-ID: <20081020231554.GB4833@localdomain>
+References: <200810181213.18616.david-b@pacbell.net> <20081020223151.GD4197@sortiz.org> <200810201551.39189.david-b@pacbell.net>
+Reply-To: Samuel Ortiz <sameo@openedhand.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from agrajag.mansr.com ([78.86.181.102]:33085 "EHLO mail.mansr.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751748AbYJTXY0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Oct 2008 19:24:26 -0400
-Received: from thrashbarg.mansr.com (thrashbarg.mansr.com [78.86.181.100])
-	by mail.mansr.com (Postfix) with ESMTP id 842D81C0095
-	for <linux-omap@vger.kernel.org>; Tue, 21 Oct 2008 00:24:24 +0100 (BST)
-In-Reply-To: <yw1xhc76hmvi.fsf@thrashbarg.mansr.com>
+Received: from 3a.49.1343.static.theplanet.com ([67.19.73.58]:33210 "EHLO
+	pug.o-hand.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750928AbYJTXQB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Oct 2008 19:16:01 -0400
+Content-Disposition: inline
+In-Reply-To: <200810201551.39189.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-omap@vger.kernel.org, Alessandro Zummo <alessandro.zummo@towertech.it>
 
-This makes clk_get_parent() work on OMAP2/3.
+On Mon, Oct 20, 2008 at 03:51:38PM -0700, David Brownell wrote:
+> On Monday 20 October 2008, Samuel Ortiz wrote:
+> > I am pushing this code without MODULE_AUTHOR for now.
+> > I agree with Alessandro it would be nice to have it, but only if it's someone
+> > that could actually maintain it somehow. Are Dmitry or/and Alexandre good
+> > candidates for that ?
+> 
+> I won't speak for them ...
+> 
+> The OMAP community has, so far, tended to be fairly
+> good about pitching in to fix things that break; so
+> there may be less of a worry there.  I also know that
+> TI is trying to be a bit more "in the loop" with its
+> staff and mainline, so that should help a bit too.
+> 
+> Anyway, this driver "Just Works", so nothing else
+> could go wrong.  ;)
+I'm reassured ;-)
 
-Signed-off-by: Mans Rullgard <mans@mansr.com>
----
- arch/arm/mach-omap2/clock.c     |    5 +++++
- arch/arm/mach-omap2/clock.h     |    1 +
- arch/arm/mach-omap2/clock24xx.c |    1 +
- arch/arm/mach-omap2/clock34xx.c |    1 +
- 4 files changed, 8 insertions(+), 0 deletions(-)
+ 
+> - Dave
+> 
+> p.s. I just noticed a boatload of genirq patches
+>      go upstream ... I suspect that at least the
+>      reference to NR_IRQS in that one patch will
+>      need to change.
+You mean the NR_IRQS reference from the twl4030 irq update patch ?
+I just applied it to my mfd tree, which is built on top of Linus latest git,
+and it seemed to at least build fine.
+I'm planning to send the last mfd pull request tomorrow, so if you have some
+additional fixes, please send them by then.
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index c3af24e..9e502a0 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -817,6 +817,11 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
- 	return 0;
- }
- 
-+struct clk *omap2_clk_get_parent(struct clk *clk)
-+{
-+	return clk->parent;
-+}
-+
- /* DPLL rate rounding code */
- 
- /**
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index bcb0c03..a5183d0 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -29,6 +29,7 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate);
- int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent);
- int omap2_dpll_set_rate_tolerance(struct clk *clk, unsigned int tolerance);
- long omap2_dpll_round_rate(struct clk *clk, unsigned long target_rate);
-+struct clk *omap2_clk_get_parent(struct clk *clk);
- 
- #ifdef CONFIG_OMAP_RESET_CLOCKS
- void omap2_clk_disable_unused(struct clk *clk);
-diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-index a54f10f..4382e60 100644
---- a/arch/arm/mach-omap2/clock24xx.c
-+++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -416,6 +416,7 @@ static struct clk_functions omap2_clk_functions = {
- 	.clk_round_rate		= omap2_clk_round_rate,
- 	.clk_set_rate		= omap2_clk_set_rate,
- 	.clk_set_parent		= omap2_clk_set_parent,
-+	.clk_get_parent		= omap2_clk_get_parent,
- 	.clk_disable_unused	= omap2_clk_disable_unused,
- #ifdef	CONFIG_CPU_FREQ
- 	.clk_init_cpufreq_table	= omap2_clk_init_cpufreq_table,
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index c89d6bc..5a6a2da 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -635,6 +635,7 @@ static struct clk_functions omap2_clk_functions = {
- 	.clk_round_rate		= omap2_clk_round_rate,
- 	.clk_set_rate		= omap2_clk_set_rate,
- 	.clk_set_parent		= omap2_clk_set_parent,
-+	.clk_get_parent		= omap2_clk_get_parent,
- 	.clk_disable_unused	= omap2_clk_disable_unused,
- };
- 
+Cheers,
+Samuel.
+
 -- 
-1.6.0.2
-
+Intel Open Source Technology Centre
+http://oss.intel.com/
