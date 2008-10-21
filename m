@@ -1,78 +1,74 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH] watchdog: fix watchdog probe
-Date: Tue, 21 Oct 2008 17:42:26 +0300
-Message-ID: <1224600146-24301-1-git-send-email-felipe.balbi@nokia.com>
+From: Sakari Ailus <sakari.ailus@nokia.com>
+Subject: [RFC] i2c-omap: Don't wait needlessly
+Date: Tue, 21 Oct 2008 19:19:08 +0300
+Message-ID: <12246059481717-git-send-email-sakari.ailus@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:65155 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:25286 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751797AbYJUOnR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Oct 2008 10:43:17 -0400
+	with ESMTP id S1751983AbYJUQTR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Oct 2008 12:19:17 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9LGI1f6031812
+	for <linux-omap@vger.kernel.org>; Tue, 21 Oct 2008 11:19:14 -0500
+Received: from kaali.localdomain (kaali.localdomain [192.168.239.7])
+	by maxwell.research.nokia.com (Postfix) with ESMTP id 7582227B097
+	for <linux-omap@vger.kernel.org>; Tue, 21 Oct 2008 19:19:08 +0300 (EEST)
+Received: from sailus by kaali.localdomain with local (Exim 4.63)
+	(envelope-from <sakari.ailus@nokia.com>)
+	id 1KsJwq-00013V-6D
+	for linux-omap@vger.kernel.org; Tue, 21 Oct 2008 19:19:08 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, Wim Van Sebroeck <wim@iguana.be>, Tony Lindgren <tony@atomide.com>
 
-We need clks enabled to read/write watchdog registers.
-After talking to the clks during probe, disable them until
-/dev/watchdog is opened.
+When the I2C controller is initialised, software reset is performed to
+the controller. I've never seen that taking more than 1 ns while the
+msleep call causes excessive delays in I2C transfers.
 
-Also fix resource.end field.
+Tested on OMAP 3.
 
-Cc: Wim Van Sebroeck <wim@iguana.be>
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
 ---
- arch/arm/plat-omap/devices.c |    2 +-
- drivers/watchdog/omap_wdt.c  |   16 ++++++++++++++++
- 2 files changed, 17 insertions(+), 1 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-index c22bd5f..5297db5 100644
---- a/arch/arm/plat-omap/devices.c
-+++ b/arch/arm/plat-omap/devices.c
-@@ -309,7 +309,7 @@ static void omap_init_wdt(void)
- 	else
- 		return;
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index b2b0e2f..b19b851 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -40,6 +40,8 @@
  
--	wdt_resources[0].end = wdt_resources[0].start + 0x4f;
-+	wdt_resources[0].end = wdt_resources[0].start + SZ_4K;
+ /* timeout waiting for the controller to respond */
+ #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
++/* no more busyloop in ns */
++#define OMAP_I2C_MINOR_TIMEOUT		10
  
- 	(void) platform_device_register(&omap_wdt_device);
- }
-diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-index 7bcbb7f..2c9988a 100644
---- a/drivers/watchdog/omap_wdt.c
-+++ b/drivers/watchdog/omap_wdt.c
-@@ -349,6 +349,14 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
+ #define OMAP_I2C_REV_REG		0x00
+ #define OMAP_I2C_IE_REG			0x04
+@@ -255,6 +257,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 	unsigned long internal_clk = 0;
  
- 	platform_set_drvdata(pdev, wdev);
- 
-+	if (cpu_is_omap16xx())
-+		clk_enable(wdev->armwdt_ck);	/* Enable the clock */
+ 	if (!dev->rev1) {
++		int delay = 0;
 +
-+	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
-+		clk_enable(wdev->mpu_wdt_ick);    /* Enable the interface clock */
-+		clk_enable(wdev->mpu_wdt_fck);    /* Enable the functional clock */
-+	}
-+
- 	omap_wdt_disable(wdev);
- 	omap_wdt_adjust_timeout(timer_margin);
- 
-@@ -368,6 +376,14 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
- 	/* autogate OCP interface clock */
- 	__raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
- 
-+	if (cpu_is_omap16xx())
-+		clk_disable(wdev->armwdt_ck);	/* Disable the clock */
-+
-+	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
-+		clk_disable(wdev->mpu_wdt_ick);	/* Disable the clock */
-+		clk_disable(wdev->mpu_wdt_fck);	/* Disable the clock */
-+	}
-+
- 	omap_wdt_dev = pdev;
- 
- 	return 0;
+ 		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, OMAP_I2C_SYSC_SRST);
+ 		/* For some reason we need to set the EN bit before the
+ 		 * reset done bit gets set. */
+@@ -262,6 +266,14 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+ 		while (!(omap_i2c_read_reg(dev, OMAP_I2C_SYSS_REG) &
+ 			 OMAP_I2C_SYSS_RDONE)) {
++			if (delay < OMAP_I2C_MINOR_TIMEOUT) {
++				ndelay(1);
++				delay++;
++				continue;
++			} else if (delay == OMAP_I2C_MINOR_TIMEOUT) {
++				dev_warn(dev->dev, "minor timeout not enough");
++				delay++;
++			}
+ 			if (time_after(jiffies, timeout)) {
+ 				dev_warn(dev->dev, "timeout waiting "
+ 						"for controller reset\n");
 -- 
-1.6.0.2.307.gc427
+1.5.0.6
 
