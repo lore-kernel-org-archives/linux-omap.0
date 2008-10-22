@@ -1,27 +1,58 @@
-From: "iqbal shareef" <iqbalshareef.list@gmail.com>
-Subject: Using sys_ck for GPT8
-Date: Wed, 22 Oct 2008 14:43:18 +0900
-Message-ID: <c6a924220810212243p6237400bjac8a56f032baccab@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+Subject: [PATCH] OMAP3 DSS: Fixed FIFO buffer register field sizes
+Date: Wed, 22 Oct 2008 09:47:06 +0300
+Message-ID: <1224658026-4334-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.158]:32071 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750813AbYJVFnU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Oct 2008 01:43:20 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so226417fgg.17
-        for <linux-omap@vger.kernel.org>; Tue, 21 Oct 2008 22:43:19 -0700 (PDT)
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:52414 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750874AbYJVGq0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Oct 2008 02:46:26 -0400
+Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9M6k8KB009201
+	for <linux-omap@vger.kernel.org>; Wed, 22 Oct 2008 09:46:23 +0300
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
 
-Hi,
+The size status field in DISPC_[GFX | VID1 | VID2]_FIFO_SIZE_STATUS
+register is 11 bits wide in OMAP3, but only 9 bits were read. Similarly,
+the threshold field in DISPC_[GFX | VID1 | VID2]_FIFO_THRESHOLD register
+is 12 bits wide, while only 9 bits were written in it.
 
-My OMAP3 board requires >13Mhz frequency PWM output from GPT8, but the
-default clock source gives me Khz range.
-What would be the exact impact If I use Sys clock source for the GPT8.
+This patch extends the bit field sizes used in setup_plane_fifo to
+correspond to ones in OMAP3. In OMAP2 the extra bits are reserved, so no
+harm should come from extending the bit fields.
 
-Thanks
-Iqbal
+Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+---
+ drivers/video/omap/dispc.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
+index beda40b..c140c21 100644
+--- a/drivers/video/omap/dispc.c
++++ b/drivers/video/omap/dispc.c
+@@ -290,7 +290,7 @@ static void setup_plane_fifo(int plane, int ext_mode)
+ 	BUG_ON(plane > 2);
+ 
+ 	l = dispc_read_reg(fsz_reg[plane]);
+-	l &= FLD_MASK(0, 9);
++	l &= FLD_MASK(0, 11);
+ 	if (ext_mode) {
+ 		low = l * 3 / 4;
+ 		high = l;
+@@ -298,7 +298,7 @@ static void setup_plane_fifo(int plane, int ext_mode)
+ 		low = l / 4;
+ 		high = l * 3 / 4;
+ 	}
+-	MOD_REG_FLD(ftrs_reg[plane], FLD_MASK(16, 9) | FLD_MASK(0, 9),
++	MOD_REG_FLD(ftrs_reg[plane], FLD_MASK(16, 12) | FLD_MASK(0, 12),
+ 			(high << 16) | low);
+ }
+ 
+-- 
+1.5.4.3
+
