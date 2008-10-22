@@ -1,41 +1,76 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] alsa: add beagleboard SoC configuration.
-Date: Wed, 22 Oct 2008 12:36:38 -0700
-Message-ID: <200810221236.38336.david-b@pacbell.net>
-References: <1224692929-15108-1-git-send-email-felipe.contreras@gmail.com> <20081022165300.GX7341@atomide.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: dsp-bridge synch issues
+Date: Wed, 22 Oct 2008 14:40:17 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E13FA46D7@dlee03.ent.ti.com>
+References: <94a0d4530810220953l23ce3794i18b518472b735289@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:34499 "HELO
-	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753132AbYJVTgn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Oct 2008 15:36:43 -0400
-In-Reply-To: <20081022165300.GX7341@atomide.com>
-Content-Disposition: inline
+Received: from devils.ext.ti.com ([198.47.26.153]:42322 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752710AbYJVTk0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Oct 2008 15:40:26 -0400
+In-Reply-To: <94a0d4530810220953l23ce3794i18b518472b735289@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org, Steve Sakoman <sakoman@gmail.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-On Wednesday 22 October 2008, Tony Lindgren wrote:
-> This should go to alsa-devel list with l-o list cc'd. AFAIK, all
-> the omap ASoC stuff is in mainline already. I will not push it
-> to l-o until we have an ack from alsa-devel.
+Hi Felipe,
 
-There are multiple ASoc bits ... they're not all there yet.
-The TWL4030 codec support should be ready to go, now that its
-core has merged, plus Overo (and "soon" Beagle) board support.
+> I wrote a very simple DSP test and I'm having some synchronization issues.
+> http://github.com/felipec/dsp-dummy
+> 
+> Basically:
+>   DSPNode_PutMessage (core->node, &msg, DSP_FOREVER);
+>   usleep (4000);
+>   DSPNode_GetMessage (core->node, &msg, 0);
 
-The twl4030-core support was the blocking issue; at least some
-of the other patches were even acked.
+-- The DSP_SYSERROR is reported by DSP side of the Bridge.
+Try passing -1 (infinite wait) as the timeout to DSPNode_GetMessage function instead of 0. 
+You can refer to the dmmcopy.c sample file in the bridge tarball on omapzoom.
 
-  http://marc.info/?t=122304728600007&r=1&w=2
+Thank you,
+Best regards,
+Hari
 
-Maybe Steve would resubmit his patches, to merge through ALSA
-into 2.6.28-rc?  I presume all the feedback from his first round
-(beginning of September) got addressed.  
+> -----Original Message-----
+> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+> Sent: Wednesday, October 22, 2008 11:53 AM
+> To: linux-omap@vger.kernel.org List; Kanigeri, Hari
+> Subject: dsp-bridge synch issues
+> 
+> Hi,
+> 
+> I wrote a very simple DSP test and I'm having some synchronization issues.
+> http://github.com/felipec/dsp-dummy
+> 
+> Basically:
+>   DSPNode_PutMessage (core->node, &msg, DSP_FOREVER);
+>   usleep (4000);
+>   DSPNode_GetMessage (core->node, &msg, 0);
+> 
+> If I remove the usleep, I get:
+> 
+> DSPNodeCreate succeeded
+> DSPNode_run succeeded
+> WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
+> WMD_DEH_Notify: DSP_SYSERROR, errInfo = 0x102
+> WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
+> WMD_DEH_Notify: DSP_SYSERROR, errInfo = 0x102
+> WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
+> WMD_DEH_Notify: DSP_SYSERROR, errInfo = 0x102
+> WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
+> WMD_DEH_Notify: DSP_SYSERROR, errInfo = 0x102
+> 
+> If I add it:
+> 
+> DSPNodeCreate succeeded
+> DSPNode_run succeeded
+> 
+> Any ideas?
+> 
+> --
+> Felipe Contreras
 
-- Dave
