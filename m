@@ -1,47 +1,46 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [PATCH] alsa: add beagleboard SoC configuration.
-Date: Wed, 22 Oct 2008 21:44:48 +0100
-Message-ID: <20081022204445.GC7537@sirena.org.uk>
-References: <1224692929-15108-1-git-send-email-felipe.contreras@gmail.com>
-	<20081022165300.GX7341@atomide.com>
-	<200810221236.38336.david-b@pacbell.net>
-	<5e088bd90810221330m7f40293du96897afb41f98169@mail.gmail.com>
+From: "Juha Kuikka" <juha.kuikka@gmail.com>
+Subject: [PATCH] OMAP2 NAND: Fix __raw_readsl() length argument
+Date: Wed, 22 Oct 2008 13:58:16 -0700
+Message-ID: <a46a26fd0810221358l6153c0dat74f76af99fc8afaf@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from an-out-0708.google.com ([209.85.132.250]:62240 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758878AbYJVU6R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Oct 2008 16:58:17 -0400
+Received: by an-out-0708.google.com with SMTP id d40so192469and.103
+        for <linux-omap@vger.kernel.org>; Wed, 22 Oct 2008 13:58:16 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <5e088bd90810221330m7f40293du96897afb41f98169@mail.gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Oct 22, 2008 at 01:30:26PM -0700, Steve Sakoman wrote:
+__raw_readsl() takes data length in longs so divide byte length by
+four instead of two.
 
-> At the time, the feedback from the alsa-devel list was that they were
-> OK with these patches living in linux-omap until the twl4030 driver
-> was mainline ready.
+Signed-off-by: Juha Kuikka <juha.kuikka@gmail.com>
+---
+ drivers/mtd/nand/omap2.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+ mode change 100644 => 100755 drivers/mtd/nand/omap2.c
 
-Indeed.  The only blocker was that TWL4030 codec support breaks the
-build of SND_SOC_ALL_CODECS without the core support for the chip - I
-gave it my ack otherwise already.  Since the core support has now been
-merged by Linus this shouldn't be an issue once ALSA has synchronised
-with mainline.
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+old mode 100644
+new mode 100755
+index 2ede116..2673ae4
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -196,7 +196,7 @@ static void omap_read_buf16(struct mtd_info *mtd,
+u_char *buf, int len)
+ {
+        struct nand_chip *nand = mtd->priv;
 
-> I am happy to resubmit the patches, if that is what folks want.  I'm
-> copying alsa-devel so they can weigh in on the decision.
+-       __raw_readsl(nand->IO_ADDR_R, buf, len / 2);
++       __raw_readsl(nand->IO_ADDR_R, buf, len / 4);
+ }
 
-Once mainline is merged up to the ASoC topic branch it should be fine to
-go via ALSA.  I've got some other stuff waiting for that to happen
-myself so if you want to send a patch queue I can queue that in there.
-I was going to wait for rc1 before asking Takashi to merge up to the
-ASoC branches.
+ /*
+--
+1.6.0.1
