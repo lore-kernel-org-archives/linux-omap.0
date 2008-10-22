@@ -1,78 +1,57 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: ALSA sound on beagleboard
-Date: Wed, 22 Oct 2008 21:57:39 +0200
-Message-ID: <DCBF8BEA-8DF1-43C5-90E9-30C3E848D1BF@student.utwente.nl>
-References: <E1KsheN-0002oF-7M@amazonia.comcast.net> <682C5801-1A95-4D51-8154-F393129E4477@student.utwente.nl> <200810221244.10661.david-b@pacbell.net>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-15--562359652"
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: [PATCH] alsa: add beagleboard SoC configuration.
+Date: Wed, 22 Oct 2008 13:30:26 -0700
+Message-ID: <5e088bd90810221330m7f40293du96897afb41f98169@mail.gmail.com>
+References: <1224692929-15108-1-git-send-email-felipe.contreras@gmail.com>
+	 <20081022165300.GX7341@atomide.com>
+	 <200810221236.38336.david-b@pacbell.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx1.utsp.utwente.nl ([130.89.2.12]:42658 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751572AbYJVT5t (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Oct 2008 15:57:49 -0400
-Received: from [172.20.1.5] (vpn006013.vpn.utwente.nl [130.89.6.13])
-          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id m9MJvf3s015021
-          for <linux-omap@vger.kernel.org>; Wed, 22 Oct 2008 21:57:42 +0200
-In-Reply-To: <200810221244.10661.david-b@pacbell.net>
+Received: from yx-out-2324.google.com ([74.125.44.29]:54532 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752118AbYJVUa2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Oct 2008 16:30:28 -0400
+Received: by yx-out-2324.google.com with SMTP id 8so605270yxm.1
+        for <linux-omap@vger.kernel.org>; Wed, 22 Oct 2008 13:30:27 -0700 (PDT)
+In-Reply-To: <200810221236.38336.david-b@pacbell.net>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: Tony Lindgren <tony@atomide.com>, Felipe Contreras <felipe.contreras@gmail.com>, David Brownell <david-b@pacbell.net>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-15--562359652
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
-
-
-Op 22 okt 2008, om 21:44 heeft David Brownell het volgende geschreven:
-
-> On Wednesday 22 October 2008, Koen Kooi wrote:
->>>
->>>  Anyone else got it working?
->>
->> Is your asound.conf set up correctly?
+On Wed, Oct 22, 2008 at 12:36 PM, David Brownell <david-b@pacbell.net> wrote:
+> On Wednesday 22 October 2008, Tony Lindgren wrote:
+>> This should go to alsa-devel list with l-o list cc'd. AFAIK, all
+>> the omap ASoC stuff is in mainline already. I will not push it
+>> to l-o until we have an ack from alsa-devel.
 >
-> Perhaps you could include a sample?
-
-I got a message from someone on the beagleboard mailinglist that  
-asound.conf was the culprit, no idea what the exact fix was.
-
-> Every time I touch ALSA I get annoyed that it doesn't
-> have the basic intelligence to be able to configure
-> itself based on information exported by the kernel...
-
-same here...
-
-regards,
-
-Koen
-
+> There are multiple ASoc bits ... they're not all there yet.
+> The TWL4030 codec support should be ready to go, now that its
+> core has merged, plus Overo (and "soon" Beagle) board support.
 >
+> The twl4030-core support was the blocking issue; at least some
+> of the other patches were even acked.
 >
-> - Dave
+>  http://marc.info/?t=122304728600007&r=1&w=2
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux- 
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> Maybe Steve would resubmit his patches, to merge through ALSA
+> into 2.6.28-rc?  I presume all the feedback from his first round
+> (beginning of September) got addressed.
 
+Yes, all of the feedback from the first round of submissions was
+addressed.  I received an ack for the twl4030 codec driver as well as
+the Overo driver.
 
---Apple-Mail-15--562359652
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: This is a digitally signed message part
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
+At the time, the feedback from the alsa-devel list was that they were
+OK with these patches living in linux-omap until the twl4030 driver
+was mainline ready.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
+So Tony merged them into linux-omap at that point.
 
-iD8DBQFI/4W1MkyGM64RGpERAkcmAKCtBVdnTUrNOciBZQTk3bzMoYT1cgCgpWum
-lvKIZ5HJhGy0B0+1w9+MxHc=
-=6vBP
------END PGP SIGNATURE-----
+I am happy to resubmit the patches, if that is what folks want.  I'm
+copying alsa-devel so they can weigh in on the decision.
 
---Apple-Mail-15--562359652--
+Steve
