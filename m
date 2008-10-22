@@ -1,51 +1,47 @@
-From: "Felipe Contreras" <felipe.contreras@gmail.com>
-Subject: dsp-bridge synch issues
-Date: Wed, 22 Oct 2008 19:53:19 +0300
-Message-ID: <94a0d4530810220953l23ce3794i18b518472b735289@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Rick Bronson <rick@efn.org>
+Subject: Re: ALSA sound on beagleboard
+Date: Wed, 22 Oct 2008 10:37:39 -0700
+Message-ID: <E1KsheN-0002oF-7M@amazonia.comcast.net>
+Reply-To: rick@efn.org
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0708.google.com ([209.85.198.247]:53473 "EHLO
-	rv-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751704AbYJVQxV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Oct 2008 12:53:21 -0400
-Received: by rv-out-0708.google.com with SMTP id k29so4247528rvb.0
-        for <linux-omap@vger.kernel.org>; Wed, 22 Oct 2008 09:53:19 -0700 (PDT)
-Content-Disposition: inline
+Received: from samwise.efn.org ([12.33.21.33]:44206 "EHLO samwise.efn.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757883AbYJVRiD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Oct 2008 13:38:03 -0400
+Received: from amazonia.comcast.net (c-67-171-210-97.hsd1.or.comcast.net [67.171.210.97])
+	by samwise.efn.org (Postfix) with ESMTP id 6793C1700B7
+	for <linux-omap@vger.kernel.org>; Wed, 22 Oct 2008 10:38:02 -0700 (PDT)
+Received: from rick by amazonia.comcast.net with local (Exim 4.69)
+	(envelope-from <rick@efn.org>)
+	id 1KsheN-0002oF-7M
+	for linux-omap@vger.kernel.org; Wed, 22 Oct 2008 10:37:39 -0700
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Hari Kanigeri <h-kanigeri2@ti.com>
+To: linux-omap@vger.kernel.org
 
-Hi,
+Dave,
 
-I wrote a very simple DSP test and I'm having some synchronization issues.
-http://github.com/felipec/dsp-dummy
+  Thanks for the info.  This patch did get sound output working.  But
+input doesn't seem to work.  I checked that I really have audio at the
+audio-in connector and that the mixer is set right:
 
-Basically:
-  DSPNode_PutMessage (core->node, &msg, DSP_FOREVER);
-  usleep (4000);
-  DSPNode_GetMessage (core->node, &msg, 0);
+> amixer                                                                        
+Simple mixer control 'Master',0                                                 
+  Capabilities: pvolume                                                         
+  Playback channels: Front Left - Front Right                                   
+  Limits: Playback 0 - 127                                                      
+  Mono:                                                                         
+  Front Left: Playback 75 [59%]                                                 
+  Front Right: Playback 75 [59%]                                                
+Simple mixer control 'Capture',0                                                
+  Capabilities: cvolume                                                         
+  Capture channels: Front Left - Front Right                                    
+  Limits: Capture 0 - 127                                                       
+  Front Left: Capture 84 [66%]                                                  
+  Front Right: Capture 84 [66%]  
 
-If I remove the usleep, I get:
+  Anyone else got it working?
 
-DSPNodeCreate succeeded
-DSPNode_run succeeded
-WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
-WMD_DEH_Notify: DSP_SYSERROR, errInfo = 0x102
-WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
-WMD_DEH_Notify: DSP_SYSERROR, errInfo = 0x102
-WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
-WMD_DEH_Notify: DSP_SYSERROR, errInfo = 0x102
-WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
-WMD_DEH_Notify: DSP_SYSERROR, errInfo = 0x102
+  Thanks for any help.
 
-If I add it:
-
-DSPNodeCreate succeeded
-DSPNode_run succeeded
-
-Any ideas?
-
--- 
-Felipe Contreras
+  Rick
