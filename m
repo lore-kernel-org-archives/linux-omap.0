@@ -1,46 +1,69 @@
-From: "Juha Kuikka" <juha.kuikka@gmail.com>
-Subject: [PATCH] OMAP2 NAND: Fix __raw_readsl() length argument
-Date: Wed, 22 Oct 2008 13:58:16 -0700
-Message-ID: <a46a26fd0810221358l6153c0dat74f76af99fc8afaf@mail.gmail.com>
+From: "Nathan Monson" <nmonson@gmail.com>
+Subject: Re: ARM: OMAP3: Fix get_irqnr_and_base to clear spurious interrupt bits
+Date: Wed, 22 Oct 2008 14:30:17 -0700
+Message-ID: <e5e6ade50810221430u111bcafeo3a4c4a96a87b8b0c@mail.gmail.com>
+References: <20081021045809.GJ7341@atomide.com>
+	 <94a0d4530810211309w28188181rcb8b1b881588ec87@mail.gmail.com>
+	 <20081021203700.GP7341@atomide.com>
+	 <94a0d4530810211434t5708978ftd1f409c7e4c93d12@mail.gmail.com>
+	 <20081021220216.GQ7341@atomide.com>
+	 <94a0d4530810220746j54d5e275q253192a0c7c07d7f@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.250]:62240 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758878AbYJVU6R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Oct 2008 16:58:17 -0400
-Received: by an-out-0708.google.com with SMTP id d40so192469and.103
-        for <linux-omap@vger.kernel.org>; Wed, 22 Oct 2008 13:58:16 -0700 (PDT)
+Received: from qw-out-2122.google.com ([74.125.92.27]:43495 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756141AbYJVVaT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Oct 2008 17:30:19 -0400
+Received: by qw-out-2122.google.com with SMTP id 3so3083qwe.37
+        for <linux-omap@vger.kernel.org>; Wed, 22 Oct 2008 14:30:17 -0700 (PDT)
+In-Reply-To: <94a0d4530810220746j54d5e275q253192a0c7c07d7f@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, lauri.leukkunen@nokia.com, Paul Walmsley <paul@pwsan.com>, Richard Woodruff <r-woodruff2@ti.com>, Rick Bronson <rick@efn.org>
 
-__raw_readsl() takes data length in longs so divide byte length by
-four instead of two.
+On Wed, Oct 22, 2008 at 7:46 AM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> I've reverted the strongly ordered patch and I'm not getting any IRQ
+> issues with any DSP tests, including the ping one.
+>
+> I'm using the latest patches from Hiroshi (20081021), so maybe that
+> has something to do with it?
 
-Signed-off-by: Juha Kuikka <juha.kuikka@gmail.com>
----
- drivers/mtd/nand/omap2.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
- mode change 100644 => 100755 drivers/mtd/nand/omap2.c
+I've also reverted the strongly ordered patch.  While I can't do
+anything that freezes the kernel anymore, I can still cause two kinds
+of endless interrupts on Angstrom:
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-old mode 100644
-new mode 100755
-index 2ede116..2673ae4
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -196,7 +196,7 @@ static void omap_read_buf16(struct mtd_info *mtd,
-u_char *buf, int len)
- {
-        struct nand_chip *nand = mtd->priv;
+1) About 1 in 10 boots generates these messages endlessly:
 
--       __raw_readsl(nand->IO_ADDR_R, buf, len / 2);
-+       __raw_readsl(nand->IO_ADDR_R, buf, len / 4);
- }
+__ratelimit: 1518265 callbacks suppressed
+omapfb omapfb: irq error status 4000
+omapfb omapfb: irq error status 4022
 
- /*
---
-1.6.0.1
+Tony sent me some debug code which shows the register values when this occurs:
+XXX 95mask: 0xffffffdf 95 0x3ffffff
+XXX 95ack: 0xffffffdf 95 0x3ffffff
+
+This can be triggered even without the DSP patches.
+
+Before Tony's latest work, this would just spiral out into irq -33s
+and kill the kernel.  Now it just slows things down, which is a good
+improvement.
+
+I can't reproduce this with the S-O patch.
+
+2) I still get spurious interrupts while running the DSP ping.out
+test, but they are also handled better.  No slow down occurs.
+However, I can get endless interrupts  by unplugging/replugging my USB
+hub.  Again, the endless interrupts slow things down a lot, but no
+longer kill the system like before.
+
+I can't reproduce this with the S-O patch.
+
+Let me know if there are further patches worth testing without S-O.
+For now, I'm back to S-O to allow me to keep working.
+
+- Nathan
