@@ -1,61 +1,41 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: 32 kHz timer granularity when CONFIG_NO_HZ is enabled
-Date: Wed, 22 Oct 2008 12:06:19 -0700
-Message-ID: <200810221206.19642.david-b@pacbell.net>
-References: <48FF26DE.4060107@nokia.com>
+Subject: Re: [PATCH] alsa: add beagleboard SoC configuration.
+Date: Wed, 22 Oct 2008 12:09:27 -0700
+Message-ID: <200810221209.28194.david-b@pacbell.net>
+References: <1224692929-15108-1-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:48772 "HELO
-	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751654AbYJVTG3 (ORCPT
+Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:29545 "HELO
+	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752918AbYJVTJa (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Oct 2008 15:06:29 -0400
-In-Reply-To: <48FF26DE.4060107@nokia.com>
+	Wed, 22 Oct 2008 15:09:30 -0400
+In-Reply-To: <1224692929-15108-1-git-send-email-felipe.contreras@gmail.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-On Wednesday 22 October 2008, Sakari Ailus wrote:
-> Hi,
-> 
-> I have OMAP 3 and I'm using the 32 kHz timer, CONFIG_OMAP_32K_TIMER_HZ 
-> is set to 128 and CONFIG_NO_HZ is enabled. Many OMAP-based boards in 
-> arch/arm/config seem to have this kind of default configuration.
-> 
-> This has the effect that for example msleep(1) sleeps much longer than 
-> intended, between 7,8 and 15,6 ms, for no apparent good reason.
+On Wednesday 22 October 2008, Felipe Contreras wrote:
+> +
+> +=A0=A0=A0=A0=A0=A0=A0printk(KERN_INFO "OMAP3 Beagle SoC init\n");
+> +=A0=A0=A0=A0=A0=A0=A0if (!machine_is_omap3_beagle()) {
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0printk(KERN_ERR "Not OM=
+AP3 Beagle!\n");
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0return -ENODEV;
+> +=A0=A0=A0=A0=A0=A0=A0}
+> +
 
-1000 ms/sec / 128 HZ/sec == 7.8 ms/HZ
+Note that the version I (re)posted fixed the bogus messaging
+on non-Beagle boards.  Move that KERN_INFO after the "if ...)".
+And for that matter, the KERN_ERR isn't really an error; it's
+quite legit to have a kernel support e.g. both Overo and Beagle.
 
-The "good reason" is that msleep() takes at least one HZ,
-since it's based on the scheduler's use of jiffies.
-
-
-> I'm just wondering whether all this is intentional. :-)
-
-A patch to make msleep() use hrtimers didn't fly; the
-change in semantics could make trouble, despite the
-acknowledged problems of using jiffies instead of wall
-clock time.
-
-I can think of several semantic variants of msleep that
-might be wanted:
-
-  msleep_deferrable() ... still HZ based, but ok to defer
-	the tick for IRQ reduction
-  msleep_exact() ... uses hrtimers, almost certainly
-	costs an IRQ (unless HIGH_RES_TIMERS is off)
-  msleep_fuzzy() ... current semantics, units of jiffies
-	but not deferrable
-
-Folk seem mostly content with fuzzy() for now, although
-there are certainly folk who'd rather have exact().  And
-the slowdown of an msleep(1) is probably the canonical
-example of why exact() would collect users.
-
-- Dave
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
