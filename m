@@ -1,76 +1,40 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: dsp-bridge synch issues
-Date: Wed, 22 Oct 2008 14:40:17 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E13FA46D7@dlee03.ent.ti.com>
-References: <94a0d4530810220953l23ce3794i18b518472b735289@mail.gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: ALSA sound on beagleboard
+Date: Wed, 22 Oct 2008 12:44:10 -0700
+Message-ID: <200810221244.10661.david-b@pacbell.net>
+References: <E1KsheN-0002oF-7M@amazonia.comcast.net> <682C5801-1A95-4D51-8154-F393129E4477@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42322 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752710AbYJVTk0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Oct 2008 15:40:26 -0400
-In-Reply-To: <94a0d4530810220953l23ce3794i18b518472b735289@mail.gmail.com>
-Content-Language: en-US
+Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:47624 "HELO
+	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752031AbYJVToN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Oct 2008 15:44:13 -0400
+In-Reply-To: <682C5801-1A95-4D51-8154-F393129E4477@student.utwente.nl>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-Hi Felipe,
+On Wednesday 22 October 2008, Koen Kooi wrote:
+> >
+> > =A0Anyone else got it working?
+>=20
+> Is your asound.conf set up correctly?
 
-> I wrote a very simple DSP test and I'm having some synchronization issues.
-> http://github.com/felipec/dsp-dummy
-> 
-> Basically:
->   DSPNode_PutMessage (core->node, &msg, DSP_FOREVER);
->   usleep (4000);
->   DSPNode_GetMessage (core->node, &msg, 0);
+Perhaps you could include a sample?
 
--- The DSP_SYSERROR is reported by DSP side of the Bridge.
-Try passing -1 (infinite wait) as the timeout to DSPNode_GetMessage function instead of 0. 
-You can refer to the dmmcopy.c sample file in the bridge tarball on omapzoom.
+Every time I touch ALSA I get annoyed that it doesn't
+have the basic intelligence to be able to configure
+itself based on information exported by the kernel...
 
-Thank you,
-Best regards,
-Hari
+- Dave
 
-> -----Original Message-----
-> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
-> Sent: Wednesday, October 22, 2008 11:53 AM
-> To: linux-omap@vger.kernel.org List; Kanigeri, Hari
-> Subject: dsp-bridge synch issues
-> 
-> Hi,
-> 
-> I wrote a very simple DSP test and I'm having some synchronization issues.
-> http://github.com/felipec/dsp-dummy
-> 
-> Basically:
->   DSPNode_PutMessage (core->node, &msg, DSP_FOREVER);
->   usleep (4000);
->   DSPNode_GetMessage (core->node, &msg, 0);
-> 
-> If I remove the usleep, I get:
-> 
-> DSPNodeCreate succeeded
-> DSPNode_run succeeded
-> WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
-> WMD_DEH_Notify: DSP_SYSERROR, errInfo = 0x102
-> WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
-> WMD_DEH_Notify: DSP_SYSERROR, errInfo = 0x102
-> WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
-> WMD_DEH_Notify: DSP_SYSERROR, errInfo = 0x102
-> WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
-> WMD_DEH_Notify: DSP_SYSERROR, errInfo = 0x102
-> 
-> If I add it:
-> 
-> DSPNodeCreate succeeded
-> DSPNode_run succeeded
-> 
-> Any ideas?
-> 
-> --
-> Felipe Contreras
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
