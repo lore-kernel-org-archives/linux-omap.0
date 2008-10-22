@@ -1,87 +1,61 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: ALSA sound on beagleboard
-Date: Wed, 22 Oct 2008 20:35:05 +0200
-Message-ID: <682C5801-1A95-4D51-8154-F393129E4477@student.utwente.nl>
-References: <E1KsheN-0002oF-7M@amazonia.comcast.net>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-12--567313342"
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: 32 kHz timer granularity when CONFIG_NO_HZ is enabled
+Date: Wed, 22 Oct 2008 12:06:19 -0700
+Message-ID: <200810221206.19642.david-b@pacbell.net>
+References: <48FF26DE.4060107@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx2.utsp.utwente.nl ([130.89.2.13]:53603 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751226AbYJVSfQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Oct 2008 14:35:16 -0400
-Received: from [172.20.1.5] (vpn006013.vpn.utwente.nl [130.89.6.13])
-          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id m9MIZ8EK024371
-          for <linux-omap@vger.kernel.org>; Wed, 22 Oct 2008 20:35:08 +0200
-In-Reply-To: <E1KsheN-0002oF-7M@amazonia.comcast.net>
+Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:48772 "HELO
+	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751654AbYJVTG3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Oct 2008 15:06:29 -0400
+In-Reply-To: <48FF26DE.4060107@nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: Sakari Ailus <sakari.ailus@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-12--567313342
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+On Wednesday 22 October 2008, Sakari Ailus wrote:
+> Hi,
+> 
+> I have OMAP 3 and I'm using the 32 kHz timer, CONFIG_OMAP_32K_TIMER_HZ 
+> is set to 128 and CONFIG_NO_HZ is enabled. Many OMAP-based boards in 
+> arch/arm/config seem to have this kind of default configuration.
+> 
+> This has the effect that for example msleep(1) sleeps much longer than 
+> intended, between 7,8 and 15,6 ms, for no apparent good reason.
 
+1000 ms/sec / 128 HZ/sec == 7.8 ms/HZ
 
-Op 22 okt 2008, om 19:37 heeft Rick Bronson het volgende geschreven:
-
-> Dave,
->
->  Thanks for the info.  This patch did get sound output working.  But
-> input doesn't seem to work.  I checked that I really have audio at the
-> audio-in connector and that the mixer is set right:
->
->> amixer
-> Simple mixer control 'Master',0
->  Capabilities: pvolume
->  Playback channels: Front Left - Front Right
->  Limits: Playback 0 - 127
->  Mono:
->  Front Left: Playback 75 [59%]
->  Front Right: Playback 75 [59%]
-> Simple mixer control 'Capture',0
->  Capabilities: cvolume
->  Capture channels: Front Left - Front Right
->  Limits: Capture 0 - 127
->  Front Left: Capture 84 [66%]
->  Front Right: Capture 84 [66%]
->
->  Anyone else got it working?
-
-Is your asound.conf set up correctly?
-
-regards,
-
-Koen
-
->
->
->  Thanks for any help.
->
->  Rick
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux- 
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+The "good reason" is that msleep() takes at least one HZ,
+since it's based on the scheduler's use of jiffies.
 
 
---Apple-Mail-12--567313342
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: This is a digitally signed message part
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
+> I'm just wondering whether all this is intentional. :-)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
+A patch to make msleep() use hrtimers didn't fly; the
+change in semantics could make trouble, despite the
+acknowledged problems of using jiffies instead of wall
+clock time.
 
-iD8DBQFI/3JcMkyGM64RGpERAkZnAKCM8syGbRDQ7OOafMIZ93rz+cnMsQCeNwPU
-FS62nIm74oILhXHkjPk+XMo=
-=6IgM
------END PGP SIGNATURE-----
+I can think of several semantic variants of msleep that
+might be wanted:
 
---Apple-Mail-12--567313342--
+  msleep_deferrable() ... still HZ based, but ok to defer
+	the tick for IRQ reduction
+  msleep_exact() ... uses hrtimers, almost certainly
+	costs an IRQ (unless HIGH_RES_TIMERS is off)
+  msleep_fuzzy() ... current semantics, units of jiffies
+	but not deferrable
+
+Folk seem mostly content with fuzzy() for now, although
+there are certainly folk who'd rather have exact().  And
+the slowdown of an msleep(1) is probably the canonical
+example of why exact() would collect users.
+
+- Dave
