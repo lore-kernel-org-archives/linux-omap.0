@@ -1,75 +1,74 @@
-From: "Juha Kuikka" <juha.kuikka@gmail.com>
-Subject: Re: [PATCH] OMAP2 NAND: Fix __raw_readsl() length argument
-Date: Wed, 22 Oct 2008 15:23:35 -0700
-Message-ID: <a46a26fd0810221523y4a947442p6eb060192603b8f1@mail.gmail.com>
-References: <a46a26fd0810221358l6153c0dat74f76af99fc8afaf@mail.gmail.com>
-	 <200810221446.11415.david-b@pacbell.net>
-	 <a46a26fd0810221452x1edfead1l524270ddaf250e2a@mail.gmail.com>
-	 <200810221502.53045.david-b@pacbell.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Rick Bronson <rick@efn.org>
+Subject: Re: ARM: OMAP3: Fix get_irqnr_and_base to clear spurious interrupt bits
+Date: Wed, 22 Oct 2008 20:29:48 -0700
+Message-ID: <E1KsqtQ-0005Xb-EV@amazonia.comcast.net>
+Reply-To: rick@efn.org
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ag-out-0708.google.com ([72.14.246.244]:54223 "EHLO
-	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754399AbYJVWXh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Oct 2008 18:23:37 -0400
-Received: by ag-out-0708.google.com with SMTP id 31so5039939agc.10
-        for <linux-omap@vger.kernel.org>; Wed, 22 Oct 2008 15:23:36 -0700 (PDT)
-In-Reply-To: <200810221502.53045.david-b@pacbell.net>
-Content-Disposition: inline
+Received: from samwise.efn.org ([12.33.21.33]:57158 "EHLO samwise.efn.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750785AbYJWD3u (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Oct 2008 23:29:50 -0400
+Received: from amazonia.comcast.net (c-67-171-210-97.hsd1.or.comcast.net [67.171.210.97])
+	by samwise.efn.org (Postfix) with ESMTP id 49DCC170018
+	for <linux-omap@vger.kernel.org>; Wed, 22 Oct 2008 20:29:49 -0700 (PDT)
+Received: from rick by amazonia.comcast.net with local (Exim 4.69)
+	(envelope-from <rick@efn.org>)
+	id 1KsqtQ-0005Xb-EV
+	for linux-omap@vger.kernel.org; Wed, 22 Oct 2008 20:29:48 -0700
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-On Wed, Oct 22, 2008 at 3:02 PM, David Brownell <david-b@pacbell.net> wrote:
-> On Wednesday 22 October 2008, Juha Kuikka wrote:
->> >> -       __raw_readsl(nand->IO_ADDR_R, buf, len / 2);
->> >> +       __raw_readsl(nand->IO_ADDR_R, buf, len / 4);
->> >>  }
->> >
->> > Shouldn't that have been __raw_readsw() though?
->>
->> Hmh, good point.
->
-> Yeah, but the bug was from a patch from me ... sigh.
->
->
->> From the original code it looks like that was the intention but
->> readsl() works just as well.
->
-> Really?  Both upper and lower 16-bit units have the right data?
+Tony,
 
-Yes, all data comes in normally. I'm running JFFS2 on top of this.
+  Here is the patch against the latest git.  I'm a little concerned
+about masking the interrupt number so that the spurious bit are
+ignored.  Do you really want to turn a spurious interrupt into a
+normal (good) interrupt?
 
->> I tested this on OMAP2430 and it works ok.
->>
->> I don't see any mentions in the TRM about the width of the
->> GPMC_NAND_DATA registers but apparently the NAND engine happily
->> accepts 32bit accesses on bus.
->
-> Maybe this has to do with the FIFO behavior.  It would certainly
-> make sense to allow reads of any size from the FIFO.  If it were
-> raw reads on the data bus, then I'd expect that both 8 and 16 bit
-> widths would work.  (Assuming NAND chips weren't in parallel...)
+> Also, AFAIK we don't have infinitely repeating irqs any longer, it's
+> just an occasional single spurious interrupt.
 
-Right, for the FIFO in prefetch/writeposting block the TRM explicitly
-states that it does accept 8/16/32 bit accesses but I don't see this
-driver using the prefetch engine.
+  That's correct.  And those disappeared when I applied the S-O patch.
+Without the S-O patch I was seeing one spurious interrupt in about 15
+reboots, after the patch I got zero in 350 reboots.
 
-No parallel chips here, just a regular 16 bit wide LP NAND.
+  Rick
 
-> If the FIFO is active, and specified to support arbitrary width
-> accesses (that don't match the data bus), then by all means use
-> the __raw_readsl() call to maximize bandwidth use.
-
-Sure. But interestingly enough even without explicitly using the FIFO
-it seems to accept longer bus accesses.
-
-Just to be on the safe side, maybe the patch should indeed be revised
-to use __raw_readsw(..., len/2) ?
-
- - Juha
--- 
-Madness takes it's toll. Please have exact change.
+--- linux-omap-2.6/arch/arm/plat-omap/include/mach/entry-macro.S.git	2008-10-22 20:01:33.000000000 -0700
++++ linux-omap-2.6/arch/arm/plat-omap/include/mach/entry-macro.S	2008-10-22 20:11:26.000000000 -0700
+@@ -67,6 +67,10 @@
+ 
+ #define INTCPS_SIR_IRQ_OFFSET	0x0040		/* Active interrupt offset */
+ #define	ACTIVEIRQ_MASK		0x7f		/* Active interrupt bits */
++#define INTCPS_CONTROL		0x0048		/* new interrupt agreement bits */
++#define INTCPS_PENDING_IRQ_1	0x0098		/* IRQ pending reg 1 */
++#define INTCPS_PENDING_IRQ_2	0x00b8		/* IRQ pending reg 2 */
++#define INTCPS_PENDING_IRQ_3	0x00d8		/* IRQ pending reg 3 */
+ 
+ 		.macro	disable_fiq
+ 		.endm
+@@ -79,18 +83,20 @@
+ 
+ 		.macro	get_irqnr_and_base, irqnr, irqstat, base, tmp
+ 		ldr	\base, =OMAP2_VA_IC_BASE
+-		ldr	\irqnr, [\base, #0x98] /* IRQ pending reg 1 */
+-		cmp	\irqnr, #0x0
+-		bne	2222f
+-		ldr	\irqnr, [\base, #0xb8] /* IRQ pending reg 2 */
+-		cmp	\irqnr, #0x0
+-		bne	2222f
+-		ldr	\irqnr, [\base, #0xd8] /* IRQ pending reg 3 */
+-		cmp	\irqnr, #0x0
+-2222:
+-		ldrne	\irqnr, [\base, #INTCPS_SIR_IRQ_OFFSET]
++		ldr	\irqnr, [\base, #INTCPS_SIR_IRQ_OFFSET]
++		cmp	\irqnr, #0  /* check for negative */
++		movmi	\tmp, #0x1 /* Ack the spurious irq, this lets it
++					* generate a bad irq error message,
++					* but prevents infinitely repeating
++					* irq.
++					*/
++		strmi	\tmp, [\base, #INTCPS_CONTROL]
+ 		and	\irqnr, \irqnr, #ACTIVEIRQ_MASK /* Clear spurious bits */
+-
