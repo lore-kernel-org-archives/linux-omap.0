@@ -1,37 +1,48 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH 0/2] omap-keypad fixes for OMAP2
-Date: Thu, 23 Oct 2008 08:55:35 +0300
-Message-ID: <200810230855.35546.peter.ujfalusi@nokia.com>
-References: <1222925329-28117-1-git-send-email-peter.ujfalusi@nokia.com> <20081003062530.GG23962@atomide.com> <20081017220217.GF18573@atomide.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch 2.6.27-omap-git 0/4] start phasing out legacy GPIO calls
+Date: Wed, 22 Oct 2008 23:50:54 -0700
+Message-ID: <200810222350.54467.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:59560 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751585AbYJWF4H convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Oct 2008 01:56:07 -0400
-In-Reply-To: <20081017220217.GF18573@atomide.com>
+Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:27092 "HELO
+	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751948AbYJWHCM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Oct 2008 03:02:12 -0400
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
+Following this are four patches matching $SUBJECT:
 
-On Saturday 18 October 2008 01:02:19 ext Tony Lindgren wrote:
-> OK, I'll push these two to l-o tree, hopefully you're still planning
-> to send them to the mainline kernel?
->=20
-> > Tony
+ - remove omap_set_gpio_dataout() and omap_get_gpio_datain()
+	... same call syntax, different name, minor code shrink
+ - use gpio_direction_input()
+	... minor call syntax change, otherwise not interesting
+ - use gpio_direction_output(), remove omap_set_gpio_direction()
+	... different call syntax and initialization model
+ - use gpio_to_irq()
+	... at least, outside of static initializers
 
-Sorry, it seams that I was sleeping...
-I have sent the patches to linux-input (l-o cc-d).
+The third patch might conceivably make trouble; see the patch
+comments.  Ditto the fourth, but IMO that's less likely.
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I did test builds for OMAP1, OMAP2420, OMAP2430, and OMAP3430,
+and tried to make sure all the files affected by this patch
+got rebuilt.  The build breakage was mostly related to McBSP
+and iomem pointers; nothing affected by these patches.
+
+Two remaining OMAP GPIO calls can be removed a bit later:
+
+	int omap_request_gpio(int gpio);
+	void omap_free_gpio(int gpio);
+
+Once that's done, I think it'll be time to move the GPIO
+code into mach-omap1/mach-omap2 ... the OMAP2/OMAP3 stuff
+in particular should become a LOT simpler.
+
+- Dave
