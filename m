@@ -1,57 +1,35 @@
-From: "Bright, Dan" <dan.bright@windriver.com>
-Subject: Small patch for dsp bridge code
-Date: Thu, 23 Oct 2008 15:03:31 -0700
-Message-ID: <3DD728A3B927AA438D6367166CC67D0902B1DCFE@ala-mail10.corp.ad.wrs.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] OMAP2 NAND: Fix __raw_readsl() length argument
+Date: Thu, 23 Oct 2008 15:16:32 -0700
+Message-ID: <200810231516.32947.david-b@pacbell.net>
+References: <a46a26fd0810221358l6153c0dat74f76af99fc8afaf@mail.gmail.com> <a46a26fd0810221523y4a947442p6eb060192603b8f1@mail.gmail.com> <a46a26fd0810231451n2095b03btc832c2a8b70d2749@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:54375 "EHLO mail.wrs.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752292AbYJWWD0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Oct 2008 18:03:26 -0400
-Received: from ALA-MAIL03.corp.ad.wrs.com (ala-mail03 [147.11.57.144])
-	by mail.wrs.com (8.13.6/8.13.6) with ESMTP id m9NM3Ql2016937
-	for <linux-omap@vger.kernel.org>; Thu, 23 Oct 2008 15:03:26 -0700 (PDT)
-Content-class: urn:content-classes:message
+Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:32509 "HELO
+	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751269AbYJWWQf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Oct 2008 18:16:35 -0400
+In-Reply-To: <a46a26fd0810231451n2095b03btc832c2a8b70d2749@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Juha Kuikka <juha.kuikka@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello,
+On Thursday 23 October 2008, Juha Kuikka wrote:
+> How does this look?
+> 
+> Subject: [PATCH] OMAP2 NAND: Change __raw_readsl() to __raw_readsw()
 
-I'm not sure if this code ever get exercised, but I found a small
-problem with the 
-dsp bridge driver code while debugging the kernel, and thought I'd bring
-it to 
-someone's attention.
+Looks fine.  Although I'm still wondering what happened to that
+patch teaching it about the prefetch engine ... it'd be nice to
+maximize throughput.
 
-Thanks,
-Dan Bright
+(And it's too bad we can't confirm it's safe that raw_readsl is
+actually safe without the FIFO and prefetch being enabled...)
 
-diff --git a/drivers/dsp/bridge/services/mem.c
-b/drivers/dsp/bridge/services/mem.c
-index 565b0b8..fff1c4a 100644
---- a/drivers/dsp/bridge/services/mem.c
-+++ b/drivers/dsp/bridge/services/mem.c
-@@ -355,9 +355,14 @@ void *MEM_AllocPhysMem(u32 cBytes, u32 ulAlign, OUT
-u32 *pPhysicalAddress)
- 		if (extPhysMemPoolEnabled) {
- 			pVaMem = MEM_ExtPhysMemAlloc(cBytes, ulAlign,
- 						    (u32 *)&paMem);
--		} else
-+		} else {
- 			pVaMem = dma_alloc_coherent(NULL, cBytes,
-&paMem,
- 						   GFP_ATOMIC);
-+			/* dma_alloc_coherent returns ~0 on error */
-+			if(pVaMem == (void *)~0)
-+				pVaMem = NULL;
-+		}
-+
- 		if (pVaMem == NULL) {
- 			*pPhysicalAddress = 0;
- 			GT_1trace(MEM_debugMask, GT_6CLASS,
-
-
+- Dave
