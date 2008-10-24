@@ -1,102 +1,68 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP3: Remove CONFIG_OMAP_SYSOFFMODE flag
-Date: Fri, 24 Oct 2008 12:22:49 -0700
-Message-ID: <20081024192249.GG16354@atomide.com>
-References: <1224225968-20828-1-git-send-email-ext-kalle.jokiniemi@nokia.com> <1224845439.4470.113.camel@kj-ubuntu>
+Subject: Re: [PATCH] OMAP3 DSS: Fixed FIFO buffer register field sizes
+Date: Fri, 24 Oct 2008 12:24:48 -0700
+Message-ID: <20081024192448.GH16354@atomide.com>
+References: <1224658026-4334-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60065 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61905 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754224AbYJXTWx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Oct 2008 15:22:53 -0400
+	with ESMTP id S1751278AbYJXTYv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Oct 2008 15:24:51 -0400
 Content-Disposition: inline
-In-Reply-To: <1224845439.4470.113.camel@kj-ubuntu>
+In-Reply-To: <1224658026-4334-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-* Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com> [081024 03:50]:
-> Hi Tony,
+* Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com> [081021 23:46]:
+> The size status field in DISPC_[GFX | VID1 | VID2]_FIFO_SIZE_STATUS
+> register is 11 bits wide in OMAP3, but only 9 bits were read. Similarly,
+> the threshold field in DISPC_[GFX | VID1 | VID2]_FIFO_THRESHOLD register
+> is 12 bits wide, while only 9 bits were written in it.
 > 
-> On pe, 2008-10-17 at 09:46 +0300, Kalle Jokiniemi wrote:
-> > Remove CONFIG_OMAP_SYSOFFMODE flag and do the full initialization of voltage
-> > controller . Enabling automatic sending of OFF command and selecting wether
-> > SYS_OFF_MODE signal is used should be determined dynamically. Hence they are
-> > now not set in the initialization.
-> 
-> Any chance getting this in? 
-> 
-> It's currently in the pm-branch, but it does not really depend on any of
-> the pathces there. So I think it could be moved away from the pm-branch
-> and into the linux-omap master.
+> This patch extends the bit field sizes used in setup_plane_fifo to
+> correspond to ones in OMAP3. In OMAP2 the extra bits are reserved, so no
+> harm should come from extending the bit fields.
 
-Well I was kind of waiting for Kevin and Paul to ack this. But looks
-like this fix is safe to apply, so pushing today.
+Pusing today.
 
 Tony
 
-
 > 
-> regards,
-> Kalle
+> Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+> ---
+>  drivers/video/omap/dispc.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> > 
-> > The sleep voltage for OFF mode is changed to default 1,2V for VDD1 and
-> > 1,15V for VDD2. Using the 0,9V setting causes hangup.
-> > 
-> > Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-> > ---
-> >  arch/arm/mach-omap2/pm34xx.c           |   10 +---------
-> >  arch/arm/mach-omap2/prm-regbits-34xx.h |    4 ++--
-> >  2 files changed, 3 insertions(+), 11 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> > index a828db6..457639f 100644
-> > --- a/arch/arm/mach-omap2/pm34xx.c
-> > +++ b/arch/arm/mach-omap2/pm34xx.c
-> > @@ -622,10 +622,7 @@ static void __init configure_vc(void)
-> >  				OMAP3_PRM_VC_I2C_CFG_OFFSET);
-> >  
-> >  	/* Setup voltctrl and other setup times */
-> > -
-> > -#ifdef CONFIG_OMAP_SYSOFFMODE
-> > -	prm_write_mod_reg(OMAP3430_AUTO_OFF | OMAP3430_AUTO_RET |
-> > -			OMAP3430_SEL_OFF, OMAP3430_GR_MOD,
-> > +	prm_write_mod_reg(OMAP3430_AUTO_RET, OMAP3430_GR_MOD,
-> >  			OMAP3_PRM_VOLTCTRL_OFFSET);
-> >  
-> >  	prm_write_mod_reg(OMAP3430_CLKSETUP_DURATION, OMAP3430_GR_MOD,
-> > @@ -640,11 +637,6 @@ static void __init configure_vc(void)
-> >  			OMAP3_PRM_VOLTOFFSET_OFFSET);
-> >  	prm_write_mod_reg(OMAP3430_VOLTSETUP2_DURATION, OMAP3430_GR_MOD,
-> >  			OMAP3_PRM_VOLTSETUP2_OFFSET);
-> > -#else
-> > -	prm_set_mod_reg_bits(OMAP3430_AUTO_RET, OMAP3430_GR_MOD,
-> > -			OMAP3_PRM_VOLTCTRL_OFFSET);
-> > -#endif
-> > -
-> >  }
-> >  
-> >  static int __init omap3_pm_early_init(void)
-> > diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
-> > index f82b5a7..d73eee8 100644
-> > --- a/arch/arm/mach-omap2/prm-regbits-34xx.h
-> > +++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
-> > @@ -466,13 +466,13 @@
-> >  #define OMAP3430_VC_CMD_VAL0_ON				(0x3 << 4)
-> >  #define OMAP3430_VC_CMD_VAL0_ONLP			(0x3 << 3)
-> >  #define OMAP3430_VC_CMD_VAL0_RET			(0x3 << 3)
-> > -#define OMAP3430_VC_CMD_VAL0_OFF			(0x3 << 3)
-> > +#define OMAP3430_VC_CMD_VAL0_OFF			(0x3 << 4)
-> >  
-> >  /* PRM_VC_CMD_VAL_1 specific bits */
-> >  #define OMAP3430_VC_CMD_VAL1_ON				(0xB << 2)
-> >  #define OMAP3430_VC_CMD_VAL1_ONLP			(0x3 << 3)
-> >  #define OMAP3430_VC_CMD_VAL1_RET			(0x3 << 3)
-> > -#define OMAP3430_VC_CMD_VAL1_OFF			(0x3 << 3)
-> > +#define OMAP3430_VC_CMD_VAL1_OFF			(0xB << 2)
-> >  
-> >  /* PRM_VC_CH_CONF */
-> >  #define OMAP3430_CMD1					(1 << 20)
+> diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
+> index beda40b..c140c21 100644
+> --- a/drivers/video/omap/dispc.c
+> +++ b/drivers/video/omap/dispc.c
+> @@ -290,7 +290,7 @@ static void setup_plane_fifo(int plane, int ext_mode)
+>  	BUG_ON(plane > 2);
+>  
+>  	l = dispc_read_reg(fsz_reg[plane]);
+> -	l &= FLD_MASK(0, 9);
+> +	l &= FLD_MASK(0, 11);
+>  	if (ext_mode) {
+>  		low = l * 3 / 4;
+>  		high = l;
+> @@ -298,7 +298,7 @@ static void setup_plane_fifo(int plane, int ext_mode)
+>  		low = l / 4;
+>  		high = l * 3 / 4;
+>  	}
+> -	MOD_REG_FLD(ftrs_reg[plane], FLD_MASK(16, 9) | FLD_MASK(0, 9),
+> +	MOD_REG_FLD(ftrs_reg[plane], FLD_MASK(16, 12) | FLD_MASK(0, 12),
+>  			(high << 16) | low);
+>  }
+>  
+> -- 
+> 1.5.4.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
