@@ -1,124 +1,102 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [Linux-fbdev-devel] [PATCHv2 1/4] OMAP 2/3 DSS Library
-Date: Fri, 24 Oct 2008 12:13:25 -0700
-Message-ID: <20081024191325.GF16354@atomide.com>
-References: <1224841964-24576-1-git-send-email-hardik.shah@ti.com>
+Subject: Re: [PATCH] OMAP3: Remove CONFIG_OMAP_SYSOFFMODE flag
+Date: Fri, 24 Oct 2008 12:22:49 -0700
+Message-ID: <20081024192249.GG16354@atomide.com>
+References: <1224225968-20828-1-git-send-email-ext-kalle.jokiniemi@nokia.com> <1224845439.4470.113.camel@kj-ubuntu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50863 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60065 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751865AbYJXTN2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Oct 2008 15:13:28 -0400
+	with ESMTP id S1754224AbYJXTWx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Oct 2008 15:22:53 -0400
 Content-Disposition: inline
-In-Reply-To: <1224841964-24576-1-git-send-email-hardik.shah@ti.com>
+In-Reply-To: <1224845439.4470.113.camel@kj-ubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hardik Shah <hardik.shah@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net, video4linux-list@redhat.com
+To: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi,
-
-* Hardik Shah <hardik.shah@ti.com> [081024 03:16]:
-> Cleaned up the DSS Library according to open source comments
+* Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com> [081024 03:50]:
+> Hi Tony,
 > 
-> Removed unused #ifdefs
-> Removed unused #defines
-> Minor cleanups done
-> Removed Architecture specific #ifdefs
+> On pe, 2008-10-17 at 09:46 +0300, Kalle Jokiniemi wrote:
+> > Remove CONFIG_OMAP_SYSOFFMODE flag and do the full initialization of voltage
+> > controller . Enabling automatic sending of OFF command and selecting wether
+> > SYS_OFF_MODE signal is used should be determined dynamically. Hence they are
+> > now not set in the initialization.
 > 
-> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-> 		Hari Nagalla <hnagalla@ti.com>
-> 		Hardik Shah <hardik.shah@ti.com>
-> 		Manjunath Hadli <mrh@ti.com>
-> 		R Sivaraj <sivaraj@ti.com>
-> 		Vaibhav Hiremath <hvaibhav@ti.com>
+> Any chance getting this in? 
 > 
-> ---
->  arch/arm/plat-omap/Kconfig                 |    7 +
->  arch/arm/plat-omap/Makefile                |    2 +-
->  arch/arm/plat-omap/include/mach/io.h       |    2 +-
->  arch/arm/plat-omap/include/mach/omap-dss.h |  921 ++++++++++++
->  arch/arm/plat-omap/omap-dss.c              | 2248 ++++++++++++++++++++++++++++
->  5 files changed, 3178 insertions(+), 2 deletions(-)
->  create mode 100644 arch/arm/plat-omap/include/mach/omap-dss.h
->  create mode 100644 arch/arm/plat-omap/omap-dss.c
-> 
-> diff --git a/arch/arm/plat-omap/include/mach/io.h b/arch/arm/plat-omap/include/mach/io.h
-> index ea55267..2495656 100644
-> --- a/arch/arm/plat-omap/include/mach/io.h
-> +++ b/arch/arm/plat-omap/include/mach/io.h
-> @@ -142,11 +142,11 @@
->  #define OMAP343X_SDRC_VIRT	0xFD000000
->  #define OMAP343X_SDRC_SIZE	SZ_1M
-> 
-> -
->  #define IO_OFFSET		0x90000000
->  #define __IO_ADDRESS(pa)	((pa) + IO_OFFSET)/* Works for L3 and L4 */
->  #define __OMAP2_IO_ADDRESS(pa)	((pa) + IO_OFFSET)/* Works for L3 and L4 */
->  #define io_v2p(va)		((va) - IO_OFFSET)/* Works for L3 and L4 */
-> +#define io_p2v(pa)		__IO_ADDRESS(pa)/* Works for L3 and L4 */
-> 
->  /* DSP */
->  #define DSP_MEM_34XX_PHYS	OMAP34XX_DSP_MEM_BASE	/* 0x58000000 */
+> It's currently in the pm-branch, but it does not really depend on any of
+> the pathces there. So I think it could be moved away from the pm-branch
+> and into the linux-omap master.
 
-NAK for adding back io_p2v(). See below.
-
-
-> diff --git a/arch/arm/plat-omap/include/mach/omap-dss.h b/arch/arm/plat-omap/include/mach/omap-dss.h
-> new file mode 100644
-> index 0000000..d9a33bd
-> --- /dev/null
-> +++ b/arch/arm/plat-omap/include/mach/omap-dss.h
-> @@ -0,0 +1,921 @@
-> +/*
-> + * arch/arm/plat-omap/include/mach/omap-dss.h
-> + *
-> + * Copyright (C) 2004-2005 Texas Instruments.
-> + * Copyright (C) 2006 Texas Instruments.
-> + *
-> + * This file is licensed under the terms of the GNU General Public License
-> + * version 2. This program is licensed "as is" without any warranty of any
-> + * kind, whether express or implied.
-> +
-> + * Leveraged from original Linux 2.6 framebuffer driver for OMAP24xx
-> + * Author: Andy Lowe (source@mvista.com)
-> + * Copyright (C) 2004 MontaVista Software, Inc.
-> + *
-> + */
-> +
-> +#ifndef	__ASM_ARCH_OMAP_DISP_H
-> +#define	__ASM_ARCH_OMAP_DISP_H
-> +
-> +/* 16 bit uses LDRH/STRH, base +/- offset_8 */
-> +typedef struct {
-> +	volatile u16 offset[256];
-> +} __regbase16;
-> +#define __REGV16(vaddr)		(((__regbase16 *)((vaddr)&~0xff)) \
-> +					->offset[((vaddr)&0xff)>>1])
-> +#define __REG16(paddr)		 __REGV16(io_p2v(paddr))
-> +
-> +/* 8/32 bit uses LDR/STR, base +/- offset_12 */
-> +typedef struct {
-> +	volatile u8 offset[4096];
-> +} __regbase8;
-> +#define __REGV8(vaddr)		(((__regbase8  *)((vaddr)&~4095)) \
-> +					->offset[((vaddr)&4095)>>0])
-> +#define __REG8(paddr)		 __REGV8(io_p2v(paddr))
-> +
-> +typedef struct {
-> +	volatile u32 offset[4096];
-> +} __regbase32;
-> +#define __REGV32(vaddr)		(((__regbase32 *)((vaddr)&~4095)) \
-> +					->offset[((vaddr)&4095)>>2])
-> +#define __REG32(paddr)		__REGV32(io_p2v(paddr))
-> +
-
-NAK for adding back the __REG stuff. We've just spent quite a bit of
-effort to remove these. The __REG stuff is not portable.
-
-Please use ioremap and then __raw_read/write instead.
-
-Regards,
+Well I was kind of waiting for Kevin and Paul to ack this. But looks
+like this fix is safe to apply, so pushing today.
 
 Tony
+
+
+> 
+> regards,
+> Kalle
+> 
+> > 
+> > The sleep voltage for OFF mode is changed to default 1,2V for VDD1 and
+> > 1,15V for VDD2. Using the 0,9V setting causes hangup.
+> > 
+> > Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+> > ---
+> >  arch/arm/mach-omap2/pm34xx.c           |   10 +---------
+> >  arch/arm/mach-omap2/prm-regbits-34xx.h |    4 ++--
+> >  2 files changed, 3 insertions(+), 11 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> > index a828db6..457639f 100644
+> > --- a/arch/arm/mach-omap2/pm34xx.c
+> > +++ b/arch/arm/mach-omap2/pm34xx.c
+> > @@ -622,10 +622,7 @@ static void __init configure_vc(void)
+> >  				OMAP3_PRM_VC_I2C_CFG_OFFSET);
+> >  
+> >  	/* Setup voltctrl and other setup times */
+> > -
+> > -#ifdef CONFIG_OMAP_SYSOFFMODE
+> > -	prm_write_mod_reg(OMAP3430_AUTO_OFF | OMAP3430_AUTO_RET |
+> > -			OMAP3430_SEL_OFF, OMAP3430_GR_MOD,
+> > +	prm_write_mod_reg(OMAP3430_AUTO_RET, OMAP3430_GR_MOD,
+> >  			OMAP3_PRM_VOLTCTRL_OFFSET);
+> >  
+> >  	prm_write_mod_reg(OMAP3430_CLKSETUP_DURATION, OMAP3430_GR_MOD,
+> > @@ -640,11 +637,6 @@ static void __init configure_vc(void)
+> >  			OMAP3_PRM_VOLTOFFSET_OFFSET);
+> >  	prm_write_mod_reg(OMAP3430_VOLTSETUP2_DURATION, OMAP3430_GR_MOD,
+> >  			OMAP3_PRM_VOLTSETUP2_OFFSET);
+> > -#else
+> > -	prm_set_mod_reg_bits(OMAP3430_AUTO_RET, OMAP3430_GR_MOD,
+> > -			OMAP3_PRM_VOLTCTRL_OFFSET);
+> > -#endif
+> > -
+> >  }
+> >  
+> >  static int __init omap3_pm_early_init(void)
+> > diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
+> > index f82b5a7..d73eee8 100644
+> > --- a/arch/arm/mach-omap2/prm-regbits-34xx.h
+> > +++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
+> > @@ -466,13 +466,13 @@
+> >  #define OMAP3430_VC_CMD_VAL0_ON				(0x3 << 4)
+> >  #define OMAP3430_VC_CMD_VAL0_ONLP			(0x3 << 3)
+> >  #define OMAP3430_VC_CMD_VAL0_RET			(0x3 << 3)
+> > -#define OMAP3430_VC_CMD_VAL0_OFF			(0x3 << 3)
+> > +#define OMAP3430_VC_CMD_VAL0_OFF			(0x3 << 4)
+> >  
+> >  /* PRM_VC_CMD_VAL_1 specific bits */
+> >  #define OMAP3430_VC_CMD_VAL1_ON				(0xB << 2)
+> >  #define OMAP3430_VC_CMD_VAL1_ONLP			(0x3 << 3)
+> >  #define OMAP3430_VC_CMD_VAL1_RET			(0x3 << 3)
+> > -#define OMAP3430_VC_CMD_VAL1_OFF			(0x3 << 3)
+> > +#define OMAP3430_VC_CMD_VAL1_OFF			(0xB << 2)
+> >  
+> >  /* PRM_VC_CH_CONF */
+> >  #define OMAP3430_CMD1					(1 << 20)
