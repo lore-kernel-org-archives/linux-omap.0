@@ -1,105 +1,95 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: [RFC] i2c-omap: Don't wait needlessly
-Date: Fri, 24 Oct 2008 13:17:40 +0300
-Message-ID: <20081024131740.64641d26.jarkko.nikula@nokia.com>
-References: <12246059481717-git-send-email-sakari.ailus@nokia.com>
+From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+Subject: Re: [PATCH] OMAP3: Remove CONFIG_OMAP_SYSOFFMODE flag
+Date: Fri, 24 Oct 2008 13:50:39 +0300
+Message-ID: <1224845439.4470.113.camel@kj-ubuntu>
+References: <>
+	 <1224225968-20828-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="Multipart=_Fri__24_Oct_2008_13_17_40_+0300_dRmOKsE7IfEL79.2"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:41458 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:44398 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751092AbYJXKS0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Oct 2008 06:18:26 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9OAIDe8004592
-	for <linux-omap@vger.kernel.org>; Fri, 24 Oct 2008 13:18:22 +0300
-In-Reply-To: <12246059481717-git-send-email-sakari.ailus@nokia.com>
+	with ESMTP id S1751341AbYJXKuI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Oct 2008 06:50:08 -0400
+In-Reply-To: <1224225968-20828-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Sakari Ailus <sakari.ailus@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
-This is a multi-part message in MIME format.
+Hi Tony,
 
---Multipart=_Fri__24_Oct_2008_13_17_40_+0300_dRmOKsE7IfEL79.2
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+On pe, 2008-10-17 at 09:46 +0300, Kalle Jokiniemi wrote:
+> Remove CONFIG_OMAP_SYSOFFMODE flag and do the full initialization of voltage
+> controller . Enabling automatic sending of OFF command and selecting wether
+> SYS_OFF_MODE signal is used should be determined dynamically. Hence they are
+> now not set in the initialization.
 
-On Tue, 21 Oct 2008 19:19:08 +0300
-"ext Sakari Ailus" <sakari.ailus@nokia.com> wrote:
+Any chance getting this in? 
 
->  /* timeout waiting for the controller to respond */
->  #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
-> +/* no more busyloop in ns */
-> +#define OMAP_I2C_MINOR_TIMEOUT		10
+It's currently in the pm-branch, but it does not really depend on any of
+the pathces there. So I think it could be moved away from the pm-branch
+and into the linux-omap master.
+
+regards,
+Kalle
+
+> 
+> The sleep voltage for OFF mode is changed to default 1,2V for VDD1 and
+> 1,15V for VDD2. Using the 0,9V setting causes hangup.
+> 
+> Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+> ---
+>  arch/arm/mach-omap2/pm34xx.c           |   10 +---------
+>  arch/arm/mach-omap2/prm-regbits-34xx.h |    4 ++--
+>  2 files changed, 3 insertions(+), 11 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index a828db6..457639f 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -622,10 +622,7 @@ static void __init configure_vc(void)
+>  				OMAP3_PRM_VC_I2C_CFG_OFFSET);
 >  
->  #define OMAP_I2C_REV_REG		0x00
->  #define OMAP_I2C_IE_REG			0x04
-> @@ -255,6 +257,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  	unsigned long internal_clk = 0;
+>  	/* Setup voltctrl and other setup times */
+> -
+> -#ifdef CONFIG_OMAP_SYSOFFMODE
+> -	prm_write_mod_reg(OMAP3430_AUTO_OFF | OMAP3430_AUTO_RET |
+> -			OMAP3430_SEL_OFF, OMAP3430_GR_MOD,
+> +	prm_write_mod_reg(OMAP3430_AUTO_RET, OMAP3430_GR_MOD,
+>  			OMAP3_PRM_VOLTCTRL_OFFSET);
 >  
->  	if (!dev->rev1) {
-> +		int delay = 0;
-> +
->  		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, OMAP_I2C_SYSC_SRST);
->  		/* For some reason we need to set the EN bit before the
->  		 * reset done bit gets set. */
-> @@ -262,6 +266,14 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
->  		while (!(omap_i2c_read_reg(dev, OMAP_I2C_SYSS_REG) &
->  			 OMAP_I2C_SYSS_RDONE)) {
-> +			if (delay < OMAP_I2C_MINOR_TIMEOUT) {
-> +				ndelay(1);
-> +				delay++;
-> +				continue;
-> +			} else if (delay == OMAP_I2C_MINOR_TIMEOUT) {
-> +				dev_warn(dev->dev, "minor timeout not enough");
-> +				delay++;
-> +			}
->  			if (time_after(jiffies, timeout)) {
->  				dev_warn(dev->dev, "timeout waiting "
->  						"for controller reset\n");
->
-I would rather, if there is no need for such a long delay like
-OMAP_I2C_TIMEOUT, remove that time_after and msleep(1) stuff and
-just loop few iterations with udelay(1). Zero thinked & tested diff
-attached.
-
-I would say that ndelay(1) just doesn't look relevant to < 1 GHz
-cpus :-)
-
-
-Jarkko
-
---Multipart=_Fri__24_Oct_2008_13_17_40_+0300_dRmOKsE7IfEL79.2
-Content-Type: text/x-diff;
- name="hack.diff"
-Content-Disposition: attachment;
- filename="hack.diff"
-Content-Transfer-Encoding: 7bit
-
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -248,16 +248,16 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, OMAP_I2C_SYSC_SRST);
- 		/* For some reason we need to set the EN bit before the
- 		 * reset done bit gets set. */
--		timeout = jiffies + OMAP_I2C_TIMEOUT;
-+		timeout = 10;
- 		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
- 		while (!(omap_i2c_read_reg(dev, OMAP_I2C_SYSS_REG) &
- 			 OMAP_I2C_SYSS_RDONE)) {
--			if (time_after(jiffies, timeout)) {
-+			udelay(1);
-+			if (--timeout) {
- 				dev_warn(dev->dev, "timeout waiting "
- 						"for controller reset\n");
- 				return -ETIMEDOUT;
- 			}
--			msleep(1);
- 		}
- 	}
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
-
---Multipart=_Fri__24_Oct_2008_13_17_40_+0300_dRmOKsE7IfEL79.2--
+>  	prm_write_mod_reg(OMAP3430_CLKSETUP_DURATION, OMAP3430_GR_MOD,
+> @@ -640,11 +637,6 @@ static void __init configure_vc(void)
+>  			OMAP3_PRM_VOLTOFFSET_OFFSET);
+>  	prm_write_mod_reg(OMAP3430_VOLTSETUP2_DURATION, OMAP3430_GR_MOD,
+>  			OMAP3_PRM_VOLTSETUP2_OFFSET);
+> -#else
+> -	prm_set_mod_reg_bits(OMAP3430_AUTO_RET, OMAP3430_GR_MOD,
+> -			OMAP3_PRM_VOLTCTRL_OFFSET);
+> -#endif
+> -
+>  }
+>  
+>  static int __init omap3_pm_early_init(void)
+> diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
+> index f82b5a7..d73eee8 100644
+> --- a/arch/arm/mach-omap2/prm-regbits-34xx.h
+> +++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
+> @@ -466,13 +466,13 @@
+>  #define OMAP3430_VC_CMD_VAL0_ON				(0x3 << 4)
+>  #define OMAP3430_VC_CMD_VAL0_ONLP			(0x3 << 3)
+>  #define OMAP3430_VC_CMD_VAL0_RET			(0x3 << 3)
+> -#define OMAP3430_VC_CMD_VAL0_OFF			(0x3 << 3)
+> +#define OMAP3430_VC_CMD_VAL0_OFF			(0x3 << 4)
+>  
+>  /* PRM_VC_CMD_VAL_1 specific bits */
+>  #define OMAP3430_VC_CMD_VAL1_ON				(0xB << 2)
+>  #define OMAP3430_VC_CMD_VAL1_ONLP			(0x3 << 3)
+>  #define OMAP3430_VC_CMD_VAL1_RET			(0x3 << 3)
+> -#define OMAP3430_VC_CMD_VAL1_OFF			(0x3 << 3)
+> +#define OMAP3430_VC_CMD_VAL1_OFF			(0xB << 2)
+>  
+>  /* PRM_VC_CH_CONF */
+>  #define OMAP3430_CMD1					(1 << 20)
