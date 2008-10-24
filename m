@@ -1,69 +1,67 @@
-From: Rick Bronson <rick@efn.org>
-Subject: Re: ARM: OMAP3: Fix get_irqnr_and_base to clear spurious interrupt bits
-Date: Thu, 23 Oct 2008 21:14:08 -0700
-Message-ID: <E1KtE3s-0006eE-Ri@amazonia.comcast.net>
-Reply-To: rick@efn.org
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from samwise.efn.org ([12.33.21.33]:52208 "EHLO samwise.efn.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752441AbYJXEOJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Oct 2008 00:14:09 -0400
-Received: from amazonia.comcast.net (c-67-171-210-97.hsd1.or.comcast.net [67.171.210.97])
-	by samwise.efn.org (Postfix) with ESMTP id 0416C170069
-	for <linux-omap@vger.kernel.org>; Thu, 23 Oct 2008 21:14:09 -0700 (PDT)
-Received: from rick by amazonia.comcast.net with local (Exim 4.69)
-	(envelope-from <rick@efn.org>)
-	id 1KtE3s-0006eE-Ri
-	for linux-omap@vger.kernel.org; Thu, 23 Oct 2008 21:14:08 -0700
-Sender: linux-omap-owner@vger.kernel.org
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: Audio on omap3+twl4030 codec
+Date: Fri, 24 Oct 2008 09:12:32 +0300
+Message-ID: <20081024091232.4f825c74.jarkko.nikula@nokia.com>
+References: <ef0d8a250810220547u1b795313y47f964144591e97d@mail.gmail.com>
+	<20081022131036.GG7640@sirena.org.uk>
+	<ef0d8a250810220624u7396b496q7b86efa0703e7e15@mail.gmail.com>
+	<20081023120451.23b1971e.jarkko.nikula@nokia.com>
+	<ef0d8a250810230220p6e766806qfc7cbd33dafcab43@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <ef0d8a250810230220p6e766806qfc7cbd33dafcab43@mail.gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: ext naveen krishna ch <naveenkrishna.ch@gmail.com>
+Cc: sakoman@gmail.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Arun KS <arunks@mistralsolutions.com>, Mark Brown <broonie@sirena.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Tony,
+On Thu, 23 Oct 2008 14:50:33 +0530
+"ext naveen krishna ch" <naveenkrishna.ch@gmail.com> wrote:
 
-  How does this look?
+> > So to summarize:
+> >
+> > - 2.6.26 + backported drivers on OMAP3 EVM -> audio works
+> > - 2.6.26 + backported drivers on custom board with NAND boot -> no audio
+> > - 2.6.26 + backported drivers on custom board with MMC boot -> audio
+> >  works
+> > - 2.6.24 (TI SDP release?) on custom board -> audio works
+> >
+> > And I understood also that bootloader images were the same in all of
+> > these cases. Did I get these correctly?
+> >
+> Yeah till here u got every thing correctly.
+> 
+Then it looks that different pin muxing is not the reason if the same
+bootloader images behave differently when they are booted from NAND vs.
+MMC.
 
-  If we set irq to NR_IRQS then arch/arm/kernel/irq.c will use
-bad_irq_desc when it processes the interrupt.  NOTE: I haven't tested
-this yet.
+I'm bit out of idea what might then cause that audio doesn't play.
+Timing issue? Sys.boot pin states affect McBSP muxing or TWL4030, etc?
 
-  Rick
+> > Is the rootfile system the same between these cases? I.e. that same
+> > mixer settings like audio volumes etc. are used?
+> 
+> i Have used the same root file system also that too over nfs all the cases.
+> 
+Ok. Is it possible you to try with up-to-date linux-omap [1] kernel?
+There have been lot of changes regarding OMAP3 and TWL4030 since 2.6.26
+so problem might have gone and then it's easier for others trying to
+verify problem on other similar boards.
 
 
---- linux-omap-2.6/arch/arm/plat-omap/include/mach/entry-macro.S.git	2008-10-22 20:01:33.000000000 -0700
-+++ linux-omap-2.6/arch/arm/plat-omap/include/mach/entry-macro.S	2008-10-23 21:12:29.000000000 -0700
-@@ -66,7 +66,8 @@
- #endif
- 
- #define INTCPS_SIR_IRQ_OFFSET	0x0040		/* Active interrupt offset */
--#define	ACTIVEIRQ_MASK		0x7f		/* Active interrupt bits */
-+#define INTCPS_CONTROL		0x0048		/* new interrupt agreement bits */
-+#define INTCPS_CONTROL_NEWIRQAGR 0x0001		/* Reset IRQ output and enable new IRQ generation */
- 
- 		.macro	disable_fiq
- 		.endm
-@@ -79,18 +80,13 @@
- 
- 		.macro	get_irqnr_and_base, irqnr, irqstat, base, tmp
- 		ldr	\base, =OMAP2_VA_IC_BASE
--		ldr	\irqnr, [\base, #0x98] /* IRQ pending reg 1 */
--		cmp	\irqnr, #0x0
--		bne	2222f
--		ldr	\irqnr, [\base, #0xb8] /* IRQ pending reg 2 */
--		cmp	\irqnr, #0x0
--		bne	2222f
--		ldr	\irqnr, [\base, #0xd8] /* IRQ pending reg 3 */
--		cmp	\irqnr, #0x0
-+		ldr	\irqnr, [\base, #INTCPS_SIR_IRQ_OFFSET]  /* NOTE: range is 0-0x5f and 0ffffff80 to 0xffffffdf */
-+		adds	\tmp, \irqnr, #1 /* change from zero based to 1 based so we clear Z */
-+		bpl	2222f  /* if no spurious interrupt */
-+		mov	\tmp, #INTCPS_CONTROL_NEWIRQAGR /* Ack the spurious irq */
-+		str	\tmp, [\base, #INTCPS_CONTROL]
-+		movw	\irqnr, #NR_IRQS /* set to NR_IRQS so that bad_irq_desc() get's called */
- 2222:
--		ldrne	\irqnr, [\base, #INTCPS_SIR_IRQ_OFFSET]
--		and	\irqnr, \irqnr, #ACTIVEIRQ_MASK /* Clear spurious bits */
--
- 		.endm
- 
- 		.macro	irq_prio_table
+Jarkko
+
+[1]
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+or
+http://www.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
