@@ -1,95 +1,69 @@
-From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-Subject: Re: [PATCH] OMAP3: Remove CONFIG_OMAP_SYSOFFMODE flag
-Date: Fri, 24 Oct 2008 13:50:39 +0300
-Message-ID: <1224845439.4470.113.camel@kj-ubuntu>
-References: <>
-	 <1224225968-20828-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: Small patch for dsp bridge code
+Date: Fri, 24 Oct 2008 19:00:08 +0300 (EEST)
+Message-ID: <20081024.190008.265201299.Hiroshi.DOYU@nokia.com>
+References: <3DD728A3B927AA438D6367166CC67D0902B1DCFE@ala-mail10.corp.ad.wrs.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:44398 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751341AbYJXKuI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Oct 2008 06:50:08 -0400
-In-Reply-To: <1224225968-20828-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:64348 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751556AbYJXQFQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Oct 2008 12:05:16 -0400
+In-Reply-To: <3DD728A3B927AA438D6367166CC67D0902B1DCFE@ala-mail10.corp.ad.wrs.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
+To: dan.bright@windriver.com
+Cc: linux-omap@vger.kernel.org
 
-Hi Tony,
+Hi Dan,
 
-On pe, 2008-10-17 at 09:46 +0300, Kalle Jokiniemi wrote:
-> Remove CONFIG_OMAP_SYSOFFMODE flag and do the full initialization of voltage
-> controller . Enabling automatic sending of OFF command and selecting wether
-> SYS_OFF_MODE signal is used should be determined dynamically. Hence they are
-> now not set in the initialization.
+Would it be possible to explain how "dma_alloc_coherent()" returned ~0?
 
-Any chance getting this in? 
+      Hiroshi DOYU
 
-It's currently in the pm-branch, but it does not really depend on any of
-the pathces there. So I think it could be moved away from the pm-branch
-and into the linux-omap master.
+From: "ext Bright, Dan" <dan.bright@windriver.com>
+Subject: Small patch for dsp bridge code
+Date: Thu, 23 Oct 2008 15:03:31 -0700
 
-regards,
-Kalle
-
+> Hello,
 > 
-> The sleep voltage for OFF mode is changed to default 1,2V for VDD1 and
-> 1,15V for VDD2. Using the 0,9V setting causes hangup.
+> I'm not sure if this code ever get exercised, but I found a small
+> problem with the 
+> dsp bridge driver code while debugging the kernel, and thought I'd bring
+> it to 
+> someone's attention.
 > 
-> Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-> ---
->  arch/arm/mach-omap2/pm34xx.c           |   10 +---------
->  arch/arm/mach-omap2/prm-regbits-34xx.h |    4 ++--
->  2 files changed, 3 insertions(+), 11 deletions(-)
+> Thanks,
+> Dan Bright
 > 
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index a828db6..457639f 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -622,10 +622,7 @@ static void __init configure_vc(void)
->  				OMAP3_PRM_VC_I2C_CFG_OFFSET);
->  
->  	/* Setup voltctrl and other setup times */
-> -
-> -#ifdef CONFIG_OMAP_SYSOFFMODE
-> -	prm_write_mod_reg(OMAP3430_AUTO_OFF | OMAP3430_AUTO_RET |
-> -			OMAP3430_SEL_OFF, OMAP3430_GR_MOD,
-> +	prm_write_mod_reg(OMAP3430_AUTO_RET, OMAP3430_GR_MOD,
->  			OMAP3_PRM_VOLTCTRL_OFFSET);
->  
->  	prm_write_mod_reg(OMAP3430_CLKSETUP_DURATION, OMAP3430_GR_MOD,
-> @@ -640,11 +637,6 @@ static void __init configure_vc(void)
->  			OMAP3_PRM_VOLTOFFSET_OFFSET);
->  	prm_write_mod_reg(OMAP3430_VOLTSETUP2_DURATION, OMAP3430_GR_MOD,
->  			OMAP3_PRM_VOLTSETUP2_OFFSET);
-> -#else
-> -	prm_set_mod_reg_bits(OMAP3430_AUTO_RET, OMAP3430_GR_MOD,
-> -			OMAP3_PRM_VOLTCTRL_OFFSET);
-> -#endif
-> -
->  }
->  
->  static int __init omap3_pm_early_init(void)
-> diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
-> index f82b5a7..d73eee8 100644
-> --- a/arch/arm/mach-omap2/prm-regbits-34xx.h
-> +++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
-> @@ -466,13 +466,13 @@
->  #define OMAP3430_VC_CMD_VAL0_ON				(0x3 << 4)
->  #define OMAP3430_VC_CMD_VAL0_ONLP			(0x3 << 3)
->  #define OMAP3430_VC_CMD_VAL0_RET			(0x3 << 3)
-> -#define OMAP3430_VC_CMD_VAL0_OFF			(0x3 << 3)
-> +#define OMAP3430_VC_CMD_VAL0_OFF			(0x3 << 4)
->  
->  /* PRM_VC_CMD_VAL_1 specific bits */
->  #define OMAP3430_VC_CMD_VAL1_ON				(0xB << 2)
->  #define OMAP3430_VC_CMD_VAL1_ONLP			(0x3 << 3)
->  #define OMAP3430_VC_CMD_VAL1_RET			(0x3 << 3)
-> -#define OMAP3430_VC_CMD_VAL1_OFF			(0x3 << 3)
-> +#define OMAP3430_VC_CMD_VAL1_OFF			(0xB << 2)
->  
->  /* PRM_VC_CH_CONF */
->  #define OMAP3430_CMD1					(1 << 20)
+> diff --git a/drivers/dsp/bridge/services/mem.c
+> b/drivers/dsp/bridge/services/mem.c
+> index 565b0b8..fff1c4a 100644
+> --- a/drivers/dsp/bridge/services/mem.c
+> +++ b/drivers/dsp/bridge/services/mem.c
+> @@ -355,9 +355,14 @@ void *MEM_AllocPhysMem(u32 cBytes, u32 ulAlign, OUT
+> u32 *pPhysicalAddress)
+>  		if (extPhysMemPoolEnabled) {
+>  			pVaMem = MEM_ExtPhysMemAlloc(cBytes, ulAlign,
+>  						    (u32 *)&paMem);
+> -		} else
+> +		} else {
+>  			pVaMem = dma_alloc_coherent(NULL, cBytes,
+> &paMem,
+>  						   GFP_ATOMIC);
+> +			/* dma_alloc_coherent returns ~0 on error */
+> +			if(pVaMem == (void *)~0)
+> +				pVaMem = NULL;
+> +		}
+> +
+>  		if (pVaMem == NULL) {
+>  			*pPhysicalAddress = 0;
+>  			GT_1trace(MEM_debugMask, GT_6CLASS,
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
