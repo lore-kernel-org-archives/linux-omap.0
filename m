@@ -1,33 +1,45 @@
-From: "iqbal shareef" <iqbalshareef.list@gmail.com>
-Subject: omapzoom VRFB rotation contexts
-Date: Mon, 27 Oct 2008 20:17:48 +0900
-Message-ID: <c6a924220810270417q328d6230x75b8640c54bcd776@mail.gmail.com>
+From: Sakari Ailus <sakari.ailus@nokia.com>
+Subject: Re: [RFC] i2c-omap: Don't wait needlessly
+Date: Mon, 27 Oct 2008 18:20:38 +0200
+Message-ID: <4905EA56.5050309@nokia.com>
+References: <12246059481717-git-send-email-sakari.ailus@nokia.com> <20081024131740.64641d26.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.184]:15229 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752125AbYJ0LRu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Oct 2008 07:17:50 -0400
-Received: by mu-out-0910.google.com with SMTP id g7so1748597muf.1
-        for <linux-omap@vger.kernel.org>; Mon, 27 Oct 2008 04:17:48 -0700 (PDT)
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:43884 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752648AbYJ0QUn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Oct 2008 12:20:43 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9RGKeEE032251
+	for <linux-omap@vger.kernel.org>; Mon, 27 Oct 2008 18:20:40 +0200
+In-Reply-To: <20081024131740.64641d26.jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+Jarkko Nikula wrote:
+> I would rather, if there is no need for such a long delay like
+> OMAP_I2C_TIMEOUT, remove that time_after and msleep(1) stuff and
+> just loop few iterations with udelay(1). Zero thinked & tested diff
+> attached.
 
-There are two VRFB contexts handled under STREAMON (omap24xxvout.c)
-interface, Could someone explain why?
+I just though of allowing the reset to take longer as I have no idea how 
+long it could take, let alone other versions of OMAP.
 
-Is one for preview and the other for capture?
+> I would say that ndelay(1) just doesn't look relevant to < 1 GHz
+> cpus :-)
 
-Why the buffer size(iw*ih*2) is again multiplied by  2 for YUV?
+Good point. On ARM ndelay(1) seems to be equal to udelay(1) at the moment.
 
-vrfb_buf_size = image_width * image_height * 2 * 2; // allocate for
-YUV format (worst case)
+I actually just removed the ndelay(1) and again, "delay" won't get past 
+1 if I print it after the loop.
 
-Thanks
-Iqbal
+It'd be nice to know how it works on other OMAP versions before making 
+such changes. :-)
+
+-- 
+Sakari Ailus
+sakari.ailus@nokia.com
