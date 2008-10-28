@@ -1,85 +1,58 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: PATCH 1/2 OMAP: HSMMC: Fix HSMMC2 getting stuck with
-	suspend/resume
-Date: Tue, 28 Oct 2008 09:45:19 -0700
-Message-ID: <20081028164517.GG7539@atomide.com>
-References: <20081021124306.GA11845@angel.research.nokia.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP: hsmmc requires data reset after data
+	timeout
+Date: Tue, 28 Oct 2008 09:59:15 -0700
+Message-ID: <20081028165914.GH7539@atomide.com>
+References: <48F7438A.8060706@nokia.com> <4906D437.9000607@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63873 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64113 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751955AbYJ1Qp0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Oct 2008 12:45:26 -0400
+	with ESMTP id S1751548AbYJ1Q7V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Oct 2008 12:59:21 -0400
 Content-Disposition: inline
-In-Reply-To: <20081021124306.GA11845@angel.research.nokia.com>
+In-Reply-To: <4906D437.9000607@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+To: Adrian Hunter <ext-adrian.hunter@nokia.com>
 Cc: linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-Hi,
+* Adrian Hunter <ext-adrian.hunter@nokia.com> [081028 01:51]:
+> Adrian Hunter wrote:
+>> According to TRM a software reset SRD after data timeout
+>> is required.
+>>
+>> Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
+>> ---
+>> drivers/mmc/host/omap_hsmmc.c |    5 +++++
+>> 1 files changed, 5 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+>> index 00b1b68..8fb677e 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -417,6 +417,11 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+>>                     mmc_dma_cleanup(host);
+>>                 else
+>>                     host->data->error = -EILSEQ;
+>> +                OMAP_HSMMC_WRITE(host->base, SYSCTL,
+>> +                    OMAP_HSMMC_READ(host->base,
+>> +                            SYSCTL) | SRD);
+>> +                while (OMAP_HSMMC_READ(host->base,
+>> +                            SYSCTL) & SRD) ;
+>>                 end_trans = 1;
+>>             }
+>>         }
+>
+> Can this and my other 2 patches be applied?
 
-* Jarkko Lavinen <jarkko.lavinen@nokia.com> [081021 05:47]:
-> HSMMC2 was stuck on a test board when resuming from
-> suspend. After the resume the first command CMD0 is written to
-> command register and then we wait for an interrupt. After the CMD0 
-> was written, no interrupt occured. No EOC, no timeout nor other error.
-> This jammed the request.
-> 
-> The problem was a wrong 3.0V voltage setting being applied into
-> HCTL before turning SDBP bit on. After fixing the voltage to 1.8V
-> suspend-resume started to work correctly.
-> 
-> Cheers
-> Jarkko Lavinen
-> 
-> From 1be795080e89cca6e637f88a4e14026aee0a75e8 Mon Sep 17 00:00:00 2001
-> From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-> Date: Mon, 20 Oct 2008 11:23:45 +0300
-> Subject: [PATCH] OMAP: HSMMC: Fix HSMMC2 getting stuck with suspend/resume
-> 
-> Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |   19 ++++++++++---------
->  1 files changed, 10 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 00b1b68..edd1ce0 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -1068,15 +1068,16 @@ static int omap_mmc_suspend(struct platform_device *pdev, pm_message_t state)
->  			}
->  
->  			if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
-> -				OMAP_HSMMC_WRITE(host->base, HCTL,
-> -					OMAP_HSMMC_READ(host->base, HCTL)
-> -					& SDVSCLR);
-> -				OMAP_HSMMC_WRITE(host->base, HCTL,
-> -					OMAP_HSMMC_READ(host->base, HCTL)
-> -					| SDVS30);
-> -				OMAP_HSMMC_WRITE(host->base, HCTL,
-> -					OMAP_HSMMC_READ(host->base, HCTL)
-> -					| SDBP);
-> +				u32 hctl = OMAP_HSMMC_READ(host->base, HCTL) &
-> +					SDVSCLR;
-> +
-> +				if (host->id == OMAP_MMC1_DEVID)
-> +					hctl |= SDVS30;
-> +				else
-> +					hctl |= SDVS18;
-> +
-> +				OMAP_HSMMC_WRITE(host->base, HCTL, hctl);
-> +				OMAP_HSMMC_WRITE(host->base, HCTL, hctl | SDBP);
->  			}
->  
->  			clk_disable(host->fclk);
+OK, I really want this driver out of the l-o list and submitted via
+Pierre. So only fixes at this point.. But I guess these can be
+considered fixes, so I'll push them.
 
-Checking the voltage based on the controller instance seems wrong to
-me. I guess that should be set based on the card type?
-
-Anyways, let's get this driver first into shape for mainline, then
-get Pierre into the loop for additional features.
+BTW, I'll have some patches coming up for the hsmmc.c init to prepare
+that for mainline.
 
 Regards,
 
