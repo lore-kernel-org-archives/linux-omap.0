@@ -1,94 +1,86 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: TLV320AIC23 not patched
-Date: Tue, 28 Oct 2008 09:40:31 -0700
-Message-ID: <20081028164030.GF7539@atomide.com>
-References: <490702CC.9070008@instramed.com.br>
+Subject: Re: PATCH 1/2 OMAP: HSMMC: Fix HSMMC2 getting stuck with
+	suspend/resume
+Date: Tue, 28 Oct 2008 09:45:19 -0700
+Message-ID: <20081028164517.GG7539@atomide.com>
+References: <20081021124306.GA11845@angel.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57841 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63873 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751954AbYJ1Qkf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Oct 2008 12:40:35 -0400
+	with ESMTP id S1751955AbYJ1Qp0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Oct 2008 12:45:26 -0400
 Content-Disposition: inline
-In-Reply-To: <490702CC.9070008@instramed.com.br>
+In-Reply-To: <20081021124306.GA11845@angel.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?Ram=F3n?= Finger Lilienthal <ramon@instramed.com.br>
-Cc: linux-omap@vger.kernel.org
+To: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Cc: linux-omap Mailing List <linux-omap@vger.kernel.org>
 
 Hi,
 
-* Ram=C3=B3n Finger Lilienthal <ramon@instramed.com.br> [081028 05:17]:
-> Fellows,
->
-> I have just got the v2.6.28-rc2, and errors while compiling still hap=
-pening.
+* Jarkko Lavinen <jarkko.lavinen@nokia.com> [081021 05:47]:
+> HSMMC2 was stuck on a test board when resuming from
+> suspend. After the resume the first command CMD0 is written to
+> command register and then we wait for an interrupt. After the CMD0 
+> was written, no interrupt occured. No EOC, no timeout nor other error.
+> This jammed the request.
+> 
+> The problem was a wrong 3.0V voltage setting being applied into
+> HCTL before turning SDBP bit on. After fixing the voltage to 1.8V
+> suspend-resume started to work correctly.
+> 
+> Cheers
+> Jarkko Lavinen
+> 
+> From 1be795080e89cca6e637f88a4e14026aee0a75e8 Mon Sep 17 00:00:00 2001
+> From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+> Date: Mon, 20 Oct 2008 11:23:45 +0300
+> Subject: [PATCH] OMAP: HSMMC: Fix HSMMC2 getting stuck with suspend/resume
+> 
+> Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |   19 ++++++++++---------
+>  1 files changed, 10 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 00b1b68..edd1ce0 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1068,15 +1068,16 @@ static int omap_mmc_suspend(struct platform_device *pdev, pm_message_t state)
+>  			}
+>  
+>  			if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
+> -				OMAP_HSMMC_WRITE(host->base, HCTL,
+> -					OMAP_HSMMC_READ(host->base, HCTL)
+> -					& SDVSCLR);
+> -				OMAP_HSMMC_WRITE(host->base, HCTL,
+> -					OMAP_HSMMC_READ(host->base, HCTL)
+> -					| SDVS30);
+> -				OMAP_HSMMC_WRITE(host->base, HCTL,
+> -					OMAP_HSMMC_READ(host->base, HCTL)
+> -					| SDBP);
+> +				u32 hctl = OMAP_HSMMC_READ(host->base, HCTL) &
+> +					SDVSCLR;
+> +
+> +				if (host->id == OMAP_MMC1_DEVID)
+> +					hctl |= SDVS30;
+> +				else
+> +					hctl |= SDVS18;
+> +
+> +				OMAP_HSMMC_WRITE(host->base, HCTL, hctl);
+> +				OMAP_HSMMC_WRITE(host->base, HCTL, hctl | SDBP);
+>  			}
+>  
+>  			clk_disable(host->fclk);
 
-We're in process of getting rid of all the various old audio drivers
-for omap. The new way is to use the ASoC drivers, see sound/soc/omap
-and sound/soc/codecs.
+Checking the voltage based on the controller instance seems wrong to
+me. I guess that should be set based on the card type?
+
+Anyways, let's get this driver first into shape for mainline, then
+get Pierre into the loop for additional features.
 
 Regards,
 
 Tony
-
-
-> ---
-> CHK include/linux/compile.h
-> CC drivers/i2c/chips/tlv320aic23.o
-> drivers/i2c/chips/tlv320aic23.c: In function =E2=80=98omap_mcbsp3_aic=
-23_clock_init=E2=80=99:
-> drivers/i2c/chips/tlv320aic23.c:113: error: implicit declaration of =20
-> function =E2=80=98OMAP_MCBSP_WRITE=E2=80=99
-> drivers/i2c/chips/tlv320aic23.c:113: error: =E2=80=98SPCR1=E2=80=99 u=
-ndeclared (first =20
-> use in this function)
-> drivers/i2c/chips/tlv320aic23.c:113: error: (Each undeclared identifi=
-er =20
-> is reported only once
-> drivers/i2c/chips/tlv320aic23.c:113: error: for each function it appe=
-ars =20
-> in.)
-> drivers/i2c/chips/tlv320aic23.c:114: error: =E2=80=98SPCR2=E2=80=99 u=
-ndeclared (first =20
-> use in this function)
-> drivers/i2c/chips/tlv320aic23.c:117: error: =E2=80=98PCR0=E2=80=99 un=
-declared (first use =20
-> in this function)
-> drivers/i2c/chips/tlv320aic23.c:120: error: =E2=80=98SRGR1=E2=80=99 u=
-ndeclared (first =20
-> use in this function)
-> drivers/i2c/chips/tlv320aic23.c:121: error: =E2=80=98SRGR2=E2=80=99 u=
-ndeclared (first =20
-> use in this function)
-> drivers/i2c/chips/tlv320aic23.c:124: error: implicit declaration of =20
-> function =E2=80=98OMAP_MCBSP_READ=E2=80=99
-> make[3]: *** [drivers/i2c/chips/tlv320aic23.o] Error 1
-> make[2]: *** [drivers/i2c/chips] Error 2
-> make[1]: *** [drivers/i2c] Error 2
-> make: *** [drivers] Error 2
-> ---
->
-> These errors was solved by some patchs in August. Why these patchs =20
-> wasn't applied in the kernel tree?
->
->
-> --=20
-> Regards,
-> Eng. Ramon F. Lilienthal
-> Project Engineer
-> Instramed Ltda. - www.instramed.com.br
-> +55 (51) 33344199 ext. 213
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
