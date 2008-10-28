@@ -1,34 +1,46 @@
-From: "Nathan Monson" <nmonson@gmail.com>
-Subject: What happened to the serial console on BeagleBoard with 2.6.28-rc2?
-Date: Mon, 27 Oct 2008 21:03:01 -0700
-Message-ID: <e5e6ade50810272103x3083bf76yba574dc75b68e30e@mail.gmail.com>
+From: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP: hsmmc requires data reset after data timeout
+Date: Tue, 28 Oct 2008 10:58:31 +0200
+Message-ID: <4906D437.9000607@nokia.com>
+References: <48F7438A.8060706@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:4634 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750870AbYJ1EDD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Oct 2008 00:03:03 -0400
-Received: by qw-out-2122.google.com with SMTP id 3so1242045qwe.37
-        for <linux-omap@vger.kernel.org>; Mon, 27 Oct 2008 21:03:01 -0700 (PDT)
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.233]:37793 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752118AbYJ1Ivi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Oct 2008 04:51:38 -0400
+In-Reply-To: <48F7438A.8060706@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-I updated linux-omap git to 2.6.28-rc2, and now I've lost my serial
-console.  The kernel seems to be working anyway, but without the
-console I can't do much testing.
+Adrian Hunter wrote:
+> According to TRM a software reset SRD after data timeout
+> is required.
+> 
+> Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
+> ---
+> drivers/mmc/host/omap_hsmmc.c |    5 +++++
+> 1 files changed, 5 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 00b1b68..8fb677e 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -417,6 +417,11 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+>                     mmc_dma_cleanup(host);
+>                 else
+>                     host->data->error = -EILSEQ;
+> +                OMAP_HSMMC_WRITE(host->base, SYSCTL,
+> +                    OMAP_HSMMC_READ(host->base,
+> +                            SYSCTL) | SRD);
+> +                while (OMAP_HSMMC_READ(host->base,
+> +                            SYSCTL) & SRD) ;
+>                 end_trans = 1;
+>             }
+>         }
 
-With DEBUG_LL on, here are the last lines I see during boot:
-
-<6>io scheduler cfq registered (default)
-<6>Serial: 8250/16550 driver4 ports, IRQ sharing enabled
-<6>serial8250.0: ttyS0 at MMIO 0x4806a000 (irq = 72) is a ST16654
-<6>serial8250.0: ttyS1 at MMIO 0x4806c000 (irq = 73) is a ST16654
-
-My console is on ttyS2.  Does something in ttyS2 initialization break
-the serial console?
-
-- Nathan
+Can this and my other 2 patches be applied?
