@@ -1,59 +1,34 @@
-From: Kyungmin Park <kmpark@infradead.org>
-Subject: [PATCH] [ONENAND] Add command line partition support on OMAP driver
-Date: Wed, 29 Oct 2008 11:12:02 +0900
-Message-ID: <20081029021202.GA32306@july>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 0/2] omap-keypad fixes for OMAP2
+Date: Tue, 28 Oct 2008 23:55:04 -0400
+Message-ID: <20081029035504.GC27906@anvil.corenet.prv>
+References: <1224741092-21577-1-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-Content-disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: linux-mtd-bounces@lists.infradead.org
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1224741092-21577-1-git-send-email-peter.ujfalusi@nokia.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add command line partition support on OMAP driver
+Hi Peter,
 
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
-diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index a9885d1..60cf668 100644
---- a/drivers/mtd/onenand/omap2.c
-+++ b/drivers/mtd/onenand/omap2.c
-@@ -51,6 +51,10 @@
- #define ONENAND_IO_SIZE		SZ_128K
- #define ONENAND_BUFRAM_SIZE	(1024 * 5)
- 
-+#ifdef CONFIG_MTD_PARTITIONS
-+static const char *part_probes[] = { "cmdlinepart", NULL,  };
-+#endif
-+
- struct omap2_onenand {
- 	struct platform_device *pdev;
- 	int gpmc_cs;
-@@ -685,9 +689,12 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
- 	}
- 
- #ifdef CONFIG_MTD_PARTITIONS
--	if (pdata->parts != NULL)
-+	r = parse_mtd_partitions(&c->mtd, part_probes, &c->parts, 0);
-+	if (r > 0)
-+		r = add_mtd_partitions(&c->mtd, c->parts, r);
-+	else if (pdata->parts != NULL)
- 		r = add_mtd_partitions(&c->mtd, pdata->parts,
--				       pdata->nr_parts);
-+				pdata->nr_parts);
- 	else
- #endif
- 		r = add_mtd_device(&c->mtd);
+On Thu, Oct 23, 2008 at 08:51:30AM +0300, Peter Ujfalusi wrote:
+> Hello,
+> The following two patches provides fixes for the omap-keypad
+> driver on OMAP2.
+> 
+> Peter Ujfalusi (2)
+>   OMAP2: omap-keypad: interrupt disable fix
+>   OMAP2: omap-keypad: Enable more than 6 rows
+> 
+>  drivers/input/keyboard/omap-keypad.c |    6 +-----
+>  1 files changed, 1 insertions(+), 5 deletions(-)
+> 
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+Looks good, will apply to 'next' branch.
+
+-- 
+Dmitry
