@@ -1,41 +1,49 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.28-rc2-omap] board-h4 buildfix
-Date: Wed, 29 Oct 2008 00:10:09 -0700
-Message-ID: <200810290010.09673.david-b@pacbell.net>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+Subject: SRF Fixes
+Date: Wed, 29 Oct 2008 10:30:14 +0200
+Message-ID: <1225269015-19064-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp127.sbc.mail.sp1.yahoo.com ([69.147.65.186]:38697 "HELO
-	smtp127.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751701AbYJ2HLX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Oct 2008 03:11:23 -0400
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.105.134]:32624 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752619AbYJ2I3O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2008 04:29:14 -0400
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: rnayak@ti.com
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+Hi,
 
-Let's build again, like we did last summer!
-http://www.chezmaya.com/05/3/lets_twist.htm
+We have been testing the SRF patches (sent by Rajendra on 16th-Oct) now,
+and some issues were found. The following patch corrects some of them,
+these issues remain:      
 
-(The legacy ov9640 camera sensor code and header is gone.)
+1. Handling enable_off_mode sysfs switches is not supported in this patch.
+I'm planning to add a new interface into the generic shared resource fw 
+to enable refreshing power domain states, when such changes take place.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
- arch/arm/mach-omap2/board-h4.c |    1 -
- 1 file changed, 1 deletion(-)
+2. Non platform devices won't be able to add power domain wake-up latency 
+requirements. The srf interface has a device pointer parameter, which the
+following patch uses to get platform_device pointer. This pdev is required
+by the omapdev interface for finding the respective power domain. The 
+aquisition of platform_device pointer is done via container_of macro, which
+may cause crashes if the device pointer does not have a platform device
+container.
 
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
-@@ -48,7 +48,6 @@
- 
- #include <asm/io.h>
- 
--#include <../drivers/media/video/ov9640.h>
- 
- #define H4_FLASH_CS	0
- #define H4_SMC91X_CS	1
+Any comments on how to make this better are welcome. I think that if   
+the SRF interface would accept a platform_device pointer instead of
+device pointer the problem would solve. I have a check in my patch that 
+checks for NULL pointer in pdev->name, but this won't work always. 
+
+3. Seems that device hangs if MPU, NEON and CORE power domains hit OFF
+mode, while other power domains are in retention. We suspect PER in 
+retention + CORE in OFF would be the most likely cause of trouble,
+this is being looked into.
+
+regards,
+Kalle Jokiniemi
+
+
+
