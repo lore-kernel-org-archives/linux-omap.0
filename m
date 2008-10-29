@@ -1,16 +1,16 @@
 From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: [RFC 02/21] OneNAND OMAP2: Complete gpiolib conversion
-Date: Wed, 29 Oct 2008 13:36:10 +0200
-Message-ID: <1225280189-6559-3-git-send-email-jarkko.nikula@nokia.com>
+Subject: [RFC 03/21] SPI: TSC2301: Complete gpiolib conversion
+Date: Wed, 29 Oct 2008 13:36:11 +0200
+Message-ID: <1225280189-6559-4-git-send-email-jarkko.nikula@nokia.com>
 References: <1225280189-6559-1-git-send-email-jarkko.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:53207 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753308AbYJ2LhI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2008 07:37:08 -0400
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9TBaGXE030866
-	for <linux-omap@vger.kernel.org>; Wed, 29 Oct 2008 06:37:06 -0500
+Received: from smtp.nokia.com ([192.100.122.230]:34546 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753277AbYJ2LhH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2008 07:37:07 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9TBacUZ005853
+	for <linux-omap@vger.kernel.org>; Wed, 29 Oct 2008 13:37:05 +0200
 In-Reply-To: <1225280189-6559-1-git-send-email-jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,54 +19,57 @@ Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
 
 Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
 ---
- drivers/mtd/onenand/omap2.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/spi/tsc2301-core.c |   15 ++++++---------
+ 1 files changed, 6 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index 1298563..87b5120 100644
---- a/drivers/mtd/onenand/omap2.c
-+++ b/drivers/mtd/onenand/omap2.c
-@@ -32,12 +32,12 @@
- #include <linux/platform_device.h>
- #include <linux/interrupt.h>
+diff --git a/drivers/spi/tsc2301-core.c b/drivers/spi/tsc2301-core.c
+index 715e400..4b565b7 100644
+--- a/drivers/spi/tsc2301-core.c
++++ b/drivers/spi/tsc2301-core.c
+@@ -22,13 +22,10 @@
+ #include <linux/module.h>
+ #include <linux/device.h>
  #include <linux/delay.h>
 +#include <linux/gpio.h>
+ #include <linux/spi/spi.h>
+ #include <linux/spi/tsc2301.h>
  
- #include <asm/io.h>
- #include <asm/mach/flash.h>
- #include <mach/gpmc.h>
- #include <mach/onenand.h>
+-#ifdef CONFIG_ARCH_OMAP
 -#include <mach/gpio.h>
- #include <mach/pm.h>
+-#endif
+-
+ u16 tsc2301_read_reg(struct tsc2301 *tsc, int reg)
+ {
+ 	struct spi_transfer t[2];
+@@ -157,14 +154,12 @@ static int __devinit tsc2301_probe(struct spi_device *spi)
  
- #include <linux/dma-mapping.h>
-@@ -630,7 +630,7 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
- 	}
+ 	if (pdata->reset_gpio >= 0) {
+ 		tsc->reset_gpio = pdata->reset_gpio;
+-#ifdef CONFIG_ARCH_OMAP
+-		r = omap_request_gpio(tsc->reset_gpio);
++		r = gpio_request(tsc->reset_gpio, "TSC2301 reset");
+ 		if (r < 0)
+ 			goto err1;
+ 		gpio_direction_output(tsc->reset_gpio, 1);
+ 		mdelay(1);
+ 		gpio_set_value(tsc->reset_gpio, 0);
+-#endif
+ 	} else
+ 		tsc->reset_gpio = -1;
  
- 	if (c->gpio_irq) {
--		if ((r = omap_request_gpio(c->gpio_irq)) < 0) {
-+		if ((r = gpio_request(c->gpio_irq, "OneNAND irq")) < 0) {
- 			dev_err(&pdev->dev,  "Failed to request GPIO%d for "
- 				"OneNAND\n", c->gpio_irq);
- 			goto err_iounmap;
-@@ -727,7 +727,7 @@ err_release_dma:
- 		free_irq(gpio_to_irq(c->gpio_irq), c);
- err_release_gpio:
- 	if (c->gpio_irq)
--		omap_free_gpio(c->gpio_irq);
-+		gpio_free(c->gpio_irq);
- err_iounmap:
- 	iounmap(c->onenand.base);
- err_release_mem_region:
-@@ -762,7 +762,7 @@ static int __devexit omap2_onenand_remove(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, NULL);
- 	if (c->gpio_irq) {
- 		free_irq(gpio_to_irq(c->gpio_irq), c);
--		omap_free_gpio(c->gpio_irq);
-+		gpio_free(c->gpio_irq);
- 	}
- 	iounmap(c->onenand.base);
- 	release_mem_region(c->phys_base, ONENAND_IO_SIZE);
+@@ -229,8 +224,10 @@ static int __devexit tsc2301_remove(struct spi_device *spi)
+ 	struct tsc2301 *tsc = dev_get_drvdata(&spi->dev);
+ 
+ 	tsc2301_mixer_exit(tsc);
+-        tsc2301_ts_exit(tsc);
+-        tsc2301_kp_exit(tsc);
++	tsc2301_ts_exit(tsc);
++	tsc2301_kp_exit(tsc);
++	if (tsc->reset_gpio >= 0)
++		gpio_free(tsc->reset_gpio);
+ 	kfree(tsc);
+ 
+ 	return 0;
 -- 
 1.5.6.5
 
