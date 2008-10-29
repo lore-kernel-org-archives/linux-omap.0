@@ -1,31 +1,33 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP3 clock: fix non-CORE DPLL rate assignment bugs
-Date: Wed, 29 Oct 2008 10:47:00 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0810291039480.13240@utopia.booyaka.com>
-References: <alpine.DEB.2.00.0810171617420.3833@utopia.booyaka.com> <49075870.9020804@deeprootsystems.com> <alpine.DEB.2.00.0810290820470.4200@utopia.booyaka.com> <87abcnbbqw.fsf@deeprootsystems.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [RFC 10/21] LEDS: Complete leds-omap gpiolib conversion and do some fixes
+Date: Wed, 29 Oct 2008 10:15:36 -0700
+Message-ID: <200810291015.36910.david-b@pacbell.net>
+References: <1225280189-6559-1-git-send-email-jarkko.nikula@nokia.com> <1225280189-6559-11-git-send-email-jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35283 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753707AbYJ2QrD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2008 12:47:03 -0400
-In-Reply-To: <87abcnbbqw.fsf@deeprootsystems.com>
+Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:29229 "HELO
+	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752860AbYJ2RPj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Oct 2008 13:15:39 -0400
+In-Reply-To: <1225280189-6559-11-git-send-email-jarkko.nikula@nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, tomi.valkeinen@nokia.com, rick@efn.org, timo.t.kokkonen@nokia.com, sakari.poussa@nokia.com
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-yOn Wed, 29 Oct 2008, Kevin Hilman wrote:
+On Wednesday 29 October 2008, Jarkko Nikula wrote:
+> =A0drivers/leds/leds-omap.c | =A0 24 +++++++++++-------------
 
-> Hi Paul,
-> 
-> This patch doesn't fix the problem. :(
-> 
-> Kevin
-> 
+I'd have expected this driver to vanish completely ...
+is there something this driver does that leds-gpio.c can't?
 
-OK, could you private E-mail me the patches you are using to test?  
-thanks for testing 
-
-- Paul
+- Dave
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
