@@ -1,336 +1,70 @@
-From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-Subject: [PATCH] OMAP: SRF: Fixes to shared resource framework (Ver.3)
-Date: Wed, 29 Oct 2008 16:20:42 +0200
-Message-ID: <1225290042-25453-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP3 clock: fix non-CORE DPLL rate assignment bugs
+Date: Wed, 29 Oct 2008 08:24:13 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0810290820470.4200@utopia.booyaka.com>
+References: <alpine.DEB.2.00.0810171617420.3833@utopia.booyaka.com> <49075870.9020804@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:60694 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754056AbYJ2OTh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2008 10:19:37 -0400
-In-Reply-To: <>
-References: <>
+Received: from utopia.booyaka.com ([72.9.107.138]:47179 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753366AbYJ2OYO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2008 10:24:14 -0400
+In-Reply-To: <49075870.9020804@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: rnayak@ti.com, khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, tomi.valkeinen@nokia.com, rick@efn.org, timo.t.kokkonen@nokia.com, sakari.poussa@nokia.com
 
-This patch corrects some problems found in shared resource
-framwork patches sent by Rajendra Nayak. This patch requires
-also the omapdev patchset sent by Paul walmsley.
+On Tue, 28 Oct 2008, Kevin Hilman wrote:
 
-Fixes include:
+> Paul Walmsley wrote:
+> > Commit 8b1f0bd44fe490ec631230c8c040753a2bda8caa introduced a bug that
+> > caused non-CORE DPLL rates to be incorrectly set on boot in
+> > omap3_noncore_dpll_enable().  Debugged by Tomi Valkeinen
+> > <tomi.valkeinen@nokia.com> - thanks Tomi.
+> > 
+> > Also fix omap3_noncore_dpll_set_rate() to assign clk->rate after a
+> > DPLL reprogram.
+> > 
+> > Tested on 3430SDP.
+> 
+> FYI, This patch breaks the ability to come out of retention in dynamic idle,
+> but I haven't yet discovered why.
 
-1. Use omapdev to get correct power domain for a device in
-omap_pm_set_max_dev_wakeup_lat function. A compatibility issue
-remains, as omap_pm_set_max_dev_wakeup_lat takes device pointer,
-but omapdev_find_pdev requires platform_device pointer.
+Hi Kevin,
 
-2. Add support for devices in CORE power domain to set latency
-requirements through the omap_pm_set_max_dev_wakeup_lat interface.
+would you be willing to test this patch for me?  It's not for merging, but 
+I would be interested to know if it fixes the problem.
 
-3. Move update_resource_level call out of spin_lock as the underlying
-pm_qos_add_requirement calls kzalloc. The point of the spin locks
-according to comments is to protect adding and removing users, which
-remains inside the spin_lock.
 
-4. Added resource_refresh function into generic resource fw to
-support enable_off_mode swithcing with SRF.
+- Paul
 
-5. SGX power domain was not updated due wrong power domain name.
-Fixed by adding a new separate pd_latency_db structure for SGX.
-Thanks to Jouni Hogander for finding this problem.
+Author: Paul Walmsley <paul@pwsan.com>
+Date:   Wed Oct 29 08:16:09 2008 -0600
 
-6. When CPU idle & SRF are active, let them do inits for power
-domains. Thanks to Jouni Hogander for making these fixes.
+    OMAP3 clock: reprogram DPLL when coming out of bypass
+    
+    The OMAP3 DPLL enable code has assumed that the contents of M, N,
+    etc. are preserved across disables and enables.  This assumption
+    appears to be wrong.  Test to see whether reprogramming the DPLL on
+    each re-enable fixes the problem that Kevin reported.
+    
+    This patch is not for merging.  It is intended to test a hypothesis.  A
+    mergeable version of this patch would preserve M, N, etc. across
+    DPLL disable/enable to avoid the time-consuming rate rounding step
+    upon return from dynamic idle.
 
-Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
----
- arch/arm/mach-omap2/pm34xx.c               |   38 ++++++++++++++++++++++++++-
- arch/arm/mach-omap2/resource34xx.c         |   10 ++++++-
- arch/arm/mach-omap2/resource34xx.h         |   18 ++++++++++++-
- arch/arm/plat-omap/include/mach/resource.h |    1 +
- arch/arm/plat-omap/omap-pm-srf.c           |   36 +++++++++++++++++++------
- arch/arm/plat-omap/resource.c              |   31 +++++++++++++++++++++-
- 6 files changed, 119 insertions(+), 15 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index e906f74..bb2bfea 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -33,6 +33,7 @@
- #include <mach/prcm.h>
- #include <mach/clockdomain.h>
- #include <mach/powerdomain.h>
-+#include <mach/resource.h>
- #include <mach/common.h>
- #include <mach/control.h>
- #include <mach/serial.h>
-@@ -697,9 +698,28 @@ void omap3_pm_off_mode_enable(int enable)
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index cc43f4f..bfbd966 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -283,7 +283,7 @@ static int omap3_noncore_dpll_enable(struct clk *clk)
+ 	if (clk->rate == dd->bypass_clk->rate)
+ 		r = _omap3_noncore_dpll_bypass(clk);
  	else
- 		state = PWRDM_POWER_RET;
+-		r = _omap3_noncore_dpll_lock(clk);
++		r = omap3_noncore_dpll_set_rate(clk, clk->rate);
  
-+#ifdef CONFIG_OMAP_PM_SRF
-+	if (resource_refresh())
-+		printk(KERN_ERR "Error: could not refresh resources\n");
-+#endif
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
- 		pwrst->next_state = state;
--		set_pwrdm_state(pwrst->pwrdm, state);
-+
-+		if (!strcmp(pwrst->pwrdm->name, "core_pwrdm") ||
-+		    !strcmp(pwrst->pwrdm->name, "mpu_pwrdm") ||
-+		    !strcmp(pwrst->pwrdm->name, "neon_pwrdm")) {
-+#ifdef CONFIG_CPU_IDLE
-+			continue;
-+#else
-+			set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
-+#endif /* CONFIG_CPU_IDLE */
-+		} else {
-+#if defined(CONFIG_OMAP_PM_NOOP) | defined(CONFIG_OMAP_PM_NONE)
-+			set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
-+#else
-+			continue;
-+#endif /* CONFIG_OMAP_PM_NOOP | CONFIG_OMAP_PM_NONE */
-+		}
- 	}
- }
- 
-@@ -720,7 +740,21 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm)
- 	if (pwrdm_has_hdwr_sar(pwrdm))
- 		pwrdm_enable_hdwr_sar(pwrdm);
- 
--	return set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
-+	/* Let cpuidle do selection here */
-+	if (!strcmp(pwrst->pwrdm->name, "core_pwrdm") ||
-+	    !strcmp(pwrst->pwrdm->name, "mpu_pwrdm") ||
-+	    !strcmp(pwrst->pwrdm->name, "neon_pwrdm"))
-+#ifdef CONFIG_CPU_IDLE
-+		return 0;
-+#else
-+		return set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
-+#endif /* CONFIG_CPU_IDLE */
-+	else
-+#if defined(CONFIG_OMAP_PM_NOOP) | defined(CONFIG_OMAP_PM_NONE)
-+		return set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
-+#else
-+		return 0;
-+#endif /* CONFIG_OMAP_PM_NOOP | CONFIG_OMAP_PM_NONE */
- }
- 
- static int __init clkdms_setup(struct clockdomain *clkdm)
-diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
-index 54032fd..9bcfb4f 100644
---- a/arch/arm/mach-omap2/resource34xx.c
-+++ b/arch/arm/mach-omap2/resource34xx.c
-@@ -20,6 +20,7 @@
- #include <mach/powerdomain.h>
- #include <mach/clockdomain.h>
- #include "resource34xx.h"
-+#include "pm.h"
- 
- int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
- 
-@@ -86,10 +87,14 @@ void init_pd_latency(struct shared_resource *resp)
- 	struct pd_latency_db *pd_lat_db;
- 
- 	resp->no_of_users = 0;
--	resp->curr_level = PD_LATENCY_OFF;
-+	if (enable_off_mode)
-+		resp->curr_level = PD_LATENCY_OFF;
-+	else
-+		resp->curr_level = PD_LATENCY_RET;
- 	pd_lat_db = resp->resource_data;
- 	/* Populate the power domain associated with the latency resource */
- 	pd_lat_db->pd = pwrdm_lookup(pd_lat_db->pwrdm_name);
-+	set_pwrdm_state(pd_lat_db->pd, resp->curr_level);
- 	return;
- }
- 
-@@ -120,6 +125,9 @@ int set_pd_latency(struct shared_resource *resp, u32 latency)
- 		}
- 	}
- 
-+	if (!enable_off_mode && pd_lat_level == PD_LATENCY_OFF)
-+		pd_lat_level = PD_LATENCY_RET;
-+
- 	resp->curr_level = pd_lat_level;
- 	set_pwrdm_state(pwrdm, pd_lat_level);
- 	return 0;
-diff --git a/arch/arm/mach-omap2/resource34xx.h b/arch/arm/mach-omap2/resource34xx.h
-index b6db1fc..a042875 100644
---- a/arch/arm/mach-omap2/resource34xx.h
-+++ b/arch/arm/mach-omap2/resource34xx.h
-@@ -80,6 +80,13 @@ static struct shared_resource_ops pd_lat_res_ops = {
- 	.change_level 	= set_pd_latency,
- };
- 
-+static struct shared_resource core_pwrdm_latency = {
-+	.name		= "core_pwrdm_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data	= &core_qos_req_added,
-+	.ops		= &lat_res_ops,
-+};
-+
- static struct pd_latency_db iva2_pwrdm_lat_db = {
- 	.pwrdm_name = "iva2_pwrdm",
- 	.latency[PD_LATENCY_OFF] = 1100,
-@@ -103,6 +110,14 @@ static struct pd_latency_db gfx_pwrdm_lat_db = {
- 	.latency[PD_LATENCY_ON]	 = 0
- };
- 
-+static struct pd_latency_db sgx_pwrdm_lat_db = {
-+	.pwrdm_name = "sgx_pwrdm",
-+	.latency[PD_LATENCY_OFF] = 1000,
-+	.latency[PD_LATENCY_RET] = 100,
-+	.latency[PD_LATENCY_INACT] = -1,
-+	.latency[PD_LATENCY_ON]	 = 0
-+};
-+
- static struct shared_resource gfx_pwrdm_latency = {
- 	.name		= "gfx_pwrdm_latency",
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1),
-@@ -113,7 +128,7 @@ static struct shared_resource gfx_pwrdm_latency = {
- static struct shared_resource sgx_pwrdm_latency = {
- 	.name 		= "sgx_pwrdm_latency",
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
--	.resource_data  = &gfx_pwrdm_lat_db,
-+	.resource_data  = &sgx_pwrdm_lat_db,
- 	.ops		= &pd_lat_res_ops,
- };
- 
-@@ -211,6 +226,7 @@ struct shared_resource *resources_omap[] __initdata = {
- 	&mpu_latency,
- 	&core_latency,
- 	/* Power Domain Latency resources */
-+	&core_pwrdm_latency,
- 	&iva2_pwrdm_latency,
- 	&gfx_pwrdm_latency,
- 	&sgx_pwrdm_latency,
-diff --git a/arch/arm/plat-omap/include/mach/resource.h b/arch/arm/plat-omap/include/mach/resource.h
-index 470cb67..bedd1ab 100644
---- a/arch/arm/plat-omap/include/mach/resource.h
-+++ b/arch/arm/plat-omap/include/mach/resource.h
-@@ -70,6 +70,7 @@ struct users_list {
- extern struct shared_resource *resources_omap[];
- /* Shared resource Framework API's */
- void resource_init(struct shared_resource **resources);
-+int resource_refresh(void);
- int resource_register(struct shared_resource *res);
- int resource_unregister(struct shared_resource *res);
- int resource_request(const char *name, struct device *dev,
-diff --git a/arch/arm/plat-omap/omap-pm-srf.c b/arch/arm/plat-omap/omap-pm-srf.c
-index 427fc9d..d01b000 100644
---- a/arch/arm/plat-omap/omap-pm-srf.c
-+++ b/arch/arm/plat-omap/omap-pm-srf.c
-@@ -25,10 +25,7 @@
- #include <mach/omap-pm.h>
- #include <mach/powerdomain.h>
- #include <mach/resource.h>
--/* TODO: Put this back in once tiocp layer is available */
--/*
--#include <asm/arch/tiocp.h>
--*/
-+#include <mach/omapdev.h>
- 
- static struct omap_opp *dsp_opps;
- static struct omap_opp *mpu_opps;
-@@ -102,8 +99,9 @@ void omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigned long r)
- 
- void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t)
- {
--	/* struct tiocp *tiocp_dev; */
-+	struct omapdev *odev;
- 	struct powerdomain *pwrdm_dev;
-+	struct platform_device *pdev;
- 	char *lat_res_name;
- 
- 	if (!dev || t < -1) {
-@@ -111,10 +109,30 @@ void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t)
- 		return;
- 	};
- 	/* Look for the devices Power Domain */
--	/* TODO: Put this back in once tiocp layer is available
--	tiocp_dev = container_of(dev, struct tiocp, dev);
--	pwrdm_dev = tiocp_dev->pwrdm;
--	*/
-+	/*
-+	 * WARNING! If device is not a platform device, container_of will
-+	 * return a pointer to unknown memory!
-+	 * TODO: Either change omap-pm interface to support only platform
-+	 * devices, or change the underlying omapdev implementation to
-+	 * support normal devices.
-+	 */
-+	pdev = container_of(dev, struct platform_device, dev);
-+
-+	/* Try to catch non platform devices. */
-+	if (pdev->name == NULL) {
-+		printk(KERN_ERR "OMAP-PM: Error: platform device not valid\n");
-+		return;
-+	}
-+
-+	odev = omapdev_find_pdev(pdev);
-+	if (odev) {
-+		pwrdm_dev = omapdev_get_pwrdm(odev);
-+	} else {
-+		printk(KERN_ERR "OMAP-PM: Error: Could not find omapdev "
-+						"for %s\n", pdev->name);
-+		return;
-+	}
-+
- 	lat_res_name = kmalloc(MAX_LATENCY_RES_NAME, GFP_KERNEL);
- 	if (!lat_res_name) {
- 		printk(KERN_ERR "OMAP-PM: FATAL ERROR: kmalloc failed\n");
-diff --git a/arch/arm/plat-omap/resource.c b/arch/arm/plat-omap/resource.c
-index 9f01fb1..5b3d3a4 100644
---- a/arch/arm/plat-omap/resource.c
-+++ b/arch/arm/plat-omap/resource.c
-@@ -223,6 +223,27 @@ void resource_init(struct shared_resource **resources)
- }
- 
- /**
-+ * resource_refresh - Refresh the states of all current resources
-+ *
-+ * If a condition in power domains has changed that requires refreshing
-+ * power domain states, this function can be used to restore correct
-+ * states according to shared resources.
-+ * Returns 0 on success, non-zero, if some resource cannot be refreshed.
-+ */
-+int resource_refresh(void)
-+{
-+	struct shared_resource *resp = NULL;
-+	int ret = 0;
-+
-+	list_for_each_entry(resp, &res_list, node) {
-+		ret = update_resource_level(resp);
-+		if (ret)
-+			break;
-+	}
-+	return ret;
-+}
-+
-+/**
-  * resource_register - registers and initializes a resource
-  * @res: struct shared_resource * to register
-  *
-@@ -346,10 +367,16 @@ int resource_request(const char *name, struct device *dev,
- 	}
- 	user->level = level;
- 
--	/* Recompute and set the current level for the resource */
--	ret = update_resource_level(resp);
- res_unlock:
- 	spin_unlock_irqrestore(&res_lock, flags);
-+	/*
-+	 * Recompute and set the current level for the resource.
-+	 * NOTE: update_resource level moved out of spin_lock, as it may call
-+	 * pm_qos_add_requirement, which does a kzmalloc. This won't be allowed
-+	 * in iterrupt context. The spin_lock still protects add/remove users.
-+	 */
-+	if (!ret)
-+		ret = update_resource_level(resp);
- 	return ret;
- }
- EXPORT_SYMBOL(resource_request);
--- 
-1.5.4.3
-
+ 	if (!r)
+ 		clk->rate = omap2_get_dpll_rate(clk);
