@@ -1,329 +1,65 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 04/04] PM debug: Add PRCM register dump support
-Date: Wed, 29 Oct 2008 13:31:24 +0200
-Message-ID: <1225279884-30668-5-git-send-email-tero.kristo@nokia.com>
+From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+Subject: Re: SRF Fixes
+Date: Wed, 29 Oct 2008 13:10:19 +0200
+Message-ID: <1225278619.4470.195.camel@kj-ubuntu>
 References: <>
- <1225279884-30668-1-git-send-email-tero.kristo@nokia.com>
- <1225279884-30668-2-git-send-email-tero.kristo@nokia.com>
- <1225279884-30668-3-git-send-email-tero.kristo@nokia.com>
- <1225279884-30668-4-git-send-email-tero.kristo@nokia.com>
+	 <1225269015-19064-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:41782 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753182AbYJ2Jsz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2008 05:48:55 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9T9lsrL028144
-	for <linux-omap@vger.kernel.org>; Wed, 29 Oct 2008 04:48:54 -0500
-Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id m9T9lc6X021465
-	for <linux-omap@vger.kernel.org>; Wed, 29 Oct 2008 11:47:44 +0200
-In-Reply-To: <1225279884-30668-4-git-send-email-tero.kristo@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:56893 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753441AbYJ2LJL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2008 07:09:11 -0400
+In-Reply-To: <1225269015-19064-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: rnayak@ti.com
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com
 
-Allows dumping out current register contents from the debug filesystem, and
-also allows user to add arbitrary register save points into code. Current
-register contents are available under debugfs at:
+On ke, 2008-10-29 at 10:30 +0200, ext Kalle Jokiniemi wrote:
+> Hi,
+> 
+> We have been testing the SRF patches (sent by Rajendra on 16th-Oct) now,
+> and some issues were found. The following patch corrects some of them,
+> these issues remain:      
+> 
+> 1. Handling enable_off_mode sysfs switches is not supported in this patch.
+> I'm planning to add a new interface into the generic shared resource fw 
+> to enable refreshing power domain states, when such changes take place.
 
-[debugfs]/pm_debug/registers/current
+OK, I have an implementation for supporting the enable_off_mode
+swithcing. I'll send a updated patch soon.
 
-To add a save point, do following:
+regards,
+Kalle
 
->From module init (or somewhere before the save call, called only once):
-  pm_dbg_init_regset(n); // n=1..4, allocates memory for dump area #n
-
->From arbitrary code location:
-  pm_dbg_regset_save(n); // n=1..4, saves registers to dump area #n
-
-After this, the register dump can be seen under [debugfs]/pm_debug/registers/n
-
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
----
- arch/arm/mach-omap2/pm-debug.c |  208 ++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/pm.h       |    4 +
- 2 files changed, 212 insertions(+), 0 deletions(-)
- mode change 100644 => 100755 arch/arm/mach-omap2/pm-debug.c
- mode change 100644 => 100755 arch/arm/mach-omap2/pm.h
-
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-old mode 100644
-new mode 100755
-index d21af83..05f3914
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -159,6 +159,8 @@ void omap2_pm_dump(int mode, int resume, unsigned int us)
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
- 
-+static void pm_dbg_regset_store(u32 *ptr);
-+
- struct dentry *pm_dbg_dir;
- 
- static int pm_dbg_init_done;
-@@ -168,6 +170,159 @@ enum {
- 	DEBUG_FILE_TIMERS,
- };
- 
-+struct pm_module_def {
-+	char name[8]; /* Name of the module */
-+	short type; /* CM or PRM */
-+	unsigned short offset;
-+	int low; /* First register address on this module */
-+	int high; /* Last register address on this module */
-+};
-+
-+#define MOD_CM 0
-+#define MOD_PRM 1
-+
-+static const struct pm_module_def pm_dbg_reg_modules[] = {
-+	{ "IVA2", MOD_CM, OMAP3430_IVA2_MOD, 0, 0x4c },
-+	{ "OCP", MOD_CM, OCP_MOD, 0, 0x10 },
-+	{ "MPU", MOD_CM, MPU_MOD, 4, 0x4c },
-+	{ "CORE", MOD_CM, CORE_MOD, 0, 0x4c },
-+	{ "SGX", MOD_CM, OMAP3430ES2_SGX_MOD, 0, 0x4c },
-+	{ "WKUP", MOD_CM, WKUP_MOD, 0, 0x40 },
-+	{ "CCR", MOD_CM, PLL_MOD, 0, 0x70 },
-+	{ "DSS", MOD_CM, OMAP3430_DSS_MOD, 0, 0x4c },
-+	{ "CAM", MOD_CM, OMAP3430_CAM_MOD, 0, 0x4c },
-+	{ "PER", MOD_CM, OMAP3430_PER_MOD, 0, 0x4c },
-+	{ "EMU", MOD_CM, OMAP3430_EMU_MOD, 0x40, 0x54 },
-+	{ "NEON", MOD_CM, OMAP3430_NEON_MOD, 0x20, 0x48 },
-+	{ "USB", MOD_CM, OMAP3430ES2_USBHOST_MOD, 0, 0x4c },
-+
-+	{ "IVA2", MOD_PRM, OMAP3430_IVA2_MOD, 0x50, 0xfc },
-+	{ "OCP", MOD_PRM, OCP_MOD, 4, 0x1c },
-+	{ "MPU", MOD_PRM, MPU_MOD, 0x58, 0xe8 },
-+	{ "CORE", MOD_PRM, CORE_MOD, 0x58, 0xf8 },
-+	{ "SGX", MOD_PRM, OMAP3430ES2_SGX_MOD, 0x58, 0xe8 },
-+	{ "WKUP", MOD_PRM, WKUP_MOD, 0xa0, 0xb0 },
-+	{ "CCR", MOD_PRM, PLL_MOD, 0x40, 0x70 },
-+	{ "DSS", MOD_PRM, OMAP3430_DSS_MOD, 0x58, 0xe8 },
-+	{ "CAM", MOD_PRM, OMAP3430_CAM_MOD, 0x58, 0xe8 },
-+	{ "PER", MOD_PRM, OMAP3430_PER_MOD, 0x58, 0xe8 },
-+	{ "EMU", MOD_PRM, OMAP3430_EMU_MOD, 0x58, 0xe4 },
-+	{ "GLBL", MOD_PRM, OMAP3430_GR_MOD, 0x20, 0xe4 },
-+	{ "NEON", MOD_PRM, OMAP3430_NEON_MOD, 0x58, 0xe8 },
-+	{ "USB", MOD_PRM, OMAP3430ES2_USBHOST_MOD, 0x58, 0xe8 },
-+	{ "", 0, 0, 0, 0 },
-+};
-+
-+#define PM_DBG_MAX_REG_SETS 4
-+
-+static void *pm_dbg_reg_set[PM_DBG_MAX_REG_SETS];
-+
-+static int pm_dbg_get_regset_size(void)
-+{
-+	static int regset_size;
-+
-+	if (regset_size == 0) {
-+		int i = 0;
-+
-+		while (pm_dbg_reg_modules[i].name[0] != 0) {
-+			regset_size += pm_dbg_reg_modules[i].high +
-+				4 - pm_dbg_reg_modules[i].low;
-+			i++;
-+		}
-+	}
-+	return regset_size;
-+}
-+
-+static int pm_dbg_show_regs(struct seq_file *s, void *unused)
-+{
-+	int i, j;
-+	unsigned long val;
-+	int reg_set = (int)s->private;
-+	u32 *ptr;
-+	void *store = NULL;
-+	int regs;
-+	int linefeed;
-+
-+	if (reg_set == 0) {
-+		store = kmalloc(pm_dbg_get_regset_size(), GFP_KERNEL);
-+		ptr = store;
-+		pm_dbg_regset_store(ptr);
-+	} else {
-+		ptr = pm_dbg_reg_set[reg_set - 1];
-+	}
-+
-+	i = 0;
-+
-+	while (pm_dbg_reg_modules[i].name[0] != 0) {
-+		regs = 0;
-+		linefeed = 0;
-+		if (pm_dbg_reg_modules[i].type == MOD_CM)
-+			seq_printf(s, "MOD: CM_%s (%08x)\n",
-+				pm_dbg_reg_modules[i].name,
-+				(u32)(OMAP2_CM_BASE +
-+				pm_dbg_reg_modules[i].offset));
-+		else
-+			seq_printf(s, "MOD: PRM_%s (%08x)\n",
-+				pm_dbg_reg_modules[i].name,
-+				(u32)(OMAP2_PRM_BASE +
-+				pm_dbg_reg_modules[i].offset));
-+
-+		for (j = pm_dbg_reg_modules[i].low;
-+			j <= pm_dbg_reg_modules[i].high; j += 4) {
-+			val = *(ptr++);
-+			if (val != 0) {
-+				regs++;
-+				if (linefeed) {
-+					seq_printf(s, "\n");
-+					linefeed = 0;
-+				}
-+				seq_printf(s, "  %02x => %08lx", j, val);
-+				if (regs % 4 == 0)
-+					linefeed = 1;
-+			}
-+		}
-+		seq_printf(s, "\n");
-+		i++;
-+	}
-+
-+	if (store != NULL)
-+		kfree(store);
-+
-+	return 0;
-+}
-+
-+static void pm_dbg_regset_store(u32 *ptr)
-+{
-+	int i, j;
-+	u32 val;
-+
-+	i = 0;
-+
-+	while (pm_dbg_reg_modules[i].name[0] != 0) {
-+		for (j = pm_dbg_reg_modules[i].low;
-+			j <= pm_dbg_reg_modules[i].high; j += 4) {
-+			if (pm_dbg_reg_modules[i].type == MOD_CM)
-+				val = cm_read_mod_reg(
-+					pm_dbg_reg_modules[i].offset, j);
-+			else
-+				val = prm_read_mod_reg(
-+					pm_dbg_reg_modules[i].offset, j);
-+			*(ptr++) = val;
-+		}
-+		i++;
-+	}
-+}
-+
-+int pm_dbg_regset_save(int reg_set)
-+{
-+	if (pm_dbg_reg_set[reg_set-1] == NULL)
-+		return -EINVAL;
-+
-+	pm_dbg_regset_store(pm_dbg_reg_set[reg_set-1]);
-+
-+	return 0;
-+}
-+
- static const char pwrdm_state_names[][4] = {
- 	"OFF",
- 	"RET",
-@@ -281,6 +436,11 @@ static int pm_dbg_open(struct inode *inode, struct file *file)
- 	};
- }
- 
-+static int pm_dbg_reg_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, pm_dbg_show_regs, inode->i_private);
-+}
-+
- static const struct file_operations debug_fops = {
- 	.open           = pm_dbg_open,
- 	.read           = seq_read,
-@@ -288,6 +448,37 @@ static const struct file_operations debug_fops = {
- 	.release        = single_release,
- };
- 
-+static const struct file_operations debug_reg_fops = {
-+	.open           = pm_dbg_reg_open,
-+	.read           = seq_read,
-+	.llseek         = seq_lseek,
-+	.release        = single_release,
-+};
-+
-+int pm_dbg_regset_init(int reg_set)
-+{
-+	char name[2];
-+
-+	if (reg_set < 1 || reg_set > PM_DBG_MAX_REG_SETS ||
-+		pm_dbg_reg_set[reg_set-1] != NULL)
-+		return -EINVAL;
-+
-+	pm_dbg_reg_set[reg_set-1] =
-+		kmalloc(pm_dbg_get_regset_size(), GFP_KERNEL);
-+
-+	if (pm_dbg_reg_set[reg_set-1] == NULL)
-+		return -ENOMEM;
-+
-+	if (pm_dbg_dir != NULL) {
-+		sprintf(name, "%d", reg_set);
-+
-+		(void) debugfs_create_file(name, S_IRUGO,
-+			pm_dbg_dir, (void *)reg_set, &debug_reg_fops);
-+	}
-+
-+	return 0;
-+}
-+
- static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
- {
- 	int i;
-@@ -307,7 +498,9 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
- 
- static int __init pm_dbg_init(void)
- {
-+	int i;
- 	struct dentry *d;
-+	char name[2];
- 
- 	printk(KERN_INFO "pm_dbg_init()\n");
- 
-@@ -322,6 +515,21 @@ static int __init pm_dbg_init(void)
- 
- 	pwrdm_for_each(pwrdms_setup, NULL);
- 
-+	pm_dbg_dir = debugfs_create_dir("registers", d);
-+	if (IS_ERR(pm_dbg_dir))
-+		return PTR_ERR(pm_dbg_dir);
-+
-+	(void) debugfs_create_file("current", S_IRUGO,
-+		pm_dbg_dir, (void *)0, &debug_reg_fops);
-+
-+	for (i = 0; i < PM_DBG_MAX_REG_SETS; i++)
-+		if (pm_dbg_reg_set[i] != NULL) {
-+			sprintf(name, "%d", i+1);
-+			(void) debugfs_create_file(name, S_IRUGO,
-+				pm_dbg_dir, (void *)(i+1), &debug_reg_fops);
-+
-+		}
-+
- 	pm_dbg_init_done = 1;
- 
- 	return 0;
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-old mode 100644
-new mode 100755
-index b7d66be..8f1ebea
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -34,9 +34,13 @@ extern void omap3_pm_off_mode_enable(int);
- extern void omap2_pm_dump(int mode, int resume, unsigned int us);
- extern int omap2_pm_debug;
- extern void pm_dbg_update_time(struct powerdomain *pwrdm, int prev);
-+extern int pm_dbg_regset_save(int reg_set);
-+extern int pm_dbg_regset_init(int reg_set);
- #else
- #define omap2_pm_dump(mode, resume, us)		do {} while (0);
- #define omap2_pm_debug				0
- #define pm_dbg_update_time(pwrdm, prev) do {} while (0);
-+#define pm_dbg_regset_save(reg_set) do {} while (0);
-+#define pm_dbg_regset_init(reg_set) do {} while (0);
- #endif /* CONFIG_PM_DEBUG */
- #endif
--- 
-1.5.4.3
-
+> 
+> 2. Non platform devices won't be able to add power domain wake-up latency 
+> requirements. The srf interface has a device pointer parameter, which the
+> following patch uses to get platform_device pointer. This pdev is required
+> by the omapdev interface for finding the respective power domain. The 
+> aquisition of platform_device pointer is done via container_of macro, which
+> may cause crashes if the device pointer does not have a platform device
+> container.
+> 
+> Any comments on how to make this better are welcome. I think that if   
+> the SRF interface would accept a platform_device pointer instead of
+> device pointer the problem would solve. I have a check in my patch that 
+> checks for NULL pointer in pdev->name, but this won't work always. 
+> 
+> 3. Seems that device hangs if MPU, NEON and CORE power domains hit OFF
+> mode, while other power domains are in retention. We suspect PER in 
+> retention + CORE in OFF would be the most likely cause of trouble,
+> this is being looked into.
+> 
+> regards,
+> Kalle Jokiniemi
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
