@@ -1,44 +1,42 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 08/16] OMAP3: Populate scratchpad contents
-Date: Wed, 29 Oct 2008 16:35:37 -0700
-Message-ID: <4908F349.2050100@deeprootsystems.com>
-References: <01f901c91fd2$06570810$LocalHost@wipultra1382> <87skqf6r48.fsf@deeprootsystems.com> <13B9B4C6EF24D648824FF11BE89671620369796DED@dlee02.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [RFC 0/21 Continue phasing out legacy GPIO calls
+Date: Wed, 29 Oct 2008 16:49:08 -0700
+Message-ID: <200810291649.09137.david-b@pacbell.net>
+References: <1225280189-6559-1-git-send-email-jarkko.nikula@nokia.com> <20081029160056.GD20456@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from po-out-1718.google.com ([72.14.252.158]:10693 "EHLO
-	po-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752502AbYJ2Xfm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2008 19:35:42 -0400
-Received: by po-out-1718.google.com with SMTP id y22so5610916pof.1
-        for <linux-omap@vger.kernel.org>; Wed, 29 Oct 2008 16:35:40 -0700 (PDT)
-In-Reply-To: <13B9B4C6EF24D648824FF11BE89671620369796DED@dlee02.ent.ti.com>
+Received: from smtp128.sbc.mail.sp1.yahoo.com ([69.147.65.187]:45834 "HELO
+	smtp128.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752081AbYJ2XtM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Oct 2008 19:49:12 -0400
+In-Reply-To: <20081029160056.GD20456@atomide.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, linux-omap@vger.kernel.org
 
-Woodruff, Richard wrote:
->>> +   arm_context_addr = io_v2p(omap3_arm_context);
-> 
->> strange is how the code is still working.
-> 
-> Probably just corrupts some DDR a bit higher up.
+On Wednesday 29 October 2008, Tony Lindgren wrote:
+> Let's do the clean-up patches in two phases, one series that
+> applies against the mainline kernel, then additional patches for
+> linux-omap. Otherwise we'll never get out of this merge hell.
 
-Hmm, "just" corrupting memory?  ;)
+I'll refresh my patches that way then.  Most of the stuff
+remaining sits inside arch/arm anyway.
 
-I assume memory is being corrupted, but it also given an address in the 
-virtual memory map of the kernel.  How is the ROM code halding a virtual 
-address?  Just ignoring the upper bits?
 
->> I believe what is intented is for arm_context_addr to be a physical
->> memory address, right?  I've converted this to virt_to_phys().
-> 
-> Yes virt_to_phys() should be here.  Current 2.6.24 kernel's do it this way also.
+> BTW, we should try to do the same for anything that we can already
+> patch in the mainline kernel.
 
-Which begs the question why the patch sent to the list is using io_p2v() 
-introducing a bug which was only caught by accident because it also 
-introduced a compiler warning.
+Right.  We'll count on you to help us do that right.  Part
+of the problem will be coping with the ARM tree merge rules,
+especially for changes that touch mainline drivers too...
 
-Kevin
+- Dave
+ 
+
+
