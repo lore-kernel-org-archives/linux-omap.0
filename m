@@ -1,16 +1,16 @@
 From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: [RFC 20/21] ARM: OMAP: Complete Innovator FPGA gpiolib conversion
-Date: Wed, 29 Oct 2008 13:36:28 +0200
-Message-ID: <1225280189-6559-21-git-send-email-jarkko.nikula@nokia.com>
+Subject: [RFC 12/21] ARM: OMAP: Complete TUSB-OMAP interface gpiolib conversion
+Date: Wed, 29 Oct 2008 13:36:20 +0200
+Message-ID: <1225280189-6559-13-git-send-email-jarkko.nikula@nokia.com>
 References: <1225280189-6559-1-git-send-email-jarkko.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:53276 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:53271 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753456AbYJ2Lhu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2008 07:37:50 -0400
+	with ESMTP id S1753405AbYJ2Lhs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2008 07:37:48 -0400
 Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9TBbA4l031633
-	for <linux-omap@vger.kernel.org>; Wed, 29 Oct 2008 06:37:48 -0500
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9TBbA4j031633
+	for <linux-omap@vger.kernel.org>; Wed, 29 Oct 2008 06:37:46 -0500
 In-Reply-To: <1225280189-6559-1-git-send-email-jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,22 +19,35 @@ Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
 
 Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
 ---
- arch/arm/mach-omap1/fpga.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/usb-tusb6010.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/fpga.c b/arch/arm/mach-omap1/fpga.c
-index 55748ec..4f2b8a7 100644
---- a/arch/arm/mach-omap1/fpga.c
-+++ b/arch/arm/mach-omap1/fpga.c
-@@ -177,7 +177,7 @@ void omap1510_fpga_init_irq(void)
- 	 * NOTE: For general GPIO/MPUIO access and interrupts, please see
- 	 * gpio.[ch]
- 	 */
--	omap_request_gpio(13);
-+	gpio_request(13, "FPGA irq");
- 	gpio_direction_input(13);
- 	set_irq_type(gpio_to_irq(13), IRQ_TYPE_EDGE_RISING);
- 	set_irq_chained_handler(OMAP1510_INT_FPGA, innovator_fpga_IRQ_demux);
+diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb-tusb6010.c
+index d59855c..32b7c85 100644
+--- a/arch/arm/mach-omap2/usb-tusb6010.c
++++ b/arch/arm/mach-omap2/usb-tusb6010.c
+@@ -12,11 +12,11 @@
+ #include <linux/errno.h>
+ #include <linux/delay.h>
+ #include <linux/platform_device.h>
++#include <linux/gpio.h>
+ 
+ #include <linux/usb/musb.h>
+ 
+ #include <mach/gpmc.h>
+-#include <mach/gpio.h>
+ #include <mach/mux.h>
+ 
+ 
+@@ -290,7 +290,7 @@ tusb6010_setup_interface(struct musb_hdrc_platform_data *data,
+ 			);
+ 
+ 	/* IRQ */
+-	status = omap_request_gpio(irq);
++	status = gpio_request(irq, "TUSB6010 irq");
+ 	if (status < 0) {
+ 		printk(error, 3, status);
+ 		return status;
 -- 
 1.5.6.5
 
