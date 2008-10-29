@@ -1,87 +1,40 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3 clock: fix non-CORE DPLL rate assignment bugs
-Date: Wed, 29 Oct 2008 09:35:19 -0700
-Message-ID: <87abcnbbqw.fsf@deeprootsystems.com>
-References: <alpine.DEB.2.00.0810171617420.3833@utopia.booyaka.com>
-	<49075870.9020804@deeprootsystems.com>
-	<alpine.DEB.2.00.0810290820470.4200@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Rick Bronson <rick@efn.org>
+Subject: Re: What happened to the serial console on BeagleBoard with 2.6.28-rc2?
+Date: Wed, 29 Oct 2008 09:44:46 -0700
+Message-ID: <E1KvEA2-0002nH-8d@amazonia.comcast.net>
+Reply-To: rick@efn.org
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from po-out-1718.google.com ([72.14.252.155]:22477 "EHLO
-	po-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753979AbYJ2QfX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2008 12:35:23 -0400
-Received: by po-out-1718.google.com with SMTP id y22so5307700pof.1
-        for <linux-omap@vger.kernel.org>; Wed, 29 Oct 2008 09:35:22 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.0810290820470.4200@utopia.booyaka.com> (Paul Walmsley's message of "Wed\, 29 Oct 2008 08\:24\:13 -0600 \(MDT\)")
+Received: from samwise.efn.org ([12.33.21.33]:57619 "EHLO samwise.efn.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753320AbYJ2Qoq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Oct 2008 12:44:46 -0400
+Received: from amazonia.comcast.net (c-67-171-210-97.hsd1.or.comcast.net [67.171.210.97])
+	by samwise.efn.org (Postfix) with ESMTP id 13DC117005A
+	for <linux-omap@vger.kernel.org>; Wed, 29 Oct 2008 09:44:46 -0700 (PDT)
+Received: from rick by amazonia.comcast.net with local (Exim 4.69)
+	(envelope-from <rick@efn.org>)
+	id 1KvEA2-0002nH-8d
+	for linux-omap@vger.kernel.org; Wed, 29 Oct 2008 09:44:46 -0700
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, tomi.valkeinen@nokia.com, rick@efn.org, timo.t.kokkonen@nokia.com, sakari.poussa@nokia.com
+To: linux-omap@vger.kernel.org
 
-Paul Walmsley <paul@pwsan.com> writes:
 
-> From: Paul Walmsley <paul@pwsan.com>
-> Subject: Re: [PATCH] OMAP3 clock: fix non-CORE DPLL rate assignment bugs
-> To: Kevin Hilman <khilman@deeprootsystems.com>
-> cc: linux-omap@vger.kernel.org, tomi.valkeinen@nokia.com, rick@efn.org,
->   timo.t.kokkonen@nokia.com, sakari.poussa@nokia.com
-> Date: Wed, 29 Oct 2008 08:24:13 -0600 (MDT)
->
-> On Tue, 28 Oct 2008, Kevin Hilman wrote:
->
->> Paul Walmsley wrote:
->> > Commit 8b1f0bd44fe490ec631230c8c040753a2bda8caa introduced a bug that
->> > caused non-CORE DPLL rates to be incorrectly set on boot in
->> > omap3_noncore_dpll_enable().  Debugged by Tomi Valkeinen
->> > <tomi.valkeinen@nokia.com> - thanks Tomi.
->> > 
->> > Also fix omap3_noncore_dpll_set_rate() to assign clk->rate after a
->> > DPLL reprogram.
->> > 
->> > Tested on 3430SDP.
->> 
->> FYI, This patch breaks the ability to come out of retention in dynamic idle,
->> but I haven't yet discovered why.
->
-> Hi Kevin,
->
-> would you be willing to test this patch for me?  It's not for merging, but 
-> I would be interested to know if it fixes the problem.
+  It looks like a race condition.  Somehow the 8250 ends up with the
+LSB of the baud rate register set to 0xff when it's supposed to be
+0x1a.  I'm still trying to figure it out :( The patch below gets it
+working a little but there's still a problem after init runs.  Note
+that you will need to undef DEBUG_LL in the config.
 
-Hi Paul,
+  Rick
 
-This patch doesn't fix the problem. :(
-
-Kevin
-
->
-> Author: Paul Walmsley <paul@pwsan.com>
-> Date:   Wed Oct 29 08:16:09 2008 -0600
->
->     OMAP3 clock: reprogram DPLL when coming out of bypass
->     
->     The OMAP3 DPLL enable code has assumed that the contents of M, N,
->     etc. are preserved across disables and enables.  This assumption
->     appears to be wrong.  Test to see whether reprogramming the DPLL on
->     each re-enable fixes the problem that Kevin reported.
->     
->     This patch is not for merging.  It is intended to test a hypothesis.  A
->     mergeable version of this patch would preserve M, N, etc. across
->     DPLL disable/enable to avoid the time-consuming rate rounding step
->     upon return from dynamic idle.
->
-> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-> index cc43f4f..bfbd966 100644
-> --- a/arch/arm/mach-omap2/clock34xx.c
-> +++ b/arch/arm/mach-omap2/clock34xx.c
-> @@ -283,7 +283,7 @@ static int omap3_noncore_dpll_enable(struct clk *clk)
->  	if (clk->rate == dd->bypass_clk->rate)
->  		r = _omap3_noncore_dpll_bypass(clk);
->  	else
-> -		r = _omap3_noncore_dpll_lock(clk);
-> +		r = omap3_noncore_dpll_set_rate(clk, clk->rate);
->  
->  	if (!r)
->  		clk->rate = omap2_get_dpll_rate(clk);
+--- linux-omap-2.6/drivers/serial/8250.c.~1~	2008-10-28 10:11:30.000000000 -0700
++++ linux-omap-2.6/drivers/serial/8250.c	2008-10-29 08:33:31.000000000 -0700
+@@ -483,6 +483,7 @@ static inline int _serial_dl_read(struct
+ /* Uart divisor latch write */
+ static inline void _serial_dl_write(struct uart_8250_port *up, int value)
+ {
++mdelay (2);
+ 	serial_outp(up, UART_DLL, value & 0xff);
+ 	serial_outp(up, UART_DLM, value >> 8 & 0xff);
+ }
