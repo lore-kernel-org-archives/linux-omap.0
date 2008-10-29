@@ -1,16 +1,16 @@
 From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: [RFC 06/21] CBUS: Complete gpiolib conversion
-Date: Wed, 29 Oct 2008 13:36:14 +0200
-Message-ID: <1225280189-6559-7-git-send-email-jarkko.nikula@nokia.com>
+Subject: [RFC 11/21] ARM: OMAP: Complete N8x0 board file gpiolib conversion
+Date: Wed, 29 Oct 2008 13:36:19 +0200
+Message-ID: <1225280189-6559-12-git-send-email-jarkko.nikula@nokia.com>
 References: <1225280189-6559-1-git-send-email-jarkko.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:59919 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753329AbYJ2Lhi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2008 07:37:38 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9TBb6RJ017033
-	for <linux-omap@vger.kernel.org>; Wed, 29 Oct 2008 13:37:36 +0200
+Received: from smtp.nokia.com ([192.100.105.134]:53269 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752280AbYJ2Lhr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2008 07:37:47 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9TBbQx7031718
+	for <linux-omap@vger.kernel.org>; Wed, 29 Oct 2008 06:37:45 -0500
 In-Reply-To: <1225280189-6559-1-git-send-email-jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,160 +19,155 @@ Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
 
 Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
 ---
- drivers/cbus/cbus.c  |   12 ++++++------
- drivers/cbus/retu.c  |   10 +++++-----
- drivers/cbus/tahvo.c |   10 +++++-----
- 3 files changed, 16 insertions(+), 16 deletions(-)
+ arch/arm/mach-omap2/board-n800-camera.c |    4 ++--
+ arch/arm/mach-omap2/board-n800-mmc.c    |   14 +++++++-------
+ arch/arm/mach-omap2/board-n800-usb.c    |    6 +++---
+ arch/arm/mach-omap2/board-n800.c        |    6 +++---
+ 4 files changed, 15 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/cbus/cbus.c b/drivers/cbus/cbus.c
-index 1a184b0..020afad 100644
---- a/drivers/cbus/cbus.c
-+++ b/drivers/cbus/cbus.c
-@@ -28,8 +28,8 @@
- #include <linux/kernel.h>
+diff --git a/arch/arm/mach-omap2/board-n800-camera.c b/arch/arm/mach-omap2/board-n800-camera.c
+index 1f3b1e9..3959128 100644
+--- a/arch/arm/mach-omap2/board-n800-camera.c
++++ b/arch/arm/mach-omap2/board-n800-camera.c
+@@ -25,13 +25,13 @@
+ #include <linux/platform_device.h>
  #include <linux/delay.h>
- #include <linux/spinlock.h>
+ #include <linux/videodev2.h>
 +#include <linux/gpio.h>
+ #include <linux/i2c/menelaus.h>
+ 
+ #include <media/v4l2-int-device.h>
+ 
+ #include <asm/mach-types.h>
  
 -#include <mach/gpio.h>
  #include <mach/board.h>
  
- #include <asm/io.h>
-@@ -253,13 +253,13 @@ int __init cbus_bus_init(void)
- 	}
- #endif
+ #include <../drivers/cbus/retu.h>
+@@ -356,7 +356,7 @@ void __init n800_cam_init(void)
+ {
+ 	int r;
  
--	if ((ret = omap_request_gpio(chost->clk_gpio)) < 0)
-+	if ((ret = gpio_request(chost->clk_gpio, "CBUS clk")) < 0)
- 		goto exit1;
+-	r = omap_request_gpio(N800_CAM_SENSOR_RESET_GPIO);
++	r = gpio_request(N800_CAM_SENSOR_RESET_GPIO, "TCM825x reset");
+ 	if (r < 0) {
+ 		printk(KERN_WARNING "%s: failed to request gpio\n",
+ 			__func__);
+diff --git a/arch/arm/mach-omap2/board-n800-mmc.c b/arch/arm/mach-omap2/board-n800-mmc.c
+index 469572e..178f895 100644
+--- a/arch/arm/mach-omap2/board-n800-mmc.c
++++ b/arch/arm/mach-omap2/board-n800-mmc.c
+@@ -11,12 +11,12 @@
  
--	if ((ret = omap_request_gpio(chost->dat_gpio)) < 0)
-+	if ((ret = gpio_request(chost->dat_gpio, "CBUS data")) < 0)
- 		goto exit2;
- 
--	if ((ret = omap_request_gpio(chost->sel_gpio)) < 0)
-+	if ((ret = gpio_request(chost->sel_gpio, "CBUS sel")) < 0)
- 		goto exit3;
- 
- 	gpio_direction_output(chost->clk_gpio, 0);
-@@ -273,9 +273,9 @@ int __init cbus_bus_init(void)
- 
- 	return 0;
- exit3:
--	omap_free_gpio(chost->dat_gpio);
-+	gpio_free(chost->dat_gpio);
- exit2:
--	omap_free_gpio(chost->clk_gpio);
-+	gpio_free(chost->clk_gpio);
- exit1:
- 	kfree(chost);
- 	return ret;
-diff --git a/drivers/cbus/retu.c b/drivers/cbus/retu.c
-index 5f9a20a..35ea149 100644
---- a/drivers/cbus/retu.c
-+++ b/drivers/cbus/retu.c
-@@ -35,11 +35,11 @@
- #include <linux/irq.h>
- #include <linux/interrupt.h>
+ #include <linux/delay.h>
  #include <linux/platform_device.h>
 +#include <linux/gpio.h>
+ #include <linux/i2c/menelaus.h>
  
- #include <asm/uaccess.h>
+ #include <asm/mach-types.h>
  
- #include <mach/mux.h>
+ #include <mach/mmc.h>
 -#include <mach/gpio.h>
- #include <mach/board.h>
  
- #include "cbus.h"
-@@ -335,7 +335,7 @@ static int __devinit retu_probe(struct device *dev)
+ #if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
  
- 	retu_irq_pin = em_asic_config->retu_irq_gpio;
+@@ -287,11 +287,11 @@ static void n800_mmc_cleanup(struct device *dev)
+ {
+ 	menelaus_unregister_mmc_callback();
  
--	if ((ret = omap_request_gpio(retu_irq_pin)) < 0) {
-+	if ((ret = gpio_request(retu_irq_pin, "RETU irq")) < 0) {
- 		printk(KERN_ERR PFX "Unable to reserve IRQ GPIO\n");
- 		return ret;
+-	omap_free_gpio(slot_switch_gpio);
++	gpio_free(slot_switch_gpio);
+ 
+ 	if (machine_is_nokia_n810()) {
+-		omap_free_gpio(n810_slot2_pw_vddf);
+-		omap_free_gpio(n810_slot2_pw_vdd);
++		gpio_free(n810_slot2_pw_vddf);
++		gpio_free(n810_slot2_pw_vdd);
  	}
-@@ -362,7 +362,7 @@ static int __devinit retu_probe(struct device *dev)
- 			  "retu", 0);
- 	if (ret < 0) {
- 		printk(KERN_ERR PFX "Unable to register IRQ handler\n");
--		omap_free_gpio(retu_irq_pin);
-+		gpio_free(retu_irq_pin);
- 		return ret;
- 	}
- 	set_irq_wake(gpio_to_irq(retu_irq_pin), 1);
-@@ -375,7 +375,7 @@ static int __devinit retu_probe(struct device *dev)
- 	if (retu_user_init() < 0) {
- 		printk(KERN_ERR "Unable to initialize driver\n");
- 		free_irq(gpio_to_irq(retu_irq_pin), 0);
--		omap_free_gpio(retu_irq_pin);
-+		gpio_free(retu_irq_pin);
- 		return ret;
- 	}
- #endif
-@@ -391,7 +391,7 @@ static int retu_remove(struct device *dev)
- 	/* Mask all RETU interrupts */
- 	retu_write_reg(RETU_REG_IMR, 0xffff);
- 	free_irq(gpio_to_irq(retu_irq_pin), 0);
--	omap_free_gpio(retu_irq_pin);
-+	gpio_free(retu_irq_pin);
- 	tasklet_kill(&retu_tasklet);
+ }
  
- 	return 0;
-diff --git a/drivers/cbus/tahvo.c b/drivers/cbus/tahvo.c
-index fe665d4..eab593f 100644
---- a/drivers/cbus/tahvo.c
-+++ b/drivers/cbus/tahvo.c
-@@ -35,11 +35,11 @@
- #include <linux/irq.h>
- #include <linux/interrupt.h>
+@@ -347,16 +347,16 @@ void __init n800_mmc_init(void)
+ 		mmc1_data.slots[1].ban_openended = 1;
+ 	}
+ 
+-	if (omap_request_gpio(slot_switch_gpio) < 0)
++	if (gpio_request(slot_switch_gpio, "MMC slot switch") < 0)
+ 		BUG();
+ 	gpio_direction_output(slot_switch_gpio, 0);
+ 
+ 	if (machine_is_nokia_n810()) {
+-		if (omap_request_gpio(n810_slot2_pw_vddf) < 0)
++		if (gpio_request(n810_slot2_pw_vddf, "MMC slot 2 Vddf") < 0)
+ 			BUG();
+ 		gpio_direction_output(n810_slot2_pw_vddf, 0);
+ 
+-		if (omap_request_gpio(n810_slot2_pw_vdd) < 0)
++		if (gpio_request(n810_slot2_pw_vdd, "MMC slot 2 Vdd") < 0)
+ 			BUG();
+ 		gpio_direction_output(n810_slot2_pw_vdd, 0);
+ 	}
+diff --git a/arch/arm/mach-omap2/board-n800-usb.c b/arch/arm/mach-omap2/board-n800-usb.c
+index 5ab453d..e182a93 100644
+--- a/arch/arm/mach-omap2/board-n800-usb.c
++++ b/arch/arm/mach-omap2/board-n800-usb.c
+@@ -14,9 +14,9 @@
  #include <linux/platform_device.h>
+ #include <linux/clk.h>
+ #include <linux/err.h>
 +#include <linux/gpio.h>
- 
- #include <asm/uaccess.h>
- 
- #include <mach/mux.h>
+ #include <linux/usb/musb.h>
+ #include <mach/gpmc.h>
 -#include <mach/gpio.h>
- #include <mach/board.h>
+ #include <mach/pm.h>
  
- #include "cbus.h"
-@@ -322,7 +322,7 @@ static int __devinit tahvo_probe(struct device *dev)
+ #define TUSB_ASYNC_CS		1
+@@ -150,7 +150,7 @@ void __init n800_usb_init(void)
+ 	static char	announce[] __initdata = KERN_INFO "TUSB 6010\n";
  
- 	tahvo_irq_pin = em_asic_config->tahvo_irq_gpio;
+ 	/* PM companion chip power control pin */
+-	ret = omap_request_gpio(GPIO_TUSB_ENABLE);
++	ret = gpio_request(GPIO_TUSB_ENABLE, "TUSB6010 enable");
+ 	if (ret != 0) {
+ 		printk(KERN_ERR "Could not get TUSB power GPIO%i\n",
+ 		       GPIO_TUSB_ENABLE);
+@@ -171,5 +171,5 @@ void __init n800_usb_init(void)
+ 	return;
  
--	if ((ret = omap_request_gpio(tahvo_irq_pin)) < 0) {
-+	if ((ret = gpio_request(tahvo_irq_pin, "TAHVO irq")) < 0) {
- 		printk(KERN_ERR PFX "Unable to reserve IRQ GPIO\n");
- 		return ret;
- 	}
-@@ -340,7 +340,7 @@ static int __devinit tahvo_probe(struct device *dev)
- 			  "tahvo", 0);
- 	if (ret < 0) {
- 		printk(KERN_ERR PFX "Unable to register IRQ handler\n");
--		omap_free_gpio(tahvo_irq_pin);
-+		gpio_free(tahvo_irq_pin);
- 		return ret;
- 	}
- #ifdef CONFIG_CBUS_TAHVO_USER
-@@ -348,7 +348,7 @@ static int __devinit tahvo_probe(struct device *dev)
- 	if (tahvo_user_init() < 0) {
- 		printk(KERN_ERR "Unable to initialize driver\n");
- 		free_irq(gpio_to_irq(tahvo_irq_pin), 0);
--		omap_free_gpio(tahvo_irq_pin);
-+		gpio_free(tahvo_irq_pin);
- 		return ret;
- 	}
- #endif
-@@ -363,7 +363,7 @@ static int tahvo_remove(struct device *dev)
- 	/* Mask all TAHVO interrupts */
- 	tahvo_write_reg(TAHVO_REG_IMR, 0xffff);
- 	free_irq(gpio_to_irq(tahvo_irq_pin), 0);
--	omap_free_gpio(tahvo_irq_pin);
-+	gpio_free(tahvo_irq_pin);
- 	tasklet_kill(&tahvo_tasklet);
+ err:
+-	omap_free_gpio(GPIO_TUSB_ENABLE);
++	gpio_free(GPIO_TUSB_ENABLE);
+ }
+diff --git a/arch/arm/mach-omap2/board-n800.c b/arch/arm/mach-omap2/board-n800.c
+index 66c7d18..b38b295 100644
+--- a/arch/arm/mach-omap2/board-n800.c
++++ b/arch/arm/mach-omap2/board-n800.c
+@@ -127,7 +127,7 @@ void __init nokia_n800_init_irq(void)
+ 	omap_gpio_init();
  
- 	return 0;
+ #ifdef CONFIG_OMAP_STI
+-	if (omap_request_gpio(N800_STI_GPIO) < 0) {
++	if (gpio_request(N800_STI_GPIO, "STI") < 0) {
+ 		printk(KERN_ERR "Failed to request GPIO %d for STI\n",
+ 		       N800_STI_GPIO);
+ 		return;
+@@ -254,7 +254,7 @@ static void __init blizzard_dev_init(void)
+ {
+ 	int r;
+ 
+-	r = omap_request_gpio(N800_BLIZZARD_POWERDOWN_GPIO);
++	r = gpio_request(N800_BLIZZARD_POWERDOWN_GPIO, "Blizzard pd");
+ 	if (r < 0)
+ 		return;
+ 	gpio_direction_output(N800_BLIZZARD_POWERDOWN_GPIO, 1);
+@@ -331,7 +331,7 @@ static int __init tea5761_dev_init(void)
+ 		pr_debug("Enabling tea5761 at GPIO %d\n",
+ 			 enable_gpio);
+ 
+-		if (omap_request_gpio(enable_gpio) < 0) {
++		if (gpio_request(enable_gpio, "TEA5761 enable") < 0) {
+ 			printk(KERN_ERR "Can't request GPIO %d\n",
+ 			       enable_gpio);
+ 			return -ENODEV;
 -- 
 1.5.6.5
 
