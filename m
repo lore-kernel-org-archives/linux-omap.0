@@ -1,272 +1,173 @@
-From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-Subject: [PATCH] OMAP: SRF: Fixes to shared resource framework (Ver.2)
-Date: Wed, 29 Oct 2008 13:12:41 +0200
-Message-ID: <1225278761-22298-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: [RFC 01/21] ARM: OMAP: Clean-up OMAP GPIO request/free functions
+Date: Wed, 29 Oct 2008 13:36:09 +0200
+Message-ID: <1225280189-6559-2-git-send-email-jarkko.nikula@nokia.com>
+References: <1225280189-6559-1-git-send-email-jarkko.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:50573 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753463AbYJ2LLf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2008 07:11:35 -0400
-In-Reply-To: <>
-References: <>
+Received: from smtp.nokia.com ([192.100.122.233]:59792 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752562AbYJ2LhG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2008 07:37:06 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9TBac0O016561
+	for <linux-omap@vger.kernel.org>; Wed, 29 Oct 2008 13:37:03 +0200
+In-Reply-To: <1225280189-6559-1-git-send-email-jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: rnayak@ti.com, khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+To: linux-omap@vger.kernel.org
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
 
-This patch corrects some problems found in shared resource
-framwork patches sent by Rajendra Nayak. This patch requires
-also the omapdev patchset sent by Paul walmsley.
+- Rename and declare static OMAP specific GPIO request/free functions
+- Register them into gpiolib as chip-specific hooks
+- Add omap_request_gpio/omap_free_gpio wrappers for existing code not
+  converted yet to use gpiolib
 
-Fixes include:
-
-1. Use omapdev to get correct power domain for a device in
-omap_pm_set_max_dev_wakeup_lat function. A compatibility issue
-remains, as omap_pm_set_max_dev_wakeup_lat takes device pointer,
-but omapdev_find_pdev requires platform_device pointer.
-
-2. Add support for devices in CORE power domain to set latency
-requirements through the omap_pm_set_max_dev_wakeup_lat interface.
-
-3. Move update_resource_level call out of spin_lock as the underlying
-pm_qos_add_requirement calls kzalloc. The point of the spin locks
-according to comments is to protect adding and removing users, which
-remains inside the spin_lock.
-
-4. Added resource_refresh function into generic resource fw to
-support enable_off_mode swithcing with SRF.
-
-Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
 ---
- arch/arm/mach-omap2/pm34xx.c               |    7 ++++-
- arch/arm/mach-omap2/resource34xx.c         |   10 +++++++-
- arch/arm/mach-omap2/resource34xx.h         |    8 ++++++
- arch/arm/plat-omap/include/mach/resource.h |    1 +
- arch/arm/plat-omap/omap-pm-srf.c           |   36 +++++++++++++++++++++-------
- arch/arm/plat-omap/resource.c              |   31 ++++++++++++++++++++++-
- 6 files changed, 80 insertions(+), 13 deletions(-)
+ arch/arm/plat-omap/gpio.c              |   41 +++++++++++---------------------
+ arch/arm/plat-omap/include/mach/gpio.h |   12 +++++++-
+ 2 files changed, 24 insertions(+), 29 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 3506b26..69a009c 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -33,6 +33,7 @@
- #include <mach/prcm.h>
- #include <mach/clockdomain.h>
- #include <mach/powerdomain.h>
-+#include <mach/resource.h>
- #include <mach/common.h>
- #include <mach/control.h>
- #include <mach/serial.h>
-@@ -768,6 +769,10 @@ void omap3_pm_off_mode_enable(int enable)
- 	else
- 		state = PWRDM_POWER_RET;
- 
-+#ifdef CONFIG_OMAP_PM_SRF
-+	if (resource_refresh())
-+		printk(KERN_ERR "Error: could not refresh resources\n");
-+#endif
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
- 		pwrst->next_state = state;
- 
-@@ -912,7 +917,7 @@ int __init omap3_pm_init(void)
- 		local_irq_enable();
- 		local_fiq_enable();
- 	}
--	
-+
- err1:
- 	return ret;
- err2:
-diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
-index 54032fd..9bcfb4f 100644
---- a/arch/arm/mach-omap2/resource34xx.c
-+++ b/arch/arm/mach-omap2/resource34xx.c
-@@ -20,6 +20,7 @@
- #include <mach/powerdomain.h>
- #include <mach/clockdomain.h>
- #include "resource34xx.h"
-+#include "pm.h"
- 
- int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
- 
-@@ -86,10 +87,14 @@ void init_pd_latency(struct shared_resource *resp)
- 	struct pd_latency_db *pd_lat_db;
- 
- 	resp->no_of_users = 0;
--	resp->curr_level = PD_LATENCY_OFF;
-+	if (enable_off_mode)
-+		resp->curr_level = PD_LATENCY_OFF;
-+	else
-+		resp->curr_level = PD_LATENCY_RET;
- 	pd_lat_db = resp->resource_data;
- 	/* Populate the power domain associated with the latency resource */
- 	pd_lat_db->pd = pwrdm_lookup(pd_lat_db->pwrdm_name);
-+	set_pwrdm_state(pd_lat_db->pd, resp->curr_level);
- 	return;
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index e9954a4..1e2204e 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -885,26 +885,21 @@ static int gpio_wake_enable(unsigned int irq, unsigned int enable)
+ 	return retval;
  }
  
-@@ -120,6 +125,9 @@ int set_pd_latency(struct shared_resource *resp, u32 latency)
- 		}
- 	}
- 
-+	if (!enable_off_mode && pd_lat_level == PD_LATENCY_OFF)
-+		pd_lat_level = PD_LATENCY_RET;
-+
- 	resp->curr_level = pd_lat_level;
- 	set_pwrdm_state(pwrdm, pd_lat_level);
- 	return 0;
-diff --git a/arch/arm/mach-omap2/resource34xx.h b/arch/arm/mach-omap2/resource34xx.h
-index b6db1fc..9f905f6 100644
---- a/arch/arm/mach-omap2/resource34xx.h
-+++ b/arch/arm/mach-omap2/resource34xx.h
-@@ -80,6 +80,13 @@ static struct shared_resource_ops pd_lat_res_ops = {
- 	.change_level 	= set_pd_latency,
- };
- 
-+static struct shared_resource core_pwrdm_latency = {
-+	.name		= "core_pwrdm_latency",
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.resource_data	= &core_qos_req_added,
-+	.ops		= &lat_res_ops,
-+};
-+
- static struct pd_latency_db iva2_pwrdm_lat_db = {
- 	.pwrdm_name = "iva2_pwrdm",
- 	.latency[PD_LATENCY_OFF] = 1100,
-@@ -211,6 +218,7 @@ struct shared_resource *resources_omap[] __initdata = {
- 	&mpu_latency,
- 	&core_latency,
- 	/* Power Domain Latency resources */
-+	&core_pwrdm_latency,
- 	&iva2_pwrdm_latency,
- 	&gfx_pwrdm_latency,
- 	&sgx_pwrdm_latency,
-diff --git a/arch/arm/plat-omap/include/mach/resource.h b/arch/arm/plat-omap/include/mach/resource.h
-index 470cb67..bedd1ab 100644
---- a/arch/arm/plat-omap/include/mach/resource.h
-+++ b/arch/arm/plat-omap/include/mach/resource.h
-@@ -70,6 +70,7 @@ struct users_list {
- extern struct shared_resource *resources_omap[];
- /* Shared resource Framework API's */
- void resource_init(struct shared_resource **resources);
-+int resource_refresh(void);
- int resource_register(struct shared_resource *res);
- int resource_unregister(struct shared_resource *res);
- int resource_request(const char *name, struct device *dev,
-diff --git a/arch/arm/plat-omap/omap-pm-srf.c b/arch/arm/plat-omap/omap-pm-srf.c
-index 427fc9d..d01b000 100644
---- a/arch/arm/plat-omap/omap-pm-srf.c
-+++ b/arch/arm/plat-omap/omap-pm-srf.c
-@@ -25,10 +25,7 @@
- #include <mach/omap-pm.h>
- #include <mach/powerdomain.h>
- #include <mach/resource.h>
--/* TODO: Put this back in once tiocp layer is available */
--/*
--#include <asm/arch/tiocp.h>
--*/
-+#include <mach/omapdev.h>
- 
- static struct omap_opp *dsp_opps;
- static struct omap_opp *mpu_opps;
-@@ -102,8 +99,9 @@ void omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigned long r)
- 
- void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t)
+-int omap_request_gpio(int gpio)
++static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
  {
--	/* struct tiocp *tiocp_dev; */
-+	struct omapdev *odev;
- 	struct powerdomain *pwrdm_dev;
-+	struct platform_device *pdev;
- 	char *lat_res_name;
+ 	struct gpio_bank *bank;
+ 	unsigned long flags;
+-	int status;
  
- 	if (!dev || t < -1) {
-@@ -111,10 +109,30 @@ void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t)
- 		return;
- 	};
- 	/* Look for the devices Power Domain */
--	/* TODO: Put this back in once tiocp layer is available
--	tiocp_dev = container_of(dev, struct tiocp, dev);
--	pwrdm_dev = tiocp_dev->pwrdm;
--	*/
-+	/*
-+	 * WARNING! If device is not a platform device, container_of will
-+	 * return a pointer to unknown memory!
-+	 * TODO: Either change omap-pm interface to support only platform
-+	 * devices, or change the underlying omapdev implementation to
-+	 * support normal devices.
-+	 */
-+	pdev = container_of(dev, struct platform_device, dev);
-+
-+	/* Try to catch non platform devices. */
-+	if (pdev->name == NULL) {
-+		printk(KERN_ERR "OMAP-PM: Error: platform device not valid\n");
-+		return;
-+	}
-+
-+	odev = omapdev_find_pdev(pdev);
-+	if (odev) {
-+		pwrdm_dev = omapdev_get_pwrdm(odev);
-+	} else {
-+		printk(KERN_ERR "OMAP-PM: Error: Could not find omapdev "
-+						"for %s\n", pdev->name);
-+		return;
-+	}
-+
- 	lat_res_name = kmalloc(MAX_LATENCY_RES_NAME, GFP_KERNEL);
- 	if (!lat_res_name) {
- 		printk(KERN_ERR "OMAP-PM: FATAL ERROR: kmalloc failed\n");
-diff --git a/arch/arm/plat-omap/resource.c b/arch/arm/plat-omap/resource.c
-index 9f01fb1..5b3d3a4 100644
---- a/arch/arm/plat-omap/resource.c
-+++ b/arch/arm/plat-omap/resource.c
-@@ -223,6 +223,27 @@ void resource_init(struct shared_resource **resources)
+-	if (check_gpio(gpio) < 0)
++	bank = container_of(chip, struct gpio_bank, chip);
++	if (check_gpio(bank->chip.base + offset) < 0)
+ 		return -EINVAL;
+ 
+-	status = gpio_request(gpio, NULL);
+-	if (status < 0)
+-		return status;
+-
+-	bank = get_gpio_bank(gpio);
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 
+ 	/* Set trigger to none. You need to enable the desired trigger with
+ 	 * request_irq() or set_irq_type().
+ 	 */
+-	_set_gpio_triggering(bank, get_gpio_index(gpio), IRQ_TYPE_NONE);
++	_set_gpio_triggering(bank, offset, IRQ_TYPE_NONE);
+ 
+ #ifdef CONFIG_ARCH_OMAP15XX
+ 	if (bank->method == METHOD_GPIO_1510) {
+@@ -912,7 +907,7 @@ int omap_request_gpio(int gpio)
+ 
+ 		/* Claim the pin for MPU */
+ 		reg = bank->base + OMAP1510_GPIO_PIN_CONTROL;
+-		__raw_writel(__raw_readl(reg) | (1 << get_gpio_index(gpio)), reg);
++		__raw_writel(__raw_readl(reg) | (1 << offset), reg);
+ 	}
+ #endif
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+@@ -920,39 +915,32 @@ int omap_request_gpio(int gpio)
+ 	return 0;
  }
  
- /**
-+ * resource_refresh - Refresh the states of all current resources
-+ *
-+ * If a condition in power domains has changed that requires refreshing
-+ * power domain states, this function can be used to restore correct
-+ * states according to shared resources.
-+ * Returns 0 on success, non-zero, if some resource cannot be refreshed.
-+ */
-+int resource_refresh(void)
-+{
-+	struct shared_resource *resp = NULL;
-+	int ret = 0;
+-void omap_free_gpio(int gpio)
++static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
+ {
+ 	struct gpio_bank *bank;
+ 	unsigned long flags;
+ 
+-	if (check_gpio(gpio) < 0)
++	bank = container_of(chip, struct gpio_bank, chip);
++	if (check_gpio(bank->chip.base + offset) < 0)
+ 		return;
+-	bank = get_gpio_bank(gpio);
 +
-+	list_for_each_entry(resp, &res_list, node) {
-+		ret = update_resource_level(resp);
-+		if (ret)
-+			break;
-+	}
-+	return ret;
+ 	spin_lock_irqsave(&bank->lock, flags);
+-	if (unlikely(!gpiochip_is_requested(&bank->chip,
+-				get_gpio_index(gpio)))) {
+-		spin_unlock_irqrestore(&bank->lock, flags);
+-		printk(KERN_ERR "omap-gpio: GPIO %d wasn't reserved!\n", gpio);
+-		dump_stack();
+-		return;
+-	}
+ #ifdef CONFIG_ARCH_OMAP16XX
+ 	if (bank->method == METHOD_GPIO_1610) {
+ 		/* Disable wake-up during idle for dynamic tick */
+ 		void __iomem *reg = bank->base + OMAP1610_GPIO_CLEAR_WAKEUPENA;
+-		__raw_writel(1 << get_gpio_index(gpio), reg);
++		__raw_writel(1 << offset, reg);
+ 	}
+ #endif
+ #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
+ 	if (bank->method == METHOD_GPIO_24XX) {
+ 		/* Disable wake-up during idle for dynamic tick */
+ 		void __iomem *reg = bank->base + OMAP24XX_GPIO_CLEARWKUENA;
+-		__raw_writel(1 << get_gpio_index(gpio), reg);
++		__raw_writel(1 << offset, reg);
+ 	}
+ #endif
+-	_reset_gpio(bank, gpio);
++	_reset_gpio(bank, bank->chip.base + offset);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+-	gpio_free(gpio);
+ }
+ 
+ /*
+@@ -1457,6 +1445,8 @@ static int __init _omap_gpio_init(void)
+ 		/* REVISIT eventually switch from OMAP-specific gpio structs
+ 		 * over to the generic ones
+ 		 */
++		bank->chip.request = omap_gpio_request;
++		bank->chip.free = omap_gpio_free;
+ 		bank->chip.direction_input = gpio_input;
+ 		bank->chip.get = gpio_get;
+ 		bank->chip.direction_output = gpio_output;
+@@ -1725,9 +1715,6 @@ static int __init omap_gpio_sysinit(void)
+ 	return ret;
+ }
+ 
+-EXPORT_SYMBOL(omap_request_gpio);
+-EXPORT_SYMBOL(omap_free_gpio);
+-
+ arch_initcall(omap_gpio_sysinit);
+ 
+ 
+diff --git a/arch/arm/plat-omap/include/mach/gpio.h b/arch/arm/plat-omap/include/mach/gpio.h
+index 552ad0c..04e68e8 100644
+--- a/arch/arm/plat-omap/include/mach/gpio.h
++++ b/arch/arm/plat-omap/include/mach/gpio.h
+@@ -71,8 +71,6 @@
+ 				 IH_GPIO_BASE + (nr))
+ 
+ extern int omap_gpio_init(void);	/* Call from board init only */
+-extern int omap_request_gpio(int gpio);
+-extern void omap_free_gpio(int gpio);
+ extern void omap2_gpio_prepare_for_retention(void);
+ extern void omap2_gpio_resume_after_retention(void);
+ extern void omap_set_gpio_debounce(int gpio, int enable);
+@@ -89,6 +87,16 @@ extern void omap_set_gpio_debounce_time(int gpio, int enable);
+ #include <linux/errno.h>
+ #include <asm-generic/gpio.h>
+ 
++static inline int omap_request_gpio(int gpio)
++{
++	return gpio_request(gpio, "FIXME");
 +}
 +
-+/**
-  * resource_register - registers and initializes a resource
-  * @res: struct shared_resource * to register
-  *
-@@ -346,10 +367,16 @@ int resource_request(const char *name, struct device *dev,
- 	}
- 	user->level = level;
- 
--	/* Recompute and set the current level for the resource */
--	ret = update_resource_level(resp);
- res_unlock:
- 	spin_unlock_irqrestore(&res_lock, flags);
-+	/*
-+	 * Recompute and set the current level for the resource.
-+	 * NOTE: update_resource level moved out of spin_lock, as it may call
-+	 * pm_qos_add_requirement, which does a kzmalloc. This won't be allowed
-+	 * in iterrupt context. The spin_lock still protects add/remove users.
-+	 */
-+	if (!ret)
-+		ret = update_resource_level(resp);
- 	return ret;
- }
- EXPORT_SYMBOL(resource_request);
++static inline void omap_free_gpio(int gpio)
++{
++	gpio_free(gpio);
++}
++
+ static inline int gpio_get_value(unsigned gpio)
+ {
+ 	return __gpio_get_value(gpio);
 -- 
-1.5.4.3
+1.5.6.5
 
