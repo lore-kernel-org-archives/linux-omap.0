@@ -1,16 +1,16 @@
 From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: [RFC 03/21] SPI: TSC2301: Complete gpiolib conversion
-Date: Wed, 29 Oct 2008 13:36:11 +0200
-Message-ID: <1225280189-6559-4-git-send-email-jarkko.nikula@nokia.com>
+Subject: [RFC 10/21] LEDS: Complete leds-omap gpiolib conversion and do some fixes
+Date: Wed, 29 Oct 2008 13:36:18 +0200
+Message-ID: <1225280189-6559-11-git-send-email-jarkko.nikula@nokia.com>
 References: <1225280189-6559-1-git-send-email-jarkko.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:34546 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753277AbYJ2LhH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2008 07:37:07 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9TBacUZ005853
-	for <linux-omap@vger.kernel.org>; Wed, 29 Oct 2008 13:37:05 +0200
+Received: from smtp.nokia.com ([192.100.122.233]:59841 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753318AbYJ2LhS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2008 07:37:18 -0400
+Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9TBb8bm017062
+	for <linux-omap@vger.kernel.org>; Wed, 29 Oct 2008 13:37:15 +0200
 In-Reply-To: <1225280189-6559-1-git-send-email-jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,57 +19,75 @@ Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
 
 Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
 ---
- drivers/spi/tsc2301-core.c |   15 ++++++---------
- 1 files changed, 6 insertions(+), 9 deletions(-)
+ drivers/leds/leds-omap.c |   24 +++++++++++-------------
+ 1 files changed, 11 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/spi/tsc2301-core.c b/drivers/spi/tsc2301-core.c
-index 715e400..4b565b7 100644
---- a/drivers/spi/tsc2301-core.c
-+++ b/drivers/spi/tsc2301-core.c
-@@ -22,13 +22,10 @@
- #include <linux/module.h>
- #include <linux/device.h>
- #include <linux/delay.h>
+diff --git a/drivers/leds/leds-omap.c b/drivers/leds/leds-omap.c
+index 46b4232..cb89e17 100644
+--- a/drivers/leds/leds-omap.c
++++ b/drivers/leds/leds-omap.c
+@@ -14,8 +14,8 @@
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
+ #include <linux/leds.h>
 +#include <linux/gpio.h>
- #include <linux/spi/spi.h>
- #include <linux/spi/tsc2301.h>
  
--#ifdef CONFIG_ARCH_OMAP
 -#include <mach/gpio.h>
--#endif
+ #include <mach/hardware.h>
+ #include <mach/led.h>
+ 
+@@ -34,15 +34,6 @@ static void omap_set_led_gpio(struct led_classdev *led_cdev,
+ 		gpio_set_value(led_dev->gpio, 0);
+ }
+ 
+-static void omap_configure_led_gpio(int gpio)
+-{
+-	if (omap_request_gpio(gpio) < 0) {
+-		printk(KERN_ERR "Failed to request GPIO%d for LEDs\n", gpio);
+-		return;
+-	}
+-	gpio_direction_output(gpio, 0);
+-}
 -
- u16 tsc2301_read_reg(struct tsc2301 *tsc, int reg)
+ static int omap_led_probe(struct platform_device *dev)
  {
- 	struct spi_transfer t[2];
-@@ -157,14 +154,12 @@ static int __devinit tsc2301_probe(struct spi_device *spi)
+ 	struct omap_led_platform_data *pdata = dev->dev.platform_data;
+@@ -50,7 +41,10 @@ static int omap_led_probe(struct platform_device *dev)
+ 	int i, ret = 0;
  
- 	if (pdata->reset_gpio >= 0) {
- 		tsc->reset_gpio = pdata->reset_gpio;
--#ifdef CONFIG_ARCH_OMAP
--		r = omap_request_gpio(tsc->reset_gpio);
-+		r = gpio_request(tsc->reset_gpio, "TSC2301 reset");
- 		if (r < 0)
- 			goto err1;
- 		gpio_direction_output(tsc->reset_gpio, 1);
- 		mdelay(1);
- 		gpio_set_value(tsc->reset_gpio, 0);
--#endif
- 	} else
- 		tsc->reset_gpio = -1;
+ 	for (i = 0; ret >= 0 && i < pdata->nr_leds; i++) {
+-		omap_configure_led_gpio(leds[i].gpio);
++		ret = gpio_request(leds[i].gpio, leds[i].cdev.name);
++		if (ret < 0)
++			break;
++		gpio_direction_output(leds[i].gpio, 0);
+ 		if (!leds[i].cdev.brightness_set)
+ 			leds[i].cdev.brightness_set = omap_set_led_gpio;
  
-@@ -229,8 +224,10 @@ static int __devexit tsc2301_remove(struct spi_device *spi)
- 	struct tsc2301 *tsc = dev_get_drvdata(&spi->dev);
+@@ -58,8 +52,10 @@ static int omap_led_probe(struct platform_device *dev)
+ 	}
  
- 	tsc2301_mixer_exit(tsc);
--        tsc2301_ts_exit(tsc);
--        tsc2301_kp_exit(tsc);
-+	tsc2301_ts_exit(tsc);
-+	tsc2301_kp_exit(tsc);
-+	if (tsc->reset_gpio >= 0)
-+		gpio_free(tsc->reset_gpio);
- 	kfree(tsc);
+ 	if (ret < 0 && i > 1) {
+-		for (i = i - 2; i >= 0; i--)
++		for (i = i - 2; i >= 0; i--) {
+ 			led_classdev_unregister(&leds[i].cdev);
++			gpio_free(leds[i].gpio);
++		}
+ 	}
+ 
+ 	return ret;
+@@ -71,8 +67,10 @@ static int omap_led_remove(struct platform_device *dev)
+ 	struct omap_led_config *leds = pdata->leds;
+ 	int i;
+ 
+-	for (i = 0; i < pdata->nr_leds; i++)
++	for (i = 0; i < pdata->nr_leds; i++) {
+ 		led_classdev_unregister(&leds[i].cdev);
++		gpio_free(leds[i].gpio);
++	}
  
  	return 0;
+ }
 -- 
 1.5.6.5
 
