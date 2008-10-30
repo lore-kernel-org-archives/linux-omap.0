@@ -1,31 +1,42 @@
-From: twebb <taliaferro62@gmail.com>
-Subject: suggestions for latest code that offers best support of OMAP35x EVM
-Date: Thu, 30 Oct 2008 12:17:55 -0400
-Message-ID: <dbdb2ea60810300917r4dbb22b8te5af06ff99f9eaed@mail.gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [RFC 01/21] ARM: OMAP: Clean-up OMAP GPIO request/free functions
+Date: Thu, 30 Oct 2008 09:55:02 -0700
+Message-ID: <200810300955.03111.david-b@pacbell.net>
+References: <1225280189-6559-1-git-send-email-jarkko.nikula@nokia.com> <200810291049.50101.david-b@pacbell.net> <20081030145835.5d1e6f08.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from el-out-1112.google.com ([209.85.162.182]:35833 "EHLO
-	el-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757411AbYJ3QR5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Oct 2008 12:17:57 -0400
-Received: by el-out-1112.google.com with SMTP id z25so330037ele.1
-        for <linux-omap@vger.kernel.org>; Thu, 30 Oct 2008 09:17:56 -0700 (PDT)
+Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:39095 "HELO
+	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753649AbYJ3QzF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 Oct 2008 12:55:05 -0400
+In-Reply-To: <20081030145835.5d1e6f08.jarkko.nikula@nokia.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Not being very familiar with the kernel development process and git,
-I'm hoping someone can suggest which code from the l-o git offers the
-best support of the OMAP35x EVM.  I'm guessing it would be the code
-tagged "v2.6.27-omap1" but I'm not sure.  What's the general
-difference between tags "v2.6.27" and "v2.6.27-omap1"?
+On Thursday 30 October 2008, Jarkko Nikula wrote:
+>=20
+> > At the end of this patch series, delete these. =A0:)
+> >=20
+> Probably these should exist over one release cycle so that out-kernel
+> tree projects have time to convert their drivers? No big deal to me,
+> but wanted to be kind :-)
 
-On a more general note, is there documentation somewhere that
-describes the kernel development process, and how tags are used (or
-not) to identify particular stability points in the development
-lifecycle of a particular tree (like linux-omap)?
+The other GPIO changes don't keep such wrappers ... so it
+wouldn't help that much.
 
-Thanks
+There's a general policy for kernel API changes, and it's
+to update mainline and let other code fend for itself.
+It's a mild incentive for drivers to get into mainline.
+
+- Dave
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
