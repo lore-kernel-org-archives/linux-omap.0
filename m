@@ -1,50 +1,31 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: [PATCH] alsa: add beagleboard SoC configuration.
-Date: Thu, 30 Oct 2008 06:14:51 -0700
-Message-ID: <5e088bd90810300614q6376a368oc159b45f70e1688d@mail.gmail.com>
-References: <1224692929-15108-1-git-send-email-felipe.contreras@gmail.com>
-	<20081022165300.GX7341@atomide.com>
-	<200810221236.38336.david-b@pacbell.net>
-	<5e088bd90810221330m7f40293du96897afb41f98169@mail.gmail.com>
-	<20081022204445.GC7537@sirena.org.uk>
-	<20081030114520.GC5747@sirena.org.uk>
+From: twebb <taliaferro62@gmail.com>
+Subject: suggestions for latest code that offers best support of OMAP35x EVM
+Date: Thu, 30 Oct 2008 12:17:55 -0400
+Message-ID: <dbdb2ea60810300917r4dbb22b8te5af06ff99f9eaed@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20081030114520.GC5747@sirena.org.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from el-out-1112.google.com ([209.85.162.182]:35833 "EHLO
+	el-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757411AbYJ3QR5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Oct 2008 12:17:57 -0400
+Received: by el-out-1112.google.com with SMTP id z25so330037ele.1
+        for <linux-omap@vger.kernel.org>; Thu, 30 Oct 2008 09:17:56 -0700 (PDT)
 Content-Disposition: inline
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@sirena.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-On Thu, Oct 30, 2008 at 4:45 AM, Mark Brown <broonie@sirena.org.uk> wrote:
-> On Wed, Oct 22, 2008 at 09:44:48PM +0100, Mark Brown wrote:
->> On Wed, Oct 22, 2008 at 01:30:26PM -0700, Steve Sakoman wrote:
->
->> > I am happy to resubmit the patches, if that is what folks want.  I'm
->> > copying alsa-devel so they can weigh in on the decision.
->
->> Once mainline is merged up to the ASoC topic branch it should be fine to
->> go via ALSA.  I've got some other stuff waiting for that to happen
->> myself so if you want to send a patch queue I can queue that in there.
->> I was going to wait for rc1 before asking Takashi to merge up to the
->> ASoC branches.
->
-> Ping?  I'd like to start pushing more ASoC v2 stuff soon - that means
-> more API churn so it'd be easier to get as much stuff merged as
-> possible.
+Not being very familiar with the kernel development process and git,
+I'm hoping someone can suggest which code from the l-o git offers the
+best support of the OMAP35x EVM.  I'm guessing it would be the code
+tagged "v2.6.27-omap1" but I'm not sure.  What's the general
+difference between tags "v2.6.27" and "v2.6.27-omap1"?
 
-OK, I will resubmit.  I will be out of the office for much of the day,
-so it will likely not be till this evening.
+On a more general note, is there documentation somewhere that
+describes the kernel development process, and how tags are used (or
+not) to identify particular stability points in the development
+lifecycle of a particular tree (like linux-omap)?
 
-Steve
+Thanks
