@@ -1,42 +1,44 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [RFC 01/21] ARM: OMAP: Clean-up OMAP GPIO request/free functions
-Date: Thu, 30 Oct 2008 09:55:02 -0700
-Message-ID: <200810300955.03111.david-b@pacbell.net>
-References: <1225280189-6559-1-git-send-email-jarkko.nikula@nokia.com> <200810291049.50101.david-b@pacbell.net> <20081030145835.5d1e6f08.jarkko.nikula@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC 0/21 Continue phasing out legacy GPIO calls
+Date: Thu, 30 Oct 2008 10:26:23 -0700
+Message-ID: <20081030172622.GT13227@atomide.com>
+References: <1225280189-6559-1-git-send-email-jarkko.nikula@nokia.com> <20081029160056.GD20456@atomide.com> <200810291649.09137.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:39095 "HELO
-	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753649AbYJ3QzF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 Oct 2008 12:55:05 -0400
-In-Reply-To: <20081030145835.5d1e6f08.jarkko.nikula@nokia.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54268 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755717AbYJ3R0b (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Oct 2008 13:26:31 -0400
 Content-Disposition: inline
+In-Reply-To: <200810291649.09137.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, linux-omap@vger.kernel.org
 
-On Thursday 30 October 2008, Jarkko Nikula wrote:
->=20
-> > At the end of this patch series, delete these. =A0:)
-> >=20
-> Probably these should exist over one release cycle so that out-kernel
-> tree projects have time to convert their drivers? No big deal to me,
-> but wanted to be kind :-)
+* David Brownell <david-b@pacbell.net> [081029 16:49]:
+> On Wednesday 29 October 2008, Tony Lindgren wrote:
+> > Let's do the clean-up patches in two phases, one series that
+> > applies against the mainline kernel, then additional patches for
+> > linux-omap. Otherwise we'll never get out of this merge hell.
+> 
+> I'll refresh my patches that way then.  Most of the stuff
+> remaining sits inside arch/arm anyway.
 
-The other GPIO changes don't keep such wrappers ... so it
-wouldn't help that much.
+Thanks, that's a bit extra work, but unless we do that in a distributed
+way, I'll end up having to spend tons of time reworking the patches.
 
-There's a general policy for kernel API changes, and it's
-to update mainline and let other code fend for itself.
-It's a mild incentive for drivers to get into mainline.
+> > BTW, we should try to do the same for anything that we can already
+> > patch in the mainline kernel.
+> 
+> Right.  We'll count on you to help us do that right.  Part
+> of the problem will be coping with the ARM tree merge rules,
+> especially for changes that touch mainline drivers too...
 
-- Dave
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yeah, I'll queue up what we can for Russell in smaller patch
+sets. All the new code will then get queued up in Russell's omap-all
+branch for mainline, and it will sit there potentially quite
+a long time, but gets to mainline every merge window.
+
+Tony
