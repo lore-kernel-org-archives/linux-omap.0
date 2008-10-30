@@ -1,44 +1,72 @@
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 3/3] musb: fixes vbus off issue after disconnect
-Date: Thu, 30 Oct 2008 14:43:08 +0530
-Message-ID: <1225357988-10985-1-git-send-email-ajay.gupta@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org, me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+From: "vimal singh" <vimalsingh@ti.com>
+Subject: [PATCH - Omapzoom][NAND] Fix selection of sw/hw ecc
+Date: Thu, 30 Oct 2008 17:08:59 +0530 (IST)
+Message-ID: <45877.192.168.10.89.1225366739.squirrel@dbdmail.itg.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:45489 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752972AbYJ3LjG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Oct 2008 07:39:06 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9UBcxnZ015918
+	for <linux-omap@vger.kernel.org>; Thu, 30 Oct 2008 06:39:05 -0500
+Received: from webmail.ti.com (localhost [127.0.0.1])
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id m9UBcveX011626
+	for <linux-omap@vger.kernel.org>; Thu, 30 Oct 2008 06:38:58 -0500 (CDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Vbus is switched off (after a_wait_bcon) whenever a device
-is disconnected from musb host even when musb is configured
-only as host.Earlier we use to switch on the power using
-[echo "F" >/proc/driver/musb_hdrc] but now this proc entry is
-deleted thus musb doesn't work after device disconnect.
+Removing unnecessary '#ifdef' in 'nand/omap2.c' and changing hwecc config
+option from 'int' to 'bool' in 'nand/Kconfig'.
 
-This patch puts is_otg_enabled() check before scheduling
-a switch-off timer in disconnect path.
+Because of 'int' option hw ecc was always used even if sw ecc had been selected.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+
 ---
- drivers/usb/musb/musb_core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/mtd/nand/Kconfig |    6 ++----
+ drivers/mtd/nand/omap2.c |    4 ----
+ 2 files changed, 2 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index dbf8861..6856da3 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -767,7 +767,7 @@ static irqreturn_t musb_stage2_irq(struct musb *musb, u8 int_usb,
- 		case OTG_STATE_A_HOST:
- 		case OTG_STATE_A_SUSPEND:
- 			musb_root_disconnect(musb);
--			if (musb->a_wait_bcon != 0)
-+			if (musb->a_wait_bcon != 0 && is_otg_enabled(musb))
- 				musb_platform_try_idle(musb, jiffies
- 					+ msecs_to_jiffies(musb->a_wait_bcon));
- 			break;
--- 
-1.5.6
+Index: omapkernel/drivers/mtd/nand/Kconfig
+===================================================================
+--- omapkernel.orig/drivers/mtd/nand/Kconfig	2008-10-24 11:24:52.000000000 +0530
++++ omapkernel/drivers/mtd/nand/Kconfig	2008-10-29 15:57:03.000000000 +0530
+@@ -75,14 +75,12 @@
+           Support for NAND flash on Texas Instruments OMAP2 and OMAP3 platforms.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ config MTD_NAND_OMAP_HWECC
+-         int "The ECC computation logic (0 = software ecc, 1 = hardware ecc)"
++         bool "The ECC computation logic (y = hardware ecc, n = software ecc)"
+          depends on MTD_NAND && MTD_NAND_OMAP2
+-         default "0"
++         default y
+          help
+            The ECC compuatation for the data to be written/read can be either by
+            software or omap has Hw ecc engine which calculates it.
+-           MTD_NAND_OMAP_HWECC = 1 which enables the hw ecc
+-           MTD_NAND_OMAP_HWECC = 0, enables software ecc
+
+ config MTD_NAND_OMAP
+ 	tristate "NAND Flash device on OMAP H3/H2/P2 boards"
+Index: omapkernel/drivers/mtd/nand/omap2.c
+===================================================================
+--- omapkernel.orig/drivers/mtd/nand/omap2.c	2008-10-24 11:24:52.000000000 +0530
++++ omapkernel/drivers/mtd/nand/omap2.c	2008-10-29 16:19:48.000000000 +0530
+@@ -111,10 +111,6 @@
+ static const char *part_probes[] = { "cmdlinepart", NULL };
+ #endif
+
+-#ifndef MTD_NAND_OMAP_HWECC
+-#define MTD_NAND_OMAP_HWECC   0
+-#endif
+-
+ struct omap_nand_info {
+ 	struct nand_hw_control		controller;
+ 	struct omap_nand_platform_data	*pdata;
+
+
