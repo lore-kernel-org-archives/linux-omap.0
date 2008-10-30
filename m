@@ -1,51 +1,38 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: suggestions for latest code that offers best support of
-	OMAP35x EVM
-Date: Thu, 30 Oct 2008 20:12:36 +0200
-Message-ID: <20081030181235.GI32518@frodo>
-References: <dbdb2ea60810300917r4dbb22b8te5af06ff99f9eaed@mail.gmail.com> <20081030174114.GW13227@atomide.com>
-Reply-To: me@felipebalbi.com
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [RFC 0/21 Continue phasing out legacy GPIO calls
+Date: Thu, 30 Oct 2008 11:16:17 -0700
+Message-ID: <200810301116.18214.david-b@pacbell.net>
+References: <1225280189-6559-1-git-send-email-jarkko.nikula@nokia.com> <200810300043.07813.david-b@pacbell.net> <20081030173215.GU13227@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:50227 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752857AbYJ3SMn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Oct 2008 14:12:43 -0400
+Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:26092 "HELO
+	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1758699AbYJ3SQU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 Oct 2008 14:16:20 -0400
+In-Reply-To: <20081030173215.GU13227@atomide.com>
 Content-Disposition: inline
-In-Reply-To: <20081030174114.GW13227@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: twebb <taliaferro62@gmail.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, linux-omap@vger.kernel.org
 
-On Thu, Oct 30, 2008 at 10:41:15AM -0700, Tony Lindgren wrote:
-> * twebb <taliaferro62@gmail.com> [081030 09:22]:
-> > Not being very familiar with the kernel development process and git,
-> > I'm hoping someone can suggest which code from the l-o git offers the
-> > best support of the OMAP35x EVM.  I'm guessing it would be the code
-> > tagged "v2.6.27-omap1" but I'm not sure.  What's the general
-> > difference between tags "v2.6.27" and "v2.6.27-omap1"?
+On Thursday 30 October 2008, Tony Lindgren wrote:
 > 
-> The difference is v2.6.27 is a tag by Linus, v2.6.27-omap1 is the
-> first patchset of omap patches on top of Linus' v2.6.27.
+> Great, to me those look safe to merge. Can you Cc Russell on the
+> arch/arm/*omap* patches if you merge them via gpiolib patches?
 > 
-> If we need to add more omap specific fixes on top of that, we'll
-> tag v2.6.27-omap2 and so on.
-> 
-> > On a more general note, is there documentation somewhere that
-> > describes the kernel development process, and how tags are used (or
-> > not) to identify particular stability points in the development
-> > lifecycle of a particular tree (like linux-omap)?
-> 
-> There are various git howto sites, also read Documentation/Submit*.
-> 
-> I'm not aware of any docs that would describe the -rc tags and merge
-> windows, but I'm sure something like that exists somewhere :)
-> 
-> Anybody got a link?
+> Basically anything that will cause merge conflicts for omap-all
+> should go via Russell so we don't frustrate him further, but
+> I don't think these will cause an issue for him.
 
-Documentation/development-process/*
+Unless you think they should go into 2.6.28, I'll just let
+you merge them via Russell for 2.6.29 ... they're almost all
+arch/arm/* changes, aren't bugfixes, and don't affect non-OMAP
+code, so they don't fit into one of the usual categories of
+stuff Russell avoids (cross-platform or drivers/* code).
 
--- 
-balbi
+- Dave
