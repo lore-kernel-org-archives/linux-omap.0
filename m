@@ -1,72 +1,42 @@
-From: "vimal singh" <vimalsingh@ti.com>
-Subject: [PATCH - Omapzoom][NAND] Fix selection of sw/hw ecc
-Date: Thu, 30 Oct 2008 17:08:59 +0530 (IST)
-Message-ID: <45877.192.168.10.89.1225366739.squirrel@dbdmail.itg.ti.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [PATCH] alsa: add beagleboard SoC configuration.
+Date: Thu, 30 Oct 2008 11:45:21 +0000
+Message-ID: <20081030114520.GC5747@sirena.org.uk>
+References: <1224692929-15108-1-git-send-email-felipe.contreras@gmail.com>
+	<20081022165300.GX7341@atomide.com>
+	<200810221236.38336.david-b@pacbell.net>
+	<5e088bd90810221330m7f40293du96897afb41f98169@mail.gmail.com>
+	<20081022204445.GC7537@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45489 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752972AbYJ3LjG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Oct 2008 07:39:06 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9UBcxnZ015918
-	for <linux-omap@vger.kernel.org>; Thu, 30 Oct 2008 06:39:05 -0500
-Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id m9UBcveX011626
-	for <linux-omap@vger.kernel.org>; Thu, 30 Oct 2008 06:38:58 -0500 (CDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <20081022204445.GC7537@sirena.org.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Steve Sakoman <sakoman@gmail.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, Felipe Contreras <f>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Removing unnecessary '#ifdef' in 'nand/omap2.c' and changing hwecc config
-option from 'int' to 'bool' in 'nand/Kconfig'.
+On Wed, Oct 22, 2008 at 09:44:48PM +0100, Mark Brown wrote:
+> On Wed, Oct 22, 2008 at 01:30:26PM -0700, Steve Sakoman wrote:
 
-Because of 'int' option hw ecc was always used even if sw ecc had been selected.
+> > I am happy to resubmit the patches, if that is what folks want.  I'm
+> > copying alsa-devel so they can weigh in on the decision.
 
-Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+> Once mainline is merged up to the ASoC topic branch it should be fine to
+> go via ALSA.  I've got some other stuff waiting for that to happen
+> myself so if you want to send a patch queue I can queue that in there.
+> I was going to wait for rc1 before asking Takashi to merge up to the
+> ASoC branches.
 
----
- drivers/mtd/nand/Kconfig |    6 ++----
- drivers/mtd/nand/omap2.c |    4 ----
- 2 files changed, 2 insertions(+), 8 deletions(-)
-
-Index: omapkernel/drivers/mtd/nand/Kconfig
-===================================================================
---- omapkernel.orig/drivers/mtd/nand/Kconfig	2008-10-24 11:24:52.000000000 +0530
-+++ omapkernel/drivers/mtd/nand/Kconfig	2008-10-29 15:57:03.000000000 +0530
-@@ -75,14 +75,12 @@
-           Support for NAND flash on Texas Instruments OMAP2 and OMAP3 platforms.
-
- config MTD_NAND_OMAP_HWECC
--         int "The ECC computation logic (0 = software ecc, 1 = hardware ecc)"
-+         bool "The ECC computation logic (y = hardware ecc, n = software ecc)"
-          depends on MTD_NAND && MTD_NAND_OMAP2
--         default "0"
-+         default y
-          help
-            The ECC compuatation for the data to be written/read can be either by
-            software or omap has Hw ecc engine which calculates it.
--           MTD_NAND_OMAP_HWECC = 1 which enables the hw ecc
--           MTD_NAND_OMAP_HWECC = 0, enables software ecc
-
- config MTD_NAND_OMAP
- 	tristate "NAND Flash device on OMAP H3/H2/P2 boards"
-Index: omapkernel/drivers/mtd/nand/omap2.c
-===================================================================
---- omapkernel.orig/drivers/mtd/nand/omap2.c	2008-10-24 11:24:52.000000000 +0530
-+++ omapkernel/drivers/mtd/nand/omap2.c	2008-10-29 16:19:48.000000000 +0530
-@@ -111,10 +111,6 @@
- static const char *part_probes[] = { "cmdlinepart", NULL };
- #endif
-
--#ifndef MTD_NAND_OMAP_HWECC
--#define MTD_NAND_OMAP_HWECC   0
--#endif
--
- struct omap_nand_info {
- 	struct nand_hw_control		controller;
- 	struct omap_nand_platform_data	*pdata;
-
-
+Ping?  I'd like to start pushing more ASoC v2 stuff soon - that means
+more API churn so it'd be easier to get as much stuff merged as
+possible.
