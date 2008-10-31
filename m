@@ -1,61 +1,38 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: [OMAP tree][RFC 2.6.28-rc2-omap 8/9] INPUT: TS_Hx: Switch to gpio_request/free calls
-Date: Fri, 31 Oct 2008 14:18:56 +0200
-Message-ID: <1225455537-14017-9-git-send-email-jarkko.nikula@nokia.com>
-References: <1225455537-14017-1-git-send-email-jarkko.nikula@nokia.com>
+From: Lauri Leukkunen <lauri.leukkunen@nokia.com>
+Subject: Re: [PATCH] OMAP: Use omap_rev() instead of system_rev
+Date: Fri, 31 Oct 2008 15:30:49 +0200
+Message-ID: <20081031133049.GA23185@pure.research.nokia.com>
+References: <1225409305-3465-1-git-send-email-lauri.leukkunen@nokia.com> <1225409305-3465-2-git-send-email-lauri.leukkunen@nokia.com> <20081031003438.GA13227@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:48009 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751294AbYJaMUQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Oct 2008 08:20:16 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9VCK31T004654
-	for <linux-omap@vger.kernel.org>; Fri, 31 Oct 2008 14:20:13 +0200
-In-Reply-To: <1225455537-14017-1-git-send-email-jarkko.nikula@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:40191 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750842AbYJaNar (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Oct 2008 09:30:47 -0400
+Content-Disposition: inline
+In-Reply-To: <20081031003438.GA13227@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
----
- drivers/input/touchscreen/omap/ts_hx.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+On 30/10/08 17:34 -0700, ext Tony Lindgren wrote:
+> * Lauri Leukkunen <lauri.leukkunen@nokia.com> [081030 16:29]:
+> > system_rev is meant for board revision, this patch changes
+> > all relevant instances to use the new omap_rev() function
+> > liberating system_rev to be used with ATAG_REVISION as it
+> > has been designed.
+> 
+> Looks good to me! Let's make sure things still work and
+> I'll push it and add it to my other id.c fixes to Russsell.
 
-diff --git a/drivers/input/touchscreen/omap/ts_hx.c b/drivers/input/touchscreen/omap/ts_hx.c
-index 0ef7f6c..9d3ec97 100644
---- a/drivers/input/touchscreen/omap/ts_hx.c
-+++ b/drivers/input/touchscreen/omap/ts_hx.c
-@@ -28,8 +28,8 @@
- 
- #include <linux/input.h>
- #include <linux/device.h>
-+#include <linux/gpio.h>
- #include <asm/mach-types.h>
--#include <asm/arch/gpio.h>
- #include <asm/arch/mux.h>
- #include <asm/arch/hardware.h>
- #include <asm/hardware/tsc2101.h>
-@@ -92,7 +92,7 @@ static int __init hx_ts_probe(struct omap_ts_t *ts)
- 		return -ENODEV;
- 
- 	ts->irq = gpio_to_irq(gpio);
--	if (omap_request_gpio(gpio) != 0) {
-+	if (gpio_request(gpio, "TS irq") != 0) {
- 		printk(KERN_ERR "hX_ts_init.c: Could not reserve GPIO!\n");
- 		return -EINVAL;
- 	};
-@@ -177,8 +177,8 @@ static void hx_ts_disable(void)
- static void __exit hx_ts_remove(void)
- {
- 	if (machine_is_omap_h2())
--		omap_free_gpio(H2_GPIO_NUM);
-+		gpio_free(H2_GPIO_NUM);
- 	else if (machine_is_omap_h3())
--		omap_free_gpio(H3_GPIO_NUM);
-+		gpio_free(H3_GPIO_NUM);
- }
- #endif
--- 
-1.5.6.5
+Seems to work (as well as the current l-o works) on omap3, compile tested for
+omap1, omap2 fails to compile for me totally (also without my patch)with:
+
+"__LINUX_ARM_ARCH__" is not defined
+
+This is with a cs2008q3 compiler.
+
+/lauri
 
