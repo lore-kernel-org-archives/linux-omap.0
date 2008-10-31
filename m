@@ -1,42 +1,56 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 4/4] ARM: OMAP: Fix define for twl4030 irqs
-Date: Thu, 30 Oct 2008 19:11:18 -0700
-Message-ID: <1225419078-32213-5-git-send-email-tony@atomide.com>
-References: <1225419078-32213-1-git-send-email-tony@atomide.com>
- <1225419078-32213-2-git-send-email-tony@atomide.com>
- <1225419078-32213-3-git-send-email-tony@atomide.com>
- <1225419078-32213-4-git-send-email-tony@atomide.com>
+Subject: [PATCH 1/10] i2c-omap: Do not use interruptible wait call in omap_i2c_xfer_msg
+Date: Thu, 30 Oct 2008 19:29:40 -0700
+Message-ID: <1225420189-630-2-git-send-email-tony@atomide.com>
+References: <1225420189-630-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54089 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64626 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754542AbYJaCL1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Oct 2008 22:11:27 -0400
-In-Reply-To: <1225419078-32213-4-git-send-email-tony@atomide.com>
+	with ESMTP id S1752695AbYJaC3x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Oct 2008 22:29:53 -0400
+In-Reply-To: <1225420189-630-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: ben-linux@fluff.org
+Cc: linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@nokia.com>, Juha Yrjola <juha.yrjola@solidboot.com>, Tony Lindgren <tony@atomide.com>
 
-Otherwise twl4030 gpios won't work.
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
 
+If there is a signal pending and wait_for_completion_interruptible_timeout
+terminates with -ERESTARTSYS, we return and disable the i2c clocks in
+omap_i2c_xfer.
+
+If we terminate before sending last i2c message with a stop condition, the
+bus remains busy and we are not able to send new messages into bus with
+successive omap_i2c_xfer calls. Therefore a pending signal is not caught
+here and we return only because of timeout or i2c error.
+
+Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/include/mach/irqs.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-omap/include/mach/irqs.h
-index a2929ac..bed5274 100644
---- a/arch/arm/plat-omap/include/mach/irqs.h
-+++ b/arch/arm/plat-omap/include/mach/irqs.h
-@@ -372,7 +372,7 @@
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 608038d..17476ec 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -328,8 +328,12 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 		w |= OMAP_I2C_CON_STP;
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, w);
  
- /* External TWL4030 gpio interrupts are optional */
- #define TWL4030_GPIO_IRQ_BASE	TWL4030_PWR_IRQ_END
--#ifdef	CONFIG_TWL4030_GPIO
-+#ifdef	CONFIG_GPIO_TWL4030
- #define TWL4030_GPIO_NR_IRQS	18
- #else
- #define	TWL4030_GPIO_NR_IRQS	0
+-	r = wait_for_completion_interruptible_timeout(&dev->cmd_complete,
+-						      OMAP_I2C_TIMEOUT);
++	/*
++	 * REVISIT: We should abort the transfer on signals, but the bus goes
++	 * into arbitration and we're currently unable to recover from it.
++	 */
++	r = wait_for_completion_timeout(&dev->cmd_complete,
++					OMAP_I2C_TIMEOUT);
+ 	dev->buf_len = 0;
+ 	if (r < 0)
+ 		return r;
 -- 
 1.5.6.rc3.21.g8c6b5
 
