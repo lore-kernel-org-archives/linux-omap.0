@@ -1,124 +1,32 @@
-From: "Deacon, Keith" <kdeacon@ti.com>
-Subject: RE: android on omap, yaffs2 or init problem
-Date: Thu, 30 Oct 2008 19:42:17 -0500
-Message-ID: <36DDB8F8BC2C8F4E98C848C74F03F883173F8DB2@dlee03.ent.ti.com>
-References: <dbdb2ea60810130937j28f5d13cy489330acc73dca64@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/4] Init updates for hsmmc, also second controller
+Date: Thu, 30 Oct 2008 19:04:13 -0700
+Message-ID: <1225418657-31775-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36770 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753724AbYJaAm2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Oct 2008 20:42:28 -0400
-In-Reply-To: <dbdb2ea60810130937j28f5d13cy489330acc73dca64@mail.gmail.com>
-Content-Language: en-US
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50456 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752199AbYJaCET (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Oct 2008 22:04:19 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: twebb <taliaferro62@gmail.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
-Cc: "swetland@google.com" <swetland@google.com>
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>
 
+Hi all,
 
-There is now an Android project for Omap on http://android.omapzoom.org and a discussion list specifically for Android work on Omap.  Should be helpful.
+I've been preparing the hsmmc code for mainline so we can mount root.
+Here are the related changes for linux-omap for initializing the hsmmc.
 
-...Kd
+This also makes the second controller work, at least on 3430sdp.
 
+If anybody is interested in using the hsmmc with mainline, I've posted
+my current patch series to:
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of twebb
-> Sent: Monday, October 13, 2008 11:37 AM
-> To: linux-omap@vger.kernel.org Mailing List
-> Cc: swetland@google.com
-> Subject: android on omap, yaffs2 or init problem
->
-> The issue I'm running into (see further below) in trying to start
-> android on an OMAP is a dalvikvm-gc error during an ashmem allocation
-> immediately at startup.  An older posting indicates some differences
-> in the android init/boot model.  Can anyone expand on the android
-> init/boot model?
->
-> I see on the emulator that rootfs is mounted on / and is not yaffs2,
-> while /system, /data, and /cache are yaffs2.  I can successfully mount
-> the rootfs (including system, data, and cache) via yaffs2 but run into
-> the issue described below.  Since I've got the yaffs2 mounts OK for
-> system, data and cache (init.rc seems to automatically handle that)
-> how can I configure file system and kernel args such that linux mounts
-> rootfs on / like on emulator?  I feel like I'm missing something very
-> simple since (as described below in snippet from separate thread) I
-> get much further into the android startup when mounting rootfs via NFS
-> or JFFS2.
->
-> And, when creating the android filesystem (per elinux.org's 'android
-> on omap') should ramdisk.img instead be left in file form and used as
-> an initrd image?  I'm not very familiar with booting linux via
-> initrd/initramfs.
->
-> Thanks,
-> twebb
->
->
-> ****** from old linux-omap post (2008-04-29) ******
-> [Jonathan Herriott <herriojr@gmail.com>]
-> > I had it confirmed in another thread that the issue is that the local
-> > filesystem for the N810 is jffs, which is unsupported and I need to
-> > install it on an mini SD card with ext2/ext3 on it.
->
-> I think what you're seeing here is the property service in init
-> failing to create and mmap it's arena, which it tries to do in /,
-> which in our world is initramfs.  The android init/boot model is a
-> little different in that we don't pivot over to a root filesystem,
-> we mount the system, data, etc partitions under the ramfs on /
->
-> You might be able to hack around this by editing the string
-> "/system_properties" to "/tmp/em_properties" or something like
-> that, assuming you have tmpfs mounted on /tmp.
->
-> Brian
-> ******
->
->
-> ---------- Forwarded message ----------
-> From: twebb <taliaferro62@gmail.com>
-> Date: Thu, Oct 9, 2008 at 6:00 PM
-> Subject: Re: android on omap
-> To: "Deacon, Keith" <kdeacon@ti.com>
-> Cc: Adrian Hunter <ext-adrian.hunter@nokia.com>,
-> "linux-omap@vger.kernel.org Mailing List"
-> <linux-omap@vger.kernel.org>, "anilvpr@gmail.com" <anilvpr@gmail.com>,
-> Mat Johnson <seevion@aol.com>
->
->
-> > Ashmem is the Android shared memory subsystem.  You can find it in the
-> kernel under mm/ashmem.c.  There is a config option to turn it on and off.
-> The error indicates that it's having trouble with the driver - although
-> it's not specific as to exactly what.  Make sure it's enabled, the device
-> is present (/dev/ashmem), etc..
-> >
-> > ...Kd
-> >
->
-> I have ashmem properly configured and it works when the FS is mounted
-> via NFS.  However as pointed out previously that seemed to be causing
-> other issues so I moved the FS into JFFS2.  That too had it's issues
-> (where mmap was failing under certain conditions) that Adrian and Anil
-> pointed out were due to JFFS2.  So I moved it to YAFFS2.  Now I'm
-> seeing this "ashmem" issue.  Up to this point, ashmem has worked fine
-> so I don't believe it's really the culprit.  I feel like it has to do
-> with permissions or the filesystem.  One difference is that the
-> emulator uses three different yaffs2 partitions (userdata, system, and
-> cache) while I currently have all of these on a single partition.
->
-> Any other ideas as to what might cause the ...
->
-> E/dalvikvm-gc(  483): Could not create 176128-byte ashmem mark stack
->
-> message?
->
-> Thanks,
-> twebb
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://www.muru.com/linux/omap/patches/hsmmc-2008-10-30.tar.gz
 
+I'll be feeding these patches upstream, but that won't hit mainline
+until next merge window.
+
+Regards,
+
+Tony
