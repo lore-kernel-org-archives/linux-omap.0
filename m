@@ -1,16 +1,16 @@
 From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: [OMAP tree][RFC 2.6.28-rc2-omap 9/9] LEDS: Switch leds-omap to use gpio_request/free calls
-Date: Fri, 31 Oct 2008 14:18:57 +0200
-Message-ID: <1225455537-14017-10-git-send-email-jarkko.nikula@nokia.com>
+Subject: [OMAP tree][RFC 2.6.28-rc2-omap 5/9] [Bluetooth] Switch brf6150 and hci_h4p to use gpio_request/free calls
+Date: Fri, 31 Oct 2008 14:18:53 +0200
+Message-ID: <1225455537-14017-6-git-send-email-jarkko.nikula@nokia.com>
 References: <1225455537-14017-1-git-send-email-jarkko.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:62531 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:62539 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751234AbYJaMUI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Oct 2008 08:20:08 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9VCJwTJ002376
-	for <linux-omap@vger.kernel.org>; Fri, 31 Oct 2008 14:20:05 +0200
+	with ESMTP id S1751262AbYJaMUL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Oct 2008 08:20:11 -0400
+Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9VCJpla002330
+	for <linux-omap@vger.kernel.org>; Fri, 31 Oct 2008 14:20:08 +0200
 In-Reply-To: <1225455537-14017-1-git-send-email-jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,75 +19,168 @@ Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
 
 Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
 ---
- drivers/leds/leds-omap.c |   24 +++++++++++-------------
- 1 files changed, 11 insertions(+), 13 deletions(-)
+ drivers/bluetooth/brf6150.c      |   26 +++++++++++++-------------
+ drivers/bluetooth/hci_h4p/core.c |   26 +++++++++++++-------------
+ 2 files changed, 26 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/leds/leds-omap.c b/drivers/leds/leds-omap.c
-index 05776cd..e936403 100644
---- a/drivers/leds/leds-omap.c
-+++ b/drivers/leds/leds-omap.c
-@@ -14,8 +14,8 @@
- #include <linux/init.h>
+diff --git a/drivers/bluetooth/brf6150.c b/drivers/bluetooth/brf6150.c
+index 256ecde..2d22aec 100644
+--- a/drivers/bluetooth/brf6150.c
++++ b/drivers/bluetooth/brf6150.c
+@@ -33,9 +33,9 @@
+ #include <linux/timer.h>
+ #include <linux/clk.h>
  #include <linux/platform_device.h>
- #include <linux/leds.h>
 +#include <linux/gpio.h>
  
--#include <mach/gpio.h>
  #include <mach/hardware.h>
- #include <mach/led.h>
+-#include <mach/gpio.h>
+ #include <mach/board.h>
+ #include <mach/irqs.h>
  
-@@ -30,15 +30,6 @@ static void omap_set_led_gpio(struct led_classdev *led_cdev,
- 	gpio_set_value(led_dev->gpio, value);
- }
+@@ -913,7 +913,7 @@ static int __init brf6150_init(void)
+ 	NBT_DBG("Uart: %d\n", info->btinfo->bt_uart);
+ 	NBT_DBG("sysclk: %d\n", info->btinfo->bt_sysclk);
  
--static void omap_configure_led_gpio(int gpio)
--{
--	if (omap_request_gpio(gpio) < 0) {
--		printk(KERN_ERR "Failed to request GPIO%d for LEDs\n", gpio);
--		return;
--	}
--	gpio_direction_output(gpio, 0);
--}
--
- static int omap_led_probe(struct platform_device *dev)
+-	err = omap_request_gpio(info->btinfo->reset_gpio);
++	err = gpio_request(info->btinfo->reset_gpio, "BT reset");
+ 	if (err < 0)
+ 	{
+ 		printk(KERN_WARNING "Cannot get GPIO line %d", 
+@@ -922,23 +922,23 @@ static int __init brf6150_init(void)
+ 		return err;
+ 	}
+ 
+-	err = omap_request_gpio(info->btinfo->bt_wakeup_gpio);
++	err = gpio_request(info->btinfo->bt_wakeup_gpio, "BT wakeup");
+ 	if (err < 0)
+ 	{
+ 		printk(KERN_WARNING "Cannot get GPIO line 0x%d",
+ 		       info->btinfo->bt_wakeup_gpio);
+-		omap_free_gpio(info->btinfo->reset_gpio);
++		gpio_free(info->btinfo->reset_gpio);
+ 		kfree(info);
+ 		return err;
+ 	}
+ 
+-	err = omap_request_gpio(info->btinfo->host_wakeup_gpio);
++	err = gpio_request(info->btinfo->host_wakeup_gpio, "BT host wakeup");
+ 	if (err < 0)
+ 	{
+ 		printk(KERN_WARNING "Cannot get GPIO line %d",
+ 		       info->btinfo->host_wakeup_gpio);
+-		omap_free_gpio(info->btinfo->reset_gpio);
+-		omap_free_gpio(info->btinfo->bt_wakeup_gpio);
++		gpio_free(info->btinfo->reset_gpio);
++		gpio_free(info->btinfo->bt_wakeup_gpio);
+ 		kfree(info);
+ 		return err;
+ 	}
+@@ -1022,9 +1022,9 @@ cleanup_irq:
+ 	free_irq(irq, (void *)info);
+ 	free_irq(gpio_to_irq(info->btinfo->host_wakeup_gpio), (void *)info);
+ cleanup:
+-	omap_free_gpio(info->btinfo->reset_gpio);
+-	omap_free_gpio(info->btinfo->bt_wakeup_gpio);
+-	omap_free_gpio(info->btinfo->host_wakeup_gpio);
++	gpio_free(info->btinfo->reset_gpio);
++	gpio_free(info->btinfo->bt_wakeup_gpio);
++	gpio_free(info->btinfo->host_wakeup_gpio);
+ 	kfree(info);
+ 
+ 	return err;
+@@ -1034,9 +1034,9 @@ static void __exit brf6150_exit(void)
  {
- 	struct omap_led_platform_data *pdata = dev->dev.platform_data;
-@@ -46,7 +37,10 @@ static int omap_led_probe(struct platform_device *dev)
- 	int i, ret = 0;
+ 	brf6150_hci_close(exit_info->hdev);
+ 	hci_free_dev(exit_info->hdev);
+-	omap_free_gpio(exit_info->btinfo->reset_gpio);
+-	omap_free_gpio(exit_info->btinfo->bt_wakeup_gpio);
+-	omap_free_gpio(exit_info->btinfo->host_wakeup_gpio);
++	gpio_free(exit_info->btinfo->reset_gpio);
++	gpio_free(exit_info->btinfo->bt_wakeup_gpio);
++	gpio_free(exit_info->btinfo->host_wakeup_gpio);
+ 	free_irq(exit_info->irq, (void *)exit_info);
+ 	free_irq(gpio_to_irq(exit_info->btinfo->host_wakeup_gpio), (void *)exit_info);
+ 	kfree(exit_info);
+diff --git a/drivers/bluetooth/hci_h4p/core.c b/drivers/bluetooth/hci_h4p/core.c
+index 9964a0c..a5b76ad 100644
+--- a/drivers/bluetooth/hci_h4p/core.c
++++ b/drivers/bluetooth/hci_h4p/core.c
+@@ -34,9 +34,9 @@
+ #include <linux/device.h>
+ #include <linux/platform_device.h>
+ #include <linux/clk.h>
++#include <linux/gpio.h>
  
- 	for (i = 0; ret >= 0 && i < pdata->nr_leds; i++) {
--		omap_configure_led_gpio(leds[i].gpio);
-+		ret = gpio_request(leds[i].gpio, leds[i].cdev.name);
-+		if (ret < 0)
-+			break;
-+		gpio_direction_output(leds[i].gpio, 0);
- 		if (!leds[i].cdev.brightness_set)
- 			leds[i].cdev.brightness_set = omap_set_led_gpio;
+ #include <mach/hardware.h>
+-#include <mach/gpio.h>
+ #include <mach/board.h>
+ #include <mach/irqs.h>
+ #include <mach/pm.h>
+@@ -823,7 +823,7 @@ static int hci_h4p_probe(struct platform_device *pdev)
+ 	NBT_DBG("Uart: %d\n", bt_config->bt_uart);
+ 	NBT_DBG("sysclk: %d\n", info->bt_sysclk);
  
-@@ -54,8 +48,10 @@ static int omap_led_probe(struct platform_device *dev)
+-	err = omap_request_gpio(info->reset_gpio);
++	err = gpio_request(info->reset_gpio, "BT reset");
+ 	if (err < 0) {
+ 		dev_err(&pdev->dev, "Cannot get GPIO line %d\n",
+ 			info->reset_gpio);
+@@ -831,23 +831,23 @@ static int hci_h4p_probe(struct platform_device *pdev)
+ 		goto cleanup;
  	}
  
- 	if (ret < 0 && i > 1) {
--		for (i = i - 2; i >= 0; i--)
-+		for (i = i - 2; i >= 0; i--) {
- 			led_classdev_unregister(&leds[i].cdev);
-+			gpio_free(leds[i].gpio);
-+		}
+-	err = omap_request_gpio(info->bt_wakeup_gpio);
++	err = gpio_request(info->bt_wakeup_gpio, "BT wakeup");
+ 	if (err < 0)
+ 	{
+ 		dev_err(info->dev, "Cannot get GPIO line 0x%d",
+ 			info->bt_wakeup_gpio);
+-		omap_free_gpio(info->reset_gpio);
++		gpio_free(info->reset_gpio);
+ 		kfree(info);
+ 		goto cleanup;
  	}
  
- 	return ret;
-@@ -67,8 +63,10 @@ static int omap_led_remove(struct platform_device *dev)
- 	struct omap_led_config *leds = pdata->leds;
- 	int i;
+-	err = omap_request_gpio(info->host_wakeup_gpio);
++	err = gpio_request(info->host_wakeup_gpio, "BT host wakeup");
+ 	if (err < 0)
+ 	{
+ 		dev_err(info->dev, "Cannot get GPIO line %d",
+ 		       info->host_wakeup_gpio);
+-		omap_free_gpio(info->reset_gpio);
+-		omap_free_gpio(info->bt_wakeup_gpio);
++		gpio_free(info->reset_gpio);
++		gpio_free(info->bt_wakeup_gpio);
+ 		kfree(info);
+ 		goto cleanup;
+ 	}
+@@ -953,9 +953,9 @@ cleanup_irq:
+ 	free_irq(gpio_to_irq(info->host_wakeup_gpio), (void *)info);
+ cleanup:
+ 	gpio_set_value(info->reset_gpio, 0);
+-	omap_free_gpio(info->reset_gpio);
+-	omap_free_gpio(info->bt_wakeup_gpio);
+-	omap_free_gpio(info->host_wakeup_gpio);
++	gpio_free(info->reset_gpio);
++	gpio_free(info->bt_wakeup_gpio);
++	gpio_free(info->host_wakeup_gpio);
+ 	kfree(info);
  
--	for (i = 0; i < pdata->nr_leds; i++)
-+	for (i = 0; i < pdata->nr_leds; i++) {
- 		led_classdev_unregister(&leds[i].cdev);
-+		gpio_free(leds[i].gpio);
-+	}
+ 	return err;
+@@ -971,9 +971,9 @@ static int hci_h4p_remove(struct platform_device *dev)
+ 	hci_h4p_hci_close(info->hdev);
+ 	free_irq(gpio_to_irq(info->host_wakeup_gpio), (void *) info);
+ 	hci_free_dev(info->hdev);
+-	omap_free_gpio(info->reset_gpio);
+-	omap_free_gpio(info->bt_wakeup_gpio);
+-	omap_free_gpio(info->host_wakeup_gpio);
++	gpio_free(info->reset_gpio);
++	gpio_free(info->bt_wakeup_gpio);
++	gpio_free(info->host_wakeup_gpio);
+ 	free_irq(info->irq, (void *) info);
+ 	kfree(info);
  
- 	return 0;
- }
 -- 
 1.5.6.5
 
