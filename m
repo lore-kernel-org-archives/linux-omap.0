@@ -1,16 +1,16 @@
 From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: [OMAP tree][RFC 2.6.28-rc2-omap 7/9] INPUT: TSC2005: Switch to gpio_request/free calls
-Date: Fri, 31 Oct 2008 14:18:55 +0200
-Message-ID: <1225455537-14017-8-git-send-email-jarkko.nikula@nokia.com>
+Subject: [OMAP tree][RFC 2.6.28-rc2-omap 3/9] ARM: OMAP: Switch OMAP LCD panels to use gpio_request/free calls
+Date: Fri, 31 Oct 2008 14:18:51 +0200
+Message-ID: <1225455537-14017-4-git-send-email-jarkko.nikula@nokia.com>
 References: <1225455537-14017-1-git-send-email-jarkko.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:33776 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:33805 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751180AbYJaMTl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Oct 2008 08:19:41 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9VCJ9Fs032480
-	for <linux-omap@vger.kernel.org>; Fri, 31 Oct 2008 07:19:40 -0500
+	with ESMTP id S1751193AbYJaMTw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Oct 2008 08:19:52 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id m9VCJI53032538
+	for <linux-omap@vger.kernel.org>; Fri, 31 Oct 2008 07:19:50 -0500
 In-Reply-To: <1225455537-14017-1-git-send-email-jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,68 +19,128 @@ Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
 
 Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
 ---
- drivers/input/touchscreen/tsc2005.c |   18 +++++-------------
- 1 files changed, 5 insertions(+), 13 deletions(-)
+ drivers/video/omap/lcd_2430sdp.c     |    6 +++---
+ drivers/video/omap/lcd_omap2evm.c    |   14 +++++++-------
+ drivers/video/omap/lcd_omap3beagle.c |    4 ++--
+ drivers/video/omap/lcd_omap3evm.c    |   12 ++++++------
+ 4 files changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/input/touchscreen/tsc2005.c b/drivers/input/touchscreen/tsc2005.c
-index 38ac537..03c3a10 100644
---- a/drivers/input/touchscreen/tsc2005.c
-+++ b/drivers/input/touchscreen/tsc2005.c
-@@ -27,12 +27,9 @@
- #include <linux/input.h>
- #include <linux/interrupt.h>
+diff --git a/drivers/video/omap/lcd_2430sdp.c b/drivers/video/omap/lcd_2430sdp.c
+index d60e846..2763117 100644
+--- a/drivers/video/omap/lcd_2430sdp.c
++++ b/drivers/video/omap/lcd_2430sdp.c
+@@ -24,9 +24,9 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
  #include <linux/delay.h>
 +#include <linux/gpio.h>
- #include <linux/spi/spi.h>
+ #include <linux/i2c/twl4030.h>
  
--#ifdef CONFIG_ARCH_OMAP
 -#include <mach/gpio.h>
--#endif
--
- #include <linux/spi/tsc2005.h>
+ #include <mach/mux.h>
+ #include <mach/omapfb.h>
+ #include <asm/mach-types.h>
+@@ -65,8 +65,8 @@ static int sdp2430_panel_init(struct lcd_panel *panel,
+ 		backlight_gpio = SDP2430_LCD_PANEL_BACKLIGHT_GPIO;
+ 	}
  
- /**
-@@ -534,8 +531,7 @@ static int __devinit tsc2005_ts_init(struct tsc2005 *ts,
- 	ts->dav_gpio = dav_gpio;
- 	dev_dbg(&ts->spi->dev, "TSC2005: DAV GPIO = %d\n", dav_gpio);
+-	omap_request_gpio(enable_gpio);			/* LCD panel */
+-	omap_request_gpio(backlight_gpio);		/* LCD backlight */
++	gpio_request(enable_gpio, "LCD enable");	/* LCD panel */
++	gpio_request(backlight_gpio, "LCD bl");		/* LCD backlight */
+ 	gpio_direction_output(enable_gpio, 0);
+ 	gpio_direction_output(backlight_gpio, 0);
  
--#ifdef CONFIG_ARCH_OMAP
--	r = omap_request_gpio(dav_gpio);
-+	r = gpio_request(dav_gpio, "TSC2005 dav");
- 	if (r < 0) {
- 		dev_err(&ts->spi->dev, "unable to get DAV GPIO");
- 		goto err1;
-@@ -543,7 +539,7 @@ static int __devinit tsc2005_ts_init(struct tsc2005 *ts,
- 	gpio_direction_input(dav_gpio);
- 	ts->irq = gpio_to_irq(dav_gpio);
- 	dev_dbg(&ts->spi->dev, "TSC2005: DAV IRQ = %d\n", ts->irq);
--#endif
-+
- 	init_timer(&ts->penup_timer);
- 	setup_timer(&ts->penup_timer, tsc2005_ts_penup_timer_handler,
- 			(unsigned long)ts);
-@@ -612,9 +608,7 @@ err3:
- 	tsc2005_stop_scan(ts);
- 	input_free_device(idev);
- err2:
--#ifdef CONFIG_ARCH_OMAP
--	omap_free_gpio(dav_gpio);
--#endif
-+	gpio_free(dav_gpio);
- err1:
- 	return r;
- }
-@@ -672,9 +666,7 @@ static int __devexit tsc2005_remove(struct spi_device *spi)
- 	free_irq(ts->irq, ts);
- 	input_unregister_device(ts->idev);
+diff --git a/drivers/video/omap/lcd_omap2evm.c b/drivers/video/omap/lcd_omap2evm.c
+index 424fbae..2fc46c2 100644
+--- a/drivers/video/omap/lcd_omap2evm.c
++++ b/drivers/video/omap/lcd_omap2evm.c
+@@ -23,9 +23,9 @@
  
--#ifdef CONFIG_ARCH_OMAP
--	omap_free_gpio(ts->dav_gpio);
--#endif
-+	gpio_free(ts->dav_gpio);
- 	kfree(ts);
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
++#include <linux/gpio.h>
+ #include <linux/i2c/twl4030.h>
  
+-#include <mach/gpio.h>
+ #include <mach/mux.h>
+ #include <mach/omapfb.h>
+ #include <asm/mach-types.h>
+@@ -50,12 +50,12 @@ static unsigned int bklight_level;
+ static int omap2evm_panel_init(struct lcd_panel *panel,
+ 				struct omapfb_device *fbdev)
+ {
+-	omap_request_gpio(LCD_PANEL_ENABLE_GPIO);
+-	omap_request_gpio(LCD_PANEL_LR);
+-	omap_request_gpio(LCD_PANEL_UD);
+-	omap_request_gpio(LCD_PANEL_INI);
+-	omap_request_gpio(LCD_PANEL_QVGA);
+-	omap_request_gpio(LCD_PANEL_RESB);
++	gpio_request(LCD_PANEL_ENABLE_GPIO, "LCD enable");
++	gpio_request(LCD_PANEL_LR, "LCD lr");
++	gpio_request(LCD_PANEL_UD, "LCD ud");
++	gpio_request(LCD_PANEL_INI, "LCD ini");
++	gpio_request(LCD_PANEL_QVGA, "LCD qvga");
++	gpio_request(LCD_PANEL_RESB, "LCD resb");
+ 
+ 	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 1);
+ 	gpio_direction_output(LCD_PANEL_RESB, 1);
+diff --git a/drivers/video/omap/lcd_omap3beagle.c b/drivers/video/omap/lcd_omap3beagle.c
+index 0c779e4..eae43e4 100644
+--- a/drivers/video/omap/lcd_omap3beagle.c
++++ b/drivers/video/omap/lcd_omap3beagle.c
+@@ -22,9 +22,9 @@
+ 
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
++#include <linux/gpio.h>
+ #include <linux/i2c/twl4030.h>
+ 
+-#include <mach/gpio.h>
+ #include <mach/mux.h>
+ #include <mach/omapfb.h>
+ #include <asm/mach-types.h>
+@@ -38,7 +38,7 @@
+ static int omap3beagle_panel_init(struct lcd_panel *panel,
+ 				struct omapfb_device *fbdev)
+ {
+-	omap_request_gpio(LCD_PANEL_ENABLE_GPIO);
++	gpio_request(LCD_PANEL_ENABLE_GPIO, "LCD enable");
  	return 0;
+ }
+ 
+diff --git a/drivers/video/omap/lcd_omap3evm.c b/drivers/video/omap/lcd_omap3evm.c
+index 90aa015..1c3d814 100644
+--- a/drivers/video/omap/lcd_omap3evm.c
++++ b/drivers/video/omap/lcd_omap3evm.c
+@@ -22,9 +22,9 @@
+ 
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
++#include <linux/gpio.h>
+ #include <linux/i2c/twl4030.h>
+ 
+-#include <mach/gpio.h>
+ #include <mach/mux.h>
+ #include <mach/omapfb.h>
+ #include <asm/mach-types.h>
+@@ -54,11 +54,11 @@ static unsigned int bklight_level;
+ static int omap3evm_panel_init(struct lcd_panel *panel,
+ 				struct omapfb_device *fbdev)
+ {
+-	omap_request_gpio(LCD_PANEL_LR);
+-	omap_request_gpio(LCD_PANEL_UD);
+-	omap_request_gpio(LCD_PANEL_INI);
+-	omap_request_gpio(LCD_PANEL_RESB);
+-	omap_request_gpio(LCD_PANEL_QVGA);
++	gpio_request(LCD_PANEL_LR, "LCD lr");
++	gpio_request(LCD_PANEL_UD, "LCD ud");
++	gpio_request(LCD_PANEL_INI, "LCD ini");
++	gpio_request(LCD_PANEL_RESB, "LCD resb");
++	gpio_request(LCD_PANEL_QVGA, "LCD qvga");
+ 
+ 	gpio_direction_output(LCD_PANEL_RESB, 1);
+ 	gpio_direction_output(LCD_PANEL_INI, 1);
 -- 
 1.5.6.5
 
