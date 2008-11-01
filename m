@@ -1,45 +1,30 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.28-rc2-omap] H4: fix i2c registration
-Date: Sat, 1 Nov 2008 00:38:05 -0700
-Message-ID: <200811010038.05711.david-b@pacbell.net>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Lauri Leukkunen <lauri.leukkunen@nokia.com>
+Subject: Cleaned up version of system_rev to omap_rev()
+Date: Sat,  1 Nov 2008 13:07:03 +0200
+Message-ID: <1225537624-6669-1-git-send-email-lauri.leukkunen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:48236 "HELO
-	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750820AbYKAHiJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 Nov 2008 03:38:09 -0400
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:38257 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751360AbYKALGV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 Nov 2008 07:06:21 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mA1B6HP5012497
+	for <linux-omap@vger.kernel.org>; Sat, 1 Nov 2008 13:06:17 +0200
+Received: from pure.research.nokia.com (pure.research.nokia.com [172.21.42.21])
+	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id mA1B6FlB020458
+	for <linux-omap@vger.kernel.org>; Sat, 1 Nov 2008 13:06:15 +0200
+Received: from lleukkun by pure.research.nokia.com with local (Exim 4.69)
+	(envelope-from <lleukkun@pure.research.nokia.com>)
+	id 1KwEJs-0001k0-Vo
+	for linux-omap@vger.kernel.org; Sat, 01 Nov 2008 13:07:04 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-From: David Brownell <dbrownell@users.sourceforge.net>
 
-Registering the I2C devices on H4 boards once is enough;
-remove the extra call.
+Hi,
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
-Mainline doesn't have the call to register the I2C adapter
-along with its devices ... this has that call *plus* the call
-to register just the board_info.  Seems to be the only OMAP2/3
-board with this bug.
+This one passes checkpatch.pl and adds KERN_* for all printk()s
+in mach-omap1/{pm,id}.c
 
- arch/arm/mach-omap2/board-h4.c |    3 ---
- 1 file changed, 3 deletions(-)
-
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
-@@ -746,9 +746,6 @@ static void __init omap_h4_init(void)
- 	/* Menelaus interrupt */
- 	omap_cfg_reg(W19_24XX_SYS_NIRQ);
- 
--	i2c_register_board_info(1, h4_i2c_board_info,
--			ARRAY_SIZE(h4_i2c_board_info));
--
- 	platform_add_devices(h4_devices, ARRAY_SIZE(h4_devices));
- 	omap_board_config = h4_config;
- 	omap_board_config_size = ARRAY_SIZE(h4_config);
+/lauri
