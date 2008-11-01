@@ -1,46 +1,73 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH 0/4] 34xx spurious interrupts unravelling
-Date: Sat, 1 Nov 2008 07:57:29 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE89671620369885CDB@dlee02.ent.ti.com>
+From: "Felipe Contreras" <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 0/4] 34xx spurious interrupts unravelling
+Date: Sat, 1 Nov 2008 23:14:35 +0200
+Message-ID: <94a0d4530811011414w7c3318eap492253a8acf2e81c@mail.gmail.com>
 References: <1225480873-30835-1-git-send-email-tony@atomide.com>
- <200810311459.04687.david-b@pacbell.net>
- <13B9B4C6EF24D648824FF11BE89671620369885CC0@dlee02.ent.ti.com>
- <200810312308.36522.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48567 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751401AbYKAM5i convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 Nov 2008 08:57:38 -0400
-In-Reply-To: <200810312308.36522.david-b@pacbell.net>
-Content-Language: en-US
+Received: from rv-out-0506.google.com ([209.85.198.228]:3390 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750987AbYKAVOg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 Nov 2008 17:14:36 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so1884523rvb.1
+        for <linux-omap@vger.kernel.org>; Sat, 01 Nov 2008 14:14:35 -0700 (PDT)
+In-Reply-To: <1225480873-30835-1-git-send-email-tony@atomide.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-
-> From: David Brownell [mailto:david-b@pacbell.net]
-> Sent: Saturday, November 01, 2008 1:09 AM
-
-> > For the next series of ARMv7 Cortex's this is all being projected
-> > to require much more strictness in access ordering and use of barriers.
+On Fri, Oct 31, 2008 at 9:21 PM, Tony Lindgren <tony@atomide.com> wrote:
+> Hi all,
 >
-> Any particular kind of barriers?  barrier() is compiler advice,
-> and gets the most use in Linux ... but <asm/system.h> reminds
-> me that V7 has isb/dsb/dmb instructions, and V6 can do them too.
-> (Now I'll have to go look at what they do again...)
+> So it's now starting to look like we need to ensure write posting in
+> interrupt handlers for 34xx instead of marking the IO areas as strongly
+> ordered.
 >
-> That case needed a dsb analogue (on armv5, flush write buffer).
+> The first patch in the series reverts marking the IO areas as strongly
+> ordered.
+>
+> The second debug patch also prints out the previous interrupt before
+> the spurious interrupt, which should help identify the interrupt
+> handler that needs a read back of some register.
+>
+> So if you see errors like this with dspbridge:
+>
+> FIXME: spurious irq 95: 0xffffffdf previous irq 26
+> FIXME: spurious irq 95: 0xffffffdf previous irq 26
+> FIXME: spurious irq 95: 0xffffffdf previous irq 26
+> ...
+>
+> You'll know that the interrupt handler for irq 26 needs a read back
+> of some register in the interrupt handler. Most likely you need to
+> read back the interrupt ack register right after writing to it in
+> the handler, see a later patch in this series for dspbridge.
+>
+> If you get errors like this during boot:
+>
+> FIXME: spurious irq 95: 0xffffffdf previous irq 25
+> FIXME: spurious irq 95: 0xffffffdf previous irq 25
+> FIXME: spurious irq 95: 0xffffffdf previous irq 37
+> ...
+>
+> Most likely we need to do a read back when initializing some devices
+> like dispc and gptimer. I don't have patches for these yet..
+>
+> The other patches fix few interrupt handlers that I'm aware of needing
+> this, like i2c-omap and dspbridge. The dspbridge patch only applies
+> if you have it installed.
+>
+> I'd appreciate if people who have been working on this issue would
+> torture test this series and provide feedback!
 
-In doc's and training material there are examples of sequences which need care.  As they are not our doc's I can't publicly share them. They will start showing up over time as hardware becomes more real. Single core is more aggressive and the dual core variants compound issues.
+I tried with various dsp tests, and as you mentioned, I was able to
+see lots of spurious irq warnings, then I applied patch #4, and those
+went away.
 
->From a given CPU's point of few it is free to do many things to normal memory behind your back as long at the time you access it (from a single CPU point of view) the value is correct.  This requires strict care to be 100% safe in coordinating with DMA to normal memories.
+No issues.
 
-For A8 today many aspects of this are less relevant as implementation won't do it all yet.
-
-Regards,
-Richard W.
-
+-- 
+Felipe Contreras
