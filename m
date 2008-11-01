@@ -1,38 +1,47 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: [PATCH 3/4] HSMMC: Add support for the second controller
-Date: Fri, 31 Oct 2008 20:11:30 -0700
-Message-ID: <5e088bd90810312011k596cf0f0ybe9f38d63f464cd8@mail.gmail.com>
-References: <1225418657-31775-1-git-send-email-tony@atomide.com>
-	 <200810311736.45168.david-b@pacbell.net>
-	 <5e088bd90810311950y5060e438n21f931474522571@mail.gmail.com>
-	 <200810312002.44610.david-b@pacbell.net>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH 4/4] DSPBRIDGE: Ensure write posting when acking mailbox
+ irq
+Date: Fri, 31 Oct 2008 22:43:47 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE89671620369885CBD@dlee02.ent.ti.com>
+References: <1225480873-30835-1-git-send-email-tony@atomide.com>
+ <1225480873-30835-2-git-send-email-tony@atomide.com>
+ <1225480873-30835-3-git-send-email-tony@atomide.com>
+ <1225480873-30835-4-git-send-email-tony@atomide.com>
+ <1225480873-30835-5-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.232]:46418 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751328AbYKADLb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Oct 2008 23:11:31 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so1580102rvb.1
-        for <linux-omap@vger.kernel.org>; Fri, 31 Oct 2008 20:11:30 -0700 (PDT)
-In-Reply-To: <200810312002.44610.david-b@pacbell.net>
-Content-Disposition: inline
+Received: from comal.ext.ti.com ([198.47.26.152]:40063 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750822AbYKADn4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Oct 2008 23:43:56 -0400
+In-Reply-To: <1225480873-30835-5-git-send-email-tony@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>
+To: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Oct 31, 2008 at 8:02 PM, David Brownell <david-b@pacbell.net> wrote:
-> On Friday 31 October 2008, Steve Sakoman wrote:
->> > Until the twl4030 USB transceiver driver goes to mainline,
->> > at which point usb network links will work.  :)
->>
->> Hmm . . . my network dongles (both ethernet and wifi) work just fine
->> on musb now (using 2.6.27-omap1)
+> owner@vger.kernel.org] On Behalf Of Tony Lindgren
+> Sent: Friday, October 31, 2008 2:21 PM
+
+> The only way to ensure write posting to L4 bus is to do a read back
+> of the same register right after the write.
 >
-> On mainline??
+> This seems to be mostly needed in interrupt handlers to avoid
+> causing spurious interrupts.
+>
+> The earlier fix has been to mark the L4 bus as strongly ordered
+> memory, which solves the problem, but causes performance penalties.
 
-Ah, no.  On linux-omap tag v2.6.27-omap1
+What penalties have you observed?  Can you quantify?
 
-Steve
+>From the L4 perspectives DEVICE and SO are similar.  Long back I was told one difference is DEVICE is allowed to do burst transactions of element size where SO was not. This behavior is only really wanted to a FIFO.
+
+Really performance sensitive devices will be using DMA to FIFOs.  SO/DEVICE only applies to the ARM's view of things.  DMA is not affected by ARM memory types.
+
+Some kind of barrier or read back is needed for sure when dealing with the main interrupt controller.
+
+Regards,
+Richard W.
+
