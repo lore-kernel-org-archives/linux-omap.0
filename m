@@ -1,51 +1,78 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: What happened to the serial console on BeagleBoard with 2.6.28-rc2?
-Date: Sun, 2 Nov 2008 12:26:13 -0700
-Message-ID: <200811021126.13514.david-b@pacbell.net>
-References: <E1KwhIl-0001an-Ro@amazonia.comcast.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: omap3evm LCD red-tint workaround
+Date: Sun,  2 Nov 2008 21:56:19 +0200
+Message-ID: <1225655779-18934-1-git-send-email-notasas@gmail.com>
+References: <57322719-1A5A-45DC-9846-5C0A3B6EF346@student.utwente.nl>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:44258 "HELO
-	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752220AbYKBT0Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Nov 2008 14:26:16 -0500
-In-Reply-To: <E1KwhIl-0001an-Ro@amazonia.comcast.net>
-Content-Disposition: inline
+Received: from fg-out-1718.google.com ([72.14.220.153]:32481 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752819AbYKBT4h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Nov 2008 14:56:37 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so1869080fgg.17
+        for <linux-omap@vger.kernel.org>; Sun, 02 Nov 2008 11:56:33 -0800 (PST)
+In-Reply-To: <57322719-1A5A-45DC-9846-5C0A3B6EF346@student.utwente.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: rick@efn.org
-Cc: linux-omap@vger.kernel.org, nmonson@gmail.com, felipe.contreras@gmail.com, tom.leiming@gmail.com
+To: linux-omap@vger.kernel.org
+Cc: Grazvydas Ignotas <notasas@gmail.com>
 
-On Sunday 02 November 2008, Rick Bronson wrote:
-> > Is that what you saw too?
->=20
-> =A0 Yep, that's what I saw, but only if I had DEBUG_LL=3Dy. =A0Withou=
-t that
-> I had nothing except "Uncompressing Linux........". =A0
-
-I don't have DEBUG_LL=3Dy ... if you had some kind of network
-link configured over USB, could you SSH in?  (I can.)
+> PS: TS is still unusable with the 16x16 pixel resolution
+This is also the case for Pandora. The patch below fixes the problem,
+but as I have no other boards to test this on, I haven't sent it.
+See if it helps you.
 
 
-> =A0 I guess we don't see this problem on the other 2 ports since they
-> are mapped MT_MEMORY_SO and not MT_DEVICE (L4_34XX_PHYS).
+>From 91f3af26bbf751b846e6265d86387e81be7c1364 Mon Sep 17 00:00:00 2001
+From: Grazvydas Ignotas <notasas@gmail.com>
+Date: Tue, 28 Oct 2008 22:01:42 +0200
+Subject: [PATCH] OMAP3: fix McSPI transfers
 
-Hmm, inconsistency is to be avoided.  :)
+Currently on OMAP3 if both write and read is set up for a transfer,
+the first byte returned on read is corrupted. Work around this by
+disabling channel between reads and writes, instead of transfers.
+---
+ drivers/spi/omap2_mcspi.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-I wonder what the root cause is ... is the driver missing
-various barriers needed to make MT_DEVICE work?  Or is the
-MT_DEVICE incorrect in the first place?  "git whatchanged"
-didn't show any recent changes that seemed (on a quick
-glance) to affect I/O at that level.  Maybe it was one of
-the other TTY changes interacting here.
+diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+index 454a271..4890b6c 100644
+--- a/drivers/spi/omap2_mcspi.c
++++ b/drivers/spi/omap2_mcspi.c
+@@ -710,7 +710,6 @@ static void omap2_mcspi_work(struct work_struct *work)
+ 		spi = m->spi;
+ 		cs = spi->controller_state;
+ 
+-		omap2_mcspi_set_enable(spi, 1);
+ 		list_for_each_entry(t, &m->transfers, transfer_list) {
+ 			if (t->tx_buf == NULL && t->rx_buf == NULL && t->len) {
+ 				status = -EINVAL;
+@@ -741,6 +740,8 @@ static void omap2_mcspi_work(struct work_struct *work)
+ 			if (t->len) {
+ 				unsigned	count;
+ 
++				omap2_mcspi_set_enable(spi, 1);
++
+ 				/* RX_ONLY mode needs dummy data in TX reg */
+ 				if (t->tx_buf == NULL)
+ 					__raw_writel(0, cs->base
+@@ -752,6 +753,8 @@ static void omap2_mcspi_work(struct work_struct *work)
+ 					count = omap2_mcspi_txrx_pio(spi, t);
+ 				m->actual_length += count;
+ 
++				omap2_mcspi_set_enable(spi, 0);
++
+ 				if (count != t->len) {
+ 					status = -EIO;
+ 					break;
+@@ -777,8 +780,6 @@ static void omap2_mcspi_work(struct work_struct *work)
+ 		if (cs_active)
+ 			omap2_mcspi_force_cs(spi, 0);
+ 
+-		omap2_mcspi_set_enable(spi, 0);
+-
+ 		m->status = status;
+ 		m->complete(m->context);
+ 
+-- 
+1.5.4.3
 
-- Dave
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
