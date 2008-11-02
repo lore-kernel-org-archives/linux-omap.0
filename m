@@ -1,93 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] serial: Flush posted write on 34xx to make 8250 work (Re:
-	What happened to the serial console on BeagleBoard with 2.6.28-rc2?)
-Date: Sun, 2 Nov 2008 12:50:21 -0800
-Message-ID: <20081102205019.GJ28924@atomide.com>
-References: <E1KwhIl-0001an-Ro@amazonia.comcast.net> <200811021126.13514.david-b@pacbell.net>
+Subject: Re: [beagleboard] can't boot Linux-2.6.28-rc2-omap1
+Date: Sun, 2 Nov 2008 12:51:23 -0800
+Message-ID: <20081102205123.GK28924@atomide.com>
+References: <E1KwUYF-000847-0q@amazonia.comcast.net> <d82e647a0811020202s23b2f816i477758ea9da42947@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="d01dLTUuW90fS44H"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58172 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58771 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754030AbYKBUuZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Nov 2008 15:50:25 -0500
+	with ESMTP id S1752740AbYKBUv0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Nov 2008 15:51:26 -0500
 Content-Disposition: inline
-In-Reply-To: <200811021126.13514.david-b@pacbell.net>
+In-Reply-To: <d82e647a0811020202s23b2f816i477758ea9da42947@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: rick@efn.org, linux-omap@vger.kernel.org, nmonson@gmail.com, felipe.contreras@gmail.com, tom.leiming@gmail.com
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: rick@efn.org, linux-omap@vger.kernel.org, beagleboard@googlegroups.com, felipe.contreras@gmail.com
 
-
---d01dLTUuW90fS44H
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-* David Brownell <david-b@pacbell.net> [081102 11:26]:
-> On Sunday 02 November 2008, Rick Bronson wrote:
-> > > Is that what you saw too?
-> > 
-> >   Yep, that's what I saw, but only if I had DEBUG_LL=y.  Without that
-> > I had nothing except "Uncompressing Linux........".  
+* Ming Lei <tom.leiming@gmail.com> [081102 02:02]:
+> 2008/11/2 Rick Bronson <rick@efn.org>:
+> >
+> >  See previous post with subject:
+> >
+> >  Re: What happened to the serial console on BeagleBoard with 2.6.28-rc2?
 > 
-> I don't have DEBUG_LL=y ... if you had some kind of network
-> link configured over USB, could you SSH in?  (I can.)
-> 
-> 
-> >   I guess we don't see this problem on the other 2 ports since they
-> > are mapped MT_MEMORY_SO and not MT_DEVICE (L4_34XX_PHYS).
-> 
-> Hmm, inconsistency is to be avoided.  :)
-> 
-> I wonder what the root cause is ... is the driver missing
-> various barriers needed to make MT_DEVICE work?  Or is the
-> MT_DEVICE incorrect in the first place?  "git whatchanged"
-> didn't show any recent changes that seemed (on a quick
-> glance) to affect I/O at that level.  Maybe it was one of
-> the other TTY changes interacting here.
+> Very Good!  My BB really does work after applying the patch.
+> Thanks!
 
-Yeah I don't know what may have changed, or have things just
-gotten faster now with cortex since 2.6.27?
+Can you please test my patch too after reverting Rick's strongly
+ordered patch?
 
-Anyways, this patch fixes the issue for me without marking
-things strongly ordered. Rick, does this work for you?
-
-Regards,
+Thanks,
 
 Tony
 
---d01dLTUuW90fS44H
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="flush-posted-8250.patch"
-
->From 57eea529292418a20a119c5b18d7636cf44992ae Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Fri, 31 Oct 2008 16:47:42 -0700
-Subject: [PATCH] serial: Flush posted write on 34xx to make 8250 work
-
-On omap34xx, we need to flush posted writes for TX.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/drivers/serial/8250.c b/drivers/serial/8250.c
-index 5f383d8..629a16c 100644
---- a/drivers/serial/8250.c
-+++ b/drivers/serial/8250.c
-@@ -413,6 +413,13 @@ serial_out(struct uart_8250_port *up, int offset, int value)
- 
- 	case UPIO_MEM:
- 		writeb(value, up->port.membase + offset);
-+#ifdef CONFIG_ARCH_OMAP
-+		/* Flush posted write for TX */
-+		if (cpu_is_omap34xx() && is_omap_port(up) &&
-+			(save_offset == UART_TX || save_offset == UART_IER ||
-+				save_offset == UART_LCR))
-+			value = serial_in(up, UART_LCR); /* Safe to read */
-+#endif
- 		break;
- 
- 	case UPIO_RM9000:
-
---d01dLTUuW90fS44H--
+> 
+> >
+> >  Rick
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> 
+> 
+> 
+> -- 
+> Lei Ming
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
