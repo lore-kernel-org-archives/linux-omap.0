@@ -1,59 +1,43 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: omap3evm LCD red-tint workaround
-Date: Sun, 2 Nov 2008 18:37:30 +0100
-Message-ID: <57322719-1A5A-45DC-9846-5C0A3B6EF346@student.utwente.nl>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-10-379631340"
-Content-Transfer-Encoding: 7bit
+From: Rick Bronson <rick@efn.org>
+Subject: Re: What happened to the serial console on BeagleBoard with 2.6.28-rc2?
+Date: Sun, 02 Nov 2008 10:03:51 -0800
+Message-ID: <E1KwhIl-0001an-Ro@amazonia.comcast.net>
+Reply-To: rick@efn.org
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx2.utsp.utwente.nl ([130.89.2.13]:47033 "EHLO mx.utwente.nl"
+Received: from samwise.efn.org ([12.33.21.33]:53853 "EHLO samwise.efn.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753824AbYKBRiS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 2 Nov 2008 12:38:18 -0500
-Received: from [172.20.0.255] (vpn006018.vpn.utwente.nl [130.89.6.18])
-          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id mA2HbXEK032480
-          for <linux-omap@vger.kernel.org>; Sun, 2 Nov 2008 18:37:33 +0100
+	id S1754509AbYKBSDx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 2 Nov 2008 13:03:53 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: david-b@pacbell.net
+Cc: linux-omap@vger.kernel.org, nmonson@gmail.com, felipe.contreras@gmail.com, tom.leiming@gmail.com
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-10-379631340
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
 
-Hi,
+> Leaving only one map_desc[] entry left using MT_DEVICE not MT_MEMORY_SO...
+> I didn't try this, since I'm currently not hooking up that serial port,
+> but dmesg does show(*):
+> 
+>  Serial: 8250/16550 driver3 ports, IRQ sharing disabled
+>  serial8250.0: ttyS0 at MMIO 0x4806a000 (irq = 72) is a ST16654
+>  serial8250.0: ttyS1 at MMIO 0x4806c000 (irq = 73) is a ST16654
+>  serial8250.0: ttyS2 at MMIO 0x49020000 (irq = 74) is a ST16650V2
+>  console [ttyS2] enabled
+> 
+> Is that what you saw too?
 
-While trying various kernels on the EVM to see what's causing the red  
-tint (or rather, lack of blue) on the lcd I found a workaround to get  
-correct colours with 2.6.27-omap1:
+  Yep, that's what I saw, but only if I had DEBUG_LL=y.  Without that
+I had nothing except "Uncompressing Linux........".  ST16650V2 is a
+clue that something went awry in auto-detection of the type of 8250
+serial port.  With the MT_MEMORY_SO change, I get:
 
-* boot 2.6.22.18 (from the BSP)
-* do a warm reset (e.g pressing WARM_RST)
-* boot 2.6.27-omap1
+Serial: 8250/16550 driver4 ports, IRQ sharing enabled                           
+serial8250.0: ttyS0 at MMIO 0x4806a000 (irq = 72) is a ST16654                  
+serial8250.0: ttyS1 at MMIO 0x4806c000 (irq = 73) is a ST16654                  
+serial8250.0: ttyS2 at MMIO 0x49020000 (irq = 74) is a ST16654                  
+console [ttyS2] enabled                                                         
 
-This makes me suspect that 2.6.27-omap1 isn't initializing something,  
-does anyone have a clue what that bit might be?
+  I guess we don't see this problem on the other 2 ports since they
+are mapped MT_MEMORY_SO and not MT_DEVICE (L4_34XX_PHYS).
 
-regards,
-
-Koen
-
-PS: TS is still unusable with the 16x16 pixel resolution
-
---Apple-Mail-10-379631340
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: This is a digitally signed message part
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFJDeVdMkyGM64RGpERAjJlAJ9AjF+LSGjGYFi6PDNaB+IMrxpyUgCdF5Pf
-yOVRYHdjzwQvsOfjvZp1vXY=
-=Emu/
------END PGP SIGNATURE-----
-
---Apple-Mail-10-379631340--
+  Rick
