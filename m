@@ -1,43 +1,51 @@
-From: Rick Bronson <rick@efn.org>
+From: David Brownell <david-b@pacbell.net>
 Subject: Re: What happened to the serial console on BeagleBoard with 2.6.28-rc2?
-Date: Sun, 02 Nov 2008 10:03:51 -0800
-Message-ID: <E1KwhIl-0001an-Ro@amazonia.comcast.net>
-Reply-To: rick@efn.org
+Date: Sun, 2 Nov 2008 12:26:13 -0700
+Message-ID: <200811021126.13514.david-b@pacbell.net>
+References: <E1KwhIl-0001an-Ro@amazonia.comcast.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from samwise.efn.org ([12.33.21.33]:53853 "EHLO samwise.efn.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754509AbYKBSDx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 2 Nov 2008 13:03:53 -0500
+Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:44258 "HELO
+	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752220AbYKBT0Q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Nov 2008 14:26:16 -0500
+In-Reply-To: <E1KwhIl-0001an-Ro@amazonia.comcast.net>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: david-b@pacbell.net
+To: rick@efn.org
 Cc: linux-omap@vger.kernel.org, nmonson@gmail.com, felipe.contreras@gmail.com, tom.leiming@gmail.com
 
+On Sunday 02 November 2008, Rick Bronson wrote:
+> > Is that what you saw too?
+>=20
+> =A0 Yep, that's what I saw, but only if I had DEBUG_LL=3Dy. =A0Withou=
+t that
+> I had nothing except "Uncompressing Linux........". =A0
 
-> Leaving only one map_desc[] entry left using MT_DEVICE not MT_MEMORY_SO...
-> I didn't try this, since I'm currently not hooking up that serial port,
-> but dmesg does show(*):
-> 
->  Serial: 8250/16550 driver3 ports, IRQ sharing disabled
->  serial8250.0: ttyS0 at MMIO 0x4806a000 (irq = 72) is a ST16654
->  serial8250.0: ttyS1 at MMIO 0x4806c000 (irq = 73) is a ST16654
->  serial8250.0: ttyS2 at MMIO 0x49020000 (irq = 74) is a ST16650V2
->  console [ttyS2] enabled
-> 
-> Is that what you saw too?
+I don't have DEBUG_LL=3Dy ... if you had some kind of network
+link configured over USB, could you SSH in?  (I can.)
 
-  Yep, that's what I saw, but only if I had DEBUG_LL=y.  Without that
-I had nothing except "Uncompressing Linux........".  ST16650V2 is a
-clue that something went awry in auto-detection of the type of 8250
-serial port.  With the MT_MEMORY_SO change, I get:
 
-Serial: 8250/16550 driver4 ports, IRQ sharing enabled                           
-serial8250.0: ttyS0 at MMIO 0x4806a000 (irq = 72) is a ST16654                  
-serial8250.0: ttyS1 at MMIO 0x4806c000 (irq = 73) is a ST16654                  
-serial8250.0: ttyS2 at MMIO 0x49020000 (irq = 74) is a ST16654                  
-console [ttyS2] enabled                                                         
+> =A0 I guess we don't see this problem on the other 2 ports since they
+> are mapped MT_MEMORY_SO and not MT_DEVICE (L4_34XX_PHYS).
 
-  I guess we don't see this problem on the other 2 ports since they
-are mapped MT_MEMORY_SO and not MT_DEVICE (L4_34XX_PHYS).
+Hmm, inconsistency is to be avoided.  :)
 
-  Rick
+I wonder what the root cause is ... is the driver missing
+various barriers needed to make MT_DEVICE work?  Or is the
+MT_DEVICE incorrect in the first place?  "git whatchanged"
+didn't show any recent changes that seemed (on a quick
+glance) to affect I/O at that level.  Maybe it was one of
+the other TTY changes interacting here.
+
+- Dave
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
