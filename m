@@ -1,65 +1,67 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 3/3] musb: fixes vbus off issue after disconnect
-Date: Mon, 3 Nov 2008 14:50:48 +0200
-Message-ID: <20081103125047.GM21760@gandalf.research.nokia.com>
-References: <1225357988-10985-1-git-send-email-ajay.gupta@ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: "Ming Lei" <tom.leiming@gmail.com>
+Subject: Re: [PATCH] serial: Flush posted write on 34xx to make 8250 work (Re: What happened to the serial console on BeagleBoard with 2.6.28-rc2?)
+Date: Mon, 3 Nov 2008 20:59:23 +0800
+Message-ID: <d82e647a0811030459p2cccc76cxe93ea5a4c1386101@mail.gmail.com>
+References: <E1KwhIl-0001an-Ro@amazonia.comcast.net>
+	 <200811021126.13514.david-b@pacbell.net>
+	 <20081102205019.GJ28924@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:29162 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754748AbYKCMvI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Nov 2008 07:51:08 -0500
+Received: from wf-out-1314.google.com ([209.85.200.170]:63876 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754914AbYKCM7Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Nov 2008 07:59:24 -0500
+Received: by wf-out-1314.google.com with SMTP id 27so2514528wfd.4
+        for <linux-omap@vger.kernel.org>; Mon, 03 Nov 2008 04:59:23 -0800 (PST)
+In-Reply-To: <20081102205019.GJ28924@atomide.com>
 Content-Disposition: inline
-In-Reply-To: <1225357988-10985-1-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, david-b@pacbell.net, me@felipebalbi.com, felipe.balbi@nokia.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: David Brownell <david-b@pacbell.net>, rick@efn.org, linux-omap@vger.kernel.org, nmonson@gmail.com, felipe.contreras@gmail.com
 
-On Thu, Oct 30, 2008 at 02:43:08PM +0530, Ajay Kumar Gupta wrote:
-> Vbus is switched off (after a_wait_bcon) whenever a device
-> is disconnected from musb host even when musb is configured
-> only as host.Earlier we use to switch on the power using
-> [echo "F" >/proc/driver/musb_hdrc] but now this proc entry is
-> deleted thus musb doesn't work after device disconnect.
-> 
-> This patch puts is_otg_enabled() check before scheduling
-> a switch-off timer in disconnect path.
-> 
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> ---
->  drivers/usb/musb/musb_core.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> index dbf8861..6856da3 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -767,7 +767,7 @@ static irqreturn_t musb_stage2_irq(struct musb *musb, u8 int_usb,
->  		case OTG_STATE_A_HOST:
->  		case OTG_STATE_A_SUSPEND:
->  			musb_root_disconnect(musb);
-> -			if (musb->a_wait_bcon != 0)
-> +			if (musb->a_wait_bcon != 0 && is_otg_enabled(musb))
+2008/11/3 Tony Lindgren <tony@atomide.com>:
+> * David Brownell <david-b@pacbell.net> [081102 11:26]:
+>> On Sunday 02 November 2008, Rick Bronson wrote:
+>> > > Is that what you saw too?
+>> >
+>> >   Yep, that's what I saw, but only if I had DEBUG_LL=y.  Without that
+>> > I had nothing except "Uncompressing Linux........".
+>>
+>> I don't have DEBUG_LL=y ... if you had some kind of network
+>> link configured over USB, could you SSH in?  (I can.)
+>>
+>>
+>> >   I guess we don't see this problem on the other 2 ports since they
+>> > are mapped MT_MEMORY_SO and not MT_DEVICE (L4_34XX_PHYS).
+>>
+>> Hmm, inconsistency is to be avoided.  :)
+>>
+>> I wonder what the root cause is ... is the driver missing
+>> various barriers needed to make MT_DEVICE work?  Or is the
+>> MT_DEVICE incorrect in the first place?  "git whatchanged"
+>> didn't show any recent changes that seemed (on a quick
+>> glance) to affect I/O at that level.  Maybe it was one of
+>> the other TTY changes interacting here.
+>
+> Yeah I don't know what may have changed, or have things just
+> gotten faster now with cortex since 2.6.27?
+>
+> Anyways, this patch fixes the issue for me without marking
+> things strongly ordered. Rick, does this work for you?
 
-I'd say we need to turn off vbus whenever possible. This looks like the
-problem is somewhere else but here. Maybe we're missing a disconnect
-event. I recall we only ack disconnect upon next reconnection of the
-device due to isses with tusb rev1.0. Maybe  the problem lies there.
+This patch still works for me.
+Thanks!
 
-Turning off vbus is good to save batery, and I'd say we keep it off as
-long as possible. Vbus should probably be handled by userland in otg
-cases, although I couldn't get Dave to agree with it :-p
+>
+> Regards,
+>
+> Tony
+>
 
-I believe that we should have a "session" entry on sysfs and upon cable
-connection, one side switches to a_idle and the other stays in b_idle.
-The device that writes to session (echo 1 > session) will become host
-(either b_host or a_host, meaning that hnp would also trigger based on
-that).
 
-Anyways, this is story for another patch.
 
 -- 
-balbi
+Lei Ming
