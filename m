@@ -1,51 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] DSPBRIDGE: Ensure write posting when acking
-	mailbox irq
-Date: Sun, 2 Nov 2008 14:10:50 -0800
-Message-ID: <20081102221050.GQ28924@atomide.com>
-References: <1225480873-30835-1-git-send-email-tony@atomide.com> <1225480873-30835-2-git-send-email-tony@atomide.com> <1225480873-30835-3-git-send-email-tony@atomide.com> <1225480873-30835-4-git-send-email-tony@atomide.com> <1225480873-30835-5-git-send-email-tony@atomide.com> <13B9B4C6EF24D648824FF11BE89671620369885CBD@dlee02.ent.ti.com>
+From: "Ming Lei" <tom.leiming@gmail.com>
+Subject: Re: [beagleboard] can't boot Linux-2.6.28-rc2-omap1
+Date: Mon, 3 Nov 2008 09:29:30 +0800
+Message-ID: <d82e647a0811021729w19706d4fj69b074085f8b4f3a@mail.gmail.com>
+References: <E1KwUYF-000847-0q@amazonia.comcast.net>
+	 <d82e647a0811020202s23b2f816i477758ea9da42947@mail.gmail.com>
+	 <20081102205123.GK28924@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61813 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754304AbYKBWKw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Nov 2008 17:10:52 -0500
+Received: from rv-out-0506.google.com ([209.85.198.228]:61332 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752807AbYKCB3a (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Nov 2008 20:29:30 -0500
+Received: by rv-out-0506.google.com with SMTP id k40so2310966rvb.1
+        for <linux-omap@vger.kernel.org>; Sun, 02 Nov 2008 17:29:30 -0800 (PST)
+In-Reply-To: <20081102205123.GK28924@atomide.com>
 Content-Disposition: inline
-In-Reply-To: <13B9B4C6EF24D648824FF11BE89671620369885CBD@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: rick@efn.org, linux-omap@vger.kernel.org, beagleboard@googlegroups.com, felipe.contreras@gmail.com
 
-* Woodruff, Richard <r-woodruff2@ti.com> [081031 20:44]:
-> > owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> > Sent: Friday, October 31, 2008 2:21 PM
-> 
-> > The only way to ensure write posting to L4 bus is to do a read back
-> > of the same register right after the write.
-> >
-> > This seems to be mostly needed in interrupt handlers to avoid
-> > causing spurious interrupts.
-> >
-> > The earlier fix has been to mark the L4 bus as strongly ordered
-> > memory, which solves the problem, but causes performance penalties.
-> 
-> What penalties have you observed?  Can you quantify?
+OK.
+I am now in work, and I will test your patch at home  about 10hours later,:-)
+Thanks!
 
-Not yet, I guess we can run some benchmarks though.
+2008/11/3 Tony Lindgren <tony@atomide.com>:
+> * Ming Lei <tom.leiming@gmail.com> [081102 02:02]:
+>> 2008/11/2 Rick Bronson <rick@efn.org>:
+>> >
+>> >  See previous post with subject:
+>> >
+>> >  Re: What happened to the serial console on BeagleBoard with 2.6.28-rc2?
+>>
+>> Very Good!  My BB really does work after applying the patch.
+>> Thanks!
+>
+> Can you please test my patch too after reverting Rick's strongly
+> ordered patch?
+>
+> Thanks,
+>
+> Tony
+>
+>>
+>> >
+>> >  Rick
+>> > --
+>> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> > the body of a message to majordomo@vger.kernel.org
+>> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> >
+>>
+>>
+>>
+>> --
+>> Lei Ming
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-> From the L4 perspectives DEVICE and SO are similar.  Long back I was told one difference is DEVICE is allowed to do burst transactions of element size where SO was not. This behavior is only really wanted to a FIFO.
-> 
-> Really performance sensitive devices will be using DMA to FIFOs.  SO/DEVICE only applies to the ARM's view of things.  DMA is not affected by ARM memory types.
 
-You may be right, and if that's the only difference, then SO might be
-even faster as it avoids the extra readbacks.
 
-> Some kind of barrier or read back is needed for sure when dealing with the main interrupt controller.
-
-Yeah. I'm worried that these issues could happen with SO too..
-
-Regards,
-
-Tony
+-- 
+Lei Ming
