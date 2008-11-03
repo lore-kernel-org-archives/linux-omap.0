@@ -1,48 +1,65 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 3/3] musb: fixes vbus off issue after disconnect
-Date: Mon, 3 Nov 2008 17:10:58 +0200
-Message-ID: <20081103151058.GB7681@gandalf.research.nokia.com>
-References: <20081103125047.GM21760@gandalf.research.nokia.com> <19F8576C6E063C45BE387C64729E739403E5E8A787@dbde02.ent.ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] serial: Flush posted write on 34xx to make 8250 work
+	(Re: What happened to the serial console on BeagleBoard with
+	2.6.28-rc2?)
+Date: Mon, 3 Nov 2008 08:45:18 -0800
+Message-ID: <20081103164516.GT28924@atomide.com>
+References: <E1KwhIl-0001an-Ro@amazonia.comcast.net> <200811021126.13514.david-b@pacbell.net> <20081102205019.GJ28924@atomide.com> <d82e647a0811030459p2cccc76cxe93ea5a4c1386101@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:37128 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754683AbYKCPLo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Nov 2008 10:11:44 -0500
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52229 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756639AbYKCQp1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Nov 2008 11:45:27 -0500
 Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403E5E8A787@dbde02.ent.ti.com>
+In-Reply-To: <d82e647a0811030459p2cccc76cxe93ea5a4c1386101@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "david-b@pacbell.net" <david-b@pacbell.net>, "me@felipebalbi.com" <me@felipebalbi.com>
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: David Brownell <david-b@pacbell.net>, rick@efn.org, linux-omap@vger.kernel.org, nmonson@gmail.com, felipe.contreras@gmail.com
 
-On Mon, Nov 03, 2008 at 08:33:26PM +0530, Ajay Kumar Gupta wrote:
-> I agree but currently in host only mode after disconnect vbus is switched off and
-> there is no way to switch it on. Now if we connect other device it doesn't work
-> as musb is dead.
-
-Hmm... sounds odd. I haven't been using musb as host only for a long
-time, last time I think was on n800 time :-p
-
-Anyways, enable debugging and echo 8 >
-/sys/modules/musb_hdrc/parameters/debug and see if you get any event
-upon cable attach. You should have an id pin grounded event, then that
-should trigger vbus on
-
-> > I believe that we should have a "session" entry on sysfs and upon cable
-> > connection, one side switches to a_idle and the other stays in b_idle.
-> > The device that writes to session (echo 1 > session) will become host
-> > (either b_host or a_host, meaning that hnp would also trigger based on
-> > that).
+* Ming Lei <tom.leiming@gmail.com> [081103 04:59]:
+> 2008/11/3 Tony Lindgren <tony@atomide.com>:
+> > * David Brownell <david-b@pacbell.net> [081102 11:26]:
+> >> On Sunday 02 November 2008, Rick Bronson wrote:
+> >> > > Is that what you saw too?
+> >> >
+> >> >   Yep, that's what I saw, but only if I had DEBUG_LL=y.  Without that
+> >> > I had nothing except "Uncompressing Linux........".
+> >>
+> >> I don't have DEBUG_LL=y ... if you had some kind of network
+> >> link configured over USB, could you SSH in?  (I can.)
+> >>
+> >>
+> >> >   I guess we don't see this problem on the other 2 ports since they
+> >> > are mapped MT_MEMORY_SO and not MT_DEVICE (L4_34XX_PHYS).
+> >>
+> >> Hmm, inconsistency is to be avoided.  :)
+> >>
+> >> I wonder what the root cause is ... is the driver missing
+> >> various barriers needed to make MT_DEVICE work?  Or is the
+> >> MT_DEVICE incorrect in the first place?  "git whatchanged"
+> >> didn't show any recent changes that seemed (on a quick
+> >> glance) to affect I/O at that level.  Maybe it was one of
+> >> the other TTY changes interacting here.
+> >
+> > Yeah I don't know what may have changed, or have things just
+> > gotten faster now with cortex since 2.6.27?
+> >
+> > Anyways, this patch fixes the issue for me without marking
+> > things strongly ordered. Rick, does this work for you?
 > 
-> This is the case of OTG build but what if we configure for only host mode ? All 
-> OTG related stuff shouldn't be there in host only mode right ?
+> This patch still works for me.
+> Thanks!
 
-most likely, yeah. But still, it would appear more like an embedded host
-than a real host controller. Which means we can still switch off vbus
-when not in use, I suppose.
+Well the real problem has been found, there's a bug with the recent
+ptebits patches, which causes section mappings to be just MT_MEMORY
+instead of MT_DEVICE..
 
--- 
-balbi
+So let's put things on hold until we have a real fix for that on the
+linux-arm-kernel mailing list, hopefully today.
+
+Regards,
+
+Tony
