@@ -1,167 +1,131 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 1/3] musb: NAK timeout scheme on bulk reserved ep
-Date: Mon, 3 Nov 2008 14:44:35 +0200
-Message-ID: <20081103124435.GK21760@gandalf.research.nokia.com>
-References: <1225357942-10920-1-git-send-email-ajay.gupta@ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/3] musb: adding qh in_list and out_list in struct
+	hw_ep
+Date: Mon, 3 Nov 2008 14:46:45 +0200
+Message-ID: <20081103124645.GL21760@gandalf.research.nokia.com>
+References: <1225357971-10955-1-git-send-email-ajay.gupta@ti.com>
+Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:55052 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754036AbYKCMpN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Nov 2008 07:45:13 -0500
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1225357942-10920-1-git-send-email-ajay.gupta@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1225357971-10955-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ext Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org, me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>, Swaminathan S <swami.iyer-l0cyMroinI0@public.gmane.org>, Thomas Abraham <t-abraham-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: ext Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, david-b@pacbell.net, me@felipebalbi.com, felipe.balbi@nokia.com, Ravi Babu <ravibabu@ti.com>, Swaminathan S <swami.iyer@ti.com>, Thomas Abraham <t-abraham@ti.com>
 
-On Thu, Oct 30, 2008 at 02:42:22PM +0530, Ajay Kumar Gupta wrote:
-> Fixes endpoint starvation issue when more than one bulk qhs
-> are multiplexed on reserved bulk endpoint.NAK timeout interval
-> is set for such qhs and next qh is scheduled when NAK timeout
-> occurs.
-> This scheme doesn't work for devices which are connected to a
-> high to full speed tree as there is no NAK timeout interrupt
-> at musb controller from such devices.
-> A module parameter 'bulk_nak_timeout' is added so that this feature
-> can be disabled if not required.
-
-then if the user sets the parameter wrongly, it would break
-communication, right ?
-
-unless you can come up with a way to figure out if bulk_nak_timeout
-could be set automatically, let's drop this patch.
-
-> Signed-off-by: Ravi Babu <ravibabu@ti.com>
-> Signed-off-by: Swaminathan S <swami.iyer@ti.com>
-> Signed-off-by: Thomas Abraham <t-abraham@ti.com>
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+On Thu, Oct 30, 2008 at 02:42:51PM +0530, Ajay Kumar Gupta wrote:
+> Currently qh list for control, bulkin and bulkout are
+> part of musb structure as musb->control, musb->in_bulk
+> and musb->out_bulk.This patch makes it generic across
+> hw_ep by removing them from musb and mapping them to
+> in_list and out_list of hw_ep structure.
+> 
+> Signed-off-by: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Swaminathan S <swami.iyer-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Thomas Abraham <t-abraham-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 > ---
-> These patches have been created against latest omap git and Felipe's
-> musb .28 patch series at,
-> http://marc.info/?l=linux-usb&m=122528597116718&w=2
+>  drivers/usb/musb/musb_core.c |    6 +++---
+>  drivers/usb/musb/musb_core.h |    7 ++++---
+>  drivers/usb/musb/musb_host.c |   36 ++++++++++++++++++------------------
+>  3 files changed, 25 insertions(+), 24 deletions(-)
 > 
->  drivers/usb/musb/musb_host.c |   70 ++++++++++++++++++++++++++++++++++++++++--
->  1 files changed, 67 insertions(+), 3 deletions(-)
-> 
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> index ebe0828..dbf8861 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -1445,6 +1445,9 @@ static int __init musb_core_init(u16 musb_type, struct musb *musb)
+>  
+>  		hw_ep->regs = MUSB_EP_OFFSET(i, 0) + mbase;
+>  #ifdef CONFIG_USB_MUSB_HDRC_HCD
+> +		/* init list of in and out qhs */
+> +		INIT_LIST_HEAD(&hw_ep->in_list);
+> +		INIT_LIST_HEAD(&hw_ep->out_list);
+>  		hw_ep->target_regs = MUSB_BUSCTL_OFFSET(i, 0) + mbase;
+>  		hw_ep->rx_reinit = 1;
+>  		hw_ep->tx_reinit = 1;
+> @@ -1790,9 +1793,6 @@ allocate_instance(struct device *dev,
+>  	/* usbcore sets dev->driver_data to hcd, and sometimes uses that... */
+>  
+>  	musb = hcd_to_musb(hcd);
+> -	INIT_LIST_HEAD(&musb->control);
+> -	INIT_LIST_HEAD(&musb->in_bulk);
+> -	INIT_LIST_HEAD(&musb->out_bulk);
+>  
+>  	hcd->uses_new_polling = 1;
+>  
+> diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+> index 4972a3b..27cd1e3 100644
+> --- a/drivers/usb/musb/musb_core.h
+> +++ b/drivers/usb/musb/musb_core.h
+> @@ -271,6 +271,10 @@ struct musb_hw_ep {
+>  	struct musb_qh		*in_qh;
+>  	struct musb_qh		*out_qh;
+>  
+> +	/* list of rx and tx qhs */
+> +	struct list_head        in_list;
+> +	struct list_head        out_list;
+> +
+>  	u8			rx_reinit;
+>  	u8			tx_reinit;
+>  #endif
+> @@ -328,9 +332,6 @@ struct musb {
+>  	 */
+>  	struct musb_hw_ep	*bulk_ep;
+>  
+> -	struct list_head	control;	/* of musb_qh */
+> -	struct list_head	in_bulk;	/* of musb_qh */
+> -	struct list_head	out_bulk;	/* of musb_qh */
+>  	struct musb_qh	*in[16];
+>  	struct musb_qh	*out[16];
+>  #endif
 > diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-> index 30b5685..b77ca0b 100644
+> index b77ca0b..014401c 100644
 > --- a/drivers/usb/musb/musb_host.c
 > +++ b/drivers/usb/musb/musb_host.c
-> @@ -100,6 +100,10 @@
->   * of transfers between endpoints, or anything clever.
->   */
->  
-> +static void musb_bulk_nak_timeout(struct musb *musb, struct musb_hw_ep *ep);
-
-please, reorganize the code so we don't need this prototype here.
-
-> +static int bulk_nak_timeout = 1;
-> +module_param(bulk_nak_timeout, bool, 0);
-> +MODULE_PARM_DESC(bulk_nak_timeout, "enable/disable use of bulk nak timeout");
->  
->  static void musb_ep_program(struct musb *musb, u8 epnum,
->  			struct urb *urb, unsigned int nOut,
-> @@ -1449,10 +1453,15 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+> @@ -1223,7 +1223,7 @@ void musb_host_tx(struct musb *musb, u8 epnum)
+>  		 * transfer, if there's some other (nonperiodic) tx urb
+>  		 * that could use this fifo.  (dma complicates it...)
+>  		 *
+> -		 * if (bulk && qh->ring.next != &musb->out_bulk), then
+> +		 * if (bulk && qh->ring.next != &hw_ep->out_list), then
+>  		 * we have a candidate... NAKing is *NOT* an error
+>  		 */
+>  		musb_ep_select(mbase, epnum);
+> @@ -1449,13 +1449,13 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+>  			 * transfer, if there's some other (nonperiodic) rx urb
+>  			 * that could use this fifo.  (dma complicates it...)
+>  			 *
+> -			 * if (bulk && qh->ring.next != &musb->in_bulk), then
+> +			 * if (bulk && qh->ring.next != &hw_wp->in_list), then
 >  			 * we have a candidate... NAKing is *NOT* an error
 >  			 */
 >  			DBG(6, "RX end %d NAK timeout\n", epnum);
-> +			if (usb_pipebulk(urb->pipe) && qh->mux == 1 &&
-> +				(musb->in_bulk.next->next != &musb->in_bulk) &&
-> +					bulk_nak_timeout) {
-> +				musb_bulk_nak_timeout(musb, hw_ep);
-> +				return;
-> +			}
->  			musb_ep_select(mbase, epnum);
-> -			musb_writew(epio, MUSB_RXCSR,
-> -					MUSB_RXCSR_H_WZC_BITS
-> -					| MUSB_RXCSR_H_REQPKT);
-> +			rx_csr &= ~MUSB_RXCSR_DATAERROR;
-> +			musb_writew(epio, MUSB_RXCSR, rx_csr);
+>  			if (usb_pipebulk(urb->pipe) && qh->mux == 1 &&
+> -				(musb->in_bulk.next->next != &musb->in_bulk) &&
+> -					bulk_nak_timeout) {
+> +				(hw_ep->in_list.next->next != &hw_ep->in_list)
+> +					 && bulk_nak_timeout) {
+>  				musb_bulk_nak_timeout(musb, hw_ep);
+>  				return;
+>  			}
+> @@ -1744,8 +1744,8 @@ static int musb_schedule(
 >  
->  			goto finish;
->  		} else {
-> @@ -1802,6 +1811,9 @@ static int musb_schedule(
->  
->  	idle = 1;
->  	qh->mux = 0;
-> +	/* disable NAK scheme when bulk is not multiplexed */
-> +	if (is_in && qh->type == USB_ENDPOINT_XFER_BULK && bulk_nak_timeout)
-> +		qh->intv_reg = 0;
->  	hw_ep = musb->endpoints + best_end;
->  	if (is_in)
->  		musb->in[best_end] = qh;
-> @@ -1912,6 +1924,17 @@ static int musb_urb_enqueue(
->  	case USB_ENDPOINT_XFER_ISOC:
->  		/* iso always uses log encoding */
->  		break;
-> +	case USB_ENDPOINT_XFER_BULK:
-> +		/* Enable bulk NAK time out scheme when bulk requests are
-> +		 * multiplxed.This scheme doen't work in high speed to full
-> +		 * speed scenario as NAK interrupts are not coming from a
-> +		 * full speed device connected to a high speed device.
-> +		 */
-> +		if (usb_pipein(urb->pipe) && bulk_nak_timeout) {
-> +			interval = 8;
-> +			break;
-> +		}
-> +		/* FALLTHROUGH */
->  	default:
->  		/* REVISIT we actually want to use NAK limits, hinting to the
->  		 * transfer scheduling logic to try some other qh, e.g. try
-> @@ -2265,6 +2288,47 @@ static int musb_bus_resume(struct usb_hcd *hcd)
->  	return 0;
->  }
->  
-> +static void musb_bulk_nak_timeout(struct musb *musb, struct musb_hw_ep *ep)
-> +{
-> +	struct dma_channel	*dma;
-> +	struct urb	*urb;
-> +	void __iomem	*mbase = musb->mregs;
-> +	void __iomem	*epio = ep->regs;
-> +	struct musb_qh	*cur_qh, *next_qh;
-> +	u16	rx_csr;
-> +
-> +	musb_ep_select(mbase, ep->epnum);
-> +	dma = is_dma_capable() ? ep->rx_channel : NULL;
-> +
-> +	/* clear nak timeout bit */
-> +	rx_csr = musb_readw(epio, MUSB_RXCSR);
-> +	rx_csr &= ~MUSB_RXCSR_DATAERROR;
-> +	musb_writew(epio, MUSB_RXCSR, rx_csr);
-> +
-> +	cur_qh = first_qh(&musb->in_bulk);
-> +	if (cur_qh) {
-> +		urb = next_urb(cur_qh);
-> +		if (dma_channel_status(dma) == MUSB_DMA_STATUS_BUSY) {
-> +			dma->status = MUSB_DMA_STATUS_CORE_ABORT;
-> +			musb->dma_controller->channel_abort(dma);
-> +			urb->actual_length += dma->actual_len;
-> +			dma->actual_len = 0L;
-> +		}
-> +		musb_save_toggle(ep, 1, urb);
-> +
-> +		/* delete cur_qh and add to tail to musb->in_bulk */
-> +		list_del(&cur_qh->ring);
-> +		list_add_tail(&cur_qh->ring, &musb->in_bulk);
-> +
-> +		/* get the next qh from musb->in_bulk */
-> +		next_qh = first_qh(&musb->in_bulk);
-> +
-> +		/* set rx_reinit and schedule the next qh */
-> +		ep->rx_reinit = 1;
-> +		musb_start_urb(musb, 1, next_qh);
-> +	}
-> +}
-> +
->  const struct hc_driver musb_hc_driver = {
->  	.description		= "musb-hcd",
->  	.product_desc		= "MUSB HDRC host driver",
-> -- 
-> 1.5.6
+>  	/* use fixed hardware for control and bulk */
+>  	if (qh->type == USB_ENDPOINT_XFER_CONTROL) {
+> -		head = &musb->control;
+>  		hw_ep = musb->control_ep;
+> +		head = &hw_ep->in_list;
+
+yeah, this looks odd. It really looks like control can only be done for
+in transfers. At least a comment in the structure would be nice. Also,
+do you have any measurement of improvements after this patch ?
 
 -- 
 balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
