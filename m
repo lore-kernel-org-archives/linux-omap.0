@@ -1,58 +1,167 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: [OMAP and mainline][RFC 2.6.28-rc2-omap 3/3] USB: OHCI-OMAP:
- Switch to gpio_request/free calls
-Date: Mon, 3 Nov 2008 13:37:50 +0200
-Message-ID: <20081103133750.1d4e66e8.jarkko.nikula@nokia.com>
-References: <1225455447-12179-1-git-send-email-jarkko.nikula@nokia.com>
-	<1225455447-12179-4-git-send-email-jarkko.nikula@nokia.com>
-	<200810311056.55697.david-b@pacbell.net>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 1/3] musb: NAK timeout scheme on bulk reserved ep
+Date: Mon, 3 Nov 2008 14:44:35 +0200
+Message-ID: <20081103124435.GK21760@gandalf.research.nokia.com>
+References: <1225357942-10920-1-git-send-email-ajay.gupta@ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:43872 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:55052 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751150AbYKCLid convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Nov 2008 06:38:33 -0500
-In-Reply-To: <200810311056.55697.david-b@pacbell.net>
+	with ESMTP id S1754036AbYKCMpN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Nov 2008 07:45:13 -0500
+Content-Disposition: inline
+In-Reply-To: <1225357942-10920-1-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org
+To: ext Ajay Kumar Gupta <ajay.gupta@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, david-b@pacbell.net, me@felipebalbi.com, felipe.balbi@nokia.com, Ravi Babu <ravibabu@ti.com>, Swaminathan S <swami.iyer@ti.com>, Thomas Abraham <t-abraham@ti.com>
 
-On Fri, 31 Oct 2008 10:56:55 -0700
-"ext David Brownell" <david-b@pacbell.net> wrote:
+On Thu, Oct 30, 2008 at 02:42:22PM +0530, Ajay Kumar Gupta wrote:
+> Fixes endpoint starvation issue when more than one bulk qhs
+> are multiplexed on reserved bulk endpoint.NAK timeout interval
+> is set for such qhs and next qh is scheduled when NAK timeout
+> occurs.
+> This scheme doesn't work for devices which are connected to a
+> high to full speed tree as there is no NAK timeout interrupt
+> at musb controller from such devices.
+> A module parameter 'bulk_nak_timeout' is added so that this feature
+> can be disabled if not required.
 
-> On Friday 31 October 2008, Jarkko Nikula wrote:
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0omap_request_gpio(9);
-> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0gpio_request(9, "USB over current");
->=20
-> Make that "OHCI" not "USB" ... and, general comment, shorter
-> labels for the GPIOs (12 bytes and less) will preserve column
-> alignment in /sys/kernel/debug/gpio listings.
->=20
-Thanks Dave! I clearly forgot to clean this one. "OHCI ovcurr", "OHCI
-err", etc?
+then if the user sets the parameter wrongly, it would break
+communication, right ?
 
-Yes, I actually noted already before making the first set, that
-probably I should sent a patch to wide the label column in debugs
-listings :-)
+unless you can come up with a way to figure out if bulk_nak_timeout
+could be set automatically, let's drop this patch.
 
-Otherwise we have to invent artificially short labels. See e.g.
+> Signed-off-by: Ravi Babu <ravibabu@ti.com>
+> Signed-off-by: Swaminathan S <swami.iyer@ti.com>
+> Signed-off-by: Thomas Abraham <t-abraham@ti.com>
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+> ---
+> These patches have been created against latest omap git and Felipe's
+> musb .28 patch series at,
+> http://marc.info/?l=linux-usb&m=122528597116718&w=2
+> 
+>  drivers/usb/musb/musb_host.c |   70 ++++++++++++++++++++++++++++++++++++++++--
+>  1 files changed, 67 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+> index 30b5685..b77ca0b 100644
+> --- a/drivers/usb/musb/musb_host.c
+> +++ b/drivers/usb/musb/musb_host.c
+> @@ -100,6 +100,10 @@
+>   * of transfers between endpoints, or anything clever.
+>   */
+>  
+> +static void musb_bulk_nak_timeout(struct musb *musb, struct musb_hw_ep *ep);
 
-"BT host wakeup" -> "BT host wup" (looks stupid)
-"ADS7846 pendown" -> "ADS7846 pdown", "ADS7846 pd" (power-down?)
+please, reorganize the code so we don't need this prototype here.
 
-IMO GPIO label will be usually longer than IRQ label since label must
-include not only chip/connection info but also function of the GPIO.
-E.g. "XXX enable", XXX reset", "XXX irq", "LED green", etc.
+> +static int bulk_nak_timeout = 1;
+> +module_param(bulk_nak_timeout, bool, 0);
+> +MODULE_PARM_DESC(bulk_nak_timeout, "enable/disable use of bulk nak timeout");
+>  
+>  static void musb_ep_program(struct musb *musb, u8 epnum,
+>  			struct urb *urb, unsigned int nOut,
+> @@ -1449,10 +1453,15 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+>  			 * we have a candidate... NAKing is *NOT* an error
+>  			 */
+>  			DBG(6, "RX end %d NAK timeout\n", epnum);
+> +			if (usb_pipebulk(urb->pipe) && qh->mux == 1 &&
+> +				(musb->in_bulk.next->next != &musb->in_bulk) &&
+> +					bulk_nak_timeout) {
+> +				musb_bulk_nak_timeout(musb, hw_ep);
+> +				return;
+> +			}
+>  			musb_ep_select(mbase, epnum);
+> -			musb_writew(epio, MUSB_RXCSR,
+> -					MUSB_RXCSR_H_WZC_BITS
+> -					| MUSB_RXCSR_H_REQPKT);
+> +			rx_csr &= ~MUSB_RXCSR_DATAERROR;
+> +			musb_writew(epio, MUSB_RXCSR, rx_csr);
+>  
+>  			goto finish;
+>  		} else {
+> @@ -1802,6 +1811,9 @@ static int musb_schedule(
+>  
+>  	idle = 1;
+>  	qh->mux = 0;
+> +	/* disable NAK scheme when bulk is not multiplexed */
+> +	if (is_in && qh->type == USB_ENDPOINT_XFER_BULK && bulk_nak_timeout)
+> +		qh->intv_reg = 0;
+>  	hw_ep = musb->endpoints + best_end;
+>  	if (is_in)
+>  		musb->in[best_end] = qh;
+> @@ -1912,6 +1924,17 @@ static int musb_urb_enqueue(
+>  	case USB_ENDPOINT_XFER_ISOC:
+>  		/* iso always uses log encoding */
+>  		break;
+> +	case USB_ENDPOINT_XFER_BULK:
+> +		/* Enable bulk NAK time out scheme when bulk requests are
+> +		 * multiplxed.This scheme doen't work in high speed to full
+> +		 * speed scenario as NAK interrupts are not coming from a
+> +		 * full speed device connected to a high speed device.
+> +		 */
+> +		if (usb_pipein(urb->pipe) && bulk_nak_timeout) {
+> +			interval = 8;
+> +			break;
+> +		}
+> +		/* FALLTHROUGH */
+>  	default:
+>  		/* REVISIT we actually want to use NAK limits, hinting to the
+>  		 * transfer scheduling logic to try some other qh, e.g. try
+> @@ -2265,6 +2288,47 @@ static int musb_bus_resume(struct usb_hcd *hcd)
+>  	return 0;
+>  }
+>  
+> +static void musb_bulk_nak_timeout(struct musb *musb, struct musb_hw_ep *ep)
+> +{
+> +	struct dma_channel	*dma;
+> +	struct urb	*urb;
+> +	void __iomem	*mbase = musb->mregs;
+> +	void __iomem	*epio = ep->regs;
+> +	struct musb_qh	*cur_qh, *next_qh;
+> +	u16	rx_csr;
+> +
+> +	musb_ep_select(mbase, ep->epnum);
+> +	dma = is_dma_capable() ? ep->rx_channel : NULL;
+> +
+> +	/* clear nak timeout bit */
+> +	rx_csr = musb_readw(epio, MUSB_RXCSR);
+> +	rx_csr &= ~MUSB_RXCSR_DATAERROR;
+> +	musb_writew(epio, MUSB_RXCSR, rx_csr);
+> +
+> +	cur_qh = first_qh(&musb->in_bulk);
+> +	if (cur_qh) {
+> +		urb = next_urb(cur_qh);
+> +		if (dma_channel_status(dma) == MUSB_DMA_STATUS_BUSY) {
+> +			dma->status = MUSB_DMA_STATUS_CORE_ABORT;
+> +			musb->dma_controller->channel_abort(dma);
+> +			urb->actual_length += dma->actual_len;
+> +			dma->actual_len = 0L;
+> +		}
+> +		musb_save_toggle(ep, 1, urb);
+> +
+> +		/* delete cur_qh and add to tail to musb->in_bulk */
+> +		list_del(&cur_qh->ring);
+> +		list_add_tail(&cur_qh->ring, &musb->in_bulk);
+> +
+> +		/* get the next qh from musb->in_bulk */
+> +		next_qh = first_qh(&musb->in_bulk);
+> +
+> +		/* set rx_reinit and schedule the next qh */
+> +		ep->rx_reinit = 1;
+> +		musb_start_urb(musb, 1, next_qh);
+> +	}
+> +}
+> +
+>  const struct hc_driver musb_hc_driver = {
+>  	.description		= "musb-hcd",
+>  	.product_desc		= "MUSB HDRC host driver",
+> -- 
+> 1.5.6
 
-
-Jarkko
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+balbi
