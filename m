@@ -1,69 +1,46 @@
-From: "Ming Lei" <tom.leiming@gmail.com>
-Subject: Re: [beagleboard] can't boot Linux-2.6.28-rc2-omap1
-Date: Mon, 3 Nov 2008 09:29:30 +0800
-Message-ID: <d82e647a0811021729w19706d4fj69b074085f8b4f3a@mail.gmail.com>
-References: <E1KwUYF-000847-0q@amazonia.comcast.net>
-	 <d82e647a0811020202s23b2f816i477758ea9da42947@mail.gmail.com>
-	 <20081102205123.GK28924@atomide.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH] BRIDGE Power Management cleanup
+Date: Mon, 03 Nov 2008 13:19:59 +0200 (EET)
+Message-ID: <20081103.131959.108134469.Hiroshi.DOYU@nokia.com>
+References: <27F9C60D11D683428E133F85D2BB4A5303E1038299@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.228]:61332 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752807AbYKCB3a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Nov 2008 20:29:30 -0500
-Received: by rv-out-0506.google.com with SMTP id k40so2310966rvb.1
-        for <linux-omap@vger.kernel.org>; Sun, 02 Nov 2008 17:29:30 -0800 (PST)
-In-Reply-To: <20081102205123.GK28924@atomide.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.233]:20517 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755141AbYKCLUe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Nov 2008 06:20:34 -0500
+In-Reply-To: <27F9C60D11D683428E133F85D2BB4A5303E1038299@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: rick@efn.org, linux-omap@vger.kernel.org, beagleboard@googlegroups.com, felipe.contreras@gmail.com
+To: x00omar@ti.com
+Cc: linux-omap@vger.kernel.org, vpasam@ti.com, bshah@ti.com, grgupta@ti.com
 
-OK.
-I am now in work, and I will test your patch at home  about 10hours later,:-)
-Thanks!
+Hi Omar,
 
-2008/11/3 Tony Lindgren <tony@atomide.com>:
-> * Ming Lei <tom.leiming@gmail.com> [081102 02:02]:
->> 2008/11/2 Rick Bronson <rick@efn.org>:
->> >
->> >  See previous post with subject:
->> >
->> >  Re: What happened to the serial console on BeagleBoard with 2.6.28-rc2?
->>
->> Very Good!  My BB really does work after applying the patch.
->> Thanks!
->
-> Can you please test my patch too after reverting Rick's strongly
-> ordered patch?
->
-> Thanks,
->
-> Tony
->
->>
->> >
->> >  Rick
->> > --
->> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> > the body of a message to majordomo@vger.kernel.org
->> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> >
->>
->>
->>
->> --
->> Lei Ming
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+I want to try this patch, but would it be possible to tell me which
+patches are expected to be applied in advance of this one?
 
+I tried with pm-20081006 branch but it didn't succeed.
 
+  Hiroshi DOYU
 
--- 
-Lei Ming
+From: "ext Ramirez Luna, Omar" <x00omar@ti.com>
+Subject: [PATCH] BRIDGE Power Management cleanup
+Date: Fri, 31 Oct 2008 20:38:43 -0500
+
+> Hi All,
+> 
+> Here it is Bridge Power Management cleanup patch that applies in top of currently bridge patches series for linux-omap kernel.
+> 
+> ---
+> 
+> From: Ramesh Gupta <grgupta@ti.com>
+> Date: Fri, 31 Oct 2008 18:09:16 -0500
+> Subject: [PATCH] BRIDGE Power Management cleanup
+> 
+> 1. Removed DISABLE_BRIDGE_* Flags.
+> 2. Used platform_data for calling the functions.
+> 3. Check for CONFIG_CPU_FREQ added while boosting the opp.
+> 4. Removed CONFIG_OMAP3_PM flag.
