@@ -1,66 +1,91 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: What happened to the serial console on BeagleBoard with
-	2.6.28-rc2?
-Date: Tue, 4 Nov 2008 13:26:03 -0800
-Message-ID: <20081104212602.GJ28924@atomide.com>
-References: <E1KxT8S-0003jm-KJ@amazonia.comcast.net>
+From: "York, Jeffrey-P56387" <Jeff.York@gdc4s.com>
+Subject: FSUSB Register access
+Date: Tue, 4 Nov 2008 14:35:50 -0700
+Message-ID: <9D31108D62FAE54AA21AEF899D69931E0385A99E@AZ25EXM04.gddsi.com>
+References: <20081104160946.19071.44903.stgit@tubuntu> <20081104161038.19071.98198.stgit@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54996 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754365AbYKDV0I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Nov 2008 16:26:08 -0500
-Content-Disposition: inline
-In-Reply-To: <E1KxT8S-0003jm-KJ@amazonia.comcast.net>
+Received: from az25ege01.gdc4s.com ([63.226.32.21]:31347 "EHLO
+	az25ege01.gdc4s.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751184AbYKDVq4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Nov 2008 16:46:56 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <20081104161038.19071.98198.stgit@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rick Bronson <rick@efn.org>
-Cc: david-b@pacbell.net, linux-omap@vger.kernel.org, nmonson@gmail.com, felipe.contreras@gmail.com, tom.leiming@gmail.com
+To: linux-omap@vger.kernel.org
 
-* Rick Bronson <rick@efn.org> [081104 13:08]:
-> Hi Tony,
-> 
->   I tried your patch to drivers/serial/8250.c and it works fine.  I
-> was concerned that I would start seeing:
-> 
-> omapfb: omapfb blah blah interrupt 0x4000
-> 
->   (sorry, can't remember the exact verbage) because I saw them at one
-> point during the many reboots I did while working on the serial port
-> problem.  But I didn't see any after about 20 reboots.
-> 
->   I assume you mean the patch below but why do you want this one if
-> your 8250.c patch works?
+Hello,
 
-Well the patch below, and my i2c-omap and 8250 patches should not be
-needed any longer, see commit 6ae3983b779ea5ad87515630e9b9205b76f1e916.
+I am using Montavista Mobilinux 5 on OMAP2430 and I am trying to access
+the FSUSB register set and the kernel halts upon any attempt to access
+any of the registers in the FSUSB.
 
-Tony
+Note, under the Mobilinux distribution, the HSUSB controller is used by
+default, not the FSUSB controller.  I am trying to access both so that I
+can have USB port 0 controlled by the HSUSB and port 1 controlled by the
+FSUSB controller.
+
+Per the TI spec, the host and device register sets within the FSUSB
+controller can only be accessed if the OTG register set is correctly
+configured.  However, the OTG register set should be accessible as long
+as there is a 48MHz clock.
+
+I have tried reading the OTG_REVISION register (0x4805e300) and the
+OTG_SYSCON_1_REG (0x4805e304) within arch/arm/plat-omap/usb.c. Upon
+either read, the kernel halts and I do not see any logs at startup after
+the 
+"Uncompressing
+Linux.............................................................
+........................................... done, booting the kernel."
+message.
+
+If I comment out the register accesses, I do see the startup log and I
+see the following log statements within arch/arm/plat-omap/usb.c
+"Timeout enabling clock usb_l4_ick" 
+"Timeout enabling clock usb_fck" 
+
+In addition I have printed out various register values and they are as
+follows.
+
+Various register values:
+
+CM_FCLKEN2_CORE - Address:0x49006204 - value 0x001B07BF,bit 0 is 0x1,
+should be 1
+
+CM_ICLKEN2_CORE - Address:0x49006214 - value 0x00000FFF,bit 0 is 0x1,
+should be 1
+
+CM_IDLEST2_CORE - Address:0x49006224 - value 0x00000FFE,bit 0 is 0x0,
+should be 1  --- Possibly this is causing my problem but it is not clear
+to me what I need to do to have this set to a '1'.
+
+CM_AUTOIDLE2_CORE - Address:0x49006234 - value 0x00000000,bit 0 is 0x0,
+should be 0
+
+CM_CLKSEL1_CORE - Address:0x49006240 - value 0x02102946,bits 27-25 is
+0x1, should be 1 for L3_CLK/1 (boot mode only), 2 for L3_CLK/2, or 4 for
+L3_CLK/4
+
+PM_WKEN2_CORE - Address:0x490062A4 - value 0x00000000,bit 0 is 0x0,
+should be 0 for disabled, 1 for enabled  -- Per TI, this does not need
+to be enabled...
+
+PM_WKST2_CORE - Address:0x490062B4 - value 0x00000000,bit 0 is 0x0,
+should be 0 for not occurred, 1 for occurred
+
+CM_IDLEST_CKGEN - Address:0x49006520 - value 0x00000336,bit 4 is 0x1,
+should be 0x1 for active 48M_CLK
 
 
->   Rick
-> 
-> 
-> Signed-off-by: Rick Bronson <rick@efn.org>
-> 
-> --- linux-omap-2.6/arch/arm/mach-omap2/io.c.~1~	2008-10-28 10:10:25.000000000 -0700
-> +++ linux-omap-2.6/arch/arm/mach-omap2/io.c	2008-11-01 14:58:35.000000000 -0700
-> @@ -155,7 +155,7 @@ static struct map_desc omap34xx_io_desc[
->  		.virtual	= L4_PER_34XX_VIRT,
->  		.pfn		= __phys_to_pfn(L4_PER_34XX_PHYS),
->  		.length		= L4_PER_34XX_SIZE,
-> -		.type		= MT_DEVICE
-> +		.type		= MT_MEMORY_SO  /* debug only */
->  	},
->  	{
->  		.virtual	= L4_EMU_34XX_VIRT,
-> 
-> 
-> > Rick, can you please reply with your Signed-off-by for your patch?
-> > 
-> > Let's push that one, then continue thinking about the so/device
-> > issues.
-> > 
-> > Tony
-> > 
+Any ideas as to what the register settings need to be to enable access
+to the FSUSB OTG registers?
+
+Thanks,
+Jeff
+
+
+
