@@ -1,16 +1,16 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [REVIEW  PATCH 4/9] DSS: TV-out support for OMAP2/3 DSS
-Date: Tue, 04 Nov 2008 18:10:12 +0200
-Message-ID: <20081104161012.19071.11889.stgit@tubuntu>
+Subject: [REVIEW  PATCH 9/9] DSS: support for OMAP3 SDP board
+Date: Tue, 04 Nov 2008 18:10:45 +0200
+Message-ID: <20081104161045.19071.33189.stgit@tubuntu>
 References: <20081104160946.19071.44903.stgit@tubuntu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:48603 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754829AbYKDQKk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Nov 2008 11:10:40 -0500
+Received: from smtp.nokia.com ([192.100.122.233]:49696 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754081AbYKDQLD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Nov 2008 11:11:03 -0500
 In-Reply-To: <20081104160946.19071.44903.stgit@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -20,23 +20,334 @@ Cc: linux-omap@vger.kernel.org
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
 
- arch/arm/plat-omap/dss/venc.c |  499 +++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 499 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/plat-omap/dss/venc.c
+ arch/arm/mach-omap2/board-3430sdp.c |  234 +++++++++++++++++++++++++++++++++--
+ drivers/video/omap2/Kconfig         |    7 +
+ drivers/video/omap2/Makefile        |    1 
+ drivers/video/omap2/panel-sdp3430.c |  110 ++++++++++++++++
+ 4 files changed, 340 insertions(+), 12 deletions(-)
+ create mode 100644 drivers/video/omap2/panel-sdp3430.c
 
-diff --git a/arch/arm/plat-omap/dss/venc.c b/arch/arm/plat-omap/dss/venc.c
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 8773698..b910bc6 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -40,6 +40,8 @@
+ #include <mach/keypad.h>
+ #include <mach/dma.h>
+ #include <mach/gpmc.h>
++#include <mach/omapfb.h>
++#include <mach/display.h>
+ 
+ #include <asm/io.h>
+ #include <asm/delay.h>
+@@ -239,14 +241,224 @@ static struct spi_board_info sdp3430_spi_board_info[] __initdata = {
+ 	},
+ };
+ 
+-static struct platform_device sdp3430_lcd_device = {
+-	.name		= "sdp2430_lcd",
+-	.id		= -1,
++static struct omap_fbmem_config sdp3430_fbmem0_config = {
++	.size = 1024*768*4,
++	.start = OMAPFB_MEMTYPE_SDRAM,
++};
++
++static struct omap_fbmem_config sdp3430_fbmem1_config = {
++	.size = 640*480*4,
++	.start = OMAPFB_MEMTYPE_SDRAM,
+ };
+ 
++static struct omap_fbmem_config sdp3430_fbmem2_config = {
++	.size = 640*480*4,
++	.start = OMAPFB_MEMTYPE_SDRAM,
++};
++
++
++#define SDP2430_LCD_PANEL_BACKLIGHT_GPIO	91
++#define SDP2430_LCD_PANEL_ENABLE_GPIO		154
++#define SDP3430_LCD_PANEL_BACKLIGHT_GPIO	24
++#define SDP3430_LCD_PANEL_ENABLE_GPIO		28
++
++#define PM_RECEIVER             TWL4030_MODULE_PM_RECEIVER
++#define ENABLE_VAUX2_DEDICATED  0x09
++#define ENABLE_VAUX2_DEV_GRP    0x20
++#define ENABLE_VAUX3_DEDICATED	0x03
++#define ENABLE_VAUX3_DEV_GRP	0x20
++
++#define ENABLE_VPLL2_DEDICATED	0x05
++#define ENABLE_VPLL2_DEV_GRP	0xE0
++#define TWL4030_VPLL2_DEV_GRP	0x33
++#define TWL4030_VPLL2_DEDICATED	0x36
++
++#define t2_out(c, r, v) twl4030_i2c_write_u8(c, r, v)
++
++static unsigned backlight_gpio;
++static unsigned enable_gpio;
++static int lcd_enabled;
++static int dvi_enabled;
++
++static void __init display_init(void)
++{
++	int r;
++
++	enable_gpio    = SDP3430_LCD_PANEL_ENABLE_GPIO;
++	backlight_gpio = SDP3430_LCD_PANEL_BACKLIGHT_GPIO;
++
++	r = gpio_request(enable_gpio, "OMAP SDP LCD Reset GPIO");
++	if (r) {
++		printk(KERN_ERR "failed to get LCD reset GPIO\n");
++		goto err0;
++	}
++
++	r = gpio_request(backlight_gpio, "OMAP SDP LCD Backlight GPIO");
++	if (r) {
++		printk(KERN_ERR "failed to get LCD backlight GPIO\n");
++		goto err1;
++	}
++
++	gpio_direction_output(enable_gpio, 0);
++	gpio_direction_output(backlight_gpio, 0);
++
++	return;
++err1:
++	gpio_free(enable_gpio);
++err0:
++	return;
++}
++
++
++static int panel_enable_lcd(struct omap_display *display)
++{
++	u8 ded_val, ded_reg;
++	u8 grp_val, grp_reg;
++
++	if (dvi_enabled) {
++		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
++		return -EINVAL;
++	}
++
++	if (system_rev > OMAP3430_REV_ES1_0) {
++		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEDICATED,
++				TWL4030_VPLL2_DEDICATED);
++		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEV_GRP,
++				TWL4030_VPLL2_DEV_GRP);
++	}
++
++	ded_reg = TWL4030_VAUX3_DEDICATED;
++	ded_val = ENABLE_VAUX3_DEDICATED;
++	grp_reg = TWL4030_VAUX3_DEV_GRP;
++	grp_val = ENABLE_VAUX3_DEV_GRP;
++
++	gpio_direction_output(enable_gpio, 1);
++	gpio_direction_output(backlight_gpio, 1);
++
++	if (0 != t2_out(PM_RECEIVER, ded_val, ded_reg))
++		return -EIO;
++	if (0 != t2_out(PM_RECEIVER, grp_val, grp_reg))
++		return -EIO;
++
++	lcd_enabled = 1;
++
++	return 0;
++}
++
++static void panel_disable_lcd(struct omap_display *display)
++{
++	lcd_enabled = 0;
++
++	gpio_direction_output(enable_gpio, 0);
++	gpio_direction_output(backlight_gpio, 0);
++
++	if (system_rev > OMAP3430_REV_ES1_0) {
++		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEDICATED);
++		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEV_GRP);
++		mdelay(4);
++	}
++}
++
++static struct omap_display_data sdp_display_data = {
++	.type = OMAP_DISPLAY_TYPE_DPI,
++	.name = "lcd",
++	.panel_name = "panel-sdp3430",
++	.u.dpi.data_lines = 16,
++	.panel_enable = panel_enable_lcd,
++	.panel_disable = panel_disable_lcd,
++};
++
++static int panel_enable_dvi(struct omap_display *display)
++{
++	if (lcd_enabled) {
++		printk(KERN_ERR "cannot enable DVI, LCD is enabled\n");
++		return -EINVAL;
++	}
++
++	if (system_rev > OMAP3430_REV_ES1_0) {
++		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEDICATED,
++				TWL4030_VPLL2_DEDICATED);
++		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEV_GRP,
++				TWL4030_VPLL2_DEV_GRP);
++	}
++
++	dvi_enabled = 1;
++
++	return 0;
++}
++
++static void panel_disable_dvi(struct omap_display *display)
++{
++	dvi_enabled = 0;
++
++	if (system_rev > OMAP3430_REV_ES1_0) {
++		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEDICATED);
++		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEV_GRP);
++		mdelay(4);
++	}
++}
++
++
++static struct omap_display_data sdp_display_data_dvi = {
++	.type = OMAP_DISPLAY_TYPE_DPI,
++	.name = "dvi",
++	.panel_name = "panel-dvi",
++	.u.dpi.data_lines = 24,
++	.panel_enable = panel_enable_dvi,
++	.panel_disable = panel_disable_dvi,
++};
++
++static int panel_enable_tv(struct omap_display *display)
++{
++#define ENABLE_VDAC_DEDICATED           0x03
++#define ENABLE_VDAC_DEV_GRP             0x20
++
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			ENABLE_VDAC_DEDICATED,
++			TWL4030_VDAC_DEDICATED);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			ENABLE_VDAC_DEV_GRP, TWL4030_VDAC_DEV_GRP);
++
++	return 0;
++}
++
++static void panel_disable_tv(struct omap_display *display)
++{
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x00,
++			TWL4030_VDAC_DEDICATED);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x00,
++			TWL4030_VDAC_DEV_GRP);
++}
++
++static struct omap_display_data sdp_display_data_tv = {
++	.type = OMAP_DISPLAY_TYPE_VENC,
++	.name = "tv",
++	.u.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
++	.panel_enable = panel_enable_tv,
++	.panel_disable = panel_disable_tv,
++};
++
++static struct omap_dss_platform_data sdp3430_dss_data = {
++	.num_displays = 3,
++	.displays = {
++		&sdp_display_data,
++		&sdp_display_data_dvi,
++		&sdp_display_data_tv,
++	}
++};
++
++static struct platform_device sdp3430_dss_device = {
++	.name          = "omap-dss",
++	.id            = -1,
++	.dev            = {
++		.platform_data = &sdp3430_dss_data,
++	},
++};
++
++
+ static struct platform_device *sdp3430_devices[] __initdata = {
+ 	&sdp3430_smc91x_device,
+-	&sdp3430_lcd_device,
++	&sdp3430_dss_device,
+ };
+ 
+ static inline void __init sdp3430_init_smc91x(void)
+@@ -293,13 +505,11 @@ static struct omap_uart_config sdp3430_uart_config __initdata = {
+ 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+ };
+ 
+-static struct omap_lcd_config sdp3430_lcd_config __initdata = {
+-	.ctrl_name	= "internal",
+-};
+-
+ static struct omap_board_config_kernel sdp3430_config[] __initdata = {
+ 	{ OMAP_TAG_UART,	&sdp3430_uart_config },
+-	{ OMAP_TAG_LCD,		&sdp3430_lcd_config },
++	{ OMAP_TAG_FBMEM,       &sdp3430_fbmem0_config },
++	{ OMAP_TAG_FBMEM,       &sdp3430_fbmem1_config },
++	{ OMAP_TAG_FBMEM,       &sdp3430_fbmem2_config },
+ };
+ 
+ static int sdp3430_batt_table[] = {
+@@ -450,8 +660,6 @@ static void __init omap_3430sdp_init(void)
+ {
+ 	omap3430_i2c_init();
+ 	platform_add_devices(sdp3430_devices, ARRAY_SIZE(sdp3430_devices));
+-	omap_board_config = sdp3430_config;
+-	omap_board_config_size = ARRAY_SIZE(sdp3430_config);
+ 	if (system_rev > OMAP3430_REV_ES1_0)
+ 		ts_gpio = OMAP34XX_TS_GPIO_IRQ_SDPV2;
+ 	else
+@@ -466,10 +674,14 @@ static void __init omap_3430sdp_init(void)
+ 	usb_musb_init();
+ 	usb_ehci_init();
+ 	hsmmc_init();
++	display_init();
+ }
+ 
+ static void __init omap_3430sdp_map_io(void)
+ {
++	omap_board_config = sdp3430_config;
++	omap_board_config_size = ARRAY_SIZE(sdp3430_config);
++
+ 	omap2_set_globals_343x();
+ 	omap2_map_common_io();
+ }
+diff --git a/drivers/video/omap2/Kconfig b/drivers/video/omap2/Kconfig
+index 4584e1b..95691ad 100644
+--- a/drivers/video/omap2/Kconfig
++++ b/drivers/video/omap2/Kconfig
+@@ -45,5 +45,10 @@ config PANEL_DVI_VERYHIGHRES
+ 
+ endchoice
+ 
+-endmenu
++config PANEL_SDP3430
++        tristate "SDP3430 Panel"
++        depends on OMAP2_DSS
++        help
++          SDP3430 LCD
+ 
++endmenu
+diff --git a/drivers/video/omap2/Makefile b/drivers/video/omap2/Makefile
+index 7c75340..73ab1c0 100644
+--- a/drivers/video/omap2/Makefile
++++ b/drivers/video/omap2/Makefile
+@@ -2,3 +2,4 @@ obj-$(CONFIG_FB_OMAP2) += omapfb.o
+ omapfb-y := omapfb-main.o omapfb-sysfs.o omapfb-ioctl.o
+ 
+ obj-$(CONFIG_PANEL_DVI) += panel-dvi.o
++obj-$(CONFIG_PANEL_SDP3430) += panel-sdp3430.o
+diff --git a/drivers/video/omap2/panel-sdp3430.c b/drivers/video/omap2/panel-sdp3430.c
 new file mode 100644
-index 0000000..a9739ad
+index 0000000..40fe6f2
 --- /dev/null
-+++ b/arch/arm/plat-omap/dss/venc.c
-@@ -0,0 +1,499 @@
++++ b/drivers/video/omap2/panel-sdp3430.c
+@@ -0,0 +1,110 @@
 +/*
-+ * linux/arch/arm/plat-omap/dss/venc.c
++ * LCD panel support for the TI 3430SDP board
 + *
 + * Copyright (C) 2008 Nokia Corporation
 + * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 + *
-+ * VENC settings from TI's DSS driver
++ * Derived from drivers/video/omap/lcd_2430sdp.c
 + *
 + * This program is free software; you can redistribute it and/or modify it
 + * under the terms of the GNU General Public License version 2 as published by
@@ -51,482 +362,93 @@ index 0000000..a9739ad
 + * this program.  If not, see <http://www.gnu.org/licenses/>.
 + */
 +
-+#define DSS_SUBSYS_NAME "VENC"
-+
-+#include <linux/kernel.h>
-+#include <linux/clk.h>
++#include <linux/module.h>
 +#include <linux/delay.h>
-+#include <linux/err.h>
 +
-+#include <linux/semaphore.h>
-+#include <mach/board.h>
-+#include <mach/gpio.h>
 +#include <mach/display.h>
-+#include <mach/cpu.h>
 +
-+#include "dss.h"
-+
-+#define VENC_BASE	0x48050C00
-+
-+/* Venc registers */
-+#define VENC_REV_ID				0x00
-+#define VENC_STATUS				0x04
-+#define VENC_F_CONTROL				0x08
-+#define VENC_VIDOUT_CTRL			0x10
-+#define VENC_SYNC_CTRL				0x14
-+#define VENC_LLEN				0x1C
-+#define VENC_FLENS				0x20
-+#define VENC_HFLTR_CTRL				0x24
-+#define VENC_CC_CARR_WSS_CARR			0x28
-+#define VENC_C_PHASE				0x2C
-+#define VENC_GAIN_U				0x30
-+#define VENC_GAIN_V				0x34
-+#define VENC_GAIN_Y				0x38
-+#define VENC_BLACK_LEVEL			0x3C
-+#define VENC_BLANK_LEVEL			0x40
-+#define VENC_X_COLOR				0x44
-+#define VENC_M_CONTROL				0x48
-+#define VENC_BSTAMP_WSS_DATA			0x4C
-+#define VENC_S_CARR				0x50
-+#define VENC_LINE21				0x54
-+#define VENC_LN_SEL				0x58
-+#define VENC_L21__WC_CTL			0x5C
-+#define VENC_HTRIGGER_VTRIGGER			0x60
-+#define VENC_SAVID__EAVID			0x64
-+#define VENC_FLEN__FAL				0x68
-+#define VENC_LAL__PHASE_RESET			0x6C
-+#define VENC_HS_INT_START_STOP_X		0x70
-+#define VENC_HS_EXT_START_STOP_X		0x74
-+#define VENC_VS_INT_START_X			0x78
-+#define VENC_VS_INT_STOP_X__VS_INT_START_Y	0x7C
-+#define VENC_VS_INT_STOP_Y__VS_EXT_START_X	0x80
-+#define VENC_VS_EXT_STOP_X__VS_EXT_START_Y	0x84
-+#define VENC_VS_EXT_STOP_Y			0x88
-+#define VENC_AVID_START_STOP_X			0x90
-+#define VENC_AVID_START_STOP_Y			0x94
-+#define VENC_FID_INT_START_X__FID_INT_START_Y	0xA0
-+#define VENC_FID_INT_OFFSET_Y__FID_EXT_START_X	0xA4
-+#define VENC_FID_EXT_START_Y__FID_EXT_OFFSET_Y	0xA8
-+#define VENC_TVDETGP_INT_START_STOP_X		0xB0
-+#define VENC_TVDETGP_INT_START_STOP_Y		0xB4
-+#define VENC_GEN_CTRL				0xB8
-+#define VENC_OUTPUT_CONTROL			0xC4
-+#define VENC_DAC_B__DAC_C			0xC8
-+
-+static DECLARE_MUTEX(venc_lock);
-+
-+struct venc_config {
-+	u32 f_control;
-+	u32 vidout_ctrl;
-+	u32 sync_ctrl;
-+	u32 llen;
-+	u32 flens;
-+	u32 hfltr_ctrl;
-+	u32 cc_carr_wss_carr;
-+	u32 c_phase;
-+	u32 gain_u;
-+	u32 gain_v;
-+	u32 gain_y;
-+	u32 black_level;
-+	u32 blank_level;
-+	u32 x_color;
-+	u32 m_control;
-+	u32 bstamp_wss_data;
-+	u32 s_carr;
-+	u32 line21;
-+	u32 ln_sel;
-+	u32 l21__wc_ctl;
-+	u32 htrigger_vtrigger;
-+	u32 savid__eavid;
-+	u32 flen__fal;
-+	u32 lal__phase_reset;
-+	u32 hs_int_start_stop_x;
-+	u32 hs_ext_start_stop_x;
-+	u32 vs_int_start_x;
-+	u32 vs_int_stop_x__vs_int_start_y;
-+	u32 vs_int_stop_y__vs_ext_start_x;
-+	u32 vs_ext_stop_x__vs_ext_start_y;
-+	u32 vs_ext_stop_y;
-+	u32 avid_start_stop_x;
-+	u32 avid_start_stop_y;
-+	u32 fid_int_start_x__fid_int_start_y;
-+	u32 fid_int_offset_y__fid_ext_start_x;
-+	u32 fid_ext_start_y__fid_ext_offset_y;
-+	u32 tvdetgp_int_start_stop_x;
-+	u32 tvdetgp_int_start_stop_y;
-+	u32 gen_ctrl;
-+
-+	int width;
-+	int height;
-+};
-+
-+/* from TRM */
-+static const struct venc_config venc_config_pal_trm = {
-+	.f_control				= 0,
-+	.vidout_ctrl				= 1,
-+	.sync_ctrl				= 0x40,
-+	.llen					= 0x35F, /* 863 */
-+	.flens					= 0x270, /* 624 */
-+	.hfltr_ctrl				= 0,
-+	.cc_carr_wss_carr			= 0x2F7225ED,
-+	.c_phase				= 0,
-+	.gain_u					= 0x111,
-+	.gain_v					= 0x181,
-+	.gain_y					= 0x140,
-+	.black_level				= 0x3B,
-+	.blank_level				= 0x3B,
-+	.x_color				= 0x7,
-+	.m_control				= 0x2,
-+	.bstamp_wss_data			= 0x3F,
-+	.s_carr					= 0x2A098ACB,
-+	.line21					= 0,
-+	.ln_sel					= 0x01290015,
-+	.l21__wc_ctl				= 0x0000F603,
-+	.htrigger_vtrigger			= 0,
-+
-+	.savid__eavid				= 0x06A70108,
-+	.flen__fal				= 0x00180270,
-+	.lal__phase_reset			= 0x00180270,
-+	.hs_int_start_stop_x			= 0x00880358,
-+	.hs_ext_start_stop_x			= 0x000F035F,
-+	.vs_int_start_x				= 0x01A70000,
-+	.vs_int_stop_x__vs_int_start_y		= 0x000001A7,
-+	.vs_int_stop_y__vs_ext_start_x		= 0x01AF0000,
-+	.vs_ext_stop_x__vs_ext_start_y		= 0x000101AF,
-+	.vs_ext_stop_y				= 0x00000025,
-+	.avid_start_stop_x			= 0x03530083,
-+	.avid_start_stop_y			= 0x026C002E,
-+	.fid_int_start_x__fid_int_start_y	= 0x0001008A,
-+	.fid_int_offset_y__fid_ext_start_x	= 0x002E0138,
-+	.fid_ext_start_y__fid_ext_offset_y	= 0x01380001,
-+
-+	.tvdetgp_int_start_stop_x		= 0x00140001,
-+	.tvdetgp_int_start_stop_y		= 0x00010001,
-+	.gen_ctrl				= 0x00FF0000,
-+
-+	.width = 720,
-+	.height = 574, /* for some reason, this isn't 576 */
-+};
-+
-+/* from TRM */
-+static const struct venc_config venc_config_ntsc_trm = {
-+	.f_control				= 0,
-+	.vidout_ctrl				= 1,
-+	.sync_ctrl				= 0x8040,
-+	.llen					= 0x359,
-+	.flens					= 0x20C,
-+	.hfltr_ctrl				= 0,
-+	.cc_carr_wss_carr			= 0x043F2631,
-+	.c_phase				= 0,
-+	.gain_u					= 0x102,
-+	.gain_v					= 0x16C,
-+	.gain_y					= 0x12F,
-+	.black_level				= 0x43,
-+	.blank_level				= 0x38,
-+	.x_color				= 0x7,
-+	.m_control				= 0x1,
-+	.bstamp_wss_data			= 0x38,
-+	.s_carr					= 0x21F07C1F,
-+	.line21					= 0,
-+	.ln_sel					= 0x01310011,
-+	.l21__wc_ctl				= 0x0000F003,
-+	.htrigger_vtrigger			= 0,
-+
-+	.savid__eavid				= 0x069300F4,
-+	.flen__fal				= 0x0016020C,
-+	.lal__phase_reset			= 0x00060107,
-+	.hs_int_start_stop_x			= 0x008E0350,
-+	.hs_ext_start_stop_x			= 0x000F0359,
-+	.vs_int_start_x				= 0x01A00000,
-+	.vs_int_stop_x__vs_int_start_y		= 0x020701A0,
-+	.vs_int_stop_y__vs_ext_start_x		= 0x01AC0024,
-+	.vs_ext_stop_x__vs_ext_start_y		= 0x020D01AC,
-+	.vs_ext_stop_y				= 0x00000006,
-+	.avid_start_stop_x			= 0x03480078,
-+	.avid_start_stop_y			= 0x02060024,
-+	.fid_int_start_x__fid_int_start_y	= 0x0001008A,
-+	.fid_int_offset_y__fid_ext_start_x	= 0x01AC0106,
-+	.fid_ext_start_y__fid_ext_offset_y	= 0x01060006,
-+
-+	.tvdetgp_int_start_stop_x		= 0x00140001,
-+	.tvdetgp_int_start_stop_y		= 0x00010001,
-+	.gen_ctrl				= 0x00F90000,
-+
-+	.width = 720,
-+	.height = 482,
-+};
-+
-+static const struct venc_config venc_config_pal_bdghi = {
-+	.f_control				= 0,
-+	.vidout_ctrl				= 0,
-+	.sync_ctrl				= 0,
-+	.hfltr_ctrl				= 0,
-+	.x_color				= 0,
-+	.line21					= 0,
-+	.ln_sel					= 21,
-+	.htrigger_vtrigger			= 0,
-+	.tvdetgp_int_start_stop_x		= 0x00140001,
-+	.tvdetgp_int_start_stop_y		= 0x00010001,
-+	.gen_ctrl				= 0x00FB0000,
-+
-+	.llen					= 864-1,
-+	.flens					= 625-1,
-+	.cc_carr_wss_carr			= 0x2F7625ED,
-+	.c_phase				= 0xDF,
-+	.gain_u					= 0x111,
-+	.gain_v					= 0x181,
-+	.gain_y					= 0x140,
-+	.black_level				= 0x3e,
-+	.blank_level				= 0x3e,
-+	.m_control				= 0<<2 | 1<<1,
-+	.bstamp_wss_data			= 0x42,
-+	.s_carr					= 0x2a098acb,
-+	.l21__wc_ctl				= 0<<13 | 0x16<<8 | 0<<0,
-+	.savid__eavid				= 0x06A70108,
-+	.flen__fal				= 23<<16 | 624<<0,
-+	.lal__phase_reset			= 2<<17 | 310<<0,
-+	.hs_int_start_stop_x			= 0x00920358,
-+	.hs_ext_start_stop_x			= 0x000F035F,
-+	.vs_int_start_x				= 0x1a7<<16,
-+	.vs_int_stop_x__vs_int_start_y		= 0x000601A7,
-+	.vs_int_stop_y__vs_ext_start_x		= 0x01AF0036,
-+	.vs_ext_stop_x__vs_ext_start_y		= 0x27101af,
-+	.vs_ext_stop_y				= 0x05,
-+	.avid_start_stop_x			= 0x03530082,
-+	.avid_start_stop_y			= 0x0270002E,
-+	.fid_int_start_x__fid_int_start_y	= 0x0005008A,
-+	.fid_int_offset_y__fid_ext_start_x	= 0x002E0138,
-+	.fid_ext_start_y__fid_ext_offset_y	= 0x01380005,
-+
-+	.width = 720,
-+	.height = 576,
-+};
-+
-+static struct {
-+	void __iomem *base;
-+	struct clk *dss_54m_fck;
-+	struct clk *dss_96m_fck;
-+	struct clk *dss_ick;
-+	struct clk *dss1_fck;
-+	const struct venc_config *config;
-+} venc;
-+
-+static struct omap_panel venc_panel = {
-+	.name = "tv-out",
-+	.x_res =  0,
-+	.y_res = 0,
-+	.bpp = 24,
-+};
-+
-+static inline void venc_write_reg(int idx, u32 val)
++static int sdp3430_panel_init(struct omap_display *display)
 +{
-+	__raw_writel(val, venc.base + idx);
-+}
-+
-+static inline u32 venc_read_reg(int idx)
-+{
-+	u32 l = __raw_readl(venc.base + idx);
-+	return l;
-+}
-+
-+static void venc_write_config(const struct venc_config *config)
-+{
-+	DSSDBG("write venc conf\n");
-+
-+	venc_write_reg(VENC_LLEN, config->llen);
-+	venc_write_reg(VENC_FLENS, config->flens);
-+	venc_write_reg(VENC_CC_CARR_WSS_CARR, config->cc_carr_wss_carr);
-+	venc_write_reg(VENC_C_PHASE, config->c_phase);
-+	venc_write_reg(VENC_GAIN_U, config->gain_u);
-+	venc_write_reg(VENC_GAIN_V, config->gain_v);
-+	venc_write_reg(VENC_GAIN_Y, config->gain_y);
-+	venc_write_reg(VENC_BLACK_LEVEL, config->black_level);
-+	venc_write_reg(VENC_BLANK_LEVEL, config->blank_level);
-+	venc_write_reg(VENC_M_CONTROL, config->m_control);
-+	venc_write_reg(VENC_BSTAMP_WSS_DATA, config->bstamp_wss_data);
-+	venc_write_reg(VENC_S_CARR, config->s_carr);
-+	venc_write_reg(VENC_L21__WC_CTL, config->l21__wc_ctl);
-+	venc_write_reg(VENC_SAVID__EAVID, config->savid__eavid);
-+	venc_write_reg(VENC_FLEN__FAL, config->flen__fal);
-+	venc_write_reg(VENC_LAL__PHASE_RESET, config->lal__phase_reset);
-+	venc_write_reg(VENC_HS_INT_START_STOP_X, config->hs_int_start_stop_x);
-+	venc_write_reg(VENC_HS_EXT_START_STOP_X, config->hs_ext_start_stop_x);
-+	venc_write_reg(VENC_VS_INT_START_X, config->vs_int_start_x);
-+	venc_write_reg(VENC_VS_INT_STOP_X__VS_INT_START_Y,
-+		       config->vs_int_stop_x__vs_int_start_y);
-+	venc_write_reg(VENC_VS_INT_STOP_Y__VS_EXT_START_X,
-+		       config->vs_int_stop_y__vs_ext_start_x);
-+	venc_write_reg(VENC_VS_EXT_STOP_X__VS_EXT_START_Y,
-+		       config->vs_ext_stop_x__vs_ext_start_y);
-+	venc_write_reg(VENC_VS_EXT_STOP_Y, config->vs_ext_stop_y);
-+	venc_write_reg(VENC_AVID_START_STOP_X, config->avid_start_stop_x);
-+	venc_write_reg(VENC_AVID_START_STOP_Y, config->avid_start_stop_y);
-+	venc_write_reg(VENC_FID_INT_START_X__FID_INT_START_Y,
-+		       config->fid_int_start_x__fid_int_start_y);
-+	venc_write_reg(VENC_FID_INT_OFFSET_Y__FID_EXT_START_X,
-+		       config->fid_int_offset_y__fid_ext_start_x);
-+	venc_write_reg(VENC_FID_EXT_START_Y__FID_EXT_OFFSET_Y,
-+		       config->fid_ext_start_y__fid_ext_offset_y);
-+
-+	venc_write_reg(VENC_DAC_B__DAC_C,  venc_read_reg(VENC_DAC_B__DAC_C));
-+	venc_write_reg(VENC_VIDOUT_CTRL, config->vidout_ctrl);
-+	venc_write_reg(VENC_HFLTR_CTRL, config->hfltr_ctrl);
-+	venc_write_reg(VENC_X_COLOR, config->x_color);
-+	venc_write_reg(VENC_LINE21, config->line21);
-+	venc_write_reg(VENC_LN_SEL, config->ln_sel);
-+	venc_write_reg(VENC_HTRIGGER_VTRIGGER, config->htrigger_vtrigger);
-+	venc_write_reg(VENC_TVDETGP_INT_START_STOP_X,
-+		       config->tvdetgp_int_start_stop_x);
-+	venc_write_reg(VENC_TVDETGP_INT_START_STOP_Y,
-+		       config->tvdetgp_int_start_stop_y);
-+	venc_write_reg(VENC_GEN_CTRL, config->gen_ctrl);
-+	venc_write_reg(VENC_F_CONTROL, config->f_control);
-+	venc_write_reg(VENC_SYNC_CTRL, config->sync_ctrl);
-+}
-+
-+static void venc_reset(void)
-+{
-+	int t = 1000;
-+
-+	venc_write_reg(VENC_F_CONTROL, venc_read_reg(VENC_F_CONTROL) | (1<<8));
-+	while (venc_read_reg(VENC_F_CONTROL) & (1<<8)) {
-+		if (--t == 0) {
-+			DSSERR("Failed to reset venc\n");
-+			return;
-+		}
-+	}
-+}
-+
-+static void venc_enable_clocks(int enable)
-+{
-+	if (enable) {
-+		clk_enable(venc.dss_ick);
-+		clk_enable(venc.dss1_fck);
-+		clk_enable(venc.dss_54m_fck);
-+		clk_enable(venc.dss_96m_fck);
-+	} else {
-+		clk_disable(venc.dss_96m_fck);
-+		clk_disable(venc.dss_54m_fck);
-+		clk_disable(venc.dss1_fck);
-+		clk_disable(venc.dss_ick);
-+	}
-+}
-+
-+int venc_init(void)
-+{
-+	u8 rev_id;
-+	int use_pal = 1; /* XXX */
-+
-+	if (use_pal)
-+		venc.config = &venc_config_pal_trm;
-+	else
-+		venc.config = &venc_config_ntsc_trm;
-+
-+	venc_panel.x_res = venc.config->width;
-+	venc_panel.y_res = venc.config->height;
-+
-+	venc.base = ioremap(VENC_BASE, SZ_1K);
-+	if (!venc.base) {
-+		DSSERR("can't ioremap VENC\n");
-+		return -ENOMEM;
-+	}
-+
-+	venc.dss_ick = get_dss_ick();
-+	venc.dss1_fck = get_dss1_fck();
-+	venc.dss_54m_fck = get_tv_fck();
-+	venc.dss_96m_fck = get_96m_fck();
-+
-+	/* enable clocks */
-+	venc_enable_clocks(1);
-+
-+	/* configure venc */
-+	venc_reset();
-+	venc_write_config(venc.config);
-+
-+	rev_id = (u8)(venc_read_reg(VENC_REV_ID) & 0xff);
-+	printk(KERN_INFO "OMAP VENC rev %d\n", rev_id);
-+
-+	venc_enable_clocks(0);
-+
 +	return 0;
 +}
 +
-+void venc_exit(void)
++static void sdp3430_panel_cleanup(struct omap_display *display)
 +{
-+	iounmap(venc.base);
 +}
 +
-+static int venc_enable_display(struct omap_display *display)
++static int sdp3430_panel_enable(struct omap_display *display)
 +{
-+	DSSDBG("venc_enable_display\n");
-+
-+	down(&venc_lock);
-+
-+	if (display->state != OMAP_DSS_DISPLAY_DISABLED) {
-+		up(&venc_lock);
-+		return -EINVAL;
-+	}
-+
-+	venc_enable_clocks(1);
-+
-+	dss_set_venc_output(display->hw_config.u.venc.type);
-+	dss_set_dac_pwrdn_bgz(1);
-+
-+	venc_write_config(venc.config);
-+
-+	if (display->hw_config.u.venc.type == OMAP_DSS_VENC_TYPE_COMPOSITE) {
-+		if (cpu_is_omap24xx())
-+			venc_write_reg(VENC_OUTPUT_CONTROL, 0x2);
-+		else
-+			venc_write_reg(VENC_OUTPUT_CONTROL, 0xa);
-+	} else { /* S-Video */
-+		venc_write_reg(VENC_OUTPUT_CONTROL, 0xd);
-+	}
-+
-+	dispc_set_digit_size(venc.config->width, venc.config->height/2);
++	int r = 0;
 +
 +	if (display->hw_config.panel_enable)
-+		display->hw_config.panel_enable(display);
++		r = display->hw_config.panel_enable(display);
 +
-+	dispc_enable_digit_out(1);
++	return r;
++}
 +
-+	display->state = OMAP_DSS_DISPLAY_ACTIVE;
++static void sdp3430_panel_disable(struct omap_display *display)
++{
++	if (display->hw_config.panel_disable)
++		display->hw_config.panel_disable(display);
++}
 +
-+	up(&venc_lock);
-+
++static int sdp3430_panel_suspend(struct omap_display *display)
++{
++	sdp3430_panel_disable(display);
 +	return 0;
 +}
 +
-+static void venc_disable_display(struct omap_display *display)
++static int sdp3430_panel_resume(struct omap_display *display)
 +{
-+	DSSDBG("venc_disable_display\n");
-+
-+	down(&venc_lock);
-+
-+	if (display->state == OMAP_DSS_DISPLAY_DISABLED) {
-+		up(&venc_lock);
-+		return;
-+	}
-+
-+	venc_write_reg(VENC_OUTPUT_CONTROL, 0);
-+	dss_set_dac_pwrdn_bgz(0);
-+
-+	dispc_enable_digit_out(0);
-+
-+	if (display->hw_config.panel_disable)
-+		display->hw_config.panel_disable(display);
-+
-+	venc_enable_clocks(0);
-+
-+	display->state = OMAP_DSS_DISPLAY_DISABLED;
-+
-+	up(&venc_lock);
++	return sdp3430_panel_enable(display);
 +}
 +
-+void venc_init_display(struct omap_display *display)
++static struct omap_panel sdp3430_panel = {
++	.owner		= THIS_MODULE,
++	.name		= "panel-sdp3430",
++	.init		= sdp3430_panel_init,
++	.cleanup	= sdp3430_panel_cleanup,
++	.enable		= sdp3430_panel_enable,
++	.disable	= sdp3430_panel_disable,
++	.suspend	= sdp3430_panel_suspend,
++	.resume		= sdp3430_panel_resume,
++	/*.set_mode	= sdp3430_set_mode, */
++
++	.timings = {
++		.pixel_clock	= 19200,
++
++		.hsw		= 4,
++		.hfp		= 4,
++		.hbp		= 40,
++
++		.vsw		= 2,
++		.vfp		= 1,
++		.vbp		= 1,
++	},
++
++	.acb		= 0x28,
++
++	.config		= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++		OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
++
++	.x_res = 480,
++	.y_res = 640,
++	.bpp = 16,
++};
++
++
++static int __init sdp3430_panel_drv_init(void)
 +{
-+	display->panel = &venc_panel;
-+	display->enable = venc_enable_display;
-+	display->disable = venc_disable_display;
++	omap_dss_register_panel(&sdp3430_panel);
++	return 0;
 +}
++
++static void __exit sdp3430_panel_drv_exit(void)
++{
++	omap_dss_unregister_panel(&sdp3430_panel);
++}
++
++module_init(sdp3430_panel_drv_init);
++module_exit(sdp3430_panel_drv_exit);
++MODULE_LICENSE("GPL");
 
