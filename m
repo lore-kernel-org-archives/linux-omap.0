@@ -1,67 +1,73 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: [REVIEW  PATCH 8/9] DSS: support for Beagle Board
-Date: Tue, 4 Nov 2008 18:28:19 +0100
-Message-ID: <D518F5F9-95AB-4881-BD63-8135263203AC@student.utwente.nl>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [Linux-fbdev-devel] [REVIEW PATCH 8/9] DSS: support for Beagle
+	Board
+Date: Tue, 4 Nov 2008 10:24:29 -0800
+Message-ID: <20081104182427.GZ28924@atomide.com>
 References: <20081104160946.19071.44903.stgit@tubuntu> <20081104161038.19071.98198.stgit@tubuntu>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-13-551880383"
-Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.utsp.utwente.nl ([130.89.2.8]:34097 "EHLO smtp.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755498AbYKDRlo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Nov 2008 12:41:44 -0500
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51218 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752058AbYKDSYi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Nov 2008 13:24:38 -0500
+Content-Disposition: inline
 In-Reply-To: <20081104161038.19071.98198.stgit@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 Cc: linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-13-551880383
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+Hi,
 
+One comment below.
 
-Op 4 nov 2008, om 17:10 heeft Tomi Valkeinen het volgende geschreven:
-
+* Tomi Valkeinen <tomi.valkeinen@nokia.com> [081104 08:32]:
 > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 > ---
->
-> arch/arm/mach-omap2/board-omap3beagle.c |  121 ++++++++++++++++++++++ 
-> ++++++---
-> 1 files changed, 108 insertions(+), 13 deletions(-)
->
-> +static struct omap_display_data beagle_display_data_dvi = {
-> +	.type = OMAP_DISPLAY_TYPE_DPI,
-> +	.name = "dvi",
-> +	.panel_name = "panel-dvi",
-> +	.u.dpi.data_lines = 24,
-> +	.panel_reset_gpio = 170,
-> +	.panel_enable = beagle_enable_dvi,
-> +	.panel_disable = beagle_disable_dvi,
+> 
+>  arch/arm/mach-omap2/board-omap3beagle.c |  121 ++++++++++++++++++++++++++++---
+>  1 files changed, 108 insertions(+), 13 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index ce6c7b4..a6fe63d 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
 
-gpio 170 is the enable (or disable, I forget which) for the DVI framer  
-(TFP410), not a reset gpio. It would be nice to have a way to enable/ 
-disable the framer  from userspace since it burns 60-100mA.
+<snip>
 
-regards,
+> +static struct omap_fbmem_config beagle_fbmem0_config = {
+> +	.size = 1024*768*4,
+> +	.start = OMAPFB_MEMTYPE_SDRAM,
+> +};
+> +
+> +static struct omap_fbmem_config beagle_fbmem1_config = {
+> +	.size = 1024*768*4,
+> +	.start = OMAPFB_MEMTYPE_SDRAM,
+> +};
+> +
+> +static struct omap_fbmem_config beagle_fbmem2_config = {
+> +	.size = 1024*768*4,
+> +	.start = OMAPFB_MEMTYPE_SDRAM,
+> +};
+> +
+> +
+>  static struct omap_board_config_kernel omap3_beagle_config[] __initdata = {
+>  	{ OMAP_TAG_UART,	&omap3_beagle_uart_config },
+> -	{ OMAP_TAG_LCD,		&omap3_beagle_lcd_config },
+> +	{ OMAP_TAG_FBMEM,       &beagle_fbmem0_config },
+> +	{ OMAP_TAG_FBMEM,       &beagle_fbmem1_config },
+> +	{ OMAP_TAG_FBMEM,       &beagle_fbmem2_config },
+>  };
+>  
 
-Koen
+NAK for adding new OMAP_TAGs. We are in process of removing those.
+You should be able to use just board specific platform_data.
 
---Apple-Mail-13-551880383
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: This is a digitally signed message part
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
+If there are ATAGs that are needed, they must be ARM generic. They
+also need to be acked by Russell King on the linux-arm-kernel mailing
+list. I doubt that you'll need those though.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
+Regards,
 
-iD8DBQFJEIY2MkyGM64RGpERAjEDAKC7YKhdUigbFqKmpkpcLxnHbfHGPQCgsXqf
-+NFhOcY/oGcwwhXLKz5fv2E=
-=/upL
------END PGP SIGNATURE-----
-
---Apple-Mail-13-551880383--
+Tony
