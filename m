@@ -1,218 +1,273 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCHv2 2/2] musb: adding qh in_list and out_list in struct
-	hw_ep
-Date: Tue, 4 Nov 2008 14:40:29 +0200
-Message-ID: <20081104124029.GH28087@gandalf.research.nokia.com>
-References: <1225800994-24691-1-git-send-email-ajay.gupta@ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: [REVIEW  PATCH 1/9] DSS: Documentation for OMAP2/3 display subsystem
+Date: Tue, 04 Nov 2008 18:09:53 +0200
+Message-ID: <20081104160953.19071.49965.stgit@tubuntu>
+References: <20081104160946.19071.44903.stgit@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:63074 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751593AbYKDMkx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Nov 2008 07:40:53 -0500
-Content-Disposition: inline
-In-Reply-To: <1225800994-24691-1-git-send-email-ajay.gupta@ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:48586 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753941AbYKDQK2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Nov 2008 11:10:28 -0500
+In-Reply-To: <20081104160946.19071.44903.stgit@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: --to@india.ti.com, linux-omap@vger.kernel.org, david-b@pacbell.net, felipe.balbi@nokia.com, Ravi Babu <ravibabu@ti.com>, Swaminathan S <swami.iyer@ti.com>, Thomas Abraham <t-abraham@ti.com>
+To: linux-fbdev-devel@lists.sourceforge.net
+Cc: linux-omap@vger.kernel.org
 
-On Tue, Nov 04, 2008 at 05:46:34PM +0530, Ajay Kumar Gupta wrote:
-> Currently qh list for control, bulkin and bulkout are
-> part of musb structure as musb->control, musb->in_bulk
-> and musb->out_bulk.This patch makes it generic across
-> hw_ep by removing them from musb and mapping them to
-> in_list and out_list of hw_ep structure.
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+---
 
-applied, thanks
+ Documentation/arm/OMAP/DSS |  240 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 240 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/arm/OMAP/DSS
 
-> 
-> Signed-off-by: Ravi Babu <ravibabu@ti.com>
-> Signed-off-by: Swaminathan S <swami.iyer@ti.com>
-> Signed-off-by: Thomas Abraham <t-abraham@ti.com>
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> ---
->  drivers/usb/musb/musb_core.c |    6 +++---
->  drivers/usb/musb/musb_core.h |    9 ++++++---
->  drivers/usb/musb/musb_host.c |   36 ++++++++++++++++++------------------
->  3 files changed, 27 insertions(+), 24 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> index ebe0828..dbf8861 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -1445,6 +1445,9 @@ static int __init musb_core_init(u16 musb_type, struct musb *musb)
->  
->  		hw_ep->regs = MUSB_EP_OFFSET(i, 0) + mbase;
->  #ifdef CONFIG_USB_MUSB_HDRC_HCD
-> +		/* init list of in and out qhs */
-> +		INIT_LIST_HEAD(&hw_ep->in_list);
-> +		INIT_LIST_HEAD(&hw_ep->out_list);
->  		hw_ep->target_regs = MUSB_BUSCTL_OFFSET(i, 0) + mbase;
->  		hw_ep->rx_reinit = 1;
->  		hw_ep->tx_reinit = 1;
-> @@ -1790,9 +1793,6 @@ allocate_instance(struct device *dev,
->  	/* usbcore sets dev->driver_data to hcd, and sometimes uses that... */
->  
->  	musb = hcd_to_musb(hcd);
-> -	INIT_LIST_HEAD(&musb->control);
-> -	INIT_LIST_HEAD(&musb->in_bulk);
-> -	INIT_LIST_HEAD(&musb->out_bulk);
->  
->  	hcd->uses_new_polling = 1;
->  
-> diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-> index 4972a3b..92b7c47 100644
-> --- a/drivers/usb/musb/musb_core.h
-> +++ b/drivers/usb/musb/musb_core.h
-> @@ -271,6 +271,12 @@ struct musb_hw_ep {
->  	struct musb_qh		*in_qh;
->  	struct musb_qh		*out_qh;
->  
-> +	/* list of rx and tx qhs, control transfer needs only
-> +	 * one list thus only in_list is used for control.
-> +	 */
-> +	struct list_head        in_list;
-> +	struct list_head        out_list;
-> +
->  	u8			rx_reinit;
->  	u8			tx_reinit;
->  #endif
-> @@ -328,9 +334,6 @@ struct musb {
->  	 */
->  	struct musb_hw_ep	*bulk_ep;
->  
-> -	struct list_head	control;	/* of musb_qh */
-> -	struct list_head	in_bulk;	/* of musb_qh */
-> -	struct list_head	out_bulk;	/* of musb_qh */
->  	struct musb_qh	*in[16];
->  	struct musb_qh	*out[16];
->  #endif
-> diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-> index 0b40a00..f276229 100644
-> --- a/drivers/usb/musb/musb_host.c
-> +++ b/drivers/usb/musb/musb_host.c
-> @@ -1219,7 +1219,7 @@ void musb_host_tx(struct musb *musb, u8 epnum)
->  		 * transfer, if there's some other (nonperiodic) tx urb
->  		 * that could use this fifo.  (dma complicates it...)
->  		 *
-> -		 * if (bulk && qh->ring.next != &musb->out_bulk), then
-> +		 * if (bulk && qh->ring.next != &hw_ep->out_list), then
->  		 * we have a candidate... NAKing is *NOT* an error
->  		 */
->  		musb_ep_select(mbase, epnum);
-> @@ -1378,7 +1378,7 @@ finish:
->  
->  #endif
->  
-> -/* Schedule next qh from musb->in_bulk and add the current qh at tail
-> +/* Schedule next qh from ep->in_list and add the current qh at tail
->   * to avoid endpoint starvation.
->   */
->  static void musb_bulk_nak_timeout(struct musb *musb, struct musb_hw_ep *ep)
-> @@ -1398,7 +1398,7 @@ static void musb_bulk_nak_timeout(struct musb *musb, struct musb_hw_ep *ep)
->  	rx_csr &= ~MUSB_RXCSR_DATAERROR;
->  	musb_writew(epio, MUSB_RXCSR, rx_csr);
->  
-> -	cur_qh = first_qh(&musb->in_bulk);
-> +	cur_qh = first_qh(&ep->in_list);
->  	if (cur_qh) {
->  		urb = next_urb(cur_qh);
->  		if (dma_channel_status(dma) == MUSB_DMA_STATUS_BUSY) {
-> @@ -1409,12 +1409,12 @@ static void musb_bulk_nak_timeout(struct musb *musb, struct musb_hw_ep *ep)
->  		}
->  		musb_save_toggle(ep, 1, urb);
->  
-> -		/* delete cur_qh and add to tail to musb->in_bulk */
-> +		/* delete cur_qh and add to tail to ep->in_list */
->  		list_del(&cur_qh->ring);
-> -		list_add_tail(&cur_qh->ring, &musb->in_bulk);
-> +		list_add_tail(&cur_qh->ring, &ep->in_list);
->  
-> -		/* get the next qh from musb->in_bulk */
-> -		next_qh = first_qh(&musb->in_bulk);
-> +		/* get the next qh from ep->in_list */
-> +		next_qh = first_qh(&ep->in_list);
->  
->  		/* set rx_reinit and schedule the next qh */
->  		ep->rx_reinit = 1;
-> @@ -1489,12 +1489,12 @@ void musb_host_rx(struct musb *musb, u8 epnum)
->  			 * transfer, if there's some other (nonperiodic) rx urb
->  			 * that could use this fifo.  (dma complicates it...)
->  			 *
-> -			 * if (bulk && qh->ring.next != &musb->in_bulk), then
-> +			 * if (bulk && qh->ring.next != &hw_ep->in_list), then
->  			 * we have a candidate... NAKing is *NOT* an error
->  			 */
->  			DBG(6, "RX end %d NAK timeout\n", epnum);
->  			if (usb_pipebulk(urb->pipe) && qh->mux == 1 &&
-> -				!list_is_singular(&musb->in_bulk)) {
-> +				!list_is_singular(&hw_ep->in_list)) {
->  				musb_bulk_nak_timeout(musb, hw_ep);
->  				return;
->  			}
-> @@ -1783,8 +1783,8 @@ static int musb_schedule(
->  
->  	/* use fixed hardware for control and bulk */
->  	if (qh->type == USB_ENDPOINT_XFER_CONTROL) {
-> -		head = &musb->control;
->  		hw_ep = musb->control_ep;
-> +		head = &hw_ep->in_list;
->  		goto success;
->  	}
->  
-> @@ -1840,9 +1840,9 @@ static int musb_schedule(
->  	if (best_end > 0 && qh->type == USB_ENDPOINT_XFER_BULK) {
->  		hw_ep = musb->bulk_ep;
->  		if (is_in)
-> -			head = &musb->in_bulk;
-> +			head = &hw_ep->in_list;
->  		else
-> -			head = &musb->out_bulk;
-> +			head = &hw_ep->out_list;
->  		/* Enable bulk NAK time out scheme when bulk requests are
->  		 * multiplxed.This scheme doen't work in high speed to full
->  		 * speed scenario as NAK interrupts are not coming from a
-> @@ -2136,14 +2136,14 @@ static int musb_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
->  	else {
->  		switch (qh->type) {
->  		case USB_ENDPOINT_XFER_CONTROL:
-> -			sched = &musb->control;
-> +			sched = &musb->control_ep->in_list;
->  			break;
->  		case USB_ENDPOINT_XFER_BULK:
->  			if (qh->mux == 1) {
->  				if (usb_pipein(urb->pipe))
-> -					sched = &musb->in_bulk;
-> +					sched = &musb->bulk_ep->in_list;
->  				else
-> -					sched = &musb->out_bulk;
-> +					sched = &musb->bulk_ep->out_list;
->  				break;
->  			}
->  		default:
-> @@ -2207,14 +2207,14 @@ musb_h_disable(struct usb_hcd *hcd, struct usb_host_endpoint *hep)
->  
->  	switch (qh->type) {
->  	case USB_ENDPOINT_XFER_CONTROL:
-> -		sched = &musb->control;
-> +		sched = &musb->control_ep->in_list;
->  		break;
->  	case USB_ENDPOINT_XFER_BULK:
->  		if (qh->mux == 1) {
->  			if (is_in)
-> -				sched = &musb->in_bulk;
-> +				sched = &musb->bulk_ep->in_list;
->  			else
-> -				sched = &musb->out_bulk;
-> +				sched = &musb->bulk_ep->out_list;
->  			break;
->  		}
->  	case USB_ENDPOINT_XFER_ISOC:
-> -- 
-> 1.5.6
+diff --git a/Documentation/arm/OMAP/DSS b/Documentation/arm/OMAP/DSS
+new file mode 100644
+index 0000000..992ee76
+--- /dev/null
++++ b/Documentation/arm/OMAP/DSS
+@@ -0,0 +1,240 @@
++OMAP2/3 Display Subsystem
++-------------------------
++
++This is an almost total rewrite of the OMAP FB driver in drivers/video/omap
++(let's call it DSS1). The main differences between DSS1 and DSS2 are DSI,
++TV-out and multiple display support.
++
++The DSS2 driver (omap-dss module) is in arch/arm/plat-omap/dss/, and the FB,
++panel and controller drivers are in drivers/video/omap2/. DSS1 and DSS2 live
++currently side by side, you can choose which one to use.
++
++Features
++--------
++
++Working and tested features include:
++
++- MIPI DPI (parallel) output
++- MIPI DSI output in command mode
++- MIPI DBI (RFBI) output (not tested for a while, might've gotten broken)
++- SDI output
++- TV output
++- All pieces can be compiled as a module or inside kernel
++- Use DISPC to update any of the outputs
++- Use CPU to update RFBI or DSI output
++- OMAP DISPC planes
++- RGB16, RGB24 packed, RGB24 unpacked
++- YUV2, UYVY 
++- Scaling
++- Adjusting DSS FCK to find a good pixel clock
++- Use DSI DPLL to create DSS FCK
++
++omap-dss driver
++------------
++
++The DSS driver does not itself have any support for Linux framebuffer, V4L or
++such like the current ones, but it has an internal kernel API that upper level
++drivers can use.
++
++The DSS driver models OMAP's overlays, overlay managers and displays in a
++flexible way to enable non-common multi-display configuration. In addition to
++modelling the hardware overlays, omap-dss supports virtual overlays and overlay
++managers. These can be used when updating a display with CPU or system DMA,
++instead of DISPC.
++
++Panel and controller drivers
++----------------------------
++
++The drivers implement panel or controller specific functionality and are not
++visible to users except through omapfb driver.  They register themselves to the
++DSS driver.
++
++omapfb driver
++-------------
++
++The omapfb driver implements arbitrary number of standard linux framebuffers.
++These framebuffers can be routed flexibly to any overlays, thus allowing very
++dynamic display architecture.
++
++The driver exports some omapfb specific ioctls, which are compatible with the
++ioctls in the old driver.
++
++The rest of the non standard features are exported via sysfs. Whether the final
++implementation will use sysfs, or ioctls, is still open.
++
++V4L2 drivers
++------------
++
++Currently there are no V4L2 display drivers planned, but it is possible to
++implement such either to omapfb driver, or as a separate one. From omap-dss
++point of view the V4L2 drivers should be similar to framebuffer driver.
++
++Architecture
++--------------------
++
++Some clarification what the different components do:
++
++    - Framebuffer is a memory area inside OMAP's SDRAM that contains the pixel
++      data for the image. Framebuffer has width and height and color depth.
++    - Overlay defines where the pixels are read from and where they go on the
++      screen. The overlay may be smaller than framebuffer, thus displaying only
++      part of the framebuffer. The position of the overlay may be changed if
++      the overlay is smaller than the display.
++    - Overlay manager combines the overlays in to one image and feeds them to
++      display.
++    - Display is the actual physical display device.
++
++A framebuffer can be connected to multiple overlays to show the same pixel data
++on all of the overlays. Note that in this case the overlay input sizes are the
++same, but, in case of scalable video overlays, the output size can be
++different. Any framebuffer can be connected to any overlay.
++
++An overlay can be connected to one overlay manager. Also DISPC overlays can be
++connected only to DISPC overlay managers, and virtual overlays can be only
++connected to virtual overlays.
++
++An overlay manager can be connected to one display. There are certain
++restrictions which kinds of displays an overlay manager can be connected:
++
++    - DISPC TV overlay manager can be only connected to TV display.
++    - Virtual overlay managers can only be connected to DBI or DSI displays.
++    - DISPC LCD overlay manager can be connected to all displays, except TV
++      display.
++
++Sysfs
++-----
++The sysfs interface is a hack, but works for testing. I don't think sysfs
++interface is the best for this in the final version, but I don't quite know
++what would be the best interfaces for these things.
++
++In /sys/devices/platform/omapfb we have four files: framebuffers,
++overlays, managers and displays. You can read them so see the current
++setup, and change them by writing to it in the form of
++"<item-id> <opt1>:<val1> <opt2>:<val2>..."
++
++"framebuffers" lists all framebuffers. Its format is:
++	<fb number>
++	t:<target overlay>
++
++"overlays" lists all overlays. Its format is:
++	<overlay name>
++	t:<target manager>
++	x:<xpos>
++	y:<ypos>
++	iw:<input width, read only>
++	ih:<input height, read only>
++	w:<output width>
++	h:<output height>
++	e:<enabled>
++
++"managers" lists all overlay managers. Its format is:
++	<manager name>
++	t:<target display>
++
++"displays" lists all displays. Its format is:
++	<display name>
++	w:<width>
++	h:<height>
++	e:<enabled>
++	u:<update mode>
++	t:<tear sync on/off>
++
++There is also a debug sysfs file at /sys/devices/platform/omap-dss/clk which
++shows how DSS has configured the clocks.
++
++Examples
++--------
++
++In the example scripts "omapfb" is a symlink to /sys/devices/platform/omapfb/.
++
++Default setup on OMAP3 SDP
++--------------------------
++
++Here's the default setup on OMAP3 SDP board. All planes go to LCD. DVI
++and TV-out are not in use. The columns from left to right are:
++framebuffers, overlays, overlay managers, displays. Framebuffers are
++handled by omapfb, and the rest by the DSS.
++
++FB0 --- GFX  -\            DVI
++FB1 --- VID1 --+- LCD ---- LCD
++FB2 --- VID2 -/   TV ----- TV
++
++Switch from LCD to DVI
++----------------------
++
++dviline=`cat omapfb/displays |grep dvi`
++w=`echo $dviline | cut -d " " -f 2 | cut -d ":" -f 2`
++h=`echo $dviline | cut -d " " -f 3 | cut -d ":" -f 2`
++
++echo "lcd e:0" > omapfb/displays
++echo "lcd t:none" > omapfb/managers
++fbset -fb /dev/fb0 -xres $w -yres $h
++# at this point you have to switch the dvi/lcd dip-switch from the omap board
++echo "lcd t:dvi" > omapfb/managers
++echo "dvi e:1" > omapfb/displays
++
++After this the configuration looks like:
++
++FB0 --- GFX  -\         -- DVI
++FB1 --- VID1 --+- LCD -/   LCD
++FB2 --- VID2 -/   TV ----- TV
++
++Clone GFX overlay to LCD and TV
++-------------------------------
++
++tvline=`cat /sys/devices/platform/omapfb/displays |grep tv`
++w=`echo $tvline | cut -d " " -f 2 | cut -d ":" -f 2`
++h=`echo $tvline | cut -d " " -f 3 | cut -d ":" -f 2`
++
++echo "1 t:none" > omapfb/framebuffers
++echo "0 t:gfx,vid1" > omapfb/framebuffers
++echo "gfx e:1" > omapfb/overlays
++echo "vid1 t:tv w:$w h:$h e:1" > omapfb/overlays
++echo "tv e:1" > omapfb/displays
++
++After this the configuration looks like (only relevant parts shown):
++
++FB0 +-- GFX  ---- LCD ---- LCD
++     \- VID1 ---- TV  ---- TV
++
++Misc notes
++----------
++
++OMAP FB allocates the framebuffer memory when it starts using
++dma_alloc_writecombine(). This requires large continuous physical memory areas
++and you can pre-reserve that area with "Consistent DMA memory size" Kconfig
++option.
++
++Using DSI DPLL to generate pixel clock it is possible produce the pixel clock
++of 86.5MHz (max possible), and with that you get 1280x1024@57 output from DVI.
++
++TODO
++----
++
++OMAP2 not tested for some time
++- DSS2 did work on OMAP2, but I haven't been able to test it for some time.
++
++DSS locking
++
++Error checking
++- Lots of checks are missing or implemented just as BUG()
++
++Rotate (external FB)
++Rotate (VRFB)
++Rotate (SMS)
++
++System DMA update for DSI
++- Can be used for RGB16 and RGB24P modes. Probably not for RGB24U (how
++  to skip the empty byte?)
++
++Power management
++- Context saving
++
++Resolution change
++- The x/y res of the framebuffer are not display resolutions, but the size
++  of the overlay.
++- The display resolution affects all planes on the display.
++
++OMAP1 support
++- Not sure if needed
++
 
--- 
-balbi
