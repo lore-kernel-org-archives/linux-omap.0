@@ -1,46 +1,50 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3 clock: fix non-CORE DPLL rate assignment bugs
-Date: Wed, 05 Nov 2008 15:43:43 -0800
-Message-ID: <49122FAF.1020109@deeprootsystems.com>
-References: <alpine.DEB.2.00.0810171617420.3833@utopia.booyaka.com> <49075870.9020804@deeprootsystems.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] OMAP: Fix McBSP spin_lock deadlock.
+Date: Wed, 5 Nov 2008 15:46:51 -0800
+Message-ID: <200811051546.51707.david-b@pacbell.net>
+References: <1225886429-28058-1-git-send-email-stanley.miao@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.236]:45350 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752608AbYKEXnq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2008 18:43:46 -0500
-Received: by rv-out-0506.google.com with SMTP id k40so292558rvb.1
-        for <linux-omap@vger.kernel.org>; Wed, 05 Nov 2008 15:43:45 -0800 (PST)
-In-Reply-To: <49075870.9020804@deeprootsystems.com>
+Received: from smtp103.sbc.mail.mud.yahoo.com ([68.142.198.202]:26035 "HELO
+	smtp103.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752510AbYKEXxd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2008 18:53:33 -0500
+In-Reply-To: <1225886429-28058-1-git-send-email-stanley.miao@windriver.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, tomi.valkeinen@nokia.com, rick@efn.org, timo.t.kokkonen@nokia.com, sakari.poussa@nokia.com
+To: "Stanley.Miao" <stanley.miao@windriver.com>
+Cc: linux-omap@vger.kernel.org
 
-Kevin Hilman wrote:
-> Paul Walmsley wrote:
->> Commit 8b1f0bd44fe490ec631230c8c040753a2bda8caa introduced a bug that
->> caused non-CORE DPLL rates to be incorrectly set on boot in
->> omap3_noncore_dpll_enable().  Debugged by Tomi Valkeinen
->> <tomi.valkeinen@nokia.com> - thanks Tomi.
->>
->> Also fix omap3_noncore_dpll_set_rate() to assign clk->rate after a
->> DPLL reprogram.
->>
->> Tested on 3430SDP.
-> 
-> FYI, This patch breaks the ability to come out of retention in dynamic 
-> idle, but I haven't yet discovered why.
-> 
+On Wednesday 05 November 2008, Stanley.Miao wrote:
+> @@ -333,7 +333,8 @@ struct omap_mcbsp_platform_data {
+> =A0=A0=A0=A0=A0=A0=A0=A0u8 dma_rx_sync, dma_tx_sync;
+> =A0=A0=A0=A0=A0=A0=A0=A0u16 rx_irq, tx_irq;
+> =A0=A0=A0=A0=A0=A0=A0=A0struct omap_mcbsp_ops *ops;
+> -=A0=A0=A0=A0=A0=A0=A0char const *clk_name;
+> +=A0=A0=A0=A0=A0=A0=A0char const *ick_name;
+> +=A0=A0=A0=A0=A0=A0=A0char const *fck_name;
+> =A0};
+> =A0
+> =A0struct omap_mcbsp {
 
-It appears this is related to the UART patches being used in the PM 
-branch, and not this patch.
+I thought the idea was to fix this using the clock aliasing
+facility ... so that the mcbsp driver would just
 
-I have a (forthcoming) set of UART updates that will allow the UART to 
-disable its clocks and enable the chip to hit retention.
+	ick =3D clk_get(dev, "ick");
+	fck =3D clk_get(dev, "fck");
 
-Kevin
+(with IS_ERR checks of course) and the platform data would
+no longer need to hold those names.
 
+That approach can work on OMAP1 too ... I think this patch
+breaks OMAP1 boards.
 
+- Dave
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
