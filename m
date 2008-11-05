@@ -1,41 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: What is the purpose of function omap_get_config()
-Date: Wed, 5 Nov 2008 08:17:48 -0800
-Message-ID: <20081105161748.GQ28924@atomide.com>
-References: <4bd972300811050430t151f582aq33a687e428a8355f@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] OMAP3 powerdomains: remove RET from SGX power states list
+Date: Wed, 5 Nov 2008 12:39:27 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0811051152150.15612@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50419 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752139AbYKEQRx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2008 11:17:53 -0500
-Content-Disposition: inline
-In-Reply-To: <4bd972300811050430t151f582aq33a687e428a8355f@mail.gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:40560 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754637AbYKETj3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2008 14:39:29 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?B?56ug5p2w?= <zhj8407@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: =?ISO-8859-15?Q?H=F6gander_Jouni?= <jouni.hogander@nokia.com>, "Stoppa Igor (Nokia-D/Helsinki)" <Igor.Stoppa@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Sawant, Anand" <sawant@ti.com>, Poussa Sakari <sakari.poussa@nokia.com>
 
-* =E7=AB=A0=E6=9D=B0 <zhj8407@gmail.com> [081105 04:31]:
-> Hello,
->=20
->    I am porting a lcd panel to OMAP2430. It didn't enter the probe
-> entry of the omapfb. I found that it did not register the device in
-> fb.c located in arch/arm/plat-omap. Because the function
->  omap_get_config( OMAP_TAG_LCD, struct omap_lcd_config )
->  which is invoked before platform_device_register returns NULL.
->=20
-> So I wonder the purpose of omap_get_config and where it gets the
-> configuration. Can anybody tell me in detail? Thanks very much!
 
-The omap specific ATAGs will be going away soon, so please rely only
-on the configuration in your board-*.c file.
+The SGX device on OMAP3 does not support retention, so remove RET from the 
+list of possible SGX power states.  Problem debugged by Richard Woodruff 
+<r-woodruff2@ti.com>.
+    
+Signed-off-by: Richard Woodruff <r-woodruff2@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/powerdomains34xx.h b/arch/arm/mach-omap2/powerdomains34xx.h
+index 446a1ed..edfad42 100644
+--- a/arch/arm/mach-omap2/powerdomains34xx.h
++++ b/arch/arm/mach-omap2/powerdomains34xx.h
+@@ -255,6 +255,11 @@ static struct powerdomain dss_pwrdm = {
+ 	},
+ };
+ 
++/*
++ * Although the 34XX TRM Rev K Table 4-371 notes that retention is a
++ * possible SGX powerstate, the SGX device itself does not support
++ * retention.
++ */
+ static struct powerdomain sgx_pwrdm = {
+ 	.name		  = "sgx_pwrdm",
+ 	.prcm_offs	  = OMAP3430ES2_SGX_MOD,
+@@ -262,7 +267,7 @@ static struct powerdomain sgx_pwrdm = {
+ 	.wkdep_srcs	  = gfx_sgx_wkdeps,
+ 	.sleepdep_srcs	  = cam_gfx_sleepdeps,
+ 	/* XXX This is accurate for 3430 SGX, but what about GFX? */
+-	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts		  = PWRSTS_OFF_ON,
+ 	.pwrsts_logic_ret = PWRDM_POWER_RET,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	  = {
