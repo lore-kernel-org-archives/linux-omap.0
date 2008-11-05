@@ -1,54 +1,45 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [REVIEW  PATCH 8/9] DSS: support for Beagle Board
-Date: Wed, 5 Nov 2008 15:21:48 -0800
-Message-ID: <200811051521.48924.david-b@pacbell.net>
-References: <20081104160946.19071.44903.stgit@tubuntu> <20081104161038.19071.98198.stgit@tubuntu> <20081105122725.cb1c0b2f.jarkko.nikula@nokia.com>
+From: "Grazvydas Ignotas" <notasas@gmail.com>
+Subject: Re: [PATCH 1/2] Add touchscreen support for Pandora
+Date: Thu, 6 Nov 2008 01:41:46 +0200
+Message-ID: <6ed0b2680811051541t21a1be36i8ba85db9bfaaa025@mail.gmail.com>
+References: <1225919983-26144-1-git-send-email-notasas@gmail.com>
+	 <20081105223920.GG4010@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp118.sbc.mail.sp1.yahoo.com ([69.147.64.91]:36087 "HELO
-	smtp118.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752542AbYKEXVv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2008 18:21:51 -0500
-In-Reply-To: <20081105122725.cb1c0b2f.jarkko.nikula@nokia.com>
+Received: from ug-out-1314.google.com ([66.249.92.171]:24356 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751643AbYKEXls (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2008 18:41:48 -0500
+Received: by ug-out-1314.google.com with SMTP id 39so671482ugf.37
+        for <linux-omap@vger.kernel.org>; Wed, 05 Nov 2008 15:41:47 -0800 (PST)
+In-Reply-To: <20081105223920.GG4010@frodo>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: ext Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org
+To: me@felipebalbi.com
+Cc: linux-omap@vger.kernel.org
 
-On Wednesday 05 November 2008, Jarkko Nikula wrote:
-> > +=A0=A0=A0=A0=A0r =3D gpio_request(beagle_display_data_dvi.panel_re=
-set_gpio, "DVI reset GPIO");
-> > +=A0=A0=A0=A0=A0if(r < 0) {
->=20
-> GPIO label "DVI reset" is enough.
+On Thu, Nov 6, 2008 at 12:39 AM, Felipe Balbi <me@felipebalbi.com> wrote:
+> On Wed, Nov 05, 2008 at 11:19:42PM +0200, Grazvydas Ignotas wrote:
+>> +
+>> +#ifndef __ASM_ARCH_OMAP3_PANDORA_H
+>> +#define __ASM_ARCH_OMAP3_PANDORA_H
+>> +
+>> +#define      OMAP3_PANDORA_TS_GPIO           94
+>
+> for one define only ???
+>
+> Do you have plans to add more stuff here ? Do you have any other files
+> that might need this define besides the main board-file ??
+>
+> Looks unnecessary to add yet another header for one define only. Moving
+> to the board-file would be more acceptable.
 
-Surely this ** doesn't work ** at least against the OMAP git tree
-which already has:
-
-        omap_cfg_reg(J25_34XX_GPIO170);
-        gpio_request(170, "DVI_nPD");
-        /* REVISIT leave DVI powered down until it's needed ... */
-        gpio_direction_output(170, true);
-
-Label matches the DVI chip, not board schematics.  Agreed,
-it's not a reset.
-
-I'd like to see any FB/DSS/... updates have the property that
-the TFP410 chip is powered down *unless* both (a) the frame
-buffer/DSS/... driver is active, and (b) the DVI channel is
-in use.
-
-So for example a kernel without FB/DSS/... configured, that
-DVI chip is never powered up.  And when only the S-Video channel
-is used, DVI isn't powered up either.
-
-- Dave
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes, it's more like a placeholder for future patches. I plan to add a
+function prototype and some more GPIOs. I also plan adding another
+board file for input stuff (board-omap3pandora-input.c), as pandora
+has lots of GPIO buttons with full qwerty keypad, and I don't want to
+clutter the main board file with large arrays of structures.
+If this is not acceptable I can stuff everything into board-omap3pandora.c
