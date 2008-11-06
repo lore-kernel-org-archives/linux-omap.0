@@ -1,47 +1,60 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP3 flash: fix use of system_rev in board-3430sdp-flash.c
-Date: Thu, 06 Nov 2008 05:26:35 -0700
-Message-ID: <20081106122633.32272.65124.stgit@localhost.localdomain>
-References: <20081106122630.32272.71026.stgit@localhost.localdomain>
+From: "stanley.miao" <stanley.miao@windriver.com>
+Subject: Re: [PATCH] OMAP: Fix McBSP spin_lock deadlock.
+Date: Thu, 06 Nov 2008 20:41:21 +0800
+Message-ID: <1225975281.7337.8.camel@localhost>
+References: <1225886429-28058-1-git-send-email-stanley.miao@windriver.com>
+	 <200811051546.51707.david-b@pacbell.net>
+	 <20081106011621.GJ21736@atomide.com>
+Reply-To: stanley.miao@windriver.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:58450 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751350AbYKFM2d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Nov 2008 07:28:33 -0500
-In-Reply-To: <20081106122630.32272.71026.stgit@localhost.localdomain>
+Received: from mail.windriver.com ([147.11.1.11]:55070 "EHLO mail.wrs.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753423AbYKFMfw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 6 Nov 2008 07:35:52 -0500
+In-Reply-To: <20081106011621.GJ21736@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, Timo-Pekka Launonen <ext-timo-pekka.launonen@nokia.com>, Lauri Leukkunen <lauri.leukkunen@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org
 
-Fix one remaining user of system_rev.  This patch is needed for
-3430SDP ES2 to boot after 4a4ada55c1bdaa2b9fd1293611b55ceba14b13e7.
+On Wed, 2008-11-05 at 17:16 -0800, Tony Lindgren wrote:
+> * David Brownell <david-b@pacbell.net> [081105 15:53]:
+> > On Wednesday 05 November 2008, Stanley.Miao wrote:
+> > > @@ -333,7 +333,8 @@ struct omap_mcbsp_platform_data {
+> > >         u8 dma_rx_sync, dma_tx_sync;
+> > >         u16 rx_irq, tx_irq;
+> > >         struct omap_mcbsp_ops *ops;
+> > > -       char const *clk_name;
+> > > +       char const *ick_name;
+> > > +       char const *fck_name;
+> > >  };
+> > >  
+> > >  struct omap_mcbsp {
+> > 
+> > I thought the idea was to fix this using the clock aliasing
+> > facility ... so that the mcbsp driver would just
+> > 
+> > 	ick = clk_get(dev, "ick");
+> > 	fck = clk_get(dev, "fck");
+> > 
+> > (with IS_ERR checks of course) and the platform data would
+> > no longer need to hold those names.
+> > 
+> > That approach can work on OMAP1 too ... I think this patch
+> > breaks OMAP1 boards.
+> 
+> Russell also has some ideas, so despite the nasty bug, let's put
+> the clock aliasing and virtual clocks stuff on hold for a little
+> while. Meanwhile, maybe we can just add some function for the
+> virtual clock that does not cause the recursion?
 
-Bisected by Timo-Pekka Launonen's <ext-timo-pekka.launonen@nokia.com>
-list robot.
+After considering your suggestions, I change to another solution and
+will re-send the patch.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Timo-Pekka Launonen <ext-timo-pekka.launonen@nokia.com>
-Cc: Lauri Leukkunen <lauri.leukkunen@nokia.com>
----
- arch/arm/mach-omap2/board-3430sdp-flash.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Stanley.
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp-flash.c b/arch/arm/mach-omap2/board-3430sdp-flash.c
-index 6b0419c..51dd839 100644
---- a/arch/arm/mach-omap2/board-3430sdp-flash.c
-+++ b/arch/arm/mach-omap2/board-3430sdp-flash.c
-@@ -210,7 +210,7 @@ void __init sdp3430_flash_init(void)
- 	gpmc_base_add   = OMAP34XX_GPMC_VIRT;
- 
- 	/* Configure start address and size of NOR device */
--	if (system_rev > OMAP3430_REV_ES1_0) {
-+	if (omap_rev() > OMAP3430_REV_ES1_0) {
- 		sdp_nor_resource.start	= FLASH_BASE_SDPV2;
- 		sdp_nor_resource.end	= FLASH_BASE_SDPV2
- 						+ FLASH_SIZE_SDPV2 - 1;
-
-
+> 
+> Tony
