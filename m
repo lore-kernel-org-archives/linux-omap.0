@@ -1,62 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP3 powerdomains: remove RET from SGX power states
-	list
-Date: Wed, 5 Nov 2008 19:33:28 -0800
-Message-ID: <20081106033327.GQ21736@atomide.com>
-References: <alpine.DEB.2.00.0811051152150.15612@utopia.booyaka.com>
+From: "=?GB2312?B?1cK93A==?=" <zhj8407@gmail.com>
+Subject: Re: What is the purpose of function omap_get_config()
+Date: Thu, 6 Nov 2008 11:59:13 +0800
+Message-ID: <4bd972300811051959y4b1d6d59i7d191c467adc1b73@mail.gmail.com>
+References: <4bd972300811050430t151f582aq33a687e428a8355f@mail.gmail.com>
+	 <20081105161748.GQ28924@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64374 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754897AbYKFDdb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2008 22:33:31 -0500
+Received: from rv-out-0506.google.com ([209.85.198.232]:64273 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752464AbYKFD7O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2008 22:59:14 -0500
+Received: by rv-out-0506.google.com with SMTP id k40so414632rvb.1
+        for <linux-omap@vger.kernel.org>; Wed, 05 Nov 2008 19:59:13 -0800 (PST)
+In-Reply-To: <20081105161748.GQ28924@atomide.com>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.0811051152150.15612@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, =?iso-8859-1?Q?H=F6gander?= Jouni <jouni.hogander@nokia.com>, "Stoppa Igor (Nokia-D/Helsinki)" <Igor.Stoppa@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Sawant, Anand" <sawant@ti.com>, Poussa Sakari <sakari.poussa@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [081105 11:39]:
-> 
-> The SGX device on OMAP3 does not support retention, so remove RET from the 
-> list of possible SGX power states.  Problem debugged by Richard Woodruff 
-> <r-woodruff2@ti.com>.
-
-Pushing.
-
-Tony
-
-> Signed-off-by: Richard Woodruff <r-woodruff2@ti.com>
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> 
-> diff --git a/arch/arm/mach-omap2/powerdomains34xx.h b/arch/arm/mach-omap2/powerdomains34xx.h
-> index 446a1ed..edfad42 100644
-> --- a/arch/arm/mach-omap2/powerdomains34xx.h
-> +++ b/arch/arm/mach-omap2/powerdomains34xx.h
-> @@ -255,6 +255,11 @@ static struct powerdomain dss_pwrdm = {
->  	},
->  };
->  
-> +/*
-> + * Although the 34XX TRM Rev K Table 4-371 notes that retention is a
-> + * possible SGX powerstate, the SGX device itself does not support
-> + * retention.
-> + */
->  static struct powerdomain sgx_pwrdm = {
->  	.name		  = "sgx_pwrdm",
->  	.prcm_offs	  = OMAP3430ES2_SGX_MOD,
-> @@ -262,7 +267,7 @@ static struct powerdomain sgx_pwrdm = {
->  	.wkdep_srcs	  = gfx_sgx_wkdeps,
->  	.sleepdep_srcs	  = cam_gfx_sleepdeps,
->  	/* XXX This is accurate for 3430 SGX, but what about GFX? */
-> -	.pwrsts		  = PWRSTS_OFF_RET_ON,
-> +	.pwrsts		  = PWRSTS_OFF_ON,
->  	.pwrsts_logic_ret = PWRDM_POWER_RET,
->  	.banks		  = 1,
->  	.pwrsts_mem_ret	  = {
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGVsbG8sCgogICAgVGhhbmtzIGZvciB5b3VyIGF0dGVudGlvbi4KCiAgICAgSSBnb3R0YSBrbm93
+IHRoZSBwdXJwb3NlIG9mIGZ1bmN0aW9uIG9tYXBfZ2V0X2NvbmZpZy4gSSBhZGRlZCBhbgppdGVt
+IHJlbGF0ZWQgdG8gT01BUF9UQUdfTENEIHRvIG15IGJvYXJkIGZpbGUsIHNvIGl0IGNhbiByZWdp
+c3RlciB0aGUKZmIgZGV2aWNlIHN1Y2Nlc3NmdWxseS4KCiAgICAgQnV0IEkgaGF2ZSBhbm90aGVy
+IHF1ZXN0aW9uLiBXaGVuIEkgY29tcGlsZSB0aGUgZnJhbWUgYnVmZmVyIGludG8Ka2VybmVsLCB0
+aGVyZSBpcyBub3QgYW55IG91dHB1dCBpbmZvcm1hdGlvbiBpbiBteSBzZXJpYWwgdGVybWluYWwK
+c2luY2UKVW5jb21wcmVzc2luZyBMaW51eC4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
+Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
+Li4uCmRvbmUsIGJvb3RpbmcgdGhlIGtlcm5lbC4gSWYgSSBjb21waWxlIGl0IGFzIG1vZHVsZSwg
+aXQgaXMgZmluZS4KSG93ZXZlciwgZGVidWdnaW5nIHRoZSBtb2R1bGUgaXMgbm90IGNvbnZlbmll
+bnQgb24gbXkgYm9hcmQuIEkgbmVlZCB0bwphZGQgaXQgdG8gcm9vdCBmaWxlc3lzdGVtIGFuZCBi
+dXJuIGl0IHRvIHRoZSBmbGFzaC4KCiAgICAgSSB1c2VkIHUtYm9vdCBhcyBteSBib290bG9hZGVy
+LiBUaGUgYm9vdGFyZ3MgaXMgc2V0IHRvIGJlCiIgbm9pbml0cmQgY29uc29sZT10dHlTMCwxMTUy
+MDBuOCByb290PS9kZXYvbXRkYmxvY2s0IHJvb3Rmc3R5cGU9amZmczIKaW5pdD0vbGludXhyYyBt
+ZW09NjRNICIuCgogICAgSG93IGNhbiBJIHNvbHZlIHRoaXMgcHJvYmxlbT8gVGhhbmtzIHZlcnkg
+bXVjaCAhCgpKZXJyeQoKMjAwOC8xMS82IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+
+Ogo+ICog1cK93CA8emhqODQwN0BnbWFpbC5jb20+IFswODExMDUgMDQ6MzFdOgo+PiBIZWxsbywK
+Pj4KPj4gICAgSSBhbSBwb3J0aW5nIGEgbGNkIHBhbmVsIHRvIE9NQVAyNDMwLiBJdCBkaWRuJ3Qg
+ZW50ZXIgdGhlIHByb2JlCj4+IGVudHJ5IG9mIHRoZSBvbWFwZmIuIEkgZm91bmQgdGhhdCBpdCBk
+aWQgbm90IHJlZ2lzdGVyIHRoZSBkZXZpY2UgaW4KPj4gZmIuYyBsb2NhdGVkIGluIGFyY2gvYXJt
+L3BsYXQtb21hcC4gQmVjYXVzZSB0aGUgZnVuY3Rpb24KPj4gIG9tYXBfZ2V0X2NvbmZpZyggT01B
+UF9UQUdfTENELCBzdHJ1Y3Qgb21hcF9sY2RfY29uZmlnICkKPj4gIHdoaWNoIGlzIGludm9rZWQg
+YmVmb3JlIHBsYXRmb3JtX2RldmljZV9yZWdpc3RlciByZXR1cm5zIE5VTEwuCj4+Cj4+IFNvIEkg
+d29uZGVyIHRoZSBwdXJwb3NlIG9mIG9tYXBfZ2V0X2NvbmZpZyBhbmQgd2hlcmUgaXQgZ2V0cyB0
+aGUKPj4gY29uZmlndXJhdGlvbi4gQ2FuIGFueWJvZHkgdGVsbCBtZSBpbiBkZXRhaWw/IFRoYW5r
+cyB2ZXJ5IG11Y2ghCj4KPiBUaGUgb21hcCBzcGVjaWZpYyBBVEFHcyB3aWxsIGJlIGdvaW5nIGF3
+YXkgc29vbiwgc28gcGxlYXNlIHJlbHkgb25seQo+IG9uIHRoZSBjb25maWd1cmF0aW9uIGluIHlv
+dXIgYm9hcmQtKi5jIGZpbGUuCj4KPiBUb255Cj4K
