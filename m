@@ -1,87 +1,28 @@
-From: "stanley.miao" <stanley.miao@windriver.com>
-Subject: Re: [PATCH] OMAP: Fix McBSP spin_lock deadlock.
-Date: Thu, 06 Nov 2008 09:49:17 +0800
-Message-ID: <1225936157.7811.134.camel@localhost>
-References: <1225886429-28058-1-git-send-email-stanley.miao@windriver.com>
-	 <200811051546.51707.david-b@pacbell.net>
-	 <20081106011621.GJ21736@atomide.com>
-Reply-To: stanley.miao@windriver.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP_LDP: Support LCD display as a FB device on ZOOM
+	MDK
+Date: Wed, 5 Nov 2008 19:20:48 -0800
+Message-ID: <20081106032047.GL21736@atomide.com>
+References: <1225769516-4125-1-git-send-email-stanley.miao@windriver.com> <1225849359.7811.120.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:35475 "EHLO mail.wrs.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752940AbYKFBns (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Nov 2008 20:43:48 -0500
-In-Reply-To: <20081106011621.GJ21736@atomide.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58256 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752464AbYKFDUv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2008 22:20:51 -0500
+Content-Disposition: inline
+In-Reply-To: <1225849359.7811.120.camel@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org
+To: "stanley.miao" <stanley.miao@windriver.com>
+Cc: linux-omap@vger.kernel.org
 
+* stanley.miao <stanley.miao@windriver.com> [081104 17:37]:
+> Any comment ? This is LCD driver on Logic ZOOM MDK.
 
-On Wed, 2008-11-05 at 17:16 -0800, Tony Lindgren wrote:
-> * David Brownell <david-b@pacbell.net> [081105 15:53]:
-> > On Wednesday 05 November 2008, Stanley.Miao wrote:
-> > > @@ -333,7 +333,8 @@ struct omap_mcbsp_platform_data {
-> > >         u8 dma_rx_sync, dma_tx_sync;
-> > >         u16 rx_irq, tx_irq;
-> > >         struct omap_mcbsp_ops *ops;
-> > > -       char const *clk_name;
-> > > +       char const *ick_name;
-> > > +       char const *fck_name;
-> > >  };
-> > >  
-> > >  struct omap_mcbsp {
-> > 
-> > I thought the idea was to fix this using the clock aliasing
-> > facility ... so that the mcbsp driver would just
-> > 
-> > 	ick = clk_get(dev, "ick");
-> > 	fck = clk_get(dev, "fck");
-> > 
-> > (with IS_ERR checks of course) and the platform data would
-> > no longer need to hold those names.
-> > 
-> > That approach can work on OMAP1 too ... I think this patch
-> > breaks OMAP1 boards.
-> 
-> Russell also has some ideas, so despite the nasty bug, let's put
-> the clock aliasing and virtual clocks stuff on hold for a little
-> while. Meanwhile, maybe we can just add some function for the
-> virtual clock that does not cause the recursion?
+No looks good, pushing. Let's get the omapfb patches into the mainline
+during next merge window, any takers on putting together a series
+for mainline?
 
-At the start, I tried to add a function __clk_enable().
-
-+int __clk_enable(struct clk *clk)
-+{
-+       if(arch_clock->clk_enable)
-+               return arch_clock->clk_enable(clk);
-+       return 0;
-+}
-+EXPORT_SYMBOL(__clk_enable);
-+
- int clk_enable(struct clk *clk)
- {
-        unsigned long flags;
-@@ -84,33 +92,36 @@ int clk_enable(struct clk *clk)
-                return -EINVAL;
- 
-        spin_lock_irqsave(&clockfw_lock, flags);
--       if (arch_clock->clk_enable)
--               ret = arch_clock->clk_enable(clk);
-+       ret = __clk_enable(clk);
-        spin_unlock_irqrestore(&clockfw_lock, flags);
- 
-        return ret;
- }
- EXPORT_SYMBOL(clk_enable);
-
-But in this way I have to add __clk_enable() to include/linux/clk.h, so
-I give up this method.
-
-Stanley.
-
-> 
-> Tony
+Tony
