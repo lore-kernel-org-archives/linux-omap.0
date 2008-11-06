@@ -1,50 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH] OMAP: Use omap_rev() instead of system_rev
-Date: Wed, 5 Nov 2008 19:21:57 -0800
-Message-ID: <20081106032157.GM21736@atomide.com>
-References: <20081031003438.GA13227@atomide.com> <1225462000-31331-1-git-send-email-lauri.leukkunen@nokia.com> <1225462000-31331-2-git-send-email-lauri.leukkunen@nokia.com>
+Date: Wed, 5 Nov 2008 19:22:42 -0800
+Message-ID: <20081106032241.GN21736@atomide.com>
+References: <1225537624-6669-1-git-send-email-lauri.leukkunen@nokia.com> <1225537624-6669-2-git-send-email-lauri.leukkunen@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58822 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59360 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752677AbYKFDWA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2008 22:22:00 -0500
+	with ESMTP id S1752789AbYKFDWo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2008 22:22:44 -0500
 Content-Disposition: inline
-In-Reply-To: <1225462000-31331-2-git-send-email-lauri.leukkunen@nokia.com>
+In-Reply-To: <1225537624-6669-2-git-send-email-lauri.leukkunen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Lauri Leukkunen <lauri.leukkunen@nokia.com>
 Cc: linux-omap@vger.kernel.org
 
-* Lauri Leukkunen <lauri.leukkunen@nokia.com> [081031 07:06]:
+* Lauri Leukkunen <lauri.leukkunen@nokia.com> [081101 04:06]:
 > system_rev is meant for board revision, this patch changes
 > all relevant instances to use the new omap_rev() function
 > liberating system_rev to be used with ATAG_REVISION as it
 > has been designed.
 
-Pushing.
+I mean pushing this one instead.
 
 Tony
 
+> 
 > Signed-off-by: Lauri Leukkunen <lauri.leukkunen@nokia.com>
 > ---
->  arch/arm/mach-omap1/id.c                        |   31 +++++++++++++-------
->  arch/arm/mach-omap1/pm.c                        |    4 +-
->  arch/arm/mach-omap2/board-3430sdp.c             |    6 ++--
+>  arch/arm/mach-omap1/id.c                        |   50 ++++++++++++++---------
+>  arch/arm/mach-omap1/pm.c                        |    6 ++-
+>  arch/arm/mach-omap2/board-3430sdp.c             |    6 +-
 >  arch/arm/mach-omap2/board-h4.c                  |    2 +-
 >  arch/arm/mach-omap2/board-ldp.c                 |    2 +-
 >  arch/arm/mach-omap2/clock34xx.c                 |    4 +-
->  arch/arm/mach-omap2/id.c                        |   34 ++++++++++++++---------
->  arch/arm/mach-omap2/pm34xx.c                    |   10 +++---
+>  arch/arm/mach-omap2/id.c                        |   34 +++++++++------
+>  arch/arm/mach-omap2/pm34xx.c                    |   10 ++--
 >  arch/arm/mach-omap2/smartreflex.c               |    2 +-
->  arch/arm/plat-omap/include/mach/board-apollon.h |    4 ++-
->  arch/arm/plat-omap/include/mach/cpu.h           |   10 +++---
+>  arch/arm/plat-omap/include/mach/board-apollon.h |    4 +-
+>  arch/arm/plat-omap/include/mach/cpu.h           |   10 ++--
 >  arch/arm/plat-omap/sram.c                       |    3 +-
->  12 files changed, 66 insertions(+), 46 deletions(-)
+>  12 files changed, 78 insertions(+), 55 deletions(-)
 > 
 > diff --git a/arch/arm/mach-omap1/id.c b/arch/arm/mach-omap1/id.c
-> index d6110fe..3691024 100644
+> index d6110fe..89bb875 100644
 > --- a/arch/arm/mach-omap1/id.c
 > +++ b/arch/arm/mach-omap1/id.c
 > @@ -15,6 +15,7 @@
@@ -77,7 +78,33 @@ Tony
 >  /*
 >   * Get OMAP type from PROD_ID.
 >   * 1710 has the PROD_ID in bits 15:00, not in 16:01 as documented in TRM.
-> @@ -140,7 +149,7 @@ void __init omap_check_revision(void)
+> @@ -121,17 +130,18 @@ void __init omap_check_revision(void)
+>  	omap_id = omap_readl(OMAP32_ID_0);
+>  
+>  #ifdef DEBUG
+> -	printk("OMAP_DIE_ID_0: 0x%08x\n", omap_readl(OMAP_DIE_ID_0));
+> -	printk("OMAP_DIE_ID_1: 0x%08x DIE_REV: %i\n",
+> +	printk(KERN_DEBUG "OMAP_DIE_ID_0: 0x%08x\n", omap_readl(OMAP_DIE_ID_0));
+> +	printk(KERN_DEBUG "OMAP_DIE_ID_1: 0x%08x DIE_REV: %i\n",
+>  		omap_readl(OMAP_DIE_ID_1),
+>  	       (omap_readl(OMAP_DIE_ID_1) >> 17) & 0xf);
+> -	printk("OMAP_PRODUCTION_ID_0: 0x%08x\n", omap_readl(OMAP_PRODUCTION_ID_0));
+> -	printk("OMAP_PRODUCTION_ID_1: 0x%08x JTAG_ID: 0x%04x\n",
+> +	printk(KERN_DEBUG "OMAP_PRODUCTION_ID_0: 0x%08x\n",
+> +		omap_readl(OMAP_PRODUCTION_ID_0));
+> +	printk(KERN_DEBUG "OMAP_PRODUCTION_ID_1: 0x%08x JTAG_ID: 0x%04x\n",
+>  		omap_readl(OMAP_PRODUCTION_ID_1),
+>  		omap_readl(OMAP_PRODUCTION_ID_1) & 0xffff);
+> -	printk("OMAP32_ID_0: 0x%08x\n", omap_readl(OMAP32_ID_0));
+> -	printk("OMAP32_ID_1: 0x%08x\n", omap_readl(OMAP32_ID_1));
+> -	printk("JTAG_ID: 0x%04x DIE_REV: %i\n", jtag_id, die_rev);
+> +	printk(KERN_DEBUG "OMAP32_ID_0: 0x%08x\n", omap_readl(OMAP32_ID_0));
+> +	printk(KERN_DEBUG "OMAP32_ID_1: 0x%08x\n", omap_readl(OMAP32_ID_1));
+> +	printk(KERN_DEBUG "JTAG_ID: 0x%04x DIE_REV: %i\n", jtag_id, die_rev);
+>  #endif
+>  
+>  	system_serial_high = omap_readl(OMAP_DIE_ID_0);
+> @@ -140,7 +150,7 @@ void __init omap_check_revision(void)
 >  	/* First check only the major version in a safe way */
 >  	for (i = 0; i < ARRAY_SIZE(omap_ids); i++) {
 >  		if (jtag_id == (omap_ids[i].jtag_id)) {
@@ -86,7 +113,7 @@ Tony
 >  			break;
 >  		}
 >  	}
-> @@ -148,7 +157,7 @@ void __init omap_check_revision(void)
+> @@ -148,7 +158,7 @@ void __init omap_check_revision(void)
 >  	/* Check if we can find the die revision */
 >  	for (i = 0; i < ARRAY_SIZE(omap_ids); i++) {
 >  		if (jtag_id == omap_ids[i].jtag_id && die_rev == omap_ids[i].die_rev) {
@@ -95,7 +122,7 @@ Tony
 >  			break;
 >  		}
 >  	}
-> @@ -158,35 +167,35 @@ void __init omap_check_revision(void)
+> @@ -158,35 +168,35 @@ void __init omap_check_revision(void)
 >  		if (jtag_id == omap_ids[i].jtag_id
 >  		    && die_rev == omap_ids[i].die_rev
 >  		    && omap_id == omap_ids[i].omap_id) {
@@ -125,40 +152,44 @@ Tony
 > +		omap_revision |= 0x16;
 >  		break;
 >  	default:
->  		printk("Unknown OMAP cpu type: 0x%02x\n", cpu_type);
+> -		printk("Unknown OMAP cpu type: 0x%02x\n", cpu_type);
+> +		printk(KERN_INFO "Unknown OMAP cpu type: 0x%02x\n", cpu_type);
 >  	}
 >  
 > -	printk("OMAP%04x", system_rev >> 16);
 > -	if ((system_rev >> 8) & 0xff)
 > -		printk("%x", (system_rev >> 8) & 0xff);
-> +	printk("OMAP%04x", omap_revision >> 16);
-> +	if ((omap_revision >> 8) & 0xff)
-> +		printk("%x", (omap_revision >> 8) & 0xff);
->  	printk(" revision %i handled as %02xxx id: %08x%08x\n",
+> -	printk(" revision %i handled as %02xxx id: %08x%08x\n",
 > -	       die_rev, system_rev & 0xff, system_serial_low,
+> +	printk(KERN_INFO "OMAP%04x", omap_revision >> 16);
+> +	if ((omap_revision >> 8) & 0xff)
+> +		printk(KERN_INFO "%x", (omap_revision >> 8) & 0xff);
+> +	printk(KERN_INFO " revision %i handled as %02xxx id: %08x%08x\n",
 > +	       die_rev, omap_revision & 0xff, system_serial_low,
 >  	       system_serial_high);
 >  }
 >  
 > diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
-> index 770d256..9423c47 100644
+> index 770d256..9774c1f 100644
 > --- a/arch/arm/mach-omap1/pm.c
 > +++ b/arch/arm/mach-omap1/pm.c
-> @@ -226,7 +226,7 @@ void omap_pm_suspend(void)
+> @@ -226,7 +226,8 @@ void omap_pm_suspend(void)
 >  {
 >  	unsigned long arg0 = 0, arg1 = 0;
 >  
 > -	printk("PM: OMAP%x is trying to enter deep sleep...\n", system_rev);
-> +	printk("PM: OMAP%x is trying to enter deep sleep...\n", omap_rev());
+> +	printk(KERN_INFO "PM: OMAP%x is trying to enter deep sleep...\n",
+> +		omap_rev());
 >  
 >  	omap_serial_wake_trigger(1);
 >  
-> @@ -421,7 +421,7 @@ void omap_pm_suspend(void)
+> @@ -421,7 +422,8 @@ void omap_pm_suspend(void)
 >  
 >  	omap_serial_wake_trigger(0);
 >  
 > -	printk("PM: OMAP%x is re-starting from deep sleep...\n", system_rev);
-> +	printk("PM: OMAP%x is re-starting from deep sleep...\n", omap_rev());
+> +	printk(KERN_INFO "PM: OMAP%x is re-starting from deep sleep...\n",
+> +		omap_rev());
 >  }
 >  
 >  #if defined(DEBUG) && defined(CONFIG_PROC_FS)
@@ -496,3 +527,7 @@ Tony
 > -- 
 > 1.5.6.5
 > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
