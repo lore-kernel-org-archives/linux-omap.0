@@ -1,39 +1,87 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] Add touchscreen support for Pandora
-Date: Wed, 5 Nov 2008 17:17:38 -0800
-Message-ID: <20081106011738.GK21736@atomide.com>
-References: <1225919983-26144-1-git-send-email-notasas@gmail.com> <20081105223920.GG4010@frodo> <6ed0b2680811051541t21a1be36i8ba85db9bfaaa025@mail.gmail.com> <20081105235541.GH4010@frodo>
+From: "stanley.miao" <stanley.miao@windriver.com>
+Subject: Re: [PATCH] OMAP: Fix McBSP spin_lock deadlock.
+Date: Thu, 06 Nov 2008 09:49:17 +0800
+Message-ID: <1225936157.7811.134.camel@localhost>
+References: <1225886429-28058-1-git-send-email-stanley.miao@windriver.com>
+	 <200811051546.51707.david-b@pacbell.net>
+	 <20081106011621.GJ21736@atomide.com>
+Reply-To: stanley.miao@windriver.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49178 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752999AbYKFBRl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2008 20:17:41 -0500
-Content-Disposition: inline
-In-Reply-To: <20081105235541.GH4010@frodo>
+Received: from mail.windriver.com ([147.11.1.11]:35475 "EHLO mail.wrs.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752940AbYKFBns (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Nov 2008 20:43:48 -0500
+In-Reply-To: <20081106011621.GJ21736@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org
 
-* Felipe Balbi <me@felipebalbi.com> [081105 15:56]:
-> On Thu, Nov 06, 2008 at 01:41:46AM +0200, Grazvydas Ignotas wrote:
-> > Yes, it's more like a placeholder for future patches. I plan to add a
-> > function prototype and some more GPIOs. I also plan adding another
-> > board file for input stuff (board-omap3pandora-input.c), as pandora
-> > has lots of GPIO buttons with full qwerty keypad, and I don't want to
-> > clutter the main board file with large arrays of structures.
-> > If this is not acceptable I can stuff everything into board-omap3pandora.c
+
+On Wed, 2008-11-05 at 17:16 -0800, Tony Lindgren wrote:
+> * David Brownell <david-b@pacbell.net> [081105 15:53]:
+> > On Wednesday 05 November 2008, Stanley.Miao wrote:
+> > > @@ -333,7 +333,8 @@ struct omap_mcbsp_platform_data {
+> > >         u8 dma_rx_sync, dma_tx_sync;
+> > >         u16 rx_irq, tx_irq;
+> > >         struct omap_mcbsp_ops *ops;
+> > > -       char const *clk_name;
+> > > +       char const *ick_name;
+> > > +       char const *fck_name;
+> > >  };
+> > >  
+> > >  struct omap_mcbsp {
+> > 
+> > I thought the idea was to fix this using the clock aliasing
+> > facility ... so that the mcbsp driver would just
+> > 
+> > 	ick = clk_get(dev, "ick");
+> > 	fck = clk_get(dev, "fck");
+> > 
+> > (with IS_ERR checks of course) and the platform data would
+> > no longer need to hold those names.
+> > 
+> > That approach can work on OMAP1 too ... I think this patch
+> > breaks OMAP1 boards.
 > 
-> I think tony has the final word here, but generally the other board
-> files have the keypad stuff in the main board file (board-n800.c,
-> board-3430sdp.c, board-2430sdp.c, etc)
+> Russell also has some ideas, so despite the nasty bug, let's put
+> the clock aliasing and virtual clocks stuff on hold for a little
+> while. Meanwhile, maybe we can just add some function for the
+> virtual clock that does not cause the recursion?
+
+At the start, I tried to add a function __clk_enable().
+
++int __clk_enable(struct clk *clk)
++{
++       if(arch_clock->clk_enable)
++               return arch_clock->clk_enable(clk);
++       return 0;
++}
++EXPORT_SYMBOL(__clk_enable);
++
+ int clk_enable(struct clk *clk)
+ {
+        unsigned long flags;
+@@ -84,33 +92,36 @@ int clk_enable(struct clk *clk)
+                return -EINVAL;
+ 
+        spin_lock_irqsave(&clockfw_lock, flags);
+-       if (arch_clock->clk_enable)
+-               ret = arch_clock->clk_enable(clk);
++       ret = __clk_enable(clk);
+        spin_unlock_irqrestore(&clockfw_lock, flags);
+ 
+        return ret;
+ }
+ EXPORT_SYMBOL(clk_enable);
+
+But in this way I have to add __clk_enable() to include/linux/clk.h, so
+I give up this method.
+
+Stanley.
+
 > 
-> About the defines, it's only nice to put them in the header iff you
-> need to use the same define on two (or more) different files. Otherwise,
-> you can make the defines local to the file that needs them :-)
-
-Well the header should be there only if needed for other boards.
-
-Tony
+> Tony
