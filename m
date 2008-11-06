@@ -1,50 +1,48 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 04/10] ARM: OMAP2: Remove OMAP_PRM_REGADDR,
- OMAP_CM_REGADDR
-Date: Thu, 6 Nov 2008 06:15:44 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0811060610160.11718@utopia.booyaka.com>
-References: <20081002163508.15385.43247.stgit@localhost.localdomain> <20081002163751.15385.31321.stgit@localhost.localdomain> <20081006161849.GC27466@flint.arm.linux.org.uk> <20081006233954.GD27466@flint.arm.linux.org.uk> <alpine.DEB.2.00.0810070729300.9923@utopia.booyaka.com>
- <20081027205936.GP4283@flint.arm.linux.org.uk>
+From: "vimal singh" <vimalsingh@ti.com>
+Subject: [PATCH - Omapzoom][NAND] removing nand hwecc warning for omap
+Date: Thu, 6 Nov 2008 19:10:47 +0530 (IST)
+Message-ID: <40956.192.168.10.89.1225978847.squirrel@dbdmail.itg.ti.com>
+References: <45877.192.168.10.89.1225366740.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38656 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753789AbYKFNQG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Nov 2008 08:16:06 -0500
-In-Reply-To: <20081027205936.GP4283@flint.arm.linux.org.uk>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51456 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753325AbYKFNkx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 6 Nov 2008 08:40:53 -0500
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id mA6DelF6025520
+	for <linux-omap@vger.kernel.org>; Thu, 6 Nov 2008 07:40:53 -0600
+Received: from webmail.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id mA6Dej5r000744
+	for <linux-omap@vger.kernel.org>; Thu, 6 Nov 2008 07:40:46 -0600 (CST)
+In-Reply-To: <45877.192.168.10.89.1225366740.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
 
-Hi Russell,
+Removing warning:
+drivers/mtd/nand/omap2.c: In function 'omap_calculate_ecc':
+drivers/mtd/nand/omap2.c:466: warning: unused variable 'chip'
 
-I've been on holiday, hence the delayed E-mail.
+Signed-off-by: Vimal Singh <vimalsingh@ti.com>
 
-On Mon, 27 Oct 2008, Russell King - ARM Linux wrote:
+---
+ drivers/mtd/nand/omap2.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-> If I take this further, and detect clocks which result in
-> omap2_clk_wait_ready() being called, but we don't have a corresponding
-> [if]ck, I see at least these four warnings:
-> 
-> CLK: omapctrl_ick.0: no other_clk but asked to wait_ready
-> CLK: sdrc_ick.0: no other_clk but asked to wait_ready
-> CLK: dpll4_m2x2_ck.0: no other_clk but asked to wait_ready
-> CLK: omap_32ksync_ick.0: no other_clk but asked to wait_ready
-> 
-> So, presumably these ick clocks don't have corresponding fck clocks,
-> which means checking the fck register for the bit would be wrong?
-
-Yes, that's right.  
-
-> So, here's the question: should any of the above clocks result in
-> omap2_wait_clock_ready() being called?  If the answer is no, that's
-> great.  If yes, are there missing clk structures for OMAP3?
-
-No, omap2_wait_clock_ready() shouldn't be called for those clocks.  The 
-current linux-omap git head does not call omap2_wait_clock_ready() in 
-these cases, as far as I know.
+Index: omapkernel/drivers/mtd/nand/omap2.c
+===================================================================
+--- omapkernel.orig/drivers/mtd/nand/omap2.c	2008-11-06 12:48:05.000000000 +0530
++++ omapkernel/drivers/mtd/nand/omap2.c	2008-11-06 12:48:12.000000000 +0530
+@@ -463,7 +463,6 @@
+ {
+ 	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
+ 							mtd);
+-	register struct nand_chip *chip = mtd->priv;
+ 	unsigned long val = 0x0;
+ 	unsigned long reg;
 
 
-- Paul
+
