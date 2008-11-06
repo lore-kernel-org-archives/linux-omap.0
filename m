@@ -1,41 +1,56 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 1/3] clk: introduce omap_clk_associate
-Date: Thu, 6 Nov 2008 02:53:18 +0200
-Message-ID: <20081106005318.GB21860@frodo>
-References: <1224964548-31844-1-git-send-email-me@felipebalbi.com> <20081025200349.GA18177@frodo>
-Reply-To: me@felipebalbi.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP: Fix McBSP spin_lock deadlock.
+Date: Wed, 5 Nov 2008 17:16:22 -0800
+Message-ID: <20081106011621.GJ21736@atomide.com>
+References: <1225886429-28058-1-git-send-email-stanley.miao@windriver.com> <200811051546.51707.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:55420 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751870AbYKFAx0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2008 19:53:26 -0500
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64556 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752952AbYKFBQZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2008 20:16:25 -0500
 Content-Disposition: inline
-In-Reply-To: <20081025200349.GA18177@frodo>
+In-Reply-To: <200811051546.51707.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, paul@pwsan.com
+To: David Brownell <david-b@pacbell.net>
+Cc: "Stanley.Miao" <stanley.miao@windriver.com>, linux-omap@vger.kernel.org
 
-Hi all,
+* David Brownell <david-b@pacbell.net> [081105 15:53]:
+> On Wednesday 05 November 2008, Stanley.Miao wrote:
+> > @@ -333,7 +333,8 @@ struct omap_mcbsp_platform_data {
+> > =A0=A0=A0=A0=A0=A0=A0=A0u8 dma_rx_sync, dma_tx_sync;
+> > =A0=A0=A0=A0=A0=A0=A0=A0u16 rx_irq, tx_irq;
+> > =A0=A0=A0=A0=A0=A0=A0=A0struct omap_mcbsp_ops *ops;
+> > -=A0=A0=A0=A0=A0=A0=A0char const *clk_name;
+> > +=A0=A0=A0=A0=A0=A0=A0char const *ick_name;
+> > +=A0=A0=A0=A0=A0=A0=A0char const *fck_name;
+> > =A0};
+> > =A0
+> > =A0struct omap_mcbsp {
+>=20
+> I thought the idea was to fix this using the clock aliasing
+> facility ... so that the mcbsp driver would just
+>=20
+> 	ick =3D clk_get(dev, "ick");
+> 	fck =3D clk_get(dev, "fck");
+>=20
+> (with IS_ERR checks of course) and the platform data would
+> no longer need to hold those names.
+>=20
+> That approach can work on OMAP1 too ... I think this patch
+> breaks OMAP1 boards.
 
-a couple of changes to omap_clk_associate,
+Russell also has some ideas, so despite the nasty bug, let's put
+the clock aliasing and virtual clocks stuff on hold for a little
+while. Meanwhile, maybe we can just add some function for the
+virtual clock that does not cause the recursion?
 
-On Sat, Oct 25, 2008 at 11:03:50PM +0300, Felipe Balbi wrote:
-> > +void omap_clk_associate(const char *id, struct device *dev);
-
-This i changed to omap_clk_associate(struct device *dev, const char *id)
-as it looks closer to clk_get().
-
-> > +		list_for_each_entry(d, &p->consumers, node) {
-
-The list_head in struct device was changed to a klist. I already fixed
-the patches. Will test them tomorrow afternoon and send the new version
-here.
-
-I'll also Cc Greg as there's a symbol from driver core that would be useful
-to get it exported.
-
--- 
-balbi
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
