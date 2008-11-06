@@ -1,56 +1,39 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: Fix McBSP spin_lock deadlock.
-Date: Wed, 5 Nov 2008 17:16:22 -0800
-Message-ID: <20081106011621.GJ21736@atomide.com>
-References: <1225886429-28058-1-git-send-email-stanley.miao@windriver.com> <200811051546.51707.david-b@pacbell.net>
+Subject: Re: [PATCH 1/2] Add touchscreen support for Pandora
+Date: Wed, 5 Nov 2008 17:17:38 -0800
+Message-ID: <20081106011738.GK21736@atomide.com>
+References: <1225919983-26144-1-git-send-email-notasas@gmail.com> <20081105223920.GG4010@frodo> <6ed0b2680811051541t21a1be36i8ba85db9bfaaa025@mail.gmail.com> <20081105235541.GH4010@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64556 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49178 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752952AbYKFBQZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2008 20:16:25 -0500
+	with ESMTP id S1752999AbYKFBRl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2008 20:17:41 -0500
 Content-Disposition: inline
-In-Reply-To: <200811051546.51707.david-b@pacbell.net>
+In-Reply-To: <20081105235541.GH4010@frodo>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: "Stanley.Miao" <stanley.miao@windriver.com>, linux-omap@vger.kernel.org
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [081105 15:53]:
-> On Wednesday 05 November 2008, Stanley.Miao wrote:
-> > @@ -333,7 +333,8 @@ struct omap_mcbsp_platform_data {
-> > =A0=A0=A0=A0=A0=A0=A0=A0u8 dma_rx_sync, dma_tx_sync;
-> > =A0=A0=A0=A0=A0=A0=A0=A0u16 rx_irq, tx_irq;
-> > =A0=A0=A0=A0=A0=A0=A0=A0struct omap_mcbsp_ops *ops;
-> > -=A0=A0=A0=A0=A0=A0=A0char const *clk_name;
-> > +=A0=A0=A0=A0=A0=A0=A0char const *ick_name;
-> > +=A0=A0=A0=A0=A0=A0=A0char const *fck_name;
-> > =A0};
-> > =A0
-> > =A0struct omap_mcbsp {
->=20
-> I thought the idea was to fix this using the clock aliasing
-> facility ... so that the mcbsp driver would just
->=20
-> 	ick =3D clk_get(dev, "ick");
-> 	fck =3D clk_get(dev, "fck");
->=20
-> (with IS_ERR checks of course) and the platform data would
-> no longer need to hold those names.
->=20
-> That approach can work on OMAP1 too ... I think this patch
-> breaks OMAP1 boards.
+* Felipe Balbi <me@felipebalbi.com> [081105 15:56]:
+> On Thu, Nov 06, 2008 at 01:41:46AM +0200, Grazvydas Ignotas wrote:
+> > Yes, it's more like a placeholder for future patches. I plan to add a
+> > function prototype and some more GPIOs. I also plan adding another
+> > board file for input stuff (board-omap3pandora-input.c), as pandora
+> > has lots of GPIO buttons with full qwerty keypad, and I don't want to
+> > clutter the main board file with large arrays of structures.
+> > If this is not acceptable I can stuff everything into board-omap3pandora.c
+> 
+> I think tony has the final word here, but generally the other board
+> files have the keypad stuff in the main board file (board-n800.c,
+> board-3430sdp.c, board-2430sdp.c, etc)
+> 
+> About the defines, it's only nice to put them in the header iff you
+> need to use the same define on two (or more) different files. Otherwise,
+> you can make the defines local to the file that needs them :-)
 
-Russell also has some ideas, so despite the nasty bug, let's put
-the clock aliasing and virtual clocks stuff on hold for a little
-while. Meanwhile, maybe we can just add some function for the
-virtual clock that does not cause the recursion?
+Well the header should be there only if needed for other boards.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
