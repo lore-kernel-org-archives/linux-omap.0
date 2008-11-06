@@ -1,77 +1,86 @@
-From: "Dasgupta, Romit" <romit@ti.com>
-Subject: [SMC911x ]fix for driver resume and compilation warning
-Date: Thu, 6 Nov 2008 15:46:18 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301B34DBBA2@dbde02.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP3 powerdomains: remove RET from SGX power states
+ list
+Date: Thu, 6 Nov 2008 04:08:44 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0811060401150.11718@utopia.booyaka.com>
+References: <alpine.DEB.2.00.0811051152150.15612@utopia.booyaka.com> <20081106033327.GQ21736@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1201022891-1225969724=:11718"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43411 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753272AbYKFKQz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Nov 2008 05:16:55 -0500
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:39291 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753400AbYKFLJH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Nov 2008 06:09:07 -0500
+In-Reply-To: <20081106033327.GQ21736@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "dustin@sensoria.com" <dustin@sensoria.com>, "jgarzik@pobox.com" <jgarzik@pobox.com>, "nico@cam.org" <nico@cam.org>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, =?ISO-8859-15?Q?H=F6gander_Jouni?= <jouni.hogander@nokia.com>, "Stoppa Igor (Nokia-D/Helsinki)" <Igor.Stoppa@nokia.com>, r-woodruff2@ti.com, Kevin Hilman <khilman@deeprootsystems.com>, "Sawant, Anand" <sawant@ti.com>, Poussa Sakari <sakari.poussa@nokia.com>
 
-Hi,
-     I am trying out suspend, resume on an OMAP3 based board. What I see during resume is that the SMC911x driver resume routing gets stuck after trying to transmit the packet out of the controller. Some debug messages below:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
---> smc911x_drv_resume
-eth0: --> smc911x_reset
-eth0: smc911x_reset timeout waiting for PM restore
-eth0: --> smc911x_enable
-eth0: --> smc911x_phy_configure()
-eth0: --> smc911x_phy_reset()
-eth0: phy caps=0x782d
-eth0: phy advertised caps=0x0de1
-eth0: --> smc911x_phy_check_media
-smc911x_phy_read: phyaddr=0x1, phyreg=0x01, phydata=0x7809
-smc911x_phy_read: phyaddr=0x1, phyreg=0x01, phydata=0x7809
-eth0: link down
-Restarting tasks ... eth0: --> smc911x_hard_start_xmit
-eth0: --> smc911x_hardware_send_pkt
-eth0: --> smc911x_hard_start_xmit
-eth0: --> smc911x_hardware_send_pkt
-eth0: --> smc911x_hard_start_xmit
-eth0: --> smc911x_hardware_send_pkt
-nfs: server 172.24.190.217 not responding, still trying
-nfs: server 172.24.190.217 not responding, still trying
+--155748971-1201022891-1225969724=:11718
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
+On Wed, 5 Nov 2008, Tony Lindgren wrote:
 
-The following change makes it work fine: (The change within smc911x_drv_probe function was to get rid of a compilation warning).
-Additionally, the SMC9211 data sheet says that when we enter D2 sleep state, we need to set the EDPWRDOWN bit in the PHY Mode control/status register and clear it when we are back to D0. This is not done in the code as far as I can see. So does it mean that the PHY is not powered down but the controller is? I have another patch that fixes it. I will send that as well unless I am missing something.
+> * Paul Walmsley <paul@pwsan.com> [081105 11:39]:
+> >=20
+> > The SGX device on OMAP3 does not support retention, so remove RET from =
+the=20
+> > list of possible SGX power states.  Problem debugged by Richard Woodruf=
+f=20
+> > <r-woodruff2@ti.com>.
+>=20
+> Pushing.
 
-Thanks,
--Romit
+Just FYI, that patch prevents the kernel from booting due to a bug in=20
+pm34xx.c; patch below.
+
+Even with the follwoing patch, the initial power state setup code in=20
+pm34xx.c will bail out early since it still tries to set the SGX next=20
+power state to retention, which it does not support.
 
 
-Signed-off-by: Romit Dasgupta <romit@ti.com>
+- Paul
 
-diff --git a/drivers/net/smc911x.c b/drivers/net/smc911x.c
-index 5051554..1f26ab0 100644
---- a/drivers/net/smc911x.c
-+++ b/drivers/net/smc911x.c
-@@ -2050,7 +2050,9 @@ err_out:
-  */
- static int smc911x_drv_probe(struct platform_device *pdev)
+
+OMAP3 PM: use list_for_each_entry_safe() when deleting list entries
+
+From: Paul Walmsley <paul@pwsan.com>
+
+The error path in clkdms_setup() needs to use list_for_each_entry_safe()
+when deleting entries from the list, or the kernel will crash.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Jouni H=F6gander <jouni.hogander@nokia.com>
+---
+ arch/arm/mach-omap2/pm34xx.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index a11a657..da098d2 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -540,7 +540,7 @@ static int __init clkdms_setup(struct clockdomain *clkd=
+m)
+=20
+ int __init omap3_pm_init(void)
  {
-+#ifdef SMC_DYNAMIC_BUS_CONFIG
- 	struct smc911x_platdata *pd = pdev->dev.platform_data;
-+#endif
- 	struct net_device *ndev;
- 	struct resource *res;
- 	struct smc911x_local *lp;
-@@ -2182,9 +2184,9 @@ static int smc911x_drv_resume(struct platform_device *dev)
- 
- 		if (netif_running(ndev)) {
- 			smc911x_reset(ndev);
--			smc911x_enable(ndev);
- 			if (lp->phy_type != 0)
- 				smc911x_phy_configure(&lp->phy_configure);
-+			smc911x_enable(ndev);
- 			netif_device_attach(ndev);
- 		}
- 	}
+-=09struct power_state *pwrst;
++=09struct power_state *pwrst, *tmp;
+ =09int ret;
+=20
+ =09printk(KERN_ERR "Power Management for TI OMAP3.\n");
+@@ -583,7 +583,7 @@ err1:
+ =09return ret;
+ err2:
+ =09free_irq(INT_34XX_PRCM_MPU_IRQ, NULL);
+-=09list_for_each_entry(pwrst, &pwrst_list, node) {
++=09list_for_each_entry_safe(pwrst, tmp, &pwrst_list, node) {
+ =09=09list_del(&pwrst->node);
+ =09=09kfree(pwrst);
+ =09}
+--155748971-1201022891-1225969724=:11718--
