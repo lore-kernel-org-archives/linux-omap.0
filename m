@@ -1,134 +1,160 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: 2.6.28-rc3 musb speed up (or not).
-Date: Wed, 5 Nov 2008 22:05:43 -0600
-Message-ID: <13B9B4C6EF24D648824FF11BE89671620369A1FC43@dlee02.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 3/4] HSMMC: Add support for the second controller
+Date: Wed, 5 Nov 2008 23:09:59 -0800
+Message-ID: <200811052309.59974.david-b@pacbell.net>
+References: <1225418657-31775-1-git-send-email-tony@atomide.com> <200811051554.24055.david-b@pacbell.net> <20081106033210.GP21736@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_13B9B4C6EF24D648824FF11BE89671620369A1FC43dlee02enttico_"
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34668 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751870AbYKFEGR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Nov 2008 23:06:17 -0500
-Content-Language: en-US
+Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:32109 "HELO
+	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752034AbYKFHKH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Nov 2008 02:10:07 -0500
+In-Reply-To: <20081106033210.GP21736@atomide.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Steve Sakoman <sakoman@gmail.com>, linux-omap@vger.kernel.org
 
---_002_13B9B4C6EF24D648824FF11BE89671620369A1FC43dlee02enttico_
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+On Wednesday 05 November 2008, Tony Lindgren wrote:
+> OK, I've pushed the hsmmc init patches. They still need work though.
+> 
+> Please everybody check your board MMC configuration and send patches
+> as needed.
 
-Hi,
+See the appended build fixes ... :)
 
-Attached is an updated timer suppression patch for NO-HZ.  Thomas had fed b=
-ack that some changes were necessary.
+Also, I suspect there needs to be an MMC_CAP_8_BIT_DATA at
+some point, with hsmmc driver support.
 
-The good is with patch testusb goes from 45.4sec to 10.9sec to move a fixed=
- amount of data.
 
-The bad is I found it necessary to remove a different in-kernel hack for ti=
-ck_nohz_kick_tick().  Kernel comments for this new function say it's a hack=
- to work around badly behaved long running soft-irqs.  Any thing waiting in=
- irq context spinning on jiffies seems pretty bad.
+> Also the write protect interrupts are not handled, and gpio handling
+> is twl specific. Hopefully a better base for the code anyways.
 
-Code was added 17 Oct 08:
-http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dcomm=
-itdiff;h=3Dfb02fbc14d17837b4b7b02dbb36142c16a7bf208
+I'll have a look at write protect ... it wouldn't normally
+be an IRQ, just an input GPIO.  Unlike the CD, which gets
+used for both purposes; that code looks iffy too.
 
-Does anyone have any thoughts on fixing the kick part?
+Yes, a better base.
 
-Really all interrupts during idle will benefit from the combined patch.  US=
-B is just the worst case as its moving so little data per interrupt in its =
-current mode.
+- Dave
+ 
 
-I'll send a couple pictures in a separate mail.
+========= CUT HERE
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-alias o=3D'./testusb -a -t 1 -c 6250 -s 16384'
+Build fixes for "HSMMC: Improve the interface for hsmmc_init()".
+The header file needs to work without MMC support enabled, and
+some board files needed to include it.
 
-L-O: 2.6.28-rc3-oma1-05153-g13c444a
-------------------------------------
-[root@localhost tst]# o
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+ arch/arm/mach-omap2/board-2430sdp.c      |    3 +++
+ arch/arm/mach-omap2/board-ldp.c          |    3 +++
+ arch/arm/mach-omap2/board-omap2evm.c     |    3 +++
+ arch/arm/mach-omap2/board-omap3beagle.c  |    2 ++
+ arch/arm/mach-omap2/board-omap3evm.c     |    2 ++
+ arch/arm/mach-omap2/board-omap3pandora.c |    2 ++
+ arch/arm/mach-omap2/mmc-twl4030.h        |    8 ++++----
+ 7 files changed, 19 insertions(+), 4 deletions(-)
 
- ENTERED MAIN()...
-unknown speed   /proc/bus/usb/001/019
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -44,6 +44,9 @@
+ 
+ #include <asm/io.h>
+ 
++#include "mmc-twl4030.h"
++
++
+ #define	SDP2430_FLASH_CS	0
+ #define	SDP2430_SMC91X_CS	5
+ 
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -41,6 +41,9 @@
+ #include <asm/delay.h>
+ #include <mach/control.h>
+ 
++#include "mmc-twl4030.h"
++
++
+ #define CONFIG_DISABLE_HFCLK 1
+ 
+ #define ENABLE_VAUX1_DEDICATED	0x03
+--- a/arch/arm/mach-omap2/board-omap2evm.c
++++ b/arch/arm/mach-omap2/board-omap2evm.c
+@@ -41,6 +41,9 @@
+ #include <mach/mcspi.h>
+ #include <mach/mux.h>
+ 
++#include "mmc-twl4030.h"
++
++
+ #define GPMC_OFF_CONFIG1_0 0x60
+ 
+ static struct mtd_partition omap2evm_nand_partitions[] = {
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -44,6 +44,8 @@
+ #include <mach/mux.h>
+ 
+ #include "twl4030-generic-scripts.h"
++#include "mmc-twl4030.h"
++
+ 
+ #define GPMC_CS0_BASE  0x60
+ #define GPMC_CS_SIZE   0x30
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -40,6 +40,8 @@
+ 
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "twl4030-generic-scripts.h"
++#include "mmc-twl4030.h"
++
+ 
+ static struct resource omap3evm_smc911x_resources[] = {
+ 	[0] =	{
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -47,6 +47,8 @@
+ #include <mach/usb-musb.h>
+ 
+ #include "sdram-micron-mt46h32m32lf-6.h"
++#include "mmc-twl4030.h"
++
+ 
+ #define NAND_BLOCK_SIZE SZ_128K
+ #define GPMC_CS0_BASE  0x60
+--- a/arch/arm/mach-omap2/mmc-twl4030.h
++++ b/arch/arm/mach-omap2/mmc-twl4030.h
+@@ -6,20 +6,20 @@
+  * published by the Free Software Foundation.
+  */
+ 
+-#if	defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE) || \
+-	defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
+-
+ struct twl4030_hsmmc_info {
+ 	u8	mmc;		/* controller 1/2/3 */
+ 	u8	wires;		/* 1/4/8 wires */
+ 	int	gpio_cd;	/* or -EINVAL */
+ };
+ 
++#if	defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE) || \
++	defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
++
+ void hsmmc_init(struct twl4030_hsmmc_info *);
+ 
+ #else
+ 
+-static inline void hsmmc_init(struct twl4030_hsmmc_info *)
++static inline void hsmmc_init(struct twl4030_hsmmc_info *info)
+ {
+ }
+ 
 
- NAME OF DEVICE TO TEST --> [/proc/bus/usb/001/019]
-
-->test 1 1
-
-/proc/bus/usb/001/019 test 1,   45.458298 secs
-[root@localhost tst]#
-[root@localhost tst]#
-
-L-O (+ rkw/tglx-patch) 2.6.28-rc3-oma1-05153-g13c444a
-[root@localhost tst]# o
-
-[root@localhost tst]# o
-
- ENTERED MAIN()...
-unknown speed   /proc/bus/usb/001/004
-
- NAME OF DEVICE TO TEST --> [/proc/bus/usb/001/004]
-
-->test 1 1
-/proc/bus/usb/001/004 test 1,   10.945926 secs
-
-Regards,
-Richard W.
-
---_002_13B9B4C6EF24D648824FF11BE89671620369A1FC43dlee02enttico_
-Content-Type: application/octet-stream; name="suppress_tick_no_kick.diff"
-Content-Description: suppress_tick_no_kick.diff
-Content-Disposition: attachment; filename="suppress_tick_no_kick.diff";
-	size=2466; creation-date="Wed, 05 Nov 2008 22:29:18 GMT";
-	modification-date="Wed, 05 Nov 2008 22:29:18 GMT"
-Content-Transfer-Encoding: base64
-
-ZGlmZiAtLWdpdCBhL2tlcm5lbC90aW1lL3RpY2stc2NoZWQuYyBiL2tlcm5lbC90aW1lL3RpY2st
-c2NoZWQuYwppbmRleCA1YmJiMTA0Li5iMTgwMWRkIDEwMDY0NAotLS0gYS9rZXJuZWwvdGltZS90
-aWNrLXNjaGVkLmMKKysrIGIva2VybmVsL3RpbWUvdGljay1zY2hlZC5jCkBAIC0yODIsOCArMjgy
-LDI2IEBAIHZvaWQgdGlja19ub2h6X3N0b3Bfc2NoZWRfdGljayhpbnQgaW5pZGxlKQogCS8qIFNj
-aGVkdWxlIHRoZSB0aWNrLCBpZiB3ZSBhcmUgYXQgbGVhc3Qgb25lIGppZmZpZSBvZmYgKi8KIAlp
-ZiAoKGxvbmcpZGVsdGFfamlmZmllcyA+PSAxKSB7CiAKKwkJLyoKKwkJKiBjYWxjdWxhdGUgdGhl
-IGV4cGlyeSB0aW1lIGZvciB0aGUgbmV4dCB0aW1lciB3aGVlbAorCQkqIHRpbWVyLiBkZWx0YV9q
-aWZmaWVzID49IE5FWFRfVElNRVJfTUFYX0RFTFRBIHNpZ25hbHMKKwkJKiB0aGF0IHRoZXJlIGlz
-IG5vIHRpbWVyIHBlbmRpbmcgb3IgYXQgbGVhc3QgZXh0cmVtbHkKKwkJKiBmYXIgaW50byB0aGUg
-ZnV0dXJlICgxMiBkYXlzIGZvciBIWj0xMDAwKS4gSW4gdGhpcworCQkqIGNhc2Ugd2Ugc2V0IHRo
-ZSBleHBpcnkgdG8gdGhlIGVuZCBvZiB0aGUgdW5pdmVyc2UuCisJCSovCisJCWlmIChkZWx0YV9q
-aWZmaWVzIDwgTkVYVF9USU1FUl9NQVhfREVMVEEpCisJCQlleHBpcmVzID0ga3RpbWVfYWRkX25z
-KGxhc3RfdXBkYXRlLCB0aWNrX3BlcmlvZC50djY0ICoKKwkJCQkJICAgICAgIGRlbHRhX2ppZmZp
-ZXMpOworCQllbHNlCisJCQlleHBpcmVzLnR2NjQgPSBLVElNRV9NQVg7CisKIAkJaWYgKGRlbHRh
-X2ppZmZpZXMgPiAxKQogCQkJY3B1X3NldChjcHUsIG5vaHpfY3B1X21hc2spOworCisJCS8qIFNr
-aXAgcmVwcm9ncmFtIG9mIGV2ZW50IGlmIGl0IGhhcyBub3QgY2hhbmdlZCAqLworCQlpZiAodHMt
-PnRpY2tfc3RvcHBlZCAmJiBrdGltZV9lcXVhbChleHBpcmVzLCBkZXYtPm5leHRfZXZlbnQpKQor
-CQkJZ290byBvdXQ7CisKIAkJLyoKIAkJICogbm9oel9zdG9wX3NjaGVkX3RpY2sgY2FuIGJlIGNh
-bGxlZCBzZXZlcmFsIHRpbWVzIGJlZm9yZQogCQkgKiB0aGUgbm9oel9yZXN0YXJ0X3NjaGVkX3Rp
-Y2sgaXMgY2FsbGVkLiBUaGlzIGhhcHBlbnMgd2hlbgpAQCAtMzE5LDI3ICszMzcsMTcgQEAgdm9p
-ZCB0aWNrX25vaHpfc3RvcF9zY2hlZF90aWNrKGludCBpbmlkbGUpCiAKIAkJdHMtPmlkbGVfc2xl
-ZXBzKys7CiAKKwkJdHMtPmlkbGVfZXhwaXJlcyA9IGV4cGlyZXM7CisKIAkJLyoKLQkJICogZGVs
-dGFfamlmZmllcyA+PSBORVhUX1RJTUVSX01BWF9ERUxUQSBzaWduYWxzIHRoYXQKLQkJICogdGhl
-cmUgaXMgbm8gdGltZXIgcGVuZGluZyBvciBhdCBsZWFzdCBleHRyZW1seSBmYXIKLQkJICogaW50
-byB0aGUgZnV0dXJlICgxMiBkYXlzIGZvciBIWj0xMDAwKS4gSW4gdGhpcyBjYXNlCi0JCSAqIHdl
-IHNpbXBseSBzdG9wIHRoZSB0aWNrIHRpbWVyOgorCQkgKiBObyBhY3RpdmUgdGltZXJzID8KIAkJ
-ICovCi0JCWlmICh1bmxpa2VseShkZWx0YV9qaWZmaWVzID49IE5FWFRfVElNRVJfTUFYX0RFTFRB
-KSkgewotCQkJdHMtPmlkbGVfZXhwaXJlcy50djY0ID0gS1RJTUVfTUFYOworCQlpZiAodW5saWtl
-bHkoZXhwaXJlcy50djY0ID09IEtUSU1FX01BWCkpIHsKIAkJCWlmICh0cy0+bm9oel9tb2RlID09
-IE5PSFpfTU9ERV9ISUdIUkVTKQogCQkJCWhydGltZXJfY2FuY2VsKCZ0cy0+c2NoZWRfdGltZXIp
-OwogCQkJZ290byBvdXQ7CiAJCX0KIAotCQkvKgotCQkgKiBjYWxjdWxhdGUgdGhlIGV4cGlyeSB0
-aW1lIGZvciB0aGUgbmV4dCB0aW1lciB3aGVlbAotCQkgKiB0aW1lcgotCQkgKi8KLQkJZXhwaXJl
-cyA9IGt0aW1lX2FkZF9ucyhsYXN0X3VwZGF0ZSwgdGlja19wZXJpb2QudHY2NCAqCi0JCQkJICAg
-ICAgIGRlbHRhX2ppZmZpZXMpOwotCQl0cy0+aWRsZV9leHBpcmVzID0gZXhwaXJlczsKLQogCQlp
-ZiAodHMtPm5vaHpfbW9kZSA9PSBOT0haX01PREVfSElHSFJFUykgewogCQkJaHJ0aW1lcl9zdGFy
-dCgmdHMtPnNjaGVkX3RpbWVyLCBleHBpcmVzLAogCQkJCSAgICAgIEhSVElNRVJfTU9ERV9BQlMp
-OwpAQCAtNTY4LDYgKzU3NiwxMCBAQCBzdGF0aWMgdm9pZCB0aWNrX25vaHpfc3dpdGNoX3RvX25v
-aHoodm9pZCkKICAqLwogc3RhdGljIHZvaWQgdGlja19ub2h6X2tpY2tfdGljayhpbnQgY3B1KQog
-eworI2lmIDAKKworLy8gaXMgaXQgcG9zc2libGUgdG8gb25seSB0dXJuIHRoaXMgb24gaWYgYW55
-IHNvZnRpcnFzIGFyZSBzY2hlZHVsZWQgb3IgcGVuZGluZz8KKwogCXN0cnVjdCB0aWNrX3NjaGVk
-ICp0cyA9ICZwZXJfY3B1KHRpY2tfY3B1X3NjaGVkLCBjcHUpOwogCWt0aW1lX3QgZGVsdGEsIG5v
-dzsKIApAQCAtNTg0LDYgKzU5Niw3IEBAIHN0YXRpYyB2b2lkIHRpY2tfbm9oel9raWNrX3RpY2so
-aW50IGNwdSkKIAkJcmV0dXJuOwogCiAJdGlja19ub2h6X3Jlc3RhcnQodHMsIG5vdyk7CisjZW5k
-aWYKIH0KIAogI2Vsc2UK
-
---_002_13B9B4C6EF24D648824FF11BE89671620369A1FC43dlee02enttico_--
