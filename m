@@ -1,141 +1,347 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.28-rc3-omap git 2/2] twl4030-gpio debounce cleanup
-Date: Fri, 7 Nov 2008 11:59:49 -0800
-Message-ID: <200811071159.49679.david-b@pacbell.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [patch 2.6.28-rc3-omap git 1/2] mmc-twl4030 gpios for all
+	controllers
+Date: Fri, 7 Nov 2008 12:07:33 -0800
+Message-ID: <20081107200732.GK21736@atomide.com>
+References: <200811071155.55180.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:33076 "HELO
-	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751279AbYKGT7w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2008 14:59:52 -0500
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58676 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750920AbYKGUHf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2008 15:07:35 -0500
 Content-Disposition: inline
+In-Reply-To: <200811071155.55180.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-omap@vger.kernel.org
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+* David Brownell <david-b@pacbell.net> [081107 12:00]:
+> From: David Brownell <dbrownell@users.sourceforge.net>
+> 
+> More HSMMC gpio updates: make the card detect and write protect
+> handling behave for slots connected to any controller (not just
+> for MMC1), and for non-twl4030 GPIOs.
+> 
+> It packs some structs more efficiently, and updates mmc platform
+> data to remember the relevant GPIOs.  It also adds some error
+> checks.
+> 
+> This removes debouncing, so it goes along with a following patch
+> to change how twl4030 debouncing kicks in.
+> 
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> ---
+> Goes on top of the patch I sent yesterday.
 
-Provide a static debounce configuration mechanism for twl4030 GPIOs,
-replacing the previous dynamic one.  The single user of that mechanism
-was for MMC card detect debouncing.
+Great, pushing both today.
 
-Boards can provide a bitmask saying which GPIOs to debounce (30 msec).
-It's always enabled for pins with the MMC card-detect/VMMCx link active,
-so most boards won't need to set the debounce mask.
+> So the remaining notably-messy bits of mmc-twl4030 glue seem
+> to be lack of MMC3 support, and the voltage regulator stuff
+> hard-wiring knowledge and not using drivers/regulator.
 
-This is a net code shrink, including runtime footprint.
+OK
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
-I'll submit this to mainline as soon as I get appropriate
-acks/signoffs here.
+Tony
 
- drivers/gpio/twl4030-gpio.c |   54 +++++++++++++++++-------------------------
- include/linux/i2c/twl4030.h |    9 ++-----
- 2 files changed, 26 insertions(+), 37 deletions(-)
 
---- a/drivers/gpio/twl4030-gpio.c
-+++ b/drivers/gpio/twl4030-gpio.c
-@@ -202,37 +202,6 @@ static int twl4030_get_gpio_datain(int g
- 	return ret;
- }
- 
--/*
-- * Configure debounce timing value for a GPIO pin on TWL4030
-- */
--int twl4030_set_gpio_debounce(int gpio, int enable)
--{
--	u8 d_bnk = gpio >> 3;
--	u8 d_msk = BIT(gpio & 0x7);
--	u8 reg = 0;
--	u8 base = 0;
--	int ret = 0;
--
--	if (unlikely((gpio >= TWL4030_GPIO_MAX)
--		|| !(gpio_usage_count & BIT(gpio))))
--		return -EPERM;
--
--	base = REG_GPIO_DEBEN1 + d_bnk;
--	mutex_lock(&gpio_lock);
--	ret = gpio_twl4030_read(base);
--	if (ret >= 0) {
--		if (enable)
--			reg = ret | d_msk;
--		else
--			reg = ret & ~d_msk;
--
--		ret = gpio_twl4030_write(base, reg);
--	}
--	mutex_unlock(&gpio_lock);
--	return ret;
--}
--EXPORT_SYMBOL(twl4030_set_gpio_debounce);
--
- /*----------------------------------------------------------------------*/
- 
- static int twl_request(struct gpio_chip *chip, unsigned offset)
-@@ -405,6 +374,23 @@ static int __devinit gpio_twl4030_pulls(
- 				REG_GPIOPUPDCTR1, 5);
- }
- 
-+static int __devinit gpio_twl4030_debounce(u32 debounce, u8 mmc_cd)
-+{
-+	u8		message[4];
-+
-+	/* 30 msec of debouncing is always used for MMC card detect,
-+	 * and is optional for everything else.
-+	 */
-+	message[1] = (debounce & 0xff) | (mmc_cd & 0x03);
-+	debounce >>= 8;
-+	message[2] = (debounce & 0xff);
-+	debounce >>= 8;
-+	message[3] = (debounce & 0x03);
-+
-+	return twl4030_i2c_write(TWL4030_MODULE_GPIO, message,
-+				REG_GPIO_DEBEN1, 3);
-+}
-+
- static int gpio_twl4030_remove(struct platform_device *pdev);
- 
- static int __devinit gpio_twl4030_probe(struct platform_device *pdev)
-@@ -439,6 +425,12 @@ no_irqs:
- 				pdata->pullups, pdata->pulldowns,
- 				ret);
- 
-+	ret = gpio_twl4030_debounce(pdata->debounce, pdata->mmc_cd);
-+	if (ret)
-+		dev_dbg(&pdev->dev, "debounce %.03x %.01x --> %d\n",
-+				pdata->debounce, pdata->mmc_cd,
-+				ret);
-+
- 	twl_gpiochip.base = pdata->gpio_base;
- 	twl_gpiochip.ngpio = TWL4030_GPIO_MAX;
- 	twl_gpiochip.dev = &pdev->dev;
---- a/include/linux/i2c/twl4030.h
-+++ b/include/linux/i2c/twl4030.h
-@@ -234,6 +234,9 @@ struct twl4030_gpio_platform_data {
- 	/* gpio-n should control VMMC(n+1) if BIT(n) in mmc_cd is set */
- 	u8		mmc_cd;
- 
-+	/* if BIT(N) is set, or VMMC(n+1) is linked, debounce GPIO-N */
-+	u32		debounce;
-+
- 	/* For gpio-N, bit (1 << N) in "pullups" is set if that pullup
- 	 * should be enabled.  Else, if that bit is set in "pulldowns",
- 	 * that pulldown is enabled.  Don't waste power by letting any
-@@ -390,12 +393,6 @@ int twl4030_sih_setup(int module);
- 
- #define TWL4030_GPIO_IRQ_NO(n)		(TWL4030_GPIO_IRQ_BASE + (n))
- 
--/*
-- * Exported TWL4030 GPIO APIs
-- *
-- * WARNING -- use standard GPIO and IRQ calls instead; these will vanish.
-- */
--int twl4030_set_gpio_debounce(int gpio, int enable);
- 
- #if defined(CONFIG_TWL4030_BCI_BATTERY) || \
- 	defined(CONFIG_TWL4030_BCI_BATTERY_MODULE)
+
+>  arch/arm/mach-omap2/mmc-twl4030.c     |  152 +++++++++++++++++---------------
+>  arch/arm/plat-omap/include/mach/mmc.h |   12 +-
+>  2 files changed, 92 insertions(+), 72 deletions(-)
+> 
+> --- a/arch/arm/mach-omap2/mmc-twl4030.c
+> +++ b/arch/arm/mach-omap2/mmc-twl4030.c
+> @@ -51,77 +51,97 @@
+>  
+>  static u16 control_pbias_offset;
+>  
+> +#define HSMMC_NAME_LEN	9
+> +
+>  static struct twl_mmc_controller {
+> -	u16		control_devconf_offset;
+> +	struct omap_mmc_platform_data	*mmc;
+>  	u32		devconf_loopback_clock;
+> -	int		card_detect_gpio;
+> -	unsigned	card_wp_gpio;
+> +	u16		control_devconf_offset;
+>  	u8		twl_vmmc_dev_grp;
+>  	u8		twl_mmc_dedicated;
+> +	char		name[HSMMC_NAME_LEN];
+>  } hsmmc[] = {
+>  	{
+>  		.control_devconf_offset		= OMAP2_CONTROL_DEVCONF0,
+>  		.devconf_loopback_clock		= OMAP2_MMCSDIO1ADPCLKISEL,
+> -		.card_detect_gpio		= -EINVAL,
+>  		.twl_vmmc_dev_grp		= VMMC1_DEV_GRP,
+>  		.twl_mmc_dedicated		= VMMC1_DEDICATED,
+>  	},
+>  	{
+>  		/* control_devconf_offset set dynamically */
+>  		.devconf_loopback_clock		= OMAP2_MMCSDIO2ADPCLKISEL,
+> -		.card_detect_gpio		= -EINVAL,
+>  		.twl_vmmc_dev_grp		= VMMC2_DEV_GRP,
+>  		.twl_mmc_dedicated		= VMMC2_DEDICATED,
+>  	},
+>  };
+>  
+> -static int twl_mmc1_card_detect(int irq)
+> +static int twl_mmc_card_detect(int irq)
+>  {
+> -	/* NOTE: assumes card detect signal is active-low */
+> -	return !gpio_get_value_cansleep(hsmmc[0].card_detect_gpio);
+> +	unsigned i;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(hsmmc); i++) {
+> +		struct omap_mmc_platform_data *mmc;
+> +
+> +		mmc = hsmmc[i].mmc;
+> +		if (!mmc)
+> +			continue;
+> +		if (irq != mmc->slots[0].card_detect_irq)
+> +			continue;
+> +
+> +		/* NOTE: assumes card detect signal is active-low */
+> +		return !gpio_get_value_cansleep(mmc->slots[0].switch_pin);
+> +	}
+> +	return -ENOSYS;
+>  }
+>  
+> -static int twl_mmc1_get_ro(struct device *dev, int slot)
+> +static int twl_mmc_get_ro(struct device *dev, int slot)
+>  {
+> +	struct omap_mmc_platform_data *mmc = dev->platform_data;
+> +
+>  	/* NOTE: assumes write protect signal is active-high */
+> -	return gpio_get_value_cansleep(hsmmc[0].card_wp_gpio);
+> +	return gpio_get_value_cansleep(mmc->slots[0].gpio_wp);
+>  }
+>  
+>  /*
+>   * MMC Slot Initialization.
+>   */
+> -static int twl_mmc1_late_init(struct device *dev)
+> +static int twl_mmc_late_init(struct device *dev)
+>  {
+>  	struct omap_mmc_platform_data *mmc = dev->platform_data;
+>  	int ret = 0;
+> +	int i;
+>  
+> -	ret = gpio_request(hsmmc[0].card_detect_gpio, "mmc0_cd");
+> +	ret = gpio_request(mmc->slots[0].switch_pin, "mmc_cd");
+>  	if (ret)
+>  		goto done;
+> -	ret = gpio_direction_input(hsmmc[0].card_detect_gpio);
+> +	ret = gpio_direction_input(mmc->slots[0].switch_pin);
+>  	if (ret)
+>  		goto err;
+>  
+> -	/* FIXME assumes this uses (a) TWL4030 and (b) GPIO-0 ...
+> -	 * but that's not actually required.
+> -	 */
+> -	ret = twl4030_set_gpio_debounce(0, true);
+> -	if (ret)
+> -		goto err;
+> +	for (i = 0; i < ARRAY_SIZE(hsmmc); i++) {
+> +		if (hsmmc[i].name == mmc->slots[0].name) {
+> +			hsmmc[i].mmc = mmc;
+> +			break;
+> +		}
+> +	}
+>  
+> -	return ret;
+> +	return 0;
+>  
+>  err:
+> -	dev_err(dev, "Failed to configure TWL4030 card detect\n");
+> +	gpio_free(mmc->slots[0].switch_pin);
+>  done:
+>  	mmc->slots[0].card_detect_irq = 0;
+>  	mmc->slots[0].card_detect = NULL;
+> +
+> +	dev_err(dev, "err %d configuring card detect\n", ret);
+>  	return ret;
+>  }
+>  
+> -static void twl_mmc1_cleanup(struct device *dev)
+> +static void twl_mmc_cleanup(struct device *dev)
+>  {
+> -	gpio_free(hsmmc[0].card_detect_gpio);
+> +	struct omap_mmc_platform_data *mmc = dev->platform_data;
+> +
+> +	gpio_free(mmc->slots[0].switch_pin);
+>  }
+>  
+>  #ifdef CONFIG_PM
+> @@ -296,25 +316,34 @@ static int twl_mmc2_set_power(struct dev
+>  	return ret;
+>  }
+>  
+> -static struct omap_mmc_platform_data *hsmmc_data[OMAP34XX_NR_MMC];
+> -
+> -#define HSMMC_NAME_LEN	9
+> +static struct omap_mmc_platform_data *hsmmc_data[OMAP34XX_NR_MMC] __initdata;
+>  
+>  void __init hsmmc_init(struct twl4030_hsmmc_info *controllers)
+>  {
+>  	struct twl4030_hsmmc_info *c;
+> +	int nr_hsmmc = ARRAY_SIZE(hsmmc_data);
+>  
+>  	if (cpu_is_omap2430()) {
+>  		control_pbias_offset = OMAP243X_CONTROL_PBIAS_LITE;
+>  		hsmmc[1].control_devconf_offset = OMAP243X_CONTROL_DEVCONF1;
+> +		nr_hsmmc = 2;
+>  	} else {
+>  		control_pbias_offset = OMAP343X_CONTROL_PBIAS_LITE;
+>  		hsmmc[1].control_devconf_offset = OMAP343X_CONTROL_DEVCONF1;
+>  	}
+>  
+>  	for (c = controllers; c->mmc; c++) {
+> -		struct omap_mmc_platform_data *mmc;
+> -		char *name;
+> +		struct twl_mmc_controller *twl = hsmmc + c->mmc - 1;
+> +		struct omap_mmc_platform_data *mmc = hsmmc_data[c->mmc - 1];
+> +
+> +		if (!c->mmc || c->mmc > nr_hsmmc) {
+> +			pr_debug("MMC%d: no such controller\n", c->mmc);
+> +			continue;
+> +		}
+> +		if (mmc) {
+> +			pr_debug("MMC%d: already configured\n", c->mmc);
+> +			continue;
+> +		}
+>  
+>  		mmc = kzalloc(sizeof(struct omap_mmc_platform_data), GFP_KERNEL);
+>  		if (!mmc) {
+> @@ -322,15 +351,8 @@ void __init hsmmc_init(struct twl4030_hs
+>  			return;
+>  		}
+>  
+> -		name = kzalloc(HSMMC_NAME_LEN, GFP_KERNEL);
+> -		if (!name) {
+> -			kfree(mmc);
+> -			pr_err("Cannot allocate memory for mmc name!\n");
+> -			return;
+> -		}
+> -
+> -		sprintf(name, "mmc%islot%i", c->mmc, 1);
+> -		mmc->slots[0].name = name;
+> +		sprintf(twl->name, "mmc%islot%i", c->mmc, 1);
+> +		mmc->slots[0].name = twl->name;
+>  		mmc->nr_slots = 1;
+>  		mmc->slots[0].ocr_mask = MMC_VDD_165_195 |
+>  					MMC_VDD_26_27 | MMC_VDD_27_28 |
+> @@ -339,6 +361,29 @@ void __init hsmmc_init(struct twl4030_hs
+>  		mmc->slots[0].wires = c->wires;
+>  		mmc->dma_mask = 0xffffffff;
+>  
+> +		/* note: twl4030 card detect GPIOs normally switch VMMCx ... */
+> +		if (gpio_is_valid(c->gpio_cd)) {
+> +			mmc->init = twl_mmc_late_init;
+> +			mmc->cleanup = twl_mmc_cleanup;
+> +			mmc->suspend = twl_mmc_suspend;
+> +			mmc->resume = twl_mmc_resume;
+> +
+> +			mmc->slots[0].switch_pin = c->gpio_cd;
+> +			mmc->slots[0].card_detect_irq = gpio_to_irq(c->gpio_cd);
+> +			mmc->slots[0].card_detect = twl_mmc_card_detect;
+> +		} else
+> +			mmc->slots[0].switch_pin = -EINVAL;
+> +
+> +		/* write protect normally uses an OMAP gpio */
+> +		if (gpio_is_valid(c->gpio_wp)) {
+> +			gpio_request(c->gpio_wp, "mmc_wp");
+> +			gpio_direction_input(c->gpio_wp);
+> +
+> +			mmc->slots[0].gpio_wp = c->gpio_wp;
+> +			mmc->slots[0].get_ro = twl_mmc_get_ro;
+> +		} else
+> +			mmc->slots[0].gpio_wp = -EINVAL;
+> +
+>  		/* NOTE:  we assume OMAP's MMC1 and MMC2 use
+>  		 * the TWL4030's VMMC1 and VMMC2, respectively;
+>  		 * and that OMAP's MMC3 isn't used.
+> @@ -347,44 +392,15 @@ void __init hsmmc_init(struct twl4030_hs
+>  		switch (c->mmc) {
+>  		case 1:
+>  			mmc->slots[0].set_power = twl_mmc1_set_power;
+> -			if (gpio_is_valid(c->gpio_cd)) {
+> -				mmc->slots[0].card_detect_irq =
+> -						gpio_to_irq(c->gpio_cd);
+> -				mmc->suspend = twl_mmc_suspend;
+> -				mmc->resume = twl_mmc_resume;
+> -
+> -				/* NOTE: hsmmc[0] is hard-wired ... */
+> -				hsmmc[0].card_detect_gpio = c->gpio_cd;
+> -				mmc->init = twl_mmc1_late_init;
+> -				mmc->cleanup = twl_mmc1_cleanup;
+> -				mmc->slots[0].card_detect =
+> -						twl_mmc1_card_detect;
+> -			}
+> -			if (gpio_is_valid(c->gpio_wp)) {
+> -				gpio_request(c->gpio_wp, "mmc0_wp");
+> -				gpio_direction_input(c->gpio_wp);
+> -
+> -				/* NOTE: hsmmc[0] is hard-wired ... */
+> -				hsmmc[0].card_wp_gpio = c->gpio_wp;
+> -				mmc->slots[0].get_ro = twl_mmc1_get_ro;
+> -			}
+> -			hsmmc_data[0] = mmc;
+>  			break;
+>  		case 2:
+> -			/* FIXME rework interfaces so that mmc2 (and mmc3) can
+> -			 * be fully functional... hsmmc[] shouldn't hold gpios.
+> -			 */
+>  			mmc->slots[0].set_power = twl_mmc2_set_power;
+> -			if (gpio_is_valid(c->gpio_cd))
+> -				pr_warning("MMC2 detect nyet supported!\n");
+> -			if (gpio_is_valid(c->gpio_wp))
+> -				pr_warning("MMC2 WP nyet supported!\n");
+> -			hsmmc_data[1] = mmc;
+>  			break;
+>  		default:
+>  			pr_err("MMC%d configuration not supported!\n", c->mmc);
+> -			return;
+> +			continue;
+>  		}
+> +		hsmmc_data[c->mmc - 1] = mmc;
+>  	}
+>  
+>  	omap2_init_mmc(hsmmc_data, OMAP34XX_NR_MMC);
+> --- a/arch/arm/plat-omap/include/mach/mmc.h
+> +++ b/arch/arm/plat-omap/include/mach/mmc.h
+> @@ -61,6 +61,11 @@ struct omap_mmc_platform_data {
+>  
+>  	struct omap_mmc_slot_data {
+>  
+> +		/* 4 wire signaling is optional, and is used for SD/SDIO/HSMMC;
+> +		 * 8 wire signaling is also optional, and is used with HSMMC
+> +		 */
+> +		u8 wires;
+> +
+>  		/*
+>  		 * nomux means "standard" muxing is wrong on this board, and
+>  		 * that board-specific code handled it before common init logic.
+> @@ -70,13 +75,12 @@ struct omap_mmc_platform_data {
+>  		/* switch pin can be for card detect (default) or card cover */
+>  		unsigned cover:1;
+>  
+> -		/* 4 wire signaling is optional, and is only used for SD/SDIO */
+> -		u8 wires;
+> -
+>  		/* use the internal clock */
+>  		unsigned internal_clock:1;
+>  		s16 power_pin;
+> -		s16 switch_pin;
+> +
+> +		int switch_pin;			/* gpio (card detect) */
+> +		int gpio_wp;			/* gpio (write protect) */
+>  
+>  		int (* set_bus_mode)(struct device *dev, int slot, int bus_mode);
+>  		int (* set_power)(struct device *dev, int slot, int power_on, int vdd);
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
