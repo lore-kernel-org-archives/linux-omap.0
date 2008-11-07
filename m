@@ -1,287 +1,366 @@
 From: "Stanley.Miao" <stanley.miao@windriver.com>
-Subject: [PATCH 3/3] OMAP_LDP: Add keypad support on ZOOM SDK
-Date: Fri,  7 Nov 2008 21:41:27 +0800
-Message-ID: <1226065287-3066-4-git-send-email-stanley.miao@windriver.com>
+Subject: [PATCH 2/3] OMAP_LDP: Add Ethernet device support to make ldp boot succeess.
+Date: Fri,  7 Nov 2008 21:41:26 +0800
+Message-ID: <1226065287-3066-3-git-send-email-stanley.miao@windriver.com>
 References: <1226065287-3066-1-git-send-email-stanley.miao@windriver.com>
  <1226065287-3066-2-git-send-email-stanley.miao@windriver.com>
- <1226065287-3066-3-git-send-email-stanley.miao@windriver.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:50872 "EHLO mail.wrs.com"
+Received: from mail.windriver.com ([147.11.1.11]:50870 "EHLO mail.wrs.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752045AbYKGNfy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Nov 2008 08:35:54 -0500
+	id S1751763AbYKGNfx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Nov 2008 08:35:53 -0500
 Received: from ALA-MAIL03.corp.ad.wrs.com (ala-mail03 [147.11.57.144])
-	by mail.wrs.com (8.13.6/8.13.6) with ESMTP id mA7DZsML021565
-	for <linux-omap@vger.kernel.org>; Fri, 7 Nov 2008 05:35:54 -0800 (PST)
-In-Reply-To: <1226065287-3066-3-git-send-email-stanley.miao@windriver.com>
+	by mail.wrs.com (8.13.6/8.13.6) with ESMTP id mA7DZqUJ021562
+	for <linux-omap@vger.kernel.org>; Fri, 7 Nov 2008 05:35:53 -0800 (PST)
+In-Reply-To: <1226065287-3066-2-git-send-email-stanley.miao@windriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Support twl4030 keypad and gpio keys on ZOOM SDK.
+Add Ethernet device support in board-ldp.c to make ldp can boot and mount nfs
+successfully.
 
 Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
 ---
- arch/arm/configs/omap_ldp_defconfig         |   11 +++-
- arch/arm/mach-omap2/board-ldp.c             |  115 +++++++++++++++++++++++++++
- drivers/input/keyboard/Kconfig              |    2 +-
- drivers/input/keyboard/gpio_keys.c          |    4 +
- drivers/input/keyboard/omap-twl4030keypad.c |   15 +++-
- include/linux/gpio_keys.h                   |    1 +
- 6 files changed, 143 insertions(+), 5 deletions(-)
+ arch/arm/configs/omap_ldp_defconfig         |  148 ++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/board-ldp.c             |   53 ++++++++++
+ arch/arm/plat-omap/include/mach/board-ldp.h |    5 +-
+ drivers/net/smc911x.c                       |    6 +-
+ drivers/net/smc911x.h                       |    2 +
+ 5 files changed, 210 insertions(+), 4 deletions(-)
 
 diff --git a/arch/arm/configs/omap_ldp_defconfig b/arch/arm/configs/omap_ldp_defconfig
-index add0b71..33541d0 100644
+index b8135d2..add0b71 100644
 --- a/arch/arm/configs/omap_ldp_defconfig
 +++ b/arch/arm/configs/omap_ldp_defconfig
-@@ -549,7 +549,16 @@ CONFIG_INPUT_EVDEV=y
+@@ -329,7 +329,82 @@ CONFIG_PM=y
+ # CONFIG_SUSPEND is not set
+ # CONFIG_APM_EMULATION is not set
+ CONFIG_ARCH_SUSPEND_POSSIBLE=y
+-# CONFIG_NET is not set
++CONFIG_NET=y
++
++#
++# Networking options
++#
++CONFIG_PACKET=y
++# CONFIG_PACKET_MMAP is not set
++CONFIG_UNIX=y
++CONFIG_XFRM=y
++CONFIG_XFRM_USER=y
++# CONFIG_XFRM_SUB_POLICY is not set
++CONFIG_XFRM_MIGRATE=y
++# CONFIG_XFRM_STATISTICS is not set
++CONFIG_NET_KEY=y
++CONFIG_NET_KEY_MIGRATE=y
++CONFIG_INET=y
++CONFIG_IP_MULTICAST=y
++# CONFIG_IP_ADVANCED_ROUTER is not set
++CONFIG_IP_FIB_HASH=y
++CONFIG_IP_PNP=y
++CONFIG_IP_PNP_DHCP=y
++CONFIG_IP_PNP_BOOTP=y
++CONFIG_IP_PNP_RARP=y
++# CONFIG_NET_IPIP is not set
++# CONFIG_NET_IPGRE is not set
++# CONFIG_IP_MROUTE is not set
++# CONFIG_ARPD is not set
++# CONFIG_SYN_COOKIES is not set
++# CONFIG_INET_AH is not set
++# CONFIG_INET_ESP is not set
++# CONFIG_INET_IPCOMP is not set
++# CONFIG_INET_XFRM_TUNNEL is not set
++# CONFIG_INET_TUNNEL is not set
++CONFIG_INET_XFRM_MODE_TRANSPORT=y
++CONFIG_INET_XFRM_MODE_TUNNEL=y
++CONFIG_INET_XFRM_MODE_BEET=y
++# CONFIG_INET_LRO is not set
++CONFIG_INET_DIAG=y
++CONFIG_INET_TCP_DIAG=y
++# CONFIG_TCP_CONG_ADVANCED is not set
++CONFIG_TCP_CONG_CUBIC=y
++CONFIG_DEFAULT_TCP_CONG="cubic"
++# CONFIG_TCP_MD5SIG is not set
++# CONFIG_IPV6 is not set
++# CONFIG_NETWORK_SECMARK is not set
++# CONFIG_NETFILTER is not set
++# CONFIG_IP_DCCP is not set
++# CONFIG_IP_SCTP is not set
++# CONFIG_TIPC is not set
++# CONFIG_ATM is not set
++# CONFIG_BRIDGE is not set
++# CONFIG_NET_DSA is not set
++# CONFIG_VLAN_8021Q is not set
++# CONFIG_DECNET is not set
++# CONFIG_LLC2 is not set
++# CONFIG_IPX is not set
++# CONFIG_ATALK is not set
++# CONFIG_X25 is not set
++# CONFIG_LAPB is not set
++# CONFIG_ECONET is not set
++# CONFIG_WAN_ROUTER is not set
++# CONFIG_NET_SCHED is not set
++
++#
++# Network testing
++#
++# CONFIG_NET_PKTGEN is not set
++# CONFIG_HAMRADIO is not set
++# CONFIG_CAN is not set
++# CONFIG_IRDA is not set
++# CONFIG_BT is not set
++# CONFIG_AF_RXRPC is not set
++# CONFIG_PHONET is not set
++# CONFIG_WIRELESS is not set
++# CONFIG_RFKILL is not set
++# CONFIG_NET_9P is not set
+ 
  #
- # Input Device Drivers
+ # Device Drivers
+@@ -345,6 +420,8 @@ CONFIG_PREVENT_FIRMWARE_BUILD=y
+ # CONFIG_DEBUG_DRIVER is not set
+ # CONFIG_DEBUG_DEVRES is not set
+ # CONFIG_SYS_HYPERVISOR is not set
++CONFIG_CONNECTOR=y
++CONFIG_PROC_EVENTS=y
+ # CONFIG_MTD is not set
+ # CONFIG_PARPORT is not set
+ CONFIG_BLK_DEV=y
+@@ -405,6 +482,54 @@ CONFIG_SCSI_LOWLEVEL=y
+ # CONFIG_SCSI_DH is not set
+ # CONFIG_ATA is not set
+ # CONFIG_MD is not set
++CONFIG_NETDEVICES=y
++# CONFIG_DUMMY is not set
++# CONFIG_BONDING is not set
++# CONFIG_MACVLAN is not set
++# CONFIG_EQUALIZER is not set
++# CONFIG_TUN is not set
++# CONFIG_VETH is not set
++# CONFIG_PHYLIB is not set
++CONFIG_NET_ETHERNET=y
++CONFIG_MII=y
++# CONFIG_AX88796 is not set
++# CONFIG_SMC91X is not set
++# CONFIG_DM9000 is not set
++# CONFIG_ENC28J60 is not set
++CONFIG_SMC911X=y
++# CONFIG_IBM_NEW_EMAC_ZMII is not set
++# CONFIG_IBM_NEW_EMAC_RGMII is not set
++# CONFIG_IBM_NEW_EMAC_TAH is not set
++# CONFIG_IBM_NEW_EMAC_EMAC4 is not set
++# CONFIG_IBM_NEW_EMAC_NO_FLOW_CTRL is not set
++# CONFIG_IBM_NEW_EMAC_MAL_CLR_ICINTSTAT is not set
++# CONFIG_IBM_NEW_EMAC_MAL_COMMON_ERR is not set
++# CONFIG_B44 is not set
++CONFIG_NETDEV_1000=y
++CONFIG_NETDEV_10000=y
++
++#
++# Wireless LAN
++#
++# CONFIG_WLAN_PRE80211 is not set
++# CONFIG_WLAN_80211 is not set
++# CONFIG_IWLWIFI_LEDS is not set
++
++#
++# USB Network Adapters
++#
++# CONFIG_USB_CATC is not set
++# CONFIG_USB_KAWETH is not set
++# CONFIG_USB_PEGASUS is not set
++# CONFIG_USB_RTL8150 is not set
++# CONFIG_USB_USBNET is not set
++# CONFIG_WAN is not set
++# CONFIG_PPP is not set
++# CONFIG_SLIP is not set
++# CONFIG_NETCONSOLE is not set
++# CONFIG_NETPOLL is not set
++# CONFIG_NET_POLL_CONTROLLER is not set
++# CONFIG_ISDN is not set
+ 
  #
--# CONFIG_INPUT_KEYBOARD is not set
-+CONFIG_INPUT_KEYBOARD=y
-+CONFIG_KEYBOARD_ATKBD=y
-+# CONFIG_KEYBOARD_SUNKBD is not set
-+# CONFIG_KEYBOARD_LKKBD is not set
-+# CONFIG_KEYBOARD_XTKBD is not set
-+# CONFIG_KEYBOARD_NEWTON is not set
-+# CONFIG_KEYBOARD_STOWAWAY is not set
-+CONFIG_KEYBOARD_TWL4030=y
-+# CONFIG_KEYBOARD_LM8323 is not set
-+CONFIG_KEYBOARD_GPIO=y
- # CONFIG_INPUT_MOUSE is not set
- # CONFIG_INPUT_JOYSTICK is not set
- # CONFIG_INPUT_TABLET is not set
+ # Input device support
+@@ -1053,6 +1178,27 @@ CONFIG_TMPFS=y
+ # CONFIG_ROMFS_FS is not set
+ # CONFIG_SYSV_FS is not set
+ # CONFIG_UFS_FS is not set
++CONFIG_NETWORK_FILESYSTEMS=y
++CONFIG_NFS_FS=y
++CONFIG_NFS_V3=y
++CONFIG_NFS_V3_ACL=y
++CONFIG_NFS_V4=y
++CONFIG_ROOT_NFS=y
++# CONFIG_NFSD is not set
++CONFIG_LOCKD=y
++CONFIG_LOCKD_V4=y
++CONFIG_NFS_ACL_SUPPORT=y
++CONFIG_NFS_COMMON=y
++CONFIG_SUNRPC=y
++CONFIG_SUNRPC_GSS=y
++# CONFIG_SUNRPC_REGISTER_V4 is not set
++CONFIG_RPCSEC_GSS_KRB5=y
++# CONFIG_RPCSEC_GSS_SPKM3 is not set
++# CONFIG_SMB_FS is not set
++# CONFIG_CIFS is not set
++# CONFIG_NCP_FS is not set
++# CONFIG_CODA_FS is not set
++# CONFIG_AFS_FS is not set
+ 
+ #
+ # Partition Types
 diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index f319e97..c01baec 100644
+index 3ec8264..f319e97 100644
 --- a/arch/arm/mach-omap2/board-ldp.c
 +++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -16,6 +16,7 @@
- #include <linux/platform_device.h>
- #include <linux/delay.h>
- #include <linux/input.h>
-+#include <linux/gpio_keys.h>
- #include <linux/workqueue.h>
- #include <linux/err.h>
- #include <linux/clk.h>
-@@ -33,6 +34,7 @@
- #include <mach/gpio.h>
- #include <mach/board.h>
- #include <mach/common.h>
-+#include <mach/keypad.h>
- #include <mach/gpmc.h>
- #include <mach/mmc.h>
- #include <mach/usb-musb.h>
-@@ -72,6 +74,117 @@ static struct platform_device ldp_smc911x_device = {
- 	.resource	= ldp_smc911x_resources,
- };
+@@ -44,6 +44,7 @@
+ #include "mmc-twl4030.h"
  
-+static int ldp_twl4030_keymap[] = {
-+	KEY(0, 0, KEY_1),
-+	KEY(1, 0, KEY_2),
-+	KEY(2, 0, KEY_3),
-+	KEY(0, 1, KEY_4),
-+	KEY(1, 1, KEY_5),
-+	KEY(2, 1, KEY_6),
-+	KEY(3, 1, KEY_F5),
-+	KEY(0, 2, KEY_7),
-+	KEY(1, 2, KEY_8),
-+	KEY(2, 2, KEY_9),
-+	KEY(3, 2, KEY_F6),
-+	KEY(0, 3, KEY_F7),
-+	KEY(1, 3, KEY_0),
-+	KEY(2, 3, KEY_F8),
-+	KEY(5, 4, KEY_MUTE),
-+	KEY(4, 4, KEY_VOLUMEUP),
-+	KEY(5, 5, KEY_VOLUMEDOWN),
-+	0
-+};
-+
-+static struct twl4030_keypad_data ldp_kp_twl4030_data = {
-+	.rows		= 6,
-+	.cols		= 6,
-+	.keymap		= ldp_twl4030_keymap,
-+	.keymapsize	= ARRAY_SIZE(ldp_twl4030_keymap),
-+	.rep		= 1,
-+	.irq		= TWL4030_MODIRQ_KEYPAD,
-+};
-+
-+
-+static struct gpio_keys_button ldp_gpio_keys_buttons[] = {
+ 
++#define       SDP3430_SMC91X_CS 	3
+ #define CONFIG_DISABLE_HFCLK 1
+ 
+ #define ENABLE_VAUX1_DEDICATED	0x03
+@@ -51,6 +52,26 @@
+ 
+ #define TWL4030_MSECURE_GPIO	22
+ 
++static struct resource ldp_smc911x_resources[] = {
 +	[0] = {
-+		.code		= KEY_ENTER,
-+		.gpio		= 101,
-+		.desc		= "enter sw",
-+		.active_low = 1,
-+		.debounce_interval = 30,
++		.start	= OMAP34XX_ETHR_START,
++		.end	= OMAP34XX_ETHR_START + SZ_4K,
++		.flags	= IORESOURCE_MEM,
 +	},
 +	[1] = {
-+		.code		= KEY_F1,
-+		.gpio		= 102,
-+		.desc		= "func 1",
-+		.active_low = 1,
-+		.debounce_interval = 30,
-+	},
-+	[2] = {
-+		.code		= KEY_F2,
-+		.gpio		= 103,
-+		.desc		= "func 2",
-+		.active_low = 1,
-+		.debounce_interval = 30,
-+	},
-+	[3] = {
-+		.code		= KEY_F3,
-+		.gpio		= 104,
-+		.desc		= "func 3",
-+		.active_low = 1,
-+		.debounce_interval = 30,
-+	},
-+	[4] = {
-+		.code		= KEY_F4,
-+		.gpio		= 105,
-+		.desc		= "func 4",
-+		.active_low = 1,
-+		.debounce_interval = 30,
-+	},
-+	[5] = {
-+		.code		= KEY_LEFT,
-+		.gpio		= 106,
-+		.desc		= "left sw",
-+		.active_low = 1,
-+		.debounce_interval = 30,
-+	},
-+	[6] = {
-+		.code		= KEY_RIGHT,
-+		.gpio		= 107,
-+		.desc		= "right sw",
-+		.active_low = 1,
-+		.debounce_interval = 30,
-+	},
-+	[7] = {
-+		.code		= KEY_UP,
-+		.gpio		= 108,
-+		.desc		= "up sw",
-+		.active_low = 1,
-+		.debounce_interval = 30,
-+	},
-+	[8] = {
-+		.code		= KEY_DOWN,
-+		.gpio		= 109,
-+		.desc		= "down sw",
-+		.active_low = 1,
-+		.debounce_interval = 30,
++		.start	= 0,
++		.end	= 0,
++		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
 +	},
 +};
 +
-+static struct gpio_keys_platform_data ldp_gpio_keys = {
-+	.buttons		= ldp_gpio_keys_buttons,
-+	.nbuttons		= ARRAY_SIZE(ldp_gpio_keys_buttons),
-+	.rep			= 1,
-+};
-+
-+static struct platform_device ldp_gpio_keys_device = {
-+	.name		= "gpio-keys",
-+	.id			= -1,
-+	.dev		= {
-+		.platform_data	= &ldp_gpio_keys,
-+	},
++static struct platform_device ldp_smc911x_device = {
++	.name		= "smc911x",
++	.id		= -1,
++	.num_resources	= ARRAY_SIZE(ldp_smc911x_resources),
++	.resource	= ldp_smc911x_resources,
 +};
 +
  static int ts_gpio;
  
  static int __init msecure_init(void)
-@@ -200,6 +313,7 @@ static struct platform_device ldp_lcd_device = {
+@@ -177,14 +198,46 @@ static struct platform_device ldp_lcd_device = {
+ };
+ 
  static struct platform_device *ldp_devices[] __initdata = {
- 	&ldp_smc911x_device,
++	&ldp_smc911x_device,
  	&ldp_lcd_device,
-+	&ldp_gpio_keys_device,
  };
  
- static inline void __init ldp_init_smc911x(void)
-@@ -374,6 +488,7 @@ static struct twl4030_platform_data ldp_twldata = {
- 	.usb		= &ldp_usb_data,
- 	.power		= &sdp3430_t2scripts_data,
- 	.gpio		= &ldp_gpio_data,
-+	.keypad		= &ldp_kp_twl4030_data,
- };
- 
- static struct i2c_board_info __initdata ldp_i2c_boardinfo[] = {
-diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
-index e4d0436..c8abf13 100644
---- a/drivers/input/keyboard/Kconfig
-+++ b/drivers/input/keyboard/Kconfig
-@@ -261,7 +261,7 @@ config KEYBOARD_OMAP
- 
- config KEYBOARD_TWL4030
- 	tristate "TI TWL4030 keypad support"
--	depends on TWL4030_CORE && (MACH_OMAP_2430SDP || MACH_OMAP2EVM || MACH_OMAP_3430SDP || MACH_OMAP3EVM)
-+	depends on TWL4030_CORE && (MACH_OMAP_2430SDP || MACH_OMAP2EVM || MACH_OMAP_3430SDP || MACH_OMAP3EVM || MACH_OMAP_LDP)
- 	help
- 	  Say Y here if you want to use the OMAP TWL4030 keypad.
- 
-diff --git a/drivers/input/keyboard/gpio_keys.c b/drivers/input/keyboard/gpio_keys.c
-index 05f3f43..722529c 100644
---- a/drivers/input/keyboard/gpio_keys.c
-+++ b/drivers/input/keyboard/gpio_keys.c
-@@ -98,6 +98,10 @@ static int __devinit gpio_keys_probe(struct platform_device *pdev)
- 	input->id.product = 0x0001;
- 	input->id.version = 0x0100;
- 
-+	/* Enable auto repeat feature of Linux input subsystem */
-+	if (pdata->rep)
-+		set_bit(EV_REP, input->evbit);
++static inline void __init ldp_init_smc911x(void)
++{
++       int eth_cs;
++       unsigned long cs_mem_base;
++       int eth_gpio = 0;
 +
- 	ddata->input = input;
++       eth_cs = LDP_SMC911X_CS;
++
++       if (gpmc_cs_request(eth_cs, SZ_16M, &cs_mem_base) < 0) {
++               printk(KERN_ERR "Failed to request GPMC mem for smc911x\n");
++               return;
++       }
++
++       ldp_smc911x_resources[0].start = cs_mem_base + 0x0;
++       ldp_smc911x_resources[0].end   = cs_mem_base + 0xf;
++       udelay(100);
++
++       eth_gpio = LDP_SMC911X_GPIO;
++
++       ldp_smc911x_resources[1].start = OMAP_GPIO_IRQ(eth_gpio);
++
++       if (omap_request_gpio(eth_gpio) < 0) {
++               printk(KERN_ERR "Failed to request GPIO%d for smc911x IRQ\n",
++                       eth_gpio);
++               return;
++       }
++       omap_set_gpio_direction(eth_gpio, 1);
++}
++
++
+ static void __init omap_ldp_init_irq(void)
+ {
+ 	omap2_init_common_hw(NULL);
+ 	omap_init_irq();
+ 	omap_gpio_init();
++        ldp_init_smc911x();
+ }
  
- 	for (i = 0; i < pdata->nbuttons; i++) {
-diff --git a/drivers/input/keyboard/omap-twl4030keypad.c b/drivers/input/keyboard/omap-twl4030keypad.c
-index d3e1d20..f0a0ea9 100644
---- a/drivers/input/keyboard/omap-twl4030keypad.c
-+++ b/drivers/input/keyboard/omap-twl4030keypad.c
-@@ -174,7 +174,7 @@ static void twl4030_kp_scan(struct omap_keypad *kp, int release_all)
- 		if (!changed)
- 			continue;
+ static struct omap_uart_config ldp_uart_config __initdata = {
+diff --git a/arch/arm/plat-omap/include/mach/board-ldp.h b/arch/arm/plat-omap/include/mach/board-ldp.h
+index 66e2746..f233996 100644
+--- a/arch/arm/plat-omap/include/mach/board-ldp.h
++++ b/arch/arm/plat-omap/include/mach/board-ldp.h
+@@ -32,5 +32,8 @@
+ extern void twl4030_bci_battery_init(void);
  
--		for (col = 0; col < kp->n_cols + 1; col++) {
-+		for (col = 0; col < kp->n_cols; col++) {
- 			int key;
- 
- 			if (!(changed & (1 << col)))
-@@ -185,11 +185,20 @@ static void twl4030_kp_scan(struct omap_keypad *kp, int release_all)
- 				"press" : "release");
- 
- 			key = omap_kp_find_key(kp, col, row);
--			if (key < 0)
-+			if (key < 0) {
-+#ifdef CONFIG_MACH_OMAP_LDP
-+				/* OMAP LDP has a TWL4030 GPIO
-+				 * (KBR5/KBC4) that is set to a persistent
-+				 * state and should be ignored.
-+				 */
-+				if (row == 5 && col == 4)
-+					continue;
+ #define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
+-
++#define LDP_SMC911X_CS         1
++#define LDP_SMC911X_GPIO       152
++#define DEBUG_BASE             0x08000000
++#define OMAP34XX_ETHR_START    DEBUG_BASE
+ #endif /* __ASM_ARCH_OMAP_LDP_H */
+diff --git a/drivers/net/smc911x.c b/drivers/net/smc911x.c
+index f59c777..05e7512 100644
+--- a/drivers/net/smc911x.c
++++ b/drivers/net/smc911x.c
+@@ -2063,7 +2063,7 @@ static int smc911x_drv_probe(struct platform_device *pdev)
+ 		ret = -ENODEV;
+ 		goto out;
+ 	}
+-
++#ifndef SMC_MEM_RESERVED
+ 	/*
+ 	 * Request the regions.
+ 	 */
+@@ -2071,7 +2071,7 @@ static int smc911x_drv_probe(struct platform_device *pdev)
+ 		 ret = -EBUSY;
+ 		 goto out;
+ 	}
+-
 +#endif
-+
- 				dev_warn(kp->dbg_dev,
- 					"Spurious key event %d-%d\n",
- 					 col, row);
--			else
-+			} else
- 				input_report_key(kp->omap_twl4030kp, key,
- 						 new_state[row] & (1 << col));
- 		}
-diff --git a/include/linux/gpio_keys.h b/include/linux/gpio_keys.h
-index ec6ecd7..1289fa7 100644
---- a/include/linux/gpio_keys.h
-+++ b/include/linux/gpio_keys.h
-@@ -15,6 +15,7 @@ struct gpio_keys_button {
- struct gpio_keys_platform_data {
- 	struct gpio_keys_button *buttons;
- 	int nbuttons;
-+	unsigned int rep:1;		/* enable input subsystem auto repeat */
- };
- 
- #endif
+ 	ndev = alloc_etherdev(sizeof(struct smc911x_local));
+ 	if (!ndev) {
+ 		printk("%s: could not allocate device.\n", CARDNAME);
+@@ -2108,7 +2108,9 @@ static int smc911x_drv_probe(struct platform_device *pdev)
+ release_both:
+ 		free_netdev(ndev);
+ release_1:
++#ifndef SMC_MEM_RESERVED
+ 		release_mem_region(res->start, SMC911X_IO_EXTENT);
++#endif
+ out:
+ 		printk("%s: not found (%d).\n", CARDNAME, ret);
+ 	}
+diff --git a/drivers/net/smc911x.h b/drivers/net/smc911x.h
+index d1b3b9b..f688b55 100644
+--- a/drivers/net/smc911x.h
++++ b/drivers/net/smc911x.h
+@@ -682,6 +682,7 @@ smc_pxa_dma_outsl(struct smc911x_local *lp, u_long physaddr,
+ #define CHIP_9116	0x0116
+ #define CHIP_9117	0x0117
+ #define CHIP_9118	0x0118
++#define CHIP_9211	0x9211
+ #define CHIP_9215	0x115A
+ #define CHIP_9217	0x117A
+ #define CHIP_9218	0x118A
+@@ -696,6 +697,7 @@ static const struct chip_id chip_ids[] =  {
+ 	{ CHIP_9116, "LAN9116" },
+ 	{ CHIP_9117, "LAN9117" },
+ 	{ CHIP_9118, "LAN9118" },
++	{ CHIP_9211, "LAN9211" },
+ 	{ CHIP_9215, "LAN9215" },
+ 	{ CHIP_9217, "LAN9217" },
+ 	{ CHIP_9218, "LAN9218" },
 -- 
 1.5.6.3
 
