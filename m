@@ -1,39 +1,46 @@
-From: David Brownell <david-b@pacbell.net>
+From: "Steve Sakoman" <sakoman@gmail.com>
 Subject: Re: [patch 2.6.28-rc3-omap git] hsmmc gpio updates
-Date: Fri, 7 Nov 2008 09:50:49 -0800
-Message-ID: <200811070950.50033.david-b@pacbell.net>
-References: <200811062115.30519.david-b@pacbell.net> <5e088bd90811070619h73120f30ye7608e2aaff5e514@mail.gmail.com>
+Date: Fri, 7 Nov 2008 10:46:53 -0800
+Message-ID: <5e088bd90811071046p2afc06davdf0ea77bde287f23@mail.gmail.com>
+References: <200811062115.30519.david-b@pacbell.net>
+	 <5e088bd90811070619h73120f30ye7608e2aaff5e514@mail.gmail.com>
+	 <200811070950.50033.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:32320 "HELO
-	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750879AbYKGRvB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2008 12:51:01 -0500
-In-Reply-To: <5e088bd90811070619h73120f30ye7608e2aaff5e514@mail.gmail.com>
+Received: from ey-out-2122.google.com ([74.125.78.24]:28495 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754882AbYKGSqz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2008 13:46:55 -0500
+Received: by ey-out-2122.google.com with SMTP id 6so600527eyi.37
+        for <linux-omap@vger.kernel.org>; Fri, 07 Nov 2008 10:46:53 -0800 (PST)
+In-Reply-To: <200811070950.50033.david-b@pacbell.net>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
+To: David Brownell <david-b@pacbell.net>
 Cc: linux-omap@vger.kernel.org
 
-On Friday 07 November 2008, Steve Sakoman wrote:
-> Nice work! =A0Overo uses TWL4030 gpio-0 for card detect (just like
-> Beagle) and GPIO-54 for WP.
->=20
-> Would you like me to prepare a patch to add on top of yours or would
-> you prefer to add it to yours (if you have a revision planned)?
+On Fri, Nov 7, 2008 at 9:50 AM, David Brownell <david-b@pacbell.net> wrote:
+> On Friday 07 November 2008, Steve Sakoman wrote:
+>> Nice work!  Overo uses TWL4030 gpio-0 for card detect (just like
+>> Beagle) and GPIO-54 for WP.
+>>
+>> Would you like me to prepare a patch to add on top of yours or would
+>> you prefer to add it to yours (if you have a revision planned)?
+>
+> Patch on top of this, please; I have no revision planned.
+> Don't forget to set up the mmc_cd bitmask too!
 
-Patch on top of this, please; I have no revision planned.
-Don't forget to set up the mmc_cd bitmask too!
+OK, will do.
 
-How can WP work for a Micro-SD card though?  I don't see a
-switch on any of mine...
+> How can WP work for a Micro-SD card though?  I don't see a
+> switch on any of mine...
 
-- Dave
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Darn good question!  I never have either.  But from looking at the
+schematic there appears to be a pin for it on the microSD socket and
+Gordon has it connected to GPIO-54.  I'll have to ask him about that .
+. .
+
+Steve
