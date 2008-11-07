@@ -1,52 +1,48 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: 3430SDP crash at boot time
-Date: Fri, 7 Nov 2008 08:09:26 -0600
-Message-ID: <A24693684029E5489D1D202277BE894413A9499B@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE894413A94881@dlee02.ent.ti.com>
- <alpine.DEB.2.00.0811070458390.13920@utopia.booyaka.com>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: [patch 2.6.28-rc3-omap git] hsmmc gpio updates
+Date: Fri, 7 Nov 2008 06:19:25 -0800
+Message-ID: <5e088bd90811070619h73120f30ye7608e2aaff5e514@mail.gmail.com>
+References: <200811062115.30519.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39132 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751164AbYKGOJe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2008 09:09:34 -0500
-In-Reply-To: <alpine.DEB.2.00.0811070458390.13920@utopia.booyaka.com>
-Content-Language: en-US
+Received: from nf-out-0910.google.com ([64.233.182.190]:38178 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750745AbYKGOT1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2008 09:19:27 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so614218nfc.21
+        for <linux-omap@vger.kernel.org>; Fri, 07 Nov 2008 06:19:25 -0800 (PST)
+In-Reply-To: <200811062115.30519.david-b@pacbell.net>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-
-Hi Paul,
-
-I'm attempting this with a 3430SDP-VG5.0.1 (ES3.0), and I was using the same commit.
-
-I'll retry today with another board, to see if it helps.
-
-Thanks for your time.
-
-Regards,
-Sergio
-
------Original Message-----
-From: Paul Walmsley [mailto:paul@pwsan.com] 
-Sent: Friday, November 07, 2008 6:00 AM
-To: Aguirre Rodriguez, Sergio Alberto
+To: David Brownell <david-b@pacbell.net>
 Cc: linux-omap@vger.kernel.org
-Subject: Re: 3430SDP crash at boot time
 
-On Thu, 6 Nov 2008, Aguirre Rodriguez, Sergio Alberto wrote:
+On Thu, Nov 6, 2008 at 9:15 PM, David Brownell <david-b@pacbell.net> wrote:
+> From: David Brownell <dbrownell@users.sourceforge.net>
+>
+> Rework card detect GPIO handling in the twl4030 MMC glue:  drive
+> it *only* from the hsmmc_info passed; remove most of remaining
+> "we know we're always a twl4030 GPIO" logic.
+>
+> Add write-protect switch detection support to that glue.  Stub
+> in a not-present WP GPIO into most boards.  (Beagle's is real.)
+>
+> Teach the hsmmc driver how to use the card detect and writeprotect
+> methods, and move some data structure init earlier so that when IRQs
+> come in, more of the data used by their handlers is initialized.
+>
+> Verified on Beagle (WP, card detect events) and Overo (boots, both
+> card and wlan are seen).  Beagle behaves fully, and is the model
+> to follow for the common case where the TWL4030 gpio-0 card detect
+> magic is used.
 
-> Today when I attempted to boot on an 3430SDP with latest commit, I got a kernel dump, which is this:
+Nice work!  Overo uses TWL4030 gpio-0 for card detect (just like
+Beagle) and GPIO-54 for WP.
 
-> PC is at cfi_qry_present+0x1c0/0x29c
+Would you like me to prepare a patch to add on top of yours or would
+you prefer to add it to yours (if you have a revision planned)?
 
-f7429fd378a29cf6947c2613e0fd6e6e36165167 boots fine now on the 3430SDP 
-ES2 that I use here.  What commit is your git head at, and what ES level 
-is your 3430SDP using?
-
-
-- Paul
-
+Steve
