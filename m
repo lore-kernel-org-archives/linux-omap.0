@@ -1,366 +1,344 @@
-From: "Stanley.Miao" <stanley.miao@windriver.com>
-Subject: [PATCH 2/3] OMAP_LDP: Add Ethernet device support to make ldp boot succeess.
-Date: Fri,  7 Nov 2008 21:41:26 +0800
-Message-ID: <1226065287-3066-3-git-send-email-stanley.miao@windriver.com>
-References: <1226065287-3066-1-git-send-email-stanley.miao@windriver.com>
- <1226065287-3066-2-git-send-email-stanley.miao@windriver.com>
+From: "stanley.miao" <stanley.miao@windriver.com>
+Subject: Re: [PATCH v2] OMAP: Fix McBSP spin_lock deadlock.
+Date: Fri, 07 Nov 2008 21:52:41 +0800
+Message-ID: <1226065961.24669.8.camel@localhost>
+References: <1225975475-9300-1-git-send-email-stanley.miao@windriver.com>
+Reply-To: stanley.miao@windriver.com
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:50870 "EHLO mail.wrs.com"
+Received: from mail.windriver.com ([147.11.1.11]:53271 "EHLO mail.wrs.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751763AbYKGNfx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Nov 2008 08:35:53 -0500
+	id S1751335AbYKGNrE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Nov 2008 08:47:04 -0500
 Received: from ALA-MAIL03.corp.ad.wrs.com (ala-mail03 [147.11.57.144])
-	by mail.wrs.com (8.13.6/8.13.6) with ESMTP id mA7DZqUJ021562
-	for <linux-omap@vger.kernel.org>; Fri, 7 Nov 2008 05:35:53 -0800 (PST)
-In-Reply-To: <1226065287-3066-2-git-send-email-stanley.miao@windriver.com>
+	by mail.wrs.com (8.13.6/8.13.6) with ESMTP id mA7Dl4Df024113
+	for <linux-omap@vger.kernel.org>; Fri, 7 Nov 2008 05:47:04 -0800 (PST)
+In-Reply-To: <1225975475-9300-1-git-send-email-stanley.miao@windriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Add Ethernet device support in board-ldp.c to make ldp can boot and mount nfs
-successfully.
+This solution keeps the virtual clock in place and enable the child
+clocks before enable the virtual clock. So, any comments ?
 
-Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
----
- arch/arm/configs/omap_ldp_defconfig         |  148 ++++++++++++++++++++++++++-
- arch/arm/mach-omap2/board-ldp.c             |   53 ++++++++++
- arch/arm/plat-omap/include/mach/board-ldp.h |    5 +-
- drivers/net/smc911x.c                       |    6 +-
- drivers/net/smc911x.h                       |    2 +
- 5 files changed, 210 insertions(+), 4 deletions(-)
+Stanley.
 
-diff --git a/arch/arm/configs/omap_ldp_defconfig b/arch/arm/configs/omap_ldp_defconfig
-index b8135d2..add0b71 100644
---- a/arch/arm/configs/omap_ldp_defconfig
-+++ b/arch/arm/configs/omap_ldp_defconfig
-@@ -329,7 +329,82 @@ CONFIG_PM=y
- # CONFIG_SUSPEND is not set
- # CONFIG_APM_EMULATION is not set
- CONFIG_ARCH_SUSPEND_POSSIBLE=y
--# CONFIG_NET is not set
-+CONFIG_NET=y
-+
-+#
-+# Networking options
-+#
-+CONFIG_PACKET=y
-+# CONFIG_PACKET_MMAP is not set
-+CONFIG_UNIX=y
-+CONFIG_XFRM=y
-+CONFIG_XFRM_USER=y
-+# CONFIG_XFRM_SUB_POLICY is not set
-+CONFIG_XFRM_MIGRATE=y
-+# CONFIG_XFRM_STATISTICS is not set
-+CONFIG_NET_KEY=y
-+CONFIG_NET_KEY_MIGRATE=y
-+CONFIG_INET=y
-+CONFIG_IP_MULTICAST=y
-+# CONFIG_IP_ADVANCED_ROUTER is not set
-+CONFIG_IP_FIB_HASH=y
-+CONFIG_IP_PNP=y
-+CONFIG_IP_PNP_DHCP=y
-+CONFIG_IP_PNP_BOOTP=y
-+CONFIG_IP_PNP_RARP=y
-+# CONFIG_NET_IPIP is not set
-+# CONFIG_NET_IPGRE is not set
-+# CONFIG_IP_MROUTE is not set
-+# CONFIG_ARPD is not set
-+# CONFIG_SYN_COOKIES is not set
-+# CONFIG_INET_AH is not set
-+# CONFIG_INET_ESP is not set
-+# CONFIG_INET_IPCOMP is not set
-+# CONFIG_INET_XFRM_TUNNEL is not set
-+# CONFIG_INET_TUNNEL is not set
-+CONFIG_INET_XFRM_MODE_TRANSPORT=y
-+CONFIG_INET_XFRM_MODE_TUNNEL=y
-+CONFIG_INET_XFRM_MODE_BEET=y
-+# CONFIG_INET_LRO is not set
-+CONFIG_INET_DIAG=y
-+CONFIG_INET_TCP_DIAG=y
-+# CONFIG_TCP_CONG_ADVANCED is not set
-+CONFIG_TCP_CONG_CUBIC=y
-+CONFIG_DEFAULT_TCP_CONG="cubic"
-+# CONFIG_TCP_MD5SIG is not set
-+# CONFIG_IPV6 is not set
-+# CONFIG_NETWORK_SECMARK is not set
-+# CONFIG_NETFILTER is not set
-+# CONFIG_IP_DCCP is not set
-+# CONFIG_IP_SCTP is not set
-+# CONFIG_TIPC is not set
-+# CONFIG_ATM is not set
-+# CONFIG_BRIDGE is not set
-+# CONFIG_NET_DSA is not set
-+# CONFIG_VLAN_8021Q is not set
-+# CONFIG_DECNET is not set
-+# CONFIG_LLC2 is not set
-+# CONFIG_IPX is not set
-+# CONFIG_ATALK is not set
-+# CONFIG_X25 is not set
-+# CONFIG_LAPB is not set
-+# CONFIG_ECONET is not set
-+# CONFIG_WAN_ROUTER is not set
-+# CONFIG_NET_SCHED is not set
-+
-+#
-+# Network testing
-+#
-+# CONFIG_NET_PKTGEN is not set
-+# CONFIG_HAMRADIO is not set
-+# CONFIG_CAN is not set
-+# CONFIG_IRDA is not set
-+# CONFIG_BT is not set
-+# CONFIG_AF_RXRPC is not set
-+# CONFIG_PHONET is not set
-+# CONFIG_WIRELESS is not set
-+# CONFIG_RFKILL is not set
-+# CONFIG_NET_9P is not set
- 
- #
- # Device Drivers
-@@ -345,6 +420,8 @@ CONFIG_PREVENT_FIRMWARE_BUILD=y
- # CONFIG_DEBUG_DRIVER is not set
- # CONFIG_DEBUG_DEVRES is not set
- # CONFIG_SYS_HYPERVISOR is not set
-+CONFIG_CONNECTOR=y
-+CONFIG_PROC_EVENTS=y
- # CONFIG_MTD is not set
- # CONFIG_PARPORT is not set
- CONFIG_BLK_DEV=y
-@@ -405,6 +482,54 @@ CONFIG_SCSI_LOWLEVEL=y
- # CONFIG_SCSI_DH is not set
- # CONFIG_ATA is not set
- # CONFIG_MD is not set
-+CONFIG_NETDEVICES=y
-+# CONFIG_DUMMY is not set
-+# CONFIG_BONDING is not set
-+# CONFIG_MACVLAN is not set
-+# CONFIG_EQUALIZER is not set
-+# CONFIG_TUN is not set
-+# CONFIG_VETH is not set
-+# CONFIG_PHYLIB is not set
-+CONFIG_NET_ETHERNET=y
-+CONFIG_MII=y
-+# CONFIG_AX88796 is not set
-+# CONFIG_SMC91X is not set
-+# CONFIG_DM9000 is not set
-+# CONFIG_ENC28J60 is not set
-+CONFIG_SMC911X=y
-+# CONFIG_IBM_NEW_EMAC_ZMII is not set
-+# CONFIG_IBM_NEW_EMAC_RGMII is not set
-+# CONFIG_IBM_NEW_EMAC_TAH is not set
-+# CONFIG_IBM_NEW_EMAC_EMAC4 is not set
-+# CONFIG_IBM_NEW_EMAC_NO_FLOW_CTRL is not set
-+# CONFIG_IBM_NEW_EMAC_MAL_CLR_ICINTSTAT is not set
-+# CONFIG_IBM_NEW_EMAC_MAL_COMMON_ERR is not set
-+# CONFIG_B44 is not set
-+CONFIG_NETDEV_1000=y
-+CONFIG_NETDEV_10000=y
-+
-+#
-+# Wireless LAN
-+#
-+# CONFIG_WLAN_PRE80211 is not set
-+# CONFIG_WLAN_80211 is not set
-+# CONFIG_IWLWIFI_LEDS is not set
-+
-+#
-+# USB Network Adapters
-+#
-+# CONFIG_USB_CATC is not set
-+# CONFIG_USB_KAWETH is not set
-+# CONFIG_USB_PEGASUS is not set
-+# CONFIG_USB_RTL8150 is not set
-+# CONFIG_USB_USBNET is not set
-+# CONFIG_WAN is not set
-+# CONFIG_PPP is not set
-+# CONFIG_SLIP is not set
-+# CONFIG_NETCONSOLE is not set
-+# CONFIG_NETPOLL is not set
-+# CONFIG_NET_POLL_CONTROLLER is not set
-+# CONFIG_ISDN is not set
- 
- #
- # Input device support
-@@ -1053,6 +1178,27 @@ CONFIG_TMPFS=y
- # CONFIG_ROMFS_FS is not set
- # CONFIG_SYSV_FS is not set
- # CONFIG_UFS_FS is not set
-+CONFIG_NETWORK_FILESYSTEMS=y
-+CONFIG_NFS_FS=y
-+CONFIG_NFS_V3=y
-+CONFIG_NFS_V3_ACL=y
-+CONFIG_NFS_V4=y
-+CONFIG_ROOT_NFS=y
-+# CONFIG_NFSD is not set
-+CONFIG_LOCKD=y
-+CONFIG_LOCKD_V4=y
-+CONFIG_NFS_ACL_SUPPORT=y
-+CONFIG_NFS_COMMON=y
-+CONFIG_SUNRPC=y
-+CONFIG_SUNRPC_GSS=y
-+# CONFIG_SUNRPC_REGISTER_V4 is not set
-+CONFIG_RPCSEC_GSS_KRB5=y
-+# CONFIG_RPCSEC_GSS_SPKM3 is not set
-+# CONFIG_SMB_FS is not set
-+# CONFIG_CIFS is not set
-+# CONFIG_NCP_FS is not set
-+# CONFIG_CODA_FS is not set
-+# CONFIG_AFS_FS is not set
- 
- #
- # Partition Types
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index 3ec8264..f319e97 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -44,6 +44,7 @@
- #include "mmc-twl4030.h"
- 
- 
-+#define       SDP3430_SMC91X_CS 	3
- #define CONFIG_DISABLE_HFCLK 1
- 
- #define ENABLE_VAUX1_DEDICATED	0x03
-@@ -51,6 +52,26 @@
- 
- #define TWL4030_MSECURE_GPIO	22
- 
-+static struct resource ldp_smc911x_resources[] = {
-+	[0] = {
-+		.start	= OMAP34XX_ETHR_START,
-+		.end	= OMAP34XX_ETHR_START + SZ_4K,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.start	= 0,
-+		.end	= 0,
-+		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
-+	},
-+};
-+
-+static struct platform_device ldp_smc911x_device = {
-+	.name		= "smc911x",
-+	.id		= -1,
-+	.num_resources	= ARRAY_SIZE(ldp_smc911x_resources),
-+	.resource	= ldp_smc911x_resources,
-+};
-+
- static int ts_gpio;
- 
- static int __init msecure_init(void)
-@@ -177,14 +198,46 @@ static struct platform_device ldp_lcd_device = {
- };
- 
- static struct platform_device *ldp_devices[] __initdata = {
-+	&ldp_smc911x_device,
- 	&ldp_lcd_device,
- };
- 
-+static inline void __init ldp_init_smc911x(void)
-+{
-+       int eth_cs;
-+       unsigned long cs_mem_base;
-+       int eth_gpio = 0;
-+
-+       eth_cs = LDP_SMC911X_CS;
-+
-+       if (gpmc_cs_request(eth_cs, SZ_16M, &cs_mem_base) < 0) {
-+               printk(KERN_ERR "Failed to request GPMC mem for smc911x\n");
-+               return;
-+       }
-+
-+       ldp_smc911x_resources[0].start = cs_mem_base + 0x0;
-+       ldp_smc911x_resources[0].end   = cs_mem_base + 0xf;
-+       udelay(100);
-+
-+       eth_gpio = LDP_SMC911X_GPIO;
-+
-+       ldp_smc911x_resources[1].start = OMAP_GPIO_IRQ(eth_gpio);
-+
-+       if (omap_request_gpio(eth_gpio) < 0) {
-+               printk(KERN_ERR "Failed to request GPIO%d for smc911x IRQ\n",
-+                       eth_gpio);
-+               return;
-+       }
-+       omap_set_gpio_direction(eth_gpio, 1);
-+}
-+
-+
- static void __init omap_ldp_init_irq(void)
- {
- 	omap2_init_common_hw(NULL);
- 	omap_init_irq();
- 	omap_gpio_init();
-+        ldp_init_smc911x();
- }
- 
- static struct omap_uart_config ldp_uart_config __initdata = {
-diff --git a/arch/arm/plat-omap/include/mach/board-ldp.h b/arch/arm/plat-omap/include/mach/board-ldp.h
-index 66e2746..f233996 100644
---- a/arch/arm/plat-omap/include/mach/board-ldp.h
-+++ b/arch/arm/plat-omap/include/mach/board-ldp.h
-@@ -32,5 +32,8 @@
- extern void twl4030_bci_battery_init(void);
- 
- #define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
--
-+#define LDP_SMC911X_CS         1
-+#define LDP_SMC911X_GPIO       152
-+#define DEBUG_BASE             0x08000000
-+#define OMAP34XX_ETHR_START    DEBUG_BASE
- #endif /* __ASM_ARCH_OMAP_LDP_H */
-diff --git a/drivers/net/smc911x.c b/drivers/net/smc911x.c
-index f59c777..05e7512 100644
---- a/drivers/net/smc911x.c
-+++ b/drivers/net/smc911x.c
-@@ -2063,7 +2063,7 @@ static int smc911x_drv_probe(struct platform_device *pdev)
- 		ret = -ENODEV;
- 		goto out;
- 	}
--
-+#ifndef SMC_MEM_RESERVED
- 	/*
- 	 * Request the regions.
- 	 */
-@@ -2071,7 +2071,7 @@ static int smc911x_drv_probe(struct platform_device *pdev)
- 		 ret = -EBUSY;
- 		 goto out;
- 	}
--
-+#endif
- 	ndev = alloc_etherdev(sizeof(struct smc911x_local));
- 	if (!ndev) {
- 		printk("%s: could not allocate device.\n", CARDNAME);
-@@ -2108,7 +2108,9 @@ static int smc911x_drv_probe(struct platform_device *pdev)
- release_both:
- 		free_netdev(ndev);
- release_1:
-+#ifndef SMC_MEM_RESERVED
- 		release_mem_region(res->start, SMC911X_IO_EXTENT);
-+#endif
- out:
- 		printk("%s: not found (%d).\n", CARDNAME, ret);
- 	}
-diff --git a/drivers/net/smc911x.h b/drivers/net/smc911x.h
-index d1b3b9b..f688b55 100644
---- a/drivers/net/smc911x.h
-+++ b/drivers/net/smc911x.h
-@@ -682,6 +682,7 @@ smc_pxa_dma_outsl(struct smc911x_local *lp, u_long physaddr,
- #define CHIP_9116	0x0116
- #define CHIP_9117	0x0117
- #define CHIP_9118	0x0118
-+#define CHIP_9211	0x9211
- #define CHIP_9215	0x115A
- #define CHIP_9217	0x117A
- #define CHIP_9218	0x118A
-@@ -696,6 +697,7 @@ static const struct chip_id chip_ids[] =  {
- 	{ CHIP_9116, "LAN9116" },
- 	{ CHIP_9117, "LAN9117" },
- 	{ CHIP_9118, "LAN9118" },
-+	{ CHIP_9211, "LAN9211" },
- 	{ CHIP_9215, "LAN9215" },
- 	{ CHIP_9217, "LAN9217" },
- 	{ CHIP_9218, "LAN9218" },
--- 
-1.5.6.3
-
+On Thu, 2008-11-06 at 20:44 +0800, Stanley.Miao wrote:
+> A spin_lock deadlock will occur when omap_mcbsp_request() is invoked.
+> 
+> omap_mcbsp_request()         -->
+> clk_enable(mcbsp->clk)       --> clk_enable get clockfw_lock, then call ->
+> omap2_clk_enable()           -->
+> _omap2_clk_enable()          -->
+> omap_mcbsp_clk_enable()      -->
+> clk_enable(mcbsp_ick)        --> now clk_enable acquire clockfw_lock again.
+> 
+> The solution:
+> 
+> If a alias clock has some relative clocks, enable relative clocks before enable
+> the alias clock.
+> 
+> Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+> ---
+>  arch/arm/mach-omap1/mcbsp.c             |   67 ++++++------------------
+>  arch/arm/mach-omap2/mcbsp.c             |   88 +++++++-----------------------
+>  arch/arm/plat-omap/clock.c              |    9 +++-
+>  arch/arm/plat-omap/include/mach/clock.h |    2 +
+>  4 files changed, 47 insertions(+), 119 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap1/mcbsp.c b/arch/arm/mach-omap1/mcbsp.c
+> index 7de7c69..cf220be 100644
+> --- a/arch/arm/mach-omap1/mcbsp.c
+> +++ b/arch/arm/mach-omap1/mcbsp.c
+> @@ -26,80 +26,45 @@
+>  #define DPS_RSTCT2_PER_EN	(1 << 0)
+>  #define DSP_RSTCT2_WD_PER_EN	(1 << 1)
+>  
+> -struct mcbsp_internal_clk {
+> -	struct clk clk;
+> -	struct clk **childs;
+> -	int n_childs;
+> -};
+> -
+>  #if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX)
+> -static void omap_mcbsp_clk_init(struct mcbsp_internal_clk *mclk)
+> +static void omap_mcbsp_clk_init(struct clk *mclk)
+>  {
+>  	const char *clk_names[] = { "dsp_ck", "api_ck", "dspxor_ck" };
+>  	int i;
+>  
+> -	mclk->n_childs = ARRAY_SIZE(clk_names);
+> -	mclk->childs = kzalloc(mclk->n_childs * sizeof(struct clk *),
+> +	mclk->n_relatives = ARRAY_SIZE(clk_names);
+> +	mclk->relatives = kzalloc(mclk->n_relatives * sizeof(struct clk *),
+>  				GFP_KERNEL);
+>  
+> -	for (i = 0; i < mclk->n_childs; i++) {
+> +	for (i = 0; i < mclk->n_relatives; i++) {
+>  		/* We fake a platform device to get correct device id */
+>  		struct platform_device pdev;
+>  
+>  		pdev.dev.bus = &platform_bus_type;
+> -		pdev.id = mclk->clk.id;
+> -		mclk->childs[i] = clk_get(&pdev.dev, clk_names[i]);
+> -		if (IS_ERR(mclk->childs[i]))
+> +		pdev.id = mclk->id;
+> +		mclk->relatives[i] = clk_get(&pdev.dev, clk_names[i]);
+> +		if (IS_ERR(mclk->relatives[i]))
+>  			printk(KERN_ERR "Could not get clock %s (%d).\n",
+> -				clk_names[i], mclk->clk.id);
+> +				clk_names[i], mclk->id);
+>  	}
+>  }
+>  
+> -static int omap_mcbsp_clk_enable(struct clk *clk)
+> -{
+> -	struct mcbsp_internal_clk *mclk = container_of(clk,
+> -					struct mcbsp_internal_clk, clk);
+> -	int i;
+> -
+> -	for (i = 0; i < mclk->n_childs; i++)
+> -		clk_enable(mclk->childs[i]);
+> -	return 0;
+> -}
+> -
+> -static void omap_mcbsp_clk_disable(struct clk *clk)
+> -{
+> -	struct mcbsp_internal_clk *mclk = container_of(clk,
+> -					struct mcbsp_internal_clk, clk);
+> -	int i;
+> -
+> -	for (i = 0; i < mclk->n_childs; i++)
+> -		clk_disable(mclk->childs[i]);
+> -}
+> -
+> -static struct mcbsp_internal_clk omap_mcbsp_clks[] = {
+> +static struct clk omap_mcbsp_clks[] = {
+>  	{
+> -		.clk = {
+> -			.name 		= "mcbsp_clk",
+> -			.id		= 1,
+> -			.enable		= omap_mcbsp_clk_enable,
+> -			.disable	= omap_mcbsp_clk_disable,
+> -		},
+> +		.name 		= "mcbsp_clk",
+> +		.id		= 1,
+>  	},
+>  	{
+> -		.clk = {
+> -			.name 		= "mcbsp_clk",
+> -			.id		= 3,
+> -			.enable		= omap_mcbsp_clk_enable,
+> -			.disable	= omap_mcbsp_clk_disable,
+> -		},
+> +		.name 		= "mcbsp_clk",
+> +		.id		= 3,
+>  	},
+>  };
+>  
+>  #define omap_mcbsp_clks_size	ARRAY_SIZE(omap_mcbsp_clks)
+>  #else
+>  #define omap_mcbsp_clks_size	0
+> -static struct mcbsp_internal_clk __initdata *omap_mcbsp_clks;
+> -static inline void omap_mcbsp_clk_init(struct mcbsp_internal_clk *mclk)
+> +static struct clk __initdata *omap_mcbsp_clks;
+> +static inline void omap_mcbsp_clk_init(struct clk *mclk)
+>  { }
+>  #endif
+>  
+> @@ -233,7 +198,7 @@ int __init omap1_mcbsp_init(void)
+>  	for (i = 0; i < omap_mcbsp_clks_size; i++) {
+>  		if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
+>  			omap_mcbsp_clk_init(&omap_mcbsp_clks[i]);
+> -			clk_register(&omap_mcbsp_clks[i].clk);
+> +			clk_register(&omap_mcbsp_clks[i]);
+>  		}
+>  	}
+>  
+> diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+> index cae3ebe..20663e1 100644
+> --- a/arch/arm/mach-omap2/mcbsp.c
+> +++ b/arch/arm/mach-omap2/mcbsp.c
+> @@ -22,103 +22,57 @@
+>  #include <mach/cpu.h>
+>  #include <mach/mcbsp.h>
+>  
+> -struct mcbsp_internal_clk {
+> -	struct clk clk;
+> -	struct clk **childs;
+> -	int n_childs;
+> -};
+> -
+>  #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
+> -static void omap_mcbsp_clk_init(struct mcbsp_internal_clk *mclk)
+> +static void omap_mcbsp_clk_init(struct clk *mclk)
+>  {
+>  	const char *clk_names[] = { "mcbsp_ick", "mcbsp_fck" };
+>  	int i;
+>  
+> -	mclk->n_childs = ARRAY_SIZE(clk_names);
+> -	mclk->childs = kzalloc(mclk->n_childs * sizeof(struct clk *),
+> +	mclk->n_relatives = ARRAY_SIZE(clk_names);
+> +	mclk->relatives = kzalloc(mclk->n_relatives * sizeof(struct clk *),
+>  				GFP_KERNEL);
+>  
+> -	for (i = 0; i < mclk->n_childs; i++) {
+> +	for (i = 0; i < mclk->n_relatives; i++) {
+>  		/* We fake a platform device to get correct device id */
+>  		struct platform_device pdev;
+>  
+>  		pdev.dev.bus = &platform_bus_type;
+> -		pdev.id = mclk->clk.id;
+> -		mclk->childs[i] = clk_get(&pdev.dev, clk_names[i]);
+> -		if (IS_ERR(mclk->childs[i]))
+> +		pdev.id = mclk->id;
+> +		mclk->relatives[i] = clk_get(&pdev.dev, clk_names[i]);
+> +		if (IS_ERR(mclk->relatives[i]))
+>  			printk(KERN_ERR "Could not get clock %s (%d).\n",
+> -				clk_names[i], mclk->clk.id);
+> +				clk_names[i], mclk->id);
+>  	}
+>  }
+>  
+> -static int omap_mcbsp_clk_enable(struct clk *clk)
+> -{
+> -	struct mcbsp_internal_clk *mclk = container_of(clk,
+> -					struct mcbsp_internal_clk, clk);
+> -	int i;
+> -
+> -	for (i = 0; i < mclk->n_childs; i++)
+> -		clk_enable(mclk->childs[i]);
+> -	return 0;
+> -}
+> -
+> -static void omap_mcbsp_clk_disable(struct clk *clk)
+> -{
+> -	struct mcbsp_internal_clk *mclk = container_of(clk,
+> -					struct mcbsp_internal_clk, clk);
+> -	int i;
+> -
+> -	for (i = 0; i < mclk->n_childs; i++)
+> -		clk_disable(mclk->childs[i]);
+> -}
+>  
+> -static struct mcbsp_internal_clk omap_mcbsp_clks[] = {
+> +static struct clk omap_mcbsp_clks[] = {
+>  	{
+> -		.clk = {
+> -			.name 		= "mcbsp_clk",
+> -			.id		= 1,
+> -			.enable		= omap_mcbsp_clk_enable,
+> -			.disable	= omap_mcbsp_clk_disable,
+> -		},
+> +		.name 		= "mcbsp_clk",
+> +		.id		= 1,
+>  	},
+>  	{
+> -		.clk = {
+> -			.name 		= "mcbsp_clk",
+> -			.id		= 2,
+> -			.enable		= omap_mcbsp_clk_enable,
+> -			.disable	= omap_mcbsp_clk_disable,
+> -		},
+> +		.name 		= "mcbsp_clk",
+> +		.id		= 2,
+>  	},
+>  	{
+> -		.clk = {
+> -			.name		= "mcbsp_clk",
+> -			.id		= 3,
+> -			.enable		= omap_mcbsp_clk_enable,
+> -			.disable	= omap_mcbsp_clk_disable,
+> -		},
+> +		.name		= "mcbsp_clk",
+> +		.id		= 3,
+>  	},
+>  	{
+> -		.clk = {
+> -			.name		= "mcbsp_clk",
+> -			.id		= 4,
+> -			.enable		= omap_mcbsp_clk_enable,
+> -			.disable	= omap_mcbsp_clk_disable,
+> -		},
+> +		.name		= "mcbsp_clk",
+> +		.id		= 4,
+>  	},
+>  	{
+> -		.clk = {
+> -			.name		= "mcbsp_clk",
+> -			.id		= 5,
+> -			.enable		= omap_mcbsp_clk_enable,
+> -			.disable	= omap_mcbsp_clk_disable,
+> -		},
+> +		.name		= "mcbsp_clk",
+> +		.id		= 5,
+>  	},
+>  };
+>  
+>  #define omap_mcbsp_clks_size	ARRAY_SIZE(omap_mcbsp_clks)
+>  #else
+>  #define omap_mcbsp_clks_size	0
+> -static struct mcbsp_internal_clk __initdata *omap_mcbsp_clks;
+> +static struct clk __initdata *omap_mcbsp_clks;
+>  static inline void omap_mcbsp_clk_init(struct clk *clk)
+>  { }
+>  #endif
+> @@ -287,7 +241,7 @@ static int __init omap2_mcbsp_init(void)
+>  	for (i = 0; i < omap_mcbsp_clks_size; i++) {
+>  		/* Once we call clk_get inside init, we do not register it */
+>  		omap_mcbsp_clk_init(&omap_mcbsp_clks[i]);
+> -		clk_register(&omap_mcbsp_clks[i].clk);
+> +		clk_register(&omap_mcbsp_clks[i]);
+>  	}
+>  
+>  	if (cpu_is_omap2420())
+> diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+> index d13acd2..1c4f877 100644
+> --- a/arch/arm/plat-omap/clock.c
+> +++ b/arch/arm/plat-omap/clock.c
+> @@ -77,11 +77,14 @@ EXPORT_SYMBOL(clk_get);
+>  int clk_enable(struct clk *clk)
+>  {
+>  	unsigned long flags;
+> -	int ret = 0;
+> +	int i, ret = 0;
+>  
+>  	if (clk == NULL || IS_ERR(clk))
+>  		return -EINVAL;
+>  
+> +	for (i = 0; i < clk->n_relatives; i++)
+> +		clk_enable(clk->relatives[i]);
+> +
+>  	spin_lock_irqsave(&clockfw_lock, flags);
+>  	if (arch_clock->clk_enable)
+>  		ret = arch_clock->clk_enable(clk);
+> @@ -94,10 +97,14 @@ EXPORT_SYMBOL(clk_enable);
+>  void clk_disable(struct clk *clk)
+>  {
+>  	unsigned long flags;
+> +	int i;
+>  
+>  	if (clk == NULL || IS_ERR(clk))
+>  		return;
+>  
+> +	for (i = 0; i < clk->n_relatives; i++)
+> +		clk_disable(clk->relatives[i]);
+> +
+>  	spin_lock_irqsave(&clockfw_lock, flags);
+>  	if (clk->usecount == 0) {
+>  		printk(KERN_ERR "Trying disable clock %s with 0 usecount\n",
+> diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
+> index 9088925..2760bcf 100644
+> --- a/arch/arm/plat-omap/include/mach/clock.h
+> +++ b/arch/arm/plat-omap/include/mach/clock.h
+> @@ -71,6 +71,8 @@ struct clk {
+>  	__u8			enable_bit;
+>  	__s8			usecount;
+>  	u8			idlest_bit;
+> +	struct clk		**relatives;
+> +	int 			n_relatives;
+>  	void			(*recalc)(struct clk *);
+>  	int			(*set_rate)(struct clk *, unsigned long);
+>  	long			(*round_rate)(struct clk *, unsigned long);
