@@ -1,230 +1,524 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: 3430SDP crash at boot time
-Date: Thu, 6 Nov 2008 21:12:21 -0600
-Message-ID: <A24693684029E5489D1D202277BE894413A94881@dlee02.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch 2.6.28-rc3-omap git] hsmmc gpio updates
+Date: Thu, 6 Nov 2008 21:15:30 -0800
+Message-ID: <200811062115.30519.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34614 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750787AbYKGDM2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Nov 2008 22:12:28 -0500
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id mA73CNKL016678
-	for <linux-omap@vger.kernel.org>; Thu, 6 Nov 2008 21:12:28 -0600
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id mA73CN2W023494
-	for <linux-omap@vger.kernel.org>; Thu, 6 Nov 2008 21:12:23 -0600 (CST)
-Content-Language: en-US
+Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:25023 "HELO
+	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750771AbYKGFPd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2008 00:15:33 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Hi all,
+From: David Brownell <dbrownell@users.sourceforge.net>
 
+Rework card detect GPIO handling in the twl4030 MMC glue:  drive
+it *only* from the hsmmc_info passed; remove most of remaining
+"we know we're always a twl4030 GPIO" logic.
+
+Add write-protect switch detection support to that glue.  Stub
+in a not-present WP GPIO into most boards.  (Beagle's is real.)
+
+Teach the hsmmc driver how to use the card detect and writeprotect
+methods, and move some data structure init earlier so that when IRQs
+come in, more of the data used by their handlers is initialized.
+
+Verified on Beagle (WP, card detect events) and Overo (boots, both
+card and wlan are seen).  Beagle behaves fully, and is the model
+to follow for the common case where the TWL4030 gpio-0 card detect
+magic is used.
+
+Most hsmmc boards need to list what GPIOs they use with MMC...
+
+Note that supporting card detect and writeprotect GPIOs on a
+second MMC slot, or using the MMC3 controller, requires some
+interface updates that aren't part of this patch.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+ arch/arm/mach-omap2/board-2430sdp.c      |    1 
+ arch/arm/mach-omap2/board-3430sdp.c      |    2 
+ arch/arm/mach-omap2/board-ldp.c          |    1 
+ arch/arm/mach-omap2/board-omap2evm.c     |    1 
+ arch/arm/mach-omap2/board-omap3beagle.c  |   26 ++---
+ arch/arm/mach-omap2/board-omap3evm.c     |    1 
+ arch/arm/mach-omap2/board-omap3pandora.c |    1 
+ arch/arm/mach-omap2/board-overo.c        |    2 
+ arch/arm/mach-omap2/mmc-twl4030.c        |  133 ++++++++++++++---------------
+ arch/arm/mach-omap2/mmc-twl4030.h        |    1 
+ drivers/mmc/host/omap_hsmmc.c            |   51 ++++++++---
+ 11 files changed, 127 insertions(+), 93 deletions(-)
+
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -395,6 +395,7 @@ static struct twl4030_hsmmc_info mmc[] _
+ 		.mmc		= 1,
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
++		.gpio_wp	= -EINVAL,
+ 	},
+ 	{}	/* Terminator */
+ };
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -450,11 +450,13 @@ static struct twl4030_hsmmc_info mmc[] _
+ 		.mmc		= 1,
+ 		.wires		= 8,
+ 		.gpio_cd	= -EINVAL,
++		.gpio_wp	= -EINVAL,
+ 	},
+ 	{
+ 		.mmc		= 2,
+ 		.wires		= 8,
+ 		.gpio_cd	= -EINVAL,
++		.gpio_wp	= -EINVAL,
+ 	},
+ 	{}	/* Terminator */
+ };
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -346,6 +346,7 @@ static struct twl4030_hsmmc_info mmc[] _
+ 		.mmc		= 1,
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
++		.gpio_wp	= -EINVAL,
+ 	},
+ 	{}	/* Terminator */
+ };
+--- a/arch/arm/mach-omap2/board-omap2evm.c
++++ b/arch/arm/mach-omap2/board-omap2evm.c
+@@ -345,6 +345,7 @@ static struct twl4030_hsmmc_info mmc[] _
+ 		.mmc		= 1,
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
++		.gpio_wp	= -EINVAL,
+ 	},
+ 	{}	/* Terminator */
+ };
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -116,6 +116,15 @@ static struct twl4030_usb_data beagle_us
+ 	.usb_mode	= T2_USB_MODE_ULPI,
+ };
  
-
-Today when I attempted to boot on an 3430SDP with latest commit, I got a kernel dump, which is this:
-
++static struct twl4030_hsmmc_info mmc[] __initdata = {
++	{
++		.mmc		= 1,
++		.wires		= 8,
++		.gpio_wp	= 29,
++	},
++	{}	/* Terminator */
++};
++
+ static struct gpio_led gpio_leds[];
  
-
-<7>eth0: No PHY found
-<6>i2c /dev entries driver
-i2c /dev entries driver
-<4>Driver 'sd' needs updating - please use bus_type methods
-Driver 'sd' needs updating - please use bus_type methods
-<1>Unhandled fault: external abort on non-linefetch (0x1028) at 0xc9000020
-Unhandled fault: external abort on non-linefetch (0x1028) at 0xc9000020
-Internal error: : 1028 [#1]
-Internal error: : 1028 [#1]
-Modules linked in:Modules linked in:
+ #include <linux/interrupt.h>
+@@ -135,6 +144,9 @@ static int beagle_twl_gpio_setup(struct 
+ 	int	status;
  
-CPU: 0    Not tainted  (2.6.28-rc3-omap1-05164-g0d272a9 #1)
-CPU: 0    Not tainted  (2.6.28-rc3-omap1-05164-g0d272a9 #1)
-PC is at cfi_qry_present+0x1c0/0x29c
-PC is at cfi_qry_present+0x1c0/0x29c
-LR is at cfi_qry_present+0x64/0x29c
-LR is at cfi_qry_present+0x64/0x29c
-pc : [<c01d17bc>]    lr : [<c01d1660>]    psr: 60000013
-sp : c7817c38  ip : 00000006  fp : c7817c74
-pc : [<c01d17bc>]    lr : [<c01d1660>]    psr: 60000013
-sp : c7817c38  ip : 00000006  fp : c7817c74
-r10: 00000001  r9 : 00000001  r8 : 00000000
-r10: 00000001  r9 : 00000001  r8 : 00000000
-r7 : 00000002  r6 : c79e9968  r5 : 00000002  r4 : 00000001
-r7 : 00000002  r6 : c79e9968  r5 : 00000002  r4 : 00000001
-r3 : c9000000  r2 : 00000020  r1 : 00000002  r0 : 00005959
-r3 : c9000000  r2 : 00000020  r1 : 00000002  r0 : 00005959
-Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-Control: 10c5387f  Table: 80004018  DAC: 00000017
-Control: 10c5387f  Table: 80004018  DAC: 00000017
-Process swapper (pid: 1, stack limit = 0xc78162e0)
-Process swapper (pid: 1, stack limit = 0xc78162e0)
-Stack: (0xc7817c38 to 0xc7818000)
-Stack: (0xc7817c38 to 0xc7818000)
-7c20: 7c20:                                                                                                             00005151 00005151 00005252 00005252
-
-
-7c40: 7c40: 00005959 00005959 c7817c50 c7817c50 00000025 00000025 00000000 00000000 00000001 00000001 c79e9968 c79e9968 00000002 00000002 00000002 00000002
+ 	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
++	omap_cfg_reg(AH8_34XX_GPIO29);
++	mmc[0].gpio_cd = gpio + 0;
++	hsmmc_init(mmc);
  
-
-7c60: 7c60: 00000000 00000000 c7817ce8 c7817ce8 c7817ca4 c7817ca4 c7817c78 c7817c78 c01d1a60 c01d1a60 c01d1608 c01d1608 000000ff 000000ff 00000000 00000000
+ 	/* REVISIT: need ehci-omap hooks for external VBUS
+ 	 * power switch and overcurrent detect
+@@ -319,15 +331,6 @@ static void __init omap3beagle_flash_ini
+ 	}
+ }
  
-
-7c80: 7c80: c79e9968 c79e9968 00000001 00000001 c7817ce8 c7817ce8 c037d5a8 c037d5a8 00000000 00000000 c79e9968 c79e9968 c7817cdc c7817cdc c7817ca8 c7817ca8
+-static struct twl4030_hsmmc_info mmc[] __initdata = {
+-	{
+-		.mmc		= 1,
+-		.wires		= 8,
+-		.gpio_cd	= TWL4030_GPIO_IRQ_NO(0),
+-	},
+-	{}	/* Terminator */
+-};
+-
+ static void __init omap3_beagle_init(void)
+ {
+ 	omap3_beagle_i2c_init();
+@@ -344,11 +347,6 @@ static void __init omap3_beagle_init(voi
+ #endif
+ 	omap_serial_init();
  
-
-7ca0: 7ca0: c01d0dbc c01d0dbc c01d18a4 c01d18a4 00000006 00000006 00000004 00000004 00000007 00000007 00000001 00000001 00000002 00000002 00000001 00000001
+-	omap_cfg_reg(AH8_34XX_GPIO29);
+-	gpio_request(29, "mmc0_wp");
+-	gpio_direction_input(29);
+-	hsmmc_init(mmc);
+-
+ 	omap_cfg_reg(J25_34XX_GPIO170);
+ 	gpio_request(170, "DVI_nPD");
+ 	/* REVISIT leave DVI powered down until it's needed ... */
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -240,6 +240,7 @@ static struct twl4030_hsmmc_info mmc[] _
+ 		.mmc		= 1,
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
++		.gpio_wp	= -EINVAL,
+ 	},
+ 	{}	/* Terminator */
+ };
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -208,6 +208,7 @@ static struct twl4030_hsmmc_info mmc[] _
+ 		.mmc		= 1,
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
++		.gpio_wp	= -EINVAL,
+ 	},
+ 	{}	/* Terminator */
+ };
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -213,11 +213,13 @@ static struct twl4030_hsmmc_info mmc[] _
+ 		.mmc		= 1,
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
++		.gpio_wp	= -EINVAL,
+ 	},
+ 	{
+ 		.mmc		= 2,
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
++		.gpio_wp	= -EINVAL,
+ 	},
+ 	{}	/* Terminator */
+ };
+--- a/arch/arm/mach-omap2/mmc-twl4030.c
++++ b/arch/arm/mach-omap2/mmc-twl4030.c
+@@ -27,11 +27,8 @@
  
-
-7cc0: 7cc0: c0395f24 c0395f24 c037d5a8 c037d5a8 00000000 00000000 c79e9968 c79e9968 c7817d4c c7817d4c c7817ce0 c7817ce0 c01d76ec c01d76ec c01d0d60 c01d0d60
+ #if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
  
-
-7ce0: 7ce0: 20000013 20000013 ffffffff ffffffff 00000000 00000000 00000000 00000000 00000002 00000002 00000001 00000001 00000000 00000000 00000000 00000000
+-#define TWL_GPIO_IMR1A		0x1C
+-#define TWL_GPIO_ISR1A		0x19
+ #define LDO_CLR			0x00
+ #define VSEL_S2_CLR		0x40
+-#define GPIO_0_BIT_POS		(1 << 0)
  
-
-7d00: 7d00: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+ #define VMMC1_DEV_GRP		0x27
+ #define VMMC1_CLR		0x00
+@@ -58,27 +55,36 @@ static struct twl_mmc_controller {
+ 	u16		control_devconf_offset;
+ 	u32		devconf_loopback_clock;
+ 	int		card_detect_gpio;
++	unsigned	card_wp_gpio;
+ 	u8		twl_vmmc_dev_grp;
+ 	u8		twl_mmc_dedicated;
+ } hsmmc[] = {
+ 	{
+ 		.control_devconf_offset		= OMAP2_CONTROL_DEVCONF0,
+ 		.devconf_loopback_clock		= OMAP2_MMCSDIO1ADPCLKISEL,
+-		.card_detect_gpio		= OMAP_MAX_GPIO_LINES,
++		.card_detect_gpio		= -EINVAL,
+ 		.twl_vmmc_dev_grp		= VMMC1_DEV_GRP,
+ 		.twl_mmc_dedicated		= VMMC1_DEDICATED,
+ 	},
+ 	{
+ 		/* control_devconf_offset set dynamically */
+ 		.devconf_loopback_clock		= OMAP2_MMCSDIO2ADPCLKISEL,
++		.card_detect_gpio		= -EINVAL,
+ 		.twl_vmmc_dev_grp		= VMMC2_DEV_GRP,
+ 		.twl_mmc_dedicated		= VMMC2_DEDICATED,
+ 	},
+- };
++};
  
-
-7d20: 7d20: c7817d50 c7817d50 c0395f0c c0395f0c c0323cd9 c0323cd9 c79e9968 c79e9968 c037d188 c037d188 c037d5a8 c037d5a8 00000000 00000000 c037d1a8 c037d1a8
+ static int twl_mmc1_card_detect(int irq)
+ {
+-	return gpio_get_value_cansleep(hsmmc[0].card_detect_gpio);
++	/* NOTE: assumes card detect signal is active-low */
++	return !gpio_get_value_cansleep(hsmmc[0].card_detect_gpio);
++}
++
++static int twl_mmc1_get_ro(struct device *dev, int slot)
++{
++	/* NOTE: assumes write protect signal is active-high */
++	return gpio_get_value_cansleep(hsmmc[0].card_wp_gpio);
+ }
  
-
-7d40: 7d40: c7817d5c c7817d5c c7817d50 c7817d50 c01d0d4c c01d0d4c c01d7684 c01d7684 c7817d7c c7817d7c c7817d60 c7817d60 c01d0d18 c01d0d18 c01d0d44 c01d0d44
+ /*
+@@ -86,15 +92,19 @@ static int twl_mmc1_card_detect(int irq)
+  */
+ static int twl_mmc1_late_init(struct device *dev)
+ {
++	struct omap_mmc_platform_data *mmc = dev->platform_data;
+ 	int ret = 0;
  
-
-7d60: 7d60: c79e9960 c79e9960 04000000 04000000 04000000 04000000 c037d188 c037d188 c7817da4 c7817da4 c7817d80 c7817d80 c001ceac c001ceac c01d0cd4 c01d0cd4
+-	/*
+-	 * Configure TWL4030 GPIO parameters for MMC hotplug irq
+-	 */
+ 	ret = gpio_request(hsmmc[0].card_detect_gpio, "mmc0_cd");
+ 	if (ret)
++		goto done;
++	ret = gpio_direction_input(hsmmc[0].card_detect_gpio);
++	if (ret)
+ 		goto err;
  
-
-7d80: 7d80: c037d1b0 c037d1b0 c037d25c c037d25c c039600c c039600c c039600c c039600c c0395050 c0395050 c001cdbc c001cdbc c7817db4 c7817db4 c7817da8 c7817da8
++	/* FIXME assumes this uses (a) TWL4030 and (b) GPIO-0 ...
++	 * but that's not actually required.
++	 */
+ 	ret = twl4030_set_gpio_debounce(0, true);
+ 	if (ret)
+ 		goto err;
+@@ -102,8 +112,10 @@ static int twl_mmc1_late_init(struct dev
+ 	return ret;
  
-
-7da0: 7da0: c01af750 c01af750 c001cdec c001cdec c7817dd4 c7817dd4 c7817db8 c7817db8 c01ae970 c01ae970 c01af73c c01af73c c037d1b0 c037d1b0 c037d25c c037d25c
+ err:
+-	dev_err(dev, "Failed to configure TWL4030 GPIO IRQ\n");
+-
++	dev_err(dev, "Failed to configure TWL4030 card detect\n");
++done:
++	mmc->slots[0].card_detect_irq = 0;
++	mmc->slots[0].card_detect = NULL;
+ 	return ret;
+ }
  
-
-7dc0: 7dc0: c039600c c039600c c039600c c039600c c7817df4 c7817df4 c7817dd8 c7817dd8 c01aea84 c01aea84 c01ae8ac c01ae8ac 00000000 00000000 c7817df8 c7817df8
+@@ -114,62 +126,25 @@ static void twl_mmc1_cleanup(struct devi
  
-
-7de0: 7de0: c01aea1c c01aea1c c039600c c039600c c7817e1c c7817e1c c7817df8 c7817df8 c01adeec c01adeec c01aea28 c01aea28 c78034d8 c78034d8 c037d1f8 c037d1f8
+ #ifdef CONFIG_PM
  
-
-7e00: 7e00: 00000000 00000000 c039600c c039600c 00000000 00000000 c78c6ea0 c78c6ea0 c7817e2c c7817e2c c7817e20 c7817e20 c01ae7b8 c01ae7b8 c01adeac c01adeac
+-/*
+- * Mask and unmask MMC Card Detect Interrupt
+- * mask : 1
+- * unmask : 0
+- */
+-static int twl_mmc_mask_cd_interrupt(int mask)
+-{
+-	u8 reg = 0, ret = 0;
+-
+-	ret = twl4030_i2c_read_u8(TWL4030_MODULE_GPIO, &reg, TWL_GPIO_IMR1A);
+-	if (ret)
+-		goto err;
+-
+-	reg = (mask == 1) ? (reg | GPIO_0_BIT_POS) : (reg & ~GPIO_0_BIT_POS);
+-
+-	ret = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, reg, TWL_GPIO_IMR1A);
+-	if (ret)
+-		goto err;
+-
+-	ret = twl4030_i2c_read_u8(TWL4030_MODULE_GPIO, &reg, TWL_GPIO_ISR1A);
+-	if (ret)
+-		goto err;
+-
+-	reg = (mask == 1) ? (reg | GPIO_0_BIT_POS) : (reg & ~GPIO_0_BIT_POS);
+-
+-	ret = twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, reg, TWL_GPIO_ISR1A);
+-	if (ret)
+-		goto err;
+-
+-err:
+-	return ret;
+-}
+-
+-static int twl_mmc1_suspend(struct device *dev, int slot)
++static int twl_mmc_suspend(struct device *dev, int slot)
+ {
+-	int ret = 0;
+-
+-	disable_irq(hsmmc[0].card_detect_gpio);
+-	ret = twl_mmc_mask_cd_interrupt(1);
++	struct omap_mmc_platform_data *mmc = dev->platform_data;
  
-
-7e20: 7e20: c7817e5c c7817e5c c7817e30 c7817e30 c01ae374 c01ae374 c01ae7a4 c01ae7a4 c0323cb6 c0323cb6 c039600c c039600c 00000000 00000000 c03a0400 c03a0400
+-	return ret;
++	disable_irq(mmc->slots[0].card_detect_irq);
++	return 0;
+ }
  
-
-7e40: 7e40: c039600c c039600c 00000000 00000000 00000000 00000000 00000000 00000000 c7817e84 c7817e84 c7817e60 c7817e60 c01aec78 c01aec78 c01ae2d8 c01ae2d8
+-static int twl_mmc1_resume(struct device *dev, int slot)
++static int twl_mmc_resume(struct device *dev, int slot)
+ {
+-	int ret = 0;
+-
+-	enable_irq(hsmmc[0].card_detect_gpio);
+-	ret = twl_mmc_mask_cd_interrupt(0);
++	struct omap_mmc_platform_data *mmc = dev->platform_data;
  
-
-7e60: 7e60: c03a0400 c03a0400 c0395fec c0395fec 00000000 00000000 00000000 00000000 00000000 00000000 c001cdbc c001cdbc c7817e94 c7817e94 c7817e88 c7817e88
+-	return ret;
++	enable_irq(mmc->slots[0].card_detect_irq);
++	return 0;
+ }
  
-
-7e80: 7e80: c01afae8 c01afae8 c01aebec c01aebec c7817eac c7817eac c7817e98 c7817e98 c01afb1c c01afb1c c01afa7c c01afa7c c03a0400 c03a0400 c0024a40 c0024a40
+ #else
+-#define twl_mmc1_suspend	NULL
+-#define twl_mmc1_resume		NULL
++#define twl_mmc_suspend	NULL
++#define twl_mmc_resume	NULL
+ #endif
  
-
-7ea0: 7ea0: c7817ebc c7817ebc c7817eb0 c7817eb0 c001cdd4 c001cdd4 c01afb10 c01afb10 c7817fdc c7817fdc c7817ec0 c7817ec0 c002c2d0 c002c2d0 c001cdc8 c001cdc8
+ /*
+@@ -362,26 +337,52 @@ void __init hsmmc_init(struct twl4030_hs
+ 					MMC_VDD_29_30 |
+ 					MMC_VDD_30_31 | MMC_VDD_31_32;
+ 		mmc->slots[0].wires = c->wires;
+-		if (c->gpio_cd != -EINVAL)
+-			mmc->slots[0].card_detect_irq = c->gpio_cd;
+ 		mmc->dma_mask = 0xffffffff;
  
-
-7ec0: 7ec0: c78035a0 c78035a0 c78035a4 c78035a4 00000000 00000000 0000024e 0000024e c7817f34 c7817f34 c7817ee0 c7817ee0 c016e510 c016e510 c00998b8 c00998b8
++		/* NOTE:  we assume OMAP's MMC1 and MMC2 use
++		 * the TWL4030's VMMC1 and VMMC2, respectively;
++		 * and that OMAP's MMC3 isn't used.
++		 */
++
+ 		switch (c->mmc) {
+ 		case 1:
+-			mmc->init = twl_mmc1_late_init;
+-			mmc->cleanup = twl_mmc1_cleanup;
+-			mmc->suspend = twl_mmc1_suspend;
+-			mmc->resume = twl_mmc1_resume;
+ 			mmc->slots[0].set_power = twl_mmc1_set_power;
+-			mmc->slots[0].card_detect = twl_mmc1_card_detect;
++			if (gpio_is_valid(c->gpio_cd)) {
++				mmc->slots[0].card_detect_irq =
++						gpio_to_irq(c->gpio_cd);
++				mmc->suspend = twl_mmc_suspend;
++				mmc->resume = twl_mmc_resume;
++
++				/* NOTE: hsmmc[0] is hard-wired ... */
++				hsmmc[0].card_detect_gpio = c->gpio_cd;
++				mmc->init = twl_mmc1_late_init;
++				mmc->cleanup = twl_mmc1_cleanup;
++				mmc->slots[0].card_detect =
++						twl_mmc1_card_detect;
++			}
++			if (gpio_is_valid(c->gpio_wp)) {
++				gpio_request(c->gpio_wp, "mmc0_wp");
++				gpio_direction_input(c->gpio_wp);
++
++				/* NOTE: hsmmc[0] is hard-wired ... */
++				hsmmc[0].card_wp_gpio = c->gpio_wp;
++				mmc->slots[0].get_ro = twl_mmc1_get_ro;
++			}
+ 			hsmmc_data[0] = mmc;
+ 			break;
+ 		case 2:
++			/* FIXME rework interfaces so that mmc2 (and mmc3) can
++			 * be fully functional... hsmmc[] shouldn't hold gpios.
++			 */
+ 			mmc->slots[0].set_power = twl_mmc2_set_power;
++			if (gpio_is_valid(c->gpio_cd))
++				pr_warning("MMC2 detect nyet supported!\n");
++			if (gpio_is_valid(c->gpio_wp))
++				pr_warning("MMC2 WP nyet supported!\n");
+ 			hsmmc_data[1] = mmc;
+ 			break;
+ 		default:
+-			pr_err("Unknown MMC configuration!\n");
++			pr_err("MMC%d configuration not supported!\n", c->mmc);
+ 			return;
+ 		}
+ 	}
+--- a/arch/arm/mach-omap2/mmc-twl4030.h
++++ b/arch/arm/mach-omap2/mmc-twl4030.h
+@@ -10,6 +10,7 @@ struct twl4030_hsmmc_info {
+ 	u8	mmc;		/* controller 1/2/3 */
+ 	u8	wires;		/* 1/4/8 wires */
+ 	int	gpio_cd;	/* or -EINVAL */
++	int	gpio_wp;	/* or -EINVAL */
+ };
  
-
-7ee0: 7ee0: 00000000 00000000 c7817f54 c7817f54 000000d0 000000d0 c7811f28 c7811f28 00000000 00000000 c03aa7c4 c03aa7c4 000000d0 000000d0 c03a9324 c03a9324
+ #if	defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE) || \
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -825,10 +825,33 @@ static void omap_mmc_set_ios(struct mmc_
+ 		OMAP_HSMMC_WRITE(host->base, CON,
+ 				OMAP_HSMMC_READ(host->base, CON) | OD);
+ }
+-/* NOTE: Read only switch not supported yet */
++
++static int omap_hsmmc_get_cd(struct mmc_host *mmc)
++{
++	struct mmc_omap_host *host = mmc_priv(mmc);
++	struct omap_mmc_platform_data *pdata = host->pdata;
++
++	if (!pdata->slots[0].card_detect)
++		return -ENOSYS;
++	return pdata->slots[0].card_detect(pdata->slots[0].card_detect_irq);
++}
++
++static int omap_hsmmc_get_ro(struct mmc_host *mmc)
++{
++	struct mmc_omap_host *host = mmc_priv(mmc);
++	struct omap_mmc_platform_data *pdata = host->pdata;
++
++	if (!pdata->slots[0].get_ro)
++		return -ENOSYS;
++	return pdata->slots[0].get_ro(host->dev, 0);
++}
++
+ static struct mmc_host_ops mmc_omap_ops = {
+ 	.request = omap_mmc_request,
+ 	.set_ios = omap_mmc_set_ios,
++	.get_cd = omap_hsmmc_get_cd,
++	.get_ro = omap_hsmmc_get_ro,
++	/* NYET -- enable_sdio_irq */
+ };
  
-
-7f00: 7f00: c7817f2c c7817f2c c7817f10 c7817f10 c016e724 c016e724 c783c0a0 c783c0a0 c038598c c038598c c783d6e0 c783d6e0 c03a9324 c03a9324 00000000 00000000
+ static int __init omap_mmc_probe(struct platform_device *pdev)
+@@ -878,6 +901,10 @@ static int __init omap_mmc_probe(struct 
+ 	host->slot_id	= 0;
+ 	host->mapbase	= res->start;
+ 	host->base	= ioremap(host->mapbase, SZ_4K);
++
++	platform_set_drvdata(pdev, host);
++	INIT_WORK(&host->mmc_carddetect_work, mmc_omap_detect);
++
+ 	mmc->ops	= &mmc_omap_ops;
+ 	mmc->f_min	= 400000;
+ 	mmc->f_max	= 52000000;
+@@ -970,6 +997,14 @@ static int __init omap_mmc_probe(struct 
+ 		goto err_irq;
+ 	}
  
-
-7f20: 7f20: 00000000 00000000 00000000 00000000 c7817f44 c7817f44 c7817f38 c7817f38 c016e544 c016e544 c016e37c c016e37c c7817f74 c7817f74 c7817f48 c7817f48
++	if (pdata->init != NULL) {
++		if (pdata->init(&pdev->dev) != 0) {
++			dev_dbg(mmc_dev(host->mmc),
++				"Unable to configure MMC IRQs\n");
++			goto err_irq_cd_init;
++		}
++	}
++
+ 	/* Request IRQ for card detect */
+ 	if ((mmc_slot(host).card_detect_irq) && (mmc_slot(host).card_detect)) {
+ 		ret = request_irq(mmc_slot(host).card_detect_irq,
+@@ -984,19 +1019,9 @@ static int __init omap_mmc_probe(struct 
+ 		}
+ 	}
  
-
-7f40: 7f40: c00da584 c00da584 c016e538 c016e538 c783d6e0 c783d6e0 c03275f9 c03275f9 c7817f9e c7817f9e 0000024e 0000024e c783c0a0 c783c0a0 c038598c c038598c
+-	INIT_WORK(&host->mmc_carddetect_work, mmc_omap_detect);
+-	if (pdata->init != NULL) {
+-		if (pdata->init(&pdev->dev) != 0) {
+-			dev_dbg(mmc_dev(host->mmc),
+-				"Unable to configure MMC IRQs\n");
+-			goto err_irq_cd_init;
+-		}
+-	}
+-
+ 	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
+ 	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
  
-
-7f60: 7f60: 0000015f 0000015f c03a9324 c03a9324 c7817f94 c7817f94 c7817f78 c7817f78 c00da700 c00da700 c00da558 c00da558 c7817f94 c7817f94 c783d6e0 c783d6e0
+-	platform_set_drvdata(pdev, host);
+ 	mmc_add_host(mmc);
  
-
-7f80: 7f80: c00da8e8 c00da8e8 c7817f9e c7817f9e c7817fc4 c7817fc4 c7817f98 c7817f98 c0077e98 c0077e98 c00da778 c00da778 c7817fb4 c7817fb4 35337558 35337558
- 
-7fa0: 7fa0: 00000031 00000031 00000000 00000000 00000192 00000192 c0386580 c0386580 00000000 00000000 c0024cd4 c0024cd4 c0024a40 c0024a40 00000000 00000000
- 
-7fc0: 7fc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 c7817ff4 c7817ff4 c7817fe0 c7817fe0 c00088b8 c00088b8 c002c27c c002c27c
- 
-7fe0: 7fe0: 00000000 00000000 00000000 00000000 00000000 00000000 c7817ff8 c7817ff8 c00537c4 c00537c4 c0008854 c0008854 ffff0000 ffff0000 ffff0000 ffff0000
-
-
-Backtrace: Backtrace:
-
-[<c01d15fc>] [<c01d15fc>] (cfi_qry_present+0x0/0x29c) (cfi_qry_present+0x0/0x29c) from [<c01d1a60>] from [<c01d1a60>] (cfi_qry_mode_on+0x1c8/0x614)
-(cfi_qry_mode_on+0x1c8/0x614)
-[<c01d1898>] [<c01d1898>] (cfi_qry_mode_on+0x0/0x614) (cfi_qry_mode_on+0x0/0x614) from [<c01d0dbc>] from [<c01d0dbc>] (cfi_probe_chip+0x68/0x8a8)
-(cfi_probe_chip+0x68/0x8a8)
-[<c01d0d54>] [<c01d0d54>] (cfi_probe_chip+0x0/0x8a8) (cfi_probe_chip+0x0/0x8a8) from [<c01d76ec>] from [<c01d76ec>] (mtd_do_chip_probe+0x74/0x334)
-(mtd_do_chip_probe+0x74/0x334)
-[<c01d7678>] [<c01d7678>] (mtd_do_chip_probe+0x0/0x334) (mtd_do_chip_probe+0x0/0x334) from [<c01d0d4c>] from [<c01d0d4c>] (cfi_probe+0x14/0x1c)
-(cfi_probe+0x14/0x1c)
-[<c01d0d38>] [<c01d0d38>] (cfi_probe+0x0/0x1c) (cfi_probe+0x0/0x1c) from [<c01d0d18>] from [<c01d0d18>] (do_map_probe+0x50/0x70)
-(do_map_probe+0x50/0x70)
-[<c01d0cc8>] [<c01d0cc8>] (do_map_probe+0x0/0x70) (do_map_probe+0x0/0x70) from [<c001ceac>] from [<c001ceac>] (omapflash_probe+0xcc/0x184)
-(omapflash_probe+0xcc/0x184)
- r7:c037d188 r7:c037d188 r6:04000000 r6:04000000 r5:04000000 r5:04000000 r4:c79e9960 r4:c79e9960
- [<c001cde0>] [<c001cde0>] (omapflash_probe+0x0/0x184) (omapflash_probe+0x0/0x184) from [<c01af750>] from [<c01af750>] (platform_drv_probe+0x20/0x24)
-(platform_drv_probe+0x20/0x24)
-[<c01af730>] [<c01af730>] (platform_drv_probe+0x0/0x24) (platform_drv_probe+0x0/0x24) from [<c01ae970>] from [<c01ae970>] (driver_probe_device+0xd0/0x17c)
-(driver_probe_device+0xd0/0x17c)
-[<c01ae8a0>] [<c01ae8a0>] (driver_probe_device+0x0/0x17c) (driver_probe_device+0x0/0x17c) from [<c01aea84>] from [<c01aea84>] (__driver_attach+0x68/0x8c)
-(__driver_attach+0x68/0x8c)
- r7:c039600c r7:c039600c r6:c039600c r6:c039600c r5:c037d25c r5:c037d25c r4:c037d1b0 r4:c037d1b0
- 
-[<c01aea1c>] [<c01aea1c>] (__driver_attach+0x0/0x8c) (__driver_attach+0x0/0x8c) from [<c01adeec>] from [<c01adeec>] (bus_for_each_dev+0x4c/0x84)
-(bus_for_each_dev+0x4c/0x84)
- r7:c039600c r7:c039600c r6:c01aea1c r6:c01aea1c r5:c7817df8 r5:c7817df8 r4:00000000 r4:00000000
- 
-[<c01adea0>] [<c01adea0>] (bus_for_each_dev+0x0/0x84) (bus_for_each_dev+0x0/0x84) from [<c01ae7b8>] from [<c01ae7b8>] (driver_attach+0x20/0x28)
-(driver_attach+0x20/0x28)
- r7:c78c6ea0 r7:c78c6ea0 r6:00000000 r6:00000000 r5:c039600c r5:c039600c r4:00000000 r4:00000000
- 
-[<c01ae798>] [<c01ae798>] (driver_attach+0x0/0x28) (driver_attach+0x0/0x28) from [<c01ae374>] from [<c01ae374>] (bus_add_driver+0xa8/0x214)
-(bus_add_driver+0xa8/0x214)
-[<c01ae2cc>] [<c01ae2cc>] (bus_add_driver+0x0/0x214) (bus_add_driver+0x0/0x214) from [<c01aec78>] from [<c01aec78>] (driver_register+0x98/0x120)
-(driver_register+0x98/0x120)
- r8:00000000 r8:00000000 r7:00000000 r7:00000000 r6:00000000 r6:00000000 r5:c039600c r5:c039600c r4:c03a0400 r4:c03a0400
- 
-
-[<c01aebe0>] [<c01aebe0>] (driver_register+0x0/0x120) (driver_register+0x0/0x120) from [<c01afae8>] from [<c01afae8>] (platform_driver_register+0x78/0x94)
-
-(platform_driver_register+0x78/0x94)
-
-[<c01afa70>] [<c01afa70>] (platform_driver_register+0x0/0x94) (platform_driver_register+0x0/0x94) from [<c01afb1c>] from [<c01afb1c>] (platform_driver_probe+0x18/0x68)
-(platform_driver_probe+0x18/0x68)
-[<c01afb04>] [<c01afb04>] (platform_driver_probe+0x0/0x68) (platform_driver_probe+0x0/0x68) from [<c001cdd4>] from [<c001cdd4>] (omapflash_init+0x18/0x24)
-(omapflash_init+0x18/0x24)
- r5:c0024a40 r5:c0024a40 r4:c03a0400 r4:c03a0400
- 
-[<c001cdbc>] [<c001cdbc>] (omapflash_init+0x0/0x24) (omapflash_init+0x0/0x24) from [<c002c2d0>] from [<c002c2d0>] (do_one_initcall+0x60/0x18c)
-(do_one_initcall+0x60/0x18c)
-[<c002c270>] [<c002c270>] (do_one_initcall+0x0/0x18c) (do_one_initcall+0x0/0x18c) from [<c00088b8>] from [<c00088b8>] (kernel_init+0x70/0xdc)
-(kernel_init+0x70/0xdc)
-[<c0008848>] [<c0008848>] (kernel_init+0x0/0xdc) (kernel_init+0x0/0xdc) from [<c00537c4>] from [<c00537c4>] (do_exit+0x0/0x6c0)
-(do_exit+0x0/0x6c0)
- r5:00000000 r5:00000000 r4:00000000 r4:00000000
- 
-Code: Code: 0a000003 0a000003 e3550002 e3550002 1a000003 1a000003 e596300c e596300c (e19230b3) (e19230b3)
- 
-<4>---[ end trace f636687e6ec0770f ]---
----[ end trace f636687e6ec0770f ]---
-<0>Kernel panic - not syncing: Attempted to kill init!
-Kernel panic - not syncing: Attempted to kill init!
-
- 
-
- 
-
-Is anybody experiencing the same issue?
-
- 
-
-Regards,
-
-Sergio
+ 	if (host->pdata->slots[host->slot_id].name != NULL) {
+@@ -1017,9 +1042,9 @@ err_cover_switch:
+ 	device_remove_file(&mmc->class_dev, &dev_attr_cover_switch);
+ err_slot_name:
+ 	mmc_remove_host(mmc);
+-err_irq_cd_init:
+-	free_irq(mmc_slot(host).card_detect_irq, host);
+ err_irq_cd:
++	free_irq(mmc_slot(host).card_detect_irq, host);
++err_irq_cd_init:
+ 	free_irq(host->irq, host);
+ err_irq:
+ 	clk_disable(host->fclk);
