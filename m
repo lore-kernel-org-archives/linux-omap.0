@@ -1,64 +1,60 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.28-rc3-git] twl4030-core: allow reading entire register banks
-Date: Fri, 7 Nov 2008 14:00:03 -0800
-Message-ID: <200811071400.04181.david-b@pacbell.net>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: Problems with jffs2 rootfs using 2.6.28-rc3
+Date: Fri, 7 Nov 2008 14:20:40 -0800
+Message-ID: <5e088bd90811071420l2c29a74fi32bd0ddd3d73cb93@mail.gmail.com>
+References: <5e088bd90811071209w6fb1b6c0y689d589819104862@mail.gmail.com>
+	 <200811071246.17303.david-b@pacbell.net>
+	 <5e088bd90811071321v5bc2b4adm2b89eebf1f3f906c@mail.gmail.com>
+	 <200811071330.44168.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:23949 "HELO
-	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751522AbYKGWPM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2008 17:15:12 -0500
+Received: from ug-out-1314.google.com ([66.249.92.170]:18515 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751593AbYKGWUm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2008 17:20:42 -0500
+Received: by ug-out-1314.google.com with SMTP id 39so1350159ugf.37
+        for <linux-omap@vger.kernel.org>; Fri, 07 Nov 2008 14:20:40 -0800 (PST)
+In-Reply-To: <200811071330.44168.david-b@pacbell.net>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@openedhand.com>
-Cc: lkml <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+On Fri, Nov 7, 2008 at 1:30 PM, David Brownell <david-b@pacbell.net> wrote:
+> On Friday 07 November 2008, Steve Sakoman wrote:
+>> On Fri, Nov 7, 2008 at 12:46 PM, David Brownell <david-b@pacbell.net> wrote:
+>> > On Friday 07 November 2008, Steve Sakoman wrote:
+>> >> I'm having little success.  It used to work back in 2.6.26 timeframe
+>> >> but seems to have broken sometime during 2.6.27.
+>> >
+>> > There's a patch floating around making the omap2 NAND driver
+>> > use readsw not readsl, which might explain that problem...
+>>
+>> Do you recall where you saw that patch?  Here or linux-mtd?  My
+>> initial search efforts weren't successful.
+>
+> On linux-omap.  Or just look at the driver to see the
+> readsl()... it's a one-liner.
 
-Minor change to the TWL4030 utility interface:  support reads
-of all 256 bytes in each register bank (vs just 255).  This
-can help when debugging, but is otherwise a NOP.
+Yes, that one line change did indeed fix the issue!
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
- drivers/mfd/twl4030-core.c  |    4 ++--
- include/linux/i2c/twl4030.h |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+Is that patch currently in the queue somewhere?
 
---- a/drivers/mfd/twl4030-core.c
-+++ b/drivers/mfd/twl4030-core.c
-@@ -233,7 +233,7 @@ extern void twl4030_power_init(struct tw
-  *
-  * Returns the result of operation - 0 is success
-  */
--int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, u8 num_bytes)
-+int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+For the record:
+
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 2ede116..d18a8c9 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -196,7 +196,7 @@ static void omap_read_buf16(struct mtd_info *mtd,
+u_char *buf, int len)
  {
- 	int ret;
- 	int sid;
-@@ -282,7 +282,7 @@ EXPORT_SYMBOL(twl4030_i2c_write);
-  *
-  * Returns result of operation - num_bytes is success else failure.
-  */
--int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, u8 num_bytes)
-+int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
- {
- 	int ret;
- 	u8 val;
---- a/include/linux/i2c/twl4030.h
-+++ b/include/linux/i2c/twl4030.h
-@@ -78,8 +78,8 @@ int twl4030_i2c_read_u8(u8 mod_no, u8 *v
-  * IMPORTANT:  For twl4030_i2c_write(), allocate num_bytes + 1
-  * for the value, and populate your data starting at offset 1.
-  */
--int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, u8 num_bytes);
--int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, u8 num_bytes);
-+int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
-+int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
- 
- /*----------------------------------------------------------------------*/
- 
+ 	struct nand_chip *nand = mtd->priv;
+
+-	__raw_readsl(nand->IO_ADDR_R, buf, len / 2);
++	readsw(nand->IO_ADDR_R, buf, len / 2);
+ }
+
+ /*
