@@ -1,60 +1,88 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: Problems with jffs2 rootfs using 2.6.28-rc3
-Date: Fri, 7 Nov 2008 14:20:40 -0800
-Message-ID: <5e088bd90811071420l2c29a74fi32bd0ddd3d73cb93@mail.gmail.com>
-References: <5e088bd90811071209w6fb1b6c0y689d589819104862@mail.gmail.com>
-	 <200811071246.17303.david-b@pacbell.net>
-	 <5e088bd90811071321v5bc2b4adm2b89eebf1f3f906c@mail.gmail.com>
-	 <200811071330.44168.david-b@pacbell.net>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch 2.6.28-rc3-git] omap gpio: minor bugfixes
+Date: Fri, 7 Nov 2008 14:40:18 -0800
+Message-ID: <200811071440.18526.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.170]:18515 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751593AbYKGWUm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2008 17:20:42 -0500
-Received: by ug-out-1314.google.com with SMTP id 39so1350159ugf.37
-        for <linux-omap@vger.kernel.org>; Fri, 07 Nov 2008 14:20:40 -0800 (PST)
-In-Reply-To: <200811071330.44168.david-b@pacbell.net>
+Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:24437 "HELO
+	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752129AbYKGWkU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2008 17:40:20 -0500
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
 
-On Fri, Nov 7, 2008 at 1:30 PM, David Brownell <david-b@pacbell.net> wrote:
-> On Friday 07 November 2008, Steve Sakoman wrote:
->> On Fri, Nov 7, 2008 at 12:46 PM, David Brownell <david-b@pacbell.net> wrote:
->> > On Friday 07 November 2008, Steve Sakoman wrote:
->> >> I'm having little success.  It used to work back in 2.6.26 timeframe
->> >> but seems to have broken sometime during 2.6.27.
->> >
->> > There's a patch floating around making the omap2 NAND driver
->> > use readsw not readsl, which might explain that problem...
->>
->> Do you recall where you saw that patch?  Here or linux-mtd?  My
->> initial search efforts weren't successful.
->
-> On linux-omap.  Or just look at the driver to see the
-> readsl()... it's a one-liner.
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Yes, that one line change did indeed fix the issue!
+Minor GPIO fixes:
 
-Is that patch currently in the queue somewhere?
+ - If get_gpio_bank() fails, then BUG() out.
 
-For the record:
+ - In omap_set_gpio_debounce():
+    * protect the read/modify/write with the relevant spinlock
+    * make the omap3 clock ops pass "sparse" checking
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 2ede116..d18a8c9 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -196,7 +196,7 @@ static void omap_read_buf16(struct mtd_info *mtd,
-u_char *buf, int len)
- {
- 	struct nand_chip *nand = mtd->priv;
+Except for the spinlock problem, these were reported through "make".
 
--	__raw_readsl(nand->IO_ADDR_R, buf, len / 2);
-+	readsw(nand->IO_ADDR_R, buf, len / 2);
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+ arch/arm/plat-omap/gpio.c |   20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
+
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -244,6 +244,8 @@ static inline struct gpio_bank *get_gpio
+ 		return &gpio_bank[gpio >> 5];
+ 	if (cpu_is_omap34xx())
+ 		return &gpio_bank[gpio >> 5];
++	BUG();
++	return NULL;
  }
-
- /*
+ 
+ static inline int get_gpio_index(int gpio)
+@@ -447,6 +449,7 @@ void omap_set_gpio_debounce(int gpio, in
+ {
+ 	struct gpio_bank *bank;
+ 	void __iomem *reg;
++	unsigned long flags;
+ 	u32 val, l = 1 << get_gpio_index(gpio);
+ 
+ 	if (cpu_class_is_omap1())
+@@ -454,21 +457,28 @@ void omap_set_gpio_debounce(int gpio, in
+ 
+ 	bank = get_gpio_bank(gpio);
+ 	reg = bank->base;
+-
+ 	reg += OMAP24XX_GPIO_DEBOUNCE_EN;
++
++	spin_lock_irqsave(&bank->lock, flags);
+ 	val = __raw_readl(reg);
+ 
+ 	if (enable && !(val & l))
+ 		val |= l;
+-	else if (!enable && val & l)
++	else if (!enable && (val & l))
+ 		val &= ~l;
+ 	else
+-		return;
++		goto done;
+ 
+-	if (cpu_is_omap34xx())
+-		enable ? clk_enable(bank->dbck) : clk_disable(bank->dbck);
++	if (cpu_is_omap34xx()) {
++		if (enable)
++			clk_enable(bank->dbck);
++		else
++			clk_disable(bank->dbck);
++	}
+ 
+ 	__raw_writel(val, reg);
++done:
++	spin_unlock_irqrestore(&bank->lock, flags);
+ }
+ EXPORT_SYMBOL(omap_set_gpio_debounce);
+ 
