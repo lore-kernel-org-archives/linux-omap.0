@@ -1,88 +1,44 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.28-rc3-git] omap gpio: minor bugfixes
-Date: Fri, 7 Nov 2008 14:40:18 -0800
-Message-ID: <200811071440.18526.david-b@pacbell.net>
+Subject: Re: [PATCH 2/3] Adapt twl4030 power code to new twl4030 code
+Date: Fri, 7 Nov 2008 16:05:35 -0800
+Message-ID: <200811071605.35623.david-b@pacbell.net>
+References: <1223390050-11499-1-git-send-email-peter.de-schrijver@nokia.com> <200810070919.55138.david-b@pacbell.net> <20081008064913.GA4542@codecarver.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:24437 "HELO
-	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752129AbYKGWkU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2008 17:40:20 -0500
+Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:31964 "HELO
+	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752702AbYKHAFi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2008 19:05:38 -0500
+In-Reply-To: <20081008064913.GA4542@codecarver.research.nokia.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+On Tuesday 07 October 2008, Peter 'p2' De Schrijver wrote:
+>=20
+> > 		=A0I don't quite know the details of what these
+> > PM scripts are doing ... could they be misbehaving on Beagle,
+> > so that they explain why "reboot" on RC8 fails?
+>=20
+> It might. At least the warmreset script might cause problems on Beagl=
+e.
+> I'm not familiar enough with beagle to know for sure.
 
-Minor GPIO fixes:
+Just for the record, now that I finally got around to making
+that experiment:  if I disable CONFIG_TWL4030_POWER, "reset"
+works again on my Beagle (with current GIT).
 
- - If get_gpio_bank() fails, then BUG() out.
+Exactly why it fails on Beagle but not on Overo (with twl5030
+not twl4030), I don't know.
 
- - In omap_set_gpio_debounce():
-    * protect the read/modify/write with the relevant spinlock
-    * make the omap3 clock ops pass "sparse" checking
+- Dave
 
-Except for the spinlock problem, these were reported through "make".
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
- arch/arm/plat-omap/gpio.c |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
-
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -244,6 +244,8 @@ static inline struct gpio_bank *get_gpio
- 		return &gpio_bank[gpio >> 5];
- 	if (cpu_is_omap34xx())
- 		return &gpio_bank[gpio >> 5];
-+	BUG();
-+	return NULL;
- }
- 
- static inline int get_gpio_index(int gpio)
-@@ -447,6 +449,7 @@ void omap_set_gpio_debounce(int gpio, in
- {
- 	struct gpio_bank *bank;
- 	void __iomem *reg;
-+	unsigned long flags;
- 	u32 val, l = 1 << get_gpio_index(gpio);
- 
- 	if (cpu_class_is_omap1())
-@@ -454,21 +457,28 @@ void omap_set_gpio_debounce(int gpio, in
- 
- 	bank = get_gpio_bank(gpio);
- 	reg = bank->base;
--
- 	reg += OMAP24XX_GPIO_DEBOUNCE_EN;
-+
-+	spin_lock_irqsave(&bank->lock, flags);
- 	val = __raw_readl(reg);
- 
- 	if (enable && !(val & l))
- 		val |= l;
--	else if (!enable && val & l)
-+	else if (!enable && (val & l))
- 		val &= ~l;
- 	else
--		return;
-+		goto done;
- 
--	if (cpu_is_omap34xx())
--		enable ? clk_enable(bank->dbck) : clk_disable(bank->dbck);
-+	if (cpu_is_omap34xx()) {
-+		if (enable)
-+			clk_enable(bank->dbck);
-+		else
-+			clk_disable(bank->dbck);
-+	}
- 
- 	__raw_writel(val, reg);
-+done:
-+	spin_unlock_irqrestore(&bank->lock, flags);
- }
- EXPORT_SYMBOL(omap_set_gpio_debounce);
- 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
