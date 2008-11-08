@@ -1,40 +1,52 @@
-From: Rick Bronson <rick@efn.org>
-Subject: Re: [FYI] TI dspbridge rebase against latest l-o
-Date: Sat, 08 Nov 2008 07:29:25 -0800
-Message-ID: <E1Kypkb-0001xP-PC@amazonia.comcast.net>
-Reply-To: rick@efn.org
+From: Viktor Gal <wiking@maeth.com>
+Subject: BRIDGE: DSP-DMA copy failure
+Date: Sat, 8 Nov 2008 17:04:51 +0100
+Message-ID: <BC7FE67E-F469-4D08-A3DF-F8EF66709E73@maeth.com>
+Mime-Version: 1.0 (Apple Message framework v929.2)
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from samwise.efn.org ([12.33.21.33]:40648 "EHLO samwise.efn.org"
+Received: from info2k1.hu ([78.24.191.128]:59172 "EHLO mail.info2k1.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753207AbYKHP32 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 8 Nov 2008 10:29:28 -0500
+	id S1753562AbYKHQ2T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 8 Nov 2008 11:28:19 -0500
+Received: from 91.83.9.120.pool.invitel.hu ([91.83.9.120] helo=[192.168.1.173])
+	by mail.info2k1.hu with esmtpsa (TLSv1:AES128-SHA:128)
+	(Exim 4.63 (FreeBSD))
+	(envelope-from <wiking@maeth.com>)
+	id 1KyqJs-0004OL-Rn
+	for linux-omap@vger.kernel.org; Sat, 08 Nov 2008 17:05:52 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi Hiroshi,
+Hi,
 
-  Thanks very much for the help.
+::: i'm trying to use the strmcpy example with option 1, aka 'dsp- 
+copy', but i get the following error:
 
-  I'm getting farther.  It would help to have the right path ;-)
+./strmcopy.out 1 a b
+Data streaming using DSP-DMA transport.
+DSP device detected !!
+DSPProcessor_Attach succeeded.
+DSPNode_Allocate succeeded.
+DSPNode_Connect failed. Status = 0x8000803a
+DSPNode_Terminate failed: 0x8000801b
+DSPNode_Delete succeeded.
+DSPProcessor_Detach succeeded.
 
-  Now I"m doing:
+I've loaded the bridgedriver module with GT_str="**=01234567"  
+argument, the logs can be found here:
+http://categorizer.tmit.bme.hu/~wiking/strmcpy-dsp-dma-debug.txt
 
-sudo modprobe bridgedriver base_img=/home/rick/dspbridge_binaries/ddspbase_tiomap3430.dof64P GT_str="**=01234567"
+::: when i try to use 'proc-copy' option the strmcpy just works fine.
 
-  But I still get the same results as far as interrupts.  Here is the
-new (very much larger) output:
+::: i was using using the http://4869037.web.fc2.com/tidspbridge-20081021.tgz 
+  patch-set, but as far as i can see, there's really not much  
+difference to the tidspbridge-20081107.tgz patch-set that was released  
+yesterday.
 
-  http://www.efn.org/~rick/pub/dsp2.txt
+any ideas?
 
-  What does your ping.out look like?  Here's mine, it's awfully small:
-
--rwxr--r-- 1 rick solar 7248 2008-08-21 13:32 ping.out*                         
-
-  What does your ping.out output when you run it?  Mine is absolutely
-silent.
-
-  Thanks again.
-
-  Rick
+regards,
+viktor
