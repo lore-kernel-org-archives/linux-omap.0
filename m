@@ -1,386 +1,101 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch/rft 2.6.28-rc3-omap] twl4030-core simplification
-Date: Fri, 7 Nov 2008 16:45:15 -0800
-Message-ID: <200811071645.15687.david-b@pacbell.net>
+Subject: [patch 2.6.28-rc3-omap git] osk5912:  Mistral eeprom support
+Date: Fri, 7 Nov 2008 19:14:59 -0800
+Message-ID: <200811071914.59884.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92]:46507 "HELO
-	smtp119.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751414AbYKHApS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2008 19:45:18 -0500
+Received: from smtp118.sbc.mail.sp1.yahoo.com ([69.147.64.91]:33385 "HELO
+	smtp118.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751832AbYKHDPD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2008 22:15:03 -0500
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Samuel Ortiz <sameo@openedhand.com>
 
 From: David Brownell <dbrownell@users.sourceforge.net>
 
-Minor cleanup to twl4030-core: define a helper function to populate
-a single child node, and use it to replace six inconsistent versions
-of the same logic.  Both object and source code shrink.
+List the 4 Kbit I2C EEPROM included on the Mistral board.
 
-As part of this, some devices now have more IRQ resources:  battery
-charger, keypad, ADC, and USB transceiver.  That will help to remove
-some irq #defines that prevent this code from compiling on non-OMAP
-platforms.
+Also add a comment about the hardware workaround needed to
+properly support the WAKE button.  More info at
+
+  http://elinux.org/OSK_Mistral_wakeup_button_mod
+
+Still no support for the (optional) camera sensor.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 ---
-Boots fine on two boards that use GPIO, RTC, and USB.  Which means
-charger, keypad, and ADC deserve sanity testing.  (The diff looks
-nasty, but that's just inability to see "add a function and replace
-the interior of six 'if' blocks" as the relevant change.)
+ arch/arm/mach-omap1/board-osk.c |   32 +++++++++++++++++++++++++++-----
+ 1 file changed, 27 insertions(+), 5 deletions(-)
 
- drivers/mfd/twl4030-core.c |  297 +++++++++++--------------------------------
- 1 file changed, 82 insertions(+), 215 deletions(-)
-
---- a/drivers/mfd/twl4030-core.c
-+++ b/drivers/mfd/twl4030-core.c
-@@ -360,261 +360,128 @@ EXPORT_SYMBOL(twl4030_i2c_read_u8);
+--- a/arch/arm/mach-omap1/board-osk.c
++++ b/arch/arm/mach-omap1/board-osk.c
+@@ -262,10 +262,6 @@ static struct i2c_board_info __initdata 
+ 	{
+ 		I2C_BOARD_INFO("tlv320aic23", 0x1B),
+ 	},
+-	/* TODO when driver support is ready:
+-	 *  - on Mistral, 24c04 eeprom at 0x50
+-	 *  - optionally on Mistral, ov9640 camera sensor at 0x30
+-	 */
+ };
  
- /*----------------------------------------------------------------------*/
+ static void __init osk_init_smc91x(void)
+@@ -340,11 +336,28 @@ static struct omap_board_config_kernel o
+ #ifdef	CONFIG_OMAP_OSK_MISTRAL
  
--/*
-- * NOTE:  We know the first 8 IRQs after pdata->base_irq are
-- * for the PIH, and the next are for the PWR_INT SIH, since
-- * that's how twl_init_irq() sets things up.
-- */
--
--static int add_children(struct twl4030_platform_data *pdata)
-+static int add_child(unsigned chip, const char *name,
-+		void *pdata, unsigned pdata_len,
-+		bool can_wakeup, int irq0, int irq1)
- {
--	struct platform_device	*pdev = NULL;
--	struct twl4030_client	*twl = NULL;
--	int			status = 0;
--
--	if (twl_has_bci() && pdata->bci) {
--		twl = &twl4030_modules[3];
--
--		pdev = platform_device_alloc("twl4030_bci", -1);
--		if (!pdev) {
--			pr_debug("%s: can't alloc bci dev\n", DRIVER_NAME);
--			status = -ENOMEM;
--			goto err;
--		}
--
--		if (status == 0) {
--			pdev->dev.parent = &twl->client->dev;
--			status = platform_device_add_data(pdev, pdata->bci,
--					sizeof(*pdata->bci));
--			if (status < 0) {
--				dev_dbg(&twl->client->dev,
--					"can't add bci data, %d\n",
--					status);
--				goto err;
--			}
--		}
--
--		if (status == 0) {
--			struct resource r = {
--				.start = pdata->irq_base + 8 + 1,
--				.flags = IORESOURCE_IRQ,
--			};
-+	struct platform_device	*pdev;
-+	struct twl4030_client	*twl = &twl4030_modules[chip];
-+	int			status;
+ #include <linux/input.h>
++#include <linux/i2c/at24.h>
+ #include <linux/spi/spi.h>
+ #include <linux/spi/ads7846.h>
  
--			status = platform_device_add_resources(pdev, &r, 1);
--		}
-+	pdev = platform_device_alloc(name, -1);
-+	if (!pdev) {
-+		dev_dbg(&twl->client->dev, "can't alloc dev\n");
-+		status = -ENOMEM;
-+		goto err;
-+	}
+ #include <mach/keypad.h>
  
--		if (status == 0)
--			status = platform_device_add(pdev);
-+	device_init_wakeup(&pdev->dev, can_wakeup);
-+	pdev->dev.parent = &twl->client->dev;
++static struct at24_platform_data at24c04 = {
++	.byte_len	= SZ_4K / 8,
++	.page_size	= 16,
++};
++
++static struct i2c_board_info __initdata mistral_i2c_board_info[] = {
++	{
++		/* NOTE:  powered from LCD supply */
++		I2C_BOARD_INFO("24c04", 0x50),
++		.platform_data	= &at24c04,
++	},
++	/* TODO when driver support is ready:
++	 *  - optionally ov9640 camera sensor at 0x30
++	 */
++};
++
+ static const int osk_keymap[] = {
+ 	/* KEY(col, row, code) */
+ 	KEY(0, 0, KEY_F1),		/* SW4 */
+@@ -491,7 +504,13 @@ static void __init osk_mistral_init(void
+ 	spi_register_board_info(mistral_boardinfo,
+ 			ARRAY_SIZE(mistral_boardinfo));
  
-+	if (pdata) {
-+		status = platform_device_add_data(pdev, pdata, pdata_len);
- 		if (status < 0) {
--			platform_device_put(pdev);
--			dev_dbg(&twl->client->dev,
--					"can't create bci dev, %d\n",
--					status);
-+			dev_dbg(&pdev->dev, "can't add platform_data\n");
- 			goto err;
- 		}
- 	}
+-	/* the sideways button (SW1) is for use as a "wakeup" button */
++	/* the sideways button (SW1) is for use as a "wakeup" button
++	 *
++	 * NOTE:  The Mistral board has the wakeup button (SW1) wired
++	 * to the LCD 3.3V rail, which is powered down during suspend.
++	 * To allow this button to wake up the omap, work around this
++	 * HW bug by rewiring SW1 to use the main 3.3V rail.
++	 */
+ 	omap_cfg_reg(N15_1610_MPUIO2);
+ 	if (gpio_request(OMAP_MPUIO(2), "wakeup") == 0) {
+ 		int ret = 0;
+@@ -523,6 +542,9 @@ static void __init osk_mistral_init(void
+ 	if (gpio_request(2, "lcd_pwr") == 0)
+ 		gpio_direction_output(2, 1);
  
--	if (twl_has_gpio() && pdata->gpio) {
--		twl = &twl4030_modules[1];
-+	if (irq0) {
-+		struct resource r[2] = {
-+			{ .start = irq0, .flags = IORESOURCE_IRQ, },
-+			{ .start = irq1, .flags = IORESOURCE_IRQ, },
-+		};
- 
--		pdev = platform_device_alloc("twl4030_gpio", -1);
--		if (!pdev) {
--			pr_debug("%s: can't alloc gpio dev\n", DRIVER_NAME);
--			status = -ENOMEM;
-+		status = platform_device_add_resources(pdev, r, irq1 ? 2 : 1);
-+		if (status < 0) {
-+			dev_dbg(&pdev->dev, "can't add irqs\n");
- 			goto err;
- 		}
-+	}
- 
--		/* more driver model init */
--		if (status == 0) {
--			pdev->dev.parent = &twl->client->dev;
--			/* device_init_wakeup(&pdev->dev, 1); */
-+	status = platform_device_add(pdev);
- 
--			status = platform_device_add_data(pdev, pdata->gpio,
--					sizeof(*pdata->gpio));
--			if (status < 0) {
--				dev_dbg(&twl->client->dev,
--					"can't add gpio data, %d\n",
--					status);
--				goto err;
--			}
--		}
-+err:
-+	if (status < 0) {
-+		platform_device_put(pdev);
-+		dev_err(&twl->client->dev, "can't add %s dev\n", name);
-+	}
-+	return status;
-+}
- 
--		/* GPIO module IRQ */
--		if (status == 0) {
--			struct resource	r = {
--				.start = pdata->irq_base + 0,
--				.flags = IORESOURCE_IRQ,
--			};
-+/*
-+ * NOTE:  We know the first 8 IRQs after pdata->base_irq are
-+ * for the PIH, and the next are for the PWR_INT SIH, since
-+ * that's how twl_init_irq() sets things up.
-+ */
- 
--			status = platform_device_add_resources(pdev, &r, 1);
--		}
-+static int add_children(struct twl4030_platform_data *pdata)
-+{
-+	int			status;
- 
--		if (status == 0)
--			status = platform_device_add(pdev);
-+	if (twl_has_bci() && pdata->bci) {
-+		status = add_child(3, "twl4030_bci",
-+				pdata->bci, sizeof(*pdata->bci),
-+				false,
-+				/* irq0 = CHG_PRES, irq1 = BCI */
-+				pdata->irq_base + 8 + 1, pdata->irq_base + 2);
-+		if (status < 0)
-+			return status;
-+	}
- 
--		if (status < 0) {
--			platform_device_put(pdev);
--			dev_dbg(&twl->client->dev,
--					"can't create gpio dev, %d\n",
--					status);
--			goto err;
--		}
-+	if (twl_has_gpio() && pdata->gpio) {
-+		status = add_child(1, "twl4030_gpio",
-+				pdata->gpio, sizeof(*pdata->gpio),
-+				false, pdata->irq_base + 0, 0);
-+		if (status < 0)
-+			return status;
- 	}
- 
- 	if (twl_has_keypad() && pdata->keypad) {
--		pdev = platform_device_alloc("twl4030_keypad", -1);
--		if (pdev) {
--			twl = &twl4030_modules[2];
--			pdev->dev.parent = &twl->client->dev;
--			device_init_wakeup(&pdev->dev, 1);
--			status = platform_device_add_data(pdev, pdata->keypad,
--					sizeof(*pdata->keypad));
--			if (status < 0) {
--				dev_dbg(&twl->client->dev,
--					"can't add keypad data, %d\n",
--					status);
--				platform_device_put(pdev);
--				goto err;
--			}
--			status = platform_device_add(pdev);
--			if (status < 0) {
--				platform_device_put(pdev);
--				dev_dbg(&twl->client->dev,
--						"can't create keypad dev, %d\n",
--						status);
--				goto err;
--			}
--		} else {
--			pr_debug("%s: can't alloc keypad dev\n", DRIVER_NAME);
--			status = -ENOMEM;
--			goto err;
--		}
-+		status = add_child(2, "twl4030_keypad",
-+				pdata->keypad, sizeof(*pdata->keypad),
-+				true, pdata->irq_base + 1, 0);
-+		if (status < 0)
-+			return status;
- 	}
- 
- 	if (twl_has_madc() && pdata->madc) {
--		pdev = platform_device_alloc("twl4030_madc", -1);
--		if (pdev) {
--			twl = &twl4030_modules[2];
--			pdev->dev.parent = &twl->client->dev;
--			device_init_wakeup(&pdev->dev, 1);
--			status = platform_device_add_data(pdev, pdata->madc,
--					sizeof(*pdata->madc));
--			if (status < 0) {
--				platform_device_put(pdev);
--				dev_dbg(&twl->client->dev,
--					"can't add madc data, %d\n",
--					status);
--				goto err;
--			}
--			status = platform_device_add(pdev);
--			if (status < 0) {
--				platform_device_put(pdev);
--				dev_dbg(&twl->client->dev,
--						"can't create madc dev, %d\n",
--						status);
--				goto err;
--			}
--		} else {
--			pr_debug("%s: can't alloc madc dev\n", DRIVER_NAME);
--			status = -ENOMEM;
--			goto err;
--		}
-+		status = add_child(2, "twl4030_madc",
-+				pdata->madc, sizeof(*pdata->madc),
-+				true, pdata->irq_base + 3, 0);
-+		if (status < 0)
-+			return status;
- 	}
- 
- 	if (twl_has_power() && pdata->power)
- 		twl4030_power_init(pdata->power);
- 
- 	if (twl_has_rtc()) {
--		twl = &twl4030_modules[3];
--
--		pdev = platform_device_alloc("twl4030_rtc", -1);
--		if (!pdev) {
--			pr_debug("%s: can't alloc rtc dev\n", DRIVER_NAME);
--			status = -ENOMEM;
--		} else {
--			pdev->dev.parent = &twl->client->dev;
--			device_init_wakeup(&pdev->dev, 1);
--		}
--
- 		/*
--		 * REVISIT platform_data here currently might use of
-+		 * REVISIT platform_data here currently might expose the
- 		 * "msecure" line ... but for now we just expect board
--		 * setup to tell the chip "we are secure" at all times.
-+		 * setup to tell the chip "it's always ok to SET_TIME".
- 		 * Eventually, Linux might become more aware of such
- 		 * HW security concerns, and "least privilege".
- 		 */
--
--		/* RTC module IRQ */
--		if (status == 0) {
--			struct resource	r = {
--				.start = pdata->irq_base + 8 + 3,
--				.flags = IORESOURCE_IRQ,
--			};
--
--			status = platform_device_add_resources(pdev, &r, 1);
--		}
--
--		if (status == 0)
--			status = platform_device_add(pdev);
--
--		if (status < 0) {
--			platform_device_put(pdev);
--			dev_dbg(&twl->client->dev,
--					"can't create rtc dev, %d\n",
--					status);
--			goto err;
--		}
-+		status = add_child(3, "twl4030_rtc",
-+				NULL, 0,
-+				true, pdata->irq_base + 8 + 3, 0);
-+		if (status < 0)
-+			return status;
- 	}
- 
- 	if (twl_has_usb() && pdata->usb) {
--		twl = &twl4030_modules[0];
--
--		pdev = platform_device_alloc("twl4030_usb", -1);
--		if (!pdev) {
--			pr_debug("%s: can't alloc usb dev\n", DRIVER_NAME);
--			status = -ENOMEM;
--			goto err;
--		}
--
--		if (status == 0) {
--			pdev->dev.parent = &twl->client->dev;
--			device_init_wakeup(&pdev->dev, 1);
--			status = platform_device_add_data(pdev, pdata->usb,
--					sizeof(*pdata->usb));
--			if (status < 0) {
--				platform_device_put(pdev);
--				dev_dbg(&twl->client->dev,
--					"can't add usb data, %d\n",
--					status);
--				goto err;
--			}
--		}
--
--		if (status == 0) {
--			struct resource r = {
--				.start = pdata->irq_base + 8 + 2,
--				.flags = IORESOURCE_IRQ,
--			};
--
--			status = platform_device_add_resources(pdev, &r, 1);
--		}
--
--		if (status == 0)
--			status = platform_device_add(pdev);
--
--		if (status < 0) {
--			platform_device_put(pdev);
--			dev_dbg(&twl->client->dev,
--					"can't create usb dev, %d\n",
--					status);
--		}
-+		status = add_child(0, "twl4030_usb",
-+				pdata->usb, sizeof(*pdata->usb),
-+				true,
-+				/* irq0 = USB_PRES, irq1 = USB */
-+				pdata->irq_base + 8 + 2, pdata->irq_base + 4);
-+		if (status < 0)
-+			return status;
- 	}
- 
--err:
--	if (status)
--		pr_err("failed to add twl4030's children (status %d)\n", status);
--	return status;
-+	return 0;
++	i2c_register_board_info(1, mistral_i2c_board_info,
++			ARRAY_SIZE(mistral_i2c_board_info));
++
+ 	platform_add_devices(mistral_devices, ARRAY_SIZE(mistral_devices));
  }
- 
- /*----------------------------------------------------------------------*/
+ #else
