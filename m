@@ -1,54 +1,40 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+From: Rick Bronson <rick@efn.org>
 Subject: Re: [FYI] TI dspbridge rebase against latest l-o
-Date: Sat, 08 Nov 2008 09:52:22 +0200 (EET)
-Message-ID: <20081108.095222.170326950.Hiroshi.DOYU@nokia.com>
-References: <E1KyhT7-0002fS-6K@amazonia.comcast.net>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Date: Sat, 08 Nov 2008 07:29:25 -0800
+Message-ID: <E1Kypkb-0001xP-PC@amazonia.comcast.net>
+Reply-To: rick@efn.org
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:51938 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751958AbYKHHwb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Nov 2008 02:52:31 -0500
-In-Reply-To: <E1KyhT7-0002fS-6K@amazonia.comcast.net>
+Received: from samwise.efn.org ([12.33.21.33]:40648 "EHLO samwise.efn.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753207AbYKHP32 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 8 Nov 2008 10:29:28 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: rick@efn.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 Cc: linux-omap@vger.kernel.org
 
-Hi Rick,
+Hi Hiroshi,
 
-From: "ext Rick Bronson" <rick@efn.org>
-Subject: Re: [FYI] TI dspbridge rebase against latest l-o
-Date: Fri, 07 Nov 2008 22:38:49 -0800
+  Thanks very much for the help.
 
->   Here is the output from
-> 
-> sudo modprobe bridgedriver base_img=ddspbase_tiomap3430.dof64P GT_str="**=01234567" 
-> 
-> http://www.efn.org/~rick/pub/dsp.txt
+  I'm getting farther.  It would help to have the right path ;-)
 
-For me, the following part looks suspicious.
+  Now I"m doing:
 
-544  KF - 0: KFILE_Open: pszFileName ddspbase_tiomap3430.dof64P, pszMode rb          
-545  MM - 0: MEM_Calloc: cBytes 0x20 type 0x1                                        
-546  MM - 0: MEM_Free: pMemBufs 0xc68ca1b8                                           
-547  KF - 0: KFILE_Tell: hFile 0x0                                                   
-548  KF - 0: KFILE_Seek:invalid file handle                                          
-                        ^^^^^^^^^^^^^^^^^^^^
-549  KF - 0: KFILE_Seek: hFile 0x0, lOffset 0x0, cOrigin 0x0                         
-550  KF - 0: KFILE_Seek:invalid file handle                                          
-551  MM - 0: MEM_Calloc: cBytes 0x14 type 0x0                                        
-552  MM - 0: MEM_Calloc: cBytes 0x34c        type 0x0                                
-553  KF - 0: KFILE_Read: buffer 0xc6889a3c, cSize 0x1,cCount 0x38, hFile 0x0         
-554  KF - 0: KFILE_Read: invalid file handle                                         
-                         ^^^^^^^^^^^^^^^^^^^
-555  DL - 0: Error reading File Headers from input stream                            
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-556  DL - 0: DBLL_open: Dynamic_Load_Module failed: 0x1                              
-557  DL - 0: DBLL_close: lib: 0xc68879d8                                             
+sudo modprobe bridgedriver base_img=/home/rick/dspbridge_binaries/ddspbase_tiomap3430.dof64P GT_str="**=01234567"
 
-It seems to have failed to open a file, "ddspbase_tiomap3430.dof64P".
+  But I still get the same results as far as interrupts.  Here is the
+new (very much larger) output:
 
-   Hiroshi DOYU
+  http://www.efn.org/~rick/pub/dsp2.txt
+
+  What does your ping.out look like?  Here's mine, it's awfully small:
+
+-rwxr--r-- 1 rick solar 7248 2008-08-21 13:32 ping.out*                         
+
+  What does your ping.out output when you run it?  Mine is absolutely
+silent.
+
+  Thanks again.
+
+  Rick
