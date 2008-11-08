@@ -1,77 +1,386 @@
-From: Samuel Ortiz <sameo@openedhand.com>
-Subject: Re: [patch 2.6.28-rc3-git] twl4030-core: allow reading entire
-	register banks
-Date: Sat, 8 Nov 2008 01:32:10 +0100
-Message-ID: <20081108003209.GB5993@sortiz.org>
-References: <200811071400.04181.david-b@pacbell.net>
-Reply-To: Samuel Ortiz <sameo@openedhand.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch/rft 2.6.28-rc3-omap] twl4030-core simplification
+Date: Fri, 7 Nov 2008 16:45:15 -0800
+Message-ID: <200811071645.15687.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 3a.49.1343.static.theplanet.com ([67.19.73.58]:54352 "EHLO
-	pug.o-hand.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752573AbYKHA3b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Nov 2008 19:29:31 -0500
+Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92]:46507 "HELO
+	smtp119.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751414AbYKHApS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2008 19:45:18 -0500
 Content-Disposition: inline
-In-Reply-To: <200811071400.04181.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: lkml <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Samuel Ortiz <sameo@openedhand.com>
 
-On Fri, Nov 07, 2008 at 02:00:03PM -0800, David Brownell wrote:
-> From: David Brownell <dbrownell@users.sourceforge.net>
-> 
-> Minor change to the TWL4030 utility interface:  support reads
-> of all 256 bytes in each register bank (vs just 255).  This
-> can help when debugging, but is otherwise a NOP.
-Applied to my for-next branch.
-Thanks David.
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Cheers,
-Samuel.
+Minor cleanup to twl4030-core: define a helper function to populate
+a single child node, and use it to replace six inconsistent versions
+of the same logic.  Both object and source code shrink.
 
+As part of this, some devices now have more IRQ resources:  battery
+charger, keypad, ADC, and USB transceiver.  That will help to remove
+some irq #defines that prevent this code from compiling on non-OMAP
+platforms.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+Boots fine on two boards that use GPIO, RTC, and USB.  Which means
+charger, keypad, and ADC deserve sanity testing.  (The diff looks
+nasty, but that's just inability to see "add a function and replace
+the interior of six 'if' blocks" as the relevant change.)
+
+ drivers/mfd/twl4030-core.c |  297 +++++++++++--------------------------------
+ 1 file changed, 82 insertions(+), 215 deletions(-)
+
+--- a/drivers/mfd/twl4030-core.c
++++ b/drivers/mfd/twl4030-core.c
+@@ -360,261 +360,128 @@ EXPORT_SYMBOL(twl4030_i2c_read_u8);
  
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
->  drivers/mfd/twl4030-core.c  |    4 ++--
->  include/linux/i2c/twl4030.h |    4 ++--
->  2 files changed, 4 insertions(+), 4 deletions(-)
-> 
-> --- a/drivers/mfd/twl4030-core.c
-> +++ b/drivers/mfd/twl4030-core.c
-> @@ -233,7 +233,7 @@ extern void twl4030_power_init(struct tw
->   *
->   * Returns the result of operation - 0 is success
->   */
-> -int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, u8 num_bytes)
-> +int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
->  {
->  	int ret;
->  	int sid;
-> @@ -282,7 +282,7 @@ EXPORT_SYMBOL(twl4030_i2c_write);
->   *
->   * Returns result of operation - num_bytes is success else failure.
->   */
-> -int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, u8 num_bytes)
-> +int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
->  {
->  	int ret;
->  	u8 val;
-> --- a/include/linux/i2c/twl4030.h
-> +++ b/include/linux/i2c/twl4030.h
-> @@ -78,8 +78,8 @@ int twl4030_i2c_read_u8(u8 mod_no, u8 *v
->   * IMPORTANT:  For twl4030_i2c_write(), allocate num_bytes + 1
->   * for the value, and populate your data starting at offset 1.
->   */
-> -int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, u8 num_bytes);
-> -int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, u8 num_bytes);
-> +int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
-> +int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
->  
->  /*----------------------------------------------------------------------*/
->  
-
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+ /*----------------------------------------------------------------------*/
+ 
+-/*
+- * NOTE:  We know the first 8 IRQs after pdata->base_irq are
+- * for the PIH, and the next are for the PWR_INT SIH, since
+- * that's how twl_init_irq() sets things up.
+- */
+-
+-static int add_children(struct twl4030_platform_data *pdata)
++static int add_child(unsigned chip, const char *name,
++		void *pdata, unsigned pdata_len,
++		bool can_wakeup, int irq0, int irq1)
+ {
+-	struct platform_device	*pdev = NULL;
+-	struct twl4030_client	*twl = NULL;
+-	int			status = 0;
+-
+-	if (twl_has_bci() && pdata->bci) {
+-		twl = &twl4030_modules[3];
+-
+-		pdev = platform_device_alloc("twl4030_bci", -1);
+-		if (!pdev) {
+-			pr_debug("%s: can't alloc bci dev\n", DRIVER_NAME);
+-			status = -ENOMEM;
+-			goto err;
+-		}
+-
+-		if (status == 0) {
+-			pdev->dev.parent = &twl->client->dev;
+-			status = platform_device_add_data(pdev, pdata->bci,
+-					sizeof(*pdata->bci));
+-			if (status < 0) {
+-				dev_dbg(&twl->client->dev,
+-					"can't add bci data, %d\n",
+-					status);
+-				goto err;
+-			}
+-		}
+-
+-		if (status == 0) {
+-			struct resource r = {
+-				.start = pdata->irq_base + 8 + 1,
+-				.flags = IORESOURCE_IRQ,
+-			};
++	struct platform_device	*pdev;
++	struct twl4030_client	*twl = &twl4030_modules[chip];
++	int			status;
+ 
+-			status = platform_device_add_resources(pdev, &r, 1);
+-		}
++	pdev = platform_device_alloc(name, -1);
++	if (!pdev) {
++		dev_dbg(&twl->client->dev, "can't alloc dev\n");
++		status = -ENOMEM;
++		goto err;
++	}
+ 
+-		if (status == 0)
+-			status = platform_device_add(pdev);
++	device_init_wakeup(&pdev->dev, can_wakeup);
++	pdev->dev.parent = &twl->client->dev;
+ 
++	if (pdata) {
++		status = platform_device_add_data(pdev, pdata, pdata_len);
+ 		if (status < 0) {
+-			platform_device_put(pdev);
+-			dev_dbg(&twl->client->dev,
+-					"can't create bci dev, %d\n",
+-					status);
++			dev_dbg(&pdev->dev, "can't add platform_data\n");
+ 			goto err;
+ 		}
+ 	}
+ 
+-	if (twl_has_gpio() && pdata->gpio) {
+-		twl = &twl4030_modules[1];
++	if (irq0) {
++		struct resource r[2] = {
++			{ .start = irq0, .flags = IORESOURCE_IRQ, },
++			{ .start = irq1, .flags = IORESOURCE_IRQ, },
++		};
+ 
+-		pdev = platform_device_alloc("twl4030_gpio", -1);
+-		if (!pdev) {
+-			pr_debug("%s: can't alloc gpio dev\n", DRIVER_NAME);
+-			status = -ENOMEM;
++		status = platform_device_add_resources(pdev, r, irq1 ? 2 : 1);
++		if (status < 0) {
++			dev_dbg(&pdev->dev, "can't add irqs\n");
+ 			goto err;
+ 		}
++	}
+ 
+-		/* more driver model init */
+-		if (status == 0) {
+-			pdev->dev.parent = &twl->client->dev;
+-			/* device_init_wakeup(&pdev->dev, 1); */
++	status = platform_device_add(pdev);
+ 
+-			status = platform_device_add_data(pdev, pdata->gpio,
+-					sizeof(*pdata->gpio));
+-			if (status < 0) {
+-				dev_dbg(&twl->client->dev,
+-					"can't add gpio data, %d\n",
+-					status);
+-				goto err;
+-			}
+-		}
++err:
++	if (status < 0) {
++		platform_device_put(pdev);
++		dev_err(&twl->client->dev, "can't add %s dev\n", name);
++	}
++	return status;
++}
+ 
+-		/* GPIO module IRQ */
+-		if (status == 0) {
+-			struct resource	r = {
+-				.start = pdata->irq_base + 0,
+-				.flags = IORESOURCE_IRQ,
+-			};
++/*
++ * NOTE:  We know the first 8 IRQs after pdata->base_irq are
++ * for the PIH, and the next are for the PWR_INT SIH, since
++ * that's how twl_init_irq() sets things up.
++ */
+ 
+-			status = platform_device_add_resources(pdev, &r, 1);
+-		}
++static int add_children(struct twl4030_platform_data *pdata)
++{
++	int			status;
+ 
+-		if (status == 0)
+-			status = platform_device_add(pdev);
++	if (twl_has_bci() && pdata->bci) {
++		status = add_child(3, "twl4030_bci",
++				pdata->bci, sizeof(*pdata->bci),
++				false,
++				/* irq0 = CHG_PRES, irq1 = BCI */
++				pdata->irq_base + 8 + 1, pdata->irq_base + 2);
++		if (status < 0)
++			return status;
++	}
+ 
+-		if (status < 0) {
+-			platform_device_put(pdev);
+-			dev_dbg(&twl->client->dev,
+-					"can't create gpio dev, %d\n",
+-					status);
+-			goto err;
+-		}
++	if (twl_has_gpio() && pdata->gpio) {
++		status = add_child(1, "twl4030_gpio",
++				pdata->gpio, sizeof(*pdata->gpio),
++				false, pdata->irq_base + 0, 0);
++		if (status < 0)
++			return status;
+ 	}
+ 
+ 	if (twl_has_keypad() && pdata->keypad) {
+-		pdev = platform_device_alloc("twl4030_keypad", -1);
+-		if (pdev) {
+-			twl = &twl4030_modules[2];
+-			pdev->dev.parent = &twl->client->dev;
+-			device_init_wakeup(&pdev->dev, 1);
+-			status = platform_device_add_data(pdev, pdata->keypad,
+-					sizeof(*pdata->keypad));
+-			if (status < 0) {
+-				dev_dbg(&twl->client->dev,
+-					"can't add keypad data, %d\n",
+-					status);
+-				platform_device_put(pdev);
+-				goto err;
+-			}
+-			status = platform_device_add(pdev);
+-			if (status < 0) {
+-				platform_device_put(pdev);
+-				dev_dbg(&twl->client->dev,
+-						"can't create keypad dev, %d\n",
+-						status);
+-				goto err;
+-			}
+-		} else {
+-			pr_debug("%s: can't alloc keypad dev\n", DRIVER_NAME);
+-			status = -ENOMEM;
+-			goto err;
+-		}
++		status = add_child(2, "twl4030_keypad",
++				pdata->keypad, sizeof(*pdata->keypad),
++				true, pdata->irq_base + 1, 0);
++		if (status < 0)
++			return status;
+ 	}
+ 
+ 	if (twl_has_madc() && pdata->madc) {
+-		pdev = platform_device_alloc("twl4030_madc", -1);
+-		if (pdev) {
+-			twl = &twl4030_modules[2];
+-			pdev->dev.parent = &twl->client->dev;
+-			device_init_wakeup(&pdev->dev, 1);
+-			status = platform_device_add_data(pdev, pdata->madc,
+-					sizeof(*pdata->madc));
+-			if (status < 0) {
+-				platform_device_put(pdev);
+-				dev_dbg(&twl->client->dev,
+-					"can't add madc data, %d\n",
+-					status);
+-				goto err;
+-			}
+-			status = platform_device_add(pdev);
+-			if (status < 0) {
+-				platform_device_put(pdev);
+-				dev_dbg(&twl->client->dev,
+-						"can't create madc dev, %d\n",
+-						status);
+-				goto err;
+-			}
+-		} else {
+-			pr_debug("%s: can't alloc madc dev\n", DRIVER_NAME);
+-			status = -ENOMEM;
+-			goto err;
+-		}
++		status = add_child(2, "twl4030_madc",
++				pdata->madc, sizeof(*pdata->madc),
++				true, pdata->irq_base + 3, 0);
++		if (status < 0)
++			return status;
+ 	}
+ 
+ 	if (twl_has_power() && pdata->power)
+ 		twl4030_power_init(pdata->power);
+ 
+ 	if (twl_has_rtc()) {
+-		twl = &twl4030_modules[3];
+-
+-		pdev = platform_device_alloc("twl4030_rtc", -1);
+-		if (!pdev) {
+-			pr_debug("%s: can't alloc rtc dev\n", DRIVER_NAME);
+-			status = -ENOMEM;
+-		} else {
+-			pdev->dev.parent = &twl->client->dev;
+-			device_init_wakeup(&pdev->dev, 1);
+-		}
+-
+ 		/*
+-		 * REVISIT platform_data here currently might use of
++		 * REVISIT platform_data here currently might expose the
+ 		 * "msecure" line ... but for now we just expect board
+-		 * setup to tell the chip "we are secure" at all times.
++		 * setup to tell the chip "it's always ok to SET_TIME".
+ 		 * Eventually, Linux might become more aware of such
+ 		 * HW security concerns, and "least privilege".
+ 		 */
+-
+-		/* RTC module IRQ */
+-		if (status == 0) {
+-			struct resource	r = {
+-				.start = pdata->irq_base + 8 + 3,
+-				.flags = IORESOURCE_IRQ,
+-			};
+-
+-			status = platform_device_add_resources(pdev, &r, 1);
+-		}
+-
+-		if (status == 0)
+-			status = platform_device_add(pdev);
+-
+-		if (status < 0) {
+-			platform_device_put(pdev);
+-			dev_dbg(&twl->client->dev,
+-					"can't create rtc dev, %d\n",
+-					status);
+-			goto err;
+-		}
++		status = add_child(3, "twl4030_rtc",
++				NULL, 0,
++				true, pdata->irq_base + 8 + 3, 0);
++		if (status < 0)
++			return status;
+ 	}
+ 
+ 	if (twl_has_usb() && pdata->usb) {
+-		twl = &twl4030_modules[0];
+-
+-		pdev = platform_device_alloc("twl4030_usb", -1);
+-		if (!pdev) {
+-			pr_debug("%s: can't alloc usb dev\n", DRIVER_NAME);
+-			status = -ENOMEM;
+-			goto err;
+-		}
+-
+-		if (status == 0) {
+-			pdev->dev.parent = &twl->client->dev;
+-			device_init_wakeup(&pdev->dev, 1);
+-			status = platform_device_add_data(pdev, pdata->usb,
+-					sizeof(*pdata->usb));
+-			if (status < 0) {
+-				platform_device_put(pdev);
+-				dev_dbg(&twl->client->dev,
+-					"can't add usb data, %d\n",
+-					status);
+-				goto err;
+-			}
+-		}
+-
+-		if (status == 0) {
+-			struct resource r = {
+-				.start = pdata->irq_base + 8 + 2,
+-				.flags = IORESOURCE_IRQ,
+-			};
+-
+-			status = platform_device_add_resources(pdev, &r, 1);
+-		}
+-
+-		if (status == 0)
+-			status = platform_device_add(pdev);
+-
+-		if (status < 0) {
+-			platform_device_put(pdev);
+-			dev_dbg(&twl->client->dev,
+-					"can't create usb dev, %d\n",
+-					status);
+-		}
++		status = add_child(0, "twl4030_usb",
++				pdata->usb, sizeof(*pdata->usb),
++				true,
++				/* irq0 = USB_PRES, irq1 = USB */
++				pdata->irq_base + 8 + 2, pdata->irq_base + 4);
++		if (status < 0)
++			return status;
+ 	}
+ 
+-err:
+-	if (status)
+-		pr_err("failed to add twl4030's children (status %d)\n", status);
+-	return status;
++	return 0;
+ }
+ 
+ /*----------------------------------------------------------------------*/
