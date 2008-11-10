@@ -1,85 +1,120 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 00/08] OMAP3 SRF: OPP and Frequency resources
-Date: Mon, 10 Nov 2008 16:57:48 +0530
-Message-ID: <00be01c94327$5d4e2e00$LocalHost@wipultra1382>
+Subject: [PATCH 01/08] OMAP3 SRF: Add CORE rate table param in OMAP-PM
+Date: Mon, 10 Nov 2008 16:57:57 +0530
+Message-ID: <00bf01c94327$61ac5800$LocalHost@wipultra1382>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40066 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754480AbYKJL17 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 06:27:59 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50524 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754484AbYKJL2G convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 06:28:06 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id mAABRwnv027504
+	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 05:28:04 -0600
+Received: from wipultra1382 (localhost [127.0.0.1])
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id mAABRvBP012906
+	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 16:57:57 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com
 
-Hi,
+This patch modifies the omap_pm_if_init API in OMAP-PM
+layer to take the L3 interconnect/CORE OPP table
+as an additional parameter.
 
-I am posting the patch-set which implement the OPP and Frequency resources in Shared Resource F/w.
-And also implement's the following APIs in OMAP-PM layer using SRF
-1) void omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigned long r)
-2) void omap_pm_dsp_set_min_opp(u8 opp_id)
-3) u8 omap_pm_dsp_get_opp(void)
-4) void omap_pm_cpu_set_freq(unsigned long f)
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/io.c                  |    2 +-
+ arch/arm/plat-omap/include/mach/omap-pm.h |    4 +++-
+ arch/arm/plat-omap/omap-pm-noop.c         |    5 ++++-
+ arch/arm/plat-omap/omap-pm-srf.c          |    5 ++++-
+ 4 files changed, 12 insertions(+), 4 deletions(-)
+
+Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/omap-pm.h
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/omap-pm.h	2008-11-10 12:09:03.000000000 +0530
++++ linux-omap-2.6/arch/arm/plat-omap/include/mach/omap-pm.h	2008-11-10 12:09:12.000000000 +0530
+@@ -57,12 +57,14 @@ int __init omap_pm_if_early_init(void);
+  * omap_pm_if_init - OMAP PM init code called after clock fw init
+  * @mpu_opp_table: array ptr to struct omap_opp for MPU
+  * @dsp_opp_table: array ptr to struct omap_opp for DSP
++ * @l3_opp_table : array ptr to struct omap_opp for CORE
+  *
+  * The main initialization code.  OPP tables are passed in here.  The
+  * "_if_" is to avoid name collisions with the PM idle-loop code.
+  */
+ int __init omap_pm_if_init(struct omap_opp *mpu_opp_table,
+-			   struct omap_opp *dsp_opp_table);
++			   struct omap_opp *dsp_opp_table,
++			   struct omap_opp *l3_opp_table);
  
-These are validated on the 3430SDP (with omap_3430sdp_min_defconfig) and apply on the latest 
-pm branch (pm-20081106, commit 0994b2df775ac04806ed).
-Note that I had to disable pmidle to validate these patches as idle/suspend seems to be broken
-on pm-20081106 on the SDP.
-
-Make sure you have this selected if you plan to use these patches.
-System Type-> TI OMAP Implementations->OMAP PM layer selection (PM layer implemented using SRF)
-
-There are additional sysfs hooks provided to manually switch OPP's on vdd1 as well as vdd2 in the absense 
-of a CPUFreq driver/governor.
-
-Use /sys/power/vdd1_opp to switch VDD1 OPP's
-Use /sys/power/vdd2_opp to switch VDD2 OPP's
-
-Paul,
-I am still having issues with low level clock f/w calls to switch CORE DPLL rate. 
-Would you be able to have a look at these? See the crash log below.
-
-regards,
-Rajendra
-
-
-Crash trying to switch to 83Mhz on 3430SDP
------------------------------------
-# echo -n 2 > /sys/power/vdd2_opp
-<4>SR2: VDD autocomp is not active
-SR2: VDD autocomp is not active
-<6>clock: clksel_round_rate_div: dpll3_m2_ck target_rate 83000000
-clock: clksel_round_rate_div: dpll3_m2_ck target_rate 83000000
-<6>clock: new_div = 4, new_rate = 83000000
-clock: new_div = 4, new_rate = 83000000
-<1>Unable to handle kernel paging request at virtual address c8000008
-Unable to handle kernel paging request at virtual address c8000008
-<1>pgd = c785c000
-pgd = c785c000
-<1>[c8000008] *pgd=00000000[c8000008] *pgd=00000000
-
-Internal error: Oops: 5 [#1]
-Internal error: Oops: 5 [#1]
-Modules linked in:Modules linked in:
-
-CPU: 0    Not tainted  (2.6.27-omap1-00073-g0994b2d-dirty #30)
-CPU: 0    Not tainted  (2.6.27-omap1-00073-g0994b2d-dirty #30)
-PC is at omap2_sdrc_get_params+0x1c/0x3c
-PC is at omap2_sdrc_get_params+0x1c/0x3c
-LR is at omap3_core_dpll_m2_set_rate+0x98/0x12c
-LR is at omap3_core_dpll_m2_set_rate+0x98/0x12c
-pc : [<c002ca8c>]    lr : [<c003347c>]    psr: 80000093
-sp : c796fdc0  ip : c796fdd0  fp : c796fdcc
-pc : [<c002ca8c>]    lr : [<c003347c>]    psr: 80000093
-sp : c796fdc0  ip : c796fdd0  fp : c796fdcc
-r10: 00000002  r9 : c7914b78  r8 : c02d2a08
-r10: 00000002  r9 : c7914b78  r8 : c02d2a08
-r7 : c02dd964  r6 : 04f27ac0  r5 : 04f27ac0  r4 : 09e4f580
-r7 : c02dd964  r6 : 04f27ac0  r5 : 04f27ac0  r4 : 09e4f580
-r3 : 00000000  r2 : c8000008  r1 : 13c9eb00  r0 : 013c9eb0
-r3 : 00000000  r2 : c8000008  r1 : 13c9eb00  r0 : 013c9eb0
-
+ /**
+  * omap_pm_if_exit - OMAP PM exit code
+Index: linux-omap-2.6/arch/arm/plat-omap/omap-pm-noop.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/omap-pm-noop.c	2008-11-10 12:09:03.000000000 +0530
++++ linux-omap-2.6/arch/arm/plat-omap/omap-pm-noop.c	2008-11-10 12:09:12.000000000 +0530
+@@ -28,6 +28,7 @@
+ 
+ static struct omap_opp *dsp_opps;
+ static struct omap_opp *mpu_opps;
++static struct omap_opp *l3_opps;
+ 
+ /*
+  * Device-driver-originated constraints (via board-*.c files)
+@@ -316,10 +317,12 @@ int __init omap_pm_if_early_init(void)
+ 
+ /* Must be called after clock framework is initialized */
+ int __init omap_pm_if_init(struct omap_opp *mpu_opp_table,
+-			   struct omap_opp *dsp_opp_table)
++			   struct omap_opp *dsp_opp_table,
++			   struct omap_opp *l3_opp_table)
+ {
+ 	mpu_opps = mpu_opp_table;
+ 	dsp_opps = dsp_opp_table;
++	l3_opps = l3_opp_table;
+ 	return 0;
+ }
+ 
+Index: linux-omap-2.6/arch/arm/plat-omap/omap-pm-srf.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/omap-pm-srf.c	2008-11-10 12:09:03.000000000 +0530
++++ linux-omap-2.6/arch/arm/plat-omap/omap-pm-srf.c	2008-11-10 12:09:12.000000000 +0530
+@@ -29,6 +29,7 @@
+ 
+ static struct omap_opp *dsp_opps;
+ static struct omap_opp *mpu_opps;
++static struct omap_opp *l3_opps;
+ 
+ #define LAT_RES_POSTAMBLE "_latency"
+ #define MAX_LATENCY_RES_NAME 30
+@@ -346,10 +347,12 @@ int __init omap_pm_if_early_init(void)
+ 
+ /* Must be called after clock framework is initialized */
+ int __init omap_pm_if_init(struct omap_opp *mpu_opp_table,
+-			   struct omap_opp *dsp_opp_table)
++			   struct omap_opp *dsp_opp_table,
++			   struct omap_opp *l3_opp_table)
+ {
+ 	mpu_opps = mpu_opp_table;
+ 	dsp_opps = dsp_opp_table;
++	l3_opps = l3_opp_table;
+ 	resource_init(resources_omap);
+ 	return 0;
+ }
+Index: linux-omap-2.6/arch/arm/mach-omap2/io.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/io.c	2008-11-10 12:09:03.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/io.c	2008-11-10 12:09:12.000000000 +0530
+@@ -206,7 +206,7 @@ void __init omap2_init_common_hw(struct 
+ 	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
+ 	omapdev_init(omapdevs);
+ 	omap2_clk_init();
+-	omap_pm_if_init(NULL, NULL);
++	omap_pm_if_init(NULL, NULL, NULL);
+ 	omap2_sdrc_init(sp);
+ 	gpmc_init();
+ }
 
