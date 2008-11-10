@@ -1,58 +1,47 @@
-From: ext-eero.nurkkala@nokia.com
-Subject: [PATCH] i2c: i2c-omap: Fix standard and fast mode prescalers
-Date: Mon, 10 Nov 2008 12:46:58 +0200
-Message-ID: <12263140183960-git-send-email-ext-eero.nurkkala@nokia.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: [PATCH OMAPZOOM] OMAP: DMA: Fix CCR programming for request line >
+ 63
+Date: Mon, 10 Nov 2008 16:38:17 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02DF30302E@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:64729 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754402AbYKJKsY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 05:48:24 -0500
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mAAAm70s023971
-	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 12:48:22 +0200
+Received: from devils.ext.ti.com ([198.47.26.153]:39322 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750815AbYKJLI2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 06:08:28 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+From: Anand Gadiyar <gadiyar@ti.com>
 
+Bug in existing code causes synchro control to be set +32 if request
+line greater than 63 is used.
 
-Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Reported by Wenbiao Wang
+
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   12 +++++++++---
- 1 files changed, 9 insertions(+), 3 deletions(-)
+Patch generated against OMAPZOOM tree. Will apply against
+linux-omap as well with an offset of 8 lines.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 9ae3ad3..92653ce 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -304,7 +304,13 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 562089e..b38a362 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -287,10 +287,7 @@ void omap_set_dma_transfer_params(int lch, int data_type, int elem_count,
  
- 		/* HSI2C controller internal clk rate should be 19.2 Mhz */
--		internal_clk = 19200;
-+		if (dev->speed > 400)
-+			internal_clk = 19200;
-+		else if (dev->speed > 100)
-+			internal_clk = 9600;
-+		else
-+			internal_clk = 4000;
-+
- 		fclk_rate = clk_get_rate(dev->fclk) / 1000;
+ 		val = dma_read(CCR(lch));
+ 		val &= ~(3 << 19);
+-		if (dma_trigger > 63)
+-			val |= 1 << 20;
+-		if (dma_trigger > 31)
+-			val |= 1 << 19;
++		val |= ((dma_trigger & ~(0x1f)) << 14);
  
- 		/* Compute prescaler divisor */
-@@ -322,8 +328,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 			hssclh = fclk_rate / (dev->speed * 2) - 6;
- 		} else {
- 			/* To handle F/S modes */
--			fsscll = internal_clk / (dev->speed * 2) - 6;
--			fssclh = internal_clk / (dev->speed * 2) - 6;
-+			fsscll = internal_clk / (dev->speed * 2) - 7;
-+			fssclh = internal_clk / (dev->speed * 2) - 5;
- 		}
- 		scll = (hsscll << OMAP_I2C_SCLL_HSSCLL) | fsscll;
- 		sclh = (hssclh << OMAP_I2C_SCLH_HSSCLH) | fssclh;
--- 
-1.5.2
-
+ 		val &= ~(0x1f);
+ 		val |= (dma_trigger & 0x1f);
