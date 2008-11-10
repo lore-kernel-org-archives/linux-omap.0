@@ -1,103 +1,61 @@
-From: "Shah, Hardik" <hardik.shah@ti.com>
-Subject: RE: [Linux-fbdev-devel] [REVIEW  PATCH 0/9] DSS: Series description
-Date: Mon, 10 Nov 2008 17:33:58 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02DF3030A2@dbde02.ent.ti.com>
-References: <alpine.DEB.2.00.0811101313400.11080@tubuntu>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH] i2c: i2c-omap: Fix BUFSTAT_REG reading
+Date: Mon, 10 Nov 2008 14:27:05 +0200
+Message-ID: <20081110122705.GP7467@gandalf.research.nokia.com>
+References: <12263140092601-git-send-email-ext-eero.nurkkala@nokia.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41428 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755254AbYKJMET convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 07:04:19 -0500
-In-Reply-To: <alpine.DEB.2.00.0811101313400.11080@tubuntu>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:52827 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753960AbYKJM1T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 07:27:19 -0500
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mAACQqqP024814
+	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 14:27:17 +0200
+Content-Disposition: inline
+In-Reply-To: <12263140092601-git-send-email-ext-eero.nurkkala@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <valkeine@nokia.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "ext ext-eero.nurkkala@nokia.com" <ext-eero.nurkkala@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
+On Mon, Nov 10, 2008 at 12:46:49PM +0200, ext ext-eero.nurkkala@nokia.com wrote:
+> From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+> 
 
-
-> -----Original Message-----
-> From: Tomi Valkeinen [mailto:valkeine@nokia.com]
-> Sent: Monday, November 10, 2008 5:01 PM
-> To: Shah, Hardik
-> Cc: Tomi Valkeinen; linux-fbdev-devel@lists.sourceforge.net; linux-
-> omap@vger.kernel.org
-> Subject: RE: [Linux-fbdev-devel] [REVIEW PATCH 0/9] DSS: Series description
-> 
-> Hi,
-> 
-> On Mon, 10 Nov 2008, ext Shah, Hardik wrote:
-> 
-> >>
-> > [Shah, Hardik] We have reviewed the patches in detail and even made
-> modifications to make it work on the OMAP3EVM. Here are our observations:
-> >
-> > 1) The overall implementation is very much in line with our earlier proposal
-> to provide generic API that supports both V4L2 and FBDEV.
-> > 2) The implementation supports multiple output interfaces e.g. RFBI, SDI,
-> DSI, ... that we did not have in our plans
-> > 3) You have also validated it on lot many platforms that we do not have
-> access.
-> >
-> > We believe patches are a good step in right direction.
-> >
-> > We plan to use this patchset as base for supporting these additional use
-> cases:
-> >
-> > a) Adding the V4L2 user interface to the video pipelines (I believe video
-> pipelines are natural fit for the V4L2 frame work.  If use case is there for
-> FBDEV interface we can have compile time option to expose the video pipelines
-> as the either FBDEV or v4L2 interface).
-> > b) Modification of the DSS/DISPC library for supporting V4L2 user interface.
-> > c) Supporting the functionality like alpha blending, global alpha blending,
-> setting of various TV standards etc.
-> > d) Supporting the mirroring and rotation in both FBDEV and V4L2 driver.
-> >
-> > Do let us know if you aren't already working on any of these.
-> 
-> This sounds very good. I am not currently working on any of those items
-> you mentioned. A couple of comments/thoughts about them:
-> 
-> a) Yes, V4L2 interface would be nice. But there are use cases for FB
-> devices also, and sometimes you don't want V4L2 devices at all. So as you
-> suggested, a compile time option to select this is necessary. Or, better
-> yet, a runtime option.
-> 
-> One way to implement simultaneous FB and V4L2 devices is to have to
-> separate drivers. But then this needs more locking support to DSS, and
-> pobably some kind of event mechanism. For example, if both FB and V4L2
-> have overlays on the same display, and one of them changes the screen
-> resolution, the other one needs to know about this also.
-> 
-> So what I have been thinking is to have both FB and V4L2 in the same
-> driver. This would make things easier. But then again, I don't know how
-> much code V4L2 needs, and if the combined driver would get too complex.
-> 
-[Shah, Hardik] As long as the screen resolutions and timings are concerned, V4L2 driver will always take into account resolution before setting the format. Same is true for frame buffer driver before panning the display it should get the fscreen info and vscreen info and then start panning. While panning/streaming is going on any of the V4L2/FBDEV driver application has to take care of not changing the screen resolution/timing.
-
-> b) Do you already have ideas what features V4L2 needs that are not present
-> in DSS currently?
-> 
-[Shah, Hardik] We are working on that. We will be providing the comments on changes/modification in the DSS/DISPC in next two/three days.
-> c) Yes, these would be nice.
-> 
-> d) These would be nice also. About rotation, I think there are three kinds
-> of rotation that are handled by different entities:
-> - DMA rotation, for framebuffers in SRAM. Handled by DSS.
-> - External framebuffer rotation, handled by the external framebuffer
-> controller.
-> - VRFB rotation. This is basically a memory handling configuration, and is
-> transparent to the end user (in this case, DSS) of the memory. Should be
-> handled by the entity that allocates the memory, ie. omapfb.
-[Shah, Hardik] so how are you planning to take care of rotation/mirroring.  We have board that only supports VRFB rotation. 
-
-Hardik
-Vaibhav
+you need to put a patch description here. Ditto to other patches.
 
 > 
->   Tomi
+> Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+> ---
+>  drivers/i2c/busses/i2c-omap.c |    5 +++--
+>  1 files changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index f4d1edc..9ae3ad3 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -642,8 +642,9 @@ omap_i2c_isr(int this_irq, void *dev_id)
+>  				if (stat & OMAP_I2C_STAT_RRDY)
+>  					num_bytes = dev->fifo_size;
+>  				else
+> -					num_bytes = omap_i2c_read_reg(dev,
+> -							OMAP_I2C_BUFSTAT_REG);
+> +					num_bytes = (omap_i2c_read_reg(dev,
+> +							OMAP_I2C_BUFSTAT_REG)
+> +							>> 8) & 0x3F;
+>  			}
+>  			while (num_bytes) {
+>  				num_bytes--;
+> -- 
+> 1.5.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+-- 
+balbi
