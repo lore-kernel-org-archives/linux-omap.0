@@ -1,169 +1,138 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 07/08] OMAP3 SRF: VDD2 scaling support
-Date: Mon, 10 Nov 2008 16:59:02 +0530
-Message-ID: <00c501c94327$8822d720$LocalHost@wipultra1382>
+Subject: [PATCH 08/08] OMAP3 SRF: Adds sysfs control for VDD1/VDD2 OPP's
+Date: Mon, 10 Nov 2008 16:59:10 +0530
+Message-ID: <00c601c94327$8d6398f0$LocalHost@wipultra1382>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50571 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:48273 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754499AbYKJL3K convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 06:29:10 -0500
+	id S1754500AbYKJL3S convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 06:29:18 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id mAABT3f7028042
-	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 05:29:09 -0600
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id mAABTBdb003657
+	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 05:29:17 -0600
 Received: from wipultra1382 (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id mAABT2HX013100
-	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 16:59:02 +0530 (IST)
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id mAABTBJq013133
+	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 16:59:11 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Adds VDD2 scaling support and updates
-omap_pm_set_min_bus_tput API.
+Adds sysfs hooks to control VDD1 and VDD2 OPP's
+in the absense of a CPUFreq driver/governor
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/resource34xx.c |   63 ++++++++++++++++++++++++++++---------
- arch/arm/plat-omap/omap-pm-srf.c   |   15 ++------
- 2 files changed, 53 insertions(+), 25 deletions(-)
+ arch/arm/mach-omap2/pm.c |   68 ++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 67 insertions(+), 1 deletion(-)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c
+Index: linux-omap-2.6/arch/arm/mach-omap2/pm.c
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.c	2008-11-10 15:44:18.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c	2008-11-10 15:38:00.000000000 +0530
-@@ -134,7 +134,8 @@ int set_pd_latency(struct shared_resourc
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/pm.c	2008-11-10 15:24:50.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/pm.c	2008-11-10 15:44:19.000000000 +0530
+@@ -24,6 +24,7 @@
+ #include <linux/suspend.h>
+ #include <linux/time.h>
+ #include <linux/platform_device.h>
++#include <linux/device.h>
  
- static struct clk *vdd1_clk;
- static struct clk *vdd2_clk;
--static struct device dummy_srf_dev;
-+static struct device dummy_mpu_dev;
-+static struct device dummy_dsp_dev;
+ #include <mach/cpu.h>
+ #include <asm/mach/time.h>
+@@ -32,6 +33,7 @@
+ #include <mach/pm.h>
+ #include <mach/powerdomain.h>
+ #include <mach/omapdev.h>
++#include <mach/resource.h>
  
- /**
-  * init_opp - Initialize the OPP resource
-@@ -157,7 +158,9 @@ void init_opp(struct shared_resource *re
+ #include "prm-regbits-34xx.h"
+ #include "pm.h"
+@@ -58,6 +60,18 @@ static struct kobj_attribute enable_off_
+ static struct kobj_attribute voltage_off_while_idle_attr =
+ 	__ATTR(voltage_off_while_idle, 0644, idle_show, idle_store);
  
- int set_opp(struct shared_resource *resp, u32 target_level)
++#ifdef CONFIG_OMAP_PM_SRF
++static struct device dummy_sysfs_dev;
++static ssize_t vdd_opp_show(struct kobject *, struct kobj_attribute *, char *);
++static ssize_t vdd_opp_store(struct kobject *k, struct kobj_attribute *,
++			  const char *buf, size_t n);
++static struct kobj_attribute vdd1_opp_attr =
++	__ATTR(vdd1_opp, 0644, vdd_opp_show, vdd_opp_store);
++
++static struct kobj_attribute vdd2_opp_attr =
++	__ATTR(vdd2_opp, 0644, vdd_opp_show, vdd_opp_store);
++#endif
++
+ static ssize_t idle_show(struct kobject *kobj, struct kobj_attribute *attr,
+ 			 char *buf)
  {
--	unsigned long mpu_freq;
-+	unsigned long mpu_freq, l3_freq, tput, t_opp;;
-+	int ind;
-+	struct bus_throughput_db *tput_db;
+@@ -106,6 +120,45 @@ static ssize_t idle_store(struct kobject
+ 	return n;
+ }
  
- 	if (resp->curr_level == target_level)
- 		return 0;
-@@ -165,20 +168,53 @@ int set_opp(struct shared_resource *resp
- 	if (strcmp(resp->name, "vdd1_opp") == 0) {
- 		mpu_freq = get_freq(mpu_opps + MAX_VDD1_OPP,
- 					target_level);
-+		t_opp = ID_VDD(PRCM_VDD1) |
-+			ID_OPP_NO(mpu_opps[target_level].opp_id);
- 		if (resp->curr_level > target_level) {
- 			/* Scale Frequency and then voltage */
- 			clk_set_rate(vdd1_clk, mpu_freq);
--			sr_voltagescale_vcbypass(PRCM_VDD1,
--					mpu_opps[target_level-1].vsel);
-+			sr_voltagescale_vcbypass(t_opp,
-+					mpu_opps[target_level].vsel);
- 		} else {
- 			/* Scale Voltage and then frequency */
--			sr_voltagescale_vcbypass(PRCM_VDD1,
--					mpu_opps[target_level-1].vsel);
-+			sr_voltagescale_vcbypass(t_opp,
-+					mpu_opps[target_level].vsel);
- 			clk_set_rate(vdd1_clk, mpu_freq);
- 		}
- 		resp->curr_level = curr_vdd1_prcm_set->opp_id;
- 	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
--		/* Not supported yet */
-+		tput_db = resp->resource_data;
-+		tput = target_level;
-+		/* using the throughput db map to the appropriate L3 Freq */
-+		for (ind = 1; ind < MAX_VDD2_OPP; ind++)
-+			if (tput_db->throughput[ind] > tput)
-+				target_level = ind;
++#ifdef CONFIG_OMAP_PM_SRF
++static ssize_t vdd_opp_show(struct kobject *kobj, struct kobj_attribute *attr,
++			 char *buf)
++{
++	if (attr == &vdd1_opp_attr)
++		return sprintf(buf, "%hu\n", resource_get_level("vdd1_opp"));
++	else if (attr == &vdd2_opp_attr)
++		return sprintf(buf, "%hu\n", resource_get_level("vdd2_opp"));
++	else
++		return -EINVAL;
++}
 +
-+		/* Set the highest OPP possible */
-+		if (ind == MAX_VDD2_OPP)
-+			target_level = ind-1;
++static ssize_t vdd_opp_store(struct kobject *kobj, struct kobj_attribute *attr,
++			  const char *buf, size_t n)
++{
++	unsigned short value;
 +
-+		if (resp->curr_level == target_level)
-+			return 0;
++	if (sscanf(buf, "%hu", &value) != 1)
++		return -EINVAL;
 +
-+		resp->curr_level = target_level;
-+
-+		l3_freq = get_freq(l3_opps + MAX_VDD2_OPP,
-+					target_level);
-+		t_opp = ID_VDD(PRCM_VDD2) |
-+			ID_OPP_NO(l3_opps[target_level].opp_id);
-+		if (resp->curr_level > target_level) {
-+			/* Scale Frequency and then voltage */
-+			clk_set_rate(vdd2_clk, l3_freq);
-+			sr_voltagescale_vcbypass(t_opp,
-+					l3_opps[target_level].vsel);
-+		} else {
-+			/* Scale Voltage and then frequency */
-+			sr_voltagescale_vcbypass(t_opp,
-+					l3_opps[target_level].vsel);
-+			clk_set_rate(vdd2_clk, l3_freq);
++	if (attr == &vdd1_opp_attr) {
++		if (value < 1 || value > 5) {
++			printk(KERN_ERR "vdd_opp_store: Invalid value\n");
++			return -EINVAL;
 +		}
-+		resp->curr_level = curr_vdd2_prcm_set->opp_id;
- 	}
- 	return 0;
- }
-@@ -220,16 +256,13 @@ int set_freq(struct shared_resource *res
- {
- 	unsigned int vdd1_opp;
- 
--	if (strcmp(resp->name, "mpu_freq") == 0)
-+	if (strcmp(resp->name, "mpu_freq") == 0) {
- 		vdd1_opp = get_opp(mpu_opps + MAX_VDD1_OPP, target_level);
--	else if (strcmp(resp->name, "dsp_freq") == 0)
-+		resource_request("vdd1_opp", &dummy_mpu_dev, vdd1_opp);
-+	} else if (strcmp(resp->name, "dsp_freq") == 0) {
- 		vdd1_opp = get_opp(dsp_opps + MAX_VDD1_OPP, target_level);
--
--	if (vdd1_opp == MIN_VDD1_OPP)
--		resource_release("vdd1_opp", &dummy_srf_dev);
--	else
--		resource_request("vdd1_opp", &dummy_srf_dev, vdd1_opp);
--
-+		resource_request("vdd1_opp", &dummy_dsp_dev, vdd1_opp);
-+	}
- 	resp->curr_level = target_level;
- 	return 0;
- }
-Index: linux-omap-2.6/arch/arm/plat-omap/omap-pm-srf.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/plat-omap/omap-pm-srf.c	2008-11-10 15:44:18.000000000 +0530
-+++ linux-omap-2.6/arch/arm/plat-omap/omap-pm-srf.c	2008-11-10 15:44:19.000000000 +0530
-@@ -82,21 +82,16 @@ void omap_pm_set_min_bus_tput(struct dev
- 		return;
- 	};
- 
--	if (r == 0)
-+	if (r == 0) {
- 		pr_debug("OMAP PM: remove min bus tput constraint: "
- 			 "dev %s for agent_id %d\n", dev_name(dev), agent_id);
--	else
-+		resource_release("vdd2_opp", dev);
++		resource_request("vdd1_opp", &dummy_sysfs_dev, value);
++	} else if (attr == &vdd2_opp_attr) {
++		if (value < 2 || value > 3) {
++			printk(KERN_ERR "vdd_opp_store: Invalid value\n");
++			return -EINVAL;
++		}
++		resource_request("vdd2_opp", &dummy_sysfs_dev, value);
 +	} else {
- 		pr_debug("OMAP PM: add min bus tput constraint: "
- 			 "dev %s for agent_id %d: rate %ld KiB\n",
- 			 dev_name(dev), agent_id, r);
--
--	/*
--	 * This code should model the interconnect and compute the
--	 * required clock frequency, convert that to a VDD2 OPP ID, then
--	 * set the VDD2 OPP appropriately.
--	 *
--	 * TI CDP code can call constraint_set here on the VDD2 OPP.
--	 */
-+		resource_request("vdd2_opp", dev, r);
++		return -EINVAL;
 +	}
- }
- 
- void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t)
++	return n;
++}
++#endif
++
+ void omap2_block_sleep(void)
+ {
+ 	atomic_inc(&sleep_block);
+@@ -162,7 +215,20 @@ static int __init omap_pm_init(void)
+ 		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
+ 		return error;
+ 	}
+-
++#ifdef CONFIG_OMAP_PM_SRF
++	error = sysfs_create_file(power_kobj,
++				  &vdd1_opp_attr.attr);
++	if (error) {
++		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
++		return error;
++	}
++	error = sysfs_create_file(power_kobj,
++				  &vdd2_opp_attr.attr);
++	if (error) {
++		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
++		return error;
++	}
++#endif
+ 	voltage_off_while_idle = 0;
+ 	/* Going to 0V on anything under ES2.1 will eventually cause a crash */
+ 	if (system_rev > OMAP3430_REV_ES2_0) {
 
