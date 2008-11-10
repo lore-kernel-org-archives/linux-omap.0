@@ -1,122 +1,74 @@
-From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 03/03] OMAP3 PM: Update the min defconfig for 3430sdp
-Date: Mon, 10 Nov 2008 17:00:34 +0530
-Message-ID: <00ca01c94327$bf74d3e0$LocalHost@wipultra1382>
+From: Tomi Valkeinen <valkeine@nokia.com>
+Subject: RE: [Linux-fbdev-devel] [REVIEW  PATCH 0/9] DSS: Series
+ description
+Date: Mon, 10 Nov 2008 13:31:08 +0200 (EET)
+Message-ID: <alpine.DEB.2.00.0811101313400.11080@tubuntu>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02DF302D4D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40229 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754814AbYKJLam convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 06:30:42 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id mAABUZju004425
-	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 05:30:41 -0600
-Received: from wipultra1382 (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id mAABUZfi013717
-	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 17:00:35 +0530 (IST)
+Received: from smtp.nokia.com ([192.100.122.233]:20424 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754416AbYKJLgZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 06:36:25 -0500
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02DF302D4D@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "ext Shah, Hardik" <hardik.shah@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Enables CPUFreq and PM layer implemented using SRF in
-omap_3430sdp_min_defconfig
+Hi,
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/configs/omap_3430sdp_min_defconfig |   32 +++++++++++++++++++++++-----
- 1 files changed, 27 insertions(+), 5 deletions(-)
+On Mon, 10 Nov 2008, ext Shah, Hardik wrote:
 
-Index: linux-omap-2.6/arch/arm/configs/omap_3430sdp_min_defconfig
-===================================================================
---- linux-omap-2.6.orig/arch/arm/configs/omap_3430sdp_min_defconfig	2008-11-10 16:49:07.000000000 +0530
-+++ linux-omap-2.6/arch/arm/configs/omap_3430sdp_min_defconfig	2008-11-10 16:40:05.000000000 +0530
-@@ -204,6 +204,8 @@ CONFIG_OMAP_LL_DEBUG_UART1=y
- # CONFIG_OMAP_LL_DEBUG_UART2 is not set
- # CONFIG_OMAP_LL_DEBUG_UART3 is not set
- CONFIG_OMAP_SERIAL_WAKE=y
-+# CONFIG_OMAP_PM_NOOP is not set
-+CONFIG_OMAP_PM_SRF=y
- CONFIG_ARCH_OMAP34XX=y
- CONFIG_ARCH_OMAP3430=y
- 
-@@ -215,6 +217,7 @@ CONFIG_MACH_OMAP_3430SDP=y
- # CONFIG_MACH_OMAP3EVM is not set
- # CONFIG_MACH_OMAP3_BEAGLE is not set
- # CONFIG_MACH_OVERO is not set
-+# CONFIG_MACH_OMAP3_PANDORA is not set
- CONFIG_OMAP_TICK_GPTIMER=1
- 
- #
-@@ -300,9 +303,28 @@ CONFIG_CMDLINE="root=/dev/nfs nfsroot=19
- # CONFIG_KEXEC is not set
- 
- #
-+# CPUIdle
-+#
-+# CONFIG_CPU_IDLE is not set
-+
-+#
- # CPU Frequency scaling
- #
--# CONFIG_CPU_FREQ is not set
-+CONFIG_CPU_FREQ=y
-+CONFIG_CPU_FREQ_TABLE=y
-+# CONFIG_CPU_FREQ_DEBUG is not set
-+CONFIG_CPU_FREQ_STAT=y
-+# CONFIG_CPU_FREQ_STAT_DETAILS is not set
-+CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y
-+# CONFIG_CPU_FREQ_DEFAULT_GOV_POWERSAVE is not set
-+# CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE is not set
-+# CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND is not set
-+# CONFIG_CPU_FREQ_DEFAULT_GOV_CONSERVATIVE is not set
-+CONFIG_CPU_FREQ_GOV_PERFORMANCE=y
-+# CONFIG_CPU_FREQ_GOV_POWERSAVE is not set
-+# CONFIG_CPU_FREQ_GOV_USERSPACE is not set
-+CONFIG_CPU_FREQ_GOV_ONDEMAND=y
-+# CONFIG_CPU_FREQ_GOV_CONSERVATIVE is not set
- 
- #
- # Floating point emulation
-@@ -558,7 +580,6 @@ CONFIG_INPUT_TOUCHSCREEN=y
- # CONFIG_TOUCHSCREEN_PENMOUNT is not set
- # CONFIG_TOUCHSCREEN_TOUCHRIGHT is not set
- # CONFIG_TOUCHSCREEN_TOUCHWIN is not set
--# CONFIG_TOUCHSCREEN_TSC2005 is not set
- # CONFIG_TOUCHSCREEN_UCB1400 is not set
- # CONFIG_TOUCHSCREEN_TOUCHIT213 is not set
- # CONFIG_INPUT_MISC is not set
-@@ -648,11 +669,8 @@ CONFIG_I2C_OMAP=y
- # CONFIG_ISP1301_OMAP is not set
- # CONFIG_TPS65010 is not set
- # CONFIG_SENSORS_TLV320AIC23 is not set
--CONFIG_TWL4030_CORE=y
--CONFIG_TWL4030_GPIO=y
- # CONFIG_TWL4030_MADC is not set
- CONFIG_TWL4030_USB=y
--CONFIG_TWL4030_USB_HS_ULPI=y
- # CONFIG_TWL4030_PWRBUTTON is not set
- # CONFIG_TWL4030_POWEROFF is not set
- # CONFIG_SENSORS_MAX6875 is not set
-@@ -674,6 +692,7 @@ CONFIG_GPIOLIB=y
- # CONFIG_GPIO_MAX732X is not set
- # CONFIG_GPIO_PCA953X is not set
- # CONFIG_GPIO_PCF857X is not set
-+# CONFIG_GPIO_TWL4030 is not set
- 
- #
- # PCI GPIO expanders:
-@@ -698,8 +717,11 @@ CONFIG_SSB_POSSIBLE=y
- #
- # CONFIG_MFD_CORE is not set
- # CONFIG_MFD_SM501 is not set
-+# CONFIG_MFD_ASIC3 is not set
- # CONFIG_HTC_EGPIO is not set
- # CONFIG_HTC_PASIC3 is not set
-+CONFIG_TWL4030_CORE=y
-+# CONFIG_TWL4030_POWER is not set
- # CONFIG_MFD_TMIO is not set
- # CONFIG_MFD_T7L66XB is not set
- # CONFIG_MFD_TC6387XB is not set
+>>
+> [Shah, Hardik] We have reviewed the patches in detail and even made modifications to make it work on the OMAP3EVM. Here are our observations:
+>
+> 1) The overall implementation is very much in line with our earlier proposal to provide generic API that supports both V4L2 and FBDEV.
+> 2) The implementation supports multiple output interfaces e.g. RFBI, SDI, DSI, ... that we did not have in our plans
+> 3) You have also validated it on lot many platforms that we do not have access.
+>
+> We believe patches are a good step in right direction.
+>
+> We plan to use this patchset as base for supporting these additional use cases:
+>
+> a) Adding the V4L2 user interface to the video pipelines (I believe video pipelines are natural fit for the V4L2 frame work.  If use case is there for FBDEV interface we can have compile time option to expose the video pipelines as the either FBDEV or v4L2 interface).
+> b) Modification of the DSS/DISPC library for supporting V4L2 user interface.
+> c) Supporting the functionality like alpha blending, global alpha blending, setting of various TV standards etc.
+> d) Supporting the mirroring and rotation in both FBDEV and V4L2 driver.
+>
+> Do let us know if you aren't already working on any of these.
 
+This sounds very good. I am not currently working on any of those items 
+you mentioned. A couple of comments/thoughts about them:
+
+a) Yes, V4L2 interface would be nice. But there are use cases for FB 
+devices also, and sometimes you don't want V4L2 devices at all. So as you 
+suggested, a compile time option to select this is necessary. Or, better 
+yet, a runtime option.
+
+One way to implement simultaneous FB and V4L2 devices is to have to 
+separate drivers. But then this needs more locking support to DSS, and 
+pobably some kind of event mechanism. For example, if both FB and V4L2 
+have overlays on the same display, and one of them changes the screen 
+resolution, the other one needs to know about this also.
+
+So what I have been thinking is to have both FB and V4L2 in the same 
+driver. This would make things easier. But then again, I don't know how 
+much code V4L2 needs, and if the combined driver would get too complex.
+
+b) Do you already have ideas what features V4L2 needs that are not present 
+in DSS currently?
+
+c) Yes, these would be nice.
+
+d) These would be nice also. About rotation, I think there are three kinds 
+of rotation that are handled by different entities:
+- DMA rotation, for framebuffers in SRAM. Handled by DSS.
+- External framebuffer rotation, handled by the external framebuffer 
+controller.
+- VRFB rotation. This is basically a memory handling configuration, and is 
+transparent to the end user (in this case, DSS) of the memory. Should be 
+handled by the entity that allocates the memory, ie. omapfb.
+
+  Tomi
