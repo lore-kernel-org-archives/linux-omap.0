@@ -1,60 +1,76 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 5/5] omap iommu: entries for Kconfig and Makefile
-Date: Mon, 10 Nov 2008 21:03:53 +0200
-Message-ID: <1226343833-13869-6-git-send-email-Hiroshi.DOYU@nokia.com>
-References: <1226343833-13869-1-git-send-email-Hiroshi.DOYU@nokia.com>
- <1226343833-13869-2-git-send-email-Hiroshi.DOYU@nokia.com>
- <1226343833-13869-3-git-send-email-Hiroshi.DOYU@nokia.com>
- <1226343833-13869-4-git-send-email-Hiroshi.DOYU@nokia.com>
- <1226343833-13869-5-git-send-email-Hiroshi.DOYU@nokia.com>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: ASOC and the Beagle
+Date: Mon, 10 Nov 2008 12:38:32 -0800
+Message-ID: <5e088bd90811101238l16057159ua0c3dbe88ebcb158@mail.gmail.com>
+References: <49184EDF.9050600@balister.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:49611 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753646AbYKJTHv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 14:07:51 -0500
-In-Reply-To: <1226343833-13869-5-git-send-email-Hiroshi.DOYU@nokia.com>
+Received: from rn-out-0910.google.com ([64.233.170.187]:9887 "EHLO
+	rn-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754686AbYKJUsg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 15:48:36 -0500
+Received: by rn-out-0910.google.com with SMTP id k40so1573687rnd.17
+        for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 12:48:35 -0800 (PST)
+In-Reply-To: <49184EDF.9050600@balister.org>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: Philip Balister <philip@balister.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
----
- arch/arm/plat-omap/Kconfig  |    8 ++++++++
- arch/arm/plat-omap/Makefile |    1 +
- 2 files changed, 9 insertions(+), 0 deletions(-)
+On Mon, Nov 10, 2008 at 7:10 AM, Philip Balister <philip@balister.org> wrote:
+> A few weeks ago kernels built from git would detect the sound hardware and
+> actually work.
+>
+> Yesterday I build a kernel and the sound hardware is no longer detected. Is
+> there an easy way to fix this?
+>
+> Sorry I'm so vague, I don't have all the revision data handy ....
 
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index 960c13f..8484819 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -174,6 +174,14 @@ config OMAP_MMU_FWK
- 	  Say Y here if you want to use OMAP MMU framework support for
- 	  DSP, IVA1.0 and Camera in OMAP1/2.
- 
-+config OMAP_IOMMU
-+	bool "IOMMU support"
-+	depends on ARCH_OMAP
-+	default n
+I just noticed this too.
+
+It seems that the Kconfig for soc/omap got damaged in the merge.
+
+The fix is simple, patch below.
+
+Tony, this should trickle in from the alsa folks since they have
+merged my ASoC drivers, but you might want to merge this patch locally
+in the meantime.
+
+Steve
+
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+index 8b7766b..0daeee4 100644
+--- a/sound/soc/omap/Kconfig
++++ b/sound/soc/omap/Kconfig
+@@ -14,6 +14,14 @@ config SND_OMAP_SOC_N810
+ 	help
+ 	  Say Y if you want to add support for SoC audio on Nokia N810.
+
++config SND_OMAP_SOC_OMAP3_BEAGLE
++	tristate "SoC Audio support for OMAP3 Beagle"
++	depends on SND_OMAP_SOC && MACH_OMAP3_BEAGLE
++	select SND_OMAP_SOC_MCBSP
++	select SND_SOC_TWL4030
 +	help
-+	  Say Y here if you want to use OMAP MMU framework support for
-+	  IVA2 and Camera in OMAP3.
++	  Say Y if you want to add support for SoC audio on the Beagleboard.
 +
- config OMAP_MBOX_FWK
- 	tristate "Mailbox framework support"
- 	depends on ARCH_OMAP
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index 1259846..b354548 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -25,6 +25,7 @@ obj-$(CONFIG_I2C_OMAP) += i2c.o
- 
- # OMAP MMU framework
- obj-$(CONFIG_OMAP_MMU_FWK) += mmu.o
-+obj-$(CONFIG_OMAP_IOMMU) += iommu.o iovmm.o iommu-sysfs.o
- 
- # OMAP mailbox framework
- obj-$(CONFIG_OMAP_MBOX_FWK) += mailbox.o
--- 
-1.6.0.3.613.g9f8f13
-
+ config SND_OMAP_SOC_OSK5912
+ 	tristate "SoC Audio support for omap osk5912"
+ 	depends on SND_OMAP_SOC && MACH_OMAP_OSK
+@@ -21,3 +29,13 @@ config SND_OMAP_SOC_OSK5912
+ 	select SND_SOC_TLV320AIC23
+ 	help
+ 	  Say Y if you want to add support for SoC audio on osk5912.
++
++config SND_OMAP_SOC_OVERO
++	tristate "SoC Audio support for Gumstix Overo"
++	depends on SND_OMAP_SOC && MACH_OVERO
++	select SND_OMAP_SOC_MCBSP
++	select SND_SOC_TWL4030
++	help
++	  Say Y if you want to add support for SoC audio on the Gumstix Overo.
++
++
