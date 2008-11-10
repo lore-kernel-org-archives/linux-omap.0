@@ -1,46 +1,93 @@
 From: "Steve Sakoman" <sakoman@gmail.com>
 Subject: Re: ASOC and the Beagle
-Date: Mon, 10 Nov 2008 12:38:32 -0800
-Message-ID: <5e088bd90811101238l16057159ua0c3dbe88ebcb158@mail.gmail.com>
+Date: Mon, 10 Nov 2008 14:36:32 -0800
+Message-ID: <5e088bd90811101436g38882b0bsacb931b4f6bbd5a8@mail.gmail.com>
 References: <49184EDF.9050600@balister.org>
+	 <5e088bd90811101238l16057159ua0c3dbe88ebcb158@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rn-out-0910.google.com ([64.233.170.187]:9887 "EHLO
-	rn-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754686AbYKJUsg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 15:48:36 -0500
-Received: by rn-out-0910.google.com with SMTP id k40so1573687rnd.17
-        for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 12:48:35 -0800 (PST)
-In-Reply-To: <49184EDF.9050600@balister.org>
+Received: from yx-out-2324.google.com ([74.125.44.30]:51001 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752540AbYKJWgf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 17:36:35 -0500
+Received: by yx-out-2324.google.com with SMTP id 8so1041399yxm.1
+        for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 14:36:34 -0800 (PST)
+In-Reply-To: <5e088bd90811101238l16057159ua0c3dbe88ebcb158@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Philip Balister <philip@balister.org>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-On Mon, Nov 10, 2008 at 7:10 AM, Philip Balister <philip@balister.org> wrote:
-> A few weeks ago kernels built from git would detect the sound hardware and
-> actually work.
+On Mon, Nov 10, 2008 at 12:38 PM, Steve Sakoman <sakoman@gmail.com> wrote:
+> On Mon, Nov 10, 2008 at 7:10 AM, Philip Balister <philip@balister.org> wrote:
+>> A few weeks ago kernels built from git would detect the sound hardware and
+>> actually work.
+>>
+>> Yesterday I build a kernel and the sound hardware is no longer detected. Is
+>> there an easy way to fix this?
+>>
+>> Sorry I'm so vague, I don't have all the revision data handy ....
 >
-> Yesterday I build a kernel and the sound hardware is no longer detected. Is
-> there an easy way to fix this?
+> I just noticed this too.
 >
-> Sorry I'm so vague, I don't have all the revision data handy ....
+> It seems that the Kconfig for soc/omap got damaged in the merge.
+>
+> The fix is simple, patch below.
 
-I just noticed this too.
+Next time I should build test before posting :-)
 
-It seems that the Kconfig for soc/omap got damaged in the merge.
+Turns out that the Makefile for soc/omap and the Kconfig and Makefile
+for soc/codec also got screwed up in the merge, so those need to be
+fixed.
 
-The fix is simple, patch below.
+The complete fix is:
 
-Tony, this should trickle in from the alsa folks since they have
-merged my ASoC drivers, but you might want to merge this patch locally
-in the meantime.
+diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
+index 38a0e3b..5df7402 100644
+--- a/sound/soc/codecs/Kconfig
++++ b/sound/soc/codecs/Kconfig
+@@ -10,6 +10,7 @@ config SND_SOC_ALL_CODECS
+ 	select SND_SOC_TLV320AIC23
+ 	select SND_SOC_TLV320AIC26
+ 	select SND_SOC_TLV320AIC3X
++	select SND_SOC_TWL4030
+ 	select SND_SOC_UDA1380
+ 	select SND_SOC_WM8510
+ 	select SND_SOC_WM8580
+@@ -75,6 +76,10 @@ config SND_SOC_TLV320AIC3X
+ 	tristate
+ 	depends on I2C
 
-Steve
++config SND_SOC_TWL4030
++	tristate
++	depends on TWL4030_CORE
++
+ config SND_SOC_UDA1380
+         tristate
 
+diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
+index 90f0a58..3b9b58a 100644
+--- a/sound/soc/codecs/Makefile
++++ b/sound/soc/codecs/Makefile
+@@ -7,6 +7,7 @@ snd-soc-ssm2602-objs := ssm2602.o
+ snd-soc-tlv320aic23-objs := tlv320aic23.o
+ snd-soc-tlv320aic26-objs := tlv320aic26.o
+ snd-soc-tlv320aic3x-objs := tlv320aic3x.o
++snd-soc-twl4030-objs := twl4030.o
+ snd-soc-uda1380-objs := uda1380.o
+ snd-soc-wm8510-objs := wm8510.o
+ snd-soc-wm8580-objs := wm8580.o
+@@ -29,6 +30,7 @@ obj-$(CONFIG_SND_SOC_SSM2602)	+= snd-soc-ssm2602.o
+ obj-$(CONFIG_SND_SOC_TLV320AIC23)	+= snd-soc-tlv320aic23.o
+ obj-$(CONFIG_SND_SOC_TLV320AIC26)	+= snd-soc-tlv320aic26.o
+ obj-$(CONFIG_SND_SOC_TLV320AIC3X)	+= snd-soc-tlv320aic3x.o
++obj-$(CONFIG_SND_SOC_TWL4030)	+= snd-soc-twl4030.o
+ obj-$(CONFIG_SND_SOC_UDA1380)	+= snd-soc-uda1380.o
+ obj-$(CONFIG_SND_SOC_WM8510)	+= snd-soc-wm8510.o
+ obj-$(CONFIG_SND_SOC_WM8580)	+= snd-soc-wm8580.o
 diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
 index 8b7766b..0daeee4 100644
 --- a/sound/soc/omap/Kconfig
@@ -73,4 +120,21 @@ index 8b7766b..0daeee4 100644
 +	help
 +	  Say Y if you want to add support for SoC audio on the Gumstix Overo.
 +
++
+diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
+index e09d1f2..4bae404 100644
+--- a/sound/soc/omap/Makefile
++++ b/sound/soc/omap/Makefile
+@@ -7,7 +7,12 @@ obj-$(CONFIG_SND_OMAP_SOC_MCBSP) += snd-soc-omap-mcbsp.o
+
+ # OMAP Machine Support
+ snd-soc-n810-objs := n810.o
++snd-soc-omap3beagle-objs := omap3beagle.o
+ snd-soc-osk5912-objs := osk5912.o
++snd-soc-overo-objs := overo.o
+
+ obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
++obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
+ obj-$(CONFIG_SND_OMAP_SOC_OSK5912) += snd-soc-osk5912.o
++obj-$(CONFIG_SND_OMAP_SOC_OVERO) += snd-soc-overo.o
 +
