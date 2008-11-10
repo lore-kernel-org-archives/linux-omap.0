@@ -1,54 +1,88 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: [PATCH 02/03] OMAP3 PM: CPUFreq driver for OMAP3
-Date: Mon, 10 Nov 2008 17:51:42 +0100
-Message-ID: <E5AA89C2-5194-4FE8-872E-59BCA2D83AC0@student.utwente.nl>
-References: <00c901c94327$ba6b0090$LocalHost@wipultra1382>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-7-1068083321"
-Content-Transfer-Encoding: 7bit
+From: Rick Bronson <rick@efn.org>
+Subject: Re: [FYI] TI dspbridge rebase against latest l-o
+Date: Mon, 10 Nov 2008 09:25:12 -0800
+Message-ID: <E1KzaVk-0002Ad-8j@amazonia.comcast.net>
+References: <E1Kypkb-0001xP-PC@amazonia.comcast.net>
+	<20081108.215706.219299730.Hiroshi.DOYU@nokia.com> <20081108.220531.30268045.Hiroshi.DOYU@nokia.com>
+Reply-To: rick@efn.org
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.utsp.utwente.nl ([130.89.2.8]:44528 "EHLO smtp.utwente.nl"
+Received: from samwise.efn.org ([12.33.21.33]:41518 "EHLO samwise.efn.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753262AbYKJQzb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Nov 2008 11:55:31 -0500
-In-Reply-To: <00c901c94327$ba6b0090$LocalHost@wipultra1382>
+	id S1752759AbYKJRZP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Nov 2008 12:25:15 -0500
+In-reply-to: <20081108.220531.30268045.Hiroshi.DOYU@nokia.com> (message from
+	Hiroshi DOYU on Sat, 08 Nov 2008 22:05:31 +0200 (EET))
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 Cc: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-7-1068083321
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+Hiroshi,
+
+  It works!
+
+  I used strace on ping.out and found out you need to be root to run
+it.  You might add that to your HOWTO.  See new HOWTO below.
+
+  My device got made but it's 252 instead of 251.  Not sure what
+that's about.
+
+> ls -al /dev/DspBridge                                                         
+crw-rw---- 1 root root 252, 0 2008-11-10 08:17 /dev/DspBridge                   
+
+  Thanks very much for the help.
+
+  Rick
 
 
-Op 10 nov 2008, om 12:30 heeft Rajendra Nayak het volgende geschreven:
->
-> +#elif defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)\
-> +	&& defined(CONFIG_MACH_OMAP_3430SDP)
+Updated OMAP3 DspBridge HOWTO:
 
-Could this be changed to machine_is_<foo>() so multi-omap kernels  
-work? And if not, doesn't CONFIG_MACH_OMAP_3430SDP imply  
-CONFIG_ARCH_OMAP3?
+1. First get the date of the most current patch.
+DATE=20081107
 
-regards,
+2. Do this on your host Linux box:
+git clone http://www.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+mkdir -p patches
+cd patches
+wget http://4869037.web.fc2.com/tidspbridge-$DATE.tgz
+tar xvzf tidspbridge-$DATE.tgz
+cd ../linux-omap-2.6
+git am ../patches/*.patch
+make <your omap3 board>_defconfig # eg. omap3_beagle_defconfig
+make menuconfig # add the following options in the menuconfig
+ ...
+ CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=14
+ # CONFIG_CBUS is not set
+ CONFIG_MPU_BRIDGE=m
+ # CONFIG_BRIDGE_DVFS is not set
+ CONFIG_BRIDGE_DEBUG=y
 
-Koen
+3. You can get bridge sample binaries as below, put these on your
+   target file system somewhere. Extract it somewhere on target rootfs.
 
---Apple-Mail-7-1068083321
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: This is a digitally signed message part
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
+  https://omapzoom.org/gf/download/frsrelease/132/632/dspbridge_binaries.tar.bz2
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
+4. Make the modules and put them on the target rootfs.  For example,
+   on your host box do:
 
-iD8DBQFJGGahMkyGM64RGpERApZrAJ942RgR577dztuamzmh/VAEDfoHnQCeMBDy
-u2Wul+cohZhCJWSkFSY1+0E=
-=lkEN
------END PGP SIGNATURE-----
+cd linux-omap-2.6; tar czf ../modules.tar.gz `find . -name "*.ko"`
 
---Apple-Mail-7-1068083321--
+5. Then on the target do:
+
+sudo mkdir -p /lib/modules/`uname -r`/kernel/
+sudo tar xzf modules.tar.gz -C /lib/modules/`uname -r`/kernel/
+sudo depmod -a
+
+# if you don't have libbridge.so see http://elinux.org/BeagleBoard/gst-openmax
+# and do this on the target:
+sudo cp libbridge.so /lib
+sudo ln -s libbridge.so /lib/libbridge.so.2
+
+# NOTE: set "PATH" below correctly
+sudo modprobe bridgedriver base_img=/PATH/ddspbase_tiomap3430.dof64P
+ls -al /dev/DspBridge  # check to see that the device got made
+  crw-rw---- 1 root root 252, 0 2008-11-10 08:53 /dev/DspBridge                   
+sudo /PATH/ping.out
+grep DspBridge /proc/interrupts   # check to see that you have gotten some interrupts
+ 26:        334        INTC  DspBridge                                          
+ 28:          0        INTC  DspBridge                                          
