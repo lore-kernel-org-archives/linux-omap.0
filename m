@@ -1,51 +1,177 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 00/03] OMAP3 PM: CPUFreq driver for OMAP3
-Date: Mon, 10 Nov 2008 17:00:06 +0530
-Message-ID: <00c701c94327$aec6cee0$LocalHost@wipultra1382>
+Subject: [PATCH 01/03] OMAP3 PM: Replace spinlocks with mutex in SRF
+Date: Mon, 10 Nov 2008 17:00:16 +0530
+Message-ID: <00c801c94327$b4941940$LocalHost@wipultra1382>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50645 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50653 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754506AbYKJLaP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 06:30:15 -0500
+	id S1754510AbYKJLaY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 06:30:24 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id mAABU8PK028666
-	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 05:30:13 -0600
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id mAABUHKY028935
+	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 05:30:23 -0600
 Received: from wipultra1382 (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id mAABU7pY013449
-	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 17:00:07 +0530 (IST)
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id mAABUGgm013594
+	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 17:00:16 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Hi,
+This patch replaces spinlock used in SRF with mutexs.
+Spinlocks were initially used to take care of calls 
+to SRF from clock f/w. Now with those clock f/w hooks
+no longer needed, there is no need to use spinlocks
+in SRF.
 
-This patch set implements the CPUFreq driver for OMAP3 platforms. I have these patches 
-validated on 3430SDP using the omap_3430sdp_min_defconfig.
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/plat-omap/resource.c |   40 ++++++++++++++++------------------------
+ 1 files changed, 16 insertions(+), 24 deletions(-)
 
-These patches apply on top of pm-20081106 (commit 0994b2df775ac04806ed) 
-+ [PATCH 00/08] OMAP3 SRF: OPP and Frequency resources.
-"CPUFreq" and "PM layer implemented using SRF" are selected by default now in 
-the omap_3430sdp_min_defconfig.
-
-CPUFreq driver now scales only between OPP1 and OPP4 (110% overdrive). 
-By default the governor selected is "perforamance" hence the bootup happens at OPP4.
-After bootup use this command to switch to ondemand governor
-echo ondemand > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-
-The ondemand governor can be tuned for sampling rate (rate at which CPU load samples are taken)
-and up threshold using the following 
-/sys/devices/system/cpu/cpu0/cpufreq/ondemand/sampling_rate
-/sys/devices/system/cpu/cpu0/cpufreq/ondemand/up_threshold
-
-regards,
-Rajendra
-
-
-
-
-  
-
+Index: linux-omap-2.6/arch/arm/plat-omap/resource.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/resource.c	2008-11-10 15:44:22.000000000 +0530
++++ linux-omap-2.6/arch/arm/plat-omap/resource.c	2008-11-10 16:43:47.000000000 +0530
+@@ -33,8 +33,8 @@
+ /* res_list contains all registered struct shared_resource */
+ static LIST_HEAD(res_list);
+ 
+-/* res_lock protects res_list add and del ops */
+-static DEFINE_SPINLOCK(res_lock);
++/* res_mutex protects res_list add and del ops */
++static DECLARE_MUTEX(res_mutex);
+ 
+ /* Static Pool of users for a resource used till kmalloc becomes available */
+ struct  users_list usr_list[MAX_USERS];
+@@ -73,18 +73,17 @@ static struct shared_resource *_resource
+  *
+  * Looks for a registered resource by its name. Returns a pointer to
+  * the struct shared_resource if found, else returns NULL.
+- * The function holds spinlocks and takes care of atomicity.
++ * The function holds mutex and takes care of atomicity.
+  */
+ static struct shared_resource *resource_lookup(const char *name)
+ {
+ 	struct shared_resource *res;
+-	unsigned long flags;
+ 
+ 	if (!name)
+ 		return NULL;
+-	spin_lock_irqsave(&res_lock, flags);
++	down(&res_mutex);
+ 	res = _resource_lookup(name);
+-	spin_unlock_irqrestore(&res_lock, flags);
++	up(&res_mutex);
+ 
+ 	return res;
+ }
+@@ -254,8 +253,6 @@ int resource_refresh(void)
+  */
+ int resource_register(struct shared_resource *resp)
+ {
+-	unsigned long flags;
+-
+ 	if (!resp)
+ 		return -EINVAL;
+ 
+@@ -268,7 +265,7 @@ int resource_register(struct shared_reso
+ 
+ 	INIT_LIST_HEAD(&resp->users_list);
+ 
+-	spin_lock_irqsave(&res_lock, flags);
++	down(&res_mutex);
+ 	/* Add the resource to the resource list */
+ 	list_add(&resp->node, &res_list);
+ 
+@@ -276,7 +273,7 @@ int resource_register(struct shared_reso
+ 	if (resp->ops->init)
+ 		resp->ops->init(resp);
+ 
+-	spin_unlock_irqrestore(&res_lock, flags);
++	up(&res_mutex);
+ 	pr_debug("resource: registered %s\n", resp->name);
+ 
+ 	return 0;
+@@ -292,15 +289,13 @@ EXPORT_SYMBOL(resource_register);
+  */
+ int resource_unregister(struct shared_resource *resp)
+ {
+-	unsigned long flags;
+-
+ 	if (!resp)
+ 		return -EINVAL;
+ 
+-	spin_lock_irqsave(&res_lock, flags);
++	down(&res_mutex);
+ 	/* delete the resource from the resource list */
+ 	list_del(&resp->node);
+-	spin_unlock_irqrestore(&res_lock, flags);
++	up(&res_mutex);
+ 
+ 	pr_debug("resource: unregistered %s\n", resp->name);
+ 
+@@ -330,9 +325,8 @@ int resource_request(const char *name, s
+ 	struct shared_resource *resp;
+ 	struct  users_list *user;
+ 	int 	found = 0, ret = 0;
+-	unsigned long flags;
+ 
+-	spin_lock_irqsave(&res_lock, flags);
++	down(&res_mutex);
+ 	resp = _resource_lookup(name);
+ 	if (!resp) {
+ 		printk(KERN_ERR "resource_request: Invalid resource name\n");
+@@ -368,7 +362,7 @@ int resource_request(const char *name, s
+ 	user->level = level;
+ 
+ res_unlock:
+-	spin_unlock_irqrestore(&res_lock, flags);
++	up(&res_mutex);
+ 	/*
+ 	 * Recompute and set the current level for the resource.
+ 	 * NOTE: update_resource level moved out of spin_lock, as it may call
+@@ -398,9 +392,8 @@ int resource_release(const char *name, s
+ 	struct shared_resource *resp;
+ 	struct users_list *user;
+ 	int found = 0, ret = 0;
+-	unsigned long flags;
+ 
+-	spin_lock_irqsave(&res_lock, flags);
++	down(&res_mutex);
+ 	resp = _resource_lookup(name);
+ 	if (!resp) {
+ 		printk(KERN_ERR "resource_release: Invalid resource name\n");
+@@ -428,7 +421,7 @@ int resource_release(const char *name, s
+ 	/* Recompute and set the current level for the resource */
+ 	ret = update_resource_level(resp);
+ res_unlock:
+-	spin_unlock_irqrestore(&res_lock, flags);
++	up(&res_mutex);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(resource_release);
+@@ -444,17 +437,16 @@ int resource_get_level(const char *name)
+ {
+ 	struct shared_resource *resp;
+ 	u32 ret;
+-	unsigned long flags;
+ 
+-	spin_lock_irqsave(&res_lock, flags);
++	down(&res_mutex);
+ 	resp = _resource_lookup(name);
+ 	if (!resp) {
+ 		printk(KERN_ERR "resource_release: Invalid resource name\n");
+-		spin_unlock_irqrestore(&res_lock, flags);
++		up(&res_mutex);
+ 		return -EINVAL;
+ 	}
+ 	ret = resp->curr_level;
+-	spin_unlock_irqrestore(&res_lock, flags);
++	up(&res_mutex);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(resource_get_level);
 
