@@ -1,91 +1,103 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [BRIDGE] bridgedriver load/unload problem
-Date: Mon, 10 Nov 2008 13:59:17 +0200 (EET)
-Message-ID: <20081110.135917.46194187.Hiroshi.DOYU@nokia.com>
+From: "Shah, Hardik" <hardik.shah@ti.com>
+Subject: RE: [Linux-fbdev-devel] [REVIEW  PATCH 0/9] DSS: Series description
+Date: Mon, 10 Nov 2008 17:33:58 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02DF3030A2@dbde02.ent.ti.com>
+References: <alpine.DEB.2.00.0811101313400.11080@tubuntu>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:22714 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754306AbYKJL7q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 06:59:46 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:41428 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755254AbYKJMET convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 07:04:19 -0500
+In-Reply-To: <alpine.DEB.2.00.0811101313400.11080@tubuntu>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ramesh <x0023949@ti.com>
-Cc: linux-omap@vger.kernel.org, vpasam@ti.com
+To: Tomi Valkeinen <valkeine@nokia.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
 
-I got the following error, has anyone got the similar problem?
 
-custom:~# cat test.sh
-#!/bin/sh
+> -----Original Message-----
+> From: Tomi Valkeinen [mailto:valkeine@nokia.com]
+> Sent: Monday, November 10, 2008 5:01 PM
+> To: Shah, Hardik
+> Cc: Tomi Valkeinen; linux-fbdev-devel@lists.sourceforge.net; linux-
+> omap@vger.kernel.org
+> Subject: RE: [Linux-fbdev-devel] [REVIEW PATCH 0/9] DSS: Series description
+> 
+> Hi,
+> 
+> On Mon, 10 Nov 2008, ext Shah, Hardik wrote:
+> 
+> >>
+> > [Shah, Hardik] We have reviewed the patches in detail and even made
+> modifications to make it work on the OMAP3EVM. Here are our observations:
+> >
+> > 1) The overall implementation is very much in line with our earlier proposal
+> to provide generic API that supports both V4L2 and FBDEV.
+> > 2) The implementation supports multiple output interfaces e.g. RFBI, SDI,
+> DSI, ... that we did not have in our plans
+> > 3) You have also validated it on lot many platforms that we do not have
+> access.
+> >
+> > We believe patches are a good step in right direction.
+> >
+> > We plan to use this patchset as base for supporting these additional use
+> cases:
+> >
+> > a) Adding the V4L2 user interface to the video pipelines (I believe video
+> pipelines are natural fit for the V4L2 frame work.  If use case is there for
+> FBDEV interface we can have compile time option to expose the video pipelines
+> as the either FBDEV or v4L2 interface).
+> > b) Modification of the DSS/DISPC library for supporting V4L2 user interface.
+> > c) Supporting the functionality like alpha blending, global alpha blending,
+> setting of various TV standards etc.
+> > d) Supporting the mirroring and rotation in both FBDEV and V4L2 driver.
+> >
+> > Do let us know if you aren't already working on any of these.
+> 
+> This sounds very good. I am not currently working on any of those items
+> you mentioned. A couple of comments/thoughts about them:
+> 
+> a) Yes, V4L2 interface would be nice. But there are use cases for FB
+> devices also, and sometimes you don't want V4L2 devices at all. So as you
+> suggested, a compile time option to select this is necessary. Or, better
+> yet, a runtime option.
+> 
+> One way to implement simultaneous FB and V4L2 devices is to have to
+> separate drivers. But then this needs more locking support to DSS, and
+> pobably some kind of event mechanism. For example, if both FB and V4L2
+> have overlays on the same display, and one of them changes the screen
+> resolution, the other one needs to know about this also.
+> 
+> So what I have been thinking is to have both FB and V4L2 in the same
+> driver. This would make things easier. But then again, I don't know how
+> much code V4L2 needs, and if the combined driver would get too complex.
+> 
+[Shah, Hardik] As long as the screen resolutions and timings are concerned, V4L2 driver will always take into account resolution before setting the format. Same is true for frame buffer driver before panning the display it should get the fscreen info and vscreen info and then start panning. While panning/streaming is going on any of the V4L2/FBDEV driver application has to take care of not changing the screen resolution/timing.
 
-modprobe bridgedriver \
-    base_img=./ddspbase_tiomap3430.dof64P && \
-    ./ping.out 1 && \
-    rmmod bridgedriver
+> b) Do you already have ideas what features V4L2 needs that are not present
+> in DSS currently?
+> 
+[Shah, Hardik] We are working on that. We will be providing the comments on changes/modification in the DSS/DISPC in next two/three days.
+> c) Yes, these would be nice.
+> 
+> d) These would be nice also. About rotation, I think there are three kinds
+> of rotation that are handled by different entities:
+> - DMA rotation, for framebuffers in SRAM. Handled by DSS.
+> - External framebuffer rotation, handled by the external framebuffer
+> controller.
+> - VRFB rotation. This is basically a memory handling configuration, and is
+> transparent to the end user (in this case, DSS) of the memory. Should be
+> handled by the entity that allocates the memory, ie. omapfb.
+[Shah, Hardik] so how are you planning to take care of rotation/mirroring.  We have board that only supports VRFB rotation. 
 
-custom:~# ./test.sh
-DSP device detected !! 
-DSPNodeCreate succeeded 
-DSPNode_registerNotify succeeded 
-DSPNode_run succeeded 
-Ping: Id 1.000000 Msg 0.000000 Mem 15408.000000
-custom:~# 
-custom:~# ./test.sh
-DSP device detected !! Unable to handle kernel paging request at virtual address be5e7017
+Hardik
+Vaibhav
 
-pgd = c0004000
-[be5e7017] *pgd=00000000
-Internal error: Oops: 805 [#1] PREEMPT
-Modules linked in: bridgedriver smc91x mii tsc2005 omap_hsmmc mmc_core rtc_twl4030 rtc_core [last unloaded: bridgedriver]
-CPU: 0    Not tainted  (2.6.27-omap1 #70)
-PC is at PrintDSPDebugTrace+0xe4/0x114 [bridgedriver]
-LR is at PrintDSPDebugTrace+0xc8/0x114 [bridgedriver]
-pc : [<bf0315b0>]    lr : [<bf031594>]    psr: 40000013
-sp : cf423ed8  ip : cf5f0018  fp : cf423eec
-r10: cf776158  r9 : ff3f1000  r8 : cea9f018
-r7 : cf776758  r6 : ff3f93f0  r5 : cea9f018  r4 : eeff5000
-r3 : 00000000  r2 : be5e5018  r1 : 00001fff  r0 : bf08028c
-Flags: nZcv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-Control: 00c5387f  Table: 8eaa8018  DAC: 00000017
-Process ksoftirqd/0 (pid: 3, stack limit = 0xcf4222e0)
-Stack: (0xcf423ed8 to 0xcf424000)
-3ec0:                                                       0000ffff 0000ffff 
-3ee0: cf423f4c cf423ef0 bf0322ac bf0314d8 9343a811 00000022 cf422000 00000000 
-3f00: ff3f9360 ff3f9370 00000000 00000000 00000000 fffffffe cea407f8 cf776758 
-3f20: cf423f54 cf776b78 00000001 00000001 00000000 00000000 00000000 00000000 
-3f40: cf423f6c cf423f50 bf02b394 bf0319e4 00000001 00000000 0000000a 00000000 
-3f60: cf423f84 cf423f70 c0055804 bf02b330 00000001 c036f3f4 cf423fa4 cf423f88 
-3f80: c0055600 c00557a4 60000013 00000000 00000000 00000000 cf423fbc cf423fa8 
-3fa0: c00556b8 c00555b0 cf422000 00000000 cf423fdc cf423fc0 c0055aa0 c0055674 
-3fc0: 00000000 c0055a28 00000000 00000000 cf423ff4 cf423fe0 c0065758 c0055a34 
-3fe0: 00000000 00000000 00000000 cf423ff8 c00533f0 c0065710 00000000 00000000 
-Backtrace: 
-[<bf0314cc>] (PrintDSPDebugTrace+0x0/0x114 [bridgedriver]) from [<bf0322ac>] (IO_DPC+0x8d4/0x960 [bridgedriver])
- r5:0000ffff r4:0000ffff
-[<bf0319d8>] (IO_DPC+0x0/0x960 [bridgedriver]) from [<bf02b394>] (DPC_DeferredProcedure+0x70/0xb8 [bridgedriver])
-[<bf02b324>] (DPC_DeferredProcedure+0x0/0xb8 [bridgedriver]) from [<c0055804>] (tasklet_action+0x6c/0xb8)
- r7:00000000 r6:0000000a r5:00000000 r4:00000001
-[<c0055798>] (tasklet_action+0x0/0xb8) from [<c0055600>] (__do_softirq+0x5c/0xc4)
- r5:c036f3f4 r4:00000001
-[<c00555a4>] (__do_softirq+0x0/0xc4) from [<c00556b8>] (do_softirq+0x50/0x5c)
- r7:00000000 r6:00000000 r5:00000000 r4:60000013
-[<c0055668>] (do_softirq+0x0/0x5c) from [<c0055aa0>] (ksoftirqd+0x78/0x14c)
- r5:00000000 r4:cf422000
-[<c0055a28>] (ksoftirqd+0x0/0x14c) from [<c0065758>] (kthread+0x54/0x80)
- r7:00000000 r6:00000000 r5:c0055a28 r4:00000000
-[<c0065704>] (kthread+0x0/0x80) from [<c00533f0>] (do_exit+0x0/0x788)
- r5:00000000 r4:00000000
-Code: e0631001 e59f002c e0822004 e3a03000 (e7c23001) 
-Kernel panic - not syncing: Fatal exception in interrupt
+> 
+>   Tomi
 
-You can get the whole GT_str enabled log from:
-
-http://4869037.web.fc2.com/bridge-load-problem.txt
-
-Any info would be appreciated.
-
-    Hiroshi DOYU
