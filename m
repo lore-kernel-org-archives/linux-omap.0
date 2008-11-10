@@ -1,504 +1,232 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 03/08] OMAP3 SRF: Add virt clk nodes for VDD1/VDD2
-Date: Mon, 10 Nov 2008 16:58:20 +0530
-Message-ID: <00c101c94327$6f55cf90$LocalHost@wipultra1382>
+Subject: [PATCH 04/08] OMAP3 SRF: Adds OPP/Freq res's in SRF
+Date: Mon, 10 Nov 2008 16:58:39 +0530
+Message-ID: <00c201c94327$7ac5aad0$LocalHost@wipultra1382>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50549 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:48249 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754490AbYKJL22 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 06:28:28 -0500
+	id S1754494AbYKJL2r convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 06:28:47 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id mAABSLLV027768
-	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 05:28:27 -0600
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id mAABSeK3003392
+	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 05:28:46 -0600
 Received: from wipultra1382 (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id mAABSKUZ012968
-	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 16:58:20 +0530 (IST)
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id mAABSd9a013004
+	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 16:58:39 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-The patch defines virtual nodes for VDD1 and VDD2
+This patch implements the OPP and Frequency resources
+on OMAP3 platform.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/clock34xx.c           |  197 +++++++++++++++++++++++++-----
- arch/arm/mach-omap2/clock34xx.h           |   25 +++
- arch/arm/mach-omap2/io.c                  |    5 
- arch/arm/plat-omap/include/mach/omap-pm.h |   18 +-
- arch/arm/plat-omap/omap-pm-noop.c         |   20 +--
- arch/arm/plat-omap/omap-pm-srf.c          |   20 +--
- 6 files changed, 229 insertions(+), 56 deletions(-)
+ arch/arm/mach-omap2/resource34xx.c |   93 +++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/resource34xx.h |   73 +++++++++++++++++++++++++++++
+ 2 files changed, 166 insertions(+)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/clock34xx.h
+Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/clock34xx.h	2008-11-10 15:24:50.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/clock34xx.h	2008-11-10 15:29:38.000000000 +0530
-@@ -20,6 +20,7 @@
- #define __ARCH_ARM_MACH_OMAP2_CLOCK34XX_H
- 
- #include <mach/control.h>
-+#include <mach/omap-pm.h>
- 
- #include "clock.h"
- #include "cm.h"
-@@ -36,6 +37,9 @@ static int omap3_noncore_dpll_enable(str
- static void omap3_noncore_dpll_disable(struct clk *clk);
- static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate);
- static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate);
-+static void omap3_table_recalc(struct clk *clk);
-+static long omap3_round_to_table_rate(struct clk *clk, unsigned long rate);
-+static int omap3_select_table_rate(struct clk *clk, unsigned long rate);
- 
- /* Maximum DPLL multiplier, divider values for OMAP3 */
- #define OMAP3_MAX_DPLL_MULT		2048
-@@ -3388,6 +3392,24 @@ static struct clk wdt1_fck = {
- 	.recalc		= &followparent_recalc,
- };
- 
-+static struct clk virt_vdd1_prcm_set = {
-+	.name = "virt_vdd1_prcm_set",
-+	.flags = CLOCK_IN_OMAP343X | VIRTUAL_CLOCK | ALWAYS_ENABLED,
-+	.parent = &mpu_ck, /* Indexed by mpu speed, no parent */
-+	.recalc = &omap3_table_recalc, /*sets are keyed on mpu rate */
-+	.set_rate = &omap3_select_table_rate,
-+	.round_rate = &omap3_round_to_table_rate,
-+};
-+
-+static struct clk virt_vdd2_prcm_set = {
-+	.name = "virt_vdd2_prcm_set",
-+	.flags = CLOCK_IN_OMAP343X | VIRTUAL_CLOCK | ALWAYS_ENABLED,
-+	.parent = &core_ck,
-+	.recalc = &omap3_table_recalc,
-+	.set_rate = &omap3_select_table_rate,
-+	.round_rate = &omap3_round_to_table_rate,
-+};
-+
- static struct clk *onchip_34xx_clks[] __initdata = {
- 	&omap_32k_fck,
- 	&virt_12m_ck,
-@@ -3610,6 +3632,9 @@ static struct clk *onchip_34xx_clks[] __
- 	&secure_32k_fck,
- 	&gpt12_fck,
- 	&wdt1_fck,
-+	/* virtual group clock */
-+	&virt_vdd1_prcm_set,
-+	&virt_vdd2_prcm_set,
- };
- 
- #endif
-Index: linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/clock34xx.c	2008-11-10 15:24:50.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c	2008-11-10 15:29:38.000000000 +0530
-@@ -25,6 +25,7 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- #include <linux/limits.h>
-+#include <linux/err.h>
- 
- #include <mach/clock.h>
- #include <mach/sram.h>
-@@ -38,6 +39,7 @@
- #include "prm-regbits-34xx.h"
- #include "cm.h"
- #include "cm-regbits-34xx.h"
-+#include "pm.h"
- 
- /* CM_AUTOIDLE_PLL*.AUTO_* bit values */
- #define DPLL_AUTOIDLE_DISABLE			0x0
-@@ -45,6 +47,32 @@
- 
- #define MAX_DPLL_WAIT_TRIES		1000000
- 
-+struct omap_opp *curr_vdd1_prcm_set;
-+struct omap_opp *curr_vdd2_prcm_set;
-+static struct clk *dpll1_clk, *dpll2_clk, *dpll3_clk;
-+
-+#ifndef CONFIG_CPU_FREQ
-+static unsigned long compute_lpj(unsigned long ref, u_int div, u_int mult)
-+{
-+	unsigned long new_jiffy_l, new_jiffy_h;
-+
-+	/*
-+	 * Recalculate loops_per_jiffy.  We do it this way to
-+	 * avoid math overflow on 32-bit machines.  Maybe we
-+	 * should make this architecture dependent?  If you have
-+	 * a better way of doing this, please replace!
-+	 *
-+	 *    new = old * mult / div
-+	 */
-+	new_jiffy_h = ref / div;
-+	new_jiffy_l = (ref % div) / 100;
-+	new_jiffy_h *= mult;
-+	new_jiffy_l = new_jiffy_l * mult / div;
-+
-+	return new_jiffy_h + new_jiffy_l * 100;
-+}
-+#endif
-+
- /**
-  * omap3_dpll_recalc - recalculate DPLL rate
-  * @clk: DPLL struct clk
-@@ -666,12 +694,6 @@ static int __init omap2_clk_arch_init(vo
- 	if (!mpurate)
- 		return -EINVAL;
- 
--	/* REVISIT: not yet ready for 343x */
--#if 0
--	if (omap2_select_table_rate(&virt_prcm_set, mpurate))
--		printk(KERN_ERR "Could not find matching MPU rate\n");
--#endif
--
- 	recalculate_root_clocks();
- 
- 	printk(KERN_INFO "Switched to new clocking rate (Crystal/DPLL3/MPU): "
-@@ -689,6 +711,9 @@ int __init omap2_clk_init(void)
- 	struct clk **clkp;
- 	/* u32 clkrate; */
- 	u32 cpu_clkflg;
-+	unsigned long mpu_speed, core_speed;
-+	struct omap_opp *prcm_vdd;
-+
- 
- 	/* REVISIT: Ultimately this will be used for multiboot */
- #if 0
-@@ -727,26 +752,34 @@ int __init omap2_clk_init(void)
- 	     clkp++) {
- 		if ((*clkp)->flags & cpu_clkflg) {
- 			clk_register(*clkp);
--			omap2_init_clk_clkdm(*clkp);
-+			if (!((*clkp)->flags & VIRTUAL_CLOCK))
-+				omap2_init_clk_clkdm(*clkp);
- 		}
- 	}
- 
--	/* REVISIT: Not yet ready for OMAP3 */
--#if 0
--	/* Check the MPU rate set by bootloader */
--	clkrate = omap2_get_dpll_rate_24xx(&dpll_ck);
--	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
--		if (!(prcm->flags & cpu_mask))
--			continue;
--		if (prcm->xtal_speed != sys_ck.rate)
--			continue;
--		if (prcm->dpll_speed <= clkrate)
--			 break;
-+	recalculate_root_clocks();
-+
-+	dpll1_clk = clk_get(NULL, "dpll1_ck");
-+	dpll2_clk = clk_get(NULL, "dpll2_ck");
-+	dpll3_clk = clk_get(NULL, "dpll3_m2_ck");
-+
-+	mpu_speed = dpll1_clk->rate;
-+	prcm_vdd = mpu_opps + MAX_VDD1_OPP;
-+	for (; prcm_vdd->rate; prcm_vdd--) {
-+		if (prcm_vdd->rate <= mpu_speed) {
-+			curr_vdd1_prcm_set = prcm_vdd;
-+			break;
-+		}
- 	}
--	curr_prcm_set = prcm;
--#endif
- 
--	recalculate_root_clocks();
-+	core_speed = dpll3_clk->rate;
-+	prcm_vdd = l3_opps + MAX_VDD2_OPP;
-+	for (; prcm_vdd->rate; prcm_vdd--) {
-+		if (prcm_vdd->rate <= core_speed) {
-+			curr_vdd2_prcm_set = prcm_vdd;
-+			break;
-+		}
-+	}
- 
- 	printk(KERN_INFO "Clocking rate (Crystal/DPLL/ARM core): "
- 	       "%ld.%01ld/%ld/%ld MHz\n",
-@@ -759,13 +792,123 @@ int __init omap2_clk_init(void)
- 	 */
- 	clk_enable_init_clocks();
- 
--	/* Avoid sleeping during omap2_clk_prepare_for_reboot() */
--	/* REVISIT: not yet ready for 343x */
--#if 0
--	vclk = clk_get(NULL, "virt_prcm_set");
--	sclk = clk_get(NULL, "sys_ck");
--#endif
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.c	2008-11-10 12:09:02.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c	2008-11-10 12:09:13.000000000 +0530
+@@ -130,3 +130,96 @@ int set_pd_latency(struct shared_resourc
+ 	set_pwrdm_state(pwrdm, pd_lat_level);
  	return 0;
  }
- 
-+unsigned long get_freq(struct omap_opp *opp_freq_table,
-+		      unsigned short opp)
-+{
-+	struct omap_opp *prcm_config;
-+	prcm_config = opp_freq_table;
 +
-+	for (; prcm_config->opp_id; prcm_config--)
-+		if (prcm_config->opp_id == opp)
-+			return prcm_config->rate;
++static struct clk *vdd1_clk;
++static struct clk *vdd2_clk;
++static struct device dummy_srf_dev;
++
++/**
++ * init_opp - Initialize the OPP resource
++ */
++void init_opp(struct shared_resource *resp)
++{
++	resp->no_of_users = 0;
++	/* Initialize the current level of the OPP resource
++	* to the  opp set by u-boot.
++	*/
++	if (strcmp(resp->name, "vdd1_opp") == 0) {
++		resp->curr_level = curr_vdd1_prcm_set->opp_id;
++		vdd1_clk = clk_get(NULL, "virt_vdd1_prcm_set");
++	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
++		resp->curr_level = curr_vdd2_prcm_set->opp_id;
++		vdd2_clk = clk_get(NULL, "virt_vdd2_prcm_set");
++	}
++	return;
++}
++
++int set_opp(struct shared_resource *resp, u32 target_level)
++{
++	unsigned long mpu_freq;
++	if (strcmp(resp->name, "vdd1_opp") == 0) {
++		mpu_freq = get_freq(mpu_opps + MAX_VDD1_OPP,
++					target_level);
++		clk_set_rate(vdd1_clk, mpu_freq);
++		resp->curr_level = curr_vdd1_prcm_set->opp_id;
++	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
++		/* Not supported yet */
++	}
 +	return 0;
 +}
 +
-+unsigned short get_opp(struct omap_opp *opp_freq_table,
-+		     unsigned long freq)
++/**
++ * validate_opp - Validates if valid VDD1 OPP's are passed as the
++ * target_level.
++ * VDD2 OPP levels are passed as L3 throughput, which are then mapped
++ * to an appropriate OPP.
++ */
++int validate_opp(struct shared_resource *resp, u32 target_level)
 +{
-+	struct omap_opp *prcm_config;
-+	prcm_config = opp_freq_table;
-+
-+	if (prcm_config->rate <= freq)
-+		return prcm_config->opp_id; /* Return the Highest OPP */
-+	for (; prcm_config->rate; prcm_config--) {
-+		if (prcm_config->rate < freq)
-+			return (prcm_config+1)->opp_id;
-+		else if (prcm_config->rate == freq)
-+			return prcm_config->opp_id;
-+	}
-+	/* Return the least OPP */
-+	return (prcm_config+1)->opp_id;
++	return 0;
 +}
 +
-+static void omap3_table_recalc(struct clk *clk)
++/**
++ * init_freq - Initialize the frequency resource.
++ */
++void init_freq(struct shared_resource *resp)
 +{
-+	if ((clk != &virt_vdd1_prcm_set) && (clk != &virt_vdd2_prcm_set))
-+		return;
++	char *linked_res_name;
++	resp->no_of_users = 0;
 +
-+	if ((curr_vdd1_prcm_set) && (clk == &virt_vdd1_prcm_set))
-+		clk->rate = curr_vdd1_prcm_set->rate;
-+	else if ((curr_vdd2_prcm_set) && (clk == &virt_vdd2_prcm_set))
-+		clk->rate = curr_vdd2_prcm_set->rate;
-+	pr_debug("CLK RATE:%lu\n", clk->rate);
++	linked_res_name = (char *)resp->resource_data;
++	/* Initialize the current level of the Freq resource
++	* to the frequency set by u-boot.
++	*/
++	if (strcmp(resp->name, "mpu_freq") == 0)
++		/* MPU freq in Mhz */
++		resp->curr_level = curr_vdd1_prcm_set->rate;
++	else if (strcmp(resp->name, "dsp_freq") == 0)
++		/* DSP freq in Mhz */
++		resp->curr_level = get_freq(dsp_opps + MAX_VDD2_OPP,
++						curr_vdd1_prcm_set->opp_id);
++	return;
 +}
 +
-+static long omap3_round_to_table_rate(struct clk *clk, unsigned long rate)
++int set_freq(struct shared_resource *resp, u32 target_level)
 +{
-+	struct omap_opp *ptr;
-+	long highest_rate;
++	unsigned int vdd1_opp;
 +
-+	if ((clk != &virt_vdd1_prcm_set) && (clk != &virt_vdd2_prcm_set))
-+		return -EINVAL;
++	if (strcmp(resp->name, "mpu_freq") == 0)
++		vdd1_opp = get_opp(mpu_opps + MAX_VDD1_OPP, target_level);
++	else if (strcmp(resp->name, "dsp_freq") == 0)
++		vdd1_opp = get_opp(dsp_opps + MAX_VDD1_OPP, target_level);
 +
-+	highest_rate = -EINVAL;
-+
-+	if (clk == &virt_vdd1_prcm_set)
-+		ptr = mpu_opps + MAX_VDD1_OPP;
++	if (vdd1_opp == MIN_VDD1_OPP)
++		resource_release("vdd1_opp", &dummy_srf_dev);
 +	else
-+		ptr = dsp_opps + MAX_VDD2_OPP;
++		resource_request("vdd1_opp", &dummy_srf_dev, vdd1_opp);
 +
-+	for (; ptr->rate; ptr--) {
-+		highest_rate = ptr->rate;
-+		pr_debug("Highest speed : %lu, rate: %lu\n", highest_rate,
-+								rate);
-+		if (ptr->rate <= rate)
-+			break;
-+	}
-+	return highest_rate;
-+}
-+
-+static int omap3_select_table_rate(struct clk *clk, unsigned long rate)
-+{
-+	struct omap_opp *prcm_vdd;
-+	unsigned long found_speed = 0, curr_mpu_speed;
-+	int index;
-+
-+	if ((clk != &virt_vdd1_prcm_set) && (clk != &virt_vdd2_prcm_set))
-+		return -EINVAL;
-+
-+	if (clk == &virt_vdd1_prcm_set) {
-+		prcm_vdd = mpu_opps + MAX_VDD1_OPP;
-+		index = MAX_VDD1_OPP;
-+	} else if (clk == &virt_vdd2_prcm_set) {
-+		prcm_vdd = l3_opps + MAX_VDD2_OPP;
-+		index = MAX_VDD2_OPP;
-+	}
-+
-+	for (; prcm_vdd->rate; prcm_vdd--, index--) {
-+		if (prcm_vdd->rate <= rate) {
-+			found_speed = prcm_vdd->rate;
-+			pr_debug("Found speed = %lu\n", found_speed);
-+			break;
-+		}
-+	}
-+
-+	if (!found_speed) {
-+		printk(KERN_INFO "Could not set table rate to %luMHz\n",
-+		       rate / 1000000);
-+		return -EINVAL;
-+	}
-+
-+
-+	if (clk == &virt_vdd1_prcm_set) {
-+		curr_mpu_speed = curr_vdd1_prcm_set->rate;
-+		clk_set_rate(dpll1_clk, prcm_vdd->rate);
-+		clk_set_rate(dpll2_clk, dsp_opps[index].rate);
-+		curr_vdd1_prcm_set = prcm_vdd;
-+#ifndef CONFIG_CPU_FREQ
-+		/*Update loops_per_jiffy if processor speed is being changed*/
-+		loops_per_jiffy = compute_lpj(loops_per_jiffy,
-+					curr_mpu_speed/1000, found_speed/1000);
- #endif
-+	} else {
-+		clk_set_rate(dpll3_clk, prcm_vdd->rate);
-+		curr_vdd2_prcm_set = prcm_vdd;
-+	}
++	resp->curr_level = target_level;
 +	return 0;
 +}
 +
-+#endif /* CONFIG_ARCH_OMAP3 */
-Index: linux-omap-2.6/arch/arm/plat-omap/omap-pm-srf.c
++int validate_freq(struct shared_resource *resp, u32 target_level)
++{
++	return 0;
++}
+Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/plat-omap/omap-pm-srf.c	2008-11-10 15:24:55.000000000 +0530
-+++ linux-omap-2.6/arch/arm/plat-omap/omap-pm-srf.c	2008-11-10 15:29:38.000000000 +0530
-@@ -27,9 +27,9 @@
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.h	2008-11-10 12:09:02.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h	2008-11-10 12:09:13.000000000 +0530
+@@ -22,7 +22,15 @@
+ #define __ARCH_ARM_MACH_OMAP2_RESOURCE_H
+ 
  #include <mach/resource.h>
- #include <mach/omapdev.h>
++#include <linux/clk.h>
++#include <mach/clock.h>
+ #include <mach/powerdomain.h>
++#include <mach/omap-pm.h>
++
++extern struct omap_opp *curr_vdd1_prcm_set;
++extern struct omap_opp *curr_vdd2_prcm_set;
++extern unsigned long get_freq(struct  omap_opp *, unsigned short);
++extern unsigned short get_opp(struct omap_opp *, unsigned long);
  
--static struct omap_opp *dsp_opps;
--static struct omap_opp *mpu_opps;
--static struct omap_opp *l3_opps;
-+struct omap_opp *dsp_opps;
-+struct omap_opp *mpu_opps;
-+struct omap_opp *l3_opps;
- 
- #define LAT_RES_POSTAMBLE "_latency"
- #define MAX_LATENCY_RES_NAME 30
-@@ -340,19 +340,19 @@ void omap_pm_pwrdm_inactive(struct power
-  * Should be called before clk framework since clk fw will call
-  * omap_pm_pwrdm_{in,}active()
-  */
--int __init omap_pm_if_early_init(void)
-+int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
-+				 struct omap_opp *dsp_opp_table,
-+				 struct omap_opp *l3_opp_table)
- {
-+	mpu_opps = mpu_opp_table;
-+	dsp_opps = dsp_opp_table;
-+	l3_opps = l3_opp_table;
- 	return 0;
- }
- 
- /* Must be called after clock framework is initialized */
--int __init omap_pm_if_init(struct omap_opp *mpu_opp_table,
--			   struct omap_opp *dsp_opp_table,
--			   struct omap_opp *l3_opp_table)
-+int __init omap_pm_if_init(void)
- {
--	mpu_opps = mpu_opp_table;
--	dsp_opps = dsp_opp_table;
--	l3_opps = l3_opp_table;
- 	resource_init(resources_omap);
- 	return 0;
- }
-Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/omap-pm.h
-===================================================================
---- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/omap-pm.h	2008-11-10 15:24:55.000000000 +0530
-+++ linux-omap-2.6/arch/arm/plat-omap/include/mach/omap-pm.h	2008-11-10 15:29:38.000000000 +0530
-@@ -33,6 +33,10 @@ struct omap_opp {
- 	u16 min_vdd;
+ /*
+  * mpu_latency/core_latency are used to control the cpuidle C state.
+@@ -222,6 +230,66 @@ static struct shared_resource emu_pwrdm_
+ 	.ops		= &pd_lat_res_ops,
  };
  
-+extern struct omap_opp *mpu_opps;
-+extern struct omap_opp *dsp_opps;
-+extern struct omap_opp *l3_opps;
++void init_opp(struct shared_resource *resp);
++int set_opp(struct shared_resource *resp, u32 target_level);
++int validate_opp(struct shared_resource *resp, u32 target_level);
++void init_freq(struct shared_resource *resp);
++int set_freq(struct shared_resource *resp, u32 target_level);
++int validate_freq(struct shared_resource *resp, u32 target_level);
 +
- /*
-  * agent_id values for use with omap_pm_set_min_bus_tput():
-  *
-@@ -46,25 +50,25 @@ struct omap_opp {
- 
- /**
-  * omap_pm_if_early_init - OMAP PM init code called before clock fw init
-+ * @mpu_opp_table: array ptr to struct omap_opp for MPU
-+ * @dsp_opp_table: array ptr to struct omap_opp for DSP
-+ * @l3_opp_table : array ptr to struct omap_opp for CORE
-  *
-  * Initialize anything that must be configured before the clock
-  * framework starts.  The "_if_" is to avoid name collisions with the
-  * PM idle-loop code.
-  */
--int __init omap_pm_if_early_init(void);
-+int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
-+				 struct omap_opp *dsp_opp_table,
-+				 struct omap_opp *l3_opp_table);
- 
- /**
-  * omap_pm_if_init - OMAP PM init code called after clock fw init
-- * @mpu_opp_table: array ptr to struct omap_opp for MPU
-- * @dsp_opp_table: array ptr to struct omap_opp for DSP
-- * @l3_opp_table : array ptr to struct omap_opp for CORE
-  *
-  * The main initialization code.  OPP tables are passed in here.  The
-  * "_if_" is to avoid name collisions with the PM idle-loop code.
-  */
--int __init omap_pm_if_init(struct omap_opp *mpu_opp_table,
--			   struct omap_opp *dsp_opp_table,
--			   struct omap_opp *l3_opp_table);
-+int __init omap_pm_if_init(void);
- 
- /**
-  * omap_pm_if_exit - OMAP PM exit code
-Index: linux-omap-2.6/arch/arm/mach-omap2/io.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/io.c	2008-11-10 15:26:46.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/io.c	2008-11-10 15:33:34.000000000 +0530
-@@ -204,12 +204,13 @@ void __init omap2_init_common_hw(struct 
- 				 struct omap_opp *l3_opps)
- {
- 	omap2_mux_init();
--	omap_pm_if_early_init();
-+	/* The OPP tables have to be registered before a clk init */
-+	omap_pm_if_early_init(mpu_opps, dsp_opps, l3_opps);
- 	pwrdm_init(powerdomains_omap);
- 	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
- 	omapdev_init(omapdevs);
- 	omap2_clk_init();
--	omap_pm_if_init(mpu_opps, dsp_opps, l3_opps);
-+	omap_pm_if_init();
- 	omap2_sdrc_init(sp);
- 	gpmc_init();
- }
-Index: linux-omap-2.6/arch/arm/plat-omap/omap-pm-noop.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/plat-omap/omap-pm-noop.c	2008-11-10 15:24:55.000000000 +0530
-+++ linux-omap-2.6/arch/arm/plat-omap/omap-pm-noop.c	2008-11-10 15:29:38.000000000 +0530
-@@ -26,9 +26,9 @@
- 
- #include <mach/powerdomain.h>
- 
--static struct omap_opp *dsp_opps;
--static struct omap_opp *mpu_opps;
--static struct omap_opp *l3_opps;
-+struct omap_opp *dsp_opps;
-+struct omap_opp *mpu_opps;
-+struct omap_opp *l3_opps;
- 
- /*
-  * Device-driver-originated constraints (via board-*.c files)
-@@ -310,19 +310,19 @@ void omap_pm_pwrdm_inactive(struct power
-  * Should be called before clk framework since clk fw will call
-  * omap_pm_pwrdm_{in,}active()
-  */
--int __init omap_pm_if_early_init(void)
-+int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
-+				 struct omap_opp *dsp_opp_table,
-+				 struct omap_opp *l3_opp_table)
- {
-+	mpu_opps = mpu_opp_table;
-+	dsp_opps = dsp_opp_table;
-+	l3_opps = l3_opp_table;
- 	return 0;
- }
- 
- /* Must be called after clock framework is initialized */
--int __init omap_pm_if_init(struct omap_opp *mpu_opp_table,
--			   struct omap_opp *dsp_opp_table,
--			   struct omap_opp *l3_opp_table)
-+int __init omap_pm_if_init(void)
- {
--	mpu_opps = mpu_opp_table;
--	dsp_opps = dsp_opp_table;
--	l3_opps = l3_opp_table;
- 	return 0;
- }
++struct bus_throughput_db {
++	/* Throughput for each OPP/Freq of the bus */
++	unsigned long throughput[3];
++};
++
++static struct shared_resource_ops opp_res_ops = {
++	.init           = init_opp,
++	.change_level   = set_opp,
++	.validate_level = validate_opp,
++};
++
++static struct shared_resource vdd1_opp = {
++	.name           = "vdd1_opp",
++	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.ops            = &opp_res_ops,
++};
++
++/* Throughput in KiB/s */
++static struct bus_throughput_db l3_throughput_db = {
++	.throughput[0] = 0,
++	.throughput[1] = 2656000,
++	.throughput[2] = 5312000,
++};
++
++static struct shared_resource vdd2_opp = {
++	.name           = "vdd2_opp",
++	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.resource_data  = &l3_throughput_db,
++	.ops            = &opp_res_ops,
++};
++
++static char linked_res[] = "vdd1_opp";
++
++static struct shared_resource_ops freq_res_ops = {
++	.init           = init_freq,
++	.change_level   = set_freq,
++	.validate_level = validate_freq,
++};
++
++static struct shared_resource mpu_freq = {
++	.name           = "mpu_freq",
++	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.resource_data  = &linked_res,
++	.ops            = &freq_res_ops,
++};
++
++static struct shared_resource dsp_freq = {
++	.name           = "dsp_freq",
++	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.resource_data  = &linked_res,
++	.ops            = &freq_res_ops,
++};
++
+ struct shared_resource *resources_omap[] __initdata = {
+ 	&mpu_latency,
+ 	&core_latency,
+@@ -236,6 +304,11 @@ struct shared_resource *resources_omap[]
+ 	&neon_pwrdm_latency,
+ 	&usbhost_pwrdm_latency,
+ 	&emu_pwrdm_latency,
++	/* OPP/frequency resources */
++	&vdd1_opp,
++	&vdd2_opp,
++	&mpu_freq,
++	&dsp_freq,
+ 	NULL
+ };
  
 
