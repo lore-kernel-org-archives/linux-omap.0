@@ -1,177 +1,249 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 01/03] OMAP3 PM: Replace spinlocks with mutex in SRF
-Date: Mon, 10 Nov 2008 17:00:16 +0530
-Message-ID: <00c801c94327$b4941940$LocalHost@wipultra1382>
+Subject: [PATCH 02/03] OMAP3 PM: CPUFreq driver for OMAP3
+Date: Mon, 10 Nov 2008 17:00:25 +0530
+Message-ID: <00c901c94327$ba6b0090$LocalHost@wipultra1382>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50653 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50658 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754510AbYKJLaY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 06:30:24 -0500
+	id S1754702AbYKJLae convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 06:30:34 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id mAABUHKY028935
-	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 05:30:23 -0600
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id mAABURGR028945
+	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 05:30:33 -0600
 Received: from wipultra1382 (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id mAABUGgm013594
-	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 17:00:16 +0530 (IST)
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id mAABUQt2013670
+	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 17:00:26 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-This patch replaces spinlock used in SRF with mutexs.
-Spinlocks were initially used to take care of calls 
-to SRF from clock f/w. Now with those clock f/w hooks
-no longer needed, there is no need to use spinlocks
-in SRF.
+CPUFreq driver for OMAP3
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/plat-omap/resource.c |   40 ++++++++++++++++------------------------
- 1 files changed, 16 insertions(+), 24 deletions(-)
+ arch/arm/mach-omap2/clock34xx.c    |   43 +++++++++++++++++++++++++++++++++++--
+ arch/arm/mach-omap2/resource34xx.c |   17 +++++++++++++-
+ arch/arm/plat-omap/cpu-omap.c      |   27 ++++++++++++++++++++---
+ 3 files changed, 81 insertions(+), 6 deletions(-)
 
-Index: linux-omap-2.6/arch/arm/plat-omap/resource.c
+Index: linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/plat-omap/resource.c	2008-11-10 15:44:22.000000000 +0530
-+++ linux-omap-2.6/arch/arm/plat-omap/resource.c	2008-11-10 16:43:47.000000000 +0530
-@@ -33,8 +33,8 @@
- /* res_list contains all registered struct shared_resource */
- static LIST_HEAD(res_list);
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/clock34xx.c	2008-11-10 16:45:19.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c	2008-11-10 16:47:15.000000000 +0530
+@@ -31,6 +31,7 @@
+ #include <mach/sram.h>
+ #include <asm/div64.h>
+ #include <asm/bitops.h>
++#include <linux/cpufreq.h>
  
--/* res_lock protects res_list add and del ops */
--static DEFINE_SPINLOCK(res_lock);
-+/* res_mutex protects res_list add and del ops */
-+static DECLARE_MUTEX(res_mutex);
- 
- /* Static Pool of users for a resource used till kmalloc becomes available */
- struct  users_list usr_list[MAX_USERS];
-@@ -73,18 +73,17 @@ static struct shared_resource *_resource
-  *
-  * Looks for a registered resource by its name. Returns a pointer to
-  * the struct shared_resource if found, else returns NULL.
-- * The function holds spinlocks and takes care of atomicity.
-+ * The function holds mutex and takes care of atomicity.
+ #include <mach/sdrc.h>
+ #include "clock.h"
+@@ -657,6 +658,36 @@ static void omap3_clkoutx2_recalc(struct
   */
- static struct shared_resource *resource_lookup(const char *name)
- {
- 	struct shared_resource *res;
--	unsigned long flags;
+ #if defined(CONFIG_ARCH_OMAP3)
  
- 	if (!name)
- 		return NULL;
--	spin_lock_irqsave(&res_lock, flags);
-+	down(&res_mutex);
- 	res = _resource_lookup(name);
--	spin_unlock_irqrestore(&res_lock, flags);
-+	up(&res_mutex);
++#ifdef CONFIG_CPU_FREQ
++static struct cpufreq_frequency_table freq_table[MAX_VDD1_OPP+1];
++
++void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
++{
++	struct omap_opp *prcm;
++	int i = 0;
++
++	/* Avoid registering the 120% Overdrive with CPUFreq */
++	prcm = mpu_opps + MAX_VDD1_OPP - 1;
++	for (; prcm->rate; prcm--) {
++		freq_table[i].index = i;
++		freq_table[i].frequency = prcm->rate / 1000;
++		i++;
++	}
++
++	if (i == 0) {
++		printk(KERN_WARNING "%s: failed to initialize frequency \
++								table\n",
++								__func__);
++		return;
++	}
++
++	freq_table[i].index = i;
++	freq_table[i].frequency = CPUFREQ_TABLE_END;
++
++	*table = &freq_table[0];
++}
++#endif
++
+ static struct clk_functions omap2_clk_functions = {
+ 	.clk_enable		= omap2_clk_enable,
+ 	.clk_disable		= omap2_clk_disable,
+@@ -664,6 +695,9 @@ static struct clk_functions omap2_clk_fu
+ 	.clk_set_rate		= omap2_clk_set_rate,
+ 	.clk_set_parent		= omap2_clk_set_parent,
+ 	.clk_disable_unused	= omap2_clk_disable_unused,
++#ifdef CONFIG_CPU_FREQ
++	.clk_init_cpufreq_table = omap2_clk_init_cpufreq_table,
++#endif
+ };
  
- 	return res;
+ /*
+@@ -815,12 +849,11 @@ unsigned short get_opp(struct omap_opp *
+ 
+ 	if (prcm_config->rate <= freq)
+ 		return prcm_config->opp_id; /* Return the Highest OPP */
+-	for (; prcm_config->rate; prcm_config--) {
++	for (; prcm_config->rate; prcm_config--)
+ 		if (prcm_config->rate < freq)
+ 			return (prcm_config+1)->opp_id;
+ 		else if (prcm_config->rate == freq)
+ 			return prcm_config->opp_id;
+-	}
+ 	/* Return the least OPP */
+ 	return (prcm_config+1)->opp_id;
  }
-@@ -254,8 +253,6 @@ int resource_refresh(void)
-  */
- int resource_register(struct shared_resource *resp)
- {
--	unsigned long flags;
--
- 	if (!resp)
- 		return -EINVAL;
- 
-@@ -268,7 +265,7 @@ int resource_register(struct shared_reso
- 
- 	INIT_LIST_HEAD(&resp->users_list);
- 
--	spin_lock_irqsave(&res_lock, flags);
-+	down(&res_mutex);
- 	/* Add the resource to the resource list */
- 	list_add(&resp->node, &res_list);
- 
-@@ -276,7 +273,7 @@ int resource_register(struct shared_reso
- 	if (resp->ops->init)
- 		resp->ops->init(resp);
- 
--	spin_unlock_irqrestore(&res_lock, flags);
-+	up(&res_mutex);
- 	pr_debug("resource: registered %s\n", resp->name);
- 
- 	return 0;
-@@ -292,15 +289,13 @@ EXPORT_SYMBOL(resource_register);
-  */
- int resource_unregister(struct shared_resource *resp)
- {
--	unsigned long flags;
--
- 	if (!resp)
- 		return -EINVAL;
- 
--	spin_lock_irqsave(&res_lock, flags);
-+	down(&res_mutex);
- 	/* delete the resource from the resource list */
- 	list_del(&resp->node);
--	spin_unlock_irqrestore(&res_lock, flags);
-+	up(&res_mutex);
- 
- 	pr_debug("resource: unregistered %s\n", resp->name);
- 
-@@ -330,9 +325,8 @@ int resource_request(const char *name, s
- 	struct shared_resource *resp;
- 	struct  users_list *user;
- 	int 	found = 0, ret = 0;
--	unsigned long flags;
- 
--	spin_lock_irqsave(&res_lock, flags);
-+	down(&res_mutex);
- 	resp = _resource_lookup(name);
- 	if (!resp) {
- 		printk(KERN_ERR "resource_request: Invalid resource name\n");
-@@ -368,7 +362,7 @@ int resource_request(const char *name, s
- 	user->level = level;
- 
- res_unlock:
--	spin_unlock_irqrestore(&res_lock, flags);
-+	up(&res_mutex);
- 	/*
- 	 * Recompute and set the current level for the resource.
- 	 * NOTE: update_resource level moved out of spin_lock, as it may call
-@@ -398,9 +392,8 @@ int resource_release(const char *name, s
- 	struct shared_resource *resp;
- 	struct users_list *user;
- 	int found = 0, ret = 0;
--	unsigned long flags;
- 
--	spin_lock_irqsave(&res_lock, flags);
-+	down(&res_mutex);
- 	resp = _resource_lookup(name);
- 	if (!resp) {
- 		printk(KERN_ERR "resource_release: Invalid resource name\n");
-@@ -428,7 +421,7 @@ int resource_release(const char *name, s
- 	/* Recompute and set the current level for the resource */
- 	ret = update_resource_level(resp);
- res_unlock:
--	spin_unlock_irqrestore(&res_lock, flags);
-+	up(&res_mutex);
- 	return ret;
- }
- EXPORT_SYMBOL(resource_release);
-@@ -444,17 +437,16 @@ int resource_get_level(const char *name)
- {
- 	struct shared_resource *resp;
- 	u32 ret;
--	unsigned long flags;
- 
--	spin_lock_irqsave(&res_lock, flags);
-+	down(&res_mutex);
- 	resp = _resource_lookup(name);
- 	if (!resp) {
- 		printk(KERN_ERR "resource_release: Invalid resource name\n");
--		spin_unlock_irqrestore(&res_lock, flags);
-+		up(&res_mutex);
- 		return -EINVAL;
+@@ -899,6 +932,10 @@ static int omap3_select_table_rate(struc
+ 		clk_set_rate(dpll1_clk, prcm_vdd->rate);
+ 		clk_set_rate(dpll2_clk, dsp_opps[index].rate);
+ 		curr_vdd1_prcm_set = prcm_vdd;
++		omap2_clksel_recalc(&mpu_ck);
++		propagate_rate(&mpu_ck);
++		omap2_clksel_recalc(&iva2_ck);
++		propagate_rate(&iva2_ck);
+ #ifndef CONFIG_CPU_FREQ
+ 		/*Update loops_per_jiffy if processor speed is being changed*/
+ 		loops_per_jiffy = compute_lpj(loops_per_jiffy,
+@@ -907,6 +944,8 @@ static int omap3_select_table_rate(struc
+ 	} else {
+ 		clk_set_rate(dpll3_clk, prcm_vdd->rate);
+ 		curr_vdd2_prcm_set = prcm_vdd;
++		omap2_clksel_recalc(&core_ck);
++		propagate_rate(&core_ck);
  	}
- 	ret = resp->curr_level;
--	spin_unlock_irqrestore(&res_lock, flags);
-+	up(&res_mutex);
+ 	return 0;
+ }
+Index: linux-omap-2.6/arch/arm/plat-omap/cpu-omap.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/cpu-omap.c	2008-11-10 16:45:19.000000000 +0530
++++ linux-omap-2.6/arch/arm/plat-omap/cpu-omap.c	2008-11-10 16:47:15.000000000 +0530
+@@ -8,6 +8,10 @@
+  *
+  *  Based on cpu-sa1110.c, Copyright (C) 2001 Russell King
+  *
++ * Copyright (C) 2007-2008 Texas Instruments, Inc.
++ * Updated to support OMAP3
++ * Rajendra Nayak <rnayak@ti.com>
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+@@ -25,6 +29,10 @@
+ #include <asm/io.h>
+ #include <asm/system.h>
+ #include <mach/clock.h>
++#if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
++#include <mach/omap-pm.h>
++#include "../mach-omap2/pm.h"
++#endif
+ 
+ #define VERY_HI_RATE	900000000
+ 
+@@ -32,6 +40,8 @@ static struct cpufreq_frequency_table *f
+ 
+ #ifdef CONFIG_ARCH_OMAP1
+ #define MPU_CLK		"mpu"
++#elif CONFIG_ARCH_OMAP3
++#define MPU_CLK		"virt_vdd1_prcm_set"
+ #else
+ #define MPU_CLK		"virt_prcm_set"
+ #endif
+@@ -89,7 +99,7 @@ static int omap_target(struct cpufreq_po
+ 
+ 	if (freqs.old == freqs.new)
+ 		return ret;
+-
++#ifdef CONFIG_ARCH_OMAP1
+ 	cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
+ #ifdef CONFIG_CPU_FREQ_DEBUG
+ 	printk(KERN_DEBUG "cpufreq-omap: transition: %u --> %u\n",
+@@ -97,7 +107,19 @@ static int omap_target(struct cpufreq_po
+ #endif
+ 	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
+ 	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
+-
++#elif defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)\
++	&& defined(CONFIG_MACH_OMAP_3430SDP)
++	{
++		int ind;
++		for (ind = 1; ind <= MAX_VDD1_OPP; ind++) {
++			if (mpu_opps[ind].rate/1000 >= freqs.new) {
++				omap_pm_cpu_set_freq
++					(mpu_opps[ind].rate);
++				break;
++			}
++		}
++	}
++#endif
  	return ret;
  }
- EXPORT_SYMBOL(resource_get_level);
+ 
+@@ -128,7 +150,6 @@ static int __init omap_cpu_init(struct c
+ 
+ 	/* FIXME: what's the actual transition time? */
+ 	policy->cpuinfo.transition_latency = 10 * 1000 * 1000;
+-
+ 	return 0;
+ }
+ 
+Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.c	2008-11-10 16:45:19.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c	2008-11-10 16:47:15.000000000 +0530
+@@ -17,6 +17,7 @@
+  */
+ 
+ #include <linux/pm_qos_params.h>
++#include <linux/cpufreq.h>
+ #include <mach/powerdomain.h>
+ #include <mach/clockdomain.h>
+ #include "smartreflex.h"
+@@ -158,16 +159,26 @@ void init_opp(struct shared_resource *re
+ 
+ int set_opp(struct shared_resource *resp, u32 target_level)
+ {
+-	unsigned long mpu_freq, l3_freq, tput, t_opp;;
++	unsigned long mpu_freq, mpu_old_freq, l3_freq, tput, t_opp;
+ 	int ind;
+ 	struct bus_throughput_db *tput_db;
++	struct cpufreq_freqs freqs_notify;
+ 
+ 	if (resp->curr_level == target_level)
+ 		return 0;
+ 
+ 	if (strcmp(resp->name, "vdd1_opp") == 0) {
++		mpu_old_freq = get_freq(mpu_opps + MAX_VDD1_OPP,
++					curr_vdd1_prcm_set->opp_id);
+ 		mpu_freq = get_freq(mpu_opps + MAX_VDD1_OPP,
+ 					target_level);
++#ifdef CONFIG_CPU_FREQ
++		freqs_notify.old = mpu_old_freq/1000;
++		freqs_notify.new = mpu_freq/1000;
++		freqs_notify.cpu = 0;
++		/* Send pre notification to CPUFreq */
++		cpufreq_notify_transition(&freqs_notify, CPUFREQ_PRECHANGE);
++#endif
+ 		t_opp = ID_VDD(PRCM_VDD1) |
+ 			ID_OPP_NO(mpu_opps[target_level].opp_id);
+ 		if (resp->curr_level > target_level) {
+@@ -182,6 +193,10 @@ int set_opp(struct shared_resource *resp
+ 			clk_set_rate(vdd1_clk, mpu_freq);
+ 		}
+ 		resp->curr_level = curr_vdd1_prcm_set->opp_id;
++#ifdef CONFIG_CPU_FREQ
++		/* Send a post notification to CPUFreq */
++		cpufreq_notify_transition(&freqs_notify, CPUFREQ_POSTCHANGE);
++#endif
+ 	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
+ 		tput_db = resp->resource_data;
+ 		tput = target_level;
 
