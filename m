@@ -1,42 +1,44 @@
-From: "Grazvydas Ignotas" <notasas@gmail.com>
-Subject: Re: [PATCH 3/4] HSMMC: Add support for the second controller
-Date: Mon, 10 Nov 2008 12:36:56 +0200
-Message-ID: <6ed0b2680811100236m203939c9u521d2e1edea40f91@mail.gmail.com>
-References: <1225418657-31775-1-git-send-email-tony@atomide.com>
-	 <20081106170445.GU21736@atomide.com>
-	 <6ed0b2680811061219p40439337h2a6938009aa20522@mail.gmail.com>
-	 <200811062154.08843.david-b@pacbell.net>
-	 <6ed0b2680811070136m44b385cftf654c05cd9076798@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: ext-eero.nurkkala@nokia.com
+Subject: [PATCH] i2c: i2c-omap: Fix BUFSTAT_REG reading
+Date: Mon, 10 Nov 2008 12:46:49 +0200
+Message-ID: <12263140092601-git-send-email-ext-eero.nurkkala@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ik-out-1112.google.com ([66.249.90.178]:39438 "EHLO
-	ik-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753360AbYKJKg6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 05:36:58 -0500
-Received: by ik-out-1112.google.com with SMTP id c29so1844461ika.5
-        for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 02:36:56 -0800 (PST)
-In-Reply-To: <6ed0b2680811070136m44b385cftf654c05cd9076798@mail.gmail.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.233]:64703 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754370AbYKJKsL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 05:48:11 -0500
+Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mAAAm70U023971
+	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 12:48:08 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-> +static int hsmmc2_set_power(struct device *dev, int slot, int power_on, int vdd)
-> +{
-> +	int ret;
-> +
-> +	struct hsmmc_controller *c = &hsmmc[1];
-> +
-> +	if (power_on) {
-> +		u32 reg;
-> +
-> +		reg = omap_ctrl_readl(c->control_devconf_offset);
-> +		reg |= OMAP2_MMCSDIO2ADPCLKISEL;
-> +		omap_ctrl_writel(reg, c->control_devconf_offset);
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-This is not correct for pandora, it needs input clock from the
-transceiver, not loop back clock. Perhaps this can be controlled by
-platform data, or removed altogether and left for the bootloader?
+
+Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+---
+ drivers/i2c/busses/i2c-omap.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index f4d1edc..9ae3ad3 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -642,8 +642,9 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 				if (stat & OMAP_I2C_STAT_RRDY)
+ 					num_bytes = dev->fifo_size;
+ 				else
+-					num_bytes = omap_i2c_read_reg(dev,
+-							OMAP_I2C_BUFSTAT_REG);
++					num_bytes = (omap_i2c_read_reg(dev,
++							OMAP_I2C_BUFSTAT_REG)
++							>> 8) & 0x3F;
+ 			}
+ 			while (num_bytes) {
+ 				num_bytes--;
+-- 
+1.5.2
+
