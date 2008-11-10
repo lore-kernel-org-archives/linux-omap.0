@@ -1,249 +1,122 @@
 From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH 02/03] OMAP3 PM: CPUFreq driver for OMAP3
-Date: Mon, 10 Nov 2008 17:00:25 +0530
-Message-ID: <00c901c94327$ba6b0090$LocalHost@wipultra1382>
+Subject: [PATCH 03/03] OMAP3 PM: Update the min defconfig for 3430sdp
+Date: Mon, 10 Nov 2008 17:00:34 +0530
+Message-ID: <00ca01c94327$bf74d3e0$LocalHost@wipultra1382>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50658 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754702AbYKJLae convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 06:30:34 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:40229 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754814AbYKJLam convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 06:30:42 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id mAABURGR028945
-	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 05:30:33 -0600
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id mAABUZju004425
+	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 05:30:41 -0600
 Received: from wipultra1382 (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id mAABUQt2013670
-	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 17:00:26 +0530 (IST)
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id mAABUZfi013717
+	for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 17:00:35 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-CPUFreq driver for OMAP3
+Enables CPUFreq and PM layer implemented using SRF in
+omap_3430sdp_min_defconfig
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/clock34xx.c    |   43 +++++++++++++++++++++++++++++++++++--
- arch/arm/mach-omap2/resource34xx.c |   17 +++++++++++++-
- arch/arm/plat-omap/cpu-omap.c      |   27 ++++++++++++++++++++---
- 3 files changed, 81 insertions(+), 6 deletions(-)
+ arch/arm/configs/omap_3430sdp_min_defconfig |   32 +++++++++++++++++++++++-----
+ 1 files changed, 27 insertions(+), 5 deletions(-)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c
+Index: linux-omap-2.6/arch/arm/configs/omap_3430sdp_min_defconfig
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/clock34xx.c	2008-11-10 16:45:19.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c	2008-11-10 16:47:15.000000000 +0530
-@@ -31,6 +31,7 @@
- #include <mach/sram.h>
- #include <asm/div64.h>
- #include <asm/bitops.h>
-+#include <linux/cpufreq.h>
+--- linux-omap-2.6.orig/arch/arm/configs/omap_3430sdp_min_defconfig	2008-11-10 16:49:07.000000000 +0530
++++ linux-omap-2.6/arch/arm/configs/omap_3430sdp_min_defconfig	2008-11-10 16:40:05.000000000 +0530
+@@ -204,6 +204,8 @@ CONFIG_OMAP_LL_DEBUG_UART1=y
+ # CONFIG_OMAP_LL_DEBUG_UART2 is not set
+ # CONFIG_OMAP_LL_DEBUG_UART3 is not set
+ CONFIG_OMAP_SERIAL_WAKE=y
++# CONFIG_OMAP_PM_NOOP is not set
++CONFIG_OMAP_PM_SRF=y
+ CONFIG_ARCH_OMAP34XX=y
+ CONFIG_ARCH_OMAP3430=y
  
- #include <mach/sdrc.h>
- #include "clock.h"
-@@ -657,6 +658,36 @@ static void omap3_clkoutx2_recalc(struct
-  */
- #if defined(CONFIG_ARCH_OMAP3)
+@@ -215,6 +217,7 @@ CONFIG_MACH_OMAP_3430SDP=y
+ # CONFIG_MACH_OMAP3EVM is not set
+ # CONFIG_MACH_OMAP3_BEAGLE is not set
+ # CONFIG_MACH_OVERO is not set
++# CONFIG_MACH_OMAP3_PANDORA is not set
+ CONFIG_OMAP_TICK_GPTIMER=1
  
-+#ifdef CONFIG_CPU_FREQ
-+static struct cpufreq_frequency_table freq_table[MAX_VDD1_OPP+1];
+ #
+@@ -300,9 +303,28 @@ CONFIG_CMDLINE="root=/dev/nfs nfsroot=19
+ # CONFIG_KEXEC is not set
+ 
+ #
++# CPUIdle
++#
++# CONFIG_CPU_IDLE is not set
 +
-+void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
-+{
-+	struct omap_opp *prcm;
-+	int i = 0;
-+
-+	/* Avoid registering the 120% Overdrive with CPUFreq */
-+	prcm = mpu_opps + MAX_VDD1_OPP - 1;
-+	for (; prcm->rate; prcm--) {
-+		freq_table[i].index = i;
-+		freq_table[i].frequency = prcm->rate / 1000;
-+		i++;
-+	}
-+
-+	if (i == 0) {
-+		printk(KERN_WARNING "%s: failed to initialize frequency \
-+								table\n",
-+								__func__);
-+		return;
-+	}
-+
-+	freq_table[i].index = i;
-+	freq_table[i].frequency = CPUFREQ_TABLE_END;
-+
-+	*table = &freq_table[0];
-+}
-+#endif
-+
- static struct clk_functions omap2_clk_functions = {
- 	.clk_enable		= omap2_clk_enable,
- 	.clk_disable		= omap2_clk_disable,
-@@ -664,6 +695,9 @@ static struct clk_functions omap2_clk_fu
- 	.clk_set_rate		= omap2_clk_set_rate,
- 	.clk_set_parent		= omap2_clk_set_parent,
- 	.clk_disable_unused	= omap2_clk_disable_unused,
-+#ifdef CONFIG_CPU_FREQ
-+	.clk_init_cpufreq_table = omap2_clk_init_cpufreq_table,
-+#endif
- };
++#
+ # CPU Frequency scaling
+ #
+-# CONFIG_CPU_FREQ is not set
++CONFIG_CPU_FREQ=y
++CONFIG_CPU_FREQ_TABLE=y
++# CONFIG_CPU_FREQ_DEBUG is not set
++CONFIG_CPU_FREQ_STAT=y
++# CONFIG_CPU_FREQ_STAT_DETAILS is not set
++CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y
++# CONFIG_CPU_FREQ_DEFAULT_GOV_POWERSAVE is not set
++# CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE is not set
++# CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND is not set
++# CONFIG_CPU_FREQ_DEFAULT_GOV_CONSERVATIVE is not set
++CONFIG_CPU_FREQ_GOV_PERFORMANCE=y
++# CONFIG_CPU_FREQ_GOV_POWERSAVE is not set
++# CONFIG_CPU_FREQ_GOV_USERSPACE is not set
++CONFIG_CPU_FREQ_GOV_ONDEMAND=y
++# CONFIG_CPU_FREQ_GOV_CONSERVATIVE is not set
  
- /*
-@@ -815,12 +849,11 @@ unsigned short get_opp(struct omap_opp *
+ #
+ # Floating point emulation
+@@ -558,7 +580,6 @@ CONFIG_INPUT_TOUCHSCREEN=y
+ # CONFIG_TOUCHSCREEN_PENMOUNT is not set
+ # CONFIG_TOUCHSCREEN_TOUCHRIGHT is not set
+ # CONFIG_TOUCHSCREEN_TOUCHWIN is not set
+-# CONFIG_TOUCHSCREEN_TSC2005 is not set
+ # CONFIG_TOUCHSCREEN_UCB1400 is not set
+ # CONFIG_TOUCHSCREEN_TOUCHIT213 is not set
+ # CONFIG_INPUT_MISC is not set
+@@ -648,11 +669,8 @@ CONFIG_I2C_OMAP=y
+ # CONFIG_ISP1301_OMAP is not set
+ # CONFIG_TPS65010 is not set
+ # CONFIG_SENSORS_TLV320AIC23 is not set
+-CONFIG_TWL4030_CORE=y
+-CONFIG_TWL4030_GPIO=y
+ # CONFIG_TWL4030_MADC is not set
+ CONFIG_TWL4030_USB=y
+-CONFIG_TWL4030_USB_HS_ULPI=y
+ # CONFIG_TWL4030_PWRBUTTON is not set
+ # CONFIG_TWL4030_POWEROFF is not set
+ # CONFIG_SENSORS_MAX6875 is not set
+@@ -674,6 +692,7 @@ CONFIG_GPIOLIB=y
+ # CONFIG_GPIO_MAX732X is not set
+ # CONFIG_GPIO_PCA953X is not set
+ # CONFIG_GPIO_PCF857X is not set
++# CONFIG_GPIO_TWL4030 is not set
  
- 	if (prcm_config->rate <= freq)
- 		return prcm_config->opp_id; /* Return the Highest OPP */
--	for (; prcm_config->rate; prcm_config--) {
-+	for (; prcm_config->rate; prcm_config--)
- 		if (prcm_config->rate < freq)
- 			return (prcm_config+1)->opp_id;
- 		else if (prcm_config->rate == freq)
- 			return prcm_config->opp_id;
--	}
- 	/* Return the least OPP */
- 	return (prcm_config+1)->opp_id;
- }
-@@ -899,6 +932,10 @@ static int omap3_select_table_rate(struc
- 		clk_set_rate(dpll1_clk, prcm_vdd->rate);
- 		clk_set_rate(dpll2_clk, dsp_opps[index].rate);
- 		curr_vdd1_prcm_set = prcm_vdd;
-+		omap2_clksel_recalc(&mpu_ck);
-+		propagate_rate(&mpu_ck);
-+		omap2_clksel_recalc(&iva2_ck);
-+		propagate_rate(&iva2_ck);
- #ifndef CONFIG_CPU_FREQ
- 		/*Update loops_per_jiffy if processor speed is being changed*/
- 		loops_per_jiffy = compute_lpj(loops_per_jiffy,
-@@ -907,6 +944,8 @@ static int omap3_select_table_rate(struc
- 	} else {
- 		clk_set_rate(dpll3_clk, prcm_vdd->rate);
- 		curr_vdd2_prcm_set = prcm_vdd;
-+		omap2_clksel_recalc(&core_ck);
-+		propagate_rate(&core_ck);
- 	}
- 	return 0;
- }
-Index: linux-omap-2.6/arch/arm/plat-omap/cpu-omap.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/plat-omap/cpu-omap.c	2008-11-10 16:45:19.000000000 +0530
-+++ linux-omap-2.6/arch/arm/plat-omap/cpu-omap.c	2008-11-10 16:47:15.000000000 +0530
-@@ -8,6 +8,10 @@
-  *
-  *  Based on cpu-sa1110.c, Copyright (C) 2001 Russell King
-  *
-+ * Copyright (C) 2007-2008 Texas Instruments, Inc.
-+ * Updated to support OMAP3
-+ * Rajendra Nayak <rnayak@ti.com>
-+ *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-@@ -25,6 +29,10 @@
- #include <asm/io.h>
- #include <asm/system.h>
- #include <mach/clock.h>
-+#if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
-+#include <mach/omap-pm.h>
-+#include "../mach-omap2/pm.h"
-+#endif
- 
- #define VERY_HI_RATE	900000000
- 
-@@ -32,6 +40,8 @@ static struct cpufreq_frequency_table *f
- 
- #ifdef CONFIG_ARCH_OMAP1
- #define MPU_CLK		"mpu"
-+#elif CONFIG_ARCH_OMAP3
-+#define MPU_CLK		"virt_vdd1_prcm_set"
- #else
- #define MPU_CLK		"virt_prcm_set"
- #endif
-@@ -89,7 +99,7 @@ static int omap_target(struct cpufreq_po
- 
- 	if (freqs.old == freqs.new)
- 		return ret;
--
-+#ifdef CONFIG_ARCH_OMAP1
- 	cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
- #ifdef CONFIG_CPU_FREQ_DEBUG
- 	printk(KERN_DEBUG "cpufreq-omap: transition: %u --> %u\n",
-@@ -97,7 +107,19 @@ static int omap_target(struct cpufreq_po
- #endif
- 	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
- 	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
--
-+#elif defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)\
-+	&& defined(CONFIG_MACH_OMAP_3430SDP)
-+	{
-+		int ind;
-+		for (ind = 1; ind <= MAX_VDD1_OPP; ind++) {
-+			if (mpu_opps[ind].rate/1000 >= freqs.new) {
-+				omap_pm_cpu_set_freq
-+					(mpu_opps[ind].rate);
-+				break;
-+			}
-+		}
-+	}
-+#endif
- 	return ret;
- }
- 
-@@ -128,7 +150,6 @@ static int __init omap_cpu_init(struct c
- 
- 	/* FIXME: what's the actual transition time? */
- 	policy->cpuinfo.transition_latency = 10 * 1000 * 1000;
--
- 	return 0;
- }
- 
-Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.c	2008-11-10 16:45:19.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c	2008-11-10 16:47:15.000000000 +0530
-@@ -17,6 +17,7 @@
-  */
- 
- #include <linux/pm_qos_params.h>
-+#include <linux/cpufreq.h>
- #include <mach/powerdomain.h>
- #include <mach/clockdomain.h>
- #include "smartreflex.h"
-@@ -158,16 +159,26 @@ void init_opp(struct shared_resource *re
- 
- int set_opp(struct shared_resource *resp, u32 target_level)
- {
--	unsigned long mpu_freq, l3_freq, tput, t_opp;;
-+	unsigned long mpu_freq, mpu_old_freq, l3_freq, tput, t_opp;
- 	int ind;
- 	struct bus_throughput_db *tput_db;
-+	struct cpufreq_freqs freqs_notify;
- 
- 	if (resp->curr_level == target_level)
- 		return 0;
- 
- 	if (strcmp(resp->name, "vdd1_opp") == 0) {
-+		mpu_old_freq = get_freq(mpu_opps + MAX_VDD1_OPP,
-+					curr_vdd1_prcm_set->opp_id);
- 		mpu_freq = get_freq(mpu_opps + MAX_VDD1_OPP,
- 					target_level);
-+#ifdef CONFIG_CPU_FREQ
-+		freqs_notify.old = mpu_old_freq/1000;
-+		freqs_notify.new = mpu_freq/1000;
-+		freqs_notify.cpu = 0;
-+		/* Send pre notification to CPUFreq */
-+		cpufreq_notify_transition(&freqs_notify, CPUFREQ_PRECHANGE);
-+#endif
- 		t_opp = ID_VDD(PRCM_VDD1) |
- 			ID_OPP_NO(mpu_opps[target_level].opp_id);
- 		if (resp->curr_level > target_level) {
-@@ -182,6 +193,10 @@ int set_opp(struct shared_resource *resp
- 			clk_set_rate(vdd1_clk, mpu_freq);
- 		}
- 		resp->curr_level = curr_vdd1_prcm_set->opp_id;
-+#ifdef CONFIG_CPU_FREQ
-+		/* Send a post notification to CPUFreq */
-+		cpufreq_notify_transition(&freqs_notify, CPUFREQ_POSTCHANGE);
-+#endif
- 	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
- 		tput_db = resp->resource_data;
- 		tput = target_level;
+ #
+ # PCI GPIO expanders:
+@@ -698,8 +717,11 @@ CONFIG_SSB_POSSIBLE=y
+ #
+ # CONFIG_MFD_CORE is not set
+ # CONFIG_MFD_SM501 is not set
++# CONFIG_MFD_ASIC3 is not set
+ # CONFIG_HTC_EGPIO is not set
+ # CONFIG_HTC_PASIC3 is not set
++CONFIG_TWL4030_CORE=y
++# CONFIG_TWL4030_POWER is not set
+ # CONFIG_MFD_TMIO is not set
+ # CONFIG_MFD_T7L66XB is not set
+ # CONFIG_MFD_TC6387XB is not set
 
