@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [rft/rfc/patch-2.6.28-rc3+ 49/59] omap: namespace cleanup to drivers/video/omap/lcd_p2.c
-Date: Wed, 12 Nov 2008 00:57:08 +0200
-Message-ID: <1226444238-14614-50-git-send-email-me@felipebalbi.com>
+Subject: [rft/rfc/patch-2.6.28-rc3+ 33/59] omap: namespace cleanup to drivers/mtd/nand/ams-delta.c
+Date: Wed, 12 Nov 2008 00:56:52 +0200
+Message-ID: <1226444238-14614-34-git-send-email-me@felipebalbi.com>
 References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-2-git-send-email-me@felipebalbi.com>
  <1226444238-14614-3-git-send-email-me@felipebalbi.com>
@@ -35,28 +35,12 @@ References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-31-git-send-email-me@felipebalbi.com>
  <1226444238-14614-32-git-send-email-me@felipebalbi.com>
  <1226444238-14614-33-git-send-email-me@felipebalbi.com>
- <1226444238-14614-34-git-send-email-me@felipebalbi.com>
- <1226444238-14614-35-git-send-email-me@felipebalbi.com>
- <1226444238-14614-36-git-send-email-me@felipebalbi.com>
- <1226444238-14614-37-git-send-email-me@felipebalbi.com>
- <1226444238-14614-38-git-send-email-me@felipebalbi.com>
- <1226444238-14614-39-git-send-email-me@felipebalbi.com>
- <1226444238-14614-40-git-send-email-me@felipebalbi.com>
- <1226444238-14614-41-git-send-email-me@felipebalbi.com>
- <1226444238-14614-42-git-send-email-me@felipebalbi.com>
- <1226444238-14614-43-git-send-email-me@felipebalbi.com>
- <1226444238-14614-44-git-send-email-me@felipebalbi.com>
- <1226444238-14614-45-git-send-email-me@felipebalbi.com>
- <1226444238-14614-46-git-send-email-me@felipebalbi.com>
- <1226444238-14614-47-git-send-email-me@felipebalbi.com>
- <1226444238-14614-48-git-send-email-me@felipebalbi.com>
- <1226444238-14614-49-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:56558 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:56576 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751525AbYKKXE4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:04:56 -0500
-In-Reply-To: <1226444238-14614-49-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1751826AbYKKXFE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:05:04 -0500
+In-Reply-To: <1226444238-14614-33-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -66,31 +50,34 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/video/omap/lcd_p2.c |    8 ++++----
+ drivers/mtd/nand/ams-delta.c |    8 ++++----
  1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/video/omap/lcd_p2.c b/drivers/video/omap/lcd_p2.c
-index 8c66bf6..08aed16 100644
---- a/drivers/video/omap/lcd_p2.c
-+++ b/drivers/video/omap/lcd_p2.c
-@@ -171,14 +171,14 @@ static int p2_panel_enable(struct lcd_panel *panel)
- 	omap_set_gpio_dataout(19, 1);
+diff --git a/drivers/mtd/nand/ams-delta.c b/drivers/mtd/nand/ams-delta.c
+index 782994e..a706118 100644
+--- a/drivers/mtd/nand/ams-delta.c
++++ b/drivers/mtd/nand/ams-delta.c
+@@ -63,8 +63,8 @@ static void ams_delta_write_byte(struct mtd_info *mtd, u_char byte)
+ {
+ 	struct nand_chip *this = mtd->priv;
  
- 		/* bits 31:28 -> 0  LCD_PXL_15 .. 12 */
--	value = omap_readl(OMAP730_IO_CONF_3) & 0x0FFFFFFF;
--	omap_writel(value, OMAP730_IO_CONF_3);
-+	value = __raw_readl(OMAP730_IO_CONF_3) & 0x0FFFFFFF;
-+	__raw_writel(value, OMAP730_IO_CONF_3);
+-	omap_writew(0, (OMAP_MPUIO_BASE + OMAP_MPUIO_IO_CNTL));
+-	omap_writew(byte, this->IO_ADDR_W);
++	__raw_writew(0, (OMAP_MPUIO_BASE + OMAP_MPUIO_IO_CNTL));
++	__raw_writew(byte, this->IO_ADDR_W);
+ 	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NWE, 0);
+ 	ndelay(40);
+ 	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NWE,
+@@ -78,8 +78,8 @@ static u_char ams_delta_read_byte(struct mtd_info *mtd)
  
- 		/* bits 19:0 -> 0  LCD_VSYNC, AC, PXL_0, PCLK, HSYNC,
- 		**                 PXL_9..1, PXL_10, PXL_11
- 		*/
--	value = omap_readl(OMAP730_IO_CONF_4) & 0xFFF00000;
--	omap_writel(value, OMAP730_IO_CONF_4);
-+	value = __raw_readl(OMAP730_IO_CONF_4) & 0xFFF00000;
-+	__raw_writel(value, OMAP730_IO_CONF_4);
- 
- 	omap_uwire_configure_mode(0,16);
+ 	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NRE, 0);
+ 	ndelay(40);
+-	omap_writew(~0, (OMAP_MPUIO_BASE + OMAP_MPUIO_IO_CNTL));
+-	res = omap_readw(this->IO_ADDR_R);
++	__raw_writew(~0, (OMAP_MPUIO_BASE + OMAP_MPUIO_IO_CNTL));
++	res = __raw_readw(this->IO_ADDR_R);
+ 	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NRE,
+ 			       AMS_DELTA_LATCH2_NAND_NRE);
  
 -- 
 1.6.0.2.307.gc427
