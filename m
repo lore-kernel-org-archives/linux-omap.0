@@ -1,69 +1,35 @@
-From: "shekhar, chandra" <x0044955@ti.com>
-Subject: Re: [PATCH] i2c: i2c-omap: Fix BUFSTAT_REG reading
-Date: Tue, 11 Nov 2008 15:27:01 +0530
-Message-ID: <024701c943e3$d8f28760$LocalHost@wipultra806>
-References: <1226386315303-git-send-email-ext-eero.nurkkala@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 1/1] BRIDGE: Fix uninitialized spinlock
+Date: Tue, 11 Nov 2008 12:24:19 +0200
+Message-ID: <1226399059-25707-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52264 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755896AbYKKJ5P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Nov 2008 04:57:15 -0500
+Received: from smtp.nokia.com ([192.100.105.134]:18217 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754163AbYKKKYb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 05:24:31 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Cc: x00omar@ti.com, h-kanigeri2@ti.com, grgupta77@gmail.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
 
------ Original Message ----- 
-From: <ext-eero.nurkkala@nokia.com>
-To: <linux-omap@vger.kernel.org>
-Cc: "Eero Nurkkala" <ext-eero.nurkkala@nokia.com>
-Sent: Tuesday, November 11, 2008 12:21 PM
-Subject: [PATCH] i2c: i2c-omap: Fix BUFSTAT_REG reading
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+ drivers/dsp/bridge/services/mem.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/dsp/bridge/services/mem.c b/drivers/dsp/bridge/services/mem.c
+index 565b0b8..084fb0e 100644
+--- a/drivers/dsp/bridge/services/mem.c
++++ b/drivers/dsp/bridge/services/mem.c
+@@ -580,6 +580,7 @@ bool MEM_Init(void)
+ 		mMan.lst.head.next = &mMan.lst.head;
+ 		mMan.lst.head.prev = &mMan.lst.head;
+ 		mMan.lst.head.self = NULL;
++		spin_lock_init(&mMan.lock);
+ #endif
+ 
+ 	}
+-- 
+1.6.0.3.613.g9f8f13
 
-> From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-> 
-> The amount of bytes to receive is read from wrong
-> place. It is the 6 bits starting from the bit 8 from
-> BUFSTAT_REG that indicate this amount. Not the 8 LSB:s.
-> 6 LSB:s are used for the TX buffer.
-> 
-> Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-> ---
-> drivers/i2c/busses/i2c-omap.c |    5 +++--
-> 1 files changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index a999606..f15668d 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -621,8 +621,9 @@ omap_i2c_isr(int this_irq, void *dev_id)
->  if (stat & OMAP_I2C_STAT_RRDY)
->  num_bytes = dev->fifo_size;
->  else
-> - num_bytes = omap_i2c_read_reg(dev,
-> - OMAP_I2C_BUFSTAT_REG);
-> + num_bytes = (omap_i2c_read_reg(dev,
-> + OMAP_I2C_BUFSTAT_REG)
-> + >> 8) & 0x3F;
->  }
-
-I believe "And"ing by 0x3F will apply to transmit also.
-
->  while (num_bytes) {
->  num_bytes--;
-> -- 
-> 1.6.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
