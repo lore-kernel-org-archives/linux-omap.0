@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [rft/rfc/patch-2.6.28-rc3+ 46/59] omap: namespace cleanup to drivers/video/omap/dispc.c
-Date: Wed, 12 Nov 2008 00:57:05 +0200
-Message-ID: <1226444238-14614-47-git-send-email-me@felipebalbi.com>
+Subject: [rft/rfc/patch-2.6.28-rc3+ 55/59] omap: namespace cleanup to arch/arm/plat-omap/include/mach/mtd-xip.h
+Date: Wed, 12 Nov 2008 00:57:14 +0200
+Message-ID: <1226444238-14614-56-git-send-email-me@felipebalbi.com>
 References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-2-git-send-email-me@felipebalbi.com>
  <1226444238-14614-3-git-send-email-me@felipebalbi.com>
@@ -48,12 +48,21 @@ References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-44-git-send-email-me@felipebalbi.com>
  <1226444238-14614-45-git-send-email-me@felipebalbi.com>
  <1226444238-14614-46-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-47-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-48-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-49-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-50-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-51-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-52-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-53-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-54-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-55-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:43085 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:43102 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751551AbYKKXOf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:14:35 -0500
-In-Reply-To: <1226444238-14614-46-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1751605AbYKKXOj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:14:39 -0500
+In-Reply-To: <1226444238-14614-55-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -63,22 +72,22 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/video/omap/dispc.c |    2 +-
+ arch/arm/plat-omap/include/mach/mtd-xip.h |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
-index c140c21..07d4076 100644
---- a/drivers/video/omap/dispc.c
-+++ b/drivers/video/omap/dispc.c
-@@ -1422,7 +1422,7 @@ static int omap_dispc_init(struct omapfb_device *fbdev, int ext_mode,
- 	l &= ~((3 << 12) | (3 << 3));
- 	l |= (2 << 12) | (2 << 3) | (1 << 2) | (1 << 0);
- 	dispc_write_reg(DISPC_SYSCONFIG, l);
--	omap_writel(1 << 0, DSS_BASE + DSS_SYSCONFIG);
-+	__raw_writel(1 << 0, DSS_BASE + DSS_SYSCONFIG);
+diff --git a/arch/arm/plat-omap/include/mach/mtd-xip.h b/arch/arm/plat-omap/include/mach/mtd-xip.h
+index 39b591f..04f98b9 100644
+--- a/arch/arm/plat-omap/include/mach/mtd-xip.h
++++ b/arch/arm/plat-omap/include/mach/mtd-xip.h
+@@ -35,7 +35,7 @@ static inline unsigned long xip_omap_mpu_timer_read(int nr)
+ }
  
- 	/* Set functional clock autogating */
- 	l = dispc_read_reg(DISPC_CONFIG);
+ #define xip_irqpending()	\
+-	(omap_readl(OMAP_IH1_ITR) & ~omap_readl(OMAP_IH1_MIR))
++	(__raw_readl(OMAP_IH1_ITR) & ~omap_readl(OMAP_IH1_MIR))
+ #define xip_currtime()		(~xip_omap_mpu_timer_read(0))
+ 
+ /*
 -- 
 1.6.0.2.307.gc427
 
