@@ -1,61 +1,183 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [BRIDGE] bridgedriver load/unload problem
-Date: Tue, 11 Nov 2008 13:26:11 +0200 (EET)
-Message-ID: <20081111.132611.180686770.Hiroshi.DOYU@nokia.com>
-References: <20081110.135917.46194187.Hiroshi.DOYU@nokia.com>
-	<3a2dabf50811102248j27be7ca4tb8ba4dc8910e1d7c@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: "Stanley.Miao" <stanley.miao@windriver.com>
+Subject: [PATCH v2 2/6] OMAP_LDP: Add Ethernet device support to make ldp boot succeess.
+Date: Tue, 11 Nov 2008 19:50:54 +0800
+Message-ID: <1226404258-13027-3-git-send-email-stanley.miao@windriver.com>
+References: <1226404258-13027-1-git-send-email-stanley.miao@windriver.com>
+ <1226404258-13027-2-git-send-email-stanley.miao@windriver.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:18492 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755297AbYKKL02 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 06:26:28 -0500
-In-Reply-To: <3a2dabf50811102248j27be7ca4tb8ba4dc8910e1d7c@mail.gmail.com>
+Received: from mail.windriver.com ([147.11.1.11]:63285 "EHLO mail.wrs.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755339AbYKKLp3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Nov 2008 06:45:29 -0500
+In-Reply-To: <1226404258-13027-2-git-send-email-stanley.miao@windriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: grgupta77@gmail.com
-Cc: x0023949@ti.com, linux-omap@vger.kernel.org, vpasam@ti.com
+To: linux-omap@vger.kernel.org
+Cc: johnpol@2ka.mipt.ru
 
-Hi Ramesh,
+Add Ethernet device support in board-ldp.c to make ldp can boot and mount nfs
+successfully.
 
-From: "ext Ramesh Gupta Guntha" <grgupta77@gmail.com>
-Subject: Re: [BRIDGE] bridgedriver load/unload problem
-Date: Tue, 11 Nov 2008 12:18:34 +0530
+Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+---
+ arch/arm/mach-omap2/board-ldp.c             |   53 +++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/board-ldp.h |    5 ++-
+ drivers/net/smc911x.c                       |    6 ++-
+ drivers/net/smc911x.h                       |    2 +
+ 4 files changed, 63 insertions(+), 3 deletions(-)
 
-> I am not able to reproduce this issue. Is it consistent at your end?
-
-Not conconsistent, but eventually it encounters with:
-
-while true
-do
-	./test.sh
-done
-
-$ cat test.sh
-echo 8 > /proc/sys/kernel/printk
-modprobe bridgedriver \
-    phys_mempool_base=0x87a00000 phys_mempool_size=0x600000 \
-    GT_str="**=01234567" \
-    && ./cexec.out -T ./ddspbase_tiomap3430.dof64P \
-    && ./ping.out 1 \
-    && rmmod bridgedriver
-
-> What is the bridge patch set you are using for this?
-
-- "tidspbridge-20081107.tgz"
-- omap3430 SDP board
-- the latest l-o
-
-the log for SDP is located on:
-
-  http://4869037.web.fc2.com/bridge-unload-sdp.txt
-
->From the above log, IRQ comes from DSP exact during unloading module.
-
-  Hiroshi DOYU
-
-
-
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index c2bb726..e89f271 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -44,6 +44,7 @@
+ #include "mmc-twl4030.h"
+ 
+ 
++#define SDP3430_SMC91X_CS	3
+ #define CONFIG_DISABLE_HFCLK 1
+ 
+ #define ENABLE_VAUX1_DEDICATED	0x03
+@@ -51,6 +52,26 @@
+ 
+ #define TWL4030_MSECURE_GPIO	22
+ 
++static struct resource ldp_smc911x_resources[] = {
++	[0] = {
++		.start	= OMAP34XX_ETHR_START,
++		.end	= OMAP34XX_ETHR_START + SZ_4K,
++		.flags	= IORESOURCE_MEM,
++	},
++	[1] = {
++		.start	= 0,
++		.end	= 0,
++		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
++	},
++};
++
++static struct platform_device ldp_smc911x_device = {
++	.name		= "smc911x",
++	.id		= -1,
++	.num_resources	= ARRAY_SIZE(ldp_smc911x_resources),
++	.resource	= ldp_smc911x_resources,
++};
++
+ static int ts_gpio;
+ 
+ static int __init msecure_init(void)
+@@ -177,14 +198,46 @@ static struct platform_device ldp_lcd_device = {
+ };
+ 
+ static struct platform_device *ldp_devices[] __initdata = {
++	&ldp_smc911x_device,
+ 	&ldp_lcd_device,
+ };
+ 
++static inline void __init ldp_init_smc911x(void)
++{
++	int eth_cs;
++	unsigned long cs_mem_base;
++	int eth_gpio = 0;
++
++	eth_cs = LDP_SMC911X_CS;
++
++	if (gpmc_cs_request(eth_cs, SZ_16M, &cs_mem_base) < 0) {
++		printk(KERN_ERR "Failed to request GPMC mem for smc911x\n");
++		return;
++	}
++
++	ldp_smc911x_resources[0].start = cs_mem_base + 0x0;
++	ldp_smc911x_resources[0].end   = cs_mem_base + 0xf;
++	udelay(100);
++
++	eth_gpio = LDP_SMC911X_GPIO;
++
++	ldp_smc911x_resources[1].start = OMAP_GPIO_IRQ(eth_gpio);
++
++	if (omap_request_gpio(eth_gpio) < 0) {
++		printk(KERN_ERR "Failed to request GPIO%d for smc911x IRQ\n",
++				eth_gpio);
++		return;
++	}
++	omap_set_gpio_direction(eth_gpio, 1);
++}
++
++
+ static void __init omap_ldp_init_irq(void)
+ {
+ 	omap2_init_common_hw(NULL);
+ 	omap_init_irq();
+ 	omap_gpio_init();
++	ldp_init_smc911x();
+ }
+ 
+ static struct omap_uart_config ldp_uart_config __initdata = {
+diff --git a/arch/arm/plat-omap/include/mach/board-ldp.h b/arch/arm/plat-omap/include/mach/board-ldp.h
+index 66e2746..f233996 100644
+--- a/arch/arm/plat-omap/include/mach/board-ldp.h
++++ b/arch/arm/plat-omap/include/mach/board-ldp.h
+@@ -32,5 +32,8 @@
+ extern void twl4030_bci_battery_init(void);
+ 
+ #define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
+-
++#define LDP_SMC911X_CS         1
++#define LDP_SMC911X_GPIO       152
++#define DEBUG_BASE             0x08000000
++#define OMAP34XX_ETHR_START    DEBUG_BASE
+ #endif /* __ASM_ARCH_OMAP_LDP_H */
+diff --git a/drivers/net/smc911x.c b/drivers/net/smc911x.c
+index f59c777..05e7512 100644
+--- a/drivers/net/smc911x.c
++++ b/drivers/net/smc911x.c
+@@ -2063,7 +2063,7 @@ static int smc911x_drv_probe(struct platform_device *pdev)
+ 		ret = -ENODEV;
+ 		goto out;
+ 	}
+-
++#ifndef SMC_MEM_RESERVED
+ 	/*
+ 	 * Request the regions.
+ 	 */
+@@ -2071,7 +2071,7 @@ static int smc911x_drv_probe(struct platform_device *pdev)
+ 		 ret = -EBUSY;
+ 		 goto out;
+ 	}
+-
++#endif
+ 	ndev = alloc_etherdev(sizeof(struct smc911x_local));
+ 	if (!ndev) {
+ 		printk("%s: could not allocate device.\n", CARDNAME);
+@@ -2108,7 +2108,9 @@ static int smc911x_drv_probe(struct platform_device *pdev)
+ release_both:
+ 		free_netdev(ndev);
+ release_1:
++#ifndef SMC_MEM_RESERVED
+ 		release_mem_region(res->start, SMC911X_IO_EXTENT);
++#endif
+ out:
+ 		printk("%s: not found (%d).\n", CARDNAME, ret);
+ 	}
+diff --git a/drivers/net/smc911x.h b/drivers/net/smc911x.h
+index d1b3b9b..f688b55 100644
+--- a/drivers/net/smc911x.h
++++ b/drivers/net/smc911x.h
+@@ -682,6 +682,7 @@ smc_pxa_dma_outsl(struct smc911x_local *lp, u_long physaddr,
+ #define CHIP_9116	0x0116
+ #define CHIP_9117	0x0117
+ #define CHIP_9118	0x0118
++#define CHIP_9211	0x9211
+ #define CHIP_9215	0x115A
+ #define CHIP_9217	0x117A
+ #define CHIP_9218	0x118A
+@@ -696,6 +697,7 @@ static const struct chip_id chip_ids[] =  {
+ 	{ CHIP_9116, "LAN9116" },
+ 	{ CHIP_9117, "LAN9117" },
+ 	{ CHIP_9118, "LAN9118" },
++	{ CHIP_9211, "LAN9211" },
+ 	{ CHIP_9215, "LAN9215" },
+ 	{ CHIP_9217, "LAN9217" },
+ 	{ CHIP_9218, "LAN9218" },
+-- 
+1.5.6.3
 
