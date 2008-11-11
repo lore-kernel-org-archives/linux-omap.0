@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [rft/rfc/patch-2.6.28-rc3+ 59/59] omap: namespace cleanup to arch/arm/plat-omap/include/mach/io.h
-Date: Wed, 12 Nov 2008 00:57:18 +0200
-Message-ID: <1226444238-14614-60-git-send-email-me@felipebalbi.com>
+Subject: [rft/rfc/patch-2.6.28-rc3+ 34/59] omap: namespace cleanup to drivers/mtd/nand/omap2.c
+Date: Wed, 12 Nov 2008 00:56:53 +0200
+Message-ID: <1226444238-14614-35-git-send-email-me@felipebalbi.com>
 References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-2-git-send-email-me@felipebalbi.com>
  <1226444238-14614-3-git-send-email-me@felipebalbi.com>
@@ -36,37 +36,12 @@ References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-32-git-send-email-me@felipebalbi.com>
  <1226444238-14614-33-git-send-email-me@felipebalbi.com>
  <1226444238-14614-34-git-send-email-me@felipebalbi.com>
- <1226444238-14614-35-git-send-email-me@felipebalbi.com>
- <1226444238-14614-36-git-send-email-me@felipebalbi.com>
- <1226444238-14614-37-git-send-email-me@felipebalbi.com>
- <1226444238-14614-38-git-send-email-me@felipebalbi.com>
- <1226444238-14614-39-git-send-email-me@felipebalbi.com>
- <1226444238-14614-40-git-send-email-me@felipebalbi.com>
- <1226444238-14614-41-git-send-email-me@felipebalbi.com>
- <1226444238-14614-42-git-send-email-me@felipebalbi.com>
- <1226444238-14614-43-git-send-email-me@felipebalbi.com>
- <1226444238-14614-44-git-send-email-me@felipebalbi.com>
- <1226444238-14614-45-git-send-email-me@felipebalbi.com>
- <1226444238-14614-46-git-send-email-me@felipebalbi.com>
- <1226444238-14614-47-git-send-email-me@felipebalbi.com>
- <1226444238-14614-48-git-send-email-me@felipebalbi.com>
- <1226444238-14614-49-git-send-email-me@felipebalbi.com>
- <1226444238-14614-50-git-send-email-me@felipebalbi.com>
- <1226444238-14614-51-git-send-email-me@felipebalbi.com>
- <1226444238-14614-52-git-send-email-me@felipebalbi.com>
- <1226444238-14614-53-git-send-email-me@felipebalbi.com>
- <1226444238-14614-54-git-send-email-me@felipebalbi.com>
- <1226444238-14614-55-git-send-email-me@felipebalbi.com>
- <1226444238-14614-56-git-send-email-me@felipebalbi.com>
- <1226444238-14614-57-git-send-email-me@felipebalbi.com>
- <1226444238-14614-58-git-send-email-me@felipebalbi.com>
- <1226444238-14614-59-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:56641 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:56676 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751351AbYKKXFY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:05:24 -0500
-In-Reply-To: <1226444238-14614-59-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1751409AbYKKXFi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:05:38 -0500
+In-Reply-To: <1226444238-14614-34-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -76,37 +51,54 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- arch/arm/plat-omap/include/mach/io.h |   17 -----------------
- 1 files changed, 0 insertions(+), 17 deletions(-)
+ drivers/mtd/nand/omap2.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/mach/io.h b/arch/arm/plat-omap/include/mach/io.h
-index ea55267..041fa30 100644
---- a/arch/arm/plat-omap/include/mach/io.h
-+++ b/arch/arm/plat-omap/include/mach/io.h
-@@ -170,23 +170,6 @@
- #else
- #define IOMEM(x)		((void __force __iomem *)(x))
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 2ede116..170f235 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -187,12 +187,12 @@ static void omap_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
+ }
  
--/*
-- * Functions to access the OMAP IO region
-- *
-- * NOTE: - Use omap_read/write[bwl] for physical register addresses
-- *	 - Use __raw_read/write[bwl]() for virtual register addresses
-- *	 - Use IO_ADDRESS(phys_addr) to convert registers to virtual addresses
-- *	 - DO NOT use hardcoded virtual addresses to allow changing the
-- *	   IO address space again if needed
-- */
--#define omap_readb(a)		__raw_readb(IO_ADDRESS(a))
--#define omap_readw(a)		__raw_readw(IO_ADDRESS(a))
--#define omap_readl(a)		__raw_readl(IO_ADDRESS(a))
--
--#define omap_writeb(v,a)	__raw_writeb(v, IO_ADDRESS(a))
--#define omap_writew(v,a)	__raw_writew(v, IO_ADDRESS(a))
--#define omap_writel(v,a)	__raw_writel(v, IO_ADDRESS(a))
--
- struct omap_sdrc_params;
+ /*
+- * omap_read_buf16 - read data from NAND controller into buffer
++ * __raw_read_buf16 - read data from NAND controller into buffer
+  * @mtd: MTD device structure
+  * @buf: buffer to store date
+  * @len: number of bytes to read
+  */
+-static void omap_read_buf16(struct mtd_info *mtd, u_char *buf, int len)
++static void __raw_read_buf16(struct mtd_info *mtd, u_char *buf, int len)
+ {
+ 	struct nand_chip *nand = mtd->priv;
  
- extern void omap1_map_common_io(void);
+@@ -200,12 +200,12 @@ static void omap_read_buf16(struct mtd_info *mtd, u_char *buf, int len)
+ }
+ 
+ /*
+- * omap_write_buf16 - write buffer to NAND controller
++ * __raw_write_buf16 - write buffer to NAND controller
+  * @mtd: MTD device structure
+  * @buf: data buffer
+  * @len: number of bytes to write
+  */
+-static void omap_write_buf16(struct mtd_info *mtd, const u_char * buf, int len)
++static void __raw_write_buf16(struct mtd_info *mtd, const u_char * buf, int len)
+ {
+ 	struct omap_nand_info *info = container_of(mtd,
+ 						struct omap_nand_info, mtd);
+@@ -641,8 +641,8 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 
+ 	/* REVISIT:  only supports 16-bit NAND flash */
+ 
+-	info->nand.read_buf   = omap_read_buf16;
+-	info->nand.write_buf  = omap_write_buf16;
++	info->nand.read_buf   = __raw_read_buf16;
++	info->nand.write_buf  = __raw_write_buf16;
+ 	info->nand.verify_buf = omap_verify_buf;
+ 
+ 	/*
 -- 
 1.6.0.2.307.gc427
 
