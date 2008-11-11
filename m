@@ -1,42 +1,43 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH] i2c: twl4030_usb: add init section to regulators init
-Date: Tue, 11 Nov 2008 14:31:43 +0200
-Message-ID: <1226406703-26948-1-git-send-email-felipe.balbi@nokia.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [OMAP and mainline][RFC 2.6.28-rc2-omap 3/3] USB: OHCI-OMAP:
+ Switch to gpio_request/free calls
+Date: Tue, 11 Nov 2008 15:17:37 +0200
+Message-ID: <20081111151737.3dc034d5.jarkko.nikula@nokia.com>
+References: <1225455447-12179-1-git-send-email-jarkko.nikula@nokia.com>
+	<200810311056.55697.david-b@pacbell.net>
+	<20081103133750.1d4e66e8.jarkko.nikula@nokia.com>
+	<200811101423.50989.david-b@pacbell.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:54424 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755470AbYKKMcL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 07:32:11 -0500
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mABCW1t3031746
-	for <linux-omap@vger.kernel.org>; Tue, 11 Nov 2008 14:32:08 +0200
+Received: from smtp.nokia.com ([192.100.122.233]:29215 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755398AbYKKNSI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 08:18:08 -0500
+In-Reply-To: <200811101423.50989.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
+To: ext David Brownell <david-b@pacbell.net>
+Cc: linux-omap@vger.kernel.org
 
-twl4030_usb_ldo_init is only called during probe. Make it
-sit in the __init section.
+On Mon, 10 Nov 2008 14:23:50 -0800
+"ext David Brownell" <david-b@pacbell.net> wrote:
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/i2c/chips/twl4030-usb.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+> On Monday 03 November 2008, Jarkko Nikula wrote:
+> > Yes, I actually noted already before making the first set, that
+> > probably I should sent a patch to wide the label column in debugs
+> > listings :-)
+> 
+> Sure, you send me a drivers/gpio/gpiolib.c update and I'll
+> sign off on it.  20 chars would be better than 12, but
+> maybe more are needed.
+> 
+I'll try do as soon as possible. Some "work" and other side stuff has
+unfortunately delayed this gpio & patchset update recently.
 
-diff --git a/drivers/i2c/chips/twl4030-usb.c b/drivers/i2c/chips/twl4030-usb.c
-index f967353..07b9349 100644
---- a/drivers/i2c/chips/twl4030-usb.c
-+++ b/drivers/i2c/chips/twl4030-usb.c
-@@ -487,7 +487,8 @@ static void twl4030_phy_resume(struct twl4030_usb *twl)
- 	twl->asleep = 0;
- }
- 
--static void twl4030_usb_ldo_init(struct twl4030_usb *twl)
-+/* REVISIT This should move to Voltage and Current Regulator Framework */
-+static void __init twl4030_usb_ldo_init(struct twl4030_usb *twl)
- {
- 	/* Enable writing to power configuration registers */
- 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0xC0, PROTECT_KEY);
--- 
-1.6.0.3.523.g304d0
+Do you see are there any issue to change label into last column like
+in /proc/interrupts so that width doesn't have to be fixed?
 
+
+Jarkko
