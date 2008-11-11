@@ -1,89 +1,68 @@
 From: Jonathan McDowell <noodles@earth.li>
-Subject: [PATCH] Fix section mismatch warnings on some OMAP1 boards
-Date: Tue, 11 Nov 2008 22:57:20 +0000
-Message-ID: <20081111225720.GA3162@earth.li>
+Subject: [PATCH] Fix omap-gpio warnings when compiling for ARCH_OMAP15XX
+Date: Tue, 11 Nov 2008 22:53:48 +0000
+Message-ID: <20081111225348.GZ3162@earth.li>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from the.earth.li ([217.147.81.2]:45578 "EHLO the.earth.li"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752047AbYKKXnM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Nov 2008 18:43:12 -0500
+	id S1752111AbYKKXnN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Nov 2008 18:43:13 -0500
 Received: from noodles by the.earth.li with local (Exim 4.63)
 	(envelope-from <noodles@earth.li>)
-	id 1L02Ai-0003Tl-Fj
-	for linux-omap@vger.kernel.org; Tue, 11 Nov 2008 22:57:20 +0000
+	id 1L027I-0003O9-Fh
+	for linux-omap@vger.kernel.org; Tue, 11 Nov 2008 22:53:48 +0000
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-I got some section mismatch warnings when compiling latest git for
-MACH_AMS_DELTA this evening; this seems to be due to a missing
-__initdata on the omap_board_config_kernel. Adding it fixes the
-warnings. I noticed that although this had been done for other OMAP1
-boards fsample, innovator and voiceblue were all lacking it too, so I
-fixed them up at the same time.
+When compiling for ARCH_OMAP15XX I get the following compiler warning i=
+n
+gpio.c:
+
+arch/arm/plat-omap/gpio.c: In function =E2=80=98_set_gpio_wakeup=E2=80=99=
+:
+arch/arm/plat-omap/gpio.c:848: warning: unused variable =E2=80=98flags=E2=
+=80=99
+
+Simple patch below fixes this.
 
 Signed-off-by: Jonathan McDowell <noodles@earth.li>
 
 -----
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index 2e61839..682cb91 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -172,7 +172,7 @@ static struct omap_usb_config ams_delta_usb_config __initdata = {
- 	.pins[0]	= 2,
- };
- 
--static struct omap_board_config_kernel ams_delta_config[] = {
-+static struct omap_board_config_kernel ams_delta_config[] __initdata = {
- 	{ OMAP_TAG_LCD,		&ams_delta_lcd_config },
- 	{ OMAP_TAG_UART,	&ams_delta_uart_config },
- 	{ OMAP_TAG_USB,		&ams_delta_usb_config },
-diff --git a/arch/arm/mach-omap1/board-fsample.c b/arch/arm/mach-omap1/board-fsample.c
-index db78946..38f4f18 100644
---- a/arch/arm/mach-omap1/board-fsample.c
-+++ b/arch/arm/mach-omap1/board-fsample.c
-@@ -216,7 +216,7 @@ static struct omap_lcd_config fsample_lcd_config __initdata = {
- 	.ctrl_name	= "internal",
- };
- 
--static struct omap_board_config_kernel fsample_config[] = {
-+static struct omap_board_config_kernel fsample_config[] __initdata = {
- 	{ OMAP_TAG_UART,	&fsample_uart_config },
- 	{ OMAP_TAG_LCD,		&fsample_lcd_config },
- };
-diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
-index 7a97f6b..b86eb95 100644
---- a/arch/arm/mach-omap1/board-innovator.c
-+++ b/arch/arm/mach-omap1/board-innovator.c
-@@ -408,7 +408,7 @@ static struct omap_uart_config innovator_uart_config __initdata = {
- 	.enabled_uarts = ((1 << 0) | (1 << 1) | (1 << 2)),
- };
- 
--static struct omap_board_config_kernel innovator_config[] = {
-+static struct omap_board_config_kernel innovator_config[] __initdata = {
- 	{ OMAP_TAG_USB,         NULL },
- 	{ OMAP_TAG_LCD,		NULL },
- 	{ OMAP_TAG_UART,	&innovator_uart_config },
-diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
-index 3ab5bbf..93de7e0 100644
---- a/arch/arm/mach-omap1/board-voiceblue.c
-+++ b/arch/arm/mach-omap1/board-voiceblue.c
-@@ -145,7 +145,7 @@ static struct omap_uart_config voiceblue_uart_config __initdata = {
- 	.enabled_uarts = ((1 << 0) | (1 << 1) | (1 << 2)),
- };
- 
--static struct omap_board_config_kernel voiceblue_config[] = {
-+static struct omap_board_config_kernel voiceblue_config[] __initdata = {
- 	{ OMAP_TAG_USB,  &voiceblue_usb_config },
- 	{ OMAP_TAG_UART, &voiceblue_uart_config },
- };
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 8bb4542..bfbe366 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -845,7 +845,10 @@ static inline void _set_gpio_irqenable(struct gpio=
+_bank *bank, int gpio, int ena
+  */
+ static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enab=
+le)
+ {
++#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP24XX) || =
+\
++		defined(CONFIG_ARCH_OMAP34XX)
+ 	unsigned long flags;
++#endif
+=20
+ 	switch (bank->method) {
+ #ifdef CONFIG_ARCH_OMAP16XX
 -----
 
 J.
 
--- 
-                                            jid: noodles@jabber.earth.li
-Are you out of my mind?
+--=20
+Web [   Asking whether machines can think is like asking whether   ]
+site: http:// [           submarines can swim.           ]       Made b=
+y
+www.earth.li/~noodles/  [                      ]         HuggieTag 0.0.=
+23
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
