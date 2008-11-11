@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [rft/rfc/patch-2.6.28-rc3+ 48/59] omap: namespace cleanup to drivers/video/omap/lcd_osk.c
-Date: Wed, 12 Nov 2008 00:57:07 +0200
-Message-ID: <1226444238-14614-49-git-send-email-me@felipebalbi.com>
+Subject: [rft/rfc/patch-2.6.28-rc3+ 28/59] omap: namespace cleanup to drivers/dsp/dspgateway/mmu.h
+Date: Wed, 12 Nov 2008 00:56:47 +0200
+Message-ID: <1226444238-14614-29-git-send-email-me@felipebalbi.com>
 References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-2-git-send-email-me@felipebalbi.com>
  <1226444238-14614-3-git-send-email-me@felipebalbi.com>
@@ -30,32 +30,12 @@ References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-26-git-send-email-me@felipebalbi.com>
  <1226444238-14614-27-git-send-email-me@felipebalbi.com>
  <1226444238-14614-28-git-send-email-me@felipebalbi.com>
- <1226444238-14614-29-git-send-email-me@felipebalbi.com>
- <1226444238-14614-30-git-send-email-me@felipebalbi.com>
- <1226444238-14614-31-git-send-email-me@felipebalbi.com>
- <1226444238-14614-32-git-send-email-me@felipebalbi.com>
- <1226444238-14614-33-git-send-email-me@felipebalbi.com>
- <1226444238-14614-34-git-send-email-me@felipebalbi.com>
- <1226444238-14614-35-git-send-email-me@felipebalbi.com>
- <1226444238-14614-36-git-send-email-me@felipebalbi.com>
- <1226444238-14614-37-git-send-email-me@felipebalbi.com>
- <1226444238-14614-38-git-send-email-me@felipebalbi.com>
- <1226444238-14614-39-git-send-email-me@felipebalbi.com>
- <1226444238-14614-40-git-send-email-me@felipebalbi.com>
- <1226444238-14614-41-git-send-email-me@felipebalbi.com>
- <1226444238-14614-42-git-send-email-me@felipebalbi.com>
- <1226444238-14614-43-git-send-email-me@felipebalbi.com>
- <1226444238-14614-44-git-send-email-me@felipebalbi.com>
- <1226444238-14614-45-git-send-email-me@felipebalbi.com>
- <1226444238-14614-46-git-send-email-me@felipebalbi.com>
- <1226444238-14614-47-git-send-email-me@felipebalbi.com>
- <1226444238-14614-48-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:56694 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:56681 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751667AbYKKXFr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:05:47 -0500
-In-Reply-To: <1226444238-14614-48-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1751481AbYKKXFn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:05:43 -0500
+In-Reply-To: <1226444238-14614-28-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -65,39 +45,22 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/video/omap/lcd_osk.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/dsp/dspgateway/mmu.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/video/omap/lcd_osk.c b/drivers/video/omap/lcd_osk.c
-index 379c96d..51fb476 100644
---- a/drivers/video/omap/lcd_osk.c
-+++ b/drivers/video/omap/lcd_osk.c
-@@ -43,10 +43,10 @@ static int osk_panel_enable(struct lcd_panel *panel)
- 	omap_cfg_reg(PWL);
- 
- 	/* Enable PWL unit */
--	omap_writeb(0x01, OMAP_PWL_CLK_ENABLE);
-+	__raw_writeb(0x01, OMAP_PWL_CLK_ENABLE);
- 
- 	/* Set PWL level */
--	omap_writeb(0xFF, OMAP_PWL_ENABLE);
-+	__raw_writeb(0xFF, OMAP_PWL_ENABLE);
- 
- 	/* set GPIO2 high (lcd power enabled) */
- 	gpio_set_value(2, 1);
-@@ -57,10 +57,10 @@ static int osk_panel_enable(struct lcd_panel *panel)
- static void osk_panel_disable(struct lcd_panel *panel)
- {
- 	/* Set PWL level to zero */
--	omap_writeb(0x00, OMAP_PWL_ENABLE);
-+	__raw_writeb(0x00, OMAP_PWL_ENABLE);
- 
- 	/* Disable PWL unit */
--	omap_writeb(0x00, OMAP_PWL_CLK_ENABLE);
-+	__raw_writeb(0x00, OMAP_PWL_CLK_ENABLE);
- 
- 	/* set GPIO2 low */
- 	gpio_set_value(2, 0);
+diff --git a/drivers/dsp/dspgateway/mmu.h b/drivers/dsp/dspgateway/mmu.h
+index 9d60e9e..b8e17c7 100644
+--- a/drivers/dsp/dspgateway/mmu.h
++++ b/drivers/dsp/dspgateway/mmu.h
+@@ -64,7 +64,7 @@ static int omapfb_ready;
+ #define EMIF_PRIO_MPU_SHIFT	0
+ #define set_emiff_dma_prio(prio) \
+ 	do { \
+-		omap_writel((omap_readl(OMAP_TC_OCPT1_PRIOR) & \
++		__raw_writel((__raw_readl(OMAP_TC_OCPT1_PRIOR) & \
+ 			     ~EMIF_PRIO_DMA_MASK) | \
+ 			    ((prio) << EMIF_PRIO_DMA_SHIFT), \
+ 			    OMAP_TC_OCPT1_PRIOR); \
 -- 
 1.6.0.2.307.gc427
 
