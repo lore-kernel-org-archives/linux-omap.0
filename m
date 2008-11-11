@@ -1,63 +1,42 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: [PATCH OMAPZOOM] Fix warning about MTD_NAND_OMAP_HWECC in 3430SDP
- defconfig
-Date: Tue, 11 Nov 2008 17:39:59 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02DF303512@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [PATCH] i2c: twl4030_usb: add init section to regulators init
+Date: Tue, 11 Nov 2008 14:31:43 +0200
+Message-ID: <1226406703-26948-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60096 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755495AbYKKMKK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 07:10:10 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id mABCA2gn031610
-	for <linux-omap@vger.kernel.org>; Tue, 11 Nov 2008 06:10:08 -0600
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id mABCA1kP018288
-	for <linux-omap@vger.kernel.org>; Tue, 11 Nov 2008 17:40:02 +0530 (IST)
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:54424 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755470AbYKKMcL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 07:32:11 -0500
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mABCW1t3031746
+	for <linux-omap@vger.kernel.org>; Tue, 11 Nov 2008 14:32:08 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-From: Anand Gadiyar <gadiyar@ti.com>
+twl4030_usb_ldo_init is only called during probe. Make it
+sit in the __init section.
 
-Fix this warning in omap_3430sdp_defconfig
-
-arch/arm/configs/omap_3430sdp_defconfig:563:warning: symbol value '1' invalid for MTD_NAND_OMAP_HWECC
-
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
-diff --git a/arch/arm/configs/omap_3430sdp_defconfig b/arch/arm/configs/omap_3430sdp_defconfig
-index 616ba92..e4d02eb 100644
---- a/arch/arm/configs/omap_3430sdp_defconfig
-+++ b/arch/arm/configs/omap_3430sdp_defconfig
-@@ -1,7 +1,7 @@
- #
- # Automatically generated make config: don't edit
- # Linux kernel version: 2.6.27-omap1
--# Fri Oct 17 13:41:54 2008
-+# Tue Nov 11 17:33:52 2008
- #
- CONFIG_ARM=y
- CONFIG_SYS_SUPPORTS_APM_EMULATION=y
-@@ -216,6 +216,7 @@ CONFIG_ARCH_OMAP3430=y
- # OMAP Board Type
- #
- # CONFIG_MACH_OMAP_LDP is not set
-+# CONFIG_MACH_OMAP_ZOOM2 is not set
- CONFIG_MACH_OMAP_3430SDP=y
- # CONFIG_MACH_OMAP3EVM is not set
- # CONFIG_MACH_OMAP3_BEAGLE is not set
-@@ -560,7 +561,7 @@ CONFIG_MTD_NAND=y
- CONFIG_MTD_NAND_ECC_SMC=y
- # CONFIG_MTD_NAND_MUSEUM_IDS is not set
- CONFIG_MTD_NAND_OMAP2=y
--CONFIG_MTD_NAND_OMAP_HWECC=1
-+CONFIG_MTD_NAND_OMAP_HWECC=y
- CONFIG_MTD_NAND_IDS=y
- # CONFIG_MTD_NAND_DISKONCHIP is not set
- # CONFIG_MTD_NAND_NANDSIM is not set
+ drivers/i2c/chips/twl4030-usb.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/i2c/chips/twl4030-usb.c b/drivers/i2c/chips/twl4030-usb.c
+index f967353..07b9349 100644
+--- a/drivers/i2c/chips/twl4030-usb.c
++++ b/drivers/i2c/chips/twl4030-usb.c
+@@ -487,7 +487,8 @@ static void twl4030_phy_resume(struct twl4030_usb *twl)
+ 	twl->asleep = 0;
+ }
+ 
+-static void twl4030_usb_ldo_init(struct twl4030_usb *twl)
++/* REVISIT This should move to Voltage and Current Regulator Framework */
++static void __init twl4030_usb_ldo_init(struct twl4030_usb *twl)
+ {
+ 	/* Enable writing to power configuration registers */
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0xC0, PROTECT_KEY);
+-- 
+1.6.0.3.523.g304d0
+
