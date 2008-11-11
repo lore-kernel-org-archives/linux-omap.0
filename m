@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [rft/rfc/patch-2.6.28-rc3+ 30/59] omap: namespace cleanup to drivers/i2c/chips/twl4030-usb.c
-Date: Wed, 12 Nov 2008 00:56:49 +0200
-Message-ID: <1226444238-14614-31-git-send-email-me@felipebalbi.com>
+Subject: [rft/rfc/patch-2.6.28-rc3+ 43/59] omap: namespace cleanup to drivers/usb/host/ohci-omap.c
+Date: Wed, 12 Nov 2008 00:57:02 +0200
+Message-ID: <1226444238-14614-44-git-send-email-me@felipebalbi.com>
 References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-2-git-send-email-me@felipebalbi.com>
  <1226444238-14614-3-git-send-email-me@felipebalbi.com>
@@ -32,12 +32,25 @@ References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-28-git-send-email-me@felipebalbi.com>
  <1226444238-14614-29-git-send-email-me@felipebalbi.com>
  <1226444238-14614-30-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-31-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-32-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-33-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-34-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-35-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-36-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-37-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-38-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-39-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-40-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-41-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-42-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-43-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:56531 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:56589 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751484AbYKKXEn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:04:43 -0500
-In-Reply-To: <1226444238-14614-30-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1751142AbYKKXFH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:05:07 -0500
+In-Reply-To: <1226444238-14614-43-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -47,43 +60,70 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/i2c/chips/twl4030-usb.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/usb/host/ohci-omap.c |   24 ++++++++++++------------
+ 1 files changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/i2c/chips/twl4030-usb.c b/drivers/i2c/chips/twl4030-usb.c
-index f967353..b6c7893 100644
---- a/drivers/i2c/chips/twl4030-usb.c
-+++ b/drivers/i2c/chips/twl4030-usb.c
-@@ -594,7 +594,7 @@ static int twl4030_set_peripheral(struct otg_transceiver *x,
- 	twl = xceiv_to_twl(x);
+diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
+index 91697bd..fe5a351 100644
+--- a/drivers/usb/host/ohci-omap.c
++++ b/drivers/usb/host/ohci-omap.c
+@@ -115,10 +115,10 @@ static int omap_ohci_transceiver_power(int on)
+ static int omap_1510_local_bus_power(int on)
+ {
+ 	if (on) {
+-		omap_writel((1 << 1) | (1 << 0), OMAP1510_LB_MMU_CTL);
++		__raw_writel((1 << 1) | (1 << 0), OMAP1510_LB_MMU_CTL);
+ 		udelay(200);
+ 	} else {
+-		omap_writel(0, OMAP1510_LB_MMU_CTL);
++		__raw_writel(0, OMAP1510_LB_MMU_CTL);
+ 	}
  
- 	if (!gadget) {
--		omap_writew(0, OTG_IRQ_EN);
-+		__raw_writew(0, OTG_IRQ_EN);
- 		twl4030_phy_suspend(twl, 1);
- 		twl->otg.gadget = NULL;
+ 	return 0;
+@@ -136,24 +136,24 @@ static int omap_1510_local_bus_init(void)
+ 	unsigned int tlb;
+ 	unsigned long lbaddr, physaddr;
  
-@@ -604,10 +604,10 @@ static int twl4030_set_peripheral(struct otg_transceiver *x,
- 	twl->otg.gadget = gadget;
- 	twl4030_phy_resume(twl);
+-	omap_writel((omap_readl(OMAP1510_LB_CLOCK_DIV) & 0xfffffff8) | 0x4,
++	__raw_writel((__raw_readl(OMAP1510_LB_CLOCK_DIV) & 0xfffffff8) | 0x4,
+ 	       OMAP1510_LB_CLOCK_DIV);
  
--	l = omap_readl(OTG_CTRL) & OTG_CTRL_MASK;
-+	l = __raw_readl(OTG_CTRL) & OTG_CTRL_MASK;
- 	l &= ~(OTG_XCEIV_OUTPUTS|OTG_CTRL_BITS);
- 	l |= OTG_ID;
+ 	/* Configure the Local Bus MMU table */
+ 	for (tlb = 0; tlb < OMAP1510_LB_MEMSIZE; tlb++) {
+ 		lbaddr = tlb * 0x00100000 + OMAP1510_LB_OFFSET;
+ 		physaddr = tlb * 0x00100000 + PHYS_OFFSET;
+-		omap_writel((lbaddr & 0x0fffffff) >> 22, OMAP1510_LB_MMU_CAM_H);
+-		omap_writel(((lbaddr & 0x003ffc00) >> 6) | 0xc,
++		__raw_writel((lbaddr & 0x0fffffff) >> 22, OMAP1510_LB_MMU_CAM_H);
++		__raw_writel(((lbaddr & 0x003ffc00) >> 6) | 0xc,
+ 		       OMAP1510_LB_MMU_CAM_L);
+-		omap_writel(physaddr >> 16, OMAP1510_LB_MMU_RAM_H);
+-		omap_writel((physaddr & 0x0000fc00) | 0x300, OMAP1510_LB_MMU_RAM_L);
+-		omap_writel(tlb << 4, OMAP1510_LB_MMU_LCK);
+-		omap_writel(0x1, OMAP1510_LB_MMU_LD_TLB);
++		__raw_writel(physaddr >> 16, OMAP1510_LB_MMU_RAM_H);
++		__raw_writel((physaddr & 0x0000fc00) | 0x300, OMAP1510_LB_MMU_RAM_L);
++		__raw_writel(tlb << 4, OMAP1510_LB_MMU_LCK);
++		__raw_writel(0x1, OMAP1510_LB_MMU_LD_TLB);
+ 	}
+ 
+ 	/* Enable the walking table */
+-	omap_writel(omap_readl(OMAP1510_LB_MMU_CTL) | (1 << 3), OMAP1510_LB_MMU_CTL);
++	__raw_writel(__raw_readl(OMAP1510_LB_MMU_CTL) | (1 << 3), OMAP1510_LB_MMU_CTL);
+ 	udelay(200);
+ 
+ 	return 0;
+@@ -176,9 +176,9 @@ static void start_hnp(struct ohci_hcd *ohci)
+ 	local_irq_save(flags);
+ 	ohci->transceiver->state = OTG_STATE_A_SUSPEND;
+ 	writel (RH_PS_PSS, &ohci->regs->roothub.portstatus [port]);
+-	l = omap_readl(OTG_CTRL);
++	l = __raw_readl(OTG_CTRL);
+ 	l &= ~OTG_A_BUSREQ;
 -	omap_writel(l, OTG_CTRL);
 +	__raw_writel(l, OTG_CTRL);
- 
- 	twl->otg.state = OTG_STATE_B_IDLE;
- 
-@@ -624,7 +624,7 @@ static int twl4030_set_host(struct otg_transceiver *x, struct usb_bus *host)
- 	twl = xceiv_to_twl(x);
- 
- 	if (!host) {
--		omap_writew(0, OTG_IRQ_EN);
-+		__raw_writew(0, OTG_IRQ_EN);
- 		twl4030_phy_suspend(twl, 1);
- 		twl->otg.host = NULL;
+ 	local_irq_restore(flags);
+ }
  
 -- 
 1.6.0.2.307.gc427
