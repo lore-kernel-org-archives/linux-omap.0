@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [rft/rfc/patch-2.6.28-rc3+ 52/59] omap: namespace cleanup to fs/xfs/linux-2.6/xfs_aops.c
-Date: Wed, 12 Nov 2008 00:57:11 +0200
-Message-ID: <1226444238-14614-53-git-send-email-me@felipebalbi.com>
+Subject: [rft/rfc/patch-2.6.28-rc3+ 59/59] omap: namespace cleanup to arch/arm/plat-omap/include/mach/io.h
+Date: Wed, 12 Nov 2008 00:57:18 +0200
+Message-ID: <1226444238-14614-60-git-send-email-me@felipebalbi.com>
 References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-2-git-send-email-me@felipebalbi.com>
  <1226444238-14614-3-git-send-email-me@felipebalbi.com>
@@ -54,12 +54,19 @@ References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-50-git-send-email-me@felipebalbi.com>
  <1226444238-14614-51-git-send-email-me@felipebalbi.com>
  <1226444238-14614-52-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-53-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-54-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-55-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-56-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-57-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-58-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-59-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:56644 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:56641 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751635AbYKKXF0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:05:26 -0500
-In-Reply-To: <1226444238-14614-52-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1751351AbYKKXFY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:05:24 -0500
+In-Reply-To: <1226444238-14614-59-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -69,22 +76,37 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- fs/xfs/linux-2.6/xfs_aops.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/plat-omap/include/mach/io.h |   17 -----------------
+ 1 files changed, 0 insertions(+), 17 deletions(-)
 
-diff --git a/fs/xfs/linux-2.6/xfs_aops.c b/fs/xfs/linux-2.6/xfs_aops.c
-index a44d68e..64b6805 100644
---- a/fs/xfs/linux-2.6/xfs_aops.c
-+++ b/fs/xfs/linux-2.6/xfs_aops.c
-@@ -244,7 +244,7 @@ xfs_end_bio_unwritten(
- 	if (likely(!ioend->io_error)) {
- 		if (!XFS_FORCED_SHUTDOWN(ip->i_mount)) {
- 			int error;
--			error = xfs_iomap_write_unwritten(ip, offset, size);
-+			error = xfs_i__raw_write_unwritten(ip, offset, size);
- 			if (error)
- 				ioend->io_error = error;
- 		}
+diff --git a/arch/arm/plat-omap/include/mach/io.h b/arch/arm/plat-omap/include/mach/io.h
+index ea55267..041fa30 100644
+--- a/arch/arm/plat-omap/include/mach/io.h
++++ b/arch/arm/plat-omap/include/mach/io.h
+@@ -170,23 +170,6 @@
+ #else
+ #define IOMEM(x)		((void __force __iomem *)(x))
+ 
+-/*
+- * Functions to access the OMAP IO region
+- *
+- * NOTE: - Use omap_read/write[bwl] for physical register addresses
+- *	 - Use __raw_read/write[bwl]() for virtual register addresses
+- *	 - Use IO_ADDRESS(phys_addr) to convert registers to virtual addresses
+- *	 - DO NOT use hardcoded virtual addresses to allow changing the
+- *	   IO address space again if needed
+- */
+-#define omap_readb(a)		__raw_readb(IO_ADDRESS(a))
+-#define omap_readw(a)		__raw_readw(IO_ADDRESS(a))
+-#define omap_readl(a)		__raw_readl(IO_ADDRESS(a))
+-
+-#define omap_writeb(v,a)	__raw_writeb(v, IO_ADDRESS(a))
+-#define omap_writew(v,a)	__raw_writew(v, IO_ADDRESS(a))
+-#define omap_writel(v,a)	__raw_writel(v, IO_ADDRESS(a))
+-
+ struct omap_sdrc_params;
+ 
+ extern void omap1_map_common_io(void);
 -- 
 1.6.0.2.307.gc427
 
