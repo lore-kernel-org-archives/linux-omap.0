@@ -1,59 +1,67 @@
-From: "Ramesh Gupta Guntha" <grgupta77@gmail.com>
-Subject: Re: [BRIDGE] bridgedriver load/unload problem
-Date: Tue, 11 Nov 2008 12:18:34 +0530
-Message-ID: <3a2dabf50811102248j27be7ca4tb8ba4dc8910e1d7c@mail.gmail.com>
-References: <20081110.135917.46194187.Hiroshi.DOYU@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: ext-eero.nurkkala@nokia.com
+Subject: [PATCH] i2c: i2c-omap: Fix standard and fast mode prescalers
+Date: Tue, 11 Nov 2008 08:52:32 +0200
+Message-ID: <12263863521940-git-send-email-ext-eero.nurkkala@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.191]:12950 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754895AbYKKGsg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 01:48:36 -0500
-Received: by mu-out-0910.google.com with SMTP id g7so3255007muf.1
-        for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 22:48:34 -0800 (PST)
-In-Reply-To: <20081110.135917.46194187.Hiroshi.DOYU@nokia.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.233]:39779 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752031AbYKKGyn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 01:54:43 -0500
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mAB6rkew030828
+	for <linux-omap@vger.kernel.org>; Tue, 11 Nov 2008 08:53:54 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: Ramesh <x0023949@ti.com>, linux-omap@vger.kernel.org, vpasam@ti.com
+To: linux-omap@vger.kernel.org
+Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-Hi Hiroshi,
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-On 11/10/08, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
-> Hi,
->
-> I got the following error, has anyone got the similar problem?
->
-> custom:~# cat test.sh
-> #!/bin/sh
->
-> modprobe bridgedriver \
->    base_img=./ddspbase_tiomap3430.dof64P && \
->    ./ping.out 1 && \
->    rmmod bridgedriver
->
-> custom:~# ./test.sh
-> DSP device detected !!
-> DSPNodeCreate succeeded
-> DSPNode_registerNotify succeeded
-> DSPNode_run succeeded
-> Ping: Id 1.000000 Msg 0.000000 Mem 15408.000000
-> custom:~#
-> custom:~# ./test.sh
-> DSP device detected !! Unable to handle kernel paging request at virtual address be5e7017
->
-> pgd = c0004000
-> [be5e7017] *pgd=00000000
-> Internal error: Oops: 805 [#1] PREEMPT
+The prescalers for 100 kHz and 400 kHz mode
+are wrong. The internal clock is the fclock
+divided by the prescaler. Also, the scll and
+sclh values should be adjusted correctly.
+Having the correct prescaler is important in
+the process of getting standard i2c clock. In
+addition, it (psc) is used to get the correct
+noise filter and thus, lets more error resilient
+i2c communications.
 
-I am not able to reproduce this issue. Is it consistent at your end?
+Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+---
+ drivers/i2c/busses/i2c-omap.c |   12 +++++++++---
+ 1 files changed, 9 insertions(+), 3 deletions(-)
 
-What is the bridge patch set you are using for this?
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index f15668d..cee2f2d 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -288,7 +288,13 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
+ 
+ 		/* HSI2C controller internal clk rate should be 19.2 Mhz */
+-		internal_clk = 19200;
++		if (dev->speed > 400)
++			internal_clk = 19200;
++		else if (dev->speed > 100)
++			internal_clk = 9600;
++		else
++			internal_clk = 4000;
++
+ 		fclk_rate = clk_get_rate(dev->fclk) / 1000;
+ 
+ 		/* Compute prescaler divisor */
+@@ -306,8 +312,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 			hssclh = fclk_rate / (dev->speed * 2) - 6;
+ 		} else {
+ 			/* To handle F/S modes */
+-			fsscll = internal_clk / (dev->speed * 2) - 6;
+-			fssclh = internal_clk / (dev->speed * 2) - 6;
++			fsscll = internal_clk / (dev->speed * 2) - 7;
++			fssclh = internal_clk / (dev->speed * 2) - 5;
+ 		}
+ 		scll = (hsscll << OMAP_I2C_SCLL_HSSCLL) | fsscll;
+ 		sclh = (hssclh << OMAP_I2C_SCLH_HSSCLH) | fssclh;
+-- 
+1.6.0
 
-Please let me know your comments.
-
-thanks
-Ramesh
