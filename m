@@ -1,57 +1,12 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [rft/rfc/patch-2.6.28-rc3+ 44/59] omap: namespace cleanup to drivers/usb/musb/omap2430.c
-Date: Wed, 12 Nov 2008 00:57:03 +0200
-Message-ID: <1226444238-14614-45-git-send-email-me@felipebalbi.com>
-References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
- <1226444238-14614-2-git-send-email-me@felipebalbi.com>
- <1226444238-14614-3-git-send-email-me@felipebalbi.com>
- <1226444238-14614-4-git-send-email-me@felipebalbi.com>
- <1226444238-14614-5-git-send-email-me@felipebalbi.com>
- <1226444238-14614-6-git-send-email-me@felipebalbi.com>
- <1226444238-14614-7-git-send-email-me@felipebalbi.com>
- <1226444238-14614-8-git-send-email-me@felipebalbi.com>
- <1226444238-14614-9-git-send-email-me@felipebalbi.com>
- <1226444238-14614-10-git-send-email-me@felipebalbi.com>
- <1226444238-14614-11-git-send-email-me@felipebalbi.com>
- <1226444238-14614-12-git-send-email-me@felipebalbi.com>
- <1226444238-14614-13-git-send-email-me@felipebalbi.com>
- <1226444238-14614-14-git-send-email-me@felipebalbi.com>
- <1226444238-14614-15-git-send-email-me@felipebalbi.com>
- <1226444238-14614-16-git-send-email-me@felipebalbi.com>
- <1226444238-14614-17-git-send-email-me@felipebalbi.com>
- <1226444238-14614-18-git-send-email-me@felipebalbi.com>
- <1226444238-14614-19-git-send-email-me@felipebalbi.com>
- <1226444238-14614-20-git-send-email-me@felipebalbi.com>
- <1226444238-14614-21-git-send-email-me@felipebalbi.com>
- <1226444238-14614-22-git-send-email-me@felipebalbi.com>
- <1226444238-14614-23-git-send-email-me@felipebalbi.com>
- <1226444238-14614-24-git-send-email-me@felipebalbi.com>
- <1226444238-14614-25-git-send-email-me@felipebalbi.com>
- <1226444238-14614-26-git-send-email-me@felipebalbi.com>
- <1226444238-14614-27-git-send-email-me@felipebalbi.com>
- <1226444238-14614-28-git-send-email-me@felipebalbi.com>
- <1226444238-14614-29-git-send-email-me@felipebalbi.com>
- <1226444238-14614-30-git-send-email-me@felipebalbi.com>
- <1226444238-14614-31-git-send-email-me@felipebalbi.com>
- <1226444238-14614-32-git-send-email-me@felipebalbi.com>
- <1226444238-14614-33-git-send-email-me@felipebalbi.com>
- <1226444238-14614-34-git-send-email-me@felipebalbi.com>
- <1226444238-14614-35-git-send-email-me@felipebalbi.com>
- <1226444238-14614-36-git-send-email-me@felipebalbi.com>
- <1226444238-14614-37-git-send-email-me@felipebalbi.com>
- <1226444238-14614-38-git-send-email-me@felipebalbi.com>
- <1226444238-14614-39-git-send-email-me@felipebalbi.com>
- <1226444238-14614-40-git-send-email-me@felipebalbi.com>
- <1226444238-14614-41-git-send-email-me@felipebalbi.com>
- <1226444238-14614-42-git-send-email-me@felipebalbi.com>
- <1226444238-14614-43-git-send-email-me@felipebalbi.com>
- <1226444238-14614-44-git-send-email-me@felipebalbi.com>
+Subject: [PATCH] omap: mmc: make mmc build again for omap1
+Date: Wed, 12 Nov 2008 01:05:44 +0200
+Message-ID: <1226444744-22617-1-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:56714 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:56725 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752451AbYKKXFx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:05:53 -0500
-In-Reply-To: <1226444238-14614-44-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1753050AbYKKXF7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:05:59 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -59,84 +14,49 @@ Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
 From: Felipe Balbi <felipe.balbi@nokia.com>
 
+Trivial fix making mmc build for omap1 boards.
+
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/usb/musb/omap2430.c |   30 +++++++++++++++---------------
- 1 files changed, 15 insertions(+), 15 deletions(-)
+ arch/arm/mach-omap1/board-innovator.c |    2 +-
+ arch/arm/mach-omap1/devices.c         |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index be4e779..4e18035 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -225,7 +225,7 @@ int __init musb_platform_init(struct musb *musb)
- 	musb->xceiv = *x;
- 	musb_platform_resume(musb);
- 
--	l = omap_readl(OTG_SYSCONFIG);
-+	l = __raw_readl(OTG_SYSCONFIG);
- 	l &= ~ENABLEWAKEUP;	/* disable wakeup */
- 	l &= ~NOSTDBY;		/* remove possible nostdby */
- 	l |= SMARTSTDBY;	/* enable smart standby */
-@@ -233,17 +233,17 @@ int __init musb_platform_init(struct musb *musb)
- 	l &= ~NOIDLE;		/* remove possible noidle */
- 	l |= SMARTIDLE;		/* enable smart idle */
- 	l |= AUTOIDLE;		/* enable auto idle */
--	omap_writel(l, OTG_SYSCONFIG);
-+	__raw_writel(l, OTG_SYSCONFIG);
- 
--	l = omap_readl(OTG_INTERFSEL);
-+	l = __raw_readl(OTG_INTERFSEL);
- 	l |= ULPI_12PIN;
--	omap_writel(l, OTG_INTERFSEL);
-+	__raw_writel(l, OTG_INTERFSEL);
- 
- 	pr_debug("HS USB OTG: revision 0x%x, sysconfig 0x%02x, "
- 			"sysstatus 0x%x, intrfsel 0x%x, simenable  0x%x\n",
--			omap_readl(OTG_REVISION), omap_readl(OTG_SYSCONFIG),
--			omap_readl(OTG_SYSSTATUS), omap_readl(OTG_INTERFSEL),
--			omap_readl(OTG_SIMENABLE));
-+			__raw_readl(OTG_REVISION), omap_readl(OTG_SYSCONFIG),
-+			__raw_readl(OTG_SYSSTATUS), omap_readl(OTG_INTERFSEL),
-+			__raw_readl(OTG_SIMENABLE));
- 
- 	omap_vbus_power(musb, musb->board_mode == MUSB_HOST, 1);
- 
-@@ -266,13 +266,13 @@ int musb_platform_suspend(struct musb *musb)
- 		return 0;
- 
- 	/* in any role */
--	l = omap_readl(OTG_FORCESTDBY);
-+	l = __raw_readl(OTG_FORCESTDBY);
- 	l |= ENABLEFORCE;	/* enable MSTANDBY */
--	omap_writel(l, OTG_FORCESTDBY);
-+	__raw_writel(l, OTG_FORCESTDBY);
- 
--	l = omap_readl(OTG_SYSCONFIG);
-+	l = __raw_readl(OTG_SYSCONFIG);
- 	l |= ENABLEWAKEUP;	/* enable wakeup */
--	omap_writel(l, OTG_SYSCONFIG);
-+	__raw_writel(l, OTG_SYSCONFIG);
- 
- 	if (musb->xceiv.set_suspend)
- 		musb->xceiv.set_suspend(&musb->xceiv, 1);
-@@ -300,13 +300,13 @@ static int musb_platform_resume(struct musb *musb)
- 	else
- 		clk_enable(musb->clock);
- 
--	l = omap_readl(OTG_SYSCONFIG);
-+	l = __raw_readl(OTG_SYSCONFIG);
- 	l &= ~ENABLEWAKEUP;	/* disable wakeup */
--	omap_writel(l, OTG_SYSCONFIG);
-+	__raw_writel(l, OTG_SYSCONFIG);
- 
--	l = omap_readl(OTG_FORCESTDBY);
-+	l = __raw_readl(OTG_FORCESTDBY);
- 	l &= ~ENABLEFORCE;	/* disable MSTANDBY */
--	omap_writel(l, OTG_FORCESTDBY);
-+	__raw_writel(l, OTG_FORCESTDBY);
- 
- 	return 0;
- }
+diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
+index 7a97f6b..feaf616 100644
+--- a/arch/arm/mach-omap1/board-innovator.c
++++ b/arch/arm/mach-omap1/board-innovator.c
+@@ -385,7 +385,7 @@ static struct omap_mmc_platform_data mmc1_data = {
+ 	.nr_slots                       = 1,
+ 	.slots[0]       = {
+ 		.set_power		= mmc_set_power,
+-		.wire4			= 1,
++		.wires			= 4,
+ 		.name                   = "mmcblk",
+ 	},
+ };
+diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
+index 45712a5..e8ff6b5 100644
+--- a/arch/arm/mach-omap1/devices.c
++++ b/arch/arm/mach-omap1/devices.c
+@@ -116,7 +116,7 @@ static inline void omap1_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
+ 			omap_cfg_reg(P19_1710_MMC_CMDDIR);
+ 			omap_cfg_reg(P20_1710_MMC_DATDIR0);
+ 		}
+-		if (mmc_controller->slots[0].wire4) {
++		if (mmc_controller->slots[0].wires == 4) {
+ 			omap_cfg_reg(MMC_DAT1);
+ 			/* NOTE: DAT2 can be on W10 (here) or M15 */
+ 			if (!mmc_controller->slots[0].nomux)
+@@ -132,7 +132,7 @@ static inline void omap1_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
+ 			omap_cfg_reg(Y10_1610_MMC2_CLK);
+ 			omap_cfg_reg(R18_1610_MMC2_CLKIN);
+ 			omap_cfg_reg(W8_1610_MMC2_DAT0);
+-			if (mmc_controller->slots[1].wire4) {
++			if (mmc_controller->slots[1].wires == 4) {
+ 				omap_cfg_reg(V8_1610_MMC2_DAT1);
+ 				omap_cfg_reg(W15_1610_MMC2_DAT2);
+ 				omap_cfg_reg(R10_1610_MMC2_DAT3);
 -- 
 1.6.0.2.307.gc427
 
