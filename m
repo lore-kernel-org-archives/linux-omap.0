@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [rft/rfc/patch-2.6.28-rc3+ 51/59] omap: namespace cleanup to drivers/video/omap/sossi.c
-Date: Wed, 12 Nov 2008 00:57:10 +0200
-Message-ID: <1226444238-14614-52-git-send-email-me@felipebalbi.com>
+Subject: [rft/rfc/patch-2.6.28-rc3+ 56/59] omap: namespace cleanup to arch/arm/plat-omap/include/mach/pm.h
+Date: Wed, 12 Nov 2008 00:57:15 +0200
+Message-ID: <1226444238-14614-57-git-send-email-me@felipebalbi.com>
 References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-2-git-send-email-me@felipebalbi.com>
  <1226444238-14614-3-git-send-email-me@felipebalbi.com>
@@ -53,12 +53,17 @@ References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-49-git-send-email-me@felipebalbi.com>
  <1226444238-14614-50-git-send-email-me@felipebalbi.com>
  <1226444238-14614-51-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-52-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-53-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-54-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-55-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-56-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:43126 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:43144 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751680AbYKKXOs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:14:48 -0500
-In-Reply-To: <1226444238-14614-51-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1751716AbYKKXOw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:14:52 -0500
+In-Reply-To: <1226444238-14614-56-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -68,35 +73,52 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/video/omap/sossi.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ arch/arm/plat-omap/include/mach/pm.h |   20 ++++++++++----------
+ 1 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/video/omap/sossi.c b/drivers/video/omap/sossi.c
-index cc697cc..8f1cf66 100644
---- a/drivers/video/omap/sossi.c
-+++ b/drivers/video/omap/sossi.c
-@@ -604,16 +604,16 @@ static int sossi_init(struct omapfb_device *fbdev)
- 	sossi.fck = fck;
+diff --git a/arch/arm/plat-omap/include/mach/pm.h b/arch/arm/plat-omap/include/mach/pm.h
+index e4cf1c5..d87e507 100644
+--- a/arch/arm/plat-omap/include/mach/pm.h
++++ b/arch/arm/plat-omap/include/mach/pm.h
+@@ -171,28 +171,28 @@ extern void omap_serial_wake_trigger(int enable);
+ #define omap_serial_wake_trigger(x)	{}
+ #endif	/* CONFIG_OMAP_SERIAL_WAKE */
  
- 	/* Reset and enable the SoSSI module */
--	l = omap_readl(MOD_CONF_CTRL_1);
-+	l = __raw_readl(MOD_CONF_CTRL_1);
- 	l |= CONF_SOSSI_RESET_R;
--	omap_writel(l, MOD_CONF_CTRL_1);
-+	__raw_writel(l, MOD_CONF_CTRL_1);
- 	l &= ~CONF_SOSSI_RESET_R;
--	omap_writel(l, MOD_CONF_CTRL_1);
-+	__raw_writel(l, MOD_CONF_CTRL_1);
+-#define ARM_SAVE(x) arm_sleep_save[ARM_SLEEP_SAVE_##x] = omap_readl(x)
+-#define ARM_RESTORE(x) omap_writel((arm_sleep_save[ARM_SLEEP_SAVE_##x]), (x))
++#define ARM_SAVE(x) arm_sleep_save[ARM_SLEEP_SAVE_##x] = __raw_readl(x)
++#define ARM_RESTORE(x) __raw_writel((arm_sleep_save[ARM_SLEEP_SAVE_##x]), (x))
+ #define ARM_SHOW(x) arm_sleep_save[ARM_SLEEP_SAVE_##x]
  
- 	clk_enable(sossi.fck);
--	l = omap_readl(ARM_IDLECT2);
-+	l = __raw_readl(ARM_IDLECT2);
- 	l &= ~(1 << 8);			/* DMACK_REQ */
--	omap_writel(l, ARM_IDLECT2);
-+	__raw_writel(l, ARM_IDLECT2);
+ #define DSP_SAVE(x) dsp_sleep_save[DSP_SLEEP_SAVE_##x] = __raw_readw(x)
+ #define DSP_RESTORE(x) __raw_writew((dsp_sleep_save[DSP_SLEEP_SAVE_##x]), (x))
+ #define DSP_SHOW(x) dsp_sleep_save[DSP_SLEEP_SAVE_##x]
  
- 	l = sossi_read_reg(SOSSI_INIT2_REG);
- 	/* Enable and reset the SoSSI block */
+-#define ULPD_SAVE(x) ulpd_sleep_save[ULPD_SLEEP_SAVE_##x] = omap_readw(x)
+-#define ULPD_RESTORE(x) omap_writew((ulpd_sleep_save[ULPD_SLEEP_SAVE_##x]), (x))
++#define ULPD_SAVE(x) ulpd_sleep_save[ULPD_SLEEP_SAVE_##x] = __raw_readw(x)
++#define ULPD_RESTORE(x) __raw_writew((ulpd_sleep_save[ULPD_SLEEP_SAVE_##x]), (x))
+ #define ULPD_SHOW(x) ulpd_sleep_save[ULPD_SLEEP_SAVE_##x]
+ 
+-#define MPUI730_SAVE(x) mpui730_sleep_save[MPUI730_SLEEP_SAVE_##x] = omap_readl(x)
+-#define MPUI730_RESTORE(x) omap_writel((mpui730_sleep_save[MPUI730_SLEEP_SAVE_##x]), (x))
++#define MPUI730_SAVE(x) mpui730_sleep_save[MPUI730_SLEEP_SAVE_##x] = __raw_readl(x)
++#define MPUI730_RESTORE(x) __raw_writel((mpui730_sleep_save[MPUI730_SLEEP_SAVE_##x]), (x))
+ #define MPUI730_SHOW(x) mpui730_sleep_save[MPUI730_SLEEP_SAVE_##x]
+ 
+-#define MPUI1510_SAVE(x) mpui1510_sleep_save[MPUI1510_SLEEP_SAVE_##x] = omap_readl(x)
+-#define MPUI1510_RESTORE(x) omap_writel((mpui1510_sleep_save[MPUI1510_SLEEP_SAVE_##x]), (x))
++#define MPUI1510_SAVE(x) mpui1510_sleep_save[MPUI1510_SLEEP_SAVE_##x] = __raw_readl(x)
++#define MPUI1510_RESTORE(x) __raw_writel((mpui1510_sleep_save[MPUI1510_SLEEP_SAVE_##x]), (x))
+ #define MPUI1510_SHOW(x) mpui1510_sleep_save[MPUI1510_SLEEP_SAVE_##x]
+ 
+-#define MPUI1610_SAVE(x) mpui1610_sleep_save[MPUI1610_SLEEP_SAVE_##x] = omap_readl(x)
+-#define MPUI1610_RESTORE(x) omap_writel((mpui1610_sleep_save[MPUI1610_SLEEP_SAVE_##x]), (x))
++#define MPUI1610_SAVE(x) mpui1610_sleep_save[MPUI1610_SLEEP_SAVE_##x] = __raw_readl(x)
++#define MPUI1610_RESTORE(x) __raw_writel((mpui1610_sleep_save[MPUI1610_SLEEP_SAVE_##x]), (x))
+ #define MPUI1610_SHOW(x) mpui1610_sleep_save[MPUI1610_SLEEP_SAVE_##x]
+ 
+ /*
 -- 
 1.6.0.2.307.gc427
 
