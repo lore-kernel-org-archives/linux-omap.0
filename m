@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [rft/rfc/patch-2.6.28-rc3+ 33/59] omap: namespace cleanup to drivers/mtd/nand/ams-delta.c
-Date: Wed, 12 Nov 2008 00:56:52 +0200
-Message-ID: <1226444238-14614-34-git-send-email-me@felipebalbi.com>
+Subject: [rft/rfc/patch-2.6.28-rc3+ 40/59] omap: namespace cleanup to drivers/usb/gadget/omap_udc.h
+Date: Wed, 12 Nov 2008 00:56:59 +0200
+Message-ID: <1226444238-14614-41-git-send-email-me@felipebalbi.com>
 References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-2-git-send-email-me@felipebalbi.com>
  <1226444238-14614-3-git-send-email-me@felipebalbi.com>
@@ -35,12 +35,19 @@ References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-31-git-send-email-me@felipebalbi.com>
  <1226444238-14614-32-git-send-email-me@felipebalbi.com>
  <1226444238-14614-33-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-34-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-35-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-36-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-37-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-38-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-39-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-40-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:56576 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:56568 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751826AbYKKXFE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:05:04 -0500
-In-Reply-To: <1226444238-14614-33-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1751706AbYKKXFA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:05:00 -0500
+In-Reply-To: <1226444238-14614-40-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -50,34 +57,22 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/mtd/nand/ams-delta.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/usb/gadget/omap_udc.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/mtd/nand/ams-delta.c b/drivers/mtd/nand/ams-delta.c
-index 782994e..a706118 100644
---- a/drivers/mtd/nand/ams-delta.c
-+++ b/drivers/mtd/nand/ams-delta.c
-@@ -63,8 +63,8 @@ static void ams_delta_write_byte(struct mtd_info *mtd, u_char byte)
- {
- 	struct nand_chip *this = mtd->priv;
+diff --git a/drivers/usb/gadget/omap_udc.h b/drivers/usb/gadget/omap_udc.h
+index 29edc51..165c7ff 100644
+--- a/drivers/usb/gadget/omap_udc.h
++++ b/drivers/usb/gadget/omap_udc.h
+@@ -201,7 +201,7 @@ struct omap_udc {
+ #define	VBUS_CTRL_1510		(1 << 19)	/* 1 connected (software) */
+ #define	VBUS_MODE_1510		(1 << 18)	/* 0 hardware, 1 software */
  
--	omap_writew(0, (OMAP_MPUIO_BASE + OMAP_MPUIO_IO_CNTL));
--	omap_writew(byte, this->IO_ADDR_W);
-+	__raw_writew(0, (OMAP_MPUIO_BASE + OMAP_MPUIO_IO_CNTL));
-+	__raw_writew(byte, this->IO_ADDR_W);
- 	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NWE, 0);
- 	ndelay(40);
- 	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NWE,
-@@ -78,8 +78,8 @@ static u_char ams_delta_read_byte(struct mtd_info *mtd)
- 
- 	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NRE, 0);
- 	ndelay(40);
--	omap_writew(~0, (OMAP_MPUIO_BASE + OMAP_MPUIO_IO_CNTL));
--	res = omap_readw(this->IO_ADDR_R);
-+	__raw_writew(~0, (OMAP_MPUIO_BASE + OMAP_MPUIO_IO_CNTL));
-+	res = __raw_readw(this->IO_ADDR_R);
- 	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NRE,
- 			       AMS_DELTA_LATCH2_NAND_NRE);
+-#define	HMC_1510	((omap_readl(MOD_CONF_CTRL_0) >> 1) & 0x3f)
+-#define	HMC_1610	(omap_readl(OTG_SYSCON_2) & 0x3f)
++#define	HMC_1510	((__raw_readl(MOD_CONF_CTRL_0) >> 1) & 0x3f)
++#define	HMC_1610	(__raw_readl(OTG_SYSCON_2) & 0x3f)
+ #define	HMC		(cpu_is_omap15xx() ? HMC_1510 : HMC_1610)
  
 -- 
 1.6.0.2.307.gc427
