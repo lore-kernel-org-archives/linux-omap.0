@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [rft/rfc/patch-2.6.28-rc3+ 34/59] omap: namespace cleanup to drivers/mtd/nand/omap2.c
-Date: Wed, 12 Nov 2008 00:56:53 +0200
-Message-ID: <1226444238-14614-35-git-send-email-me@felipebalbi.com>
+Subject: [rft/rfc/patch-2.6.28-rc3+ 35/59] omap: namespace cleanup to drivers/net/irda/omap-ir.c
+Date: Wed, 12 Nov 2008 00:56:54 +0200
+Message-ID: <1226444238-14614-36-git-send-email-me@felipebalbi.com>
 References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-2-git-send-email-me@felipebalbi.com>
  <1226444238-14614-3-git-send-email-me@felipebalbi.com>
@@ -36,12 +36,13 @@ References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-32-git-send-email-me@felipebalbi.com>
  <1226444238-14614-33-git-send-email-me@felipebalbi.com>
  <1226444238-14614-34-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-35-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:56676 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:56667 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751409AbYKKXFi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:05:38 -0500
-In-Reply-To: <1226444238-14614-34-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1751207AbYKKXFf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:05:35 -0500
+In-Reply-To: <1226444238-14614-35-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -51,54 +52,45 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/mtd/nand/omap2.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/net/irda/omap-ir.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 2ede116..170f235 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -187,12 +187,12 @@ static void omap_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
+diff --git a/drivers/net/irda/omap-ir.c b/drivers/net/irda/omap-ir.c
+index b706253..3652ff3 100644
+--- a/drivers/net/irda/omap-ir.c
++++ b/drivers/net/irda/omap-ir.c
+@@ -138,12 +138,12 @@ struct omap_irda {
+ 
+ static void inline uart_reg_out(int idx, u8 val)
+ {
+-	omap_writeb(val, idx);
++	__raw_writeb(val, idx);
  }
  
- /*
-- * omap_read_buf16 - read data from NAND controller into buffer
-+ * __raw_read_buf16 - read data from NAND controller into buffer
-  * @mtd: MTD device structure
-  * @buf: buffer to store date
-  * @len: number of bytes to read
-  */
--static void omap_read_buf16(struct mtd_info *mtd, u_char *buf, int len)
-+static void __raw_read_buf16(struct mtd_info *mtd, u_char *buf, int len)
+ static u8 inline uart_reg_in(int idx)
  {
- 	struct nand_chip *nand = mtd->priv;
- 
-@@ -200,12 +200,12 @@ static void omap_read_buf16(struct mtd_info *mtd, u_char *buf, int len)
+-	u8 b = omap_readb(idx);
++	u8 b = __raw_readb(idx);
+ 	return b;
  }
  
- /*
-- * omap_write_buf16 - write buffer to NAND controller
-+ * __raw_write_buf16 - write buffer to NAND controller
-  * @mtd: MTD device structure
-  * @buf: data buffer
-  * @len: number of bytes to write
-  */
--static void omap_write_buf16(struct mtd_info *mtd, const u_char * buf, int len)
-+static void __raw_write_buf16(struct mtd_info *mtd, const u_char * buf, int len)
- {
- 	struct omap_nand_info *info = container_of(mtd,
- 						struct omap_nand_info, mtd);
-@@ -641,8 +641,8 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+@@ -232,14 +232,14 @@ static int omap_irda_startup(struct net_device *dev)
+ 	/* FIXME: use clk_* apis for UART3 clock*/
+ 	/* Enable UART3 clock and set UART3 to IrDA mode */
+ 	if (machine_is_omap_h2() || machine_is_omap_h3())
+-		omap_writel(omap_readl(MOD_CONF_CTRL_0) | (1 << 31) | (1 << 15),
++		__raw_writel(__raw_readl(MOD_CONF_CTRL_0) | (1 << 31) | (1 << 15),
+ 				MOD_CONF_CTRL_0);
  
- 	/* REVISIT:  only supports 16-bit NAND flash */
- 
--	info->nand.read_buf   = omap_read_buf16;
--	info->nand.write_buf  = omap_write_buf16;
-+	info->nand.read_buf   = __raw_read_buf16;
-+	info->nand.write_buf  = __raw_write_buf16;
- 	info->nand.verify_buf = omap_verify_buf;
- 
- 	/*
+ 	/* Only for H2?
+ 	 */
+ 	if (omap_ir->pdata->transceiver_mode && machine_is_omap_h2()) {
+ 		/* Is it select_irda on H2 ? */
+-		omap_writel(omap_readl(FUNC_MUX_CTRL_A) | 7,
++		__raw_writel(__raw_readl(FUNC_MUX_CTRL_A) | 7,
+ 					FUNC_MUX_CTRL_A);
+ 		omap_ir->pdata->transceiver_mode(omap_ir->dev, IR_SIRMODE);
+ 	}
 -- 
 1.6.0.2.307.gc427
 
