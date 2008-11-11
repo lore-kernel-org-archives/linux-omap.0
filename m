@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [rft/rfc/patch-2.6.28-rc3+ 38/59] omap: namespace cleanup to drivers/spi/omap_uwire.c
-Date: Wed, 12 Nov 2008 00:56:57 +0200
-Message-ID: <1226444238-14614-39-git-send-email-me@felipebalbi.com>
+Subject: [rft/rfc/patch-2.6.28-rc3+ 49/59] omap: namespace cleanup to drivers/video/omap/lcd_p2.c
+Date: Wed, 12 Nov 2008 00:57:08 +0200
+Message-ID: <1226444238-14614-50-git-send-email-me@felipebalbi.com>
 References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-2-git-send-email-me@felipebalbi.com>
  <1226444238-14614-3-git-send-email-me@felipebalbi.com>
@@ -40,12 +40,23 @@ References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-36-git-send-email-me@felipebalbi.com>
  <1226444238-14614-37-git-send-email-me@felipebalbi.com>
  <1226444238-14614-38-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-39-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-40-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-41-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-42-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-43-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-44-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-45-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-46-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-47-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-48-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-49-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:56512 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:56558 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751381AbYKKXEf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:04:35 -0500
-In-Reply-To: <1226444238-14614-38-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1751525AbYKKXE4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:04:56 -0500
+In-Reply-To: <1226444238-14614-49-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -55,24 +66,32 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/spi/omap_uwire.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/omap/lcd_p2.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/spi/omap_uwire.c b/drivers/spi/omap_uwire.c
-index bab6ff0..ad68cb7 100644
---- a/drivers/spi/omap_uwire.c
-+++ b/drivers/spi/omap_uwire.c
-@@ -578,8 +578,8 @@ static int __init omap_uwire_init(void)
- 	}
- 	if (machine_is_omap_perseus2()) {
- 		/* configure pins: MPU_UW_nSCS1, MPU_UW_SDO, MPU_UW_SCLK */
--		int val = omap_readl(OMAP730_IO_CONF_9) & ~0x00EEE000;
--		omap_writel(val | 0x00AAA000, OMAP730_IO_CONF_9);
-+		int val = __raw_readl(OMAP730_IO_CONF_9) & ~0x00EEE000;
-+		__raw_writel(val | 0x00AAA000, OMAP730_IO_CONF_9);
- 	}
+diff --git a/drivers/video/omap/lcd_p2.c b/drivers/video/omap/lcd_p2.c
+index 8c66bf6..08aed16 100644
+--- a/drivers/video/omap/lcd_p2.c
++++ b/drivers/video/omap/lcd_p2.c
+@@ -171,14 +171,14 @@ static int p2_panel_enable(struct lcd_panel *panel)
+ 	omap_set_gpio_dataout(19, 1);
  
- 	return platform_driver_probe(&uwire_driver, uwire_probe);
+ 		/* bits 31:28 -> 0  LCD_PXL_15 .. 12 */
+-	value = omap_readl(OMAP730_IO_CONF_3) & 0x0FFFFFFF;
+-	omap_writel(value, OMAP730_IO_CONF_3);
++	value = __raw_readl(OMAP730_IO_CONF_3) & 0x0FFFFFFF;
++	__raw_writel(value, OMAP730_IO_CONF_3);
+ 
+ 		/* bits 19:0 -> 0  LCD_VSYNC, AC, PXL_0, PCLK, HSYNC,
+ 		**                 PXL_9..1, PXL_10, PXL_11
+ 		*/
+-	value = omap_readl(OMAP730_IO_CONF_4) & 0xFFF00000;
+-	omap_writel(value, OMAP730_IO_CONF_4);
++	value = __raw_readl(OMAP730_IO_CONF_4) & 0xFFF00000;
++	__raw_writel(value, OMAP730_IO_CONF_4);
+ 
+ 	omap_uwire_configure_mode(0,16);
+ 
 -- 
 1.6.0.2.307.gc427
 
