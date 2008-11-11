@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [rft/rfc/patch-2.6.28-rc3+ 45/59] omap: namespace cleanup to drivers/video/backlight/omap1_bl.c
-Date: Wed, 12 Nov 2008 00:57:04 +0200
-Message-ID: <1226444238-14614-46-git-send-email-me@felipebalbi.com>
+Subject: [rft/rfc/patch-2.6.28-rc3+ 51/59] omap: namespace cleanup to drivers/video/omap/sossi.c
+Date: Wed, 12 Nov 2008 00:57:10 +0200
+Message-ID: <1226444238-14614-52-git-send-email-me@felipebalbi.com>
 References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-2-git-send-email-me@felipebalbi.com>
  <1226444238-14614-3-git-send-email-me@felipebalbi.com>
@@ -47,12 +47,18 @@ References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
  <1226444238-14614-43-git-send-email-me@felipebalbi.com>
  <1226444238-14614-44-git-send-email-me@felipebalbi.com>
  <1226444238-14614-45-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-46-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-47-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-48-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-49-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-50-git-send-email-me@felipebalbi.com>
+ <1226444238-14614-51-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:43111 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:43126 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751665AbYKKXOn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:14:43 -0500
-In-Reply-To: <1226444238-14614-45-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1751680AbYKKXOs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:14:48 -0500
+In-Reply-To: <1226444238-14614-51-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -62,28 +68,35 @@ From: Felipe Balbi <felipe.balbi@nokia.com>
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/video/backlight/omap1_bl.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/omap/sossi.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/video/backlight/omap1_bl.c b/drivers/video/backlight/omap1_bl.c
-index cbad67e..12d4d50 100644
---- a/drivers/video/backlight/omap1_bl.c
-+++ b/drivers/video/backlight/omap1_bl.c
-@@ -41,12 +41,12 @@ struct omap_backlight {
+diff --git a/drivers/video/omap/sossi.c b/drivers/video/omap/sossi.c
+index cc697cc..8f1cf66 100644
+--- a/drivers/video/omap/sossi.c
++++ b/drivers/video/omap/sossi.c
+@@ -604,16 +604,16 @@ static int sossi_init(struct omapfb_device *fbdev)
+ 	sossi.fck = fck;
  
- static void inline omapbl_send_intensity(int intensity)
- {
--	omap_writeb(intensity, OMAP_PWL_ENABLE);
-+	__raw_writeb(intensity, OMAP_PWL_ENABLE);
- }
+ 	/* Reset and enable the SoSSI module */
+-	l = omap_readl(MOD_CONF_CTRL_1);
++	l = __raw_readl(MOD_CONF_CTRL_1);
+ 	l |= CONF_SOSSI_RESET_R;
+-	omap_writel(l, MOD_CONF_CTRL_1);
++	__raw_writel(l, MOD_CONF_CTRL_1);
+ 	l &= ~CONF_SOSSI_RESET_R;
+-	omap_writel(l, MOD_CONF_CTRL_1);
++	__raw_writel(l, MOD_CONF_CTRL_1);
  
- static void inline omapbl_send_enable(int enable)
- {
--	omap_writeb(enable, OMAP_PWL_CLK_ENABLE);
-+	__raw_writeb(enable, OMAP_PWL_CLK_ENABLE);
- }
+ 	clk_enable(sossi.fck);
+-	l = omap_readl(ARM_IDLECT2);
++	l = __raw_readl(ARM_IDLECT2);
+ 	l &= ~(1 << 8);			/* DMACK_REQ */
+-	omap_writel(l, ARM_IDLECT2);
++	__raw_writel(l, ARM_IDLECT2);
  
- static void omapbl_blank(struct omap_backlight *bl, int mode)
+ 	l = sossi_read_reg(SOSSI_INIT2_REG);
+ 	/* Enable and reset the SoSSI block */
 -- 
 1.6.0.2.307.gc427
 
