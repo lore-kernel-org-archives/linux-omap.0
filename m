@@ -1,68 +1,41 @@
-From: Jonathan McDowell <noodles@earth.li>
-Subject: [PATCH] Fix omap-gpio warnings when compiling for ARCH_OMAP15XX
-Date: Tue, 11 Nov 2008 22:53:48 +0000
-Message-ID: <20081111225348.GZ3162@earth.li>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [rft/rfc/patch-2.6.28-rc3+ 00/59] namespace cleanup patches
+Date: Tue, 11 Nov 2008 15:47:13 -0800
+Message-ID: <20081111234711.GO3984@atomide.com>
+References: <1226444238-14614-1-git-send-email-me@felipebalbi.com> <20081111232141.GD23454@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from the.earth.li ([217.147.81.2]:45578 "EHLO the.earth.li"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752111AbYKKXnN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Nov 2008 18:43:13 -0500
-Received: from noodles by the.earth.li with local (Exim 4.63)
-	(envelope-from <noodles@earth.li>)
-	id 1L027I-0003O9-Fh
-	for linux-omap@vger.kernel.org; Tue, 11 Nov 2008 22:53:48 +0000
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53458 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751155AbYKKXrQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 18:47:16 -0500
 Content-Disposition: inline
+In-Reply-To: <20081111232141.GD23454@frodo>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>
 
-When compiling for ARCH_OMAP15XX I get the following compiler warning i=
-n
-gpio.c:
+* Felipe Balbi <me@felipebalbi.com> [081111 15:22]:
+> On Wed, Nov 12, 2008 at 12:56:19AM +0200, Felipe Balbi wrote:
+> > From: Felipe Balbi <felipe.balbi@nokia.com>
+> > 
+> > Get rid of omap_{read,write}[bsl] defines.
+> > Virtual and physical addresses usage was fixed by Russel King and
+> > there's no need anymore for keeping a define to a standard kernel
+> > function. Get rid of those to keep the namespace cleaner.
+> > 
+> > Build tested with all omap defconfigs.
+> > Depends on my previous "make clk fwk build again on omap1" patch.
+> 
+> for convinience, these patches plus the clock fix for omap1 and the mmc
+> fix are available at [1]
 
-arch/arm/plat-omap/gpio.c: In function =E2=80=98_set_gpio_wakeup=E2=80=99=
-:
-arch/arm/plat-omap/gpio.c:848: warning: unused variable =E2=80=98flags=E2=
-=80=99
+Felipe, have you tested any of these? To me looks like you're missing
+the associated ioremap before you can use __raw_read/write instead of
+omap_read/write.
 
-Simple patch below fixes this.
+Tony
 
-Signed-off-by: Jonathan McDowell <noodles@earth.li>
-
------
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 8bb4542..bfbe366 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -845,7 +845,10 @@ static inline void _set_gpio_irqenable(struct gpio=
-_bank *bank, int gpio, int ena
-  */
- static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enab=
-le)
- {
-+#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP24XX) || =
-\
-+		defined(CONFIG_ARCH_OMAP34XX)
- 	unsigned long flags;
-+#endif
-=20
- 	switch (bank->method) {
- #ifdef CONFIG_ARCH_OMAP16XX
------
-
-J.
-
---=20
-Web [   Asking whether machines can think is like asking whether   ]
-site: http:// [           submarines can swim.           ]       Made b=
-y
-www.earth.li/~noodles/  [                      ]         HuggieTag 0.0.=
-23
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> [1] http://felipebalbi.com/patches/omap/linux-omap-20081112.tar.gz
