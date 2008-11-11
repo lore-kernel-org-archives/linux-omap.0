@@ -1,45 +1,59 @@
-From: "Suresh Rajashekara" <suresh@mistralsolutions.com>
-Subject: Suggestion for a new kernel version
-Date: Mon, 10 Nov 2008 16:27:03 -0800
-Message-ID: <deb0f030811101627s2f5093c0nf79d14bf6e03ca3c@mail.gmail.com>
+From: "Ramesh Gupta Guntha" <grgupta77@gmail.com>
+Subject: Re: [BRIDGE] bridgedriver load/unload problem
+Date: Tue, 11 Nov 2008 12:18:34 +0530
+Message-ID: <3a2dabf50811102248j27be7ca4tb8ba4dc8910e1d7c@mail.gmail.com>
+References: <20081110.135917.46194187.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.31]:39743 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753951AbYKKA1E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2008 19:27:04 -0500
-Received: by yw-out-2324.google.com with SMTP id 9so1059959ywe.1
-        for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 16:27:03 -0800 (PST)
+Received: from mu-out-0910.google.com ([209.85.134.191]:12950 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754895AbYKKGsg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 01:48:36 -0500
+Received: by mu-out-0910.google.com with SMTP id g7so3255007muf.1
+        for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2008 22:48:34 -0800 (PST)
+In-Reply-To: <20081110.135917.46194187.Hiroshi.DOYU@nokia.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux@mistralsolutions.com
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: Ramesh <x0023949@ti.com>, linux-omap@vger.kernel.org, vpasam@ti.com
 
-Hi List,
+Hi Hiroshi,
 
-We have been using 2.6.16-rc3-omap1 on one of our OMAP1 based product
-which had quite a few bugs. We had been taking some fixes from the
-later kernels and port it back, but at some point it becomes difficult
-to do it when the basic data structures changes (because any such big
-changes are frowned upon if proposed for a working product), but now,
-finally we have decided to change the kernel itself to some later
-version. I would appreciate if the list can suggest us some kernel
-version to which we can switch to. Requirements are;
+On 11/10/08, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
+> Hi,
+>
+> I got the following error, has anyone got the similar problem?
+>
+> custom:~# cat test.sh
+> #!/bin/sh
+>
+> modprobe bridgedriver \
+>    base_img=./ddspbase_tiomap3430.dof64P && \
+>    ./ping.out 1 && \
+>    rmmod bridgedriver
+>
+> custom:~# ./test.sh
+> DSP device detected !!
+> DSPNodeCreate succeeded
+> DSPNode_registerNotify succeeded
+> DSPNode_run succeeded
+> Ping: Id 1.000000 Msg 0.000000 Mem 15408.000000
+> custom:~#
+> custom:~# ./test.sh
+> DSP device detected !! Unable to handle kernel paging request at virtual address be5e7017
+>
+> pgd = c0004000
+> [be5e7017] *pgd=00000000
+> Internal error: Oops: 805 [#1] PREEMPT
 
-1. Kernel should be pretty stable (very less bugs)
-2. Even if there are any bugs, it should be easy to port the fixes
-back. This is important because I don't get a chance to convince the
-decision makers to change the kernel again because its something which
-is very basic and they are afraid to change a working system for a
-small bug fix.
+I am not able to reproduce this issue. Is it consistent at your end?
 
-Some of the components for which we depend heavily on the kernel are
-MTD/JFFS2 (with which we have faced lot of issues in
-2.6.16-rc3-omap1), DSP Gateway functionality and power management.
+What is the bridge patch set you are using for this?
 
-Thanks in advance for your help.
+Please let me know your comments.
 
-- Suresh
+thanks
+Ramesh
