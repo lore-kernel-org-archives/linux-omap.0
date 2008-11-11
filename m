@@ -1,44 +1,69 @@
-From: Rick Bronson <rick@efn.org>
-Subject: Re: Fix for dispc's error "omapfb omapfb: irq error status 4020"
-Date: Tue, 11 Nov 2008 09:25:31 -0800
-Message-ID: <E1Kzwzb-0004z0-Q5@amazonia.comcast.net>
-Reply-To: rick@efn.org
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: Boot process stuck on 3430SDP ES3.0
+Date: Tue, 11 Nov 2008 15:20:35 -0600
+Message-ID: <A24693684029E5489D1D202277BE894413BEFCB1@dlee02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from samwise.efn.org ([12.33.21.33]:50555 "EHLO samwise.efn.org"
+Received: from comal.ext.ti.com ([198.47.26.152]:57972 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753885AbYKKRZf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Nov 2008 12:25:35 -0500
+	id S1750901AbYKKVUn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 16:20:43 -0500
+Received: from dlep95.itg.ti.com ([157.170.170.107])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id mABLKbTw008283
+	for <linux-omap@vger.kernel.org>; Tue, 11 Nov 2008 15:20:42 -0600
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id mABLKbYq006071
+	for <linux-omap@vger.kernel.org>; Tue, 11 Nov 2008 15:20:37 -0600 (CST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: hvaibhav@ti.com, tomi.valkeinen@nokia.com
-Cc: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tomi,
+Hi all,
 
-  I agree with both of you.  My patch is a bandaid at best.  I spend a
-fair amount of time trying to find out what's causing the sync lost
-interrupts in the first place, mostly be doing peripheral memory space
-comparisons of good/bad boots.  This let to nothing, all of the
-registers off the DSS were the same except for the interrupt pending.
+I'm having this trouble in an apparently random fashion. The boot process seems to be stuck at this point:
 
-  This led me to implementing the "soft reset" mentioned in the OMAP3
-pdf.  But this would be a big change and I'm not too familiar with
-that code.  Plus I didn't even have a DVI display until yesterday...
+********************** Log start **********************
+...
+<6>i2c /dev entries driver
+i2c /dev entries driver
+<4>Driver 'sd' needs updating - please use bus_type methods
+Driver 'sd' needs updating - please use bus_type methods
+<6>omapflash.0: Found 1 x16 devices at 0x0 in 16-bit bank
+omapflash.0: Found 1 x16 devices at 0x0 in 16-bit bank
+ Intel/Sharp Extended Query Table at 0x010A
+ Intel/Sharp Extended Query Table at 0x010A
+ Intel/Sharp Extended Query Table at 0x010A
+ Intel/Sharp Extended Query Table at 0x010A
+ Intel/Sharp Extended Query Table at 0x010A
+ Intel/Sharp Extended Query Table at 0x010A
+ Intel/Sharp Extended Query Table at 0x010A
+ Intel/Sharp Extended Query Table at 0x010A
+ Intel/Sharp Extended Query Table at 0x010A
+ Intel/Sharp Extended Query Table at 0x010A
+<6>Using buffer write method
+Using buffer write method
+<6>Using auto-unlock on power-up/resume
+Using auto-unlock on power-up/resume
+<5>cfi_cmdset_0001: Erase suspend on write enabled
+cfi_cmdset_0001: Erase suspend on write enabled
+<7>erase region 0: offset=0x0,size=0x40000,blocks=512
+<7>omapflash.0: program region size/ctrl_valid/ctrl_inval = 1024/16/16
+<7>omapflash.0: 1 set(s) of 1 interleaved chips --> 8 partitions of 16384 KiB
+<5>Creating 4 MTD partitions on "omapflash.0":
+Creating 4 MTD partitions on "omapflash.0":
+<5>0x00000000-0x00040000 : "Bootloader-NOR"
+0x00000000-0x00040000 : "Bootloader-NOR"
+<5>0x00040000-0x00080000 : "Params-NOR"
+0x00040000-0x00080000 : "Params-NOR"
+<5>0x00080000-0x00280000 : "Kernel-NOR"
+0x00080000-0x00280000 : "Kernel-NOR"
 
-  Rick
+********************** Log stop **********************
 
-> I think the correct solution would be to find out why we get sync lost
-> errors and fix that. Your patch just hides the problem. 
-> 
-> However, I agree that it's not good to just keep spamming the error,
-> possibly making the board freeze. The new DSS turns the display off
-> after 100 error messages. But I don't think just hiding the interrupt
-> is a good change.
-> 
-> [Hiremath, Vaibhav] Yes, it is not a good practice to hide any
-> interrupts. But I think even instead of turning of the DSS, you should
-> reset the DSS and reconfigure it with default values or preserve the
-> state before resetting and configure it again.  I agree to the point
-> that, it requires lot of re-architectureing to the current driver. But
-> I believe it should be possible with new omap2 version.
-> 
+I'm using an 3430SDP-VG5.0.1 (ES3.0) board. Any ideas why this could be happening?
+
+Regards,
+Sergio
