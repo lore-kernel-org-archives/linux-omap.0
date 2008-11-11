@@ -1,90 +1,63 @@
-From: "shekhar, chandra" <x0044955@ti.com>
-Subject: Re: [PATCH] i2c: i2c-omap: Fix standard and fast mode prescalers
-Date: Tue, 11 Nov 2008 18:51:30 +0530
-Message-ID: <034e01c94400$69fa2620$LocalHost@wipultra806>
-References: <12263863521940-git-send-email-ext-eero.nurkkala@nokia.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: [PATCH OMAPZOOM] OMAP: DMA: Fix CCR programming for request
+ line > 63
+Date: Tue, 11 Nov 2008 19:03:49 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087024A0ADF11@dbde02.ent.ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02DF30302E@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59356 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753299AbYKKNVn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Nov 2008 08:21:43 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:52954 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754319AbYKKNeE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 08:34:04 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id mABDXtpO022248
+	for <linux-omap@vger.kernel.org>; Tue, 11 Nov 2008 07:34:01 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id mABDXrnq004021
+	for <linux-omap@vger.kernel.org>; Tue, 11 Nov 2008 19:03:54 +0530 (IST)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02DF30302E@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+To: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Pushed to zoom tree.
 
------ Original Message ----- 
-From: <ext-eero.nurkkala@nokia.com>
-To: <linux-omap@vger.kernel.org>
-Cc: "Eero Nurkkala" <ext-eero.nurkkala@nokia.com>
-Sent: Tuesday, November 11, 2008 12:22 PM
-Subject: [PATCH] i2c: i2c-omap: Fix standard and fast mode prescalers
-
-
-> From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+>-----Original Message-----
+>From: Gadiyar, Anand
+>Sent: Monday, November 10, 2008 5:08 AM
+>To: linux-omap@vger.kernel.org
+>Cc: Pandita, Vikram; tony@atomide.com
+>Subject: [PATCH OMAPZOOM] OMAP: DMA: Fix CCR programming for request line > 63
 >
-> The prescalers for 100 kHz and 400 kHz mode
-> are wrong. The internal clock is the fclock
-> divided by the prescaler. Also, the scll and
-> sclh values should be adjusted correctly.
-> Having the correct prescaler is important in
-> the process of getting standard i2c clock. In
-> addition, it (psc) is used to get the correct
-> noise filter and thus, lets more error resilient
-> i2c communications.
+>From: Anand Gadiyar <gadiyar@ti.com>
 >
-> Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-> ---
-> drivers/i2c/busses/i2c-omap.c |   12 +++++++++---
-> 1 files changed, 9 insertions(+), 3 deletions(-)
+>Bug in existing code causes synchro control to be set +32 if request
+>line greater than 63 is used.
 >
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index f15668d..cee2f2d 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -288,7 +288,13 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  if (cpu_is_omap2430() || cpu_is_omap34xx()) {
+>Reported by Wenbiao Wang
 >
->  /* HSI2C controller internal clk rate should be 19.2 Mhz */
-> - internal_clk = 19200;
-> + if (dev->speed > 400)
-> + internal_clk = 19200;
-> + else if (dev->speed > 100)
-> + internal_clk = 9600;
-> + else
-> + internal_clk = 4000;
-
-Is internal clk 4000 valid??  PSC_REG  field cannot encompass ( its 4 bit field) 
-the calculated psc if internal_clk is 4000.
-
-> +
->  fclk_rate = clk_get_rate(dev->fclk) / 1000;
+>Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+>---
+>Patch generated against OMAPZOOM tree. Will apply against
+>linux-omap as well with an offset of 8 lines.
 >
->  /* Compute prescaler divisor */
-> @@ -306,8 +312,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  hssclh = fclk_rate / (dev->speed * 2) - 6;
->  } else {
->  /* To handle F/S modes */
-> - fsscll = internal_clk / (dev->speed * 2) - 6;
-> - fssclh = internal_clk / (dev->speed * 2) - 6;
-> + fsscll = internal_clk / (dev->speed * 2) - 7;
-> + fssclh = internal_clk / (dev->speed * 2) - 5;
->  }
->  scll = (hsscll << OMAP_I2C_SCLL_HSSCLL) | fsscll;
->  sclh = (hssclh << OMAP_I2C_SCLH_HSSCLH) | fssclh;
-> -- 
-> 1.6.0
+>diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+>index 562089e..b38a362 100644
+>--- a/arch/arm/plat-omap/dma.c
+>+++ b/arch/arm/plat-omap/dma.c
+>@@ -287,10 +287,7 @@ void omap_set_dma_transfer_params(int lch, int data_type, int elem_count,
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+> 		val = dma_read(CCR(lch));
+> 		val &= ~(3 << 19);
+>-		if (dma_trigger > 63)
+>-			val |= 1 << 20;
+>-		if (dma_trigger > 31)
+>-			val |= 1 << 19;
+>+		val |= ((dma_trigger & ~(0x1f)) << 14);
+>
+> 		val &= ~(0x1f);
+> 		val |= (dma_trigger & 0x1f);
