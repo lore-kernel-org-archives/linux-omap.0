@@ -1,36 +1,43 @@
-From: "stanley.miao" <stanley.miao@windriver.com>
-Subject: Re: [rft/rfc/patch-2.6.28-rc3+ 00/59] namespace cleanup patches
-Date: Wed, 12 Nov 2008 18:06:16 +0800
-Message-ID: <1226484376.24669.47.camel@localhost>
-References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
-Reply-To: stanley.miao@windriver.com
+From: "Sudipta GHOSH" <sudipta.in@gmail.com>
+Subject: twl4030 i2c problem
+Date: Wed, 12 Nov 2008 12:17:24 +0200
+Message-ID: <9e6474ae0811120217l101f7a12tbb2287779651fd32@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:44559 "EHLO mail.wrs.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751579AbYKLKAb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Nov 2008 05:00:31 -0500
-In-Reply-To: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
+Received: from rv-out-0506.google.com ([209.85.198.235]:38141 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751587AbYKLKRZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Nov 2008 05:17:25 -0500
+Received: by rv-out-0506.google.com with SMTP id k40so355704rvb.1
+        for <linux-omap@vger.kernel.org>; Wed, 12 Nov 2008 02:17:24 -0800 (PST)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
+To: linux-omap@vger.kernel.org
 
-If you are using git-send-email, please provide the --no-chain-reply-to
-option to avoid creating exceptionally deep nesting.
+Hi,
 
-Stanley.
+I am having some problem with i2c.
 
-On Wed, 2008-11-12 at 00:56 +0200, Felipe Balbi wrote:
-> From: Felipe Balbi <felipe.balbi@nokia.com>
-> 
-> Get rid of omap_{read,write}[bsl] defines.
-> Virtual and physical addresses usage was fixed by Russel King and
-> there's no need anymore for keeping a define to a standard kernel
-> function. Get rid of those to keep the namespace cleaner.
-> 
-> Build tested with all omap defconfigs.
-> Depends on my previous "make clk fwk build again on omap1" patch.
+In my env I cant make i2c working.
 
+During boot, Twl4030 tries to send few i2c data, but it didnt going ok.
+
+static void twl_init_irq(void), issues many i2c write but fails with
+error -121 (EREMOTEIO).
+
+I tries to some twl4030 i2c read and write from video driver but also
+failes with same error.
+
+My env and my board is based on OMAP2. I have configured the kernel to
+use board-add08.
+
+with some debugging I found dev->cmd_err is 2.
+
+any idea?
+
+is there any special initialization needed for twl4030?
+
+-SG
