@@ -1,77 +1,382 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: Suggestion for a new kernel version
-Date: Wed, 12 Nov 2008 04:07:45 +0200
-Message-ID: <20081112020728.GB7840@frodo>
-References: <deb0f030811101627s2f5093c0nf79d14bf6e03ca3c@mail.gmail.com> <94a0d4530811111631y2f454147o866c40985cb4de69@mail.gmail.com>
-Reply-To: me@felipebalbi.com
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch 2.6.28-rc3-omap 1/4] twl4030: simplified child creation code
+Date: Tue, 11 Nov 2008 17:57:10 -0800
+Message-ID: <200811111757.10504.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:45702 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751394AbYKLCHy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 21:07:54 -0500
+Received: from smtp109.sbc.mail.mud.yahoo.com ([68.142.198.208]:48663 "HELO
+	smtp109.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751503AbYKLCKV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Nov 2008 21:10:21 -0500
 Content-Disposition: inline
-In-Reply-To: <94a0d4530811111631y2f454147o866c40985cb4de69@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Suresh Rajashekara <suresh@mistralsolutions.com>, linux-omap@vger.kernel.org, linux@mistralsolutions.com
+To: linux-omap@vger.kernel.org
 
-On Wed, Nov 12, 2008 at 02:31:45AM +0200, Felipe Contreras wrote:
-> On Tue, Nov 11, 2008 at 2:27 AM, Suresh Rajashekara
-> <suresh@mistralsolutions.com> wrote:
-> > Hi List,
-> >
-> > We have been using 2.6.16-rc3-omap1 on one of our OMAP1 based product
-> > which had quite a few bugs. We had been taking some fixes from the
-> > later kernels and port it back, but at some point it becomes difficult
-> > to do it when the basic data structures changes (because any such big
-> > changes are frowned upon if proposed for a working product), but now,
-> > finally we have decided to change the kernel itself to some later
-> > version. I would appreciate if the list can suggest us some kernel
-> > version to which we can switch to. Requirements are;
-> >
-> > 1. Kernel should be pretty stable (very less bugs)
-> > 2. Even if there are any bugs, it should be easy to port the fixes
-> > back. This is important because I don't get a chance to convince the
-> > decision makers to change the kernel again because its something which
-> > is very basic and they are afraid to change a working system for a
-> > small bug fix.
-> >
-> > Some of the components for which we depend heavily on the kernel are
-> > MTD/JFFS2 (with which we have faced lot of issues in
-> > 2.6.16-rc3-omap1), DSP Gateway functionality and power management.
-> >
-> > Thanks in advance for your help.
-> 
-> You should avoid rc* releases, those are release candidates, only for
-> testing purposes.
-> 
-> You should stick with plain -omap* releases, like 2.6.27-omap1, or
-> 2.6.26-omap2, unless you want to be on the bleeding edge.
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-I'd actually suggest trying to push everything you have to linux-omap or
-(case a driver) the proper subsystem tree, that way you can be sure
-(most of the times) you can generate a product out of virtually any
-kernel release. Of course, that would mean you guys would have to change
-a bit your development process and work more with the community.
+Minor cleanup to twl4030-core: define a helper function to populate
+a single child node, and use it to replace six inconsistent versions
+of the same logic.  Both object and source code shrink.
 
-Meaning that instead of keeping a kernel tree below several layers of
-encryptions and firewalls, you'd have to send patches to the open source
-mailing lists.
+As part of this, some devices now have more IRQ resources:  battery
+charger, keypad, ADC, and USB transceiver.  That will help to remove
+some irq #defines that prevent this code from compiling on non-OMAP
+platforms.
 
-Generally, even the -rc (release candidates) are stable enough for
-usage, besides a few regressions that might happen.
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+ drivers/mfd/twl4030-core.c |  298 +++++++++++--------------------------------
+ 1 file changed, 83 insertions(+), 215 deletions(-)
 
-Since you need, mostly as you said, MTD and JFFS2 working on your
-board(s), your team could keep an eye on it and contribute to the mtd
-mailing list.
-
-About PM, I'd say the most current kernel, the better as it's still
-changing a lot (take a look at linux-omap/pm-* branches) and about DSP
-gateway, it looks like it's pretty much frozen, so you could put some
-effort there as well.
-
--- 
-balbi
+--- a/drivers/mfd/twl4030-core.c
++++ b/drivers/mfd/twl4030-core.c
+@@ -360,261 +360,129 @@ EXPORT_SYMBOL(twl4030_i2c_read_u8);
+ 
+ /*----------------------------------------------------------------------*/
+ 
+-/*
+- * NOTE:  We know the first 8 IRQs after pdata->base_irq are
+- * for the PIH, and the next are for the PWR_INT SIH, since
+- * that's how twl_init_irq() sets things up.
+- */
+-
+-static int add_children(struct twl4030_platform_data *pdata)
++static struct device *add_child(unsigned chip, const char *name,
++		void *pdata, unsigned pdata_len,
++		bool can_wakeup, int irq0, int irq1)
+ {
+-	struct platform_device	*pdev = NULL;
+-	struct twl4030_client	*twl = NULL;
+-	int			status = 0;
+-
+-	if (twl_has_bci() && pdata->bci) {
+-		twl = &twl4030_modules[3];
+-
+-		pdev = platform_device_alloc("twl4030_bci", -1);
+-		if (!pdev) {
+-			pr_debug("%s: can't alloc bci dev\n", DRIVER_NAME);
+-			status = -ENOMEM;
+-			goto err;
+-		}
+-
+-		if (status == 0) {
+-			pdev->dev.parent = &twl->client->dev;
+-			status = platform_device_add_data(pdev, pdata->bci,
+-					sizeof(*pdata->bci));
+-			if (status < 0) {
+-				dev_dbg(&twl->client->dev,
+-					"can't add bci data, %d\n",
+-					status);
+-				goto err;
+-			}
+-		}
+-
+-		if (status == 0) {
+-			struct resource r = {
+-				.start = pdata->irq_base + 8 + 1,
+-				.flags = IORESOURCE_IRQ,
+-			};
++	struct platform_device	*pdev;
++	struct twl4030_client	*twl = &twl4030_modules[chip];
++	int			status;
+ 
+-			status = platform_device_add_resources(pdev, &r, 1);
+-		}
++	pdev = platform_device_alloc(name, -1);
++	if (!pdev) {
++		dev_dbg(&twl->client->dev, "can't alloc dev\n");
++		status = -ENOMEM;
++		goto err;
++	}
+ 
+-		if (status == 0)
+-			status = platform_device_add(pdev);
++	device_init_wakeup(&pdev->dev, can_wakeup);
++	pdev->dev.parent = &twl->client->dev;
+ 
++	if (pdata) {
++		status = platform_device_add_data(pdev, pdata, pdata_len);
+ 		if (status < 0) {
+-			platform_device_put(pdev);
+-			dev_dbg(&twl->client->dev,
+-					"can't create bci dev, %d\n",
+-					status);
++			dev_dbg(&pdev->dev, "can't add platform_data\n");
+ 			goto err;
+ 		}
+ 	}
+ 
+-	if (twl_has_gpio() && pdata->gpio) {
+-		twl = &twl4030_modules[1];
++	if (irq0) {
++		struct resource r[2] = {
++			{ .start = irq0, .flags = IORESOURCE_IRQ, },
++			{ .start = irq1, .flags = IORESOURCE_IRQ, },
++		};
+ 
+-		pdev = platform_device_alloc("twl4030_gpio", -1);
+-		if (!pdev) {
+-			pr_debug("%s: can't alloc gpio dev\n", DRIVER_NAME);
+-			status = -ENOMEM;
++		status = platform_device_add_resources(pdev, r, irq1 ? 2 : 1);
++		if (status < 0) {
++			dev_dbg(&pdev->dev, "can't add irqs\n");
+ 			goto err;
+ 		}
++	}
+ 
+-		/* more driver model init */
+-		if (status == 0) {
+-			pdev->dev.parent = &twl->client->dev;
+-			/* device_init_wakeup(&pdev->dev, 1); */
++	status = platform_device_add(pdev);
+ 
+-			status = platform_device_add_data(pdev, pdata->gpio,
+-					sizeof(*pdata->gpio));
+-			if (status < 0) {
+-				dev_dbg(&twl->client->dev,
+-					"can't add gpio data, %d\n",
+-					status);
+-				goto err;
+-			}
+-		}
++err:
++	if (status < 0) {
++		platform_device_put(pdev);
++		dev_err(&twl->client->dev, "can't add %s dev\n", name);
++		return ERR_PTR(status);
++	}
++	return &pdev->dev;
++}
+ 
+-		/* GPIO module IRQ */
+-		if (status == 0) {
+-			struct resource	r = {
+-				.start = pdata->irq_base + 0,
+-				.flags = IORESOURCE_IRQ,
+-			};
++/*
++ * NOTE:  We know the first 8 IRQs after pdata->base_irq are
++ * for the PIH, and the next are for the PWR_INT SIH, since
++ * that's how twl_init_irq() sets things up.
++ */
+ 
+-			status = platform_device_add_resources(pdev, &r, 1);
+-		}
++static int add_children(struct twl4030_platform_data *pdata)
++{
++	struct device	*child;
+ 
+-		if (status == 0)
+-			status = platform_device_add(pdev);
++	if (twl_has_bci() && pdata->bci) {
++		child = add_child(3, "twl4030_bci",
++				pdata->bci, sizeof(*pdata->bci),
++				false,
++				/* irq0 = CHG_PRES, irq1 = BCI */
++				pdata->irq_base + 8 + 1, pdata->irq_base + 2);
++		if (IS_ERR(child))
++			return PTR_ERR(child);
++	}
+ 
+-		if (status < 0) {
+-			platform_device_put(pdev);
+-			dev_dbg(&twl->client->dev,
+-					"can't create gpio dev, %d\n",
+-					status);
+-			goto err;
+-		}
++	if (twl_has_gpio() && pdata->gpio) {
++		child = add_child(1, "twl4030_gpio",
++				pdata->gpio, sizeof(*pdata->gpio),
++				false, pdata->irq_base + 0, 0);
++		if (IS_ERR(child))
++			return PTR_ERR(child);
+ 	}
+ 
+ 	if (twl_has_keypad() && pdata->keypad) {
+-		pdev = platform_device_alloc("twl4030_keypad", -1);
+-		if (pdev) {
+-			twl = &twl4030_modules[2];
+-			pdev->dev.parent = &twl->client->dev;
+-			device_init_wakeup(&pdev->dev, 1);
+-			status = platform_device_add_data(pdev, pdata->keypad,
+-					sizeof(*pdata->keypad));
+-			if (status < 0) {
+-				dev_dbg(&twl->client->dev,
+-					"can't add keypad data, %d\n",
+-					status);
+-				platform_device_put(pdev);
+-				goto err;
+-			}
+-			status = platform_device_add(pdev);
+-			if (status < 0) {
+-				platform_device_put(pdev);
+-				dev_dbg(&twl->client->dev,
+-						"can't create keypad dev, %d\n",
+-						status);
+-				goto err;
+-			}
+-		} else {
+-			pr_debug("%s: can't alloc keypad dev\n", DRIVER_NAME);
+-			status = -ENOMEM;
+-			goto err;
+-		}
++		child = add_child(2, "twl4030_keypad",
++				pdata->keypad, sizeof(*pdata->keypad),
++				true, pdata->irq_base + 1, 0);
++		if (IS_ERR(child))
++			return PTR_ERR(child);
+ 	}
+ 
+ 	if (twl_has_madc() && pdata->madc) {
+-		pdev = platform_device_alloc("twl4030_madc", -1);
+-		if (pdev) {
+-			twl = &twl4030_modules[2];
+-			pdev->dev.parent = &twl->client->dev;
+-			device_init_wakeup(&pdev->dev, 1);
+-			status = platform_device_add_data(pdev, pdata->madc,
+-					sizeof(*pdata->madc));
+-			if (status < 0) {
+-				platform_device_put(pdev);
+-				dev_dbg(&twl->client->dev,
+-					"can't add madc data, %d\n",
+-					status);
+-				goto err;
+-			}
+-			status = platform_device_add(pdev);
+-			if (status < 0) {
+-				platform_device_put(pdev);
+-				dev_dbg(&twl->client->dev,
+-						"can't create madc dev, %d\n",
+-						status);
+-				goto err;
+-			}
+-		} else {
+-			pr_debug("%s: can't alloc madc dev\n", DRIVER_NAME);
+-			status = -ENOMEM;
+-			goto err;
+-		}
++		child = add_child(2, "twl4030_madc",
++				pdata->madc, sizeof(*pdata->madc),
++				true, pdata->irq_base + 3, 0);
++		if (IS_ERR(child))
++			return PTR_ERR(child);
+ 	}
+ 
+ 	if (twl_has_power() && pdata->power)
+ 		twl4030_power_init(pdata->power);
+ 
+ 	if (twl_has_rtc()) {
+-		twl = &twl4030_modules[3];
+-
+-		pdev = platform_device_alloc("twl4030_rtc", -1);
+-		if (!pdev) {
+-			pr_debug("%s: can't alloc rtc dev\n", DRIVER_NAME);
+-			status = -ENOMEM;
+-		} else {
+-			pdev->dev.parent = &twl->client->dev;
+-			device_init_wakeup(&pdev->dev, 1);
+-		}
+-
+ 		/*
+-		 * REVISIT platform_data here currently might use of
++		 * REVISIT platform_data here currently might expose the
+ 		 * "msecure" line ... but for now we just expect board
+-		 * setup to tell the chip "we are secure" at all times.
++		 * setup to tell the chip "it's always ok to SET_TIME".
+ 		 * Eventually, Linux might become more aware of such
+ 		 * HW security concerns, and "least privilege".
+ 		 */
+-
+-		/* RTC module IRQ */
+-		if (status == 0) {
+-			struct resource	r = {
+-				.start = pdata->irq_base + 8 + 3,
+-				.flags = IORESOURCE_IRQ,
+-			};
+-
+-			status = platform_device_add_resources(pdev, &r, 1);
+-		}
+-
+-		if (status == 0)
+-			status = platform_device_add(pdev);
+-
+-		if (status < 0) {
+-			platform_device_put(pdev);
+-			dev_dbg(&twl->client->dev,
+-					"can't create rtc dev, %d\n",
+-					status);
+-			goto err;
+-		}
++		child = add_child(3, "twl4030_rtc",
++				NULL, 0,
++				true, pdata->irq_base + 8 + 3, 0);
++		if (IS_ERR(child))
++			return PTR_ERR(child);
+ 	}
+ 
+ 	if (twl_has_usb() && pdata->usb) {
+-		twl = &twl4030_modules[0];
+-
+-		pdev = platform_device_alloc("twl4030_usb", -1);
+-		if (!pdev) {
+-			pr_debug("%s: can't alloc usb dev\n", DRIVER_NAME);
+-			status = -ENOMEM;
+-			goto err;
+-		}
+-
+-		if (status == 0) {
+-			pdev->dev.parent = &twl->client->dev;
+-			device_init_wakeup(&pdev->dev, 1);
+-			status = platform_device_add_data(pdev, pdata->usb,
+-					sizeof(*pdata->usb));
+-			if (status < 0) {
+-				platform_device_put(pdev);
+-				dev_dbg(&twl->client->dev,
+-					"can't add usb data, %d\n",
+-					status);
+-				goto err;
+-			}
+-		}
+-
+-		if (status == 0) {
+-			struct resource r = {
+-				.start = pdata->irq_base + 8 + 2,
+-				.flags = IORESOURCE_IRQ,
+-			};
+-
+-			status = platform_device_add_resources(pdev, &r, 1);
+-		}
+-
+-		if (status == 0)
+-			status = platform_device_add(pdev);
+-
+-		if (status < 0) {
+-			platform_device_put(pdev);
+-			dev_dbg(&twl->client->dev,
+-					"can't create usb dev, %d\n",
+-					status);
+-		}
++		child = add_child(0, "twl4030_usb",
++				pdata->usb, sizeof(*pdata->usb),
++				true,
++				/* irq0 = USB_PRES, irq1 = USB */
++				pdata->irq_base + 8 + 2, pdata->irq_base + 4);
++		if (IS_ERR(child))
++			return PTR_ERR(child);
+ 	}
+ 
+-err:
+-	if (status)
+-		pr_err("failed to add twl4030's children (status %d)\n", status);
+-	return status;
++	return 0;
+ }
+ 
+ /*----------------------------------------------------------------------*/
