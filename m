@@ -1,56 +1,103 @@
-From: "Felipe Contreras" <felipe.contreras@gmail.com>
-Subject: Re: Suggestion for a new kernel version
-Date: Wed, 12 Nov 2008 02:31:45 +0200
-Message-ID: <94a0d4530811111631y2f454147o866c40985cb4de69@mail.gmail.com>
-References: <deb0f030811101627s2f5093c0nf79d14bf6e03ca3c@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Fix section mismatch warnings on some OMAP1 boards
+Date: Tue, 11 Nov 2008 16:36:38 -0800
+Message-ID: <20081112003637.GU3984@atomide.com>
+References: <20081111225720.GA3162@earth.li>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.238]:60437 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755022AbYKLAbr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 19:31:47 -0500
-Received: by rv-out-0506.google.com with SMTP id k40so149023rvb.1
-        for <linux-omap@vger.kernel.org>; Tue, 11 Nov 2008 16:31:46 -0800 (PST)
-In-Reply-To: <deb0f030811101627s2f5093c0nf79d14bf6e03ca3c@mail.gmail.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53769 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755706AbYKLAgl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 19:36:41 -0500
 Content-Disposition: inline
+In-Reply-To: <20081111225720.GA3162@earth.li>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suresh Rajashekara <suresh@mistralsolutions.com>
-Cc: linux-omap@vger.kernel.org, linux@mistralsolutions.com
+To: Jonathan McDowell <noodles@earth.li>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, Nov 11, 2008 at 2:27 AM, Suresh Rajashekara
-<suresh@mistralsolutions.com> wrote:
-> Hi List,
->
-> We have been using 2.6.16-rc3-omap1 on one of our OMAP1 based product
-> which had quite a few bugs. We had been taking some fixes from the
-> later kernels and port it back, but at some point it becomes difficult
-> to do it when the basic data structures changes (because any such big
-> changes are frowned upon if proposed for a working product), but now,
-> finally we have decided to change the kernel itself to some later
-> version. I would appreciate if the list can suggest us some kernel
-> version to which we can switch to. Requirements are;
->
-> 1. Kernel should be pretty stable (very less bugs)
-> 2. Even if there are any bugs, it should be easy to port the fixes
-> back. This is important because I don't get a chance to convince the
-> decision makers to change the kernel again because its something which
-> is very basic and they are afraid to change a working system for a
-> small bug fix.
->
-> Some of the components for which we depend heavily on the kernel are
-> MTD/JFFS2 (with which we have faced lot of issues in
-> 2.6.16-rc3-omap1), DSP Gateway functionality and power management.
->
-> Thanks in advance for your help.
+* Jonathan McDowell <noodles@earth.li> [081111 15:43]:
+> I got some section mismatch warnings when compiling latest git for
+> MACH_AMS_DELTA this evening; this seems to be due to a missing
+> __initdata on the omap_board_config_kernel. Adding it fixes the
+> warnings. I noticed that although this had been done for other OMAP1
+> boards fsample, innovator and voiceblue were all lacking it too, so I
+> fixed them up at the same time.
 
-You should avoid rc* releases, those are release candidates, only for
-testing purposes.
+These cannot be __initdata as they are used by get_config() in
+plat-omap/common.c, and omap_get_config() is called in some drivers
+that could be modules.
 
-You should stick with plain -omap* releases, like 2.6.27-omap1, or
-2.6.26-omap2, unless you want to be on the bleeding edge.
+Let's rather just get rid of all the omap_board_config_kernel stuff
+and use platform_data instead.
 
--- 
-Felipe Contreras
+Tony
+
+
+> Signed-off-by: Jonathan McDowell <noodles@earth.li>
+> 
+> -----
+> diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+> index 2e61839..682cb91 100644
+> --- a/arch/arm/mach-omap1/board-ams-delta.c
+> +++ b/arch/arm/mach-omap1/board-ams-delta.c
+> @@ -172,7 +172,7 @@ static struct omap_usb_config ams_delta_usb_config __initdata = {
+>  	.pins[0]	= 2,
+>  };
+>  
+> -static struct omap_board_config_kernel ams_delta_config[] = {
+> +static struct omap_board_config_kernel ams_delta_config[] __initdata = {
+>  	{ OMAP_TAG_LCD,		&ams_delta_lcd_config },
+>  	{ OMAP_TAG_UART,	&ams_delta_uart_config },
+>  	{ OMAP_TAG_USB,		&ams_delta_usb_config },
+> diff --git a/arch/arm/mach-omap1/board-fsample.c b/arch/arm/mach-omap1/board-fsample.c
+> index db78946..38f4f18 100644
+> --- a/arch/arm/mach-omap1/board-fsample.c
+> +++ b/arch/arm/mach-omap1/board-fsample.c
+> @@ -216,7 +216,7 @@ static struct omap_lcd_config fsample_lcd_config __initdata = {
+>  	.ctrl_name	= "internal",
+>  };
+>  
+> -static struct omap_board_config_kernel fsample_config[] = {
+> +static struct omap_board_config_kernel fsample_config[] __initdata = {
+>  	{ OMAP_TAG_UART,	&fsample_uart_config },
+>  	{ OMAP_TAG_LCD,		&fsample_lcd_config },
+>  };
+> diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
+> index 7a97f6b..b86eb95 100644
+> --- a/arch/arm/mach-omap1/board-innovator.c
+> +++ b/arch/arm/mach-omap1/board-innovator.c
+> @@ -408,7 +408,7 @@ static struct omap_uart_config innovator_uart_config __initdata = {
+>  	.enabled_uarts = ((1 << 0) | (1 << 1) | (1 << 2)),
+>  };
+>  
+> -static struct omap_board_config_kernel innovator_config[] = {
+> +static struct omap_board_config_kernel innovator_config[] __initdata = {
+>  	{ OMAP_TAG_USB,         NULL },
+>  	{ OMAP_TAG_LCD,		NULL },
+>  	{ OMAP_TAG_UART,	&innovator_uart_config },
+> diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
+> index 3ab5bbf..93de7e0 100644
+> --- a/arch/arm/mach-omap1/board-voiceblue.c
+> +++ b/arch/arm/mach-omap1/board-voiceblue.c
+> @@ -145,7 +145,7 @@ static struct omap_uart_config voiceblue_uart_config __initdata = {
+>  	.enabled_uarts = ((1 << 0) | (1 << 1) | (1 << 2)),
+>  };
+>  
+> -static struct omap_board_config_kernel voiceblue_config[] = {
+> +static struct omap_board_config_kernel voiceblue_config[] __initdata = {
+>  	{ OMAP_TAG_USB,  &voiceblue_usb_config },
+>  	{ OMAP_TAG_UART, &voiceblue_uart_config },
+>  };
+> -----
+> 
+> J.
+> 
+> -- 
+>                                             jid: noodles@jabber.earth.li
+> Are you out of my mind?
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
