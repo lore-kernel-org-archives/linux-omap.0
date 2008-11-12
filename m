@@ -1,33 +1,41 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: Kernel 2.6.25-omap1 on Nokia N810
-Date: Wed, 12 Nov 2008 02:06:48 +0200
-Message-ID: <20081112000647.GG23454@frodo>
-References: <1226445708.15412.2@cyrus> <20081111233308.GE23454@frodo> <1226447902.15412.3@cyrus>
-Reply-To: me@felipebalbi.com
+From: "Suresh Rajashekara" <suresh@mistralsolutions.com>
+Subject: [PATCH] Fix section mismatch warning on OSK
+Date: Tue, 11 Nov 2008 16:18:20 -0800
+Message-ID: <deb0f030811111618q5e70e18doeea15271bdb7e2e8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:52115 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751795AbYKLAGy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 19:06:54 -0500
+Received: from an-out-0708.google.com ([209.85.132.244]:52318 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752459AbYKLASV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 19:18:21 -0500
+Received: by an-out-0708.google.com with SMTP id d40so98788and.1
+        for <linux-omap@vger.kernel.org>; Tue, 11 Nov 2008 16:18:20 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <1226447902.15412.3@cyrus>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: cyrus <cyrus.drive@gmail.com>
-Cc: me@felipebalbi.com, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Tue, Nov 11, 2008 at 03:58:22PM -0800, cyrus wrote:
-> Okay, I will try the latest kernel for which the OMAP patches exists.
-> 
-> Sorry for not posting the message but I am fairly new to trying this 
-> kind of development, etc. When the message scrolls by, it only leaves 
-> the last few messages on the screen, not the whole thing. I have no way 
-> of going back and reading all the messages.
+Section mismatch warnings when compiling latest git for MACH_OMAP_OSK.
+Missing __initdata on the omap1_clk_functions.
 
-at the bottom you should see part of the backtrace, at least. That
-already helps a bit ;-)
+Signed-off-by: Suresh Rajashekara <suresh@mistralsolutions.com>
+---
+ arch/arm/mach-omap1/clock.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
+index 4d0c444..aab7ab1 100644
+--- a/arch/arm/mach-omap1/clock.c
++++ b/arch/arm/mach-omap1/clock.c
+@@ -636,7 +636,7 @@ static void __init omap1_clk_disable_unused(struct clk *clk)
+ #define omap1_clk_disable_unused NULL
+ #endif
 
+-static struct clk_functions omap1_clk_functions = {
++static struct clk_functions omap1_clk_functions __initdata = {
+  .clk_enable = omap1_clk_enable,
+  .clk_disable = omap1_clk_disable,
+  .clk_round_rate = omap1_clk_round_rate,
 -- 
-balbi
+1.4.4.4
