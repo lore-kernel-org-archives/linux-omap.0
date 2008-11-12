@@ -1,57 +1,47 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP3 powerdomains: remove RET from SGX power states
- list
-Date: Wed, 12 Nov 2008 12:07:08 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0811121157530.28853@utopia.booyaka.com>
-References: <alpine.DEB.2.00.0811051152150.15612@utopia.booyaka.com> <20081106033327.GQ21736@atomide.com> <alpine.DEB.2.00.0811060401150.11718@utopia.booyaka.com> <87ej1na8c2.fsf@trdhcp146196.ntc.nokia.com> <alpine.DEB.2.00.0811100741420.23090@utopia.booyaka.com>
- <87r65i66j5.fsf@trdhcp146196.ntc.nokia.com>
+From: Dominic Curran <dcurran@ti.com>
+Subject: [PATCH 1/3] [OMAPZOOM] Lower i2c speed on bus 1 for LDP.
+Date: Wed, 12 Nov 2008 13:07:35 -0600
+Message-ID: <200811121307.35591.dcurran@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1247109330-1226516352=:28853"
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60707 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753001AbYKLTHK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Nov 2008 14:07:10 -0500
-In-Reply-To: <87r65i66j5.fsf@trdhcp146196.ntc.nokia.com>
-Content-ID: <alpine.DEB.2.00.0811121201080.28853@utopia.booyaka.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:58011 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753591AbYKLTHl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Nov 2008 14:07:41 -0500
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id mACJ7a1i006888
+	for <linux-omap@vger.kernel.org>; Wed, 12 Nov 2008 13:07:41 -0600
+Received: from gromit.am.dhcp.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id mACJ7Zgh015758
+	for <linux-omap@vger.kernel.org>; Wed, 12 Nov 2008 13:07:35 -0600 (CST)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-15?Q?H=F6gander_Jouni?= <jouni.hogander@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, "Stoppa Igor \\\\\\(Nokia-D/Helsinki\\\\\\)" <Igor.Stoppa@nokia.com>, r-woodruff2@ti.com, Kevin Hilman <khilman@deeprootsystems.com>, "Sawant, Anand" <sawant@ti.com>, Poussa Sakari <sakari.poussa@nokia.com>
+To: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Lower i2c bus 1 speed to 400KHz for LDP.
 
---155748971-1247109330-1226516352=:28853
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.2.00.0811121201081.28853@utopia.booyaka.com>
+Signed-off-by: Dominic Curran <dcurran@ti.com>
+---
+ arch/arm/mach-omap2/board-ldp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Hi Jouni, Kevin,
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index d889ce8..b2e8c9c 100755
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -797,7 +797,7 @@ static struct i2c_board_info __initdata ldp_i2c_boardinfo_2[] = {
+ 
+ static int __init omap_i2c_init(void)
+ {
+-	omap_register_i2c_bus(1, 2600, ldp_i2c_boardinfo,
++	omap_register_i2c_bus(1, 400, ldp_i2c_boardinfo,
+ 			ARRAY_SIZE(ldp_i2c_boardinfo));
+ 	omap_register_i2c_bus(2, 100, ldp_i2c_boardinfo_2,
+ 			ARRAY_SIZE(ldp_i2c_boardinfo_2));
+-- 
+1.5.4.1
 
-On Tue, 11 Nov 2008, H=F6gander Jouni wrote:
-
-> I wouldn't add any flags for this. The goal is finally to set all
-> next_states as OFF until someone has set some constraint which
-> prevents OFF usage. For now we need to use RET as default, because
-> drivers are not supporting OFF mode. Do you agree this?
-
-Yes.
-
-> Easiest way here would be to add own hook for SGX in pwrdms_setup? One=20
-> more strcmp("*_pwrdm, pwrdm->name) :)
->=20
-> What do you think?
-
-That is okay with me.  This seems to be an unusual case - I guess it's due=
-=20
-to an SGX firmware bug. =20
-
-So Kevin, if you have a strong opposition to that strcmp, maybe we should=
-=20
-use a powerdomain flag for the SGX pwrdm.  Otherwise, let's go with a=20
-strcmp as Jouni suggested.  Thoughts?
-
-
-- Paul
---155748971-1247109330-1226516352=:28853--
