@@ -1,51 +1,97 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH] PM: OMAP3: Make sure clk_disable_unused() order is correct
-Date: Wed, 12 Nov 2008 11:42:10 +0200
-Message-ID: <1226482930-32017-1-git-send-email-tero.kristo@nokia.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH] minor mmc-twl4030 cleanups
+Date: Wed, 12 Nov 2008 11:48:05 +0200
+Message-ID: <1226483285-7443-1-git-send-email-notasas@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:61766 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751279AbYKLJoa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Nov 2008 04:44:30 -0500
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mAC9i2oO027561
-	for <linux-omap@vger.kernel.org>; Wed, 12 Nov 2008 11:44:27 +0200
-Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id mAC9iBpD028853
-	for <linux-omap@vger.kernel.org>; Wed, 12 Nov 2008 11:44:12 +0200
-In-Reply-To: <>
-References: <>
+Received: from nf-out-0910.google.com ([64.233.182.190]:50906 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751397AbYKLJsS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Nov 2008 04:48:18 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so166735nfc.21
+        for <linux-omap@vger.kernel.org>; Wed, 12 Nov 2008 01:48:16 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Grazvydas Ignotas <notasas@gmail.com>
 
-Current implementation will disable clocks in the order defined in clock34xx.h,
-at least DPLL4_M2X2 will hang in certain cases (and prevent retention / off)
-if clocks are not disabled in correct order. This patch makes sure the parent
-clocks will be active when disabling a clock.
+Remove the unused devconf_loopback_clock field from twl_mmc_controller.
+control_devconf_offset only changes for DEVCONF1, so move it out.
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
 ---
- arch/arm/mach-omap2/clock.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/mmc-twl4030.c |   19 +++++++------------
+ 1 files changed, 7 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index dbbc7c8..522ce6f 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -1012,7 +1012,11 @@ void omap2_clk_disable_unused(struct clk *clk)
- 		return;
+diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
+index 32625e7..b1fe0f3 100644
+--- a/arch/arm/mach-omap2/mmc-twl4030.c
++++ b/arch/arm/mach-omap2/mmc-twl4030.c
+@@ -50,26 +50,21 @@
+ #define VMMC_DEV_GRP_P1		0x20
  
- 	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
--	_omap2_clk_disable(clk);
-+	if (cpu_is_omap34xx()) {
-+		omap2_clk_enable(clk);
-+		omap2_clk_disable(clk);
-+	} else
-+		_omap2_clk_disable(clk);
- 	if (clk->clkdm.ptr != NULL)
- 		pwrdm_clkdm_state_switch(clk->clkdm.ptr);
- }
+ static u16 control_pbias_offset;
++static u16 control_devconf1_offset;
+ 
+ #define HSMMC_NAME_LEN	9
+ 
+ static struct twl_mmc_controller {
+ 	struct omap_mmc_platform_data	*mmc;
+-	u32		devconf_loopback_clock;
+-	u16		control_devconf_offset;
+ 	u8		twl_vmmc_dev_grp;
+ 	u8		twl_mmc_dedicated;
+ 	char		name[HSMMC_NAME_LEN];
+ } hsmmc[] = {
+ 	{
+-		.control_devconf_offset		= OMAP2_CONTROL_DEVCONF0,
+-		.devconf_loopback_clock		= OMAP2_MMCSDIO1ADPCLKISEL,
+ 		.twl_vmmc_dev_grp		= VMMC1_DEV_GRP,
+ 		.twl_mmc_dedicated		= VMMC1_DEDICATED,
+ 	},
+ 	{
+-		/* control_devconf_offset set dynamically */
+-		.devconf_loopback_clock		= OMAP2_MMCSDIO2ADPCLKISEL,
+ 		.twl_vmmc_dev_grp		= VMMC2_DEV_GRP,
+ 		.twl_mmc_dedicated		= VMMC2_DEDICATED,
+ 	},
+@@ -257,9 +252,9 @@ static int twl_mmc1_set_power(struct device *dev, int slot, int power_on,
+ 
+ 		/* REVISIT: Loop back clock not needed for 2430? */
+ 		if (!cpu_is_omap2430()) {
+-			reg = omap_ctrl_readl(c->control_devconf_offset);
++			reg = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
+ 			reg |= OMAP2_MMCSDIO1ADPCLKISEL;
+-			omap_ctrl_writel(reg, c->control_devconf_offset);
++			omap_ctrl_writel(reg, OMAP2_CONTROL_DEVCONF0);
+ 		}
+ 
+ 		reg = omap_ctrl_readl(control_pbias_offset);
+@@ -305,9 +300,9 @@ static int twl_mmc2_set_power(struct device *dev, int slot, int power_on, int vd
+ 	if (power_on) {
+ 		u32 reg;
+ 
+-		reg = omap_ctrl_readl(c->control_devconf_offset);
++		reg = omap_ctrl_readl(control_devconf1_offset);
+ 		reg |= OMAP2_MMCSDIO2ADPCLKISEL;
+-		omap_ctrl_writel(reg, c->control_devconf_offset);
++		omap_ctrl_writel(reg, control_devconf1_offset);
+ 		ret = twl_mmc_set_voltage(c, vdd);
+ 	} else {
+ 		ret = twl_mmc_set_voltage(c, 0);
+@@ -325,11 +320,11 @@ void __init hsmmc_init(struct twl4030_hsmmc_info *controllers)
+ 
+ 	if (cpu_is_omap2430()) {
+ 		control_pbias_offset = OMAP243X_CONTROL_PBIAS_LITE;
+-		hsmmc[1].control_devconf_offset = OMAP243X_CONTROL_DEVCONF1;
++		control_devconf1_offset = OMAP243X_CONTROL_DEVCONF1;
+ 		nr_hsmmc = 2;
+ 	} else {
+ 		control_pbias_offset = OMAP343X_CONTROL_PBIAS_LITE;
+-		hsmmc[1].control_devconf_offset = OMAP343X_CONTROL_DEVCONF1;
++		control_devconf1_offset = OMAP343X_CONTROL_DEVCONF1;
+ 	}
+ 
+ 	for (c = controllers; c->mmc; c++) {
 -- 
 1.5.4.3
 
