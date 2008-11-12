@@ -1,74 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: mmc: make mmc build again for omap1
-Date: Tue, 11 Nov 2008 16:30:59 -0800
-Message-ID: <20081112003058.GT3984@atomide.com>
-References: <1226444744-22617-1-git-send-email-me@felipebalbi.com>
+From: "Felipe Contreras" <felipe.contreras@gmail.com>
+Subject: Re: Suggestion for a new kernel version
+Date: Wed, 12 Nov 2008 02:31:45 +0200
+Message-ID: <94a0d4530811111631y2f454147o866c40985cb4de69@mail.gmail.com>
+References: <deb0f030811101627s2f5093c0nf79d14bf6e03ca3c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49198 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754602AbYKLAbB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 19:31:01 -0500
+Received: from rv-out-0506.google.com ([209.85.198.238]:60437 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755022AbYKLAbr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 19:31:47 -0500
+Received: by rv-out-0506.google.com with SMTP id k40so149023rvb.1
+        for <linux-omap@vger.kernel.org>; Tue, 11 Nov 2008 16:31:46 -0800 (PST)
+In-Reply-To: <deb0f030811101627s2f5093c0nf79d14bf6e03ca3c@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <1226444744-22617-1-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>
+To: Suresh Rajashekara <suresh@mistralsolutions.com>
+Cc: linux-omap@vger.kernel.org, linux@mistralsolutions.com
 
-* Felipe Balbi <me@felipebalbi.com> [081111 15:08]:
-> From: Felipe Balbi <felipe.balbi@nokia.com>
-> 
-> Trivial fix making mmc build for omap1 boards.
+On Tue, Nov 11, 2008 at 2:27 AM, Suresh Rajashekara
+<suresh@mistralsolutions.com> wrote:
+> Hi List,
+>
+> We have been using 2.6.16-rc3-omap1 on one of our OMAP1 based product
+> which had quite a few bugs. We had been taking some fixes from the
+> later kernels and port it back, but at some point it becomes difficult
+> to do it when the basic data structures changes (because any such big
+> changes are frowned upon if proposed for a working product), but now,
+> finally we have decided to change the kernel itself to some later
+> version. I would appreciate if the list can suggest us some kernel
+> version to which we can switch to. Requirements are;
+>
+> 1. Kernel should be pretty stable (very less bugs)
+> 2. Even if there are any bugs, it should be easy to port the fixes
+> back. This is important because I don't get a chance to convince the
+> decision makers to change the kernel again because its something which
+> is very basic and they are afraid to change a working system for a
+> small bug fix.
+>
+> Some of the components for which we depend heavily on the kernel are
+> MTD/JFFS2 (with which we have faced lot of issues in
+> 2.6.16-rc3-omap1), DSP Gateway functionality and power management.
+>
+> Thanks in advance for your help.
 
-Thanks, looks like I missed pushing some changes to the series I made
-earlier.. Pushing today.
+You should avoid rc* releases, those are release candidates, only for
+testing purposes.
 
-Tony
+You should stick with plain -omap* releases, like 2.6.27-omap1, or
+2.6.26-omap2, unless you want to be on the bleeding edge.
 
-
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> ---
->  arch/arm/mach-omap1/board-innovator.c |    2 +-
->  arch/arm/mach-omap1/devices.c         |    4 ++--
->  2 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
-> index 7a97f6b..feaf616 100644
-> --- a/arch/arm/mach-omap1/board-innovator.c
-> +++ b/arch/arm/mach-omap1/board-innovator.c
-> @@ -385,7 +385,7 @@ static struct omap_mmc_platform_data mmc1_data = {
->  	.nr_slots                       = 1,
->  	.slots[0]       = {
->  		.set_power		= mmc_set_power,
-> -		.wire4			= 1,
-> +		.wires			= 4,
->  		.name                   = "mmcblk",
->  	},
->  };
-> diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
-> index 45712a5..e8ff6b5 100644
-> --- a/arch/arm/mach-omap1/devices.c
-> +++ b/arch/arm/mach-omap1/devices.c
-> @@ -116,7 +116,7 @@ static inline void omap1_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
->  			omap_cfg_reg(P19_1710_MMC_CMDDIR);
->  			omap_cfg_reg(P20_1710_MMC_DATDIR0);
->  		}
-> -		if (mmc_controller->slots[0].wire4) {
-> +		if (mmc_controller->slots[0].wires == 4) {
->  			omap_cfg_reg(MMC_DAT1);
->  			/* NOTE: DAT2 can be on W10 (here) or M15 */
->  			if (!mmc_controller->slots[0].nomux)
-> @@ -132,7 +132,7 @@ static inline void omap1_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
->  			omap_cfg_reg(Y10_1610_MMC2_CLK);
->  			omap_cfg_reg(R18_1610_MMC2_CLKIN);
->  			omap_cfg_reg(W8_1610_MMC2_DAT0);
-> -			if (mmc_controller->slots[1].wire4) {
-> +			if (mmc_controller->slots[1].wires == 4) {
->  				omap_cfg_reg(V8_1610_MMC2_DAT1);
->  				omap_cfg_reg(W15_1610_MMC2_DAT2);
->  				omap_cfg_reg(R10_1610_MMC2_DAT3);
-> -- 
-> 1.6.0.2.307.gc427
-> 
+-- 
+Felipe Contreras
