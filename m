@@ -1,49 +1,42 @@
-From: "stanley.miao" <stanley.miao@windriver.com>
-Subject: Re: [PATCH v2 0/6] OMAP: Make OMAP LDP boot succussfuly
-Date: Wed, 12 Nov 2008 16:58:52 +0800
-Message-ID: <1226480332.24669.38.camel@localhost>
-References: <1226404258-13027-1-git-send-email-stanley.miao@windriver.com>
-Reply-To: stanley.miao@windriver.com
+From: Jonathan McDowell <noodles@earth.li>
+Subject: Re: [PATCH] Fix section mismatch warnings on some OMAP1 boards
+Date: Wed, 12 Nov 2008 09:13:45 +0000
+Message-ID: <20081112091345.GA2853@earth.li>
+References: <20081111225720.GA3162@earth.li> <20081112003637.GU3984@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:34172 "EHLO mail.wrs.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750933AbYKLIw4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Nov 2008 03:52:56 -0500
-Received: from ALA-MAIL03.corp.ad.wrs.com (ala-mail03 [147.11.57.144])
-	by mail.wrs.com (8.13.6/8.13.6) with ESMTP id mAC8qtfF000198
-	for <linux-omap@vger.kernel.org>; Wed, 12 Nov 2008 00:52:55 -0800 (PST)
-In-Reply-To: <1226404258-13027-1-git-send-email-stanley.miao@windriver.com>
+Received: from limegreen.tangerine.org.uk ([217.147.81.4]:33584 "EHLO
+	limegreen.tangerine.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751510AbYKLJOE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Nov 2008 04:14:04 -0500
+Content-Disposition: inline
+In-Reply-To: <20081112003637.GU3984@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Any other comments ?
+On Tue, Nov 11, 2008 at 04:36:38PM -0800, Tony Lindgren wrote:
+> * Jonathan McDowell <noodles@earth.li> [081111 15:43]:
+> > I got some section mismatch warnings when compiling latest git for
+> > MACH_AMS_DELTA this evening; this seems to be due to a missing
+> > __initdata on the omap_board_config_kernel. Adding it fixes the
+> > warnings. I noticed that although this had been done for other OMAP1
+> > boards fsample, innovator and voiceblue were all lacking it too, so I
+> > fixed them up at the same time.
+> 
+> These cannot be __initdata as they are used by get_config() in
+> plat-omap/common.c, and omap_get_config() is called in some drivers
+> that could be modules.
 
-Stanley.
+Hmmm. Well that isn't going to work at present anyway, because the 3
+members of ams_delta_config are marked __initdata.
 
-On Tue, 2008-11-11 at 19:50 +0800, Stanley.Miao wrote:
-> Changes since v1:
-> 
-> 1, fix all the patch format problem.
-> 
-> 2, split the defconfig patch from code patches.
-> 
-> 3, put a twl4030keypad bug fix into a single patch.
-> 
-> 4, Add a "persistent" bit in the keypad map, and prune off "#ifdef(OMAP_LDP)"
-> from the keypad driver.
-> 
-> 
-> Now there is only basic support for OMAP LDP in linux-omap-2.6, LDP can't boot
-> up, even crash at boot time(because of omap_hdq problem).
-> 
-> Add the following patches to fix the boot crash and let LDP boot succussfuly.
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Let's rather just get rid of all the omap_board_config_kernel stuff
+> and use platform_data instead.
+
+Ok. I shall attempt to find time to test Felipe's USB tag removal patch.
+
+J.
