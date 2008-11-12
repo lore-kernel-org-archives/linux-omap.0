@@ -1,97 +1,36 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCH] minor mmc-twl4030 cleanups
-Date: Wed, 12 Nov 2008 11:48:05 +0200
-Message-ID: <1226483285-7443-1-git-send-email-notasas@gmail.com>
+From: "stanley.miao" <stanley.miao@windriver.com>
+Subject: Re: [rft/rfc/patch-2.6.28-rc3+ 00/59] namespace cleanup patches
+Date: Wed, 12 Nov 2008 18:06:16 +0800
+Message-ID: <1226484376.24669.47.camel@localhost>
+References: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
+Reply-To: stanley.miao@windriver.com
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.190]:50906 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751397AbYKLJsS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Nov 2008 04:48:18 -0500
-Received: by nf-out-0910.google.com with SMTP id d3so166735nfc.21
-        for <linux-omap@vger.kernel.org>; Wed, 12 Nov 2008 01:48:16 -0800 (PST)
+Received: from mail.windriver.com ([147.11.1.11]:44559 "EHLO mail.wrs.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751579AbYKLKAb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Nov 2008 05:00:31 -0500
+In-Reply-To: <1226444238-14614-1-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Grazvydas Ignotas <notasas@gmail.com>
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-Remove the unused devconf_loopback_clock field from twl_mmc_controller.
-control_devconf_offset only changes for DEVCONF1, so move it out.
+If you are using git-send-email, please provide the --no-chain-reply-to
+option to avoid creating exceptionally deep nesting.
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
----
- arch/arm/mach-omap2/mmc-twl4030.c |   19 +++++++------------
- 1 files changed, 7 insertions(+), 12 deletions(-)
+Stanley.
 
-diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
-index 32625e7..b1fe0f3 100644
---- a/arch/arm/mach-omap2/mmc-twl4030.c
-+++ b/arch/arm/mach-omap2/mmc-twl4030.c
-@@ -50,26 +50,21 @@
- #define VMMC_DEV_GRP_P1		0x20
- 
- static u16 control_pbias_offset;
-+static u16 control_devconf1_offset;
- 
- #define HSMMC_NAME_LEN	9
- 
- static struct twl_mmc_controller {
- 	struct omap_mmc_platform_data	*mmc;
--	u32		devconf_loopback_clock;
--	u16		control_devconf_offset;
- 	u8		twl_vmmc_dev_grp;
- 	u8		twl_mmc_dedicated;
- 	char		name[HSMMC_NAME_LEN];
- } hsmmc[] = {
- 	{
--		.control_devconf_offset		= OMAP2_CONTROL_DEVCONF0,
--		.devconf_loopback_clock		= OMAP2_MMCSDIO1ADPCLKISEL,
- 		.twl_vmmc_dev_grp		= VMMC1_DEV_GRP,
- 		.twl_mmc_dedicated		= VMMC1_DEDICATED,
- 	},
- 	{
--		/* control_devconf_offset set dynamically */
--		.devconf_loopback_clock		= OMAP2_MMCSDIO2ADPCLKISEL,
- 		.twl_vmmc_dev_grp		= VMMC2_DEV_GRP,
- 		.twl_mmc_dedicated		= VMMC2_DEDICATED,
- 	},
-@@ -257,9 +252,9 @@ static int twl_mmc1_set_power(struct device *dev, int slot, int power_on,
- 
- 		/* REVISIT: Loop back clock not needed for 2430? */
- 		if (!cpu_is_omap2430()) {
--			reg = omap_ctrl_readl(c->control_devconf_offset);
-+			reg = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
- 			reg |= OMAP2_MMCSDIO1ADPCLKISEL;
--			omap_ctrl_writel(reg, c->control_devconf_offset);
-+			omap_ctrl_writel(reg, OMAP2_CONTROL_DEVCONF0);
- 		}
- 
- 		reg = omap_ctrl_readl(control_pbias_offset);
-@@ -305,9 +300,9 @@ static int twl_mmc2_set_power(struct device *dev, int slot, int power_on, int vd
- 	if (power_on) {
- 		u32 reg;
- 
--		reg = omap_ctrl_readl(c->control_devconf_offset);
-+		reg = omap_ctrl_readl(control_devconf1_offset);
- 		reg |= OMAP2_MMCSDIO2ADPCLKISEL;
--		omap_ctrl_writel(reg, c->control_devconf_offset);
-+		omap_ctrl_writel(reg, control_devconf1_offset);
- 		ret = twl_mmc_set_voltage(c, vdd);
- 	} else {
- 		ret = twl_mmc_set_voltage(c, 0);
-@@ -325,11 +320,11 @@ void __init hsmmc_init(struct twl4030_hsmmc_info *controllers)
- 
- 	if (cpu_is_omap2430()) {
- 		control_pbias_offset = OMAP243X_CONTROL_PBIAS_LITE;
--		hsmmc[1].control_devconf_offset = OMAP243X_CONTROL_DEVCONF1;
-+		control_devconf1_offset = OMAP243X_CONTROL_DEVCONF1;
- 		nr_hsmmc = 2;
- 	} else {
- 		control_pbias_offset = OMAP343X_CONTROL_PBIAS_LITE;
--		hsmmc[1].control_devconf_offset = OMAP343X_CONTROL_DEVCONF1;
-+		control_devconf1_offset = OMAP343X_CONTROL_DEVCONF1;
- 	}
- 
- 	for (c = controllers; c->mmc; c++) {
--- 
-1.5.4.3
+On Wed, 2008-11-12 at 00:56 +0200, Felipe Balbi wrote:
+> From: Felipe Balbi <felipe.balbi@nokia.com>
+> 
+> Get rid of omap_{read,write}[bsl] defines.
+> Virtual and physical addresses usage was fixed by Russel King and
+> there's no need anymore for keeping a define to a standard kernel
+> function. Get rid of those to keep the namespace cleaner.
+> 
+> Build tested with all omap defconfigs.
+> Depends on my previous "make clk fwk build again on omap1" patch.
 
