@@ -1,47 +1,45 @@
 From: Dominic Curran <dcurran@ti.com>
-Subject: [PATCH 1/3] [OMAPZOOM] Lower i2c speed on bus 1 for LDP.
-Date: Wed, 12 Nov 2008 13:07:35 -0600
-Message-ID: <200811121307.35591.dcurran@ti.com>
+Subject: [PATCH 2/3] [OMAPZOOM] INPUT: Fix twl4030 keypad bug.
+Date: Wed, 12 Nov 2008 13:07:42 -0600
+Message-ID: <200811121307.42331.dcurran@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58011 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34511 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753591AbYKLTHl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Nov 2008 14:07:41 -0500
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id mACJ7a1i006888
-	for <linux-omap@vger.kernel.org>; Wed, 12 Nov 2008 13:07:41 -0600
-Received: from gromit.am.dhcp.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id mACJ7Zgh015758
-	for <linux-omap@vger.kernel.org>; Wed, 12 Nov 2008 13:07:35 -0600 (CST)
+	id S1753001AbYKLTHt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Nov 2008 14:07:49 -0500
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: stanley.miao@windriver.com
 
-Lower i2c bus 1 speed to 400KHz for LDP.
+Fixes a bug in TWL4030 keypad where too many columns were being checked.
+Code originally submitted by Stanley Miao to linux-omap tree.
 
 Signed-off-by: Dominic Curran <dcurran@ti.com>
+cc: Stanley.Miao <stanley.miao@windriver.com>
 ---
- arch/arm/mach-omap2/board-ldp.c |    2 +-
+ drivers/input/keyboard/omap-twl4030keypad.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index d889ce8..b2e8c9c 100755
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -797,7 +797,7 @@ static struct i2c_board_info __initdata ldp_i2c_boardinfo_2[] = {
+diff --git a/drivers/input/keyboard/omap-twl4030keypad.c 
+b/drivers/input/keyboard/omap-twl4030keypad.c
+index 965b6a0..e8fd21c 100644
+--- a/drivers/input/keyboard/omap-twl4030keypad.c
++++ b/drivers/input/keyboard/omap-twl4030keypad.c
+@@ -176,7 +176,7 @@ static void twl4030_kp_scan(struct omap_keypad *kp, int release_all)
+ 		if (!changed)
+ 			continue;
  
- static int __init omap_i2c_init(void)
- {
--	omap_register_i2c_bus(1, 2600, ldp_i2c_boardinfo,
-+	omap_register_i2c_bus(1, 400, ldp_i2c_boardinfo,
- 			ARRAY_SIZE(ldp_i2c_boardinfo));
- 	omap_register_i2c_bus(2, 100, ldp_i2c_boardinfo_2,
- 			ARRAY_SIZE(ldp_i2c_boardinfo_2));
+-		for (col = 0; col < kp->n_cols + 1; col++) {
++		for (col = 0; col < kp->n_cols; col++) {
+ 			int key;
+ 
+ 			if (!(changed & (1 << col)))
 -- 
 1.5.4.1
 
