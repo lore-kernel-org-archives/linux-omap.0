@@ -1,18 +1,18 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 01/08] OMAP3 SRF: Add CORE rate table param in OMAP-PM
-Date: Tue, 11 Nov 2008 17:08:06 -0800
-Message-ID: <87fxlxn43t.fsf@deeprootsystems.com>
-References: <00bf01c94327$61ac5800$LocalHost@wipultra1382>
+Subject: Re: [PATCH 02/03] OMAP3 PM: CPUFreq driver for OMAP3
+Date: Tue, 11 Nov 2008 17:09:54 -0800
+Message-ID: <87abc5n40t.fsf@deeprootsystems.com>
+References: <00c901c94327$ba6b0090$LocalHost@wipultra1382>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:16162 "EHLO
+Received: from qw-out-2122.google.com ([74.125.92.27]:11856 "EHLO
 	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751015AbYKLBIM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 20:08:12 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so103528qwe.37
-        for <linux-omap@vger.kernel.org>; Tue, 11 Nov 2008 17:08:10 -0800 (PST)
-In-Reply-To: <00bf01c94327$61ac5800$LocalHost@wipultra1382> (Rajendra Nayak's message of "Mon\, 10 Nov 2008 16\:57\:57 +0530")
+	with ESMTP id S1751536AbYKLBJ7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2008 20:09:59 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so103863qwe.37
+        for <linux-omap@vger.kernel.org>; Tue, 11 Nov 2008 17:09:58 -0800 (PST)
+In-Reply-To: <00c901c94327$ba6b0090$LocalHost@wipultra1382> (Rajendra Nayak's message of "Mon\, 10 Nov 2008 17\:00\:25 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rajendra Nayak <rnayak@ti.com>
@@ -20,117 +20,241 @@ Cc: linux-omap@vger.kernel.org
 
 "Rajendra Nayak" <rnayak@ti.com> writes:
 
-> This patch modifies the omap_pm_if_init API in OMAP-PM
-> layer to take the L3 interconnect/CORE OPP table
-> as an additional parameter.
+> CPUFreq driver for OMAP3
 >
 > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  arch/arm/mach-omap2/clock34xx.c    |   43 +++++++++++++++++++++++++++++++++++--
+>  arch/arm/mach-omap2/resource34xx.c |   17 +++++++++++++-
+>  arch/arm/plat-omap/cpu-omap.c      |   27 ++++++++++++++++++++---
+>  3 files changed, 81 insertions(+), 6 deletions(-)
+>
+> Index: linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/mach-omap2/clock34xx.c	2008-11-10 16:45:19.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c	2008-11-10 16:47:15.000000000 +0530
+> @@ -31,6 +31,7 @@
+>  #include <mach/sram.h>
+>  #include <asm/div64.h>
+>  #include <asm/bitops.h>
+> +#include <linux/cpufreq.h>
+>  
+>  #include <mach/sdrc.h>
+>  #include "clock.h"
+> @@ -657,6 +658,36 @@ static void omap3_clkoutx2_recalc(struct
+>   */
+>  #if defined(CONFIG_ARCH_OMAP3)
+>  
+> +#ifdef CONFIG_CPU_FREQ
+> +static struct cpufreq_frequency_table freq_table[MAX_VDD1_OPP+1];
+> +
+> +void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
+> +{
+> +	struct omap_opp *prcm;
+> +	int i = 0;
+> +
+> +	/* Avoid registering the 120% Overdrive with CPUFreq */
+> +	prcm = mpu_opps + MAX_VDD1_OPP - 1;
+> +	for (; prcm->rate; prcm--) {
+> +		freq_table[i].index = i;
+> +		freq_table[i].frequency = prcm->rate / 1000;
+> +		i++;
+> +	}
+> +
+> +	if (i == 0) {
+> +		printk(KERN_WARNING "%s: failed to initialize frequency \
+> +								table\n",
+> +								__func__);
+> +		return;
+> +	}
+> +
+> +	freq_table[i].index = i;
+> +	freq_table[i].frequency = CPUFREQ_TABLE_END;
+> +
+> +	*table = &freq_table[0];
+> +}
+> +#endif
+> +
+>  static struct clk_functions omap2_clk_functions = {
+>  	.clk_enable		= omap2_clk_enable,
+>  	.clk_disable		= omap2_clk_disable,
+> @@ -664,6 +695,9 @@ static struct clk_functions omap2_clk_fu
+>  	.clk_set_rate		= omap2_clk_set_rate,
+>  	.clk_set_parent		= omap2_clk_set_parent,
+>  	.clk_disable_unused	= omap2_clk_disable_unused,
+> +#ifdef CONFIG_CPU_FREQ
+> +	.clk_init_cpufreq_table = omap2_clk_init_cpufreq_table,
+> +#endif
+>  };
+>  
+>  /*
+> @@ -815,12 +849,11 @@ unsigned short get_opp(struct omap_opp *
+>  
+>  	if (prcm_config->rate <= freq)
+>  		return prcm_config->opp_id; /* Return the Highest OPP */
+> -	for (; prcm_config->rate; prcm_config--) {
+> +	for (; prcm_config->rate; prcm_config--)
+>  		if (prcm_config->rate < freq)
+>  			return (prcm_config+1)->opp_id;
+>  		else if (prcm_config->rate == freq)
+>  			return prcm_config->opp_id;
+> -	}
+>  	/* Return the least OPP */
+>  	return (prcm_config+1)->opp_id;
+>  }
+> @@ -899,6 +932,10 @@ static int omap3_select_table_rate(struc
+>  		clk_set_rate(dpll1_clk, prcm_vdd->rate);
+>  		clk_set_rate(dpll2_clk, dsp_opps[index].rate);
+>  		curr_vdd1_prcm_set = prcm_vdd;
+> +		omap2_clksel_recalc(&mpu_ck);
+> +		propagate_rate(&mpu_ck);
+> +		omap2_clksel_recalc(&iva2_ck);
+> +		propagate_rate(&iva2_ck);
+>  #ifndef CONFIG_CPU_FREQ
+>  		/*Update loops_per_jiffy if processor speed is being changed*/
+>  		loops_per_jiffy = compute_lpj(loops_per_jiffy,
+> @@ -907,6 +944,8 @@ static int omap3_select_table_rate(struc
+>  	} else {
+>  		clk_set_rate(dpll3_clk, prcm_vdd->rate);
+>  		curr_vdd2_prcm_set = prcm_vdd;
+> +		omap2_clksel_recalc(&core_ck);
+> +		propagate_rate(&core_ck);
+>  	}
+>  	return 0;
+>  }
+> Index: linux-omap-2.6/arch/arm/plat-omap/cpu-omap.c
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/plat-omap/cpu-omap.c	2008-11-10 16:45:19.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/plat-omap/cpu-omap.c	2008-11-10 16:47:15.000000000 +0530
+> @@ -8,6 +8,10 @@
+>   *
+>   *  Based on cpu-sa1110.c, Copyright (C) 2001 Russell King
+>   *
+> + * Copyright (C) 2007-2008 Texas Instruments, Inc.
+> + * Updated to support OMAP3
+> + * Rajendra Nayak <rnayak@ti.com>
+> + *
+>   * This program is free software; you can redistribute it and/or modify
+>   * it under the terms of the GNU General Public License version 2 as
+>   * published by the Free Software Foundation.
+> @@ -25,6 +29,10 @@
+>  #include <asm/io.h>
+>  #include <asm/system.h>
+>  #include <mach/clock.h>
+> +#if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
+> +#include <mach/omap-pm.h>
+> +#include "../mach-omap2/pm.h"
+> +#endif
+>  
+>  #define VERY_HI_RATE	900000000
+>  
+> @@ -32,6 +40,8 @@ static struct cpufreq_frequency_table *f
+>  
+>  #ifdef CONFIG_ARCH_OMAP1
+>  #define MPU_CLK		"mpu"
+> +#elif CONFIG_ARCH_OMAP3
+> +#define MPU_CLK		"virt_vdd1_prcm_set"
+>  #else
+>  #define MPU_CLK		"virt_prcm_set"
+>  #endif
+> @@ -89,7 +99,7 @@ static int omap_target(struct cpufreq_po
+>  
+>  	if (freqs.old == freqs.new)
+>  		return ret;
+> -
+> +#ifdef CONFIG_ARCH_OMAP1
+>  	cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
+>  #ifdef CONFIG_CPU_FREQ_DEBUG
+>  	printk(KERN_DEBUG "cpufreq-omap: transition: %u --> %u\n",
+> @@ -97,7 +107,19 @@ static int omap_target(struct cpufreq_po
+>  #endif
+>  	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
+>  	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
+> -
+> +#elif defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)\
+> +	&& defined(CONFIG_MACH_OMAP_3430SDP)
+> +	{
+> +		int ind;
+> +		for (ind = 1; ind <= MAX_VDD1_OPP; ind++) {
+> +			if (mpu_opps[ind].rate/1000 >= freqs.new) {
+> +				omap_pm_cpu_set_freq
+> +					(mpu_opps[ind].rate);
+> +				break;
+> +			}
+> +		}
+> +	}
+> +#endif
 
-Rajendra,
+Please drop the #ifdef on the 3430SDP.  This code need not be board
+specific.
 
-The current code does not handle well the case where board files pass
-in NULL values for the various rate tables.
-
-In the init code, there are a few places where you use the *_opps values
-without checking if they are non-NULL, and this will trigger faults.
-
-Can you test and fix the case where your board file passes in NULL for
-all the OPP tables?
+I think you could simply check for a non-NULL mpu_opps.
 
 Kevin
 
-> ---
->  arch/arm/mach-omap2/io.c                  |    2 +-
->  arch/arm/plat-omap/include/mach/omap-pm.h |    4 +++-
->  arch/arm/plat-omap/omap-pm-noop.c         |    5 ++++-
->  arch/arm/plat-omap/omap-pm-srf.c          |    5 ++++-
->  4 files changed, 12 insertions(+), 4 deletions(-)
->
-> Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/omap-pm.h
+
+>  	return ret;
+>  }
+>  
+> @@ -128,7 +150,6 @@ static int __init omap_cpu_init(struct c
+>  
+>  	/* FIXME: what's the actual transition time? */
+>  	policy->cpuinfo.transition_latency = 10 * 1000 * 1000;
+> -
+>  	return 0;
+>  }
+>  
+> Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c
 > ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/omap-pm.h	2008-11-10 12:09:03.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/plat-omap/include/mach/omap-pm.h	2008-11-10 12:09:12.000000000 +0530
-> @@ -57,12 +57,14 @@ int __init omap_pm_if_early_init(void);
->   * omap_pm_if_init - OMAP PM init code called after clock fw init
->   * @mpu_opp_table: array ptr to struct omap_opp for MPU
->   * @dsp_opp_table: array ptr to struct omap_opp for DSP
-> + * @l3_opp_table : array ptr to struct omap_opp for CORE
->   *
->   * The main initialization code.  OPP tables are passed in here.  The
->   * "_if_" is to avoid name collisions with the PM idle-loop code.
+> --- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.c	2008-11-10 16:45:19.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c	2008-11-10 16:47:15.000000000 +0530
+> @@ -17,6 +17,7 @@
 >   */
->  int __init omap_pm_if_init(struct omap_opp *mpu_opp_table,
-> -			   struct omap_opp *dsp_opp_table);
-> +			   struct omap_opp *dsp_opp_table,
-> +			   struct omap_opp *l3_opp_table);
 >  
->  /**
->   * omap_pm_if_exit - OMAP PM exit code
-> Index: linux-omap-2.6/arch/arm/plat-omap/omap-pm-noop.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/plat-omap/omap-pm-noop.c	2008-11-10 12:09:03.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/plat-omap/omap-pm-noop.c	2008-11-10 12:09:12.000000000 +0530
-> @@ -28,6 +28,7 @@
+>  #include <linux/pm_qos_params.h>
+> +#include <linux/cpufreq.h>
+>  #include <mach/powerdomain.h>
+>  #include <mach/clockdomain.h>
+>  #include "smartreflex.h"
+> @@ -158,16 +159,26 @@ void init_opp(struct shared_resource *re
 >  
->  static struct omap_opp *dsp_opps;
->  static struct omap_opp *mpu_opps;
-> +static struct omap_opp *l3_opps;
->  
->  /*
->   * Device-driver-originated constraints (via board-*.c files)
-> @@ -316,10 +317,12 @@ int __init omap_pm_if_early_init(void)
->  
->  /* Must be called after clock framework is initialized */
->  int __init omap_pm_if_init(struct omap_opp *mpu_opp_table,
-> -			   struct omap_opp *dsp_opp_table)
-> +			   struct omap_opp *dsp_opp_table,
-> +			   struct omap_opp *l3_opp_table)
+>  int set_opp(struct shared_resource *resp, u32 target_level)
 >  {
->  	mpu_opps = mpu_opp_table;
->  	dsp_opps = dsp_opp_table;
-> +	l3_opps = l3_opp_table;
->  	return 0;
->  }
+> -	unsigned long mpu_freq, l3_freq, tput, t_opp;;
+> +	unsigned long mpu_freq, mpu_old_freq, l3_freq, tput, t_opp;
+>  	int ind;
+>  	struct bus_throughput_db *tput_db;
+> +	struct cpufreq_freqs freqs_notify;
 >  
-> Index: linux-omap-2.6/arch/arm/plat-omap/omap-pm-srf.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/plat-omap/omap-pm-srf.c	2008-11-10 12:09:03.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/plat-omap/omap-pm-srf.c	2008-11-10 12:09:12.000000000 +0530
-> @@ -29,6 +29,7 @@
+>  	if (resp->curr_level == target_level)
+>  		return 0;
 >  
->  static struct omap_opp *dsp_opps;
->  static struct omap_opp *mpu_opps;
-> +static struct omap_opp *l3_opps;
->  
->  #define LAT_RES_POSTAMBLE "_latency"
->  #define MAX_LATENCY_RES_NAME 30
-> @@ -346,10 +347,12 @@ int __init omap_pm_if_early_init(void)
->  
->  /* Must be called after clock framework is initialized */
->  int __init omap_pm_if_init(struct omap_opp *mpu_opp_table,
-> -			   struct omap_opp *dsp_opp_table)
-> +			   struct omap_opp *dsp_opp_table,
-> +			   struct omap_opp *l3_opp_table)
->  {
->  	mpu_opps = mpu_opp_table;
->  	dsp_opps = dsp_opp_table;
-> +	l3_opps = l3_opp_table;
->  	resource_init(resources_omap);
->  	return 0;
->  }
-> Index: linux-omap-2.6/arch/arm/mach-omap2/io.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/io.c	2008-11-10 12:09:03.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/mach-omap2/io.c	2008-11-10 12:09:12.000000000 +0530
-> @@ -206,7 +206,7 @@ void __init omap2_init_common_hw(struct 
->  	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
->  	omapdev_init(omapdevs);
->  	omap2_clk_init();
-> -	omap_pm_if_init(NULL, NULL);
-> +	omap_pm_if_init(NULL, NULL, NULL);
->  	omap2_sdrc_init(sp);
->  	gpmc_init();
->  }
+>  	if (strcmp(resp->name, "vdd1_opp") == 0) {
+> +		mpu_old_freq = get_freq(mpu_opps + MAX_VDD1_OPP,
+> +					curr_vdd1_prcm_set->opp_id);
+>  		mpu_freq = get_freq(mpu_opps + MAX_VDD1_OPP,
+>  					target_level);
+> +#ifdef CONFIG_CPU_FREQ
+> +		freqs_notify.old = mpu_old_freq/1000;
+> +		freqs_notify.new = mpu_freq/1000;
+> +		freqs_notify.cpu = 0;
+> +		/* Send pre notification to CPUFreq */
+> +		cpufreq_notify_transition(&freqs_notify, CPUFREQ_PRECHANGE);
+> +#endif
+>  		t_opp = ID_VDD(PRCM_VDD1) |
+>  			ID_OPP_NO(mpu_opps[target_level].opp_id);
+>  		if (resp->curr_level > target_level) {
+> @@ -182,6 +193,10 @@ int set_opp(struct shared_resource *resp
+>  			clk_set_rate(vdd1_clk, mpu_freq);
+>  		}
+>  		resp->curr_level = curr_vdd1_prcm_set->opp_id;
+> +#ifdef CONFIG_CPU_FREQ
+> +		/* Send a post notification to CPUFreq */
+> +		cpufreq_notify_transition(&freqs_notify, CPUFREQ_POSTCHANGE);
+> +#endif
+>  	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
+>  		tput_db = resp->resource_data;
+>  		tput = target_level;
 >
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
