@@ -1,96 +1,143 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] HSMMC: Make loopback clock configurable
-Date: Thu, 13 Nov 2008 15:06:57 -0800
-Message-ID: <20081113230656.GT3106@atomide.com>
-References: <1226612405-7175-1-git-send-email-notasas@gmail.com>
+Subject: Re: ASOC and the Beagle
+Date: Thu, 13 Nov 2008 15:13:28 -0800
+Message-ID: <20081113231327.GV3106@atomide.com>
+References: <49184EDF.9050600@balister.org> <5e088bd90811101238l16057159ua0c3dbe88ebcb158@mail.gmail.com> <5e088bd90811101436g38882b0bsacb931b4f6bbd5a8@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50732 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56232 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751198AbYKMXG7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2008 18:06:59 -0500
+	with ESMTP id S1753575AbYKMXNb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2008 18:13:31 -0500
 Content-Disposition: inline
-In-Reply-To: <1226612405-7175-1-git-send-email-notasas@gmail.com>
+In-Reply-To: <5e088bd90811101436g38882b0bsacb931b4f6bbd5a8@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Steve Sakoman <sakoman@gmail.com>
+Cc: Philip Balister <philip@balister.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Grazvydas Ignotas <notasas@gmail.com> [081113 13:40]:
-> Some boards use input clock from external pin for MMC/SDIO
-> modules in OMAP chips. Make that option selectable instead of
-> forcing loop back clock on everyone.
+* Steve Sakoman <sakoman@gmail.com> [081110 14:36]:
+> On Mon, Nov 10, 2008 at 12:38 PM, Steve Sakoman <sakoman@gmail.com> wrote:
+> > On Mon, Nov 10, 2008 at 7:10 AM, Philip Balister <philip@balister.org> wrote:
+> >> A few weeks ago kernels built from git would detect the sound hardware and
+> >> actually work.
+> >>
+> >> Yesterday I build a kernel and the sound hardware is no longer detected. Is
+> >> there an easy way to fix this?
+> >>
+> >> Sorry I'm so vague, I don't have all the revision data handy ....
+> >
+> > I just noticed this too.
+> >
+> > It seems that the Kconfig for soc/omap got damaged in the merge.
+> >
+> > The fix is simple, patch below.
+> 
+> Next time I should build test before posting :-)
+> 
+> Turns out that the Makefile for soc/omap and the Kconfig and Makefile
+> for soc/codec also got screwed up in the merge, so those need to be
+> fixed.
 
-Thanks, pushing both today.
+Care to send your S-O-B so I can push this to l-o tree before it falls
+down from mainline tree?
 
 Tony
 
-> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
-> ---
-> This patch applies on previous patch I sent:
-> "minor mmc-twl4030 cleanups"
+
+> The complete fix is:
 > 
->  arch/arm/mach-omap2/mmc-twl4030.c |   14 ++++++++------
->  arch/arm/mach-omap2/mmc-twl4030.h |    1 +
->  2 files changed, 9 insertions(+), 6 deletions(-)
+> diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
+> index 38a0e3b..5df7402 100644
+> --- a/sound/soc/codecs/Kconfig
+> +++ b/sound/soc/codecs/Kconfig
+> @@ -10,6 +10,7 @@ config SND_SOC_ALL_CODECS
+>  	select SND_SOC_TLV320AIC23
+>  	select SND_SOC_TLV320AIC26
+>  	select SND_SOC_TLV320AIC3X
+> +	select SND_SOC_TWL4030
+>  	select SND_SOC_UDA1380
+>  	select SND_SOC_WM8510
+>  	select SND_SOC_WM8580
+> @@ -75,6 +76,10 @@ config SND_SOC_TLV320AIC3X
+>  	tristate
+>  	depends on I2C
 > 
-> diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
-> index b1fe0f3..0ea6ba6 100644
-> --- a/arch/arm/mach-omap2/mmc-twl4030.c
-> +++ b/arch/arm/mach-omap2/mmc-twl4030.c
-> @@ -250,8 +250,7 @@ static int twl_mmc1_set_power(struct device *dev, int slot, int power_on,
->  			omap_ctrl_writel(reg, OMAP243X_CONTROL_DEVCONF1);
->  		}
->  
-> -		/* REVISIT: Loop back clock not needed for 2430? */
-> -		if (!cpu_is_omap2430()) {
-> +		if (c->mmc->slots[0].internal_clock) {
->  			reg = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
->  			reg |= OMAP2_MMCSDIO1ADPCLKISEL;
->  			omap_ctrl_writel(reg, OMAP2_CONTROL_DEVCONF0);
-> @@ -298,11 +297,13 @@ static int twl_mmc2_set_power(struct device *dev, int slot, int power_on, int vd
->  	struct twl_mmc_controller *c = &hsmmc[1];
->  
->  	if (power_on) {
-> -		u32 reg;
-> +		if (c->mmc->slots[0].internal_clock) {
-> +			u32 reg;
->  
-> -		reg = omap_ctrl_readl(control_devconf1_offset);
-> -		reg |= OMAP2_MMCSDIO2ADPCLKISEL;
-> -		omap_ctrl_writel(reg, control_devconf1_offset);
-> +			reg = omap_ctrl_readl(control_devconf1_offset);
-> +			reg |= OMAP2_MMCSDIO2ADPCLKISEL;
-> +			omap_ctrl_writel(reg, control_devconf1_offset);
-> +		}
->  		ret = twl_mmc_set_voltage(c, vdd);
->  	} else {
->  		ret = twl_mmc_set_voltage(c, 0);
-> @@ -354,6 +355,7 @@ void __init hsmmc_init(struct twl4030_hsmmc_info *controllers)
->  					MMC_VDD_29_30 |
->  					MMC_VDD_30_31 | MMC_VDD_31_32;
->  		mmc->slots[0].wires = c->wires;
-> +		mmc->slots[0].internal_clock = !c->ext_clock;
->  		mmc->dma_mask = 0xffffffff;
->  
->  		/* note: twl4030 card detect GPIOs normally switch VMMCx ... */
-> diff --git a/arch/arm/mach-omap2/mmc-twl4030.h b/arch/arm/mach-omap2/mmc-twl4030.h
-> index a2e60fe..e2d58a2 100644
-> --- a/arch/arm/mach-omap2/mmc-twl4030.h
-> +++ b/arch/arm/mach-omap2/mmc-twl4030.h
-> @@ -11,6 +11,7 @@ struct twl4030_hsmmc_info {
->  	u8	wires;		/* 1/4/8 wires */
->  	int	gpio_cd;	/* or -EINVAL */
->  	int	gpio_wp;	/* or -EINVAL */
-> +	int	ext_clock:1;	/* use external pin for input clock */
->  };
->  
->  #if	defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE) || \
-> -- 
-> 1.5.4.3
+> +config SND_SOC_TWL4030
+> +	tristate
+> +	depends on TWL4030_CORE
+> +
+>  config SND_SOC_UDA1380
+>          tristate
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
+> index 90f0a58..3b9b58a 100644
+> --- a/sound/soc/codecs/Makefile
+> +++ b/sound/soc/codecs/Makefile
+> @@ -7,6 +7,7 @@ snd-soc-ssm2602-objs := ssm2602.o
+>  snd-soc-tlv320aic23-objs := tlv320aic23.o
+>  snd-soc-tlv320aic26-objs := tlv320aic26.o
+>  snd-soc-tlv320aic3x-objs := tlv320aic3x.o
+> +snd-soc-twl4030-objs := twl4030.o
+>  snd-soc-uda1380-objs := uda1380.o
+>  snd-soc-wm8510-objs := wm8510.o
+>  snd-soc-wm8580-objs := wm8580.o
+> @@ -29,6 +30,7 @@ obj-$(CONFIG_SND_SOC_SSM2602)	+= snd-soc-ssm2602.o
+>  obj-$(CONFIG_SND_SOC_TLV320AIC23)	+= snd-soc-tlv320aic23.o
+>  obj-$(CONFIG_SND_SOC_TLV320AIC26)	+= snd-soc-tlv320aic26.o
+>  obj-$(CONFIG_SND_SOC_TLV320AIC3X)	+= snd-soc-tlv320aic3x.o
+> +obj-$(CONFIG_SND_SOC_TWL4030)	+= snd-soc-twl4030.o
+>  obj-$(CONFIG_SND_SOC_UDA1380)	+= snd-soc-uda1380.o
+>  obj-$(CONFIG_SND_SOC_WM8510)	+= snd-soc-wm8510.o
+>  obj-$(CONFIG_SND_SOC_WM8580)	+= snd-soc-wm8580.o
+> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+> index 8b7766b..0daeee4 100644
+> --- a/sound/soc/omap/Kconfig
+> +++ b/sound/soc/omap/Kconfig
+> @@ -14,6 +14,14 @@ config SND_OMAP_SOC_N810
+>  	help
+>  	  Say Y if you want to add support for SoC audio on Nokia N810.
+> 
+> +config SND_OMAP_SOC_OMAP3_BEAGLE
+> +	tristate "SoC Audio support for OMAP3 Beagle"
+> +	depends on SND_OMAP_SOC && MACH_OMAP3_BEAGLE
+> +	select SND_OMAP_SOC_MCBSP
+> +	select SND_SOC_TWL4030
+> +	help
+> +	  Say Y if you want to add support for SoC audio on the Beagleboard.
+> +
+>  config SND_OMAP_SOC_OSK5912
+>  	tristate "SoC Audio support for omap osk5912"
+>  	depends on SND_OMAP_SOC && MACH_OMAP_OSK
+> @@ -21,3 +29,13 @@ config SND_OMAP_SOC_OSK5912
+>  	select SND_SOC_TLV320AIC23
+>  	help
+>  	  Say Y if you want to add support for SoC audio on osk5912.
+> +
+> +config SND_OMAP_SOC_OVERO
+> +	tristate "SoC Audio support for Gumstix Overo"
+> +	depends on SND_OMAP_SOC && MACH_OVERO
+> +	select SND_OMAP_SOC_MCBSP
+> +	select SND_SOC_TWL4030
+> +	help
+> +	  Say Y if you want to add support for SoC audio on the Gumstix Overo.
+> +
+> +
+> diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
+> index e09d1f2..4bae404 100644
+> --- a/sound/soc/omap/Makefile
+> +++ b/sound/soc/omap/Makefile
+> @@ -7,7 +7,12 @@ obj-$(CONFIG_SND_OMAP_SOC_MCBSP) += snd-soc-omap-mcbsp.o
+> 
+>  # OMAP Machine Support
+>  snd-soc-n810-objs := n810.o
+> +snd-soc-omap3beagle-objs := omap3beagle.o
+>  snd-soc-osk5912-objs := osk5912.o
+> +snd-soc-overo-objs := overo.o
+> 
+>  obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
+> +obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
+>  obj-$(CONFIG_SND_OMAP_SOC_OSK5912) += snd-soc-osk5912.o
+> +obj-$(CONFIG_SND_OMAP_SOC_OVERO) += snd-soc-overo.o
+> +
