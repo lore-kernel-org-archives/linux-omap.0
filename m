@@ -1,69 +1,61 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 2.6.28-rc3-omap git] cbus build fixes
-Date: Thu, 13 Nov 2008 13:43:35 -0800
-Message-ID: <20081113214334.GH3106@atomide.com>
-References: <200811052313.52300.david-b@pacbell.net>
+Subject: Re: Problems with jffs2 rootfs using 2.6.28-rc3
+Date: Thu, 13 Nov 2008 13:52:48 -0800
+Message-ID: <20081113215242.GI3106@atomide.com>
+References: <5e088bd90811071209w6fb1b6c0y689d589819104862@mail.gmail.com> <200811071246.17303.david-b@pacbell.net> <5e088bd90811071321v5bc2b4adm2b89eebf1f3f906c@mail.gmail.com> <200811071330.44168.david-b@pacbell.net> <5e088bd90811071420l2c29a74fi32bd0ddd3d73cb93@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62240 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53946 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751598AbYKMVnh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2008 16:43:37 -0500
+	with ESMTP id S1752670AbYKMVwz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2008 16:52:55 -0500
 Content-Disposition: inline
-In-Reply-To: <200811052313.52300.david-b@pacbell.net>
+In-Reply-To: <5e088bd90811071420l2c29a74fi32bd0ddd3d73cb93@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org
+To: Steve Sakoman <sakoman@gmail.com>
+Cc: David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* David Brownell <david-b@pacbell.net> [081105 23:14]:
-> From: David Brownell <dbrownell@users.sourceforge.net>
+* Steve Sakoman <sakoman@gmail.com> [081107 14:20]:
+> On Fri, Nov 7, 2008 at 1:30 PM, David Brownell <david-b@pacbell.net> wrote:
+> > On Friday 07 November 2008, Steve Sakoman wrote:
+> >> On Fri, Nov 7, 2008 at 12:46 PM, David Brownell <david-b@pacbell.net> wrote:
+> >> > On Friday 07 November 2008, Steve Sakoman wrote:
+> >> >> I'm having little success.  It used to work back in 2.6.26 timeframe
+> >> >> but seems to have broken sometime during 2.6.27.
+> >> >
+> >> > There's a patch floating around making the omap2 NAND driver
+> >> > use readsw not readsl, which might explain that problem...
+> >>
+> >> Do you recall where you saw that patch?  Here or linux-mtd?  My
+> >> initial search efforts weren't successful.
+> >
+> > On linux-omap.  Or just look at the driver to see the
+> > readsl()... it's a one-liner.
 > 
-> Build fixes for CBUS stuff.
+> Yes, that one line change did indeed fix the issue!
+> 
+> Is that patch currently in the queue somewhere?
 
-Pushing today.
+Grr, this should be sent via the MTD list! But the driver is not there,
+so pushing Juha's patch to l-o today.
 
 Tony
 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
->  drivers/cbus/cbus.c  |    1 +
->  drivers/cbus/retu.c  |    1 +
->  drivers/cbus/tahvo.c |    1 +
->  3 files changed, 3 insertions(+)
+> For the record:
 > 
-> --- a/drivers/cbus/cbus.c
-> +++ b/drivers/cbus/cbus.c
-> @@ -31,6 +31,7 @@
->  
->  #include <mach/gpio.h>
->  #include <mach/board.h>
-> +#include <mach/board-nokia.h>
->  
->  #include <asm/io.h>
->  
-> --- a/drivers/cbus/retu.c
-> +++ b/drivers/cbus/retu.c
-> @@ -41,6 +41,7 @@
->  #include <mach/mux.h>
->  #include <mach/gpio.h>
->  #include <mach/board.h>
-> +#include <mach/board-nokia.h>
->  
->  #include "cbus.h"
->  #include "retu.h"
-> --- a/drivers/cbus/tahvo.c
-> +++ b/drivers/cbus/tahvo.c
-> @@ -41,6 +41,7 @@
->  #include <mach/mux.h>
->  #include <mach/gpio.h>
->  #include <mach/board.h>
-> +#include <mach/board-nokia.h>
->  
->  #include "cbus.h"
->  #include "tahvo.h"
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> index 2ede116..d18a8c9 100644
+> --- a/drivers/mtd/nand/omap2.c
+> +++ b/drivers/mtd/nand/omap2.c
+> @@ -196,7 +196,7 @@ static void omap_read_buf16(struct mtd_info *mtd,
+> u_char *buf, int len)
+>  {
+>  	struct nand_chip *nand = mtd->priv;
+> 
+> -	__raw_readsl(nand->IO_ADDR_R, buf, len / 2);
+> +	readsw(nand->IO_ADDR_R, buf, len / 2);
+>  }
+> 
+>  /*
