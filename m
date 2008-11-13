@@ -1,63 +1,67 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] PM: OMAP3: Make sure clk_disable_unused() order is correct
-Date: Thu, 13 Nov 2008 05:55:31 -0800
-Message-ID: <87abc3loh8.fsf@deeprootsystems.com>
-References: <1226482930-32017-1-git-send-email-tero.kristo@nokia.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: Fix for dispc's error "omapfb omapfb: irq error status 4020"
+Date: Thu, 13 Nov 2008 16:06:32 +0200
+Message-ID: <1226585192.32348.3.camel@tubuntu>
+References: <E1KyYMw-0003Ob-5e@amazonia.comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.247]:33742 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752473AbYKMNzg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2008 08:55:36 -0500
-Received: by an-out-0708.google.com with SMTP id d40so405593and.1
-        for <linux-omap@vger.kernel.org>; Thu, 13 Nov 2008 05:55:35 -0800 (PST)
-In-Reply-To: <1226482930-32017-1-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Wed\, 12 Nov 2008 11\:42\:10 +0200")
+Received: from smtp.nokia.com ([192.100.122.230]:23651 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751898AbYKMOGk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2008 09:06:40 -0500
+In-Reply-To: <E1KyYMw-0003Ob-5e@amazonia.comcast.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: rick@efn.org
+Cc: imre.deak@nokia.com, linux-omap@vger.kernel.org
 
-Tero Kristo <tero.kristo@nokia.com> writes:
+Hi,
 
-> Current implementation will disable clocks in the order defined in clock34xx.h,
-> at least DPLL4_M2X2 will hang in certain cases (and prevent retention / off)
-> if clocks are not disabled in correct order. This patch makes sure the parent
-> clocks will be active when disabling a clock.
->
-> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+On Fri, 2008-11-07 at 12:55 -0800, ext Rick Bronson wrote:
+> Folks,
+> 
+>   Please take a look at this change to drivers/video/omap/dispc.c.  It
+> addresses a problem seen on some boots of OMAP's.  On about 1 in 30
+> boots one gets an endless stream of interrupts from the
+> DISPC_IRQ_SYNC_LOST bit in the DISPC_IRQSTATUS register.  The
+> following messages are printed.
+> 
+>  omapfb omapfb: irq error status 4020
 
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+Can you try the patch below if it fixes this problem for you? On my new
+display subsystem adding a sleep between enabling clocks and doing the
+soft reset removed the problem.
 
-And, pulling into next PM branch.
+I tried a bit with different sleep times. With 1ms sleep I still got
+sync losts. With 10ms I didn't, but I went safe and put 40ms.
 
-Kevin
+ Tomi
 
-> ---
->  arch/arm/mach-omap2/clock.c |    6 +++++-
->  1 files changed, 5 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-> index dbbc7c8..522ce6f 100644
-> --- a/arch/arm/mach-omap2/clock.c
-> +++ b/arch/arm/mach-omap2/clock.c
-> @@ -1012,7 +1012,11 @@ void omap2_clk_disable_unused(struct clk *clk)
->  		return;
->  
->  	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
-> -	_omap2_clk_disable(clk);
-> +	if (cpu_is_omap34xx()) {
-> +		omap2_clk_enable(clk);
-> +		omap2_clk_disable(clk);
-> +	} else
-> +		_omap2_clk_disable(clk);
->  	if (clk->clkdm.ptr != NULL)
->  		pwrdm_clkdm_state_switch(clk->clkdm.ptr);
->  }
-> -- 
-> 1.5.4.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
+index c140c21..bdfda0c 100644
+--- a/drivers/video/omap/dispc.c
++++ b/drivers/video/omap/dispc.c
+@@ -24,6 +24,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
++#include <linux/delay.h>
+ 
+ #include <mach/sram.h>
+ #include <mach/omapfb.h>
+@@ -1402,6 +1403,10 @@ static int omap_dispc_init(struct omapfb_device *fbdev, int ext_mode,
+                /* Reset monitoring works only w/ the 54M clk */
+                enable_digit_clocks(1);
+ 
++               /* We need to wait here a bit, otherwise we sometimes start to get
++                * synclost errors. */
++               msleep(40);
++
+                /* Soft reset */
+                MOD_REG_FLD(DISPC_SYSCONFIG, 1 << 1, 1 << 1);
+
+
