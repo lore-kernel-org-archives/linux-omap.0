@@ -1,395 +1,135 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch/rft 2.6.28-rc3-omap] twl4030-core simplification
-Date: Thu, 13 Nov 2008 14:26:27 -0800
-Message-ID: <20081113222626.GM3106@atomide.com>
-References: <200811071645.15687.david-b@pacbell.net>
+Subject: Re: [patch 2.6.28-rc3-omap 0/4] twl4030 regulator support
+Date: Thu, 13 Nov 2008 14:32:11 -0800
+Message-ID: <20081113223211.GN3106@atomide.com>
+References: <200811111756.20719.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50913 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55655 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752849AbYKMW0a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2008 17:26:30 -0500
+	with ESMTP id S1751840AbYKMWcO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2008 17:32:14 -0500
 Content-Disposition: inline
-In-Reply-To: <200811071645.15687.david-b@pacbell.net>
+In-Reply-To: <200811111756.20719.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org, Samuel Ortiz <sameo@openedhand.com>
+Cc: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [081107 16:45]:
-> From: David Brownell <dbrownell@users.sourceforge.net>
+* David Brownell <david-b@pacbell.net> [081111 18:10]:
+> On the grounds that it's probably the way to go, here's initial
+> support for the regulator framework.
 > 
-> Minor cleanup to twl4030-core: define a helper function to populate
-> a single child node, and use it to replace six inconsistent versions
-> of the same logic.  Both object and source code shrink.
+>  - simplified TWL child creation code ... updates an earlier
+> 	patch, AFAICT this is ready to merge now
+>  - regulator driver support ... core functionality seems done
+>  - create regulator devices ... ditto
+>  - hook it up for testing ... NOT FOR MERGING
 > 
-> As part of this, some devices now have more IRQ resources:  battery
-> charger, keypad, ADC, and USB transceiver.  That will help to remove
-> some irq #defines that prevent this code from compiling on non-OMAP
-> platforms.
+> This is a trifle awkward for me to test without test points
+> to measure the dozen or so LDO regulators that are exposed.
+> But poking at the registers tells sensible stories, and the
+> regulator driver code and device setup seem to be in more
+> or less usable shape ... so it's time to circulate this code!
+> 
+> If this checks out, the first three patches should merge
+> and then stuff like USB (easiest) and HSMMC can start to
+> use it.
 
-Pushing to linux-omap tree while waiting for this to fall down from
-mainline tree via Samuel's queue.
+Nice! Do you want to wait a bit before converting HSMMC to avoid
+adding extra dependencies to get that driver merged upstream first?
+
+BTW, your first patch in this series does not apply, can you please
+refresh? I just pushed a bunch of patches from you, can you also
+please check I'm not missing any of your patches?
+
+Thanks,
 
 Tony
 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
-> Boots fine on two boards that use GPIO, RTC, and USB.  Which means
-> charger, keypad, and ADC deserve sanity testing.  (The diff looks
-> nasty, but that's just inability to see "add a function and replace
-> the interior of six 'if' blocks" as the relevant change.)
+
+
+> It's my expectation that virtually no-one on this list will
+> ever have used the regulator framework before; it's very new,
+> and the regulator drivers in the mainline kernel aren't for
+> chips that get much use with current OMAP boards.
 > 
->  drivers/mfd/twl4030-core.c |  297 +++++++++++--------------------------------
->  1 file changed, 82 insertions(+), 215 deletions(-)
+> So my advice to anyone wanting to switch TWL LDOs on/off is
+> to allocate an hour or two to play around with the sysfs
+> interfaces you'll get by applying all four patches and then
+> booting the resulting kernel:
 > 
-> --- a/drivers/mfd/twl4030-core.c
-> +++ b/drivers/mfd/twl4030-core.c
-> @@ -360,261 +360,128 @@ EXPORT_SYMBOL(twl4030_i2c_read_u8);
->  
->  /*----------------------------------------------------------------------*/
->  
-> -/*
-> - * NOTE:  We know the first 8 IRQs after pdata->base_irq are
-> - * for the PIH, and the next are for the PWR_INT SIH, since
-> - * that's how twl_init_irq() sets things up.
-> - */
-> -
-> -static int add_children(struct twl4030_platform_data *pdata)
-> +static int add_child(unsigned chip, const char *name,
-> +		void *pdata, unsigned pdata_len,
-> +		bool can_wakeup, int irq0, int irq1)
->  {
-> -	struct platform_device	*pdev = NULL;
-> -	struct twl4030_client	*twl = NULL;
-> -	int			status = 0;
-> -
-> -	if (twl_has_bci() && pdata->bci) {
-> -		twl = &twl4030_modules[3];
-> -
-> -		pdev = platform_device_alloc("twl4030_bci", -1);
-> -		if (!pdev) {
-> -			pr_debug("%s: can't alloc bci dev\n", DRIVER_NAME);
-> -			status = -ENOMEM;
-> -			goto err;
-> -		}
-> -
-> -		if (status == 0) {
-> -			pdev->dev.parent = &twl->client->dev;
-> -			status = platform_device_add_data(pdev, pdata->bci,
-> -					sizeof(*pdata->bci));
-> -			if (status < 0) {
-> -				dev_dbg(&twl->client->dev,
-> -					"can't add bci data, %d\n",
-> -					status);
-> -				goto err;
-> -			}
-> -		}
-> -
-> -		if (status == 0) {
-> -			struct resource r = {
-> -				.start = pdata->irq_base + 8 + 1,
-> -				.flags = IORESOURCE_IRQ,
-> -			};
-> +	struct platform_device	*pdev;
-> +	struct twl4030_client	*twl = &twl4030_modules[chip];
-> +	int			status;
->  
-> -			status = platform_device_add_resources(pdev, &r, 1);
-> -		}
-> +	pdev = platform_device_alloc(name, -1);
-> +	if (!pdev) {
-> +		dev_dbg(&twl->client->dev, "can't alloc dev\n");
-> +		status = -ENOMEM;
-> +		goto err;
-> +	}
->  
-> -		if (status == 0)
-> -			status = platform_device_add(pdev);
-> +	device_init_wakeup(&pdev->dev, can_wakeup);
-> +	pdev->dev.parent = &twl->client->dev;
->  
-> +	if (pdata) {
-> +		status = platform_device_add_data(pdev, pdata, pdata_len);
->  		if (status < 0) {
-> -			platform_device_put(pdev);
-> -			dev_dbg(&twl->client->dev,
-> -					"can't create bci dev, %d\n",
-> -					status);
-> +			dev_dbg(&pdev->dev, "can't add platform_data\n");
->  			goto err;
->  		}
->  	}
->  
-> -	if (twl_has_gpio() && pdata->gpio) {
-> -		twl = &twl4030_modules[1];
-> +	if (irq0) {
-> +		struct resource r[2] = {
-> +			{ .start = irq0, .flags = IORESOURCE_IRQ, },
-> +			{ .start = irq1, .flags = IORESOURCE_IRQ, },
-> +		};
->  
-> -		pdev = platform_device_alloc("twl4030_gpio", -1);
-> -		if (!pdev) {
-> -			pr_debug("%s: can't alloc gpio dev\n", DRIVER_NAME);
-> -			status = -ENOMEM;
-> +		status = platform_device_add_resources(pdev, r, irq1 ? 2 : 1);
-> +		if (status < 0) {
-> +			dev_dbg(&pdev->dev, "can't add irqs\n");
->  			goto err;
->  		}
-> +	}
->  
-> -		/* more driver model init */
-> -		if (status == 0) {
-> -			pdev->dev.parent = &twl->client->dev;
-> -			/* device_init_wakeup(&pdev->dev, 1); */
-> +	status = platform_device_add(pdev);
->  
-> -			status = platform_device_add_data(pdev, pdata->gpio,
-> -					sizeof(*pdata->gpio));
-> -			if (status < 0) {
-> -				dev_dbg(&twl->client->dev,
-> -					"can't add gpio data, %d\n",
-> -					status);
-> -				goto err;
-> -			}
-> -		}
-> +err:
-> +	if (status < 0) {
-> +		platform_device_put(pdev);
-> +		dev_err(&twl->client->dev, "can't add %s dev\n", name);
-> +	}
-> +	return status;
-> +}
->  
-> -		/* GPIO module IRQ */
-> -		if (status == 0) {
-> -			struct resource	r = {
-> -				.start = pdata->irq_base + 0,
-> -				.flags = IORESOURCE_IRQ,
-> -			};
-> +/*
-> + * NOTE:  We know the first 8 IRQs after pdata->base_irq are
-> + * for the PIH, and the next are for the PWR_INT SIH, since
-> + * that's how twl_init_irq() sets things up.
-> + */
->  
-> -			status = platform_device_add_resources(pdev, &r, 1);
-> -		}
-> +static int add_children(struct twl4030_platform_data *pdata)
-> +{
-> +	int			status;
->  
-> -		if (status == 0)
-> -			status = platform_device_add(pdev);
-> +	if (twl_has_bci() && pdata->bci) {
-> +		status = add_child(3, "twl4030_bci",
-> +				pdata->bci, sizeof(*pdata->bci),
-> +				false,
-> +				/* irq0 = CHG_PRES, irq1 = BCI */
-> +				pdata->irq_base + 8 + 1, pdata->irq_base + 2);
-> +		if (status < 0)
-> +			return status;
-> +	}
->  
-> -		if (status < 0) {
-> -			platform_device_put(pdev);
-> -			dev_dbg(&twl->client->dev,
-> -					"can't create gpio dev, %d\n",
-> -					status);
-> -			goto err;
-> -		}
-> +	if (twl_has_gpio() && pdata->gpio) {
-> +		status = add_child(1, "twl4030_gpio",
-> +				pdata->gpio, sizeof(*pdata->gpio),
-> +				false, pdata->irq_base + 0, 0);
-> +		if (status < 0)
-> +			return status;
->  	}
->  
->  	if (twl_has_keypad() && pdata->keypad) {
-> -		pdev = platform_device_alloc("twl4030_keypad", -1);
-> -		if (pdev) {
-> -			twl = &twl4030_modules[2];
-> -			pdev->dev.parent = &twl->client->dev;
-> -			device_init_wakeup(&pdev->dev, 1);
-> -			status = platform_device_add_data(pdev, pdata->keypad,
-> -					sizeof(*pdata->keypad));
-> -			if (status < 0) {
-> -				dev_dbg(&twl->client->dev,
-> -					"can't add keypad data, %d\n",
-> -					status);
-> -				platform_device_put(pdev);
-> -				goto err;
-> -			}
-> -			status = platform_device_add(pdev);
-> -			if (status < 0) {
-> -				platform_device_put(pdev);
-> -				dev_dbg(&twl->client->dev,
-> -						"can't create keypad dev, %d\n",
-> -						status);
-> -				goto err;
-> -			}
-> -		} else {
-> -			pr_debug("%s: can't alloc keypad dev\n", DRIVER_NAME);
-> -			status = -ENOMEM;
-> -			goto err;
-> -		}
-> +		status = add_child(2, "twl4030_keypad",
-> +				pdata->keypad, sizeof(*pdata->keypad),
-> +				true, pdata->irq_base + 1, 0);
-> +		if (status < 0)
-> +			return status;
->  	}
->  
->  	if (twl_has_madc() && pdata->madc) {
-> -		pdev = platform_device_alloc("twl4030_madc", -1);
-> -		if (pdev) {
-> -			twl = &twl4030_modules[2];
-> -			pdev->dev.parent = &twl->client->dev;
-> -			device_init_wakeup(&pdev->dev, 1);
-> -			status = platform_device_add_data(pdev, pdata->madc,
-> -					sizeof(*pdata->madc));
-> -			if (status < 0) {
-> -				platform_device_put(pdev);
-> -				dev_dbg(&twl->client->dev,
-> -					"can't add madc data, %d\n",
-> -					status);
-> -				goto err;
-> -			}
-> -			status = platform_device_add(pdev);
-> -			if (status < 0) {
-> -				platform_device_put(pdev);
-> -				dev_dbg(&twl->client->dev,
-> -						"can't create madc dev, %d\n",
-> -						status);
-> -				goto err;
-> -			}
-> -		} else {
-> -			pr_debug("%s: can't alloc madc dev\n", DRIVER_NAME);
-> -			status = -ENOMEM;
-> -			goto err;
-> -		}
-> +		status = add_child(2, "twl4030_madc",
-> +				pdata->madc, sizeof(*pdata->madc),
-> +				true, pdata->irq_base + 3, 0);
-> +		if (status < 0)
-> +			return status;
->  	}
->  
->  	if (twl_has_power() && pdata->power)
->  		twl4030_power_init(pdata->power);
->  
->  	if (twl_has_rtc()) {
-> -		twl = &twl4030_modules[3];
-> -
-> -		pdev = platform_device_alloc("twl4030_rtc", -1);
-> -		if (!pdev) {
-> -			pr_debug("%s: can't alloc rtc dev\n", DRIVER_NAME);
-> -			status = -ENOMEM;
-> -		} else {
-> -			pdev->dev.parent = &twl->client->dev;
-> -			device_init_wakeup(&pdev->dev, 1);
-> -		}
-> -
->  		/*
-> -		 * REVISIT platform_data here currently might use of
-> +		 * REVISIT platform_data here currently might expose the
->  		 * "msecure" line ... but for now we just expect board
-> -		 * setup to tell the chip "we are secure" at all times.
-> +		 * setup to tell the chip "it's always ok to SET_TIME".
->  		 * Eventually, Linux might become more aware of such
->  		 * HW security concerns, and "least privilege".
->  		 */
-> -
-> -		/* RTC module IRQ */
-> -		if (status == 0) {
-> -			struct resource	r = {
-> -				.start = pdata->irq_base + 8 + 3,
-> -				.flags = IORESOURCE_IRQ,
-> -			};
-> -
-> -			status = platform_device_add_resources(pdev, &r, 1);
-> -		}
-> -
-> -		if (status == 0)
-> -			status = platform_device_add(pdev);
-> -
-> -		if (status < 0) {
-> -			platform_device_put(pdev);
-> -			dev_dbg(&twl->client->dev,
-> -					"can't create rtc dev, %d\n",
-> -					status);
-> -			goto err;
-> -		}
-> +		status = add_child(3, "twl4030_rtc",
-> +				NULL, 0,
-> +				true, pdata->irq_base + 8 + 3, 0);
-> +		if (status < 0)
-> +			return status;
->  	}
->  
->  	if (twl_has_usb() && pdata->usb) {
-> -		twl = &twl4030_modules[0];
-> -
-> -		pdev = platform_device_alloc("twl4030_usb", -1);
-> -		if (!pdev) {
-> -			pr_debug("%s: can't alloc usb dev\n", DRIVER_NAME);
-> -			status = -ENOMEM;
-> -			goto err;
-> -		}
-> -
-> -		if (status == 0) {
-> -			pdev->dev.parent = &twl->client->dev;
-> -			device_init_wakeup(&pdev->dev, 1);
-> -			status = platform_device_add_data(pdev, pdata->usb,
-> -					sizeof(*pdata->usb));
-> -			if (status < 0) {
-> -				platform_device_put(pdev);
-> -				dev_dbg(&twl->client->dev,
-> -					"can't add usb data, %d\n",
-> -					status);
-> -				goto err;
-> -			}
-> -		}
-> -
-> -		if (status == 0) {
-> -			struct resource r = {
-> -				.start = pdata->irq_base + 8 + 2,
-> -				.flags = IORESOURCE_IRQ,
-> -			};
-> -
-> -			status = platform_device_add_resources(pdev, &r, 1);
-> -		}
-> -
-> -		if (status == 0)
-> -			status = platform_device_add(pdev);
-> -
-> -		if (status < 0) {
-> -			platform_device_put(pdev);
-> -			dev_dbg(&twl->client->dev,
-> -					"can't create usb dev, %d\n",
-> -					status);
-> -		}
-> +		status = add_child(0, "twl4030_usb",
-> +				pdata->usb, sizeof(*pdata->usb),
-> +				true,
-> +				/* irq0 = USB_PRES, irq1 = USB */
-> +				pdata->irq_base + 8 + 2, pdata->irq_base + 4);
-> +		if (status < 0)
-> +			return status;
->  	}
->  
-> -err:
-> -	if (status)
-> -		pr_err("failed to add twl4030's children (status %d)\n", status);
-> -	return status;
-> +	return 0;
->  }
->  
->  /*----------------------------------------------------------------------*/
+>   /sys/class/regulator/regulator.*/...
+> 	a dozen regulators, most attributes useless (see [1],
+> 	especially [2], and maybe [3] for optional patches
+> 	to improve utility); all are read-only
+>   /sys/devices/platform/reg-virt-consumer.*
+> 	half as many regulators (platform_bus bug), but
+> 	with WRITABLE attributes for testing with
+> 
+> The "virtual consumer" thing is drivers/regulator/virtual.c
+> and you'll have to read its code for details ... basically,
+> write the min and max voltage attributes there (or zero them)
+> then look at the regulator.* attributes and/or check the
+> testpoints on your board.
+> 
+> Appended is a script that dumps regulator stats in more
+> digestible form than raw sysfs:
+> 
+> VMMC1	-- normal, 	3150000 uVolts 	(regulator.0)
+> 	1850000 <--> 3150000 uVolts
+> VDAC	-- normal, 	1800000 uVolts 	(regulator.1)
+> 	1200000 <--> 1800000 uVolts
+> VAUX3	-- normal, 	2800000 uVolts 	(regulator.10)
+> 	1500000 <--> 2800000 uVolts
+> VAUX4	-- off, 	1000000 uVolts 	(regulator.11)
+> VAUX2	-- normal, 	1500000 uVolts 	(regulator.2)
+> 	1300000 <--> 2800000 uVolts
+> VUSB1V5	-- normal, 	1500000 uVolts 	(regulator.3)
+> VUSB1V8	-- normal, 	1800000 uVolts 	(regulator.4)
+> VUSB3V1	-- normal, 	3100000 uVolts 	(regulator.5)
+> VUSBCP	-- off, 	4800000 uVolts 	(regulator.6)
+> VMMC2	-- off, 	2600000 uVolts 	(regulator.7)
+> VSIM	-- normal, 	1800000 uVolts 	(regulator.8)
+> 	1800000 <--> 3000000 uVolts
+> VAUX1	-- off, 	3000000 uVolts 	(regulator.9)
+> 
+> Enjoy!
+> 
+> - Dave
+> 
+> [1] http://marc.info/?l=linux-kernel&m=122645403604873&w=2
+> [2] http://marc.info/?l=linux-kernel&m=122645416305013&w=2
+> [3] http://marc.info/?l=linux-kernel&m=122645416305018&w=2
+> 
+> 
+> #!/bin/bash
+> 
+> cd /sys/class/regulator || exit 1
+> 
+> for F in *
+> do
+> 	NAME=$(cat $F/name)
+> 	test $NAME = VAUX2_4030 && NAME=VAUX2
+> 	OPMODE=$(cat $F/opmode)
+> 	STATE=$(cat $F/state)
+> 	test $OPMODE != off -a $STATE = disabled && OPMODE=off
+> 	UVOLTS="0"
+> 	test -f $F/microvolts && UVOLTS=$(cat $F/microvolts)
+> 
+> 	echo $NAME"	-- "$OPMODE", 	"$UVOLTS" uVolts 	("$F")"
+> 
+> 	test $OPMODE = off && continue
+> 
+> 	# FIXME:  may have device links ... display them too
+> 	test ! -f $F/min_microvolts && continue
+> 
+> 	UVOLTS_MIN=$(cat $F/min_microvolts)
+> 	UVOLTS_MAX=$(cat $F/max_microvolts)
+> 	echo "	"$UVOLTS_MIN" <--> "$UVOLTS_MAX uVolts
+> 
+> done
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
