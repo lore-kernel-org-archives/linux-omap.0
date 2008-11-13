@@ -1,168 +1,209 @@
-From: "Ming Lei" <tom.leiming@gmail.com>
-Subject: Re: ASOC and the Beagle
-Date: Sun, 16 Nov 2008 22:45:49 +0800
-Message-ID: <d82e647a0811160645h271a8a16k1837b51f4e1f2a29@mail.gmail.com>
-References: <49184EDF.9050600@balister.org>
-	 <5e088bd90811101238l16057159ua0c3dbe88ebcb158@mail.gmail.com>
-	 <5e088bd90811101436g38882b0bsacb931b4f6bbd5a8@mail.gmail.com>
-	 <20081113231327.GV3106@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 2/6] OMAP_LDP: Add Ethernet device support to make
+	ldp boot succeess.
+Date: Thu, 13 Nov 2008 14:53:45 -0800
+Message-ID: <20081113225344.GQ3106@atomide.com>
+References: <1226404258-13027-1-git-send-email-stanley.miao@windriver.com> <1226404258-13027-2-git-send-email-stanley.miao@windriver.com> <1226404258-13027-3-git-send-email-stanley.miao@windriver.com> <20081113224243.GP3106@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:64281 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751417AbYKPOpu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Nov 2008 09:45:50 -0500
-Received: by wf-out-1314.google.com with SMTP id 27so2192370wfd.4
-        for <linux-omap@vger.kernel.org>; Sun, 16 Nov 2008 06:45:49 -0800 (PST)
-In-Reply-To: <20081113231327.GV3106@atomide.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56792 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752011AbYKMWxs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2008 17:53:48 -0500
 Content-Disposition: inline
+In-Reply-To: <20081113224243.GP3106@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Steve Sakoman <sakoman@gmail.com>, Philip Balister <philip@balister.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Stanley.Miao" <stanley.miao@windriver.com>
+Cc: linux-omap@vger.kernel.org, johnpol@2ka.mipt.ru
 
-beagle sound soc in v2.6.28-rc4  build failed:
+* Tony Lindgren <tony@atomide.com> [081113 14:43]:
+> * Stanley.Miao <stanley.miao@windriver.com> [081111 03:45]:
+> > Add Ethernet device support in board-ldp.c to make ldp can boot and mount nfs
+> > successfully.
+> 
+> Pushing only the board related changes of this patch.
+> 
+> Please send the smc91x changes to netdev list for integration and cc
+> linux-omap list.
 
-MODPOST 31 modules
-ERROR: "omap_ctrl_writel" [sound/soc/omap/snd-soc-omap-mcbsp.ko] undefined!
-ERROR: "omap_ctrl_readl" [sound/soc/omap/snd-soc-omap-mcbsp.ko] undefined!
+Adding board-ldp.c related part + defconfig options for smc to
+omap3-upstream queue.
 
-
-
-2008/11/14 Tony Lindgren <tony@atomide.com>:
-> * Steve Sakoman <sakoman@gmail.com> [081110 14:36]:
->> On Mon, Nov 10, 2008 at 12:38 PM, Steve Sakoman <sakoman@gmail.com> wrote:
->> > On Mon, Nov 10, 2008 at 7:10 AM, Philip Balister <philip@balister.org> wrote:
->> >> A few weeks ago kernels built from git would detect the sound hardware and
->> >> actually work.
->> >>
->> >> Yesterday I build a kernel and the sound hardware is no longer detected. Is
->> >> there an easy way to fix this?
->> >>
->> >> Sorry I'm so vague, I don't have all the revision data handy ....
->> >
->> > I just noticed this too.
->> >
->> > It seems that the Kconfig for soc/omap got damaged in the merge.
->> >
->> > The fix is simple, patch below.
->>
->> Next time I should build test before posting :-)
->>
->> Turns out that the Makefile for soc/omap and the Kconfig and Makefile
->> for soc/codec also got screwed up in the merge, so those need to be
->> fixed.
->
-> Care to send your S-O-B so I can push this to l-o tree before it falls
-> down from mainline tree?
->
+> Thanks,
+> 
 > Tony
->
->
->> The complete fix is:
->>
->> diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
->> index 38a0e3b..5df7402 100644
->> --- a/sound/soc/codecs/Kconfig
->> +++ b/sound/soc/codecs/Kconfig
->> @@ -10,6 +10,7 @@ config SND_SOC_ALL_CODECS
->>       select SND_SOC_TLV320AIC23
->>       select SND_SOC_TLV320AIC26
->>       select SND_SOC_TLV320AIC3X
->> +     select SND_SOC_TWL4030
->>       select SND_SOC_UDA1380
->>       select SND_SOC_WM8510
->>       select SND_SOC_WM8580
->> @@ -75,6 +76,10 @@ config SND_SOC_TLV320AIC3X
->>       tristate
->>       depends on I2C
->>
->> +config SND_SOC_TWL4030
->> +     tristate
->> +     depends on TWL4030_CORE
->> +
->>  config SND_SOC_UDA1380
->>          tristate
->>
->> diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
->> index 90f0a58..3b9b58a 100644
->> --- a/sound/soc/codecs/Makefile
->> +++ b/sound/soc/codecs/Makefile
->> @@ -7,6 +7,7 @@ snd-soc-ssm2602-objs := ssm2602.o
->>  snd-soc-tlv320aic23-objs := tlv320aic23.o
->>  snd-soc-tlv320aic26-objs := tlv320aic26.o
->>  snd-soc-tlv320aic3x-objs := tlv320aic3x.o
->> +snd-soc-twl4030-objs := twl4030.o
->>  snd-soc-uda1380-objs := uda1380.o
->>  snd-soc-wm8510-objs := wm8510.o
->>  snd-soc-wm8580-objs := wm8580.o
->> @@ -29,6 +30,7 @@ obj-$(CONFIG_SND_SOC_SSM2602)       += snd-soc-ssm2602.o
->>  obj-$(CONFIG_SND_SOC_TLV320AIC23)    += snd-soc-tlv320aic23.o
->>  obj-$(CONFIG_SND_SOC_TLV320AIC26)    += snd-soc-tlv320aic26.o
->>  obj-$(CONFIG_SND_SOC_TLV320AIC3X)    += snd-soc-tlv320aic3x.o
->> +obj-$(CONFIG_SND_SOC_TWL4030)        += snd-soc-twl4030.o
->>  obj-$(CONFIG_SND_SOC_UDA1380)        += snd-soc-uda1380.o
->>  obj-$(CONFIG_SND_SOC_WM8510) += snd-soc-wm8510.o
->>  obj-$(CONFIG_SND_SOC_WM8580) += snd-soc-wm8580.o
->> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
->> index 8b7766b..0daeee4 100644
->> --- a/sound/soc/omap/Kconfig
->> +++ b/sound/soc/omap/Kconfig
->> @@ -14,6 +14,14 @@ config SND_OMAP_SOC_N810
->>       help
->>         Say Y if you want to add support for SoC audio on Nokia N810.
->>
->> +config SND_OMAP_SOC_OMAP3_BEAGLE
->> +     tristate "SoC Audio support for OMAP3 Beagle"
->> +     depends on SND_OMAP_SOC && MACH_OMAP3_BEAGLE
->> +     select SND_OMAP_SOC_MCBSP
->> +     select SND_SOC_TWL4030
->> +     help
->> +       Say Y if you want to add support for SoC audio on the Beagleboard.
->> +
->>  config SND_OMAP_SOC_OSK5912
->>       tristate "SoC Audio support for omap osk5912"
->>       depends on SND_OMAP_SOC && MACH_OMAP_OSK
->> @@ -21,3 +29,13 @@ config SND_OMAP_SOC_OSK5912
->>       select SND_SOC_TLV320AIC23
->>       help
->>         Say Y if you want to add support for SoC audio on osk5912.
->> +
->> +config SND_OMAP_SOC_OVERO
->> +     tristate "SoC Audio support for Gumstix Overo"
->> +     depends on SND_OMAP_SOC && MACH_OVERO
->> +     select SND_OMAP_SOC_MCBSP
->> +     select SND_SOC_TWL4030
->> +     help
->> +       Say Y if you want to add support for SoC audio on the Gumstix Overo.
->> +
->> +
->> diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
->> index e09d1f2..4bae404 100644
->> --- a/sound/soc/omap/Makefile
->> +++ b/sound/soc/omap/Makefile
->> @@ -7,7 +7,12 @@ obj-$(CONFIG_SND_OMAP_SOC_MCBSP) += snd-soc-omap-mcbsp.o
->>
->>  # OMAP Machine Support
->>  snd-soc-n810-objs := n810.o
->> +snd-soc-omap3beagle-objs := omap3beagle.o
->>  snd-soc-osk5912-objs := osk5912.o
->> +snd-soc-overo-objs := overo.o
->>
->>  obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
->> +obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
->>  obj-$(CONFIG_SND_OMAP_SOC_OSK5912) += snd-soc-osk5912.o
->> +obj-$(CONFIG_SND_OMAP_SOC_OVERO) += snd-soc-overo.o
->> +
+> 
+> 
+> > Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+> > ---
+> >  arch/arm/mach-omap2/board-ldp.c             |   53 +++++++++++++++++++++++++++
+> >  arch/arm/plat-omap/include/mach/board-ldp.h |    5 ++-
+> >  drivers/net/smc911x.c                       |    6 ++-
+> >  drivers/net/smc911x.h                       |    2 +
+> >  4 files changed, 63 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+> > index c2bb726..e89f271 100644
+> > --- a/arch/arm/mach-omap2/board-ldp.c
+> > +++ b/arch/arm/mach-omap2/board-ldp.c
+> > @@ -44,6 +44,7 @@
+> >  #include "mmc-twl4030.h"
+> >  
+> >  
+> > +#define SDP3430_SMC91X_CS	3
+> >  #define CONFIG_DISABLE_HFCLK 1
+> >  
+> >  #define ENABLE_VAUX1_DEDICATED	0x03
+> > @@ -51,6 +52,26 @@
+> >  
+> >  #define TWL4030_MSECURE_GPIO	22
+> >  
+> > +static struct resource ldp_smc911x_resources[] = {
+> > +	[0] = {
+> > +		.start	= OMAP34XX_ETHR_START,
+> > +		.end	= OMAP34XX_ETHR_START + SZ_4K,
+> > +		.flags	= IORESOURCE_MEM,
+> > +	},
+> > +	[1] = {
+> > +		.start	= 0,
+> > +		.end	= 0,
+> > +		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
+> > +	},
+> > +};
+> > +
+> > +static struct platform_device ldp_smc911x_device = {
+> > +	.name		= "smc911x",
+> > +	.id		= -1,
+> > +	.num_resources	= ARRAY_SIZE(ldp_smc911x_resources),
+> > +	.resource	= ldp_smc911x_resources,
+> > +};
+> > +
+> >  static int ts_gpio;
+> >  
+> >  static int __init msecure_init(void)
+> > @@ -177,14 +198,46 @@ static struct platform_device ldp_lcd_device = {
+> >  };
+> >  
+> >  static struct platform_device *ldp_devices[] __initdata = {
+> > +	&ldp_smc911x_device,
+> >  	&ldp_lcd_device,
+> >  };
+> >  
+> > +static inline void __init ldp_init_smc911x(void)
+> > +{
+> > +	int eth_cs;
+> > +	unsigned long cs_mem_base;
+> > +	int eth_gpio = 0;
+> > +
+> > +	eth_cs = LDP_SMC911X_CS;
+> > +
+> > +	if (gpmc_cs_request(eth_cs, SZ_16M, &cs_mem_base) < 0) {
+> > +		printk(KERN_ERR "Failed to request GPMC mem for smc911x\n");
+> > +		return;
+> > +	}
+> > +
+> > +	ldp_smc911x_resources[0].start = cs_mem_base + 0x0;
+> > +	ldp_smc911x_resources[0].end   = cs_mem_base + 0xf;
+> > +	udelay(100);
+> > +
+> > +	eth_gpio = LDP_SMC911X_GPIO;
+> > +
+> > +	ldp_smc911x_resources[1].start = OMAP_GPIO_IRQ(eth_gpio);
+> > +
+> > +	if (omap_request_gpio(eth_gpio) < 0) {
+> > +		printk(KERN_ERR "Failed to request GPIO%d for smc911x IRQ\n",
+> > +				eth_gpio);
+> > +		return;
+> > +	}
+> > +	omap_set_gpio_direction(eth_gpio, 1);
+> > +}
+> > +
+> > +
+> >  static void __init omap_ldp_init_irq(void)
+> >  {
+> >  	omap2_init_common_hw(NULL);
+> >  	omap_init_irq();
+> >  	omap_gpio_init();
+> > +	ldp_init_smc911x();
+> >  }
+> >  
+> >  static struct omap_uart_config ldp_uart_config __initdata = {
+> > diff --git a/arch/arm/plat-omap/include/mach/board-ldp.h b/arch/arm/plat-omap/include/mach/board-ldp.h
+> > index 66e2746..f233996 100644
+> > --- a/arch/arm/plat-omap/include/mach/board-ldp.h
+> > +++ b/arch/arm/plat-omap/include/mach/board-ldp.h
+> > @@ -32,5 +32,8 @@
+> >  extern void twl4030_bci_battery_init(void);
+> >  
+> >  #define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
+> > -
+> > +#define LDP_SMC911X_CS         1
+> > +#define LDP_SMC911X_GPIO       152
+> > +#define DEBUG_BASE             0x08000000
+> > +#define OMAP34XX_ETHR_START    DEBUG_BASE
+> >  #endif /* __ASM_ARCH_OMAP_LDP_H */
+> > diff --git a/drivers/net/smc911x.c b/drivers/net/smc911x.c
+> > index f59c777..05e7512 100644
+> > --- a/drivers/net/smc911x.c
+> > +++ b/drivers/net/smc911x.c
+> > @@ -2063,7 +2063,7 @@ static int smc911x_drv_probe(struct platform_device *pdev)
+> >  		ret = -ENODEV;
+> >  		goto out;
+> >  	}
+> > -
+> > +#ifndef SMC_MEM_RESERVED
+> >  	/*
+> >  	 * Request the regions.
+> >  	 */
+> > @@ -2071,7 +2071,7 @@ static int smc911x_drv_probe(struct platform_device *pdev)
+> >  		 ret = -EBUSY;
+> >  		 goto out;
+> >  	}
+> > -
+> > +#endif
+> >  	ndev = alloc_etherdev(sizeof(struct smc911x_local));
+> >  	if (!ndev) {
+> >  		printk("%s: could not allocate device.\n", CARDNAME);
+> > @@ -2108,7 +2108,9 @@ static int smc911x_drv_probe(struct platform_device *pdev)
+> >  release_both:
+> >  		free_netdev(ndev);
+> >  release_1:
+> > +#ifndef SMC_MEM_RESERVED
+> >  		release_mem_region(res->start, SMC911X_IO_EXTENT);
+> > +#endif
+> >  out:
+> >  		printk("%s: not found (%d).\n", CARDNAME, ret);
+> >  	}
+> > diff --git a/drivers/net/smc911x.h b/drivers/net/smc911x.h
+> > index d1b3b9b..f688b55 100644
+> > --- a/drivers/net/smc911x.h
+> > +++ b/drivers/net/smc911x.h
+> > @@ -682,6 +682,7 @@ smc_pxa_dma_outsl(struct smc911x_local *lp, u_long physaddr,
+> >  #define CHIP_9116	0x0116
+> >  #define CHIP_9117	0x0117
+> >  #define CHIP_9118	0x0118
+> > +#define CHIP_9211	0x9211
+> >  #define CHIP_9215	0x115A
+> >  #define CHIP_9217	0x117A
+> >  #define CHIP_9218	0x118A
+> > @@ -696,6 +697,7 @@ static const struct chip_id chip_ids[] =  {
+> >  	{ CHIP_9116, "LAN9116" },
+> >  	{ CHIP_9117, "LAN9117" },
+> >  	{ CHIP_9118, "LAN9118" },
+> > +	{ CHIP_9211, "LAN9211" },
+> >  	{ CHIP_9215, "LAN9215" },
+> >  	{ CHIP_9217, "LAN9217" },
+> >  	{ CHIP_9218, "LAN9218" },
+> > -- 
+> > 1.5.6.3
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
-
--- 
-Lei Ming
