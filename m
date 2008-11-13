@@ -1,88 +1,98 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 2.6.28-rc3-git] twl4030-core: allow reading entire
-	register banks
-Date: Thu, 13 Nov 2008 13:54:03 -0800
-Message-ID: <20081113215403.GJ3106@atomide.com>
-References: <200811071400.04181.david-b@pacbell.net> <20081108003209.GB5993@sortiz.org>
+Subject: Re: [patch 2.6.28-rc3-git] omap gpio: minor bugfixes
+Date: Thu, 13 Nov 2008 14:19:01 -0800
+Message-ID: <20081113221900.GK3106@atomide.com>
+References: <200811071440.18526.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55051 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60823 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754907AbYKMVyH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2008 16:54:07 -0500
+	with ESMTP id S1752385AbYKMWTE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2008 17:19:04 -0500
 Content-Disposition: inline
-In-Reply-To: <20081108003209.GB5993@sortiz.org>
+In-Reply-To: <200811071440.18526.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@openedhand.com>
-Cc: David Brownell <david-b@pacbell.net>, lkml <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-omap@vger.kernel.org
 
-* Samuel Ortiz <sameo@openedhand.com> [081107 16:30]:
-> On Fri, Nov 07, 2008 at 02:00:03PM -0800, David Brownell wrote:
-> > From: David Brownell <dbrownell@users.sourceforge.net>
-> > 
-> > Minor change to the TWL4030 utility interface:  support reads
-> > of all 256 bytes in each register bank (vs just 255).  This
-> > can help when debugging, but is otherwise a NOP.
-> Applied to my for-next branch.
-> Thanks David.
+* David Brownell <david-b@pacbell.net> [081107 14:40]:
+> From: David Brownell <dbrownell@users.sourceforge.net>
+> 
+> Minor GPIO fixes:
+> 
+>  - If get_gpio_bank() fails, then BUG() out.
+> 
+>  - In omap_set_gpio_debounce():
+>     * protect the read/modify/write with the relevant spinlock
+>     * make the omap3 clock ops pass "sparse" checking
+> 
+> Except for the spinlock problem, these were reported through "make".
 
-Pushing also to linux-omap while waiting for this patch to fall down
-from the mainline kernel.
+Pushing today and adding to omap-upstream queue.
 
 Tony
 
-
-> Cheers,
-> Samuel.
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> ---
+>  arch/arm/plat-omap/gpio.c |   20 +++++++++++++++-----
+>  1 file changed, 15 insertions(+), 5 deletions(-)
 > 
+> --- a/arch/arm/plat-omap/gpio.c
+> +++ b/arch/arm/plat-omap/gpio.c
+> @@ -244,6 +244,8 @@ static inline struct gpio_bank *get_gpio
+>  		return &gpio_bank[gpio >> 5];
+>  	if (cpu_is_omap34xx())
+>  		return &gpio_bank[gpio >> 5];
+> +	BUG();
+> +	return NULL;
+>  }
 >  
-> > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> > ---
-> >  drivers/mfd/twl4030-core.c  |    4 ++--
-> >  include/linux/i2c/twl4030.h |    4 ++--
-> >  2 files changed, 4 insertions(+), 4 deletions(-)
-> > 
-> > --- a/drivers/mfd/twl4030-core.c
-> > +++ b/drivers/mfd/twl4030-core.c
-> > @@ -233,7 +233,7 @@ extern void twl4030_power_init(struct tw
-> >   *
-> >   * Returns the result of operation - 0 is success
-> >   */
-> > -int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, u8 num_bytes)
-> > +int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
-> >  {
-> >  	int ret;
-> >  	int sid;
-> > @@ -282,7 +282,7 @@ EXPORT_SYMBOL(twl4030_i2c_write);
-> >   *
-> >   * Returns result of operation - num_bytes is success else failure.
-> >   */
-> > -int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, u8 num_bytes)
-> > +int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
-> >  {
-> >  	int ret;
-> >  	u8 val;
-> > --- a/include/linux/i2c/twl4030.h
-> > +++ b/include/linux/i2c/twl4030.h
-> > @@ -78,8 +78,8 @@ int twl4030_i2c_read_u8(u8 mod_no, u8 *v
-> >   * IMPORTANT:  For twl4030_i2c_write(), allocate num_bytes + 1
-> >   * for the value, and populate your data starting at offset 1.
-> >   */
-> > -int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, u8 num_bytes);
-> > -int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, u8 num_bytes);
-> > +int twl4030_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
-> > +int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
-> >  
-> >  /*----------------------------------------------------------------------*/
-> >  
-> 
-> -- 
-> Intel Open Source Technology Centre
-> http://oss.intel.com/
+>  static inline int get_gpio_index(int gpio)
+> @@ -447,6 +449,7 @@ void omap_set_gpio_debounce(int gpio, in
+>  {
+>  	struct gpio_bank *bank;
+>  	void __iomem *reg;
+> +	unsigned long flags;
+>  	u32 val, l = 1 << get_gpio_index(gpio);
+>  
+>  	if (cpu_class_is_omap1())
+> @@ -454,21 +457,28 @@ void omap_set_gpio_debounce(int gpio, in
+>  
+>  	bank = get_gpio_bank(gpio);
+>  	reg = bank->base;
+> -
+>  	reg += OMAP24XX_GPIO_DEBOUNCE_EN;
+> +
+> +	spin_lock_irqsave(&bank->lock, flags);
+>  	val = __raw_readl(reg);
+>  
+>  	if (enable && !(val & l))
+>  		val |= l;
+> -	else if (!enable && val & l)
+> +	else if (!enable && (val & l))
+>  		val &= ~l;
+>  	else
+> -		return;
+> +		goto done;
+>  
+> -	if (cpu_is_omap34xx())
+> -		enable ? clk_enable(bank->dbck) : clk_disable(bank->dbck);
+> +	if (cpu_is_omap34xx()) {
+> +		if (enable)
+> +			clk_enable(bank->dbck);
+> +		else
+> +			clk_disable(bank->dbck);
+> +	}
+>  
+>  	__raw_writel(val, reg);
+> +done:
+> +	spin_unlock_irqrestore(&bank->lock, flags);
+>  }
+>  EXPORT_SYMBOL(omap_set_gpio_debounce);
+>  
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
