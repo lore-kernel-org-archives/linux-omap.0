@@ -1,97 +1,111 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 2.6.28-rc3-git] omap gpio: minor bugfixes
-Date: Thu, 13 Nov 2008 14:19:01 -0800
-Message-ID: <20081113221900.GK3106@atomide.com>
-References: <200811071440.18526.david-b@pacbell.net>
+Subject: Re: [patch 2.6.28-rc3-omap git] osk5912:  Mistral eeprom support
+Date: Thu, 13 Nov 2008 14:25:16 -0800
+Message-ID: <20081113222514.GL3106@atomide.com>
+References: <200811071914.59884.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60823 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49916 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752385AbYKMWTE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2008 17:19:04 -0500
+	with ESMTP id S1755088AbYKMWZS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2008 17:25:18 -0500
 Content-Disposition: inline
-In-Reply-To: <200811071440.18526.david-b@pacbell.net>
+In-Reply-To: <200811071914.59884.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
 Cc: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [081107 14:40]:
+* David Brownell <david-b@pacbell.net> [081107 19:15]:
 > From: David Brownell <dbrownell@users.sourceforge.net>
 > 
-> Minor GPIO fixes:
+> List the 4 Kbit I2C EEPROM included on the Mistral board.
 > 
->  - If get_gpio_bank() fails, then BUG() out.
+> Also add a comment about the hardware workaround needed to
+> properly support the WAKE button.  More info at
 > 
->  - In omap_set_gpio_debounce():
->     * protect the read/modify/write with the relevant spinlock
->     * make the omap3 clock ops pass "sparse" checking
+>   http://elinux.org/OSK_Mistral_wakeup_button_mod
 > 
-> Except for the spinlock problem, these were reported through "make".
+> Still no support for the (optional) camera sensor.
 
-Pushing today and adding to omap-upstream queue.
+Pushing today and adding to omap1-upstream queue.
 
 Tony
 
+
 > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 > ---
->  arch/arm/plat-omap/gpio.c |   20 +++++++++++++++-----
->  1 file changed, 15 insertions(+), 5 deletions(-)
+>  arch/arm/mach-omap1/board-osk.c |   32 +++++++++++++++++++++++++++-----
+>  1 file changed, 27 insertions(+), 5 deletions(-)
 > 
-> --- a/arch/arm/plat-omap/gpio.c
-> +++ b/arch/arm/plat-omap/gpio.c
-> @@ -244,6 +244,8 @@ static inline struct gpio_bank *get_gpio
->  		return &gpio_bank[gpio >> 5];
->  	if (cpu_is_omap34xx())
->  		return &gpio_bank[gpio >> 5];
-> +	BUG();
-> +	return NULL;
->  }
+> --- a/arch/arm/mach-omap1/board-osk.c
+> +++ b/arch/arm/mach-omap1/board-osk.c
+> @@ -262,10 +262,6 @@ static struct i2c_board_info __initdata 
+>  	{
+>  		I2C_BOARD_INFO("tlv320aic23", 0x1B),
+>  	},
+> -	/* TODO when driver support is ready:
+> -	 *  - on Mistral, 24c04 eeprom at 0x50
+> -	 *  - optionally on Mistral, ov9640 camera sensor at 0x30
+> -	 */
+>  };
 >  
->  static inline int get_gpio_index(int gpio)
-> @@ -447,6 +449,7 @@ void omap_set_gpio_debounce(int gpio, in
->  {
->  	struct gpio_bank *bank;
->  	void __iomem *reg;
-> +	unsigned long flags;
->  	u32 val, l = 1 << get_gpio_index(gpio);
+>  static void __init osk_init_smc91x(void)
+> @@ -340,11 +336,28 @@ static struct omap_board_config_kernel o
+>  #ifdef	CONFIG_OMAP_OSK_MISTRAL
 >  
->  	if (cpu_class_is_omap1())
-> @@ -454,21 +457,28 @@ void omap_set_gpio_debounce(int gpio, in
+>  #include <linux/input.h>
+> +#include <linux/i2c/at24.h>
+>  #include <linux/spi/spi.h>
+>  #include <linux/spi/ads7846.h>
 >  
->  	bank = get_gpio_bank(gpio);
->  	reg = bank->base;
-> -
->  	reg += OMAP24XX_GPIO_DEBOUNCE_EN;
+>  #include <mach/keypad.h>
+>  
+> +static struct at24_platform_data at24c04 = {
+> +	.byte_len	= SZ_4K / 8,
+> +	.page_size	= 16,
+> +};
 > +
-> +	spin_lock_irqsave(&bank->lock, flags);
->  	val = __raw_readl(reg);
+> +static struct i2c_board_info __initdata mistral_i2c_board_info[] = {
+> +	{
+> +		/* NOTE:  powered from LCD supply */
+> +		I2C_BOARD_INFO("24c04", 0x50),
+> +		.platform_data	= &at24c04,
+> +	},
+> +	/* TODO when driver support is ready:
+> +	 *  - optionally ov9640 camera sensor at 0x30
+> +	 */
+> +};
+> +
+>  static const int osk_keymap[] = {
+>  	/* KEY(col, row, code) */
+>  	KEY(0, 0, KEY_F1),		/* SW4 */
+> @@ -491,7 +504,13 @@ static void __init osk_mistral_init(void
+>  	spi_register_board_info(mistral_boardinfo,
+>  			ARRAY_SIZE(mistral_boardinfo));
 >  
->  	if (enable && !(val & l))
->  		val |= l;
-> -	else if (!enable && val & l)
-> +	else if (!enable && (val & l))
->  		val &= ~l;
->  	else
-> -		return;
-> +		goto done;
+> -	/* the sideways button (SW1) is for use as a "wakeup" button */
+> +	/* the sideways button (SW1) is for use as a "wakeup" button
+> +	 *
+> +	 * NOTE:  The Mistral board has the wakeup button (SW1) wired
+> +	 * to the LCD 3.3V rail, which is powered down during suspend.
+> +	 * To allow this button to wake up the omap, work around this
+> +	 * HW bug by rewiring SW1 to use the main 3.3V rail.
+> +	 */
+>  	omap_cfg_reg(N15_1610_MPUIO2);
+>  	if (gpio_request(OMAP_MPUIO(2), "wakeup") == 0) {
+>  		int ret = 0;
+> @@ -523,6 +542,9 @@ static void __init osk_mistral_init(void
+>  	if (gpio_request(2, "lcd_pwr") == 0)
+>  		gpio_direction_output(2, 1);
 >  
-> -	if (cpu_is_omap34xx())
-> -		enable ? clk_enable(bank->dbck) : clk_disable(bank->dbck);
-> +	if (cpu_is_omap34xx()) {
-> +		if (enable)
-> +			clk_enable(bank->dbck);
-> +		else
-> +			clk_disable(bank->dbck);
-> +	}
->  
->  	__raw_writel(val, reg);
-> +done:
-> +	spin_unlock_irqrestore(&bank->lock, flags);
+> +	i2c_register_board_info(1, mistral_i2c_board_info,
+> +			ARRAY_SIZE(mistral_i2c_board_info));
+> +
+>  	platform_add_devices(mistral_devices, ARRAY_SIZE(mistral_devices));
 >  }
->  EXPORT_SYMBOL(omap_set_gpio_debounce);
->  
+>  #else
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
