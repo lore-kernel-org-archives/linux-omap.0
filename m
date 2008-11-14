@@ -1,61 +1,65 @@
-From: Paul Walmsley <paul@booyaka.com>
-Subject: Re: [PATCH] OMAP3: PM: Check in set_pwrdm_state that target state
- is supported by pwrdm
-Date: Fri, 14 Nov 2008 10:37:21 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0811141033340.27331@utopia.booyaka.com>
-References: <491A0082.4040807@deeprootsystems.com> <1226651923-5682-1-git-send-email-jouni.hogander@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] OMAP3 clock: disable DPLL autoidle while waiting for DPLL
+ to lock
+Date: Fri, 14 Nov 2008 10:46:14 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0811141043400.27331@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56544 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:59231 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751159AbYKNRhX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Nov 2008 12:37:23 -0500
-In-Reply-To: <1226651923-5682-1-git-send-email-jouni.hogander@nokia.com>
+	with ESMTP id S1751560AbYKNRqP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Nov 2008 12:46:15 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jouni Hogander <jouni.hogander@nokia.com>
-Cc: linux-omap@vger.kernel.org
-
-Hi Jouni,
-
-one quick review comment:
-
-On Fri, 14 Nov 2008, Jouni Hogander wrote:
-
-> Check that wanted sleep state is supported by powerdomain. If it is
-> not supported, then use next lowest supported state.
-> 
-> Check also on suspend that state of pwrdm was lower or equal.
-
-...
-
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index da098d2..babead5 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -239,8 +239,13 @@ static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
->  	if (pwrdm == NULL || IS_ERR(pwrdm))
->  		return -EINVAL;
->  
-> -	cur_state = pwrdm_read_next_pwrst(pwrdm);
-> +	while (!(pwrdm->pwrsts & (1 << state))) {
-> +		if (state < PWRDM_POWER_OFF)
-> +			return ret;
-
-This if-statement will never execute, since 'state' is unsigned, and 
-PWRDM_POWER_OFF is 0.  Maybe the easiest way to fix it would be to make 
-'state' a signed int?
-
-Other than that, looks good to me.
+To: linux-omap@vger.kernel.org
+Cc: Peter de Schrijver <peter.de-schrijver@nokia.com>, khilman@deeprootsystems.com
 
 
-> +		state--;
-> +	}
->  
-> +	cur_state = pwrdm_read_next_pwrst(pwrdm);
->  	if (cur_state == state)
->  		return ret;
+During _omap3_noncore_dpll_lock(), if a DPLL has no active downstream
+clocks and DPLL autoidle is enabled, the DPLL may never lock, since it
+will enter autoidle immediately.  To resolve this, disable DPLL
+autoidle while locking the DPLL, and unconditionally wait for the DPLL
+to lock.  This fixes some bugs where the kernel would hang when returning
+from retention or return the wrong rate for the DPLL.
 
+This patch is a collaboration with Peter de Schrijver 
+<peter.de-schrijver@nokia.com> and Kevin Hilman 
+<khilman@deeprootsystems.com>.
 
-- Paul
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Peter de Schrijver <peter.de-schrijver@nokia.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/clock34xx.c |   15 +++++----------
+ 1 files changed, 5 insertions(+), 10 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index 3a4e160..b8b4494 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -163,19 +163,14 @@ static int _omap3_noncore_dpll_lock(struct clk *clk)
+ 
+ 	ai = omap3_dpll_autoidle_read(clk);
+ 
++	omap3_dpll_deny_idle(clk);
++
+ 	_omap3_dpll_write_clken(clk, DPLL_LOCKED);
+ 
+-	if (ai) {
+-		/*
+-		 * If no downstream clocks are enabled, CM_IDLEST bit
+-		 * may never become active, so don't wait for DPLL to lock.
+-		 */
+-		r = 0;
++	r = _omap3_wait_dpll_status(clk, 1);
++
++	if (ai)
+ 		omap3_dpll_allow_idle(clk);
+-	} else {
+-		r = _omap3_wait_dpll_status(clk, 1);
+-		omap3_dpll_deny_idle(clk);
+-	};
+ 
+ 	return r;
+ }
