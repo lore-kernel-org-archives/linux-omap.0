@@ -1,59 +1,77 @@
-From: Jouni Hogander <jouni.hogander@nokia.com>
-Subject: [PATCH] OMAP3: PM: Check in set_pwrdm_state that target state is supported by pwrdm
-Date: Fri, 14 Nov 2008 10:38:43 +0200
-Message-ID: <1226651923-5682-1-git-send-email-jouni.hogander@nokia.com>
-References: <491A0082.4040807@deeprootsystems.com>
+From: ext-eero.nurkkala@nokia.com
+Subject: [PATCH] i2c: i2c-omap: Fix standard and fast mode prescalers
+Date: Fri, 14 Nov 2008 10:41:57 +0200
+Message-ID: <12266521173159-git-send-email-ext-eero.nurkkala@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:33019 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750813AbYKNIjS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Nov 2008 03:39:18 -0500
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mAE8dCTj003419
-	for <linux-omap@vger.kernel.org>; Fri, 14 Nov 2008 10:39:16 +0200
-In-Reply-To: <491A0082.4040807@deeprootsystems.com>
+Received: from smtp.nokia.com ([192.100.122.233]:49419 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750777AbYKNIng (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Nov 2008 03:43:36 -0500
+Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mAE8hJw5013276
+	for <linux-omap@vger.kernel.org>; Fri, 14 Nov 2008 10:43:33 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-Check that wanted sleep state is supported by powerdomain. If it is
-not supported, then use next lowest supported state.
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-Check also on suspend that state of pwrdm was lower or equal.
+The prescalers for 100 kHz and 400 kHz mode
+are wrong. The internal clock is the fclock
+divided by the prescaler. The PSC is an 8 bit
+field in omap3430. Moreover, the scll and
+sclh values should be adjusted properly.
+Having the correct prescaler is important in
+the process of getting a finite i2c clock. In
+addition, the prescaler is used in the process
+of activating the correct noise filter and thus,
+lets more error resilient i2c communications.
 
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   21 ++++++++++++++++++---
+ 1 files changed, 18 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index da098d2..babead5 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -239,8 +239,13 @@ static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
- 	if (pwrdm == NULL || IS_ERR(pwrdm))
- 		return -EINVAL;
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index e708ebd..a42003a 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -288,7 +288,17 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
  
--	cur_state = pwrdm_read_next_pwrst(pwrdm);
-+	while (!(pwrdm->pwrsts & (1 << state))) {
-+		if (state < PWRDM_POWER_OFF)
-+			return ret;
-+		state--;
-+	}
+ 		/* HSI2C controller internal clk rate should be 19.2 Mhz */
+-		internal_clk = 19200;
++		if (cpu_is_omap34xx()) {
++			if (dev->speed > 400)
++				internal_clk = 19200;
++			else if (dev->speed > 100)
++				internal_clk = 9600;
++			else
++				internal_clk = 4000;
++		} else {
++			internal_clk = 19200;
++		}
++
+ 		fclk_rate = clk_get_rate(dev->fclk) / 1000;
  
-+	cur_state = pwrdm_read_next_pwrst(pwrdm);
- 	if (cur_state == state)
- 		return ret;
- 
-@@ -314,7 +319,7 @@ restore:
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
- 		set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
- 		state = pwrdm_read_prev_pwrst(pwrst->pwrdm);
--		if (state != pwrst->next_state) {
-+		if (state > pwrst->next_state) {
- 			printk(KERN_INFO "Powerdomain (%s) didn't enter "
- 			       "target state %d\n",
- 			       pwrst->pwrdm->name, pwrst->next_state);
+ 		/* Compute prescaler divisor */
+@@ -306,8 +316,13 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 			hssclh = fclk_rate / (dev->speed * 2) - 6;
+ 		} else {
+ 			/* To handle F/S modes */
+-			fsscll = internal_clk / (dev->speed * 2) - 6;
+-			fssclh = internal_clk / (dev->speed * 2) - 6;
++			if (cpu_is_omap34xx()) {
++				fsscll = internal_clk / (dev->speed * 2) - 7;
++				fssclh = internal_clk / (dev->speed * 2) - 5;
++			} else {
++				fsscll = internal_clk / (dev->speed * 2) - 6;
++				fssclh = internal_clk / (dev->speed * 2) - 6;
++			}
+ 		}
+ 		scll = (hsscll << OMAP_I2C_SCLL_HSSCLL) | fsscll;
+ 		sclh = (hssclh << OMAP_I2C_SCLH_HSSCLH) | fssclh;
 -- 
-1.6.0.1
+1.6.0
 
