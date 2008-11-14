@@ -1,50 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 2.6.28-rc3-omap git] osk5912: LED trigger update for CF
-Date: Thu, 13 Nov 2008 15:55:54 -0800
-Message-ID: <20081113235549.GA3106@atomide.com>
-References: <200811071524.12243.david-b@pacbell.net>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [patch/rft 2.6.28-rc3-omap] twl4030-core simplification
+Date: Thu, 13 Nov 2008 16:15:09 -0800
+Message-ID: <200811131615.09767.david-b@pacbell.net>
+References: <200811071645.15687.david-b@pacbell.net> <20081113222626.GM3106@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52976 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751143AbYKMXz4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2008 18:55:56 -0500
+Received: from smtp128.sbc.mail.sp1.yahoo.com ([69.147.65.187]:29094 "HELO
+	smtp128.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751198AbYKNAPN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Nov 2008 19:15:13 -0500
+In-Reply-To: <20081113222626.GM3106@atomide.com>
 Content-Disposition: inline
-In-Reply-To: <200811071524.12243.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Samuel Ortiz <sameo@openedhand.com>
 
-* David Brownell <david-b@pacbell.net> [081107 16:05]:
-> From: David Brownell <dbrownell@users.sourceforge.net>
+On Thursday 13 November 2008, Tony Lindgren wrote:
+> * David Brownell <david-b@pacbell.net> [081107 16:45]:
+> > From: David Brownell <dbrownell@users.sourceforge.net>
+> > 
+> > Minor cleanup to twl4030-core: define a helper function to populate
+> > a single child node, and use it to replace six inconsistent versions
+> > of the same logic.  Both object and source code shrink.
+> > 
+> > As part of this, some devices now have more IRQ resources:  battery
+> > charger, keypad, ADC, and USB transceiver.  That will help to remove
+> > some irq #defines that prevent this code from compiling on non-OMAP
+> > platforms.
 > 
-> Help OSK work better with root-on-CF, by having one of the LEDs
-> use the "ide-disk" trigger (to kick in during CF I/O).
+> Pushing to linux-omap tree while waiting for this to fall down from
+> mainline tree via Samuel's queue.
 
-Pushing today and adding to omap1-upstream queue.
+Hmm, better to revert this and send the updated version I sent
+as part of the regulator series... that returns the platform
+device, which is useful in setting up consumers of the regulator
+devices.
 
-Tony
+I hadn't gotten any test results other than knowing Felipe was
+using this.  So I'll hold off a bit on sending the updated
+patch to Samuel, probably till end-of-week, on the grounds that
+the keypad, battery, and ADC devices didn't get tested yet.
 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
->  arch/arm/mach-omap1/board-osk.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> --- a/arch/arm/mach-omap1/board-osk.c
-> +++ b/arch/arm/mach-omap1/board-osk.c
-> @@ -188,7 +188,8 @@ static struct gpio_led tps_leds[] = {
->  	/* NOTE:  D9 and D2 have hardware blink support.
->  	 * Also, D9 requires non-battery power.
->  	 */
-> -	{ .gpio = OSK_TPS_GPIO_LED_D9, .name = "d9", },
-> +	{ .gpio = OSK_TPS_GPIO_LED_D9, .name = "d9",
-> +			.default_trigger = "ide-disk", },
->  	{ .gpio = OSK_TPS_GPIO_LED_D2, .name = "d2", },
->  	{ .gpio = OSK_TPS_GPIO_LED_D3, .name = "d3", .active_low = 1,
->  			.default_trigger = "heartbeat", },
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Dave
