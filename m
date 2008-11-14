@@ -1,59 +1,43 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] ARM: OMAP: Extend gpio label column width in omap_gpio debugfs file
-Date: Thu, 13 Nov 2008 17:26:59 -0800
-Message-ID: <200811131726.59905.david-b@pacbell.net>
-References: <1226476959-17093-1-git-send-email-jarkko.nikula@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [patch/rft 2.6.28-rc3-omap] twl4030-core simplification
+Date: Thu, 13 Nov 2008 17:30:23 -0800
+Message-ID: <20081114013017.GF3106@atomide.com>
+References: <200811071645.15687.david-b@pacbell.net> <20081114004243.GB3106@atomide.com> <20081114010013.GD3106@atomide.com> <200811131705.47110.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp122.sbc.mail.sp1.yahoo.com ([69.147.64.95]:26191 "HELO
-	smtp122.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757271AbYKNB1D (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Nov 2008 20:27:03 -0500
-In-Reply-To: <1226476959-17093-1-git-send-email-jarkko.nikula@nokia.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53246 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757341AbYKNBa2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2008 20:30:28 -0500
 Content-Disposition: inline
+In-Reply-To: <200811131705.47110.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Felipe Balbi <me@felipebalbi.com>, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@openedhand.com>
 
-On Wednesday 12 November 2008, Jarkko Nikula wrote:
-> There are already various drivers having bigger label than 10 bytes. Most
-> of them fit well under 20 bytes but make column width exact so that
-> oversized labels don't mess up output alignment.
+* David Brownell <david-b@pacbell.net> [081113 17:05]:
+> On Thursday 13 November 2008, Tony Lindgren wrote:
+> > If CONFIG_REGULATOR is not set, I get:
+> > 
+> > drivers/mfd/twl4030-core.c: In function 'add_children':
+> > drivers/mfd/twl4030-core.c:592: error: 'REGULATOR_MODE_OFF' undeclared (first use in this function)
+> > 
+> > Where do you want to have that for now? Add it also into
+> > twl4030-core.c like in twl4030-regulator.c?
 > 
-> Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+> #ifndef REGULATOR_MODE_OFF
+> #define REGULATOR_MODE_OFF 0
+> #endif
+> 
+> for now... but the fact that you're getting that at all seems to
+> mean you're applying the third regulator patch (register regulators)
+> without the fourth (debug oriented) which has that #ifndef.
+> 
+> Don't merge regulator patches #3 or #4 yet ... #2 should be OK,
+> but it's a NOP without #3 (which has the is ifdef issue).
 
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+OK, thanks. Pushed the first two only.
 
-> ---
->  arch/arm/plat-omap/gpio.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> index 8bb4542..821100d 100644
-> --- a/arch/arm/plat-omap/gpio.c
-> +++ b/arch/arm/plat-omap/gpio.c
-> @@ -1820,7 +1820,7 @@ static int dbg_gpio_show(struct seq_file *s, void *unused)
->  				seq_printf(s, "MPUIO %2d ", j);
->  			else
->  				seq_printf(s, "GPIO %3d ", gpio);
-> -			seq_printf(s, "(%10s): %s %s",
-> +			seq_printf(s, "(%-20.20s): %s %s",
->  					label,
->  					is_in ? "in " : "out",
->  					value ? "hi"  : "lo");
-> -- 
-> 1.5.6.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-
-
+Tony
