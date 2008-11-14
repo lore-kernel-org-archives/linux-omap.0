@@ -1,56 +1,32 @@
-From: "Dasgupta, Romit" <romit@ti.com>
-Subject: RE: Serial port crashes omap3 on boot with 2.6.28rc4
-Date: Fri, 14 Nov 2008 16:29:23 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301B36B5DC4@dbde02.ent.ti.com>
-References: <D4C9733E-73D0-403F-893D-910C59EDD20A@student.utwente.nl>
- <D8E4F982-85F9-4DAB-8BC4-69135109EBC9@student.utwente.nl>
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: Re: [PATCH v2 0/6] OMAP: Make OMAP LDP boot succussfuly
+Date: Fri, 14 Nov 2008 14:28:38 +0300
+Message-ID: <20081114112838.GA20212@2ka.mipt.ru>
+References: <1226404258-13027-1-git-send-email-stanley.miao@windriver.com> <20081111145715.GA11056@2ka.mipt.ru> <20081113224053.GO3106@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47938 "EHLO bear.ext.ti.com"
+Received: from relay.2ka.mipt.ru ([194.85.80.65]:49281 "EHLO 2ka.mipt.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751432AbYKNK7d convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Nov 2008 05:59:33 -0500
-In-Reply-To: <D8E4F982-85F9-4DAB-8BC4-69135109EBC9@student.utwente.nl>
-Content-Language: en-US
+	id S1750977AbYKNL3P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Nov 2008 06:29:15 -0500
+Content-Disposition: inline
+In-Reply-To: <20081113224053.GO3106@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Stanley.Miao" <stanley.miao@windriver.com>, linux-omap@vger.kernel.org
 
-Can you try without CONFIG_DEBUG_LL? 
+Hi Tony.
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->owner@vger.kernel.org] On Behalf Of Koen Kooi
->Sent: Friday, November 14, 2008 4:27 PM
->To: linux-omap@vger.kernel.org List
->Subject: Re: Serial port crashes omap3 on boot with 2.6.28rc4
->
->
->Op 14 nov 2008, om 11:17 heeft Koen Kooi het volgende geschreven:
->
->> Hi,
->>
->> I updated to the current head
->> (5ecf98b76fa95078277c9037bb01640fd3de5e2c) and get this on boot
->> (with debug_ll) on omap3evm:
->>
->> <7>omap-dss DISPLAY: panel 'panel-dvi' registered
->> <6>Serial: 8250/16550 driver4 ports, IRQ sharing enabled
->> <6>serial8250.0: ttyS0 at MMIO 0x4806a000 (irq = 72) is a ST16654
->> <....,...:4...4../0400..1=......F1.5S.<....,...:4.3^F!^C../
->> 0.0^F00..1=7K....F1.5S.<.....%;..&=%.".$.<."F:..5. .!*$.<...0^G..
->> 5. .!*$.<...%^B-J/.0.."..%C0^G...5(V6..!^C0.^D000)^V.6...%C0^G%C%.
->> %^C!"2^G.."...$...&R...%C0^G...8).%
->> ..'%:%.#. ...,.<.!.74^C3..:..#.#V%...1.V..<.).5...v8. {...$.r.
->> 3...6......
->>
->> Any ideas?
->
->I get this on rc3 now as well, it seems that the evm dss2 patch has
->some side effects, console is restored when userspace launches getty
->
->regards,
->
->Koen
+On Thu, Nov 13, 2008 at 02:40:54PM -0800, Tony Lindgren (tony@atomide.com) wrote:
+> Evgeniy, can you please confirm you're adding the Stanley's 1w patch to your
+> upstream queue? Or else let Stanley know if he needs to repost it to
+> LKML.
+
+If w1 part does not depend on any upstream changes not yet in the tree,
+I will forward it for inclusing, but if it requires some external update
+to be pushed first, I would like to add w1 part into that merge.
+
+-- 
+	Evgeniy Polyakov
