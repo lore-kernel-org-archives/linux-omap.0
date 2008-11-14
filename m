@@ -1,53 +1,63 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [REVIEW PATCH] Added OMAP3EVM support on Tomis FBDEV/DSS Patches
-Date: Fri, 14 Nov 2008 15:28:57 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403E5F2B60D@dbde02.ent.ti.com>
-References: <1A6706AF-F068-4DDC-86B1-312CB3817447@student.utwente.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Serial port crashes omap3 on boot with 2.6.28rc4
+Date: Fri, 14 Nov 2008 11:17:25 +0100
+Message-ID: <D4C9733E-73D0-403F-893D-910C59EDD20A@student.utwente.nl>
+Mime-Version: 1.0 (Apple Message framework v929.2)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-11--757457288"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45591 "EHLO bear.ext.ti.com"
+Received: from mx3.utsp.utwente.nl ([130.89.2.14]:54501 "EHLO mx.utwente.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750918AbYKNJ7I convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Nov 2008 04:59:08 -0500
-In-Reply-To: <1A6706AF-F068-4DDC-86B1-312CB3817447@student.utwente.nl>
-Content-Language: en-US
+	id S1751416AbYKNKRg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Nov 2008 05:17:36 -0500
+Received: from [172.20.0.255] (vpn006013.vpn.utwente.nl [130.89.6.13])
+          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id mAEAHVKK024037
+          for <linux-omap@vger.kernel.org>; Fri, 14 Nov 2008 11:17:31 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-11--757457288
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
+
+Hi,
+
+I updated to the current head  
+(5ecf98b76fa95078277c9037bb01640fd3de5e2c) and get this on boot (with  
+debug_ll) on omap3evm:
+
+<7>omap-dss DISPLAY: panel 'panel-dvi' registered
+<6>Serial: 8250/16550 driver4 ports, IRQ sharing enabled
+<6>serial8250.0: ttyS0 at MMIO 0x4806a000 (irq = 72) is a ST16654
+<....,...:4...4../0400..1=......F1.5S.<....,...:4.3^F!^C../ 
+0.0^F00..1=7K....F1.5S.<.....%;..&=%.".$.<."F:..5. .!*$.<...0^G..5. .!* 
+$.<...%^B-J/.0.."..%C0^G...5(V6..!^C0.^D000)^V.6...%C0^G%C%. 
+%^C!"2^G.."...$...&R...%C0^G...8).%
+..'%:%.#. ...,.<.!.74^C3..:..#.#V%...1.V..<.).5...v8. {...$.r. 
+3...6......
+
+Any ideas?
+
+regards,
+
+Koen
 
 
+--Apple-Mail-11--757457288
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: This is a digitally signed message part
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
 
-Thanks,
-Vaibhav Hiremath
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
 
-> -----Original Message-----
-> From: Koen Kooi [mailto:k.kooi@student.utwente.nl]
-> Sent: Friday, November 14, 2008 3:26 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [REVIEW PATCH] Added OMAP3EVM support on Tomis
-> FBDEV/DSS Patches
-> 
-> 
-> Op 14 nov 2008, om 07:32 heeft hvaibhav@ti.com het volgende
-> geschreven:
-> 
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> > diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
-> > omap2/board-omap3evm.c
-> >
-> > +	omap_set_gpio_dataout(LCD_PANEL_ENABLE_GPIO, 1);
-> 
-> omap_set_gpio_dataout changed to gpio_set_value 12 hours ago on l-o
-> git
-> 
-[Hiremath, Vaibhav] Thanks for pointing me to this change, I will refresh the patch with this and post it again.
+iD8DBQFJHVA7MkyGM64RGpERAvLeAJ98RcImozagoPHH8V+BjIR6W6eTUwCfUJPR
+J+3NN314YWtOurVWwHu0Ubk=
+=w+Bk
+-----END PGP SIGNATURE-----
 
-> regards,
-> 
-> Koen
-
+--Apple-Mail-11--757457288--
