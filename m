@@ -1,38 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] HSMMC: Add MMC configuration for pandora
-Date: Fri, 14 Nov 2008 13:44:07 -0800
-Message-ID: <20081114214406.GO3106@atomide.com>
-References: <1226691917-6577-1-git-send-email-notasas@gmail.com> <1226691917-6577-2-git-send-email-notasas@gmail.com> <200811141211.23183.david-b@pacbell.net> <6ed0b2680811141257g66f451b6k51c9b9c97e67a71b@mail.gmail.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH] i2c: i2c-omap: Fix standard and fast mode prescalers
+Date: Fri, 14 Nov 2008 23:46:41 +0200
+Message-ID: <20081114214635.GC31944@frodo>
+References: <12266521173159-git-send-email-ext-eero.nurkkala@nokia.com> <200811141145.30171.david-b@pacbell.net> <20081114200214.GA31944@frodo> <200811141208.10600.david-b@pacbell.net>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64803 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751349AbYKNVoK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Nov 2008 16:44:10 -0500
+Received: from ns1.siteground211.com ([209.62.36.12]:57274 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751641AbYKNVqw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Nov 2008 16:46:52 -0500
 Content-Disposition: inline
-In-Reply-To: <6ed0b2680811141257g66f451b6k51c9b9c97e67a71b@mail.gmail.com>
+In-Reply-To: <200811141208.10600.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: me@felipebalbi.com, ext-eero.nurkkala@nokia.com, linux-omap@vger.kernel.org
 
-* Grazvydas Ignotas <notasas@gmail.com> [081114 12:58]:
-> On Fri, Nov 14, 2008 at 10:11 PM, David Brownell <david-b@pacbell.net> wrote:
-> > On Friday 14 November 2008, Grazvydas Ignotas wrote:
-> >> This patch enables both SD slots with support of card detect and
-> >> write protect switch on OMAP3 Pandora.
-> >
-> > Nice milestone for a Friday.  :)
-> May be, but it still needs some nasty hack in the host driver to work.
-> The driver relies on voltage setting in the host controller register,
-> but that is fixed to 1.8V for MMC2 and doesn't represent real voltage
-> used for the card.
+On Fri, Nov 14, 2008 at 12:08:10PM -0800, David Brownell wrote:
+> On Friday 14 November 2008, Felipe Balbi wrote:
+> > On Fri, Nov 14, 2008 at 11:45:30AM -0800, David Brownell wrote:
+> > > And should it let at least some boards talk to their
+> > > TWL chips at 3.4 MBit/sec (top speed for standard
+> > > highspeed I2C) instead of 2.6 Mbit/sec (pokey slow)?
+> > > I've always wondered why all the boards configured
+> > > those links to be seemingly slower than allowed ...
+> > 
+> > I think it came from board-3430sdp.c
 > 
-> > Weren't you working on getting the SDIO WLAN adapter on the third
-> > slot to behave too?
-> yeah, not much progress with that yet, though..
+> So you're saying there was *never* a need for that slowdown,
+> and everyone was just copying an existing buglet?
+> 
+> I know I didn't make time to test whether faster speeds
+> would work ... but had expected there was a reason, at
+> some point, for that detuning.
 
-Pushed both.
+There was a need. But I think it should be fixed by now. I shall test
+tw5030 with 3.4Mbit/sec on monday. Will report.
 
-Tony
+-- 
+balbi
