@@ -1,41 +1,169 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] i2c: i2c-omap: Fix BUFSTAT_REG reading
-Date: Fri, 14 Nov 2008 11:16:13 -0800
-Message-ID: <200811141116.13682.david-b@pacbell.net>
-References: <12266521123866-git-send-email-ext-eero.nurkkala@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: [REVIEW PATCH] Added OMAP3EVM support on Tomis FBDEV/DSS Patches
+Date: Fri, 14 Nov 2008 20:44:28 +0100
+Message-ID: <C98171C5-A13C-4FE0-97DD-8BCF356212F2@student.utwente.nl>
+References: <19F8576C6E063C45BE387C64729E739403E5F2B69C@dbde02.ent.ti.com> <1226678037.32348.81.camel@tubuntu>
+Mime-Version: 1.0 (Apple Message framework v929.2)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-22--723434171"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp126.sbc.mail.sp1.yahoo.com ([69.147.65.185]:42180 "HELO
-	smtp126.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754689AbYKNTQU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Nov 2008 14:16:20 -0500
-In-Reply-To: <12266521123866-git-send-email-ext-eero.nurkkala@nokia.com>
-Content-Disposition: inline
+Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:40005 "EHLO smtp.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752041AbYKNTpL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Nov 2008 14:45:11 -0500
+In-Reply-To: <1226678037.32348.81.camel@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext-eero.nurkkala@nokia.com
-Cc: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Friday 14 November 2008, ext-eero.nurkkala@nokia.com wrote:
-> The amount of bytes to receive is read from wrong
-> place. It is the 6 bits starting from the bit 8 from
-> BUFSTAT_REG that indicate this amount. Not the 8 LSB:s.
-> Only 6 LSB:s are used for the TX buffer. Also, with
-> omap 3430, only the 6 LSB:s are relevant for XDR.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-22--723434171
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
-So to summarize:  2430 and 3430 define this register
-differently?  Lacking 2430 docs, I can't verify that.
 
-Agreed that 3430 has two 6-bit fields, RXSTAT at 8..13
-and TXSTAT at 0..5, so this code is wrong for 3430.
+Op 14 nov 2008, om 16:53 heeft Tomi Valkeinen het volgende geschreven:
 
-But if the issue is that the 2430 version of the FIFO
-support works differently, please say so in the patch
-commend and code...
+> Hi,
+> On Fri, 2008-11-14 at 18:05 +0530, ext Hiremath, Vaibhav wrote:
+>
+>>>
+>>> I think the LCD panel on SDP and EVM boards are the same, so we
+>>> should
+>>> only have one driver. Do you have specifications about the LCD? The
+>>> manufacturer, model etc?. I didn't find any proper information about
+>>> the
+>>> LCD.
+>>>
+>> [Hiremath, Vaibhav] The LCD on OMAP3EVM is Sharp LCD (Model No. -  
+>> LS037V7DW01).
+>> Koen has already conformed that panel3430sdp.c is working with  
+>> OMAP3EVM, let me try at my end. If it works properly then we can  
+>> have same file to build for both SDP and EVM. But in that case it  
+>> make sense to rename file to panel-lcd.c.
+>>
+>
+> I took the liberty to add you EVM changes to my tree, with a comment
+> about the origin. I also changed the SDP panel name to sharp panel,  
+> and
+> made both EVM and SDP use that. But I can't test the EVM, as I don't
+> have one.
 
-- Dave
+I finally got rc4 working on evm and with your latest patches I get:
 
+udevd version 124 started
+eth0: link down
+eth0: link up, 100Mbps, full-duplex, lpa 0x8DE1
+DSS2 debug: best_ld is 1, best_pd is 3
+DSS2 debug: best_ld is 1, best_pd is 3
+DSS2 debug: best.lck_div is 1, best.pck_div is 3
+omap-dss DISPLAY: omap_dss_mgr_apply(lcd)
+omap-dss DISPC: dispc_setup_plane 0, 87200000, sw 480, 0,0, 480x640 ->  
+480x640, (ilace 0)
+omap-dss DISPC: dispc_enable_plane 0, 1
+omap-dss DISPC: dispc_enable_plane 1, 0
+omap-dss DISPC: dispc_enable_plane 2, 0
+omap-dss DISPC: GO LCD
+Division by zero in kernel.
+[<c0033a60>] (dump_stack+0x0/0x14) from [<c0033a8c>] (__div0+0x18/0x20)
+[<c0033a74>] (__div0+0x0/0x20) from [<c01a235c>] (Ldiv0+0x8/0x10)
+[<c01c7f08>] (check_fb_var+0x0/0x35c) from [<c01c8280>]  
+(omapfb_check_var+0x1c/0x20)
+  r7:c6711e08 r6:c708bc00 r5:00004601 r4:c01c8264
+[<c01c8264>] (omapfb_check_var+0x0/0x20) from [<c01b55dc>] (fb_set_var 
++0xd4/0x254)
+[<c01b5508>] (fb_set_var+0x0/0x254) from [<c01b59c0>] (fb_ioctl 
++0x170/0x4f0)
+[<c01b5850>] (fb_ioctl+0x0/0x4f0) from [<c00c59c8>] (vfs_ioctl 
++0x34/0x94)
+  r8:c0030004 r7:c7b4e6c0 r6:03d7ca30 r5:00004601 r4:c7b4e6c0
+[<c00c5994>] (vfs_ioctl+0x0/0x94) from [<c00c5fc8>] (do_vfs_ioctl 
++0x4a4/0x4e4)
+  r7:c7b4e6c0 r6:03d7ca30 r5:c7b4e6c0 r4:c70f9290
+[<c00c5b24>] (do_vfs_ioctl+0x0/0x4e4) from [<c00c6048>] (sys_ioctl 
++0x40/0x64)
+  r9:c6710000 r8:c0030004 r6:00004601 r5:03d7ca30 r4:00000006
+[<c00c6008>] (sys_ioctl+0x0/0x64) from [<c002fe80>] (ret_fast_syscall 
++0x0/0x2c)
+  r7:00000036 r6:00000281 r5:000001fc r4:00000000
+DSS2 debug: best_ld is 255, best_pd is 255
+DSS2 debug: best_ld is 255, best_pd is 255
+DSS2 debug: best_ld is 255, best_pd is 255
+DSS2 debug: best_ld is 255, best_pd is 255
+DSS2 debug: best_ld is 255, best_pd is 255
+DSS2 debug: best_ld is 255, best_pd is 255
+DSS2 debug: best_ld is 255, best_pd is 255
+DSS2 debug: best_ld is 255, best_pd is 255
+DSS2 debug: best_ld is 255, best_pd is 255
+DSS2 debug: best_ld is 255, best_pd is 255
+DSS2 debug: best_ld is 255, best_pd is 255
+DSS2 debug: best_ld is 255, best_pd is 255
+DSS2 debug: best.lck_div is 0, best.pck_div is 0
+Division by zero in kernel.
+[<c0033a60>] (dump_stack+0x0/0x14) from [<c0033a8c>] (__div0+0x18/0x20)
+[<c0033a74>] (__div0+0x0/0x20) from [<c01a235c>] (Ldiv0+0x8/0x10)
+[<c01c7f08>] (check_fb_var+0x0/0x35c) from [<c01c8280>]  
+(omapfb_check_var+0x1c/0x20)
+  r7:c6711e08 r6:c708bc00 r5:00004601 r4:c01c8264
+[<c01c8264>] (omapfb_check_var+0x0/0x20) from [<c01b55dc>] (fb_set_var 
++0xd4/0x254)
+[<c01b5508>] (fb_set_var+0x0/0x254) from [<c01b59c0>] (fb_ioctl 
++0x170/0x4f0)
+[<c01b5850>] (fb_ioctl+0x0/0x4f0) from [<c00c59c8>] (vfs_ioctl 
++0x34/0x94)
+  r8:c0030004 r7:c7b4e6c0 r6:03d7ca30 r5:00004601 r4:c7b4e6c0
+[<c00c5994>] (vfs_ioctl+0x0/0x94) from [<c00c5fc8>] (do_vfs_ioctl 
++0x4a4/0x4e4)
+  r7:c7b4e6c0 r6:03d7ca30 r5:c7b4e6c0 r4:c70f9290
+[<c00c5b24>] (do_vfs_ioctl+0x0/0x4e4) from [<c00c6048>] (sys_ioctl 
++0x40/0x64)
+  r9:c6710000 r8:c0030004 r6:00004601 r5:03d7ca30 r4:00000006
+[<c00c6008>] (sys_ioctl+0x0/0x64) from [<c002fe80>] (ret_fast_syscall 
++0x0/0x2c)
+  r7:00000036 r6:00000281 r5:000001fc r4:00000000
+omap-dss DISPLAY: omap_dss_mgr_apply(lcd)
+omap-dss DISPC: dispc_setup_plane 0, 87200000, sw 480, 0,0, 480x640 ->  
+480x640, (ilace 0)
+omap-dss DISPC: dispc_enable_plane 0, 1
+omap-dss DISPC: dispc_enable_plane 1, 0
+omap-dss DISPC: dispc_enable_plane 2, 0
+omap-dss DISPC: GO LCD
+omap-dss DISPLAY: omap_dss_mgr_apply(lcd)
+omap-dss DISPC: dispc_setup_plane 0, 87200000, sw 480, 0,0, 480x640 ->  
+480x640, (ilace 0)
+omap-dss DISPC: dispc_enable_plane 0, 1
+omap-dss DISPC: dispc_enable_plane 1, 0
+omap-dss DISPC: dispc_enable_plane 2, 0
+omap-dss DISPC: GO LCD
+omap-dss DISPLAY: omap_dss_mgr_apply(lcd)
+omap-dss DISPC: dispc_setup_plane 0, 87200000, sw 480, 0,0, 480x640 ->  
+480x640, (ilace 0)
+omap-dss DISPC: dispc_enable_plane 0, 1
+omap-dss DISPC: dispc_enable_plane 1, 0
+omap-dss DISPC: dispc_enable_plane 2, 0
+omap-dss DISPC: GO LCD
+
+the DSS2 printks are at the end of find_lck_pck_divs() and  
+dispc_calc_clock_div() in dispc.c.
+
+regards,
+
+Koen
+
+--Apple-Mail-22--723434171
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: This is a digitally signed message part
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFJHdUfMkyGM64RGpERAnWiAJ9o2FZ4nGHAArFLuM/HPuliyPMLsACfXt7d
+zLXScVZU0VSbGyteeOK/GM0=
+=a7Yq
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-22--723434171--
