@@ -1,129 +1,38 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [REVIEW PATCH] Added OMAP3EVM support on Tomis FBDEV/DSS Patches
-Date: Sat, 15 Nov 2008 14:27:44 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403E5F2B762@dbde02.ent.ti.com>
-References: <BEB852B4-C5D3-44AF-A860-DF9498363302@student.utwente.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 1/1] BRIDGE: Fix memory leak in PROC_Init()
+Date: Sat, 15 Nov 2008 11:02:51 +0200
+Message-ID: <1226739771-31426-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56013 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752654AbYKOI5z convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Nov 2008 03:57:55 -0500
-In-Reply-To: <BEB852B4-C5D3-44AF-A860-DF9498363302@student.utwente.nl>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:25425 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752631AbYKOJDA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Nov 2008 04:03:00 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: x00omar@ti.com, h-kanigeri2@ti.com, grgupta77@gmail.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
+Since "SYNC_InitializeCS()" allocates "struct SYNC_CSOBJECT" for
+"hProcLock", "MEM_AllocObject()" shouldn't be called for
+"hProcLock". This was double allocation for the same pointer.
 
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+ drivers/dsp/bridge/rmgr/proc.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-Thanks,
-Vaibhav Hiremath
-
-> -----Original Message-----
-> From: Koen Kooi [mailto:k.kooi@student.utwente.nl]
-> Sent: Saturday, November 15, 2008 2:21 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org List
-> Subject: Re: [REVIEW PATCH] Added OMAP3EVM support on Tomis
-> FBDEV/DSS Patches
-> 
-> 
-> Op 15 nov 2008, om 09:45 heeft Hiremath, Vaibhav het volgende
-> geschreven:
-> 
-> >
-> >
-> > Thanks,
-> > Vaibhav Hiremath
-> >
-> >> -----Original Message-----
-> >> From: Koen Kooi [mailto:k.kooi@student.utwente.nl]
-> >> Sent: Saturday, November 15, 2008 1:14 AM
-> >> To: Tomi Valkeinen
-> >> Cc: Hiremath, Vaibhav; linux-fbdev-devel@lists.sourceforge.net;
-> >> linux-omap@vger.kernel.org
-> >> Subject: Re: [REVIEW PATCH] Added OMAP3EVM support on Tomis
-> >> FBDEV/DSS Patches
-> >>
-> >>
-> >> Op 14 nov 2008, om 16:53 heeft Tomi Valkeinen het volgende
-> >> geschreven:
-> >>
-> >>> Hi,
-> >>> On Fri, 2008-11-14 at 18:05 +0530, ext Hiremath, Vaibhav wrote:
-> >>>
-> >>>>>
-> >>>>> I think the LCD panel on SDP and EVM boards are the same, so
-> we
-> >>>>> should
-> >>>>> only have one driver. Do you have specifications about the
-> LCD?
-> >> The
-> >>>>> manufacturer, model etc?. I didn't find any proper information
-> >> about
-> >>>>> the
-> >>>>> LCD.
-> >>>>>
-> >>>> [Hiremath, Vaibhav] The LCD on OMAP3EVM is Sharp LCD (Model No.
-> -
-> >>>> LS037V7DW01).
-> >>>> Koen has already conformed that panel3430sdp.c is working with
-> >>>> OMAP3EVM, let me try at my end. If it works properly then we
-> can
-> >>>> have same file to build for both SDP and EVM. But in that case
-> it
-> >>>> make sense to rename file to panel-lcd.c.
-> >>>>
-> >>>
-> >>> I took the liberty to add you EVM changes to my tree, with a
-> >> comment
-> >>> about the origin. I also changed the SDP panel name to sharp
-> >> panel,
-> >>> and
-> >>> made both EVM and SDP use that. But I can't test the EVM, as I
-> >> don't
-> >>> have one.
-> >>
-> >> I finally got rc4 working on evm and with your latest patches I
-> get:
-> >>
-> > [Hiremath, Vaibhav] What was the issue you figured out?
-> 
-> I figured out which patch to use to fix MMC on evm.
-> 
-> 
-> >> udevd version 124 started
-> >> eth0: link down
-> >> eth0: link up, 100Mbps, full-duplex, lpa 0x8DE1
-> >> DSS2 debug: best_ld is 1, best_pd is 3
-> >> DSS2 debug: best_ld is 1, best_pd is 3
-> >> DSS2 debug: best.lck_div is 1, best.pck_div is 3
-> >> omap-dss DISPLAY: omap_dss_mgr_apply(lcd)
-> >> omap-dss DISPC: dispc_setup_plane 0, 87200000, sw 480, 0,0,
-> 480x640
-> >> ->
-> >> 480x640, (ilace 0)
-> >> omap-dss DISPC: dispc_enable_plane 0, 1
-> >> omap-dss DISPC: dispc_enable_plane 1, 0
-> >> omap-dss DISPC: dispc_enable_plane 2, 0
-> >> omap-dss DISPC: GO LCD
-> >> Division by zero in kernel.
-> > [Hiremath, Vaibhav] Are you using the patch I submitted or the
-> > merged code from Tomi?
-> 
-> I'm using the merged code from Tomi. I extracted the patches from
-> his
-> git tree:
-> http://gitweb.openembedded.net/?p=openembedded.git;a=commit;h=5f7bde
-> 74179a9eac56e874687f4837d3af759878
-> 
-[Hiremath, Vaibhav] Let me have a look at his changes then.
-
-> regards,
-> 
-> Koen
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index 3f9a371..082bea3 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -1006,7 +1006,6 @@ bool PROC_Init(void)
+ 		DBC_Assert(!PROC_DebugMask.flags);
+ 		GT_create(&PROC_DebugMask, "PR");  /* "PR" for Processor */
+ 
+-		MEM_AllocObject(hProcLock, struct SYNC_CSOBJECT, SIGNATURECS);
+ 		(void)SYNC_InitializeCS(&hProcLock);
+ 	}
+ 
+-- 
+1.6.0.3.613.g9f8f13
 
