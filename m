@@ -1,126 +1,255 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch 4/4] twl: regulator debug aids (NOT FOR MERGING)
-Date: Sat, 15 Nov 2008 12:42:49 -0800
-Message-ID: <200811151242.49721.david-b@pacbell.net>
+Subject: [patch/fyi 1/3] regulator code shrink
+Date: Sat, 15 Nov 2008 12:43:32 -0800
+Message-ID: <200811151243.33062.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92]:20770 "HELO
+Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92]:20777 "HELO
 	smtp119.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751854AbYKOUyJ (ORCPT
+	by vger.kernel.org with SMTP id S1751575AbYKOUyK (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 15 Nov 2008 15:54:09 -0500
+	Sat, 15 Nov 2008 15:54:10 -0500
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-The regulator code is a NOP until it's given initialization data;
-and then isn't very usable until each regulator is hooked up to a
-consumer device.
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-This patch is PURELY FOR EXPERIMENTATION with non-USB regulators
-that aren't set up by board-*.c files:
+Shrink regulator core by removing duplication in attribute printing
+and probe() cleanup paths.  Saves about 340 bytes (object) on ARM.
 
-  - regulator init data is provided, so regulators get created
-    and published (read-only) in /sys/class/regulator
-
-  - /sys/device/platform/reg-virtual-consumer.* devices for most
-    regulators are created, with writable sysfs attributes
-
-Using this with the other patches should give you a system which
-lets you examine and modify regulator attributes.  Note that by
-default, most of those attributes are irrelevant ... patches are
-pending to fix that glitch in the regulator framework.
-
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 ---
- drivers/mfd/twl4030-core.c |   71 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 71 insertions(+)
+ drivers/regulator/core.c |  111 +++++++++++++++++----------------------------
+ 1 file changed, 44 insertions(+), 67 deletions(-)
 
---- a/drivers/mfd/twl4030-core.c
-+++ b/drivers/mfd/twl4030-core.c
-@@ -432,11 +432,82 @@ static inline struct device *add_child(u
- 		can_wakeup, irq0, irq1);
+--- a/drivers/regulator/core.c
++++ b/drivers/regulator/core.c
+@@ -257,12 +257,8 @@ static ssize_t regulator_name_show(struc
+ 	return sprintf(buf, "%s\n", name);
  }
  
-+static int reg_testobj(struct regulator_init_data *pdata)
-+{
-+	static int testnum			__initdata;
-+	static const char			label[] = "supply";
-+
-+	struct platform_device			*pdev;
-+	struct regulator_consumer_supply	*link;
-+
-+	/* NOTE name length problem:  only single digit numbers
-+	 * avoid truncation.  "Succeed" anyway ... the regulator
-+	 * will exist, we just can't use sysfs to test it.
-+	 *
-+	 * Also, IDs of these test devices are decoupled from the
-+	 * regulator IDs to help minimize the hurt ...
-+	 */
-+	if (testnum > 10) {
-+		printk("... regulator %d, no testdev, truncation bug\n", testnum);
-+		return 0;
-+	}
-+
-+	pdev = platform_device_register_data(NULL, "reg-virt-consumer", testnum,
-+			label, sizeof label);
-+	if (IS_ERR(pdev))
-+		return PTR_ERR(pdev);
-+
-+	link = kzalloc(sizeof *link, GFP_KERNEL);
-+	if (!link) {
-+		platform_device_put(pdev);
-+		return -ENOMEM;
-+	}
-+
-+	link->dev = &pdev->dev;
-+	link->supply = label;
-+
-+	pdata->num_consumer_supplies = 1;
-+	pdata->consumer_supplies = link;
-+
-+	testnum++;
-+
-+	/* NOTE:  this registers *before* its driver.  That's
-+	 * important, because virtual.probe() uses the regulator
-+	 * that we haven't yet registered (using "pdata") ...
-+	 */
-+	return 0;
+-static ssize_t regulator_opmode_show(struct device *dev,
+-				    struct device_attribute *attr, char *buf)
++static ssize_t regulator_print_opmode(char *buf, int mode)
+ {
+-	struct regulator_dev *rdev = dev_get_drvdata(dev);
+-	int mode = _regulator_get_mode(rdev);
+-
+ 	switch (mode) {
+ 	case REGULATOR_MODE_FAST:
+ 		return sprintf(buf, "fast\n");
+@@ -276,12 +272,16 @@ static ssize_t regulator_opmode_show(str
+ 	return sprintf(buf, "unknown\n");
+ }
+ 
+-static ssize_t regulator_state_show(struct device *dev,
+-				   struct device_attribute *attr, char *buf)
++static ssize_t regulator_opmode_show(struct device *dev,
++				    struct device_attribute *attr, char *buf)
+ {
+ 	struct regulator_dev *rdev = dev_get_drvdata(dev);
+-	int state = _regulator_is_enabled(rdev);
+ 
++	return regulator_print_opmode(buf, _regulator_get_mode(rdev));
 +}
 +
- static struct device *
- add_regulator_linked(int num, struct regulator_init_data *pdata,
- 		struct regulator_consumer_supply *consumers,
- 		unsigned num_consumers)
++static ssize_t regulator_print_state(char *buf, int state)
++{
+ 	if (state > 0)
+ 		return sprintf(buf, "enabled\n");
+ 	else if (state == 0)
+@@ -290,6 +290,14 @@ static ssize_t regulator_state_show(stru
+ 		return sprintf(buf, "unknown\n");
+ }
+ 
++static ssize_t regulator_state_show(struct device *dev,
++				   struct device_attribute *attr, char *buf)
++{
++	struct regulator_dev *rdev = dev_get_drvdata(dev);
++
++	return regulator_print_state(buf, _regulator_is_enabled(rdev));
++}
++
+ static ssize_t regulator_min_uA_show(struct device *dev,
+ 				    struct device_attribute *attr, char *buf)
  {
-+#if 1
-+	/* TEMPORARY -- for regulator debug/exploration only */
-+	if (!pdata) {
-+		int status;
+@@ -399,22 +407,6 @@ static ssize_t regulator_suspend_standby
+ 	return sprintf(buf, "%d\n", rdev->constraints->state_standby.uV);
+ }
+ 
+-static ssize_t suspend_opmode_show(struct regulator_dev *rdev,
+-	unsigned int mode, char *buf)
+-{
+-	switch (mode) {
+-	case REGULATOR_MODE_FAST:
+-		return sprintf(buf, "fast\n");
+-	case REGULATOR_MODE_NORMAL:
+-		return sprintf(buf, "normal\n");
+-	case REGULATOR_MODE_IDLE:
+-		return sprintf(buf, "idle\n");
+-	case REGULATOR_MODE_STANDBY:
+-		return sprintf(buf, "standby\n");
+-	}
+-	return sprintf(buf, "unknown\n");
+-}
+-
+ static ssize_t regulator_suspend_mem_mode_show(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+ {
+@@ -422,8 +414,8 @@ static ssize_t regulator_suspend_mem_mod
+ 
+ 	if (!rdev->constraints)
+ 		return sprintf(buf, "not defined\n");
+-	return suspend_opmode_show(rdev,
+-		rdev->constraints->state_mem.mode, buf);
++	return regulator_print_opmode(buf,
++		rdev->constraints->state_mem.mode);
+ }
+ 
+ static ssize_t regulator_suspend_disk_mode_show(struct device *dev,
+@@ -433,8 +425,8 @@ static ssize_t regulator_suspend_disk_mo
+ 
+ 	if (!rdev->constraints)
+ 		return sprintf(buf, "not defined\n");
+-	return suspend_opmode_show(rdev,
+-		rdev->constraints->state_disk.mode, buf);
++	return regulator_print_opmode(buf,
++		rdev->constraints->state_disk.mode);
+ }
+ 
+ static ssize_t regulator_suspend_standby_mode_show(struct device *dev,
+@@ -444,8 +436,8 @@ static ssize_t regulator_suspend_standby
+ 
+ 	if (!rdev->constraints)
+ 		return sprintf(buf, "not defined\n");
+-	return suspend_opmode_show(rdev,
+-		rdev->constraints->state_standby.mode, buf);
++	return regulator_print_opmode(buf,
++		rdev->constraints->state_standby.mode);
+ }
+ 
+ static ssize_t regulator_suspend_mem_state_show(struct device *dev,
+@@ -456,10 +448,8 @@ static ssize_t regulator_suspend_mem_sta
+ 	if (!rdev->constraints)
+ 		return sprintf(buf, "not defined\n");
+ 
+-	if (rdev->constraints->state_mem.enabled)
+-		return sprintf(buf, "enabled\n");
+-	else
+-		return sprintf(buf, "disabled\n");
++	return regulator_print_state(buf,
++			rdev->constraints->state_mem.enabled);
+ }
+ 
+ static ssize_t regulator_suspend_disk_state_show(struct device *dev,
+@@ -470,10 +460,8 @@ static ssize_t regulator_suspend_disk_st
+ 	if (!rdev->constraints)
+ 		return sprintf(buf, "not defined\n");
+ 
+-	if (rdev->constraints->state_disk.enabled)
+-		return sprintf(buf, "enabled\n");
+-	else
+-		return sprintf(buf, "disabled\n");
++	return regulator_print_state(buf,
++			rdev->constraints->state_disk.enabled);
+ }
+ 
+ static ssize_t regulator_suspend_standby_state_show(struct device *dev,
+@@ -484,10 +472,8 @@ static ssize_t regulator_suspend_standby
+ 	if (!rdev->constraints)
+ 		return sprintf(buf, "not defined\n");
+ 
+-	if (rdev->constraints->state_standby.enabled)
+-		return sprintf(buf, "enabled\n");
+-	else
+-		return sprintf(buf, "disabled\n");
++	return regulator_print_state(buf,
++			rdev->constraints->state_standby.enabled);
+ }
+ 
+ static struct device_attribute regulator_dev_attrs[] = {
+@@ -1761,20 +1747,14 @@ struct regulator_dev *regulator_register
+ 	/* preform any regulator specific init */
+ 	if (init_data->regulator_init) {
+ 		ret = init_data->regulator_init(rdev->reg_data);
+-		if (ret < 0) {
+-			kfree(rdev);
+-			rdev = ERR_PTR(ret);
+-			goto out;
+-		}
++		if (ret < 0)
++			goto clean;
+ 	}
+ 
+ 	/* set regulator constraints */
+ 	ret = set_machine_constraints(rdev, &init_data->constraints);
+-	if (ret < 0) {
+-		kfree(rdev);
+-		rdev = ERR_PTR(ret);
+-		goto out;
+-	}
++	if (ret < 0)
++		goto clean;
+ 
+ 	/* register with sysfs */
+ 	rdev->dev.class = &regulator_class;
+@@ -1782,11 +1762,8 @@ struct regulator_dev *regulator_register
+ 	snprintf(rdev->dev.bus_id, sizeof(rdev->dev.bus_id),
+ 		 "regulator.%d", atomic_inc_return(&regulator_no) - 1);
+ 	ret = device_register(&rdev->dev);
+-	if (ret != 0) {
+-		kfree(rdev);
+-		rdev = ERR_PTR(ret);
+-		goto out;
+-	}
++	if (ret != 0)
++		goto clean;
+ 
+ 	dev_set_drvdata(&rdev->dev, rdev);
+ 
+@@ -1794,12 +1771,8 @@ struct regulator_dev *regulator_register
+ 	if (init_data->supply_regulator_dev) {
+ 		ret = set_supply(rdev,
+ 			dev_get_drvdata(init_data->supply_regulator_dev));
+-		if (ret < 0) {
+-			device_unregister(&rdev->dev);
+-			kfree(rdev);
+-			rdev = ERR_PTR(ret);
+-			goto out;
+-		}
++		if (ret < 0)
++			goto scrub;
+ 	}
+ 
+ 	/* add consumers devices */
+@@ -1811,10 +1784,7 @@ struct regulator_dev *regulator_register
+ 			for (--i; i >= 0; i--)
+ 				unset_consumer_device_supply(rdev,
+ 					init_data->consumer_supplies[i].dev);
+-			device_unregister(&rdev->dev);
+-			kfree(rdev);
+-			rdev = ERR_PTR(ret);
+-			goto out;
++			goto scrub;
+ 		}
+ 	}
+ 
+@@ -1822,6 +1792,13 @@ struct regulator_dev *regulator_register
+ out:
+ 	mutex_unlock(&regulator_list_mutex);
+ 	return rdev;
 +
-+		pdata = kzalloc(sizeof *pdata, GFP_KERNEL);
-+		if (!pdata)
-+			return ERR_PTR(-ENOMEM);
-+
-+		pdata->constraints.valid_modes_mask = REGULATOR_MODE_NORMAL
-+				| REGULATOR_MODE_STANDBY;
-+		pdata->constraints.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE
-+				| REGULATOR_CHANGE_MODE
-+				| REGULATOR_CHANGE_STATUS;
-+
-+		/* test device will have writable sysfs attributes
-+		 */
-+		status = reg_testobj(pdata);
-+		if (status < 0)
-+			return ERR_PTR(status);
-+
-+		pr_warning("** TWL4030 REGULATOR %d -- FOR DEBUG ONLY!\n", num);
-+	}
-+#endif
-+
- 	/* regulator framework demands init_data ... */
- 	if (!pdata)
- 		return NULL;
++scrub:
++	device_unregister(&rdev->dev);
++clean:
++	kfree(rdev);
++	rdev = ERR_PTR(ret);
++	goto out;
+ }
+ EXPORT_SYMBOL_GPL(regulator_register);
+ 
