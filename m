@@ -1,38 +1,53 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 1/1] BRIDGE: Fix memory leak in PROC_Init()
-Date: Sat, 15 Nov 2008 11:02:51 +0200
-Message-ID: <1226739771-31426-1-git-send-email-Hiroshi.DOYU@nokia.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch 1/4] twl: update overo and pandora i2c data
+Date: Sat, 15 Nov 2008 12:38:43 -0800
+Message-ID: <200811151238.43725.david-b@pacbell.net>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:25425 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752631AbYKOJDA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Nov 2008 04:03:00 -0500
+Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92]:20755 "HELO
+	smtp119.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751575AbYKOUyI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 15 Nov 2008 15:54:08 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: x00omar@ti.com, h-kanigeri2@ti.com, grgupta77@gmail.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-Since "SYNC_InitializeCS()" allocates "struct SYNC_CSOBJECT" for
-"hProcLock", "MEM_AllocObject()" shouldn't be called for
-"hProcLock". This was double allocation for the same pointer.
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Update Pandora and Overo board-specific code to report that
+they use catalog versions of the twl5030 ... this affects
+the range of usable VAUX2 voltages.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 ---
- drivers/dsp/bridge/rmgr/proc.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/board-omap3pandora.c |    2 +-
+ arch/arm/mach-omap2/board-overo.c        |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-index 3f9a371..082bea3 100644
---- a/drivers/dsp/bridge/rmgr/proc.c
-+++ b/drivers/dsp/bridge/rmgr/proc.c
-@@ -1006,7 +1006,6 @@ bool PROC_Init(void)
- 		DBC_Assert(!PROC_DebugMask.flags);
- 		GT_create(&PROC_DebugMask, "PR");  /* "PR" for Processor */
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -167,7 +167,7 @@ static struct twl4030_platform_data omap
  
--		MEM_AllocObject(hProcLock, struct SYNC_CSOBJECT, SIGNATURECS);
- 		(void)SYNC_InitializeCS(&hProcLock);
- 	}
+ static struct i2c_board_info __initdata omap3pandora_i2c_boardinfo[] = {
+ 	{
+-		I2C_BOARD_INFO("twl4030", 0x48),
++		I2C_BOARD_INFO("tps65950", 0x48),
+ 		.flags = I2C_CLIENT_WAKE,
+ 		.irq = INT_34XX_SYS_NIRQ,
+ 		.platform_data = &omap3pandora_twldata,
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -167,7 +167,7 @@ static struct twl4030_platform_data over
  
--- 
-1.6.0.3.613.g9f8f13
-
+ static struct i2c_board_info __initdata overo_i2c_boardinfo[] = {
+ 	{
+-		I2C_BOARD_INFO("twl4030", 0x48),
++		I2C_BOARD_INFO("tps65950", 0x48),
+ 		.flags = I2C_CLIENT_WAKE,
+ 		.irq = INT_34XX_SYS_NIRQ,
+ 		.platform_data = &overo_twldata,
