@@ -1,46 +1,76 @@
-From: "Stanley.Miao" <stanley.miao@windriver.com>
-Subject: [PATCH 2/2] smc911x: Add support for LAN9211 chips from SMSC
-Date: Mon, 17 Nov 2008 17:29:55 +0800
-Message-ID: <1226914195-20473-2-git-send-email-stanley.miao@windriver.com>
-References: <1226914195-20473-1-git-send-email-stanley.miao@windriver.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: [REVIEW PATCH] Added OMAP3EVM support on Tomis FBDEV/DSS
+ Patches
+Date: Mon, 17 Nov 2008 11:49:52 +0200
+Message-ID: <1226915392.6860.18.camel@tubuntu>
+References: <19F8576C6E063C45BE387C64729E739403E5F2B75A@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:56897 "EHLO mail.wrs.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750919AbYKQJXv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 Nov 2008 04:23:51 -0500
-In-Reply-To: <1226914195-20473-1-git-send-email-stanley.miao@windriver.com>
+Received: from smtp.nokia.com ([192.100.105.134]:34383 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752670AbYKQJuL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Nov 2008 04:50:11 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403E5F2B75A@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, linux-omap@vger.kernel.org
+To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Add the define of LAN9211 in chip_ids.
+On Sat, 2008-11-15 at 14:12 +0530, ext Hiremath, Vaibhav wrote:
+> 
+> Thanks,
+> Vaibhav Hiremath
+> 
+> > -----Original Message-----
+> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> > Sent: Friday, November 14, 2008 9:24 PM
+> > To: Hiremath, Vaibhav
+> > Cc: linux-fbdev-devel@lists.sourceforge.net; linux-
+> > omap@vger.kernel.org
+> > Subject: RE: [REVIEW PATCH] Added OMAP3EVM support on Tomis
+> > FBDEV/DSS Patches
+> > 
+> > Hi,
+> > On Fri, 2008-11-14 at 18:05 +0530, ext Hiremath, Vaibhav wrote:
+> > 
+> > > >
+> > > > I think the LCD panel on SDP and EVM boards are the same, so we
+> > > > should
+> > > > only have one driver. Do you have specifications about the LCD?
+> > The
+> > > > manufacturer, model etc?. I didn't find any proper information
+> > about
+> > > > the
+> > > > LCD.
+> > > >
+> > > [Hiremath, Vaibhav] The LCD on OMAP3EVM is Sharp LCD (Model No. -
+> > LS037V7DW01).
+> > > Koen has already conformed that panel3430sdp.c is working with
+> > OMAP3EVM, let me try at my end. If it works properly then we can
+> > have same file to build for both SDP and EVM. But in that case it
+> > make sense to rename file to panel-lcd.c.
+> > >
+> > 
+> > I took the liberty to add you EVM changes to my tree, with a comment
+> > about the origin. I also changed the SDP panel name to sharp panel,
+> > and
+> > made both EVM and SDP use that. But I can't test the EVM, as I don't
+> > have one.
+> > 
+> [Hiremath, Vaibhav] It's ok; you can incorporate required changes from my patches, no issues at all. Please share the code base which you merged from my patch so that I can validate it on EVM, since you don't have EVM to test. 
+> 
 
-Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
----
- drivers/net/smc911x.h |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+My current version is available in master branch on
+http://www.bat.org/~tomba/git/linux-omap-dss.git/
 
-diff --git a/drivers/net/smc911x.h b/drivers/net/smc911x.h
-index d1b3b9b..f688b55 100644
---- a/drivers/net/smc911x.h
-+++ b/drivers/net/smc911x.h
-@@ -682,6 +682,7 @@ smc_pxa_dma_outsl(struct smc911x_local *lp, u_long physaddr,
- #define CHIP_9116	0x0116
- #define CHIP_9117	0x0117
- #define CHIP_9118	0x0118
-+#define CHIP_9211	0x9211
- #define CHIP_9215	0x115A
- #define CHIP_9217	0x117A
- #define CHIP_9218	0x118A
-@@ -696,6 +697,7 @@ static const struct chip_id chip_ids[] =  {
- 	{ CHIP_9116, "LAN9116" },
- 	{ CHIP_9117, "LAN9117" },
- 	{ CHIP_9118, "LAN9118" },
-+	{ CHIP_9211, "LAN9211" },
- 	{ CHIP_9215, "LAN9215" },
- 	{ CHIP_9217, "LAN9217" },
- 	{ CHIP_9218, "LAN9218" },
--- 
-1.5.6.3
+I will be keeping the master branch up to date with my changes and
+linux-omap. And I will be rebasing the branch.
+
+pub1 branch has the version that I emailed to mailing lists some time
+ago. You can diff master and pub1 branches to see what's changed.
+
+ Tomi
+
 
