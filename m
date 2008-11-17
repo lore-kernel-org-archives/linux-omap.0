@@ -1,58 +1,57 @@
-From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: [PATCH 1/1] ARM: OMAP3: PM: Add feature to wake from suspend on timer
-Date: Mon, 17 Nov 2008 10:11:32 +0200
-Message-ID: <87vdumn557.fsf@trdhcp146196.ntc.nokia.com>
-References: <1226664026-9275-1-git-send-email-ext-timo-pekka.launonen@nokia.com>
-	<200811141016.58328.david-b@pacbell.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Jouni Hogander <jouni.hogander@nokia.com>
+Subject: [PATCH] OMAP3: PM: Check in set_pwrdm_state that target state is supported by pwrdm v2
+Date: Mon, 17 Nov 2008 10:18:01 +0200
+Message-ID: <1226909881-12415-1-git-send-email-jouni.hogander@nokia.com>
+References: <alpine.DEB.2.00.0811142026040.16502@utopia.booyaka.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:28875 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:30215 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751048AbYKQILo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Nov 2008 03:11:44 -0500
-In-Reply-To: <200811141016.58328.david-b@pacbell.net> (ext David Brownell's
-	message of "Fri, 14 Nov 2008 10:16:58 -0800")
+	with ESMTP id S1752684AbYKQISQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Nov 2008 03:18:16 -0500
+In-Reply-To: <alpine.DEB.2.00.0811142026040.16502@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext David Brownell <david-b@pacbell.net>
-Cc: Timo-Pekka Launonen <ext-timo-pekka.launonen@nokia.com>, linux-omap@vger.kernel.org, khilman@deeprootsystems.com
+To: linux-omap@vger.kernel.org
+Cc: paul@pwsan.com
 
-"ext David Brownell" <david-b@pacbell.net> writes:
+Check that wanted sleep state is supported by powerdomain. If it is
+not supported, then use next lowest supported state.
 
-> On Friday 14 November 2008, Timo-Pekka Launonen wrote:
->> If a non-zero value is written to /sys/power/wakeup_timer_seconds,
->> A timer wakeup event will wake the system and resume after the
->> configured number of seconds.
->
-> /sys/class/rtc/rtc0/wakealarm should do the same thing,
-> except that it takes an absolute time not a relative one.
+Check also on suspend that state of pwrdm was lower or equal.
 
-This needs an rtc to work. This far we haven't had working
-implementation for SDP.
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+---
+ arch/arm/mach-omap2/pm34xx.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
->
-> Do we really need this wakeup_timer interface?
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index da098d2..9f5a544 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -239,8 +239,13 @@ static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+ 	if (pwrdm == NULL || IS_ERR(pwrdm))
+ 		return -EINVAL;
+ 
+-	cur_state = pwrdm_read_next_pwrst(pwrdm);
++	while (!(pwrdm->pwrsts & (1 << state))) {
++		if (state == PWRDM_POWER_OFF)
++			return ret;
++		state--;
++	}
+ 
++	cur_state = pwrdm_read_next_pwrst(pwrdm);
+ 	if (cur_state == state)
+ 		return ret;
+ 
+@@ -314,7 +319,7 @@ restore:
+ 	list_for_each_entry(pwrst, &pwrst_list, node) {
+ 		set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
+ 		state = pwrdm_read_prev_pwrst(pwrst->pwrdm);
+-		if (state != pwrst->next_state) {
++		if (state > pwrst->next_state) {
+ 			printk(KERN_INFO "Powerdomain (%s) didn't enter "
+ 			       "target state %d\n",
+ 			       pwrst->pwrdm->name, pwrst->next_state);
+-- 
+1.6.0.1
 
-We are using this wakeup_timer in our omap3 PM testing (See "Power
-management tester" mail by Timo-Pekka Launonen in l-o list) and there
-the basic idea is to start with minimalistic kernel. Test drivers
-module by module (also rtc) and see how they affect the system
-(e.g. OMAP3 current consumption).
-
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---=20
-Jouni H=C3=B6gander
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
