@@ -1,143 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: ASOC and the Beagle
-Date: Thu, 13 Nov 2008 15:13:28 -0800
-Message-ID: <20081113231327.GV3106@atomide.com>
-References: <49184EDF.9050600@balister.org> <5e088bd90811101238l16057159ua0c3dbe88ebcb158@mail.gmail.com> <5e088bd90811101436g38882b0bsacb931b4f6bbd5a8@mail.gmail.com>
+From: "shekhar, chandra" <x0044955@ti.com>
+Subject: Re: [PATCH] i2c: i2c-omap: Fix standard and fast mode prescalers
+Date: Mon, 17 Nov 2008 08:16:44 +0530
+Message-ID: <0b7d01c9485e$bca27960$LocalHost@wipultra806>
+References: <12266521173159-git-send-email-ext-eero.nurkkala@nokia.com> <200811141145.30171.david-b@pacbell.net> <20081114200214.GA31944@frodo> <200811141208.10600.david-b@pacbell.net> <20081114214635.GC31944@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56232 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753575AbYKMXNb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2008 18:13:31 -0500
-Content-Disposition: inline
-In-Reply-To: <5e088bd90811101436g38882b0bsacb931b4f6bbd5a8@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:43927 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754356AbYKQCrH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Nov 2008 21:47:07 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: Philip Balister <philip@balister.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: me@felipebalbi.com, ext-eero.nurkkala@nokia.com, linux-omap@vger.kernel.org
 
-* Steve Sakoman <sakoman@gmail.com> [081110 14:36]:
-> On Mon, Nov 10, 2008 at 12:38 PM, Steve Sakoman <sakoman@gmail.com> wrote:
-> > On Mon, Nov 10, 2008 at 7:10 AM, Philip Balister <philip@balister.org> wrote:
-> >> A few weeks ago kernels built from git would detect the sound hardware and
-> >> actually work.
-> >>
-> >> Yesterday I build a kernel and the sound hardware is no longer detected. Is
-> >> there an easy way to fix this?
-> >>
-> >> Sorry I'm so vague, I don't have all the revision data handy ....
-> >
-> > I just noticed this too.
-> >
-> > It seems that the Kconfig for soc/omap got damaged in the merge.
-> >
-> > The fix is simple, patch below.
-> 
-> Next time I should build test before posting :-)
-> 
-> Turns out that the Makefile for soc/omap and the Kconfig and Makefile
-> for soc/codec also got screwed up in the merge, so those need to be
-> fixed.
+I had tested twl4030 at 3.4 Mbps couple of months back and it was working fine 
+with current settings. It wasn't a rigorous testing though.
 
-Care to send your S-O-B so I can push this to l-o tree before it falls
-down from mainline tree?
-
-Tony
+----- Original Message ----- 
+From: "Felipe Balbi" <me@felipebalbi.com>
+To: "David Brownell" <david-b@pacbell.net>
+Cc: <me@felipebalbi.com>; <ext-eero.nurkkala@nokia.com>; 
+<linux-omap@vger.kernel.org>
+Sent: Saturday, November 15, 2008 3:16 AM
+Subject: Re: [PATCH] i2c: i2c-omap: Fix standard and fast mode prescalers
 
 
-> The complete fix is:
+> On Fri, Nov 14, 2008 at 12:08:10PM -0800, David Brownell wrote:
+>> On Friday 14 November 2008, Felipe Balbi wrote:
+>> > On Fri, Nov 14, 2008 at 11:45:30AM -0800, David Brownell wrote:
+>> > > And should it let at least some boards talk to their
+>> > > TWL chips at 3.4 MBit/sec (top speed for standard
+>> > > highspeed I2C) instead of 2.6 Mbit/sec (pokey slow)?
+>> > > I've always wondered why all the boards configured
+>> > > those links to be seemingly slower than allowed ...
+>> >
+>> > I think it came from board-3430sdp.c
+>>
+>> So you're saying there was *never* a need for that slowdown,
+>> and everyone was just copying an existing buglet?
+>>
+>> I know I didn't make time to test whether faster speeds
+>> would work ... but had expected there was a reason, at
+>> some point, for that detuning.
+>
+> There was a need. But I think it should be fixed by now. I shall test
+> tw5030 with 3.4Mbit/sec on monday. Will report.
+>
+> -- 
+> balbi
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
-> index 38a0e3b..5df7402 100644
-> --- a/sound/soc/codecs/Kconfig
-> +++ b/sound/soc/codecs/Kconfig
-> @@ -10,6 +10,7 @@ config SND_SOC_ALL_CODECS
->  	select SND_SOC_TLV320AIC23
->  	select SND_SOC_TLV320AIC26
->  	select SND_SOC_TLV320AIC3X
-> +	select SND_SOC_TWL4030
->  	select SND_SOC_UDA1380
->  	select SND_SOC_WM8510
->  	select SND_SOC_WM8580
-> @@ -75,6 +76,10 @@ config SND_SOC_TLV320AIC3X
->  	tristate
->  	depends on I2C
-> 
-> +config SND_SOC_TWL4030
-> +	tristate
-> +	depends on TWL4030_CORE
-> +
->  config SND_SOC_UDA1380
->          tristate
-> 
-> diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
-> index 90f0a58..3b9b58a 100644
-> --- a/sound/soc/codecs/Makefile
-> +++ b/sound/soc/codecs/Makefile
-> @@ -7,6 +7,7 @@ snd-soc-ssm2602-objs := ssm2602.o
->  snd-soc-tlv320aic23-objs := tlv320aic23.o
->  snd-soc-tlv320aic26-objs := tlv320aic26.o
->  snd-soc-tlv320aic3x-objs := tlv320aic3x.o
-> +snd-soc-twl4030-objs := twl4030.o
->  snd-soc-uda1380-objs := uda1380.o
->  snd-soc-wm8510-objs := wm8510.o
->  snd-soc-wm8580-objs := wm8580.o
-> @@ -29,6 +30,7 @@ obj-$(CONFIG_SND_SOC_SSM2602)	+= snd-soc-ssm2602.o
->  obj-$(CONFIG_SND_SOC_TLV320AIC23)	+= snd-soc-tlv320aic23.o
->  obj-$(CONFIG_SND_SOC_TLV320AIC26)	+= snd-soc-tlv320aic26.o
->  obj-$(CONFIG_SND_SOC_TLV320AIC3X)	+= snd-soc-tlv320aic3x.o
-> +obj-$(CONFIG_SND_SOC_TWL4030)	+= snd-soc-twl4030.o
->  obj-$(CONFIG_SND_SOC_UDA1380)	+= snd-soc-uda1380.o
->  obj-$(CONFIG_SND_SOC_WM8510)	+= snd-soc-wm8510.o
->  obj-$(CONFIG_SND_SOC_WM8580)	+= snd-soc-wm8580.o
-> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-> index 8b7766b..0daeee4 100644
-> --- a/sound/soc/omap/Kconfig
-> +++ b/sound/soc/omap/Kconfig
-> @@ -14,6 +14,14 @@ config SND_OMAP_SOC_N810
->  	help
->  	  Say Y if you want to add support for SoC audio on Nokia N810.
-> 
-> +config SND_OMAP_SOC_OMAP3_BEAGLE
-> +	tristate "SoC Audio support for OMAP3 Beagle"
-> +	depends on SND_OMAP_SOC && MACH_OMAP3_BEAGLE
-> +	select SND_OMAP_SOC_MCBSP
-> +	select SND_SOC_TWL4030
-> +	help
-> +	  Say Y if you want to add support for SoC audio on the Beagleboard.
-> +
->  config SND_OMAP_SOC_OSK5912
->  	tristate "SoC Audio support for omap osk5912"
->  	depends on SND_OMAP_SOC && MACH_OMAP_OSK
-> @@ -21,3 +29,13 @@ config SND_OMAP_SOC_OSK5912
->  	select SND_SOC_TLV320AIC23
->  	help
->  	  Say Y if you want to add support for SoC audio on osk5912.
-> +
-> +config SND_OMAP_SOC_OVERO
-> +	tristate "SoC Audio support for Gumstix Overo"
-> +	depends on SND_OMAP_SOC && MACH_OVERO
-> +	select SND_OMAP_SOC_MCBSP
-> +	select SND_SOC_TWL4030
-> +	help
-> +	  Say Y if you want to add support for SoC audio on the Gumstix Overo.
-> +
-> +
-> diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
-> index e09d1f2..4bae404 100644
-> --- a/sound/soc/omap/Makefile
-> +++ b/sound/soc/omap/Makefile
-> @@ -7,7 +7,12 @@ obj-$(CONFIG_SND_OMAP_SOC_MCBSP) += snd-soc-omap-mcbsp.o
-> 
->  # OMAP Machine Support
->  snd-soc-n810-objs := n810.o
-> +snd-soc-omap3beagle-objs := omap3beagle.o
->  snd-soc-osk5912-objs := osk5912.o
-> +snd-soc-overo-objs := overo.o
-> 
->  obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
-> +obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
->  obj-$(CONFIG_SND_OMAP_SOC_OSK5912) += snd-soc-osk5912.o
-> +obj-$(CONFIG_SND_OMAP_SOC_OVERO) += snd-soc-overo.o
-> +
+
