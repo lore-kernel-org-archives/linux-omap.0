@@ -1,76 +1,54 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: [REVIEW PATCH] Added OMAP3EVM support on Tomis FBDEV/DSS
- Patches
-Date: Mon, 17 Nov 2008 11:49:52 +0200
-Message-ID: <1226915392.6860.18.camel@tubuntu>
-References: <19F8576C6E063C45BE387C64729E739403E5F2B75A@dbde02.ent.ti.com>
+From: Steve.Glendinning@smsc.com
+Subject: Re: [PATCH 1/2] Add SMC_MEM_RESERVED for OMAP platform.
+Date: Mon, 17 Nov 2008 10:31:03 +0000
+Message-ID: <OF1AFB43DD.9BED76B1-ON80257504.00386A7C-80257504.0039CC57@smsc.com>
+References: <1226914195-20473-1-git-send-email-stanley.miao@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:34383 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752670AbYKQJuL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Nov 2008 04:50:11 -0500
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403E5F2B75A@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="US-ASCII"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1226914195-20473-1-git-send-email-stanley.miao@windriver.com>
+Sender: netdev-owner@vger.kernel.org
+To: "Stanley.Miao" <stanley.miao@windriver.com>
+Cc: davem@davemloft.net, linux-omap@vger.kernel.org, netdev@vger.kernel.org, netdev-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sat, 2008-11-15 at 14:12 +0530, ext Hiremath, Vaibhav wrote:
-> 
-> Thanks,
-> Vaibhav Hiremath
-> 
-> > -----Original Message-----
-> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > Sent: Friday, November 14, 2008 9:24 PM
-> > To: Hiremath, Vaibhav
-> > Cc: linux-fbdev-devel@lists.sourceforge.net; linux-
-> > omap@vger.kernel.org
-> > Subject: RE: [REVIEW PATCH] Added OMAP3EVM support on Tomis
-> > FBDEV/DSS Patches
-> > 
-> > Hi,
-> > On Fri, 2008-11-14 at 18:05 +0530, ext Hiremath, Vaibhav wrote:
-> > 
-> > > >
-> > > > I think the LCD panel on SDP and EVM boards are the same, so we
-> > > > should
-> > > > only have one driver. Do you have specifications about the LCD?
-> > The
-> > > > manufacturer, model etc?. I didn't find any proper information
-> > about
-> > > > the
-> > > > LCD.
-> > > >
-> > > [Hiremath, Vaibhav] The LCD on OMAP3EVM is Sharp LCD (Model No. -
-> > LS037V7DW01).
-> > > Koen has already conformed that panel3430sdp.c is working with
-> > OMAP3EVM, let me try at my end. If it works properly then we can
-> > have same file to build for both SDP and EVM. But in that case it
-> > make sense to rename file to panel-lcd.c.
-> > >
-> > 
-> > I took the liberty to add you EVM changes to my tree, with a comment
-> > about the origin. I also changed the SDP panel name to sharp panel,
-> > and
-> > made both EVM and SDP use that. But I can't test the EVM, as I don't
-> > have one.
-> > 
-> [Hiremath, Vaibhav] It's ok; you can incorporate required changes from my patches, no issues at all. Please share the code base which you merged from my patch so that I can validate it on EVM, since you don't have EVM to test. 
-> 
+Hi Stanley,
 
-My current version is available in master branch on
-http://www.bat.org/~tomba/git/linux-omap-dss.git/
+Jeff has merged the smsc911x driver into -next, this is intended to 
+replace smc911x moving forward.  I'll forward the patchset to you 
+off-list, it includes platform_data support for several platforms so 
+adding support for omap should be simple.
 
-I will be keeping the master branch up to date with my changes and
-linux-omap. And I will be rebasing the branch.
+> diff --git a/drivers/net/smc911x.h b/drivers/net/smc911x.h
+> index cc7d85b..d1b3b9b 100644
+> --- a/drivers/net/smc911x.h
+> +++ b/drivers/net/smc911x.h
+> @@ -42,6 +42,16 @@
+>    #define SMC_USE_16BIT      0
+>    #define SMC_USE_32BIT      1
+>    #define SMC_IRQ_SENSE      IRQF_TRIGGER_LOW
+> +#elif defined(CONFIG_ARCH_OMAP34XX)
+> +  #define SMC_USE_16BIT      0
+> +  #define SMC_USE_32BIT      1
+> +  #define SMC_IRQ_SENSE      IRQF_TRIGGER_LOW
+> +  #define SMC_MEM_RESERVED   1
+> +#elif defined(CONFIG_ARCH_OMAP24XX)
+> +  #define SMC_USE_16BIT      0
+> +  #define SMC_USE_32BIT      1
+> +  #define SMC_IRQ_SENSE      IRQF_TRIGGER_LOW
+> +  #define SMC_MEM_RESERVED   1
+>  #else
+>  /*
+>   * Default configuration
 
-pub1 branch has the version that I emailed to mailing lists some time
-ago. You can diff master and pub1 branches to see what's changed.
+nack - this platform-specific configuration shouldn't be in the driver, 
+SMC_DYNAMIC_BUS_CONFIG was added so this can be specified in 
+platform_data.
 
- Tomi
-
+Regards,
+--
+Steve Glendinning
+SMSC GmbH
+m: +44 777 933 9124
+e: steve.glendinning@smsc.com
 
