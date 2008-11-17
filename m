@@ -1,57 +1,75 @@
-From: Jouni Hogander <jouni.hogander@nokia.com>
-Subject: [PATCH] OMAP3: PM: Check in set_pwrdm_state that target state is supported by pwrdm v2
-Date: Mon, 17 Nov 2008 10:18:01 +0200
-Message-ID: <1226909881-12415-1-git-send-email-jouni.hogander@nokia.com>
-References: <alpine.DEB.2.00.0811142026040.16502@utopia.booyaka.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:30215 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752684AbYKQISQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Nov 2008 03:18:16 -0500
-In-Reply-To: <alpine.DEB.2.00.0811142026040.16502@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Stanley.Miao" <stanley.miao@windriver.com>
+Subject: [PATCH 1/2] Add SMC_MEM_RESERVED for OMAP platform.
+Date: Mon, 17 Nov 2008 17:29:54 +0800
+Message-ID: <1226914195-20473-1-git-send-email-stanley.miao@windriver.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: davem@davemloft.net, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com
 
-Check that wanted sleep state is supported by powerdomain. If it is
-not supported, then use next lowest supported state.
+The iomem resource for Ethernet device  has been reserved on omap24xx and
+omap34xx. So, define SMC_MEM_RESERVED for them.
 
-Check also on suspend that state of pwrdm was lower or equal.
-
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/net/smc911x.c |    6 ++++--
+ drivers/net/smc911x.h |   10 ++++++++++
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index da098d2..9f5a544 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -239,8 +239,13 @@ static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
- 	if (pwrdm == NULL || IS_ERR(pwrdm))
- 		return -EINVAL;
- 
--	cur_state = pwrdm_read_next_pwrst(pwrdm);
-+	while (!(pwrdm->pwrsts & (1 << state))) {
-+		if (state == PWRDM_POWER_OFF)
-+			return ret;
-+		state--;
-+	}
- 
-+	cur_state = pwrdm_read_next_pwrst(pwrdm);
- 	if (cur_state == state)
- 		return ret;
- 
-@@ -314,7 +319,7 @@ restore:
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
- 		set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
- 		state = pwrdm_read_prev_pwrst(pwrst->pwrdm);
--		if (state != pwrst->next_state) {
-+		if (state > pwrst->next_state) {
- 			printk(KERN_INFO "Powerdomain (%s) didn't enter "
- 			       "target state %d\n",
- 			       pwrst->pwrdm->name, pwrst->next_state);
+diff --git a/drivers/net/smc911x.c b/drivers/net/smc911x.c
+index 1f26ab0..291ee46 100644
+--- a/drivers/net/smc911x.c
++++ b/drivers/net/smc911x.c
+@@ -2065,7 +2065,7 @@ static int smc911x_drv_probe(struct platform_device *pdev)
+ 		ret = -ENODEV;
+ 		goto out;
+ 	}
+-
++#ifndef SMC_MEM_RESERVED
+ 	/*
+ 	 * Request the regions.
+ 	 */
+@@ -2073,7 +2073,7 @@ static int smc911x_drv_probe(struct platform_device *pdev)
+ 		 ret = -EBUSY;
+ 		 goto out;
+ 	}
+-
++#endif
+ 	ndev = alloc_etherdev(sizeof(struct smc911x_local));
+ 	if (!ndev) {
+ 		printk("%s: could not allocate device.\n", CARDNAME);
+@@ -2110,7 +2110,9 @@ static int smc911x_drv_probe(struct platform_device *pdev)
+ release_both:
+ 		free_netdev(ndev);
+ release_1:
++#ifndef SMC_MEM_RESERVED
+ 		release_mem_region(res->start, SMC911X_IO_EXTENT);
++#endif
+ out:
+ 		printk("%s: not found (%d).\n", CARDNAME, ret);
+ 	}
+diff --git a/drivers/net/smc911x.h b/drivers/net/smc911x.h
+index cc7d85b..d1b3b9b 100644
+--- a/drivers/net/smc911x.h
++++ b/drivers/net/smc911x.h
+@@ -42,6 +42,16 @@
+   #define SMC_USE_16BIT		0
+   #define SMC_USE_32BIT		1
+   #define SMC_IRQ_SENSE		IRQF_TRIGGER_LOW
++#elif defined(CONFIG_ARCH_OMAP34XX)
++  #define SMC_USE_16BIT		0
++  #define SMC_USE_32BIT		1
++  #define SMC_IRQ_SENSE		IRQF_TRIGGER_LOW
++  #define SMC_MEM_RESERVED	1
++#elif defined(CONFIG_ARCH_OMAP24XX)
++  #define SMC_USE_16BIT		0
++  #define SMC_USE_32BIT		1
++  #define SMC_IRQ_SENSE		IRQF_TRIGGER_LOW
++  #define SMC_MEM_RESERVED	1
+ #else
+ /*
+  * Default configuration
 -- 
-1.6.0.1
+1.5.6.3
 
