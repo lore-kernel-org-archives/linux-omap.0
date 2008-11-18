@@ -1,37 +1,47 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH PM-20081106 0/3] Build fixes into pm-20081106 branch
-Date: Tue, 18 Nov 2008 10:50:11 -0800
-Message-ID: <87d4gsj2cc.fsf@deeprootsystems.com>
-References: <87skppi50r.fsf@trdhcp146196.ntc.nokia.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: Old OMAP mailing list
+Date: Tue, 18 Nov 2008 19:54:14 +0100
+Message-ID: <49230F56.2040207@googlemail.com>
+References: <mailman.266.1227016675.2121.linux-omap-open-source@linux.omap.com> <20081118141906.GB29982@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:36227 "EHLO
+Received: from ey-out-2122.google.com ([74.125.78.26]:21976 "EHLO
 	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750810AbYKRSuT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Nov 2008 13:50:19 -0500
-Received: by ey-out-2122.google.com with SMTP id 6so1224133eyi.37
-        for <linux-omap@vger.kernel.org>; Tue, 18 Nov 2008 10:50:17 -0800 (PST)
-In-Reply-To: <87skppi50r.fsf@trdhcp146196.ntc.nokia.com>
- (=?iso-8859-1?Q?=22H=F6gander?= Jouni"'s message of "Tue\, 18 Nov 2008
- 14\:37\:40 +0200")
+	with ESMTP id S1752132AbYKRSyY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Nov 2008 13:54:24 -0500
+Received: by ey-out-2122.google.com with SMTP id 6so1224898eyi.37
+        for <linux-omap@vger.kernel.org>; Tue, 18 Nov 2008 10:54:22 -0800 (PST)
+In-Reply-To: <20081118141906.GB29982@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?H=F6gander?= Jouni <jouni.hogander@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap-open-source-owner@linux.omap.com, linux-omap@vger.kernel.org
+Cc: Mark Brown <broonie@sirena.org.uk>
 
-jouni.hogander@nokia.com (H=F6gander Jouni) writes:
+Mark Brown wrote:
+> Please don't CC any ASoC patches to the linux-omap-open-source list -
+> my understanding is that it should no longer be used, having been
+> replaced by linux-omap@vger.kernel.org.  Any posts CCed to it result in
+> backscatter like this:
+> 
+> On Tue, Nov 18, 2008 at 07:57:55AM -0600, linux-omap-open-source-owner@linux.omap.com wrote:
+> 
+>>You are not allowed to post to this mailing list, and your message has
+>>been automatically rejected.  If you think that your messages are
+>>being rejected in error, contact the mailing list owner at
+>>linux-omap-open-source-owner@linux.omap.com.
+> 
+> 
+> which seems a bit hostile.  It'd be nice if this bounce mentioned the
+> new list, FWIW.
 
-> This patch set fixes miscellaneous build problems in pm-20081106 bran=
-ch.
->
+We already tried several times to reach somebody with admin rights for 
+old OMAP mailing list to change this, set list to e.g. read only, link 
+new list at
 
-Thanks, pulling into next PM branch.
+http://linux.omap.com/mailman/listinfo/linux-omap-open-source
 
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+stop subscription system etc. Unfortunately without any luck :(
+
+Dirk
