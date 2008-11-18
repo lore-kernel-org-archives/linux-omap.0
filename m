@@ -1,43 +1,42 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
+From: Mark Brown <broonie@sirena.org.uk>
 Subject: Re: Jack insertion
-Date: Tue, 18 Nov 2008 14:53:09 +0530
-Message-ID: <5d5443650811180123i7ad22df5j5e7ff8dc6dd28bfe@mail.gmail.com>
+Date: Tue, 18 Nov 2008 11:03:43 +0000
+Message-ID: <20081118110341.GA23217@sirena.org.uk>
 References: <ef0d8a250811172246i411bd978h7d252b6d536e6de7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qb-out-0506.google.com ([72.14.204.233]:61208 "EHLO
-	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750790AbYKRJXK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Nov 2008 04:23:10 -0500
-Received: by qb-out-0506.google.com with SMTP id f11so2729143qba.17
-        for <linux-omap@vger.kernel.org>; Tue, 18 Nov 2008 01:23:09 -0800 (PST)
-In-Reply-To: <ef0d8a250811172246i411bd978h7d252b6d536e6de7@mail.gmail.com>
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <ef0d8a250811172246i411bd978h7d252b6d536e6de7@mail.gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
 To: naveen krishna ch <naveenkrishna.ch@gmail.com>
-Cc: alsa-devel@alsa-project.org, linux-omap-open-source@linux.omap.com, linux-omap@vger.kernel.org
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-omap-open-source@linux.omap.com
+List-Id: linux-omap@vger.kernel.org
 
-Hi Naveen,
+On Tue, Nov 18, 2008 at 12:16:18PM +0530, naveen krishna ch wrote:
 
-On Tue, Nov 18, 2008 at 12:16 PM, naveen krishna ch
-<naveenkrishna.ch@gmail.com> wrote:
-> Hello Alsa Devels
->
-> I am working on a OMAP3 + TWL4030 combination for audio (alsa soc)
-> I could develop the ASOC drivers with limited kcontorls and DAPM widgets for
-> the setup.
->
 > Now my issue is is there any work regarding the Headset JACK
 > insertion/detection.
 
-Check Jack Abstraction layer by Mark, it is already mainlined:
+> Earlier there was a proposal for a jack insertion layer.
 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=include/sound/jack.h;h=b1b2b8b59adbe67d7efb817b09f7b985ad0422e7;hb=HEAD
+> Can anyone suggest me in this regard.
 
--- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+The generic ALSA part of the API has been merged already - see
+include/sound/jack.h.
+
+For ASoC drivers you need to implement the actual detection in your
+machine driver.  Normally this would just hook into a GPIO.  You can
+then update the DAPM widget for the jack to mark it as in use or not in
+use (some existing drivers do this) and also hook into the generic
+userspace API (that's not been implemented by anyone yet).  Plan is to
+get something more generic into 2.6.30.
