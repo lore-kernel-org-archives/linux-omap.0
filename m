@@ -1,62 +1,37 @@
-From: "stanley.miao" <stanley.miao@windriver.com>
-Subject: Re: [PATCH 1/2] Add SMC_MEM_RESERVED for OMAP platform.
-Date: Tue, 18 Nov 2008 09:37:41 +0800
-Message-ID: <1226972261.14497.4.camel@localhost>
-References: <OF1AFB43DD.9BED76B1-ON80257504.00386A7C-80257504.0039CC57@smsc.com>
-Reply-To: stanley.miao@windriver.com
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] i2c: i2c-omap: Fix standard and fast mode prescalers
+Date: Mon, 17 Nov 2008 21:36:44 -0800
+Message-ID: <200811172136.45110.david-b@pacbell.net>
+References: <12266521173159-git-send-email-ext-eero.nurkkala@nokia.com> <20081114214635.GC31944@frodo> <0b7d01c9485e$bca27960$LocalHost@wipultra806>
+Reply-To: dbrownell@users.sourceforge.net
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <OF1AFB43DD.9BED76B1-ON80257504.00386A7C-80257504.0039CC57@smsc.com>
-Sender: netdev-owner@vger.kernel.org
-To: Steve.Glendinning@smsc.com
-Cc: davem@davemloft.net, linux-omap@vger.kernel.org, netdev@vger.kernel.org, netdev-owner@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92]:45960 "HELO
+	smtp119.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751913AbYKRFgr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Nov 2008 00:36:47 -0500
+In-Reply-To: <0b7d01c9485e$bca27960$LocalHost@wipultra806>
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "shekhar, chandra" <x0044955@ti.com>
+Cc: me@felipebalbi.com, ext-eero.nurkkala@nokia.com, linux-omap@vger.kernel.org
 
-On Mon, 2008-11-17 at 10:31 +0000, Steve.Glendinning@smsc.com wrote:
-> Hi Stanley,
-> 
-> Jeff has merged the smsc911x driver into -next, this is intended to 
-> replace smc911x moving forward.  I'll forward the patchset to you 
-> off-list, it includes platform_data support for several platforms so 
-> adding support for omap should be simple.
+On Sunday 16 November 2008, shekhar, chandra wrote:
+> I had tested twl4030 at 3.4 Mbps couple of months back and it was working fine 
+> with current settings. It wasn't a rigorous testing though.
 
-OK, Thanks.
+My Beagle booted 2.6.28-rc5-omap with that speed,
+and it worked fine too.  No errors even though I'm
+using the pmu_stat LED (on a TWL LED) for the MMC
+activity indicator ... so it got a decent amount
+of traffic.
 
-Stanley.
+(Oh, and this is *with* the $SUBJECT patch too.)
 
-> 
-> > diff --git a/drivers/net/smc911x.h b/drivers/net/smc911x.h
-> > index cc7d85b..d1b3b9b 100644
-> > --- a/drivers/net/smc911x.h
-> > +++ b/drivers/net/smc911x.h
-> > @@ -42,6 +42,16 @@
-> >    #define SMC_USE_16BIT      0
-> >    #define SMC_USE_32BIT      1
-> >    #define SMC_IRQ_SENSE      IRQF_TRIGGER_LOW
-> > +#elif defined(CONFIG_ARCH_OMAP34XX)
-> > +  #define SMC_USE_16BIT      0
-> > +  #define SMC_USE_32BIT      1
-> > +  #define SMC_IRQ_SENSE      IRQF_TRIGGER_LOW
-> > +  #define SMC_MEM_RESERVED   1
-> > +#elif defined(CONFIG_ARCH_OMAP24XX)
-> > +  #define SMC_USE_16BIT      0
-> > +  #define SMC_USE_32BIT      1
-> > +  #define SMC_IRQ_SENSE      IRQF_TRIGGER_LOW
-> > +  #define SMC_MEM_RESERVED   1
-> >  #else
-> >  /*
-> >   * Default configuration
-> 
-> nack - this platform-specific configuration shouldn't be in the driver, 
-> SMC_DYNAMIC_BUS_CONFIG was added so this can be specified in 
-> platform_data.
-> 
-> Regards,
-> --
-> Steve Glendinning
-> SMSC GmbH
-> m: +44 777 933 9124
-> e: steve.glendinning@smsc.com
-> 
+- Dave
+
