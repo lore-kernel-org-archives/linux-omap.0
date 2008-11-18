@@ -1,180 +1,83 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [REVIEW PATCH] Added OMAP3EVM support on Tomis FBDEV/DSS Patches
-Date: Tue, 18 Nov 2008 17:39:54 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403E8E67528@dbde02.ent.ti.com>
-References: <C98171C5-A13C-4FE0-97DD-8BCF356212F2@student.utwente.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: [REVIEW PATCH] Added OMAP3EVM support on Tomis FBDEV/DSS Patches
+Date: Tue, 18 Nov 2008 13:21:00 +0100
+Message-ID: <04FF9B32-1479-4D43-8657-58F9D04EEAD1@student.utwente.nl>
+References: <19F8576C6E063C45BE387C64729E739403E8E67528@dbde02.ent.ti.com>
+Mime-Version: 1.0 (Apple Message framework v929.2)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-4--404442736"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35395 "EHLO comal.ext.ti.com"
+Received: from smtp1.utsp.utwente.nl ([130.89.2.8]:42012 "EHLO smtp.utwente.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752009AbYKRMKA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Nov 2008 07:10:00 -0500
-In-Reply-To: <C98171C5-A13C-4FE0-97DD-8BCF356212F2@student.utwente.nl>
-Content-Language: en-US
+	id S1752047AbYKRMV2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Nov 2008 07:21:28 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403E8E67528@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-4--404442736
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
 
+Op 18 nov 2008, om 13:09 heeft Hiremath, Vaibhav het volgende  
+geschreven:
+>>
+>> I finally got rc4 working on evm and with your latest patches I get:
+>>
+> [Hiremath, Vaibhav] Probably you missed to apply the clock set_rate  
+> and round_rate patches by Mans Rullgard.
 
-Thanks,
-Vaibhav Hiremath
+I already have those, the problem was fixed by:
 
-> -----Original Message-----
-> From: Koen Kooi [mailto:k.kooi@student.utwente.nl]
-> Sent: Saturday, November 15, 2008 1:14 AM
-> To: Tomi Valkeinen
-> Cc: Hiremath, Vaibhav; linux-fbdev-devel@lists.sourceforge.net;
-> linux-omap@vger.kernel.org
-> Subject: Re: [REVIEW PATCH] Added OMAP3EVM support on Tomis
-> FBDEV/DSS Patches
-> 
-> 
-> Op 14 nov 2008, om 16:53 heeft Tomi Valkeinen het volgende
-> geschreven:
-> 
-> > Hi,
-> > On Fri, 2008-11-14 at 18:05 +0530, ext Hiremath, Vaibhav wrote:
-> >
-> >>>
-> >>> I think the LCD panel on SDP and EVM boards are the same, so we
-> >>> should
-> >>> only have one driver. Do you have specifications about the LCD?
-> The
-> >>> manufacturer, model etc?. I didn't find any proper information
-> about
-> >>> the
-> >>> LCD.
-> >>>
-> >> [Hiremath, Vaibhav] The LCD on OMAP3EVM is Sharp LCD (Model No. -
-> >> LS037V7DW01).
-> >> Koen has already conformed that panel3430sdp.c is working with
-> >> OMAP3EVM, let me try at my end. If it works properly then we can
-> >> have same file to build for both SDP and EVM. But in that case it
-> >> make sense to rename file to panel-lcd.c.
-> >>
-> >
-> > I took the liberty to add you EVM changes to my tree, with a
-> comment
-> > about the origin. I also changed the SDP panel name to sharp
-> panel,
-> > and
-> > made both EVM and SDP use that. But I can't test the EVM, as I
-> don't
-> > have one.
-> 
-> I finally got rc4 working on evm and with your latest patches I get:
-> 
-[Hiremath, Vaibhav] Probably you missed to apply the clock set_rate and round_rate patches by Mans Rullgard.
+ From d90a851b63f2593d02ae306a91c36ea059f67014 Mon Sep 17 00:00:00 2001
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Date: Mon, 17 Nov 2008 13:40:55 +0200
+Subject: [PATCH] DSS: OMAPFB: Check that var->pixclock is not zero
 
-> udevd version 124 started
-> eth0: link down
-> eth0: link up, 100Mbps, full-duplex, lpa 0x8DE1
-> DSS2 debug: best_ld is 1, best_pd is 3
-> DSS2 debug: best_ld is 1, best_pd is 3
-> DSS2 debug: best.lck_div is 1, best.pck_div is 3
-> omap-dss DISPLAY: omap_dss_mgr_apply(lcd)
-> omap-dss DISPC: dispc_setup_plane 0, 87200000, sw 480, 0,0, 480x640
-> ->
-> 480x640, (ilace 0)
-> omap-dss DISPC: dispc_enable_plane 0, 1
-> omap-dss DISPC: dispc_enable_plane 1, 0
-> omap-dss DISPC: dispc_enable_plane 2, 0
-> omap-dss DISPC: GO LCD
-> Division by zero in kernel.
-> [<c0033a60>] (dump_stack+0x0/0x14) from [<c0033a8c>]
-> (__div0+0x18/0x20)
-> [<c0033a74>] (__div0+0x0/0x20) from [<c01a235c>] (Ldiv0+0x8/0x10)
-> [<c01c7f08>] (check_fb_var+0x0/0x35c) from [<c01c8280>]
-> (omapfb_check_var+0x1c/0x20)
->   r7:c6711e08 r6:c708bc00 r5:00004601 r4:c01c8264
-> [<c01c8264>] (omapfb_check_var+0x0/0x20) from [<c01b55dc>]
-> (fb_set_var
-> +0xd4/0x254)
-> [<c01b5508>] (fb_set_var+0x0/0x254) from [<c01b59c0>] (fb_ioctl
-> +0x170/0x4f0)
-> [<c01b5850>] (fb_ioctl+0x0/0x4f0) from [<c00c59c8>] (vfs_ioctl
-> +0x34/0x94)
->   r8:c0030004 r7:c7b4e6c0 r6:03d7ca30 r5:00004601 r4:c7b4e6c0
-> [<c00c5994>] (vfs_ioctl+0x0/0x94) from [<c00c5fc8>] (do_vfs_ioctl
-> +0x4a4/0x4e4)
->   r7:c7b4e6c0 r6:03d7ca30 r5:c7b4e6c0 r4:c70f9290
-> [<c00c5b24>] (do_vfs_ioctl+0x0/0x4e4) from [<c00c6048>] (sys_ioctl
-> +0x40/0x64)
->   r9:c6710000 r8:c0030004 r6:00004601 r5:03d7ca30 r4:00000006
-> [<c00c6008>] (sys_ioctl+0x0/0x64) from [<c002fe80>]
-> (ret_fast_syscall
-> +0x0/0x2c)
->   r7:00000036 r6:00000281 r5:000001fc r4:00000000
-> DSS2 debug: best_ld is 255, best_pd is 255
-> DSS2 debug: best_ld is 255, best_pd is 255
-> DSS2 debug: best_ld is 255, best_pd is 255
-> DSS2 debug: best_ld is 255, best_pd is 255
-> DSS2 debug: best_ld is 255, best_pd is 255
-> DSS2 debug: best_ld is 255, best_pd is 255
-> DSS2 debug: best_ld is 255, best_pd is 255
-> DSS2 debug: best_ld is 255, best_pd is 255
-> DSS2 debug: best_ld is 255, best_pd is 255
-> DSS2 debug: best_ld is 255, best_pd is 255
-> DSS2 debug: best_ld is 255, best_pd is 255
-> DSS2 debug: best_ld is 255, best_pd is 255
-> DSS2 debug: best.lck_div is 0, best.pck_div is 0
-> Division by zero in kernel.
-> [<c0033a60>] (dump_stack+0x0/0x14) from [<c0033a8c>]
-> (__div0+0x18/0x20)
-> [<c0033a74>] (__div0+0x0/0x20) from [<c01a235c>] (Ldiv0+0x8/0x10)
-> [<c01c7f08>] (check_fb_var+0x0/0x35c) from [<c01c8280>]
-> (omapfb_check_var+0x1c/0x20)
->   r7:c6711e08 r6:c708bc00 r5:00004601 r4:c01c8264
-> [<c01c8264>] (omapfb_check_var+0x0/0x20) from [<c01b55dc>]
-> (fb_set_var
-> +0xd4/0x254)
-> [<c01b5508>] (fb_set_var+0x0/0x254) from [<c01b59c0>] (fb_ioctl
-> +0x170/0x4f0)
-> [<c01b5850>] (fb_ioctl+0x0/0x4f0) from [<c00c59c8>] (vfs_ioctl
-> +0x34/0x94)
->   r8:c0030004 r7:c7b4e6c0 r6:03d7ca30 r5:00004601 r4:c7b4e6c0
-> [<c00c5994>] (vfs_ioctl+0x0/0x94) from [<c00c5fc8>] (do_vfs_ioctl
-> +0x4a4/0x4e4)
->   r7:c7b4e6c0 r6:03d7ca30 r5:c7b4e6c0 r4:c70f9290
-> [<c00c5b24>] (do_vfs_ioctl+0x0/0x4e4) from [<c00c6048>] (sys_ioctl
-> +0x40/0x64)
->   r9:c6710000 r8:c0030004 r6:00004601 r5:03d7ca30 r4:00000006
-> [<c00c6008>] (sys_ioctl+0x0/0x64) from [<c002fe80>]
-> (ret_fast_syscall
-> +0x0/0x2c)
->   r7:00000036 r6:00000281 r5:000001fc r4:00000000
-> omap-dss DISPLAY: omap_dss_mgr_apply(lcd)
-> omap-dss DISPC: dispc_setup_plane 0, 87200000, sw 480, 0,0, 480x640
-> ->
-> 480x640, (ilace 0)
-> omap-dss DISPC: dispc_enable_plane 0, 1
-> omap-dss DISPC: dispc_enable_plane 1, 0
-> omap-dss DISPC: dispc_enable_plane 2, 0
-> omap-dss DISPC: GO LCD
-> omap-dss DISPLAY: omap_dss_mgr_apply(lcd)
-> omap-dss DISPC: dispc_setup_plane 0, 87200000, sw 480, 0,0, 480x640
-> ->
-> 480x640, (ilace 0)
-> omap-dss DISPC: dispc_enable_plane 0, 1
-> omap-dss DISPC: dispc_enable_plane 1, 0
-> omap-dss DISPC: dispc_enable_plane 2, 0
-> omap-dss DISPC: GO LCD
-> omap-dss DISPLAY: omap_dss_mgr_apply(lcd)
-> omap-dss DISPC: dispc_setup_plane 0, 87200000, sw 480, 0,0, 480x640
-> ->
-> 480x640, (ilace 0)
-> omap-dss DISPC: dispc_enable_plane 0, 1
-> omap-dss DISPC: dispc_enable_plane 1, 0
-> omap-dss DISPC: dispc_enable_plane 2, 0
-> omap-dss DISPC: GO LCD
-> 
-> the DSS2 printks are at the end of find_lck_pck_divs() and
-> dispc_calc_clock_div() in dispc.c.
-> 
-> regards,
-> 
-> Koen
+---
+  drivers/video/omap2/omapfb-main.c |    6 ++++++
+  1 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/video/omap2/omapfb-main.c b/drivers/video/omap2/ 
+omapfb-main.c
+index c0f1664..add65e4 100644
+--- a/drivers/video/omap2/omapfb-main.c
++++ b/drivers/video/omap2/omapfb-main.c
+@@ -342,6 +342,12 @@ static int check_fb_var(struct fb_info *fbi,  
+struct fb_var_screeninfo *var)
+
+  	if (display && display->check_timings) {
+  		struct omap_video_timings timings;
++
++		if (var->pixclock == 0) {
++			DBG("Pixclock can't be zero.\n");
++			return -EINVAL;
++		}
++
+  		timings.pixel_clock = PICOS2KHZ(var->pixclock);
+  		timings.hfp = var->left_margin;
+  		timings.hbp = var->right_margin;
+-- 
+1.6.0.3
+
+
+--Apple-Mail-4--404442736
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: This is a digitally signed message part
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFJIrMuMkyGM64RGpERAnqtAJ9anfmPohQ5HdAd2J/48ywuBofi0gCgrhGu
+JXMh5vpHTGsfKZkwAFM/d6U=
+=qUw5
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-4--404442736--
