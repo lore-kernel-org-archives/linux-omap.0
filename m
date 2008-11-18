@@ -1,71 +1,180 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: [Linux-fbdev-devel] [REVIEW  PATCH 0/9] DSS: Series description
-Date: Tue, 18 Nov 2008 14:06:04 +0200
-Message-ID: <1227009964.6860.103.camel@tubuntu>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02E228767B@dbde02.ent.ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [REVIEW PATCH] Added OMAP3EVM support on Tomis FBDEV/DSS Patches
+Date: Tue, 18 Nov 2008 17:39:54 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403E8E67528@dbde02.ent.ti.com>
+References: <C98171C5-A13C-4FE0-97DD-8BCF356212F2@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:38762 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752741AbYKRMGT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Nov 2008 07:06:19 -0500
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02E228767B@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:35395 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752009AbYKRMKA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Nov 2008 07:10:00 -0500
+In-Reply-To: <C98171C5-A13C-4FE0-97DD-8BCF356212F2@student.utwente.nl>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Shah, Hardik" <hardik.shah@ti.com>
+To: Koen Kooi <k.kooi@student.utwente.nl>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 Cc: "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
 
-On Tue, 2008-11-18 at 12:10 +0530, ext Shah, Hardik wrote:
+
+Thanks,
+Vaibhav Hiremath
+
+> -----Original Message-----
+> From: Koen Kooi [mailto:k.kooi@student.utwente.nl]
+> Sent: Saturday, November 15, 2008 1:14 AM
+> To: Tomi Valkeinen
+> Cc: Hiremath, Vaibhav; linux-fbdev-devel@lists.sourceforge.net;
+> linux-omap@vger.kernel.org
+> Subject: Re: [REVIEW PATCH] Added OMAP3EVM support on Tomis
+> FBDEV/DSS Patches
 > 
-> > -----Original Message-----
-> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > Sent: Tuesday, November 04, 2008 9:40 PM
-> > To: linux-fbdev-devel@lists.sourceforge.net
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: [Linux-fbdev-devel] [REVIEW PATCH 0/9] DSS: Series description
-> > 
-> > New Display Subsystem for OMAP2/3
-> > ---------------------------------
-> > 
-
-[snip]
-
+> 
+> Op 14 nov 2008, om 16:53 heeft Tomi Valkeinen het volgende
+> geschreven:
+> 
+> > Hi,
+> > On Fri, 2008-11-14 at 18:05 +0530, ext Hiremath, Vaibhav wrote:
 > >
-> [Shah, Hardik] Hi Tomi,
-> We are successful to bring up the basic functionality of the V4L2 driver onto your patches.  We will be posting those patches in a day or two. Based on our V4L2 driver development we have few questions/suggestions on DSS patches you submitted. 
-> 1.	Display enable function is returning false if the display is already 	enabled.  Instead it should just return without error if display is 	already enabled as V4L2 and fbdev both may be enabling it without each 	other's knowledge.
+> >>>
+> >>> I think the LCD panel on SDP and EVM boards are the same, so we
+> >>> should
+> >>> only have one driver. Do you have specifications about the LCD?
+> The
+> >>> manufacturer, model etc?. I didn't find any proper information
+> about
+> >>> the
+> >>> LCD.
+> >>>
+> >> [Hiremath, Vaibhav] The LCD on OMAP3EVM is Sharp LCD (Model No. -
+> >> LS037V7DW01).
+> >> Koen has already conformed that panel3430sdp.c is working with
+> >> OMAP3EVM, let me try at my end. If it works properly then we can
+> >> have same file to build for both SDP and EVM. But in that case it
+> >> make sense to rename file to panel-lcd.c.
+> >>
+> >
+> > I took the liberty to add you EVM changes to my tree, with a
+> comment
+> > about the origin. I also changed the SDP panel name to sharp
+> panel,
+> > and
+> > made both EVM and SDP use that. But I can't test the EVM, as I
+> don't
+> > have one.
 > 
-> 2.	Second display enable/disable should maintain the reference count as 	disabling of the display by one driver will leave other driver without 	display.
+> I finally got rc4 working on evm and with your latest patches I get:
 > 
-> 3.	I think the row increment value should not be calculate inside the dispc.c 	file instead high level driver will pass the value it requires based on 	his buffer requirement and dispc.c should program it dumbly.  This is 	mainly due to the odd row_inc_value requirement for the VRFB space.
-> 
-> 4.    There is API in dispc.c file to change pixel increment value.
-> 
-> 5.	We need separate API to enable the plane and enable the clocks. 	Once 	the clock is enabled driver can directly go and program registers 	through low level dispc APIs instead of dispc APIs enabling the clock for 	each register programming and then disabling it. 
-> 	
-> 	This will avoid the enabling and disabling of the clocks for each 	frame displayed.  As for V4L2 interface driver will enable 	planes and 	clocks during VIDIOC_STREAMON ioctls and during the streaming it will 	just change the buffer address for displaying frames. This way delay 	between the enabling/disabling of the clocks can also be saved.  It 	would be driver's responsibility to enable the clocks before programming 	any registers.  Same may be true for setting the GO bit of the respective 	overlay managers.
-> 
-> 6.	We also need a public API to program the color conversion values.  Some 	application may need to program it differently than standard values.
-> 
+[Hiremath, Vaibhav] Probably you missed to apply the clock set_rate and round_rate patches by Mans Rullgard.
 
-These all sound valid changes to me, I will see to them. For the time
-being, just make whatever hacks you need to get the V4L2 running. And
-preferably mark these hacks with a comment, so it's easy to find them.
-
-As for the 5. issue, I've been thinking the same thing. However, usually
-the clocks are always on when the LCD is on. So even if there are
-clk_enable() calls, all they do is increment the ref count. 
-
+> udevd version 124 started
+> eth0: link down
+> eth0: link up, 100Mbps, full-duplex, lpa 0x8DE1
+> DSS2 debug: best_ld is 1, best_pd is 3
+> DSS2 debug: best_ld is 1, best_pd is 3
+> DSS2 debug: best.lck_div is 1, best.pck_div is 3
+> omap-dss DISPLAY: omap_dss_mgr_apply(lcd)
+> omap-dss DISPC: dispc_setup_plane 0, 87200000, sw 480, 0,0, 480x640
+> ->
+> 480x640, (ilace 0)
+> omap-dss DISPC: dispc_enable_plane 0, 1
+> omap-dss DISPC: dispc_enable_plane 1, 0
+> omap-dss DISPC: dispc_enable_plane 2, 0
+> omap-dss DISPC: GO LCD
+> Division by zero in kernel.
+> [<c0033a60>] (dump_stack+0x0/0x14) from [<c0033a8c>]
+> (__div0+0x18/0x20)
+> [<c0033a74>] (__div0+0x0/0x20) from [<c01a235c>] (Ldiv0+0x8/0x10)
+> [<c01c7f08>] (check_fb_var+0x0/0x35c) from [<c01c8280>]
+> (omapfb_check_var+0x1c/0x20)
+>   r7:c6711e08 r6:c708bc00 r5:00004601 r4:c01c8264
+> [<c01c8264>] (omapfb_check_var+0x0/0x20) from [<c01b55dc>]
+> (fb_set_var
+> +0xd4/0x254)
+> [<c01b5508>] (fb_set_var+0x0/0x254) from [<c01b59c0>] (fb_ioctl
+> +0x170/0x4f0)
+> [<c01b5850>] (fb_ioctl+0x0/0x4f0) from [<c00c59c8>] (vfs_ioctl
+> +0x34/0x94)
+>   r8:c0030004 r7:c7b4e6c0 r6:03d7ca30 r5:00004601 r4:c7b4e6c0
+> [<c00c5994>] (vfs_ioctl+0x0/0x94) from [<c00c5fc8>] (do_vfs_ioctl
+> +0x4a4/0x4e4)
+>   r7:c7b4e6c0 r6:03d7ca30 r5:c7b4e6c0 r4:c70f9290
+> [<c00c5b24>] (do_vfs_ioctl+0x0/0x4e4) from [<c00c6048>] (sys_ioctl
+> +0x40/0x64)
+>   r9:c6710000 r8:c0030004 r6:00004601 r5:03d7ca30 r4:00000006
+> [<c00c6008>] (sys_ioctl+0x0/0x64) from [<c002fe80>]
+> (ret_fast_syscall
+> +0x0/0x2c)
+>   r7:00000036 r6:00000281 r5:000001fc r4:00000000
+> DSS2 debug: best_ld is 255, best_pd is 255
+> DSS2 debug: best_ld is 255, best_pd is 255
+> DSS2 debug: best_ld is 255, best_pd is 255
+> DSS2 debug: best_ld is 255, best_pd is 255
+> DSS2 debug: best_ld is 255, best_pd is 255
+> DSS2 debug: best_ld is 255, best_pd is 255
+> DSS2 debug: best_ld is 255, best_pd is 255
+> DSS2 debug: best_ld is 255, best_pd is 255
+> DSS2 debug: best_ld is 255, best_pd is 255
+> DSS2 debug: best_ld is 255, best_pd is 255
+> DSS2 debug: best_ld is 255, best_pd is 255
+> DSS2 debug: best_ld is 255, best_pd is 255
+> DSS2 debug: best.lck_div is 0, best.pck_div is 0
+> Division by zero in kernel.
+> [<c0033a60>] (dump_stack+0x0/0x14) from [<c0033a8c>]
+> (__div0+0x18/0x20)
+> [<c0033a74>] (__div0+0x0/0x20) from [<c01a235c>] (Ldiv0+0x8/0x10)
+> [<c01c7f08>] (check_fb_var+0x0/0x35c) from [<c01c8280>]
+> (omapfb_check_var+0x1c/0x20)
+>   r7:c6711e08 r6:c708bc00 r5:00004601 r4:c01c8264
+> [<c01c8264>] (omapfb_check_var+0x0/0x20) from [<c01b55dc>]
+> (fb_set_var
+> +0xd4/0x254)
+> [<c01b5508>] (fb_set_var+0x0/0x254) from [<c01b59c0>] (fb_ioctl
+> +0x170/0x4f0)
+> [<c01b5850>] (fb_ioctl+0x0/0x4f0) from [<c00c59c8>] (vfs_ioctl
+> +0x34/0x94)
+>   r8:c0030004 r7:c7b4e6c0 r6:03d7ca30 r5:00004601 r4:c7b4e6c0
+> [<c00c5994>] (vfs_ioctl+0x0/0x94) from [<c00c5fc8>] (do_vfs_ioctl
+> +0x4a4/0x4e4)
+>   r7:c7b4e6c0 r6:03d7ca30 r5:c7b4e6c0 r4:c70f9290
+> [<c00c5b24>] (do_vfs_ioctl+0x0/0x4e4) from [<c00c6048>] (sys_ioctl
+> +0x40/0x64)
+>   r9:c6710000 r8:c0030004 r6:00004601 r5:03d7ca30 r4:00000006
+> [<c00c6008>] (sys_ioctl+0x0/0x64) from [<c002fe80>]
+> (ret_fast_syscall
+> +0x0/0x2c)
+>   r7:00000036 r6:00000281 r5:000001fc r4:00000000
+> omap-dss DISPLAY: omap_dss_mgr_apply(lcd)
+> omap-dss DISPC: dispc_setup_plane 0, 87200000, sw 480, 0,0, 480x640
+> ->
+> 480x640, (ilace 0)
+> omap-dss DISPC: dispc_enable_plane 0, 1
+> omap-dss DISPC: dispc_enable_plane 1, 0
+> omap-dss DISPC: dispc_enable_plane 2, 0
+> omap-dss DISPC: GO LCD
+> omap-dss DISPLAY: omap_dss_mgr_apply(lcd)
+> omap-dss DISPC: dispc_setup_plane 0, 87200000, sw 480, 0,0, 480x640
+> ->
+> 480x640, (ilace 0)
+> omap-dss DISPC: dispc_enable_plane 0, 1
+> omap-dss DISPC: dispc_enable_plane 1, 0
+> omap-dss DISPC: dispc_enable_plane 2, 0
+> omap-dss DISPC: GO LCD
+> omap-dss DISPLAY: omap_dss_mgr_apply(lcd)
+> omap-dss DISPC: dispc_setup_plane 0, 87200000, sw 480, 0,0, 480x640
+> ->
+> 480x640, (ilace 0)
+> omap-dss DISPC: dispc_enable_plane 0, 1
+> omap-dss DISPC: dispc_enable_plane 1, 0
+> omap-dss DISPC: dispc_enable_plane 2, 0
+> omap-dss DISPC: GO LCD
 > 
+> the DSS2 printks are at the end of find_lck_pck_divs() and
+> dispc_calc_clock_div() in dispc.c.
 > 
-> Thanks and Regards,
-> Hardik Shah
-> Vaibhav Hiremath
-
- Tomi
-
-
+> regards,
+> 
+> Koen
