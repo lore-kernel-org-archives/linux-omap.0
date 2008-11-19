@@ -1,40 +1,39 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP3: PM: Check in set_pwrdm_state that target state
-	is supported by pwrdm v2
-Date: Wed, 19 Nov 2008 10:04:00 -0800
-Message-ID: <20081119180358.GX9504@atomide.com>
-References: <alpine.DEB.2.00.0811142026040.16502@utopia.booyaka.com> <1226909881-12415-1-git-send-email-jouni.hogander@nokia.com> <alpine.DEB.2.00.0811181126460.21683@utopia.booyaka.com> <871vx8h9ml.fsf@deeprootsystems.com>
+Subject: Re: [PATCH v2 0/6] OMAP: Make OMAP LDP boot succussfuly
+Date: Wed, 19 Nov 2008 10:13:08 -0800
+Message-ID: <20081119181305.GY9504@atomide.com>
+References: <1226404258-13027-1-git-send-email-stanley.miao@windriver.com> <20081111145715.GA11056@2ka.mipt.ru> <20081113224053.GO3106@atomide.com> <20081114112838.GA20212@2ka.mipt.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59962 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54435 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752277AbYKSSEF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Nov 2008 13:04:05 -0500
+	with ESMTP id S1754122AbYKSSNN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Nov 2008 13:13:13 -0500
 Content-Disposition: inline
-In-Reply-To: <871vx8h9ml.fsf@deeprootsystems.com>
+In-Reply-To: <20081114112838.GA20212@2ka.mipt.ru>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Jouni Hogander <jouni.hogander@nokia.com>, linux-omap@vger.kernel.org
+To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: "Stanley.Miao" <stanley.miao@windriver.com>, linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@deeprootsystems.com> [081118 15:56]:
-> Paul Walmsley <paul@pwsan.com> writes:
+* Evgeniy Polyakov <johnpol@2ka.mipt.ru> [081114 03:29]:
+> Hi Tony.
 > 
-> > On Mon, 17 Nov 2008, Jouni Hogander wrote:
-> >
-> >> Check that wanted sleep state is supported by powerdomain. If it is
-> >> not supported, then use next lowest supported state.
-> >> 
-> >> Check also on suspend that state of pwrdm was lower or equal.
-> >> 
-> >> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
-> >
-> > Acked-by: Paul Walmsley <paul@pwsan.com>
-> >
+> On Thu, Nov 13, 2008 at 02:40:54PM -0800, Tony Lindgren (tony@atomide.com) wrote:
+> > Evgeniy, can you please confirm you're adding the Stanley's 1w patch to your
+> > upstream queue? Or else let Stanley know if he needs to repost it to
+> > LKML.
 > 
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> If w1 part does not depend on any upstream changes not yet in the tree,
+> I will forward it for inclusing, but if it requires some external update
+> to be pushed first, I would like to add w1 part into that merge.
 
-Pushing this today.
+Yes, please include it into your queue, it does not have any other
+omap dependencies. And we are trying to move all the omap driver
+development to the appropriate driver lists to get in sync with the
+mainline tree.
+
+Regards,
 
 Tony
