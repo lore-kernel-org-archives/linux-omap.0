@@ -1,85 +1,40 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH PM-20081106] OMAP: PM: Few fixes to uart clock handling
-Date: Wed, 19 Nov 2008 09:54:28 -0800
-Message-ID: <87fxlnfvor.fsf@deeprootsystems.com>
-References: <1227088474-27452-1-git-send-email-jouni.hogander@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP3: PM: Check in set_pwrdm_state that target state
+	is supported by pwrdm v2
+Date: Wed, 19 Nov 2008 10:04:00 -0800
+Message-ID: <20081119180358.GX9504@atomide.com>
+References: <alpine.DEB.2.00.0811142026040.16502@utopia.booyaka.com> <1226909881-12415-1-git-send-email-jouni.hogander@nokia.com> <alpine.DEB.2.00.0811181126460.21683@utopia.booyaka.com> <871vx8h9ml.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:31942 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752965AbYKSRyd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Nov 2008 12:54:33 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so18040qwe.37
-        for <linux-omap@vger.kernel.org>; Wed, 19 Nov 2008 09:54:31 -0800 (PST)
-In-Reply-To: <1227088474-27452-1-git-send-email-jouni.hogander@nokia.com> (Jouni Hogander's message of "Wed\, 19 Nov 2008 11\:54\:34 +0200")
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59962 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752277AbYKSSEF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Nov 2008 13:04:05 -0500
+Content-Disposition: inline
+In-Reply-To: <871vx8h9ml.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jouni Hogander <jouni.hogander@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Jouni Hogander <jouni.hogander@nokia.com>, linux-omap@vger.kernel.org
 
-Jouni Hogander <jouni.hogander@nokia.com> writes:
+* Kevin Hilman <khilman@deeprootsystems.com> [081118 15:56]:
+> Paul Walmsley <paul@pwsan.com> writes:
+> 
+> > On Mon, 17 Nov 2008, Jouni Hogander wrote:
+> >
+> >> Check that wanted sleep state is supported by powerdomain. If it is
+> >> not supported, then use next lowest supported state.
+> >> 
+> >> Check also on suspend that state of pwrdm was lower or equal.
+> >> 
+> >> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+> >
+> > Acked-by: Paul Walmsley <paul@pwsan.com>
+> >
+> 
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 
-> Omap3_can_sleep is not inside part of idle loop which is protected
-> with irg disable. If some irq handler is trying dump out something
-> after omap3_can_sleep and before irqs are disabled. It causes oops
-> because uart clocks are disabled.
->
-> Remove also some unused extra code from omap_uart_can_sleep
->
-> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
-> ---
->  arch/arm/mach-omap2/serial.c |   11 +----------
->  1 files changed, 1 insertions(+), 10 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index ef30d8d..b06b797 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -314,21 +314,13 @@ void omap_uart_check_wakeup(void)
->  int omap_uart_can_sleep(void)
->  {
->  	struct omap_uart_state *uart;
-> -	int can_sleep = 1;
->  
->  	list_for_each_entry(uart, &uart_list, node) {
-> -		if (!uart->clocked)
-> +		if (!uart->clocked || !uart->can_sleep)
->  			continue;
->  
-> -		if (!uart->can_sleep) {
-> -			can_sleep = 0;
-> -			continue;
-> -		}
-> -
+Pushing this today.
 
-I don't think this part is quite right.  I think this block should
-stay, and the function should 'return can_sleep' instead of return 1;
-
-I'll fix that, and incorporate your other changes here into
-pm-20081118.
-
-Kevin
-
->  		/* This UART can now safely sleep. */
->  		omap_uart_allow_sleep(uart);
-> -		if (clocks_off_while_idle)
-> -			omap_uart_disable_clocks(uart);
->  	}
->  
->  	return 1;
-> @@ -435,7 +427,6 @@ static void omap_uart_pm(struct uart_port *port,
->  		break;
->  	case 3: /* suspend */
->  		omap_uart_allow_sleep(uart);
-> -		omap_uart_disable_clocks(uart);
->  		break;
->  	}
->  }
-> -- 
-> 1.6.0.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
