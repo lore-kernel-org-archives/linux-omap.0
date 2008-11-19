@@ -1,14 +1,14 @@
 From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [PATCH 1/1] ASoC: Add support for omap2evm board
-Date: Wed, 19 Nov 2008 12:31:32 +0000
-Message-ID: <20081119123129.GC13250@sirena.org.uk>
-References: <dfeb90390811190415t5a1c7f9cj4f7ddc1cdb887370@mail.gmail.com>
+Subject: Re: omap3evm asoc
+Date: Wed, 19 Nov 2008 12:37:19 +0000
+Message-ID: <20081119123718.GD13250@sirena.org.uk>
+References: <ef0d8a250811190427s4fe35bd2o8e6dd28c725fd665@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <dfeb90390811190415t5a1c7f9cj4f7ddc1cdb887370@mail.gmail.com>
+In-Reply-To: <ef0d8a250811190427s4fe35bd2o8e6dd28c725fd665@mail.gmail.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
@@ -18,13 +18,15 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Sender: alsa-devel-bounces@alsa-project.org
 Errors-To: alsa-devel-bounces@alsa-project.org
-To: Arun KS <arunks@mistralsolutions.com>
-Cc: ALSA devel <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: naveen krishna ch <naveenkrishna.ch@gmail.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 19, 2008 at 05:45:19PM +0530, Arun KS wrote:
-> This patch adds twl4030 audio support on omap2evm
-> 
-> Signed-off-by: Arun KS <arunks@mistralsolutions.com>
+On Wed, Nov 19, 2008 at 05:57:55PM +0530, naveen krishna ch wrote:
 
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> Is there any previous work on audio ASOC for OMAP3EVM.
+> I have started working on OMAP3EVM + TWL4030 combination and audio is
+> working.
+
+Not that I'm aware of, though Arun just submitted a patch for the
+omap2evm.  CCing in linux-omap who are more likely to know.
