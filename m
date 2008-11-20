@@ -1,17 +1,17 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.28-rc5 3/5] twl4030 MADC irq
-Date: Wed, 19 Nov 2008 17:28:16 -0800
-Message-ID: <200811191728.17100.david-b@pacbell.net>
+Subject: [patch 2.6.28-rc5 4/5] twl4030 power button irq
+Date: Wed, 19 Nov 2008 17:28:58 -0800
+Message-ID: <200811191728.58850.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92]:25978 "HELO
+Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92]:25985 "HELO
 	smtp119.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752561AbYKTBek (ORCPT
+	by vger.kernel.org with SMTP id S1752583AbYKTBel (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Nov 2008 20:34:40 -0500
+	Wed, 19 Nov 2008 20:34:41 -0500
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,44 +19,120 @@ To: linux-omap@vger.kernel.org
 
 From: David Brownell <dbrownell@users.sourceforge.net>
 
-Disable the TWL4030_MODIRQ_MADC symbol and remove all its uses.
-It's not needed any more now that platform_get_irq() works for
-these MADC devices.
+Disable the TWL4030_PWRIRQ_PWRBTN symbol from the system headers;
+initialization of the power button handler still needs work, so
+an equivalent symbol is defined in its driver.
+
+Power IRQs now properly handle trigger specs from request_irq();
+stop goofing with registers reserved to the IRQ infrastructure.
+
+Minor cleanup:  switch several messages to pr_debug().
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 ---
- drivers/i2c/chips/twl4030-madc.c |    4 ++--
- include/linux/i2c/twl4030.h      |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/i2c/chips/twl4030-pwrbutton.c |   50 ++++++++------------------------
+ include/linux/i2c/twl4030.h           |    2 -
+ 2 files changed, 15 insertions(+), 37 deletions(-)
 
---- a/drivers/i2c/chips/twl4030-madc.c
-+++ b/drivers/i2c/chips/twl4030-madc.c
-@@ -458,7 +458,7 @@ static int __init twl4030_madc_probe(str
- 	ret = twl4030_i2c_write_u8(TWL4030_MODULE_MAIN_CHARGE,
- 				   regval, TWL4030_BCI_BCICTL1);
+--- a/drivers/i2c/chips/twl4030-pwrbutton.c
++++ b/drivers/i2c/chips/twl4030-pwrbutton.c
+@@ -29,18 +29,16 @@
+ #include <linux/interrupt.h>
+ #include <linux/i2c/twl4030.h>
  
--	ret = request_irq(TWL4030_MODIRQ_MADC, twl4030_madc_irq_handler,
-+	ret = request_irq(platform_get_irq(pdev, 0), twl4030_madc_irq_handler,
- 			  0, "twl4030_madc", madc);
- 	if (ret) {
- 		dev_dbg(&pdev->dev, "could not request irq\n");
-@@ -489,7 +489,7 @@ static int __exit twl4030_madc_remove(st
+-#define PWR_ISR1 0
+-#define PWR_IMR1 1
++
+ #define PWR_PWRON_IRQ (1<<0)
  
- 	twl4030_madc_set_power(madc, 0);
- 	twl4030_madc_set_current_generator(madc, 0, 0);
--	free_irq(TWL4030_MODIRQ_MADC, madc);
-+	free_irq(platform_get_irq(pdev, 0), madc);
- 	cancel_work_sync(&madc->ws);
- 	misc_deregister(&twl4030_madc_device);
+-#define PWR_EDR1 5
+-#define PWR_PWRON_RISING (1<<1)
+-#define PWR_PWRON_FALLING  (1<<0)
+-#define PWR_PWRON_BOTH (PWR_PWRON_RISING | PWR_PWRON_FALLING)
++#define STS_HW_CONDITIONS 0xf
  
+-#define PWR_SIH_CTRL 7
+ 
+-#define STS_HW_CONDITIONS 0xf
++/* FIXME have this constant delivered to us as part of the
++ * twl4030-core setup ...
++ */
++#define TWL4030_PWRIRQ_PWRBTN	(TWL4030_PWR_IRQ_BASE + 0)
+ 
+ static struct input_dev *powerbutton_dev;
+ 
+@@ -73,20 +71,19 @@ static irqreturn_t powerbutton_irq(int i
+ static int __init twl4030_pwrbutton_init(void)
+ {
+ 	int err = 0;
+-	u8 value;
+ 
+ 	/* PWRBTN == PWRON */
+-	if (request_irq(TWL4030_PWRIRQ_PWRBTN, powerbutton_irq, 0,
+-			"PwrButton", NULL) < 0) {
+-		printk(KERN_ERR "Unable to allocate IRQ for power button\n");
+-		err = -EBUSY;
++	err = request_irq(TWL4030_PWRIRQ_PWRBTN, powerbutton_irq,
++			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
++			"PwrButton", NULL);
++	if (err < 0) {
++		pr_debug("Can't get IRQ for power button: %d\n", err);
+ 		goto out;
+ 	}
+ 
+ 	powerbutton_dev = input_allocate_device();
+ 	if (!powerbutton_dev) {
+-		printk(KERN_ERR
+-			"Unable to allocate input device for power button\n");
++		pr_debug("Can't allocate power button\n");
+ 		err = -ENOMEM;
+ 		goto free_irq_and_out;
+ 	}
+@@ -97,26 +94,7 @@ static int __init twl4030_pwrbutton_init
+ 
+ 	err = input_register_device(powerbutton_dev);
+ 	if (err) {
+-		input_free_device(powerbutton_dev);
+-		goto free_irq_and_out;
+-	}
+-
+-	/* FIXME just pass IRQF_EDGE_FALLING | IRQF_EDGE_RISING
+-	 * to request_irq(), once MODULE_INT supports them...
+-	 */
+-	err = twl4030_i2c_read_u8(TWL4030_MODULE_INT, &value, PWR_EDR1);
+-	if (err) {
+-		printk(KERN_WARNING "I2C error %d while reading TWL4030"
+-					" INT PWR_EDR1 register\n", err);
+-		goto free_input_dev;
+-	}
+-
+-	err = twl4030_i2c_write_u8(TWL4030_MODULE_INT,
+-				   value | PWR_PWRON_BOTH, PWR_EDR1);
+-
+-	if (err) {
+-		printk(KERN_WARNING "I2C error %d while writing TWL4030"
+-					" INT PWR_EDR1 register\n", err);
++		pr_debug("Can't register power button: %d\n", err);
+ 		goto free_input_dev;
+ 	}
+ 
+@@ -126,7 +104,7 @@ static int __init twl4030_pwrbutton_init
+ 
+ 
+ free_input_dev:
+-	input_unregister_device(powerbutton_dev);
++	input_free_device(powerbutton_dev);
+ free_irq_and_out:
+ 	free_irq(TWL4030_PWRIRQ_PWRBTN, NULL);
+ out:
 --- a/include/linux/i2c/twl4030.h
 +++ b/include/linux/i2c/twl4030.h
-@@ -375,7 +375,7 @@ int twl4030_sih_setup(int module);
- /* #define TWL4030_MODIRQ_GPIO		(TWL4030_IRQ_BASE + 0) */
- /* #define TWL4030_MODIRQ_KEYPAD		(TWL4030_IRQ_BASE + 1) */
- /* #define TWL4030_MODIRQ_BCI		(TWL4030_IRQ_BASE + 2) */
--#define TWL4030_MODIRQ_MADC		(TWL4030_IRQ_BASE + 3)
-+/* #define TWL4030_MODIRQ_MADC		(TWL4030_IRQ_BASE + 3) */
+@@ -379,7 +379,7 @@ int twl4030_sih_setup(int module);
  /* #define TWL4030_MODIRQ_USB		(TWL4030_IRQ_BASE + 4) */
  /* #define TWL4030_MODIRQ_PWR		(TWL4030_IRQ_BASE + 5) */
  
+-#define TWL4030_PWRIRQ_PWRBTN		(TWL4030_PWR_IRQ_BASE + 0)
++/* #define TWL4030_PWRIRQ_PWRBTN		(TWL4030_PWR_IRQ_BASE + 0) */
+ /* #define TWL4030_PWRIRQ_CHG_PRES		(TWL4030_PWR_IRQ_BASE + 1) */
+ /* #define TWL4030_PWRIRQ_USB_PRES		(TWL4030_PWR_IRQ_BASE + 2) */
+ /* #define TWL4030_PWRIRQ_RTC		(TWL4030_PWR_IRQ_BASE + 3) */
