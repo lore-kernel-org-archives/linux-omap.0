@@ -1,54 +1,56 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH PM-20081119] OMAP: PM: Check both, IOPAD and UART wakeup always
-Date: Thu, 20 Nov 2008 09:41:40 -0800
-Message-ID: <87prkqb8h7.fsf@deeprootsystems.com>
-References: <1227170626-22021-1-git-send-email-jouni.hogander@nokia.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: TWL4030 asoc kcontrols and widgets
+Date: Thu, 20 Nov 2008 19:42:36 +0200
+Message-ID: <20081120174236.GQ7476@gandalf.research.nokia.com>
+References: <ef0d8a250811200202o5852dabct8c5b135b86141f67@mail.gmail.com> <31e679430811200255w33198a1r810f516b7326f414@mail.gmail.com> <20081120173206.GL4927@atomide.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f11.google.com ([209.85.221.11]:50612 "EHLO
-	mail-qy0-f11.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753295AbYKTRlo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Nov 2008 12:41:44 -0500
-Received: by qyk4 with SMTP id 4so520459qyk.13
-        for <linux-omap@vger.kernel.org>; Thu, 20 Nov 2008 09:41:43 -0800 (PST)
-In-Reply-To: <1227170626-22021-1-git-send-email-jouni.hogander@nokia.com> (Jouni Hogander's message of "Thu\, 20 Nov 2008 10\:43\:46 +0200")
+Received: from smtp.nokia.com ([192.100.122.230]:20837 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753519AbYKTRnP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Nov 2008 12:43:15 -0500
+Content-Disposition: inline
+In-Reply-To: <20081120173206.GL4927@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jouni Hogander <jouni.hogander@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <felipebalbi@users.sourceforge.net>, naveen krishna ch <naveenkrishna.ch@gmail.com>, linux-omap-open-source@linux.omap.com, linux-omap@vger.kernel.org
 
-Jouni Hogander <jouni.hogander@nokia.com> writes:
+On Thu, Nov 20, 2008 at 09:32:07AM -0800, Tony Lindgren wrote:
+> * Felipe Balbi <felipebalbi@users.sourceforge.net> [081120 02:55]:
+> > This list has been moved to linux-omap@vger.kernel.org
+> > 
+> > Please, keep that in Cc, also for ASoC development, send it also to the
+> > proper alsa mailing list alsa-devel@alsa-project.org
+> > 
+> > Tony, I think you should apply this patch in mainline tree:
+> > 
+> > diff --git a/MAINTAINERS b/MAINTAINERS
+> > index 8dae455..54c8e90 100644
+> > --- a/MAINTAINERS
+> > +++ b/MAINTAINERS
+> > @@ -4010,6 +4010,13 @@ P:       Alex Dubov
+> >  M:     oakad@yahoo.com
+> >  S:     Maintained
+> > 
+> > +TI OMAP
+> > +P:     Tony Lindgren
+> > +M:     tony@atomide.com
+> > +L:     linux-omap@vger.kernel.org
+> > +T:     git kernel.org:/pub/scm/linux/tmlind/linux-omap-2.6.git
+> > +S:     Maintained
+> > +
+> >  TI OMAP MMC INTERFACE DRIVER
+> >  P:     Carlos Aguiar, Anderson Briglia and Syed Khasim
+> >  M:     linux-omap@vger.kernel.org
+> 
+> 
+> Yeah sure. Let's also add maintainers for omap subsystems that have
+> maintainers while we're at it.
 
-> Uart RX might not always generate IOPAD wake-up. E.g. IOPAD is not
-> enabled or core was not in sleep state.
->
-> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+sounds good. At least mmc is already there.
 
-Thanks, applying to pm-20081119.
-
-Kevin
-
->  arch/arm/mach-omap2/serial.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index 745ae5c..8d2f0b1 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -281,7 +281,7 @@ void omap_uart_resume_idle(int num)
->  			}
->  
->  			/* Check for normal UART wakeup */
-> -			else if (__raw_readl(uart->wk_st) & uart->wk_mask)
-> +			if (__raw_readl(uart->wk_st) & uart->wk_mask)
->  				omap_uart_block_sleep(uart);
->  
->  			return;
-> -- 
-> 1.6.0.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+balbi
