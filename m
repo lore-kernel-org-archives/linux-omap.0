@@ -1,125 +1,69 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] Fix section mismatch warning.
-Date: Wed, 19 Nov 2008 16:26:02 -0800
-Message-ID: <200811191626.02717.david-b@pacbell.net>
-References: <1227102749-19536-1-git-send-email-premi@ti.com>
+From: "Juha Kuikka" <juha.kuikka@gmail.com>
+Subject: OOPS in OMAP 1-wire driver
+Date: Wed, 19 Nov 2008 16:40:34 -0800
+Message-ID: <a46a26fd0811191640w70ef4e2cy5551e26a433c0532@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:43479 "HELO
-	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752033AbYKTA0G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Nov 2008 19:26:06 -0500
-In-Reply-To: <1227102749-19536-1-git-send-email-premi@ti.com>
+Received: from hs-out-0708.google.com ([64.233.178.251]:17926 "EHLO
+	hs-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752250AbYKTAkf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Nov 2008 19:40:35 -0500
+Received: by hs-out-0708.google.com with SMTP id 4so132911hsl.5
+        for <linux-omap@vger.kernel.org>; Wed, 19 Nov 2008 16:40:34 -0800 (PST)
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-I know that Beagle and Overo get the same warnings, so this
-isn't really a sufficient fix...
+I'm not sure this is the right place for 1-wire stuff but I remember
+seeing patches for the OMAP 1w driver so maybe someone is interested.
+
+Running git head on OMAP2430 SDP. Only OMAP master is built into the
+kernel, no slave modules.
+This happens on boot.
+
+Driver for 1-wire Dallas network protocol.
+omap_hdq omap_hdq.0: OMAP HDQ Hardware Rev 0.3. Driver in Interrupt mode
+Unable to handle kernel NULL pointer dereference at virtual address 000000f0
+pgd = c0004000
+[000000f0] *pgd=00000000
+Internal error: Oops: 0 [#1] PREEMPT
+Modules linked in:
+CPU: 0    Not tainted  (2.6.28-rc5-omap1 #21)
+PC is at 0xf0
+LR is at omap_w1_search_bus+0x64/0x70
+pc : [<000000f0>]    lr : [<c01af368>]    psr: 60000013
+sp : c7957f68  ip : c7957f68  fp : c7957f8c
+r10: 00000000  r9 : 00000000  r8 : 00000000
+r7 : 000000f0  r6 : c7829160  r5 : 00000000  r4 : 00000001
+r3 : 3d000000  r2 : 00000001  r1 : 3d000000  r0 : c7829160
+Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+Control: 00c5387f  Table: 80004000  DAC: 00000017
+Process w1_bus_master1 (pid: 263, stack limit = 0xc7956260)
+Stack: (0xc7957f68 to 0xc7958000)
+7f60:                   00000001 00000000 c01af304 000000f0 c7956000 000003e8
+7f80: c7957fa4 c7957f90 c01aed58 c01af310 c7943a00 c7943a00 c7957fbc c7957fa8
+7fa0: c01ad880 c01aed20 c7943a68 c7943a00 c7957fdc c7957fc0 c01ad958 c01ad830
+7fc0: c7943a00 c01ad8fc 00000000 00000000 c7957ff4 c7957fe0 c0059fd0 c01ad908
+7fe0: 00000000 00000000 00000000 c7957ff8 c0048104 c0059f88 ff00ff00 ff00ff00
+Backtrace:
+[<c01af304>] (omap_w1_search_bus+0x0/0x70) from [<c01aed58>]
+(w1_search_devices+0x44/0x50)
+ r7:000003e8 r6:c7956000 r5:000000f0 r4:c01af304
+[<c01aed14>] (w1_search_devices+0x0/0x50) from [<c01ad880>]
+(w1_search_process+0x5c/0xd8)
+ r5:c7943a00 r4:c7943a00
+[<c01ad824>] (w1_search_process+0x0/0xd8) from [<c01ad958>]
+(w1_process+0x5c/0xe0)
+ r5:c7943a00 r4:c7943a68
+[<c01ad8fc>] (w1_process+0x0/0xe0) from [<c0059fd0>] (kthread+0x54/0x80)
+ r7:00000000 r6:00000000 r5:c01ad8fc r4:c7943a00
+[<c0059f7c>] (kthread+0x0/0x80) from [<c0048104>] (do_exit+0x0/0x784)
+ r5:00000000 r4:00000000
+Code: bad PC value.
 
 
-On Wednesday 19 November 2008, Sanjeev Premi wrote:
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -130,7 +130,7 @@ static struct twl4030_madc_platform_data omap3evm=
-_madc_data =3D {
-> =A0=A0=A0=A0=A0=A0=A0=A0.irq_line=A0=A0=A0=A0=A0=A0=A0=3D 1,
-> =A0};
-> =A0
-> -static struct twl4030_platform_data omap3evm_twldata =3D {
-> +static struct twl4030_platform_data __initdata omap3evm_twldata =3D =
-{
-
-=2E.. and that's incorrect in any case, since that data is used
-by probe() code that's doesn't sit in an init section.
-
-I have the following in my patchset, currently disabled since
-it conflicts with other patches.  And in any case, Beagle can't
-reboot with these "generic" scripts for some TBD reason.
-
-- Dave
-
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D CUT HERE
----
- arch/arm/mach-omap2/board-omap3beagle.c       |    2 +-
- arch/arm/mach-omap2/board-omap3evm.c          |    2 +-
- arch/arm/mach-omap2/board-overo.c             |    2 +-
- arch/arm/mach-omap2/twl4030-generic-scripts.c |    3 +++
- arch/arm/mach-omap2/twl4030-generic-scripts.h |    5 +++++
- 5 files changed, 11 insertions(+), 3 deletions(-)
-
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -188,7 +188,7 @@ static struct twl4030_platform_data beag
- 	/* platform_data for children goes here */
- 	.usb		=3D &beagle_usb_data,
- 	.gpio		=3D &beagle_gpio_data,
--	.power		=3D &generic3430_t2scripts_data,
-+	.power		=3D GENERIC3430_T2SCRIPTS_DATA,
- };
-=20
- static struct i2c_board_info __initdata beagle_i2c_boardinfo[] =3D {
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -140,7 +140,7 @@ static struct twl4030_platform_data omap
- 	.keypad		=3D &omap3evm_kp_data,
- 	.madc		=3D &omap3evm_madc_data,
- 	.usb		=3D &omap3evm_usb_data,
--	.power		=3D &generic3430_t2scripts_data,
-+	.power		=3D GENERIC3430_T2SCRIPTS_DATA,
- 	.gpio		=3D &omap3evm_gpio_data,
- };
-=20
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -162,7 +162,7 @@ static struct twl4030_platform_data over
- 	.irq_end	=3D TWL4030_IRQ_END,
- 	.gpio		=3D &overo_gpio_data,
- 	.usb		=3D &overo_usb_data,
--	.power		=3D &generic3430_t2scripts_data,
-+	.power		=3D GENERIC3430_T2SCRIPTS_DATA,
- };
-=20
- static struct i2c_board_info __initdata overo_i2c_boardinfo[] =3D {
---- a/arch/arm/mach-omap2/twl4030-generic-scripts.c
-+++ b/arch/arm/mach-omap2/twl4030-generic-scripts.c
-@@ -23,6 +23,8 @@
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-130=
-7  USA
-  */
-=20
-+#ifdef CONFIG_TWL4030_POWER
-+
- #include <linux/kernel.h>
- #include <linux/device.h>
- #include <linux/init.h>
-@@ -76,3 +78,4 @@ struct twl4030_power_data generic3430_t2
- };
-=20
-=20
-+#endif /* CONFIG_TWL4030_POWER */
---- a/arch/arm/mach-omap2/twl4030-generic-scripts.h
-+++ b/arch/arm/mach-omap2/twl4030-generic-scripts.h
-@@ -3,6 +3,11 @@
-=20
- #include <linux/i2c/twl4030.h>
-=20
-+#ifdef CONFIG_TWL4030_POWER
- extern struct twl4030_power_data generic3430_t2scripts_data;
-+#define GENERIC3430_T2SCRIPTS_DATA &generic3430_t2scripts_data
-+#else
-+#define GENERIC3430_T2SCRIPTS_DATA NULL
-+#endif /* CONFIG_TWL4030_POWER */
-=20
- #endif
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Madness takes it's toll. Please have exact change.
