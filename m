@@ -1,48 +1,34 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [FYI] Rebase: tidspbridge-20081118
-Date: Thu, 20 Nov 2008 09:29:11 -0800
-Message-ID: <20081120172910.GJ4927@atomide.com>
-References: <27F9C60D11D683428E133F85D2BB4A5303E11EBF40@dlee03.ent.ti.com> <20081117.153629.191249242.Hiroshi.DOYU@nokia.com> <20081119213725.GD9504@atomide.com> <20081120.102114.116290435.Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH v2 0/6] OMAP: Make OMAP LDP boot succussfuly
+Date: Thu, 20 Nov 2008 09:29:28 -0800
+Message-ID: <20081120172927.GK4927@atomide.com>
+References: <1226404258-13027-1-git-send-email-stanley.miao@windriver.com> <20081111145715.GA11056@2ka.mipt.ru> <20081113224053.GO3106@atomide.com> <20081114112838.GA20212@2ka.mipt.ru> <20081119181305.GY9504@atomide.com> <20081119185109.GA9183@2ka.mipt.ru> <20081119191419.GA9504@atomide.com> <20081119193119.GA24465@2ka.mipt.ru> <20081119200102.GC9504@atomide.com> <20081120083106.GA22380@2ka.mipt.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62952 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63276 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752865AbYKTR3N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Nov 2008 12:29:13 -0500
+	with ESMTP id S1751307AbYKTR3b (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Nov 2008 12:29:31 -0500
 Content-Disposition: inline
-In-Reply-To: <20081120.102114.116290435.Hiroshi.DOYU@nokia.com>
+In-Reply-To: <20081120083106.GA22380@2ka.mipt.ru>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-omap@vger.kernel.org, x00omar@ti.com, vikram.pandita@ti.com, h-kanigeri2@ti.com
+To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: "Stanley.Miao" <stanley.miao@windriver.com>, linux-omap@vger.kernel.org
 
-* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [081120 00:21]:
-> From: "ext Tony Lindgren" <tony@atomide.com>
-> Subject: Re: [FYI] Rebase: tidspbridge-20081118
-> Date: Wed, 19 Nov 2008 13:37:29 -0800
+* Evgeniy Polyakov <johnpol@2ka.mipt.ru> [081120 00:35]:
+> Hi.
 > 
-> > * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [081117 05:37]:
-> > > Hi,
-> > > 
-> > > The following changes since commit f23f23fb6bfd8ce4669070df35ec9b320983ac0c:
-> > >   Grazvydas Ignotas (1):
-> > >         HSMMC: Add MMC configuration for pandora
-> > > 
-> > > are available in the git repository at:
-> > > 
-> > >   http://git.gitorious.org/lk/mainline.git tidspbridge-20081118
+> On Wed, Nov 19, 2008 at 12:01:06PM -0800, Tony Lindgren (tony@atomide.com) wrote:
+> > > I've just pushed w1 patch (did I understand it right that there is only
+> > > one in the given set, all others touch very different areas).
 > > 
-> > Great, I'm now also mirroring tidspbridge-20081118 branch at:
-> > 
-> > http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary
+> > Yes, that's correct. The other patches are for LDP specific board support,
+> > and will be merged with the arm patches.
 > 
-> Since I think that logical patchset doesn't make sense for this early
-> stage, I am considering to stop rebasing on the top of "omap/master"
-> and to start updating "tidspbridge", just merging "omap/master" into
-> it frequently.
+> Patch is in the mainline tree.
 
-Sure, looks like it's going to be a quite a while before the bridge
-code is a logical patchset :)
+Thanks!
 
 Tony
