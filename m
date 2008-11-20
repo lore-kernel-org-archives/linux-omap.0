@@ -1,65 +1,43 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] OMAP: Switch to gpio_direction_output in OMAP_LDP.
-Date: Thu, 20 Nov 2008 11:11:09 -0800
-Message-ID: <200811201111.09749.david-b@pacbell.net>
-References: <1227189663-27966-1-git-send-email-stanley.miao@windriver.com>
+From: Peter Barada <peter@the-baradas.com>
+Subject: Question regarding OMAP NAND driver read_buf16() function
+Date: Thu, 20 Nov 2008 14:13:05 -0500
+Message-ID: <1227208386.27896.239.camel@blackhole>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:26392 "HELO
-	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752663AbYKTTLL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 Nov 2008 14:11:11 -0500
-In-Reply-To: <1227189663-27966-1-git-send-email-stanley.miao@windriver.com>
-Content-Disposition: inline
+Received: from h-66-166-225-55.cmbrmaor.covad.net ([66.166.225.55]:61727 "EHLO
+	baradas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753859AbYKTTgW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 Nov 2008 14:36:22 -0500
+Received: from [192.168.3.4] (blackhole [192.168.3.4])
+	by baradas.org (Postfix) with ESMTP id 2EF4798BA0
+	for <linux-omap@vger.kernel.org>; Thu, 20 Nov 2008 14:13:06 -0500 (EST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Stanley.Miao" <stanley.miao@windriver.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Thursday 20 November 2008, Stanley.Miao wrote:
-> -=A0=A0=A0=A0=A0=A0=A0omap_set_gpio_direction(LCD_PANEL_QVGA_GPIO, 0)=
-;
-> -=A0=A0=A0=A0=A0=A0=A0omap_set_gpio_direction(LCD_PANEL_RESET_GPIO, 0=
-);
-> =A0=A0=A0=A0=A0=A0=A0=A0gpio_direction_output(LCD_PANEL_ENABLE_GPIO, =
-0);
-> =A0=A0=A0=A0=A0=A0=A0=A0gpio_direction_output(LCD_PANEL_BACKLIGHT_GPI=
-O, 0);
 
-Nothing does
+In drivers/mtd/nand/omap2.c, I see the call to __raw_readsl:
 
-	gpio_request(LCD_PANEL_QVGA_GPIO, "qvga something");
-	gpio_request(LCD_PANEL_RESET_GPIO, "lcd reset");
+	__raw_readsl(nand->IO_ADDR_R, buf, len / 2);
 
-And by removing the initial direction setting call (above),
-behavior of at least the reset line changes:  it's no longer
-pullsed low.
+Since len is in bytes (from the comment), shouldn't this either be:
 
-It'd be better to change the direction setting calls above
-(setting an initial low value), and then make the calls
-below use gpio_set_value().
+	__raw_readsl(nand->IO_ADDR_R, buf, len / 4);
 
- =A0
-> =A0#ifdef CONFIG_FB_OMAP_LCD_VGA
-> -=A0=A0=A0=A0=A0=A0=A0omap_set_gpio_dataout(LCD_PANEL_QVGA_GPIO, 0);
-> +=A0=A0=A0=A0=A0=A0=A0gpio_direction_output(LCD_PANEL_QVGA_GPIO, 0);
-> =A0#else
-> -=A0=A0=A0=A0=A0=A0=A0omap_set_gpio_dataout(LCD_PANEL_QVGA_GPIO, 1);
-> +=A0=A0=A0=A0=A0=A0=A0gpio_direction_output(LCD_PANEL_QVGA_GPIO, 1);
-> =A0#endif
-> -=A0=A0=A0=A0=A0=A0=A0omap_set_gpio_dataout(LCD_PANEL_RESET_GPIO, 1);
-> +=A0=A0=A0=A0=A0=A0=A0gpio_direction_output(LCD_PANEL_RESET_GPIO, 1);
+or:
 
-Use gpio_set_value() to replace omap_set_gpio_dataout(), except
-when initializing.  The reset pin *was* being toggled...
+	__raw_readsw(nand->IO_ADDR_R, buf, len / 2);
+	
+-- 
+Peter Barada // senior software engineer
+ 
+LOGIC // embedded product solutions
+411 Washington Ave. N. Suite 400
+Minneapolis, MN 55401
+M // 617.513.5874
+ 
+Peter.Barada@logicpd.com
+www.logicpd.com
 
-- Dave
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
