@@ -1,72 +1,28 @@
-From: "Ogeid Alavaz" <omzatru@gmail.com>
-Subject: [PATCH] OMAP: ARM: Change Some GPIO Funtions on LDP
-Date: Wed, 19 Nov 2008 21:49:14 -0600
-Message-ID: <b293b9830811191949j5913cc6bjf59327c720a065b9@mail.gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] OMAP: ARM: Change Some GPIO Funtions on LDP
+Date: Wed, 19 Nov 2008 21:08:33 -0800
+Message-ID: <200811192108.33253.david-b@pacbell.net>
+References: <b293b9830811191949j5913cc6bjf59327c720a065b9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_123931_26486482.1227152954546"
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:2153 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751918AbYKTDtQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Nov 2008 22:49:16 -0500
-Received: by ey-out-2122.google.com with SMTP id 6so116658eyi.37
-        for <linux-omap@vger.kernel.org>; Wed, 19 Nov 2008 19:49:14 -0800 (PST)
+Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:40761 "HELO
+	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751735AbYKTFIf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 Nov 2008 00:08:35 -0500
+In-Reply-To: <b293b9830811191949j5913cc6bjf59327c720a065b9@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Ogeid Alavaz <omzatru@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-------=_Part_123931_26486482.1227152954546
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I think there are still a bunch of patches from Jarkko outstanding
+which solve this comprehensively ...
+
+- Dave
 
 
-
-------=_Part_123931_26486482.1227152954546
-Content-Type: application/octet-stream;
- name=0001-OMAP-ARM-Change-Some-GPIO-Funtions-on-LDP.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fnqv4w790
-Content-Disposition: attachment;
- filename=0001-OMAP-ARM-Change-Some-GPIO-Funtions-on-LDP.patch
-
-RnJvbSA4N2ZmNzg4YjM0MGZkMTVhOTBiODU0ZTk3ODZlODUwMjViMTlhYzM4IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBEaWVnbyBaYXZhbGEgVHJ1amlsbG8gPGRpZWdvenRAdGkuY29t
-PgpEYXRlOiBXZWQsIDE5IE5vdiAyMDA4IDE5OjM5OjI1IC0wNjAwClN1YmplY3Q6IFtQQVRDSF0g
-T01BUDogQVJNOiBDaGFuZ2UgU29tZSBHUElPIEZ1bnRpb25zIG9uIExEUAoKVXBkYXRpbmcgT01B
-UDM0MzBMRFAgaW4gc29tZSBHUElPIEZ1bmN0aW9uczoKCm9tYXBfZ2V0X2dwaW9fZGF0YWluKCkg
-LT4KCWdwaW9fZ2V0X3ZhbHVlKCkKCm9tYXBfc2V0X2dwaW9fZGF0YW91dCgpCglncGlvX3NldF92
-YWx1ZSgpCgpncGlvX3NldF92YWx1ZSgxLCAxKQpvbWFwX3NldF9ncGlvX2RpcmVjdGlvbigxLCAw
-KSAtPgoJZ3Bpb19kaXJlY3Rpb25fb3V0cHV0KDEsIDEpCi0tLQogYXJjaC9hcm0vbWFjaC1vbWFw
-Mi9ib2FyZC1sZHAuYyB8ICAgIDIgKy0KIGRyaXZlcnMvdmlkZW8vb21hcC9sY2RfbGRwLmMgICAg
-fCAgIDEwICsrKysrLS0tLS0KIDIgZmlsZXMgY2hhbmdlZCwgNiBpbnNlcnRpb25zKCspLCA2IGRl
-bGV0aW9ucygtKQogbW9kZSBjaGFuZ2UgMTAwNjQ0ID0+IDEwMDc1NSBhcmNoL2FybS9tYWNoLW9t
-YXAyL2JvYXJkLWxkcC5jCiBtb2RlIGNoYW5nZSAxMDA2NDQgPT4gMTAwNzU1IGRyaXZlcnMvdmlk
-ZW8vb21hcC9sY2RfbGRwLmMKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJk
-LWxkcC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1sZHAuYwpvbGQgbW9kZSAxMDA2NDQK
-bmV3IG1vZGUgMTAwNzU1CmluZGV4IGJjNjZiMjguLjZiZTdhZjAKLS0tIGEvYXJjaC9hcm0vbWFj
-aC1vbWFwMi9ib2FyZC1sZHAuYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLWxkcC5j
-CkBAIC0zNDEsNyArMzQxLDcgQEAgc3RhdGljIGlubGluZSB2b2lkIF9faW5pdCBsZHBfaW5pdF9z
-bWM5MTF4KHZvaWQpCiAJCQkJZXRoX2dwaW8pOwogCQlyZXR1cm47CiAJfQotCW9tYXBfc2V0X2dw
-aW9fZGlyZWN0aW9uKGV0aF9ncGlvLCAxKTsKKwlncGlvX2RpcmVjdGlvbl9vdXRwdXQoZXRoX2dw
-aW8sIDEpOwogfQogCiAKZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vb21hcC9sY2RfbGRwLmMg
-Yi9kcml2ZXJzL3ZpZGVvL29tYXAvbGNkX2xkcC5jCm9sZCBtb2RlIDEwMDY0NApuZXcgbW9kZSAx
-MDA3NTUKaW5kZXggZTk0NDE2Ni4uZTA2MzIwMAotLS0gYS9kcml2ZXJzL3ZpZGVvL29tYXAvbGNk
-X2xkcC5jCisrKyBiL2RyaXZlcnMvdmlkZW8vb21hcC9sY2RfbGRwLmMKQEAgLTY5LDE3ICs2OSwx
-NyBAQCBzdGF0aWMgaW50IGxkcF9wYW5lbF9pbml0KHN0cnVjdCBsY2RfcGFuZWwgKnBhbmVsLAog
-CWdwaW9fcmVxdWVzdChMQ0RfUEFORUxfRU5BQkxFX0dQSU8sICJsY2QgcGFuZWwiKTsKIAlncGlv
-X3JlcXVlc3QoTENEX1BBTkVMX0JBQ0tMSUdIVF9HUElPLCAibGNkIGJhY2tsaWdodCIpOwogCi0J
-b21hcF9zZXRfZ3Bpb19kaXJlY3Rpb24oTENEX1BBTkVMX1FWR0FfR1BJTywgMCk7Ci0Jb21hcF9z
-ZXRfZ3Bpb19kaXJlY3Rpb24oTENEX1BBTkVMX1JFU0VUX0dQSU8sIDApOworCWdwaW9fZGlyZWN0
-aW9uX291dHB1dChMQ0RfUEFORUxfUVZHQV9HUElPLCAwKTsKKwlncGlvX2RpcmVjdGlvbl9vdXRw
-dXQoTENEX1BBTkVMX1JFU0VUX0dQSU8sIDApOwogCWdwaW9fZGlyZWN0aW9uX291dHB1dChMQ0Rf
-UEFORUxfRU5BQkxFX0dQSU8sIDApOwogCWdwaW9fZGlyZWN0aW9uX291dHB1dChMQ0RfUEFORUxf
-QkFDS0xJR0hUX0dQSU8sIDApOwogCiAjaWZkZWYgQ09ORklHX0ZCX09NQVBfTENEX1ZHQQotCW9t
-YXBfc2V0X2dwaW9fZGF0YW91dChMQ0RfUEFORUxfUVZHQV9HUElPLCAwKTsKKwlncGlvX3NldF92
-YWx1ZShMQ0RfUEFORUxfUVZHQV9HUElPLCAwKTsKICNlbHNlCi0Jb21hcF9zZXRfZ3Bpb19kYXRh
-b3V0KExDRF9QQU5FTF9RVkdBX0dQSU8sIDEpOworCWdwaW9fc2V0X3ZhbHVlKExDRF9QQU5FTF9R
-VkdBX0dQSU8sIDEpOwogI2VuZGlmCi0Jb21hcF9zZXRfZ3Bpb19kYXRhb3V0KExDRF9QQU5FTF9S
-RVNFVF9HUElPLCAxKTsKKwlncGlvX3NldF92YWx1ZShMQ0RfUEFORUxfUkVTRVRfR1BJTywgMSk7
-CiAKIAlyZXR1cm4gMDsKIH0KLS0gCjEuNS41LjEKCg==
-------=_Part_123931_26486482.1227152954546--
