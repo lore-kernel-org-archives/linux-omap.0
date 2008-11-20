@@ -1,51 +1,63 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: (non-hs)mmc vs lockdep
-Date: Thu, 20 Nov 2008 21:10:09 +0200
-Message-ID: <20081120191008.GG31944@frodo>
-References: <ef0d8a250811200202o5852dabct8c5b135b86141f67@mail.gmail.com> <20081120173206.GL4927@atomide.com> <20081120174236.GQ7476@gandalf.research.nokia.com> <200811201056.28399.david-b@pacbell.net>
-Reply-To: me@felipebalbi.com
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] OMAP: Switch to gpio_direction_output in OMAP_LDP.
+Date: Thu, 20 Nov 2008 11:11:09 -0800
+Message-ID: <200811201111.09749.david-b@pacbell.net>
+References: <1227189663-27966-1-git-send-email-stanley.miao@windriver.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:54841 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754019AbYKTTKT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Nov 2008 14:10:19 -0500
+Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:26392 "HELO
+	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752663AbYKTTLL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 Nov 2008 14:11:11 -0500
+In-Reply-To: <1227189663-27966-1-git-send-email-stanley.miao@windriver.com>
 Content-Disposition: inline
-In-Reply-To: <200811201056.28399.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
+To: "Stanley.Miao" <stanley.miao@windriver.com>
 Cc: linux-omap@vger.kernel.org
 
-On Thu, Nov 20, 2008 at 10:56:28AM -0800, David Brownell wrote:
-> On Thursday 20 November 2008, Felipe Balbi wrote:
-> > > > =A0TI OMAP MMC INTERFACE DRIVER
-> > > > =A0P: =A0 =A0 Carlos Aguiar, Anderson Briglia and Syed Khasim
-> > > > =A0M: =A0 =A0 linux-omap@vger.kernel.org
-> > >=20
-> > >=20
-> > > Yeah sure. Let's also add maintainers for omap subsystems that ha=
-ve
-> > > maintainers while we're at it.
-> >=20
-> > sounds good. At least mmc is already there.
->=20
-> So, who's going to fix the bug with the non-highspeed MMC controller
-> driver whereby it breaks with LOCKDEP enabled?
->=20
-> The "BUG_ON(irqs_disabled());" in mmc_omap_start_request() triggers,
-> since something inside the latest ARM MM code assumes it's never call=
-ed
-> with IRQs blocked ... a regression was introduced at some point.  The
-> same failure is seen in some other MMC controller drivers.
+On Thursday 20 November 2008, Stanley.Miao wrote:
+> -=A0=A0=A0=A0=A0=A0=A0omap_set_gpio_direction(LCD_PANEL_QVGA_GPIO, 0)=
+;
+> -=A0=A0=A0=A0=A0=A0=A0omap_set_gpio_direction(LCD_PANEL_RESET_GPIO, 0=
+);
+> =A0=A0=A0=A0=A0=A0=A0=A0gpio_direction_output(LCD_PANEL_ENABLE_GPIO, =
+0);
+> =A0=A0=A0=A0=A0=A0=A0=A0gpio_direction_output(LCD_PANEL_BACKLIGHT_GPI=
+O, 0);
 
-Well, I haven't seen patches from none of the three maintainers for
-quite a while. Maybe someone at TI could take over the driver(s) ??
+Nothing does
 
---=20
-balbi
+	gpio_request(LCD_PANEL_QVGA_GPIO, "qvga something");
+	gpio_request(LCD_PANEL_RESET_GPIO, "lcd reset");
+
+And by removing the initial direction setting call (above),
+behavior of at least the reset line changes:  it's no longer
+pullsed low.
+
+It'd be better to change the direction setting calls above
+(setting an initial low value), and then make the calls
+below use gpio_set_value().
+
+ =A0
+> =A0#ifdef CONFIG_FB_OMAP_LCD_VGA
+> -=A0=A0=A0=A0=A0=A0=A0omap_set_gpio_dataout(LCD_PANEL_QVGA_GPIO, 0);
+> +=A0=A0=A0=A0=A0=A0=A0gpio_direction_output(LCD_PANEL_QVGA_GPIO, 0);
+> =A0#else
+> -=A0=A0=A0=A0=A0=A0=A0omap_set_gpio_dataout(LCD_PANEL_QVGA_GPIO, 1);
+> +=A0=A0=A0=A0=A0=A0=A0gpio_direction_output(LCD_PANEL_QVGA_GPIO, 1);
+> =A0#endif
+> -=A0=A0=A0=A0=A0=A0=A0omap_set_gpio_dataout(LCD_PANEL_RESET_GPIO, 1);
+> +=A0=A0=A0=A0=A0=A0=A0gpio_direction_output(LCD_PANEL_RESET_GPIO, 1);
+
+Use gpio_set_value() to replace omap_set_gpio_dataout(), except
+when initializing.  The reset pin *was* being toggled...
+
+- Dave
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
