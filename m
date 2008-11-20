@@ -1,82 +1,123 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3 powerdomains: remove RET from SGX power states list
-Date: Wed, 19 Nov 2008 14:08:29 -0800
-Message-ID: <873ahnfjxe.fsf@deeprootsystems.com>
-References: <alpine.DEB.2.00.0811051152150.15612@utopia.booyaka.com>
-	<20081106033327.GQ21736@atomide.com>
-	<alpine.DEB.2.00.0811060401150.11718@utopia.booyaka.com>
-	<87ej1na8c2.fsf@trdhcp146196.ntc.nokia.com>
-	<alpine.DEB.2.00.0811100741420.23090@utopia.booyaka.com>
-	<87r65i66j5.fsf@trdhcp146196.ntc.nokia.com>
-	<alpine.DEB.2.00.0811121157530.28853@utopia.booyaka.com>
-	<5e088bd90811191354g7d570338n40abe9523ee1a8cc@mail.gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] Fix section mismatch warning.
+Date: Wed, 19 Nov 2008 16:26:02 -0800
+Message-ID: <200811191626.02717.david-b@pacbell.net>
+References: <1227102749-19536-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f11.google.com ([209.85.221.11]:42932 "EHLO
-	mail-qy0-f11.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750716AbYKSWIe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Nov 2008 17:08:34 -0500
-Received: by qyk4 with SMTP id 4so145772qyk.13
-        for <linux-omap@vger.kernel.org>; Wed, 19 Nov 2008 14:08:33 -0800 (PST)
-In-Reply-To: <5e088bd90811191354g7d570338n40abe9523ee1a8cc@mail.gmail.com> (Steve Sakoman's message of "Wed\, 19 Nov 2008 13\:54\:09 -0800")
+Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:43479 "HELO
+	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752033AbYKTA0G (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Nov 2008 19:26:06 -0500
+In-Reply-To: <1227102749-19536-1-git-send-email-premi@ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: Paul Walmsley <paul@pwsan.com>, =?iso-8859-1?Q?H=F6gander_Jouni?= <jouni.hogander@nokia.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, "Stoppa Igor (Nokia-D/Helsinki)" <Igor.Stoppa@nokia.com>, r-woodruff2@ti.com, "Sawant, Anand" <sawant@ti.com>, Poussa Sakari <sakari.poussa@nokia.com>
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-"Steve Sakoman" <sakoman@gmail.com> writes:
-
-> On Wed, Nov 12, 2008 at 11:07 AM, Paul Walmsley <paul@pwsan.com> wrot=
-e:
->> Hi Jouni, Kevin,
->>
->> On Tue, 11 Nov 2008, H=F6gander Jouni wrote:
->>
->>> I wouldn't add any flags for this. The goal is finally to set all
->>> next_states as OFF until someone has set some constraint which
->>> prevents OFF usage. For now we need to use RET as default, because
->>> drivers are not supporting OFF mode. Do you agree this?
->>
->> Yes.
->>
->>> Easiest way here would be to add own hook for SGX in pwrdms_setup? =
-One
->>> more strcmp("*_pwrdm, pwrdm->name) :)
->>>
->>> What do you think?
->>
->> That is okay with me.  This seems to be an unusual case - I guess it=
-'s due
->> to an SGX firmware bug.
->>
->> So Kevin, if you have a strong opposition to that strcmp, maybe we s=
-hould
->> use a powerdomain flag for the SGX pwrdm.  Otherwise, let's go with =
-a
->> strcmp as Jouni suggested.  Thoughts?
->
-> Has there been a final resolution on this?
->
-> I am unable to boot reliably on Overo with 2.6.28-rc5 -- almost every
-> boot attempt gives me:
->
-> Power Management for TI OMAP3.
-> Unable to set state of powerdomain: sgx_pwrdm
-> Failed to setup powerdomains
-> omap2|3_pm_init failed: -22
->
-
-Hi Steve,
-
-Tony just pushed the final version[1] of the fix for this issue.
-Please let me know if your problem still persists.
-
-Kevin
+I know that Beagle and Overo get the same warnings, so this
+isn't really a sufficient fix...
 
 
-[1] see commit 7a54b0f6f39ea1e5dbff6bb47314bea228bf6e44
+On Wednesday 19 November 2008, Sanjeev Premi wrote:
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -130,7 +130,7 @@ static struct twl4030_madc_platform_data omap3evm=
+_madc_data =3D {
+> =A0=A0=A0=A0=A0=A0=A0=A0.irq_line=A0=A0=A0=A0=A0=A0=A0=3D 1,
+> =A0};
+> =A0
+> -static struct twl4030_platform_data omap3evm_twldata =3D {
+> +static struct twl4030_platform_data __initdata omap3evm_twldata =3D =
+{
+
+=2E.. and that's incorrect in any case, since that data is used
+by probe() code that's doesn't sit in an init section.
+
+I have the following in my patchset, currently disabled since
+it conflicts with other patches.  And in any case, Beagle can't
+reboot with these "generic" scripts for some TBD reason.
+
+- Dave
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D CUT HERE
+---
+ arch/arm/mach-omap2/board-omap3beagle.c       |    2 +-
+ arch/arm/mach-omap2/board-omap3evm.c          |    2 +-
+ arch/arm/mach-omap2/board-overo.c             |    2 +-
+ arch/arm/mach-omap2/twl4030-generic-scripts.c |    3 +++
+ arch/arm/mach-omap2/twl4030-generic-scripts.h |    5 +++++
+ 5 files changed, 11 insertions(+), 3 deletions(-)
+
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -188,7 +188,7 @@ static struct twl4030_platform_data beag
+ 	/* platform_data for children goes here */
+ 	.usb		=3D &beagle_usb_data,
+ 	.gpio		=3D &beagle_gpio_data,
+-	.power		=3D &generic3430_t2scripts_data,
++	.power		=3D GENERIC3430_T2SCRIPTS_DATA,
+ };
+=20
+ static struct i2c_board_info __initdata beagle_i2c_boardinfo[] =3D {
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -140,7 +140,7 @@ static struct twl4030_platform_data omap
+ 	.keypad		=3D &omap3evm_kp_data,
+ 	.madc		=3D &omap3evm_madc_data,
+ 	.usb		=3D &omap3evm_usb_data,
+-	.power		=3D &generic3430_t2scripts_data,
++	.power		=3D GENERIC3430_T2SCRIPTS_DATA,
+ 	.gpio		=3D &omap3evm_gpio_data,
+ };
+=20
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -162,7 +162,7 @@ static struct twl4030_platform_data over
+ 	.irq_end	=3D TWL4030_IRQ_END,
+ 	.gpio		=3D &overo_gpio_data,
+ 	.usb		=3D &overo_usb_data,
+-	.power		=3D &generic3430_t2scripts_data,
++	.power		=3D GENERIC3430_T2SCRIPTS_DATA,
+ };
+=20
+ static struct i2c_board_info __initdata overo_i2c_boardinfo[] =3D {
+--- a/arch/arm/mach-omap2/twl4030-generic-scripts.c
++++ b/arch/arm/mach-omap2/twl4030-generic-scripts.c
+@@ -23,6 +23,8 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-130=
+7  USA
+  */
+=20
++#ifdef CONFIG_TWL4030_POWER
++
+ #include <linux/kernel.h>
+ #include <linux/device.h>
+ #include <linux/init.h>
+@@ -76,3 +78,4 @@ struct twl4030_power_data generic3430_t2
+ };
+=20
+=20
++#endif /* CONFIG_TWL4030_POWER */
+--- a/arch/arm/mach-omap2/twl4030-generic-scripts.h
++++ b/arch/arm/mach-omap2/twl4030-generic-scripts.h
+@@ -3,6 +3,11 @@
+=20
+ #include <linux/i2c/twl4030.h>
+=20
++#ifdef CONFIG_TWL4030_POWER
+ extern struct twl4030_power_data generic3430_t2scripts_data;
++#define GENERIC3430_T2SCRIPTS_DATA &generic3430_t2scripts_data
++#else
++#define GENERIC3430_T2SCRIPTS_DATA NULL
++#endif /* CONFIG_TWL4030_POWER */
+=20
+ #endif
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
