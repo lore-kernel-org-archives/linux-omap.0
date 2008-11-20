@@ -1,265 +1,64 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [ANNOUNCE] new PM branch: pm-20081119
-Date: Thu, 20 Nov 2008 19:43:17 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301B6C8C79B@dbde02.ent.ti.com>
-References: <87d4grdxqh.fsf@deeprootsystems.com>
- <345163910811200045n3af8b3b5mbd30601aeeee31e@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: [ANNOUNCE] new PM branch: pm-20081119
+Date: Thu, 20 Nov 2008 15:48:59 +0100
+Message-ID: <8966B984-6139-467A-BF52-EDD0D9BF91B5@student.utwente.nl>
+References: <87d4grdxqh.fsf@deeprootsystems.com> <345163910811200045n3af8b3b5mbd30601aeeee31e@mail.gmail.com> <B85A65D85D7EB246BE421B3FB0FBB59301B6C8C79B@dbde02.ent.ti.com>
+Mime-Version: 1.0 (Apple Message framework v929.2)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-15--222763662"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54518 "EHLO comal.ext.ti.com"
+Received: from mx1.utsp.utwente.nl ([130.89.2.12]:33704 "EHLO mx.utwente.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756067AbYKTONa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Nov 2008 09:13:30 -0500
-In-Reply-To: <345163910811200045n3af8b3b5mbd30601aeeee31e@mail.gmail.com>
-Content-Language: en-US
+	id S1756052AbYKTOtL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 Nov 2008 09:49:11 -0500
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301B6C8C79B@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Reid <ppeter.reid@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: Peter Reid <ppeter.reid@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
- 
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-15--222763662
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Peter Reid
-> Sent: Thursday, November 20, 2008 2:16 PM
-> To: Kevin Hilman
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [ANNOUNCE] new PM branch: pm-20081119
-> 
-> Hello kevin,
->    Here is what i did to put it to suspend, which fails.
-> 
->  [root@beagleboard]# echo  mem > /sys/power/state
->  PM: Syncing filesystems ... done.
->  Freezing user space processes ... (elapsed 0.00 seconds) done.
->  Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
->  Suspending console(s)
->  Class driver suspend failed for cpu0
->  PM: Some devices failed to power down
-> 
-> Regards,
-> Reid.
-These are my observations on OMAP3EVM:
 
-1) Very frequently I see these messages:
+Op 20 nov 2008, om 15:13 heeft Premi, Sanjeev het volgende geschreven:
+>>
+> These are my observations on OMAP3EVM:
+>
+> 1) Very frequently I see these messages:
+>
+> <4>__ratelimit: 6736 callbacks suppressed
+> __ratelimit: 6736 callbacks suppressed
+> <3>omapfb omapfb: irq error status 00c2
+> omapfb omapfb: irq error status 00c2
 
-<4>__ratelimit: 6736 callbacks suppressed
-__ratelimit: 6736 callbacks suppressed
-<3>omapfb omapfb: irq error status 00c2
-omapfb omapfb: irq error status 00c2
-<3>omapfb omapfb: irq error status 0060
-omapfb omapfb: irq error status 0060
-<3>omapfb omapfb: irq error status 00c2
-omapfb omapfb: irq error status 00c2
-<3>omapfb omapfb: irq error status 0060
-omapfb omapfb: irq error status 0060
-<3>omapfb omapfb: irq error status 00e2
-omapfb omapfb: irq error status 00e2
-<3>omapfb omapfb: irq error status 00c2
-omapfb omapfb: irq error status 00c2
-<3>omapfb omapfb: irq error status 0060
-omapfb omapfb: irq error status 0060
-<3>omapfb omapfb: irq error status 00e2
-omapfb omapfb: irq error status 00e2
-<3>omapfb omapfb: irq error status 00c2
-omapfb omapfb: irq error status 00c2
-<3>omapfb omapfb: irq error status 0060
-omapfb omapfb: irq error status 0060
+There should be a workaround for those in 2.6.28rc3.  Rick Bronson  
+posted a message about it on 7 november titled "Fix for dispc's error  
+"omapfb omapfb: irq error status 4020"
 
-2) Also:
-# echo mem > /sys/power/state
-<6>PM: Syncing filesystems ...
-PM: Syncing filesystems ...
-done.
-done.
-Freezing user space processes ... Freezing user space processes ... (elapsed 0.00 seconds) (elapsed 0.00 seconds) done.
-done.
-Freezing remaining freezable tasks ... Freezing remaining freezable tasks ... (elapsed 0.00 seconds) (elapsed 0.00 seconds) done.
-done.
+regards,
 
-Suspending console(s) (use no_console_suspend to debug)
-Suspending console(s) (use no_console_suspend to debug)
-<3>omapfb omapfb: timeout waiting for FRAME DONE
+Koen
 
-However, I the "resume" doesn't happen.
-Trying to debug further.
+regards,
 
-Best regards,
-Sanjeev
+Koen
 
-> On Thu, Nov 20, 2008 at 6:23 AM, Kevin Hilman 
-> <khilman@deeprootsystems.com> wrote:
-> > Hello,
-> >
-> > A new PM branch is available named pm-20081119.
-> >
-> > This is mostly a new set of patches on top of the previous 
-> PM branch, 
-> > rather than a rebase.  We finally found the root cause of some DPLL 
-> > relocking bugs.  Special thanks to Paul Walmsley and Tero 
-> Kristo for 
-> > debugging and fixing this problem.  Now the DPLL fix that 
-> was reverted 
-> > in the previous PM branch is re-applied as well as some 
-> fixes on top 
-> > of it.  It also has some additional UART fixes, so I think the UART 
-> > idle work is ready to go to Tony.  Special thanks to Jouni Hogander 
-> > for the extra testing and fixes here.
-> >
-> > The shortlog is below[1] and the root of the tree is still
-> > v2.6.27-omap1 + T2 power patches from Peter.
-> >
-> > This has primarily been tested on custom HW since I'm 
-> _still_ waiting 
-> > for my SDP to arrive.  I have boot tested on Beagle, but I 
-> think there 
-> > are still some problems with ES2 silicon.  On my ES2 
-> Beagle, neither 
-> > DSS or IVA will leave the ON state, even when all clocks in their 
-> > powerdomains are off.  I have not debugged this further yet.
-> >
-> > Functionally, this tree is in pretty good shape, so I will do some 
-> > bugfixes here when necessary, but will now spent some time 
-> focusing on 
-> > getting the patches in this branch merged into linux-omap.
-> >
-> > Kevin
-> >
-> >
-> > [1] git shortlog:
-> >
-> > Amit Kucheria (2):
-> >      OMAP: PM: Typo fix for clock_allow_idle
-> >      HSMMC: Make driver support dynamic idle
-> >
-> > Jouni Hogander (11):
-> >      OMAP3: PM: Use pwrdm_set_next_pwrst instead of 
-> set_pwrdm_state in idle loop
-> >      OMAP3: Do not set mpu, core, neon states if cpuidle is used
-> >      OMAP3: PM: Do not set next states sw to control those 
-> is available
-> >      OMAP3: PM: Always return value in pwrdms_setup
-> >      OMAP3: PM: Fix wrong sequence in suspend.
-> >      OMAP3: UART: Make sure that uart clocks are enabled when needed
-> >      OMAP3: PM: Check in set_pwrdm_state that target state 
-> is supported by pwrdm v2
-> >      OMAP3: PM: Do not build suspend code if SUSPEND is not enabled
-> >      OMAP: PM: Build fails if PM is not enabled
-> >      OMAP2: PM: Fix omap2 build
-> >      OMAP: MCSPI: Enable mcspi wake-up
-> >
-> > Kalle Jokiniemi (4):
-> >      OMAP: PM: sysfs interface for enabling voltage off in idle
-> >      OMAP3: PM: Fix cpu idle init sequencing
-> >      OMAP: SRF: Fixes to shared resource framework (Ver.3)
-> >      OMAP3: I2C: Enable I2C wakeups
-> >
-> > Kevin Hilman (16):
-> >      OMAP3: PM: Add wake-up bit defintiions for CONTROL_PADCONF_X
-> >      OMAP3: PM: Allow UARTs to be unclocked when inactive
-> >      8250: Allow platform to register PM hook
-> >      8250: when waking, PM hook should be called before 
-> accessing port
-> >      OMAP3: PM: UART: Add 8250 UART PM hook for suspend/resume
-> >      OMAP3: PM: UART save/restore support for OFF-mode
-> >      OMAP2/3: HSMMC: Ensure HSMMC is fully reset on boot
-> >      OMAP3: PM: CPUidle: obey enable_off_mode flag
-> >      OMAP3: PM: CPUidle: restrict C-states on UART activity
-> >      OMAP3: PM: decouple PER and CORE context save and restore
-> >      Revert "OMAP3 clock: fix non-CORE DPLL rate assignment bugs"
-> >      Revert "OMAP3: PM: Do not set next states sw to 
-> control those is available"
-> >      Revert "OMAP3: Do not set mpu, core, neon states if 
-> cpuidle is used"
-> >      OMAP: PM: UART: fix can_sleep hook to return correct value
-> >      OMAP: PM: UART: Only disable clocks in prepare-idle hook
-> >      OMAP3: PM: Check for UART wakeups in 'resume_idle' hook
-> >
-> > Paul Walmsley (14):
-> >      OMAP2/3 PM: create the OMAP PM interface and add a 
-> default OMAP PM no-op layer.
-> >      OMAP2/3 omapdev: add basic omapdev structure
-> >      OMAP242x omapdev: add OMAP242x omapdev records
-> >      OMAP243x omapdev: add OMAP243x omapdev records
-> >      OMAP3xxx omapdev: add OMAP3xxx omapdev records
-> >      OMAP2/3 omapdev: add code to walk the omapdev records
-> >      OMAP3 clock: fix non-CORE DPLL rate assignment bugs
-> >      OMAP3 powerdomains: remove RET from SGX power states list
-> >      OMAP3 powerdomains: remove RET from SGX power states list
-> >      OMAP3 clock: remove unnecessary dpll_data dereferences
-> >      OMAP3 clock: optimize DPLL rate rounding algorithm
-> >      OMAP3 clock: avoid invalid FREQSEL values during DPLL 
-> rate rounding
-> >      OMAP2/3 I2C: reprogram OCP_SYSCONFIG register after reset
-> >      OMAP: I2C: convert 'rev1' flag to generic 'rev' u8
-> >
-> > Peter 'p2' De Schrijver (9):
-> >      OMAP: PM counter infrastructure.
-> >      OMAP: PM: Hook into PM counters
-> >      OMAP: PM: Add closures to clkdm_for_each and pwrdm_for_each.
-> >      OMAP: PM: Add pm-debug counters
-> >      OMAP: PM debug: make powerdomains use PM-debug counters
-> >      OMAP: PM: Add definitions for ETK pads and 
-> observability registers
-> >      OMAP: Debug observability and ETK padconf implementation
-> >      OMAP: Add debug observablity (debobs) Kconfig item
-> >      OMAP: PM: Implement get_last_off_on_transaction_id()
-> >
-> > Rajendra Nayak (23):
-> >      OMAP3: PM: GPMC context save/restore
-> >      OMAP3: PM: GPIO context save/restore
-> >      OMAP3: PM: I2C context save/restore
-> >      OMAP3: PM: INTC context save/restore
-> >      OMAP3: PM: PRCM context save/restore
-> >      OMAP3: PM: Populate scratchpad contents
-> >      OMAP3: PM: SCM context save/restore
-> >      OMAP3: PM: SRAM restore function
-> >      OMAP3: PM: handle PER/NEON/CORE in idle
-> >      OMAP3: PM: Restore MMU table entry
-> >      OMAP3: PM: MPU off-mode support
-> >      OMAP3: PM: CORE domain off-mode support
-> >      OMAP3: PM: allow runtime enable/disable of OFF mode
-> >      OMAP3: 3430SDP minimal kernel defconfig
-> >      OMAP3: PM: CPUidle: Basic support for C1-C2
-> >      OMAP3: PM: CPUidle: Enables state C4
-> >      OMAP3: PM: CPUidle: Enables C3 and C5
-> >      OMAP3: PM: CPUidle: Safe-state on bm-activity
-> >      OMAP3: PM: CPUidle: Enable Kconfig option for OMAP
-> >      OMAP3 SRF: Generic shared resource f/w
-> >      OMAP3 SRF: MPU/CORE/PD latency modeling
-> >      OMAP3 SRF: omap3 srf driver
-> >      OMAP3 SRF: OMAP PM srf implementation
-> >
-> > Tero Kristo (13):
-> >      OMAP: PM debug: do not print out status for meta 
-> powerdomains (dpll*)
-> >      OMAP: PM debug: Add PRCM register dump support
-> >      OMAP: PM: DMA context save / restore
-> >      OMAP: PM: off-mode support for DMA on EMU/HS devices
-> >      OMAP3: SRAM size fix for HS/EMU devices
-> >      OMAP3 PM: off-mode support for HS/EMU devices
-> >      OMAP3: PM: Enable SDRAM auto-refresh during sleep
-> >      OMAP: SDRC: Add new register definitions for SDRAM controller
-> >      OMAP3: PM: SDRC auto-refresh workaround for off-mode
-> >      PM: Fix a bug with noncore dpll rate calculation
-> >      PM: Added three PLL registers to the PRCM context save
-> >      PM: OMAP3: Make sure clk_disable_unused() order is correct
-> >      PM: Changed secure RAM storage size from 0x8000 to 0x803F
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" 
-> > in the body of a message to majordomo@vger.kernel.org More 
-> majordomo 
-> > info at  http://vger.kernel.org/majordomo-info.html
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in the body of a message to 
-> majordomo@vger.kernel.org More majordomo info at  
-> http://vger.kernel.org/majordomo-info.html
-> 
-> 
+--Apple-Mail-15--222763662
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: This is a digitally signed message part
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFJJXjdMkyGM64RGpERAvGHAJ9xOrLobuUJpAMLicFj2YGHI2d0AACfRvDJ
+Zga85TAdioDGFIgo0rI8Pqo=
+=rSiF
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-15--222763662--
