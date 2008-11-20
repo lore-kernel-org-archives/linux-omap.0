@@ -1,255 +1,54 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [ANNOUNCE] new PM branch: pm-20081119
-Date: Thu, 20 Nov 2008 09:40:07 -0800
-Message-ID: <87r656b8js.fsf@deeprootsystems.com>
-References: <87d4grdxqh.fsf@deeprootsystems.com>
-	<345163910811200045n3af8b3b5mbd30601aeeee31e@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301B6C8C79B@dbde02.ent.ti.com>
+Subject: Re: [PATCH PM-20081119] OMAP: PM: Check both, IOPAD and UART wakeup always
+Date: Thu, 20 Nov 2008 09:41:40 -0800
+Message-ID: <87prkqb8h7.fsf@deeprootsystems.com>
+References: <1227170626-22021-1-git-send-email-jouni.hogander@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f11.google.com ([209.85.221.11]:52802 "EHLO
+Received: from mail-qy0-f11.google.com ([209.85.221.11]:50612 "EHLO
 	mail-qy0-f11.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755019AbYKTRkM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Nov 2008 12:40:12 -0500
-Received: by qyk4 with SMTP id 4so519735qyk.13
-        for <linux-omap@vger.kernel.org>; Thu, 20 Nov 2008 09:40:11 -0800 (PST)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301B6C8C79B@dbde02.ent.ti.com> (Sanjeev Premi's message of "Thu\, 20 Nov 2008 19\:43\:17 +0530")
+	with ESMTP id S1753295AbYKTRlo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Nov 2008 12:41:44 -0500
+Received: by qyk4 with SMTP id 4so520459qyk.13
+        for <linux-omap@vger.kernel.org>; Thu, 20 Nov 2008 09:41:43 -0800 (PST)
+In-Reply-To: <1227170626-22021-1-git-send-email-jouni.hogander@nokia.com> (Jouni Hogander's message of "Thu\, 20 Nov 2008 10\:43\:46 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: Peter Reid <ppeter.reid@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Jouni Hogander <jouni.hogander@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-"Premi, Sanjeev" <premi@ti.com> writes:
+Jouni Hogander <jouni.hogander@nokia.com> writes:
 
-> These are my observations on OMAP3EVM:
+> Uart RX might not always generate IOPAD wake-up. E.g. IOPAD is not
+> enabled or core was not in sleep state.
 >
-> 1) Very frequently I see these messages:
->
-> <4>__ratelimit: 6736 callbacks suppressed
-> __ratelimit: 6736 callbacks suppressed
-> <3>omapfb omapfb: irq error status 00c2
-> omapfb omapfb: irq error status 00c2
-> <3>omapfb omapfb: irq error status 0060
-> omapfb omapfb: irq error status 0060
-> <3>omapfb omapfb: irq error status 00c2
-> omapfb omapfb: irq error status 00c2
-> <3>omapfb omapfb: irq error status 0060
-> omapfb omapfb: irq error status 0060
-> <3>omapfb omapfb: irq error status 00e2
-> omapfb omapfb: irq error status 00e2
-> <3>omapfb omapfb: irq error status 00c2
-> omapfb omapfb: irq error status 00c2
-> <3>omapfb omapfb: irq error status 0060
-> omapfb omapfb: irq error status 0060
-> <3>omapfb omapfb: irq error status 00e2
-> omapfb omapfb: irq error status 00e2
-> <3>omapfb omapfb: irq error status 00c2
-> omapfb omapfb: irq error status 00c2
-> <3>omapfb omapfb: irq error status 0060
-> omapfb omapfb: irq error status 0060
+> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
 
-Sanjeev,
-
-For starters can you try with a minimal kernel (no drivers, no
-framebuffer, etc.) 
-
-The first goal is to hit retention and off with no drivers than start
-moving out to address driver issues from there.
+Thanks, applying to pm-20081119.
 
 Kevin
 
-> 2) Also:
-> # echo mem > /sys/power/state
-> <6>PM: Syncing filesystems ...
-> PM: Syncing filesystems ...
-> done.
-> done.
-> Freezing user space processes ... Freezing user space processes ... (elapsed 0.00 seconds) (elapsed 0.00 seconds) done.
-> done.
-> Freezing remaining freezable tasks ... Freezing remaining freezable tasks ... (elapsed 0.00 seconds) (elapsed 0.00 seconds) done.
-> done.
+>  arch/arm/mach-omap2/serial.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 >
-> Suspending console(s) (use no_console_suspend to debug)
-> Suspending console(s) (use no_console_suspend to debug)
-> <3>omapfb omapfb: timeout waiting for FRAME DONE
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index 745ae5c..8d2f0b1 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -281,7 +281,7 @@ void omap_uart_resume_idle(int num)
+>  			}
+>  
+>  			/* Check for normal UART wakeup */
+> -			else if (__raw_readl(uart->wk_st) & uart->wk_mask)
+> +			if (__raw_readl(uart->wk_st) & uart->wk_mask)
+>  				omap_uart_block_sleep(uart);
+>  
+>  			return;
+> -- 
+> 1.6.0.1
 >
-> However, I the "resume" doesn't happen.
-> Trying to debug further.
->
-> Best regards,
-> Sanjeev
->
->> On Thu, Nov 20, 2008 at 6:23 AM, Kevin Hilman 
->> <khilman@deeprootsystems.com> wrote:
->> > Hello,
->> >
->> > A new PM branch is available named pm-20081119.
->> >
->> > This is mostly a new set of patches on top of the previous 
->> PM branch, 
->> > rather than a rebase.  We finally found the root cause of some DPLL 
->> > relocking bugs.  Special thanks to Paul Walmsley and Tero 
->> Kristo for 
->> > debugging and fixing this problem.  Now the DPLL fix that 
->> was reverted 
->> > in the previous PM branch is re-applied as well as some 
->> fixes on top 
->> > of it.  It also has some additional UART fixes, so I think the UART 
->> > idle work is ready to go to Tony.  Special thanks to Jouni Hogander 
->> > for the extra testing and fixes here.
->> >
->> > The shortlog is below[1] and the root of the tree is still
->> > v2.6.27-omap1 + T2 power patches from Peter.
->> >
->> > This has primarily been tested on custom HW since I'm 
->> _still_ waiting 
->> > for my SDP to arrive.  I have boot tested on Beagle, but I 
->> think there 
->> > are still some problems with ES2 silicon.  On my ES2 
->> Beagle, neither 
->> > DSS or IVA will leave the ON state, even when all clocks in their 
->> > powerdomains are off.  I have not debugged this further yet.
->> >
->> > Functionally, this tree is in pretty good shape, so I will do some 
->> > bugfixes here when necessary, but will now spent some time 
->> focusing on 
->> > getting the patches in this branch merged into linux-omap.
->> >
->> > Kevin
->> >
->> >
->> > [1] git shortlog:
->> >
->> > Amit Kucheria (2):
->> >      OMAP: PM: Typo fix for clock_allow_idle
->> >      HSMMC: Make driver support dynamic idle
->> >
->> > Jouni Hogander (11):
->> >      OMAP3: PM: Use pwrdm_set_next_pwrst instead of 
->> set_pwrdm_state in idle loop
->> >      OMAP3: Do not set mpu, core, neon states if cpuidle is used
->> >      OMAP3: PM: Do not set next states sw to control those 
->> is available
->> >      OMAP3: PM: Always return value in pwrdms_setup
->> >      OMAP3: PM: Fix wrong sequence in suspend.
->> >      OMAP3: UART: Make sure that uart clocks are enabled when needed
->> >      OMAP3: PM: Check in set_pwrdm_state that target state 
->> is supported by pwrdm v2
->> >      OMAP3: PM: Do not build suspend code if SUSPEND is not enabled
->> >      OMAP: PM: Build fails if PM is not enabled
->> >      OMAP2: PM: Fix omap2 build
->> >      OMAP: MCSPI: Enable mcspi wake-up
->> >
->> > Kalle Jokiniemi (4):
->> >      OMAP: PM: sysfs interface for enabling voltage off in idle
->> >      OMAP3: PM: Fix cpu idle init sequencing
->> >      OMAP: SRF: Fixes to shared resource framework (Ver.3)
->> >      OMAP3: I2C: Enable I2C wakeups
->> >
->> > Kevin Hilman (16):
->> >      OMAP3: PM: Add wake-up bit defintiions for CONTROL_PADCONF_X
->> >      OMAP3: PM: Allow UARTs to be unclocked when inactive
->> >      8250: Allow platform to register PM hook
->> >      8250: when waking, PM hook should be called before 
->> accessing port
->> >      OMAP3: PM: UART: Add 8250 UART PM hook for suspend/resume
->> >      OMAP3: PM: UART save/restore support for OFF-mode
->> >      OMAP2/3: HSMMC: Ensure HSMMC is fully reset on boot
->> >      OMAP3: PM: CPUidle: obey enable_off_mode flag
->> >      OMAP3: PM: CPUidle: restrict C-states on UART activity
->> >      OMAP3: PM: decouple PER and CORE context save and restore
->> >      Revert "OMAP3 clock: fix non-CORE DPLL rate assignment bugs"
->> >      Revert "OMAP3: PM: Do not set next states sw to 
->> control those is available"
->> >      Revert "OMAP3: Do not set mpu, core, neon states if 
->> cpuidle is used"
->> >      OMAP: PM: UART: fix can_sleep hook to return correct value
->> >      OMAP: PM: UART: Only disable clocks in prepare-idle hook
->> >      OMAP3: PM: Check for UART wakeups in 'resume_idle' hook
->> >
->> > Paul Walmsley (14):
->> >      OMAP2/3 PM: create the OMAP PM interface and add a 
->> default OMAP PM no-op layer.
->> >      OMAP2/3 omapdev: add basic omapdev structure
->> >      OMAP242x omapdev: add OMAP242x omapdev records
->> >      OMAP243x omapdev: add OMAP243x omapdev records
->> >      OMAP3xxx omapdev: add OMAP3xxx omapdev records
->> >      OMAP2/3 omapdev: add code to walk the omapdev records
->> >      OMAP3 clock: fix non-CORE DPLL rate assignment bugs
->> >      OMAP3 powerdomains: remove RET from SGX power states list
->> >      OMAP3 powerdomains: remove RET from SGX power states list
->> >      OMAP3 clock: remove unnecessary dpll_data dereferences
->> >      OMAP3 clock: optimize DPLL rate rounding algorithm
->> >      OMAP3 clock: avoid invalid FREQSEL values during DPLL 
->> rate rounding
->> >      OMAP2/3 I2C: reprogram OCP_SYSCONFIG register after reset
->> >      OMAP: I2C: convert 'rev1' flag to generic 'rev' u8
->> >
->> > Peter 'p2' De Schrijver (9):
->> >      OMAP: PM counter infrastructure.
->> >      OMAP: PM: Hook into PM counters
->> >      OMAP: PM: Add closures to clkdm_for_each and pwrdm_for_each.
->> >      OMAP: PM: Add pm-debug counters
->> >      OMAP: PM debug: make powerdomains use PM-debug counters
->> >      OMAP: PM: Add definitions for ETK pads and 
->> observability registers
->> >      OMAP: Debug observability and ETK padconf implementation
->> >      OMAP: Add debug observablity (debobs) Kconfig item
->> >      OMAP: PM: Implement get_last_off_on_transaction_id()
->> >
->> > Rajendra Nayak (23):
->> >      OMAP3: PM: GPMC context save/restore
->> >      OMAP3: PM: GPIO context save/restore
->> >      OMAP3: PM: I2C context save/restore
->> >      OMAP3: PM: INTC context save/restore
->> >      OMAP3: PM: PRCM context save/restore
->> >      OMAP3: PM: Populate scratchpad contents
->> >      OMAP3: PM: SCM context save/restore
->> >      OMAP3: PM: SRAM restore function
->> >      OMAP3: PM: handle PER/NEON/CORE in idle
->> >      OMAP3: PM: Restore MMU table entry
->> >      OMAP3: PM: MPU off-mode support
->> >      OMAP3: PM: CORE domain off-mode support
->> >      OMAP3: PM: allow runtime enable/disable of OFF mode
->> >      OMAP3: 3430SDP minimal kernel defconfig
->> >      OMAP3: PM: CPUidle: Basic support for C1-C2
->> >      OMAP3: PM: CPUidle: Enables state C4
->> >      OMAP3: PM: CPUidle: Enables C3 and C5
->> >      OMAP3: PM: CPUidle: Safe-state on bm-activity
->> >      OMAP3: PM: CPUidle: Enable Kconfig option for OMAP
->> >      OMAP3 SRF: Generic shared resource f/w
->> >      OMAP3 SRF: MPU/CORE/PD latency modeling
->> >      OMAP3 SRF: omap3 srf driver
->> >      OMAP3 SRF: OMAP PM srf implementation
->> >
->> > Tero Kristo (13):
->> >      OMAP: PM debug: do not print out status for meta 
->> powerdomains (dpll*)
->> >      OMAP: PM debug: Add PRCM register dump support
->> >      OMAP: PM: DMA context save / restore
->> >      OMAP: PM: off-mode support for DMA on EMU/HS devices
->> >      OMAP3: SRAM size fix for HS/EMU devices
->> >      OMAP3 PM: off-mode support for HS/EMU devices
->> >      OMAP3: PM: Enable SDRAM auto-refresh during sleep
->> >      OMAP: SDRC: Add new register definitions for SDRAM controller
->> >      OMAP3: PM: SDRC auto-refresh workaround for off-mode
->> >      PM: Fix a bug with noncore dpll rate calculation
->> >      PM: Added three PLL registers to the PRCM context save
->> >      PM: OMAP3: Make sure clk_disable_unused() order is correct
->> >      PM: Changed secure RAM storage size from 0x8000 to 0x803F
->> >
->> > --
->> > To unsubscribe from this list: send the line "unsubscribe 
->> linux-omap" 
->> > in the body of a message to majordomo@vger.kernel.org More 
->> majordomo 
->> > info at  http://vger.kernel.org/majordomo-info.html
->> >
->> --
->> To unsubscribe from this list: send the line "unsubscribe 
->> linux-omap" in the body of a message to 
->> majordomo@vger.kernel.org More majordomo info at  
->> http://vger.kernel.org/majordomo-info.html
->> 
->> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
