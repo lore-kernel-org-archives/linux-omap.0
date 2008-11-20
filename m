@@ -1,32 +1,40 @@
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: Re: [PATCH v2 0/6] OMAP: Make OMAP LDP boot succussfuly
-Date: Thu, 20 Nov 2008 11:31:07 +0300
-Message-ID: <20081120083106.GA22380@2ka.mipt.ru>
-References: <1226404258-13027-1-git-send-email-stanley.miao@windriver.com> <20081111145715.GA11056@2ka.mipt.ru> <20081113224053.GO3106@atomide.com> <20081114112838.GA20212@2ka.mipt.ru> <20081119181305.GY9504@atomide.com> <20081119185109.GA9183@2ka.mipt.ru> <20081119191419.GA9504@atomide.com> <20081119193119.GA24465@2ka.mipt.ru> <20081119200102.GC9504@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jouni Hogander <jouni.hogander@nokia.com>
+Subject: [PATCH PM-20081119] OMAP: PM: Check both, IOPAD and UART wakeup always
+Date: Thu, 20 Nov 2008 10:43:46 +0200
+Message-ID: <1227170626-22021-1-git-send-email-jouni.hogander@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relay.2ka.mipt.ru ([194.85.80.65]:37766 "EHLO 2ka.mipt.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753386AbYKTIfT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 Nov 2008 03:35:19 -0500
-Content-Disposition: inline
-In-Reply-To: <20081119200102.GC9504@atomide.com>
+Received: from smtp.nokia.com ([192.100.122.230]:61871 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753289AbYKTInz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Nov 2008 03:43:55 -0500
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mAK8hljo023350
+	for <linux-omap@vger.kernel.org>; Thu, 20 Nov 2008 10:43:52 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Stanley.Miao" <stanley.miao@windriver.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi.
+Uart RX might not always generate IOPAD wake-up. E.g. IOPAD is not
+enabled or core was not in sleep state.
 
-On Wed, Nov 19, 2008 at 12:01:06PM -0800, Tony Lindgren (tony@atomide.com) wrote:
-> > I've just pushed w1 patch (did I understand it right that there is only
-> > one in the given set, all others touch very different areas).
-> 
-> Yes, that's correct. The other patches are for LDP specific board support,
-> and will be merged with the arm patches.
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+---
+ arch/arm/mach-omap2/serial.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Patch is in the mainline tree.
-
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 745ae5c..8d2f0b1 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -281,7 +281,7 @@ void omap_uart_resume_idle(int num)
+ 			}
+ 
+ 			/* Check for normal UART wakeup */
+-			else if (__raw_readl(uart->wk_st) & uart->wk_mask)
++			if (__raw_readl(uart->wk_st) & uart->wk_mask)
+ 				omap_uart_block_sleep(uart);
+ 
+ 			return;
 -- 
-	Evgeniy Polyakov
+1.6.0.1
+
