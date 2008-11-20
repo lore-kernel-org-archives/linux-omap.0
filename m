@@ -1,34 +1,66 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] Fix section mismatch warning.
-Date: Thu, 20 Nov 2008 05:41:33 -0800
-Message-ID: <200811200541.34166.david-b@pacbell.net>
-References: <1227102749-19536-1-git-send-email-premi@ti.com> <200811191626.02717.david-b@pacbell.net> <B85A65D85D7EB246BE421B3FB0FBB59301B6C8C6E5@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: "Stanley.Miao" <stanley.miao@windriver.com>
+Subject: [PATCH] OMAP: Switch to gpio_direction_output in OMAP_LDP.
+Date: Thu, 20 Nov 2008 22:01:03 +0800
+Message-ID: <1227189663-27966-1-git-send-email-stanley.miao@windriver.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92]:22768 "HELO
-	smtp119.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754735AbYKTNlg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 Nov 2008 08:41:36 -0500
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301B6C8C6E5@dbde02.ent.ti.com>
-Content-Disposition: inline
+Received: from mail.windriver.com ([147.11.1.11]:54341 "EHLO mail.wrs.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750965AbYKTNyt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 Nov 2008 08:54:49 -0500
+Received: from ALA-MAIL03.corp.ad.wrs.com (ala-mail03 [147.11.57.144])
+	by mail.wrs.com (8.13.6/8.13.6) with ESMTP id mAKDsmPq015596
+	for <linux-omap@vger.kernel.org>; Thu, 20 Nov 2008 05:54:48 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-On Thursday 20 November 2008, Premi, Sanjeev wrote:
-> BTW, I could not locate the definition of platform_driver for twl4030
-> to verify if probe() is indeed in __devinit.
+stop using omap_set_gpio_direction() and switch to gpio_direction_output(),
+make omap_ldp can build sucessfully.
 
-In this case, drivers/mfd/twl4030-power.c is what will use that
-data, and it's called from drivers/mfd/twl4030-core.c ... which
-is an I2C client.
+Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+---
+ arch/arm/mach-omap2/board-ldp.c |    2 +-
+ drivers/video/omap/lcd_ldp.c    |    8 +++-----
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
-I don't know of any cases when it's safe to have I2C drivers
-have their probe() use an __init or __devinit annotation.
-
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index bc66b28..a59e4eb 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -341,7 +341,7 @@ static inline void __init ldp_init_smc911x(void)
+ 				eth_gpio);
+ 		return;
+ 	}
+-	omap_set_gpio_direction(eth_gpio, 1);
++	gpio_direction_input(eth_gpio);
+ }
+ 
+ 
+diff --git a/drivers/video/omap/lcd_ldp.c b/drivers/video/omap/lcd_ldp.c
+index e944166..5892765 100644
+--- a/drivers/video/omap/lcd_ldp.c
++++ b/drivers/video/omap/lcd_ldp.c
+@@ -69,17 +69,15 @@ static int ldp_panel_init(struct lcd_panel *panel,
+ 	gpio_request(LCD_PANEL_ENABLE_GPIO, "lcd panel");
+ 	gpio_request(LCD_PANEL_BACKLIGHT_GPIO, "lcd backlight");
+ 
+-	omap_set_gpio_direction(LCD_PANEL_QVGA_GPIO, 0);
+-	omap_set_gpio_direction(LCD_PANEL_RESET_GPIO, 0);
+ 	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 0);
+ 	gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 0);
+ 
+ #ifdef CONFIG_FB_OMAP_LCD_VGA
+-	omap_set_gpio_dataout(LCD_PANEL_QVGA_GPIO, 0);
++	gpio_direction_output(LCD_PANEL_QVGA_GPIO, 0);
+ #else
+-	omap_set_gpio_dataout(LCD_PANEL_QVGA_GPIO, 1);
++	gpio_direction_output(LCD_PANEL_QVGA_GPIO, 1);
+ #endif
+-	omap_set_gpio_dataout(LCD_PANEL_RESET_GPIO, 1);
++	gpio_direction_output(LCD_PANEL_RESET_GPIO, 1);
+ 
+ 	return 0;
+ }
+-- 
+1.5.6.3
 
