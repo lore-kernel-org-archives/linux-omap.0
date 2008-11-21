@@ -1,12 +1,12 @@
 From: mesak82@gmail.com
-Subject: [PATCH] ALSA: SoC: Add support for TI SDP3430
-Date: Thu, 20 Nov 2008 22:30:53 -0600
-Message-ID: <1227241853-25944-1-git-send-email-mesak82@gmail.com>
+Subject: [PATCH][OMAPZOOM] OMAP3: Fix handling of McBSP registers XCCR and RCCR for OMAP2430/34xx
+Date: Thu, 20 Nov 2008 22:31:23 -0600
+Message-ID: <1227241883-26009-1-git-send-email-mesak82@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45923 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45947 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752018AbYKUEbE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 Nov 2008 23:31:04 -0500
+	id S1752561AbYKUEbd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 Nov 2008 23:31:33 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -14,204 +14,76 @@ Cc: vikram.pandita@ti.com, Misael Lopez Cruz <mesak82@gmail.com>
 
 From: Misael Lopez Cruz <mesak82@gmail.com>
 
-This patch add ASoC support for TI SDP3430. It's based on Gumstix
-Overo SoC code by Steve Sakoman.
+This patch fixes handling of XCCR and RCCR registers of McBSP for OMAP2430
+and 34xx platforms. It also fixes OMAP McBSP DAI driver which was setting
+those registers to 0, as they were not initialized.
 
 Signed-off-by: Misael Lopez Cruz <mesak82@gmail.com>
 ---
- sound/soc/omap/Kconfig   |    7 ++
- sound/soc/omap/Makefile  |    2 +
- sound/soc/omap/sdp3430.c |  152 ++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 161 insertions(+), 0 deletions(-)
- create mode 100644 sound/soc/omap/sdp3430.c
+ arch/arm/plat-omap/include/mach/mcbsp.h |    7 +++++++
+ arch/arm/plat-omap/mcbsp.c              |    1 +
+ sound/soc/omap/omap-mcbsp.c             |    4 ++++
+ 3 files changed, 12 insertions(+), 0 deletions(-)
 
-diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index d7b8939..890b1ed 100644
---- a/sound/soc/omap/Kconfig
-+++ b/sound/soc/omap/Kconfig
-@@ -22,3 +22,10 @@ config SND_OMAP_SOC_OVERO
- 	help
- 	  Say Y if you want to add support for SoC audio on the Gumstix Overo.
+diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
+index 3e38575..faa9164 100644
+--- a/arch/arm/plat-omap/include/mach/mcbsp.h
++++ b/arch/arm/plat-omap/include/mach/mcbsp.h
+@@ -245,11 +245,16 @@
+ #define XPBBLK(value)		((value)<<7)	/* Bits 7:8 */
  
-+config SND_OMAP_SOC_SDP3430
-+	tristate "SoC Audio support for Texas Instruments SDP3430"
-+	depends on SND_OMAP_SOC && MACH_OMAP_3430SDP
-+	select SND_OMAP_SOC_MCBSP
-+	select SND_SOC_TWL4030
-+	help
-+	  Say Y if you want to add support for SoC audio on Texas Instruments SDP3430.
-diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
-index b96b97b..c21426b 100644
---- a/sound/soc/omap/Makefile
-+++ b/sound/soc/omap/Makefile
-@@ -8,7 +8,9 @@ obj-$(CONFIG_SND_OMAP_SOC_MCBSP) += snd-soc-omap-mcbsp.o
- # OMAP Machine Support
- snd-soc-n810-objs := n810.o
- snd-soc-overo-objs := overo.o
-+snd-soc-sdp3430-objs := sdp3430.o
+ /*********************** McBSP XCCR bit definitions *************************/
++#define EXTCLKGATE		0x8000
++#define PPCONNECT		0x4000
++#define DXENDLY(value)		((value)<<12)	/* Bits 12:13 */
++#define XFULL_CYCLE		0x0800
+ #define DILB			0x0020
+ #define XDMAEN			0x0008
+ #define XDISABLE		0x0001
  
- obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
- obj-$(CONFIG_SND_OMAP_SOC_OVERO) += snd-soc-overo.o
-+obj-$(CONFIG_SND_OMAP_SOC_SDP3430) += snd-soc-sdp3430.o
+ /********************** McBSP RCCR bit definitions *************************/
++#define RFULL_CYCLE		0x0800
+ #define RDMAEN			0x0008
+ #define RDISABLE		0x0001
  
-diff --git a/sound/soc/omap/sdp3430.c b/sound/soc/omap/sdp3430.c
-new file mode 100644
-index 0000000..84ad3f9
---- /dev/null
-+++ b/sound/soc/omap/sdp3430.c
-@@ -0,0 +1,152 @@
-+/*
-+ * sdp3430.c  --  SoC audio for TI OMAP3430 SDP
-+ *
-+ * Author: Misael Lopez Cruz <x0052729@ti.com>
-+ *
-+ * Based on:
-+ * Author: Steve Sakoman <steve@sakoman.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/platform_device.h>
-+#include <sound/core.h>
-+#include <sound/pcm.h>
-+#include <sound/soc.h>
-+#include <sound/soc-dapm.h>
-+
-+#include <asm/mach-types.h>
-+#include <mach/hardware.h>
-+#include <mach/gpio.h>
-+#include <mach/mcbsp.h>
-+
-+#include "omap-mcbsp.h"
-+#include "omap-pcm.h"
-+#include "../codecs/twl4030.h"
-+
-+static int sdp3430_hw_params(struct snd_pcm_substream *substream,
-+	struct snd_pcm_hw_params *params)
-+{
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_dai *codec_dai = rtd->dai->codec_dai;
-+	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
-+	int ret;
-+
-+	/* Set codec DAI configuration */
-+	ret = snd_soc_dai_set_fmt(codec_dai,
-+				  SND_SOC_DAIFMT_I2S |
-+				  SND_SOC_DAIFMT_NB_NF |
-+				  SND_SOC_DAIFMT_CBM_CFM);
-+	if (ret < 0) {
-+		printk(KERN_ERR "can't set codec DAI configuration\n");
-+		return ret;
+@@ -403,8 +408,10 @@ struct omap_mcbsp_reg_cfg {
+ 	u16 rcerh;
+ 	u16 xcerg;
+ 	u16 xcerh;
++#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX)
+ 	u16 xccr;
+ 	u16 rccr;
++#endif
+ };
+ 
+ typedef enum {
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 906e8e3..2b29033 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -174,6 +174,7 @@ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg *config)
+ 	OMAP_MCBSP_WRITE(io_base, MCR2, config->mcr2);
+ 	OMAP_MCBSP_WRITE(io_base, MCR1, config->mcr1);
+ 	OMAP_MCBSP_WRITE(io_base, PCR0, config->pcr0);
++	/* Write to xccr and rccr only for omap2430/34xx */
+ 	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
+ 		if (mcbsp->pdata->ops->config)
+ 			mcbsp->pdata->ops->config(id, config);
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index 3a4cc4b..51a9313 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -285,6 +285,10 @@ static int omap_mcbsp_dai_set_dai_fmt(struct snd_soc_dai *cpu_dai,
+ 	regs->spcr1	|= RINTM(3);
+ 	regs->rcr2	|= RFIG;
+ 	regs->xcr2	|= XFIG;
++	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
++		regs->xccr = DXENDLY(1) | XDMAEN;
++		regs->rccr = RFULL_CYCLE | RDMAEN;
 +	}
-+
-+	/* Set cpu DAI configuration */
-+	ret = snd_soc_dai_set_fmt(cpu_dai,
-+				  SND_SOC_DAIFMT_I2S |
-+				  SND_SOC_DAIFMT_NB_NF |
-+				  SND_SOC_DAIFMT_CBM_CFM);
-+	if (ret < 0) {
-+		printk(KERN_ERR "can't set cpu DAI configuration\n");
-+		return ret;
-+	}
-+
-+	/* Set the codec system clock for DAC and ADC */
-+	ret = snd_soc_dai_set_sysclk(codec_dai, 0, 26000000,
-+					    SND_SOC_CLOCK_IN);
-+	if (ret < 0) {
-+		printk(KERN_ERR "can't set codec system clock\n");
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct snd_soc_ops sdp3430_ops = {
-+	.hw_params = sdp3430_hw_params,
-+};
-+
-+/* Digital audio interface glue - connects codec <--> CPU */
-+static struct snd_soc_dai_link sdp3430_dai = {
-+	.name = "TWL4030",
-+	.stream_name = "TWL4030",
-+	.cpu_dai = &omap_mcbsp_dai[0],
-+	.codec_dai = &twl4030_dai,
-+	.ops = &sdp3430_ops,
-+};
-+
-+/* Audio machine driver */
-+static struct snd_soc_machine snd_soc_machine_sdp3430 = {
-+	.name = "SDP3430",
-+	.dai_link = &sdp3430_dai,
-+	.num_links = 1,
-+};
-+
-+/* Audio subsystem */
-+static struct snd_soc_device sdp3430_snd_devdata = {
-+	.machine = &snd_soc_machine_sdp3430,
-+	.platform = &omap_soc_platform,
-+	.codec_dev = &soc_codec_dev_twl4030,
-+};
-+
-+static struct platform_device *sdp3430_snd_device;
-+
-+static int __init sdp3430_soc_init(void)
-+{
-+	int ret;
-+
-+	if (!machine_is_omap_3430sdp()) {
-+		pr_debug("Not SDP3430!\n");
-+		return -ENODEV;
-+	}
-+	printk(KERN_INFO "SDP3430 SoC init\n");
-+
-+	sdp3430_snd_device = platform_device_alloc("soc-audio", -1);
-+	if (!sdp3430_snd_device) {
-+		printk(KERN_ERR "Platform device allocation failed\n");
-+		return -ENOMEM;
-+	}
-+
-+	platform_set_drvdata(sdp3430_snd_device, &sdp3430_snd_devdata);
-+	sdp3430_snd_devdata.dev = &sdp3430_snd_device->dev;
-+	*(unsigned int *)sdp3430_dai.cpu_dai->private_data = 1; /* McBSP2 */
-+
-+	ret = platform_device_add(sdp3430_snd_device);
-+	if (ret)
-+		goto err1;
-+
-+	return 0;
-+
-+err1:
-+	printk(KERN_ERR "Unable to add platform device\n");
-+	platform_device_put(sdp3430_snd_device);
-+
-+	return ret;
-+}
-+module_init(sdp3430_soc_init);
-+
-+static void __exit sdp3430_soc_exit(void)
-+{
-+	platform_device_unregister(sdp3430_snd_device);
-+}
-+module_exit(sdp3430_soc_exit);
-+
-+MODULE_AUTHOR("Misael Lopez Cruz <x0052729@ti.com>");
-+MODULE_DESCRIPTION("ALSA SoC SDP3430");
-+MODULE_LICENSE("GPL");
-+
+ 
+ 	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
+ 	case SND_SOC_DAIFMT_I2S:
 -- 
 1.5.6.3
 
