@@ -1,57 +1,54 @@
-From: pavan_savoy@indiatimes.com
-Subject: Re: Place-Holder for a driver
-Date: Sat, 22 Nov 2008 02:20:38 +0530 (IST)
-Message-ID: <1782749650.243661227300638226.JavaMail.root@mbv7.indiatimes.com>
-References: <20081121203435.GH31944@frodo>
+From: "Grazvydas Ignotas" <notasas@gmail.com>
+Subject: Re: [PATCH 5/9] OMAP: HSMMC: Fix oops in omap_mmc_remove
+Date: Fri, 21 Nov 2008 23:08:38 +0200
+Message-ID: <6ed0b2680811211308q338d6df6l53b0c61b95ff9818@mail.gmail.com>
+References: <49267E28.1020303@nokia.com> <49268161.1010304@nokia.com>
+	 <4926859F.8090902@nokia.com> <4926865A.7070406@nokia.com>
+	 <6ed0b2680811210603s17f7a43fw4dd0d57bc5dd829c@mail.gmail.com>
+	 <20081121152717.GA13908@angel.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from omta1.indiatimes.com ([203.199.93.122]:35737 "HELO
-	omta1.indiatimes.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with SMTP id S1751838AbYKUUww (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 15:52:52 -0500
-In-Reply-To: <20081121203435.GH31944@frodo>
+Received: from nf-out-0910.google.com ([64.233.182.184]:18885 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751284AbYKUVIk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 16:08:40 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so565697nfc.21
+        for <linux-omap@vger.kernel.org>; Fri, 21 Nov 2008 13:08:38 -0800 (PST)
+In-Reply-To: <20081121152717.GA13908@angel.research.nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: linux-omap@vger.kernel.org
+To: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Cc: Adrian Hunter <ext-adrian.hunter@nokia.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-Hi,
+On Fri, Nov 21, 2008 at 5:27 PM, Jarkko Lavinen
+<jarkko.lavinen@nokia.com> wrote:
+> On Fri, Nov 21, 2008 at 04:03:25PM +0200, ext Grazvydas Ignotas wrote:
+> ...
+>> Also, HCTL SDVSDET bit will never be set for MMC2 and MMC3, causing
+>> mentioned omap_mmc_switch_opcond() to be called unconditionally here.
+>>
+>> The same block can be found in mmc_omap_detect() function, where it is
+>> executed on card removal. There it causes MMC2 controller to stop
+>> working completely on pandora board :(
+>
+> TI TRM saus HSMMC2 and HSMMC3 works only with SDVS set to 1.8V in HCTL.
+>
+> If the voltage is set to 3.0V and then SDBP (bus power bit) is set,
+> it is rejected and SDBP remains zero, the controller does nothing and
+> is seemingly frozen.
+>
+> The wrong voltage for MMC2 SDVS is set in omap_mmc_switch_opcond() if
+> vdd different from 1.8V.
+>
+> Also omap_mmc_suspend() set SDVS to 3.0V even for MMC2 and MMC3.  When
+> suspending, everything seemed to work and at resume MMC2 was hung
+> and failed to detect the card since not even CMD0 was sent.
 
-The drivers/bluetooth folder as I've observed has mostly the transport layer of bluetooth devices. Say an USB driver or an Serial Line discipline driver or PCMCIA.
-
-My thought was based on something like hp-wmi laptop input driver for wireless LAN, Bluetooth devices on the laptop.
-
-So it is logical ?
-
-regards,
-Pavan
-
-
------ Original Message -----
-From: Felipe Balbi <me@felipebalbi.com>
-To: pavan savoy <pavan_savoy@indiatimes.com>
-Cc: linux-omap@vger.kernel.org
-Sent: Sat, 22 Nov 2008 02:04:35 +0530 (IST)
-Subject: Re: Place-Holder for a driver
-
-On Sat, Nov 22, 2008 at 01:34:37AM +0530, pavan_savoy@indiatimes.com wrote:
-> Hi,
-> 
-> The OMAP Zoom2 board has a bluetooth chip which needs to be enabled to be used. When running on Android, the Bluetooth service of Android uses the rfkill sysfs entry to turn on bluetooth.
-> 
-> So I linked the Bluetooth enable GPIO to the sys-fs entry, Now the question is where should/does this driver fit in ?
-> 
-> I've thought of drivers/misc, Any suggestions are welcome.
-
-how about drivers/bluetooth ??
-
--- 
-balbi
-
-
-
---
-The New Maruti A-Star is here. View pics, videos, read expert opinion and more on ZigWheels.com
-http://images.zigwheels.com/b2cam/a_star.html
+ok, but why there are calls to  omap_mmc_switch_opcond() from both
+omap_mmc_remove() and mmc_omap_detect() at all? This basically causes
+power and clocks to be turned off, then on, then again off whenever
+card is or host driver removed. This is probably no big deal, but
+still.
