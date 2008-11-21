@@ -1,154 +1,32 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: [PATCH 2/2] TVP514x V4L int device driver support
-Date: Fri, 21 Nov 2008 23:42:44 +0530
-Message-ID: <5d5443650811211012t238dd191t81680c45717d8337@mail.gmail.com>
-References: <hvaibhav@ti.com>
-	 <1227280923-31654-1-git-send-email-hvaibhav@ti.com>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: [PATCH] HSMMC: Update mmc configuration for Overo
+Date: Fri, 21 Nov 2008 10:35:56 -0800
+Message-ID: <5e088bd90811211035m4d2d44aeyf45c63fc6dd53532@mail.gmail.com>
+References: <5e088bd90811182205rf6fefb5vdbc145dcdc3980d5@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.29]:45537 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755298AbYKUSMs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 13:12:48 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so472977yxm.1
-        for <linux-omap@vger.kernel.org>; Fri, 21 Nov 2008 10:12:46 -0800 (PST)
-In-Reply-To: <1227280923-31654-1-git-send-email-hvaibhav@ti.com>
+Received: from ug-out-1314.google.com ([66.249.92.174]:38109 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750965AbYKUSgA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 13:36:00 -0500
+Received: by ug-out-1314.google.com with SMTP id 39so188988ugf.37
+        for <linux-omap@vger.kernel.org>; Fri, 21 Nov 2008 10:35:56 -0800 (PST)
+In-Reply-To: <5e088bd90811182205rf6fefb5vdbc145dcdc3980d5@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: hvaibhav@ti.com
-Cc: video4linux-list@redhat.com, linux-omap@vger.kernel.org, davinci-linux-open-source-bounces@linux.davincidsp.com
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Hi Vaibhav,
-
-On Fri, Nov 21, 2008 at 8:52 PM,  <hvaibhav@ti.com> wrote:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
+On Tue, Nov 18, 2008 at 10:05 PM, Steve Sakoman <sakoman@gmail.com> wrote:
+> This patch adds card detect support for mmc1
 >
-> Added new V4L2 slave driver for TVP514x.
->
-> The Driver interface has been tested on OMAP3EVM board
-> with TI daughter card (TVP5146). Soon the patch for Daughter card will
-> be posted on community.
+> Signed-off-by: Steve Sakoman <steve@sakoman.com>
 
-You may want to add some of the TVP5146 video decoder capabilities in
-commit text. Useful for someone who just sees this chip for first
-time.
+Tony - please don't merge this patch.
 
->
-> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
->                Hardik Shah <hardik.shah@ti.com>
->                Manjunath Hadli <mrh@ti.com>
->                R Sivaraj <sivaraj@ti.com>
->                Vaibhav Hiremath <hvaibhav@ti.com>
->                Karicheri Muralidharan <m-karicheri2@ti.com>
+Turns out that CD for microSD isn't quite so straightforward.  I'll
+resubmit at a later time.
 
-I suggested to change this in another email.
-
-> +
-> +#include <linux/i2c.h>
-> +#include <linux/delay.h>
-> +#include <linux/videodev2.h>
-> +#include <media/v4l2-int-device.h>
-
-Convention is is to put empty line between  #include <linux/xxx.h> and
-first #include <nonlinux/xxx.h> which is #include
-<media/v4l2-int-device.h>
-
-> +#include <media/tvp514x.h>
-> +
-
-> +
-> +/* List of image formats supported by TVP5146/47 decoder
-> + * Currently we are using 8 bit mode only, but can be
-> + * extended to 10/20 bit mode.
-> + */
-> +static const struct v4l2_fmtdesc tvp514x_fmt_list[] = {
-> +       {
-> +        .index = 0,
-> +        .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-> +        .flags = 0,
-> +        .description = "8-bit UYVY 4:2:2 Format",
-> +        .pixelformat = V4L2_PIX_FMT_UYVY,
-> +        }
-
-Good to add "," after the last element.
-
-> +static struct tvp514x_std_info tvp514x_std_list[] = {
-> +       {
-> +        .width = NTSC_NUM_ACTIVE_PIXELS,
-> +        .height = NTSC_NUM_ACTIVE_LINES,
-> +        .video_std = VIDEO_STD_NTSC_MJ_BIT,
-> +        .standard = {
-> +                     .index = 0,
-> +                     .id = V4L2_STD_NTSC,
-> +                     .name = "NTSC",
-> +                     .frameperiod = {1001, 30000},
-> +                     .framelines = 525}
-
-"{" after 525 looks weird.
-
-> +        },
-> +       {
-
-You can put "{" with "}" to save one line . Like this
-
-"}, {"
-
-You may want to make similar changes at other places in the patch.
-
-> +static enum tvp514x_std tvp514x_get_current_std(struct tvp514x_decoder
-> +                                               *decoder)
-> +{
-> +       u8 std, std_status;
-> +
-> +       if (tvp514x_read_reg(decoder->client, REG_VIDEO_STD, &std))
-> +               return STD_INVALID;
-> +
-> +       if ((std & VIDEO_STD_MASK) == VIDEO_STD_AUTO_SWITCH_BIT) {
-> +               /* use the standard status register */
-> +               if (tvp514x_read_reg(decoder->client, REG_VIDEO_STD_STATUS,
-> +                                    &std_status))
-> +                       return STD_INVALID;
-> +       } else
-> +               std_status = std;       /* use the standard register itself */
-> +
-> +       switch (std_status & VIDEO_STD_MASK) {
-> +       case VIDEO_STD_NTSC_MJ_BIT:
-> +               return STD_NTSC_MJ;
-> +               break;
-
-No need of " break" here.
-
-> +
-> +       case VIDEO_STD_PAL_BDGHIN_BIT:
-> +               return STD_PAL_BDGHIN;
-> +               break;
-
-Ditto.
-
-> +
-> +       default:
-> +               return STD_INVALID;
-> +               break;
-
-Tritto?
-
-> +       }
-> +
-> +       return STD_INVALID;
-> +}
-> +
-
-> +
-> +static int
-> +tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
-> +{
-
-Mark this as __init please.
-
--- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+Steve
