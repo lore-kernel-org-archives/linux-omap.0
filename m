@@ -1,16 +1,16 @@
 From: Adrian Hunter <ext-adrian.hunter@nokia.com>
-Subject: [PATCH 3/9] OMAP: HSMMC: Make fclk disable request driven.
-Date: Fri, 21 Nov 2008 11:45:54 +0200
-Message-ID: <49268352.2070106@nokia.com>
+Subject: [PATCH 4/9] OMAP: HSMMC: Fix suspend/resume for MMCHS2
+Date: Fri, 21 Nov 2008 11:46:43 +0200
+Message-ID: <49268383.9030908@nokia.com>
 References: <49267E28.1020303@nokia.com> <49268161.1010304@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:63458 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:63741 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751696AbYKUJht (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 04:37:49 -0500
+	with ESMTP id S1750822AbYKUJiv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 04:38:51 -0500
 In-Reply-To: <49268161.1010304@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,102 +18,46 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
 From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-Date: Fri, 24 Oct 2008 16:30:26 +0300
+Date: Tue, 28 Oct 2008 11:12:28 +0200
 
-Start idle timer only at the end of request or request like operation
-such card detect, set_ios, probe, or resume. This will ensure the fclk is
-disable quickly after the operation is done, but never too early.
+For HSMMC2 and HSMMC3 set SDVSS to 1.8V in HCTL before enabling the SDBP bit.
+
+Fixes bug 84194.
 
 Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 ---
- drivers/mmc/host/omap_hsmmc.c |   15 ++++++++++-----
- 1 files changed, 10 insertions(+), 5 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |   19 ++++++++++---------
+ 1 files changed, 10 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 2eed691..a134f76 100644
+index a134f76..4bc25c0 100644
 --- a/drivers/mmc/host/omap_hsmmc.c
 +++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -122,7 +122,7 @@
- 	__raw_writel((val), (base) + OMAP_HSMMC_##reg)
+@@ -1197,15 +1197,16 @@ static int omap_mmc_suspend(struct platform_device *pdev, pm_message_t state)
+ 			}
  
- enum {OFF = 0, ON};
--#define IDLE_TIMEOUT (5*HZ)
-+#define IDLE_TIMEOUT (jiffies_to_msecs(10))
- 
- struct mmc_omap_host {
- 	struct	device		*dev;
-@@ -165,6 +165,7 @@ static int mmc_omap_fclk_state(struct mmc_omap_host *host, unsigned int state)
- 	int ret = 0;
- 
- 	spin_lock_irqsave(&host->clk_lock, flags);
-+	del_timer(&host->idle_timer);
- 	if (host->fclk_enabled != state) {
- 		if (state == ON) {
- 			ret = clk_enable(host->fclk);
-@@ -172,13 +173,9 @@ static int mmc_omap_fclk_state(struct mmc_omap_host *host, unsigned int state)
- 				goto err_out;
- 
- 			dev_dbg(mmc_dev(host->mmc), "mmc_fclk: enabled\n");
--			/* Revisit: Change the timer bump based on real
--			   MMC usage characteristics */
--			mod_timer(&host->idle_timer, jiffies + IDLE_TIMEOUT);
- 		} else {
- 			clk_disable(host->fclk);
- 			dev_dbg(mmc_dev(host->mmc), "mmc_fclk: disabled\n");
--			del_timer(&host->idle_timer);
- 		}
- 		host->fclk_enabled = state;
- 	}
-@@ -335,6 +332,7 @@ mmc_omap_xfer_done(struct mmc_omap_host *host, struct mmc_data *data)
- 
- 	if (!data->stop) {
- 		host->mrq = NULL;
-+		mod_timer(&host->idle_timer, jiffies + IDLE_TIMEOUT);
- 		mmc_request_done(host->mmc, data->mrq);
- 		return;
- 	}
-@@ -363,6 +361,7 @@ mmc_omap_cmd_done(struct mmc_omap_host *host, struct mmc_command *cmd)
- 	}
- 	if (host->data == NULL || cmd->error) {
- 		host->mrq = NULL;
-+		mod_timer(&host->idle_timer, jiffies + IDLE_TIMEOUT);
- 		mmc_request_done(host->mmc, cmd->mrq);
- 	}
- }
-@@ -575,6 +574,7 @@ static void mmc_omap_detect(struct work_struct *work)
- 		while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD) ;
- 		mmc_detect_change(host->mmc, (HZ * 50) / 1000);
- 	}
-+	mod_timer(&host->idle_timer, jiffies + IDLE_TIMEOUT);
- }
- 
- /*
-@@ -874,6 +874,8 @@ static void omap_mmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
- 
- 	if (ios->power_mode == MMC_POWER_OFF)
- 		mmc_omap_fclk_state(host, OFF);
-+	else
-+		mod_timer(&host->idle_timer, jiffies + IDLE_TIMEOUT);
- }
- 
- static int omap_hsmmc_get_cd(struct mmc_host *mmc)
-@@ -1088,6 +1090,7 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
- 		if (ret < 0)
- 			goto err_cover_switch;
- 	}
-+	mod_timer(&host->idle_timer, jiffies + IDLE_TIMEOUT);
- 
- 	return 0;
- 
-@@ -1250,6 +1253,8 @@ static int omap_mmc_resume(struct platform_device *pdev)
- 		ret = mmc_resume_host(host->mmc);
- 		if (ret == 0)
- 			host->suspended = 0;
+ 			if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
+-				OMAP_HSMMC_WRITE(host->base, HCTL,
+-					OMAP_HSMMC_READ(host->base, HCTL)
+-					& SDVSCLR);
+-				OMAP_HSMMC_WRITE(host->base, HCTL,
+-					OMAP_HSMMC_READ(host->base, HCTL)
+-					| SDVS30);
+-				OMAP_HSMMC_WRITE(host->base, HCTL,
+-					OMAP_HSMMC_READ(host->base, HCTL)
+-					| SDBP);
++				u32 hctl = OMAP_HSMMC_READ(host->base, HCTL) &
++					SDVSCLR;
 +
-+		mod_timer(&host->idle_timer, jiffies + IDLE_TIMEOUT);
- 	}
++				if (host->id == OMAP_MMC1_DEVID)
++					hctl |= SDVS30;
++				else
++					hctl |= SDVS18;
++
++				OMAP_HSMMC_WRITE(host->base, HCTL, hctl);
++				OMAP_HSMMC_WRITE(host->base, HCTL, hctl | SDBP);
+ 			}
  
- 	return ret;
+ 			mmc_omap_fclk_state(host, OFF);
 -- 
 1.5.4.3
-
