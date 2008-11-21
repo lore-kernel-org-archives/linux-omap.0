@@ -1,208 +1,135 @@
 From: Adrian Hunter <ext-adrian.hunter@nokia.com>
-Subject: [PATCH 1/9] OMAP: HSMMC: Make driver support dynamic idle
-Date: Fri, 21 Nov 2008 11:43:48 +0200
-Message-ID: <492682D4.1010000@nokia.com>
+Subject: [PATCH 2/9] OMAP: HSMMC: Ensure fclk is running before accessing
+ HSMMC registers
+Date: Fri, 21 Nov 2008 11:44:36 +0200
+Message-ID: <49268304.7020903@nokia.com>
 References: <49267E28.1020303@nokia.com> <49268161.1010304@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:63121 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751685AbYKUJfs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 04:35:48 -0500
+Received: from smtp.nokia.com ([192.100.122.233]:36825 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752763AbYKUJhJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 04:37:09 -0500
 In-Reply-To: <49268161.1010304@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-From: Amit Kucheria <amit.kucheria@verdurent.com>
-Date: Mon, 22 Sep 2008 10:23:09 +0300
+From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Date: Fri, 24 Oct 2008 16:03:23 +0300
 
-Add a timer that is kept active by MMC requests. FCLK is disabled on timeout
-
-Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
+Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 ---
- drivers/mmc/host/omap_hsmmc.c |   73 +++++++++++++++++++++++++++++++++-------
- 1 files changed, 60 insertions(+), 13 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |   32 ++++++++++++++++++++------------
+ 1 files changed, 20 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 0df6841..ee21a64 100644
+index ee21a64..2eed691 100644
 --- a/drivers/mmc/host/omap_hsmmc.c
 +++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -121,6 +121,9 @@
- #define OMAP_HSMMC_WRITE(base, reg, val) \
- 	__raw_writel((val), (base) + OMAP_HSMMC_##reg)
+@@ -154,26 +154,24 @@ struct mmc_omap_host {
  
-+enum {OFF = 0, ON};
-+#define IDLE_TIMEOUT (5*HZ)
-+
- struct mmc_omap_host {
- 	struct	device		*dev;
- 	struct	mmc_host	*mmc;
-@@ -148,9 +151,50 @@ struct mmc_omap_host {
- 	int			initstr;
- 	int			slot_id;
- 	int			dbclk_enabled;
-+
-+	struct timer_list       idle_timer;
-+	spinlock_t		clk_lock;     /* for changing enabled state */
-+	int			fclk_enabled:1;
-+
+ 	struct timer_list       idle_timer;
+ 	spinlock_t		clk_lock;     /* for changing enabled state */
+-	int			fclk_enabled:1;
++	unsigned int		fclk_enabled:1;
+ 
  	struct	omap_mmc_platform_data	*pdata;
  };
  
-+int mmc_omap_fclk_state(struct mmc_omap_host *host, unsigned int state)
-+{
-+	unsigned long flags;
-+	int ret;
-+
-+	spin_lock_irqsave(&host->clk_lock, flags);
-+	if (host->fclk_enabled != state) {
-+		if (state == ON) {
-+			if (host->fclk_enabled == OFF) {
-+				ret = clk_enable(host->fclk);
-+				if (ret != 0)
-+					return ret;
-+				dev_dbg(mmc_dev(host->mmc),
-+					"mmc_fclk: enabled\n");
-+			}
-+			/* Revisit: Change the timer bump based on real
-+			   MMC usage characteristics */
-+			mod_timer(&host->idle_timer, jiffies + IDLE_TIMEOUT);
-+		} else {
-+			clk_disable(host->fclk);
-+			dev_dbg(mmc_dev(host->mmc), "mmc_fclk: disabled\n");
-+			del_timer(&host->idle_timer);
-+		}
-+		host->fclk_enabled = state;
-+	}
-+	spin_unlock_irqrestore(&host->clk_lock, flags);
-+	return 0;
-+}
-+
-+static void mmc_omap_idle_timer(unsigned long data)
-+{
-+	struct mmc_omap_host *host = (struct mmc_omap_host *) data;
-+
-+	mmc_omap_fclk_state(host, OFF);
-+}
-+
- /*
-  * Stop clock to the card
-  */
-@@ -457,7 +501,7 @@ static int omap_mmc_switch_opcond(struct mmc_omap_host *host, int vdd)
- 	int ret;
+-int mmc_omap_fclk_state(struct mmc_omap_host *host, unsigned int state)
++static int mmc_omap_fclk_state(struct mmc_omap_host *host, unsigned int state)
+ {
+ 	unsigned long flags;
+-	int ret;
++	int ret = 0;
  
- 	/* Disable the clocks */
--	clk_disable(host->fclk);
-+	mmc_omap_fclk_state(host, OFF);
- 	clk_disable(host->iclk);
- 	clk_disable(host->dbclk);
+ 	spin_lock_irqsave(&host->clk_lock, flags);
+ 	if (host->fclk_enabled != state) {
+ 		if (state == ON) {
+-			if (host->fclk_enabled == OFF) {
+-				ret = clk_enable(host->fclk);
+-				if (ret != 0)
+-					return ret;
+-				dev_dbg(mmc_dev(host->mmc),
+-					"mmc_fclk: enabled\n");
+-			}
++			ret = clk_enable(host->fclk);
++			if (ret != 0)
++				goto err_out;
++
++			dev_dbg(mmc_dev(host->mmc), "mmc_fclk: enabled\n");
+ 			/* Revisit: Change the timer bump based on real
+ 			   MMC usage characteristics */
+ 			mod_timer(&host->idle_timer, jiffies + IDLE_TIMEOUT);
+@@ -184,8 +182,10 @@ int mmc_omap_fclk_state(struct mmc_omap_host *host, unsigned int state)
+ 		}
+ 		host->fclk_enabled = state;
+ 	}
++
++err_out:
+ 	spin_unlock_irqrestore(&host->clk_lock, flags);
+-	return 0;
++	return ret;
+ }
  
-@@ -471,7 +515,7 @@ static int omap_mmc_switch_opcond(struct mmc_omap_host *host, int vdd)
- 	if (ret != 0)
- 		goto err;
+ static void mmc_omap_idle_timer(unsigned long data)
+@@ -557,6 +557,7 @@ static void mmc_omap_detect(struct work_struct *work)
+ 						mmc_carddetect_work);
  
--	clk_enable(host->fclk);
+ 	sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
 +	mmc_omap_fclk_state(host, ON);
- 	clk_enable(host->iclk);
- 	clk_enable(host->dbclk);
+ 	if (host->carddetect) {
+ 		if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
+ 			/*
+@@ -785,8 +786,8 @@ static void omap_mmc_request(struct mmc_host *mmc, struct mmc_request *req)
  
-@@ -742,10 +786,10 @@ static void omap_mmc_request(struct mmc_host *mmc, struct mmc_request *req)
  	WARN_ON(host->mrq != NULL);
  	host->mrq = req;
- 	mmc_omap_prepare_data(host, req);
-+	mmc_omap_fclk_state(host, ON);
+-	mmc_omap_prepare_data(host, req);
+ 	mmc_omap_fclk_state(host, ON);
++	mmc_omap_prepare_data(host, req);
  	mmc_omap_start_command(host, req->cmd, req->data);
  }
  
--
- /* Routine to configure clock values. Exposed API to core */
- static void omap_mmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
- {
-@@ -824,6 +868,7 @@ static void omap_mmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
- 	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN)
+@@ -798,6 +799,8 @@ static void omap_mmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+ 	unsigned long regval;
+ 	unsigned long timeout;
+ 
++	mmc_omap_fclk_state(host, ON);
++
+ 	switch (ios->power_mode) {
+ 	case MMC_POWER_OFF:
+ 		mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
+@@ -869,6 +872,8 @@ static void omap_mmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
  		OMAP_HSMMC_WRITE(host->base, CON,
  				OMAP_HSMMC_READ(host->base, CON) | OD);
-+
+ 
++	if (ios->power_mode == MMC_POWER_OFF)
++		mmc_omap_fclk_state(host, OFF);
  }
  
  static int omap_hsmmc_get_cd(struct mmc_host *mmc)
-@@ -860,7 +905,7 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
- 	struct mmc_host *mmc;
- 	struct mmc_omap_host *host = NULL;
+@@ -1120,6 +1125,7 @@ static int omap_mmc_remove(struct platform_device *pdev)
  	struct resource *res;
--	int ret = 0, irq;
-+	int ret = 0, irq, reg;
- 	u32 hctl, capa;
+ 	u16 vdd = 0;
  
- 	if (pdata == NULL) {
-@@ -925,14 +970,17 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
- 		goto err1;
- 	}
- 
--	if (clk_enable(host->fclk) != 0) {
-+	spin_lock_init(&host->clk_lock);
-+	setup_timer(&host->idle_timer, mmc_omap_idle_timer,
-+		    (unsigned long) host);
-+
-+	if (mmc_omap_fclk_state(host, ON) != 0) {
- 		clk_put(host->iclk);
- 		clk_put(host->fclk);
- 		goto err1;
- 	}
--
- 	if (clk_enable(host->iclk) != 0) {
--		clk_disable(host->fclk);
-+		mmc_omap_fclk_state(host, OFF);
- 		clk_put(host->iclk);
- 		clk_put(host->fclk);
- 		goto err1;
-@@ -1047,7 +1095,7 @@ err_irq_cd:
- err_irq_cd_init:
- 	free_irq(host->irq, host);
- err_irq:
--	clk_disable(host->fclk);
-+	mmc_omap_fclk_state(host, OFF);
- 	clk_disable(host->iclk);
- 	clk_put(host->fclk);
- 	clk_put(host->iclk);
-@@ -1096,7 +1144,7 @@ static int omap_mmc_remove(struct platform_device *pdev)
- 			free_irq(mmc_slot(host).card_detect_irq, host);
- 		flush_scheduled_work();
- 
--		clk_disable(host->fclk);
-+		mmc_omap_fclk_state(host, OFF);
- 		clk_disable(host->iclk);
- 		clk_put(host->fclk);
- 		clk_put(host->iclk);
-@@ -1149,7 +1197,7 @@ static int omap_mmc_suspend(struct platform_device *pdev, pm_message_t state)
- 					| SDBP);
- 			}
- 
--			clk_disable(host->fclk);
-+			mmc_omap_fclk_state(host, OFF);
- 			clk_disable(host->iclk);
- 			clk_disable(host->dbclk);
- 		}
-@@ -1169,13 +1217,12 @@ static int omap_mmc_resume(struct platform_device *pdev)
++	mmc_omap_fclk_state(host, ON);
+ 	if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
+ 	/*
+ 	 * Set the vdd back to 3V,
+@@ -1170,6 +1176,8 @@ static int omap_mmc_suspend(struct platform_device *pdev, pm_message_t state)
+ 		return 0;
  
  	if (host) {
- 
--		ret = clk_enable(host->fclk);
--		if (ret)
-+		if (mmc_omap_fclk_state(host, ON) != 0)
- 			goto clk_en_err;
- 
- 		ret = clk_enable(host->iclk);
- 		if (ret) {
--			clk_disable(host->fclk);
-+			mmc_omap_fclk_state(host, OFF);
- 			clk_put(host->fclk);
- 			goto clk_en_err;
- 		}
++		mmc_omap_fclk_state(host, ON);
++
+ 		ret = mmc_suspend_host(host->mmc, state);
+ 		if (ret == 0) {
+ 			host->suspended = 1;
 -- 
 1.5.4.3
 
