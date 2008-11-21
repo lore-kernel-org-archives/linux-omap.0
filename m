@@ -1,50 +1,34 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP3 clock: disable DPLL autoidle while waiting for
- DPLL to lock
-Date: Fri, 21 Nov 2008 16:22:59 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0811211622210.22538@utopia.booyaka.com>
-References: <alpine.DEB.2.00.0811141043400.27331@utopia.booyaka.com> <20081121222807.GI4927@atomide.com> <87zljs66ty.fsf@deeprootsystems.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [OMAP and mainline][RFC 2.6.28-rc2-omap 3/3] USB: OHCI-OMAP: Switch to gpio_request/free calls
+Date: Fri, 21 Nov 2008 15:37:13 -0800
+Message-ID: <200811211537.13253.david-b@pacbell.net>
+References: <1225455447-12179-1-git-send-email-jarkko.nikula@nokia.com> <20081112095318.621bb99d.jarkko.nikula@nokia.com> <20081121221638.GE4927@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:39136 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752664AbYKUXXB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 18:23:01 -0500
-In-Reply-To: <87zljs66ty.fsf@deeprootsystems.com>
+Received: from smtp128.sbc.mail.sp1.yahoo.com ([69.147.65.187]:37050 "HELO
+	smtp128.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752779AbYKUXhQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Nov 2008 18:37:16 -0500
+In-Reply-To: <20081121221638.GE4927@atomide.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Peter de Schrijver <peter.de-schrijver@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, linux-omap@vger.kernel.org
 
-On Fri, 21 Nov 2008, Kevin Hilman wrote:
-
-> Tony Lindgren <tony@atomide.com> writes:
+On Friday 21 November 2008, Tony Lindgren wrote:
+> > > 
+> > I just sent a patch extending width to 20 bytes via LKML and you in cc
+> > list. I looked mainline and there were many labels more than 12 but
+> > less 20 bytes. One longer was "board a9m9750dev extirq2" but looks like
+> > it can be squeezed.
 > 
-> > * Paul Walmsley <paul@pwsan.com> [081114 09:46]:
-> >> 
-> >> During _omap3_noncore_dpll_lock(), if a DPLL has no active downstream
-> >> clocks and DPLL autoidle is enabled, the DPLL may never lock, since it
-> >> will enter autoidle immediately.  To resolve this, disable DPLL
-> >> autoidle while locking the DPLL, and unconditionally wait for the DPLL
-> >> to lock.  This fixes some bugs where the kernel would hang when returning
-> >> from retention or return the wrong rate for the DPLL.
-> >> 
-> >> This patch is a collaboration with Peter de Schrijver 
-> >> <peter.de-schrijver@nokia.com> and Kevin Hilman 
-> >> <khilman@deeprootsystems.com>.
-> >
-> > Pushing to l-o tree today.
-> >
-> 
-> Actually, I think Tero and Paul have a different fix for this now,
-> which is what I've included in the latest PM branch.
-> 
-> Tero can you send the updated version of you "Fix a bug with noncore
-> dpll rate calculation" patch?
+> Jarkko, any news on updating this patch series? It would be nice to
+> have this queued up for  2.6.29.
 
-No, this patch is still valid, and still should be pushed.  The 
-calculation patch fixes a separate bug.
+The gpiolib change is in mainline git.
 
-
-- Paul
