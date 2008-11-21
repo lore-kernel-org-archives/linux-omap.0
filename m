@@ -1,89 +1,44 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3 clock: disable DPLL autoidle while waiting for DPLL to lock
-Date: Fri, 21 Nov 2008 14:40:41 -0800
-Message-ID: <87zljs66ty.fsf@deeprootsystems.com>
-References: <alpine.DEB.2.00.0811141043400.27331@utopia.booyaka.com>
-	<20081121222807.GI4927@atomide.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH 2/2] OMAP2/3 GPTIMER: skip unnecessary TLDR write	during
+ non-autoreload
+Date: Fri, 21 Nov 2008 16:53:17 -0600
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162036CD41930@dlee02.ent.ti.com>
+References: <20081014172417.5459.36601.stgit@localhost.localdomain>
+ <20081014172745.5459.1893.stgit@localhost.localdomain>
+ <13B9B4C6EF24D648824FF11BE89671620365C448AB@dlee02.ent.ti.com>
+ <20081121222232.GG4927@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.30]:2557 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754080AbYKUWkr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 17:40:47 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so523299yxm.1
-        for <linux-omap@vger.kernel.org>; Fri, 21 Nov 2008 14:40:46 -0800 (PST)
-In-Reply-To: <20081121222807.GI4927@atomide.com> (Tony Lindgren's message of "Fri\, 21 Nov 2008 14\:28\:08 -0800")
+Received: from comal.ext.ti.com ([198.47.26.152]:35404 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753312AbYKUWxZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 17:53:25 -0500
+In-Reply-To: <20081121222232.GG4927@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Peter de Schrijver <peter.de-schrijver@nokia.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tony Lindgren <tony@atomide.com> writes:
-
-> * Paul Walmsley <paul@pwsan.com> [081114 09:46]:
->> 
->> During _omap3_noncore_dpll_lock(), if a DPLL has no active downstream
->> clocks and DPLL autoidle is enabled, the DPLL may never lock, since it
->> will enter autoidle immediately.  To resolve this, disable DPLL
->> autoidle while locking the DPLL, and unconditionally wait for the DPLL
->> to lock.  This fixes some bugs where the kernel would hang when returning
->> from retention or return the wrong rate for the DPLL.
->> 
->> This patch is a collaboration with Peter de Schrijver 
->> <peter.de-schrijver@nokia.com> and Kevin Hilman 
->> <khilman@deeprootsystems.com>.
+> * Woodruff, Richard <r-woodruff2@ti.com> [081014 12:47]:
+> > >       omap_dm_timer_write_reg(timer, OMAP_TIMER_COUNTER_REG, load);
+> > > -     omap_dm_timer_write_reg(timer, OMAP_TIMER_LOAD_REG, load);
+> > >       omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
+> > >  }
+> >
+> > I seem to recall there was a missed interrupt condition which this worked
+> around.
+> >
+> > IIRC, the original code didn't bother with the load I added back as a work
+> around as a way to get posted mode working.
 >
-> Pushing to l-o tree today.
->
+> Well these seem to be working based on some quick timer tests.
+> Pushing so we can verify it ;)
 
-Actually, I think Tero and Paul have a different fix for this now,
-which is what I've included in the latest PM branch.
+This kind of change might be better tested on the PM branch.  It's the kind of thing more likely to work with PM disabled.  Testing in both is good, PM for many things is less forgiving...
 
-Tero can you send the updated version of you "Fix a bug with noncore
-dpll rate calculation" patch?
+Regards,
+Richard W.
 
-Kevin
-
->
->
->> Signed-off-by: Paul Walmsley <paul@pwsan.com>
->> Cc: Peter de Schrijver <peter.de-schrijver@nokia.com>
->> Cc: Kevin Hilman <khilman@deeprootsystems.com>
->> ---
->>  arch/arm/mach-omap2/clock34xx.c |   15 +++++----------
->>  1 files changed, 5 insertions(+), 10 deletions(-)
->> 
->> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
->> index 3a4e160..b8b4494 100644
->> --- a/arch/arm/mach-omap2/clock34xx.c
->> +++ b/arch/arm/mach-omap2/clock34xx.c
->> @@ -163,19 +163,14 @@ static int _omap3_noncore_dpll_lock(struct clk *clk)
->>  
->>  	ai = omap3_dpll_autoidle_read(clk);
->>  
->> +	omap3_dpll_deny_idle(clk);
->> +
->>  	_omap3_dpll_write_clken(clk, DPLL_LOCKED);
->>  
->> -	if (ai) {
->> -		/*
->> -		 * If no downstream clocks are enabled, CM_IDLEST bit
->> -		 * may never become active, so don't wait for DPLL to lock.
->> -		 */
->> -		r = 0;
->> +	r = _omap3_wait_dpll_status(clk, 1);
->> +
->> +	if (ai)
->>  		omap3_dpll_allow_idle(clk);
->> -	} else {
->> -		r = _omap3_wait_dpll_status(clk, 1);
->> -		omap3_dpll_deny_idle(clk);
->> -	};
->>  
->>  	return r;
->>  }
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
