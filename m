@@ -1,84 +1,48 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [omapzoom][PATCH 2/4] DSPBRIDGE: LM Timer release for
- hibernation
-Date: Fri, 21 Nov 2008 18:53:57 +0200 (EET)
-Message-ID: <20081121.185357.54461979.Hiroshi.DOYU@nokia.com>
-References: <27F9C60D11D683428E133F85D2BB4A5303F1A398ED@dlee03.ent.ti.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: [PATCH 1/2] Add Input/Output related ioctl support
+Date: Fri, 21 Nov 2008 22:54:04 +0530
+Message-ID: <5d5443650811210924w30bafc36ge041ec4d1a6016db@mail.gmail.com>
+References: <hvaibhav@ti.com>
+	 <1227280879-31440-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:18845 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752401AbYKUQyK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 11:54:10 -0500
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A5303F1A398ED@dlee03.ent.ti.com>
+Received: from yx-out-2324.google.com ([74.125.44.30]:33898 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754019AbYKURYG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 12:24:06 -0500
+Received: by yx-out-2324.google.com with SMTP id 8so462188yxm.1
+        for <linux-omap@vger.kernel.org>; Fri, 21 Nov 2008 09:24:04 -0800 (PST)
+In-Reply-To: <1227280879-31440-1-git-send-email-hvaibhav@ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: x00omar@ti.com
-Cc: vikram.pandita@ti.com, linux-omap@vger.kernel.org, grgupta@ti.com, h-kanigeri2@ti.com
+To: hvaibhav@ti.com
+Cc: video4linux-list@redhat.com, linux-omap@vger.kernel.org, davinci-linux-open-source-bounces@linux.davincidsp.com
 
-Hi Omar,
+Hi Vaibhav
 
-It seems that this patch conflicts the previous bridge patch:
+On Fri, Nov 21, 2008 at 8:51 PM,  <hvaibhav@ti.com> wrote:
+>
+> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+>                Hardik Shah <hardik.shah@ti.com>
+>                Manjunath Hadli <mrh@ti.com>
+>                R Sivaraj <sivaraj@ti.com>
+>                Vaibhav Hiremath <hvaibhav@ti.com>
+>                Karicheri Muralidharan <m-karicheri2@ti.com>
 
-   "[PATCH] BRIDGE Power Management cleanup"
-   	    http://article.gmane.org/gmane.linux.ports.arm.omap/13447
+Each line should include Singed-off-by, like this:
 
-I'm guessing that this is because that previous patch may be missed in
-"o-z", could you take a look, please?
+> Signed-off-by:  Brijesh Jadav <brijesh.j@ti.com>
+> Signed-off-by:  Hardik Shah <hardik.shah@ti.com>
+> Signed-off-by:  Manjunath Hadli <mrh@ti.com>
+> Signed-off-by:  R Sivaraj <sivaraj@ti.com>
+> Signed-off-by:  Vaibhav Hiremath <hvaibhav@ti.com>
+> Signed-off-by:  Karicheri Muralidharan <m-karicheri2@ti.com>
 
-You can get the latest "l-o" + the latest "tidspbridge" from:
 
-    http://git.gitorious.org/lk/mainline.git tidspbridge
-
-If I missed something except this patch, please let me know.
-
-    Hiroshi DOYU
-
-From: "ext Ramirez Luna, Omar" <x00omar@ti.com>
-Subject: [omapzoom][PATCH 2/4] DSPBRIDGE: LM Timer release for hibernation
-Date: Thu, 20 Nov 2008 03:11:59 -0600
-
-> From: Ramesh Gupta <grgupta@ti.com>
-> Date: Mon, 17 Nov 2008 16:11:19 -0600
-> Subject: [PATCH] DSPBRIDGE: LM Timer release for hibernation
-> 
-> Release load monitor timer when the DSP is
-> inactive and goes to hibernation
-> 
-> Signed-off-by: Ramesh Gupta <grgupta@ti.com>
-> Signed-off-by: SuiLun Lam <s-lam@ti.com>
-> ---
->  drivers/dsp/bridge/wmd/tiomap_sm.c |    8 +++++---
->  1 files changed, 5 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c b/drivers/dsp/bridge/wmd/tiomap_sm.c
-> index 63655d9..edc3bcf 100644
-> --- a/drivers/dsp/bridge/wmd/tiomap_sm.c
-> +++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
-> @@ -190,7 +190,6 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT *hDevContext)
->  
->  	if  (pDevContext->dwBrdState == BRD_DSP_HIBERNATION ||
->  	    pDevContext->dwBrdState == BRD_HIBERNATION) {
-> -		pDevContext->dwBrdState = BRD_RUNNING;
->  #ifndef CONFIG_DISABLE_BRIDGE_PM
->  #ifndef CONFIG_DISABLE_BRIDGE_DVFS
->  #ifndef CONFIG_OMAP3_PM
-> @@ -235,9 +234,12 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT *hDevContext)
->  			  mboxsetting.irqEnable0);
->  		DBG_Trace(DBG_LEVEL6, "MailBoxSettings: IRQENABLE1 = 0x%x\n",
->  			 mboxsetting.irqEnable1);
-> -		/* Restart the peripheral clocks that were disabled */
-> -		DSP_PeripheralClocks_Enable(hDevContext, NULL);
-> +		/* Restart the peripheral clocks that were disabled only
-> +		 * in DSP initiated Hibernation case.*/
-> +		if (pDevContext->dwBrdState == BRD_DSP_HIBERNATION)
-> +			DSP_PeripheralClocks_Enable(hDevContext, NULL);
->  
-> +		pDevContext->dwBrdState = BRD_RUNNING;
->  	}
->  	while (--cnt) {
->  		hwStatus = HW_MBOX_IsFull(resources.dwMboxBase,
-> -- 
-> 1.6.0
+-- 
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
