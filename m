@@ -1,45 +1,38 @@
-From: "Lopez Cruz, Misael" <x0052729@ti.com>
-Subject: RE: [PATCH] ALSA: SoC: Add support for TI SDP3430
-Date: Fri, 21 Nov 2008 00:18:46 -0600
-Message-ID: <2C7D3DF36ADFFC479B44490D912B616705A445CBB1@dlee07.ent.ti.com>
-References: <1227241853-25944-1-git-send-email-mesak82@gmail.com>
- <200811202129.19255.david-b@pacbell.net>
+From: "Misael Lopez" <mesak82@gmail.com>
+Subject: Re: [PATCH][OMAPZOOM] OMAP3: Fix handling of McBSP registers XCCR and RCCR for OMAP2430/34xx
+Date: Fri, 21 Nov 2008 00:25:23 -0600
+Message-ID: <76fbac300811202225m53237b1cq7dde99d5ace9a62a@mail.gmail.com>
+References: <1227241883-26009-1-git-send-email-mesak82@gmail.com>
+	 <5A47E75E594F054BAF48C5E4FC4B92AB02E22882D0@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34195 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751130AbYKUGS6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 01:18:58 -0500
-In-Reply-To: <200811202129.19255.david-b@pacbell.net>
-Content-Language: en-US
+Received: from fg-out-1718.google.com ([72.14.220.153]:57270 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751026AbYKUGZZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 01:25:25 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so624243fgg.17
+        for <linux-omap@vger.kernel.org>; Thu, 20 Nov 2008 22:25:23 -0800 (PST)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02E22882D0@dbde02.ent.ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, "mesak82@gmail.com" <mesak82@gmail.com>
+To: "Gadiyar, Anand" <gadiyar@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>
 
-> On Thursday 20 November 2008, mesak82@gmail.com wrote:
-> > +=A0=A0=A0=A0=A0=A0=A0tristate "SoC Audio support for Texas Instrum=
-ents SDP3430"
-> > +=A0=A0=A0=A0=A0=A0=A0depends on SND_OMAP_SOC && MACH_OMAP_3430SDP
-> > +=A0=A0=A0=A0=A0=A0=A0select SND_OMAP_SOC_MCBSP
-> > +=A0=A0=A0=A0=A0=A0=A0select SND_SOC_TWL4030
->=20
-> depends also on TWL4030_CORE, yes?
-The machine driver itself doesn't depend on TWL4030_CORE, but TWL4030 S=
-oC codec driver does (sound/soc/codecs/Kconfig)
-
-config SND_SOC_TWL4030
-        tristate
-        depends on TWL4030_CORE
-
-Although that dependency is overridden by _select_ statement.
-
-What should be the best way to handle this dependency? Directly in kcon=
-fig entry for each TWL4030-related machine driver?
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > @@ -403,8 +408,10 @@ struct omap_mcbsp_reg_cfg {
+> >  	u16 rcerh;
+> >  	u16 xcerg;
+> >  	u16 xcerh;
+> > +#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX)
+> >  	u16 xccr;
+> >  	u16 rccr;
+> > +#endif
+> >  };
+>
+> Won't this cause a compilation break on non-2430/34xx platforms
+> because you refer to these variables below?
+True... I didn't consider that. Then for non-2430/34xx platforms,
+having those registers in the structure but avoiding to write to them
+is enough, correct? or any other alternative?
