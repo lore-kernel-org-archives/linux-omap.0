@@ -1,64 +1,52 @@
-From: Adrian Hunter <ext-adrian.hunter@nokia.com>
-Subject: [PATCH 5/9] OMAP: HSMMC: Fix oops in omap_mmc_remove
-Date: Fri, 21 Nov 2008 11:58:50 +0200
-Message-ID: <4926865A.7070406@nokia.com>
-References: <49267E28.1020303@nokia.com> <49268161.1010304@nokia.com> <4926859F.8090902@nokia.com>
+From: "Amit Pundir" <pundiramit@gmail.com>
+Subject: defconfig for omap3-evm
+Date: Fri, 21 Nov 2008 15:34:07 +0530
+Message-ID: <52c7556c0811210204h13f4a582r7d3add4b790863f0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:17652 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751883AbYKUJvB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 04:51:01 -0500
-In-Reply-To: <4926859F.8090902@nokia.com>
+Received: from ti-out-0910.google.com ([209.85.142.188]:26566 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752799AbYKUKEJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 05:04:09 -0500
+Received: by ti-out-0910.google.com with SMTP id b6so583102tic.23
+        for <linux-omap@vger.kernel.org>; Fri, 21 Nov 2008 02:04:07 -0800 (PST)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-Date: Thu, 6 Nov 2008 16:02:29 +0200
+Greetings!
 
-Do not access host in omap_mmc_remove() if it is null.  This
-occurs when module is removed before its platform data is set.
+Can anyone please tell me which defconfig should I use for building
+linux-omap kernel (linux-2.6.22.1 + patch-2.6.22-omap1) for my
+omap3evm board? I'm getting the following error if I use
+omap3evm_defconfig(with IPV6 enabled and PM disabled) that comes with
+the TI kernel.
 
-Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
----
- drivers/mmc/host/omap_hsmmc.c |   20 +++++++++++---------
- 1 files changed, 11 insertions(+), 9 deletions(-)
+------------------------------------------------------------------
+  CC      lib/vsprintf.o
+  AR      lib/lib.a
+  GEN     .version
+  CHK     include/linux/compile.h
+  UPD     include/linux/compile.h
+  CC      init/version.o
+  LD      init/built-in.o
+  LD      .tmp_vmlinux1
+arm-none-linux-gnueabi-ld: no machine record defined
+arm-none-linux-gnueabi-ld: no machine record defined
+drivers/built-in.o: In function `omapfb_do_probe':
+/home/amit/omap35xx/ti/muru_linux/linux-2.6.22.1/drivers/video/omap/omapfb_main.c:1777:
+undefined reference to `omap2_int_ctrl'
+drivers/built-in.o: In function `musb_stage2_irq':
+/home/amit/omap35xx/ti/muru_linux/linux-2.6.22.1/drivers/usb/musb/plat_uds.c:739:
+undefined reference to `musb_hnp_stop'
+make: *** [.tmp_vmlinux1] Error 1
+------------------------------------------------------------------
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 4bc25c0..f4b7c30 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1128,15 +1128,17 @@ static int omap_mmc_remove(struct platform_device *pdev)
- 	struct resource *res;
- 	u16 vdd = 0;
- 
--	mmc_omap_fclk_state(host, ON);
--	if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
--	/*
--	 * Set the vdd back to 3V,
--	 * applicable for dual volt support.
--	 */
--		vdd = fls(host->mmc->ocr_avail) - 1;
--		if (omap_mmc_switch_opcond(host, vdd) != 0)
--			host->mmc->ios.vdd = vdd;
-+	if (host) {
-+		mmc_omap_fclk_state(host, ON);
-+		if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
-+			/*
-+			 * Set the vdd back to 3V,
-+			 * applicable for dual volt support.
-+			 */
-+			vdd = fls(host->mmc->ocr_avail) - 1;
-+			if (omap_mmc_switch_opcond(host, vdd) != 0)
-+				host->mmc->ios.vdd = vdd;
-+		}
- 	}
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--- 
-1.5.4.3
+Is there any patch or work-around available for this problem?
+Thanks for your concern.
 
+Regards
+Amit Pundir
