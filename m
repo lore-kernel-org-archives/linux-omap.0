@@ -1,54 +1,59 @@
-From: "Grazvydas Ignotas" <notasas@gmail.com>
-Subject: Re: [PATCH 5/9] OMAP: HSMMC: Fix oops in omap_mmc_remove
-Date: Fri, 21 Nov 2008 23:08:38 +0200
-Message-ID: <6ed0b2680811211308q338d6df6l53b0c61b95ff9818@mail.gmail.com>
-References: <49267E28.1020303@nokia.com> <49268161.1010304@nokia.com>
-	 <4926859F.8090902@nokia.com> <4926865A.7070406@nokia.com>
-	 <6ed0b2680811210603s17f7a43fw4dd0d57bc5dd829c@mail.gmail.com>
-	 <20081121152717.GA13908@angel.research.nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] OMAP: I2C: reprogram OCP_SYSCONFIG after device
+	reset
+Date: Fri, 21 Nov 2008 13:34:39 -0800
+Message-ID: <20081121213433.GX4927@atomide.com>
+References: <20081014121031.1210.96214.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.184]:18885 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751284AbYKUVIk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 16:08:40 -0500
-Received: by nf-out-0910.google.com with SMTP id d3so565697nfc.21
-        for <linux-omap@vger.kernel.org>; Fri, 21 Nov 2008 13:08:38 -0800 (PST)
-In-Reply-To: <20081121152717.GA13908@angel.research.nokia.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51565 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750853AbYKUVel (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 16:34:41 -0500
 Content-Disposition: inline
+In-Reply-To: <20081014121031.1210.96214.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-Cc: Adrian Hunter <ext-adrian.hunter@nokia.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, Richard Woodruff <r-woodruff2@ti.com>
 
-On Fri, Nov 21, 2008 at 5:27 PM, Jarkko Lavinen
-<jarkko.lavinen@nokia.com> wrote:
-> On Fri, Nov 21, 2008 at 04:03:25PM +0200, ext Grazvydas Ignotas wrote:
-> ...
->> Also, HCTL SDVSDET bit will never be set for MMC2 and MMC3, causing
->> mentioned omap_mmc_switch_opcond() to be called unconditionally here.
->>
->> The same block can be found in mmc_omap_detect() function, where it is
->> executed on card removal. There it causes MMC2 controller to stop
->> working completely on pandora board :(
->
-> TI TRM saus HSMMC2 and HSMMC3 works only with SDVS set to 1.8V in HCTL.
->
-> If the voltage is set to 3.0V and then SDBP (bus power bit) is set,
-> it is rejected and SDBP remains zero, the controller does nothing and
-> is seemingly frozen.
->
-> The wrong voltage for MMC2 SDVS is set in omap_mmc_switch_opcond() if
-> vdd different from 1.8V.
->
-> Also omap_mmc_suspend() set SDVS to 3.0V even for MMC2 and MMC3.  When
-> suspending, everything seemed to work and at resume MMC2 was hung
-> and failed to detect the card since not even CMD0 was sent.
+* Paul Walmsley <paul@pwsan.com> [081014 10:47]:
+> Hello,
+> 
+> This patch set programs the I2C controller OCP_SYSCONFIG register
+> after the driver resets the device.  It is derived from the changes
+> mentioned by Richard Woodruff <r-woodruff2@ti.com> at
+> 
+> http://git.omapzoom.org/?p=omapkernel;a=blob;f=drivers/i2c/busses/i2c-omap.c;hb=d0b4bad4926f9a147a73498f7a62a0ae1cf6f83a
+> 
+> however, the CLOCKACTIVITY change on clk_enable()/clk_disable() in that
+> code currently seems pointless, so it has been excluded until more
+> information is available from TI or until problems are encountered.
+> 
+> This patchset should only change behavior on OMAP2x30 and OMAP3xxx devices.
+> 
+> Boot-tested on 2430SDP and 3430SDP; compile-tested with the 5912OSK (OMAP1)
+> defconfig.  Comments welcome,
 
-ok, but why there are calls to  omap_mmc_switch_opcond() from both
-omap_mmc_remove() and mmc_omap_detect() at all? This basically causes
-power and clocks to be turned off, then on, then again off whenever
-card is or host driver removed. This is probably no big deal, but
-still.
+Pushing both to l-o today, also adding to upstream i2c-omap queue.
+
+Tony
+
+> 
+> 
+> - Paul
+> 
+> ---
+> 
+>   text    data     bss     dec      hex filename
+> 3472584  160600  105760 3738944  390d40 vmlinux.3430sdp.orig
+> 3472616  160600  105760 3738976  390d60 vmlinux.3430sdp
+> 
+>  drivers/i2c/busses/i2c-omap.c |   65 ++++++++++++++++++++++++++++++++---------
+>  1 files changed, 50 insertions(+), 15 deletions(-)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
