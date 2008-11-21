@@ -1,62 +1,38 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 2/2] TVP514x V4L int device driver support
-Date: Fri, 21 Nov 2008 17:16:14 +0100
-Message-ID: <200811211716.14072.hverkuil@xs4all.nl>
-References: <hvaibhav@ti.com>
-	<1227280923-31654-1-git-send-email-hvaibhav@ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] ASoC: Add support for OMAP3 EVM
+Date: Fri, 21 Nov 2008 08:33:27 -0800
+Message-ID: <200811210833.27681.david-b@pacbell.net>
+References: <1227269463-10114-1-git-send-email-anuj.aggarwal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <video4linux-list-bounces@redhat.com>
-In-Reply-To: <1227280923-31654-1-git-send-email-hvaibhav@ti.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1227269463-10114-1-git-send-email-anuj.aggarwal@ti.com>
 Content-Disposition: inline
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-To: video4linux-list@redhat.com
-Cc: linux-omap@vger.kernel.org, davinci-linux-open-source-bounces@linux.davincidsp.com
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 21 November 2008 16:22:03 hvaibhav@ti.com wrote:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
->
-> Added new V4L2 slave driver for TVP514x.
->
-> The Driver interface has been tested on OMAP3EVM board
-> with TI daughter card (TVP5146). Soon the patch for Daughter card
-> will be posted on community.
->
-> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-> 		Hardik Shah <hardik.shah@ti.com>
-> 		Manjunath Hadli <mrh@ti.com>
-> 		R Sivaraj <sivaraj@ti.com>
-> 		Vaibhav Hiremath <hvaibhav@ti.com>
-> 		Karicheri Muralidharan <m-karicheri2@ti.com>
-> ---
->  drivers/media/video/Kconfig   |   11 +
->  drivers/media/video/Makefile  |    1 +
->  drivers/media/video/tvp514x.c | 1331
-> +++++++++++++++++++++++++++++++++++++++++ include/media/tvp514x.h    
->   |  406 +++++++++++++
->  4 files changed, 1749 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/tvp514x.c
->  create mode 100644 include/media/tvp514x.h
->
+On Friday 21 November 2008, Anuj Aggarwal wrote:
+> +config SND_OMAP_SOC_OMAP3EVM
+> +=A0=A0=A0=A0=A0=A0=A0tristate "SoC Audio support for OMAP3EVM board"
+> +=A0=A0=A0=A0=A0=A0=A0depends on SND_OMAP_SOC && MACH_OMAP3EVM
 
-I'll review this today or tomorrow.
+also depends on TWL4030_CORE ... since reverse dependencies
+don't work to handle things the "select" target depends on.
 
-Regards,
 
-	Hans
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+> +=A0=A0=A0=A0=A0=A0=A0select SND_OMAP_SOC_MCBSP
+> +=A0=A0=A0=A0=A0=A0=A0select SND_SOC_TWL4030
+> +=A0=A0=A0=A0=A0=A0=A0help
+> +=A0=A0=A0=A0=A0=A0=A0 =A0Say Y if you want to add support for SoC audio =
+on the omap3evm board.
