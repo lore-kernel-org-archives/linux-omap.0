@@ -1,52 +1,45 @@
-From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-Subject: Re: [ANNOUNCE] new PM branch: pm-20081119
-Date: Fri, 21 Nov 2008 09:29:20 +0200
-Message-ID: <1227252560.9951.111.camel@kj-ubuntu>
-References: <87d4grdxqh.fsf@deeprootsystems.com>
-	 <345163910811200045n3af8b3b5mbd30601aeeee31e@mail.gmail.com>
-	 <B85A65D85D7EB246BE421B3FB0FBB59301B6C8C79B@dbde02.ent.ti.com>
-	 <8966B984-6139-467A-BF52-EDD0D9BF91B5@student.utwente.nl>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH] PM: Fix compile error
+Date: Fri, 21 Nov 2008 13:08:38 +0530
+Message-ID: <1227253118-32169-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:29241 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751408AbYKUH1J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2008 02:27:09 -0500
-In-Reply-To: <8966B984-6139-467A-BF52-EDD0D9BF91B5@student.utwente.nl>
+Received: from bear.ext.ti.com ([192.94.94.41]:60087 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751178AbYKUHir (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Nov 2008 02:38:47 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id mAL7cddT022976
+	for <linux-omap@vger.kernel.org>; Fri, 21 Nov 2008 01:38:45 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Koen Kooi <k.kooi@student.utwente.nl>
-Cc: "Premi, Sanjeev" <premi@ti.com>, Peter Reid <ppeter.reid@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-On to, 2008-11-20 at 15:48 +0100, ext Koen Kooi wrote:
-> Op 20 nov 2008, om 15:13 heeft Premi, Sanjeev het volgende geschreven:
-> >>
-> > These are my observations on OMAP3EVM:
-> >
-> > 1) Very frequently I see these messages:
-> >
-> > <4>__ratelimit: 6736 callbacks suppressed
-> > __ratelimit: 6736 callbacks suppressed
-> > <3>omapfb omapfb: irq error status 00c2
-> > omapfb omapfb: irq error status 00c2
-> 
-> There should be a workaround for those in 2.6.28rc3.  Rick Bronson  
-> posted a message about it on 7 november titled "Fix for dispc's error  
-> "omapfb omapfb: irq error status 4020"
+Function pm_dbg_update_time() is defined in within
+an #ifdef CONFIG_DEBUG_FS; leading to this error:
 
-This interrupt is from SYNCLOST, which is different than what Premi had
-(GFX fifo underflow). For that underflow one needs to set higher fifo
-thresholds, like I described in my earlier mail.
+arch/arm/mach-omap2/built-in.o: In function `_pwrdm_state_switch':
+/db/psp_git/users/a0756819/omap-kern-latest/arch/arm/mach-omap2/powerdomain.c:139: undefined reference to `pm_dbg_update_time'
 
-- Kalle
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ arch/arm/mach-omap2/powerdomain.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-> 
-> regards,
-> 
-> Koen
-> 
-> regards,
-> 
-> Koen
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 0334609..081b3b6 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -136,7 +136,9 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+ 	if (state != prev)
+ 		pwrdm->state_counter[state]++;
+ 
++#ifdef CONFIG_DEBUG_FS
+ 	pm_dbg_update_time(pwrdm, prev);
++#endif
+ 
+ 	pwrdm->state = state;
+ 
+-- 
+1.5.6
+
