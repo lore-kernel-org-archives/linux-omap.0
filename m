@@ -1,44 +1,44 @@
-From: "Sudipta GHOSH" <sudipta.in@gmail.com>
-Subject: busybox output to display
-Date: Sat, 22 Nov 2008 21:35:03 +0200
-Message-ID: <9e6474ae0811221135l1a3fcf93gb59d12407c57ecfc@mail.gmail.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 2/3] omap mailbox: add initial omap3 support
+Date: Sat, 22 Nov 2008 23:09:55 +0200 (EET)
+Message-ID: <20081122.230955.212307567.Hiroshi.DOYU@nokia.com>
+References: <1227313717-26399-1-git-send-email-Hiroshi.DOYU@nokia.com>
+	<1227313717-26399-2-git-send-email-Hiroshi.DOYU@nokia.com>
+	<20081122115746.GC6289@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.229]:56658 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751075AbYKVTfF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 Nov 2008 14:35:05 -0500
-Received: by rv-out-0506.google.com with SMTP id k40so1440687rvb.1
-        for <linux-omap@vger.kernel.org>; Sat, 22 Nov 2008 11:35:03 -0800 (PST)
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.233]:35103 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752039AbYKVVKG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 Nov 2008 16:10:06 -0500
+In-Reply-To: <20081122115746.GC6289@frodo>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: me@felipebalbi.com
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+Hi Felipe,
 
-This issue is more with busybox. Hope you will not mind for posting here.
+From: "ext Felipe Balbi" <me@felipebalbi.com>
+Subject: Re: [PATCH 2/3] omap mailbox: add initial omap3 support
+Date: Sat, 22 Nov 2008 13:57:47 +0200
 
-In my development board, I use uboot as boot loader. busybox files are in flash.
-when I boot , I can see the boot logo (peguin) in the lcd display and
-all "printk" output.
+> On Sat, Nov 22, 2008 at 02:28:36AM +0200, Hiroshi DOYU wrote:
+> > @@ -30,7 +30,7 @@
+> >  #define MAILBOX_IRQ_NEWMSG(u)		(1 << (2 * (u)))
+> >  #define MAILBOX_IRQ_NOTFULL(u)		(1 << (2 * (u) + 1))
+> >  
+> > -static unsigned long mbox_base;
+> > +static void __iomem *mbox_base;
+> 
+> ohh. you did :-) forget my previous comment
 
-But I am unable to see the busybox in the lcd display.
+OK. Anyway, thank you for your review of these patches;)
 
-busybox prompt and all output from busybox is going to the serial port.
-
-Like  if I do ls, then I see the output of "ls" in my serial port
-(teraterm/hyper terminal).
-
-How I can see busybox prompt and all output to my lcd display.
-
-
-I use console=tty0 in the bootargs.
-
-any advice?
+	Hiroshi DOYU
 
 
-Regards,
--SG
+
+
