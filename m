@@ -1,38 +1,44 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: MMC oops on BeagleBoard with pm-20081119
-Date: Sat, 22 Nov 2008 11:50:59 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0811221148060.28747@utopia.booyaka.com>
-References: <alpine.DEB.2.00.0811212036560.28747@utopia.booyaka.com> <200811212129.03222.david-b@pacbell.net>
+From: "Sudipta GHOSH" <sudipta.in@gmail.com>
+Subject: busybox output to display
+Date: Sat, 22 Nov 2008 21:35:03 +0200
+Message-ID: <9e6474ae0811221135l1a3fcf93gb59d12407c57ecfc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33126 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750939AbYKVSvB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 Nov 2008 13:51:01 -0500
-In-Reply-To: <200811212129.03222.david-b@pacbell.net>
+Received: from rv-out-0506.google.com ([209.85.198.229]:56658 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751075AbYKVTfF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 Nov 2008 14:35:05 -0500
+Received: by rv-out-0506.google.com with SMTP id k40so1440687rvb.1
+        for <linux-omap@vger.kernel.org>; Sat, 22 Nov 2008 11:35:03 -0800 (PST)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com
-
-On Fri, 21 Nov 2008, David Brownell wrote:
-
-> On Friday 21 November 2008, Paul Walmsley wrote:
-> > This oops shows up shortly after logging in on BeagleBoard running 
-> > pm-20081119; posting here in case anyone recognizes what's going on.
-> > / is on a SanDisk SD Plus 4GB MMC card.
-> 
-> Just for the record, I'd suspect it *is* something in the pm-* patches
-> since it doesn't show up on mine, running rc5-omap1.  Unless it's an
-> intermittent booboo.
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 Hi,
 
-Did some more testing here.  Whatever caused this appears to be resolved, 
-after the application of the recent series:
+This issue is more with busybox. Hope you will not mind for posting here.
 
-http://marc.info/?l=linux-omap&m=122725894420248&w=2
+In my development board, I use uboot as boot loader. busybox files are in flash.
+when I boot , I can see the boot logo (peguin) in the lcd display and
+all "printk" output.
+
+But I am unable to see the busybox in the lcd display.
+
+busybox prompt and all output from busybox is going to the serial port.
+
+Like  if I do ls, then I see the output of "ls" in my serial port
+(teraterm/hyper terminal).
+
+How I can see busybox prompt and all output to my lcd display.
 
 
-- Paul
+I use console=tty0 in the bootargs.
+
+any advice?
+
+
+Regards,
+-SG
