@@ -1,68 +1,27 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Please fix or remove OMAP2 onenand driver
-Date: Mon, 24 Nov 2008 12:01:53 +0000
-Message-ID: <20081124120153.GA5330@flint.arm.linux.org.uk>
-References: <20081123165011.GB17438@flint.arm.linux.org.uk> <492A91E1.50305@nokia.com>
+Subject: Re: [PATCH] ARM: Parse ATAG_VIDEOLFB to screen_info
+Date: Mon, 24 Nov 2008 12:12:17 +0000
+Message-ID: <20081124121217.GB5330@flint.arm.linux.org.uk>
+References: <1227263136-14862-1-git-send-email-tomi.valkeinen@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42675 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60688 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751883AbYKXMCI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2008 07:02:08 -0500
+	with ESMTP id S1752868AbYKXMMb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2008 07:12:31 -0500
 Content-Disposition: inline
-In-Reply-To: <492A91E1.50305@nokia.com>
+In-Reply-To: <1227263136-14862-1-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <ext-adrian.hunter@nokia.com>
-Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, dwmw2@infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-On Mon, Nov 24, 2008 at 01:37:05PM +0200, Adrian Hunter wrote:
-> From: Adrian Hunter <ext-adrian.hunter@nokia.com>
-> Date: Mon, 24 Nov 2008 13:34:53 +0200
-> Subject: [PATCH] MTD: OMAP: OneNAND: header file relocation
-> 
-> Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
+On Fri, Nov 21, 2008 at 12:25:36PM +0200, Tomi Valkeinen wrote:
+> Parse ATAG_VIDEOLFB received from bootloader to screen_info struct,
+> so that video drivers can use the information.
 
-Thanks.  Only two comments (see below).
-
-> ---
-> drivers/mtd/onenand/omap2.c |   12 ++++++------
-> 1 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-> index e39b21d..28034ef 100644
-> --- a/drivers/mtd/onenand/omap2.c
-> +++ b/drivers/mtd/onenand/omap2.c
-> @@ -35,16 +35,16 @@
-> 
-> #include <asm/io.h>
-
-Should be linux/io.h and should be with the other linux/ includes.
-
-> #include <asm/mach/flash.h>
-> -#include <asm/arch/gpmc.h>
-> -#include <asm/arch/onenand.h>
-> -#include <asm/arch/gpio.h>
-> -#include <asm/arch/pm.h>
-> +#include <mach/gpmc.h>
-> +#include <mach/onenand.h>
-> +#include <mach/gpio.h>
-> +#include <mach/pm.h>
-> 
-> #include <linux/dma-mapping.h>
-> #include <asm/dma-mapping.h>
-
-asm/dma-mapping.h should not be included - only linux/dma-mapping.h, and
-that should be up with the other linux/ includes.
-
-> -#include <asm/arch/dma.h>
-> +#include <mach/dma.h>
-> 
-> -#include <asm/arch/board.h>
-> +#include <mach/board.h>
-> 
-> #define DRIVER_NAME "omap2-onenand"
-> 
-> -- 
-> 1.5.4.3
+Boot loaders tend to be absolutely diabolical about passing correct
+information to the kernel, so I really don't want to see such platform
+specific stuff being passed.  Please put it in the board specific file
+instead, just like everyone else does.
