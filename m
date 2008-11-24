@@ -1,196 +1,60 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [REVIEW PATCH 0/9] DSS: Series description
-Date: Mon, 24 Nov 2008 12:00:43 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403E8E67FA7@dbde02.ent.ti.com>
-References: <dfeb90390811232226v2235e241tf0f353aa7703b14d@mail.gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 2/2] TVP514x V4L int device driver support
+Date: Sun, 23 Nov 2008 22:32:31 -0800
+Message-ID: <200811232232.31646.david-b@pacbell.net>
+References: <hvaibhav@ti.com> <200811232300.40530.hverkuil@xs4all.nl> <5d5443650811232216x6c9a77a4p2945f87e1ab65a67@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47253 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750892AbYKXGay convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2008 01:30:54 -0500
-In-Reply-To: <dfeb90390811232226v2235e241tf0f353aa7703b14d@mail.gmail.com>
-Content-Language: en-US
+Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:44607 "HELO
+	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750795AbYKXGce (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Nov 2008 01:32:34 -0500
+In-Reply-To: <5d5443650811232216x6c9a77a4p2945f87e1ab65a67@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arun KS <getarunks@gmail.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Trilok Soni <soni.trilok@gmail.com>, Hans Verkuil <hverkuil@xs4all.nl>
+Cc: video4linux-list@redhat.com, linux-omap@vger.kernel.org, davinci-linux-open-source-bounces@linux.davincidsp.com
+
+On Sunday 23 November 2008, Trilok Soni wrote:
+> > 2) Please use the media/v4l2-i2c-drv.h or media/v4l2-i2c-drv-legacy.h
+> > header to hide some of the i2c complexity (again, see e.g. saa7115.c).
+> > The i2c API tends to change a lot (and some changes are upcoming) so
+
+What "changes" do you mean?  Since this is not a legacy-style
+driver (yay!), the upcoming changes won't affect it at all.
 
 
-
-Thanks,
-Vaibhav Hiremath
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Arun KS
-> Sent: Monday, November 24, 2008 11:57 AM
-> To: Tomi Valkeinen
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [REVIEW PATCH 0/9] DSS: Series description
+> > using this header will mean that i2c driver changes will be minimal in
+> > the future. In addition it will ensure that this driver can be compiled
+> > with older kernels as well once it is part of the v4l-dvb repository.
 > 
-> On Tue, Nov 4, 2008 at 9:39 PM, Tomi Valkeinen
-> <tomi.valkeinen@nokia.com> wrote:
-> > New Display Subsystem for OMAP2/3
-> > ---------------------------------
-> >
-> > This patch set implements new Display Subsystem (DSS) for OMAP2/3
-> processors.
-> > The DSS is still under work and these patches are for review. Note
-> that there
-> > is also another new DSS implementation from TI.
-> >
-> > The DSS has been tested on OMAP3 SDP board, Beagle Board and on
-> two unreleased
-> > boards with DSI and SDI displays. The DSS used to work on OMAP2
-> board also, but
-> > it's been a while since I was able to test with OMAP2 board.
-> >
-> > The first patch is a doc file that tries to explain a bit how the
-> drivers work.
-> >
-> > The patch set is based on the current linux-omap tree.
-> >
-> > You can find the patches also from a git tree at
-> > http://www.bat.org/~tomba/git/linux-omap-dss.git/
-> >
-> > Note that you also need two patches from Mans Rullgard to make
-> things work. These
-> > are needed to be able to reconfigure DSS functional clock.
-> > http://git.mansr.com/?p=linux-
-> omap;a=commit;h=e2de5e5578fbaa9b4b75074796da0608fc93e6ae
-> > http://git.mansr.com/?p=linux-
-> omap;a=commit;h=2b7b958dc79e51127d7a4ecf88ce12dbc6c31426
-> >
-> > Questions/problems
-> > ------------------
-> >
-> > Perhaps the biggest problems I have is the interface to user
-> space. OMAP
-> > hardware doesn't quite fit in to the framebuffer framework. The
-> problem is that
-> > a framebuffer can go to multiple overlays, and also the target
-> display, to
-> > which a framebuffer goes, can change.  In addition, the
-> framebuffer size is
-> > used as overlay size, not display resolution. So a framebuffer !=
-> display.
-> >
-> > I believe DRM modesetting could be of help here, at least
-> partially, but I
-> > haven't tried that approach yet.
-> >
-> > But DRM modesetting wouldn't solve all the problems. For example,
-> we still need
-> > to configure overlays and overlay managers, and they don't quite
-> belong to
-> > either the framebuffer side or the display side. Currently you
-> configure them
-> > via a hackish sysfs interface, but I've been wondering if a
-> /dev/omap-dss
-> > device with ioctls would be a better choice.
-> >
-> > There's currently no V4L2 support, but I have been thinking about
-> that. I don't
-> > want to make any hardcoded configuration for those, because
-> sometimes you want
-> > to use framebuffer devices for video overlays. So what I'd like to
-> have is a
-> > way, compile time or run time, to configure which overlays go to
-> framebuffer
-> > devices and which go to V4L2 devices.
-> >
-> > ---
-> >
-> > Tomi Valkeinen (9):
-> >      DSS: support for OMAP3 SDP board
-> >      DSS: support for Beagle Board
-> >      DSS: Add generic DVI panel
-> >      DSS: OMAPFB: fb driver for new display subsystem
-> >      DSS: DSI support for OMAP2/3 DSS
-> >      DSS: TV-out support for OMAP2/3 DSS
-> >      DSS: RFBI support for OMAP2/3 DSS
-> >      DSS: New display subsystem driver for OMAP2/3
-> >      DSS: Documentation for OMAP2/3 display subsystem
-> >
-> >
-> >  Documentation/arm/OMAP/DSS                |  240 ++
-> >  arch/arm/mach-omap2/board-3430sdp.c       |  234 ++
-> >  arch/arm/mach-omap2/board-omap3beagle.c   |  121 +
-> >  arch/arm/plat-omap/Kconfig                |    2
-> >  arch/arm/plat-omap/Makefile               |    2
-> >  arch/arm/plat-omap/dss/Kconfig            |   66 +
-> >  arch/arm/plat-omap/dss/Makefile           |    6
-> >  arch/arm/plat-omap/dss/dispc.c            | 1667 ++++++++++++++++
-> >  arch/arm/plat-omap/dss/display.c          |  781 +++++++
-> >  arch/arm/plat-omap/dss/dpi.c              |  303 +++
-> >  arch/arm/plat-omap/dss/dsi.c              | 3027
-> +++++++++++++++++++++++++++++
-> >  arch/arm/plat-omap/dss/dss.c              |  547 +++++
-> >  arch/arm/plat-omap/dss/dss.h              |  240 ++
-> >  arch/arm/plat-omap/dss/rfbi.c             | 1234 ++++++++++++
-> >  arch/arm/plat-omap/dss/sdi.c              |  154 +
-> >  arch/arm/plat-omap/dss/venc.c             |  499 +++++
-> >  arch/arm/plat-omap/fb.c                   |    9
-> >  arch/arm/plat-omap/include/mach/display.h |  458 ++++
-> >  arch/arm/plat-omap/include/mach/omapfb.h  |    7
-> >  drivers/video/Kconfig                     |    1
-> >  drivers/video/Makefile                    |    1
-> >  drivers/video/omap/Kconfig                |    5
-> >  drivers/video/omap2/Kconfig               |   54 +
-> >  drivers/video/omap2/Makefile              |    5
-> >  drivers/video/omap2/omapfb-ioctl.c        |  428 ++++
-> >  drivers/video/omap2/omapfb-main.c         | 1247 ++++++++++++
-> >  drivers/video/omap2/omapfb-sysfs.c        |  833 ++++++++
-> >  drivers/video/omap2/omapfb.h              |  104 +
-> >  drivers/video/omap2/panel-dvi.c           |  121 +
-> >  drivers/video/omap2/panel-sdp3430.c       |  110 +
-> >  30 files changed, 12479 insertions(+), 27 deletions(-)
-> >  create mode 100644 Documentation/arm/OMAP/DSS
-> >  create mode 100644 arch/arm/plat-omap/dss/Kconfig
-> >  create mode 100644 arch/arm/plat-omap/dss/Makefile
-> >  create mode 100644 arch/arm/plat-omap/dss/dispc.c
-> >  create mode 100644 arch/arm/plat-omap/dss/display.c
-> >  create mode 100644 arch/arm/plat-omap/dss/dpi.c
-> >  create mode 100644 arch/arm/plat-omap/dss/dsi.c
-> >  create mode 100644 arch/arm/plat-omap/dss/dss.c
-> >  create mode 100644 arch/arm/plat-omap/dss/dss.h
-> >  create mode 100644 arch/arm/plat-omap/dss/rfbi.c
-> >  create mode 100644 arch/arm/plat-omap/dss/sdi.c
-> >  create mode 100644 arch/arm/plat-omap/dss/venc.c
-> >  create mode 100644 arch/arm/plat-omap/include/mach/display.h
-> >  create mode 100644 drivers/video/omap2/Kconfig
-> >  create mode 100644 drivers/video/omap2/Makefile
-> >  create mode 100644 drivers/video/omap2/omapfb-ioctl.c
-> >  create mode 100644 drivers/video/omap2/omapfb-main.c
-> >  create mode 100644 drivers/video/omap2/omapfb-sysfs.c
-> >  create mode 100644 drivers/video/omap2/omapfb.h
-> >  create mode 100644 drivers/video/omap2/panel-dvi.c
-> >  create mode 100644 drivers/video/omap2/panel-sdp3430.c
-> >
-> > --
-> >  Tomi Valkeinen
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-
-> omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> Is [REVIEW PATCH 2/9] missing?
-> 
-[Hiremath, Vaibhav] No, below is the link - 
+> I don't agree with having support to compile with older kernels.
 
-http://marc.info/?l=linux-fbdev-devel&m=122581507722475&w=2
+Right.  Folk wanting legacy tvp5146 and tvp5140 support could
+try to use the legacy drivers from the DaVinci tree.
 
 
-> Regards,
-> Arun
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Even though I2C APIs change as lot it is for good, and creating
+> abstractions doesn't help as saa7xxx is family of chips where I don't
+> see the case here. Once this driver is mainlined if someone does i2c
+> subsystem change which breaks this driver from building then he/she
+> has to make changes to all the code affecting it.
 
+And AFAIK no such change is anticipated.  The conversion from
+legacy style I2C drivers to "new style" driver-model friendly
+drivers is progressing fairly well, so that legacy support can
+be completely removed.
+
+
+> I am not in favour of adding support to compile with older kernels.
+
+My two cents:  I'm not in favor either.  In fact that's the
+general policy for mainline drivers, and I'm surprised to hear
+any maintainer suggest it be added.
+
+- Dave
