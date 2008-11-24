@@ -1,37 +1,50 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] ALSA: SoC: Add support for TI SDP3430
-Date: Mon, 24 Nov 2008 12:07:54 -0800
-Message-ID: <200811241207.54610.david-b@pacbell.net>
-References: <1227554333-12384-1-git-send-email-mesak82@gmail.com> <76fbac300811241125p51341127pc587964951119f5d@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Please fix lcd_sx1.c
+Date: Mon, 24 Nov 2008 13:20:07 -0800
+Message-ID: <20081124212003.GC11997@atomide.com>
+References: <20081123164618.GA17438@flint.arm.linux.org.uk> <20081123165748.GC17438@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:31504 "HELO
-	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752320AbYKXUKF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Nov 2008 15:10:05 -0500
-In-Reply-To: <76fbac300811241125p51341127pc587964951119f5d@mail.gmail.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58480 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753095AbYKXVUL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2008 16:20:11 -0500
 Content-Disposition: inline
+In-Reply-To: <20081123165748.GC17438@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Misael Lopez <mesak82@gmail.com>
-Cc: linux-omap@vger.kernel.org, vikram.pandita@ti.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
-On Monday 24 November 2008, Misael Lopez wrote:
-> 2008/11/24  <mesak82@gmail.com>:
-> > From: Misael Lopez Cruz <mesak82@gmail.com>
-> >
-> > This patch add ASoC support for TI SDP3430. It's based on Gumstix
-> > Overo SoC code by Steve Sakoman.
-> >
-> > Signed-off-by: Misael Lopez Cruz <mesak82@gmail.com>
-> > ---
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [081123 08:58]:
+> On Sun, Nov 23, 2008 at 04:46:18PM +0000, Russell King - ARM Linux wrote:
+> > To me, it looks like this driver was tossed over into mainline without
+> > any thought - it has never been in a buildable state.  Please fix or
+> > remove this driver from mainline.
 > 
-> This patch version includes David's comment...
+> Actually, it was buildable, until this commit:
+> 
+> commit b4b58f5834a023dab67201db9a626bef07bb200c
+> Author: Chandra Shekhar <x0044955@ti.com>
+> Date:   Wed Oct 8 10:01:39 2008 +0300
+> 
+>     ARM: OMAP: Allocate McBSP devices dynamically
+>     
+>     Based on Chandra's earlier patches in linux-omap tree.
+>     
+>     Note that omap1_mcbsp_check and omap2_mcbsp_check are no longer
+>     needed as there's now omap_mcbsp_check_valid_id() defined.
+>     
+>     Also some functions can now be marked __init.
+>     
+>     Signed-off-by: Chandra Shekhar <x0044955@ti.com>
+>     Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> which means it's a regression and therefore needs fixing before 2.6.28.
 
-Good ... but, surely it should go to the ALSA list?
+Will send you a patch for this today.
 
+Regards,
 
+Tony
