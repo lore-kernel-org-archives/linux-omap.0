@@ -1,116 +1,177 @@
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
 Subject: RE: [PATCH 2/2] TVP514x V4L int device driver support
-Date: Mon, 24 Nov 2008 11:22:01 +0100 (CET)
-Message-ID: <9014.62.70.2.252.1227522121.squirrel@webmail.xs4all.nl>
+Date: Mon, 24 Nov 2008 16:16:39 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403E8E680BD@dbde02.ent.ti.com>
+References: <24968.62.70.2.252.1227519143.squirrel@webmail.xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <video4linux-list-bounces@redhat.com>
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:58100 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750704AbYKXKrJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2008 05:47:09 -0500
+In-Reply-To: <24968.62.70.2.252.1227519143.squirrel@webmail.xs4all.nl>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: David Brownell <david-b@pacbell.net>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source-bounces@linux.davincidsp.com" <davinci-linux-open-source-bounces@linux.davincidsp.com>
 
-> Hans,
->
-> Thanks,
-> Vaibhav Hiremath
->
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Trilok Soni
->> Sent: Monday, November 24, 2008 2:13 PM
->> To: Hans Verkuil
->> Cc: video4linux-list@redhat.com; linux-omap@vger.kernel.org;
->> davinci-linux-open-source@linux.davincidsp.com
->> Subject: Re: [PATCH 2/2] TVP514x V4L int device driver support
->>
->> Hi Hans,
->>
->> >
->> > The v4l2-int-device.h stuff should never have been added. Ditto
->> for
->> > parts of the soc-camera framework that duplicates v4l2-int-
->> device.h. My
->> > new v4l2_subdev support will replace the three methods of using
->> i2c
->> > devices (or similar) that are currently in use. It's exactly to
->> reduce
->> > the confusion that I'm working on this.
->> >
->> > It's been discussed before on the v4l mailinglist and the relevant
->> > developers are aware of this. It's almost finished, just need to
->> track
->> > down a single remaining oops.
->>
->> Right, I will wait for your updates.
->>
->> I am planning to send omap24xxcam and ov9640 drivers (now deleted)
->> available from linux-omap tree after syncing them with latest
->> linux-2.6.x tree, and the whole driver and the sensor is written
->> using
->> v4l2-int-device framework. I am going to send it anyway, so that it
->> can have some review comments.
->>
-> [Hiremath, Vaibhav] Is your current development accessible through
-> linuxtv.org? Can you share it with us, so that we can have a look into =
-it?
-> Which driver you are migrating to new interface (which I can refer to a=
-s a
-> sample)?
 
-Yes, it is. Look at these two trees:
 
-http://linuxtv.org/hg/~hverkuil/v4l-dvb-media2
-http://linuxtv.org/hg/~hverkuil/v4l-dvb-ng
+Thanks,
+Vaibhav Hiremath
 
-The second tree is meant to be merged into the v4l-dvb master, but is
-missing the converted ivtv driver: there is still a kernel oops there in =
-a
-corner case when loading the ivtv driver that I need to fix first.
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Monday, November 24, 2008 3:02 PM
+> To: Hiremath, Vaibhav
+> Cc: David Brownell; video4linux-list@redhat.com; linux-
+> omap@vger.kernel.org; davinci-linux-open-source-
+> bounces@linux.davincidsp.com
+> Subject: RE: [PATCH 2/2] TVP514x V4L int device driver support
+> 
+> >
+> >
+> > Thanks,
+> > Vaibhav Hiremath
+> >
+> >> -----Original Message-----
+> >> From: video4linux-list-bounces@redhat.com [mailto:video4linux-
+> list-
+> >> bounces@redhat.com] On Behalf Of Hans Verkuil
+> >> Sent: Monday, November 24, 2008 1:24 PM
+> >> To: David Brownell
+> >> Cc: video4linux-list@redhat.com; linux-omap@vger.kernel.org;
+> >> davinci-linux-open-source-bounces@linux.davincidsp.com
+> >> Subject: Re: [PATCH 2/2] TVP514x V4L int device driver support
+> >>
+> >> On Monday 24 November 2008 07:32:31 David Brownell wrote:
+> >> > On Sunday 23 November 2008, Trilok Soni wrote:
+> >> > > > 2) Please use the media/v4l2-i2c-drv.h or
+> >> > > > media/v4l2-i2c-drv-legacy.h header to hide some of the i2c
+> >> > > > complexity (again, see e.g. saa7115.c). The i2c API tends
+> to
+> >> > > > change a lot (and some changes are upcoming) so
+> >> >
+> >> > What "changes" do you mean?  Since this is not a legacy-style
+> >> > driver (yay!), the upcoming changes won't affect it at all.
+> >>
+> >> Oops, sorry. I thought it was a legacy driver, but it isn't.
+> There
+> >> are
+> >> changes upcoming for legacy drivers, but not for new-style
+> drivers.
+> >>
+> >> > > > using this header will mean that i2c driver changes will be
+> >> > > > minimal in the future. In addition it will ensure that this
+> >> > > > driver can be compiled with older kernels as well once it
+> is
+> >> part
+> >> > > > of the v4l-dvb repository.
+> >> > >
+> >> > > I don't agree with having support to compile with older
+> kernels.
+> >> >
+> >> > Right.  Folk wanting legacy tvp5146 and tvp5140 support could
+> >> > try to use the legacy drivers from the DaVinci tree.
+> >>
+> >> The v4l-dvb mercurial tree at www.linuxtv.org/hg which is the
+> main
+> >> v4l-dvb repository can support kernels >= 2.6.16. Before new
+> stuff
+> >> is
+> >> merged with the git kernel all the compatibility stuff for old
+> >> kernels
+> >> is stripped out, so you don't see it in the actual kernel code.
+> >> Using
+> >> the media/v4l2-i2c-drv.h header makes it much easier to support
+> >> these
+> >> older kernels and it actually reduces the code size as well. Most
+> >> v4l
+> >> i2c drivers are already converted or will be converted soon. It's
+> a
+> >> v4l
+> >> thing.
+> >>
+> >> > > Even though I2C APIs change as lot it is for good, and
+> creating
+> >> > > abstractions doesn't help as saa7xxx is family of chips where
+> I
+> >> > > don't see the case here. Once this driver is mainlined if
+> >> someone
+> >> > > does i2c subsystem change which breaks this driver from
+> building
+> >> > > then he/she has to make changes to all the code affecting it.
+> >> >
+> >> > And AFAIK no such change is anticipated.  The conversion from
+> >> > legacy style I2C drivers to "new style" driver-model friendly
+> >> > drivers is progressing fairly well, so that legacy support can
+> >> > be completely removed.
+> >> >
+> >> > > I am not in favour of adding support to compile with older
+> >> kernels.
+> >> >
+> >> > My two cents:  I'm not in favor either.  In fact that's the
+> >> > general policy for mainline drivers, and I'm surprised to hear
+> >> > any maintainer suggest it be added.
+> >>
+> >> Again, it's specific to v4l drivers. You don't have to do it, but
+> it
+> >> makes it consistent with the other v4l i2c drivers and when the
+> >> driver
+> >> is in the v4l-dvb repository you get support for older kernels
+> for
+> >> free.
+> >>
+> > [Hiremath, Vaibhav] Again only to maintain consistency, supporting
+> legacy
+> > wrapper is not good practice (In my opinion). Why can't we have
+> new driver
+> > coming with new interface and old drivers still can have legacy
+> wrappers?
+> 
+> It's no big deal for me, it was just a suggestion. We have noticed
+> that a
+> lot of people actually use the v4l-dvb repository to be able to get
+> the
+> latest v4l-dvb drivers for older kernels. Using these wrappers makes
+> it
+> trivial to provide that service, that's all. Just concentrate on
+> points 1
+> (trivial to fix) and 4 (the only really important and 'must fix'
+> issue).
+> 
+[Hiremath, Vaibhav] Thanks Hans.
+Point 1 - I completely agree to your point and will fix this.
 
-The first tree has slightly older (but almost identical) code and a
-converted ivtv driver that you can look at. Most important are the files
-Documentation/video4linux/v4l2-framework.txt that explains the new struct=
-s
-and the v4l2-device.h and v4l2-subdev.h headers.
+Point 4 - If I understand it correctly, you are referring to parameters, functions exported from board specific file. 
 
-Note that there are currently no sensor support ops in v4l2-subdev.h. Thi=
-s
-will have to be added (should be trivial).
+Let me explain the TVP514x driver interface -
 
-> Again I would like to know, how are we handling current drivers
-> (soc-camera and v4l2-int)?
+Board specific file (for me arch/arm/mach-omap2/board-omap3evm-dc.c) exports Default register list (tvp514x_reg), input list supported (tvp514x_input_info), etc... 
+The platform specific structure for tvp514x is looking like - 
 
-soc-camera and v4l2-int are the exceptions. All other drivers use the i2c
-command function to communicate with i2c drivers (ioctl-like API).
+static struct tvp514x_platform_data tvp5146_pdata = {
+        .power_set = tvp5146_power_set,
+        .priv_data_set = tvp5146_set_prv_data,
+        .ifparm = tvp5146_ifparm,
 
-Just a note on soc-camera: it's only the soc_camera_ops struct that I wan=
-t
-to see replaced (eventually) by v4l2_subdev. What I want is that subdevic=
-e
-drivers like tvp514x, but also sensor drivers like mt9xxxx should be
-independent of the host (bridge) driver. That way they can be reused
-properly. For example, having the mt9m001.c driver use soc_camera makes i=
-t
-much harder to use with e.g. a USB webcam driver which is not based on th=
-e
-soc_camera framework.
+        /* TVP5146 regsiter list, contains default values */
+        .reg_list = tvp5146_reg_list,
 
-Regards,
+        /* Number of supported inputs */
+        .num_inputs = TVP5146_NUM_INPUTS,
+        .input_list = tvp5146_input_list,
+};
 
-       Hans
 
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
-ibe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+Are you talking about the dependency for default register list and input list on board specific file? 
+I believe we can very well move it to tvp driver file, actually I found it easy to have complete default configuration list coming from board specific file instead of asking/taking some (required) params only.
+
+> Regards,
+> 
+>         Hans
+> 
+
