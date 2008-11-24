@@ -1,114 +1,37 @@
-From: Adrian Hunter <ext-adrian.hunter@nokia.com>
-Subject: Re: Please fix or remove OMAP2 onenand driver
-Date: Mon, 24 Nov 2008 14:44:36 +0200
-Message-ID: <492AA1B4.9030803@nokia.com>
-References: <20081123165011.GB17438@flint.arm.linux.org.uk> <492A91E1.50305@nokia.com> <20081124120153.GA5330@flint.arm.linux.org.uk>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [OMAP and mainline][RFC 2.6.28-rc2-omap 3/3] USB: OHCI-OMAP:
+ Switch to gpio_request/free calls
+Date: Mon, 24 Nov 2008 16:23:17 +0200
+Message-ID: <20081124162317.b66ae912.jarkko.nikula@nokia.com>
+References: <1225455447-12179-1-git-send-email-jarkko.nikula@nokia.com>
+	<200811211537.13253.david-b@pacbell.net>
+	<20081121234047.GK4927@atomide.com>
+	<200811211608.38062.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:42750 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:54845 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752239AbYKXMft (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2008 07:35:49 -0500
-In-Reply-To: <20081124120153.GA5330@flint.arm.linux.org.uk>
+	with ESMTP id S1752133AbYKXOX5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2008 09:23:57 -0500
+In-Reply-To: <200811211608.38062.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, dwmw2@infradead.org
+To: ext David Brownell <david-b@pacbell.net>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-ext Russell King - ARM Linux wrote:
-> On Mon, Nov 24, 2008 at 01:37:05PM +0200, Adrian Hunter wrote:
->> From: Adrian Hunter <ext-adrian.hunter@nokia.com>
->> Date: Mon, 24 Nov 2008 13:34:53 +0200
->> Subject: [PATCH] MTD: OMAP: OneNAND: header file relocation
->>
->> Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
-> 
-> Thanks.  Only two comments (see below).
-> 
->> ---
->> drivers/mtd/onenand/omap2.c |   12 ++++++------
->> 1 files changed, 6 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
->> index e39b21d..28034ef 100644
->> --- a/drivers/mtd/onenand/omap2.c
->> +++ b/drivers/mtd/onenand/omap2.c
->> @@ -35,16 +35,16 @@
->>
->> #include <asm/io.h>
-> 
-> Should be linux/io.h and should be with the other linux/ includes.
-> 
->> #include <asm/mach/flash.h>
->> -#include <asm/arch/gpmc.h>
->> -#include <asm/arch/onenand.h>
->> -#include <asm/arch/gpio.h>
->> -#include <asm/arch/pm.h>
->> +#include <mach/gpmc.h>
->> +#include <mach/onenand.h>
->> +#include <mach/gpio.h>
->> +#include <mach/pm.h>
->>
->> #include <linux/dma-mapping.h>
->> #include <asm/dma-mapping.h>
-> 
-> asm/dma-mapping.h should not be included - only linux/dma-mapping.h, and
-> that should be up with the other linux/ includes.
-> 
->> -#include <asm/arch/dma.h>
->> +#include <mach/dma.h>
->>
->> -#include <asm/arch/board.h>
->> +#include <mach/board.h>
->>
->> #define DRIVER_NAME "omap2-onenand"
->>
->> -- 
->> 1.5.4.3
-> 
+On Fri, 21 Nov 2008 16:08:37 -0800
+"ext David Brownell" <david-b@pacbell.net> wrote:
 
-From: Adrian Hunter <ext-adrian.hunter@nokia.com>
-Date: Mon, 24 Nov 2008 13:34:53 +0200
-Subject: [PATCH] MTD: OMAP: OneNAND: header file relocation
+> On Friday 21 November 2008, Tony Lindgren wrote:
+> > 
+> > But I guess Jarkko will still change some names in his patch series?
+> > 
+> 
+> Minor stuff, as I recall.  I'll let him respond...
+> 
+Yeah, I hope to get finally this set refreshed this week...
 
-Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
----
- drivers/mtd/onenand/omap2.c |   17 ++++++++---------
- 1 files changed, 8 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index e39b21d..a7e4d98 100644
---- a/drivers/mtd/onenand/omap2.c
-+++ b/drivers/mtd/onenand/omap2.c
-@@ -32,19 +32,18 @@
- #include <linux/platform_device.h>
- #include <linux/interrupt.h>
- #include <linux/delay.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/io.h>
- 
--#include <asm/io.h>
- #include <asm/mach/flash.h>
--#include <asm/arch/gpmc.h>
--#include <asm/arch/onenand.h>
--#include <asm/arch/gpio.h>
--#include <asm/arch/pm.h>
-+#include <mach/gpmc.h>
-+#include <mach/onenand.h>
-+#include <mach/gpio.h>
-+#include <mach/pm.h>
- 
--#include <linux/dma-mapping.h>
--#include <asm/dma-mapping.h>
--#include <asm/arch/dma.h>
-+#include <mach/dma.h>
- 
--#include <asm/arch/board.h>
-+#include <mach/board.h>
- 
- #define DRIVER_NAME "omap2-onenand"
- 
--- 
-1.5.4.3
+Jarkko
