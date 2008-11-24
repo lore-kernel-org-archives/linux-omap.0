@@ -1,156 +1,92 @@
-From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: [ANNOUNCE] new PM branch: pm-20081119
-Date: Mon, 24 Nov 2008 09:32:50 +0200
-Message-ID: <87vdudbmu5.fsf@trdhcp146196.ntc.nokia.com>
-References: <87d4grdxqh.fsf@deeprootsystems.com>
-	<345163910811200045n3af8b3b5mbd30601aeeee31e@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301B6C8C79B@dbde02.ent.ti.com>
-	<87r656b8js.fsf@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301B6D59577@dbde02.ent.ti.com>
-	<87ljvd6p3u.fsf@deeprootsystems.com>
-	<8bf247760811222357t45c25113ncfe6874b149651d5@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 2/2] TVP514x V4L int device driver support
+Date: Mon, 24 Nov 2008 08:53:35 +0100
+Message-ID: <200811240853.35650.hverkuil@xs4all.nl>
+References: <hvaibhav@ti.com>
+	<5d5443650811232216x6c9a77a4p2945f87e1ab65a67@mail.gmail.com>
+	<200811232232.31646.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:42700 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751372AbYKXHdB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2008 02:33:01 -0500
-In-Reply-To: <8bf247760811222357t45c25113ncfe6874b149651d5@mail.gmail.com>
-	(ext Sriram V.'s message of "Sun, 23 Nov 2008 13:27:42 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <video4linux-list-bounces@redhat.com>
+In-Reply-To: <200811232232.31646.david-b@pacbell.net>
+Content-Disposition: inline
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+To: David Brownell <david-b@pacbell.net>
+Cc: video4linux-list@redhat.com, linux-omap@vger.kernel.org, davinci-linux-open-source-bounces@linux.davincidsp.com
 List-Id: linux-omap@vger.kernel.org
-To: ext Sriram V <vshrirama@gmail.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Premi, Sanjeev" <premi@ti.com>, Peter Reid <ppeter.reid@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"ext Sriram V" <vshrirama@gmail.com> writes:
-
-> Kevin,
+On Monday 24 November 2008 07:32:31 David Brownell wrote:
+> On Sunday 23 November 2008, Trilok Soni wrote:
+> > > 2) Please use the media/v4l2-i2c-drv.h or
+> > > media/v4l2-i2c-drv-legacy.h header to hide some of the i2c
+> > > complexity (again, see e.g. saa7115.c). The i2c API tends to
+> > > change a lot (and some changes are upcoming) so
 >
-> On Fri, Nov 21, 2008 at 9:35 PM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
->> "Premi, Sanjeev" <premi@ti.com> writes:
->>
->>>> -----Original Message-----
->>>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>>> Sent: Thursday, November 20, 2008 11:10 PM
->>>> To: Premi, Sanjeev
->>>> Cc: Peter Reid; linux-omap@vger.kernel.org
->>>> Subject: Re: [ANNOUNCE] new PM branch: pm-20081119
->>>>
->>>> "Premi, Sanjeev" <premi@ti.com> writes:
->>>>
->>>> > These are my observations on OMAP3EVM:
->>>> >
->>>> > 1) Very frequently I see these messages:
->>>> >
->>>> > <4>__ratelimit: 6736 callbacks suppressed
->>>> > __ratelimit: 6736 callbacks suppressed <3>omapfb omapfb: irq err=
-or
->>>> > status 00c2 omapfb omapfb: irq error status 00c2 <3>omapfb
->>>> omapfb: irq
->>>> > error status 0060 omapfb omapfb: irq error status 0060 <3>omapfb
->>>> > omapfb: irq error status 00c2 omapfb omapfb: irq error status 00=
-c2
->>>> > <3>omapfb omapfb: irq error status 0060 omapfb omapfb: irq error
->>>> > status 0060 <3>omapfb omapfb: irq error status 00e2 omapfb
->>>> omapfb: irq
->>>> > error status 00e2 <3>omapfb omapfb: irq error status 00c2 omapfb
->>>> > omapfb: irq error status 00c2 <3>omapfb omapfb: irq error
->>>> status 0060
->>>> > omapfb omapfb: irq error status 0060 <3>omapfb omapfb: irq error
->>>> > status 00e2 omapfb omapfb: irq error status 00e2 <3>omapfb
->>>> omapfb: irq
->>>> > error status 00c2 omapfb omapfb: irq error status 00c2 <3>omapfb
->>>> > omapfb: irq error status 0060 omapfb omapfb: irq error status 00=
-60
->>>>
->>>> Sanjeev,
->>>>
->>>> For starters can you try with a minimal kernel (no drivers,
->>>> no framebuffer, etc.)
->>>>
->>>> The first goal is to hit retention and off with no drivers
->>>> than start moving out to address driver issues from there.
->>>>
->>>> Kevin
->>>>
->>>
->>> Here is what I was able to see with the minimal config (attached).
->>>
->>> [root@OMAP3EVM /]# echo mem > /sys/power/state
->>> <6>PM: Syncing filesystems ... PM: Syncing filesystems ... done.
->>> done.
->>> Freezing user space processes ... Freezing user space processes ...=
- (elapsed 0.00 seconds) (elapsed 0.00 seconds) done.
->>> done.
->>> Freezing remaining freezable tasks ... Freezing remaining freezable=
- tasks ... (elapsed 0.01 seconds) (elapsed 0.01 seconds) done.done.
->>>
->>> Suspending console(s) (use no_console_suspend to debug)
->>> Suspending console(s) (use no_console_suspend to debug)
->>>
->>> <snip>un-printable characters<snip>
->>>
->>> Powerdomain (per_pwrdm) didn't enter target state 1
->>> Could not enter target state in pm_suspend
->>> Restarting tasks ... Restarting tasks ... done.
->>> done.
->>
->> This is what I see on Beagle as well (PER is not entering retention.=
-)
->>
->
->> At this point, the current PM debug code doesn't help further in
->> determining exactly why a powerdomain did not hit its target state.
->> Some device in the domain may still have its clocks enabled, or its
->> idle state not set correctly.  Or, a given module may have been
->> initialized by the bootloader in a way which prevents it from going
->> idle.
->>
->
->   True. I have observed on omap3evm with minimum configuration, and
-> booting out of ramdisk:
->           with nand booting:  only per powerdomain does not enter ret=
-ention
->           with mmc boot:  core and per dont enter retention
->
->    it could do with clocks set the bootloaders that is preventing it =
-from
->    entering ret/off.
+> What "changes" do you mean?  Since this is not a legacy-style
+> driver (yay!), the upcoming changes won't affect it at all.
 
-To tackle this you should have CONFIG_OMAP_RESET_CLOCKS enabled in
-config.
+Oops, sorry. I thought it was a legacy driver, but it isn't. There are 
+changes upcoming for legacy drivers, but not for new-style drivers.
 
->    what do you mean by idle state not set correctly? are you referrin=
-g
-> to auto-idle bit?
-
-Not sure what Kevin meant there, but if the problem was in the
-autoidle bit in *_SYSCONFIG, I would expect also CORE pwrdm to
-fail. Anyway it's also worth of checking the statuses of PER modules
-*_SYSCONFIG registers.
-
+> > > using this header will mean that i2c driver changes will be
+> > > minimal in the future. In addition it will ensure that this
+> > > driver can be compiled with older kernels as well once it is part
+> > > of the v4l-dvb repository.
+> >
+> > I don't agree with having support to compile with older kernels.
 >
->
->> We need some improved PM debug capabilities in the kernel to pinpoin=
-t
->> exactly the module that is causing the problem.
->>
->
->    Apart from PM debug, are you using any other module/methods to
->    debug?
+> Right.  Folk wanting legacy tvp5146 and tvp5140 support could
+> try to use the legacy drivers from the DaVinci tree.
 
-State of PRCM registers can be quickly checked from
-/sys/kernel/debug/pm_debug/registers/current (assuming you have mount
-debugfs in /sys/kernel/debug and PM_DEBUG is enabled in config).
+The v4l-dvb mercurial tree at www.linuxtv.org/hg which is the main 
+v4l-dvb repository can support kernels >= 2.6.16. Before new stuff is 
+merged with the git kernel all the compatibility stuff for old kernels 
+is stripped out, so you don't see it in the actual kernel code. Using 
+the media/v4l2-i2c-drv.h header makes it much easier to support these 
+older kernels and it actually reduces the code size as well. Most v4l 
+i2c drivers are already converted or will be converted soon. It's a v4l 
+thing.
 
---=20
-Jouni H=C3=B6gander
+> > Even though I2C APIs change as lot it is for good, and creating
+> > abstractions doesn't help as saa7xxx is family of chips where I
+> > don't see the case here. Once this driver is mainlined if someone
+> > does i2c subsystem change which breaks this driver from building
+> > then he/she has to make changes to all the code affecting it.
+>
+> And AFAIK no such change is anticipated.  The conversion from
+> legacy style I2C drivers to "new style" driver-model friendly
+> drivers is progressing fairly well, so that legacy support can
+> be completely removed.
+>
+> > I am not in favour of adding support to compile with older kernels.
+>
+> My two cents:  I'm not in favor either.  In fact that's the
+> general policy for mainline drivers, and I'm surprised to hear
+> any maintainer suggest it be added.
+
+Again, it's specific to v4l drivers. You don't have to do it, but it 
+makes it consistent with the other v4l i2c drivers and when the driver 
+is in the v4l-dvb repository you get support for older kernels for 
+free.
+
+Whether it is good or bad that the v4l-dvb repo works this way is a 
+completely different discussion.
+
+Regards,
+
+	Hans
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
