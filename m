@@ -1,50 +1,116 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 2/2] TVP514x V4L int device driver support
-Date: Mon, 24 Nov 2008 02:06:37 -0800
-Message-ID: <200811240206.38924.david-b@pacbell.net>
-References: <hvaibhav@ti.com> <1227280923-31654-1-git-send-email-hvaibhav@ti.com>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Subject: RE: [PATCH 2/2] TVP514x V4L int device driver support
+Date: Mon, 24 Nov 2008 11:22:01 +0100 (CET)
+Message-ID: <9014.62.70.2.252.1227522121.squirrel@webmail.xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp127.sbc.mail.sp1.yahoo.com ([69.147.65.186]:27049 "HELO
-	smtp127.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751868AbYKXKGl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Nov 2008 05:06:41 -0500
-In-Reply-To: <1227280923-31654-1-git-send-email-hvaibhav@ti.com>
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <video4linux-list-bounces@redhat.com>
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>
 List-Id: linux-omap@vger.kernel.org
-To: hvaibhav@ti.com
-Cc: video4linux-list@redhat.com, linux-omap@vger.kernel.org, davinci-linux-open-source-bounces@linux.davincidsp.com, Brijesh Jadav <brijesh.j@ti.com>
 
-On Friday 21 November 2008, hvaibhav@ti.com wrote:
-> +static const struct i2c_device_id tvp514x_id[] =3D {
-> +=A0=A0=A0=A0=A0=A0=A0{MODULE_NAME, 0},
-> +=A0=A0=A0=A0=A0=A0=A0{},
-> +};
+> Hans,
+>
+> Thanks,
+> Vaibhav Hiremath
+>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Trilok Soni
+>> Sent: Monday, November 24, 2008 2:13 PM
+>> To: Hans Verkuil
+>> Cc: video4linux-list@redhat.com; linux-omap@vger.kernel.org;
+>> davinci-linux-open-source@linux.davincidsp.com
+>> Subject: Re: [PATCH 2/2] TVP514x V4L int device driver support
+>>
+>> Hi Hans,
+>>
+>> >
+>> > The v4l2-int-device.h stuff should never have been added. Ditto
+>> for
+>> > parts of the soc-camera framework that duplicates v4l2-int-
+>> device.h. My
+>> > new v4l2_subdev support will replace the three methods of using
+>> i2c
+>> > devices (or similar) that are currently in use. It's exactly to
+>> reduce
+>> > the confusion that I'm working on this.
+>> >
+>> > It's been discussed before on the v4l mailinglist and the relevant
+>> > developers are aware of this. It's almost finished, just need to
+>> track
+>> > down a single remaining oops.
+>>
+>> Right, I will wait for your updates.
+>>
+>> I am planning to send omap24xxcam and ov9640 drivers (now deleted)
+>> available from linux-omap tree after syncing them with latest
+>> linux-2.6.x tree, and the whole driver and the sensor is written
+>> using
+>> v4l2-int-device framework. I am going to send it anyway, so that it
+>> can have some review comments.
+>>
+> [Hiremath, Vaibhav] Is your current development accessible through
+> linuxtv.org? Can you share it with us, so that we can have a look into =
+it?
+> Which driver you are migrating to new interface (which I can refer to a=
+s a
+> sample)?
 
-Don't do that.  Instead:
+Yes, it is. Look at these two trees:
 
-	{ "tvp5146", 0 },
-	{ "tvp5147", 0 },
+http://linuxtv.org/hg/~hverkuil/v4l-dvb-media2
+http://linuxtv.org/hg/~hverkuil/v4l-dvb-ng
 
-and so on.  Maybe pass a flag there to help determine which
-chip reset/init message sequence to use.  (Which, hmm, I did
-not see in this code, although the data sheets are clear
-that the '46 needs 12 writes and the '47 needs 18 ...)  Or
-tell if the extra '46 registers are available, etc.
+The second tree is meant to be merged into the v4l-dvb master, but is
+missing the converted ivtv driver: there is still a kernel oops there in =
+a
+corner case when loading the ivtv driver that I need to fix first.
 
+The first tree has slightly older (but almost identical) code and a
+converted ivtv driver that you can look at. Most important are the files
+Documentation/video4linux/v4l2-framework.txt that explains the new struct=
+s
+and the v4l2-device.h and v4l2-subdev.h headers.
 
-> +late_initcall(tvp514x_init);
+Note that there are currently no sensor support ops in v4l2-subdev.h. Thi=
+s
+will have to be added (should be trivial).
 
-Why is this "late" instead of normal module_init()?
-It's unusual for I2C...
+> Again I would like to know, how are we handling current drivers
+> (soc-camera and v4l2-int)?
 
-- Dave
+soc-camera and v4l2-int are the exceptions. All other drivers use the i2c
+command function to communicate with i2c drivers (ioctl-like API).
+
+Just a note on soc-camera: it's only the soc_camera_ops struct that I wan=
+t
+to see replaced (eventually) by v4l2_subdev. What I want is that subdevic=
+e
+drivers like tvp514x, but also sensor drivers like mt9xxxx should be
+independent of the host (bridge) driver. That way they can be reused
+properly. For example, having the mt9m001.c driver use soc_camera makes i=
+t
+much harder to use with e.g. a USB webcam driver which is not based on th=
+e
+soc_camera framework.
+
+Regards,
+
+       Hans
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
+ibe
+https://www.redhat.com/mailman/listinfo/video4linux-list
