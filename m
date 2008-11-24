@@ -1,27 +1,114 @@
-From: Tony Lindgren <tony@atomide.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
 Subject: Re: gpio_expander_omap removal?
-Date: Mon, 24 Nov 2008 09:42:49 -0800
-Message-ID: <20081124174247.GB4927@atomide.com>
+Date: Mon, 24 Nov 2008 23:40:55 +0530
+Message-ID: <5d5443650811241010h675dd7f4y9a9be7828f0e552@mail.gmail.com>
 References: <5d5443650811240917q1215d424sdaec82889dbe2b49@mail.gmail.com>
+	 <20081124174247.GB4927@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="----=_Part_176366_27849425.1227550255829"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62033 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752960AbYKXRmu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2008 12:42:50 -0500
-Content-Disposition: inline
-In-Reply-To: <5d5443650811240917q1215d424sdaec82889dbe2b49@mail.gmail.com>
+Received: from an-out-0708.google.com ([209.85.132.250]:54303 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751029AbYKXSK6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2008 13:10:58 -0500
+Received: by an-out-0708.google.com with SMTP id d40so870972and.1
+        for <linux-omap@vger.kernel.org>; Mon, 24 Nov 2008 10:10:56 -0800 (PST)
+In-Reply-To: <20081124174247.GB4927@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Trilok Soni <soni.trilok@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Trilok Soni <soni.trilok@gmail.com> [081124 09:18]:
-> Any plans to remove gpio expander APIs from drivers/i2c/chips?
-> 
-> I hope gpio_xxx APIs from gpiolib will work directly over pcf857x.
+------=_Part_176366_27849425.1227550255829
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Yes, let's get rid of that.
+Hi Tony,
 
-Tony
+>
+> Yes, let's get rid of that.
+>
+
+Attached the patch, just check.
+
+
+-- 
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
+
+------=_Part_176366_27849425.1227550255829
+Content-Type: text/x-patch;
+ name=0001-OMAP-I2C-Remove-gpio_expander_omap-APIs.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fnxfpde70
+Content-Disposition: attachment;
+ filename=0001-OMAP-I2C-Remove-gpio_expander_omap-APIs.patch
+
+RnJvbSA4OGNlODhhMzBhM2MxNDE2NTc3ODY4NjlkODdhZmMzNjAwZGVmMGQ4IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBUcmlsb2sgU29uaSA8c29uaS50cmlsb2tAZ21haWwuY29tPgpE
+YXRlOiBNb24sIDI0IE5vdiAyMDA4IDIzOjE0OjQ4ICswNTMwClN1YmplY3Q6IFtQQVRDSF0gT01B
+UDogSTJDOiBSZW1vdmUgZ3Bpb19leHBhbmRlcl9vbWFwIEFQSXMKCi0gUmVtb3ZlIGdwaW9fZXhw
+YW5kZXJfb21hcCBBUElzIGFzIGl0IGlzIHJlcGxhY2VkIGJ5CiAgZ3Bpby9wY2Y4NTd4LgoKU2ln
+bmVkLW9mZi1ieTogVHJpbG9rIFNvbmkgPHNvbmkudHJpbG9rQGdtYWlsLmNvbT4KLS0tCiBkcml2
+ZXJzL2kyYy9jaGlwcy9LY29uZmlnICAgICAgICAgICAgICB8ICAgIDcgLS0tCiBkcml2ZXJzL2ky
+Yy9jaGlwcy9NYWtlZmlsZSAgICAgICAgICAgICB8ICAgIDEgLQogZHJpdmVycy9pMmMvY2hpcHMv
+Z3Bpb19leHBhbmRlcl9vbWFwLmMgfCAgIDcxIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tCiAzIGZpbGVzIGNoYW5nZWQsIDAgaW5zZXJ0aW9ucygrKSwgNzkgZGVsZXRpb25zKC0pCiBk
+ZWxldGUgbW9kZSAxMDA2NDQgZHJpdmVycy9pMmMvY2hpcHMvZ3Bpb19leHBhbmRlcl9vbWFwLmMK
+CmRpZmYgLS1naXQgYS9kcml2ZXJzL2kyYy9jaGlwcy9LY29uZmlnIGIvZHJpdmVycy9pMmMvY2hp
+cHMvS2NvbmZpZwppbmRleCA0YzczYmI1Li5kNjE1ODliIDEwMDY0NAotLS0gYS9kcml2ZXJzL2ky
+Yy9jaGlwcy9LY29uZmlnCisrKyBiL2RyaXZlcnMvaTJjL2NoaXBzL0tjb25maWcKQEAgLTE0Niwx
+MyArMTQ2LDYgQEAgY29uZmlnIFNFTlNPUlNfVExWMzIwQUlDMjMKIAkgIElmIHlvdSBzYXkgeWVz
+IGhlcmUgeW91IGdldCBzdXBwb3J0IGZvciB0aGUgSTJDIGNvbnRyb2wKIAkgIGludGVyZmFjZSBm
+b3IgVGV4YXMgSW5zdHJ1bWVudHMgVExWMzIwQUlDMjMgYXVkaW8gY29kZWMuCiAKLWNvbmZpZyBH
+UElPRVhQQU5ERVJfT01BUAotCWJvb2wgIkdQSU8gRXhwYW5kZXIgUENGODU3NFBXUiBmb3IgT01B
+UCIKLQlkZXBlbmRzIG9uIEkyQyAmJiBNQUNIX09NQVBfSDMKLQloZWxwCi0JICBJZiB5b3Ugc2F5
+IHllcyBoZXJlIHlvdSBnZXQgc3VwcG9ydCBmb3IgSS9PIGV4cGFuZGVyIGNhbGxzCi0JICB0byBj
+b25maWd1cmUgSXJEQSwgQ2FtZXJhIGFuZCBhdWRpbyBkZXZpY2VzLgotCiBjb25maWcgVFdMNDAz
+MF9NQURDCiAJdHJpc3RhdGUgIlRXTDQwMzAgTUFEQyBEcml2ZXIiCiAJZGVwZW5kcyBvbiBUV0w0
+MDMwX0NPUkUKZGlmZiAtLWdpdCBhL2RyaXZlcnMvaTJjL2NoaXBzL01ha2VmaWxlIGIvZHJpdmVy
+cy9pMmMvY2hpcHMvTWFrZWZpbGUKaW5kZXggY2I5ZjJiYi4uZDgyMDE5YyAxMDA2NDQKLS0tIGEv
+ZHJpdmVycy9pMmMvY2hpcHMvTWFrZWZpbGUKKysrIGIvZHJpdmVycy9pMmMvY2hpcHMvTWFrZWZp
+bGUKQEAgLTIxLDcgKzIxLDYgQEAgb2JqLSQoQ09ORklHX1NFTlNPUlNfUENGODU5MSkJKz0gcGNm
+ODU5MS5vCiBvYmotJChDT05GSUdfSVNQMTMwMV9PTUFQKQkrPSBpc3AxMzAxX29tYXAubwogb2Jq
+LSQoQ09ORklHX1RQUzY1MDEwKQkJKz0gdHBzNjUwMTAubwogb2JqLSQoQ09ORklHX1NFTlNPUlNf
+VExWMzIwQUlDMjMpICs9IHRsdjMyMGFpYzIzLm8KLW9iai0kKENPTkZJR19HUElPRVhQQU5ERVJf
+T01BUCkJKz0gZ3Bpb19leHBhbmRlcl9vbWFwLm8KIG9iai0kKENPTkZJR19NRU5FTEFVUykJCSs9
+IG1lbmVsYXVzLm8KIG9iai0kKENPTkZJR19TRU5TT1JTX1RTTDI1NTApCSs9IHRzbDI1NTAubwog
+b2JqLSQoQ09ORklHX01DVV9NUEM4MzQ5RU1JVFgpCSs9IG1jdV9tcGM4MzQ5ZW1pdHgubwpkaWZm
+IC0tZ2l0IGEvZHJpdmVycy9pMmMvY2hpcHMvZ3Bpb19leHBhbmRlcl9vbWFwLmMgYi9kcml2ZXJz
+L2kyYy9jaGlwcy9ncGlvX2V4cGFuZGVyX29tYXAuYwpkZWxldGVkIGZpbGUgbW9kZSAxMDA2NDQK
+aW5kZXggZGZlN2YwNC4uMDAwMDAwMAotLS0gYS9kcml2ZXJzL2kyYy9jaGlwcy9ncGlvX2V4cGFu
+ZGVyX29tYXAuYworKysgL2Rldi9udWxsCkBAIC0xLDcxICswLDAgQEAKLS8qCi0gKiBkcml2ZXJz
+L2kyYy9jaGlwcy9ncGlvX2V4cGFuZGVyX29tYXAuYwotICoKLSAqIENvcHlyaWdodCAoQykgMjAw
+NCBUZXhhcyBJbnN0cnVtZW50cyBJbmMKLSAqIEF1dGhvcjoKLSAqCi0gKiBncGlvIGV4cGFuZGVy
+IGlzIHVzZWQgdG8gY29uZmlndXJlIElyREEsIGNhbWVyYSBhbmQgYXVkaW8gZGV2aWNlcyBvbiBv
+bWFwIDE3MTAgcHJvY2Vzc29yLgotICoKLSAqIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJl
+OyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5Ci0gKiBpdCB1bmRlciB0aGUg
+dGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIHZlcnNpb24gMiBhcwotICog
+cHVibGlzaGVkIGJ5IHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24uCi0gKgotICovCi0KLSNp
+bmNsdWRlIDxsaW51eC90eXBlcy5oPgotI2luY2x1ZGUgPGxpbnV4L2kyYy5oPgotI2luY2x1ZGUg
+PGxpbnV4L2Vycm5vLmg+Ci0KLWludCByZWFkX2dwaW9fZXhwYSh1OCAqIHZhbCwgaW50IGFkZHIp
+OwotaW50IHdyaXRlX2dwaW9fZXhwYSh1OCB2YWwsIGludCBhZGRyKTsKLQotaW50IHdyaXRlX2dw
+aW9fZXhwYSh1OCB2YWwsIGludCBhZGRyKQotewotCXN0cnVjdCBpMmNfYWRhcHRlciAqYWRhcDsK
+LQlpbnQgZXJyOwotCXN0cnVjdCBpMmNfbXNnIG1zZ1sxXTsKLQl1bnNpZ25lZCBjaGFyIGRhdGFb
+MV07Ci0KLQlhZGFwID0gaTJjX2dldF9hZGFwdGVyKDEpOwotCWlmICghYWRhcCkKLQkJcmV0dXJu
+IC1FTk9ERVY7Ci0JbXNnLT5hZGRyID0gYWRkcjsJLyogSTJDIGFkZHJlc3Mgb2YgR1BJTyBFWFBB
+ICovCi0JbXNnLT5mbGFncyA9IDA7Ci0JbXNnLT5sZW4gPSAxOwotCW1zZy0+YnVmID0gZGF0YTsK
+LQlkYXRhWzBdID0gdmFsOwotCWVyciA9IGkyY190cmFuc2ZlcihhZGFwLCBtc2csIDEpOwotCWlm
+IChlcnIgPj0gMCkKLQkJcmV0dXJuIDA7Ci0JcmV0dXJuIGVycjsKLX0KLQotLyogUmVhZCBmcm9t
+IEkvTyBFWFBBTkRFUiBvbiB0aGUgSDMgYm9hcmQuCi0gKiBUaGUgSU8gZXhwYW5kZXJzIG5lZWQg
+YW4gaW5kZXBlbmRlbnQgSTJDIGNsaWVudCBkcml2ZXIuCi0gKi8KLQotaW50IHJlYWRfZ3Bpb19l
+eHBhKHU4ICogdmFsLCBpbnQgYWRkcikKLXsKLQlzdHJ1Y3QgaTJjX2FkYXB0ZXIgKmFkYXA7Ci0J
+aW50IGVycjsKLQlzdHJ1Y3QgaTJjX21zZyBtc2dbMV07Ci0JdW5zaWduZWQgY2hhciBkYXRhWzFd
+OwotCi0JYWRhcCA9IGkyY19nZXRfYWRhcHRlcigxKTsKLQlpZiAoIWFkYXApCi0JCXJldHVybiAt
+RU5PREVWOwotCW1zZy0+YWRkciA9IGFkZHI7CS8qIEkyQyBhZGRyZXNzIG9mIEdQSU8gRVhQQSAq
+LwotCW1zZy0+ZmxhZ3MgPSBJMkNfTV9SRDsKLQltc2ctPmxlbiA9IDI7Ci0JbXNnLT5idWYgPSBk
+YXRhOwotCWVyciA9IGkyY190cmFuc2ZlcihhZGFwLCBtc2csIDEpOwotCSp2YWwgPSBkYXRhWzBd
+OwotCi0JaWYgKGVyciA+PSAwKQotCQlyZXR1cm4gMDsKLQlyZXR1cm4gZXJyOwotfQotCi1FWFBP
+UlRfU1lNQk9MKHJlYWRfZ3Bpb19leHBhKTsKLUVYUE9SVF9TWU1CT0wod3JpdGVfZ3Bpb19leHBh
+KTsKLQotLSAKMS42LjAuMwoK
+------=_Part_176366_27849425.1227550255829--
