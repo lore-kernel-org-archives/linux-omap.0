@@ -1,59 +1,71 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
+From: "Trilok Soni" <soni.trilok@gmail.com>
 Subject: Re: [PATCH 2/2] TVP514x V4L int device driver support
-Date: Sun, 23 Nov 2008 23:04:58 +0100
-Message-ID: <E960EE8F-D598-499F-AF23-8EB4EB7FE22D@student.utwente.nl>
-References: <hvaibhav@ti.com> <1227280923-31654-1-git-send-email-hvaibhav@ti.com> <200811232300.40530.hverkuil@xs4all.nl>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-11-62595755"
+Date: Mon, 24 Nov 2008 11:46:12 +0530
+Message-ID: <5d5443650811232216x6c9a77a4p2945f87e1ab65a67@mail.gmail.com>
+References: <hvaibhav@ti.com>
+	 <1227280923-31654-1-git-send-email-hvaibhav@ti.com>
+	 <200811232300.40530.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:53812 "EHLO smtp.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751589AbYKWWFZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 23 Nov 2008 17:05:25 -0500
+Received: from rv-out-0506.google.com ([209.85.198.231]:11238 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750698AbYKXGQN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2008 01:16:13 -0500
+Received: by rv-out-0506.google.com with SMTP id k40so1906366rvb.1
+        for <linux-omap@vger.kernel.org>; Sun, 23 Nov 2008 22:16:12 -0800 (PST)
 In-Reply-To: <200811232300.40530.hverkuil@xs4all.nl>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: video4linux-list@redhat.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, davinci-linux-open-source-bounces@linux.davincidsp.com
+Cc: video4linux-list@redhat.com, linux-omap@vger.kernel.org, davinci-linux-open-source-bounces@linux.davincidsp.com
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-11-62595755
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+Hi Hans,
 
-
-Op 23 nov 2008, om 23:00 heeft Hans Verkuil het volgende geschreven:
-
-> Remember that this is not a driver for use with omap, this is a  
-> generic
-> i2c driver for this chip. omap just happens to be the only bridge
-> driver using it right now, but that can easily change.
+On Mon, Nov 24, 2008 at 3:30 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Vaibhav,
 >
-> Yes, it makes it harder to write an i2c driver, but experience has  
-> shown
-> us that the advantages regarding reuse far outweigh this initial cost.
+> Here is my review as promised (although a day late). It's a mix of
+> smaller and larger issues:
+>
+> 1) CONFIG_VIDEO_ADV_DEBUG is meant to enable the ability to set/get
+> registers through the VIDIOC_DBG_G/S_REGISTER ioctls. For general
+> debugging you should use a debug module option (see e.g. saa7115.c).
 
-And google suggests that this chip is is used on dm35x and davinci  
-platforms as well :)
+Local dprintk with log levels is fine, as far as it not misused.
 
-regards,
+>
+> 2) Please use the media/v4l2-i2c-drv.h or media/v4l2-i2c-drv-legacy.h
+> header to hide some of the i2c complexity (again, see e.g. saa7115.c).
+> The i2c API tends to change a lot (and some changes are upcoming) so
+> using this header will mean that i2c driver changes will be minimal in
+> the future. In addition it will ensure that this driver can be compiled
+> with older kernels as well once it is part of the v4l-dvb repository.
 
-Koen
+I don't agree with having support to compile with older kernels. Even
+though I2C APIs change as lot it is for good, and creating
+abstractions doesn't help as saa7xxx is family of chips where I don't
+see the case here. Once this driver is mainlined if someone does i2c
+subsystem change which breaks this driver from building then he/she
+has to make changes to all the code affecting it.
 
---Apple-Mail-11-62595755
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: This is a digitally signed message part
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
+I am not in favour of adding support to compile with older kernels.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
+>
+> 3) Remember that the use of v4l2-int-device.h must be temporary only. It
+> will make it impossible to use this driver with any other platform but
+> omap. I had hoped to release my generic v4l2 subdevice support today
+> which should replace v4l2-int-device.h in time, but I hit a bug that
+> needs to be resolved first. I hope to fix it during the next week so
+> that I can finally make it available for use asap.
 
-iD8DBQFJKdOMMkyGM64RGpERAsk5AJ4kHuKYs9HV1olbbgV52AJkSWycbQCglzRN
-YLmRjf3Ncsvh6f5lSS3rCEE=
-=rBlR
------END PGP SIGNATURE-----
+Better step would be to have single camera-sensor framework or merge
+with soc-camera framework. Two frameworks doesn't help anyone, but
+creates more confusion for new developers.
 
---Apple-Mail-11-62595755--
+-- 
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
