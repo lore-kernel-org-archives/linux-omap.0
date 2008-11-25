@@ -1,50 +1,62 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] Typo fix for clock_allow_idle
-Date: Tue, 25 Nov 2008 15:12:57 -0800
-Message-ID: <20081125231256.GY11997@atomide.com>
-References: <1222068189-10663-1-git-send-email-kucheria.amit@gmail.com>
+Subject: Re: [patch 1/4] twl: update overo and pandora i2c data
+Date: Tue, 25 Nov 2008 15:25:41 -0800
+Message-ID: <20081125232539.GA11997@atomide.com>
+References: <200811151238.43725.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58318 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56719 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752058AbYKYXM6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 18:12:58 -0500
+	with ESMTP id S1752084AbYKYXZm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 18:25:42 -0500
 Content-Disposition: inline
-In-Reply-To: <1222068189-10663-1-git-send-email-kucheria.amit@gmail.com>
+In-Reply-To: <200811151238.43725.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: kucheria.amit@gmail.com
-Cc: linux-omap@vger.kernel.org, Amit Kucheria <amit.kucheria@verdurent.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-omap@vger.kernel.org
 
-* kucheria.amit@gmail.com <kucheria.amit@gmail.com> [080922 00:23]:
-> From: Amit Kucheria <amit.kucheria@verdurent.com>
+* David Brownell <david-b@pacbell.net> [081115 12:54]:
+> From: David Brownell <dbrownell@users.sourceforge.net>
+> 
+> Update Pandora and Overo board-specific code to report that
+> they use catalog versions of the twl5030 ... this affects
+> the range of usable VAUX2 voltages.
 
-Pushing today & adding to omap-fixes queue. Sorry for the delay on this one.
+Pushing 1 - 3 to l-o tree, not pushing 4. We'll need to do similar
+updates for mainline too btw.
 
 Tony
 
-> Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 > ---
->  arch/arm/plat-omap/include/mach/pm.h |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+>  arch/arm/mach-omap2/board-omap3pandora.c |    2 +-
+>  arch/arm/mach-omap2/board-overo.c        |    2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/arch/arm/plat-omap/include/mach/pm.h b/arch/arm/plat-omap/include/mach/pm.h
-> index e4cf1c5..15c19f0 100644
-> --- a/arch/arm/plat-omap/include/mach/pm.h
-> +++ b/arch/arm/plat-omap/include/mach/pm.h
-> @@ -131,7 +131,7 @@ void clk_deny_idle(struct clk *clk);
->   * clk_allow_idle - Counters previous clk_deny_idle
->   * @clk: clock signal handle
->   */
-> -void clk_deny_idle(struct clk *clk);
-> +void clk_allow_idle(struct clk *clk);
+> --- a/arch/arm/mach-omap2/board-omap3pandora.c
+> +++ b/arch/arm/mach-omap2/board-omap3pandora.c
+> @@ -167,7 +167,7 @@ static struct twl4030_platform_data omap
 >  
->  extern void omap_pm_idle(void);
->  extern void omap_pm_suspend(void);
-> -- 
-> 1.5.6.3
-> 
+>  static struct i2c_board_info __initdata omap3pandora_i2c_boardinfo[] = {
+>  	{
+> -		I2C_BOARD_INFO("twl4030", 0x48),
+> +		I2C_BOARD_INFO("tps65950", 0x48),
+>  		.flags = I2C_CLIENT_WAKE,
+>  		.irq = INT_34XX_SYS_NIRQ,
+>  		.platform_data = &omap3pandora_twldata,
+> --- a/arch/arm/mach-omap2/board-overo.c
+> +++ b/arch/arm/mach-omap2/board-overo.c
+> @@ -167,7 +167,7 @@ static struct twl4030_platform_data over
+>  
+>  static struct i2c_board_info __initdata overo_i2c_boardinfo[] = {
+>  	{
+> -		I2C_BOARD_INFO("twl4030", 0x48),
+> +		I2C_BOARD_INFO("tps65950", 0x48),
+>  		.flags = I2C_CLIENT_WAKE,
+>  		.irq = INT_34XX_SYS_NIRQ,
+>  		.platform_data = &overo_twldata,
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
