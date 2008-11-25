@@ -1,34 +1,43 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/1] Fix control debobs macro
-Date: Tue, 25 Nov 2008 07:25:57 -0800
-Message-ID: <87wserq12y.fsf@deeprootsystems.com>
-References: <1227537275-7161-1-git-send-email-peter.de-schrijver@nokia.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [PATCH] ASoC: Fix TW4030 Kconfig dependency
+Date: Tue, 25 Nov 2008 15:30:14 +0000
+Message-ID: <20081125153013.GH12414@sirena.org.uk>
+References: <1227587172-9523-1-git-send-email-arunks@mistralsolutions.com>
+	<200811242044.13438.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.184]:46998 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753201AbYKYP0E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 10:26:04 -0500
-Received: by nf-out-0910.google.com with SMTP id d3so1590nfc.21
-        for <linux-omap@vger.kernel.org>; Tue, 25 Nov 2008 07:26:02 -0800 (PST)
-In-Reply-To: <1227537275-7161-1-git-send-email-peter.de-schrijver@nokia.com> (Peter De Schrijver's message of "Mon\, 24 Nov 2008 16\:34\:34 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <200811242044.13438.david-b@pacbell.net>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: David Brownell <david-b@pacbell.net>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, arunks@mistralsolutions.com, steve@sakoman.com
 List-Id: linux-omap@vger.kernel.org
-To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-Cc: linux-omap@vger.kernel.org
 
-"Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
+On Mon, Nov 24, 2008 at 08:44:13PM -0800, David Brownell wrote:
+> On Monday 24 November 2008, arunks@mistralsolutions.com wrote:
 
-> This patch fixes a silly bug which causes core observability to be configured wrongly for half of the pads.
->
-> Peter 'p2' De Schrijver (1):
->   Debobs control macro fix
->
->  arch/arm/plat-omap/include/mach/control.h |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
+> > Fixes Kconfig dependency of TWL4030 audio codec driver
+> > with TWL4030 core driver on both overo and omap2evm
+> > boards
 
-Thanks, will pull into next PM branch.
+> > Signed-off-by: Arun KS <arunks@mistralsolutions.com>
 
-Kevin
+> Good idea.  :)
+
+> Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+
+Applied.
+
+Might it be an idea to have the relevant machine drivers select the
+TWL4030 support?  This would prevent them disabling it but the chip is
+such a basic part of these systems that that doesn't seem unreasonable.
