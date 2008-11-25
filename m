@@ -1,21 +1,21 @@
 From: ext-eero.nurkkala@nokia.com
 Subject: [PATCH] i2c: i2c-omap: Fix BUFSTAT_REG reading
-Date: Tue, 25 Nov 2008 13:03:46 +0200
-Message-ID: <12276110261037-git-send-email-ext-eero.nurkkala@nokia.com>
+Date: Tue, 25 Nov 2008 13:02:28 +0200
+Message-ID: <12276109483555-git-send-email-ext-eero.nurkkala@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:51056 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:51034 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752762AbYKYLEA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 06:04:00 -0500
+	with ESMTP id S1752636AbYKYLDu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 06:03:50 -0500
 Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mAPB3hJP026652
-	for <linux-omap@vger.kernel.org>; Tue, 25 Nov 2008 05:03:59 -0600
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mAPB1Dpi024252
+	for <linux-omap@vger.kernel.org>; Tue, 25 Nov 2008 05:03:48 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Cc: Eero Nurkkala <eenurkka@lahna.nmp.nokia.com>
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+From: Eero Nurkkala <eenurkka@lahna.nmp.nokia.com>
 
 The number of bytes to be received is read from wrong
 place with all OMAPs with highspeed I2C support,
@@ -25,7 +25,7 @@ that indicate this amount of bytes to be read.
 Moreover, only the 6 LSB:s are relevant for the 
 TXSTAT field. 
 
-Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Signed-off-by: Eero Nurkkala <eenurkka@lahna.nmp.nokia.com>
 ---
  drivers/i2c/busses/i2c-omap.c |   10 ++++++----
  1 files changed, 6 insertions(+), 4 deletions(-)
