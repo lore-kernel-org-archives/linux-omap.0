@@ -1,75 +1,113 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: PWM drivers for TWL4030
-Date: Tue, 25 Nov 2008 20:46:12 +0100
-Message-ID: <89DAA6D4-9105-480E-9884-B94DE28C2C61@student.utwente.nl>
-References: <6ed0b2680811250857p59195e4dh7dab4e1109769b0c@mail.gmail.com> <6ed0b2680811250859x179afb67l5cca390d3b1e4de1@mail.gmail.com> <26A46655-D823-4AE1-A058-79A769051398@student.utwente.nl> <200811251046.45693.david-b@pacbell.net>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-21-227069944"
-Content-Transfer-Encoding: 7bit
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH] OMAP3: PM: Force IVA2 into idle during botoup
+Date: Tue, 25 Nov 2008 11:55:53 -0800
+Message-ID: <1227642953-1586-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx2.utsp.utwente.nl ([130.89.2.13]:49168 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751847AbYKYTqZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Nov 2008 14:46:25 -0500
-In-Reply-To: <200811251046.45693.david-b@pacbell.net>
+Received: from ug-out-1314.google.com ([66.249.92.175]:5317 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751824AbYKYT4B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 14:56:01 -0500
+Received: by ug-out-1314.google.com with SMTP id 39so1185465ugf.37
+        for <linux-omap@vger.kernel.org>; Tue, 25 Nov 2008 11:55:59 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-21-227069944
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/pm34xx.c              |   54 +++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/control.h |    6 +++
+ 2 files changed, 60 insertions(+), 0 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 9f5a544..2782277 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -363,6 +363,58 @@ static struct platform_suspend_ops omap_pm_ops = {
+ 	.valid		= suspend_valid_only_mem,
+ };
+ 
++
++/**
++ * omap3_iva_idle(): ensure IVA is in idle so it can be put into
++ *                   retention
++ *
++ * In cases where IVA2 is activated by bootcode, it may prevent
++ * full-chip retention or off-mode because it is not idle.  This
++ * function forces the IVA2 into idle state so it can go
++ * into retention/off and thus allow full-chip retention/off.
++ *
++ **/
++static void __init omap3_iva_idle(void)
++{
++	struct clk *iva2_ck;
++
++	iva2_ck = clk_get(NULL, "iva2_fclk");
++	if (!iva2_ck) {
++		pr_err("Unable to get IVA2 fclk: cannot force idle.\n");
++		return;
++	}
++
++	/* Disable IVA2 clock */
++	clk_disable(iva2_ck);
++
++	/* Reset IVA2 */
++	prm_write_mod_reg(OMAP3430_RST1_IVA2 |
++			  OMAP3430_RST2_IVA2 |
++			  OMAP3430_RST3_IVA2,
++			  OMAP3430_IVA2_MOD, RM_RSTCTRL);
++
++	/* Enable IVA2 clock */
++	clk_enable(iva2_ck);
++
++	/* Set IVA2 boot mode to 'idle' */
++	omap_ctrl_writel(OMAP3_IVA2_BOOTMOD_IDLE,
++			 OMAP343X_CONTROL_IVA2_BOOTMOD);
++
++	/* Un-reset IVA2 */
++	prm_write_mod_reg(0, OMAP3430_IVA2_MOD, RM_RSTCTRL);
++
++	/* Disable IVA2 clocks */
++	clk_disable(iva2_ck);
++
++	/* Reset IVA2 */
++	prm_write_mod_reg(OMAP3430_RST1_IVA2 |
++			  OMAP3430_RST2_IVA2 |
++			  OMAP3430_RST3_IVA2,
++			  OMAP3430_IVA2_MOD, RM_RSTCTRL);
++
++	clk_put(iva2_ck);
++}
++
+ static void __init prcm_setup_regs(void)
+ {
+ 	/* XXX Reset all wkdeps. This should be done when initializing
+@@ -515,6 +567,8 @@ static void __init prcm_setup_regs(void)
+ 	 * it is selected to mpu wakeup goup */
+ 	prm_write_mod_reg(OMAP3430_IO_EN | OMAP3430_WKUP_EN,
+ 			OCP_MOD, OMAP2_PRM_IRQENABLE_MPU_OFFSET);
++
++	omap3_iva_idle();
+ }
+ 
+ static int __init pwrdms_setup(struct powerdomain *pwrdm)
+diff --git a/arch/arm/plat-omap/include/mach/control.h b/arch/arm/plat-omap/include/mach/control.h
+index ee3c39e..e37fd57 100644
+--- a/arch/arm/plat-omap/include/mach/control.h
++++ b/arch/arm/plat-omap/include/mach/control.h
+@@ -208,6 +208,12 @@
+ #define OMAP2_PBIASLITEPWRDNZ0		(1 << 1)
+ #define OMAP2_PBIASLITEVMODE0		(1 << 0)
+ 
++/* CONTROL_IVA2_BOOTMOD bits */
++#define OMAP3_IVA2_BOOTMOD_SHIFT	 0
++#define OMAP3_IVA2_BOOTMOD_MASK		 (0xf << 0)
++#define OMAP3_IVA2_BOOTMOD_IDLE		 (0x1 << 0)
++
++
+ #ifndef __ASSEMBLY__
+ #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+ extern void __iomem *omap_ctrl_base_get(void);
+-- 
+1.6.0.3
 
-Op 25 nov 2008, om 19:46 heeft David Brownell het volgende geschreven:
-
-> On Tuesday 25 November 2008, Koen Kooi wrote:
->> Regardless of what implementation you choose, it would be *great* if
->> people used the backlight class for things like backlights. /sys/ 
->> class/
->> backlight/<foo>/brightness is such a nice standard that lots and lots
->> of usespace tools rely on it.
->
-> How about a standard LED driver (optionally with a brightness
-> control) and the newish "backlight" trigger?
-
-Does the backlight trigger hook into the backlight class? I really  
-don't want to check all userspace code and ask upstream to add support  
-for non backlight class methods. I did that in the 2.4 era and it's  
-not fun. HAL takes some of the work out of it ("just write an .fdi"),  
-but not all userspace hooks into hal.
-Things like seperate backlight controls for each machine are the  
-reason if refuse to support kernel 2.4, let's not repeat such a mess  
-in 2.6.
-
-regards,
-
-Koen
-
->
->
-> Of course, the packaging (led driver and trigger, vs. backlight
-> control) can be independent of the controls that are exported.
->
-> - Dave
->
-
-
---Apple-Mail-21-227069944
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: This is a digitally signed message part
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFJLFYGMkyGM64RGpERAtdnAKCci3iqIuvqqcsRR7iZo68KajYPxwCfcYRN
-DotU80XBGG40BHLUXjJioiA=
-=AlXg
------END PGP SIGNATURE-----
-
---Apple-Mail-21-227069944--
