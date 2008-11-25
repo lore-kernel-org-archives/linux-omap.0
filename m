@@ -1,244 +1,248 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 02/10] omap mailbox: add initial omap3 support
-Date: Tue, 25 Nov 2008 11:39:50 +0200
-Message-ID: <1227605998-13531-3-git-send-email-Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 08/10] omap mailbox: move mailbox.h into mailbox.c
+Date: Tue, 25 Nov 2008 11:39:56 +0200
+Message-ID: <1227605998-13531-9-git-send-email-Hiroshi.DOYU@nokia.com>
 References: <1227605998-13531-1-git-send-email-Hiroshi.DOYU@nokia.com>
  <1227605998-13531-2-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1227605998-13531-3-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1227605998-13531-4-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1227605998-13531-5-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1227605998-13531-6-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1227605998-13531-7-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1227605998-13531-8-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:34854 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:34889 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752157AbYKYJkP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 04:40:15 -0500
+	with ESMTP id S1752351AbYKYJk1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 04:40:27 -0500
 Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mAP9e16v029701
-	for <linux-omap@vger.kernel.org>; Tue, 25 Nov 2008 11:40:13 +0200
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mAP9e17F029701
+	for <linux-omap@vger.kernel.org>; Tue, 25 Nov 2008 11:40:24 +0200
 Received: from oreo.research.nokia.com (esdhcp04130.research.nokia.com [172.21.41.30])
-	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id mAP9dxcU001530
+	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id mAP9dxOs001535
 	for <linux-omap@vger.kernel.org>; Tue, 25 Nov 2008 11:39:59 +0200
-In-Reply-To: <1227605998-13531-2-git-send-email-Hiroshi.DOYU@nokia.com>
+In-Reply-To: <1227605998-13531-8-git-send-email-Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
+no need to keep mailbox.h separately.
+
 Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 ---
- arch/arm/mach-omap2/devices.c              |   24 +++++++++++---
- arch/arm/mach-omap2/mailbox.c              |   46 ++++++++++++++++++----------
- arch/arm/plat-omap/Kconfig                 |    2 +-
- arch/arm/plat-omap/include/mach/irqs.h     |    1 +
- arch/arm/plat-omap/include/mach/omap34xx.h |    2 +-
- 5 files changed, 52 insertions(+), 23 deletions(-)
+ arch/arm/plat-omap/mailbox.c |   86 +++++++++++++++++++++++++++++++++++-
+ arch/arm/plat-omap/mailbox.h |  100 ------------------------------------------
+ 2 files changed, 85 insertions(+), 101 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/mailbox.h
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 241e418..d385f0f 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -84,13 +84,15 @@ static inline void omap_init_camera(void)
- }
- #endif
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index 7b55f2f..43c0ce3 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -31,11 +31,95 @@
+ #include <linux/delay.h>
+ #include <linux/io.h>
+ #include <mach/mailbox.h>
+-#include "mailbox.h"
  
--#if defined(CONFIG_OMAP_DSP) || defined(CONFIG_OMAP_DSP_MODULE)
--#define OMAP2_MBOX_BASE		IO_ADDRESS(OMAP24XX_MAILBOX_BASE)
-+#if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
+ static struct omap_mbox *mboxes;
+ static DEFINE_RWLOCK(mboxes_lock);
+ 
++/*
++ * Mailbox sequence bit API
++ */
++#if defined(CONFIG_ARCH_OMAP1)
++#  define MBOX_USE_SEQ_BIT
++#elif defined(CONFIG_ARCH_OMAP2)
++#  define MBOX_USE_SEQ_BIT
++#endif
 +
-+#define MBOX_REG_SIZE	0x120
- 
- static struct resource mbox_resources[] = {
-+#if defined(CONFIG_ARCH_OMAP2420)
- 	{
--		.start		= OMAP2_MBOX_BASE,
--		.end		= OMAP2_MBOX_BASE + 0x11f,
-+		.start		= OMAP24XX_MAILBOX_BASE,
-+		.end		= OMAP24XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
-@@ -101,6 +103,18 @@ static struct resource mbox_resources[] = {
- 		.start		= INT_24XX_MAIL_U3_MPU,
- 		.flags		= IORESOURCE_IRQ,
- 	},
-+/* FIXME: if multiple architecture support is necessary */
-+#elif  defined(CONFIG_ARCH_OMAP3)
-+	{
-+		.start		= OMAP34XX_MAILBOX_BASE,
-+		.end		= OMAP34XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= INT_34XX_MAIL_U0_MPU,
-+		.flags		= IORESOURCE_IRQ,
-+	},
++#ifdef MBOX_USE_SEQ_BIT
++/* seq_rcv should be initialized with any value other than
++ * 0 and 1 << 31, to allow either value for the first
++ * message.  */
++static inline void mbox_seq_init(struct omap_mbox *mbox)
++{
++	/* any value other than 0 and 1 << 31 */
++	mbox->seq_rcv = 0xffffffff;
++}
++
++static inline void mbox_seq_toggle(struct omap_mbox *mbox, mbox_msg_t * msg)
++{
++	/* add seq_snd to msg */
++	*msg = (*msg & 0x7fffffff) | mbox->seq_snd;
++	/* flip seq_snd */
++	mbox->seq_snd ^= 1 << 31;
++}
++
++static inline int mbox_seq_test(struct omap_mbox *mbox, mbox_msg_t msg)
++{
++	mbox_msg_t seq = msg & (1 << 31);
++	if (seq == mbox->seq_rcv)
++		return -1;
++	mbox->seq_rcv = seq;
++	return 0;
++}
++#else
++static inline void mbox_seq_init(struct omap_mbox *mbox)
++{
++}
++static inline void mbox_seq_toggle(struct omap_mbox *mbox, mbox_msg_t * msg)
++{
++}
++static inline int mbox_seq_test(struct omap_mbox *mbox, mbox_msg_t msg)
++{
++	return 0;
++}
 +#endif
- };
- 
- static struct platform_device mbox_device = {
-@@ -116,7 +130,7 @@ static inline void omap_init_mbox(void)
- }
- #else
- static inline void omap_init_mbox(void) { }
++
++/* Mailbox FIFO handle functions */
++static inline mbox_msg_t mbox_fifo_read(struct omap_mbox *mbox)
++{
++	return mbox->ops->fifo_read(mbox);
++}
++static inline void mbox_fifo_write(struct omap_mbox *mbox, mbox_msg_t msg)
++{
++	mbox->ops->fifo_write(mbox, msg);
++}
++static inline int mbox_fifo_empty(struct omap_mbox *mbox)
++{
++	return mbox->ops->fifo_empty(mbox);
++}
++static inline int mbox_fifo_full(struct omap_mbox *mbox)
++{
++	return mbox->ops->fifo_full(mbox);
++}
++
++/* Mailbox IRQ handle functions */
++static inline void enable_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
++{
++	mbox->ops->enable_irq(mbox, irq);
++}
++static inline void disable_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
++{
++	mbox->ops->disable_irq(mbox, irq);
++}
++static inline void ack_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
++{
++	if (mbox->ops->ack_irq)
++		mbox->ops->ack_irq(mbox, irq);
++}
++static inline int is_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
++{
++	return mbox->ops->is_irq(mbox, irq);
++}
++
+ void omap_mbox_save_ctx(struct omap_mbox *mbox)
+ {
+ 	if (!mbox->ops->save_ctx)
+diff --git a/arch/arm/plat-omap/mailbox.h b/arch/arm/plat-omap/mailbox.h
+deleted file mode 100644
+index 67c6740..0000000
+--- a/arch/arm/plat-omap/mailbox.h
++++ /dev/null
+@@ -1,100 +0,0 @@
+-/*
+- * Mailbox internal functions
+- *
+- * Copyright (C) 2006 Nokia Corporation
+- * Written by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+- *
+- * This file is subject to the terms and conditions of the GNU General Public
+- * License.  See the file "COPYING" in the main directory of this archive
+- * for more details.
+- */
+-
+-#ifndef __ARCH_ARM_PLAT_MAILBOX_H
+-#define __ARCH_ARM_PLAT_MAILBOX_H
+-
+-/*
+- * Mailbox sequence bit API
+- */
+-#if defined(CONFIG_ARCH_OMAP1)
+-#  define MBOX_USE_SEQ_BIT
+-#elif defined(CONFIG_ARCH_OMAP2)
+-#  define MBOX_USE_SEQ_BIT
 -#endif
-+#endif /* CONFIG_OMAP_MBOX_FWK */
- 
- #if defined(CONFIG_OMAP_STI)
- 
-diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-index 5ff2ed8..261cd79 100644
---- a/arch/arm/mach-omap2/mailbox.c
-+++ b/arch/arm/mach-omap2/mailbox.c
-@@ -30,7 +30,7 @@
- #define MAILBOX_IRQ_NEWMSG(u)		(1 << (2 * (u)))
- #define MAILBOX_IRQ_NOTFULL(u)		(1 << (2 * (u) + 1))
- 
--static unsigned long mbox_base;
-+static void __iomem *mbox_base;
- 
- struct omap_mbox2_fifo {
- 	unsigned long msg;
-@@ -52,14 +52,14 @@ static struct clk *mbox_ick_handle;
- static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
- 				  omap_mbox_type_t irq);
- 
--static inline unsigned int mbox_read_reg(unsigned int reg)
-+static inline unsigned int mbox_read_reg(size_t ofs)
- {
--	return __raw_readl((void __iomem *)(mbox_base + reg));
-+	return __raw_readl(mbox_base + ofs);
- }
- 
--static inline void mbox_write_reg(unsigned int val, unsigned int reg)
-+static inline void mbox_write_reg(u32 val, size_t ofs)
- {
--	__raw_writel(val, (void __iomem *)(mbox_base + reg));
-+	__raw_writel(val, mbox_base + ofs);
- }
- 
- /* Mailbox H/W preparations */
-@@ -208,7 +208,7 @@ struct omap_mbox mbox_dsp_info = {
- };
- EXPORT_SYMBOL(mbox_dsp_info);
- 
--/* IVA */
-+#if defined(CONFIG_ARCH_OMAP2420) /* IVA */
- static struct omap_mbox2_priv omap2_mbox_iva_priv = {
- 	.tx_fifo = {
- 		.msg		= MAILBOX_MESSAGE(2),
-@@ -229,52 +229,66 @@ static struct omap_mbox mbox_iva_info = {
- 	.ops	= &omap2_mbox_ops,
- 	.priv	= &omap2_mbox_iva_priv,
- };
-+#endif
- 
- static int __init omap2_mbox_probe(struct platform_device *pdev)
- {
- 	struct resource *res;
- 	int ret = 0;
- 
--	if (pdev->num_resources != 3) {
--		dev_err(&pdev->dev, "invalid number of resources: %d\n",
--			pdev->num_resources);
--		return -ENODEV;
--	}
 -
- 	/* MBOX base */
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (unlikely(!res)) {
- 		dev_err(&pdev->dev, "invalid mem resource\n");
- 		return -ENODEV;
- 	}
--	mbox_base = res->start;
-+	mbox_base = ioremap(res->start, res->end - res->start);
-+	if (!mbox_base)
-+		return -ENOMEM;
- 
--	/* DSP IRQ */
-+	/* DSP or IVA2 IRQ */
- 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
- 	if (unlikely(!res)) {
- 		dev_err(&pdev->dev, "invalid irq resource\n");
--		return -ENODEV;
-+		ret = -ENODEV;
-+		goto err_dsp;
- 	}
- 	mbox_dsp_info.irq = res->start;
- 
- 	ret = omap_mbox_register(&mbox_dsp_info);
-+	if (!ret)
-+		goto err_dsp;
- 
-+#if defined(CONFIG_ARCH_OMAP2420)
- 	/* IVA IRQ */
- 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 1);
- 	if (unlikely(!res)) {
- 		dev_err(&pdev->dev, "invalid irq resource\n");
--		return -ENODEV;
-+		ret = -ENODEV;
-+		goto err_iva1;
- 	}
- 	mbox_iva_info.irq = res->start;
- 
- 	ret = omap_mbox_register(&mbox_iva_info);
-+	if (!ret)
-+		goto err_iva1;
-+#endif
-+	return ret;
- 
-+err_iva1:
-+	omap_mbox_unregister(&mbox_dsp_info);
-+err_dsp:
-+	iounmap(mbox_base);
- 	return ret;
- }
- 
- static int omap2_mbox_remove(struct platform_device *pdev)
- {
-+#if defined(CONFIG_ARCH_OMAP2420)
-+	omap_mbox_unregister(&mbox_iva_info);
-+#endif
- 	omap_mbox_unregister(&mbox_dsp_info);
-+	iounmap(mbox_base);
- 	return 0;
- }
- 
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index 960c13f..2465aea 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -180,7 +180,7 @@ config OMAP_MBOX_FWK
- 	default n
- 	help
- 	  Say Y here if you want to use OMAP Mailbox framework support for
--	  DSP and IVA1.0 in OMAP1/2.
-+	  DSP, IVA1.0 and IVA2 in OMAP1/2/3.
- 
- choice
-         prompt "System timer"
-diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-omap/include/mach/irqs.h
-index d12c39f..74f58c6 100644
---- a/arch/arm/plat-omap/include/mach/irqs.h
-+++ b/arch/arm/plat-omap/include/mach/irqs.h
-@@ -315,6 +315,7 @@
- #define INT_34XX_MCBSP3_IRQ	22
- #define INT_34XX_MCBSP4_IRQ	23
- #define INT_34XX_CAM_IRQ	24
-+#define INT_34XX_MAIL_U0_MPU	26
- #define INT_34XX_MCBSP5_IRQ	27
- #define INT_34XX_GPIO_BANK1	29
- #define INT_34XX_GPIO_BANK2	30
-diff --git a/arch/arm/plat-omap/include/mach/omap34xx.h b/arch/arm/plat-omap/include/mach/omap34xx.h
-index 0a137c1..afd0f6c 100644
---- a/arch/arm/plat-omap/include/mach/omap34xx.h
-+++ b/arch/arm/plat-omap/include/mach/omap34xx.h
-@@ -63,8 +63,8 @@
- #define OMAP2_CM_BASE			OMAP3430_CM_BASE
- #define OMAP2_PRM_BASE			OMAP3430_PRM_BASE
- #define OMAP2_VA_IC_BASE		IO_ADDRESS(OMAP34XX_IC_BASE)
-+#define OMAP34XX_MAILBOX_BASE		(L4_34XX_BASE + 0x94000)
- #define OMAP34XX_CAMERA_BASE		(L4_34XX_BASE + 0xBC000)
+-#ifdef MBOX_USE_SEQ_BIT
+-/* seq_rcv should be initialized with any value other than
+- * 0 and 1 << 31, to allow either value for the first
+- * message.  */
+-static inline void mbox_seq_init(struct omap_mbox *mbox)
+-{
+-	/* any value other than 0 and 1 << 31 */
+-	mbox->seq_rcv = 0xffffffff;
+-}
 -
- #endif
- 
- #define OMAP34XX_DSP_BASE	0x58000000
+-static inline void mbox_seq_toggle(struct omap_mbox *mbox, mbox_msg_t * msg)
+-{
+-	/* add seq_snd to msg */
+-	*msg = (*msg & 0x7fffffff) | mbox->seq_snd;
+-	/* flip seq_snd */
+-	mbox->seq_snd ^= 1 << 31;
+-}
+-
+-static inline int mbox_seq_test(struct omap_mbox *mbox, mbox_msg_t msg)
+-{
+-	mbox_msg_t seq = msg & (1 << 31);
+-	if (seq == mbox->seq_rcv)
+-		return -1;
+-	mbox->seq_rcv = seq;
+-	return 0;
+-}
+-#else
+-static inline void mbox_seq_init(struct omap_mbox *mbox)
+-{
+-}
+-static inline void mbox_seq_toggle(struct omap_mbox *mbox, mbox_msg_t * msg)
+-{
+-}
+-static inline int mbox_seq_test(struct omap_mbox *mbox, mbox_msg_t msg)
+-{
+-	return 0;
+-}
+-#endif
+-
+-/* Mailbox FIFO handle functions */
+-static inline mbox_msg_t mbox_fifo_read(struct omap_mbox *mbox)
+-{
+-	return mbox->ops->fifo_read(mbox);
+-}
+-static inline void mbox_fifo_write(struct omap_mbox *mbox, mbox_msg_t msg)
+-{
+-	mbox->ops->fifo_write(mbox, msg);
+-}
+-static inline int mbox_fifo_empty(struct omap_mbox *mbox)
+-{
+-	return mbox->ops->fifo_empty(mbox);
+-}
+-static inline int mbox_fifo_full(struct omap_mbox *mbox)
+-{
+-	return mbox->ops->fifo_full(mbox);
+-}
+-
+-/* Mailbox IRQ handle functions */
+-static inline void enable_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
+-{
+-	mbox->ops->enable_irq(mbox, irq);
+-}
+-static inline void disable_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
+-{
+-	mbox->ops->disable_irq(mbox, irq);
+-}
+-static inline void ack_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
+-{
+-	if (mbox->ops->ack_irq)
+-		mbox->ops->ack_irq(mbox, irq);
+-}
+-static inline int is_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
+-{
+-	return mbox->ops->is_irq(mbox, irq);
+-}
+-
+-#endif				/* __ARCH_ARM_PLAT_MAILBOX_H */
 -- 
 1.6.0.3.613.g9f8f13
 
