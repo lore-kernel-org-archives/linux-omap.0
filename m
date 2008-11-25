@@ -1,214 +1,63 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 3/5] omap iommu: simple virtual address space management
-Date: Tue, 25 Nov 2008 17:37:36 +0200
-Message-ID: <1227627458-24412-4-git-send-email-Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 2/5] omap iommu: omap2 architecture specific functions
+Date: Tue, 25 Nov 2008 17:37:35 +0200
+Message-ID: <1227627458-24412-3-git-send-email-Hiroshi.DOYU@nokia.com>
 References: <1227627458-24412-1-git-send-email-Hiroshi.DOYU@nokia.com>
  <1227627458-24412-2-git-send-email-Hiroshi.DOYU@nokia.com>
- <1227627458-24412-3-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:50023 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:50021 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751918AbYKYPiJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 10:38:09 -0500
-In-Reply-To: <1227627458-24412-3-git-send-email-Hiroshi.DOYU@nokia.com>
+	with ESMTP id S1751651AbYKYPiI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 10:38:08 -0500
+In-Reply-To: <1227627458-24412-2-git-send-email-Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
 Cc: linux-omap@vger.kernel.org, tony@atomide.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-This patch provides a device drivers, which has a omap iommu, with
-address mapping APIs between device virtual address(iommu), physical
-address and MPU virtual address.
+The structure 'arch_mmu' accommodates the difference between omap1 and
+omap2/3.
 
-There are 4 possible patterns for iommu virtual address(iova/da) mapping.
-
-    |iova/			  mapping		iommu_		page
-    | da	pa	va	(d)-(p)-(v)		function	type
-  ---------------------------------------------------------------------------
-  1 | c		c	c	 1 - 1 - 1	  _kmap() / _kunmap()	s
-  2 | c		c,a	c	 1 - 1 - 1	_kmalloc()/ _kfree()	s
-  3 | c		d	c	 1 - n - 1	  _vmap() / _vunmap()	s
-  4 | c		d,a	c	 1 - n - 1	_vmalloc()/ _vfree()	n*
-
-    'iova':	device iommu virtual address
-    'da':	alias of 'iova'
-    'pa':	physical address
-    'va':	mpu virtual address
-
-    'c':	contiguous memory area
-    'd':	dicontiguous memory area
-    'a':	anonymous memory allocation
-    '()':	optional feature
-
-    'n':	a normal page(4KB) size is used.
-    's':	multiple iommu superpage(16MB, 1MB, 64KB, 4KB) size is used.
-
-    '*':	not yet, but feasible.
+This patch provides omap2/3 specific functions and its registration.
 
 Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 ---
- arch/arm/include/asm/io.h               |    2 +
- arch/arm/include/asm/scatterlist.h      |    2 +
- arch/arm/mm/ioremap.c                   |    7 +
- arch/arm/plat-omap/include/mach/iovmm.h |   93 ++++
- arch/arm/plat-omap/iovmm.c              |  869 +++++++++++++++++++++++++++++++
- 5 files changed, 973 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/plat-omap/include/mach/iovmm.h
- create mode 100644 arch/arm/plat-omap/iovmm.c
+ arch/arm/mach-omap2/Makefile             |    5 +
+ arch/arm/mach-omap2/iommu2.c             |  402 ++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/iommu2.h |   94 +++++++
+ 3 files changed, 501 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/iommu2.c
+ create mode 100644 arch/arm/plat-omap/include/mach/iommu2.h
 
-diff --git a/arch/arm/include/asm/io.h b/arch/arm/include/asm/io.h
-index a809445..475590a 100644
---- a/arch/arm/include/asm/io.h
-+++ b/arch/arm/include/asm/io.h
-@@ -74,6 +74,8 @@ extern void __iomem * __arm_ioremap_pfn(unsigned long, unsigned long, size_t, un
- extern void __iomem * __arm_ioremap(unsigned long, size_t, unsigned int);
- extern void __iounmap(volatile void __iomem *addr);
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 3897347..b2a1453 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -40,6 +40,11 @@ obj-$(CONFIG_OMAP_MBOX_FWK)	+= mailbox_mach.o
+ mailbox_mach-objs		:= mailbox.o
+ mmu_mach-objs			:= mmu.o
  
-+extern int remap_area_page(unsigned long virt, unsigned long phys);
++obj-$(CONFIG_OMAP_IOMMU)	+= iommu2.o
 +
- /*
-  * Bad read/write accesses...
-  */
-diff --git a/arch/arm/include/asm/scatterlist.h b/arch/arm/include/asm/scatterlist.h
-index ca0a37d..393f8b8 100644
---- a/arch/arm/include/asm/scatterlist.h
-+++ b/arch/arm/include/asm/scatterlist.h
-@@ -24,4 +24,6 @@ struct scatterlist {
- #define sg_dma_address(sg)      ((sg)->dma_address)
- #define sg_dma_len(sg)          ((sg)->length)
- 
-+#define ARCH_HAS_SG_CHAIN
++# Debobs
++obj-$(CONFIG_OMAP3_DEBOBS)	+= debobs.o
 +
- #endif /* _ASMARM_SCATTERLIST_H */
-diff --git a/arch/arm/mm/ioremap.c b/arch/arm/mm/ioremap.c
-index 18373f7..7753ca0 100644
---- a/arch/arm/mm/ioremap.c
-+++ b/arch/arm/mm/ioremap.c
-@@ -110,6 +110,13 @@ static int remap_area_pages(unsigned long start, unsigned long pfn,
- 	return err;
- }
- 
-+/* FIXME */
-+int remap_area_page(unsigned long virt, unsigned long phys)
-+{
-+	return remap_area_pages(virt, __phys_to_pfn(phys), PAGE_SIZE,
-+				get_mem_type(MT_DEVICE));
-+}
-+EXPORT_SYMBOL(remap_area_page);
- 
- void __check_kvm_seq(struct mm_struct *mm)
- {
-diff --git a/arch/arm/plat-omap/include/mach/iovmm.h b/arch/arm/plat-omap/include/mach/iovmm.h
+ # Specific board support
+ obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
+ obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o board-h4-mmc.o
+diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
 new file mode 100644
-index 0000000..4142380
+index 0000000..613db7e
 --- /dev/null
-+++ b/arch/arm/plat-omap/include/mach/iovmm.h
-@@ -0,0 +1,93 @@
++++ b/arch/arm/mach-omap2/iommu2.c
+@@ -0,0 +1,402 @@
 +/*
-+ * omap iommu: simple virtual address space management
++ * omap iommu: omap2 architecture specific functions
 + *
 + * Copyright (C) 2008 Nokia Corporation
 + *
-+ * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef __IOMMU_MMAP_H
-+#define __IOMMU_MMAP_H
-+
-+struct iovm_struct {
-+	struct iommu		*iommu;	/* iommu object which this belongs to */
-+	u32			da_start; /* area definition */
-+	u32			da_end;
-+	u32			flags; /* IOVMF_: see below */
-+	struct list_head	list; /* linked in ascending order */
-+	struct sg_table		*sgt; /* collection of physical addresses */
-+	void			*va; /* mpu side mapped address */
-+};
-+
-+/*
-+ * IOVMF_FLAGS: attribute for iommu virtual memory area(iovma)
-+ *
-+ * lower 16 bit is used for h/w and upper 16 bit is for s/w.
-+ */
-+#define IOVMF_SW_SHIFT		16
-+#define IOVMF_HW_SIZE		(1 << IOVMF_SW_SHIFT)
-+#define IOVMF_HW_MASK		(~(IOVMF_HW_SIZE - 1))
-+#define IOVMF_SW_MASK		(~IOVMF_HW_MASK)UL
-+
-+/*
-+ * iovma: h/w flags derived from cam and ram attribute
-+ */
-+#define IOVMF_CAM_MASK		(~((1 << 10) - 1))
-+#define IOVMF_RAM_MASK		(~IOVMF_CAM_MASK)
-+
-+#define IOVMF_PGSZ_MASK		(3 << 0)
-+#define IOVMF_PGSZ_1M		MMU_CAM_PGSZ_1M
-+#define IOVMF_PGSZ_64K		MMU_CAM_PGSZ_64K
-+#define IOVMF_PGSZ_4K		MMU_CAM_PGSZ_4K
-+#define IOVMF_PGSZ_16M		MMU_CAM_PGSZ_16M
-+
-+#define IOVMF_ENDIAN_MASK	(1 << 9)
-+#define IOVMF_ENDIAN_BIG	MMU_RAM_ENDIAN_BIG
-+#define IOVMF_ENDIAN_LITTLE	MMU_RAM_ENDIAN_LITTLE
-+
-+#define IOVMF_ELSZ_MASK		(3 << 7)
-+#define IOVMF_ELSZ_8		MMU_RAM_ELSZ_8
-+#define IOVMF_ELSZ_16		MMU_RAM_ELSZ_16
-+#define IOVMF_ELSZ_32		MMU_RAM_ELSZ_32
-+#define IOVMF_ELSZ_NONE		MMU_RAM_ELSZ_NONE
-+
-+#define IOVMF_MIXED_MASK	(1 << 6)
-+#define IOVMF_MIXED		MMU_RAM_MIXED
-+
-+/*
-+ * iovma: s/w flags, used for mapping and umapping internally.
-+ */
-+#define IOVMF_MMIO		(1 << IOVMF_SW_SHIFT)
-+#define IOVMF_ALLOC		(2 << IOVMF_SW_SHIFT)
-+#define IOVMF_ALLOC_MASK	(3 << IOVMF_SW_SHIFT)
-+
-+#define IOVMF_DISCONT		(1 << (2 + IOVMF_SW_SHIFT))
-+#define IOVMF_LINEAR		(2 << (2 + IOVMF_SW_SHIFT))
-+#define IOVMF_LINEAR_MASK	(3 << (2 + IOVMF_SW_SHIFT))
-+
-+#define IOVMF_DA_FIXED		(1 << (4 + IOVMF_SW_SHIFT))
-+#define IOVMF_DA_ANON		(2 << (4 + IOVMF_SW_SHIFT))
-+#define IOVMF_DA_MASK		(3 << (4 + IOVMF_SW_SHIFT))
-+
-+
-+extern struct iovm_struct *find_iovm_area(struct iommu *obj, u32 da);
-+extern void *iommu_vmap(struct iommu *obj, u32 *da,
-+			const struct sg_table *sgt, u32 flags);
-+extern void iommu_vunmap(struct iommu *obj, void *da);
-+extern void *iommu_vmalloc(struct iommu *obj, void *da, size_t bytes,
-+			   u32 flags);
-+extern void iommu_vfree(struct iommu *obj, const void *da);
-+extern void *iommu_kmap(struct iommu *obj, void *da, void *pa, size_t bytes,
-+			u32 flags);
-+extern void iommu_kunmap(struct iommu *obj, void *da);
-+extern void *iommu_kmalloc(struct iommu *obj, void *da, size_t bytes,
-+			   u32 flags);
-+extern void iommu_kfree(struct iommu *obj, void *da);
-+
-+extern void *dart_to_virt(struct iommu *obj, void *da);
-+
-+#endif /* __IOMMU_MMAP_H */
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-new file mode 100644
-index 0000000..63fdc20
---- /dev/null
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -0,0 +1,869 @@
-+/*
-+ * omap iommu: simple virtual address space management
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ *
-+ * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
++ * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
++ *		Paul Mundt and Toshihiro Kobayashi
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
@@ -216,862 +65,494 @@ index 0000000..63fdc20
 + */
 +
 +#include <linux/err.h>
-+#include <linux/module.h>
 +#include <linux/io.h>
-+#include <linux/vmalloc.h>
-+#include <linux/clk.h>
++#include <linux/mm.h>
++#include <linux/jiffies.h>
 +#include <linux/device.h>
-+#include <linux/scatterlist.h>
-+
-+#include <asm/cacheflush.h>
++#include <linux/module.h>
++#include <linux/clk.h>
++#include <linux/stringify.h>
++#include <linux/platform_device.h>
 +
 +#include <mach/iommu.h>
-+#include <mach/iovmm.h>
-+
-+#include "iopgtable.h"
++#include <mach/iommu2.h>
 +
 +/*
-+ * A device driver needs to create address mappings between:
-+ *
-+ * - iommu/device address
-+ * - physical address
-+ * - mpu virtual address
-+ *
-+ * There are 4 possible patterns for them:
-+ *
-+ *    |iova/			  mapping		iommu_		page
-+ *    | da	pa	va	(d)-(p)-(v)		function	type
-+ *  ---------------------------------------------------------------------------
-+ *  1 | c	c	c	 1 - 1 - 1	  _kmap() / _kunmap()	s
-+ *  2 | c	c,a	c	 1 - 1 - 1	_kmalloc()/ _kfree()	s
-+ *  3 | c	d	c	 1 - n - 1	  _vmap() / _vunmap()	s
-+ *  4 | c	d,a	c	 1 - n - 1	_vmalloc()/ _vfree()	n*
-+ *
-+ *
-+ *	'iova':	device iommu virtual address
-+ *	'da':	alias of 'iova'
-+ *	'pa':	physical address
-+ *	'va':	mpu virtual address
-+ *
-+ *	'c':	contiguous memory area
-+ *	'd':	dicontiguous memory area
-+ *	'a':	anonymous memory allocation
-+ *	'()':	optional feature
-+ *
-+ *	'n':	a normal page(4KB) size is used.
-+ *	's':	multiple iommu superpage(16MB, 1MB, 64KB, 4KB) size is used.
-+ *
-+ *	'*':	not yet, but feasible.
++ * omap2 architecture specific register bit definitions
 + */
++#define IOMMU_ARCH_VERSION	0x00000011
 +
-+enum {
-+	SGTABLE_NORMAL,	/* PAGE_SIZE: 4KB */
-+	SGTABLE_SUPER,	/* SUPERPAGE: 16MB, 1MB, 64KB, 4KB */
-+};
++/* SYSCONF */
++#define MMU_SYS_IDLE_SHIFT	3
++#define MMU_SYS_IDLE_FORCE	(0 << MMU_SYS_IDLE_SHIFT)
++#define MMU_SYS_IDLE_NONE	(1 << MMU_SYS_IDLE_SHIFT)
++#define MMU_SYS_IDLE_SMART	(2 << MMU_SYS_IDLE_SHIFT)
++#define MMU_SYS_IDLE_MASK	(3 << MMU_SYS_IDLE_SHIFT)
 +
-+static struct kmem_cache *iovm_area_cachep;
++#define MMU_SYS_SOFTRESET	(1 << 1)
++#define MMU_SYS_AUTOIDLE	1
 +
-+/* return total bytes of sg buffers */
-+static size_t sgtable_len(const struct sg_table *sgt)
++/* SYSSTATUS */
++#define MMU_SYS_RESETDONE	1
++
++/* IRQSTATUS & IRQENABLE */
++#define MMU_IRQ_MULTIHITFAULT	(1 << 4)
++#define MMU_IRQ_TABLEWALKFAULT	(1 << 3)
++#define MMU_IRQ_EMUMISS		(1 << 2)
++#define MMU_IRQ_TRANSLATIONFAULT	(1 << 1)
++#define MMU_IRQ_TLBMISS		(1 << 0)
++#define MMU_IRQ_MASK	\
++	(MMU_IRQ_MULTIHITFAULT | MMU_IRQ_TABLEWALKFAULT | MMU_IRQ_EMUMISS | \
++	 MMU_IRQ_TRANSLATIONFAULT)
++
++/* MMU_CNTL */
++#define MMU_CNTL_SHIFT		1
++#define MMU_CNTL_MASK		(7 << MMU_CNTL_SHIFT)
++#define MMU_CNTL_EML_TLB	(1 << 3)
++#define MMU_CNTL_TWL_EN		(1 << 2)
++#define MMU_CNTL_MMU_EN		(1 << 1)
++
++#define get_cam_va_mask(pgsz)				\
++	(((pgsz) == MMU_CAM_PGSZ_16M) ? 0xff000000 :	\
++	 ((pgsz) == MMU_CAM_PGSZ_1M)  ? 0xfff00000 :	\
++	 ((pgsz) == MMU_CAM_PGSZ_64K) ? 0xffff0000 :	\
++	 ((pgsz) == MMU_CAM_PGSZ_4K)  ? 0xfffff000 : 0)
++
++static int omap2_iommu_enable(struct iommu *obj)
 +{
-+	unsigned int i, total = 0;
-+	struct scatterlist *sg;
++	u32 l, pa;
++	unsigned long timeout;
 +
-+	if (!sgt)
-+		return 0;
-+
-+	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
-+		size_t bytes;
-+
-+		bytes = sg_dma_len(sg);
-+
-+		if (!iopgsz_ok(bytes)) {
-+			pr_err("%s:\tsg[%d] not iommu pagesize(%x)\n",
-+			       __func__, i, bytes);
-+			return 0;
-+		}
-+
-+		total += bytes;
-+	}
-+
-+	return total;
-+}
-+#define sgtable_ok(x)	(!!sgtable_len(x))
-+
-+/*
-+ * calculate the optimal number sg elements from total bytes based on
-+ * iommu superpages
-+ */
-+static unsigned int sgtable_nents(size_t bytes)
-+{
-+	int i;
-+	unsigned int nr_entries;
-+	const unsigned long pagesize[] = { SZ_16M, SZ_1M, SZ_64K, SZ_4K, };
-+
-+	if (!IS_ALIGNED(bytes, PAGE_SIZE)) {
-+		pr_err("%s:\twrong size %08x\n", __func__, bytes);
-+		return 0;
-+	}
-+
-+	nr_entries = 0;
-+	for (i = 0; i < ARRAY_SIZE(pagesize); i++) {
-+		if (bytes >= pagesize[i]) {
-+			nr_entries += (bytes / pagesize[i]);
-+			bytes %= pagesize[i];
-+		}
-+	}
-+	BUG_ON(bytes);
-+
-+	return nr_entries;
-+}
-+
-+/* allocate and initialize sg_table header(a kind of 'superblock') */
-+static struct sg_table *sgtable_alloc(const size_t bytes, int allow_sueperpage)
-+{
-+	unsigned int nr_entries;
-+	int err;
-+	struct sg_table *sgt;
-+
-+	if (!bytes)
-+		return ERR_PTR(-EINVAL);
-+
-+	if (!IS_ALIGNED(bytes, PAGE_SIZE))
-+		return ERR_PTR(-EINVAL);
-+
-+	if (allow_sueperpage) {
-+		nr_entries = sgtable_nents(bytes);
-+		if (!nr_entries)
-+			return ERR_PTR(-EINVAL);
-+	} else
-+		nr_entries =  bytes / PAGE_SIZE;
-+
-+	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
-+	if (!sgt)
-+		return ERR_PTR(-ENOMEM);
-+
-+	err = sg_alloc_table(sgt, nr_entries, GFP_KERNEL);
-+	if (err)
-+		return ERR_PTR(err);
-+
-+	pr_debug("%s:\tsgt:%p(%d entries)\n", __func__, sgt, nr_entries);
-+
-+	return sgt;
-+}
-+
-+/* free sg_table header(a kind of superblock) */
-+static void sgtable_free(struct sg_table *sgt)
-+{
-+	if (!sgt)
-+		return;
-+
-+	sg_free_table(sgt);
-+	kfree(sgt);
-+
-+	pr_debug("%s:\tsgt:%p\n", __func__, sgt);
-+}
-+
-+/* map 'sglist' to a contiguous mpu virtual area and return 'va' */
-+static void *vmap_sg(const struct sg_table *sgt)
-+{
-+	u32 va;
-+	size_t total;
-+	unsigned int i;
-+	struct scatterlist *sg;
-+	struct vm_struct *new;
-+	pgprot_t pgprot;
-+
-+	total = sgtable_len(sgt);
-+	if (!total)
-+		return ERR_PTR(-EINVAL);
-+
-+	new = __get_vm_area(total, VM_IOREMAP, VMALLOC_START, VMALLOC_END);
-+	if (!new)
-+		return ERR_PTR(-ENOMEM);
-+	va = (u32)new->addr;
-+
-+	pgprot = pgprot_noncached(pgprot_kernel);
-+	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
-+		size_t bytes;
-+		u32 pa;
-+
-+		pa = sg_dma_address(sg);
-+		bytes = sg_dma_len(sg);
-+
-+		BUG_ON(bytes != PAGE_SIZE);
-+
-+		if (remap_area_page(va,  pa)) {
-+			vunmap(new->addr);
-+			return ERR_PTR(-EAGAIN);
-+		}
-+		va += bytes;
-+	}
-+
-+	flush_cache_vmap(va, total);
-+
-+	return new->addr;
-+}
-+
-+static inline void vunmap_sg(const void *va)
-+{
-+	vunmap(va);
-+}
-+
-+static struct iovm_struct *__find_iovm_area(struct iommu *obj, const void *_da)
-+{
-+	struct iovm_struct *tmp;
-+	u32 da = (u32)_da;
-+
-+	list_for_each_entry(tmp, &obj->mmap, list) {
-+		if ((da >= tmp->da_start) && (da < tmp->da_end)) {
-+			size_t len;
-+
-+			len = tmp->da_end - tmp->da_start;
-+
-+			dev_dbg(obj->dev, "%s:\t%08x-%08x-%08x(%x) %08x\n",
-+				__func__, tmp->da_start, da, tmp->da_end, len,
-+				tmp->flags);
-+
-+			return tmp;
-+		}
-+	}
-+
-+	return NULL;
-+}
-+
-+/**
-+ *	find_iovm_area  -  find iovma which includes @da
-+ *	@da:		iommu device virtual address
-+ *
-+ *	Find the existing iovma starting at @da
-+ */
-+struct iovm_struct *find_iovm_area(struct iommu *obj, u32 da)
-+{
-+	struct iovm_struct *area;
-+
-+	mutex_lock(&obj->mmap_lock);
-+	area = __find_iovm_area(obj, (void *)da);
-+	mutex_unlock(&obj->mmap_lock);
-+
-+	return area;
-+}
-+EXPORT_SYMBOL_GPL(find_iovm_area);
-+
-+/*
-+ * This finds the hole(area) which fits the requested address and len
-+ * in iovmas mmap, and returns the new allocated iovma.
-+ */
-+static struct iovm_struct *alloc_iovm_area(struct iommu *obj, void *da,
-+					   size_t bytes, u32 flags)
-+{
-+	struct iovm_struct *new, *tmp;
-+	u32 uninitialized_var(start), prev_end;
-+
-+	if (!obj || !bytes)
-+		return ERR_PTR(-EINVAL);
-+
-+	if (flags & IOVMF_DA_FIXED)
-+		start = (u32)da;
-+	else if (flags & IOVMF_DA_ANON)
-+		start = PAGE_SIZE;	/* Reserve the first page for NULL */
-+	else
-+		BUG();
-+
-+	tmp = NULL;
-+	if (list_empty(&obj->mmap))
-+		goto found;
-+
-+	prev_end = 0;
-+	list_for_each_entry(tmp, &obj->mmap, list) {
-+
-+		if ((prev_end <= start) && (start + bytes < tmp->da_start))
-+			goto found;
-+
-+		if (flags & IOVMF_DA_ANON)
-+			start = tmp->da_end;
-+
-+		prev_end = tmp->da_end;
-+	}
-+
-+	if ((start >= prev_end) && (ULONG_MAX - start >= bytes))
-+		goto found;
-+
-+	dev_dbg(obj->dev, "%s:\tno space to fit %p(%x) flags: %08x\n",
-+		__func__, da, bytes, flags);
-+
-+	return ERR_PTR(-EINVAL);
-+
-+found:
-+	new = kmem_cache_zalloc(iovm_area_cachep, GFP_KERNEL);
-+	if (!new)
-+		return ERR_PTR(-ENOMEM);
-+
-+	new->iommu = obj;
-+	new->da_start = start;
-+	new->da_end = start + bytes;
-+	new->flags = flags;
-+
-+	/*
-+	 * keep ascending order of iovmas
-+	 */
-+	if (tmp)
-+		list_add_tail(&new->list, &tmp->list);
-+	else
-+		list_add(&new->list, &obj->mmap);
-+
-+	dev_dbg(obj->dev, "%s:\tfound %08x-%08x-%08x(%x) %08x\n",
-+		__func__, new->da_start, start, new->da_end, bytes, flags);
-+
-+	return new;
-+}
-+
-+static void free_iovm_area(struct iommu *obj, struct iovm_struct *area)
-+{
-+	size_t bytes;
-+
-+	BUG_ON(!obj || !area);
-+
-+	bytes = area->da_end - area->da_start;
-+
-+	dev_dbg(obj->dev, "%s:\t%08x-%08x(%x) %08x\n",
-+		__func__, area->da_start, area->da_end, bytes, area->flags);
-+
-+	list_del(&area->list);
-+	kmem_cache_free(iovm_area_cachep, area);
-+}
-+
-+/**
-+ * dart_to_virt - convert (d) to (v)
-+ * @obj:	objective iommu
-+ * @da:		iommu device virtual address
-+ * @va:		mpu virtual address
-+ *
-+ * Returns mpu virtual addr which corresponds to a given device virtual addr
-+ */
-+void *dart_to_virt(struct iommu *obj, void *da)
-+{
-+	u32 *va = NULL;
-+	struct iovm_struct *area;
-+
-+	mutex_lock(&obj->mmap_lock);
-+
-+	area = __find_iovm_area(obj, da);
-+	if (!area) {
-+		dev_warn(obj->dev, "%s:\tno da area(%p)\n", __func__, da);
-+		goto out;
-+	}
-+	va = area->va;
-+	mutex_unlock(&obj->mmap_lock);
-+out:
-+	return va;
-+}
-+EXPORT_SYMBOL_GPL(dart_to_virt);
-+
-+static void sgtable_fill_vmalloc(struct sg_table *sgt, void *_va)
-+{
-+	unsigned int i;
-+	struct scatterlist *sg;
-+	void *va = _va;
-+	void *va_end;
-+
-+	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
-+		struct page *page;
-+		void *pa;
-+		const size_t bytes = PAGE_SIZE;
-+
-+		/*
-+		 * iommu 'superpage' isn't supported with 'iommu_vmalloc()'
-+		 */
-+		page = vmalloc_to_page(va);
-+		pa = (void *)page_to_phys(page);
-+		sg->dma_address = (dma_addr_t)pa;
-+		sg->length = bytes;
-+
-+		pr_debug("%s:\t[%d] va:%p pa:%p\n", __func__, i, va, pa);
-+
-+		va += bytes;
-+	}
-+
-+	va_end = _va + PAGE_SIZE * i - 1;
-+	flush_cache_vmap(_va, va_end);
-+}
-+
-+static inline void sgtable_drain_vmalloc(struct sg_table *sgt)
-+{
-+	/*
-+	 * Actually this is not necessary at all, just exists for
-+	 * consistency of the code readibility.
-+	 */
-+	BUG_ON(!sgt);
-+}
-+
-+static void sgtable_fill_kmalloc(struct sg_table *sgt, void *pa, size_t len)
-+{
-+	unsigned int i;
-+	struct scatterlist *sg;
-+	void *va;
-+
-+	va = phys_to_virt((u32)pa);
-+
-+	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
-+		size_t bytes;
-+
-+		bytes = iopgsz_max(len);
-+
-+		BUG_ON(!iopgsz_ok(bytes));
-+
-+		sg->dma_address = (dma_addr_t)pa;
-+		sg->length = bytes;
-+
-+		/*
-+		 * 'pa' is cotinuous(linear).
-+		 */
-+		pa += bytes;
-+		len -= bytes;
-+	}
-+	BUG_ON(len);
-+
-+	clean_dcache_area(va, len);
-+}
-+
-+static inline void sgtable_drain_kmalloc(struct sg_table *sgt)
-+{
-+	/*
-+	 * Actually this is not necessary at all, just exists for
-+	 * consistency of the code readibility
-+	 */
-+	BUG_ON(!sgt);
-+}
-+
-+/* create 'da' <-> 'pa' mapping from 'sgt' */
-+static int map_iovm_area(struct iommu *obj, struct iovm_struct *new,
-+			 const struct sg_table *sgt, u32 flags)
-+{
-+	int err;
-+	unsigned int i, j;
-+	struct scatterlist *sg;
-+	u32 da = new->da_start;
-+
-+	if (!obj || !new || !sgt)
++	if (!obj->iopgd || !IS_ALIGNED((u32)obj->iopgd,  SZ_16K))
 +		return -EINVAL;
 +
-+	BUG_ON(!sgtable_ok(sgt));
++	pa = virt_to_phys(obj->iopgd);
++	if (!IS_ALIGNED(pa, SZ_16K))
++		return -EINVAL;
 +
-+	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
-+		u32 pa;
-+		int pgsz;
-+		size_t bytes;
-+		struct iotlb_entry e;
++	iommu_write_reg(obj, MMU_SYS_SOFTRESET, MMU_SYSCONFIG);
 +
-+		pa = sg_dma_address(sg);
-+		bytes = sg_dma_len(sg);
++	timeout = jiffies + msecs_to_jiffies(20);
++	do {
++		l = iommu_read_reg(obj, MMU_SYSSTATUS);
++		if (l & MMU_SYS_RESETDONE)
++			break;
++	} while (time_after(jiffies, timeout));
 +
-+		flags &= ~IOVMF_PGSZ_MASK;
-+		pgsz = bytes_to_iopgsz(bytes);
-+		if (pgsz < 0)
-+			goto err_out;
-+		flags |= pgsz;
-+
-+		pr_debug("%s:\t[%d] %08x %08x(%x)\n", __func__,
-+			 i, da, pa, bytes);
-+
-+		iotlb_init_entry(&e, da, pa, flags);
-+		err = iopgtable_store_entry(obj, &e);
-+		if (err)
-+			goto err_out;
-+
-+		da += bytes;
-+	}
-+	new->sgt = (struct sg_table *)sgt;
-+
-+	return 0;
-+
-+err_out:
-+	i ? --i : i;
-+	da = new->da_start;
-+
-+	for_each_sg(sgt->sgl, sg, i, j) {
-+		size_t bytes;
-+
-+		bytes = iopgtable_clear_entry(obj, da);
-+
-+		BUG_ON(!iopgsz_ok(bytes));
-+
-+		da += bytes;
-+	}
-+	return err;
-+}
-+
-+/* release 'da' <-> 'pa' mapping */
-+static void unmap_iovm_area(struct iommu *obj, struct iovm_struct *area)
-+{
-+	u32 start;
-+	size_t total = area->da_end - area->da_start;
-+
-+	BUG_ON((!total) || !IS_ALIGNED(total, PAGE_SIZE));
-+
-+	start = area->da_start;
-+	while (total > 0) {
-+		size_t bytes;
-+
-+		bytes = iopgtable_clear_entry(obj, start);
-+		if (bytes == 0)
-+			bytes = PAGE_SIZE;
-+		else
-+			dev_dbg(obj->dev, "%s:\tunmap %08x(%x) %08x\n",
-+				__func__, start, bytes, area->flags);
-+
-+		BUG_ON(!IS_ALIGNED(bytes, PAGE_SIZE));
-+
-+		total -= bytes;
-+		start += bytes;
-+	}
-+	BUG_ON(total);
-+}
-+
-+/* template function for all unmapping */
-+static void unmap_vm_area(struct iommu *obj, const void *da,
-+			  void (*fn)(const void *), u32 flags)
-+{
-+	struct iovm_struct *area;
-+
-+	BUG_ON(in_interrupt());
-+
-+	if (!IS_ALIGNED((u32)da, PAGE_SIZE)) {
-+		dev_err(obj->dev, "%s:\talignment err(%p)\n", __func__, da);
-+		return;
++	if (!(l & MMU_SYS_RESETDONE)) {
++		dev_err(obj->dev, "can't take MMU out of reset\n");
++		return -ENODEV;
 +	}
 +
-+	mutex_lock(&obj->mmap_lock);
++	l = iommu_read_reg(obj, MMU_REVISION);
++	dev_info(obj->dev, "%s: version %d.%d\n", obj->name,
++		 (l >> 4) & 0xf, l & 0xf);
 +
-+	area = __find_iovm_area(obj, da);
-+	if (!area) {
-+		dev_err(obj->dev, "%s:\tno da area(%p)\n", __func__, da);
-+		goto out;
-+	}
++	l = iommu_read_reg(obj, MMU_SYSCONFIG);
++	l &= ~MMU_SYS_IDLE_MASK;
++	l |= MMU_SYS_IDLE_SMART;
++	iommu_write_reg(obj, l, MMU_SYSCONFIG);
 +
-+	if ((area->flags & flags) != flags) {
-+		dev_err(obj->dev, "%s:\twrong flags(%08x)\n", __func__,
-+			area->flags);
-+		goto out;
-+	}
++	iommu_write_reg(obj, MMU_IRQ_MASK, MMU_IRQENABLE);
++	iommu_write_reg(obj, pa, MMU_TTB);
 +
-+	unmap_iovm_area(obj, area);
-+
-+	fn(area->va);
-+
-+	dev_dbg(obj->dev, "%s:\t%08x-%p-%08x(%x) %08x\n", __func__,
-+		area->da_start, da, area->da_end,
-+		area->da_end - area->da_start, area->flags);
-+
-+	free_iovm_area(obj, area);
-+out:
-+	mutex_unlock(&obj->mmap_lock);
-+}
-+
-+static void *map_iommu_region(struct iommu *obj, u32 *da,
-+	      const struct sg_table *sgt, u32 *va, size_t bytes, u32 flags)
-+{
-+	int err = -ENOMEM;
-+	struct iovm_struct *new;
-+
-+	mutex_lock(&obj->mmap_lock);
-+
-+	new = alloc_iovm_area(obj, da, bytes, flags);
-+	if (IS_ERR(new)) {
-+		err = PTR_ERR(new);
-+		goto err_alloc_iovma;
-+	}
-+	new->va = va;
-+
-+	if (map_iovm_area(obj, new, sgt, new->flags))
-+		goto err_map;
-+
-+	mutex_unlock(&obj->mmap_lock);
-+
-+	dev_dbg(obj->dev, "%s:\tda:%08x(%x) flags:%08x va:%p\n",
-+		__func__, new->da_start, bytes, new->flags, va);
-+
-+	return (void *)new->da_start;
-+
-+err_map:
-+	free_iovm_area(obj, new);
-+err_alloc_iovma:
-+	mutex_unlock(&obj->mmap_lock);
-+	return ERR_PTR(err);
-+}
-+
-+static inline void *__iommu_vmap(struct iommu *obj, u32 *da,
-+		 const struct sg_table *sgt, u32 *va, size_t bytes, u32 flags)
-+{
-+	return map_iommu_region(obj, da, sgt, va, bytes, flags);
-+}
-+
-+/**
-+ *	iommu_vmap  -  (d)-(p)-(v) address mapper
-+ *	@obj:		objective iommu
-+ *	@sgt:		address of scatter gather table
-+ *	@flags:		iovma and page property
-+ *
-+ *	Creates 1-n-1 mapping with given @sgt and returns @da.
-+ *	All @sgt element must be io page size aligned.
-+ */
-+void *iommu_vmap(struct iommu *obj, u32 *da, const struct sg_table *sgt,
-+		 u32 flags)
-+{
-+	size_t bytes;
-+	void *va;
-+
-+	if (!obj || !obj->dev || !sgt)
-+		return ERR_PTR(-EINVAL);
-+
-+	bytes = sgtable_len(sgt);
-+	if (!bytes)
-+		return ERR_PTR(-EINVAL);
-+	bytes = PAGE_ALIGN(bytes);
-+
-+	va = vmap_sg(sgt);
-+	if (IS_ERR(va))
-+		return va;
-+
-+	flags &= IOVMF_HW_MASK;
-+	flags |= IOVMF_DISCONT;
-+	flags |= IOVMF_MMIO;
-+	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
-+
-+	da = __iommu_vmap(obj, da, sgt, va, bytes, flags);
-+	if (IS_ERR(da))
-+		vunmap_sg(va);
-+
-+	return da;
-+}
-+EXPORT_SYMBOL_GPL(iommu_vmap);
-+
-+/**
-+ *	iommu_vunmap  -  release virtual mapping obtained by 'iommu_vmap()'
-+ *	@obj:		objective iommu
-+ *	@da:		iommu device virtual address
-+ *
-+ *	Free the iommu virtually contiguous memory area starting at
-+ *	@da, which was returned by 'iommu_vmap()'.
-+ */
-+void iommu_vunmap(struct iommu *obj, void *da)
-+{
-+	unmap_vm_area(obj, da, vunmap_sg, IOVMF_DISCONT | IOVMF_MMIO);
-+}
-+EXPORT_SYMBOL_GPL(iommu_vunmap);
-+
-+/**
-+ *	iommu_vmalloc  -  (d)-(p)-(v) address allocator and mapper
-+ *	@obj:		objective iommu
-+ *	@da:		contiguous iommu virtual memory
-+ *	@bytes:		allocation size
-+ *	@flags:		iovma and page property
-+ *
-+ *	Allocate @bytes linearly and creates 1-n-1 mapping and returns
-+ *	@da again, which might be adjusted if 'IOVMF_DA_ANON' is set.
-+ */
-+void *iommu_vmalloc(struct iommu *obj, void *da, size_t bytes, u32 flags)
-+{
-+	void *va;
-+	struct sg_table *sgt;
-+
-+	if (!obj || !obj->dev || !bytes)
-+		return ERR_PTR(-EINVAL);
-+
-+	bytes = PAGE_ALIGN(bytes);
-+
-+	va = vmalloc(bytes);
-+	if (!va)
-+		return ERR_PTR(-ENOMEM);
-+
-+	sgt = sgtable_alloc(bytes, SGTABLE_NORMAL);
-+	if (IS_ERR(sgt)) {
-+		da = sgt;
-+		goto err_sgt_alloc;
-+	}
-+	sgtable_fill_vmalloc(sgt, va);
-+
-+	flags &= IOVMF_HW_MASK;
-+	flags |= IOVMF_DISCONT;
-+	flags |= IOVMF_ALLOC;
-+	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
-+
-+	da = __iommu_vmap(obj, da, sgt, va, bytes, flags);
-+	if (IS_ERR(da))
-+		goto err_iommu_vmap;
-+
-+	return da;
-+
-+err_iommu_vmap:
-+	sgtable_drain_vmalloc(sgt);
-+	sgtable_free(sgt);
-+err_sgt_alloc:
-+	vfree(va);
-+	return da;
-+}
-+EXPORT_SYMBOL_GPL(iommu_vmalloc);
-+
-+/**
-+ *	iommu_vfree  -  release memory allocated by 'iommu_vmalloc()'
-+ *	@obj:		objective iommu
-+ *	@da:		iommu device virtual address
-+ *
-+ *	Frees the iommu virtually continuous memory area starting at
-+ *	@da, as obtained from 'iommu_vmalloc()'.
-+ */
-+void iommu_vfree(struct iommu *obj, const void *da)
-+{
-+	unmap_vm_area(obj, da, vfree, IOVMF_DISCONT | IOVMF_ALLOC);
-+}
-+EXPORT_SYMBOL_GPL(iommu_vfree);
-+
-+static void *__iommu_kmap(struct iommu *obj, void *da, void *pa, void *va,
-+			  size_t bytes, u32 flags)
-+{
-+	struct sg_table *sgt;
-+
-+	sgt = sgtable_alloc(bytes, SGTABLE_SUPER);
-+	if (IS_ERR(sgt))
-+		return sgt;
-+
-+	sgtable_fill_kmalloc(sgt, pa, bytes);
-+
-+	da = map_iommu_region(obj, da, sgt, va, bytes, flags);
-+	if (IS_ERR(da)) {
-+		sgtable_drain_kmalloc(sgt);
-+		sgtable_free(sgt);
-+	}
-+
-+	return da;
-+}
-+
-+/**
-+ *	iommu_kmap  -  (d)-(p)-(v) address mapper
-+ *	@obj:		objective iommu
-+ *	@da:		contiguous iommu virtual memory
-+ *	@pa:		contiguous physical memory
-+ *	@flags:		iovma and page property
-+ *
-+ *	Creates 1-1-1 mapping and returns @da again, which can be
-+ *	adjusted if 'IOVMF_DA_ANON' is set.
-+ */
-+void *iommu_kmap(struct iommu *obj, void *da, void *pa, size_t bytes,
-+		 u32 flags)
-+{
-+	void *va;
-+
-+	if (!obj || !obj->dev || !bytes)
-+		return ERR_PTR(-EINVAL);
-+
-+	bytes = PAGE_ALIGN(bytes);
-+
-+	va = ioremap((u32)pa, bytes);
-+	if (!va)
-+		return ERR_PTR(-ENOMEM);
-+
-+	flags &= IOVMF_HW_MASK;
-+	flags |= IOVMF_LINEAR;
-+	flags |= IOVMF_MMIO;
-+	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
-+
-+	da = __iommu_kmap(obj, da, pa, va, bytes, flags);
-+	if (IS_ERR(da))
-+		iounmap(va);
-+
-+	return da;
-+}
-+EXPORT_SYMBOL_GPL(iommu_kmap);
-+
-+/**
-+ *	iommu_kunmap  -  release virtual mapping obtained by 'iommu_kmap()'
-+ *	@obj:		objective iommu
-+ *	@da:		iommu device virtual address
-+ *
-+ *	Frees the iommu virtually contiguous memory area starting at
-+ *	@da, which was passed to and was returned by'iommu_kmap()'.
-+ */
-+void iommu_kunmap(struct iommu *obj, void *da)
-+{
-+	unmap_vm_area(obj, da, __iounmap, IOVMF_LINEAR | IOVMF_MMIO);
-+}
-+EXPORT_SYMBOL_GPL(iommu_kunmap);
-+
-+/**
-+ *	iommu_kmalloc  -  (d)-(p)-(v) address allocator and mapper
-+ *	@obj:		objective iommu
-+ *	@da:		contiguous iommu virtual memory
-+ *	@bytes:		bytes for allocation
-+ *	@flags:		iovma and page property
-+ *
-+ *	Allocate @bytes linearly and creates 1-1-1 mapping and returns
-+ *	@da again, which might be adjusted if 'IOVMF_DA_ANON' is set.
-+ */
-+void *iommu_kmalloc(struct iommu *obj, void *da, size_t bytes, u32 flags)
-+{
-+	void *va, *pa;
-+
-+	if (!obj || !obj->dev || !bytes)
-+		return ERR_PTR(-EINVAL);
-+
-+	bytes = PAGE_ALIGN(bytes);
-+
-+	va = kmalloc(bytes, GFP_KERNEL | GFP_DMA);
-+	if (!va)
-+		return ERR_PTR(-ENOMEM);
-+	pa = (void *)virt_to_phys(va);
-+
-+	flags &= IOVMF_HW_MASK;
-+	flags |= IOVMF_LINEAR;
-+	flags |= IOVMF_ALLOC;
-+	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
-+
-+	da = __iommu_kmap(obj, da, pa, va, bytes, flags);
-+	if (IS_ERR(da))
-+		kfree(va);
-+
-+	return da;
-+}
-+EXPORT_SYMBOL_GPL(iommu_kmalloc);
-+
-+/**
-+ *	iommu_kfree  -  release virtual mapping obtained by 'iommu_kmalloc()'
-+ *	@obj:		objective iommu
-+ *	@da:		iommu device virtual address
-+ *
-+ *	Frees the iommu virtually contiguous memory area starting at
-+ *	@da, which was passed to and was returned by'iommu_kmalloc()'.
-+ */
-+void iommu_kfree(struct iommu *obj, void *da)
-+{
-+	unmap_vm_area(obj, da, kfree, IOVMF_LINEAR | IOVMF_ALLOC);
-+}
-+EXPORT_SYMBOL_GPL(iommu_kfree);
-+
-+
-+static int __init iovmm_init(void)
-+{
-+	const unsigned long flags = SLAB_HWCACHE_ALIGN;
-+	struct kmem_cache *p;
-+
-+	p = kmem_cache_create("iovm_area_cache", sizeof(struct iovm_struct), 0,
-+			      flags, NULL);
-+	if (!p)
-+		return -ENOMEM;
-+	iovm_area_cachep = p;
++	l = iommu_read_reg(obj, MMU_CNTL);
++	l &= ~MMU_CNTL_MASK;
++	l |= MMU_CNTL_MMU_EN | MMU_CNTL_TWL_EN;
++	iommu_write_reg(obj, l, MMU_CNTL);
 +
 +	return 0;
 +}
-+module_init(iovmm_init);
 +
-+static void __exit iovmm_exit(void)
++static void omap2_iommu_disable(struct iommu *obj)
 +{
-+	kmem_cache_destroy(iovm_area_cachep);
-+}
-+module_exit(iovmm_exit);
++	u32 l = iommu_read_reg(obj, MMU_CNTL);
 +
-+MODULE_DESCRIPTION("omap iommu: simple virtual address space management");
-+MODULE_AUTHOR("Hiroshi DOYU <Hiroshi.DOYU@nokia.com>");
++	l &= ~MMU_CNTL_MASK;
++	iommu_write_reg(obj, l, MMU_CNTL);
++	iommu_write_reg(obj, MMU_SYS_IDLE_FORCE, MMU_SYSCONFIG);
++
++	dev_dbg(obj->dev, "%s is shutting down\n", obj->name);
++}
++
++static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra)
++{
++	int i;
++	u32 stat, da;
++	const char *err_msg[] =
++		{"tlb miss", "translation fault", "emulation miss",
++		 "table walk fault", "multi hit fault", };
++
++	stat = iommu_read_reg(obj, MMU_IRQSTATUS);
++	stat &= MMU_IRQ_MASK;
++	if (!stat)
++		return 0;
++
++	da = iommu_read_reg(obj, MMU_FAULT_AD);
++	*ra = da;
++
++	dev_err(obj->dev, "%s:\tda:%08x ", __func__, da);
++
++	for (i = 0; i < ARRAY_SIZE(err_msg); i++) {
++		if (stat & (1 << i))
++			pr_err("%s", err_msg[i]);
++	}
++	pr_err("\n");
++
++	iommu_write_reg(obj, stat, MMU_IRQSTATUS);
++	return stat;
++}
++
++static void omap2_tlb_read_cr(struct iommu *obj, struct cr_regs *cr)
++{
++	cr->cam = iommu_read_reg(obj, MMU_READ_CAM);
++	cr->ram = iommu_read_reg(obj, MMU_READ_RAM);
++}
++
++static void omap2_tlb_load_cr(struct iommu *obj, struct cr_regs *cr)
++{
++	iommu_write_reg(obj, cr->cam | MMU_CAM_V, MMU_CAM);
++	iommu_write_reg(obj, cr->ram, MMU_RAM);
++}
++
++static u32 omap2_cr_to_virt(struct cr_regs *cr)
++{
++	u32 page_size = cr->cam & MMU_CAM_PGSZ_MASK;
++	u32 mask = get_cam_va_mask(cr->cam & page_size);
++
++	return cr->cam & mask;
++}
++
++static struct cr_regs *omap2_alloc_cr(struct iommu *obj, struct iotlb_entry *e)
++{
++	struct cr_regs *cr;
++
++	if (e->da & ~(get_cam_va_mask(e->pgsz))) {
++		dev_err(obj->dev, "%s:\twrong alignment: %08x\n", __func__,
++			e->da);
++		return ERR_PTR(-EINVAL);
++	}
++
++	cr = kmalloc(sizeof(*cr), GFP_KERNEL);
++	if (!cr)
++		return ERR_PTR(-ENOMEM);
++
++	cr->cam = (e->da & MMU_CAM_VATAG_MASK) | e->prsvd | e->pgsz;
++	cr->ram = e->pa | e->endian | e->elsz;
++
++	return cr;
++}
++
++static inline int omap2_cr_valid(struct cr_regs *cr)
++{
++	return cr->cam & MMU_CAM_V;
++}
++
++static pgprot_t omap2_get_pte_attr(struct iotlb_entry *e)
++{
++	u32 attr;
++
++	attr = e->mixed << 5;
++	attr |= e->endian;
++	attr |= e->elsz >> 3;
++	attr <<= ((e->pgsz & MMU_CAM_PGSZ_4K) ? 0 : 6);
++
++	return attr;
++}
++
++static ssize_t omap2_dump_cr(struct iommu *obj, struct cr_regs *cr, char *buf)
++{
++	char *p = buf;
++
++	/* FIXME: Need more detail analysis of cam/ram */
++	p += sprintf(p, "%08x %08x\n", cr->cam, cr->ram);
++
++	return p - buf;
++}
++
++#ifdef DEBUG
++#define pr_reg(name)							\
++	p += sprintf(p, "%20s: %08lx\n",				\
++		     __stringify(name), iommu_read_reg(obj, MMU_##name));
++
++static ssize_t omap2_iommu_dump_ctx(struct iommu *obj, char *buf)
++{
++	char *p = buf;
++
++	pr_reg(REVISION);
++	pr_reg(SYSCONFIG);
++	pr_reg(SYSSTATUS);
++	pr_reg(IRQSTATUS);
++	pr_reg(IRQENABLE);
++	pr_reg(WALKING_ST);
++	pr_reg(CNTL);
++	pr_reg(FAULT_AD);
++	pr_reg(TTB);
++	pr_reg(LOCK);
++	pr_reg(LD_TLB);
++	pr_reg(CAM);
++	pr_reg(RAM);
++	pr_reg(GFLUSH);
++	pr_reg(FLUSH_ENTRY);
++	pr_reg(READ_CAM);
++	pr_reg(READ_RAM);
++	pr_reg(EMU_FAULT_AD);
++
++	return p - buf;
++}
++#else
++#define omap2_iommu_dump_ctx NULL
++#endif /* DEBUG */
++
++static void omap2_iommu_save_ctx(struct iommu *obj)
++{
++	int i;
++
++	for (i = 0; i < MMU_REG_SIZE; i += sizeof(u32)) {
++		u32 val;
++
++		val = iommu_read_reg(obj, i);
++		*(u32 *)(obj->ctx + i) = val;
++
++		dev_dbg(obj->dev, "%s\t[%02d] %08x\n", __func__, i, val);
++	}
++}
++
++static void omap2_iommu_restore_ctx(struct iommu *obj)
++{
++	int i;
++
++	for (i = 0; i < MMU_REG_SIZE; i += sizeof(u32)) {
++		u32 val;
++
++		val = *(u32 *)(obj->ctx + i);
++		iommu_write_reg(obj, val, i);
++
++		dev_dbg(obj->dev, "%s\t[%02d] %08x\n", __func__, i, val);
++	}
++}
++
++static void omap2_cr_to_e(struct cr_regs *cr, struct iotlb_entry *e)
++{
++	e->da		= cr->cam & MMU_CAM_VATAG_MASK;
++	e->pa		= cr->ram & MMU_RAM_PADDR_MASK;
++	e->valid	= cr->cam & MMU_CAM_V;
++	e->pgsz		= cr->cam & MMU_CAM_PGSZ_MASK;
++	e->endian	= cr->ram & MMU_RAM_ENDIAN_MASK;
++	e->elsz		= cr->ram & MMU_RAM_ELSZ_MASK;
++	e->mixed	= cr->ram & MMU_RAM_MIXED;
++}
++
++static struct iommu_functions omap2_iommu_ops = {
++	.version	= IOMMU_ARCH_VERSION,
++
++	.enable		= omap2_iommu_enable,
++	.disable	= omap2_iommu_disable,
++	.fault_isr	= omap2_iommu_fault_isr,
++
++	.tlb_read_cr	= omap2_tlb_read_cr,
++	.tlb_load_cr	= omap2_tlb_load_cr,
++
++	.cr_to_e	= omap2_cr_to_e,
++	.cr_to_virt	= omap2_cr_to_virt,
++	.alloc_cr	= omap2_alloc_cr,
++	.cr_valid	= omap2_cr_valid,
++	.dump_cr	= omap2_dump_cr,
++
++	.get_pte_attr	= omap2_get_pte_attr,
++
++	.save_ctx	= omap2_iommu_save_ctx,
++	.restore_ctx	= omap2_iommu_restore_ctx,
++	.dump_ctx	= omap2_iommu_dump_ctx,
++};
++
++#if defined(CONFIG_ARCH_OMAP3)
++
++/* Camera ISP MMU */
++#define OMAP2_MMU1_BASE		0x480bd400
++#define OMAP2_MMU1_IRQ		24
++
++/* IVA2.2 MMU */
++#define OMAP2_MMU2_BASE		0x5d000000
++#define OMAP2_MMU2_IRQ		28
++
++static struct resource iommu1_res[] = { /* Camera ISP MMU */
++	{
++		.start		= OMAP2_MMU1_BASE,
++		.end		= OMAP2_MMU1_BASE + MMU_REG_SIZE - 1,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP2_MMU1_IRQ,
++		.flags		= IORESOURCE_IRQ,
++	},
++};
++
++static struct resource iommu2_res[] = { /* IVA2.2 MMU */
++	{
++		.start		= OMAP2_MMU2_BASE,
++		.end		= OMAP2_MMU2_BASE + MMU_REG_SIZE - 1,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP2_MMU2_IRQ,
++		.flags		= IORESOURCE_IRQ,
++	},
++};
++
++static struct iommu_platform_data omap2_iommu_platform_data[] = {
++	{
++		.name = "isp",
++		.nr_tlb_entries = 8,
++		.clk_name = "cam_ick",
++		.res = iommu1_res,
++		.n_res = ARRAY_SIZE(iommu1_res),
++		.ops = &omap2_iommu_ops,
++	},
++	{
++		.name = "iva2",
++		.nr_tlb_entries = 32,
++		.clk_name = "iva2_ck",
++		.res = iommu2_res,
++		.n_res = ARRAY_SIZE(iommu2_res),
++		.ops = &omap2_iommu_ops,
++	},
++};
++#else
++static struct iommu_platform_data omap2_iommu_platform_data[];
++#endif /* CONFIG_ARCH_OMAP3 */
++
++static int __init omap2_iommu_init(void)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(omap2_iommu_platform_data); i++) {
++		int err;
++		struct platform_device *new;
++		struct iommu_platform_data *p = &omap2_iommu_platform_data[i];
++
++		new = platform_device_alloc("omap-iommu", i + 1);
++		if (!new)
++			continue;
++		new->num_resources = p->n_res;
++		new->resource = p->res;
++		new->dev.platform_data = p;
++		err = platform_device_add(new);
++		if (err) {
++			platform_device_put(new);
++			continue;
++		}
++
++		p->clk = clk_get(NULL, p->clk_name);
++		BUG_ON(IS_ERR(p->clk));
++	}
++	return 0;
++}
++module_init(omap2_iommu_init);
++
++MODULE_AUTHOR("Hiroshi DOYU, Paul Mundt and Toshihiro Kobayashi");
++MODULE_DESCRIPTION("omap iommu: omap2 architecture specific functions");
 +MODULE_LICENSE("GPL v2");
+diff --git a/arch/arm/plat-omap/include/mach/iommu2.h b/arch/arm/plat-omap/include/mach/iommu2.h
+new file mode 100644
+index 0000000..1a4fabd
+--- /dev/null
++++ b/arch/arm/plat-omap/include/mach/iommu2.h
+@@ -0,0 +1,94 @@
++/*
++ * omap iommu: omap2 architecture specific definitions
++ *
++ * Copyright (C) 2008 Nokia Corporation
++ *
++ * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __MACH_IOMMU2_H
++#define __MACH_IOMMU2_H
++
++/*
++ * MMU Register offsets
++ */
++#define MMU_REVISION		0x00
++#define MMU_SYSCONFIG		0x10
++#define MMU_SYSSTATUS		0x14
++#define MMU_IRQSTATUS		0x18
++#define MMU_IRQENABLE		0x1c
++#define MMU_WALKING_ST		0x40
++#define MMU_CNTL		0x44
++#define MMU_FAULT_AD		0x48
++#define MMU_TTB			0x4c
++#define MMU_LOCK		0x50
++#define MMU_LD_TLB		0x54
++#define MMU_CAM			0x58
++#define MMU_RAM			0x5c
++#define MMU_GFLUSH		0x60
++#define MMU_FLUSH_ENTRY		0x64
++#define MMU_READ_CAM		0x68
++#define MMU_READ_RAM		0x6c
++#define MMU_EMU_FAULT_AD	0x70
++
++#define MMU_REG_SIZE		256
++
++/*
++ * MMU Register bit definitions
++ */
++#define MMU_LOCK_BASE_SHIFT	10
++#define MMU_LOCK_BASE_MASK	(0x1f << MMU_LOCK_BASE_SHIFT)
++#define MMU_LOCK_BASE(x)	\
++	((x & MMU_LOCK_BASE_MASK) >> MMU_LOCK_BASE_SHIFT)
++
++#define MMU_LOCK_VICT_SHIFT	4
++#define MMU_LOCK_VICT_MASK	(0x1f << MMU_LOCK_VICT_SHIFT)
++#define MMU_LOCK_VICT(x)	\
++	((x & MMU_LOCK_VICT_MASK) >> MMU_LOCK_VICT_SHIFT)
++
++#define MMU_CAM_VATAG_SHIFT	12
++#define MMU_CAM_VATAG_MASK \
++	((~0UL >> MMU_CAM_VATAG_SHIFT) << MMU_CAM_VATAG_SHIFT)
++#define MMU_CAM_P		(1 << 3)
++#define MMU_CAM_V		(1 << 2)
++#define MMU_CAM_PGSZ_MASK	3
++#define MMU_CAM_PGSZ_1M		(0 << 0)
++#define MMU_CAM_PGSZ_64K	(1 << 0)
++#define MMU_CAM_PGSZ_4K		(2 << 0)
++#define MMU_CAM_PGSZ_16M	(3 << 0)
++
++#define MMU_RAM_PADDR_SHIFT	12
++#define MMU_RAM_PADDR_MASK \
++	((~0UL >> MMU_RAM_PADDR_SHIFT) << MMU_RAM_PADDR_SHIFT)
++#define MMU_RAM_ENDIAN_SHIFT	9
++#define MMU_RAM_ENDIAN_MASK	(1 << MMU_RAM_ENDIAN_SHIFT)
++#define MMU_RAM_ENDIAN_BIG	(1 << MMU_RAM_ENDIAN_SHIFT)
++#define MMU_RAM_ENDIAN_LITTLE	(0 << MMU_RAM_ENDIAN_SHIFT)
++#define MMU_RAM_ELSZ_SHIFT	7
++#define MMU_RAM_ELSZ_MASK	(3 << MMU_RAM_ELSZ_SHIFT)
++#define MMU_RAM_ELSZ_8		(0 << MMU_RAM_ELSZ_SHIFT)
++#define MMU_RAM_ELSZ_16		(1 << MMU_RAM_ELSZ_SHIFT)
++#define MMU_RAM_ELSZ_32		(2 << MMU_RAM_ELSZ_SHIFT)
++#define MMU_RAM_ELSZ_NONE	(3 << MMU_RAM_ELSZ_SHIFT)
++#define MMU_RAM_MIXED_SHIFT	6
++#define MMU_RAM_MIXED_MASK	(1 << MMU_RAM_MIXED_SHIFT)
++#define MMU_RAM_MIXED		MMU_RAM_MIXED_MASK
++
++/*
++ * register accessors
++ */
++static inline u32 iommu_read_reg(struct iommu *obj, size_t offs)
++{
++	return __raw_readl(obj->regbase + offs);
++}
++
++static inline void iommu_write_reg(struct iommu *obj, u32 val, size_t offs)
++{
++	__raw_writel(val, obj->regbase + offs);
++}
++
++#endif /* __MACH_IOMMU2_H */
 -- 
 1.6.0.3.613.g9f8f13
 
