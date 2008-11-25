@@ -1,63 +1,45 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 1/4] twl: update overo and pandora i2c data
-Date: Tue, 25 Nov 2008 15:25:41 -0800
-Message-ID: <20081125232539.GA11997@atomide.com>
-References: <200811151238.43725.david-b@pacbell.net>
+Subject: Re: [patch 2.6.28-rc5 0/5] twl4030 irq assignments
+Date: Tue, 25 Nov 2008 15:31:10 -0800
+Message-ID: <20081125233108.GB11997@atomide.com>
+References: <200811191709.28974.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56719 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63160 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752084AbYKYXZm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 18:25:42 -0500
+	with ESMTP id S1750793AbYKYXbK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 18:31:10 -0500
 Content-Disposition: inline
-In-Reply-To: <200811151238.43725.david-b@pacbell.net>
+In-Reply-To: <200811191709.28974.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
 Cc: linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [081115 12:54]:
-> From: David Brownell <dbrownell@users.sourceforge.net>
+* David Brownell <david-b@pacbell.net> [081119 17:34]:
+> The following patches remove some needless dependencies from
+> TWL4030 support, supporting non-OMAP builds and in some cases,
+> non-SDP (etc) builds.
 > 
-> Update Pandora and Overo board-specific code to report that
-> they use catalog versions of the twl5030 ... this affects
-> the range of usable VAUX2 voltages.
+>  - keypad driver ... use platform_get_irq(), no board dependencies
+>  - BCI driver ... likewise
+>  - MADC driver ... use platform_get_irq()
+>  - power button ... still pretty hacky, there's no device here
+>  - removes the now-dead symbols, and OMAP-dependency
+> 
+> Build-tested.
+> 
+> With this, I think the keypad driver becomes ready to go upstream,
+> after related twl4030-core updates.  At least, it's ready for review.
+> (Including:  Why pass the keypad module id to kpread/kpwrite, it's
+> the only one ever used?  Why does Kconfig mention GPIOs, since they
+> aren't used?)
+> 
+> The point of these patches is that last one, which lets non-OMAP
+> folk do test builds and easily make updates when APIs change.
+> Yeah, it's a strange notion, but not everyone does OMAP builds.  ;)
 
-Pushing 1 - 3 to l-o tree, not pushing 4. We'll need to do similar
-updates for mainline too btw.
+Pushing these to l-o tree today.
 
 Tony
-
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
->  arch/arm/mach-omap2/board-omap3pandora.c |    2 +-
->  arch/arm/mach-omap2/board-overo.c        |    2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> --- a/arch/arm/mach-omap2/board-omap3pandora.c
-> +++ b/arch/arm/mach-omap2/board-omap3pandora.c
-> @@ -167,7 +167,7 @@ static struct twl4030_platform_data omap
->  
->  static struct i2c_board_info __initdata omap3pandora_i2c_boardinfo[] = {
->  	{
-> -		I2C_BOARD_INFO("twl4030", 0x48),
-> +		I2C_BOARD_INFO("tps65950", 0x48),
->  		.flags = I2C_CLIENT_WAKE,
->  		.irq = INT_34XX_SYS_NIRQ,
->  		.platform_data = &omap3pandora_twldata,
-> --- a/arch/arm/mach-omap2/board-overo.c
-> +++ b/arch/arm/mach-omap2/board-overo.c
-> @@ -167,7 +167,7 @@ static struct twl4030_platform_data over
->  
->  static struct i2c_board_info __initdata overo_i2c_boardinfo[] = {
->  	{
-> -		I2C_BOARD_INFO("twl4030", 0x48),
-> +		I2C_BOARD_INFO("tps65950", 0x48),
->  		.flags = I2C_CLIENT_WAKE,
->  		.irq = INT_34XX_SYS_NIRQ,
->  		.platform_data = &overo_twldata,
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
