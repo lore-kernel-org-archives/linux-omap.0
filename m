@@ -1,113 +1,40 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] OMAP3: PM: Force IVA2 into idle during botoup
-Date: Tue, 25 Nov 2008 11:55:53 -0800
-Message-ID: <1227642953-1586-1-git-send-email-khilman@deeprootsystems.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [alsa-devel] [PATCH] ASoC: Fix TW4030 Kconfig dependency
+Date: Tue, 25 Nov 2008 20:04:15 +0000
+Message-ID: <20081125200411.GA6572@sirena.org.uk>
+References: <1227587172-9523-1-git-send-email-arunks@mistralsolutions.com> <200811242044.13438.david-b@pacbell.net> <20081125153013.GH12414@sirena.org.uk> <200811251054.29156.david-b@pacbell.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.175]:5317 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751824AbYKYT4B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 14:56:01 -0500
-Received: by ug-out-1314.google.com with SMTP id 39so1185465ugf.37
-        for <linux-omap@vger.kernel.org>; Tue, 25 Nov 2008 11:55:59 -0800 (PST)
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:2355 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751706AbYKYUEa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 15:04:30 -0500
+Content-Disposition: inline
+In-Reply-To: <200811251054.29156.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: arunks@mistralsolutions.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, steve@sakoman.com
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/pm34xx.c              |   54 +++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/control.h |    6 +++
- 2 files changed, 60 insertions(+), 0 deletions(-)
+On Tue, Nov 25, 2008 at 10:54:28AM -0800, David Brownell wrote:
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 9f5a544..2782277 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -363,6 +363,58 @@ static struct platform_suspend_ops omap_pm_ops = {
- 	.valid		= suspend_valid_only_mem,
- };
- 
-+
-+/**
-+ * omap3_iva_idle(): ensure IVA is in idle so it can be put into
-+ *                   retention
-+ *
-+ * In cases where IVA2 is activated by bootcode, it may prevent
-+ * full-chip retention or off-mode because it is not idle.  This
-+ * function forces the IVA2 into idle state so it can go
-+ * into retention/off and thus allow full-chip retention/off.
-+ *
-+ **/
-+static void __init omap3_iva_idle(void)
-+{
-+	struct clk *iva2_ck;
-+
-+	iva2_ck = clk_get(NULL, "iva2_fclk");
-+	if (!iva2_ck) {
-+		pr_err("Unable to get IVA2 fclk: cannot force idle.\n");
-+		return;
-+	}
-+
-+	/* Disable IVA2 clock */
-+	clk_disable(iva2_ck);
-+
-+	/* Reset IVA2 */
-+	prm_write_mod_reg(OMAP3430_RST1_IVA2 |
-+			  OMAP3430_RST2_IVA2 |
-+			  OMAP3430_RST3_IVA2,
-+			  OMAP3430_IVA2_MOD, RM_RSTCTRL);
-+
-+	/* Enable IVA2 clock */
-+	clk_enable(iva2_ck);
-+
-+	/* Set IVA2 boot mode to 'idle' */
-+	omap_ctrl_writel(OMAP3_IVA2_BOOTMOD_IDLE,
-+			 OMAP343X_CONTROL_IVA2_BOOTMOD);
-+
-+	/* Un-reset IVA2 */
-+	prm_write_mod_reg(0, OMAP3430_IVA2_MOD, RM_RSTCTRL);
-+
-+	/* Disable IVA2 clocks */
-+	clk_disable(iva2_ck);
-+
-+	/* Reset IVA2 */
-+	prm_write_mod_reg(OMAP3430_RST1_IVA2 |
-+			  OMAP3430_RST2_IVA2 |
-+			  OMAP3430_RST3_IVA2,
-+			  OMAP3430_IVA2_MOD, RM_RSTCTRL);
-+
-+	clk_put(iva2_ck);
-+}
-+
- static void __init prcm_setup_regs(void)
- {
- 	/* XXX Reset all wkdeps. This should be done when initializing
-@@ -515,6 +567,8 @@ static void __init prcm_setup_regs(void)
- 	 * it is selected to mpu wakeup goup */
- 	prm_write_mod_reg(OMAP3430_IO_EN | OMAP3430_WKUP_EN,
- 			OCP_MOD, OMAP2_PRM_IRQENABLE_MPU_OFFSET);
-+
-+	omap3_iva_idle();
- }
- 
- static int __init pwrdms_setup(struct powerdomain *pwrdm)
-diff --git a/arch/arm/plat-omap/include/mach/control.h b/arch/arm/plat-omap/include/mach/control.h
-index ee3c39e..e37fd57 100644
---- a/arch/arm/plat-omap/include/mach/control.h
-+++ b/arch/arm/plat-omap/include/mach/control.h
-@@ -208,6 +208,12 @@
- #define OMAP2_PBIASLITEPWRDNZ0		(1 << 1)
- #define OMAP2_PBIASLITEVMODE0		(1 << 0)
- 
-+/* CONTROL_IVA2_BOOTMOD bits */
-+#define OMAP3_IVA2_BOOTMOD_SHIFT	 0
-+#define OMAP3_IVA2_BOOTMOD_MASK		 (0xf << 0)
-+#define OMAP3_IVA2_BOOTMOD_IDLE		 (0x1 << 0)
-+
-+
- #ifndef __ASSEMBLY__
- #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
- extern void __iomem *omap_ctrl_base_get(void);
--- 
-1.6.0.3
+> I'm not sure what you mean by "machine driver" ... there seem
+> to be two:  arch/arm/mach-omap2/board-*.c for everything except
+> ALSA, and then sound/soc/omap/*.c for the ASoC bits.
 
+I meant the arch/arm one.
+
+> As a rule, it's worth avoiding "select" in Kconfig; it doesn't
+> work well, since it won't even report missing dependencies much
+> less fix the trivial ones.
+
+Right, I'm just thinking that for something like this it might not be
+worth turning off the TWL4030 core support given that these sorts of
+southbridgeish chips tend to be pretty key to the system.  It was just
+an idle thought, anyway.
+
+BTW, it'd also be really handy if you could remove the OMAP dependencies
+from TWL4030_CORE - I know it currently needs them to actually be useful
+at runtime but it'd mean that it's possible to build things like the
+codec driver on other configs which helps when working on subsystems.
