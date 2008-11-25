@@ -1,49 +1,69 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH] ARM: Parse ATAG_VIDEOLFB to screen_info
-Date: Tue, 25 Nov 2008 10:17:43 +0200
-Message-ID: <1227601063.7197.18.camel@tubuntu>
-References: <1227263136-14862-1-git-send-email-tomi.valkeinen@nokia.com>
-	 <20081124121217.GB5330@flint.arm.linux.org.uk>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Subject: Re: v4l2_device/v4l2_subdev: please review
+Date: Tue, 25 Nov 2008 09:24:35 +0100 (CET)
+Message-ID: <17655.62.70.2.252.1227601475.squirrel@webmail.xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:20242 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750958AbYKYISZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 03:18:25 -0500
-In-Reply-To: <20081124121217.GB5330@flint.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <video4linux-list-bounces@redhat.com>
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+To: Trilok Soni <soni.trilok@gmail.com>
+Cc: v4l <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-Hi,
+> Hi Hans,
+>
+>>
+>> I'm not going to spam the list with these quite big patches. Just go t=
+o
+>> http://linuxtv.org/hg/~hverkuil/v4l-dvb-ng/ and click on the 'raw' lin=
+k
+>> after each change to see the patch. Most of these changes are just
+>> boring i2c driver conversions.
+>
+> It is hard to review these patches from this link, as if you submit
+> the patch to ML then someone can just give inline comments to your
+> patch, otherwise reviewer has to copy that code which he/she wants to
+> comment while replying and not easy to track too. I don't know size
+> limit of this v4l2 ML, but linux-kernel ML can receive somewhat big
+> patches I believe.
 
-On Mon, 2008-11-24 at 12:12 +0000, ext Russell King - ARM Linux wrote:
-> On Fri, Nov 21, 2008 at 12:25:36PM +0200, Tomi Valkeinen wrote:
-> > Parse ATAG_VIDEOLFB received from bootloader to screen_info struct,
-> > so that video drivers can use the information.
-> 
-> Boot loaders tend to be absolutely diabolical about passing correct
-> information to the kernel, so I really don't want to see such platform
-> specific stuff being passed.  Please put it in the board specific file
-> instead, just like everyone else does.
+The V4L2 ML is fairly limited. I'm pretty sure it can't handle the ivtv
+change (70+ kB). I can do this for the two changes that actually add the
+new code and for one of the i2c conversion tonight (this webmail client
+messes up the layout).
 
-I though a general file would be better, because:
+Personally I dislike reviewing large patches that are part of an email.
+Smaller ones are OK, but large patches are hard to read. Much easier to
+review with a decent editor.
 
-a) the tag contains only generic stuff and it is parsed directly to
-screen_info, which is also generic
+>
+>>
+>> We are adding to the v4l core, but the changes do not affect existing
+>> v4l drivers let alone other subsystems. Although I should probably hav=
+e
+>> added the omap list.
+>
+> OMAP + soc-camera + v4l2-int-* community would be more interested to
+> see these patches as they need to change their sensor/controller
+> drivers to adapt your changes.
 
-b) ATAG_VIDEOTEXT, which is very similar to ATAG_VIDEOLFB, is parsed in
-setup.c also.
+I'll add the linux-omap mailinglist when I repost tonight.
 
-c) it is not used anywhere currently
+Regards,
 
-So I don't see anything platform or board specific there. Or do you mean
-that there are broken bootloaders out there and this would mess up
-screen_info?
+          Hans
 
- Tomi
-
-
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
+ibe
+https://www.redhat.com/mailman/listinfo/video4linux-list
