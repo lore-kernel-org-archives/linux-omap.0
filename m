@@ -1,69 +1,120 @@
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: Re: v4l2_device/v4l2_subdev: please review
-Date: Tue, 25 Nov 2008 09:24:35 +0100 (CET)
-Message-ID: <17655.62.70.2.252.1227601475.squirrel@webmail.xs4all.nl>
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Subject: Re: [PATCH] i2c: i2c-omap: Fix BUFSTAT_REG reading
+Date: Tue, 25 Nov 2008 11:19:19 +0200
+Message-ID: <1227604759.27458.16.camel@eenurkka-desktop>
+References: <12275961701188-git-send-email-ext-eero.nurkkala@nokia.com>
+	 <200811242327.12026.david-b@pacbell.net>
+Reply-To: ext-eero.nurkkala@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <video4linux-list-bounces@redhat.com>
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-To: Trilok Soni <soni.trilok@gmail.com>
-Cc: v4l <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:44495 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753182AbYKYJWN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 04:22:13 -0500
+In-Reply-To: <200811242327.12026.david-b@pacbell.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext David Brownell <david-b@pacbell.net>
+Cc: linux-omap@vger.kernel.org
 
-> Hi Hans,
->
->>
->> I'm not going to spam the list with these quite big patches. Just go t=
-o
->> http://linuxtv.org/hg/~hverkuil/v4l-dvb-ng/ and click on the 'raw' lin=
-k
->> after each change to see the patch. Most of these changes are just
->> boring i2c driver conversions.
->
-> It is hard to review these patches from this link, as if you submit
-> the patch to ML then someone can just give inline comments to your
-> patch, otherwise reviewer has to copy that code which he/she wants to
-> comment while replying and not easy to track too. I don't know size
-> limit of this v4l2 ML, but linux-kernel ML can receive somewhat big
-> patches I believe.
+Shortly: Restate the introductory header and resend the patches?
 
-The V4L2 ML is fairly limited. I'm pretty sure it can't handle the ivtv
-change (70+ kB). I can do this for the two changes that actually add the
-new code and for one of the i2c conversion tonight (this webmail client
-messes up the layout).
+On Mon, 2008-11-24 at 23:27 -0800, ext David Brownell wrote:
+> On Monday 24 November 2008, ext-eero.nurkkala@nokia.com wrote:
+> > From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+> > 
+> > The amount of bytes to receive is read from wrong
+> > place with omap 2430 and omap 3430.
+> 
+> More simply:  on all OMAPs with highspeed I2C support,
+> which involves a FIFO and BUFSTAT_REG.
+> 
+> 
+> > It is the 6 bits 
+> > starting from the bit 8 from BUFSTAT_REG that indicate
+> > this amount. Not the 8 LSB:s. Only 6 LSB:s are used
+> > for the TX buffer. Moreover, only the 6 LSB:s are
+> > relevant for XDR.
+> > 
+> > Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+> > ---
+> >  drivers/i2c/busses/i2c-omap.c |   25 +++++++++++++++++++------
+> >  1 files changed, 19 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> > index 96f3bed..630702c 100644
+> > --- a/drivers/i2c/busses/i2c-omap.c
+> > +++ b/drivers/i2c/busses/i2c-omap.c
+> > @@ -672,11 +672,19 @@ omap_i2c_isr(int this_irq, void *dev_id)
+> >  		if (stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
+> >  			u8 num_bytes = 1;
+> >  			if (dev->fifo_size) {
+> 
+> ... i.e. if (dev->rev >= OMAP_I2C_REV_ON_2430) ..
+> 
+> > -				if (stat & OMAP_I2C_STAT_RRDY)
+> > +				if (stat & OMAP_I2C_STAT_RRDY) {
+> >  					num_bytes = dev->fifo_size;
+> > -				else
+> > -					num_bytes = omap_i2c_read_reg(dev,
+> > +				} else {
+> > +					if (dev->rev >= OMAP_I2C_REV_ON_2430)
+> > +						num_bytes =
+> > +							(omap_i2c_read_reg(dev,
+> > +							 OMAP_I2C_BUFSTAT_REG)
+> > +							 >> 8) & 0x3F;
+> > +					else
+> > +						num_bytes =
+> > +							omap_i2c_read_reg(dev,
+> >  							OMAP_I2C_BUFSTAT_REG);
+> 
+> ... so this "else" branch is not needed, neither is the "if" test defining
+> the two branches ...
+> 
+> 
+> > +				}
+> >  			}
+> >  			while (num_bytes) {
+> >  				num_bytes--;
+> > @@ -711,11 +719,16 @@ omap_i2c_isr(int this_irq, void *dev_id)
+> >  		if (stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR)) {
+> >  			u8 num_bytes = 1;
+> >  			if (dev->fifo_size) {
+> 
+> ... likewise ...
+> 
+> 
+> > -				if (stat & OMAP_I2C_STAT_XRDY)
+> > +				if (stat & OMAP_I2C_STAT_XRDY) {
+> >  					num_bytes = dev->fifo_size;
+> > -				else
+> > -					num_bytes = omap_i2c_read_reg(dev,
+> > +				} else {
+> > +					num_bytes =
+> > +						omap_i2c_read_reg(dev,
+> >  							OMAP_I2C_BUFSTAT_REG);
+> > +
+> > +					if (dev->rev >= OMAP_I2C_REV_ON_2430)
+> > +						num_bytes &= 0x3F;
+> 
+> ... and likewise.
+> 
+> 
+> > +				}
+> >  			}
+> >  			while (num_bytes) {
+> >  				num_bytes--;
+> > -- 
+> > 1.6.0
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> > 
+> 
+> 
 
-Personally I dislike reviewing large patches that are part of an email.
-Smaller ones are OK, but large patches are hard to read. Much easier to
-review with a decent editor.
-
->
->>
->> We are adding to the v4l core, but the changes do not affect existing
->> v4l drivers let alone other subsystems. Although I should probably hav=
-e
->> added the omap list.
->
-> OMAP + soc-camera + v4l2-int-* community would be more interested to
-> see these patches as they need to change their sensor/controller
-> drivers to adapt your changes.
-
-I'll add the linux-omap mailinglist when I repost tonight.
-
-Regards,
-
-          Hans
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
-ibe
-https://www.redhat.com/mailman/listinfo/video4linux-list
