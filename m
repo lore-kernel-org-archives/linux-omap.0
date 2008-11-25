@@ -1,53 +1,42 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
+From: David Brownell <david-b@pacbell.net>
 Subject: Re: PWM drivers for TWL4030
-Date: Tue, 25 Nov 2008 21:14:33 +0200
-Message-ID: <20081125191432.GA6038@gandalf.research.nokia.com>
-References: <6ed0b2680811250857p59195e4dh7dab4e1109769b0c@mail.gmail.com> <6ed0b2680811250859x179afb67l5cca390d3b1e4de1@mail.gmail.com> <200811251042.36549.david-b@pacbell.net>
-Reply-To: felipe.balbi@nokia.com
+Date: Tue, 25 Nov 2008 10:46:45 -0800
+Message-ID: <200811251046.45693.david-b@pacbell.net>
+References: <6ed0b2680811250857p59195e4dh7dab4e1109769b0c@mail.gmail.com> <6ed0b2680811250859x179afb67l5cca390d3b1e4de1@mail.gmail.com> <26A46655-D823-4AE1-A058-79A769051398@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:38235 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751793AbYKYTO5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 14:14:57 -0500
+Received: from smtp123.sbc.mail.sp1.yahoo.com ([69.147.64.96]:40129 "HELO
+	smtp123.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752133AbYKYTQL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Nov 2008 14:16:11 -0500
+In-Reply-To: <26A46655-D823-4AE1-A058-79A769051398@student.utwente.nl>
 Content-Disposition: inline
-In-Reply-To: <200811251042.36549.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext David Brownell <david-b@pacbell.net>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, henrik.saari@nokia.com
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-On Tue, Nov 25, 2008 at 10:42:36AM -0800, David Brownell wrote:
-> There are actually four PWM signals ... two associated with LEDs
-> (or VIBRA.M, or VIBRA.P; high current) with fast input clocks,
-> then PWM0 and PWM1 with slower input clocks which are alternate
-> GPIO settings.  PWM1 can be used as VIBRA.SYNC.
-> 
-> The two LED PWMs are used as GPIOs on the Beagle ... so the GPIO
-> driver supports them as output-only GPIOs, setting the LED PWMs
-> up to be "always on" or "always off".
-> 
-> In short:  all the PWM-equipped pins have "clean" driver support,
-> but only for using them as GPIOs, not as PWM.
+On Tuesday 25 November 2008, Koen Kooi wrote:
+> Regardless of what implementation you choose, it would be *great* if =
+=A0
+> people used the backlight class for things like backlights. /sys/clas=
+s/=20
+> backlight/<foo>/brightness is such a nice standard that lots and lots=
+ =A0
+> of usespace tools rely on it.
 
-Henrik Saari, Cced, actually wrote the twl4030-vibra driver and, afaict,
-it's using the LED Class. Henrik, do you wanna share the code ?? :-)
+How about a standard LED driver (optionally with a brightness
+control) and the newish "backlight" trigger?
 
-> Right now, just use LEDA and LEDB as GPIO-19 and GPIO-20, like
-> Beagle does; ditto for PWM-0/GPIO-6 and PWM-1/GPIO-7.
-> 
-> Near term, something to support led_classdev.brightness_{set,get}
-> methods would make sense to me, for LEDA and LEDB.  The EVMs could
-> set up LEDA devices and hook them up to the "backlight" trigger.
-> The same thing could be done for PWM0 and PWM1.
-> 
-> Long term, we may have a PWM framework ... but it's not ready yet,
-> and hasn't even been refreshed recently either.  And so far as I
-> know, ALSA has no notion of supporting the VIBRA module hookup
-> options for "audio" output.
+Of course, the packaging (led driver and trigger, vs. backlight
+control) can be independent of the controls that are exported.
 
-I think for now, we can keep it as LED driver, then ?
-
--- 
-balbi
+- Dave
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
