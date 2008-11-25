@@ -1,43 +1,68 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [alsa-devel] [PATCH] ASoC: Fix TW4030 Kconfig dependency
-Date: Tue, 25 Nov 2008 10:54:28 -0800
-Message-ID: <200811251054.29156.david-b@pacbell.net>
-References: <1227587172-9523-1-git-send-email-arunks@mistralsolutions.com> <200811242044.13438.david-b@pacbell.net> <20081125153013.GH12414@sirena.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Felipe Contreras <felipe.contreras@nokia.com>
+Subject: [PATCH] omapfb: Fix argument of blank operation.
+Date: Tue, 25 Nov 2008 21:24:12 +0200
+Message-ID: <1227641052-6510-1-git-send-email-felipe.contreras@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:42760 "HELO
-	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752516AbYKYTQ0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Nov 2008 14:16:26 -0500
-In-Reply-To: <20081125153013.GH12414@sirena.org.uk>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.105.134]:38905 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750879AbYKYTYj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 14:24:39 -0500
+Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mAPJOUqr003705
+	for <linux-omap@vger.kernel.org>; Tue, 25 Nov 2008 13:24:37 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@sirena.org.uk>
-Cc: arunks@mistralsolutions.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, steve@sakoman.com
+To: linux-omap@vger.kernel.org
+Cc: Felipe Contreras <felipe.contreras@nokia.com>
 
-On Tuesday 25 November 2008, Mark Brown wrote:
-> Might it be an idea to have the relevant machine drivers select the
-> TWL4030 support? =A0This would prevent them disabling it but the chip=
- is
-> such a basic part of these systems that that doesn't seem unreasonabl=
-e.
+The blank operation should receive FB_BLANK_POWERDOWN, not
+VESA_POWERDOWN.
 
-I'm not sure what you mean by "machine driver" ... there seem
-to be two:  arch/arm/mach-omap2/board-*.c for everything except
-ALSA, and then sound/soc/omap/*.c for the ASoC bits.
+Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
+---
+ drivers/video/omap/omapfb_main.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-As a rule, it's worth avoiding "select" in Kconfig; it doesn't
-work well, since it won't even report missing dependencies much
-less fix the trivial ones.
+diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
+index 3bb4247..c8db8b2 100644
+--- a/drivers/video/omap/omapfb_main.c
++++ b/drivers/video/omap/omapfb_main.c
+@@ -348,7 +348,7 @@ static int omapfb_blank(int blank, struct fb_info *fbi)
+ 
+ 	omapfb_rqueue_lock(fbdev);
+ 	switch (blank) {
+-	case VESA_NO_BLANKING:
++	case FB_BLANK_UNBLANK:
+ 		if (fbdev->state == OMAPFB_SUSPENDED) {
+ 			if (fbdev->ctrl->resume)
+ 				fbdev->ctrl->resume();
+@@ -359,7 +359,7 @@ static int omapfb_blank(int blank, struct fb_info *fbi)
+ 				do_update = 1;
+ 		}
+ 		break;
+-	case VESA_POWERDOWN:
++	case FB_BLANK_POWERDOWN:
+ 		if (fbdev->state == OMAPFB_ACTIVE) {
+ 			fbdev->panel->disable(fbdev->panel);
+ 			if (fbdev->ctrl->suspend)
+@@ -1842,7 +1842,7 @@ static int omapfb_suspend(struct platform_device *pdev, pm_message_t mesg)
+ 	struct omapfb_device *fbdev = platform_get_drvdata(pdev);
+ 
+ 	if (fbdev != NULL)
+-		omapfb_blank(VESA_POWERDOWN, fbdev->fb_info[0]);
++		omapfb_blank(FB_BLANK_POWERDOWN, fbdev->fb_info[0]);
+ 	return 0;
+ }
+ 
+@@ -1852,7 +1852,7 @@ static int omapfb_resume(struct platform_device *pdev)
+ 	struct omapfb_device *fbdev = platform_get_drvdata(pdev);
+ 
+ 	if (fbdev != NULL)
+-		omapfb_blank(VESA_NO_BLANKING, fbdev->fb_info[0]);
++		omapfb_blank(FB_BLANK_UNBLANK, fbdev->fb_info[0]);
+ 	return 0;
+ }
+ 
+-- 
+1.6.0.4
 
-- Dave
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
