@@ -1,45 +1,34 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] OMAP3: PM: readability fix for IVA2 DPLL autoidle
-Date: Tue, 25 Nov 2008 07:23:35 -0800
-Message-ID: <1227626615-2949-1-git-send-email-khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/1] Fix control debobs macro
+Date: Tue, 25 Nov 2008 07:25:57 -0800
+Message-ID: <87wserq12y.fsf@deeprootsystems.com>
+References: <1227537275-7161-1-git-send-email-peter.de-schrijver@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f11.google.com ([209.85.221.11]:48494 "EHLO
-	mail-qy0-f11.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752566AbYKYPXz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 10:23:55 -0500
-Received: by qyk4 with SMTP id 4so10786qyk.13
-        for <linux-omap@vger.kernel.org>; Tue, 25 Nov 2008 07:23:54 -0800 (PST)
+Received: from nf-out-0910.google.com ([64.233.182.184]:46998 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753201AbYKYP0E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 10:26:04 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so1590nfc.21
+        for <linux-omap@vger.kernel.org>; Tue, 25 Nov 2008 07:26:02 -0800 (PST)
+In-Reply-To: <1227537275-7161-1-git-send-email-peter.de-schrijver@nokia.com> (Peter De Schrijver's message of "Mon\, 24 Nov 2008 16\:34\:34 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-No functional change, just a readability fix.
+"Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
 
-The symbolic name of the shift value used in writing
-CM_AUTOIDLE_PLL_IVA2 referred values in the CM_CLKSTCTRL_IVA2
-register.  Fix this to use the AUTOIDLE fields.
+> This patch fixes a silly bug which causes core observability to be configured wrongly for half of the pads.
+>
+> Peter 'p2' De Schrijver (1):
+>   Debobs control macro fix
+>
+>  arch/arm/plat-omap/include/mach/control.h |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/pm34xx.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+Thanks, will pull into next PM branch.
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 804b3ac..05de1f7 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -501,9 +501,8 @@ static void __init prcm_setup_regs(void)
- 	 * Set all plls to autoidle. This is needed until autoidle is
- 	 * enabled by clockfw
- 	 */
--	cm_write_mod_reg(1 << OMAP3430_CLKTRCTRL_IVA2_SHIFT,
--			 OMAP3430_IVA2_MOD,
--			 CM_AUTOIDLE2);
-+	cm_write_mod_reg(1 << OMAP3430_AUTO_IVA2_DPLL_SHIFT,
-+			 OMAP3430_IVA2_MOD, CM_AUTOIDLE2);
- 	cm_write_mod_reg(1 << OMAP3430_AUTO_MPU_DPLL_SHIFT,
- 			 MPU_MOD,
- 			 CM_AUTOIDLE2);
--- 
-1.6.0.3
-
+Kevin
