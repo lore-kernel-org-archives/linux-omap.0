@@ -1,29 +1,31 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
+From: Koen Kooi <k.kooi@student.utwente.nl>
 Subject: Re: PWM drivers for TWL4030
-Date: Tue, 25 Nov 2008 22:58:57 +0530
-Message-ID: <5d5443650811250928n49b133ddl955cd2cb0ef77e57@mail.gmail.com>
-References: <6ed0b2680811250857p59195e4dh7dab4e1109769b0c@mail.gmail.com>
-	 <6ed0b2680811250859x179afb67l5cca390d3b1e4de1@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Date: Tue, 25 Nov 2008 18:45:03 +0100
+Message-ID: <26A46655-D823-4AE1-A058-79A769051398@student.utwente.nl>
+References: <6ed0b2680811250857p59195e4dh7dab4e1109769b0c@mail.gmail.com> <6ed0b2680811250859x179afb67l5cca390d3b1e4de1@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v929.2)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-20-219800378"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.29]:14072 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752218AbYKYR27 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 12:28:59 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so38461yxm.1
-        for <linux-omap@vger.kernel.org>; Tue, 25 Nov 2008 09:28:57 -0800 (PST)
+Received: from mx3.utsp.utwente.nl ([130.89.2.14]:18690 "EHLO mx.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752520AbYKYRpP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Nov 2008 12:45:15 -0500
 In-Reply-To: <6ed0b2680811250859x179afb67l5cca390d3b1e4de1@mail.gmail.com>
-Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, Bill Gatliff <bgat@billgatliff.com>
+Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-Hi,
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-20-219800378
+Content-Type: text/plain; charset=WINDOWS-1252; format=flowed; delsp=yes
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 25, 2008 at 10:29 PM, Grazvydas Ignotas <notasas@gmail.com> wrote:
+
+Op 25 nov 2008, om 17:59 heeft Grazvydas Ignotas het volgende =20
+geschreven:
+
 > Hi,
 >
 > TWL4030 and compatibles have 2 pulse-width modulation (PWM) generators
@@ -34,10 +36,42 @@ On Tue, Nov 25, 2008 at 10:29 PM, Grazvydas Ignotas <notasas@gmail.com> wrote:
 > I saw lcd_omap*evm.c just write to LED PWM registers over i2c to
 > control backlight, I wonder if I should just do the same.
 
-Bill Gatliff (CCed here) already proposed PWM framework on
-linux-arm-kernel and LKML, please follow that discussion.
+Regardless of what implementation you choose, it would be *great* if =20
+people used the backlight class for things like backlights. /sys/class/=20=
 
--- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+backlight/<foo>/brightness is such a nice standard that lots and lots =20=
+
+of usespace tools rely on it.
+
+regards,
+
+Koen
+
+
+>
+>
+> Gra=9Evydas
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-=20
+> omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+--Apple-Mail-20-219800378
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: This is a digitally signed message part
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFJLDmhMkyGM64RGpERAmXKAJ0W1rBliHc8uV00BhCDB7w7bgph0gCeO/ae
+j5h5/eh/+SPBjespZywEM9s=
+=S4TQ
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-20-219800378--
