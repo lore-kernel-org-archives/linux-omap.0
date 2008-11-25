@@ -1,18 +1,17 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 2.6.28-rc6-omap 1/2] H3 stops using
-	<mach/gpioexpander.h>
-Date: Tue, 25 Nov 2008 15:37:11 -0800
-Message-ID: <20081125233711.GD11997@atomide.com>
-References: <200811241028.15876.david-b@pacbell.net>
+Subject: Re: [patch 2.6.28-rc6-omap 2/2] remove gpio_expander_omap
+Date: Tue, 25 Nov 2008 15:38:04 -0800
+Message-ID: <20081125233804.GE11997@atomide.com>
+References: <200811241029.34245.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53882 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54718 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750812AbYKYXhM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 18:37:12 -0500
+	with ESMTP id S1750894AbYKYXiE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 18:38:04 -0500
 Content-Disposition: inline
-In-Reply-To: <200811241028.15876.david-b@pacbell.net>
+In-Reply-To: <200811241029.34245.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
@@ -21,203 +20,173 @@ Cc: linux-omap@vger.kernel.org
 * David Brownell <david-b@pacbell.net> [081124 10:29]:
 > From: David Brownell <dbrownell@users.sourceforge.net>
 > 
-> Update board-h3.c to use standard GPIO calls to set up the
-> IRDA transceiver, not legacy OMAP-only gpioexpander code.
+> Now that H3 is converted to use GPIO calls, get rid of the
+> legacy gpio_expander_omap code ... it has no more users.
 > 
-> Also, move the #include <.../ov9640.h>; the header is gone,
-> there's currently no driver for that camera sensor.
-> 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
-> COMPILE TESTED ONLY ... but obviously, nobody's built this
-> board in a while, or the ov9640 header would have been seen.
+> One more needless divergence from mainline gone!
 
-Great, pushing to l-o tree. It's OK for us to decimate any code
-that's not being maintained. Especially if it's not in mainline
-tree ;)
+Woohoo! Pushing today.
 
 Tony
 
 
->  arch/arm/mach-omap1/board-h3.c |  112 ++++++++++++++++++++++++---------------
->  1 file changed, 69 insertions(+), 43 deletions(-)
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> ---
+>  arch/arm/mach-omap1/Kconfig                    |    1 
+>  arch/arm/plat-omap/include/mach/gpioexpander.h |   35 -----------
+>  drivers/i2c/chips/Kconfig                      |    7 --
+>  drivers/i2c/chips/Makefile                     |    1 
+>  drivers/i2c/chips/gpio_expander_omap.c         |   71 -----------------------
+>  5 files changed, 115 deletions(-)
 > 
-> --- a/arch/arm/mach-omap1/board-h3.c
-> +++ b/arch/arm/mach-omap1/board-h3.c
-> @@ -26,8 +26,11 @@
->  #include <linux/mtd/nand.h>
->  #include <linux/mtd/partitions.h>
->  #include <linux/input.h>
-> -#include <linux/i2c/tps65010.h>
->  #include <linux/clk.h>
-> +
-> +#include <linux/i2c/tps65010.h>
-> +#include <linux/i2c/pcf857x.h>
-> +
->  #include <linux/spi/spi.h>
->  #include <linux/spi/tsc210x.h>
->  
-> @@ -45,7 +48,6 @@
->  
->  #include <mach/gpio.h>
->  #include <mach/gpio-switch.h>
-> -#include <mach/gpioexpander.h>
->  #include <mach/irqs.h>
->  #include <mach/mux.h>
->  #include <mach/tc.h>
-> @@ -58,8 +60,6 @@
->  #include <mach/mcbsp.h>
->  #include <mach/omap-alsa.h>
->  
-> -#include <../drivers/media/video/ov9640.h>
+> --- a/arch/arm/mach-omap1/Kconfig
+> +++ b/arch/arm/mach-omap1/Kconfig
+> @@ -38,7 +38,6 @@ config MACH_OMAP_H2
+>  config MACH_OMAP_H3
+>  	bool "TI H3 Support"
+>  	depends on ARCH_OMAP1 && ARCH_OMAP16XX
+> -#	select GPIOEXPANDER_OMAP
+>      	help
+>  	  TI OMAP 1710 H3 board support. Say Y here if you have such
+>  	  a board.
+> --- a/arch/arm/plat-omap/include/mach/gpioexpander.h
+> +++ /dev/null
+> @@ -1,35 +0,0 @@
+> -/*
+> - * arch/arm/plat-omap/include/mach/gpioexpander.h
+> - *
+> - *
+> - * Copyright (C) 2004 Texas Instruments, Inc.
+> - *
+> - * This package is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License version 2 as
+> - * published by the Free Software Foundation.
+> - *
+> - * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+> - * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+> - * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+> - */
 > -
->  #define H3_TS_GPIO	48
->  
->  static int h3_keymap[] = {
-> @@ -284,29 +284,15 @@ static struct platform_device h3_kp_devi
->  
->  /* Select between the IrDA and aGPS module
->   */
-> -static int h3_select_irda(struct device *dev, int state)
+> -#ifndef __ASM_ARCH_OMAP_GPIOEXPANDER_H
+> -#define __ASM_ARCH_OMAP_GPIOEXPANDER_H
+> -
+> -/* Function Prototypes for GPIO Expander functions */
+> -
+> -#ifdef CONFIG_GPIOEXPANDER_OMAP
+> -int read_gpio_expa(u8 *, int);
+> -int write_gpio_expa(u8 , int);
+> -#else
+> -static inline int read_gpio_expa(u8 *val, int addr)
 > -{
-> -	unsigned char expa;
-> -	int err = 0;
+> -	return 0;
+> -}
+> -static inline int write_gpio_expa(u8 val, int addr)
+> -{
+> -	return 0;
+> -}
+> -#endif
+> -
+> -#endif /* __ASM_ARCH_OMAP_GPIOEXPANDER_H */
+> --- a/drivers/i2c/chips/Kconfig
+> +++ b/drivers/i2c/chips/Kconfig
+> @@ -134,13 +134,6 @@ config SENSORS_TLV320AIC23
+>  	  If you say yes here you get support for the I2C control
+>  	  interface for Texas Instruments TLV320AIC23 audio codec.
 >  
-> -	if ((err = read_gpio_expa(&expa, 0x26))) {
-> -		printk(KERN_ERR "Error reading from I/O EXPANDER \n");
-> -		return err;
-> -	}
-> +static int gpio_irda_enable;
-> +static int gpio_irda_x;
-> +static int gpio_irda_fir;
->  
-> -	/* 'P6' enable/disable IRDA_TX and IRDA_RX */
-> -	if (state & IR_SEL) { /* IrDA */
-> -		if ((err = write_gpio_expa(expa | 0x40, 0x26))) {
-> -			printk(KERN_ERR "Error writing to I/O EXPANDER \n");
-> -			return err;
-> -		}
-> -	} else {
-> -		if ((err = write_gpio_expa(expa & ~0x40, 0x26))) {
-> -			printk(KERN_ERR "Error writing to I/O EXPANDER \n");
-> -			return err;
-> -		}
-> -	}
+> -config GPIOEXPANDER_OMAP
+> -	bool "GPIO Expander PCF8574PWR for OMAP"
+> -	depends on I2C && MACH_OMAP_H3
+> -	help
+> -	  If you say yes here you get support for I/O expander calls
+> -	  to configure IrDA, Camera and audio devices.
+> -
+>  config TWL4030_MADC
+>  	tristate "TWL4030 MADC Driver"
+>  	depends on TWL4030_CORE
+> --- a/drivers/i2c/chips/Makefile
+> +++ b/drivers/i2c/chips/Makefile
+> @@ -20,7 +20,6 @@ obj-$(CONFIG_PCF8575)		+= pcf8575.o
+>  obj-$(CONFIG_SENSORS_PCF8591)	+= pcf8591.o
+>  obj-$(CONFIG_TPS65010)		+= tps65010.o
+>  obj-$(CONFIG_SENSORS_TLV320AIC23) += tlv320aic23.o
+> -obj-$(CONFIG_GPIOEXPANDER_OMAP)	+= gpio_expander_omap.o
+>  obj-$(CONFIG_MENELAUS)		+= menelaus.o
+>  obj-$(CONFIG_SENSORS_TSL2550)	+= tsl2550.o
+>  obj-$(CONFIG_MCU_MPC8349EMITX)	+= mcu_mpc8349emitx.o
+> --- a/drivers/i2c/chips/gpio_expander_omap.c
+> +++ /dev/null
+> @@ -1,71 +0,0 @@
+> -/*
+> - * drivers/i2c/chips/gpio_expander_omap.c
+> - *
+> - * Copyright (C) 2004 Texas Instruments Inc
+> - * Author:
+> - *
+> - * gpio expander is used to configure IrDA, camera and audio devices on omap 1710 processor.
+> - *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License version 2 as
+> - * published by the Free Software Foundation.
+> - *
+> - */
+> -
+> -#include <linux/types.h>
+> -#include <linux/i2c.h>
+> -#include <linux/errno.h>
+> -
+> -int read_gpio_expa(u8 * val, int addr);
+> -int write_gpio_expa(u8 val, int addr);
+> -
+> -int write_gpio_expa(u8 val, int addr)
+> -{
+> -	struct i2c_adapter *adap;
+> -	int err;
+> -	struct i2c_msg msg[1];
+> -	unsigned char data[1];
+> -
+> -	adap = i2c_get_adapter(1);
+> -	if (!adap)
+> -		return -ENODEV;
+> -	msg->addr = addr;	/* I2C address of GPIO EXPA */
+> -	msg->flags = 0;
+> -	msg->len = 1;
+> -	msg->buf = data;
+> -	data[0] = val;
+> -	err = i2c_transfer(adap, msg, 1);
+> -	if (err >= 0)
+> -		return 0;
 > -	return err;
-> +static int h3_select_irda(struct device *dev, int state)
-> +{
-> +	gpio_set_value_cansleep(gpio_irda_enable, state & IR_SEL);
-> +	return 0;
->  }
->  
->  static void set_trans_mode(struct work_struct *work)
-> @@ -314,24 +300,9 @@ static void set_trans_mode(struct work_s
->  	struct omap_irda_config *irda_config =
->  		container_of(work, struct omap_irda_config, gpio_expa.work);
->  	int mode = irda_config->mode;
-> -	unsigned char expa;
-> -	int err = 0;
+> -}
 > -
-> -	if ((err = read_gpio_expa(&expa, 0x27)) != 0) {
-> -		printk(KERN_ERR "Error reading from I/O expander\n");
-> -	}
->  
-> -	expa &= ~0x03;
+> -/* Read from I/O EXPANDER on the H3 board.
+> - * The IO expanders need an independent I2C client driver.
+> - */
 > -
-> -	if (mode & IR_SIRMODE) {
-> -		expa |= 0x01;
-> -	} else { /* MIR/FIR */
-> -		expa |= 0x03;
-> -	}
+> -int read_gpio_expa(u8 * val, int addr)
+> -{
+> -	struct i2c_adapter *adap;
+> -	int err;
+> -	struct i2c_msg msg[1];
+> -	unsigned char data[1];
 > -
-> -	if ((err = write_gpio_expa(expa, 0x27)) != 0) {
-> -		printk(KERN_ERR "Error writing to I/O expander\n");
-> -	}
-> +	gpio_set_value_cansleep(gpio_irda_x, 1);
-> +	gpio_set_value_cansleep(gpio_irda_fir, !(mode & IR_SIRMODE));
->  }
->  
->  static int h3_transceiver_mode(struct device *dev, int mode)
-> @@ -441,7 +412,6 @@ static struct platform_device *devices[]
->  	&nand_device,
->          &smc91x_device,
->  	&intlat_device,
-> -	&h3_irda_device,
->  	&h3_kp_device,
->  	&h3_lcd_device,
->  	&h3_mcbsp1_device,
-> @@ -483,6 +453,9 @@ static int nand_dev_ready(struct omap_na
->  }
->  
->  #if defined(CONFIG_VIDEO_OV9640) || defined(CONFIG_VIDEO_OV9640_MODULE)
-> +
-> +#include <../drivers/media/video/ov9640.h>
-> +
->  /*
->   * Common OV9640 register initialization for all image sizes, pixel formats,
->   * and frame rates
-> @@ -576,8 +549,61 @@ static struct ov9640_platform_data h3_ov
->  };
->  #endif
->  
-> +static int h3_pcf_setup(struct i2c_client *client, int gpio,
-> +		unsigned ngpio, void *context)
-> +{
-> +	int	status;
-> +
-> +	/* REVISIT someone with schematics should look up the rest
-> +	 * of these signals, and configure them appropriately ...
-> +	 * camera and audio seem to be involved, too.
-> +	 */
-> +
-> +	/* P0 - ? */
-> +	gpio_irda_x = gpio + 0;
-> +	status = gpio_request(gpio_irda_x, "irda_x");
-> +	if (status < 0)
-> +		goto done;
-> +	status = gpio_direction_output(gpio_irda_x, 0);
-> +	if (status < 0)
-> +		goto done;
-> +
-> +	/* P1 - set if MIR/FIR */
-> +	gpio_irda_fir = gpio + 1;
-> +	status = gpio_request(gpio_irda_fir, "irda_fir");
-> +	if (status < 0)
-> +		goto done;
-> +	status = gpio_direction_output(gpio_irda_fir, 0);
-> +	if (status < 0)
-> +		goto done;
-> +
-> +	/* 'P6' enable/disable IRDA_TX and IRDA_RX ... default, off */
-> +	gpio_irda_enable = gpio + 6;
-> +	status = gpio_request(gpio_irda_enable, "irda_enable");
-> +	if (status < 0)
-> +		goto done;
-> +	status = gpio_direction_output(gpio_irda_enable, 0);
-> +	if (status < 0)
-> +		goto done;
-> +
-> +	/* register the IRDA device now that it can be operated */
-> +	status = platform_device_register(&h3_irda_device);
-> +
-> +done:
-> +	return status;
-> +}
-> +
-> +static struct pcf857x_platform_data h3_pcf_data = {
-> +	/* assign these GPIO numbers right after the MPUIO lines */
-> +	.gpio_base	= OMAP_MAX_GPIO_LINES + 16,
-> +	.setup		= h3_pcf_setup,
-> +};
-> +
->  static struct i2c_board_info __initdata h3_i2c_board_info[] = {
->         {
-> +		I2C_BOARD_INFO("pcf8574", 0x27),
-> +		.platform_data = &h3_pcf_data,
-> +       }, {
->  		I2C_BOARD_INFO("tps65013", 0x48),
->                 /* .irq         = OMAP_GPIO_IRQ(??), */
->         },
+> -	adap = i2c_get_adapter(1);
+> -	if (!adap)
+> -		return -ENODEV;
+> -	msg->addr = addr;	/* I2C address of GPIO EXPA */
+> -	msg->flags = I2C_M_RD;
+> -	msg->len = 2;
+> -	msg->buf = data;
+> -	err = i2c_transfer(adap, msg, 1);
+> -	*val = data[0];
+> -
+> -	if (err >= 0)
+> -		return 0;
+> -	return err;
+> -}
+> -
+> -EXPORT_SYMBOL(read_gpio_expa);
+> -EXPORT_SYMBOL(write_gpio_expa);
+> -
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
