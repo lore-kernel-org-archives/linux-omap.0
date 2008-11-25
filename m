@@ -1,61 +1,80 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] PM: Fix compile error
-Date: Tue, 25 Nov 2008 10:34:37 -0800
-Message-ID: <878wr7psci.fsf@deeprootsystems.com>
-References: <1227253118-32169-1-git-send-email-premi@ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: PWM drivers for TWL4030
+Date: Tue, 25 Nov 2008 10:42:36 -0800
+Message-ID: <200811251042.36549.david-b@pacbell.net>
+References: <6ed0b2680811250857p59195e4dh7dab4e1109769b0c@mail.gmail.com> <6ed0b2680811250859x179afb67l5cca390d3b1e4de1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.173]:47626 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752019AbYKYSep (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 13:34:45 -0500
-Received: by ug-out-1314.google.com with SMTP id 39so1163720ugf.37
-        for <linux-omap@vger.kernel.org>; Tue, 25 Nov 2008 10:34:43 -0800 (PST)
-In-Reply-To: <1227253118-32169-1-git-send-email-premi@ti.com> (Sanjeev Premi's message of "Fri\, 21 Nov 2008 13\:08\:38 +0530")
+Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:41984 "HELO
+	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751924AbYKYTFd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Nov 2008 14:05:33 -0500
+In-Reply-To: <6ed0b2680811250859x179afb67l5cca390d3b1e4de1@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-Sanjeev,
+On Tuesday 25 November 2008, Grazvydas Ignotas wrote:
+> Hi,
+>=20
+> TWL4030 and compatibles have 2 pulse-width modulation (PWM) generator=
+s
+> (PWM0 and PWM1). They are used for backlight control and charger LED
+> in pandora board. I wasn't able to find any drivers for them in
+> linux-omap tree. Is there anyone working on these?=20
 
-Sanjeev Premi <premi@ti.com> writes:
+There are actually four PWM signals ... two associated with LEDs
+(or VIBRA.M, or VIBRA.P; high current) with fast input clocks,
+then PWM0 and PWM1 with slower input clocks which are alternate
+GPIO settings.  PWM1 can be used as VIBRA.SYNC.
 
-> Function pm_dbg_update_time() is defined in within
-> an #ifdef CONFIG_DEBUG_FS; leading to this error:
->
-> arch/arm/mach-omap2/built-in.o: In function `_pwrdm_state_switch':
-> /db/psp_git/users/a0756819/omap-kern-latest/arch/arm/mach-omap2/powerdomain.c:139: undefined reference to `pm_dbg_update_time'
->
+The two LED PWMs are used as GPIOs on the Beagle ... so the GPIO
+driver supports them as output-only GPIOs, setting the LED PWMs
+up to be "always on" or "always off".
 
-Thanks. I have a similar fix for this already staged for the next PM branch.
+In short:  all the PWM-equipped pins have "clean" driver support,
+but only for using them as GPIOs, not as PWM.
 
-Kevin
 
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
-> ---
->  arch/arm/mach-omap2/powerdomain.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> index 0334609..081b3b6 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -136,7 +136,9 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
->  	if (state != prev)
->  		pwrdm->state_counter[state]++;
->  
-> +#ifdef CONFIG_DEBUG_FS
->  	pm_dbg_update_time(pwrdm, prev);
-> +#endif
->  
->  	pwrdm->state = state;
->  
-> -- 
-> 1.5.6
->
+> If not, what would=20
+> be the proper way to expose them? May be as LED driver?
+> I saw lcd_omap*evm.c just write to LED PWM registers over i2c to
+> control backlight, I wonder if I should just do the same.
+
+Right now, just use LEDA and LEDB as GPIO-19 and GPIO-20, like
+Beagle does; ditto for PWM-0/GPIO-6 and PWM-1/GPIO-7.
+
+Near term, something to support led_classdev.brightness_{set,get}
+methods would make sense to me, for LEDA and LEDB.  The EVMs could
+set up LEDA devices and hook them up to the "backlight" trigger.
+The same thing could be done for PWM0 and PWM1.
+
+Long term, we may have a PWM framework ... but it's not ready yet,
+and hasn't even been refreshed recently either.  And so far as I
+know, ALSA has no notion of supporting the VIBRA module hookup
+options for "audio" output.
+
+- Dave
+
+
+
+> Gra=C5=BEvydas
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
+>=20
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
