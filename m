@@ -1,76 +1,427 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 0/5] add omap iommu driver support
-Date: Tue, 25 Nov 2008 17:37:33 +0200
-Message-ID: <1227627458-24412-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 4/5] omap iommu: sysfs for userland interface
+Date: Tue, 25 Nov 2008 17:37:37 +0200
+Message-ID: <1227627458-24412-5-git-send-email-Hiroshi.DOYU@nokia.com>
+References: <1227627458-24412-1-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1227627458-24412-2-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1227627458-24412-3-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1227627458-24412-4-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:33812 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751597AbYKYPiH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 10:38:07 -0500
+Received: from smtp.nokia.com ([192.100.122.230]:50026 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752019AbYKYPiJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 10:38:09 -0500
+In-Reply-To: <1227627458-24412-4-git-send-email-Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-Hi,
-
-Some of TI OMAP series have the peripheral devices with their own
-Memory Management Unit(IOMMU), which is composed of its own TLB and
-optional H/W pagetable (TWL). These MMUs doesn't depend on MPU(ARM)
-MMU at all, but their algorithms are quite similar and they share the
-same physical address space. This patch provides with common in-kernel
-iommu APIs such OMAP peripheral devices(Camera ISP, IVA1, IVA2, DSP
-and the equivalent ones in the latest OMAP successors) to handle
-peripheral device IOMMUs in the same manner.
-
-"tlb and pagetable primitives" has been updated with Russell's
-comments on:
-
-	  http://marc.info/?l=linux-omap&m=122087083712670&w=2
-
-Generalizing this omap iommu code independently from each device
-drivers, "Camera(ISP)", "TI bridge(IVA/DSP)", "dspgateway(DSP)" and
-the future OMAP equivalent device would be more robust and reduce the
-maintenance cost since keeping this critical code at one place can
-avoid some risks, like wrong MMU settings, which may cause critical
-damages on the system.
-
-The following changes since commit 3b7de4be879f1f4f55ae59882a5cbd80f6dcf0f0:
-  Paul Walmsley (1):
-        OMAP3 clock: disable DPLL autoidle while waiting for DPLL to lock
-
-are available in the git repository at:
-
-  http://git.gitorious.org/lk/mainline.git iommu
-
-Hiroshi DOYU (5):
-      omap iommu: tlb and pagetable primitives
-      omap iommu: omap2 architecture specific functions
-      omap iommu: simple virtual address space management
-      omap iommu: sysfs for userland interface
-      omap iommu: entries for Kconfig and Makefile
-
- arch/arm/include/asm/io.h                |    2 +
- arch/arm/include/asm/scatterlist.h       |    2 +
- arch/arm/mach-omap2/Makefile             |    5 +
- arch/arm/mach-omap2/iommu2.c             |  402 ++++++++++++++
- arch/arm/mm/ioremap.c                    |    7 +
- arch/arm/plat-omap/Kconfig               |    8 +
- arch/arm/plat-omap/Makefile              |    1 +
- arch/arm/plat-omap/include/mach/iommu.h  |  185 +++++++
- arch/arm/plat-omap/include/mach/iommu2.h |   94 ++++
- arch/arm/plat-omap/include/mach/iovmm.h  |   93 ++++
- arch/arm/plat-omap/iommu-sysfs.c         |  393 ++++++++++++++
- arch/arm/plat-omap/iommu.c               |  831 ++++++++++++++++++++++++++++
- arch/arm/plat-omap/iopgtable.h           |   70 +++
- arch/arm/plat-omap/iovmm.c               |  869 ++++++++++++++++++++++++++++++
- 14 files changed, 2962 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/iommu2.c
- create mode 100644 arch/arm/plat-omap/include/mach/iommu.h
- create mode 100644 arch/arm/plat-omap/include/mach/iommu2.h
- create mode 100644 arch/arm/plat-omap/include/mach/iovmm.h
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+ arch/arm/plat-omap/iommu-sysfs.c |  393 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 393 insertions(+), 0 deletions(-)
  create mode 100644 arch/arm/plat-omap/iommu-sysfs.c
- create mode 100644 arch/arm/plat-omap/iommu.c
- create mode 100644 arch/arm/plat-omap/iopgtable.h
- create mode 100644 arch/arm/plat-omap/iovmm.c
+
+diff --git a/arch/arm/plat-omap/iommu-sysfs.c b/arch/arm/plat-omap/iommu-sysfs.c
+new file mode 100644
+index 0000000..dcd2ee1
+--- /dev/null
++++ b/arch/arm/plat-omap/iommu-sysfs.c
+@@ -0,0 +1,393 @@
++/*
++ * omap iommu: sysfs for userland interface
++ *
++ * Copyright (C) 2008 Nokia Corporation
++ *
++ * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/err.h>
++#include <linux/module.h>
++#include <linux/clk.h>
++#include <linux/platform_device.h>
++
++#include <mach/iommu.h>
++#include <mach/iovmm.h>
++
++#include "iopgtable.h"
++
++#define kobj_to_iommu(x)						\
++	to_iommu((struct device *)container_of(x, struct device, kobj))
++
++static ssize_t generic_attr_show(struct device *dev,
++				 struct device_attribute *attr, char *buf)
++{
++	struct iommu *obj = to_iommu(dev);
++
++	if (strcmp(attr->attr.name, "name") == 0)
++		return sprintf(buf, "%s\n", obj->name);
++
++	if (strcmp(attr->attr.name, "version") == 0)
++		return sprintf(buf, "%08x\n", iommu_arch_version());
++
++	if (strcmp(attr->attr.name, "nr_tlb_entries") == 0)
++		return sprintf(buf, "%d\n", obj->nr_tlb_entries);
++
++	WARN_ON(1);
++	return 0;
++}
++static DEVICE_ATTR(name, S_IRUGO, generic_attr_show, NULL);
++static DEVICE_ATTR(nr_tlb_entries, S_IRUGO, generic_attr_show, NULL);
++static DEVICE_ATTR(version, S_IRUGO, generic_attr_show, NULL);
++
++static ssize_t iotlb_attr_store(struct device *dev,
++		struct device_attribute *attr, const char *buf,	size_t count)
++{
++	struct iommu *obj = to_iommu(dev);
++	struct iotlb_entry e;
++	struct cr_regs cr;
++	u32 da;
++
++	sscanf(buf, "%x %x", &cr.cam, &cr.ram); /* FIXME: Add OMAP1 support */
++	dev_dbg(obj->dev, "c:%08x r:%08x\n", cr.cam, cr.ram);
++
++	if (!cr.cam || !cr.ram)
++		return -EINVAL;
++
++	da = iotlb_cr_to_virt(&cr);
++
++	clk_enable(obj->clk);
++
++	flush_iotlb_page(obj, da);
++
++	iotlb_cr_to_e(&cr, &e);
++	load_iotlb_entry(obj, &e);
++
++	clk_disable(obj->clk);
++
++	return count;
++}
++
++static ssize_t iotlb_attr_show(struct device *dev,
++			       struct device_attribute *attr, char *buf)
++{
++	int i;
++	struct iotlb_lock saved, l;
++	struct iommu *obj = to_iommu(dev);
++	char *p;
++
++	clk_enable(obj->clk);
++
++	iotlb_lock_get(obj, &saved);
++	memcpy(&l, &saved, sizeof(saved));
++
++	p = buf;
++	p += sprintf(p, "%8s %8s\n", "cam:", "ram:");
++	p += sprintf(p, "-----------------------------------------\n");
++
++	for (i = 0; i < obj->nr_tlb_entries; i++) {
++		struct cr_regs cr;
++
++		l.vict = i;
++		iotlb_read_cr(obj, &l, &cr);
++
++		if (!iotlb_cr_valid(&cr))
++			continue;
++
++		p += iotlb_dump_cr(obj, &cr, p);
++	}
++	iotlb_lock_set(obj, &saved);
++	clk_disable(obj->clk);
++
++	return p - buf;
++}
++static DEVICE_ATTR(tlb, S_IRUGO | S_IWUSR, iotlb_attr_show, iotlb_attr_store);
++
++static ssize_t iopgtable_attr_store(struct device *dev,
++		 struct device_attribute *attr, const char *buf, size_t count)
++{
++	struct iommu *obj = to_iommu(dev);
++	struct iotlb_entry e;
++	struct cr_regs cr;
++	u32 da;
++	int err;
++
++	sscanf(buf, "%x %x", &cr.cam, &cr.ram);
++	dev_dbg(obj->dev, "c:%08x r:%08x\n", cr.cam, cr.ram);
++
++	if (!cr.cam || !cr.ram)
++		return -EINVAL;
++
++	da = iotlb_cr_to_virt(&cr);
++
++	clk_enable(obj->clk);
++
++	iotlb_cr_to_e(&cr, &e);
++	err = iopgtable_store_entry(obj, &e);
++	if (err)
++		dev_err(obj->dev, "%s:\tfail to store cr\n", __func__);
++
++	clk_disable(obj->clk);
++
++	return count;
++}
++
++static ssize_t iopgtable_attr_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	int i;
++	char *p = buf;
++	struct iommu *obj = to_iommu(dev);
++	u32 *iopgd;
++
++	/*
++	 * FIXME: analyze the content of attribute in detail
++	 */
++
++	p += sprintf(p, "L: %8s %8s\n", "da:", "pa:");
++	p += sprintf(p, "-----------------------------------------\n");
++
++	spin_lock(&obj->page_table_lock);
++
++	iopgd = iopgd_offset(obj, 0);
++	for (i = 0; i < PTRS_PER_IOPGD; i++, iopgd++) {
++		int j;
++		u32 *iopte;
++
++		if (!*iopgd)
++			continue;
++
++		if (!((u32)*iopgd & IOPGD_TABLE)) {
++			u32 da;
++
++			da = i << IOPGD_SHIFT;
++			p += sprintf(p, "1: %08x %08x\n", da, *iopgd);
++			continue;
++		}
++
++		iopte = iopte_offset(iopgd, 0);
++		dev_dbg(obj->dev, "%s:\tfound pte:%p\n", __func__, iopte);
++
++		for (j = 0; j < PTRS_PER_IOPTE; j++, iopte++) {
++			u32 da;
++
++			if (!*iopte)
++				continue;
++
++			dev_dbg(obj->dev, "%s:\t[%03d] %p %08x\n", __func__,
++				j, iopte, *iopte);
++
++			da = (i << IOPGD_SHIFT) + (j << IOPTE_SHIFT);
++			p += sprintf(p, "2: %08x %08x\n", da, *iopte);
++		}
++	}
++
++	spin_unlock(&obj->page_table_lock);
++
++	return p - buf;
++}
++static DEVICE_ATTR(pgtable, S_IRUGO | S_IWUSR,
++		   iopgtable_attr_show, iopgtable_attr_store);
++
++static ssize_t mmap_attr_show(struct device *dev,
++			      struct device_attribute *attr, char *buf)
++{
++	struct iovm_struct *tmp;
++	char *p = buf;
++	struct iommu *obj = to_iommu(dev);
++	int i = 0;
++
++	/*
++	 * FIXME:
++	 * - trace physical memory address as well
++	 * - analyze the content of flags
++	 */
++
++	p += sprintf(p, "%-3s %-8s %-8s %6s %8s\n",
++		     "No", "start", "end", "size", "flags");
++	p += sprintf(p, "-------------------------------------------------\n");
++
++	list_for_each_entry(tmp, &obj->mmap, list) {
++		size_t len;
++
++		len = tmp->da_end - tmp->da_start;
++
++		p += sprintf(p, "%3d %08x-%08x %6x %8x\n",
++			     i, tmp->da_start, tmp->da_end, len, tmp->flags);
++		i++;
++	}
++
++	return p - buf;
++}
++static DEVICE_ATTR(mmap, S_IRUGO, mmap_attr_show, NULL);
++
++#ifdef DEBUG
++static ssize_t regs_attr_show(struct device *dev,
++			      struct device_attribute *attr, char *buf)
++{
++	struct iommu *obj = to_iommu(dev);
++
++	return iommu_dump_ctx(obj, buf);
++}
++static DEVICE_ATTR(regs, S_IRUGO, regs_attr_show, NULL);
++#endif
++
++static struct attribute *iommu_attrs[] = {
++	&dev_attr_name.attr,
++	&dev_attr_nr_tlb_entries.attr,
++	&dev_attr_version.attr,
++	&dev_attr_tlb.attr,
++	&dev_attr_pgtable.attr,
++	&dev_attr_mmap.attr,
++#ifdef DEBUG
++	&dev_attr_regs.attr,
++#endif
++	NULL,
++};
++
++static struct attribute_group iommu_attr_grp = {
++	.attrs	= iommu_attrs,
++};
++
++static ssize_t iommu_mem_read(struct kobject *kobj, struct bin_attribute *attr,
++			      char *buf, loff_t offset, size_t count)
++{
++	struct iovm_struct *area;
++	struct iommu *obj = kobj_to_iommu(kobj);
++
++	mutex_lock(&obj->mmap_lock);
++
++	area = find_iovm_area(obj, offset);
++	if (IS_ERR(area)) {
++		mutex_unlock(&obj->mmap_lock);
++		return -EINVAL;
++	}
++
++	clk_enable(obj->clk);
++
++	memcpy(buf, area->va, count);
++
++	clk_disable(obj->clk);
++
++	mutex_unlock(&obj->mmap_lock);
++	return count;
++}
++
++static ssize_t iommu_mem_write(struct kobject *kobj, struct bin_attribute *attr,
++			       char *buf, loff_t offset, size_t count)
++{
++	struct iovm_struct *area;
++	struct iommu *obj = kobj_to_iommu(kobj);
++
++	mutex_lock(&obj->mmap_lock);
++
++	area = find_iovm_area(obj, offset);
++	if (IS_ERR(area)) {
++		mutex_unlock(&obj->mmap_lock);
++		return -EINVAL;
++	}
++
++	clk_enable(obj->clk);
++
++	memcpy(area->va, buf, count);
++
++	clk_disable(obj->clk);
++
++	mutex_unlock(&obj->mmap_lock);
++	return count;
++}
++
++static int iommu_mem_mmap(struct kobject *kobj, struct bin_attribute *attr,
++			  struct vm_area_struct *vma)
++{
++	struct iovm_struct *ia;
++	struct iommu *obj = kobj_to_iommu(kobj);
++
++	BUG_ON(!IS_ALIGNED(vma->vm_pgoff, PAGE_SIZE));
++
++	mutex_lock(&obj->mmap_lock);
++
++	ia = find_iovm_area(obj, vma->vm_pgoff);
++	if (IS_ERR(ia)) {
++		mutex_unlock(&obj->mmap_lock);
++		return -EINVAL;
++	}
++
++	if ((vma->vm_end - vma->vm_start) != PAGE_SIZE) {
++		mutex_unlock(&obj->mmap_lock);
++		return -EINVAL;
++	}
++
++	vma->vm_flags |= VM_IO;
++	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
++
++	if (io_remap_pfn_range(vma, vma->vm_start, (u32)ia->va >> PAGE_SHIFT,
++			       PAGE_SIZE, vma->vm_page_prot)) {
++		dev_err(obj->dev, "%s:\t\n", __func__);
++		mutex_unlock(&obj->mmap_lock);
++		return -EAGAIN;
++	}
++	/* FIXME: clock should be kept on during mapped? */
++
++	mutex_unlock(&obj->mmap_lock);
++	return 0;
++}
++
++/* FIXME: replace sysfs with more flexible interface(ex: char dev or dspfs) */
++static struct bin_attribute iommu_attr_mem = {
++	.attr	= {
++		.name	= "mem",
++		.owner	= THIS_MODULE,
++		.mode	= S_IRUSR | S_IWUSR | S_IRGRP,
++	},
++	.read	= iommu_mem_read,
++	.write	= iommu_mem_write,
++	.mmap	= iommu_mem_mmap,
++};
++
++int iommu_register_sysfs(struct iommu *obj)
++{
++	int err;
++
++	if (!obj || !obj->dev)
++		return -EINVAL;
++
++	err = sysfs_create_group(&obj->dev->kobj, &iommu_attr_grp);
++	if (err)
++		return err;
++
++	err = sysfs_create_bin_file(&obj->dev->kobj, &iommu_attr_mem);
++	if (err)
++		sysfs_remove_group(&obj->dev->kobj, &iommu_attr_grp);
++
++	return err;
++}
++EXPORT_SYMBOL_GPL(iommu_register_sysfs);
++
++void iommu_unregister_sysfs(struct iommu *obj)
++{
++	WARN_ON(!obj || !obj->dev);
++
++	sysfs_remove_bin_file(&obj->dev->kobj, &iommu_attr_mem);
++	sysfs_remove_group(&obj->dev->kobj, &iommu_attr_grp);
++}
++EXPORT_SYMBOL_GPL(iommu_unregister_sysfs);
++
++static int __init iommu_sysfs_init(void)
++{
++	return 0;
++}
++module_init(iommu_sysfs_init)
++
++static void __exit iommu_sysfs_exit(void)
++{
++}
++module_exit(iommu_sysfs_exit)
++
++MODULE_DESCRIPTION("omap iommu: sysfs for userland interface");
++MODULE_AUTHOR("Hiroshi DOYU <Hiroshi.DOYU@nokia.com>");
++MODULE_LICENSE("GPL v2");
+-- 
+1.6.0.3.613.g9f8f13
 
