@@ -1,32 +1,40 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 05/10] omap mailbox: fix empty struct device for omap1
-Date: Tue, 25 Nov 2008 11:44:27 +0200
-Message-ID: <20081125094427.GA4436@gandalf.research.nokia.com>
-References: <1227605998-13531-1-git-send-email-Hiroshi.DOYU@nokia.com> <1227605998-13531-2-git-send-email-Hiroshi.DOYU@nokia.com> <1227605998-13531-3-git-send-email-Hiroshi.DOYU@nokia.com> <1227605998-13531-4-git-send-email-Hiroshi.DOYU@nokia.com> <1227605998-13531-5-git-send-email-Hiroshi.DOYU@nokia.com> <1227605998-13531-6-git-send-email-Hiroshi.DOYU@nokia.com>
-Reply-To: felipe.balbi@nokia.com
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] i2c: i2c-omap: Fix BUFSTAT_REG reading
+Date: Tue, 25 Nov 2008 02:01:09 -0800
+Message-ID: <200811250201.09214.david-b@pacbell.net>
+References: <12275961701188-git-send-email-ext-eero.nurkkala@nokia.com> <200811242327.12026.david-b@pacbell.net> <1227604759.27458.16.camel@eenurkka-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:35795 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752566AbYKYJqE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 04:46:04 -0500
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mAP9jjWk003957
-	for <linux-omap@vger.kernel.org>; Tue, 25 Nov 2008 11:46:02 +0200
+Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:27706 "HELO
+	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752519AbYKYKBL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Nov 2008 05:01:11 -0500
+In-Reply-To: <1227604759.27458.16.camel@eenurkka-desktop>
 Content-Disposition: inline
-In-Reply-To: <1227605998-13531-6-git-send-email-Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: ext-eero.nurkkala@nokia.com
 Cc: linux-omap@vger.kernel.org
 
-On Tue, Nov 25, 2008 at 11:39:53AM +0200, Hiroshi DOYU wrote:
-> +MODULE_ALIAS("platform:"DRV_NAME");
+On Tuesday 25 November 2008, Eero Nurkkala wrote:
+> Shortly: Restate the introductory header and resend the patches?
 
-small typo here ?
+Restate, and update the patch to address the issues noted inline.
+You had added the
 
-MODULE_ALIAS("platform:" DRV_NAME);
+	if (34xx) {
+		...
+	} else /* must be 2430 */ {
+		...
+	}
 
--- 
-balbi
+branches, but since 34xx and 2430 act the same there (per Tony's
+check of the 2430 manual) ... neither the check, nor the "else"
+branch, is needed.
+
+
+
