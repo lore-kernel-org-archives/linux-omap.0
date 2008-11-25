@@ -1,63 +1,36 @@
-From: ext-eero.nurkkala@nokia.com
-Subject: [PATCH] i2c: i2c-omap: Fix BUFSTAT_REG reading
-Date: Tue, 25 Nov 2008 13:02:28 +0200
-Message-ID: <12276109483555-git-send-email-ext-eero.nurkkala@nokia.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 05/10] omap mailbox: fix empty struct device for omap1
+Date: Tue, 25 Nov 2008 13:13:23 +0200 (EET)
+Message-ID: <20081125.131323.166913714.Hiroshi.DOYU@nokia.com>
+References: <1227605998-13531-5-git-send-email-Hiroshi.DOYU@nokia.com>
+	<1227605998-13531-6-git-send-email-Hiroshi.DOYU@nokia.com>
+	<20081125094427.GA4436@gandalf.research.nokia.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:51034 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752636AbYKYLDu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 06:03:50 -0500
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mAPB1Dpi024252
-	for <linux-omap@vger.kernel.org>; Tue, 25 Nov 2008 05:03:48 -0600
+Received: from smtp.nokia.com ([192.100.122.233]:56610 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753261AbYKYLNk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2008 06:13:40 -0500
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mAPBDLNp024701
+	for <linux-omap@vger.kernel.org>; Tue, 25 Nov 2008 13:13:37 +0200
+In-Reply-To: <20081125094427.GA4436@gandalf.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Eero Nurkkala <eenurkka@lahna.nmp.nokia.com>
+To: felipe.balbi@nokia.com
+Cc: linux-omap@vger.kernel.org
 
-From: Eero Nurkkala <eenurkka@lahna.nmp.nokia.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 05/10] omap mailbox: fix empty struct device for omap1
+Date: Tue, 25 Nov 2008 11:44:27 +0200
 
-The number of bytes to be received is read from wrong
-place with all OMAPs with highspeed I2C support,
-which involves a FIFO and BUFSTAT_REG. It is the 6
-bits starting from the bit 8 in the BUFSTAT_REG
-that indicate this amount of bytes to be read.
-Moreover, only the 6 LSB:s are relevant for the 
-TXSTAT field. 
+> On Tue, Nov 25, 2008 at 11:39:53AM +0200, Hiroshi DOYU wrote:
+> > +MODULE_ALIAS("platform:"DRV_NAME");
+> 
+> small typo here ?
 
-Signed-off-by: Eero Nurkkala <eenurkka@lahna.nmp.nokia.com>
----
- drivers/i2c/busses/i2c-omap.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+Right. fixed it in the repository. Thanks.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 96f3bed..71b37ed 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -675,8 +675,9 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 				if (stat & OMAP_I2C_STAT_RRDY)
- 					num_bytes = dev->fifo_size;
- 				else
--					num_bytes = omap_i2c_read_reg(dev,
--							OMAP_I2C_BUFSTAT_REG);
-+					num_bytes = (omap_i2c_read_reg(dev,
-+							OMAP_I2C_BUFSTAT_REG)
-+							>> 8) & 0x3F;
- 			}
- 			while (num_bytes) {
- 				num_bytes--;
-@@ -714,8 +715,9 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 				if (stat & OMAP_I2C_STAT_XRDY)
- 					num_bytes = dev->fifo_size;
- 				else
--					num_bytes = omap_i2c_read_reg(dev,
--							OMAP_I2C_BUFSTAT_REG);
-+					num_bytes = (omap_i2c_read_reg(dev,
-+							OMAP_I2C_BUFSTAT_REG))
-+							& 0x3F;
- 			}
- 			while (num_bytes) {
- 				num_bytes--;
--- 
-1.6.0
-
+       Hiroshi DOYU
