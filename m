@@ -1,130 +1,94 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP general SOC driver.
-Date: Wed, 26 Nov 2008 07:53:22 -0800
-Message-ID: <20081126155321.GI11997@atomide.com>
-References: <1227696478-8354-1-git-send-email-stanley.miao@windriver.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <1227696478-8354-1-git-send-email-stanley.miao@windriver.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "Stanley.Miao" <stanley.miao@windriver.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, broonie@sirena.org.uk
+From: hvaibhav@ti.com
+Subject: [PATCH 1/2] Add Input/Output related ioctl support
+Date: Wed, 26 Nov 2008 22:34:39 +0530
+Message-ID: <1227719079-19459-1-git-send-email-hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
+Return-path: <video4linux-list-bounces@redhat.com>
+In-Reply-To: <hvaibhav@ti.com>
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+To: video4linux-list@redhat.com
+Cc: davinci-linux-open-source-bounces@linux.davincidsp.com, Karicheri Muralidharan <m-karicheri2@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Stanley.Miao <stanley.miao@windriver.com> [081126 02:42]:
-> Add a shared omap SoC driver to avoid reduplicate code among omap soc drivers.
-> 
-> Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
-> ---
->  sound/soc/omap/Kconfig        |   49 +++++++++++++
->  sound/soc/omap/Makefile       |   13 ++++
->  sound/soc/omap/omap-general.c |  155 +++++++++++++++++++++++++++++++++++++++++
->  sound/soc/omap/omap-general.h |   70 ++++++++++++++++++
->  4 files changed, 287 insertions(+), 0 deletions(-)
->  create mode 100644 sound/soc/omap/omap-general.c
->  create mode 100644 sound/soc/omap/omap-general.h
-> 
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-<snip>
+Note - Resending again with TVP driver for completeness.
 
-> --- /dev/null
-> +++ b/sound/soc/omap/omap-general.h
-> @@ -0,0 +1,70 @@
-> +/*
-> + * omap-general.h
-> + *
-> + * Copyright (C) 2008 Wind River Systems, Inc.
-> + *
-> + * Author: Stanley Miao <stanley.miao@windriver.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + *
-> + */
-> +
-> +#ifdef CONFIG_SND_OMAP_SOC_N810
-> +#include "../codecs/tlv320aic3x.h"
-> +#define CODEC_SYS_CLOCK		12000000
-> +#define CODEC_NAME		"TLV320AIC33"
-> +#define STREAM_NAME		"AIC33"
-> +#define CODEC_DEV		(&soc_codec_dev_aic3x)
-> +#define CODEC_DAI		(&aic3x_dai)
-> +#define CODEC_SETUP_DATA	(&&n810_aic33_setup)
-> +#define DAI_LINK_INIT		(n810_aic33_init)
-> +#define SOC_OPS_STARTUP		(n810_startup)
-> +#define SOC_OPS_SHUTDOWN	(n810_shutdown)
-> +#else
-> +#include "../codecs/twl4030.h"
-> +#define CODEC_SYS_CLOCK		26000000
-> +#define CODEC_NAME		"TWL4030"
-> +#define STREAM_NAME		"TWL4030"
-> +#define CODEC_DEV		(&soc_codec_dev_twl4030)
-> +#define CODEC_DAI		(&twl4030_dai)
-> +#define CODEC_SETUP_DATA 	NULL
-> +#define DAI_LINK_INIT		NULL
-> +#define SOC_OPS_STARTUP		NULL
-> +#define SOC_OPS_SHUTDOWN	NULL
-> +#endif /* CONFIG_SND_OMAP_SOC_N810 */
-> +
-> +#ifdef CONFIG_SND_OMAP_SOC_N810
-> +#define MACHINE_IS_OMAP_GENERAL (machine_is_nokia_n810() || machine_is_nokia_n810_wimax())
-> +#elif defined(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE)
-> +#define MACHINE_IS_OMAP_GENERAL machine_is_omap3_beagle()
-> +#elif defined(CONFIG_SND_OMAP_SOC_OVERO)
-> +#define MACHINE_IS_OMAP_GENERAL machine_is_overo()
-> +#elif defined(CONFIG_SND_OMAP_SOC_3430SDP)
-> +#define MACHINE_IS_OMAP_GENERAL machine_is_omap_3430sdp()
-> +#elif defined(CONFIG_SND_OMAP_SOC_LDP)
-> +#define MACHINE_IS_OMAP_GENERAL machine_is_omap_ldp()
-> +#elif defined(CONFIG_SND_OMAP_SOC_OMAP2EVM)
-> +#define MACHINE_IS_OMAP_GENERAL machine_is_omap2evm()
-> +#elif defined(CONFIG_SND_OMAP_SOC_OMAP3EVM)
-> +#define MACHINE_IS_OMAP_GENERAL machine_is_omapevm()
-> +#endif
+Added ioctl support for query std, set std, enum input,
+get input, set input, enum output, get output and set output.
 
-Please also remove these ifdef elsif stuff above to compile in support
-for multiple boards. The best way to to do it is to pass the
-necessary info in platform_data, so you should not need to use
-machine_is_omapxxxx() or cpu_is_omapxxxx() in the actual driver code.
+For sensor kind of slave drivers v4l2-int-device.h provides
+necessary ioctl support, but the ioctls required to interface
+with decoders and encoders are missing. Most of the decoders
+and encoders supports multiple inputs and outputs, like
+S-Video or Composite.
 
-Regards,
+With these ioctl''s user can select the specific input/output.
 
-Tony
+Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+Signed-off-by: Hardik Shah <hardik.shah@ti.com>
+Signed-off-by: Manjunath Hadli <mrh@ti.com>
+Signed-off-by: R Sivaraj <sivaraj@ti.com>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Karicheri Muralidharan <m-karicheri2@ti.com>
+---
+ include/media/v4l2-int-device.h |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+), 0 deletions(-)
 
+diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
+index 9c2df41..2325b2a 100644
+--- a/include/media/v4l2-int-device.h
++++ b/include/media/v4l2-int-device.h
+@@ -102,6 +102,7 @@ enum v4l2_power {
+ 	V4L2_POWER_OFF = 0,
+ 	V4L2_POWER_ON,
+ 	V4L2_POWER_STANDBY,
++	V4L2_POWER_RESUME,
+ };
 
-> +#ifndef omap_board_soc_init
-> +#define omap_board_soc_init(x) 0
-> +#endif
-> +#ifndef omap_board_soc_exit
-> +#define omap_board_soc_exit
-> +#endif
-> +
-> -- 
-> 1.5.6.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ /* Slave interface type. */
+@@ -183,6 +184,14 @@ enum v4l2_int_ioctl_num {
+ 	vidioc_int_s_crop_num,
+ 	vidioc_int_g_parm_num,
+ 	vidioc_int_s_parm_num,
++	vidioc_int_querystd_num,
++	vidioc_int_s_std_num,
++	vidioc_int_enum_input_num,
++	vidioc_int_g_input_num,
++	vidioc_int_s_input_num,
++	vidioc_int_enumoutput_num,
++	vidioc_int_g_output_num,
++	vidioc_int_s_output_num,
+
+ 	/*
+ 	 *
+@@ -284,6 +293,14 @@ V4L2_INT_WRAPPER_1(g_crop, struct v4l2_crop, *);
+ V4L2_INT_WRAPPER_1(s_crop, struct v4l2_crop, *);
+ V4L2_INT_WRAPPER_1(g_parm, struct v4l2_streamparm, *);
+ V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
++V4L2_INT_WRAPPER_1(querystd, v4l2_std_id, *);
++V4L2_INT_WRAPPER_1(s_std, v4l2_std_id, *);
++V4L2_INT_WRAPPER_1(enum_input, struct v4l2_input, *);
++V4L2_INT_WRAPPER_1(g_input, int, *);
++V4L2_INT_WRAPPER_1(s_input, int, );
++V4L2_INT_WRAPPER_1(enumoutput, struct v4l2_output, *);
++V4L2_INT_WRAPPER_1(g_output, int, *);
++V4L2_INT_WRAPPER_1(s_output, int, );
+
+ V4L2_INT_WRAPPER_0(dev_init);
+ V4L2_INT_WRAPPER_0(dev_exit);
+--
+1.5.6
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
