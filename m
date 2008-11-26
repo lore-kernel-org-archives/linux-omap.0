@@ -1,70 +1,45 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Please fix or remove OMAP2 onenand driver
-Date: Wed, 26 Nov 2008 09:57:27 +0000
-Message-ID: <20081126095726.GA7422@flint.arm.linux.org.uk>
-References: <20081123165011.GB17438@flint.arm.linux.org.uk> <492A91E1.50305@nokia.com> <20081124120153.GA5330@flint.arm.linux.org.uk> <492AA1B4.9030803@nokia.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: ARM : OMAP: Pass logical DMA channel number always to callback
+ handlers
+Date: Wed, 26 Nov 2008 12:11:43 +0200
+Message-ID: <20081126121143.f564a966.jarkko.nikula@nokia.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02936BEAED@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37102 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751506AbYKZKCt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 05:02:49 -0500
-Content-Disposition: inline
-In-Reply-To: <492AA1B4.9030803@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:48006 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751927AbYKZKMJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 05:12:09 -0500
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02936BEAED@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <ext-adrian.hunter@nokia.com>, dwmw2@infradead.org
-Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
+To: "ext Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Nov 24, 2008 at 02:44:36PM +0200, Adrian Hunter wrote:
-> From: Adrian Hunter <ext-adrian.hunter@nokia.com>
-> Date: Mon, 24 Nov 2008 13:34:53 +0200
-> Subject: [PATCH] MTD: OMAP: OneNAND: header file relocation
-> 
-> Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
+On Wed, 26 Nov 2008 14:43:02 +0530
+"ext Shilimkar, Santosh" <santosh.shilimkar@ti.com> wrote:
 
-Great.
+> Hi Jarkko\Tony ,
+> 
+> Recently during some debugging, I observed this patch.
+> http://source.mvista.com/git/?p=linux-omap-2.6.git;a=commitdiff;h=538528de0cb256f65716ab2e9613d9e920f97fe2;hp=29e8c3c304b62f31b799565c9ee85d42bd163f80
+> 
+> As per your description,it improves the debugging. Can you elaborate more on this ?
+> 
+Honestly don't remember what I meant for easier debugging, probably
+just watching how the logical channels are rotating during the transfer
+or something like that.
 
-Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> For users this change is little confusing, if they go as per the signatures of the 'omap_request_dma_chain' and 'omap_request_dma' APIs. Also separating the callbacks for chained and non-chained transfers seems to be the practical usage in most of the cases. Also users would be only interested in 'chain_id' and not 'channel number' in case of chaining.  
+> 
+As commit log says, user can pass the chain_id via callback data if
+needed. I think chained dma callback may also find more use for logical
+channel number than chain_id e.g. when modifying the transfer
+parameters etc.
 
-David, can you merge this patch for 2.6.28 please?
+And uniform, smaller API set is always better than bloated one.
 
-> ---
-> drivers/mtd/onenand/omap2.c |   17 ++++++++---------
-> 1 files changed, 8 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-> index e39b21d..a7e4d98 100644
-> --- a/drivers/mtd/onenand/omap2.c
-> +++ b/drivers/mtd/onenand/omap2.c
-> @@ -32,19 +32,18 @@
-> #include <linux/platform_device.h>
-> #include <linux/interrupt.h>
-> #include <linux/delay.h>
-> +#include <linux/dma-mapping.h>
-> +#include <linux/io.h>
-> 
-> -#include <asm/io.h>
-> #include <asm/mach/flash.h>
-> -#include <asm/arch/gpmc.h>
-> -#include <asm/arch/onenand.h>
-> -#include <asm/arch/gpio.h>
-> -#include <asm/arch/pm.h>
-> +#include <mach/gpmc.h>
-> +#include <mach/onenand.h>
-> +#include <mach/gpio.h>
-> +#include <mach/pm.h>
-> 
-> -#include <linux/dma-mapping.h>
-> -#include <asm/dma-mapping.h>
-> -#include <asm/arch/dma.h>
-> +#include <mach/dma.h>
-> 
-> -#include <asm/arch/board.h>
-> +#include <mach/board.h>
-> 
-> #define DRIVER_NAME "omap2-onenand"
-> 
-> -- 
-> 1.5.4.3
+
+Jarkko
