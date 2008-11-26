@@ -1,42 +1,25 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Fix for dispc's error "omapfb omapfb: irq error status 4020"
-Date: Wed, 26 Nov 2008 09:32:04 -0800
-Message-ID: <20081126173203.GP11997@atomide.com>
-References: <E1KyYMw-0003Ob-5e@amazonia.comcast.net> <1226585192.32348.3.camel@tubuntu>
+Subject: Re: [PATCH] omapfb: Fix argument of blank operation.
+Date: Wed, 26 Nov 2008 09:35:47 -0800
+Message-ID: <20081126173546.GQ11997@atomide.com>
+References: <1227641052-6510-1-git-send-email-felipe.contreras@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64426 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52155 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752915AbYKZRcG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 12:32:06 -0500
+	with ESMTP id S1752292AbYKZRfq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 12:35:46 -0500
 Content-Disposition: inline
-In-Reply-To: <1226585192.32348.3.camel@tubuntu>
+In-Reply-To: <1227641052-6510-1-git-send-email-felipe.contreras@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: rick@efn.org, imre.deak@nokia.com, linux-omap@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@nokia.com> [081113 06:06]:
-> Hi,
-> 
-> On Fri, 2008-11-07 at 12:55 -0800, ext Rick Bronson wrote:
-> > Folks,
-> > 
-> >   Please take a look at this change to drivers/video/omap/dispc.c.  It
-> > addresses a problem seen on some boots of OMAP's.  On about 1 in 30
-> > boots one gets an endless stream of interrupts from the
-> > DISPC_IRQ_SYNC_LOST bit in the DISPC_IRQSTATUS register.  The
-> > following messages are printed.
-> > 
-> >  omapfb omapfb: irq error status 4020
-> 
-> Can you try the patch below if it fixes this problem for you? On my new
-> display subsystem adding a sleep between enabling clocks and doing the
-> soft reset removed the problem.
-> 
-> I tried a bit with different sleep times. With 1ms sleep I still got
-> sync losts. With 10ms I didn't, but I went safe and put 40ms.
+* Felipe Contreras <felipe.contreras@nokia.com> [081125 11:24]:
+> The blank operation should receive FB_BLANK_POWERDOWN, not
+> VESA_POWERDOWN.
 
 Here's my canned fbdev reply for this tread too:
 
@@ -48,34 +31,54 @@ Regards,
 
 Tony
 
+
+> Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
+> ---
+>  drivers/video/omap/omapfb_main.c |    8 ++++----
+>  1 files changed, 4 insertions(+), 4 deletions(-)
 > 
->  Tomi
-> 
-> 
-> 
-> diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
-> index c140c21..bdfda0c 100644
-> --- a/drivers/video/omap/dispc.c
-> +++ b/drivers/video/omap/dispc.c
-> @@ -24,6 +24,7 @@
->  #include <linux/vmalloc.h>
->  #include <linux/clk.h>
->  #include <linux/io.h>
-> +#include <linux/delay.h>
+> diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
+> index 3bb4247..c8db8b2 100644
+> --- a/drivers/video/omap/omapfb_main.c
+> +++ b/drivers/video/omap/omapfb_main.c
+> @@ -348,7 +348,7 @@ static int omapfb_blank(int blank, struct fb_info *fbi)
 >  
->  #include <mach/sram.h>
->  #include <mach/omapfb.h>
-> @@ -1402,6 +1403,10 @@ static int omap_dispc_init(struct omapfb_device *fbdev, int ext_mode,
->                 /* Reset monitoring works only w/ the 54M clk */
->                 enable_digit_clocks(1);
+>  	omapfb_rqueue_lock(fbdev);
+>  	switch (blank) {
+> -	case VESA_NO_BLANKING:
+> +	case FB_BLANK_UNBLANK:
+>  		if (fbdev->state == OMAPFB_SUSPENDED) {
+>  			if (fbdev->ctrl->resume)
+>  				fbdev->ctrl->resume();
+> @@ -359,7 +359,7 @@ static int omapfb_blank(int blank, struct fb_info *fbi)
+>  				do_update = 1;
+>  		}
+>  		break;
+> -	case VESA_POWERDOWN:
+> +	case FB_BLANK_POWERDOWN:
+>  		if (fbdev->state == OMAPFB_ACTIVE) {
+>  			fbdev->panel->disable(fbdev->panel);
+>  			if (fbdev->ctrl->suspend)
+> @@ -1842,7 +1842,7 @@ static int omapfb_suspend(struct platform_device *pdev, pm_message_t mesg)
+>  	struct omapfb_device *fbdev = platform_get_drvdata(pdev);
 >  
-> +               /* We need to wait here a bit, otherwise we sometimes start to get
-> +                * synclost errors. */
-> +               msleep(40);
-> +
->                 /* Soft reset */
->                 MOD_REG_FLD(DISPC_SYSCONFIG, 1 << 1, 1 << 1);
-> 
+>  	if (fbdev != NULL)
+> -		omapfb_blank(VESA_POWERDOWN, fbdev->fb_info[0]);
+> +		omapfb_blank(FB_BLANK_POWERDOWN, fbdev->fb_info[0]);
+>  	return 0;
+>  }
+>  
+> @@ -1852,7 +1852,7 @@ static int omapfb_resume(struct platform_device *pdev)
+>  	struct omapfb_device *fbdev = platform_get_drvdata(pdev);
+>  
+>  	if (fbdev != NULL)
+> -		omapfb_blank(VESA_NO_BLANKING, fbdev->fb_info[0]);
+> +		omapfb_blank(FB_BLANK_UNBLANK, fbdev->fb_info[0]);
+>  	return 0;
+>  }
+>  
+> -- 
+> 1.6.0.4
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
