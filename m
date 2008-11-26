@@ -1,39 +1,70 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] OMAP general SOC driver.
-Date: Wed, 26 Nov 2008 14:03:18 -0800
-Message-ID: <200811261403.18464.david-b@pacbell.net>
-References: <1227696478-8354-1-git-send-email-stanley.miao@windriver.com>
-	<200811261233.13259.david-b@pacbell.net>
-	<20081126211614.GA6514@sirena.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP3: Fixes for suspend / resume GPIO wake-up handling
+Date: Wed, 26 Nov 2008 14:37:39 -0800
+Message-ID: <20081126223736.GH11997@atomide.com>
+References: <1227700030-28295-1-git-send-email-tero.kristo@nokia.com> <87bpw2jozi.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20081126211614.GA6514@sirena.org.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50318 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751904AbYKZWhk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 17:37:40 -0500
 Content-Disposition: inline
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@sirena.org.uk>
-Cc: "Stanley.Miao" <stanley.miao@windriver.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@nokia.com>
+In-Reply-To: <87bpw2jozi.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Tero Kristo <tero.kristo@nokia.com>, linux-omap@vger.kernel.org
 
-On Wednesday 26 November 2008, Mark Brown wrote:
-> >			I wonder if
-> > it shouldn't suffice just to provide a mask of capabilities
-> > that are wired up on a given board.
+* Kevin Hilman <khilman@deeprootsystems.com> [081126 10:56]:
+> Tero Kristo <tero.kristo@nokia.com> writes:
 > 
-> It's possible - if the differences can be handled by marking some pins
-> as connected or disconnected and possible specifying a different system
-> clock rate to the chip then that approach was what I was expecting.
-> If there is more substantial differences such as having the clocking
-> arranged differently then separate drivers start to make more sense.
+> > Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+> > ---
+> >  arch/arm/plat-omap/gpio.c |    4 ++--
+> >  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> Thanks, I'll pull this into the next PM branch, and this
+> can go straight into linux-omap.
+>
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 
-OK, from my non-expert perspective it sounds eminently do-able.
-By someone else.  :)
+Pushing to l-o and adding to omap-fixes queue.
+
+Tony
+
+
+> > diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+> > index f4ec3af..62349fd 100644
+> > --- a/arch/arm/plat-omap/gpio.c
+> > +++ b/arch/arm/plat-omap/gpio.c
+> > @@ -1585,7 +1585,7 @@ static int omap_gpio_suspend(struct sys_device *dev, pm_message_t mesg)
+> >  #endif
+> >  #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
+> >  		case METHOD_GPIO_24XX:
+> > -			wake_status = bank->base + OMAP24XX_GPIO_SETWKUENA;
+> > +			wake_status = bank->base + OMAP24XX_GPIO_WAKE_EN;
+> >  			wake_clear = bank->base + OMAP24XX_GPIO_CLEARWKUENA;
+> >  			wake_set = bank->base + OMAP24XX_GPIO_SETWKUENA;
+> >  			break;
+> > @@ -1608,7 +1608,7 @@ static int omap_gpio_resume(struct sys_device *dev)
+> >  {
+> >  	int i;
+> >  
+> > -	if (!cpu_is_omap24xx() && !cpu_is_omap16xx())
+> > +	if (!cpu_class_is_omap2() && !cpu_is_omap16xx())
+> >  		return 0;
+> >  
+> >  	for (i = 0; i < gpio_bank_count; i++) {
+> > -- 
+> > 1.5.4.3
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
