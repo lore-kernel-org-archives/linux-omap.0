@@ -1,68 +1,96 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [PATCH] OMAP general SOC driver.
-Date: Wed, 26 Nov 2008 20:07:52 +0000
-Message-ID: <20081126200750.GK6234@sirena.org.uk>
-References: <1227696478-8354-1-git-send-email-stanley.miao@windriver.com>
-	<20081126110854.GA6234@sirena.org.uk>
-	<20081126134028.b3c6aa46.jarkko.nikula@nokia.com>
-	<200811261034.42356.david-b@pacbell.net>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] Add OMAP2 camera driver
+Date: Wed, 26 Nov 2008 21:16:42 +0100
+Message-ID: <200811262116.42364.hverkuil@xs4all.nl>
+References: <5d5443650811261044w30748b75w5a47ce8b04680f79@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3798 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752377AbYKZURI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 15:17:08 -0500
+In-Reply-To: <5d5443650811261044w30748b75w5a47ce8b04680f79@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <200811261034.42356.david-b@pacbell.net>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: David Brownell <david-b@pacbell.net>
-Cc: "Stanley.Miao" <stanley.miao@windriver.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: video4linux-list@redhat.com
+Cc: Trilok Soni <soni.trilok@gmail.com>, Sakari Ailus <sakari.ailus@nokia.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-On Wed, Nov 26, 2008 at 10:34:41AM -0800, David Brownell wrote:
+On Wednesday 26 November 2008 19:44:51 Trilok Soni wrote:
+> This patch was living at linux-omap GIT tree from long time and seem
+> to survive the testing. It is also used in N800/N810 Internet Tablet.
+> Sakari Ailus can give more information about this. I am not able to
+> submit this patch as inline one due to my git-send-email
+> configuration with Gmail.
 
-> Re TWL4030 codec configuration ... I count three microphone
-> input channels not used on Beagle, plus a speaker output
-> and some other stuff.  So it's obvious that something which
-> works on Beagle won't handle more interesting configurations
-> of that audio support.  
+Hi Trilok,
 
-Can someone post an overview of what the hardware configurations of
-these boards are, please?  It's starting to sound like they're not very
-similar at all.
+I found a few problems with this patch:
 
-> I'm told that the ASoC stuff "should" go in a separate ASoC
-> area for some reason.  That still makes no good sense to me,
-> so if there's a brief explanation as to why it's done that
-> way, please fling me a URL.  :)
+1) The makefile isn't right: it compiles omap24xxcam.c and 
+omap24xxcam-dma.c as two modules, but I suspect you want only one since 
+the symbols that omap24xxcam.c needs from omap24xxcam-dma.c are not 
+exported. See e.g. the msp3400 driver in the Makefile for how to do it.
 
-The move is in the direction you want but we're not there yet.  The fact
-that things are now decomposed enough for us to be able to think about
-it is a good sign here.
+2) The Kconfig is probably missing a ARCH_OMAP dependency (sounds 
+reasonable, at least), so now it also compiles for the i686 but that 
+architecture doesn't have a clk_get function.
 
-The biggest part of it is that the degree of coupling between the
-various ASoC components is high - this is particularly obvious with v1
-where the entire card is probed at once.  This includes coupling between
-the drivers and the core where the degree of churn is very high right
-now due to v2 merging.  It doesn't feel right to give architectures an
-API that they can't rely on from one merge window to the next yet,
-partly from the point of view of isolating the code for review purposes
-and also due to the merge issues which would doubtless crop up.
+3) I was wondering whether Sakari also wants to add a Signed-off-by 
+line? Looking at the comments it seems that he was involved as well.
 
-Another part of it is that some machine drivers can get involved enough
-to sit on or cross the boundary from platform data to being drivers for
-substantial distinct hardware but that's very much not the case for
-everything.
+4) I get a bunch of compile warnings (admittedly when compiling for 
+i686) that you might want to look at. Compiled against the 2.6.27 
+kernel with gcc-4.3.1. It might be bogus since I didn't compile for the 
+omap architecture.
 
-I've been spending time this week working on getting the ability to load
-platform and codec drivers independantly merged.  That will at least
-allow the instantiation of the ASoC drivers for those to be pushed out
-into the architecture code, which is a start and should substantially
-reduce the size of most machine drivers.  At the point where that's been
-done it's probably worth looking again at the simpler machine drivers.
+  CC [M]  /home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.o
+In file included 
+from /home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.c:42:
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h: In 
+function 'omap24xxcam_reg_in':
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h:549: warning: passing 
+argument 1 of 'readl' makes pointer from integer without a cast
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h: In 
+function 'omap24xxcam_reg_out':
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h:555: warning: passing 
+argument 2 of 'writel' makes pointer from integer without a cast
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h: In 
+function 'omap24xxcam_reg_merge':
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h:563: warning: passing 
+argument 1 of 'readl' makes pointer from integer without a cast
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h:565: warning: passing 
+argument 2 of 'writel' makes pointer from integer without a cast
+  CC [M]  /home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam-dma.o
+In file included 
+from /home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam-dma.c:32:
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h: In 
+function 'omap24xxcam_reg_in':
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h:549: warning: passing 
+argument 1 of 'readl' makes pointer from integer without a cast
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h: In 
+function 'omap24xxcam_reg_out':
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h:555: warning: passing 
+argument 2 of 'writel' makes pointer from integer without a cast
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h: In 
+function 'omap24xxcam_reg_merge':
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h:563: warning: passing 
+argument 1 of 'readl' makes pointer from integer without a cast
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h:565: warning: passing 
+argument 2 of 'writel' makes pointer from integer without a cast
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam-dma.c: In 
+function 'omap24xxcam_dma_hwinit':
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam-dma.c:357: warning: 
+passing argument 1 of '_spin_lock_irqsave' discards qualifiers from 
+pointer target type
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam-dma.c:361: warning: 
+passing argument 1 of '_spin_unlock_irqrestore' discards qualifiers 
+from pointer target type
+
+
+Regards,
+
+	Hans
