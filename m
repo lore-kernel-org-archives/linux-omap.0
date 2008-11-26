@@ -1,69 +1,57 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
+From: David Brownell <david-b@pacbell.net>
 Subject: Re: [PATCH] OMAP general SOC driver.
-Date: Wed, 26 Nov 2008 21:20:07 +0100
-Message-ID: <40134428-B064-4C6A-9229-FBEC8918B296@student.utwente.nl>
-References: <1227696478-8354-1-git-send-email-stanley.miao@windriver.com> <20081126110854.GA6234@sirena.org.uk> <20081126134028.b3c6aa46.jarkko.nikula@nokia.com> <200811261034.42356.david-b@pacbell.net> <20081126200750.GK6234@sirena.org.uk>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-48-315504315"
-Content-Transfer-Encoding: 7bit
+Date: Wed, 26 Nov 2008 12:33:12 -0800
+Message-ID: <200811261233.13259.david-b@pacbell.net>
+References: <1227696478-8354-1-git-send-email-stanley.miao@windriver.com> <200811261034.42356.david-b@pacbell.net> <20081126200750.GK6234@sirena.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx2.utsp.utwente.nl ([130.89.2.13]:40130 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751390AbYKZUUg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 26 Nov 2008 15:20:36 -0500
+Received: from smtp122.sbc.mail.sp1.yahoo.com ([69.147.64.95]:21178 "HELO
+	smtp122.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751585AbYKZUdP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 Nov 2008 15:33:15 -0500
 In-Reply-To: <20081126200750.GK6234@sirena.org.uk>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Mark Brown <broonie@sirena.org.uk>
-Cc: David Brownell <david-b@pacbell.net>, Jarkko Nikula <jarkko.nikula@nokia.com>, "Stanley.Miao" <stanley.miao@windriver.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, "Stanley.Miao" <stanley.miao@windriver.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-48-315504315
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
-
-
-Op 26 nov 2008, om 21:07 heeft Mark Brown het volgende geschreven:
-
-> On Wed, Nov 26, 2008 at 10:34:41AM -0800, David Brownell wrote:
->
->> Re TWL4030 codec configuration ... I count three microphone
->> input channels not used on Beagle, plus a speaker output
->> and some other stuff.  So it's obvious that something which
->> works on Beagle won't handle more interesting configurations
->> of that audio support.
->
+On Wednesday 26 November 2008, Mark Brown wrote:
 > Can someone post an overview of what the hardware configurations of
-> these boards are, please?  It's starting to sound like they're not  
-> very
+> these boards are, please? =A0It's starting to sound like they're not =
+very
 > similar at all.
 
-On the codec level all these board use a variant of the TWL4030. The  
-variants differ slightly in what kind of extra goodies they provide.  
-On the board level not every feature of the TWL familiy is used, the  
-beagle only analog in and analog out, the overo exposes more  
-interfaces, etc.
+I only have schematics for Beagle ... which makes VERY minimal
+use of the twl4030 audio capabilities:
 
-Other people can fill in the details, but these are the differences I  
-can think of.
+ - stereo "headset" output, without its mic
+ - stereo aux-in
 
-regards,
+Other twl4030 family boards *could* have:
 
-Koen 
+ - microphone input for that headset
+ - stereo "hands-off" speakers
+ - mono earpiece output
+ - two other microphone input channels
 
---Apple-Mail-48-315504315
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: This is a digitally signed message part
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
+And maybe more; that's just me summarizing unconnected pins,
+not the datasheet.  There are also cost-reduced parts with
+less audio capability.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
+I make no claim about audio expertise -- the nearest I come
+to it is observing a few years back that there was a huge
+framework hole, which ASoC seems to fill -- but I wonder if
+it shouldn't suffice just to provide a mask of capabilities
+that are wired up on a given board.
 
-iD8DBQFJLa95MkyGM64RGpERAtAEAJ4q9MfcKR3SavDc7Gex1ggBjcvl9wCff6Xm
-CdzAhqoh7HZUoqk4kjyKIaM=
-=Djq5
------END PGP SIGNATURE-----
+- Dave
 
---Apple-Mail-48-315504315--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
