@@ -1,69 +1,130 @@
-From: ext-eero.nurkkala@nokia.com
-Subject: [PATCH] i2c: i2c-omap: Fix standard and fast mode prescalers
-Date: Wed, 26 Nov 2008 15:44:15 +0200
-Message-ID: <12277070551136-git-send-email-ext-eero.nurkkala@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:28043 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753854AbYKZNpA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 08:45:00 -0500
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mAQDigMB023863
-	for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2008 07:44:58 -0600
-Sender: linux-omap-owner@vger.kernel.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP general SOC driver.
+Date: Wed, 26 Nov 2008 07:53:22 -0800
+Message-ID: <20081126155321.GI11997@atomide.com>
+References: <1227696478-8354-1-git-send-email-stanley.miao@windriver.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <1227696478-8354-1-git-send-email-stanley.miao@windriver.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "Stanley.Miao" <stanley.miao@windriver.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, broonie@sirena.org.uk
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+* Stanley.Miao <stanley.miao@windriver.com> [081126 02:42]:
+> Add a shared omap SoC driver to avoid reduplicate code among omap soc drivers.
+> 
+> Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+> ---
+>  sound/soc/omap/Kconfig        |   49 +++++++++++++
+>  sound/soc/omap/Makefile       |   13 ++++
+>  sound/soc/omap/omap-general.c |  155 +++++++++++++++++++++++++++++++++++++++++
+>  sound/soc/omap/omap-general.h |   70 ++++++++++++++++++
+>  4 files changed, 287 insertions(+), 0 deletions(-)
+>  create mode 100644 sound/soc/omap/omap-general.c
+>  create mode 100644 sound/soc/omap/omap-general.h
+> 
 
-The prescalers for 100 kHz and 400 kHz mode
-are wrong for omap 3430 and omap 2430. The
-internal clock is the fclock divided by the
-prescaler. The PSC is an 8 bit field in
-omap3430 and omap2430. Moreover, the scll and
-sclh values should be adjusted properly.
-Having the correct prescaler is important in
-the process of getting a finite i2c clock. In
-addition, the prescaler is used in the process
-of activating the correct noise filter and thus,
-lets more error resilient i2c communications.
+<snip>
 
-Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
----
- drivers/i2c/busses/i2c-omap.c |   12 +++++++++---
- 1 files changed, 9 insertions(+), 3 deletions(-)
+> --- /dev/null
+> +++ b/sound/soc/omap/omap-general.h
+> @@ -0,0 +1,70 @@
+> +/*
+> + * omap-general.h
+> + *
+> + * Copyright (C) 2008 Wind River Systems, Inc.
+> + *
+> + * Author: Stanley Miao <stanley.miao@windriver.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + *
+> + */
+> +
+> +#ifdef CONFIG_SND_OMAP_SOC_N810
+> +#include "../codecs/tlv320aic3x.h"
+> +#define CODEC_SYS_CLOCK		12000000
+> +#define CODEC_NAME		"TLV320AIC33"
+> +#define STREAM_NAME		"AIC33"
+> +#define CODEC_DEV		(&soc_codec_dev_aic3x)
+> +#define CODEC_DAI		(&aic3x_dai)
+> +#define CODEC_SETUP_DATA	(&&n810_aic33_setup)
+> +#define DAI_LINK_INIT		(n810_aic33_init)
+> +#define SOC_OPS_STARTUP		(n810_startup)
+> +#define SOC_OPS_SHUTDOWN	(n810_shutdown)
+> +#else
+> +#include "../codecs/twl4030.h"
+> +#define CODEC_SYS_CLOCK		26000000
+> +#define CODEC_NAME		"TWL4030"
+> +#define STREAM_NAME		"TWL4030"
+> +#define CODEC_DEV		(&soc_codec_dev_twl4030)
+> +#define CODEC_DAI		(&twl4030_dai)
+> +#define CODEC_SETUP_DATA 	NULL
+> +#define DAI_LINK_INIT		NULL
+> +#define SOC_OPS_STARTUP		NULL
+> +#define SOC_OPS_SHUTDOWN	NULL
+> +#endif /* CONFIG_SND_OMAP_SOC_N810 */
+> +
+> +#ifdef CONFIG_SND_OMAP_SOC_N810
+> +#define MACHINE_IS_OMAP_GENERAL (machine_is_nokia_n810() || machine_is_nokia_n810_wimax())
+> +#elif defined(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE)
+> +#define MACHINE_IS_OMAP_GENERAL machine_is_omap3_beagle()
+> +#elif defined(CONFIG_SND_OMAP_SOC_OVERO)
+> +#define MACHINE_IS_OMAP_GENERAL machine_is_overo()
+> +#elif defined(CONFIG_SND_OMAP_SOC_3430SDP)
+> +#define MACHINE_IS_OMAP_GENERAL machine_is_omap_3430sdp()
+> +#elif defined(CONFIG_SND_OMAP_SOC_LDP)
+> +#define MACHINE_IS_OMAP_GENERAL machine_is_omap_ldp()
+> +#elif defined(CONFIG_SND_OMAP_SOC_OMAP2EVM)
+> +#define MACHINE_IS_OMAP_GENERAL machine_is_omap2evm()
+> +#elif defined(CONFIG_SND_OMAP_SOC_OMAP3EVM)
+> +#define MACHINE_IS_OMAP_GENERAL machine_is_omapevm()
+> +#endif
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 630702c..c21af3f 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -337,7 +337,13 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
- 
- 		/* HSI2C controller internal clk rate should be 19.2 Mhz */
--		internal_clk = 19200;
-+		if (dev->speed > 400)
-+			internal_clk = 19200;
-+		else if (dev->speed > 100)
-+			internal_clk = 9600;
-+		else
-+			internal_clk = 4000;
-+
- 		fclk_rate = clk_get_rate(dev->fclk) / 1000;
- 
- 		/* Compute prescaler divisor */
-@@ -355,8 +361,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 			hssclh = fclk_rate / (dev->speed * 2) - 6;
- 		} else {
- 			/* To handle F/S modes */
--			fsscll = internal_clk / (dev->speed * 2) - 6;
--			fssclh = internal_clk / (dev->speed * 2) - 6;
-+			fsscll = internal_clk / (dev->speed * 2) - 3;
-+			fssclh = internal_clk / (dev->speed * 2) - 9;
- 		}
- 		scll = (hsscll << OMAP_I2C_SCLL_HSSCLL) | fsscll;
- 		sclh = (hssclh << OMAP_I2C_SCLH_HSSCLH) | fssclh;
--- 
-1.6.0
+Please also remove these ifdef elsif stuff above to compile in support
+for multiple boards. The best way to to do it is to pass the
+necessary info in platform_data, so you should not need to use
+machine_is_omapxxxx() or cpu_is_omapxxxx() in the actual driver code.
 
+Regards,
+
+Tony
+
+
+> +#ifndef omap_board_soc_init
+> +#define omap_board_soc_init(x) 0
+> +#endif
+> +#ifndef omap_board_soc_exit
+> +#define omap_board_soc_exit
+> +#endif
+> +
+> -- 
+> 1.5.6.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
