@@ -1,62 +1,266 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: ARM : OMAP: Pass logical DMA channel number always to callback
- handlers
-Date: Wed, 26 Nov 2008 14:34:40 +0200
-Message-ID: <20081126143440.bfe30f25.jarkko.nikula@nokia.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02936BEAED@dbde02.ent.ti.com>
-	<20081126121143.f564a966.jarkko.nikula@nokia.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02936BEC19@dbde02.ent.ti.com>
+From: "Rajendra Nayak" <rnayak@ti.com>
+Subject: [PATCH] Fix crash on non-3430SDP platforms with DVFS/CPUFreq
+Date: Wed, 26 Nov 2008 18:31:43 +0530
+Message-ID: <04c101c94fc7$22fea610$LocalHost@wipultra1382>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:62252 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751244AbYKZMfE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 07:35:04 -0500
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02936BEC19@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:35986 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755065AbYKZNBz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 08:01:55 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: 'Kevin Hilman' <khilman@deeprootsystems.com>
 
-On Wed, 26 Nov 2008 16:26:42 +0530
-"ext Shilimkar, Santosh" <santosh.shilimkar@ti.com> wrote:
+The SRF/DVFS + CPUFreq patches had issues booting on
+non-3430SDP platforms as reported by Kevin Hilman.
+This patch puts non-NULL checks in place for mpu_opps/dsp_opps
+/l3_opps before accessing them and fixes the issue.
 
-> > As commit log says, user can pass the chain_id via callback data if
-> > needed. 
-> Yes there are few ways you can achieve this if you don't want to pass the chain_id as part of the callback. But in that case the 'omap_request_dma_chain' callback signature should have been also cleaned ( 'ch' instead of 'chain_id').
-> 
-Ah, yeah, then it was missing from my patch and have to send a patch
-changing it.
+This fix/patch can be applied on top of 
+pm-20081119 branch 
++ [PATCH 00/08] OMAP3 SRF: OPP and Frequency resources
++ [PATCH 00/03] OMAP3 PM: CPUFreq driver for OMAP3
 
-> >I think chained dma callback may also find more use 
-> > for logical channel number than chain_id e.g. when modifying the transfer
-> > parameters etc.
-> When user wants to use chaining,they expects that the chain internals ( free channel allocation etc) should be managed by DMA library. So even user wants to modify the parameters, it can directly use 'omap_modify_dma_chain_params' api and just provide 'chain_id'. For which channel the parameters should be changed will be decided by the DMA library internally depending on free channels from chain.
->
-This approach doesn't work e.g. with audio. Let's assume you would like
-to use DMA chaining with ALSA (been there, done that, until found a
-better solution. See sound/soc/omap-pcm.c).
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/clock34xx.c            |   33 ++++++++++++++++++++---------
+ arch/arm/mach-omap2/pm.h                   |   18 ---------------
+ arch/arm/mach-omap2/resource34xx.c         |   21 ++++++++++++++++++
+ arch/arm/plat-omap/cpu-omap.c              |    6 +----
+ arch/arm/plat-omap/include/mach/omap34xx.h |   18 +++++++++++++++
+ 5 files changed, 64 insertions(+), 32 deletions(-)
 
-ALSA application may ask to use e.g. 100 periods, which is more than
-n.o. logical DMA channels in OMAP so chain length is have to be shorter
-than n.o. periods. Which then means that channel parameters are have to
-modify while the chain is running.
+Index: linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/clock34xx.c	2008-11-26 17:43:12.011090533 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c	2008-11-26 17:47:40.551795371 +0530
+@@ -666,6 +666,9 @@ void omap2_clk_init_cpufreq_table(struct
+ 	struct omap_opp *prcm;
+ 	int i = 0;
+ 
++	if (!mpu_opps)
++		return;
++
+ 	/* Avoid registering the 120% Overdrive with CPUFreq */
+ 	prcm = mpu_opps + MAX_VDD1_OPP - 1;
+ 	for (; prcm->rate; prcm--) {
+@@ -798,20 +801,24 @@ int __init omap2_clk_init(void)
+ 	dpll3_clk = clk_get(NULL, "dpll3_m2_ck");
+ 
+ 	mpu_speed = dpll1_clk->rate;
+-	prcm_vdd = mpu_opps + MAX_VDD1_OPP;
+-	for (; prcm_vdd->rate; prcm_vdd--) {
+-		if (prcm_vdd->rate <= mpu_speed) {
+-			curr_vdd1_prcm_set = prcm_vdd;
+-			break;
++	if (mpu_opps) {
++		prcm_vdd = mpu_opps + MAX_VDD1_OPP;
++		for (; prcm_vdd->rate; prcm_vdd--) {
++			if (prcm_vdd->rate <= mpu_speed) {
++				curr_vdd1_prcm_set = prcm_vdd;
++				break;
++			}
+ 		}
+ 	}
+ 
+ 	core_speed = dpll3_clk->rate;
+-	prcm_vdd = l3_opps + MAX_VDD2_OPP;
+-	for (; prcm_vdd->rate; prcm_vdd--) {
+-		if (prcm_vdd->rate <= core_speed) {
+-			curr_vdd2_prcm_set = prcm_vdd;
+-			break;
++	if (l3_opps) {
++		prcm_vdd = l3_opps + MAX_VDD2_OPP;
++		for (; prcm_vdd->rate; prcm_vdd--) {
++			if (prcm_vdd->rate <= core_speed) {
++				curr_vdd2_prcm_set = prcm_vdd;
++				break;
++			}
+ 		}
+ 	}
+ 
+@@ -878,6 +885,9 @@ static long omap3_round_to_table_rate(st
+ 	if ((clk != &virt_vdd1_prcm_set) && (clk != &virt_vdd2_prcm_set))
+ 		return -EINVAL;
+ 
++	if (!mpu_opps || !dsp_opps || !l3_opps)
++		return -EINVAL;
++
+ 	highest_rate = -EINVAL;
+ 
+ 	if (clk == &virt_vdd1_prcm_set)
+@@ -904,6 +914,9 @@ static int omap3_select_table_rate(struc
+ 	if ((clk != &virt_vdd1_prcm_set) && (clk != &virt_vdd2_prcm_set))
+ 		return -EINVAL;
+ 
++	if (!mpu_opps || !dsp_opps || !l3_opps)
++		return -EINVAL;
++
+ 	if (clk == &virt_vdd1_prcm_set) {
+ 		prcm_vdd = mpu_opps + MAX_VDD1_OPP;
+ 		index = MAX_VDD1_OPP;
+Index: linux-omap-2.6/arch/arm/mach-omap2/pm.h
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/pm.h	2008-11-26 17:43:12.011090533 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/pm.h	2008-11-26 17:47:40.552795340 +0530
+@@ -39,24 +39,6 @@ extern void omap3_pm_off_mode_enable(int
+ #endif
+ extern int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+ 
+-
+-/* VDD1 OPPS */
+-#define VDD1_OPP1	0x1
+-#define VDD1_OPP2	0x2
+-#define VDD1_OPP3	0x3
+-#define VDD1_OPP4	0x4
+-#define VDD1_OPP5	0x5
+-
+-/* VDD2 OPPS */
+-#define VDD2_OPP1	0x1
+-#define VDD2_OPP2	0x2
+-#define VDD2_OPP3	0x3
+-
+-#define MIN_VDD1_OPP	VDD1_OPP1
+-#define MAX_VDD1_OPP	VDD1_OPP5
+-#define MIN_VDD2_OPP	VDD2_OPP1
+-#define MAX_VDD2_OPP	VDD2_OPP3
+-
+ #ifdef CONFIG_PM_DEBUG
+ extern u32 omap2_read_32k_sync_counter(void);
+ extern void omap2_pm_dump(int mode, int resume, unsigned int us);
+Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.c	2008-11-26 17:43:12.011090533 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c	2008-11-26 18:16:28.376582736 +0530
+@@ -144,6 +144,10 @@ static struct device dummy_dsp_dev;
+ void init_opp(struct shared_resource *resp)
+ {
+ 	resp->no_of_users = 0;
++	
++	if (!mpu_opps || !dsp_opps || !l3_opps)
++		return 0;
++
+ 	/* Initialize the current level of the OPP resource
+ 	* to the  opp set by u-boot.
+ 	*/
+@@ -167,6 +171,9 @@ int set_opp(struct shared_resource *resp
+ 	if (resp->curr_level == target_level)
+ 		return 0;
+ 
++	if (!mpu_opps || !dsp_opps || !l3_opps)
++		return 0;
++
+ 	if (strcmp(resp->name, "vdd1_opp") == 0) {
+ 		mpu_old_freq = get_freq(mpu_opps + MAX_VDD1_OPP,
+ 					curr_vdd1_prcm_set->opp_id);
+@@ -184,12 +191,16 @@ int set_opp(struct shared_resource *resp
+ 		if (resp->curr_level > target_level) {
+ 			/* Scale Frequency and then voltage */
+ 			clk_set_rate(vdd1_clk, mpu_freq);
++#ifdef CONFIG_OMAP_SMARTREFLEX
+ 			sr_voltagescale_vcbypass(t_opp,
+ 					mpu_opps[target_level].vsel);
++#endif
+ 		} else {
++#ifdef CONFIG_OMAP_SMARTREFLEX
+ 			/* Scale Voltage and then frequency */
+ 			sr_voltagescale_vcbypass(t_opp,
+ 					mpu_opps[target_level].vsel);
++#endif
+ 			clk_set_rate(vdd1_clk, mpu_freq);
+ 		}
+ 		resp->curr_level = curr_vdd1_prcm_set->opp_id;
+@@ -221,12 +232,16 @@ int set_opp(struct shared_resource *resp
+ 		if (resp->curr_level > target_level) {
+ 			/* Scale Frequency and then voltage */
+ 			clk_set_rate(vdd2_clk, l3_freq);
++#ifdef CONFIG_OMAP_SMARTREFLEX
+ 			sr_voltagescale_vcbypass(t_opp,
+ 					l3_opps[target_level].vsel);
++#endif
+ 		} else {
++#ifdef CONFIG_OMAP_SMARTREFLEX
+ 			/* Scale Voltage and then frequency */
+ 			sr_voltagescale_vcbypass(t_opp,
+ 					l3_opps[target_level].vsel);
++#endif
+ 			clk_set_rate(vdd2_clk, l3_freq);
+ 		}
+ 		resp->curr_level = curr_vdd2_prcm_set->opp_id;
+@@ -253,6 +268,9 @@ void init_freq(struct shared_resource *r
+ 	char *linked_res_name;
+ 	resp->no_of_users = 0;
+ 
++	if (!mpu_opps || !dsp_opps)
++		return;
++
+ 	linked_res_name = (char *)resp->resource_data;
+ 	/* Initialize the current level of the Freq resource
+ 	* to the frequency set by u-boot.
+@@ -271,6 +289,9 @@ int set_freq(struct shared_resource *res
+ {
+ 	unsigned int vdd1_opp;
+ 
++	if (!mpu_opps || !dsp_opps)
++		return 0;
++
+ 	if (strcmp(resp->name, "mpu_freq") == 0) {
+ 		vdd1_opp = get_opp(mpu_opps + MAX_VDD1_OPP, target_level);
+ 		resource_request("vdd1_opp", &dummy_mpu_dev, vdd1_opp);
+Index: linux-omap-2.6/arch/arm/plat-omap/cpu-omap.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/cpu-omap.c	2008-11-26 17:43:12.011090533 +0530
++++ linux-omap-2.6/arch/arm/plat-omap/cpu-omap.c	2008-11-26 17:47:40.552795340 +0530
+@@ -31,7 +31,6 @@
+ #include <mach/clock.h>
+ #if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
+ #include <mach/omap-pm.h>
+-#include "../mach-omap2/pm.h"
+ #endif
+ 
+ #define VERY_HI_RATE	900000000
+@@ -107,9 +106,8 @@ static int omap_target(struct cpufreq_po
+ #endif
+ 	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
+ 	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
+-#elif defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)\
+-	&& defined(CONFIG_MACH_OMAP_3430SDP)
+-	{
++#elif defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
++	if (mpu_opps) {
+ 		int ind;
+ 		for (ind = 1; ind <= MAX_VDD1_OPP; ind++) {
+ 			if (mpu_opps[ind].rate/1000 >= freqs.new) {
+Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/omap34xx.h
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/omap34xx.h	2008-11-26 17:43:12.011090533 +0530
++++ linux-omap-2.6/arch/arm/plat-omap/include/mach/omap34xx.h	2008-11-26 17:47:40.553795309 +0530
+@@ -71,5 +71,23 @@
+ #define OMAP34XX_DSP_MEM_BASE	(OMAP34XX_DSP_BASE + 0x0)
+ #define OMAP34XX_DSP_IPI_BASE	(OMAP34XX_DSP_BASE + 0x1000000)
+ #define OMAP34XX_DSP_MMU_BASE	(OMAP34XX_DSP_BASE + 0x2000000)
++
++/* VDD1 OPPS */
++#define VDD1_OPP1	0x1
++#define VDD1_OPP2	0x2
++#define VDD1_OPP3	0x3
++#define VDD1_OPP4	0x4
++#define VDD1_OPP5	0x5
++
++/* VDD2 OPPS */
++#define VDD2_OPP1	0x1
++#define VDD2_OPP2	0x2
++#define VDD2_OPP3	0x3
++
++#define MIN_VDD1_OPP	VDD1_OPP1
++#define MAX_VDD1_OPP	VDD1_OPP5
++#define MIN_VDD2_OPP	VDD2_OPP1
++#define MAX_VDD2_OPP	VDD2_OPP3
++
+ #endif /* __ASM_ARCH_OMAP34XX_H */
+ 
 
-omap_modify_dma_chain_params is setting parameters for all channels in
-a chain, and more over, function header of it says "Dont do this while
-dma is running!!".
-
-> > And uniform, smaller API set is always better than bloated one.
-> This change any way don't reduce a single API so not sure what you mean by 'smaller API set is always better than bloated one'. It may reduce a callback for a user in
->  
-IMO, API is a one step bigger if DMA callback has different arguments
-depending is it in non-chained vs. chained configuration.
-
-> So I still don't see a real benefit of this patch. Because of above mentioned reasons I think  we should revert this patch.
-> 
-Probably you would like to show/share opposite example?
-
-
-Jarkko
