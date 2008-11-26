@@ -1,266 +1,69 @@
-From: "Rajendra Nayak" <rnayak@ti.com>
-Subject: [PATCH] Fix crash on non-3430SDP platforms with DVFS/CPUFreq
-Date: Wed, 26 Nov 2008 18:31:43 +0530
-Message-ID: <04c101c94fc7$22fea610$LocalHost@wipultra1382>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: ext-eero.nurkkala@nokia.com
+Subject: [PATCH] i2c: i2c-omap: Fix standard and fast mode prescalers
+Date: Wed, 26 Nov 2008 15:44:15 +0200
+Message-ID: <12277070551136-git-send-email-ext-eero.nurkkala@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35986 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755065AbYKZNBz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 08:01:55 -0500
+Received: from smtp.nokia.com ([192.100.105.134]:28043 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753854AbYKZNpA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 08:45:00 -0500
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mAQDigMB023863
+	for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2008 07:44:58 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: 'Kevin Hilman' <khilman@deeprootsystems.com>
+Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-The SRF/DVFS + CPUFreq patches had issues booting on
-non-3430SDP platforms as reported by Kevin Hilman.
-This patch puts non-NULL checks in place for mpu_opps/dsp_opps
-/l3_opps before accessing them and fixes the issue.
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-This fix/patch can be applied on top of 
-pm-20081119 branch 
-+ [PATCH 00/08] OMAP3 SRF: OPP and Frequency resources
-+ [PATCH 00/03] OMAP3 PM: CPUFreq driver for OMAP3
+The prescalers for 100 kHz and 400 kHz mode
+are wrong for omap 3430 and omap 2430. The
+internal clock is the fclock divided by the
+prescaler. The PSC is an 8 bit field in
+omap3430 and omap2430. Moreover, the scll and
+sclh values should be adjusted properly.
+Having the correct prescaler is important in
+the process of getting a finite i2c clock. In
+addition, the prescaler is used in the process
+of activating the correct noise filter and thus,
+lets more error resilient i2c communications.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 ---
- arch/arm/mach-omap2/clock34xx.c            |   33 ++++++++++++++++++++---------
- arch/arm/mach-omap2/pm.h                   |   18 ---------------
- arch/arm/mach-omap2/resource34xx.c         |   21 ++++++++++++++++++
- arch/arm/plat-omap/cpu-omap.c              |    6 +----
- arch/arm/plat-omap/include/mach/omap34xx.h |   18 +++++++++++++++
- 5 files changed, 64 insertions(+), 32 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   12 +++++++++---
+ 1 files changed, 9 insertions(+), 3 deletions(-)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/clock34xx.c	2008-11-26 17:43:12.011090533 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c	2008-11-26 17:47:40.551795371 +0530
-@@ -666,6 +666,9 @@ void omap2_clk_init_cpufreq_table(struct
- 	struct omap_opp *prcm;
- 	int i = 0;
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 630702c..c21af3f 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -337,7 +337,13 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
  
-+	if (!mpu_opps)
-+		return;
+ 		/* HSI2C controller internal clk rate should be 19.2 Mhz */
+-		internal_clk = 19200;
++		if (dev->speed > 400)
++			internal_clk = 19200;
++		else if (dev->speed > 100)
++			internal_clk = 9600;
++		else
++			internal_clk = 4000;
 +
- 	/* Avoid registering the 120% Overdrive with CPUFreq */
- 	prcm = mpu_opps + MAX_VDD1_OPP - 1;
- 	for (; prcm->rate; prcm--) {
-@@ -798,20 +801,24 @@ int __init omap2_clk_init(void)
- 	dpll3_clk = clk_get(NULL, "dpll3_m2_ck");
+ 		fclk_rate = clk_get_rate(dev->fclk) / 1000;
  
- 	mpu_speed = dpll1_clk->rate;
--	prcm_vdd = mpu_opps + MAX_VDD1_OPP;
--	for (; prcm_vdd->rate; prcm_vdd--) {
--		if (prcm_vdd->rate <= mpu_speed) {
--			curr_vdd1_prcm_set = prcm_vdd;
--			break;
-+	if (mpu_opps) {
-+		prcm_vdd = mpu_opps + MAX_VDD1_OPP;
-+		for (; prcm_vdd->rate; prcm_vdd--) {
-+			if (prcm_vdd->rate <= mpu_speed) {
-+				curr_vdd1_prcm_set = prcm_vdd;
-+				break;
-+			}
- 		}
- 	}
- 
- 	core_speed = dpll3_clk->rate;
--	prcm_vdd = l3_opps + MAX_VDD2_OPP;
--	for (; prcm_vdd->rate; prcm_vdd--) {
--		if (prcm_vdd->rate <= core_speed) {
--			curr_vdd2_prcm_set = prcm_vdd;
--			break;
-+	if (l3_opps) {
-+		prcm_vdd = l3_opps + MAX_VDD2_OPP;
-+		for (; prcm_vdd->rate; prcm_vdd--) {
-+			if (prcm_vdd->rate <= core_speed) {
-+				curr_vdd2_prcm_set = prcm_vdd;
-+				break;
-+			}
- 		}
- 	}
- 
-@@ -878,6 +885,9 @@ static long omap3_round_to_table_rate(st
- 	if ((clk != &virt_vdd1_prcm_set) && (clk != &virt_vdd2_prcm_set))
- 		return -EINVAL;
- 
-+	if (!mpu_opps || !dsp_opps || !l3_opps)
-+		return -EINVAL;
-+
- 	highest_rate = -EINVAL;
- 
- 	if (clk == &virt_vdd1_prcm_set)
-@@ -904,6 +914,9 @@ static int omap3_select_table_rate(struc
- 	if ((clk != &virt_vdd1_prcm_set) && (clk != &virt_vdd2_prcm_set))
- 		return -EINVAL;
- 
-+	if (!mpu_opps || !dsp_opps || !l3_opps)
-+		return -EINVAL;
-+
- 	if (clk == &virt_vdd1_prcm_set) {
- 		prcm_vdd = mpu_opps + MAX_VDD1_OPP;
- 		index = MAX_VDD1_OPP;
-Index: linux-omap-2.6/arch/arm/mach-omap2/pm.h
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/pm.h	2008-11-26 17:43:12.011090533 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/pm.h	2008-11-26 17:47:40.552795340 +0530
-@@ -39,24 +39,6 @@ extern void omap3_pm_off_mode_enable(int
- #endif
- extern int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
- 
--
--/* VDD1 OPPS */
--#define VDD1_OPP1	0x1
--#define VDD1_OPP2	0x2
--#define VDD1_OPP3	0x3
--#define VDD1_OPP4	0x4
--#define VDD1_OPP5	0x5
--
--/* VDD2 OPPS */
--#define VDD2_OPP1	0x1
--#define VDD2_OPP2	0x2
--#define VDD2_OPP3	0x3
--
--#define MIN_VDD1_OPP	VDD1_OPP1
--#define MAX_VDD1_OPP	VDD1_OPP5
--#define MIN_VDD2_OPP	VDD2_OPP1
--#define MAX_VDD2_OPP	VDD2_OPP3
--
- #ifdef CONFIG_PM_DEBUG
- extern u32 omap2_read_32k_sync_counter(void);
- extern void omap2_pm_dump(int mode, int resume, unsigned int us);
-Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.c	2008-11-26 17:43:12.011090533 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c	2008-11-26 18:16:28.376582736 +0530
-@@ -144,6 +144,10 @@ static struct device dummy_dsp_dev;
- void init_opp(struct shared_resource *resp)
- {
- 	resp->no_of_users = 0;
-+	
-+	if (!mpu_opps || !dsp_opps || !l3_opps)
-+		return 0;
-+
- 	/* Initialize the current level of the OPP resource
- 	* to the  opp set by u-boot.
- 	*/
-@@ -167,6 +171,9 @@ int set_opp(struct shared_resource *resp
- 	if (resp->curr_level == target_level)
- 		return 0;
- 
-+	if (!mpu_opps || !dsp_opps || !l3_opps)
-+		return 0;
-+
- 	if (strcmp(resp->name, "vdd1_opp") == 0) {
- 		mpu_old_freq = get_freq(mpu_opps + MAX_VDD1_OPP,
- 					curr_vdd1_prcm_set->opp_id);
-@@ -184,12 +191,16 @@ int set_opp(struct shared_resource *resp
- 		if (resp->curr_level > target_level) {
- 			/* Scale Frequency and then voltage */
- 			clk_set_rate(vdd1_clk, mpu_freq);
-+#ifdef CONFIG_OMAP_SMARTREFLEX
- 			sr_voltagescale_vcbypass(t_opp,
- 					mpu_opps[target_level].vsel);
-+#endif
+ 		/* Compute prescaler divisor */
+@@ -355,8 +361,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 			hssclh = fclk_rate / (dev->speed * 2) - 6;
  		} else {
-+#ifdef CONFIG_OMAP_SMARTREFLEX
- 			/* Scale Voltage and then frequency */
- 			sr_voltagescale_vcbypass(t_opp,
- 					mpu_opps[target_level].vsel);
-+#endif
- 			clk_set_rate(vdd1_clk, mpu_freq);
+ 			/* To handle F/S modes */
+-			fsscll = internal_clk / (dev->speed * 2) - 6;
+-			fssclh = internal_clk / (dev->speed * 2) - 6;
++			fsscll = internal_clk / (dev->speed * 2) - 3;
++			fssclh = internal_clk / (dev->speed * 2) - 9;
  		}
- 		resp->curr_level = curr_vdd1_prcm_set->opp_id;
-@@ -221,12 +232,16 @@ int set_opp(struct shared_resource *resp
- 		if (resp->curr_level > target_level) {
- 			/* Scale Frequency and then voltage */
- 			clk_set_rate(vdd2_clk, l3_freq);
-+#ifdef CONFIG_OMAP_SMARTREFLEX
- 			sr_voltagescale_vcbypass(t_opp,
- 					l3_opps[target_level].vsel);
-+#endif
- 		} else {
-+#ifdef CONFIG_OMAP_SMARTREFLEX
- 			/* Scale Voltage and then frequency */
- 			sr_voltagescale_vcbypass(t_opp,
- 					l3_opps[target_level].vsel);
-+#endif
- 			clk_set_rate(vdd2_clk, l3_freq);
- 		}
- 		resp->curr_level = curr_vdd2_prcm_set->opp_id;
-@@ -253,6 +268,9 @@ void init_freq(struct shared_resource *r
- 	char *linked_res_name;
- 	resp->no_of_users = 0;
- 
-+	if (!mpu_opps || !dsp_opps)
-+		return;
-+
- 	linked_res_name = (char *)resp->resource_data;
- 	/* Initialize the current level of the Freq resource
- 	* to the frequency set by u-boot.
-@@ -271,6 +289,9 @@ int set_freq(struct shared_resource *res
- {
- 	unsigned int vdd1_opp;
- 
-+	if (!mpu_opps || !dsp_opps)
-+		return 0;
-+
- 	if (strcmp(resp->name, "mpu_freq") == 0) {
- 		vdd1_opp = get_opp(mpu_opps + MAX_VDD1_OPP, target_level);
- 		resource_request("vdd1_opp", &dummy_mpu_dev, vdd1_opp);
-Index: linux-omap-2.6/arch/arm/plat-omap/cpu-omap.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/plat-omap/cpu-omap.c	2008-11-26 17:43:12.011090533 +0530
-+++ linux-omap-2.6/arch/arm/plat-omap/cpu-omap.c	2008-11-26 17:47:40.552795340 +0530
-@@ -31,7 +31,6 @@
- #include <mach/clock.h>
- #if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
- #include <mach/omap-pm.h>
--#include "../mach-omap2/pm.h"
- #endif
- 
- #define VERY_HI_RATE	900000000
-@@ -107,9 +106,8 @@ static int omap_target(struct cpufreq_po
- #endif
- 	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
- 	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
--#elif defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)\
--	&& defined(CONFIG_MACH_OMAP_3430SDP)
--	{
-+#elif defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
-+	if (mpu_opps) {
- 		int ind;
- 		for (ind = 1; ind <= MAX_VDD1_OPP; ind++) {
- 			if (mpu_opps[ind].rate/1000 >= freqs.new) {
-Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/omap34xx.h
-===================================================================
---- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/omap34xx.h	2008-11-26 17:43:12.011090533 +0530
-+++ linux-omap-2.6/arch/arm/plat-omap/include/mach/omap34xx.h	2008-11-26 17:47:40.553795309 +0530
-@@ -71,5 +71,23 @@
- #define OMAP34XX_DSP_MEM_BASE	(OMAP34XX_DSP_BASE + 0x0)
- #define OMAP34XX_DSP_IPI_BASE	(OMAP34XX_DSP_BASE + 0x1000000)
- #define OMAP34XX_DSP_MMU_BASE	(OMAP34XX_DSP_BASE + 0x2000000)
-+
-+/* VDD1 OPPS */
-+#define VDD1_OPP1	0x1
-+#define VDD1_OPP2	0x2
-+#define VDD1_OPP3	0x3
-+#define VDD1_OPP4	0x4
-+#define VDD1_OPP5	0x5
-+
-+/* VDD2 OPPS */
-+#define VDD2_OPP1	0x1
-+#define VDD2_OPP2	0x2
-+#define VDD2_OPP3	0x3
-+
-+#define MIN_VDD1_OPP	VDD1_OPP1
-+#define MAX_VDD1_OPP	VDD1_OPP5
-+#define MIN_VDD2_OPP	VDD2_OPP1
-+#define MAX_VDD2_OPP	VDD2_OPP3
-+
- #endif /* __ASM_ARCH_OMAP34XX_H */
- 
+ 		scll = (hsscll << OMAP_I2C_SCLL_HSSCLL) | fsscll;
+ 		sclh = (hssclh << OMAP_I2C_SCLH_HSSCLH) | fssclh;
+-- 
+1.6.0
 
