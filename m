@@ -1,83 +1,77 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Fix omap-gpio warnings when compiling for ARCH_OMAP15XX
-Date: Wed, 26 Nov 2008 09:54:19 -0800
-Message-ID: <20081126175418.GR11997@atomide.com>
-References: <20081111225348.GZ3162@earth.li>
+Subject: Re: [PATCH] OMAP: MCSPI: Enable mcspi wake-up v2.
+Date: Wed, 26 Nov 2008 09:57:10 -0800
+Message-ID: <20081126175709.GS11997@atomide.com>
+References: <873ahotc5t.fsf@trdhcp146196.ntc.nokia.com> <1227080924-11555-1-git-send-email-jouni.hogander@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56474 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60111 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752186AbYKZRyT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 12:54:19 -0500
+	with ESMTP id S1752747AbYKZR5L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 12:57:11 -0500
 Content-Disposition: inline
-In-Reply-To: <20081111225348.GZ3162@earth.li>
+In-Reply-To: <1227080924-11555-1-git-send-email-jouni.hogander@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jonathan McDowell <noodles@earth.li>
+To: Jouni Hogander <jouni.hogander@nokia.com>, David Brownell <david-b@pacbell.net>
 Cc: linux-omap@vger.kernel.org
 
-* Jonathan McDowell <noodles@earth.li> [081111 15:44]:
-> When compiling for ARCH_OMAP15XX I get the following compiler warning=
- in
-> gpio.c:
->=20
-> arch/arm/plat-omap/gpio.c: In function =E2=80=98_set_gpio_wakeup=E2=80=
-=99:
-> arch/arm/plat-omap/gpio.c:848: warning: unused variable =E2=80=98flag=
-s=E2=80=99
->=20
-> Simple patch below fixes this.
+* Jouni Hogander <jouni.hogander@nokia.com> [081118 23:48]:
+> Currently mcspi wake-ups are not enabled. This might cause case where
+> OMAP is not waking up on mcspi events.
 
-Sorry for the delay on responding to this.. Let's rather start
-splitting the gpio code into common code and processor specific code
-to fix issues like this for good. In this case, we would only register
-set_wakeup functions for 16xx, 24xx, and 34xx.
-
-Regards,
+Dave, I assume you're picking these for your SPI queue? Will only
+apply to l-o if you ack and tell me so.
 
 Tony
 
->=20
-> Signed-off-by: Jonathan McDowell <noodles@earth.li>
->=20
-> -----
-> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> index 8bb4542..bfbe366 100644
-> --- a/arch/arm/plat-omap/gpio.c
-> +++ b/arch/arm/plat-omap/gpio.c
-> @@ -845,7 +845,10 @@ static inline void _set_gpio_irqenable(struct gp=
-io_bank *bank, int gpio, int ena
->   */
->  static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int en=
-able)
->  {
-> +#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP24XX) |=
-| \
-> +		defined(CONFIG_ARCH_OMAP34XX)
->  	unsigned long flags;
-> +#endif
-> =20
->  	switch (bank->method) {
->  #ifdef CONFIG_ARCH_OMAP16XX
-> -----
->=20
-> J.
->=20
-> --=20
-> Web [   Asking whether machines can think is like asking whether   ]
-> site: http:// [           submarines can swim.           ]       Made=
- by
-> www.earth.li/~noodles/  [                      ]         HuggieTag 0.=
-0.23
+
+> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+> ---
+>  drivers/spi/omap2_mcspi.c |   11 +++++++++--
+>  1 files changed, 9 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+> index 454a271..d7e519c 100644
+> --- a/drivers/spi/omap2_mcspi.c
+> +++ b/drivers/spi/omap2_mcspi.c
+> @@ -59,6 +59,8 @@
+>  
+>  /* per-register bitmasks: */
+>  
+> +#define OMAP2_MCSPI_SYSCONFIG_SMARTIDLE	(2 << 3)
+> +#define OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP	(1 << 2)
+>  #define OMAP2_MCSPI_SYSCONFIG_AUTOIDLE	(1 << 0)
+>  #define OMAP2_MCSPI_SYSCONFIG_SOFTRESET	(1 << 1)
+>  
+> @@ -90,6 +92,7 @@
+>  
+>  #define OMAP2_MCSPI_CHCTRL_EN		(1 << 0)
+>  
+> +#define OMAP2_MCSPI_WAKEUPENABLE_WKEN	(1 << 0)
+>  
+>  /* We have 2 DMA channels per CS, one for RX and one for TX */
+>  struct omap2_mcspi_dma {
+> @@ -884,8 +887,12 @@ static int __init omap2_mcspi_reset(struct omap2_mcspi *mcspi)
+>  	} while (!(tmp & OMAP2_MCSPI_SYSSTATUS_RESETDONE));
+>  
+>  	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
+> -			/* (3 << 8) | (2 << 3) | */
+> -			OMAP2_MCSPI_SYSCONFIG_AUTOIDLE);
+> +			OMAP2_MCSPI_SYSCONFIG_AUTOIDLE |
+> +			OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP |
+> +			OMAP2_MCSPI_SYSCONFIG_SMARTIDLE);
+> +
+> +	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE,
+> +			OMAP2_MCSPI_WAKEUPENABLE_WKEN);
+>  
+>  	omap2_mcspi_set_master_mode(master);
+>  
+> -- 
+> 1.6.0.1
+> 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
