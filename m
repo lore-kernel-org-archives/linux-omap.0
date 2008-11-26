@@ -1,91 +1,183 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] OMAP general SOC driver.
-Date: Wed, 26 Nov 2008 12:44:33 -0800
-Message-ID: <200811261244.33631.david-b@pacbell.net>
-References: <1227696478-8354-1-git-send-email-stanley.miao@windriver.com> <200811261034.42356.david-b@pacbell.net> <20081126200750.GK6234@sirena.org.uk>
+Subject: [patch 2.6.28-rc6-omap] twl4030-power: minor cleanup
+Date: Wed, 26 Nov 2008 13:09:08 -0800
+Message-ID: <200811261309.08320.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp122.sbc.mail.sp1.yahoo.com ([69.147.64.95]:25515 "HELO
-	smtp122.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752150AbYKZUol (ORCPT
+Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:28554 "HELO
+	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752222AbYKZVJL (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 26 Nov 2008 15:44:41 -0500
-In-Reply-To: <20081126200750.GK6234@sirena.org.uk>
+	Wed, 26 Nov 2008 16:09:11 -0500
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@sirena.org.uk>
-Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, "Stanley.Miao" <stanley.miao@windriver.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Wednesday 26 November 2008, Mark Brown wrote:
-> > I'm told that the ASoC stuff "should" go in a separate ASoC
-> > area for some reason. =A0That still makes no good sense to me,
-> > so if there's a brief explanation as to why it's done that
-> > way, please fling me a URL. =A0:)
->=20
-> The move is in the direction you want but we're not there yet. =A0The=
- fact
-> that things are now decomposed enough for us to be able to think abou=
-t
-> it is a good sign here.
->=20
-> The biggest part of it is that the degree of coupling between the
-> various ASoC components is high - this is particularly obvious with v=
-1
-> where the entire card is probed at once. =A0This includes coupling be=
-tween
-> the drivers and the core where the degree of churn is very high right
-> now due to v2 merging. =A0It doesn't feel right to give architectures=
- an
-> API that they can't rely on from one merge window to the next yet,
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-OK, that seems to be the key point.  And it makes a lot of sense;
-I wouldn't call the driver structure here "simple", so it deserves
-some iteration on multiple disparate hardware platforms just to make
-sure the interfaces is adequate to the problem.
+Minor cleanups to the twl4030 power script support:  move its
+init code out of the "add children" call (it adds no children!),
+and move the power bus messages earlier in the header file to
+unclutter the platform data section and since they're not used
+only for those scripts.
 
-Let me insert a minor plug from the PM perspective that it would be
-good to find a way that the codecs can sit in the proper places in
-the driver model tree.  Example with twl4030:  it's an I2C device
-and thus should be a child of something like
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+ drivers/mfd/twl4030-core.c  |    7 +--
+ include/linux/i2c/twl4030.h |   94 +++++++++++++++++++++---------------------
+ 2 files changed, 53 insertions(+), 48 deletions(-)
 
-   /sys/devices/platform/i2c_omap.1/i2c-adapter/i2c-1/1-0049
-
-to guarantee that for example nothing touches that codec after its
-parent I2C controller gets suspended.
-
-- Dave
-
-
-> partly from the point of view of isolating the code for review purpos=
-es
-> and also due to the merge issues which would doubtless crop up.
->=20
-> Another part of it is that some machine drivers can get involved enou=
-gh
-> to sit on or cross the boundary from platform data to being drivers f=
-or
-> substantial distinct hardware but that's very much not the case for
-> everything.
->=20
-> I've been spending time this week working on getting the ability to l=
-oad
-> platform and codec drivers independantly merged. =A0That will at leas=
-t
-> allow the instantiation of the ASoC drivers for those to be pushed ou=
-t
-> into the architecture code, which is a start and should substantially
-> reduce the size of most machine drivers. =A0At the point where that's=
- been
-> done it's probably worth looking again at the simpler machine drivers=
-=2E
->=20
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--- a/drivers/mfd/twl4030-core.c
++++ b/drivers/mfd/twl4030-core.c
+@@ -503,9 +503,6 @@ add_children(struct twl4030_platform_dat
+ 			return PTR_ERR(child);
+ 	}
+ 
+-	if (twl_has_power() && pdata->power)
+-		twl4030_power_init(pdata->power);
+-
+ 	if (twl_has_rtc()) {
+ 		/*
+ 		 * REVISIT platform_data here currently might expose the
+@@ -788,6 +785,10 @@ twl4030_probe(struct i2c_client *client,
+ 	/* setup clock framework */
+ 	clocks_init();
+ 
++	/* load power event scripts */
++	if (twl_has_power() && pdata->power)
++		twl4030_power_init(pdata->power);
++
+ 	/* Maybe init the T2 Interrupt subsystem */
+ 	if (client->irq
+ 			&& pdata->irq_base
+--- a/include/linux/i2c/twl4030.h
++++ b/include/linux/i2c/twl4030.h
+@@ -168,7 +168,7 @@ int twl4030_i2c_read(u8 mod_no, u8 *valu
+ /*----------------------------------------------------------------------*/
+ 
+ /*
+- * Multichannel ADC register offsets (use TWL4030_MODULE_MADC)
++ * Monitoring ADC register offsets (use TWL4030_MODULE_MADC)
+  * ... SIH/interrupt only
+  */
+ 
+@@ -218,6 +218,53 @@ int twl4030_i2c_read(u8 mod_no, u8 *valu
+ 
+ /*----------------------------------------------------------------------*/
+ 
++/* Power bus message definitions */
++
++#define DEV_GRP_NULL		0x0
++#define DEV_GRP_P1		0x1
++#define DEV_GRP_P2		0x2
++#define DEV_GRP_P3		0x4
++
++#define RES_GRP_RES		0x0
++#define RES_GRP_PP		0x1
++#define RES_GRP_RC		0x2
++#define RES_GRP_PP_RC		0x3
++#define RES_GRP_PR		0x4
++#define RES_GRP_PP_PR		0x5
++#define RES_GRP_RC_PR		0x6
++#define RES_GRP_ALL		0x7
++
++#define RES_TYPE2_R0		0x0
++
++#define RES_TYPE_ALL		0x7
++
++#define RES_STATE_WRST		0xF
++#define RES_STATE_ACTIVE	0xE
++#define RES_STATE_SLEEP		0x8
++#define RES_STATE_OFF		0x0
++
++/*
++ * Power Bus Message Format ... these can be sent individually by Linux,
++ * but are usually part of downloaded scripts that are run when various
++ * power events are triggered.
++ *
++ *  Broadcast Message (16 Bits):
++ *    DEV_GRP[15:13] MT[12]  RES_GRP[11:9]  RES_TYPE2[8:7] RES_TYPE[6:4]
++ *    RES_STATE[3:0]
++ *
++ *  Singular Message (16 Bits):
++ *    DEV_GRP[15:13] MT[12]  RES_ID[11:4]  RES_STATE[3:0]
++ */
++
++#define MSG_BROADCAST(devgrp, grp, type, type2, state) \
++	( (devgrp) << 13 | 1 << 12 | (grp) << 9 | (type2) << 7 \
++	| (type) << 4 | (state))
++
++#define MSG_SINGULAR(devgrp, id, state) \
++	((devgrp) << 13 | 0 << 12 | (id) << 4 | (state))
++
++/*----------------------------------------------------------------------*/
++
+ struct twl4030_bci_platform_data {
+ 	int *battery_tmp_tbl;
+ 	unsigned int tblsize;
+@@ -281,60 +328,17 @@ struct twl4030_script {
+ 	struct twl4030_ins *script;
+ 	unsigned size;
+ 	u8 flags;
+-};
+ #define TRITON_WRST_SCRIPT	(1<<0)
+ #define TRITON_WAKEUP12_SCRIPT	(1<<1)
+ #define TRITON_WAKEUP3_SCRIPT	(1<<2)
+ #define TRITON_SLEEP_SCRIPT	(1<<3)
++};
+ 
+ struct twl4030_power_data {
+ 	struct twl4030_script **scripts;
+ 	unsigned size;
+ };
+ 
+-/* Power bus message definitions */
+-
+-#define DEV_GRP_NULL		0x0
+-#define DEV_GRP_P1		0x1
+-#define DEV_GRP_P2		0x2
+-#define DEV_GRP_P3		0x4
+-
+-#define RES_GRP_RES		0x0
+-#define RES_GRP_PP		0x1
+-#define RES_GRP_RC		0x2
+-#define RES_GRP_PP_RC		0x3
+-#define RES_GRP_PR		0x4
+-#define RES_GRP_PP_PR		0x5
+-#define RES_GRP_RC_PR		0x6
+-#define RES_GRP_ALL		0x7
+-
+-#define RES_TYPE2_R0		0x0
+-
+-#define RES_TYPE_ALL		0x7
+-
+-#define RES_STATE_WRST		0xF
+-#define RES_STATE_ACTIVE	0xE
+-#define RES_STATE_SLEEP		0x8
+-#define RES_STATE_OFF		0x0
+-
+-/*
+-*	Power Bus Message Format
+-*
+-*	Broadcast Message (16 Bits)
+-*	DEV_GRP[15:13] MT[12]  RES_GRP[11:9]  RES_TYPE2[8:7] RES_TYPE[6:4]
+-*	RES_STATE[3:0]
+-*
+-*	Singular Message (16 Bits)
+-*	DEV_GRP[15:13] MT[12]  RES_ID[11:4]  RES_STATE[3:0]
+-*
+-*/
+-
+-#define MSG_BROADCAST(devgrp, grp, type, type2, state) \
+-	(devgrp << 13 | 1 << 12 | grp << 9 | type2 << 7 | type << 4 | state)
+-
+-#define MSG_SINGULAR(devgrp, id, state) \
+-	(devgrp << 13 | 0 << 12 | id << 4 | state)
+-
+ struct twl4030_platform_data {
+ 	unsigned				irq_base, irq_end;
+ 	struct twl4030_bci_platform_data	*bci;
