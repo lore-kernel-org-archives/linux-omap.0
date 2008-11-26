@@ -1,70 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP3: Fixes for suspend / resume GPIO wake-up handling
-Date: Wed, 26 Nov 2008 14:37:39 -0800
-Message-ID: <20081126223736.GH11997@atomide.com>
-References: <1227700030-28295-1-git-send-email-tero.kristo@nokia.com> <87bpw2jozi.fsf@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP: MCSPI: Enable mcspi wake-up v2.
+Date: Wed, 26 Nov 2008 14:40:11 -0800
+Message-ID: <20081126224011.GI11997@atomide.com>
+References: <873ahotc5t.fsf@trdhcp146196.ntc.nokia.com> <1227080924-11555-1-git-send-email-jouni.hogander@nokia.com> <20081126175709.GS11997@atomide.com> <200811261041.02375.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50318 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52800 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751904AbYKZWhk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 17:37:40 -0500
+	with ESMTP id S1752808AbYKZWkN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 17:40:13 -0500
 Content-Disposition: inline
-In-Reply-To: <87bpw2jozi.fsf@deeprootsystems.com>
+In-Reply-To: <200811261041.02375.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tero Kristo <tero.kristo@nokia.com>, linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Jouni Hogander <jouni.hogander@nokia.com>, linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@deeprootsystems.com> [081126 10:56]:
-> Tero Kristo <tero.kristo@nokia.com> writes:
+* David Brownell <david-b@pacbell.net> [081126 10:41]:
+> On Wednesday 26 November 2008, Tony Lindgren wrote:
+> > * Jouni Hogander <jouni.hogander@nokia.com> [081118 23:48]:
+> > > Currently mcspi wake-ups are not enabled. This might cause case where
+> > > OMAP is not waking up on mcspi events.
+> > 
+> > Dave, I assume you're picking these for your SPI queue? Will only
+> > apply to l-o if you ack and tell me so.
 > 
-> > Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-> > ---
-> >  arch/arm/plat-omap/gpio.c |    4 ++--
-> >  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> Thanks, I'll pull this into the next PM branch, and this
-> can go straight into linux-omap.
->
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> OK... I'm not totally caught up there.  Is this needed for
+> a 2.6.28-final merge?  I'm guessing not; so it'd be OK to
+> queue for 2.6.29-final and have it in l-o until 29-rc1 gets
+> pulled down.
 
-Pushing to l-o and adding to omap-fixes queue.
+Yes 2.6.29 timeline sounds fine to me at least. I'll apply these to
+l-o then.
 
 Tony
-
-
-> > diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> > index f4ec3af..62349fd 100644
-> > --- a/arch/arm/plat-omap/gpio.c
-> > +++ b/arch/arm/plat-omap/gpio.c
-> > @@ -1585,7 +1585,7 @@ static int omap_gpio_suspend(struct sys_device *dev, pm_message_t mesg)
-> >  #endif
-> >  #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
-> >  		case METHOD_GPIO_24XX:
-> > -			wake_status = bank->base + OMAP24XX_GPIO_SETWKUENA;
-> > +			wake_status = bank->base + OMAP24XX_GPIO_WAKE_EN;
-> >  			wake_clear = bank->base + OMAP24XX_GPIO_CLEARWKUENA;
-> >  			wake_set = bank->base + OMAP24XX_GPIO_SETWKUENA;
-> >  			break;
-> > @@ -1608,7 +1608,7 @@ static int omap_gpio_resume(struct sys_device *dev)
-> >  {
-> >  	int i;
-> >  
-> > -	if (!cpu_is_omap24xx() && !cpu_is_omap16xx())
-> > +	if (!cpu_class_is_omap2() && !cpu_is_omap16xx())
-> >  		return 0;
-> >  
-> >  	for (i = 0; i < gpio_bank_count; i++) {
-> > -- 
-> > 1.5.4.3
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
