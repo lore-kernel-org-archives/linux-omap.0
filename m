@@ -1,48 +1,70 @@
-From: "Grazvydas Ignotas" <notasas@gmail.com>
-Subject: Re: PWM drivers for TWL4030
-Date: Wed, 26 Nov 2008 11:47:11 +0200
-Message-ID: <6ed0b2680811260147vf338d8av9906157a6c15b456@mail.gmail.com>
-References: <6ed0b2680811250857p59195e4dh7dab4e1109769b0c@mail.gmail.com>
-	 <200811251326.36259.david-b@pacbell.net>
-	 <6ed0b2680811251501l3120a7cew341ce07f5fe47aff@mail.gmail.com>
-	 <200811251742.21868.david-b@pacbell.net>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Please fix or remove OMAP2 onenand driver
+Date: Wed, 26 Nov 2008 09:57:27 +0000
+Message-ID: <20081126095726.GA7422@flint.arm.linux.org.uk>
+References: <20081123165011.GB17438@flint.arm.linux.org.uk> <492A91E1.50305@nokia.com> <20081124120153.GA5330@flint.arm.linux.org.uk> <492AA1B4.9030803@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:6260 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750916AbYKZJrO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 04:47:14 -0500
-Received: by ey-out-2122.google.com with SMTP id 6so163278eyi.37
-        for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2008 01:47:12 -0800 (PST)
-In-Reply-To: <200811251742.21868.david-b@pacbell.net>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37102 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751506AbYKZKCt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 05:02:49 -0500
 Content-Disposition: inline
+In-Reply-To: <492AA1B4.9030803@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: Adrian Hunter <ext-adrian.hunter@nokia.com>, dwmw2@infradead.org
+Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 
-On Wed, Nov 26, 2008 at 3:42 AM, David Brownell <david-b@pacbell.net> wrote:
-> On Tuesday 25 November 2008, Grazvydas Ignotas wrote:
->> > If they're using the LEDA or LEDB PWMs, providing and exporting
->> > a brightness control would be easy.  If they're using the other
->> > two PWMs, it'd be more work.
->>
->> The configuration is as follows:
->> LEDA - keypad backlight
->> LEDB - power LED
->> PWM0 - LCD backlight
->> PWM1 - charger LED
->
-> Might have been better to use LEDA and LEDB for backlights,
-> you probably could have saved some external hardware ... those
-> pins are high drive.  :)
-LEDB probably wasn't used for LCD backlight because it doesn't provide
-enough power (60mA only). Don't know for sure, it wasn't me who
-designed the hardware.
+On Mon, Nov 24, 2008 at 02:44:36PM +0200, Adrian Hunter wrote:
+> From: Adrian Hunter <ext-adrian.hunter@nokia.com>
+> Date: Mon, 24 Nov 2008 13:34:53 +0200
+> Subject: [PATCH] MTD: OMAP: OneNAND: header file relocation
+> 
+> Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
 
-> Right, start as gpio leds.  Since I've already looked at it,
-> I may take a whack at exposing LEDA/LEDB PWMs ... expecting to
-> use thhe same interface for PWM0/PWM1.
-That would be great, thanks!
+Great.
+
+Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
+
+David, can you merge this patch for 2.6.28 please?
+
+> ---
+> drivers/mtd/onenand/omap2.c |   17 ++++++++---------
+> 1 files changed, 8 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+> index e39b21d..a7e4d98 100644
+> --- a/drivers/mtd/onenand/omap2.c
+> +++ b/drivers/mtd/onenand/omap2.c
+> @@ -32,19 +32,18 @@
+> #include <linux/platform_device.h>
+> #include <linux/interrupt.h>
+> #include <linux/delay.h>
+> +#include <linux/dma-mapping.h>
+> +#include <linux/io.h>
+> 
+> -#include <asm/io.h>
+> #include <asm/mach/flash.h>
+> -#include <asm/arch/gpmc.h>
+> -#include <asm/arch/onenand.h>
+> -#include <asm/arch/gpio.h>
+> -#include <asm/arch/pm.h>
+> +#include <mach/gpmc.h>
+> +#include <mach/onenand.h>
+> +#include <mach/gpio.h>
+> +#include <mach/pm.h>
+> 
+> -#include <linux/dma-mapping.h>
+> -#include <asm/dma-mapping.h>
+> -#include <asm/arch/dma.h>
+> +#include <mach/dma.h>
+> 
+> -#include <asm/arch/board.h>
+> +#include <mach/board.h>
+> 
+> #define DRIVER_NAME "omap2-onenand"
+> 
+> -- 
+> 1.5.4.3
