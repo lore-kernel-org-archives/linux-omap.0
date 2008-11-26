@@ -1,171 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] SDTI: Add netlink support for debug message output.
-Date: Wed, 26 Nov 2008 09:26:23 -0800
-Message-ID: <20081126172621.GM11997@atomide.com>
-References: <1225280368-24257-1-git-send-email-roman.tereshonkov@nokia.com> <20081118132644.GX20808@gandalf.research.nokia.com>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: [PATCH] OMAP general SOC driver.
+Date: Wed, 26 Nov 2008 09:24:03 -0800
+Message-ID: <5e088bd90811260924u28a081bej62689470551b6982@mail.gmail.com>
+References: <1227696478-8354-1-git-send-email-stanley.miao@windriver.com>
+	<20081126110854.GA6234@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58204 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750793AbYKZR0Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 12:26:24 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20081126110854.GA6234@sirena.org.uk>
 Content-Disposition: inline
-In-Reply-To: <20081118132644.GX20808@gandalf.research.nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@sirena.org.uk>
+Cc: "Stanley.Miao" <stanley.miao@windriver.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: ext Roman Tereshonkov <roman.tereshonkov@nokia.com>, linux-omap@vger.kernel.org
 
-* Felipe Balbi <felipe.balbi@nokia.com> [081118 05:27]:
-> On Wed, Oct 29, 2008 at 01:39:28PM +0200, Tereshonkov Roman wrote:
-> > Add support for user to use netlink for message output to XTI.
-> > Add autoidle feature if SDTI is not used.
-> > 
-> > Signed-off-by: Roman Tereshonkov <roman.tereshonkov@nokia.com>
-> 
-> Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+On Wed, Nov 26, 2008 at 3:08 AM, Mark Brown <broonie@sirena.org.uk> wrote:
+> On Wed, Nov 26, 2008 at 06:47:58PM +0800, Stanley.Miao wrote:
+>> Add a shared omap SoC driver to avoid reduplicate code among omap soc drivers.
+>
+> It's really good to see work on this but I've got some concerns with the
+> approach being taken here.
 
-Pushing to l-o today. Roman, do you have any plans to submit this for
-integration on LKML? The OMAP_TAG_STI_CONSOLE would need to be removed
-for mainline and be replaced with cmdline parsing for console=...
+I too have concerns.
 
-Tony
+The SoC drivers are very much alike at the moment because only the
+minimum subset of twl4030 functionality is supported.
 
-> 
-> > ---
-> >  drivers/misc/sti/Makefile      |    2 +-
-> >  drivers/misc/sti/sdti.c        |   14 ++++++++++----
-> >  drivers/misc/sti/sti-netlink.c |    8 +++++++-
-> >  3 files changed, 18 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/misc/sti/Makefile b/drivers/misc/sti/Makefile
-> > index aee30bd..43574d1 100644
-> > --- a/drivers/misc/sti/Makefile
-> > +++ b/drivers/misc/sti/Makefile
-> > @@ -2,7 +2,7 @@ ifeq ($(CONFIG_ARCH_OMAP3),y)
-> >  obj-$(CONFIG_OMAP_STI)	+= sdti.o
-> >  else
-> >  obj-$(CONFIG_OMAP_STI)	+= sti.o sti-fifo.o
-> > -obj-$(CONFIG_NET)	+= sti-netlink.o
-> >  endif
-> >  
-> > +obj-$(CONFIG_NET)	+= sti-netlink.o
-> >  obj-$(CONFIG_OMAP_STI_CONSOLE)	+= sti-console.o
-> > diff --git a/drivers/misc/sti/sdti.c b/drivers/misc/sti/sdti.c
-> > index 4514783..92ce57b 100644
-> > --- a/drivers/misc/sti/sdti.c
-> > +++ b/drivers/misc/sti/sdti.c
-> > @@ -31,11 +31,14 @@
-> >  #define CPU1_TRACE_EN		0x01
-> >  #define CPU2_TRACE_EN		0x02
-> >  
-> > +#define SDTI_SYSCONFIG_SOFTRESET	(1 << 1)
-> > +#define SDTI_SYSCONFIG_AUTOIDLE		(1 << 0)
-> > +
-> >  static struct clk *sdti_ck;
-> >  void __iomem *sti_base, *sti_channel_base;
-> >  static DEFINE_SPINLOCK(sdti_lock);
-> >  
-> > -void omap_sti_channel_write_trace(int len, int id, void *data,
-> > +void sti_channel_write_trace(int len, int id, void *data,
-> >  				unsigned int channel)
-> >  {
-> >  	const u8 *tpntr = data;
-> > @@ -49,13 +52,13 @@ void omap_sti_channel_write_trace(int len, int id, void *data,
-> >  
-> >  	spin_unlock_irq(&sdti_lock);
-> >  }
-> > -EXPORT_SYMBOL(omap_sti_channel_write_trace);
-> > +EXPORT_SYMBOL(sti_channel_write_trace);
-> >  
-> >  static void omap_sdti_reset(void)
-> >  {
-> >  	int i;
-> >  
-> > -	sti_writel(0x02, SDTI_SYSCONFIG);
-> > +	sti_writel(SDTI_SYSCONFIG_SOFTRESET, SDTI_SYSCONFIG);
-> >  
-> >  	for (i = 0; i < 10000; i++)
-> >  		if (sti_readl(SDTI_SYSSTATUS) & 1)
-> > @@ -79,6 +82,9 @@ static int __init omap_sdti_init(void)
-> >  	omap_sdti_reset();
-> >  	sti_writel(0xC5ACCE55, SDTI_LOCK_ACCESS);
-> >  
-> > +	/* Autoidle */
-> > +	sti_writel(SDTI_SYSCONFIG_AUTOIDLE, SDTI_SYSCONFIG);
-> > +
-> >  	/* Claim SDTI */
-> >  	sti_writel(1 << 30, SDTI_WINCTRL);
-> >  	i = sti_readl(SDTI_WINCTRL);
-> > @@ -99,7 +105,7 @@ static int __init omap_sdti_init(void)
-> >  	snprintf(buf, sizeof(buf), "OMAP SDTI support loaded (HW v%u.%u)\n",
-> >  		(i >> 4) & 0x0f, i & 0x0f);
-> >  	printk(KERN_INFO "%s", buf);
-> > -	omap_sti_channel_write_trace(strlen(buf), 0xc3, buf, 239);
-> > +	sti_channel_write_trace(strlen(buf), 0xc3, buf, 239);
-> >  
-> >  	return 0;
-> >  }
-> > diff --git a/drivers/misc/sti/sti-netlink.c b/drivers/misc/sti/sti-netlink.c
-> > index f1f8a48..b198e4c 100644
-> > --- a/drivers/misc/sti/sti-netlink.c
-> > +++ b/drivers/misc/sti/sti-netlink.c
-> > @@ -25,6 +25,7 @@ enum {
-> >  	STI_WRITE,
-> >  };
-> >  
-> > +#if defined(CONFIG_ARCH_OMAP1) || defined(CONFIG_ARCH_OMAP2)
-> >  static int sti_netlink_read(int pid, int seq, void *payload, int size)
-> >  {
-> >  	struct sk_buff *skb;
-> > @@ -55,6 +56,7 @@ nlmsg_failure:
-> >  
-> >  	return -EINVAL;
-> >  }
-> > +#endif
-> >  
-> >  /*
-> >   * We abuse nlmsg_type and nlmsg_flags for our purposes.
-> > @@ -66,7 +68,7 @@ static int sti_netlink_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
-> >  {
-> >  	void *data;
-> >  	u8 chan, id;
-> > -	int size, ret = 0, len = 0;
-> > +	int size, ret = 0;
-> >  
-> >  	data	= NLMSG_DATA(nlh);
-> >  	chan	= (nlh->nlmsg_flags >> 8) & 0xff;
-> > @@ -77,7 +79,10 @@ static int sti_netlink_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
-> >  	case STI_WRITE:
-> >  		sti_channel_write_trace(size, id, data, chan);
-> >  		break;
-> > +#if defined(CONFIG_ARCH_OMAP1) || defined(CONFIG_ARCH_OMAP2)
-> >  	case STI_READ:
-> > +		int len = 0;
-> > +
-> >  		data = kmalloc(size, GFP_KERNEL);
-> >  		if (!data)
-> >  			return -ENOMEM;
-> > @@ -88,6 +93,7 @@ static int sti_netlink_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
-> >  				       data, len);
-> >  		kfree(data);
-> >  		break;
-> > +#endif
-> >  	default:
-> >  		return -ENOTTY;
-> >  	}
-> > -- 
-> > 1.5.5.1
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> -- 
-> balbi
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+As we flesh out the twl4030 features (see the other twl4030 codec
+driver threads on this list) I expect the machine specific drivers to
+begin to diverge (radically in some cases) based upon the hardware
+features of each.
+
+I'm all for factoring out common code, but I think that this approach
+will become a maintenance nightmare over time.
+
+Steve
