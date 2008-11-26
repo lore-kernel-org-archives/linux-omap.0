@@ -1,86 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omapfb: Fix argument of blank operation.
-Date: Wed, 26 Nov 2008 09:35:47 -0800
-Message-ID: <20081126173546.GQ11997@atomide.com>
-References: <1227641052-6510-1-git-send-email-felipe.contreras@nokia.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: PWM drivers for TWL4030
+Date: Wed, 26 Nov 2008 09:44:09 -0800
+Message-ID: <200811260944.10217.david-b@pacbell.net>
+References: <6ed0b2680811250857p59195e4dh7dab4e1109769b0c@mail.gmail.com> <200811251742.21868.david-b@pacbell.net> <6ed0b2680811260147vf338d8av9906157a6c15b456@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52155 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752292AbYKZRfq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 12:35:46 -0500
+Received: from smtp127.sbc.mail.sp1.yahoo.com ([69.147.65.186]:27868 "HELO
+	smtp127.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751334AbYKZRoQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 Nov 2008 12:44:16 -0500
+In-Reply-To: <6ed0b2680811260147vf338d8av9906157a6c15b456@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <1227641052-6510-1-git-send-email-felipe.contreras@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-* Felipe Contreras <felipe.contreras@nokia.com> [081125 11:24]:
-> The blank operation should receive FB_BLANK_POWERDOWN, not
-> VESA_POWERDOWN.
+On Wednesday 26 November 2008, Grazvydas Ignotas wrote:
+> >
+> > Might have been better to use LEDA and LEDB for backlights,
+> > you probably could have saved some external hardware ... those
+> > pins are high drive. =A0:)
+>
+> LEDB probably wasn't used for LCD backlight because it doesn't provid=
+e
+> enough power (60mA only). Don't know for sure, it wasn't me who
+> designed the hardware.
 
-Here's my canned fbdev reply for this tread too:
+LEDA, at 160 mA, is the one to use to use for that then.
+LEDB, at 60 mA, is indeed less hefty.
 
-Guys, please take this discussion to fbdev mailing list and cc
-linux-omap list. I'm not going to push any more omap fbdev patches,
-so please send the patches against mainline kernel to fbdev list.
+Though I suppose if both backlights are high current, you'd
+end up hurting anyway.
 
-Regards,
-
-Tony
-
-
-> Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
-> ---
->  drivers/video/omap/omapfb_main.c |    8 ++++----
->  1 files changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
-> index 3bb4247..c8db8b2 100644
-> --- a/drivers/video/omap/omapfb_main.c
-> +++ b/drivers/video/omap/omapfb_main.c
-> @@ -348,7 +348,7 @@ static int omapfb_blank(int blank, struct fb_info *fbi)
->  
->  	omapfb_rqueue_lock(fbdev);
->  	switch (blank) {
-> -	case VESA_NO_BLANKING:
-> +	case FB_BLANK_UNBLANK:
->  		if (fbdev->state == OMAPFB_SUSPENDED) {
->  			if (fbdev->ctrl->resume)
->  				fbdev->ctrl->resume();
-> @@ -359,7 +359,7 @@ static int omapfb_blank(int blank, struct fb_info *fbi)
->  				do_update = 1;
->  		}
->  		break;
-> -	case VESA_POWERDOWN:
-> +	case FB_BLANK_POWERDOWN:
->  		if (fbdev->state == OMAPFB_ACTIVE) {
->  			fbdev->panel->disable(fbdev->panel);
->  			if (fbdev->ctrl->suspend)
-> @@ -1842,7 +1842,7 @@ static int omapfb_suspend(struct platform_device *pdev, pm_message_t mesg)
->  	struct omapfb_device *fbdev = platform_get_drvdata(pdev);
->  
->  	if (fbdev != NULL)
-> -		omapfb_blank(VESA_POWERDOWN, fbdev->fb_info[0]);
-> +		omapfb_blank(FB_BLANK_POWERDOWN, fbdev->fb_info[0]);
->  	return 0;
->  }
->  
-> @@ -1852,7 +1852,7 @@ static int omapfb_resume(struct platform_device *pdev)
->  	struct omapfb_device *fbdev = platform_get_drvdata(pdev);
->  
->  	if (fbdev != NULL)
-> -		omapfb_blank(VESA_NO_BLANKING, fbdev->fb_info[0]);
-> +		omapfb_blank(FB_BLANK_UNBLANK, fbdev->fb_info[0]);
->  	return 0;
->  }
->  
-> -- 
-> 1.6.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Dave
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
