@@ -1,110 +1,171 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 1/2] Add Input/Output related ioctl support
-Date: Wed, 26 Nov 2008 18:15:07 +0100
-Message-ID: <200811261815.07648.hverkuil@xs4all.nl>
-References: <hvaibhav@ti.com> <1227719079-19459-1-git-send-email-hvaibhav@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] SDTI: Add netlink support for debug message output.
+Date: Wed, 26 Nov 2008 09:26:23 -0800
+Message-ID: <20081126172621.GM11997@atomide.com>
+References: <1225280368-24257-1-git-send-email-roman.tereshonkov@nokia.com> <20081118132644.GX20808@gandalf.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:3282 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752519AbYKZRPZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 12:15:25 -0500
-In-Reply-To: <1227719079-19459-1-git-send-email-hvaibhav@ti.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58204 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750793AbYKZR0Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 12:26:24 -0500
 Content-Disposition: inline
+In-Reply-To: <20081118132644.GX20808@gandalf.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: video4linux-list@redhat.com
-Cc: hvaibhav@ti.com, davinci-linux-open-source-bounces@linux.davincidsp.com, Karicheri Muralidharan <m-karicheri2@ti.com>, linux-omap@vger.kernel.org
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: ext Roman Tereshonkov <roman.tereshonkov@nokia.com>, linux-omap@vger.kernel.org
 
-On Wednesday 26 November 2008 18:04:39 hvaibhav@ti.com wrote:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
->
-> Note - Resending again with TVP driver for completeness.
->
-> Added ioctl support for query std, set std, enum input,
-> get input, set input, enum output, get output and set output.
->
-> For sensor kind of slave drivers v4l2-int-device.h provides
-> necessary ioctl support, but the ioctls required to interface
-> with decoders and encoders are missing. Most of the decoders
-> and encoders supports multiple inputs and outputs, like
-> S-Video or Composite.
->
-> With these ioctl''s user can select the specific input/output.
->
-> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-> Signed-off-by: Hardik Shah <hardik.shah@ti.com>
-> Signed-off-by: Manjunath Hadli <mrh@ti.com>
-> Signed-off-by: R Sivaraj <sivaraj@ti.com>
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Signed-off-by: Karicheri Muralidharan <m-karicheri2@ti.com>
-> ---
->  include/media/v4l2-int-device.h |   17 +++++++++++++++++
->  1 files changed, 17 insertions(+), 0 deletions(-)
->
-> diff --git a/include/media/v4l2-int-device.h
-> b/include/media/v4l2-int-device.h index 9c2df41..2325b2a 100644
-> --- a/include/media/v4l2-int-device.h
-> +++ b/include/media/v4l2-int-device.h
-> @@ -102,6 +102,7 @@ enum v4l2_power {
->  	V4L2_POWER_OFF = 0,
->  	V4L2_POWER_ON,
->  	V4L2_POWER_STANDBY,
-> +	V4L2_POWER_RESUME,
->  };
+* Felipe Balbi <felipe.balbi@nokia.com> [081118 05:27]:
+> On Wed, Oct 29, 2008 at 01:39:28PM +0200, Tereshonkov Roman wrote:
+> > Add support for user to use netlink for message output to XTI.
+> > Add autoidle feature if SDTI is not used.
+> > 
+> > Signed-off-by: Roman Tereshonkov <roman.tereshonkov@nokia.com>
+> 
+> Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
 
-Why is POWER_RESUME added? In an earlier discussion with Sakari Ailus it 
-was decided not to add this (see the video4linux thread with 
-subject "[PATCH 4/6] V4L: Int if: Define new power state changes").
+Pushing to l-o today. Roman, do you have any plans to submit this for
+integration on LKML? The OMAP_TAG_STI_CONSOLE would need to be removed
+for mainline and be replaced with cmdline parsing for console=...
 
-It also wasn't in your original patch.
+Tony
 
-Regards,
-
-	Hans
-
->
->  /* Slave interface type. */
-> @@ -183,6 +184,14 @@ enum v4l2_int_ioctl_num {
->  	vidioc_int_s_crop_num,
->  	vidioc_int_g_parm_num,
->  	vidioc_int_s_parm_num,
-> +	vidioc_int_querystd_num,
-> +	vidioc_int_s_std_num,
-> +	vidioc_int_enum_input_num,
-> +	vidioc_int_g_input_num,
-> +	vidioc_int_s_input_num,
-> +	vidioc_int_enumoutput_num,
-> +	vidioc_int_g_output_num,
-> +	vidioc_int_s_output_num,
->
->  	/*
->  	 *
-> @@ -284,6 +293,14 @@ V4L2_INT_WRAPPER_1(g_crop, struct v4l2_crop, *);
->  V4L2_INT_WRAPPER_1(s_crop, struct v4l2_crop, *);
->  V4L2_INT_WRAPPER_1(g_parm, struct v4l2_streamparm, *);
->  V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
-> +V4L2_INT_WRAPPER_1(querystd, v4l2_std_id, *);
-> +V4L2_INT_WRAPPER_1(s_std, v4l2_std_id, *);
-> +V4L2_INT_WRAPPER_1(enum_input, struct v4l2_input, *);
-> +V4L2_INT_WRAPPER_1(g_input, int, *);
-> +V4L2_INT_WRAPPER_1(s_input, int, );
-> +V4L2_INT_WRAPPER_1(enumoutput, struct v4l2_output, *);
-> +V4L2_INT_WRAPPER_1(g_output, int, *);
-> +V4L2_INT_WRAPPER_1(s_output, int, );
->
->  V4L2_INT_WRAPPER_0(dev_init);
->  V4L2_INT_WRAPPER_0(dev_exit);
+> 
+> > ---
+> >  drivers/misc/sti/Makefile      |    2 +-
+> >  drivers/misc/sti/sdti.c        |   14 ++++++++++----
+> >  drivers/misc/sti/sti-netlink.c |    8 +++++++-
+> >  3 files changed, 18 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/drivers/misc/sti/Makefile b/drivers/misc/sti/Makefile
+> > index aee30bd..43574d1 100644
+> > --- a/drivers/misc/sti/Makefile
+> > +++ b/drivers/misc/sti/Makefile
+> > @@ -2,7 +2,7 @@ ifeq ($(CONFIG_ARCH_OMAP3),y)
+> >  obj-$(CONFIG_OMAP_STI)	+= sdti.o
+> >  else
+> >  obj-$(CONFIG_OMAP_STI)	+= sti.o sti-fifo.o
+> > -obj-$(CONFIG_NET)	+= sti-netlink.o
+> >  endif
+> >  
+> > +obj-$(CONFIG_NET)	+= sti-netlink.o
+> >  obj-$(CONFIG_OMAP_STI_CONSOLE)	+= sti-console.o
+> > diff --git a/drivers/misc/sti/sdti.c b/drivers/misc/sti/sdti.c
+> > index 4514783..92ce57b 100644
+> > --- a/drivers/misc/sti/sdti.c
+> > +++ b/drivers/misc/sti/sdti.c
+> > @@ -31,11 +31,14 @@
+> >  #define CPU1_TRACE_EN		0x01
+> >  #define CPU2_TRACE_EN		0x02
+> >  
+> > +#define SDTI_SYSCONFIG_SOFTRESET	(1 << 1)
+> > +#define SDTI_SYSCONFIG_AUTOIDLE		(1 << 0)
+> > +
+> >  static struct clk *sdti_ck;
+> >  void __iomem *sti_base, *sti_channel_base;
+> >  static DEFINE_SPINLOCK(sdti_lock);
+> >  
+> > -void omap_sti_channel_write_trace(int len, int id, void *data,
+> > +void sti_channel_write_trace(int len, int id, void *data,
+> >  				unsigned int channel)
+> >  {
+> >  	const u8 *tpntr = data;
+> > @@ -49,13 +52,13 @@ void omap_sti_channel_write_trace(int len, int id, void *data,
+> >  
+> >  	spin_unlock_irq(&sdti_lock);
+> >  }
+> > -EXPORT_SYMBOL(omap_sti_channel_write_trace);
+> > +EXPORT_SYMBOL(sti_channel_write_trace);
+> >  
+> >  static void omap_sdti_reset(void)
+> >  {
+> >  	int i;
+> >  
+> > -	sti_writel(0x02, SDTI_SYSCONFIG);
+> > +	sti_writel(SDTI_SYSCONFIG_SOFTRESET, SDTI_SYSCONFIG);
+> >  
+> >  	for (i = 0; i < 10000; i++)
+> >  		if (sti_readl(SDTI_SYSSTATUS) & 1)
+> > @@ -79,6 +82,9 @@ static int __init omap_sdti_init(void)
+> >  	omap_sdti_reset();
+> >  	sti_writel(0xC5ACCE55, SDTI_LOCK_ACCESS);
+> >  
+> > +	/* Autoidle */
+> > +	sti_writel(SDTI_SYSCONFIG_AUTOIDLE, SDTI_SYSCONFIG);
+> > +
+> >  	/* Claim SDTI */
+> >  	sti_writel(1 << 30, SDTI_WINCTRL);
+> >  	i = sti_readl(SDTI_WINCTRL);
+> > @@ -99,7 +105,7 @@ static int __init omap_sdti_init(void)
+> >  	snprintf(buf, sizeof(buf), "OMAP SDTI support loaded (HW v%u.%u)\n",
+> >  		(i >> 4) & 0x0f, i & 0x0f);
+> >  	printk(KERN_INFO "%s", buf);
+> > -	omap_sti_channel_write_trace(strlen(buf), 0xc3, buf, 239);
+> > +	sti_channel_write_trace(strlen(buf), 0xc3, buf, 239);
+> >  
+> >  	return 0;
+> >  }
+> > diff --git a/drivers/misc/sti/sti-netlink.c b/drivers/misc/sti/sti-netlink.c
+> > index f1f8a48..b198e4c 100644
+> > --- a/drivers/misc/sti/sti-netlink.c
+> > +++ b/drivers/misc/sti/sti-netlink.c
+> > @@ -25,6 +25,7 @@ enum {
+> >  	STI_WRITE,
+> >  };
+> >  
+> > +#if defined(CONFIG_ARCH_OMAP1) || defined(CONFIG_ARCH_OMAP2)
+> >  static int sti_netlink_read(int pid, int seq, void *payload, int size)
+> >  {
+> >  	struct sk_buff *skb;
+> > @@ -55,6 +56,7 @@ nlmsg_failure:
+> >  
+> >  	return -EINVAL;
+> >  }
+> > +#endif
+> >  
+> >  /*
+> >   * We abuse nlmsg_type and nlmsg_flags for our purposes.
+> > @@ -66,7 +68,7 @@ static int sti_netlink_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
+> >  {
+> >  	void *data;
+> >  	u8 chan, id;
+> > -	int size, ret = 0, len = 0;
+> > +	int size, ret = 0;
+> >  
+> >  	data	= NLMSG_DATA(nlh);
+> >  	chan	= (nlh->nlmsg_flags >> 8) & 0xff;
+> > @@ -77,7 +79,10 @@ static int sti_netlink_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
+> >  	case STI_WRITE:
+> >  		sti_channel_write_trace(size, id, data, chan);
+> >  		break;
+> > +#if defined(CONFIG_ARCH_OMAP1) || defined(CONFIG_ARCH_OMAP2)
+> >  	case STI_READ:
+> > +		int len = 0;
+> > +
+> >  		data = kmalloc(size, GFP_KERNEL);
+> >  		if (!data)
+> >  			return -ENOMEM;
+> > @@ -88,6 +93,7 @@ static int sti_netlink_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
+> >  				       data, len);
+> >  		kfree(data);
+> >  		break;
+> > +#endif
+> >  	default:
+> >  		return -ENOTTY;
+> >  	}
+> > -- 
+> > 1.5.5.1
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> -- 
+> balbi
 > --
-> 1.5.6
->
-> --
-> video4linux-list mailing list
-> Unsubscribe
-> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-
-
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
