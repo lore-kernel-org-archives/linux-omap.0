@@ -1,55 +1,51 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: [PATCH] OMAP general SOC driver.
-Date: Wed, 26 Nov 2008 13:40:28 +0200
-Message-ID: <20081126134028.b3c6aa46.jarkko.nikula@nokia.com>
-References: <1227696478-8354-1-git-send-email-stanley.miao@windriver.com>
-	<20081126110854.GA6234@sirena.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20081126110854.GA6234@sirena.org.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: ext Mark Brown <broonie@sirena.org.uk>
-Cc: "Stanley.Miao" <stanley.miao@windriver.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+From: Tero Kristo <tero.kristo@nokia.com>
+Subject: [PATCH] OMAP3: Fixes for suspend / resume GPIO wake-up handling
+Date: Wed, 26 Nov 2008 13:47:10 +0200
+Message-ID: <1227700030-28295-1-git-send-email-tero.kristo@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:24049 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752141AbYKZLvu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 06:51:50 -0500
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mAQBpPrh026071
+	for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2008 13:51:47 +0200
+Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
+	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id mAQBp4vr002189
+	for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2008 13:51:05 +0200
+In-Reply-To: <>
+References: <>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Wed, 26 Nov 2008 11:08:55 +0000
-"ext Mark Brown" <broonie@sirena.org.uk> wrote:
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+---
+ arch/arm/plat-omap/gpio.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-> > +#ifdef CONFIG_SND_OMAP_SOC_N810
-> > +#include "../codecs/tlv320aic3x.h"
-> > +#define CODEC_SYS_CLOCK		12000000
-> > +#define CODEC_NAME		"TLV320AIC33"
-> > +#define STREAM_NAME		"AIC33"
-> > +#define CODEC_DEV		(&soc_codec_dev_aic3x)
-> > +#define CODEC_DAI		(&aic3x_dai)
-> > +#define CODEC_SETUP_DATA	(&&n810_aic33_setup)
-> > +#define DAI_LINK_INIT		(n810_aic33_init)
-> > +#define SOC_OPS_STARTUP		(n810_startup)
-> > +#define SOC_OPS_SHUTDOWN	(n810_shutdown)
-> 
-> Please change this to use a platform data based approach rather than
-> these ifdefs: it's not a good approach for readability and it prevents
-> building multiple board drivers in one kernel which isn't good for
-> distributions.  The s3c24xx_uda134x.c provides an example of how this
-> can be done.  It may be more sensible to have a separate driver per
-> codec.
-> --
-And as a first step, I recommend to start merging only those EVM & SDP
-boards with Beagle since they seems to be most close to each other.
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index f4ec3af..62349fd 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -1585,7 +1585,7 @@ static int omap_gpio_suspend(struct sys_device *dev, pm_message_t mesg)
+ #endif
+ #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
+ 		case METHOD_GPIO_24XX:
+-			wake_status = bank->base + OMAP24XX_GPIO_SETWKUENA;
++			wake_status = bank->base + OMAP24XX_GPIO_WAKE_EN;
+ 			wake_clear = bank->base + OMAP24XX_GPIO_CLEARWKUENA;
+ 			wake_set = bank->base + OMAP24XX_GPIO_SETWKUENA;
+ 			break;
+@@ -1608,7 +1608,7 @@ static int omap_gpio_resume(struct sys_device *dev)
+ {
+ 	int i;
+ 
+-	if (!cpu_is_omap24xx() && !cpu_is_omap16xx())
++	if (!cpu_class_is_omap2() && !cpu_is_omap16xx())
+ 		return 0;
+ 
+ 	for (i = 0; i < gpio_bank_count; i++) {
+-- 
+1.5.4.3
 
-Even the Overo seems to be close also, it was discussed earlier to keep
-it separated now since Steve was going to send some new features into
-it.
-
-
-Jarkko
