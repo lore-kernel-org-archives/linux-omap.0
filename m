@@ -1,77 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: MCSPI: Enable mcspi wake-up v2.
-Date: Wed, 26 Nov 2008 09:57:10 -0800
-Message-ID: <20081126175709.GS11997@atomide.com>
-References: <873ahotc5t.fsf@trdhcp146196.ntc.nokia.com> <1227080924-11555-1-git-send-email-jouni.hogander@nokia.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] OMAP general SOC driver.
+Date: Wed, 26 Nov 2008 10:34:41 -0800
+Message-ID: <200811261034.42356.david-b@pacbell.net>
+References: <1227696478-8354-1-git-send-email-stanley.miao@windriver.com> <20081126110854.GA6234@sirena.org.uk> <20081126134028.b3c6aa46.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60111 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752747AbYKZR5L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 12:57:11 -0500
+Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:26672 "HELO
+	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752296AbYKZSeu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 Nov 2008 13:34:50 -0500
+In-Reply-To: <20081126134028.b3c6aa46.jarkko.nikula@nokia.com>
 Content-Disposition: inline
-In-Reply-To: <1227080924-11555-1-git-send-email-jouni.hogander@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jouni Hogander <jouni.hogander@nokia.com>, David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@nokia.com>, "Stanley.Miao" <stanley.miao@windriver.com>
+Cc: ext Mark Brown <broonie@sirena.org.uk>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-* Jouni Hogander <jouni.hogander@nokia.com> [081118 23:48]:
-> Currently mcspi wake-ups are not enabled. This might cause case where
-> OMAP is not waking up on mcspi events.
-
-Dave, I assume you're picking these for your SPI queue? Will only
-apply to l-o if you ack and tell me so.
-
-Tony
-
-
-> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
-> ---
->  drivers/spi/omap2_mcspi.c |   11 +++++++++--
->  1 files changed, 9 insertions(+), 2 deletions(-)
+On Wednesday 26 November 2008, Jarkko Nikula wrote:
+> And as a first step, I recommend to start merging only those EVM & SDP
+> boards with Beagle since they seems to be most close to each other.
 > 
-> diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-> index 454a271..d7e519c 100644
-> --- a/drivers/spi/omap2_mcspi.c
-> +++ b/drivers/spi/omap2_mcspi.c
-> @@ -59,6 +59,8 @@
->  
->  /* per-register bitmasks: */
->  
-> +#define OMAP2_MCSPI_SYSCONFIG_SMARTIDLE	(2 << 3)
-> +#define OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP	(1 << 2)
->  #define OMAP2_MCSPI_SYSCONFIG_AUTOIDLE	(1 << 0)
->  #define OMAP2_MCSPI_SYSCONFIG_SOFTRESET	(1 << 1)
->  
-> @@ -90,6 +92,7 @@
->  
->  #define OMAP2_MCSPI_CHCTRL_EN		(1 << 0)
->  
-> +#define OMAP2_MCSPI_WAKEUPENABLE_WKEN	(1 << 0)
->  
->  /* We have 2 DMA channels per CS, one for RX and one for TX */
->  struct omap2_mcspi_dma {
-> @@ -884,8 +887,12 @@ static int __init omap2_mcspi_reset(struct omap2_mcspi *mcspi)
->  	} while (!(tmp & OMAP2_MCSPI_SYSSTATUS_RESETDONE));
->  
->  	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
-> -			/* (3 << 8) | (2 << 3) | */
-> -			OMAP2_MCSPI_SYSCONFIG_AUTOIDLE);
-> +			OMAP2_MCSPI_SYSCONFIG_AUTOIDLE |
-> +			OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP |
-> +			OMAP2_MCSPI_SYSCONFIG_SMARTIDLE);
-> +
-> +	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE,
-> +			OMAP2_MCSPI_WAKEUPENABLE_WKEN);
->  
->  	omap2_mcspi_set_master_mode(master);
->  
-> -- 
-> 1.6.0.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Even the Overo seems to be close also, it was discussed earlier to keep
+> it separated now since Steve was going to send some new features into
+> it.
+
+This seems to focus on just the McBSP channel out of the OMAP ...
+except that it hides (in that nasty #ifdeffery) the codec data.
+
+The fact that it doesn't allow EAC or a McBSP successor says
+to me it's not really "general".  Heck ... it even hard-wires
+McBSP2, preventing another channel from being used.  So IMO
+a different name would be appropriate...
+
+Re TWL4030 codec configuration ... I count three microphone
+input channels not used on Beagle, plus a speaker output
+and some other stuff.  So it's obvious that something which
+works on Beagle won't handle more interesting configurations
+of that audio support.  
+
+
+Plus, if there's going to be a board-specific platform device
+created, and stuffed with data like codec descriptions and
+configuration data ... that's what arch/arm/mach-*/board-*.c
+files are for.
+
+I'm told that the ASoC stuff "should" go in a separate ASoC
+area for some reason.  That still makes no good sense to me,
+so if there's a brief explanation as to why it's done that
+way, please fling me a URL.  :)
+
+- Dave
+
