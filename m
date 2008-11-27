@@ -1,130 +1,41 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 1/5] OMAP3: PM: HSMMC: force MMC module reset on boot
-Date: Wed, 26 Nov 2008 16:05:45 -0800
-Message-ID: <1227744349-12118-2-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 4/5] OMAP3: PM: D2D clockdomain supports SW supervised transitions
+Date: Wed, 26 Nov 2008 16:05:48 -0800
+Message-ID: <1227744349-12118-5-git-send-email-khilman@deeprootsystems.com>
 References: <1227744349-12118-1-git-send-email-khilman@deeprootsystems.com>
+ <1227744349-12118-2-git-send-email-khilman@deeprootsystems.com>
+ <1227744349-12118-3-git-send-email-khilman@deeprootsystems.com>
+ <1227744349-12118-4-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f11.google.com ([209.85.217.11]:60247 "EHLO
-	mail-gx0-f11.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755453AbYK0AGA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 19:06:00 -0500
-Received: by gxk4 with SMTP id 4so733348gxk.13
-        for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2008 16:05:58 -0800 (PST)
-In-Reply-To: <1227744349-12118-1-git-send-email-khilman@deeprootsystems.com>
+Received: from rn-out-0910.google.com ([64.233.170.184]:16375 "EHLO
+	rn-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754570AbYK0AGI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 19:06:08 -0500
+Received: by rn-out-0910.google.com with SMTP id k40so712652rnd.17
+        for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2008 16:06:07 -0800 (PST)
+In-Reply-To: <1227744349-12118-4-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-The bootloader may leave the MMC in a state which prevents hitting
-retention.  Even when MMC is not compiled in, each MMC module needs to
-be forced into reset.
-
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/devices.c |   76 +++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 76 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/clockdomains.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 241e418..196de4e 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -14,6 +14,7 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/io.h>
-+#include <linux/clk.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -358,6 +359,80 @@ static inline void omap_init_sha1_md5(void) { }
- 
- /*-------------------------------------------------------------------------*/
- 
-+#ifdef CONFIG_ARCH_OMAP3
-+
-+#define MMCHS1				(L4_34XX_BASE + 0x9C000)
-+#define MMCHS2				(L4_34XX_BASE + 0xB4000)
-+#define MMCHS3				(L4_34XX_BASE + 0xAD000)
-+#define MAX_MMC				3
-+#define MMCHS_SYSCONFIG			0x0010
-+#define MMCHS_SYSCONFIG_SWRESET		(1 << 1)
-+#define MMCHS_SYSSTATUS			0x0014
-+#define MMCHS_SYSSTATUS_RESETDONE	(1 << 0)
-+
-+static struct platform_device dummy_pdev = {
-+	.dev = {
-+		.bus = &platform_bus_type,
-+	},
-+};
-+
-+/**
-+ * omap_hsmmc_reset() - Full reset of each HS-MMC controller
-+ *
-+ * Ensure that each MMC controller is fully reset.  Controllers
-+ * left in an unknown state (by bootloaer) may prevent retention
-+ * or OFF-mode.  This is especially important in cases where the
-+ * MMC driver is not enabled, _or_ built as a module.
-+ *
-+ * In order for reset to work, interface, functional and debounce
-+ * clocks must be enabled.  The debounce clock comes from func_32k_clk
-+ * and is not under SW control, so we only enable i- and f-clocks.
-+ **/
-+static void __init omap_hsmmc_reset(void)
-+{
-+	u32 i, base[MAX_MMC] = {MMCHS1, MMCHS2, MMCHS3};
-+
-+	for (i = 0; i < MAX_MMC; i++) {
-+		u32 v;
-+		struct clk *iclk, *fclk;
-+		struct device *dev = &dummy_pdev.dev;
-+
-+		dummy_pdev.id = i;
-+		iclk = clk_get(dev, "mmchs_ick");
-+		if (iclk && clk_enable(iclk))
-+			iclk = NULL;
-+
-+		fclk = clk_get(dev, "mmchs_fck");
-+		if (fclk && clk_enable(fclk))
-+			fclk = NULL;
-+
-+		if (!iclk || !fclk) {
-+			printk(KERN_WARNING
-+			       "%s: Unable to enable clocks for MMC%d, "
-+			       "cannot reset.\n",  __func__, i);
-+			break;
-+		}
-+
-+		omap_writel(MMCHS_SYSCONFIG_SWRESET, base[i] + MMCHS_SYSCONFIG);
-+		v = omap_readl(base[i] + MMCHS_SYSSTATUS);
-+		while (!(omap_readl(base[i] + MMCHS_SYSSTATUS) &
-+			 MMCHS_SYSSTATUS_RESETDONE))
-+			cpu_relax();
-+
-+		if (fclk) {
-+			clk_disable(fclk);
-+			clk_put(fclk);
-+		}
-+		if (iclk) {
-+			clk_disable(iclk);
-+			clk_put(iclk);
-+		}
-+	}
-+}
-+#else
-+static inline void omap_hsmmc_reset(void) {}
-+#endif
-+
- #if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE) || \
- 	defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
- 
-@@ -477,6 +552,7 @@ static int __init omap2_init_devices(void)
- 	/* please keep these calls, and their implementations above,
- 	 * in alphabetical order so they're easier to sort through.
- 	 */
-+	omap_hsmmc_reset();
- 	omap_init_camera();
- 	omap_init_mbox();
- 	omap_init_mcspi();
+diff --git a/arch/arm/mach-omap2/clockdomains.h b/arch/arm/mach-omap2/clockdomains.h
+index bafa650..49a5774 100644
+--- a/arch/arm/mach-omap2/clockdomains.h
++++ b/arch/arm/mach-omap2/clockdomains.h
+@@ -198,7 +198,7 @@ static struct clockdomain sgx_clkdm = {
+ static struct clockdomain d2d_clkdm = {
+ 	.name		= "d2d_clkdm",
+ 	.pwrdm		= { .name = "core_pwrdm" },
+-	.flags		= CLKDM_CAN_HWSUP,
++	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+ 	.clktrctrl_mask = OMAP3430ES1_CLKTRCTRL_D2D_MASK,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
 -- 
 1.6.0.3
 
