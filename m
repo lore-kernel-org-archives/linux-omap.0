@@ -1,74 +1,63 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/5] extra module resets to ensure full-chip idle
-Date: Wed, 26 Nov 2008 21:14:13 -0800
-Message-ID: <871vwxiwd6.fsf@deeprootsystems.com>
-References: <1227744349-12118-1-git-send-email-khilman@deeprootsystems.com>
-	<492E2A52.4030200@googlemail.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: [PATCH] Add OMAP2 camera driver
+Date: Thu, 27 Nov 2008 12:53:19 +0530
+Message-ID: <5d5443650811262323l759d8c02s835c9a7454508b85@mail.gmail.com>
+References: <5d5443650811261044w30748b75w5a47ce8b04680f79@mail.gmail.com>
+	 <200811262116.42364.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.28]:59250 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750894AbYK0FOU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Nov 2008 00:14:20 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so384959yxm.1
-        for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2008 21:14:18 -0800 (PST)
-In-Reply-To: <492E2A52.4030200@googlemail.com> (Dirk Behme's message of "Thu\, 27 Nov 2008 06\:04\:18 +0100")
+Received: from qb-out-0506.google.com ([72.14.204.233]:62182 "EHLO
+	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750947AbYK0HXV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Nov 2008 02:23:21 -0500
+Received: by qb-out-0506.google.com with SMTP id f11so832805qba.17
+        for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2008 23:23:20 -0800 (PST)
+In-Reply-To: <200811262116.42364.hverkuil@xs4all.nl>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: linux-omap@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>, Sakari Ailus <sakari.ailus@nokia.com>
+Cc: video4linux-list@redhat.com, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-Dirk Behme <dirk.behme@googlemail.com> writes:
-
-> Kevin Hilman wrote:
->> Various bootloaders have been known to leave modules in a state
->> which prevents full-chip retention.  
->
-> Does it make sense to check if
->
-> [PATCH 1/5] OMAP3: PM: HSMMC: force MMC module reset on boot
-> [PATCH 2/5] OMAP3: PM: Force IVA2 into idle during bootup
->
-> can be done in U-Boot, too? If yes, I would have a look to it.
-
-Yes, ideally u-boot or whatever bootloader isused should 
-be leaving these modules in a known reset/idle state.
-
-However, there are many bootloaders for many platforms out there so
-until there is some sort of standard on bootloaders, I think the
-kernel will have to ensure this is done.
-
-Kevin
+Hi Hans,
 
 >
->> This series forces
->> MMC, IVA2 and D2D/modem into known reset/idle states so that
->> the OMAP3 can hit full-chip idle.
->>
->> Tested on OMAP3 Beagle, and custom OMAP3 hardware.
->>
->> NOTE: this is similar to the set I posted for the PM branch
->>       but this series is rebased onto linux-omap and includes
->>       the MMC reset.
->>
->> Kevin Hilman (5):
->>   OMAP3: PM: HSMMC: force MMC module reset on boot
->>   OMAP3: PM: Force IVA2 into idle during bootup
->>   OMAP3: PM: Add D2D clocks and auto-idle setup to PRCM init
->>   OMAP3: PM: D2D clockdomain supports SW supervised transitions
->>   OMAP3: PM: Ensure modem is reset during PRCM init
->>
->>  arch/arm/mach-omap2/clock34xx.h           |   37 +++++++++++++-
->>  arch/arm/mach-omap2/clockdomains.h        |    2 +-
->>  arch/arm/mach-omap2/cm-regbits-34xx.h     |   14 +++++
->>  arch/arm/mach-omap2/devices.c             |   76 +++++++++++++++++++++++++++++
->>  arch/arm/mach-omap2/pm34xx.c              |   65 ++++++++++++++++++++++++-
->>  arch/arm/plat-omap/include/mach/control.h |    5 ++
->>  6 files changed, 195 insertions(+), 4 deletions(-)
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+> 1) The makefile isn't right: it compiles omap24xxcam.c and
+> omap24xxcam-dma.c as two modules, but I suspect you want only one since
+> the symbols that omap24xxcam.c needs from omap24xxcam-dma.c are not
+> exported. See e.g. the msp3400 driver in the Makefile for how to do it.
+
+I will make this change.
+
+>
+> 2) The Kconfig is probably missing a ARCH_OMAP dependency (sounds
+> reasonable, at least), so now it also compiles for the i686 but that
+> architecture doesn't have a clk_get function.
+
+I will add this dependency.
+
+>
+> 3) I was wondering whether Sakari also wants to add a Signed-off-by
+> line? Looking at the comments it seems that he was involved as well.
+
+I CCed from the first e-mail, so that he can review and give
+Signed-off-by to this patch.
+
+>
+> 4) I get a bunch of compile warnings (admittedly when compiling for
+> i686) that you might want to look at. Compiled against the 2.6.27
+> kernel with gcc-4.3.1. It might be bogus since I didn't compile for the
+> omap architecture.
+
+I will update my toolchain to gcc-4.3.x for ARM and see if it
+generates the warnings like below. But I think we are fine once we add
+ARCH_OMAP dependency to this driver.
+
+Thanks for the review comments. I will resubmit the patch.
+
+-- 
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
