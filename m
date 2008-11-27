@@ -1,86 +1,128 @@
-From: Sakari Ailus <sakari.ailus@nokia.com>
-Subject: Re: [PATCH] Add OMAP2 camera driver
-Date: Thu, 27 Nov 2008 11:35:05 +0200
-Message-ID: <492E69C9.9080904@nokia.com>
-References: <5d5443650811261044w30748b75w5a47ce8b04680f79@mail.gmail.com>	
-	<200811262116.42364.hverkuil@xs4all.nl>
-	<5d5443650811262323l759d8c02s835c9a7454508b85@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <video4linux-list-bounces@redhat.com>
-In-Reply-To: <5d5443650811262323l759d8c02s835c9a7454508b85@mail.gmail.com>
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-To: ext Trilok Soni <soni.trilok@gmail.com>
-Cc: video4linux-list@redhat.com, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH 1/2] Add support for GPIO LEDs on pandora
+Date: Thu, 27 Nov 2008 12:02:42 +0200
+Message-ID: <1227780163-5879-1-git-send-email-notasas@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ey-out-2122.google.com ([74.125.78.24]:22623 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752187AbYK0KDV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Nov 2008 05:03:21 -0500
+Received: by ey-out-2122.google.com with SMTP id 6so384191eyi.37
+        for <linux-omap@vger.kernel.org>; Thu, 27 Nov 2008 02:03:19 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Grazvydas Ignotas <notasas@gmail.com>
 
-ext Trilok Soni wrote:
-> Hi Hans,
+Pandora has some LEDs and backlights connected to OMAP
+GPIOs and TWL4030/TPS65950 LED/PWM signals. This patch
+registers them all with leds-gpio driver. TWL4030/TPS65950
+controlled ones will be switched to PWM driver when it's ready.
 
-Hello, Hans and Soni!
-
->> 2) The Kconfig is probably missing a ARCH_OMAP dependency (sounds
->> reasonable, at least), so now it also compiles for the i686 but that
->> architecture doesn't have a clk_get function.
-
-It *might* be possible that the same camera block would be used in 
-non-OMAP CPUs as well but I guess it is safe to assume that it depends 
-on ARCH_OMAP now.
-
->> 4) I get a bunch of compile warnings (admittedly when compiling for
->> i686) that you might want to look at. Compiled against the 2.6.27
->> kernel with gcc-4.3.1. It might be bogus since I didn't compile for the
->> omap architecture.
-> 
-> I will update my toolchain to gcc-4.3.x for ARM and see if it
-> generates the warnings like below. But I think we are fine once we add
-> ARCH_OMAP dependency to this driver.
-> 
-> Thanks for the review comments. I will resubmit the patch.
-
-Is this exactly the same code that was removed from linux-omap a while ago?
-
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
 ---
-commit ebdae9abf598ae8a3ee1c8c477138f82b40e7809
-Author: Tony Lindgren <tony@atomide.com>
-Date:   Mon Oct 27 13:33:13 2008 -0700
+ arch/arm/mach-omap2/board-omap3pandora.c |   60 ++++++++++++++++++++++++++++++
+ 1 files changed, 60 insertions(+), 0 deletions(-)
 
-     REMOVE OMAP LEGACY CODE: Delete all old omap specific v4l drivers
-
-     All v4l development must be done on the v4l mailing list with 
-linux-omap
-     list cc'd.
-
-     Signed-off-by: Tony Lindgren <tony@atomide.com>
-
----
-
-Although I haven't had time to discuss this anywhere, I though a 
-possible reason of for the removal was that some parts of the code are 
-not that pretty (e.g. DMA) and those parts should be rewritten.
-
-But yes, the OMAP 2 camera driver does actually work and I would suppose 
-it has users, too (think N800/N810).
-
-I'm in if the aim is to get this back to linux-omap. :-) (Waiting for 
-the next patch from Trilok.)
-
-Cheers,
-
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index 69517a5..2dfa988 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -28,6 +28,7 @@
+ #include <linux/spi/spi.h>
+ #include <linux/spi/ads7846.h>
+ #include <linux/i2c/twl4030.h>
++#include <linux/leds.h>
+ 
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
+@@ -166,6 +167,53 @@ static struct omap_uart_config omap3pandora_uart_config __initdata = {
+ 	.enabled_uarts	= (1 << 2), /* UART3 */
+ };
+ 
++static struct gpio_led omap3pandora_gpio_leds[] = {
++	{
++		.name			= "pandora::keypad_bl",
++		.gpio			= -EINVAL,	/* gets replaced */
++		.active_low		= true,
++	}, {
++		.name			= "pandora::power",
++		.default_trigger	= "default-on",
++		.gpio			= -EINVAL,
++		.active_low		= true,
++	}, {
++		.name			= "pandora::lcd_bl",
++		.default_trigger	= "backlight",
++		.gpio			= -EINVAL,
++	}, {
++		.name			= "pandora::charger",
++		.gpio			= -EINVAL,
++	}, {
++		.name			= "pandora::sd1",
++		.default_trigger	= "mmc0",
++		.gpio			= 128,
++	}, {
++		.name			= "pandora::sd2",
++		.default_trigger	= "mmc1",
++		.gpio			= 129,
++	}, {
++		.name			= "pandora::bluetooth",
++		.gpio			= 158,
++	}, {
++		.name			= "pandora::wifi",
++		.gpio			= 159,
++	},
++};
++
++static struct gpio_led_platform_data omap3pandora_gpio_led_data = {
++	.leds		= omap3pandora_gpio_leds,
++	.num_leds	= ARRAY_SIZE(omap3pandora_gpio_leds),
++};
++
++static struct platform_device omap3pandora_leds_gpio = {
++	.name	= "leds-gpio",
++	.id	= -1,
++	.dev	= {
++		.platform_data	= &omap3pandora_gpio_led_data,
++	},
++};
++
+ static int omap3pandora_twl_gpio_setup(struct device *dev,
+ 		unsigned gpio, unsigned ngpio)
+ {
+@@ -174,6 +222,16 @@ static int omap3pandora_twl_gpio_setup(struct device *dev,
+ 	omap3pandora_mmc[1].gpio_cd = gpio + 1;
+ 	hsmmc_init(omap3pandora_mmc);
+ 
++	/* TWL4030_GPIO_MAX + 0 == ledA, KEYPAD_BACKLIGHT (out, active low) */
++	omap3pandora_gpio_leds[0].gpio = gpio + TWL4030_GPIO_MAX + 0;
++
++	/* TWL4030_GPIO_MAX + 1 == ledB, POWER_LED (out, active low) */
++	omap3pandora_gpio_leds[1].gpio = gpio + TWL4030_GPIO_MAX + 1;
++
++	/* gpio + {6,7} is PWM{0,1}, LCD_BACKLIGHT and CHARGER_LED */
++	omap3pandora_gpio_leds[2].gpio = gpio + 6;
++	omap3pandora_gpio_leds[3].gpio = gpio + 7;
++
+ 	return 0;
+ }
+ 
+@@ -181,6 +239,7 @@ static struct twl4030_gpio_platform_data omap3pandora_gpio_data = {
+ 	.gpio_base	= OMAP_MAX_GPIO_LINES,
+ 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+ 	.irq_end	= TWL4030_GPIO_IRQ_END,
++	.use_leds	= true,
+ 	.setup		= omap3pandora_twl_gpio_setup,
+ };
+ 
+@@ -285,6 +344,7 @@ static struct omap_board_config_kernel omap3pandora_config[] __initdata = {
+ 
+ static struct platform_device *omap3pandora_devices[] __initdata = {
+ 	&omap3pandora_lcd_device,
++	&omap3pandora_leds_gpio,
+ };
+ 
+ static void __init omap3pandora_init(void)
 -- 
-Sakari Ailus
-sakari.ailus@nokia.com
+1.5.4.3
 
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
