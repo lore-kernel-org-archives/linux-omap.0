@@ -1,101 +1,153 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: ARM : OMAP: Pass logical DMA channel number always to callback
- handlers
-Date: Thu, 27 Nov 2008 13:00:49 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02936BF182@dbde02.ent.ti.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02936BEAED@dbde02.ent.ti.com>
-	<20081126121143.f564a966.jarkko.nikula@nokia.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02936BEC19@dbde02.ent.ti.com>
- <20081126143440.bfe30f25.jarkko.nikula@nokia.com>
+From: Kyungmin Park <kmpark@infradead.org>
+Subject: [PATCH] Provide the set_power at TWL4030 MMC
+Date: Thu, 27 Nov 2008 16:53:45 +0900
+Message-ID: <20081127075345.GA17896@july>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59750 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751380AbYK0HbI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Nov 2008 02:31:08 -0500
-In-Reply-To: <20081126143440.bfe30f25.jarkko.nikula@nokia.com>
-Content-Language: en-US
+Received: from mailout5.samsung.com ([203.254.224.35]:47658 "EHLO
+	mailout5.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751668AbYK0Hxz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Nov 2008 02:53:55 -0500
+Received: from epmmp2 (mailout5.samsung.com [203.254.224.35])
+ by mailout5.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KAZ00EG4F9SEV@mailout5.samsung.com> for
+ linux-omap@vger.kernel.org; Thu, 27 Nov 2008 16:53:52 +0900 (KST)
+Received: from spapp01.rdscm.com ([165.213.149.150])
+ by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0KAZ00JKMF9T9B@mmp2.samsung.com> for
+ linux-omap@vger.kernel.org; Thu, 27 Nov 2008 16:53:53 +0900 (KST)
+Content-disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
+Custom board powered by VAUX2 and VAUX4 for MMC instead of VMMC
+Also it uses VMMC for MMC core power not voltage.
 
+MMC1: uses VMMC1(voltage) and VMMC2(Vdd)
+MMC2: uses VAUX2(voltage) and VAUX4(Vdd)
 
-> -----Original Message-----
-> From: Jarkko Nikula [mailto:jarkko.nikula@nokia.com] 
-> Sent: Wednesday, November 26, 2008 6:05 PM
-> To: Shilimkar, Santosh
-> Cc: Tony Lindgren; linux-omap@vger.kernel.org
-> Subject: Re: ARM : OMAP: Pass logical DMA channel number 
-> always to callback handlers
-> 
-> On Wed, 26 Nov 2008 16:26:42 +0530
-> "ext Shilimkar, Santosh" <santosh.shilimkar@ti.com> wrote:
-> 
-> > > As commit log says, user can pass the chain_id via 
-> callback data if
-> > > needed. 
-> > Yes there are few ways you can achieve this if you don't 
-> want to pass the chain_id as part of the callback. But in 
-> that case the 'omap_request_dma_chain' callback signature 
-> should have been also cleaned ( 'ch' instead of 'chain_id').
-> > 
-> Ah, yeah, then it was missing from my patch and have to send a patch
-> changing it.
-> 
-> > >I think chained dma callback may also find more use 
-> > > for logical channel number than chain_id e.g. when 
-> modifying the transfer
-> > > parameters etc.
-> > When user wants to use chaining,they expects that the chain 
-> internals ( free channel allocation etc) should be managed by 
-> DMA library. So even user wants to modify the parameters, it 
-> can directly use 'omap_modify_dma_chain_params' api and just 
-> provide 'chain_id'. For which channel the parameters should 
-> be changed will be decided by the DMA library internally 
-> depending on free channels from chain.
-> >
-> This approach doesn't work e.g. with audio. Let's assume you 
-> would like
-> to use DMA chaining with ALSA (been there, done that, until found a
-> better solution. See sound/soc/omap-pcm.c).
+To address this issue, platform uses its custom power function.
 
-Don't know how alsa frameworks works but looking at code, it seems this was done when  omap DMA version were not supporting chaining. But even after chaining is available it's not been updated.That's a different topic anyways.
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
+index 626d668..571b7b0 100644
+--- a/arch/arm/mach-omap2/mmc-twl4030.c
++++ b/arch/arm/mach-omap2/mmc-twl4030.c
+@@ -27,28 +27,6 @@
  
-> ALSA application may ask to use e.g. 100 periods, which is more than
-> n.o. logical DMA channels in OMAP so chain length is have to 
-> be shorter
-> than n.o. periods. Which then means that channel parameters 
-> are have to
-> modify while the chain is running.
-
-Not sure about the above scenario's practicality. How much is 'one' period in terms bytes. Is there requirement that for one period , you need a dedicated DMA channel for a transfer. I don't understand how you arrived at above conlcusion.
+ #if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
  
-> omap_modify_dma_chain_params is setting parameters for all channels in
-> a chain, and more over, function header of it says "Dont do this while
-> dma is running!!".
-
-Firstly I don't understand why you want to use 'omap_modify_dma_chain_params' when chain is active. Above example you have given is not telling me how I end in a situation of modifying chanining parametsr. In normal case,you can very much program the transfer related parameters using 'omap_dma_chain_a_transfer' which will find out free channel and queue it.
-
-> > > And uniform, smaller API set is always better than bloated one.
-> > This change any way don't reduce a single API so not sure 
-> what you mean by 'smaller API set is always better than 
-> bloated one'. It may reduce a callback for a user in
-> >  
-> IMO, API is a one step bigger if DMA callback has different arguments
-> depending is it in non-chained vs. chained configuration.
-> > So I still don't see a real benefit of this patch. Because 
-> of above mentioned reasons I think  we should revert this patch.
-> > 
-> Probably you would like to show/share opposite example?
-Not exactly. But I want to see that the chaining feature should be used as it is intended and supported by design. Because if user wants to manage the programming of free channels then it is as good as , user implements it's own chaining. This can be done with normal DMA APIs as well. :-)
-
-
+-#define LDO_CLR			0x00
+-#define VSEL_S2_CLR		0x40
+-
+-#define VMMC1_DEV_GRP		0x27
+-#define VMMC1_CLR		0x00
+-#define VMMC1_315V		0x03
+-#define VMMC1_300V		0x02
+-#define VMMC1_285V		0x01
+-#define VMMC1_185V		0x00
+-#define VMMC1_DEDICATED		0x2A
+-
+-#define VMMC2_DEV_GRP		0x2B
+-#define VMMC2_CLR		0x40
+-#define VMMC2_315V		0x0c
+-#define VMMC2_300V		0x0b
+-#define VMMC2_285V		0x0a
+-#define VMMC2_260V		0x08
+-#define VMMC2_185V		0x06
+-#define VMMC2_DEDICATED		0x2E
+-
+-#define VMMC_DEV_GRP_P1		0x20
+-
+ static u16 control_pbias_offset;
+ static u16 control_devconf1_offset;
  
-> 
-> Jarkko
-> 
-> 
+@@ -385,14 +363,21 @@ void __init hsmmc_init(struct twl4030_hsmmc_info *controllers)
+ 		/* NOTE:  we assume OMAP's MMC1 and MMC2 use
+ 		 * the TWL4030's VMMC1 and VMMC2, respectively;
+ 		 * and that OMAP's MMC3 isn't used.
++		 * or provided by a platform.
+ 		 */
+ 
+ 		switch (c->mmc) {
+ 		case 1:
+-			mmc->slots[0].set_power = twl_mmc1_set_power;
++			if (c->set_power)
++				mmc->slots[0].set_power = c->set_power;
++			else
++				mmc->slots[0].set_power = twl_mmc1_set_power;
+ 			break;
+ 		case 2:
+-			mmc->slots[0].set_power = twl_mmc2_set_power;
++			if (c->set_power)
++				mmc->slots[0].set_power = c->set_power;
++			else
++				mmc->slots[0].set_power = twl_mmc2_set_power;
+ 			break;
+ 		default:
+ 			pr_err("MMC%d configuration not supported!\n", c->mmc);
+diff --git a/arch/arm/mach-omap2/mmc-twl4030.h b/arch/arm/mach-omap2/mmc-twl4030.h
+index e2d58a2..25a08ed 100644
+--- a/arch/arm/mach-omap2/mmc-twl4030.h
++++ b/arch/arm/mach-omap2/mmc-twl4030.h
+@@ -6,12 +6,55 @@
+  * published by the Free Software Foundation.
+  */
+ 
++#define VAUX2_DEV_GRP		0x1B
++#define VAUX2_315V		0x0C
++#define VAUX2_300V		0x0B
++#define VAUX2_285V		0x0A
++#define VAUX2_260V		0x08
++#define VAUX2_185V		0x06
++#define VAUX2_180V		0x05
++#define VAUX2_DEDICATED		0x1E
++
++#define VAUX4_DEV_GRP		0x23
++#define VAUX4_315V		0x0C
++#define VAUX4_300V		0x0B
++#define VAUX4_285V		0x0A
++#define VAUX4_260V		0x08
++#define VAUX4_185V		0x06
++#define VAUX4_DEDICATED		0x26
++
++#define VAUX_DEV_GRP_P1		0x20
++
++#define LDO_CLR			0x00
++#define VSEL_S2_CLR		0x40
++
++#define VMMC1_DEV_GRP		0x27
++#define VMMC1_CLR		0x00
++#define VMMC1_315V		0x03
++#define VMMC1_300V		0x02
++#define VMMC1_285V		0x01
++#define VMMC1_185V		0x00
++#define VMMC1_DEDICATED		0x2A
++
++#define VMMC2_DEV_GRP		0x2B
++#define VMMC2_CLR		0x00
++#define VMMC2_315V		0x0c
++#define VMMC2_300V		0x0b
++#define VMMC2_285V		0x0a
++#define VMMC2_260V		0x08
++#define VMMC2_185V		0x06
++#define VMMC2_DEDICATED		0x2E
++
++#define VMMC_DEV_GRP_P1		0x20
++
+ struct twl4030_hsmmc_info {
+ 	u8	mmc;		/* controller 1/2/3 */
+ 	u8	wires;		/* 1/4/8 wires */
+ 	int	gpio_cd;	/* or -EINVAL */
+ 	int	gpio_wp;	/* or -EINVAL */
+ 	int	ext_clock:1;	/* use external pin for input clock */
++	int	(*set_power)(struct device *dev, int slot,
++			int power_on, int vdd);
+ };
+ 
+ #if	defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE) || \
