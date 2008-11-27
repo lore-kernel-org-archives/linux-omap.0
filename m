@@ -1,91 +1,86 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: [PATCH 0/5] extra module resets to ensure full-chip idle
-Date: Thu, 27 Nov 2008 10:02:20 +0100
-Message-ID: <FF11085F-86D4-4350-AC79-878C9D7CC0F7@student.utwente.nl>
-References: <1227744349-12118-1-git-send-email-khilman@deeprootsystems.com>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-50-361237541"
+From: Sakari Ailus <sakari.ailus@nokia.com>
+Subject: Re: [PATCH] Add OMAP2 camera driver
+Date: Thu, 27 Nov 2008 11:35:05 +0200
+Message-ID: <492E69C9.9080904@nokia.com>
+References: <5d5443650811261044w30748b75w5a47ce8b04680f79@mail.gmail.com>	
+	<200811262116.42364.hverkuil@xs4all.nl>
+	<5d5443650811262323l759d8c02s835c9a7454508b85@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.utsp.utwente.nl ([130.89.2.8]:49663 "EHLO smtp.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752394AbYK0JCa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Nov 2008 04:02:30 -0500
-In-Reply-To: <1227744349-12118-1-git-send-email-khilman@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <video4linux-list-bounces@redhat.com>
+In-Reply-To: <5d5443650811262323l759d8c02s835c9a7454508b85@mail.gmail.com>
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+To: ext Trilok Soni <soni.trilok@gmail.com>
+Cc: video4linux-list@redhat.com, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-50-361237541
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+ext Trilok Soni wrote:
+> Hi Hans,
 
+Hello, Hans and Soni!
 
-Op 27 nov 2008, om 01:05 heeft Kevin Hilman het volgende geschreven:
+>> 2) The Kconfig is probably missing a ARCH_OMAP dependency (sounds
+>> reasonable, at least), so now it also compiles for the i686 but that
+>> architecture doesn't have a clk_get function.
 
-> Various bootloaders have been known to leave modules in a state
-> which prevents full-chip retention.  This series forces
-> MMC, IVA2 and D2D/modem into known reset/idle states so that
-> the OMAP3 can hit full-chip idle.
->
-> Tested on OMAP3 Beagle, and custom OMAP3 hardware.
->
-> NOTE: this is similar to the set I posted for the PM branch
->      but this series is rebased onto linux-omap and includes
->      the MMC reset.
+It *might* be possible that the same camera block would be used in 
+non-OMAP CPUs as well but I guess it is safe to assume that it depends 
+on ARCH_OMAP now.
 
-I'm having trouble applying these against current head  
-(5019ed843f3208482c64043e4052e89b3d5462a0), against which rev were  
-they generated?
+>> 4) I get a bunch of compile warnings (admittedly when compiling for
+>> i686) that you might want to look at. Compiled against the 2.6.27
+>> kernel with gcc-4.3.1. It might be bogus since I didn't compile for the
+>> omap architecture.
+> 
+> I will update my toolchain to gcc-4.3.x for ARM and see if it
+> generates the warnings like below. But I think we are fine once we add
+> ARCH_OMAP dependency to this driver.
+> 
+> Thanks for the review comments. I will resubmit the patch.
 
-regards,
+Is this exactly the same code that was removed from linux-omap a while ago?
 
-Koen
+---
+commit ebdae9abf598ae8a3ee1c8c477138f82b40e7809
+Author: Tony Lindgren <tony@atomide.com>
+Date:   Mon Oct 27 13:33:13 2008 -0700
 
+     REMOVE OMAP LEGACY CODE: Delete all old omap specific v4l drivers
 
+     All v4l development must be done on the v4l mailing list with 
+linux-omap
+     list cc'd.
 
->
->
-> Kevin Hilman (5):
->  OMAP3: PM: HSMMC: force MMC module reset on boot
->  OMAP3: PM: Force IVA2 into idle during bootup
->  OMAP3: PM: Add D2D clocks and auto-idle setup to PRCM init
->  OMAP3: PM: D2D clockdomain supports SW supervised transitions
->  OMAP3: PM: Ensure modem is reset during PRCM init
->
-> arch/arm/mach-omap2/clock34xx.h           |   37 +++++++++++++-
-> arch/arm/mach-omap2/clockdomains.h        |    2 +-
-> arch/arm/mach-omap2/cm-regbits-34xx.h     |   14 +++++
-> arch/arm/mach-omap2/devices.c             |   76 ++++++++++++++++++++ 
-> +++++++++
-> arch/arm/mach-omap2/pm34xx.c              |   65 ++++++++++++++++++++ 
-> ++++-
-> arch/arm/plat-omap/include/mach/control.h |    5 ++
-> 6 files changed, 195 insertions(+), 4 deletions(-)
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux- 
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+     Signed-off-by: Tony Lindgren <tony@atomide.com>
 
+---
 
---Apple-Mail-50-361237541
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: This is a digitally signed message part
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
+Although I haven't had time to discuss this anywhere, I though a 
+possible reason of for the removal was that some parts of the code are 
+not that pretty (e.g. DMA) and those parts should be rewritten.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
+But yes, the OMAP 2 camera driver does actually work and I would suppose 
+it has users, too (think N800/N810).
 
-iD8DBQFJLmIeMkyGM64RGpERAnOtAKCF2z2BcIxxepyyv3KYARAcDM+grwCgpIcJ
-wb8xaNgFmboJLDA9tzXYmIc=
-=qocv
------END PGP SIGNATURE-----
+I'm in if the aim is to get this back to linux-omap. :-) (Waiting for 
+the next patch from Trilok.)
 
---Apple-Mail-50-361237541--
+Cheers,
+
+-- 
+Sakari Ailus
+sakari.ailus@nokia.com
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
