@@ -1,52 +1,37 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [PATCHv2 1/1] OMAP_TWL4030 SoC Audio driver.
-Date: Thu, 27 Nov 2008 15:54:39 +0000
-Message-ID: <20081127155438.GE3933@sirena.org.uk>
-References: <1227790257-14221-1-git-send-email-stanley.miao@windriver.com>
-	<1227790257-14221-2-git-send-email-stanley.miao@windriver.com>
-	<20081127131923.GC3933@sirena.org.uk>
-	<1227801365.14497.136.camel@localhost>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] Provide the set_power at TWL4030 MMC
+Date: Thu, 27 Nov 2008 09:12:11 -0800
+Message-ID: <200811270912.11557.david-b@pacbell.net>
+References: <20081127075345.GA17896@july>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp123.sbc.mail.sp1.yahoo.com ([69.147.64.96]:48520 "HELO
+	smtp123.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751868AbYK0RMO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Nov 2008 12:12:14 -0500
+In-Reply-To: <20081127075345.GA17896@july>
 Content-Disposition: inline
-In-Reply-To: <1227801365.14497.136.camel@localhost>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "stanley.miao" <stanley.miao@windriver.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kyungmin Park <kmpark@infradead.org>
+Cc: linux-omap@vger.kernel.org
 
-On Thu, Nov 27, 2008 at 11:56:05PM +0800, stanley.miao wrote:
-> On Thu, 2008-11-27 at 13:19 +0000, Mark Brown wrote:
+On Wednesday 26 November 2008, Kyungmin Park wrote:
+> Custom board powered by VAUX2 and VAUX4 for MMC instead of VMMC
+> Also it uses VMMC for MMC core power not voltage.
+> 
+> MMC1: uses VMMC1(voltage) and VMMC2(Vdd)
+> MMC2: uses VAUX2(voltage) and VAUX4(Vdd)
+> 
+> To address this issue, platform uses its custom power function.
 
-> > As I said in response to your original posting I'd strongly urge you to
-> > look at the s3c24xx_uda134x driver for an example of how something like
-> > this can be implemented.
+It would be a lot cleaner to do this with the regulator
+framework ... e.g. board init code associates each MMC
+controller with a few regulators using logical IDs, and
+the HSMMC glue just uses those regulators.
 
-> I tried to make it work whether there is platform_data or not. If I
-> write it according to s3c24xx_uda134x style, every board should register
-> a platform_device. 
-
-Yes, exactly.
-
-> > This still has the previous problem with your use of ifdefs: it means
-> > that it's not possible to build the driver for configurations that both
-> > do and don't need this.
-
-> This is why there is a SND_OMAP_TWL4030_SPECIFIC in Kconfig. If there
-> are some board specific features, SND_OMAP_TWL4030_SPECIFIC should be
-> selected under a board config, and omap_twl4030_specific_init() will be
-> difined in the board specific file.
-
-As previously mentioned this prevents building a single kernel with
-support for multiple boards.  That would be a regression from the
-current situation and isn't really acceptable.
+- Dave
