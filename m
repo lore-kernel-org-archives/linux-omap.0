@@ -1,123 +1,89 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 2/5] OMAP3: PM: Force IVA2 into idle during bootup
-Date: Wed, 26 Nov 2008 16:05:46 -0800
-Message-ID: <1227744349-12118-3-git-send-email-khilman@deeprootsystems.com>
-References: <1227744349-12118-1-git-send-email-khilman@deeprootsystems.com>
- <1227744349-12118-2-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH] 8250: Allow platform to register PM hook
+Date: Wed, 26 Nov 2008 16:25:22 -0800
+Message-ID: <1227745523-5408-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.28]:53221 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755487AbYK0AGB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 19:06:01 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so359817yxm.1
-        for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2008 16:06:00 -0800 (PST)
-In-Reply-To: <1227744349-12118-2-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-qy0-f11.google.com ([209.85.221.11]:60969 "EHLO
+	mail-qy0-f11.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752019AbYK0AZ3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2008 19:25:29 -0500
+Received: by qyk4 with SMTP id 4so1008608qyk.13
+        for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2008 16:25:27 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: linux-serial@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+
+Allow platform code to register a PM hook with the 8250 driver.  This
+enables platform specific code to be run for suspend/resume events.
+
+Since the per-port PM hook is local to the 8250 driver ('struct
+uart_port' doesn't have a PM hook) I pass the pm hook from the
+platform probe via serial8250_register_port().
 
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/pm34xx.c              |   55 +++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/control.h |    5 +++
- 2 files changed, 60 insertions(+), 0 deletions(-)
+ drivers/serial/8250.c       |    7 +++++--
+ include/linux/serial_8250.h |    7 ++++++-
+ 2 files changed, 11 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 9f5a544..5166fbd 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -29,6 +29,7 @@
- #include <mach/pm.h>
- #include <mach/clockdomain.h>
- #include <mach/powerdomain.h>
-+#include <mach/control.h>
+diff --git a/drivers/serial/8250.c b/drivers/serial/8250.c
+index 5f383d8..993a242 100644
+--- a/drivers/serial/8250.c
++++ b/drivers/serial/8250.c
+@@ -2842,7 +2842,7 @@ static int __devinit serial8250_probe(struct platform_device *dev)
+ 		port.dev		= &dev->dev;
+ 		if (share_irqs)
+ 			port.flags |= UPF_SHARE_IRQ;
+-		ret = serial8250_register_port(&port);
++		ret = serial8250_register_port(&port, p->pm);
+ 		if (ret < 0) {
+ 			dev_err(&dev->dev, "unable to register port at index %d "
+ 				"(IO%lx MEM%llx IRQ%d): %d\n", i,
+@@ -2966,7 +2966,9 @@ static struct uart_8250_port *serial8250_find_match_or_unused(struct uart_port *
+  *
+  *	On success the port is ready to use and the line number is returned.
+  */
+-int serial8250_register_port(struct uart_port *port)
++int serial8250_register_port(struct uart_port *port,
++			     void (*pm)(struct uart_port *, unsigned int state,
++					unsigned int oldstate))
+ {
+ 	struct uart_8250_port *uart;
+ 	int ret = -ENOSPC;
+@@ -2990,6 +2992,7 @@ int serial8250_register_port(struct uart_port *port)
+ 		uart->port.flags        = port->flags | UPF_BOOT_AUTOCONF;
+ 		uart->port.mapbase      = port->mapbase;
+ 		uart->port.private_data = port->private_data;
++		uart->pm = pm;
+ 		if (port->dev)
+ 			uart->port.dev = port->dev;
  
- #include "cm.h"
- #include "cm-regbits-34xx.h"
-@@ -363,6 +364,58 @@ static struct platform_suspend_ops omap_pm_ops = {
- 	.valid		= suspend_valid_only_mem,
+diff --git a/include/linux/serial_8250.h b/include/linux/serial_8250.h
+index 3d37c94..97723c5 100644
+--- a/include/linux/serial_8250.h
++++ b/include/linux/serial_8250.h
+@@ -28,6 +28,9 @@ struct plat_serial8250_port {
+ 	unsigned char	iotype;		/* UPIO_* */
+ 	unsigned char	hub6;
+ 	upf_t		flags;		/* UPF_* flags */
++
++	void		(*pm)(struct uart_port *, unsigned int state,
++			      unsigned int oldstate);
  };
  
-+
-+/**
-+ * omap3_iva_idle(): ensure IVA is in idle so it can be put into
-+ *                   retention
-+ *
-+ * In cases where IVA2 is activated by bootcode, it may prevent
-+ * full-chip retention or off-mode because it is not idle.  This
-+ * function forces the IVA2 into idle state so it can go
-+ * into retention/off and thus allow full-chip retention/off.
-+ *
-+ **/
-+static void __init omap3_iva_idle(void)
-+{
-+	struct clk *iva2_ck;
-+
-+	iva2_ck = clk_get(NULL, "iva2_fclk");
-+	if (!iva2_ck) {
-+		pr_err("Unable to get IVA2 fclk: cannot force idle.\n");
-+		return;
-+	}
-+
-+	/* Disable IVA2 clock */
-+	clk_disable(iva2_ck);
-+
-+	/* Reset IVA2 */
-+	prm_write_mod_reg(OMAP3430_RST1_IVA2 |
-+			  OMAP3430_RST2_IVA2 |
-+			  OMAP3430_RST3_IVA2,
-+			  OMAP3430_IVA2_MOD, RM_RSTCTRL);
-+
-+	/* Enable IVA2 clock */
-+	clk_enable(iva2_ck);
-+
-+	/* Set IVA2 boot mode to 'idle' */
-+	omap_ctrl_writel(OMAP3_IVA2_BOOTMOD_IDLE,
-+			 OMAP343X_CONTROL_IVA2_BOOTMOD);
-+
-+	/* Un-reset IVA2 */
-+	prm_write_mod_reg(0, OMAP3430_IVA2_MOD, RM_RSTCTRL);
-+
-+	/* Disable IVA2 clocks */
-+	clk_disable(iva2_ck);
-+
-+	/* Reset IVA2 */
-+	prm_write_mod_reg(OMAP3430_RST1_IVA2 |
-+			  OMAP3430_RST2_IVA2 |
-+			  OMAP3430_RST3_IVA2,
-+			  OMAP3430_IVA2_MOD, RM_RSTCTRL);
-+
-+	clk_put(iva2_ck);
-+}
-+
- static void __init prcm_setup_regs(void)
- {
- 	/* XXX Reset all wkdeps. This should be done when initializing
-@@ -515,6 +568,8 @@ static void __init prcm_setup_regs(void)
- 	 * it is selected to mpu wakeup goup */
- 	prm_write_mod_reg(OMAP3430_IO_EN | OMAP3430_WKUP_EN,
- 			OCP_MOD, OMAP2_PRM_IRQENABLE_MPU_OFFSET);
-+
-+	omap3_iva_idle();
- }
+ /*
+@@ -57,7 +60,9 @@ enum {
+  */
+ struct uart_port;
  
- static int __init pwrdms_setup(struct powerdomain *pwrdm)
-diff --git a/arch/arm/plat-omap/include/mach/control.h b/arch/arm/plat-omap/include/mach/control.h
-index ee3c39e..b51f7fd 100644
---- a/arch/arm/plat-omap/include/mach/control.h
-+++ b/arch/arm/plat-omap/include/mach/control.h
-@@ -208,6 +208,11 @@
- #define OMAP2_PBIASLITEPWRDNZ0		(1 << 1)
- #define OMAP2_PBIASLITEVMODE0		(1 << 0)
- 
-+/* CONTROL_IVA2_BOOTMOD bits */
-+#define OMAP3_IVA2_BOOTMOD_SHIFT	0
-+#define OMAP3_IVA2_BOOTMOD_MASK		(0xf << 0)
-+#define OMAP3_IVA2_BOOTMOD_IDLE		(0x1 << 0)
-+
- #ifndef __ASSEMBLY__
- #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
- extern void __iomem *omap_ctrl_base_get(void);
+-int serial8250_register_port(struct uart_port *);
++int serial8250_register_port(struct uart_port *,
++			     void (*pm)(struct uart_port *, unsigned int state,
++					unsigned int oldstate));
+ void serial8250_unregister_port(int line);
+ void serial8250_suspend_port(int line);
+ void serial8250_resume_port(int line);
 -- 
 1.6.0.3
 
