@@ -1,573 +1,232 @@
 From: "Stanley.Miao" <stanley.miao@windriver.com>
-Subject: [PATCH 1/2] OMAP: Add OMAP_LDP platform support.
-Date: Thu, 27 Nov 2008 23:34:02 +0800
-Message-ID: <1227800042-15259-1-git-send-email-stanley.miao@windriver.com>
+Subject: [PATCH 2/2] OMAP: Support LCD display as a FB device on ZOOM MDK
+Date: Thu, 27 Nov 2008 23:34:47 +0800
+Message-ID: <1227800087-15290-1-git-send-email-stanley.miao@windriver.com>
 References: <20081126231240.GM11997@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:63601 "EHLO mail.wrs.com"
+Received: from mail.windriver.com ([147.11.1.11]:63755 "EHLO mail.wrs.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751080AbYK0P1n (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Nov 2008 10:27:43 -0500
+	id S1751776AbYK0P2X (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Nov 2008 10:28:23 -0500
 In-Reply-To: <20081126231240.GM11997@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: linux-omap@vger.kernel.org
 
-Add OMAP_LDP platform support.
+Add glue to control the OMAP_LDP LCD as a frame buffer device
+using the existing dispc.c driver under omapfb.
 
 Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
 ---
- arch/arm/mach-omap2/board-ldp.c             |  477 ++++++++++++++++++++++++++-
- arch/arm/plat-omap/include/mach/board-ldp.h |    4 +
- 2 files changed, 479 insertions(+), 2 deletions(-)
+ drivers/video/omap/lcd_ldp.c |  198 ++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 198 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/omap/lcd_ldp.c
 
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index 1ea5998..7513bcd 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -16,11 +16,13 @@
- #include <linux/platform_device.h>
- #include <linux/delay.h>
- #include <linux/input.h>
-+#include <linux/gpio_keys.h>
- #include <linux/workqueue.h>
- #include <linux/err.h>
- #include <linux/clk.h>
- #include <linux/spi/spi.h>
- #include <linux/spi/ads7846.h>
-+#include <linux/i2c/twl4030.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -32,41 +34,512 @@
- #include <mach/gpio.h>
- #include <mach/board.h>
- #include <mach/common.h>
-+#include <mach/keypad.h>
- #include <mach/gpmc.h>
-+#include <mach/mmc.h>
-+#include <mach/usb-musb.h>
- 
- #include <asm/io.h>
- #include <asm/delay.h>
- #include <mach/control.h>
- 
-+#include "mmc-twl4030.h"
-+
-+
-+#define CONFIG_DISABLE_HFCLK 1
-+
-+#define ENABLE_VAUX1_DEDICATED	0x03
-+#define ENABLE_VAUX1_DEV_GRP	0x20
-+
-+#define TWL4030_MSECURE_GPIO	22
-+
-+static struct resource ldp_smc911x_resources[] = {
-+	[0] = {
-+		.start	= OMAP34XX_ETHR_START,
-+		.end	= OMAP34XX_ETHR_START + SZ_4K,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.start	= 0,
-+		.end	= 0,
-+		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
-+	},
-+};
-+
-+static struct platform_device ldp_smc911x_device = {
-+	.name		= "smc911x",
-+	.id		= -1,
-+	.num_resources	= ARRAY_SIZE(ldp_smc911x_resources),
-+	.resource	= ldp_smc911x_resources,
-+};
-+
-+static int ldp_twl4030_keymap[] = {
-+	KEY(0, 0, KEY_1),
-+	KEY(1, 0, KEY_2),
-+	KEY(2, 0, KEY_3),
-+	KEY(0, 1, KEY_4),
-+	KEY(1, 1, KEY_5),
-+	KEY(2, 1, KEY_6),
-+	KEY(3, 1, KEY_F5),
-+	KEY(0, 2, KEY_7),
-+	KEY(1, 2, KEY_8),
-+	KEY(2, 2, KEY_9),
-+	KEY(3, 2, KEY_F6),
-+	KEY(0, 3, KEY_F7),
-+	KEY(1, 3, KEY_0),
-+	KEY(2, 3, KEY_F8),
-+	PERSISTENT_KEY(4, 5),
-+	KEY(4, 4, KEY_VOLUMEUP),
-+	KEY(5, 5, KEY_VOLUMEDOWN),
-+	0
-+};
-+
-+static struct twl4030_keypad_data ldp_kp_twl4030_data = {
-+	.rows		= 6,
-+	.cols		= 6,
-+	.keymap		= ldp_twl4030_keymap,
-+	.keymapsize	= ARRAY_SIZE(ldp_twl4030_keymap),
-+	.rep		= 1,
-+	.irq		= TWL4030_MODIRQ_KEYPAD,
-+};
-+
-+static struct gpio_keys_button ldp_gpio_keys_buttons[] = {
-+	[0] = {
-+		.code			= KEY_ENTER,
-+		.gpio			= 101,
-+		.desc			= "enter sw",
-+		.active_low		= 1,
-+		.debounce_interval	= 30,
-+	},
-+	[1] = {
-+		.code			= KEY_F1,
-+		.gpio			= 102,
-+		.desc			= "func 1",
-+		.active_low		= 1,
-+		.debounce_interval	= 30,
-+	},
-+	[2] = {
-+		.code			= KEY_F2,
-+		.gpio			= 103,
-+		.desc			= "func 2",
-+		.active_low		= 1,
-+		.debounce_interval	= 30,
-+	},
-+	[3] = {
-+		.code			= KEY_F3,
-+		.gpio			= 104,
-+		.desc			= "func 3",
-+		.active_low		= 1,
-+		.debounce_interval 	= 30,
-+	},
-+	[4] = {
-+		.code			= KEY_F4,
-+		.gpio			= 105,
-+		.desc			= "func 4",
-+		.active_low		= 1,
-+		.debounce_interval	= 30,
-+	},
-+	[5] = {
-+		.code			= KEY_LEFT,
-+		.gpio			= 106,
-+		.desc			= "left sw",
-+		.active_low		= 1,
-+		.debounce_interval	= 30,
-+	},
-+	[6] = {
-+		.code			= KEY_RIGHT,
-+		.gpio			= 107,
-+		.desc			= "right sw",
-+		.active_low		= 1,
-+		.debounce_interval	= 30,
-+	},
-+	[7] = {
-+		.code			= KEY_UP,
-+		.gpio			= 108,
-+		.desc			= "up sw",
-+		.active_low		= 1,
-+		.debounce_interval	= 30,
-+	},
-+	[8] = {
-+		.code			= KEY_DOWN,
-+		.gpio			= 109,
-+		.desc			= "down sw",
-+		.active_low		= 1,
-+		.debounce_interval	= 30,
-+	},
-+};
-+
-+static struct gpio_keys_platform_data ldp_gpio_keys = {
-+	.buttons		= ldp_gpio_keys_buttons,
-+	.nbuttons		= ARRAY_SIZE(ldp_gpio_keys_buttons),
-+	.rep			= 1,
-+};
-+
-+static struct platform_device ldp_gpio_keys_device = {
-+	.name		= "gpio-keys",
-+	.id		= -1,
-+	.dev		= {
-+		.platform_data	= &ldp_gpio_keys,
-+	},
-+};
-+
-+static int ts_gpio;
-+
-+static int __init msecure_init(void)
-+{
-+	int ret = 0;
-+
-+#ifdef CONFIG_RTC_DRV_TWL4030
-+	/* 3430ES2.0 doesn't have msecure/gpio-22 line connected to T2 */
-+	if (omap_type() == OMAP2_DEVICE_TYPE_GP &&
-+			omap_rev() < OMAP3430_REV_ES2_0) {
-+		void __iomem *msecure_pad_config_reg =
-+			omap_ctrl_base_get() + 0xA3C;
-+		int mux_mask = 0x04;
-+		u16 tmp;
-+
-+		ret = gpio_request(TWL4030_MSECURE_GPIO, "msecure");
-+		if (ret < 0) {
-+			printk(KERN_ERR "msecure_init: can't"
-+				"reserve GPIO:%d !\n", TWL4030_MSECURE_GPIO);
-+			goto out;
-+		}
-+		/*
-+		 * TWL4030 will be in secure mode if msecure line from OMAP
-+		 * is low. Make msecure line high in order to change the
-+		 * TWL4030 RTC time and calender registers.
-+		 */
-+
-+		tmp = __raw_readw(msecure_pad_config_reg);
-+		tmp &= 0xF8;	/* To enable mux mode 03/04 = GPIO_RTC */
-+		tmp |= mux_mask;/* To enable mux mode 03/04 = GPIO_RTC */
-+		__raw_writew(tmp, msecure_pad_config_reg);
-+
-+		gpio_direction_output(TWL4030_MSECURE_GPIO, 1);
-+	}
-+out:
-+#endif
-+	return ret;
-+}
-+
-+/**
-+ * @brief ads7846_dev_init : Requests & sets GPIO line for pen-irq
+diff --git a/drivers/video/omap/lcd_ldp.c b/drivers/video/omap/lcd_ldp.c
+new file mode 100644
+index 0000000..66a6b91
+--- /dev/null
++++ b/drivers/video/omap/lcd_ldp.c
+@@ -0,0 +1,198 @@
++/*
++ * LCD panel support for the TI LDP board
 + *
-+ * @return - void. If request gpio fails then Flag KERN_ERR.
++ * Copyright (C) 2007 WindRiver
++ * Author: Stanley Miao <stanley.miao@windriver.com>
++ *
++ * Derived from drivers/video/omap/lcd-2430sdp.c
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 + */
-+static void ads7846_dev_init(void)
-+{
-+	if (omap_request_gpio(ts_gpio) < 0) {
-+		printk(KERN_ERR "can't get ads746 pen down GPIO\n");
-+		return;
-+	}
 +
-+	gpio_direction_input(ts_gpio);
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/delay.h>
++#include <linux/i2c/twl4030.h>
 +
-+	omap_set_gpio_debounce(ts_gpio, 1);
-+	omap_set_gpio_debounce_time(ts_gpio, 0xa);
-+}
++#include <mach/gpio.h>
++#include <mach/mux.h>
++#include <mach/omapfb.h>
++#include <asm/mach-types.h>
 +
-+static int ads7846_get_pendown_state(void)
-+{
-+	return !gpio_get_value(ts_gpio);
-+}
++#define LCD_PANEL_BACKLIGHT_GPIO 	(15 + OMAP_MAX_GPIO_LINES)
++#define LCD_PANEL_ENABLE_GPIO 		(7 + OMAP_MAX_GPIO_LINES)
 +
-+/*
-+ * This enable(1)/disable(0) the voltage for TS: uses twl4030 calls
-+ */
-+static int ads7846_vaux_control(int vaux_cntrl)
-+{
-+	int ret = 0;
++#define LCD_PANEL_RESET_GPIO		55
++#define LCD_PANEL_QVGA_GPIO		56
 +
-+#ifdef CONFIG_TWL4030_CORE
-+	/* check for return value of ldo_use: if success it returns 0 */
-+	if (vaux_cntrl == VAUX_ENABLE) {
-+		if (ret != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+			ENABLE_VAUX1_DEDICATED, TWL4030_VAUX1_DEDICATED))
-+			return -EIO;
-+		if (ret != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+			ENABLE_VAUX1_DEV_GRP, TWL4030_VAUX1_DEV_GRP))
-+			return -EIO;
-+	} else if (vaux_cntrl == VAUX_DISABLE) {
-+		if (ret != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+			0x00, TWL4030_VAUX1_DEDICATED))
-+			return -EIO;
-+		if (ret != twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+			0x00, TWL4030_VAUX1_DEV_GRP))
-+			return -EIO;
-+	}
++#ifdef CONFIG_FB_OMAP_LCD_VGA
++#define LCD_XRES		480
++#define LCD_YRES		640
++#define LCD_PIXCLOCK_MAX	41700
 +#else
-+	ret = -EIO;
++#define LCD_XRES		240
++#define LCD_YRES		320
++#define LCD_PIXCLOCK_MAX	185186
 +#endif
-+	return ret;
-+}
 +
-+static struct ads7846_platform_data tsc2046_config __initdata = {
-+	.x_max			= 0x0fff,
-+	.y_max			= 0x0fff,
-+	.x_plate_ohms		= 180,
-+	.pressure_max		= 255,
-+	.debounce_max		= 10,
-+	.debounce_tol		= 10,
-+	.debounce_rep		= 1,
-+	.get_pendown_state	= ads7846_get_pendown_state,
-+	.keep_vref_on		= 1,
-+	.vaux_control		= ads7846_vaux_control,
-+	.settle_delay_usecs	= 150,
-+};
++#define PM_RECEIVER             TWL4030_MODULE_PM_RECEIVER
++#define ENABLE_VAUX2_DEDICATED  0x09
++#define ENABLE_VAUX2_DEV_GRP    0x20
++#define ENABLE_VAUX3_DEDICATED	0x03
++#define ENABLE_VAUX3_DEV_GRP	0x20
++
++#define ENABLE_VPLL2_DEDICATED          0x05
++#define ENABLE_VPLL2_DEV_GRP            0xE0
++#define TWL4030_VPLL2_DEV_GRP           0x33
++#define TWL4030_VPLL2_DEDICATED         0x36
++
++#define t2_out(c, r, v) twl4030_i2c_write_u8(c, r, v)
 +
 +
-+static struct omap2_mcspi_device_config tsc2046_mcspi_config = {
-+	.turbo_mode	= 0,
-+	.single_channel	= 1,	/* 0: slave, 1: master */
-+};
-+
-+static struct spi_board_info ldp_spi_board_info[] __initdata = {
-+	[0] = {
-+		/*
-+		 * TSC2046 operates at a max freqency of 2MHz, so
-+		 * operate slightly below at 1.5MHz
-+		 */
-+		.modalias		= "ads7846",
-+		.bus_num		= 1,
-+		.chip_select		= 0,
-+		.max_speed_hz		= 1500000,
-+		.controller_data	= &tsc2046_mcspi_config,
-+		.irq			= 0,
-+		.platform_data		= &tsc2046_config,
-+	},
-+};
-+
-+static struct platform_device ldp_lcd_device = {
-+	.name		= "ldp_lcd",
-+	.id		= -1,
-+};
-+
-+static struct platform_device *ldp_devices[] __initdata = {
-+	&ldp_smc911x_device,
-+	&ldp_lcd_device,
-+	&ldp_gpio_keys_device,
-+};
-+
-+static inline void __init ldp_init_smc911x(void)
++static int ldp_panel_init(struct lcd_panel *panel,
++				struct omapfb_device *fbdev)
 +{
-+	int eth_cs;
-+	unsigned long cs_mem_base;
-+	int eth_gpio = 0;
++	gpio_request(LCD_PANEL_RESET_GPIO, "lcd reset");
++	gpio_request(LCD_PANEL_QVGA_GPIO, "VGA/QVGA switch");
++	gpio_request(LCD_PANEL_ENABLE_GPIO, "lcd panel");
++	gpio_request(LCD_PANEL_BACKLIGHT_GPIO, "lcd backlight");
 +
-+	eth_cs = LDP_SMC911X_CS;
++	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 0);
++	gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 0);
 +
-+	if (gpmc_cs_request(eth_cs, SZ_16M, &cs_mem_base) < 0) {
-+		printk(KERN_ERR "Failed to request GPMC mem for smc911x\n");
-+		return;
-+	}
++#ifdef CONFIG_FB_OMAP_LCD_VGA
++	gpio_direction_output(LCD_PANEL_QVGA_GPIO, 0);
++#else
++	gpio_direction_output(LCD_PANEL_QVGA_GPIO, 1);
++#endif
++	gpio_direction_output(LCD_PANEL_RESET_GPIO, 1);
 +
-+	ldp_smc911x_resources[0].start = cs_mem_base + 0x0;
-+	ldp_smc911x_resources[0].end   = cs_mem_base + 0xf;
-+	udelay(100);
-+
-+	eth_gpio = LDP_SMC911X_GPIO;
-+
-+	ldp_smc911x_resources[1].start = OMAP_GPIO_IRQ(eth_gpio);
-+
-+	if (gpio_request(eth_gpio, "LAN IRQ line") < 0) {
-+		printk(KERN_ERR "Failed to request GPIO%d for smc911x IRQ\n",
-+				eth_gpio);
-+		return;
-+	}
-+	gpio_direction_input(eth_gpio);
++	return 0;
 +}
 +
++static void ldp_panel_cleanup(struct lcd_panel *panel)
++{
++	gpio_free(LCD_PANEL_RESET_GPIO);
++	gpio_free(LCD_PANEL_QVGA_GPIO);
++	gpio_free(LCD_PANEL_ENABLE_GPIO);
++	gpio_free(LCD_PANEL_BACKLIGHT_GPIO);
++}
 +
- static void __init omap_ldp_init_irq(void)
- {
--	omap2_init_common_hw();
-+	omap2_init_common_hw(NULL);
- 	omap_init_irq();
- 	omap_gpio_init();
-+	ldp_init_smc911x();
- }
- 
- static struct omap_uart_config ldp_uart_config __initdata = {
- 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
- };
- 
-+static struct omap_lcd_config ldp_lcd_config __initdata = {
-+	.ctrl_name	= "internal",
++static int ldp_panel_enable(struct lcd_panel *panel)
++{
++	if (0 != t2_out(PM_RECEIVER, ENABLE_VPLL2_DEDICATED,
++			TWL4030_VPLL2_DEDICATED))
++		return -EIO;
++	if (0 != t2_out(PM_RECEIVER, ENABLE_VPLL2_DEV_GRP,
++			TWL4030_VPLL2_DEV_GRP))
++		return -EIO;
++
++	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 1);
++	gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 1);
++
++	if (0 != t2_out(PM_RECEIVER, ENABLE_VAUX3_DEDICATED,
++				TWL4030_VAUX3_DEDICATED))
++		return -EIO;
++	if (0 != t2_out(PM_RECEIVER, ENABLE_VAUX3_DEV_GRP,
++				TWL4030_VAUX3_DEV_GRP))
++		return -EIO;
++
++	return 0;
++}
++
++static void ldp_panel_disable(struct lcd_panel *panel)
++{
++	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 0);
++	gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 0);
++
++	t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEDICATED);
++	t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEV_GRP);
++	mdelay(4);
++}
++
++static unsigned long ldp_panel_get_caps(struct lcd_panel *panel)
++{
++	return 0;
++}
++
++struct lcd_panel ldp_panel = {
++	.name		= "ldp",
++	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
++			  OMAP_LCDC_INV_HSYNC,
++
++	.bpp		= 16,
++	.data_lines	= 18,
++	.x_res		= LCD_XRES,
++	.y_res		= LCD_YRES,
++	.hsw		= 3,		/* hsync_len (4) - 1 */
++	.hfp		= 3,		/* right_margin (4) - 1 */
++	.hbp		= 39,		/* left_margin (40) - 1 */
++	.vsw		= 1,		/* vsync_len (2) - 1 */
++	.vfp		= 2,		/* lower_margin */
++	.vbp		= 7,		/* upper_margin (8) - 1 */
++
++	.pixel_clock	= LCD_PIXCLOCK_MAX,
++
++	.init		= ldp_panel_init,
++	.cleanup	= ldp_panel_cleanup,
++	.enable		= ldp_panel_enable,
++	.disable	= ldp_panel_disable,
++	.get_caps	= ldp_panel_get_caps,
 +};
 +
- static struct omap_board_config_kernel ldp_config[] __initdata = {
- 	{ OMAP_TAG_UART,	&ldp_uart_config },
-+	{ OMAP_TAG_LCD,		&ldp_lcd_config },
-+};
++static int ldp_panel_probe(struct platform_device *pdev)
++{
++	omapfb_register_panel(&ldp_panel);
++	return 0;
++}
 +
-+static int ldp_batt_table[] = {
-+/* 0 C*/
-+30800, 29500, 28300, 27100,
-+26000, 24900, 23900, 22900, 22000, 21100, 20300, 19400, 18700, 17900,
-+17200, 16500, 15900, 15300, 14700, 14100, 13600, 13100, 12600, 12100,
-+11600, 11200, 10800, 10400, 10000, 9630,   9280,   8950,   8620,   8310,
-+8020,   7730,   7460,   7200,   6950,   6710,   6470,   6250,   6040,   5830,
-+5640,   5450,   5260,   5090,   4920,   4760,   4600,   4450,   4310,   4170,
-+4040,   3910,   3790,   3670,   3550
-+};
++static int ldp_panel_remove(struct platform_device *pdev)
++{
++	return 0;
++}
 +
-+static struct twl4030_ins __initdata sleep_on_seq[] = {
-+/*
-+ * Turn off VDD1 and VDD2.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_OFF), 4},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_OFF), 2},
-+#ifdef CONFIG_DISABLE_HFCLK
-+/*
-+ * And also turn off the OMAP3 PLLs and the sysclk output.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_OFF), 3},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_OFF), 3},
-+#endif
-+};
++static int ldp_panel_suspend(struct platform_device *pdev, pm_message_t mesg)
++{
++	return 0;
++}
 +
-+static struct twl4030_script sleep_on_script __initdata = {
-+	.script	= sleep_on_seq,
-+	.size	= ARRAY_SIZE(sleep_on_seq),
-+	.flags	= TRITON_SLEEP_SCRIPT,
-+};
++static int ldp_panel_resume(struct platform_device *pdev)
++{
++	return 0;
++}
 +
-+static struct twl4030_ins wakeup_seq[] __initdata = {
-+#ifndef CONFIG_DISABLE_HFCLK
-+/*
-+ * Wakeup VDD1 and VDD2.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 4},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_ACTIVE), 2},
-+#else
-+/*
-+ * Reenable the OMAP3 PLLs.
-+ * Wakeup VDD1 and VDD2.
-+ * Reenable sysclk output.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_ACTIVE), 0x30},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 0x30},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_ACTIVE), 0x37},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 3},
-+#endif /* #ifndef CONFIG_DISABLE_HFCLK */
-+};
-+
-+static struct twl4030_script wakeup_script __initdata = {
-+	.script	= wakeup_seq,
-+	.size	= ARRAY_SIZE(wakeup_seq),
-+	.flags	= TRITON_WAKEUP12_SCRIPT | TRITON_WAKEUP3_SCRIPT,
-+};
-+
-+static struct twl4030_ins wrst_seq[] __initdata = {
-+/*
-+ * Reset twl4030.
-+ * Reset VDD1 regulator.
-+ * Reset VDD2 regulator.
-+ * Reset VPLL1 regulator.
-+ * Enable sysclk output.
-+ * Reenable twl4030.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_OFF), 2},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_WRST), 15},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_WRST), 15},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_WRST), 0x60},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
-+	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_ACTIVE), 2},
-+};
-+
-+static struct twl4030_script wrst_script __initdata = {
-+	.script = wrst_seq,
-+	.size   = ARRAY_SIZE(wakeup_seq),
-+	.flags  = TRITON_WRST_SCRIPT,
-+};
-+
-+static struct twl4030_script *twl4030_scripts[] __initdata = {
-+	&sleep_on_script,
-+	&wakeup_script,
-+	&wrst_script,
-+};
-+
-+static struct twl4030_power_data sdp3430_t2scripts_data __initdata = {
-+	.scripts	= twl4030_scripts,
-+	.size		= ARRAY_SIZE(twl4030_scripts),
-+};
-+
-+static struct twl4030_bci_platform_data ldp_bci_data = {
-+	.battery_tmp_tbl	= ldp_batt_table,
-+	.tblsize		= ARRAY_SIZE(ldp_batt_table),
-+};
-+
-+static struct twl4030_usb_data ldp_usb_data = {
-+	.usb_mode	= T2_USB_MODE_ULPI,
-+};
-+
-+static struct twl4030_gpio_platform_data ldp_gpio_data = {
-+	.gpio_base	= OMAP_MAX_GPIO_LINES,
-+	.irq_base	= TWL4030_GPIO_IRQ_BASE,
-+	.irq_end	= TWL4030_GPIO_IRQ_END,
-+};
-+
-+static struct twl4030_madc_platform_data ldp_madc_data = {
-+	.irq_line	= 1,
-+};
-+
-+static struct twl4030_platform_data ldp_twldata = {
-+	.irq_base	= TWL4030_IRQ_BASE,
-+	.irq_end	= TWL4030_IRQ_END,
-+
-+	/* platform_data for children goes here */
-+	.bci		= &ldp_bci_data,
-+	.madc		= &ldp_madc_data,
-+	.usb		= &ldp_usb_data,
-+	.power		= &sdp3430_t2scripts_data,
-+	.gpio		= &ldp_gpio_data,
-+	.keypad		= &ldp_kp_twl4030_data,
-+};
-+
-+static struct i2c_board_info __initdata ldp_i2c_boardinfo[] = {
-+	{
-+		I2C_BOARD_INFO("twl4030", 0x48),
-+		.flags = I2C_CLIENT_WAKE,
-+		.irq = INT_34XX_SYS_NIRQ,
-+		.platform_data = &ldp_twldata,
++struct platform_driver ldp_panel_driver = {
++	.probe		= ldp_panel_probe,
++	.remove		= ldp_panel_remove,
++	.suspend	= ldp_panel_suspend,
++	.resume		= ldp_panel_resume,
++	.driver		= {
++		.name	= "ldp_lcd",
++		.owner	= THIS_MODULE,
 +	},
- };
- 
- static int __init omap_i2c_init(void)
- {
--	omap_register_i2c_bus(1, 2600, NULL, 0);
-+	omap_register_i2c_bus(1, 2600, ldp_i2c_boardinfo,
-+			ARRAY_SIZE(ldp_i2c_boardinfo));
- 	omap_register_i2c_bus(2, 400, NULL, 0);
- 	omap_register_i2c_bus(3, 400, NULL, 0);
- 	return 0;
- }
- 
-+static struct twl4030_hsmmc_info mmc[] __initdata = {
-+	{
-+		.mmc		= 1,
-+		.wires		= 4,
-+		.gpio_cd	= -EINVAL,
-+		.gpio_wp	= -EINVAL,
-+	},
-+	{}	/* Terminator */
 +};
 +
- static void __init omap_ldp_init(void)
- {
- 	omap_i2c_init();
-+	platform_add_devices(ldp_devices, ARRAY_SIZE(ldp_devices));
- 	omap_board_config = ldp_config;
- 	omap_board_config_size = ARRAY_SIZE(ldp_config);
-+	ts_gpio = 54;
-+	ldp_spi_board_info[0].irq = gpio_to_irq(ts_gpio);
-+	spi_register_board_info(ldp_spi_board_info,
-+				ARRAY_SIZE(ldp_spi_board_info));
-+	msecure_init();
-+	ads7846_dev_init();
- 	omap_serial_init();
-+	usb_musb_init();
-+	hsmmc_init(mmc);
- }
- 
- static void __init omap_ldp_map_io(void)
-diff --git a/arch/arm/plat-omap/include/mach/board-ldp.h b/arch/arm/plat-omap/include/mach/board-ldp.h
-index 66e2746..c5d15bb 100644
---- a/arch/arm/plat-omap/include/mach/board-ldp.h
-+++ b/arch/arm/plat-omap/include/mach/board-ldp.h
-@@ -33,4 +33,8 @@ extern void twl4030_bci_battery_init(void);
- 
- #define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
- 
-+#define LDP_SMC911X_CS         1
-+#define LDP_SMC911X_GPIO       152
-+#define DEBUG_BASE             0x08000000
-+#define OMAP34XX_ETHR_START    DEBUG_BASE
- #endif /* __ASM_ARCH_OMAP_LDP_H */
++static int __init ldp_panel_drv_init(void)
++{
++	return platform_driver_register(&ldp_panel_driver);
++}
++
++static void __exit ldp_panel_drv_exit(void)
++{
++	platform_driver_unregister(&ldp_panel_driver);
++}
++
++module_init(ldp_panel_drv_init);
++module_exit(ldp_panel_drv_exit);
 -- 
 1.5.6.3
 
