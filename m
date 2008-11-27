@@ -1,63 +1,67 @@
-From: "Arun KS" <getarunks@gmail.com>
-Subject: Re: [PATCH] OMAP general SOC driver.
-Date: Thu, 27 Nov 2008 10:31:18 +0530
-Message-ID: <dfeb90390811262101ge24d63fie91e47b72738d4a2@mail.gmail.com>
-References: <1227696478-8354-1-git-send-email-stanley.miao@windriver.com>
-	<20081126110854.GA6234@sirena.org.uk>
-	<20081126134028.b3c6aa46.jarkko.nikula@nokia.com>
-	<200811261034.42356.david-b@pacbell.net>
-	<20081126200750.GK6234@sirena.org.uk>
-	<40134428-B064-4C6A-9229-FBEC8918B296@student.utwente.nl>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: [PATCH 0/5] extra module resets to ensure full-chip idle
+Date: Thu, 27 Nov 2008 06:04:18 +0100
+Message-ID: <492E2A52.4030200@googlemail.com>
+References: <1227744349-12118-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <40134428-B064-4C6A-9229-FBEC8918B296@student.utwente.nl>
-Content-Disposition: inline
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: alsa-devel@alsa-project.org, Jarkko Nikula <jarkko.nikula@nokia.com>, David Brownell <david-b@pacbell.net>, "Stanley.Miao" <stanley.miao@windriver.com>, Mark Brown <broonie@sirena.org.uk>, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from nf-out-0910.google.com ([64.233.182.185]:28934 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750742AbYK0FE0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Nov 2008 00:04:26 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so435105nfc.21
+        for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2008 21:04:24 -0800 (PST)
+In-Reply-To: <1227744349-12118-1-git-send-email-khilman@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-On Thu, Nov 27, 2008 at 1:50 AM, Koen Kooi <k.kooi@student.utwente.nl> wrote:
->
-> Op 26 nov 2008, om 21:07 heeft Mark Brown het volgende geschreven:
->
->> On Wed, Nov 26, 2008 at 10:34:41AM -0800, David Brownell wrote:
->>
->>> Re TWL4030 codec configuration ... I count three microphone
->>> input channels not used on Beagle, plus a speaker output
->>> and some other stuff.  So it's obvious that something which
->>> works on Beagle won't handle more interesting configurations
->>> of that audio support.
->>
->> Can someone post an overview of what the hardware configurations of
->> these boards are, please?  It's starting to sound like they're not very
->> similar at all.
->
-> On the codec level all these board use a variant of the TWL4030. The
-> variants differ slightly in what kind of extra goodies they provide. On the
-> board level not every feature of the TWL familiy is used, the beagle only
-> analog in and analog out, the overo exposes more interfaces, etc.
->
-> Other people can fill in the details, but these are the differences I can
-> think of.
+Kevin Hilman wrote:
+> Various bootloaders have been known to leave modules in a state
+> which prevents full-chip retention.  
 
-omap2evm and omap3evm uses only auxiliary input(AUXR/AUXL)  and
-Headset stereo output (HSOR/HSOL)
+Does it make sense to check if
 
-Regards,
-Arun
->
-> regards,
->
-> Koen
->
+[PATCH 1/5] OMAP3: PM: HSMMC: force MMC module reset on boot
+[PATCH 2/5] OMAP3: PM: Force IVA2 into idle during bootup
+
+can be done in U-Boot, too? If yes, I would have a look to it.
+
+Regards
+
+Dirk
+
+> This series forces
+> MMC, IVA2 and D2D/modem into known reset/idle states so that
+> the OMAP3 can hit full-chip idle.
+> 
+> Tested on OMAP3 Beagle, and custom OMAP3 hardware.
+> 
+> NOTE: this is similar to the set I posted for the PM branch
+>       but this series is rebased onto linux-omap and includes
+>       the MMC reset.
+> 
+> Kevin Hilman (5):
+>   OMAP3: PM: HSMMC: force MMC module reset on boot
+>   OMAP3: PM: Force IVA2 into idle during bootup
+>   OMAP3: PM: Add D2D clocks and auto-idle setup to PRCM init
+>   OMAP3: PM: D2D clockdomain supports SW supervised transitions
+>   OMAP3: PM: Ensure modem is reset during PRCM init
+> 
+>  arch/arm/mach-omap2/clock34xx.h           |   37 +++++++++++++-
+>  arch/arm/mach-omap2/clockdomains.h        |    2 +-
+>  arch/arm/mach-omap2/cm-regbits-34xx.h     |   14 +++++
+>  arch/arm/mach-omap2/devices.c             |   76 +++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/pm34xx.c              |   65 ++++++++++++++++++++++++-
+>  arch/arm/plat-omap/include/mach/control.h |    5 ++
+>  6 files changed, 195 insertions(+), 4 deletions(-)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
