@@ -1,165 +1,87 @@
-From: Manikandan Pillai <mani.pillai@ti.com>
-Subject: [PATCH 1/1] Adding support for NAND partitions in OMAP3 EVM.
-Date: Fri, 28 Nov 2008 11:06:40 +0530
-Message-ID: <1227850600-19842-1-git-send-email-mani.pillai@ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 2/3] TPS6235x drivers added in drivers/i2c/chips.
+Date: Thu, 27 Nov 2008 22:32:14 -0800
+Message-ID: <200811272232.15187.david-b@pacbell.net>
+References: <1227850090-16131-1-git-send-email-mani.pillai@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56765 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750770AbYK1Fgt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Nov 2008 00:36:49 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id mAS5afKI024989
-	for <linux-omap@vger.kernel.org>; Thu, 27 Nov 2008 23:36:47 -0600
+Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:37244 "HELO
+	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751220AbYK1GcR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Nov 2008 01:32:17 -0500
+In-Reply-To: <1227850090-16131-1-git-send-email-mani.pillai@ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Manikandan Pillai <mani.pillai@ti.com>
+To: Manikandan Pillai <mani.pillai@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Flash initialization has been modified to take care on NAND initialization
-and creation of NAND partitions.
+On Thursday 27 November 2008, Manikandan Pillai wrote:
+> Implements the basic driver for TPS6235x devices populated on the
+> PR785 board. tps6235x.c contains the driver code for TPS devices used on 
+> PR785 boards. Driver code is added it to the build.
+> 
+> Signed-off-by: Manikandan Pillai <mani.pillai@ti.com>
+> ---
+>  drivers/i2c/chips/Makefile   |    1 +
+>  drivers/i2c/chips/tps6235x.c |  416 ++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 417 insertions(+), 0 deletions(-)
 
-Signed-off-by: Manikandan Pillai <mani.pillai@ti.com>
----
- arch/arm/mach-omap2/board-omap3evm-flash.c       |   85 ++++++++++++++++++++--
- arch/arm/plat-omap/include/mach/board-omap3evm.h |    2 +
- 2 files changed, 82 insertions(+), 5 deletions(-)
+Really quick comments only ... key point:  plan to merge this to
+mainline instead of just the OMAP tree.  Which means you should
+be structuring the driver (and patch) in more standard ways from
+the first, notably:
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm-flash.c b/arch/arm/mach-omap2/board-omap3evm-flash.c
-index 5f3663d..72c7f5b 100644
---- a/arch/arm/mach-omap2/board-omap3evm-flash.c
-+++ b/arch/arm/mach-omap2/board-omap3evm-flash.c
-@@ -23,6 +23,9 @@
- #include <mach/gpmc.h>
- #include <mach/nand.h>
- 
-+#define GPMC_CS0_BASE  0x60
-+#define GPMC_CS_SIZE   0x30
-+
- static int omap3evm_onenand_setup(void __iomem *, int freq);
- 
- static struct mtd_partition omap3evm_onenand_partitions[] = {
-@@ -70,6 +73,63 @@ static struct platform_device omap3evm_onenand_device = {
- 	},
- };
- 
-+static struct mtd_partition omap3evm_nand_partitions[] = {
-+	/* All the partition sizes are listed in terms of NAND block size */
-+	{
-+		.name           = "X-Loader-NAND",
-+		.offset         = 0,
-+		.size           = 4*(128 * 1024),
-+		.mask_flags     = MTD_WRITEABLE,        /* force read-only */
-+	},
-+	{
-+		.name           = "U-Boot-NAND",
-+		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x80000 */
-+		.size           = 14*(128 * 1024),
-+		.mask_flags     = MTD_WRITEABLE,        /* force read-only */
-+	},
-+	{
-+		.name           = "Boot Env-NAND",
-+
-+		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x100000 */
-+		.size           = 2*(128 * 1024),
-+	},
-+	{
-+		.name           = "Kernel-NAND",
-+		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x140000 */
-+		.size           = 40*(128 * 1024),
-+	},
-+	{
-+		.name           = "File System - NAND",
-+		.size           = MTDPART_SIZ_FULL,
-+		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x540000 */
-+	},
-+};
-+
-+/* dip switches control NAND chip access:  8 bit, 16 bit, or neither */
-+static struct omap_nand_platform_data omap3evm_nand_data = {
-+	.parts          = omap3evm_nand_partitions,
-+	.nr_parts       = ARRAY_SIZE(omap3evm_nand_partitions),
-+	.nand_setup     = NULL,
-+	.dma_channel    = -1,           /* disable DMA in OMAP NAND driver */
-+	.dev_ready      = NULL,
-+	.options        = NAND_SAMSUNG_LP_OPTIONS,
-+};
-+
-+static struct resource omap3evm_nand_resource = {
-+	.flags          = IORESOURCE_MEM,
-+};
-+
-+static struct platform_device omap3evm_nand_device = {
-+	.name           = "omap2-nand",
-+	.id             = 0,
-+	.dev            = {
-+		.platform_data  = &omap3evm_nand_data,
-+	},
-+	.num_resources  = 1,
-+	.resource       = &omap3evm_nand_resource,
-+};
-+
-+
- /*
-  *      omap3evm_onenand_setup - Set the onenand sync mode
-  *      @onenand_base:  The onenand base address in GPMC memory map
-@@ -86,6 +146,8 @@ void __init omap3evm_flash_init(void)
- {
- 	u8		cs = 0;
- 	u8		onenandcs = GPMC_CS_NUM + 1;
-+	u8 		nandcs = GPMC_CS_NUM + 1;
-+	u32 		gpmc_base_add = OMAP34XX_GPMC_VIRT;
- 
- 	while (cs < GPMC_CS_NUM) {
- 		u32 ret = 0;
-@@ -100,18 +162,31 @@ void __init omap3evm_flash_init(void)
- 		*/
- 		if ((ret & 0x3F) == (ONENAND_MAP >> 24))
- 			onenandcs = cs;
-+		else if ((ret & 0x3F) == (NAND_MAP >> 24))
-+			nandcs = cs;
- 		cs++;
- 	}
- 	if (onenandcs > GPMC_CS_NUM) {
- 		printk(KERN_INFO "OneNAND: Unable to find configuration "
- 				" in GPMC\n ");
--		return;
--	}
--
--	if (onenandcs < GPMC_CS_NUM) {
-+	} else if (onenandcs < GPMC_CS_NUM) {
-+		printk(KERN_INFO "OneNAND: on CS%d\n", onenandcs);
- 		omap3evm_onenand_data.cs = onenandcs;
- 		if (platform_device_register(&omap3evm_onenand_device) < 0)
- 			printk(KERN_ERR "Unable to register OneNAND device\n");
- 	}
--}
- 
-+	if (nandcs > GPMC_CS_NUM) {
-+		printk(KERN_INFO "NAND: Unable to find configuration "
-+				"in GPMC\n ");
-+	} else if (nandcs < GPMC_CS_NUM) {
-+		printk(KERN_INFO "NAND: on CS%d\n", nandcs);
-+		omap3evm_nand_data.cs = nandcs;
-+		omap3evm_nand_data.gpmc_cs_baseaddr = (void *)
-+			(gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
-+		omap3evm_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
-+		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
-+		if (platform_device_register(&omap3evm_nand_device) < 0)
-+			printk(KERN_ERR "Unable to register NAND device\n");
-+	}
-+}
-diff --git a/arch/arm/plat-omap/include/mach/board-omap3evm.h b/arch/arm/plat-omap/include/mach/board-omap3evm.h
-index 7a540e9..0c7c05c 100644
---- a/arch/arm/plat-omap/include/mach/board-omap3evm.h
-+++ b/arch/arm/plat-omap/include/mach/board-omap3evm.h
-@@ -40,5 +40,7 @@ extern void omap3evm_flash_init(void);
- #define OMAP3EVM_ETHR_GPIO_IRQ	176
- #define OMAP3EVM_SMC911X_CS	5
- 
-+#define NAND_MAP		0x30000000
-+
- #endif /* __ASM_ARCH_OMAP3_EVM_H */
- 
--- 
-1.5.6
+ - Both drivers/i2c/chips/Makefile and its Kconfig sibling
+   are very clear:  don't add new drivers to that directory!
 
+ - Patches that add drivers should be standalone and, as much
+   as possible, complete.  In this case, it's missing Kconfig.
+
+In this case, the driver seems to most naturally live in the
+new drivers/regulator subtree, and implement the regulator
+interface.  If it doesn't fit well ... that's a reason to
+suggest updates to that regulator framework(*).
+
+Using the regulator framework will also affect how you merge
+board support.  Wanting a pr785_enbl_dcdc() board-specific
+call is a clue that you're doing something wrong... in this
+case, regulator_enable() and regulator_disable() will do
+the job much more politely.
+
+A subsequent patch iteration should probably go to LKML.
+
+
+You'll get this comment before long, so I'll say it right
+now:  use i2c_smbus_{read,write}_byte_data() calls instead
+of the lower level I2C calls.  It'll be more portable, and
+use less code in this driver ... even if it does increase
+the runtime cost of these (infrequent) calls.
+
+
+> +static const struct i2c_device_id tps_6235x_id[] = {
+> +	{ "tps62352_core_pwr", 0},
+> +	{ "tps62353_mpu_pwr", 1},
+> +	{},
+> +};
+
+Strike the "_core_pwr" and "_mpu_pwr" suffixes.  Those are
+not inherent tasks of the chip; they are policies set up
+by board designs, and recognized in software by how the
+components get set up.  This driver shouldn't try to care
+about such board-specific policies.
+
+The data sheet covers TPS6254x for x in 0..6 but this driver
+omits most of those.  Best to support them all.
+
+- Dave
+
+(*) The regulator framework is new.  It does, and will,
+    need changes to make sure it does what it needs to do.
+    You might not encounger such issues.  Or, you might...
+
+ 
