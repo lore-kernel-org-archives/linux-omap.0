@@ -1,87 +1,125 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 2/3] TPS6235x drivers added in drivers/i2c/chips.
-Date: Thu, 27 Nov 2008 22:32:14 -0800
-Message-ID: <200811272232.15187.david-b@pacbell.net>
-References: <1227850090-16131-1-git-send-email-mani.pillai@ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 3/3] musb: Remvoing twl4030 dependency for OMAP3EVM MUSB
+Date: Fri, 28 Nov 2008 08:46:15 +0200
+Message-ID: <20081128064615.GK23308@gandalf.research.nokia.com>
+References: <1227850104-16166-1-git-send-email-mani.pillai@ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:37244 "HELO
-	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751220AbYK1GcR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Nov 2008 01:32:17 -0500
-In-Reply-To: <1227850090-16131-1-git-send-email-mani.pillai@ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:61042 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751335AbYK1Gqp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2008 01:46:45 -0500
 Content-Disposition: inline
+In-Reply-To: <1227850104-16166-1-git-send-email-mani.pillai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Manikandan Pillai <mani.pillai@ti.com>
+To: ext Manikandan Pillai <mani.pillai@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-On Thursday 27 November 2008, Manikandan Pillai wrote:
-> Implements the basic driver for TPS6235x devices populated on the
-> PR785 board. tps6235x.c contains the driver code for TPS devices used on 
-> PR785 boards. Driver code is added it to the build.
+On Fri, Nov 28, 2008 at 10:58:24AM +0530, ext Manikandan Pillai wrote:
+> MUSB on OMAP3EVM uses ISP1504 phy and doesn't need twl4030.
+> OMAP35xx Beagle board MUSB uses twl4030 phy thus uses it and
+> it also sets xceiv global field using otg_set_transceiver().
+> As OMAP3EVM MUSB doesn't require twl4030 so otg_set_transceiver()
+> part is being done in this patch.
 > 
+> This is a temporary patch and the updated patch will come soon.
+
+musb patches should go to linux-usb mailing list.
+
 > Signed-off-by: Manikandan Pillai <mani.pillai@ti.com>
 > ---
->  drivers/i2c/chips/Makefile   |    1 +
->  drivers/i2c/chips/tps6235x.c |  416 ++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 417 insertions(+), 0 deletions(-)
+>  drivers/usb/musb/omap2430.c |   53 +++++++++++++++++++++++++++++++++++++++++-
+>  1 files changed, 51 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index 03fc864..9aa4518 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -215,13 +215,60 @@ void musb_platform_set_mode(struct musb *musb, u8 musb_mode)
+>  	}
+>  }
+>  
+> +#ifdef CONFIG_MACH_OMAP3EVM
+> +static int omap3_evm_otg_set_host(struct otg_transceiver *xceiv,
+> +			 struct usb_bus *host)
+> +{
+> +	if (!xceiv)
+> +		return -ENODEV;
+> +
+> +	if (!host) {
+> +		xceiv->host = NULL;
+> +		return -ENODEV;
+> +	}
+> +	DBG(2, "xceiv in host\n");
+> +	xceiv->host = host;
+> +	return 0;
+> +}
+> +static int omap3_evm_otg_set_peripheral(struct otg_transceiver *xceiv,
+> +		struct usb_gadget *gadget)
+> +{
+> +	if (!xceiv)
+> +		return -ENODEV;
+> +
+> +	if (!gadget) {
+> +		xceiv->gadget = NULL;
+> +		return -ENODEV;
+> +	}
+> +	DBG(2, "xceiv in peripheral\n");
+> +	xceiv->gadget = gadget;
+> +	xceiv->state = OTG_STATE_B_IDLE;
+> +	return 0;
+> +
+> +}
+> +static int omap3_evm_otg_set_suspend(struct otg_transceiver *x, int suspend)
+> +{
+> +	DBG(2, "xceiv suspend\n");
+> +	return 0;
+> +}
+> +#endif
 
-Really quick comments only ... key point:  plan to merge this to
-mainline instead of just the OMAP tree.  Which means you should
-be structuring the driver (and patch) in more standard ways from
-the first, notably:
+sorry, no. I won't add ifdefs to any of those files since it breaks
+multiomap support.
 
- - Both drivers/i2c/chips/Makefile and its Kconfig sibling
-   are very clear:  don't add new drivers to that directory!
+> +
+>  int __init musb_platform_init(struct musb *musb)
+>  {
+> -	struct otg_transceiver *x = otg_get_transceiver();
+> +	struct otg_transceiver *x;
+>  	u32 l;
+>  
+>  #if defined(CONFIG_ARCH_OMAP2430)
 
- - Patches that add drivers should be standalone and, as much
-   as possible, complete.  In this case, it's missing Kconfig.
+what about 3430 ?
 
-In this case, the driver seems to most naturally live in the
-new drivers/regulator subtree, and implement the regulator
-interface.  If it doesn't fit well ... that's a reason to
-suggest updates to that regulator framework(*).
+>  	omap_cfg_reg(AE5_2430_USB0HS_STP);
+> +	x = otg_get_transceiver();
+> +#elif defined(CONFIG_MACH_OMAP3EVM)
+> +	x = kzalloc(sizeof *x, GFP_KERNEL);
+> +	if (!x)
+> +		return 0;
+> +	x->set_host = omap3_evm_otg_set_host;
+> +	x->set_peripheral = omap3_evm_otg_set_peripheral;
+> +	x->set_suspend = omap3_evm_otg_set_suspend;
+> +	otg_set_transceiver(x);
+>  #endif
+>  
+>  	musb->xceiv = *x;
+> @@ -323,6 +370,8 @@ int musb_platform_exit(struct musb *musb)
+>  
+>  	clk_put(musb->clock);
+>  	musb->clock = 0;
+> -
+> +#if defined(CONFIG_MACH_OMAP3EVM)
+> +	kfree(&musb->xceiv);
+> +#endif
 
-Using the regulator framework will also affect how you merge
-board support.  Wanting a pr785_enbl_dcdc() board-specific
-call is a clue that you're doing something wrong... in this
-case, regulator_enable() and regulator_disable() will do
-the job much more politely.
+no.
 
-A subsequent patch iteration should probably go to LKML.
+I could even live with if (machine_is_xxx()) code, although I don't want
+to. But ifdefs are an automatic NAK.
 
-
-You'll get this comment before long, so I'll say it right
-now:  use i2c_smbus_{read,write}_byte_data() calls instead
-of the lower level I2C calls.  It'll be more portable, and
-use less code in this driver ... even if it does increase
-the runtime cost of these (infrequent) calls.
-
-
-> +static const struct i2c_device_id tps_6235x_id[] = {
-> +	{ "tps62352_core_pwr", 0},
-> +	{ "tps62353_mpu_pwr", 1},
-> +	{},
-> +};
-
-Strike the "_core_pwr" and "_mpu_pwr" suffixes.  Those are
-not inherent tasks of the chip; they are policies set up
-by board designs, and recognized in software by how the
-components get set up.  This driver shouldn't try to care
-about such board-specific policies.
-
-The data sheet covers TPS6254x for x in 0..6 but this driver
-omits most of those.  Best to support them all.
-
-- Dave
-
-(*) The regulator framework is new.  It does, and will,
-    need changes to make sure it does what it needs to do.
-    You might not encounger such issues.  Or, you might...
-
- 
+-- 
+balbi
