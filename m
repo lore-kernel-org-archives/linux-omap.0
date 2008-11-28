@@ -1,50 +1,33 @@
-From: David Brownell <david-b@pacbell.net>
+From: Felipe Balbi <felipe.balbi@nokia.com>
 Subject: Re: [PATCH 3/3] musb: Remvoing twl4030 dependency for OMAP3EVM MUSB
-Date: Thu, 27 Nov 2008 23:02:43 -0800
-Message-ID: <200811272302.43295.david-b@pacbell.net>
-References: <1227850104-16166-1-git-send-email-mani.pillai@ti.com>
+Date: Fri, 28 Nov 2008 09:08:55 +0200
+Message-ID: <20081128070855.GN23308@gandalf.research.nokia.com>
+References: <1227850104-16166-1-git-send-email-mani.pillai@ti.com> <20081128064615.GK23308@gandalf.research.nokia.com> <19F8576C6E063C45BE387C64729E739403E904EBB0@dbde02.ent.ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:20083 "HELO
-	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751970AbYK1HCp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Nov 2008 02:02:45 -0500
-In-Reply-To: <1227850104-16166-1-git-send-email-mani.pillai@ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:63838 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751762AbYK1HJd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2008 02:09:33 -0500
 Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403E904EBB0@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Manikandan Pillai <mani.pillai@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "ext Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "Pillai, Manikandan" <mani.pillai@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thursday 27 November 2008, Manikandan Pillai wrote:
-> =A0#if defined(CONFIG_ARCH_OMAP2430)
-> =A0=A0=A0=A0=A0=A0=A0=A0omap_cfg_reg(AE5_2430_USB0HS_STP);
-> +=A0=A0=A0=A0=A0=A0=A0x =3D otg_get_transceiver();
-> +#elif defined(CONFIG_MACH_OMAP3EVM)
-> +=A0=A0=A0=A0=A0=A0=A0x =3D kzalloc(sizeof *x, GFP_KERNEL);
-> +=A0=A0=A0=A0=A0=A0=A0if (!x)
-> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0return 0;
-> +=A0=A0=A0=A0=A0=A0=A0x->set_host =3D omap3_evm_otg_set_host;
-> +=A0=A0=A0=A0=A0=A0=A0x->set_peripheral =3D omap3_evm_otg_set_periphe=
-ral;
-> +=A0=A0=A0=A0=A0=A0=A0x->set_suspend =3D omap3_evm_otg_set_suspend;
-> +=A0=A0=A0=A0=A0=A0=A0otg_set_transceiver(x);
-> =A0#endif
+On Fri, Nov 28, 2008 at 12:21:05PM +0530, Ajay Kumar Gupta wrote:
+> > no.
+> > 
+> > I could even live with if (machine_is_xxx()) code, although I don't want
+> > to. But ifdefs are an automatic NAK.
+> 
+> Felipe, this is temporary patch as described. I will submit the final one
+> later. twl4030 dependency is bottleneck for TPS work on OMAP3EVM.  
 
-This is obviously wrong.  One does set_transceiver(),
-the other does get_transceiver() ...=20
+Good, but still, let's not break multiomap ;-)
 
-It seems that some boards need some kind of basic
-OTG transceiver stub.  The newish drivers/usb/otg
-directory is the place to keep such stuff.
-
-- Dave
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+balbi
