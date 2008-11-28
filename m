@@ -1,40 +1,35 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 3/3] musb: Remvoing twl4030 dependency for OMAP3EVM MUSB
-Date: Fri, 28 Nov 2008 21:43:34 +0200
-Message-ID: <20081128194334.GF6525@frodo>
-References: <1227850104-16166-1-git-send-email-mani.pillai@ti.com> <200811280925.26736.david-b@pacbell.net> <20081128175902.GD6525@frodo> <200811281037.48654.david-b@pacbell.net>
-Reply-To: me@felipebalbi.com
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 2/2] TVP514x Driver with Review comments fixed
+Date: Fri, 28 Nov 2008 11:50:27 -0800
+Message-ID: <200811281150.28801.david-b@pacbell.net>
+References: <19F8576C6E063C45BE387C64729E739403E904ECE6@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:41837 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755395AbYK1Tno (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2008 14:43:44 -0500
+Received: from smtp111.sbc.mail.mud.yahoo.com ([68.142.198.210]:30510 "HELO
+	smtp111.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752642AbYK1Tuc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Nov 2008 14:50:32 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403E904ECE6@dbde02.ent.ti.com>
 Content-Disposition: inline
-In-Reply-To: <200811281037.48654.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: me@felipebalbi.com, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "Pillai, Manikandan" <mani.pillai@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "davinci-linux-open-source-bounces@linux.davincidsp.com" <davinci-linux-open-source-bounces@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Jadav, Brijesh R" <brijesh.j@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>, "Hadli, Manjunath" <mrh@ti.com>, "R, Sivaraj" <sivaraj@ti.com>, "Karicheri, Muralidharan" <m-karicheri2@ti.com>
 
-On Fri, Nov 28, 2008 at 10:37:47AM -0800, David Brownell wrote:
-> On Friday 28 November 2008, Felipe Balbi wrote:
-> > On Fri, Nov 28, 2008 at 09:25:26AM -0800, David Brownell wrote:
-> > > So the answer for you is obviously to have something
-> > > other than the musb driver hold your otg_transceiver
-> > > driver.  Like ... an isp1504.c I2C driver, which will
-> > > eventually move to drivers/usb/otg and which calls
-> > > the otg_set_transceiver() utility.
-> > 
-> > There's one problem here. If this is similar to isp1704, it doesn't have
-> > a control interface. 
-> 
-> It does have an I2C interface; I looked before making
-> that particular comment ...
+On Friday 28 November 2008, Hiremath, Vaibhav wrote:
+> Will have to now think how to differentiate between these
+> two chips and handle this sequence. 
 
-so it's better than isp1704. It's horrible only been able to talk to the
-device via ulpi.
+That's really easy, the "id" parameter to probe() tells you:
 
--- 
-balbi
+	if (strcmp(id->name, "tvp5146") == 0)
+		/* original '46 part ... */;
+	else if (strmcp(id->name, "tvp5146m2") == 0)
+		/* new '46m2 version ... */
+	... etc
+
+
