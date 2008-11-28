@@ -1,72 +1,73 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 2/2] TVP514x Driver with Review comments fixed
-Date: Fri, 28 Nov 2008 08:52:21 -0800
-Message-ID: <200811280852.22711.david-b@pacbell.net>
-References: <hvaibhav@ti.com> <1227876228-16553-1-git-send-email-hvaibhav@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Add OMAP2 camera driver
+Date: Fri, 28 Nov 2008 09:04:50 -0800
+Message-ID: <20081128170446.GE6640@atomide.com>
+References: <5d5443650811261044w30748b75w5a47ce8b04680f79@mail.gmail.com> <200811262116.42364.hverkuil@xs4all.nl> <5d5443650811262323l759d8c02s835c9a7454508b85@mail.gmail.com> <492E69C9.9080904@nokia.com> <5d5443650811270942n2421ea27v194e4c8aa1933dda@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp127.sbc.mail.sp1.yahoo.com ([69.147.65.186]:28928 "HELO
-	smtp127.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752133AbYK1QwY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Nov 2008 11:52:24 -0500
-In-Reply-To: <1227876228-16553-1-git-send-email-hvaibhav@ti.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56645 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751448AbYK1REz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2008 12:04:55 -0500
 Content-Disposition: inline
+In-Reply-To: <5d5443650811270942n2421ea27v194e4c8aa1933dda@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: hvaibhav@ti.com
-Cc: video4linux-list@redhat.com, davinci-linux-open-source-bounces@linux.davincidsp.com, linux-omap@vger.kernel.org, Brijesh Jadav <brijesh.j@ti.com>, Hardik Shah <hardik.shah@ti.com>, Manjunath Hadli <mrh@ti.com>, R Sivaraj <sivaraj@ti.com>, Karicheri Muralidharan <m-karicheri2@ti.com>
+To: Trilok Soni <soni.trilok@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@nokia.com>, Hans Verkuil <hverkuil@xs4all.nl>, video4linux-list@redhat.com, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-On Friday 28 November 2008, hvaibhav@ti.com wrote:
-> +=A0=A0=A0=A0=A0=A0=A0for (; next->token !=3D TOK_TERM; next++) {
-> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0if (next->token =3D=3D =
-TOK_DELAY) {
-> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-schedule_timeout(msecs_to_jiffies(next->val));
+* Trilok Soni <soni.trilok@gmail.com> [081127 09:42]:
+> Hi Sakari,
+> 
+> >
+> > It *might* be possible that the same camera block would be used in non-OMAP
+> > CPUs as well but I guess it is safe to assume that it depends on ARCH_OMAP
+> > now.
+> 
+> Right, better to keep ARCH_OMAP as dependancy.
+> 
+> >>
+> >> Thanks for the review comments. I will resubmit the patch.
+> >
+> > Is this exactly the same code that was removed from linux-omap a while ago?
+> >
+> > ---
+> > commit ebdae9abf598ae8a3ee1c8c477138f82b40e7809
+> > Author: Tony Lindgren <tony@atomide.com>
+> > Date:   Mon Oct 27 13:33:13 2008 -0700
+> >
+> >    REMOVE OMAP LEGACY CODE: Delete all old omap specific v4l drivers
+> >
+> >    All v4l development must be done on the v4l mailing list with linux-omap
+> >    list cc'd.
+> >
+> >    Signed-off-by: Tony Lindgren <tony@atomide.com>
+> >
+> 
+> Yes, it the same commit from which I have based this patch.
+> 
+> > ---
+> >
+> > Although I haven't had time to discuss this anywhere, I though a possible
+> > reason of for the removal was that some parts of the code are not that
+> > pretty (e.g. DMA) and those parts should be rewritten.
 
-			msleep(next->val);
+Well mostly the motivation for removal from linux-omap tree was to
+send the camera development to v4l list. For the camera DMA issues, I guess
+Sakari you know best how it should be handled.
 
-would be clearer and more conventional.
+> > But yes, the OMAP 2 camera driver does actually work and I would suppose it
+> > has users, too (think N800/N810).
+> 
+> Yes, I have both ;)
+> 
+> >
+> > I'm in if the aim is to get this back to linux-omap. :-) (Waiting for the
+> > next patch from Trilok.)
+> 
+> It will come down to linux-omap via mainline tree :)
 
+I like that :)
 
-> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-continue;
-> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0}
-
-
-> +static int
-> +tvp514x_probe(struct i2c_client *client, const struct i2c_device_id =
-*id)
-> +{
-> +=A0=A0=A0=A0=A0=A0=A0struct tvp514x_decoder *decoder =3D &tvp514x_de=
-v;
-> +=A0=A0=A0=A0=A0=A0=A0int err;
-> +
-> +=A0=A0=A0=A0=A0=A0=A0if (i2c_get_clientdata(client))
-> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0return -EBUSY;
-> +
-
-When no driver is bound to the client, clientdata is undefined.
-So just strike that ... you can rely on probe() only being
-called on un-bound drivers.
-
-
-I still don't see any post-reset chip init being done.  The data
-sheets for the tvp5146 and tvp5147 say that after reset, some
-commands must be sent ... that's not being done here.  Are you
-assuming perhaps tvp5146m2 and tvp5147m1, although they are not
-listed as chips supported by this driver?  (That's a repeat of
-a previous review comment, which garnered no response, so the
-$SUBJECT is inaccurate:  at least some review comments have not
-yet been addressed...)
-
-- Dave
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
