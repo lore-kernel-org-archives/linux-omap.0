@@ -1,73 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Add OMAP2 camera driver
-Date: Fri, 28 Nov 2008 09:04:50 -0800
-Message-ID: <20081128170446.GE6640@atomide.com>
-References: <5d5443650811261044w30748b75w5a47ce8b04680f79@mail.gmail.com> <200811262116.42364.hverkuil@xs4all.nl> <5d5443650811262323l759d8c02s835c9a7454508b85@mail.gmail.com> <492E69C9.9080904@nokia.com> <5d5443650811270942n2421ea27v194e4c8aa1933dda@mail.gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 3/3] musb: Remvoing twl4030 dependency for OMAP3EVM MUSB
+Date: Fri, 28 Nov 2008 09:25:26 -0800
+Message-ID: <200811280925.26736.david-b@pacbell.net>
+References: <1227850104-16166-1-git-send-email-mani.pillai@ti.com> <200811272302.43295.david-b@pacbell.net> <19F8576C6E063C45BE387C64729E739403E904EBCD@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56645 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751448AbYK1REz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2008 12:04:55 -0500
+Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:43602 "HELO
+	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752295AbYK1RZ2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Nov 2008 12:25:28 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403E904EBCD@dbde02.ent.ti.com>
 Content-Disposition: inline
-In-Reply-To: <5d5443650811270942n2421ea27v194e4c8aa1933dda@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Trilok Soni <soni.trilok@gmail.com>
-Cc: Sakari Ailus <sakari.ailus@nokia.com>, Hans Verkuil <hverkuil@xs4all.nl>, video4linux-list@redhat.com, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: "Pillai, Manikandan" <mani.pillai@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Trilok Soni <soni.trilok@gmail.com> [081127 09:42]:
-> Hi Sakari,
-> 
-> >
-> > It *might* be possible that the same camera block would be used in non-OMAP
-> > CPUs as well but I guess it is safe to assume that it depends on ARCH_OMAP
-> > now.
-> 
-> Right, better to keep ARCH_OMAP as dependancy.
-> 
-> >>
-> >> Thanks for the review comments. I will resubmit the patch.
-> >
-> > Is this exactly the same code that was removed from linux-omap a while ago?
-> >
-> > ---
-> > commit ebdae9abf598ae8a3ee1c8c477138f82b40e7809
-> > Author: Tony Lindgren <tony@atomide.com>
-> > Date:   Mon Oct 27 13:33:13 2008 -0700
-> >
-> >    REMOVE OMAP LEGACY CODE: Delete all old omap specific v4l drivers
-> >
-> >    All v4l development must be done on the v4l mailing list with linux-omap
-> >    list cc'd.
-> >
-> >    Signed-off-by: Tony Lindgren <tony@atomide.com>
-> >
-> 
-> Yes, it the same commit from which I have based this patch.
-> 
-> > ---
-> >
-> > Although I haven't had time to discuss this anywhere, I though a possible
-> > reason of for the removal was that some parts of the code are not that
-> > pretty (e.g. DMA) and those parts should be rewritten.
+On Thursday 27 November 2008, Gupta, Ajay Kumar wrote:
 
-Well mostly the motivation for removal from linux-omap tree was to
-send the camera development to v4l list. For the camera DMA issues, I guess
-Sakari you know best how it should be handled.
-
-> > But yes, the OMAP 2 camera driver does actually work and I would suppose it
-> > has users, too (think N800/N810).
+> > This is obviously wrong.  One does set_transceiver(),
+> > the other does get_transceiver() ...
 > 
-> Yes, I have both ;)
-> 
-> >
-> > I'm in if the aim is to get this back to linux-omap. :-) (Waiting for the
-> > next patch from Trilok.)
-> 
-> It will come down to linux-omap via mainline tree :)
+> For OMAP3EVM we don't need twl4030 support for musb and thus
+> otg_set_transceiver() which was done 
+> in twl4030-usb.c, is now done here itself for OMAP3EVM.
 
-I like that :)
+Which is obviously wrong.  Some other code should have
+called otg_set_transceiver() ... *NEVER* the musb driver,
+except with silicon that integrates an OTG transceiver
+(like DaVinci and Blackfin).
 
-Tony
+Yes, the MUSB driver hasn't fully sorted this out yet;
+it started with DaVinci EVMs, and only later started
+to support discrete transceivers.  Patches are in the
+works to fix that, I'm not sure of their status.
+
+That's an example of why you must not discard your basic
+intuition when updating drivers ... like noticing that
+since two branches of an #if do entirely different things,
+at least one branch must accordingly be wrong.
+
+
+> Whereas for SDP and Beagle twol4030-usb would be enabled and
+> thus otg_set_transceiver() would 
+> have been done in twl4030-usb.c file itself.
+> 
+> > 
+> > It seems that some boards need some kind of basic
+> > OTG transceiver stub.  The newish drivers/usb/otg
+> > directory is the place to keep such stuff.
+
+So the answer for you is obviously to have something
+other than the musb driver hold your otg_transceiver
+driver.  Like ... an isp1504.c I2C driver, which will
+eventually move to drivers/usb/otg and which calls
+the otg_set_transceiver() utility.
+
+Board-specific logic would presumably involve just
+declaring the i2c board info for the isp1504 chip.
+
+- Dave
