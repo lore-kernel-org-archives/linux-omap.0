@@ -1,208 +1,465 @@
 From: Manikandan Pillai <mani.pillai@ti.com>
-Subject: [PATCH 1/3] Adding-support-framework for PR785 board.
-Date: Fri, 28 Nov 2008 10:57:58 +0530
-Message-ID: <1227850078-16091-1-git-send-email-mani.pillai@ti.com>
+Subject: [PATCH 2/3] TPS6235x drivers added in drivers/i2c/chips.
+Date: Fri, 28 Nov 2008 10:58:10 +0530
+Message-ID: <1227850090-16131-1-git-send-email-mani.pillai@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45034 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:46875 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750815AbYK1F2I (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Nov 2008 00:28:08 -0500
+	id S1750827AbYK1F2S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Nov 2008 00:28:18 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id mAS5S1hR018914
-	for <linux-omap@vger.kernel.org>; Thu, 27 Nov 2008 23:28:07 -0600
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id mAS5SBfE021035
+	for <linux-omap@vger.kernel.org>; Thu, 27 Nov 2008 23:28:17 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Manikandan Pillai <mani.pillai@ti.com>
 
-This patch provides the support framework for PR785 boards.
-More patches will follow that will allow complete programming
-support for PR785 boards.
-The board-omap3evm.c contains the I2C devices to be supported.
-CONFIG_PR785 is configuration used for the PR784 boards.
+Implements the basic driver for TPS6235x devices populated on the
+PR785 board. tps6235x.c contains the driver code for TPS devices used on 
+PR785 boards. Driver code is added it to the build.
 
 Signed-off-by: Manikandan Pillai <mani.pillai@ti.com>
 ---
- arch/arm/mach-omap2/board-omap3evm.c |   29 ++++++++++++++++++++++++++---
- arch/arm/mach-omap2/mmc-twl4030.c    |    5 +++--
- drivers/i2c/chips/Kconfig            |   11 +++++++++++
- drivers/mfd/Kconfig                  |   14 ++++++++++++++
- drivers/video/omap/lcd_omap3evm.c    |    4 ++++
- 5 files changed, 58 insertions(+), 5 deletions(-)
+ drivers/i2c/chips/Makefile   |    1 +
+ drivers/i2c/chips/tps6235x.c |  416 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 417 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/i2c/chips/tps6235x.c
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index bc44cb5..f5f9ea5 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -42,6 +42,9 @@
- #include "twl4030-generic-scripts.h"
- #include "mmc-twl4030.h"
+diff --git a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
+index cb9f2bb..749f1ec 100644
+--- a/drivers/i2c/chips/Makefile
++++ b/drivers/i2c/chips/Makefile
+@@ -31,6 +31,7 @@ obj-$(CONFIG_TWL4030_PWRBUTTON)	+= twl4030-pwrbutton.o
+ obj-$(CONFIG_TWL4030_MADC)	+= twl4030-madc.o
+ obj-$(CONFIG_RTC_X1205_I2C)	+= x1205.o
+ obj-$(CONFIG_LP5521)		+= lp5521.o
++obj-$(CONFIG_TPS6235X)          += tps6235x.o
  
-+#define	OMAP3_I2C_STD	100
-+#define	OMAP3_I2C_FAST	400
-+#define	OMAP3_I2C_HS	2600
- 
- static struct resource omap3evm_smc911x_resources[] = {
- 	[0] =	{
-@@ -144,6 +147,19 @@ static struct twl4030_platform_data omap3evm_twldata = {
- 	.gpio		= &omap3evm_gpio_data,
- };
- 
-+#if defined(CONFIG_PR785)
-+static struct i2c_board_info __initdata tps_6235x_i2c_board_info[] = {
-+	{
-+		I2C_BOARD_INFO("tps62352_core_pwr", 0x4A),
-+		.flags = I2C_CLIENT_WAKE,
-+	},
-+	{
-+		I2C_BOARD_INFO("tps62353_mpu_pwr", 0x48),
-+		.flags = I2C_CLIENT_WAKE,
-+	},
+ ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
+ EXTRA_CFLAGS += -DDEBUG
+diff --git a/drivers/i2c/chips/tps6235x.c b/drivers/i2c/chips/tps6235x.c
+new file mode 100644
+index 0000000..fd5ee0b
+--- /dev/null
++++ b/drivers/i2c/chips/tps6235x.c
+@@ -0,0 +1,416 @@
++/*
++ * drivers/i2c/chips/tps6235x.c
++ *
++ * TI TPS6235x device driver
++ *
++ * Copyright (C) 2008 Texas Instruments Inc
++ *
++ * Contributors:
++ *     Manikandan Pillai <mani.pillai@ti.com>
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *
++ */
++
++#include <linux/i2c.h>
++#include <linux/delay.h>
++
++#define	MODULE_NAME	"tps6235x_power"
++
++/* Debug functions */
++#ifdef	DEBUG
++
++#define	dump_reg(client, reg, val)					\
++	do {								\
++		tps6235x_read_reg(client, reg, &val);			\
++		dev_dbg(&(client)->dev, "Reg(0x%.2X): 0x%.2X\n", reg, val); \
++	} while (0)
++
++#endif	/* #ifdef DEBUG */
++
++/* 2 I2C devices on PR785 board for controlling voltage on CORE and MPU */
++typedef enum TPS_module_type {
++	PR785_CORE_PWR,
++	PR785_MPU_PWR,
++} TPS_module_type;
++
++#define	TPS6235X_REG_VSEL0	0
++#define	TPS6235X_REG_VSEL1	1
++#define	TPS6235X_REG_CTRL1	2
++#define	TPS6235X_REG_CTRL2	3
++#define	TPS6235X_REG_MAX	TPS6235X_REG_CTRL2
++
++/* Device addresses for PR785 card */
++#define PR785_62352_CORE_ADDR	0x4A
++#define PR785_62353_MPU_ADDR	0x48
++
++/* Minimum and Maximum dc-dc voltage supported by the TPS6235x devices
++All voltages given in millivolts */
++#define PR785_MIN_CORE_VOLT	750
++#define PR785_MAX_CORE_VOLT	1537
++#define PR785_MIN_MPU_VOLT	750
++#define PR785_MAX_MPU_VOLT	1537
++
++/* Maximum number of bytes to be read in a single read */
++#define PR785_RETRY_COUNT	0x3
++
++/* Register bit settings */
++#define TPS6235X_EN_DCDC	(0x1 << 0x7)
++#define TPS6235X_VSM_MSK	(0x3F)
++#define TPS6235X_EN_SYN_MSK	(0x1 << 0x5)
++#define TPS6235X_SW_VOLT_MSK	(0x1 << 0x4)
++#define TPS6235X_PWR_OK_MSK	(0x1 << 0x5)
++#define TPS6235X_OUT_DIS_MSK	(0x1 << 0x6)
++#define TPS6235X_GO_MSK		(0x1 << 0x7)
++
++struct tps_6235x_info {
++	unsigned int		state;
++	enum TPS_module_type	tps_i2c_addr;
++	struct i2c_client	*client;
++	struct device		*i2c_dev;
++	/* platform data holder */
++	void			*pdata;
 +};
-+#endif
-+#if defined(CONFIG_TWL4030_CORE)
- static struct i2c_board_info __initdata omap3evm_i2c_boardinfo[] = {
- 	{
- 		I2C_BOARD_INFO("twl4030", 0x48),
-@@ -152,13 +168,20 @@ static struct i2c_board_info __initdata omap3evm_i2c_boardinfo[] = {
- 		.platform_data = &omap3evm_twldata,
- 	},
- };
-+#endif
- 
- static int __init omap3_evm_i2c_init(void)
- {
--	omap_register_i2c_bus(1, 2600, omap3evm_i2c_boardinfo,
-+#if defined(CONFIG_PR785)
-+	omap_register_i2c_bus(1, OMAP3_I2C_HS, tps_6235x_i2c_board_info,
-+		ARRAY_SIZE(tps_6235x_i2c_board_info));
-+#endif
-+#if defined(CONFIG_TWL4030_CORE)
-+	omap_register_i2c_bus(1, OMAP3_I2C_HS, omap3evm_i2c_boardinfo,
- 			ARRAY_SIZE(omap3evm_i2c_boardinfo));
--	omap_register_i2c_bus(2, 400, NULL, 0);
--	omap_register_i2c_bus(3, 400, NULL, 0);
-+#endif
-+	omap_register_i2c_bus(2, OMAP3_I2C_FAST, NULL, 0);
-+	omap_register_i2c_bus(3, OMAP3_I2C_FAST, NULL, 0);
- 	return 0;
- }
- 
-diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
-index 626d668..daf10f3 100644
---- a/arch/arm/mach-omap2/mmc-twl4030.c
-+++ b/arch/arm/mach-omap2/mmc-twl4030.c
-@@ -167,7 +167,7 @@ static int twl_mmc_resume(struct device *dev, int slot)
-  */
- static int twl_mmc_set_voltage(struct twl_mmc_controller *c, int vdd)
- {
--	int ret;
-+	int ret = 0;
- 	u8 vmmc, dev_grp_val;
- 
- 	switch (1 << vdd) {
-@@ -222,6 +222,7 @@ static int twl_mmc_set_voltage(struct twl_mmc_controller *c, int vdd)
- 	else
- 		dev_grp_val = LDO_CLR;		/* Power down */
- 
-+#if defined(CONFIG_TWL4030_CORE)
- 	ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
- 					dev_grp_val, c->twl_vmmc_dev_grp);
- 	if (ret)
-@@ -229,7 +230,7 @@ static int twl_mmc_set_voltage(struct twl_mmc_controller *c, int vdd)
- 
- 	ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
- 					vmmc, c->twl_mmc_dedicated);
--
-+#endif
- 	return ret;
- }
- 
-diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
-index 4c73bb5..32cf887 100644
---- a/drivers/i2c/chips/Kconfig
-+++ b/drivers/i2c/chips/Kconfig
-@@ -186,6 +186,17 @@ config TWL4030_POWEROFF
- 	tristate "TWL4030 device poweroff"
- 	depends on TWL4030_CORE
- 
-+config TPS6235X
-+	tristate "TPS6235x Power Management chips"
-+	depends on I2C=y && ARCH_OMAP34XX && PR785=y
-+	default n
-+	help
-+	If you say yes here you get support for the TPS6235x series of
-+	Power Management chips.
 +
-+	This driver can also be built as a module.  If so, the module
-+	will be called tps6235x.o.
++static struct tps_6235x_info	tps_6235x_infodata[2];
 +
- config SENSORS_MAX6875
- 	tristate "Maxim MAX6875 Power supply supervisor"
- 	depends on EXPERIMENTAL
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 2438aab..93f2c0a 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -61,6 +61,8 @@ config UCB1400_CORE
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ucb1400_core.
- 
-+menu "Texas Instruments Power board Support"
++/*
++ * Get client pointer for a particular device
++ * Returns zero if successful, or non-zero otherwise.
++ */
++static struct i2c_client *tps_6235x_get_client(TPS_module_type tps_mod_type)
++{
++	if (tps_mod_type == PR785_CORE_PWR)
++		return tps_6235x_infodata[0].client;
++	else if (tps_mod_type == PR785_MPU_PWR)
++		return tps_6235x_infodata[1].client;
++	else
++		return NULL;
++}
 +
- config TWL4030_CORE
- 	bool "Texas Instruments TWL4030/TPS659x0 Support"
- 	depends on I2C=y && GENERIC_HARDIRQS && (ARCH_OMAP2 || ARCH_OMAP3)
-@@ -84,6 +86,18 @@ config TWL4030_POWER
- 	  oscillators are switched off or on or reset when a sleep, wakeup
- 	  or warm reset event occurs.
- 
-+config PR785
-+	bool "A Texas Instruments TPS6235X based Power Module"
-+	depends on I2C=y && MACH_OMAP3EVM=y && GENERIC_GPIO && (ARCH_OMAP3)
-+	default n
-+	help
-+	Say yes here if you are using the TPS6235x based PR785 Power Module
-+	for the EVM boards. This core driver provides register access and IRQ
-+	handling facilities, and registers devices for the various functions
-+	so that function-specific drivers can bind to them.
++/*
++ * Read a value from a register in an tps_6235x device.
++ * The value is returned in 'val'.
++ * Returns zero if successful, or non-zero otherwise.
++ */
++static int tps_6235x_read_reg(struct i2c_client *client, u8 reg, u8 *val)
++{
++	int err;
++	struct i2c_msg msg[2];
++	u8 data;
 +
-+endmenu
++	if (!client->adapter)
++		return -ENODEV;
 +
- config MFD_TMIO
- 	bool
- 	default n
-diff --git a/drivers/video/omap/lcd_omap3evm.c b/drivers/video/omap/lcd_omap3evm.c
-index 90aa015..ac51dd0 100644
---- a/drivers/video/omap/lcd_omap3evm.c
-+++ b/drivers/video/omap/lcd_omap3evm.c
-@@ -66,9 +66,11 @@ static int omap3evm_panel_init(struct lcd_panel *panel,
- 	gpio_direction_output(LCD_PANEL_LR, 1);
- 	gpio_direction_output(LCD_PANEL_UD, 1);
- 
-+#if !defined(CONFIG_PR785)
- 	twl4030_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_LEDEN);
- 	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
- 	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
++	/* [MSG1] fill the register address data */
++	data = reg;
++	msg[0].addr = client->addr;
++	msg[0].len = 1;
++	msg[0].flags = 0;
++	msg[0].buf = &data;
++
++	/* [MSG2] fill the data rx buffer */
++	msg[1].addr = client->addr;
++	msg[1].len = 1;			/* only 1 byte */
++	msg[1].flags = I2C_M_RD;	/* Read the register values */
++	msg[1].buf = val;
++	err = i2c_transfer(client->adapter, msg, 2);
++	if (err >= 0)
++		return 0;
++
++	dev_err(&client->dev,
++		"read from device 0x%.2x, offset 0x%.2x error %d\n",
++		client->addr, reg, err);
++
++	return err;
++}
++
++/*
++ * Write a value to a register in an tps_6235x device.
++ * Returns zero if successful, or non-zero otherwise.
++ */
++static int tps_6235x_write_reg(struct i2c_client *client, u8 reg, u8 val)
++{
++	int err;
++	int retry = 0;
++	struct i2c_msg msg[1];
++	u8 data[2];
++
++	if (!client->adapter)
++		return -ENODEV;
++
++again:
++	data[0] = reg;		/* Register offset */
++	data[1] = val;		/* Register value */
++	msg->addr = client->addr;
++	msg->len = 2;
++	msg->flags = 0;		/* write operation */
++	msg->buf = data;
++
++	err = i2c_transfer(client->adapter, msg, 1);
++	if (err >= 0)
++		return 0;
++
++	dev_err(&client->dev,
++		"wrote 0x%.2x to offset 0x%.2x error %d\n", val, reg, err);
++
++	if (retry <= PR785_RETRY_COUNT) {
++		dev_info(&client->dev, "retry ... %d\n", retry);
++		retry++;
++		schedule_timeout(msecs_to_jiffies(20));
++		goto again;
++	}
++	return err;
++}
++
++/**
++*  pwr_i2c_read - Allows the caller to read one register from TPS device
++*                   based on the address given. For the PR785 it reads
++*                   only 1 byte into a specified register
++*  tps_mod_type - Enum for the device to be read
++*  reg          - Register to be read from(value has to be between 0-3
++*  val          - value read from the reg
++*  Retval       - 0 -> Success else non-zero
++**/
++int pwr_i2c_read(TPS_module_type tps_mod_type, u8 reg, u8 *val)
++{
++	struct i2c_client *client;
++
++	client = tps_6235x_get_client(tps_mod_type);
++	/* check if register is less than <= 3 Register is 0 -3 */
++	if (reg > TPS6235X_REG_MAX)
++		return -1;
++
++	return tps_6235x_read_reg(client, reg, val);
++}
++EXPORT_SYMBOL(pwr_i2c_read);
++
++/**
++*  pwr_i2c_write - Allows the caller to write one register from TPS device
++*		    based on the address given. For the PR785 it writes
++*		    only 1 byte into a specified register
++*  tps_mod_type  - Enum for the device to be written
++*  reg           - Register to be written to(value has to be between 0-3
++*  val           - value to be written to reg
++*  Retval        - 0 -> Success else non-zero
++**/
++int pwr_i2c_write(TPS_module_type tps_mod_type, u8 reg, u8 val)
++{
++	struct i2c_client *client;
++
++	client = tps_6235x_get_client(tps_mod_type);
++
++	/* check if register is less than <= 3 Register is 0 -3 */
++	if (reg > TPS6235X_REG_MAX)
++		return -1;
++
++	return tps_6235x_write_reg(client, reg, val);
++}
++EXPORT_SYMBOL(pwr_i2c_write);
++
++/**
++*  TPSPR785        - Specific functions
++*  pr785_enbl_dcdc - Allows the caller to enable or disable the TPS6235x device
++*                    on the PR785 board. The voltage for PR785 is selected by
++*                    VSEL1 register since VSEL pin is kept high
++*
++*  flag            - 1 == enable 0 == disable
++*  Retval          - 0 -> Success else non-zero
++**/
++int pr785_enbl_dcdc(TPS_module_type tps_mod_type, unsigned int en_flag)
++{
++	unsigned char vsel1;
++	int ret;
++
++	ret = pwr_i2c_read(tps_mod_type, TPS6235X_REG_VSEL1, &vsel1);
++	if (ret == 0) {
++		if (en_flag)
++			vsel1 |= TPS6235X_EN_DCDC;
++		else
++			vsel1 &= ~(TPS6235X_EN_DCDC);
++		ret = pwr_i2c_write(tps_mod_type, TPS6235X_REG_VSEL1, vsel1);
++	}
++	return ret;
++}
++EXPORT_SYMBOL(pr785_enbl_dcdc);
++
++
++/**
++*  TPSPR785            - Specific functions
++*  pr785_set_dcdc_volt - Allows the caller to set a particular voltage on
++*                        for CORE or MPU
++*
++*  voltage              - voltage to be set in millivolts (75--1537)
++*  Retval          - 0 -> Success else non-zero
++**/
++int pr785_set_dcdc_volt(TPS_module_type tps_mod_type, unsigned int millivolts)
++{
++	unsigned char vsel1;
++	unsigned int volt;
++
++	/* check if the millivolts is within range */
++	if ((millivolts < PR785_MIN_CORE_VOLT) ||
++		(millivolts > PR785_MAX_CORE_VOLT))
++		return -1;
++
++	/* Output voltage set is = min_op_volt + ( VSM * 12.5mv) */
++	volt = millivolts - PR785_MIN_CORE_VOLT;
++	volt /= 25;
++	volt *= 2;
++	vsel1 = ((TPS6235X_EN_DCDC) | (volt & TPS6235X_VSM_MSK));
++	return  pwr_i2c_write(tps_mod_type, TPS6235X_REG_VSEL1, vsel1);
++}
++EXPORT_SYMBOL(pr785_set_dcdc_volt);
++
++/**
++*  TPSPR785            - Specific functions
++*  pr785_get_dcdc_volt - Allows the caller to get the set voltage on a
++*                        particular TPS 6235x device on PR785 card
++*
++*  voltage              - voltage to be set in millivolts (75--1537)
++*  Retval          - 0 -> Success else non-zero
++**/
++int pr785_get_dcdc_volt(TPS_module_type tps_mod_type, unsigned int *millivolts)
++{
++	unsigned char vsel1;
++	unsigned int volt;
++
++	/* Read the VSEL1 register to get VSM */
++	pwr_i2c_read(tps_mod_type, TPS6235X_REG_VSEL1, &vsel1);
++	/* Output voltage set is = min_op_volt + ( VSM * 12.5mv) */
++	/* To cut out floating point operation we will multiply by 25
++	divide by 2 */
++	volt = (((vsel1 & TPS6235X_VSM_MSK) * 25) / 2) + PR785_MIN_CORE_VOLT;
++	*millivolts = volt;
++	return 0;
++}
++EXPORT_SYMBOL(pr785_get_dcdc_volt);
++
++/**
++ * tps_6235x_probe - TPS6235x driver i2c probe handler
++ * @client: i2c driver client device structure
++ *
++ * Register PR785 as an i2c client device driver
++ */
++static struct i2c_driver tps_6235x_i2c_driver;
++
++static
++int tps_6235x_probe(struct i2c_client *client, const struct i2c_device_id *id)
++{
++	unsigned char reg_val;
++
++	printk(KERN_INFO "tps_6235x_probe:TPS addr = %x\n", (int)client->addr);
++
++	if (i2c_get_clientdata(client))
++		return -EBUSY;
++
++	/* Device probed is TPS62352 CORE pwr chip if driver_data  = 0 */
++	/* Device probed is TPS62353 MPU pwr chip if driver_data = 1 */
++	tps_6235x_infodata[id->driver_data].client = client;
++	tps_6235x_infodata[id->driver_data].tps_i2c_addr = client->addr;
++	tps_6235x_infodata[id->driver_data].state = 1;
++	tps_6235x_infodata[id->driver_data].i2c_dev = &client->dev;
++
++	tps_6235x_read_reg(client, TPS6235X_REG_CTRL2, &reg_val);
++	reg_val |= (TPS6235X_OUT_DIS_MSK | TPS6235X_GO_MSK);
++	tps_6235x_write_reg(client, TPS6235X_REG_CTRL2, reg_val);
++	tps_6235x_read_reg(client, TPS6235X_REG_CTRL2, &reg_val);
++
++	if (reg_val & TPS6235X_PWR_OK_MSK)
++		printk(KERN_INFO "Power is OK  %x\n", reg_val);
++	else
++		printk(KERN_INFO "Power not within range = %x\n", reg_val);
++	return 0;
++}
++
++/**
++ * tps_6235x_remove - TPS6235x driver i2c remove handler
++ * @client: i2c driver client device structure
++ *
++ * UnregisterPR785  as an i2c client device driver
++ */
++static int __exit tps_6235x_remove(struct i2c_client *client)
++{
++#ifdef DEBUG
++	printk(KERN_INFO "tps_6235x_remove invoked\n");
 +#endif
- 	bklight_level = 100;
- 
- 	return 0;
-@@ -97,12 +99,14 @@ static unsigned long omap3evm_panel_get_caps(struct lcd_panel *panel)
- static int omap3evm_bklight_setlevel(struct lcd_panel *panel,
- 						unsigned int level)
- {
-+#if !defined(CONFIG_PR785)
- 	u8 c;
- 	if ((level >= 0) && (level <= 100)) {
- 		c = (125 * (100 - level)) / 100 + 2;
- 		twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_PWMA_PWMAOFF);
- 		bklight_level = level;
- 	}
++
++	if (!client->adapter)
++		return -ENODEV;	/* our client isn't attached */
++
++	i2c_set_clientdata(client, NULL);
++
++	return 0;
++}
++
++static const struct i2c_device_id tps_6235x_id[] = {
++	{ "tps62352_core_pwr", 0},
++	{ "tps62353_mpu_pwr", 1},
++	{},
++};
++
++MODULE_DEVICE_TABLE(i2c, tps_6235x_id);
++
++static struct i2c_driver tps_6235x_i2c_driver = {
++	.driver = {
++		.name = "tps6235x_power",
++		.owner = THIS_MODULE,
++		},
++	.probe = tps_6235x_probe,
++	.remove = __exit_p(tps_6235x_remove),
++	.id_table = tps_6235x_id,
++};
++
++/**
++ * tps_6235x_init
++ *
++ * Module init function
++ */
++static int __init tps_6235x_init(void)
++{
++	int err;
++
++#ifdef DEBUG
++	printk(KERN_INFO "tps_6235x_init invoked\n");
 +#endif
- 	return 0;
- }
- 
++
++	err = i2c_add_driver(&tps_6235x_i2c_driver);
++	if (err) {
++		printk(KERN_ERR "Failed to register " MODULE_NAME ".\n");
++		return err;
++	} else {
++		printk(KERN_INFO "I2c driver registered\n");
++	}
++	return 0;
++}
++
++/**
++ * tps_6235x_cleanup
++ *
++ * Module exit function
++ */
++static void __exit tps_6235x_cleanup(void)
++{
++#ifdef DEBUG
++	printk(KERN_INFO "tps_6235x_cleanup invoked\n");
++#endif
++	i2c_del_driver(&tps_6235x_i2c_driver);
++}
++
++late_initcall(tps_6235x_init);
++module_exit(tps_6235x_cleanup);
++
++MODULE_AUTHOR("Texas Instruments");
++MODULE_DESCRIPTION("TPS6235x based PR785 linux driver");
++MODULE_LICENSE("GPL");
 -- 
 1.5.6
 
