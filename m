@@ -1,60 +1,58 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 00/12] Updates for i2c-omap for 2.6.29 merge window, v4
-Date: Fri, 28 Nov 2008 17:28:06 -0800
-Message-ID: <20081129012612.13042.12283.stgit@localhost>
+Subject: [PATCH 01/12] i2c-omap: Do not use interruptible wait call in
+	omap_i2c_xfer_msg
+Date: Fri, 28 Nov 2008 17:28:13 -0800
+Message-ID: <20081129012813.13042.21122.stgit@localhost>
+References: <20081129012612.13042.12283.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53460 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53544 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753151AbYK2B2F (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2008 20:28:05 -0500
+	with ESMTP id S1753221AbYK2B2M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2008 20:28:12 -0500
+In-Reply-To: <20081129012612.13042.12283.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: i2c-linux@vger.kernel.org, ben-linux@fluff.org
-Cc: linux-omap@vger.kernel.org
+Cc: Juha Yrjola <juha.yrjola@solidboot.com>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@nokia.com>
 
-Hi all,
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
 
-Here are the i2c-omap patches again for next merge window.
+If there is a signal pending and wait_for_completion_interruptible_timeout
+terminates with -ERESTARTSYS, we return and disable the i2c clocks in
+omap_i2c_xfer.
 
-Regards,
+If we terminate before sending last i2c message with a stop condition, the
+bus remains busy and we are not able to send new messages into bus with
+successive omap_i2c_xfer calls. Therefore a pending signal is not caught
+here and we return only because of timeout or i2c error.
 
-Tony
-
+Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
+ drivers/i2c/busses/i2c-omap.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-Chandra shekhar (1):
-      i2c-omap: Add support for omap34xx
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 608038d..17476ec 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -328,8 +328,12 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 		w |= OMAP_I2C_CON_STP;
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, w);
+ 
+-	r = wait_for_completion_interruptible_timeout(&dev->cmd_complete,
+-						      OMAP_I2C_TIMEOUT);
++	/*
++	 * REVISIT: We should abort the transfer on signals, but the bus goes
++	 * into arbitration and we're currently unable to recover from it.
++	 */
++	r = wait_for_completion_timeout(&dev->cmd_complete,
++					OMAP_I2C_TIMEOUT);
+ 	dev->buf_len = 0;
+ 	if (r < 0)
+ 		return r;
 
-Jarkko Nikula (1):
-      i2c-omap: Do not use interruptible wait call in omap_i2c_xfer_msg
-
-Kalle Jokiniemi (1):
-      i2c-omap: Enable I2C wakeups for 34xx
-
-Nishanth Menon (1):
-      i2c-omap: FIFO handling support and broken hw workaround for i2c-omap
-
-Paul Walmsley (6):
-      i2c-omap: reprogram OCP_SYSCONFIG register after reset
-      i2c-omap: convert 'rev1' flag to generic 'rev' u8
-      i2c-omap: fix I2C timeouts due to recursive omap_i2c_{un,}idle()
-      i2c-omap: Don't compile in OMAP15xx I2C ISR for non-OMAP15xx builds
-      i2c-omap: Mark init-only functions as __init
-      i2c-omap: Close suspected race between omap_i2c_idle() and omap_i2c_isr()
-
-Syed Mohammed Khasim (1):
-      i2c-omap: Add high-speed support to omap-i2c
-
-Tony Lindgren (1):
-      i2c-omap: Clean-up i2c-omap
-
-
- arch/arm/mach-omap2/clock24xx.h |    4 
- drivers/i2c/busses/i2c-omap.c   |  420 ++++++++++++++++++++++++++++++---------
- 2 files changed, 330 insertions(+), 94 deletions(-)
-
--- 
-Signature
