@@ -1,58 +1,62 @@
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+From: David Brownell <david-b@pacbell.net>
 Subject: Re: v4l2_device/v4l2_subdev: please review (PATCH 1/3)
-Date: Sat, 29 Nov 2008 20:08:44 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0811292002300.8352@axis700.grange>
-References: <200811242309.37489.hverkuil@xs4all.nl> <200811251848.09593.hverkuil@xs4all.nl>
- <200811290034.44340.laurent.pinchart@skynet.be> <200811291519.39549.hverkuil@xs4all.nl>
+Date: Sat, 29 Nov 2008 11:46:43 -0800
+Message-ID: <200811291146.44371.david-b@pacbell.net>
+References: <200811242309.37489.hverkuil@xs4all.nl> <200811290034.44340.laurent.pinchart@skynet.be> <200811291519.39549.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:43857 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751949AbYK2TId (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 29 Nov 2008 14:08:33 -0500
+Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:40164 "HELO
+	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751306AbYK2Tqq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 29 Nov 2008 14:46:46 -0500
 In-Reply-To: <200811291519.39549.hverkuil@xs4all.nl>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@skynet.be>, video4linux-list@redhat.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, linux-kernel@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>, Laurent Pinchart <laurent.pinchart@skynet.be>
+Cc: video4linux-list@redhat.com, Trilok Soni <soni.trilok@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, linux-kernel@vger.kernel.org
 
-On Sat, 29 Nov 2008, Hans Verkuil wrote:
-
-> > > +Introduction
-> > > +------------
+On Saturday 29 November 2008, Hans Verkuil wrote:
+> > > +And this to go from an i2c_client to a v4l2_subdev struct:
 > > > +
-> > > +The V4L2 drivers tend to be very complex due to the complexity of
-> > > the +hardware: most devices have multiple ICs, export multiple
-> > > device nodes in +/dev, and create also non-V4L2 devices such as
-> > > DVB, ALSA, FB, I2C and input +(IR) devices.
+> > > +=A0=A0=A0struct v4l2_subdev *sd =3D i2c_get_clientdata(client);
 > > > +
-> > > +Especially the fact that V4L2 drivers have to setup supporting ICs
-> > > to +do audio/video muxing/encoding/decoding makes it more complex
-> > > than most. +Usually these ICs are connected to the main bridge
-> > > driver through one or +more I2C busses, but other busses can also
-> > > be used. Such devices are +called 'sub-devices'.
+> > > +Finally you need to make a command function to make
+> > > +driver->command() call the right subdev_ops functions:
+> > > +
+> > > +static int
+> > > +subdev_command(struct i2c_client *client, unsigned cmd, void *ar=
+g)
+> > > +{=20
+> > > +=A0=A0=A0return v4l2_subdev_command(i2c_get_clientdata(client), =
+cmd, arg);
+> > > +}
+> > > +
+> > > +If driver->command is never used then you can leave this out.
+> > > +Eventually the driver->command usage should be removed from v4l.
 > >
-> > Do you know of other busses being used in (Linux supported) real
-> > video hardware, or is it currently theoretical only ?
-> 
-> The pxa_camera driver is one example of that. Also devices driven by 
-> GPIO pins can be implemented this way. I did that in ivtv for example: 
-> most cards use i2c audio muxers, but some have audio muxers that are 
-> commanded through GPIO so I created a v4l2_subdev that uses GPIO to 
-> drive these chips. Works very well indeed.
+> > Should it then be added to the list of features scheduled for remov=
+al?
+>=20
+> No, driver->command is part of the i2c subsystem and we are not the o=
+nly=20
+> users, so it can't be scheduled for removal.
 
-I think pxa-camera (as well as sh-mobile-ceu and other soc-camera host 
-drivers in the works) is not a very good example here. Sensors connected 
-to embedded controllers like PXA indeed use a dedicated camera bus but 
-only for data exchange. This bus comprises of data and synchronisation 
-lines only. Sensors are still connected over an i2c bus for control and 
-configuration, also been open to other busses, I haven't seen such 
-examples as yet. I might have misunderstood what has been discussed here 
-though.
+ISTR that the only use of the i2c_driver.command() mechanism
+is for video/DVB driver support.  It's kind of an ugly wart,
+and it'd be good to see such ioctl-ish interfaces vanish.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+This came up a while back as part of a "how can we clean up
+the I2C stack" discussion.  So it would be nice if V4L2 wasn't
+effectively adding new reasons (and advice) to use this.
+
+- Dave
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
