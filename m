@@ -1,51 +1,127 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 07/12] i2c-omap: Don't compile in OMAP15xx I2C ISR for
-	non-OMAP15xx builds
-Date: Fri, 28 Nov 2008 17:34:37 -0800
-Message-ID: <20081129013437.13428.62885.stgit@localhost>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 08/12] i2c-omap: Clean-up i2c-omap
+Date: Fri, 28 Nov 2008 17:34:43 -0800
+Message-ID: <20081129013443.13428.41997.stgit@localhost>
 References: <20081129013318.13428.88465.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58876 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753327AbYK2Bem (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2008 20:34:42 -0500
 In-Reply-To: <20081129013318.13428.88465.stgit@localhost>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
-Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-i2c@vger.kernel.org, ben-linux@fluff.org
+Cc: linux-omap@vger.kernel.org
 
-From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Minor sparse, checkpatch and formatting clean-up. Also update copyright=
+s.
 
-Skip compiling OMAP15xx I2C ISR for non-OMAP15xx builds.  Saves 400 bytes
-of text for most OMAP builds.
-
-Signed-off-by: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/i2c/busses/i2c-omap.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   31 ++++++++++++++++++-------------
+ 1 files changed, 18 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 61d2e5a..195c3d1 100644
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-oma=
+p.c
+index 195c3d1..4aeebad 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -503,6 +503,9 @@ omap_i2c_ack_stat(struct omap_i2c_dev *dev, u16 stat)
- 	omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, stat);
+@@ -2,13 +2,16 @@
+  * TI OMAP I2C master mode driver
+  *
+  * Copyright (C) 2003 MontaVista Software, Inc.
+- * Copyright (C) 2004 Texas Instruments.
+- *
+- * Updated to work with multiple I2C interfaces on 24xx by
+- * Tony Lindgren <tony@atomide.com> and Imre Deak <imre.deak@nokia.com=
+>
+  * Copyright (C) 2005 Nokia Corporation
++ * Copyright (C) 2004 - 2007 Texas Instruments.
+  *
+- * Cleaned up by Juha Yrj=C3=B6l=C3=A4 <juha.yrjola@nokia.com>
++ * Originally written by MontaVista Software, Inc.
++ * Additional contributions by:
++ *	Tony Lindgren <tony@atomide.com>
++ *	Imre Deak <imre.deak@nokia.com>
++ *	Juha Yrj=C3=B6l=C3=A4 <juha.yrjola@solidboot.com>
++ *	Syed Khasim <x0khasim@ti.com>
++ *	Nishant Menon <nm@ti.com>
+  *
+  * This program is free software; you can redistribute it and/or modif=
+y
+  * it under the terms of the GNU General Public License as published b=
+y
+@@ -33,8 +36,7 @@
+ #include <linux/completion.h>
+ #include <linux/platform_device.h>
+ #include <linux/clk.h>
+-
+-#include <asm/io.h>
++#include <linux/io.h>
+=20
+ /* timeout waiting for the controller to respond */
+ #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
+@@ -204,7 +206,7 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
+ 	dev->iestate =3D omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+ 	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
+ 	if (dev->rev1) {
+-		iv =3D omap_i2c_read_reg(dev, OMAP_I2C_IV_REG);	/* Read clears */
++		iv =3D omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
+ 	} else {
+ 		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, dev->iestate);
+=20
+@@ -321,9 +323,9 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+=20
+ 	/* Enable interrupts */
+ 	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG,
+-			   (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
+-			    OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
+-			    OMAP_I2C_IE_AL)  | ((dev->fifo_size) ?
++			(OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
++			OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
++			OMAP_I2C_IE_AL)  | ((dev->fifo_size) ?
+ 				(OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0));
+ 	return 0;
  }
- 
-+/* rev1 devices are apparently only on some 15xx */
-+#ifdef CONFIG_ARCH_OMAP15XX
+@@ -389,8 +391,10 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *a=
+dap,
+ 		w |=3D OMAP_I2C_CON_XA;
+ 	if (!(msg->flags & I2C_M_RD))
+ 		w |=3D OMAP_I2C_CON_TRX;
 +
- static irqreturn_t
- omap_i2c_rev1_isr(int this_irq, void *dev_id)
- {
-@@ -557,6 +560,9 @@ omap_i2c_rev1_isr(int this_irq, void *dev_id)
- 
+ 	if (!dev->b_hw && stop)
+ 		w |=3D OMAP_I2C_CON_STP;
++
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, w);
+=20
+ 	/*
+@@ -468,7 +472,8 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_=
+msg msgs[], int num)
+=20
+ 	omap_i2c_unidle(dev);
+=20
+-	if ((r =3D omap_i2c_wait_for_bb(dev)) < 0)
++	r =3D omap_i2c_wait_for_bb(dev);
++	if (r < 0)
+ 		goto out;
+=20
+ 	for (i =3D 0; i < num; i++) {
+@@ -561,7 +566,7 @@ omap_i2c_rev1_isr(int this_irq, void *dev_id)
  	return IRQ_HANDLED;
  }
-+#else
-+#define omap_i2c_rev1_isr		0
-+#endif
- 
+ #else
+-#define omap_i2c_rev1_isr		0
++#define omap_i2c_rev1_isr		NULL
+ #endif
+=20
  static irqreturn_t
- omap_i2c_isr(int this_irq, void *dev_id)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
