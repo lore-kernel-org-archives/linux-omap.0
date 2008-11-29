@@ -1,16 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 05/11] ARM: OMAP: switch to gpio_direction_input
-Date: Fri, 28 Nov 2008 17:10:22 -0800
-Message-ID: <20081129011021.12337.25141.stgit@localhost>
+Subject: [PATCH 06/11] ARM: OMAP: switch to gpio_direction_output
+Date: Fri, 28 Nov 2008 17:10:29 -0800
+Message-ID: <20081129011028.12337.25575.stgit@localhost>
 References: <20081129010728.12337.8217.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57993 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58097 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753337AbYK2BKU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2008 20:10:20 -0500
+	with ESMTP id S1753455AbYK2BK2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2008 20:10:28 -0500
 In-Reply-To: <20081129010728.12337.8217.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,202 +19,200 @@ Cc: David Brownell <dbrownell@users.sourceforge.net>, linux-omap@vger.kernel.org
 
 From: David Brownell <dbrownell@users.sourceforge.net>
 
-More switchover to the cross-platform GPIO interface:
-use gpio_direction_input(), not an OMAP-specific call.
+More conversion to the standard GPIO interfaces:  stop using
+omap_set_gpio_direction() entirely, and switch over to the
+gpio_direction_output() call.
+
+Note that because gpio_direction_output() includes the initial
+value, this change isn't quite transparent.
+
+ - For the call sites which defined an initial value either
+   before or after setting the direction, that value was used.
+
+   When that value was previously assigned afterwards, this
+   could eliminate a brief output glitch ... and possibly
+   change behavior.  In a few cases (LCDs) several values
+   were assigned together ... those were re-arranged to match
+   the explicit sequence provided.
+
+ - Some call sites didn't define such a value; so I chose an
+   initial "off/reset" value that seemed to default to "off".
+
+In short, files touched by this patch might notice some small
+changes in startup behavior (with trivial fixes).
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/board-palmte.c    |    4 ++--
- arch/arm/mach-omap1/board-palmz71.c   |    4 ++--
- arch/arm/mach-omap1/board-voiceblue.c |    2 +-
- arch/arm/mach-omap1/fpga.c            |    2 +-
- arch/arm/mach-omap1/serial.c          |    2 +-
- arch/arm/mach-omap2/board-2430sdp.c   |    2 +-
- arch/arm/mach-omap2/board-apollon.c   |    8 ++++----
- arch/arm/mach-omap2/usb-tusb6010.c    |    2 +-
- arch/arm/plat-omap/debug-devices.c    |    2 +-
- drivers/mtd/onenand/omap2.c           |    2 +-
- drivers/usb/host/ohci-omap.c          |    2 +-
- 11 files changed, 16 insertions(+), 16 deletions(-)
+ arch/arm/mach-omap1/board-h2.c         |    2 +-
+ arch/arm/mach-omap1/board-palmz71.c    |    3 +--
+ arch/arm/mach-omap1/board-sx1.c        |   11 +++--------
+ arch/arm/mach-omap1/board-voiceblue.c  |    9 +++------
+ arch/arm/mach-omap1/leds.c             |    4 ++--
+ arch/arm/mach-omap2/board-apollon.c    |    3 +--
+ arch/arm/plat-omap/gpio.c              |   14 --------------
+ arch/arm/plat-omap/include/mach/gpio.h |    1 -
+ 8 files changed, 11 insertions(+), 36 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/board-palmte.c b/arch/arm/mach-omap1/board-palmte.c
-index df663ba..0995a0f 100644
---- a/arch/arm/mach-omap1/board-palmte.c
-+++ b/arch/arm/mach-omap1/board-palmte.c
-@@ -351,14 +351,14 @@ static void __init palmte_misc_gpio_setup(void)
- 		printk(KERN_ERR "Could not reserve PINTDAV GPIO!\n");
- 		return;
+diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
+index a2914ac..7329ad5 100644
+--- a/arch/arm/mach-omap1/board-h2.c
++++ b/arch/arm/mach-omap1/board-h2.c
+@@ -439,7 +439,7 @@ static void __init h2_init(void)
+ #if defined(CONFIG_OMAP_IR) || defined(CONFIG_OMAP_IR_MODULE)
+ 	omap_writel(omap_readl(FUNC_MUX_CTRL_A) | 7, FUNC_MUX_CTRL_A);
+ 	if (!(omap_request_gpio(H2_IRDA_FIRSEL_GPIO_PIN))) {
+-		omap_set_gpio_direction(H2_IRDA_FIRSEL_GPIO_PIN, 0);
++		gpio_direction_output(H2_IRDA_FIRSEL_GPIO_PIN, 0);
+ 		h2_irda_data.transceiver_mode = h2_transceiver_mode;
  	}
--	omap_set_gpio_direction(PALMTE_PINTDAV_GPIO, 1);
-+	gpio_direction_input(PALMTE_PINTDAV_GPIO);
- 
- 	/* Set USB-or-DC-IN pin as input (unused) */
- 	if (omap_request_gpio(PALMTE_USB_OR_DC_GPIO)) {
- 		printk(KERN_ERR "Could not reserve cable signal GPIO!\n");
- 		return;
- 	}
--	omap_set_gpio_direction(PALMTE_USB_OR_DC_GPIO, 1);
-+	gpio_direction_input(PALMTE_USB_OR_DC_GPIO);
- }
- 
- static void __init omap_palmte_init(void)
+ #endif
 diff --git a/arch/arm/mach-omap1/board-palmz71.c b/arch/arm/mach-omap1/board-palmz71.c
-index c33766c..5a232ad 100644
+index 5a232ad..dec2010 100644
 --- a/arch/arm/mach-omap1/board-palmz71.c
 +++ b/arch/arm/mach-omap1/board-palmz71.c
-@@ -331,7 +331,7 @@ palmz71_gpio_setup(int early)
- 			printk(KERN_ERR "Could not reserve WP GPIO!\n");
- 			return;
- 		}
--		omap_set_gpio_direction(PALMZ71_MMC_WP_GPIO, 1);
-+		gpio_direction_input(PALMZ71_MMC_WP_GPIO);
- 
- 		/* Monitor the Power-cable-connected signal */
- 		if (omap_request_gpio(PALMZ71_USBDETECT_GPIO)) {
-@@ -339,7 +339,7 @@ palmz71_gpio_setup(int early)
- 				"Could not reserve cable signal GPIO!\n");
- 			return;
- 		}
--		omap_set_gpio_direction(PALMZ71_USBDETECT_GPIO, 1);
-+		gpio_direction_input(PALMZ71_USBDETECT_GPIO);
- 		if (request_irq(OMAP_GPIO_IRQ(PALMZ71_USBDETECT_GPIO),
- 				palmz71_powercable, IRQF_SAMPLE_RANDOM,
- 				"palmz71-cable", 0))
+@@ -323,8 +323,7 @@ palmz71_gpio_setup(int early)
+ {
+ 	if (early) {
+ 		/* Only set GPIO1 so we have a working serial */
+-		gpio_set_value(1, 1);
+-		omap_set_gpio_direction(1, 0);
++		gpio_direction_output(1, 1);
+ 	} else {
+ 		/* Set MMC/SD host WP pin as input */
+ 		if (omap_request_gpio(PALMZ71_MMC_WP_GPIO)) {
+diff --git a/arch/arm/mach-omap1/board-sx1.c b/arch/arm/mach-omap1/board-sx1.c
+index 2230527..93bd395 100644
+--- a/arch/arm/mach-omap1/board-sx1.c
++++ b/arch/arm/mach-omap1/board-sx1.c
+@@ -436,14 +436,9 @@ static void __init omap_sx1_init(void)
+ 	omap_request_gpio(1);	/* A_IRDA_OFF */
+ 	omap_request_gpio(11);	/* A_SWITCH */
+ 	omap_request_gpio(15);	/* A_USB_ON */
+-	omap_set_gpio_direction(1, 0);/* gpio1 -> output */
+-	omap_set_gpio_direction(11, 0);/* gpio11 -> output */
+-	omap_set_gpio_direction(15, 0);/* gpio15 -> output */
+-	/* set GPIO data */
+-	gpio_set_value(1, 1);/*A_IRDA_OFF = 1 */
+-	gpio_set_value(11, 0);/*A_SWITCH = 0 */
+-	gpio_set_value(15, 0);/*A_USB_ON = 0 */
+-
++	gpio_direction_output(1, 1);	/*A_IRDA_OFF = 1 */
++	gpio_direction_output(11, 0);	/*A_SWITCH = 0 */
++	gpio_direction_output(15, 0);	/*A_USB_ON = 0 */
+ }
+ /*----------------------------------------*/
+ static void __init omap_sx1_init_irq(void)
 diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
-index d7ab11a..86e73b7 100644
+index 86e73b7..43b008f 100644
 --- a/arch/arm/mach-omap1/board-voiceblue.c
 +++ b/arch/arm/mach-omap1/board-voiceblue.c
-@@ -256,7 +256,7 @@ void voiceblue_wdt_disable(void)
- 	gpio_set_value(0, 0);
+@@ -171,8 +171,7 @@ static void __init voiceblue_init(void)
+ 	omap_request_gpio(0);
+ 	/* smc91x reset */
+ 	omap_request_gpio(7);
+-	omap_set_gpio_direction(7, 0);
+-	gpio_set_value(7, 1);
++	gpio_direction_output(7, 1);
+ 	udelay(2);	/* wait at least 100ns */
+ 	gpio_set_value(7, 0);
+ 	mdelay(50);	/* 50ms until PHY ready */
+@@ -180,8 +179,7 @@ static void __init voiceblue_init(void)
+ 	omap_request_gpio(8);
+ 	/* 16C554 reset*/
+ 	omap_request_gpio(6);
+-	omap_set_gpio_direction(6, 0);
+-	gpio_set_value(6, 0);
++	gpio_direction_output(6, 0);
+ 	/* 16C554 interrupt pins */
+ 	omap_request_gpio(12);
+ 	omap_request_gpio(13);
+@@ -244,8 +242,7 @@ static int wdt_gpio_state;
+ 
+ void voiceblue_wdt_enable(void)
+ {
+-	omap_set_gpio_direction(0, 0);
+-	gpio_set_value(0, 0);
++	gpio_direction_output(0, 0);
  	gpio_set_value(0, 1);
  	gpio_set_value(0, 0);
--	omap_set_gpio_direction(0, 1);
-+	gpio_direction_input(0);
- }
+ 	wdt_gpio_state = 0;
+diff --git a/arch/arm/mach-omap1/leds.c b/arch/arm/mach-omap1/leds.c
+index 6cdad93..540434e 100644
+--- a/arch/arm/mach-omap1/leds.c
++++ b/arch/arm/mach-omap1/leds.c
+@@ -48,13 +48,13 @@ omap_leds_init(void)
+ 		 */
+ 		omap_cfg_reg(P18_1610_GPIO3);
+ 		if (omap_request_gpio(3) == 0)
+-			omap_set_gpio_direction(3, 0);
++			gpio_direction_output(3, 1);
+ 		else
+ 			printk(KERN_WARNING "LED: can't get GPIO3/red?\n");
  
- void voiceblue_wdt_ping(void)
-diff --git a/arch/arm/mach-omap1/fpga.c b/arch/arm/mach-omap1/fpga.c
-index 0499538..40cf504 100644
---- a/arch/arm/mach-omap1/fpga.c
-+++ b/arch/arm/mach-omap1/fpga.c
-@@ -178,7 +178,7 @@ void omap1510_fpga_init_irq(void)
- 	 * gpio.[ch]
- 	 */
- 	omap_request_gpio(13);
--	omap_set_gpio_direction(13, 1);
-+	gpio_direction_input(13);
- 	set_irq_type(OMAP_GPIO_IRQ(13), IRQ_TYPE_EDGE_RISING);
- 	set_irq_chained_handler(OMAP1510_INT_FPGA, innovator_fpga_IRQ_demux);
- }
-diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
-index 528691d..1a0bc47 100644
---- a/arch/arm/mach-omap1/serial.c
-+++ b/arch/arm/mach-omap1/serial.c
-@@ -250,7 +250,7 @@ static void __init omap_serial_set_port_wakeup(int gpio_nr)
- 		       gpio_nr);
- 		return;
+ 		omap_cfg_reg(MPUIO4);
+ 		if (omap_request_gpio(OMAP_MPUIO(4)) == 0)
+-			omap_set_gpio_direction(OMAP_MPUIO(4), 0);
++			gpio_direction_output(OMAP_MPUIO(4), 1);
+ 		else
+ 			printk(KERN_WARNING "LED: can't get MPUIO4/green?\n");
  	}
--	omap_set_gpio_direction(gpio_nr, 1);
-+	gpio_direction_input(gpio_nr);
- 	ret = request_irq(OMAP_GPIO_IRQ(gpio_nr), &omap_serial_wake_interrupt,
- 			  IRQF_TRIGGER_RISING, "serial wakeup", NULL);
- 	if (ret) {
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index 24688ef..f844a67 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -174,7 +174,7 @@ static inline void __init sdp2430_init_smc91x(void)
- 		gpmc_cs_free(eth_cs);
- 		goto out;
- 	}
--	omap_set_gpio_direction(OMAP24XX_ETHR_GPIO_IRQ, 1);
-+	gpio_direction_input(OMAP24XX_ETHR_GPIO_IRQ);
- 
- out:
- 	clk_disable(gpmc_fck);
 diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
-index a4ba52c..abc9167 100644
+index abc9167..ab6b8cd 100644
 --- a/arch/arm/mach-omap2/board-apollon.c
 +++ b/arch/arm/mach-omap2/board-apollon.c
-@@ -242,7 +242,7 @@ static inline void __init apollon_init_smc91x(void)
- 		gpmc_cs_free(APOLLON_ETH_CS);
- 		goto out;
- 	}
--	omap_set_gpio_direction(APOLLON_ETHR_GPIO_IRQ, 1);
-+	gpio_direction_input(APOLLON_ETHR_GPIO_IRQ);
+@@ -360,8 +360,7 @@ static void __init apollon_usb_init(void)
+ 	/* DEVICE_SUSPEND */
+ 	omap_cfg_reg(P21_242X_GPIO12);
+ 	omap_request_gpio(12);
+-	omap_set_gpio_direction(12, 0);		/* OUT */
+-	gpio_set_value(12, 0);
++	gpio_direction_output(12, 0);
+ }
  
- out:
- 	clk_disable(gpmc_fck);
-@@ -327,15 +327,15 @@ static void __init apollon_sw_init(void)
- 	/* Enter SW - Y11 */
- 	omap_cfg_reg(Y11_242X_GPIO16);
- 	omap_request_gpio(SW_ENTER_GPIO16);
--	omap_set_gpio_direction(SW_ENTER_GPIO16, 1);
-+	gpio_direction_input(SW_ENTER_GPIO16);
- 	/* Up SW - AA12 */
- 	omap_cfg_reg(AA12_242X_GPIO17);
- 	omap_request_gpio(SW_UP_GPIO17);
--	omap_set_gpio_direction(SW_UP_GPIO17, 1);
-+	gpio_direction_input(SW_UP_GPIO17);
- 	/* Down SW - AA8 */
- 	omap_cfg_reg(AA8_242X_GPIO58);
- 	omap_request_gpio(SW_DOWN_GPIO58);
--	omap_set_gpio_direction(SW_DOWN_GPIO58, 1);
-+	gpio_direction_input(SW_DOWN_GPIO58);
+ static void __init omap_apollon_init(void)
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index c0322b5..a6dbef4 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -333,19 +333,6 @@ static void _set_gpio_direction(struct gpio_bank *bank, int gpio, int is_input)
+ 	__raw_writel(l, reg);
+ }
  
- 	set_irq_type(OMAP_GPIO_IRQ(SW_ENTER_GPIO16), IRQ_TYPE_EDGE_RISING);
- 	if (request_irq(OMAP_GPIO_IRQ(SW_ENTER_GPIO16), &apollon_sw_interrupt,
-diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb-tusb6010.c
-index 10ef464..eb2399d 100644
---- a/arch/arm/mach-omap2/usb-tusb6010.c
-+++ b/arch/arm/mach-omap2/usb-tusb6010.c
-@@ -297,7 +297,7 @@ tusb6010_setup_interface(struct musb_hdrc_platform_data *data,
- 		printk(error, 3, status);
- 		return status;
- 	}
--	omap_set_gpio_direction(irq, 1);
-+	gpio_direction_input(irq);
- 	tusb_resources[2].start = irq + IH_GPIO_BASE;
+-void omap_set_gpio_direction(int gpio, int is_input)
+-{
+-	struct gpio_bank *bank;
+-	unsigned long flags;
+-
+-	if (check_gpio(gpio) < 0)
+-		return;
+-	bank = get_gpio_bank(gpio);
+-	spin_lock_irqsave(&bank->lock, flags);
+-	_set_gpio_direction(bank, get_gpio_index(gpio), is_input);
+-	spin_unlock_irqrestore(&bank->lock, flags);
+-}
+-
+ static void _set_gpio_dataout(struct gpio_bank *bank, int gpio, int enable)
+ {
+ 	void __iomem *reg = bank->base;
+@@ -1741,7 +1728,6 @@ static int __init omap_gpio_sysinit(void)
  
- 	/* set up memory timings ... can speed them up later */
-diff --git a/arch/arm/plat-omap/debug-devices.c b/arch/arm/plat-omap/debug-devices.c
-index e31154b..60076a8 100644
---- a/arch/arm/plat-omap/debug-devices.c
-+++ b/arch/arm/plat-omap/debug-devices.c
-@@ -77,7 +77,7 @@ int __init debug_card_init(u32 addr, unsigned gpio)
- 		printk(KERN_ERR "GPIO%d unavailable for smc91x IRQ\n", gpio);
- 		return status;
- 	}
--	omap_set_gpio_direction(gpio, 1);
-+	gpio_direction_input(gpio);
+ EXPORT_SYMBOL(omap_request_gpio);
+ EXPORT_SYMBOL(omap_free_gpio);
+-EXPORT_SYMBOL(omap_set_gpio_direction);
  
- 	led_resources[0].start = addr;
- 	led_resources[0].end   = addr + SZ_4K - 1;
-diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index 8dda06c..c7145af 100644
---- a/drivers/mtd/onenand/omap2.c
-+++ b/drivers/mtd/onenand/omap2.c
-@@ -635,7 +635,7 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
- 				"OneNAND\n", c->gpio_irq);
- 			goto err_iounmap;
- 	}
--	omap_set_gpio_direction(c->gpio_irq, 1);
-+	gpio_direction_input(c->gpio_irq);
+ arch_initcall(omap_gpio_sysinit);
  
- 	if ((r = request_irq(OMAP_GPIO_IRQ(c->gpio_irq),
- 			     omap2_onenand_interrupt, IRQF_TRIGGER_RISING,
-diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
-index 91697bd..22f6d19 100644
---- a/drivers/usb/host/ohci-omap.c
-+++ b/drivers/usb/host/ohci-omap.c
-@@ -255,7 +255,7 @@ static int ohci_omap_init(struct usb_hcd *hcd)
- 			/* gpio9 for overcurrent detction */
- 			omap_cfg_reg(W8_1610_GPIO9);
- 			omap_request_gpio(9);
--			omap_set_gpio_direction(9, 1 /* IN */);
-+			gpio_direction_input(9);
- 
- 			/* for paranoia's sake:  disable USB.PUEN */
- 			omap_cfg_reg(W4_USB_HIGHZ);
+diff --git a/arch/arm/plat-omap/include/mach/gpio.h b/arch/arm/plat-omap/include/mach/gpio.h
+index d91ba32..552ad0c 100644
+--- a/arch/arm/plat-omap/include/mach/gpio.h
++++ b/arch/arm/plat-omap/include/mach/gpio.h
+@@ -73,7 +73,6 @@
+ extern int omap_gpio_init(void);	/* Call from board init only */
+ extern int omap_request_gpio(int gpio);
+ extern void omap_free_gpio(int gpio);
+-extern void omap_set_gpio_direction(int gpio, int is_input);
+ extern void omap2_gpio_prepare_for_retention(void);
+ extern void omap2_gpio_resume_after_retention(void);
+ extern void omap_set_gpio_debounce(int gpio, int enable);
 
