@@ -1,85 +1,70 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 12/12] i2c-omap: Enable I2C wakeups for 34xx
-Date: Fri, 28 Nov 2008 17:29:32 -0800
-Message-ID: <20081129012931.13042.32572.stgit@localhost>
+Subject: Re: [PATCH 00/12] Updates for i2c-omap for 2.6.29 merge window, v4
+Date: Fri, 28 Nov 2008 17:31:26 -0800
+Message-ID: <20081129013124.GJ6640@atomide.com>
 References: <20081129012612.13042.12283.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54519 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56023 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753364AbYK2B3a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2008 20:29:30 -0500
+	with ESMTP id S1752485AbYK2BbZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2008 20:31:25 -0500
+Content-Disposition: inline
 In-Reply-To: <20081129012612.13042.12283.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: i2c-linux@vger.kernel.org, ben-linux@fluff.org
-Cc: linux-omap@vger.kernel.org, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+* Tony Lindgren <tony@atomide.com> [081128 17:28]:
+> Hi all,
+> 
+> Here are the i2c-omap patches again for next merge window.
 
-I2C_WE registers were not configured, which caused huge delays in
-I2C operations while cpu idle was enabled and omap entered WFI.
+Oops, please ignore this series, the i2c list address is wrong. Will
+resend.
 
-This patch enables all I2C wakeup sources.
-
-Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/i2c/busses/i2c-omap.c |   27 +++++++++++++++++++++++++++
- 1 files changed, 27 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index b202354..96f3bed 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -52,6 +52,8 @@
- #define OMAP_I2C_IE_REG			0x04
- #define OMAP_I2C_STAT_REG		0x08
- #define OMAP_I2C_IV_REG			0x0c
-+/* For OMAP3 I2C_IV has changed to I2C_WE (wakeup enable) */
-+#define OMAP_I2C_WE_REG			0x0c
- #define OMAP_I2C_SYSS_REG		0x10
- #define OMAP_I2C_BUF_REG		0x14
- #define OMAP_I2C_CNT_REG		0x18
-@@ -89,6 +91,24 @@
- #define OMAP_I2C_STAT_NACK	(1 << 1)	/* No ack interrupt enable */
- #define OMAP_I2C_STAT_AL	(1 << 0)	/* Arbitration lost int ena */
- 
-+/* I2C WE wakeup enable register */
-+#define OMAP_I2C_WE_XDR_WE	(1 << 14)	/* TX drain wakup */
-+#define OMAP_I2C_WE_RDR_WE	(1 << 13)	/* RX drain wakeup */
-+#define OMAP_I2C_WE_AAS_WE	(1 << 9)	/* Address as slave wakeup*/
-+#define OMAP_I2C_WE_BF_WE	(1 << 8)	/* Bus free wakeup */
-+#define OMAP_I2C_WE_STC_WE	(1 << 6)	/* Start condition wakeup */
-+#define OMAP_I2C_WE_GC_WE	(1 << 5)	/* General call wakeup */
-+#define OMAP_I2C_WE_DRDY_WE	(1 << 3)	/* TX/RX data ready wakeup */
-+#define OMAP_I2C_WE_ARDY_WE	(1 << 2)	/* Reg access ready wakeup */
-+#define OMAP_I2C_WE_NACK_WE	(1 << 1)	/* No acknowledgment wakeup */
-+#define OMAP_I2C_WE_AL_WE	(1 << 0)	/* Arbitration lost wakeup */
-+
-+#define OMAP_I2C_WE_ALL		(OMAP_I2C_WE_XDR_WE | OMAP_I2C_WE_RDR_WE | \
-+				OMAP_I2C_WE_AAS_WE | OMAP_I2C_WE_BF_WE | \
-+				OMAP_I2C_WE_STC_WE | OMAP_I2C_WE_GC_WE | \
-+				OMAP_I2C_WE_DRDY_WE | OMAP_I2C_WE_ARDY_WE | \
-+				OMAP_I2C_WE_NACK_WE | OMAP_I2C_WE_AL_WE)
-+
- /* I2C Buffer Configuration Register (OMAP_I2C_BUF): */
- #define OMAP_I2C_BUF_RDMA_EN	(1 << 15)	/* RX DMA channel enable */
- #define OMAP_I2C_BUF_RXFIF_CLR	(1 << 14)	/* RX FIFO Clear */
-@@ -279,6 +299,13 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 			      __ffs(SYSC_CLOCKACTIVITY_MASK));
- 
- 			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, v);
-+			/*
-+			 * Enabling all wakup sources to stop I2C freezing on
-+			 * WFI instruction.
-+			 * REVISIT: Some wkup sources might not be needed.
-+			 */
-+			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
-+							OMAP_I2C_WE_ALL);
- 
- 		}
- 	}
-
+> Regards,
+> 
+> Tony
+> 
+> ---
+> 
+> Chandra shekhar (1):
+>       i2c-omap: Add support for omap34xx
+> 
+> Jarkko Nikula (1):
+>       i2c-omap: Do not use interruptible wait call in omap_i2c_xfer_msg
+> 
+> Kalle Jokiniemi (1):
+>       i2c-omap: Enable I2C wakeups for 34xx
+> 
+> Nishanth Menon (1):
+>       i2c-omap: FIFO handling support and broken hw workaround for i2c-omap
+> 
+> Paul Walmsley (6):
+>       i2c-omap: reprogram OCP_SYSCONFIG register after reset
+>       i2c-omap: convert 'rev1' flag to generic 'rev' u8
+>       i2c-omap: fix I2C timeouts due to recursive omap_i2c_{un,}idle()
+>       i2c-omap: Don't compile in OMAP15xx I2C ISR for non-OMAP15xx builds
+>       i2c-omap: Mark init-only functions as __init
+>       i2c-omap: Close suspected race between omap_i2c_idle() and omap_i2c_isr()
+> 
+> Syed Mohammed Khasim (1):
+>       i2c-omap: Add high-speed support to omap-i2c
+> 
+> Tony Lindgren (1):
+>       i2c-omap: Clean-up i2c-omap
+> 
+> 
+>  arch/arm/mach-omap2/clock24xx.h |    4 
+>  drivers/i2c/busses/i2c-omap.c   |  420 ++++++++++++++++++++++++++++++---------
+>  2 files changed, 330 insertions(+), 94 deletions(-)
+> 
+> -- 
+> Signature
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
