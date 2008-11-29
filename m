@@ -1,263 +1,176 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 07/11] ARM: OMAP: use gpio_to_irq
-Date: Fri, 28 Nov 2008 17:10:36 -0800
-Message-ID: <20081129011036.12337.42892.stgit@localhost>
+Subject: [PATCH 08/11] ARM: OMAP: make legacy gpio request/free calls
+	superfluous
+Date: Fri, 28 Nov 2008 17:10:43 -0800
+Message-ID: <20081129011043.12337.2751.stgit@localhost>
 References: <20081129010728.12337.8217.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58201 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58305 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753458AbYK2BKf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2008 20:10:35 -0500
+	with ESMTP id S1753465AbYK2BKm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2008 20:10:42 -0500
 In-Reply-To: <20081129010728.12337.8217.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: David Brownell <dbrownell@users.sourceforge.net>, linux-omap@vger.kernel.org
+Cc: David Brownell <dbrownell@users.sourceforge.net>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@nokia.com>
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
 
-Have most uses of OMAP_GPIO_IRQ() use gpio_to_irq() instead.
-Calls used for table initialization are left alone, at least
-this time around.
+Clean up OMAP GPIO request/free functions
 
-(This patch is for code in both the OMAP tree and mainline.)
+ - Rename and declare static OMAP specific GPIO request/free functions
+ - Register them into gpiolib as chip-specific hooks
+ - Add omap_request_gpio/omap_free_gpio wrappers for existing code not
+   converted yet to use gpiolib
 
+Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+[ dbrownell@users.sourceforge.net: remove needless check_gpio() calls ]
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/board-osk.c       |   11 ++++++-----
- arch/arm/mach-omap1/board-palmz71.c   |    8 ++++----
- arch/arm/mach-omap1/board-voiceblue.c |    8 ++++----
- arch/arm/mach-omap1/fpga.c            |    2 +-
- arch/arm/mach-omap1/serial.c          |    4 ++--
- arch/arm/plat-omap/debug-devices.c    |    4 ++--
- drivers/input/keyboard/omap-keypad.c  |    8 ++++----
- drivers/mtd/onenand/omap2.c           |    6 +++---
- 8 files changed, 26 insertions(+), 25 deletions(-)
+ arch/arm/plat-omap/gpio.c              |   43 ++++++++------------------------
+ arch/arm/plat-omap/include/mach/gpio.h |   12 +++++++--
+ 2 files changed, 21 insertions(+), 34 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
-index 3e766e4..2f88095 100644
---- a/arch/arm/mach-omap1/board-osk.c
-+++ b/arch/arm/mach-omap1/board-osk.c
-@@ -288,7 +288,7 @@ static void __init osk_init_cf(void)
- 		return;
- 	}
- 	/* the CF I/O IRQ is really active-low */
--	set_irq_type(OMAP_GPIO_IRQ(62), IRQ_TYPE_EDGE_FALLING);
-+	set_irq_type(gpio_to_irq(62), IRQ_TYPE_EDGE_FALLING);
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index a6dbef4..e8aae2a 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -886,26 +886,17 @@ static int gpio_wake_enable(unsigned int irq, unsigned int enable)
+ 	return retval;
  }
  
- static void __init osk_init_irq(void)
-@@ -483,7 +483,7 @@ static void __init osk_mistral_init(void)
- 	omap_cfg_reg(P20_1610_GPIO4);	/* PENIRQ */
- 	gpio_request(4, "ts_int");
- 	gpio_direction_input(4);
--	set_irq_type(OMAP_GPIO_IRQ(4), IRQ_TYPE_EDGE_FALLING);
-+	set_irq_type(gpio_to_irq(4), IRQ_TYPE_EDGE_FALLING);
- 
- 	spi_register_board_info(mistral_boardinfo,
- 			ARRAY_SIZE(mistral_boardinfo));
-@@ -492,14 +492,15 @@ static void __init osk_mistral_init(void)
- 	omap_cfg_reg(N15_1610_MPUIO2);
- 	if (gpio_request(OMAP_MPUIO(2), "wakeup") == 0) {
- 		int ret = 0;
-+		int irq = gpio_to_irq(OMAP_MPUIO(2));
- 
- 		gpio_direction_input(OMAP_MPUIO(2));
--		set_irq_type(OMAP_GPIO_IRQ(OMAP_MPUIO(2)), IRQ_TYPE_EDGE_RISING);
-+		set_irq_type(irq, IRQ_TYPE_EDGE_RISING);
- #ifdef	CONFIG_PM
- 		/* share the IRQ in case someone wants to use the
- 		 * button for more than wakeup from system sleep.
- 		 */
--		ret = request_irq(OMAP_GPIO_IRQ(OMAP_MPUIO(2)),
-+		ret = request_irq(irq,
- 				&osk_mistral_wake_interrupt,
- 				IRQF_SHARED, "mistral_wakeup",
- 				&osk_mistral_wake_interrupt);
-@@ -508,7 +509,7 @@ static void __init osk_mistral_init(void)
- 			printk(KERN_ERR "OSK+Mistral: no wakeup irq, %d?\n",
- 				ret);
- 		} else
--			enable_irq_wake(OMAP_GPIO_IRQ(OMAP_MPUIO(2)));
-+			enable_irq_wake(irq);
- #endif
- 	} else
- 		printk(KERN_ERR "OSK+Mistral: wakeup button is awol\n");
-diff --git a/arch/arm/mach-omap1/board-palmz71.c b/arch/arm/mach-omap1/board-palmz71.c
-index dec2010..1b7d358 100644
---- a/arch/arm/mach-omap1/board-palmz71.c
-+++ b/arch/arm/mach-omap1/board-palmz71.c
-@@ -297,11 +297,11 @@ palmz71_powercable(int irq, void *dev_id)
+-int omap_request_gpio(int gpio)
++static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
  {
- 	if (gpio_get_value(PALMZ71_USBDETECT_GPIO)) {
- 		printk(KERN_INFO "PM: Power cable connected\n");
--		set_irq_type(OMAP_GPIO_IRQ(PALMZ71_USBDETECT_GPIO),
-+		set_irq_type(gpio_to_irq(PALMZ71_USBDETECT_GPIO),
- 				IRQ_TYPE_EDGE_FALLING);
- 	} else {
- 		printk(KERN_INFO "PM: Power cable disconnected\n");
--		set_irq_type(OMAP_GPIO_IRQ(PALMZ71_USBDETECT_GPIO),
-+		set_irq_type(gpio_to_irq(PALMZ71_USBDETECT_GPIO),
- 				IRQ_TYPE_EDGE_RISING);
- 	}
- 	return IRQ_HANDLED;
-@@ -339,12 +339,12 @@ palmz71_gpio_setup(int early)
- 			return;
- 		}
- 		gpio_direction_input(PALMZ71_USBDETECT_GPIO);
--		if (request_irq(OMAP_GPIO_IRQ(PALMZ71_USBDETECT_GPIO),
-+		if (request_irq(gpio_to_irq(PALMZ71_USBDETECT_GPIO),
- 				palmz71_powercable, IRQF_SAMPLE_RANDOM,
- 				"palmz71-cable", 0))
- 			printk(KERN_ERR
- 					"IRQ request for power cable failed!\n");
--		palmz71_powercable(OMAP_GPIO_IRQ(PALMZ71_USBDETECT_GPIO), 0);
-+		palmz71_powercable(gpio_to_irq(PALMZ71_USBDETECT_GPIO), 0);
- 	}
- }
+-	struct gpio_bank *bank;
++	struct gpio_bank *bank = container_of(chip, struct gpio_bank, chip);
+ 	unsigned long flags;
+-	int status;
+-
+-	if (check_gpio(gpio) < 0)
+-		return -EINVAL;
+-
+-	status = gpio_request(gpio, NULL);
+-	if (status < 0)
+-		return status;
  
-diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
-index 43b008f..bb4f4a8 100644
---- a/arch/arm/mach-omap1/board-voiceblue.c
-+++ b/arch/arm/mach-omap1/board-voiceblue.c
-@@ -185,10 +185,10 @@ static void __init voiceblue_init(void)
- 	omap_request_gpio(13);
- 	omap_request_gpio(14);
- 	omap_request_gpio(15);
--	set_irq_type(OMAP_GPIO_IRQ(12), IRQ_TYPE_EDGE_RISING);
--	set_irq_type(OMAP_GPIO_IRQ(13), IRQ_TYPE_EDGE_RISING);
--	set_irq_type(OMAP_GPIO_IRQ(14), IRQ_TYPE_EDGE_RISING);
--	set_irq_type(OMAP_GPIO_IRQ(15), IRQ_TYPE_EDGE_RISING);
-+	set_irq_type(gpio_to_irq(12), IRQ_TYPE_EDGE_RISING);
-+	set_irq_type(gpio_to_irq(13), IRQ_TYPE_EDGE_RISING);
-+	set_irq_type(gpio_to_irq(14), IRQ_TYPE_EDGE_RISING);
-+	set_irq_type(gpio_to_irq(15), IRQ_TYPE_EDGE_RISING);
+-	bank = get_gpio_bank(gpio);
+ 	spin_lock_irqsave(&bank->lock, flags);
  
- 	platform_add_devices(voiceblue_devices, ARRAY_SIZE(voiceblue_devices));
- 	omap_board_config = voiceblue_config;
-diff --git a/arch/arm/mach-omap1/fpga.c b/arch/arm/mach-omap1/fpga.c
-index 40cf504..55748ec 100644
---- a/arch/arm/mach-omap1/fpga.c
-+++ b/arch/arm/mach-omap1/fpga.c
-@@ -179,7 +179,7 @@ void omap1510_fpga_init_irq(void)
+ 	/* Set trigger to none. You need to enable the desired trigger with
+ 	 * request_irq() or set_irq_type().
  	 */
- 	omap_request_gpio(13);
- 	gpio_direction_input(13);
--	set_irq_type(OMAP_GPIO_IRQ(13), IRQ_TYPE_EDGE_RISING);
-+	set_irq_type(gpio_to_irq(13), IRQ_TYPE_EDGE_RISING);
- 	set_irq_chained_handler(OMAP1510_INT_FPGA, innovator_fpga_IRQ_demux);
+-	_set_gpio_triggering(bank, get_gpio_index(gpio), IRQ_TYPE_NONE);
++	_set_gpio_triggering(bank, offset, IRQ_TYPE_NONE);
+ 
+ #ifdef CONFIG_ARCH_OMAP15XX
+ 	if (bank->method == METHOD_GPIO_1510) {
+@@ -913,7 +904,7 @@ int omap_request_gpio(int gpio)
+ 
+ 		/* Claim the pin for MPU */
+ 		reg = bank->base + OMAP1510_GPIO_PIN_CONTROL;
+-		__raw_writel(__raw_readl(reg) | (1 << get_gpio_index(gpio)), reg);
++		__raw_writel(__raw_readl(reg) | (1 << offset), reg);
+ 	}
+ #endif
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+@@ -921,39 +912,28 @@ int omap_request_gpio(int gpio)
+ 	return 0;
  }
  
-diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
-index 1a0bc47..b63da3f 100644
---- a/arch/arm/mach-omap1/serial.c
-+++ b/arch/arm/mach-omap1/serial.c
-@@ -251,7 +251,7 @@ static void __init omap_serial_set_port_wakeup(int gpio_nr)
- 		return;
+-void omap_free_gpio(int gpio)
++static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
+ {
+-	struct gpio_bank *bank;
++	struct gpio_bank *bank = container_of(chip, struct gpio_bank, chip);
+ 	unsigned long flags;
+ 
+-	if (check_gpio(gpio) < 0)
+-		return;
+-	bank = get_gpio_bank(gpio);
+ 	spin_lock_irqsave(&bank->lock, flags);
+-	if (unlikely(!gpiochip_is_requested(&bank->chip,
+-				get_gpio_index(gpio)))) {
+-		spin_unlock_irqrestore(&bank->lock, flags);
+-		printk(KERN_ERR "omap-gpio: GPIO %d wasn't reserved!\n", gpio);
+-		dump_stack();
+-		return;
+-	}
+ #ifdef CONFIG_ARCH_OMAP16XX
+ 	if (bank->method == METHOD_GPIO_1610) {
+ 		/* Disable wake-up during idle for dynamic tick */
+ 		void __iomem *reg = bank->base + OMAP1610_GPIO_CLEAR_WAKEUPENA;
+-		__raw_writel(1 << get_gpio_index(gpio), reg);
++		__raw_writel(1 << offset, reg);
  	}
- 	gpio_direction_input(gpio_nr);
--	ret = request_irq(OMAP_GPIO_IRQ(gpio_nr), &omap_serial_wake_interrupt,
-+	ret = request_irq(gpio_to_irq(gpio_nr), &omap_serial_wake_interrupt,
- 			  IRQF_TRIGGER_RISING, "serial wakeup", NULL);
- 	if (ret) {
- 		omap_free_gpio(gpio_nr);
-@@ -259,7 +259,7 @@ static void __init omap_serial_set_port_wakeup(int gpio_nr)
- 		       gpio_nr);
- 		return;
+ #endif
+ #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
+ 	if (bank->method == METHOD_GPIO_24XX) {
+ 		/* Disable wake-up during idle for dynamic tick */
+ 		void __iomem *reg = bank->base + OMAP24XX_GPIO_CLEARWKUENA;
+-		__raw_writel(1 << get_gpio_index(gpio), reg);
++		__raw_writel(1 << offset, reg);
  	}
--	enable_irq_wake(OMAP_GPIO_IRQ(gpio_nr));
-+	enable_irq_wake(gpio_to_irq(gpio_nr));
+ #endif
+-	_reset_gpio(bank, gpio);
++	_reset_gpio(bank, bank->chip.base + offset);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+-	gpio_free(gpio);
  }
  
- static int __init omap_serial_wakeup_init(void)
-diff --git a/arch/arm/plat-omap/debug-devices.c b/arch/arm/plat-omap/debug-devices.c
-index 60076a8..7d9c87c 100644
---- a/arch/arm/plat-omap/debug-devices.c
-+++ b/arch/arm/plat-omap/debug-devices.c
-@@ -69,8 +69,8 @@ int __init debug_card_init(u32 addr, unsigned gpio)
- 	smc91x_resources[0].start = addr + 0x300;
- 	smc91x_resources[0].end   = addr + 0x30f;
+ /*
+@@ -1458,6 +1438,8 @@ static int __init _omap_gpio_init(void)
+ 		/* REVISIT eventually switch from OMAP-specific gpio structs
+ 		 * over to the generic ones
+ 		 */
++		bank->chip.request = omap_gpio_request;
++		bank->chip.free = omap_gpio_free;
+ 		bank->chip.direction_input = gpio_input;
+ 		bank->chip.get = gpio_get;
+ 		bank->chip.direction_output = gpio_output;
+@@ -1726,9 +1708,6 @@ static int __init omap_gpio_sysinit(void)
+ 	return ret;
+ }
  
--	smc91x_resources[1].start = OMAP_GPIO_IRQ(gpio);
--	smc91x_resources[1].end   = OMAP_GPIO_IRQ(gpio);
-+	smc91x_resources[1].start = gpio_to_irq(gpio);
-+	smc91x_resources[1].end   = gpio_to_irq(gpio);
+-EXPORT_SYMBOL(omap_request_gpio);
+-EXPORT_SYMBOL(omap_free_gpio);
+-
+ arch_initcall(omap_gpio_sysinit);
  
- 	status = omap_request_gpio(gpio);
- 	if (status < 0) {
-diff --git a/drivers/input/keyboard/omap-keypad.c b/drivers/input/keyboard/omap-keypad.c
-index 69e674e..db22fd9 100644
---- a/drivers/input/keyboard/omap-keypad.c
-+++ b/drivers/input/keyboard/omap-keypad.c
-@@ -101,7 +101,7 @@ static irqreturn_t omap_kp_interrupt(int irq, void *dev_id)
- 	if (cpu_is_omap24xx()) {
- 		int i;
- 		for (i = 0; i < omap_kp->rows; i++)
--			disable_irq(OMAP_GPIO_IRQ(row_gpios[i]));
-+			disable_irq(gpio_to_irq(row_gpios[i]));
- 	} else
- 		/* disable keyboard interrupt and schedule for handling */
- 		omap_writew(1, OMAP_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
-@@ -224,7 +224,7 @@ static void omap_kp_tasklet(unsigned long data)
- 		if (cpu_is_omap24xx()) {
- 			int i;
- 			for (i = 0; i < omap_kp_data->rows; i++)
--				enable_irq(OMAP_GPIO_IRQ(row_gpios[i]));
-+				enable_irq(gpio_to_irq(row_gpios[i]));
- 		} else {
- 			omap_writew(0, OMAP_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
- 			kp_cur_group = -1;
-@@ -397,7 +397,7 @@ static int __init omap_kp_probe(struct platform_device *pdev)
- 		omap_writew(0, OMAP_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
- 	} else {
- 		for (irq_idx = 0; irq_idx < omap_kp->rows; irq_idx++) {
--			if (request_irq(OMAP_GPIO_IRQ(row_gpios[irq_idx]),
-+			if (request_irq(gpio_to_irq(row_gpios[irq_idx]),
- 					omap_kp_interrupt,
- 					IRQF_TRIGGER_FALLING,
- 					"omap-keypad", omap_kp) < 0)
-@@ -438,7 +438,7 @@ static int omap_kp_remove(struct platform_device *pdev)
- 			gpio_free(col_gpios[i]);
- 		for (i = 0; i < omap_kp->rows; i++) {
- 			gpio_free(row_gpios[i]);
--			free_irq(OMAP_GPIO_IRQ(row_gpios[i]), 0);
-+			free_irq(gpio_to_irq(row_gpios[i]), 0);
- 		}
- 	} else {
- 		omap_writew(1, OMAP_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
-diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index c7145af..97fb5bc 100644
---- a/drivers/mtd/onenand/omap2.c
-+++ b/drivers/mtd/onenand/omap2.c
-@@ -637,7 +637,7 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
- 	}
- 	gpio_direction_input(c->gpio_irq);
  
--	if ((r = request_irq(OMAP_GPIO_IRQ(c->gpio_irq),
-+	if ((r = request_irq(gpio_to_irq(c->gpio_irq),
- 			     omap2_onenand_interrupt, IRQF_TRIGGER_RISING,
- 			     pdev->dev.driver->name, c)) < 0)
- 		goto err_release_gpio;
-@@ -724,7 +724,7 @@ err_release_dma:
- 	if (c->dma_channel != -1)
- 		omap_free_dma(c->dma_channel);
- 	if (c->gpio_irq)
--		free_irq(OMAP_GPIO_IRQ(c->gpio_irq), c);
-+		free_irq(gpio_to_irq(c->gpio_irq), c);
- err_release_gpio:
- 	if (c->gpio_irq)
- 		omap_free_gpio(c->gpio_irq);
-@@ -761,7 +761,7 @@ static int __devexit omap2_onenand_remove(struct platform_device *pdev)
- 	omap2_onenand_shutdown(pdev);
- 	platform_set_drvdata(pdev, NULL);
- 	if (c->gpio_irq) {
--		free_irq(OMAP_GPIO_IRQ(c->gpio_irq), c);
-+		free_irq(gpio_to_irq(c->gpio_irq), c);
- 		omap_free_gpio(c->gpio_irq);
- 	}
- 	iounmap(c->onenand.base);
+diff --git a/arch/arm/plat-omap/include/mach/gpio.h b/arch/arm/plat-omap/include/mach/gpio.h
+index 552ad0c..04e68e8 100644
+--- a/arch/arm/plat-omap/include/mach/gpio.h
++++ b/arch/arm/plat-omap/include/mach/gpio.h
+@@ -71,8 +71,6 @@
+ 				 IH_GPIO_BASE + (nr))
+ 
+ extern int omap_gpio_init(void);	/* Call from board init only */
+-extern int omap_request_gpio(int gpio);
+-extern void omap_free_gpio(int gpio);
+ extern void omap2_gpio_prepare_for_retention(void);
+ extern void omap2_gpio_resume_after_retention(void);
+ extern void omap_set_gpio_debounce(int gpio, int enable);
+@@ -89,6 +87,16 @@ extern void omap_set_gpio_debounce_time(int gpio, int enable);
+ #include <linux/errno.h>
+ #include <asm-generic/gpio.h>
+ 
++static inline int omap_request_gpio(int gpio)
++{
++	return gpio_request(gpio, "FIXME");
++}
++
++static inline void omap_free_gpio(int gpio)
++{
++	gpio_free(gpio);
++}
++
+ static inline int gpio_get_value(unsigned gpio)
+ {
+ 	return __gpio_get_value(gpio);
 
