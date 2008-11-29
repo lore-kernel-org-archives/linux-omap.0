@@ -1,80 +1,88 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 12/12] i2c-omap: Enable I2C wakeups for 34xx
-Date: Fri, 28 Nov 2008 17:35:11 -0800
-Message-ID: <20081129013511.13428.22152.stgit@localhost>
-References: <20081129013318.13428.88465.stgit@localhost>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 11/11] ARM: OMAP: Switch ohci-omap to gpio_request/free calls
+Date: Fri, 28 Nov 2008 17:35:36 -0800
+Message-ID: <200811281735.37174.david-b@pacbell.net>
+References: <20081129010728.12337.8217.stgit@localhost> <20081129011104.12337.37890.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20081129013318.13428.88465.stgit@localhost>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kalle Jokiniemi <ext-kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp126.sbc.mail.sp1.yahoo.com ([69.147.65.185]:48592 "HELO
+	smtp126.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753214AbYK2Bfj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Nov 2008 20:35:39 -0500
+In-Reply-To: <20081129011104.12337.37890.stgit@localhost>
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@nokia.com>, linux-usb@vger.kernel.org
 
-From: Kalle Jokiniemi <ext-kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+On Friday 28 November 2008, Tony Lindgren wrote:
+> From: Jarkko Nikula <jarkko.nikula@nokia.com>
+> 
+> Switch to gpio_request/free calls
+> 
+> Cc: linux-usb@vger.kernel.org
+> Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-I2C_WE registers were not configured, which caused huge delays in
-I2C operations while cpu idle was enabled and omap entered WFI.
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 
-This patch enables all I2C wakeup sources.
+Best if this merges through the ARM tree, with other similar
+changes, since ISTR this won't apply as-is through the USB tree.
 
-Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- drivers/i2c/busses/i2c-omap.c |   27 +++++++++++++++++++++++++++
- 1 files changed, 27 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index b202354..96f3bed 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -52,6 +52,8 @@
- #define OMAP_I2C_IE_REG			0x04
- #define OMAP_I2C_STAT_REG		0x08
- #define OMAP_I2C_IV_REG			0x0c
-+/* For OMAP3 I2C_IV has changed to I2C_WE (wakeup enable) */
-+#define OMAP_I2C_WE_REG			0x0c
- #define OMAP_I2C_SYSS_REG		0x10
- #define OMAP_I2C_BUF_REG		0x14
- #define OMAP_I2C_CNT_REG		0x18
-@@ -89,6 +91,24 @@
- #define OMAP_I2C_STAT_NACK	(1 << 1)	/* No ack interrupt enable */
- #define OMAP_I2C_STAT_AL	(1 << 0)	/* Arbitration lost int ena */
- 
-+/* I2C WE wakeup enable register */
-+#define OMAP_I2C_WE_XDR_WE	(1 << 14)	/* TX drain wakup */
-+#define OMAP_I2C_WE_RDR_WE	(1 << 13)	/* RX drain wakeup */
-+#define OMAP_I2C_WE_AAS_WE	(1 << 9)	/* Address as slave wakeup*/
-+#define OMAP_I2C_WE_BF_WE	(1 << 8)	/* Bus free wakeup */
-+#define OMAP_I2C_WE_STC_WE	(1 << 6)	/* Start condition wakeup */
-+#define OMAP_I2C_WE_GC_WE	(1 << 5)	/* General call wakeup */
-+#define OMAP_I2C_WE_DRDY_WE	(1 << 3)	/* TX/RX data ready wakeup */
-+#define OMAP_I2C_WE_ARDY_WE	(1 << 2)	/* Reg access ready wakeup */
-+#define OMAP_I2C_WE_NACK_WE	(1 << 1)	/* No acknowledgment wakeup */
-+#define OMAP_I2C_WE_AL_WE	(1 << 0)	/* Arbitration lost wakeup */
-+
-+#define OMAP_I2C_WE_ALL		(OMAP_I2C_WE_XDR_WE | OMAP_I2C_WE_RDR_WE | \
-+				OMAP_I2C_WE_AAS_WE | OMAP_I2C_WE_BF_WE | \
-+				OMAP_I2C_WE_STC_WE | OMAP_I2C_WE_GC_WE | \
-+				OMAP_I2C_WE_DRDY_WE | OMAP_I2C_WE_ARDY_WE | \
-+				OMAP_I2C_WE_NACK_WE | OMAP_I2C_WE_AL_WE)
-+
- /* I2C Buffer Configuration Register (OMAP_I2C_BUF): */
- #define OMAP_I2C_BUF_RDMA_EN	(1 << 15)	/* RX DMA channel enable */
- #define OMAP_I2C_BUF_RXFIF_CLR	(1 << 14)	/* RX FIFO Clear */
-@@ -279,6 +299,13 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 			      __ffs(SYSC_CLOCKACTIVITY_MASK));
- 
- 			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, v);
-+			/*
-+			 * Enabling all wakup sources to stop I2C freezing on
-+			 * WFI instruction.
-+			 * REVISIT: Some wkup sources might not be needed.
-+			 */
-+			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
-+							OMAP_I2C_WE_ALL);
- 
- 		}
- 	}
+> ---
+>  drivers/usb/host/ohci-omap.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
+> index 22f6d19..4bbddb7 100644
+> --- a/drivers/usb/host/ohci-omap.c
+> +++ b/drivers/usb/host/ohci-omap.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/jiffies.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/clk.h>
+> +#include <linux/gpio.h>
+>  
+>  #include <mach/hardware.h>
+>  #include <asm/io.h>
+> @@ -25,7 +26,6 @@
+>  
+>  #include <mach/mux.h>
+>  #include <mach/irqs.h>
+> -#include <mach/gpio.h>
+>  #include <mach/fpga.h>
+>  #include <mach/usb.h>
+>  
+> @@ -254,7 +254,7 @@ static int ohci_omap_init(struct usb_hcd *hcd)
+>  
+>  			/* gpio9 for overcurrent detction */
+>  			omap_cfg_reg(W8_1610_GPIO9);
+> -			omap_request_gpio(9);
+> +			gpio_request(9, "OHCI overcurrent");
+>  			gpio_direction_input(9);
+>  
+>  			/* for paranoia's sake:  disable USB.PUEN */
+> @@ -407,7 +407,7 @@ usb_hcd_omap_remove (struct usb_hcd *hcd, struct platform_device *pdev)
+>  		put_device(ohci->transceiver->dev);
+>  	}
+>  	if (machine_is_omap_osk())
+> -		omap_free_gpio(9);
+> +		gpio_free(9);
+>  	iounmap(hcd->regs);
+>  	release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
+>  	usb_put_hcd(hcd);
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+
+
