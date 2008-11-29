@@ -1,79 +1,57 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: v4l2_device/v4l2_subdev: please review (PATCH 1/3)
-Date: Sat, 29 Nov 2008 20:53:15 +0100
-Message-ID: <200811292053.16121.hverkuil@xs4all.nl>
-References: <200811242309.37489.hverkuil@xs4all.nl>
-	<200811291519.39549.hverkuil@xs4all.nl>
-	<200811291146.44371.david-b@pacbell.net>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH v2] v4l2_device/v4l2_subdev: final (?) version
+Date: Sat, 29 Nov 2008 12:20:47 -0800
+Message-ID: <200811291220.47542.david-b@pacbell.net>
+References: <200811291852.41794.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <video4linux-list-bounces@redhat.com>
-In-Reply-To: <200811291146.44371.david-b@pacbell.net>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:41296 "HELO
+	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752103AbYK2UUt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 29 Nov 2008 15:20:49 -0500
+In-Reply-To: <200811291852.41794.hverkuil@xs4all.nl>
 Content-Disposition: inline
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-To: David Brownell <david-b@pacbell.net>
-Cc: "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, video4linux-list@redhat.com, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, linux-kernel@vger.kernel.org, Laurent Pinchart <laurent.pinchart@skynet.be>
 
-On Saturday 29 November 2008 20:46:43 David Brownell wrote:
-> On Saturday 29 November 2008, Hans Verkuil wrote:
-> > > > +And this to go from an i2c_client to a v4l2_subdev struct:
-> > > > +
-> > > > +=A0=A0=A0struct v4l2_subdev *sd =3D i2c_get_clientdata(client);
-> > > > +
-> > > > +Finally you need to make a command function to make
-> > > > +driver->command() call the right subdev_ops functions:
-> > > > +
-> > > > +static int
-> > > > +subdev_command(struct i2c_client *client, unsigned cmd, void
-> > > > *arg) +{
-> > > > +=A0=A0=A0return v4l2_subdev_command(i2c_get_clientdata(client), =
-cmd,
-> > > > arg); +}
-> > > > +
-> > > > +If driver->command is never used then you can leave this out.
-> > > > +Eventually the driver->command usage should be removed from
-> > > > v4l.
-> > >
-> > > Should it then be added to the list of features scheduled for
-> > > removal?
-> >
-> > No, driver->command is part of the i2c subsystem and we are not the
-> > only users, so it can't be scheduled for removal.
->
-> ISTR that the only use of the i2c_driver.command() mechanism
-> is for video/DVB driver support.  It's kind of an ugly wart,
-> and it'd be good to see such ioctl-ish interfaces vanish.
->
-> This came up a while back as part of a "how can we clean up
-> the I2C stack" discussion.  So it would be nice if V4L2 wasn't
-> effectively adding new reasons (and advice) to use this.
+On Saturday 29 November 2008, Hans Verkuil wrote:
+> +void v4l2_device_register(struct device *dev, struct v4l2_device *v4=
+l2_dev)
+> +{
+> +=A0=A0=A0=A0=A0=A0=A0BUG_ON(!dev || !v4l2_dev || dev_get_drvdata(dev=
+));
+>=20
 
-If v4l is indeed the only user, then once all i2c drivers are converted=20
-to this new sub device API, then command can indeed go away.
+Ouch.  Better to return -EINVAL, like most register() calls,
+than *ever* use a BUG_ON() for bad parameters.  Same applies
+every other place you use BUG_ON, from a quick scan ...
 
-Would be nice, but it will probably take a few kernel cycles before we=20
-are there. It's a lot of work, but very worthwhile in my opinion.
+=46or the unregister() paths a WARN() would be fair.  Again,
+any time you're tempted to use BUG() or BUG_ON(), you need
+to re-think.  It's hardly ever the right thing to do.  Just
+report the error and continue; callers should check, and
+clean up if something went wrong.
 
-Regards,
 
-	Hans
+> +EXPORT_SYMBOL(v4l2_device_register);
 
---=20
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+This may be a nit, but I wonder why not EXPORT_SYMBOL_GPL,
+which seems to be more correct in this case.
+
+
+Another quasi-style point:  v4l2-device.s and v4l-subdev.c
+are so small, and conceptually related, that I'd be tempted
+to have one file not two.  Ditto their headers.
+
+- Dave
 
 --
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
-ibe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
