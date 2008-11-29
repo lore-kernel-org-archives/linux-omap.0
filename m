@@ -1,19 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Subject: [PATCH 00/12] Updates for i2c-omap for 2.6.29 merge window, v5
-Date: Fri, 28 Nov 2008 17:32:54 -0800
-Message-ID: <20081129013153.13289.23002.stgit@localhost>
+Date: Fri, 28 Nov 2008 17:33:49 -0800
+Message-ID: <20081129013318.13428.88465.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57268 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752507AbYK2Bcw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2008 20:32:52 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: i2c-linux@vger.kernel.org, ben-linux@fluff.org
-Cc: linux-omap@vger.kernel.org
 
 Hi all,
 
