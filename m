@@ -1,41 +1,52 @@
-From: "Felipe Contreras" <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 0/3] OMAP: PM: enable UART clock disabling when idle
-Date: Sat, 29 Nov 2008 14:52:10 +0200
-Message-ID: <94a0d4530811290452o53df8811x697bcfa49660118a@mail.gmail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH 0/3] OMAP: PM: enable UART clock disabling when idle
+Date: Sat, 29 Nov 2008 07:55:32 -0600
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162036CE50266@dlee02.ent.ti.com>
 References: <1227745800-5894-1-git-send-email-khilman@deeprootsystems.com>
+ <94a0d4530811290452o53df8811x697bcfa49660118a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.228]:39501 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751311AbYK2MwM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 Nov 2008 07:52:12 -0500
-Received: by rv-out-0506.google.com with SMTP id k40so1719948rvb.1
-        for <linux-omap@vger.kernel.org>; Sat, 29 Nov 2008 04:52:11 -0800 (PST)
-In-Reply-To: <1227745800-5894-1-git-send-email-khilman@deeprootsystems.com>
-Content-Disposition: inline
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41471 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751173AbYK2Nzo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 29 Nov 2008 08:55:44 -0500
+In-Reply-To: <94a0d4530811290452o53df8811x697bcfa49660118a@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Thu, Nov 27, 2008 at 2:29 AM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> This series enables UART clock disabling after an inactivity period.
-> It is based on top of the 2 8250 patches recently sent to linux-serial
-> and CC'd to linux-omap.
->
-> To enable:
->
->  # echo 1 > /sys/power/clocks_off_while_idle
->  # echo 1 > /sys/power/sleep_while_idle
->
-> NOTE: it is expected that the first character typed is lost
-> when coming out of idle.  The first char serves as the wakeup
-> event but is lost.
-
-Agh, can that be avoided somehow?
-
--- 
-Felipe Contreras
+DQo+IEZyb206IGxpbnV4LW9tYXAtb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgt
+b21hcC0NCj4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgRmVsaXBlIENvbnRy
+ZXJhcw0KPiBTZW50OiBTYXR1cmRheSwgTm92ZW1iZXIgMjksIDIwMDggNjo1MiBBTQ0KDQo+IE9u
+IFRodSwgTm92IDI3LCAyMDA4IGF0IDI6MjkgQU0sIEtldmluIEhpbG1hbg0KPiA8a2hpbG1hbkBk
+ZWVwcm9vdHN5c3RlbXMuY29tPiB3cm90ZToNCj4gPiBUaGlzIHNlcmllcyBlbmFibGVzIFVBUlQg
+Y2xvY2sgZGlzYWJsaW5nIGFmdGVyIGFuIGluYWN0aXZpdHkgcGVyaW9kLg0KPiA+IEl0IGlzIGJh
+c2VkIG9uIHRvcCBvZiB0aGUgMiA4MjUwIHBhdGNoZXMgcmVjZW50bHkgc2VudCB0byBsaW51eC1z
+ZXJpYWwNCj4gPiBhbmQgQ0MnZCB0byBsaW51eC1vbWFwLg0KPiA+DQo+ID4gVG8gZW5hYmxlOg0K
+PiA+DQo+ID4gICMgZWNobyAxID4gL3N5cy9wb3dlci9jbG9ja3Nfb2ZmX3doaWxlX2lkbGUNCj4g
+PiAgIyBlY2hvIDEgPiAvc3lzL3Bvd2VyL3NsZWVwX3doaWxlX2lkbGUNCj4gPg0KPiA+IE5PVEU6
+IGl0IGlzIGV4cGVjdGVkIHRoYXQgdGhlIGZpcnN0IGNoYXJhY3RlciB0eXBlZCBpcyBsb3N0DQo+
+ID4gd2hlbiBjb21pbmcgb3V0IG9mIGlkbGUuICBUaGUgZmlyc3QgY2hhciBzZXJ2ZXMgYXMgdGhl
+IHdha2V1cA0KPiA+IGV2ZW50IGJ1dCBpcyBsb3N0Lg0KPg0KPiBBZ2gsIGNhbiB0aGF0IGJlIGF2
+b2lkZWQgc29tZWhvdz8NCg0KTm90IHVubGVzcyB5b3UgdXNlIHNvbWUga2luZCBvZiBmbG93IGNv
+bnRyb2wgb3IgcHJvdG9jb2wgcmV0cmFuc21pdHMuDQoNCldoZW4gaXTigJlzIGEgcmF3IHNlcmlh
+bCBwb3J0IHlvdXIgc3RhcnQgYml0IGlzIHlvdXIgd2FrZXVwIGNoYXJhY3Rlci4gIEZyb20gT0ZG
+IG1vZGUgdGhpcyBpcyB3YWtpbmcgdGhlIHN5c3RlbSB1cCBhdCB0aGUgSU8gUGFkIGxldmVsLiAg
+VGhlIHN5c3RlbSBjYW4ndCByZXBvd2VyLCByZXNwaW4gdXAgRFBMTHMgYW5kIHJlc3RvcmUgY29u
+dGV4dCBmYXN0IGVub3VnaCB0byBhdm9pZCBsb3NpbmcgdGhlIHN0YXJ0IGJpdC4NCg0KWW91IGNv
+dWxkIHRyeSBydW5uaW5nIGF0IHNvbWUgcmVhbGx5IHNsb3cgYmF1ZCByYXRlLiAgTW9yZSBwcmFj
+dGljYWxseSBpZiB5b3UgdXNlIHNvbWUgZmxvdyBjb250cm9sIHNpZ25hbHMgdGhleSBtYXkgYWxs
+b3cgaXQgdG8gd29yayB3aXRoIG91dCBsb3NzLg0KDQpJZiB5b3UncmUgYmx1ZXRvb3RoIG9yIHRo
+ZSBsaWtlIHlvdXIgcHJvdG9jb2wgcmV0cmFuc21pdHMgc28geW91J3JlIG9rLg0KDQpJZiBhbGwg
+aXMganVzdCBzbyB5b3UgbWlnaHQgc2VlIHRoaXMgbW9zdCBwcm9ub3VuY2VkIHdoZW4gc2NyZWVu
+IGlzIGJsYW5rZWQgYW5kIHlvdSdyZSBpbiBDT1JFIE9GRi4gIEF0IHRoYXQgcG9pbnQgaXQgbWF5
+IG5vdCBiZSBhIGJpZyBkZWFsLiAgRXZlbiBvbiBhIFBDIGRvIHlvdSBleHBlY3QgeW91ciB3YWtl
+IHVwIGNoYXJhY3RlciB0byBkbyBzb21ldGhpbmcgd2hlbiBicmVha2luZyBmcm9tIGEgYmxhbmsg
+c2NyZWVuIG9yIHNjcmVlbiBzYXZlcj8NCg0KSXQgbWlnaHQgYmUgc29tZSBhdXRvbWF0ZWQgZXhw
+ZWN0IHNjcmlwdHMgb3IgdGhlIGxpa2UgbmVlZCB0d2Vha2luZy4gIFdlIGhhdmUgYmVlbiB1c2lu
+ZyBhIHNpbWlsYXIgc3RyYXRlZ3kgZm9yIGEgY291cGxlIHllYXJzIHdpdGggb3V0IGh1Z2UgaW1w
+YWN0Lg0KDQpSZWdhcmRzLA0KUmljaGFyZCBXLg0KDQo=
