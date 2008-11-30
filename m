@@ -1,172 +1,50 @@
-From: Andy Walls <awalls@radix.net>
+From: David Brownell <david-b@pacbell.net>
 Subject: Re: [PATCH v2] v4l2_device/v4l2_subdev: final (?) version
-Date: Sat, 29 Nov 2008 21:49:45 -0500
-Message-ID: <1228013385.4615.143.camel@palomino.walls.org>
-References: <200811291852.41794.hverkuil@xs4all.nl>
-	<1228001498.4615.28.camel@palomino.walls.org>
-	<200811300140.44322.hverkuil@xs4all.nl>
+Date: Sat, 29 Nov 2008 18:56:51 -0800
+Message-ID: <200811291856.51900.david-b@pacbell.net>
+References: <200811291852.41794.hverkuil@xs4all.nl> <200811291422.20155.david-b@pacbell.net> <200811300006.22080.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <video4linux-list-bounces@redhat.com>
-In-Reply-To: <200811300140.44322.hverkuil@xs4all.nl>
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp123.sbc.mail.sp1.yahoo.com ([69.147.64.96]:22446 "HELO
+	smtp123.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1756166AbYK3C4y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 29 Nov 2008 21:56:54 -0500
+In-Reply-To: <200811300006.22080.hverkuil@xs4all.nl>
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, linux-kernel@vger.kernel.org, Laurent Pinchart <laurent.pinchart@skynet.be>
 
-On Sun, 2008-11-30 at 01:40 +0100, Hans Verkuil wrote:
-> On Sunday 30 November 2008 00:31:38 Andy Walls wrote:
-> > On Sat, 2008-11-29 at 18:52 +0100, Hans Verkuil wrote:
-> > > Hi all,
-> > >
-> > > This is hopefully the final version. All earlier comments have been
-> > > incorporated into this patch. I also made a new change: the mutex
-> > > has been replaced by a spinlock and I no longer lock when walking
-> > > the list of subdevs.
-> > >
-> > > So the assumption is that subdevs only added during initialization
-> > > of the device and removed during the destruction of the device, and
-> > > not in between. I cannot think of any reason why this you would
-> > > want to do this, but should this ever happen then the list should
-> > > be replaced by a klist. I consider this overkill, esp. since
-> > > walking the subdev list should be as fast as possible.
+On Saturday 29 November 2008, Hans Verkuil wrote:
+> > > Are there some documented guidelines on when to use BUG_ON?
 > >
-> > I don't have a problem with not locking during a list walk as long as
-> > you can ensure the register and unregister calls can't happen in the
-> > middle of a walk.  I haven't taken a hard look to see if this is the
-> > case.  I'd imagine a walk while registration is going on is the only
-> > case that has a remote chance of happening.
-> 
-> A driver that would do register or unregister calls in the middle of a 
-> walk is very badly written. I can't even imagine how that can happen.
-> 
-> That said, I'll add a comment in the header making it explicit that no 
-> locking is taking place.
+> > Maybe there should be. =A0I know I've seen flames from Linus on
+> > the topic. =A0Basically, treat it like a panic() where the system
+> > must stop operation lest it catch fire or scribble all over the
+> > (not-backed-up) disk ... if the system can keep running sanely,
+> > then BUG() and friends are inappropriate.
+>=20
+> I think it would be good to have some document about this, since
+> from what I've seen from a quick scan I'm not the only one who uses
+> it incorrectly. There is no documentation in the asm-generic/bug.h
+> header and there is also no documentation on this in the Documentatio=
+n
+> directory.
 
-Ah.
+=46air enough ... but the basic advice is still going to be "strongly
+avoid ever calling BUG()". =20
 
+I'll send a patch along doing that.
 
-> > Although I think I've just answered my own next question I'll ask
-> > anyway: why are register & unregister such time critical operations
-> > that we have to spin instead of risk sleeping in a mutex?  To greatly
-> > reduce the probability a walk happens while registering?  If that's
-> > the case it sounds like we're knowingly building in a race.
-> 
-> In the register function it only needs to lock the list momentarily in 
-> case two registrations happen at the same time. A mutex is overkill for 
-> that. Perhaps having locking at all is overkill as well for this, but 
-> for now I feel safer with the lock. In addition, I might well change 
-> the way subdevices are registered. Right now the bridge driver loads 
-> and registers a subdevice, but an alternative approach would be that 
-> the i2c driver can register itself with the bridge driver when loaded. 
-> There are actually some advantages to that approach, but if I do that, 
-> then the lock is definitely needed.
-> 
-> > This comment kind of bugged me too:
-> > >/* Iterate over all subdevs. The next item is prefetched, so you can
-> > > +   delete the current item if necessary. */
-> > > +#define v4l2_device_for_each_subdev(sd, dev)
-> >
-> > It implies it's safe to remove things from the list that we're not
-> > locking.
-> 
-> Oops, that was a bogus comment. Actually, the whole macro is a bit bogus 
-> and can simply be replaced by this:
-> 
-> /* Iterate over all subdevs. */
-> #define v4l2_device_for_each_subdev(sd, dev) \
->         list_for_each_entry(sd, &(dev)->subdevs, list)
-> 
-> > I can appreciate the desire for being able to walk the list and issue
-> > commands to various subdevs with high concurrency.  I know spinlocks
-> > are optimized for the common case of the lock being available (well
-> > at least the underlying __raw_spin_lock() is optimized, if preemption
-> > is enabled there's a little overhead added).  So they give the safety
-> > with a minor penalty at the micro level, but kill concurrency of
-> > common operations at the macro level.
-> >
-> > So how about a rwlock_t and using read_lock() and write_lock(), locks
-> > that provide safety and allow high concurrency at the macro level?  I
-> > don't know if there's an analog of a read/write mutex.
-> 
-> Note that I can't use spinlocks while walking the subdevs list since the 
-> subdev ops that you call can sleep which is not allowed with spinlocks 
-> (as I very quickly found out when I tried it :-) ).
+- Dave
 
-Ah.
-
-> The only way to safely walk over it is to switch to a klist, but I 
-> really like to keep __v4l2_device_call_subdevs as fast as possible. 
-> Since the registration/unregistration of subdevs is fully controlled by 
-> the driver it is trivial for the driver to ensure that there are no 
-> (un)registrations while the subdev list is being walked. There are no 
-> external events that can cause this to happen.
-> 
-> In addition, there is also no point for a driver to begin issuing 
-> commands to subdevs while some of them are not yet registered. So I 
-> feel confident about my approach.
-
-Just playing a little more devil's advocate:
-
-I have a recollection that the lirc_pvr150 module calls an ivtv function
-directly to reset the IR blaster chip on PVR-150's.  I'd imagine in the
-future, the GPIO subdev in ivtv might implement some sort of reset_ops
-or ir_ops for a cleaner interface for an updated lirc_pvr150 module to
-call in on. There's my one contrived example, contingent on assumed
-changes, of a bridge chip driver not being strictly in control of when a
-subdev could be called.
-
-(It's moot in this case though as lirc_pvr150 would need ivtv to init
-i2c before gpio, which ivtv doesn't do, before lirc_pvr150 would attempt
-a reset of the IR blaster.)
-
-I think you're safe for now. :)
-
-
-
-On a more philosophical note is GPIO really a single subdev or a
-collection of independent serial & discrete buses to a collection of
-subdevs?  In cx18 depending on the board, GPIO can reset chips, change
-audio mux paths, change the state of LED's, and in the future be used as
-a serial line (if I ever get that soft-UART to the IR blaster
-implemented).
-
-
-> But if it turns out to be a problem after all in the future, then it 
-> will be easy to replace the list with a klist.
-
-Well my one contrived example is between two modules who usage is
-tightly coupled at least in one direction, even if source code changes
-are not tightly coordinated.  In that case I'd predict problems will
-simply be avoided due to the tight coupling.
-
-Regards,
-Andy
-
-> > Did I totally miss the concept?
-> 
-> Not at all, and once again thanks for the comments.
-> 
-> I've updated my tree with the changes mentioned above.
-> 
-> Regards,
-> 
->           Hans
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
-> 
 
 --
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
