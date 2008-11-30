@@ -1,295 +1,194 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/5] extra module resets to ensure full-chip idle
-Date: Sat, 29 Nov 2008 21:10:16 -0800
-Message-ID: <87k5alajev.fsf@deeprootsystems.com>
-References: <1227744349-12118-1-git-send-email-khilman@deeprootsystems.com>
-	<FF11085F-86D4-4350-AC79-878C9D7CC0F7@student.utwente.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v2] v4l2_device/v4l2_subdev: final (?) version
+Date: Sun, 30 Nov 2008 11:52:50 +0100
+Message-ID: <200811301152.50971.hverkuil@xs4all.nl>
+References: <200811291852.41794.hverkuil@xs4all.nl>
+	<200811300140.44322.hverkuil@xs4all.nl>
+	<1228013385.4615.143.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.182]:13518 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750762AbYK3FKU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 30 Nov 2008 00:10:20 -0500
-Received: by wa-out-1112.google.com with SMTP id v27so922980wah.21
-        for <linux-omap@vger.kernel.org>; Sat, 29 Nov 2008 21:10:19 -0800 (PST)
-In-Reply-To: <FF11085F-86D4-4350-AC79-878C9D7CC0F7@student.utwente.nl> (Koen Kooi's message of "Thu\, 27 Nov 2008 10\:02\:20 +0100")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <video4linux-list-bounces@redhat.com>
+In-Reply-To: <1228013385.4615.143.camel@palomino.walls.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+To: Andy Walls <awalls@radix.net>
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: linux-omap@vger.kernel.org
 
-Koen Kooi <k.kooi@student.utwente.nl> writes:
-
-> Op 27 nov 2008, om 01:05 heeft Kevin Hilman het volgende geschreven:
+On Sunday 30 November 2008 03:49:45 Andy Walls wrote:
+> On Sun, 2008-11-30 at 01:40 +0100, Hans Verkuil wrote:
+> > On Sunday 30 November 2008 00:31:38 Andy Walls wrote:
+> > > On Sat, 2008-11-29 at 18:52 +0100, Hans Verkuil wrote:
+> > > > Hi all,
+> > > >
+> > > > This is hopefully the final version. All earlier comments have
+> > > > been incorporated into this patch. I also made a new change:
+> > > > the mutex has been replaced by a spinlock and I no longer lock
+> > > > when walking the list of subdevs.
+> > > >
+> > > > So the assumption is that subdevs only added during
+> > > > initialization of the device and removed during the destruction
+> > > > of the device, and not in between. I cannot think of any reason
+> > > > why this you would want to do this, but should this ever happen
+> > > > then the list should be replaced by a klist. I consider this
+> > > > overkill, esp. since walking the subdev list should be as fast
+> > > > as possible.
+> > >
+> > > I don't have a problem with not locking during a list walk as
+> > > long as you can ensure the register and unregister calls can't
+> > > happen in the middle of a walk.  I haven't taken a hard look to
+> > > see if this is the case.  I'd imagine a walk while registration
+> > > is going on is the only case that has a remote chance of
+> > > happening.
+> >
+> > A driver that would do register or unregister calls in the middle
+> > of a walk is very badly written. I can't even imagine how that can
+> > happen.
+> >
+> > That said, I'll add a comment in the header making it explicit that
+> > no locking is taking place.
 >
->> Various bootloaders have been known to leave modules in a state
->> which prevents full-chip retention.  This series forces
->> MMC, IVA2 and D2D/modem into known reset/idle states so that
->> the OMAP3 can hit full-chip idle.
->>
->> Tested on OMAP3 Beagle, and custom OMAP3 hardware.
->>
->> NOTE: this is similar to the set I posted for the PM branch
->>      but this series is rebased onto linux-omap and includes
->>      the MMC reset.
+> Ah.
 >
-> I'm having trouble applying these against current head
-> (5019ed843f3208482c64043e4052e89b3d5462a0), against which rev were
-> they generated?
+> > > Although I think I've just answered my own next question I'll ask
+> > > anyway: why are register & unregister such time critical
+> > > operations that we have to spin instead of risk sleeping in a
+> > > mutex?  To greatly reduce the probability a walk happens while
+> > > registering?  If that's the case it sounds like we're knowingly
+> > > building in a race.
+> >
+> > In the register function it only needs to lock the list momentarily
+> > in case two registrations happen at the same time. A mutex is
+> > overkill for that. Perhaps having locking at all is overkill as
+> > well for this, but for now I feel safer with the lock. In addition,
+> > I might well change the way subdevices are registered. Right now
+> > the bridge driver loads and registers a subdevice, but an
+> > alternative approach would be that the i2c driver can register
+> > itself with the bridge driver when loaded. There are actually some
+> > advantages to that approach, but if I do that, then the lock is
+> > definitely needed.
+> >
+> > > This comment kind of bugged me too:
+> > > >/* Iterate over all subdevs. The next item is prefetched, so you
+> > > > can +   delete the current item if necessary. */
+> > > > +#define v4l2_device_for_each_subdev(sd, dev)
+> > >
+> > > It implies it's safe to remove things from the list that we're
+> > > not locking.
+> >
+> > Oops, that was a bogus comment. Actually, the whole macro is a bit
+> > bogus and can simply be replaced by this:
+> >
+> > /* Iterate over all subdevs. */
+> > #define v4l2_device_for_each_subdev(sd, dev) \
+> >         list_for_each_entry(sd, &(dev)->subdevs, list)
+> >
+> > > I can appreciate the desire for being able to walk the list and
+> > > issue commands to various subdevs with high concurrency.  I know
+> > > spinlocks are optimized for the common case of the lock being
+> > > available (well at least the underlying __raw_spin_lock() is
+> > > optimized, if preemption is enabled there's a little overhead
+> > > added).  So they give the safety with a minor penalty at the
+> > > micro level, but kill concurrency of common operations at the
+> > > macro level.
+> > >
+> > > So how about a rwlock_t and using read_lock() and write_lock(),
+> > > locks that provide safety and allow high concurrency at the macro
+> > > level?  I don't know if there's an analog of a read/write mutex.
+> >
+> > Note that I can't use spinlocks while walking the subdevs list
+> > since the subdev ops that you call can sleep which is not allowed
+> > with spinlocks (as I very quickly found out when I tried it :-) ).
 >
-> regards,
+> Ah.
 >
-> Koen
+> > The only way to safely walk over it is to switch to a klist, but I
+> > really like to keep __v4l2_device_call_subdevs as fast as possible.
+> > Since the registration/unregistration of subdevs is fully
+> > controlled by the driver it is trivial for the driver to ensure
+> > that there are no (un)registrations while the subdev list is being
+> > walked. There are no external events that can cause this to happen.
+> >
+> > In addition, there is also no point for a driver to begin issuing
+> > commands to subdevs while some of them are not yet registered. So I
+> > feel confident about my approach.
 >
+> Just playing a little more devil's advocate:
+>
+> I have a recollection that the lirc_pvr150 module calls an ivtv
+> function directly to reset the IR blaster chip on PVR-150's.  I'd
+> imagine in the future, the GPIO subdev in ivtv might implement some
+> sort of reset_ops or ir_ops for a cleaner interface for an updated
+> lirc_pvr150 module to call in on. There's my one contrived example,
+> contingent on assumed changes, of a bridge chip driver not being
+> strictly in control of when a subdev could be called.
+>
+> (It's moot in this case though as lirc_pvr150 would need ivtv to init
+> i2c before gpio, which ivtv doesn't do, before lirc_pvr150 would
+> attempt a reset of the IR blaster.)
+>
+> I think you're safe for now. :)
 
-Sorry...
+I think so too :-)  Anyway, it's highly debatable whether that reset 
+thing for ivtv is still needed. I suspect it isn't.
 
-This series applies on top of on addtional patch which I mistakenly
-assumed was already in l-o.  Here it is.
+> On a more philosophical note is GPIO really a single subdev or a
+> collection of independent serial & discrete buses to a collection of
+> subdevs?  In cx18 depending on the board, GPIO can reset chips,
+> change audio mux paths, change the state of LED's, and in the future
+> be used as a serial line (if I ever get that soft-UART to the IR
+> blaster implemented).
 
-Kevin
+Definitely a collection of subdevs. Usually each chip driven by GPIO 
+would have its own subdev. So ivtv implements an audio muxer subdev, 
+but it might also have additional subdevs for other chips connected to 
+the GPIO lines. I haven't explored all the possibilities yet, but I 
+suspect that this can be a quite powerful solution.
 
->From cbcf5c91b3e5156a9379d2312de9c9fa814bd3d8 Mon Sep 17 00:00:00 2001
-From: Tero Kristo <tero.kristo@nokia.com>
-Date: Wed, 26 Nov 2008 14:41:28 -0800
-Subject: [PATCH] OMAP2/3 clock: fix DPLL rate calculation
+Regards,
 
-Noncore dpll can enter autoidle state, in which case the rate calculation
-fails.  Fixed by checking dpll mode instead of idle status.
+	Hans
 
-Also, previously, the OMAP2xxx code returned the wrong value for the
-DPLL rate under some conditions.  Move the CORE_CLK rate recalculation
-to clock24xx.c:omap2xxx_clk_get_core_rate().
+> > But if it turns out to be a problem after all in the future, then
+> > it will be easy to replace the list with a klist.
+>
+> Well my one contrived example is between two modules who usage is
+> tightly coupled at least in one direction, even if source code
+> changes are not tightly coordinated.  In that case I'd predict
+> problems will simply be avoided due to the tight coupling.
+>
+> Regards,
+> Andy
+>
+> > > Did I totally miss the concept?
+> >
+> > Not at all, and once again thanks for the comments.
+> >
+> > I've updated my tree with the changes mentioned above.
+> >
+> > Regards,
+> >
+> >           Hans
+> >
+> > --
+> > Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
-Thanks to Peter de Schrijver <peter.de-schrijver@nokia.com> for help
-debugging and Kevin Hilman <khilman@deeprootsystems.com> for reporting
-the OMAP2 build problems with an earlier version of this patch.
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Peter de Schrijver <peter.de-schrijver@nokia.com>
----
- arch/arm/mach-omap2/clock.c             |   29 ++++++++++++++--------
- arch/arm/mach-omap2/clock.h             |    5 ++++
- arch/arm/mach-omap2/clock24xx.c         |   39 ++++++++++++++++++++----------
- arch/arm/mach-omap2/clock24xx.h         |    4 +-
- arch/arm/mach-omap2/sdrc2xxx.c          |    2 +
- arch/arm/plat-omap/include/mach/clock.h |   13 +++-------
- 6 files changed, 57 insertions(+), 35 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 42af286..54255fe 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -71,9 +71,15 @@
- #define DPLL_FINT_UNDERFLOW		-1
- #define DPLL_FINT_INVALID		-2
- 
--/* Some OMAP2xxx CM_CLKSEL_PLL.ST_CORE_CLK bits - for omap2_get_dpll_rate() */
--#define ST_CORE_CLK_REF			0x1
--#define ST_CORE_CLK_32K			0x3
-+/* OMAP2xxx CM_CLKEN_PLL.EN_DPLL bits - for omap2_get_dpll_rate() */
-+#define OMAP2XXX_EN_DPLL_LPBYPASS		0x1
-+#define OMAP2XXX_EN_DPLL_FRBYPASS		0x2
-+#define OMAP2XXX_EN_DPLL_LOCKED			0x3
-+
-+/* OMAP3xxx CM_CLKEN_PLL*.EN_*_DPLL bits - for omap2_get_dpll_rate() */
-+#define OMAP3XXX_EN_DPLL_LPBYPASS		0x5
-+#define OMAP3XXX_EN_DPLL_FRBYPASS		0x6
-+#define OMAP3XXX_EN_DPLL_LOCKED			0x7
- 
- /* Bitmask to isolate the register type of clk.enable_reg */
- #define PRCM_REGTYPE_MASK		0xf0
-@@ -267,19 +273,20 @@ u32 omap2_get_dpll_rate(struct clk *clk)
- 		return 0;
- 
- 	/* Return bypass rate if DPLL is bypassed */
--	v = cm_read_mod_reg(clk->prcm_mod, dd->idlest_reg);
--	v &= dd->idlest_mask;
--	v >>= __ffs(dd->idlest_mask);
-+	v = cm_read_mod_reg(clk->prcm_mod, dd->control_reg);
-+	v &= dd->enable_mask;
-+	v >>= __ffs(dd->enable_mask);
-+
- 	if (cpu_is_omap24xx()) {
- 
--		if (v == ST_CORE_CLK_REF)
--			return clk->parent->rate; /* sys_clk */
--		else if (v == ST_CORE_CLK_32K)
--			return 32768;
-+		if (v == OMAP2XXX_EN_DPLL_LPBYPASS ||
-+		    v == OMAP2XXX_EN_DPLL_FRBYPASS)
-+			return clk->parent->rate;
- 
- 	} else if (cpu_is_omap34xx()) {
- 
--		if (!v)
-+		if (v == OMAP3XXX_EN_DPLL_LPBYPASS ||
-+		    v == OMAP3XXX_EN_DPLL_FRBYPASS)
- 			return dd->bypass_clk->rate;
- 
- 	}
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index bcb0c03..b7784d1 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -21,6 +21,11 @@
- /* The maximum error between a target DPLL rate and the rounded rate in Hz */
- #define DEFAULT_DPLL_RATE_TOLERANCE	50000
- 
-+/* CM_CLKSEL2_PLL.CORE_CLK_SRC bits (2XXX) */
-+#define CORE_CLK_SRC_32K		0x0
-+#define CORE_CLK_SRC_DPLL		0x1
-+#define CORE_CLK_SRC_DPLL_X2		0x2
-+
- int omap2_clk_init(void);
- int omap2_clk_enable(struct clk *clk);
- void omap2_clk_disable(struct clk *clk);
-diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-index 32f6632..4bd21dd 100644
---- a/arch/arm/mach-omap2/clock24xx.c
-+++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -60,19 +60,32 @@ static struct clk *sclk;
-  * Omap24xx specific clock functions
-  *-------------------------------------------------------------------------*/
- 
--/* This actually returns the rate of core_ck, not dpll_ck. */
--static u32 omap2_get_dpll_rate_24xx(struct clk *tclk)
-+/**
-+ * omap2xxx_clk_get_core_rate - return the CORE_CLK rate
-+ * @clk: pointer to the combined dpll_ck + core_ck (currently "dpll_ck")
-+ *
-+ * Returns the CORE_CLK rate.  CORE_CLK can have one of three rate
-+ * sources on OMAP2xxx: the DPLL CLKOUT rate, DPLL CLKOUTX2, or 32KHz
-+ * (the latter is unusual).  This currently should be called with
-+ * struct clk *dpll_ck, which is a composite clock of dpll_ck and
-+ * core_ck.
-+ */
-+static u32 omap2xxx_clk_get_core_rate(struct clk *clk)
- {
--	long long dpll_clk;
--	u8 amult;
-+	long long core_clk;
-+	u32 v;
- 
--	dpll_clk = omap2_get_dpll_rate(tclk);
-+	core_clk = omap2_get_dpll_rate(clk);
- 
--	amult = cm_read_mod_reg(PLL_MOD, CM_CLKSEL2);
--	amult &= OMAP24XX_CORE_CLK_SRC_MASK;
--	dpll_clk *= amult;
-+	v = cm_read_mod_reg(PLL_MOD, CM_CLKSEL2);
-+	v &= OMAP24XX_CORE_CLK_SRC_MASK;
-+
-+	if (v == CORE_CLK_SRC_32K)
-+		core_clk = 32768;
-+	else
-+		core_clk *= v;
- 
--	return dpll_clk;
-+	return core_clk;
- }
- 
- static int omap2_enable_osc_ck(struct clk *clk)
-@@ -164,7 +177,7 @@ static long omap2_dpllcore_round_rate(unsigned long target_rate)
- 
- static void omap2_dpllcore_recalc(struct clk *clk)
- {
--	clk->rate = omap2_get_dpll_rate_24xx(clk);
-+	clk->rate = omap2xxx_clk_get_core_rate(clk);
- 
- 	propagate_rate(clk);
- }
-@@ -179,7 +192,7 @@ static int omap2_reprogram_dpllcore(struct clk *clk, unsigned long rate)
- 	int ret = -EINVAL;
- 
- 	local_irq_save(flags);
--	cur_rate = omap2_get_dpll_rate_24xx(&dpll_ck);
-+	cur_rate = omap2xxx_clk_get_core_rate(&dpll_ck);
- 	mult = cm_read_mod_reg(PLL_MOD, CM_CLKSEL2);
- 	mult &= OMAP24XX_CORE_CLK_SRC_MASK;
- 
-@@ -319,7 +332,7 @@ static int omap2_select_table_rate(struct clk *clk, unsigned long rate)
- 	}
- 
- 	curr_prcm_set = prcm;
--	cur_rate = omap2_get_dpll_rate_24xx(&dpll_ck);
-+	cur_rate = omap2xxx_clk_get_core_rate(&dpll_ck);
- 
- 	if (prcm->dpll_speed == cur_rate / 2) {
- 		omap2xxx_sdrc_reprogram(CORE_CLK_SRC_DPLL, 1);
-@@ -535,7 +548,7 @@ int __init omap2_clk_init(void)
- 	}
- 
- 	/* Check the MPU rate set by bootloader */
--	clkrate = omap2_get_dpll_rate_24xx(&dpll_ck);
-+	clkrate = omap2xxx_clk_get_core_rate(&dpll_ck);
- 	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
- 		if (!(prcm->flags & cpu_mask))
- 			continue;
-diff --git a/arch/arm/mach-omap2/clock24xx.h b/arch/arm/mach-omap2/clock24xx.h
-index 724bcb0..929a257 100644
---- a/arch/arm/mach-omap2/clock24xx.h
-+++ b/arch/arm/mach-omap2/clock24xx.h
-@@ -673,8 +673,8 @@ static struct dpll_data dpll_dd = {
- 	.mult_div1_reg		= CM_CLKSEL1,
- 	.mult_mask		= OMAP24XX_DPLL_MULT_MASK,
- 	.div1_mask		= OMAP24XX_DPLL_DIV_MASK,
--	.idlest_reg		= CM_IDLEST,
--	.idlest_mask		= OMAP24XX_ST_CORE_CLK_MASK,
-+	.control_reg		= CM_CLKEN,
-+	.enable_mask		= OMAP24XX_EN_DPLL_MASK,
- 	.max_multiplier		= 1024,
- 	.min_divider		= 1,
- 	.max_divider		= 16,
-diff --git a/arch/arm/mach-omap2/sdrc2xxx.c b/arch/arm/mach-omap2/sdrc2xxx.c
-index 0723e59..479dc8c 100644
---- a/arch/arm/mach-omap2/sdrc2xxx.c
-+++ b/arch/arm/mach-omap2/sdrc2xxx.c
-@@ -28,6 +28,8 @@
- #include <mach/clock.h>
- #include <mach/sram.h>
- 
-+#include "clock.h"
-+
- #include "prm.h"
- 
- #include <mach/sdrc.h>
-diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
-index 4eef580..e793616 100644
---- a/arch/arm/plat-omap/include/mach/clock.h
-+++ b/arch/arm/plat-omap/include/mach/clock.h
-@@ -42,14 +42,14 @@ struct dpll_data {
- 	u8			min_divider;
- 	u8			max_divider;
- 	u32			max_tolerance;
--	u16			idlest_reg;
--	u32			idlest_mask;
- 	struct clk		*bypass_clk;
-+	u16			control_reg;
-+	u32			enable_mask;
- #  if defined(CONFIG_ARCH_OMAP3)
-+	u16			idlest_reg;
-+	u32			idlest_mask;
- 	u32			freqsel_mask;
- 	u8			modes;
--	u16			control_reg;
--	u32			enable_mask;
- 	u8			auto_recal_bit;
- 	u8			recal_en_bit;
- 	u8			recal_st_bit;
-@@ -175,9 +175,4 @@ extern void clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
- #define CLK_REG_IN_PRM		(1 << 0)
- #define CLK_REG_IN_SCM		(1 << 1)
- 
--/* CM_CLKSEL2_PLL.CORE_CLK_SRC options (24XX) */
--#define CORE_CLK_SRC_32K		0
--#define CORE_CLK_SRC_DPLL		1
--#define CORE_CLK_SRC_DPLL_X2		2
--
- #endif
 -- 
-1.6.0.3
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
