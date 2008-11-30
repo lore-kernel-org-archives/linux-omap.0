@@ -1,194 +1,82 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2] v4l2_device/v4l2_subdev: final (?) version
-Date: Sun, 30 Nov 2008 11:52:50 +0100
-Message-ID: <200811301152.50971.hverkuil@xs4all.nl>
-References: <200811291852.41794.hverkuil@xs4all.nl>
-	<200811300140.44322.hverkuil@xs4all.nl>
-	<1228013385.4615.143.camel@palomino.walls.org>
+From: Hans Verkuil <hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
+Subject: Re: v4l2_device/v4l2_subdev: please review (PATCH 1/3)
+Date: Sun, 30 Nov 2008 14:58:22 +0100
+Message-ID: <200811301458.23184.hverkuil@xs4all.nl>
+References: <200811242309.37489.hverkuil@xs4all.nl>
+	<200811291519.39549.hverkuil@xs4all.nl>
+	<Pine.LNX.4.64.0811292002300.8352@axis700.grange>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <video4linux-list-bounces@redhat.com>
-In-Reply-To: <1228013385.4615.143.camel@palomino.walls.org>
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.64.0811292002300.8352-0199iw4Nj15frtckUFj5Ag@public.gmane.org>
 Content-Disposition: inline
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-To: Andy Walls <awalls@radix.net>
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, linux-kernel@vger.kernel.org
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Guennadi Liakhovetski <g.liakhovetski-Mmb7MZpHnFY@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, video4linux-list-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Laurent Pinchart <laurent.pinchart-AgBVmzD5pcezQB+pC5nmwQ@public.gmane.org>, "davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org" <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sunday 30 November 2008 03:49:45 Andy Walls wrote:
-> On Sun, 2008-11-30 at 01:40 +0100, Hans Verkuil wrote:
-> > On Sunday 30 November 2008 00:31:38 Andy Walls wrote:
-> > > On Sat, 2008-11-29 at 18:52 +0100, Hans Verkuil wrote:
-> > > > Hi all,
-> > > >
-> > > > This is hopefully the final version. All earlier comments have
-> > > > been incorporated into this patch. I also made a new change:
-> > > > the mutex has been replaced by a spinlock and I no longer lock
-> > > > when walking the list of subdevs.
-> > > >
-> > > > So the assumption is that subdevs only added during
-> > > > initialization of the device and removed during the destruction
-> > > > of the device, and not in between. I cannot think of any reason
-> > > > why this you would want to do this, but should this ever happen
-> > > > then the list should be replaced by a klist. I consider this
-> > > > overkill, esp. since walking the subdev list should be as fast
-> > > > as possible.
+On Saturday 29 November 2008 20:08:44 Guennadi Liakhovetski wrote:
+> On Sat, 29 Nov 2008, Hans Verkuil wrote:
+> > > > +Introduction
+> > > > +------------
+> > > > +
+> > > > +The V4L2 drivers tend to be very complex due to the complexity
+> > > > of the +hardware: most devices have multiple ICs, export
+> > > > multiple device nodes in +/dev, and create also non-V4L2
+> > > > devices such as DVB, ALSA, FB, I2C and input +(IR) devices.
+> > > > +
+> > > > +Especially the fact that V4L2 drivers have to setup supporting
+> > > > ICs to +do audio/video muxing/encoding/decoding makes it more
+> > > > complex than most. +Usually these ICs are connected to the main
+> > > > bridge driver through one or +more I2C busses, but other busses
+> > > > can also be used. Such devices are +called 'sub-devices'.
 > > >
-> > > I don't have a problem with not locking during a list walk as
-> > > long as you can ensure the register and unregister calls can't
-> > > happen in the middle of a walk.  I haven't taken a hard look to
-> > > see if this is the case.  I'd imagine a walk while registration
-> > > is going on is the only case that has a remote chance of
-> > > happening.
+> > > Do you know of other busses being used in (Linux supported) real
+> > > video hardware, or is it currently theoretical only ?
 > >
-> > A driver that would do register or unregister calls in the middle
-> > of a walk is very badly written. I can't even imagine how that can
-> > happen.
-> >
-> > That said, I'll add a comment in the header making it explicit that
-> > no locking is taking place.
+> > The pxa_camera driver is one example of that. Also devices driven
+> > by GPIO pins can be implemented this way. I did that in ivtv for
+> > example: most cards use i2c audio muxers, but some have audio
+> > muxers that are commanded through GPIO so I created a v4l2_subdev
+> > that uses GPIO to drive these chips. Works very well indeed.
 >
-> Ah.
->
-> > > Although I think I've just answered my own next question I'll ask
-> > > anyway: why are register & unregister such time critical
-> > > operations that we have to spin instead of risk sleeping in a
-> > > mutex?  To greatly reduce the probability a walk happens while
-> > > registering?  If that's the case it sounds like we're knowingly
-> > > building in a race.
-> >
-> > In the register function it only needs to lock the list momentarily
-> > in case two registrations happen at the same time. A mutex is
-> > overkill for that. Perhaps having locking at all is overkill as
-> > well for this, but for now I feel safer with the lock. In addition,
-> > I might well change the way subdevices are registered. Right now
-> > the bridge driver loads and registers a subdevice, but an
-> > alternative approach would be that the i2c driver can register
-> > itself with the bridge driver when loaded. There are actually some
-> > advantages to that approach, but if I do that, then the lock is
-> > definitely needed.
-> >
-> > > This comment kind of bugged me too:
-> > > >/* Iterate over all subdevs. The next item is prefetched, so you
-> > > > can +   delete the current item if necessary. */
-> > > > +#define v4l2_device_for_each_subdev(sd, dev)
-> > >
-> > > It implies it's safe to remove things from the list that we're
-> > > not locking.
-> >
-> > Oops, that was a bogus comment. Actually, the whole macro is a bit
-> > bogus and can simply be replaced by this:
-> >
-> > /* Iterate over all subdevs. */
-> > #define v4l2_device_for_each_subdev(sd, dev) \
-> >         list_for_each_entry(sd, &(dev)->subdevs, list)
-> >
-> > > I can appreciate the desire for being able to walk the list and
-> > > issue commands to various subdevs with high concurrency.  I know
-> > > spinlocks are optimized for the common case of the lock being
-> > > available (well at least the underlying __raw_spin_lock() is
-> > > optimized, if preemption is enabled there's a little overhead
-> > > added).  So they give the safety with a minor penalty at the
-> > > micro level, but kill concurrency of common operations at the
-> > > macro level.
-> > >
-> > > So how about a rwlock_t and using read_lock() and write_lock(),
-> > > locks that provide safety and allow high concurrency at the macro
-> > > level?  I don't know if there's an analog of a read/write mutex.
-> >
-> > Note that I can't use spinlocks while walking the subdevs list
-> > since the subdev ops that you call can sleep which is not allowed
-> > with spinlocks (as I very quickly found out when I tried it :-) ).
->
-> Ah.
->
-> > The only way to safely walk over it is to switch to a klist, but I
-> > really like to keep __v4l2_device_call_subdevs as fast as possible.
-> > Since the registration/unregistration of subdevs is fully
-> > controlled by the driver it is trivial for the driver to ensure
-> > that there are no (un)registrations while the subdev list is being
-> > walked. There are no external events that can cause this to happen.
-> >
-> > In addition, there is also no point for a driver to begin issuing
-> > commands to subdevs while some of them are not yet registered. So I
-> > feel confident about my approach.
->
-> Just playing a little more devil's advocate:
->
-> I have a recollection that the lirc_pvr150 module calls an ivtv
-> function directly to reset the IR blaster chip on PVR-150's.  I'd
-> imagine in the future, the GPIO subdev in ivtv might implement some
-> sort of reset_ops or ir_ops for a cleaner interface for an updated
-> lirc_pvr150 module to call in on. There's my one contrived example,
-> contingent on assumed changes, of a bridge chip driver not being
-> strictly in control of when a subdev could be called.
->
-> (It's moot in this case though as lirc_pvr150 would need ivtv to init
-> i2c before gpio, which ivtv doesn't do, before lirc_pvr150 would
-> attempt a reset of the IR blaster.)
->
-> I think you're safe for now. :)
+> I think pxa-camera (as well as sh-mobile-ceu and other soc-camera
+> host drivers in the works) is not a very good example here. Sensors
+> connected to embedded controllers like PXA indeed use a dedicated
+> camera bus but only for data exchange. This bus comprises of data and
+> synchronisation lines only. Sensors are still connected over an i2c
+> bus for control and configuration, also been open to other busses, I
+> haven't seen such examples as yet. I might have misunderstood what
+> has been discussed here though.
 
-I think so too :-)  Anyway, it's highly debatable whether that reset 
-thing for ivtv is still needed. I suspect it isn't.
+I agree that it not the best example, although it is perfectly possible 
+to see this as a controller sub-device. Having the same mechanism to 
+talk to any type of hardware involved in video capture and display has 
+definite advantages.
 
-> On a more philosophical note is GPIO really a single subdev or a
-> collection of independent serial & discrete buses to a collection of
-> subdevs?  In cx18 depending on the board, GPIO can reset chips,
-> change audio mux paths, change the state of LED's, and in the future
-> be used as a serial line (if I ever get that soft-UART to the IR
-> blaster implemented).
+Once these patches are in I would definitely recommend that people start 
+experimenting with them. Also be aware that this is just the first 
+step. I'm going to improve on these two fundamental structs 
+(v4l2_device and v4l2_subdev) to add much improved support for 
+controls. Currently drivers have to spend way too much effort on 
+implementing all the control handling code.
 
-Definitely a collection of subdevs. Usually each chip driven by GPIO 
-would have its own subdev. So ivtv implements an audio muxer subdev, 
-but it might also have additional subdevs for other chips connected to 
-the GPIO lines. I haven't explored all the possibilities yet, but I 
-suspect that this can be a quite powerful solution.
+And there are many more things one can do with these structures. I'll 
+just take it step by step.
 
 Regards,
 
-	Hans
-
-> > But if it turns out to be a problem after all in the future, then
-> > it will be easy to replace the list with a klist.
->
-> Well my one contrived example is between two modules who usage is
-> tightly coupled at least in one direction, even if source code
-> changes are not tightly coordinated.  In that case I'd predict
-> problems will simply be avoided due to the tight coupling.
->
-> Regards,
-> Andy
->
-> > > Did I totally miss the concept?
-> >
-> > Not at all, and once again thanks for the comments.
-> >
-> > I've updated my tree with the changes mentioned above.
-> >
-> > Regards,
-> >
-> >           Hans
-> >
-> > --
-> > Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
-
+         Hans
 
 -- 
 Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
