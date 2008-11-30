@@ -1,50 +1,39 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH v2] v4l2_device/v4l2_subdev: final (?) version
-Date: Sat, 29 Nov 2008 18:56:51 -0800
-Message-ID: <200811291856.51900.david-b@pacbell.net>
-References: <200811291852.41794.hverkuil@xs4all.nl> <200811291422.20155.david-b@pacbell.net> <200811300006.22080.hverkuil@xs4all.nl>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH 0/3] OMAP: PM: enable UART clock disabling when idle
+Date: Sat, 29 Nov 2008 21:35:55 -0600
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162036CE5028C@dlee02.ent.ti.com>
+References: <1227745800-5894-1-git-send-email-khilman@deeprootsystems.com>
+	 <94a0d4530811290452o53df8811x697bcfa49660118a@mail.gmail.com>
+	 <13B9B4C6EF24D648824FF11BE8967162036CE50266@dlee02.ent.ti.com>
+ <1227974819.26105.6.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp123.sbc.mail.sp1.yahoo.com ([69.147.64.96]:22446 "HELO
-	smtp123.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756166AbYK3C4y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 29 Nov 2008 21:56:54 -0500
-In-Reply-To: <200811300006.22080.hverkuil@xs4all.nl>
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:38420 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754554AbYK3DgH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 Nov 2008 22:36:07 -0500
+In-Reply-To: <1227974819.26105.6.camel@localhost>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, linux-kernel@vger.kernel.org, Laurent Pinchart <laurent.pinchart@skynet.be>
-
-On Saturday 29 November 2008, Hans Verkuil wrote:
-> > > Are there some documented guidelines on when to use BUG_ON?
-> >
-> > Maybe there should be. =A0I know I've seen flames from Linus on
-> > the topic. =A0Basically, treat it like a panic() where the system
-> > must stop operation lest it catch fire or scribble all over the
-> > (not-backed-up) disk ... if the system can keep running sanely,
-> > then BUG() and friends are inappropriate.
->=20
-> I think it would be good to have some document about this, since
-> from what I've seen from a quick scan I'm not the only one who uses
-> it incorrectly. There is no documentation in the asm-generic/bug.h
-> header and there is also no documentation on this in the Documentatio=
-n
-> directory.
-
-=46air enough ... but the basic advice is still going to be "strongly
-avoid ever calling BUG()". =20
-
-I'll send a patch along doing that.
-
-- Dave
+To: "igor.stoppa@nokia.com" <igor.stoppa@nokia.com>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> From: Igor Stoppa [mailto:igor.stoppa@nokia.com]
+> Sent: Saturday, November 29, 2008 10:07 AM
+
+> On Sat, 2008-11-29 at 07:55 -0600, ext Woodruff, Richard wrote:
+>
+> > Not unless you use some kind of flow control or protocol retransmits.
+>
+> What about bitbanging the entire first character?
+
+Huh?
+
+Typically for development you are just hooked to your PC.  It doesn't do anything special.
+
+Regards,
+Richard W.
