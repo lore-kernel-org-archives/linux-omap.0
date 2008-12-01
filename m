@@ -1,86 +1,42 @@
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng
-Date: Mon, 1 Dec 2008 14:29:53 +0100
-Message-ID: <200812011429.54019.laurent.pinchart@skynet.be>
-References: <200812011246.08885.hverkuil@xs4all.nl> <200812011331.25676.laurent.pinchart@skynet.be> <200812011351.55323.hverkuil@xs4all.nl>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: [PATCH] Add OMAP2 camera driver
+Date: Mon, 1 Dec 2008 19:02:03 +0530
+Message-ID: <5d5443650812010532l26e8092dh3d8218c3a5fdaeb6@mail.gmail.com>
+References: <5d5443650811261044w30748b75w5a47ce8b04680f79@mail.gmail.com>
+	 <492E69C9.9080904@nokia.com>
+	 <5d5443650811280207o7e91eb75geb7627b0e555480d@mail.gmail.com>
+	 <200812011357.09474.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailrelay005.isp.belgacom.be ([195.238.6.171]:42909 "EHLO
-	mailrelay005.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751057AbYLAN3r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 08:29:47 -0500
-In-Reply-To: <200812011351.55323.hverkuil@xs4all.nl>
+Received: from an-out-0708.google.com ([209.85.132.240]:14482 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751286AbYLANcF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 08:32:05 -0500
+Received: by an-out-0708.google.com with SMTP id d40so885276and.1
+        for <linux-omap@vger.kernel.org>; Mon, 01 Dec 2008 05:32:03 -0800 (PST)
+In-Reply-To: <200812011357.09474.hverkuil@xs4all.nl>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: video4linux-list@redhat.com, v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, davinci-linux-open-source-bounces@linux.davincidsp.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>, Sakari Ailus <sakari.ailus@nokia.com>
+Cc: video4linux-list@redhat.com, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
 Hi Hans,
 
-On Monday 01 December 2008, Hans Verkuil wrote:
-> On Monday 01 December 2008 13:31:25 Laurent Pinchart wrote:
-> > On Monday 01 December 2008, Hans Verkuil wrote:
-> > > Hi Mauro,
-> > >
-> > > Please pull from http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng for
-> > > the following:
-> > >
-> > > - v4l2: add v4l2_device and v4l2_subdev structs to the v4l2
-> > > framework. - v4l2-common: add i2c helper functions
-> > > - cs53l32a: convert to v4l2_subdev.
-> > > - cx25840: convert to v4l2_subdev.
-> > > - m52790: convert to v4l2_subdev.
-> > > - msp3400: convert to v4l2_subdev.
-> > > - saa7115: convert to v4l2_subdev.
-> > > - saa7127: convert to v4l2_subdev.
-> > > - saa717x: convert to v4l2_subdev.
-> > > - tuner: convert to v4l2_subdev.
-> > > - upd64031a: convert to v4l2_subdev.
-> > > - upd64083: convert to v4l2_subdev.
-> > > - vp27smpx: convert to v4l2_subdev.
-> > > - wm8739: convert to v4l2_subdev.
-> > > - wm8775: convert to v4l2_subdev.
-> > > - ivtv/ivtvfb: convert to v4l2_device/v4l2_subdev.
-> > >
-> > > All points raised in reviews are addressed so I think it is time to
-> > > get this merged so people can start to use it.
-> >
-> > Does linuxtv.org and Mercurial provide the necessary infrastructure
-> > to integrate those changes into the v4l-dvb repository while not
-> > pushing them upstream yet ? I'd like to see more people testing (and
-> > breaking and fixing :-)) your changes before they reach the mainline
-> > kernel.
 >
-> That's basically why I want this to go into the v4l-dvb repository: this
-> makes it easier for people to start working with it. It doesn't affect
-> existing drivers, except for the i2c driver changes and those changes
-> are just transforming a big switch to a set of functions. So I really
-> consider this a pretty low-risk merge.
+> Hi Trilok, Sakari,
 >
-> If someone is willing to do some testing with my tree in the next two
-> weeks then I don't mind waiting, but it's been in development now from
-> early September (if not earlier) and been reviewed several times. In
-> addition, ivtv has been modified to work with it and that driver uses
-> more sub-devices by far than any other driver.
+> I've merged it in my tree: http://www.linuxtv.org/hg/~hverkuil/v4l-dvb
 >
-> I don't know what more I can do, to be honest.
+> Is it OK for me to issue a pull request for that it can be merged in the
+> v4l-dvb master?
 
-I am all for pushing the changes to the v4l-dvb repository so they can get 
-broader testing. I am, however, a bit more concerned about pushing the 
-changes to Linus yet. Shouldn't it wait until you convert other drivers and 
-make the v4l2_device (infra)structure more powerful, as you announced you 
-would ? There will probably be API/ABI breakage then, it patches will 
-probably benefit from a few iterations in v4l-dvb before we push them to 
-mainline.
+I am OK with this. Sakari, I need your signed-off-by line.
 
-I don't know if that's possible at all, or if all changes in v4l-dvb are 
-automatically selected for a push to the git repository whenever Mauro 
-triggers the hg->git process.
 
-Best regards,
-
-Laurent Pinchart
+-- 
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
