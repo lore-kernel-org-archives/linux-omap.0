@@ -1,85 +1,117 @@
-From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-Subject: Re: [PATCH 1/1] OMAP3: DMA: Enable idlemodes for DMA OCP
-Date: Mon, 01 Dec 2008 19:03:35 +0200
-Message-ID: <1228151015.9951.624.camel@kj-ubuntu>
-References: <1228121725-14062-1-git-send-email-ext-kalle.jokiniemi@nokia.com>
-	 <1228121725-14062-2-git-send-email-ext-kalle.jokiniemi@nokia.com>
-	 <87zljgclj5.fsf@trdhcp146196.ntc.nokia.com>
-	 <1228128612.9951.555.camel@kj-ubuntu>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] fix a pile of OMAP issues
+Date: Mon, 1 Dec 2008 09:01:35 -0800
+Message-ID: <20081201170134.GV6640@atomide.com>
+References: <20081201160507.GC18592@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:51937 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752021AbYLARAq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 12:00:46 -0500
-In-Reply-To: <1228128612.9951.555.camel@kj-ubuntu>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54132 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752075AbYLARBi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 12:01:38 -0500
+Content-Disposition: inline
+In-Reply-To: <20081201160507.GC18592@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?H=F6gander?= Jouni <jouni.hogander@nokia.com>
-Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, tony@atomide.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
-On ma, 2008-12-01 at 12:50 +0200, Kalle Jokiniemi wrote:
-> On ma, 2008-12-01 at 11:06 +0200, H=C3=B6gander Jouni wrote:
-> > "ext Kalle Jokiniemi" <ext-kalle.jokiniemi@nokia.com> writes:
-> >=20
-> > > This patch enables MStandby smart-idle mode, autoidle smartidle m=
-ode,
-> > > and the autoidle bit for DMA4_OCP_SYSCONFIG.
-> > >
-> > > Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-> > > ---
-> > >  arch/arm/plat-omap/dma.c              |   13 +++++++++++++
-> > >  arch/arm/plat-omap/include/mach/dma.h |   15 +++++++++++++++
-> > >  2 files changed, 28 insertions(+), 0 deletions(-)
-> > >
-> > > diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> > > index c4e5ba3..9d8d28c 100644
-> > > --- a/arch/arm/plat-omap/dma.c
-> > > +++ b/arch/arm/plat-omap/dma.c
-> > > @@ -2420,6 +2420,19 @@ static int __init omap_init_dma(void)
-> > >  	if (cpu_class_is_omap2())
-> > >  		setup_irq(INT_24XX_SDMA_IRQ0, &omap24xx_dma_irq);
-> > > =20
-> > > +	/* Enable smartidle idlemodes and autoidle */
-> > > +	if (cpu_is_omap34xx()) {
-> >=20
-> > I think this can be done for omap2 also.
->=20
-> Probably true. If no other comments come today, I'll post a new patch
-> with this change.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [081201 08:05]:
+> This patch fixes a number of sillies, from missing 'const' to using
+> 'return' in void functions, to functions with no arguments not even
+> 'void' and a cast which isn't required.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> 
+> --
+> I want to merge this for the next ARM kernel pull by Linus.  Please
+> ack the patch.
 
-Now that I re-checked, there is no SIDLEMODE for omap2. Also in omap2,
-setting MIDLEMODE to smartidle cannot be done if cam DMA is used.
+Good stuff, here's my ack:
 
-So, I think the patch should be as it is, omap3 only.
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-- Kalle
+Tony
 
->=20
-> - Kalle
->=20
-> >=20
-> > > +		u32 v =3D dma_read(OCP_SYSCONFIG);
-> > > +		v &=3D ~(DMA_SYSCONFIG_MIDLEMODE_MASK |
-> > > +				DMA_SYSCONFIG_SIDLEMODE_MASK |
-> > > +				DMA_SYSCONFIG_AUTOIDLE);
-> > > +		v |=3D (DMA_SYSCONFIG_MIDLEMODE(DMA_IDLEMODE_SMARTIDLE) |
-> > > +			DMA_SYSCONFIG_SIDLEMODE(DMA_IDLEMODE_SMARTIDLE) |
-> > > +			DMA_SYSCONFIG_AUTOIDLE);
-> > > +		dma_write(v , OCP_SYSCONFIG);
-> > > +	}
-> > > +
-> > > +
-> > >  	/* FIXME: Update LCD DMA to work on 24xx */
-> > >  	if (cpu_class_is_omap1()) {
-> > >  		r =3D request_irq(INT_DMA_LCD, lcd_dma_irq_handler, 0,
-> > > diff --git a/arch/arm/plat-omap/include/mach/dma.h
-> > >  	b/arch/arm/plat-omap/include/mach/dma.h
-> >=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+>  arch/arm/mach-omap1/io.c                 |    2 +-
+>  arch/arm/plat-omap/include/mach/omapfb.h |    4 ++--
+>  arch/arm/plat-omap/sram.c                |    8 ++++----
+>  drivers/video/omap/omapfb_main.c         |    2 +-
+>  4 files changed, 8 insertions(+), 8 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap1/io.c b/arch/arm/mach-omap1/io.c
+> index b3bd8ca..4c3e582 100644
+> --- a/arch/arm/mach-omap1/io.c
+> +++ b/arch/arm/mach-omap1/io.c
+> @@ -128,7 +128,7 @@ void __init omap1_map_common_io(void)
+>   * Common low-level hardware init for omap1. This should only get called from
+>   * board specific init.
+>   */
+> -void __init omap1_init_common_hw()
+> +void __init omap1_init_common_hw(void)
+>  {
+>  	/* REVISIT: Refer to OMAP5910 Errata, Advisory SYS_1: "Timeout Abort
+>  	 * on a Posted Write in the TIPB Bridge".
+> diff --git a/arch/arm/plat-omap/include/mach/omapfb.h b/arch/arm/plat-omap/include/mach/omapfb.h
+> index ec67fb4..7b74d12 100644
+> --- a/arch/arm/plat-omap/include/mach/omapfb.h
+> +++ b/arch/arm/plat-omap/include/mach/omapfb.h
+> @@ -353,8 +353,8 @@ struct omapfb_device {
+>  	u32			pseudo_palette[17];
+>  
+>  	struct lcd_panel	*panel;			/* LCD panel */
+> -	struct lcd_ctrl         *ctrl;			/* LCD controller */
+> -	struct lcd_ctrl		*int_ctrl;		/* internal LCD ctrl */
+> +	const struct lcd_ctrl	*ctrl;			/* LCD controller */
+> +	const struct lcd_ctrl	*int_ctrl;		/* internal LCD ctrl */
+>  	struct lcd_ctrl_extif	*ext_if;		/* LCD ctrl external
+>  							   interface */
+>  	struct device		*dev;
+> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> index 9f9a921..dcd9d16 100644
+> --- a/arch/arm/plat-omap/sram.c
+> +++ b/arch/arm/plat-omap/sram.c
+> @@ -255,7 +255,7 @@ void omap_sram_reprogram_clock(u32 dpllctl, u32 ckctl)
+>  	if (!_omap_sram_reprogram_clock)
+>  		omap_sram_error();
+>  
+> -	return _omap_sram_reprogram_clock(dpllctl, ckctl);
+> +	_omap_sram_reprogram_clock(dpllctl, ckctl);
+>  }
+>  
+>  int __init omap1_sram_init(void)
+> @@ -282,8 +282,8 @@ void omap2_sram_ddr_init(u32 *slow_dll_ctrl, u32 fast_dll_ctrl,
+>  	if (!_omap2_sram_ddr_init)
+>  		omap_sram_error();
+>  
+> -	return _omap2_sram_ddr_init(slow_dll_ctrl, fast_dll_ctrl,
+> -				    base_cs, force_unlock);
+> +	_omap2_sram_ddr_init(slow_dll_ctrl, fast_dll_ctrl,
+> +			     base_cs, force_unlock);
+>  }
+>  
+>  static void (*_omap2_sram_reprogram_sdrc)(u32 perf_level, u32 dll_val,
+> @@ -294,7 +294,7 @@ void omap2_sram_reprogram_sdrc(u32 perf_level, u32 dll_val, u32 mem_type)
+>  	if (!_omap2_sram_reprogram_sdrc)
+>  		omap_sram_error();
+>  
+> -	return _omap2_sram_reprogram_sdrc(perf_level, dll_val, mem_type);
+> +	_omap2_sram_reprogram_sdrc(perf_level, dll_val, mem_type);
+>  }
+>  
+>  static u32 (*_omap2_set_prcm)(u32 dpll_ctrl_val, u32 sdrc_rfr_val, int bypass);
+> diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
+> index 5a5e407..1a49519 100644
+> --- a/drivers/video/omap/omapfb_main.c
+> +++ b/drivers/video/omap/omapfb_main.c
+> @@ -392,7 +392,7 @@ static void set_fb_fix(struct fb_info *fbi)
+>  	int bpp;
+>  
+>  	rg = &plane->fbdev->mem_desc.region[plane->idx];
+> -	fbi->screen_base	= (char __iomem *)rg->vaddr;
+> +	fbi->screen_base	= rg->vaddr;
+>  	fix->smem_start		= rg->paddr;
+>  	fix->smem_len		= rg->size;
+>  
