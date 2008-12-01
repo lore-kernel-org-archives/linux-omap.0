@@ -1,74 +1,140 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: RFC: [PATCH] Change VDD2 setopp to use bus throughput
-Date: Mon,  1 Dec 2008 19:18:37 +0200
-Message-ID: <1228151917-13354-1-git-send-email-peter.de-schrijver@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:53588 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751079AbYLARS5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 12:18:57 -0500
-Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mB1HIe2h015102
-	for <linux-omap@vger.kernel.org>; Mon, 1 Dec 2008 11:18:55 -0600
-Sender: linux-omap-owner@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng
+Date: Mon, 1 Dec 2008 19:07:06 +0100
+Message-ID: <200812011907.06370.hverkuil@xs4all.nl>
+References: <200812011246.08885.hverkuil@xs4all.nl>
+	<200812011524.43499.laurent.pinchart@skynet.be>
+	<20081201130643.661f5743@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <video4linux-list-bounces@redhat.com>
+In-Reply-To: <20081201130643.661f5743@pedra.chehab.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: video4linux-list@redhat.com, davinci-linux-open-source-bounces@linux.davincidsp.com, linux-kernel@vger.kernel.org, v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-The following patch changes setopp to use bus throughput as its input instead
-of the OPP number. The bus throughput to OPP mapping table is part of the
-vdd2_opp resource, which makes it difficult to do this mapping on a higher
-level. Comments on other/better approaches welcome !
+On Monday 01 December 2008 16:06:43 Mauro Carvalho Chehab wrote:
+> Hi Hans,
+>
+> On Mon, 1 Dec 2008 15:24:43 +0100
+>
+> Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
+> > > > I am all for pushing the changes to the v4l-dvb repository so
+> > > > they can get broader testing. I am, however, a bit more
+> > > > concerned about pushing the changes to Linus yet.
+> > >
+> > > They will of course go to linux-next and end up in 2.6.29 when
+> > > the merge window opens. It's obviously not for 2.6.28.
+> >
+> > I would say 2.6.29 is a bit early, but I can live with that.
+>
+> It also seems a bit early to me, but it may work. I'll try to
+> schedule some time this week for a deep review.
 
-Cheers,
+Much appreciated.
 
-Peter.
+> > > In addition, these changes make it easier as well to use the new
+> > > i2c API in bridge drivers (in 2.6.29 the old-style I2C probing
+> > > will be deprecated, so we need to convert). So we get many
+> > > benefits with just these changes.
+>
+> IMO, this is one of the top priorities: the old-style i2c used on
+> some bridge drivers like saa7134 and cx88 are causing malfunctions
+> that can't be easily solved. I would like to see a fix for this for
+> 2.6.29.
 
-Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
----
- arch/arm/mach-omap2/resource34xx.c |   17 +++++++++++++----
- 1 files changed, 13 insertions(+), 4 deletions(-)
+Using v4l2_i2c_new_subdev or v4l2_i2c_new_probed_subdev should make it 
+much easier to switch over. It certainly simplified it for ivtv.
 
-diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
-index 6364818..857cb14 100644
---- a/arch/arm/mach-omap2/resource34xx.c
-+++ b/arch/arm/mach-omap2/resource34xx.c
-@@ -164,6 +164,7 @@ int set_opp(struct shared_resource *resp, u32 target_level)
- 	unsigned long mpu_freq, mpu_old_freq, l3_freq, t_opp;
- 	int ind;
- 	struct cpufreq_freqs freqs_notify;
-+	struct bus_throughput_db *tput;
- 
- 	if (resp->curr_level == target_level)
- 		return 0;
-@@ -199,15 +200,23 @@ int set_opp(struct shared_resource *resp, u32 target_level)
- 		cpufreq_notify_transition(&freqs_notify, CPUFREQ_POSTCHANGE);
- #endif
- 	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
-+		int target_opp;
-+
-+		tput = (struct bus_throughput_db *)(resp->resource_data);
-+		for(target_opp=0; target_opp < MAX_VDD2_OPP; target_opp++) {
-+			if (tput->throughput[target_opp] >= target_level)
-+				break;
-+		}
-+
- 		l3_freq = get_freq(l3_opps + MAX_VDD2_OPP,
--					target_level);
-+					target_opp);
- 		t_opp = ID_VDD(PRCM_VDD2) |
--				ID_OPP_NO(l3_opps[target_level].opp_id);
--		if (resp->curr_level > target_level) {
-+				ID_OPP_NO(l3_opps[target_opp].opp_id);
-+		if (resp->curr_level > target_opp) {
- 			/* Scale Frequency and then voltage */
- 			clk_set_rate(vdd2_clk, l3_freq);
- 			sr_voltagescale_vcbypass(t_opp,
--						l3_opps[target_level].vsel);
-+						l3_opps[target_opp].vsel);
- 		} else {
- 			/* Scale Voltage and then frequency */
- 			sr_voltagescale_vcbypass(t_opp,
+> > > Of course, I want to add more v4l2 framework support to these new
+> > > structures, but I don't have any code yet for that anyway, just
+> > > lots of ideas. Start simple, then expand.
+> > >
+> > > > I don't know if that's possible at all, or if all changes in
+> > > > v4l-dvb are automatically selected for a push to the git
+> > > > repository whenever Mauro triggers the hg->git process.
+> > >
+> > > Well, they go to linux-next, but is that a problem?
+>
+> I only send Linus the patches that are already ok, but I generally
+> prefer to postpone a merge for the end of a merge window, when the
+> patch is not meant to be at the next version.
+>
+> > In a few months time (probably even earlier) the v4l2_device
+> > structure will be reworked (and possible renamed).
+>
+> Hmm... why? it would be better to try to have the KABI changes for it
+> at the same kernel release if possible.
+
+I would like to state again that I have no plans to rename it. There is 
+a chance that it will be used by the dvb subsystem as well in the 
+future, but that's not going to happen any time soon. But should that 
+happen, then we might consider renaming it to 
+media_device/media_subdev. However, right now it is very much v4l2 
+specific code. I think it more likely that if this is used in dvb then 
+it would be for v4l2 functionality, not dvb functionality.
+
+There will definitely be future additions since this is only the first 
+step. Things on my list: better framework support for controls, 
+v4l2_prio handling, adding a similar v4l2_fh struct for 
+filehandle-specific data and the media controller which has been 
+discussed in earlier RFCs and that requires these fundamental data 
+structs to be in place first.
+
+Replacing the v4l2-int-device.h API with v4l2_subdev and adding support 
+for sensor drivers to the v4l2_subdev ops will also no doubt require 
+additions.
+
+But I want to do this step by step. It's just humanly impossible to go 
+for a Big Bang here. Each time something gets added there must be at 
+least one driver actually using it so you have some confidence in the 
+change. Just integrating these simple v4l2_device and v4l2_subdev 
+structs will take a fair amount of time.
+
+Regards,
+
+	Hans
+
+> > I'm fine with it going to linux-next now if
+> > we agree on the following.
+> >
+> > - We should only advocate v4l2_device usage for subdevices-aware
+> > video devices. Porting all drivers to v4l2_device is currently
+> > pointless and will only make future transitions more difficult.
+>
+> This makes sense to me.
+>
+> > - v4l2_device should be marked as experimental. I don't want to
+> > hear any API/ABI breakage argument in a few months time when the
+> > framework will evolve.
+>
+> Are you meaning marking this as experimental at Kconfig? This seems
+> too complex, since we'll need to test for some var on every driver
+> that were converted, providing two KABI options for each converted
+> driver (the legacy and the v4l2_device way). This doesn't seem to be
+> a good idea, since will add a lot of extra complexity to debug bugs.
+>
+> Cheers,
+> Mauro
+
+
+
 -- 
-1.5.6.3
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
