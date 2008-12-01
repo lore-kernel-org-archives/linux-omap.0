@@ -1,89 +1,87 @@
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng
-Date: Mon, 1 Dec 2008 13:06:43 -0200
-Message-ID: <20081201130643.661f5743@pedra.chehab.org>
-References: <200812011246.08885.hverkuil@xs4all.nl>
-	<200812011429.54019.laurent.pinchart@skynet.be>
-	<200812011445.50115.hverkuil@xs4all.nl>
-	<200812011524.43499.laurent.pinchart@skynet.be>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP3: PM: Prevent PER from going OFF when CORE is going INA
+Date: Mon, 01 Dec 2008 07:53:48 -0800
+Message-ID: <87ljuzoprn.fsf@deeprootsystems.com>
+References: <1228131166-12076-1-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:33505 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750898AbYLAPHD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 10:07:03 -0500
-In-Reply-To: <200812011524.43499.laurent.pinchart@skynet.be>
+Received: from rv-out-0506.google.com ([209.85.198.230]:15678 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751847AbYLAPxx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 10:53:53 -0500
+Received: by rv-out-0506.google.com with SMTP id k40so2516894rvb.1
+        for <linux-omap@vger.kernel.org>; Mon, 01 Dec 2008 07:53:51 -0800 (PST)
+In-Reply-To: <1228131166-12076-1-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Mon\,  1 Dec 2008 13\:32\:46 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, video4linux-list@redhat.com, v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, davinci-linux-open-source-bounces@linux.davincidsp.com
+To: Tero Kristo <tero.kristo@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Hans,
+Tero Kristo <tero.kristo@nokia.com> writes:
 
-On Mon, 1 Dec 2008 15:24:43 +0100
-Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
+> OMAP3 can't generate wakeups in this state, thus it is not permitted.
+>
+> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 
-> > > I am all for pushing the changes to the v4l-dvb repository so they
-> > > can get broader testing. I am, however, a bit more concerned about
-> > > pushing the changes to Linus yet.
-> >
-> > They will of course go to linux-next and end up in 2.6.29 when the merge
-> > window opens. It's obviously not for 2.6.28.
-> 
-> I would say 2.6.29 is a bit early, but I can live with that.
+Thanks, pulling into PM branch.
 
-It also seems a bit early to me, but it may work. I'll try to schedule some
-time this week for a deep review.
+Kevin
 
-> > In addition, these changes make it easier as well to use the new i2c API
-> > in bridge drivers (in 2.6.29 the old-style I2C probing will be
-> > deprecated, so we need to convert). So we get many benefits with just
-> > these changes.
-
-IMO, this is one of the top priorities: the old-style i2c used on some bridge
-drivers like saa7134 and cx88 are causing malfunctions that can't be easily
-solved. I would like to see a fix for this for 2.6.29.
-
-> > Of course, I want to add more v4l2 framework support to these new
-> > structures, but I don't have any code yet for that anyway, just lots of
-> > ideas. Start simple, then expand.
-> >
-> > > I don't know if that's possible at all, or if all changes in v4l-dvb
-> > > are automatically selected for a push to the git repository whenever
-> > > Mauro triggers the hg->git process.
-> >
-> > Well, they go to linux-next, but is that a problem?
-
-I only send Linus the patches that are already ok, but I generally prefer to
-postpone a merge for the end of a merge window, when the patch is not meant to
-be at the next version.
-
-> In a few months time (probably even earlier) the v4l2_device structure will be 
-> reworked (and possible renamed). 
-
-Hmm... why? it would be better to try to have the KABI changes for it at the
-same kernel release if possible.
-
-> I'm fine with it going to linux-next now if 
-> we agree on the following.
-
-> - We should only advocate v4l2_device usage for subdevices-aware video 
-> devices. Porting all drivers to v4l2_device is currently pointless and will 
-> only make future transitions more difficult.
-
-This makes sense to me.
-
-> - v4l2_device should be marked as experimental. I don't want to hear any 
-> API/ABI breakage argument in a few months time when the framework will 
-> evolve.
-
-Are you meaning marking this as experimental at Kconfig? This seems too
-complex, since we'll need to test for some var on every driver that were
-converted, providing two KABI options for each converted driver (the legacy and
-the v4l2_device way). This doesn't seem to be a good idea, since will add a lot
-of extra complexity to debug bugs.
-
-Cheers,
-Mauro
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |   15 ++++++++++++---
+>  1 files changed, 12 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 4a2837a..1186739 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -284,6 +284,7 @@ void omap_sram_idle(void)
+>  	int core_next_state = PWRDM_POWER_ON;
+>  	int core_prev_state, per_prev_state;
+>  	u32 sdrc_pwr = 0;
+> +	int per_state_modified = 0;
+>  
+>  	if (!_omap_sram_idle)
+>  		return;
+> @@ -320,15 +321,21 @@ void omap_sram_idle(void)
+>  
+>  	/* PER */
+>  	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
+> +	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
+>  	if (per_next_state < PWRDM_POWER_ON) {
+>  		omap_uart_prepare_idle(2);
+>  		omap2_gpio_prepare_for_retention();
+> -		if (per_next_state == PWRDM_POWER_OFF)
+> -			omap3_per_save_context();
+> +		if (per_next_state == PWRDM_POWER_OFF) {
+> +			if (core_next_state == PWRDM_POWER_ON) {
+> +				per_next_state = PWRDM_POWER_RET;
+> +				pwrdm_set_next_pwrst(per_pwrdm, per_next_state);
+> +				per_state_modified = 1;
+> +			} else
+> +				omap3_per_save_context();
+> +		}
+>  	}
+>  
+>  	/* CORE */
+> -	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
+>  	if (core_next_state < PWRDM_POWER_ON) {
+>  		omap_uart_prepare_idle(0);
+>  		omap_uart_prepare_idle(1);
+> @@ -405,6 +412,8 @@ void omap_sram_idle(void)
+>  			omap3_per_restore_context();
+>  		omap2_gpio_resume_after_retention();
+>  		omap_uart_resume_idle(2);
+> +		if (per_state_modified)
+> +			pwrdm_set_next_pwrst(per_pwrdm, PWRDM_POWER_OFF);
+>  	}
+>  
+>  	/* Disable IO-PAD wakeup */
+> -- 
+> 1.5.4.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
