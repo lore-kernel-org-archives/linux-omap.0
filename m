@@ -1,197 +1,124 @@
-From: "Sriram V" <vshrirama@gmail.com>
-Subject: Re: [ANNOUNCE] new PM branch: pm-20081119
-Date: Mon, 1 Dec 2008 21:52:30 +0530
-Message-ID: <8bf247760812010822t26f1af27l689bc64175703589@mail.gmail.com>
-References: <87d4grdxqh.fsf@deeprootsystems.com>
-	 <345163910811200045n3af8b3b5mbd30601aeeee31e@mail.gmail.com>
-	 <B85A65D85D7EB246BE421B3FB0FBB59301B6C8C79B@dbde02.ent.ti.com>
-	 <87r656b8js.fsf@deeprootsystems.com>
-	 <B85A65D85D7EB246BE421B3FB0FBB59301B6D59577@dbde02.ent.ti.com>
-	 <87ljvd6p3u.fsf@deeprootsystems.com>
-	 <8bf247760811222357t45c25113ncfe6874b149651d5@mail.gmail.com>
-	 <87vdudbmu5.fsf@trdhcp146196.ntc.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH v2 2/5] OMAP3: PM: Force IVA2 into idle during bootup
+Date: Mon,  1 Dec 2008 08:22:43 -0800
+Message-ID: <1228148566-9358-3-git-send-email-khilman@deeprootsystems.com>
+References: <1228148566-9358-1-git-send-email-khilman@deeprootsystems.com>
+ <1228148566-9358-2-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:12842 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750946AbYLAQWc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 11:22:32 -0500
-Received: by fg-out-1718.google.com with SMTP id 19so1849476fgg.17
-        for <linux-omap@vger.kernel.org>; Mon, 01 Dec 2008 08:22:30 -0800 (PST)
-In-Reply-To: <87vdudbmu5.fsf@trdhcp146196.ntc.nokia.com>
-Content-Disposition: inline
+Received: from rv-out-0506.google.com ([209.85.198.227]:21102 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751068AbYLAQWy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 11:22:54 -0500
+Received: by rv-out-0506.google.com with SMTP id k40so2527683rvb.1
+        for <linux-omap@vger.kernel.org>; Mon, 01 Dec 2008 08:22:53 -0800 (PST)
+In-Reply-To: <1228148566-9358-2-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?H=F6gander_Jouni?= <jouni.hogander@nokia.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Premi, Sanjeev" <premi@ti.com>, Peter Reid <ppeter.reid@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi,
-  On OMAP3EVM, with a minimum config. All domains are hitting RET.
-Only SGX domain hits  OFF. No other domain hits OFF.
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/pm34xx.c              |   55 +++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/control.h |    5 +++
+ 2 files changed, 60 insertions(+), 0 deletions(-)
 
-  I tried doing a echo 1 > /sys/power/enable_off_mode.
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index bd74183..6ff6449 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -29,6 +29,7 @@
+ #include <mach/pm.h>
+ #include <mach/clockdomain.h>
+ #include <mach/powerdomain.h>
++#include <mach/control.h>
+ 
+ #include "cm.h"
+ #include "cm-regbits-34xx.h"
+@@ -363,6 +364,58 @@ static struct platform_suspend_ops omap_pm_ops = {
+ 	.valid		= suspend_valid_only_mem,
+ };
+ 
++
++/**
++ * omap3_iva_idle(): ensure IVA is in idle so it can be put into
++ *                   retention
++ *
++ * In cases where IVA2 is activated by bootcode, it may prevent
++ * full-chip retention or off-mode because it is not idle.  This
++ * function forces the IVA2 into idle state so it can go
++ * into retention/off and thus allow full-chip retention/off.
++ *
++ **/
++static void __init omap3_iva_idle(void)
++{
++	struct clk *iva2_ck;
++
++	iva2_ck = clk_get(NULL, "iva2_fclk");
++	if (!iva2_ck) {
++		pr_err("Unable to get IVA2 fclk: cannot force idle.\n");
++		return;
++	}
++
++	/* Disable IVA2 clock */
++	clk_disable(iva2_ck);
++
++	/* Reset IVA2 */
++	prm_write_mod_reg(OMAP3430_RST1_IVA2 |
++			  OMAP3430_RST2_IVA2 |
++			  OMAP3430_RST3_IVA2,
++			  OMAP3430_IVA2_MOD, RM_RSTCTRL);
++
++	/* Enable IVA2 clock */
++	clk_enable(iva2_ck);
++
++	/* Set IVA2 boot mode to 'idle' */
++	omap_ctrl_writel(OMAP3_IVA2_BOOTMOD_IDLE,
++			 OMAP343X_CONTROL_IVA2_BOOTMOD);
++
++	/* Un-reset IVA2 */
++	prm_write_mod_reg(0, OMAP3430_IVA2_MOD, RM_RSTCTRL);
++
++	/* Disable IVA2 clocks */
++	clk_disable(iva2_ck);
++
++	/* Reset IVA2 */
++	prm_write_mod_reg(OMAP3430_RST1_IVA2 |
++			  OMAP3430_RST2_IVA2 |
++			  OMAP3430_RST3_IVA2,
++			  OMAP3430_IVA2_MOD, RM_RSTCTRL);
++
++	clk_put(iva2_ck);
++}
++
+ static void __init prcm_setup_regs(void)
+ {
+ 	/* XXX Reset all wkdeps. This should be done when initializing
+@@ -514,6 +567,8 @@ static void __init prcm_setup_regs(void)
+ 	 * it is selected to mpu wakeup goup */
+ 	prm_write_mod_reg(OMAP3430_IO_EN | OMAP3430_WKUP_EN,
+ 			OCP_MOD, OMAP2_PRM_IRQENABLE_MPU_OFFSET);
++
++	omap3_iva_idle();
+ }
+ 
+ static int __init pwrdms_setup(struct powerdomain *pwrdm)
+diff --git a/arch/arm/plat-omap/include/mach/control.h b/arch/arm/plat-omap/include/mach/control.h
+index ee3c39e..b51f7fd 100644
+--- a/arch/arm/plat-omap/include/mach/control.h
++++ b/arch/arm/plat-omap/include/mach/control.h
+@@ -208,6 +208,11 @@
+ #define OMAP2_PBIASLITEPWRDNZ0		(1 << 1)
+ #define OMAP2_PBIASLITEVMODE0		(1 << 0)
+ 
++/* CONTROL_IVA2_BOOTMOD bits */
++#define OMAP3_IVA2_BOOTMOD_SHIFT	0
++#define OMAP3_IVA2_BOOTMOD_MASK		(0xf << 0)
++#define OMAP3_IVA2_BOOTMOD_IDLE		(0x1 << 0)
++
+ #ifndef __ASSEMBLY__
+ #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+ extern void __iomem *omap_ctrl_base_get(void);
+-- 
+1.6.0.3
 
-  Powertop shows Sleep States upto C4.  Has anyone seen Sleep States
-upto C6 with this kernel?
-
- dont know why MPU/CORE not hitting OFF even though the clocks are off.
-
-With the most of the PM support (Suspend/Resume, Power Domains, CPU
-Idle)  up with minimum config.
-
-What else remains to be supported?
-
-CPU freq, constraint frame work and individual drivers support to
-enable power domain transition to OFF/RET?
-Is this all? do these cover all the pm features of omap3?
-
-Is the constraints framework embedded within the TI SRF or is it
-independently usable?
-
-I havent seen too many drivers which specify constraints in the TI
-sources though.
-
-
-Regards,
-sriram
-
-On Mon, Nov 24, 2008 at 1:02 PM, H=F6gander Jouni
-<jouni.hogander@nokia.com> wrote:
-> "ext Sriram V" <vshrirama@gmail.com> writes:
->
->> Kevin,
->>
->> On Fri, Nov 21, 2008 at 9:35 PM, Kevin Hilman
->> <khilman@deeprootsystems.com> wrote:
->>> "Premi, Sanjeev" <premi@ti.com> writes:
->>>
->>>>> -----Original Message-----
->>>>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>>>> Sent: Thursday, November 20, 2008 11:10 PM
->>>>> To: Premi, Sanjeev
->>>>> Cc: Peter Reid; linux-omap@vger.kernel.org
->>>>> Subject: Re: [ANNOUNCE] new PM branch: pm-20081119
->>>>>
->>>>> "Premi, Sanjeev" <premi@ti.com> writes:
->>>>>
->>>>> > These are my observations on OMAP3EVM:
->>>>> >
->>>>> > 1) Very frequently I see these messages:
->>>>> >
->>>>> > <4>__ratelimit: 6736 callbacks suppressed
->>>>> > __ratelimit: 6736 callbacks suppressed <3>omapfb omapfb: irq er=
-ror
->>>>> > status 00c2 omapfb omapfb: irq error status 00c2 <3>omapfb
->>>>> omapfb: irq
->>>>> > error status 0060 omapfb omapfb: irq error status 0060 <3>omapf=
-b
->>>>> > omapfb: irq error status 00c2 omapfb omapfb: irq error status 0=
-0c2
->>>>> > <3>omapfb omapfb: irq error status 0060 omapfb omapfb: irq erro=
-r
->>>>> > status 0060 <3>omapfb omapfb: irq error status 00e2 omapfb
->>>>> omapfb: irq
->>>>> > error status 00e2 <3>omapfb omapfb: irq error status 00c2 omapf=
-b
->>>>> > omapfb: irq error status 00c2 <3>omapfb omapfb: irq error
->>>>> status 0060
->>>>> > omapfb omapfb: irq error status 0060 <3>omapfb omapfb: irq erro=
-r
->>>>> > status 00e2 omapfb omapfb: irq error status 00e2 <3>omapfb
->>>>> omapfb: irq
->>>>> > error status 00c2 omapfb omapfb: irq error status 00c2 <3>omapf=
-b
->>>>> > omapfb: irq error status 0060 omapfb omapfb: irq error status 0=
-060
->>>>>
->>>>> Sanjeev,
->>>>>
->>>>> For starters can you try with a minimal kernel (no drivers,
->>>>> no framebuffer, etc.)
->>>>>
->>>>> The first goal is to hit retention and off with no drivers
->>>>> than start moving out to address driver issues from there.
->>>>>
->>>>> Kevin
->>>>>
->>>>
->>>> Here is what I was able to see with the minimal config (attached).
->>>>
->>>> [root@OMAP3EVM /]# echo mem > /sys/power/state
->>>> <6>PM: Syncing filesystems ... PM: Syncing filesystems ... done.
->>>> done.
->>>> Freezing user space processes ... Freezing user space processes ..=
-=2E (elapsed 0.00 seconds) (elapsed 0.00 seconds) done.
->>>> done.
->>>> Freezing remaining freezable tasks ... Freezing remaining freezabl=
-e tasks ... (elapsed 0.01 seconds) (elapsed 0.01 seconds) done.done.
->>>>
->>>> Suspending console(s) (use no_console_suspend to debug)
->>>> Suspending console(s) (use no_console_suspend to debug)
->>>>
->>>> <snip>un-printable characters<snip>
->>>>
->>>> Powerdomain (per_pwrdm) didn't enter target state 1
->>>> Could not enter target state in pm_suspend
->>>> Restarting tasks ... Restarting tasks ... done.
->>>> done.
->>>
->>> This is what I see on Beagle as well (PER is not entering retention=
-=2E)
->>>
->>
->>> At this point, the current PM debug code doesn't help further in
->>> determining exactly why a powerdomain did not hit its target state.
->>> Some device in the domain may still have its clocks enabled, or its
->>> idle state not set correctly.  Or, a given module may have been
->>> initialized by the bootloader in a way which prevents it from going
->>> idle.
->>>
->>
->>   True. I have observed on omap3evm with minimum configuration, and
->> booting out of ramdisk:
->>           with nand booting:  only per powerdomain does not enter re=
-tention
->>           with mmc boot:  core and per dont enter retention
->>
->>    it could do with clocks set the bootloaders that is preventing it=
- from
->>    entering ret/off.
->
-> To tackle this you should have CONFIG_OMAP_RESET_CLOCKS enabled in
-> config.
->
->>    what do you mean by idle state not set correctly? are you referri=
-ng
->> to auto-idle bit?
->
-> Not sure what Kevin meant there, but if the problem was in the
-> autoidle bit in *_SYSCONFIG, I would expect also CORE pwrdm to
-> fail. Anyway it's also worth of checking the statuses of PER modules
-> *_SYSCONFIG registers.
->
->>
->>
->>> We need some improved PM debug capabilities in the kernel to pinpoi=
-nt
->>> exactly the module that is causing the problem.
->>>
->>
->>    Apart from PM debug, are you using any other module/methods to
->>    debug?
->
-> State of PRCM registers can be quickly checked from
-> /sys/kernel/debug/pm_debug/registers/current (assuming you have mount
-> debugfs in /sys/kernel/debug and PM_DEBUG is enabled in config).
->
-> --
-> Jouni H=F6gander
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
