@@ -1,117 +1,74 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] fix a pile of OMAP issues
-Date: Mon, 1 Dec 2008 09:01:35 -0800
-Message-ID: <20081201170134.GV6640@atomide.com>
-References: <20081201160507.GC18592@flint.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: RFC: [PATCH] Change VDD2 setopp to use bus throughput
+Date: Mon,  1 Dec 2008 19:18:37 +0200
+Message-ID: <1228151917-13354-1-git-send-email-peter.de-schrijver@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54132 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752075AbYLARBi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 12:01:38 -0500
-Content-Disposition: inline
-In-Reply-To: <20081201160507.GC18592@flint.arm.linux.org.uk>
+Received: from smtp.nokia.com ([192.100.105.134]:53588 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751079AbYLARS5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 12:18:57 -0500
+Received: from esebh107.NOE.Nokia.com (esebh107.ntc.nokia.com [172.21.143.143])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mB1HIe2h015102
+	for <linux-omap@vger.kernel.org>; Mon, 1 Dec 2008 11:18:55 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+To: linux-omap@vger.kernel.org
+Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [081201 08:05]:
-> This patch fixes a number of sillies, from missing 'const' to using
-> 'return' in void functions, to functions with no arguments not even
-> 'void' and a cast which isn't required.
-> 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> 
-> --
-> I want to merge this for the next ARM kernel pull by Linus.  Please
-> ack the patch.
+The following patch changes setopp to use bus throughput as its input instead
+of the OPP number. The bus throughput to OPP mapping table is part of the
+vdd2_opp resource, which makes it difficult to do this mapping on a higher
+level. Comments on other/better approaches welcome !
 
-Good stuff, here's my ack:
+Cheers,
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Peter.
 
-Tony
+Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+---
+ arch/arm/mach-omap2/resource34xx.c |   17 +++++++++++++----
+ 1 files changed, 13 insertions(+), 4 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
+index 6364818..857cb14 100644
+--- a/arch/arm/mach-omap2/resource34xx.c
++++ b/arch/arm/mach-omap2/resource34xx.c
+@@ -164,6 +164,7 @@ int set_opp(struct shared_resource *resp, u32 target_level)
+ 	unsigned long mpu_freq, mpu_old_freq, l3_freq, t_opp;
+ 	int ind;
+ 	struct cpufreq_freqs freqs_notify;
++	struct bus_throughput_db *tput;
+ 
+ 	if (resp->curr_level == target_level)
+ 		return 0;
+@@ -199,15 +200,23 @@ int set_opp(struct shared_resource *resp, u32 target_level)
+ 		cpufreq_notify_transition(&freqs_notify, CPUFREQ_POSTCHANGE);
+ #endif
+ 	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
++		int target_opp;
++
++		tput = (struct bus_throughput_db *)(resp->resource_data);
++		for(target_opp=0; target_opp < MAX_VDD2_OPP; target_opp++) {
++			if (tput->throughput[target_opp] >= target_level)
++				break;
++		}
++
+ 		l3_freq = get_freq(l3_opps + MAX_VDD2_OPP,
+-					target_level);
++					target_opp);
+ 		t_opp = ID_VDD(PRCM_VDD2) |
+-				ID_OPP_NO(l3_opps[target_level].opp_id);
+-		if (resp->curr_level > target_level) {
++				ID_OPP_NO(l3_opps[target_opp].opp_id);
++		if (resp->curr_level > target_opp) {
+ 			/* Scale Frequency and then voltage */
+ 			clk_set_rate(vdd2_clk, l3_freq);
+ 			sr_voltagescale_vcbypass(t_opp,
+-						l3_opps[target_level].vsel);
++						l3_opps[target_opp].vsel);
+ 		} else {
+ 			/* Scale Voltage and then frequency */
+ 			sr_voltagescale_vcbypass(t_opp,
+-- 
+1.5.6.3
 
->  arch/arm/mach-omap1/io.c                 |    2 +-
->  arch/arm/plat-omap/include/mach/omapfb.h |    4 ++--
->  arch/arm/plat-omap/sram.c                |    8 ++++----
->  drivers/video/omap/omapfb_main.c         |    2 +-
->  4 files changed, 8 insertions(+), 8 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap1/io.c b/arch/arm/mach-omap1/io.c
-> index b3bd8ca..4c3e582 100644
-> --- a/arch/arm/mach-omap1/io.c
-> +++ b/arch/arm/mach-omap1/io.c
-> @@ -128,7 +128,7 @@ void __init omap1_map_common_io(void)
->   * Common low-level hardware init for omap1. This should only get called from
->   * board specific init.
->   */
-> -void __init omap1_init_common_hw()
-> +void __init omap1_init_common_hw(void)
->  {
->  	/* REVISIT: Refer to OMAP5910 Errata, Advisory SYS_1: "Timeout Abort
->  	 * on a Posted Write in the TIPB Bridge".
-> diff --git a/arch/arm/plat-omap/include/mach/omapfb.h b/arch/arm/plat-omap/include/mach/omapfb.h
-> index ec67fb4..7b74d12 100644
-> --- a/arch/arm/plat-omap/include/mach/omapfb.h
-> +++ b/arch/arm/plat-omap/include/mach/omapfb.h
-> @@ -353,8 +353,8 @@ struct omapfb_device {
->  	u32			pseudo_palette[17];
->  
->  	struct lcd_panel	*panel;			/* LCD panel */
-> -	struct lcd_ctrl         *ctrl;			/* LCD controller */
-> -	struct lcd_ctrl		*int_ctrl;		/* internal LCD ctrl */
-> +	const struct lcd_ctrl	*ctrl;			/* LCD controller */
-> +	const struct lcd_ctrl	*int_ctrl;		/* internal LCD ctrl */
->  	struct lcd_ctrl_extif	*ext_if;		/* LCD ctrl external
->  							   interface */
->  	struct device		*dev;
-> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-> index 9f9a921..dcd9d16 100644
-> --- a/arch/arm/plat-omap/sram.c
-> +++ b/arch/arm/plat-omap/sram.c
-> @@ -255,7 +255,7 @@ void omap_sram_reprogram_clock(u32 dpllctl, u32 ckctl)
->  	if (!_omap_sram_reprogram_clock)
->  		omap_sram_error();
->  
-> -	return _omap_sram_reprogram_clock(dpllctl, ckctl);
-> +	_omap_sram_reprogram_clock(dpllctl, ckctl);
->  }
->  
->  int __init omap1_sram_init(void)
-> @@ -282,8 +282,8 @@ void omap2_sram_ddr_init(u32 *slow_dll_ctrl, u32 fast_dll_ctrl,
->  	if (!_omap2_sram_ddr_init)
->  		omap_sram_error();
->  
-> -	return _omap2_sram_ddr_init(slow_dll_ctrl, fast_dll_ctrl,
-> -				    base_cs, force_unlock);
-> +	_omap2_sram_ddr_init(slow_dll_ctrl, fast_dll_ctrl,
-> +			     base_cs, force_unlock);
->  }
->  
->  static void (*_omap2_sram_reprogram_sdrc)(u32 perf_level, u32 dll_val,
-> @@ -294,7 +294,7 @@ void omap2_sram_reprogram_sdrc(u32 perf_level, u32 dll_val, u32 mem_type)
->  	if (!_omap2_sram_reprogram_sdrc)
->  		omap_sram_error();
->  
-> -	return _omap2_sram_reprogram_sdrc(perf_level, dll_val, mem_type);
-> +	_omap2_sram_reprogram_sdrc(perf_level, dll_val, mem_type);
->  }
->  
->  static u32 (*_omap2_set_prcm)(u32 dpll_ctrl_val, u32 sdrc_rfr_val, int bypass);
-> diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
-> index 5a5e407..1a49519 100644
-> --- a/drivers/video/omap/omapfb_main.c
-> +++ b/drivers/video/omap/omapfb_main.c
-> @@ -392,7 +392,7 @@ static void set_fb_fix(struct fb_info *fbi)
->  	int bpp;
->  
->  	rg = &plane->fbdev->mem_desc.region[plane->idx];
-> -	fbi->screen_base	= (char __iomem *)rg->vaddr;
-> +	fbi->screen_base	= rg->vaddr;
->  	fix->smem_start		= rg->paddr;
->  	fix->smem_len		= rg->size;
->  
