@@ -1,42 +1,185 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH v2 0/5] extra module resets to ensure full-chip idle
-Date: Mon,  1 Dec 2008 08:22:41 -0800
-Message-ID: <1228148566-9358-1-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH v2 3/5] OMAP3: PM: Add D2D clocks and auto-idle setup to PRCM init
+Date: Mon,  1 Dec 2008 08:22:44 -0800
+Message-ID: <1228148566-9358-4-git-send-email-khilman@deeprootsystems.com>
+References: <1228148566-9358-1-git-send-email-khilman@deeprootsystems.com>
+ <1228148566-9358-2-git-send-email-khilman@deeprootsystems.com>
+ <1228148566-9358-3-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from rv-out-0506.google.com ([209.85.198.227]:21102 "EHLO
 	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750991AbYLAQWt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 11:22:49 -0500
+	with ESMTP id S1751114AbYLAQW4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 11:22:56 -0500
 Received: by rv-out-0506.google.com with SMTP id k40so2527683rvb.1
-        for <linux-omap@vger.kernel.org>; Mon, 01 Dec 2008 08:22:48 -0800 (PST)
+        for <linux-omap@vger.kernel.org>; Mon, 01 Dec 2008 08:22:55 -0800 (PST)
+In-Reply-To: <1228148566-9358-3-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-Various bootloaders have been known to leave modules in a state
-which prevents full-chip retention.  This series forces
-MMC, IVA2 and D2D/modem into known reset/idle states so that
-the OMAP3 can hit full-chip idle.
+Add D2D clocks (modem_fck, sad2d_ick, mad2d_ick) to clock framework,
+and also ensure that auto-idle bits are set for these clocks during
+PRCM init.
 
-Tested on OMAP3 Beagle, and custom OMAP3 hardware.
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/clock34xx.h       |   37 +++++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/cm-regbits-34xx.h |   14 ++++++++++++
+ arch/arm/mach-omap2/pm34xx.c          |    4 ++-
+ 3 files changed, 52 insertions(+), 3 deletions(-)
 
-NOTE: this is similar to the set I posted for the PM branch
-      but this series is rebased onto linux-omap and includes
-      the MMC reset.
-
-Kevin Hilman (5):
-  OMAP3: PM: HSMMC: force MMC module reset on boot
-  OMAP3: PM: Force IVA2 into idle during bootup
-  OMAP3: PM: Add D2D clocks and auto-idle setup to PRCM init
-  OMAP3: PM: D2D clockdomain supports SW supervised transitions
-  OMAP3: PM: Ensure modem is reset during PRCM init
-
- arch/arm/mach-omap2/clock34xx.h           |   37 ++++++++++++-
- arch/arm/mach-omap2/clockdomains.h        |    2 +-
- arch/arm/mach-omap2/cm-regbits-34xx.h     |   14 +++++
- arch/arm/mach-omap2/devices.c             |   85 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/pm34xx.c              |   65 ++++++++++++++++++++++-
- arch/arm/plat-omap/include/mach/control.h |    5 ++
- 6 files changed, 204 insertions(+), 4 deletions(-)
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index 0b95fcb..78504ce 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -1330,6 +1330,38 @@ static struct clk d2d_26m_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
++static struct clk modem_fck = {
++	.name		= "modem_fck",
++	.parent		= &sys_ck,
++	.prcm_mod	= CORE_MOD,
++	.enable_reg	= CM_FCLKEN1,
++	.enable_bit	= OMAP3430_EN_MODEM_SHIFT,
++	.flags		= CLOCK_IN_OMAP343X,
++	.clkdm		= { .name = "d2d_clkdm" },
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk sad2d_ick = {
++	.name		= "sad2d_ick",
++	.parent		= &sys_ck,
++	.prcm_mod	= CORE_MOD,
++	.enable_reg	= CM_ICLKEN1,
++	.enable_bit	= OMAP3430_EN_SAD2D_SHIFT,
++	.flags		= CLOCK_IN_OMAP343X,
++	.clkdm		= { .name = "d2d_clkdm" },
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk mad2d_ick = {
++	.name		= "mad2d_ick",
++	.parent		= &sys_ck,
++	.prcm_mod	= CORE_MOD,
++	.enable_reg	= CM_ICLKEN3,
++	.enable_bit	= OMAP3430_EN_MAD2D_SHIFT,
++	.flags		= CLOCK_IN_OMAP343X,
++	.clkdm		= { .name = "d2d_clkdm" },
++	.recalc		= &followparent_recalc,
++};
+ static const struct clksel omap343x_gpt_clksel[] = {
+ 	{ .parent = &omap_32k_fck, .rates = gpt_32k_rates },
+ 	{ .parent = &sys_ck,	   .rates = gpt_sys_rates },
+@@ -2241,8 +2273,6 @@ static struct clk usb_l4_ick = {
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+-/* XXX MDM_INTC_ICK, SAD2D_ICK ?? */
+-
+ /* SECURITY_L4_ICK2 based clocks */
+ 
+ static struct clk security_l4_ick2 = {
+@@ -3460,6 +3490,9 @@ static struct clk *onchip_34xx_clks[] __initdata = {
+ 	&sgx_fck,
+ 	&sgx_ick,
+ 	&d2d_26m_fck,
++	&modem_fck,
++	&sad2d_ick,
++	&mad2d_ick,
+ 	&gpt10_fck,
+ 	&gpt11_fck,
+ 	&cpefuse_fck,
+diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+index 6f3f5a3..6923deb 100644
+--- a/arch/arm/mach-omap2/cm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+@@ -145,6 +145,8 @@
+ #define OMAP3430_CLKACTIVITY_MPU_MASK			(1 << 0)
+ 
+ /* CM_FCLKEN1_CORE specific bits */
++#define OMAP3430_EN_MODEM				(1 << 31)
++#define OMAP3430_EN_MODEM_SHIFT				31
+ 
+ /* CM_ICLKEN1_CORE specific bits */
+ #define OMAP3430_EN_ICR					(1 << 29)
+@@ -161,6 +163,8 @@
+ #define OMAP3430_EN_MAILBOXES_SHIFT			7
+ #define OMAP3430_EN_OMAPCTRL				(1 << 6)
+ #define OMAP3430_EN_OMAPCTRL_SHIFT			6
++#define OMAP3430_EN_SAD2D				(1 << 3)
++#define OMAP3430_EN_SAD2D_SHIFT				3
+ #define OMAP3430_EN_SDRC				(1 << 1)
+ #define OMAP3430_EN_SDRC_SHIFT				1
+ 
+@@ -176,6 +180,10 @@
+ #define OMAP3430_EN_DES1				(1 << 0)
+ #define OMAP3430_EN_DES1_SHIFT				0
+ 
++/* CM_ICLKEN3_CORE */
++#define OMAP3430_EN_MAD2D_SHIFT				3
++#define OMAP3430_EN_MAD2D				(1 << 3)
++
+ /* CM_FCLKEN3_CORE specific bits */
+ #define OMAP3430ES2_EN_TS_SHIFT				1
+ #define OMAP3430ES2_EN_TS_MASK				(1 << 1)
+@@ -231,6 +239,8 @@
+ #define OMAP3430ES2_ST_CPEFUSE_MASK			(1 << 0)
+ 
+ /* CM_AUTOIDLE1_CORE */
++#define OMAP3430_AUTO_MODEM				(1 << 31)
++#define OMAP3430_AUTO_MODEM_SHIFT			31
+ #define OMAP3430ES2_AUTO_MMC3				(1 << 30)
+ #define OMAP3430ES2_AUTO_MMC3_SHIFT			30
+ #define OMAP3430ES2_AUTO_ICR				(1 << 29)
+@@ -287,6 +297,8 @@
+ #define OMAP3430_AUTO_HSOTGUSB_SHIFT			4
+ #define OMAP3430ES1_AUTO_D2D				(1 << 3)
+ #define OMAP3430ES1_AUTO_D2D_SHIFT			3
++#define OMAP3430_AUTO_SAD2D				(1 << 3)
++#define OMAP3430_AUTO_SAD2D_SHIFT			3
+ #define OMAP3430_AUTO_SSI				(1 << 0)
+ #define OMAP3430_AUTO_SSI_SHIFT				0
+ 
+@@ -308,6 +320,8 @@
+ #define	OMAP3430ES2_AUTO_USBTLL				(1 << 2)
+ #define OMAP3430ES2_AUTO_USBTLL_SHIFT			2
+ #define OMAP3430ES2_AUTO_USBTLL_MASK			(1 << 2)
++#define OMAP3430_AUTO_MAD2D_SHIFT			3
++#define OMAP3430_AUTO_MAD2D				(1 << 3)
+ 
+ /* CM_CLKSEL_CORE */
+ #define OMAP3430_CLKSEL_SSI_SHIFT			8
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 6ff6449..9a1933b 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -437,6 +437,7 @@ static void __init prcm_setup_regs(void)
+ 	 * Note that in the long run this should be done by clockfw
+ 	 */
+ 	cm_write_mod_reg(
++		OMAP3430_AUTO_MODEM |
+ 		OMAP3430ES2_AUTO_MMC3 |
+ 		OMAP3430ES2_AUTO_ICR |
+ 		OMAP3430_AUTO_AES2 |
+@@ -464,7 +465,7 @@ static void __init prcm_setup_regs(void)
+ 		OMAP3430_AUTO_OMAPCTRL |
+ 		OMAP3430ES1_AUTO_FSHOSTUSB |
+ 		OMAP3430_AUTO_HSOTGUSB |
+-		OMAP3430ES1_AUTO_D2D | /* This is es1 only */
++		OMAP3430_AUTO_SAD2D |
+ 		OMAP3430_AUTO_SSI,
+ 		CORE_MOD, CM_AUTOIDLE1);
+ 
+@@ -478,6 +479,7 @@ static void __init prcm_setup_regs(void)
+ 
+ 	if (omap_rev() > OMAP3430_REV_ES1_0) {
+ 		cm_write_mod_reg(
++			OMAP3430_AUTO_MAD2D |
+ 			OMAP3430ES2_AUTO_USBTLL,
+ 			CORE_MOD, CM_AUTOIDLE3);
+ 	}
+-- 
+1.6.0.3
 
