@@ -1,58 +1,26 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP2 STI: fix build breakage
-Date: Mon, 1 Dec 2008 00:28:58 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0812010027440.31066@utopia.booyaka.com>
+Subject: Re: [PATCH 0/5] extra module resets to ensure full-chip idle
+Date: Mon, 1 Dec 2008 00:42:24 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0812010039510.31066@utopia.booyaka.com>
+References: <1227744349-12118-1-git-send-email-khilman@deeprootsystems.com> <FF11085F-86D4-4350-AC79-878C9D7CC0F7@student.utwente.nl> <87k5alajev.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57462 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:56187 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750748AbYLAH27 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 02:28:59 -0500
+	with ESMTP id S1750718AbYLAHmZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 02:42:25 -0500
+In-Reply-To: <87k5alajev.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: roman.tereshonkov@nokia.com, felipe.balbi@nokia.com, tony@atomide.com
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Koen Kooi <k.kooi@student.utwente.nl>, linux-omap@vger.kernel.org
 
+On Sat, 29 Nov 2008, Kevin Hilman wrote:
 
-n800_defconfig no longer builds after commit
-8423eaf634aa187e2ab3cd1018ea0f2f7d31148a; fix.
+> This series applies on top of on addtional patch which I mistakenly
+> assumed was already in l-o.  Here it is.
 
-  CC      drivers/misc/sti/sti-netlink.o
-drivers/misc/sti/sti-netlink.c: In function 'sti_netlink_receive_msg':
-drivers/misc/sti/sti-netlink.c:84: error: expected expression before 'int'
-drivers/misc/sti/sti-netlink.c:91: error: 'len' undeclared (first use in this function)
-drivers/misc/sti/sti-netlink.c:91: error: (Each undeclared identifier is reported only once
-drivers/misc/sti/sti-netlink.c:91: error: for each function it appears in.)
+Just FYI, there's an updated version of this patch - following shortly...
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Roman Tereshenkov <roman.tereshonkov@nokia.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- drivers/misc/sti/sti-netlink.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/misc/sti/sti-netlink.c b/drivers/misc/sti/sti-netlink.c
-index b198e4c..dbd6a03 100644
---- a/drivers/misc/sti/sti-netlink.c
-+++ b/drivers/misc/sti/sti-netlink.c
-@@ -68,7 +68,8 @@ static int sti_netlink_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
- {
- 	void *data;
- 	u8 chan, id;
--	int size, ret = 0;
-+	int size;
-+	int ret = 0, len = 0;
- 
- 	data	= NLMSG_DATA(nlh);
- 	chan	= (nlh->nlmsg_flags >> 8) & 0xff;
-@@ -81,8 +82,6 @@ static int sti_netlink_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
- 		break;
- #if defined(CONFIG_ARCH_OMAP1) || defined(CONFIG_ARCH_OMAP2)
- 	case STI_READ:
--		int len = 0;
--
- 		data = kmalloc(size, GFP_KERNEL);
- 		if (!data)
- 			return -ENOMEM;
+- Paul
