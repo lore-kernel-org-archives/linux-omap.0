@@ -1,74 +1,60 @@
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng
-Date: Mon, 1 Dec 2008 13:31:57 +0100
-Message-ID: <200812011331.58141.hverkuil@xs4all.nl>
-References: <200812011246.08885.hverkuil@xs4all.nl>
-	<20081201102707.6c3ab527@pedra.chehab.org>
+Subject: Re: [PATCH] Add Omnivision OV9640 sensor support.
+Date: Mon, 1 Dec 2008 13:34:41 +0100
+Message-ID: <200812011334.41306.hverkuil@xs4all.nl>
+References: <5d5443650811280216r450c6f02v3fb0db2e1580594a@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Return-path: <video4linux-list-bounces@redhat.com>
-In-Reply-To: <20081201102707.6c3ab527@pedra.chehab.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2796 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753505AbYLAMfI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 07:35:08 -0500
+In-Reply-To: <5d5443650811280216r450c6f02v3fb0db2e1580594a@mail.gmail.com>
 Content-Disposition: inline
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, v4l <video4linux-list@redhat.com>, davinci-linux-open-source-bounces@linux.davincidsp.com, linux-kernel@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Trilok Soni <soni.trilok@gmail.com>
+Cc: v4l <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, Sakari Ailus <sakari.ailus@nokia.com>
 
-On Monday 01 December 2008 13:27:07 Mauro Carvalho Chehab wrote:
-> On Mon, 1 Dec 2008 12:46:08 +0100
->
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > Hi Mauro,
-> >
-> > Please pull from http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng for
-> > the following:
-> >
-> > - v4l2: add v4l2_device and v4l2_subdev structs to the v4l2
-> > framework. - v4l2-common: add i2c helper functions
-> > - cs53l32a: convert to v4l2_subdev.
-> > - cx25840: convert to v4l2_subdev.
-> > - m52790: convert to v4l2_subdev.
-> > - msp3400: convert to v4l2_subdev.
-> > - saa7115: convert to v4l2_subdev.
-> > - saa7127: convert to v4l2_subdev.
-> > - saa717x: convert to v4l2_subdev.
-> > - tuner: convert to v4l2_subdev.
-> > - upd64031a: convert to v4l2_subdev.
-> > - upd64083: convert to v4l2_subdev.
-> > - vp27smpx: convert to v4l2_subdev.
-> > - wm8739: convert to v4l2_subdev.
-> > - wm8775: convert to v4l2_subdev.
-> > - ivtv/ivtvfb: convert to v4l2_device/v4l2_subdev.
-> >
-> > All points raised in reviews are addressed so I think it is time to
-> > get this merged so people can start to use it.
-> >
-> > Reviewed-by: Laurent Pinchart <laurent.pinchart@skynet.be>
-> > Reviewed-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > Reviewed-by: Andy Walls <awalls@radix.net>
-> > Reviewed-by: David Brownell <david-b@pacbell.net>
-> >
-> > Once this is in I'll start on converting the other i2c drivers.
->
-> Hmm.. wouldn't this break the other drivers that use the converted
-> i2c drivers (for example saa7115 and msp3400 are used for other
-> drivers, like em28xx and bttv).
+On Friday 28 November 2008 11:16:20 Trilok Soni wrote:
+> --
+> ---Trilok Soni
+> http://triloksoni.wordpress.com
+> http://www.linkedin.com/in/triloksoni
 
-No, see v4l2_subdev_command() in v4l2-subdev.c: this adds the required 
-backwards compatibility. It can be removed once everyone uses the new 
-calling convention, but until that time it will take care of this. 
-That's the nice thing about it: you can do the conversion step by step 
-without worrying about breaking existing drivers.
+Hi Trilok,
+
+I reviewed this sensor driver and it's fine except for one thing: 
+setting the default registers from outside the driver. This is a really 
+bad idea. I2C drivers should be self-contained. I've made the same 
+comment in the tvp514x driver review which I'm copying below (with some 
+small edits):
+
+This driver relies on an outside source to do the initialization of the 
+registers. This is very much the wrong approach. It would require all 
+platforms/master drivers that are going to use this chip to program the 
+chip's registers. That's not the way to do it. The ov9640 driver should 
+do this and the bridge driver should only pass high-level config data 
+(such as with input/output pins are being used, signalling setup, 
+whatever). This is how for example the Micron sensor mt* drivers do it. 
+This approach means that all the relevant programming is inside the 
+chip's driver and that bridge drivers can easily replace one chip for 
+another since except for a little bit of initialization (usually 
+routing, signalling setup) there is otherwise no difference between 
+using one chip or another.
+
+Remember that this is not a driver for use with omap, this is a generic 
+i2c driver for this chip. omap just happens to be the only one using it 
+right now, but that can easily change.
+
+Yes, it makes it harder to write an i2c driver, but experience has shown 
+us that the advantages regarding reuse far outweigh this initial cost.
+
+I noticed that the tcm825x.c driver takes exactly the same wrong 
+approach, BTW.
 
 Regards,
 
@@ -76,8 +62,3 @@ Regards,
 
 -- 
 Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
