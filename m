@@ -1,64 +1,58 @@
-From: Igor Stoppa <igor.stoppa@nokia.com>
-Subject: RE: [PATCH 0/3] OMAP: PM: enable UART clock disabling when idle
-Date: Mon, 01 Dec 2008 08:07:08 +0200
-Message-ID: <1228111628.26105.15.camel@localhost>
-References: <1227745800-5894-1-git-send-email-khilman@deeprootsystems.com>
-	 <94a0d4530811290452o53df8811x697bcfa49660118a@mail.gmail.com>
-	 <13B9B4C6EF24D648824FF11BE8967162036CE50266@dlee02.ent.ti.com>
-	 <1227974819.26105.6.camel@localhost>
-	 <13B9B4C6EF24D648824FF11BE8967162036CE5028C@dlee02.ent.ti.com>
-Reply-To: igor.stoppa@nokia.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] OMAP2 STI: fix build breakage
+Date: Mon, 1 Dec 2008 00:28:58 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0812010027440.31066@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:61110 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750859AbYLAGMq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 01:12:46 -0500
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162036CE5028C@dlee02.ent.ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:57462 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750748AbYLAH27 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 02:28:59 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
+To: linux-omap@vger.kernel.org
+Cc: roman.tereshonkov@nokia.com, felipe.balbi@nokia.com, tony@atomide.com
 
-On Sat, 2008-11-29 at 21:35 -0600, ext Woodruff, Richard wrote:
-> > From: Igor Stoppa [mailto:igor.stoppa@nokia.com]
-> > Sent: Saturday, November 29, 2008 10:07 AM
-> 
-> > On Sat, 2008-11-29 at 07:55 -0600, ext Woodruff, Richard wrote:
-> >
-> > > Not unless you use some kind of flow control or protocol retransmits.
-> >
-> > What about bitbanging the entire first character?
-> 
-> Huh?
-> 
-> Typically for development you are just hooked to your PC.  It doesn't do anything special.
 
-but for some reason there seemed to be people who did now want to loose
-the first character, so i was wondering if the entire first character
-could be bitbanged in gpio mode and put into the sw buffer for the
-serial port, which would be reinserted into the foodchain after the
-completion of the first character.
+n800_defconfig no longer builds after commit
+8423eaf634aa187e2ab3cd1018ea0f2f7d31148a; fix.
 
-Of course in the case of human input it would probably mean that all the
-characters could be bitbanged, if the timeout for entering low power
-states is short enough, but wouldn't that be very close to reality
-where, like in the internet tablets, the serial port is disabled in
-production mode?
+  CC      drivers/misc/sti/sti-netlink.o
+drivers/misc/sti/sti-netlink.c: In function 'sti_netlink_receive_msg':
+drivers/misc/sti/sti-netlink.c:84: error: expected expression before 'int'
+drivers/misc/sti/sti-netlink.c:91: error: 'len' undeclared (first use in this function)
+drivers/misc/sti/sti-netlink.c:91: error: (Each undeclared identifier is reported only once
+drivers/misc/sti/sti-netlink.c:91: error: for each function it appears in.)
 
-What we usually see is that during development as soon as we enable
-production mode (iow no active serial port, not even with timeout) those
-drivers which were relying on it to provide some sort of wakeup, fail.
-
-Just a thought.
-
--- 
-
-Cheers, Igor
-
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Roman Tereshenkov <roman.tereshonkov@nokia.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>
 ---
+ drivers/misc/sti/sti-netlink.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-Igor Stoppa
-Maemo Software - Nokia Devices R&D - Helsinki
+diff --git a/drivers/misc/sti/sti-netlink.c b/drivers/misc/sti/sti-netlink.c
+index b198e4c..dbd6a03 100644
+--- a/drivers/misc/sti/sti-netlink.c
++++ b/drivers/misc/sti/sti-netlink.c
+@@ -68,7 +68,8 @@ static int sti_netlink_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
+ {
+ 	void *data;
+ 	u8 chan, id;
+-	int size, ret = 0;
++	int size;
++	int ret = 0, len = 0;
+ 
+ 	data	= NLMSG_DATA(nlh);
+ 	chan	= (nlh->nlmsg_flags >> 8) & 0xff;
+@@ -81,8 +82,6 @@ static int sti_netlink_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
+ 		break;
+ #if defined(CONFIG_ARCH_OMAP1) || defined(CONFIG_ARCH_OMAP2)
+ 	case STI_READ:
+-		int len = 0;
+-
+ 		data = kmalloc(size, GFP_KERNEL);
+ 		if (!data)
+ 			return -ENOMEM;
