@@ -1,101 +1,55 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.28-rc6-omap-git] twl4030 usb regulator support tweaks
-Date: Mon, 1 Dec 2008 13:24:21 -0800
-Message-ID: <200812011324.21516.david-b@pacbell.net>
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb
+Date: Mon, 1 Dec 2008 20:22:09 -0200
+Message-ID: <20081201202209.5cea1f4b@pedra.chehab.org>
+References: <200812011451.06156.hverkuil@xs4all.nl>
+	<5d5443650812011014q55a96540gc8a4b97be951f2fd@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp122.sbc.mail.sp1.yahoo.com ([69.147.64.95]:40201 "HELO
-	smtp122.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751638AbYLAVyn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 16:54:43 -0500
-Content-Disposition: inline
+Received: from bombadil.infradead.org ([18.85.46.34]:54953 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752657AbYLAWW1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 17:22:27 -0500
+In-Reply-To: <5d5443650812011014q55a96540gc8a4b97be951f2fd@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Trilok Soni <soni.trilok@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>, v4l <video4linux-list@redhat.com>, Sakari Ailus <sakari.ailus@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+On Mon, 1 Dec 2008 23:44:52 +0530
+"Trilok Soni" <soni.trilok@gmail.com> wrote:
 
-This contains two bugfixes to the initial twl4030 regulator
-support patch related to USB:
+> Hi Hans,
+> 
+> On Mon, Dec 1, 2008 at 7:21 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > Hi Mauro,
+> >
+> > Please pull from http://www.linuxtv.org/hg/~hverkuil/v4l-dvb for the
+> > following:
+> >
+> 
+> I don't understand "hg" version control tool, but commit shows your
+> name as author of this patch, whereas the patch I had sent was having
+> --author field as Sakari Ailus. Could you please check this? Thanks.
+> 
+> author	Hans Verkuil <hverkuil@xs4all.nl>
 
- (a) always overwrite the old list of consumers ... else
-     the regulators all share the same "usb1v5" name;
- (b) don't set up the "usbcp" regulator, which turns out
-     to be managed through separate controls, usually ULPI
-     directly from the OTG controller.
+This is one of the lack of the features on mercurial. It doesn't have a meta
+tag for committer. On mercurial, the -hg user and the author should be the same
+person.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
-NOTE:  the version of this patch going to mainline doesn't
-include the twl4030-regulator.c fragment, since that driver
-has not yet gone to mainline.
+Since we want to identify the patch origin (e.g. whose v4l/dvb maintainer got
+the patch), we use the internal "user" meta-tag as the committer, and an extra
+tag, at the patch description for the author (From:).
 
- drivers/mfd/twl4030-core.c            |   11 +----------
- drivers/regulator/twl4030-regulator.c |    2 +-
- include/linux/i2c/twl4030.h           |    1 -
- 3 files changed, 2 insertions(+), 12 deletions(-)
+When creating the -git patch, the "From:" tag is replaced, by script, for
+"Author:", I add my SOB there, and, I add myself as the -git committer (on git
+we have both meta-tags).
 
---- a/drivers/mfd/twl4030-core.c
-+++ b/drivers/mfd/twl4030-core.c
-@@ -441,7 +441,7 @@ add_regulator_linked(int num, struct reg
- 	if (!pdata)
- 		return NULL;
- 
--	if (consumers && !pdata->consumer_supplies) {
-+	if (consumers) {
- 		pdata->consumer_supplies = consumers;
- 		pdata->num_consumer_supplies = num_consumers;
- 	}
-@@ -564,9 +564,6 @@ add_children(struct twl4030_platform_dat
- 		static struct regulator_consumer_supply usb3v1 = {
- 			.supply =	"usb3v1",
- 		};
--		static struct regulator_consumer_supply usbcp = {
--			.supply =	"usbcp",
--		};
- 
- 		/* this is a template that gets copied */
- 		struct regulator_init_data usb_fixed = {
-@@ -581,7 +578,6 @@ add_children(struct twl4030_platform_dat
- 		usb1v5.dev = usb_transceiver;
- 		usb1v8.dev = usb_transceiver;
- 		usb3v1.dev = usb_transceiver;
--		usbcp.dev = usb_transceiver;
- 
- 		child = add_regulator_linked(TWL4030_REG_VUSB1V5, &usb_fixed,
- 				&usb1v5, 1);
-@@ -597,11 +593,6 @@ add_children(struct twl4030_platform_dat
- 				&usb3v1, 1);
- 		if (IS_ERR(child))
- 			return PTR_ERR(child);
--
--		child = add_regulator_linked(TWL4030_REG_VUSBCP, &usb_fixed,
--				&usbcp, 1);
--		if (IS_ERR(child))
--			return PTR_ERR(child);
- 	}
- 
- 	/* maybe add LDOs that are omitted on cost-reduced parts */
---- a/drivers/regulator/twl4030-regulator.c
-+++ b/drivers/regulator/twl4030-regulator.c
-@@ -391,7 +391,7 @@ static struct twlreg_info twl4030_regs[]
- 	TWL_FIXED_LDO(VUSB1V5, 0x71, 1500, 17),
- 	TWL_FIXED_LDO(VUSB1V8, 0x74, 1800, 18),
- 	TWL_FIXED_LDO(VUSB3V1, 0x77, 3100, 19),
--	TWL_FIXED_LDO(VUSBCP, 0x7a, 4800, 21),
-+	/* VUSBCP is managed *only* by the USB subchip */
- };
- 
- static int twl4030reg_probe(struct platform_device *pdev)
---- a/include/linux/i2c/twl4030.h
-+++ b/include/linux/i2c/twl4030.h
-@@ -417,6 +417,5 @@ int twl4030_sih_setup(int module);
- #define TWL4030_REG_VUSB1V5	17
- #define TWL4030_REG_VUSB1V8	18
- #define TWL4030_REG_VUSB3V1	19
--#define TWL4030_REG_VUSBCP	20
- 
- #endif /* End of __TWL4030_H */
+
+
+
+Cheers,
+Mauro
