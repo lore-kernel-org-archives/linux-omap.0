@@ -1,67 +1,445 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] OMAP3: GPIO fixes for off-mode
-Date: Mon, 1 Dec 2008 11:26:54 -0800
-Message-ID: <200812011126.55412.david-b@pacbell.net>
-References: <> <1228131512-12099-1-git-send-email-tero.kristo@nokia.com> <1228131512-12099-2-git-send-email-tero.kristo@nokia.com>
+Subject: [patch 2.6.28-rc6-omap-git 2/5] add new gpio_vbus "transceiver"
+Date: Mon, 1 Dec 2008 13:16:42 -0800
+Message-ID: <200812011316.42786.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp127.sbc.mail.sp1.yahoo.com ([69.147.65.186]:40073 "HELO
-	smtp127.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751263AbYLAT06 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 14:26:58 -0500
-In-Reply-To: <1228131512-12099-2-git-send-email-tero.kristo@nokia.com>
+Received: from smtp122.sbc.mail.sp1.yahoo.com ([69.147.64.95]:40055 "HELO
+	smtp122.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751471AbYLAVye (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 16:54:34 -0500
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Monday 01 December 2008, Tero Kristo wrote:
-> Off mode is now using the omap2 retention fix code for scanning GPIOs
-> only during off-mode transitions. All the *non_wakeup_gpios variables
-> are now used for off-mode transition tracking on OMAP3. This patch fixes
-> cases where GPIO state changes are missed during off-mode.
+From: Philipp Zabel <philipp.zabel@gmail.com>
 
-I second the "no #ifdefs" comment ...
+gpio_vbus provides simple GPIO VBUS sensing for peripheral
+controllers with an internal transceiver.
+Optionally, a second GPIO can be used to control D+ pullup.
 
-Could you uplevel your description here a bit?  I'm trying to
-understand if what this does is complete and correct.
+It also interfaces with the regulator framework to limit charging
+currents when powered via USB. gpio_vbus requests the regulator
+supplying "vbus_draw" and can enable/disable it or limit its
+current depending on USB state.
 
-My understanding is that we currently have several mechanisms
-interacting to affect things that relate to the OMAP3-only
-"off" modes for pins used as GPIOs:
+[dbrownell@users.sourceforge.net: use drivers/otg, cleanups ]
 
- - irq_chip.set_wake() calls, for GPIOs used as IRQs.
-   We should assume that if the IRQ is wake-enabled, that
-   applies to OFF mode too.  (AFAICT, this mechanism is
-   not handled by this patch.)
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+---
+ drivers/usb/otg/Kconfig       |   13 +
+ drivers/usb/otg/Makefile      |    5 
+ drivers/usb/otg/gpio_vbus.c   |  335 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/usb/gpio_vbus.h |   30 +++
+ 4 files changed, 383 insertions(+)
 
- - Hmm, and because a goal is to transparently enter OFF
-   modes to save power, rather than only after drivers
-   get suspend() calls that tend to trigger set_wake(),
-   an un-commented conclusion seems to be that all GPIOs
-   used as IRQs implicitly act like set_wake() was called.
-   (Something which *is* partially addressed here.)
-
- - omap_cfg_reg() configuration for any pin can include
-   its OFF-mode parameters.  Virtually unused ... and
-   not addressed by this patch, so I'm puzzled how pins
-   are expected to be kept active with just this patch.
-
- - OMAP2-specific bug workarounds, some GPIOs can't be
-   used for wakeup, ergo bank->non_wakeup_gpios.  This
-   is resolved for OMAP3, yes?
-
-When I looked at this issue a while back, I came to believe
-that we'd need to map GPIOs to their config registers so
-we could diddle the OFF-mode bits.  And I don't see such
-a mapping (table) here...
-
-- Dave
-
-
-
-
+--- a/drivers/usb/otg/Kconfig
++++ b/drivers/usb/otg/Kconfig
+@@ -14,6 +14,19 @@ config USB_OTG_UTILS
+ 	  Select this to make sure the build includes objects from
+ 	  the OTG infrastructure directory.
+ 
++#
++# USB Transceiver Drivers
++#
++config USB_GPIO_VBUS
++	tristate "GPIO based peripheral-only VBUS sensing 'transceiver'"
++	depends on GENERIC_GPIO
++	select USB_OTG_UTILS
++	help
++	  Provides simple GPIO VBUS sensing for controllers with an
++	  internal transceiver via the otg_transceiver interface, and
++	  optionally control of a D+ pullup GPIO as well as a VBUS
++	  current limit regulator.
++
+ config ISP1301_OMAP
+ 	tristate "Philips ISP1301 with OMAP OTG"
+ 	depends on I2C && ARCH_OMAP_OTG
+--- a/drivers/usb/otg/Makefile
++++ b/drivers/usb/otg/Makefile
+@@ -1,3 +1,8 @@
++#
++# OTG infrastructure and transceiver drivers
++#
++
++obj-$(CONFIG_USB_GPIO_VBUS)	+= gpio_vbus.o
+ obj-$(CONFIG_ISP1301_OMAP)	+= isp1301_omap.o
+ 
+ ifeq ($(CONFIG_USB_DEBUG),y)
+--- /dev/null
++++ b/drivers/usb/otg/gpio_vbus.c
+@@ -0,0 +1,335 @@
++/*
++ * gpio-vbus.c - simple GPIO VBUS sensing driver for B peripheral devices
++ *
++ * Copyright (c) 2008 Philipp Zabel <philipp.zabel@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/platform_device.h>
++#include <linux/gpio.h>
++#include <linux/interrupt.h>
++#include <linux/usb.h>
++
++#include <linux/regulator/consumer.h>
++
++#include <linux/usb/gadget.h>
++#include <linux/usb/gpio_vbus.h>
++#include <linux/usb/otg.h>
++
++
++/*
++ * A simple GPIO VBUS sensing driver for B peripheral only devices
++ * with internal transceivers. It can control a D+ pullup GPIO and
++ * a regulator to limit the current drawn from VBUS.
++ *
++ * Needs to be loaded before the UDC driver that will use it.
++ */
++struct gpio_vbus_data {
++	struct otg_transceiver otg;
++	struct device          *dev;
++	struct regulator       *vbus_draw;
++	int			vbus_draw_enabled;
++	unsigned		mA;
++};
++
++
++/*
++ * This driver relies on "both edges" triggering.  VBUS has 100 msec to
++ * stabilize, so the peripheral controller driver may need to cope with
++ * some bouncing due to current surges (e.g. charging local capacitance)
++ * and contact chatter.
++ *
++ * REVISIT in desperate straits, toggling between rising and falling
++ * edges might be workable.
++ */
++#define VBUS_IRQ_FLAGS \
++	( IRQF_SAMPLE_RANDOM | IRQF_SHARED \
++	| IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING )
++
++
++/* interface to regulator framework */
++static void set_vbus_draw(struct gpio_vbus_data *gpio_vbus, unsigned mA)
++{
++	struct regulator *vbus_draw = gpio_vbus->vbus_draw;
++	int enabled;
++
++	if (!vbus_draw)
++		return;
++
++	enabled = gpio_vbus->vbus_draw_enabled;
++	if (mA) {
++		regulator_set_current_limit(vbus_draw, 0, 1000 * mA);
++		if (!enabled) {
++			regulator_enable(vbus_draw);
++			gpio_vbus->vbus_draw_enabled = 1;
++		}
++	} else {
++		if (enabled) {
++			regulator_disable(vbus_draw);
++			gpio_vbus->vbus_draw_enabled = 0;
++		}
++	}
++	gpio_vbus->mA = mA;
++}
++
++/* VBUS change IRQ handler */
++static irqreturn_t gpio_vbus_irq(int irq, void *data)
++{
++	struct platform_device *pdev = data;
++	struct gpio_vbus_mach_info *pdata = pdev->dev.platform_data;
++	struct gpio_vbus_data *gpio_vbus = platform_get_drvdata(pdev);
++	int gpio, vbus;
++
++	vbus = gpio_get_value(pdata->gpio_vbus);
++	if (pdata->gpio_vbus_inverted)
++		vbus = !vbus;
++
++	dev_dbg(&pdev->dev, "VBUS %s (gadget: %s)\n",
++		vbus ? "supplied" : "inactive",
++		gpio_vbus->otg.gadget ? gpio_vbus->otg.gadget->name : "none");
++
++	if (!gpio_vbus->otg.gadget)
++		return IRQ_HANDLED;
++
++	/* Peripheral controllers which manage the pullup themselves won't have
++	 * gpio_pullup configured here.  If it's configured here, we'll do what
++	 * isp1301_omap::b_peripheral() does and enable the pullup here... although
++	 * that may complicate usb_gadget_{,dis}connect() support.
++	 */
++	gpio = pdata->gpio_pullup;
++	if (vbus) {
++		gpio_vbus->otg.state = OTG_STATE_B_PERIPHERAL;
++		usb_gadget_vbus_connect(gpio_vbus->otg.gadget);
++
++		/* drawing a "unit load" is *always* OK, except for OTG */
++		set_vbus_draw(gpio_vbus, 100);
++
++		/* optionally enable D+ pullup */
++		if (gpio_is_valid(gpio))
++			gpio_set_value(gpio, !pdata->gpio_pullup_inverted);
++	} else {
++		/* optionally disable D+ pullup */
++		if (gpio_is_valid(gpio))
++			gpio_set_value(gpio, pdata->gpio_pullup_inverted);
++
++		set_vbus_draw(gpio_vbus, 0);
++
++		usb_gadget_vbus_disconnect(gpio_vbus->otg.gadget);
++		gpio_vbus->otg.state = OTG_STATE_B_IDLE;
++	}
++
++	return IRQ_HANDLED;
++}
++
++/* OTG transceiver interface */
++
++/* bind/unbind the peripheral controller */
++static int gpio_vbus_set_peripheral(struct otg_transceiver *otg,
++				struct usb_gadget *gadget)
++{
++	struct gpio_vbus_data *gpio_vbus;
++	struct gpio_vbus_mach_info *pdata;
++	struct platform_device *pdev;
++	int gpio, irq;
++
++	gpio_vbus = container_of(otg, struct gpio_vbus_data, otg);
++	pdev = to_platform_device(gpio_vbus->dev);
++	pdata = gpio_vbus->dev->platform_data;
++	irq = gpio_to_irq(pdata->gpio_vbus);
++	gpio = pdata->gpio_pullup;
++
++	if (!gadget) {
++		dev_dbg(&pdev->dev, "unregistering gadget '%s'\n",
++			otg->gadget->name);
++
++		/* optionally disable D+ pullup */
++		if (gpio_is_valid(gpio))
++			gpio_set_value(gpio, pdata->gpio_pullup_inverted);
++
++		set_vbus_draw(gpio_vbus, 0);
++
++		usb_gadget_vbus_disconnect(otg->gadget);
++		otg->state = OTG_STATE_UNDEFINED;
++
++		otg->gadget = NULL;
++		return 0;
++	}
++
++	otg->gadget = gadget;
++	dev_dbg(&pdev->dev, "registered gadget '%s'\n", gadget->name);
++
++	/* initialize connection state */
++	gpio_vbus_irq(irq, pdev);
++	return 0;
++}
++
++/* effective for B devices, ignored for A-peripheral */
++static int gpio_vbus_set_power(struct otg_transceiver *otg, unsigned mA)
++{
++	struct gpio_vbus_data *gpio_vbus;
++
++	gpio_vbus = container_of(otg, struct gpio_vbus_data, otg);
++
++	if (otg->state == OTG_STATE_B_PERIPHERAL)
++		set_vbus_draw(gpio_vbus, mA);
++	return 0;
++}
++
++/* for non-OTG B devices: set/clear transceiver suspend mode */
++static int gpio_vbus_set_suspend(struct otg_transceiver *otg, int suspend)
++{
++	struct gpio_vbus_data *gpio_vbus;
++
++	gpio_vbus = container_of(otg, struct gpio_vbus_data, otg);
++
++	/* draw max 0 mA from vbus in suspend mode; or the previously
++	 * recorded amount of current if not suspended
++	 *
++	 * NOTE: high powered configs (mA > 100) may draw up to 2.5 mA
++	 * if they're wake-enabled ... we don't handle that yet.
++	 */
++	return gpio_vbus_set_power(otg, suspend ? 0 : gpio_vbus->mA);
++}
++
++/* platform driver interface */
++
++static int __init gpio_vbus_probe(struct platform_device *pdev)
++{
++	struct gpio_vbus_mach_info *pdata = pdev->dev.platform_data;
++	struct gpio_vbus_data *gpio_vbus;
++	struct resource *res;
++	int err, gpio, irq;
++
++	if (!pdata || !gpio_is_valid(pdata->gpio_vbus))
++		return -EINVAL;
++	gpio = pdata->gpio_vbus;
++
++	gpio_vbus = kzalloc(sizeof(struct gpio_vbus_data), GFP_KERNEL);
++	if (!gpio_vbus)
++		return -ENOMEM;
++
++	platform_set_drvdata(pdev, gpio_vbus);
++	gpio_vbus->dev = &pdev->dev;
++	gpio_vbus->otg.label = "gpio-vbus";
++	gpio_vbus->otg.state = OTG_STATE_UNDEFINED;
++	gpio_vbus->otg.set_peripheral = gpio_vbus_set_peripheral;
++	gpio_vbus->otg.set_power = gpio_vbus_set_power;
++	gpio_vbus->otg.set_suspend = gpio_vbus_set_suspend;
++
++	err = gpio_request(gpio, "vbus_detect");
++	if (err) {
++		dev_err(&pdev->dev, "can't request vbus gpio %d, err: %d\n",
++			gpio, err);
++		goto err_gpio;
++	}
++	gpio_direction_input(gpio);
++
++	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
++	if (res) {
++		irq = res->start;
++		res->flags &= IRQF_TRIGGER_MASK;
++		res->flags |= IRQF_SAMPLE_RANDOM | IRQF_SHARED;
++	} else
++		irq = gpio_to_irq(gpio);
++
++	/* if data line pullup is in use, initialize it to "not pulling up" */
++	gpio = pdata->gpio_pullup;
++	if (gpio_is_valid(gpio)) {
++		err = gpio_request(gpio, "udc_pullup");
++		if (err) {
++			dev_err(&pdev->dev,
++				"can't request pullup gpio %d, err: %d\n",
++				gpio, err);
++			gpio_free(pdata->gpio_vbus);
++			goto err_gpio;
++		}
++		gpio_direction_output(gpio, pdata->gpio_pullup_inverted);
++	}
++
++	err = request_irq(irq, gpio_vbus_irq, VBUS_IRQ_FLAGS,
++		"vbus_detect", pdev);
++	if (err) {
++		dev_err(&pdev->dev, "can't request irq %i, err: %d\n",
++			irq, err);
++		goto err_irq;
++	}
++
++	/* only active when a gadget is registered */
++	err = otg_set_transceiver(&gpio_vbus->otg);
++	if (err) {
++		dev_err(&pdev->dev, "can't register transceiver, err: %d\n",
++			err);
++		goto err_otg;
++	}
++
++	gpio_vbus->vbus_draw = regulator_get(&pdev->dev, "vbus_draw");
++	if (IS_ERR(gpio_vbus->vbus_draw)) {
++		dev_dbg(&pdev->dev, "can't get vbus_draw regulator, err: %ld\n",
++			PTR_ERR(gpio_vbus->vbus_draw));
++		gpio_vbus->vbus_draw = NULL;
++	}
++
++	return 0;
++err_otg:
++	free_irq(irq, &pdev->dev);
++err_irq:
++	if (gpio_is_valid(pdata->gpio_pullup))
++		gpio_free(pdata->gpio_pullup);
++	gpio_free(pdata->gpio_vbus);
++err_gpio:
++	platform_set_drvdata(pdev, NULL);
++	kfree(gpio_vbus);
++	return err;
++}
++
++static int __exit gpio_vbus_remove(struct platform_device *pdev)
++{
++	struct gpio_vbus_data *gpio_vbus = platform_get_drvdata(pdev);
++	struct gpio_vbus_mach_info *pdata = pdev->dev.platform_data;
++	int gpio = pdata->gpio_vbus;
++
++	regulator_put(gpio_vbus->vbus_draw);
++
++	otg_set_transceiver(NULL);
++
++	free_irq(gpio_to_irq(gpio), &pdev->dev);
++	if (gpio_is_valid(pdata->gpio_pullup))
++		gpio_free(pdata->gpio_pullup);
++	gpio_free(gpio);
++	platform_set_drvdata(pdev, NULL);
++	kfree(gpio_vbus);
++
++	return 0;
++}
++
++/* NOTE:  the gpio-vbus device may *NOT* be hotplugged */
++
++MODULE_ALIAS("platform:gpio-vbus");
++
++static struct platform_driver gpio_vbus_driver = {
++	.driver = {
++		.name  = "gpio-vbus",
++		.owner = THIS_MODULE,
++	},
++	.remove  = __exit_p(gpio_vbus_remove),
++};
++
++static int __init gpio_vbus_init(void)
++{
++	return platform_driver_probe(&gpio_vbus_driver, gpio_vbus_probe);
++}
++module_init(gpio_vbus_init);
++
++static void __exit gpio_vbus_exit(void)
++{
++	platform_driver_unregister(&gpio_vbus_driver);
++}
++module_exit(gpio_vbus_exit);
++
++MODULE_DESCRIPTION("simple GPIO controlled OTG transceiver driver");
++MODULE_AUTHOR("Philipp Zabel");
++MODULE_LICENSE("GPL");
+--- /dev/null
++++ b/include/linux/usb/gpio_vbus.h
+@@ -0,0 +1,30 @@
++/*
++ * A simple GPIO VBUS sensing driver for B peripheral only devices
++ * with internal transceivers.
++ * Optionally D+ pullup can be controlled by a second GPIO.
++ *
++ * Copyright (c) 2008 Philipp Zabel <philipp.zabel@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ */
++
++/**
++ * struct gpio_vbus_mach_info - configuration for gpio_vbus
++ * @gpio_vbus: VBUS sensing GPIO
++ * @gpio_pullup: optional D+ or D- pullup GPIO (else negative/invalid)
++ * @gpio_vbus_inverted: true if gpio_vbus is active low
++ * @gpio_pullup_inverted: true if gpio_pullup is active low
++ *
++ * The VBUS sensing GPIO should have a pulldown, which will normally be
++ * part of a resistor ladder turning a 4.0V-5.25V level on VBUS into a
++ * value the GPIO detects as active.  Some systems will use comparators.
++ */
++struct gpio_vbus_mach_info {
++	int gpio_vbus;
++	int gpio_pullup;
++	bool gpio_vbus_inverted;
++	bool gpio_pullup_inverted;
++};
