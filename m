@@ -1,173 +1,40 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.28-rc6-omap-git 4/5] move OMAP's transceiver glue to drivers/usb/otg
-Date: Mon, 1 Dec 2008 13:19:15 -0800
-Message-ID: <200812011319.16035.david-b@pacbell.net>
+Subject: [patch 2.6.28-rc6-omap-git 0/5] drivers/usb/otg seeding
+Date: Mon, 1 Dec 2008 13:11:25 -0800
+Message-ID: <200812011311.25404.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp122.sbc.mail.sp1.yahoo.com ([69.147.64.95]:40153 "HELO
+Received: from smtp122.sbc.mail.sp1.yahoo.com ([69.147.64.95]:40005 "HELO
 	smtp122.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751474AbYLAVyk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 16:54:40 -0500
+	by vger.kernel.org with SMTP id S1750980AbYLAVya (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 16:54:30 -0500
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-From: Tony Lindgren <tony@atomide.com>
+These five patches go on top of the two twl4030-usb patches sent
+last Wednesday.
 
-Move otg_get/set/put_transceiver() from omap specific code
-to common otg.c so other upcoming drivers can share them.
+The first four are in the USB queue (though the fourth has some
+minor updates that haven't yet made it there, like speling Tony's
+name right) ... the last one moves one more OMAP-only driver out
+of drivers/i2c/chips, to help it swim upstream.
 
-[ dbrownell@users.sourceforge.net: move to drivers/usb/otg, dox ]
+ - move drivers/i2c/chips/isp1301-omap.c to drivers/usb/otg
+ - add new gpio_vbus "transceiver" (not used for now with OMAP)
+ - add missing otg_put_transceiver() call
+ - move OMAP's transceiver glue to drivers/usb/otg
+ - move drivers/i2c/chips/twl4030-usb.c to drivers/usb/otg
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Felipe Balbi <me@felipebalbi.com>
-Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
-This might need some more updates yet ...
+That last patch is the one which will break if the two preceding
+patches aren't applied.
 
- arch/arm/plat-omap/usb.c |   38 --------------------------
- drivers/usb/otg/Makefile |   11 ++++---
- drivers/usb/otg/otg.c    |   65 +++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 71 insertions(+), 43 deletions(-)
+After this the twl4030-usb code will more or less be ready to
+go upstream ... doesn't yet use regulator framework, but that's
+not upstream either.
 
---- a/arch/arm/plat-omap/usb.c
-+++ b/arch/arm/plat-omap/usb.c
-@@ -77,44 +77,6 @@
- 
- /*-------------------------------------------------------------------------*/
- 
--#if	defined(CONFIG_ARCH_OMAP_OTG) || defined(CONFIG_USB_MUSB_OTG)
--
--static struct otg_transceiver *xceiv;
--
--/**
-- * otg_get_transceiver - find the (single) OTG transceiver driver
-- *
-- * Returns the transceiver driver, after getting a refcount to it; or
-- * null if there is no such transceiver.  The caller is responsible for
-- * releasing that count.
-- */
--struct otg_transceiver *otg_get_transceiver(void)
--{
--	if (xceiv)
--		get_device(xceiv->dev);
--	return xceiv;
--}
--EXPORT_SYMBOL(otg_get_transceiver);
--
--void otg_put_transceiver(struct otg_transceiver *x)
--{
--	put_device(x->dev);
--}
--EXPORT_SYMBOL(otg_put_transceiver);
--
--int otg_set_transceiver(struct otg_transceiver *x)
--{
--	if (xceiv && x)
--		return -EBUSY;
--	xceiv = x;
--	return 0;
--}
--EXPORT_SYMBOL(otg_set_transceiver);
--
--#endif
--
--/*-------------------------------------------------------------------------*/
--
- #if defined(CONFIG_ARCH_OMAP_OTG) || defined(CONFIG_ARCH_OMAP15XX)
- 
- static void omap2_usb_devconf_clear(u8 port, u32 mask)
---- a/drivers/usb/otg/Makefile
-+++ b/drivers/usb/otg/Makefile
-@@ -2,12 +2,13 @@
- # OTG infrastructure and transceiver drivers
- #
- 
-+# infrastructure
-+obj-$(CONFIG_USB_OTG_UTILS)	+= otg.o
-+
-+# transceiver drivers
- obj-$(CONFIG_USB_GPIO_VBUS)	+= gpio_vbus.o
- obj-$(CONFIG_ISP1301_OMAP)	+= isp1301_omap.o
- 
--ifeq ($(CONFIG_USB_DEBUG),y)
--EXTRA_CFLAGS += -DDEBUG
--else ifeq ($(CONFIG_USB_GADGET_DEBUG),y)
--EXTRA_CFLAGS += -DDEBUG
--endif
-+ccflags-$(CONFIG_USB_DEBUG)	+= -DDEBUG
-+ccflags-$(CONFIG_USB_GADGET_DEBUG) += -DDEBUG
- 
---- /dev/null
-+++ b/drivers/usb/otg/otg.c
-@@ -0,0 +1,65 @@
-+/*
-+ * otg.c -- USB OTG utility code
-+ *
-+ * Copyright (C) 2004 Texas Instruments
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/device.h>
-+
-+#include <linux/usb/otg.h>
-+
-+static struct otg_transceiver *xceiv;
-+
-+/**
-+ * otg_get_transceiver - find the (single) OTG transceiver
-+ *
-+ * Returns the transceiver driver, after getting a refcount to it; or
-+ * null if there is no such transceiver.  The caller is responsible for
-+ * calling otg_put_transceiver() to release that count.
-+ *
-+ * For use by USB host and peripheral drivers.
-+ */
-+struct otg_transceiver *otg_get_transceiver(void)
-+{
-+	if (xceiv)
-+		get_device(xceiv->dev);
-+	return xceiv;
-+}
-+EXPORT_SYMBOL(otg_get_transceiver);
-+
-+/**
-+ * otg_put_transceiver - release the (single) OTG transceiver
-+ * @x: the transceiver returned by otg_get_transceiver()
-+ *
-+ * Releases a refcount the caller received from otg_get_transceiver().
-+ *
-+ * For use by USB host and peripheral drivers.
-+ */
-+void otg_put_transceiver(struct otg_transceiver *x)
-+{
-+	put_device(x->dev);
-+}
-+EXPORT_SYMBOL(otg_put_transceiver);
-+
-+/**
-+ * otg_set_transceiver - declare the (single) OTG transceiver
-+ * @x: the USB OTG transceiver to be used; or NULL
-+ *
-+ * This call is exclusively for use by transceiver drivers, which
-+ * coordinate the activities of drivers for host and peripheral
-+ * controllers, and in some cases for VBUS current regulation.
-+ */
-+int otg_set_transceiver(struct otg_transceiver *x)
-+{
-+	if (xceiv && x)
-+		return -EBUSY;
-+	xceiv = x;
-+	return 0;
-+}
-+EXPORT_SYMBOL(otg_set_transceiver);
+- Dave
