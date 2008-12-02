@@ -1,55 +1,81 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 2/2] TVP514x Driver with Review comments fixed
-Date: Tue, 2 Dec 2008 00:34:52 -0800
-Message-ID: <200812020034.53544.david-b@pacbell.net>
-References: <19F8576C6E063C45BE387C64729E739403E904F156@dbde02.ent.ti.com> <200812012238.54240.david-b@pacbell.net>
-Reply-To: dbrownell@users.sourceforge.net
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 2/2] TVP514x Driver with Review comments fixed
+Date: Tue, 2 Dec 2008 14:10:49 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403E904F1E7@dbde02.ent.ti.com>
+References: <200812020034.53544.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp128.sbc.mail.sp1.yahoo.com ([69.147.65.187]:44760 "HELO
-	smtp128.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751289AbYLBIe4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Dec 2008 03:34:56 -0500
-In-Reply-To: <200812012238.54240.david-b@pacbell.net>
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <video4linux-list-bounces@redhat.com>
+In-Reply-To: <200812020034.53544.david-b@pacbell.net>
+Content-Language: en-US
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+To: "dbrownell@users.sourceforge.net" <dbrownell@users.sourceforge.net>
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source-bounces@linux.davincidsp.com" <davinci-linux-open-source-bounces@linux.davincidsp.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "dbrownell@users.sourceforge.net" <dbrownell@users.sourceforge.net>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "davinci-linux-open-source-bounces@linux.davincidsp.com" <davinci-linux-open-source-bounces@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Jadav, Brijesh R" <brijesh.j@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>, "Hadli, Manjunath" <mrh@ti.com>, "R, Sivaraj" <sivaraj@ti.com>, "Karicheri, Muralidharan" <m-karicheri2@ti.com>
 
-On Monday 01 December 2008, David Brownell wrote:
-> > =A0=A0=A0=A0=A0=A0=A0=A0- Pointer to init_reg_seq, which is pointer=
- to array of structure
-> > =A0 =A0=A0=A0=A0=A0=A0=A0=A0for tvp514x_regs. This is little bit ug=
-ly, since will have to=20
-> > =A0 =A0=A0=A0=A0=A0=A0=A0=A0export tvp514x_regs structure.
+
+
+Thanks,
+Vaibhav Hiremath
+
+> -----Original Message-----
+> From: David Brownell [mailto:david-b@pacbell.net]
+> Sent: Tuesday, December 02, 2008 2:05 PM
+> To: Hiremath, Vaibhav
+> Cc: dbrownell@users.sourceforge.net; video4linux-list@redhat.com;
+> davinci-linux-open-source-bounces@linux.davincidsp.com; linux-
+> omap@vger.kernel.org; Jadav, Brijesh R; Shah, Hardik; Hadli,
+> Manjunath; R, Sivaraj; Karicheri, Muralidharan
+> Subject: Re: [PATCH 2/2] TVP514x Driver with Review comments fixed
 >=20
-> The platform_data should not hold such stuff; it's not board-specific=
-=2E
-> I'd expect platform_data to hold regulator_init_data as needed to
-> instantiate the regulator; and maybe other stuff needed on this board
-> too. =A0Floor and ceiling parameters, maybe, unless they change at ru=
-ntime.
+> On Monday 01 December 2008, David Brownell wrote:
+> > > =A0=A0=A0=A0=A0=A0=A0=A0- Pointer to init_reg_seq, which is pointer=
+ to array of
+> structure
+> > > =A0 =A0=A0=A0=A0=A0=A0=A0=A0for tvp514x_regs. This is little bit ug=
+ly, since will
+> have to
+> > > =A0 =A0=A0=A0=A0=A0=A0=A0=A0export tvp514x_regs structure.
+> >
+> > The platform_data should not hold such stuff; it's not board-
+> specific.
+> > I'd expect platform_data to hold regulator_init_data as needed to
+> > instantiate the regulator; and maybe other stuff needed on this
+> board
+> > too. =A0Floor and ceiling parameters, maybe, unless they change at
+> runtime.
+>=20
+> Apologies, I was confusing this driver with another.  For a video
+> codec, the platform_data should say things like which of the dozen
+> or so input channels are wired up, and how; and how the outputs
+> are encoded (8 bits, 2x 8 bits, 10 bits, 2x 10 bits, etc).  Nothing
+> to do with regulators or DVFS.
+>=20
+> And the id parameter to probe() is enough to tell whether this is
+> a '46 device, with extra registers and input channels, or a '47
+> that's less capable (but lower power, etc).
+>=20
+>=20
+[Hiremath, Vaibhav] To avoid any more confusion, I will post the patch ag=
+ain for review, which will give you clear picture.
 
-Apologies, I was confusing this driver with another.  For a video
-codec, the platform_data should say things like which of the dozen
-or so input channels are wired up, and how; and how the outputs
-are encoded (8 bits, 2x 8 bits, 10 bits, 2x 10 bits, etc).  Nothing
-to do with regulators or DVFS.
-
-And the id parameter to probe() is enough to tell whether this is
-a '46 device, with extra registers and input channels, or a '47
-that's less capable (but lower power, etc).
-
-=20
-> The init sequence wouldn't matter at all for i2c_get_clientdata(),
-> since it should only kick in during probe().
+> > The init sequence wouldn't matter at all for i2c_get_clientdata(),
+> > since it should only kick in during probe().
+>=20
+>=20
 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
+ibe
+https://www.redhat.com/mailman/listinfo/video4linux-list
