@@ -1,55 +1,141 @@
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb
-Date: Mon, 1 Dec 2008 20:22:09 -0200
-Message-ID: <20081201202209.5cea1f4b@pedra.chehab.org>
-References: <200812011451.06156.hverkuil@xs4all.nl>
-	<5d5443650812011014q55a96540gc8a4b97be951f2fd@mail.gmail.com>
+From: Andy Walls <awalls@radix.net>
+Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng
+Date: Mon, 01 Dec 2008 19:02:53 -0500
+Message-ID: <1228176173.3117.3.camel@palomino.walls.org>
+References: <200812011246.08885.hverkuil@xs4all.nl>
+	<200812011351.55323.hverkuil@xs4all.nl>
+	<200812011429.54019.laurent.pinchart@skynet.be>
+	<200812011445.50115.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:54953 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752657AbYLAWW1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2008 17:22:27 -0500
-In-Reply-To: <5d5443650812011014q55a96540gc8a4b97be951f2fd@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <video4linux-list-bounces@redhat.com>
+In-Reply-To: <200812011445.50115.hverkuil@xs4all.nl>
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: video4linux-list@redhat.com, davinci-linux-open-source-bounces@linux.davincidsp.com, linux-kernel@vger.kernel.org, Mauro Carvalho Chehab <mchehab@infradead.org>, v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Trilok Soni <soni.trilok@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>, v4l <video4linux-list@redhat.com>, Sakari Ailus <sakari.ailus@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 1 Dec 2008 23:44:52 +0530
-"Trilok Soni" <soni.trilok@gmail.com> wrote:
-
-> Hi Hans,
-> 
-> On Mon, Dec 1, 2008 at 7:21 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > Hi Mauro,
+On Mon, 2008-12-01 at 14:45 +0100, Hans Verkuil wrote:
+> On Monday 01 December 2008 14:29:53 Laurent Pinchart wrote:
+> > Hi Hans,
 > >
-> > Please pull from http://www.linuxtv.org/hg/~hverkuil/v4l-dvb for the
-> > following:
+> > On Monday 01 December 2008, Hans Verkuil wrote:
+> > > On Monday 01 December 2008 13:31:25 Laurent Pinchart wrote:
+> > > > On Monday 01 December 2008, Hans Verkuil wrote:
+> > > > > Hi Mauro,
+> > > > >
+> > > > > Please pull from http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng
+> > > > > for the following:
+> > > > >
+> > > > > - v4l2: add v4l2_device and v4l2_subdev structs to the v4l2
+> > > > > framework. - v4l2-common: add i2c helper functions
+> > > > > - cs53l32a: convert to v4l2_subdev.
+> > > > > - cx25840: convert to v4l2_subdev.
+> > > > > - m52790: convert to v4l2_subdev.
+> > > > > - msp3400: convert to v4l2_subdev.
+> > > > > - saa7115: convert to v4l2_subdev.
+> > > > > - saa7127: convert to v4l2_subdev.
+> > > > > - saa717x: convert to v4l2_subdev.
+> > > > > - tuner: convert to v4l2_subdev.
+> > > > > - upd64031a: convert to v4l2_subdev.
+> > > > > - upd64083: convert to v4l2_subdev.
+> > > > > - vp27smpx: convert to v4l2_subdev.
+> > > > > - wm8739: convert to v4l2_subdev.
+> > > > > - wm8775: convert to v4l2_subdev.
+> > > > > - ivtv/ivtvfb: convert to v4l2_device/v4l2_subdev.
+> > > > >
+> > > > > All points raised in reviews are addressed so I think it is
+> > > > > time to get this merged so people can start to use it.
+> > > >
+> > > > Does linuxtv.org and Mercurial provide the necessary
+> > > > infrastructure to integrate those changes into the v4l-dvb
+> > > > repository while not pushing them upstream yet ? I'd like to see
+> > > > more people testing (and breaking and fixing :-)) your changes
+> > > > before they reach the mainline kernel.
+> > >
+> > > That's basically why I want this to go into the v4l-dvb repository:
+> > > this makes it easier for people to start working with it. It
+> > > doesn't affect existing drivers, except for the i2c driver changes
+> > > and those changes are just transforming a big switch to a set of
+> > > functions. So I really consider this a pretty low-risk merge.
+> > >
+> > > If someone is willing to do some testing with my tree in the next
+> > > two weeks then I don't mind waiting, but it's been in development
+> > > now from early September (if not earlier) and been reviewed several
+> > > times. In addition, ivtv has been modified to work with it and that
+> > > driver uses more sub-devices by far than any other driver.
+> > >
+> > > I don't know what more I can do, to be honest.
 > >
+> > I am all for pushing the changes to the v4l-dvb repository so they
+> > can get broader testing. I am, however, a bit more concerned about
+> > pushing the changes to Linus yet.
 > 
-> I don't understand "hg" version control tool, but commit shows your
-> name as author of this patch, whereas the patch I had sent was having
-> --author field as Sakari Ailus. Could you please check this? Thanks.
+> They will of course go to linux-next and end up in 2.6.29 when the merge 
+> window opens. It's obviously not for 2.6.28.
 > 
-> author	Hans Verkuil <hverkuil@xs4all.nl>
+> > Shouldn't it wait until you convert 
+> > other drivers and make the v4l2_device (infra)structure more
+> > powerful, as you announced you would ? There will probably be API/ABI
+> > breakage then, it patches will probably benefit from a few iterations
+> > in v4l-dvb before we push them to mainline.
+> 
+> Yes, I want to add more features to them, but those additions need a lot 
+> more thought. Currently the new subdev support is the most important 
+> feature of this and the reason is the introduction of v4l2-int-device 
+> and soc-camera: both are recent arrivals and neither was reviewed 
+> properly. As a result we now see i2c drivers arriving that can only 
+> work with v4l2-int-device or with soc-camera infrastructure. This is 
+> very undesirable and must be fixed asap. And v4l2_subdev is the way to 
+> do this. Existing i2c drivers are not affected and when these changes 
+> are in we can start to replace v4l2-int-device.h and to modify 
+> soc-camera to use v4l2_subdev as well.
+> 
+> In addition, these changes make it easier as well to use the new i2c API 
+> in bridge drivers (in 2.6.29 the old-style I2C probing will be 
+> deprecated, so we need to convert). So we get many benefits with just 
+> these changes.
+> 
+> Of course, I want to add more v4l2 framework support to these new 
+> structures, but I don't have any code yet for that anyway, just lots of 
+> ideas. Start simple, then expand.
 
-This is one of the lack of the features on mercurial. It doesn't have a meta
-tag for committer. On mercurial, the -hg user and the author should be the same
-person.
+Only if you want small successes (or failures) instead of spectacular
+failures. :)
 
-Since we want to identify the patch origin (e.g. whose v4l/dvb maintainer got
-the patch), we use the internal "user" meta-tag as the committer, and an extra
-tag, at the patch description for the author (From:).
+http://en.wikipedia.org/wiki/Gall's_law
 
-When creating the -git patch, the "From:" tag is replaced, by script, for
-"Author:", I add my SOB there, and, I add myself as the -git committer (on git
-we have both meta-tags).
+Regards,
+Andy
 
+> > I don't know if that's possible at all, or if all changes in v4l-dvb
+> > are automatically selected for a push to the git repository whenever
+> > Mauro triggers the hg->git process.
+> 
+> Well, they go to linux-next, but is that a problem?
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> >
+> > Best regards,
+> >
+> > Laurent Pinchart
+> 
+> 
+> 
 
-
-
-Cheers,
-Mauro
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
