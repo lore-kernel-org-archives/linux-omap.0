@@ -1,43 +1,41 @@
-From: Nokia Global Communication <saccsecretary@midohio.twcbc.com>
-Subject: Your Email Was Selected....Xmax Promo..
-Date: Thu, 4 Dec 2008 12:40:32 -0500
-Message-ID: <78kb1c$9rbgb2@rrcs-agw-01b.hrndva.rr.com>
-Reply-To: c.nokiam@live.com
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: OMAP Zoom kernel ALSA build problem
+Date: Thu, 4 Dec 2008 23:21:27 +0530
+Message-ID: <5d5443650812040951p33886dcchd04b11932641625b@mail.gmail.com>
+References: <23D0CDE7C386D144A4F26EB0F427F8C019A5829E@dlee04.ent.ti.com>
+	 <200812040940.18076.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rrcs-agw-01.hrndva.rr.com ([24.28.200.151]:12329 "EHLO
-	rrcs-agw-01.hrndva.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760011AbYLDRkd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Dec 2008 12:40:33 -0500
+Received: from yw-out-2324.google.com ([74.125.46.29]:38703 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753685AbYLDRv3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Dec 2008 12:51:29 -0500
+Received: by yw-out-2324.google.com with SMTP id 9so1768269ywe.1
+        for <linux-omap@vger.kernel.org>; Thu, 04 Dec 2008 09:51:28 -0800 (PST)
+In-Reply-To: <200812040940.18076.david-b@pacbell.net>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: info@nokia.com
+To: David Brownell <david-b@pacbell.net>
+Cc: "Smith, Stephen" <smsmith@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Nokia Mobile is a global mobile solutions company that provides Communi=
-cation and supporting services to content the world of communication an=
-d mobile operators in order to deliver a compelling service to the mobi=
-le end of year user,A promotion was carried out around the world global=
-ization,there for we wish to inform you that your email just won for yo=
-u the sum =A3830,000.00 thousand Great British Pounds.
-=46or claims,Your will be required to fill the claims Verification Form=
-:
-=46ull Name:
-Sex:
-Occupation:
-Mobile Type:
-Mobile Number:
-Country/State/City
-Winning E-mail:
-Managing Director
-Nokia Global Company
-Tel:447024011184
-E-mail:c.nokiam@live.com
+Hi,
 
-Copyright =A9 2008 Nokia. All rights reserved.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Thu, Dec 4, 2008 at 11:10 PM, David Brownell <david-b@pacbell.net> wrote:
+> On Thursday 04 December 2008, Smith, Stephen wrote:
+>> I am trying to build sound support for the MDK (3430LDP).  There is a build
+>> problem on the current git master of the OMAP Zoom kernel.
+>
+> Perhaps that kernel should sync with newer code?
+
+This is going to happen on some other drivers in future too, because
+for some unknown reasons (atleast I don't know), that OMAP Zoom went
+ahead with their tree. I don't see any reason why they have to create
+new tree. See, how beagleboard guys are working.
+
+-- 
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
