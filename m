@@ -1,88 +1,143 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 2/2] Putting TPS6235x into the power regulator framework
-Date: Thu, 4 Dec 2008 13:41:40 +0200
-Message-ID: <20081204114140.GQ10209@gandalf.research.nokia.com>
-References: <20081204111909.GN10209@gandalf.research.nokia.com> <19F8576C6E063C45BE387C64729E739403E90E7238@dbde02.ent.ti.com>
+Subject: Re: [PATCH 1/1] MMC1 support for OMAP3 EVM with PR785 power modules
+Date: Thu, 4 Dec 2008 13:57:59 +0200
+Message-ID: <20081204115759.GR10209@gandalf.research.nokia.com>
+References: <1228390936-11504-1-git-send-email-mani.pillai@ti.com>
 Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:53849 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751872AbYLDLmt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Dec 2008 06:42:49 -0500
+Received: from smtp.nokia.com ([192.100.105.134]:25250 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750755AbYLDL7M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Dec 2008 06:59:12 -0500
 Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403E90E7238@dbde02.ent.ti.com>
+In-Reply-To: <1228390936-11504-1-git-send-email-mani.pillai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Pillai, Manikandan" <mani.pillai@ti.com>
-Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Manikandan Pillai <mani.pillai@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Thu, Dec 04, 2008 at 05:05:26PM +0530, ext Pillai, Manikandan wrote:
-> Hi,
-> 
-> Pls find comments inlined.
-> 
-> regards
-> 
-> 
-> -----Original Message-----
-> From: Felipe Balbi [mailto:felipe.balbi@nokia.com]
-> Sent: Thursday, December 04, 2008 4:49 PM
-> To: ext y@india.ti.com
-> Cc: linux-omap@vger.kernel.org; Pillai, Manikandan
-> Subject: Re: [PATCH 2/2] Putting TPS6235x into the power regulator framework
-> 
-> On Thu, Dec 04, 2008 at 03:55:06PM +0530, ext y@india.ti.com wrote:
-> > From: Manikandan Pillai <mani.pillai@ti.com>
-> >
-> > Resending this patch with comments fixed :
-> > This patch moves the TPS6235x drivers from the drivers/i2c to drivers/
-> > regulator to put the TPS6235x drivers under the power regulator framework
-> >
-> > suffix core_pwr and mpu_pwr has been removed
-> > I2C bus speeds replaced with numbers again
-> > Camel case has been removed
-> > TPS moved into regulator framework and drivers/i2c/chips left untouched.
-> >
-> > Not fixed comments:
-> > Not clear on how to implement runtime check for PR785 and would require some
-> > inputs on implementing the same.
-> 
-> This patch should be broken into smaller pieces.
-> [Pillai, Manikandan] OK
-> 
-> The tps driver should come separated, drivers/regulator/core.c should go
-> to the maintainer in a separate patch, i2c-omap.c adding the i2c4
-> support, should be in a separate patch and Ccing Ben Dooks and Jean
-> Delvare.
-> [Pillai, Manikandan] In core.c, I am just moving the definition of a struct to
-> the header file.
+On Thu, Dec 04, 2008 at 05:12:16PM +0530, ext Manikandan Pillai wrote:
+> This patch allows the MMC1 support on OMAP2 EVM board with
+> TPS6235x based PR785 boards. Files mmc-pr785.* contain the
+> drivers.
 
-yes and you should let the maintainer of that driver know about it and
-see if he agrees with that. Otherwise we'll be adding an omap fork of an
-upstream driver.
+again, you'll have to break into a series.
 
-> heh, i thought bus4 wasn't sw controllable :-s
-> 
-> [Pillai, Manikandan] Bus 4 can be used to write from master. It cannot be used to read.
+Mux configuration should be separated. Also, use the standard
+cross-platform gpio calls, don't use omap_*_gpio_*() calls anymore.
 
-good to know ;-)
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+> index ab3070d..e8eaa6b 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -40,7 +40,12 @@
+>  
+>  #include "sdram-micron-mt46h32m32lf-6.h"
+>  #include "twl4030-generic-scripts.h"
+> +#if defined(CONFIG_PR785)
+> +#include "mmc-pr785.h"
+> +#endif
+> +#if defined(CONFIG_TWL4030_CORE)
+>  #include "mmc-twl4030.h"
+> +#endif
 
-> this is not the correct place for it as only one board has this driver.
-> Move it to the proper board-file.
-> 
-> [Pillai, Manikandan] I will move it to board-omap3evm.c
+Think you'll have to think a bit more on this because...
 
-good.
+>  
+>  static struct resource omap3evm_smc911x_resources[] = {
+>  	[0] =	{
+> @@ -258,15 +263,28 @@ static struct platform_device *omap3_evm_devices[] __initdata = {
+>  	&omap3evm_smc911x_device,
+>  };
+>  
+> -static struct twl4030_hsmmc_info mmc[] __initdata = {
+> +#if defined(CONFIG_PR785)
+> +static struct pr785_hsmmc_info mmc[] __initdata = {
+>  	{
+>  		.mmc		= 1,
+>  		.wires		= 4,
+> -		.gpio_cd	= -EINVAL,
+> +		.gpio_cd	= (IH_GPIO_BASE + 140),
+>  		.gpio_wp	= -EINVAL,
+>  	},
+>  	{}	/* Terminator */
+>  };
 
-> supply should be Vdd, or Vbus or something more useful, not the chip's
-> name.
-> [Pillai, Manikandan] Shall make it vdd1 and vdd2 and map it exactly as in
-> OMAP spec.
+you basically copied the structure. It's bad to duplicate code. Anyone
+else has any comments here ??
 
-Most likely yeah, then it's also easy to search in the docs for
-references ;-)
+> +#endif
+> +#if defined(CONFIG_TWL4030_CORE)
+> +static struct twl4030_hsmmc_info mmc[] __initdata = {
+> +	{
+> +		.mmc            = 1,
+> +		.wires          = 4,
+> +		.gpio_cd        = -EINVAL,
+> +		.gpio_wp        = -EINVAL,
+> +	},
+> +	{}      /* Terminator */
+> +};
+> +#endif
+>  
+>  static void __init omap3_evm_init(void)
+>  {
+> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+> index dacb41f..68531b6 100644
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -459,6 +459,19 @@ MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
+>  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+>  MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
+>  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+> +MUX_CFG_34XX("AF26_34XX_GPIO0", 0x1e0,
+> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+> +MUX_CFG_34XX("AF22_34XX_GPIO9", 0xa18,
+> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+> +MUX_CFG_34XX("AF6_34XX_GPIO140", 0x16c,
+> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
+> +MUX_CFG_34XX("AE6_34XX_GPIO141", 0x16e,
+> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+> +MUX_CFG_34XX("AF5_34XX_GPIO142", 0x170,
+> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+> +MUX_CFG_34XX("AE5_34XX_GPIO143", 0x172,
+> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+> +
+
+this should be in a mux setup patch.
+
+> @@ -790,6 +790,13 @@ enum omap34xx_index {
+>  	 */
+>  	AH8_34XX_GPIO29,
+>  	J25_34XX_GPIO170,
+> +	AF26_34XX_GPIO0,
+> +	AF22_34XX_GPIO9,
+> +	AF6_34XX_GPIO140,
+> +	AE6_34XX_GPIO141,
+> +	AF5_34XX_GPIO142,
+> +	AE5_34XX_GPIO143
+> +
+
+this too.
+
+> @@ -32,6 +32,8 @@
+>  #include <mach/board.h>
+>  #include <mach/mmc.h>
+>  #include <mach/cpu.h>
+> +#include <mach/gpio.h>
+
+#include <linux/gpio.h>
+
+> @@ -1231,6 +1280,9 @@ static void __exit omap_mmc_cleanup(void)
+>  {
+>  	/* Unregister MMC driver */
+>  	platform_driver_unregister(&omap_mmc_driver);
+> +#if defined(CONFIG_MACH_OMAP3EVM) && defined(CONFIG_PR785)
+> +	omap_free_gpio(OMAP_PR785_MMC1_CD);
+
+gpio_free(...);
+
 
 -- 
 balbi
