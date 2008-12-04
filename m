@@ -1,44 +1,69 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 1/2] Put in supportframework for PR785 board.
-Date: Thu, 4 Dec 2008 10:10:30 -0800
-Message-ID: <200812041010.31226.david-b@pacbell.net>
-References: <1228386206-13513-1-git-send-email-mani.pillai@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: OMAP Zoom kernel ALSA build problem
+Date: Thu, 4 Dec 2008 19:25:18 +0100
+Message-ID: <BD771A35-18A7-41C7-80F5-0BC59D77597C@student.utwente.nl>
+References: <23D0CDE7C386D144A4F26EB0F427F8C019A5829E@dlee04.ent.ti.com> <200812040940.18076.david-b@pacbell.net> <5d5443650812040951p33886dcchd04b11932641625b@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v929.2)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-12-999815729"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp118.sbc.mail.sp1.yahoo.com ([69.147.64.91]:31504 "HELO
-	smtp118.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751884AbYLDSKd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Dec 2008 13:10:33 -0500
-In-Reply-To: <1228386206-13513-1-git-send-email-mani.pillai@ti.com>
-Content-Disposition: inline
+Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:60825 "EHLO smtp.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751214AbYLDSZl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Dec 2008 13:25:41 -0500
+In-Reply-To: <5d5443650812040951p33886dcchd04b11932641625b@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Manikandan Pillai <mani.pillai@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Trilok Soni <soni.trilok@gmail.com>
+Cc: David Brownell <david-b@pacbell.net>, "Smith, Stephen" <smsmith@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thursday 04 December 2008, Manikandan Pillai wrote:
-> +config PR785
-> +=A0=A0=A0=A0=A0=A0=A0bool "A Texas Instruments TPS6235X based Power =
-Module"
-> +=A0=A0=A0=A0=A0=A0=A0depends on I2C=3Dy && MACH_OMAP3EVM=3Dy && GENE=
-RIC_GPIO && (ARCH_OMAP
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-12-999815729
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
-One more comment about that symbol:  as well as living in the
-mach-omap2/Kconfig file, it should probably look more like=20
 
-	config OMAP3EVM_PR785
-	depends on MACH_OMAP3EVM
+Op 4 dec 2008, om 18:51 heeft Trilok Soni het volgende geschreven:
 
-Having the module isn't a function of I2C, and the other dependencies
-are implicit in OMAP3 EVM support.  The name "PR785" should be scoped;
-in this usage it's specific to that EVM.  Another vendor might have a
-board with the same name, let's not confuse things.  :)
+> Hi,
+>
+> On Thu, Dec 4, 2008 at 11:10 PM, David Brownell <david- 
+> b@pacbell.net> wrote:
+>> On Thursday 04 December 2008, Smith, Stephen wrote:
+>>> I am trying to build sound support for the MDK (3430LDP).  There  
+>>> is a build
+>>> problem on the current git master of the OMAP Zoom kernel.
+>>
+>> Perhaps that kernel should sync with newer code?
+>
+> This is going to happen on some other drivers in future too, because
+> for some unknown reasons (atleast I don't know), that OMAP Zoom went
+> ahead with their tree. I don't see any reason why they have to create
+> new tree. See, how beagleboard guys are working.
 
-- Dave
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Well, the from the 'beagleboard guys' AFAIK only Khasim is being paid  
+(or rather allowed to work in it at the office) to work on beagle  
+kernel stuff, so maintaining a fork is out of the question. The rest  
+of the beagleboards peeps wants to get things as fast as possible into  
+mainline instead of wanting awesomely good powermanagement.
+
+regards,
+
+Koen
+
+--Apple-Mail-12-999815729
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: This is a digitally signed message part
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFJOCCQMkyGM64RGpERAkrZAJ9Cf2MvJUPFsLoJbwrRuBxel31PyQCggCVI
+Hx+CBVmINut3wnNeCs/Pn1s=
+=TTFl
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-12-999815729--
