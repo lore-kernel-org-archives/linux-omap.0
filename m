@@ -1,130 +1,117 @@
-From: "Kwangwoo Lee" <kwangwoo.lee@gmail.com>
-Subject: Re: [PATCH] Add tsc2007 based touchscreen driver.
-Date: Thu, 4 Dec 2008 14:07:30 +0900
-Message-ID: <483a38b80812032107i761fb9bdkba9b2ce5e998ae6a@mail.gmail.com>
-References: <483a38b80812020539v2323a784h7f202749687764db@mail.gmail.com>
-	 <5d5443650812030321p77c4941cj2202418f0b0d44a2@mail.gmail.com>
-	 <20081203120144.GA10123@gandalf.research.nokia.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: [PATCH] [OMAPZOOM]  OMAP : DMA: Spurious interrupt fix
+Date: Thu, 4 Dec 2008 11:51:28 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB029392DE99@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.158]:25886 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751202AbYLDFHd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Dec 2008 00:07:33 -0500
-Received: by fg-out-1718.google.com with SMTP id 19so2704400fgg.17
-        for <linux-omap@vger.kernel.org>; Wed, 03 Dec 2008 21:07:31 -0800 (PST)
-In-Reply-To: <20081203120144.GA10123@gandalf.research.nokia.com>
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:44881 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752260AbYLDGVj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Dec 2008 01:21:39 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id mB46LWXs032640
+	for <linux-omap@vger.kernel.org>; Thu, 4 Dec 2008 00:21:38 -0600
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id mB46LUWE015672
+	for <linux-omap@vger.kernel.org>; Thu, 4 Dec 2008 11:51:31 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.balbi@nokia.com
-Cc: ext Trilok Soni <soni.trilok@gmail.com>, dmitry.torokhov@gmail.com, linux-kernel@vger.kernel.org, David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Dec 3, 2008 at 9:01 PM, Felipe Balbi <felipe.balbi@nokia.com> wrote:
-...
->> > +
->> > +static int tsc2007_xfer(void *tsc, unsigned char cmd)
->> > +{
->> > +       struct tsc2007    *ts     = tsc;
->> > +       struct i2c_client *client = ts->client;
->> > +
->> > +       unsigned char  rbuf[2];
->> > +       unsigned short val;
->> > +       int result;
->> > +
->> > +       result = i2c_master_send(client, &cmd, 1);
->> > +       if (result != 1) {
->> > +               dev_err(&client->dev, "send failed, cmd 0x%x\n", cmd);
->> > +               goto cmd_fail;
->> > +       }
->> > +
->> > +       result = i2c_master_recv(client, rbuf, 2);
->> > +       if (result != 2) {
->> > +               dev_err(&client->dev, "recv failed, cmd 0x%x\n", cmd);
->> > +               goto cmd_fail;
->> > +       }
->> > +
->> > +       rbuf[1] = (rbuf[1] >> 4) | ((rbuf[0] & 0x0f) << 4);
->> > +       rbuf[0] = rbuf[0] >> 4;
->> > +
->> > +       val = *((unsigned short *) rbuf);
->> > +       val = be16_to_cpu(val);
->> > +
->> > +       dev_dbg(&client->dev, "cmd [0x%x], rbuf [0x%x, 0x%x] => val [%u]\n",
->> > +               cmd, rbuf[0], rbuf[1], val);
->> > +
->> > +       return (int) val;
->> > +
->> > +cmd_fail:
->> > +       return -EIO;
->> > +}
->
-> so you really need to go that low level ?? Did you try
-> i2c_smbus_write_*() ??
->
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Because the platform which I use did not implement smbus_xfer yet,
-it only implemented  master_xfer in struct i2c_algorithm.
-I can add smbus_xfer for my platform. I have one question and
-I know that smbus is a subset from the I2C protocol.
-Is smbus_xfer method better than master_xfer or is there any
-special reason to use smbus_xfer?
+This fixes the spurious interrupt issue on a DMA channel. 
 
->> > +
->> > +static int tsc2007_probe(struct i2c_client *client,
->> > +                       const struct i2c_device_id *id)
->> > +{
->> > +       struct i2c_adapter      *adapter = to_i2c_adapter(client->dev.parent);
->
-> why ??
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked By: Nishant Kamat <nskamat@ti.com>
+Acked By: Gopinath Thara <thara@ti.com>
+---
+--- omapkernel.orig/arch/arm/plat-omap/include/mach/dma.h	2008-12-04 10:29:08.949018434 +0530
++++ omapkernel/arch/arm/plat-omap/include/mach/dma.h	2008-12-04 11:14:25.359087775 +0530
+@@ -67,7 +67,11 @@
+ #define OMAP_DMA4_CAPS_4		0x74
+ 
+ #define OMAP1_LOGICAL_DMA_CH_COUNT	17
++#ifdef CONFIG_OMAP_DMA_LIBRARY_CHANNELS
++#define OMAP_DMA4_LOGICAL_DMA_CH_COUNT	CONFIG_OMAP_DMA_LIBRARY_CHANNELS
++#else
+ #define OMAP_DMA4_LOGICAL_DMA_CH_COUNT	32	/* REVISIT: Is this 32 + 2? */
++#endif
+ 
+ /* Common channel specific registers for omap1 */
+ #define OMAP1_DMA_CH_BASE(n)		(0x40 * (n) + 0x00)
+Index: omapkernel/arch/arm/plat-omap/Kconfig
+===================================================================
+--- omapkernel.orig/arch/arm/plat-omap/Kconfig	2008-12-04 10:29:08.949018434 +0530
++++ omapkernel/arch/arm/plat-omap/Kconfig	2008-12-04 10:38:21.883850512 +0530
+@@ -256,6 +256,18 @@ config OMAP_SERIAL_WAKE
+ 	  to data on the serial RX line. This allows you to wake the
+ 	  system from serial console.
+ 
++
++config OMAP_DMA_LIBRARY_CHANNELS
++        int "DMA channels controlled by the kernel DMA library"
++        range 24 32
++        depends on ARCH_OMAP3
++        default "32"
++        help
++          Some of the OMAP System DMA channels may need to be
++          reserved for software that don't use the DMA library, such as
++          security drivers. Use this option to limit the number of channels
++          controlled by the kernel DMA library.
++
+ endmenu
+ 
+ endif
+Index: omapkernel/arch/arm/configs/omap_3430sdp_defconfig
+===================================================================
+--- omapkernel.orig/arch/arm/configs/omap_3430sdp_defconfig	2008-12-04 10:29:08.949018434 +0530
++++ omapkernel/arch/arm/configs/omap_3430sdp_defconfig	2008-12-04 10:38:21.884850481 +0530
+@@ -177,7 +177,7 @@ CONFIG_ARCH_OMAP_OTG=y
+ # CONFIG_ARCH_OMAP1 is not set
+ # CONFIG_ARCH_OMAP2 is not set
+ CONFIG_ARCH_OMAP3=y
+-
++CONFIG_OMAP_DMA_LIBRARY_CHANNELS=24
+ #
+ # OMAP Feature Selections
+ #
+Index: omapkernel/arch/arm/plat-omap/dma.c
+===================================================================
+--- omapkernel.orig/arch/arm/plat-omap/dma.c	2008-12-04 10:38:16.732010840 +0530
++++ omapkernel/arch/arm/plat-omap/dma.c	2008-12-04 11:11:07.671274902 +0530
+@@ -1946,7 +1946,7 @@ static int omap2_dma_handle_ch(int ch)
+ /* STATUS register count is from 1-32 while our is 0-31 */
+ static irqreturn_t omap2_dma_irq_handler(int irq, void *dev_id)
+ {
+-	u32 val;
++	u32 val, enable_reg;
+ 	int i;
+ 
+ 	val = dma_read(IRQSTATUS_L0);
+@@ -1955,6 +1955,8 @@ static irqreturn_t omap2_dma_irq_handler
+ 			printk(KERN_WARNING "Spurious DMA IRQ\n");
+ 		return IRQ_HANDLED;
+ 	}
++	enable_reg = dma_read(IRQENABLE_L0);
++	val &= enable_reg; /* Dispatch only relevant interrupts */
+ 	for (i = 0; i < dma_lch_count && val != 0; i++) {
+ 		if (val & 1)
+ 			omap2_dma_handle_ch(i);
+Index: omapkernel/arch/arm/configs/omap_ldp_defconfig
+===================================================================
+--- omapkernel.orig/arch/arm/configs/omap_ldp_defconfig	2008-12-04 11:18:54.000000000 +0530
++++ omapkernel/arch/arm/configs/omap_ldp_defconfig	2008-12-04 11:19:33.507466484 +0530
+@@ -177,6 +177,7 @@ CONFIG_ARCH_OMAP_OTG=y
+ # CONFIG_ARCH_OMAP1 is not set
+ # CONFIG_ARCH_OMAP2 is not set
+ CONFIG_ARCH_OMAP3=y
++CONFIG_OMAP_DMA_LIBRARY_CHANNELS=32
+ #
+ # OMAP Feature Selections
+ #
 
-It's for i2c_check_functionality(). This function requried struct
-i2c_adapter as an argument.
-
->> > +       struct tsc2007          *ts;
->> > +       struct tsc2007_platform_data *pdata;
->> > +       struct input_dev        *input_dev;
->> > +       int                     err;
->> > +
->> > +       pdata = client->dev.platform_data;
->> > +       if (pdata == NULL) {
->> > +               dev_err(&client->dev, "platform data is required!\n");
->> > +               return -EINVAL;
->> > +       }
->> > +
->> > +       if (!i2c_check_functionality(adapter,
->> > +                       I2C_FUNC_I2C | I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
->> > +               return -EIO;
->
-> should not be in this driver, I'd say.
-
-I saw that some I2C driver uses this function, for example - max6875.c.
-Is i2c_check_functionality() not necessary for a I2C client driver?
-
->> > +       ts->irq = client->irq;
->> > +       if (request_irq(ts->irq, tsc2007_irq, 0,
->> > +                       client->dev.driver->name, ts)) {
->> > +               dev_err(&client->dev, "irq %d busy?\n", ts->irq);
->> > +               err = -EBUSY;
->> > +               goto err_free_mem;
->
-> would be better to:
->
-> err = request_irq(...)
-> if (err < 0) {
->        dev_err(..)
->        ...
-> }
->
-> Then we see the error request_irq() returned, which is more useful.
-
-Thank you very much for your kind comments.
-
-> Would be nice to get comments from Jean Delvare and Ben Dooks as well.
-
-I also want to get more comments. Thank you, again.
-
--- 
-Kwangwoo Lee <kwangwoo.lee@gmail.com>
