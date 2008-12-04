@@ -1,143 +1,129 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 1/1] MMC1 support for OMAP3 EVM with PR785 power modules
-Date: Thu, 4 Dec 2008 13:57:59 +0200
-Message-ID: <20081204115759.GR10209@gandalf.research.nokia.com>
-References: <1228390936-11504-1-git-send-email-mani.pillai@ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [PATCH 2/2] Putting TPS6235x into the power regulator framework
+Date: Thu, 4 Dec 2008 12:04:18 +0000
+Message-ID: <20081204120418.GB8019@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:25250 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750755AbYLDL7M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Dec 2008 06:59:12 -0500
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:3949 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750972AbYLDMEU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Dec 2008 07:04:20 -0500
 Content-Disposition: inline
-In-Reply-To: <1228390936-11504-1-git-send-email-mani.pillai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Manikandan Pillai <mani.pillai@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: y@india.ti.com
+Cc: linux-omap@vger.kernel.org, Manikandan Pillai <mani.pillai@ti.com>
 
-On Thu, Dec 04, 2008 at 05:12:16PM +0530, ext Manikandan Pillai wrote:
-> This patch allows the MMC1 support on OMAP2 EVM board with
-> TPS6235x based PR785 boards. Files mmc-pr785.* contain the
-> drivers.
+On Thu, Dec 04, 2008 at 03:55:06PM +0530, y@india.ti.com wrote:
 
-again, you'll have to break into a series.
-
-Mux configuration should be separated. Also, use the standard
-cross-platform gpio calls, don't use omap_*_gpio_*() calls anymore.
-
-> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-> index ab3070d..e8eaa6b 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -40,7 +40,12 @@
->  
->  #include "sdram-micron-mt46h32m32lf-6.h"
->  #include "twl4030-generic-scripts.h"
-> +#if defined(CONFIG_PR785)
-> +#include "mmc-pr785.h"
-> +#endif
-> +#if defined(CONFIG_TWL4030_CORE)
->  #include "mmc-twl4030.h"
-> +#endif
-
-Think you'll have to think a bit more on this because...
-
->  
->  static struct resource omap3evm_smc911x_resources[] = {
->  	[0] =	{
-> @@ -258,15 +263,28 @@ static struct platform_device *omap3_evm_devices[] __initdata = {
->  	&omap3evm_smc911x_device,
->  };
->  
-> -static struct twl4030_hsmmc_info mmc[] __initdata = {
-> +#if defined(CONFIG_PR785)
-> +static struct pr785_hsmmc_info mmc[] __initdata = {
->  	{
->  		.mmc		= 1,
->  		.wires		= 4,
-> -		.gpio_cd	= -EINVAL,
-> +		.gpio_cd	= (IH_GPIO_BASE + 140),
->  		.gpio_wp	= -EINVAL,
->  	},
->  	{}	/* Terminator */
->  };
-
-you basically copied the structure. It's bad to duplicate code. Anyone
-else has any comments here ??
-
-> +#endif
-> +#if defined(CONFIG_TWL4030_CORE)
-> +static struct twl4030_hsmmc_info mmc[] __initdata = {
-> +	{
-> +		.mmc            = 1,
-> +		.wires          = 4,
-> +		.gpio_cd        = -EINVAL,
-> +		.gpio_wp        = -EINVAL,
 > +	},
-> +	{}      /* Terminator */
-> +};
-> +#endif
+> +		.num_consumer_supplies  = 1,
+> +		.consumer_supplies      = &tps6235x_consumers[0],
+
+...
+
+> +		.num_consumer_supplies  = 1,
+> +		.consumer_supplies      = &tps6235x_consumers[1],
+
+This code will work but flags up alarm bells when doing review - it
+would be clearer to declare two separate variables, which is also less
+error prone if someone takes your code and uses it as a template for
+another board.
+
+> +config REGULATOR_TPS6235X
+> +	bool "TPS6235X Power regulator for OMAP3EVM"
+> +	depends on PR785
+> +	help
+> +	  This driver supports the voltage regulators provided by TPS6235x chips.
+> +	  The TPS62352 and TPS62353 are mounted on PR785 Power module card for
+> +	  providing voltage regulator functions.
+
+This should probably be two drivers: a driver for the TPS6235x and a
+driver for the power module card, otherwise systems that use the chip on
+a different board won't be able to do so.  Looking at the code it seems
+you've got something fairly close to this structure already, it just
+needs exposing.
+
+> index 02a7744..901f402 100644
+> --- a/drivers/regulator/core.c
+> +++ b/drivers/regulator/core.c
+> @@ -30,33 +30,6 @@ static LIST_HEAD(regulator_list);
+>  static LIST_HEAD(regulator_map_list);
 >  
->  static void __init omap3_evm_init(void)
->  {
-> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-> index dacb41f..68531b6 100644
-> --- a/arch/arm/mach-omap2/mux.c
-> +++ b/arch/arm/mach-omap2/mux.c
-> @@ -459,6 +459,19 @@ MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
->  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
->  MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
->  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
-> +MUX_CFG_34XX("AF26_34XX_GPIO0", 0x1e0,
-> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> +MUX_CFG_34XX("AF22_34XX_GPIO9", 0xa18,
-> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> +MUX_CFG_34XX("AF6_34XX_GPIO140", 0x16c,
-> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AE6_34XX_GPIO141", 0x16e,
-> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> +MUX_CFG_34XX("AF5_34XX_GPIO142", 0x170,
-> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> +MUX_CFG_34XX("AE5_34XX_GPIO143", 0x172,
-> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+>  /**
+> - * struct regulator_dev
+> - *
+> - * Voltage / Current regulator class device. One for each regulator.
+> - */
+> -struct regulator_dev {
+> -	struct regulator_desc *desc;
+> -	int use_count;
+
+This is... interesting?  I think all you're doing is looking inside to
+get the driver data rather than using regulator_get_drvdata() - is there
+anything else?
+
+> new file mode 100644
+> index 0000000..8a900db
+> --- /dev/null
+> +++ b/drivers/regulator/tps6235x-regulator.c
+
+> +#include <linux/regulator/driver.h>
+> +#include <linux/regulator/machine.h>
+> +#include <linux/i2c.h>
+> +#include <linux/delay.h>
+> +#include <linux/regulator/consumer.h>
+
+Do you need the consumer header here?
+
 > +
+> +#define	MODULE_NAME		"tps6235x_power"
 
-this should be in a mux setup patch.
+Really?
 
-> @@ -790,6 +790,13 @@ enum omap34xx_index {
->  	 */
->  	AH8_34XX_GPIO29,
->  	J25_34XX_GPIO170,
-> +	AF26_34XX_GPIO0,
-> +	AF22_34XX_GPIO9,
-> +	AF6_34XX_GPIO140,
-> +	AE6_34XX_GPIO141,
-> +	AF5_34XX_GPIO142,
-> +	AE5_34XX_GPIO143
+> +/* Debug functions */
+> +#ifdef	DEBUG
 > +
+> +#define dump_reg(client, reg, val)                                      \
+> +	do {                                                            \
+> +		tps6235x_read_reg(client, reg, &val);                   \
+> +		dev_dbg(&(client)->dev, "Reg(0x%.2X): 0x%.2X\n", reg, val); \
+> +	} while (0)
+> +
+> +#endif	/* #ifdef DEBUG */
 
-this too.
+static inline?
 
-> @@ -32,6 +32,8 @@
->  #include <mach/board.h>
->  #include <mach/mmc.h>
->  #include <mach/cpu.h>
-> +#include <mach/gpio.h>
+> +/* Maximum number of bytes to be read in a single read */
+> +#define	PR785_RETRY_COUNT	0x3
 
-#include <linux/gpio.h>
+The name and comment don't seem to match up very well...
 
-> @@ -1231,6 +1280,9 @@ static void __exit omap_mmc_cleanup(void)
->  {
->  	/* Unregister MMC driver */
->  	platform_driver_unregister(&omap_mmc_driver);
-> +#if defined(CONFIG_MACH_OMAP3EVM) && defined(CONFIG_PR785)
-> +	omap_free_gpio(OMAP_PR785_MMC1_CD);
+> +static int tps6235x_dcdc_is_enabled(struct regulator_dev *dev)
+> +{
+> +	struct  tps_6235x_info *tps_info =
+> +			(struct tps_6235x_info *)dev->reg_data;
 
-gpio_free(...);
+Should use regulator_get_drvdata() for this.
 
+> +	return tps_info->state;
+> +}
 
--- 
-balbi
+> +static int tps6235x_dcdc_set_voltage(struct regulator_dev *dev,
+> +				int min_uV, int max_uV)
+> +{
+> +	struct  tps_6235x_info *tps_info =
+> +			(struct tps_6235x_info *)dev->reg_data;
+> +	unsigned int millivolts = max_uV / 1000;
+> +
+> +	return pr785_set_dcdc_volt(tps_info->tps_i2c_addr,  millivolts) ;
+> +}
+
+Normally you'd want to go for the lowest voltage you can in the range
+rather than the highest voltage.  A driver doing voltage scaling for
+power saving would be likely to call set_voltage() with a range from the
+minimum that could currently be used to the maximum rated for the chip
+since it's only trying to save power, it doesn't specifically *need* the
+lower voltage.  This allows the driver to run on systems where there are
+additional constraints which prevent the use of the lowest voltages.
