@@ -1,41 +1,47 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: OMAP Zoom kernel ALSA build problem
-Date: Thu, 4 Dec 2008 23:21:27 +0530
-Message-ID: <5d5443650812040951p33886dcchd04b11932641625b@mail.gmail.com>
-References: <23D0CDE7C386D144A4F26EB0F427F8C019A5829E@dlee04.ent.ti.com>
-	 <200812040940.18076.david-b@pacbell.net>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 1/2] Put in supportframework for PR785 board.
+Date: Thu, 4 Dec 2008 09:59:57 -0800
+Message-ID: <200812040959.57532.david-b@pacbell.net>
+References: <1228386206-13513-1-git-send-email-mani.pillai@ti.com> <20081204111409.GM10209@gandalf.research.nokia.com> <19F8576C6E063C45BE387C64729E739403E90E7234@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.29]:38703 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753685AbYLDRv3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Dec 2008 12:51:29 -0500
-Received: by yw-out-2324.google.com with SMTP id 9so1768269ywe.1
-        for <linux-omap@vger.kernel.org>; Thu, 04 Dec 2008 09:51:28 -0800 (PST)
-In-Reply-To: <200812040940.18076.david-b@pacbell.net>
+Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:26380 "HELO
+	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751537AbYLDR77 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Dec 2008 12:59:59 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403E90E7234@dbde02.ent.ti.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: "Smith, Stephen" <smsmith@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Pillai, Manikandan" <mani.pillai@ti.com>
+Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
-
-On Thu, Dec 4, 2008 at 11:10 PM, David Brownell <david-b@pacbell.net> wrote:
-> On Thursday 04 December 2008, Smith, Stephen wrote:
->> I am trying to build sound support for the MDK (3430LDP).  There is a build
->> problem on the current git master of the OMAP Zoom kernel.
+On Thursday 04 December 2008, Pillai, Manikandan wrote:
+> > > --- a/arch/arm/mach-omap2/mmc-twl4030.c
+> > > +++ b/arch/arm/mach-omap2/mmc-twl4030.c
+> 
+> > it doesn't make sense to build this file if you don't have twl4030 in
+> > the board. Better to have something like mmc-tps6235x.c or something
+> > like that.
 >
-> Perhaps that kernel should sync with newer code?
+> [Pillai, Manikandan] This would be provided in a latter patch that
+> provides support for MMC1. I have created another file mmc-pr785.c in
+> this patch. I am currently testing and shall send it soon.
 
-This is going to happen on some other drivers in future too, because
-for some unknown reasons (atleast I don't know), that OMAP Zoom went
-ahead with their tree. I don't see any reason why they have to create
-new tree. See, how beagleboard guys are working.
+Note that current plans for mmc-twl4030.c include
+converting it to use the regulator framework after
+the current stuff get submitted for mainline.
 
--- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+That should be the last remnant of the twl4030-specific
+support in that driver glue.  Ideally there will be no
+need for an mmc-pr785 ... so maybe mmc-twl4030.c should
+get renamed (again!) to be generic.
+
+Or better yet, your work for pr785 can produce that
+fully genericized version.  :)
+
+- Dave
+
