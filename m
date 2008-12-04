@@ -1,76 +1,77 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [PATCH] Add OMAP2 camera driver
-Date: Thu, 4 Dec 2008 12:28:52 -0600
-Message-ID: <A24693684029E5489D1D202277BE894415C11947@dlee02.ent.ti.com>
-References: <49367FD3.6080003@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <video4linux-list-bounces@redhat.com>
-In-Reply-To: <49367FD3.6080003@nokia.com>
-Content-Language: en-US
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-To: Sakari Ailus <sakari.ailus@nokia.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: OMAP Zoom kernel ALSA build problem
+Date: Thu, 4 Dec 2008 19:30:55 +0100
+Message-ID: <8D7E5AB6-B24B-4667-A0EE-DD26FC3B8EB8@student.utwente.nl>
+References: <23D0CDE7C386D144A4F26EB0F427F8C019A5829E@dlee04.ent.ti.com> <200812040940.18076.david-b@pacbell.net> <5d5443650812040951p33886dcchd04b11932641625b@mail.gmail.com> <BD771A35-18A7-41C7-80F5-0BC59D77597C@student.utwente.nl>
+Mime-Version: 1.0 (Apple Message framework v929.2)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-13-1000152670"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:32934 "EHLO smtp.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753209AbYLDSbK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Dec 2008 13:31:10 -0500
+In-Reply-To: <BD771A35-18A7-41C7-80F5-0BC59D77597C@student.utwente.nl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Trilok Soni <soni.trilok@gmail.com>
+Cc: David Brownell <david-b@pacbell.net>, Stephen Smith <smsmith@ti.com>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-> Sakari Ailus wrote:
-> ext Hiremath, Vaibhav wrote:
-> > OMAP3 -
-> > 	Display - (Posted twice with old DSS library)
-> > 		- omap_vout.c
-> > 		- omap_voutlib.c
-> > 		- omap_voutlib.h
-> > 		- omap_voutdef.h
-> > 	Camera - (Will come soon)
-> > 		- omap34xxcam.c
-> > 		- omap34xxcam.h
-> > 	ISP - (Will come soon)
-> > 		- Here definitely we will plenty number of files.
->=20
-> I think that the OMAP 3 stuff could go into a separate directory, say
-> omap3 or omap3isp. But for the OMAP 1 or OMAP 2 camera drivers, I'd
-> perhaps just prefix those with corresponding OMAP (omap1 etc.).
->=20
-> The current OMAP 3 camera driver has few dependencies to OMAP 3 left so
-> it seems that it's going to be generic. It's just a question of when th=
-e
-> OMAP 3 ISP driver can offer a better interface towards the camera drive=
-r.
->=20
-[Aguirre, Sergio] Hi, I have some comments about this:
-
-IMHO, I think that we can keep same names for OMAP3 camera driver, and ke=
-ep it at the same level than omap1 and omap2 cam drivers, but for isp fol=
-der, I agree with Sakari that has to be named omap3isp.
-
-Although the end result of making OMAP3 cam driver independent from ISP d=
-oesn't make much sense to me, as in OMAP3 the ISP is needed even for the =
-minimal handling required for receiving data from the sensors that the ca=
-mera driver supports. (Minimal datapath is CCP2->SDRAM or CSI2->SDRAM, an=
-d that requires ISP MMU and the corresponding receivers, which are consid=
-ered part of the ISP)
-
-About display filenames, if they are compatible with all OMAP versions (1=
-, 2, 3), then current name makes sense, if no, then omap3_vout* will look=
- clearer.
-
-What do you think?
-
-Regards,
-Sergio
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-13-1000152670
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
 
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
-ibe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+Op 4 dec 2008, om 19:25 heeft Koen Kooi het volgende geschreven:
+
+>
+> Op 4 dec 2008, om 18:51 heeft Trilok Soni het volgende geschreven:
+>
+>> Hi,
+>>
+>> On Thu, Dec 4, 2008 at 11:10 PM, David Brownell <david- 
+>> b@pacbell.net> wrote:
+>>> On Thursday 04 December 2008, Smith, Stephen wrote:
+>>>> I am trying to build sound support for the MDK (3430LDP).  There  
+>>>> is a build
+>>>> problem on the current git master of the OMAP Zoom kernel.
+>>>
+>>> Perhaps that kernel should sync with newer code?
+>>
+>> This is going to happen on some other drivers in future too, because
+>> for some unknown reasons (atleast I don't know), that OMAP Zoom went
+>> ahead with their tree. I don't see any reason why they have to create
+>> new tree. See, how beagleboard guys are working.
+>
+> Well, the from the 'beagleboard guys' AFAIK only Khasim is being  
+> paid (or rather allowed to work in it at the office) to work on  
+> beagle kernel stuff, so maintaining a fork is out of the question.  
+> The rest of the beagleboards peeps wants to get things as fast as  
+> possible into mainline instead of wanting awesomely good  
+> powermanagement.
+
+
+To be clear: I'm not fond of long-running forks like the zoom tree,  
+but I can see why people (read: companies) find them attractive.
+
+regards,
+
+Koen
+
+--Apple-Mail-13-1000152670
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: This is a digitally signed message part
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFJOCHhMkyGM64RGpERAr9hAJ0X/ABeI8DFGT3RuoFoGv1tvOTmBgCggadS
+4NUklrcUAZ9AyU8WoPT50mI=
+=x2Oz
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-13-1000152670--
