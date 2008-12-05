@@ -1,38 +1,84 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: Re: [PATCH 1/1] Save sram context after changing MPU, DSP or core
-	clocks
-Date: Fri, 5 Dec 2008 13:16:34 +0200
-Message-ID: <20081205111634.GA4652@codecarver.research.nokia.com>
-References: <1227095127-7158-1-git-send-email-peter.de-schrijver@nokia.com> <1227095127-7158-2-git-send-email-peter.de-schrijver@nokia.com> <B71CE868F2BC2847B3F23C5A8EE39430DF9821@vaebe110.NOE.Nokia.com>
+From: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Subject: [PATCH] OneNAND: OMAP2: Switch to generic gpio calls
+Date: Fri, 05 Dec 2008 14:24:24 +0200
+Message-ID: <49391D78.90407@nokia.com>
+References: <1228289844-5897-1-git-send-email-jarkko.nikula@nokia.com> <1228289844-5897-3-git-send-email-jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:28904 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750852AbYLELQy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2008 06:16:54 -0500
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mB5BGVMd014131
-	for <linux-omap@vger.kernel.org>; Fri, 5 Dec 2008 13:16:50 +0200
-Content-Disposition: inline
-In-Reply-To: <B71CE868F2BC2847B3F23C5A8EE39430DF9821@vaebe110.NOE.Nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:22678 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751005AbYLEMRs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2008 07:17:48 -0500
+In-Reply-To: <1228289844-5897-3-git-send-email-jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kristo Tero (Nokia-D/Tampere)" <Tero.Kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: David Woodhouse <dwmw2@infradead.org>
+Cc: linux-omap Mailing List <linux-omap@vger.kernel.org>, linux-mtd Mailing List <linux-mtd@lists.infradead.org>, Jarkko Nikula <jarkko.nikula@nokia.com>
 
-On Fri, Dec 05, 2008 at 11:49:03AM +0200, Kristo Tero (Nokia-D/Tampere) wrote:
-> Hi Peter,
-> 
-> This patch causes linker error without CONFIG_PM option, should add
-> #ifdef:s around the call to omap3_save_scratchpad_contents();
-> 
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
 
-That looks a bit ugly though :(
+Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
+---
+ drivers/mtd/onenand/omap2.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-Cheers,
-
-Peter
-
+diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+index a7e4d98..c260e2d 100644
+--- a/drivers/mtd/onenand/omap2.c
++++ b/drivers/mtd/onenand/omap2.c
+@@ -149,7 +149,7 @@ static int omap2_onenand_wait(struct mtd_info *mtd, int state)
+ 
+ 		INIT_COMPLETION(c->irq_done);
+ 		if (c->gpio_irq) {
+-			result = omap_get_gpio_datain(c->gpio_irq);
++			result = gpio_get_value(c->gpio_irq);
+ 			if (result == -1) {
+ 				ctrl = read_reg(c, ONENAND_REG_CTRL_STATUS);
+ 				intr = read_reg(c, ONENAND_REG_INTERRUPT);
+@@ -629,14 +629,14 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	if (c->gpio_irq) {
+-		if ((r = omap_request_gpio(c->gpio_irq)) < 0) {
++		if ((r = gpio_request(c->gpio_irq, "OneNAND irq")) < 0) {
+ 			dev_err(&pdev->dev,  "Failed to request GPIO%d for "
+ 				"OneNAND\n", c->gpio_irq);
+ 			goto err_iounmap;
+ 	}
+-	omap_set_gpio_direction(c->gpio_irq, 1);
++	gpio_direction_input(c->gpio_irq);
+ 
+-	if ((r = request_irq(OMAP_GPIO_IRQ(c->gpio_irq),
++	if ((r = request_irq(gpio_to_irq(c->gpio_irq),
+ 			     omap2_onenand_interrupt, IRQF_TRIGGER_RISING,
+ 			     pdev->dev.driver->name, c)) < 0)
+ 		goto err_release_gpio;
+@@ -723,10 +723,10 @@ err_release_dma:
+ 	if (c->dma_channel != -1)
+ 		omap_free_dma(c->dma_channel);
+ 	if (c->gpio_irq)
+-		free_irq(OMAP_GPIO_IRQ(c->gpio_irq), c);
++		free_irq(gpio_to_irq(c->gpio_irq), c);
+ err_release_gpio:
+ 	if (c->gpio_irq)
+-		omap_free_gpio(c->gpio_irq);
++		gpio_free(c->gpio_irq);
+ err_iounmap:
+ 	iounmap(c->onenand.base);
+ err_release_mem_region:
+@@ -760,8 +760,8 @@ static int __devexit omap2_onenand_remove(struct platform_device *pdev)
+ 	omap2_onenand_shutdown(pdev);
+ 	platform_set_drvdata(pdev, NULL);
+ 	if (c->gpio_irq) {
+-		free_irq(OMAP_GPIO_IRQ(c->gpio_irq), c);
+-		omap_free_gpio(c->gpio_irq);
++		free_irq(gpio_to_irq(c->gpio_irq), c);
++		gpio_free(c->gpio_irq);
+ 	}
+ 	iounmap(c->onenand.base);
+ 	release_mem_region(c->phys_base, ONENAND_IO_SIZE);
 -- 
-goa is a state of mind
+1.5.4.3
