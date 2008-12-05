@@ -1,84 +1,62 @@
-From: Adrian Hunter <ext-adrian.hunter@nokia.com>
-Subject: [PATCH] OneNAND: OMAP2: Switch to generic gpio calls
-Date: Fri, 05 Dec 2008 14:24:24 +0200
-Message-ID: <49391D78.90407@nokia.com>
-References: <1228289844-5897-1-git-send-email-jarkko.nikula@nokia.com> <1228289844-5897-3-git-send-email-jarkko.nikula@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: hvaibhav@ti.com
+Subject: [PATCH 1/2] Addition of Set Routing ioctl support[V5]
+Date: Fri,  5 Dec 2008 18:24:02 +0530
+Message-ID: <1228481642-28208-1-git-send-email-hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:22678 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751005AbYLEMRs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2008 07:17:48 -0500
-In-Reply-To: <1228289844-5897-3-git-send-email-jarkko.nikula@nokia.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:50275 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751188AbYLEMy3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 5 Dec 2008 07:54:29 -0500
+In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Woodhouse <dwmw2@infradead.org>
-Cc: linux-omap Mailing List <linux-omap@vger.kernel.org>, linux-mtd Mailing List <linux-mtd@lists.infradead.org>, Jarkko Nikula <jarkko.nikula@nokia.com>
+To: video4linux-list@redhat.com
+Cc: linux-omap@vger.kernel.org, davinci-linux-open-source-bounces@linux.davincidsp.com, Vaibhav Hiremath <hvaibhav@ti.com>, Brijesh Jadav <brijesh.j@ti.com>, Hardik Shah <hardik.shah@ti.com>, Manjunath Hadli <mrh@ti.com>, R Sivaraj <sivaraj@ti.com>, Karicheri Muralidharan <m-karicheri2@ti.com>
 
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
-Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Fixed review comments:
+
+g_routing:
+        Removed g_routing, since it was not required
+        at decoder level. Same can be handled at master
+        level.
+
+Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+Signed-off-by: Hardik Shah <hardik.shah@ti.com>
+Signed-off-by: Manjunath Hadli <mrh@ti.com>
+Signed-off-by: R Sivaraj <sivaraj@ti.com>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Karicheri Muralidharan <m-karicheri2@ti.com>
 ---
- drivers/mtd/onenand/omap2.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+ include/media/v4l2-int-device.h |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index a7e4d98..c260e2d 100644
---- a/drivers/mtd/onenand/omap2.c
-+++ b/drivers/mtd/onenand/omap2.c
-@@ -149,7 +149,7 @@ static int omap2_onenand_wait(struct mtd_info *mtd, int state)
- 
- 		INIT_COMPLETION(c->irq_done);
- 		if (c->gpio_irq) {
--			result = omap_get_gpio_datain(c->gpio_irq);
-+			result = gpio_get_value(c->gpio_irq);
- 			if (result == -1) {
- 				ctrl = read_reg(c, ONENAND_REG_CTRL_STATUS);
- 				intr = read_reg(c, ONENAND_REG_INTERRUPT);
-@@ -629,14 +629,14 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
- 	}
- 
- 	if (c->gpio_irq) {
--		if ((r = omap_request_gpio(c->gpio_irq)) < 0) {
-+		if ((r = gpio_request(c->gpio_irq, "OneNAND irq")) < 0) {
- 			dev_err(&pdev->dev,  "Failed to request GPIO%d for "
- 				"OneNAND\n", c->gpio_irq);
- 			goto err_iounmap;
- 	}
--	omap_set_gpio_direction(c->gpio_irq, 1);
-+	gpio_direction_input(c->gpio_irq);
- 
--	if ((r = request_irq(OMAP_GPIO_IRQ(c->gpio_irq),
-+	if ((r = request_irq(gpio_to_irq(c->gpio_irq),
- 			     omap2_onenand_interrupt, IRQF_TRIGGER_RISING,
- 			     pdev->dev.driver->name, c)) < 0)
- 		goto err_release_gpio;
-@@ -723,10 +723,10 @@ err_release_dma:
- 	if (c->dma_channel != -1)
- 		omap_free_dma(c->dma_channel);
- 	if (c->gpio_irq)
--		free_irq(OMAP_GPIO_IRQ(c->gpio_irq), c);
-+		free_irq(gpio_to_irq(c->gpio_irq), c);
- err_release_gpio:
- 	if (c->gpio_irq)
--		omap_free_gpio(c->gpio_irq);
-+		gpio_free(c->gpio_irq);
- err_iounmap:
- 	iounmap(c->onenand.base);
- err_release_mem_region:
-@@ -760,8 +760,8 @@ static int __devexit omap2_onenand_remove(struct platform_device *pdev)
- 	omap2_onenand_shutdown(pdev);
- 	platform_set_drvdata(pdev, NULL);
- 	if (c->gpio_irq) {
--		free_irq(OMAP_GPIO_IRQ(c->gpio_irq), c);
--		omap_free_gpio(c->gpio_irq);
-+		free_irq(gpio_to_irq(c->gpio_irq), c);
-+		gpio_free(c->gpio_irq);
- 	}
- 	iounmap(c->onenand.base);
- 	release_mem_region(c->phys_base, ONENAND_IO_SIZE);
--- 
-1.5.4.3
+diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
+index 9c2df41..ecda3c7 100644
+--- a/include/media/v4l2-int-device.h
++++ b/include/media/v4l2-int-device.h
+@@ -183,6 +183,9 @@ enum v4l2_int_ioctl_num {
+ 	vidioc_int_s_crop_num,
+ 	vidioc_int_g_parm_num,
+ 	vidioc_int_s_parm_num,
++	vidioc_int_querystd_num,
++	vidioc_int_s_std_num,
++	vidioc_int_s_video_routing_num,
+
+ 	/*
+ 	 *
+@@ -284,6 +287,9 @@ V4L2_INT_WRAPPER_1(g_crop, struct v4l2_crop, *);
+ V4L2_INT_WRAPPER_1(s_crop, struct v4l2_crop, *);
+ V4L2_INT_WRAPPER_1(g_parm, struct v4l2_streamparm, *);
+ V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
++V4L2_INT_WRAPPER_1(querystd, v4l2_std_id, *);
++V4L2_INT_WRAPPER_1(s_std, v4l2_std_id, *);
++V4L2_INT_WRAPPER_1(s_video_routing, struct v4l2_routing, *);
+
+ V4L2_INT_WRAPPER_0(dev_init);
+ V4L2_INT_WRAPPER_0(dev_exit);
+--
+1.5.6
+
