@@ -1,65 +1,39 @@
-From: "Ramirez Luna, Omar" <x00omar@ti.com>
-Subject: RE: [PATCH 2/2] DSPBRIDGE: Freeing allocated resources
- on rmmod
-Date: Fri, 5 Dec 2008 10:42:47 -0600
-Message-ID: <27F9C60D11D683428E133F85D2BB4A5303F1E9AA94@dlee03.ent.ti.com>
-References: <27F9C60D11D683428E133F85D2BB4A5303F1E9A961@dlee03.ent.ti.com>
- <200812050138.33606.david-b@pacbell.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Remove drivers/input/touchscreen/omap directory?
+Date: Fri, 5 Dec 2008 10:06:39 -0800
+Message-ID: <20081205180637.GC9714@atomide.com>
+References: <5d5443650812050555j276aa797j3322254a5fa89e8d@mail.gmail.com> <20081205163420.c607293d.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37045 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751988AbYLEQnE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2008 11:43:04 -0500
-In-Reply-To: <200812050138.33606.david-b@pacbell.net>
-Content-Language: en-US
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50028 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752385AbYLESGo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2008 13:06:44 -0500
+Content-Disposition: inline
+In-Reply-To: <20081205163420.c607293d.jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "Gupta, Ramesh" <grgupta@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: ext Trilok Soni <soni.trilok@gmail.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
+* Jarkko Nikula <jarkko.nikula@nokia.com> [081205 06:34]:
+> On Fri, 5 Dec 2008 19:25:48 +0530
+> "ext Trilok Soni" <soni.trilok@gmail.com> wrote:
+> 
+> > Hi Tony,
+> > 
+> > I think no one using touchscreen drivers under this directory, please remove.
+> > 
+> > I will start process of sending tscXXXX patches to upstream soon...
+> > 
+> That's great! Also drivers/spi/tsc2301-mixer.c can be removed in part
+> of the process.
 
-Hi David,
+Ahh, I like removing legacy code! :) Both gone now.
 
->From: David Brownell [mailto:david-b@pacbell.net]
->Sent: Friday, December 05, 2008 3:39 AM
->To: Ramirez Luna, Omar
->Cc: linux-omap@vger.kernel.org; Hiroshi DOYU; Gupta, Ramesh; Kanigeri,=
- Hari
->Subject: Re: [linux-omap] [PATCH 2/2] DSPBRIDGE: Freeing allocated
->resources on rmmod
->
->On Thursday 04 December 2008, Ramirez Luna, Omar wrote:
->> +=A0=A0=A0=A0=A0=A0=A0DSP_STATUS dsp_status =3D DSP_SOK;
->> +=A0=A0=A0=A0=A0=A0=A0HANDLE=A0=A0 =A0 =A0 hDrvObject =3D NULL;
->> +=A0=A0=A0=A0=A0=A0=A0struct PROCESS_CONTEXT=A0=A0*pTmp =3D NULL;
->> +=A0=A0=A0=A0=A0=A0=A0struct PROCESS_CONTEXT =A0 =A0*pCtxtclosed =3D=
- NULL;
->> +=A0=A0=A0=A0=A0=A0=A0struct PROCESS_CONTEXT =A0 =A0*pCtxttraverse =3D=
- NULL;
->
->It WoUlD bE a LoT nIcEr ...
->
->... if new code didn't introduce new CamelCase usage,
->and didn't use Hungarian notation.
->
->Hungarian notation makes some sense in assembly language,
->where it was created to help cope with the lack of typing.
->But not in C.
+Jarkko, there's still the n800_audio_init() stub, maybe check that
+and send a patch?
 
-Thanks for your comments and time, we are still working towards meeting=
- open source standards and enhancing the code with all the feedback rec=
-eived (RW, RMK, TL, HD, FC and many more people) to get the driver push=
-ed a piece at a time.
+Tony
 
-There are still action items in our list, along with coding style, but =
-we'll keep working to get them done.
-
-- omar
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
