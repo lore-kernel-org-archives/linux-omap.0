@@ -1,70 +1,45 @@
-From: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Subject: Re: git-pull request for i2c-omap updates (Re: [PATCH 00/12]
-	Updates for i2c-omap for 2.6.29 merge window, v5)
-Date: Fri, 5 Dec 2008 00:25:15 +0000
-Message-ID: <20081205002515.GD4256@fluff.org.uk>
-References: <20081129013318.13428.88465.stgit@localhost> <20081129015611.GK6640@atomide.com>
+From: "Kwangwoo Lee" <kwangwoo.lee@gmail.com>
+Subject: Re: [PATCH] Add tsc2007 based touchscreen driver.
+Date: Fri, 5 Dec 2008 10:09:29 +0900
+Message-ID: <483a38b80812041709i10abeae4n571355dd1d88b6c2@mail.gmail.com>
+References: <483a38b80812020539v2323a784h7f202749687764db@mail.gmail.com>
+	 <483a38b80812032107i761fb9bdkba9b2ce5e998ae6a@mail.gmail.com>
+	 <20081204093715.GH10209@gandalf.research.nokia.com>
+	 <200812040156.55943.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mu-out-0910.google.com ([209.85.134.187]:64699 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756470AbYLEBJb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Dec 2008 20:09:31 -0500
+Received: by mu-out-0910.google.com with SMTP id g7so3590041muf.1
+        for <linux-omap@vger.kernel.org>; Thu, 04 Dec 2008 17:09:30 -0800 (PST)
+In-Reply-To: <200812040156.55943.david-b@pacbell.net>
 Content-Disposition: inline
-In-Reply-To: <20081129015611.GK6640-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>, felipe.balbi@nokia.com
+Cc: ext Trilok Soni <soni.trilok@gmail.com>, dmitry.torokhov@gmail.com, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-On Fri, Nov 28, 2008 at 05:56:12PM -0800, Tony Lindgren wrote:
-> Ben,
-> 
-> Here's the pull request for you.
-> 
-> Regards,
-> 
-> Tony
+On Thu, Dec 4, 2008 at 6:56 PM, David Brownell <david-b@pacbell.net> wrote:
+> On Thursday 04 December 2008, Felipe Balbi wrote:
+>> i2c subsystem has smbus emulation. The special reason is just that it's
+>> simpler for the driver writer ;-)
+>
+> I'd have said "more portable", actually.  I2C hosts can
+> do pretty much everything an SMBus host can, but the
+> converse is not true.
+>
+> And re i2c_check_functionality() ... yes, use it to make
+> sure each I2C or SMBus call the driver makes is supported
+> by the underlying controller.
+>
 
-> The following changes since commit 13d428afc007fcfcd6deeb215618f54cf9c0cae6:
->   Linus Torvalds (1):
->         Linux 2.6.28-rc6
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git i2c-for-ben
-> 
-> Chandra shekhar (1):
->       i2c-omap: Add support for omap34xx
-> 
-> Jarkko Nikula (1):
->       i2c-omap: Do not use interruptible wait call in omap_i2c_xfer_msg
-> 
-> Kalle Jokiniemi (1):
->       i2c-omap: Enable I2C wakeups for 34xx
-> 
-> Nishanth Menon (1):
->       i2c-omap: FIFO handling support and broken hw workaround for i2c-omap
-> 
-> Paul Walmsley (6):
->       i2c-omap: Close suspected race between omap_i2c_idle() and omap_i2c_isr()
->       i2c-omap: Mark init-only functions as __init
->       i2c-omap: Don't compile in OMAP15xx I2C ISR for non-OMAP15xx builds
->       i2c-omap: fix I2C timeouts due to recursive omap_i2c_{un,}idle()
->       i2c-omap: convert 'rev1' flag to generic 'rev' u8
->       i2c-omap: reprogram OCP_SYSCONFIG register after reset
-> 
-> Syed Mohammed Khasim (1):
->       i2c-omap: Add high-speed support to omap-i2c
-> 
-> Tony Lindgren (1):
->       i2c-omap: Clean-up i2c-omap
-> 
->  arch/arm/mach-omap2/clock24xx.h |    4 +-
->  drivers/i2c/busses/i2c-omap.c   |  420 ++++++++++++++++++++++++++++++---------
->  2 files changed, 330 insertions(+), 94 deletions(-)
-
-Ok, i've had a look through and most of these pass a quick review,,
-will do a full review in the next day or so.
+Thank you Brownell and Balbi.
+Your comments are very helpful for me. I'll fix some part of the
+driver and send it again later.
 
 -- 
-Ben (ben-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, http://www.fluff.org/)
-
-  'a smiley only costs 4 bytes'
+Kwangwoo Lee <kwangwoo.lee@gmail.com>
