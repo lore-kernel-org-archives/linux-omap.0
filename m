@@ -1,66 +1,81 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 6/6] ARM: OMAP2: skip unnecessary TLDR write during
-	non-autoreload for gptimer
-Date: Thu, 04 Dec 2008 18:41:53 -0800
-Message-ID: <20081205024153.3868.52653.stgit@localhost>
-References: <20081205023737.3868.78857.stgit@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: arunks@mistralsolutions.com
+Subject: [PATCH] Removes unused platform device for osk5912
+Date: Fri,  5 Dec 2008 11:23:11 +0530
+Message-ID: <1228456391-7292-1-git-send-email-arunks@mistralsolutions.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51867 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755262AbYLEClz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Dec 2008 21:41:55 -0500
-In-Reply-To: <20081205023737.3868.78857.stgit@localhost>
+Received: from ti-out-0910.google.com ([209.85.142.184]:49113 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751161AbYLEFxW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2008 00:53:22 -0500
+Received: by ti-out-0910.google.com with SMTP id b6so2834477tic.23
+        for <linux-omap@vger.kernel.org>; Thu, 04 Dec 2008 21:53:20 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Richard Woodruff <r-woodruff2@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: dbrownell@users.sourceforge.net, tony@atomide.com, dirk.behme@de.bosch.com, Arun KS <arunks@mistralsolutions.com>
 
-From: Paul Walmsley <paul@pwsan.com>
+From: Arun KS <arunks@mistralsolutions.com>
 
-The GPTIMER TLDR register does not need to be written if the GPTIMER
-is not in autoreload mode.  This is the usual case for dynamic tick-enabled
-kernels.
+This patch removes platform device used my ALSA driver, which
+is now replaced with ASoC driver.
 
-Simulation data indicate that skipping the read that occurs as part of
-the write should save at least 300-320 ns for each GPTIMER1 timer
-reprogram.  (This assumes L4-Wakeup is at 19MHz and GPTIMER write
-posting is enabled.)  Skipping the write itself probably won't have
-much impact since it should be posted on the OCP interconnect.
-
-Tested on 2430SDP and 3430SDP.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Richard Woodruff <r-woodruff2@ti.com>
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Arun KS <arunks@mistralsolutions.com>
 ---
- arch/arm/plat-omap/dmtimer.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap1/board-osk.c |   37 -------------------------------------
+ 1 files changed, 0 insertions(+), 37 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 595e3d5..e4f0ce0 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -549,14 +549,15 @@ void omap_dm_timer_set_load_start(struct omap_dm_timer *timer, int autoreload,
- 	u32 l;
+diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
+index 41e40d6..d2dfff5 100644
+--- a/arch/arm/mach-omap1/board-osk.c
++++ b/arch/arm/mach-omap1/board-osk.c
+@@ -141,47 +141,10 @@ static struct platform_device osk5912_cf_device = {
+ 	.resource	= osk5912_cf_resources,
+ };
  
- 	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
--	if (autoreload)
-+	if (autoreload) {
- 		l |= OMAP_TIMER_CTRL_AR;
--	else
-+		omap_dm_timer_write_reg(timer, OMAP_TIMER_LOAD_REG, load);
-+	} else {
- 		l &= ~OMAP_TIMER_CTRL_AR;
-+	}
- 	l |= OMAP_TIMER_CTRL_ST;
+-#define DEFAULT_BITPERSAMPLE 16
+-
+-static struct omap_mcbsp_reg_cfg mcbsp_regs = {
+-	.spcr2 = FREE | FRST | GRST | XRST | XINTM(3),
+-	.spcr1 = RINTM(3) | RRST,
+-	.rcr2 = RPHASE | RFRLEN2(OMAP_MCBSP_WORD_8) |
+-	    RWDLEN2(OMAP_MCBSP_WORD_16) | RDATDLY(0),
+-	.rcr1 = RFRLEN1(OMAP_MCBSP_WORD_8) | RWDLEN1(OMAP_MCBSP_WORD_16),
+-	.xcr2 = XPHASE | XFRLEN2(OMAP_MCBSP_WORD_8) |
+-	    XWDLEN2(OMAP_MCBSP_WORD_16) | XDATDLY(0) | XFIG,
+-	.xcr1 = XFRLEN1(OMAP_MCBSP_WORD_8) | XWDLEN1(OMAP_MCBSP_WORD_16),
+-	.srgr1 = FWID(DEFAULT_BITPERSAMPLE - 1),
+-	.srgr2 = GSYNC | CLKSP | FSGM | FPER(DEFAULT_BITPERSAMPLE * 2 - 1),
+-	/*.pcr0 = FSXM | FSRM | CLKXM | CLKRM | CLKXP | CLKRP,*/ /* mcbsp: master */
+-	.pcr0 = CLKXP | CLKRP,  /* mcbsp: slave */
+-};
+-
+-static struct omap_alsa_codec_config alsa_config = {
+-	.name			= "OSK AIC23",
+-	.mcbsp_regs_alsa	= &mcbsp_regs,
+-	.codec_configure_dev	= NULL, /* aic23_configure, */
+-	.codec_set_samplerate	= NULL, /* aic23_set_samplerate, */
+-	.codec_clock_setup	= NULL, /* aic23_clock_setup, */
+-	.codec_clock_on		= NULL, /* aic23_clock_on, */
+-	.codec_clock_off	= NULL, /* aic23_clock_off, */
+-	.get_default_samplerate	= NULL, /* aic23_get_default_samplerate, */
+-};
+-
+-static struct platform_device osk5912_mcbsp1_device = {
+-	.name	= "omap_alsa_mcbsp",
+-	.id	= 1,
+-	.dev = {
+-		.platform_data	= &alsa_config,
+-	},
+-};
+-
+ static struct platform_device *osk5912_devices[] __initdata = {
+ 	&osk5912_flash_device,
+ 	&osk5912_smc91x_device,
+ 	&osk5912_cf_device,
+-	&osk5912_mcbsp1_device,
+ };
  
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_COUNTER_REG, load);
--	omap_dm_timer_write_reg(timer, OMAP_TIMER_LOAD_REG, load);
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
- }
- 
+ static struct gpio_led tps_leds[] = {
+-- 
+1.5.6.3
 
