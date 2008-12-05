@@ -1,63 +1,82 @@
 From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: Setting dss1_alwon_fck rate
-Date: Fri, 5 Dec 2008 14:57:20 -0800
-Message-ID: <5e088bd90812051457r43136ecdqedb2ed7a574208f4@mail.gmail.com>
-References: <21FAA8D4A5AB5E4096AC4BE4BF42EB140154D464@vaebe104.NOE.Nokia.com>
+Subject: Re: Bug: enabling USB-TLL fclk
+Date: Fri, 5 Dec 2008 15:05:35 -0800
+Message-ID: <5e088bd90812051505x47cebc7dp7a863dbca66d40df@mail.gmail.com>
+References: <a46a26fd0810221358l6153c0dat74f76af99fc8afaf@mail.gmail.com>
+	 <a46a26fd0810221523y4a947442p6eb060192603b8f1@mail.gmail.com>
+	 <a46a26fd0810231451n2095b03btc832c2a8b70d2749@mail.gmail.com>
+	 <200810231516.32947.david-b@pacbell.net>
+	 <FCCFB4CDC6E5564B9182F639FC35608702396F8AB7@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.174]:48850 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752860AbYLEW5V (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2008 17:57:21 -0500
-Received: by wf-out-1314.google.com with SMTP id 27so207958wfd.4
-        for <linux-omap@vger.kernel.org>; Fri, 05 Dec 2008 14:57:20 -0800 (PST)
-In-Reply-To: <21FAA8D4A5AB5E4096AC4BE4BF42EB140154D464@vaebe104.NOE.Nokia.com>
+Received: from yx-out-2324.google.com ([74.125.44.28]:1803 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752641AbYLEXFh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2008 18:05:37 -0500
+Received: by yx-out-2324.google.com with SMTP id 8so135579yxm.1
+        for <linux-omap@vger.kernel.org>; Fri, 05 Dec 2008 15:05:35 -0800 (PST)
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702396F8AB7@dbde02.ent.ti.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi.Valkeinen@nokia.com
-Cc: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Dec 5, 2008 at 1:02 AM,  <Tomi.Valkeinen@nokia.com> wrote:
-> Hi,
+On Fri, Oct 24, 2008 at 4:19 PM, Pandita, Vikram <vikram.pandita@ti.com> wrote:
 >
-> Any comments on these two patches from Mans, that enable setting
-> dss1_alwon_fck? I've been using them with the new DSS, works fine for
-> me.
+> Paul
+>
+>  I was debugging why EHCI is not coming up and getting stuck in infinite loop for TLL not enabling.
 
-I've been using them on recent Overo builds (using current DSS) and
-they work for me too.
+EHCI is still broken on the current top of tree -- same infinite loop.
+
+Have anyone figured out what is going wrong here?
 
 Steve
 
+
+> I found that there is issue with clock framework in enabling "usbtll_fck" clock.
 >
-> http://marc.info/?l=linux-omap&m=122454507816731&w=2
+> On enabling tll-fck clock, the framework returns error for the node:
 >
-> Filling the set_rate and round_rate fields of dpll4_m4_ck makes
-> this clock programmable through clk_set_rate().  This is needed
-> to give omapfb control over the dss1_alwon_fck rate.
+> static struct clk dpll5_ck = {
+>        .name           = "dpll5_ck",
+>        .parent         = &sys_ck,
+>        .prcm_mod       = PLL_MOD,
+>        .dpll_data      = &dpll5_dd,
+>        .flags          = CLOCK_IN_OMAP3430ES2 | RATE_PROPAGATES,
+>        .enable         = &omap3_noncore_dpll_enable,
+>        .disable        = &omap3_noncore_dpll_disable,
+>        .round_rate     = &omap2_dpll_round_rate,
+>        .set_rate       = &omap3_noncore_dpll_set_rate,
+>        .clkdm          = { .name = "dpll5_clkdm" },
+>        .recalc         = &omap3_dpll_recalc,
+> };
 >
-> Signed-off-by: Mans Rullgard <mans@mansr.com>
+>
+> If I set the FCLK for USB-TLL directly as per following patch, EHCI works fine.
+> Please check what is wrong with the above clock node.
+>
 > ---
->  arch/arm/mach-omap2/clock34xx.h |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
+> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+> index 419e70a..96b9df5 100644
+> --- a/drivers/usb/host/ehci-omap.c
+> +++ b/drivers/usb/host/ehci-omap.c
+> @@ -236,10 +236,9 @@ static int omap_start_ehc(struct platform_device *dev, struct usb_hcd *hcd)
+>  #endif
 >
+>        /* Configure TLL for 60Mhz clk for ULPI */
+> -       ehci_clocks->usbtll_fck_clk = clk_get(&dev->dev, USBHOST_TLL_FCLK);
+> -       if (IS_ERR(ehci_clocks->usbtll_fck_clk))
+> -               return PTR_ERR(ehci_clocks->usbtll_fck_clk);
+> -       clk_enable(ehci_clocks->usbtll_fck_clk);
+> +
+> +       /* Force enable FCLK for USB-TLL */
+> +       omap_writel(1<<2, 0x48004A08); /* CM_FCLKEN3_CORE */
 >
-> http://marc.info/?l=linux-omap&m=122454507816734&w=2
->
-> This makes clk_get_parent() work on OMAP2/3.
->
-> Signed-off-by: Mans Rullgard <mans@mansr.com>
-> ---
->  arch/arm/mach-omap2/clock.c     |    5 +++++
->  arch/arm/mach-omap2/clock.h     |    1 +
->  arch/arm/mach-omap2/clock24xx.c |    1 +
->  arch/arm/mach-omap2/clock34xx.c |    1 +
->  4 files changed, 8 insertions(+), 0 deletions(-)
->
->  Tomi
+>        ehci_clocks->usbtll_ick_clk = clk_get(&dev->dev, USBHOST_TLL_ICKL);
+>        if (IS_ERR(ehci_clocks->usbtll_ick_clk))
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
