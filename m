@@ -1,56 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 0/6] Omap2 updates for 2.6.29 merge window
-Date: Thu, 04 Dec 2008 18:38:42 -0800
-Message-ID: <20081205023737.3868.78857.stgit@localhost>
+Subject: [PATCH 1/6] ARM: OMAP2: Prepare cpu detection for further improvements
+Date: Thu, 04 Dec 2008 18:39:14 -0800
+Message-ID: <20081205023914.3868.89924.stgit@localhost>
+References: <20081205023737.3868.78857.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50405 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50629 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751015AbYLECio (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Dec 2008 21:38:44 -0500
+	with ESMTP id S1755582AbYLECjQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Dec 2008 21:39:16 -0500
+In-Reply-To: <20081205023737.3868.78857.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
 Cc: linux-omap@vger.kernel.org
 
-Hi,
+Rename omap2_check_revision to omap24xx_check_revision.
+Then next patch will split if further and add omap34xx_check_revision.
 
-Here are some omap2 updates for review. Some of these patches also
-affect omap3 as the code is shared.
-
-Regards,
-
-Tony
-
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
+ arch/arm/mach-omap2/id.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
-David Brownell (1):
-      ARM: OMAP2: bard-h4: list those eeproms
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index bf45ff3..b6ee18c 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -191,7 +191,7 @@ static void __init _set_omap_chip(void)
+ 
+ }
+ 
+-void __init omap2_check_revision(void)
++void __init omap24xx_check_revision(void)
+ {
+ 	int i, j;
+ 	u32 idcode;
+@@ -266,6 +266,11 @@ void __init omap2_check_revision(void)
+ 
+ }
+ 
++void __init omap2_check_revision(void)
++{
++	omap24xx_check_revision();
++}
++
+ void __init omap2_set_globals_tap(struct omap_globals *omap2_globals)
+ {
+ 	class = omap2_globals->class;
 
-Lauri Leukkunen (1):
-      ARM: OMAP2: Use omap_rev() instead of system_rev
-
-Paul Walmsley (2):
-      ARM: OMAP2: skip unnecessary TLDR write during non-autoreload for gptimer
-      ARM: OMAP2: drop redundant pending write check for gptimer
-
-Tony Lindgren (2):
-      ARM: OMAP2: Fix cpu detection
-      ARM: OMAP2: Prepare cpu detection for further improvements
-
-
- arch/arm/mach-omap1/id.c                        |   53 ++--
- arch/arm/mach-omap1/pm.c                        |    6 
- arch/arm/mach-omap2/board-h4.c                  |   14 +
- arch/arm/mach-omap2/clock34xx.c                 |    2 
- arch/arm/mach-omap2/id.c                        |  305 ++++++++++-------------
- arch/arm/plat-omap/dmtimer.c                    |   11 -
- arch/arm/plat-omap/include/mach/board-apollon.h |    4 
- arch/arm/plat-omap/include/mach/cpu.h           |   82 ++----
- arch/arm/plat-omap/sram.c                       |    3 
- 9 files changed, 219 insertions(+), 261 deletions(-)
-
--- 
-Signature
