@@ -1,80 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [irda-users] [PATCH] OMAP IrDA driver
-Date: Fri, 5 Dec 2008 12:32:18 -0800
-Message-ID: <20081205203216.GJ9714@atomide.com>
-References: <5d5443650812042234y6301148at6658f4855500b105@mail.gmail.com> <ea9ea93a42eaf41cd9ee3ff11ad1a026@localhost> <5d5443650812050148n2b3fca72m272a1af33629c478@mail.gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 2/2] Putting TPS6235x into the power regulator framework
+Date: Fri, 5 Dec 2008 13:38:45 -0800
+Message-ID: <200812051338.45362.david-b@pacbell.net>
+References: <y> <1228386306-13579-1-git-send-email-y>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57748 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752660AbYLEUcX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2008 15:32:23 -0500
+Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:20520 "HELO
+	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754399AbYLEVir (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2008 16:38:47 -0500
+In-Reply-To: <1228386306-13579-1-git-send-email-y>
 Content-Disposition: inline
-In-Reply-To: <5d5443650812050148n2b3fca72m272a1af33629c478@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Trilok Soni <soni.trilok@gmail.com>
-Cc: samuel@sortiz.org, linux-kernel@vger.kernel.org, irda-users@lists.sourceforge.net, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org
+To: y@india.ti.com
+Cc: linux-omap@vger.kernel.org, Manikandan Pillai <mani.pillai@ti.com>
 
-Hi,
+I second the comment on splitting this patch up into
+its constituent chunks.  It'll be practical to review
+each of them properly at that point.
 
-Just one comment below.
+Like ... it seems wrong to teach plat-omap/devices.c
+about EVM-specific stuff; it should stay generic.
 
-* Trilok Soni <soni.trilok@gmail.com> [081205 01:48]:
-> Hi Samuel,
-> 
-> On Fri, Dec 5, 2008 at 2:58 PM,  <samuel@sortiz.org> wrote:
-> >
-> > Hi,
-> >
-> > On Fri, 5 Dec 2008 12:04:29 +0530, "Trilok Soni" <soni.trilok@gmail.com>
-> > wrote:
-> >> This time adding LKML too.
-> > Could you please inline the patch so that we can have an easier review ?
-> 
-> I don't have proper git-send-email integration with gmail, so I am
-> going to copy/paste this patch here:
+And those EVM-specific bits are done wrong too; those
+regulators are I2C devices, not platform devices!
+Plus, their constraints should be board-specific, not
+generic.  Move all that into the omap3evm board code.
 
-<snip>
+You still didn't remove the drivers/i2c/chips stuff.
+Move the *ENTIRE* driver to drivers/regulator, and
+get rid of all the platform_device stuff.
 
-> diff --git a/drivers/net/irda/omap-ir.c b/drivers/net/irda/omap-ir.c
-> new file mode 100644
-> index 0000000..bf29585
-> --- /dev/null
-> +++ b/drivers/net/irda/omap-ir.c
-> @@ -0,0 +1,893 @@
+Good to see this driver start moving into its proper
+home, though.  :)
 
-<snip>
 
-> +
-> +/*
-> + * Set the IrDA communications speed.
-> + * Interrupt have to be disabled here.
-> + */
-> +static int omap_irda_startup(struct net_device *dev)
-> +{
-> +	struct omap_irda *omap_ir = netdev_priv(dev);
-> +
-> +	/* FIXME: use clk_* apis for UART3 clock*/
-> +	/* Enable UART3 clock and set UART3 to IrDA mode */
-> +	if (machine_is_omap_h2() || machine_is_omap_h3())
-> +		omap_writel(omap_readl(MOD_CONF_CTRL_0) | (1 << 31) | (1 << 15),
-> +				MOD_CONF_CTRL_0);
-> +
-> +	/* Only for H2?
-> +	 */
-> +	if (omap_ir->pdata->transceiver_mode && machine_is_omap_h2()) {
-> +		/* Is it select_irda on H2 ? */
-> +		omap_writel(omap_readl(FUNC_MUX_CTRL_A) | 7,
-> +					FUNC_MUX_CTRL_A);
-> +		omap_ir->pdata->transceiver_mode(omap_ir->dev, IR_SIRMODE);
-> +	}
-> +
+On Thursday 04 December 2008, y@india.ti.com wrote:
+> Not fixed comments:
+> Not clear on how to implement runtime check for PR785 and would require some
+> inputs on implementing the same.
 
-It would be best to get rid of the machine_is this or that code in the
-drivers, and pass the necessary flags in the platform_data.
+The TPS driver should not know or care about the PR785 card;
+it should just respond to the various requests.  If there's
+any knowledge of PR785 in drivers/anything/* you should treat
+that as a bug (and fix it before merge).  Since the chips are
+pretty much the same other than some bit interpretations, just
+use the driver_data in the i2c_device_id to describe whatever
+differences the driver needs to know about.
 
-Regards,
+With respect to runtime checking, first make sure the
+OMAP3 EVM init code is able to cleanly choose between the
+two power card options.  Once that's done you can try
+turning that into a runtime check.
 
-Tony
+- Dave
