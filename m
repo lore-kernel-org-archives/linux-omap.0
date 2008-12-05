@@ -1,280 +1,65 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [irda-users] [PATCH] OMAP IrDA driver
-Date: Fri, 5 Dec 2008 23:53:45 +0200
-Message-ID: <20081205215344.GJ18379@frodo>
-References: <5d5443650812042234y6301148at6658f4855500b105@mail.gmail.com> <ea9ea93a42eaf41cd9ee3ff11ad1a026@localhost> <5d5443650812050148n2b3fca72m272a1af33629c478@mail.gmail.com>
-Reply-To: me@felipebalbi.com
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: Re: Setting dss1_alwon_fck rate
+Date: Fri, 5 Dec 2008 14:57:20 -0800
+Message-ID: <5e088bd90812051457r43136ecdqedb2ed7a574208f4@mail.gmail.com>
+References: <21FAA8D4A5AB5E4096AC4BE4BF42EB140154D464@vaebe104.NOE.Nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:47865 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756261AbYLEVx7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2008 16:53:59 -0500
+Received: from wf-out-1314.google.com ([209.85.200.174]:48850 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752860AbYLEW5V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2008 17:57:21 -0500
+Received: by wf-out-1314.google.com with SMTP id 27so207958wfd.4
+        for <linux-omap@vger.kernel.org>; Fri, 05 Dec 2008 14:57:20 -0800 (PST)
+In-Reply-To: <21FAA8D4A5AB5E4096AC4BE4BF42EB140154D464@vaebe104.NOE.Nokia.com>
 Content-Disposition: inline
-In-Reply-To: <5d5443650812050148n2b3fca72m272a1af33629c478@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Trilok Soni <soni.trilok@gmail.com>
-Cc: samuel@sortiz.org, linux-kernel@vger.kernel.org, irda-users@lists.sourceforge.net, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org
+To: Tomi.Valkeinen@nokia.com
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Dec 05, 2008 at 03:18:10PM +0530, Trilok Soni wrote:
-> +struct omap_irda {
-> +	unsigned char open;
-> +	int speed;		/* Current IrDA speed */
-> +	int newspeed;
-> +
-> +	struct net_device_stats stats;
-> +	struct irlap_cb *irlap;
-> +	struct qos_info qos;
-> +
-> +	int rx_dma_channel;
-> +	int tx_dma_channel;
-> +
-> +	dma_addr_t rx_buf_dma_phys;	/* Physical address of RX DMA buffer */
-> +	dma_addr_t tx_buf_dma_phys;	/* Physical address of TX DMA buffer */
-> +
-> +	void *rx_buf_dma_virt;		/* Virtual address of RX DMA buffer */
-> +	void *tx_buf_dma_virt;		/* Virtual address of TX DMA buffer */
+On Fri, Dec 5, 2008 at 1:02 AM,  <Tomi.Valkeinen@nokia.com> wrote:
+> Hi,
+>
+> Any comments on these two patches from Mans, that enable setting
+> dss1_alwon_fck? I've been using them with the new DSS, works fine for
+> me.
 
-should these two be void __iomem * ?
+I've been using them on recent Overo builds (using current DSS) and
+they work for me too.
 
-> +
-> +	struct device *dev;
-> +	struct omap_irda_config *pdata;
-> +};
-> +
-> +static inline void uart_reg_out(int idx, u8 val)
-> +{
-> +	omap_writeb(val, idx);
+Steve
 
-__raw_writeb(), pass a reference to struct omap_irda here so you'd have
-access to a void __iomem *base (read below).
-
-> +}
-> +
-> +static inline u8 uart_reg_in(int idx)
-> +{
-> +	u8 b = omap_readb(idx);
-
-ditto.
-
-> +	return b;
-> +}
-> +
-> +/* forward declarations */
-> +static int omap_irda_set_speed(struct net_device *dev, int speed);
-> +
-> +static void omap_irda_start_rx_dma(struct omap_irda *omap_ir)
-> +{
-> +	/* Configure DMA */
-> +	omap_set_dma_src_params(omap_ir->rx_dma_channel, 0x3, 0x0,
-> +				omap_ir->pdata->src_start,
-> +				0, 0);
-> +
-> +	omap_enable_dma_irq(omap_ir->rx_dma_channel, 0x01);
-> +
-> +	omap_set_dma_dest_params(omap_ir->rx_dma_channel, 0x0, 0x1,
-> +				omap_ir->rx_buf_dma_phys,
-> +				0, 0);
-> +
-> +	omap_set_dma_transfer_params(omap_ir->rx_dma_channel, 0x0,
-> +				IRDA_SKB_MAX_MTU, 0x1,
-> +				0x0, omap_ir->pdata->rx_trigger, 0);
-> +
-> +	omap_start_dma(omap_ir->rx_dma_channel);
-> +}
-> +
-> +static void omap_start_tx_dma(struct omap_irda *omap_ir, int size)
-> +{
-> +	/* Configure DMA */
-> +	omap_set_dma_dest_params(omap_ir->tx_dma_channel, 0x03, 0x0,
-> +				omap_ir->pdata->dest_start, 0, 0);
-> +
-> +	omap_enable_dma_irq(omap_ir->tx_dma_channel, 0x01);
-> +
-> +	omap_set_dma_src_params(omap_ir->tx_dma_channel, 0x0, 0x1,
-> +				omap_ir->tx_buf_dma_phys,
-> +				0, 0);
-> +
-> +	omap_set_dma_transfer_params(omap_ir->tx_dma_channel, 0x0, size, 0x1,
-> +				0x0, omap_ir->pdata->tx_trigger, 0);
-> +
-> +	/* Start DMA */
-> +	omap_start_dma(omap_ir->tx_dma_channel);
-> +}
-> +
-> +/* DMA RX callback - normally, we should not go here,
-> + * it calls only if something is going wrong
-> + */
-> +static void omap_irda_rx_dma_callback(int lch, u16 ch_status, void *data)
-> +{
-> +	struct net_device *dev = data;
-> +	struct omap_irda *omap_ir = netdev_priv(dev);
-> +
-> +	printk(KERN_ERR "RX Transfer error or very big frame\n");
-
-you have a device pointer in omap_ir, use it and convert these to
-dev_dbg() calls.
-
-ditto to all below.
-
-> +static int omap_irda_startup(struct net_device *dev)
-> +{
-> +	struct omap_irda *omap_ir = netdev_priv(dev);
-> +
-> +	/* FIXME: use clk_* apis for UART3 clock*/
-> +	/* Enable UART3 clock and set UART3 to IrDA mode */
-> +	if (machine_is_omap_h2() || machine_is_omap_h3())
-> +		omap_writel(omap_readl(MOD_CONF_CTRL_0) | (1 << 31) | (1 << 15),
-> +				MOD_CONF_CTRL_0);
-> +
-> +	/* Only for H2?
-> +	 */
-> +	if (omap_ir->pdata->transceiver_mode && machine_is_omap_h2()) {
-> +		/* Is it select_irda on H2 ? */
-> +		omap_writel(omap_readl(FUNC_MUX_CTRL_A) | 7,
-> +					FUNC_MUX_CTRL_A);
-
-__raw_writel/__raw_readl.
-
-> +static int omap_irda_probe(struct platform_device *pdev)
-> +{
-> +	struct net_device *dev;
-> +	struct omap_irda *omap_ir;
-> +	struct omap_irda_config *pdata = pdev->dev.platform_data;
-> +	unsigned int baudrate_mask;
-> +	int err = 0;
-> +	int irq = NO_IRQ;
-
-you should probably have a struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-
-and use it to ioremap() the base address. Then you can stop using the
-omap_read[bsl]/omap_write[bsl] calls and switch over to standard
-__raw_read[bsl]/__raw_write[bsl] ones.
-
-> +
-> +	if (!pdata) {
-> +		printk(KERN_ERR "IrDA Platform data not supplied\n");
-
-		dev_dbg(&pdev->dev, "..");
-
-> +		return -ENOENT;
-> +	}
-> +
-> +	if (!pdata->rx_channel || !pdata->tx_channel) {
-> +		printk(KERN_ERR "IrDA invalid rx/tx channel value\n");
-		dev_dbg(&pdev->dev, "..");
-> +		return -ENOENT;
-> +	}
-> +
-> +	irq = platform_get_irq(pdev, 0);
-> +	if (irq <= 0) {
-> +		printk(KERN_WARNING "no irq for IrDA\n");
-
-		dev_dbg(&pdev->dev, "..");
-
-> +		return -ENOENT;
-> +	}
-> +
-> +	dev = alloc_irdadev(sizeof(struct omap_irda));
-> +	if (!dev)
-> +		goto err_mem_1;
-> +
-> +
-
-one blank line only.
-
-> +	omap_ir = netdev_priv(dev);
-> +	omap_ir->dev = &pdev->dev;
-> +	omap_ir->pdata = pdata;
-> +
-> +	dev->hard_start_xmit	= omap_irda_hard_xmit;
-> +	dev->open		= omap_irda_start;
-> +	dev->stop		= omap_irda_stop;
-> +	dev->do_ioctl		= omap_irda_ioctl;
-> +	dev->get_stats		= omap_irda_stats;
-> +	dev->irq		= irq;
-> +
-> +	irda_init_max_qos_capabilies(&omap_ir->qos);
-> +
-> +	baudrate_mask = 0;
-> +	if (omap_ir->pdata->transceiver_cap & IR_SIRMODE)
-> +		baudrate_mask |= IR_9600|IR_19200|IR_38400|IR_57600|IR_115200;
-> +	if (omap_ir->pdata->transceiver_cap & IR_MIRMODE)
-> +		baudrate_mask |= IR_57600 | IR_1152000;
-> +	if (omap_ir->pdata->transceiver_cap & IR_FIRMODE)
-> +		baudrate_mask |= IR_4000000 << 8;
-> +
-> +	omap_ir->qos.baud_rate.bits &= baudrate_mask;
-> +	omap_ir->qos.min_turn_time.bits = 7;
-> +
-> +	irda_qos_bits_to_value(&omap_ir->qos);
-> +
-> +	/* Any better way to avoid this? No. */
-> +	if (machine_is_omap_h3() || machine_is_omap_h4())
-> +		INIT_DELAYED_WORK(&omap_ir->pdata->gpio_expa, NULL);
-
-what does this mean ? what's that gpio_expa??
-
-> +
-> +	err = register_netdev(dev);
-> +	if (!err)
-> +		platform_set_drvdata(pdev, dev);
-> +	else
-> +		free_netdev(dev);
-> +
-> +err_mem_1:
-> +	return err;
-> +}
-> +
-> +static int omap_irda_remove(struct platform_device *pdev)
-> +{
-> +	struct net_device *dev = platform_get_drvdata(pdev);
-> +
-> +	if (pdev) {
-> +		unregister_netdev(dev);
-> +		free_netdev(dev);
-> +	}
-
-pdev is always true here, remove this if().
-
-> +	return 0;
-> +}
-> +
-> +static struct platform_driver omapir_driver = {
-> +	.probe		= omap_irda_probe,
-> +	.remove		= omap_irda_remove,
-> +	.suspend	= omap_irda_suspend,
-> +	.resume		= omap_irda_resume,
-> +	.driver		= {
-> +		.name	= "omapirda",
-> +		.owner	= THIS_MODULE,
-> +	},
-> +};
-> +
-> +static char __initdata banner[] = KERN_INFO "OMAP IrDA driver initializing\n";
-> +
-> +static int __init omap_irda_init(void)
-> +{
-> +	printk(banner);
-
-you can remove this banner. No need for it.
-
-> +	return platform_driver_register(&omapir_driver);
-> +}
-> +
-> +static void __exit omap_irda_exit(void)
-> +{
-> +	platform_driver_unregister(&omapir_driver);
-> +}
-> +
-> +module_init(omap_irda_init);
-> +module_exit(omap_irda_exit);
-> +
-> +MODULE_AUTHOR("MontaVista");
-> +MODULE_DESCRIPTION("OMAP IrDA Driver");
-> +MODULE_LICENSE("GPL");
-
--- 
-balbi
+>
+> http://marc.info/?l=linux-omap&m=122454507816731&w=2
+>
+> Filling the set_rate and round_rate fields of dpll4_m4_ck makes
+> this clock programmable through clk_set_rate().  This is needed
+> to give omapfb control over the dss1_alwon_fck rate.
+>
+> Signed-off-by: Mans Rullgard <mans@mansr.com>
+> ---
+>  arch/arm/mach-omap2/clock34xx.h |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+>
+>
+> http://marc.info/?l=linux-omap&m=122454507816734&w=2
+>
+> This makes clk_get_parent() work on OMAP2/3.
+>
+> Signed-off-by: Mans Rullgard <mans@mansr.com>
+> ---
+>  arch/arm/mach-omap2/clock.c     |    5 +++++
+>  arch/arm/mach-omap2/clock.h     |    1 +
+>  arch/arm/mach-omap2/clock24xx.c |    1 +
+>  arch/arm/mach-omap2/clock34xx.c |    1 +
+>  4 files changed, 8 insertions(+), 0 deletions(-)
+>
+>  Tomi
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
