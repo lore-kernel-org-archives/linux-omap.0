@@ -1,69 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: mmc broken?
-Date: Fri, 5 Dec 2008 16:34:37 -0800
-Message-ID: <20081206003432.GR9714@atomide.com>
-References: <5e088bd90812051631i35d541d7peedcae421bf23bc3@mail.gmail.com>
+From: "Steve Sakoman" <sakoman@gmail.com>
+Subject: [FYI PATCH] ASOC:TWL4030 Audio capture fix
+Date: Fri, 5 Dec 2008 16:46:34 -0800
+Message-ID: <5e088bd90812051646ga198c54m54b5d856618b6c1f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="wac7ysb48OaltWcw"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58430 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752523AbYLFAej (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2008 19:34:39 -0500
+Received: from wf-out-1314.google.com ([209.85.200.171]:56225 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752214AbYLFAqf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2008 19:46:35 -0500
+Received: by wf-out-1314.google.com with SMTP id 27so241262wfd.4
+        for <linux-omap@vger.kernel.org>; Fri, 05 Dec 2008 16:46:35 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <5e088bd90812051631i35d541d7peedcae421bf23bc3@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+A couple of folks have noticed an issue with audio capture -- the
+capture result is always silence.
+
+The patch below is a quick fix for those with this issue.  There are
+substantial changes to the codec driver that will be trickling down
+from ASoC, and they deal with this issue differently.
+
+So consider this as a bandaid for those who don't want to wait for the
+trickle down :-)
+
+Steve
 
 
---wac7ysb48OaltWcw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-* Steve Sakoman <sakoman@gmail.com> [081205 16:31]:
-> I attempted an Overo build this afternoon with
-> fb3d15c023ff08c879155db630895f38526b95f6.
-> 
-> I set bootargs for rootfs on mmc.  The boot progresses normally and
-> then hangs waiting for the rootfs to mount.
-> 
-> Where I previously got:
-> 
->   Waiting for root device /dev/mmcblk0p2...
->   mmc0: host does not support reading read-only switch. assuming write-enable.
->   mmc0: new SD card at address ee21
->   mmcblk0: mmc0:ee21 SU02G 1.89 GiB
->    mmcblk0: p1 p2
-> 
-> I now get:
-> 
->   Waiting for root device /dev/mmcblk0p2...
-> 
-> Has anyone else seen mmc issues with rc7?
-
-I think I did it again while cleaning up.. Can you try this patch?
-The name was conflicting with the other MMC omap driver.
-
-Tony
-
---wac7ysb48OaltWcw
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="mmc-fix.patch"
-
-diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-index 25c6d10..70108f8 100644
---- a/arch/arm/plat-omap/devices.c
-+++ b/arch/arm/plat-omap/devices.c
-@@ -206,7 +206,7 @@ int __init omap_mmc_add(int id, unsigned long base, unsigned long size,
- 	struct resource res[OMAP_MMC_NR_RES];
- 	int ret;
- 
--	pdev = platform_device_alloc("mmci-omap", id);
-+	pdev = platform_device_alloc("mmci-omap-hs", id);
- 	if (!pdev)
- 		return -ENOMEM;
- 
-
---wac7ysb48OaltWcw--
+diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
+index ee2f0d3..8b4aafb 100644
+--- a/sound/soc/codecs/twl4030.c
++++ b/sound/soc/codecs/twl4030.c
+@@ -45,8 +45,8 @@ static const u8 twl4030_reg[TWL4030_CACHEREGNUM] = {
+ 	0xc3, /* REG_OPTION		(0x2)	*/
+ 	0x00, /* REG_UNKNOWN		(0x3)	*/
+ 	0x00, /* REG_MICBIAS_CTL	(0x4)	*/
+-	0x24, /* REG_ANAMICL		(0x5)	*/
+-	0x04, /* REG_ANAMICR		(0x6)	*/
++	0x34, /* REG_ANAMICL		(0x5)	*/
++	0x14, /* REG_ANAMICR		(0x6)	*/
+ 	0x0a, /* REG_AVADC_CTL		(0x7)	*/
+ 	0x00, /* REG_ADCMICSEL		(0x8)	*/
+ 	0x00, /* REG_DIGMIXING		(0x9)	*/
