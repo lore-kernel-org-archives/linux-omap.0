@@ -1,48 +1,71 @@
-From: Kalle Valo <kalle.valo@nokia.com>
-Subject: Re: [PATCH] Add stlc45xx, wi-fi driver for stlc4550/4560
-Date: Sat, 06 Dec 2008 20:10:31 +0200
-Message-ID: <87hc5h5g4o.fsf@nokia.com>
-References: <20081206173056.6853.95209.stgit@tikku>
-	<20081206173211.6853.59029.stgit@tikku>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: Bug in linux omap clock framework?
+Date: Sat, 6 Dec 2008 16:51:39 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0812061635110.21247@utopia.booyaka.com>
+References: <21FAA8D4A5AB5E4096AC4BE4BF42EB140157D444@vaebe104.NOE.Nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:65492 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750809AbYLFSKi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Dec 2008 13:10:38 -0500
-In-Reply-To: <20081206173211.6853.59029.stgit@tikku> (ext Kalle Valo's message of "Sat\, 06 Dec 2008 19\:32\:12 +0200")
+Received: from utopia.booyaka.com ([72.9.107.138]:50029 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753455AbYLFXvl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Dec 2008 18:51:41 -0500
+In-Reply-To: <21FAA8D4A5AB5E4096AC4BE4BF42EB140157D444@vaebe104.NOE.Nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-wireless@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
+To: Tomi.Valkeinen@nokia.com
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com
 
-"Kalle Valo" <kalle.valo@nokia.com> writes:
+Hi Tomi,
 
-> This patch adds a new driver called stlc45xx, which supports wi-fi chipsets
-> stlc4550 and stlc4560 from ST-NXP Wireless. The chipset can be found, for
-> example, from Nokia N800 and N810 products.
->
-> The driver is implemented based on the firmware interface information
-> published by ST-NXP Wireless here:
->
-> http://wireless.kernel.org/en/developers/Documentation/specs#STMicroelectronicshardware
->
-> Currently only SPI interface is supported.
+nice test case.
 
-Crap, just now I realised to try to compile this with pristine
-wireless-testing tree:
+On Fri, 5 Dec 2008, Tomi.Valkeinen@nokia.com wrote:
 
-In file included from drivers/net/wireless/stlc45xx.c:24:
-drivers/net/wireless/stlc45xx.h:27:24: error: mach/board.h: No such file or directory
-drivers/net/wireless/stlc45xx.c: In function 'stlc45xx_power_off':
-drivers/net/wireless/stlc45xx.c:958: error: dereferencing pointer to incomplete type
-drivers/net/wireless/stlc45xx.c:959: error: dereferencing pointer to incomplete type
+> I have had strange clk_enable() crashes with DSS2, and now I managed to
+> isolate it. With the included patch, on OMAP3 SDP board, with default
+> kernel config, I always get the crash below. In this example case it
+> happens at specific time on boot, but with DSS2 it happens randomly at
+> runtime, when I enable the DSS clocks.
 
-I usually merge linux-omap to wireless-testing and that's why I didn't
-notice this. I will implement the platform data solution in v2 which
-should fix this compile error. But I would still love to hear any
-comments people have about v1.
+Looks like there's some problem with the DSS driver's usage of 
+dss_tv_fclk.  Enabling dss_tv_fclk before entering your test code's 
+while-loop makes the problem go away here.  Patch below.
 
--- 
-Kalle Valo
+As an aside, your test patch does not actually disable dss1_fclk, since it 
+is already enabled by the time the while-loop starts.  So you might also 
+want to add a clk_disable(c2) before your while-loop starts, when you 
+test.
+
+Based on the traceback that you sent, I'd conjecture that probably some 
+part of the DSS subsystem is generating an interrupt via DSS_IRQ; but then 
+dss_iclk ends up disabled, and the MPU INTC is not able to communicate 
+with the DSS, and the INTC wedges.  (The aborting access is to 0xd8200098, 
+the INTCPS_PENDING_IRQ0 register, rather than a DSS register.)  Probably 
+some IRQs need to be masked before disabling the dss_iclk.
+
+
+- Paul
+
+
+
+ drivers/video/omap/omapfb_main.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
+index a77e3bf..57b9e98 100644
+--- a/drivers/video/omap/omapfb_main.c
++++ b/drivers/video/omap/omapfb_main.c
+@@ -1808,9 +1808,11 @@ static int omapfb_probe(struct platform_device *pdev)
+ 	BUG_ON(fbdev_pdev != NULL);
+ 
+ 	{
+-		struct clk *c1, *c2;
++		struct clk *c1, *c2, *c3;
+ 		c1 = clk_get(&pdev->dev, "dss_ick");
+ 		c2 = clk_get(&pdev->dev, "dss1_fck");
++		c3 = clk_get(&pdev->dev, "dss_tv_fck");
++ 		clk_enable(c3);
+ 		while(1) {
+ 			clk_enable(c1);
+ 			clk_enable(c2);
