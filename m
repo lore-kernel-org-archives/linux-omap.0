@@ -1,28 +1,50 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/2] OMAP: Add clk_get_parent() for OMAP2/3
-Date: Fri, 5 Dec 2008 16:52:56 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0812051652300.21247@utopia.booyaka.com>
-References: <yw1xhc76hmvi.fsf@thrashbarg.mansr.com> <1224545064-25551-2-git-send-email-mans@mansr.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] OMAP: Make dpll4_m4_ck programmable with
+	clk_set_rate()
+Date: Fri, 5 Dec 2008 16:11:54 -0800
+Message-ID: <20081206001153.GO9714@atomide.com>
+References: <yw1xhc76hmvi.fsf@thrashbarg.mansr.com> <1224545064-25551-1-git-send-email-mans@mansr.com> <alpine.DEB.2.00.0812051650380.21247@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:41065 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754069AbYLEXw5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2008 18:52:57 -0500
-In-Reply-To: <1224545064-25551-2-git-send-email-mans@mansr.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62033 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756300AbYLFAL5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2008 19:11:57 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.0812051650380.21247@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mans Rullgard <mans@mansr.com>
-Cc: linux-omap@vger.kernel.org, tomi.valkeinen@nokia.com, tony@atomide.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Mans Rullgard <mans@mansr.com>, linux-omap@vger.kernel.org, tomi.valkeinen@nokia.com
 
-On Tue, 21 Oct 2008, Mans Rullgard wrote:
+* Paul Walmsley <paul@pwsan.com> [081205 15:52]:
+> On Tue, 21 Oct 2008, Mans Rullgard wrote:
+>=20
+> > Filling the set_rate and round_rate fields of dpll4_m4_ck makes
+> > this clock programmable through clk_set_rate().  This is needed
+> > to give omapfb control over the dss1_alwon_fck rate.
+> >=20
+> > Signed-off-by: Mans Rullgard <mans@mansr.com>
+>=20
+> Acked-by: Paul Walmsley <paul@pwsan.com>
+>=20
+> M=E5ns, sorry this took so long, these two patches slipped through th=
+e=20
+> cracks here.
 
-> This makes clk_get_parent() work on OMAP2/3.
-> 
-> Signed-off-by: Mans Rullgard <mans@mansr.com>
+Pushing both to l-o tree today. Paul, I take it you will queue these
+up for mainline via your clock series?
 
-Acked-by: Paul Walmsley <paul@pwsan.com>
+M=E5ns, I heard you have some display patches? How about queuing up
+those on the fbdev list?
 
+Regards,
 
-- Paul
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
