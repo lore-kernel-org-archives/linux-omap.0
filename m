@@ -1,66 +1,140 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Branch for fbdriver (Re: [PATCH 1/2] OMAP: Make dpll4_m4_ck
-	programmable with clk_set_rate())
-Date: Fri, 5 Dec 2008 18:12:57 -0800
-Message-ID: <20081206021256.GY9714@atomide.com>
-References: <yw1xhc76hmvi.fsf@thrashbarg.mansr.com> <1224545064-25551-1-git-send-email-mans@mansr.com> <alpine.DEB.2.00.0812051650380.21247@utopia.booyaka.com> <20081206001153.GO9714@atomide.com> <yw1xtz9iytcd.fsf@thrashbarg.mansr.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2 2/5] OMAP3: PM: Force IVA2 into idle during bootup
+Date: Fri, 5 Dec 2008 23:23:11 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0812052321220.21247@utopia.booyaka.com>
+References: <1228148566-9358-1-git-send-email-khilman@deeprootsystems.com> <1228148566-9358-2-git-send-email-khilman@deeprootsystems.com> <1228148566-9358-3-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55565 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752641AbYLFCNB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2008 21:13:01 -0500
-Content-Disposition: inline
-In-Reply-To: <yw1xtz9iytcd.fsf@thrashbarg.mansr.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:42664 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751035AbYLFGXM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Dec 2008 01:23:12 -0500
+In-Reply-To: <1228148566-9358-3-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, tomi.valkeinen@nokia.com
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-* M=E5ns Rullg=E5rd <mans@mansr.com> [081205 17:40]:
-> Tony Lindgren <tony@atomide.com> writes:
->=20
-> > * Paul Walmsley <paul@pwsan.com> [081205 15:52]:
-> >> On Tue, 21 Oct 2008, Mans Rullgard wrote:
-> >>=20
-> >> > Filling the set_rate and round_rate fields of dpll4_m4_ck makes
-> >> > this clock programmable through clk_set_rate().  This is needed
-> >> > to give omapfb control over the dss1_alwon_fck rate.
-> >> >=20
-> >> > Signed-off-by: Mans Rullgard <mans@mansr.com>
-> >>=20
-> >> Acked-by: Paul Walmsley <paul@pwsan.com>
-> >>=20
-> >> M=E5ns, sorry this took so long, these two patches slipped through=
- the=20
-> >> cracks here.
-> >
-> > Pushing both to l-o tree today. Paul, I take it you will queue thes=
-e
-> > up for mainline via your clock series?
-> >
-> > M=E5ns, I heard you have some display patches? How about queuing up
-> > those on the fbdev list?
->=20
-> It looks like Tomi's driver is shaping up nicely, so it's probably no=
-t
-> worthwhile spending any significant time on the current driver.  If
-> anyone is interested, everything I have is in my git tree.
+Hi Kevin,
 
-OK, good to know. Tomi, do you have a git branch against the
-mainline kernel for your driver?
+one quick comment.
 
-We could start mirroring it on linux-omap and then start automerging
-it on daily basis to linux-omap for testing (Assuming it does not cause
-problems with other stuff :)
+On Mon, 1 Dec 2008, Kevin Hilman wrote:
 
-Regards,
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> ---
+>  arch/arm/mach-omap2/pm34xx.c              |   55 +++++++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/mach/control.h |    5 +++
+>  2 files changed, 60 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index bd74183..6ff6449 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -29,6 +29,7 @@
+>  #include <mach/pm.h>
+>  #include <mach/clockdomain.h>
+>  #include <mach/powerdomain.h>
+> +#include <mach/control.h>
+>  
+>  #include "cm.h"
+>  #include "cm-regbits-34xx.h"
+> @@ -363,6 +364,58 @@ static struct platform_suspend_ops omap_pm_ops = {
+>  	.valid		= suspend_valid_only_mem,
+>  };
+>  
+> +
+> +/**
+> + * omap3_iva_idle(): ensure IVA is in idle so it can be put into
+> + *                   retention
+> + *
+> + * In cases where IVA2 is activated by bootcode, it may prevent
+> + * full-chip retention or off-mode because it is not idle.  This
+> + * function forces the IVA2 into idle state so it can go
+> + * into retention/off and thus allow full-chip retention/off.
+> + *
+> + **/
+> +static void __init omap3_iva_idle(void)
+> +{
+> +	struct clk *iva2_ck;
+> +
+> +	iva2_ck = clk_get(NULL, "iva2_fclk");
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This should be "iva2_fck", right?
+
+> +	if (!iva2_ck) {
+> +		pr_err("Unable to get IVA2 fclk: cannot force idle.\n");
+> +		return;
+> +	}
+> +
+> +	/* Disable IVA2 clock */
+> +	clk_disable(iva2_ck);
+> +
+> +	/* Reset IVA2 */
+> +	prm_write_mod_reg(OMAP3430_RST1_IVA2 |
+> +			  OMAP3430_RST2_IVA2 |
+> +			  OMAP3430_RST3_IVA2,
+> +			  OMAP3430_IVA2_MOD, RM_RSTCTRL);
+> +
+> +	/* Enable IVA2 clock */
+> +	clk_enable(iva2_ck);
+> +
+> +	/* Set IVA2 boot mode to 'idle' */
+> +	omap_ctrl_writel(OMAP3_IVA2_BOOTMOD_IDLE,
+> +			 OMAP343X_CONTROL_IVA2_BOOTMOD);
+> +
+> +	/* Un-reset IVA2 */
+> +	prm_write_mod_reg(0, OMAP3430_IVA2_MOD, RM_RSTCTRL);
+> +
+> +	/* Disable IVA2 clocks */
+> +	clk_disable(iva2_ck);
+> +
+> +	/* Reset IVA2 */
+> +	prm_write_mod_reg(OMAP3430_RST1_IVA2 |
+> +			  OMAP3430_RST2_IVA2 |
+> +			  OMAP3430_RST3_IVA2,
+> +			  OMAP3430_IVA2_MOD, RM_RSTCTRL);
+> +
+> +	clk_put(iva2_ck);
+> +}
+> +
+>  static void __init prcm_setup_regs(void)
+>  {
+>  	/* XXX Reset all wkdeps. This should be done when initializing
+> @@ -514,6 +567,8 @@ static void __init prcm_setup_regs(void)
+>  	 * it is selected to mpu wakeup goup */
+>  	prm_write_mod_reg(OMAP3430_IO_EN | OMAP3430_WKUP_EN,
+>  			OCP_MOD, OMAP2_PRM_IRQENABLE_MPU_OFFSET);
+> +
+> +	omap3_iva_idle();
+>  }
+>  
+>  static int __init pwrdms_setup(struct powerdomain *pwrdm)
+> diff --git a/arch/arm/plat-omap/include/mach/control.h b/arch/arm/plat-omap/include/mach/control.h
+> index ee3c39e..b51f7fd 100644
+> --- a/arch/arm/plat-omap/include/mach/control.h
+> +++ b/arch/arm/plat-omap/include/mach/control.h
+> @@ -208,6 +208,11 @@
+>  #define OMAP2_PBIASLITEPWRDNZ0		(1 << 1)
+>  #define OMAP2_PBIASLITEVMODE0		(1 << 0)
+>  
+> +/* CONTROL_IVA2_BOOTMOD bits */
+> +#define OMAP3_IVA2_BOOTMOD_SHIFT	0
+> +#define OMAP3_IVA2_BOOTMOD_MASK		(0xf << 0)
+> +#define OMAP3_IVA2_BOOTMOD_IDLE		(0x1 << 0)
+> +
+>  #ifndef __ASSEMBLY__
+>  #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+>  extern void __iomem *omap_ctrl_base_get(void);
+> -- 
+> 1.6.0.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+- Paul
