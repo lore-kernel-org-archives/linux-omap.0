@@ -1,49 +1,50 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] OMAP2: PM: fix fault in enter_full_retention()
-Date: Fri,  5 Dec 2008 23:55:10 -0800
-Message-ID: <1228550110-6675-1-git-send-email-khilman@deeprootsystems.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.30]:10282 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750779AbYLFHzP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Dec 2008 02:55:15 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so181714yxm.1
-        for <linux-omap@vger.kernel.org>; Fri, 05 Dec 2008 23:55:14 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+From: Kalle Valo <kalle.valo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] stlc45xx: wi-fi driver for stlc4550/4560 chipset
+Date: Sat, 06 Dec 2008 19:32:05 +0200
+Message-ID: <20081206173056.6853.95209.stgit@tikku>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-In omap24xx_cpu_suspend assembly routine, the r2 register which holds
-the address of the SDRC_POWER reg is set to zero before the value is
-written back triggering a fault due to writing to address zero.
+I would like to submit stlc45xx for inclusion to wireless-testing
+tree. Currently the main users are Nokia N800 and N810 products.
 
-It's hard to tell where this change was introduced since this file
-has been moved and merged.
+Even though this driver has similarities with p54, I still think it
+would be a good idea to have the driver in Linux mainline. Linux omap
+community would benefit from this, having a wi-fi driver in the kernel
+would make the use of N800 and N810 a lot easier. p54 support for these
+chipsets is not finished yet.
 
-While this fix prevents a crash, suspend on my n810 is broken with
-current kernels.  I never come out of suspend.
+There is still some work to do, for example, add necessary client power
+save support to mac80211 and modify stlc45xx to use it. Also stlc45xx
+does not yet use platform data to get all board specific settings, but
+I will fix that later. And countless others which I don't list here.
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Please consider including this driver to the wireless-testing tree.
+
 ---
- arch/arm/mach-omap2/sleep24xx.S |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/sleep24xx.S b/arch/arm/mach-omap2/sleep24xx.S
-index 43336b9..bf9e961 100644
---- a/arch/arm/mach-omap2/sleep24xx.S
-+++ b/arch/arm/mach-omap2/sleep24xx.S
-@@ -93,9 +93,8 @@ ENTRY(omap24xx_cpu_suspend)
- 	orr	r4, r4, #0x40		@ enable self refresh on idle req
- 	mov	r5, #0x2000		@ set delay (DPLL relock + DLL relock)
- 	str	r4, [r2]		@ make it so
--	mov	r2, #0
- 	nop
--	mcr	p15, 0, r2, c7, c0, 4	@ wait for interrupt
-+	mcr	p15, 0, r3, c7, c0, 4	@ wait for interrupt
- 	nop
- loop:
- 	subs	r5, r5, #0x1		@ awake, wait just a bit
--- 
-1.6.0.3
+Kalle Valo (1):
+      Add stlc45xx, wi-fi driver for stlc4550/4560
 
+
+ MAINTAINERS                          |    8 
+ drivers/net/wireless/Kconfig         |    9 
+ drivers/net/wireless/Makefile        |    2 
+ drivers/net/wireless/stlc45xx.c      | 2594 ++++++++++++++++++++++++++++++++++
+ drivers/net/wireless/stlc45xx.h      |  285 ++++
+ drivers/net/wireless/stlc45xx_lmac.h |  434 ++++++
+ 6 files changed, 3332 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/net/wireless/stlc45xx.c
+ create mode 100644 drivers/net/wireless/stlc45xx.h
+ create mode 100644 drivers/net/wireless/stlc45xx_lmac.h
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
